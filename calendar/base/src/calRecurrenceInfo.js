@@ -333,7 +333,7 @@ calRecurrenceInfo.prototype = {
 
     // internal helper function; 
     calculateDates: function (aRangeStart, aRangeEnd,
-                              aMaxCount, aIncludeExceptions, aReturnRIDs)
+                              aMaxCount, aReturnRIDs)
     {
         if (!this.mBaseItem)
             throw Components.results.NS_ERROR_NOT_INITIALIZED;
@@ -363,8 +363,14 @@ calRecurrenceInfo.prototype = {
         var startDate = this.mBaseItem.recurrenceStartDate;
         var dates = [];
         
+        // DTSTART/DUE is always part of the (positive) expanded set:
+        // the base item cannot be replaced by an exception;
+        // an exception can only be defined on an item resulting from an RDATE/RRULE;
+        // DTSTART always equals RECURRENCE-ID for items expanded from RRULE
+        dates.push(startDate);
+
         // toss in exceptions first:
-        if (aIncludeExceptions && this.mExceptions) {
+        if (this.mExceptions) {
             this.mExceptions.forEach(function(ex) {
                                          var dtstart = ex.item.getProperty("DTSTART");
                                          var dateToReturn;
@@ -447,6 +453,12 @@ calRecurrenceInfo.prototype = {
                                        dates = dates.filter(function (d) { return d.compare(dateToRemove) != 0; });
                                    });
             } else {
+                // XXX todo: IMO a bug here,
+                //           if we are asked for DTSTART dates
+                //           (aReturnRIDs is false => getOccurrenceDates),
+                //           then pumping in the plain expanded rule dates is wrong,
+                //           we need to take the "exception'ed" DTSTART dates
+
                 // if positive, we just add these date to the existing set,
                 // but only if they're not already there
                 var datesToAdd = [];
@@ -472,7 +484,7 @@ calRecurrenceInfo.prototype = {
     getOccurrenceDates: function (aRangeStart, aRangeEnd,
                                   aMaxCount, aCount)
     {
-        var dates = this.calculateDates(aRangeStart, aRangeEnd, aMaxCount, true, false);
+        var dates = this.calculateDates(aRangeStart, aRangeEnd, aMaxCount, false);
         aCount.value = dates.length;
         return dates;
     },
@@ -481,7 +493,7 @@ calRecurrenceInfo.prototype = {
                               aMaxCount,
                               aCount)
     {
-        var dates = this.calculateDates(aRangeStart, aRangeEnd, aMaxCount, true, true);
+        var dates = this.calculateDates(aRangeStart, aRangeEnd, aMaxCount, true);
         if (dates.length == 0) {
             aCount.value = 0;
             return [];
