@@ -1499,17 +1499,18 @@ NS_IMETHODIMP nsMsgDBView::GetCellValue(PRInt32 aRow, nsITreeColumn* aCol, nsASt
   msgHdr->GetFlags(&flags);
 
   // provide a string "value" for cells that do not normally have text.
+  // use empty string for the normal states "Read", "Not Starred", "No Attachment" and "Not Junk"
   switch (colID[0])
   {
     case 'a': // attachment column
       aValue.Assign(GetString ((flags & MSG_FLAG_ATTACHMENT) ?
       NS_LITERAL_STRING("messageHasAttachment").get()
-      : NS_LITERAL_STRING("messageHasNoAttachment").get()));
+      : EmptyString().get()));
       break;
     case 'f': // flagged (starred) column
       aValue.Assign(GetString ((flags & MSG_FLAG_MARKED) ?
       NS_LITERAL_STRING("messageHasFlag").get()
-      : NS_LITERAL_STRING("messageHasNoFlag").get()));
+      : EmptyString().get()));
       break;
     case 'j': // junk column
       if (!mIsNews)
@@ -1517,7 +1518,7 @@ NS_IMETHODIMP nsMsgDBView::GetCellValue(PRInt32 aRow, nsITreeColumn* aCol, nsASt
         nsCString junkScoreStr;
         msgHdr->GetStringProperty("junkscore", getter_Copies(junkScoreStr));
         aValue.Assign(GetString((!junkScoreStr.IsEmpty() && (atoi(junkScoreStr.get()) > 50)) ?
-         NS_LITERAL_STRING("messageJunk").get() : NS_LITERAL_STRING("messageNotJunk").get()));
+         NS_LITERAL_STRING("messageJunk").get() : EmptyString().get()));
       }
       break;
     case 't':
@@ -1540,8 +1541,7 @@ NS_IMETHODIMP nsMsgDBView::GetCellValue(PRInt32 aRow, nsITreeColumn* aCol, nsASt
       break;
     case 'u': // read/unread column
       aValue.Assign(GetString ((flags & MSG_FLAG_READ) ?
-      NS_LITERAL_STRING("messageRead").get()
-      : NS_LITERAL_STRING("messageUnread").get()));
+      EmptyString().get() : NS_LITERAL_STRING("messageUnread").get()));
       break;
     default:
       aValue.Assign(colID);
