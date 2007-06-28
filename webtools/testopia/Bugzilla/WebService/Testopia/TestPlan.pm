@@ -23,6 +23,7 @@ use base qw(Bugzilla::WebService);
 
 use Bugzilla::Constants;
 use Bugzilla::User;
+use Bugzilla::Util;
 use Bugzilla::Testopia::TestPlan;
 use Bugzilla::Testopia::Search;
 use Bugzilla::Testopia::Table;
@@ -100,7 +101,7 @@ sub create
 
     $self->login;
 
-    my $test_plan = new Bugzilla::Testopia::TestPlan($new_values);
+    my $test_plan = Bugzilla::Testopia::TestPlan->create($new_values);
     
     my $result = $test_plan->store(); 
     
