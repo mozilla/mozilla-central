@@ -2036,7 +2036,6 @@ void nsImapProtocol::ProcessSelectedStateURL()
       Log("ProcessSelectedStateURL", nsnull, "uid validity not ok");
     if (GetServerStateParser().LastCommandSuccessful() && !DeathSignalReceived() && (uidValidityOk || m_imapAction == nsIImapUrl::nsImapDeleteAllMsgs))
     {
-
       if (GetServerStateParser().CurrentFolderReadOnly())
       {
         Log("ProcessSelectedStateURL", nsnull, "current folder read only");
@@ -2048,13 +2047,9 @@ void nsImapProtocol::ProcessSelectedStateURL()
           {
             PRUint32 aclFlags = 0;
 
-            if (NS_SUCCEEDED(m_imapMailFolderSink->GetAclFlags(&aclFlags)))
-            {
-              if (aclFlags != 0) // make sure we have some acl flags
-              {
-                canChangeFlag = ((msgFlags & kImapMsgSeenFlag) && (aclFlags & IMAP_ACL_STORE_SEEN_FLAG));
-              }
-            }
+            if (NS_SUCCEEDED(m_imapMailFolderSink->GetAclFlags(&aclFlags))
+                  && aclFlags != 0) // make sure we have some acl flags
+              canChangeFlag = ((msgFlags & kImapMsgSeenFlag) && (aclFlags & IMAP_ACL_STORE_SEEN_FLAG));
           }
           else
             canChangeFlag = (GetServerStateParser().SettablePermanentFlags() & msgFlags) == msgFlags;
@@ -3630,8 +3625,9 @@ void nsImapProtocol::ProcessMailboxUpdate(PRBool handlePossibleUndo)
       {
         // ### TODO read gExpungeThreshhold from prefs. Don't do expunge when we
         // are lite selecting folder because we could be doing undo
-        if ((m_flagState->GetNumberOfDeletedMessages() >= 20/* gExpungeThreshold */)
-                 && !GetShowDeletedMessages() && m_imapAction != nsIImapUrl::nsImapLiteSelectFolder)
+        if ((m_flagState->GetNumberOfDeletedMessages() >= 20 /* gExpungeThreshold */) &&
+                 !GetShowDeletedMessages() && 
+                 m_imapAction != nsIImapUrl::nsImapLiteSelectFolder)
           Expunge();
       }
 
@@ -4815,6 +4811,12 @@ nsImapProtocol::UidExpunge(const nsCString &messageSet)
 void
 nsImapProtocol::Expunge()
 {
+  PRUint32 aclFlags = 0;
+  if (GetServerStateParser().ServerHasACLCapability() && m_imapMailFolderSink)
+    m_imapMailFolderSink->GetAclFlags(&aclFlags);
+
+  if (aclFlags && !(aclFlags & IMAP_ACL_EXPUNGE_FLAG))
+    return;
   ProgressEventFunctionUsingId (IMAP_STATUS_EXPUNGING_MAILBOX);
 
   if(gCheckDeletedBeforeExpunge)

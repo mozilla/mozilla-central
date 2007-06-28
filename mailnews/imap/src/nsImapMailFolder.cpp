@@ -5310,6 +5310,8 @@ void nsMsgIMAPFolderACL::BuildInitialACLFromCache()
     myrights += "dt";
   if (startingFlags & IMAP_ACL_ADMINISTER_FLAG)
     myrights += "a";
+  if (startingFlags & IMAP_ACL_EXPUNGE_FLAG)
+    myrights += "e";
 
   if (!myrights.IsEmpty())
     SetFolderRightsForUser(EmptyCString(), myrights);
@@ -5359,6 +5361,11 @@ void nsMsgIMAPFolderACL::UpdateACLCache()
     startingFlags |= IMAP_ACL_ADMINISTER_FLAG;
   else
     startingFlags &= ~IMAP_ACL_ADMINISTER_FLAG;
+
+  if (GetCanIExpungeFolder())
+    startingFlags |= IMAP_ACL_EXPUNGE_FLAG;
+  else
+    startingFlags &= ~IMAP_ACL_EXPUNGE_FLAG;
 
   m_folder->SetAclFlags(startingFlags);
 }
@@ -5534,6 +5541,12 @@ PRBool nsMsgIMAPFolderACL::GetCanIAdministerFolder()
   return GetFlagSetInRightsForUser(EmptyCString(), 'a', PR_TRUE);
 }
 
+PRBool nsMsgIMAPFolderACL::GetCanIExpungeFolder()
+{
+  return GetFlagSetInRightsForUser(EmptyCString(), 'e', PR_TRUE) ||
+    GetFlagSetInRightsForUser(EmptyCString(), 'd', PR_TRUE);
+}
+
 // We use this to see if the ACLs think a folder is shared or not.
 // We will define "Shared" in 5.0 to mean:
 // At least one user other than the currently authenticated user has at least one
@@ -5561,6 +5574,7 @@ PRBool nsMsgIMAPFolderACL::GetDoIHaveFullRightsForFolder()
     GetCanIDeleteInFolder() &&
     GetCanILookupFolder() &&
     GetCanIStoreSeenInFolder() &&
+    GetCanIExpungeFolder() &&
     GetCanIPostToFolder());
 }
 
@@ -5609,6 +5623,13 @@ nsresult nsMsgIMAPFolderACL::CreateACLRightsString(nsAString& aRightsString)
     {
       if (!aRightsString.IsEmpty()) aRightsString.AppendLiteral(", ");
       bundle->GetStringFromID(IMAP_ACL_DELETE_RIGHT, getter_Copies(curRight));
+      aRightsString.Append(curRight);
+    }
+    if (GetCanIExpungeFolder())
+    {
+      if (!aRightsString.IsEmpty())
+        aRightsString.AppendLiteral(", ");
+      bundle->GetStringFromID(IMAP_ACL_EXPUNGE_RIGHT, getter_Copies(curRight));
       aRightsString.Append(curRight);
     }
     if (GetCanICreateSubfolder())

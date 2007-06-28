@@ -126,6 +126,7 @@ PR_END_EXTERN_C
 #define IMAP_ACL_ADMINISTER_RIGHT                   5082
 #define IMAP_UNKNOWN_USER                           5083
 #define IMAP_SERVER_DOESNT_SUPPORT_ACL              5084
+#define IMAP_ACL_EXPUNGE_RIGHT                      5085
 #define IMAP_SERVER_DISCONNECTED                    5090
 #define IMAP_REDIRECT_LOGIN_FAILED                  5091
 #define IMAP_SUBSCRIBE_PROMPT                       5092

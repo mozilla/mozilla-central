@@ -129,9 +129,11 @@ class nsImapMailFolder;
 #define IMAP_ACL_INSERT_FLAG 0x0000008 /* APPEND, COPY into folder */
 #define IMAP_ACL_POST_FLAG 0x0000010 /* Can I send mail to the submission address for folder? */
 #define IMAP_ACL_CREATE_SUBFOLDER_FLAG 0x0000020 /* Can I CREATE a subfolder of this folder? */
-#define IMAP_ACL_DELETE_FLAG 0x0000040 /* STORE DELETED flag, perform EXPUNGE */
+#define IMAP_ACL_DELETE_FLAG 0x0000040 /* STORE DELETED flag */
 #define IMAP_ACL_ADMINISTER_FLAG 0x0000080 /* perform SETACL */
 #define IMAP_ACL_RETRIEVED_FLAG 0x0000100 /* ACL info for this folder has been initialized */
+#define IMAP_ACL_EXPUNGE_FLAG 0x0000200 // can EXPUNGE or do implicit EXPUNGE on CLOSE
+#define IMAP_ACL_DELETE_FOLDER 0x0000400 // can DELETE/RENAME folder
 
 class nsMsgIMAPFolderACL
 {
@@ -166,8 +168,9 @@ public:
   PRBool GetCanIInsertInFolder();    // APPEND, COPY into folder?
   PRBool GetCanIPostToFolder();      // Can I send mail to the submission address for folder?
   PRBool GetCanICreateSubfolder();   // Can I CREATE a subfolder of this folder?
-  PRBool GetCanIDeleteInFolder();    // STORE DELETED flag, perform EXPUNGE?
+  PRBool GetCanIDeleteInFolder();    // STORE DELETED flag?
   PRBool GetCanIAdministerFolder();  // perform SETACL?
+  PRBool GetCanIExpungeFolder();     // perform EXPUNGE?
 
   PRBool GetDoIHaveFullRightsForFolder(); // Returns TRUE if I have full rights on this folder (all of the above return TRUE)
 
