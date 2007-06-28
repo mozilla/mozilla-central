@@ -32,6 +32,7 @@ import org.mozilla.util.Assert;
 import org.mozilla.util.Log;
 import org.mozilla.webclient.BrowserControl;
 import org.mozilla.webclient.BrowserControlCanvas;
+import org.mozilla.webclient.NewWindowEvent;
 import org.mozilla.webclient.WindowControl;
 import org.mozilla.webclient.impl.BrowserControlImpl;
 import org.mozilla.webclient.impl.WrapperFactory;
@@ -87,6 +88,13 @@ abstract class NativeBrowserControlCanvas extends BrowserControlCanvas {
      */
 
     abstract protected int getWindow();
+
+    /**
+     * Allow platform specific handling of new window creation.
+     *
+     */
+    
+    abstract void performPlatformAppropriateNewWindowRealization(NewWindowEvent event);
 
     private void createNativeBrowser() throws IllegalStateException {
         try {

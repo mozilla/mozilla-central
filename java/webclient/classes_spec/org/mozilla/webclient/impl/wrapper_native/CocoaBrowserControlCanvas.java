@@ -26,12 +26,12 @@
 
 package org.mozilla.webclient.impl.wrapper_native;
 
-import org.mozilla.webclient.BrowserControlCanvas;
 
-import java.awt.*;
+import java.util.List;
 import java.util.logging.Logger;
 import org.mozilla.util.Log;
 import org.mozilla.util.ReturnRunnable;
+import org.mozilla.webclient.NewWindowEvent;
 import org.mozilla.webclient.impl.WrapperFactory;
 
 /**
@@ -79,6 +79,13 @@ public class CocoaBrowserControlCanvas extends NativeBrowserControlCanvas {
         }
 	return nativeView;
         
+    }
+    
+    void performPlatformAppropriateNewWindowRealization(NewWindowEvent event) {
+        List<Runnable> addToList =
+                event.getRealizeNewWindowRunnableList();
+        event.getRealizeNewWindowRunnable().run();
+        addToList.add(new Runnable() { public void run() {} });
     }
         
     public static NativeEventThread newNativeEventThread(WrapperFactory owner) {

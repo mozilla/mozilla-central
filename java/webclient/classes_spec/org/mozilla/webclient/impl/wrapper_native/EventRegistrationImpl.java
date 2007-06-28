@@ -21,8 +21,6 @@
  */
 
 package org.mozilla.webclient.impl.wrapper_native;
-import java.awt.BorderLayout;
-import java.awt.Container;
 import org.mozilla.util.ParameterCheck;
 
 import java.util.ArrayList;
@@ -47,13 +45,14 @@ import org.mozilla.util.Log;
 import org.mozilla.util.ReturnRunnable;
 
 import org.mozilla.webclient.BrowserControl;
+import org.mozilla.webclient.BrowserControlCanvas;
 import org.mozilla.webclient.EventRegistration2;
-import org.mozilla.webclient.impl.BrowserControlImpl;
 import org.mozilla.webclient.impl.WrapperFactory;
 import org.mozilla.webclient.DocumentLoadEvent;
 import org.mozilla.webclient.DocumentLoadListener;
 import org.mozilla.webclient.PageInfoListener;
 import org.mozilla.webclient.NewWindowEvent;
+import org.mozilla.webclient.NewWindowEvent.RealizeNewWindowEvent;
 import org.mozilla.webclient.NewWindowListener;
 import org.mozilla.webclient.WCKeyEvent;
 import org.mozilla.webclient.WebclientEvent;
@@ -551,28 +550,18 @@ private EventObject createKeyEvent(long eventType, Object eventData) {
     return keyEvent;
 }
 
-private int getNativeBrowserControlFromNewWindowEvent(NewWindowEvent event) {
-    NativeBrowserControlCanvas 
-            currentCanvas = null,
-            newCanvas = null;
-    BrowserControlImpl newBrowserControl = null;
+private int getNativeBrowserControlFromNewWindowEvent(final NewWindowEvent event) {
+    final BrowserControl newBrowserControl;
+    NativeBrowserControlCanvas newCanvas = null;
     EventRegistration2 newEventRegistration = null;
-    Container parentContainer = null;
     int result = 0;
 
-    if (null == (newBrowserControl = 
-            (BrowserControlImpl) event.getBrowserControl())) {
+    if (null == (newBrowserControl = event.getBrowserControl())) {
 	return 0;
     }
-    if (null == (parentContainer = 
-            event.getParentContainer())) {
-        return 0;
-    }
     
-    currentCanvas = browserControlCanvas;
     try {
-        newCanvas =
-                (NativeBrowserControlCanvas)
+         newCanvas = (NativeBrowserControlCanvas)
                 newBrowserControl.queryInterface(BrowserControl.BROWSER_CONTROL_CANVAS_NAME);
     } catch (ClassNotFoundException cnfe) {
         if (LOGGER.isLoggable(Level.SEVERE)) {
@@ -581,10 +570,6 @@ private int getNativeBrowserControlFromNewWindowEvent(NewWindowEvent event) {
         }
         throw new IllegalStateException(cnfe);
     }
-    
-    parentContainer.add(newCanvas, BorderLayout.CENTER);
-    parentContainer.setVisible(true);
-    newCanvas.setVisible(true);
     
     try {
 	newEventRegistration = (EventRegistration2)
@@ -601,6 +586,8 @@ private int getNativeBrowserControlFromNewWindowEvent(NewWindowEvent event) {
     if (null == newEventRegistration) {
 	return 0;
     }
+    
+    newCanvas.performPlatformAppropriateNewWindowRealization(event);
     
     result = ((ImplObjectNative)newEventRegistration).getNativeBrowserControl();
     
