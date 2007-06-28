@@ -17211,7 +17211,7 @@
 			isa = PBXFileReference;
 			lastKnownFileType = sourcecode.javascript;
 			name = "all-camino.js";
-			path = "resources/application/all-camino.js";
+			path = "generated/all-camino.js";
 			refType = 2;
 			sourceTree = SOURCE_ROOT;
 		};

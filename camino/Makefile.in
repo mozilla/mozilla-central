@@ -20,6 +20,8 @@
 #
 # Contributor(s):
 #  Brian Ryner <bryner@brianryner.com>
+#  Mark Mentovai <mark@moxienet.com>
+#  Smokey Ardisson <alqahira@ardisson.org>
 #
 # Alternatively, the contents of this file may be used under the terms of
 # either the GNU General Public License Version 2 or later (the "GPL"), or
@@ -48,6 +50,9 @@ DIRS = \
 	$(NULL)
 
 APP_NAME	= Camino
+
+FOX_APP_VERSION_FILE = $(srcdir)/../browser/config/version.txt
+FOX_APP_VERSION = $(shell cat $(FOX_APP_VERSION_FILE))
 
 ifdef MOZ_DEBUG
 BUILDSTYLE	= Development
@@ -82,10 +87,18 @@ endif
 clean clobber repackage::
 	rm -rf $(DIST)/$(APP_NAME).app
 	rm -rf embed-replacements.tmp
+	rm -rf generated
+
+generated:
+	mkdir -p $@
+
+# Generate files which need to pull version numbers from elsewhere in the tree
+generated/all-camino.js: $(srcdir)/resources/application/all-camino.js.in $(FOX_APP_VERSION_FILE) generated
+	sed -e "s/@FOX_APP_VERSION@/$(FOX_APP_VERSION)/" $< > $@
 
 # The embed-replacements rsync is done for both srcdir and objdir builds
 # to avoid adding CVS stuff to embed.jar.
-libs::
+libs:: generated/all-camino.js
 	rsync -aC --delete $(srcdir)/embed-replacements/ embed-replacements.tmp
 	cd embed-replacements.tmp && $(ZIP) -r0DX ../../dist/Embed/chrome/embed.jar *
 	$(PBBUILD) -project Camino.xcode -target $(TARGET) -buildstyle $(BUILDSTYLE) $(PBBUILD_SETTINGS)
