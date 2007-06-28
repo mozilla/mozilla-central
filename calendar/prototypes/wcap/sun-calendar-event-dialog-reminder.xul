@@ -63,7 +63,6 @@
   <script type="application/x-javascript" src="chrome://calendar/content/sun-calendar-event-dialog-reminder.js"/>
   <script type="application/x-javascript" src="chrome://calendar/content/calendar-dialog-utils.js"/>
   <script type="application/x-javascript" src="chrome://calendar/content/calUtils.js"/>
-  <script type="application/x-javascript" src="chrome://calendar/content/applicationUtil.js"/>
 
   <!-- Listbox with custom reminders -->
   <grid flex="1">
