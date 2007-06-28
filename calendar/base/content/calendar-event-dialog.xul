@@ -341,7 +341,7 @@
           </hbox>
         </row>
 
-        <row class="todo-only" details="true">
+        <row align="center" class="todo-only" details="true">
           <label id="todo-status-label" value="&newevent.status.label;"/>
           <hbox align="center">
             <menulist id="todo-status" class="todo-only"
