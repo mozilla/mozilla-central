@@ -208,7 +208,6 @@ bin\components\calItemModule.js
 bin\components\calMemoryCalendar.js
 bin\components\calStorageCalendar.js
 bin\components\calWcapCalendarModule.js
-bin\components\FeedProcessor.js
 bin\components\jsconsole-clhandler.js
 bin\components\pluginGlue.js
 bin\js\calAlarmService.js

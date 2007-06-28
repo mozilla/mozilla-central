@@ -72,6 +72,7 @@ chrome/calendar-wen-DE.jar
 chrome/help.jar
 chrome/pipnss.jar
 components/browser.xpt
+components/feedProcessor.js
 components/nsSetDefaultBrowser.js
 defaults/profile/mimeTypes.rdf
 extensions/{8af2d0a7-e394-4de2-ae55-2dae532a7a9b}/install.rdf
