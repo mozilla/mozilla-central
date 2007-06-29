@@ -24,6 +24,7 @@
  *   Dan Mosedale <dan.mosedale@oracle.com>
  *   Michiel van Leeuwen <mvl@exedo.nl>
  *   Clint Talbert <cmtalbert@myfastmail.com>
+ *   Daniel Boelzle <daniel.boelzle@sun.com>
  *
  * Alternatively, the contents of this file may be used under the terms of
  * either the GNU General Public License Version 2 or later (the "GPL"), or
@@ -352,6 +353,8 @@ calDateTime::GetInTimezone(const nsACString& aTimezone, calIDateTime **aResult)
         cdt = new calDateTime(*this);
         if (!mTimezone.EqualsLiteral("floating"))
             cdt->mTimezone.Assign(aTimezone);
+    } else if (mTimezone.Equals(aTimezone)) {
+        cdt = new calDateTime(*this);
     } else {
         struct icaltimetype icalt;
         icaltimezone *tz = nsnull;
@@ -396,6 +399,8 @@ calDateTime::GetInTimezone(const nsACString& aTimezone, calIDateTime **aResult)
         cdt = new calDateTime(&icalt);
     }
 
+    if (!cdt)
+        return NS_ERROR_OUT_OF_MEMORY;
     NS_ADDREF (*aResult = cdt);
     return NS_OK;
 }
