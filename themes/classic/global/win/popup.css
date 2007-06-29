@@ -45,8 +45,7 @@
 /* ::::: menupopup ::::: */
 
 menupopup,
-popup,
-panel {
+popup {
   border: 2px solid;
   -moz-border-top-colors: ThreeDLightShadow ThreeDHighlight;
   -moz-border-right-colors: ThreeDDarkShadow ThreeDShadow;
