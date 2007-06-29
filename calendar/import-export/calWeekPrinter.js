@@ -209,7 +209,8 @@ function weekPrint_getDayTable(aDate, aItems) {
     var mainTd = <td border='1px solid black;' width="50%" valign='top'/>
     var dateFormatter = Components.classes["@mozilla.org/calendar/datetime-formatter;1"]
                                   .getService(Components.interfaces.calIDateTimeFormatter);
-    var dateString = dateFormatter.formatDateLong(aDate);
+    var defaultTimezone = calendarDefaultTimezone();
+    var dateString = dateFormatter.formatDateLong(aDate.getInTimezone(defaultTimezone));
 
     // Add the formatted date string (in its own child HTML table)
     mainTd.appendChild(
@@ -224,6 +225,12 @@ function weekPrint_getDayTable(aDate, aItems) {
     for each (var item in aItems) {
         var sDate = item.startDate || item.entryDate || item.dueDate;
         var eDate = item.endDate || item.dueDate || item.entryDate;
+        if (sDate) {
+            sDate = sDate.getInTimezone(defaultTimezone);
+        }
+        if (eDate) {
+            eDate = eDate.getInTimezone(defaultTimezone);
+        }
 
         // End dates are exclusive. Adjust the eDate accordingly.
         if (sDate && sDate.isDate && eDate) {

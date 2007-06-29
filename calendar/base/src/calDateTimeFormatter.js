@@ -204,7 +204,8 @@ function formatDateTime(aDate) {
 
 calDateTimeFormatter.prototype.formatInterval =
 function formatInterval(aStartDate, aEndDate, aStartString, aEndString) {
-    var endDate = aEndDate.clone();
+    // make sure start and end use the same timezone when formatting intervals:
+    var endDate = aEndDate.getInTimezone(aStartDate.timezone);
     // EndDate is exclusive. For all-day events, we ened to substract one day,
     // to get into a format that's understandable.
     if (aStartDate.isDate) {

@@ -119,6 +119,7 @@ function html_exportToStream(aStream, aCount, aItems, aTitle) {
     var prefixWhen = calGetString("calendar", "htmlPrefixWhen");
     var prefixLocation = calGetString("calendar", "htmlPrefixLocation");
     var prefixDescription = calGetString("calendar", "htmlPrefixDescription");
+    var defaultTimezone = calendarDefaultTimezone();
 
     for (var pos = 0; pos < aItems.length; ++pos) {
         var item = aItems[pos];
@@ -137,6 +138,12 @@ function html_exportToStream(aStream, aCount, aItems, aTitle) {
 
         var startDate = calGetStartDate(item);
         var endDate = calGetEndDate(item);
+        if (startDate) {
+            startDate = startDate.getInTimezone(defaultTimezone);
+        }
+        if (endDate) {
+            endDate = endDate.getInTimezone(defaultTimezone);
+        }
 
         // Start and end
         var startstr = new Object();
