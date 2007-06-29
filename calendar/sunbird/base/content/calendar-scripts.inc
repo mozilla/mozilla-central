@@ -26,6 +26,7 @@
 #                 Dan Parent <danp@oeone.com>
 #                 ArentJan Banck <ajbanck@planet.nl>
 #                 Eric Belhaire <belhaire@ief.u-psud.fr>
+#                 Philipp Kewisch <mozilla@kewis.ch>
 #
 # Alternatively, the contents of this file may be used under the terms of
 # either the GNU General Public License Version 2 or later (the "GPL"), or
@@ -80,3 +81,7 @@
   <script type="application/x-javascript" src="chrome://global/content/globalOverlay.js"/>
 
   <script type="application/x-javascript" src="chrome://global/content/printUtils.js"/>
+
+  <!-- NEEDED FOR MINIMONTH BUSY HIGHLIGHT -->
+  <script type="application/x-javascript" src="chrome://calendar/content/calendar-minimonth-busy.js"/>
+

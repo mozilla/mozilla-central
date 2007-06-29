@@ -20,12 +20,13 @@
    - the Initial Developer. All Rights Reserved.
    -
    - Contributor(s):
-   -   Mike Shaver        <shaver@mozilla.org>
-   -   Stuart Parmenter   <stuart.parmenter@oracle.com>
+   -   Mike Shaver <shaver@mozilla.org>
+   -   Stuart Parmenter <stuart.parmenter@oracle.com>
    -   Vladimir Vukicevic <vladimir@pobox.com>
-   -   Joey Minta         <jminta@gmail.com>
-   -   Simon Paquet       <bugzilla@babylonsounds.com>
-   -   Stefan Sitter      <ssitter@googlemail.com>
+   -   Joey Minta <jminta@gmail.com>
+   -   Simon Paquet <bugzilla@babylonsounds.com>
+   -   Stefan Sitter <ssitter@googlemail.com>
+   -   Philipp Kewisch <mozilla@kewis.ch>
    -
    - Alternatively, the contents of this file may be used under the terms of
    - either the GNU General Public License Version 2 or later (the "GPL"), or
@@ -69,6 +70,7 @@
 <script type="application/x-javascript" src="chrome://lightning/content/calendar-management.js"/>
 <script type="application/x-javascript" src="chrome://lightning/content/messenger-overlay-sidebar.js"/>
 <script type="application/x-javascript" src="chrome://calendar/content/calendar-views.js"/>
+<script type="application/x-javascript" src="chrome://calendar/content/calendar-minimonth-busy.js"/>
 <script type="application/x-javascript" src="chrome://calendar/content/clipboard.js"/>
 <window id="messengerWindow">
   <commandset id="calendar_commands">

@@ -153,6 +153,16 @@
       <property name="value"
                 onget="return this.mValue"
                 onset="this.update(val)"/>
+
+      <property name="firstDate"
+                readonly="true"
+                onget="return this.kDaysOfMonthBox.childNodes[1].firstChild.date;"/>
+
+      <property name="lastDate"
+                readonly="true"
+                onget="return this.kDaysOfMonthBox.lastChild.lastChild.date;"/>
+
+      <field name="mDaymap">null</field>
                 
       <constructor>
         <![CDATA[
@@ -320,10 +330,17 @@
             // get today's date
             var today = new Date();
 
+            this.mDayMap = {};
+
             for (var k = 1; k < calbox.childNodes.length; k++) {
               var row = calbox.childNodes[k];
               for (i = 0; i < 7; i++) {
                 var day = row.childNodes[i];
+                var ymd = date.getFullYear() + "-" +
+                          date.getMonth() + "-" +
+                          date.getDate();
+                this.mDayMap[ymd] = day;
+
                 if (aDate.getMonth() != date.getMonth()) {
                   day.setAttribute("othermonth", "true");
                 } else {
@@ -347,6 +364,10 @@
                 day.calendar = this;
                 day.setAttribute("value", date.getDate());
                 date.setDate(date.getDate() + 1);
+
+                if (monthChanged) {
+                  this.resetAttributesForDate(day.date);
+                }
               }
             }
             if (monthChanged) this.fireEvent('monthchange');
@@ -407,52 +428,51 @@
         </body>
       </method>
 
-      <method name="setBusyDates">
-        <parameter name="arrayOfDates"/>
+      <method name="getBoxForDate">
+        <parameter name="aDate"/>
         <body>
           <![CDATA[
-            /* CODE FROM monthView.js for finding the events for the month. */
-            /*
-            document.getElementById( "lefthandcalendar" ).value = date;
+            var ymd = aDate.getFullYear() + "-" +
+                      aDate.getMonth() + "-" +
+                      aDate.getDate();
+            return this.mDayMap[ymd];
+          ]]>
+        </body>
+      </method>
 
-            //get a list of events for this month.
-            var monthEvents =
-              this.eventSource.getEventsForMonth( this.getSelectedDate() );
-            var arrayOfDates = new Array();
-
-            for( var eventIndex = 0; eventIndex < monthEvents.length; ++eventIndex )
-            {
-              var calendarEventDisplay = monthEvents[ eventIndex ];
-              var eventDate = new Date( calendarEventDisplay.displayDate );
-
-              //add them to an array
-              arrayOfDates[ eventDate.getDate() ] = true;
-            }
-            document.getElementById( "lefthandcalendar" ).setBusyDates( arrayOfDates );
-            */ 
-            var aDate = new Date();
-            aDate.setDate( 1 );
-            // Update the calendar
-            var calbox = document.getAnonymousNodes(this)[0].childNodes[1];
-
-            // weekStart day is set by preference
-            var firstWeekday = (7 + aDate.getDay() - this.weekStart) % 7;
-            var date = new Date(aDate.getTime());
-            date.setDate(date.getDate() - firstWeekday);
-
-            for (var k = 1; k < calbox.childNodes.length; k++) {
-              var row = calbox.childNodes[k];
-              for (var i = 0; i < 7; i++) {
-                var day = row.childNodes[i];
-                if (aDate.getMonth() == date.getMonth() && 
-                    arrayOfDates[ date.getDate() ] == true  ) {
-                  day.setAttribute("busy", "true");
-                } else {
-                  day.removeAttribute("busy");
+      <method name="resetAttributesForDate">
+        <parameter name="aDate"/>
+        <body>
+          <![CDATA[
+            function removeForBox(aBox) {
+              var allowedAttributes = 0;
+              while (aBox.attributes.length > allowedAttributes) {
+                switch (aBox.attributes[allowedAttributes].nodeName) {
+                  case "selected":
+                  case "othermonth":
+                  case "today":
+                  case "value":
+                  case "class":
+                  case "flex":
+                    allowedAttributes++;
+                    break;
+                  default:
+                    aBox.removeAttribute(aBox.attributes[allowedAttributes].nodeName);
+                    break;
                 }
+              }
+            }
 
-                // next date of month, may increment month
-                date.setDate(date.getDate() + 1);
+            if (aDate) {
+              var box = this.getBoxForDate(aDate);
+              if (box) {
+                  removeForBox(box);
+              }
+            } else {
+              for (var k = 1; k < this.kDaysOfMonthBox.childNodes.length; k++) {
+                for (var i = 0; i < 7; i++) {
+                  removeForBox(this.kDaysOfMonthBox.childNodes[k].childNodes[i]);
+                }
               }
             }
           ]]>
@@ -550,7 +570,7 @@
                 this.showMonth(aMainDate);
             } else if (!sameDate) {
                 // select day only
-                var day = this._findDay(aDate);
+                var day = this.getBoxForDate(aDate);
                 if (this.mSelected) {
                     this.mSelected.removeAttribute("selected");
                 }
@@ -558,25 +578,6 @@
                 day.setAttribute("selected", "true");
                 this.mValue = aDate;
             }
-          ]]>
-        </body>
-      </method>
-
-      <method name="_findDay">
-        <parameter name="aDate"/>
-        <body>
-          <![CDATA[
-            var calbox = this.kDaysOfMonthBox;
-            for (var i = 1; i < calbox.childNodes.length; ++i) {
-                var row = calbox.childNodes[i];
-                for (var j = 0; j < 7; ++j) {
-                    var day = row.childNodes[j];
-                    if (this._sameDay(day.date,aDate)) {
-                        return day;
-                    }
-                }
-            }
-            return null;
           ]]>
         </body>
       </method>

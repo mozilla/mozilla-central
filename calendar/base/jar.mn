@@ -22,6 +22,7 @@ calendar.jar:
     content/calendar/calendar-item-editing.js    (content/calendar-item-editing.js)
     content/calendar/calendar-month-view.xml     (content/calendar-month-view.xml)
     content/calendar/calendar-multiday-view.xml  (content/calendar-multiday-view.xml)
+    content/calendar/calendar-minimonth-busy.js  (content/calendar-minimonth-busy.js)
     content/calendar/calendar-recurrence-dialog.js  (content/calendar-recurrence-dialog.js)
     content/calendar/calendar-recurrence-dialog.xul  (content/calendar-recurrence-dialog.xul)
     content/calendar/calendar-view-bindings.css  (content/calendar-view-bindings.css)

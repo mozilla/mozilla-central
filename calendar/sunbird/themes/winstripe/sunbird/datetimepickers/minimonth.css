@@ -18,7 +18,9 @@
  * Portions created by the Initial Developer are Copyright (C) 2001
  * the Initial Developer. All Rights Reserved.
  *
- * Contributor(s): Matthew Willis <mattwillis@gmail.com>
+ * Contributor(s):
+ *   Matthew Willis <mattwillis@gmail.com>
+ *   Philipp Kewisch <mozilla@kewis.ch>
  *
  * Alternatively, the contents of this file may be used under the terms of
  * either the GNU General Public License Version 2 or later (the "GPL"), or
@@ -118,7 +120,7 @@
 }
 
 .minimonth-day[othermonth="true"] {
-  color: #d2d2d2;
+  color: #b2b2b2;
 }
 
 .minimonth-day[budy="true"] {
@@ -134,8 +136,8 @@
   color: #ffffff;
 }
 
-.minimonth-day[busy="true"] {
-  font-weight    : bold;
+.minimonth-day[busy] {
+  font-weight: bold;
 }
 
 .minimonth-day:hover {
