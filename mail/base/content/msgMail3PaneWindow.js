@@ -1710,7 +1710,6 @@ function SelectFolder(folderUri)
   // ancestors are expanded
   var folderIndex = EnsureFolderIndex(folderTree.builderView, msgFolder);
   ChangeSelection(folderTree, folderIndex);
-  UpdateCurTabTitle(msgFolder.prettyName);
 }
 
 function SelectMessage(messageUri)
