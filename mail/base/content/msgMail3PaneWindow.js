@@ -933,7 +933,7 @@ function OnUnloadMessenger()
   pref.QueryInterface(Components.interfaces.nsIPrefBranch2);
   pref.removeObserver("mail.pane_config.dynamic", MailPrefObserver);
   pref.removeObserver("mail.showFolderPaneColumns", MailPrefObserver);
-
+  document.getElementById('tabmail').closeTabs();
   // FIX ME - later we will be able to use onload from the overlay
   OnUnloadMsgHeaderPane();
 
@@ -1409,7 +1409,6 @@ function ClearMessagePane()
 {
   if(gHaveLoadedMessage)
   {
-    dump("clearing message pane\n");
     gHaveLoadedMessage = false;
     if (GetMessagePaneFrame().location.href != "about:blank")
         GetMessagePaneFrame().location.href = "about:blank";
@@ -1702,7 +1701,6 @@ function EnsureFolderIndex(builder, msgFolder)
 
 function SelectFolder(folderUri)
 {
-  dump("selecting folder " + folderUri + "\n");
   var folderTree = GetFolderTree();
   var folderResource = RDF.GetResource(folderUri);
   var msgFolder = folderResource.QueryInterface(Components.interfaces.nsIMsgFolder);

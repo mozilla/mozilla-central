@@ -212,3 +212,8 @@ folderSummaryMessage
 {
   visibility: hidden;
 }
+
+tabmail 
+{
+  -moz-binding: url("chrome://messenger/content/tabmail.xml#tabmail");
+}

@@ -1,4 +1,4 @@
-# -*- Mode: Java; tab-width: 4; indent-tabs-mode: nil; c-basic-offset: 4 -*-
+# -*- Mode: Java; tab-width: 2; indent-tabs-mode: nil; c-basic-offset: 4 -*-
 # ***** BEGIN LICENSE BLOCK *****
 # Version: MPL 1.1/GPL 2.0/LGPL 2.1
 #
@@ -79,7 +79,6 @@ var gFakeAccountPageLoaded = false;
 
 function OnMailWindowUnload()
 {
-  CloseTabs();
   MailOfflineMgr.uninit();
   ClearPendingReadTimer();
 
@@ -101,9 +100,7 @@ function OnMailWindowUnload()
   {
     mailSession = mailSession.QueryInterface(Components.interfaces.nsIMsgMailSession);
     if(mailSession)
-    {
       mailSession.RemoveFolderListener(folderListener);
-    }
   }
 
   mailSession.RemoveMsgWindow(msgWindow);
@@ -195,7 +192,6 @@ function InitMsgWindow()
 
 function AddDataSources()
 {
-
   accountManagerDataSource = accountManagerDataSource.QueryInterface(Components.interfaces.nsIRDFDataSource);
   folderDataSource = folderDataSource.QueryInterface(Components.interfaces.nsIRDFDataSource);
   //to move menu item

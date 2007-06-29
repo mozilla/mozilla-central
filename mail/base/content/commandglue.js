@@ -562,10 +562,10 @@ function ConvertColumnIDToSortType(columnID)
       sortKey = nsMsgViewSortType.byDate;
       break;
     case "senderCol":
-    	sortKey = nsMsgViewSortType.byAuthor;
+      sortKey = nsMsgViewSortType.byAuthor;
       break;
     case "recipientCol":
-    	sortKey = nsMsgViewSortType.byRecipient;
+      sortKey = nsMsgViewSortType.byRecipient;
       break;
     case "subjectCol":
       sortKey = nsMsgViewSortType.bySubject;
@@ -604,8 +604,8 @@ function ConvertColumnIDToSortType(columnID)
       sortKey = nsMsgViewSortType.byId;
       break;
     case "attachmentCol":
-	    sortKey = nsMsgViewSortType.byAttachments;
-	    break;
+      sortKey = nsMsgViewSortType.byAttachments;
+      break;
     default:
       
       //no predefined column handler - lets check if there is a custom column handler
@@ -683,9 +683,9 @@ function ConvertSortTypeToColumnID(sortKey)
     case nsMsgViewSortType.byJunkStatus:
       columnID = "junkStatusCol";
       break;
-	  case nsMsgViewSortType.byAttachments:
-	    columnID = "attachmentCol";
-	    break;
+    case nsMsgViewSortType.byAttachments:
+      columnID = "attachmentCol";
+      break;
     case nsMsgViewSortType.byCustom:
 
       //TODO: either change try() catch to if (property exists) or restore the getColumnHandler() check
@@ -890,7 +890,7 @@ function FolderPaneSelectionChange()
         if (msgFolder == gMsgFolderSelected)
            return;
 
-	      gPrevSelectedFolder = gMsgFolderSelected;
+        gPrevSelectedFolder = gMsgFolderSelected;
         gMsgFolderSelected = msgFolder;
         UpdateFolderLocationPicker(gMsgFolderSelected);
         var folderFlags = msgFolder.flags;
@@ -997,7 +997,7 @@ function FolderPaneSelectionChange()
             if (gVirtualFolderTerms)
               gDBView.viewFolder = msgFolder;
         }
-        UpdateCurTabTitle(msgFolder.prettyName);
+        document.getElementById('tabmail').setTabTitle(null);
     }
     else
     {

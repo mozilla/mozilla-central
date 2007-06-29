@@ -44,6 +44,7 @@ messenger.jar:
     content/messenger/startpage-li.png              (content/startpage-li.png)
     content/messenger/messenger.css                 (content/messenger.css)
 *   content/messenger/search.xml                    (content/search.xml)
+*   content/messenger/tabmail.xml                   (content/tabmail.xml)
 *   content/messenger/newmailalert.xul              (content/newmailalert.xul)
     content/messenger/newmailalert.js               (content/newmailalert.js)
 #ifdef MOZ_USE_GENERIC_BRANDING

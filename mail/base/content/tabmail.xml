@@ -1,0 +1,227 @@
+<?xml version="1.0"?>
+# ***** BEGIN LICENSE BLOCK *****
+# Version: MPL 1.1/GPL 2.0/LGPL 2.1
+#
+# The contents of this file are subject to the Mozilla Public License Version
+# 1.1 (the "License"); you may not use this file except in compliance with
+# the License. You may obtain a copy of the License at
+# http://www.mozilla.org/MPL/
+#
+# Software distributed under the License is distributed on an "AS IS" basis,
+# WITHOUT WARRANTY OF ANY KIND, either express or implied. See the License
+# for the specific language governing rights and limitations under the
+# License.
+#
+# The Original Code is tab email
+#
+# The Initial Developer of the Original Code is
+#   David Bienvenu <bienvenu@nventure.com>.
+# Portions created by the Initial Developer are Copyright (C) 2007
+# the Initial Developer. All Rights Reserved.
+#
+# Contributor(s):
+#  Scott MacGregor <mscott@mozilla.org>
+#
+# Alternatively, the contents of this file may be used under the terms of
+# either the GNU General Public License Version 2 or later (the "GPL"), or
+# the GNU Lesser General Public License Version 2.1 or later (the "LGPL"),
+# in which case the provisions of the GPL or the LGPL are applicable instead
+# of those above. If you wish to allow use of your version of this file only
+# under the terms of either the GPL or the LGPL, and not to allow others to
+# use your version of this file under the terms of the MPL, indicate your
+# decision by deleting the provisions above and replace them with the notice
+# and other provisions required by the GPL or the LGPL. If you do not delete
+# the provisions above, a recipient may use your version of this file under
+# the terms of any one of the MPL, the GPL or the LGPL.
+#
+# ***** END LICENSE BLOCK *****
+
+<!DOCTYPE bindings [
+<!ENTITY % messengerDTD SYSTEM "chrome://messenger/locale/messenger.dtd" >
+%messengerDTD;
+]>
+
+<bindings id="tabmailBindings"
+   xmlns="http://www.mozilla.org/xbl"
+   xmlns:xul="http://www.mozilla.org/keymaster/gatekeeper/there.is.only.xul"
+   xmlns:xbl="http://www.mozilla.org/xbl">
+
+  <binding id="tabmail">
+    <resources>
+      <stylesheet src="chrome://global/skin/browser.css"/>
+    </resources>
+    <content>
+      <xul:tabbox anonid="tabbox" flex="1" eventnode="document" xbl:inherits="handleCtrlPageUpDown"
+                  onselect="if (!('updateCurrentMailTab' in this.parentNode) || event.target.localName != 'tabs')
+                            return; this.parentNode.updateCurrentMailTab();">
+        <xul:hbox class="tab-drop-indicator-bar">
+          <xul:hbox class="tab-drop-indicator" mousethrough="always"/>
+        </xul:hbox>
+        <xul:hbox class="tabbrowser-strip" collapsed="true" tooltip="_child" context="_child"
+                  anonid="strip"
+                  ondraggesture="nsDragAndDrop.startDrag(event, this.parentNode.parentNode); event.stopPropagation();"
+                  ondragover="nsDragAndDrop.dragOver(event, this.parentNode.parentNode); event.stopPropagation();"
+                  ondragdrop="nsDragAndDrop.drop(event, this.parentNode.parentNode); event.stopPropagation();"
+                  ondragexit="nsDragAndDrop.dragExit(event, this.parentNode.parentNode); event.stopPropagation();">
+          <xul:tooltip onpopupshowing="return CreateToolbarTooltip(document, event);"/>
+          <xul:menupopup anonid="tabContextMenu">
+            <xul:menuitem label="&closeTabCmd.label;" accesskey="&closeTabCmd.accesskey;"
+                          oncommand="var tabmail = this.parentNode.parentNode.parentNode.parentNode;
+                                     tabmail.removeTab(document.popupNode);"/>
+          </xul:menupopup>
+          <xul:tabs class="tabbrowser-tabs" flex="1"
+                    anonid="tabcontainer"
+                    setfocus="false"
+                    onclick="this.parentNode.parentNode.parentNode.onTabClick(event);">
+            <xul:tab selected="true" validate="never"
+                     maxwidth="250" width="0" minwidth="100" flex="100"
+                     class="tabbrowser-tab" crop="end"/>
+          </xul:tabs>
+        </xul:hbox>
+        <xul:tabpanels flex="1" class="plain" selectedIndex="0" anonid="panelcontainer">
+          <children/>
+        </xul:tabpanels>
+      </xul:tabbox>
+    </content>
+
+    <implementation>
+      <field name="currentTabOwner">
+        0;
+      </field>
+      <field name="tabOwners" readonly="true">
+        new Array();
+      </field>
+      <field name="tabStrip" readonly="true">
+        document.getAnonymousElementByAttribute(this, "anonid", "strip");
+      </field>
+      <field name="tabContainer" readonly="true">
+        document.getAnonymousElementByAttribute(this, "anonid", "tabcontainer");
+      </field>
+      <method name="addTab">
+        <parameter name="aTabOwner"/>
+        <body>
+          <![CDATA[
+            var t = document.createElementNS("http://www.mozilla.org/keymaster/gatekeeper/there.is.only.xul",
+                                             "tab");
+            t.setAttribute("crop", "end");
+            t.maxWidth = 250;
+            //    t.minWidth = this.tabContainer.mTabMinWidth;
+            t.width = 0;
+            t.setAttribute("flex", "100");
+            t.setAttribute("validate", "never");
+            t.className = "tabbrowser-tab";
+            if (!this.tabOwners.length)
+            {
+              // set up the first tab, which was previously invisible.
+              this.tabOwners[0] = new folderTabOwner();
+              this.setTabTitle(this.tabContainer.firstChild);
+            }
+            this.tabContainer.appendChild(t);
+            if (this.tabStrip.collapsed)
+            {
+              this.tabStrip.collapsed = false;
+              this.tabStrip.setAttribute("closebuttons", "alltabs");
+            }
+            this.saveCurrentTabInfo(); // save off the state of the old tab
+
+            // the order of the following statements is important
+            this.currentTabOwner = aTabOwner;
+            this.tabOwners[this.tabContainer.childNodes.length - 1] = aTabOwner;
+            this.tabContainer.selectedIndex = this.tabContainer.childNodes.length - 1; // this has a side effect of calling updateCurrentMailTab
+            this.setTabTitle(t);
+            this.currentTabOwner.open();
+          ]]>
+        </body>
+      </method>
+      <method name="closeTabs">
+        <body>
+          <![CDATA[
+            for (var i = 0; i < this.tabOwners.length; i++)
+              this.tabOwners[i].close();
+          ]]>
+        </body>
+      </method>
+      <method name="removeTab">
+        <parameter name="aTab"/>
+        <body>
+          <![CDATA[
+            var numTabs = this.tabContainer.childNodes.length;
+            if (numTabs < 3)
+            {
+              // hide the tab bar
+              this.tabStrip.collapsed = true;
+              if (numTabs == 1) // can this happen?
+                return;
+            }
+            var i;
+            // Find and locate the tab in our list.
+            for (i = 0; i < numTabs; i++)
+              if (this.tabContainer.childNodes[i] == aTab)
+                break;
+            var tabOwner = this.tabOwners[i];
+            tabOwner.close(); // inform the owner the tab is being closed
+            this.tabOwners.splice(i, 1);
+            this.tabContainer.removeChild(aTab);
+            if (this.tabContainer.selectedIndex == -1)
+              this.tabContainer.selectedIndex = (i == --numTabs) ? i - 1 : i;
+            if (this.currentTabOwner == tabOwner)
+              this.updateCurrentMailTab();
+          ]]>
+        </body>
+      </method>
+      <!--  UpdateCurrentMailTab - called in response to changing the current tab -->
+      <method name="updateCurrentMailTab">
+        <body>
+          <![CDATA[
+            if (this.currentTabOwner != this.tabOwners[this.tabContainer.selectedIndex])
+            {
+              this.saveCurrentTabInfo(); // save the old tab state before we change the current tab
+              // if this isn't set, then this is the first time we've switched tabs, so the
+              // old tab must be the 0th tab.
+              // the tab owner is responsible for actually setting up the UI for the tab.
+              this.currentTabOwner = this.tabOwners[this.tabContainer.selectedIndex];
+              this.currentTabOwner.onSelect();
+            }
+          ]]>
+        </body>
+      </method>
+      <method name="saveCurrentTabInfo">
+        <body>
+          <![CDATA[
+            if (!this.currentTabOwner)
+              this.currentTabOwner = this.tabOwners[0];
+            this.currentTabOwner.saveCurrentInfo();
+          ]]>
+        </body>
+      </method>
+      <method name="onTabClick">
+        <parameter name="event"/>
+        <body>
+          <![CDATA[
+            // a middle mouse button click on a tab is a short cut for closing a tab
+            if (event.button != 1 || event.target.localName != 'tab')
+              return;
+            this.removeTab(event.target);
+            event.stopPropagation();
+          ]]>
+        </body>
+      </method>
+      <method name="setTabTitle">
+        <parameter name="aTab"/>
+        <body>
+          <![CDATA[
+            if (!aTab)
+              aTab = this.tabContainer.childNodes[this.tabContainer.selectedIndex];
+            // get the owner for the tab...
+            var i;
+            var numTabs = this.tabContainer.childNodes.length;
+            for (i = 0; i < numTabs; i++)
+              if (this.tabContainer.childNodes[i] == aTab)
+                break;
+            aTab.setAttribute("label", this.tabOwners[i].title);
+          ]]>
+        </body>
+      </method>
+    </implementation>
+  </binding>
+</bindings>
