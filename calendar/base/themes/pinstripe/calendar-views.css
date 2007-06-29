@@ -22,6 +22,7 @@
  *   Vladimir Vukicevic <vladimir@pobox.com>
  *   Joey Minta <jminta@gmail.com>
  *   Michiel van Leeuwen <mvl@exedo.nl>
+ *   Philipp Kewisch <mozilla@kewis.ch>
  *
  * Alternatively, the contents of this file may be used under the terms of
  * either the GNU General Public License Version 2 or later (the "GPL"), or
@@ -267,7 +268,7 @@ calendar-multiday-view[hidden="true"] {
   display: none;
 }
 
-.calendar-day-label-box { 
+calendar-day-label {
   color: #3F7D91;
   background: #E7EEEC;
   border-top: 1px solid #3F7D91;
