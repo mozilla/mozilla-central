@@ -1,1 +1,1 @@
-Clobber to see if I can get the backout of the patch for bug 350616 to take effect
+Trigger a new "nightly" now that the patch for bug 347743 was backed out (it was causing bug 386332)
