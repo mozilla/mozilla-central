@@ -299,29 +299,29 @@
                    id="calendar-day-view-button"
                    type="radio"
                    group="calendarViews"
-                   label="&calendar.dayview.button.label;"
-                   tooltiptext="&calendar.dayview.button.tooltip;"
+                   label="&calendar.day.button.label;"
+                   tooltiptext="&calendar.day.button.tooltip;"
                    observes="day_view_command"/>
     <toolbarbutton class="toolbarbutton-1"
                    id="calendar-week-view-button"
                    type="radio"
                    group="calendarViews"
-                   label="&calendar.weekview.button.label;"
-                   tooltiptext="&calendar.weekview.button.tooltip;"
+                   label="&calendar.week.button.label;"
+                   tooltiptext="&calendar.week.button.tooltip;"
                    observes="week_view_command"/>
     <toolbarbutton class="toolbarbutton-1"
                    id="calendar-multiweek-view-button"
                    type="radio"
                    group="calendarViews"
-                   label="&calendar.multiweekview.button.label;"
-                   tooltiptext="&calendar.multiweekview.button.tooltip;"
+                   label="&calendar.multiweek.button.label;"
+                   tooltiptext="&calendar.multiweek.button.tooltip;"
                    observes="multiweek_view_command"/>
     <toolbarbutton class="toolbarbutton-1"
                    id="calendar-month-view-button"
                    type="radio"
                    group="calendarViews"
-                   label="&calendar.monthview.button.label;"
-                   tooltiptext="&calendar.monthview.button.tooltip;"
+                   label="&calendar.month.button.label;"
+                   tooltiptext="&calendar.month.button.tooltip;"
                    observes="month_view_command"/>
 
     <toolbarbutton class="toolbarbutton-1"
@@ -380,8 +380,8 @@
 
     <toolbarbutton class="toolbarbutton-1"
                    id="calendar-go-to-today-button"
-                   label="&calendar.gototoday.button.label;"
-                   tooltiptext="&calendar.gototoday.button.tooltip;"
+                   label="&calendar.today.button.label;"
+                   tooltiptext="&calendar.today.button.tooltip;"
                    observes="go_today_command"/>
 
     <toolbarbutton class="toolbarbutton-1"
