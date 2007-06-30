@@ -4114,6 +4114,7 @@ function wv_init()
          ["remove-watch",   cmdUnwatch,            CMD_CONSOLE],
          ["save-watches",   cmdSaveWatches,        CMD_CONSOLE],
          ["watch-property", cmdWatchProperty,      0],
+         ["copy-qual-name", cmdCopyQualName,       0],
         ];
 
     console.menuSpecs["context:watches"] = {
@@ -4121,6 +4122,7 @@ function wv_init()
         items:
         [
          ["change-value", {enabledif: "cx.parentValue"}],
+         ["copy-qual-name", {enabledif: "has('expression')"}],
          ["-"],
          ["watch-expr"],
          ["remove-watch"],
@@ -4217,6 +4219,8 @@ function wv_cellprops (index, col, properties)
 console.views.watches.getContext =
 function wv_getcx(cx)
 {
+    var watches = console.views.watches;
+
     cx.jsdValueList = new Array();
     cx.indexList    = new Array();
 
@@ -4227,24 +4231,44 @@ function wv_getcx(cx)
             if (i == 0)
             {
                 cx.jsdValue = rec.value;
+                var items = new Array();
+                items.unshift(rec.displayName);
+
                 if ("value" in rec.parentRecord)
+                {
                     cx.parentValue = rec.parentRecord.value;
+                    var cur = rec.parentRecord;
+                    while (cur != watches.childData &&
+                           cur != watches.scopeRecord)
+                    {
+                        if ("isECMAProto" in cur)
+                            items.unshift("__proto__");
+                        else if ("isECMAParent" in cur)
+                            items.unshift("__parent__");
+                        else
+                            items.unshift(cur.displayName);
+                        cur = cur.parentRecord;
+                    }
+                }
                 else
+                {
                     cx.parentValue = null;
+                }
+                cx.expression = makeExpression(items);
                 cx.propertyName = rec.displayName;
-                if (rec.parentRecord == console.views.watches.childData)
+                if (rec.parentRecord == watches.childData)
                     cx.index = rec.childIndex;
             }
             else
             {
                 cx.jsdValueList.push(rec.value);
-                if (rec.parentRecord == console.views.watches.childData)
+                if (rec.parentRecord == watches.childData)
                     cx.indexList.push(rec.childIndex);
             }
         }
     };
     
-    return getTreeContext (console.views.watches, cx, recordContextGetter);
+    return getTreeContext (watches, cx, recordContextGetter);
 }
 
 console.views.watches.refresh =
