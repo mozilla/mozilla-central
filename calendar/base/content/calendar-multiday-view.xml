@@ -255,7 +255,7 @@
       <xul:stack anonid="boxstack" flex="1" style="min-width: 1px; min-height: 1px">
         <xul:box anonid="bgbox" flex="1" style="min-width: 1px; min-height: 1px"/>
         <xul:box xbl:inherits="context" anonid="topbox" flex="1" equalsize="always" style="min-width: 1px; min-height: 1px"/>
-        <xul:box anonid="fgbox" flex="1" class="fgdragcontainer" style="min-width: 1px; min-height: 1px">
+        <xul:box anonid="fgbox" flex="1" class="fgdragcontainer" style="min-width: 1px; min-height: 1px; overflow:hidden;">
           <xul:box anonid="fgdragspacer" style="display: inherit; overflow: hidden;">
             <xul:spacer flex="1"/>
             <xul:label anonid="fgdragbox-startlabel" class="fgdragbox-label"/>
