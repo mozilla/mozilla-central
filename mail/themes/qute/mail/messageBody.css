@@ -67,14 +67,13 @@ div.headerdisplayname {
 
 /* ::::: message text, incl. quotes ::::: */
 
-.moz-text-flowed blockquote {
-  margin: inherit;
-  border-width: medium;
-  border-color: gray;
+.moz-text-flowed blockquote,
+.moz-text-plain blockquote {
+  margin: 0;
 }
 
 .moz-text-plain pre {
-  margin: inherit;
+  margin: 0;
   font-family: inherit;
 }
 
@@ -91,15 +90,8 @@ div.headerdisplayname {
 }
 
 .moz-text-plain[graphical-quote="false"] blockquote {
-  margin: inherit;
-  border-left: inherit;
-  padding-left: inherit;
-}
-
-.moz-text-plain[graphical-quote="true"] blockquote {
-  margin: inherit;
-  border-width: medium;
-  border-color: gray;
+  border-style: none;
+  padding: 0;
 }
 
 .moz-text-plain[graphical-quote="true"] .moz-txt-citetags {

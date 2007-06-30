@@ -16,31 +16,33 @@
   color: #7777FF; /* light blue */
 }
 
-/* ::::: colorize block quote borders. We only go 7 levels deep ::::: */
+/* ::::: Turn on borders and padding for quotes. ::::: */
 
 blockquote[type=cite] {
-  padding: 0em 1em .5em !important;
-  border-right: 2px  solid blue !important;
-  border-left: 2px solid blue !important;
+  padding: 0em .5em .5em 1em;
+  border-right: 2px  solid;
+  border-left: 2px solid;
+}
+
+/* ::::: Colorize block quote borders. We only go 5 levels deep. ::::: */
+
+blockquote[type=cite] {
+  border-color: blue;
 }
 
 blockquote[type=cite] blockquote[type=cite] {
-  border-right: 2px solid maroon !important;
-  border-left: 2px solid maroon !important;
+  border-color: maroon;
 }
 
 blockquote[type=cite] blockquote[type=cite] blockquote[type=cite] {
-  border-right: 2px solid teal !important;
-  border-left: 2px solid teal !important;
+  border-color: teal;
 }
 
 blockquote[type=cite] blockquote[type=cite] blockquote[type=cite] blockquote[type=cite] {
-  border-right: 2px solid purple !important;
-  border-left: 2px solid purple !important;
+  border-color: purple;
 }
 
 blockquote[type=cite] blockquote[type=cite] blockquote[type=cite] blockquote[type=cite] blockquote[type=cite] {
-  border-right: 2px solid green !important;
-  border-left: 2px solid green !important;
+  border-color: green;
 }
 
