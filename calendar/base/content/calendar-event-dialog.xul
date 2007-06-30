@@ -109,7 +109,7 @@
           <textbox id="item-location"/>
         </row>
 
-        <row align ="center">
+        <row align="center">
           <hbox align="center">
             <label value="&newevent.from.label;" class="event-only"
                    accesskey="&newevent.from.accesskey;"
