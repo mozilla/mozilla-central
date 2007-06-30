@@ -52,6 +52,7 @@ calendar.jar:
 #expand    skin/classic/calendar/calendar-views.css     (themes/__THEME__/calendar-views.css)
 #expand    skin/classic/calendar/toolbar-large.png      (themes/__THEME__/toolbar-large.png)
 #expand    skin/classic/calendar/toolbar-small.png      (themes/__THEME__/toolbar-small.png)
+#expand    skin/classic/calendar/mode-switch-icons.png  (themes/__THEME__/mode-switch-icons.png)
     skin/classic/calendar/event-grippy-bottom.png  (themes/common/event-grippy-bottom.png)
     skin/classic/calendar/event-grippy-left.png  (themes/common/event-grippy-left.png)
     skin/classic/calendar/event-grippy-right.png (themes/common/event-grippy-right.png)
