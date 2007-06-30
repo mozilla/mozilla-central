@@ -39,126 +39,115 @@
    -
    - ***** END LICENSE BLOCK ***** -->
 
+<!DOCTYPE overlay [
+  <!ENTITY % messengerDTD SYSTEM "chrome://messenger/locale/messenger.dtd">
+  %messengerDTD;
+  <!ENTITY % calendarDTD SYSTEM "chrome://calendar/locale/calendar.dtd" >
+  %calendarDTD;
+]>
+
 <?xml-stylesheet href="chrome://calendar/skin/calendar-toolbar.css" type="text/css"?>
 <?xml-stylesheet href="chrome://lightning/skin/lightning.css" type="text/css"?>
 
-<!DOCTYPE overlay 
-[
-  <!ENTITY % dtd1 SYSTEM "chrome://lightning/locale/lightning.dtd" > %dtd1;
-  <!ENTITY % dtd2 SYSTEM "chrome://calendar/locale/calendar.dtd" > %dtd2;
-  <!ENTITY % dtd3 SYSTEM "chrome://calendar/locale/menuOverlay.dtd" > %dtd3;
-]>
-
 <overlay xmlns="http://www.mozilla.org/keymaster/gatekeeper/there.is.only.xul">
 
-  <stringbundleset id="stringbundleset">
-    <stringbundle id="bundle_calendar" src="chrome://calendar/locale/calendar.properties"/>
-  </stringbundleset>
+  <script type="application/x-javascript"
+          src="chrome://lightning/content/messenger-overlay-toolbar.js"/>
 
-  <script type="application/x-javascript" 
-          src="chrome://calendar/content/calendar-item-editing.js"/>
-  <script type="application/x-javascript" 
-          src="chrome://lightning/content/calendar-management.js"/>
+  <popup id="toolbar-context-menu">
+    <menuitem id="CustomizeMailToolbar"
+              label="&customizeToolbar.label;"
+              accesskey="&customizeToolbar.accesskey;"
+              oncommand="CustomizeApplicationToolbar('mail-toolbox');"/>
+  </popup>
 
-  <window id="messengerWindow">
-    <keyset>
-      <key id="openLightningKey" key="3" modifiers="accel"
-           oncommand="ltnMinimonthPick(document.getElementById('ltnMinimonth'))"/>
-    </keyset>
-  </window>
-
-  <menupopup id="menu_NewPopup">
-    <menuseparator />
-    <menuitem id="ltnNewEvent" label="&lightning.menupopup.new.event.label;" 
-              oncommand="createEventWithDialog(ltnSelectedCalendar());"/>
-    <menuitem id="ltnNewTask" label="&lightning.menupopup.new.task.label;" 
-              oncommand="createTodoWithDialog(ltnSelectedCalendar());"/>
-    <menuitem id="ltnNewCalendar" label="&lightning.menupopup.new.calendar.label;" 
-              oncommand="ltnNewCalendar();"/>
-  </menupopup>
-
-  <menubar id="mail-menubar">
-    <menu id="ltnCalendarMenu" label="&lightning.calendar.label;" 
-          accesskey="&lightning.calendar.accesskey;"
-          insertbefore="tasksMenu">
-      <menupopup id="ltncalendarMenuPopup">
-        <menuitem id="ltnChangeViewDay" 
-                  label="&lightning.toolbar.dayview.label;" 
-                  accesskey="&lightning.toolbar.dayview.accesskey;" 
-                  oncommand="showCalendarView('day')"/>
-        <menuitem id="ltnChangeViewWeek" 
-                  label="&lightning.toolbar.weekview.label;" 
-                  accesskey="&lightning.toolbar.weekview.accesskey;"
-                  oncommand="showCalendarView('week')"/>
-        <menuitem id="ltnChangeViewMonth" 
-                  label="&lightning.toolbar.monthview.label;" 
-                  accesskey="&lightning.toolbar.monthview.accesskey;"
-                  oncommand="showCalendarView('month')"/>
-        <menuseparator/>
-        <menu label="&viewMenu.label;" accesskey="&viewMenu.accesskey;">
-            <menupopup>
-               <menuitem type="checkbox"
-                         id="ltn-workdays-only"
-                         persist="checked"
-                         label="&calendar.onlyworkday.checkbox.label;"
-                         accesskey="&calendar.onlyworkday.checkbox.accesskey;"
-                         oncommand="toggleWorkdaysOnly()"/>
-               <menuitem type="checkbox"
-                         id="ltn-tasks-in-view"
-                         persist="checked"
-                         label="&calendar.displaytodos.checkbox.label;"
-                         accesskey="&calendar.displaytodos.checkbox.accesskey;"
-                         oncommand="toggleTasksInView()"/>
-           </menupopup>
-        </menu>
-        <menuitem id="ltnGoToToday" 
-                  label="&calendar.context.gototoday.label;" 
-                  accesskey="&calendar.context.gototoday.accesskey;"
-                  oncommand="goToToday()"/>
-        <menuseparator/>
-        <menuitem id="calendar-import-menu"
-                  label="&calendar.import.calendar;"
-                  accesskey="&calendar.import.accesskey;"
-                  observes="import_command"/>
-        <menuitem id="calendar-export-menu"
-                  label="&calendar.export.calendar;"
-                  accesskey="&calendar.export.calendar.accesskey;"
-                  observes="export_command"/>
-      </menupopup>
-    </menu>
-  </menubar>
+  <menuitem id="menu_customizeToolbar"
+            oncommand="CustomizeApplicationToolbar('mail-toolbox');"
+            label="&customizeToolbar.label;"
+            accesskey="&customizeToolbar.accesskey;"/>
 
   <toolbarpalette id="MailToolbarPalette">
-    <toolbarbutton id="calendar-new-event-button" 
-                   class="cal-toolbarbutton-1" 
-                   label="&calendar.newevent.button.label;" 
-                   tooltiptext="&calendar.newevent.button.tooltip;" 
+    <toolbarbutton id="calendar-new-event-button"
+                   mode="calendar"
+                   class="cal-toolbarbutton-1"
+                   label="&calendar.newevent.button.label;"
+                   tooltiptext="&calendar.newevent.button.tooltip;"
                    oncommand="createEventWithDialog(ltnSelectedCalendar())"/>
-    <toolbarbutton id="calendar-new-task-button" 
-                   class="cal-toolbarbutton-1" 
-                   label="&calendar.newtask.button.label;" 
-                   tooltiptext="&calendar.newtask.button.tooltip;" 
+    <toolbarbutton id="calendar-new-task-button"
+                   mode="calendar"
+                   class="cal-toolbarbutton-1"
+                   label="&calendar.newtask.button.label;"
+                   tooltiptext="&calendar.newtask.button.tooltip;"
                    oncommand="createTodoWithDialog(ltnSelectedCalendar())"/>
-    <toolbarbutton id="calendar-week-view-button" 
-                   class="cal-toolbarbutton-1" 
-                   label="&calendar.weekview.button.label;" 
-                   tooltiptext="&calendar.weekview.button.tooltip;" 
+    <toolbarbutton id="calendar-week-view-button"
+                   mode="calendar"
+                   class="cal-toolbarbutton-1"
+                   label="&calendar.weekview.button.label;"
+                   tooltiptext="&calendar.weekview.button.tooltip;"
                    oncommand="showCalendarView('week')"/>
-    <toolbarbutton id="calendar-month-view-button" 
-                   class="cal-toolbarbutton-1" 
-                   label="&calendar.monthview.button.label;" 
-                   tooltiptext="&calendar.monthview.button.tooltip;" 
+    <toolbarbutton id="calendar-month-view-button"
+                   mode="calendar"
+                   class="cal-toolbarbutton-1"
+                   label="&calendar.monthview.button.label;"
+                   tooltiptext="&calendar.monthview.button.tooltip;"
                    oncommand="showCalendarView('month')"/>
-    <toolbarbutton id="calendar-day-view-button" 
-                   class="cal-toolbarbutton-1" 
-                   label="&calendar.dayview.button.label;" 
-                   tooltiptext="&calendar.dayview.button.tooltip;" 
+    <toolbarbutton id="calendar-day-view-button"
+                   mode="calendar"
+                   class="cal-toolbarbutton-1"
+                   label="&calendar.dayview.button.label;"
+                   tooltiptext="&calendar.dayview.button.tooltip;"
                    oncommand="showCalendarView('day')"/>
-    <toolbarbutton id="calendar-go-to-today-button" 
-                   class="cal-toolbarbutton-1" 
-                   label="&calendar.gototoday.button.label;" 
-                   tooltiptext="&calendar.gototoday.button.tooltip;" 
+    <toolbarbutton id="calendar-go-to-today-button"
+                   mode="calendar"
+                   class="cal-toolbarbutton-1"
+                   label="&calendar.gototoday.button.label;"
+                   tooltiptext="&calendar.gototoday.button.tooltip;"
                    oncommand="goToToday()"/>
+    <toolbarbutton id="calendar-edit-event-button"
+                   mode="calendar"
+                   class="cal-toolbarbutton-1"
+                   label="&calendar.edit.button.label;"
+                   tooltiptext="&calendar.edit.button.tooltip;"
+                   observes="modify_command"/>
+    <toolbarbutton id="calendar-import-button"
+                   mode="calendar"
+                   class="cal-toolbarbutton-1"
+                   label="&calendar.import.button.label;"
+                   tooltiptext="&calendar.import.button.tooltip;"
+                   observes="import_command"/>
+    <toolbarbutton id="calendar-export-button"
+                   mode="calendar"
+                   class="cal-toolbarbutton-1"
+                   label="&calendar.export.button.label;"
+                   tooltiptext="&calendar.export.button.tooltip;"
+                   observes="export_command"/>
+    <toolbarbutton id="calendar-subscribe-button"
+                   mode="calendar"
+                   class="cal-toolbarbutton-1"
+                   label="&calendar.subscribe.button.label;"
+                   tooltiptext="&calendar.subscribe.button.tooltip;"
+                   oncommand="openCalendarWizard()"/>
+    <toolbarbutton id="calendar-publish-button"
+                   mode="calendar"
+                   class="cal-toolbarbutton-1"
+                   label="&calendar.publish.button.label;"
+                   tooltiptext="&calendar.publish.button.tooltip;"
+                   observes="publish_calendar"/>
+    <toolbarbutton id="calendar-remote-reload-button"
+                   mode="calendar"
+                   class="cal-toolbarbutton-1"
+                   label="&calendar.remotereload.button.label;"
+                   tooltiptext="&calendar.remotereload.button.tooltip;"
+                   observes="reload_remote_calendars"/>
   </toolbarpalette>
+  
+  <toolbox id="mail-toolbox">
+    <toolbar id="calendar-toolbar"
+             class="chromeclass-toolbar"
+             customizable="true"
+             context="toolbar-context-menu"
+             collapsed="true"
+             defaultset="calendar-new-event-button,calendar-new-task-button,separator,calendar-go-to-today-button,separator,calendar-day-view-button,calendar-week-view-button,calendar-month-view-button,separator,button-delete,button-print,separator,calendar-remote-reload-button,spring"/>
+  </toolbox>
 
 </overlay>

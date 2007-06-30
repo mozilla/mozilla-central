@@ -169,3 +169,98 @@ radio[pane=paneLightning] {
     border-bottom: 1px solid ThreeDDarkShadow;
     padding: 3px;
 }
+
+/* ::::: mode toolbar buttons ::::: */
+
+#mode-toolbar {
+  padding-top: 5px;
+  padding-bottom: 5px;
+}
+
+.toolbarbutton-2 {
+  -moz-box-orient: vertical;
+  min-width: 0px;
+ list-style-image: url("chrome://calendar/skin/mode-switch-icons.png");
+}
+
+.toolbarbutton-2[type="menu"] {
+  -moz-binding: url("chrome://global/content/bindings/toolbarbutton.xml#menu-vertical");
+}
+
+#mail-switch-button {
+  -moz-image-region: rect(0px 38px 38px 0px);
+}
+
+#mail-switch-button:hover:active {
+  -moz-image-region: rect(38px 38px 76px 0px);
+} 
+
+#mail-switch-button[disabled] {
+  -moz-image-region: rect(76px 38px 114px 0px);
+} 
+
+#calendar-switch-button {
+  -moz-image-region: rect(0px 76px 38px 38px);
+}
+
+#calendar-switch-button:hover:active {
+  -moz-image-region: rect(38px 76px 76px 38px);
+} 
+
+#calendar-switch-button[disabled] {
+  -moz-image-region: rect(76px 76px 114px 38px);
+} 
+
+#task-switch-button {
+  -moz-image-region: rect(0px 114px 38px 76px);
+}
+
+#task-switch-button:hover:active {
+  -moz-image-region: rect(38px 114px 76px 76px);
+} 
+
+#task-switch-button[disabled] {
+  -moz-image-region: rect(76px 114px 114px 76px);
+} 
+
+/* ::::: small mode toolbar buttons ::::: */
+
+toolbar[iconsize="small"] .toolbarbutton-2 {
+ list-style-image: url("chrome://calendar/skin/mode-switch-icons.png");
+}
+
+toolbar[iconsize="small"] #mail-switch-button {
+  -moz-image-region: rect(0px 136px 22px 114px);
+}
+
+toolbar[iconsize="small"] #mail-switch-button:hover:active {
+  -moz-image-region: rect(0px 158px 22px 136px);
+} 
+
+toolbar[iconsize="small"] #mail-switch-button[disabled] {
+  -moz-image-region: rect(22px 136px 44px 114px);
+} 
+
+toolbar[iconsize="small"] #calendar-switch-button {
+  -moz-image-region: rect(22px 158px 44px 136px);
+}
+
+toolbar[iconsize="small"] #calendar-switch-button:hover:active {
+  -moz-image-region: rect(44px 136px 66px 114px);
+} 
+
+toolbar[iconsize="small"] #calendar-switch-button[disabled] {
+  -moz-image-region: rect(44px 158px 66px 136px);
+} 
+
+toolbar[iconsize="small"] #task-switch-button {
+  -moz-image-region: rect(66px 136px 88px 114px);
+}
+
+toolbar[iconsize="small"] #task-switch-button:hover:active {
+  -moz-image-region: rect(66px 158px 88px 136px);
+} 
+
+toolbar[iconsize="small"] #task-switch-button[disabled] {
+  -moz-image-region: rect(88px 136px 110px 114px);
+} 

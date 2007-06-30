@@ -51,14 +51,12 @@
   var invitationsLabel = "&lightning.sidebar.invitations.label;";
 </script>
 
-<vbox id="folderPaneBox">
-  <vbox id="ltnSidebar">
-    <label id="invitations"
-           class="text-link calendar-invitations-sidebar-label"
-           value="&lightning.sidebar.invitations.label;"
-           onclick="openInvitationsDialog();"
-           hidden="true"/>
-  </vbox>
+<vbox id="ltnSidebar">
+  <label id="invitations"
+         class="text-link calendar-invitations-sidebar-label"
+         value="&lightning.sidebar.invitations.label;"
+         onclick="openInvitationsDialog();"
+         hidden="true"/>
 </vbox>
 
 </overlay>

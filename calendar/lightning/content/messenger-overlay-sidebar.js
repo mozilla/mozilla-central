@@ -43,6 +43,8 @@
  *
  * ***** END LICENSE BLOCK ***** */
 
+var gLastShownCalendarView = null;
+
 var CalendarController =
 {
   defaultController: null,
@@ -56,6 +58,9 @@ var CalendarController =
       case "cmd_redo":
       case "cmd_print":
       case "cmd_printpreview":
+      case "button_print":
+      case "button_delete":
+      case "cmd_delete":
         return true;
     }
     if (this.defaultController) {
@@ -87,6 +92,7 @@ var CalendarController =
           }
         }
         break;
+      case "button_print":
       case "cmd_print":
         if (this.isCalendarInForeground()) {
           return true;
@@ -95,6 +101,13 @@ var CalendarController =
       case "cmd_printpreview":
         if (this.isCalendarInForeground()) {
           return false;
+        }
+        break;
+      case "button_delete":
+      case "cmd_delete":
+        if (this.isCalendarInForeground()) {
+          var selectedItems = currentView().getSelectedItems({});
+          return selectedItems.length != 0;
         }
         break;
     }
@@ -133,6 +146,7 @@ var CalendarController =
           getTransactionMgr().redo();
         }
         break;
+      case "button_print":
       case "cmd_print":
         if (this.isCalendarInForeground()) {
           calPrint();
@@ -140,6 +154,12 @@ var CalendarController =
         }
         break;
       case "cmd_printpreview":
+        if (this.isCalendarInForeground()) {
+          return;
+        }
+        break;
+      case "button_delete":
+      case "cmd_delete":
         if (this.isCalendarInForeground()) {
           return;
         }
@@ -265,6 +285,105 @@ function ltnGoToDate()
 
 function ltnOnLoad(event)
 {
+    // take the existing folderPaneBox (that's what thunderbird displays
+    // at the left side of the application window) and stuff that inside
+    // of the deck we're introducing with the contentPanel. this essentially
+    // rearranges the DOM tree and allows us to switch between content that
+    // lives inside of the left pane.
+    var folderPaneBox = document.getElementById("folderPaneBox");
+    var contentPanel = document.getElementById("contentPanel");
+    contentPanel.insertBefore(folderPaneBox,contentPanel.firstChild);
+
+    // we're taking care of the mode toolbar (that's the small toolbar on
+    // the lower left with the 'mail', 'calendar', 'task' buttons on it).
+    // since we want to have this particular toolbar displayed at the
+    // top or bottom inside the folderPaneBox (basically on top or bottom
+    // of the window) we need to go to great length in order to get this
+    // damned thing working. i decided to dynamically place the toolbox
+    // inside the DOM tree, that appears to be the most clean solution to
+    // the problem. unfortunately, it didn't work out that easy. as soon
+    // as we call insertBefore() to place the node somewhere different, the
+    // constructor of the appropriate binding gets called again. this has
+    // the nasty side-effect that the toolbar get a bit confused, since it
+    // thinks it is customized, which just isn't the case. that's why we need
+    // to carry some internal toolbar properties over. and that's what those
+    // functions retrieveToolbarProperties() and restoreToolbarProperties()
+    // are all about.
+    var retrieveToolbarProperties = function(toolbox)
+    {
+      var toolbars = {};
+      var toolbar = toolbox.firstChild;
+      while (toolbar) {
+        if (toolbar.localName == "toolbar") {
+          if (toolbar.getAttribute("customizable") == "true") {
+            if (!toolbar.hasAttribute("customindex")) {
+              var propertybag = {};
+              propertybag.firstPermanentChild = toolbar.firstPermanentChild;
+              propertybag.lastPermanentChild = toolbar.lastPermanentChild;
+              toolbars[toolbar.id] = propertybag;
+            }
+          }
+        }
+        toolbar = toolbar.nextSibling;
+      }
+      return toolbars;
+    }
+    
+    var restoreToolbarProperties = function(toolbox,toolbars)
+    {
+      var toolbar = toolbox.firstChild;
+      while (toolbar) {
+        if (toolbar.localName == "toolbar") {
+          if (toolbar.getAttribute("customizable") == "true") {
+            if (!toolbar.hasAttribute("customindex")) {
+              var propertybag = toolbars[toolbar.id];
+              toolbar.firstPermanentChild = propertybag.firstPermanentChild;
+              toolbar.lastPermanentChild = propertybag.lastPermanentChild;
+            }
+          }
+        }
+        toolbar = toolbar.nextSibling;
+      }
+    }
+    
+    // DOMAttrModified handler that listens on the toolbox element
+    var onModified = function(aEvent)
+    {
+      if(aEvent.attrName == "location") {
+        var contentPanel = document.getElementById("contentPanel");
+        var modeToolbox = document.getElementById("mode-toolbox");
+        var palette = modeToolbox.palette;
+        modeToolbox.removeEventListener("DOMAttrModified", onModified, false);
+        var bag = retrieveToolbarProperties(modeToolbox);
+        if(aEvent.newValue == "top" && aEvent.prevValue == "bottom") {
+          // place the mode toolbox at the top of the left pane
+          modeToolbox = contentPanel.parentNode.insertBefore(modeToolbox,contentPanel);
+          modeToolbox.palette = palette;
+          var toolbar = document.getElementById("mode-toolbar");
+        } else if(aEvent.newValue == "bottom" && aEvent.prevValue == "top") {
+          // place the mode toolbox at the bottom of the left pane
+          modeToolbox = contentPanel.parentNode.appendChild(modeToolbox);
+          modeToolbox.palette = palette;
+        }
+        restoreToolbarProperties(modeToolbox,bag);
+        modeToolbox.addEventListener("DOMAttrModified", onModified, false);
+      }
+    }
+
+    // install the handler that listens for modified 'location' attribute
+    // on the toolbox. the value is changed by the toolbar customize dialog.
+    var modeToolbox = document.getElementById("mode-toolbox");
+    if(modeToolbox.getAttribute("location") != "bottom") {
+      var palette = modeToolbox.palette;
+      var bag = retrieveToolbarProperties(modeToolbox);
+      modeToolbox = contentPanel.parentNode.insertBefore(modeToolbox,contentPanel);
+      modeToolbox.palette = palette;
+      restoreToolbarProperties(modeToolbox,bag);
+    }
+    modeToolbox.addEventListener("DOMAttrModified", onModified, false);
+
+    ltnInitializeMode();
+
     gMiniMonthLoading = true;
 
     var today = new Date();
@@ -330,6 +449,22 @@ function ltnOnLoad(event)
       }
     }
     injectCommandController();
+
+    getViewDeck().addEventListener("itemselect", onSelectionChanged, true);
+}
+
+function onSelectionChanged(aEvent) {
+  var elements = document.getElementsByAttribute("disabledwhennoeventsselected", "true");
+  var selectedItems = aEvent.detail;
+  for (var i = 0; i < elements.length; i++) {
+    if (selectedItems.length >= 1) {
+      elements[i].removeAttribute("disabled");
+    } else {
+      elements[i].setAttribute("disabled", "true");
+    }
+  }
+  document.commandDispatcher.updateCommands('mail-toolbar');
+  document.commandDispatcher.updateCommands('calendar_commands');
 }
 
 /* Called at midnight to tell us to redraw date-specific widgets.  Do NOT call
@@ -351,6 +486,8 @@ function refreshUIBits() {
 
 function showCalendarView(type)
 {
+    gLastShownCalendarView = type;
+
     // If we got this call while a mail-view is being shown, we need to
     // hide all of the mail stuff so we have room to display the calendar
     var calendarViewBox = document.getElementById("calendar-view-box");
@@ -362,17 +499,6 @@ function showCalendarView(type)
             collapseElement(searchBox);
         }
         uncollapseElement(calendarViewBox);
-
-        // Thunderbird is smart.  It won't reload the message list if the user
-        // clicks the same folder that's already selected.  Therefore, we need
-        // to not only remove the tree selection (so clicking triggers an event)
-        // but also reset some of TB's internal variables.
-        var treeSel = document.getElementById("folderTree").view.selection;
-        treeSel.selectEventsSuppressed = true;
-        treeSel.clearSelection();
-        treeSel.selectEventsSuppressed = false;
-        gMsgFolderSelected = null;
-        msgWindow.openFolder = null;
     }
 
     var view = document.getElementById(type+"-view");

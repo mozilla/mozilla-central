@@ -72,7 +72,7 @@
 
 <!ENTITY calendar.calendartab.label "Date">
 <!ENTITY calendar.listofcalendarstab.label "Calendars">
-<!ENTITY calendar.gototoday.button.label        "Go to Today" >
+<!ENTITY calendar.gototoday.button.label        "Today" >
 
 <!ENTITY calendar.events.filter.all.label "All Events">
 <!ENTITY calendar.events.filter.today.label "Today's Events">
@@ -147,9 +147,9 @@
 <!ENTITY calendar.remotereload.button.label   "Reload" >
 <!ENTITY calendar.remotereload.button.tooltip   "Reload all remote calendars" >
 
-<!ENTITY calendar.dayview.button.label          "Day View" >
-<!ENTITY calendar.weekview.button.label         "Week View" >
-<!ENTITY calendar.monthview.button.label        "Month View" >
+<!ENTITY calendar.dayview.button.label          "Day" >
+<!ENTITY calendar.weekview.button.label         "Week" >
+<!ENTITY calendar.monthview.button.label        "Month" >
 <!ENTITY calendar.multiweekview.button.label        "Multiweek" >
 <!ENTITY calendar.onlyworkday.checkbox.label    "Workweek days only" >
 <!ENTITY calendar.onlyworkday.checkbox.accesskey  "r" >

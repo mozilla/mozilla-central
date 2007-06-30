@@ -72,6 +72,20 @@
 <!ENTITY lightning.calendar.accesskey        "C">
 <!ENTITY lightning.sidebar.showCompletedTasks.label "Show completed tasks">
 
+<!-- Mode Toolbar -->
+<!ENTITY lightning.toolbar.mail.label      "Mail">
+<!ENTITY lightning.toolbar.calendar.label  "Calendar">
+<!ENTITY lightning.toolbar.task.label      "Task">
+
+<!-- Customize Toolbar Dialog -->
+<!ENTITY customize.toolbar.selector.label    "Toolbar:">
+<!ENTITY customize.toolbar.selector.mode     "Mode Toolbar">
+<!ENTITY customize.toolbar.selector.mail     "Mail Toolbar">
+<!ENTITY customize.toolbar.selector.calendar "Calendar Toolbar">
+<!ENTITY customize.toolbar.location.label    "Location:">
+<!ENTITY customize.toolbar.location.top      "Top">
+<!ENTITY customize.toolbar.location.bottom   "Bottom">
+
 <!-- Messenger Toolbar -->
 <!ENTITY lightning.toolbar.dayview.label     "Day View">
 <!ENTITY lightning.toolbar.dayview.accesskey "D">
