@@ -1,1 +1,1 @@
-Trigger a new "nightly" now that the patch for bug 347743 was backed out (it was causing bug 386332)
+Trying to reland patch for bug 381631.
