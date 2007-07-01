@@ -146,7 +146,7 @@ enum {
 
 // searching
 - (NSArray*)resolveShortcut:(NSString *)shortcut withArgs:(NSString *)args;
-- (NSSet *)bookmarksWithString:(NSString *)searchString inFieldWithTag:(int)tag;
+- (NSArray*)bookmarksWithString:(NSString*)searchString inFieldWithTag:(int)tag;
 - (BOOL)containsChildItem:(BookmarkItem*)inItem;
 
 // Scripting - should be a protocol we could use for these

@@ -1023,9 +1023,9 @@ static int BookmarkItemSort(id firstItem, id secondItem, void* context)
   return url;
 }
 
-- (NSSet*)bookmarksWithString:(NSString *)searchString inFieldWithTag:(int)tag
+- (NSArray*)bookmarksWithString:(NSString*)searchString inFieldWithTag:(int)tag
 {
-  NSMutableSet *foundSet = [NSMutableSet set];
+  NSMutableArray *matchingBookmarks = [NSMutableArray array];
 
   // see if our kids match
   NSEnumerator *enumerator = [[self childArray] objectEnumerator];
@@ -1033,15 +1033,15 @@ static int BookmarkItemSort(id firstItem, id secondItem, void* context)
   while ((childItem = [enumerator nextObject])) {
     if ([childItem isKindOfClass:[Bookmark class]]) {
       if ([childItem matchesString:searchString inFieldWithTag:tag])
-        [foundSet addObject:childItem];
+        [matchingBookmarks addObject:childItem];
     }
     else if ([childItem isKindOfClass:[BookmarkFolder class]]) {
-      // recurse, adding found items to the existing set
-      NSSet *childFoundSet = [childItem bookmarksWithString:searchString inFieldWithTag:tag];
-      [foundSet unionSet:childFoundSet];
+      // recurse, adding found items to the existing matches
+      NSArray *matchingDescendents = [childItem bookmarksWithString:searchString inFieldWithTag:tag];
+      [matchingBookmarks addObjectsFromArray:matchingDescendents];
     }
   }
-  return foundSet;
+  return matchingBookmarks;
 }
 
 - (BOOL)containsChildItem:(BookmarkItem*)inItem
