@@ -694,8 +694,7 @@ static BookmarkManager* gBookmarkManager = nil;
 {
   if ((searchString) && [searchString length] > 0) {
     BookmarkFolder* searchContainer = container ? container : [self rootBookmarks];
-    NSSet *matchingSet = [searchContainer bookmarksWithString:searchString inFieldWithTag:tag];
-    return [matchingSet allObjects];
+    return [searchContainer bookmarksWithString:searchString inFieldWithTag:tag];
   }
   return nil;
 }
