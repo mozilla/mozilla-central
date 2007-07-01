@@ -133,9 +133,12 @@
           </xul:vbox>
         </xul:popup>
         <xul:popup anonid="years-popup" position="after_start"
-                   onpopupshowing="event.stopPropagation();"
+                   onpopupshowing="moveYears('reset'); event.stopPropagation();"
                    onpopuphidden="firePopupListHidden();">
           <xul:vbox>
+            <xul:autorepeatbutton class="autorepeatbutton-up"
+                                  orient="vertical"
+                                  oncommand="moveYears('up');"/>
             <xul:text class="minimonth-list"/>
             <xul:text class="minimonth-list"/>
             <xul:text class="minimonth-list"/>
@@ -143,6 +146,11 @@
             <xul:text class="minimonth-list"/>
             <xul:text class="minimonth-list"/>
             <xul:text class="minimonth-list"/>
+            <xul:text class="minimonth-list"/>
+            <xul:text class="minimonth-list"/>
+            <xul:autorepeatbutton class="autorepeatbutton-down"
+                                  orient="vertical"
+                                  oncommand="moveYears('down');"/>
           </xul:vbox>
         </xul:popup>
       </xul:popupset>
@@ -202,6 +210,55 @@
           this.refreshDisplay( );
         ]]>
       </constructor>
+
+      <method name="moveYears">
+        <parameter name="direction"/>
+        <body>
+          <![CDATA[
+            // Update the year popup
+            var years = this.kYearList;
+            var current = this.mEditorDate.getFullYear();
+            var offset;
+
+            switch (direction) {
+              case "reset":
+                var middleyear = years[Math.floor(years.length / 2)].getAttribute("value");
+                if (current <= (years.length / 2)) {
+                  offset = - years[1].getAttribute("value") + 1;
+                } else {
+                  offset = current - middleyear;
+                }
+                break;
+              case "up":
+                offset = -1;
+                break;
+              case "down":
+                offset = 1;
+                break;
+            }
+
+            // Disable the up arrow when we get to the year 1.
+            years[0].disabled = (parseInt(years[1].getAttribute("value")) + offset < 2);
+
+            if (!offset) {
+              // No need to loop through when the offset is zero.
+              return;
+            }
+
+            // Go through all visible years and set the new value. Be sure to
+            // skip the autorepeatbuttons.
+            for (var i = 1; i < years.length - 1; i++) {
+              var value = parseInt(years[i].getAttribute("value")) + offset;
+              years[i].setAttribute("value", value);
+              years[i].setAttribute("current", "false");
+              if (years[i].getAttribute("value") == current) {
+                years[i].setAttribute("current", "true");
+              }
+            }
+
+          ]]>
+        </body>
+      </method>
 
       <method name="refreshDisplay">
         <body>
@@ -314,8 +371,8 @@
             // Update the year popup
             var years = this.kYearList;
             var year = new Date(aDate);
-            year.setFullYear(aDate.getFullYear() - (years.length%2 + 1));
-            for (i = 0; i < years.length; i++) {
+            year.setFullYear(Math.max(1, aDate.getFullYear() - parseInt(years.length / 2) + 1));
+            for (var i = 1; i < years.length - 1; i++) {
               years[i].setAttribute("value", year.getFullYear());
               years[i].setAttribute("current", "false");
               if (year.getFullYear() == aDate.getFullYear())
@@ -641,7 +698,10 @@
                 break;
               case this.kYearPopup:
                 this.hidePopupList();
-                this.switchYear(element.getAttribute("value"));
+                var value = element.getAttribute("value");
+                if (value) {
+                  this.switchYear(value);
+                }
                 break;
             }
           }

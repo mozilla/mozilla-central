@@ -123,10 +123,6 @@
   color: #b2b2b2;
 }
 
-.minimonth-day[budy="true"] {
-  font-weight : bold;
-}
-
 .minimonth-day[today="true"] {
   background-color: #dfeaf4;
 }
@@ -150,7 +146,16 @@
   background-color: #d2d2d2;
 }
 
+.minimonth-list {
+  padding-left: 1em;
+  padding-right: 1em;
+}
+
 .minimonth-list[current="true"] {
   font-weight: bold;
 }
 
+.minimonth-list:hover {
+  background-color: Highlight;
+  color: HighlightText;
+}

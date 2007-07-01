@@ -142,6 +142,16 @@
   background-color: #d2d2d2;
 }
 
+.minimonth-list {
+  padding-left: 1em;
+  padding-right: 1em;
+}
+
 .minimonth-list[current="true"] {
   font-weight: bold;
+}
+
+.minimonth-list:hover {
+  background-color: Highlight;
+  color: HighlightText;
 }
