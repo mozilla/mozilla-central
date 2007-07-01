@@ -58,9 +58,7 @@
         <implementation implements="calIDecoratedView">
 	    <constructor><![CDATA[
                 // Set the preference for the default start of the week
-                var viewElem = document.getAnonymousElementByAttribute(
-                                 this, "anonid", "view-element");
-                viewElem.weekStartOffset = getPrefSafe("calendar.week.start", 0);
+                this.viewElem.weekStartOffset = getPrefSafe("calendar.week.start", 0);
 
                 this.mWeeksInView = getPrefSafe("calendar.weeks.inview", 4);
 
@@ -103,9 +101,7 @@
                        break;
 
                    case "calendar.week.start":
-                       var viewElem = document.getAnonymousElementByAttribute(
-                                      this.calView, "anonid", "view-element");
-                       viewElem.weekStartOffset = subj.getIntPref(pref);
+                       this.calView.viewElem.weekStartOffset = subj.getIntPref(pref);
 
                        if (!this.calView.startDay || !this.calView.endDay) {
                            // Don't refresh if we're not initialized
@@ -125,9 +121,7 @@
                        this.calView.goToDay(this.calView.selectedDay);
                        break;
                    case "calendar.timezone.local":
-                       var viewElem = document.getAnonymousElementByAttribute(
-                                      this.calView, "anonid", "view-element");
-                       viewElem.timezone = subj.getCharPref(pref);
+                       this.calView.viewElem.timezone = subj.getCharPref(pref);
                        if (!this.calView.startDay || !this.calView.endDay) {
                            // Don't refresh if we're not initialized
                            return;
@@ -168,7 +162,7 @@
             <method name="goToDay">
                 <parameter name="aDate"/>
                 <body><![CDATA[
-                    var viewElement = document.getAnonymousElementByAttribute(this, "anonid", "view-element");
+                    var viewElement = this.viewElem;
                     viewElement.showFullMonth = false;
                     viewElement.tasksInView = this.mTasksInView;
                     viewElement.displayDaysOff = !this.mWorkdaysOnly;
@@ -213,10 +207,9 @@
                     d1.day += 7 * (aNumber + getPrefSafe("calendar.previousweeks.inview", 4));
                     d1.normalize();
                     this.goToDay(d1);
-                    var viewElement = document.getAnonymousElementByAttribute(this, "anonid", "view-element");
                     savedSelectedDay.day += 7*aNumber;
                     savedSelectedDay.normalize();
-                    viewElement.selectedDay = savedSelectedDay;
+                    this.viewElem.selectedDay = savedSelectedDay;
                 ]]></body>
             </method>
             <method name="setNavLabels">
@@ -272,9 +265,7 @@
                             daysOff.push(Number(i));
                         }
                     }
-                    var viewElem = document.getAnonymousElementByAttribute(
-                                            this, "anonid", "view-element");
-                    viewElem.daysOffArray = daysOff;
+                    this.viewElem.daysOffArray = daysOff;
                 ]]></body>
             </method>
         </implementation>

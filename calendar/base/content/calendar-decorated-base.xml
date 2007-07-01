@@ -174,7 +174,7 @@
             <method name="getSelectedItems">
                 <parameter name="aCount"/>
                 <body><![CDATA[
-                    var selectedItems = document.getAnonymousElementByAttribute(this, "anonid", "view-element").getSelectedItems({});
+                    var selectedItems = this.viewElem.getSelectedItems({});
                     aCount.value = selectedItems.length;
                     return selectedItems;
                 ]]></body>
@@ -184,14 +184,13 @@
                 <parameter name="aItems"/>
                 <parameter name="aSuppressEvent"/>
                 <body><![CDATA[
-                    var viewElement = document.getAnonymousElementByAttribute(this, "anonid", "view-element");
-                    viewElement.setSelectedItems(aCount, aItems, aSuppressEvent);
+                    this.viewElem.setSelectedItems(aCount, aItems, aSuppressEvent);
                 ]]></body>
             </method>
 
             <property name="selectedDay">
                 <getter><![CDATA[
-                    return document.getAnonymousElementByAttribute(this, "anonid", "view-element").selectedDay;
+                    return this.viewElem.selectedDay;
                 ]]></getter>
             </property>
 
@@ -207,49 +206,49 @@
 
             <property name="controller">
                 <getter><![CDATA[
-                    return document.getAnonymousElementByAttribute(this, "anonid", "view-element").controller;
+                    return this.viewElem.controller;
                 ]]></getter>
                 <setter><![CDATA[
-                    document.getAnonymousElementByAttribute(this, "anonid", "view-element").controller = val;
+                    this.viewElem.controller = val;
                     return val;
                 ]]></setter>
             </property>
 
             <property name="displayCalendar">
                 <getter><![CDATA[
-                    return document.getAnonymousElementByAttribute(this, "anonid", "view-element").displayCalendar;
+                    return this.viewElem.displayCalendar;
                 ]]></getter>
                 <setter><![CDATA[
-                    document.getAnonymousElementByAttribute(this, "anonid", "view-element").displayCalendar = val;
+                    this.viewElem.displayCalendar = val;
                     return val;
                 ]]></setter>
             </property>
 
             <property name="timezone">
                 <getter><![CDATA[
-                    return document.getAnonymousElementByAttribute(this, "anonid", "view-element").timezone;
+                    return this.viewElem.timezone;
                 ]]></getter>
                 <setter><![CDATA[
-                    document.getAnonymousElementByAttribute(this, "anonid", "view-element").timezone = val;
+                    this.viewElem.timezone = val;
                     return val;
                 ]]></setter>
             </property>
 
             <property name="selectionObserver">
                 <getter><![CDATA[
-                    return document.getAnonymousElementByAttribute(this, "anonid", "view-element").mSelectionObserver;
+                    return this.viewElem.mSelectionObserver;
                 ]]></getter>
             </property>
 
             <property name="startDay">
                 <getter><![CDATA[
-                    return document.getAnonymousElementByAttribute(this, "anonid", "view-element").startDate;
+                    return this.viewElem.startDate;
                 ]]></getter>
             </property>
 
             <property name="endDay">
                 <getter><![CDATA[
-                    return document.getAnonymousElementByAttribute(this, "anonid", "view-element").endDate;
+                    return this.viewElem.endDate;
                 ]]></getter>
             </property>
 
@@ -263,8 +262,7 @@
             <method name="goToDay">
                 <parameter name="aDate"/>
                 <body><![CDATA[
-                    var viewElement = document.getAnonymousElementByAttribute(this, "anonid", "view-element");
-                    viewElement.showDate(aDate);
+                    this.viewElem.showDate(aDate);
                 ]]></body>
             </method>
             <method name="moveView">

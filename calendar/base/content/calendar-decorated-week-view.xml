@@ -103,8 +103,8 @@
             <method name="goToDay">
                 <parameter name="aDate"/>
                 <body><![CDATA[
-                    var viewElement = document.getAnonymousElementByAttribute(this, "anonid", "view-element");
-	            viewElement.tasksInView = this.mTasksInView;
+                    var viewElement = this.viewElem;
+                    viewElement.tasksInView = this.mTasksInView;
                     viewElement.displayDaysOff = !this.mWorkdaysOnly;
 
                     aDate = aDate.getInTimezone(viewElement.timezone);
