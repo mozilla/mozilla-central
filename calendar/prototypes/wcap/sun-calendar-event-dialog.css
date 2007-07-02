@@ -451,3 +451,18 @@ listbox {
 listboxbody {
   overflow-y: hidden !important;
 }
+
+.selection-bar-left {
+  width: 3px;
+  cursor: w-resize;
+}
+
+.selection-bar-right {
+  width: 3px;
+  cursor: e-resize;
+}
+
+.selection-bar-spacer {
+  cursor: -moz-grab;
+}
+

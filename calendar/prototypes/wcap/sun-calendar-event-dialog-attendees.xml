@@ -1443,9 +1443,9 @@
     <content>
       <xul:scrollbox anonid="scrollbox" width="0" orient="horizontal" flex="1">
         <xul:box class="selection-bar" anonid="selection-bar">
-          <xul:box width="3" style="cursor: e-resize"/>
-          <xul:spacer flex="1" style="cursor: -moz-grab"/>
-          <xul:box width="3" style="cursor: e-resize"/>
+          <xul:box class="selection-bar-left" anonid="leftbox"/>
+          <xul:spacer class="selection-bar-spacer" flex="1"/>
+          <xul:box class="selection-bar-right" anonid="rightbox"/>
         </xul:box>
       </xul:scrollbox>
     </content>
@@ -1470,6 +1470,11 @@
       <field name="mWidth">0</field>
       <field name="mForce24Hours">false</field>
       <field name="mZoomFactor">100</field>
+      <!-- constant that defines at which ratio an event is clipped, when moved or resized -->
+      <field name="mfClipRatio">0.7</field>
+      <field name="mLeftBox"/>
+      <field name="mRightBox"/>
+      <field name="mSelectionbar"/>
 
       <property name="zoomFactor">
         <getter>
@@ -1520,6 +1525,7 @@
           // we should be able to show. the start- and enddate
           // is the time the event is scheduled for.
           this.mRange = Number(this.getAttribute("range"));
+          this.mSelectionbar = document.getAnonymousElementByAttribute(this, "anonid", "selection-bar");
         ]]>
       </constructor>
 
@@ -1583,6 +1589,27 @@
         </getter>
       </property>
 
+      <property name="leftdragWidth">
+        <getter>
+          <![CDATA[
+            if (!this.mLeftBox) {
+              this.mLeftBox = document.getAnonymousElementByAttribute(this, "anonid", "leftbox");
+            }
+            return this.mLeftBox.boxObject.width;
+          ]]>
+        </getter>
+      </property>
+      <property name="rightdragWidth">
+        <getter>
+          <![CDATA[
+            if (!this.mRightBox) {
+              this.mRightBox = document.getAnonymousElementByAttribute(this, "anonid", "rightbox");
+            }
+            return this.mRightBox.boxObject.width;
+          ]]>
+        </getter>
+      </property>
+      
       <method name="init">
         <parameter name="width"/>
         <parameter name="height"/>
@@ -1590,9 +1617,6 @@
           <![CDATA[
             this.mContentWidth = width;
             this.mHeaderHeight = height + 2;
-            var num_hours = this.mEndHour - this.mStartHour;
-            var hour_width = this.mContentWidth / num_hours;
-            this.mWidth = hour_width*1;
             this.mMargin = 0;
             this.update();
           ]]>
@@ -1643,6 +1667,10 @@
             // relation of startdate/basedate and enddate/startdate.
             // this is a simple conversion from hours to pixels.
             this.mWidth = duration_in_hours*hour_width;
+            var totaldragwidths = this.leftdragWidth + this.rightdragWidth;
+            if (this.mWidth < totaldragwidths) {
+                this.mWidth = totaldragwidths;
+            }
             this.mMargin = start_offset_in_hours*hour_width;
             
             // calculate the difference between content and container in pixels.
@@ -1658,9 +1686,8 @@
             this.mMargin -= offset;
 
             // set the styles based on the calculations above for the 'selection-bar'.
-            var selectionbar = document.getAnonymousElementByAttribute(this, "anonid", "selection-bar");
             var style = "width: "+this.mWidth+"px; margin-left: "+this.mMargin+"px; margin-top: "+this.mHeaderHeight+"px;";
-            selectionbar.setAttribute("style",style);
+            this.mSelectionbar.setAttribute("style",style);
             
             var event = document.createEvent('Events'); 
             event.initEvent('timechange', true, false);
@@ -1712,41 +1739,44 @@
       <method name="moveTime">
         <parameter name="time"/>
         <parameter name="delta"/>
+        <parameter name="doclip"/>
         <body>
           <![CDATA[
+            var newTime = time.clone();
+            var clip_minutes = 60 * this.zoomFactor / 100;
+            if (newTime.isDate){
+              clip_minutes = 60*24;
+            }
             var num_hours = this.mEndHour - this.mStartHour;
             var hour_width = this.mContentWidth / num_hours;
             var minutes_per_pixel = 60 / hour_width;
-            var newTime = time.clone();
             var minute_shift = minutes_per_pixel * delta;
-            var clip_minutes = 60 * this.zoomFactor / 100;
-            if(delta > 0) {
-              if(time.isDate) {
-                if(minute_shift >= clip_minutes) {
+            var isClipped = Math.abs(minute_shift) >= (this.mfClipRatio * clip_minutes);
+            if (isClipped) {
+              if (delta > 0) {
+                if (time.isDate) {
                   newTime.day++;
-                  newTime.normalize();
                 }
-              } else {
-                if(minute_shift >= clip_minutes) {
-                  newTime.minute -= newTime.minute % clip_minutes;
+                else {
+                  if (doclip) {
+                    newTime.minute -= newTime.minute % clip_minutes;
+                  }
                   newTime.minute += clip_minutes;
-                  newTime.normalize();
                 }
               }
-            
-            } else if(delta < 0) {
-              if(time.isDate) {
-                if(-minute_shift >= clip_minutes) {
+              else if (delta < 0) {
+                if (time.isDate) {
                   newTime.day--;
-                  newTime.normalize();
-                }
-              } else {
-                if(-minute_shift >= clip_minutes) {
-                  newTime.minute -= newTime.minute % clip_minutes;
+                } 
+                else {
+                  if (doclip) {
+                    newTime.minute -= newTime.minute % clip_minutes;
+                  }
                   newTime.minute -= clip_minutes;
-                  newTime.normalize();
+                  
                 }
               }
+              newTime.normalize();
             }
 
             if(!newTime.isDate) {
@@ -1774,18 +1804,23 @@
       <handler event="mousedown">
         <![CDATA[
           var element = event.target;
-          this.mMouseX = event.clientX - element.boxObject.x;
-          this.mMouseY = event.clientY - element.boxObject.y;
-          if(this.mMouseX >= this.mMargin) {
-            if(this.mMouseX < (this.mMargin+this.mWidth)) {
-              this.mDragState = 1;
-              window.setCursor("-moz-grab");
-              if(this.mMouseX <= (this.mMargin+3)) {
-                window.setCursor("e-resize");
+          this.mMouseX = event.screenX;
+          var mouseX = event.clientX - element.boxObject.x;
+          
+          if (mouseX >= this.mMargin) {
+            if (mouseX <= (this.mMargin + this.mWidth)) {
+              if (mouseX <= (this.mMargin + this.leftdragWidth)) {
+                // move the startdate only...
+                window.setCursor("w-resize");
                 this.mDragState = 2;
-              } else if(this.mMouseX >= (this.mMargin+this.mWidth-3)) {
+              } else if (mouseX >= (this.mMargin+this.mWidth - (this.rightdragWidth))) {
+                // move the enddate only..
                 window.setCursor("e-resize");
                 this.mDragState = 3;
+              } else {
+                // move the startdate and the enddate
+                this.mDragState = 1;
+                window.setCursor("-moz-grab");
               }
             }
           }
@@ -1794,14 +1829,13 @@
 
       <handler event="mousemove">
         <![CDATA[
-          if(this.mDragState == 1) {
-            var element = event.target;
-            var mouseX = event.clientX - element.boxObject.x;
-            var mouseY = event.clientY - element.boxObject.y;
+          var mouseX = event.screenX;
+          if (this.mDragState == 1) {
+            // move the startdate and the enddate
             var delta = mouseX - this.mMouseX;
-            var newStart = this.moveTime(this.mStartDate,delta);
-            if(newStart.compare(this.mStartDate) != 0) {
-              newEnd = this.moveTime(this.mEndDate,delta);
+            var newStart = this.moveTime(this.mStartDate, delta, false);
+            if (newStart.compare(this.mStartDate) != 0) {
+              newEnd = this.moveTime(this.mEndDate, delta, false);
 
               // we need to adapt this date in case we're dealing with
               // an all-day event. this is because setting 'endDate' will
@@ -1814,28 +1848,32 @@
               this.startDate = newStart;
               this.endDate = newEnd;
               this.mMouseX = mouseX;
-              this.mMouseY = mouseY;
               this.update();
             }
           } else if(this.mDragState == 2) {
-            var element = event.target;
-            var mouseX = event.clientX - element.boxObject.x;
-            var mouseY = event.clientY - element.boxObject.y;
-            var delta = mouseX - this.mMouseX;
-            var newStart = this.moveTime(this.mStartDate,delta);
-            if(newStart.compare(this.mStartDate) != 0) {
+            // move the startdate only...
+            var delta = event.screenX - this.mSelectionbar.boxObject.screenX;
+            var newStart = this.moveTime(this.mStartDate,delta, true);
+            if (newStart.compare(this.mEndDate) >= 0) {
+              if (!this.mStartDate.isDate) {
+                newStart = this.mEndDate;
+              }
+              else{
+                return;
+              }
+            }
+            if (newStart.compare(this.mStartDate) != 0) {
               this.startDate = newStart;
-              this.mMouseX = mouseX;
-              this.mMouseY = mouseY;
               this.update();
             }
-          } else if(this.mDragState == 3) {
-            var element = event.target;
-            var mouseX = event.clientX - element.boxObject.x;
-            var mouseY = event.clientY - element.boxObject.y;
-            var delta = mouseX - this.mMouseX;
-            var newEnd = this.moveTime(this.mEndDate,delta);
-            if(newEnd.compare(this.mEndDate) != 0) {
+          } else if (this.mDragState == 3) {
+            // move the enddate only..
+            var delta = mouseX - (this.mSelectionbar.boxObject.screenX + this.mSelectionbar.boxObject.width);
+            var newEnd = this.moveTime(this.mEndDate, delta, true);
+            if (newEnd.compare(this.mStartDate) < 0) {
+               newEnd = this.mStartDate;
+            }
+            if (newEnd.compare(this.mEndDate) != 0) {
             
               // we need to adapt this date in case we're dealing with
               // an all-day event. this is because setting 'endDate' will
@@ -1850,8 +1888,6 @@
                  (newEnd.compare(this.startDate) >= 0)) {
 
                 this.endDate = newEnd;
-                this.mMouseX = mouseX;
-                this.mMouseY = mouseY;
                 this.update();
               }
             }
