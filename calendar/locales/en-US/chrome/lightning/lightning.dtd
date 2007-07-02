@@ -65,9 +65,6 @@
 <!ENTITY lightning.sidebar.agenda.label      "Agenda">
 <!ENTITY lightning.sidebar.todo.label        "Todo">
 <!ENTITY lightning.sidebar.calendars.label   "Calendars">
-<!ENTITY lightning.sidebar.new.label         "New…">
-<!ENTITY lightning.sidebar.edit.label        "Edit…">
-<!ENTITY lightning.sidebar.delete.label      "Delete">
 <!ENTITY lightning.calendar.label            "Calendar">
 <!ENTITY lightning.calendar.accesskey        "C">
 <!ENTITY lightning.sidebar.showCompletedTasks.label "Show completed tasks">
@@ -87,12 +84,16 @@
 <!ENTITY customize.toolbar.location.bottom   "Bottom">
 
 <!-- Messenger Toolbar -->
-<!ENTITY lightning.toolbar.dayview.label     "Day View">
-<!ENTITY lightning.toolbar.dayview.accesskey "D">
-<!ENTITY lightning.toolbar.weekview.label    "Week View">
-<!ENTITY lightning.toolbar.weekview.accesskey "W">
-<!ENTITY lightning.toolbar.monthview.label   "Month View">
-<!ENTITY lightning.toolbar.monthview.accesskey "M">
+<!ENTITY lightning.toolbar.edit.calendar.label       "Edit selected calendar">
+<!ENTITY lightning.toolbar.edit.calendar.accesskey   "E">
+<!ENTITY lightning.toolbar.delete.calendar.label     "Delete selected calendar">
+<!ENTITY lightning.toolbar.delete.calendar.accesskey "t">
+<!ENTITY lightning.toolbar.day.label                 "Day">
+<!ENTITY lightning.toolbar.day.accesskey             "D">
+<!ENTITY lightning.toolbar.week.label                "Week">
+<!ENTITY lightning.toolbar.week.accesskey            "W">
+<!ENTITY lightning.toolbar.month.label               "Month">
+<!ENTITY lightning.toolbar.month.accesskey           "M">
 
 <!--Views' context menu-->
 <!ENTITY lightning.context.deleteitem.accesskey  "D">

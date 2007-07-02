@@ -95,17 +95,26 @@
         accesskey="&lightning.calendar.accesskey;"
         insertbefore="tasksMenu">
     <menupopup id="ltncalendarMenuPopup">
+      <menuitem id="ltnEditSelectedCalendar"
+                label="&lightning.toolbar.edit.calendar.label;"
+                accesskey="&lightning.toolbar.edit.calendar.accesskey;"
+                oncommand="ltnEditSelectedCalendar();"/>
+      <menuitem id="ltnDeleteSelectedCalendar"
+                label="&lightning.toolbar.delete.calendar.label;"
+                accesskey="&lightning.toolbar.delete.calendar.accesskey;"
+                oncommand="ltnDeleteSelectedCalendar();"/>
+      <menuseparator/>
       <menuitem id="ltnChangeViewDay"
-                label="&lightning.toolbar.dayview.label;"
-                accesskey="&lightning.toolbar.dayview.accesskey;"
+                label="&lightning.toolbar.day.label;"
+                accesskey="&lightning.toolbar.day.accesskey;"
                 oncommand="showCalendarView('day')"/>
       <menuitem id="ltnChangeViewWeek"
-                label="&lightning.toolbar.weekview.label;"
-                accesskey="&lightning.toolbar.weekview.accesskey;"
+                label="&lightning.toolbar.week.label;"
+                accesskey="&lightning.toolbar.week.accesskey;"
                 oncommand="showCalendarView('week')"/>
       <menuitem id="ltnChangeViewMonth"
-                label="&lightning.toolbar.monthview.label;"
-                accesskey="&lightning.toolbar.monthview.accesskey;"
+                label="&lightning.toolbar.month.label;"
+                accesskey="&lightning.toolbar.month.accesskey;"
                 oncommand="showCalendarView('month')"/>
       <menuseparator/>
       <menu label="&viewMenu.label;" accesskey="&viewMenu.accesskey;">
@@ -247,15 +256,6 @@
             <vbox id="agenda-tab-panel"/>    
             <vbox id="todo-tab-panel"/>
             <vbox id="calendar-tab-panel" flex="1">
-              <hbox id="ltnCalendarButtonsBox">
-                <button id="cal-sidebar-new-calendar" label="&lightning.sidebar.new.label;" 
-                        oncommand="ltnNewCalendar();"/>
-                <button id="cal-sidebar-edit-calendar" label="&lightning.sidebar.edit.label;" 
-                        oncommand="ltnEditSelectedCalendar();"/>
-                <spacer orient="horizontal" flex="5"/>
-                <button id="cal-sidebar-delete-calendar" label="&lightning.sidebar.delete.label;" 
-                        oncommand="ltnDeleteSelectedCalendar();"/>
-              </hbox>
               <tree id="calendarTree" hidecolumnpicker="true" seltype="single"
                     onfocus="selectedCalendarPane(event)" flex="1"
                     onselect="ltnSidebarCalendarSelected(this);"
