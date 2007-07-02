@@ -223,10 +223,11 @@ Feed.prototype =
 
   onParseError: function(aFeed) 
   {
-    if (aFeed && aFeed.downloadCallback)
+    if (aFeed)
     {
       if (aFeed.downloadCallback)
         aFeed.downloadCallback.downloaded(aFeed, aFeed.request && aFeed.request.status == 304 ? kNewsBlogNoNewItems : kNewsBlogInvalidFeed);
+
       FeedCache.removeFeed(aFeed.url);
     }
   },
