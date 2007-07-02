@@ -1,5 +1,5 @@
 /*
- * $Id: MouseListenerTest.java,v 1.7 2007-06-27 23:29:15 edburns%acm.org Exp $
+ * $Id: MouseListenerTest.java,v 1.8 2007-07-02 16:00:10 edburns%acm.org Exp $
  */
 
 /* 
@@ -284,7 +284,6 @@ public class MouseListenerTest extends WebclientTestCase {
         assertTrue(bitSet.get(TestFeature.MOUSE_ENTERED.ordinal()));
         assertTrue(bitSet.get(TestFeature.MOUSE_PRESSED.ordinal()));
         assertTrue(bitSet.get(TestFeature.MOUSE_RELEASED.ordinal()));
-        assertTrue(bitSet.get(TestFeature.MOUSE_EXITED.ordinal()));
 
         frame.setVisible(false);
         

@@ -32,8 +32,8 @@
   <property name="name" value="webclient"/>
   <property name="major.version" value="2" />
   <property name="minor.version" value="0" />
-  <property name="release.version" value="a8" />
-  <property name="release.version.full" value="alpha_8" />
+  <property name="release.version" value="a9" />
+  <property name="release.version.full" value="alpha_9" />
   <property name="version" 
             value="${major.version}_${minor.version}_${release.version}"/>
   <property name="full.version" value="${major.version}_${minor.version}_${release.version.full}"/>
@@ -92,7 +92,6 @@
 
     <antcall target="prepare" />
     <antcall target="uptodate" />
-    <antcall target="compile.all" />
     <antcall target="build.dist.jar" />
     <antcall target="copy.binaries" />
     <antcall target="copy.test.src" />
@@ -121,7 +120,7 @@
       </and>
     </condition>
 
-    <zip destfile="${objdir}/${name}_${version}_${platform}.zip" 
+    <zip destfile="${objdir}/${name}_${version}.zip" 
          basedir="${dist.base}" />
   </target>
 
@@ -261,7 +260,28 @@
 
   </target>
 
-  <target name="build.dist.jar">
+  <target name="copy.mac.artifacts" if="mac.dist.zip">
+    <property name="dest" value="${dist.base}/tmp/mac" />
+    <unzip dest="${dest}" src="${mac.dist.zip}" />
+    <mkdir dir="${dest}/unjar" />
+    <unjar dest="${dest}/unjar" src="${dest}/${name}_2_0_a8/lib/${name}-2_0_a8.jar"/>
+    <!-- copy the mac specific java classes -->
+    <copy todir="${dist.classes}">
+      <fileset dir="${dest}/unjar" >
+        <include name="**/Cocoa*.*" />
+      </fileset>
+    </copy>
+    <!-- copy the mac specific native binaries -->
+    <copy todir="${dist.home}/bin/macosx/bin">
+      <fileset dir="${dest}/${name}_2_0_a8/bin/macosx/bin">
+        <include name="**/*.*" />
+      </fileset>
+    </copy>
+    <delete dir="${dest}" />
+     
+  </target>
+
+  <target name="build.dist.jar" depends="copy.mac.artifacts">
     <jar jarfile="${dist.jar}" >
        <manifest>
         <attribute name="Specification-Title" value="${Name}"/>
@@ -310,6 +330,7 @@
         <exclude name="**/*Bookmark*.java" />
         <exclude name="**/*Preferences*.java" />
         <exclude name="**/*Profile*.java" />
+        <exclude name="org/mozilla/webclient/impl/wrapper_native/*Gtk*.*" />
       </fileset>
       <fileset dir="${basedir}/mcp-test/src/test/java">
         <include name="**/*.java" />
@@ -341,6 +362,7 @@
     <copy todir="${dist.home}/src/main/java" includeEmptyDirs="false">
       <fileset dir="${source.home}/webclient/classes_spec">
         <exclude name="**/test/*" />
+        <exclude name="org/mozilla/webclient/wrapper_native/**/*.*" />
         <exclude name="**/test_nonnative/*" />
         <exclude name="**/wrapper_nonnative/*" />
         <exclude name="**/*.html" />

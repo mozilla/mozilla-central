@@ -217,11 +217,13 @@ ${so.prefix}xul.${so.extension}.
 
         <property name="debug.jvm.args" value="" />
         <property name="test.browser.url" 
-                  value="${basedir}/../2_0_alpha_8.html" />
+                  value="${basedir}/../2_0_alpha_9.html" />
         
         <java classname="org.mozilla.webclient.test.TestBrowser" fork="true">
             <jvmarg value="-DNSPR_LOG_MODULES=javadom:4,webclient:4,webclientstub:4,pluglets:4"/>
+            <env key="NSPR_LOG_MODULES" value="${nspr.log.modules}" />
             <jvmarg value="-DNSPR_LOG_FILE=${basedir}${FILE_PATH_SEP}${build.dir}${FILE_PATH_SEP}webclient.log"/>
+            <env key="NSPR_LOG_FILE" file="${basedir}/${build.dir}/${nspr.log.filename}" />
             <jvmarg value="-Dbuild.test.results.dir=${basedir}${FILE_PATH_SEP}${build.test.results.dir}" />
             <jvmarg value="-DBROWSER_BIN_DIR=${browser.bin.dir}"/>
             <jvmarg line="${debug.jvm.args}"/>
@@ -350,7 +352,7 @@ ${so.prefix}xul.${so.extension}.
       <echo file="${build.classes.dir}/META-INF/services/org.mozilla.webclient.WebclientFactory">org.mozilla.webclient.impl.WebclientFactoryImpl</echo>
       <echo file="${build.classes.dir}/META-INF/services/org.mozilla.webclient.impl.WrapperFactory">org.mozilla.webclient.impl.wrapper_native.WrapperFactoryImpl</echo>
 
-      <move failonerror="false" file="${file.reference.webclient-2_0_a8.jar}"
+      <move failonerror="false" file="${file.reference.webclient-2_0_a9.jar}"
             tofile="${basedir}/../lib/outofdate-webclient_jar" />
 
     </target>
