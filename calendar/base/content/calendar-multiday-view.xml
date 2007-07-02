@@ -1799,12 +1799,12 @@
           var df = Cc["@mozilla.org/calendar/datetime-formatter;1"].
                      getService(Ci.calIDateTimeFormatter);
 
-          var short = document.getAnonymousElementByAttribute(this, "anonid", "shortWeekdayName");
-          var long = document.getAnonymousElementByAttribute(this, "anonid", "longWeekdayName");
+          var shortName = document.getAnonymousElementByAttribute(this, "anonid", "shortWeekdayName");
+          var longName = document.getAnonymousElementByAttribute(this, "anonid", "longWeekdayName");
           var day = document.getAnonymousElementByAttribute(this, "anonid", "dateName");
 
-          long.setAttribute("value", calGetString("dateFormat","day." + (val.weekday + 1) + ".name"));
-          short.setAttribute("value", calGetString("dateFormat","day." + (val.weekday + 1) + ".Mmm"));
+          longName.setAttribute("value", calGetString("dateFormat","day." + (val.weekday + 1) + ".name"));
+          shortName.setAttribute("value", calGetString("dateFormat","day." + (val.weekday + 1) + ".Mmm"));
           day.setAttribute("value", df.formatDateWithoutYear(val));
 
           return val;
@@ -1816,35 +1816,35 @@
           return document.getAnonymousElementByAttribute(this, "anonid", "shortWeekdayName").hasAttribute("hidden");
         ]]></getter>
         <setter><![CDATA[
-          var short = document.getAnonymousElementByAttribute(this, "anonid", "shortWeekdayName");
-          var long = document.getAnonymousElementByAttribute(this, "anonid", "longWeekdayName");
+          var shortName = document.getAnonymousElementByAttribute(this, "anonid", "shortWeekdayName");
+          var longName = document.getAnonymousElementByAttribute(this, "anonid", "longWeekdayName");
 
           // cache before change, in case we are switching to short
-          this.cacheLongWeekdayPixels(long);
+          this.cacheLongWeekdayPixels(longName);
 
           if (val) {
-            long.setAttribute("hidden","true");
-            short.removeAttribute("hidden");
+            longName.setAttribute("hidden","true");
+            shortName.removeAttribute("hidden");
           } else {
-            long.removeAttribute("hidden");
-            short.setAttribute("hidden","true");
+            longName.removeAttribute("hidden");
+            shortName.setAttribute("hidden","true");
           }
 
           // cache after change, in case we are switching from short
-          this.cacheLongWeekdayPixels(long);
+          this.cacheLongWeekdayPixels(longName);
 
           return val;
         ]]></setter>
       </property>
 
       <method name="cacheLongWeekdayPixels">
-        <parameter name="long"/>
+        <parameter name="longName"/>
         <body><![CDATA[
           // Only do this if the long weekdays are visible and we haven't already cached.
-          if (!this.longWeekdayPixels && !long.hasAttribute("hidden")) {
-            this.longWeekdayPixels = long.boxObject.width +
-                                     parseInt(document.defaultView.getComputedStyle(long, null).getPropertyValue("margin-left")) +
-                                     parseInt(document.defaultView.getComputedStyle(long, null).getPropertyValue("margin-right"));
+          if (!this.longWeekdayPixels && !longName.hasAttribute("hidden")) {
+            this.longWeekdayPixels = longName.boxObject.width +
+                                     parseInt(document.defaultView.getComputedStyle(longName, null).getPropertyValue("margin-left")) +
+                                     parseInt(document.defaultView.getComputedStyle(longName, null).getPropertyValue("margin-right"));
           }
         ]]></body>
       </method>
