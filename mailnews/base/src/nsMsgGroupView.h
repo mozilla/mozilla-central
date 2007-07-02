@@ -37,8 +37,9 @@
  * ***** END LICENSE BLOCK ***** */
 
 #include "nsMsgThreadedDBView.h"
-#include "nsHashtable.h"
+#include "nsInterfaceHashtable.h"
 
+class nsIMsgThread;
 class nsMsgGroupThread;
 
 class nsMsgGroupView : public nsMsgThreadedDBView
@@ -65,7 +66,8 @@ public:
 protected:
   void InternalClose();
   nsMsgGroupThread *AddHdrToThread(nsIMsgDBHdr *msgHdr, PRBool *pNewThread);
-  nsHashKey *AllocHashKeyForHdr(nsIMsgDBHdr *msgHdr); // caller must delete
+  nsresult HashHdr(nsIMsgDBHdr *msgHdr, nsString& aHashKey);
+  nsresult GetAgeBucketValue(nsIMsgDBHdr *aMsgHdr, PRUint32 * aAgeBucket); // helper function to get the age bucket for a hdr, useful when grouped by date
   nsresult OnNewHeader(nsIMsgDBHdr *newHdr, nsMsgKey aParentKey, PRBool /*ensureListed*/);
   virtual nsresult GetThreadContainingMsgHdr(nsIMsgDBHdr *msgHdr, nsIMsgThread **pThread);
   virtual PRInt32 FindLevelInThread(nsIMsgDBHdr *msgHdr, nsMsgViewIndex startOfThread, nsMsgViewIndex viewIndex);
@@ -77,7 +79,7 @@ protected:
   PRBool GroupViewUsesDummyRow(); // returns true if we are grouped by a sort attribute that uses a dummy row
   nsresult HandleDayChange();
 
-  nsHashtable  m_groupsTable;
+  nsInterfaceHashtable <nsStringHashKey, nsIMsgThread> m_groupsTable;
   PRExplodedTime m_lastCurExplodedTime;
   PRBool m_dayChanged;
 
