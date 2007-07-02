@@ -301,6 +301,8 @@
           <xul:rows>
             <xul:row anonid="row">
               <xul:recurrence-calendar anonid="minimonth"/>
+              <xul:recurrence-calendar anonid="minimonth"/>
+              <xul:recurrence-calendar anonid="minimonth"/>
               <xul:spacer/>
             </xul:row>
           </xul:rows>

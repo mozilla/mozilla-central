@@ -65,7 +65,7 @@
         <xul:groupbox>
           <xul:caption label="&event.recurrence.pattern.label;"/>
 
-          <xul:grid style="min-width: 28em">
+          <xul:grid>
             <xul:columns>
               <xul:column/>
               <xul:column/>
@@ -268,10 +268,8 @@
         </xul:groupbox>
 
         <!-- preview -->
-        <xul:groupbox flex="1">
-          <xul:caption label="&event.recurrence.preview.label;"/>
-          <xul:recurrence-preview id="recurrence-preview" flex="1"/>
-        </xul:groupbox>
+        <xul:label value="&event.recurrence.preview.label;"/>
+        <xul:recurrence-preview id="recurrence-preview" flex="1"/> 
       </xul:box>
 
     </content>

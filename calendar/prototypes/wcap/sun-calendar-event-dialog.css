@@ -35,7 +35,7 @@
  * ***** END LICENSE BLOCK ***** */
 
 /* we don't want the default padding for dialog windows */
-dialog {
+#sun-calendar-event-dialog {
   padding: 0px;
 }
 
