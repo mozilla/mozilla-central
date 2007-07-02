@@ -37,7 +37,7 @@
  * ***** END LICENSE BLOCK ****** */
 
 /* ::::: Folder Pane icons :::::: */
-
+.tabmail-tab[type="folder"][ServerType="rss"] .tab-icon-image ,
 treechildren::-moz-tree-image(folderNameCol, serverType-rss),
 .folderMenuItem[ServerType="rss"] {
   list-style-image: url("chrome://messenger/skin/icons/message-news.png");
@@ -48,13 +48,14 @@ treechildren::-moz-tree-image(folderNameCol, isServer-true, serverType-rss),
   list-style-image: url("chrome://messenger/skin/icons/server-newsblog.png");
 }
 
+.tabmail-tab[type="folder"][SpecialFolder="Trash"][ServerType="rss"] .tab-icon-image ,
 treechildren::-moz-tree-image(folderNameCol, specialFolder-Trash),
 .folderMenuItem[SpecialFolder="Trash"] {
   list-style-image: url("chrome://messenger/skin/icons/folder-trash.png");
 }
 
 /* ..... Saved Search Folder, Hack to force the saved search artwork to show up for virtual folders in RSS accounts ..... */
-
+.tabmail-tab[type="folder"][SpecialFolder="Virtual"][ServerType="rss"] .tab-icon-image ,
 treechildren::-moz-tree-image(folderNameCol, serverType-rss, specialFolder-Virtual) {
   list-style-image: url("chrome://messenger-newsblog/skin/icons/folder-search-rss.png");
 }

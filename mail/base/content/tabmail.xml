@@ -73,9 +73,9 @@
                     anonid="tabcontainer"
                     setfocus="false"
                     onclick="this.parentNode.parentNode.parentNode.onTabClick(event);">
-            <xul:tab selected="true" validate="never"
+            <xul:tab selected="true" validate="never" type="folder"
                      maxwidth="250" width="0" minwidth="100" flex="100"
-                     class="tabbrowser-tab" crop="end"/>
+                     class="tabbrowser-tab tabmail-tab" crop="end"/>
           </xul:tabs>
         </xul:hbox>
         <xul:tabpanels flex="1" class="plain" selectedIndex="0" anonid="panelcontainer">
@@ -109,7 +109,7 @@
             t.width = 0;
             t.setAttribute("flex", "100");
             t.setAttribute("validate", "never");
-            t.className = "tabbrowser-tab";
+            t.className = "tabbrowser-tab tabmail-tab";
             if (!this.tabOwners.length)
             {
               // set up the first tab, which was previously invisible.
@@ -129,6 +129,8 @@
             this.tabOwners[this.tabContainer.childNodes.length - 1] = aTabOwner;
             this.tabContainer.selectedIndex = this.tabContainer.childNodes.length - 1; // this has a side effect of calling updateCurrentMailTab
             this.setTabTitle(t);
+            // for styling purposes, apply the type to the tab...
+            t.setAttribute('type', aTabOwner.type);
             this.currentTabOwner.open();
           ]]>
         </body>
@@ -219,6 +221,7 @@
               if (this.tabContainer.childNodes[i] == aTab)
                 break;
             aTab.setAttribute("label", this.tabOwners[i].title);
+            this.tabOwners[i].onTitleChanged(aTab);
           ]]>
         </body>
       </method>

@@ -349,9 +349,13 @@ treechildren::-moz-tree-image(subjectCol, imapdeleted) {
   list-style-image: url("chrome://global/skin/throbber/Throbber-small.gif");
 }
 
-
 #threadTree treechildren::-moz-tree-row(odd) {
   background-image: url("chrome://messenger/skin/icons/row.png");
   background-position: bottom;
   background-repeat: repeat-x;
+}
+
+.tabmail-tab[type="message"]  .tab-icon-image {
+  list-style-image: url("chrome://messenger/skin/icons/server.png");
+  -moz-image-region: rect(0 16px 16px 0);
 }

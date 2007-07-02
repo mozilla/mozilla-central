@@ -467,3 +467,7 @@ splitter {
 #quotaLabel {
   text-align: center;
 }
+
+.tabmail-tab[type="message"]  .tab-icon-image {
+  list-style-image: url("chrome://messenger/skin/icons/message-mail.png");
+}

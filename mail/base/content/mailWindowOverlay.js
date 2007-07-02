@@ -1542,6 +1542,15 @@ folderTabOwner.prototype =
     displayMailTab(this);
   },
 
+  onTitleChanged: function(aTab)
+  {
+    // the user may have changed folders, triggering our onTitleChanged callback.
+    // update the appropriate attributes on the tab.
+    aTab.setAttribute('SpecialFolder', GetFolderAttribute(GetFolderTree(), gMsgFolderSelected, 'SpecialFolder'));
+    aTab.setAttribute('ServerType', GetFolderAttribute(GetFolderTree(), gMsgFolderSelected, 'ServerType'));
+    return;
+  },
+
   get title()
   {
     // this only works if we are the owner of the current tab...
@@ -1585,6 +1594,11 @@ messageTabOwner.prototype =
   {
     ClearMessagePane();
     displayMailTab(this);
+  },
+
+  onTitleChanged: function(aTab)
+  {
+    return;
   },
 
   get title()
