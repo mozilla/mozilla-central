@@ -2586,14 +2586,9 @@
 
             this.mStartDate = this.mStartDate.clone();
             this.mEndDate = this.mEndDate.clone();
-            if(allDay) {
-              this.mStartDate.isDate = true;
-              this.mEndDate.isDate = true;
-            } else {
-              this.mStartDate.isDate = false;
-              this.mEndDate.isDate = false;
-            }
             
+            this.mStartDate.isDate = allDay;
+            this.mEndDate.isDate = allDay;
             this.mStartDate.normalize();
             this.mEndDate.normalize();
 

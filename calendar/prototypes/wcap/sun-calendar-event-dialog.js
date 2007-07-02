@@ -1469,12 +1469,7 @@ function updateAllDay()
   var tzStart = document.getElementById("timezone-starttime");
   var tzEnd = document.getElementById("timezone-endtime");
 
-  // automatically select "show time as free" if this
-  // event is said to be all-day.
-  if(allDay) {
-    gShowTimeAs = "TRANSPARENT";
-    updateShowTimeAs();
-  }
+  setShowTimeAs(allDay);
 
   gStartTime.isDate = allDay;
   gEndTime.isDate = allDay;
@@ -1549,6 +1544,22 @@ function openNewCardDialog()
   window.openDialog("chrome://messenger/content/addressbook/abNewCardDialog.xul","","chrome,resizable=no,titlebar,modal");
 }
 
+//////////////////////////////////////////////////////////////////////////////
+// setShowTimeAs
+//////////////////////////////////////////////////////////////////////////////
+
+// automatically select "show time as free" if this
+// event is said to be all-day.
+function setShowTimeAs(allDay)
+{
+  if (allDay) {
+    gShowTimeAs = "TRANSPARENT";
+  }
+  else {
+    gShowTimeAs = "OPAQUE";
+  }    
+  updateShowTimeAs();
+}
 
 //////////////////////////////////////////////////////////////////////////////
 // editAttendees
@@ -1575,6 +1586,9 @@ function editAttendees()
     gItemDuration = duration;
     updateAttendees();
     updateDateTime();
+    if (isAllDay != gStartTime.isDate){
+      setShowTimeAs(gStartTime.isDate)
+    }
   };
 
   var startTime = gStartTime.getInTimezone(gStartTimezone);
@@ -2446,11 +2460,7 @@ function updateDateTime()
       var startTime = gStartTime.getInTimezone(gStartTimezone);
       var endTime = gEndTime.getInTimezone(gEndTimezone);
 
-      if (startTime.isDate) {
-        setElementValue("event-all-day", true, "checked");
-      } else {
-        setElementValue("event-all-day", false, "checked");
-      }
+      setElementValue("event-all-day", startTime.isDate, "checked");
 
       // in the case where the timezones are different but
       // the timezone of the endtime is "UTC", we convert
@@ -2509,11 +2519,7 @@ function updateDateTime()
       var startTime = gStartTime.getInTimezone(kDefaultTimezone);
       var endTime = gEndTime.getInTimezone(kDefaultTimezone);
 
-      if (startTime.isDate) {
-        setElementValue("event-all-day", true, "checked");
-      } else {
-        setElementValue("event-all-day", false, "checked");
-      }
+      setElementValue("event-all-day", startTime.isDate, "checked");
 
       // before feeding the date/time value into the control we need
       // to set the timezone to 'floating' in order to avoid the
