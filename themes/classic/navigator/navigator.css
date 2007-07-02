@@ -257,6 +257,11 @@
   padding: 2px;
 }
 
+.autocomplete-search-engine[menuactive="true"] {
+  background-color: Highlight;
+  color: HighlightText;
+}
+
 .autocomplete-search-engine-img {
   margin-right: 4px;
 }
