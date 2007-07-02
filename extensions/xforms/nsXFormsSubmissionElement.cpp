@@ -1554,6 +1554,12 @@ nsXFormsSubmissionElement::CopyChildren(nsIModelElementPrivate *aModel,
           return NS_ERROR_ILLEGAL_VALUE;
         }
 
+        // ImportNode does not copy any properties of the currentNode. If the
+        // node has an uploadFileProperty we need to copy it to the submission
+        // document so that local files will be attached properly when the
+        // submission format is multipart-related.
+        aDest->AppendChild(destChild, getter_AddRefs(node));
+
         // If this node has attributes, make sure that we don't copy any
         // that aren't relevant, etc.
         PRBool hasAttrs = PR_FALSE;
@@ -1567,7 +1573,7 @@ nsXFormsSubmissionElement::CopyChildren(nsIModelElementPrivate *aModel,
         
           nsresult rv = NS_OK;
           PRUint32 length;
-          nsCOMPtr<nsIDOMElement> destElem(do_QueryInterface(destChild));
+          nsCOMPtr<nsIDOMElement> destElem(do_QueryInterface(node));
           attrMap->GetLength(&length);
         
           for (PRUint32 run = 0; run < length; ++run) {
@@ -1627,12 +1633,6 @@ nsXFormsSubmissionElement::CopyChildren(nsIModelElementPrivate *aModel,
             }
           }
         }
-
-        // ImportNode does not copy any properties of the currentNode. If the
-        // node has an uploadFileProperty we need to copy it to the submission
-        // document so that local files will be attached properly when the
-        // submission format is multipart-related.
-        aDest->AppendChild(destChild, getter_AddRefs(node));
 
         void* uploadFileProperty = nsnull;
         nsCOMPtr<nsIContent> currentNodeContent(do_QueryInterface(currentNode));
