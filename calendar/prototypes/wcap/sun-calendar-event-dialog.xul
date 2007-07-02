@@ -852,7 +852,7 @@
                         align="center"
                         flex="1"
                         pack="start">
-            <label value="Importance:"/>
+            <label value="&event.priority.label;"/>
             <image id="button-importance-low"
                    collapsed="true"
                    value="low"/>
