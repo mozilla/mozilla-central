@@ -2183,6 +2183,8 @@ nsXFormsSubmissionElement::SendData(const nsCString &uriSpec,
   nsCOMPtr<nsIIOService> ios = do_GetIOService();
   NS_ENSURE_STATE(ios);
 
+  nsCOMPtr<nsIURI> currURI = doc->GetDocumentURI();
+
   // Any parameters appended to uriSpec are already ASCII-encoded per the rules
   // of section 11.6.  Use our standard document charset based canonicalization
   // for any other non-ASCII bytes.  (This might be important for compatibility
@@ -2190,7 +2192,7 @@ nsXFormsSubmissionElement::SendData(const nsCString &uriSpec,
   nsCOMPtr<nsIURI> uri;
   ios->NewURI(uriSpec,
               doc->GetDocumentCharacterSet().get(),
-              doc->GetDocumentURI(),
+              currURI,
               getter_AddRefs(uri));
   NS_ENSURE_STATE(uri);
 
@@ -2294,10 +2296,13 @@ nsXFormsSubmissionElement::SendData(const nsCString &uriSpec,
   NS_ENSURE_STATE(channel);
 
   PRBool ignoreStream = PR_FALSE;
-  nsCOMPtr<nsIHttpChannel> httpChannel;
+  nsCOMPtr<nsIHttpChannel> httpChannel(do_QueryInterface(channel));
+
+  if (httpChannel) {
+    httpChannel->SetReferrer(currURI);
+  }
 
   if (mFormat & METHOD_POST) {
-    httpChannel = do_QueryInterface(channel);
     if (!httpChannel) {
       // The spec doesn't really say how to handle post with anything other
       // than http.  So we are free to make up our own rules.
