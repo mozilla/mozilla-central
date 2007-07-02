@@ -52,7 +52,6 @@
 #include "nsMsgDatabase.h"
 #include "nsIMsgAccountManager.h"
 #include "nsISeekableStream.h"
-#include "nsEscape.h"
 #include "nsNativeCharsetUtils.h"
 #include "nsIChannel.h"
 #include "nsITransport.h"
@@ -2440,12 +2439,13 @@ nsMsgDBFolder::parseURI(PRBool needServer)
     // mName:
     // the name is the trailing directory in the path
     nsCAutoString fileName;
-    url->GetFileName(fileName);
-    if (!fileName.IsEmpty())
+    nsCAutoString escapedFileName;
+    url->GetFileName(escapedFileName);
+    if (!escapedFileName.IsEmpty())
     {
       // XXX conversion to unicode here? is fileName in UTF8?
       // yes, let's say it is in utf8
-      NS_UnescapeURL((char *)fileName.get());
+      MsgUnescapeString(escapedFileName, 0, fileName);
       NS_ASSERTION(IsUTF8(fileName), "fileName is not in UTF-8");
       CopyUTF8toUTF16(fileName, mName);
     }
@@ -2485,11 +2485,12 @@ nsMsgDBFolder::parseURI(PRBool needServer)
   if (server)
   {
     nsCAutoString newPath;
+    nsCAutoString escapedUrlPath;
     nsCAutoString urlPath;
-    url->GetFilePath(urlPath);
-    if (!urlPath.IsEmpty())
+    url->GetFilePath(escapedUrlPath);
+    if (!escapedUrlPath.IsEmpty())
     {
-      NS_UnescapeURL((char *) urlPath.get());
+      MsgUnescapeString(escapedUrlPath, 0, urlPath);
 
       // transform the filepath from the URI, such as
       // "/folder1/folder2/foldern"

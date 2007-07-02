@@ -57,7 +57,6 @@
 #include "nsString.h"
 #include "nsUnicharUtils.h"
 #include "nscore.h"
-#include "nsEscape.h"
 #include "prprf.h"
 #include "nsIMsgFolderCache.h"
 #include "nsMsgUtils.h"
@@ -91,7 +90,6 @@
 #include "nsILineInputStream.h"
 #include "nsThreadUtils.h"
 #include "nsNetUtil.h"
-#include "nsEscape.h"
 
 #define PREF_MAIL_ACCOUNTMANAGER_ACCOUNTS "mail.accountmanager.accounts"
 #define PREF_MAIL_ACCOUNTMANAGER_DEFAULTACCOUNT "mail.accountmanager.defaultaccount"
@@ -1603,14 +1601,16 @@ nsMsgAccountManager::FindServerByURI(nsIURI *aURI, PRBool aRealFlag,
 
   // Get username and hostname and port so we can get the server
   nsCAutoString username;
-  rv = aURI->GetUserPass(username);
-  if (NS_SUCCEEDED(rv) && !username.IsEmpty())
-    NS_UnescapeURL(username);
+  nsCAutoString escapedUsername;
+  rv = aURI->GetUserPass(escapedUsername);
+  if (NS_SUCCEEDED(rv) && !escapedUsername.IsEmpty())
+    MsgUnescapeString(escapedUsername, 0,  username);
 
   nsCAutoString hostname;
-  rv = aURI->GetHost(hostname);
-  if (NS_SUCCEEDED(rv) && !hostname.IsEmpty())
-    NS_UnescapeURL(hostname);
+  nsCAutoString escapedHostname;
+  rv = aURI->GetHost(escapedHostname);
+  if (NS_SUCCEEDED(rv) && !escapedHostname.IsEmpty())
+    MsgUnescapeString(escapedHostname, 0, hostname);
 
   nsCAutoString type;
   rv = aURI->GetScheme(type);
@@ -2700,8 +2700,8 @@ NS_IMETHODIMP nsMsgAccountManager::LoadVirtualFolders()
               if (parentFolder)
               {
                 nsAutoString currentFolderNameStr;
-                nsCAutoString currentFolderNameCStr(Substring(buffer, lastSlash + 1, buffer.Length()));
-                nsUnescape(currentFolderNameCStr.BeginWriting());
+                nsCAutoString currentFolderNameCStr;
+                MsgUnescapeString(nsCString(Substring(buffer, lastSlash + 1, buffer.Length())), 0, currentFolderNameCStr);
                 CopyUTF8toUTF16(currentFolderNameCStr, currentFolderNameStr);
                 nsCOMPtr <nsIMsgFolder> childFolder;
                 nsCOMPtr <nsIMsgDatabase> db;

@@ -41,7 +41,6 @@
 #include "nsMsgUtils.h"
 #include "nsString.h"
 #include "nsReadableUtils.h"
-#include "nsEscape.h"
 #include "nsIServiceManager.h"
 #include "nsCOMPtr.h"
 #include "nsIImapUrl.h"
@@ -672,20 +671,15 @@ char * NS_MsgSACat (char **destination, const char *source)
 
 nsresult NS_MsgEscapeEncodeURLPath(const nsAString& aStr, nsCString& aResult)
 {
-  char *escapedString = nsEscape(NS_ConvertUTF16toUTF8(aStr).get(), url_Path);
-  if (!*escapedString)
-    return NS_ERROR_OUT_OF_MEMORY;
-  aResult.Adopt(escapedString);
-  return NS_OK;
+  return MsgEscapeString(NS_ConvertUTF16toUTF8(aStr), nsINetUtil::ESCAPE_URL_PATH, aResult);
 }
 
 nsresult NS_MsgDecodeUnescapeURLPath(const nsACString& aPath,
                                      nsAString& aResult)
 {
   nsCAutoString unescapedName;
-  NS_UnescapeURL(nsCString(aPath),
-                 esc_FileBaseName|esc_Forced|esc_AlwaysCopy,
-                 unescapedName);
+  MsgUnescapeString(aPath, nsINetUtil::ESCAPE_URL_FILE_BASENAME |
+                 nsINetUtil::ESCAPE_URL_FORCED, unescapedName);
   CopyUTF8toUTF16(unescapedName, aResult);
   return NS_OK;
 }
@@ -1520,4 +1514,149 @@ NS_MSG_BASE void MsgStripQuotedPrintable (unsigned char *src)
   dest[destIdx] = src[srcIdx]; // null terminate
 }
 
+NS_MSG_BASE nsresult MsgEscapeString(const nsACString &aStr, 
+                                 PRUint32 aType, nsACString &aResult)
+{
+  nsresult rv;
+  nsCOMPtr<nsINetUtil> nu = do_GetService(NS_NETUTIL_CONTRACTID, &rv);
+  NS_ENSURE_SUCCESS(rv, rv);
+
+  return nu->EscapeString(aStr, nsINetUtil::ESCAPE_URL_PATH, aResult);
+}
+
+NS_MSG_BASE nsresult MsgUnescapeString(const nsACString &aStr, PRUint32 aFlags, 
+                                       nsACString &aResult)
+{
+  nsresult rv;
+  nsCOMPtr<nsINetUtil> nu = do_GetService(NS_NETUTIL_CONTRACTID, &rv);
+  NS_ENSURE_SUCCESS(rv, rv);
+
+  return nu->UnescapeString(aStr, aFlags, aResult);
+}
+
+NS_MSG_BASE nsresult MsgEscapeURL(const nsACString &aStr, PRUint32 aFlags,
+                                  nsACString &aResult)
+{
+  nsresult rv;
+  nsCOMPtr<nsINetUtil> nu = do_GetService(NS_NETUTIL_CONTRACTID, &rv);
+  NS_ENSURE_SUCCESS(rv, rv);
+
+  return nu->EscapeURL(aStr, aFlags, aResult);
+}
+
+NS_MSG_BASE char *MsgEscapeHTML(const char *string)
+{
+  /* XXX Hardcoded max entity len. The +1 is for the trailing null. */
+  char *rv = (char *) nsMemory::Alloc(strlen(string) * 6 + 1);
+  char *ptr = rv;
+
+  if(rv)
+  {
+    for(; *string != '\0'; string++)
+    {
+      if(*string == '<')
+      {
+        *ptr++ = '&';
+        *ptr++ = 'l';
+        *ptr++ = 't';
+        *ptr++ = ';';
+      }
+      else if(*string == '>')
+      {
+        *ptr++ = '&';
+        *ptr++ = 'g';
+        *ptr++ = 't';
+        *ptr++ = ';';
+      }
+      else if(*string == '&')
+      {
+        *ptr++ = '&';
+        *ptr++ = 'a';
+        *ptr++ = 'm';
+        *ptr++ = 'p';
+        *ptr++ = ';';
+      }
+      else if (*string == '"')
+      {
+        *ptr++ = '&';
+        *ptr++ = 'q';
+        *ptr++ = 'u';
+        *ptr++ = 'o';
+        *ptr++ = 't';
+        *ptr++ = ';';
+      }      
+      else if (*string == '\'')
+      {
+        *ptr++ = '&';
+        *ptr++ = '#';
+        *ptr++ = '3';
+        *ptr++ = '9';
+        *ptr++ = ';';
+      }
+      else
+      {
+        *ptr++ = *string;
+      }
+    }
+    *ptr = '\0';
+  }
+
+  return(rv);
+}
+
+NS_MSG_BASE PRUnichar *MsgEscapeHTML(const PRUnichar *aSourceBuffer, 
+                                      PRInt32 aSourceBufferLen)
+{
+  // if the caller didn't calculate the length
+  if (aSourceBufferLen == -1) {
+    aSourceBufferLen = NS_strlen(aSourceBuffer); // ...then I will
+  }
+
+  /* XXX Hardcoded max entity len. */
+  PRUnichar *resultBuffer = (PRUnichar *)nsMemory::Alloc(aSourceBufferLen *
+                            6 * sizeof(PRUnichar) + sizeof(PRUnichar('\0')));
+  PRUnichar *ptr = resultBuffer;
+
+  if (resultBuffer) {
+    PRInt32 i;
+
+    for(i = 0; i < aSourceBufferLen; i++) {
+      if(aSourceBuffer[i] == '<') {
+        *ptr++ = '&';
+        *ptr++ = 'l';
+        *ptr++ = 't';
+        *ptr++ = ';';
+      } else if(aSourceBuffer[i] == '>') {
+        *ptr++ = '&';
+        *ptr++ = 'g';
+        *ptr++ = 't';
+        *ptr++ = ';';
+      } else if(aSourceBuffer[i] == '&') {
+        *ptr++ = '&';
+        *ptr++ = 'a';
+        *ptr++ = 'm';
+        *ptr++ = 'p';
+        *ptr++ = ';';
+      } else if (aSourceBuffer[i] == '"') {
+        *ptr++ = '&';
+        *ptr++ = 'q';
+        *ptr++ = 'u';
+        *ptr++ = 'o';
+        *ptr++ = 't';
+        *ptr++ = ';';
+      } else if (aSourceBuffer[i] == '\'') {
+        *ptr++ = '&';
+        *ptr++ = '#';
+        *ptr++ = '3';
+        *ptr++ = '9';
+        *ptr++ = ';';
+      } else {
+        *ptr++ = aSourceBuffer[i];
+      }
+    }
+    *ptr = 0;
+  }
+
+  return resultBuffer;
+}
 

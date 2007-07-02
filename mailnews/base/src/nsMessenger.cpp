@@ -46,7 +46,6 @@
 #include "nsIComponentManager.h"
 #include "nsIServiceManager.h"
 #include "nsIStringStream.h"
-#include "nsEscape.h"
 #include "nsReadableUtils.h"
 #include "nsILocalFile.h"
 #include "nsDirectoryServiceDefs.h"
@@ -202,12 +201,12 @@ ConvertBufToPlainText(nsString &aConBuf)
 
 nsresult ConvertAndSanitizeFileName(const char * displayName, PRUnichar ** unicodeResult, char ** result)
 {
-  nsCAutoString unescapedName(displayName);
+  nsCString unescapedName;
 
   /* we need to convert the UTF-8 fileName to platform specific character set.
      The display name is in UTF-8 because it has been escaped from JS
   */
-  NS_UnescapeURL(unescapedName);
+  MsgUnescapeString(nsDependentCString(displayName), 0, unescapedName);
   NS_ConvertUTF8toUTF16 ucs2Str(unescapedName);
 
   nsresult rv = NS_OK;

@@ -40,7 +40,6 @@
 #include "nsAddbookUrl.h"
 #include "nsString.h"
 #include "nsAbBaseCID.h"
-#include "nsEscape.h"
 
 /////////////////////////////////////////////////////////////////////////////////////
 // addbook url definition

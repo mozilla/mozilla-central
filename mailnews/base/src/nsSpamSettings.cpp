@@ -44,7 +44,6 @@
 #include "plstr.h"
 #include "prmem.h"
 #include "nsIMsgHdr.h"
-#include "nsEscape.h"
 #include "nsNetUtil.h"
 #include "nsIMsgFolder.h"
 #include "nsMsgUtils.h"
@@ -658,7 +657,7 @@ NS_IMETHODIMP nsSpamSettings::LogJunkString(const char *string)
   // html escape the log for security reasons.
   // we don't want some to send us a message with a subject with
   // html tags, especially <script>
-  char *escapedBuffer = nsEscapeHTML(string);
+  char *escapedBuffer = MsgEscapeHTML(string);
   if (!escapedBuffer)
     return NS_ERROR_OUT_OF_MEMORY;
 

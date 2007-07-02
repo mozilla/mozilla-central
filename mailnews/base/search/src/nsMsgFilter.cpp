@@ -53,7 +53,6 @@
 #include "nsIMsgIncomingServer.h"
 #include "nsMsgSearchValue.h"
 #include "nsReadableUtils.h"
-#include "nsEscape.h"
 #include "nsMsgI18N.h"
 #include "nsISupportsObsolete.h"
 #include "nsIOutputStream.h"
@@ -558,7 +557,7 @@ NS_IMETHODIMP nsMsgFilter::LogRuleHit(nsIMsgRuleAction *aFilterAction, nsIMsgDBH
     // html escape the log for security reasons.
     // we don't want some to send us a message with a subject with
     // html tags, especially <script>
-    char *escapedBuffer = nsEscapeHTML(buffer.get());
+    char *escapedBuffer = MsgEscapeHTML(buffer.get());
     if (!escapedBuffer)
       return NS_ERROR_OUT_OF_MEMORY;
 
@@ -683,9 +682,9 @@ nsresult nsMsgFilter::ConvertMoveOrCopyToFolderValue(nsIMsgRuleAction *filterAct
         moveValue.ReplaceSubstring(".sbd/", "/");
 
 #ifdef XP_MACOSX
-        char *unescapedMoveValue = ToNewCString(moveValue);
-        nsUnescape(unescapedMoveValue);
-        moveValue.Adopt(unescapedMoveValue);
+        nsCString unescapedMoveValue;
+        MsgUnescape(moveValue, unescapedMoveValue);
+        moveValue = unescapedMoveValue;
 #endif
         destFolderUri.Append('/');
         if (filterVersion == k45Version)

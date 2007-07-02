@@ -56,8 +56,9 @@
 #include "nsIRDFResource.h"
 #include "nsIRDFService.h"
 #include "nsRDFCID.h"
+#include "nsMsgUtils.h"
+#include "nsINetUtil.h"
 
-#include "nsEscape.h"
 #include "nsVCardObj.h"
 
 #include "mozITXTToHTMLConv.h"
@@ -1163,7 +1164,9 @@ NS_IMETHODIMP nsAbCardProperty::ConvertToEscapedVCard(char **aResult)
     if (vObj)
         cleanVObject(vObj);
 
-    *aResult = nsEscape(vCard, url_Path);
+    nsCString escResult;
+    MsgEscapeString(nsDependentCString(vCard), nsINetUtil::ESCAPE_URL_PATH, escResult);
+    *aResult = strdup(escResult.get());
     return (*aResult ? NS_OK : NS_ERROR_OUT_OF_MEMORY);
 }
 

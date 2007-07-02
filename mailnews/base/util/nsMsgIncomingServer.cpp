@@ -46,7 +46,6 @@
 #include "nsIServiceManager.h"
 #include "nsCOMPtr.h"
 #include "nsReadableUtils.h"
-#include "nsEscape.h"
 #include "nsISupportsObsolete.h"
 #include "nsISupportsPrimitives.h"
 
@@ -342,8 +341,7 @@ nsMsgIncomingServer::GetServerURI(nsACString& aResult)
   rv = GetUsername(username);
   if (NS_SUCCEEDED(rv) && !username.IsEmpty()) {
       nsCString escapedUsername;
-      *((char **)getter_Copies(escapedUsername)) =
-          nsEscape(username.get(), url_XAlphas);
+      MsgEscapeString(username, nsINetUtil::ESCAPE_XALPHAS, escapedUsername);
       // not all servers have a username
       aResult.Append(escapedUsername);
       aResult.Append('@');
@@ -353,8 +351,7 @@ nsMsgIncomingServer::GetServerURI(nsACString& aResult)
   rv = GetHostName(hostname);
   if (NS_SUCCEEDED(rv) && !hostname.IsEmpty()) {
       nsCString escapedHostname;
-      *((char **)getter_Copies(escapedHostname)) =
-          nsEscape(hostname.get(), url_Path);
+      MsgEscapeString(hostname, nsINetUtil::ESCAPE_URL_PATH, escapedHostname);
       // not all servers have a hostname
       aResult.Append(escapedHostname);
   }
