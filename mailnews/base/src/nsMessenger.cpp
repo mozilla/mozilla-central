@@ -1340,9 +1340,8 @@ nsMessenger::CopyMessages(nsIRDFCompositeDataSource *database,
 NS_IMETHODIMP
 nsMessenger::MessageServiceFromURI(const nsACString& aUri, nsIMsgMessageService **aMsgService)
 {
-   NS_ENSURE_ARG_POINTER(aMsgService);
-
-   return GetMessageServiceFromURI(PromiseFlatCString(aUri).get(), aMsgService);
+  NS_ENSURE_ARG_POINTER(aMsgService);
+  return GetMessageServiceFromURI(PromiseFlatCString(aUri).get(), aMsgService);
 }
 
 NS_IMETHODIMP
