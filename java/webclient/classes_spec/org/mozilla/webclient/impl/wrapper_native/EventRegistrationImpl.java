@@ -52,7 +52,6 @@ import org.mozilla.webclient.DocumentLoadEvent;
 import org.mozilla.webclient.DocumentLoadListener;
 import org.mozilla.webclient.PageInfoListener;
 import org.mozilla.webclient.NewWindowEvent;
-import org.mozilla.webclient.NewWindowEvent.RealizeNewWindowEvent;
 import org.mozilla.webclient.NewWindowListener;
 import org.mozilla.webclient.WCKeyEvent;
 import org.mozilla.webclient.WebclientEvent;

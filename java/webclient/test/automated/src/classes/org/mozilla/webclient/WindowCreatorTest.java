@@ -1,5 +1,5 @@
 /*
- * $Id: WindowCreatorTest.java,v 1.7 2007-06-28 12:05:07 edburns%acm.org Exp $
+ * $Id: WindowCreatorTest.java,v 1.8 2007-07-02 16:25:47 edburns%acm.org Exp $
  */
 
 /* 
@@ -37,7 +37,6 @@ import java.awt.BorderLayout;
 import java.util.List;
 import java.util.concurrent.CopyOnWriteArrayList;
 import org.mozilla.mcp.junit.WebclientTestCase;
-import org.mozilla.webclient.NewWindowEvent.RealizeNewWindowEvent;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 
