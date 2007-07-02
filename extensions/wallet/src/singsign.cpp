@@ -3059,8 +3059,8 @@ SINGSIGN_Enumerate
   *host = (char *) nsMemory::Clone
     (hostStruct->passwordRealm, strlen(hostStruct->passwordRealm) + 1);
   NS_ENSURE_ARG_POINTER(host);
-  userStruct = NS_STATIC_CAST
-    (si_SignonUserStruct*, hostStruct->signonUser_list.ElementAt(userNumber));
+  userStruct =
+    static_cast<si_SignonUserStruct*>(hostStruct->signonUser_list.ElementAt(userNumber));
 
   /* first non-password data item for user is the username */
   PRInt32 dataCount = userStruct->signonData_list.Count();
