@@ -20,6 +20,7 @@ bin\xpcom_compat.dll
 bin\xpistub.dll
 bin\components\jar50.dll
 bin\components\xpcom_base.xpt
+bin\components\xpcom_system.xpt
 bin\components\xpcom_components.xpt
 bin\components\xpcom_ds.xpt
 bin\components\xpcom_io.xpt
