@@ -221,7 +221,7 @@ function MailCheckBeforeOfflineChange()
   var goingOnline = ioService.offline;
   var bundle = srGetStrBundle("chrome://communicator/locale/utilityOverlay.properties");
 
-//  messenger.SetWindow(window, msgWindow);
+//  messenger.setWindow(window, msgWindow);
 
   InitServices();
 
