@@ -516,7 +516,7 @@ function ShowAccountCentral()
 function ShowingAccountCentral()
 {
   if (!IsFolderPaneCollapsed())
-    GetFolderTree().focus();        
+    GetFolderTree().focus();
 
   gAccountCentralLoaded = true;
 }
@@ -559,20 +559,26 @@ function getBrowser()
   return document.getElementById("messagepane");
 }
 
+var gCurrentDisplayDeckId = "";
 function ObserveDisplayDeckChange(event)
 {
   var selectedPanel = document.getElementById("displayDeck").selectedPanel;
-  var nowSelected = selectedPanel ? selectedPanel.id : "";
-
-  if (nowSelected == "threadPaneBox")
-    ShowingThreadPane();
-  else
-    HidingThreadPane();
-  
-  if (nowSelected == "accountCentralBox")
-    ShowingAccountCentral();
-  else
-    HidingAccountCentral();
+  var nowSelected = selectedPanel ? selectedPanel.id : null;
+  // onselect fires for every mouse click inside the deck, so ObserveDisplayDeckChange is getting called every time we click
+  // on a message in the thread pane. Only show / Hide elements if the selected deck is actually changing.
+  if (nowSelected != gCurrentDisplayDeckId)
+  {
+    if (nowSelected == "threadPaneBox")
+      ShowingThreadPane();
+    else
+      HidingThreadPane();
+    
+    if (nowSelected == "accountCentralBox")
+      ShowingAccountCentral();
+    else
+      HidingAccountCentral();
+    gCurrentDisplayDeckId = nowSelected;
+  }
 }
 
 // Given the server, open the twisty and the set the selection

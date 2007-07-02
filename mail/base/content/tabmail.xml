@@ -181,8 +181,9 @@
               // if this isn't set, then this is the first time we've switched tabs, so the
               // old tab must be the 0th tab.
               // the tab owner is responsible for actually setting up the UI for the tab.
+              var oldTabOwner = this.currentTabOwner;
               this.currentTabOwner = this.tabOwners[this.tabContainer.selectedIndex];
-              this.currentTabOwner.onSelect();
+              this.currentTabOwner.onSelect(oldTabOwner);
             }
           ]]>
         </body>
@@ -220,8 +221,12 @@
             for (i = 0; i < numTabs; i++)
               if (this.tabContainer.childNodes[i] == aTab)
                 break;
-            aTab.setAttribute("label", this.tabOwners[i].title);
-            this.tabOwners[i].onTitleChanged(aTab);
+            // on startup, we may not have a tab...
+            if (this.tabOwners[i])
+            {
+              aTab.setAttribute("label", this.tabOwners[i].title);
+              this.tabOwners[i].onTitleChanged(aTab);
+            }
           ]]>
         </body>
       </method>

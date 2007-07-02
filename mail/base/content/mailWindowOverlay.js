@@ -1388,18 +1388,15 @@ function saveMailTabInfo(aMailTabOwner)
 }
 
 /**
-  * displayMailTab - a private helper routine shared by message and folder tab owners.
+  * setMailTabState - a private helper routine shared by message and folder tab owners for setting up various
+                                     global variables based on the current tab.
   * @param aMailTabOwner 
   */
-function displayMailTab(aMailTabOwner)
+function setMailTabState(aMailTabOwner)
 {
   messenger = aMailTabOwner.messenger;
   gDBView = aMailTabOwner.dbView;
   gSearchSession = aMailTabOwner.searchSession;
-  // show/hide the message and thread pane based on whether this tab
-  // is displaying a single message or not.
-  DisplayFolderAndThreadPane(aMailTabOwner.type != "message");
-
   if (gDBView)
   {
     var folderTree = GetFolderTree();
@@ -1471,6 +1468,7 @@ function DisplayFolderAndThreadPane(show)
     if (collapse)
       document.getElementById("messagepanebox").flex = 1;
   }
+
   document.getElementById("threadpane-splitter").collapsed = collapse;
   document.getElementById("folderpane_splitter").collapsed = collapse;
   document.getElementById("folderPaneBox").collapsed = collapse;
@@ -1536,10 +1534,14 @@ folderTabOwner.prototype =
     saveMailTabInfo(this);
   },
 
-  onSelect : function()
+  onSelect : function(aPreviousTabOwner)
   {
-    ClearMessagePane();
-    displayMailTab(this);
+    if (aPreviousTabOwner.type != this.type)
+    {
+      ClearMessagePane();
+      DisplayFolderAndThreadPane(true);
+    }
+    setMailTabState(this);
   },
 
   onTitleChanged: function(aTab)
@@ -1590,10 +1592,14 @@ messageTabOwner.prototype =
     saveMailTabInfo(this);
   },
 
-  onSelect : function()
+  onSelect : function(aPreviousTabOwner)
   {
-    ClearMessagePane();
-    displayMailTab(this);
+    if (aPreviousTabOwner.type != this.type)
+    {
+      ClearMessagePane();
+      DisplayFolderAndThreadPane(false);
+    }
+    setMailTabState(this);
   },
 
   onTitleChanged: function(aTab)
