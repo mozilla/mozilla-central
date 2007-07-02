@@ -15252,7 +15252,7 @@ echo "configure:15248: checking MOZ_LIBCURL_LIBS" >&5
        fi
     fi
 
-    if test -z "$_CURL_FOUND"; then
+    if test -z "$_CURL_FOUND" && test -z "$SKIP_LIBRARY_CHECKS"; then
         { echo "configure: error: Couldn't find libcurl, which is required for the crash reporter.  Use --disable-airbag to disable the crash reporter." 1>&2; exit 1; }
     fi
   fi
