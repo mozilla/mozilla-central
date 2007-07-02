@@ -108,7 +108,8 @@
                 <textbox id="defaultlength"
                          preference="calendar.event.defaultlength"
                          maxlength="3"
-                         size="3"/>
+                         size="3"
+                         oninput="validateNaturalNums(event);"/>
                 <label value="&calendar.global.units.minutes;"/>
             </hbox>
 
@@ -119,7 +120,8 @@
                 <textbox id="defaultsnoozelength"
                          preference="calendar.alarms.defaultsnoozelength"
                          maxlength="3"
-                         size="3"/>
+                         size="3"
+                         oninput="validateNaturalNums(event);"/>
                 <label value="&calendar.global.units.minutes;"/>
             </hbox>
 
