@@ -208,7 +208,6 @@ install:: $(MOZ_APP_NAME).1
 
 $(MOZ_APP_NAME):: seamonkey.in Makefile.in Makefile $(DEPTH)/config/autoconf.mk
 	cat $< | sed -e "s|%MOZAPPDIR%|$(mozappdir)|" \
-		-e "s|%MOZ_USER_DIR%|.mozilla|" \
 		-e "s|%MREDIR%|$(mredir)|" \
 		-e "s|%MOZ_APP_DISPLAYNAME%|$(MOZ_APP_DISPLAYNAME)|" \
 		-e "s|%MOZILLA-BIN%|$(PROGRAM)|g" > $@

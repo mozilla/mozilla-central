@@ -265,7 +265,6 @@ ifneq (,$(filter-out OS2 WINNT,$(OS_ARCH)))
 
 sunbird:: mozilla.in Makefile.in Makefile $(DEPTH)/config/autoconf.mk
 	cat $< | sed -e "s|%MOZAPPDIR%|$(mozappdir)|" \
-                -e "s|%MOZ_USER_DIR%|.mozilla/sunbird|" \
 		-e "s|%MREDIR%|$(mredir)|" > $@
 	chmod +x $@
 
