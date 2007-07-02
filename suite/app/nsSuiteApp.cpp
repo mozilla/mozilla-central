@@ -15,12 +15,12 @@
  * The Original Code is mozilla.org code.
  *
  * The Initial Developer of the Original Code is
- * the mozilla.org SeaMonkey project.
- * Portions created by the Initial Developer are Copyright (C) 2006
+ * Netscape Communications Corporation.
+ * Portions created by the Initial Developer are Copyright (C) 2002
  * the Initial Developer. All Rights Reserved.
  *
  * Contributor(s):
- *  Mark Banner <bugzilla@standard8.demon.co.uk>
+ *  Brian Ryner <bryner@brianryner.com>
  *
  * Alternatively, the contents of this file may be used under the terms of
  * either the GNU General Public License Version 2 or later (the "GPL"), or
@@ -41,25 +41,52 @@
 #include <windows.h>
 #include <stdlib.h>
 #endif
-#include "nsBuildID.h"
-#include "prtypes.h"
 
-static const nsXREAppData kAppData = {
-  offsetof(nsXREAppData, xreDirectory),
-  nsnull,
-  "mozilla.org",
-  "SeaMonkey",
-  NS_STRINGIFY(APP_VERSION),
-  NS_STRINGIFY(BUILD_ID),
-  "{92650c4d-4b8e-4d2a-b7eb-24ecf4f6b63a}",
-  "Copyright (c) 1998-2007 mozilla.org",
-  NS_XRE_ENABLE_PROFILE_MIGRATOR |
-  NS_XRE_ENABLE_EXTENSION_MANAGER
-};
+#include <stdio.h>
+#include <stdarg.h>
+
+#include "nsCOMPtr.h"
+#include "nsILocalFile.h"
+#include "nsStringGlue.h"
+
+static void Output(const char *fmt, ... )
+{
+  va_list ap;
+  va_start(ap, fmt);
+
+#if defined(XP_WIN) && !MOZ_WINCONSOLE
+  char msg[2048];
+
+  vsnprintf(msg, sizeof(msg), fmt, ap);
+
+  MessageBox(NULL, msg, "XULRunner", MB_OK | MB_ICONERROR);
+#else
+  vfprintf(stderr, fmt, ap);
+#endif
+
+  va_end(ap);
+}
 
 int main(int argc, char* argv[])
 {
-  return XRE_main(argc, argv, &kAppData);
+  nsCOMPtr<nsILocalFile> appini;
+  nsresult rv = XRE_GetBinaryPath(argv[0], getter_AddRefs(appini));
+  if (NS_FAILED(rv)) {
+    Output("Couldn't calculate the application directory.");
+    return 255;
+  }
+  appini->SetNativeLeafName(NS_LITERAL_CSTRING("application.ini"));
+
+  nsXREAppData *appData;
+  rv = XRE_CreateAppData(appini, &appData);
+  if (NS_FAILED(rv)) {
+    Output("Couldn't read application.ini");
+    return 255;
+  }
+
+  int result = XRE_main(argc, argv, appData);
+  XRE_FreeAppData(appData);
+  return result;
 }
 
 #if defined( XP_WIN ) && defined( WIN32 ) && !defined(__GNUC__)
@@ -67,7 +94,7 @@ int main(int argc, char* argv[])
 // unused if we are a console application.
 int WINAPI WinMain( HINSTANCE, HINSTANCE, LPSTR args, int )
 {
-  // Do the real work.
-  return main( __argc, __argv );
+    // Do the real work.
+    return main( __argc, __argv );
 }
 #endif
