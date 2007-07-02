@@ -821,4 +821,4 @@ class URIToStringMap extends Object implements Map {
 }
 
 
-} // end of class EventRegistrationImpl
+} // end of class EventRegistrationImpl>>>>>>> 1.22

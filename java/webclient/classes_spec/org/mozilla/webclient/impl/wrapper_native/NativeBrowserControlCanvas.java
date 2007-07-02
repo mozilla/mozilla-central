@@ -88,6 +88,7 @@ abstract class NativeBrowserControlCanvas extends BrowserControlCanvas {
      */
 
     abstract protected int getWindow();
+    abstract void performPlatformAppropriateNewWindowRealization(NewWindowEvent event);
 
     /**
      * Allow platform specific handling of new window creation.

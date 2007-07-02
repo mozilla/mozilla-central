@@ -147,18 +147,6 @@ public List<Runnable> getRealizeNewWindowRunnableList() {
     return browserWillAdd;
 }
 
-public static class RealizeNewWindowEvent {
-    private BrowserControl browserControl;
-
-        public BrowserControl getBrowserControl() {
-            return browserControl;
-        }
-
-        public void setBrowserControl(BrowserControl browserControl) {
-            this.browserControl = browserControl;
-        }
-}
-
     public Runnable getRealizeNewWindowRunnable() {
         return realizeNewWindowRunnable;
     }
@@ -166,6 +154,5 @@ public static class RealizeNewWindowEvent {
     public void setRealizeNewWindowRunnable(Runnable realizeNewWindowRunnable) {
         this.realizeNewWindowRunnable = realizeNewWindowRunnable;
     }
-
 
 } // end of class NewWindowEvent
