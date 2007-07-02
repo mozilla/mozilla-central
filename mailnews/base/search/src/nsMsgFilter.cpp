@@ -683,7 +683,7 @@ nsresult nsMsgFilter::ConvertMoveOrCopyToFolderValue(nsIMsgRuleAction *filterAct
 
 #ifdef XP_MACOSX
         nsCString unescapedMoveValue;
-        MsgUnescape(moveValue, unescapedMoveValue);
+        MsgUnescapeString(moveValue, 0, unescapedMoveValue);
         moveValue = unescapedMoveValue;
 #endif
         destFolderUri.Append('/');
