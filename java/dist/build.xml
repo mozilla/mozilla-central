@@ -264,16 +264,16 @@
     <property name="dest" value="${dist.base}/tmp/mac" />
     <unzip dest="${dest}" src="${mac.dist.zip}" />
     <mkdir dir="${dest}/unjar" />
-    <unjar dest="${dest}/unjar" src="${dest}/${name}_2_0_a8/lib/${name}-2_0_a8.jar"/>
+    <unjar dest="${dest}/unjar" src="${dest}/${name}_${version}/lib/${name}-${version}.jar"/>
     <!-- copy the mac specific java classes -->
-    <copy todir="${dist.classes}">
+    <copy overwrite="true" todir="${dist.classes}">
       <fileset dir="${dest}/unjar" >
         <include name="**/Cocoa*.*" />
       </fileset>
     </copy>
     <!-- copy the mac specific native binaries -->
-    <copy todir="${dist.home}/bin/macosx/bin">
-      <fileset dir="${dest}/${name}_2_0_a8/bin/macosx/bin">
+    <copy overwrite="true" todir="${dist.home}/bin/macosx/bin">
+      <fileset dir="${dest}/${name}_${version}/bin/macosx/bin">
         <include name="**/*.*" />
       </fileset>
     </copy>
