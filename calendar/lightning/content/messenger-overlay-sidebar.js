@@ -181,7 +181,15 @@ var CalendarController =
 
 function ltnSidebarCalendarSelected(tree)
 {
-   getCompositeCalendar().defaultCalendar = ltnSelectedCalendar();
+    var selectedCalendar = ltnSelectedCalendar();
+    if (!selectedCalendar) {
+        return;
+    }
+    var compositeCalendar = getCompositeCalendar();
+    if (!compositeCalendar.getCalendar(selectedCalendar.uri)) {
+        compositeCalendar.addCalendar(selectedCalendar);
+    }
+    compositeCalendar.defaultCalendar = selectedCalendar;
 }
 
 function ltnSelectedCalendar()

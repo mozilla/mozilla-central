@@ -188,6 +188,16 @@ function onCalendarCheckboxClick(event) {
 
         // clicked the checkbox cell
 
+        // XXX Fix for bug #350323, needs improvement.
+        // If the user clicks with the mouse on a checkbox, the timer which
+        // adds the selected calendar to the composite calendar is cancelled.
+        // Otherwise it's not possible for the user to add/remove calendars
+        // to/from the composite calendar by clicking on the checkbox.
+        if (gCalendarListSelectTimeout) {
+            clearTimeout(gCalendarListSelectTimeout);
+            gCalendarListSelectTimeout = null;
+        }
+
         var cal = event.target.calendar;
         if (checkElem.getAttribute('checked') == "true") {
             getCompositeCalendar().removeCalendar(cal.uri);
@@ -261,12 +271,24 @@ function setCalendarManagerUI()
     }
 }
 
+var gCalendarListSelectTimeout;
 function onCalendarListSelect() {
+    // XXX Fix for bug #350323, needs improvement.
+    // Set up a timer, which schedules adding the selected calendar to the
+    // composite calendar.
+    gCalendarListSelectTimeout = setTimeout(calendarListSelectHandler, 400);
+}
+
+function calendarListSelectHandler() {
     var selectedCalendar = getSelectedCalendarOrNull();
     if (!selectedCalendar) {
         return;
     }
-    getCompositeCalendar().defaultCalendar = selectedCalendar;
+    var compositeCalendar = getCompositeCalendar();
+    if (!compositeCalendar.getCalendar(selectedCalendar.uri)) {
+        compositeCalendar.addCalendar(selectedCalendar);
+    }
+    compositeCalendar.defaultCalendar = selectedCalendar;
 }
 
 function initCalendarManager()
