@@ -9,7 +9,7 @@ from optparse import OptionValueError
 
 from pysqlite2 import dbapi2 as sqlite
 
-parser = OptionParser(usage="Usage: %prog [options] test_name tinderbox_name < data.txt")
+parser = OptionParser(usage="Usage: %prog [options] test_name tinderbox_name tinderbox_machine_type tinderbox_branch < data.txt")
 parser.add_option("-b", "--baseline", dest="baseline", metavar="NAME",
                   action="store", default=None,
                   help="use as baseline data for a test of the same name")
@@ -23,23 +23,28 @@ if options.baseline == None:
 else:
     test_type = "baseline"
 
-if len(args) != 2:
+if len(args) != 4:
     parser.print_help()
     sys.exit()
 
-(testname, tbox) = args[0:2]
+(testname, tbox, mtype, branch) = args[0:4]
+branchid = "xxxxxxxx"
+date = ""
+graph_type = "continuous"
 
-#DBPATH = "/home/vladimir/graphs/db/data.sqlite"
-DBPATH = "db/data.sqlite"
+DBPATH = "/path/to/db/data.sqlite"
 db = sqlite.connect(DBPATH)
 
 try:
-    db.execute("CREATE TABLE dataset_info (id INTEGER PRIMARY KEY AUTOINCREMENT, machine STRING, test STRING, test_type STRING, extra_data STRING);")
+    db.execute("CREATE TABLE dataset_info (id INTEGER PRIMARY KEY AUTOINCREMENT, type STRING, machine STRING, test STRING, test_type STRING, extra_data STRING, branch STRING, date INTEGER);")
     db.execute("CREATE TABLE dataset_values (dataset_id INTEGER, time INTEGER, value FLOAT);")
+    db.execute("CREATE TABLE dataset_branchinfo (dataset_id INTEGER, time INTEGER, branchid STRING);")
     db.execute("CREATE TABLE dataset_extra_data (dataset_id INTEGER, time INTEGER, data BLOB);");
     db.execute("CREATE TABLE annotations (dataset_id INTEGER, time INTEGER, value STRING);")
     db.execute("CREATE INDEX datasets_id_idx ON dataset_values(dataset_id);")
     db.execute("CREATE INDEX datasets_time_idx ON dataset_values(time);")
+    db.execute("CREATE INDEX datasets_time_id_idx ON dataset_values(dataset_id, time);")
+    db.commit()
 except:
     pass
 
@@ -47,17 +52,17 @@ setid = -1
 while setid == -1:
     cur = db.cursor()
     if options.baseline:
-        cur.execute("SELECT id FROM dataset_info WHERE machine=? AND test=? AND test_type=? AND extra_data=?",
-            (tbox, testname, test_type, options.baseline))
+        cur.execute("SELECT id FROM dataset_info WHERE type = ? AND machine=? AND test=? AND test_type=? AND extra_data=? AND branch=?",
+            (graph_type, tbox, testname, test_type, options.baseline, branch))
     else:
-        cur.execute("SELECT id FROM dataset_info WHERE machine=? AND test=? AND test_type=? AND extra_data IS NULL",
-            (tbox, testname, test_type))
+        cur.execute("SELECT id FROM dataset_info WHERE type = ? AND machine=? AND test=? AND test_type=? AND branch=? AND extra_data IS NULL",
+            (graph_type, tbox, testname, test_type, branch))
     res = cur.fetchall()
     cur.close()
 
     if len(res) == 0:
-        db.execute("INSERT INTO dataset_info (machine, test, test_type, extra_data) VALUES (?,?,?,?)",
-                   (tbox, testname, test_type, options.baseline))
+        db.execute("INSERT INTO dataset_info (type, machine, test, test_type, extra_data, branch, date) VALUES (?,?,?,?,?,?,?)",
+                   (graph_type, tbox, testname, test_type, options.baseline, branch, date))
     else:
         setid = res[0][0]
 
