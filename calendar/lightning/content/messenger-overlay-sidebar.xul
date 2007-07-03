@@ -247,12 +247,12 @@
         </hbox>
 
         <tabbox id="ltnTabpanelBox" flex="1">
-          <tabs>
-            <tab label="&lightning.sidebar.agenda.label;"/>
-            <tab label="&lightning.sidebar.todo.label;"/>
-            <tab label="&lightning.sidebar.calendars.label;"/>
+          <tabs id="ltnTabpanelTabs">
+            <tab id="agenda-tab" label="&lightning.sidebar.agenda.label;"/>
+            <tab id="todo-tab" label="&lightning.sidebar.todo.label;"/>
+            <tab id="calendar-tab" label="&lightning.sidebar.calendars.label;"/>
           </tabs>
-          <tabpanels flex="1">
+          <tabpanels id="ltnTabpanels" flex="1">
             <vbox id="agenda-tab-panel"/>    
             <vbox id="todo-tab-panel"/>
             <vbox id="calendar-tab-panel" flex="1">
