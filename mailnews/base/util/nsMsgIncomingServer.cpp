@@ -1599,7 +1599,8 @@ nsMsgIncomingServer::GetPasswordPromptRequired(PRBool *aPasswordIsRequired)
       // Get password entry corresponding to the host URI we are passing in.
       rv = passwordMgrInt->FindPasswordEntry(currServerUri, EmptyString(), EmptyString(),
                                              hostFound, userNameFound, passwordFound);
-      NS_ENSURE_SUCCESS(rv, NS_OK);
+      if (NS_FAILED(rv))
+        return NS_OK;
 
       // If a match is found, password element is filled in. Convert the
       // obtained password and store it for the session.
