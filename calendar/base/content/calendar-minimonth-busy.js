@@ -42,6 +42,7 @@
 var minimonthBusyListener = {
     QueryInterface: function mBL_QueryInterface(aIID) {
         if (!aIID.equals(Ci.calIOperationListener) &&
+            !aIID.equals(Ci.calICompositeObserver) &&
             !aIID.equals(Ci.calIObserver) &&
             !aIID.equals(Ci.nsISupports)) {
             throw Cr.NS_ERROR_NO_INTERFACE;
@@ -49,6 +50,7 @@ var minimonthBusyListener = {
         return this;
     },
 
+    // calIOperationListener methods
     onOperationComplete: function mBL_onOperationComplete(aCalendar,
                                                           aStatus,
                                                           aOperationType,
@@ -101,6 +103,13 @@ var minimonthBusyListener = {
         }
     },
 
+    // calIObserver methods
+    onStartBatch: function mBL_onStartBatch() {},
+
+    onEndBatch: function mBL_onEndBatch() {},
+
+    onLoad: function mBL_onLoad(aCalendar) {},
+
     onAddItem: function mBL_onAddItem(aItem) {
         this.setBusyDaysForEvent(aItem, true);
     },
@@ -112,7 +121,24 @@ var minimonthBusyListener = {
     onModifyItem: function mBL_onModifyItem(aNewItem, aOldItem) {
         this.setBusyDaysForEvent(aOldItem, false);
         this.setBusyDaysForEvent(aNewItem, true);
-    }
+    },
+
+    onError: function mBL_onError(aErrNo, aMessage) {},
+
+    // calICompositeObserver methods
+    onCalendarAdded: function mBL_onCalendarAdded(aCalendar) {
+        var minimonth = getMinimonth();
+        minimonth.resetAttributesForDate();
+        monthChangeListener({ target: minimonth });
+    },
+
+    onCalendarRemoved: function mBL_onCalendarRemoved(aCalendar) {
+        var minimonth = getMinimonth();
+        minimonth.resetAttributesForDate();
+        monthChangeListener({ target: minimonth });
+    },
+
+    onDefaultCalendarChanged: function mBL_onDefaultCalendarChanged(aNew) {}
 };
 
 function monthChangeListener(event) {
