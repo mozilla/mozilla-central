@@ -1034,7 +1034,7 @@ nsStreamConverter::OnStopRequest(nsIRequest *request, nsISupports *ctxt, nsresul
   // Make sure to do necessary cleanup!
   InternalCleanup();
 
-#ifdef DEBUG_mscott
+#if 0
   // print out the mime timing information BEFORE we flush to layout
   // otherwise we'll be including layout information.
   printf("Time Spent in mime:    %d ms\n", PR_IntervalToMilliseconds(PR_IntervalNow() - mConvertContentTime));

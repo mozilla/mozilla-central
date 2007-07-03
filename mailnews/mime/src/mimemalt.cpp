@@ -252,14 +252,8 @@ MimeMultipartAlternative_display_part_p(MimeObject *self,
      )
     // if the user prefers plaintext and this is the "rich" (e.g. HTML) part...
   {
-#if DEBUG
-    printf ("Ignoring %s alternative\n", ct);
-#endif
     return PR_FALSE;
   }
-#if DEBUG
-  printf ("Considering %s alternative\n", ct);
-#endif
 
   MimeObjectClass *clazz = mime_find_class (ct, sub_hdrs, self->options, PR_TRUE);
   PRBool result = (clazz

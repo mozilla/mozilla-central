@@ -4016,7 +4016,7 @@ nsMsgDBFolder::GetFilePath(nsILocalFile * *aFile)
   nsCOMPtr <nsILocalFile> file = do_CreateInstance(NS_LOCAL_FILE_CONTRACTID, &rv);
   NS_ENSURE_SUCCESS(rv, rv);
   if (!mPath)
-    parseURI();
+    parseURI(PR_TRUE);
   rv = file->InitWithFile(mPath);
   file.swap(*aFile);
   return NS_OK;
