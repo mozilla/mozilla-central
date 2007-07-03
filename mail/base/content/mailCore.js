@@ -124,16 +124,16 @@ const nsIWindowMediator = Components.interfaces.nsIWindowMediator;
 
 function toOpenWindowByType( inType, uri )
 {
-	var windowManager = Components.classes['@mozilla.org/appshell/window-mediator;1'].getService();
+  var windowManager = Components.classes['@mozilla.org/appshell/window-mediator;1'].getService();
 
-	var	windowManagerInterface = windowManager.QueryInterface(nsIWindowMediator);
+  var  windowManagerInterface = windowManager.QueryInterface(nsIWindowMediator);
 
-	var topWindow = windowManagerInterface.getMostRecentWindow( inType );
-	
-	if ( topWindow )
-		topWindow.focus();
-	else
-		window.open(uri, "_blank", "chrome,extrachrome,menubar,resizable,scrollbars,status,toolbar");
+  var topWindow = windowManagerInterface.getMostRecentWindow( inType );
+  
+  if ( topWindow )
+    topWindow.focus();
+  else
+    window.open(uri, "_blank", "chrome,extrachrome,menubar,resizable,scrollbars,status,toolbar");
 }
 
 function toMessengerWindow()
@@ -154,7 +154,7 @@ function toImport()
 // aPaneID
 function openOptionsDialog(aPaneID, aTabID)
 {
-  var prefsService = Components.classes["@mozilla.org/preferences-service;1"].getService(Components.interfaces.nsIPrefService).getBranch(null)
+  var prefsService = Components.classes["@mozilla.org/preferences-service;1"].getService(Components.interfaces.nsIPrefService).getBranch(null);
   var instantApply = prefsService.getBoolPref("browser.preferences.instantApply");
   var features = "chrome,titlebar,toolbar,centerscreen" + (instantApply ? ",dialog=no" : ",modal");
 
@@ -208,9 +208,9 @@ function SetBusyCursor(window, enable)
             window.setCursor("auto");
     }
 
-	var numFrames = window.frames.length;
-	for(var i = 0; i < numFrames; i++)
-		SetBusyCursor(window.frames[i], enable);
+  var numFrames = window.frames.length;
+  for(var i = 0; i < numFrames; i++)
+    SetBusyCursor(window.frames[i], enable);
 }
 
 function openAboutDialog()
@@ -256,9 +256,9 @@ function openRegionURL(aResourceName)
  *
  *  @param aPrefName - name of the pref that holds the url we want to format and open
  */
-function openFormattedRegionURL(aPrefName)
+function openFormattedURL(aPrefName)
 {
-  var formattedUrl = getFormattedRegionURL(aPrefName);
+  var formattedUrl = getFormattedURL(aPrefName);
   
   var uri = Components.classes["@mozilla.org/network/io-service;1"].
                        getService(Components.interfaces.nsIIOService).
@@ -271,14 +271,16 @@ function openFormattedRegionURL(aPrefName)
 
 /**
  *  Fetches the url for the passed in pref name and uses the URL formatter service to 
- *    process it.
+ *    format  it.
  *
  *  @param aPrefName - name of the pref that holds the url we want to format and open
  *  @returns the formatted url string
  */
-function getFormattedRegionURL(aPrefName)
+function getFormattedURL(aPrefName)
 {
+  var prefBranch = Components.classes["@mozilla.org/preferences-service;1"].getService(Components.interfaces.nsIPrefBranch);
+  var format = prefBranch.getComplexValue(aPrefName, Components.interfaces.nsISupportsString).data;
   var formatter = Components.classes["@mozilla.org/toolkit/URLFormatterService;1"].
                              getService(Components.interfaces.nsIURLFormatter);
-  return formatter.formatURLPref(aPrefName);
+  return formatter.formatURL(format);
 }

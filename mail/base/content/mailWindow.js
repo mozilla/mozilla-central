@@ -481,7 +481,7 @@ function loadStartPage()
     gMessageNotificationBar.clearMsgNotifications();
     var startpageenabled = pref.getBoolPref("mailnews.start_page.enabled");
     // only load the start page if we are online
-    var startpage = getFormattedRegionURL(startPageUrlPref());
+    var startpage = getFormattedURL(startPageUrlPref());
     // load about:blank as the start page if we are offline or we don't have a start page url...
     GetMessagePaneFrame().location.href = startpageenabled && startpage && MailOfflineMgr.isOnline() ? startpage : "about:blank";
     ClearMessageSelection();
