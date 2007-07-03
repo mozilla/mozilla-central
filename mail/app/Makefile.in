@@ -182,6 +182,13 @@ endif
 
 ifeq ($(OS_ARCH),OS2)
 RESFILE=splashos2.res
+RCFLAGS += -DMOZ_THUNDERBIRD
+ifdef BUILD_STATIC_LIBS
+RCFLAGS += -DMOZ_STATIC_BUILD -i $(DIST)/include/widget
+endif
+ifdef DEBUG
+RCFLAGS += -DDEBUG
+endif
 endif
 
 include $(topsrcdir)/config/rules.mk
