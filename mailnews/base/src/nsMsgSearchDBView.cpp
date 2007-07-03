@@ -620,7 +620,7 @@ nsresult
 nsMsgSearchDBView::GetFolderFromMsgURI(const char *aMsgURI, nsIMsgFolder **aFolder)
 {
   nsCOMPtr <nsIMsgMessageService> msgMessageService;
-  nsresult rv = GetMessageServiceFromURI(aMsgURI, getter_AddRefs(msgMessageService));
+  nsresult rv = GetMessageServiceFromURI(nsDependentCString(aMsgURI), getter_AddRefs(msgMessageService));
   NS_ENSURE_SUCCESS(rv,rv);
   
   nsCOMPtr <nsIMsgDBHdr> msgHdr;

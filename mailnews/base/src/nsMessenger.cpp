@@ -569,7 +569,7 @@ nsMessenger::OpenURL(const nsACString& aURL)
   SetDisplayCharset(NS_LITERAL_CSTRING("UTF-8"));
 
   nsCOMPtr <nsIMsgMessageService> messageService;
-  nsresult rv = GetMessageServiceFromURI(PromiseFlatCString(aURL).get(), getter_AddRefs(messageService));
+  nsresult rv = GetMessageServiceFromURI(aURL, getter_AddRefs(messageService));
 
   if (NS_SUCCEEDED(rv) && messageService)
   {
@@ -739,7 +739,7 @@ nsMessenger::SaveAttachment(nsIFile * aFile,
 
   if (NS_SUCCEEDED(rv))
   {
-    rv = GetMessageServiceFromURI(PromiseFlatCString(aMessageUri).get(), &messageService);
+    rv = GetMessageServiceFromURI(aMessageUri, &messageService);
     if (NS_SUCCEEDED(rv))
     {
       fetchService = do_QueryInterface(messageService);
@@ -800,7 +800,7 @@ nsMessenger::OpenAttachment(const nsACString& aContentType, const nsACString& aU
   else
   {
     nsCOMPtr <nsIMsgMessageService> messageService;
-    rv = GetMessageServiceFromURI(PromiseFlatCString(aMessageUri).get(), getter_AddRefs(messageService));
+    rv = GetMessageServiceFromURI(aMessageUri, getter_AddRefs(messageService));
     if (messageService)
       rv = messageService->OpenAttachment(PromiseFlatCString(aContentType).get(), PromiseFlatCString(aDisplayName).get(),
                                           PromiseFlatCString(aURL).get(), PromiseFlatCString(aMessageUri).get(),
@@ -976,7 +976,7 @@ nsMessenger::SaveAs(const nsACString& aURI, PRBool aAsFile, nsIMsgIdentity *aIde
   nsCOMPtr<nsIStreamListener> convertedListener;
   PRInt32 saveAsFileType = EML_FILE_TYPE;
 
-  nsresult rv = GetMessageServiceFromURI(PromiseFlatCString(aURI).get(), getter_AddRefs(messageService));
+  nsresult rv = GetMessageServiceFromURI(aURI, getter_AddRefs(messageService));
   if (NS_FAILED(rv))
     goto done;
 
@@ -1340,7 +1340,7 @@ NS_IMETHODIMP
 nsMessenger::MessageServiceFromURI(const nsACString& aUri, nsIMsgMessageService **aMsgService)
 {
   NS_ENSURE_ARG_POINTER(aMsgService);
-  return GetMessageServiceFromURI(PromiseFlatCString(aUri).get(), aMsgService);
+  return GetMessageServiceFromURI(aUri, aMsgService);
 }
 
 NS_IMETHODIMP
@@ -1365,7 +1365,7 @@ nsMessenger::MsgHdrFromURI(const nsACString& aUri, nsIMsgDBHdr **aMsgHdr)
     }
   }
 
-  rv = GetMessageServiceFromURI(PromiseFlatCString(aUri).get(), getter_AddRefs(msgService));
+  rv = GetMessageServiceFromURI(aUri, getter_AddRefs(msgService));
   NS_ENSURE_SUCCESS(rv, rv);
   return msgService->MessageURIToMsgHdr(PromiseFlatCString(aUri).get(), aMsgHdr);
 }
@@ -1586,7 +1586,7 @@ NS_IMETHODIMP nsMessenger::SetDocumentCharset(const nsACString& aCharacterSet)
     SetDisplayCharset(NS_LITERAL_CSTRING("UTF-8"));
 
     nsCOMPtr <nsIMsgMessageService> messageService;
-    nsresult rv = GetMessageServiceFromURI(mLastDisplayURI.get(), getter_AddRefs(messageService));
+    nsresult rv = GetMessageServiceFromURI(mLastDisplayURI, getter_AddRefs(messageService));
 
     if (NS_SUCCEEDED(rv) && messageService)
     {
@@ -2900,7 +2900,7 @@ nsDelAttachListener::StartProcessing(nsMessenger * aMessenger, nsIMsgWindow * aM
   const char * messageUri = mAttach->mAttachmentArray[0].mMessageUri;
 
   // get the message service, original message and folder for this message
-  rv = GetMessageServiceFromURI(messageUri, getter_AddRefs(mMessageService));
+  rv = GetMessageServiceFromURI(nsDependentCString(messageUri), getter_AddRefs(mMessageService));
   NS_ENSURE_SUCCESS(rv,rv);
   rv = mMessageService->MessageURIToMsgHdr(messageUri, getter_AddRefs(mOriginalMessage));
   NS_ENSURE_SUCCESS(rv,rv);

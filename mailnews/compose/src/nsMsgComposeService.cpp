@@ -1103,7 +1103,7 @@ NS_IMETHODIMP nsMsgComposeService::ReplyWithTemplate(nsIMsgDBHdr *aMsgHdr, const
   // we need to convert the template uri, which is of the form
   // <folder uri>?messageId=<messageId>&subject=<subject>
   nsCOMPtr <nsIMsgMessageService> msgService;
-  rv = GetMessageServiceFromURI(templateMsgHdrUri.get(), getter_AddRefs(msgService));
+  rv = GetMessageServiceFromURI(nsDependentCString(templateMsgHdrUri), getter_AddRefs(msgService));
   NS_ENSURE_SUCCESS(rv, rv);
 
   nsCOMPtr<nsISupports> listenerSupports;
@@ -1421,7 +1421,7 @@ nsMsgComposeService::LoadDraftOrTemplate(const nsACString& aMsgURI, nsMimeOutput
 {
   nsresult rv;
   nsCOMPtr <nsIMsgMessageService> messageService;
-  rv = GetMessageServiceFromURI(PromiseFlatCString(aMsgURI).get(), getter_AddRefs(messageService));
+  rv = GetMessageServiceFromURI(aMsgURI, getter_AddRefs(messageService));
   NS_ENSURE_SUCCESS(rv, rv);
 
   // Now, we can create a mime parser (nsIStreamConverter)!

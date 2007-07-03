@@ -597,7 +597,7 @@ nsMsgSendLater::StartNextMailFileSend()
   NS_ENSURE_SUCCESS(rv, rv);
 
   nsCOMPtr <nsIMsgMessageService> messageService;
-  rv = GetMessageServiceFromURI(messageURI.get(), getter_AddRefs(messageService));
+  rv = GetMessageServiceFromURI(messageURI, getter_AddRefs(messageService));
   if (NS_FAILED(rv) && !messageService)
     return NS_ERROR_FACTORY_NOT_LOADED;
 

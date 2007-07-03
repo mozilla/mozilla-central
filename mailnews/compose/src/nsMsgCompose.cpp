@@ -496,7 +496,7 @@ nsresult nsMsgCompose::TagEmbeddedObjects(nsIEditorMailSupport *aEditor)
 
   // first, convert the rdf original msg uri into a url that represents the message...
   nsCOMPtr <nsIMsgMessageService> msgService;
-  rv = GetMessageServiceFromURI(mOriginalMsgURI.get(), getter_AddRefs(msgService));
+  rv = GetMessageServiceFromURI(mOriginalMsgURI, getter_AddRefs(msgService));
   if (NS_SUCCEEDED(rv))
   {
     rv = msgService->GetUrlForUri(mOriginalMsgURI.get(), getter_AddRefs(originalUrl), nsnull);

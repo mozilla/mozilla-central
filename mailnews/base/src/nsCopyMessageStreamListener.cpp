@@ -80,7 +80,7 @@ static nsresult GetMessage(nsIURI *aURL, nsIMsgDBHdr **message)
   }
 
   nsCOMPtr <nsIMsgMessageService> msgMessageService;
-  rv = GetMessageServiceFromURI(uri.get(), getter_AddRefs(msgMessageService));
+  rv = GetMessageServiceFromURI(uri, getter_AddRefs(msgMessageService));
   NS_ENSURE_SUCCESS(rv,rv);
   if (!msgMessageService) 
     return NS_ERROR_FAILURE;

@@ -1047,7 +1047,7 @@ nsresult nsBayesianFilter::tokenizeMessage(const char* aMessageURI, nsIMsgWindow
 {
 
     nsCOMPtr <nsIMsgMessageService> msgService;
-    nsresult rv = GetMessageServiceFromURI(aMessageURI, getter_AddRefs(msgService));
+    nsresult rv = GetMessageServiceFromURI(nsDependentCString(aMessageURI), getter_AddRefs(msgService));
     NS_ENSURE_SUCCESS(rv, rv);
 
     aAnalyzer->setSource(aMessageURI);

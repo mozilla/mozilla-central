@@ -299,7 +299,7 @@ nsFolderCompactState::Init(nsIMsgFolder *folder, const char *baseMsgUri, nsIMsgD
   if (NS_FAILED(rv)) 
     m_folder->ThrowAlertMsg("compactFolderWriteFailed", m_window);
   else
-    rv = GetMessageServiceFromURI(baseMsgUri,
+    rv = GetMessageServiceFromURI(nsDependentCString(baseMsgUri),
                                 getter_AddRefs(m_messageService));
   if (NS_FAILED(rv))
   {

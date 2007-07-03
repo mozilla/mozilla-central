@@ -6861,7 +6861,7 @@ nsImapMailFolder::CopyStreamMessage(nsIMsgDBHdr* message,
   srcFolder->GetUriForMsg(msgHdr, uri);
 
   if (!m_copyState->m_msgService)
-    rv = GetMessageServiceFromURI(uri.get(), getter_AddRefs(m_copyState->m_msgService));
+    rv = GetMessageServiceFromURI(uri, getter_AddRefs(m_copyState->m_msgService));
 
   if (NS_SUCCEEDED(rv) && m_copyState->m_msgService)
   {

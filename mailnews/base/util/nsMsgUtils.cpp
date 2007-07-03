@@ -112,12 +112,12 @@ nsresult GetMessageServiceContractIDForURI(const char *uri, nsCString &contractI
   return rv;
 }
 
-nsresult GetMessageServiceFromURI(const char *uri, nsIMsgMessageService **aMessageService)
+nsresult GetMessageServiceFromURI(const nsACString& uri, nsIMsgMessageService **aMessageService)
 {
   nsresult rv;
 
   nsCAutoString contractID;
-  rv = GetMessageServiceContractIDForURI(uri, contractID);
+  rv = GetMessageServiceContractIDForURI(PromiseFlatCString(uri).get(), contractID);
   NS_ENSURE_SUCCESS(rv,rv);
 
   nsCOMPtr <nsIMsgMessageService> msgService = do_GetService(contractID.get(), &rv);
@@ -130,7 +130,7 @@ nsresult GetMessageServiceFromURI(const char *uri, nsIMsgMessageService **aMessa
 nsresult GetMsgDBHdrFromURI(const char *uri, nsIMsgDBHdr **msgHdr)
 {
   nsCOMPtr <nsIMsgMessageService> msgMessageService;
-  nsresult rv = GetMessageServiceFromURI(uri, getter_AddRefs(msgMessageService));
+  nsresult rv = GetMessageServiceFromURI(nsDependentCString(uri), getter_AddRefs(msgMessageService));
   NS_ENSURE_SUCCESS(rv,rv);
   if (!msgMessageService) return NS_ERROR_FAILURE;
 
@@ -918,7 +918,7 @@ nsresult IsRSSArticle(nsIURI * aMsgURI, PRBool *aIsRSSArticle)
 
   // get the msg service for this URI
   nsCOMPtr<nsIMsgMessageService> msgService;
-  rv = GetMessageServiceFromURI(resourceURI.get(), getter_AddRefs(msgService));
+  rv = GetMessageServiceFromURI(resourceURI, getter_AddRefs(msgService));
   NS_ENSURE_SUCCESS(rv, rv);
 
   nsCOMPtr<nsIMsgDBHdr> msgHdr;

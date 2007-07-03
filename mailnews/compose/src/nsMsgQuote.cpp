@@ -167,7 +167,7 @@ nsMsgQuote::QuoteMessage(const char *msgURI, PRBool quoteHeaders,
   else
   {
     nsCOMPtr <nsIMsgMessageService> msgService;
-    rv = GetMessageServiceFromURI(msgURI, getter_AddRefs(msgService));
+    rv = GetMessageServiceFromURI(nsDependentCString(msgURI), getter_AddRefs(msgService));
     if (NS_FAILED(rv)) return rv;
     rv = msgService->GetUrlForUri(msgURI, getter_AddRefs(aURL), nsnull);
   }

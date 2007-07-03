@@ -436,7 +436,7 @@ nsMsgMailSession::ConvertMsgURIToMsgURL(const char *aURI, nsIMsgWindow *aMsgWind
 
   // convert the rdf msg uri into a url that represents the message...
   nsCOMPtr <nsIMsgMessageService> msgService;
-  nsresult rv = GetMessageServiceFromURI(aURI, getter_AddRefs(msgService));
+  nsresult rv = GetMessageServiceFromURI(nsDependentCString(aURI), getter_AddRefs(msgService));
   if (NS_FAILED(rv)) 
     return NS_ERROR_NULL_POINTER;
 

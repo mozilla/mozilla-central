@@ -551,7 +551,7 @@ nsMsgAttachmentHandler::SnarfMsgAttachment(nsMsgCompFields *compFields)
     }
 
     rv = fetcher->Initialize(mTmpFile, mOutFile, FetcherURLDoneCallback, this);
-    rv = GetMessageServiceFromURI(m_uri, getter_AddRefs(messageService));
+    rv = GetMessageServiceFromURI(nsDependentCString(m_uri), getter_AddRefs(messageService));
     if (NS_SUCCEEDED(rv) && messageService)
     {
       nsCAutoString uri(m_uri);

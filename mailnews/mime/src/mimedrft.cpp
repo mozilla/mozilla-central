@@ -2030,7 +2030,7 @@ mime_bridge_create_draft_stream(
   if (NS_FAILED(uri->GetSpec(turl)))
     goto FAIL;
 
-  rv = GetMessageServiceFromURI(turl.get(), getter_AddRefs(msgService));
+  rv = GetMessageServiceFromURI(turl, getter_AddRefs(msgService));
   if (NS_FAILED(rv))
     goto FAIL;
 

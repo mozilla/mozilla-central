@@ -427,7 +427,7 @@ nsresult nsMsgContentPolicy::MailShouldLoad(nsIURI * aRequestingLocation, nsIURI
 
   // get the msg service for this URI
   nsCOMPtr<nsIMsgMessageService> msgService;
-  rv = GetMessageServiceFromURI(resourceURI.get(), getter_AddRefs(msgService));
+  rv = GetMessageServiceFromURI(resourceURI, getter_AddRefs(msgService));
   NS_ENSURE_SUCCESS(rv, rv);
 
   nsCOMPtr<nsIMsgDBHdr> msgHdr;

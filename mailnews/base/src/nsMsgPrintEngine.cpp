@@ -522,7 +522,7 @@ nsMsgPrintEngine::FireThatLoadOperation(const nsString& uri)
       !StringBeginsWith(uriCStr, NS_LITERAL_CSTRING(ADDBOOK_URL_PREFIX)) &&
       !uriCStr.EqualsLiteral("about:blank") && 
       uriCStr.Find(NS_LITERAL_CSTRING("type=application/x-message-display")) == -1) {
-    rv = GetMessageServiceFromURI(uriCStr.get(), getter_AddRefs(messageService));
+    rv = GetMessageServiceFromURI(uriCStr, getter_AddRefs(messageService));
   }
 
   if (NS_SUCCEEDED(rv) && messageService)

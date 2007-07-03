@@ -502,7 +502,7 @@ nsresult nsMsgSearchSession::GetNextUrl()
   {
     nsCString folderUri;
     folder->GetURI(folderUri);
-    nsresult rv = GetMessageServiceFromURI(folderUri.get(), getter_AddRefs(msgService));
+    nsresult rv = GetMessageServiceFromURI(folderUri, getter_AddRefs(msgService));
 
     if (NS_SUCCEEDED(rv) && msgService && currentTerm)
       msgService->Search(this, m_window, currentTerm->m_folder, nextUrl.get());

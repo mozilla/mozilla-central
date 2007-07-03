@@ -2765,7 +2765,7 @@ nsresult nsMsgLocalMailFolder::CopyMessagesTo(nsISupportsArray *messages,
   {
     nsCString uri;
     srcFolder->GetURI(uri);
-    rv = GetMessageServiceFromURI(uri.get(), getter_AddRefs(mCopyState->m_messageService));
+    rv = GetMessageServiceFromURI(uri, getter_AddRefs(mCopyState->m_messageService));
   }
 
   if (NS_SUCCEEDED(rv) && mCopyState->m_messageService)
@@ -2836,7 +2836,7 @@ nsresult nsMsgLocalMailFolder::CopyMessageTo(nsISupports *message,
     return rv;
 
   if (!mCopyState->m_messageService)
-    rv = GetMessageServiceFromURI(uri.get(), getter_AddRefs(mCopyState->m_messageService));
+    rv = GetMessageServiceFromURI(uri, getter_AddRefs(mCopyState->m_messageService));
 
   if (NS_SUCCEEDED(rv) && mCopyState->m_messageService)
   {

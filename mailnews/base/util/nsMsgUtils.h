@@ -57,7 +57,7 @@ class nsIInputStream;
 
 NS_MSG_BASE nsresult GetMessageServiceContractIDForURI(const char *uri, nsCString &contractID);
 
-NS_MSG_BASE nsresult GetMessageServiceFromURI(const char *uri, nsIMsgMessageService **aMessageService);
+NS_MSG_BASE nsresult GetMessageServiceFromURI(const nsACString& uri, nsIMsgMessageService **aMessageService);
 
 NS_MSG_BASE nsresult GetMsgDBHdrFromURI(const char *uri, nsIMsgDBHdr **msgHdr);
 
