@@ -1107,8 +1107,13 @@
               }
           }
 
+          var dragDay = col.mDate;
+
           if (dragState.dragType == "modify-start" ||
               dragState.dragType == "new") {
+              newStart.day = dragDay.day;
+              newStart.month = dragDay.month;
+              newStart.year = dragDay.year;
               newStart.hour = 0;
               newStart.minute = dragState.startMin + col.mStartMin;
               newStart.normalize();
@@ -1116,6 +1121,9 @@
 
           if (dragState.dragType == "modify-end" ||
               dragState.dragType == "new") {
+              newEnd.day = dragDay.day;
+              newEnd.month = dragDay.month;
+              newEnd.year = dragDay.year;
               newEnd.hour = 0;
               newEnd.minute = dragState.endMin + col.mStartMin;
               newEnd.normalize();
