@@ -187,6 +187,7 @@ modu()
 
     MODUTIL="modutil"
     echo "$MODUTIL $*"
+    # echo is used to press Enter expected by modutil
     echo | $MODUTIL $*
     RET=$?
     if [ "$RET" -ne 0 ]; then
@@ -1384,10 +1385,10 @@ else
     echo "$SCRIPTNAME: Skipping CRL Tests"
 fi
 
-cert_iopr_setup
-
 if [ -n "$DO_DIST_ST" -a "$DO_DIST_ST" = "TRUE" ] ; then
     cert_stresscerts 
 fi
+
+cert_iopr_setup
 
 cert_cleanup
