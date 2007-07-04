@@ -106,14 +106,28 @@ function onMouseOverTaskTree( toolTip, mouseEvent )
   return false;
 }
 
-/*
-** add newContentBox,
-*/
+/** Removes old content from tooltip, adds new content box to tooltip,
+    then resizes the tooltip to the size of the new content box. 
+    @param tooltip The tooltip to modify.
+    @param holderBox The box element containing the new content. **/
 function setToolTipContent(toolTip, holderBox)
 {
-  while (toolTip.hasChildNodes())
+  while (toolTip.hasChildNodes()) {
     toolTip.removeChild( toolTip.firstChild );
+  }
+  
   toolTip.appendChild( holderBox );
+  var width = holderBox.boxObject.width;
+  var height = holderBox.boxObject.height;
+
+  // workaround bug 369225 (aspect: tooltip may not shrink height)
+  toolTip.sizeTo(0,0); 
+  // workaround bug 369225 (aspect: tooltip height too short)
+  // Add top and bottom border and padding to workaround bug where bottom
+  // tooltip border disappears if wrapped description below header grid.
+  height += 1 + 2 + 2 + 1;
+
+  toolTip.sizeTo(width, height);
 }
 
 /**
@@ -125,6 +139,10 @@ function getPreviewForTask( toDoItem )
   if( toDoItem )
   {
     const vbox = document.createElement( "vbox" );
+    vbox.setAttribute("class", "tooltipBox");
+    // tooltip appears above or below pointer, so may have as little as
+    // one half the screen height available (avoid top going off screen).
+    vbox.maxHeight = Math.floor(screen.height / 2);
     boxInitializeHeaderGrid(vbox);
 
     var hasHeader = false;
@@ -195,13 +213,13 @@ function getPreviewForTask( toDoItem )
     var description = toDoItem.getProperty("DESCRIPTION");
     if (description)
     {
-      // display up to 4 description lines like body of message below headers
-      if (hasHeader)
-        boxAppendText(vbox, ""); 
-
-      boxAppendLines(vbox, description, 4);
+      // display wrapped description lines like body of message below headers
+      if (hasHeader) {
+        boxAppendBodySeparator(vbox);
+      }
+      boxAppendBody(vbox, description);
     }
-      
+
     return ( vbox );
   } 
   else
@@ -220,6 +238,10 @@ function getPreviewForTask( toDoItem )
 function getPreviewForEvent( event, instStartDate, instEndDate )
 {
   const vbox = document.createElement( "vbox" );
+  vbox.setAttribute("class", "tooltipBox");
+  // tooltip appears above or below pointer, so may have as little as
+  // one half the screen height available (avoid top going off screen).
+  vbox.maxHeight = Math.floor(screen.height / 2);
   boxInitializeHeaderGrid(vbox);
 
   if (event)
@@ -260,9 +282,9 @@ function getPreviewForEvent( event, instStartDate, instEndDate )
     var description = event.getProperty("DESCRIPTION");
     if (description)
     {
-      // display up to 4 description lines, like body of message below headers
-      boxAppendText(vbox, ""); 
-      boxAppendLines(vbox, description, 4);
+      boxAppendBodySeparator(vbox);
+      // display wrapped description lines, like body of message below headers
+      boxAppendBody(vbox, description);
     }
 
     return ( vbox );
@@ -310,8 +332,19 @@ function getToDoStatusString(iCalToDo)
   }
 }
 
-/** PRIVATE: Append 1 line of text to box inside an xul description node containing a single text node **/
-function boxAppendText(box, textString)
+/** PRIVATE: Append a separator, a thin space between header and body.
+    @param vbox box to which to append separator. **/
+function boxAppendBodySeparator(vbox) {
+  const separator = document.createElement("separator");
+  separator.setAttribute("class", "tooltipBodySeparator");
+  vbox.appendChild(separator);
+}
+
+/** PRIVATE: Append description to box for body text.  Text may contain
+    paragraphs; line indent and line breaks will be preserved by CSS.
+    @param box box to which to append body
+    @param textString text of body **/
+function boxAppendBody(box, textString)
 {
   var textNode = document.createTextNode(textString);
   var xulDescription = document.createElement("description");
@@ -319,32 +352,8 @@ function boxAppendText(box, textString)
   xulDescription.appendChild(textNode);
   box.appendChild(xulDescription);
 }
-/** PRIVATE: Append multiple lines of text to box, each line inside an xul description node containing a single text node **/
-function boxAppendLines(vbox, textString, maxLineCount)
-{
-  if (!maxLineCount)
-    maxLineCount = 4;
-
-  // trim trailing whitespace
-  var end = textString.length;
-  for (; end > 0; end--)
-    if (" \t\r\n".indexOf(textString.charAt(end - 1)) == -1)
-      break;
-  textString = textString.substring(0, end);
-
-  var lines = textString.split("\n");
-  var lineCount = lines.length;
-  if( lineCount > maxLineCount ) {
-    lineCount = maxLineCount;
-    lines[ maxLineCount ] = "..." ;
-  }
-
-  for (var i = 0; i < lineCount; i++) {
-    boxAppendText(vbox, lines[i]);
-  }
-}
-/** PRIVATE: Use dateFormatter to format date and time.
-    Append date to box inside an xul description node containing a single text node. **/
+/** PRIVATE: Use dateFormatter to format date and time,
+    and to header grid append a row containing localized Label: date. **/
 function boxAppendLabeledDateTime(box, labelProperty, date)
 {
   var dateFormatter = Components.classes["@mozilla.org/calendar/datetime-formatter;1"]
@@ -353,8 +362,12 @@ function boxAppendLabeledDateTime(box, labelProperty, date)
   var formattedDateTime = dateFormatter.formatDateTime(date);
   boxAppendLabeledText(box, labelProperty, formattedDateTime);
 }
-/** PRIVATE: Use dateFormatter to format date and time interval.
-    Append interval to box inside an xul description node containing a single text node. **/
+/** PRIVATE: Use dateFormatter to format date and time interval,
+    and to header grid append a row containing localized Label: interval.
+    @param box contains header grid.
+    @param labelProperty name of property for localized field label.
+    @param start calDateTime of start of time interval.
+    @param end calDateTime of end of time interval. **/
 function boxAppendLabeledDateTimeInterval(box, labelProperty, start, end)
 {
   var dateFormatter = Components.classes["@mozilla.org/calendar/datetime-formatter;1"]
@@ -371,15 +384,22 @@ function boxAppendLabeledDateTimeInterval(box, labelProperty, start, end)
   }
 }
 
+/** PRIVATE: create empty 2-column grid for header fields,
+    and append it to box. **/
 function boxInitializeHeaderGrid(box)
 {
   var grid = document.createElement("grid");
+  grid.setAttribute("class", "tooltipHeaderGrid");
   var rows;
   {
     var columns = document.createElement("columns");
     {
-      columns.appendChild(document.createElement("column"));
-      columns.appendChild(document.createElement("column"));
+      var labelColumn = document.createElement("column");
+      labelColumn.setAttribute("class", "tooltipLabelColumn");
+      columns.appendChild(labelColumn);
+      var valueColumn = document.createElement("column");
+      valueColumn.setAttribute("class", "tooltipValueColumn");
+      columns.appendChild(valueColumn);
     }
     grid.appendChild(columns);
     rows = document.createElement("rows");
@@ -388,6 +408,11 @@ function boxInitializeHeaderGrid(box)
   box.appendChild(grid);
 }
 
+/** PRIVATE: To headers grid, append a row containing Label: value,
+    where label is localized text for labelProperty.
+    @param box containing headers grid
+    @param labelProperty name of property for localized name of header
+    @param textString value of header field. **/ 
 function boxAppendLabeledText(box, labelProperty, textString)
 {
   var labelText = calGetString('calendar', labelProperty);
@@ -402,6 +427,7 @@ function boxAppendLabeledText(box, labelProperty, textString)
   }
 }
 
+/** PRIVATE: create element for field label (for header grid). **/
 function createTooltipHeaderLabel(text)
 {
   var label = document.createElement("label");
@@ -410,6 +436,7 @@ function createTooltipHeaderLabel(text)
   return label;
 }
 
+/** PRIVATE: create element for field value (for header grid). **/
 function createTooltipHeaderDescription(text)
 {
   var label = document.createElement("description");

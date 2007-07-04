@@ -891,23 +891,34 @@ listitem[selected="true"] > .calendar-list-item-class
 /*--------------------------------------------------------------------
  * tooltips
  *-------------------------------------------------------------------*/
-label.tooltipHeaderLabel
-{
-  font-weight : bold;
-  text-align  : right;
+vbox.tooltipBox {
+  max-width: 40em;
 }
 
-description.tooltipHeaderDescription
-{
-  font-weight : normal;
-  text-align  : left;
-  white-space : normal;
+column.tooltipValueColumn {
+  max-width: 35em; /* tooltipBox max-width minus space for label */
 }
 
-description.tooltipBody
-{
-  font-weight : normal;
-  white-space : normal;
+label.tooltipHeaderLabel {
+  font-weight: bold;
+  text-align: right;
+  margin: 0em 1em 0em 0em; /* 1em space before value */
+}
+
+description.tooltipHeaderDescription {
+  font-weight: normal;
+  text-align: left;
+  margin: 0px;
+}
+
+separator.tooltipBodySeparator {
+  height: 1ex; /* 1ex space above body text, below last header. */
+}
+
+description.tooltipBody {
+  font-weight: normal;
+  white-space: -moz-pre-wrap;
+  margin: 0px;
 }
 
 /*--------------------------------------------------------------------
