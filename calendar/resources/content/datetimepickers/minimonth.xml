@@ -290,6 +290,7 @@
             var dayList = new Array(7);
             var tempDate = new Date();
             var i, j;
+            var useOSFormat;
             tempDate.setDate(tempDate.getDate() - (tempDate.getDay() - this.weekStart));
             for (i = 0; i < header.childNodes.length; i++) {
               // if available, use UILocale days, else operating system format
@@ -299,25 +300,52 @@
                                "day." + (tempDate.getDay() + 1) + ".short");
               } catch (e) {
                 dayList[i] = tempDate.toLocaleFormat("%a");
+                useOSFormat = true;
               }
               tempDate.setDate(tempDate.getDate() + 1);
             }
-            
-            //abbreviations are too long, so shrink them down
-            var foundMatch;
-            for (i = 0; i < header.childNodes.length; i++) {
-              foundMatch = 1;
-              for (j = 0; j < header.childNodes.length; j++) {
-                if (i != j) {
-                  if (dayList[i].substring(0,1) == dayList[j].substring(0,1)) {
-                    foundMatch = 2;
+
+            if (useOSFormat) {
+              // To keep datepicker popup compact, shrink localized weekday
+              // abbreviations down to 1 or 2 chars so each column of week can
+              // be as narrow as 2 digits.
+              //
+              // 1. Compute the minLength of the day name abbreviations.
+              var minLength = dayList[0].length;
+              for (i = 1; i < dayList.length; i++) {
+                minLength = Math.min(minLength, dayList[i].length);
+              }
+              // 2. If some day name abbrev. is longer than 2 chars (not Catalan),
+              //    and ALL localized day names share same prefix (as in Chinese),
+              //    then trim shared "day-" prefix.
+              if (dayList.some(function(dayAbbr){ return dayAbbr.length > 2; })) {
+                for (var endPrefix = 0; endPrefix < minLength; endPrefix++) {
+                  var c = dayList[0][endPrefix];
+                  if (dayList.some(function(dayAbbr) {
+                                     return dayAbbr[endPrefix] != c; })) {
+                    if (endPrefix > 0) {
+                      for (i = 0; i < dayList.length; i++) // trim prefix chars.
+                        dayList[i] = dayList[i].substring(endPrefix);
+                    }
                     break;
                   }
                 }
               }
-              dayList[i] = dayList[i].substring(0,foundMatch)
+              // 3. trim each day abbreviation to 1 char if unique, else 2 chars.
+              for (i = 0; i < dayList.length; i++) {
+                var foundMatch = 1;
+                for (j = 0; j < dayList.length; j++) {
+                  if (i != j) {
+                    if (dayList[i].substring(0,1) == dayList[j].substring(0,1)) {
+                      foundMatch = 2;
+                      break;
+                    }
+                  }
+                }
+                dayList[i] = dayList[i].substring(0,foundMatch)
+              }
             }
-            
+
             for (var column = 0; column < header.childNodes.length; column++) {
               header.childNodes[column].setAttribute( "value", dayList[column]);
             }
