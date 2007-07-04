@@ -22,9 +22,9 @@
  *                 Mike Potter <mikep@oeone.com>
  *                 Chris Charabaruk <coldacid@meldstar.com>
  *                 Colin Phillips <colinp@oeone.com>
- *                 Karl Guertin <grayrest@grayrest.com> 
+ *                 Karl Guertin <grayrest@grayrest.com>
  *                 Mike Norton <xor@ivwnet.com>
- *                 ArentJan Banck <ajbanck@planet.nl> 
+ *                 ArentJan Banck <ajbanck@planet.nl>
  *                 Eric Belhaire <belhaire@ief.u-psud.fr>
  *
  * Alternatively, the contents of this file may be used under the terms of
@@ -41,20 +41,21 @@
  *
  * ***** END LICENSE BLOCK ***** */
 
-/** Code which generates event and task (todo) preview tooltips/titletips
-    when the mouse hovers over either the event list, the task list, or
-    an event or task box in one of the grid views. 
-
-    (Portions of this code were previously in calendar.js and unifinder.js,
-     some of it duplicated.)
-**/
+/**
+ * Code which generates event and task (todo) preview tooltips/titletips
+ *  when the mouse hovers over either the event list, the task list, or
+ *  an event or task box in one of the grid views.
+ *
+ *   (Portions of this code were previously in calendar.js and unifinder.js,
+ *   some of it duplicated.)
+ */
 
 /** PUBLIC
-*
-*  This changes the mouseover preview based on the start and end dates
-*  of an occurrence of a (one-time or recurring) calEvent or calToDo.
-*  Used by all grid views.
-*/
+ *
+ *  This changes the mouseover preview based on the start and end dates
+ *  of an occurrence of a (one-time or recurring) calEvent or calToDo.
+ *  Used by all grid views.
+ */
 
 function onMouseOverItem( occurrenceBoxMouseEvent )
 {
@@ -106,22 +107,25 @@ function onMouseOverTaskTree( toolTip, mouseEvent )
   return false;
 }
 
-/** Removes old content from tooltip, adds new content box to tooltip,
-    then resizes the tooltip to the size of the new content box. 
-    @param tooltip The tooltip to modify.
-    @param holderBox The box element containing the new content. **/
+/**
+ * Removes old content from tooltip, adds new content box to tooltip,
+ * then resizes the tooltip to the size of the new content box.
+ *
+ * @param tooltip       The tooltip to modify.
+ * @param holderBox     The box element containing the new content.
+ */
 function setToolTipContent(toolTip, holderBox)
 {
   while (toolTip.hasChildNodes()) {
     toolTip.removeChild( toolTip.firstChild );
   }
-  
+
   toolTip.appendChild( holderBox );
   var width = holderBox.boxObject.width;
   var height = holderBox.boxObject.height;
 
   // workaround bug 369225 (aspect: tooltip may not shrink height)
-  toolTip.sizeTo(0,0); 
+  toolTip.sizeTo(0,0);
   // workaround bug 369225 (aspect: tooltip height too short)
   // Add top and bottom border and padding to workaround bug where bottom
   // tooltip border disappears if wrapped description below header grid.
@@ -131,8 +135,8 @@ function setToolTipContent(toolTip, holderBox)
 }
 
 /**
-*  Called when a user hovers over a todo element and the text for the mouse over is changed.
-*/
+ *  Called when a user hovers over a todo element and the text for the mouse over is changed.
+ */
 
 function getPreviewForTask( toDoItem )
 {
@@ -229,12 +233,12 @@ function getPreviewForTask( toDoItem )
 }
 
 /**
-*  Called when mouse moves over a different, or
-*  when mouse moves over event in event list.
-*  The instStartDate is date of instance displayed at event box
-*  (recurring or multiday events may be displayed by more than one event box
-*  for different days), or null if should compute next instance from now.
-*/
+ *  Called when mouse moves over a different, or
+ *  when mouse moves over event in event list.
+ *  The instStartDate is date of instance displayed at event box
+ *  (recurring or multiday events may be displayed by more than one event box
+ *  for different days), or null if should compute next instance from now.
+ */
 function getPreviewForEvent( event, instStartDate, instEndDate )
 {
   const vbox = document.createElement( "vbox" );
@@ -332,18 +336,23 @@ function getToDoStatusString(iCalToDo)
   }
 }
 
-/** PRIVATE: Append a separator, a thin space between header and body.
-    @param vbox box to which to append separator. **/
+/**
+ * PRIVATE: Append a separator, a thin space between header and body.
+ *
+ * @param vbox      box to which to append separator.
+ */
 function boxAppendBodySeparator(vbox) {
   const separator = document.createElement("separator");
   separator.setAttribute("class", "tooltipBodySeparator");
   vbox.appendChild(separator);
 }
 
-/** PRIVATE: Append description to box for body text.  Text may contain
-    paragraphs; line indent and line breaks will be preserved by CSS.
-    @param box box to which to append body
-    @param textString text of body **/
+/**
+ * PRIVATE: Append description to box for body text.  Text may contain
+ * paragraphs; line indent and line breaks will be preserved by CSS.
+ * @param box           box to which to append body
+ * @param textString    text of body
+ */
 function boxAppendBody(box, textString)
 {
   var textNode = document.createTextNode(textString);
@@ -352,8 +361,11 @@ function boxAppendBody(box, textString)
   xulDescription.appendChild(textNode);
   box.appendChild(xulDescription);
 }
-/** PRIVATE: Use dateFormatter to format date and time,
-    and to header grid append a row containing localized Label: date. **/
+
+/**
+ * PRIVATE: Use dateFormatter to format date and time,
+ * and to header grid append a row containing localized Label: date.
+ */
 function boxAppendLabeledDateTime(box, labelProperty, date)
 {
   var dateFormatter = Components.classes["@mozilla.org/calendar/datetime-formatter;1"]
@@ -362,12 +374,15 @@ function boxAppendLabeledDateTime(box, labelProperty, date)
   var formattedDateTime = dateFormatter.formatDateTime(date);
   boxAppendLabeledText(box, labelProperty, formattedDateTime);
 }
-/** PRIVATE: Use dateFormatter to format date and time interval,
-    and to header grid append a row containing localized Label: interval.
-    @param box contains header grid.
-    @param labelProperty name of property for localized field label.
-    @param start calDateTime of start of time interval.
-    @param end calDateTime of end of time interval. **/
+
+/**
+ * PRIVATE: Use dateFormatter to format date and time interval,
+ * and to header grid append a row containing localized Label: interval.
+ * @param box               contains header grid.
+ * @param labelProperty     name of property for localized field label.
+ * @param start             calDateTime of start of time interval.
+ * @param end               calDateTime of end of time interval.
+ */
 function boxAppendLabeledDateTimeInterval(box, labelProperty, start, end)
 {
   var dateFormatter = Components.classes["@mozilla.org/calendar/datetime-formatter;1"]
@@ -384,8 +399,10 @@ function boxAppendLabeledDateTimeInterval(box, labelProperty, start, end)
   }
 }
 
-/** PRIVATE: create empty 2-column grid for header fields,
-    and append it to box. **/
+/**
+ * PRIVATE: create empty 2-column grid for header fields,
+ * and append it to box.
+ */
 function boxInitializeHeaderGrid(box)
 {
   var grid = document.createElement("grid");
@@ -408,11 +425,13 @@ function boxInitializeHeaderGrid(box)
   box.appendChild(grid);
 }
 
-/** PRIVATE: To headers grid, append a row containing Label: value,
-    where label is localized text for labelProperty.
-    @param box containing headers grid
-    @param labelProperty name of property for localized name of header
-    @param textString value of header field. **/ 
+/**
+ * PRIVATE: To headers grid, append a row containing Label: value,
+ * where label is localized text for labelProperty.
+ * @param box               box containing headers grid
+ * @param labelProperty     name of property for localized name of header
+ * @param textString        value of header field.
+ */
 function boxAppendLabeledText(box, labelProperty, textString)
 {
   var labelText = calGetString('calendar', labelProperty);
@@ -445,9 +464,11 @@ function createTooltipHeaderDescription(text)
   return label;
 }
 
-/** If now is during an occurrence, return the ocurrence.
-    Else if now is before an ocurrence, return the next ocurrence.
-    Otherwise return the previous ocurrence. **/
+/**
+ * If now is during an occurrence, return the ocurrence.
+ * Else if now is before an ocurrence, return the next ocurrence.
+ * Otherwise return the previous ocurrence.
+ */
 function getCurrentNextOrPreviousRecurrence(calendarEvent)
 {
     if (!calendarEvent.recurrenceInfo) {
@@ -470,4 +491,3 @@ function getCurrentNextOrPreviousRecurrence(calendarEvent)
     }
     return occ;
 }
-
