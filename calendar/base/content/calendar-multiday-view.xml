@@ -149,14 +149,19 @@
               theMin += dur;
               if (dur == 0) dur = 60;
 
+              // calculate duration pixel as the difference between
+              // start pixel and end pixel to avoid rounding errors.
+              var startPix = Math.round(theMin * this.mPixPerMin);
+              var endPix   = Math.round((theMin + dur) * this.mPixPerMin);
+              var durPix   = endPix - startPix;
               var box;
               if (dur != 60) {
-                  box = makeTimeBox("", dur * this.mPixPerMin);
+                  box = makeTimeBox("", durPix);
               } else {
                   timeString = formatter.FormatTime("",
                                                     Ci.nsIScriptableDateFormat.timeFormatNoSeconds,
                                                     theHour, 0, 0);
-                  box = makeTimeBox(timeString, dur * this.mPixPerMin);
+                  box = makeTimeBox(timeString, durPix);
               }
 
               box.setAttribute("class", "calendar-time-bar-box-" + (theHour % 2 == 0 ? "even" : "odd"));
@@ -1879,9 +1884,7 @@
                    flex="1" equalsize="always" />
           <xul:box anonid="headerscrollbarspacer"/>
         </xul:box>
-        <xul:scrollbox anonid="childbox" flex="1" 
-                       onoverflow="adjustScrollBarSpacers();" 
-                       onunderflow="adjustScrollBarSpacers();">
+        <xul:scrollbox anonid="childbox" flex="1">
           <!-- the orient of the calendar-time-bar needs to be the opposite of the parent -->
           <xul:calendar-time-bar xbl:inherits="orient" anonid="timebar"/>
           <xul:box anonid="daybox" class="calendar-day-box" flex="1"
@@ -1939,7 +1942,7 @@
             size = childbox.boxObject.height;
           }
           var ppm = size / self.mVisibleMinutes;
-          ppm = Math.floor(ppm * 10) / 10;
+          ppm = Math.floor(ppm * 1000) / 1000;
           if (ppm < self.mMinPixelsPerMinute) {
             ppm = self.mMinPixelsPerMinute;
           }

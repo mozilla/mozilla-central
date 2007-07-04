@@ -72,10 +72,10 @@
                     viewElement.tasksInView = this.mTasksInView;
 
                     aDate = aDate.getInTimezone(viewElement.timezone);
-                    viewElement.setDateRange(aDate, aDate);
-                    viewElement.selectedDay = aDate;
 
                     this.setNavLabels(aDate)
+                    viewElement.setDateRange(aDate, aDate);
+                    viewElement.selectedDay = aDate;
                 ]]></body>
             </method>
             <method name="moveView">
