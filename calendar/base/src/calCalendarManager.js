@@ -22,6 +22,7 @@
  *   Stuart Parmenter <stuart.parmenter@oracle.com>
  *   Matthew Willis <lilmatt@mozilla.com>
  *   Michiel van Leeuwen <mvl@exedo.nl>
+ *   Martin Schroeder <mschroeder@mozilla.x-home.org>
  *
  * Alternatively, the contents of this file may be used under the terms of
  * either the GNU General Public License Version 2 or later (the "GPL"), or
@@ -38,6 +39,7 @@
  * ***** END LICENSE BLOCK ***** */
 
 const SUNBIRD_UID = "{718e30fb-e89b-41dd-9da7-e25a45638b28}";
+const LIGHTNING_UID = "{e2fda1a4-762b-4020-b5ad-a41df1933103}";
 
 const kStorageServiceContractID = "@mozilla.org/storage/service;1";
 const kStorageServiceIID = Components.interfaces.mozIStorageService;
@@ -306,30 +308,40 @@ calCalendarManager.prototype = {
                 // in the error message rather than blaming Thunderbird.
                 var appInfo = Components.classes["@mozilla.org/xre/app-info;1"]
                                         .getService(Ci.nsIXULAppInfo);
-                var calAppName;
+                var errorBoxTitle;
+                var errorBoxText;
+                var errorBoxButtonLabel;
                 if (appInfo.ID == SUNBIRD_UID) {
-                    calAppName = hostAppName;
+                    errorBoxTitle = calSb.formatStringFromName("tooNewSchemaErrorBoxTitle",
+                                                               [hostAppName], 1);
+                    errorBoxText = calSb.formatStringFromName("tooNewSchemaErrorBoxTextSunbird",
+                                                              [hostAppName], 1);
+                    errorBoxButtonLabel = calSb.formatStringFromName("tooNewSchemaButtonQuit",
+                                                                     [hostAppName], 1);
                 } else {
                     lightningSb = sbs.createBundle("chrome://lightning/locale/lightning.properties");
-                    calAppName = lightningSb.GetStringFromName("brandShortName");
+                    var calAppName = lightningSb.GetStringFromName("brandShortName");
+                    errorBoxTitle = calSb.formatStringFromName("tooNewSchemaErrorBoxTitle",
+                                                               [calAppName], 1);
+                    errorBoxText = calSb.formatStringFromName("tooNewSchemaErrorBoxTextLightning",
+                                                              [calAppName, hostAppName], 2);
+                    errorBoxButtonLabel = calSb.formatStringFromName("tooNewSchemaButtonRestart",
+                                                                     [hostAppName], 1);
                 }
 
                 var promptSvc = Components.classes["@mozilla.org/embedcomp/prompt-service;1"]
                                           .getService(Components.interfaces.nsIPromptService);
 
-                buttonFlags = promptSvc.BUTTON_POS_0 *
-                              promptSvc.BUTTON_TITLE_IS_STRING +
-                              promptSvc.BUTTON_POS_0_DEFAULT;
+                var errorBoxButtonFlags = promptSvc.BUTTON_POS_0 *
+                                          promptSvc.BUTTON_TITLE_IS_STRING +
+                                          promptSvc.BUTTON_POS_0_DEFAULT;
 
                 var choice = promptSvc.confirmEx(
                                 null,
-                                calSb.formatStringFromName("tooNewSchemaErrorBoxTitle",
-                                                           [calAppName], 1),
-                                calSb.formatStringFromName("tooNewSchemaErrorBoxText",
-                                                           [calAppName, hostAppName], 2),
-                                buttonFlags,
-                                calSb.formatStringFromName("tooNewSchemaButtonQuit",
-                                                           [hostAppName], 1),
+                                errorBoxTitle,
+                                errorBoxText,
+                                errorBoxButtonFlags,
+                                errorBoxButtonLabel,
                                 null, // No second button text
                                 null, // No third button text
                                 null, // No checkbox
@@ -338,7 +350,14 @@ calCalendarManager.prototype = {
                 if (choice == 0) {
                     var startup = Components.classes["@mozilla.org/toolkit/app-startup;1"]
                                             .getService(Components.interfaces.nsIAppStartup);
-                    startup.quit(Components.interfaces.nsIAppStartup.eForceQuit);
+                    if (appInfo.ID == SUNBIRD_UID) {
+                        startup.quit(Components.interfaces.nsIAppStartup.eForceQuit);
+                    } else {
+                        var em = Components.classes["@mozilla.org/extensions/manager;1"]
+                                           .getService(Components.interfaces.nsIExtensionManager);
+                        em.disableItem(LIGHTNING_UID);
+                        startup.quit(Components.interfaces.nsIAppStartup.eRestart | Components.interfaces.nsIAppStartup.eForceQuit);
+                    }
                 }
             }
         }
