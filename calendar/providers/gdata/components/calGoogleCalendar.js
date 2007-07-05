@@ -14,7 +14,7 @@
  * The Original Code is Google Calendar Provider code.
  *
  * The Initial Developer of the Original Code is
- *   Philipp Kewisch (mozilla@kewis.ch)
+ *   Philipp Kewisch <mozilla@kewis.ch>
  * Portions created by the Initial Developer are Copyright (C) 2006
  * the Initial Developer. All Rights Reserved.
  *
@@ -99,7 +99,7 @@ calGoogleCalendar.prototype = {
     /**
      * readonly attribute googleCalendarName
      * Google's Calendar name. This represents the <calendar name> in
-     * http://www.google.com/calendar/feeds/<calendar name>/private/full
+     * http[s]://www.google.com/calendar/feeds/<calendar name>/private/full
      */
     get googleCalendarName() {
         return this.mCalendarName;
@@ -227,17 +227,9 @@ calGoogleCalendar.prototype = {
         // Set internal Calendar Name
         this.mCalendarName = decodeURIComponent(matches[2]);
 
-        var ioService = Cc["@mozilla.org/network/io-service;1"].
-                        getService(Ci.nsIIOService);
-
-        // Set normalized url. We need the full xml stream and private
-        // access. We need private visibility and full projection
-        this.mFullUri = ioService.newURI("http://www.google.com" +
-                                         "/calendar/feeds/" +
-                                         matches[2] +
-                                         "/private/full",
-                                         null,
-                                         null);
+        // Set normalized url. We need private visibility and full projection
+        this.mFullUri = aUri.clone();
+        this.mFullUri.path = "/calendar/feeds/" + matches[2] + "/private/full";
 
         // Remember the uri as it was passed, in case the calendar manager
         // relies on it.
@@ -682,7 +674,7 @@ calGoogleCalendar.prototype = {
 
             // Parse all <entry> tags
             for each (var entry in xml.entry) {
-                var item = XMLEntryToItem(entry, timezone);
+                var item = XMLEntryToItem(entry, timezone, this);
 
                 if (item) {
                     var itemReturnOccurrences =
@@ -769,7 +761,7 @@ calGoogleCalendar.prototype = {
             var timezone = getPrefSafe("calendar.timezone.local");
 
             // Parse the Item with the given timezone
-            var item = XMLEntryToItem(xml, timezone);
+            var item = XMLEntryToItem(xml, timezone, this);
 
             LOGitem(item);
             item.calendar = this;

@@ -14,7 +14,7 @@
  * The Original Code is Google Calendar Provider code.
  *
  * The Initial Developer of the Original Code is
- *   Philipp Kewisch (mozilla@kewis.ch)
+ *   Philipp Kewisch <mozilla@kewis.ch>
  * Portions created by the Initial Developer are Copyright (C) 2006
  * the Initial Developer. All Rights Reserved.
  *
@@ -97,8 +97,6 @@ calGoogleRequest.prototype = {
                 this.mUriString = "https://www.google.com/accounts/ClientLogin";
                 break;
             case this.META:
-                this.uri = "http://www.google.com/calendar/feeds/" +
-                           encodeURIComponent(this.mSession.googleUser);
                 // Fall through
             case this.GET:
                 this.mMethod = "GET";
@@ -229,7 +227,7 @@ calGoogleRequest.prototype = {
             if (aSession) {
                 this.mSession = aSession;
                 if (this.mType == this.META) {
-                    this.mUriString = "http://www.google.com/calendar/feeds/"
+                    this.mUriString = aSession.uri.prePath + "/calendar/feeds/"
                                       + encodeURIComponent(aSession.googleUser);
                 }
             }

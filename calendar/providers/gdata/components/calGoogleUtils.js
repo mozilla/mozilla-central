@@ -14,8 +14,8 @@
  * The Original Code is Google Calendar Provider code.
  *
  * The Initial Developer of the Original Code is
- *   Philipp Kewisch (mozilla@kewis.ch)
- * Portions created by the Initial Developer are Copyright (C) 2006
+ *   Philipp Kewisch <mozilla@kewis.ch>
+ * Portions created by the Initial Developer are Copyright (C) 2007
  * the Initial Developer. All Rights Reserved.
  *
  * Contributor(s):
@@ -642,9 +642,10 @@ function getItemEditURI(aItem) {
  *
  * @param aXMLEntry     The xml data of the item
  * @param aTimezone     The timezone the event is most likely in
+ * @param aCalendar     The calendar this item will belong to.
  * @return              The calIEvent with the item data.
  */
-function XMLEntryToItem(aXMLEntry, aTimezone) {
+function XMLEntryToItem(aXMLEntry, aTimezone, aCalendar) {
 
     if (aXMLEntry == null) {
         throw new Components.Exception("", Cr.NS_ERROR_DOM_SYNTAX_ERR);
@@ -664,8 +665,13 @@ function XMLEntryToItem(aXMLEntry, aTimezone) {
         item.id = id.substring(id.lastIndexOf('/')+1);
 
         // link
-        item.setProperty("X-GOOGLE-EDITURL",
-                         aXMLEntry.link.(@rel == 'edit').@href.toString());
+        // Since Google doesn't set the edit url to be https if the request is
+        // https, we need to work around this here.
+        var editUrl = aXMLEntry.link.(@rel == 'edit').@href.toString();
+        if (aCalendar.uri.schemeIs("https")) {
+            editUrl = editUrl.replace(/^http:/, "https:");
+        }
+        item.setProperty("X-GOOGLE-EDITURL", editUrl);
 
         // title
         item.title = aXMLEntry.title.(@type == 'text');
