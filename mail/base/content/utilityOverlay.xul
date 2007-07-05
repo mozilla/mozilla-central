@@ -114,7 +114,6 @@
             accesskey="&preferencesCmdUnix.accesskey;"/>  
 #else
             label="&preferencesCmd.label;"
-            key="key_preferences"
             accesskey="&preferencesCmd.accesskey;"/>
 #endif
 #endif
