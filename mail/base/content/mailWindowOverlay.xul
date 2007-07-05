@@ -1171,7 +1171,6 @@
             </menupopup>
           </menu>
           <menuitem id="openMessageFileMenuitem" label="&openMessageFileCmd.label;"
-            key="key_openFileMessage"
             accesskey="&openMessageFileCmd.accesskey;"
             oncommand="MsgOpenFromFile();"/>
           <menu id="fileAttachmentMenu" label="&openAttachmentCmd.label;" accesskey="&openAttachmentCmd.accesskey;" disabled="true" persist="hidden">
