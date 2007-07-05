@@ -140,6 +140,8 @@ var gSmtpServerListWindow =
     document.getElementById('userNameValue').value = aServer.username || noneSelected;
     document.getElementById('useSecureConnectionValue').value = this.mBundle.getString("smtpServer-SecureConnection-Type_" +
                                                                 aServer.trySSL);
+    document.getElementById('useSecureAuthenticationValue').value = this.mBundle.getString("smtpServer-SecureAuthentication-Type-" + 
+                                                                aServer.useSecAuth);
   },
 
   refreshServerList: function(aServerKeyToSelect, aFocusList)

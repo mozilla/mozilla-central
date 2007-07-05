@@ -40,7 +40,7 @@
 
 interface nsIAuthPrompt;
 
-[scriptable, uuid(eef39b32-9050-11db-92fa-000c6e0abfac)]
+[scriptable, uuid(5d03ff0f-90f3-11db-86bf-000c6e0abfac)]
 interface nsISmtpServer : nsISupports {
 
     attribute string key;       // unique identifier
@@ -56,7 +56,8 @@ interface nsISmtpServer : nsISupports {
     attribute string redirectorType;   
 
     attribute long authMethod;
-    readonly attribute boolean trySecAuth;
+    attribute boolean useSecAuth;
+    attribute boolean trySecAuth;
     attribute long trySSL;
     readonly attribute string helloArgument;
 

@@ -490,6 +490,7 @@ pref("mail.smtp.useMatchingDomainServer", false);
 pref("mail.smtp.useMatchingHostNameServer", false);
 
 pref("mail.smtpserver.default.auth_method", 1); // auth any
+pref("mail.smtpserver.default.useSecAuth", false);
 pref("mail.smtpserver.default.trySecAuth", true);
 pref("mail.smtpserver.default.try_ssl", 0);
 

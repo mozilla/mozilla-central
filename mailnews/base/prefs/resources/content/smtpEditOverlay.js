@@ -65,6 +65,7 @@ function initSmtpSettings(server) {
     gSmtpUseUsername = document.getElementById("smtp.useUsername");
     gSmtpAuthMethod = document.getElementById("smtp.authMethod");
     gSmtpTrySSL = document.getElementById("smtp.trySSL");
+    gSmtpUseSecAuth = document.getElementById("smtp.useSecAuth");
     gDefaultPort = document.getElementById("smtp.defaultPort");
     gPort = document.getElementById("smtp.port");
 
@@ -75,6 +76,7 @@ function initSmtpSettings(server) {
         gSmtpUsername.value = server.username;
         gSmtpAuthMethod.setAttribute("value", server.authMethod);
         gSmtpTrySSL.value = (server.trySSL < 4) ? server.trySSL : 1;
+        gSmtpUseSecAuth.checked = server.useSecAuth == "1";
     } else {
         gSmtpAuthMethod.setAttribute("value", "1");
         gSmtpTrySSL.value = 1;
@@ -139,6 +141,7 @@ function saveSmtpSettings(server)
         //     " but checked = " + gSmtpUseUsername.checked + "\n");
         server.username = gSmtpUsername.value;
         server.trySSL = gSmtpTrySSL.value;
+        server.useSecAuth = gSmtpUseSecAuth.checked;
     }
 }
 
@@ -150,6 +153,7 @@ function onUseUsername(checkbox, dofocus)
         if (!checkbox.disabled) {
             gSmtpUsername.removeAttribute("disabled");
             gSmtpUsernameLabel.removeAttribute("disabled");
+            gSmtpUseSecAuth.removeAttribute("disabled");
         }
         if (dofocus)
             gSmtpUsername.focus();
@@ -160,6 +164,7 @@ function onUseUsername(checkbox, dofocus)
         gSmtpUsername.value = "";
         gSmtpUsername.setAttribute("disabled", "true");
         gSmtpUsernameLabel.setAttribute("disabled", "true");
+        gSmtpUseSecAuth.setAttribute("disabled", "true");
     }
 }
 

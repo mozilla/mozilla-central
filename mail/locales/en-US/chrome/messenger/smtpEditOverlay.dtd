@@ -10,6 +10,8 @@
 <!ENTITY alwaysUseUsername.accesskey "U">
 <!ENTITY userName.label "User Name:">
 <!ENTITY userName.accesskey "m">
+<!ENTITY useSecAuth.label "Use secure authentication">
+<!ENTITY useSecAuth.accesskey "i">
 <!ENTITY isSecure.label "Use secure connection:">
 <!ENTITY neverSecure.label "No">
 <!ENTITY neverSecure.accesskey "N">

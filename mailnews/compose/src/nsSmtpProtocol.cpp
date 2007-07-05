@@ -259,7 +259,8 @@ void nsSmtpProtocol::Initialize(nsIURI * aURL)
     m_prefAuthMethod = PREF_AUTH_NONE;
     m_usernamePrompted = PR_FALSE;
     m_prefTrySSL = PREF_SECURE_TRY_STARTTLS;
-    m_prefTrySecAuth = PR_TRUE;
+    m_prefUseSecAuth = PR_TRUE;
+    m_prefTrySecAuth = PR_FALSE;
     m_tlsInitiated = PR_FALSE;
 
     m_urlErrorState = NS_ERROR_FAILURE;
@@ -313,6 +314,7 @@ void nsSmtpProtocol::Initialize(nsIURI * aURL)
     if (smtpServer) {
         smtpServer->GetAuthMethod(&m_prefAuthMethod);
         smtpServer->GetTrySSL(&m_prefTrySSL);
+        smtpServer->GetUseSecAuth(&m_prefUseSecAuth);
         smtpServer->GetTrySecAuth(&m_prefTrySecAuth);
         smtpServer->GetHelloArgument(getter_Copies(m_helloArgument));
     }
@@ -744,16 +746,7 @@ PRInt32 nsSmtpProtocol::SendEhloResponse(nsIInputStream * inputStream, PRUint32 
         }
         else if (responseLine.Compare("AUTH", PR_TRUE, 4) == 0)
         {
-            if (responseLine.Find("PLAIN", PR_TRUE, 5) >= 0)
-                SetFlag(SMTP_AUTH_PLAIN_ENABLED);
-
-            if (responseLine.Find("LOGIN", PR_TRUE, 5) >= 0)
-                SetFlag(SMTP_AUTH_LOGIN_ENABLED);
-
-            if (responseLine.Find("EXTERNAL", PR_TRUE, 5) >= 0)
-                SetFlag(SMTP_AUTH_EXTERNAL_ENABLED);
-
-            if(m_prefTrySecAuth)
+            if (m_prefUseSecAuth || m_prefTrySecAuth)
             {
                 if (responseLine.Find("GSSAPI", PR_TRUE, 5) >= 0)
                     SetFlag(SMTP_AUTH_GSSAPI_ENABLED);
@@ -764,7 +757,7 @@ PRInt32 nsSmtpProtocol::SendEhloResponse(nsIInputStream * inputStream, PRUint32 
                 if (NS_SUCCEEDED(rv))
                 {
                     if (responseLine.Find("CRAM-MD5", PR_TRUE, 5) >= 0)
-                      SetFlag(SMTP_AUTH_CRAM_MD5_ENABLED);
+                        SetFlag(SMTP_AUTH_CRAM_MD5_ENABLED);
 
                     if (responseLine.Find("NTLM", PR_TRUE, 5) >= 0)
                         SetFlag(SMTP_AUTH_NTLM_ENABLED);
@@ -772,6 +765,35 @@ PRInt32 nsSmtpProtocol::SendEhloResponse(nsIInputStream * inputStream, PRUint32 
                     if (responseLine.Find("MSN", PR_TRUE, 5) >= 0)
                         SetFlag(SMTP_AUTH_MSN_ENABLED);
                 }
+
+                if (m_prefTrySecAuth)
+                {
+                  // use it instantly so that it isn't reprobed in case of STARTTLS
+                  m_prefTrySecAuth = PR_FALSE;
+
+                  nsCOMPtr<nsISmtpServer> smtpServer;
+                  m_runningURL->GetSmtpServer(getter_AddRefs(smtpServer));
+                  if (smtpServer)
+                  {
+                    // if we are in probe mode, save what we found out for the future
+                    m_prefUseSecAuth = TestFlag(SMTP_AUTH_SEC_ENABLED);
+                    smtpServer->SetUseSecAuth(m_prefUseSecAuth);
+                    // then disable probing
+                    smtpServer->SetTrySecAuth(m_prefTrySecAuth);
+                  }
+                }
+            }
+
+            if (!m_prefUseSecAuth)
+            {
+                if (responseLine.Find("PLAIN", PR_TRUE, 5) >= 0)
+                    SetFlag(SMTP_AUTH_PLAIN_ENABLED);
+
+                if (responseLine.Find("LOGIN", PR_TRUE, 5) >= 0)
+                    SetFlag(SMTP_AUTH_LOGIN_ENABLED);
+
+                if (responseLine.Find("EXTERNAL", PR_TRUE, 5) >= 0)
+                    SetFlag(SMTP_AUTH_EXTERNAL_ENABLED);
             }
 
             // for use after mechs disabled fallbacks when login failed
@@ -787,7 +809,29 @@ PRInt32 nsSmtpProtocol::SendEhloResponse(nsIInputStream * inputStream, PRUint32 
         startPos = endPos + 1;
     } while (endPos >= 0);
 
-    if(TestFlag(SMTP_EHLO_SIZE_ENABLED) &&
+    /* check if the server supports at least one of the mechanisms
+       the user wants us to use */
+    if (m_prefAuthMethod == PREF_AUTH_ANY)
+    {
+        if (m_prefUseSecAuth)
+        {
+            if (!TestFlag(SMTP_AUTH_SEC_ENABLED))
+                m_urlErrorState = NS_ERROR_COULD_NOT_LOGIN_TO_SMTP_SERVER_SECAUTH;
+        }
+        else
+        {
+            if (!TestFlag(SMTP_AUTH_INSEC_ENABLED))
+                m_urlErrorState = NS_ERROR_COULD_NOT_LOGIN_TO_SMTP_SERVER_INSECAUTH;
+        }
+
+        if (m_urlErrorState != NS_ERROR_FAILURE)
+        {
+            m_nextState = SMTP_ERROR_DONE;
+            return NS_ERROR_COULD_NOT_LOGIN_TO_SMTP_SERVER;
+        }
+    }
+
+    if (TestFlag(SMTP_EHLO_SIZE_ENABLED) &&
        m_sizelimit > 0 && (PRInt32)m_totalMessageSize > m_sizelimit)
     {
 #ifdef DEBUG
@@ -879,7 +923,7 @@ PRInt32 nsSmtpProtocol::ProcessAuth()
         {
             m_nextState = SMTP_ERROR_DONE;
             m_urlErrorState = NS_ERROR_COULD_NOT_LOGIN_TO_SMTP_SERVER_WITH_STARTTLS2;
-            return(NS_ERROR_COULD_NOT_LOGIN_TO_SMTP_SERVER);
+            return NS_ERROR_COULD_NOT_LOGIN_TO_SMTP_SERVER;
         }
     }
 
@@ -899,22 +943,17 @@ PRInt32 nsSmtpProtocol::ProcessAuth()
         if (TestFlag(SMTP_AUTH_GSSAPI_ENABLED))
             m_nextState = SMTP_SEND_AUTH_GSSAPI_FIRST;
         else if (TestFlag(SMTP_AUTH_CRAM_MD5_ENABLED) ||
-            TestFlag(SMTP_AUTH_NTLM_ENABLED) ||
-            TestFlag(SMTP_AUTH_PLAIN_ENABLED))
+                 TestFlag(SMTP_AUTH_NTLM_ENABLED) ||
+                 TestFlag(SMTP_AUTH_PLAIN_ENABLED))
             m_nextState = SMTP_SEND_AUTH_LOGIN_STEP1;
-        else if (TestFlag(SMTP_AUTH_LOGIN_ENABLED) ||
-            TestFlag(SMTP_AUTH_MSN_ENABLED))
+        else if (TestFlag(SMTP_AUTH_MSN_ENABLED) ||
+                 TestFlag(SMTP_AUTH_LOGIN_ENABLED))
             m_nextState = SMTP_SEND_AUTH_LOGIN_STEP0;
-        /* potential security flaw when using DIGEST_MD5 (and maybe GSSAPI)
-         * where not only the client is authenticated by the server
-         * but also vice versa. Faked server could just not advertise
-         * any mechanism to bypass authentication process.
-         */
         else
         {
-            m_nextState = SMTP_SEND_HELO_RESPONSE;
-            // fake to 250 because SendHeloResponse() tests for this
-            m_responseCode = 250;
+            m_nextState = SMTP_ERROR_DONE;
+            m_urlErrorState = NS_ERROR_COULD_NOT_LOGIN_TO_SMTP_SERVER_AUTH;
+            return NS_ERROR_COULD_NOT_LOGIN_TO_SMTP_SERVER_AUTH;
         }
     }
     else
@@ -990,8 +1029,8 @@ PRInt32 nsSmtpProtocol::AuthLoginResponse(nsIInputStream * stream, PRUint32 leng
             if (m_usernamePrompted)
                 smtpServer->SetUsername("");
 
-            // Let's restore the original auth flags from SendEhloResponse so we can
-            // try them again with new password and username
+            // Let's restore the original auth flags from SendEhloResponse
+            // so we can try them again with new password and username
             RestoreAuthFlags();
             // except for gssapi, which doesn't care about the new password.
             ClearFlag(SMTP_AUTH_GSSAPI_ENABLED);

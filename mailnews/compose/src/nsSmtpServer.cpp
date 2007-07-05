@@ -215,15 +215,37 @@ nsSmtpServer::SetTrySSL(PRInt32 trySSL)
 }
 
 NS_IMETHODIMP
+nsSmtpServer::GetUseSecAuth(PRBool *useSecAuth)
+{
+    nsresult rv;
+    NS_ENSURE_ARG_POINTER(useSecAuth);
+    rv = mPrefBranch->GetBoolPref("useSecAuth", useSecAuth);
+    if (NS_FAILED(rv))
+        mDefPrefBranch->GetBoolPref("useSecAuth", useSecAuth);
+    return NS_OK;
+}
+
+NS_IMETHODIMP
+nsSmtpServer::SetUseSecAuth(const PRBool useSecAuth)
+{
+    return mPrefBranch->SetBoolPref("useSecAuth", useSecAuth);
+}
+
+NS_IMETHODIMP
 nsSmtpServer::GetTrySecAuth(PRBool *trySecAuth)
 {
     nsresult rv;
     NS_ENSURE_ARG_POINTER(trySecAuth);
-    *trySecAuth = PR_TRUE;
     rv = mPrefBranch->GetBoolPref("trySecAuth", trySecAuth);
     if (NS_FAILED(rv))
         mDefPrefBranch->GetBoolPref("trySecAuth", trySecAuth);
     return NS_OK;
+}
+
+NS_IMETHODIMP
+nsSmtpServer::SetTrySecAuth(const PRBool trySecAuth)
+{
+    return mPrefBranch->SetBoolPref("trySecAuth", trySecAuth);
 }
 
 NS_IMETHODIMP

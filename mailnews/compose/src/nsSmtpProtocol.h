@@ -83,33 +83,36 @@ SMTP_SEND_AUTH_GSSAPI_STEP                          // 25
 // state information about the connection (authentication, have we sent
 // commands, etc. I do not intend it to refer to protocol state)
 #define SMTP_PAUSE_FOR_READ             0x00000001  /* should we pause for the next read */
-#define SMTP_EHLO_DSN_ENABLED           0x00000002
-#define SMTP_AUTH_LOGIN_ENABLED         0x00000004
-#define SMTP_AUTH_PLAIN_ENABLED         0x00000008
-#define SMTP_AUTH_EXTERNAL_ENABLED      0x00000010
-#define SMTP_EHLO_STARTTLS_ENABLED      0x00000020
+#define SMTP_ESMTP_SERVER               0x00000002
+#define SMTP_EHLO_DSN_ENABLED           0x00000004
+#define SMTP_EHLO_STARTTLS_ENABLED      0x00000008
+#define SMTP_EHLO_SIZE_ENABLED          0x00000010
 
 // if we are using a login redirection
 // and we are waiting for it to give us the
 // host and port to connect to, then this flag
 // will be set...
-#define SMTP_WAIT_FOR_REDIRECTION       0x00000040
+#define SMTP_WAIT_FOR_REDIRECTION       0x00000020
 // if we are using login redirection and we received a load Url
 // request while we were stil waiting for the redirection information
 // then we'll look in this field 
-#define SMTP_LOAD_URL_PENDING           0x00000080
+#define SMTP_LOAD_URL_PENDING           0x00000040
 // if we are using login redirection, then this flag will be set.
 // Note, this is different than the flag for whether we are waiting
 // for login redirection information.
-#define SMTP_USE_LOGIN_REDIRECTION      0x00000100
-#define SMTP_ESMTP_SERVER               0x00000200
-#define SMTP_AUTH_CRAM_MD5_ENABLED      0x00000400
-#define SMTP_AUTH_DIGEST_MD5_ENABLED    0x00000800
-#define SMTP_AUTH_NTLM_ENABLED          0x00001000
-#define SMTP_AUTH_MSN_ENABLED           0x00002000
-#define SMTP_AUTH_ANY_ENABLED           0x0000BC1C
-#define SMTP_EHLO_SIZE_ENABLED          0x00004000
-#define SMTP_AUTH_GSSAPI_ENABLED        0x00008000
+#define SMTP_USE_LOGIN_REDIRECTION      0x00000080
+
+#define SMTP_AUTH_LOGIN_ENABLED         0x00000100
+#define SMTP_AUTH_PLAIN_ENABLED         0x00000200
+#define SMTP_AUTH_EXTERNAL_ENABLED      0x00000400
+#define SMTP_AUTH_GSSAPI_ENABLED        0x00000800
+#define SMTP_AUTH_DIGEST_MD5_ENABLED    0x00001000
+#define SMTP_AUTH_CRAM_MD5_ENABLED      0x00002000
+#define SMTP_AUTH_NTLM_ENABLED          0x00004000
+#define SMTP_AUTH_MSN_ENABLED           0x00008000
+#define SMTP_AUTH_ANY_ENABLED           0x0000FF00
+#define SMTP_AUTH_INSEC_ENABLED         0x00000700
+#define SMTP_AUTH_SEC_ENABLED           0x0000F800
 
 typedef enum _PrefAuthMethod {
     PREF_AUTH_NONE = 0,
@@ -185,11 +188,12 @@ private:
     // *** the following should move to the smtp server when we support
     // multiple smtp servers
     PRInt32 m_prefAuthMethod;
+    PRBool m_prefUseSecAuth;
     PRBool m_prefTrySecAuth;
     PRBool m_usernamePrompted;
     PRInt32 m_prefTrySSL;
     PRBool m_tlsEnabled;
-  
+
     PRBool m_tlsInitiated;
 
     PRBool m_sendDone;
@@ -200,7 +204,7 @@ private:
     PRInt32 m_totalAmountWritten;
 #endif /* UNREADY_CODE */
     PRInt64 m_totalMessageSize;
-    
+
     char *m_dataBuf;
     PRUint32 m_dataBufSize;
 

@@ -94,7 +94,7 @@
                       oncommand="onUseUsername(event.target,true);"
                       prefattribute="value"
                       prefstring="mail.smtpserver.%serverkey%.use_username"/>
-            </hbox>                
+            </hbox>
             <vbox class="indent">
               <hbox align="center">
                 <label id="smtpusernamelabel" value="&userName.label;"
@@ -103,6 +103,11 @@
                          preftype="string"
                          prefstring="mail.smtpserver.%serverkey%.username"/>
               </hbox>
+              <checkbox id="smtp.useSecAuth"
+                        label="&useSecAuth.label;"
+                        accesskey="&useSecAuth.accesskey;"
+                        prefattribute="value"
+                        prefstring="mail.smtpserver.%serverkey%.useSecAuth"/>
             </vbox>
         </vbox>
 
