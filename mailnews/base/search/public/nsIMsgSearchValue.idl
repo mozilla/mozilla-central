@@ -40,7 +40,7 @@
 
 interface nsIMsgFolder;
 
-[scriptable, uuid(124C7DEB-5BDE-4367-8CD2-19616FFF8F0D)]
+[scriptable, uuid(86293830-06e4-4f08-8f2c-e74ef45ceddf)]
 interface nsIMsgSearchValue : nsISupports {
     // type of object
     attribute nsMsgSearchAttribValue attrib;
@@ -53,7 +53,7 @@ interface nsIMsgSearchValue : nsISupports {
     attribute unsigned long status; // see MSG_FLAG in msgcom.h
     attribute unsigned long size;
     attribute nsMsgKey msgKey;
-    attribute unsigned long age; // in days
+    attribute long age; // in days
     attribute nsIMsgFolder folder;
     attribute nsMsgLabelValue label;
     attribute nsMsgJunkStatus junkStatus;

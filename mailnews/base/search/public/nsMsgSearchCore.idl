@@ -198,10 +198,10 @@ typedef struct nsMsgSearchValue
       PRUint32 msgStatus; /* see MSG_FLAG in msgcom.h */
       PRUint32 size;
       nsMsgKey key;
-		  PRUint32 age; /* in days */
-		  nsIMsgFolder *folder;
-		  nsMsgLabelValue label;
-		  PRUint32 junkStatus;
+      PRInt32 age; /* in days */
+      nsIMsgFolder *folder;
+      nsMsgLabelValue label;
+      PRUint32 junkStatus;
     } u;
     char *string;
 } nsMsgSearchValue;

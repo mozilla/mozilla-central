@@ -62,7 +62,7 @@ NS_IMPL_GETSET(nsMsgSearchValueImpl, Priority, nsMsgPriorityValue, mValue.u.prio
 NS_IMPL_GETSET(nsMsgSearchValueImpl, Status, PRUint32, mValue.u.msgStatus)
 NS_IMPL_GETSET(nsMsgSearchValueImpl, Size, PRUint32, mValue.u.size)
 NS_IMPL_GETSET(nsMsgSearchValueImpl, MsgKey, nsMsgKey, mValue.u.key)
-NS_IMPL_GETSET(nsMsgSearchValueImpl, Age, PRUint32, mValue.u.age)
+NS_IMPL_GETSET(nsMsgSearchValueImpl, Age, PRInt32, mValue.u.age)
 NS_IMPL_GETSET(nsMsgSearchValueImpl, Date, PRTime, mValue.u.date)
 NS_IMPL_GETSET(nsMsgSearchValueImpl, Attrib, nsMsgSearchAttribValue, mValue.attribute)
 NS_IMPL_GETSET(nsMsgSearchValueImpl, Label, nsMsgLabelValue, mValue.u.label)

@@ -356,20 +356,28 @@ nsresult nsMsgSearchAdapter::EncodeImapTerm (nsIMsgSearchTerm *term, PRBool real
   case nsMsgSearchAttrib::AgeInDays:  // added for searching online for age in days...
     // for AgeInDays, we are actually going to perform a search by date, so convert the operations for age
     // to the IMAP mnemonics that we would use for date!
-    switch (op)
     {
-    case nsMsgSearchOp::IsGreaterThan:
-      whichMnemonic = m_kImapBefore;
-      break;
-    case nsMsgSearchOp::IsLessThan:
-      whichMnemonic = m_kImapSince;
-      break;
-    case nsMsgSearchOp::Is:
-      whichMnemonic = m_kImapSentOn;
-      break;
-    default:
-      NS_ASSERTION(PR_FALSE, "invalid search operator");
-      return NS_ERROR_INVALID_ARG;
+      // If we have a future date, the > and < are reversed.
+      // e.g. ageInDays > 2 means more than 2 days old ("date before X") whereas
+      //      ageInDays > -2 should be more than 2 days in the future ("date after X")
+      PRInt32 ageInDays;
+      searchValue->GetAge(&ageInDays);
+      PRBool dateInFuture = (ageInDays < 0);
+      switch (op)
+      {
+      case nsMsgSearchOp::IsGreaterThan:
+        whichMnemonic = (!dateInFuture) ? m_kImapBefore : m_kImapSince;
+        break;
+      case nsMsgSearchOp::IsLessThan:
+        whichMnemonic = (!dateInFuture) ? m_kImapSince : m_kImapBefore;
+        break;
+      case nsMsgSearchOp::Is:
+        whichMnemonic = m_kImapSentOn;
+        break;
+      default:
+        NS_ASSERTION(PR_FALSE, "invalid search operator");
+        return NS_ERROR_INVALID_ARG;
+      }
     }
     break;
   case nsMsgSearchAttrib::Size:
@@ -499,7 +507,7 @@ nsresult nsMsgSearchAdapter::EncodeImapTerm (nsIMsgSearchTerm *term, PRBool real
       {
         // okay, take the current date, subtract off the age in days, then do an appropriate Date search on
         // the resulting day.
-        PRUint32 ageInDays;
+        PRInt32 ageInDays;
 
         searchValue->GetAge(&ageInDays);
 
@@ -509,7 +517,7 @@ nsresult nsMsgSearchAdapter::EncodeImapTerm (nsIMsgSearchTerm *term, PRBool real
         PRInt64 microSecondsPerSecond, secondsInDays, microSecondsInDay;
 
         LL_I2L(microSecondsPerSecond, PR_USEC_PER_SEC);
-        LL_UI2L(secondsInDays, 60 * 60 * 24 * ageInDays);
+        LL_I2L(secondsInDays, 60 * 60 * 24 * ageInDays);
         LL_MUL(microSecondsInDay, secondsInDays, microSecondsPerSecond);
 
         LL_SUB(matchDay, now, microSecondsInDay); // = now - term->m_value.u.age * 60 * 60 * 24;
@@ -1066,8 +1074,6 @@ nsMsgSearchValidityManager::SetOtherHeadersInTable (nsIMsgSearchValidityTable *a
   PRUint32 numHeaders=0;
   if (customHeadersLength)
   {
-    char *headersString = strdup(customHeaders);
-
     nsCAutoString hdrStr(customHeaders);
     hdrStr.StripWhitespace();  //remove whitespace before parsing    
     char *newStr = hdrStr.BeginWriting();
