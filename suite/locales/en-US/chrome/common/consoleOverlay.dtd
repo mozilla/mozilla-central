@@ -36,6 +36,8 @@
  ***** END LICENSE BLOCK ***** -->
 
 <!ENTITY menuBar.tooltip       "Menu Bar">
+<!ENTITY modeToolbar.tooltip   "Mode Toolbar">
+<!ENTITY entryToolbar.tooltip  "Javascript Entry Toolbar">
 <!ENTITY toolbarsCmd.label     "Show/Hide">
 <!ENTITY toolbarsCmd.accesskey "w">
 <!ENTITY toolbarMode.label     "Mode">

@@ -37,6 +37,8 @@
 
  ***** END LICENSE BLOCK ***** -->
 
+<?xml-stylesheet href="chrome://communicator/skin/" type="text/css"?>
+
 <?xul-overlay href="chrome://global/content/globalOverlay.xul"?>
 <?xul-overlay href="chrome://communicator/content/utilityOverlay.xul"?>
 <?xul-overlay href="chrome://communicator/content/tasksOverlay.xul"?>
@@ -108,5 +110,8 @@
       <menu id="menu_Help"/>
     </menubar>
   </toolbox>
+
+  <toolbar id="ToolbarMode" grippytooltiptext="&modeToolbar.tooltip;"/>
+  <toolbar id="ToolbarEval" grippytooltiptext="&entryToolbar.tooltip;"/>
 
 </overlay>
