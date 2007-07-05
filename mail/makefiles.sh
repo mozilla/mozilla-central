@@ -51,7 +51,6 @@ mail/components/shell/public/Makefile
 mail/components/phishing/Makefile
 mail/extensions/Makefile
 mail/extensions/smime/Makefile
-mail/config/Makefile
 mail/installer/Makefile
 mail/installer/windows/Makefile
 mail/themes/Makefile
