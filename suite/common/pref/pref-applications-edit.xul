@@ -289,8 +289,8 @@
         entry.saveToDisk       = false;
         entry.useSystemDefault = false;
         entry.handleInternal   = false;
-        entry.appPath = info.preferredApplicationHandler.path;
-        entry.appDisplayName = info.applicationDescription;
+        entry.appPath = info.preferredApplicationHandler.executable.path;
+        entry.appDisplayName = info.preferredApplicationHandler.name;
       }
       
       // Do RDF magic.
