@@ -104,6 +104,7 @@ function GetListValue(mailList, doAdd)
     }
   }
 
+  mailList.isMailList = true;
   mailList.dirName = listname;
   mailList.listNickName = document.getElementById('ListNickName').value;
   mailList.description = document.getElementById('ListDescription').value;
