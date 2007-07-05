@@ -85,6 +85,15 @@ function ltnCurrentMode()
 }
 
 /**
+ * Helper function to get the view deck in a neutral way, regardless of whether
+ * we're in Tunderbird 1.x or 2.x
+ */
+function getMailBar() {
+  return document.getElementById("mail-bar2") ||
+         document.getElementById("mail-bar");
+}
+
+/**
  * ltnSwitch2Mail() switches to the mail mode
  */
 
@@ -97,7 +106,7 @@ function ltnSwitch2Mail()
     switch2mail.setAttribute("checked","true");
     switch2calendar.removeAttribute("checked");
 
-    var mailToolbar = document.getElementById("mail-bar2");
+    var mailToolbar = getMailBar();
     var calendarToolbar = document.getElementById("calendar-toolbar");
     mailToolbar.removeAttribute("collapsed");
     calendarToolbar.setAttribute("collapsed","true");
@@ -135,7 +144,7 @@ function ltnSwitch2Calendar()
     switch2calendar.setAttribute("checked","true");
     switch2mail.removeAttribute("checked");
 
-    var mailToolbar = document.getElementById("mail-bar2");
+    var mailToolbar = getMailBar();
     var calendarToolbar = document.getElementById("calendar-toolbar");
     mailToolbar.setAttribute("collapsed","true");
     calendarToolbar.removeAttribute("collapsed");
@@ -193,8 +202,8 @@ debugger;
   var modeName = isModeToolbox ? 'mode' : ltnCurrentMode();
 
   // retrieve the toolbars from the tree
+  var mailbar = getMailBar();
   var menubar = document.getElementById('mail-menubar');
-  var mailbar = document.getElementById('mail-bar2');
   var calendarbar = document.getElementById('calendar-toolbar');
   var mailbox = document.getElementById("mail-toolbox");
   var modebar = document.getElementById('mode-toolbar');
@@ -280,7 +289,7 @@ function ModeToolboxCustomizeDone(aToolboxChanged)
   // enable elements on the toolbars
   if (isModeToolbox) {
     EnableDisableHierarchy(document.getElementById('mail-menubar'),false);
-    EnableDisableHierarchy(document.getElementById('mail-bar2'),false);
+    EnableDisableHierarchy(getMailBar(),false);
     EnableDisableHierarchy(document.getElementById('calendar-toolbar'),false);
   }
 
