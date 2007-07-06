@@ -278,12 +278,6 @@ function FillInHTMLTooltip(tipElement)
       var label = hbox.firstChild;
       label.textContent = t;
 
-      // Work around reflow bugs
-      hbox.width = "";
-      hbox.height = "";
-      hbox.width = label.boxObject.width;
-      hbox.height = label.boxObject.height;
-
       retVal = true;
     }
   }
