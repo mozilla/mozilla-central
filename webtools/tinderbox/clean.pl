@@ -33,7 +33,6 @@ our ($opt_h, $opt_v);
 getopts('hv');
 usage() if (defined($opt_h));
 $verbose++ if (defined($opt_v));
-print "$verbose\n";
 
 my $days = shift;
 my @trees = @ARGV;
