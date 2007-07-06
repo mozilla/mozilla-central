@@ -102,6 +102,12 @@ for line in sys.stdin:
 
     timeval = time.mktime(map(int, string.split(datestr, ":")) + [0, 0, 0])
 
+    #don't record this value if it is not defined
+    if float(val) != float(val):
+        continue;
+    #ensure that newlines are stripped from the extra_data
+    data = data.rstrip('\r\n')
+
     if timeval > latest:
         db.execute("INSERT INTO dataset_values (dataset_id,time,value) VALUES (?,?,?)", (setid, timeval, val))
         db.execute("INSERT INTO dataset_extra_data (dataset_id,time,data) VALUES (?,?,?)", (setid, timeval, data))
