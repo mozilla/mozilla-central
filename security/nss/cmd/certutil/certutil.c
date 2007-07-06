@@ -835,7 +835,7 @@ Usage(char *progName)
     FPS "\t%s -C [-c issuer-name | -x] -i cert-request-file -o cert-file\n"
 	"\t\t [-m serial-number] [-w warp-months] [-v months-valid]\n"
         "\t\t [-f pwfile] [-d certdir] [-P dbprefix] [-1] [-2] [-3] [-4] [-5]\n"
-	"\t\t [-6] [-7 emailAddrs] [-8 dns-names]\n",
+	"\t\t [-6] [-7 emailAddrs] [-8 dns-names] [-a]\n",
 	progName);
     FPS "\t%s -D -n cert-name [-d certdir] [-P dbprefix]\n", progName);
     FPS "\t%s -E -n cert-name -t trustargs [-d certdir] [-P dbprefix] [-a] [-i input]\n", 
@@ -947,6 +947,8 @@ static void LongUsage(char *progName)
 	"   -7 ");
     FPS "%-20s Create an dns subject alt name extension\n",
 	"   -8 ");
+    FPS "%-20s The input certificate request is encoded in ASCII (RFC1113)\n",
+	"   -a");
     FPS "\n");
 
     FPS "%-15s Generate a new key pair\n",
