@@ -104,6 +104,7 @@
           <xul:tabs class="tabbrowser-tabs" closebutton="true" flex="1"
                     anonid="tabcontainer"
                     tooltiptextnew="&newTabButton.tooltip;"
+                    tooltiptextclose="&closeTabButton.tooltip;"
                     setfocus="false"
                     onclick="this.parentNode.parentNode.parentNode.onTabClick(event);"
                     xbl:inherits="onnewtab"
@@ -2196,7 +2197,7 @@
             <xul:stack>
               <xul:spacer class="tabs-right"/>
               <xul:hbox class="tabs-closebutton-box" align="center" pack="end">
-                <xul:toolbarbutton class="tabs-closebutton close-button" xbl:inherits="disabled=disableclose,oncommand=onclosetab"/>
+                <xul:toolbarbutton class="tabs-closebutton close-button" xbl:inherits="disabled=disableclose,oncommand=onclosetab,tooltiptext=tooltiptextclose"/>
               </xul:hbox>
             </xul:stack>
           </xul:hbox>
