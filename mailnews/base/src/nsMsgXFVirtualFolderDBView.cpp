@@ -200,14 +200,6 @@ void nsMsgXFVirtualFolderDBView::UpdateCacheAndViewForFolder(nsIMsgFolder *folde
 void nsMsgXFVirtualFolderDBView::UpdateCacheAndViewForPrevSearchedFolders(nsIMsgFolder *curSearchFolder)
 {
   // Handle the most recent folder with hits, if any.
-#ifdef DEBUG
-  if (curSearchFolder)
-  {
-    nsCString folderUri;
-    curSearchFolder->GetURI(folderUri);
-    printf("UpdateCacheAndViewForPrevSearchedFolders curSearchFolder - %s\n", folderUri.get());
-  }
-#endif
   if (m_curFolderGettingHits)
   {
     PRUint32 count = m_hdrHits.Count();
@@ -235,16 +227,7 @@ void nsMsgXFVirtualFolderDBView::UpdateCacheAndViewForPrevSearchedFolders(nsIMsg
     {
       // this must be a folder that had no hits with the current search.
       // So all cached hits, if any, need to be removed.
-#ifdef DEBUG
-      nsCString folderUri;
-      m_foldersSearchingOver[0]->GetURI(folderUri);
-      printf("UpdateCacheAndViewForPrevSearchedFolders 0 hits in - %s\n", folderUri.get());
-#endif
       UpdateCacheAndViewForFolder(m_foldersSearchingOver[0], 0, nsnull);
-#ifdef DEBUG
-      m_foldersSearchingOver[0]->GetURI(folderUri);
-      printf("UpdateCacheAndViewForPrevSearchedFolders removing %s\n", folderUri.get());
-#endif
       m_foldersSearchingOver.RemoveObjectAt(0);
     }
   }
@@ -262,11 +245,6 @@ nsMsgXFVirtualFolderDBView::OnSearchHit(nsIMsgDBHdr* aMsgHdr, nsIMsgFolder *fold
 
   if (m_curFolderGettingHits != folder && m_doingSearch)
   {
-#ifdef DEBUG
-    nsCString folderUri;
-    folder->GetURI(folderUri);
-    printf("first hit for folder - %s\n", folderUri.get());
-#endif
     m_curFolderHasCachedHits = PR_FALSE;
     // since we've gotten a hit for a new folder, the searches for
     // any previous folders are done, so deal with stale cached hits
@@ -378,11 +356,6 @@ nsMsgXFVirtualFolderDBView::OnNewSearch()
           msgDBService->RegisterPendingListener(searchFolder, this);
 
         m_foldersSearchingOver.AppendObject(searchFolder);
-#ifdef DEBUG
-        nsCString folderUri;
-        searchFolder->GetURI(folderUri);
-        printf("adding to m_foldersSearchingOver - %s\n", folderUri.get());
-#endif
         searchDB->GetCachedHits(searchUri.get(), getter_AddRefs(cachedHits));
         PRBool hasMore;
         if (cachedHits)
