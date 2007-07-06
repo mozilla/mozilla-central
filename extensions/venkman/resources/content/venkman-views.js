@@ -2970,7 +2970,7 @@ function s2v_cleardeck ()
         while (i > 0)
             this.deck.removeChild (this.deck.childNodes[--i]);
 
-        var bloke = document.createElement ("tab");
+        var bloke = this.tabs.ownerDocument.createElement("tab");
         bloke.setAttribute ("id", "source2-bloke");
         bloke.setAttribute ("hidden", "true");
         this.tabs.appendChild (bloke);
