@@ -2072,13 +2072,12 @@
               if (!numMsgKeys.value)
                 continue;
 
-
               if (showPreviewText)
               {
                 // fetchMsgPreviewText forces the previewText property to get generated
                 // for each of the message keys.
                 try {
-                  aFolder.fetchMsgPreviewText(msgKeys.value, numMsgKeys.value, false, aUrlListener, aOutAsync);
+                  aOutAsync.value = aFolder.fetchMsgPreviewText(msgKeys.value, numMsgKeys.value, false, aUrlListener);
                   aFolder.setMsgDatabase(null);
                 }
                 catch (ex)
