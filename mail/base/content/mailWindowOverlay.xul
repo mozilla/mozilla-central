@@ -1209,7 +1209,6 @@
                 </menupopup>
               </rule>
             </template>
-            <menupopup/>
           </menu>
 
           <menuitem id="menu_getnextnmsg" label="&getNextNMsgCmd.label;" accesskey="&getNextNMsgCmd.accesskey;"
@@ -1934,7 +1933,6 @@
             </menupopup>
           </rule>
         </template>       
-        <menupopup/>
       </toolbarbutton>
 
       <toolbarbutton id="button-newmsg" class="toolbarbutton-1" label="&newMsgButton.label;" tooltiptext="&newMsgButton.tooltip;" oncommand="MsgNewMessage(event)"/>
