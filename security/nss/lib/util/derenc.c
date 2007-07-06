@@ -97,9 +97,9 @@ DERTemplate SECUTCTimeTemplate[] = {
 
 
 static int
-header_length(DERTemplate *dtemplate, uint32 contents_len)
+header_length(DERTemplate *dtemplate, PRUint32 contents_len)
 {
-    uint32 len;
+    PRUint32 len;
     unsigned long encode_kind, under_kind;
     PRBool explicit, optional, universal;
 
@@ -179,10 +179,10 @@ header_length(DERTemplate *dtemplate, uint32 contents_len)
 }
 
 
-static uint32
+static PRUint32
 contents_length(DERTemplate *dtemplate, void *src)
 {
-    uint32 len;
+    PRUint32 len;
     unsigned long encode_kind, under_kind;
     PRBool universal;
 
@@ -229,7 +229,7 @@ contents_length(DERTemplate *dtemplate, void *src)
 	return 0;
 
     if (under_kind & DER_INDEFINITE) {
-	uint32 sub_len;
+	PRUint32 sub_len;
 	void   **indp = *(void ***)src;
 
 	if (indp == NULL)
@@ -275,7 +275,7 @@ contents_length(DERTemplate *dtemplate, void *src)
 	{
 	    DERTemplate *tmpt;
 	    void *sub_src;
-	    uint32 sub_len;
+	    PRUint32 sub_len;
 
 	    len = 0;
 	    for (tmpt = dtemplate + 1; tmpt->kind; tmpt++) {
@@ -306,7 +306,7 @@ static unsigned char *
 der_encode(unsigned char *buf, DERTemplate *dtemplate, void *src)
 {
     int header_len;
-    uint32 contents_len;
+    PRUint32 contents_len;
     unsigned long encode_kind, under_kind;
     PRBool explicit, optional, universal;
 

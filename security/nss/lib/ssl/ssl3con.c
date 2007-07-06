@@ -39,7 +39,7 @@
  * the terms of any one of the MPL, the GPL or the LGPL.
  *
  * ***** END LICENSE BLOCK ***** */
-/* $Id: ssl3con.c,v 1.101 2007-05-01 03:54:57 nelson%bolyard.com Exp $ */
+/* $Id: ssl3con.c,v 1.102 2007-07-06 03:16:54 julien.pierre.bugs%sun.com Exp $ */
 
 #include "nssrenam.h"
 #include "cert.h"
@@ -3196,7 +3196,7 @@ static SECStatus
 ssl3_ComputeHandshakeHashes(sslSocket *     ss,
                             ssl3CipherSpec *spec,   /* uses ->master_secret */
 			    SSL3Hashes *    hashes, /* output goes here. */
-			    uint32          sender)
+			    PRUint32        sender)
 {
     SECStatus     rv        = SECSuccess;
     PRBool        isTLS     = (PRBool)(spec->version > SSL_LIBRARY_VERSION_3_0);

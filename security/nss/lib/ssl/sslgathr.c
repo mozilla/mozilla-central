@@ -36,7 +36,7 @@
  * the terms of any one of the MPL, the GPL or the LGPL.
  *
  * ***** END LICENSE BLOCK ***** */
-/* $Id: sslgathr.c,v 1.8 2005-09-09 03:02:16 nelsonb%netscape.com Exp $ */
+/* $Id: sslgathr.c,v 1.9 2007-07-06 03:16:54 julien.pierre.bugs%sun.com Exp $ */
 #include "cert.h"
 #include "ssl.h"
 #include "sslimpl.h"
@@ -288,7 +288,7 @@ ssl2_GatherData(sslSocket *ss, sslGather *gs, int flags)
 	    */
 	    macLen = ss->sec.hash->length;
 	    if (gs->offset >= macLen) {
-		uint32           sequenceNumber = ss->sec.rcvSequence++;
+		PRUint32           sequenceNumber = ss->sec.rcvSequence++;
 		unsigned char    seq[4];
 
 		seq[0] = (unsigned char) (sequenceNumber >> 24);

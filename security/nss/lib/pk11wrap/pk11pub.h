@@ -634,7 +634,7 @@ SECStatus PK11_DigestBegin(PK11Context *cx);
  * the hash algorithm 'hashAlg'.
  */
 SECStatus PK11_HashBuf(SECOidTag hashAlg, unsigned char *out, unsigned char *in,
-					int32 len);
+					PRInt32 len);
 SECStatus PK11_DigestOp(PK11Context *context, const unsigned char *in, 
                         unsigned len);
 SECStatus PK11_CipherOp(PK11Context *context, unsigned char * out, int *outlen, 

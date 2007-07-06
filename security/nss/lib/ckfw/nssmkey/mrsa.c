@@ -36,7 +36,7 @@
  * ***** END LICENSE BLOCK ***** */
 
 #ifdef DEBUG
-static const char CVS_ID[] = "@(#) $RCSfile: mrsa.c,v $ $Revision: 1.1 $ $Date: 2005-11-23 23:04:08 $";
+static const char CVS_ID[] = "@(#) $RCSfile: mrsa.c,v $ $Revision: 1.2 $ $Date: 2007-07-06 03:16:56 $";
 #endif /* DEBUG */
 
 #include "ckmk.h"
@@ -261,7 +261,7 @@ ckmk_mdCryptoOperationRSADecrypt_GetOperationLength
        (ckmkInternalCryptoOperationRSAPriv *)mdOperation->etc; 
   CSSM_DATA cssmInput;
   CSSM_DATA cssmOutput = { 0, NULL };
-  uint32  bytesDecrypted;
+  PRUint32  bytesDecrypted;
   CSSM_DATA remainder = { 0, NULL };
   NSSItem output;
   CSSM_RETURN cssmErr;

@@ -41,7 +41,7 @@
  * secder.h - public data structures and prototypes for the DER encoding and
  *	      decoding utilities library
  *
- * $Id: secder.h,v 1.8 2007-05-04 00:22:32 julien.pierre.bugs%sun.com Exp $
+ * $Id: secder.h,v 1.9 2007-07-06 03:16:55 julien.pierre.bugs%sun.com Exp $
  */
 
 #if defined(_WIN32_WCE)
@@ -88,7 +88,8 @@ extern SECStatus DER_Decode(PRArenaPool *arena, void *dest, DERTemplate *t,
 extern SECStatus DER_Encode(PRArenaPool *arena, SECItem *dest, DERTemplate *t,
 			   void *src);
 
-extern SECStatus DER_Lengths(SECItem *item, int *header_len_p, uint32 *contents_len_p);
+extern SECStatus DER_Lengths(SECItem *item, int *header_len_p,
+                             PRUint32 *contents_len_p);
 
 /*
 ** Lower level der subroutine that stores the standard header into "to".
@@ -100,24 +101,24 @@ extern SECStatus DER_Lengths(SECItem *item, int *header_len_p, uint32 *contents_
 **	   the header
 */
 extern unsigned char *DER_StoreHeader(unsigned char *to, unsigned int code,
-				      uint32 encodingLen);
+				      PRUint32 encodingLen);
 
 /*
 ** Return the number of bytes it will take to hold a der encoded length.
 */
-extern int DER_LengthLength(uint32 len);
+extern int DER_LengthLength(PRUint32 len);
 
 /*
 ** Store a der encoded *signed* integer (whose value is "src") into "dst".
 ** XXX This should really be enhanced to take a long.
 */
-extern SECStatus DER_SetInteger(PRArenaPool *arena, SECItem *dst, int32 src);
+extern SECStatus DER_SetInteger(PRArenaPool *arena, SECItem *dst, PRInt32 src);
 
 /*
 ** Store a der encoded *unsigned* integer (whose value is "src") into "dst".
 ** XXX This should really be enhanced to take an unsigned long.
 */
-extern SECStatus DER_SetUInteger(PRArenaPool *arena, SECItem *dst, uint32 src);
+extern SECStatus DER_SetUInteger(PRArenaPool *arena, SECItem *dst, PRUint32 src);
 
 /*
 ** Decode a der encoded *signed* integer that is stored in "src".

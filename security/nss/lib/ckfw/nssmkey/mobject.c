@@ -36,7 +36,7 @@
  *
  * ***** END LICENSE BLOCK ***** */
 #ifdef DEBUG
-static const char CVS_ID[] = "@(#) $RCSfile: mobject.c,v $ $Revision: 1.1 $ $Date: 2005-11-23 23:04:08 $";
+static const char CVS_ID[] = "@(#) $RCSfile: mobject.c,v $ $Revision: 1.2 $ $Date: 2007-07-06 03:16:56 $";
 #endif /* DEBUG */
 
 #include "ckmk.h"
@@ -395,9 +395,9 @@ ckmk_GetCommonAttribute
 {
   SecKeychainAttributeList *attrList = NULL;
   SecKeychainAttributeInfo attrInfo;
-  uint32 len = 0;
-  uint32 dataLen = 0;
-  uint32 attrFormat = 0;
+  PRUint32 len = 0;
+  PRUint32 dataLen = 0;
+  PRUint32 attrFormat = 0;
   void *dataVal = 0;
   void *out = NULL;
   CK_RV error = CKR_OK;
@@ -445,7 +445,7 @@ ckmk_updateAttribute
   SecKeychainItemRef itemRef,
   SecItemAttr itemAttr,
   void *data,
-  uint32 len,
+  PRUint32 len,
   char *dbString
 )
 {
@@ -497,7 +497,7 @@ ckmk_GetBoolAttribute
   SecKeychainAttribute attr;
   SecKeychainAttributeList attrList;
   CK_BBOOL *boolp = NULL;
-  uint32 len = 0;;
+  PRUint32 len = 0;;
   void *out = NULL;
   CK_RV error = CKR_OK;
   OSStatus macErr;
@@ -521,11 +521,11 @@ ckmk_GetBoolAttribute
     error = CKR_ATTRIBUTE_TYPE_INVALID;
     goto loser;
   }
-  if (sizeof(uint32) != attr.length) {
+  if (sizeof(PRUint32) != attr.length) {
     error = CKR_ATTRIBUTE_TYPE_INVALID;
     goto loser;
   }
-  *boolp = *(uint32 *)attr.data ? 1 : 0;
+  *boolp = *(PRUint32 *)attr.data ? 1 : 0;
   item->data =  boolp;
   boolp = NULL;
   item->size = sizeof(CK_BBOOL);
@@ -650,7 +650,7 @@ ckmk_fetchModulus
 )
 {
   NSSItem item;
-  int32 modLen;
+  PRInt32 modLen;
   CK_RV error;
 
   /* we can't reliably get the modulus for private keys through CSSM (sigh).
@@ -664,7 +664,7 @@ ckmk_fetchModulus
     return;
   }
 
-  modLen = *(int32 *)item.data;
+  modLen = *(PRInt32 *)item.data;
   modLen = modLen/8; /* convert from bits to bytes */
 
   nss_ZFreeIf(item.data);
@@ -1647,7 +1647,7 @@ ckmk_FindImportedKey
     SecKeychainAttributeList *attrList = NULL;
     SecKeychainAttributeInfo attrInfo;
     SecItemAttr itemAttr = kSecKeyPrintName;
-    uint32 attrFormat = 0;
+    PRUint32 attrFormat = 0;
     OSStatus macErr;
 
     attrInfo.count = 1;

@@ -255,7 +255,7 @@ SECStatus
 HASH_HashBuf(HASH_HashType type,
 	     unsigned char *dest,
 	     unsigned char *src,
-	     uint32 src_len)
+	     PRUint32 src_len)
 {
     HASHContext *cx;
     unsigned int part;
