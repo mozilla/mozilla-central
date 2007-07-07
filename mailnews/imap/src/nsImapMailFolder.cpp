@@ -3111,6 +3111,7 @@ NS_IMETHODIMP nsImapMailFolder::ApplyFilterHit(nsIMsgFilter *filter, nsIMsgWindo
               m_msgMovedByFilter = PR_TRUE;
           }
           // don't apply any more filters, even if it was a move to the same folder
+          *applyMore = PR_FALSE; 
         }
         break;
         case nsMsgFilterAction::CopyToFolder:
