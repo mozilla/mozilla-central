@@ -75,6 +75,7 @@ static struct _PT_Bookeeping
 } pt_book = {0};
 
 static void _pt_thread_death(void *arg);
+static void _pt_thread_death_internal(void *arg, PRBool callDestructors);
 static void init_pthread_gc_support(void);
 
 #if defined(_PR_DCETHREADS) || defined(_POSIX_THREAD_PRIORITY_SCHEDULING)
@@ -807,6 +808,12 @@ PR_IMPLEMENT(PRStatus) PR_Sleep(PRIntervalTime ticks)
 
 static void _pt_thread_death(void *arg)
 {
+    /* PR_TRUE for: call destructors */ 
+    _pt_thread_death_internal(arg, PR_TRUE);
+}
+
+static void _pt_thread_death_internal(void *arg, PRBool callDestructors)
+{
     PRThread *thred = (PRThread*)arg;
 
     if (thred->state & (PT_THREAD_FOREIGN|PT_THREAD_PRIMORD))
@@ -822,7 +829,8 @@ static void _pt_thread_death(void *arg)
             thred->next->prev = thred->prev;
         PR_Unlock(pt_book.ml);
     }
-    _PR_DestroyThreadPrivate(thred);
+    if (callDestructors)
+        _PR_DestroyThreadPrivate(thred);
     PR_Free(thred->privateData);
     if (NULL != thred->errorString)
         PR_Free(thred->errorString);
@@ -996,7 +1004,11 @@ void _PR_Fini(void)
     _PT_PTHREAD_GETSPECIFIC(pt_book.key, thred);
     if (NULL != thred)
     {
-        _pt_thread_death(thred);
+        /*
+         * PR_FALSE, because it is unsafe to call back to the 
+         * thread private data destructors at final cleanup.
+         */
+        _pt_thread_death_internal(thred, PR_FALSE);
         rv = pthread_setspecific(pt_book.key, NULL);
         PR_ASSERT(0 == rv);
     }
