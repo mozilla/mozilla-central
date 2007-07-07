@@ -60,7 +60,10 @@
   <binding id="autocomplete-result-popup" extends="chrome://global/content/autocomplete.xml#autocomplete-result-popup">
     <content>
       <xul:tree anonid="tree" class="autocomplete-tree plain" flex="1">
-        <xul:treecols anonid="treecols"/>
+        <xul:treecols anonid="treecols">
+          <xul:treecol class="autocomplete-treecol" id="treecolAutoCompleteValue" flex="2"/>
+          <xul:treecol class="autocomplete-treecol" id="treecolAutoCompleteComment" flex="1" hidden="true"/>
+        </xul:treecols>
         <xul:treechildren anonid="treebody" class="autocomplete-treebody" flex="1"/>
       </xul:tree>
       <xul:box role="search-box" class="autocomplete-search-box"/>
