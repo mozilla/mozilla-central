@@ -214,6 +214,9 @@ NS_IMETHODIMP nsImapFlagAndUidState::AddUidFlagPair(PRUint32 uid, imapMessageFla
 {
   if (uid == nsMsgKey_None) // ignore uid of -1
     return NS_OK;
+  // check for potential overflow in buffer size for uid array
+  if (zeroBasedIndex > 0x3FFFFFFF)
+    return NS_ERROR_INVALID_ARG;
   PR_CEnterMonitor(this);
   if (zeroBasedIndex + 1 > fNumberOfMessagesAdded)
     fNumberOfMessagesAdded = zeroBasedIndex + 1;
