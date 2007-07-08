@@ -88,16 +88,16 @@ NS_IMETHODIMP
 WSPPropertyBagWrapper::QueryInterface(REFNSIID aIID, void** aInstancePtr)
 {
   if (aIID.Equals(NS_GET_IID(nsISupports))) {
-    *aInstancePtr = NS_STATIC_CAST(nsIXPTCProxy*, this);
+    *aInstancePtr = static_cast<nsIXPTCProxy*>(this);
   }
   if(mXPTCStub && mIID && aIID.Equals(*mIID)) {
     *aInstancePtr = mXPTCStub;
   }
   else if (aIID.Equals(NS_GET_IID(nsIWebServicePropertyBagWrapper))) {
-    *aInstancePtr = NS_STATIC_CAST(nsIWebServicePropertyBagWrapper*, this);
+    *aInstancePtr = static_cast<nsIWebServicePropertyBagWrapper*>(this);
   }
   else if (aIID.Equals(NS_GET_IID(nsIClassInfo))) {
-    *aInstancePtr = NS_STATIC_CAST(nsIClassInfo*, this);
+    *aInstancePtr = static_cast<nsIClassInfo*>(this);
   } else {
     return NS_ERROR_NO_INTERFACE;
   }
@@ -208,19 +208,19 @@ WSPPropertyBagWrapper::GetInterfaces(PRUint32 *count, nsIID * **array)
   }
 
   *count = 2;
-  nsIID** iids = NS_STATIC_CAST(nsIID**, nsMemory::Alloc(2 * sizeof(nsIID*)));
+  nsIID** iids = static_cast<nsIID**>(nsMemory::Alloc(2 * sizeof(nsIID*)));
   if (!iids) {
     return NS_ERROR_OUT_OF_MEMORY;
   }
 
-  iids[0] = NS_STATIC_CAST(nsIID *, nsMemory::Clone(mIID, sizeof(nsIID)));
+  iids[0] = static_cast<nsIID *>(nsMemory::Clone(mIID, sizeof(nsIID)));
   if (!iids[0]) {
     nsMemory::Free(iids);
     return NS_ERROR_OUT_OF_MEMORY;
   }
 
   const nsIID& wsiid = NS_GET_IID(nsIWebServicePropertyBagWrapper);
-  iids[1] = NS_STATIC_CAST(nsIID *, nsMemory::Clone(&wsiid, sizeof(nsIID)));
+  iids[1] = static_cast<nsIID *>(nsMemory::Clone(&wsiid, sizeof(nsIID)));
   if (!iids[1]) {
     nsMemory::Free(iids[0]);
     nsMemory::Free(iids);

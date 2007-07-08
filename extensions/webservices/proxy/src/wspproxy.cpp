@@ -140,7 +140,7 @@ NS_IMETHODIMP
 WSPProxy::QueryInterface(REFNSIID aIID, void** aInstancePtr)
 {
   if (aIID.Equals(NS_GET_IID(nsISupports))) {
-    *aInstancePtr = NS_STATIC_CAST(nsIXPTCProxy*, this);
+    *aInstancePtr = static_cast<nsIXPTCProxy*>(this);
     NS_ADDREF_THIS();
     return NS_OK;
   }
@@ -150,12 +150,12 @@ WSPProxy::QueryInterface(REFNSIID aIID, void** aInstancePtr)
     return NS_OK;
   }
   else if (aIID.Equals(NS_GET_IID(nsIWebServiceProxy))) {
-    *aInstancePtr = NS_STATIC_CAST(nsIWebServiceProxy*, this);
+    *aInstancePtr = static_cast<nsIWebServiceProxy*>(this);
     NS_ADDREF_THIS();
     return NS_OK;
   }
   else if (aIID.Equals(NS_GET_IID(nsIClassInfo))) {
-    *aInstancePtr = NS_STATIC_CAST(nsIClassInfo*, this);
+    *aInstancePtr = static_cast<nsIClassInfo*>(this);
     NS_ADDREF_THIS();
     return NS_OK;
   }
@@ -201,7 +201,7 @@ WSPProxy::CallMethod(PRUint16 methodIndex,
   // The first method in the interface for async callers is the
   // one to set the async listener
   if (mIsAsync && (methodIndex == 3)) {
-    nsISupports* listener = NS_STATIC_CAST(nsISupports*, params[0].val.p);
+    nsISupports* listener = static_cast<nsISupports*>(params[0].val.p);
     mAsyncListener = listener;
     return NS_OK;
   }
@@ -338,8 +338,8 @@ WSPProxy::CallMethod(PRUint16 methodIndex,
   // Allocate parameter and header blocks
   nsISOAPParameter** bodyBlocks = nsnull;
   if (bodyCount) {
-    bodyBlocks = NS_STATIC_CAST(nsISOAPParameter**,
-                      nsMemory::Alloc(bodyCount * sizeof(nsISOAPParameter*)));
+    bodyBlocks = static_cast<nsISOAPParameter**>
+                            (nsMemory::Alloc(bodyCount * sizeof(nsISOAPParameter*)));
     if (!bodyBlocks) {
       return NS_ERROR_OUT_OF_MEMORY;
     }
@@ -355,8 +355,8 @@ WSPProxy::CallMethod(PRUint16 methodIndex,
 
   nsISOAPHeaderBlock** headerBlocks = nsnull;
   if (headerCount) {
-    headerBlocks = NS_STATIC_CAST(nsISOAPHeaderBlock**,
-                   nsMemory::Alloc(headerCount * sizeof(nsISOAPHeaderBlock*)));
+    headerBlocks = static_cast<nsISOAPHeaderBlock**>
+                              (nsMemory::Alloc(headerCount * sizeof(nsISOAPHeaderBlock*)));
     if (!headerBlocks) {
       if (bodyBlocks) {
         NS_FREE_XPCOM_ISUPPORTS_POINTER_ARRAY(bodyCount, bodyBlocks);
@@ -525,7 +525,7 @@ WSPProxy::CallMethod(PRUint16 methodIndex,
 #endif
 
     nsIWebServiceCallContext** retval =
-      NS_STATIC_CAST(nsIWebServiceCallContext**, params[pcount-1].val.p);
+      static_cast<nsIWebServiceCallContext**>(params[pcount-1].val.p);
     if (!retval) {
       rv = NS_ERROR_FAILURE;
       goto call_method_end;
@@ -686,10 +686,10 @@ WSPProxy::XPTCMiniVariantToVariant(uint8 aTypeTag, nsXPTCMiniVariant aResult,
       var->SetAsWChar(aResult.val.wc);
       break;
     case nsXPTType::T_CHAR_STR:
-      var->SetAsString(NS_STATIC_CAST(char*, aResult.val.p));
+      var->SetAsString(static_cast<char*>(aResult.val.p));
       break;
     case nsXPTType::T_WCHAR_STR:
-      var->SetAsWString(NS_STATIC_CAST(PRUnichar*, aResult.val.p));
+      var->SetAsWString(static_cast<PRUnichar*>(aResult.val.p));
       break;
     case nsXPTType::T_DOMSTRING:
     case nsXPTType::T_ASTRING:
@@ -1258,18 +1258,18 @@ WSPProxy::GetInterfaces(PRUint32 *count, nsIID * **array)
   }
 
   *count = 2;
-  nsIID** iids = NS_STATIC_CAST(nsIID**, nsMemory::Alloc(2 * sizeof(nsIID*)));
+  nsIID** iids = static_cast<nsIID**>(nsMemory::Alloc(2 * sizeof(nsIID*)));
   if (!iids) {
     return NS_ERROR_OUT_OF_MEMORY;
   }
 
-  iids[0] = NS_STATIC_CAST(nsIID *, nsMemory::Clone(mIID, sizeof(nsIID)));
+  iids[0] = static_cast<nsIID *>(nsMemory::Clone(mIID, sizeof(nsIID)));
   if (NS_UNLIKELY(!iids[0])) {
     NS_FREE_XPCOM_ALLOCATED_POINTER_ARRAY(0, iids);
     return NS_ERROR_OUT_OF_MEMORY;
   }
   const nsIID& wsiid = NS_GET_IID(nsIWebServiceProxy);
-  iids[1] = NS_STATIC_CAST(nsIID *, nsMemory::Clone(&wsiid, sizeof(nsIID)));
+  iids[1] = static_cast<nsIID *>(nsMemory::Clone(&wsiid, sizeof(nsIID)));
   if (NS_UNLIKELY(!iids[1])) {
     NS_FREE_XPCOM_ALLOCATED_POINTER_ARRAY(1, iids);
     return NS_ERROR_OUT_OF_MEMORY;

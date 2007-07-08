@@ -559,7 +559,7 @@ nsWalletlibService::GetPrompt(nsIDOMWindow* aParent,
     return NS_ERROR_OUT_OF_MEMORY;
 
   NS_ADDREF(wrapper);
-  *_retval = NS_STATIC_CAST(nsIAuthPrompt2*, wrapper);
+  *_retval = static_cast<nsIAuthPrompt2*>(wrapper);
   return NS_OK;
 }
 

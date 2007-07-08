@@ -137,7 +137,7 @@ ReleaseObject(void    *aObject,
               void    *aPropertyValue,
               void    *aData)
 {
-  NS_STATIC_CAST(nsISupports *, aPropertyValue)->Release();
+  static_cast<nsISupports *>(aPropertyValue)->Release();
 }
 
 NS_IMETHODIMP
@@ -507,7 +507,7 @@ nsXFormsUploadElement::EncodeFileContents(nsIFile *aFile, PRUint16 aType,
       // create buffer for hex encoded data
       PRUint32 length = bytesRead * 2 + 1;
       PRUnichar *fileDataHex =
-        NS_STATIC_CAST(PRUnichar*, nsMemory::Alloc(length * sizeof(PRUnichar)));
+        static_cast<PRUnichar*>(nsMemory::Alloc(length * sizeof(PRUnichar)));
       if (!fileDataHex) {
         ReportEncodingMemoryError(mElement, aFile, length * sizeof(PRUnichar));
         rv = NS_ERROR_OUT_OF_MEMORY;

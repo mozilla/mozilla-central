@@ -243,8 +243,8 @@ nsXFormsElementFactory::GetFeature(nsISupports *aObject,
     NS_ENSURE_STATE(doc);
 
     nsISupports* owner =
-      NS_STATIC_CAST(nsISupports*,
-                     doc->GetProperty(nsXFormsAtoms::instanceDocumentOwner));
+      static_cast<nsISupports*>
+                 (doc->GetProperty(nsXFormsAtoms::instanceDocumentOwner));
     NS_IF_ADDREF(*aReturn = owner);
     return NS_OK;
   }

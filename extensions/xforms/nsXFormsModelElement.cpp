@@ -136,7 +136,7 @@ DeleteVoidArray(void    *aObject,
                 void    *aPropertyValue,
                 void    *aData)
 {
-  delete NS_STATIC_CAST(nsVoidArray *, aPropertyValue);
+  delete static_cast<nsVoidArray *>(aPropertyValue);
 }
 
 static nsresult
@@ -145,8 +145,8 @@ AddToModelList(nsIDOMDocument *domDoc, nsXFormsModelElement *model)
   nsCOMPtr<nsIDocument> doc = do_QueryInterface(domDoc);
 
   nsVoidArray *models =
-      NS_STATIC_CAST(nsVoidArray *,
-                     doc->GetProperty(nsXFormsAtoms::modelListProperty));
+      static_cast<nsVoidArray *>
+                 (doc->GetProperty(nsXFormsAtoms::modelListProperty));
   if (!models) {
     models = new nsVoidArray(16);
     if (!models)
@@ -163,8 +163,8 @@ RemoveFromModelList(nsIDOMDocument *domDoc, nsXFormsModelElement *model)
   nsCOMPtr<nsIDocument> doc = do_QueryInterface(domDoc);
 
   nsVoidArray *models =
-      NS_STATIC_CAST(nsVoidArray *,
-                     doc->GetProperty(nsXFormsAtoms::modelListProperty));
+      static_cast<nsVoidArray *>
+                 (doc->GetProperty(nsXFormsAtoms::modelListProperty));
   if (models)
     models->RemoveElement(model);
 }
@@ -174,15 +174,15 @@ GetModelList(nsIDOMDocument *domDoc)
 {
   nsCOMPtr<nsIDocument> doc = do_QueryInterface(domDoc);
 
-  return NS_STATIC_CAST(nsVoidArray *,
-                        doc->GetProperty(nsXFormsAtoms::modelListProperty));
+  return static_cast<nsVoidArray *>
+                    (doc->GetProperty(nsXFormsAtoms::modelListProperty));
 }
 
 static void
 SupportsDtorFunc(void *aObject, nsIAtom *aPropertyName,
                  void *aPropertyValue, void *aData)
 {
-  nsISupports *propertyValue = NS_STATIC_CAST(nsISupports*, aPropertyValue);
+  nsISupports *propertyValue = static_cast<nsISupports*>(aPropertyValue);
   NS_IF_RELEASE(propertyValue);
 }
 
@@ -544,7 +544,7 @@ nsPostRefresh::~nsPostRefresh()
       // see nsVoidArray::RemoveElementsAt().
       PRInt32 last = sPostRefreshList->Count() - 1;
       nsIXFormsControl* control =
-        NS_STATIC_CAST(nsIXFormsControl*, sPostRefreshList->ElementAt(last));
+        static_cast<nsIXFormsControl*>(sPostRefreshList->ElementAt(last));
       sPostRefreshList->RemoveElementAt(last);
       if (control)
         control->Refresh();
@@ -564,7 +564,7 @@ nsPostRefresh::~nsPostRefresh()
   while (sContainerPostRefreshList && sContainerPostRefreshList->Count()) {
     PRInt32 last = sContainerPostRefreshList->Count() - 1;
     nsIXFormsControl* container =
-      NS_STATIC_CAST(nsIXFormsControl*, sContainerPostRefreshList->ElementAt(last));
+      static_cast<nsIXFormsControl*>(sContainerPostRefreshList->ElementAt(last));
     sContainerPostRefreshList->RemoveElementAt(last);
     if (container) {
       container->Refresh();
@@ -1801,7 +1801,7 @@ nsXFormsModelElement::GetTypeFromNode(nsIDOMNode *aInstanceData,
       nsISchemaType *type;
       nsCOMPtr<nsIAtom> myAtom = do_GetAtom("xsdtype");
 
-      type = NS_STATIC_CAST(nsISchemaType *, content->GetProperty(myAtom));
+      type = static_cast<nsISchemaType *>(content->GetProperty(myAtom));
       if (type) {
         type->GetName(aType);
         type->GetTargetNamespace(aNSUri);
@@ -1895,7 +1895,7 @@ nsXFormsModelElement::RequestUpdateEvent(nsXFormsEvent aEvent)
   PRInt32 loopCount = 0;
   while (mUpdateEventQueue.Count()) {
     nsXFormsEvent event =
-      NS_STATIC_CAST(nsXFormsEvent, NS_PTR_TO_UINT32(mUpdateEventQueue[0]));
+      static_cast<nsXFormsEvent>(NS_PTR_TO_UINT32(mUpdateEventQueue[0]));
     NS_ENSURE_TRUE(mUpdateEventQueue.RemoveElementAt(0), NS_ERROR_FAILURE);
 
     rv = nsXFormsUtils::DispatchEvent(mElement, event);
@@ -2264,7 +2264,7 @@ nsXFormsModelElement::MaybeNotifyCompletion()
   // DOMContentLoaded.
   for (i = 0; i < models->Count(); ++i) {
     nsXFormsModelElement *model =
-        NS_STATIC_CAST(nsXFormsModelElement *, models->ElementAt(i));
+        static_cast<nsXFormsModelElement *>(models->ElementAt(i));
     if (!model->mDocumentLoaded || !model->IsComplete())
       return;
 
@@ -2295,7 +2295,7 @@ nsXFormsModelElement::MaybeNotifyCompletion()
   // Okay, dispatch xforms-model-construct-done
   for (i = 0; i < models->Count(); ++i) {
     nsXFormsModelElement *model =
-        NS_STATIC_CAST(nsXFormsModelElement *, models->ElementAt(i));
+        static_cast<nsXFormsModelElement *>(models->ElementAt(i));
     nsXFormsUtils::DispatchEvent(model->mElement, eEvent_ModelConstructDone);
   }
 
@@ -2315,7 +2315,7 @@ nsXFormsModelElement::MaybeNotifyCompletion()
   // Backup instances and fire xforms-ready
   for (i = 0; i < models->Count(); ++i) {
     nsXFormsModelElement *model =
-        NS_STATIC_CAST(nsXFormsModelElement *, models->ElementAt(i));
+        static_cast<nsXFormsModelElement *>(models->ElementAt(i));
     model->BackupOrRestoreInstanceData(PR_FALSE);
     model->mReadyHandled = PR_TRUE;
     nsXFormsUtils::DispatchEvent(model->mElement, eEvent_Ready);
@@ -2397,7 +2397,7 @@ nsXFormsModelElement::ProcessBind(nsIDOMXPathEvaluator *aEvaluator,
     NS_ENSURE_SUCCESS(rv, rv);
 
     // addref, circumventing nsDerivedSave
-    NS_ADDREF(NS_STATIC_CAST(nsIDOMXPathResult*, result));
+    NS_ADDREF(static_cast<nsIDOMXPathResult*>(result));
   }
 
   PRUint32 snapLen;
@@ -2632,8 +2632,8 @@ nsXFormsModelElement::MessageLoadFinished()
   const nsVoidArray *models = GetModelList(domDoc);
   nsCOMPtr<nsIDocument>doc = do_QueryInterface(domDoc);
   nsCOMArray<nsIXFormsControl> *deferredBindList =
-    NS_STATIC_CAST(nsCOMArray<nsIXFormsControl> *,
-                   doc->GetProperty(nsXFormsAtoms::deferredBindListProperty));
+    static_cast<nsCOMArray<nsIXFormsControl> *>
+               (doc->GetProperty(nsXFormsAtoms::deferredBindListProperty));
 
   // if we've already gotten the xforms-model-construct-done event and not
   // yet the xforms-ready, we've hit a window where we may still be
@@ -2649,7 +2649,7 @@ nsXFormsModelElement::MessageLoadFinished()
   // ready to send out xforms-ready to all of the models.
   for (int i = 0; i < models->Count(); ++i) {
     nsXFormsModelElement *model =
-        NS_STATIC_CAST(nsXFormsModelElement *, models->ElementAt(i));
+        static_cast<nsXFormsModelElement *>(models->ElementAt(i));
     model->mReadyHandled = PR_TRUE;
     nsXFormsUtils::DispatchEvent(model->mElement, eEvent_Ready);
   }
@@ -3230,7 +3230,7 @@ DeleteBindList(void    *aObject,
                void    *aPropertyValue,
                void    *aData)
 {
-  delete NS_STATIC_CAST(nsCOMArray<nsIXFormsControl> *, aPropertyValue);
+  delete static_cast<nsCOMArray<nsIXFormsControl> *>(aPropertyValue);
 }
 
 /* static */ nsresult
@@ -3265,8 +3265,8 @@ nsXFormsModelElement::DeferElementBind(nsIXFormsControl *aControl)
   }
 
   nsCOMArray<nsIXFormsControl> *deferredBindList =
-    NS_STATIC_CAST(nsCOMArray<nsIXFormsControl> *,
-                   doc->GetProperty(nsXFormsAtoms::deferredBindListProperty));
+    static_cast<nsCOMArray<nsIXFormsControl> *>
+               (doc->GetProperty(nsXFormsAtoms::deferredBindListProperty));
 
   if (!deferredBindList) {
     deferredBindList = new nsCOMArray<nsIXFormsControl>(16);
@@ -3304,8 +3304,8 @@ nsXFormsModelElement::ProcessDeferredBinds(nsIDOMDocument *aDoc)
   doc->SetProperty(nsXFormsAtoms::readyForBindProperty, doc);
 
   nsCOMArray<nsIXFormsControl> *deferredBindList =
-      NS_STATIC_CAST(nsCOMArray<nsIXFormsControl> *,
-                     doc->GetProperty(nsXFormsAtoms::deferredBindListProperty));
+      static_cast<nsCOMArray<nsIXFormsControl> *>
+                 (doc->GetProperty(nsXFormsAtoms::deferredBindListProperty));
 
   if (deferredBindList) {
     for (PRInt32 i = 0; i < deferredBindList->Count(); ++i) {

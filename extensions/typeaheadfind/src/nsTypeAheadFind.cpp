@@ -2279,7 +2279,7 @@ nsTypeAheadFind::RemoveWindowListeners(nsIDOMWindow *aDOMWin)
   nsCOMPtr<nsIDOM3EventTarget> target(do_QueryInterface(piTarget));
 
   target->RemoveGroupedEventListener(NS_LITERAL_STRING("keypress"),
-                                     NS_STATIC_CAST(nsIDOMKeyListener*, this),
+                                     static_cast<nsIDOMKeyListener*>(this),
                                      PR_FALSE, systemGroup);
 
   if (aDOMWin == mFocusedWindow) {
@@ -2288,7 +2288,7 @@ nsTypeAheadFind::RemoveWindowListeners(nsIDOMWindow *aDOMWin)
 
   // Remove menu listeners
   nsIDOMEventListener *genericEventListener = 
-    NS_STATIC_CAST(nsIDOMEventListener*, NS_STATIC_CAST(nsIDOMKeyListener*, this));
+    static_cast<nsIDOMEventListener*>(static_cast<nsIDOMKeyListener*>(this));
 
   chromeEventHandler->RemoveEventListener(NS_LITERAL_STRING("popupshown"), 
                                           genericEventListener, 
@@ -2311,9 +2311,9 @@ nsTypeAheadFind::RemoveWindowListeners(nsIDOMWindow *aDOMWin)
                                           PR_TRUE);
 
   // Remove DOM Text listener for IME text events
-  piTarget->RemoveEventListenerByIID(NS_STATIC_CAST(nsIDOMTextListener*, this), 
+  piTarget->RemoveEventListenerByIID(static_cast<nsIDOMTextListener*>(this), 
     NS_GET_IID(nsIDOMTextListener));
-  piTarget->RemoveEventListenerByIID(NS_STATIC_CAST(nsIDOMCompositionListener*, this), 
+  piTarget->RemoveEventListenerByIID(static_cast<nsIDOMCompositionListener*>(this), 
     NS_GET_IID(nsIDOMCompositionListener));
 }
 
@@ -2334,12 +2334,12 @@ nsTypeAheadFind::AttachWindowListeners(nsIDOMWindow *aDOMWin)
   nsCOMPtr<nsIDOM3EventTarget> target(do_QueryInterface(piTarget));
 
   target->AddGroupedEventListener(NS_LITERAL_STRING("keypress"),
-                                  NS_STATIC_CAST(nsIDOMKeyListener*, this),
+                                  static_cast<nsIDOMKeyListener*>(this),
                                   PR_FALSE, systemGroup);
 
   // Attach menu listeners, this will help us ignore keystrokes meant for menus
   nsIDOMEventListener *genericEventListener = 
-    NS_STATIC_CAST(nsIDOMEventListener*, NS_STATIC_CAST(nsIDOMKeyListener*, this));
+    static_cast<nsIDOMEventListener*>(static_cast<nsIDOMKeyListener*>(this));
 
   chromeEventHandler->AddEventListener(NS_LITERAL_STRING("popupshown"), 
                                        genericEventListener, 
@@ -2362,9 +2362,9 @@ nsTypeAheadFind::AttachWindowListeners(nsIDOMWindow *aDOMWin)
                                        PR_TRUE);
 
   // Add DOM Text listener for IME text events
-  piTarget->AddEventListenerByIID(NS_STATIC_CAST(nsIDOMTextListener*, this),
+  piTarget->AddEventListenerByIID(static_cast<nsIDOMTextListener*>(this),
     NS_GET_IID(nsIDOMTextListener));
-  piTarget->AddEventListenerByIID(NS_STATIC_CAST(nsIDOMCompositionListener*, this),
+  piTarget->AddEventListenerByIID(static_cast<nsIDOMCompositionListener*>(this),
     NS_GET_IID(nsIDOMCompositionListener));
 }
 
@@ -2652,7 +2652,7 @@ nsTypeAheadFind::IsRangeVisible(nsIPresShell *aPresShell,
     frameTraversal->Next();
     nsISupports* currentItem;
     frameTraversal->CurrentItem(&currentItem);
-    frame = NS_STATIC_CAST(nsIFrame*, currentItem);
+    frame = static_cast<nsIFrame*>(currentItem);
     if (!frame) {
       return PR_FALSE;
     }

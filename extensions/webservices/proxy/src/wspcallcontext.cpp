@@ -246,7 +246,7 @@ WSPCallContext::CallCompletionListener()
   // If we have an exception, report it now
   if (mException) {
     nsCOMPtr<nsISupports> canonical_this = 
-      do_QueryInterface(NS_STATIC_CAST(nsIWebServiceCallContext*, this));
+      do_QueryInterface(static_cast<nsIWebServiceCallContext*>(this));
     dispatchParams[0].val.p = mException.get();
     dispatchParams[0].SetValIsInterface();
     dispatchParams[0].type.flags = XPT_TDP_POINTER | TD_INTERFACE_TYPE;
@@ -390,7 +390,7 @@ WSPCallContext::CallCompletionListener()
         // Give the variant value a nsAString object to hold the data
         // in.
         vars->val.p =
-          NS_STATIC_CAST(nsAString *, &string_array[string_array_index++]);
+          static_cast<nsAString *>(&string_array[string_array_index++]);
       }
 
       rv = WSPProxy::VariantToInParameter(listenerInterfaceInfo,
@@ -405,7 +405,7 @@ WSPCallContext::CallCompletionListener()
                  "WSDL/IInfo param count mismatch");
 
     dispatchParams[paramIndex].val.p =
-        NS_STATIC_CAST(nsIWebServiceCallContext*, this);
+        static_cast<nsIWebServiceCallContext*>(this);
     dispatchParams[paramIndex].SetValIsInterface();
     dispatchParams[paramIndex].type.flags = 
       XPT_TDP_POINTER | TD_INTERFACE_TYPE;

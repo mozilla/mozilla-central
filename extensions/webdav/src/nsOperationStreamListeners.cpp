@@ -182,8 +182,8 @@ OperationStreamListener::StreamReaderCallback(nsIInputStream *aInputStream,
                                               PRUint32 aCount,
                                               PRUint32 *aWriteCount)
 {
-    OperationStreamListener *osl = NS_STATIC_CAST(OperationStreamListener *,
-                                                  aClosure);
+    OperationStreamListener *osl = static_cast<OperationStreamListener *>
+                                              (aClosure);
     osl->mBody.Append(aRawSegment, aCount);
     *aWriteCount = aCount;
     return NS_OK;

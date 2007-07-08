@@ -244,8 +244,8 @@ nsXFormsMessageElement::WillChangeDocument(nsIDOMDocument *aNewDocument)
     nsCOMPtr<nsIDocument> doc(do_QueryInterface(mDocument));
     if (doc) {
       nsXFormsMessageElement *msg =
-        NS_STATIC_CAST(nsXFormsMessageElement*,
-                       doc->GetProperty(nsXFormsAtoms::messageProperty));
+        static_cast<nsXFormsMessageElement*>
+                   (doc->GetProperty(nsXFormsAtoms::messageProperty));
       if (msg == this)
         doc->UnsetProperty(nsXFormsAtoms::messageProperty);
     }
@@ -577,8 +577,8 @@ nsXFormsMessageElement::HandleEphemeralMessage(nsIDOMDocument* aDoc,
       return NS_OK;
 
     nsXFormsMessageElement *msg =
-    NS_STATIC_CAST(nsXFormsMessageElement*,
-                   doc->GetProperty(nsXFormsAtoms::messageProperty));
+    static_cast<nsXFormsMessageElement*>
+               (doc->GetProperty(nsXFormsAtoms::messageProperty));
     if (msg == this) {
       if (eventType.EqualsLiteral("xforms-moz-hint-off")) {
         if (mEphemeralTimer) {
@@ -796,7 +796,7 @@ void
 sEphemeralCallbackShow(nsITimer *aTimer, void *aListener)
 {
   nsXFormsMessageElement* self =
-    NS_STATIC_CAST(nsXFormsMessageElement*, aListener);
+    static_cast<nsXFormsMessageElement*>(aListener);
   if (self)
     self->ShowEphemeral();
 }
@@ -805,7 +805,7 @@ void
 sEphemeralCallbackHide(nsITimer *aTimer, void *aListener)
 {
   nsXFormsMessageElement* self =
-    NS_STATIC_CAST(nsXFormsMessageElement*, aListener);
+    static_cast<nsXFormsMessageElement*>(aListener);
   if (self)
     self->HideEphemeral();
 }
@@ -814,7 +814,7 @@ void
 sEphemeralCallbackResetPosition(nsITimer *aTimer, void *aListener)
 {
   nsXFormsMessageElement* self =
-    NS_STATIC_CAST(nsXFormsMessageElement*, aListener);
+    static_cast<nsXFormsMessageElement*>(aListener);
   if (self)
     self->ResetEphemeralPosition();
 }
@@ -876,8 +876,8 @@ nsXFormsMessageElement::HideEphemeral()
   if (!doc)
     return;
   nsXFormsMessageElement *msg =
-    NS_STATIC_CAST(nsXFormsMessageElement*,
-                   doc->GetProperty(nsXFormsAtoms::messageProperty));
+    static_cast<nsXFormsMessageElement*>
+               (doc->GetProperty(nsXFormsAtoms::messageProperty));
   if (msg && msg != this) {
     msg->HideEphemeral();
     return;
@@ -1212,7 +1212,7 @@ nsXFormsMessageElement::AddRemoveExternalResource(PRBool aAdd)
     }
   }
   doc->SetProperty(nsXFormsAtoms::externalMessagesProperty,
-                   NS_REINTERPRET_CAST(void *, loadingMessages), nsnull);
+                   reinterpret_cast<void *>(loadingMessages), nsnull);
 
   if (!loadingMessages) {
     // no outstanding loads left, let the model in the document know in case

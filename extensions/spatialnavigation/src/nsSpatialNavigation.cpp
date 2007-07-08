@@ -327,7 +327,7 @@ nsSpatialNavigation::Init(nsIDOMWindow *aWindow)
     return rv;  
   
   target->AddGroupedEventListener(NS_LITERAL_STRING("keypress"),
-                                  NS_STATIC_CAST(nsIDOMKeyListener*, this),
+                                  static_cast<nsIDOMKeyListener*>(this),
                                   PR_FALSE, 
                                   systemGroup);
   
@@ -344,7 +344,7 @@ nsSpatialNavigation::Shutdown()
     return rv;
   
   target->RemoveGroupedEventListener(NS_LITERAL_STRING("keypress"),
-                                     NS_STATIC_CAST(nsIDOMKeyListener*, this),
+                                     static_cast<nsIDOMKeyListener*>(this),
                                      PR_FALSE, 
                                      systemGroup);
   mTopWindow = nsnull;
@@ -420,7 +420,7 @@ void DoTraversal(int aDirection,
     
     nsISupports* currentItem;
     aFrameTraversal->CurrentItem(&currentItem);
-    frame = NS_STATIC_CAST(nsIFrame*, currentItem);
+    frame = static_cast<nsIFrame*>(currentItem);
 
     if (!frame)
       break;

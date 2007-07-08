@@ -141,8 +141,8 @@ nsSOAPPropertyBag::GetProperty(nsIXPConnectWrappedNative * wrapper,
   nsresult rv = NS_OK;
   if (JSVAL_IS_STRING(id)) {
     JSString *str = JSVAL_TO_STRING(id);
-    const PRUnichar *name = NS_REINTERPRET_CAST(const PRUnichar *,
-                                                JS_GetStringChars(str));
+    const PRUnichar *name = reinterpret_cast<const PRUnichar *>
+                                            (JS_GetStringChars(str));
     nsCOMPtr<nsIVariant> value;
     mProperties.Get(nsDependentString(name), getter_AddRefs(value));
     if (!value)
@@ -160,7 +160,7 @@ PLDHashOperator PR_CALLBACK
 PropertyBagEnumFunc(const nsAString& aKey, nsIVariant *aData, void *aClosure)
 {
   nsCOMArray<nsISupports>* properties =
-      NS_STATIC_CAST(nsCOMArray<nsISupports>*, aClosure);
+      static_cast<nsCOMArray<nsISupports>*>(aClosure);
   
   nsSOAPProperty* prop = new nsSOAPProperty(aKey, aData);
   NS_ENSURE_TRUE(prop, PL_DHASH_STOP);

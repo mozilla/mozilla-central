@@ -286,7 +286,7 @@ nsXFormsMDGEngine::PrintDot(const char* aFile)
   }
   fprintf(FD, "digraph {\n");
   for (PRInt32 i = 0; i < mGraph.Count(); ++i) {
-    nsXFormsMDGNode* g = NS_STATIC_CAST(nsXFormsMDGNode*, mGraph[i]);
+    nsXFormsMDGNode* g = static_cast<nsXFormsMDGNode*>(mGraph[i]);
     if (g) {
       nsAutoString domNodeName;
       g->mContextNode->GetNodeName(domNodeName);
@@ -297,8 +297,8 @@ nsXFormsMDGEngine::PrintDot(const char* aFile)
       }
 
       for (PRInt32 j = 0; j < g->mSuc.Count(); ++j) {
-        nsXFormsMDGNode* sucnode = NS_STATIC_CAST(nsXFormsMDGNode*,
-                                                  g->mSuc[j]);
+        nsXFormsMDGNode* sucnode = static_cast<nsXFormsMDGNode*>
+                                              (g->mSuc[j]);
         if (sucnode) {
           nsAutoString sucName;
           sucnode->mContextNode->GetNodeName(sucName);
@@ -346,7 +346,7 @@ nsXFormsMDGEngine::Recalculate(nsCOMArray<nsIDOMNode> *aChangedNodes)
   // Go through all dirty nodes in the graph
   nsXFormsMDGNode* g;
   for (PRInt32 i = 0; i < mGraph.Count(); ++i) {
-    g = NS_STATIC_CAST(nsXFormsMDGNode*, mGraph[i]);
+    g = static_cast<nsXFormsMDGNode*>(mGraph[i]);
 
     if (!g) {
       NS_WARNING("nsXFormsMDGEngine::Calculcate(): Empty node in graph!!!");
@@ -477,7 +477,7 @@ nsXFormsMDGEngine::Recalculate(nsCOMArray<nsIDOMNode> *aChangedNodes)
     // Mark successors dirty
     nsXFormsMDGNode* sucnode;
     for (PRInt32 j = 0; j < g->mSuc.Count(); ++j) {
-      sucnode = NS_STATIC_CAST(nsXFormsMDGNode*, g->mSuc[j]);
+      sucnode = static_cast<nsXFormsMDGNode*>(g->mSuc[j]);
       if (!sucnode) {
         NS_ERROR("nsXFormsMDGEngine::Calculate(): Node has NULL successor!");
         return NS_ERROR_FAILURE;
@@ -552,10 +552,10 @@ nsXFormsMDGEngine::Rebuild()
   
   
   nsXFormsMDGNode* node;
-  while ((node = NS_STATIC_CAST(nsXFormsMDGNode*, sortedNodes.Pop()))) {
+  while ((node = static_cast<nsXFormsMDGNode*>(sortedNodes.Pop()))) {
     for (PRInt32 i = 0; i < node->mSuc.Count(); ++i) {
-      nsXFormsMDGNode* sucNode = NS_STATIC_CAST(nsXFormsMDGNode*,
-                                                node->mSuc[i]);
+      nsXFormsMDGNode* sucNode = static_cast<nsXFormsMDGNode*>
+                                            (node->mSuc[i]);
       NS_ASSERTION(sucNode, "XForms: NULL successor node");
 
       sucNode->mCount--;
@@ -1023,7 +1023,7 @@ nsXFormsMDGEngine::AddStartNodes(nsISupports     *aKey,
          aDeque);
 #endif
 
-  nsDeque* deque = NS_STATIC_CAST(nsDeque*, aDeque);
+  nsDeque* deque = static_cast<nsDeque*>(aDeque);
   if (!deque) {
     NS_ERROR("nsXFormsMDGEngine::AddStartNodes called with NULL aDeque");
     return PL_DHASH_STOP;
@@ -1046,7 +1046,7 @@ nsXFormsMDGEngine::AndFlag(nsISupports                  *aKey,
                            nsAutoPtr<nsXFormsNodeState> &aState,
                            void                         *aMask)
 {
-  PRUint16* andMask = NS_STATIC_CAST(PRUint16*, aMask);
+  PRUint16* andMask = static_cast<PRUint16*>(aMask);
   if (!andMask) {
     return PL_DHASH_STOP;
   }
@@ -1226,7 +1226,7 @@ nsXFormsMDGEngine::Invalidate()
 {
   nsXFormsMDGNode* g;
   for (PRInt32 i = 0; i < mGraph.Count(); ++i) {
-    g = NS_STATIC_CAST(nsXFormsMDGNode*, mGraph[i]);
+    g = static_cast<nsXFormsMDGNode*>(mGraph[i]);
     NS_ENSURE_TRUE(g, NS_ERROR_FAILURE);
     g->MarkDirty();
   }

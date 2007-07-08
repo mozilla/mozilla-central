@@ -251,8 +251,8 @@ nsLSParser::FireOnLoad()
     nsRefPtr<nsLSParserLoadEvent> event = new nsLSParserLoadEvent(this);
 
     if (event) {
-      mLoadListeners.ObjectAt(i)->HandleEvent(NS_STATIC_CAST(nsLSEvent *,
-                                                             event));
+      mLoadListeners.ObjectAt(i)->HandleEvent(static_cast<nsLSEvent *>
+                                                         (event));
     }
   }
 }

@@ -428,7 +428,7 @@ nsSOAPEncoding::MapSchemaURI(const nsAString & aExternalURI,
 NS_IMETHODIMP nsSOAPEncoding::UnmapSchemaURI(const nsAString & aExternalURI, PRBool *_retval)
 {
   nsStringKey externalKey(aExternalURI);
-  nsCOMPtr<nsIVariant> internal = dont_AddRef(NS_STATIC_CAST(nsIVariant*,mMappedExternal.Get(&externalKey)));
+  nsCOMPtr<nsIVariant> internal = dont_AddRef(static_cast<nsIVariant*>(mMappedExternal.Get(&externalKey)));
   if (internal) {
     nsAutoString internalstr;
     nsresult rc = internal->GetAsAString(internalstr);
@@ -452,7 +452,7 @@ NS_IMETHODIMP nsSOAPEncoding::GetInternalSchemaURI(const nsAString & aExternalUR
 {
   if (mMappedExternal.Count()) {
     nsStringKey externalKey(aExternalURI);
-    nsCOMPtr<nsIVariant> internal = dont_AddRef(NS_STATIC_CAST(nsIVariant*,mMappedExternal.Get(&externalKey)));
+    nsCOMPtr<nsIVariant> internal = dont_AddRef(static_cast<nsIVariant*>(mMappedExternal.Get(&externalKey)));
     if (internal) {
       return internal->GetAsAString(_retval);
     }
@@ -469,7 +469,7 @@ NS_IMETHODIMP nsSOAPEncoding::GetExternalSchemaURI(const nsAString & aInternalUR
 {
   if (mMappedInternal.Count()) {
     nsStringKey internalKey(aInternalURI);
-    nsCOMPtr<nsIVariant> external = dont_AddRef(NS_STATIC_CAST(nsIVariant*,mMappedInternal.Get(&internalKey)));
+    nsCOMPtr<nsIVariant> external = dont_AddRef(static_cast<nsIVariant*>(mMappedInternal.Get(&internalKey)));
     if (external) {
       return external->GetAsAString(_retval);
     }

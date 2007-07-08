@@ -84,7 +84,7 @@ TranslateYNtoTF(unsigned char *aRegValue, DWORD aRegValueLength,
 
   if (aRegValueType == REG_SZ && aRegValue[0] != 0) {
     // strcmp is safe; it's bounded by its second parameter
-    prefIntValue = strcmp(NS_REINTERPRET_CAST(char *, aRegValue), "yes") == 0;
+    prefIntValue = strcmp(reinterpret_cast<char *>(aRegValue), "yes") == 0;
     prefs->SetBoolPref(aPrefKeyName, prefIntValue);
   }
 }
@@ -103,7 +103,7 @@ TranslateYNtoFT(unsigned char *aRegValue, DWORD aRegValueLength,
 
   if (aRegValueType == REG_SZ && aRegValue[0] != 0) {
     // strcmp is safe; it's bounded by its second parameter
-    prefIntValue = strcmp(NS_REINTERPRET_CAST(char *, aRegValue), "yes") != 0;
+    prefIntValue = strcmp(reinterpret_cast<char *>(aRegValue), "yes") != 0;
     prefs->SetBoolPref(aPrefKeyName, prefIntValue);
   }
 }
@@ -123,7 +123,7 @@ TranslateDRGBtoHRGB(unsigned char *aRegValue, DWORD aRegValueLength,
 
   if (aRegValueType == REG_SZ && aRegValue[0] != 0) {
     int red, green, blue;
-    ::sscanf(NS_REINTERPRET_CAST(char *, aRegValue), "%d,%d,%d",
+    ::sscanf(reinterpret_cast<char *>(aRegValue), "%d,%d,%d",
              &red, &green, &blue);
     ::sprintf(prefStringValue, "#%02X%02X%02X", red, green, blue);
     prefs->SetCharPref(aPrefKeyName, prefStringValue);
@@ -143,7 +143,7 @@ TranslateDWORDtoPRInt32(unsigned char *aRegValue, DWORD aRegValueLength,
     NS_WARNING("unexpected signed int data type");
 
   if (aRegValueType == REG_DWORD) {
-    prefIntValue = *(NS_REINTERPRET_CAST(DWORD *, aRegValue));
+    prefIntValue = *(reinterpret_cast<DWORD *>(aRegValue));
     prefs->SetIntPref(aPrefKeyName, prefIntValue);
   }
 }
@@ -159,7 +159,7 @@ TranslateString(unsigned char *aRegValue, DWORD aRegValueLength,
 
   if (aRegValueType == REG_SZ)
     prefs->SetCharPref(aPrefKeyName,
-                       NS_REINTERPRET_CAST(char *, aRegValue));
+                       reinterpret_cast<char *>(aRegValue));
 }
 
 // translate homepage
@@ -174,12 +174,12 @@ TranslateHomepage(unsigned char *aRegValue, DWORD aRegValueLength,
 
   if (aRegValueType == REG_SZ) {
     // strcmp is safe; it's bounded by its second parameter
-    if (strcmp(NS_REINTERPRET_CAST(char *, aRegValue), "about:blank") == 0)
+    if (strcmp(reinterpret_cast<char *>(aRegValue), "about:blank") == 0)
       prefs->SetIntPref("browser.startup.page", 0);
     else {
       prefs->SetIntPref("browser.startup.page", 1);
       prefs->SetCharPref(aPrefKeyName,
-                        NS_REINTERPRET_CAST(char *, aRegValue));
+                        reinterpret_cast<char *>(aRegValue));
     }
   }
 }
@@ -202,7 +202,7 @@ TranslateLanglist(unsigned char *aRegValue, DWORD aRegValueLength,
   // copy source format like "en-us,ar-kw;q=0.7,ar-om;q=0.3" into
   // destination format like "en-us, ar-kw, ar-om"
 
-  char   *source = NS_REINTERPRET_CAST(char *, aRegValue),
+  char   *source = reinterpret_cast<char *>(aRegValue),
          *dest = prefStringValue,
          *sourceEnd = source + aRegValueLength,
          *destEnd = dest + (MAX_PATH-2); // room for " \0"
@@ -245,18 +245,18 @@ TranslatePropFont(unsigned char *aRegValue, DWORD aRegValueLength,
   // serif or sans-serif font?
   lf.lfCharSet = DEFAULT_CHARSET;
   lf.lfPitchAndFamily = 0;
-  PL_strncpyz(lf.lfFaceName, NS_REINTERPRET_CAST(char *, aRegValue),
+  PL_strncpyz(lf.lfFaceName, reinterpret_cast<char *>(aRegValue),
               LF_FACESIZE);
   ::EnumFontFamiliesEx(dc, &lf, fontEnumProc, (LPARAM) &isSerif, 0);
   ::ReleaseDC(0, dc);
 
   if (isSerif) {
     prefs->SetCharPref("font.name.serif.x-western",
-                       NS_REINTERPRET_CAST(char *, aRegValue));
+                       reinterpret_cast<char *>(aRegValue));
     prefs->SetCharPref("font.default.x-western", "serif");
   } else {
     prefs->SetCharPref("font.name.sans-serif.x-western",
-                       NS_REINTERPRET_CAST(char *, aRegValue));
+                       reinterpret_cast<char *>(aRegValue));
     prefs->SetCharPref("font.default.x-western", "sans-serif");
   }
 }
@@ -709,13 +709,13 @@ nsTridentPreferencesWin::CopyStyleSheet() {
   
   regLength = sizeof(DWORD);
   if (::RegQueryValueEx(regKey, "Use My Stylesheet", 0, &regType,
-                        NS_REINTERPRET_CAST(unsigned char *, &regDWordValue),
+                        reinterpret_cast<unsigned char *>(&regDWordValue),
                         &regLength) == ERROR_SUCCESS &&
       regType == REG_DWORD && regDWordValue == 1) {
 
     regLength = MAX_PATH;
     if (::RegQueryValueEx(regKey, "User Stylesheet", 0, &regType,
-                          NS_REINTERPRET_CAST(unsigned char *, tridentFilename),
+                          reinterpret_cast<unsigned char *>(tridentFilename),
                           &regLength)
         == ERROR_SUCCESS) {
 

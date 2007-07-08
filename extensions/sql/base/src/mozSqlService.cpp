@@ -374,7 +374,7 @@ mozSqlService::GetConnection(nsIRDFResource* aAlias, mozISqlConnection **_retval
   nsCOMPtr<mozISqlConnection> conn;
 
   if (mConnectionCache) {
-    weakRef = getter_AddRefs(NS_STATIC_CAST(nsIWeakReference*, mConnectionCache->Get(&key)));
+    weakRef = getter_AddRefs(static_cast<nsIWeakReference*>(mConnectionCache->Get(&key)));
     if (weakRef) {
       conn = do_QueryReferent(weakRef);
       if (conn)

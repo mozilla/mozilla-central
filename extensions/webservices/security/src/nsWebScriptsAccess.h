@@ -78,7 +78,7 @@ public:
     PRUint32 count = mInfoArray.Count();
     while (count) {
       AccessInfo* info = 
-        NS_REINTERPRET_CAST(AccessInfo*, mInfoArray.ElementAt(--count));
+        reinterpret_cast<AccessInfo*>(mInfoArray.ElementAt(--count));
       delete info;
     }
   }

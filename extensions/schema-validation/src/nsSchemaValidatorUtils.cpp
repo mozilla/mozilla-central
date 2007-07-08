@@ -1061,7 +1061,7 @@ nsSchemaValidatorUtils::ParseSchemaDuration(const nsAString & aStrValue,
                 done = PR_TRUE;
               } else {
                 fractionSecond = modf(temp2, &intpart);
-                second = NS_STATIC_CAST(PRUint32, intpart);
+                second = static_cast<PRUint32>(intpart);
               }
             } else {
               if (!IsValidSchemaInteger(parseBuffer, &temp, PR_TRUE))

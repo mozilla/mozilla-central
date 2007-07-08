@@ -1354,7 +1354,7 @@ nsXFormsSubmissionElement::CreateAttachments(nsIModelElementPrivate *aModel,
           content->GetProperty(nsXFormsAtoms::uploadFileProperty);
       }
 
-      nsIFile *file = NS_STATIC_CAST(nsIFile *, uploadFileProperty);
+      nsIFile *file = static_cast<nsIFile *>(uploadFileProperty);
       // NOTE: this value may be null if a file hasn't been selected.
 
       if (uploadFileProperty) {
@@ -1426,7 +1426,7 @@ nsXFormsSubmissionElement::CreateAttachments(nsIModelElementPrivate *aModel,
             continue;
           }
 
-          nsIFile *file = NS_STATIC_CAST(nsIFile *, uploadFileProperty);
+          nsIFile *file = static_cast<nsIFile *>(uploadFileProperty);
           nsCString cid;
           cid.AssignLiteral("cid:");
           MakeMultipartContentID(cid);
@@ -1458,7 +1458,7 @@ ReleaseObject(void    *aObject,
               void    *aPropertyValue,
               void    *aData)
 {
-  NS_STATIC_CAST(nsISupports *, aPropertyValue)->Release();
+  static_cast<nsISupports *>(aPropertyValue)->Release();
 }
 
 nsresult
@@ -1620,7 +1620,7 @@ nsXFormsSubmissionElement::CopyChildren(nsIModelElementPrivate *aModel,
                     // Clone the local file so the same pointer isn't released
                     // twice
                     nsIFile *file =
-                      NS_STATIC_CAST(nsIFile *, uploadFileProperty);
+                      static_cast<nsIFile *>(uploadFileProperty);
                     nsIFile *fileCopy = nsnull;
                     nsresult rv = file->Clone(&fileCopy);
                     NS_ENSURE_SUCCESS(rv, rv);
@@ -1643,7 +1643,7 @@ nsXFormsSubmissionElement::CopyChildren(nsIModelElementPrivate *aModel,
             nsCOMPtr<nsIContent> destChildContent(do_QueryInterface(node));
             if (destChildContent) {
               // Clone the local file so the same pointer isn't released twice.
-              nsIFile *file = NS_STATIC_CAST(nsIFile *, uploadFileProperty);
+              nsIFile *file = static_cast<nsIFile *>(uploadFileProperty);
               nsIFile *fileCopy = nsnull;
               nsresult rv = file->Clone(&fileCopy);
               NS_ENSURE_SUCCESS(rv, rv);
@@ -2020,7 +2020,7 @@ nsXFormsSubmissionElement::AppendMultipartFormData(nsIDOMNode *data,
           attr->GetProperty(nsXFormsAtoms::uploadFileProperty);
       }
       
-      nsIFile *file = NS_STATIC_CAST(nsIFile *, uploadFileProperty);
+      nsIFile *file = static_cast<nsIFile *>(uploadFileProperty);
 
       nsAutoString leafName;
       if (file)

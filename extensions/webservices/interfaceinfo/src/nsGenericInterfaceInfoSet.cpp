@@ -682,7 +682,7 @@ nsGenericInterfaceInfo::HasAncestor(const nsIID * iid, PRBool *_retval)
     *_retval = PR_FALSE;
 
     nsCOMPtr<nsIInterfaceInfo> current =
-        NS_STATIC_CAST(nsIInterfaceInfo*, this);
+        static_cast<nsIInterfaceInfo*>(this);
     while(current)
     {
         PRBool same;

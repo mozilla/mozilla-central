@@ -414,7 +414,7 @@ si_SelectDialog(const PRUnichar* szMessage, nsIPrompt* dialog, PRUnichar** pList
     os->NotifyObservers(nsnull, "signonSelectUser", NS_LITERAL_STRING("suspend").get());
   }
 
-  rv = dialog->Select( title_string, szMessage, *pCount, NS_CONST_CAST(const PRUnichar**, pList), &selectedIndex, &rtnValue );
+  rv = dialog->Select( title_string, szMessage, *pCount, const_cast<const PRUnichar**>(pList), &selectedIndex, &rtnValue );
 
   gSelectUserDialogCount--;
   if (os) {
@@ -714,7 +714,7 @@ public:
   ~si_SignonUserStruct()
   {
     for (PRInt32 i = signonData_list.Count() - 1; i >= 0; i--) {
-      delete NS_STATIC_CAST(si_SignonDataStruct*, signonData_list.ElementAt(i));
+      delete static_cast<si_SignonDataStruct*>(signonData_list.ElementAt(i));
     }
     MOZ_COUNT_DTOR(si_SignonUserStruct);
   }
@@ -782,7 +782,7 @@ si_GetURL(const char * passwordRealm) {
       realmWithoutTrailingSlash.Truncate(realmWithoutTrailingSlash.Length()-1);
 
     for (PRInt32 i=0; i<urlCount; i++) {
-      url = NS_STATIC_CAST(si_SignonURLStruct*, si_signon_list->ElementAt(i));
+      url = static_cast<si_SignonURLStruct*>(si_signon_list->ElementAt(i));
       if(url->passwordRealm && !PL_strcmp(realmWithoutTrailingSlash.get(), url->passwordRealm)) {
         return url;
       }
@@ -962,18 +962,18 @@ si_RemoveUser(const char *passwordRealm, const nsString& userName, PRBool save, 
   if (first) {
 
     /* remove the first user */
-    user = NS_STATIC_CAST(si_SignonUserStruct *,
-                          url->signonUser_list.ElementAt(0));
+    user = static_cast<si_SignonUserStruct *>
+                      (url->signonUser_list.ElementAt(0));
 
   } else {
 
     /* find the specified user */
     PRInt32 userCount = url->signonUser_list.Count();
     for (PRInt32 i=0; i<userCount; i++) {
-      user = NS_STATIC_CAST(si_SignonUserStruct*, url->signonUser_list.ElementAt(i));
+      user = static_cast<si_SignonUserStruct*>(url->signonUser_list.ElementAt(i));
       PRInt32 dataCount = user->signonData_list.Count();
       for (PRInt32 ii=0; ii<dataCount; ii++) {
-        data = NS_STATIC_CAST(si_SignonDataStruct*, user->signonData_list.ElementAt(ii));
+        data = static_cast<si_SignonDataStruct*>(user->signonData_list.ElementAt(ii));
         if (si_CompareEncryptedToCleartext(data->value, userName)) {
           goto foundUser;
         }
@@ -1030,7 +1030,7 @@ SINGSIGN_RemoveReject(const char *host) {
   PRInt32 rejectCount = LIST_COUNT(si_reject_list);
   while (rejectCount>0) {
     rejectCount--;
-    reject = NS_STATIC_CAST(si_Reject*, si_reject_list->ElementAt(rejectCount));
+    reject = static_cast<si_Reject*>(si_reject_list->ElementAt(rejectCount));
     if (reject && !PL_strcmp(reject->passwordRealm, host)) {
       si_FreeReject(reject);
       si_signon_list_changed = PR_TRUE;
@@ -1077,10 +1077,10 @@ si_CheckForUser(const char *passwordRealm, const nsString& userName) {
   /* find the specified user */
   PRInt32 userCount = url->signonUser_list.Count();
   for (PRInt32 i=0; i<userCount; i++) {
-    user = NS_STATIC_CAST(si_SignonUserStruct*, url->signonUser_list.ElementAt(i));
+    user = static_cast<si_SignonUserStruct*>(url->signonUser_list.ElementAt(i));
     PRInt32 dataCount = user->signonData_list.Count();
     for (PRInt32 ii=0; ii<dataCount; ii++) {
-      data = NS_STATIC_CAST(si_SignonDataStruct*, user->signonData_list.ElementAt(ii));
+      data = static_cast<si_SignonDataStruct*>(user->signonData_list.ElementAt(ii));
       if (si_CompareEncryptedToCleartext(data->value, userName)) {
         si_unlock_signon_list();
         return PR_TRUE;
@@ -1100,7 +1100,7 @@ si_GetFirstNonPasswordData(si_SignonUserStruct* user) {
   PRInt32 dataCount = user->signonData_list.Count();
   for (PRInt32 j=0; j<dataCount; j++) {
     si_SignonDataStruct * data =
-      NS_STATIC_CAST(si_SignonDataStruct *, user->signonData_list.ElementAt(j));
+      static_cast<si_SignonDataStruct *>(user->signonData_list.ElementAt(j));
     if (!data->isPassword) {
       return data;
     }
@@ -1132,17 +1132,17 @@ si_GetUser(nsIPrompt* dialog, const char* passwordRealm, const char *legacyRealm
     if ((user_count = url->signonUser_list.Count()) == 1) {
 
       /* only one set of data exists for this URL so select it */
-      user = NS_STATIC_CAST(si_SignonUserStruct *,
-                            url->signonUser_list.ElementAt(0));
+      user = static_cast<si_SignonUserStruct *>
+                        (url->signonUser_list.ElementAt(0));
       url->chosen_user = user;
 
     } else if (pickFirstUser) {
       PRInt32 userCount = url->signonUser_list.Count();
       for (PRInt32 i=0; i<userCount; i++) {
-        user = NS_STATIC_CAST(si_SignonUserStruct*, url->signonUser_list.ElementAt(i));
+        user = static_cast<si_SignonUserStruct*>(url->signonUser_list.ElementAt(i));
         /* consider first data node to be the identifying item */
-        data = NS_STATIC_CAST(si_SignonDataStruct *,
-                              user->signonData_list.ElementAt(0));
+        data = static_cast<si_SignonDataStruct *>
+                          (user->signonData_list.ElementAt(0));
         if (data->name != userText) {
           /* name of current data item does not match name in data node */
           continue;
@@ -1171,10 +1171,10 @@ si_GetUser(nsIPrompt* dialog, const char* passwordRealm, const char *legacyRealm
       user_count = 0;
       PRInt32 userCount = url->signonUser_list.Count();
       for (PRInt32 i=0; i<userCount; i++) {
-        user = NS_STATIC_CAST(si_SignonUserStruct*, url->signonUser_list.ElementAt(i));
+        user = static_cast<si_SignonUserStruct*>(url->signonUser_list.ElementAt(i));
         /* consider first data node to be the identifying item */
-        data = NS_STATIC_CAST(si_SignonDataStruct *,
-                              user->signonData_list.ElementAt(0));
+        data = static_cast<si_SignonDataStruct *>
+                          (user->signonData_list.ElementAt(0));
         if (data->name != userText) {
           /* name of current data item does not match name in data node */
           continue;
@@ -1260,10 +1260,10 @@ si_GetSpecificUser(const char* passwordRealm, const nsString& userName, const ns
     /* step through set of user nodes for this URL looking for specified username */
     PRInt32 userCount2 = url->signonUser_list.Count();
     for (PRInt32 i2=0; i2<userCount2; i2++) {
-      user = NS_STATIC_CAST(si_SignonUserStruct*, url->signonUser_list.ElementAt(i2));
+      user = static_cast<si_SignonUserStruct*>(url->signonUser_list.ElementAt(i2));
       /* consider first data node to be the identifying item */
-      data = NS_STATIC_CAST(si_SignonDataStruct *,
-                            user->signonData_list.ElementAt(0));
+      data = static_cast<si_SignonDataStruct *>
+                        (user->signonData_list.ElementAt(0));
       if (data->name != userText) {
         /* desired username text does not match name in data node */
         continue;
@@ -1314,10 +1314,10 @@ si_GetURLAndUserForChangeForm(nsIPrompt* dialog, const nsString& password)
   user_count = 0;
   PRInt32 urlCount = LIST_COUNT(si_signon_list);
   for (PRInt32 i=0; i<urlCount; i++) {
-    url = NS_STATIC_CAST(si_SignonURLStruct*, si_signon_list->ElementAt(i));
+    url = static_cast<si_SignonURLStruct*>(si_signon_list->ElementAt(i));
     PRInt32 userCount = url->signonUser_list.Count();
     for (PRInt32 ii=0; ii<userCount; ii++) {
-      user = NS_STATIC_CAST(si_SignonUserStruct*, url->signonUser_list.ElementAt(ii));
+      user = static_cast<si_SignonUserStruct*>(url->signonUser_list.ElementAt(ii));
       user_count++;
     }
   }
@@ -1340,19 +1340,19 @@ si_GetURLAndUserForChangeForm(nsIPrompt* dialog, const nsString& password)
   user_count = 0;
   PRInt32 urlCount2 = LIST_COUNT(si_signon_list);
   for (PRInt32 i2=0; i2<urlCount2; i2++) {
-    url = NS_STATIC_CAST(si_SignonURLStruct*, si_signon_list->ElementAt(i2));
+    url = static_cast<si_SignonURLStruct*>(si_signon_list->ElementAt(i2));
     PRInt32 userCount = url->signonUser_list.Count();
     for (PRInt32 i3=0; i3<userCount; i3++) {
-      user = NS_STATIC_CAST(si_SignonUserStruct*, url->signonUser_list.ElementAt(i3));
+      user = static_cast<si_SignonUserStruct*>(url->signonUser_list.ElementAt(i3));
       /* find saved password and see if it matches password user just entered */
       PRInt32 dataCount = user->signonData_list.Count();
       for (PRInt32 i4=0; i4<dataCount; i4++) {
-        data = NS_STATIC_CAST(si_SignonDataStruct*, user->signonData_list.ElementAt(i4));
+        data = static_cast<si_SignonDataStruct*>(user->signonData_list.ElementAt(i4));
         if (data->isPassword && si_CompareEncryptedToCleartext(data->value, password)) {
           /* passwords match so add entry to list */
           /* consider first data node to be the identifying item */
-          data = NS_STATIC_CAST(si_SignonDataStruct *,
-                                user->signonData_list.ElementAt(0));
+          data = static_cast<si_SignonDataStruct *>
+                            (user->signonData_list.ElementAt(0));
 
           nsAutoString userName;
           if (NS_SUCCEEDED(Wallet_Decrypt (data->value, userName))) {
@@ -1418,7 +1418,7 @@ SI_RemoveAllSignonData() {
   if (si_reject_list) {
     si_Reject * reject;
     while (LIST_COUNT(si_reject_list)>0) {
-      reject = NS_STATIC_CAST(si_Reject*, si_reject_list->ElementAt(0));
+      reject = static_cast<si_Reject*>(si_reject_list->ElementAt(0));
       if (reject) {
         si_FreeReject(reject);
         si_signon_list_changed = PR_TRUE;
@@ -1491,7 +1491,7 @@ si_CheckForReject(const char * passwordRealm, const nsString& userName) {
   if (si_reject_list) {
     PRInt32 rejectCount = LIST_COUNT(si_reject_list);
     for (PRInt32 i=0; i<rejectCount; i++) {
-      reject = NS_STATIC_CAST(si_Reject*, si_reject_list->ElementAt(i));
+      reject = static_cast<si_Reject*>(si_reject_list->ElementAt(i));
       if(!PL_strcmp(passwordRealm, reject->passwordRealm)) {
 // No need for username check on a rejectlist entry.  URL check is sufficient
 //    if(!PL_strcmp(userName, reject->userName) && !PL_strcmp(passwordRealm, reject->passwordRealm)) {
@@ -1543,7 +1543,7 @@ si_PutReject(const char * passwordRealm, const nsString& userName, PRBool save) 
     PRBool rejectAdded = PR_FALSE;
     PRInt32 rejectCount = LIST_COUNT(si_reject_list);
     for (PRInt32 i = 0; i<rejectCount; ++i) {
-      tmp_reject = NS_STATIC_CAST(si_Reject *, si_reject_list->ElementAt(i));
+      tmp_reject = static_cast<si_Reject *>(si_reject_list->ElementAt(i));
       if (tmp_reject) {
         if (PL_strcasecmp(reject->passwordRealm, tmp_reject->passwordRealm)<0) {
           si_reject_list->InsertElementAt(reject, i);
@@ -1589,7 +1589,7 @@ si_PutData(const char *passwordRealm, nsVoidArray *signonData, PRBool save) {
   /* discard this if the password is empty */
   PRInt32 count = signonData->Count();
   for (PRInt32 i=0; i<count; i++) {
-    data2 = NS_STATIC_CAST(si_SignonDataStruct*, signonData->ElementAt(i));
+    data2 = static_cast<si_SignonDataStruct*>(signonData->ElementAt(i));
     if (data2->isPassword && data2->value.IsEmpty()) {
       return;
     }
@@ -1648,7 +1648,7 @@ si_PutData(const char *passwordRealm, nsVoidArray *signonData, PRBool save) {
     si_SignonURLStruct * tmp_URL;
     PRInt32 urlCount = LIST_COUNT(si_signon_list);
     for (PRInt32 ii = 0; ii<urlCount; ++ii) {
-      tmp_URL = NS_STATIC_CAST(si_SignonURLStruct *, si_signon_list->ElementAt(ii));
+      tmp_URL = static_cast<si_SignonURLStruct *>(si_signon_list->ElementAt(ii));
       if (tmp_URL) {
         if (PL_strcasecmp(url->passwordRealm, tmp_URL->passwordRealm)<0) {
           si_signon_list->InsertElementAt(url, ii);
@@ -1678,16 +1678,16 @@ si_PutData(const char *passwordRealm, nsVoidArray *signonData, PRBool save) {
     if (!save) {
       break; /* otherwise we could be asked for master password when loading signon data */
     }
-    user = NS_STATIC_CAST(si_SignonUserStruct*, url->signonUser_list.ElementAt(i2));
+    user = static_cast<si_SignonUserStruct*>(url->signonUser_list.ElementAt(i2));
     PRInt32 j = 0;
     PRInt32 dataCount = user->signonData_list.Count();
     for (PRInt32 i3=0; i3<dataCount; i3++) {
-      data = NS_STATIC_CAST(si_SignonDataStruct*, user->signonData_list.ElementAt(i3));
+      data = static_cast<si_SignonDataStruct*>(user->signonData_list.ElementAt(i3));
       mismatch = PR_FALSE;
 
       /* check for match on name field and type field */
       if (j < signonData->Count()) {
-        data2 = NS_STATIC_CAST(si_SignonDataStruct*, signonData->ElementAt(j));
+        data2 = static_cast<si_SignonDataStruct*>(signonData->ElementAt(j));
         if ((data->isPassword == data2->isPassword) &&
             (data->name == data2->name)) {
 
@@ -1718,11 +1718,11 @@ si_PutData(const char *passwordRealm, nsVoidArray *signonData, PRBool save) {
       j = 0;
       PRInt32 dataCount2 = user->signonData_list.Count();
       for (PRInt32 i4=0; i4<dataCount2; i4++) {
-        data = NS_STATIC_CAST(si_SignonDataStruct*, user->signonData_list.ElementAt(i4));
+        data = static_cast<si_SignonDataStruct*>(user->signonData_list.ElementAt(i4));
 
         /* update saved password */
         if ((j < signonData->Count()) && data->isPassword) {
-          data2 = NS_STATIC_CAST(si_SignonDataStruct*, signonData->ElementAt(j));
+          data2 = static_cast<si_SignonDataStruct*>(signonData->ElementAt(j));
           if (!si_CompareEncryptedToEncrypted(data->value, data2->value)) {
             si_signon_list_changed = PR_TRUE;
             data->value = data2->value;
@@ -1773,7 +1773,7 @@ si_PutData(const char *passwordRealm, nsVoidArray *signonData, PRBool save) {
       }
       return;
     }
-    data2 = NS_STATIC_CAST(si_SignonDataStruct*, signonData->ElementAt(k));
+    data2 = static_cast<si_SignonDataStruct*>(signonData->ElementAt(k));
     data->isPassword = data2->isPassword;
     data->name = data2->name;
     data->value = data2->value;
@@ -2006,7 +2006,7 @@ SI_LoadSignonData() {
     /* free up all the allocations done for processing this URL */
     Recycle(passwordRealm);
     for (PRInt32 i=count-1; i>=0; i--) {
-      data = NS_STATIC_CAST(si_SignonDataStruct*, signonData.ElementAt(i));
+      data = static_cast<si_SignonDataStruct*>(signonData.ElementAt(i));
       delete data;
     }
   }
@@ -2082,7 +2082,7 @@ si_SaveSignonDataLocked(char * state, PRBool notify) {
   if (si_reject_list) {
     PRInt32 rejectCount = LIST_COUNT(si_reject_list);
     for (PRInt32 i=0; i<rejectCount; i++) {
-      reject = NS_STATIC_CAST(si_Reject*, si_reject_list->ElementAt(i));
+      reject = static_cast<si_Reject*>(si_reject_list->ElementAt(i));
       wallet_PutLine(strm, reject->passwordRealm);
     }
   }
@@ -2097,18 +2097,18 @@ si_SaveSignonDataLocked(char * state, PRBool notify) {
   if((si_signon_list)) {
     PRInt32 urlCount = LIST_COUNT(si_signon_list);
     for (PRInt32 i2=0; i2<urlCount; i2++) {
-      url = NS_STATIC_CAST(si_SignonURLStruct*, si_signon_list->ElementAt(i2));
+      url = static_cast<si_SignonURLStruct*>(si_signon_list->ElementAt(i2));
 
       /* write out each user node of the URL node */
       PRInt32 userCount = url->signonUser_list.Count();
       for (PRInt32 i3=0; i3<userCount; i3++) {
-        user = NS_STATIC_CAST(si_SignonUserStruct*, url->signonUser_list.ElementAt(i3));
+        user = static_cast<si_SignonUserStruct*>(url->signonUser_list.ElementAt(i3));
         wallet_PutLine(strm, url->passwordRealm);
 
         /* write out each data node of the user node */
         PRInt32 dataCount = user->signonData_list.Count();
         for (PRInt32 i4=0; i4<dataCount; i4++) {
-          data = NS_STATIC_CAST(si_SignonDataStruct*, user->signonData_list.ElementAt(i4));
+          data = static_cast<si_SignonDataStruct*>(user->signonData_list.ElementAt(i4));
           if (data->isPassword) {
             static const char asterisk = '*';
             PRUint32 dummy;
@@ -2246,7 +2246,7 @@ si_RememberSignonData
 
   /* determine how many passwords are in the form and where they are */
   for (PRInt32 i=0; i<signonData->Count(); i++) {
-    data = NS_STATIC_CAST(si_SignonDataStruct*, signonData->ElementAt(i));
+    data = static_cast<si_SignonDataStruct*>(signonData->ElementAt(i));
     if (data->isPassword) {
       if (passwordCount < 3 ) {
         pswd[passwordCount] = i;
@@ -2262,7 +2262,7 @@ si_RememberSignonData
     /* obtain the index of the first input field (that is the username) */
     PRInt32 j;
     for (j=0; j<signonData->Count(); j++) {
-      data = NS_STATIC_CAST(si_SignonDataStruct*, signonData->ElementAt(j));
+      data = static_cast<si_SignonDataStruct*>(signonData->ElementAt(j));
       if (!data->isPassword) {
         break;
       }
@@ -2276,7 +2276,7 @@ si_RememberSignonData
         }
         Wallet_GiveCaveat(window, nsnull);
         for (j=0; j<signonData->Count(); j++) {
-          data2 = NS_STATIC_CAST(si_SignonDataStruct*, signonData->ElementAt(j));
+          data2 = static_cast<si_SignonDataStruct*>(signonData->ElementAt(j));
           nsAutoString value(data2->value);
           if (NS_FAILED(Wallet_Encrypt(value, data2->value))) {
             return;
@@ -2294,9 +2294,9 @@ si_RememberSignonData
     si_SignonUserStruct* user;
 
     /* make sure all passwords are non-null and 2nd and 3rd are identical */
-    data0 = NS_STATIC_CAST(si_SignonDataStruct*, signonData->ElementAt(pswd[0]));
-    data1 = NS_STATIC_CAST(si_SignonDataStruct*, signonData->ElementAt(pswd[1]));
-    data2 = NS_STATIC_CAST(si_SignonDataStruct*, signonData->ElementAt(pswd[2]));
+    data0 = static_cast<si_SignonDataStruct*>(signonData->ElementAt(pswd[0]));
+    data1 = static_cast<si_SignonDataStruct*>(signonData->ElementAt(pswd[1]));
+    data2 = static_cast<si_SignonDataStruct*>(signonData->ElementAt(pswd[2]));
     if (data0->value.IsEmpty() || data1->value.IsEmpty() ||
         data2->value.IsEmpty() || data1->value != data2->value) {
       return;
@@ -2315,7 +2315,7 @@ si_RememberSignonData
     /* get to password being saved */
     PRInt32 dataCount = user->signonData_list.Count();
     for (PRInt32 k=0; k<dataCount; k++) {
-      data = NS_STATIC_CAST(si_SignonDataStruct*, user->signonData_list.ElementAt(k));
+      data = static_cast<si_SignonDataStruct*>(user->signonData_list.ElementAt(k));
       if (data->isPassword) {
         break;
       }
@@ -2404,7 +2404,7 @@ si_RestoreSignonData(nsIPrompt* dialog,
   if (user) {
     PRInt32 dataCount = user->signonData_list.Count();
     for (PRInt32 i=0; i<dataCount; i++) {
-      data = NS_STATIC_CAST(si_SignonDataStruct*, user->signonData_list.ElementAt(i));
+      data = static_cast<si_SignonDataStruct*>(user->signonData_list.ElementAt(i));
       LOG(("  got [name=%s value=%s]\n",
               NS_LossyConvertUTF16toASCII(data->name).get(),
               NS_LossyConvertUTF16toASCII(data->value).get()));
@@ -2429,8 +2429,8 @@ si_RestoreSignonData(nsIPrompt* dialog,
   /* get first saved user just so we can see the name of the first item on the form */
   user = si_GetUser(passwordRealm, PR_TRUE, NULL, formNumber); /* this is the first saved user */
   if (user) {
-    data = NS_STATIC_CAST(si_SignonDataStruct *,
-                    user->signonData_list.ElementAt(0)); /* 1st item on form */
+    data = static_cast<si_SignonDataStruct *>
+                      (user->signonData_list.ElementAt(0)); /* 1st item on form */
     if(data->isPassword && !correctedName.IsEmpty() && (data->name == correctedName)) {
       /* current item is first item on form and is a password */
       user = (passwordRealm, MK_SIGNON_PASSWORDS_FETCH);
@@ -2438,7 +2438,7 @@ si_RestoreSignonData(nsIPrompt* dialog,
         /* user has confirmed it's a change-of-password form */
         PRInt32 dataCount = user->signonData_list.Count();
         for (PRInt32 i=1; i<dataCount; i++) {
-          data = NS_STATIC_CAST(si_SignonDataStruct*, user->signonData_list.ElementAt(i));
+          data = static_cast<si_SignonDataStruct*>(user->signonData_list.ElementAt(i));
           if (data->isPassword) {
             nsAutoString password;
             if (NS_SUCCEEDED(Wallet_Decrypt(data->value, password))) {
@@ -2459,7 +2459,7 @@ si_RestoreSignonData(nsIPrompt* dialog,
   if (user) {
     PRInt32 dataCount = user->signonData_list.Count();
     for (PRInt32 i=0; i<dataCount; i++) {
-      data = NS_STATIC_CAST(si_SignonDataStruct*, user->signonData_list.ElementAt(i));
+      data = static_cast<si_SignonDataStruct*>(user->signonData_list.ElementAt(i));
       LOG(("  got [name=%s value=%s]\n",
               NS_LossyConvertUTF16toASCII(data->name).get(),
               NS_LossyConvertUTF16toASCII(data->value).get()));
@@ -2556,7 +2556,7 @@ si_RestoreOldSignonDataFromBrowser
   /* restore the data from previous time this URL was visited */
   PRInt32 dataCount = user->signonData_list.Count();
   for (PRInt32 i=0; i<dataCount; i++) {
-    data = NS_STATIC_CAST(si_SignonDataStruct*, user->signonData_list.ElementAt(i));
+    data = static_cast<si_SignonDataStruct*>(user->signonData_list.ElementAt(i));
     nsAutoString decrypted;
     if (NS_SUCCEEDED(Wallet_Decrypt(data->value, decrypted))) {
       if(data->name.EqualsLiteral(USERNAMEFIELD)) {
@@ -2632,7 +2632,7 @@ si_DoDialogIfPrefIsOff(
   }
 
   if (dialogTitle != prompt_string) {
-    Recycle(NS_CONST_CAST(PRUnichar*, prompt_string));
+    Recycle(const_cast<PRUnichar*>(prompt_string));
   }
   return res;
 }
@@ -2964,15 +2964,15 @@ SINGSIGN_ReencryptAll()
   si_lock_signon_list();
   PRInt32 urlCount = LIST_COUNT(si_signon_list);
   for (PRInt32 i=0; i<urlCount; i++) {
-    url = NS_STATIC_CAST(si_SignonURLStruct*, si_signon_list->ElementAt(i));
+    url = static_cast<si_SignonURLStruct*>(si_signon_list->ElementAt(i));
     PRInt32 userCount = url->signonUser_list.Count();
     for (PRInt32 j=0; j<userCount; j++) {
-      user = NS_STATIC_CAST(si_SignonUserStruct*, url->signonUser_list.ElementAt(j));
+      user = static_cast<si_SignonUserStruct*>(url->signonUser_list.ElementAt(j));
 
       PRInt32 dataCount = user->signonData_list.Count();
       for (PRInt32 k=0; k<dataCount; k++) {
-        data = NS_STATIC_CAST(si_SignonDataStruct *,
-                              user->signonData_list.ElementAt(k));
+        data = static_cast<si_SignonDataStruct *>
+                          (user->signonData_list.ElementAt(k));
         nsAutoString userName;
         if (NS_FAILED(Wallet_Decrypt(data->value, userName))) {
           //Don't try to re-encrypt. Just go to the next one.
@@ -3029,7 +3029,7 @@ SINGSIGN_UserCount(PRInt32 host) {
   }
 
   si_SignonURLStruct *hostStruct;
-  hostStruct = NS_STATIC_CAST(si_SignonURLStruct*, si_signon_list->ElementAt(host));
+  hostStruct = static_cast<si_SignonURLStruct*>(si_signon_list->ElementAt(host));
   return hostStruct->signonUser_list.Count();
 }
 
@@ -3054,7 +3054,7 @@ SINGSIGN_Enumerate
   si_SignonUserStruct * userStruct;
   si_SignonDataStruct* data = nsnull;
 
-  hostStruct = NS_STATIC_CAST(si_SignonURLStruct*, si_signon_list->ElementAt(hostNumber));
+  hostStruct = static_cast<si_SignonURLStruct*>(si_signon_list->ElementAt(hostNumber));
   NS_ASSERTION(hostStruct, "corrupt singlesignon list");
   *host = (char *) nsMemory::Clone
     (hostStruct->passwordRealm, strlen(hostStruct->passwordRealm) + 1);
@@ -3066,7 +3066,7 @@ SINGSIGN_Enumerate
   PRInt32 dataCount = userStruct->signonData_list.Count();
   PRInt32 k;
   for (k=0; k<dataCount; k++) {
-    data = NS_STATIC_CAST(si_SignonDataStruct *, userStruct->signonData_list.ElementAt(k));
+    data = static_cast<si_SignonDataStruct *>(userStruct->signonData_list.ElementAt(k));
     if (!(data->isPassword)) {
       break;
     }
@@ -3089,7 +3089,7 @@ SINGSIGN_Enumerate
 
   /* first password data item for user is the password */
   for (k=0; k<dataCount; k++) {
-    data = NS_STATIC_CAST(si_SignonDataStruct *, userStruct->signonData_list.ElementAt(k));
+    data = static_cast<si_SignonDataStruct *>(userStruct->signonData_list.ElementAt(k));
     if ((data->isPassword)) {
       break;
     }
@@ -3126,7 +3126,7 @@ SINGSIGN_RejectEnumerate
     (PRInt32 rejectNumber, char **host) {
 
   si_Reject *reject;
-  reject = NS_STATIC_CAST(si_Reject*, si_reject_list->ElementAt(rejectNumber));
+  reject = static_cast<si_Reject*>(si_reject_list->ElementAt(rejectNumber));
   NS_ASSERTION(reject, "corrupt reject list");
 
   *host = (char *) nsMemory::Clone
@@ -3364,7 +3364,7 @@ si_SaveSignonDataInKeychain() {
   if (si_reject_list) {
     PRInt32 rejectCount = LIST_COUNT(si_reject_list);
     for (PRInt32 i=0; i<rejectCount; i++) {
-      reject = NS_STATIC_CAST(si_Reject*, si_reject_list->ElementAt(i));
+      reject = static_cast<si_Reject*>(si_reject_list->ElementAt(i));
       status = kcaddinternetpassword
         (reject->passwordRealm, nil,
          reject->userName,
@@ -3403,17 +3403,17 @@ si_SaveSignonDataInKeychain() {
   if((si_signon_list)) {
     PRInt32 urlCount = LIST_COUNT(si_signon_list);
     for (PRInt32 i=0; i<urlCount; i++) {
-      URL = NS_STATIC_CAST(si_SignonURLStruct*, si_signon_list->ElementAt(i));
+      URL = static_cast<si_SignonURLStruct*>(si_signon_list->ElementAt(i));
 
       /* add each user node of the URL node */
       PRInt32 userCount = URL->signonUser_list.Count();
       for (PRInt32 i=0; i<userCount; i++) {
-        user = NS_STATIC_CAST(si_SignonUserStruct*, URL->signonUser_list.ElementAt(i));
+        user = static_cast<si_SignonUserStruct*>(URL->signonUser_list.ElementAt(i));
 
         /* write out each data node of the user node */
         PRInt32 count = user->signonData_list.Count();
         for (PRInt32 i=0; i<count; i++) {
-          data = NS_STATIC_CAST(si_SignonDataStruct*, user->signonData_list.ElementAt(i));
+          data = static_cast<si_SignonDataStruct*>(user->signonData_list.ElementAt(i));
           char* attribute = nil;
           if (data->isPassword) {
             password = PR_Malloc(PL_strlen(data->value) + PL_strlen(data->name) + 2);

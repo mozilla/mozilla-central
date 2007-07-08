@@ -206,8 +206,8 @@ NS_IMETHODIMP
 
   if (!JS_ConvertArguments(cx, argc, argv, "/%iv %is %is %ip %ip",
                            &s1,
-                           NS_STATIC_CAST(nsAString *, &name),
-                           NS_STATIC_CAST(nsAString *, &namespaceURI),
+                           static_cast<nsAString *>(&name),
+                           static_cast<nsAString *>(&namespaceURI),
                            &s2,
                            &s3))
     return SOAP_EXCEPTION(NS_ERROR_ILLEGAL_VALUE,"SOAP_BLOCK_INIT", "Could not interpret block initialization arguments.");

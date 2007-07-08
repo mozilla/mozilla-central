@@ -84,7 +84,7 @@ nsScriptableDataType::Create(const nsXPTType& aType,
     nsScriptableDataType* obj = new nsScriptableDataType(aType);
     if(!obj)
         return NS_ERROR_OUT_OF_MEMORY;
-    *aResult = NS_STATIC_CAST(nsIScriptableDataType*, obj);
+    *aResult = static_cast<nsIScriptableDataType*>(obj);
     NS_ADDREF(*aResult);
     return NS_OK;
 }
@@ -194,7 +194,7 @@ nsScriptableParamInfo::Create(nsIInterfaceInfo* aInfo,
     nsScriptableParamInfo* obj = new nsScriptableParamInfo(aInfo, aParam);
     if(!obj)
         return NS_ERROR_OUT_OF_MEMORY;
-    *aResult = NS_STATIC_CAST(nsIScriptableParamInfo*, obj);
+    *aResult = static_cast<nsIScriptableParamInfo*>(obj);
     NS_ADDREF(*aResult);
     return NS_OK;
 }
@@ -292,7 +292,7 @@ nsScriptableConstant::Create(nsIInterfaceInfo* aInfo,
     nsScriptableConstant* obj = new nsScriptableConstant(aInfo, aConst);
     if(!obj)
         return NS_ERROR_OUT_OF_MEMORY;
-    *aResult = NS_STATIC_CAST(nsIScriptableConstant*, obj);
+    *aResult = static_cast<nsIScriptableConstant*>(obj);
     NS_ADDREF(*aResult);
     return NS_OK;
 }
@@ -323,7 +323,7 @@ nsScriptableConstant::GetValue(nsIVariant * *aValue)
         *aValue = nsnull;
         return NS_ERROR_OUT_OF_MEMORY;
     }
-    *aValue = NS_STATIC_CAST(nsIVariant*, variant);
+    *aValue = static_cast<nsIVariant*>(variant);
     NS_ADDREF(*aValue);
 
     const nsXPTCMiniVariant* varval = mConst.GetValue();
@@ -396,7 +396,7 @@ nsScriptableMethodInfo::Create(nsIInterfaceInfo* aInfo,
     nsScriptableMethodInfo* obj = new nsScriptableMethodInfo(aInfo, aMethod);
     if(!obj)
         return NS_ERROR_OUT_OF_MEMORY;
-    *aResult = NS_STATIC_CAST(nsIScriptableMethodInfo*, obj);
+    *aResult = static_cast<nsIScriptableMethodInfo*>(obj);
     NS_ADDREF(*aResult);
     return NS_OK;
 }
@@ -485,7 +485,7 @@ nsScriptableInterfaceInfo::Create(nsIInterfaceInfo* aInfo,
     nsScriptableInterfaceInfo* obj = new nsScriptableInterfaceInfo(aInfo);
     if(!obj)
         return NS_ERROR_OUT_OF_MEMORY;
-    *aResult = NS_STATIC_CAST(nsIScriptableInterfaceInfo*, obj);
+    *aResult = static_cast<nsIScriptableInterfaceInfo*>(obj);
     NS_ADDREF(*aResult);
     return NS_OK;
 }

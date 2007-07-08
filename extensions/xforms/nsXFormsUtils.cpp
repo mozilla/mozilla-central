@@ -690,8 +690,8 @@ nsXFormsUtils::EvaluateNodeBinding(nsIDOMElement           *aElement,
       NS_ASSERTION(content, "nsIDOMElement not implementing nsIContent?!");
 
       NS_IF_ADDREF(*aResult =
-                   NS_STATIC_CAST(nsIDOMXPathResult*,
-                                  content->GetProperty(nsXFormsAtoms::bind)));
+                   static_cast<nsIDOMXPathResult*>
+                              (content->GetProperty(nsXFormsAtoms::bind)));
       *aUsesModelBind = PR_TRUE;
       return NS_OK;
     }
@@ -1003,7 +1003,7 @@ DeleteVoidArray(void    *aObject,
                 void    *aPropertyValue,
                 void    *aData)
 {
-  nsVoidArray *array = NS_STATIC_CAST(nsVoidArray *, aPropertyValue);
+  nsVoidArray *array = static_cast<nsVoidArray *>(aPropertyValue);
   PRInt32 count = array->Count();
   for (PRInt32 i = 0; i < count; i++) {
     EventItem *item = (EventItem *)array->ElementAt(i);
@@ -1031,8 +1031,8 @@ DeferDispatchEvent(nsIDOMNode* aTarget, nsXFormsEvent aEvent,
   NS_ENSURE_STATE(doc);
 
   nsVoidArray *eventList =
-    NS_STATIC_CAST(nsVoidArray *,
-                   doc->GetProperty(nsXFormsAtoms::deferredEventListProperty));
+    static_cast<nsVoidArray *>
+               (doc->GetProperty(nsXFormsAtoms::deferredEventListProperty));
   if (!eventList) {
     eventList = new nsVoidArray(16);
     if (!eventList)
@@ -1183,8 +1183,8 @@ nsXFormsUtils::DispatchDeferredEvents(nsIDOMDocument* aDocument)
   NS_ENSURE_STATE(doc);
 
   nsVoidArray *eventList =
-    NS_STATIC_CAST(nsVoidArray *,
-                   doc->GetProperty(nsXFormsAtoms::deferredEventListProperty));
+    static_cast<nsVoidArray *>
+               (doc->GetProperty(nsXFormsAtoms::deferredEventListProperty));
   if (!eventList) {
     return NS_OK;
   }
@@ -1325,15 +1325,15 @@ nsXFormsUtils::CloneScriptingInterfaces(const nsIID *aIIDList,
                                         PRUint32 *aOutCount,
                                         nsIID ***aOutArray)
 {
-  nsIID **iids = NS_STATIC_CAST(nsIID**,
-                                nsMemory::Alloc(aIIDCount * sizeof(nsIID*)));
+  nsIID **iids = static_cast<nsIID**>
+                            (nsMemory::Alloc(aIIDCount * sizeof(nsIID*)));
   if (!iids) {
     return NS_ERROR_OUT_OF_MEMORY;
   }
  
   for (PRUint32 i = 0; i < aIIDCount; ++i) {
-    iids[i] = NS_STATIC_CAST(nsIID*,
-                             nsMemory::Clone(&aIIDList[i], sizeof(nsIID)));
+    iids[i] = static_cast<nsIID*>
+                         (nsMemory::Clone(&aIIDList[i], sizeof(nsIID)));
  
     if (!iids[i]) {
       for (PRUint32 j = 0; j < i; ++j)
@@ -1673,9 +1673,8 @@ nsXFormsUtils::GetInstanceNodeForData(nsIDOMNode             *aInstanceDataNode,
   NS_ENSURE_TRUE(instanceDoc, NS_ERROR_UNEXPECTED);
 
   nsISupports* owner =
-    NS_STATIC_CAST(
-      nsISupports*,
-      instanceDoc->GetProperty(nsXFormsAtoms::instanceDocumentOwner));
+    static_cast<nsISupports*>
+               (instanceDoc->GetProperty(nsXFormsAtoms::instanceDocumentOwner));
 
   nsCOMPtr<nsIDOMNode> instanceNode(do_QueryInterface(owner));
   if (instanceNode) {

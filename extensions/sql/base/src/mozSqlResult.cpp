@@ -416,7 +416,7 @@ mozSqlResult::GetTarget(nsIRDFResource* aSource,
   *_retval = nsnull;
 
   nsVoidKey key(aSource);
-  Row* row = NS_STATIC_CAST(Row*, mSources.Get(&key));
+  Row* row = static_cast<Row*>(mSources.Get(&key));
   if (! row)
     return NS_RDF_NO_VALUE;
 
@@ -543,7 +543,7 @@ mozSqlResult::HasAssertion(nsIRDFResource* aSource,
       aProperty == kNC_Child &&
       aTruthValue) {
     nsVoidKey key(aTarget);
-    Row* row = NS_STATIC_CAST(Row*, mSources.Get(&key));
+    Row* row = static_cast<Row*>(mSources.Get(&key));
     if (row)
       *_retval = PR_TRUE;
   }

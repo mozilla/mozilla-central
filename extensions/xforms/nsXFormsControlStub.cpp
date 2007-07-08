@@ -605,7 +605,7 @@ public:
   ~ControlDebug() {
     for (PRInt32 i = 0; i < sControlList->Count(); ++i) {
       nsXFormsControlStub* control =
-        NS_STATIC_CAST(nsXFormsControlStub*, sControlList->ElementAt(i));
+        static_cast<nsXFormsControlStub*>(sControlList->ElementAt(i));
       if (control) {
         printf("Possible leak, <xforms:%s>\n", control->Name());
       }

@@ -696,8 +696,8 @@ nsWSDLLoadRequest::GetCurrentContext()
 {
   PRUint32 count = mContextStack.Count();
   if (count > 0) {
-    return NS_STATIC_CAST(nsWSDLLoadingContext*,
-                          mContextStack.ElementAt(count-1));
+    return static_cast<nsWSDLLoadingContext*>
+                      (mContextStack.ElementAt(count-1));
   }
 
   return nsnull;
@@ -709,7 +709,7 @@ nsWSDLLoadRequest::PopContext()
   PRUint32 count = mContextStack.Count();
   if (count > 0) {
     nsWSDLLoadingContext* context =
-      NS_STATIC_CAST(nsWSDLLoadingContext*, mContextStack.ElementAt(count-1));
+      static_cast<nsWSDLLoadingContext*>(mContextStack.ElementAt(count-1));
     delete context;
     mContextStack.RemoveElementAt(count-1);
   }
@@ -1356,8 +1356,8 @@ nsWSDLLoadRequest::ProcessMessageBinding(nsIDOMElement* aElement,
         return NS_ERROR_OUT_OF_MEMORY;
       }
       messageBinding = messageBindingInst;
-      nsWSDLMessage* messageInst = NS_REINTERPRET_CAST(nsWSDLMessage*,
-                                                       aMessage);
+      nsWSDLMessage* messageInst = reinterpret_cast<nsWSDLMessage*>
+                                                   (aMessage);
       messageInst->SetBinding(messageBinding);
 
       nsCOMPtr<nsISOAPPartBinding> binding;
@@ -1379,7 +1379,7 @@ nsWSDLLoadRequest::ProcessMessageBinding(nsIDOMElement* aElement,
         aMessage->GetPartCount(&count);
         for (index = 0; index < count; index++) {
           aMessage->GetPart(index, getter_AddRefs(part));
-          partInst = NS_REINTERPRET_CAST(nsWSDLPart*, part.get());
+          partInst = reinterpret_cast<nsWSDLPart*>(part.get());
           if (partInst) {
             partInst->SetBinding(binding);
           }
@@ -1404,7 +1404,7 @@ nsWSDLLoadRequest::ProcessMessageBinding(nsIDOMElement* aElement,
 
           if (!partName.IsEmpty()) {
             aMessage->GetPartByName(partName, getter_AddRefs(part));
-            partInst = NS_REINTERPRET_CAST(nsWSDLPart*, part.get());
+            partInst = reinterpret_cast<nsWSDLPart*>(part.get());
             if (partInst) {
               partInst->SetBinding(binding);
             }
@@ -1444,8 +1444,8 @@ nsWSDLLoadRequest::ProcessOperationBinding(nsIDOMElement* aElement,
 
     return NS_ERROR_WSDL_UNKNOWN_WSDL_COMPONENT;
   }
-  nsWSDLOperation* operationInst = NS_REINTERPRET_CAST(nsWSDLOperation*,
-                                                       operation.get());
+  nsWSDLOperation* operationInst = reinterpret_cast<nsWSDLOperation*>
+                                                   (operation.get());
 
   nsCOMPtr<nsISOAPOperationBinding> binding;
   nsSOAPOperationBinding* bindingInst = new nsSOAPOperationBinding();
@@ -1629,7 +1629,7 @@ nsWSDLLoadRequest::ProcessBindingElement(nsIDOMElement* aElement)
 
     return NS_ERROR_WSDL_BINDING_NOT_FOUND;
   }
-  nsWSDLPort* portInst = NS_REINTERPRET_CAST(nsWSDLPort*, port.get());
+  nsWSDLPort* portInst = reinterpret_cast<nsWSDLPort*>(port.get());
   portInst->SetBinding(binding);
 
   mPort = port;

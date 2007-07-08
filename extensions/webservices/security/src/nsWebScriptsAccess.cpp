@@ -71,7 +71,7 @@
 static PRBool PR_CALLBACK 
 FreeEntries(nsHashKey *aKey, void *aData, void* aClosure)
 {
-  AccessInfoEntry* entry = NS_REINTERPRET_CAST(AccessInfoEntry*, aData);
+  AccessInfoEntry* entry = reinterpret_cast<AccessInfoEntry*>(aData);
   delete entry;
   return PR_TRUE;
 }
@@ -164,7 +164,7 @@ nsWebScriptsAccess::InvalidateCache(const char* aTransportURI)
     nsCStringKey key(aTransportURI);
     if (mAccessInfoTable.Exists(&key)) {
       AccessInfoEntry* entry = 
-        NS_REINTERPRET_CAST(AccessInfoEntry*, mAccessInfoTable.Remove(&key));
+        reinterpret_cast<AccessInfoEntry*>(mAccessInfoTable.Remove(&key));
       delete entry;
     }
   }
@@ -181,7 +181,7 @@ nsWebScriptsAccess::GetAccessInfoEntry(const char* aKey,
 {
   nsCStringKey key(aKey);
 
-  *aEntry = NS_REINTERPRET_CAST(AccessInfoEntry*, mAccessInfoTable.Get(&key));
+  *aEntry = reinterpret_cast<AccessInfoEntry*>(mAccessInfoTable.Get(&key));
   if (*aEntry  && ((*aEntry)->mFlags & WSA_FILE_DELEGATED)) {
     nsresult rv;
     nsCOMPtr<nsIURL> url(do_QueryInterface(mServiceURI, &rv));
@@ -485,7 +485,7 @@ nsWebScriptsAccess::CheckAccess(AccessInfoEntry* aEntry,
   PRUint32 index;
   for (index = 0; index < count; index++) {
     AccessInfo* access_info = 
-      NS_REINTERPRET_CAST(AccessInfo*, aEntry->mInfoArray.ElementAt(index));
+      reinterpret_cast<AccessInfo*>(aEntry->mInfoArray.ElementAt(index));
     NS_ASSERTION(access_info, "Entry is missing attribute information");
     
     if (!access_info->mType || kAny.Equals(access_info->mType) || 
@@ -715,8 +715,8 @@ nsWebScriptsAccess::IsPublicService(const char* aHost, PRBool* aReturn)
 
   // Allocate param block.
   nsISOAPParameter** bodyBlocks = 
-    NS_STATIC_CAST(nsISOAPParameter**,
-                  nsMemory::Alloc(1 * sizeof(nsISOAPParameter*)));
+    static_cast<nsISOAPParameter**>
+               (nsMemory::Alloc(1 * sizeof(nsISOAPParameter*)));
   if (!bodyBlocks)
     return NS_ERROR_OUT_OF_MEMORY;
 

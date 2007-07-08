@@ -1188,7 +1188,7 @@ static nsresult GetArrayType(nsIVariant* aSource,
       //  All nested arrays (which is what multi-dimensional arrays are) are variants.
     }
     else {
-      nsIVariant** a = NS_STATIC_CAST(nsIVariant**,array);
+      nsIVariant** a = static_cast<nsIVariant**>(array);
       PRUint16 rtype = nsIDataType::VTYPE_EMPTY;
       for (i = 0; i < count; i++) {
         PRUint16 nexttype;
@@ -1211,7 +1211,7 @@ static nsresult GetArrayType(nsIVariant* aSource,
   switch (type) {
   case nsIDataType::VTYPE_INTERFACE_IS:
     {
-      nsISupports** values = NS_STATIC_CAST(nsISupports**,array);
+      nsISupports** values = static_cast<nsISupports**>(array);
       for (i = 0; i < count; i++)
         NS_RELEASE(values[i]);
     }
@@ -1219,7 +1219,7 @@ static nsresult GetArrayType(nsIVariant* aSource,
   case nsIDataType::VTYPE_WCHAR_STR:
   case nsIDataType::VTYPE_CHAR_STR:
     {
-      void** ptrs = NS_STATIC_CAST(void**,array);
+      void** ptrs = static_cast<void**>(array);
       for (i = 0; i < count; i++) {
         nsMemory::Free(ptrs[i]);
       }
@@ -1307,7 +1307,7 @@ static nsresult EncodeArray(nsISOAPEncoding* aEncoding, nsIVariant* aSource, nsI
 
 #define ENCODE_SIMPLE_ARRAY(XPType, VType, Source)    \
   {                                                   \
-    XPType* values = NS_STATIC_CAST(XPType*, array);  \
+    XPType* values = static_cast<XPType*>(array);  \
     nsCOMPtr<nsIWritableVariant> p =                  \
       do_CreateInstance(NS_VARIANT_CONTRACTID, &rc);  \
     if (NS_FAILED(rc)) break;                         \
@@ -1333,7 +1333,7 @@ static nsresult EncodeArray(nsISOAPEncoding* aEncoding, nsIVariant* aSource, nsI
     switch (type) {
     case nsIDataType::VTYPE_INTERFACE_IS:
       {
-        nsIVariant** values = NS_STATIC_CAST(nsIVariant**, array);//  If not truly a variant, we only release.
+        nsIVariant** values = static_cast<nsIVariant**>(array);//  If not truly a variant, we only release.
         if (iid.Equals(NS_GET_IID(nsIVariant))) {  //  Only do variants for now.
           for (i = 0; i < count; i++) {
             rc = EncodeArray(aEncoding, values[i],
@@ -1392,7 +1392,7 @@ static nsresult EncodeArray(nsISOAPEncoding* aEncoding, nsIVariant* aSource, nsI
     ENCODE_SIMPLE_ARRAY(PRUnichar, WChar, values[i]);
   case nsIDataType::VTYPE_INTERFACE_IS:
     {
-      nsIVariant** values = NS_STATIC_CAST(nsIVariant**, array);//  If not truly a variant, we only use as nsISupports
+      nsIVariant** values = static_cast<nsIVariant**>(array);//  If not truly a variant, we only use as nsISupports
       if (iid.Equals(NS_GET_IID(nsIVariant))) {  //  Only do variants for now.
         for (i = 0; i < count; i++) {
           rc = aEncoding->Encode(values[i],
@@ -1441,7 +1441,7 @@ static nsresult EncodeArray(nsISOAPEncoding* aEncoding, nsIVariant* aSource, nsI
     rc = SOAP_EXCEPTION(NS_ERROR_ILLEGAL_VALUE,"SOAP_ARRAY_TYPES","When encoding an array, unable to handle array elements");
   }
   if (freeptrs) {
-    void** ptrs = NS_STATIC_CAST(void**,array);
+    void** ptrs = static_cast<void**>(array);
     for (i = 0; i < count; i++) {
       nsMemory::Free(ptrs[i]);
     }
@@ -1895,7 +1895,7 @@ nsBase64BinaryEncoder::Encode(nsISOAPEncoding * aEncoding,
     return NS_ERROR_FAILURE;
   }
 
-  char* encodedVal = PL_Base64Encode(NS_STATIC_CAST(char*, array), count, nsnull);
+  char* encodedVal = PL_Base64Encode(static_cast<char*>(array), count, nsnull);
   if (!encodedVal) {
     return NS_ERROR_FAILURE;
   }
