@@ -210,6 +210,13 @@ $sea_installer = 0;
 $archive       = 1;
 #$push_raw_xpis = 1;
 
+$crashreporter_buildsymbols = 1;
+$crashreporter_pushsymbols = 1;
+$ENV{SYMBOL_SERVER_HOST} = 'stage.mozilla.org';
+$ENV{SYMBOL_SERVER_USER}   = 'seabld';
+$ENV{SYMBOL_SERVER_PATH}   = '/mnt/netapp/breakpad/symbols_sea/';
+$ENV{SYMBOL_SERVER_SSH_KEY}   = "$ENV{HOME}/.ssh/seabld_dsa";
+
 # Reboot the OS at the end of build-and-test cycle. This is primarily
 # intended for Win9x, which can't last more than a few cycles before
 # locking up (and testing would be suspect even after a couple of cycles).

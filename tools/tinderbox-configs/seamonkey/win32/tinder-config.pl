@@ -211,7 +211,13 @@ $stub_installer = 0;
 $sea_installer = 1;
 $archive       = 1;
 #$push_raw_xpis = 1;
-#$as_perl_path = "/cygdrive/c/Perl/bin";
+
+$crashreporter_buildsymbols = 1;
+$crashreporter_pushsymbols = 1;
+$ENV{SYMBOL_SERVER_HOST} = 'stage.mozilla.org';
+$ENV{SYMBOL_SERVER_USER}   = 'seabld';
+$ENV{SYMBOL_SERVER_PATH}   = '/mnt/netapp/breakpad/symbols_sea/';
+$ENV{SYMBOL_SERVER_SSH_KEY}   = "$ENV{HOME}/.ssh/seabld_dsa";
 
 # Reboot the OS at the end of build-and-test cycle. This is primarily
 # intended for Win9x, which can't last more than a few cycles before
