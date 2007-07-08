@@ -48,7 +48,7 @@ DIRS += debugQA
 
 # if you add DIRS here, care that app is always at the bottom of the list
 # as it packages up the built files on mac...
-DIRS		= \
+DIRS		+= \
 		branding \
 		browser \
 		common \
