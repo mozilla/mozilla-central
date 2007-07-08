@@ -43,6 +43,9 @@ VPATH		= @srcdir@
 
 include $(DEPTH)/config/autoconf.mk
 
+# XXX Disable for release builds
+DIRS += debugQA
+
 # if you add DIRS here, care that app is always at the bottom of the list
 # as it packages up the built files on mac...
 DIRS		= \
@@ -54,9 +57,6 @@ DIRS		= \
 		build \
 		app \
 		$(NULL)
-
-# XXX Disable for release builds
-DIRS += debugQA
 
 ifeq ($(OS_ARCH),WINNT)
 ifdef MOZ_INSTALLER
