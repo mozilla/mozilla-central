@@ -178,7 +178,13 @@ sub create {
                 my ($var) = @_;
                 $var =~ s/\@/\&#64;/g;
                 return $var;    
-            }, 
+            },
+            
+            userFromEmail => sub {
+                my ($var) = @_;
+                $var =~ s/\@.*$//g;
+                return $var;
+            },
             
             # dummy filter when we don't actually need to filter anything
             none => sub {
