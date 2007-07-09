@@ -1426,7 +1426,7 @@ sub main {
 
   if ($cachebuild) { 
     # remove saved builds older than a week and save current build
-    TinderUtils::run_shell_command("find $mozilla_build_dir -type d -name \"200*-*\" -maxdepth 1 -prune -mtime +7 -print | xargs rm -rf");
+    TinderUtils::run_shell_command("find $mozilla_build_dir -maxdepth 1 -type d -name \"20????????\" -mtime +7 -prune -print | xargs rm -rf");
   }
 
   unless (pushit(server => $Settings::ssh_server, remote_path => $ftp_path, package_name => $package_dir,
