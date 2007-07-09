@@ -1045,7 +1045,12 @@ sub pushit {
       $makedirs .= " $remote_path/latest-$Settings::milestone";
     }
     push(@cmds,"ssh $ssh_opts -l $Settings::ssh_user $ssh_server mkdir -p $makedirs");
-    push(@cmds,"scp -r -p $scp_opts $upload_directory/. $Settings::ssh_user\@$ssh_server:$remote_path/$short_ud/");
+    # this is a workaround for pacifica-vm, which doesn't support the <dir>/. notation for scp (bug 383775)
+    if ($^O eq "cygwin") {
+      push(@cmds,"rsync -av -e \"ssh $ssh_opts\" $upload_directory/ $Settings::ssh_user\@$ssh_server:$remote_path/$short_ud/");
+    } else {
+      push(@cmds,"scp -r -p $scp_opts $upload_directory/. $Settings::ssh_user\@$ssh_server:$remote_path/$short_ud/");
+    }
     push(@cmds,"ssh $ssh_opts -l $Settings::ssh_user $ssh_server chmod -R 775 $remote_path/$short_ud");
     if ($Settings::ReleaseGroup ne '') {
       push(@cmds,"ssh $ssh_opts -l $Settings::ssh_user $ssh_server chgrp -R $Settings::ReleaseGroup $remote_path/$short_ud");
