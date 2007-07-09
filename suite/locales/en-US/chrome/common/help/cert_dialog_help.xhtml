@@ -361,35 +361,27 @@
   that issued a website&apos;s certificate, it displays an alert that allows
   you to examine the new website certificate and decide what to do.</p>
 
+<p>Use the buttons to perform the following actions:</p>
 <ul>
-  <li><strong>Examine Certificate</strong>: Click this button to view the
-    website&apos;s certificate.</li>
+  <li><strong>View Certificate</strong>: Examine the website&apos;s
+    certificate.</li>
+  <li><strong>Cancel</strong>: Cancel the operation. Certificate Manager
+    will not recognize the certificate as legitimate identification and will not
+    connect to the website.</li>
+  <li><strong>OK</strong>: Accept the certificate and connect to the website.
+    Choose for how long the certificate should be accepted:
+    <ul>
+      <li><strong>Accept this certificate permanently</strong>: Certificate
+        Manager will recognize the certificate as legitimate identification
+        until the certificate expires.</li>
+      <li><strong>Accept this certificate temporarily for this session</strong>:
+        Certificate Manager will recognize the certificate as legitimate
+        identification only during your current &brandShortName; session. You
+        will see the alert again if you restart &brandShortName; and attempt to
+        visit the website.</li>
+    </ul>
+  </li>
 </ul>
-
-<p>You can choose one of these options from this alert:</p>
-
-<ul>
-  <li><strong>Accept this certificate permanently</strong>: Select this option
-    to accept the certificate (despite the apparent problem) and connect to the
-    website. Certificate Manager will recognize this certificate as legitimate
-    identification until the certificate expires.</li>
-  <li><strong>Accept this certificate temporarily for this session</strong>:
-    Select this option to accept the certificate temporarily and connect to the
-    website. Certificate Manager will recognize this certificate as legitimate
-    identification only until the next time you launch the browser. You may see
-    the same alert the next time you attempt to visit the website.</li>
-  <li><strong>Do not accept this certificate and do not connect to this
-    website</strong>: Select this option if you decide not to visit the website
-    at all. This option might be appropriate, for example, if you perform
-    financial transactions at the website. In this case you might want to
-    report the problem to the bank or other organization that runs the site and
-    confirm that the site&apos;s certificate is valid before you go any
-    further.</li>
-</ul>
-
-<p>Click OK to confirm your choice. If you click Cancel, Certificate Manager
-  will not recognize the certificate as legitimate identification and will not
-  connect to the web site.</p>
 
 <p><strong>Important note for server administrators</strong>: This alert may be
   triggered by a server that is not configured correctly. To find out if this
