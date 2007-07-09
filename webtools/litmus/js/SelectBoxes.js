@@ -167,7 +167,7 @@ function loadTestgroups(testgroupBox,mySuffix,silent) {
   var productId = productBox.options[productBox.selectedIndex].value;
   var branchBox = document.getElementById('branch'+mySuffix);
   var branchId = branchBox.options[branchBox.selectedIndex].value;
-  if (testgroups) {
+  if (testgroups && branchId != '') {
     for (var i=0; i<testgroups.length; i++) {
       if ((branchId && testgroups[i].branch_id == branchId) ||
 	  (!branchId && productId && testgroups[i].product_id == productId) ||

@@ -170,7 +170,7 @@ function populateSubgroup(data) {
   var selectBoxSubgroup = document.getElementById('subgroup_testcases');
   selectBoxSubgroup.options.length = 0;
   for (var i=0; i<subgroup.testcases.length; i++) {
-    var optionText = subgroup.testcases[i].testcase_id + ': ' + subgroup.testcases[i].summary;
+    var optionText = subgroup.testcases[i].summary + ' (' + subgroup.testcases[i].testcase_id + ')';
     selectBoxSubgroup.options[selectBoxSubgroup.length] = new Option(optionText,
                                                      subgroup.testcases[i].testcase_id);
   }

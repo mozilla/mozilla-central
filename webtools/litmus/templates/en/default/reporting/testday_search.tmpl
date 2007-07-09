@@ -34,18 +34,32 @@ var products=[% IF products_js %][% products_js %][% ELSE %]{}[% END %];
 var branches=[% IF branches_js %][% branches_js %][% ELSE %]{}[% END %];
 var testgroups=[% IF testgroups_js %][% testgroups_js %][% ELSE %]{}[% END %];
 
+var formName = '';
+
 function init() {
+  formName = 'testday_report';
   FormInit(document.forms['testday_report'], document.location.search);
 
-  productBox = document.getElementById('product_id');
-  branchBox = document.getElementById('branch_id');
 
+  productBox = document.getElementById('product');
+  branchBox = document.getElementById('branch');
+
+  formName = 'testevent_report';
   loadProducts(productBox)
   FormInit(document.forms['testevent_report'], document.location.search);
   changeProduct();
   FormInit(document.forms['testevent_report'], document.location.search);
   changeBranch();
   FormInit(document.forms['testevent_report'], document.location.search);
+}
+
+function checkFormContents(f) {
+  if (checkTimestamp(f.start_timestamp, 'Start Timestamp') &&
+      checkTimestamp(f.finish_timestamp, 'Finish Timestamp')) {
+    return true;
+  }
+
+  return false;
 }
 
 </script>
@@ -76,7 +90,7 @@ function init() {
 
   </form>
 
-  <form action="testday_report.cgi" method="get" name="testevent_report" id="testevent_report">
+  <form action="testday_report.cgi" method="get" name="testevent_report" id="testevent_report" onSubmit="return checkFormContents(this);">
 
     <table class="testcase-search">
       <tr>
