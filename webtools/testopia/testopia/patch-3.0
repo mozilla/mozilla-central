@@ -449,3 +449,21 @@ diff -u -r1.49 Mysql.pm
  
                      print "Converting $table.$name to be stored as UTF-8...\n";
                      my $col_info = 
+Index: votes.cgi
+===================================================================
+RCS file: /cvsroot/mozilla/webtools/bugzilla/votes.cgi,v
+retrieving revision 1.50
+diff -u -r1.50 votes.cgi
+--- votes.cgi	13 Oct 2006 12:59:57 -0000	1.50
++++ votes.cgi	9 Jul 2007 21:14:04 -0000
+@@ -130,8 +130,8 @@
+ 
+     my $canedit = (Bugzilla->params->{'usevotes'} && $userid == $who) ? 1 : 0;
+ 
+-    $dbh->bz_lock_tables('bugs READ', 'products READ', 'votes WRITE',
+-             'cc READ', 'bug_group_map READ', 'user_group_map READ',
++    $dbh->bz_lock_tables('bugs READ', 'products READ', 'products AS tr_products READ', 'votes WRITE',
++             'cc READ', 'bug_group_map READ', 'user_group_map READ', 'test_plans READ', 'test_plan_permissions READ', 
+              'group_group_map READ', 'groups READ', 'group_control_map READ');
+ 
+     if ($canedit && $bug_id) {
