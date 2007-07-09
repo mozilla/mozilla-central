@@ -81,8 +81,6 @@ static const char * kLocaleColumnName = "locale";
 static char * gDefaultCharacterSet = NULL;
 static PRBool     gDefaultCharacterOverride;
 static nsIObserver *gFolderCharsetObserver = nsnull;
-static PRBool     gInitializeObserver = PR_FALSE;
-static PRBool     gReleaseObserver = PR_FALSE;
 
 // observer for charset related preference notification
 class nsFolderCharsetObserver : public nsIObserver {
@@ -142,7 +140,13 @@ NS_IMETHODIMP nsFolderCharsetObserver::Observe(nsISupports *aSubject, const char
       rv = pbi->RemoveObserver(kMAILNEWS_VIEW_DEFAULT_CHARSET, this);
       rv = pbi->RemoveObserver(kMAILNEWS_DEFAULT_CHARSET_OVERRIDE, this);
     }
-    gReleaseObserver = PR_TRUE;   // set true to release observer
+    NS_IF_RELEASE(gFolderCharsetObserver);
+    // this can be called many times
+    if (gDefaultCharacterSet)
+    {
+      nsMemory::Free(gDefaultCharacterSet);
+      gDefaultCharacterSet = NULL; // free doesn't null out our ptr.
+    }
   }
   return rv;
 }
@@ -194,9 +198,8 @@ nsDBFolderInfo::nsDBFolderInfo(nsMsgDatabase *mdb)
   m_mdbTokensInitialized = PR_FALSE;
   m_charSetOverride = PR_FALSE;
 
-  if (!gInitializeObserver)
+  if (!gFolderCharsetObserver)
   {
-    gInitializeObserver = PR_TRUE;
     nsresult rv;
     nsCOMPtr<nsIPrefService> prefs = do_GetService(NS_PREFSERVICE_CONTRACTID, &rv);
     nsCOMPtr<nsIPrefBranch> prefBranch;
@@ -275,18 +278,6 @@ nsDBFolderInfo::~nsDBFolderInfo()
 // to call multiple times.
 void nsDBFolderInfo::ReleaseExternalReferences()
 {
-  if (gReleaseObserver && gFolderCharsetObserver)
-  {
-    NS_IF_RELEASE(gFolderCharsetObserver);
-
-    // this can be called many times
-    if (gDefaultCharacterSet)
-    {
-      nsMemory::Free(gDefaultCharacterSet);
-      gDefaultCharacterSet = NULL; // free doesn't null out our ptr.
-    }
-  }
-
   if (m_mdb)
   {
     if (m_mdbTable)
