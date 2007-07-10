@@ -190,6 +190,11 @@ function toDoUnifinderRefresh()
    filter |= ccalendar.ITEM_FILTER_TYPE_TODO;
 
    ccalendar.getItems(filter, 0, null, null, refreshListener);
+   var deck = document.getElementById("view-deck")
+   for each (view in deck.childNodes) {
+       view.showCompleted = !hideCompleted;
+   }
+   deck.selectedPanel.goToDay(deck.selectedPanel.selectedDay);
 }
 
 function getToDoFromEvent( event )

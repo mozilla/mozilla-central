@@ -517,6 +517,7 @@ function showCalendarView(type)
 
         var tasksMenu = document.getElementById("ltn-tasks-in-view")
         view.tasksInView = (tasksMenu.getAttribute("checked") == 'true');
+        view.showCompleted = document.getElementById("completed-tasks-checkbox").checked;
     }
 
     document.getElementById("displayDeck").selectedPanel =  calendarViewBox;

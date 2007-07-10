@@ -78,6 +78,17 @@ function toggleCompletedTasks()
 {
     document.getElementById("calendar-todo-list").showCompleted =
         !document.getElementById("calendar-todo-list").showCompleted;
+
+    agendaTreeView.refreshCalendarQuery();
+
+    var deck = document.getElementById("calendar-view-box")
+    for each (view in deck.childNodes) {
+        view.showCompleted = !view.showCompleted;
+    }
+
+    // Refresh the current view
+    currentView().goToDay(currentView().selectedDay);
+
     return;
 }
 

@@ -27,6 +27,7 @@
  *   gekacheka@yahoo.com
  *   richard@duif.net
  *   Matthew Willis <mattwillis@gmail.com>
+ *   Markus Adrario <MarkusAdrario@web.de>
  *
  * Alternatively, the contents of this file may be used under the terms of
  * either the GNU General Public License Version 2 or later (the "GPL"), or 
@@ -412,8 +413,13 @@ function listener_onGetResult(calendar, status, itemtype, detail, count, items)
 agendaTreeView.refreshCalendarQuery =
 function refreshCalendarQuery()
 {
-    var filter = this.calendar.ITEM_FILTER_COMPLETED_ALL |
-                 this.calendar.ITEM_FILTER_CLASS_OCCURRENCES;
+    var filter = this.calendar.ITEM_FILTER_CLASS_OCCURRENCES;
+    if (document.getElementById("completed-tasks-checkbox").checked) {
+        filter = this.calendar.ITEM_FILTER_COMPLETED_ALL;
+    } else {
+        filter = this.calendar.ITEM_FILTER_COMPLETED_NO;
+    }
+
     if (!this.filterType)
         this.filterType = 'all';
     switch (this.filterType) {
@@ -505,6 +511,14 @@ function observer_onAddItem(item)
     if (this.mBatchCount) {
         return;
     }
+
+    if (isToDo(item)) {
+        var showCompleted = document.getElementById("completed-tasks-checkbox").checked;
+        if (item.isCompleted && !showCompleted) {
+            return;
+        }
+    }
+
     var occs = item.getOccurrencesBetween(this.agendaTreeView.today.start,
                                           this.agendaTreeView.soon.end, {});
     occs.forEach(this.agendaTreeView.addItem, this.agendaTreeView);
@@ -531,6 +545,13 @@ function observer_onModifyItem(newItem, oldItem)
         return;
     }
     this.onDeleteItem(oldItem, "no-rebuild");
+
+    if (isToDo(newItem)) {
+        var showCompleted = document.getElementById("completed-tasks-checkbox").checked;
+        if (newItem.isCompleted && !showCompleted) {
+            return;
+        }
+    }
     this.onAddItem(newItem);
 };
 

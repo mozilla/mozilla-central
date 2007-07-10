@@ -102,6 +102,15 @@ function calendarInit()
        deck.selectedPanel.goToDay(deck.selectedPanel.selectedDay);
    }
 
+   // showCompleted is false by default
+   if (document.getElementById("hide-completed-checkbox").checked == false) {
+       var deck = document.getElementById("view-deck")
+       for each (view in deck.childNodes) {
+           view.showCompleted = true;
+       }
+       deck.selectedPanel.goToDay(deck.selectedPanel.selectedDay);
+   }
+
    // set up the unifinder
    
    prepareCalendarUnifinder();
