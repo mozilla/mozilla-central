@@ -85,8 +85,18 @@ var minimonthBusyListener = {
             return;
         }
 
+        // We need to compare with midnight of the current day, so reset the
+        // time here.
         var current = start.clone();
-        while (current.compare(end) != 1) {
+        current.hour = 0;
+        current.minute = 0;
+        current.second = 0;
+
+        // Cache the result so the compare isn't called in each iteration.
+        var compareResult = (start.compare(end) == 0 ? 1 : 0);
+
+        // Setup the busy days.
+        while (current.compare(end) < compareResult) {
             var box = minimonth.getBoxForDate(current.jsDate);
             if (box) {
                 var n = parseInt(box.getAttribute("busy") || 0) +
