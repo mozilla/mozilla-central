@@ -166,7 +166,7 @@ function setupBar(imipMethod)
     // Bug 348666: here is where we would check if this event was already
     // added to calendar or not and display correct information
 
-    if (imipMethod == "REQUEST") {
+    if (imipMethod.toUpperCase() == "REQUEST") {
         if (description.firstChild.data) {
             description.firstChild.data = ltnGetString("lightning",
                                                        "imipBarRequestText");
@@ -186,7 +186,7 @@ function setupBar(imipMethod)
                                                   "imipDeclineInvitation.label"));
         button.setAttribute("oncommand",
                             "setAttendeeResponse('DECLINED', 'CONFIRMED');");
-    } else if (imipMethod == "REPLY") {
+    } else if (imipMethod.toUpperCase() == "REPLY") {
         // Bug xxxx we currently cannot process REPLY messages so just let
         // the user know what this is, and don't give them any options.
         if (description.firstChild.data) {
