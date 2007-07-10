@@ -50,7 +50,7 @@ sub memoize {
 	my $fn = shift;
 	my %options = @_;
 	
-	if (MP2 && ! Apache2::RequestUtil::request()) {
+	if (MP2 && ! Apache2::RequestUtil->request()) {
 		return;	
 	} if (MP1 && ! Apache->request()) {
 		return;
@@ -75,7 +75,7 @@ sub memoize {
 	if (MP1) {
 		 $cache = Apache->request()->pnotes();
 	} elsif (MP2) {
-		$cache = Apache2::RequestUtil::request()->pnotes();
+		$cache = Apache2::RequestUtil->request()->pnotes();
 	}
 	$cache->{'S'.$fn} = {};
 	$cache->{'L'.$fn} = {};

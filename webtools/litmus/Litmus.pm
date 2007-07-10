@@ -100,7 +100,7 @@ sub request_cache {
     if ($ENV{MOD_PERL}) {
     	my $request;
     	if (MP2) {
-    		$request = Apache2::RequestUtil::request();
+    		$request = Apache2::RequestUtil->request();
     	} elsif (MP1) {
     		$request = Apache->request();
     	}

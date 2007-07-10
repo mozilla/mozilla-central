@@ -120,7 +120,7 @@ sub db_Main {
    if (MP1) {
        $request = Apache->request();
    } elsif (MP2) {
-       $request = Apache2::RequestUtil::request();
+       $request = Apache2::RequestUtil->request();
    }
    if ( $ENV{'MOD_PERL'} and defined $request ) {
 	   $dbh = $request->pnotes('dbh');
