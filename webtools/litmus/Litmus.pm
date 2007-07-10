@@ -43,6 +43,11 @@ use Litmus::Error;
 use Litmus::Auth;
 use Litmus::CGI;
 
+use constant MP2 => ( exists $ENV{MOD_PERL_API_VERSION} and 
+                        $ENV{MOD_PERL_API_VERSION} >= 2 ); 
+use constant MP1 => ( exists $ENV{MOD_PERL} and 
+                        ! exists $ENV{MOD_PERL_API_VERSION});                         
+
 our $_request_cache = {};
 
 # each cgi _MUST_ call Litmus->init() prior to doing anything else.
@@ -93,7 +98,12 @@ sub getCurrentUser {
 # from Bugzilla.pm:
 sub request_cache {
     if ($ENV{MOD_PERL}) {
-        my $request = Apache->request();
+    	my $request;
+    	if (MP2) {
+    		$request = Apache2::RequestUtil::request();
+    	} elsif (MP1) {
+    		$request = Apache->request();
+    	}
         my $cache = $request->pnotes();
         # Sometimes mod_perl doesn't properly call DESTROY on all
         # the objects in pnotes(), so we register a cleanup handler

@@ -37,6 +37,11 @@ our @EXPORT = qw(memoize);
 use Memoize ();
 use base 'Memoize';
 
+use constant MP2 => ( exists $ENV{MOD_PERL_API_VERSION} and 
+                        $ENV{MOD_PERL_API_VERSION} >= 2 ); 
+use constant MP1 => ( exists $ENV{MOD_PERL} and 
+                        ! exists $ENV{MOD_PERL_API_VERSION});   
+
 # Subclass of Memoize.pm that gives us control over when our data is 
 # flushed and ensures that cached data does not persist across mod_perl 
 # requests unless we really want it to
@@ -45,7 +50,9 @@ sub memoize {
 	my $fn = shift;
 	my %options = @_;
 	
-	if ($ENV{MOD_PERL} && ! Apache->request()) {
+	if (MP2 && ! Apache2::RequestUtil::request()) {
+		return;	
+	} if (MP1 && ! Apache->request()) {
 		return;
 	}
 	
@@ -65,8 +72,10 @@ sub memoize {
 	# otherwise, we keep the cache in request_cache where it will get
 	# flushed when the request ends
 	my $cache = {};
-	if ($ENV{MOD_PERL}) {
+	if (MP1) {
 		 $cache = Apache->request()->pnotes();
+	} elsif (MP2) {
+		$cache = Apache2::RequestUtil::request()->pnotes();
 	}
 	$cache->{'S'.$fn} = {};
 	$cache->{'L'.$fn} = {};

@@ -40,6 +40,11 @@ use Litmus::Memoize;
 
 use base 'Class::DBI::mysql';
 
+use constant MP2 => ( exists $ENV{MOD_PERL_API_VERSION} and 
+                        $ENV{MOD_PERL_API_VERSION} >= 2 ); 
+use constant MP1 => ( exists $ENV{MOD_PERL} and 
+                        ! exists $ENV{MOD_PERL_API_VERSION});  
+
 our $dsn = "dbi:mysql:database=$Litmus::Config::db_name;host=$Litmus::Config::db_host;port=3306";
 
 our %column_aliases;
@@ -111,16 +116,22 @@ __PACKAGE__->_remember_handle('Main'); # so dbi_commit works
 # override default to avoid using Ima::DBI closure for mod_perl compatibility
 sub db_Main {
    my $dbh;
-   if ( $ENV{'MOD_PERL'} and !$Apache::ServerStarting ) {
-	   $dbh = Apache->request()->pnotes('dbh');
+   my $request;
+   if (MP1) {
+       $request = Apache->request();
+   } elsif (MP2) {
+       $request = Apache2::RequestUtil::request();
+   }
+   if ( $ENV{'MOD_PERL'} and defined $request ) {
+	   $dbh = $request->pnotes('dbh');
    }
    if ( !$dbh ) {
 	   $dbh = DBI->connect_cached(
 		   $dsn,  $Litmus::Config::db_user,
 		   $Litmus::Config::db_pass, $db_options
 	   );
-	   if ( $ENV{'MOD_PERL'} and !$Apache::ServerStarting ) {
-		   Apache->request()->pnotes( 'dbh', $dbh );
+	   if ( $ENV{'MOD_PERL'} and defined $request ) {
+		   $request->pnotes( 'dbh', $dbh );
 	   }
    }
    return $dbh;
