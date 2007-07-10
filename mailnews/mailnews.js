@@ -49,7 +49,7 @@
 //     reduce the disk usage
 //     quick migration
 // Disadvantage of forbidding copy operation:
-//     without perfect lock mechamism, there is possibility of data corruption
+//     without perfect lock mechanism, there is possibility of data corruption
 //     when Netscape 4.x and mozilla run at the same time and access the same
 //     mail file at the same time
 pref("mail.migration.copyMailFiles", true);
