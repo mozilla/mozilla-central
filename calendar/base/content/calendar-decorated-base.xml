@@ -21,6 +21,7 @@
    - the Initial Developer. All Rights Reserved.
    -
    - Contributor(s):
+   -   Markus Adrario <MarkusAdrario@web.de>
    -
    - Alternatively, the contents of this file may be used under the terms of
    - either the GNU General Public License Version 2 or later (the "GPL"), or
@@ -137,6 +138,7 @@
 
         <implementation implements="calIDecoratedView">
             <field name="mTasksInView">false</field>
+            <field name="mShowCompleted">false</field>
             <field name="mWorkdaysOnly">false</field>
 
             <property name="workdaysOnly">
@@ -204,7 +206,17 @@
                 ]]></setter>
             </property>
 
-            <property name="controller">
+            <property name="showCompleted">
+              <getter><![CDATA[
+                return this.mShowCompleted;
+              ]]></getter>
+              <setter><![CDATA[
+                this.mShowCompleted = val;
+                return val;
+              ]]></setter>
+            </property>
+
+          <property name="controller">
                 <getter><![CDATA[
                     return this.viewElem.controller;
                 ]]></getter>

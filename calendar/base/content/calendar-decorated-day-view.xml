@@ -70,6 +70,7 @@
                 <body><![CDATA[
                     var viewElement = this.viewElem;
                     viewElement.tasksInView = this.mTasksInView;
+                    viewElement.showCompleted = this.mShowCompleted;
 
                     aDate = aDate.getInTimezone(viewElement.timezone);
 

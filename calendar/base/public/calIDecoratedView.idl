@@ -100,6 +100,11 @@ interface calIDecoratedView : nsISupports
   attribute boolean tasksInView;
 
   /**
+   * Whether or not completed tasks are shown in the calICalendarView
+   */
+  attribute boolean showCompleted;
+
+  /**
    * See calICalendarView.idl for the description of these functions.
    */
   void getSelectedItems(out unsigned long aCount,

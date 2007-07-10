@@ -26,6 +26,7 @@
    -   Dan Mosedale <dan.mosedale@oracle.com>
    -   Michael Büttner <michael.buettner@sun.com>
    -   Philipp Kewisch <mozilla@kewis.ch>
+   -   Markus Adrario <MarkusAdrario@web.de>
    -
    - Alternatively, the contents of this file may be used under the terms of
    - either the GNU General Public License Version 2 or later (the "GPL"), or
@@ -1991,6 +1992,7 @@
       <field name="mDayEndMin">17*60</field>
       <field name="mVisibleMinutes">9*60</field>
       <field name="mTasksInView">false</field>
+      <field name="mShowCompleted">false</field>
       <field name="mDisplayDaysOff">true</field>
       <field name="mDaysOffArray">[0,6]</field>
       <field name="mTimezone">"UTC"</field>
@@ -2027,12 +2029,16 @@
                     return;
                 }
 
-                if (isToDo(aItem) && (!aItem.entryDate || !aItem.dueDate)) {
-                    return;
-                }
-
-                if (isToDo(aItem) && !this.calView.mTasksInView) {
-                    return;
+                if (isToDo(aItem)) {
+                    if (!aItem.entryDate || !aItem.dueDate) {
+                        return;
+                    }
+                    if(!this.calView.mTasksInView){
+                        return;
+                    }
+                    if (aItem.isCompleted && !this.calView.mShowCompleted) {
+                        return;
+                    }
                 }
 
                 var occs = aItem.getOccurrencesBetween(this.calView.startDate,
@@ -2065,9 +2071,13 @@
                         this.calView.doDeleteEvent(occ);
                     }
                 }
-                if (isToDo(aNewItem) &&
-                    (!aNewItem.entryDate || !aNewItem.dueDate || !this.calView.mTasksInView)) {
-                    return;
+                if (isToDo(aNewItem)) {
+                    if (!aNewItem.entryDate || !aNewItem.dueDate || !this.calView.mTasksInView) {
+                        return;
+                    }
+                    if (aNewItem.isCompleted && !this.calView.mShowCompleted) {
+                        return;
+                    }
                 }
 
                 occs = aNewItem.getOccurrencesBetween(this.calView.startDate,
@@ -2082,12 +2092,16 @@
                     return;
                 }
 
-                if (isToDo(aItem) && !this.calView.mTasksInView) {
-                    return;
-                }
-
-                if (isToDo(aItem) && (!aItem.entryDate || !aItem.dueDate)) {
-                    return;
+                if (isToDo(aItem)) {
+                    if (!this.calView.mTasksInView) {
+                        return;
+                    }
+                    if (!aItem.entryDate || !aItem.dueDate) {
+                        return;
+                    }
+                    if (aItem.isCompleted && !this.calView.mShowCompleted) {
+                        return;
+                    }
                 }
 
                 var occs = aItem.getOccurrencesBetween(this.calView.startDate,
@@ -2218,6 +2232,16 @@
         ]]></getter>
         <setter><![CDATA[
           this.mTasksInView = val;
+          return val;
+        ]]></setter>
+      </property>
+
+      <property name="showCompleted">
+        <getter><![CDATA[
+          return this.mShowCompleted;
+        ]]></getter>
+        <setter><![CDATA[
+          this.mShowCompleted = val;
           return val;
         ]]></setter>
       </property>
@@ -2617,8 +2641,12 @@
           // we get all the items, and just filter out the ones we don't
           // care about in addItem
 
-          var filter = this.mCalendar.ITEM_FILTER_COMPLETED_ALL |
-                       this.mCalendar.ITEM_FILTER_CLASS_OCCURRENCES;
+          var filter = this.mCalendar.ITEM_FILTER_CLASS_OCCURRENCES;
+          if (this.mShowCompleted) {
+            filter |= this.mCalendar.ITEM_FILTER_COMPLETED_ALL;
+          } else {
+            filter |= this.mCalendar.ITEM_FILTER_COMPLETED_NO;
+          }
 
           if(this.mTasksInView) 
             filter |= this.mCalendar.ITEM_FILTER_TYPE_ALL;

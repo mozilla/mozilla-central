@@ -165,6 +165,7 @@
                     var viewElement = this.viewElem;
                     viewElement.showFullMonth = false;
                     viewElement.tasksInView = this.mTasksInView;
+                    viewElement.showCompleted = this.mShowCompleted;
                     viewElement.displayDaysOff = !this.mWorkdaysOnly;
 
                     aDate = aDate.getInTimezone(viewElement.timezone);

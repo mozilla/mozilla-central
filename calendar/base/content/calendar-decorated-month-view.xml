@@ -137,6 +137,7 @@
                 <body><![CDATA[
                     var viewElement = this.viewElem;
                     viewElement.tasksInView = this.mTasksInView;
+                    viewElement.showCompleted = this.mShowCompleted;
                     viewElement.displayDaysOff = !this.mWorkdaysOnly;
 
                     aDate = aDate.getInTimezone(viewElement.timezone);

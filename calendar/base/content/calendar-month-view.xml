@@ -26,6 +26,7 @@
    -   Clint Talbert <cmtalbert@myfastmail.com>
    -   Michael Büttner <michael.buettner@sun.com>
    -   Philipp Kewisch <mozilla@kewis.ch>
+   -   Markus Adrario <MarkusAdrario@web.de>
    -
    - Alternatively, the contents of this file may be used under the terms of
    - either the GNU General Public License Version 2 or later (the "GPL"), or
@@ -850,6 +851,7 @@
 
       <field name="mShowDaysOutsideMonth">true</field>
       <field name="mTasksInView">false</field>
+      <field name="mShowCompleted">false</field>
       <field name="mShowFullMonth">true</field>
       <field name="mWeekStartOffset">0</field>
       <field name="mDaysOffArray">[0,6]</field>
@@ -961,6 +963,16 @@
         ]]></getter>
         <setter><![CDATA[
           this.mTasksInView = val;
+          return val;
+        ]]></setter>
+      </property>
+
+      <property name="showCompleted">
+        <getter><![CDATA[
+          return this.mShowCompleted;
+        ]]></getter>
+        <setter><![CDATA[
+          this.mShowCompleted = val;
           return val;
         ]]></setter>
       </property>
@@ -1185,8 +1197,12 @@
           if (!this.mCalendar)
             return;
 
-          var filter = this.mCalendar.ITEM_FILTER_COMPLETED_ALL |
-                       this.mCalendar.ITEM_FILTER_CLASS_OCCURRENCES;
+          var filter = this.mCalendar.ITEM_FILTER_CLASS_OCCURRENCES;
+          if (this.showCompleted) {
+            filter |= this.mCalendar.ITEM_FILTER_COMPLETED_ALL;
+          } else {
+            filter |= this.mCalendar.ITEM_FILTER_COMPLETED_NO;
+          }
 
           if (this.mTasksInView)
             filter |= this.mCalendar.ITEM_FILTER_TYPE_ALL; 
@@ -1546,8 +1562,13 @@
                 return;
             }
 
-            if (isToDo(aItem) && !this.calView.mTasksInView) {
+            if (isToDo(aItem)) {
+              if (!this.calView.mTasksInView) {
                 return;
+              }
+              if (aItem.isCompleted && !this.calView.mShowCompleted) {
+                return;
+              }
             }
 
             var occs = aItem.getOccurrencesBetween(this.calView.startDate,
@@ -1573,8 +1594,13 @@
             for each (var occ in occs)
               this.calView.doDeleteItem(occ);
 
-            if (isToDo(aNewItem) && !this.calView.mTasksInView) {
+            if (isToDo(aNewItem)) {
+              if (!this.calView.mTasksInView) {
                 return;
+              }
+              if (aNewItem.isCompleted && !this.calView.mShowCompleted) {
+                return;
+              }
             }
             occs = aNewItem.getOccurrencesBetween(this.calView.startDate,
                                                   this.calView.queryEndDate,
@@ -1587,8 +1613,13 @@
                 return;
             }
 
-            if (isToDo(aItem) && !this.calView.mTasksInView) {
+            if (isToDo(aItem)) {
+              if (!this.calView.mTasksInView) {
                 return;
+              }
+              if (aItem.isCompleted && !this.calView.mShowCompleted) {
+                return;
+              }
             }
 
             var occs = aItem.getOccurrencesBetween(this.calView.startDate,
