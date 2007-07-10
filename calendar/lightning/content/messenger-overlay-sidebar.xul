@@ -230,7 +230,7 @@
 <hbox id="mailContent" flex="1">
 
   <!-- this will replace 'folderPaneBox' -->
-  <vbox insertbefore="folderPaneBox">
+  <vbox id="ltnModeBox" insertbefore="folderPaneBox" persist="collapsed width">
 
     <deck id="contentPanel" flex="1" minwidth="100" width="200" persist="collapsed width">
 
