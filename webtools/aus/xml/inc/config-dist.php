@@ -96,6 +96,7 @@ $productBranchVersions = array(
     'Sunbird'     =>  array(
         '0.4a1'   =>  'branch',
         '0.5*'    =>  'branch',
+        '0.7*'    =>  'branch',
         '0.6a1'   =>  'trunk'
     )
 );
