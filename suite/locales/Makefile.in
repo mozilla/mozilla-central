@@ -42,6 +42,11 @@ relativesrcdir = suite/locales
 
 include $(DEPTH)/config/autoconf.mk
 
+vpath %.src @srcdir@/en-US/searchplugins
+vpath %.png @srcdir@/en-US/searchplugins
+vpath %.src $(LOCALE_SRCDIR)/searchplugins
+vpath %.png $(LOCALE_SRCDIR)/searchplugins
+
 DEFINES += -DAB_CD=$(AB_CD)
 DEFINES += -DMOZ_PSM=$(MOZ_PSM)
 
@@ -68,3 +73,12 @@ install:: $(addprefix $(LOCALE_SRCDIR)/profile/,$(PROFILE_FILES))
 
 install:: $(addprefix $(LOCALE_SRCDIR)/profile/chrome/,$(PROFILE_CHROME))
 	$(SYSINSTALL) $(IFLAGS1) $^ $(DESTDIR)$(mozappdir)/defaults/profile/chrome
+
+SEARCH_PLUGINS := $(shell cat $(LOCALE_SRCDIR)/searchplugins/list.txt)
+
+libs:: $(addsuffix .src,$(SEARCH_PLUGINS)) $(addsuffix .png,$(SEARCH_PLUGINS))
+	$(SYSINSTALL) $(IFLAGS1) $^ $(FINAL_TARGET)/searchplugins
+
+install:: $(addsuffix .src,$(SEARCH_PLUGINS)) $(addsuffix .png,$(SEARCH_PLUGINS))
+	$(SYSINSTALL) $(IFLAGS1) $^ $(DESTDIR)$(mozappdir)/searchplugins
+
