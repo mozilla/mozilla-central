@@ -60,7 +60,7 @@ $Template::Directive::WHILE_MAX = 30000;
 # settings of the user and of the available languages
 # If no Accept-Language is present it uses the defined default
 sub getTemplateIncludePath () {
-    return "templates/en/default";
+    return Litmus::Config::litmus_locations()->{'templates'}."/en/default";
 }
 
 # Constants:

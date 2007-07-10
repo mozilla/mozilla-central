@@ -54,7 +54,8 @@ sub litmus_locations {
     return {
     	libpath => $libpath,
     	datadir => "$libpath/$datadir",
-    	localconfig => "$libpath/localconfig"
+    	localconfig => "$libpath/localconfig",
+    	templates => "$libpath/templates"
     };
 }
 
