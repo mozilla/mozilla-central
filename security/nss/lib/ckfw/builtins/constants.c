@@ -35,7 +35,7 @@
  * ***** END LICENSE BLOCK ***** */
 
 #ifdef DEBUG
-static const char CVS_ID[] = "@(#) $RCSfile: constants.c,v $ $Revision: 1.11 $ $Date: 2006-03-01 19:44:24 $";
+static const char CVS_ID[] = "@(#) $RCSfile: constants.c,v $ $Revision: 1.12 $ $Date: 2007-07-10 22:35:19 $";
 #endif /* DEBUG */
 
 /*
@@ -73,7 +73,7 @@ nss_builtins_LibraryVersion = {
 	NSS_BUILTINS_LIBRARY_VERSION_MINOR};
 
 NSS_IMPLEMENT_DATA const NSSUTF8 *
-nss_builtins_SlotDescription = (NSSUTF8 *) "";
+nss_builtins_SlotDescription = (NSSUTF8 *) "NSS Builtin Objects";
 
 NSS_IMPLEMENT_DATA const CK_VERSION
 nss_builtins_HardwareVersion = { 
