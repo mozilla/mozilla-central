@@ -141,7 +141,7 @@ sub create {
         POST_CHOMP => 1,
         EVAL_PERL => 1,
         
-        COMPILE_DIR => $Litmus::Config::datadir,
+        COMPILE_DIR => Litmus::Config::litmus_locations()->{'datadir'},
         
         FILTERS => {
             # disallow all html in testcase data except for non-evil tags

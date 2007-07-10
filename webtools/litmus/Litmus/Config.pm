@@ -25,7 +25,8 @@
  # Contributor(s):
  #   Chris Cooper <ccooper@deadsquid.com>
  #   Zach Lipton <zach@zachlipton.com>
- #
+ #   Max Kanat-Alexander <mkanat@bugzilla.org>
+ #   Frédéric Buclin <LpSolit@gmail.com>
  # ***** END LICENSE BLOCK *****
 
 =cut
@@ -33,15 +34,37 @@
 package Litmus::Config; 
 
 use strict;
+use File::Basename;
 
-do 'localconfig';
+# based on bz_locations() from Bugzilla::Constants
+our $datadir = "data/";
+sub litmus_locations {
+	# We know that Bugzilla/Constants.pm must be in %INC at this point.
+    # So the only question is, what's the name of the directory
+    # above it? This is the most reliable way to get our current working
+    # directory under both mod_cgi and mod_perl. We call dirname twice
+    # to get the name of the directory above the "Bugzilla/" directory.
+    #
+    # Calling dirname twice like that won't work on VMS or AmigaOS
+    # but I doubt anybody runs Bugzilla on those.
+    #
+    # On mod_cgi this will be a relative path. On mod_perl it will be an
+    # absolute path.
+    my $libpath = dirname(dirname($INC{'Litmus/Config.pm'}));
+    return {
+    	libpath => $libpath,
+    	datadir => "$libpath/$datadir",
+    	localconfig => "$libpath/localconfig"
+    };
+}
+
+our $localconfig = litmus_locations()->{'localconfig'};
+do $localconfig;
 
 our $version = "0.9";
 
 # if true, then Litmus will not accept any requests
 our $disabled = 0;
-
-our $datadir = "data/";
 
 # Set/unset this to display inline debugging value/code.
 our $DEBUG = 0;
