@@ -265,6 +265,8 @@ nsMsgPrintEngine::SetWindow(nsIDOMWindowInternal *aWin)
   nsCOMPtr<nsPIDOMWindow> win( do_QueryInterface(aWin) );
   NS_ENSURE_TRUE(win, NS_ERROR_FAILURE);
 
+  win->GetDocShell()->SetAppType(nsIDocShell::APP_TYPE_MAIL);
+
   nsCOMPtr<nsIDocShellTreeItem> docShellAsItem =
     do_QueryInterface(win->GetDocShell());
   NS_ENSURE_TRUE(docShellAsItem, NS_ERROR_FAILURE);
