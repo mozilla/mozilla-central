@@ -174,11 +174,11 @@ static SETTING gMailSettings[] = {
 
   // Protocol Handler Class - for Vista and above
   { MAKE_KEY_NAME2(CLS, CLS_MAILTOURL, DI),  "", VAL_ICON, APP_PATH_SUBSTITUTION },
-  { MAKE_KEY_NAME2(CLS, CLS_MAILTOURL, SOP), "", "\"%APPPATH%\" -compose \"%1\"", APP_PATH_SUBSTITUTION },
+  { MAKE_KEY_NAME2(CLS, CLS_MAILTOURL, SOP), "", "\"%APPPATH%\" -osint -compose \"%1\"", APP_PATH_SUBSTITUTION },
 
   // Protocol Handlers
   { MAKE_KEY_NAME2(CLS, "mailto", DI),  "", VAL_ICON, APP_PATH_SUBSTITUTION},
-  { MAKE_KEY_NAME2(CLS, "mailto", SOP), "", "\"%APPPATH%\" -compose \"%1\"", APP_PATH_SUBSTITUTION | USE_FOR_DEFAULT_TEST},
+  { MAKE_KEY_NAME2(CLS, "mailto", SOP), "", "\"%APPPATH%\" -osint -compose \"%1\"", APP_PATH_SUBSTITUTION | USE_FOR_DEFAULT_TEST},
 
   // Mail Client Keys
   { MAKE_KEY_NAME1(MAILCLIENTS, "%APPNAME%"),
@@ -214,15 +214,15 @@ static SETTING gMailSettings[] = {
 static SETTING gNewsSettings[] = {
    // Protocol Handler Class - for Vista and above
   { MAKE_KEY_NAME2(CLS, CLS_NEWSURL, DI),  "", VAL_ICON, APP_PATH_SUBSTITUTION },
-  { MAKE_KEY_NAME2(CLS, CLS_NEWSURL, SOP), "", "\"%APPPATH%\" -mail \"%1\"", APP_PATH_SUBSTITUTION },
+  { MAKE_KEY_NAME2(CLS, CLS_NEWSURL, SOP), "", "\"%APPPATH%\" -osint -mail \"%1\"", APP_PATH_SUBSTITUTION },
 
   // Protocol Handlers
   { MAKE_KEY_NAME2(CLS, "news", DI),  "", VAL_ICON, APP_PATH_SUBSTITUTION},
-  { MAKE_KEY_NAME2(CLS, "news", SOP), "", "\"%APPPATH%\" -mail \"%1\"", APP_PATH_SUBSTITUTION | USE_FOR_DEFAULT_TEST},
+  { MAKE_KEY_NAME2(CLS, "news", SOP), "", "\"%APPPATH%\" -osint -mail \"%1\"", APP_PATH_SUBSTITUTION | USE_FOR_DEFAULT_TEST},
   { MAKE_KEY_NAME2(CLS, "nntp", DI),  "", VAL_ICON, APP_PATH_SUBSTITUTION},
-  { MAKE_KEY_NAME2(CLS, "nntp", SOP), "", "\"%APPPATH%\" -mail \"%1\"", APP_PATH_SUBSTITUTION | USE_FOR_DEFAULT_TEST},
+  { MAKE_KEY_NAME2(CLS, "nntp", SOP), "", "\"%APPPATH%\" -osint -mail \"%1\"", APP_PATH_SUBSTITUTION | USE_FOR_DEFAULT_TEST},
   { MAKE_KEY_NAME2(CLS, "snews", DI),  "", VAL_ICON, APP_PATH_SUBSTITUTION},
-  { MAKE_KEY_NAME2(CLS, "snews", SOP), "", "\"%APPPATH%\" -mail \"%1\"", APP_PATH_SUBSTITUTION},
+  { MAKE_KEY_NAME2(CLS, "snews", SOP), "", "\"%APPPATH%\" -osint -mail \"%1\"", APP_PATH_SUBSTITUTION},
 
   // News Client Keys
   { MAKE_KEY_NAME1(NEWSCLIENTS, "%APPNAME%"),
@@ -246,7 +246,7 @@ static SETTING gFeedSettings[] = {
 
   // Protocol Handlers
   { MAKE_KEY_NAME2(CLS, "feed", DI),  "", VAL_ICON, APP_PATH_SUBSTITUTION},
-  { MAKE_KEY_NAME2(CLS, "feed", SOP), "", "\"%APPPATH%\" -mail \"%1\"", APP_PATH_SUBSTITUTION | USE_FOR_DEFAULT_TEST},
+  { MAKE_KEY_NAME2(CLS, "feed", SOP), "", "\"%APPPATH%\" -osint -mail \"%1\"", APP_PATH_SUBSTITUTION | USE_FOR_DEFAULT_TEST},
 };
 
 nsresult nsWindowsShellService::Init()

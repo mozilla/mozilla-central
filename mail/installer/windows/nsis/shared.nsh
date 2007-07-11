@@ -135,8 +135,8 @@
   GetFullPathName $8 "$INSTDIR\${FileMainEXE}"
 
   StrCpy $0 "SOFTWARE\Classes"
-  StrCpy $2 "$\"$8$\" -mail $\"%1$\""
-  StrCpy $3 "$\"$8$\" -compose $\"%1$\""
+  StrCpy $2 "$\"$8$\" -osint -mail $\"%1$\""
+  StrCpy $3 "$\"$8$\" -osint -compose $\"%1$\""
 
   ; Associate the file handlers with ThunderbirdEML
   WriteRegStr SHCTX "$0\.eml"   "" "ThunderbirdEML"
@@ -218,7 +218,7 @@
   WriteRegStr HKLM "$0\shell\safemode\command" "" "$\"$8$\" -safe-mode"
 
   ; Protocols
-  StrCpy $1 "$\"$8$\" -compose $\"%1$\""
+  StrCpy $1 "$\"$8$\" -osint -compose $\"%1$\""
   ${AddHandlerValues} "$0\Protocols\mailto" "$1" "$8,0" "${AppRegNameMail} URL" "true" ""
  
   ; Vista Capabilities registry keys
@@ -253,7 +253,7 @@
   WriteRegStr HKLM "$0\Capabilities\URLAssociations" "snews" "Thunderbird.Url.news"
 
   ; Protocols
-  StrCpy $1 "$\"$8$\" -mail $\"%1$\""
+  StrCpy $1 "$\"$8$\" -osint -mail $\"%1$\""
   ${AddHandlerValues} "$0\Protocols\nntp" "$1" "$8,0" "${AppRegNameNews} URL" "true" ""
   ${AddHandlerValues} "$0\Protocols\news" "$1" "$8,0" "${AppRegNameNews} URL" "true" ""
   ${AddHandlerValues} "$0\Protocols\snews" "$1" "$8,0" "${AppRegNameNews} URL" "true" ""
@@ -361,7 +361,7 @@
   StrCpy $0 "SOFTWARE\Classes"
   GetFullPathName $8 "$INSTDIR\${FileMainEXE}"
 
-  StrCpy $1 "$\"$8$\" -compose $\"%1$\""
+  StrCpy $1 "$\"$8$\" -osint -compose $\"%1$\""
   ${AddHandlerValues} "$0\Thunderbird.Url.mailto" "$1" "$8,0" "${AppRegNameMail} URL" "true" ""
 
   ReadRegStr $2 SHCTX "$0\mailto\shell\open\command" ""
@@ -376,7 +376,7 @@
   StrCpy $1 "$\"$8$\" $\"%1$\""
   ${AddHandlerValues} "$0\ThunderbirdEML" "$1" "$8,0" "${AppRegNameMail} Document" "" ""
 
-  StrCpy $1 "$\"$8$\" -mail $\"%1$\""
+  StrCpy $1 "$\"$8$\" -osint -mail $\"%1$\""
   ${AddHandlerValues} "$0\Thunderbird.Url.news" "$1" "$8,0" "${AppRegNameNews} URL" "true" ""
 
   ReadRegStr $2 SHCTX "$0\news\shell\open\command" ""
