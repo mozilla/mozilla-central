@@ -300,7 +300,7 @@ function ltnOnLoad(event)
     // lives inside of the left pane.
     var folderPaneBox = document.getElementById("folderPaneBox");
     var contentPanel = document.getElementById("contentPanel");
-    contentPanel.insertBefore(folderPaneBox,contentPanel.firstChild);
+    contentPanel.insertBefore(folderPaneBox, contentPanel.firstChild);
 
     // we're taking care of the mode toolbar (that's the small toolbar on
     // the lower left with the 'mail', 'calendar', 'task' buttons on it).
@@ -365,7 +365,7 @@ function ltnOnLoad(event)
         var bag = retrieveToolbarProperties(modeToolbox);
         if(aEvent.newValue == "top" && aEvent.prevValue == "bottom") {
           // place the mode toolbox at the top of the left pane
-          modeToolbox = contentPanel.parentNode.insertBefore(modeToolbox,contentPanel);
+          modeToolbox = contentPanel.parentNode.insertBefore(modeToolbox, contentPanel);
           modeToolbox.palette = palette;
           var toolbar = document.getElementById("mode-toolbar");
         } else if(aEvent.newValue == "bottom" && aEvent.prevValue == "top") {
@@ -384,7 +384,7 @@ function ltnOnLoad(event)
     if(modeToolbox.getAttribute("location") != "bottom") {
       var palette = modeToolbox.palette;
       var bag = retrieveToolbarProperties(modeToolbox);
-      modeToolbox = contentPanel.parentNode.insertBefore(modeToolbox,contentPanel);
+      modeToolbox = contentPanel.parentNode.insertBefore(modeToolbox, contentPanel);
       modeToolbox.palette = palette;
       restoreToolbarProperties(modeToolbox,bag);
     }

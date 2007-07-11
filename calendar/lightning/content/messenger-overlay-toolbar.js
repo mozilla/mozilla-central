@@ -64,12 +64,12 @@ function ltnInitializeMode()
   // we don't need to do anything else since the
   // mail view is also shown by default.
   var command = document.getElementById("switch2mail");
-  command.setAttribute("checked","true");
+  command.setAttribute("checked", "true");
   
   var printbutton = document.getElementById("button-print");
-  printbutton.setAttribute("mode","calendar");
+  printbutton.setAttribute("mode", "calendar");
   var deletebutton = document.getElementById("button-delete");
-  deletebutton.setAttribute("mode","calendar");
+  deletebutton.setAttribute("mode", "calendar");
 }
 
 /**
@@ -103,13 +103,13 @@ function ltnSwitch2Mail()
 
     var switch2mail = document.getElementById("switch2mail");
     var switch2calendar = document.getElementById("switch2calendar");
-    switch2mail.setAttribute("checked","true");
+    switch2mail.setAttribute("checked", "true");
     switch2calendar.removeAttribute("checked");
 
     var mailToolbar = getMailBar();
     var calendarToolbar = document.getElementById("calendar-toolbar");
     mailToolbar.removeAttribute("collapsed");
-    calendarToolbar.setAttribute("collapsed","true");
+    calendarToolbar.setAttribute("collapsed", "true");
 
     // the content panel should display the folder tree
     var contentDeck = document.getElementById("contentPanel");
@@ -141,12 +141,12 @@ function ltnSwitch2Calendar()
 
     var switch2mail = document.getElementById("switch2mail");
     var switch2calendar = document.getElementById("switch2calendar");
-    switch2calendar.setAttribute("checked","true");
+    switch2calendar.setAttribute("checked", "true");
     switch2mail.removeAttribute("checked");
 
     var mailToolbar = getMailBar();
     var calendarToolbar = document.getElementById("calendar-toolbar");
-    mailToolbar.setAttribute("collapsed","true");
+    mailToolbar.setAttribute("collapsed", "true");
     calendarToolbar.removeAttribute("collapsed");
 
     // the content deck should display the calendar panel
