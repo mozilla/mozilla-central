@@ -37,7 +37,7 @@
 /*
  * Test program for client-side OCSP.
  *
- * $Id: ocspclnt.c,v 1.10 2007-07-11 23:40:02 nelson%bolyard.com Exp $
+ * $Id: ocspclnt.c,v 1.11 2007-07-11 23:43:03 nelson%bolyard.com Exp $
  */
 
 #include "secutil.h"
@@ -60,10 +60,6 @@
 			 */
 #include "ocspti.h"	/* internals for pretty-printing routines *only* */
 #endif	/* NO_PP */
-
-#if defined(XP_UNIX)
-#include <unistd.h>
-#endif
 
 #if defined(_WIN32)
 #include "fcntl.h"
