@@ -44,24 +44,18 @@
 interface nsIAbDirectory;
 interface nsIAbDirectoryProperties;
 
-[scriptable, uuid(C2308606-1DD1-11B2-87D4-85FCA9B1DC08)]
+[scriptable, uuid(19125c19-4582-420d-894c-cb3cf10b9eab)]
 interface nsIAbDirFactory : nsISupports
 {
     /**
-     * Instantiate new top level address book
-     * directories given some properties. 
-     * More than one directory may be
-     * returned depending on the implementation
-     * and integration with the associated address book
-     * sources
+     * Get a top level address book directory and sub directories, given some
+     * properties.
      *
-     * @param aProperties
-     *        nsIAbDirectoryProperties with the properties
-     * @return
-     *        Enumeration of nsIAbDirectory
-     *        interfaces
+     * @param aProperties nsIAbDirectoryProperties with the properties
+     *
+     * @return            Enumeration of nsIAbDirectory interfaces
      */
-    nsISimpleEnumerator createDirectory(in nsIAbDirectoryProperties aProperties);
+    nsISimpleEnumerator getDirectories(in nsIAbDirectoryProperties aProperties);
 
     /**
      * Delete a top level address book directory

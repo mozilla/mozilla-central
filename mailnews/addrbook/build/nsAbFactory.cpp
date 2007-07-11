@@ -88,9 +88,6 @@
 
 #if defined(XP_WIN) && !defined(__MINGW32__)
 #include "nsAbOutlookDirFactory.h"
-// These two cause windows.h to be included, if not placed after *DirFactory.h
-// then this can cause problems with CreateDirectory not being
-// defined.
 #include "nsAbOutlookDirectory.h"
 #include "nsAbOutlookCard.h"
 #endif

@@ -58,15 +58,6 @@ static PRLogModuleInfo* gAbOutlookDirFactoryLog
 #define PRINTF(args) PR_LOG(nsAbOutlookDirFactoryLog, PR_LOG_DEBUG, args)
 
 
-// In case someone is wondering WHY I have to undefine CreateDirectory,
-// it's because the windows files winbase.h and wininet.h define this
-// to CreateDirectoryA/W (for reasons best left unknown) and with the
-// MAPI stuff, I end up including this, which wreaks havoc on my symbol
-// table.
-#ifdef CreateDirectory 
-#  undef CreateDirectory
-#endif // CreateDirectory
-
 NS_IMPL_ISUPPORTS1(nsAbOutlookDirFactory, nsIAbDirFactory)
 
 nsAbOutlookDirFactory::nsAbOutlookDirFactory(void)
@@ -94,8 +85,9 @@ static nsresult parseProperties(nsIAbDirectoryProperties *aProperties, nsAbWinTy
     return NS_OK;
 }
 
-NS_IMETHODIMP nsAbOutlookDirFactory::CreateDirectory(nsIAbDirectoryProperties *aProperties, 
-                                                     nsISimpleEnumerator **aDirectories)
+NS_IMETHODIMP nsAbOutlookDirFactory::GetDirectories(
+  nsIAbDirectoryProperties *aProperties, 
+  nsISimpleEnumerator **aDirectories)
 {
     NS_ENSURE_ARG_POINTER(aProperties);
     NS_ENSURE_ARG_POINTER(aDirectories);

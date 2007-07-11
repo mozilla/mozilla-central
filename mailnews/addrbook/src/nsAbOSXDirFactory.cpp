@@ -50,8 +50,8 @@
 NS_IMPL_ISUPPORTS1(nsAbOSXDirFactory, nsIAbDirFactory)
 
 NS_IMETHODIMP
-nsAbOSXDirFactory::CreateDirectory(nsIAbDirectoryProperties *aProperties, 
-                                   nsISimpleEnumerator **aDirectories)
+nsAbOSXDirFactory::GetDirectories(nsIAbDirectoryProperties *aProperties,
+                                  nsISimpleEnumerator **aDirectories)
 {
   NS_ENSURE_ARG_POINTER(aProperties);
   NS_ENSURE_ARG_POINTER(aDirectories);

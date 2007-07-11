@@ -62,7 +62,7 @@ nsAbLDAPDirFactory::~nsAbLDAPDirFactory()
 {
 }
 
-NS_IMETHODIMP nsAbLDAPDirFactory::CreateDirectory(nsIAbDirectoryProperties *aProperties,
+NS_IMETHODIMP nsAbLDAPDirFactory::GetDirectories(nsIAbDirectoryProperties *aProperties,
     nsISimpleEnumerator **aDirectories)
 {
     NS_ENSURE_ARG_POINTER(aProperties);
@@ -72,7 +72,6 @@ NS_IMETHODIMP nsAbLDAPDirFactory::CreateDirectory(nsIAbDirectoryProperties *aPro
 
     nsCString uri;
     nsAutoString description;
-    nsCString prefName;
     
     rv = aProperties->GetDescription(description);
     NS_ENSURE_SUCCESS(rv, rv);
@@ -80,14 +79,10 @@ NS_IMETHODIMP nsAbLDAPDirFactory::CreateDirectory(nsIAbDirectoryProperties *aPro
     rv = aProperties->GetURI(getter_Copies(uri));
     NS_ENSURE_SUCCESS(rv, rv);
     
-    rv = aProperties->GetPrefName(getter_Copies(prefName));
-    NS_ENSURE_SUCCESS(rv, rv);
-    
     nsCOMPtr<nsIRDFService> rdf = do_GetService (NS_RDF_CONTRACTID "/rdf-service;1", &rv);
     NS_ENSURE_SUCCESS(rv, rv);
 
     nsCOMPtr<nsIRDFResource> resource;
-
     if ((strncmp(uri.get(), "ldap:", 5) == 0) ||
         (strncmp(uri.get(), "ldaps:", 6) == 0)) {
       nsCString prefName;
@@ -121,9 +116,6 @@ NS_IMETHODIMP nsAbLDAPDirFactory::CreateDirectory(nsIAbDirectoryProperties *aPro
     NS_ENSURE_SUCCESS(rv, rv);
 
     nsCOMPtr<nsIAbDirectory> directory(do_QueryInterface(resource, &rv));
-    NS_ENSURE_SUCCESS(rv, rv);
-
-    rv = directory->SetDirPrefId(prefName);
     NS_ENSURE_SUCCESS(rv, rv);
 
     return NS_NewSingletonEnumerator(aDirectories, directory);

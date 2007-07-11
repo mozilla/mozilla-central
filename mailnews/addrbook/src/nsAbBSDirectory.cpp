@@ -96,7 +96,7 @@ nsresult nsAbBSDirectory::CreateDirectoriesFromFactory(
   
   // Create the directories
   nsCOMPtr<nsISimpleEnumerator> newDirEnumerator;
-  rv = dirFactory->CreateDirectory(aProperties, getter_AddRefs(newDirEnumerator));
+  rv = dirFactory->GetDirectories(aProperties, getter_AddRefs(newDirEnumerator));
   NS_ENSURE_SUCCESS (rv, rv);
   
   // Enumerate through the directories adding them

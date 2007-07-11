@@ -101,8 +101,9 @@ static nsresult RemoveMailListDBListeners (nsIAddrDatabase* database, nsIAbDirec
     return NS_OK;
 }
 
-NS_IMETHODIMP nsAbMDBDirFactory::CreateDirectory(nsIAbDirectoryProperties *aProperties,
-    nsISimpleEnumerator **_retval)
+NS_IMETHODIMP nsAbMDBDirFactory::GetDirectories(
+  nsIAbDirectoryProperties *aProperties,
+  nsISimpleEnumerator **_retval)
 {
     NS_ENSURE_ARG_POINTER(aProperties);
     NS_ENSURE_ARG_POINTER(_retval);
