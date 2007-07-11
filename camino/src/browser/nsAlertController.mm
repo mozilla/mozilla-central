@@ -467,6 +467,8 @@ const int kLabelCheckboxAdjustment = 2; // # pixels the label must be pushed dow
 {
   NSRect rect = NSMakeRect(0, 0, kMinDialogWidth, kMaxDialogHeight);
   NSPanel* panel = [[[NSPanel alloc] initWithContentRect: rect styleMask: NSTitledWindowMask backing: NSBackingStoreBuffered defer: YES] autorelease];
+  // hiding on deactivation will sometimes misplace the dialog
+  [panel setHidesOnDeactivate:NO];
   NSImageView* imageView = [[[NSImageView alloc] initWithFrame: NSMakeRect(kWindowBorder, kMaxDialogHeight - kWindowBorder - kIconSize, kIconSize, kIconSize)] autorelease];
   
   //  app icon
