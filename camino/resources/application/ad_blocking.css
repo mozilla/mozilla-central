@@ -21,6 +21,7 @@
  * Contributor(s):
  *   Simon Fraser <smfr@smfr.org> (Original Author)
  *   Smokey Ardisson <alqahira@ardisson.org>
+ *   Philippe Wittenbergh <phiw@l-c-n.com>
  *
  * Alternatively, the contents of this file may be used under the terms of
  * either the GNU General Public License Version 2 or later (the "GPL"), or
@@ -250,6 +251,8 @@ img[src*=".yieldmanager.com"],
 img[src*="phpAds"],
 img[src*=".advertserve.com/advertpro"],
 img[src*="juggler.inetinteractive.com/banners/"],
+img[src*="euroclick.com"],
+img[src*="show.onenetworkdirect.net"],
 
 iframe[src*="/ad."],
 iframe[src*="/ads."],
@@ -342,6 +345,8 @@ iframe[src*=".specificclick.net"],
 iframe[src*="optimizedby.rmxads.com"],
 iframe[src*="oasis.nysun.com"],
 iframe[src*=".overture.com"],
+iframe[src*=".fimserve.com"],
+iframe[src*="google-afc"],
 
 table#overtureLinksWrapper,
 table.adbritetable,
@@ -360,6 +365,7 @@ div#leaderboardAd,
 div[id^="ads_"],
 div[id*="ad440x160"],
 div[id*="ad300x100"],
+div[id*="ad160x600"],
 div.werbeblock,
 div.werbung,
 div[id$="_ad"],
@@ -397,7 +403,11 @@ div[id*="reklam"],
 div[id*="Kanoodle"],
 div[class^="adModule"],
 div[id*="loweradswrapper"],
-div[id="bigad"]
+div[id="bigad"],
+div[class*="context-ad"],
+div[class^="adbanner"],
+div[class*="_adsys_"],
+div[id*="SendMessage_gads"]
 
 { display: none ! important }
 
@@ -420,4 +430,8 @@ iframe[src*="mozilla.org"]
 
 @-moz-document domain(caminobrowser.org) {
 img[src*="/ad/"] {display: inline !important }
+}
+
+@-moz-document domain(apple.com) {
+img[src*="/ads/"] {display: inline !important }
 }
