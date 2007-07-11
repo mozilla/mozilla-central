@@ -100,6 +100,7 @@ PROT_PhishingWarden.prototype.QueryInterface = function(iid) {
  * Cleanup on shutdown.
  */
 PROT_PhishingWarden.prototype.shutdown = function() {
+  this.prefs_.removeAllObservers();
 }
 
 /**

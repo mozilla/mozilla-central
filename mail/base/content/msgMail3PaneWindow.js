@@ -934,6 +934,9 @@ function OnUnloadMessenger()
   pref.removeObserver("mail.pane_config.dynamic", MailPrefObserver);
   pref.removeObserver("mail.showFolderPaneColumns", MailPrefObserver);
   document.getElementById('tabmail').closeTabs();
+
+  gPhishingDetector.shutdown();
+
   // FIX ME - later we will be able to use onload from the overlay
   OnUnloadMsgHeaderPane();
 
