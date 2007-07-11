@@ -269,15 +269,13 @@ function FillInHTMLTooltip(tipElement)
   }
 
   var texts = [titleText, XLinkTitleText];
+  var tipNode = document.getElementById("aHTMLTooltip");
+  tipNode.style.direction = direction;
 
   for (var i = 0; i < texts.length; ++i) {
     var t = texts[i];
     if (t && t.search(/\S/) >= 0) {
-      var hbox = document.getElementById("aHTMLTooltip").firstChild;
-      hbox.style.direction = direction;
-      var label = hbox.firstChild;
-      label.textContent = t;
-
+      tipNode.setAttribute("label", t);
       retVal = true;
     }
   }

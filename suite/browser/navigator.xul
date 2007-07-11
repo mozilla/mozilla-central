@@ -126,11 +126,7 @@
   
   <popup id="backMenu" position="after_start" onpopupshowing="return BrowserBackMenu(event);" oncommand="gotoHistoryIndex(event);"/>
   <popup id="forwardMenu" position="after_start" onpopupshowing="return BrowserForwardMenu(event);" oncommand="gotoHistoryIndex(event);"/>
-  <tooltip id="aHTMLTooltip" onpopupshowing="return FillInHTMLTooltip(document.tooltipNode);">
-    <hbox>
-      <label flex="1" class="htmltooltip-label"/>
-    </hbox>
-  </tooltip>
+  <tooltip id="aHTMLTooltip" onpopupshowing="return FillInHTMLTooltip(document.tooltipNode);"/>
   <popup id="sidebarPopup"/>
 
   <popupset id="bookmarksPopupset"/>
