@@ -428,15 +428,10 @@ nsMsgAccountManager::GetIncomingServer(const nsACString& key,
                                        nsIMsgIncomingServer **_retval)
 {
   NS_ENSURE_ARG_POINTER(_retval);
-  nsresult rv = NS_OK;
+  nsresult rv;
 
-  nsCOMPtr<nsIMsgIncomingServer> server;
-  m_incomingServers.Get(key, _retval);
-
-  if (server) {
-    server.swap(*_retval);
+  if (m_incomingServers.Get(key, _retval))
     return NS_OK;
-  }
 
   // server doesn't exist, so create it
   // this is really horrible because we are doing our own prefname munging
