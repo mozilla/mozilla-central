@@ -54,12 +54,12 @@ APP_NAME	= Camino
 PYTHON ?= python
 
 FOX_APP_VERSION_FILE = $(topsrcdir)/browser/config/version.txt
-FOX_APP_VERSION = $(shell cat $(FOX_APP_VERSION_FILE))
+FOX_APP_VERSION := $(shell cat $(FOX_APP_VERSION_FILE))
 PLATFORM_VERSION_FILE = $(topsrcdir)/config/milestone.txt
-PLATFORM_VERSION = $(shell egrep -m 1 "^[^\#]+" $(PLATFORM_VERSION_FILE))
+PLATFORM_VERSION := $(shell egrep "^[^\#]+" $(PLATFORM_VERSION_FILE))
 PLATFORM_BUILD_ID_FILE = generated/platform_build_id
-PLATFORM_BUILD_ID = $(shell $(PYTHON) $(topsrcdir)/toolkit/xre/make-platformini.py --print-buildid)
-PLATFORM_INI_FILE = $(DIST)/bin/platform.ini
+PLATFORM_BUILD_ID := $(shell $(PYTHON) $(topsrcdir)/toolkit/xre/make-platformini.py --print-buildid)
+PLATFORM_INI_FILE = ../toolkit/xre/platform.ini
 
 ifdef MOZ_DEBUG
 BUILDSTYLE	= Development
@@ -95,7 +95,7 @@ clean clobber repackage::
 	rm -rf $(DIST)/$(APP_NAME).app
 	rm -rf embed-replacements.tmp
 	rm -rf generated
-	rm -rf $(PLATFORM_INI_FILE)
+	rm -rf $(PLATFORM_INI_FILE) $(DIST)/bin/platform.ini
 
 generated:
 	mkdir -p $@
@@ -111,13 +111,15 @@ $(PLATFORM_BUILD_ID_FILE): FORCE
 	grep -lFx "$(PLATFORM_BUILD_ID)" $@ >& /dev/null || \
 	  echo $(PLATFORM_BUILD_ID) > $@
 
-# Put platform.ini into $(DIST)/bin, because that's where Tinderbox looks to
-# figure out the build ID.  It currently doesn't need to be distributed with
-# the application.
+# Put platform.ini into toolkit/xre and dist/bin, because that's where
+# Tinderbox looks to figure out the build ID.  It currently doesn't need
+# to be distributed with the application.
 $(PLATFORM_INI_FILE): $(PLATFORM_BUILD_ID_FILE) $(PLATFORM_VERSION_FILE)
+	mkdir -p `dirname $@`
 	echo [Build] > $@
 	echo BuildID=$(PLATFORM_BUILD_ID) >> $@
 	echo Milestone=$(PLATFORM_VERSION) >> $@
+	$(INSTALL) $@ $(DIST)/bin
 
 generated/CmXULAppData.h: $(srcdir)/src/embedding/CmXULAppData.h.in $(PLATFORM_BUILD_ID_FILE) $(PLATFORM_VERSION_FILE)
 	sed -e "s/%PLATFORM_BUILD_ID%/$(PLATFORM_BUILD_ID)/" \
