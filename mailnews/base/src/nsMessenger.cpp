@@ -238,7 +238,7 @@ class nsSaveMsgListener : public nsIUrlListener,
                           public nsICancelable
 {
 public:
-  nsSaveMsgListener(nsIFile* file, nsMessenger* aMessenger);
+  nsSaveMsgListener(nsIFile *file, nsMessenger *aMessenger, nsIUrlListener *aListener);
   virtual ~nsSaveMsgListener();
 
   NS_DECL_ISUPPORTS
@@ -270,6 +270,7 @@ public:
   nsCString     m_contentType;    // used only when saving attachment
 
   nsCOMPtr<nsITransfer> mTransfer;
+  nsCOMPtr<nsIUrlListener> mListener;
   PRInt32 mProgress;
   PRInt32 mContentLength;
   PRBool  mCanceled;
@@ -680,12 +681,21 @@ nsMessenger::LoadURL(nsIDOMWindowInternal *aWin, const nsACString& aURL)
   return mDocShell->LoadURI(uri, loadInfo, 0, PR_TRUE);
 }
 
-nsresult
-nsMessenger::SaveAttachment(nsIFile * aFile,
-                            const nsACString& aURL,
-                            const nsACString& aMessageUri,
-                            const nsACString& aContentType,
-                            void *closure)
+NS_IMETHODIMP nsMessenger::SaveAttachmentToFile(nsIFile *aFile,
+                                                const nsACString &aURL,
+                                                const nsACString &aMessageUri,
+                                                const nsACString &aContentType,
+                                                nsIUrlListener *aListener)
+{
+  return SaveAttachment(aFile, aURL, aMessageUri, aContentType, nsnull, aListener);
+}
+
+NS_IMETHODIMP nsMessenger::SaveAttachment(nsIFile *aFile,
+                                          const nsACString &aURL,
+                                          const nsACString &aMessageUri,
+                                          const nsACString &aContentType,
+                                          void *closure,
+                                          nsIUrlListener *aListener)
 {
   nsIMsgMessageService * messageService = nsnull;
   nsSaveAllAttachmentsState *saveState= (nsSaveAllAttachmentsState*) closure;
@@ -697,7 +707,7 @@ nsMessenger::SaveAttachment(nsIFile * aFile,
   // XXX todo
   // document the ownership model of saveListener
   // whacky ref counting here...what's the deal? when does saveListener get released? it's not clear.
-  nsSaveMsgListener *saveListener = new nsSaveMsgListener(aFile, this);
+  nsSaveMsgListener *saveListener = new nsSaveMsgListener(aFile, this, aListener);
   if (!saveListener)
     return NS_ERROR_OUT_OF_MEMORY;
 
@@ -771,7 +781,7 @@ nsMessenger::SaveAttachment(nsIFile * aFile,
       }
 #endif
       if (fetchService)
-        rv = fetchService->FetchMimePart(URL, fullMessageUri.get(), convertedListener, mMsgWindow, nsnull,nsnull);
+        rv = fetchService->FetchMimePart(URL, fullMessageUri.get(), convertedListener, mMsgWindow, nsnull, nsnull);
       else
         rv = messageService->DisplayMessage(fullMessageUri.get(), convertedListener, mMsgWindow, nsnull, nsnull, nsnull);
     } // if we got a message service
@@ -828,7 +838,7 @@ nsMessenger::SaveAttachmentToFolder(const nsACString& contentType, const nsACStr
   rv = attachmentDestination->AppendNative(unescapedFileName);
   NS_ENSURE_SUCCESS(rv, rv);
 
-  rv = SaveAttachment(attachmentDestination, url, messageUri, contentType, nsnull);
+  rv = SaveAttachment(attachmentDestination, url, messageUri, contentType, nsnull, nsnull);
   attachmentDestination.swap(*aOutFile);
   return rv;
 }
@@ -875,7 +885,7 @@ nsMessenger::SaveAttachment(const nsACString& aContentType, const nsACString& aU
 
   SetLastSaveDirectory(localFile);
 
-  rv = SaveAttachment(localFile, aURL, aMessageUri, aContentType, nsnull);
+  rv = SaveAttachment(localFile, aURL, aMessageUri, aContentType, nsnull, nsnull);
   return rv;
 }
 
@@ -948,7 +958,7 @@ nsMessenger::SaveAllAttachments(PRUint32 count,
   NS_ENSURE_SUCCESS(rv, rv);
 
   rv = SaveAttachment(localFile, nsDependentCString(urlArray[0]), nsDependentCString(messageUriArray[0]),
-                      nsDependentCString(contentTypeArray[0]), (void *)saveState);
+                      nsDependentCString(contentTypeArray[0]), (void *)saveState, nsnull);
   return rv;
 }
 
@@ -1108,7 +1118,7 @@ nsMessenger::SaveAs(const nsACString& aURI, PRBool aAsFile, nsIMsgIdentity *aIde
 
     // XXX todo
     // document the ownership model of saveListener
-    saveListener = new nsSaveMsgListener(localFile, this);
+    saveListener = new nsSaveMsgListener(localFile, this, nsnull);
     if (!saveListener) {
       rv = NS_ERROR_OUT_OF_MEMORY;
       goto done;
@@ -1197,7 +1207,7 @@ nsMessenger::SaveAs(const nsACString& aURI, PRBool aAsFile, nsIMsgIdentity *aIde
 
     // XXX todo
     // document the ownership model of saveListener
-    saveListener = new nsSaveMsgListener(tmpFile, this);
+    saveListener = new nsSaveMsgListener(tmpFile, this, nsnull);
     if (!saveListener) {
       rv = NS_ERROR_OUT_OF_MEMORY;
       goto done;
@@ -1710,10 +1720,11 @@ nsMessenger::SendUnsentMessages(nsIMsgIdentity *aIdentity, nsIMsgWindow *aMsgWin
   return NS_OK;
 }
 
-nsSaveMsgListener::nsSaveMsgListener(nsIFile* aFile, nsMessenger *aMessenger)
+nsSaveMsgListener::nsSaveMsgListener(nsIFile* aFile, nsMessenger *aMessenger, nsIUrlListener *aListener)
 {
     m_file = do_QueryInterface(aFile);
     m_messenger = aMessenger;
+    mListener = aListener;
 
     // rhp: for charset handling
     m_doCharsetConversion = PR_FALSE;
@@ -1751,6 +1762,7 @@ nsSaveMsgListener::Cancel(nsresult status)
 NS_IMETHODIMP
 nsSaveMsgListener::OnStartRunningUrl(nsIURI* url)
 {
+  mListener->OnStartRunningUrl(url);
   return NS_OK;
 }
 
@@ -1793,6 +1805,7 @@ done:
   if (killSelf)
       Release(); // no more work needs to be done; kill ourself
 
+  mListener->OnStopRunningUrl(url, exitCode);
   return rv;
 }
 
@@ -1923,16 +1936,15 @@ nsSaveMsgListener::OnStartRequest(nsIRequest* request, nsISupports* aSupport)
     if (m_messenger)
       m_messenger->Alert("saveAttachmentFailed");
   }
-
   return NS_OK;
 }
 
 NS_IMETHODIMP
 nsSaveMsgListener::OnStopRequest(nsIRequest* request, nsISupports* aSupport,
-                                nsresult status)
+                                 nsresult status)
 {
   nsresult rv = NS_OK;
-
+  
   // rhp: If we are doing the charset conversion magic, this is different
   // processing, otherwise, its just business as usual.
   //
@@ -1940,7 +1952,7 @@ nsSaveMsgListener::OnStopRequest(nsIRequest* request, nsISupports* aSupport,
   {
     char        *conBuf = nsnull;
     PRUint32    conLength = 0;
-
+    
     // If we need text/plain, then we need to convert the HTML and then convert
     // to the systems charset
     //
@@ -1952,7 +1964,7 @@ nsSaveMsgListener::OnStopRequest(nsIRequest* request, nsISupports* aSupport,
       if ( NS_SUCCEEDED(rv) && (conBuf) )
         conLength = strlen(conBuf);
     }
-
+    
     if ( (NS_SUCCEEDED(rv)) && (conBuf) )
     {
       PRUint32      writeCount;
@@ -1960,78 +1972,77 @@ nsSaveMsgListener::OnStopRequest(nsIRequest* request, nsISupports* aSupport,
       if (conLength != writeCount)
         rv = NS_ERROR_FAILURE;
     }
-
+    
     PR_FREEIF(conBuf);
   }
-
+  
   // close down the output stream and release ourself
   if (m_outputStream)
   {
     m_outputStream->Close();
     m_outputStream = nsnull;
   }
-
+  
   if (m_saveAllAttachmentsState)
   {
-      m_saveAllAttachmentsState->m_curIndex++;
-      if (!mCanceled && m_saveAllAttachmentsState->m_curIndex <
-          m_saveAllAttachmentsState->m_count)
-      {
-          nsSaveAllAttachmentsState *state = m_saveAllAttachmentsState;
-          PRUint32 i = state->m_curIndex;
-          nsCString unescapedName;
-          nsCOMPtr<nsILocalFile> localFile = do_CreateInstance(NS_LOCAL_FILE_CONTRACTID, &rv);
-          if (NS_FAILED(rv)) goto done;
-          rv = localFile->InitWithNativePath(nsDependentCString(state->m_directoryName));
-
-          if (NS_FAILED(rv)) goto done;
-
-          rv = ConvertAndSanitizeFileName(state->m_displayNameArray[i], nsnull,
-                                          getter_Copies(unescapedName));
-          if (NS_FAILED(rv))
-            goto done;
-
-          localFile->AppendNative(unescapedName);
-          rv = m_messenger->PromptIfFileExists(localFile);
-          if (NS_FAILED(rv)) goto done;
-          rv = m_messenger->SaveAttachment(localFile,
-                                           nsDependentCString(state->m_urlArray[i]),
-                                           nsDependentCString(state->m_messageUriArray[i]),
-                                           nsDependentCString(state->m_contentTypeArray[i]),
-                                           (void *)state);
+    m_saveAllAttachmentsState->m_curIndex++;
+    if (!mCanceled && m_saveAllAttachmentsState->m_curIndex < m_saveAllAttachmentsState->m_count)
+    {
+      nsSaveAllAttachmentsState *state = m_saveAllAttachmentsState;
+      PRUint32 i = state->m_curIndex;
+      nsCString unescapedName;
+      nsCOMPtr<nsILocalFile> localFile = do_CreateInstance(NS_LOCAL_FILE_CONTRACTID, &rv);
+      if (NS_FAILED(rv)) goto done;
+      rv = localFile->InitWithNativePath(nsDependentCString(state->m_directoryName));
+      
+      if (NS_FAILED(rv)) goto done;
+      
+      rv = ConvertAndSanitizeFileName(state->m_displayNameArray[i], nsnull,
+                                      getter_Copies(unescapedName));
+      if (NS_FAILED(rv))
+        goto done;
+      
+      localFile->AppendNative(unescapedName);
+      rv = m_messenger->PromptIfFileExists(localFile);
+      if (NS_FAILED(rv)) goto done;
+      rv = m_messenger->SaveAttachment(localFile,
+                                       nsDependentCString(state->m_urlArray[i]),
+                                       nsDependentCString(state->m_messageUriArray[i]),
+                                       nsDependentCString(state->m_contentTypeArray[i]),
+                                       (void *)state, nsnull);
       done:
-          if (NS_FAILED(rv))
-          {
-              delete state;
-              m_saveAllAttachmentsState = nsnull;
-          }
-      }
-      else
-      {
-          // check if we're saving attachments prior to detaching them.
-        if (m_saveAllAttachmentsState->m_detachingAttachments && !mCanceled)
+        if (NS_FAILED(rv))
         {
-          nsSaveAllAttachmentsState *state = m_saveAllAttachmentsState;
-          m_messenger->DetachAttachments(state->m_count,
-                                  (const char **) state->m_contentTypeArray,
-                                  (const char **) state->m_urlArray,
-                                  (const char **) state->m_displayNameArray,
-                                  (const char **) state->m_messageUriArray,
-                                  &state->m_savedFiles);
+          delete state;
+          m_saveAllAttachmentsState = nsnull;
         }
-
-        delete m_saveAllAttachmentsState;
-        m_saveAllAttachmentsState = nsnull;
+    }
+    else
+    {
+          // check if we're saving attachments prior to detaching them.
+      if (m_saveAllAttachmentsState->m_detachingAttachments && !mCanceled)
+      {
+        nsSaveAllAttachmentsState *state = m_saveAllAttachmentsState;
+        m_messenger->DetachAttachments(state->m_count,
+                                       (const char **) state->m_contentTypeArray,
+                                       (const char **) state->m_urlArray,
+                                       (const char **) state->m_displayNameArray,
+                                       (const char **) state->m_messageUriArray,
+                                       &state->m_savedFiles);
       }
+      
+      delete m_saveAllAttachmentsState;
+      m_saveAllAttachmentsState = nsnull;
+    }
   }
-
+  
   if(mTransfer)
   {
     mTransfer->OnProgressChange(nsnull, nsnull, mContentLength, mContentLength, mContentLength, mContentLength);
     mTransfer->OnStateChange(nsnull, nsnull, nsIWebProgressListener::STATE_STOP, NS_OK);
     mTransfer = nsnull; // break any circular dependencies between the progress dialog and use
   }
-
+  
   Release(); // all done kill ourself
   return NS_OK;
 }

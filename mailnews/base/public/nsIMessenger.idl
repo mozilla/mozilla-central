@@ -47,8 +47,10 @@ interface nsIMsgDBHdr;
 interface nsIDOMWindowInternal;
 interface nsITransactionManager;
 interface nsIMsgMessageService;
+interface nsIFile;
+interface nsIUrlListener;
 
-[scriptable, uuid(3CFFB7E3-D7C6-4335-8941-7B94BBAFB607)]
+[scriptable, uuid(BE8C45B1-F810-4B7E-BB44-790B53631D52)]
 interface nsIMessenger : nsISupports {
 
     const long eUnknown = 0;
@@ -107,6 +109,10 @@ interface nsIMessenger : nsISupports {
     void saveAllAttachments(in unsigned long count, [array, size_is(count)] in string contentTypeArray,
                             [array, size_is(count)] in string urlArray, [array, size_is(count)] in string displayNameArray,
                             [array, size_is(count)] in string messageUriArray);
+    
+    void saveAttachmentToFile(in nsIFile aFile, in ACString aUrl, in ACString aMessageUri, 
+                              in ACString aContentType, in nsIUrlListener aListener);
+    
     void detachAttachment(in string contentTpe, in string url, in string displayName, in string messageUri, in boolean saveFirst);
     void detachAllAttachments(in unsigned long count, [array, size_is(count)] in string contentTypeArray,
                              [array, size_is(count)] in string urlArray, [array, size_is(count)] in string displayNameArray,

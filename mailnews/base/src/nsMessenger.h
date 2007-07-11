@@ -63,22 +63,23 @@ public:
   NS_DECL_NSIFOLDERLISTENER
     
   nsresult Alert(const char * stringName);
+  
   nsresult SaveAttachment(nsIFile *file, const nsACString& unescapedUrl,
                           const nsACString& messageUri, const nsACString& contentType, 
-                          void *closure);
+                          void *closure, nsIUrlListener *aListener);
   nsresult PromptIfFileExists(nsILocalFile *file);
   nsresult DetachAttachments(PRUint32 aCount,
-                                  const char ** aContentTypeArray,
-                                  const char ** aUrlArray,
-                                  const char ** aDisplayNameArray,
-                                  const char ** aMessageUriArray,
-                                  nsCStringArray *saveFileUris);
+                             const char ** aContentTypeArray,
+                             const char ** aUrlArray,
+                             const char ** aDisplayNameArray,
+                             const char ** aMessageUriArray,
+                             nsCStringArray *saveFileUris);
   nsresult SaveAllAttachments(PRUint32 count,
-                                const char **contentTypeArray,
-                                const char **urlArray,
-                                const char **displayNameArray,
-                                const char **messageUriArray,
-                                PRBool detaching);
+                              const char **contentTypeArray,
+                              const char **urlArray,
+                              const char **displayNameArray,
+                              const char **messageUriArray,
+                              PRBool detaching);
 
 protected:
   nsresult DoDelete(nsIRDFCompositeDataSource* db, nsISupportsArray *srcArray,
