@@ -76,9 +76,43 @@ NSString* const URLLoadSuccessKey     = @"url_bool";
 
 + (Bookmark*)separator
 {
-  Bookmark* separator = [[[Bookmark alloc] init] autorelease];
+  Bookmark* separator = [[[self alloc] init] autorelease];
   [separator setIsSeparator:YES];
   return separator;
+}
+
++ (Bookmark*)bookmarkWithTitle:(NSString*)aTitle url:(NSString*)aURL
+{
+  Bookmark* bookmark = [[[self alloc] init] autorelease];
+  [bookmark setTitle:aTitle];
+  [bookmark setUrl:aURL];
+  return bookmark;
+}
+
++ (Bookmark*)bookmarkWithNativeDictionary:(NSDictionary*)aDict
+{
+  // There used to be more than two possible status states, but now state just
+  // indicates whether or not it's a separator.
+  if ([[aDict objectForKey:BMStatusKey] unsignedIntValue] == kBookmarkSpacerStatus)
+    return [self separator];
+
+  Bookmark* bookmark = [self bookmarkWithTitle:[aDict objectForKey:BMTitleKey]
+                                           url:[aDict objectForKey:BMURLKey]];
+  [bookmark setItemDescription:[aDict objectForKey:BMDescKey]];
+  [bookmark setShortcut:[aDict objectForKey:BMShortcutKey]];
+  [bookmark setUUID:[aDict objectForKey:BMUUIDKey]];
+  [bookmark setLastVisit:[aDict objectForKey:BMLastVisitKey]];
+  [bookmark setNumberOfVisits:[[aDict objectForKey:BMNumberVisitsKey] unsignedIntValue]];
+  [bookmark setFaviconURL:[aDict objectForKey:BMLinkedFaviconURLKey]];
+
+  return bookmark;
+}
+
++ (Bookmark*)bookmarkWithSafariDictionary:(NSDictionary*)aDict
+{
+  NSDictionary* uriDict = [aDict objectForKey:SafariURIDictKey];
+  return [self bookmarkWithTitle:[uriDict objectForKey:SafariBookmarkTitleKey]
+                             url:[aDict objectForKey:SafariURLStringKey]];
 }
 
 - (id)init
@@ -277,44 +311,8 @@ NSString* const URLLoadSuccessKey     = @"url_bool";
 #pragma mark -
 
 //
-// for reading/writing from/to disk
+// for writing to disk
 //
-
-- (BOOL)readNativeDictionary:(NSDictionary *)aDict
-{
-  //gather the redundant update notifications
-  [self setAccumulateUpdateNotifications:YES];
-
-  [self setTitle:[aDict objectForKey:BMTitleKey]];
-  [self setItemDescription:[aDict objectForKey:BMDescKey]];
-  [self setShortcut:[aDict objectForKey:BMShortcutKey]];
-  [self setUrl:[aDict objectForKey:BMURLKey]];
-  [self setUUID:[aDict objectForKey:BMUUIDKey]];
-  [self setLastVisit:[aDict objectForKey:BMLastVisitKey]];
-  [self setNumberOfVisits:[[aDict objectForKey:BMNumberVisitsKey] unsignedIntValue]];
-  // There used to be more than two possible status states. Now we regard
-  // everything except kBookmarkSpacerStatus as kBookmarkOKStatus.
-  [self setIsSeparator:([[aDict objectForKey:BMStatusKey] unsignedIntValue] == kBookmarkSpacerStatus)];
-  [self setFaviconURL:[aDict objectForKey:BMLinkedFaviconURLKey]];
-
-  //fire an update notification
-  [self setAccumulateUpdateNotifications:NO];
-  return YES;
-}
-
-- (BOOL)readSafariDictionary:(NSDictionary *)aDict
-{
-  //gather the redundant update notifications
-  [self setAccumulateUpdateNotifications:YES];
-
-  NSDictionary *uriDict = [aDict objectForKey:SafariURIDictKey];
-  [self setTitle:[uriDict objectForKey:SafariBookmarkTitleKey]];
-  [self setUrl:[aDict objectForKey:SafariURLStringKey]];
-
-  //fire an update notification
-  [self setAccumulateUpdateNotifications:NO];
-  return YES;
-}
 
 //
 // -writeBookmarksMetaDatatoPath:

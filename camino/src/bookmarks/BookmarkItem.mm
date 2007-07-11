@@ -321,6 +321,14 @@ NSString* const SafariURLStringKey = @"URLString";
 
 - (void)itemUpdatedNote:(unsigned int)inChangeMask
 {
+  // If the bookmark hasn't been inserted into the tree yet then it doesn't
+  // matter if it changed, so don't bother sending the notification. Because
+  // we can't tell if it's the root of the bookmark tree (which always has a
+  // nil parent) we always have to let kBookmarkItemChildrenChangedMask
+  // notfications through.
+  if (![self parent] && !(inChangeMask & kBookmarkItemChildrenChangedMask))
+    return;
+
   if ([[BookmarkManager sharedBookmarkManager] areChangeNotificationsSuppressed])
     return;   // don't even accumulate the flags. caller is expected to update stuff manually
 
@@ -348,17 +356,7 @@ NSString* const SafariURLStringKey = @"URLString";
 
 #pragma mark -
 
-//Reading/writing to & from disk - all just stubs.
-
-- (BOOL)readNativeDictionary:(NSDictionary *)aDict
-{
-  return NO;
-}
-
-- (BOOL)readSafariDictionary:(NSDictionary *)aDict
-{
-  return NO;
-}
+// Writing to disk - all just stubs.
 
 - (void)writeBookmarksMetadataToPath:(NSString*)inPath
 {

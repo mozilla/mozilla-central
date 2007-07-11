@@ -1701,7 +1701,8 @@ static BookmarkManager* gBookmarkManager = nil;
         [tokenScanner scanUpToString:@"href=\"" intoString:nil];  // tokenScanner now contains HREF="[URL]">[TITLE]
         // check for a menu spacer, which will look like this: HREF="">&lt;Menu Spacer&gt; (bug 309008)
         if (![tokenScanner isAtEnd] && [[tokenString substringFromIndex:([tokenScanner scanLocation] + 8)] isEqualToString:@"&lt;Menu Spacer&gt;"])  {
-          currentItem = [currentArray addSeparator];
+          currentItem = [Bookmark separator];
+          [currentArray appendChild:currentItem];
           [tokenScanner release];
           [tokenTag release];
           [fileScanner setScanLocation:([fileScanner scanLocation] + 1)];
@@ -1720,13 +1721,15 @@ static BookmarkManager* gBookmarkManager = nil;
             [fileScanner setScanLocation:([fileScanner scanLocation] + 1)];
             continue;
           }
-          currentItem = [currentArray addBookmark];
-          [(Bookmark *)currentItem setUrl:[tempItem stringByRemovingAmpEscapes]];
+          NSString* url = [tempItem stringByRemovingAmpEscapes];
+          NSString* title = nil;
           [tokenScanner scanUpToString:@">" intoString:&tempItem];
           if (![tokenScanner isAtEnd]) {     // protect against malformed files
-            [currentItem setTitle:[[tokenString substringFromIndex:([tokenScanner scanLocation] + 1)] stringByRemovingAmpEscapes]];
+            title = [[tokenString substringFromIndex:([tokenScanner scanLocation] + 1)] stringByRemovingAmpEscapes];
             justSetTitle = YES;
           }
+          currentItem = [Bookmark bookmarkWithTitle:title url:url];
+          [currentArray appendChild:currentItem];
           // see if we had a shortcut
           if (isNetscape) {
             tempRange = [tempItem rangeOfString:@"SHORTCUTURL=\"" options:NSCaseInsensitiveSearch];
@@ -1822,8 +1825,9 @@ static BookmarkManager* gBookmarkManager = nil;
       }
       // Firefox menu separator
       else if ([tokenTag isEqualToString:@"<HR"]) {
-          currentItem = [currentArray addSeparator];
-          [fileScanner setScanLocation:(scanIndex + 1)];
+        currentItem = [Bookmark separator];
+        [currentArray appendChild:currentItem];
+        [fileScanner setScanLocation:(scanIndex + 1)];
       }
       else { //beats me.  just close the tag out and continue.
         [fileScanner scanUpToString:@">" intoString:NULL];
@@ -1878,14 +1882,15 @@ static BookmarkManager* gBookmarkManager = nil;
     }
     // Maybe it's a new URL!
     else if ([aLine hasPrefix:@"#URL"]) {
-      currentItem = [currentArray addBookmark];
+      currentItem = [Bookmark bookmarkWithTitle:nil url:nil];
+      [currentArray appendChild:currentItem];
     }
     // Perhaps a separator? This isn't how I'd spell it, but
     // then again, I'm not Norwagian, so what do I know.
     //                         ^
     //                     That's funny
     else if ([aLine hasPrefix:@"#SEPERATOR"]) {
-      currentItem = [currentArray addSeparator];
+      [currentArray appendChild:[Bookmark separator]];
       currentItem = nil;
     }
     // Or maybe this folder is being closed out.

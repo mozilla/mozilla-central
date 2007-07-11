@@ -50,6 +50,9 @@
 }
 
 + (Bookmark*)separator;
++ (Bookmark*)bookmarkWithTitle:(NSString*)aTitle url:(NSString*)aURL;
++ (Bookmark*)bookmarkWithNativeDictionary:(NSDictionary*)aDict;
++ (Bookmark*)bookmarkWithSafariDictionary:(NSDictionary*)aDict;
 
 - (NSString *)url;
 - (NSDate *)lastVisit;

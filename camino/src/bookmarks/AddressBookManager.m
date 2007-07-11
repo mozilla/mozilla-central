@@ -108,9 +108,8 @@ static NSString * const kABURLsProperty = @"URLs";
         if (!name)
           name = NSLocalizedString(@"<No Name>", nil);
       }
-      id bookmark = [mAddressBookFolder addBookmark];
-      [bookmark setTitle:name];
-      [bookmark setUrl:homepage];
+      [mAddressBookFolder appendChild:[Bookmark bookmarkWithTitle:name
+                                                              url:homepage]];
     }
   }
 }

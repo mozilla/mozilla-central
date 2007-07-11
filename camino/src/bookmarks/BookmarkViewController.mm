@@ -1034,11 +1034,13 @@ const int kOutlineViewLeftMargin = 19; // determined empirically, since it doesn
   // make sure we re-enable updates
   NS_DURING
     for (unsigned int i = 0; i < [urls count]; ++i) {
+      NSString* url = [urls objectAtIndex:i];
       NSString* title = [titles objectAtIndex:i];
       if ([title length] == 0)
-        title = [urls objectAtIndex:i];
-
-      [newBookmarks addObject:[dropFolder addBookmark:title url:[urls objectAtIndex:i] inPosition:(index + i)]];
+        title = url;
+      Bookmark* bookmark = [Bookmark bookmarkWithTitle:title url:url];
+      [dropFolder insertChild:bookmark atIndex:(index + i) isMove:NO];
+      [newBookmarks addObject:bookmark];
     }
   NS_HANDLER
   NS_ENDHANDLER

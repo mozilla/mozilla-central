@@ -131,10 +131,6 @@ enum
 // Methods called on startup for both bookmark & folder
 - (void)refreshIcon;
 
-  // for reading/writing to disk - unimplemented in BookmarkItem.
-- (BOOL)readNativeDictionary:(NSDictionary *)aDict;
-- (BOOL)readSafariDictionary:(NSDictionary *)aDict;
-
 - (void)writeBookmarksMetadataToPath:(NSString*)inPath;
 - (void)removeBookmarksMetadataFromPath:(NSString*)inPath;
 - (NSDictionary *)writeNativeDictionary;

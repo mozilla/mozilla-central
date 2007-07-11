@@ -707,8 +707,13 @@ static void VerticalGrayGradient(void* inInfo, float const* inData, float* outDa
     [[sender draggingPasteboard] getURLs:&urls andTitles:&titles];
 
     // Add in reverse order to preserve order
-    for (int i = [urls count] - 1; i >= 0; --i)
-      [toolbar addBookmark:[titles objectAtIndex:i] url:[urls objectAtIndex:i] inPosition:index];
+    for (int i = [urls count] - 1; i >= 0; --i) {
+      NSString* url = [urls objectAtIndex:i];
+      NSString* title = [titles objectAtIndex:i];
+      if ([title length] == 0)
+        title = url;
+      [toolbar insertChild:[Bookmark bookmarkWithTitle:title url:url] atIndex:index isMove:NO];
+    }
     dropHandled = YES;
   }
 

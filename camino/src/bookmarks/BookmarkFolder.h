@@ -98,16 +98,9 @@ enum {
 // methods used for saving to files; are guaranteed never to return nil
 - (id)savedSpecialFlag;
 
-// ways to add a new bookmark
-- (Bookmark *)addBookmark; //adds to end
-- (Bookmark *)addSeparator; //adds to end
-- (Bookmark *)addBookmark:(NSString *)aTitle url:(NSString *)aURL inPosition:(unsigned)aIndex;
-- (Bookmark *)addBookmark:(NSString *)aTitle
-               inPosition:(unsigned)aIndex
-                 shortcut:(NSString *)aShortcut
-                      url:(NSString *)aURL
-              description:(NSString *)aDescription
-                lastVisit:(NSDate *)aDate;
+// for reading from disk
+- (BOOL)readNativeDictionary:(NSDictionary *)aDict;
+- (BOOL)readSafariDictionary:(NSDictionary *)aDict;
 
 // ways to add a new bookmark array
 - (BookmarkFolder *)addBookmarkFolder; //adds to end

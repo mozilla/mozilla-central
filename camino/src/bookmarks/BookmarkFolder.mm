@@ -480,6 +480,10 @@ static int BookmarkItemSort(id firstItem, id secondItem, void* context)
 
 - (void)insertChild:(BookmarkItem *)aChild atIndex:(unsigned)aPosition isMove:(BOOL)inIsMove
 {
+  // Ensure that only folders are added to the root.
+  if ([self isRoot] && ![aChild isKindOfClass:[BookmarkFolder class]])
+    return;
+
   [aChild setParent:self];
   unsigned insertPoint = [mChildArray count];
   if (insertPoint > aPosition)
@@ -627,59 +631,31 @@ static int BookmarkItemSort(id firstItem, id secondItem, void* context)
   return theBookmark;
 }
 
-- (Bookmark *)addSeparator
-{
-  if ([self isRoot])
-    return nil;
-
-  Bookmark* separator = [Bookmark separator];
-  [self appendChild:separator];
-  return separator;
-}
-
 // adding from native plist
 - (BOOL)addBookmarkFromNativeDict:(NSDictionary *)aDict
 {
-  return [[self addBookmark] readNativeDictionary:aDict];
+  if ([self isRoot])
+    return NO;
+
+  Bookmark* theBookmark = [Bookmark bookmarkWithNativeDictionary:aDict];
+  if (!theBookmark)
+    return NO;
+
+  [self appendChild:theBookmark];
+  return YES;
 }
 
 - (BOOL)addBookmarkFromSafariDict:(NSDictionary *)aDict
 {
-  return [[self addBookmark] readSafariDictionary:aDict];
-}
+  if ([self isRoot])
+    return NO;
 
-- (Bookmark *)addBookmark:(NSString *)aTitle url:(NSString *)aURL inPosition:(unsigned)aIndex
-{
-  if ([aTitle length] == 0)
-    aTitle = aURL;
-  return [self addBookmark:aTitle
-                inPosition:aIndex
-                  shortcut:@""
-                       url:aURL
-               description:@""
-                 lastVisit:[NSDate date]];
-}
+  Bookmark* theBookmark = [Bookmark bookmarkWithSafariDictionary:aDict];
+  if (!theBookmark)
+    return NO;
 
-// full bodied addition
-- (Bookmark *)addBookmark:(NSString *)aTitle
-               inPosition:(unsigned)aPosition
-                 shortcut:(NSString *)aShortcut
-                      url:(NSString *)aURL
-              description:(NSString *)aDescription
-                lastVisit:(NSDate *)aDate
-{
-  if (![self isRoot]) {
-    Bookmark *theBookmark = [[Bookmark alloc] init];
-    [theBookmark setTitle:aTitle];
-    [theBookmark setShortcut:aShortcut];
-    [theBookmark setUrl:aURL];
-    [theBookmark setItemDescription:aDescription];
-    [theBookmark setLastVisit:aDate];
-    [self insertChild:theBookmark atIndex:aPosition isMove:NO];
-    [theBookmark release];
-    return theBookmark;
-  }
-  return nil;
+  [self appendChild:theBookmark];
+  return YES;
 }
 
 //
