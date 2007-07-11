@@ -39,7 +39,7 @@
 #define _PKCS11N_H_
 
 #ifdef DEBUG
-static const char CKT_CVS_ID[] = "@(#) $RCSfile: pkcs11n.h,v $ $Revision: 1.16 $ $Date: 2007-06-13 00:24:56 $";
+static const char CKT_CVS_ID[] = "@(#) $RCSfile: pkcs11n.h,v $ $Revision: 1.17 $ $Date: 2007-07-11 04:41:54 $";
 #endif /* DEBUG */
 
 /*
@@ -166,18 +166,18 @@ static const char CKT_CVS_ID[] = "@(#) $RCSfile: pkcs11n.h,v $ $Revision: 1.16 $
  * PKCS #11 interface. Most of these are place holders for other mechanism
  * and will change in the future.
  */
-#define CKM_NETSCAPE_PBE_SHA1_DES_CBC           0x80000002L
-#define CKM_NETSCAPE_PBE_SHA1_TRIPLE_DES_CBC    0x80000003L
-#define CKM_NETSCAPE_PBE_SHA1_40_BIT_RC2_CBC    0x80000004L
-#define CKM_NETSCAPE_PBE_SHA1_128_BIT_RC2_CBC   0x80000005L
-#define CKM_NETSCAPE_PBE_SHA1_40_BIT_RC4        0x80000006L
-#define CKM_NETSCAPE_PBE_SHA1_128_BIT_RC4       0x80000007L
-#define CKM_NETSCAPE_PBE_SHA1_FAULTY_3DES_CBC   0x80000008L
-#define CKM_NETSCAPE_PBE_SHA1_HMAC_KEY_GEN      0x80000009L
-#define CKM_NETSCAPE_PBE_MD5_HMAC_KEY_GEN       0x8000000aL
-#define CKM_NETSCAPE_PBE_MD2_HMAC_KEY_GEN       0x8000000bL
+#define CKM_NETSCAPE_PBE_SHA1_DES_CBC           0x80000002UL
+#define CKM_NETSCAPE_PBE_SHA1_TRIPLE_DES_CBC    0x80000003UL
+#define CKM_NETSCAPE_PBE_SHA1_40_BIT_RC2_CBC    0x80000004UL
+#define CKM_NETSCAPE_PBE_SHA1_128_BIT_RC2_CBC   0x80000005UL
+#define CKM_NETSCAPE_PBE_SHA1_40_BIT_RC4        0x80000006UL
+#define CKM_NETSCAPE_PBE_SHA1_128_BIT_RC4       0x80000007UL
+#define CKM_NETSCAPE_PBE_SHA1_FAULTY_3DES_CBC   0x80000008UL
+#define CKM_NETSCAPE_PBE_SHA1_HMAC_KEY_GEN      0x80000009UL
+#define CKM_NETSCAPE_PBE_MD5_HMAC_KEY_GEN       0x8000000aUL
+#define CKM_NETSCAPE_PBE_MD2_HMAC_KEY_GEN       0x8000000bUL
 
-#define CKM_TLS_PRF_GENERAL                     0x80000373L
+#define CKM_TLS_PRF_GENERAL                     0x80000373UL
 
 /*
  * NSS-defined return values
