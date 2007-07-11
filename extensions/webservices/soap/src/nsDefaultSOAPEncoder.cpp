@@ -1307,7 +1307,7 @@ static nsresult EncodeArray(nsISOAPEncoding* aEncoding, nsIVariant* aSource, nsI
 
 #define ENCODE_SIMPLE_ARRAY(XPType, VType, Source)    \
   {                                                   \
-    XPType* values = static_cast<XPType*>(array);  \
+    XPType* values = static_cast<XPType*>(array);     \
     nsCOMPtr<nsIWritableVariant> p =                  \
       do_CreateInstance(NS_VARIANT_CONTRACTID, &rc);  \
     if (NS_FAILED(rc)) break;                         \
