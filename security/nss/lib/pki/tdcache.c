@@ -35,7 +35,7 @@
  * ***** END LICENSE BLOCK ***** */
 
 #ifdef DEBUG
-static const char CVS_ID[] = "@(#) $RCSfile: tdcache.c,v $ $Revision: 1.45 $ $Date: 2006-10-09 22:29:12 $";
+static const char CVS_ID[] = "@(#) $RCSfile: tdcache.c,v $ $Revision: 1.46 $ $Date: 2007-07-11 04:47:42 $";
 #endif /* DEBUG */
 
 #ifndef PKIM_H
@@ -954,7 +954,7 @@ nssTrustDomain_GetCertsForSubjectFromCache (
 NSS_IMPLEMENT NSSCertificate **
 nssTrustDomain_GetCertsForNicknameFromCache (
   NSSTrustDomain *td,
-  NSSUTF8 *nickname,
+  const NSSUTF8 *nickname,
   nssList *certListOpt
 )
 {

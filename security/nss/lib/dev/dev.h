@@ -44,7 +44,7 @@
  */
 
 #ifdef DEBUG
-static const char DEV_CVS_ID[] = "@(#) $RCSfile: dev.h,v $ $Revision: 1.37 $ $Date: 2005-03-07 21:20:38 $";
+static const char DEV_CVS_ID[] = "@(#) $RCSfile: dev.h,v $ $Revision: 1.38 $ $Date: 2007-07-11 04:47:41 $";
 #endif /* DEBUG */
 
 #ifndef NSSCKT_H
@@ -520,7 +520,7 @@ nssToken_FindCertificatesByNickname
 (
   NSSToken *token,
   nssSession *sessionOpt,
-  NSSUTF8 *name,
+  const NSSUTF8 *name,
   nssTokenSearchType searchType,
   PRUint32 maximumOpt,
   PRStatus *statusOpt

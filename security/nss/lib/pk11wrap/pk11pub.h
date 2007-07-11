@@ -82,10 +82,12 @@ void PK11_LogoutAll(void);
 void PK11_SetSlotPWValues(PK11SlotInfo *slot,int askpw, int timeout);
 void PK11_GetSlotPWValues(PK11SlotInfo *slot,int *askpw, int *timeout);
 SECStatus PK11_CheckSSOPassword(PK11SlotInfo *slot, char *ssopw);
-SECStatus PK11_CheckUserPassword(PK11SlotInfo *slot,char *pw);
+SECStatus PK11_CheckUserPassword(PK11SlotInfo *slot, const char *pw);
 PRBool PK11_IsLoggedIn(PK11SlotInfo *slot, void *wincx);
-SECStatus PK11_InitPin(PK11SlotInfo *slot,char *ssopw, char *pk11_userpwd);
-SECStatus PK11_ChangePW(PK11SlotInfo *slot,char *oldpw, char *newpw);
+SECStatus PK11_InitPin(PK11SlotInfo *slot,const char *ssopw,
+                       const char *pk11_userpwd);
+SECStatus PK11_ChangePW(PK11SlotInfo *slot, const char *oldpw,
+                        const char *newpw);
 void PK11_SetPasswordFunc(PK11PasswordFunc func);
 int PK11_GetMinimumPwdLength(PK11SlotInfo *slot);
 SECStatus PK11_ResetToken(PK11SlotInfo *slot, char *sso_pwd);
@@ -557,8 +559,8 @@ SECItem *PK11_MakeIDFromPubKey(SECItem *pubKeyData);
 SECStatus PK11_TraverseSlotCerts(
      SECStatus(* callback)(CERTCertificate*,SECItem *,void *),
                                                 void *arg, void *wincx);
-CERTCertificate * PK11_FindCertFromNickname(char *nickname, void *wincx);
-CERTCertList * PK11_FindCertsFromNickname(char *nickname, void *wincx);
+CERTCertificate * PK11_FindCertFromNickname(const char *nickname, void *wincx);
+CERTCertList * PK11_FindCertsFromNickname(const char *nickname, void *wincx);
 CERTCertificate *PK11_GetCertFromPrivateKey(SECKEYPrivateKey *privKey);
 SECStatus PK11_ImportCert(PK11SlotInfo *slot, CERTCertificate *cert,
                 CK_OBJECT_HANDLE key, char *nickname, PRBool includeTrust);

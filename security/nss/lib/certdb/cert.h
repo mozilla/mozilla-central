@@ -37,7 +37,7 @@
 /*
  * cert.h - public data structures and prototypes for the certificate library
  *
- * $Id: cert.h,v 1.57 2007-05-25 07:28:31 alexei.volkov.bugs%sun.com Exp $
+ * $Id: cert.h,v 1.58 2007-07-11 04:47:41 julien.pierre.bugs%sun.com Exp $
  */
 
 #ifndef _CERT_H_
@@ -543,7 +543,7 @@ CERT_FindCertBySubjectKeyID (CERTCertDBHandle *handle, SECItem *subjKeyID);
 **	"nickname" is the ascii string nickname to look for
 */
 extern CERTCertificate *
-CERT_FindCertByNickname (CERTCertDBHandle *handle, char *nickname);
+CERT_FindCertByNickname (CERTCertDBHandle *handle, const char *nickname);
 
 /*
 ** Find a certificate in the database by a DER encoded certificate
@@ -564,7 +564,7 @@ CERT_FindCertByEmailAddr(CERTCertDBHandle *handle, char *emailAddr);
 **	"name" is the email address or nickname to look up
 */
 CERTCertificate *
-CERT_FindCertByNicknameOrEmailAddr(CERTCertDBHandle *handle, char *name);
+CERT_FindCertByNicknameOrEmailAddr(CERTCertDBHandle *handle, const char *name);
 
 /*
 ** Find a certificate in the database by a digest of a subject public key
@@ -1075,7 +1075,7 @@ void
 CERT_DestroyCertArray(CERTCertificate **certs, unsigned int ncerts);
 
 /* convert an email address to lower case */
-char *CERT_FixupEmailAddr(char *emailAddr);
+char *CERT_FixupEmailAddr(const char *emailAddr);
 
 /* decode string representation of trust flags into trust struct */
 SECStatus
@@ -1199,15 +1199,6 @@ CERT_GovtApprovedBitSet(CERTCertificate *cert);
 
 SECStatus
 CERT_AddPermNickname(CERTCertificate *cert, char *nickname);
-
-/*
- * Given a cert, find the cert with the same subject name that
- * has the given key usage.  If the given cert has the correct keyUsage, then
- * return it, otherwise search the list in order.
- */
-CERTCertificate *
-CERT_FindCertByUsage(CERTCertificate *basecert, unsigned int requiredKeyUsage);
-
 
 CERTCertList *
 CERT_MatchUserCert(CERTCertDBHandle *handle,
@@ -1352,7 +1343,7 @@ CERT_FindUserCertsByUsage(CERTCertDBHandle *handle,
  */
 CERTCertificate *
 CERT_FindUserCertByUsage(CERTCertDBHandle *handle,
-			 char *nickname,
+			 const char *nickname,
 			 SECCertUsage usage,
 			 PRBool validOnly,
 			 void *proto_win);

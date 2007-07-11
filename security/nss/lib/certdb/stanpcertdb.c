@@ -439,7 +439,7 @@ done:
 }
 
 CERTCertificate *
-CERT_FindCertByNickname(CERTCertDBHandle *handle, char *nickname)
+CERT_FindCertByNickname(CERTCertDBHandle *handle, const char *nickname)
 {
     NSSCryptoContext *cc;
     NSSCertificate *c, *ct;
@@ -481,7 +481,7 @@ CERT_FindCertByDERCert(CERTCertDBHandle *handle, SECItem *derCert)
 }
 
 CERTCertificate *
-CERT_FindCertByNicknameOrEmailAddr(CERTCertDBHandle *handle, char *name)
+CERT_FindCertByNicknameOrEmailAddr(CERTCertDBHandle *handle, const char *name)
 {
     NSSCryptoContext *cc;
     NSSCertificate *c, *ct;

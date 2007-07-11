@@ -38,7 +38,7 @@
 /*
  * Certificate handling code
  *
- * $Id: certdb.c,v 1.78 2006-08-07 19:09:41 julien.pierre.bugs%sun.com Exp $
+ * $Id: certdb.c,v 1.79 2007-07-11 04:47:41 julien.pierre.bugs%sun.com Exp $
  */
 
 #include "nssilock.h"
@@ -2036,7 +2036,7 @@ CERT_DestroyCertArray(CERTCertificate **certs, unsigned int ncerts)
 }
 
 char *
-CERT_FixupEmailAddr(char *emailAddr)
+CERT_FixupEmailAddr(const char *emailAddr)
 {
     char *retaddr;
     char *str;

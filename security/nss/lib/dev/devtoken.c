@@ -35,7 +35,7 @@
  * ***** END LICENSE BLOCK ***** */
 
 #ifdef DEBUG
-static const char CVS_ID[] = "@(#) $RCSfile: devtoken.c,v $ $Revision: 1.39 $ $Date: 2005-01-20 02:25:47 $";
+static const char CVS_ID[] = "@(#) $RCSfile: devtoken.c,v $ $Revision: 1.40 $ $Date: 2007-07-11 04:47:41 $";
 #endif /* DEBUG */
 
 #ifndef NSSCKEPV_H
@@ -737,7 +737,7 @@ NSS_IMPLEMENT nssCryptokiObject **
 nssToken_FindCertificatesByNickname (
   NSSToken *token,
   nssSession *sessionOpt,
-  NSSUTF8 *name,
+  const NSSUTF8 *name,
   nssTokenSearchType searchType,
   PRUint32 maximumOpt,
   PRStatus *statusOpt

@@ -38,7 +38,7 @@
 #define NSSPKI_H
 
 #ifdef DEBUG
-static const char NSSPKI_CVS_ID[] = "@(#) $RCSfile: nsspki.h,v $ $Revision: 1.11 $ $Date: 2006-08-22 03:30:14 $";
+static const char NSSPKI_CVS_ID[] = "@(#) $RCSfile: nsspki.h,v $ $Revision: 1.12 $ $Date: 2007-07-11 04:47:42 $";
 #endif /* DEBUG */
 
 /*
@@ -1709,7 +1709,7 @@ NSS_EXTERN NSSCertificate *
 NSSTrustDomain_FindBestCertificateByNickname
 (
   NSSTrustDomain *td,
-  NSSUTF8 *name,
+  const NSSUTF8 *name,
   NSSTime *timeOpt, /* NULL for "now" */
   NSSUsage *usage,
   NSSPolicies *policiesOpt /* NULL for none */
@@ -2305,7 +2305,7 @@ NSS_EXTERN NSSCertificate *
 NSSCryptoContext_FindBestCertificateByNickname
 (
   NSSCryptoContext *cc,
-  NSSUTF8 *name,
+  const NSSUTF8 *name,
   NSSTime *timeOpt, /* NULL for "now" */
   NSSUsage *usage,
   NSSPolicies *policiesOpt /* NULL for none */

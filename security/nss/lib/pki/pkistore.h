@@ -38,7 +38,7 @@
 #define PKISTORE_H
 
 #ifdef DEBUG
-static const char PKISTORE_CVS_ID[] = "@(#) $RCSfile: pkistore.h,v $ $Revision: 1.10 $ $Date: 2006-08-22 03:30:14 $";
+static const char PKISTORE_CVS_ID[] = "@(#) $RCSfile: pkistore.h,v $ $Revision: 1.11 $ $Date: 2007-07-11 04:47:42 $";
 #endif /* DEBUG */
 
 #ifndef NSSPKIT_H
@@ -144,7 +144,7 @@ NSS_EXTERN NSSCertificate **
 nssCertificateStore_FindCertificatesByNickname
 (
   nssCertificateStore *store,
-  NSSUTF8 *nickname,
+  const NSSUTF8 *nickname,
   NSSCertificate *rvOpt[],
   PRUint32 maximumOpt,
   NSSArena *arenaOpt

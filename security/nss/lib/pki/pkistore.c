@@ -35,7 +35,7 @@
  * ***** END LICENSE BLOCK ***** */
 
 #ifdef DEBUG
-static const char CVS_ID[] = "@(#) $RCSfile: pkistore.c,v $ $Revision: 1.28 $ $Date: 2006-08-22 03:30:14 $";
+static const char CVS_ID[] = "@(#) $RCSfile: pkistore.c,v $ $Revision: 1.29 $ $Date: 2007-07-11 04:47:42 $";
 #endif /* DEBUG */
 
 #ifndef PKIM_H
@@ -464,7 +464,7 @@ static void match_nickname(const void *k, void *v, void *a)
 NSS_IMPLEMENT NSSCertificate **
 nssCertificateStore_FindCertificatesByNickname (
   nssCertificateStore *store,
-  NSSUTF8 *nickname,
+  const NSSUTF8 *nickname,
   NSSCertificate *rvOpt[],
   PRUint32 maximumOpt,
   NSSArena *arenaOpt
@@ -472,7 +472,7 @@ nssCertificateStore_FindCertificatesByNickname (
 {
     NSSCertificate **rvArray = NULL;
     struct nickname_template_str nt;
-    nt.nickname = nickname;
+    nt.nickname = (char*) nickname;
     nt.subjectList = NULL;
     PZ_Lock(store->lock);
     nssHash_Iterate(store->subject, match_nickname, &nt);
