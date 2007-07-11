@@ -40,7 +40,7 @@
  * secdert.h - public data structures for the DER encoding and
  *	       decoding utilities library
  *
- * $Id: secdert.h,v 1.2 2004-04-25 15:03:18 gerv%gerv.net Exp $
+ * $Id: secdert.h,v 1.3 2007-07-11 23:38:03 julien.pierre.bugs%sun.com Exp $
  */
 
 typedef struct DERTemplateStr DERTemplate;
@@ -157,6 +157,8 @@ struct DERTemplateStr {
     (item)->len = ((item)->len + 7) >> 3; \
 }
 
+SEC_BEGIN_PROTOS
+
 extern DERTemplate SECAnyTemplate[];
 extern DERTemplate SECBitStringTemplate[];
 extern DERTemplate SECBooleanTemplate[];
@@ -169,5 +171,7 @@ extern DERTemplate SECPrintableStringTemplate[];
 extern DERTemplate SECT61StringTemplate[];
 extern DERTemplate SECUTCTimeTemplate[];
 extern DERTemplate SECAlgorithmIDTemplate[];
+
+SEC_END_PROTOS
 
 #endif /* _SECDERT_H_ */
