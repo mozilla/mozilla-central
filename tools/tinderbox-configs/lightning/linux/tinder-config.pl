@@ -28,7 +28,7 @@ $ENV{'PATH'} = "/opt/gcc-3.3.2rh/bin:$ENV{'PATH'}";
 
 #- PLEASE FILL THIS IN WITH YOUR PROPER EMAIL ADDRESS
 #$BuildAdministrator = "$ENV{USER}\@$ENV{HOST}";
-#$BuildAdministrator = ($ENV{USER} || "cltbld") . "\@" . ($ENV{HOST} || "dhcp");
+#$BuildAdministrator = ($ENV{USER} || "calbld") . "\@" . ($ENV{HOST} || "dhcp");
 
 #- You'll need to change these to suit your machine's needs
 #$DisplayServer = ':0.0';
@@ -136,7 +136,7 @@ $ProductName              = "Thunderbird";
 # :pserver:$ENV{USER}%netscape.com@cvs.mozilla.org:/cvsroot
 
 #$moz_cvsroot   = $ENV{CVSROOT};
-$moz_cvsroot   = ':ext:cltbld@cvs.mozilla.org:/cvsroot';
+$moz_cvsroot   = ':ext:calbld@cvs.mozilla.org:/cvsroot';
 #$moz_cvsroot   = ":pserver:anonymous\@cvs-mirror.mozilla.org:/cvsroot";
 
 #- Set these proper values for your tinderbox server
@@ -198,7 +198,7 @@ $build_hour    = "3";
 #$package_creation_path = "/xpinstall/packager";
 # needs setting for mac + talkback: $mac_bundle_path = "/browser/app";
 $ssh_version   = "2";
-#$ssh_user      = "cltbld";
+$ssh_user      = "calbld";
 #$ssh_server    = "stage.mozilla.org";
 $ftp_path      = "/home/ftp/pub/calendar/lightning/nightly";
 $url_path      = "http://ftp.mozilla.org/pub/mozilla.org/calendar/lightning/nightly";
