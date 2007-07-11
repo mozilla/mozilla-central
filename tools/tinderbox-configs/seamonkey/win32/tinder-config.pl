@@ -40,7 +40,7 @@ $DisplayServer = ':0.0';
 
 #- Default values of command-line opts
 #-
-#$BuildDepend       = 1;      # Depend or Clobber
+$BuildDepend       = 1;      # Depend or Clobber
 #$BuildDebug        = 0;      # Debug or Opt (Darwin)
 $ReportStatus      = 1;      # Send results to server, or not
 $ReportFinalStatus = 1;      # Finer control over $ReportStatus.
@@ -148,7 +148,7 @@ $moz_cvsroot   = ':ext:seabld@cvs.mozilla.org:/cvsroot';
 #$ObjDir = '';
 
 # Extra build name, if needed.
-$BuildNameExtra = 'VM-release';
+$BuildNameExtra = 'Nightly';
 
 # User comment, eg. ip address for dhcp builds.
 # ex: $UserComment = "ip = 208.12.36.108";
