@@ -73,8 +73,8 @@
 #import "SiteIconProvider.h"
 #import "SessionManager.h"
 #import "CHPermissionManager.h"
+#import "CmXULAppInfo.h"
 
-#include "nsBuildID.h"
 #include "nsCOMPtr.h"
 #include "nsEmbedAPI.h"
 #include "nsString.h"
@@ -901,7 +901,7 @@ NSString* const kPreviousSessionTerminatedNormallyKey = @"PreviousSessionTermina
 //
 - (IBAction)aboutWindow:(id)sender
 {
-  NSString* version = [NSString stringWithFormat:@"%010u", NS_BUILD_ID];
+  NSString* version = [XULAppInfo appBuildID];
   NSDictionary* d = [NSDictionary dictionaryWithObject:version forKey:@"ApplicationVersion"];
   [NSApp orderFrontStandardAboutPanelWithOptions:d];
 }

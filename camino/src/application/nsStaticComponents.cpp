@@ -24,6 +24,7 @@
  *   Christopher Seawood <cls@seawood.org>
  *   Chris Waterson <waterson@netscape.com>
  *   Benjamin Smedberg <benjamin@smedbergs.us>
+ *   Mark Mentovai <mark@moxienet.com>
  *
  * Alternatively, the contents of this file may be used under the terms of
  * either the GNU General Public License Version 2 or later (the "GPL"), or
@@ -51,7 +52,9 @@
  */
 #define NSGETMODULE(_name) _name##_NSGetModule
 
+#ifdef _BUILD_STATIC_BIN
 #define MODULES \
+    MODULE(CmXULAppInfoModule) \
     MODULE(xpcomObsoleteModule) \
     MODULE(nsI18nModule) \
     MODULE(nsChardetModule) \
@@ -90,6 +93,11 @@
     MODULE(BOOT) \
     MODULE(NSS) \
     /* end of list */
+#else  // _BUILD_STATIC_BIN
+#define MODULES \
+    MODULE(CmXULAppInfoModule) \
+    /* end of list */
+#endif  // _BUILD_STATIC_BIN
 
 /**
  * Declare the NSGetModule() routine for each module

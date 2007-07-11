@@ -45,8 +45,8 @@
 #import "UserDefaults.h"
 #import "CHBrowserService.h"
 #import "CHISupportsOwner.h"
+#import "CmXULAppInfo.h"
 
-#include "nsBuildID.h"
 #include "nsString.h"
 #include "nsCRT.h"
 #include "nsWeakReference.h"
@@ -64,11 +64,6 @@
 #include "nsStaticComponents.h"
 #include "nsILocalFileMac.h"
 #include "nsINIParser.h"
-
-#ifndef _BUILD_STATIC_BIN
-nsStaticModuleInfo const *const kPStaticModules = nsnull;
-PRUint32 const kStaticModuleCount = 0;
-#endif
 
 #define CUSTOM_PROFILE_DIR  "CAMINO_PROFILE_DIR"
 
@@ -538,11 +533,14 @@ static BOOL gMadePrefManager;
       return NO;
     }
 
-    const char* appVersion = [[[NSBundle mainBundle] objectForInfoDictionaryKey:@"CFBundleShortVersionString"] UTF8String];
     nsCAutoString version;
-    version.Assign(appVersion);
+    version.Assign([[XULAppInfo version] UTF8String]);
+    version.Append('_');
+    version.Append([[XULAppInfo appBuildID] UTF8String]);
     version.Append('/');
-    version.AppendLiteral(GRE_BUILD_ID);
+    version.Append([[XULAppInfo platformVersion] UTF8String]);
+    version.Append('_');
+    version.Append([[XULAppInfo platformBuildID] UTF8String]);
 
 #ifdef __ppc__
     NS_NAMED_LITERAL_CSTRING(osABI, "Darwin_ppc-gcc3");

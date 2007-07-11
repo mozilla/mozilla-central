@@ -51,8 +51,15 @@ DIRS = \
 
 APP_NAME	= Camino
 
-FOX_APP_VERSION_FILE = $(srcdir)/../browser/config/version.txt
+PYTHON ?= python
+
+FOX_APP_VERSION_FILE = $(topsrcdir)/browser/config/version.txt
 FOX_APP_VERSION = $(shell cat $(FOX_APP_VERSION_FILE))
+PLATFORM_VERSION_FILE = $(topsrcdir)/config/milestone.txt
+PLATFORM_VERSION = $(shell egrep -m 1 "^[^\#]+" $(PLATFORM_VERSION_FILE))
+PLATFORM_BUILD_ID_FILE = generated/platform_build_id
+PLATFORM_BUILD_ID = $(shell $(PYTHON) $(topsrcdir)/toolkit/xre/make-platformini.py --print-buildid)
+PLATFORM_INI_FILE = $(DIST)/bin/platform.ini
 
 ifdef MOZ_DEBUG
 BUILDSTYLE	= Development
@@ -88,17 +95,37 @@ clean clobber repackage::
 	rm -rf $(DIST)/$(APP_NAME).app
 	rm -rf embed-replacements.tmp
 	rm -rf generated
+	rm -rf $(PLATFORM_INI_FILE)
 
 generated:
 	mkdir -p $@
 
 # Generate files which need to pull version numbers from elsewhere in the tree
 generated/all-camino.js: $(srcdir)/resources/application/all-camino.js.in $(FOX_APP_VERSION_FILE) generated
-	sed -e "s/@FOX_APP_VERSION@/$(FOX_APP_VERSION)/" $< > $@
+	sed -e "s/%FOX_APP_VERSION%/$(FOX_APP_VERSION)/" $< > $@
+
+# This will only touch the build ID file if the build ID has changed.  The
+# file's timestamp will be preserved when the build ID hasn't changed,
+# reducing unnecessary build activity.
+$(PLATFORM_BUILD_ID_FILE): FORCE
+	grep -lFx "$(PLATFORM_BUILD_ID)" $@ >& /dev/null || \
+	  echo $(PLATFORM_BUILD_ID) > $@
+
+# Put platform.ini into $(DIST)/bin, because that's where Tinderbox looks to
+# figure out the build ID.  It currently doesn't need to be distributed with
+# the application.
+$(PLATFORM_INI_FILE): $(PLATFORM_BUILD_ID_FILE) $(PLATFORM_VERSION_FILE)
+	echo [Build] > $@
+	echo BuildID=$(PLATFORM_BUILD_ID) >> $@
+	echo Milestone=$(PLATFORM_VERSION) >> $@
+
+generated/CmXULAppData.h: $(srcdir)/src/embedding/CmXULAppData.h.in $(PLATFORM_BUILD_ID_FILE) $(PLATFORM_VERSION_FILE)
+	sed -e "s/%PLATFORM_BUILD_ID%/$(PLATFORM_BUILD_ID)/" \
+	    -e "s/%PLATFORM_VERSION%/$(PLATFORM_VERSION)/" $< > $@
 
 # The embed-replacements rsync is done for both srcdir and objdir builds
 # to avoid adding CVS stuff to embed.jar.
-libs:: generated/all-camino.js
+libs:: generated/all-camino.js generated/CmXULAppData.h $(PLATFORM_INI_FILE)
 	rsync -aC --delete $(srcdir)/embed-replacements/ embed-replacements.tmp
 	cd embed-replacements.tmp && $(ZIP) -r0DX ../../dist/Embed/chrome/embed.jar *
 	$(PBBUILD) -project Camino.xcode -target $(TARGET) -buildstyle $(BUILDSTYLE) $(PBBUILD_SETTINGS)
