@@ -49,7 +49,6 @@
   NSMutableArray* mButtons;
   BookmarkButton* mDragInsertionButton;
   int             mDragInsertionPosition;
-  BOOL            mIsShowing;
   BOOL            mDrawBorder;
   BOOL            mButtonListDirty;   // do we need a full rebuild of the button list?
 }

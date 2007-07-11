@@ -92,7 +92,6 @@ static const int kBMBarScanningStep = 5;
                                                             NSURLPboardType,
                                                             nil]];
 
-    mIsShowing = YES;
     mButtonListDirty = YES;
 
     // Generic notifications for Bookmark Client
@@ -427,28 +426,16 @@ static void VerticalGrayGradient(void* inInfo, float const* inData, float* outDa
 
 - (BOOL)isVisible
 {
-  return mIsShowing;
+  return ![self isHidden];
 }
 
-- (void)setVisible:(BOOL)aShow
+- (void)setVisible:(BOOL)isVisible
 {
-  mIsShowing = aShow;
+  [self setHidden:!isVisible];
+  [[self superview] resizeSubviewsWithOldSize:[[self superview] frame].size];
 
-  if (!aShow) {
-    [[self superview] setNeedsDisplayInRect:[self frame]];
-    NSRect newFrame = [self frame];
-    newFrame.origin.y += newFrame.size.height;
-    newFrame.size.height = 0;
-    [self setFrame:newFrame];
-
-    // tell the superview to resize its subviews
-    [[self superview] resizeSubviewsWithOldSize:[[self superview] frame].size];
-  }
-  else {
+  if (isVisible)
     [self reflowButtons];
-    [self setNeedsDisplay:YES];
-  }
-
 }
 
 - (void)setDrawBottomBorder:(BOOL)drawBorder
