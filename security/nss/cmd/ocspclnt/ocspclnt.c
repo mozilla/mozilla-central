@@ -37,7 +37,7 @@
 /*
  * Test program for client-side OCSP.
  *
- * $Id: ocspclnt.c,v 1.9 2007-03-01 00:30:18 alexei.volkov.bugs%sun.com Exp $
+ * $Id: ocspclnt.c,v 1.10 2007-07-11 23:40:02 nelson%bolyard.com Exp $
  */
 
 #include "secutil.h"
@@ -61,7 +61,19 @@
 #include "ocspti.h"	/* internals for pretty-printing routines *only* */
 #endif	/* NO_PP */
 
+#if defined(XP_UNIX)
+#include <unistd.h>
+#endif
+
+#if defined(_WIN32)
+#include "fcntl.h"
+#include "io.h"
+#endif
+
 #define DEFAULT_DB_DIR	"~/.netscape"
+
+/* global */
+char	*program_name;
 
 
 static void
@@ -180,6 +192,25 @@ long_usage (char *program_name)
 		"%-17s %-25s (earlier than GMT)\n", "", "YYMMDDhhmm[ss]-hhmm");
 }
 
+#if defined(WIN32)
+/* We're going to write binary data to stdout, or read binary from stdin. 
+ * We must put stdout or stdin into O_BINARY mode or else 
+   outgoing \n's will become \r\n's, and incoming \r\n's will become \n's.
+*/
+static SECStatus
+make_file_binary(FILE * binfile)
+{
+    int smrv = _setmode(_fileno(binfile), _O_BINARY);
+    if (smrv == -1) {
+        fprintf(stderr, "%s: Cannot change stdout to binary mode.\n",
+                  program_name);
+    }
+    return smrv;
+}
+#define MAKE_FILE_BINARY make_file_binary
+#else
+#define MAKE_FILE_BINARY(file) 
+#endif
 
 /*
  * XXX This is a generic function that would probably make a good
@@ -303,6 +334,7 @@ create_request (FILE *out_file, CERTCertDBHandle *handle, CERTCertificate *cert,
     if (encoding == NULL)
 	goto loser;
 
+    MAKE_FILE_BINARY(out_file);
     if (fwrite (encoding->data, encoding->len, 1, out_file) != 1)
 	goto loser;
 
@@ -379,6 +411,7 @@ dump_response (FILE *out_file, CERTCertDBHandle *handle, CERTCertificate *cert,
     if (response == NULL)
 	goto loser;
 
+    MAKE_FILE_BINARY(out_file);
     if (fwrite (response->data, response->len, 1, out_file) != 1)
 	goto loser;
 
@@ -952,7 +985,6 @@ int
 main (int argc, char **argv)
 {
     int		 retval;
-    char	*program_name;
     PRFileDesc	*in_file;
     FILE	*out_file;	/* not PRFileDesc until SECU accepts it */
     int		 crequest, dresponse;
@@ -1150,6 +1182,7 @@ main (int argc, char **argv)
     SECU_RegisterDynamicOids();
 
     if (prequest + presponse) {
+	MAKE_FILE_BINARY(stdin);
 	data = read_file_into_item (in_file, siBuffer);
 	if (data == NULL) {
 	    SECU_PrintError (program_name, "problem reading input");
