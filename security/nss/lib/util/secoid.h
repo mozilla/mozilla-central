@@ -39,7 +39,7 @@
 /*
  * secoid.h - public data structures and prototypes for ASN.1 OID functions
  *
- * $Id: secoid.h,v 1.6 2004-04-25 15:03:18 gerv%gerv.net Exp $
+ * $Id: secoid.h,v 1.7 2007-07-11 23:28:31 nelson%bolyard.com Exp $
  */
 
 #include "plarena.h"
@@ -123,6 +123,21 @@ extern SECOidTag SECOID_AddEntry(const SECOidData * src);
  */
 extern SECStatus SECOID_Shutdown(void);
 
+/* if to->data is not NULL, and to->len is large enough to hold the result,
+ * then the resultant OID will be copyed into to->data, and to->len will be
+ * changed to show the actual OID length.
+ * Otherwise, memory for the OID will be allocated (from the caller's 
+ * PLArenaPool, if pool is non-NULL) and to->data will receive the address
+ * of the allocated data, and to->len will receive the OID length.
+ * The original value of to->data is not freed when a new buffer is allocated.
+ * 
+ * The input string may begin with "OID." and this still be ignored.
+ * The length of the input string is given in len.  If len == 0, then 
+ * len will be computed as strlen(from), meaning it must be NUL terminated.
+ * It is an error if from == NULL, or if *from == '\0'.
+ */
+extern SECStatus SEC_StringToOID(PLArenaPool *pool, SECItem *to, 
+                                 const char *from, PRUint32 len);
 
 SEC_END_PROTOS
 
