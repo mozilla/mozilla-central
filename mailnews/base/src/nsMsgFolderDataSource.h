@@ -180,13 +180,13 @@ protected:
   nsresult getFolderArcLabelsOut(nsISupportsArray **arcs);
   
   nsresult DoDeleteFromFolder(nsIMsgFolder *folder,
-							  nsISupportsArray *arguments, nsIMsgWindow *msgWindow, PRBool reallyDelete);
+                nsISupportsArray *arguments, nsIMsgWindow *msgWindow, PRBool reallyDelete);
 
   nsresult DoCopyToFolder(nsIMsgFolder *dstFolder, nsISupportsArray *arguments,
-						  nsIMsgWindow *msgWindow, PRBool isMove);
+              nsIMsgWindow *msgWindow, PRBool isMove);
 
   nsresult DoFolderCopyToFolder(nsIMsgFolder *dstFolder, nsISupportsArray *arguments,
-						  nsIMsgWindow *msgWindow, PRBool isMoveFolder);
+              nsIMsgWindow *msgWindow, PRBool isMoveFolder);
 
   nsresult DoNewFolder(nsIMsgFolder *folder, nsISupportsArray *arguments, 
                         nsIMsgWindow *window);

@@ -43,12 +43,13 @@
 #include "nsIRDFDataSource.h"
 #include "nsIRDFService.h"
 #include "nsIServiceManager.h"
-#include "nsISupportsArray.h"
+#include "nsCOMArray.h"
 #include "nsIObserver.h"
 #include "nsITransactionManager.h"
 #include "nsIMsgWindow.h"
 #include "nsIMsgRDFDataSource.h"
 #include "nsWeakReference.h"
+#include "nsCycleCollectionParticipant.h"
 
 class nsMsgRDFDataSource : public nsIRDFDataSource,
                            public nsIObserver,
@@ -59,8 +60,10 @@ class nsMsgRDFDataSource : public nsIRDFDataSource,
   nsMsgRDFDataSource();
   virtual ~nsMsgRDFDataSource();
   virtual nsresult Init();
-  
-  NS_DECL_ISUPPORTS
+
+  NS_DECL_CYCLE_COLLECTING_ISUPPORTS
+  NS_DECL_CYCLE_COLLECTION_CLASS_AMBIGUOUS(nsMsgRDFDataSource,
+                                           nsIRDFDataSource)
   NS_DECL_NSIMSGRDFDATASOURCE
   NS_DECL_NSIRDFDATASOURCE
   NS_DECL_NSIOBSERVER
@@ -71,9 +74,9 @@ class nsMsgRDFDataSource : public nsIRDFDataSource,
 
  protected:
   nsIRDFService *getRDFService();
-  static PRBool assertEnumFunc(nsISupports *aElement, void *aData);
-  static PRBool unassertEnumFunc(nsISupports *aElement, void *aData);
-  static PRBool changeEnumFunc(nsISupports *aElement, void *aData);
+  static PRBool assertEnumFunc(nsIRDFObserver *aObserver, void *aData);
+  static PRBool unassertEnumFunc(nsIRDFObserver *aObserver, void *aData);
+  static PRBool changeEnumFunc(nsIRDFObserver *aObserver, void *aData);
   nsresult  NotifyObservers(nsIRDFResource *subject, nsIRDFResource *property,
                             nsIRDFNode *newObject, nsIRDFNode *oldObject, 
                             PRBool assert, PRBool change);
@@ -90,8 +93,7 @@ class nsMsgRDFDataSource : public nsIRDFDataSource,
 
  private:
   nsCOMPtr<nsIRDFService> mRDFService;
-  nsCOMPtr<nsISupportsArray> mObservers;
-
+  nsCOMArray<nsIRDFObserver> mObservers;
 };
 
 #endif

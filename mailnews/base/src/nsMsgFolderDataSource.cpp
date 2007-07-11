@@ -386,22 +386,7 @@ nsresult nsMsgFolderDataSource::CreateArcsOutEnumerator()
 NS_IMPL_ADDREF_INHERITED(nsMsgFolderDataSource, nsMsgRDFDataSource)
 NS_IMPL_RELEASE_INHERITED(nsMsgFolderDataSource, nsMsgRDFDataSource)
 
-NS_IMETHODIMP
-nsMsgFolderDataSource::QueryInterface(REFNSIID iid, void** result)
-{
-  if (! result)
-    return NS_ERROR_NULL_POINTER;
-
-  *result = nsnull;
-  if(iid.Equals(NS_GET_IID(nsIFolderListener)))
-  {
-    *result = NS_STATIC_CAST(nsIFolderListener*, this);
-    NS_ADDREF(this);
-    return NS_OK;
-  }
-  else
-    return nsMsgRDFDataSource::QueryInterface(iid, result);
-}
+NS_IMPL_QUERY_INTERFACE_INHERITED1(nsMsgFolderDataSource, nsMsgRDFDataSource, nsIFolderListener)
 
  // nsIRDFDataSource methods
 NS_IMETHODIMP nsMsgFolderDataSource::GetURI(char* *uri)
@@ -1626,7 +1611,7 @@ nsMsgFolderDataSource::createBiffStateNodeFromFlag(PRUint32 flag, nsIRDFNode **t
 
 nsresult
 nsMsgFolderDataSource::createUnreadMessagesNode(nsIMsgFolder *folder,
-												nsIRDFNode **target)
+                        nsIRDFNode **target)
 {
   PRBool isServer;
   nsresult rv = folder->GetIsServer(&isServer);
@@ -1825,29 +1810,29 @@ nsMsgFolderDataSource::createNewMessagesNode(nsIMsgFolder *folder, nsIRDFNode **
 nsresult
 nsMsgFolderDataSource::OnUnreadMessagePropertyChanged(nsIMsgFolder *folder, PRInt32 oldValue, PRInt32 newValue)
 {
-	nsCOMPtr<nsIRDFResource> folderResource = do_QueryInterface(folder);
-	if(folderResource)
-	{
-		//First send a regular unread message changed notification
-		nsCOMPtr<nsIRDFNode> newNode;
+  nsCOMPtr<nsIRDFResource> folderResource = do_QueryInterface(folder);
+  if(folderResource)
+  {
+    //First send a regular unread message changed notification
+    nsCOMPtr<nsIRDFNode> newNode;
 
-		GetNumMessagesNode(newValue, getter_AddRefs(newNode));
-		NotifyPropertyChanged(folderResource, kNC_TotalUnreadMessages, newNode);
+    GetNumMessagesNode(newValue, getter_AddRefs(newNode));
+    NotifyPropertyChanged(folderResource, kNC_TotalUnreadMessages, newNode);
 
-		//Now see if hasUnreadMessages has changed
-		nsCOMPtr<nsIRDFNode> oldHasUnreadMessages;
-		nsCOMPtr<nsIRDFNode> newHasUnreadMessages;
-		if(oldValue <=0 && newValue >0)
-		{
-			oldHasUnreadMessages = kFalseLiteral;
-			newHasUnreadMessages = kTrueLiteral;
-			NotifyPropertyChanged(folderResource, kNC_HasUnreadMessages, newHasUnreadMessages);
-		}
-		else if(oldValue > 0 && newValue <= 0)
-		{
-			newHasUnreadMessages = kFalseLiteral;
-			NotifyPropertyChanged(folderResource, kNC_HasUnreadMessages, newHasUnreadMessages);
-		}
+    //Now see if hasUnreadMessages has changed
+    nsCOMPtr<nsIRDFNode> oldHasUnreadMessages;
+    nsCOMPtr<nsIRDFNode> newHasUnreadMessages;
+    if(oldValue <=0 && newValue >0)
+    {
+      oldHasUnreadMessages = kFalseLiteral;
+      newHasUnreadMessages = kTrueLiteral;
+      NotifyPropertyChanged(folderResource, kNC_HasUnreadMessages, newHasUnreadMessages);
+    }
+    else if(oldValue > 0 && newValue <= 0)
+    {
+      newHasUnreadMessages = kFalseLiteral;
+      NotifyPropertyChanged(folderResource, kNC_HasUnreadMessages, newHasUnreadMessages);
+    }
   }
   return NS_OK;
 }
@@ -1934,7 +1919,7 @@ nsMsgFolderDataSource::createFolderChildNode(nsIMsgFolder *folder,
 
 
 nsresult nsMsgFolderDataSource::DoCopyToFolder(nsIMsgFolder *dstFolder, nsISupportsArray *arguments,
-											   nsIMsgWindow *msgWindow, PRBool isMove)
+                         nsIMsgWindow *msgWindow, PRBool isMove)
 {
   nsresult rv;
   PRUint32 itemCount;
@@ -2203,10 +2188,7 @@ nsresult nsMsgFolderDataSource::DoFolderHasAssertion(nsIMsgFolder *folder,
   }
   else
     *hasAssertion = PR_FALSE;
-
   return rv;
-
-
 }
 
 nsMsgFlatFolderDataSource::nsMsgFlatFolderDataSource()
@@ -2580,7 +2562,6 @@ NS_IMETHODIMP nsMsgRecentFoldersDataSource::OnItemAdded(nsIRDFResource *parentIt
   }
   return nsMsgFlatFolderDataSource::OnItemAdded(parentItem, item);
 }
-
 
 nsresult nsMsgRecentFoldersDataSource::NotifyPropertyChanged(nsIRDFResource *resource,
                     nsIRDFResource *property, nsIRDFNode *newNode,

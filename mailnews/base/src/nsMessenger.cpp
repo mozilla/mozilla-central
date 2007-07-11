@@ -306,8 +306,6 @@ public:
 nsMessenger::nsMessenger()
 {
   mScriptObject = nsnull;
-  mMsgWindow = nsnull;
-  mStringBundle = nsnull;
   mSendingUnsentMsgs = PR_FALSE;
   mCurHistoryPos = -2; // first message selected goes at position 0.
   //  InitializeFolderRoot();

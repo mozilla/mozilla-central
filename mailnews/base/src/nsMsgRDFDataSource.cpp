@@ -47,19 +47,15 @@ static NS_DEFINE_CID(kRDFServiceCID, NS_RDFSERVICE_CID);
 
 nsMsgRDFDataSource::nsMsgRDFDataSource():
     m_shuttingDown(PR_FALSE),
-    mInitialized(PR_FALSE),
-    mRDFService(nsnull)
+    mInitialized(PR_FALSE)
 {
-    // do one-time initialization here
-    
-    NS_NewISupportsArray(getter_AddRefs(mObservers));
 }
 
 nsMsgRDFDataSource::~nsMsgRDFDataSource()
 {
-    // final shutdown happens here
-    NS_ASSERTION(!mInitialized, "Object going away without cleanup, possibly dangerous!");
-    if (mInitialized) Cleanup();
+  // final shutdown happens here
+  NS_ASSERTION(!mInitialized, "Object going away without cleanup, possibly dangerous!");
+  if (mInitialized) Cleanup();
 }
 
 /* initialization happens here - object is constructed,
@@ -68,23 +64,19 @@ nsMsgRDFDataSource::~nsMsgRDFDataSource()
 nsresult
 nsMsgRDFDataSource::Init()
 {
-    nsresult rv=NS_OK;
+  NS_ENSURE_TRUE(!mInitialized, NS_ERROR_ALREADY_INITIALIZED);
 
-    if (mInitialized)
-        return NS_ERROR_ALREADY_INITIALIZED;
-    
-    /* Add an observer to XPCOM shutdown */
-    nsCOMPtr<nsIObserverService> obs = do_GetService("@mozilla.org/observer-service;1",
-                                                     &rv);
-    if (NS_FAILED(rv)) return rv;
-    rv = obs->AddObserver(NS_STATIC_CAST(nsIObserver*, this), NS_XPCOM_SHUTDOWN_OBSERVER_ID, PR_TRUE);
-    if (NS_FAILED(rv)) return rv;
+  nsresult rv;
+  /* Add an observer to XPCOM shutdown */
+  nsCOMPtr<nsIObserverService> obs = do_GetService("@mozilla.org/observer-service;1", &rv);
+  NS_ENSURE_SUCCESS(rv, rv);
+  rv = obs->AddObserver(NS_STATIC_CAST(nsIObserver*, this), NS_XPCOM_SHUTDOWN_OBSERVER_ID, PR_TRUE);
+  NS_ENSURE_SUCCESS(rv, rv);
 
-    /* Get and keep the rdf service. Will be released by the observer */
-    getRDFService();
-    
-    mInitialized=PR_TRUE;
-    return rv;
+  getRDFService();
+
+  mInitialized=PR_TRUE;
+  return rv;
 }
 
 // clean yourself up - undo anything you did in Init()
@@ -92,7 +84,7 @@ void nsMsgRDFDataSource::Cleanup()
 {
     nsresult rv;
     mRDFService = nsnull;
-    
+
     // release ourselves from the observer service
     nsCOMPtr<nsIObserverService> obs = do_GetService("@mozilla.org/observer-service;1",
                                                      &rv);
@@ -100,24 +92,37 @@ void nsMsgRDFDataSource::Cleanup()
         rv = obs->RemoveObserver(NS_STATIC_CAST(nsIObserver*, this),
                                  NS_XPCOM_SHUTDOWN_OBSERVER_ID);
     }
-    
-    // release the window
-	mWindow = nsnull;
 
-    mInitialized = PR_FALSE;
+    // release the window
+  mWindow = nsnull;
+
+  mInitialized = PR_FALSE;
 }
 
-NS_IMPL_ADDREF(nsMsgRDFDataSource)
-NS_IMPL_RELEASE(nsMsgRDFDataSource)
+NS_IMPL_CYCLE_COLLECTION_CLASS(nsMsgRDFDataSource)
+
+NS_IMPL_CYCLE_COLLECTION_UNLINK_BEGIN(nsMsgRDFDataSource)
+  NS_IMPL_CYCLE_COLLECTION_UNLINK_NSCOMARRAY(mObservers)
+  NS_IMPL_CYCLE_COLLECTION_UNLINK_NSCOMPTR(mWindow)
+  NS_IMPL_CYCLE_COLLECTION_UNLINK_NSCOMPTR(mRDFService)
+NS_IMPL_CYCLE_COLLECTION_UNLINK_END
+
+NS_IMPL_CYCLE_COLLECTION_TRAVERSE_BEGIN(nsMsgRDFDataSource)
+  NS_IMPL_CYCLE_COLLECTION_TRAVERSE_NSCOMARRAY(mObservers)
+  NS_IMPL_CYCLE_COLLECTION_TRAVERSE_NSCOMPTR(mRDFService)
+NS_IMPL_CYCLE_COLLECTION_TRAVERSE_END
+
+NS_IMPL_CYCLE_COLLECTING_ADDREF_AMBIGUOUS(nsMsgRDFDataSource, nsIRDFDataSource)
+NS_IMPL_CYCLE_COLLECTING_RELEASE_AMBIGUOUS(nsMsgRDFDataSource, nsIRDFDataSource)
 
 NS_INTERFACE_MAP_BEGIN(nsMsgRDFDataSource)
-	NS_INTERFACE_MAP_ENTRY(nsIRDFDataSource)
-	NS_INTERFACE_MAP_ENTRY(nsIObserver)
-	NS_INTERFACE_MAP_ENTRY(nsIMsgRDFDataSource)
-	NS_INTERFACE_MAP_ENTRY(nsISupportsWeakReference)
-	NS_INTERFACE_MAP_ENTRY_AMBIGUOUS(nsISupports, nsIRDFDataSource)
+  NS_INTERFACE_MAP_ENTRY(nsIRDFDataSource)
+  NS_INTERFACE_MAP_ENTRY(nsIObserver)
+  NS_INTERFACE_MAP_ENTRY(nsIMsgRDFDataSource)
+  NS_INTERFACE_MAP_ENTRY(nsISupportsWeakReference)
+  NS_INTERFACE_MAP_ENTRY_AMBIGUOUS(nsISupports, nsIRDFDataSource)
+  NS_INTERFACE_MAP_ENTRIES_CYCLE_COLLECTION(nsMsgRDFDataSource)
 NS_INTERFACE_MAP_END
-
 
 /* readonly attribute string URI; */
 NS_IMETHODIMP
@@ -208,45 +213,30 @@ nsMsgRDFDataSource::HasAssertion(nsIRDFResource *aSource, nsIRDFResource *aPrope
 NS_IMETHODIMP
 nsMsgRDFDataSource::AddObserver(nsIRDFObserver *aObserver)
 {
-    // make sure we're initialized
-    if (!mInitialized)
-        Init();
-    
-    NS_ASSERTION(mObservers->IndexOf(aObserver) == -1,
-                 "better not already be observing this");
-
-    mObservers->AppendElement(aObserver);
-    return NS_OK;
+  NS_ENSURE_ARG_POINTER(aObserver);
+  if (!mInitialized)
+      Init();
+  mObservers.AppendObject(aObserver);
+  return NS_OK;
 }
-
 
 /* void RemoveObserver (in nsIRDFObserver aObserver); */
 NS_IMETHODIMP
 nsMsgRDFDataSource::RemoveObserver(nsIRDFObserver *aObserver)
 {
-  if (! mObservers)
-    return NS_OK;
-  mObservers->RemoveElement(aObserver);
-
-  // when we hit 0 observers, then it's probably time
-  // to go away - clean ourselves up now
-  PRUint32 count;
-  mObservers->Count(&count);
-  if (count == 0)
-      Cleanup();
-
+  NS_ENSURE_ARG_POINTER(aObserver);
+  mObservers.RemoveObject(aObserver);
   return NS_OK;
 }
 
-
-NS_IMETHODIMP 
+NS_IMETHODIMP
 nsMsgRDFDataSource::HasArcIn(nsIRDFNode *aNode, nsIRDFResource *aArc, PRBool *result)
 {
   *result = PR_FALSE;
   return NS_OK;
 }
 
-NS_IMETHODIMP 
+NS_IMETHODIMP
 nsMsgRDFDataSource::HasArcOut(nsIRDFResource *aSource, nsIRDFResource *aArc, PRBool *result)
 {
   *result = PR_FALSE;
@@ -262,7 +252,7 @@ nsMsgRDFDataSource::ArcLabelsIn(nsIRDFNode *aNode, nsISimpleEnumerator **_retval
 
   nsresult rv = NS_NewISupportsArray(getter_AddRefs(arcs));
   if(NS_FAILED(rv))
-	  return rv;
+    return rv;
 
   return NS_NewArrayEnumerator(_retval, arcs);
 }
@@ -327,27 +317,27 @@ NS_IMETHODIMP
 nsMsgRDFDataSource::Observe(nsISupports *aSubject, const char *aTopic, const PRUnichar *someData )
 {
   if (!strcmp(aTopic, NS_XPCOM_SHUTDOWN_OBSERVER_ID)) {
-	  m_shuttingDown = PR_TRUE;
-	  Cleanup();
+    m_shuttingDown = PR_TRUE;
+    Cleanup();
   }
-	return NS_OK;
+  return NS_OK;
 }
 
 
 NS_IMETHODIMP nsMsgRDFDataSource::GetWindow(nsIMsgWindow * *aWindow)
 {
-	if(!aWindow)
-		return NS_ERROR_NULL_POINTER;
+  if(!aWindow)
+    return NS_ERROR_NULL_POINTER;
 
-	*aWindow = mWindow;
-	NS_IF_ADDREF(*aWindow);
-	return NS_OK;
+  *aWindow = mWindow;
+  NS_IF_ADDREF(*aWindow);
+  return NS_OK;
 }
 
 NS_IMETHODIMP nsMsgRDFDataSource::SetWindow(nsIMsgWindow * aWindow)
 {
-	mWindow = aWindow;
-	return NS_OK;
+  mWindow = aWindow;
+  return NS_OK;
 }
 
 
@@ -359,7 +349,7 @@ nsMsgRDFDataSource::getRDFService()
         mRDFService = do_GetService(kRDFServiceCID, &rv);
         if (NS_FAILED(rv)) return nsnull;
     }
-    
+
     return mRDFService;
 }
 
@@ -380,29 +370,23 @@ nsresult nsMsgRDFDataSource::NotifyObservers(nsIRDFResource *subject,
                                                 nsIRDFNode *oldObject,
                                                 PRBool assert, PRBool change)
 {
-    NS_ASSERTION(!(change && assert),
-                 "Can't change and assert at the same time!\n");
-    
-	if(mObservers)
-	{
-		nsMsgRDFNotification note = { this, subject, property, newObject, oldObject };
-		if(change)
-			mObservers->EnumerateForwards(changeEnumFunc, &note);
-		else if (assert)
-			mObservers->EnumerateForwards(assertEnumFunc, &note);
-		else
-			mObservers->EnumerateForwards(unassertEnumFunc, &note);
-  }
-	return NS_OK;
+  NS_ASSERTION(!(change && assert),
+               "Can't change and assert at the same time!\n");
+  nsMsgRDFNotification note = { this, subject, property, newObject, oldObject };
+  if(change)
+    mObservers.EnumerateForwards(changeEnumFunc, &note);
+  else if (assert)
+    mObservers.EnumerateForwards(assertEnumFunc, &note);
+  else
+    mObservers.EnumerateForwards(unassertEnumFunc, &note);
+  return NS_OK;
 }
 
 PRBool
-nsMsgRDFDataSource::assertEnumFunc(nsISupports *aElement, void *aData)
+nsMsgRDFDataSource::assertEnumFunc(nsIRDFObserver *aObserver, void *aData)
 {
   nsMsgRDFNotification *note = (nsMsgRDFNotification *)aData;
-  nsIRDFObserver* observer = (nsIRDFObserver *)aElement;
-  
-  observer->OnAssert(note->datasource,
+  aObserver->OnAssert(note->datasource,
                      note->subject,
                      note->property,
                      note->newObject);
@@ -410,12 +394,10 @@ nsMsgRDFDataSource::assertEnumFunc(nsISupports *aElement, void *aData)
 }
 
 PRBool
-nsMsgRDFDataSource::unassertEnumFunc(nsISupports *aElement, void *aData)
+nsMsgRDFDataSource::unassertEnumFunc(nsIRDFObserver *aObserver, void *aData)
 {
   nsMsgRDFNotification* note = (nsMsgRDFNotification *)aData;
-  nsIRDFObserver* observer = (nsIRDFObserver *)aElement;
-
-  observer->OnUnassert(note->datasource,
+  aObserver->OnUnassert(note->datasource,
                        note->subject,
                        note->property,
                        note->newObject);
@@ -423,33 +405,31 @@ nsMsgRDFDataSource::unassertEnumFunc(nsISupports *aElement, void *aData)
 }
 
 PRBool
-nsMsgRDFDataSource::changeEnumFunc(nsISupports *aElement, void *aData)
+nsMsgRDFDataSource::changeEnumFunc(nsIRDFObserver *aObserver, void *aData)
 {
   nsMsgRDFNotification* note = (nsMsgRDFNotification *)aData;
-  nsIRDFObserver* observer = (nsIRDFObserver *)aElement;
-
-  observer->OnChange(note->datasource,
+  aObserver->OnChange(note->datasource,
                      note->subject,
                      note->property,
                      note->oldObject, note->newObject);
   return PR_TRUE;
 }
-nsresult 
+nsresult
 nsMsgRDFDataSource::GetTransactionManager(nsISupportsArray *aSources, nsITransactionManager **aTransactionManager)
 {
   if(!aTransactionManager)
     return NS_ERROR_NULL_POINTER;
-  
+
   *aTransactionManager = nsnull;
   nsresult rv = NS_OK;
-  
+
   nsCOMPtr<nsITransactionManager> transactionManager;
-  
+
   PRUint32 cnt;
-  
+
   rv = aSources->Count(&cnt);
   if (NS_FAILED(rv)) return rv;
-  
+
   if (cnt > 0)
   {
     transactionManager = do_QueryElementAt(aSources, 0, &rv);
@@ -459,7 +439,7 @@ nsMsgRDFDataSource::GetTransactionManager(nsISupportsArray *aSources, nsITransac
       NS_IF_ADDREF(*aTransactionManager = transactionManager);
     }
   }
-  
-  return NS_OK;	
+
+  return NS_OK;
 }
 
