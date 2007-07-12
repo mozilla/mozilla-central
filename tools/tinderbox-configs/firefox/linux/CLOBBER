@@ -1,1 +1,1 @@
-Clobbering Linux to pick up tinderbox config changes from bug 385759 - upload breakpad symbols
+Clobbering to unbreak sessionstore from changes in bug 386635.

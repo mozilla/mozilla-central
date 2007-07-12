@@ -1,1 +1,1 @@
-Bug 381719: clobbering mac to get nightly updates; we fixed the problem, but want to make sure the fix sticks across a nightly build.
+Clobbering to unbreak sessionstore from changes in bug 386635.
