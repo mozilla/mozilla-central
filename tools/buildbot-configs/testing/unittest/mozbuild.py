@@ -12,6 +12,10 @@ MozillaEnvironments['linux'] = {
     "MOZ_NO_REMOTE": '1'
 }
 
+MozillaEnvironments['centos'] = {
+    "MOZ_NO_REMOTE": '1'
+}
+
 MozillaEnvironments['osx'] = {
     "MOZ_NO_REMOTE": '1',
     "NO_EM_RESTART": '1',
@@ -65,9 +69,9 @@ MozillaEnvironments['vc8'] = {
 
 MozillaEnvironments['mozbuild'] = {
     "MOZ_NO_REMOTE": '1',
+    "NO_EM_RESTART": '1',
     "MOZ_AIRBAG": '1',
     "MOZ_CRASHREPORTER_NO_REPORT": '1',
-    "NO_EM_RESTART": '1',
     "XPCOM_DEBUG_BREAK": 'warn',
     "VCVARS": 'C:\\Program Files\\Microsoft Visual Studio 8\\VC\\bin\\vcvars32.bat',
     "MOZ_MSVCVERSION": '8',
