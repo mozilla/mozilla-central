@@ -690,7 +690,7 @@ NS_IMETHODIMP nsMessenger::SaveAttachmentToFile(nsIFile *aFile,
   return SaveAttachment(aFile, aURL, aMessageUri, aContentType, nsnull, aListener);
 }
 
-NS_IMETHODIMP nsMessenger::SaveAttachment(nsIFile *aFile,
+nsresult nsMessenger::SaveAttachment(nsIFile *aFile,
                                           const nsACString &aURL,
                                           const nsACString &aMessageUri,
                                           const nsACString &aContentType,
