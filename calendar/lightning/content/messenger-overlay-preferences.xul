@@ -86,9 +86,7 @@
                         <vbox id="calPreferencesBoxCategories"/>
                     </tabpanel>
                     <tabpanel orient="vertical">
-                        <vbox id="calPreferencesBoxViews">
-                            <groupbox id="viewsMultiweekGroupbox" hidden="true"/>
-                        </vbox>
+                        <vbox id="calPreferencesBoxViews"/>
                     </tabpanel>
                     <tabpanel orient="vertical">
                         <vbox id="calPreferencesBoxTimezones"/>

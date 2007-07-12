@@ -528,6 +528,18 @@ function showCalendarView(type)
     nextCommand.setAttribute("label", nextCommand.getAttribute("label-"+type));
     var previousCommand = document.getElementById("context_previous")
     previousCommand.setAttribute("label", previousCommand.getAttribute("label-"+type));
+
+    // Set up the commands
+    var availableViews = document.getElementById("calendar-view-box");
+    for (var i = 0; i < availableViews.childNodes.length; i++) {
+        var view = availableViews.childNodes[i];
+        var command = document.getElementById(view.id+"-command");
+        if (view.id == type+"-view") {
+           command.setAttribute("checked", true);
+        } else {
+           command.removeAttribute("checked");
+        }
+    }
 }
 
 function goToToday()
