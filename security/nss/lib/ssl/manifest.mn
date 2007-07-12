@@ -80,10 +80,6 @@ CSRCS = \
 	ssl3ecc.c \
 	$(NULL)
 
-ifdef NSS_ENABLE_ECC
-DEFINES += -DNSS_ENABLE_ECC
-endif
-
 LIBRARY_NAME = ssl
 LIBRARY_VERSION = 3
 

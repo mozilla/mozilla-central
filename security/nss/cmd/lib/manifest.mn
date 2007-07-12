@@ -60,8 +60,4 @@ CSRCS		= secutil.c \
 
 REQUIRES	= dbm
 
-ifdef NSS_ENABLE_ECC
-DEFINES += -DNSS_ENABLE_ECC
-endif
-
 NO_MD_RELEASE	= 1
