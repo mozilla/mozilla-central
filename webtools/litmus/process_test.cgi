@@ -127,7 +127,6 @@ foreach my $curtestid (@tests) {
   
   my $time = &Date::Manip::UnixDate("now","%q");
   $user = $user || Litmus::Auth::getCookie()->user_id();
-  print STDERR "user: $user\n";
   my $tr = Litmus::DB::Testresult->create({
                                            user_id       => $user,
                                            testcase      => $curtest,
