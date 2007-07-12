@@ -201,15 +201,17 @@ sub makefullsoft {
     $rv = TinderUtils::run_shell_command("cd $builddir/fullsoft && $builddir/build/autoconf/make-makefile -d ..");
   }
 
+  my $buildid = get_buildid(objdir=>$builddir);
+  my $set_fc_build = $buildid ? 'FC_BUILD='.$buildid : '';
+
   if (!$rv) {
     if (!$Settings::UsePrebuiltTalkback) {
-      TinderUtils::run_shell_command("make -C $builddir/fullsoft");
+      TinderUtils::run_shell_command("make -C $builddir/fullsoft $set_fc_build");
     } else {
       # We need to update the Talkback master.ini file with the current
       # build ID.
       TinderUtils::print_log("Setting build ID for prebuilt Talkback.\n");
       my $talkback_path = TinderUtils::getPathToTalkbackClient("$builddir/dist/bin");
-      my $buildid = get_buildid(objdir=>$builddir);
       if ($talkback_path and $buildid) {
         unless (TinderUtils::setBuildIdInTalkbackMasterConfig(talkbackClientPath => $talkback_path,
                                                               newBuildId         => $buildid)) {
@@ -226,10 +228,10 @@ sub makefullsoft {
 
   if (!$rv) {
     if ($Settings::BinaryName ne 'Camino') {
-      TinderUtils::run_shell_command("make -C $builddir/fullsoft fullcircle-push");
+      TinderUtils::run_shell_command("make -C $builddir/fullsoft fullcircle-push $set_fc_build");
     } else {
       # Something completely different
-      TinderUtils::run_shell_command("make -C $builddir/fullsoft fullcircle-push UPLOAD_FILES='`find -X $builddir/dist/Camino.app -type f -perm -111 -exec file {} \\; | grep \": Mach-O\" | sed \"s/: Mach-O.*//\" | xargs`'");
+      TinderUtils::run_shell_command("make -C $builddir/fullsoft fullcircle-push $set_fc_build UPLOAD_FILES='`find -X $builddir/dist/Camino.app -type f -perm -111 -exec file {} \\; | grep \": Mach-O\" | sed \"s/: Mach-O.*//\" | xargs`'");
     }
   }
 
