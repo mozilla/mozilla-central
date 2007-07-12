@@ -47,6 +47,9 @@ use constant MP1 => ( exists $ENV{MOD_PERL} and
 
 our $dsn = "dbi:mysql:database=$Litmus::Config::db_name;host=$Litmus::Config::db_host;port=3306";
 
+Litmus::DBI->connection($dsn, 
+	$Litmus::Config::db_user, $Litmus::Config::db_pass);
+
 our %column_aliases;
 
 Litmus::DBI->autoupdate(1);
@@ -106,35 +109,6 @@ sub lastDitchError($) {
     my $message = shift;
     print "Error - Litmus has suffered a serious fatal internal error - $message";
     exit;
-}
-
-# Get Class::DBI's default dbh options
-my $db_options = { __PACKAGE__->_default_attributes };
-
-__PACKAGE__->_remember_handle('Main'); # so dbi_commit works
-
-# override default to avoid using Ima::DBI closure for mod_perl compatibility
-sub db_Main {
-   my $dbh;
-   my $request;
-   if (MP1) {
-       $request = Apache->request();
-   } elsif (MP2) {
-       $request = Apache2::RequestUtil->request();
-   }
-   if ( $ENV{'MOD_PERL'} and defined $request ) {
-	   $dbh = $request->pnotes('dbh');
-   }
-   if ( !$dbh ) {
-	   $dbh = DBI->connect_cached(
-		   $dsn,  $Litmus::Config::db_user,
-		   $Litmus::Config::db_pass, $db_options
-	   );
-	   if ( $ENV{'MOD_PERL'} and defined $request ) {
-		   $request->pnotes( 'dbh', $dbh );
-	   }
-   }
-   return $dbh;
 }
 
 # hack around a bug where auto_increment columns don't work properly unless 
