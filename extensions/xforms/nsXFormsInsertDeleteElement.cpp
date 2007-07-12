@@ -438,8 +438,7 @@ nsXFormsInsertDeleteElement::HandleAction(nsIDOMEvent            *aEvent,
   
   nsCOMPtr<nsIDOMDocument> locationDoc;
   nsCOMPtr<nsIDOMElement> locationDocElement;
-  nsCOMPtr<nsIDOMNode> parentNode, newNode, resNode;
-
+  nsCOMPtr<nsIDOMNode> parentNode, newNode, resNode, instNode;
   if (mIsInsert) {
     // The cloned node or nodes are inserted in the order they were cloned at
     // their target location depending on their node type.
@@ -517,6 +516,8 @@ nsXFormsInsertDeleteElement::HandleAction(nsIDOMEvent            *aEvent,
           }
         }
       }
+      rv = nsXFormsUtils::GetInstanceNodeForData(resNode, getter_AddRefs(instNode));
+      NS_ENSURE_SUCCESS(rv, rv);
 
     // Step 8: Set indexes for repeats
     rv = RefreshRepeats(&cloneNodes);
@@ -551,6 +552,9 @@ nsXFormsInsertDeleteElement::HandleAction(nsIDOMEvent            *aEvent,
     locationNode->GetOwnerDocument(getter_AddRefs(locationDoc));
     NS_ENSURE_STATE(locationDoc);
 
+    rv = nsXFormsUtils::GetInstanceNodeForData(locationNode, getter_AddRefs(instNode));
+    NS_ENSURE_SUCCESS(rv, rv);
+
     locationDoc->GetDocumentElement(getter_AddRefs(locationDocElement));
     while ((deleteIndex < deleteCount) && locationNode) {
       // Delete the node(s) unless the delete location is the root document
@@ -579,9 +583,6 @@ nsXFormsInsertDeleteElement::HandleAction(nsIDOMEvent            *aEvent,
 
   // Dispatch xforms-insert/delete event to the instance node we have modified
   // data for
-  nsCOMPtr<nsIDOMNode> instNode;
-  rv = nsXFormsUtils::GetInstanceNodeForData(locationNode, getter_AddRefs(instNode));
-  NS_ENSURE_SUCCESS(rv, rv);
   rv = nsXFormsUtils::DispatchEvent(instNode,
                                     mIsInsert ? eEvent_Insert : eEvent_Delete);
   NS_ENSURE_SUCCESS(rv, rv);
