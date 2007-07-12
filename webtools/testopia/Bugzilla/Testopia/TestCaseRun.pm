@@ -219,7 +219,7 @@ sub store {
                $self->{'case_text_version'},  # case_text_version
                $self->{'build_id'},           # build_id
                $self->{'environment_id'},     # environment_id
-               undef,                         # notes
+               $self->{'notes'},              # notes
                undef,                         # running_date
                undef,                         # close_date
                1,                             # iscurrent
