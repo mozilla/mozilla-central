@@ -20,6 +20,7 @@
 # Contributor(s): 
 
 use strict;
+use Data::Dumper;
 require 'header.pl';
 
 my %colormap = (
@@ -81,6 +82,7 @@ sub do_static($) {
                   ['panel.html', 'do_panel'],
                   ['quickparse.txt', 'do_quickparse'],
                   ['stats.hdml', 'do_hdml'],
+                  ['json.js', 'do_json'],
                   ['status.vxml', 'do_vxml'] );
 
     my ($key, $value);
@@ -115,6 +117,23 @@ sub do_tinderbox($) {
     &print_table_header($form_ref, $tinderbox_data);
     &print_table_body($tinderbox_data);
     &print_table_footer($form_ref, $tinderbox_data);
+}
+
+##
+# Return all data that the waterfall normally would, but as JSON not HTML.
+##
+sub do_json($) {
+    my ($form_ref) = (@_);
+    my $tinderbox_data = tb_load_data($form_ref);
+    print "Content-type: text/javascript\n\n" unless $form_ref->{static};
+    print "tinderbox_data";
+    my @data_dump = split("\n", Dumper($tinderbox_data));
+    for my $line (@data_dump) {
+      $line =~ s/=>/:/;
+      $line =~ s/\$VAR1//;
+      $line =~ s/: ,/: '',/;
+      print "$line\n";
+    }
 }
 
 sub print_page_head($$) {

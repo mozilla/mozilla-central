@@ -35,7 +35,7 @@ my %form = &split_cgi_args();
 
 my $mode_count=0;
 foreach my $mode ('quickparse', 'express', 'rdf', 'flash',
-                  'static', 'panel', 'hdml', 'vxml', 'wml') {
+                  'static', 'panel', 'hdml', 'vxml', 'wml', 'json') {
     $mode_count++ if defined($form{$mode});
 }
 
@@ -54,6 +54,7 @@ if ($mode_count > 1) {
 &do_hdml(\%form),             exit if $form{hdml};
 &do_vxml(\%form),             exit if $form{vxml};
 &do_wml(\%form),              exit if $form{wml}; 
+&do_json(\%form),             exit if $form{json}; 
 &do_tinderbox(\%form),        exit;
 
 # end of main
