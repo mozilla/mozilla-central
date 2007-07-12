@@ -263,8 +263,8 @@ sub update_criteria() {
 sub getTestRuns() {
   my ($self, $in_progress, $recommended, $limit) = @_;
 
-  my $select = "SELECT tr.test_run_id FROM test_runs tr, products pr";
-  my $where = " WHERE tr.product_id=pr.product_id";
+  my $select = "SELECT tr.test_run_id FROM test_runs tr, products pr, branches br";
+  my $where = " WHERE tr.product_id=pr.product_id AND pr.enabled=1 AND tr.branch_id=br.branch_id AND br.enabled=1";
   my $order_by = "";
   if ($in_progress) {
     $where .= " AND tr.start_timestamp<=NOW() AND tr.finish_timestamp>NOW()";
