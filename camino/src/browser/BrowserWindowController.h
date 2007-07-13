@@ -206,6 +206,7 @@ typedef enum
 
 - (NSSize)windowWillResize:(NSWindow *)sender toSize:(NSSize)proposedFrameSize;
 
+- (IBAction)toggleStatusBar:(id)aSender;
 - (IBAction)viewSource:(id)aSender;			// focussed frame or page
 - (IBAction)viewPageSource:(id)aSender;	// top-level page
 

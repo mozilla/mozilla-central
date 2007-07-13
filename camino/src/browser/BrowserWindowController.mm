@@ -858,25 +858,17 @@ enum BWCOpenDest {
     if ( mChromeMask && !(mChromeMask & nsIWebBrowserChrome::CHROME_WINDOW_RESIZE) )
       [[self window] setShowsResizeIndicator:NO];
     
-    if ( mChromeMask && !(mChromeMask & nsIWebBrowserChrome::CHROME_STATUSBAR) ) {
+    if ((mChromeMask && !(mChromeMask & nsIWebBrowserChrome::CHROME_STATUSBAR)) ||
+        [[NSUserDefaults standardUserDefaults] boolForKey:USER_DEFAULTS_HIDE_STATUS_BAR_KEY]) {
       // remove the status bar at the bottom
-      // XXX we should just hide it and allow the user to show it again
-      [mStatusBar removeFromSuperview];
+      [mStatusBar setHidden:YES];
       mustResizeChrome = YES;
-      
-      // clear out everything in the status bar we were holding on to. This will cause us to
-      // pass nil for these status items into the CHBrowserwWrapper which is what we want. We'll
-      // crash if we give them things that have gone away.
-      mProgress = nil;
-      mStatus = nil;
     }
-    else {
-      // due to a cocoa issue with it updating the bounding box of two rects
-      // that both needing updating instead of just the two individual rects
-      // (radar 2194819), we need to make the text area opaque.
-      [mStatus setBackgroundColor:[NSColor windowBackgroundColor]];
-      [mStatus setDrawsBackground:YES];
-    }
+    // due to a cocoa issue with it updating the bounding box of two rects
+    // that both needing updating instead of just the two individual rects
+    // (radar 2194819), we need to make the text area opaque.
+    [mStatus setBackgroundColor:[NSColor windowBackgroundColor]];
+    [mStatus setDrawsBackground:YES];
 
     // Set up the toolbar's search text field
     NSMutableArray *searchTitles =
@@ -2465,6 +2457,36 @@ enum BWCOpenDest {
     else
       [controller loadURL:viewSource];
   }
+}
+
+// This method is currently unused due to bug 56488, but is completely functional.
+- (IBAction)toggleStatusBar:(id)aSender
+{
+  BOOL shouldHide = ![mStatusBar isHidden];
+  [[NSUserDefaults standardUserDefaults] setBool:shouldHide forKey:USER_DEFAULTS_HIDE_STATUS_BAR_KEY];
+
+  [mStatusBar setHidden:shouldHide];
+
+  NSSize oldContentSize = [mContentView frame].size;
+  NSRect windowRect = [[self window] frame];
+  float statusBarHeight = [mStatusBar frame].size.height;
+  if (shouldHide) {
+    windowRect.origin.y += statusBarHeight;
+    windowRect.size.height -= statusBarHeight;
+  }
+  else {
+    // shift and/or shrink the window as necessary to keep it within the screen area
+    NSRect screenRect = [[[self window] screen] visibleFrame];
+    windowRect.origin.y = MAX(windowRect.origin.y - statusBarHeight,
+                              screenRect.origin.y);
+    windowRect.size.height = MIN(windowRect.size.height + statusBarHeight,
+                                 screenRect.size.height);
+  }
+  [[self window] setFrame:windowRect display:YES];
+  // if the window height didn't change, then the content view may not have been resized,
+  // so we need to ensure that it's updated to account for the status bar changing.
+  if ([mContentView frame].size.height == oldContentSize.height)
+    [mContentView resizeSubviewsWithOldSize:oldContentSize];
 }
 
 - (IBAction)viewSource:(id)aSender

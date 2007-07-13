@@ -46,6 +46,7 @@
 
 #define USER_DEFAULTS_URL_KEY                   @"url"                           /* String */
 #define USER_DEFAULTS_HIDE_PERS_TOOLBAR_KEY     @"Hide Personal Toolbar"         /* Integer */
+#define USER_DEFAULTS_HIDE_STATUS_BAR_KEY       @"Hide Status Bar"               /* Boolean */
 #define USER_DEFAULTS_HOMEPAGE_KEY              @"HomePage"                      /* String */
 #define USER_DEFAULTS_AUTOCOMPLETE_WHILE_TYPING @"Autocomplete While Typing"     /* Boolean */
 #define USER_DEFAULTS_CONTAINER_SPLITTER_WIDTH  @"Bookmarks Splitter position"   /* Float */
