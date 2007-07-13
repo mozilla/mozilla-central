@@ -36,7 +36,7 @@
  * the terms of any one of the MPL, the GPL or the LGPL.
  *
  * ***** END LICENSE BLOCK ***** */
-/* $Id: lginit.c,v 1.7 2007-06-16 05:18:34 rrelyea%redhat.com Exp $ */
+/* $Id: lginit.c,v 1.8 2007-07-13 16:47:33 biswatosh.chakraborty%sun.com Exp $ */
 
 #include "lowkeyi.h"
 #include "pcert.h"
@@ -544,7 +544,7 @@ lg_init(SDB **pSdb, int flags, NSSLOWCERTCertDBHandle *certdbPtr,
     sdb->sdb_Begin = lg_Begin;
     sdb->sdb_Commit = lg_Commit;
     sdb->sdb_Abort = lg_Abort;
-    sdb->sdb_Close = lg_Reset;
+    sdb->sdb_Reset = lg_Reset;
     sdb->sdb_Close = lg_Close;
 
 
