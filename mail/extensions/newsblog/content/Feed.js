@@ -90,6 +90,7 @@ Feed.prototype =
   resource: null,
   items: new Array(),
   mFolder: null,
+  mInvalidFeed: false,
 
   get folder()
   {
@@ -225,8 +226,17 @@ Feed.prototype =
   {
     if (aFeed)
     {
+      var error;
+
+      if (aFeed.request && aFeed.request.status == 304)
+        error = kNewsBlogNoNewItems;
+      else {
+        error = kNewsBlogInvalidFeed;
+        aFeed.mInvalidFeed = true;
+      }
+
       if (aFeed.downloadCallback)
-        aFeed.downloadCallback.downloaded(aFeed, aFeed.request && aFeed.request.status == 304 ? kNewsBlogNoNewItems : kNewsBlogInvalidFeed);
+        aFeed.downloadCallback.downloaded(aFeed, error);
 
       FeedCache.removeFeed(aFeed.url);
     }
@@ -354,6 +364,13 @@ Feed.prototype =
     var parser = new FeedParser();
     this.itemsToStore = parser.parseFeed(this, this.request.responseText, this.request.responseXML, this.request.channel.URI);
   
+    if (this.mInvalidFeed)
+    {
+      this.request = null;
+      this.mInvalidFeed = false;
+      return;
+    }
+
     // storeNextItem will iterate through the parsed items, storing each one.
     this.itemsToStoreIndex = 0;
     this.storeNextItem();
