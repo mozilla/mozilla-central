@@ -453,6 +453,14 @@ NS_IMETHODIMP nsNNTPProtocol::Initialize(nsIURI * aURL, nsIMsgWindow *aMsgWindow
   m_runningURL = do_QueryInterface(m_url);
   SetIsBusy(PR_TRUE);
 
+  nsCString group;
+  nsCString commandSpecificData;
+  PR_FREEIF(m_messageID);
+  
+  // parse url to get the msg folder and check if the message is in the folder's 
+  // local cache before opening a new socket and trying to download the message
+  rv = ParseURL(m_url, getter_Copies(group), &m_messageID, getter_Copies(commandSpecificData));
+  
   if (NS_SUCCEEDED(rv) && m_runningURL)
   {
     nsCOMPtr<nsIMsgMailNewsUrl> mailnewsUrl = do_QueryInterface(m_runningURL);
@@ -815,10 +823,6 @@ PRBool nsNNTPProtocol::ReadFromLocalCache()
 
   if (msgIsInLocalCache)
   {
-    nsCString group;
-    nsCString commandSpecificData;
-    PR_FREEIF(m_messageID);
-    rv = ParseURL(m_url, getter_Copies(group), &m_messageID, getter_Copies(commandSpecificData));
     nsCOMPtr <nsIMsgFolder> folder = do_QueryInterface(m_newsFolder);
     if (folder && NS_SUCCEEDED(rv))
     {
@@ -1462,8 +1466,34 @@ nsNNTPProtocol::ParseURL(nsIURI * aURL, char ** aGroup, char ** aMessageID,
     // (but not news://host/message-id?cancel)
     // for authentication, we set m_newsFolder to be the server's folder.
     // while we are here, we set m_nntpServer.
-    rv = nntpService->DecomposeNewsURI(serverURI.get(), getter_AddRefs(folder), &m_key);
-    NS_ENSURE_SUCCESS(rv,rv);
+   
+    if (*aMessageID)
+    { // for news://host/message-id decompose complete url
+      nsCAutoString urlSpec;
+      m_url->GetAsciiSpec(urlSpec);
+
+      rv = nntpService->DecomposeNewsURI(urlSpec.get(), getter_AddRefs(folder), &m_key);
+      NS_ENSURE_SUCCESS(rv,rv);
+    }
+    else
+    { // for news://host/* decompose only server uri
+      rv = nntpService->DecomposeNewsURI(serverURI.get(), getter_AddRefs(folder), &m_key);
+      NS_ENSURE_SUCCESS(rv,rv); 
+    }
+    
+
+    if (m_key != nsMsgKey_None)
+    {
+      // check if message is in local cache
+      PRBool useLocalCache = PR_FALSE;
+      rv = folder->HasMsgOffline(m_key, &useLocalCache);
+      NS_ENSURE_SUCCESS(rv,rv);
+
+      // set message is in local cache
+      nsCOMPtr <nsIMsgMailNewsUrl> newsURL = do_QueryInterface(m_url);
+      rv = newsURL->SetMsgIsInLocalCache(useLocalCache);
+      NS_ENSURE_SUCCESS(rv,rv);
+    }
 
     // since we are reading a message in this folder, we can set m_newsFolder
     m_newsFolder = do_QueryInterface(folder, &rv);

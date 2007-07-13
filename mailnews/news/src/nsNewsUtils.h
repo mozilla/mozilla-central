@@ -45,10 +45,14 @@ class nsIMsgNewsFolder;
 static const char kNntpRootURI[] = "nntp:/";
 static const char kNewsRootURI[] = "news:/";
 static const char kNewsMessageRootURI[] = "news-message:/";
+static const char kNewsURIGroupQuery[] = "?group=";
+static const char kNewsURIKeyQuery[] = "&key=";
 
 #define kNewsRootURILen 6
 #define kNntpRootURILen 6
 #define kNewsMessageRootURILen 14
+#define kNewsURIGroupQueryLen 7
+#define kNewsURIKeyQueryLen 5
 
 extern nsresult
 nsParseNewsMessageURI(const char* uri, nsCString& messageUriWithoutKey, PRUint32 *key);

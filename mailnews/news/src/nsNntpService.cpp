@@ -25,6 +25,7 @@
  *   Pierre Phaneuf <pp@ludusdesign.com>
  *   Håkan Waara <hwaara@chello.se>
  *   David Bienvenu <bienvenu@nventure.com>
+ *   Markus Hossner <markushossner@gmx.de>
  *
  * Alternatively, the contents of this file may be used under the terms of
  * either of the GNU General Public License Version 2 or later (the "GPL"),
@@ -217,10 +218,18 @@ nsNntpService::CreateMessageIDURL(nsIMsgFolder *folder, nsMsgKey key, char **url
     rv = rootFolder->GetURI(rootFolderURI);
     NS_ENSURE_SUCCESS(rv,rv);
 
+    nsString groupName;
+    rv = folder->GetName(groupName);
+    NS_ENSURE_SUCCESS(rv,rv);
+
     nsCAutoString uri;
     uri = rootFolderURI.get();
     uri += '/';
     uri += escapedMessageID;
+    uri += kNewsURIGroupQuery; // ?group=
+    AppendUTF16toUTF8(groupName, uri);
+    uri += kNewsURIKeyQuery; // &key=
+    uri.AppendInt(key);
     *url = ToNewCString(uri);
 
     PR_FREEIF(escapedMessageID);
@@ -504,98 +513,116 @@ NS_IMETHODIMP
 nsNntpService::DecomposeNewsURI(const char *uri, nsIMsgFolder **folder, nsMsgKey *aMsgKey)
 {
   nsresult rv;
-  // if we fix DecomposeNewsMessage to handle news message scheme, we could use it exclusively
-  if (strncmp(uri, kNewsMessageRootURI, kNewsMessageRootURILen) == 0)
-  {
-    rv = DecomposeNewsMessageURI(uri, folder, aMsgKey);
-    NS_ENSURE_SUCCESS(rv,rv);
-  }
-  else {
-    rv = GetFolderFromUri(uri, folder);
-    NS_ENSURE_SUCCESS(rv,rv);
-    *aMsgKey = nsMsgKey_None;
-  }
+
+  rv = DecomposeNewsMessageURI(uri, folder, aMsgKey);
+
   return rv;
 }
 
 nsresult
 nsNntpService::DecomposeNewsMessageURI(const char * aMessageURI, nsIMsgFolder ** aFolder, nsMsgKey *aMsgKey)
 {
-    NS_ENSURE_ARG_POINTER(aMessageURI);
-    NS_ENSURE_ARG_POINTER(aFolder);
-    NS_ENSURE_ARG_POINTER(aMsgKey);
+  NS_ENSURE_ARG_POINTER(aMessageURI);
+  NS_ENSURE_ARG_POINTER(aFolder);
+  NS_ENSURE_ARG_POINTER(aMsgKey);
 
-    nsresult rv = NS_OK;
+  nsresult rv = NS_OK;
+  
+  if (!PL_strncmp(aMessageURI, kNewsMessageRootURI, kNewsMessageRootURILen))
+  { // uri starts with news-message:/
     nsCAutoString folderURI;
-#if 0 // this not ready yet.
-    // check if we have a url of this form:
-    // "news://news.mozilla.org:119/3D612B96.1050301%40netscape.com?part=1.2&type=image/gif&filename=hp_icon_logo.gif"
-    // if so, we're going to iterate through the open msg windows, finding ones with news folders loaded,
-    // opening the db's for those folders, and searching for messages with the message id
-    if (!PL_strncmp(aMessageURI, kNewsRootURI, kNewsRootURILen)) {
-      nsCAutoString messageUri(aMessageURI + kNewsRootURILen + 1);
-      PRInt32 slashPos = messageUri.FindChar('/');
-      if (slashPos != kNotFound && slashPos + 1 != messageUri.Length())
-      {
-        nsCAutoString messageId;
-        PRInt32 questionPos = messageUri.FindChar('?');
-        if (questionPos == kNotFound)
-          questionPos = messageUri.Length();
+    rv = nsParseNewsMessageURI(aMessageURI, folderURI, aMsgKey);
+    NS_ENSURE_SUCCESS(rv,rv);
 
-        PRInt32 atPos = messageUri.Find("%40");
-        if (atPos != kNotFound)
-        {
-          PRInt32 messageIdLength = questionPos - slashPos - 1;
-          messageUri.Mid(messageId, slashPos + 1, messageIdLength);
-          nsUnescape(messageId.BeginWriting());
-          nsCOMPtr<nsIMsgMailSession> mailSession = do_GetService(NS_MSGMAILSESSION_CONTRACTID, &rv);
-          NS_ENSURE_SUCCESS(rv, rv);
-          nsCOMPtr <nsISupportsArray> msgWindows;
-          rv = mailSession->GetMsgWindowsArray(getter_AddRefs(msgWindows));
-          NS_ENSURE_SUCCESS(rv, rv);
-          PRUint32 numMsgWindows;
-          msgWindows->Count(&numMsgWindows);
-          for (PRUint32 windowIndex = 0; windowIndex < numMsgWindows; windowIndex++)
-          {
-            nsCOMPtr <nsIMsgWindow> msgWindow = do_QueryElementAt(msgWindows, windowIndex);
-            NS_ENSURE_SUCCESS(rv, rv);
-            nsCOMPtr <nsIMsgFolder> openFolder;
-            msgWindow->GetOpenFolder(getter_AddRefs(openFolder));
-            if (openFolder)
-            {
-              nsCOMPtr <nsIMsgNewsFolder> newsFolder = do_QueryInterface(openFolder);
-              // only interested in news folders.
-              if (newsFolder)
-              {
-                nsCOMPtr <nsIMsgDatabase> msgDatabase;
-                openFolder->GetMsgDatabase(msgWindow, getter_AddRefs(msgDatabase));
-                if (msgDatabase)
-                {
-                  nsCOMPtr <nsIMsgDBHdr> msgHdr;
-                  msgDatabase->GetMsgHdrForMessageID(messageId.get(), getter_AddRefs(msgHdr));
-                  if (msgHdr)
-                  {
-                    msgHdr->GetMessageKey(aMsgKey);
-                    NS_ADDREF(*aFolder = openFolder);
-                    break;
-                  }
-                }
-              }
-            }
-          }
-        }
+    rv = GetFolderFromUri(folderURI.get(), aFolder);
+    NS_ENSURE_SUCCESS(rv,rv);
+  } 
+  else if (!PL_strncmp(aMessageURI, kNewsRootURI, kNewsRootURILen))
+  { // uri starts with news:/
+    nsCAutoString newsUrl(aMessageURI + kNewsRootURILen + 1);
+    
+    PRInt32 groupPos = newsUrl.Find(kNewsURIGroupQuery); // find ?group=
+    PRInt32 keyPos   = newsUrl.Find(kNewsURIKeyQuery); // find &key=
+    if (groupPos != kNotFound && keyPos != kNotFound)
+    { // internal news uri news://host/message-id?group=mozilla.announce&key=15
+      nsCAutoString groupName;
+      nsCAutoString keyStr;
+
+      // setting up url
+      nsCOMPtr <nsIMsgMailNewsUrl> mailnewsurl = do_CreateInstance(NS_NNTPURL_CONTRACTID,&rv);
+      NS_ENSURE_SUCCESS(rv,rv);
+      
+      nsCOMPtr <nsIMsgMessageUrl> msgUrl = do_QueryInterface(mailnewsurl, &rv);
+      NS_ENSURE_SUCCESS(rv,rv);
+      
+      msgUrl->SetUri(aMessageURI);
+      mailnewsurl->SetSpec(nsDependentCString(aMessageURI));
+    
+      // get group name and message key
+      newsUrl.Mid(groupName, groupPos + kNewsURIGroupQueryLen,
+                  keyPos - groupPos - kNewsURIGroupQueryLen);
+      newsUrl.Mid(keyStr, keyPos + kNewsURIKeyQueryLen,
+                  newsUrl.Length() - keyPos - kNewsURIKeyQueryLen);      
+     
+      // get message key
+      nsMsgKey key = nsMsgKey_None;
+      PRInt32 errorCode;
+      key = keyStr.ToInteger(&errorCode);
+      
+      // get userPass
+      nsCAutoString userPass;
+      rv = mailnewsurl->GetUserPass(userPass);
+      NS_ENSURE_SUCCESS(rv,rv);
+      
+      // get hostName
+      nsCAutoString hostName;
+      rv = mailnewsurl->GetAsciiHost(hostName);
+      NS_ENSURE_SUCCESS(rv,rv);
+
+      // get server
+      nsCOMPtr <nsIMsgAccountManager> accountManager = do_GetService(NS_MSGACCOUNTMANAGER_CONTRACTID, &rv);
+      NS_ENSURE_SUCCESS(rv,rv);
+
+      char *unescapedUserPass = ToNewCString(userPass);
+      if (!unescapedUserPass)
+        return NS_ERROR_OUT_OF_MEMORY;
+      nsUnescape(unescapedUserPass);
+
+      nsCOMPtr<nsIMsgIncomingServer> server;
+      rv = accountManager->FindServer(nsDependentCString(unescapedUserPass), hostName,
+                                      NS_LITERAL_CSTRING("nntp"), getter_AddRefs(server));
+      NS_ENSURE_SUCCESS(rv,rv);
+      PR_FREEIF(unescapedUserPass);
+  
+      // get root folder  
+      nsCOMPtr <nsIMsgFolder> rootFolder;
+      rv = server->GetRootFolder(getter_AddRefs(rootFolder));
+      NS_ENSURE_SUCCESS(rv,rv);
+    
+      // get msg folder for group name
+      nsCOMPtr<nsISupports> child;
+      rv = rootFolder->GetChildNamed(NS_ConvertUTF8toUTF16(groupName),
+                                     getter_AddRefs(child));                                       
+      NS_ENSURE_SUCCESS(rv,rv);
+          
+      if (!errorCode && child)
+      {     
+        nsCOMPtr <nsIMsgFolder> folder = do_QueryInterface(child, &rv);
+        NS_ENSURE_SUCCESS(rv,rv);
+        
+        *aFolder = folder;
+        *aMsgKey = key;
       }
     }
     else
-#endif
     {
-      rv = nsParseNewsMessageURI(aMessageURI, folderURI, aMsgKey);
+      rv = GetFolderFromUri(aMessageURI, aFolder);
       NS_ENSURE_SUCCESS(rv,rv);
-
-      rv = GetFolderFromUri(folderURI.get(), aFolder);
-      NS_ENSURE_SUCCESS(rv,rv);
+      *aMsgKey = nsMsgKey_None;
     }
-    return NS_OK;
+  }
+  
+  return NS_OK;
 }
 
 nsresult
