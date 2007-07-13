@@ -50,10 +50,10 @@ function onInit(aPageId, aServerId)
 {
     initServerType();
 
-    setupBiffUI();
+    onCheckItem("server.biffMinutes", "server.doBiff");
+    onCheckItem("nntp.maxArticles", "nntp.limitArticles");
     setupMailOnServerUI();
     setupFixedUI();
-    setupNotifyUI();
     setupImapDeleteUI(aServerId);
 }
 
@@ -205,18 +205,16 @@ function secureSelect()
     } 
 }
 
-function setupBiffUI()
-{ 
-   var broadcaster = document.getElementById("broadcaster_doBiff");
+function onCheckItem(changeElementId, checkElementId)
+{
+    var element = document.getElementById(changeElementId);
+    var notify = document.getElementById(checkElementId);
+    var checked = notify.checked;
 
-   var dobiff = document.getElementById("server.doBiff");
-   var checked = dobiff.checked;
-   var locked = getAccountValueIsLocked(dobiff);
-
-   if (checked && !locked)
-     broadcaster.removeAttribute("disabled");
-   else
-     broadcaster.setAttribute("disabled", "true");
+    if(checked && !getAccountValueIsLocked(notify))
+      element.removeAttribute("disabled");
+    else
+      element.setAttribute("disabled", "true");
 }
 
 function setupMailOnServerUI()
@@ -272,20 +270,6 @@ function setupFixedUI()
       otherElement.removeAttribute("collapsed");
     }
   }
-}
-
-function setupNotifyUI()
-{ 
-  var broadcaster = document.getElementById("broadcaster_notify");
-
-  var notify = document.getElementById("nntp.notifyOn");
-  var checked = notify.checked;
-  var locked = getAccountValueIsLocked(notify);
-
-  if (checked && !locked)
-    broadcaster.removeAttribute("disabled");
-  else
-    broadcaster.setAttribute("disabled", "true");
 }
 
 function BrowseForNewsrc()

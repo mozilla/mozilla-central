@@ -54,10 +54,6 @@
     <script type="application/x-javascript" src="chrome://messenger/content/AccountManager.js"/>
     <script type="application/x-javascript" src="chrome://messenger/content/retention.js"/>
     <script type="application/x-javascript" src="chrome://messenger/content/am-offline.js"/>
-    
-    <broadcaster id="bc_notDownload"/>
-    <broadcaster id="bc_downloadMsg"/>
-    <broadcaster id="bc_removeBody"/>
 
     <label hidden="true" wsm_persist="true" id="server.type"/>  
 
@@ -103,15 +99,18 @@
     </hbox>
 
     <hbox align="center" class="indent" hidefor="none">
-        <checkbox  wsm_persist="true" id="offline.notDownload"
-            label="&offlineNotDownload.label;" accesskey="&offlineNotDownload.accesskey;" oncommand="onCheckItem('bc_notDownload', 'offline.notDownload');"/>
-        <textbox wsm_persist="true" id="offline.notDownloadMin" size="4" value="50"  observes="bc_notDownload"/> 
+        <checkbox wsm_persist="true" id="offline.notDownload"
+                  label="&offlineNotDownload.label;" accesskey="&offlineNotDownload.accesskey;"
+                  oncommand="onCheckItem('offline.notDownloadMin', 'offline.notDownload');"/>
+        <textbox wsm_persist="true" id="offline.notDownloadMin" size="4" value="50"/>
         <label value="&kb.label;" control="offline.notDownloadMin"/>
     </hbox>
 
     <hbox align="center" class="indent" hidefor="movemail,pop3,imap,none">
-        <checkbox wsm_persist="true" id="nntp.downloadMsg" label="&nntpDownloadMsg.label;" accesskey="&nntpDownloadMsg.accesskey;" oncommand="onCheckItem('bc_downloadMsg', 'nntp.downloadMsg');"/>
-        <textbox wsm_persist="true" id="nntp.downloadMsgMin" size="2" value="30" observes="bc_downloadMsg"/>
+        <checkbox wsm_persist="true" id="nntp.downloadMsg"
+                  label="&nntpDownloadMsg.label;" accesskey="&nntpDownloadMsg.accesskey;"
+                  oncommand="onCheckItem('nntp.downloadMsgMin', 'nntp.downloadMsg');"/>
+        <textbox wsm_persist="true" id="nntp.downloadMsgMin" size="2" value="30"/>
         <label value="&daysOld.label;"/>
     </hbox>
 
@@ -142,8 +141,8 @@
     </hbox>
     <hbox align="center" class="indent" hidefor="movemail,pop3,imap,none">
         <checkbox wsm_persist="true" id="nntp.removeBody" accesskey="&nntpRemoveBody.accesskey;"
-            label="&nntpRemoveBody.label;" oncommand="onCheckItem('bc_removeBody','nntp.removeBody');"/>
-        <textbox wsm_persist="true" id="nntp.removeBodyMin" size="2" value="30" observes="bc_removeBody"/>
+                  label="&nntpRemoveBody.label;" oncommand="onCheckItem('nntp.removeBodyMin','nntp.removeBody');"/>
+        <textbox wsm_persist="true" id="nntp.removeBodyMin" size="2" value="30"/>
         <label value="&daysOld.label;"/>
     </hbox>
     </vbox>

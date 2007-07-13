@@ -58,9 +58,6 @@
   <script type="application/x-javascript" src="chrome://messenger/content/widgetglue.js"/>
   <stringbundle id="bundle_messenger" src="chrome://messenger/locale/messenger.properties"/>
 
-  <broadcaster id="broadcaster_doBiff"/>
-  <broadcaster id="broadcaster_notify"/>
-  
   <label hidden="true" wsm_persist="true" id="server.type"/>
 
   <dialogheader title="&serverSettings.label;"/>
@@ -90,7 +87,8 @@
                    collapsed="true" use="server.port"/>
             <textbox wsm_persist="true" size="3" id="server.port"
                      preftype="int" hidefor="movemail" 
-                     prefstring="mail.server.%serverkey%.port"/>
+                     prefstring="mail.server.%serverkey%.port"
+                     type="number" max="65535"/>
             <label value="&serverPortDefault.label;" hidefor="movemail"/>
             <label id="defaultPort" hidefor="movemail"/>
         </hbox>
@@ -161,11 +159,10 @@
   <hbox align="center">
     <checkbox wsm_persist="true" id="server.doBiff" label="&biffStart.label;"
               accesskey="&biffStart.accesskey;"
-              oncommand="setupBiffUI();"
+              oncommand="onCheckItem('server.biffMinutes', 'server.doBiff');"
               prefattribute="value"
               prefstring="mail.server.%serverkey%.check_new_mail"/>
-    <textbox wsm_persist="true" id="server.biffMinutes" size="3" 
-             observes="broadcaster_doBiff"
+    <textbox wsm_persist="true" id="server.biffMinutes" size="3"
              preftype="int"
              prefstring="mail.server.%serverkey%.check_time"/>
     <label id="biffEnd" control="server.biffMinutes" value="&biffEnd.label;"/>
@@ -282,18 +279,16 @@
 
   <!-- NNTP -->
   <hbox hidefor="pop3,imap,movemail" align="center">
-    <checkbox wsm_persist="true" id="nntp.notifyOn"
+    <checkbox wsm_persist="true" id="nntp.limitArticles"
               label="&maxMessagesStart.label;"
               accesskey="&maxMessagesStart.accesskey;"
-              oncommand="setupNotifyUI();"
+              oncommand="onCheckItem('nntp.maxArticles', 'nntp.limitArticles');"
               prefattribute="value"
               prefstring="mail.server.%serverkey%.notify.on"/>
     <textbox wsm_persist="true" id="nntp.maxArticles" size="6"
-             observes="broadcaster_notify"
              preftype="int"
              prefstring="mail.server.%serverkey%.max_articles"/>
-    <label control="nntp.maxArticles" value="&maxMessagesEnd.label;"
-           observes="broadcaster_notify"/>
+    <label control="nntp.maxArticles" value="&maxMessagesEnd.label;"/>
   </hbox>
   <checkbox hidefor="pop3,imap,movemail" wsm_persist="true" id="nntp.pushAuth"
             label="&alwaysAuthenticate.label;"

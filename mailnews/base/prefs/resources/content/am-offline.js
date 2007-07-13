@@ -51,9 +51,9 @@ function onInit(aPageId, aServerId)
     initRetentionSettings();
     initDownloadSettings();
 
-    onCheckItem("bc_notDownload", "offline.notDownload");
-    onCheckItem("bc_downloadMsg", "nntp.downloadMsg");
-    onCheckItem("bc_removeBody", "nntp.removeBody");
+    onCheckItem("offline.notDownloadMin", "offline.notDownload");
+    onCheckItem("nntp.downloadMsgMin", "nntp.downloadMsg");
+    onCheckItem("nntp.removeBodyMin", "nntp.removeBody");
     onCheckKeepMsg();
 }
 
@@ -228,16 +228,14 @@ function onLockPreference()
     disableIfLocked( allPrefElements );
 } 
 
-function onCheckItem(broadcasterElementId, checkElementId)
+function onCheckItem(changeElementId, checkElementId)
 {
-    var broadcaster = document.getElementById(broadcasterElementId);
+    var element = document.getElementById(changeElementId);
     var checked = document.getElementById(checkElementId).checked;
     if(checked && !gLockedPref[checkElementId] ) {
-        broadcaster.removeAttribute("disabled");
+        element.removeAttribute("disabled");
     }
     else {
-        broadcaster.setAttribute("disabled", "true");
+        element.setAttribute("disabled", "true");
     }
-
-} 
-
+}
