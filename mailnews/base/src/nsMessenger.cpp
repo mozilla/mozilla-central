@@ -1762,7 +1762,8 @@ nsSaveMsgListener::Cancel(nsresult status)
 NS_IMETHODIMP
 nsSaveMsgListener::OnStartRunningUrl(nsIURI* url)
 {
-  mListener->OnStartRunningUrl(url);
+  if (mListener)
+    mListener->OnStartRunningUrl(url);
   return NS_OK;
 }
 
@@ -1805,7 +1806,8 @@ done:
   if (killSelf)
       Release(); // no more work needs to be done; kill ourself
 
-  mListener->OnStopRunningUrl(url, exitCode);
+  if (mListener)
+    mListener->OnStopRunningUrl(url, exitCode);
   return rv;
 }
 
