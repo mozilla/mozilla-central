@@ -119,7 +119,7 @@ $MofoRoot   = ":ext:cltbld\@cvs.mozilla.org:/mofo";
 #$moz_client_mk = 'client.mk';
 
 #- Set if you want to build in a separate object tree
-#$ObjDir = '';
+$ObjDir = 'obj-tb-trunk';
 
 # Extra build name, if needed.
 $BuildNameExtra = 'release';
@@ -161,7 +161,7 @@ $BinaryName = 'thunderbird.exe';
 
 # Release build options
 $ReleaseBuild  = 1;
-$shiptalkback  = 1;
+$shiptalkback  = 0;
 $build_hour    = "3";
 $package_creation_path = "/mail/installer";
 # needs setting for mac + talkback: $mac_bundle_path = "/browser/app";
