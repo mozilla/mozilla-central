@@ -880,10 +880,11 @@ nsresult nsMsgSearchTerm::MatchInAddressBook(const char * aAddress, PRBool *pRes
 
   if (mDirectory)
   {
-    PRBool cardExists = PR_FALSE;
-    rv = mDirectory->HasCardForEmailAddress(aAddress, &cardExists);
-    if ( (m_operator == nsMsgSearchOp::IsInAB && cardExists) || (m_operator == nsMsgSearchOp::IsntInAB && !cardExists))
+    nsIAbCard* cardForAddress;
+    rv = mDirectory->CardForEmailAddress(aAddress, &cardForAddress);
+    if ((m_operator == nsMsgSearchOp::IsInAB && cardForAddress) || (m_operator == nsMsgSearchOp::IsntInAB && !cardForAddress))
       *pResult = PR_TRUE;
+    NS_IF_RELEASE(cardForAddress);
   }
   
   return rv;

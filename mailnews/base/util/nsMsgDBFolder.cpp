@@ -1954,17 +1954,18 @@ nsMsgDBFolder::CallFilterPlugins(nsIMsgWindow *aMsgWindow, PRBool *aFiltersRun)
     {
       if (NS_SUCCEEDED(rv))
       {
-        PRBool cardExists = PR_FALSE;
+        nsIAbCard* cardForAddress;
         // don't want to abort the rest of the scoring.
         if (!authorEmailAddress.IsEmpty())
         {
-          for (PRInt32 index = 0; index < whiteListDirArray.Count() && !cardExists; index++)
-            rv = whiteListDirArray[index]->HasCardForEmailAddress(authorEmailAddress.get(), &cardExists);
+          for (PRInt32 index = 0; index < whiteListDirArray.Count() && !cardForAddress; index++)
+            rv = whiteListDirArray[index]->CardForEmailAddress(authorEmailAddress.get(), &cardForAddress);
             if (NS_FAILED(rv))
-              cardExists = PR_FALSE;
+              cardForAddress = nsnull;
         }
-        if (cardExists)
+        if (cardForAddress)
         {
+          NS_RELEASE(cardForAddress);
           // mark this msg as non-junk, because we whitelisted it.
           mDatabase->SetStringProperty(msgKey, "junkscore", "0");
           mDatabase->SetStringProperty(msgKey, "junkscoreorigin", "plugin");

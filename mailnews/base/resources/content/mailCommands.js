@@ -644,7 +644,7 @@ function analyzeMessageForJunk(aMsgHdr, aMsgIndex, aJunkMsgIndices, aLastMessage
     {
       var headerParser = Components.classes["@mozilla.org/messenger/headerparser;1"].getService(Components.interfaces.nsIMsgHeaderParser);
       var authorEmailAddress = headerParser.extractHeaderAddressMailboxes(null, aMsgHdr.author);
-      if (aWhiteListDirectory.hasCardForEmailAddress(authorEmailAddress))
+      if (aWhiteListDirectory.cardForEmailAddress(authorEmailAddress))
         // skip over this message, like we do on incoming mail
         // the difference is it could be marked as junk from previous analysis
         // or from being manually marked by the user.

@@ -977,7 +977,7 @@ function useDisplayNameForAddress(emailAddress)
   }
 
   // look up the email address in the database
-  return gPersonalAddressBookDirectory.hasCardForEmailAddress(emailAddress);
+  return gPersonalAddressBookDirectory.cardForEmailAddress(emailAddress);
 }
 
 function AddNodeToAddressBook (emailAddressNode)

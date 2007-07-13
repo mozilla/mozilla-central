@@ -1044,16 +1044,6 @@ nsresult nsAbMDBDirectory::GetAbDatabase()
   return rv;
 }
 
-NS_IMETHODIMP nsAbMDBDirectory::HasCardForEmailAddress(const char * aEmailAddress, PRBool * aCardExists)
-{
-  nsCOMPtr<nsIAbCard> card;
-  nsresult rv = CardForEmailAddress(aEmailAddress, getter_AddRefs(card));
-  NS_ENSURE_SUCCESS(rv, rv);
-  
-  *aCardExists = card ? PR_TRUE : PR_FALSE;
-  return NS_OK;
-}
-
 NS_IMETHODIMP nsAbMDBDirectory::CardForEmailAddress(const char * aEmailAddress, nsIAbCard ** aAbCard)
 {
   NS_ENSURE_ARG_POINTER(aAbCard);

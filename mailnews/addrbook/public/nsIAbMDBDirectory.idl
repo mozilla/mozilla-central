@@ -46,7 +46,7 @@
 #define kMDBDirectoryRootLen       21
 %}
 
-[scriptable, uuid(08669294-66C6-414e-AE2D-69348A62F362)]
+[scriptable, uuid(db732ce9-a030-4aba-b4e5-96314ba5ec36)]
 interface nsIAbMDBDirectory : nsISupports {
 
 	// Creates an RDF directory component from the
@@ -90,9 +90,6 @@ interface nsIAbMDBDirectory : nsISupports {
 	
 	[noscript] void clearDatabase();
 	
-  // Check if the directory has a card for the specified email address
-	boolean hasCardForEmailAddress(in string emailAddress);
-  
   /** 
    * returns the address card for the specified email address. Returns NULL if 
    * we were unable to find a card for the specified e-mail address
