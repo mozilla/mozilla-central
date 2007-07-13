@@ -530,7 +530,7 @@ function showCalendarView(type)
     previousCommand.setAttribute("label", previousCommand.getAttribute("label-"+type));
 
     // Set up the commands
-    var availableViews = document.getElementById("calendar-view-box");
+    var availableViews = getViewDeck();
     for (var i = 0; i < availableViews.childNodes.length; i++) {
         var view = availableViews.childNodes[i];
         var command = document.getElementById(view.id+"-command");
