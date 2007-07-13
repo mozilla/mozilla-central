@@ -41,7 +41,6 @@ components/webbrwsr.dll
 components/wlltvwrs.dll
 components/xmlextras.dll
 components/xpc3250.dll
-components/xpcom_compat_c.dll
 components/xppref32.dll
 nsldap32v50.dll
 nsldappr32v50.dll
@@ -198,6 +197,8 @@ defaults/isp/en-US/
 defaults/isp/
 isp/gmail.rdf
 
+components/@DLL_PREFIX@xpcom_compat_c@DLL_SUFFIX@
+@DLL_PREFIX@xpcom_compat@DLL_SUFFIX@
 @DLL_PREFIX@zlib@DLL_SUFFIX@
 #Remove Talkback files from old location (in case user updates from 1.0.x)
 components/BrandRes.dll

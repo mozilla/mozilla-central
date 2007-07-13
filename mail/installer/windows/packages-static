@@ -16,7 +16,6 @@ bin\isp\@AB_CD@\*
 [xpcom]
 bin\xpcom.dll
 bin\xpcom_core.dll
-bin\xpcom_compat.dll
 bin\xpistub.dll
 bin\components\jar50.dll
 bin\components\xpcom_base.xpt
