@@ -971,6 +971,12 @@ KeychainFormSubmitObserver::Notify(nsIDOMHTMLFormElement* formNode, nsIDOMWindow
     if ([keychain isHostInDenyList:host])
       return NS_OK;
 
+    // Get the host in punycode for keychain use.
+    nsCAutoString asciiHostCAString;
+    rv = docURL->GetAsciiHost(asciiHostCAString);
+    NSString* asciiHost = NS_SUCCEEDED(rv) ? [NSString stringWithCString:asciiHostCAString.get()]
+                                           : host;
+
     nsCAutoString schemeCAString;
     docURL->GetScheme(schemeCAString);
     NSString* scheme = [NSString stringWithCString:schemeCAString.get()];
@@ -987,8 +993,17 @@ KeychainFormSubmitObserver::Notify(nsIDOMHTMLFormElement* formNode, nsIDOMWindow
     // Check the cache first, then fall back to a search in case a cached
     // entry expired before the user submitted.
     KeychainItem* keychainEntry = [keychain cachedKeychainEntryForKey:uri];
+    // We weren't using punycode for keychain entries up through 1.5, so try
+    // non-punycode first to favor Camino entries.
     if (!keychainEntry) {
       keychainEntry = [keychain findKeychainEntryForHost:host
+                                                    port:port
+                                                  scheme:scheme
+                                          securityDomain:nil
+                                                  isForm:YES];
+    }
+    if (!keychainEntry && ![asciiHost isEqualToString:host]) {
+      keychainEntry = [keychain findKeychainEntryForHost:asciiHost
                                                     port:port
                                                   scheme:scheme
                                           securityDomain:nil
@@ -1030,7 +1045,7 @@ KeychainFormSubmitObserver::Notify(nsIDOMHTMLFormElement* formNode, nsIDOMWindow
         case kSave:
           [keychain storeUsername:username
                          password:password
-                          forHost:host
+                          forHost:asciiHost
                    securityDomain:actionHost
                              port:port
                            scheme:scheme
@@ -1138,17 +1153,33 @@ KeychainFormSubmitObserver::Notify(nsIDOMHTMLFormElement* formNode, nsIDOMWindow
       nsCAutoString hostCAString;
       docURL->GetHost(hostCAString);
       host = [NSString stringWithCString:hostCAString.get()];
+      nsCAutoString asciiHostCAString;
+      docURL->GetAsciiHost(asciiHostCAString);
+      NSString* asciiHost = NS_SUCCEEDED(rv) ? [NSString stringWithCString:asciiHostCAString.get()]
+                                             : host;
       nsCAutoString schemeCAString;
       docURL->GetScheme(schemeCAString);
       NSString* scheme = [NSString stringWithCString:schemeCAString.get()];
       PRInt32 port = -1;
       docURL->GetPort(&port);
 
+      // We weren't using punycode for keychain entries up through 1.5, so try
+      // non-punycode first to favor Camino entries.
       keychainEntry = [keychain findKeychainEntryForHost:host
                                                     port:port
                                                   scheme:scheme
                                           securityDomain:nil
                                                   isForm:YES];
+      // TODO: once a released version checks for punycode, anything found with
+      // the above search (and with a Camino creator code) should be fixed
+      // immediately to have the right host.
+      if (!keychainEntry && ![asciiHost isEqualToString:host]) {
+        keychainEntry = [keychain findKeychainEntryForHost:asciiHost
+                                                      port:port
+                                                    scheme:scheme
+                                            securityDomain:nil
+                                                    isForm:YES];
+      }
     }
     // If we don't have a password for the page, don't bother looking for
     // more forms.
