@@ -56,7 +56,8 @@
         buttons="accept,extra2"
 #endif
         onload="onLoad();"
-        title="&aboutDialog.title;" creditslabel="&credits;" aboutlabel="&aboutLink;" versionlabel="&aboutVersion;"
+        title="&aboutDialog.title;" creditslabel="&credits.label;" creditsaccesskey="&credits.accesskey;"
+        aboutlabel="&aboutLink.label;" aboutaccesskey="&aboutLink.accesskey;" versionlabel="&aboutVersion;"
         style="width: 299px; height: 330px;"> 
 
     <script type="application/x-javascript">
@@ -69,6 +70,7 @@
 
           var button = document.documentElement.getButton("extra2");
           button.setAttribute("label", document.documentElement.getAttribute("creditslabel"));
+          button.setAttribute("accesskey", document.documentElement.getAttribute("creditsaccesskey"));
           gSelectedPage = 0;
           button.addEventListener("command", switchPage, false);
           document.documentElement.getButton("accept").focus();
@@ -92,11 +94,13 @@
           if (gSelectedPage == 0) { 
             iframe.setAttribute("src", "chrome://messenger/content/credits.xhtml");
             button.setAttribute("label", document.documentElement.getAttribute("aboutlabel"));
+            button.setAttribute("accesskey", document.documentElement.getAttribute("aboutaccesskey"));
             gSelectedPage = 1;
           }
           else {
             iframe.setAttribute("src", ""); 
             button.setAttribute("label", document.documentElement.getAttribute("creditslabel"));
+            button.setAttribute("accesskey", document.documentElement.getAttribute("creditsaccesskey"));
             gSelectedPage = 0;
           }
           var modes = document.getElementById("modes");
