@@ -324,6 +324,7 @@ sub validateToken {
 # setting a login cookie for the user.
 sub processLoginForm {
   my $c = Litmus->cgi();
+  my $thepassword;
   
   my $type = $c->param("login_type");
   
@@ -408,9 +409,11 @@ sub processLoginForm {
     my $vars = {
                 title => "Account Created",
                 email => $email,
+                password => $password,
                 realname => $name,
                 return_to => $c->param("login_loc"),
-                params => $c
+                params => $c,
+                login_extension => $c->param("login_extension"),
                };
     
     print $c->header();
