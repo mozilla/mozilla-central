@@ -313,11 +313,15 @@
                        id="calendar-switch-button"
                        label="&lightning.toolbar.calendar.label;"
                        command="switch2calendar"/>
+
+<!-- XXX Disable task-switch-button until task view is implemented
         <toolbarbutton class="toolbarbutton-2"
                        mode="mode" 
                        id="task-switch-button"
                        label="&lightning.toolbar.task.label;"
                        command="switch2task"/>
+-->
+
       </toolbarpalette>
       <toolbar id="mode-toolbar"
                class="chromeclass-toolbar"
