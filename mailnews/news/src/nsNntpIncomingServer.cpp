@@ -883,7 +883,7 @@ nsNntpIncomingServer::LoadHostInfoFile()
   if (!exists) return NS_OK;
 
   nsCOMPtr<nsIInputStream> fileStream;
-  rv = NS_NewLocalFileInputStream(getter_AddRefs(fileStream), mNewsrcFilePath);
+  rv = NS_NewLocalFileInputStream(getter_AddRefs(fileStream), mHostInfoFile);
   NS_ENSURE_SUCCESS(rv, nsnull);
 
   nsCOMPtr<nsILineInputStream> lineInputStream(do_QueryInterface(fileStream, &rv));
@@ -898,8 +898,8 @@ nsNntpIncomingServer::LoadHostInfoFile()
     if (line.IsEmpty())
       continue;
     HandleLine(line.get(), line.Length());
-    mHasSeenBeginGroups = PR_FALSE;
   }
+  mHasSeenBeginGroups = PR_FALSE;
   fileStream->Close();
      
   return UpdateSubscribed();
@@ -1252,7 +1252,7 @@ nsNntpIncomingServer::HandleLine(const char* line, PRUint32 line_size)
     }
   }
   else {
-		if (strncmp(line,"begingroups", 11) == 0) {
+		if (PL_strncmp(line,"begingroups", 11) == 0) {
 			mHasSeenBeginGroups = PR_TRUE;
 		}
 		char*equalPos = (char *) PL_strchr(line, '=');	
