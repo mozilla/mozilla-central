@@ -1,6 +1,6 @@
 #
-## hostname: fx-linux-tbox
-## uname: Linux fx-linux-tbox.build.mozilla.org 2.6.9-42.ELsmp #1 SMP Sat Aug 12 09:39:11 CDT 2006 i686 i686 i386 GNU/Linux
+## hostname: fxnewref-linux-tbox
+## uname: Linux fxnewref-linux-tbox.build.mozilla.org 2.6.18-8.el5 #1 SMP Thu Mar 15 19:57:35 EDT 2007 i686 i686 i386 GNU/Linux
 #
 
 #- tinder-config.pl - Tinderbox configuration file.
@@ -83,7 +83,7 @@ $DHTMLPerformanceTest     = 0;  # Tdhtml
 $StartupPerformanceTest   = 0;  # Ts
 
 $TestsPhoneHome           = 1;  # Should test report back to server?
-$GraphNameOverride        = 'fx-linux-tbox';
+$GraphNameOverride        = 'fxnewref-linux-tbox';
 
 # $results_server
 #----------------------------------------------------------------------------
