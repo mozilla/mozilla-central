@@ -73,7 +73,13 @@ else
 TARGET		= Camino
 endif
 
-GARBAGE_DIRS += build 
+GARBAGE_DIRS += build \
+	$(DIST)/$(APP_NAME).app \
+	$(DIST)/Mozilla.app \
+	IBPalette/build \
+	embed-replacements.tmp \
+	generated \
+	$(NULL)
 
 include $(topsrcdir)/config/rules.mk
 
@@ -90,12 +96,6 @@ ifneq ($(ABS_topsrcdir),$(MOZ_BUILD_ROOT))
 	ln -fs $(srcdir)/PreferencePanes
 	ln -fs $(srcdir)/Info-*.plist .
 endif
-
-clean clobber repackage::
-	rm -rf $(DIST)/$(APP_NAME).app
-	rm -rf embed-replacements.tmp
-	rm -rf generated
-	rm -rf $(PLATFORM_INI_FILE) $(DIST)/bin/platform.ini
 
 generated:
 	mkdir -p $@
@@ -121,6 +121,9 @@ $(PLATFORM_INI_FILE): $(PLATFORM_BUILD_ID_FILE) $(PLATFORM_VERSION_FILE)
 	echo Milestone=$(PLATFORM_VERSION) >> $@
 	$(INSTALL) $@ $(DIST)/bin
 
+clean clobber::
+	rm -rf $(PLATFORM_INI_FILE) $(DIST)/bin/platform.ini
+
 generated/CmXULAppData.h: $(srcdir)/src/embedding/CmXULAppData.h.in $(PLATFORM_BUILD_ID_FILE) $(PLATFORM_VERSION_FILE)
 	sed -e "s/%PLATFORM_BUILD_ID%/$(PLATFORM_BUILD_ID)/" \
 	    -e "s/%PLATFORM_VERSION%/$(PLATFORM_VERSION)/" $< > $@
@@ -132,7 +135,7 @@ libs:: generated/all-camino.js generated/CmXULAppData.h $(PLATFORM_INI_FILE)
 	cd embed-replacements.tmp && $(ZIP) -r0DX ../../dist/Embed/chrome/embed.jar *
 	$(PBBUILD) -project Camino.xcode -target $(TARGET) -buildstyle $(BUILDSTYLE) $(PBBUILD_SETTINGS)
 
-libs repackage::
+libs::
 	rsync -a --copy-unsafe-links $(XCODE_PRODUCT_DIR)/Camino.app/ $(DIST)/$(APP_NAME).app
 	$(RM) $(DIST)/$(APP_NAME).app/Contents/MacOS/components/camino.xpt
 	$(XPIDL_LINK) $(DIST)/$(APP_NAME).app/Contents/MacOS/camino.xpt $(DIST)/$(APP_NAME).app/Contents/MacOS/components/*.xpt
@@ -149,7 +152,3 @@ libs:: $(PROGRAM)
 	mkdir -p $(DIST)/Mozilla.app/Contents/MacOS
 	echo "I'm just fooling an old tinderbox script" > $(DIST)/Mozilla.app/Contents/MacOS/mozilla-bin
 	chmod a+x $(DIST)/Mozilla.app/Contents/MacOS/mozilla-bin
-
-clean clobber::
-	rm -rf $(DIST)/Mozilla.app
-
