@@ -115,6 +115,7 @@ function OnMailWindowUnload()
   {
     msgDS = viewDataSources[index].QueryInterface(Components.interfaces.nsIMsgRDFDataSource);
     msgDS.window = null;
+    msgDS = null;
   }
 
   msgWindow.closeWindow();
@@ -122,8 +123,7 @@ function OnMailWindowUnload()
 
 function CreateMessenger()
 {
-  messenger = Components.classes[messengerContractID].createInstance();
-  messenger = messenger.QueryInterface(Components.interfaces.nsIMessenger);
+  messenger = Components.classes[messengerContractID].createInstance(Components.interfaces.nsIMessenger);
 }
 
 function CreateMailWindowGlobals()
@@ -170,7 +170,7 @@ function CreateMailWindowGlobals()
   gBrandBundle = document.getElementById("bundle_brand");
 
   //Create datasources
-  accountManagerDataSource = Components.classes[accountManagerDSContractID].createInstance();
+  accountManagerDataSource = Components.classes[accountManagerDSContractID].getService();
   folderDataSource         = Components.classes[folderDSContractID].getService();
   unreadFolderDataSource = Components.classes[unreadFoldersDSContractID].getService();
   favoriteFoldersDataSource = Components.classes[favoriteFoldersDSContractID].getService();
@@ -556,7 +556,7 @@ function HidingThreadPane()
 // the find toolbar needs a method called getBrowser
 function getBrowser() 
 {
-  return document.getElementById("messagepane");
+  return getMessageBrowser();
 }
 
 var gCurrentDisplayDeckId = "";
