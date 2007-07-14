@@ -5195,7 +5195,7 @@ fi
 
 # Before this used `uname -m` when not cross compiling
 # but that breaks when you have a 64 bit kernel with a 32 bit userland.
-OS_TEXT="${target_cpu}"
+OS_TEST="${target_cpu}"
 
 _COMPILER_PREFIX=
 
