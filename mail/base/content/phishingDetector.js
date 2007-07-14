@@ -48,6 +48,14 @@ var gPhishingDetector = {
   mCheckForIPAddresses: true,
   mCheckForMismatchedHosts: true,
   mPhishingWarden: null,
+
+  shutdown: function()
+  {
+    try {
+      this.mPhishingWarden.shutdown();
+    } catch (ex) {}
+  },
+
   /**
    * initialize the phishing warden. 
    * initialize the black and white list url tables. 
