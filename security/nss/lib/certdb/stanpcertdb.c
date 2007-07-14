@@ -884,7 +884,12 @@ CERT_SaveSMimeProfile(CERTCertificate *cert, SECItem *emailProfile,
         }
     }
 
-    
+    if (cert->slot && cert->isperm && CERT_IsUserCert(cert) &&
+	(!emailProfile || !emailProfile->len)) {
+	/* Don't clobber emailProfile for user certs. */
+    	return SECSuccess;
+    }
+
     for (emailAddr = CERT_GetFirstEmailAddress(cert); emailAddr != NULL;
 		emailAddr = CERT_GetNextEmailAddress(cert,emailAddr)) {
 	rv = certdb_SaveSingleProfile(cert,emailAddr,emailProfile,profileTime);
