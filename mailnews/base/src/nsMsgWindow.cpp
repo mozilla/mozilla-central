@@ -132,8 +132,8 @@ NS_IMETHODIMP nsMsgWindow::CloseWindow()
 {
   nsresult rv = NS_OK;
   nsCOMPtr<nsIURILoader> dispatcher = do_GetService(NS_URI_LOADER_CONTRACTID, &rv);
-  NS_ENSURE_SUCCESS(rv, rv);
-  rv = dispatcher->UnRegisterContentListener(this);
+  if (dispatcher) // on shut down it's possible dispatcher will be null.
+    rv = dispatcher->UnRegisterContentListener(this);
 
   mMsgWindowCommands = nsnull;
   mStatusFeedback = nsnull;
@@ -144,9 +144,8 @@ NS_IMETHODIMP nsMsgWindow::CloseWindow()
   if(rootShell)
   {
     nsCOMPtr<nsIURIContentListener> listener(do_GetInterface(rootShell));
-    if (listener) {
+    if (listener)
       listener->SetParentContentListener(nsnull);
-    }
     mRootDocShellWeak = nsnull;
     mMessageWindowDocShellWeak = nsnull;
   }
