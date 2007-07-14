@@ -102,8 +102,7 @@ public:
   nsMsgDatabase();
   virtual ~nsMsgDatabase();
 
-
-  static nsIMdbFactory  *GetMDBFactory();
+  nsIMdbFactory  *GetMDBFactory();
   nsIMdbEnv             *GetEnv() {return m_mdbEnv;}
   nsIMdbStore           *GetStore() {return m_mdbStore;}
   virtual PRUint32      GetCurVersion();
@@ -159,8 +158,8 @@ public:
   nsresult DumpMsgChildren(nsIMsgDBHdr *msgHdr);
 #endif
   
-  friend class nsMsgHdr;	// use this to get access to cached tokens for hdr fields
-  friend class nsMsgThread;	// use this to get access to cached tokens for hdr fields
+  friend class nsMsgHdr;  // use this to get access to cached tokens for hdr fields
+  friend class nsMsgThread;  // use this to get access to cached tokens for hdr fields
   friend class nsMsgDBEnumerator;
   friend class nsMsgDBThreadEnumerator;
 protected:
@@ -184,18 +183,18 @@ protected:
   
   
   // open db cache
-  static void		AddToCache(nsMsgDatabase* pMessageDB) 
+  static void    AddToCache(nsMsgDatabase* pMessageDB) 
   {
 #ifdef DEBUG_David_Bienvenu
 //    NS_ASSERTION(GetNumInCache() < 40, "40 or more open db's");
 #endif
     GetDBCache()->AppendElement(pMessageDB);}
-  static void		RemoveFromCache(nsMsgDatabase* pMessageDB);
-  static int		FindInCache(nsMsgDatabase* pMessageDB);
-  PRBool	MatchDbName(nsILocalFile *dbName);	// returns TRUE if they match
+  static void    RemoveFromCache(nsMsgDatabase* pMessageDB);
+  static int    FindInCache(nsMsgDatabase* pMessageDB);
+  PRBool  MatchDbName(nsILocalFile *dbName);  // returns TRUE if they match
   
 #if defined(XP_WIN) || defined(XP_OS2) // this should go away when we can provide our own file stream to MDB/Mork
-  static void		UnixToNative(char*& ioPath);
+  static void    UnixToNative(char*& ioPath);
 #endif
   
   // Flag handling routines
@@ -228,19 +227,19 @@ protected:
                                nsISupportsArray *hdrsToDelete);
   
   // mdb bookkeeping stuff
-  virtual nsresult			InitExistingDB();
-  virtual nsresult			InitNewDB();
-  virtual nsresult			InitMDBInfo();
+  virtual nsresult      InitExistingDB();
+  virtual nsresult      InitNewDB();
+  virtual nsresult      InitMDBInfo();
   
   nsCOMPtr <nsIMsgFolder> m_folder;
   nsDBFolderInfo      *m_dbFolderInfo;
   nsMsgKey      m_nextPseudoMsgKey;
-  nsIMdbEnv     *m_mdbEnv;	// to be used in all the db calls.
+  nsIMdbEnv     *m_mdbEnv;  // to be used in all the db calls.
   nsIMdbStore   *m_mdbStore;
   nsIMdbTable   *m_mdbAllMsgHeadersTable;
   nsIMdbTable   *m_mdbAllThreadsTable;
   nsCString     m_dbName;
-  nsMsgKeyArray m_newSet;	// new messages since last open.
+  nsMsgKeyArray m_newSet;  // new messages since last open.
   PRBool        m_mdbTokensInitialized;
   nsCOMPtr <nsISupportsArray>  m_ChangeListeners;
   mdb_token     m_hdrRowScopeToken;
@@ -274,7 +273,7 @@ protected:
   mdb_token     m_threadNewestMsgDateColumnToken;
   mdb_token     m_offlineMsgOffsetColumnToken;
   mdb_token     m_offlineMessageSizeColumnToken;
-  nsIMsgHeaderParser	*m_HeaderParser;
+  nsIMsgHeaderParser  *m_HeaderParser;
   
   // header caching stuff - MRU headers, keeps them around in memory
   nsresult      GetHdrFromCache(nsMsgKey key, nsIMsgDBHdr* *result);
@@ -308,10 +307,10 @@ protected:
     nsIMsgDBHdr     *mHdr;
   };
   PLDHashTable  *m_cachedHeaders;
-  PRBool				m_bCacheHeaders;
+  PRBool        m_bCacheHeaders;
   nsMsgKey  m_cachedThreadId;
   nsCOMPtr <nsIMsgThread> m_cachedThread;
-
+  nsCOMPtr<nsIMdbFactory> mMdbFactory;
 private:
   PRUint32 m_cacheSize;
 };
