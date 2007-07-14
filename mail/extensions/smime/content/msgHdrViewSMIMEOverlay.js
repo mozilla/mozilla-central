@@ -230,6 +230,10 @@ function msgHdrViewSMIMEOnUnload(event)
   document.removeEventListener("smartcard-insert", onSmartCardChange, false);
   document.removeEventListener("smartcard-remove", onSmartCardChange, false);
   forgetEncryptedURI();
+  removeEventListener('messagepane-loaded', msgHdrViewSMIMEOnLoad, true);
+  removeEventListener('messagepane-unloaded', msgHdrViewSMIMEOnUnload, true);
+  removeEventListener('messagepane-hide', msgHdrViewSMIMEOnMessagePaneHide, true);
+  removeEventListener('messagepane-unhide', msgHdrViewSMIMEOnMessagePaneUnhide, true);
 }
 
 function msgHdrViewSMIMEOnMessagePaneHide()
