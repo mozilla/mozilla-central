@@ -1954,7 +1954,7 @@ nsMsgDBFolder::CallFilterPlugins(nsIMsgWindow *aMsgWindow, PRBool *aFiltersRun)
     {
       if (NS_SUCCEEDED(rv))
       {
-        nsIAbCard* cardForAddress;
+        nsIAbCard* cardForAddress = nsnull;
         // don't want to abort the rest of the scoring.
         if (!authorEmailAddress.IsEmpty())
         {
