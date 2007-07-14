@@ -65,7 +65,6 @@ nsMsgFolderCache::~nsMsgFolderCache()
   if (m_mdbStore)
     m_mdbStore->Release();
   NS_IF_RELEASE(gMDBFactory);
-  gMDBFactory = nsnull;
   if (m_mdbEnv)
     m_mdbEnv->Release();
 }
