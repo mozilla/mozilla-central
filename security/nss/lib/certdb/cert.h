@@ -37,7 +37,7 @@
 /*
  * cert.h - public data structures and prototypes for the certificate library
  *
- * $Id: cert.h,v 1.58 2007-07-11 04:47:41 julien.pierre.bugs%sun.com Exp $
+ * $Id: cert.h,v 1.59 2007-07-14 05:51:00 nelson%bolyard.com Exp $
  */
 
 #ifndef _CERT_H_
@@ -1100,10 +1100,6 @@ CERT_ImportCerts(CERTCertDBHandle *certdb, SECCertUsage usage,
 		 unsigned int ncerts, SECItem **derCerts,
 		 CERTCertificate ***retCerts, PRBool keepCerts,
 		 PRBool caOnly, char *nickname);
-
-SECStatus
-CERT_SaveImportedCert(CERTCertificate *cert, SECCertUsage usage,
-		      PRBool caOnly, char *nickname);
 
 char *
 CERT_MakeCANickname(CERTCertificate *cert);

@@ -38,7 +38,7 @@
 /*
  * Certificate handling code
  *
- * $Id: certdb.c,v 1.79 2007-07-11 04:47:41 julien.pierre.bugs%sun.com Exp $
+ * $Id: certdb.c,v 1.80 2007-07-14 05:51:00 nelson%bolyard.com Exp $
  */
 
 #include "nssilock.h"
@@ -2186,127 +2186,6 @@ CERT_EncodeTrustString(CERTCertTrust *trust)
     return(retstr);
 }
 
-/* in 3.4, this will only set trust */
-SECStatus
-CERT_SaveImportedCert(CERTCertificate *cert, SECCertUsage usage,
-		      PRBool caOnly, char *nickname)
-{
-    SECStatus rv;
-    PRBool saveit;
-    CERTCertTrust trust;
-    PRBool isCA;
-    unsigned int certtype;
-    
-    isCA = CERT_IsCACert(cert, NULL);
-    if ( caOnly && ( !isCA ) ) {
-	return(SECSuccess);
-    }
-    /* In NSS 3.4, certs are given zero trust upon import.  However, this
-    * function needs to set up default CA trust (CERTDB_VALID_CA), or
-    * PKCS#12 imported certs will not show up correctly.  In the case of a
-    * CA cert with zero trust, continue with this function.  But if the cert
-    * does already have some trust bits, exit and do not change them.
-    */
-    if (isCA && cert->trust && 
-        (cert->trust->sslFlags |
-         cert->trust->emailFlags |
-         cert->trust->objectSigningFlags)) {
-	return(SECSuccess);
-    }
-
-    saveit = PR_TRUE;
-    
-    PORT_Memset((void *)&trust, 0, sizeof(trust));
-
-    certtype = cert->nsCertType;
-
-    /* if no CA bits in cert type, then set all CA bits */
-    if ( isCA && ( ! ( certtype & NS_CERT_TYPE_CA ) ) ) {
-	certtype |= NS_CERT_TYPE_CA;
-    }
-
-    /* if no app bits in cert type, then set all app bits */
-    if ( ( !isCA ) && ( ! ( certtype & NS_CERT_TYPE_APP ) ) ) {
-	certtype |= NS_CERT_TYPE_APP;
-    }
-
-    switch ( usage ) {
-      case certUsageEmailSigner:
-      case certUsageEmailRecipient:
-	if ( isCA ) {
-	    if ( certtype & NS_CERT_TYPE_EMAIL_CA ) {
-		trust.emailFlags = CERTDB_VALID_CA;
-	    }
-	} else {
-	    if ( !cert->emailAddr || !cert->emailAddr[0] ) {
-		saveit = PR_FALSE;
-	    }
-	    
-	    if ( certtype & NS_CERT_TYPE_EMAIL ) {
-		trust.emailFlags = CERTDB_VALID_PEER;
-		if ( ! ( cert->rawKeyUsage & KU_KEY_ENCIPHERMENT ) ) {
-		    /* don't save it if KeyEncipherment is not allowed */
-		    saveit = PR_FALSE;
-		}
-	    }
-	}
-	break;
-      case certUsageUserCertImport:
-	if ( isCA ) {
-	    if ( certtype & NS_CERT_TYPE_SSL_CA ) {
-		trust.sslFlags = CERTDB_VALID_CA;
-	    }
-	    
-	    if ( certtype & NS_CERT_TYPE_EMAIL_CA ) {
-		trust.emailFlags = CERTDB_VALID_CA;
-	    }
-	    
-	    if ( certtype & NS_CERT_TYPE_OBJECT_SIGNING_CA ) {
-		trust.objectSigningFlags = CERTDB_VALID_CA;
-	    }
-	    
-	} else {
-	    if ( certtype & NS_CERT_TYPE_SSL_CLIENT ) {
-		trust.sslFlags = CERTDB_VALID_PEER;
-	    }
-	    
-	    if ( certtype & NS_CERT_TYPE_EMAIL ) {
-		trust.emailFlags = CERTDB_VALID_PEER;
-	    }
-	    
-	    if ( certtype & NS_CERT_TYPE_OBJECT_SIGNING ) {
-		trust.objectSigningFlags = CERTDB_VALID_PEER;
-	    }
-	}
-	break;
-      case certUsageAnyCA:
-	trust.sslFlags = CERTDB_VALID_CA;
-	break;
-      case certUsageSSLCA:
-	trust.sslFlags = CERTDB_VALID_CA | 
-			CERTDB_TRUSTED_CA | CERTDB_TRUSTED_CLIENT_CA;
-	break;
-      default:	/* XXX added to quiet warnings; no other cases needed? */
-	break;
-    }
-
-    if ( saveit ) {
-	rv = CERT_ChangeCertTrust(cert->dbhandle, cert, &trust);
-	if ( rv != SECSuccess ) {
-	    goto loser;
-	}
-    }
-
-    rv = SECSuccess;
-    goto done;
-
-loser:
-    rv = SECFailure;
-done:
-
-    return(rv);
-}
-
 SECStatus
 CERT_ImportCerts(CERTCertDBHandle *certdb, SECCertUsage usage,
 		 unsigned int ncerts, SECItem **derCerts,
@@ -2359,9 +2238,6 @@ CERT_ImportCerts(CERTCertDBHandle *certdb, SECCertUsage usage,
 		} else {
 		    rv = CERT_AddTempCertToPerm(certs[i],
                                                 nickname?nickname:canickname, NULL);
-		}
-		if (rv == SECSuccess) {
-		    CERT_SaveImportedCert(certs[i], usage, caOnly, NULL);
 		}
 
                 if (PR_TRUE == freeNickname) {
