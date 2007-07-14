@@ -40,8 +40,10 @@
  * secdert.h - public data structures for the DER encoding and
  *	       decoding utilities library
  *
- * $Id: secdert.h,v 1.3 2007-07-11 23:38:03 julien.pierre.bugs%sun.com Exp $
+ * $Id: secdert.h,v 1.4 2007-07-14 06:21:53 nelson%bolyard.com Exp $
  */
+
+#include "seccomon.h"
 
 typedef struct DERTemplateStr DERTemplate;
 
