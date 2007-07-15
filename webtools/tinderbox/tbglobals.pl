@@ -929,6 +929,9 @@ sub load_scrape {
   my $treedata = $_[0];
   local $_;
 
+  my $mindate = $treedata->{mindate};
+  my $maxdate = $treedata->{maxdate};
+
   my $scrape = {};
   
   open(SCRAPELOG, "<", "$treedata->{name}/scrape.dat");
@@ -936,6 +939,10 @@ sub load_scrape {
     chomp;
     my @list =  split /\|/;
     my $logfile = @list[0];
+    my ($buildtime, $processtime, $pid, $extension) = split(/\./, $logfile);
+    if (($buildtime < $mindate) || ($buildtime > $maxdate)) {
+      next;
+    }
     shift(@list);
 
     $scrape->{$logfile} = [ @list ];
