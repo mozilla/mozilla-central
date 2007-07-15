@@ -83,6 +83,8 @@
 #include "nsMsgLineBuffer.h"
 #include "nsIAsyncInputStream.h"
 #include "nsITimer.h"
+#include "nsAutoPtr.h"
+
 class nsIMAPMessagePartIDArray;
 class nsIMsgIncomingServer;
 
@@ -141,8 +143,8 @@ public:
 // Use these flags in conjunction with SetFlag/TestFlag/ClearFlag instead
 // of creating PRBools for everything....
 
-#define IMAP_RECEIVED_GREETING	      0x00000001  /* should we pause for the next read */
-#define	IMAP_CONNECTION_IS_OPEN	      0x00000004  /* is the connection currently open? */
+#define IMAP_RECEIVED_GREETING        0x00000001  /* should we pause for the next read */
+#define  IMAP_CONNECTION_IS_OPEN        0x00000004  /* is the connection currently open? */
 #define IMAP_WAITING_FOR_DATA         0x00000008
 #define IMAP_CLEAN_UP_URL_STATE       0x00000010 // processing clean up url state
 #define IMAP_ISSUED_LANGUAGE_REQUEST  0x00000020 // make sure we only issue the language request once per connection...
@@ -158,7 +160,7 @@ public:
   virtual ~nsImapProtocol();
 
   virtual nsresult ProcessProtocolState(nsIURI * url, nsIInputStream * inputStream,
-									PRUint32 sourceOffset, PRUint32 length);
+                  PRUint32 sourceOffset, PRUint32 length);
 
   // nsIRunnable method
   NS_IMETHOD Run();
@@ -171,8 +173,8 @@ public:
   void CloseStreams();
 
   // message id string utilities.
-  PRUint32		CountMessagesInIdString(const char *idString);
-  static	PRBool	HandlingMultipleMessages(const nsCString &messageIdString);
+  PRUint32    CountMessagesInIdString(const char *idString);
+  static  PRBool  HandlingMultipleMessages(const nsCString &messageIdString);
   // escape slashes and double quotes in username/passwords for insecure login.
   static void EscapeUserNamePasswordString(const char *strToEscape, nsCString *resultStr);
 
@@ -206,12 +208,12 @@ public:
 
   virtual void ProcessMailboxUpdate(PRBool handlePossibleUndo);
   // Send log output...
-  void	Log(const char *logSubName, const char *extraInfo, const char *logData);
+  void  Log(const char *logSubName, const char *extraInfo, const char *logData);
   static void LogImapUrl(const char *logMsg, nsIImapUrl *imapUrl);
   // Comment from 4.5: We really need to break out the thread synchronizer from the
   // connection class...Not sure what this means
   PRBool  GetPseudoInterrupted();
-  void	PseudoInterrupt(PRBool the_interrupt);
+  void  PseudoInterrupt(PRBool the_interrupt);
 
   PRUint32 GetMessageSize(const char * messageId, PRBool idsAreUids);
   PRBool GetSubscribingNow();
@@ -368,7 +370,7 @@ private:
   nsWeakPtr   m_server;
 
   nsCOMPtr<nsIImapMailFolderSink>     m_imapMailFolderSink;
-  nsCOMPtr<nsIImapMessageSink>	      m_imapMessageSink;
+  nsCOMPtr<nsIImapMessageSink>        m_imapMessageSink;
   nsCOMPtr<nsIImapServerSink>         m_imapServerSink;
 
   // helper function to setup imap sink interface proxies
@@ -388,9 +390,9 @@ private:
   virtual void ParseIMAPandCheckForNewMail(const char* commandString =
     nsnull, PRBool ignoreBadNOResponses = PR_FALSE);
   // biff
-  void	PeriodicBiff();
-  void	SendSetBiffIndicatorEvent(nsMsgBiffState newState);
-  PRBool	CheckNewMail();
+  void  PeriodicBiff();
+  void  SendSetBiffIndicatorEvent(nsMsgBiffState newState);
+  PRBool  CheckNewMail();
 
   // folder opening and listing header functions
   void UpdatedMailboxSpec(nsImapMailboxSpec *aSpec);
@@ -438,7 +440,7 @@ private:
   PRBool  m_folderNeedsSubscribing;
   PRBool  m_folderNeedsACLRefreshed;
   PRBool  m_threadShouldDie;
-  nsImapFlagAndUidState	*m_flagState;
+  nsImapFlagAndUidState  *m_flagState;
   nsMsgBiffState        m_currentBiffState;
   // manage the IMAP server command tags
   char m_currentServerCommandTag[10];   // enough for a billion
@@ -503,7 +505,7 @@ private:
 
   PRBool FolderIsSelected(const char *mailboxName);
 
-  PRBool	MailboxIsNoSelectMailbox(const char *mailboxName);
+  PRBool  MailboxIsNoSelectMailbox(const char *mailboxName);
   char * CreatePossibleTrashName(const char *prefix);
   const char * GetTrashFolderName();
   PRBool FolderNeedsACLInitialized(const char *folderName);
@@ -549,8 +551,8 @@ private:
   PRInt32 m_socketType;
   PRInt32 m_chunkSize;
   PRInt32 m_chunkThreshold;
-  nsMsgImapLineDownloadCache m_downloadLineCache;
-  nsMsgImapHdrXferInfo  m_hdrDownloadCache;
+  nsRefPtr <nsMsgImapLineDownloadCache> m_downloadLineCache;
+  nsRefPtr <nsMsgImapHdrXferInfo> m_hdrDownloadCache;
   nsCOMPtr <nsIImapHeaderInfo> m_curHdrInfo;
 
   nsIImapHostSessionList * m_hostSessionList;

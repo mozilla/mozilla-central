@@ -436,8 +436,8 @@ nsImapProtocol::nsImapProtocol() : nsMsgProtocol(nsnull),
 
   // since these are embedded in the nsImapProtocol object, but passed
   // through proxied xpcom methods, just AddRef them here.
-  m_hdrDownloadCache.AddRef();
-  m_downloadLineCache.AddRef();
+  m_hdrDownloadCache = new nsMsgImapHdrXferInfo();
+  m_downloadLineCache = new nsMsgImapLineDownloadCache();
 
   // subscription
   m_autoSubscribe = PR_TRUE;
@@ -476,7 +476,7 @@ nsresult nsImapProtocol::Initialize(nsIImapHostSessionList * aHostSessionList, n
   if (!aSinkEventTarget || !aHostSessionList || !aServer)
         return NS_ERROR_NULL_POINTER;
 
-   nsresult rv = m_downloadLineCache.GrowBuffer(kDownLoadCacheSize);
+   nsresult rv = m_downloadLineCache->GrowBuffer(kDownLoadCacheSize);
    NS_ENSURE_SUCCESS(rv, rv);
 
    m_flagState = new nsImapFlagAndUidState(kImapFlagAndUidStateSize, PR_FALSE);
@@ -2612,7 +2612,7 @@ nsresult nsImapProtocol::BeginMessageDownLoad(
       if (m_curHdrInfo)
         NormalMessageEndDownload();
       if (!m_curHdrInfo)
-        m_hdrDownloadCache.StartNewHdr(getter_AddRefs(m_curHdrInfo));
+        m_hdrDownloadCache->StartNewHdr(getter_AddRefs(m_curHdrInfo));
       if (m_curHdrInfo)
         m_curHdrInfo->SetMsgSize(total_message_size);
       return NS_OK;
@@ -3453,20 +3453,20 @@ void nsImapProtocol::HandleMessageDownLoadLine(const char *line, PRBool isPartia
     return;
   }
   // if this line is for a different message, or the incoming line is too big
-  if (((m_downloadLineCache.CurrentUID() != GetServerStateParser().CurrentResponseUID()) && !m_downloadLineCache.CacheEmpty()) ||
-    (m_downloadLineCache.SpaceAvailable() < lineLength + 1) )
+  if (((m_downloadLineCache->CurrentUID() != GetServerStateParser().CurrentResponseUID()) && !m_downloadLineCache->CacheEmpty()) ||
+    (m_downloadLineCache->SpaceAvailable() < lineLength + 1) )
   {
-    if (!m_downloadLineCache.CacheEmpty())
+    if (!m_downloadLineCache->CacheEmpty())
     {
-      msg_line_info *downloadLineDontDelete = m_downloadLineCache.GetCurrentLineInfo();
+      msg_line_info *downloadLineDontDelete = m_downloadLineCache->GetCurrentLineInfo();
       // post ODA lines....
       PostLineDownLoadEvent(downloadLineDontDelete);
     }
-    m_downloadLineCache.ResetCache();
+    m_downloadLineCache->ResetCache();
   }
 
   // so now the cache is flushed, but this string might still be to big
-  if (m_downloadLineCache.SpaceAvailable() < lineLength + 1)
+  if (m_downloadLineCache->SpaceAvailable() < lineLength + 1)
   {
     // has to be dynamic to pass to other win16 thread
     msg_line_info *downLoadInfo = (msg_line_info *) PR_CALLOC(sizeof(msg_line_info));
@@ -3479,7 +3479,7 @@ void nsImapProtocol::HandleMessageDownLoadLine(const char *line, PRBool isPartia
     }
   }
   else
-    m_downloadLineCache.CacheLine(messageLine, GetServerStateParser().CurrentResponseUID());
+    m_downloadLineCache->CacheLine(messageLine, GetServerStateParser().CurrentResponseUID());
 
   PR_Free(localMessageLine);
 }
@@ -3496,20 +3496,20 @@ void nsImapProtocol::NormalMessageEndDownload()
   {
     m_curHdrInfo->SetMsgSize(GetServerStateParser().SizeOfMostRecentMessage());
     m_curHdrInfo->SetMsgUid(GetServerStateParser().CurrentResponseUID());
-    m_hdrDownloadCache.FinishCurrentHdr();
+    m_hdrDownloadCache->FinishCurrentHdr();
     PRInt32 numHdrsCached;
-    m_hdrDownloadCache.GetNumHeaders(&numHdrsCached);
+    m_hdrDownloadCache->GetNumHeaders(&numHdrsCached);
     if (numHdrsCached == kNumHdrsToXfer)
     {
-      m_imapMailFolderSink->ParseMsgHdrs(this, &m_hdrDownloadCache);
-      m_hdrDownloadCache.ResetAll();
+      m_imapMailFolderSink->ParseMsgHdrs(this, m_hdrDownloadCache);
+      m_hdrDownloadCache->ResetAll();
     }
   }
-  if (!m_downloadLineCache.CacheEmpty())
+  if (!m_downloadLineCache->CacheEmpty())
   {
-      msg_line_info *downloadLineDontDelete = m_downloadLineCache.GetCurrentLineInfo();
+      msg_line_info *downloadLineDontDelete = m_downloadLineCache->GetCurrentLineInfo();
       PostLineDownLoadEvent(downloadLineDontDelete);
-      m_downloadLineCache.ResetCache();
+      m_downloadLineCache->ResetCache();
     }
 
   if (!GetServerStateParser().GetDownloadingHeaders())
@@ -3528,7 +3528,7 @@ void nsImapProtocol::NormalMessageEndDownload()
       m_runningUrl->GetImapAction(&imapAction);
 
     if (m_imapMessageSink)
-      m_imapMessageSink->NormalEndMsgWriteStream(m_downloadLineCache.CurrentUID(), imapAction == nsIImapUrl::nsImapMsgFetch, m_runningUrl);
+      m_imapMessageSink->NormalEndMsgWriteStream(m_downloadLineCache->CurrentUID(), imapAction == nsIImapUrl::nsImapMsgFetch, m_runningUrl);
 
     if (m_runningUrl && m_imapMailFolderSink)
     {
@@ -3537,7 +3537,7 @@ void nsImapProtocol::NormalMessageEndDownload()
       if (copyState) // only need this notification during copy
       {
         nsCOMPtr<nsIMsgMailNewsUrl> mailUrl (do_QueryInterface(m_runningUrl));
-        m_imapMailFolderSink->EndMessage(mailUrl, m_downloadLineCache.CurrentUID());
+        m_imapMailFolderSink->EndMessage(mailUrl, m_downloadLineCache->CurrentUID());
       }
     }
   }
@@ -3550,11 +3550,11 @@ void nsImapProtocol::AbortMessageDownLoad()
 
   if (m_trackingTime)
     AdjustChunkSize();
-  if (!m_downloadLineCache.CacheEmpty())
+  if (!m_downloadLineCache->CacheEmpty())
   {
-      msg_line_info *downloadLineDontDelete = m_downloadLineCache.GetCurrentLineInfo();
+      msg_line_info *downloadLineDontDelete = m_downloadLineCache->GetCurrentLineInfo();
       PostLineDownLoadEvent(downloadLineDontDelete);
-      m_downloadLineCache.ResetCache();
+      m_downloadLineCache->ResetCache();
     }
 
   if (GetServerStateParser().GetDownloadingHeaders())
@@ -3849,8 +3849,8 @@ void nsImapProtocol::FolderMsgDumpLoop(PRUint32 *msgUids, PRUint32 msgCount, nsI
 void nsImapProtocol::HeaderFetchCompleted()
 {
   if (m_imapMailFolderSink)
-    m_imapMailFolderSink->ParseMsgHdrs(this, &m_hdrDownloadCache);
-  m_hdrDownloadCache.ReleaseAll();
+    m_imapMailFolderSink->ParseMsgHdrs(this, m_hdrDownloadCache);
+  m_hdrDownloadCache->ReleaseAll();
 
   if (m_imapMailFolderSink)
     m_imapMailFolderSink->HeaderFetchCompleted(this);
