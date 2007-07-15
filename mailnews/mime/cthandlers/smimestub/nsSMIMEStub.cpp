@@ -49,18 +49,12 @@
 #define SMIME_PROPERTIES_URL          "chrome://messenger/locale/smime.properties"
 #define SMIME_STR_NOT_SUPPORTED_ID    1000
 
-#ifndef XP_MAC
 static nsCOMPtr<nsIStringBundle> stringBundle = nsnull;
-#endif
 
 static char *SMimeGetStringByID(PRInt32 aMsgId)
 {
   char          *tempString = nsnull;
   nsresult res = NS_OK;
-
-#ifdef XP_MAC
-  nsCOMPtr<nsIStringBundle> stringBundle = nsnull;
-#endif
 
   if (!stringBundle)
   {

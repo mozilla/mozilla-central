@@ -59,7 +59,7 @@ public:
 
 	PRInt32			m_Offset;
 	PRInt32			m_Length;
-#if defined(XP_MAC) || defined(XP_MACOSX)
+#ifdef XP_MACOSX
 	// Mac specific flags and fields for reading message summaries
 	PRBool			HasEudoraLabel() { return PR_FALSE; }
 	PRInt16			GetLabelNumber() { return 0; }	

@@ -52,12 +52,6 @@
 /*
 ** applefile definitions used 
 */
-#ifdef XP_MAC
-#if PRAGMA_STRUCT_ALIGN
-#pragma options align=mac68k
-#endif
-#endif /* XP_MAC */
-
 #if defined(XP_MACOSX)
 #pragma options align=mac68k
 #endif /* XP_MACOSX */
@@ -137,12 +131,6 @@ int  ap_decode_process_data(  appledouble_decode_object* p_ap_decode_obj, PRBool
 
 PR_END_EXTERN_C
  
-#ifdef XP_MAC
-#if PRAGMA_STRUCT_ALIGN
-#pragma options align=reset
-#endif
-#endif /* XP_MAC */
-
 #if defined(XP_MACOSX)
 #pragma options align=reset
 #endif /* XP_MACOSX */

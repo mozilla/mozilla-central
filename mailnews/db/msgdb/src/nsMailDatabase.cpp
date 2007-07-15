@@ -231,11 +231,6 @@ PRBool nsMailDatabase::SetHdrFlag(nsIMsgDBHdr *msgHdr, PRBool bSet, MsgFlags fla
   return ret;
 }
 
-#ifdef XP_MAC
-extern PRFileDesc *gIncorporateFID;
-extern const char* gIncorporatePath;
-#endif // XP_MAC
-
 // ### should move this into some utils class...
 int msg_UnHex(char C)
 {
@@ -255,21 +250,6 @@ void nsMailDatabase::UpdateFolderFlag(nsIMsgDBHdr *mailHdr, PRBool bSet,
   static char buf[50];
   PRInt64 folderStreamPos = 0; //saves the folderStream pos in case we are sharing the stream with other code
   nsIOutputStream *fileStream = (m_folderStream) ? m_folderStream.get() : *ppFileStream;
-  //#ifdef GET_FILE_STUFF_TOGETHER
-#ifdef XP_MAC
-  /* ducarroz: Do we still need this ??
-  // This is a horrible hack and we should make sure we don't need it anymore.
-  // It has to do with multiple people having the same file open, I believe, but the
-  // mac file system only has one handle, and they compete for the file position.
-  // Prevent closing the file from under the incorporate stuff. #82785.
-  int32 savedPosition = -1;
-  if (!fid && gIncorporatePath && !strcmp(m_folderSpec, gIncorporatePath))
-  {
-		fid = gIncorporateFID;
-                savedPosition = ftell(gIncorporateFID); // so we can restore it.
-                }
-  */
-#endif // XP_MAC
   PRUint32 offset;
   (void)mailHdr->GetStatusOffset(&offset);
   nsCOMPtr <nsISeekableStream> seekableStream;
@@ -376,13 +356,6 @@ void nsMailDatabase::UpdateFolderFlag(nsIMsgDBHdr *mailHdr, PRBool bSet,
 #endif
         SetReparse(PR_TRUE);
       }
-#ifdef XP_MAC
-      /* ducarroz: Do we still need this ??
-      // Restore the file position
-      if (savedPosition >= 0)
-      XP_FileSeek(fid, savedPosition, SEEK_SET);
-      */
-#endif
     }
     else
     {
@@ -395,7 +368,6 @@ void nsMailDatabase::UpdateFolderFlag(nsIMsgDBHdr *mailHdr, PRBool bSet,
       PR_ASSERT(PR_FALSE);
     }
   }
-  //#endif // GET_FILE_STUFF_TOGETHER
   if (!m_folderStream)
     *ppFileStream = fileStream; // This tells the caller that we opened the file, and please to close it.
   else if (!m_ownFolderStream)

@@ -117,9 +117,7 @@ PRUint16 EudoraTOCEntry::GetMozillaStatusFlags()
 	// Return the mozilla equivalent of flags that Eudora supports.
 	PRUint16	flags = 0;
 
-#if defined(XP_MAC) || defined(XP_MACOSX)
-
-#else
+#ifndef XP_MACOSX
 	switch (m_State)
 	{
 		case MS_UNREAD:
@@ -177,7 +175,7 @@ PRUint16 EudoraTOCEntry::GetMozillaStatusFlags()
 
 PRUint32 EudoraTOCEntry::GetMozillaStatus2Flags()
 {
-#if defined(XP_MAC) || defined(XP_MACOSX)
+#ifdef XP_MACOSX
 	return 0;
 #else
 
@@ -348,7 +346,7 @@ nsresult nsEudoraMailbox::ImportMailbox( PRUint32 *pBytes, PRBool *pAbort, const
 	return( rv);
 }
 
-#if defined(XP_MAC) || defined(XP_MACOSX)
+#ifdef XP_MACOSX
 #define kMsgHeaderSize		220
 #define	kMsgFirstOffset		278
 #else
@@ -477,7 +475,7 @@ nsresult nsEudoraMailbox::ReadTOCEntry(nsIInputStream *pToc, EudoraTOCEntry& toc
 	READ_TOC_FIELD(tocEntry.m_Offset);
 	READ_TOC_FIELD(tocEntry.m_Length);
 
-#if defined(XP_MAC) || defined(XP_MACOSX)
+#ifdef XP_MACOSX
 	// Read Mac specific data
 
 #else

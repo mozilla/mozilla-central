@@ -170,12 +170,6 @@ typedef struct _appledouble_decode_object
 	int		which_part;
 	
 	char	fname[256];
-#ifdef XP_MAC
-	FSSpec* mSpec;			/* the filespec to save the file to*/
-	PRInt16	vRefNum;
-	PRInt32	dirId; 
-	PRInt16	fileId;				/* the id for the open file (data/resource fork) */
-#endif
 	// nsIOFileStream *fileSpec;					/* the stream for data fork work.					 */
 
 	int 	state;

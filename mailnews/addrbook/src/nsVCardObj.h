@@ -125,11 +125,7 @@ vcards are not allowed to use the (incorrectly defined) |wchar_t| type.  Instead
 they will use an appropriately defined local type |vwchar_t|.
 */
 
-#ifdef XP_MAC
-        typedef uint16  vwchar_t; 
-#else
-        typedef wchar_t vwchar_t;
-#endif
+typedef wchar_t vwchar_t;
 
 #include "prtypes.h"
 
