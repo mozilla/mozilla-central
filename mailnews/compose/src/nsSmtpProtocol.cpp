@@ -689,13 +689,23 @@ PRInt32 nsSmtpProtocol::SendEhloResponse(nsIInputStream * inputStream, PRUint32 
          */
         if (m_responseCode == 500 || m_responseCode == 502)
         {
-            /* STARTTLS is only available when advertised which requires EHLO */
-            if (m_prefTrySSL == PREF_SECURE_ALWAYS_STARTTLS)
+            /* If STARTTLS is requested by the user, EHLO is required to advertise it.
+             * But only if TLS handshake is not already accomplished.
+             */
+            if (m_prefTrySSL == PREF_SECURE_ALWAYS_STARTTLS && !m_tlsEnabled)
             {
                 m_nextState = SMTP_ERROR_DONE;
-                m_urlErrorState = NS_ERROR_COULD_NOT_LOGIN_TO_SMTP_SERVER_WITH_STARTTLS1;
-                return(NS_ERROR_COULD_NOT_LOGIN_TO_SMTP_SERVER);
+                m_urlErrorState = NS_ERROR_STARTTLS_FAILED_EHLO_STARTTLS;
+                return(NS_ERROR_STARTTLS_FAILED_EHLO_STARTTLS);
             }
+            else
+                // EHLO is always needed if authentication is requested.
+                if (m_prefAuthMethod == PREF_AUTH_ANY)
+                {
+                    m_nextState = SMTP_ERROR_DONE;
+                    m_urlErrorState = NS_ERROR_COULD_NOT_LOGIN_TO_SMTP_SERVER_AUTH_NONE;
+                    return(NS_ERROR_COULD_NOT_LOGIN_TO_SMTP_SERVER);
+                }
 
             nsCAutoString buffer("HELO ");
             AppendHelloArgument(buffer);
@@ -746,6 +756,8 @@ PRInt32 nsSmtpProtocol::SendEhloResponse(nsIInputStream * inputStream, PRUint32 
         }
         else if (responseLine.Compare("AUTH", PR_TRUE, 4) == 0)
         {
+            SetFlag(SMTP_AUTH);
+
             if (m_prefUseSecAuth || m_prefTrySecAuth)
             {
                 if (responseLine.Find("GSSAPI", PR_TRUE, 5) >= 0)
@@ -768,8 +780,8 @@ PRInt32 nsSmtpProtocol::SendEhloResponse(nsIInputStream * inputStream, PRUint32 
 
                 if (m_prefTrySecAuth)
                 {
-                  // use it instantly so that it isn't reprobed in case of STARTTLS
-                  m_prefTrySecAuth = PR_FALSE;
+                  // don't adopt value for m_prefTrySecAuth instantly
+                  // so that we reprobe in case of STARTTLS
 
                   nsCOMPtr<nsISmtpServer> smtpServer;
                   m_runningURL->GetSmtpServer(getter_AddRefs(smtpServer));
@@ -778,8 +790,8 @@ PRInt32 nsSmtpProtocol::SendEhloResponse(nsIInputStream * inputStream, PRUint32 
                     // if we are in probe mode, save what we found out for the future
                     m_prefUseSecAuth = TestFlag(SMTP_AUTH_SEC_ENABLED);
                     smtpServer->SetUseSecAuth(m_prefUseSecAuth);
-                    // then disable probing
-                    smtpServer->SetTrySecAuth(m_prefTrySecAuth);
+                    // then disable probing for next run
+                    smtpServer->SetTrySecAuth(PR_FALSE);
                   }
                 }
             }
@@ -808,28 +820,6 @@ PRInt32 nsSmtpProtocol::SendEhloResponse(nsIInputStream * inputStream, PRUint32 
 
         startPos = endPos + 1;
     } while (endPos >= 0);
-
-    /* check if the server supports at least one of the mechanisms
-       the user wants us to use */
-    if (m_prefAuthMethod == PREF_AUTH_ANY)
-    {
-        if (m_prefUseSecAuth)
-        {
-            if (!TestFlag(SMTP_AUTH_SEC_ENABLED))
-                m_urlErrorState = NS_ERROR_COULD_NOT_LOGIN_TO_SMTP_SERVER_SECAUTH;
-        }
-        else
-        {
-            if (!TestFlag(SMTP_AUTH_INSEC_ENABLED))
-                m_urlErrorState = NS_ERROR_COULD_NOT_LOGIN_TO_SMTP_SERVER_INSECAUTH;
-        }
-
-        if (m_urlErrorState != NS_ERROR_FAILURE)
-        {
-            m_nextState = SMTP_ERROR_DONE;
-            return NS_ERROR_COULD_NOT_LOGIN_TO_SMTP_SERVER;
-        }
-    }
 
     if (TestFlag(SMTP_EHLO_SIZE_ENABLED) &&
        m_sizelimit > 0 && (PRInt32)m_totalMessageSize > m_sizelimit)
@@ -870,15 +860,15 @@ PRInt32 nsSmtpProtocol::SendTLSResponse()
               rv = sslControl->StartTLS();
       }
 
-    if (NS_SUCCEEDED(rv))
-    {
-      m_nextState = SMTP_EXTN_LOGIN_RESPONSE;
-      m_nextStateAfterResponse = SMTP_EXTN_LOGIN_RESPONSE;
-      m_tlsEnabled = PR_TRUE;
-      m_flags = 0; // resetting the flags
-      BackupAuthFlags();
-      return rv;
-    }
+      if (NS_SUCCEEDED(rv))
+      {
+          m_nextState = SMTP_EXTN_LOGIN_RESPONSE;
+          m_nextStateAfterResponse = SMTP_EXTN_LOGIN_RESPONSE;
+          m_tlsEnabled = PR_TRUE;
+          m_flags = 0; // resetting the flags
+          BackupAuthFlags();
+          return rv;
+      }
   }
 
   ClearFlag(SMTP_EHLO_STARTTLS_ENABLED);
@@ -896,7 +886,7 @@ PRInt32 nsSmtpProtocol::ProcessAuth()
 
     if (!m_tlsEnabled)
     {
-        if(TestFlag(SMTP_EHLO_STARTTLS_ENABLED))
+        if (TestFlag(SMTP_EHLO_STARTTLS_ENABLED))
         {
             // Do not try to combine SMTPS with STARTTLS.
             // If PREF_SECURE_ALWAYS_SMTPS is set,
@@ -922,7 +912,7 @@ PRInt32 nsSmtpProtocol::ProcessAuth()
         else if (m_prefTrySSL == PREF_SECURE_ALWAYS_STARTTLS)
         {
             m_nextState = SMTP_ERROR_DONE;
-            m_urlErrorState = NS_ERROR_COULD_NOT_LOGIN_TO_SMTP_SERVER_WITH_STARTTLS2;
+            m_urlErrorState = NS_ERROR_STARTTLS_FAILED_EHLO_STARTTLS;
             return NS_ERROR_COULD_NOT_LOGIN_TO_SMTP_SERVER;
         }
     }
@@ -940,6 +930,34 @@ PRInt32 nsSmtpProtocol::ProcessAuth()
     else
     if (m_prefAuthMethod == PREF_AUTH_ANY)
     {
+        // did the server advertise authentication capability at all?
+        if (!TestFlag(SMTP_AUTH))
+        {
+            m_nextState = SMTP_ERROR_DONE;
+            m_urlErrorState = NS_ERROR_COULD_NOT_LOGIN_TO_SMTP_SERVER_AUTH_NONE;
+            return NS_ERROR_COULD_NOT_LOGIN_TO_SMTP_SERVER;
+        }
+
+        /* check if the server supports at least one of the mechanisms
+           in the class the user wants us to use */
+        if (m_prefUseSecAuth)
+        {
+            if (!TestFlag(SMTP_AUTH_SEC_ENABLED))
+                m_urlErrorState = NS_ERROR_COULD_NOT_LOGIN_TO_SMTP_SERVER_SECAUTH;
+        }
+        else
+        {
+            if (!TestFlag(SMTP_AUTH_INSEC_ENABLED))
+                m_urlErrorState = NS_ERROR_COULD_NOT_LOGIN_TO_SMTP_SERVER_INSECAUTH;
+        }
+
+        if (m_urlErrorState != NS_ERROR_FAILURE)
+        {
+            m_nextState = SMTP_ERROR_DONE;
+            return NS_ERROR_COULD_NOT_LOGIN_TO_SMTP_SERVER;
+        }
+
+
         if (TestFlag(SMTP_AUTH_GSSAPI_ENABLED))
             m_nextState = SMTP_SEND_AUTH_GSSAPI_FIRST;
         else if (TestFlag(SMTP_AUTH_CRAM_MD5_ENABLED) ||
@@ -949,12 +967,6 @@ PRInt32 nsSmtpProtocol::ProcessAuth()
         else if (TestFlag(SMTP_AUTH_MSN_ENABLED) ||
                  TestFlag(SMTP_AUTH_LOGIN_ENABLED))
             m_nextState = SMTP_SEND_AUTH_LOGIN_STEP0;
-        else
-        {
-            m_nextState = SMTP_ERROR_DONE;
-            m_urlErrorState = NS_ERROR_COULD_NOT_LOGIN_TO_SMTP_SERVER_AUTH;
-            return NS_ERROR_COULD_NOT_LOGIN_TO_SMTP_SERVER_AUTH;
-        }
     }
     else
     {

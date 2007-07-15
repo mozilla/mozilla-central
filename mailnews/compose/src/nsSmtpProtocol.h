@@ -102,17 +102,24 @@ SMTP_SEND_AUTH_GSSAPI_STEP                          // 25
 // for login redirection information.
 #define SMTP_USE_LOGIN_REDIRECTION      0x00000080
 
+// insecure mechanisms follow
 #define SMTP_AUTH_LOGIN_ENABLED         0x00000100
 #define SMTP_AUTH_PLAIN_ENABLED         0x00000200
 #define SMTP_AUTH_EXTERNAL_ENABLED      0x00000400
+// sum of above insecure mechanisms
+#define SMTP_AUTH_INSEC_ENABLED         0x00000700
+// secure mechanisms follow
 #define SMTP_AUTH_GSSAPI_ENABLED        0x00000800
 #define SMTP_AUTH_DIGEST_MD5_ENABLED    0x00001000
 #define SMTP_AUTH_CRAM_MD5_ENABLED      0x00002000
 #define SMTP_AUTH_NTLM_ENABLED          0x00004000
 #define SMTP_AUTH_MSN_ENABLED           0x00008000
-#define SMTP_AUTH_ANY_ENABLED           0x0000FF00
-#define SMTP_AUTH_INSEC_ENABLED         0x00000700
+// sum of above secure mechanisms
 #define SMTP_AUTH_SEC_ENABLED           0x0000F800
+// sum of all above mechanisms
+#define SMTP_AUTH_ANY_ENABLED           0x0000FF00
+// indicates that AUTH has been advertised
+#define SMTP_AUTH                       0x00010000
 
 typedef enum _PrefAuthMethod {
     PREF_AUTH_NONE = 0,
