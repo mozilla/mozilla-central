@@ -142,7 +142,8 @@ if [ -z "${INIT_SOURCED}" -o "${INIT_SOURCED}" != "TRUE" ]; then
     }
     html_head()
     {
-        html "<TABLE BORDER=1><TR><TH COLSPAN=3>$*</TH></TR>"
+	
+        html "<TABLE BORDER=1 ${TABLE_ARGS}><TR><TH COLSPAN=3>$*</TH></TR>"
         html "<TR><TH width=500>Test Case</TH><TH width=50>Result</TH></TR>" 
         echo "$SCRIPTNAME: $* ==============================="
     }
@@ -163,6 +164,7 @@ if [ -z "${INIT_SOURCED}" -o "${INIT_SOURCED}" != "TRUE" ]; then
     HTML_FAILED='</TD><TD bgcolor=red>Failed</TD><TR>'
     HTML_FAILED_CORE='</TD><TD bgcolor=red>Failed Core</TD><TR>'
     HTML_PASSED='</TD><TD bgcolor=lightGreen>Passed</TD><TR>'
+    TABLE_ARGS=
 
 
 #directory name init
@@ -390,6 +392,7 @@ if [ -z "${INIT_SOURCED}" -o "${INIT_SOURCED}" != "TRUE" ]; then
     DAVEDIR=${HOSTDIR}/dave
     EVEDIR=${HOSTDIR}/eve
     FIPSDIR=${HOSTDIR}/fips
+    DBPASSDIR=${HOSTDIR}/dbpass
     ECCURVES_DIR=${HOSTDIR}/eccurves
 
     SERVER_CADIR=${HOSTDIR}/serverCA
@@ -424,6 +427,7 @@ if [ -z "${INIT_SOURCED}" -o "${INIT_SOURCED}" != "TRUE" ]; then
     D_SERVER="Server.$version"
     D_CLIENT="Client.$version"
     D_FIPS="FIPS.$version"
+    D_DBPASS="DBPASS.$version"
     D_ECCURVES="ECCURVES.$version"
     D_EXT_SERVER="ExtendedServer.$version"
     D_EXT_CLIENT="ExtendedClient.$version"
