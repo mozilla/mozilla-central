@@ -54,7 +54,7 @@
 #include "nsArrayEnumerator.h"
 #include "nsEnumeratorUtils.h"
 #include "nsIAbLDAPAttributeMap.h"
-#include "nsAbMDBDirectory.h"
+#include "nsIAbMDBDirectory.h"
 
 #define kDefaultMaxHits 100
 
@@ -97,9 +97,6 @@ NS_IMETHODIMP nsAbLDAPDirectory::Init(const char* aURI)
 
 nsresult nsAbLDAPDirectory::Initiate()
 {
-  if (!mIsQueryURI)
-    return NS_ERROR_FAILURE;
-
   if (!mLock)
     mLock = PR_NewLock();
 
