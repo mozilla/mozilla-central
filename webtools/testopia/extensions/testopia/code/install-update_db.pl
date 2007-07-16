@@ -32,6 +32,7 @@ testopiaUpdateDB();
 updateACLs();
 migrateAttachments();
 createGroup();
+finalFixups();
 print "Done checking Testopia setup.\n\n";
 # End of main().
 
@@ -202,7 +203,7 @@ sub testopiaUpdateDB {
     $dbh->bz_add_index('test_case_bugs', 'case_bugs_case_run_id_idx', ['case_run_id']);
     $dbh->bz_add_index('test_case_categories', 'category_name_idx_v2', ['name']);
     $dbh->bz_add_index('test_case_categories', 'category_product_id_name_idx', {FIELDS => [qw(product_id name)], TYPE => 'UNIQUE'});
-    $dbh->bz_add_index('test_case_categories', 'category_product_idx', {FIELDS => [qw(category_id product_id)], TYPE => 'UNIQUE'} );
+    $dbh->bz_add_index('test_case_categories', 'category_product_idx', {FIELDS => [qw(category_id product_id)], TYPE => 'UNIQUE'});
     $dbh->bz_add_index('test_case_components', 'components_case_id_idx', {FIELDS => [qw(case_id component_id)], TYPE => 'UNIQUE'});
     $dbh->bz_add_index('test_case_components', 'components_component_id_idx', ['component_id']);
     $dbh->bz_add_index('test_case_dependencies', 'case_dependencies_blocked_idx', ['blocked']);
@@ -305,25 +306,56 @@ sub migrateAttachments {
 sub populateMiscTables {
     my $dbh = Bugzilla->dbh;
 
-    if ($dbh->selectrow_array("SELECT COUNT(*) FROM test_fielddefs " .
-            "WHERE table_name = 'test_cases' " .
-            "AND name = 'estimated_time'") == 0) {
-        $dbh->do("INSERT INTO test_fielddefs " .
-                "(name, description, table_name) " .
-                "VALUES ('estimated_time', 'Estimated Time', 'test_cases')");
-    }
-
     # Insert initial values in static tables. Going out on a limb and
     # assuming that if one table is empty, they all are.
-    return unless $dbh->selectrow_array("SELECT COUNT(*) FROM test_case_run_status") == 0;
+    return if $dbh->selectrow_array("SELECT COUNT(*) FROM test_case_run_status");
 
     print "Populating test_case_run_status table ...\n";
     print "Populating test_case_status table ...\n";
     print "Populating test_plan_types table ...\n";
     print "Populating test_fielddefs table ...\n";
-    open FH, "< testopia/testopia.insert.sql" or die;
-    $dbh->do($_) while (<FH>);
-    close FH;
+
+    $dbh->do("INSERT INTO test_case_run_status (name, sortkey) VALUES ('IDLE', 1)");
+    $dbh->do("INSERT INTO test_case_run_status (name, sortkey) VALUES ('PASSED', 2)");
+    $dbh->do("INSERT INTO test_case_run_status (name, sortkey) VALUES ('FAILED', 3)");
+    $dbh->do("INSERT INTO test_case_run_status (name, sortkey) VALUES ('RUNNING', 4)");
+    $dbh->do("INSERT INTO test_case_run_status (name, sortkey) VALUES ('PAUSED', 5)");
+    $dbh->do("INSERT INTO test_case_run_status (name, sortkey) VALUES ('BLOCKED', 6)");
+    $dbh->do("INSERT INTO test_case_status (name) VALUES ('PROPOSED')");
+    $dbh->do("INSERT INTO test_case_status (name) VALUES ('CONFIRMED')");
+    $dbh->do("INSERT INTO test_case_status (name) VALUES ('DISABLED')");
+    $dbh->do("INSERT INTO test_plan_types (name) VALUES ('Unit')");
+    $dbh->do("INSERT INTO test_plan_types (name) VALUES ('Integration')");
+    $dbh->do("INSERT INTO test_plan_types (name) VALUES ('Function')");
+    $dbh->do("INSERT INTO test_plan_types (name) VALUES ('System')");
+    $dbh->do("INSERT INTO test_plan_types (name) VALUES ('Acceptance')");
+    $dbh->do("INSERT INTO test_plan_types (name) VALUES ('Installation')");
+    $dbh->do("INSERT INTO test_plan_types (name) VALUES ('Performance')");
+    $dbh->do("INSERT INTO test_plan_types (name) VALUES ('Product')");
+    $dbh->do("INSERT INTO test_plan_types (name) VALUES ('Interoperability')");
+    $dbh->do("INSERT INTO test_fielddefs (name, description, table_name) VALUES ('isactive', 'Archived', 'test_plans')");
+    $dbh->do("INSERT INTO test_fielddefs (name, description, table_name) VALUES ('name', 'Plan Name', 'test_plans')");
+    $dbh->do("INSERT INTO test_fielddefs (name, description, table_name) VALUES ('type_id', 'Plan Type', 'test_plans')");
+    $dbh->do("INSERT INTO test_fielddefs (name, description, table_name) VALUES ('case_status_id', 'Case Status', 'test_cases')");
+    $dbh->do("INSERT INTO test_fielddefs (name, description, table_name) VALUES ('category_id', 'Category', 'test_cases')");
+    $dbh->do("INSERT INTO test_fielddefs (name, description, table_name) VALUES ('priority_id', 'Priority', 'test_cases')");
+    $dbh->do("INSERT INTO test_fielddefs (name, description, table_name) VALUES ('summary', 'Run Summary', 'test_cases')");
+    $dbh->do("INSERT INTO test_fielddefs (name, description, table_name) VALUES ('isautomated', 'Automated', 'test_cases')");
+    $dbh->do("INSERT INTO test_fielddefs (name, description, table_name) VALUES ('alias', 'Alias', 'test_cases')");
+    $dbh->do("INSERT INTO test_fielddefs (name, description, table_name) VALUES ('requirement', 'Requirement', 'test_cases')");
+    $dbh->do("INSERT INTO test_fielddefs (name, description, table_name) VALUES ('script', 'Script', 'test_cases')");
+    $dbh->do("INSERT INTO test_fielddefs (name, description, table_name) VALUES ('arguments', 'Argument', 'test_cases')");
+    $dbh->do("INSERT INTO test_fielddefs (name, description, table_name) VALUES ('product_id', 'Product', 'test_plans')");
+    $dbh->do("INSERT INTO test_fielddefs (name, description, table_name) VALUES ('default_product_version', 'Default Product Version', 'test_plans')");
+    $dbh->do("INSERT INTO test_fielddefs (name, description, table_name) VALUES ('environment_id', 'Environment', 'test_runs')");
+    $dbh->do("INSERT INTO test_fielddefs (name, description, table_name) VALUES ('product_version', 'Product Version', 'test_runs')");
+    $dbh->do("INSERT INTO test_fielddefs (name, description, table_name) VALUES ('build_id', 'Default Build', 'test_runs')");
+    $dbh->do("INSERT INTO test_fielddefs (name, description, table_name) VALUES ('plan_text_version', 'Plan Text Version', 'test_runs')");
+    $dbh->do("INSERT INTO test_fielddefs (name, description, table_name) VALUES ('manager_id', 'Manager', 'test_runs')");
+    $dbh->do("INSERT INTO test_fielddefs (name, description, table_name) VALUES ('default_tester_id', 'Default Tester', 'test_cases')");
+    $dbh->do("INSERT INTO test_fielddefs (name, description, table_name) VALUES ('stop_date', 'Stop Date', 'test_runs')");
+    $dbh->do("INSERT INTO test_fielddefs (name, description, table_name) VALUES ('summary', 'Run Summary', 'test_runs')");
+    $dbh->do("INSERT INTO test_fielddefs (name, description, table_name) VALUES ('notes', 'Notes', 'test_runs')");
 }
 
 sub populateEnvTables {
@@ -485,4 +517,17 @@ sub createGroup {
         name        => 'Testers',
         description => 'Can read and write all test plans, runs, and cases.',
         isbuggroup  => 0 }) unless new Bugzilla::Group({name => 'Testers'});
+}
+
+# A spot for fixing stuff at the very end.
+sub finalFixups {
+    my $dbh = Bugzilla->dbh;
+
+    # We added the estimated_time field later, so we can't add it
+    # inside populateMiscTables().
+    unless ($dbh->selectrow_array("SELECT COUNT(*) FROM test_fielddefs " .
+            "WHERE name = 'estimated_time'")) {
+        $dbh->do("INSERT INTO test_fielddefs (name, description, table_name) " .
+                "VALUES ('estimated_time', 'Estimated Time', 'test_cases')");
+    }
 }
