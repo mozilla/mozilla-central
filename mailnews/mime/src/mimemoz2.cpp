@@ -903,14 +903,6 @@ mime_output_fn(const char *buf, PRInt32 size, void *stream_closure)
   return written;
 }
 
-#ifdef XP_MAC
-static int
-compose_only_output_fn(const char *buf, PRInt32 size, void *stream_closure)
-{
-    return 0;
-}
-#endif
-
 extern "C" int
 mime_display_stream_write (nsMIMESession *stream,
                            const char* buf,
@@ -1046,32 +1038,6 @@ mime_display_stream_abort (nsMIMESession *stream, int status)
 
   PR_FREEIF(msd);
 }
-
-#ifdef XP_MAC
-static PRUint32
-mime_convert_chars_to_ostype(const char *osTypeStr)
-{
-  if (!osTypeStr)
-    return '????';
-
-  PRUint32 result;
-  const char *p = osTypeStr;
-
-  for (result = 0; *p; p++)
-  {
-    char C = *p;
-
-    PRInt8 unhex = ((C >= '0' && C <= '9') ? C - '0' :
-      ((C >= 'A' && C <= 'F') ? C - 'A' + 10 :
-       ((C >= 'a' && C <= 'f') ? C - 'a' + 10 : -1)));
-    if (unhex < 0)
-      break;
-    result = (result << 4) | unhex;
-  }
-
-  return result;
-}
-#endif
 
 static int
 mime_output_init_fn (const char *type,

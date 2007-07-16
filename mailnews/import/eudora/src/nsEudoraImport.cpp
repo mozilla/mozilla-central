@@ -379,7 +379,7 @@ ImportEudoraMailImpl::ImportEudoraMailImpl()
 			char *		color;
 		};
 
-#if defined(XP_MAC) || defined(XP_MACOSX)
+#ifdef XP_MACOSX
 		// For now default to no labels on Mac
 		#define		kNumEudoraLabels		0
 
