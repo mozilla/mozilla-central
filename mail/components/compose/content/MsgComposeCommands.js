@@ -2497,8 +2497,6 @@ function ComposeCanClose()
   return true;
 }
 
-const MSG_FOLDER_FLAG_DRAFTS = 0x0400;
-
 function RemoveDraft()
 {
   try
@@ -2507,6 +2505,7 @@ function RemoveDraft()
     var msgKey = draftUri.substr(draftUri.indexOf('#') + 1);
     var folder = sRDF.GetResource(gMsgCompose.savedFolderURI).QueryInterface(Components.interfaces.nsIMsgFolder);
     try {
+      const MSG_FOLDER_FLAG_DRAFTS = 0x0400;
       if (folder.flags & MSG_FOLDER_FLAG_DRAFTS)
       {
         var msgs = Components.classes["@mozilla.org/supports-array;1"].
