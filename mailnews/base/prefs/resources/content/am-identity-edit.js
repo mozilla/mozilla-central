@@ -328,7 +328,7 @@ function getAccountForFolderPickerState()
   return gAccount;
 }
 
-// when the identity panel is loaded, the smpt-list is created
+// when the identity panel is loaded, the smtp-list is created
 // and the in prefs.js configured smtp is activated
 function loadSMTPServerList()
 {
