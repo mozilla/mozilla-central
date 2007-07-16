@@ -43,6 +43,9 @@
 #include "nsIServiceManager.h"
 #include "nsIMessengerWindowService.h"
 #include "nsICommandLineHandler.h"
+#include "nsString.h"
+
+class nsIMsgFolder;
 
 #define NS_MESSENGERBOOTSTRAP_CID                 \
 { /* 4a85a5d0-cddd-11d2-b7f6-00805f05ffa5 */      \
@@ -57,6 +60,8 @@ class nsMessengerBootstrap :
 public:
   nsMessengerBootstrap();
   virtual ~nsMessengerBootstrap();
+  nsresult DiscoverFoldersIfNeeded(nsIMsgFolder *folder);
+  nsresult OpenMessengerWindowForMessageId(nsCString &folderUri, nsCString &messageId);
   
   NS_DECL_ISUPPORTS  
   NS_DECL_NSIMESSENGERWINDOWSERVICE

@@ -24,6 +24,7 @@
  *   Scott Putterman <putterman@netscape.com>
  *   Seth Spitzer <sspitzer@netscape.com>
  *   Pierre Phaneuf <pp@ludusdesign.com>
+ *   David Bienvenu <bienvenu@nventure.com>
  *
  * Alternatively, the contents of this file may be used under the terms of
  * either of the GNU General Public License Version 2 or later (the "GPL"),
@@ -119,7 +120,42 @@ nsMessengerBootstrap::Handle(nsICommandLine* aCmdLine)
     {
       nsCOMPtr<nsISupportsString> scriptableURL (do_CreateInstance(NS_SUPPORTS_STRING_CONTRACTID));
       NS_ENSURE_TRUE(scriptableURL, NS_ERROR_FAILURE);
-  
+      if (StringBeginsWith(mailUrl, NS_LITERAL_STRING("mailbox-message://")) ||
+          StringBeginsWith(mailUrl, NS_LITERAL_STRING("imap-message://")) ||
+          StringBeginsWith(mailUrl, NS_LITERAL_STRING("news-message://")))
+      {
+        nsCOMPtr <nsIMsgDBHdr> msgHdr;
+        nsCAutoString nativeArg;
+        NS_CopyUnicodeToNative(mailUrl, nativeArg);
+        PRInt32 queryIndex = nativeArg.Find("?messageId=", PR_TRUE);
+        if (queryIndex > 0)
+        {
+          nsCString messageId, folderUri;
+          nativeArg.Right(messageId, nativeArg.Length() - queryIndex - 11);
+          nativeArg.Left(folderUri, queryIndex);
+          folderUri.Cut(folderUri.Find("-message"), 8);
+          return OpenMessengerWindowForMessageId(folderUri, messageId);
+        }
+        else
+          GetMsgDBHdrFromURI(nativeArg.get(), getter_AddRefs(msgHdr));
+
+        if (msgHdr)
+        {
+          nsCOMPtr <nsIMsgFolder> folder;
+          nsCString folderUri;
+          nsMsgKey msgKey;
+          msgHdr->GetMessageKey(&msgKey);
+          msgHdr->GetFolder(getter_AddRefs(folder));
+          if (folder)
+          {
+            folder->GetURI(folderUri);
+            rv = DiscoverFoldersIfNeeded(folder);
+            NS_ENSURE_SUCCESS(rv, rv);
+            return OpenMessengerWindowWithUri("mail:messageWindow", folderUri.get(), msgKey);  
+          }
+        }
+      }
+      // check if it's a mail message url, and if so, convert it?
       scriptableURL->SetData((mailUrl));
       argsArray->AppendElement(scriptableURL);
     }
@@ -154,32 +190,13 @@ nsMessengerBootstrap::Handle(nsICommandLine* aCmdLine)
       nsCString folderUri;
       rv = MsgMailboxGetURI(nativeArg.get(), folderUri);
       NS_ENSURE_SUCCESS(rv, rv);
-      nsCOMPtr<nsIRDFService> rdf(do_GetService("@mozilla.org/rdf/rdf-service;1", &rv));
-      NS_ENSURE_SUCCESS(rv, rv);
-      nsCOMPtr<nsIRDFResource> res;
-      rv = rdf->GetResource(folderUri, getter_AddRefs(res));
-      NS_ENSURE_SUCCESS(rv, rv);
-      nsCOMPtr<nsIMsgFolder> containingFolder;
-      containingFolder = do_QueryInterface(res, &rv);
-      NS_ENSURE_SUCCESS(rv, rv);
-      // once we have the folder uri, open the db and search for the message id.
       nsAutoString unicodeMessageid;
       // strip off .mozeml at the end as well
       arg.Mid(unicodeMessageid, mozmsgsIndex + 9, arg.Length() - (mozmsgsIndex + 9 + 7));
       nsCAutoString messageId;
       NS_CopyUnicodeToNative(unicodeMessageid, messageId);
-      nsCOMPtr <nsIMsgDatabase> msgDB;
-      containingFolder->GetMsgDatabase(nsnull, getter_AddRefs(msgDB));
-      nsCOMPtr<nsIMsgDBHdr> msgHdr;
-      if (msgDB)
-        msgDB->GetMsgHdrForMessageID(messageId.get(), getter_AddRefs(msgHdr));
-      if (msgHdr)
-      {
-        nsMsgKey msgKey;
-        msgHdr->GetMessageKey(&msgKey);
-        rv = OpenMessengerWindowWithUri("mail:messageWindow", folderUri.get(), msgKey);  
-        return rv;
-      }
+      return OpenMessengerWindowForMessageId(folderUri, messageId);
+
     }
 #endif
     if (StringEndsWith(arg, NS_LITERAL_STRING(".eml"), nsCaseInsensitiveStringComparator()))
@@ -224,28 +241,98 @@ nsMessengerBootstrap::GetHelpInfo(nsACString& aResult)
 
   return NS_OK;
 }
+nsresult nsMessengerBootstrap::DiscoverFoldersIfNeeded(nsIMsgFolder *folder)
+{
+  nsCOMPtr <nsIMsgFolder> parent;
+  folder->GetParent(getter_AddRefs(parent));
+  // check if we've done folder discovery. If not,
+  // do it so we'll have a real folder.
+  if (!parent)
+  {
+    nsCOMPtr <nsIMsgIncomingServer> server;
+    folder->GetServer(getter_AddRefs(server));
+    nsresult rv = server->GetRootFolder(getter_AddRefs(parent));
+    NS_ENSURE_SUCCESS(rv, rv);
+    nsCOMPtr<nsIEnumerator> enumerator;
+    parent->GetSubFolders(getter_AddRefs(enumerator));
+  }
+  return NS_OK;
+}
+
+nsresult nsMessengerBootstrap::OpenMessengerWindowForMessageId(nsCString &folderUri, nsCString &messageId)
+{
+  nsresult rv;
+  nsCOMPtr<nsIRDFService> rdf(do_GetService("@mozilla.org/rdf/rdf-service;1", &rv));
+  NS_ENSURE_SUCCESS(rv, rv);
+  nsCOMPtr<nsIRDFResource> res;
+  rv = rdf->GetResource(folderUri, getter_AddRefs(res));
+  NS_ENSURE_SUCCESS(rv, rv);
+  nsCOMPtr<nsIMsgFolder> containingFolder;
+  containingFolder = do_QueryInterface(res, &rv);
+  NS_ENSURE_SUCCESS(rv, rv);
+  rv = DiscoverFoldersIfNeeded(containingFolder);
+  NS_ENSURE_SUCCESS(rv, rv);
+  // once we have the folder uri, open the db and search for the message id.
+  nsCOMPtr <nsIMsgDatabase> msgDB;
+  containingFolder->GetMsgDatabase(nsnull, getter_AddRefs(msgDB));
+  nsCOMPtr<nsIMsgDBHdr> msgHdr;
+  if (msgDB)
+    msgDB->GetMsgHdrForMessageID(messageId.get(), getter_AddRefs(msgHdr));
+  if (msgHdr)
+  {
+    nsMsgKey msgKey;
+    msgHdr->GetMessageKey(&msgKey);
+    rv = OpenMessengerWindowWithUri("mail:messageWindow", folderUri.get(), msgKey);  
+    return rv;
+  }
+  return NS_ERROR_FAILURE;
+}
 
 NS_IMETHODIMP nsMessengerBootstrap::OpenMessengerWindowWithUri(const char *windowType, const char * aFolderURI, nsMsgKey aMessageKey)
 {
-  nsresult rv;
-
+  PRBool standAloneMsgWindow = PR_FALSE;
+  nsCAutoString chromeUrl("chrome://messenger/content/");
+  if (windowType && !strcmp(windowType, "mail:messageWindow"))
+  {
+    chromeUrl.Append("messageWindow.xul");
+    standAloneMsgWindow = PR_TRUE;
+  }
   nsCOMPtr<nsISupportsArray> argsArray;
-  rv = NS_NewISupportsArray(getter_AddRefs(argsArray));
+  nsresult rv = NS_NewISupportsArray(getter_AddRefs(argsArray));
   NS_ENSURE_SUCCESS(rv, rv);
 
   // create scriptable versions of our strings that we can store in our nsISupportsArray....
   if (aFolderURI)
   {
+    if (standAloneMsgWindow)
+    {
+      nsCOMPtr <nsIMsgFolder> folder;
+      rv = GetExistingFolder(nsDependentCString(aFolderURI), getter_AddRefs(folder));
+      NS_ENSURE_SUCCESS(rv, rv);
+      nsXPIDLCString msgUri;
+      folder->GetBaseMessageURI(msgUri);
+
+      nsCOMPtr<nsISupportsCString> scriptableMsgURI (do_CreateInstance(NS_SUPPORTS_CSTRING_CONTRACTID));
+      NS_ENSURE_TRUE(scriptableMsgURI, NS_ERROR_FAILURE);
+      msgUri.Append('#');
+      msgUri.AppendInt(aMessageKey, 10);
+      scriptableMsgURI->SetData(msgUri);
+      argsArray->AppendElement(scriptableMsgURI);
+      
+    }
     nsCOMPtr<nsISupportsCString> scriptableFolderURI (do_CreateInstance(NS_SUPPORTS_CSTRING_CONTRACTID));
     NS_ENSURE_TRUE(scriptableFolderURI, NS_ERROR_FAILURE);
 
     scriptableFolderURI->SetData(nsDependentCString(aFolderURI));
     argsArray->AppendElement(scriptableFolderURI);
 
-    nsCOMPtr<nsISupportsPRUint32> scriptableMessageKey (do_CreateInstance(NS_SUPPORTS_PRUINT32_CONTRACTID));
-    NS_ENSURE_TRUE(scriptableMessageKey, NS_ERROR_FAILURE);
-    scriptableMessageKey->SetData(aMessageKey);
-    argsArray->AppendElement(scriptableMessageKey);
+    if (!standAloneMsgWindow)
+    {
+      nsCOMPtr<nsISupportsPRUint32> scriptableMessageKey (do_CreateInstance(NS_SUPPORTS_PRUINT32_CONTRACTID));
+      NS_ENSURE_TRUE(scriptableMessageKey, NS_ERROR_FAILURE);
+      scriptableMessageKey->SetData(aMessageKey);
+      argsArray->AppendElement(scriptableMessageKey);
+    }
   }
   
   nsCOMPtr<nsIWindowWatcher> wwatch(do_GetService(NS_WINDOWWATCHER_CONTRACTID, &rv));
@@ -254,7 +341,7 @@ NS_IMETHODIMP nsMessengerBootstrap::OpenMessengerWindowWithUri(const char *windo
   // we need to use the "mailnews.reuse_thread_window2" pref
   // to determine if we should open a new window, or use an existing one.
   nsCOMPtr<nsIDOMWindow> newWindow;
-  return wwatch->OpenWindow(0, "chrome://messenger/content/", "_blank",
+  return wwatch->OpenWindow(0, chromeUrl.get(), "_blank",
                             "chrome,all,dialog=no", argsArray,
                              getter_AddRefs(newWindow));
 }
