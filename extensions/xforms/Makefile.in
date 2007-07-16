@@ -229,9 +229,3 @@ include $(topsrcdir)/config/rules.mk
 
 # Temporary files that will be deleted on f.x. make clean
 GARBAGE		+= install.js install.template
-
-# Create install.js script for suite
-install.js:	install.jst
-		@echo Creating install.js...
-		rm -f install.js
-		$(PERL) $(topsrcdir)/toolkit/mozapps/installer/makejs.pl $(srcdir)/install.jst $(PACKAGE_VERSION) $(FINAL_TARGET)
