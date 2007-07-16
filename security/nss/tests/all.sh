@@ -165,8 +165,9 @@ TESTS="tools fips sdr crmf smime ssl ocsp"
 run_tests
 
 # test the new DATABASE
-#TESTS=${old_tests}
-TESTS="cipher perf ${LIBPKIX} cert dbtests tools fips sdr crmf smime ssl ocsp"
+TESTS=${old_tests}
+#force IOPR tests off for now...
+IOPR=0
 mkdir -p ${HOSTDIR}/sharedb
 saveHostDIR=${HOSTDIR}
 
