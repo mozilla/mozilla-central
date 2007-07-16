@@ -35,9 +35,11 @@ package Litmus::Config;
 
 use strict;
 use File::Basename;
+use Litmus::Memoize;
 
 # based on bz_locations() from Bugzilla::Constants
 our $datadir = "data/";
+memoize('litmus_locations', persist=>1);
 sub litmus_locations {
 	# We know that Bugzilla/Constants.pm must be in %INC at this point.
     # So the only question is, what's the name of the directory

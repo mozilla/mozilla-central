@@ -361,12 +361,10 @@ sub getTestResults($\@\@$) {
     }
     
     my $sql = "$select $from $where $group_by $order_by $limit";
-    #print STDERR $sql,"\n";
-    Litmus::DB::Testresult->set_sql(TestResults => qq{
-        $sql
-        });
-
-    my @rows = $self->search_TestResults();
+    my $dbh = Litmus::DBI->db_Main();
+    my $sth = $dbh->prepare($sql);
+    $sth->execute();
+    my @rows = $self->sth_to_objects($sth);
     
     return \@rows;
 }
