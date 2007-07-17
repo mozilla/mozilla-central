@@ -184,6 +184,11 @@ function onLoad()
         encInfo = "EIValid";
         break;
 
+      case nsICMSMessageErrors.ENCRYPT_INCOMPLETE:
+        encInfoLabel = "EIInvalidLabel";
+        encInfo = "EIContentAltered";
+        break;
+
       case nsICMSMessageErrors.GENERAL_ERROR:
         encInfoLabel = "EIInvalidLabel";
         encInfoHeader = "EIInvalidHeader";

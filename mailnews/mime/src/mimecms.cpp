@@ -97,6 +97,7 @@ typedef struct MimeCMSdata
   PRBool ci_is_encrypted;
   char *sender_addr;
   PRBool decoding_failed;
+  PRUint32 decoded_bytes;
   MimeObject *self;
   PRBool parent_is_encrypted_p;
   PRBool parent_holds_stamp_p;
@@ -108,6 +109,7 @@ typedef struct MimeCMSdata
   ci_is_encrypted(PR_FALSE),
   sender_addr(nsnull),
   decoding_failed(PR_FALSE),
+  decoded_bytes(0),
   self(nsnull),
   parent_is_encrypted_p(PR_FALSE),
   parent_holds_stamp_p(PR_FALSE)
@@ -146,6 +148,8 @@ static void MimeCMS_content_callback (void *arg, const char *buf, unsigned long 
     data->output_fn = 0;
     return;
   }
+
+  data->decoded_bytes += length;
 }
 
 PRBool MimeEncryptedCMS_encrypted_p (MimeObject *obj)
@@ -623,7 +627,17 @@ MimeCMS_eof (void *crypto_closure, PRBool abort_p)
 
   if (!data->content_info)
   {
-    status = nsICMSMessageErrors::GENERAL_ERROR;
+    if (!data->decoded_bytes)
+    {
+      // We were unable to decode any data.
+      status = nsICMSMessageErrors::GENERAL_ERROR;
+    }
+    else
+    {
+      // Some content got decoded, but we failed to decode
+      // the final summary, probably we got truncated data.
+      status = nsICMSMessageErrors::ENCRYPT_INCOMPLETE;
+    }
 
     // Although a CMS message could be either encrypted or opaquely signed,
     // what we see is most likely encrypted, because if it were
