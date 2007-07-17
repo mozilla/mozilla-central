@@ -148,18 +148,6 @@ nsresult nsMsgMailNewsUrl::UnRegisterListener (nsIUrlListener * aUrlListener)
   return NS_OK;
 }
 
-nsresult nsMsgMailNewsUrl::SetErrorMessage (const char * errorMessage)
-{
-  // functionality has been moved to nsIMsgStatusFeedback
-  return NS_ERROR_NOT_IMPLEMENTED;
-}
-
-nsresult nsMsgMailNewsUrl::GetErrorMessage (char ** errorMessage)
-{
-  // functionality has been moved to nsIMsgStatusFeedback
-  return NS_ERROR_NOT_IMPLEMENTED;
-}
-
 NS_IMETHODIMP nsMsgMailNewsUrl::GetServer(nsIMsgIncomingServer ** aIncomingServer)
 {
   // mscott --> we could cache a copy of the server here....but if we did, we run
@@ -208,54 +196,49 @@ NS_IMETHODIMP nsMsgMailNewsUrl::GetServer(nsIMsgIncomingServer ** aIncomingServe
     return rv;
 }
 
-NS_IMETHODIMP nsMsgMailNewsUrl::SetStatusFeedback(nsIMsgStatusFeedback *aMsgFeedback)
-{
-  if (aMsgFeedback)
-    m_statusFeedback = do_QueryInterface(aMsgFeedback);
-  return NS_OK;
-}
-
 NS_IMETHODIMP nsMsgMailNewsUrl::GetMsgWindow(nsIMsgWindow **aMsgWindow)
 {
   NS_ENSURE_ARG_POINTER(aMsgWindow);
+  *aMsgWindow = nsnull;
   
   // note: it is okay to return a null msg window and not return an error
   // it's possible the url really doesn't have msg window
-
-  *aMsgWindow = m_msgWindow;
-  NS_IF_ADDREF(*aMsgWindow);
-
+  nsCOMPtr<nsIMsgWindow> msgWindow(do_QueryReferent(m_msgWindowWeak));
+  msgWindow.swap(*aMsgWindow);
   return NS_OK;
 }
 
 NS_IMETHODIMP nsMsgMailNewsUrl::SetMsgWindow(nsIMsgWindow *aMsgWindow)
 {
   if (aMsgWindow)
-    m_msgWindow = do_QueryInterface(aMsgWindow);
+    m_msgWindowWeak = do_GetWeakReference(aMsgWindow);
   return NS_OK;
 }
 
 NS_IMETHODIMP nsMsgMailNewsUrl::GetStatusFeedback(nsIMsgStatusFeedback **aMsgFeedback)
 {
-  nsresult rv = NS_OK;
   // note: it is okay to return a null status feedback and not return an error
   // it's possible the url really doesn't have status feedback
-  if (!m_statusFeedback)
+  *aMsgFeedback = nsnull;
+  if (!m_statusFeedbackWeak)
   {
-
-    if(m_msgWindow)
-    {
-      m_msgWindow->GetStatusFeedback(getter_AddRefs(m_statusFeedback));
-    }
-  }
-  if (aMsgFeedback)
-  {
-    *aMsgFeedback = m_statusFeedback;
-    NS_IF_ADDREF(*aMsgFeedback);
+    nsCOMPtr<nsIMsgWindow> msgWindow(do_QueryReferent(m_msgWindowWeak));
+    if (msgWindow)
+      msgWindow->GetStatusFeedback(aMsgFeedback);
   }
   else
-    rv = NS_ERROR_NULL_POINTER;
-  return rv;
+  {
+    nsCOMPtr<nsIMsgStatusFeedback> statusFeedback(do_QueryReferent(m_statusFeedbackWeak));
+    statusFeedback.swap(*aMsgFeedback);
+  }
+  return *aMsgFeedback ? NS_OK : NS_ERROR_NULL_POINTER;
+}
+
+NS_IMETHODIMP nsMsgMailNewsUrl::SetStatusFeedback(nsIMsgStatusFeedback *aMsgFeedback)
+{
+  if (aMsgFeedback)
+    m_statusFeedbackWeak = do_GetWeakReference(aMsgFeedback);
+  return NS_OK;
 }
 
 NS_IMETHODIMP nsMsgMailNewsUrl::GetLoadGroup(nsILoadGroup **aLoadGroup)
@@ -265,37 +248,14 @@ NS_IMETHODIMP nsMsgMailNewsUrl::GetLoadGroup(nsILoadGroup **aLoadGroup)
   // it's possible the url really doesn't have load group
   if (!m_loadGroup)
   {
-    if (m_msgWindow)
+    nsCOMPtr<nsIMsgWindow> msgWindow(do_QueryReferent(m_msgWindowWeak));
+    if (msgWindow)
     {
-            // XXXbz This is really weird... why are we getting some
-            // random loadgroup we're not really a part of?
-            nsCOMPtr<nsIDocShell> docShell;
-            m_msgWindow->GetRootDocShell(getter_AddRefs(docShell));
-
-#if 0   // since we're not going through the doc loader for most mail/news urls,
-       //, this code isn't useful
-        // but I can imagine it could be useful at some point.
-
-            // load group needs status feedback set, since it's
-            // not the main window load group.
-            nsCOMPtr<nsIMsgStatusFeedback> statusFeedback;
-            m_msgWindow->GetStatusFeedback(getter_AddRefs(statusFeedback));
-
-            if (statusFeedback)
-            {
-              nsCOMPtr<nsIWebProgress> webProgress(do_GetInterface(docShell));
-              nsCOMPtr<nsIWebProgressListener> webProgressListener(do_QueryInterface(statusFeedback));
-
-              // register our status feedback object
-              if (statusFeedback && docShell)
-              {
-                webProgressListener = do_QueryInterface(statusFeedback);
-                webProgress->AddProgressListener(webProgressListener,
-                                                 nsIWebProgress::NOTIFY_ALL);
-              }
-            }
-#endif
-            m_loadGroup = do_GetInterface(docShell);
+      // XXXbz This is really weird... why are we getting some
+      // random loadgroup we're not really a part of?
+      nsCOMPtr<nsIDocShell> docShell;
+      msgWindow->GetRootDocShell(getter_AddRefs(docShell));
+      m_loadGroup = do_GetInterface(docShell);
     }
   }
 
@@ -580,11 +540,12 @@ NS_IMETHODIMP nsMsgMailNewsUrl::Clone(nsIURI **_retval)
   NS_ENSURE_SUCCESS(rv, rv);
 
   // add the msg window to the cloned url
-  if (m_msgWindow)
+  nsCOMPtr<nsIMsgWindow> msgWindow(do_QueryReferent(m_msgWindowWeak));
+  if (msgWindow)
   {
     nsCOMPtr<nsIMsgMailNewsUrl> msgMailNewsUrl = do_QueryInterface(*_retval, &rv);
     NS_ENSURE_SUCCESS(rv, rv);
-    msgMailNewsUrl->SetMsgWindow(m_msgWindow);
+    msgMailNewsUrl->SetMsgWindow(msgWindow);
   }
 
   return rv;

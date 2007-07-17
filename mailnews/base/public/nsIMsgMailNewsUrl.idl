@@ -53,66 +53,63 @@ interface nsIMsgFolder;
 interface nsIMsgHeaderSink;
 interface nsIMsgDBHdr;
 
-[scriptable, uuid(0f9fb55c-f9ac-4501-af93-d4a7f23f82fb)]
+[scriptable, uuid(2FB327C2-00A3-4e3f-8CD6-93BED40BD621)]
 interface nsIMsgMailNewsUrl : nsIURL {
-	///////////////////////////////////////////////////////////////////////////////
-	// Eventually we'd like to push this type of functionality up into nsIURI.
-	// The idea is to allow the "application" (the part of the code which wants to 
-	// run a url in order to perform some action) to register itself as a listener
-	// on url. As a url listener, the app will be informed when the url begins to run
-	// and when the url is finished. 
-	////////////////////////////////////////////////////////////////////////////////
-	void RegisterListener (in nsIUrlListener aUrlListener);
-	void UnRegisterListener (in nsIUrlListener aUrlListener);
+  ///////////////////////////////////////////////////////////////////////////////
+  // Eventually we'd like to push this type of functionality up into nsIURI.
+  // The idea is to allow the "application" (the part of the code which wants to 
+  // run a url in order to perform some action) to register itself as a listener
+  // on url. As a url listener, the app will be informed when the url begins to run
+  // and when the url is finished. 
+  ////////////////////////////////////////////////////////////////////////////////
+  void RegisterListener (in nsIUrlListener aUrlListener);
+  void UnRegisterListener (in nsIUrlListener aUrlListener);
 
-        readonly attribute nsIURI baseURI;
-	// Eventually this will be removed and replaced with calls to nsIMsgStatusFeedback
-	attribute string errorMessage;
+  readonly attribute nsIURI baseURI;
 
-	// if you really want to know what the current state of the url is (running or not
-	// running) you should look into becoming a urlListener...
-	void SetUrlState(in boolean runningUrl, in nsresult aStatusCode);
-	void GetUrlState(out boolean runningUrl);
+  // if you really want to know what the current state of the url is (running or not
+  // running) you should look into becoming a urlListener...
+  void SetUrlState(in boolean runningUrl, in nsresult aStatusCode);
+  void GetUrlState(out boolean runningUrl);
 
-	readonly attribute nsIMsgIncomingServer server;
-        attribute nsIMsgFolder folder;
+  readonly attribute nsIMsgIncomingServer server;
+  attribute nsIMsgFolder folder;
 
-	// the ownership model for msg feedback
-	attribute nsIMsgStatusFeedback statusFeedback;
+  attribute nsIMsgStatusFeedback statusFeedback;
 
-	attribute nsIMsgWindow msgWindow;
+  attribute nsIMsgWindow msgWindow;
 
-    // current mime headers if reading message
-    attribute nsIMimeHeaders mimeHeaders;
+  // current mime headers if reading message
+  attribute nsIMimeHeaders mimeHeaders;
 
-	// the load group is computed from the msgWindow
-	readonly attribute nsILoadGroup loadGroup;
+  // the load group is computed from the msgWindow
+  readonly attribute nsILoadGroup loadGroup;
 
-	// search session, if we're running a search.
-	attribute nsIMsgSearchSession searchSession;
-	attribute boolean updatingFolder;
-	attribute boolean addToMemoryCache; 
-	attribute boolean msgIsInLocalCache;
-	attribute boolean suppressErrorMsgs; // used to avoid displaying biff error messages
+  // search session, if we're running a search.
+  attribute nsIMsgSearchSession searchSession;
+  attribute boolean updatingFolder;
+  attribute boolean addToMemoryCache; 
+  attribute boolean msgIsInLocalCache;
+  attribute boolean suppressErrorMsgs; // used to avoid displaying biff error messages
 
-	attribute nsICacheEntryDescriptor memCacheEntry;
-        // if we want mime to cache images fetched by this message, set this cache session.
-        attribute nsICacheSession imageCacheSession; 
-        // hold onto this cache entry until url goes away. This is used by mime to keep
-        // images cached until the url is deleted so we don't get entries evicted
-        // before we've used them. We need to be sure this doesn't introduce
-        // circular references or the url will never get freed.
-        void cacheCacheEntry(in nsICacheEntryDescriptor cacheEntry);
-        void removeCacheEntry(in nsICacheEntryDescriptor cacheEntry);
-	const unsigned long eCopy     = 0;
-	const unsigned long eMove     = 1;
-	const unsigned long eDisplay  = 2;
-	boolean IsUrlType(in unsigned long type);
-    nsIStreamListener getSaveAsListener(in boolean addDummyEnvelope, in nsIFile aFile);
+  attribute nsICacheEntryDescriptor memCacheEntry;
+  // if we want mime to cache images fetched by this message, set this cache session.
+  attribute nsICacheSession imageCacheSession; 
+  // hold onto this cache entry until url goes away. This is used by mime to keep
+  // images cached until the url is deleted so we don't get entries evicted
+  // before we've used them. We need to be sure this doesn't introduce
+  // circular references or the url will never get freed.
+  void cacheCacheEntry(in nsICacheEntryDescriptor cacheEntry);
+  void removeCacheEntry(in nsICacheEntryDescriptor cacheEntry);
+  const unsigned long eCopy     = 0;
+  const unsigned long eMove     = 1;
+  const unsigned long eDisplay  = 2;
+  boolean IsUrlType(in unsigned long type);
+  nsIStreamListener getSaveAsListener(in boolean addDummyEnvelope, in nsIFile aFile);
 
-    // typically the header sink is tied to the nsIMsgWindow, but in certain circumstances, a consumer
-    // may chose to provide its own header sink for this url
-    attribute nsIMsgHeaderSink msgHeaderSink;
+  // typically the header sink is tied to the nsIMsgWindow, but in certain circumstances, a consumer
+  // may chose to provide its own header sink for this url
+  attribute nsIMsgHeaderSink msgHeaderSink;
 };
 
 //////////////////////////////////////////////////////////////////////////////////
@@ -132,12 +129,11 @@ interface nsIMsgMessageUrl : nsISupports {
   attribute string uri;
   // used by imap, pop and nntp in order to implement save message to disk
   attribute nsIFile messageFile;
-  attribute boolean AddDummyEnvelope;	
+  attribute boolean AddDummyEnvelope;  
   attribute boolean canonicalLineEnding;
   attribute string originalSpec;
   // a message db header for that message.
   readonly attribute nsIMsgDBHdr messageHeader;
-
 };
 
 //////////////////////////////////////////////////////////////////////////////////
@@ -149,10 +145,10 @@ interface nsIMsgMessageUrl : nsISupports {
 
 [scriptable, uuid(D71E0785-2862-11d4-98C1-001083010E9B)]
 interface nsIMsgI18NUrl : nsISupports {
-	// the charset associated with a folder for this url.....
-	readonly attribute string folderCharset;
-	readonly attribute boolean folderCharsetOverride;
-	// the charsetOverRide is a charset the user may have specified via the menu for
-	// a particular message
-	attribute string charsetOverRide;
+  // the charset associated with a folder for this url.....
+  readonly attribute string folderCharset;
+  readonly attribute boolean folderCharsetOverride;
+  // the charsetOverRide is a charset the user may have specified via the menu for
+  // a particular message
+  attribute string charsetOverRide;
 };

@@ -121,25 +121,28 @@ NS_IMETHODIMP nsImapUrl::SetMsgWindow(nsIMsgWindow *aMsgWindow)
 {
   if (aMsgWindow)
   {
-    m_msgWindow = do_QueryInterface(aMsgWindow);
+    nsMsgMailNewsUrl::SetMsgWindow(aMsgWindow);
     if (m_mockChannel) {
       m_mockChannel->SetURI(this);
       nsCOMPtr<nsIDocShell> msgDocShell;
-      m_msgWindow->GetRootDocShell(getter_AddRefs(msgDocShell));
-      if (msgDocShell) {
-        nsCOMPtr <nsIProgressEventSink> prevEventSink;
-        m_mockChannel->GetProgressEventSink(getter_AddRefs(prevEventSink));
-        nsCOMPtr<nsIInterfaceRequestor> docIR(do_QueryInterface(msgDocShell));
-        m_mockChannel->SetNotificationCallbacks(docIR);
-        // we want to use our existing event sink.
-        if (prevEventSink)
-          m_mockChannel->SetProgressEventSink(prevEventSink);
+      nsCOMPtr<nsIMsgWindow> msgWindow(do_QueryReferent(m_msgWindowWeak));
+      if (msgWindow)
+      {
+        msgWindow->GetRootDocShell(getter_AddRefs(msgDocShell));
+        if (msgDocShell) {
+          nsCOMPtr <nsIProgressEventSink> prevEventSink;
+          m_mockChannel->GetProgressEventSink(getter_AddRefs(prevEventSink));
+          nsCOMPtr<nsIInterfaceRequestor> docIR(do_QueryInterface(msgDocShell));
+          m_mockChannel->SetNotificationCallbacks(docIR);
+          // we want to use our existing event sink.
+          if (prevEventSink)
+            m_mockChannel->SetProgressEventSink(prevEventSink);
+        }
       }
     }
   }
   return NS_OK;
 }
-
 
 nsImapUrl::~nsImapUrl()
 {

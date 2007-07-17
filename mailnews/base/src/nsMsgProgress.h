@@ -48,7 +48,8 @@
 #include "nsIStringBundle.h"
 #include "nsWeakReference.h"
 
-class nsMsgProgress : public nsIMsgProgress, public nsIMsgStatusFeedback, public nsIProgressEventSink
+class nsMsgProgress : public nsIMsgProgress, public nsIMsgStatusFeedback, public nsIProgressEventSink,
+                      public nsSupportsWeakReference
 {
 public: 
   NS_DECL_ISUPPORTS

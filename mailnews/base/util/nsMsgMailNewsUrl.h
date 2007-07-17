@@ -55,6 +55,7 @@
 #include "nsICacheSession.h"
 #include "nsISupportsArray.h"
 #include "nsIMimeMiscStatus.h"
+#include "nsWeakReference.h"
 
 ///////////////////////////////////////////////////////////////////////////////////
 // Okay, I found that all of the mail and news url interfaces needed to support
@@ -84,8 +85,8 @@ protected:
   virtual const char * GetUserName() = 0;
 
   nsCOMPtr<nsIURL> m_baseURL;
-  nsCOMPtr<nsIMsgStatusFeedback> m_statusFeedback;
-  nsCOMPtr<nsIMsgWindow> m_msgWindow;
+  nsWeakPtr m_statusFeedbackWeak;
+  nsWeakPtr m_msgWindowWeak;
   nsCOMPtr<nsILoadGroup> m_loadGroup;
   nsCOMPtr<nsIMimeHeaders> mMimeHeaders;
   nsCOMPtr<nsIMsgSearchSession> m_searchSession;

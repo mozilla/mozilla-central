@@ -228,17 +228,20 @@ nsresult nsMailboxUrl::GetMsgHdrForKey(nsMsgKey  msgKey, nsIMsgDBHdr ** aMsgHdr)
       rv = mailDB->GetMsgHdrForKey(msgKey, aMsgHdr);
     else
     {
-      if (!m_msgWindow)
+      nsCOMPtr<nsIMsgWindow> msgWindow(do_QueryReferent(m_msgWindowWeak));
+      if (!msgWindow)
       {
         nsCOMPtr<nsIMsgMailSession> mailSession = do_GetService(NS_MSGMAILSESSION_CONTRACTID, &rv);
         NS_ENSURE_SUCCESS(rv, rv);
-        mailSession->GetTopmostMsgWindow(getter_AddRefs(m_msgWindow));
+        mailSession->GetTopmostMsgWindow(getter_AddRefs(msgWindow));
+        SetMsgWindow(msgWindow);
       }
+
       // maybe this is .eml file we're trying to read. See if we can get a header from the header sink.
-      if (m_msgWindow)
+      if (msgWindow)
       {
         nsCOMPtr <nsIMsgHeaderSink> headerSink;
-        m_msgWindow->GetMsgHeaderSink(getter_AddRefs(headerSink));
+        msgWindow->GetMsgHeaderSink(getter_AddRefs(headerSink));
         if (headerSink)
           return headerSink->GetDummyMsgHeader(aMsgHdr);
       }
