@@ -167,7 +167,7 @@ run_tests
 # test the new DATABASE
 TESTS=${old_tests}
 #force IOPR tests off for now...
-IOPR=0
+unset IOPR_HOSTADDR_LIST
 mkdir -p ${HOSTDIR}/sharedb
 saveHostDIR=${HOSTDIR}
 
