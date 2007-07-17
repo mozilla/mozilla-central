@@ -258,7 +258,7 @@ bin\components\FeedProcessor.js
 bin\components\jsconsole-clhandler.js
 bin\components\nsAxSecurityPolicy.js
 bin\components\nsBrowserContentHandler.js
-bin\components\nsCloseAllWindows.js
+bin\components\nsTryToClose.js
 bin\components\nsComposerCmdLineHandler.js
 bin\components\nsDictionary.js
 bin\components\nsExtensionManager.js
@@ -365,6 +365,8 @@ bin\res\ua.css
 bin\res\html.css
 bin\res\quirk.css
 bin\res\forms.css
+bin\res\contenteditable.css
+bin\res\designmode.css
 bin\res\viewsource.css
 bin\res\cmessage.txt
 bin\res\effective_tld_names.dat
