@@ -1,4 +1,3 @@
-#
 # ***** BEGIN LICENSE BLOCK *****
 # Version: MPL 1.1/GPL 2.0/LGPL 2.1
 #
@@ -12,15 +11,14 @@
 # for the specific language governing rights and limitations under the
 # License.
 #
-# The Original Code is mozilla.org code.
+# The Original Code is the SeaMonkey code.
 #
 # The Initial Developer of the Original Code is
-# the mozilla.org SeaMonkey project.
-# Portions created by the Initial Developer are Copyright (C) 2005
+# The SeaMonkey project at mozilla.org.
+# Portions created by the Initial Developer are Copyright (C) 2007
 # the Initial Developer. All Rights Reserved.
 #
 # Contributor(s):
-#   Mark Banner <bugzilla@standard8.demon.co.uk>
 #
 # Alternatively, the contents of this file may be used under the terms of
 # either the GNU General Public License Version 2 or later (the "GPL"), or
@@ -36,41 +34,6 @@
 #
 # ***** END LICENSE BLOCK *****
 
-DEPTH		= ..
-topsrcdir	= @top_srcdir@
-srcdir		= @srcdir@
-VPATH		= @srcdir@
+#filter substitution
 
-include $(DEPTH)/config/autoconf.mk
-
-# XXX Disable for release builds
-DIRS += debugQA
-
-# if you add DIRS here, care that app is always at the bottom of the list
-# as it packages up the built files on mac...
-DIRS		+= \
-		branding \
-		browser \
-		common \
-		locales \
-		profile \
-		build \
-		app \
-		$(NULL)
-
-ifeq ($(OS_ARCH),WINNT)
-ifdef MOZ_INSTALLER
-DIRS += installer/windows
-endif
-endif
-
-include $(topsrcdir)/config/rules.mk
-
-# For Windows build the uninstaller during the application build since the
-# uninstaller is included with the application for mar file generation.
-libs::
-ifeq ($(OS_ARCH),WINNT)
-ifdef MOZ_INSTALLER
-	$(MAKE) -C installer/windows uninstaller
-endif
-endif
+pref("general.useragent.locale", "@AB_CD@");
