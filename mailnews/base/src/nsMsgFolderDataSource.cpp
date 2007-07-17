@@ -133,6 +133,7 @@ nsIRDFResource* nsMsgFolderDataSource::kNC_DownloadFlagged= nsnull;
 nsrefcnt nsMsgFolderDataSource::gFolderResourceRefCnt = 0;
 
 nsIAtom * nsMsgFolderDataSource::kBiffStateAtom = nsnull;
+nsIAtom * nsMsgFolderDataSource::kSortOrderAtom = nsnull;
 nsIAtom * nsMsgFolderDataSource::kNewMessagesAtom = nsnull;
 nsIAtom * nsMsgFolderDataSource::kTotalMessagesAtom = nsnull;
 nsIAtom * nsMsgFolderDataSource::kTotalUnreadMessagesAtom = nsnull;
@@ -222,6 +223,7 @@ nsMsgFolderDataSource::nsMsgFolderDataSource()
     kTotalUnreadMessagesAtom     = NS_NewAtom("TotalUnreadMessages");
     kFolderSizeAtom              = NS_NewAtom("FolderSize");
     kBiffStateAtom               = NS_NewAtom("BiffState");
+    kSortOrderAtom               = NS_NewAtom("SortOrder");
     kNewMessagesAtom             = NS_NewAtom("NewMessages");
     kNameAtom                    = NS_NewAtom("Name");
     kSynchronizeAtom             = NS_NewAtom("Synchronize");
@@ -315,6 +317,7 @@ nsMsgFolderDataSource::~nsMsgFolderDataSource (void)
     NS_RELEASE(kTotalUnreadMessagesAtom);
     NS_RELEASE(kFolderSizeAtom);
     NS_RELEASE(kBiffStateAtom);
+    NS_RELEASE(kSortOrderAtom);
     NS_RELEASE(kNewMessagesAtom);
     NS_RELEASE(kNameAtom);
     NS_RELEASE(kSynchronizeAtom);
@@ -886,6 +889,8 @@ nsMsgFolderDataSource::OnItemIntPropertyChanged(nsIRDFResource *resource,
     OnUnreadMessagePropertyChanged(resource, oldValue, newValue);
   else if (kFolderSizeAtom == property)
     OnFolderSizePropertyChanged(resource, oldValue, newValue);
+  else if (kSortOrderAtom == property)
+    OnFolderSortOrderPropertyChanged(resource, oldValue, newValue);
   else if (kBiffStateAtom == property) {
     // be careful about skipping if oldValue == newValue
     // see the comment in nsMsgFolder::SetBiffState() about filters
@@ -1840,6 +1845,18 @@ nsMsgFolderDataSource::OnUnreadMessagePropertyChanged(nsIMsgFolder *folder, PRIn
 }
 
 **/
+nsresult
+nsMsgFolderDataSource::OnFolderSortOrderPropertyChanged(nsIRDFResource *folderResource, PRInt32 oldValue, PRInt32 newValue)
+{
+  nsCOMPtr<nsIMsgFolder> folder(do_QueryInterface(folderResource));
+  if (folder)
+  {
+    nsCOMPtr<nsIRDFNode> newNode;
+    createFolderNameNode(folder, getter_AddRefs(newNode), PR_TRUE);
+    NotifyPropertyChanged(folderResource, kNC_FolderTreeNameSort, newNode);
+  }
+  return NS_OK;
+}
 
 nsresult
 nsMsgFolderDataSource::OnFolderSizePropertyChanged(nsIRDFResource *folderResource, PRInt32 oldValue, PRInt32 newValue)

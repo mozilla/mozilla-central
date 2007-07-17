@@ -23,6 +23,7 @@
  *   disttsc@bart.nl
  *   jarrod.k.gray@rose-hulman.edu
  *   Jan Varga <varga@ku.sk>
+ *   Markus Hossner <markushossner@gmx.de>
  *
  * Alternatively, the contents of this file may be used under the terms of
  * either of the GNU General Public License Version 2 or later (the "GPL"),
@@ -51,9 +52,6 @@ function debugDump(msg)
 
 function CanDropOnFolderTree(index, orientation)
 {
-    if (orientation != Components.interfaces.nsITreeView.DROP_ON)
-        return false;
-
     var dragSession = null;
     var dragFolder = false;
 
@@ -69,6 +67,7 @@ function CanDropOnFolderTree(index, orientation)
 
     trans.addDataFlavor("text/x-moz-message");
     trans.addDataFlavor("text/x-moz-folder");
+    trans.addDataFlavor("text/x-moz-newsfolder");
     trans.addDataFlavor("text/x-moz-url");
  
     var folderTree = GetFolderTree();
@@ -105,6 +104,10 @@ function CanDropOnFolderTree(index, orientation)
         if (dataFlavor.value == "text/x-moz-message")
         {
             sourceResource = null;
+
+            if (orientation != Components.interfaces.nsITreeView.DROP_ON)
+              return false;
+
             var isServer = GetFolderAttribute(folderTree, targetResource, "IsServer");
             if (isServer == "true")
             {
@@ -123,12 +126,14 @@ function CanDropOnFolderTree(index, orientation)
                 return false;
             break;
         } else if (dataFlavor.value == "text/x-moz-folder") {
-
           // we should only get here if we are dragging and dropping folders
           dragFolder = true;
           sourceResource = RDF.GetResource(sourceUri);
           var sourceFolder = sourceResource.QueryInterface(Components.interfaces.nsIMsgFolder);
           sourceServer = sourceFolder.server;
+
+          if (orientation != Components.interfaces.nsITreeView.DROP_ON)
+            return false;
 
           if (targetUri == sourceUri)	
               return false;
@@ -149,12 +154,45 @@ function CanDropOnFolderTree(index, orientation)
           // don't allow parent to be dropped on its ancestors
           if (isAncestor)
               return false;
-        } else if (dataFlavor.value == "text/x-moz-url") {
+        }
+        else if (dataFlavor.value == "text/x-moz-newsfolder")
+        {
+          sourceResource = RDF.GetResource(sourceUri);
+          var sourceFolder = sourceResource.QueryInterface(Components.interfaces.nsIMsgFolder);
+
+          // don't allow dragging on to element
+          if (orientation == Components.interfaces.nsITreeView.DROP_ON)
+            return false;
+
+          // don't allow dragging news folder (newsgroup) to other account
+          if (targetFolder.rootFolder != sourceFolder.rootFolder)
+            return false;
+
+          // don't allow dragging news folder (newsgroup) to server folder
+          if (targetFolder.isServer)
+            return false;
+
+          // don't allow dragging news folder (newsgroup) to before/after itself
+          index += orientation;
+          if (index < folderTree.view.rowCount) {	
+            targetResource = GetFolderResource(folderTree, index);
+
+            if (targetResource == sourceResource)	
+              return false;
+          }
+
+          return true;
+        }
+        else if (dataFlavor.value == "text/x-moz-url")
+        {
           // eventually check to make sure this is an http url before doing anything else...
           var uri = Components.classes["@mozilla.org/network/standard-url;1"].
                       createInstance(Components.interfaces.nsIURI);
           var url = sourceUri.split("\n")[0];
           uri.spec = url;
+
+          if (orientation != Components.interfaces.nsITreeView.DROP_ON)
+            return false;
 
           if ( (uri.schemeIs("http") || uri.schemeIs("https")) && targetServer && targetServer.type == 'rss')
             return true;
@@ -205,9 +243,6 @@ function CanDropOnFolderTree(index, orientation)
 
 function DropOnFolderTree(row, orientation)
 {
-    if (orientation != Components.interfaces.nsITreeView.DROP_ON)
-        return false;
-
     var folderTree = GetFolderTree();
     var targetResource = GetFolderResource(folderTree, row);
     var targetFolder = targetResource.QueryInterface(Components.interfaces.nsIMsgFolder);
@@ -223,6 +258,7 @@ function DropOnFolderTree(row, orientation)
     var trans = Components.classes["@mozilla.org/widget/transferable;1"].createInstance(Components.interfaces.nsITransferable);
     trans.addDataFlavor("text/x-moz-message");
     trans.addDataFlavor("text/x-moz-folder");
+    trans.addDataFlavor("text/x-moz-newsfolder");
     trans.addDataFlavor("text/x-moz-url");
 
     var list = Components.classes["@mozilla.org/supports-array;1"].createInstance(Components.interfaces.nsISupportsArray);
@@ -257,14 +293,34 @@ function DropOnFolderTree(row, orientation)
         {
           if (flavor.value == "text/x-moz-folder") 
           {
+            if (orientation != Components.interfaces.nsITreeView.DROP_ON)
+              return false;
+
             sourceResource = RDF.GetResource(sourceUri);
             sourceFolder = sourceResource.QueryInterface(Components.interfaces.nsIMsgFolder);
             dropMessage = false;  // we are dropping a folder
           }
+          else if (flavor.value == "text/x-moz-newsfolder")
+          {
+            if (orientation == Components.interfaces.nsITreeView.DROP_ON)
+              return false;
+
+            sourceResource = RDF.GetResource(sourceUri);
+            sourceFolder = sourceResource.QueryInterface(Components.interfaces.nsIMsgFolder);
+            dropMessage = false;  // we are dropping a news folder (newsgroup)
+          }
           else if (flavor.value == "text/x-moz-message")
+          {
+            if (orientation != Components.interfaces.nsITreeView.DROP_ON)
+              return false;
+
             dropMessage = true;
+          }
           else if (flavor.value == "text/x-moz-url")
           {
+            if (orientation != Components.interfaces.nsITreeView.DROP_ON)
+              return false;
+
             var uri = Components.classes["@mozilla.org/network/standard-url;1"].
                         createInstance(Components.interfaces.nsIURI);
             var url = sourceUri.split("\n")[0];
@@ -330,16 +386,29 @@ function DropOnFolderTree(row, orientation)
             dump("failed to copy messages: " + ex + "\n");
         }
     }
-    else {
+    else
+    {
+      var folderTree = GetFolderTree();
+
+      if (sourceFolder.server.type == "nntp")
+      { // dragging a news folder (newsgroup)
+        var newsFolder = targetFolder.rootFolder
+                                     .QueryInterface(Components.interfaces.nsIMsgNewsFolder);
+        newsFolder.moveFolder(sourceFolder, targetFolder, orientation);
+        SelectFolder(sourceFolder.URI);
+      }
+      else
+      { // dragging a normal folder
         sourceServer = sourceFolder.server;
         try 
         {
-            messenger.copyFolders(GetFolderDatasource(), targetResource, list, (sourceServer == targetServer));
+          messenger.copyFolders(GetFolderDatasource(), targetResource, list, (sourceServer == targetServer));
         }
         catch(ex)
         {
             dump ("Exception : CopyFolders " + ex + "\n");
         }
+      }
     }
     return true;
 }
@@ -364,15 +433,18 @@ function BeginDragFolderTree(event)
       return false;
     }
 
-    // do not allow the drag when news is the source
-    if (GetFolderAttribute(folderTree, folderResource, "ServerType") == "nntp") 
-    {
-      debugDump("***ServerType == nntp\n");
-      return false;
+    var flavor;
+    if (GetFolderAttribute(folderTree, folderResource, "ServerType") == "nntp")
+    { // news folder (newsgroup)
+      flavor = "text/x-moz-newsfolder";
+    }
+    else
+    { // normal folder
+      flavor = "text/x-moz-folder";
     }
 
     var selectedFolders = GetSelectedFolders();
-    return BeginDragTree(event, folderTree, selectedFolders, "text/x-moz-folder");
+    return BeginDragTree(event, folderTree, selectedFolders, flavor);
 }
 
 function BeginDragThreadPane(event)

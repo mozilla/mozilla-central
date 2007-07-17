@@ -207,6 +207,7 @@ protected:
   nsresult OnUnreadMessagePropertyChanged(nsIRDFResource *folderResource, PRInt32 oldValue, PRInt32 newValue);
   nsresult OnTotalMessagePropertyChanged(nsIRDFResource *folderResource, PRInt32 oldValue, PRInt32 newValue);
   nsresult OnFolderSizePropertyChanged(nsIRDFResource *folderResource, PRInt32 oldValue, PRInt32 newValue);
+  nsresult OnFolderSortOrderPropertyChanged(nsIRDFResource *folderResource, PRInt32 oldValue, PRInt32 newValue);
   nsresult NotifyFolderTreeNameChanged(nsIMsgFolder *folder, nsIRDFResource *folderResource, PRInt32 aUnreadMessages);
   nsresult NotifyFolderTreeSimpleNameChanged(nsIMsgFolder *folder, nsIRDFResource *folderResource);
   nsresult NotifyFolderNameChanged(nsIMsgFolder *folder, nsIRDFResource *folderResource);
@@ -283,6 +284,7 @@ protected:
   static nsIAtom* kTotalUnreadMessagesAtom;
   static nsIAtom* kFolderSizeAtom;
   static nsIAtom* kBiffStateAtom;
+  static nsIAtom* kSortOrderAtom;
   static nsIAtom* kNewMessagesAtom;
   static nsIAtom* kNameAtom;
   static nsIAtom* kSynchronizeAtom;

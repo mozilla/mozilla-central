@@ -41,7 +41,7 @@
 interface nsIMsgWindow;
 interface nsINntpIncomingServer;
 
-[scriptable, uuid(A6C471E3-2F99-4737-AC0C-40A2ABFF42D2)]
+[scriptable, uuid(B6333473-54DC-47C4-B179-3D4744946C95)]
 interface nsIMsgNewsFolder : nsISupports {
   attribute ACString groupUsername;
   attribute ACString groupPassword;
@@ -66,6 +66,8 @@ interface nsIMsgNewsFolder : nsISupports {
 
   void forgetGroupUsername();
   void forgetGroupPassword();
+  
+  void moveFolder(in nsIMsgFolder aNewsgroupToMove, in nsIMsgFolder aRefNewsgroup, in PRint32 aOrientation);
 
   nsIMsgFolder addNewsgroup(in AUTF8String newsgroupName, in ACString setStr);
 

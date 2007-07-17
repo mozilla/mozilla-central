@@ -23,6 +23,7 @@
  *   Seth Spitzer <sspitzer@netscape.com>
  *   Håkan Waara  <hwaara@chello.se>
  *   Pierre Phaneuf <pp@ludusdesign.com>
+ *   Markus Hossner <markushossner@gmx.de>
  *
  * Alternatively, the contents of this file may be used under the terms of
  * either of the GNU General Public License Version 2 or later (the "GPL"),
@@ -101,6 +102,8 @@ static NS_DEFINE_CID(kCNewsDB, NS_NEWSDB_CID);
 // efficient file reading size for the current
 // operating system.
 #define NEWSRC_FILE_BUFFER_SIZE 1024
+
+#define kNewsSortOffset 9000
 
 #define NEWS_SCHEME "news:"
 #define SNEWS_SCHEME "snews:"
@@ -228,9 +231,9 @@ nsMsgNewsFolder::AddNewsgroup(const nsACString &name, const nsACString& setStr,
   rv = Count(&numExistingGroups);
   NS_ENSURE_SUCCESS(rv,rv);
 
-  // add 9000 to prevent this problem:  1,10,11,2,3,4,5
+  // add kNewsSortOffset (9000) to prevent this problem:  1,10,11,2,3,4,5
   // We use 9000 instead of 1000 so newsgroups will sort to bottom of flat folder views
-  rv = folder->SetSortOrder(numExistingGroups + 9000);
+  rv = folder->SetSortOrder(numExistingGroups + kNewsSortOffset);
   NS_ENSURE_SUCCESS(rv,rv);
 
   //convert to an nsISupports before appending
@@ -1182,6 +1185,76 @@ NS_IMETHODIMP nsMsgNewsFolder::ForgetGroupPassword()
   return observerService->NotifyObservers(uri, "login-failed", nsnull);
 }
 
+// change order of subfolders (newsgroups)
+// aOrientation = -1 ... aNewsgroupToMove aRefNewsgroup ...
+// aOrientation =  1 ... aRefNewsgroup aNewsgroupToMove ...
+NS_IMETHODIMP nsMsgNewsFolder::MoveFolder(nsIMsgFolder *aNewsgroupToMove, nsIMsgFolder *aRefNewsgroup, PRInt32 aOrientation)
+{
+  nsresult rv = NS_OK;
+
+  // if folders are identical do nothing
+  if (aNewsgroupToMove == aRefNewsgroup)
+    return NS_OK;
+
+  // get index for aNewsgroupToMove
+  nsCOMPtr<nsISupports> folderSupportsNewsgroupToMove = do_QueryInterface(aNewsgroupToMove, &rv);
+  NS_ENSURE_SUCCESS(rv, rv);
+  
+  PRInt32 indexNewsgroupToMove = mSubFolders->IndexOf(folderSupportsNewsgroupToMove);
+  if (indexNewsgroupToMove == -1)
+    return NS_ERROR_INVALID_ARG;  // aNewsgroupToMove is no subfolder of this folder
+
+  // get index for aRefNewsgroup
+  nsCOMPtr<nsISupports> folderSupportsRefNewsgroup = do_QueryInterface(aRefNewsgroup, &rv);
+  NS_ENSURE_SUCCESS(rv, rv);
+  
+  PRInt32 indexRefNewsgroup = mSubFolders->IndexOf(folderSupportsRefNewsgroup);
+  if (indexRefNewsgroup == -1)
+    return NS_ERROR_INVALID_ARG;  // aRefNewsgroup is no subfolder of this folder
+
+  // set new index for NewsgroupToMove
+  PRUint32 indexMin, indexMax;
+  if (indexNewsgroupToMove < indexRefNewsgroup)
+  {
+    if (aOrientation < 0)
+      indexRefNewsgroup--;
+    indexMin = indexNewsgroupToMove;
+    indexMax = indexRefNewsgroup;
+  }
+  else
+  {
+    if (aOrientation > 0)
+      indexRefNewsgroup++;
+    indexMin = indexRefNewsgroup;
+    indexMax = indexNewsgroupToMove; 
+  }
+
+  // move NewsgroupToMove to new index and set new sort order
+  NotifyItemRemoved(aNewsgroupToMove);
+  mSubFolders->MoveElement(indexNewsgroupToMove, indexRefNewsgroup);
+  
+  for (PRUint32 i = indexMin; i <= indexMax; i++)
+  {
+    nsCOMPtr<nsIMsgFolder> currentFolder(do_QueryElementAt(mSubFolders, i));
+    if (currentFolder)
+      currentFolder->SetSortOrder(kNewsSortOffset + i);
+  }
+  NotifyItemAdded(aNewsgroupToMove);  
+
+  // write changes back to file
+  nsCOMPtr<nsINntpIncomingServer> nntpServer;
+  rv = GetNntpServer(getter_AddRefs(nntpServer));
+  NS_ENSURE_SUCCESS(rv,rv);
+
+  rv = nntpServer->SetNewsrcHasChanged(PR_TRUE);
+  NS_ENSURE_SUCCESS(rv,rv);
+
+  rv = nntpServer->WriteNewsrcFile();
+  NS_ENSURE_SUCCESS(rv,rv);
+
+  return rv;
+}
+
 NS_IMETHODIMP
 nsMsgNewsFolder::GetGroupPasswordWithUI(const nsAString& aPromptMessage,
                                         const nsAString& aPromptTitle,
@@ -1594,7 +1667,12 @@ NS_IMETHODIMP nsMsgNewsFolder::GetMessageIdForKey(nsMsgKey key, nsACString& resu
 
 NS_IMETHODIMP nsMsgNewsFolder::SetSortOrder(PRInt32 order)
 {
+  PRInt32 oldOrder = mSortOrder;
+  
   mSortOrder = order;
+  nsCOMPtr<nsIAtom> sortOrderAtom = NS_NewAtom("SortOrder");
+  NotifyIntPropertyChanged(sortOrderAtom, oldOrder, order);
+  
   return NS_OK;
 }
 
