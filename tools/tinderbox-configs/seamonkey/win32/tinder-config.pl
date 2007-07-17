@@ -64,17 +64,19 @@ $AliveTest                = 1;
 #$ViewerTest               = 0;
 #$BloatTest                = 0;  # warren memory bloat test
 #$BloatTest2               = 0;  # dbaron memory bloat test, require tracemalloc
-$DomToTextConversionTest  = 1;  
+#$DomToTextConversionTest  = 1;  
 #$XpcomGlueTest            = 0;
 #$CodesizeTest             = 0;  # Z,  require mozilla/tools/codesighs
 #$EmbedCodesizeTest        = 0;  # mZ, require mozilla/tools/codesigns
 #$MailBloatTest            = 0;
 #$EmbedTest                = 0;  # Assumes you wanted $BuildEmbed=1
-$LayoutPerformanceTest    = 1;  # Tp
+# XXX: Tp temporarily disabled due to bug 387933 - KaiRo
+#$LayoutPerformanceTest    = 1;  # Tp
 #$DHTMLPerformanceTest     = 0;  # Tdhtml
 #$QATest                   = 0;  
 #$XULWindowOpenTest        = 0;  # Txul
-$StartupPerformanceTest   = 1;  # Ts
+# XXX: Ts temporarily disabled due to bug 387933 - KaiRo
+#$StartupPerformanceTest   = 1;  # Ts
 
 $TestsPhoneHome           = 1;  # Should test report back to server?
 
