@@ -246,10 +246,6 @@ behavior of SeaMonkey on OS/2:
   if other applications using the high resolution timer (multimedia apps)
   act strangely.
 
-- set MOZILLA_USE_EXTENDED_FT2LIB=T
-  If you have the Innotek Font Engine installed this variable enables
-  special functions in SeaMonkey to handle unicode characters.
-
 - set MOZ_NO_REMOTE=1
   Use this to run two instances of SeaMonkey simultaneously (e.g. debug
   and optimized version).
@@ -264,11 +260,10 @@ Known Problems of the OS/2 version
 Cross-platform problems are usually listed in the release notes of each
 milestone release.
 
-- Bug 167884, "100% CPU load when viewing site [tiling transparent PNG]":
-  https://bugzilla.mozilla.org/show_bug.cgi?id=167884
-On OS/2, SeaMonkey is known to have very slow performance on websites that
-use small, repeated images with transparency for their layout.
+- SeaMonkey will beep when copying more than 64 kB of text to the clipboard.
+  This is to alert users that many applications (most notably the system
+  editor, EPM, and applications running in VIO windows) cannot paste more
+  than this.
 
 Other known problems can be found by following the link "Current Open
-Warpzilla Bugs" on the OS/2 Mozilla page
-<http://www.mozilla.org/ports/os2/>.
+Warpzilla Bugs" on the OS/2 Mozilla page <http://www.mozilla.org/ports/os2/>.
