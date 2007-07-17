@@ -66,6 +66,7 @@ TinderboxData.prototype = {
     onDataSetAvailable: null,
 
     defaultLoadRange: null,
+    raw: 0,
 
     init: function () {
         var self = this;
@@ -164,7 +165,8 @@ TinderboxData.prototype = {
         if (endTime)
             reqstr += "&endtime=" + endTime;
         //raw data is the extra_data column
-        reqstr += "&raw=1";
+        if (this.raw)
+            reqstr += "&raw=1";
         //log (reqstr);
         loadJSONDoc(reqstr)
         .addCallbacks(

@@ -156,6 +156,10 @@ GraphFormModule.prototype = {
             + "&" + prefix + "avg=" + (this.average? "1" : "0");
     },
 
+    getDumpString: function () {
+       return "setid=" + this.testId;
+     },
+
     onChangeTest: function (forceTestId) {
         this.testId = this.testSelect.value;
     },

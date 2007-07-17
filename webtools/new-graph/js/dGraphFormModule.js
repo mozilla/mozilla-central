@@ -263,6 +263,18 @@ DiscreteGraphFormModule.prototype = {
         return qstring;
     },
 
+   getDumpString: function () {
+       var prefix = '';
+       var dstring = '';
+       for each (var opt in this.testSelect.options) {
+         if (opt.selected) {
+           dstring += prefix + "setid=" + opt.value;
+           prefix = "&";
+         }
+       }
+       return dstring;
+   },
+
     onChangeTest: function (forceTestIds) {
         this.testId = this.testSelect.value;
         //log("setting testId: " + this.testId);

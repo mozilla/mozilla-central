@@ -76,6 +76,7 @@ function loadingDone(graphTypePref) {
     }
     else {
         Tinderbox = new DiscreteTinderboxData();
+        Tinderbox.raw = 1;
         SmallPerfGraph = new DiscreteGraph("smallgraph");
         BigPerfGraph = new DiscreteGraph("graph");
         onDiscreteDataLoadChanged();
@@ -141,6 +142,7 @@ function loadingDone(graphTypePref) {
                        }
                        
                        updateLinkToThis();
+                       updateDumpToCsv();
                    });
 
     if (graphType == CONTINUOUS_GRAPH) {
@@ -312,7 +314,7 @@ function onGraphLoadRemainder(baselineDataSet) {
 
                     if (avgds)
                         log ("got avgds: (", module.id, ")", avgds.firstTime, avgds.lastTime, avgds.data.length);
-
+                    
                     for each (g in [BigPerfGraph, SmallPerfGraph]) {
                         g.addDataSet(ds);
                         if (avgds)
@@ -330,6 +332,7 @@ function onGraphLoadRemainder(baselineDataSet) {
 
                     //if (graphType == CONTINUOUS_GRAPH) {
                         updateLinkToThis();
+                        updateDumpToCsv();
                     //}
                 } catch(e) { log(e); }
             };
@@ -394,6 +397,17 @@ function findGraphModule(testId) {
             return gm;
     }
     return null;
+}
+
+function updateDumpToCsv() {
+  var ds = "?"
+  prefix = ""
+  for each (var gm in GraphFormModules) {
+    ds += prefix + gm.getDumpString();
+    prefix = "&"
+  }
+  log ("ds");
+  getElement("dumptocsv").href = "http://" + document.location.host  + "/dumpdata.cgi" + ds;
 }
 
 function updateLinkToThis() {

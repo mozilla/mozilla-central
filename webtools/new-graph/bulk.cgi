@@ -66,9 +66,11 @@ try:
     db.execute("CREATE TABLE dataset_extra_data (dataset_id INTEGER, time INTEGER, data BLOB);");
     db.execute("CREATE TABLE annotations (dataset_id INTEGER, time INTEGER, value STRING);")
     db.execute("CREATE INDEX datasets_id_idx ON dataset_values(dataset_id);")
+    db.execute("CREATE INDEX datasets_branchinfo_id_idx ON dataset_branchinfo(dataset_id);")
+    db.execute("CREATE INDEX datasets_extradata_id_idx ON dataset_extra_data(dataset_id);")
     db.execute("CREATE INDEX datasets_time_idx ON dataset_values(time);")
     db.execute("CREATE INDEX datasets_time_id_idx ON dataset_values(dataset_id, time);")
-    db.execute("CREATE INDEX datasets_info_idx on dataset_info(type, machine, test, test_type, extra_data, branch, date);")
+    db.execute("CREATE INDEX datasets_extra_data_supplemental_idx ON dataset_extra_data(dataset_id, time, data);")
     db.commit()
 except:
     pass
@@ -88,6 +90,9 @@ if form.has_key("filename"):
         for line in val.file:
             line = line.rstrip("\n\r")
             contents = line.split(',')
+            #clear any previous content in the fields variables - stops reuse of data over lines
+	    for field in fields:
+               globals()[field] = ''
             if len(contents) < 7:
                 print "Incompatable file format"
                 sys.exit(500)
