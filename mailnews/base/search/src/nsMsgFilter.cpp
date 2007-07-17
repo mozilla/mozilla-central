@@ -406,8 +406,7 @@ NS_IMETHODIMP nsMsgFilter::GetTerm(PRInt32 termIndex,
       term->GetValue(value);
     if(booleanAnd)
       term->GetBooleanAnd(booleanAnd);
-    if (attrib && !arbitraryHeader.IsEmpty() 
-        && *attrib > nsMsgSearchAttrib::OtherHeader 
+    if (attrib && *attrib > nsMsgSearchAttrib::OtherHeader 
         && *attrib < nsMsgSearchAttrib::kNumMsgSearchAttributes)
       term->GetArbitraryHeader(arbitraryHeader);
   }

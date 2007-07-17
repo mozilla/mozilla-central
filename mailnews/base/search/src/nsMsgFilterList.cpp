@@ -1171,7 +1171,7 @@ nsresult nsMsgFilterList::ComputeArbitraryHeaders()
           {
             if (m_arbitraryHeaders.IsEmpty())
               m_arbitraryHeaders.Assign(arbitraryHeader);
-            else if (PL_strncasecmp(m_arbitraryHeaders.get(), arbitraryHeader.get(), arbitraryHeader.Length()))
+            else if (m_arbitraryHeaders.Find(arbitraryHeader, PR_TRUE) == kNotFound)
             {
               m_arbitraryHeaders.Append(" ");
               m_arbitraryHeaders.Append(arbitraryHeader);
