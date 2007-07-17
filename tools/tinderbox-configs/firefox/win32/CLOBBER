@@ -1,1 +1,1 @@
-Trying to get win32 tinderboxen to accept nsIPrintSettings uuid change.
+Trying to fix bustage from bug 386078 landing.
