@@ -147,7 +147,7 @@ $moz_cvsroot   = ':ext:seabld@cvs.mozilla.org:/cvsroot';
 #$moz_client_mk = 'client.mk';
 
 #- Set if you want to build in a separate object tree
-#$ObjDir = '';
+$ObjDir = 'objdir';
 
 # Extra build name, if needed.
 $BuildNameExtra = 'Nightly';

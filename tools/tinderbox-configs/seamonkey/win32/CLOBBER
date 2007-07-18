@@ -1,1 +1,2 @@
-Try and fix bustage from landing of bug 386078.
+Clobbering to switch to an objdir in bug 382723.
+
