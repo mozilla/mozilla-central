@@ -90,9 +90,10 @@ ABS_topsrcdir := $(shell cd $(topsrcdir); pwd)
 export::
 	mkdir -p ./wallet/tables && ln -sf $(ABS_topsrcdir)/extensions/wallet/src/*.tbl ./wallet/tables
 ifneq ($(ABS_topsrcdir),$(MOZ_BUILD_ROOT))
-	rsync -a --exclude .DS_Store --exclude "CVS/" --exclude "*.mode1" --exclude "*.pbxuser" $(srcdir)/Camino.xcode .
+	rsync -a --exclude .DS_Store --exclude "CVS/" --exclude "*.mode1" --exclude "*.pbxuser" $(srcdir)/Camino.xcodeproj .
 	ln -fs $(srcdir)/src
 	ln -fs $(srcdir)/resources
+	ln -fs $(srcdir)/config
 	ln -fs $(srcdir)/PreferencePanes
 	ln -fs $(srcdir)/Info-*.plist .
 endif
@@ -133,7 +134,7 @@ generated/CmXULAppData.h: $(srcdir)/src/embedding/CmXULAppData.h.in $(PLATFORM_B
 libs:: generated/all-camino.js generated/CmXULAppData.h $(PLATFORM_INI_FILE)
 	rsync -aC --delete $(srcdir)/embed-replacements/ embed-replacements.tmp
 	cd embed-replacements.tmp && $(ZIP) -r0DX ../../dist/Embed/chrome/embed.jar *
-	$(PBBUILD) -project Camino.xcode -target $(TARGET) -buildstyle $(BUILDSTYLE) $(PBBUILD_SETTINGS)
+	$(PBBUILD) -project Camino.xcodeproj -target $(TARGET) -configuration $(BUILDSTYLE) $(PBBUILD_SETTINGS)
 
 libs::
 	rsync -a --copy-unsafe-links $(XCODE_PRODUCT_DIR)/Camino.app/ $(DIST)/$(APP_NAME).app
