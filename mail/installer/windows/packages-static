@@ -47,6 +47,7 @@ bin\platform.ini
 bin\LICENSE.txt
 bin\license.html
 bin\README.txt
+bin\sqlite3.dll
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ; Mail Specific Files
