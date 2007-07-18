@@ -219,6 +219,10 @@
 		0FFE0A84079B147F00966027 /* bm_sort.tiff in Resources */ = {isa = PBXBuildFile; fileRef = 0FFE0A7E079B147F00966027 /* bm_sort.tiff */; };
 		0FFE0A85079B147F00966027 /* bm_add.tiff in Resources */ = {isa = PBXBuildFile; fileRef = 0FFE0A7F079B147F00966027 /* bm_add.tiff */; };
 		0FFE0A86079B147F00966027 /* bm_action.tiff in Resources */ = {isa = PBXBuildFile; fileRef = 0FFE0A80079B147F00966027 /* bm_action.tiff */; };
+		33B775AA0C4EAC1E00A6D67F /* libsqlite3.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = 33B775A90C4EAC1E00A6D67F /* libsqlite3.dylib */; };
+		33B775AB0C4EAC1E00A6D67F /* libsqlite3.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = 33B775A90C4EAC1E00A6D67F /* libsqlite3.dylib */; };
+		33B7763C0C4EB32C00A6D67F /* libsqlite3.dylib in CopyFiles */ = {isa = PBXBuildFile; fileRef = 33B775A90C4EAC1E00A6D67F /* libsqlite3.dylib */; };
+		33B7763D0C4EB34300A6D67F /* libsqlite3.dylib in CopyFiles */ = {isa = PBXBuildFile; fileRef = 33B775A90C4EAC1E00A6D67F /* libsqlite3.dylib */; };
 		34884A36074F7C5D000EA76B /* AddressBook.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 34884A35074F7C5D000EA76B /* AddressBook.framework */; };
 		34884A37074F7C5D000EA76B /* AddressBook.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 34884A35074F7C5D000EA76B /* AddressBook.framework */; };
 		3489ADCB0753B717005ADF6C /* ABAddressBook+Utils.h in Headers */ = {isa = PBXBuildFile; fileRef = 3489ADC90753B717005ADF6C /* ABAddressBook+Utils.h */; };
@@ -1774,6 +1778,7 @@
 				3F44AD6405BDFB9F00CB4B08 /* libnspr4.dylib in CopyFiles */,
 				3F44AD6505BDFB9F00CB4B08 /* libplc4.dylib in CopyFiles */,
 				3F44AD6605BDFB9F00CB4B08 /* libplds4.dylib in CopyFiles */,
+				33B7763C0C4EB32C00A6D67F /* libsqlite3.dylib in CopyFiles */,
 				3F44AD6705BDFB9F00CB4B08 /* libgkgfx.dylib in CopyFiles */,
 				3F44AD6805BDFB9F00CB4B08 /* libwidget.rsrc in CopyFiles */,
 				3F44AD6905BDFB9F00CB4B08 /* libjsj.dylib in CopyFiles */,
@@ -2101,6 +2106,7 @@
 				3F44AF8A05BDFBA000CB4B08 /* libnspr4.dylib in CopyFiles */,
 				3F44AF8B05BDFBA000CB4B08 /* libplc4.dylib in CopyFiles */,
 				3F44AF8C05BDFBA000CB4B08 /* libplds4.dylib in CopyFiles */,
+				33B7763D0C4EB34300A6D67F /* libsqlite3.dylib in CopyFiles */,
 				3F44AF8D05BDFBA000CB4B08 /* libwidget.rsrc in CopyFiles */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
@@ -2405,6 +2411,7 @@
 		332377D00C4D887600A34879 /* Release.xcconfig */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.xcconfig; name = Release.xcconfig; path = config/Release.xcconfig; sourceTree = "<group>"; };
 		332377D10C4D88D300A34879 /* PrefPane.xcconfig */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.xcconfig; name = PrefPane.xcconfig; path = config/PrefPane.xcconfig; sourceTree = "<group>"; };
 		33B774780C4DE77000A6D67F /* ReleaseSymbols.xcconfig */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = text.xcconfig; name = ReleaseSymbols.xcconfig; path = config/ReleaseSymbols.xcconfig; sourceTree = "<group>"; };
+		33B775A90C4EAC1E00A6D67F /* libsqlite3.dylib */ = {isa = PBXFileReference; lastKnownFileType = "compiled.mach-o.dylib"; name = libsqlite3.dylib; path = ../dist/lib/libsqlite3.dylib; sourceTree = SOURCE_ROOT; };
 		34884A35074F7C5D000EA76B /* AddressBook.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = AddressBook.framework; path = /System/Library/Frameworks/AddressBook.framework; sourceTree = "<absolute>"; };
 		3489ADC90753B717005ADF6C /* ABAddressBook+Utils.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = "ABAddressBook+Utils.h"; path = "src/extensions/ABAddressBook+Utils.h"; sourceTree = SOURCE_ROOT; };
 		3489ADCA0753B717005ADF6C /* ABAddressBook+Utils.mm */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.objcpp; name = "ABAddressBook+Utils.mm"; path = "src/extensions/ABAddressBook+Utils.mm"; sourceTree = SOURCE_ROOT; };
@@ -3048,6 +3055,7 @@
 				0FF288560961EDDD007527B4 /* libfreebl3.dylib in Frameworks */,
 				DEB968320B0D8E9F0023F8B1 /* Security.framework in Frameworks */,
 				008115430B180F35001CB3F0 /* libthebes.dylib in Frameworks */,
+				33B775AA0C4EAC1E00A6D67F /* libsqlite3.dylib in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -3212,6 +3220,7 @@
 				DEB968310B0D8E9F0023F8B1 /* Security.framework in Frameworks */,
 				DE62E4320B72B50C00142851 /* libauth.a in Frameworks */,
 				DEC87B150C288403002EB106 /* libstoragecomps.a in Frameworks */,
+				33B775AB0C4EAC1E00A6D67F /* libsqlite3.dylib in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -4427,6 +4436,7 @@
 				F6BD638001B30EA301A962F7 /* libnspr4.dylib */,
 				F6BD638101B30EA301A962F7 /* libplc4.dylib */,
 				F6BD638201B30EA301A962F7 /* libplds4.dylib */,
+				33B775A90C4EAC1E00A6D67F /* libsqlite3.dylib */,
 				F50DCB4302C2856001A967F3 /* libjsj.dylib */,
 				008115420B180F35001CB3F0 /* libthebes.dylib */,
 				F6BD638701B30F5301A962F7 /* libgkgfx.dylib */,
