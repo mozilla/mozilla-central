@@ -3004,13 +3004,13 @@
             // We have an underflow. Since the boxes all have equal width, we
             // can use the first boxes' width and multiply bu the number of
             // days in the view.
-            for each (var kid in labeldayboxkids) {
-              kid.shortWeekNames = false;
+            for (var i = 0; i < labeldayboxkids.length; i++) {
+              labeldayboxkids[i].shortWeekNames = false;
             }
           } else {
             // We have an overflow
-            for each (var kid in labeldayboxkids) {
-              kid.shortWeekNames = true;
+            for (var i = 0; i < labeldayboxkids.length; i++) {
+              labeldayboxkids[i].shortWeekNames = true;
             }
           }
         ]]></body>
