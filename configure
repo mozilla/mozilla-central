@@ -189,7 +189,7 @@ ac_help="$ac_help
 ac_help="$ac_help
   --disable-xmlextras Disable XMLExtras such as XPointer support "
 ac_help="$ac_help
-  --disable-webservices Disable Webservices/SOAP support "
+  --enable-webservices Enable Webservices/SOAP support "
 ac_help="$ac_help
   --disable-pref-extensions
                           Disable pref extensions such as autoconfig and
@@ -12399,7 +12399,7 @@ MOZ_URL_CLASSIFIER=
 MOZ_USE_NATIVE_UCONV=
 MOZ_V1_STRING_ABI=
 MOZ_VIEW_SOURCE=1
-MOZ_WEBSERVICES=1
+MOZ_WEBSERVICES=
 MOZ_XMLEXTRAS=1
 MOZ_XPFE_COMPONENTS=1
 MOZ_XPINSTALL=1
@@ -14872,10 +14872,10 @@ fi
 # Check whether --enable-webservices or --disable-webservices was given.
 if test "${enable_webservices+set}" = set; then
   enableval="$enable_webservices"
-  if test "$enableval" = "no"; then
-    MOZ_WEBSERVICES=
-  elif test "$enableval" = "yes"; then
-    MOZ_WEBSERVICES=1 
+  if test "$enableval" = "yes"; then
+    MOZ_WEBSERVICES=1
+  elif test "$enableval" = "no"; then
+    MOZ_WEBSERVICES= 
   else
     { echo "configure: error: Option, webservices, does not take an argument ($enableval)." 1>&2; exit 1; }
   fi
