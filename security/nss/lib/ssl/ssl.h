@@ -36,7 +36,7 @@
  * the terms of any one of the MPL, the GPL or the LGPL.
  *
  * ***** END LICENSE BLOCK ***** */
-/* $Id: ssl.h,v 1.25 2007-07-11 03:09:14 julien.pierre.bugs%sun.com Exp $ */
+/* $Id: ssl.h,v 1.26 2007-07-18 21:38:54 neil.williams%sun.com Exp $ */
 
 #ifndef __ssl_h_
 #define __ssl_h_
@@ -473,6 +473,37 @@ SSL_IMPORT SECStatus SSL_GetCipherSuiteInfo(PRUint16 cipherSuite,
 ** to the peer on this SSL/TLS connection, or NULL if none has been sent.
 */
 SSL_IMPORT CERTCertificate * SSL_LocalCertificate(PRFileDesc *fd);
+
+/* Test an SSL configuration to see if  SSL_BYPASS_PKCS11 can be turned on.
+** Check the key exchange algorithm for each cipher in the list to see if
+** a master secret key can be extracted after being derived with the mechanism
+** required by the protocolmask argument. If the KEA will use keys from the
+** specified cert make sure the extract operation is attempted from the slot
+** where the private key resides.
+** If MS can be extracted for all ciphers, (*pcanbypass) is set to TRUE and
+** SECSuccess is returned. In all other cases but one (*pcanbypass) is
+** set to FALSE and SECFailure is returned.
+** In that last case Derive() has been called successfully but the MS is null,
+** CanBypass sets (*pcanbypass) to FALSE and returns SECSuccess indicating the
+** arguments were all valid but the slot cannot be bypassed.
+**
+** Note: A TRUE return code from CanBypass means "Your configuration will perform
+** NO WORSE with the bypass enabled than without"; it does NOT mean that every
+** cipher suite listed will work properly with the selected protocols.
+**
+** Caveat: If export cipher suites are included in the argument list Canbypass
+** will return FALSE.
+**/
+
+/* protocol mask bits */
+#define SSL_CBP_SSL3	0x0001	        /* test SSL v3 mechanisms */
+#define SSL_CBP_TLS1_0	0x0002		/* test TLS v1.0 mechanisms */
+
+SSL_IMPORT SECStatus SSL_CanBypass(CERTCertificate *cert,
+                                   SECKEYPrivateKey *privKey,
+				   PRUint32 protocolmask,
+				   PRUint16 *ciphers, int nciphers,
+                                   PRBool *pcanbypass, void *pwArg);
 
 SEC_END_PROTOS
 

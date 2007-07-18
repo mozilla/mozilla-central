@@ -40,7 +40,7 @@
  * ***** END LICENSE BLOCK ***** */
 
 /* ECC code moved here from ssl3con.c */
-/* $Id: ssl3ecc.c,v 1.18 2006-12-08 22:37:29 wtchang%redhat.com Exp $ */
+/* $Id: ssl3ecc.c,v 1.19 2007-07-18 21:38:54 neil.williams%sun.com Exp $ */
 
 #include "nssrenam.h"
 #include "nss.h"
@@ -80,45 +80,12 @@
     (ss->serverCerts[type].serverKeyPair ? \
     ss->serverCerts[type].serverKeyPair->pubKey : NULL)
 
-#define SSL_IS_CURVE_NEGOTIATED(ss, curveName) \
+#define SSL_IS_CURVE_NEGOTIATED(curvemsk, curveName) \
     ((curveName > ec_noName) && \
      (curveName < ec_pastLastName) && \
-     ((1UL << curveName) & ss->ssl3.hs.negotiatedECCurves) != 0)
+     ((1UL << curveName) & curvemsk) != 0)
 
-/* Types and names of elliptic curves used in TLS */
-typedef enum { ec_type_explicitPrime      = 1,
-	       ec_type_explicitChar2Curve = 2,
-	       ec_type_named
-} ECType;
 
-typedef enum { ec_noName     = 0,
-	       ec_sect163k1  = 1, 
-	       ec_sect163r1  = 2, 
-	       ec_sect163r2  = 3,
-	       ec_sect193r1  = 4, 
-	       ec_sect193r2  = 5, 
-	       ec_sect233k1  = 6,
-	       ec_sect233r1  = 7, 
-	       ec_sect239k1  = 8, 
-	       ec_sect283k1  = 9,
-	       ec_sect283r1  = 10, 
-	       ec_sect409k1  = 11, 
-	       ec_sect409r1  = 12,
-	       ec_sect571k1  = 13, 
-	       ec_sect571r1  = 14, 
-	       ec_secp160k1  = 15,
-	       ec_secp160r1  = 16, 
-	       ec_secp160r2  = 17, 
-	       ec_secp192k1  = 18,
-	       ec_secp192r1  = 19, 
-	       ec_secp224k1  = 20, 
-	       ec_secp224r1  = 21,
-	       ec_secp256k1  = 22, 
-	       ec_secp256r1  = 23, 
-	       ec_secp384r1  = 24,
-	       ec_secp521r1  = 25,
-	       ec_pastLastName
-} ECName;
 
 static SECStatus ssl3_CreateECDHEphemeralKeys(sslSocket *ss, ECName ec_curve);
 
@@ -229,8 +196,8 @@ typedef struct ECDHEKeyPairStr {
 /* arrays of ECDHE KeyPairs */
 static ECDHEKeyPair gECDHEKeyPairs[ec_pastLastName];
 
-static SECStatus 
-ecName2params(PRArenaPool * arena, ECName curve, SECKEYECParams * params)
+SECStatus 
+ssl3_ECName2Params(PRArenaPool * arena, ECName curve, SECKEYECParams * params)
 {
     SECOidData *oidData = NULL;
 
@@ -470,6 +437,22 @@ ssl3_HandleECDHClientKeyExchange(sslSocket *ss, SSL3Opaque *b,
     return SECSuccess;
 }
 
+ECName
+ssl3_GetCurveWithECKeyStrength(PRUint32 curvemsk, int requiredECCbits)
+{
+    int    i;
+    
+    for ( i = 0; bits2curve[i].curve != ec_noName; i++) {
+	if (bits2curve[i].bits < requiredECCbits)
+	    continue;
+    	if (SSL_IS_CURVE_NEGOTIATED(curvemsk, bits2curve[i].curve)) {
+	    return bits2curve[i].curve;
+	}
+    }
+    PORT_SetError(SSL_ERROR_NO_CYPHER_OVERLAP);
+    return ec_noName;
+}
+
 /* find the "weakest link".  Get strength of signature key and of sym key.
  * choose curve for the weakest of those two.
  */
@@ -486,7 +469,7 @@ ssl3_GetCurveNameForServerSocket(sslSocket *ss)
 	svrPublicKey = SSL_GET_SERVER_PUBLIC_KEY(ss, kt_ecdh);
 	if (svrPublicKey)
 	    ec_curve = params2ecName(&svrPublicKey->u.ec.DEREncodedParams);
-	if (!SSL_IS_CURVE_NEGOTIATED(ss, ec_curve)) {
+	if (!SSL_IS_CURVE_NEGOTIATED(ss->ssl3.hs.negotiatedECCurves, ec_curve)) {
 	    PORT_SetError(SSL_ERROR_NO_CYPHER_OVERLAP);
 	    return ec_noName;
 	}
@@ -509,30 +492,14 @@ ssl3_GetCurveNameForServerSocket(sslSocket *ss)
         /* convert to strength in bits */
         serverKeyStrengthInBits *= BPB;
  
-        if (serverKeyStrengthInBits <= 1024) {
-            signatureKeyStrength = 160;
-        } else if (serverKeyStrengthInBits <= 2048) {
-            signatureKeyStrength = 224;
-        } else if (serverKeyStrengthInBits <= 3072) {
-            signatureKeyStrength = 256;
-        } else if (serverKeyStrengthInBits <= 7168) {
-            signatureKeyStrength = 384;
-        } else  {
-            signatureKeyStrength = 521;
-        }
+        signatureKeyStrength =
+	    SSL_RSASTRENGTH_TO_ECSTRENGTH(serverKeyStrengthInBits);
     }
     if ( requiredECCbits > signatureKeyStrength ) 
          requiredECCbits = signatureKeyStrength;
 
-    for ( i = 0; bits2curve[i].curve != ec_noName; i++) {
-	if (bits2curve[i].bits < requiredECCbits)
-	    continue;
-    	if (SSL_IS_CURVE_NEGOTIATED(ss, bits2curve[i].curve)) {
-	    return bits2curve[i].curve;
-	}
-    }
-    PORT_SetError(SSL_ERROR_NO_CYPHER_OVERLAP);
-    return ec_noName;
+    return ssl3_GetCurveWithECKeyStrength(ss->ssl3.hs.negotiatedECCurves,
+					  requiredECCbits);
 }
 
 /* function to clear out the lists */
@@ -575,7 +542,7 @@ ssl3_CreateECDHEphemeralKeyPair(void * arg)
     PORT_Assert(gECDHEKeyPairs[ec_curve].pair == NULL);
 
     /* ok, no one has generated a global key for this curve yet, do so */
-    if (ecName2params(NULL, ec_curve, &ecParams) != SECSuccess) {
+    if (ssl3_ECName2Params(NULL, ec_curve, &ecParams) != SECSuccess) {
 	gECDHEKeyPairs[ec_curve].error = PORT_GetError();
 	return PR_FAILURE;
     }
@@ -742,7 +709,7 @@ ssl3_HandleECDHServerKeyExchange(sslSocket *ss, SSL3Opaque *b, PRUint32 length)
     peerKey->keyType               = ecKey;
 
     /* set up EC parameters in peerKey */
-    if (ecName2params(arena, ec_params.data[2], 
+    if (ssl3_ECName2Params(arena, ec_params.data[2], 
 	    &peerKey->u.ec.DEREncodedParams) != SECSuccess) {
 	/* we should never get here since we already 
 	 * checked that we are dealing with a supported curve

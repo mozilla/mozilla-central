@@ -133,3 +133,9 @@ SSL_ReHandshakeWithTimeout;
 ;+    local:
 ;+*;
 ;+};
+;+NSS_3.11.7 {      # NSS 3.11.7 release
+;+    global:
+SSL_CanBypass;
+;+    local:
+;+*;
+;+};
