@@ -156,6 +156,7 @@ fi
 
 html "</TABLE><BR>"
 
+if [ -n "$RUN_SHARED_DB_TESTS" ] ; then
 NSS_DEFAULT_DB_TYPE="sql"
 export NSS_DEFAULT_DB_TYPE
 
@@ -163,6 +164,7 @@ export NSS_DEFAULT_DB_TYPE
 old_tests=${TESTS}
 TESTS="tools fips sdr crmf smime ssl ocsp"
 run_tests
+
 
 # test the new DATABASE
 TESTS=${old_tests}
@@ -221,6 +223,7 @@ TABLE_ARGS="bgcolor=yellow"
 html_head "Testing with shared Library"
 html "</TABLE><BR>"
 run_tests
+fi
 
 
 SCRIPTNAME=all.sh
