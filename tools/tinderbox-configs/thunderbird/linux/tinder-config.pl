@@ -112,7 +112,7 @@ $MofoRoot   = ":ext:cltbld\@cvs.mozilla.org:/mofo";
 #$moz_client_mk = 'client.mk';
 
 #- Set if you want to build in a separate object tree
-#$ObjDir = 'obj-tb-trunk';
+$ObjDir = 'obj-tb-trunk';
 
 # Extra build name, if needed.
 $BuildNameExtra = 'release';
