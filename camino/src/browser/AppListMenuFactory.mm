@@ -299,8 +299,8 @@ static AppListMenuFactory* sAppListMenuFactoryInstance = nil;
 //
 -(NSArray*)feedAppsList
 {
-  NSSet* installedFeedApps = [[NSWorkspace sharedWorkspace] installedFeedViewerIdentifiers];
-  NSMutableSet* feedAppsSet = [NSMutableSet setWithSet:installedFeedApps];
+  NSArray* installedFeedApps = [[NSWorkspace sharedWorkspace] installedFeedViewerIdentifiers];
+  NSMutableSet* feedAppsSet = [NSMutableSet setWithArray:installedFeedApps];
   
   // add user chosen feed apps to the list
   [feedAppsSet addObjectsFromArray:[[NSUserDefaults standardUserDefaults] objectForKey:kUserChosenFeedViewerUserDefaultsKey]];

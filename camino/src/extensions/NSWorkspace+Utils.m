@@ -44,47 +44,26 @@
 
 - (NSArray*)installedBrowserIdentifiers
 {
-  // use a set for automatic duplicate elimination
-  NSMutableSet* browsersSet = [NSMutableSet setWithCapacity:10];
+  NSArray* apps = [(NSArray*)LSCopyAllHandlersForURLScheme(CFSTR("https")) autorelease];
 
-  // Once we are 10.4+, switch this all to LSCopyAllHandlersForURLScheme
-  NSArray* apps = [(NSArray*)LSCopyApplicationURLsForURL((CFURLRef)[NSURL URLWithString:@"https:"], kLSRolesViewer) autorelease];
+  // add the default if it isn't there
+  NSString* defaultHandler = [self defaultBrowserIdentifier];
+  if (defaultHandler && ([apps indexOfObject:defaultHandler] == NSNotFound))
+    apps = [apps arrayByAddingObject:defaultHandler];
 
-  // Put all the browsers IDs into a new array
-  NSEnumerator *appEnumerator = [apps objectEnumerator];
-  NSURL* anApp;
-  while ((anApp = [appEnumerator nextObject])) {
-    NSString *tmpBundleID = [self identifierForBundle:anApp];
-    if (tmpBundleID)
-      [browsersSet addObject:tmpBundleID];
-  }
-  
-  // add default browser in case it hasn't been already
-  NSString* currentBrowser = [self defaultBrowserIdentifier];
-  if (currentBrowser)
-    [browsersSet addObject:currentBrowser];
-  
-  return [browsersSet allObjects];
+  return apps;
 }
 
-- (NSSet*)installedFeedViewerIdentifiers
+- (NSArray*)installedFeedViewerIdentifiers
 {
-  NSMutableSet* feedApps = [[[NSMutableSet alloc] init] autorelease]; 
-  NSString* defaultFeedViewerID = [self defaultFeedViewerIdentifier];
-  if (defaultFeedViewerID)
-    [feedApps addObject:defaultFeedViewerID];
-  
-  NSArray* apps = [(NSArray*)LSCopyApplicationURLsForURL((CFURLRef)[NSURL URLWithString:@"feed:"], kLSRolesViewer) autorelease];
-  
-  NSEnumerator* appEnumerator = [apps objectEnumerator];
-  NSURL* anApp;
-  while ((anApp = [appEnumerator nextObject])) {
-    NSString* tmpBundleID = [self identifierForBundle:anApp];
-    if (tmpBundleID)
-      [feedApps addObject:tmpBundleID];
-  }
-  
-  return feedApps;
+  NSArray* apps = [(NSArray*)LSCopyAllHandlersForURLScheme(CFSTR("feed")) autorelease];
+
+  // add the default if it isn't there
+  NSString* defaultHandler = [self defaultFeedViewerIdentifier];
+  if (defaultHandler && ([apps indexOfObject:defaultHandler] == NSNotFound))
+    apps = [apps arrayByAddingObject:defaultHandler];
+
+  return apps;
 }
 
 - (NSString*)defaultBrowserIdentifier
@@ -99,51 +78,34 @@
 
 - (NSURL*)defaultBrowserURL
 {
-  NSURL *currSetURL = nil;
-  if (_LSCopyDefaultSchemeHandlerURL(@"http", &currSetURL) == noErr)
-    return [currSetURL autorelease];
-
-  return nil;
+  NSString* defaultBundleId = [(NSString*)LSCopyDefaultHandlerForURLScheme(CFSTR("http")) autorelease];
+  return [self urlOfApplicationWithIdentifier:defaultBundleId];
 }
 
 - (NSURL*)defaultFeedViewerURL
 {
-  NSURL* curViewer = nil;
-  if (_LSCopyDefaultSchemeHandlerURL(@"feed", &curViewer) == noErr)
-    return [curViewer autorelease];
-  
-  return nil;
+  NSString* defaultBundleId = [(NSString*)LSCopyDefaultHandlerForURLScheme(CFSTR("feed")) autorelease];
+  return [self urlOfApplicationWithIdentifier:defaultBundleId];
 }
 
 - (void)setDefaultBrowserWithIdentifier:(NSString*)bundleID
 {
-  NSURL* browserURL = [self urlOfApplicationWithIdentifier:bundleID];
-  if (browserURL)
-  {
-    FSRef browserFSRef;
-    CFURLGetFSRef((CFURLRef)browserURL, &browserFSRef);
-    
-    _LSSetDefaultSchemeHandlerURL(@"http", browserURL);
-    _LSSetDefaultSchemeHandlerURL(@"https", browserURL);
-    _LSSetDefaultSchemeHandlerURL(@"gopher", browserURL);
-    _LSSetWeakBindingForType(0, 0, CFSTR("htm"),  kLSRolesAll, &browserFSRef);
-    _LSSetWeakBindingForType(0, 0, CFSTR("html"), kLSRolesAll, &browserFSRef);
-    _LSSetWeakBindingForType(0, 0, CFSTR("url"),  kLSRolesAll, &browserFSRef);
-    _LSSaveAndRefresh();
-  }
+  LSSetDefaultHandlerForURLScheme(CFSTR("http"), (CFStringRef)bundleID);
+  LSSetDefaultHandlerForURLScheme(CFSTR("https"), (CFStringRef)bundleID);
+  LSSetDefaultHandlerForURLScheme(CFSTR("gopher"), (CFStringRef)bundleID);
+  LSSetDefaultRoleHandlerForContentType(kUTTypeHTML, kLSRolesViewer, (CFStringRef)bundleID);
+  LSSetDefaultRoleHandlerForContentType(kUTTypeURL, kLSRolesViewer, (CFStringRef)bundleID);
 }
 
 - (void)setDefaultFeedViewerWithIdentifier:(NSString*)bundleID
 {
-  NSURL* feedAppURL = [self urlOfApplicationWithIdentifier:bundleID];
-  if (feedAppURL) {
-    _LSSetDefaultSchemeHandlerURL(@"feed", feedAppURL);
-    _LSSaveAndRefresh();
-  }
+  LSSetDefaultHandlerForURLScheme(CFSTR("feed"), (CFStringRef)bundleID);
 }
 
 - (NSURL*)urlOfApplicationWithIdentifier:(NSString*)bundleID
 {
+  if (!bundleID)
+    return nil;
   NSURL* appURL = nil;
   if (LSFindApplicationForInfo(kLSUnknownCreator, (CFStringRef)bundleID, NULL, NULL, (CFURLRef*)&appURL) == noErr)
     return [appURL autorelease];

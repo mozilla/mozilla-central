@@ -45,7 +45,7 @@
 - (NSString*)defaultBrowserIdentifier;
 - (NSURL*)defaultBrowserURL;
 
-- (NSSet*)installedFeedViewerIdentifiers;
+- (NSArray*)installedFeedViewerIdentifiers;
 - (NSString*)defaultFeedViewerIdentifier;
 - (NSURL*)defaultFeedViewerURL;
 
