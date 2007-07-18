@@ -147,13 +147,6 @@ components/windowds.xpt
 components/windowwatcher.xpt
 components/winhooks.xpt
 components/xmlextras.xpt
-components/xpcom_base.xpt
-components/xpcom_components.xpt
-components/xpcom_ds.xpt
-components/xpcom_io.xpt
-components/xpcom_obsolete.xpt
-components/xpcom_thread.xpt
-components/xpcom_xpti.xpt
 components/xpcom.xpt
 components/xpconnect.xpt
 components/xpinstall.xpt
