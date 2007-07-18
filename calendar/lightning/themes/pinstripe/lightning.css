@@ -178,7 +178,7 @@ radio[pane=paneLightning] {
 
 .toolbarbutton-2 {
   -moz-box-orient: vertical;
-  min-width: 0px;
+  min-width: 50px;
  list-style-image: url("chrome://calendar/skin/mode-switch-icons.png");
 }
 

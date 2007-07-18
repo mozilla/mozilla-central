@@ -52,7 +52,7 @@
 
 .cal-toolbarbutton-1 {
     -moz-box-orient: vertical;
-    min-width: 0px;
+    min-width: 50px;
     list-style-image: url("chrome://calendar/skin/toolbar-large.png");
 }
 
@@ -62,7 +62,7 @@
 
 toolbar[iconsize="small"] .cal-toolbarbutton-1 {
     -moz-box-orient: vertical;
-    min-width: 0px;
+    min-width: 50px;
     list-style-image: url("chrome://calendar/skin/toolbar-small.png");
 }
 
