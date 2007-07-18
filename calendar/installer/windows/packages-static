@@ -187,7 +187,7 @@ bin\components\wcap.xpt
 ; JavaScript components
 bin\components\nsDefaultCLH.js
 bin\components\nsSetDefaultBrowser.js
-bin\components\nsCloseAllWindows.js
+bin\components\nsTryToClose.js
 bin\components\nsInterfaceInfoToIDL.js
 bin\components\nsPostUpdateWin.js
 bin\components\nsProgressDialog.js

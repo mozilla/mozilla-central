@@ -324,7 +324,7 @@ bin\components\progressDlg.xpt
 bin\components\dom_xpath.xpt
 bin\AccessibleMarshal.dll
 bin\components\lwbrk.xpt
-bin\components\nsCloseAllWindows.js
+bin\components\nsTryToClose.js
 bin\components\pluginGlue.js
 bin\components\txEXSLTRegExFunctions.js
 
