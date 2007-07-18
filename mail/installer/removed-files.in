@@ -163,6 +163,7 @@ components/downloadmanager.xpt
 #endif
 components/nsUnsetDefaultMail.js
 components/nsBackgroundUpdateService.js
+components/nsCloseAllWindows.js
 components/nsDownloadProgressListener.js
 components/xptitemp.dat
 component.reg

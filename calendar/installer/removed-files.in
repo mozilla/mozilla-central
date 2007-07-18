@@ -26,6 +26,7 @@ components/compreg.dat
 components/xpti.dat
 components/xptitemp.dat
 components/nsBackgroundUpdateService.js
+components/nsCloseAllWindows.js
 #
 # Clean out old calendar components which didn't implement nsIModule
 # (see bug 320366)
