@@ -173,8 +173,8 @@ radio[pane=paneLightning] {
 /* ::::: mode toolbar buttons ::::: */
 
 #mode-toolbar {
-  padding-top: 5px;
-  padding-bottom: 5px;
+  padding: 5px 0px 5px 10px;
+  border-top: 1px solid ThreeDShadow !important;
 }
 
 .toolbarbutton-2 {
@@ -188,40 +188,40 @@ radio[pane=paneLightning] {
 }
 
 #mail-switch-button {
-  -moz-image-region: rect(0px 38px 38px 0px);
+  -moz-image-region: rect(0px 25px 25px 0px);
 }
 
 #mail-switch-button:hover:active {
-  -moz-image-region: rect(38px 38px 76px 0px);
-} 
+  -moz-image-region: rect(25px 25px 50px 0px);
+}
 
 #mail-switch-button[disabled] {
-  -moz-image-region: rect(76px 38px 114px 0px);
-} 
+  -moz-image-region: rect(50px 25px 75px 0px);
+}
 
 #calendar-switch-button {
-  -moz-image-region: rect(0px 76px 38px 38px);
+  -moz-image-region: rect(0px 50px 25px 25px);
 }
 
 #calendar-switch-button:hover:active {
-  -moz-image-region: rect(38px 76px 76px 38px);
-} 
+  -moz-image-region: rect(25px 50px 50px 25px);
+}
 
 #calendar-switch-button[disabled] {
-  -moz-image-region: rect(76px 76px 114px 38px);
-} 
+  -moz-image-region: rect(50px 50px 75px 25px);
+}
 
 #task-switch-button {
-  -moz-image-region: rect(0px 114px 38px 76px);
+  -moz-image-region: rect(0px 75px 25px 50px);
 }
 
 #task-switch-button:hover:active {
-  -moz-image-region: rect(38px 114px 76px 76px);
-} 
+  -moz-image-region: rect(25px 75px 50px 50px);
+}
 
 #task-switch-button[disabled] {
-  -moz-image-region: rect(76px 114px 114px 76px);
-} 
+  -moz-image-region: rect(50px 75px 75px 50px);
+}
 
 /* ::::: small mode toolbar buttons ::::: */
 
@@ -230,40 +230,40 @@ toolbar[iconsize="small"] .toolbarbutton-2 {
 }
 
 toolbar[iconsize="small"] #mail-switch-button {
-  -moz-image-region: rect(0px 136px 22px 114px);
+  -moz-image-region: rect(0px 91px 16px 75px);
 }
 
 toolbar[iconsize="small"] #mail-switch-button:hover:active {
-  -moz-image-region: rect(0px 158px 22px 136px);
-} 
+  -moz-image-region: rect(16px 91px 32px 75px);
+}
 
 toolbar[iconsize="small"] #mail-switch-button[disabled] {
-  -moz-image-region: rect(22px 136px 44px 114px);
-} 
+  -moz-image-region: rect(32px 91px 48px 75px);
+}
 
 toolbar[iconsize="small"] #calendar-switch-button {
-  -moz-image-region: rect(22px 158px 44px 136px);
+  -moz-image-region: rect(0px 107px 16px 91px);
 }
 
 toolbar[iconsize="small"] #calendar-switch-button:hover:active {
-  -moz-image-region: rect(44px 136px 66px 114px);
-} 
+  -moz-image-region: rect(16px 107px 32px 91px);
+}
 
 toolbar[iconsize="small"] #calendar-switch-button[disabled] {
-  -moz-image-region: rect(44px 158px 66px 136px);
-} 
+  -moz-image-region: rect(32px 107px 48px 91px);
+}
 
 toolbar[iconsize="small"] #task-switch-button {
-  -moz-image-region: rect(66px 136px 88px 114px);
+  -moz-image-region: rect(0px 123px 16px 107px);
 }
 
 toolbar[iconsize="small"] #task-switch-button:hover:active {
-  -moz-image-region: rect(66px 158px 88px 136px);
-} 
+  -moz-image-region: rect(16px 123px 32px 107px);
+}
 
 toolbar[iconsize="small"] #task-switch-button[disabled] {
-  -moz-image-region: rect(88px 136px 110px 114px);
-} 
+  -moz-image-region: rect(32px 123px 48px 107px);
+}
 
 /*--------------------------------------------------------------------
  * tooltips
