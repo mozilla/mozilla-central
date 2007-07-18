@@ -1,2 +1,1 @@
-Clobbering to switch to an objdir in bug 382723.
-
+Try to fix bustage from Bug 306907
