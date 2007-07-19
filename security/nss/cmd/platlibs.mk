@@ -123,7 +123,7 @@ EXTRA_LIBS += \
 	$(DIST)/lib/$(LIB_PREFIX)nssb.$(LIB_SUFFIX) \
 	$(PKIXLIB) \
 	$(DIST)/lib/$(LIB_PREFIX)dbm.$(LIB_SUFFIX) \
-	$(SQLITE) \
+	$(DIST)/lib/$(LIB_PREFIX)sqlite3.$(LIB_SUFFIX) \
 	$(NSPR_LIB_DIR)/$(NSPR31_LIB_PREFIX)plc4.$(LIB_SUFFIX) \
 	$(NSPR_LIB_DIR)/$(NSPR31_LIB_PREFIX)plds4.$(LIB_SUFFIX) \
 	$(NSPR_LIB_DIR)/$(NSPR31_LIB_PREFIX)nspr4.$(LIB_SUFFIX) \
@@ -200,6 +200,7 @@ EXTRA_SHARED_LIBS += \
 	$(NULL)
 else
 EXTRA_SHARED_LIBS += \
+	-L$(DIST)/lib \
 	$(SQLITE) \
 	-L$(NSPR_LIB_DIR) \
 	-lplc4 \
