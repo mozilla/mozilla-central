@@ -62,13 +62,13 @@ ABS_topsrcdir := $(shell cd $(topsrcdir); pwd)
 
 export::
 ifneq ($(ABS_topsrcdir),$(MOZ_BUILD_ROOT))
-	rsync -a --exclude .DS_Store --exclude "CVS/" --exclude "*.mode1" --exclude "*.pbxuser" $(srcdir)/CaminoViewsPalette.xcode .
+	rsync -a --exclude .DS_Store --exclude "CVS/" --exclude "*.mode1" --exclude "*.pbxuser" $(srcdir)/CaminoViewsPalette.xcodeproj .
 	ln -fs $(srcdir)/src
 	ln -fs $(srcdir)/resources
 endif
 
 libs::
-	$(PBBUILD) -project CaminoViewsPalette.xcode -target $(TARGET) -buildstyle $(BUILDSTYLE) $(PBBUILD_SETTINGS)
+	$(PBBUILD) -project CaminoViewsPalette.xcodeproj -target $(TARGET) -configuration $(BUILDSTYLE) $(PBBUILD_SETTINGS)
 
 # convenience target for PB script build phases
 echo_srcdir:
