@@ -439,10 +439,6 @@ var messageHeaderSink = {
         }
       }
 
-      // display name optimization. Eliminate any large quantities of white space from the display name.
-      // such that Hello       World.txt becomes Hello World.txt.
-      displayName = displayName.replace(/ +/g, " ");
-          
       currentAttachments.push (new createNewAttachmentInfo(contentType, url, displayName, uri, isExternalAttachment));
       // if we have an attachment, set the MSG_FLAG_ATTACH flag on the hdr
       // this will cause the "message with attachment" icon to show up
@@ -1211,6 +1207,16 @@ function cloneAttachment(aAttachment)
   return obj;
 }
 
+function createAttachmentDisplayName(aAttachment)
+{
+  // Strip any white space at the end of the display name to avoid
+  // attachment name spoofing (especially Windows will drop trailing dots
+  // and whitespace from filename extensions). Leading and internal
+  // whitespace will be taken care of by the crop="center" attribute.
+  // We must not change the actual filename, though.
+  return aAttachment.displayName.replace(/\s+$/, "");
+}
+
 function displayAttachmentsForExpandedView()
 {
   var numAttachments = currentAttachments.length; 
@@ -1241,9 +1247,10 @@ function displayAttachmentsForExpandedView()
     {
       var attachment = currentAttachments[index];
 
-      // create a new attachment widget. set the label, set the 
-      // moz-icon img src
-      var attachmentView = attachmentList.appendItem(attachment.displayName);
+      // Create a new attachment widget
+      var displayName = createAttachmentDisplayName(attachment);
+      var attachmentView = attachmentList.appendItem(displayName);
+  
       attachmentView.setAttribute("class", "descriptionitem-iconic"); 
 
       if (gShowLargeAttachmentView)
@@ -1360,11 +1367,13 @@ function addAttachmentToPopup(popup, attachment, attachmentIndex)
       while (popup.childNodes[indexOfSeparator].localName != 'menuseparator')
         indexOfSeparator++;
 
+      var displayName = createAttachmentDisplayName(attachment);
       var formattedDisplayNameString = gMessengerBundle.getFormattedString("attachmentDisplayNameFormat",
-                                       [attachmentIndex, attachment.displayName]);
+                                       [attachmentIndex, displayName]);
 
+      item.setAttribute("crop", "center");
       item.setAttribute('label', formattedDisplayNameString); 
-      item.setAttribute('accesskey', attachmentIndex); 
+      item.setAttribute('accesskey', attachmentIndex);
 
       // each attachment in the list gets its own menupopup with options for saving, deleting, detaching, etc. 
       var openpopup = document.createElement('menupopup');
