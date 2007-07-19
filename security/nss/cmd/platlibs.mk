@@ -72,11 +72,7 @@ endif
 endif
 endif
 
-SQLITE=$(DIST)/lib/$(LIB_PREFIX)sqlite.$(LIB_SUFFIX)
-ifdef NSS_USE_SYSTEM_SQLITE
-	SQLITE=-lsqlite3
-endif
-
+SQLITE=-lsqlite3
 
 ifdef USE_STATIC_LIBS
 
