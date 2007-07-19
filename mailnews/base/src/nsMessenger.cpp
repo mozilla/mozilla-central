@@ -51,6 +51,7 @@
 #include "nsDirectoryServiceDefs.h"
 #include "nsISupportsObsolete.h"
 #include "nsQuickSort.h"
+#include "nsAutoPtr.h"
 #ifdef XP_MACOSX
 #include "nsIAppleFileDecoder.h"
 #include "nsILocalFileMac.h"
@@ -271,10 +272,13 @@ public:
 
   nsCOMPtr<nsITransfer> mTransfer;
   nsCOMPtr<nsIUrlListener> mListener;
+  nsCOMPtr<nsIURI> mListenerUri;
   PRInt32 mProgress;
   PRInt32 mContentLength;
   PRBool  mCanceled;
   PRBool  mInitialized;
+  PRBool  mUrlHasStopped;
+  PRBool  mRequestHasStopped;
   nsresult InitializeDownload(nsIRequest * aRequest, PRInt32 aBytesDownloaded);
 };
 
@@ -691,27 +695,24 @@ NS_IMETHODIMP nsMessenger::SaveAttachmentToFile(nsIFile *aFile,
 }
 
 nsresult nsMessenger::SaveAttachment(nsIFile *aFile,
-                                          const nsACString &aURL,
-                                          const nsACString &aMessageUri,
-                                          const nsACString &aContentType,
-                                          void *closure,
-                                          nsIUrlListener *aListener)
+                                     const nsACString &aURL,
+                                     const nsACString &aMessageUri,
+                                     const nsACString &aContentType,
+                                     void *closure,
+                                     nsIUrlListener *aListener)
 {
-  nsIMsgMessageService * messageService = nsnull;
+  nsIMsgMessageService *messageService = nsnull;
   nsSaveAllAttachmentsState *saveState= (nsSaveAllAttachmentsState*) closure;
   nsCOMPtr<nsIMsgMessageFetchPartService> fetchService;
   nsCAutoString urlString;
   nsCOMPtr<nsIURI> URL;
   nsCAutoString fullMessageUri(aMessageUri);
 
-  // XXX todo
-  // document the ownership model of saveListener
-  // whacky ref counting here...what's the deal? when does saveListener get released? it's not clear.
-  nsSaveMsgListener *saveListener = new nsSaveMsgListener(aFile, this, aListener);
+  // This instance will be held onto by the listeners, and will be released once 
+  // the transfer has been completed.
+  nsRefPtr<nsSaveMsgListener> saveListener(new nsSaveMsgListener(aFile, this, aListener));
   if (!saveListener)
     return NS_ERROR_OUT_OF_MEMORY;
-
-  NS_ADDREF(saveListener);
 
   saveListener->m_contentType = aContentType;
   if (saveState)
@@ -719,7 +720,6 @@ nsresult nsMessenger::SaveAttachment(nsIFile *aFile,
     saveListener->m_saveAllAttachmentsState = saveState;
     if (saveState->m_detachingAttachments)
     {
-
       nsCOMPtr<nsIURI> outputURI;
       nsresult rv = NS_NewFileURI(getter_AddRefs(outputURI), aFile);
       NS_ENSURE_SUCCESS(rv, rv);
@@ -754,8 +754,8 @@ nsresult nsMessenger::SaveAttachment(nsIFile *aFile,
       // if the message service has a fetch part service then we know we can fetch mime parts...
       if (fetchService)
       {
-        PRInt32 sectionPos = urlString.Find("?section");
         nsCString mimePart;
+        PRInt32 sectionPos = urlString.Find("?section");
         urlString.Right(mimePart, urlString.Length() - sectionPos);
         fullMessageUri.Append(mimePart);
       }
@@ -781,17 +781,15 @@ nsresult nsMessenger::SaveAttachment(nsIFile *aFile,
       }
 #endif
       if (fetchService)
-        rv = fetchService->FetchMimePart(URL, fullMessageUri.get(), convertedListener, mMsgWindow, nsnull, nsnull);
+        rv = fetchService->FetchMimePart(URL, fullMessageUri.get(), convertedListener, mMsgWindow, saveListener, nsnull);
       else
         rv = messageService->DisplayMessage(fullMessageUri.get(), convertedListener, mMsgWindow, nsnull, nsnull, nsnull);
     } // if we got a message service
   } // if we created a url
 
   if (NS_FAILED(rv))
-  {
-      NS_IF_RELEASE(saveListener);
-      Alert("saveAttachmentFailed");
-  }
+    Alert("saveAttachmentFailed");
+
   return rv;
 }
 
@@ -1722,21 +1720,23 @@ nsMessenger::SendUnsentMessages(nsIMsgIdentity *aIdentity, nsIMsgWindow *aMsgWin
 
 nsSaveMsgListener::nsSaveMsgListener(nsIFile* aFile, nsMessenger *aMessenger, nsIUrlListener *aListener)
 {
-    m_file = do_QueryInterface(aFile);
-    m_messenger = aMessenger;
-    mListener = aListener;
-
+  m_file = do_QueryInterface(aFile);
+  m_messenger = aMessenger;
+  mListener = aListener;
+  mUrlHasStopped = PR_FALSE;
+  mRequestHasStopped = PR_FALSE;
+  
     // rhp: for charset handling
-    m_doCharsetConversion = PR_FALSE;
-    m_saveAllAttachmentsState = nsnull;
-    mProgress = 0;
-    mContentLength = -1;
-    mCanceled = PR_FALSE;
-    m_outputFormat = eUnknown;
-    mInitialized = PR_FALSE;
-    if (m_file)
-       NS_NewLocalFileOutputStream(getter_AddRefs(m_outputStream), m_file, -1, 00600);
-    m_dataBuffer = (char*) PR_CALLOC(FOUR_K+1);
+  m_doCharsetConversion = PR_FALSE;
+  m_saveAllAttachmentsState = nsnull;
+  mProgress = 0;
+  mContentLength = -1;
+  mCanceled = PR_FALSE;
+  m_outputFormat = eUnknown;
+  mInitialized = PR_FALSE;
+  if (m_file)
+    NS_NewLocalFileOutputStream(getter_AddRefs(m_outputStream), m_file, -1, 00600);
+  m_dataBuffer = (char*) PR_CALLOC(FOUR_K+1);
 }
 
 nsSaveMsgListener::~nsSaveMsgListener()
@@ -1768,30 +1768,37 @@ nsSaveMsgListener::OnStartRunningUrl(nsIURI* url)
 }
 
 NS_IMETHODIMP
-nsSaveMsgListener::OnStopRunningUrl(nsIURI* url, nsresult exitCode)
+nsSaveMsgListener::OnStopRunningUrl(nsIURI *url, nsresult exitCode)
 {
   nsresult rv = exitCode;
   PRBool killSelf = PR_TRUE;
+  mUrlHasStopped = PR_TRUE;
 
   if (m_outputStream)
   {
-    m_outputStream->Flush();
-    m_outputStream->Close();
+    if (mRequestHasStopped)
+    {
+      m_outputStream->Close();
+      m_outputStream = nsnull;
+    }
     if (NS_FAILED(rv)) goto done;
-    if (!m_templateUri.IsEmpty()) { // ** save as template goes here
-        nsCOMPtr<nsIRDFService> rdf(do_GetService(kRDFServiceCID, &rv));
-        if (NS_FAILED(rv)) goto done;
-        nsCOMPtr<nsIRDFResource> res;
-        rv = rdf->GetResource(m_templateUri, getter_AddRefs(res));
-        if (NS_FAILED(rv)) goto done;
-        nsCOMPtr<nsIMsgFolder> templateFolder;
-        templateFolder = do_QueryInterface(res, &rv);
-        if (NS_FAILED(rv)) goto done;
-        nsCOMPtr<nsIMsgCopyService> copyService = do_GetService(NS_MSGCOPYSERVICE_CONTRACTID);
-        if (copyService)
-          rv = copyService->CopyFileMessage(m_file, templateFolder, nsnull,
-                                        PR_TRUE, MSG_FLAG_READ, this, nsnull);
-        killSelf = PR_FALSE;
+    
+    // ** save as template goes here
+    if (!m_templateUri.IsEmpty()) 
+    {
+      nsCOMPtr<nsIRDFService> rdf(do_GetService(kRDFServiceCID, &rv));
+      if (NS_FAILED(rv)) goto done;
+      nsCOMPtr<nsIRDFResource> res;
+      rv = rdf->GetResource(m_templateUri, getter_AddRefs(res));
+      if (NS_FAILED(rv)) goto done;
+      nsCOMPtr<nsIMsgFolder> templateFolder;
+      templateFolder = do_QueryInterface(res, &rv);
+      if (NS_FAILED(rv)) goto done;
+      nsCOMPtr<nsIMsgCopyService> copyService = do_GetService(NS_MSGCOPYSERVICE_CONTRACTID);
+      if (copyService)
+        rv = copyService->CopyFileMessage(m_file, templateFolder, nsnull,
+                                          PR_TRUE, MSG_FLAG_READ, this, nsnull);
+      killSelf = PR_FALSE;
     }
   }
 
@@ -1803,11 +1810,12 @@ done:
     if (m_messenger)
         m_messenger->Alert("saveMessageFailed");
   }
-  if (killSelf)
-      Release(); // no more work needs to be done; kill ourself
-
-  if (mListener)
+  
+  if (mRequestHasStopped && mListener)
     mListener->OnStopRunningUrl(url, exitCode);
+  else
+    mListenerUri = url;
+  
   return rv;
 }
 
@@ -1849,83 +1857,82 @@ nsSaveMsgListener::OnStopCopy(nsresult aStatus)
 nsresult nsSaveMsgListener::InitializeDownload(nsIRequest * aRequest, PRInt32 aBytesDownloaded)
 {
   nsresult rv = NS_OK;
-
+  
   mInitialized = PR_TRUE;
   nsCOMPtr<nsIChannel> channel (do_QueryInterface(aRequest));
-
+  
   if (!channel)
     return rv;
-
+  
   // Set content length if we haven't already got it.
   if (mContentLength == -1)
-      channel->GetContentLength(&mContentLength);
-
+    channel->GetContentLength(&mContentLength);
+  
   if (!m_contentType.IsEmpty())
   {
-      nsCOMPtr<nsIMIMEService> mimeService (do_GetService(NS_MIMESERVICE_CONTRACTID));
-      nsCOMPtr<nsIMIMEInfo> mimeinfo;
-
-      mimeService->GetFromTypeAndExtension(m_contentType, EmptyCString(), getter_AddRefs(mimeinfo));
-
-      nsCOMPtr<nsILocalFile> outputFile = do_QueryInterface(m_file);
-
+    nsCOMPtr<nsIMIMEService> mimeService (do_GetService(NS_MIMESERVICE_CONTRACTID));
+    nsCOMPtr<nsIMIMEInfo> mimeinfo;
+    
+    mimeService->GetFromTypeAndExtension(m_contentType, EmptyCString(), getter_AddRefs(mimeinfo));
+    
+    nsCOMPtr<nsILocalFile> outputFile = do_QueryInterface(m_file);
+    
       // create a download progress window
       // XXX: we don't want to show the progress dialog if the download is really small.
       // but what is a small download? Well that's kind of arbitrary
       // so make an arbitrary decision based on the content length of the attachment
-      if (mContentLength != -1 && mContentLength > aBytesDownloaded * 2)
+    if (mContentLength != -1 && mContentLength > aBytesDownloaded * 2)
+    {
+      nsCOMPtr<nsITransfer> tr = do_CreateInstance(NS_TRANSFER_CONTRACTID, &rv);
+      if (tr && outputFile)
       {
-        nsCOMPtr<nsITransfer> tr = do_CreateInstance(NS_TRANSFER_CONTRACTID, &rv);
-        if (tr && outputFile)
-        {
-          PRTime timeDownloadStarted = PR_Now();
-
-          nsCOMPtr<nsIURI> outputURI;
-          NS_NewFileURI(getter_AddRefs(outputURI), outputFile);
-
-          nsCOMPtr<nsIURI> url;
-          channel->GetURI(getter_AddRefs(url));
-          rv = tr->Init(url, outputURI, EmptyString(), mimeinfo,
-                        timeDownloadStarted, nsnull, this);
-
+        PRTime timeDownloadStarted = PR_Now();
+        
+        nsCOMPtr<nsIURI> outputURI;
+        NS_NewFileURI(getter_AddRefs(outputURI), outputFile);
+        
+        nsCOMPtr<nsIURI> url;
+        channel->GetURI(getter_AddRefs(url));
+        rv = tr->Init(url, outputURI, EmptyString(), mimeinfo,
+                      timeDownloadStarted, nsnull, this);
+        
           // now store the web progresslistener
-          mTransfer = tr;
-        }
+        mTransfer = tr;
       }
-
+    }
+    
 #ifdef XP_MACOSX
-      /* if we are saving an appledouble or applesingle attachment, we need to use an Apple File Decoder */
-      if (m_contentType.LowerCaseEqualsLiteral(APPLICATION_APPLEFILE) ||
-          m_contentType.LowerCaseEqualsLiteral(MULTIPART_APPLEDOUBLE))
+    /* if we are saving an appledouble or applesingle attachment, we need to use an Apple File Decoder */
+    if (m_contentType.LowerCaseEqualsLiteral(APPLICATION_APPLEFILE) ||
+        m_contentType.LowerCaseEqualsLiteral(MULTIPART_APPLEDOUBLE))
+    {
+      nsCOMPtr<nsIAppleFileDecoder> appleFileDecoder = do_CreateInstance(NS_IAPPLEFILEDECODER_CONTRACTID, &rv);
+      if (NS_SUCCEEDED(rv) && appleFileDecoder)
       {
-        nsCOMPtr<nsIAppleFileDecoder> appleFileDecoder = do_CreateInstance(NS_IAPPLEFILEDECODER_CONTRACTID, &rv);
-        if (NS_SUCCEEDED(rv) && appleFileDecoder)
+        rv = appleFileDecoder->Initialize(m_outputStream, outputFile);
+        if (NS_SUCCEEDED(rv))
+          m_outputStream = do_QueryInterface(appleFileDecoder, &rv);
+      }
+    }
+    else
+    {
+      if (mimeinfo)
+      {
+        PRUint32 aMacType;
+        PRUint32 aMacCreator;
+        if (NS_SUCCEEDED(mimeinfo->GetMacType(&aMacType)) && NS_SUCCEEDED(mimeinfo->GetMacCreator(&aMacCreator)))
         {
-          rv = appleFileDecoder->Initialize(m_outputStream, outputFile);
-          if (NS_SUCCEEDED(rv))
-            m_outputStream = do_QueryInterface(appleFileDecoder, &rv);
+          nsCOMPtr<nsILocalFileMac> macFile =  do_QueryInterface(outputFile, &rv);
+          if (NS_SUCCEEDED(rv) && macFile)
+          {
+            macFile->SetFileCreator((OSType)aMacCreator);
+            macFile->SetFileType((OSType)aMacType);
+          }
         }
       }
-      else
-      {
-          if (mimeinfo)
-          {
-            PRUint32 aMacType;
-            PRUint32 aMacCreator;
-            if (NS_SUCCEEDED(mimeinfo->GetMacType(&aMacType)) && NS_SUCCEEDED(mimeinfo->GetMacCreator(&aMacCreator)))
-            {
-              nsCOMPtr<nsILocalFileMac> macFile =  do_QueryInterface(outputFile, &rv);
-              if (NS_SUCCEEDED(rv) && macFile)
-              {
-                macFile->SetFileCreator((OSType)aMacCreator);
-                macFile->SetFileType((OSType)aMacType);
-              }
-            }
-          }
-      }
+    }
 #endif // XP_MACOSX
   }
-
   return rv;
 }
 
@@ -1946,6 +1953,7 @@ nsSaveMsgListener::OnStopRequest(nsIRequest* request, nsISupports* aSupport,
                                  nsresult status)
 {
   nsresult rv = NS_OK;
+  mRequestHasStopped = PR_TRUE;
   
   // rhp: If we are doing the charset conversion magic, this is different
   // processing, otherwise, its just business as usual.
@@ -1977,8 +1985,7 @@ nsSaveMsgListener::OnStopRequest(nsIRequest* request, nsISupports* aSupport,
     
     PR_FREEIF(conBuf);
   }
-  
-  // close down the output stream and release ourself
+ 
   if (m_outputStream)
   {
     m_outputStream->Close();
@@ -2037,7 +2044,7 @@ nsSaveMsgListener::OnStopRequest(nsIRequest* request, nsISupports* aSupport,
       m_saveAllAttachmentsState = nsnull;
     }
   }
-  
+
   if(mTransfer)
   {
     mTransfer->OnProgressChange(nsnull, nsnull, mContentLength, mContentLength, mContentLength, mContentLength);
@@ -2045,7 +2052,9 @@ nsSaveMsgListener::OnStopRequest(nsIRequest* request, nsISupports* aSupport,
     mTransfer = nsnull; // break any circular dependencies between the progress dialog and use
   }
   
-  Release(); // all done kill ourself
+  if (mUrlHasStopped && mListener)
+    mListener->OnStopRunningUrl(mListenerUri, rv);
+
   return NS_OK;
 }
 
@@ -2060,7 +2069,7 @@ nsSaveMsgListener::OnDataAvailable(nsIRequest* request,
   // first, check to see if we've been canceled....
   if (mCanceled) // then go cancel our underlying channel too
     return request->Cancel(NS_BINDING_ABORTED);
-
+  
   if (!mInitialized)
     InitializeDownload(request, count);
 
@@ -2095,7 +2104,7 @@ nsSaveMsgListener::OnDataAvailable(nsIRequest* request,
     }
 
     if (NS_SUCCEEDED(rv) && mTransfer) // Send progress notification.
-        mTransfer->OnProgressChange(nsnull, request, mProgress, mContentLength, mProgress, mContentLength);
+      mTransfer->OnProgressChange(nsnull, request, mProgress, mContentLength, mProgress, mContentLength);
   }
   return rv;
 }
