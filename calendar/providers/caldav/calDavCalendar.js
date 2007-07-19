@@ -559,7 +559,7 @@ calDavCalendar.prototype = {
         // but until the idl is changed we do it.
         if (aOldItem.parentItem.generation != aNewItem.generation) {
             if (aListener) {
-                aListener.onOperationComplete (this.calendarToReturn,
+                aListener.onOperationComplete (this,
                                                Components.results.NS_ERROR_FAILURE,
                                                aListener.MODIFY,
                                                aNewItem.id,
