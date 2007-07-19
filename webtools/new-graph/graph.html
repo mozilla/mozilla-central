@@ -22,6 +22,7 @@
 
     <script type="text/javascript" src="js/GraphFormModule.js"></script>
     <script type="text/javascript" src="js/graph.js"></script>
+    <script type="text/javascript" src="js/ResizeGraph.js"></script>
 
     <!-- BonsaiService needs e4x -->
     <script type="text/javascript; e4x=1" src="js/BonsaiService.js"></script>
@@ -83,7 +84,7 @@
     <!-- small graph -->
 
     <!-- these are absolute size, so we wrap them in a div that can overflow -->
-    <div id="graph-container" style="width: 900px;">
+    <div id="graph-container" style="margin:auto; width:900px;">
       <div id="smallgraph-labels-x" style="position: relative; left: 51px; margin-left: 1px; margin-right: 1px; height: 30px; width: 700px"></div>
       <div id="smallgraph-labels-y" style="position: relative; left: 0px; top: 0px; float: left; height: 76px; width: 50px;"></div>
       <canvas style="clear: left; border: 1px solid #888; padding-top: 1px;" id="smallgraph" height="75" width="700"></canvas>
@@ -99,6 +100,11 @@
     <div style="width: 900px">
       <center><span id="status" class="status"></span></center>
     </div>
+  <script>
+    ResizableBigGraph = new ResizeGraph();
+    ResizableBigGraph.init('graph');
+
+  </script>
 
   </body>
 </html>

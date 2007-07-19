@@ -21,6 +21,7 @@
  * Contributor(s):
  *   Vladimir Vukicevic <vladimir@pobox.com> (Original Author)
  *   Alice Nodelman <anodelman@mozilla.com>
+ *   Jeremiah Orem <oremj@oremj.com>
  *
  * Alternatively, the contents of this file may be used under the terms of
  * either the GNU General Public License Version 2 or later (the "GPL"), or
@@ -253,6 +254,26 @@ Graph.prototype = {
     setSelectionColor: function (scolor) {
         this.selectionColor = scolor;
         this.redrawOverlayOnly();
+    },
+    
+    resize: function () {
+        if(this.frontBuffer.width > 900) {
+                getElement('graph-container').style.width = (this.frontBuffer.width + 200) + "px";
+        }
+        this.backBuffer.width = this.frontBuffer.width;
+        this.backBuffer.height = this.frontBuffer.height;
+        /* Always have at least 6 labels on the graph */
+        if (this.frontBuffer.height < 300) {
+            this.yLabelHeight = this.frontBuffer.height / 6;
+        }
+        if (this.frontBuffer.width < 900) {
+            this.xLabelWidth = this.frontBuffer.width / 6;
+        }
+        this.overlayBuffer.width = this.frontBuffer.width;
+        this.overlayBuffer.height = this.frontBuffer.height;
+        this.dirty = true;
+        this.autoScale();
+        this.redraw();
     },
 
     setCursorType: function (type) {
@@ -617,7 +638,7 @@ Graph.prototype = {
 */
         } else {
             if (visibleValues > 1000) {
-                fixedPrecision = 0;
+                fixedPrecision = 1;
             } else if (visibleValues > 100) {
                 fixedPrecision = 1;
             } else if (visibleValues > 10) {
