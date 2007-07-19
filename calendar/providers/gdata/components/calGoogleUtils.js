@@ -315,7 +315,7 @@ function toRFC3339(aDateTime) {
         return "";
     }
 
-    var tzoffset_hr = (aDateTime.timezoneOffset / 3600).toFixed(0);
+    var tzoffset_hr = Math.floor(aDateTime.timezoneOffset / 3600);
 
     var tzoffset_mn = ((aDateTime.timezoneOffset / 3600).toFixed(2) -
                        tzoffset_hr) * 60;
