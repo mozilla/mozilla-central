@@ -38,6 +38,7 @@ use Net::RBLClient;
 # use CGI::Carp qw(fatalsToBrowser);
 
 # Configuration
+my $STATIC_CAPTCHA_RESULT = "7";
 
 # Map products to destination
 my %product_destination_map = (
@@ -116,10 +117,9 @@ if (!$action) {
       || die("Template process failed: " . $template->error() . "\n");
 }
 elsif ($action eq "submit") {
-    # Simple Mozilla-specific hotfix against spam, 2006-10-13
-    if (($form->{'subject'} eq 'LINKS') && 
-        ($form->{'product'} eq 'Firefox 2 Beta 1')) {
-      throwError("like_spam");
+    if (defined($form->{'captcha'}) && 
+       ($form->{'captcha'} ne $STATIC_CAPTCHA_RESULT)) {
+      throwError("captcha_error");
     }
 
     # Check the poster's IP against some blacklists

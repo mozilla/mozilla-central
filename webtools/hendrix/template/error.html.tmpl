@@ -56,6 +56,13 @@
       press Back, change the Summary to something else and try again.
     </p>
 
+  [% CASE "captcha_error" %]
+    <p class="error">
+      Sorry, you didn't correctly calculate the sum. We ask you to answer
+      this question to prevent
+      spammers using our form. Please press Back, check your maths and try again.
+    </p>
+
   [% CASE "rbl_hit" %]
     <p class="error">
       Your internet address is in a list of known open proxies. We consult this
