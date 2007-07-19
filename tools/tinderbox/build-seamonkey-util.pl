@@ -24,7 +24,7 @@ use Config;         # for $Config{sig_name} and $Config{sig_num}
 use File::Find ();
 use File::Copy;
 
-$::UtilsVersion = '$Revision: 1.362 $ ';
+$::UtilsVersion = '$Revision: 1.363 $ ';
 
 package TinderUtils;
 
@@ -1007,12 +1007,12 @@ sub BuildIt {
                     PostMozilla::PreBuild();
             } elsif ($Settings::ForceRebuild) {
                 TinderUtils::print_log("Clobber requested for a non-release build.\n");
-                if ( -d "mozilla") {
-                    TinderUtils::run_shell_command("rm -rf mozilla");
-                }
                 my $objdir = 'mozilla/'.$Settings::ObjDir;
                 if ( -d $objdir) {
                     TinderUtils::run_shell_command("rm -rf $objdir");
+                }
+                if ( -d "mozilla") {
+                    TinderUtils::run_shell_command("rm -rf mozilla");
                 }
                 if ( -d "l10n" ) {
                     TinderUtils::run_shell_command("rm -rf l10n");
