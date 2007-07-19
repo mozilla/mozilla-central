@@ -70,13 +70,11 @@ $AliveTest                = 1;
 #$EmbedCodesizeTest        = 0;  # mZ, require mozilla/tools/codesigns
 #$MailBloatTest            = 0;
 #$EmbedTest                = 0;  # Assumes you wanted $BuildEmbed=1
-# XXX: Tp temporarily disabled due to bug 387933 - KaiRo
-#$LayoutPerformanceTest    = 1;  # Tp
+$LayoutPerformanceTest    = 1;  # Tp
 #$DHTMLPerformanceTest     = 0;  # Tdhtml
 #$QATest                   = 0;  
 #$XULWindowOpenTest        = 0;  # Txul
-# XXX: Ts temporarily disabled due to bug 387933 - KaiRo
-#$StartupPerformanceTest   = 1;  # Ts
+$StartupPerformanceTest   = 1;  # Ts
 
 $TestsPhoneHome           = 1;  # Should test report back to server?
 
