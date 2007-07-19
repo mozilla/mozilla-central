@@ -210,6 +210,45 @@ toolbar[iconsize="small"] #calendar-go-to-today-button:hover {
 toolbar[iconsize="small"] #calendar-go-to-today-button:hover:active {
 }
 
+
+/*--------------------------------------------------------------------
+ *   Show TodayPane button
+ *-------------------------------------------------------------------*/
+
+#calendar-show-todaypane-button {
+        -moz-image-region: rect(0px 408px 24px 384px);
+}
+#calendar-show-todaypane-button[disabled="true"],
+#calendar-show-todaypane-button[disabled="true"]:hover,
+#calendar-show-todaypane-button[disabled="true"]:hover:active {
+        -moz-image-region: rect(48px 408px 72px 384px);
+}
+#calendar-show-todaypane-button:hover {
+        -moz-image-region: rect(24px 408px 48px 384px);
+}
+#calendar-show-todaypane-button:hover:active {
+}
+
+/*--------------------------------------------------------------------
+ *   Show TodayPane button - small
+ *-------------------------------------------------------------------*/
+
+toolbar[iconsize="small"] #calendar-show-todaypane-button {
+        -moz-image-region: rect(0px 272px 16px 256px);
+}
+toolbar[iconsize="small"] #calendar-show-todaypane-button[disabled="true"],
+toolbar[iconsize="small"] #calendar-show-todaypane-button[disabled="true"]:hover,
+toolbar[iconsize="small"] #calendar-show-todaypane-button[disabled="true"]:hover:active {
+        -moz-image-region: rect(32px 272px 48px 256px);
+}
+toolbar[iconsize="small"] #calendar-show-todaypane-button:hover {
+        -moz-image-region: rect(16px 272px 32px 256px);
+}
+toolbar[iconsize="small"] #calendar-show-todaypane-button:hover:active {
+}
+
+
+
 /*--------------------------------------------------------------------
  *   Choose date button
  *-------------------------------------------------------------------*/

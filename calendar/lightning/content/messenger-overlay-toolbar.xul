@@ -24,6 +24,7 @@
    -   Stuart Parmenter   <stuart.parmenter@oracle.com>
    -   Vladimir Vukicevic <vladimir@pobox.com>
    -   Simon Paquet       <bugzilla@babylonsounds.com>
+   -   Berend Cornelius   <berend.cornelius@sun.com>
    -
    - Alternatively, the contents of this file may be used under the terms of
    - either the GNU General Public License Version 2 or later (the "GPL"), or
@@ -117,6 +118,11 @@
                    label="&calendar.today.button.label;"
                    tooltiptext="&calendar.today.button.tooltip;"
                    oncommand="goToToday()"/>
+    <toolbarbutton id="calendar-show-todaypane-button"
+                   class="cal-toolbarbutton-1"
+                   label="&calendar.context.button.label;"
+                   tooltiptext="&calendar.todaypane.button.tooltip;"
+                   command="cmd_toggleTodayPane"/>
     <toolbarbutton id="calendar-edit-event-button"
                    mode="calendar"
                    class="cal-toolbarbutton-1"

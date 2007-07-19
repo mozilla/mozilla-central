@@ -98,6 +98,7 @@
 <!ENTITY calendar.find.key  "F">
 
 <!ENTITY calendar.today.button.tooltip            "Go to today" >
+<!ENTITY calendar.todaypane.button.tooltip        "Show Today pane" >
 <!ENTITY calendar.choosedate.button.tooltip       "Choose date to go to" >
 
 <!ENTITY calendar.day.button.tooltip            "Switch to day view" >
@@ -205,6 +206,7 @@
 <!ENTITY calendar.context.selectall.label             "Select All">
 <!ENTITY calendar.context.selectall.accesskey         "A">
 <!ENTITY calendar.context.gototoday.label             "Go to Today">
+<!ENTITY calendar.context.button.label                "Today Pane" >
 <!ENTITY calendar.context.gototoday.accesskey         "T">
 <!ENTITY calendar.context.emailevent.label            "Email Selected Events…">
 <!ENTITY calendar.context.emailevent.accesskey        "i">

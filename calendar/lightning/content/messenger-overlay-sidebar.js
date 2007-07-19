@@ -550,6 +550,23 @@ function goToToday()
     document.getElementById("ltnMinimonth").value = currentDay.jsDate;
 }
 
+
+function toggleTodayPaneinMailMode()
+{
+  var oTodayPane = document.getElementById("today-pane-box");
+  var todayPaneCommand = document.getElementById('cmd_toggleTodayPane');
+  if (oTodayPane.hasAttribute("collapsed")) {
+    oTodayPane.removeAttribute("collapsed");
+    oTodayPane.removeAttribute("collapsedinMailMode");
+    todayPaneCommand.setAttribute("checked","true");
+  }
+  else {
+    oTodayPane.setAttribute("collapsed", true);
+    oTodayPane.setAttribute("collapsedinMailMode", "true");
+    todayPaneCommand.setAttribute("checked", "false");
+  }
+}
+
 function selectedCalendarPane(event)
 {
     var deck = document.getElementById("displayDeck");

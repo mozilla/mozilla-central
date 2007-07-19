@@ -172,6 +172,7 @@
     <command id="switch2mail" oncommand="ltnSwitch2Mail()"/>
     <command id="switch2calendar" oncommand="ltnSwitch2Calendar()"/>
     <command id="switch2task" oncommand="ltnSwitch2Task()"/>
+    <command id="cmd_toggleTodayPane" oncommand="toggleTodayPaneinMailMode()"/>
     <command id="day-view-command" oncommand="showCalendarView('day')"/>
     <command id="week-view-command" oncommand="showCalendarView('week')"/>
     <command id="multiweek-view-command" oncommand="showCalendarView('multiweek')"/>
@@ -181,6 +182,7 @@
   <keyset>
     <key id="openLightningKey" key="3" modifiers="accel"
          oncommand="ltnMinimonthPick(document.getElementById('ltnMinimonth'))"/>
+    <key id="todaypanekey" modifiers="accel" key="D" command="cmd_toggleTodayPane"/>         
   </keyset>
 
   <popupset>
@@ -261,37 +263,25 @@
           <datepicker id="ltnDateTextPicker" onchange="ltnMinimonthPick(this)"/>
           <spacer flex="1"/>
         </hbox>
-
-        <tabbox id="ltnTabpanelBox" flex="1">
-          <tabs id="ltnTabpanelTabs">
-            <tab id="agenda-tab" label="&lightning.sidebar.agenda.label;"/>
-            <tab id="todo-tab" label="&lightning.sidebar.todo.label;"/>
-            <tab id="calendar-tab" label="&lightning.sidebar.calendars.label;"/>
-          </tabs>
-          <tabpanels id="ltnTabpanels" flex="1">
-            <vbox id="agenda-tab-panel"/>    
-            <vbox id="todo-tab-panel"/>
-            <vbox id="calendar-tab-panel" flex="1">
-              <tree id="calendarTree" hidecolumnpicker="true" seltype="single"
-                    onfocus="selectedCalendarPane(event)" flex="1"
-                    onselect="ltnSidebarCalendarSelected(this);"
-                    ondblclick="ltnCalendarTreeView.onDoubleClick(event);"
-                    context="calendartree-context-menu">
-                <treecols>
-                  <treecol id="col-calendar-Checkbox" cycler="true" fixed="true" width="18" >
-                    <image />
-                  </treecol>
-                  <treecol id="col-calendar-Color" fixed="true" width="18"/>
-                  <treecol id="col-calendar-Calendar" label="&lightning.calendar.label;" flex="1"/>
-                </treecols>
-                <treechildren>
-                </treechildren>
-              </tree>
-            </vbox>
-          </tabpanels>
-        </tabbox>
+       <separator/>
+       <vbox id="calendar-panel" flex="1">
+        <tree id="calendarTree" hidecolumnpicker="true" seltype="single"
+              onfocus="selectedCalendarPane(event)" flex="1"
+              onselect="ltnSidebarCalendarSelected(this);"
+              ondblclick="ltnCalendarTreeView.onDoubleClick(event);"
+              context="calendartree-context-menu">
+          <treecols>
+            <treecol id="col-calendar-Checkbox" cycler="true" fixed="true" width="18" >
+              <image />
+            </treecol>
+            <treecol id="col-calendar-Color" fixed="true" width="18"/>
+            <treecol id="col-calendar-Calendar" label="&lightning.calendar.label;" flex="1"/>
+          </treecols>
+          <treechildren>
+          </treechildren>
+        </tree>
       </vbox>
-
+      </vbox>
     </deck>
 
     <popup id="mode-toolbar-context-menu">

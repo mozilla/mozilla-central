@@ -22,6 +22,8 @@ calendar.jar:
     content/calendar/calendar-item-editing.js    (content/calendar-item-editing.js)
     content/calendar/calendar-month-view.xml     (content/calendar-month-view.xml)
     content/calendar/calendar-multiday-view.xml  (content/calendar-multiday-view.xml)
+    content/calendar/today-pane.xul              (content/today-pane.xul)
+    content/calendar/today-pane.js               (content/today-pane.js)
     content/calendar/calendar-minimonth-busy.js  (content/calendar-minimonth-busy.js)
     content/calendar/calendar-recurrence-dialog.js  (content/calendar-recurrence-dialog.js)
     content/calendar/calendar-recurrence-dialog.xul  (content/calendar-recurrence-dialog.xul)
@@ -49,6 +51,7 @@ calendar.jar:
 % skin calendar classic/1.0 %skin/classic/calendar/
 #expand    skin/classic/calendar/cal-icon32.png         (themes/__THEME__/cal-icon32.png)
 #expand    skin/classic/calendar/calendar-toolbar.css   (themes/__THEME__/calendar-toolbar.css)
+#expand    skin/classic/calendar/today-pane.css         (themes/__THEME__/today-pane.css)
 #expand    skin/classic/calendar/calendar-views.css     (themes/__THEME__/calendar-views.css)
 #expand    skin/classic/calendar/toolbar-large.png      (themes/__THEME__/toolbar-large.png)
 #expand    skin/classic/calendar/toolbar-small.png      (themes/__THEME__/toolbar-small.png)

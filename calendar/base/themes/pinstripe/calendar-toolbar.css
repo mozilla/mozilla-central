@@ -162,6 +162,34 @@ toolbar[iconsize="small"] #calendar-go-to-today-button[disabled="true"] {
         -moz-image-region: rect(48px 408px 72px 384px);
 }
 
+
+
+/*--------------------------------------------------------------------
+ *   Show Today-Pane button
+ *-------------------------------------------------------------------*/
+
+#calendar-show-todaypane-button {
+        -moz-image-region: rect(0px 544px 32px 512px);
+}
+#calendar-show-todaypane-button:active {
+        -moz-image-region: rect(32px 544px 64px 512px);
+}
+#calendar-show-todaypane-button[disabled="true"] {
+        -moz-image-region: rect(64px 544px 96px 512px);
+}
+
+toolbar[iconsize="small"] #calendar-show-todaypane-button {
+        -moz-image-region: rect(0px 408px 24px 384px);
+}
+toolbar[iconsize="small"] #calendar-show-todaypane-button:active {
+        -moz-image-region: rect(24px 408px 48px 384px);
+}
+toolbar[iconsize="small"] #calendar-show-todaypane-button[disabled="true"] {
+        -moz-image-region: rect(48px 408px 72px 384px);
+}
+
+
+
 /*--------------------------------------------------------------------
  *   Button: "Choose Date"
  *-------------------------------------------------------------------*/
