@@ -419,8 +419,12 @@ NS_IMETHODIMP nsMailDatabase::GetSummaryValid(PRBool *aResult)
     PRUint32 version;
 
     m_dbFolderInfo->GetVersion(&version);
+    nsCOMPtr <nsIFile> copyFolderFile;
+    // clone file because nsLocalFile caches sizes.
+    nsresult rv = m_folderFile->Clone(getter_AddRefs(copyFolderFile));
+    NS_ENSURE_SUCCESS(rv, rv);
     PRInt64 fileSize;
-    m_folderFile->GetFileSize(&fileSize);
+    copyFolderFile->GetFileSize(&fileSize);
     if (folderSize == fileSize &&
         numUnreadMessages >= 0 && GetCurVersion() == version)
     {
@@ -442,12 +446,12 @@ NS_IMETHODIMP nsMailDatabase::GetSummaryValid(PRBool *aResult)
         errorMsg.AppendInt(gTimeStampLeeway);
       }
     }
-    else if (folderSize != m_folderSpec->GetFileSize())
+    else if (folderSize != fileSize)
     {
       errorMsg.AppendLiteral("folder size didn't match db size = ");
       errorMsg.AppendInt(folderSize);
       errorMsg.AppendLiteral(" actual size = ");
-      errorMsg.AppendInt(m_folderSpec->GetFileSize());
+      errorMsg.AppendInt(fileSize);
     }
     else if (numUnreadMessages < 0)
     {
