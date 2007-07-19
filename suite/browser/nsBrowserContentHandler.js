@@ -487,14 +487,9 @@ var nsBrowserContentHandler = {
     if (!webNavInfo.isTypeSupported(contentType, null))
       throw NS_ERROR_WONT_HANDLE_CONTENT;
 
-    var parentWin;
-    try {
-      parentWin = context.getInterface(nsIDOMWindow);
-    } catch (e) {
-    }
-
     request.QueryInterface(nsIChannel);
-    openWindow(parentWin, request.URI, null, null);
+    handURIToExistingBrowser(request.URI,
+      nsIBrowserDOMWindow.OPEN_DEFAULTWINDOW, "chrome,all,dialog=no");
     request.cancel(NS_BINDING_ABORTED);
   },
 
