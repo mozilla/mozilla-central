@@ -836,7 +836,14 @@ NS_IMETHODIMP nsMsgSaveAsListener::OnDataAvailable(nsIRequest* request,
     NS_ENSURE_SUCCESS(rv, rv);
   }
 
-
+  PRBool useCanonicalEnding = PR_FALSE;
+  nsCOMPtr <nsIMsgMessageUrl> msgUrl = do_QueryInterface(aSupport);
+  if (msgUrl)
+    msgUrl->GetCanonicalLineEnding(&useCanonicalEnding);
+  
+  const char *lineEnding = (useCanonicalEnding) ? CRLF : MSG_LINEBREAK;
+  PRUint32 lineEndingLength = (useCanonicalEnding) ? 2 : MSG_LINEBREAK_LEN;
+  
   PRUint32 readCount, maxReadCount = SAVE_BUF_SIZE - m_leftOver;
   PRUint32 writeCount;
   char *start, *end;
@@ -878,7 +885,7 @@ NS_IMETHODIMP nsMsgSaveAsListener::OnDataAvailable(nsIRequest* request,
               PL_strncmp(start, "From - ", 7))
           {
               rv = m_outputStream->Write(start, end-start, &writeCount);
-              rv = m_outputStream->Write(MSG_LINEBREAK,sizeof(MSG_LINEBREAK) - 1, &writeCount);
+              rv = m_outputStream->Write(lineEnding, lineEndingLength, &writeCount);
           }
           start = end+linebreak_len;
           if (start >= m_dataBuffer + m_leftOver)
