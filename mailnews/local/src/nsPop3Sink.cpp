@@ -784,7 +784,9 @@ nsPop3Sink::IncorporateComplete(nsIMsgWindow *aMsgWindow, PRInt32 aSize)
 
   nsresult rv = WriteLineToMailbox(MSG_LINEBREAK);
   if (NS_FAILED(rv)) return rv;
-  rv = m_outFileStream->Flush();   //to make sure the message is written to the disk
+  // aSize is only set for partial messages. Skip the flush for partials.
+  if (!aSize)
+    rv = m_outFileStream->Flush();   //to make sure the message is written to the disk
   if (NS_FAILED(rv)) return rv;
   NS_ASSERTION(m_newMailParser, "could not get m_newMailParser");
   if (m_newMailParser)
