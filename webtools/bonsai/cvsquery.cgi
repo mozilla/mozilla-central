@@ -478,9 +478,9 @@ sub print_ci {
 
     print "<tr>\n";
     print "<TD width=2%>${sm_font_tag}$t</font>";
-    print "<TD width=2%><a href='$registryurl/who.cgi?email=$url_who'"
+    print "<TD width=2%><nobr><a href='$registryurl/who.cgi?email=$url_who'"
           . " onClick=\"return js_who_menu('$url_who','',event);\" >"
-          . "$ci->[$::CI_WHO]</a>\n";
+          . "$ci->[$::CI_WHO]</a></nobr>\n";
     print "<TD width=45%><a href='cvsview2.cgi?subdir=$url_dir" .
         "&files=$url_file\&command=DIRECTORY&branch=$::query_branch" .
         "&root=" . $ci->[$::CI_REPOSITORY] . "'\n" .
