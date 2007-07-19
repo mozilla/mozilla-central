@@ -1062,7 +1062,8 @@ NS_IMETHODIMP nsMsgCompose::SendMsg(MSG_DeliverMode deliverMode, nsIMsgIdentity 
     // The plain text compose window was used
     const char contentType[] = "text/plain";
     nsString msgBody;
-    PRUint32 flags = nsIDocumentEncoder::OutputFormatted;
+    PRUint32 flags = nsIDocumentEncoder::OutputFormatted | nsIDocumentEncoder::OutputCRLineBreak |
+      nsIDocumentEncoder::OutputLFLineBreak;
     if (m_editor)
     {
       // Reset message body previously stored in the compose fields
