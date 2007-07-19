@@ -20,6 +20,7 @@
    - the Initial Developer. All Rights Reserved.
    -
    - Contributor(s): Matthew Willis <mattwillis@gmail.com>
+   -                 Ehsan Akhgari <ehsan.akhgari@gmail.com>
    -
    - Alternatively, the contents of this file may be used under the terms of
    - either the GNU General Public License Version 2 or later (the "GPL"), or
@@ -36,8 +37,10 @@
    - ***** END LICENSE BLOCK ***** -->
 
 <!ENTITY aboutDialog.title      "About &brandFullName;">
-<!ENTITY copyright              "Credits">
-<!ENTITY aboutLink              "&lt; About &brandFullName;">
+<!ENTITY copyright.label        "Credits">
+<!ENTITY copyright.accesskey    "C">
+<!ENTITY aboutLink.label        "&lt; About &brandFullName;">
+<!ENTITY aboutLink.accesskey    "A">
 <!ENTITY aboutVersion           "version">
 <!ENTITY copyrightText          "&#169;1998-2007 Contributors. All rights
                                  reserved. Mozilla Sunbird, Sunbird, and the

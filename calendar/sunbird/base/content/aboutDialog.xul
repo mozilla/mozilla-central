@@ -22,6 +22,7 @@
 # the Initial Developer. All Rights Reserved.
 #
 # Contributor(s): Matthew Willis <mattwillis@gmail.com>
+#                 Ehsan Akhgari <ehsan.akhgari@gmail.com>
 #
 # Alternatively, the contents of this file may be used under the terms of
 # either the GNU General Public License Version 2 or later (the "GPL"), or
@@ -59,8 +60,10 @@
         title="&aboutDialog.title;"
         buttons="accept,extra2"
 #endif
-        creditslabel="&copyright;"
-        aboutlabel="&aboutLink;"
+        creditslabel="&copyright.label;"
+        creditsaccesskey="&copyright.accesskey;"
+        aboutlabel="&aboutLink.label;"
+        aboutaccesskey="&aboutLink.accesskey;"
         style="width: 299px;height: 435px;">
 
   <script type="application/x-javascript" src="chrome://calendar/content/aboutDialog.js"/>
