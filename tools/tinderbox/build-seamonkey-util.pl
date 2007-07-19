@@ -24,7 +24,7 @@ use Config;         # for $Config{sig_name} and $Config{sig_num}
 use File::Find ();
 use File::Copy;
 
-$::UtilsVersion = '$Revision: 1.361 $ ';
+$::UtilsVersion = '$Revision: 1.362 $ ';
 
 package TinderUtils;
 
@@ -1000,9 +1000,26 @@ sub BuildIt {
 
         my $external_build = "$Settings::BaseDir/post-mozilla.pl";
 
-        if (-e $external_build and $Settings::ReleaseBuild and not $Settings::SkipMozilla and not $Settings::TestOnly) {
-            PostMozilla::PreBuild();
+        if (not $Settings::SkipMozilla and 
+            not $Settings::TestOnly) {
+            if (-e $external_build and 
+                $Settings::ReleaseBuild) {
+                    PostMozilla::PreBuild();
+            } elsif ($Settings::ForceRebuild) {
+                TinderUtils::print_log("Clobber requested for a non-release build.\n");
+                if ( -d "mozilla") {
+                    TinderUtils::run_shell_command("rm -rf mozilla");
+                }
+                my $objdir = 'mozilla/'.$Settings::ObjDir;
+                if ( -d $objdir) {
+                    TinderUtils::run_shell_command("rm -rf $objdir");
+                }
+                if ( -d "l10n" ) {
+                    TinderUtils::run_shell_command("rm -rf l10n");
+                }
+            }
         }
+    
         # Allow skipping of mozilla phase.
         unless ($Settings::SkipMozilla) {
           

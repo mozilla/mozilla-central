@@ -1160,17 +1160,7 @@ sub PreBuild {
       TinderUtils::print_log("Removal of last-built failed?\n")
        if (-e 'last-built');
     } else {
-      TinderUtils::print_log("Force rebuild requested, but last-built not found. Assuming CLOBBER of a depend build.\n");
-      if ( -d "mozilla") {
-          TinderUtils::run_shell_command("rm -rf mozilla");
-      }
-      my $objdir = 'mozilla/'.$Settings::ObjDir;
-      if ( -d $objdir) {
-          TinderUtils::run_shell_command("rm -rf $objdir");
-      }
-      if ( -d "l10n" ) {
-          TinderUtils::run_shell_command("rm -rf l10n");
-      }
+      TinderUtils::print_log("Force rebuild requested, but last-built not found.\n");
     }
   }
 
