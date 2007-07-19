@@ -80,7 +80,6 @@ function checkForItipItem(subject)
 
     // XXX Get these from preferences
     itipItem.autoResponse = Components.interfaces.calIItipItem.USER;
-    itipItem.targetCalendar = getTargetCalendar();
 
     var imipMethod = getMsgImipMethod();
     if (imipMethod &&
@@ -260,14 +259,30 @@ function getMsgRecipient()
 }
 
 /**
- * Bug 351745 - Call calendar picker here
+ * Call the calendar picker
  */
 function getTargetCalendar()
 {
+    var calendarToReturn;
     var calMgr = Components.classes["@mozilla.org/calendar/manager;1"]
                            .getService(Components.interfaces.calICalendarManager);
-    var cals = calMgr.getCalendars({});
-    return cals[0];
+    var count = new Object();
+    var calArray = calMgr.getCalendars(count);
+
+    if (count.value == 1) {
+        // There's only one calendar, so it's silly to ask what calendar
+        // the user wants to import into.
+        calendarToReturn = calArray[0];
+    } else {
+        // Ask what calendar to import into
+        var args = new Object();
+        var aCal;
+        args.onOk = function selectCalendar(aCal) { calendarToReturn = aCal; };
+        args.promptText = calGetString("calendar", "importPrompt");
+        openDialog("chrome://calendar/content/chooseCalendarDialog.xul",
+                   "_blank", "chrome,titlebar,modal,resizable", args);
+    }
+    return calendarToReturn;
 }
 
 /**
@@ -322,7 +337,8 @@ function doResponse(aLocalStatus)
 
     // The spec is unclear if we must add all the items or if the
     // user should get to pick which item gets added.
-    var cal = getTargetCalendar();
+    var targetCalendar = getTargetCalendar();
+    gItipItem.targetCalendar = targetCalendar;
 
     if (aLocalStatus != null) {
         gItipItem.localStatus = aLocalStatus;
