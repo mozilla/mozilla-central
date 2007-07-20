@@ -90,6 +90,11 @@ if ($c->param("testcase_id")) {
     $test_run->{'criteria'} = $criteria;  
     $js = $json->objToJson($test_run);
   }
+} elsif ($c->param("test_runs_by_branch_name")) {
+  my @branches = Litmus::DB::Branch->search(name => $c->param("test_runs_by_branch_name"));
+  my $branch = $branches[0];
+  my @runs = Litmus::DB::TestRun->search(branch => $branch);
+  $js = $json->objToJson(@runs);
 } elsif ($c->param("validate_login")) {
   my $uname = $c->param("username");
   my $passwd = $c->param("password");
