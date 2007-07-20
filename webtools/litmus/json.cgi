@@ -90,10 +90,25 @@ if ($c->param("testcase_id")) {
     $test_run->{'criteria'} = $criteria;  
     $js = $json->objToJson($test_run);
   }
-} elsif ($c->param("test_runs_by_branch_name")) {
-  my @branches = Litmus::DB::Branch->search(name => $c->param("test_runs_by_branch_name"));
-  my $branch = $branches[0];
-  my @runs = Litmus::DB::TestRun->search(branch => $branch);
+} elsif ($c->param("test_runs_by_branch_product_name")) {
+  my $branch;
+  my $product;
+  my @runs;
+  if ($c->param("product_name")) {
+  	my @products = Litmus::DB::Product->search(name => $c->param("product_name"));
+  	$product = $products[0];
+  }
+  if ($c->param("branch_name")) {
+  	my @branches = Litmus::DB::Branch->search(name => $c->param("branch_name"));
+  	$branch = $branches[0];	
+  } 
+  if ($c->param("branch_name") && $c->param("product_name")) {
+    @runs = Litmus::DB::TestRun->search(branch => $branch, product => $product);
+  } elsif ($c->param("product_name")) {
+    @runs = Litmus::DB::TestRun->search(product => $product);
+  } elsif ($c->param("branch_name")) {
+    @runs = Litmus::DB::TestRun->search(branch => $branch);
+  }
   $js = $json->objToJson(@runs);
 } elsif ($c->param("validate_login")) {
   my $uname = $c->param("username");
