@@ -973,11 +973,10 @@ NS_IMETHODIMP nsMsgLocalMailFolder::Delete()
   pathFile->IsDirectory(&isDirectory);
   if (!isDirectory)
     AddDirectorySeparator(pathFile);
-  rv = pathFile->IsDirectory(&isDirectory);
+  isDirectory = PR_FALSE;
+  pathFile->IsDirectory(&isDirectory);
   //If this is a directory, then remove it.
-  if (NS_SUCCEEDED(rv) && isDirectory)
-    pathFile->Remove(PR_TRUE);
-  return rv;
+  return (isDirectory) ? pathFile->Remove(PR_TRUE) : NS_OK;
 }
 
 NS_IMETHODIMP nsMsgLocalMailFolder::DeleteSubFolders(nsISupportsArray *folders, nsIMsgWindow *msgWindow)
