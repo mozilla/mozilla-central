@@ -183,10 +183,7 @@ nsresult nsImapMoveCoalescer::PlaybackMoves(PRBool doNewMailNotification /* = PR
           {
             nsMoveCoalescerCopyListener *copyListener = new nsMoveCoalescerCopyListener(this, destFolder);
             if (copyListener)
-            {
               listener = do_QueryInterface(copyListener);
-              NS_ADDREF(copyListener); // it will own its own reference
-            }
           }
           rv = copySvc->CopyMessages(m_sourceFolder, messages, destFolder, PR_TRUE,
                                       listener, m_msgWindow, PR_FALSE /*allowUndo*/);
