@@ -389,12 +389,22 @@ calWcapCalendar.prototype = {
         // xxx todo: take real acl into account
         // for now, optimistically assuming that everybody has full access, server will check:
         var granted = calIWcapCalendar.AC_FULL;
+        if (this.m_bReadOnly) {
+            granted &= ~(calIWcapCalendar.AC_COMP_WRITE |
+                         calIWcapCalendar.AC_PROP_WRITE);
+        }
         // check whether every bit fits:
         return ((accessControlBits & granted) == accessControlBits);
     },
     
     assureAccess: function calWcapCalendar_assureAccess(accessControlBits)
     {
+        if (!this.checkAccess(accessControlBits & (calIWcapCalendar.AC_COMP_WRITE |
+                                                   calIWcapCalendar.AC_PROP_WRITE))) {
+            // throw different error code for read-only:
+            throw new Components.Exception("Access denied!",
+                                           calIErrors.CAL_IS_READONLY);
+        }
         if (!this.checkAccess(accessControlBits)) {
             throw new Components.Exception("Access denied!",
                                            calIWcapErrors.WCAP_ACCESS_DENIED_TO_CALENDAR);

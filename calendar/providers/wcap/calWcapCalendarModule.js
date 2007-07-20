@@ -49,6 +49,7 @@ const calIWcapErrors = Components.interfaces.calIWcapErrors;
 const calICalendar = Components.interfaces.calICalendar;
 const calIItemBase = Components.interfaces.calIItemBase;
 const calIOperationListener = Components.interfaces.calIOperationListener;
+const calIErrors = Components.interfaces.calIErrors;
 
 // ctors:
 var CalEvent;

@@ -74,7 +74,8 @@ function initLogging()
                     logFile,
                     0x02 /* PR_WRONLY */ |
                     0x08 /* PR_CREATE_FILE */ |
-                    0x10 /* PR_APPEND */,
+                    (getPref("calendar.wcap.log_file_append", false)
+                     ? 0x10 /* PR_APPEND */ : 0x20 /* PR_TRUNCATE */),
                     0700 /* read, write, execute/search by owner */,
                     0 /* unused */);
                 g_logFilestream = logFileStream;
@@ -297,7 +298,7 @@ function getTime() {
 }
 
 function getIcalUTC(dt) {
-    if (!dt)
+    if (!dt || !dt.isValid)
         return "0";
     else {
         var dtz = dt.timezone;
