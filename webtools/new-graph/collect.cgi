@@ -7,7 +7,7 @@ import cgi
 import time
 import re
 
-from pysqlite2 import dbapi2 as sqlite
+from graphsdb import db
 
 #if var is a valid number returns a value other than None
 def checkNumber(var):
@@ -27,7 +27,6 @@ print "Content-type: text/plain\n\n"
 link_format = "RETURN:%.2f:%sspst=range&spstart=%d&spend=%d&bpst=cursor&bpstart=%d&bpend=%d&m1tid=%d&m1bl=0&m1avg=0\n"
 link_str = ""
 
-DBPATH = "db/data.sqlite"
 
 form = cgi.FieldStorage()
 
@@ -84,33 +83,17 @@ if (not value) or (not tbox) or (not testname):
     print "Bad args"
     sys.exit(500)
 
-db = sqlite.connect(DBPATH)
 
 # Create the DB schema if it doesn't already exist
 # XXX can pull out dataset_info.machine and dataset_info.{test,test_type} into two separate tables,
 # if we need to.
-try:
-    db.execute("CREATE TABLE dataset_info (id INTEGER PRIMARY KEY AUTOINCREMENT, type STRING, machine STRING, test STRING, test_type STRING, extra_data STRING, branch STRING, date INTEGER);")
-    db.execute("CREATE TABLE dataset_values (dataset_id INTEGER, time INTEGER, value FLOAT);")
-    db.execute("CREATE TABLE dataset_branchinfo (dataset_id INTEGER, time INTEGER, branchid STRING);")
-    db.execute("CREATE TABLE dataset_extra_data (dataset_id INTEGER, time INTEGER, data BLOB);");
-    db.execute("CREATE TABLE annotations (dataset_id INTEGER, time INTEGER, value STRING);")
-    db.execute("CREATE INDEX datasets_id_idx ON dataset_values(dataset_id);")
-    db.execute("CREATE INDEX datasets_branchinfo_id_idx ON dataset_branchinfo(dataset_id);")
-    db.execute("CREATE INDEX datasets_extradata_id_idx ON dataset_extra_data(dataset_id);")
-    db.execute("CREATE INDEX datasets_time_idx ON dataset_values(time);")
-    db.execute("CREATE INDEX datasets_time_id_idx ON dataset_values(dataset_id, time);")
-    db.execute("CREATE INDEX datasets_extra_data_supplemental_idx ON dataset_extra_data(dataset_id, time, data);")
-    db.commit()
-except:
-    pass
 
 # figure out our dataset id
 setid = -1
 
 while setid == -1:
     cur = db.cursor()
-    cur.execute("SELECT id FROM dataset_info WHERE type=? AND machine=? AND test=? AND test_type=? AND extra_data=? AND branch=? AND date=?",
+    cur.execute("SELECT id FROM dataset_info WHERE type <=> ? AND machine <=> ? AND test <=> ? AND test_type <=> ? AND extra_data=? AND branch <=> ? AND date <=> ?",
                 (type, tbox, testname, "perf", "branch="+branch, branch, date))
     res = cur.fetchall()
     cur.close()
@@ -158,7 +141,7 @@ if  type == "discrete" :
         setid = -1 
         while setid == -1 :
             cur = db.cursor()
-            cur.execute("SELECT id from dataset_info where type=? AND machine=? AND test=? AND test_type=? AND extra_data=? AND branch=? AND date=?",
+            cur.execute("SELECT id from dataset_info where type <=> ? AND machine <=> ? AND test <=> ? AND test_type <=> ? AND extra_data <=> ? AND branch <=> ? AND date <=> ?",
                     ("continuous", tbox, testname+"_avg", "perf", "branch="+branch, branch, date))
             res = cur.fetchall()
             cur.close()
@@ -168,15 +151,15 @@ if  type == "discrete" :
             else:
                 setid = res[0][0]
         cur = db.cursor()
-        cur.execute("SELECT * FROM dataset_values WHERE dataset_id=? AND time=?", (setid, timeval))
+        cur.execute("SELECT * FROM dataset_values WHERE dataset_id=? AND time <=> ?", (setid, timeval))
         res = cur.fetchall()
         cur.close()
         if len(res) == 0:
             db.execute("INSERT INTO dataset_values (dataset_id, time, value) VALUES (?,?,?)", (setid, timeval, avg))
             db.execute("INSERT INTO dataset_branchinfo (dataset_id, time, branchid) VALUES (?,?,?)", (setid, timeval, branchid))
         else:
-            db.execute("UPDATE dataset_values SET value=? WHERE dataset_id=? AND time=?", (avg, setid, timeval))
-            db.execute("UPDATE dataset_branchinfo SET branchid=? WHERE dataset_id=? AND time=?", (branchid, setid, timeval))
+            db.execute("UPDATE dataset_values SET value=? WHERE dataset_id=? AND time <=> ?", (avg, setid, timeval))
+            db.execute("UPDATE dataset_branchinfo SET branchid=? WHERE dataset_id=? AND time <=> ?", (branchid, setid, timeval))
         cur = db.cursor()
         cur.execute("SELECT MIN(time), MAX(time) FROM dataset_values WHERE dataset_id = ?", (setid,))
         res = cur.fetchall()

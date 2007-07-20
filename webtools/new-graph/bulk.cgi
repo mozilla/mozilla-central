@@ -7,7 +7,7 @@ import cgi
 import time
 import re
 
-from pysqlite2 import dbapi2 as sqlite
+from graphsdb import db 
 
 #if var is a valid number returns a value other than None
 def checkNumber(var):
@@ -27,7 +27,6 @@ print "Content-type: text/plain\n\n"
 link_format = "RETURN:%s:%.2f:%sspst=range&spstart=%d&spend=%d&bpst=cursor&bpstart=%d&bpend=%d&m1tid=%d&m1bl=0&m1avg=0\n"
 link_str = ""
 
-DBPATH = "db/data.sqlite"
 
 form = cgi.FieldStorage()
 
@@ -58,22 +57,6 @@ form = cgi.FieldStorage()
 # Create the DB schema if it doesn't already exist
 # XXX can pull out dataset_info.machine and dataset_info.{test,test_type} into two separate tables,
 # if we need to.
-db = sqlite.connect(DBPATH)
-try:
-    db.execute("CREATE TABLE dataset_info (id INTEGER PRIMARY KEY AUTOINCREMENT, type STRING, machine STRING, test STRING, test_type STRING, extra_data STRING, branch STRING, date INTEGER);")
-    db.execute("CREATE TABLE dataset_values (dataset_id INTEGER, time INTEGER, value FLOAT);")
-    db.execute("CREATE TABLE dataset_branchinfo (dataset_id INTEGER, time INTEGER, branchid STRING);")
-    db.execute("CREATE TABLE dataset_extra_data (dataset_id INTEGER, time INTEGER, data BLOB);");
-    db.execute("CREATE TABLE annotations (dataset_id INTEGER, time INTEGER, value STRING);")
-    db.execute("CREATE INDEX datasets_id_idx ON dataset_values(dataset_id);")
-    db.execute("CREATE INDEX datasets_branchinfo_id_idx ON dataset_branchinfo(dataset_id);")
-    db.execute("CREATE INDEX datasets_extradata_id_idx ON dataset_extra_data(dataset_id);")
-    db.execute("CREATE INDEX datasets_time_idx ON dataset_values(time);")
-    db.execute("CREATE INDEX datasets_time_id_idx ON dataset_values(dataset_id, time);")
-    db.execute("CREATE INDEX datasets_extra_data_supplemental_idx ON dataset_extra_data(dataset_id, time, data);")
-    db.commit()
-except:
-    pass
 
 # value,testname,tbox,time,data,branch,branchid,type,data
 
@@ -130,9 +113,10 @@ if form.has_key("filename"):
             # figure out our dataset id
             setid = -1
 
+            # Not a big fan of this while loop.  If something goes wrong with the select it will insert until the script times out.
             while setid == -1:
                 cur = db.cursor()
-                cur.execute("SELECT id FROM dataset_info WHERE type=? AND machine=? AND test=? AND test_type=? AND extra_data=? AND branch=? AND date=? limit 1",
+                cur.execute("SELECT id FROM dataset_info WHERE type <=> ? AND machine <=> ? AND test <=> ? AND test_type <=> ? AND extra_data <=> ? AND branch <=> ? AND date <=> ? limit 1",
                             (type, tbox, testname, "perf", "branch="+branch, branch, date))
                 res = cur.fetchall()
                 cur.close()
@@ -157,7 +141,7 @@ if form.has_key("filename"):
 
     for setid, type in zip(all_ids, all_types):
         cur = db.cursor()
-        cur.execute("SELECT MIN(time), MAX(time), test FROM dataset_values, dataset_info WHERE dataset_id = ? and id = dataset_id", (setid,))
+        cur.execute("SELECT MIN(time), MAX(time), test FROM dataset_values, dataset_info WHERE dataset_id = ? and id = dataset_id GROUP BY test", (setid,))
         res = cur.fetchall()
         cur.close()
         tstart = res[0][0]
@@ -198,7 +182,7 @@ if form.has_key("filename"):
             dsetid = -1 
             while dsetid == -1 :
                 cur = db.cursor()
-                cur.execute("SELECT id from dataset_info where type=? AND machine=? AND test=? AND test_type=? AND extra_data=? AND branch=? AND date=? limit 1",
+                cur.execute("SELECT id from dataset_info where type = ? AND machine <=> ? AND test = ? AND test_type = ? AND extra_data = ? AND branch <=> ? AND date <=> ? limit 1",
                         ("continuous", tbox, testname+"_avg", "perf", "branch="+branch, branch, date))
                 res = cur.fetchall()
                 cur.close()
@@ -208,15 +192,15 @@ if form.has_key("filename"):
                 else:
                     dsetid = res[0][0]
             cur = db.cursor()
-            cur.execute("SELECT * FROM dataset_values WHERE dataset_id=? AND time=? limit 1", (dsetid, timeval))
+            cur.execute("SELECT * FROM dataset_values WHERE dataset_id=? AND time <=> ? limit 1", (dsetid, timeval))
             res = cur.fetchall()
             cur.close()
             if len(res) == 0:
                 db.execute("INSERT INTO dataset_values (dataset_id, time, value) VALUES (?,?,?)", (dsetid, timeval, avg))
                 db.execute("INSERT INTO dataset_branchinfo (dataset_id, time, branchid) VALUES (?,?,?)", (dsetid, timeval, branchid))
             else:
-                db.execute("UPDATE dataset_values SET value=? WHERE dataset_id=? AND time=?", (avg, dsetid, timeval))
-                db.execute("UPDATE dataset_branchinfo SET branchid=? WHERE dataset_id=? AND time=?", (branchid, dsetid, timeval))
+                db.execute("UPDATE dataset_values SET value=? WHERE dataset_id=? AND time <=> ?", (avg, dsetid, timeval))
+                db.execute("UPDATE dataset_branchinfo SET branchid=? WHERE dataset_id=? AND time <=> ?", (branchid, dsetid, timeval))
             cur = db.cursor()
             cur.execute("SELECT MIN(time), MAX(time) FROM dataset_values WHERE dataset_id = ?", (dsetid,))
             res = cur.fetchall()

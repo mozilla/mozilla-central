@@ -12,10 +12,7 @@ import minjson as json
 
 import cStringIO
 
-from pysqlite2 import dbapi2 as sqlite
-
-DBPATH = "db/data.sqlite"
-db = sqlite.connect(DBPATH)
+from graphsdb import db
 #
 # All objects are returned in the form:
 # {
@@ -87,6 +84,8 @@ def doGetList(fo, type, branch, machine, testname):
 def doListTests(fo, type, datelimit, branch, machine, testname):
     results = []
     s1 = ""
+
+    # FIXME: This could be vulnerable to SQL injection!  Although it looks like checkstring should catch bad strings.
     if branch:
        s1 += " AND branch = '" + branch + "' "
     if machine:
@@ -95,7 +94,7 @@ def doListTests(fo, type, datelimit, branch, machine, testname):
        s1 += " AND test = '" + testname + "' "
    
     cur = db.cursor()
-    cur.execute("SELECT id, machine, test, test_type, date, extra_data, branch FROM dataset_info WHERE type = ? AND test_type != ? and date > ?" + s1, (type, "baseline", datelimit))
+    cur.execute("SELECT id, machine, test, test_type, date, extra_data, branch FROM dataset_info WHERE type = ? AND test_type != ? and (date >= ?)" + s1, (type, "baseline", datelimit))
     for row in cur:
         results.append( {"id": row[0],
                          "machine": row[1],
@@ -157,7 +156,7 @@ def doSendResults(fo, setid, starttime, endtime, raw):
         cur.execute("SELECT time, data FROM dataset_extra_data WHERE dataset_id = ? " + s1 + s2 + " ORDER BY time", (setid,))
         fo.write ("rawdata: [")
         for row in cur:
-            blob = row[1]
+            blob = row[1].tostring()
             if "\\" in blob:
                 blob = blob.replace("\\", "\\\\")
             if "'" in blob:

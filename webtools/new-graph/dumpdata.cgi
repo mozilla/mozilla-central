@@ -12,10 +12,8 @@ import minjson as json
 
 import cStringIO
 
-from pysqlite2 import dbapi2 as sqlite
+from graphsdb import db
 
-DBPATH = "db/data.sqlite"
-db = sqlite.connect(DBPATH)
 #
 # returns a plain text file containing the information for a given dataset in two csv tables
 #   the first table containing the dataset info (branch, date, etc)
@@ -62,9 +60,9 @@ def dumpData(fo, setid, starttime, endtime):
     cur.close()
     cur = db.cursor()
     #cur.execute("SELECT dataset_id, time, value, branchid, data from ((dataset_values NATURAL JOIN dataset_branchinfo) NATURAL JOIN dataset_extra_data) WHERE dataset_id IN (%s) %s %s ORDER BY dataset_id, time" % (setid, s1, s2,))
-    cur.execute("SELECT B.dataset_id, B.time, B.value, B.branchid, B.data FROM ((dataset_values LEFT OUTER JOIN dataset_branchinfo ON dataset_values.dataset_id = dataset_branchinfo.dataset_id AND dataset_values.time = dataset_branchinfo.time) AS A LEFT OUTER JOIN dataset_extra_data ON A.dataset_id = dataset_extra_data.dataset_id AND A.time = dataset_extra_data.time) AS B WHERE dataset_id IN (%s) %s %s ORDER BY B.dataset_id, B.time" % (setid, s1, s2))
+    cur.execute("SELECT dataset_values.dataset_id, dataset_values.time, dataset_values.value, dataset_branchinfo.branchid, dataset_extra_data.data FROM dataset_values LEFT JOIN dataset_branchinfo ON dataset_values.dataset_id = dataset_branchinfo.dataset_id AND dataset_values.time = dataset_branchinfo.time LEFT JOIN dataset_extra_data ON dataset_values.dataset_id = dataset_extra_data.dataset_id AND dataset_values.time = dataset_extra_data.time WHERE dataset_values.dataset_id IN (%s) %s %s ORDER BY dataset_values.dataset_id, dataset_values.time" % (setid, s1, s2))
     for row in cur:
-        fo.write ('%s,%s,%s,%s,%s\n' % (esc(row[0]), esc(row[1]), esc(row[2]), esc(row[3]), esc(row[4])))
+        fo.write ('%s,%s,%s,%s,%s\n' % (esc(row[0]), esc(row[1]), esc(row[2]), esc(row[3]), esc(row[4].tostring())))
     cur.close()
 
 #if var is a number returns a value other than None
