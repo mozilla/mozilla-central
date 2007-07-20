@@ -176,6 +176,11 @@ AutoCompleteSimpleResult.prototype = {
   },
 
   getStyleAt : function getStyleAt(index) {
+    return "";
+  },
+
+  getImageAt: function getImageAt(index) {
+    return "";
   },
 
   removeValueAt : function removeValueAt(rowIndex, removeFromDb) {
@@ -199,7 +204,7 @@ AutoCompleteSimpleResult.prototype = {
     this.searchResult = aSearchResult;
   },
 
-  appendMatch : function appendMatch(aValue, aComment) {
+  appendMatch : function appendMatch(aValue, aComment, aImage, aStyle) {
     this.values.push(aValue);
     this.comments.push(aComment);
     this.matchCount++;
