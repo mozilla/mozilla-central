@@ -289,11 +289,16 @@ ssl_cov()
   while read ectype tls param testname
   do
       p=`echo "$testname" | sed -e "s/_.*//"`   #sonmi, only run extended test on SSL3 and TLS
+
+      echo "$testname" | grep EXPORT > /dev/null 2>&1 
+      exp=$?
       
       if [ "$p" = "SSL2" -a "$NORM_EXT" = "Extended Test" ] ; then
           echo "$SCRIPTNAME: skipping  $testname for $NORM_EXT"
       elif [ "$ectype" = "ECC" -a  -z "$NSS_ENABLE_ECC" ] ; then
           echo "$SCRIPTNAME: skipping  $testname (ECC only)"
+      elif [ "$p" = "SSL2" -o "$exp" -eq 0 ] && [ "$BYPASS_STRING" = "Server FIPS" ] ; then
+          echo "$SCRIPTNAME: skipping  $testname (non-FIPS only)"
       elif [ "$ectype" != "#" ] ; then
           echo "$SCRIPTNAME: running $testname ----------------------------"
           TLS_FLAG=-T
@@ -401,6 +406,8 @@ ssl_stress()
           echo "$SCRIPTNAME: skipping  $testname for $NORM_EXT"
       elif [ "$ectype" = "ECC" -a  -z "$NSS_ENABLE_ECC" ] ; then
           echo "$SCRIPTNAME: skipping  $testname (ECC only)"
+      elif [ "$p" = "SSL2" -a "$BYPASS_STRING" = "Server FIPS" ] ; then
+          echo "$SCRIPTNAME: skipping  $testname (non-FIPS only)"
       elif [ "$ectype" != "#" ]; then
           cparam=`echo $cparam | sed -e 's;_; ;g' -e "s/TestUser/$USER_NICKNAME/g" `
 
@@ -776,6 +783,42 @@ ssl_run()
     cd ${QADIR}/ssl
 }
 
+############################ ssl_set_fips ##############################
+# local shell function to set FIPS mode on/off
+########################################################################
+ssl_set_fips()
+{
+    DBDIR=$1
+    FIPSMODE=$2
+    TESTNAME=$3
+    MODUTIL="modutil"
+
+    if [ "${FIPSMODE}" = "true" ] ; then
+        RET_EXP=0
+    else
+        RET_EXP=1
+    fi
+
+    echo "${SCRIPTNAME}: ${TESTNAME}"
+
+    echo "${MODUTIL} -dbdir ${DBDIR} -fips ${FIPSMODE} -force"
+    ${MODUTIL} -dbdir ${DBDIR} -fips ${FIPSMODE} -force 2>&1
+    RET=$?  
+    html_msg "${RET}" "0" "${TESTNAME} (modutil -fips ${FIPSMODE})" \
+             "produced a returncode of ${RET}, expected is 0"
+
+    echo "${MODUTIL} -dbdir ${DBDIR} -list"
+    DBLIST=`${MODUTIL} -dbdir ${DBDIR} -list 2>&1`
+    RET=$?  
+    html_msg "${RET}" "0" "${TESTNAME} (modutil -list)" \
+             "produced a returncode of ${RET}, expected is 0"
+
+    echo "${DBLIST}" | grep "FIPS PKCS #11"
+    RET=$?
+    html_msg "${RET}" "${RET_EXP}" "${TESTNAME} (grep \"FIPS PKCS #11\")" \
+             "produced a returncode of ${RET}, expected is ${RET_EXP}"
+}
+
 ################## main #################################################
 
 #this script may be sourced from the distributed stress test - in this case do nothing...
@@ -828,6 +871,26 @@ if [ -z  "$DO_REM_ST" -a -z  "$DO_DIST_ST" ] ; then
             ssl_run
         else
             echo "$SCRIPTNAME: Skipping Cipher Coverage - Server Bypass Tests"
+        fi
+
+        if [ -z "$NSS_TEST_DISABLE_FIPS" ] ; then
+            CLIENT_OPTIONS=""
+            SERVER_OPTIONS=""
+            BYPASS_STRING="Server FIPS"
+
+            html_head "SSL - FIPS mode on"
+            ssl_set_fips "${SERVERDIR}" "true" "Turning FIPS on for the server"
+            ssl_set_fips "${EXT_SERVERDIR}" "true" "Turning FIPS on for the extended server" 
+            html "</TABLE><BR>"
+
+            ssl_run
+
+            html_head "SSL - FIPS mode off"
+            ssl_set_fips "${SERVERDIR}" "false" "Turning FIPS off for the server"
+            ssl_set_fips "${EXT_SERVERDIR}" "false" "Turning FIPS off for the extended server"
+            html "</TABLE><BR>"
+        else
+            echo "$SCRIPTNAME: Skipping Cipher Coverage - FIPS Tests"
         fi
     else
         echo "$SCRIPTNAME: Skipping Cipher Coverage Tests"
