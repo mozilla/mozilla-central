@@ -1340,6 +1340,26 @@ calDavCalendar.prototype = {
             return;
         },
 
+    // Unless an error number is in this array, we consider it very bad, set
+    // the calendar to readOnly, and give up.
+    acceptableErrorNums: [],
+
+    onError: function caldav_onError(aErrNo, aMessage) {
+        var errorIsOk = false;
+        for each (num in this.acceptableErrorNums) {
+            if (num == aErrNo) {
+                errorIsOk = true;
+                break;
+            }
+        }
+        if (!errorIsOk) {
+            this.mReadOnly = true;
+        }
+        for (var i = 0; i < this.mObservers.length; i++) {
+            this.mObservers[i].onError(aErrNo, aMessage);
+        }
+    },
+
     popStartupRequest: function popStartupRequest() {
         var req = this.mPendingStartupRequests.pop();
         this.getItems(req[0], req[1], req[2], req[3], req[4]);
@@ -1359,15 +1379,13 @@ calDavCalendar.prototype = {
                                               aOperation, aClosure) {
 
             if (resourceType == null || resourceType == kDavResourceTypeNone) {
-                thisCalendar.mReadOnly = true;
-                throw("The resource at " + thisCalendar.mUri.spec +
-                      " is either not DAV or not available\n");
+                thisCalendar.reportDavError(Ci.calIErrors.DAV_NOT_DAV,
+                                            "dav_notDav");
             }
 
             if (resourceType == kDavResourceTypeCollection) {
-                thisCalendar.mReadOnly = true;
-                throw("The resource at " + thisCalendar.mUri.spec +
-                      " is a DAV collection but not a CalDAV calendar\n");
+                thisCalendar.reportDavError(Ci.calIErrors.DAV_DAV_NOT_CALDAV,
+                                            "dav_davNotCaldav");
             }
 
             // we've authenticated in the process of PROPFINDing and can flush
@@ -1407,11 +1425,18 @@ calDavCalendar.prototype = {
             webSvc.getResourceProperties(res, 1, ["DAV: resourcetype"], false,
                                           listener, this, null);
         } catch (ex) {
-            thisCalendar.mReadOnly = true;
-            Components.utils.reportError(
-                "Unable to get properties of resource " + thisCalendar.mUri.spec
-                + " (not a network resource?); setting read-only");
+            thisCalendar.reportDavError(Ci.calIErrors.DAV_NO_PROPS,
+                                        "dav_noProps");
         }
+    },
+
+    reportDavError: function caldav_rDE(aErrNo, aMessage) {
+        var sbs = Cc["@mozilla.org/intl/stringbundle;1"].
+                    getService(Ci.nsIStringBundleService);
+        var sb = sbs.createBundle
+                    ("chrome://calendar/locale/calendar.properties");
+        errMsg = sb.formatStringFromName(aMessage, [this.mUri.spec], 1);
+        this.onError(aErrNo, errMsg);
     },
 
     refresh: function calDAV_refresh() {

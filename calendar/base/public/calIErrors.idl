@@ -105,5 +105,14 @@ interface calIErrors : nsISupports
    * Range claimed is [ERROR_BASE + 0x200, ERROR_BASE + 0x300)
    */
   const unsigned long WCAP_ERROR_BASE = ERROR_BASE + 0x200;
+
+  /**
+   * (Cal)DAV specific errors
+   * Range is [ERROR_BASE + 0x301, ERROR_BASE + 0x399]
+   */
+  const unsigned long DAV_ERROR_BASE = ERROR_BASE + 0x301;
+  const unsigned long DAV_NOT_DAV = DAV_ERROR_BASE +  0;
+  const unsigned long DAV_DAV_NOT_CALDAV = DAV_ERROR_BASE + 1;
+  const unsigned long DAV_NO_PROPS = DAV_ERROR_BASE +  2;
 };
 
