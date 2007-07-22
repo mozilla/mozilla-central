@@ -350,7 +350,6 @@
                     contentcontextmenu="contentAreaContextMenu"
                     onnewtab="BrowserOpenTab();"
                     onbookmarkgroup="addGroupmarkAs();"
-                    onmousedown="return contentAreaMouseDown(event);"
                     onclick="return contentAreaClick(event);"/>
       </hbox>
     </vbox>  

@@ -100,7 +100,6 @@
 
     <browser id="content" type="content-primary" name="content" src="about:blank" flex="1"
              disablehistory="true" disablesecurity="true"
-             onmousedown="startScrolling(event);"
              context="viewSourceContextMenu"/>
 
   </vbox> 
