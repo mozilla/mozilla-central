@@ -610,7 +610,7 @@ nsNntpService::DecomposeNewsMessageURI(const char * aMessageURI, nsIMsgFolder **
         nsCOMPtr <nsIMsgFolder> folder = do_QueryInterface(child, &rv);
         NS_ENSURE_SUCCESS(rv,rv);
         
-        *aFolder = folder;
+        NS_IF_ADDREF(*aFolder = folder);
         *aMsgKey = key;
       }
     }
