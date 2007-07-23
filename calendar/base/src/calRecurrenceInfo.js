@@ -362,54 +362,37 @@ calRecurrenceInfo.prototype = {
 
         var startDate = this.mBaseItem.recurrenceStartDate;
         var dates = [];
-        
+
+        function checkRange(item) {
+            var dtstart = item.getProperty("DTSTART");
+            // tasks may have a due date set or no duration at all
+            var end = item.getProperty("DTEND") || item.getProperty("DUE") || dtstart;
+            // is the item an intersection of the range?
+            if ((!aRangeStart || aRangeStart.compare(end) <= 0) &&
+                (!aRangeEnd || aRangeEnd.compare(dtstart) > 0)) {
+                return dtstart;
+            }
+            return null;
+        }
+
         // DTSTART/DUE is always part of the (positive) expanded set:
         // the base item cannot be replaced by an exception;
         // an exception can only be defined on an item resulting from an RDATE/RRULE;
         // DTSTART always equals RECURRENCE-ID for items expanded from RRULE
-        dates.push(startDate);
+        var baseStart = checkRange(this.mBaseItem);
+        if (baseStart) {
+            dates.push(baseStart);
+        }
 
         // toss in exceptions first:
         if (this.mExceptions) {
-            this.mExceptions.forEach(function(ex) {
-                                         var dtstart = ex.item.getProperty("DTSTART");
-                                         var dateToReturn;
-                                         if (aReturnRIDs)
-                                             dateToReturn = ex.id;
-                                         else
-                                             dateToReturn = dtstart;
-                                         // is our startdate within the range?
-                                         if ((!aRangeStart || aRangeStart.compare(dtstart) <= 0) &&
-                                             (!aRangeEnd || aRangeEnd.compare(dtstart) > 0))
-                                         {
-                                             dates.push(dateToReturn);
-                                             return;
-                                         }
-
-                                         // is our end date within the range?
-                                         var name = "DTEND";
-                                         if (ex.item instanceof Components.interfaces.calITodo)
-                                            name = "DUE";
-                                         var dtend = ex.item.getProperty(name);
-                                         if (!dtend)
-                                            return;
-                                         
-                                         if ((!aRangeStart || aRangeStart.compare(dtend) <= 0) &&
-                                             (!aRangeEnd || aRangeEnd.compare(dtend) > 0))
-                                         {
-                                             dates.push(dateToReturn);
-                                             return;
-                                         }
-
-                                         // is the range in the middle of a long event?
-                                         if (aRangeStart && aRangeEnd &&
-                                             aRangeStart.compare(dtstart) >= 0 &&
-                                             aRangeEnd.compare(dtend) <= 0)
-                                         {
-                                             dates.push(dateToReturn);
-                                             return;
-                                         }
-                                     });
+            this.mExceptions.forEach(
+                function(ex) {
+                    var dtstart = checkRange(ex.item);
+                    if (dtstart) {
+                        dates.push(aReturnRIDs ? ex.id : dtstart);
+                    }
+                });
         }
 
         // apply positive items before negative:
