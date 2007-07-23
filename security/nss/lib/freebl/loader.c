@@ -37,7 +37,7 @@
  * the terms of any one of the MPL, the GPL or the LGPL.
  *
  * ***** END LICENSE BLOCK ***** */
-/* $Id: loader.c,v 1.32 2007-02-28 19:47:37 rrelyea%redhat.com Exp $ */
+/* $Id: loader.c,v 1.33 2007-07-23 10:17:48 kaie%kuix.de Exp $ */
 
 #include "loader.h"
 #include "prmem.h"
@@ -123,162 +123,23 @@ getLibName(void)
 static const char * getLibName(void) { return default_name; }
 #endif
 
-#ifdef XP_UNIX
-#include <unistd.h>
-
-#define BL_MAXSYMLINKS 20
-
-/*
- * If 'link' is a symbolic link, this function follows the symbolic links
- * and returns the pathname of the ultimate source of the symbolic links.
- * If 'link' is not a symbolic link, this function returns NULL.
- * The caller should call PR_Free to free the string returned by this
- * function.
- */
-static char* bl_GetOriginalPathname(const char* link)
-{
-    char* resolved = NULL;
-    char* input = NULL;
-    PRUint32 iterations = 0;
-    PRInt32 len = 0, retlen = 0;
-    if (!link) {
-        PR_SetError(PR_INVALID_ARGUMENT_ERROR, 0);
-        return NULL;
-    }
-    len = PR_MAX(1024, strlen(link) + 1);
-    resolved = PR_Malloc(len);
-    input = PR_Malloc(len);
-    if (!resolved || !input) {
-        if (resolved) {
-            PR_Free(resolved);
-        }
-        if (input) {
-            PR_Free(input);
-        }
-        return NULL;
-    }
-    strcpy(input, link);
-    while ( (iterations++ < BL_MAXSYMLINKS) &&
-            ( (retlen = readlink(input, resolved, len - 1)) > 0) ) {
-        char* tmp = input;
-        resolved[retlen] = '\0'; /* NULL termination */
-        input = resolved;
-        resolved = tmp;
-    }
-    PR_Free(resolved);
-    if (iterations == 1 && retlen < 0) {
-        PR_Free(input);
-        input = NULL;
-    }
-    return input;
-}
-#endif /* XP_UNIX */
-
-/*
- * We use PR_GetLibraryFilePathname to get the pathname of the loaded 
- * shared lib that contains this function, and then do a PR_LoadLibrary
- * with an absolute pathname for the freebl shared library.
- */
-
 #include "prio.h"
 #include "prprf.h"
 #include <stdio.h>
 #include "prsystem.h"
 
-const char* softoken=SHLIB_PREFIX"softokn"SOFTOKEN_SHLIB_VERSION"."SHLIB_SUFFIX;
+static const char *NameOfThisSharedLib = 
+  SHLIB_PREFIX"softokn"SOFTOKEN_SHLIB_VERSION"."SHLIB_SUFFIX;
 
 static PRLibrary* blLib;
-
-/*
- * Load the freebl library with the file name 'name' residing in the same
- * directory as libsoftoken, whose pathname is 'softokenPath'.
- */
-static PRLibrary *
-bl_LoadFreeblLibInSoftokenDir(const char *softokenPath, const char *name)
-{
-    PRLibrary *dlh = NULL;
-    char *fullName = NULL;
-    char* c;
-    PRLibSpec libSpec;
-
-    /* Remove "libsoftokn" from the pathname and add the freebl libname */
-    c = strrchr(softokenPath, PR_GetDirectorySeparator());
-    if (c) {
-        size_t softoknPathSize = 1 + c - softokenPath;
-        fullName = (char*) PORT_Alloc(strlen(name) + softoknPathSize + 1);
-        if (fullName) {
-            memcpy(fullName, softokenPath, softoknPathSize);
-            strcpy(fullName + softoknPathSize, name); 
-#ifdef DEBUG_LOADER
-            PR_fprintf(PR_STDOUT, "\nAttempting to load fully-qualified %s\n", 
-                       fullName);
-#endif
-            libSpec.type = PR_LibSpec_Pathname;
-            libSpec.value.pathname = fullName;
-            dlh = PR_LoadLibraryWithFlags(libSpec, PR_LD_NOW | PR_LD_LOCAL);
-            PORT_Free(fullName);
-        }
-    }
-    return dlh;
-}
-
-static PRLibrary *
-bl_LoadLibrary(const char *name)
-{
-    PRLibrary *lib = NULL;
-    PRFuncPtr fn_addr;
-    char* softokenPath = NULL;
-    PRLibSpec libSpec;
-
-    /* Get the pathname for the loaded libsoftokn, i.e. /usr/lib/libsoftokn3.so
-     * PR_GetLibraryFilePathname works with either the base library name or a
-     * function pointer, depending on the platform. We can't query an exported
-     * symbol such as NSC_GetFunctionList, because on some platforms we can't
-     * find symbols in loaded implicit dependencies such as libsoftokn.
-     * But we can just get the address of this function !
-     */
-    fn_addr = (PRFuncPtr) &bl_LoadLibrary;
-    softokenPath = PR_GetLibraryFilePathname(softoken, fn_addr);
-
-    if (softokenPath) {
-        lib = bl_LoadFreeblLibInSoftokenDir(softokenPath, name);
-#ifdef XP_UNIX
-        if (!lib) {
-            /*
-             * If softokenPath is a symbolic link, resolve the symbolic
-             * link and try again.
-             */
-            char* originalSoftokenPath = bl_GetOriginalPathname(softokenPath);
-            if (originalSoftokenPath) {
-                PR_Free(softokenPath);
-                softokenPath = originalSoftokenPath;
-                lib = bl_LoadFreeblLibInSoftokenDir(softokenPath, name);
-            }
-        }
-#endif
-        PR_Free(softokenPath);
-    }
-    if (!lib) {
-#ifdef DEBUG_LOADER
-        PR_fprintf(PR_STDOUT, "\nAttempting to load %s\n", name);
-#endif
-        libSpec.type = PR_LibSpec_Pathname;
-        libSpec.value.pathname = name;
-        lib = PR_LoadLibraryWithFlags(libSpec, PR_LD_NOW | PR_LD_LOCAL);
-    }
-    if (NULL == lib) {
-#ifdef DEBUG_LOADER
-        PR_fprintf(PR_STDOUT, "\nLoading failed : %s.\n", name);
-#endif
-    }
-    return lib;
-}
 
 #define LSB(x) ((x)&0xff)
 #define MSB(x) ((x)>>8)
 
 static const FREEBLVector *vector;
 static const char *libraryName = NULL;
+
+#include "genload.c"
 
 /* This function must be run only once. */
 /*  determine if hybrid platform, then actually load the DSO. */
@@ -293,7 +154,7 @@ freebl_LoadDSO( void )
     return PR_FAILURE;
   }
 
-  handle = bl_LoadLibrary(name);
+  handle = loader_LoadLibrary(name);
   if (handle) {
     PRFuncPtr address = PR_FindFunctionSymbol(handle, "FREEBL_GetVector");
     PRStatus status;
