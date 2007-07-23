@@ -793,11 +793,8 @@ ssl_set_fips()
     TESTNAME=$3
     MODUTIL="modutil"
 
-    if [ "${FIPSMODE}" = "true" ] ; then
-        RET_EXP=0
-    else
-        RET_EXP=1
-    fi
+    [ "${FIPSMODE}" = "true" ]
+    RET_EXP=$?
 
     echo "${SCRIPTNAME}: ${TESTNAME}"
 
