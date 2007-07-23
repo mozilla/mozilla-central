@@ -21,6 +21,7 @@
  * Contributor(s):
  *   Stuart Parmenter <stuart.parmenter@oracle.com>
  *   Joey Minta <jminta@gmail.com>
+ *   Daniel Boelzle <daniel.boelzle@sun.com>
  *
  * Alternatively, the contents of this file may be used under the terms of
  * either the GNU General Public License Version 2 or later (the "GPL"), or
@@ -52,6 +53,8 @@ function calAlarmService() {
     this.wrappedJSObject = this;
 
     this.mLoadedCalendars = {};
+    this.mTimerLookup = {};
+    this.mObservers = [];
 
     this.calendarObserver = {
         alarmService: this,
@@ -88,6 +91,10 @@ function calAlarmService() {
             }
         },
         onModifyItem: function(aNewItem, aOldItem) {
+            if (!aNewItem.recurrenceId) {
+                // deleting an occurrence currently calls modifyItem(newParent, *oldOccurrence*)
+                aOldItem = aOldItem.parentItem;
+            }
             this.alarmService.removeAlarm(aOldItem);
 
             this.onAddItem(aNewItem);
@@ -144,10 +151,10 @@ var calAlarmServiceClassInfo = {
 
 calAlarmService.prototype = {
     mRangeEnd: null,
-    mEvents: {},
-    mObservers: [],
     mUpdateTimer: null,
     mStarted: false,
+    mTimerLookup: null,
+    mObservers: null,
 
     QueryInterface: function (aIID) {
         if (aIID.equals(Components.interfaces.nsIClassInfo))
@@ -334,10 +341,16 @@ calAlarmService.prototype = {
         var calendarManager = this.calendarManager;
         calendarManager.removeObserver(this.calendarManagerObserver);
 
-        for each(var timer in this.mEvents) {
-            timer.cancel();
+        for each (var cal in this.mTimerLookup) {
+            for each (var itemTimers in cal) {
+                for each (var timer in itemTimers) {
+                    if (timer instanceof Components.interfaces.nsITimer) {
+                        timer.cancel();
+                    }
+                }
+            }
         }
-        this.mEvents = {};
+        this.mTimerLookup = {};
 
         var calendars = calendarManager.getCalendars({});
         for each(var calendar in calendars) {
@@ -426,7 +439,7 @@ dump("now is "+now+'\n');
             item: aItem,
             notify: function(timer) {
                 this.alarmService.alarmFired(this.item);
-                delete this.alarmService.mEvents[this.item.id];
+                this.alarmService.removeTimers(this.item);
             }
         };
 
@@ -444,7 +457,7 @@ dump("alarm is too late\n");
                 return;
             }
 
-            this.mEvents[aItem.id] = newTimerWithCallback(callbackObj, timeout, false);
+            this.addTimer(aItem, newTimerWithCallback(callbackObj, timeout, false));
             dump("adding alarm timeout (" + timeout + ") for " + aItem + "\n");
         } else {
             var lastAck = aItem.alarmLastAck || aItem.parentItem.alarmLastAck;
@@ -460,11 +473,54 @@ dump("alarm is in the past, and unack'd, firing now!\n");
         }
     },
 
-    removeAlarm: function(aItem) {
-        if (aItem.id in this.mEvents) {
-            this.mEvents[aItem.id].cancel();
-            delete this.mEvents[aItem.id];
+    removeAlarm: function cas_removeAlarm(aItem) {
+        for each (var timer in this.removeTimers(aItem)) {
+            if (timer instanceof Components.interfaces.nsITimer) {
+                timer.cancel();
+            }
         }
+    },
+
+    addTimer: function cas_addTimer(aItem, aTimer) {
+        var cal = this.mTimerLookup[aItem.calendar.id];
+        if (!cal) {
+            cal = {};
+            this.mTimerLookup[aItem.calendar.id] = cal;
+        }
+        var itemTimers = cal[aItem.id];
+        if (!itemTimers) {
+            itemTimers = { mCount: 0 };
+            cal[aItem.id] = itemTimers;
+        }
+        var rid = aItem.recurrenceId;
+        itemTimers[rid ? rid.getInTimezone("UTC").icalString : "mTimer"] = aTimer;
+        ++itemTimers.mCount;
+    },
+
+    removeTimers: function cas_removeTimers(aItem) {
+        var cal = this.mTimerLookup[aItem.calendar.id];
+        if (cal) {
+            var itemTimers = cal[aItem.id];
+            if (itemTimers) {
+                var rid = aItem.recurrenceId;
+                if (rid) {
+                    rid = rid.getInTimezone("UTC").icalString;
+                    var timer = itemTimers[rid];
+                    if (timer) {
+                        delete itemTimers[rid];
+                        --itemTimers.mCount;
+                        if (itemTimers.mCount == 0) {
+                            delete cal[aItem.id];
+                        }
+                        return { mTimer: timer };
+                    }
+                } else {
+                    delete cal[aItem.id];
+                    return itemTimers;
+                }
+            }
+        }
+        return {};
     },
 
     findAlarms: function cas_findAlarms(calendars, start, until) {
