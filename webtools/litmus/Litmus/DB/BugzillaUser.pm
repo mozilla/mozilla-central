@@ -38,7 +38,7 @@ use base 'Litmus::BugzillaDBI';
 Litmus::DB::BugzillaUser->table('profiles');
 
 Litmus::DB::BugzillaUser->columns(All => qw/userid login_name cryptpassword realname 
-	disabledtext mybugslink refreshed_when extern_id/);
+	disabledtext mybugslink extern_id/);
 Litmus::DB::BugzillaUser->columns(TEMP => qw //);
 
 
