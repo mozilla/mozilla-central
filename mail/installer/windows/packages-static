@@ -300,6 +300,7 @@ bin\freebl3.chk
 bin\freebl3.dll
 bin\ssl3.dll
 bin\nssckbi.dll
+bin\nssdbm3.dll
 
 ; core platform files
 bin\components\xpautocomplete.xpt
