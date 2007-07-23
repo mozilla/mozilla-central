@@ -1,4 +1,3 @@
-#
 # ***** BEGIN LICENSE BLOCK *****
 # Version: MPL 1.1/GPL 2.0/LGPL 2.1
 #
@@ -12,11 +11,10 @@
 # for the specific language governing rights and limitations under the
 # License.
 #
-# The Original Code is mozilla.org code.
+# The Original Code is lcms mozilla build integration.
 #
-# The Initial Developer of the Original Code is
-# Netscape Communications Corporation.
-# Portions created by the Initial Developer are Copyright (C) 2001
+# The Initial Developer of the Original Code is IBM Corporation.
+# Portions created by the Initial Developer are Copyright (C) 2007
 # the Initial Developer. All Rights Reserved.
 #
 # Contributor(s):
@@ -35,32 +33,43 @@
 #
 # ***** END LICENSE BLOCK *****
 
-DEPTH		= ../../../..
-topsrcdir	= @top_srcdir@
-srcdir		= @srcdir@
-VPATH		= @srcdir@
+DEPTH           = ../../..
+topsrcdir       = @top_srcdir@
+srcdir          = @srcdir@
+VPATH           = @srcdir@
 
 include $(DEPTH)/config/autoconf.mk
 
-MODULE		= imgpng
-LIBRARY_NAME	= imgpng_s
-FORCE_STATIC_LIB = 1
-MODULE_NAME	= nsPNGDecoderModule
+MODULE		= lcms
+LIBRARY_NAME	= mozlcms
+
+GRE_MODULE	= 1
 LIBXUL_LIBRARY = 1
+DIST_INSTALL = 1
 
-EXTRA_DSO_LIBS	= gkgfx
+ifeq (,$(MOZ_ENABLE_LIBXUL)$(BUILD_STATIC_LIBS))
+ifeq (,$(filter-out WINNT WINCE,$(OS_ARCH)))
+ifndef GNU_CC
+MAPFILE	= $(LIBRARY_NAME).map
+DEFFILE	= $(win_srcdir)/lcms.def
+endif
+endif
 
-REQUIRES = xpcom \
-           string \
-           gfx \
-           thebes \
-           imglib2 \
-           $(PNG_REQUIRES) \
-           $(ZLIB_REQUIRES) \
-           $(LCMS_REQUIRES) \
-           $(NULL)
+ifeq (,$(filter-out WINNT WINCE OS2,$(OS_ARCH)))
+DEFINES	+= -DLCMS_DLL=1 -DLCMS_DLL_BUILD=1
+else
+VISIBILITY_FLAGS =
+endif
+endif
 
-CPPSRCS		= nsPNGDecoder.cpp
+REQUIRES	= $(LCMS_REQUIRES) \
+		  $(NULL)
+
+CSRCS = cmscnvrt.c cmserr.c cmsgamma.c cmsgmt.c cmsintrp.c cmsio1.c \
+	cmslut.c cmsmatsh.c cmsmtrx.c cmspack.c cmspcs.c cmswtpnt.c \
+	cmsxform.c cmssamp.c cmscam97.c cmsnamed.c cmsps2.c cmscam02.c \
+	cmsvirt.c cmscgats.c cmsio0.c
+
+LOCAL_INCLUDES += -I../include
 
 include $(topsrcdir)/config/rules.mk
-
