@@ -268,13 +268,24 @@ nsBrowserStatusHandler.prototype =
   {
     /* Color is temporary. We shall dynamically assign a new class to the element and or to 
        evaluate access from another class rule, the security identity color has to be with the minimo.css */ 
+
+    var wpl_security_bits = (nsIWebProgressListener.STATE_IS_SECURE |
+                             nsIWebProgressListener.STATE_IS_BROKEN |
+                             nsIWebProgressListener.STATE_IS_INSECURE |
+                             nsIWebProgressListener.STATE_SECURE_HIGH |
+                             nsIWebProgressListener.STATE_SECURE_MED |
+                             nsIWebProgressListener.STATE_SECURE_LOW);
     
-    switch (aState) {
+    /* aState is defined as a bitmask that may be extended in the future.
+     * We filter out any unknown bits before testing for known values.
+     */
+    switch (aState & wpl_security_bits) {
     case nsIWebProgressListener.STATE_IS_SECURE | nsIWebProgressListener.STATE_SECURE_HIGH:
     //this.urlBar.value="level high";
     document.styleSheets[1].cssRules[0].style.backgroundColor="yellow";
     document.getElementById("lock-icon").className="security-notbroken";
     break;	
+    case nsIWebProgressListener.STATE_IS_SECURE | nsIWebProgressListener.STATE_SECURE_MED:
     case nsIWebProgressListener.STATE_IS_SECURE | nsIWebProgressListener.STATE_SECURE_LOW:
     // this.urlBar.value="level low";
     document.styleSheets[1].cssRules[0].style.backgroundColor="lightyellow";
