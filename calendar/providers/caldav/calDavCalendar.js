@@ -213,7 +213,7 @@ calDavCalendar.prototype = {
         return calUri;
     },
     
-    mMakeUri: function caldav_makeUri(aInsertString) {
+    makeUri: function caldav_makeUri(aInsertString) {
         var spec = this.mCalendarUri.spec + aInsertString;
         if (this.mUriParams) {
             return spec + this.mUriParams;
@@ -284,11 +284,11 @@ calDavCalendar.prototype = {
         var itemUri = this.mCalendarUri.clone();
 
         try {
-            itemUri.spec = this.mMakeUri(aItem.getProperty("X-MOZ-LOCATIONPATH"));
+            itemUri.spec = this.makeUri(aItem.getProperty("X-MOZ-LOCATIONPATH"));
             LOG("using X-MOZ-LOCATIONPATH: " + itemUri.spec);
         } catch (ex) {
             // XXX how are we REALLY supposed to figure this out?
-            itemUri.spec = this.mMakeUri(aItem.id + ".ics");
+            itemUri.spec = this.makeUri(aItem.id + ".ics");
         }
 
         var itemResource = new WebDavResource(itemUri);
@@ -445,7 +445,7 @@ calDavCalendar.prototype = {
         // XXX how are we REALLY supposed to figure this out?
         var locationPath = aItem.id + ".ics";
         var itemUri = this.mCalendarUri.clone();
-        itemUri.spec = this.mMakeUri(locationPath);
+        itemUri.spec = this.makeUri(locationPath);
         LOG("itemUri.spec = " + itemUri.spec);
         var eventResource = new WebDavResource(itemUri);
 
@@ -562,11 +562,11 @@ calDavCalendar.prototype = {
 
         var eventUri = this.mCalendarUri.clone();
         try {
-            eventUri.spec = this.mMakeUri(aNewItem.getProperty("X-MOZ-LOCATIONPATH"));
+            eventUri.spec = this.makeUri(aNewItem.getProperty("X-MOZ-LOCATIONPATH"));
             LOG("using X-MOZ-LOCATIONPATH: " + eventUri.spec);
         } catch (ex) {
             // XXX how are we REALLY supposed to figure this out?
-            eventUri.spec = this.mMakeUri(aNewItem.id + ".ics");
+            eventUri.spec = this.makeUri(aNewItem.id + ".ics");
         }
 
         // It seems redundant to use generation when we have etags
@@ -694,11 +694,11 @@ calDavCalendar.prototype = {
 
         var eventUri = this.mCalendarUri.clone();
         try {
-            eventUri.spec = this.mMakeUri(aItem.getProperty("X-MOZ-LOCATIONPATH"));
+            eventUri.spec = this.makeUri(aItem.getProperty("X-MOZ-LOCATIONPATH"));
             LOG("using X-MOZ-LOCATIONPATH: " + eventUri.spec);
         } catch (ex) {
             // XXX how are we REALLY supposed to figure this out?
-            eventUri.spec = this.mMakeUri(aItem.id + ".ics");
+            eventUri.spec = this.makeUri(aItem.id + ".ics");
         }
 
         var eventResource = new WebDavResource(eventUri);
@@ -1121,7 +1121,7 @@ calDavCalendar.prototype = {
 
         // construct the resource we want to search against
         var calendarDirUri = this.mCalendarUri.clone();
-        calendarDirUri.spec = this.mMakeUri('');
+        calendarDirUri.spec = this.makeUri('');
         LOG("report uri = " + calendarDirUri.spec);
         var calendarDirResource = new WebDavResource(calendarDirUri);
 
@@ -1418,7 +1418,9 @@ calDavCalendar.prototype = {
             }
         }
 
-        var res = new WebDavResource(this.mCalendarUri);
+        var calendarDirUri = this.mCalendarUri.clone();
+        calendarDirUri.spec = this.makeUri('');
+        var res = new WebDavResource(calendarDirUri);
         var webSvc = Cc['@mozilla.org/webdav/service;1'].
                      getService(Ci.nsIWebDAVService);
         try {
