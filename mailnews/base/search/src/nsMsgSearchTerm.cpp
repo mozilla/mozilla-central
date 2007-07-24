@@ -45,6 +45,7 @@
 #include "nsIMsgSearchSession.h"
 #include "nsMsgUtils.h"
 #include "nsIMsgDatabase.h"
+#include "nsIMsgHdr.h"
 #include "nsMsgSearchTerm.h"
 #include "nsMsgSearchScopeTerm.h"
 #include "nsMsgBodyHandler.h"
@@ -354,7 +355,10 @@ nsMsgSearchTerm::nsMsgSearchTerm (
   m_attribute = attrib;
   m_booleanOp = boolOp;
   if (attrib > nsMsgSearchAttrib::OtherHeader  && attrib < nsMsgSearchAttrib::kNumMsgSearchAttributes && arbitraryHeader)
+  {
     m_arbitraryHeader = arbitraryHeader;
+    ToLowerCase(m_arbitraryHeader);
+  }
   nsMsgResultElement::AssignValues (val, &m_value);
   m_matchAll = PR_FALSE;
 }
@@ -632,8 +636,10 @@ nsMsgSearchTerm::ParseAttribute(char *inStream, nsMsgSearchAttribValue *attrib)
     *attrib = (nsMsgSearchAttribValue) attributeVal;
     
     if (*attrib > nsMsgSearchAttrib::OtherHeader && *attrib < nsMsgSearchAttrib::kNumMsgSearchAttributes)  // if we are dealing with an arbitrary header....
-        m_arbitraryHeader = inStream;
-    
+    {
+      m_arbitraryHeader = inStream;
+      ToLowerCase(m_arbitraryHeader);
+    }
     return rv;
 }
 
@@ -691,14 +697,26 @@ nsresult nsMsgSearchTerm::MatchArbitraryHeader (nsIMsgSearchScopeTerm *scope,
   *pResult = PR_FALSE;
   nsresult err = NS_OK;
   PRBool result;
-  
+
+  GetMatchAllBeforeDeciding(&result);
+
+  nsCString dbHdrValue;
+  msg->GetStringProperty(m_arbitraryHeader.get(), getter_Copies(dbHdrValue));
+  if (!dbHdrValue.IsEmpty())
+  {
+    PRBool result2;
+    err = MatchRfc2047String(dbHdrValue.get(), charset, charsetOverride, &result2);  // match value with the other info...
+    if (result != result2) // if we found a match
+      result = result2;
+    *pResult = result;
+    return err;
+  }
   nsMsgBodyHandler * bodyHandler = new nsMsgBodyHandler (scope, offset,length, msg, db, headers, headersSize, ForFiltering);
   if (!bodyHandler)
     return NS_ERROR_OUT_OF_MEMORY;
   
   bodyHandler->SetStripHeaders (PR_FALSE);
   
-  GetMatchAllBeforeDeciding(&result);
   
   nsCAutoString buf;
   nsCAutoString curMsgHeader;
@@ -1445,6 +1463,7 @@ NS_IMETHODIMP
 nsMsgSearchTerm::SetArbitraryHeader(const nsACString &aValue)
 {
     m_arbitraryHeader = aValue;
+    ToLowerCase(m_arbitraryHeader);
     return NS_OK;
 }
 
