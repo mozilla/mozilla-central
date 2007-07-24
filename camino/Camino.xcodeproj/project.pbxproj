@@ -225,6 +225,8 @@
 		33B7763D0C4EB34300A6D67F /* libsqlite3.dylib in Copy Libraries */ = {isa = PBXBuildFile; fileRef = 33B775A90C4EAC1E00A6D67F /* libsqlite3.dylib */; };
 		33B777980C55853B00A6D67F /* libmozlcms.dylib in Copy Libraries */ = {isa = PBXBuildFile; fileRef = 33B777950C55851800A6D67F /* libmozlcms.dylib */; };
 		33B777E20C55890200A6D67F /* libmozlcms.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 33B777E10C5588E500A6D67F /* libmozlcms.a */; };
+		33B778810C55C58500A6D67F /* libnssdbm3.dylib in Copy Security Libraries */ = {isa = PBXBuildFile; fileRef = 33B778800C55C57800A6D67F /* libnssdbm3.dylib */; };
+		33B778820C55C59A00A6D67F /* libnssdbm3.dylib in Copy Security Libraries */ = {isa = PBXBuildFile; fileRef = 33B778800C55C57800A6D67F /* libnssdbm3.dylib */; };
 		34884A36074F7C5D000EA76B /* AddressBook.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 34884A35074F7C5D000EA76B /* AddressBook.framework */; };
 		34884A37074F7C5D000EA76B /* AddressBook.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 34884A35074F7C5D000EA76B /* AddressBook.framework */; };
 		3489ADCB0753B717005ADF6C /* ABAddressBook+Utils.h in Headers */ = {isa = PBXBuildFile; fileRef = 3489ADC90753B717005ADF6C /* ABAddressBook+Utils.h */; };
@@ -1772,6 +1774,7 @@
 				3F44AD5E05BDFB9F00CB4B08 /* libsoftokn3.dylib in Copy Security Libraries */,
 				0FF2885A0961EE00007527B4 /* libfreebl3.dylib in Copy Security Libraries */,
 				3F44AD5F05BDFB9F00CB4B08 /* libssl3.dylib in Copy Security Libraries */,
+				33B778810C55C58500A6D67F /* libnssdbm3.dylib in Copy Security Libraries */,
 			);
 			name = "Copy Security Libraries";
 			runOnlyForDeploymentPostprocessing = 0;
@@ -2080,6 +2083,7 @@
 				3F44AF7905BDFBA000CB4B08 /* libsoftokn3.dylib in Copy Security Libraries */,
 				0FF2885D0961EE2A007527B4 /* libfreebl3.dylib in Copy Security Libraries */,
 				3F44AF7A05BDFBA000CB4B08 /* libssl3.dylib in Copy Security Libraries */,
+				33B778820C55C59A00A6D67F /* libnssdbm3.dylib in Copy Security Libraries */,
 			);
 			name = "Copy Security Libraries";
 			runOnlyForDeploymentPostprocessing = 0;
@@ -2456,6 +2460,7 @@
 		33B775A90C4EAC1E00A6D67F /* libsqlite3.dylib */ = {isa = PBXFileReference; lastKnownFileType = "compiled.mach-o.dylib"; name = libsqlite3.dylib; path = ../dist/lib/libsqlite3.dylib; sourceTree = SOURCE_ROOT; };
 		33B777950C55851800A6D67F /* libmozlcms.dylib */ = {isa = PBXFileReference; lastKnownFileType = "compiled.mach-o.dylib"; name = libmozlcms.dylib; path = ../dist/bin/libmozlcms.dylib; sourceTree = SOURCE_ROOT; };
 		33B777E10C5588E500A6D67F /* libmozlcms.a */ = {isa = PBXFileReference; lastKnownFileType = archive.ar; name = libmozlcms.a; path = ../dist/lib/libmozlcms.a; sourceTree = SOURCE_ROOT; };
+		33B778800C55C57800A6D67F /* libnssdbm3.dylib */ = {isa = PBXFileReference; lastKnownFileType = "compiled.mach-o.dylib"; name = libnssdbm3.dylib; path = ../nss/nssdbm/libnssdbm3.dylib; sourceTree = SOURCE_ROOT; };
 		34884A35074F7C5D000EA76B /* AddressBook.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = AddressBook.framework; path = /System/Library/Frameworks/AddressBook.framework; sourceTree = "<absolute>"; };
 		3489ADC90753B717005ADF6C /* ABAddressBook+Utils.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = "ABAddressBook+Utils.h"; path = "src/extensions/ABAddressBook+Utils.h"; sourceTree = SOURCE_ROOT; };
 		3489ADCA0753B717005ADF6C /* ABAddressBook+Utils.mm */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.objcpp; name = "ABAddressBook+Utils.mm"; path = "src/extensions/ABAddressBook+Utils.mm"; sourceTree = SOURCE_ROOT; };
@@ -4011,6 +4016,7 @@
 				F5247C360228B91F013DD99A /* libssl3.dylib */,
 				F5247C350228B91F013DD99A /* libsoftokn3.dylib */,
 				0FF288540961EDDD007527B4 /* libfreebl3.dylib */,
+				33B778800C55C57800A6D67F /* libnssdbm3.dylib */,
 			);
 			name = "Executable Level";
 			sourceTree = "<group>";
