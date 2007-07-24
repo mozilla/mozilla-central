@@ -163,6 +163,8 @@ static PRBool ignoreErrors    = PR_FALSE;
 
 PRIntervalTime maxInterval    = PR_INTERVAL_NO_TIMEOUT;
 
+char * progName;
+
 char * ownPasswd( PK11SlotInfo *slot, PRBool retry, void *arg)
 {
         char *passwd = NULL;
@@ -766,9 +768,9 @@ do_connects(
 
 retry:
 
-    tcp_sock = PR_NewTCPSocket();
+    tcp_sock = PR_OpenTCPSocket(addr->raw.family);
     if (tcp_sock == NULL) {
-	errExit("PR_NewTCPSocket");
+	errExit("PR_OpenTCPSocket");
     }
 
     opt.option             = PR_SockOpt_Nonblocking;
@@ -896,32 +898,6 @@ done:
     return SECSuccess;
 }
 
-/* Returns IP address for hostname as PRUint32 in Host Byte Order.
-** Since the value returned is an integer (not a string of bytes), 
-** it is inherently in Host Byte Order. 
-*/
-PRUint32
-getIPAddress(const char * hostName) 
-{
-    const unsigned char *p;
-    PRStatus	         prStatus;
-    PRUint32	         rv;
-    PRHostEnt	         prHostEnt;
-    char                 scratch[PR_NETDB_BUF_SIZE];
-
-    prStatus = PR_GetHostByName(hostName, scratch, sizeof scratch, &prHostEnt);
-    if (prStatus != PR_SUCCESS)
-	errExit("PR_GetHostByName");
-
-#undef  h_addr
-#define h_addr  h_addr_list[0]   /* address, for backward compatibility */
-
-    p = (const unsigned char *)(prHostEnt.h_addr); /* in Network Byte order */
-    FPRINTF(stderr, "strsclnt: %s -> %d.%d.%d.%d\n", hostName, 
-	    p[0], p[1], p[2], p[3]);
-    rv = (p[0] << 24) | (p[1] << 16) | (p[2] << 8) | p[3];
-    return rv;
-}
 
 typedef struct {
     PRLock* lock;
@@ -1117,15 +1093,34 @@ client_main(
     PRFileDesc *model_sock	= NULL;
     int         i;
     int         rv;
-    PRUint32	ipAddress;	/* in host byte order */
+    PRStatus    status;
     PRNetAddr   addr;
 
-    /* Assemble NetAddr struct for connections. */
-    ipAddress = getIPAddress(hostName);
+    status = PR_StringToNetAddr(hostName, &addr);
+    if (status == PR_SUCCESS) {
+    	addr.inet.port = PR_htons(port);
+    } else {
+	/* Lookup host */
+	PRAddrInfo *addrInfo;
+	void       *enumPtr   = NULL;
 
-    addr.inet.family = PR_AF_INET;
-    addr.inet.port   = PR_htons(port);
-    addr.inet.ip     = PR_htonl(ipAddress);
+	addrInfo = PR_GetAddrInfoByName(hostName, PR_AF_UNSPEC, 
+	                                PR_AI_ADDRCONFIG | PR_AI_NOCANONNAME);
+	if (!addrInfo) {
+	    SECU_PrintError(progName, "error looking up host");
+	    return;
+	}
+	do {
+	    enumPtr = PR_EnumerateAddrInfo(enumPtr, addrInfo, port, &addr);
+	} while (enumPtr != NULL &&
+		 addr.raw.family != PR_AF_INET &&
+		 addr.raw.family != PR_AF_INET6);
+	PR_FreeAddrInfo(addrInfo);
+	if (enumPtr == NULL) {
+	    SECU_PrintError(progName, "error looking up host address");
+	    return;
+	}
+    }
 
     /* all suites except RSA_NULL_MD5 are enabled by Domestic Policy */
     NSS_SetDomesticPolicy();
@@ -1184,9 +1179,9 @@ client_main(
 
     /* configure model SSL socket. */
 
-    model_sock = PR_NewTCPSocket();
+    model_sock = PR_OpenTCPSocket(addr.raw.family);
     if (model_sock == NULL) {
-	errExit("PR_NewTCPSocket on model socket");
+	errExit("PR_OpenTCPSocket for model socket");
     }
 
     model_sock = SSL_ImportFD(NULL, model_sock);
@@ -1330,7 +1325,6 @@ main(int argc, char **argv)
     const char *         fileName    = NULL;
     char *               hostName    = NULL;
     char *               nickName    = NULL;
-    char *               progName    = NULL;
     char *               tmp         = NULL;
     char *		 passwd      = NULL;
     int                  connections = 1;
