@@ -53,9 +53,14 @@ require_once('./inc/init.php');
 // Instantiate XML object.
 $xml = new Xml();
 
-// Before we get started check throttle and see if we want to randomly serve an
-// update for this request.
-if (defined('THROTTLE') && THROTTLE && defined('THROTTLE_LEVEL') && mt_rand(0,100) > THROTTLE_LEVEL) {
+// Check to see if the user is explicitly requesting an update.  If they are,
+// skip throttling.  If they aren't, and throttling is enabled, randomly serve
+// updates based on the configured random seed.
+if ( $_GET['force']!=1 &&
+     defined('THROTTLE') && 
+     THROTTLE && 
+     defined('THROTTLE_LEVEL') &&
+     mt_rand(0,100) > THROTTLE_LEVEL ) {
 
     if (defined('THROTTLE_LOGGING') && THROTTLE_LOGGING) {
 
