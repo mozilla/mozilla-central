@@ -223,6 +223,8 @@
 		33B775AB0C4EAC1E00A6D67F /* libsqlite3.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = 33B775A90C4EAC1E00A6D67F /* libsqlite3.dylib */; };
 		33B7763C0C4EB32C00A6D67F /* libsqlite3.dylib in Copy Libraries */ = {isa = PBXBuildFile; fileRef = 33B775A90C4EAC1E00A6D67F /* libsqlite3.dylib */; };
 		33B7763D0C4EB34300A6D67F /* libsqlite3.dylib in Copy Libraries */ = {isa = PBXBuildFile; fileRef = 33B775A90C4EAC1E00A6D67F /* libsqlite3.dylib */; };
+		33B777980C55853B00A6D67F /* libmozlcms.dylib in Copy Libraries */ = {isa = PBXBuildFile; fileRef = 33B777950C55851800A6D67F /* libmozlcms.dylib */; };
+		33B777E20C55890200A6D67F /* libmozlcms.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 33B777E10C5588E500A6D67F /* libmozlcms.a */; };
 		34884A36074F7C5D000EA76B /* AddressBook.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 34884A35074F7C5D000EA76B /* AddressBook.framework */; };
 		34884A37074F7C5D000EA76B /* AddressBook.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 34884A35074F7C5D000EA76B /* AddressBook.framework */; };
 		3489ADCB0753B717005ADF6C /* ABAddressBook+Utils.h in Headers */ = {isa = PBXBuildFile; fileRef = 3489ADC90753B717005ADF6C /* ABAddressBook+Utils.h */; };
@@ -1793,6 +1795,7 @@
 				3F44AD6705BDFB9F00CB4B08 /* libgkgfx.dylib in Copy Libraries */,
 				3F44AD6805BDFB9F00CB4B08 /* libwidget.rsrc in Copy Libraries */,
 				3F44AD6905BDFB9F00CB4B08 /* libjsj.dylib in Copy Libraries */,
+				33B777980C55853B00A6D67F /* libmozlcms.dylib in Copy Libraries */,
 			);
 			name = "Copy Libraries";
 			runOnlyForDeploymentPostprocessing = 0;
@@ -2451,6 +2454,8 @@
 		332377D10C4D88D300A34879 /* PrefPane.xcconfig */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.xcconfig; name = PrefPane.xcconfig; path = config/PrefPane.xcconfig; sourceTree = "<group>"; };
 		33B774780C4DE77000A6D67F /* ReleaseSymbols.xcconfig */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = text.xcconfig; name = ReleaseSymbols.xcconfig; path = config/ReleaseSymbols.xcconfig; sourceTree = "<group>"; };
 		33B775A90C4EAC1E00A6D67F /* libsqlite3.dylib */ = {isa = PBXFileReference; lastKnownFileType = "compiled.mach-o.dylib"; name = libsqlite3.dylib; path = ../dist/lib/libsqlite3.dylib; sourceTree = SOURCE_ROOT; };
+		33B777950C55851800A6D67F /* libmozlcms.dylib */ = {isa = PBXFileReference; lastKnownFileType = "compiled.mach-o.dylib"; name = libmozlcms.dylib; path = ../dist/bin/libmozlcms.dylib; sourceTree = SOURCE_ROOT; };
+		33B777E10C5588E500A6D67F /* libmozlcms.a */ = {isa = PBXFileReference; lastKnownFileType = archive.ar; name = libmozlcms.a; path = ../dist/lib/libmozlcms.a; sourceTree = SOURCE_ROOT; };
 		34884A35074F7C5D000EA76B /* AddressBook.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = AddressBook.framework; path = /System/Library/Frameworks/AddressBook.framework; sourceTree = "<absolute>"; };
 		3489ADC90753B717005ADF6C /* ABAddressBook+Utils.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = "ABAddressBook+Utils.h"; path = "src/extensions/ABAddressBook+Utils.h"; sourceTree = SOURCE_ROOT; };
 		3489ADCA0753B717005ADF6C /* ABAddressBook+Utils.mm */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.objcpp; name = "ABAddressBook+Utils.mm"; path = "src/extensions/ABAddressBook+Utils.mm"; sourceTree = SOURCE_ROOT; };
@@ -3238,6 +3243,7 @@
 				4DC41D410869D7A400947044 /* libmozpng.a in Frameworks */,
 				4DC41D410869D7A400947045 /* libmozcairo.a in Frameworks */,
 				4DC41D410869D7A400947046 /* libmozlibpixman.a in Frameworks */,
+				33B777E20C55890200A6D67F /* libmozlcms.a in Frameworks */,
 				3F44AFBB05BDFBA000CB4B08 /* Cocoa.framework in Frameworks */,
 				3F44AFBC05BDFBA000CB4B08 /* PreferencePanes.framework in Frameworks */,
 				3F44AFBD05BDFBA000CB4B08 /* Carbon.framework in Frameworks */,
@@ -4208,6 +4214,7 @@
 				7B9E1BFE09DD966F003256C9 /* libmozreg_s.a */,
 				DE62E4310B72B50C00142851 /* libauth.a */,
 				DEC87B140C288403002EB106 /* libstoragecomps.a */,
+				33B777E10C5588E500A6D67F /* libmozlcms.a */,
 			);
 			name = "Gecko Static Components";
 			sourceTree = "<group>";
@@ -4481,6 +4488,7 @@
 				F6BD638701B30F5301A962F7 /* libgkgfx.dylib */,
 				0E6A9882097DFF9A007962C1 /* libucvmath.dylib */,
 				3FE5B9FC068A090F0001CECD /* libmozz.dylib */,
+				33B777950C55851800A6D67F /* libmozlcms.dylib */,
 				F5F14E9602A5A43A01A967F3 /* libwidget.rsrc */,
 				F5461CBB03AAC25C01A96660 /* nsProxyAutoConfig.js */,
 				F5247C2F0228B5E7013DD99A /* Gecko Security */,
