@@ -946,7 +946,7 @@
 
   <binding id="search-menulist-abstract" name="searchMenulistAbstract" extends="xul:box">
     <content>
-      <xul:menulist class="search-menulist" xbl:inherits="flex" oncommand="this.parentNode.onSelect(event)">
+      <xul:menulist class="search-menulist" xbl:inherits="flex,disabled" oncommand="this.parentNode.onSelect(event)">
         <xul:menupopup class="search-menulist-popup"/>
       </xul:menulist>
     </content>
@@ -1227,8 +1227,8 @@
   -->
   <binding id="searchvalue" name="searchValue">
     <content>
-      <xul:textbox flex="1" class="search-value-textbox"/>
-      <xul:menulist flex="1" class="search-value-menulist">
+      <xul:textbox flex="1" class="search-value-textbox" xbl:inherits="disabled"/>
+      <xul:menulist flex="1" class="search-value-menulist" xbl:inherits="disabled">
         <xul:menupopup class="search-value-popup">
           <xul:menuitem value="2" stringTag="priorityLowest" class="search-value-menuitem"/>
           <xul:menuitem value="3" stringTag="priorityLow" class="search-value-menuitem"/>
@@ -1237,7 +1237,7 @@
           <xul:menuitem value="6" stringTag="priorityHighest" class="search-value-menuitem"/>
         </xul:menupopup>
       </xul:menulist>
-      <xul:menulist flex="1" class="search-value-menulist">
+      <xul:menulist flex="1" class="search-value-menulist" xbl:inherits="disabled">
         <xul:menupopup class="search-value-popup">
           <xul:menuitem value="2" stringTag="replied" class="search-value-menuitem"/>
           <xul:menuitem value="1" stringTag="read" class="search-value-menuitem"/>
@@ -1246,8 +1246,8 @@
           <xul:menuitem value="4" stringTag="flagged" class="search-value-menuitem"/>
         </xul:menupopup>
       </xul:menulist>
-      <xul:textbox flex="1" class="search-value-textbox"/>
-      <xul:menulist flex="1" class="search-value-menulist">
+      <xul:textbox flex="1" class="search-value-textbox" xbl:inherits="disabled"/>
+      <xul:menulist flex="1" class="search-value-menulist" xbl:inherits="disabled">
         <xul:menupopup class="search-value-popup" ref="moz-abdirectory://"
                  datasources="rdf:addressdirectory"
                  sortActive="true"
@@ -1263,16 +1263,16 @@
           </xul:template>
         </xul:menupopup>
       </xul:menulist>
-      <xul:menulist flex="1" class="search-value-menulist">
+      <xul:menulist flex="1" class="search-value-menulist" xbl:inherits="disabled">
         <xul:menupopup class="search-value-popup">
         </xul:menupopup>
       </xul:menulist>
-      <xul:menulist flex="1" class="search-value-menulist">
+      <xul:menulist flex="1" class="search-value-menulist" xbl:inherits="disabled">
         <xul:menupopup class="search-value-popup">
           <xul:menuitem value="2" stringTag="junk" class="search-value-menuitem"/>
         </xul:menupopup>
       </xul:menulist>
-      <xul:menulist flex="1" class="search-value-menulist">
+      <xul:menulist flex="1" class="search-value-menulist" xbl:inherits="disabled">
         <xul:menupopup class="search-value-popup">
           <xul:menuitem value="0" stringTag="hasAttachments" class="search-value-menuitem"/>
         </xul:menupopup>

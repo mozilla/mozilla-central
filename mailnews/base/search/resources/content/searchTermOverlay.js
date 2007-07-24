@@ -181,7 +181,7 @@ function initializeBooleanWidgets()
       : (booleanAnd ? "and" : "or")
     var searchTerms = document.getElementById("searchTermList");
     if (searchTerms)
-      searchTerms.hidden = matchAll;
+      updateSearchTermsListbox(matchAll);
 }
 
 function initializeSearchRows(scope, searchTerms)
@@ -192,6 +192,33 @@ function initializeSearchRows(scope, searchTerms)
         gTotalSearchTerms++;
     }
     initializeBooleanWidgets();
+    updateRemoveRowButton();
+}
+
+/**
+ * Enables/disables all the visible elements inside the search terms listbox.
+ *
+ * @param matchAllValue boolean value from the first search term
+ */
+function updateSearchTermsListbox(matchAllValue)
+{
+  var searchTerms = document.getElementById("searchTermList");
+  searchTerms.setAttribute("disabled", matchAllValue);
+  var searchAttributeList = searchTerms.getElementsByTagName("searchattribute");
+  var searchOperatorList = searchTerms.getElementsByTagName("searchoperator");
+  var searchValueList = searchTerms.getElementsByTagName("searchvalue");
+  for (var i = 0; i < searchAttributeList.length; i++) {
+      searchAttributeList[i].setAttribute("disabled", matchAllValue);
+      searchOperatorList[i].setAttribute("disabled", matchAllValue);
+      searchValueList[i].setAttribute("disabled", matchAllValue);
+      if (!matchAllValue)
+        searchValueList[i].removeAttribute("disabled");
+  }
+  var moreOrLessButtonsList = searchTerms.getElementsByTagName("button");
+  for (var i = 0; i < moreOrLessButtonsList.length; i++) {
+      moreOrLessButtonsList[i].setAttribute("disabled", matchAllValue);
+  }
+  if (!matchAllValue)
     updateRemoveRowButton();
 }
 
@@ -281,7 +308,7 @@ function booleanChanged(event) {
     {
       if (!matchAllValue && searchTerms.hidden && !gTotalSearchTerms)
         onMore(null); // fake to get empty row.
-      searchTerms.hidden = matchAllValue;
+      updateSearchTermsListbox(matchAllValue);
     }
 }
 
