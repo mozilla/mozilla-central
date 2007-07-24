@@ -36,13 +36,14 @@
  * the terms of any one of the MPL, the GPL or the LGPL.
  *
  * ***** END LICENSE BLOCK ***** */
-/* $Id: lginit.c,v 1.8 2007-07-13 16:47:33 biswatosh.chakraborty%sun.com Exp $ */
+/* $Id: lginit.c,v 1.9 2007-07-24 08:56:40 slavomir.katuscak%sun.com Exp $ */
 
 #include "lowkeyi.h"
 #include "pcert.h"
 #include "keydbi.h"
 #include "lgdb.h"
 #include "secoid.h"
+#include "prenv.h"
 
 typedef struct LGPrivateStr {
     NSSLOWCERTCertDBHandle *certDB;
@@ -155,6 +156,7 @@ DB * rdbopen(const char *appName, const char *prefix,
 {
     PRLibrary *lib;
     DB *db;
+    char *disableUnload = NULL;
 
     if (lg_rdbfunc) {
 	db = (*lg_rdbfunc)(appName,prefix,type,rdbmapflags(flags));
@@ -185,7 +187,12 @@ DB * rdbopen(const char *appName, const char *prefix,
     }
 
     /* couldn't find the entry point, unload the library and fail */
-    PR_UnloadLibrary(lib);
+#ifdef DEBUG
+    disableUnload = PR_GetEnv("NSS_DISABLE_UNLOAD");
+#endif
+    if (!disableUnload) {
+        PR_UnloadLibrary(lib);
+    }
     return NULL;
 }
 

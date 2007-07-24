@@ -169,8 +169,11 @@ memleak_init()
 
 	if [ "${BUILD_OPT}" -eq 1 ] ; then
 		OPT="OPT"
+		unset NSS_DISABLE_UNLOAD
 	else 
 		OPT="DBG"
+		NSS_DISABLE_UNLOAD="1"
+		export NSS_DISABLE_UNLOAD
 	fi
 
 	SELFSERV_ATTR="-D -p ${PORT} -d ${SERVER_DB} -n ${HOSTADDR} -e ${HOSTADDR}-ec -w nss -c ABCDEF:C001:C002:C003:C004:C005:C006:C007:C008:C009:C00A:C00B:C00C:C00D:C00E:C00F:C010:C011:C012:C013:C014cdefgijklmnvyz -t 5"

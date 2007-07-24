@@ -46,6 +46,7 @@
 #include "secmodti.h"
 #include "nssilock.h"
 #include "secerr.h"
+#include "prenv.h"
 
 #ifdef DEBUG
 #define DEBUG_MODULE 1
@@ -266,6 +267,7 @@ SECMOD_LoadPKCS11Module(SECMODModule *mod) {
     CK_ULONG slotCount = 0;
     SECStatus rv;
     PRBool alreadyLoaded = PR_FALSE;
+    char *disableUnload = NULL;
 
     if (mod->loaded) return SECSuccess;
 
@@ -443,13 +445,19 @@ fail2:
     }
 fail:
     mod->functionList = NULL;
-    if (library) PR_UnloadLibrary(library);
+#ifdef DEBUG
+    disableUnload = PR_GetEnv("NSS_DISABLE_UNLOAD");
+#endif
+    if (library && !disableUnload) {
+        PR_UnloadLibrary(library);
+    }
     return SECFailure;
 }
 
 SECStatus
 SECMOD_UnloadModule(SECMODModule *mod) {
     PRLibrary *library;
+    char *disableUnload = NULL;
 
     if (!mod->loaded) {
 	return SECFailure;
@@ -466,7 +474,13 @@ SECMOD_UnloadModule(SECMODModule *mod) {
     if (mod->internal) {
         if (0 == PR_AtomicDecrement(&softokenLoadCount)) {
           if (softokenLib) {
-              PRStatus status = PR_UnloadLibrary(softokenLib);
+              PRStatus status = PR_SUCCESS;
+#ifdef DEBUG
+              disableUnload = PR_GetEnv("NSS_DISABLE_UNLOAD");
+#endif
+              if (!disableUnload) {
+                  status = PR_UnloadLibrary(softokenLib);
+              }
               PORT_Assert(PR_SUCCESS == status);
               softokenLib = NULL;
           }
@@ -481,7 +495,12 @@ SECMOD_UnloadModule(SECMODModule *mod) {
 	return SECFailure;
     }
 
-    PR_UnloadLibrary(library);
+#ifdef DEBUG
+    disableUnload = PR_GetEnv("NSS_DISABLE_UNLOAD");
+#endif
+    if (!disableUnload) {
+        PR_UnloadLibrary(library);
+    }
     return SECSuccess;
 }
 

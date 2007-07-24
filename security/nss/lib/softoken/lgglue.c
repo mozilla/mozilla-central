@@ -41,7 +41,8 @@
 #include "sftkdb.h"
 #include "sdb.h"
 #include "prsystem.h"
-#include "prprf.h" 
+#include "prprf.h"
+#include "prenv.h"
 #include "lgglue.h"
 #include "secerr.h"
 
@@ -325,13 +326,19 @@ CK_RV
 sftkdbCall_Shutdown(void)
 {
     CK_RV crv = CKR_OK;
+    char *disableUnload = NULL;
     if (!legacy_glue_lib) {
 	return CKR_OK;
     }
     if (legacy_glue_shutdown) {
 	crv = (*legacy_glue_shutdown)();
     }
-    PR_UnloadLibrary(legacy_glue_lib);
+#ifdef DEBUG
+    disableUnload = PR_GetEnv("NSS_DISABLE_UNLOAD");
+#endif
+    if (!disableUnload) {
+        PR_UnloadLibrary(legacy_glue_lib);
+    }
     legacy_glue_lib = NULL;
     legacy_glue_open = NULL;
     legacy_glue_readSecmod = NULL;

@@ -37,12 +37,13 @@
  * the terms of any one of the MPL, the GPL or the LGPL.
  *
  * ***** END LICENSE BLOCK ***** */
-/* $Id: loader.c,v 1.33 2007-07-23 10:17:48 kaie%kuix.de Exp $ */
+/* $Id: loader.c,v 1.34 2007-07-24 08:56:39 slavomir.katuscak%sun.com Exp $ */
 
 #include "loader.h"
 #include "prmem.h"
 #include "prerror.h"
 #include "prinit.h"
+#include "prenv.h"
 
 static const char* default_name =
     SHLIB_PREFIX"freebl"SHLIB_VERSION"."SHLIB_SUFFIX;
@@ -849,11 +850,18 @@ BL_Unload(void)
    * namely C_Finalize in softoken, and the SSL bypass shutdown callback called
    * from NSS_Shutdown. */
   vector = NULL;
+  PRStatus status = PR_SUCCESS;
+  char *disableUnload = NULL;
   /* If an SSL socket is configured with SSL_BYPASS_PKCS11, but the application
    * never does a handshake on it, BL_Unload will be called even though freebl
    * was never loaded. So, don't assert blLib. */
   if (blLib) {
-      PRStatus status = PR_UnloadLibrary(blLib);
+#ifdef DEBUG
+      disableUnload = PR_GetEnv("NSS_DISABLE_UNLOAD");
+#endif
+      if (!disableUnload) {
+          status = PR_UnloadLibrary(blLib);
+      }
       PORT_Assert(PR_SUCCESS == status);
       blLib = NULL;
   }

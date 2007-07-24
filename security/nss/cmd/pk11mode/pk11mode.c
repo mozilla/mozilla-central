@@ -55,6 +55,7 @@
 #include "prlink.h"
 #include "prprf.h"
 #include "plgetopt.h"
+#include "prenv.h"
 
 #include "pkcs11.h"
 
@@ -559,6 +560,7 @@ int main(int argc, char **argv)
     char *moduleSpec = NULL;
     char *configDir = NULL;
     char *dbPrefix = NULL;
+    char *disableUnload = NULL;
 
     PLOptStatus os;
     PLOptState *opt = PL_CreateOptState(argc, argv, "nvhf:d:p:");
@@ -900,8 +902,13 @@ cleanup:
 
 #ifdef _WIN32
     FreeLibrary(hModule);
-#else 
-    PR_UnloadLibrary(lib);
+#else
+#ifdef DEBUG
+    disableUnload = PR_GetEnv("NSS_DISABLE_UNLOAD");
+#endif
+    if (!disableUnload) {
+        PR_UnloadLibrary(lib);
+    }
 #endif
 
     return crv;

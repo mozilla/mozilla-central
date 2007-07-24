@@ -35,7 +35,7 @@
  * ***** END LICENSE BLOCK ***** */
 
 #ifdef DEBUG
-static const char CVS_ID[] = "@(#) $RCSfile: devmod.c,v $ $Revision: 1.7 $ $Date: 2005-01-20 02:25:47 $";
+static const char CVS_ID[] = "@(#) $RCSfile: devmod.c,v $ $Revision: 1.8 $ $Date: 2007-07-24 08:56:39 $";
 #endif /* DEBUG */
 
 #ifndef NSSCKEPV_H
@@ -303,9 +303,15 @@ nssModule_Unload (
 )
 {
     PRStatus nssrv = PR_SUCCESS;
+    char *disableUnload = NULL;
     if (mod->library) {
 	(void)CKAPI(mod->epv)->C_Finalize(NULL);
-	nssrv = PR_UnloadLibrary(mod->library);
+#ifdef DEBUG
+	disableUnload = PR_GetEnv("NSS_DISABLE_UNLOAD");
+#endif
+	if (!disableUnload) {
+	    nssrv = PR_UnloadLibrary(mod->library);
+	}
     }
     /* Free the slots, yes? */
     mod->library = NULL;
