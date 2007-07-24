@@ -130,7 +130,7 @@ $VendorName               = 'mozilla.org';
 # :pserver:$ENV{USER}%netscape.com@cvs.mozilla.org:/cvsroot
 
 #$moz_cvsroot   = $ENV{CVSROOT};
-$moz_cvsroot   = ':pserver:anonymous@cvs.mozilla.org:/cvsroot';
+$moz_cvsroot   = ':ext:seabld@cvs.mozilla.org:/cvsroot';
 
 #- Set these proper values for your tinderbox server
 #$Tinderbox_server = 'tinderbox-daemon@tinderbox.mozilla.org';
