@@ -1,2 +1,1 @@
-Clobbering for webservices removal in bug 332174.
-
+Pre-emptively clobbering to avoid more lossage after backing out 388388.
