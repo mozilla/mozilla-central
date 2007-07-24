@@ -39,7 +39,7 @@
  * the terms of any one of the MPL, the GPL or the LGPL.
  *
  * ***** END LICENSE BLOCK ***** */
-/* $Id: sslimpl.h,v 1.58 2007-07-18 21:38:54 neil.williams%sun.com Exp $ */
+/* $Id: sslimpl.h,v 1.59 2007-07-24 22:24:51 neil.williams%sun.com Exp $ */
 
 #ifndef __sslimpl_h_
 #define __sslimpl_h_
@@ -1473,7 +1473,6 @@ PRBool    SSL_IsExportCipherSuite(PRUint16 cipherSuite);
 #endif
 
 void ssl_Trace(const char *format, ...);
-ECName	ssl3_GetCurveWithECKeyStrength(PRUint32 curvemsk, int requiredECCbits);
 
 SEC_END_PROTOS
 
