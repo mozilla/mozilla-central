@@ -1,1 +1,1 @@
-Pre-emptively clobbering to avoid more lossage after backing out 388388.
+clobbering to fix flash crash in bug 389474 due to checkin for bug 388388
