@@ -278,7 +278,7 @@ public:
   nsAddrDatabase();
   virtual ~nsAddrDatabase();
 
-  nsIMdbFactory  *GetMDBFactory();
+  void GetMDBFactory(nsIMdbFactory ** aMdbFactory);
   nsIMdbEnv    *GetEnv() {return m_mdbEnv;}
   PRUint32    GetCurVersion();
   nsIMdbTableRowCursor *GetTableRowCursor();

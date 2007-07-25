@@ -970,15 +970,16 @@ NS_IMETHODIMP nsMsgDatabase::QueryInterface(REFNSIID aIID, void** aResult)
   return NS_NOINTERFACE;
 }
 
-nsIMdbFactory *nsMsgDatabase::GetMDBFactory()
+void nsMsgDatabase::GetMDBFactory(nsIMdbFactory ** aMdbFactory)
 {
   if (!mMdbFactory)
   {
-    nsCOMPtr <nsIMdbFactoryFactory> factoryfactory = do_CreateInstance(NS_MORK_CONTRACTID);
-    if (factoryfactory)
-      factoryfactory->GetMdbFactory(getter_AddRefs(mMdbFactory));
+    nsresult rv;
+    nsCOMPtr <nsIMdbFactoryService> mdbFactoryService = do_GetService(NS_MORK_CONTRACTID, &rv);
+    if (NS_SUCCEEDED(rv) && mdbFactoryService)
+      mdbFactoryService->GetMdbFactory(getter_AddRefs(mMdbFactory));
   }
-  return mMdbFactory.get(); // return an unreferenced object
+  NS_IF_ADDREF(*aMdbFactory = mMdbFactory);
 }
 
 #if defined(XP_WIN) || defined(XP_OS2)
@@ -1130,10 +1131,11 @@ NS_IMETHODIMP nsMsgDatabase::Open(nsILocalFile *aFolderName, PRBool aCreate, PRB
 nsresult nsMsgDatabase::OpenMDB(const char *dbName, PRBool create)
 {
   nsresult ret = NS_OK;
-  nsIMdbFactory *myMDBFactory = GetMDBFactory();
-  if (myMDBFactory)
+  nsCOMPtr<nsIMdbFactory> mdbFactory;
+  GetMDBFactory(getter_AddRefs(mdbFactory));
+  if (mdbFactory)
   {
-    ret = myMDBFactory->MakeEnv(NULL, &m_mdbEnv);
+    ret = mdbFactory->MakeEnv(NULL, &m_mdbEnv);
     if (NS_SUCCEEDED(ret))
     {
       nsIMdbThumb *thumb = nsnull;
@@ -1153,13 +1155,13 @@ nsresult nsMsgDatabase::OpenMDB(const char *dbName, PRBool create)
         mdbYarn    outFormatVersion;
 
         nsIMdbFile* oldFile = 0;
-        ret = myMDBFactory->OpenOldFile(m_mdbEnv, dbHeap, dbName,
+        ret = mdbFactory->OpenOldFile(m_mdbEnv, dbHeap, dbName,
           dbFrozen, &oldFile);
         if ( oldFile )
         {
           if ( ret == NS_OK )
           {
-            ret = myMDBFactory->CanOpenFilePort(m_mdbEnv, oldFile, // the file to investigate
+            ret = mdbFactory->CanOpenFilePort(m_mdbEnv, oldFile, // the file to investigate
               &canOpen, &outFormatVersion);
             if (ret == 0 && canOpen)
             {
@@ -1167,7 +1169,7 @@ nsresult nsMsgDatabase::OpenMDB(const char *dbName, PRBool create)
               inOpenPolicy.mOpenPolicy_MinMemory = 0;
               inOpenPolicy.mOpenPolicy_MaxLazy = 0;
 
-              ret = myMDBFactory->OpenFileStore(m_mdbEnv, dbHeap,
+              ret = mdbFactory->OpenFileStore(m_mdbEnv, dbHeap,
                 oldFile, &inOpenPolicy, &thumb);
             }
             else
@@ -1196,7 +1198,7 @@ nsresult nsMsgDatabase::OpenMDB(const char *dbName, PRBool create)
         // only 0 is a non-error return.
         if (ret == 0 && outDone)
         {
-          ret = myMDBFactory->ThumbToOpenStore(m_mdbEnv, thumb, &m_mdbStore);
+          ret = mdbFactory->ThumbToOpenStore(m_mdbEnv, thumb, &m_mdbStore);
           if (ret == NS_OK)
             ret = (m_mdbStore) ? InitExistingDB() : NS_ERROR_FAILURE;
         }
@@ -1207,7 +1209,7 @@ nsresult nsMsgDatabase::OpenMDB(const char *dbName, PRBool create)
       else if (create)  // ### need error code saying why open file store failed
       {
         nsIMdbFile* newFile = 0;
-        ret = myMDBFactory->CreateNewFile(m_mdbEnv, dbHeap, dbName, &newFile);
+        ret = mdbFactory->CreateNewFile(m_mdbEnv, dbHeap, dbName, &newFile);
         if (NS_FAILED(ret))
           ret = NS_ERROR_FILE_TARGET_DOES_NOT_EXIST;
         if ( newFile )
@@ -1220,7 +1222,7 @@ nsresult nsMsgDatabase::OpenMDB(const char *dbName, PRBool create)
             inOpenPolicy.mOpenPolicy_MinMemory = 0;
             inOpenPolicy.mOpenPolicy_MaxLazy = 0;
 
-            ret = myMDBFactory->CreateNewFileStore(m_mdbEnv, dbHeap,
+            ret = mdbFactory->CreateNewFileStore(m_mdbEnv, dbHeap,
               newFile, &inOpenPolicy, &m_mdbStore);
             if (ret == NS_OK)
               ret = (m_mdbStore) ? InitNewDB() : NS_ERROR_FAILURE;

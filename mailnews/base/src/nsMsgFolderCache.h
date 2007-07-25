@@ -57,7 +57,7 @@ public:
   NS_DECL_NSIMSGFOLDERCACHE
 
 protected:
-  static nsIMdbFactory *GetMDBFactory();
+  void GetMDBFactory(nsIMdbFactory ** aMdbFactory);
   nsresult AddCacheElement(const nsACString& key, nsIMdbRow *row, nsIMsgFolderCacheElement **result);
   nsresult RowCellColumnToCharPtr(nsIMdbRow *hdrRow, mdb_token columnToken, nsACString& resultPtr);
   nsresult InitMDBInfo();
@@ -73,6 +73,7 @@ protected:
   nsIMdbTable         *m_mdbAllFoldersTable;
   mdb_token           m_folderRowScopeToken;
   mdb_token           m_folderTableKindToken;
+  nsCOMPtr<nsIMdbFactory> mMdbFactory;
 
   struct mdbOid       m_allFoldersTableOID;
 };

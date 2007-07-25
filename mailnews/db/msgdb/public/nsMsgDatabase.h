@@ -102,7 +102,7 @@ public:
   nsMsgDatabase();
   virtual ~nsMsgDatabase();
 
-  nsIMdbFactory  *GetMDBFactory();
+  void GetMDBFactory(nsIMdbFactory ** aMdbFactory);
   nsIMdbEnv             *GetEnv() {return m_mdbEnv;}
   nsIMdbStore           *GetStore() {return m_mdbStore;}
   virtual PRUint32      GetCurVersion();

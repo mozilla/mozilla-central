@@ -437,16 +437,16 @@ void nsAddrDatabase::RemoveFromCache(nsAddrDatabase* pAddrDB)
     }
 }
 
-nsIMdbFactory *nsAddrDatabase::GetMDBFactory()
+void nsAddrDatabase::GetMDBFactory(nsIMdbFactory ** aMdbFactory)
 {
-    if (!mMdbFactory)
-    {
-        nsresult rv;
-        nsCOMPtr <nsIMdbFactoryFactory> factoryfactory = do_CreateInstance(NS_MORK_CONTRACTID, &rv);
-        if (NS_SUCCEEDED(rv))
-            rv = factoryfactory->GetMdbFactory(getter_AddRefs(mMdbFactory));
-    }
-    return mMdbFactory.get();
+  if (!mMdbFactory)
+  {
+    nsresult rv;
+    nsCOMPtr <nsIMdbFactoryService> mdbFactoryService = do_GetService(NS_MORK_CONTRACTID, &rv);
+    if (NS_SUCCEEDED(rv) && mdbFactoryService)
+      rv = mdbFactoryService->GetMdbFactory(getter_AddRefs(mMdbFactory));
+  }
+  NS_IF_ADDREF(*aMdbFactory = mMdbFactory);
 }
 
 /* caller need to delete *aDbPath */
@@ -638,10 +638,11 @@ nsAddrDatabase::OpenInternal(nsIFile *aMabFile, PRBool aCreate, nsIAddrDatabase*
 NS_IMETHODIMP nsAddrDatabase::OpenMDB(nsIFile *dbName, PRBool create)
 {
   nsresult ret = NS_OK;
-  nsIMdbFactory *myMDBFactory = GetMDBFactory();
-  if (myMDBFactory)
+  nsCOMPtr<nsIMdbFactory> mdbFactory;
+  GetMDBFactory(getter_AddRefs(mdbFactory));
+  if (mdbFactory)
   {
-    ret = myMDBFactory->MakeEnv(NULL, &m_mdbEnv);
+    ret = mdbFactory->MakeEnv(NULL, &m_mdbEnv);
     if (NS_SUCCEEDED(ret))
     {
       nsIMdbThumb *thumb = nsnull;
@@ -672,13 +673,13 @@ NS_IMETHODIMP nsAddrDatabase::OpenMDB(nsIFile *dbName, PRBool create)
         ret = dbName->GetFileSize(&fileSize);
         NS_ENSURE_SUCCESS(ret, ret);
 
-        ret = myMDBFactory->OpenOldFile(m_mdbEnv, dbHeap, filePath.get(),
+        ret = mdbFactory->OpenOldFile(m_mdbEnv, dbHeap, filePath.get(),
           dbFrozen, &oldFile);
         if ( oldFile )
         {
           if ( ret == NS_OK )
           {
-            ret = myMDBFactory->CanOpenFilePort(m_mdbEnv, oldFile, // the file to investigate
+            ret = mdbFactory->CanOpenFilePort(m_mdbEnv, oldFile, // the file to investigate
               &canOpen, &outFormatVersion);
             if (ret == 0 && canOpen)
             {
@@ -686,7 +687,7 @@ NS_IMETHODIMP nsAddrDatabase::OpenMDB(nsIFile *dbName, PRBool create)
               inOpenPolicy.mOpenPolicy_MinMemory = 0;
               inOpenPolicy.mOpenPolicy_MaxLazy = 0;
 
-              ret = myMDBFactory->OpenFileStore(m_mdbEnv, dbHeap,
+              ret = mdbFactory->OpenFileStore(m_mdbEnv, dbHeap,
                 oldFile, &inOpenPolicy, &thumb);
             }
             else if (fileSize != 0)
@@ -716,7 +717,7 @@ NS_IMETHODIMP nsAddrDatabase::OpenMDB(nsIFile *dbName, PRBool create)
         while (NS_SUCCEEDED(ret) && !outBroken && !outDone);
         if (NS_SUCCEEDED(ret) && outDone)
         {
-          ret = myMDBFactory->ThumbToOpenStore(m_mdbEnv, thumb, &m_mdbStore);
+          ret = mdbFactory->ThumbToOpenStore(m_mdbEnv, thumb, &m_mdbStore);
           if (ret == NS_OK && m_mdbStore)
           {
             ret = InitExistingDB();
@@ -727,7 +728,7 @@ NS_IMETHODIMP nsAddrDatabase::OpenMDB(nsIFile *dbName, PRBool create)
       else if (create && ret != NS_ERROR_FILE_ACCESS_DENIED)
       {
         nsIMdbFile* newFile = 0;
-        ret = myMDBFactory->CreateNewFile(m_mdbEnv, dbHeap, filePath.get(), &newFile);
+        ret = mdbFactory->CreateNewFile(m_mdbEnv, dbHeap, filePath.get(), &newFile);
         if ( newFile )
         {
           if (ret == NS_OK)
@@ -738,7 +739,7 @@ NS_IMETHODIMP nsAddrDatabase::OpenMDB(nsIFile *dbName, PRBool create)
             inOpenPolicy.mOpenPolicy_MinMemory = 0;
             inOpenPolicy.mOpenPolicy_MaxLazy = 0;
 
-            ret = myMDBFactory->CreateNewFileStore(m_mdbEnv, dbHeap,
+            ret = mdbFactory->CreateNewFileStore(m_mdbEnv, dbHeap,
                                                    newFile, &inOpenPolicy,
                                                    &m_mdbStore);
             if (ret == NS_OK)
