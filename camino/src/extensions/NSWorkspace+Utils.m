@@ -92,7 +92,6 @@
 {
   LSSetDefaultHandlerForURLScheme(CFSTR("http"), (CFStringRef)bundleID);
   LSSetDefaultHandlerForURLScheme(CFSTR("https"), (CFStringRef)bundleID);
-  LSSetDefaultHandlerForURLScheme(CFSTR("gopher"), (CFStringRef)bundleID);
   LSSetDefaultRoleHandlerForContentType(kUTTypeHTML, kLSRolesViewer, (CFStringRef)bundleID);
   LSSetDefaultRoleHandlerForContentType(kUTTypeURL, kLSRolesViewer, (CFStringRef)bundleID);
 }
