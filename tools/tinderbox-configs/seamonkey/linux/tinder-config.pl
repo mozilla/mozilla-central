@@ -3,8 +3,8 @@
 ## uname: Linux sea-linux-tbox.build.mozilla.org 2.6.9-42.ELsmp #1 SMP Sat Aug 12 09:39:11 CDT 2006 i686 i686 i386 GNU/Linux
 #
 
-# disable crash reporter locally until bug 379290 (autoreporting) gets fixed
-$ENV{MOZ_CRASHREPORTER_DISABLE} = '1';
+# disable sending of crash reports locally until bug 379290 (autoreporting) gets fixed
+$ENV{MOZ_CRASHREPORTER_NO_REPORT} = '1';
 
 #- tinder-config.pl - Tinderbox configuration file.
 #-    Uncomment the variables you need to set.

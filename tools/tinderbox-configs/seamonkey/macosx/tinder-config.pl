@@ -3,8 +3,8 @@
 ## uname: Darwin cg-xserve02.mozilla.com 8.8.1 Darwin Kernel Version 8.8.1: Mon Sep 25 19:45:30 PDT 2006; root:xnu-792.13.8.obj~1/RELEASE_PPC Power Macintosh powerpc
 #
 
-# disable crash reporter locally until bug 379290 (autoreporting) gets fixed
-$ENV{MOZ_CRASHREPORTER_DISABLE} = '1';
+# disable sending of crash reports locally until bug 379290 (autoreporting) gets fixed
+$ENV{MOZ_CRASHREPORTER_NO_REPORT} = '1';
 
 #- tinder-config.pl - Tinderbox configuration file.
 #-    Uncomment the variables you need to set.

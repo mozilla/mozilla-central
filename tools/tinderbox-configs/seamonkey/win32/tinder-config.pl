@@ -3,8 +3,8 @@
 ## uname: CYGWIN_NT-5.2 sea-win32-tbox 1.5.19(0.150/4/2) 2006-01-20 13:28 i686 Cygwin
 #
 
-# disable crash reporter locally until bug 379290 (autoreporting) gets fixed
-$ENV{MOZ_CRASHREPORTER_DISABLE} = '1';
+# disable sending of crash reports locally until bug 379290 (autoreporting) gets fixed
+$ENV{MOZ_CRASHREPORTER_NO_REPORT} = '1';
 
 # package NSIS installer using 7zip
 $ENV{MOZ_INSTALLER_USE_7ZIP} = '1';
