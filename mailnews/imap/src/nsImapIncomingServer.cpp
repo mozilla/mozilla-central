@@ -2383,14 +2383,6 @@ NS_IMETHODIMP nsImapIncomingServer::GetManageMailAccountUrl(nsACString& manageMa
   return NS_OK;
 }
 
-NS_IMETHODIMP nsImapIncomingServer::RemoveChannelFromUrl(nsIMsgMailNewsUrl *aUrl, PRUint32 statusCode)
-{
-  NS_ENSURE_ARG_POINTER(aUrl);
-  nsresult rv = NS_OK;
-  nsCOMPtr<nsIImapUrl> imapUrl = do_QueryInterface(aUrl);
-  return imapUrl ? imapUrl->RemoveChannel(statusCode) : NS_OK;
-}
-
 nsresult nsImapIncomingServer::RequestOverrideInfo(nsIMsgWindow *aMsgWindow)
 {
   nsresult rv;

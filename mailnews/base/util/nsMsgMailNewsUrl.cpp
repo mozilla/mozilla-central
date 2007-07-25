@@ -125,7 +125,7 @@ nsresult nsMsgMailNewsUrl::SetUrlState(PRBool aRunningUrl, nsresult aExitCode)
     else
     {
       m_urlListeners->OnStopRunningUrl(this, aExitCode);
-      m_loadGroup = nsnull; // try to break circular refs.
+      m_urlListeners = nsnull;
     }
   }
   else
@@ -243,10 +243,11 @@ NS_IMETHODIMP nsMsgMailNewsUrl::SetStatusFeedback(nsIMsgStatusFeedback *aMsgFeed
 
 NS_IMETHODIMP nsMsgMailNewsUrl::GetLoadGroup(nsILoadGroup **aLoadGroup)
 {
-  nsresult rv = NS_OK;
+  *aLoadGroup = nsnull;
   // note: it is okay to return a null load group and not return an error
   // it's possible the url really doesn't have load group
-  if (!m_loadGroup)
+  nsCOMPtr<nsILoadGroup> loadGroup (do_QueryReferent(m_loadGroupWeak));
+  if (!loadGroup)
   {
     nsCOMPtr<nsIMsgWindow> msgWindow(do_QueryReferent(m_msgWindowWeak));
     if (msgWindow)
@@ -255,19 +256,12 @@ NS_IMETHODIMP nsMsgMailNewsUrl::GetLoadGroup(nsILoadGroup **aLoadGroup)
       // random loadgroup we're not really a part of?
       nsCOMPtr<nsIDocShell> docShell;
       msgWindow->GetRootDocShell(getter_AddRefs(docShell));
-      m_loadGroup = do_GetInterface(docShell);
+      loadGroup = do_GetInterface(docShell);
+      m_loadGroupWeak = do_GetWeakReference(loadGroup);
     }
   }
-
-  if (aLoadGroup)
-  {
-    *aLoadGroup = m_loadGroup;
-    NS_IF_ADDREF(*aLoadGroup);
-  }
-  else
-    rv = NS_ERROR_NULL_POINTER;
-  return rv;
-
+  loadGroup.swap(*aLoadGroup);
+  return *aLoadGroup ? NS_OK : NS_ERROR_NULL_POINTER;
 }
 
 NS_IMETHODIMP nsMsgMailNewsUrl::GetUpdatingFolder(PRBool *aResult)

@@ -653,20 +653,36 @@ nsresult nsImapProtocol::SetupWithUrl(nsIURI * aURL, nsISupports* aConsumer)
   NS_PRECONDITION(aURL, "null URL passed into Imap Protocol");
   if (aURL)
   {
-    rv = aURL->QueryInterface(NS_GET_IID(nsIImapUrl), getter_AddRefs(m_runningUrl));
+    m_runningUrl = do_QueryInterface(aURL, &rv);
     if (NS_FAILED(rv)) return rv;
-
+    nsCOMPtr<nsIMsgMailNewsUrl> mailnewsUrl = do_QueryInterface(m_runningUrl);
     nsCOMPtr<nsIMsgIncomingServer> server = do_QueryReferent(m_server);
     if (!server)
     {
-        nsCOMPtr<nsIMsgMailNewsUrl> mailnewsUrl = do_QueryInterface(m_runningUrl);
-        rv = mailnewsUrl->GetServer(getter_AddRefs(server));
-        m_server = do_GetWeakReference(server);
+      rv = mailnewsUrl->GetServer(getter_AddRefs(server));
+      m_server = do_GetWeakReference(server);
     }
     nsCOMPtr<nsIImapIncomingServer> imapServer = do_QueryInterface(server);
-
     nsCOMPtr<nsIStreamListener> aRealStreamListener = do_QueryInterface(aConsumer);
     m_runningUrl->GetMockChannel(getter_AddRefs(m_mockChannel));
+    if (!m_mockChannel)
+    {
+      // there are several imap operations that aren't initiated via a nsIChannel::AsyncOpen call on the mock channel.
+      // such as selecting a folder. nsImapProtocol now insists on a mock channel when processing a url.
+      nsCOMPtr<nsIChannel> channel;
+      rv = NS_NewChannel(getter_AddRefs(channel), aURL, nsnull, nsnull, nsnull, 0);
+      m_mockChannel = do_QueryInterface(channel);
+
+      // Certain imap operations (not initiated by the IO Service via AsyncOpen) can be interrupted by  the stop button on the toolbar.
+      // We do this by using the loadgroup of the docshell for the message pane. We really shouldn't be doing this..
+      // See the comment in nsMsgMailNewsUrl::GetLoadGroup.
+      nsCOMPtr<nsILoadGroup> loadGroup;
+      mailnewsUrl->GetLoadGroup(getter_AddRefs(loadGroup)); // get the message pane load group
+      nsCOMPtr<nsIRequest> ourRequest = do_QueryInterface(m_mockChannel);
+      if (loadGroup)
+        loadGroup->AddRequest(ourRequest, nsnull /* context isupports */);
+    }
+
     if (m_mockChannel)
     {
       m_mockChannel->SetImapProtocol(this);
@@ -842,8 +858,14 @@ void nsImapProtocol::ReleaseUrlState(PRBool rerunning)
       m_imapMailFolderSink->CloseMockChannel(m_mockChannel);
     else
       m_mockChannel->Close();
-     m_mockChannel = nsnull;
+    // Proxy the release of the channel to the main thread.  This is something
+    // that the xpcom proxy system should do for us!
+    nsCOMPtr<nsIThread> thread = do_GetMainThread();
+    nsIImapMockChannel *doomed = nsnull;
+    m_mockChannel.swap(doomed);
+    NS_ProxyRelease(thread, doomed);
   }
+
   m_channelContext = nsnull; // this might be the url - null it out before the final release of the url
   m_imapMessageSink = nsnull;
 
@@ -862,9 +884,6 @@ void nsImapProtocol::ReleaseUrlState(PRBool rerunning)
   if (m_runningUrl)
   {
     nsCOMPtr<nsIMsgMailNewsUrl>  mailnewsurl = do_QueryInterface(m_runningUrl);
-    if (m_imapServerSink && !rerunning)
-      m_imapServerSink->RemoveChannelFromUrl(mailnewsurl, NS_OK);
-
     {
       nsCOMPtr <nsIImapMailFolderSink> saveFolderSink = m_imapMailFolderSink;
       {
@@ -7814,9 +7833,9 @@ NS_IMPL_ADDREF(nsImapCacheStreamListener)
 NS_IMPL_RELEASE(nsImapCacheStreamListener)
 
 NS_INTERFACE_MAP_BEGIN(nsImapCacheStreamListener)
-   NS_INTERFACE_MAP_ENTRY_AMBIGUOUS(nsISupports, nsIStreamListener)
-   NS_INTERFACE_MAP_ENTRY(nsIRequestObserver)
-   NS_INTERFACE_MAP_ENTRY(nsIStreamListener)
+  NS_INTERFACE_MAP_ENTRY_AMBIGUOUS(nsISupports, nsIStreamListener)
+  NS_INTERFACE_MAP_ENTRY(nsIRequestObserver)
+  NS_INTERFACE_MAP_ENTRY(nsIStreamListener)
 NS_INTERFACE_MAP_END
 
 nsImapCacheStreamListener::nsImapCacheStreamListener()
@@ -7873,12 +7892,13 @@ NS_IMPL_THREADSAFE_ADDREF(nsImapMockChannel)
 NS_IMPL_THREADSAFE_RELEASE(nsImapMockChannel)
 
 NS_INTERFACE_MAP_BEGIN(nsImapMockChannel)
-   NS_INTERFACE_MAP_ENTRY_AMBIGUOUS(nsISupports, nsIImapMockChannel)
-   NS_INTERFACE_MAP_ENTRY(nsIImapMockChannel)
-   NS_INTERFACE_MAP_ENTRY(nsIChannel)
-   NS_INTERFACE_MAP_ENTRY(nsIRequest)
-   NS_INTERFACE_MAP_ENTRY(nsICacheListener)
-   NS_INTERFACE_MAP_ENTRY(nsITransportEventSink)
+  NS_INTERFACE_MAP_ENTRY_AMBIGUOUS(nsISupports, nsIImapMockChannel)
+  NS_INTERFACE_MAP_ENTRY(nsIImapMockChannel)
+  NS_INTERFACE_MAP_ENTRY(nsIChannel)
+  NS_INTERFACE_MAP_ENTRY(nsIRequest)
+  NS_INTERFACE_MAP_ENTRY(nsICacheListener)
+  NS_INTERFACE_MAP_ENTRY(nsITransportEventSink)
+  NS_INTERFACE_MAP_ENTRY(nsISupportsWeakReference)
 NS_INTERFACE_MAP_END_THREADSAFE
 
 
@@ -7936,9 +7956,17 @@ NS_IMETHODIMP nsImapMockChannel::Close()
         nsCOMPtr <nsIImapUrl> imapUrl = do_QueryInterface(m_url);
         cacheEntry->MarkValid();
       }
+      // remove the channel from the load group
+      nsCOMPtr <nsILoadGroup> loadGroup;
+      GetLoadGroup(getter_AddRefs(loadGroup));
+      // if the mock channel wasn't initialized with a load group then
+      // use our load group (they may differ)
+      if (!loadGroup)
+        mailnewsUrl->GetLoadGroup(getter_AddRefs(loadGroup));
+      if (loadGroup)
+        loadGroup->RemoveRequest((nsIRequest *) this, nsnull, NS_OK);
     }
   }
-
 
   m_channelListener = nsnull;
   mCacheRequest = nsnull;
@@ -7959,14 +7987,7 @@ NS_IMETHODIMP nsImapMockChannel::Close()
       }
     }
   }
-
-  // don't release m_url here. Web progress listeners to the current load
-  // may not have had a chance to process the stop notification yet and they can
-  // ask the channel for the url. The circular reference between the mock channel and the
-  // imap url is broken by nsImapProtocol's call to RemoveChannelFromUrl which is called
-  // from nsImapProtocol::ReleaseUrlState.
-  // m_url = nsnull;
-
+  m_url = nsnull;
   mChannelClosed = PR_TRUE;
   return NS_OK;
 }
@@ -7986,16 +8007,16 @@ NS_IMETHODIMP nsImapMockChannel::SetProgressEventSink(nsIProgressEventSink * aPr
 
 NS_IMETHODIMP  nsImapMockChannel::GetChannelListener(nsIStreamListener **aChannelListener)
 {
-    *aChannelListener = m_channelListener;
-    NS_IF_ADDREF(*aChannelListener);
-    return NS_OK;
+  *aChannelListener = m_channelListener;
+  NS_IF_ADDREF(*aChannelListener);
+  return NS_OK;
 }
 
 NS_IMETHODIMP  nsImapMockChannel::GetChannelContext(nsISupports **aChannelContext)
 {
-    *aChannelContext = m_channelContext;
-    NS_IF_ADDREF(*aChannelContext);
-    return NS_OK;
+  *aChannelContext = m_channelContext;
+  NS_IF_ADDREF(*aChannelContext);
+  return NS_OK;
 }
 
 // now implement our mock implementation of the channel interface...we forward all calls to the real
@@ -8009,41 +8030,41 @@ NS_IMETHODIMP nsImapMockChannel::SetLoadGroup(nsILoadGroup * aLoadGroup)
 
 NS_IMETHODIMP nsImapMockChannel::GetLoadGroup(nsILoadGroup * *aLoadGroup)
 {
-    *aLoadGroup = m_loadGroup;
-    NS_IF_ADDREF(*aLoadGroup);
-    return NS_OK;
+  *aLoadGroup = m_loadGroup;
+  NS_IF_ADDREF(*aLoadGroup);
+  return NS_OK;
 }
 
 NS_IMETHODIMP nsImapMockChannel::GetOriginalURI(nsIURI* *aURI)
 {
-// IMap does not seem to have the notion of an original URI :-(
-//  *aURI = m_originalUrl ? m_originalUrl : m_url;
-    *aURI = m_url;
-    NS_IF_ADDREF(*aURI);
-    return NS_OK;
+  // IMap does not seem to have the notion of an original URI :-(
+  //  *aURI = m_originalUrl ? m_originalUrl : m_url;
+  *aURI = m_url;
+  NS_IF_ADDREF(*aURI);
+  return NS_OK;
 }
 
 NS_IMETHODIMP nsImapMockChannel::SetOriginalURI(nsIURI* aURI)
 {
-// IMap does not seem to have the notion of an original URI :-(
-//    NS_NOTREACHED("nsImapMockChannel::SetOriginalURI");
-//    return NS_ERROR_NOT_IMPLEMENTED;
-    return NS_OK;       // ignore
+  // IMap does not seem to have the notion of an original URI :-(
+  //    NS_NOTREACHED("nsImapMockChannel::SetOriginalURI");
+  //    return NS_ERROR_NOT_IMPLEMENTED;
+  return NS_OK;       // ignore
 }
 
 NS_IMETHODIMP nsImapMockChannel::GetURI(nsIURI* *aURI)
 {
-    *aURI = m_url;
-    NS_IF_ADDREF(*aURI);
-    return NS_OK ;
+  *aURI = m_url;
+  NS_IF_ADDREF(*aURI);
+  return NS_OK ;
 }
 
 NS_IMETHODIMP nsImapMockChannel::SetURI(nsIURI* aURI)
 {
-    m_url = aURI;
+  m_url = aURI;
 #ifdef DEBUG_bienvenu
-    if (!aURI)
-      printf("Clearing URI\n");
+  if (!aURI)
+    printf("Clearing URI\n");
 #endif
   if (m_url)
   {
@@ -8261,10 +8282,6 @@ nsresult nsImapMockChannel::ReadFromMemCache(nsICacheEntryDescriptor *entry)
       // the code running this url we're loading from the cache, if it cares.
       imapUrl->SetMsgLoadingFromCache(PR_TRUE);
 
-      // and force the url to remove its reference on the mock channel...this is to solve
-      // a nasty reference counting problem...
-      imapUrl->SetMockChannel(nsnull);
-
       // be sure to set the cache entry's security info status as our security info status...
       nsCOMPtr<nsISupports> securityInfo;
       entry->GetSecurityInfo(getter_AddRefs(securityInfo));
@@ -8286,8 +8303,15 @@ nsresult nsImapMockChannel::ReadFromImapConnection()
   nsCOMPtr<nsIImapUrl> imapUrl = do_QueryInterface(m_url);
   nsCOMPtr<nsIMsgMailNewsUrl> mailnewsUrl = do_QueryInterface(m_url);
 
+  nsCOMPtr <nsILoadGroup> loadGroup;
+  GetLoadGroup(getter_AddRefs(loadGroup));
+  if (!loadGroup) // if we don't have one, the url will snag one from the msg window...
+    mailnewsUrl->GetLoadGroup(getter_AddRefs(loadGroup));
+
   // okay, add the mock channel to the load group..
-  imapUrl->AddChannelToLoadGroup();
+  if (loadGroup)
+    loadGroup->AddRequest((nsIRequest *) this, nsnull /* context isupports */);
+
   // loading the url consists of asking the server to add the url to it's imap event queue....
   nsCOMPtr<nsIMsgIncomingServer> server;
   rv = mailnewsUrl->GetServer(getter_AddRefs(server));
@@ -8335,11 +8359,6 @@ PRBool nsImapMockChannel::ReadFromLocalCache()
       {
         // dougt - This may break the ablity to "cancel" a read from offline mail reading.
         // fileChannel->SetLoadGroup(m_loadGroup);
-
-        // force the url to remove its reference on the mock channel...this is to solve
-        // a nasty reference counting problem...
-        imapUrl->SetMockChannel(nsnull);
-
         nsImapCacheStreamListener * cacheListener = new nsImapCacheStreamListener();
         NS_ADDREF(cacheListener);
         cacheListener->Init(m_channelListener, this);

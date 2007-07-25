@@ -87,7 +87,7 @@ protected:
   nsCOMPtr<nsIURL> m_baseURL;
   nsWeakPtr m_statusFeedbackWeak;
   nsWeakPtr m_msgWindowWeak;
-  nsCOMPtr<nsILoadGroup> m_loadGroup;
+  nsWeakPtr m_loadGroupWeak;
   nsCOMPtr<nsIMimeHeaders> mMimeHeaders;
   nsCOMPtr<nsIMsgSearchSession> m_searchSession;
   nsCOMPtr<nsICacheEntryDescriptor> m_memCacheEntry;

@@ -621,6 +621,7 @@ class nsICacheEntryDescriptor;
 class nsImapMockChannel : public nsIImapMockChannel
                         , public nsICacheListener
                         , public nsITransportEventSink
+                        , public nsSupportsWeakReference
 {
 public:
 
@@ -636,18 +637,12 @@ public:
   static nsresult Create (const nsIID& iid, void **result);
 
 protected:
-  // we must break this circular reference between the imap url
-  // and the mock channel when we've finished running the url,
-  // or we'll leak like crazy. The idea is that when nsImapUrl::RemoveChannel is called,
-  // it will null out the url's pointer to the mock channel
   nsCOMPtr <nsIURI> m_url;
 
   nsCOMPtr<nsIURI> m_originalUrl;
   nsCOMPtr<nsILoadGroup> m_loadGroup;
   nsCOMPtr<nsIStreamListener> m_channelListener;
-  // non owning ref of the context in order to fix a circular ref count
-  // because the context is already the uri...
-  nsISupports * m_channelContext;
+  nsISupports * m_channelContext; 
   nsresult m_cancelStatus;
   nsLoadFlags mLoadFlags;
   nsCOMPtr<nsIProgressEventSink> mProgressEventSink;

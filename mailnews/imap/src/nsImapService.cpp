@@ -107,6 +107,7 @@
 #define PREF_MAIL_ROOT_IMAP_REL "mail.root.imap-rel"
 
 static NS_DEFINE_CID(kImapUrlCID, NS_IMAPURL_CID);
+static NS_DEFINE_CID(kCImapMockChannel, NS_IMAPMOCKCHANNEL_CID);
 static NS_DEFINE_CID(kCacheServiceCID, NS_CACHESERVICE_CID);
 
 
@@ -222,19 +223,18 @@ NS_IMETHODIMP nsImapService::SelectFolder(nsIEventTarget *aClientEventTarget,
   PRUnichar hierarchySeparator = GetHierarchyDelimiter(aImapMailFolder);
   rv = CreateStartOfImapUrl(EmptyCString(), getter_AddRefs(imapUrl),
                             aImapMailFolder, aUrlListener, urlSpec, hierarchySeparator);
-  
+
   if (NS_SUCCEEDED(rv) && imapUrl)
   {
     // nsImapUrl::SetSpec() will set the imap action properly
     rv = imapUrl->SetImapAction(nsIImapUrl::nsImapSelectFolder);
-    
+
     nsCOMPtr<nsIMsgMailNewsUrl> mailNewsUrl = do_QueryInterface(imapUrl);
     // if no msg window, we won't put up error messages (this is almost certainly a biff-inspired get new msgs)
     if (!aMsgWindow)
       mailNewsUrl->SetSuppressErrorMsgs(PR_TRUE);
     mailNewsUrl->SetMsgWindow(aMsgWindow);
     mailNewsUrl->SetUpdatingFolder(PR_TRUE);
-    imapUrl->AddChannelToLoadGroup();
     rv = SetImapUrlSink(aImapMailFolder, imapUrl);
     
     if (NS_SUCCEEDED(rv))
@@ -833,7 +833,6 @@ NS_IMETHODIMP nsImapService::Search(nsIMsgSearchSession *aSearchSession,
   
   msgurl->SetMsgWindow(aMsgWindow);
   msgurl->SetSearchSession(aSearchSession);
-  imapUrl->AddChannelToLoadGroup();
   rv = SetImapUrlSink(aMsgFolder, imapUrl);
   
   if (NS_SUCCEEDED(rv))
@@ -1805,7 +1804,6 @@ NS_IMETHODIMP nsImapService::OnlineMessageCopy(nsIEventTarget *aClientEventTarge
     nsCOMPtr<nsIMsgMailNewsUrl> msgurl (do_QueryInterface(imapUrl));
     
     msgurl->SetMsgWindow(aMsgWindow);
-    imapUrl->AddChannelToLoadGroup();  //we get the loadGroup from msgWindow
     nsCOMPtr<nsIURI> uri = do_QueryInterface(imapUrl);
     
     if (isMove)
@@ -1977,7 +1975,6 @@ NS_IMETHODIMP nsImapService::AppendMessageFromFile(nsIEventTarget *aClientEventT
     {
       // we get the loadGroup from msgWindow
       msgUrl->SetMsgWindow(aMsgWindow);
-      imapUrl->AddChannelToLoadGroup();
     }
     
     SetImapUrlSink(aDstFolder, imapUrl);
@@ -2463,30 +2460,40 @@ NS_IMETHODIMP nsImapService::NewURI(const nsACString &aSpec,
 
 NS_IMETHODIMP nsImapService::NewChannel(nsIURI *aURI, nsIChannel **aRetVal)
 {
+  NS_ENSURE_ARG_POINTER(aRetVal);
+  NS_ENSURE_ARG_POINTER(aURI);
+  nsresult rv;
+  *aRetVal = nsnull;
+  nsCOMPtr<nsIImapUrl> imapUrl = do_QueryInterface(aURI, &rv);
+  NS_ENSURE_SUCCESS(rv, rv);
+  nsCOMPtr <nsIMsgMailNewsUrl> mailnewsUrl = do_QueryInterface(imapUrl, &rv);
+  NS_ENSURE_SUCCESS(rv, rv);
+
   // imap can't open and return a channel right away...the url needs to go in the imap url queue 
   // until we find a connection which can run the url..in order to satisfy necko, we're going to return
   // a mock imap channel....
-  nsresult rv = NS_OK;
-  nsCOMPtr<nsIImapMockChannel> mockChannel;
-  nsCOMPtr<nsIImapUrl> imapUrl = do_QueryInterface(aURI, &rv);
+  nsCOMPtr<nsIImapMockChannel> channel = do_CreateInstance(kCImapMockChannel, &rv);
   NS_ENSURE_SUCCESS(rv, rv);
-  nsCOMPtr <nsIMsgMailNewsUrl> mailnewsUrl = do_QueryInterface(imapUrl);
-  
-  // XXX this mock channel stuff is wrong -- the channel really should be owning the URL
-  // and the originalURL, not the other way around
-  rv = imapUrl->InitializeURIforMockChannel();
-  rv = imapUrl->GetMockChannel(getter_AddRefs(mockChannel));
-  if (NS_FAILED(rv) || !mockChannel) 
+  channel->SetURI(aURI);
+  nsCOMPtr<nsIMsgWindow> msgWindow;
+  mailnewsUrl->GetMsgWindow(getter_AddRefs(msgWindow));
+  if (msgWindow)
   {
-    // this is a funky condition...it means we've already run the url once
-    // and someone is trying to get us to run it again...
-    imapUrl->Initialize(); // force a new mock channel to get created.
-    rv = imapUrl->InitializeURIforMockChannel();
-    rv = imapUrl->GetMockChannel(getter_AddRefs(mockChannel));
-    if (!mockChannel) 
-      return NS_ERROR_FAILURE;
+    nsCOMPtr<nsIDocShell> msgDocShell;
+    msgWindow->GetRootDocShell(getter_AddRefs(msgDocShell));
+    if (msgDocShell) 
+    {
+      nsCOMPtr <nsIProgressEventSink> prevEventSink;
+      channel->GetProgressEventSink(getter_AddRefs(prevEventSink));
+      nsCOMPtr<nsIInterfaceRequestor> docIR(do_QueryInterface(msgDocShell));
+      channel->SetNotificationCallbacks(docIR);
+      // we want to use our existing event sink.
+      if (prevEventSink)
+        channel->SetProgressEventSink(prevEventSink);
+    }
   }
-  
+  imapUrl->SetMockChannel(channel); // the imap url holds a weak reference so we can pass the channel into the imap protocol when we actually run the url
+
   PRBool externalLinkUrl;
   imapUrl->GetExternalLinkUrl(&externalLinkUrl);
   if (externalLinkUrl)
@@ -2652,7 +2659,7 @@ NS_IMETHODIMP nsImapService::NewChannel(nsIURI *aURI, nsIChannel **aRetVal)
     }
   }
   if (NS_SUCCEEDED(rv))
-    NS_IF_ADDREF(*aRetVal = mockChannel);
+    NS_IF_ADDREF(*aRetVal = channel);
   return rv;
 }
 
@@ -2930,7 +2937,6 @@ NS_IMETHODIMP nsImapService::IssueCommandOnMsgs(nsIEventTarget *aClientEventTarg
     nsCOMPtr <nsIMsgMailNewsUrl> mailNewsUrl = do_QueryInterface(imapUrl);
     mailNewsUrl->SetMsgWindow(aMsgWindow);
     mailNewsUrl->SetUpdatingFolder(PR_TRUE);
-    imapUrl->AddChannelToLoadGroup();
     rv = SetImapUrlSink(anImapFolder, imapUrl);
     
     if (NS_SUCCEEDED(rv))
@@ -2980,7 +2986,6 @@ NS_IMETHODIMP nsImapService::FetchCustomMsgAttribute(nsIEventTarget *aClientEven
     nsCOMPtr <nsIMsgMailNewsUrl> mailNewsUrl = do_QueryInterface(imapUrl);
     mailNewsUrl->SetMsgWindow(aMsgWindow);
     mailNewsUrl->SetUpdatingFolder(PR_TRUE);
-    imapUrl->AddChannelToLoadGroup();
     rv = SetImapUrlSink(anImapFolder, imapUrl);
     
     if (NS_SUCCEEDED(rv))
@@ -3027,7 +3032,6 @@ NS_IMETHODIMP nsImapService::StoreCustomKeywords(nsIEventTarget *aClientEventTar
     nsCOMPtr <nsIMsgMailNewsUrl> mailNewsUrl = do_QueryInterface(imapUrl);
     mailNewsUrl->SetMsgWindow(aMsgWindow);
     mailNewsUrl->SetUpdatingFolder(PR_TRUE);
-    imapUrl->AddChannelToLoadGroup();
     rv = SetImapUrlSink(anImapFolder, imapUrl);
     
     if (NS_SUCCEEDED(rv))

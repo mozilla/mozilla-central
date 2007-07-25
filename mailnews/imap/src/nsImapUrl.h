@@ -67,7 +67,6 @@ public:
 
   // nsIMsgMailNewsUrl overrides
   NS_IMETHOD IsUrlType(PRUint32 type, PRBool *isType);
-  NS_IMETHOD SetMsgWindow(nsIMsgWindow *aMsgWindow);
   NS_IMETHOD GetFolder(nsIMsgFolder **aFolder);
   NS_IMETHOD SetFolder(nsIMsgFolder *aFolder);
   // nsIMsgMessageUrl
@@ -81,7 +80,7 @@ public:
   static nsresult ConvertToCanonicalFormat(const char *folderName, char onlineDelimiter, char **resultingCanonicalPath);
   static nsresult EscapeSlashes(const char *sourcePath, char **resultPath);
   static nsresult UnescapeSlashes(char *path);
-  static char *	ReplaceCharsInCopiedString(const char *stringToCopy, char oldChar, char newChar);
+  static char *  ReplaceCharsInCopiedString(const char *stringToCopy, char oldChar, char newChar);
 
 protected:
   virtual nsresult ParseUrl();
@@ -107,7 +106,7 @@ protected:
   char        *m_tokenPlaceHolder;
   char        *m_urlidSubString;
   char        m_onlineSubDirSeparator;
-  char        *m_searchCriteriaString;	// should we use m_search, or is this special?
+  char        *m_searchCriteriaString;  // should we use m_search, or is this special?
   nsCString     m_command;       // for custom commands
   nsCString     m_msgFetchAttribute; // for fetching custom msg attributes
   nsCString     m_customAttributeResult; // for fetching custom msg attributes
@@ -119,19 +118,19 @@ protected:
   PRPackedBool m_runningUrl;
   PRPackedBool m_idsAreUids;
   PRPackedBool m_mimePartSelectorDetected;
-  PRPackedBool m_allowContentChange;	// if PR_FALSE, we can't use Mime parts on demand
+  PRPackedBool m_allowContentChange;  // if PR_FALSE, we can't use Mime parts on demand
   PRPackedBool m_fetchPartsOnDemand; // if PR_TRUE, we should fetch leave parts on server.
   PRPackedBool m_msgLoadingFromCache; // if PR_TRUE, we might need to mark read on server
   PRPackedBool m_externalLinkUrl; // if PR_TRUE, we're running this url because the user
   PRPackedBool m_shouldStoreMsgOffline;
   PRPackedBool m_rerunningUrl; // first attempt running this failed with connection error; retrying
-  nsImapContentModifiedType	m_contentModified;
+  nsImapContentModifiedType  m_contentModified;
 
   nsCString  m_userName;
   nsCString  m_serverKey;
   // event sinks
-  imapMessageFlagsType	m_flags;
-  nsImapAction	m_imapAction;
+  imapMessageFlagsType  m_flags;
+  nsImapAction  m_imapAction;
 
   nsWeakPtr m_imapFolder;
   nsWeakPtr m_imapMailFolderSink;
@@ -142,9 +141,9 @@ protected:
   // online message copy support; i don't have a better solution yet
   nsCOMPtr <nsISupports> m_copyState;   // now, refcounted.
   nsIFile* m_file;
-  nsCOMPtr<nsIImapMockChannel> m_mockChannel;
+  nsWeakPtr m_channelWeakPtr;
 
-    // used by save message to disk
+  // used by save message to disk
   nsCOMPtr<nsIFile> m_messageFile;
   PRBool                m_addDummyEnvelope;
   PRBool                m_canonicalLineEnding; // CRLF

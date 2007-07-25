@@ -43,7 +43,7 @@ interface nsIMsgMailNewsUrl;
 interface nsIImapProtocol;
 interface nsIImapUrl;
 
-[scriptable, uuid(45F3D49F-B4EC-4EB0-9FE2-B03DD536BFDD)]
+[scriptable, uuid(8255E06F-C296-40d0-B924-ECAE5F5291C6)]
 interface nsIImapServerSink : nsISupports {
   /* returns true if it's a new mailbox */
   boolean possibleImapMailbox(in ACString folderPath, in wchar hierarchyDelim, in long boxFlags);
@@ -71,9 +71,7 @@ interface nsIImapServerSink : nsISupports {
   void promptForPassword(out ACString aString, in nsIMsgWindow aMsgWindow);
   attribute boolean userAuthenticated;
   void setMailServerUrls(in ACString manageMailAccount, in ACString manageLists, in ACString manageFilters);
-  
-  /* this is a bogus method on this interface but i need it until misc. sink is scriptable.. */
-  void RemoveChannelFromUrl(in nsIMsgMailNewsUrl aUrl, in unsigned long statusCode);
+
   readonly attribute ACString arbitraryHeaders;
   void forgetPassword();
 

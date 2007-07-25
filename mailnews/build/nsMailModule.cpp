@@ -438,7 +438,7 @@ NS_GENERIC_FACTORY_CONSTRUCTOR(nsMsgCompUtils)
 ////////////////////////////////////////////////////////////////////////////////
 // imap factories
 ////////////////////////////////////////////////////////////////////////////////
-NS_GENERIC_FACTORY_CONSTRUCTOR_INIT(nsImapUrl, Initialize)
+NS_GENERIC_FACTORY_CONSTRUCTOR(nsImapUrl)
 NS_GENERIC_FACTORY_CONSTRUCTOR(nsImapProtocol)
 NS_GENERIC_FACTORY_CONSTRUCTOR_INIT(nsIMAPHostSessionList, Init)
 NS_GENERIC_FACTORY_CONSTRUCTOR(nsImapIncomingServer)
