@@ -40,9 +40,13 @@ const nsIWindowMediator = Components.interfaces.nsIWindowMediator;
 // "About Sunbird" dialog
 function openAboutDialog()
 {
-  var url = "chrome://calendar/content/aboutDialog.xul";
+  const SUNBIRD_ID = "{718e30fb-e89b-41dd-9da7-e25a45638b28}";
+  var appInfo = Components.classes["@mozilla.org/xre/app-info;1"]
+                          .getService(Components.interfaces.nsIXULAppInfo);
+  var url = (appInfo.ID == SUNBIRD_ID) ?
+    "chrome://calendar/content/aboutDialog.xul" :
+    "chrome://messenger/content/aboutDialog.xul" ;
   var name = "About";
-
 #ifdef XP_MACOSX
   // Define minimizable=no although it does nothing on OS X (bug 287162).
   // Remove this comment once bug 287162 is fixed
@@ -50,6 +54,88 @@ function openAboutDialog()
 #else
   window.openDialog(url, name, "modal,centerscreen,chrome,resizable=no");
 #endif
+}
+
+/**
+ * Opens the release notes page for this version of the application.
+ */
+function openReleaseNotes()
+{
+  const SUNBIRD_ID = "{718e30fb-e89b-41dd-9da7-e25a45638b28}";
+  var appInfo = Components.classes["@mozilla.org/xre/app-info;1"]
+                          .getService(Components.interfaces.nsIXULAppInfo);
+  if (appInfo.ID == SUNBIRD_ID) {
+    var appInfo = Components.classes["@mozilla.org/xre/app-info;1"]
+                            .getService(Components.interfaces.nsIXULAppInfo);
+    var sbs = Components.classes["@mozilla.org/intl/stringbundle;1"]
+                        .getService(Components.interfaces.nsIStringBundleService);
+    var bundle = sbs.createBundle("chrome://branding/locale/brand.properties");
+    var relNotesURL = bundle.formatStringFromName("releaseNotesURL",[appInfo.version],1)
+    launchBrowser(relNotesURL);
+  } else {
+    openFormattedRegionURL('app.releaseNotesURL');
+  }
+}
+
+/**
+ * Opens region specific web pages for the application like the release notes, the help site, etc. 
+ *   aResourceName --> the string resource ID in region.properties to load. 
+ */
+function openRegionURL(aResourceName)
+{
+  var appInfo = Components.classes["@mozilla.org/xre/app-info;1"]
+                          .getService(Components.interfaces.nsIXULAppInfo);
+  try {
+    var strBundleService = Components.classes["@mozilla.org/intl/stringbundle;1"].getService(Components.interfaces.nsIStringBundleService);
+    var regionBundle = strBundleService.createBundle("chrome://messenger-region/locale/region.properties");
+    // the release notes are special and need to be formatted with the app version
+    var urlToOpen;
+    if (aResourceName == "releaseNotesURL")
+      urlToOpen = regionBundle.formatStringFromName(aResourceName, [appInfo.version], 1);
+    else
+      urlToOpen = regionBundle.GetStringFromName(aResourceName);
+      
+    var uri = Components.classes["@mozilla.org/network/io-service;1"]
+              .getService(Components.interfaces.nsIIOService)
+              .newURI(urlToOpen, null, null);
+
+    var protocolSvc = Components.classes["@mozilla.org/uriloader/external-protocol-service;1"]
+                      .getService(Components.interfaces.nsIExternalProtocolService);
+    protocolSvc.loadUrl(uri);
+  } catch (ex) {}
+}
+
+/**
+ *  Fetches the url for the passed in pref name, formats it and then loads it in the default
+ *  browser.
+ *
+ *  @param aPrefName - name of the pref that holds the url we want to format and open
+ */
+function openFormattedRegionURL(aPrefName)
+{
+  var formattedUrl = getFormattedRegionURL(aPrefName);
+  
+  var uri = Components.classes["@mozilla.org/network/io-service;1"].
+                       getService(Components.interfaces.nsIIOService).
+                       newURI(formattedUrl, null, null);
+
+  var protocolSvc = Components.classes["@mozilla.org/uriloader/external-protocol-service;1"].
+                               getService(Components.interfaces.nsIExternalProtocolService);
+  protocolSvc.loadUrl(uri);  
+}
+
+/**
+ *  Fetches the url for the passed in pref name and uses the URL formatter service to 
+ *    process it.
+ *
+ *  @param aPrefName - name of the pref that holds the url we want to format and open
+ *  @returns the formatted url string
+ */
+function getFormattedRegionURL(aPrefName)
+{
+  var formatter = Components.classes["@mozilla.org/toolkit/URLFormatterService;1"].
+                             getService(Components.interfaces.nsIURLFormatter);
+  return formatter.formatURLPref(aPrefName);
 }
 
 function toOpenWindowByType(inType, uri)

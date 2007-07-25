@@ -78,11 +78,11 @@
     <script type="application/x-javascript"
             src="chrome://calendar/content/calUtils.js"/>
     <script type="application/x-javascript"
+            src="chrome://calendar/content/applicationUtil.js"/>
+    <script type="application/x-javascript"
             src="chrome://global/content/globalOverlay.js"/>
     <script type="application/x-javascript"
             src="chrome://global/content/printUtils.js"/>
-    <script type="application/x-javascript"
-            src="chrome://communicator/content/utilityOverlay.js"/>
 
     <!-- Command updater -->
     <commandset id="globalEditMenuItems"
@@ -263,11 +263,13 @@
                             <menuitem label="&event.menu.file.new.message.label;"
                                       key="new-message-key"
                                       command="cmd_file_new_message"
-                                      disable-on-readonly="true"/>
-                            <menuseparator/>
+                                      disable-on-readonly="true"
+                                      class="lightning-only"/>
+                            <menuseparator class="lightning-only"/>
                             <menuitem label="&event.menu.file.new.address.label;"
                                       command="cmd_file_new_card"
-                                      disable-on-readonly="true"/>
+                                      disable-on-readonly="true"
+                                      class="lightning-only"/>
                         </menupopup>
                     </menu>
                     <menuitem label="&event.menu.file.close.label;"
@@ -412,12 +414,13 @@
             <menu label="&event.help.label;">
                 <menupopup>
                     <menuitem label="&event.help.release.notes.label;"
-                              oncommand="openRegionURL('releaseNotesURL')"/>
+                              oncommand="openReleaseNotes()"/>
                     <menuitem label="&event.help.help.label;"
-                              oncommand="openRegionURL('mailnews.hints_and_tips.url')"/>
+                              oncommand="openRegionURL('mailnews.hints_and_tips.url')"
+                              class="lightning-only"/>
                     <menuseparator/>
                     <menuitem label="&event.help.about.label;"
-                              oncommand="onAboutDialog()"/>
+                              oncommand="openAboutDialog()"/>
                 </menupopup>
             </menu>
         </menubar>

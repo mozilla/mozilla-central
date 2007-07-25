@@ -291,7 +291,7 @@ listbox {
 
 .person-icon {
   margin: 0 3px;
-  list-style-image: url("chrome://messenger/skin/addressbook/icons/abcard.png");
+  list-style-image: url("chrome://calendar/skin/abcard.png");
 }
 
 .status-icon[status="ACCEPTED"] {

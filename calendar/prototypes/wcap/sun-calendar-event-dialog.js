@@ -61,7 +61,53 @@ var gLastRepeatSelection = 0;
 var gLastAlarmSelection = 0;
 var gIgnoreUpdate = false;
 var gShowTimeAs = null;
+var gIsSunbird = false;
 //var gConsoleService = null;
+
+//////////////////////////////////////////////////////////////////////////////
+// goUpdateGlobalEditMenuItems
+//////////////////////////////////////////////////////////////////////////////
+
+// update menu items that rely on focus
+function goUpdateGlobalEditMenuItems() {
+  goUpdateCommand('cmd_undo');
+  goUpdateCommand('cmd_redo');
+  goUpdateCommand('cmd_cut');
+  goUpdateCommand('cmd_copy');
+  goUpdateCommand('cmd_paste');
+  goUpdateCommand('cmd_selectAll');
+}
+
+//////////////////////////////////////////////////////////////////////////////
+// goUpdateSelectEditMenuItems
+//////////////////////////////////////////////////////////////////////////////
+
+// update menu items that rely on the current selection
+function goUpdateSelectEditMenuItems() {
+  goUpdateCommand('cmd_cut');
+  goUpdateCommand('cmd_copy');
+  goUpdateCommand('cmd_delete');
+  goUpdateCommand('cmd_selectAll');
+}
+
+//////////////////////////////////////////////////////////////////////////////
+// goUpdateUndoEditMenuItems
+//////////////////////////////////////////////////////////////////////////////
+
+// update menu items that relate to undo/redo
+function goUpdateUndoEditMenuItems() {
+  goUpdateCommand('cmd_undo');
+  goUpdateCommand('cmd_redo');
+}
+
+//////////////////////////////////////////////////////////////////////////////
+// goUpdatePasteMenuItems
+//////////////////////////////////////////////////////////////////////////////
+
+// update menu items that depend on clipboard contents
+function goUpdatePasteMenuItems() {
+  goUpdateCommand('cmd_paste');
+}
 
 //////////////////////////////////////////////////////////////////////////////
 // getString
@@ -167,6 +213,13 @@ function onLoad()
   }
   window.recurrenceInfo = parentItem.recurrenceInfo;
   
+  const SUNBIRD_ID = "{718e30fb-e89b-41dd-9da7-e25a45638b28}";
+  var appInfo = Components.classes["@mozilla.org/xre/app-info;1"]
+                          .getService(Components.interfaces.nsIXULAppInfo);
+  if (appInfo.ID == SUNBIRD_ID) {
+    gIsSunbird = true;
+  }
+
   document.getElementById("sun-calendar-event-dialog").getButton("accept").setAttribute("collapsed","true");
   document.getElementById("sun-calendar-event-dialog").getButton("cancel").setAttribute("collapsed","true");
   document.getElementById("sun-calendar-event-dialog").getButton("cancel").parentNode.setAttribute("collapsed","true");
@@ -1316,10 +1369,14 @@ function updateStyle()
 
   for each(var stylesheet in document.styleSheets) {
       if (stylesheet.href == kDialogStylesheet) {
-          if (isEvent(window.calendarItem))
+          if (gIsSunbird) {
+              stylesheet.insertRule(".lightning-only { display: none; }", 0);
+          }
+          if (isEvent(window.calendarItem)) {
               stylesheet.insertRule(".todo-only { display: none; }", 0);
-          else if (isToDo(window.calendarItem))
+          } else if (isToDo(window.calendarItem)) {
               stylesheet.insertRule(".event-only { display: none; }", 0);
+          }
           return;
       }
   }
@@ -2312,47 +2369,6 @@ function onCommandCustomize()
   
   window.openDialog("chrome://calendar/content/sun-calendar-customize-toolbar.xul", "CustomizeToolbar",
                     "chrome,all,dependent", document.getElementById(id));
-}
-
-//////////////////////////////////////////////////////////////////////////////
-// onAboutDialog
-//////////////////////////////////////////////////////////////////////////////
-
-function onAboutDialog()
-{
-  openDialog("chrome://messenger/content/aboutDialog.xul", "About", "modal,centerscreen,chrome,resizable=no");
-}
-
-//////////////////////////////////////////////////////////////////////////////
-// openRegionURL
-//////////////////////////////////////////////////////////////////////////////
-
-/**
- * Opens region specific web pages for the application like the release notes, the help site, etc. 
- *   aResourceName --> the string resource ID in region.properties to load. 
- */
-function openRegionURL(aResourceName)
-{
-  var appInfo = Components.classes["@mozilla.org/xre/app-info;1"]
-                          .getService(Components.interfaces.nsIXULAppInfo);
-  try {
-    var strBundleService = Components.classes["@mozilla.org/intl/stringbundle;1"].getService(Components.interfaces.nsIStringBundleService);
-    var regionBundle = strBundleService.createBundle("chrome://messenger-region/locale/region.properties");
-    // the release notes are special and need to be formatted with the app version
-    var urlToOpen;
-    if (aResourceName == "releaseNotesURL")
-      urlToOpen = regionBundle.formatStringFromName(aResourceName, [appInfo.version], 1);
-    else
-      urlToOpen = regionBundle.GetStringFromName(aResourceName);
-      
-    var uri = Components.classes["@mozilla.org/network/io-service;1"]
-              .getService(Components.interfaces.nsIIOService)
-              .newURI(urlToOpen, null, null);
-
-    var protocolSvc = Components.classes["@mozilla.org/uriloader/external-protocol-service;1"]
-                      .getService(Components.interfaces.nsIExternalProtocolService);
-    protocolSvc.loadUrl(uri);
-  } catch (ex) {}
 }
 
 //////////////////////////////////////////////////////////////////////////////

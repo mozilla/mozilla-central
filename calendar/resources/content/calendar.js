@@ -447,18 +447,6 @@ function openPreferences() {
     }
 }
 
-/**
- * Opens the release notes page for this version of the application.
- */
-function openReleaseNotes() {
-    var appInfo = Components.classes["@mozilla.org/xre/app-info;1"]
-                            .getService(Components.interfaces.nsIXULAppInfo);
-    var calendarBundle = document.getElementById("bundle_branding");
-    var relNotesURL = calendarBundle.getFormattedString("releaseNotesURL",
-                                                        [appInfo.version]);
-    launchBrowser(relNotesURL);
-}
-
 function CalendarCustomizeToolbar()
 {
   // Disable the toolbar context menu items

@@ -92,7 +92,6 @@
       <field name="mDirectoryServerObserver">null</field>
       <field name="mHeaderParser">null</field>
       <field name="mPrefs">null</field>
-      <field name="mPrefBranchInternal">null</field>
       <field name="mIsOffline">0</field>
       <field name="mLDAPSession">null</field>
       <field name="mSessionAdded">0</field>
@@ -124,14 +123,17 @@
           
           this.mDirectoryServerObserver = observer;
 
-          this.mHeaderParser = Components.classes["@mozilla.org/messenger/headerparser;1"].getService(Components.interfaces.nsIMsgHeaderParser);
+          var component = Components.classes["@mozilla.org/messenger/headerparser;1"];
+          if (component) {
+              this.mHeaderParser = component.getService(Components.interfaces.nsIMsgHeaderParser);
+          }
 
           // First get the preferences service
           try {
-              var prefService = Components.classes["@mozilla.org/preferences-service;1"]
-                                     .getService(Components.interfaces.nsIPrefService);
-              this.mPrefs = prefService.getBranch(null);
-              this.mPrefBranchInternal = this.mPrefs.QueryInterface(Components.interfaces.nsIPrefBranch2);
+              this.mPrefs = Components.classes["@mozilla.org/preferences-service;1"]
+                                      .getService(Components.interfaces.nsIPrefService)
+                                      .getBranch(null);
+              this.mPrefs = this.mPrefs.QueryInterface(Components.interfaces.nsIPrefBranch2);
           }
           catch (ex) {}
 
@@ -348,7 +350,7 @@
           // construct the display string from common name and/or email address.
           var inputValue = aAttendee.commonName;
           var regexp = new RegExp("^mailto:(.*)", "i");   
-          if(inputValue) {
+          if (inputValue && this.mHeaderParser) {
             var email = aAttendee.id;
             if(email && email.length) {
               if (regexp.test(email)) {
@@ -498,7 +500,17 @@
                 var emailAddresses = {};
                 var names = {};
                 var fullNames = {};
-                var numAddresses = this.mHeaderParser.parseHeadersWithArray(fieldValue,emailAddresses,names,fullNames);
+
+                if (this.mHeaderParser) {
+                    this.mHeaderParser.parseHeadersWithArray(
+                        fieldValue,
+                        emailAddresses,
+                        names,
+                        fullNames);
+                } else {
+                    emailAddresses.value = [ fieldValue ];
+                    names.value = [];
+                }
                 
                 if(emailAddresses.value.length > 0) {
 
@@ -555,13 +567,23 @@
 
                 //attendee.role = this.getRoleElement(i).getAttribute("role");
                 attendee.participationStatus = this.getStatusElement(i).getAttribute("status");
-                
+
                 // break the list of potentially many attendees back into individual names
                 var emailAddresses = {};
                 var names = {};
                 var fullNames = {};
-                var numAddresses = this.mHeaderParser.parseHeadersWithArray(fieldValue,emailAddresses,names,fullNames);
-                
+
+                if (this.mHeaderParser) {
+                    this.mHeaderParser.parseHeadersWithArray(
+                        fieldValue,
+                        emailAddresses,
+                        names,
+                        fullNames);
+                } else {
+                    emailAddresses.value = [ fieldValue ];
+                    names.value = [];
+                }
+
                 if(emailAddresses.value.length > 0) {
 
                     // if the new address has no 'mailto'-prefix but seems
@@ -586,7 +608,7 @@
 
               i++;
             }
-            
+
             return null;
           ]]>
         </getter>
@@ -607,7 +629,17 @@
               var emailAddresses = {};
               var names = {};
               var fullNames = {};
-              var numAddresses = this.mHeaderParser.parseHeadersWithArray(fieldValue,emailAddresses,names,fullNames);
+
+              if (this.mHeaderParser) {
+                  this.mHeaderParser.parseHeadersWithArray(
+                      fieldValue,
+                      emailAddresses,
+                      names,
+                      fullNames);
+              } else {
+                  emailAddresses.value = [ fieldValue ];
+                  names.value = [];
+              }
 
               if(emailAddresses.value.length > 0) {
 
@@ -974,7 +1006,11 @@
             var prevAutocompleteDirectory = this.mCurrentAutocompleteDirectory;
             var i;
 
-            autocompleteLdap = this.mPrefs.getBoolPref("ldap_2.autoComplete.useDirectory");
+            try {
+                autocompleteLdap = this.mPrefs.getBoolPref("ldap_2.autoComplete.useDirectory");
+            } catch (ex) {
+                return;
+            }
             if (autocompleteLdap)
                 autocompleteDirectory = this.mPrefs.getCharPref(
                     "ldap_2.autoComplete.directoryServer");
@@ -1247,10 +1283,16 @@
       <method name="addDirectoryServerObserver">
         <body>
           <![CDATA[
-            this.mPrefBranchInternal.addObserver("ldap_2.autoComplete.useDirectory",
-                                                 this.mDirectoryServerObserver, false);
-            this.mPrefBranchInternal.addObserver("ldap_2.autoComplete.directoryServer",
-                                                 this.mDirectoryServerObserver, false);
+            if (this.mPrefs) {
+                this.mPrefs.addObserver(
+                    "ldap_2.autoComplete.useDirectory",
+                    this.mDirectoryServerObserver,
+                    false);
+                this.mPrefs.addObserver(
+                    "ldap_2.autoComplete.directoryServer",
+                    this.mDirectoryServerObserver,
+                    false);
+            }
           ]]>
         </body>
       </method>
@@ -1258,8 +1300,14 @@
       <method name="removeDirectoryServerObserver">
         <body>
           <![CDATA[
-            this.mPrefBranchInternal.removeObserver("ldap_2.autoComplete.useDirectory", this.mDirectoryServerObserver);
-            this.mPrefBranchInternal.removeObserver("ldap_2.autoComplete.directoryServer", this.mDirectoryServerObserver);
+            if (this.mPrefs) {
+                this.mPrefs.removeObserver(
+                    "ldap_2.autoComplete.useDirectory",
+                    this.mDirectoryServerObserver);
+                this.mPrefs.removeObserver(
+                    "ldap_2.autoComplete.directoryServer",
+                    this.mDirectoryServerObserver);
+            }
           ]]>
         </body>
       </method>
@@ -1267,7 +1315,12 @@
       <method name="addDirectorySettingsObserver">
         <body>
           <![CDATA[
-            this.mPrefBranchInternal.addObserver(this.mCurrentAutocompleteDirectory, this.mDirectoryServerObserver, false);
+            if (this.mPrefs) {
+                this.mPrefs.addObserver(
+                    this.mCurrentAutocompleteDirectory,
+                    this.mDirectoryServerObserver,
+                    false);
+            }
           ]]>
         </body>
       </method>
@@ -1276,7 +1329,11 @@
         <parameter name="aPrefString"/>
         <body>
           <![CDATA[
-            this.mPrefBranchInternal.removeObserver(aPrefString, this.mDirectoryServerObserver);
+            if (this.mPrefs) {
+                this.mPrefs.removeObserver(
+                    aPrefString,
+                    this.mDirectoryServerObserver);
+            }
           ]]>
         </body>
       </method>
