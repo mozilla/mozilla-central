@@ -205,18 +205,7 @@ function openEventDialog(calendarItem, calendar, mode, callback, job)
     window.setCursor("wait");
 
     // open the dialog modeless
-    var url = "chrome://calendar/content/calendar-event-dialog.xul";
-
-    if (getPrefSafe("calendar.prototypes.wcap", false)) {
-
-        // this will be called if file->new has been selected from within the dialog
-        args.onNewEvent = function(calendar) {
-            createEventWithDialog(calendar, null, null);
-        }
-
-        url = "chrome://calendar/content/sun-calendar-event-dialog.xul";
-    }
-
+    var url = "chrome://calendar/content/sun-calendar-event-dialog.xul";
     openDialog(url, "_blank", "chrome,titlebar,resizable", args);
 }
 
