@@ -82,7 +82,7 @@ if [ -z "${INIT_SOURCED}" -o "${INIT_SOURCED}" != "TRUE" ]; then
     Exit()
     {
         if [ -n "$1" ] ; then
-            echo "$SCRIPTNAME: Exit: $*"
+            echo "$SCRIPTNAME: Exit: $* - FAILED"
             html_failed "<TR><TD>$*"
         fi
         echo "</TABLE><BR>" >> ${RESULTS}
