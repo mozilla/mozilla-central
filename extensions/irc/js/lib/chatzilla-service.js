@@ -269,6 +269,10 @@ if ("URI_NON_PERSISTABLE" in nsIProtocolHandler) {
   IRCProtocolHandler.prototype.protocolFlags |=
       nsIProtocolHandler.URI_NON_PERSISTABLE;
 }
+if ("URI_DOES_NOT_RETURN_DATA" in nsIProtocolHandler) {
+  IRCProtocolHandler.prototype.protocolFlags |=
+      nsIProtocolHandler.URI_DOES_NOT_RETURN_DATA;
+}
 
 IRCProtocolHandler.prototype.allowPort =
 function ircph_allowPort(port, scheme)
