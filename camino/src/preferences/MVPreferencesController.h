@@ -67,3 +67,9 @@ extern NSString* const MVPreferencesWindowNotification;
 - (void) selectPreferencePaneByIdentifier:(NSString *) identifier;
 
 @end
+
+@interface NSObject (PreferencePaneFieldEditorOverride)
+
+- (id)fieldEditorForObject:(id)inObject;
+
+@end

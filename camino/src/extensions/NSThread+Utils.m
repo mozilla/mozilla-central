@@ -37,6 +37,8 @@
 
 #import "NSThread+Utils.h"
 
+#include <pthread.h>
+
 @implementation NSThread(CaminoNSThreadExtensions)
 
 + (BOOL)inMainThread

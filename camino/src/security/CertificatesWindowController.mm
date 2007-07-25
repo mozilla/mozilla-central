@@ -512,7 +512,7 @@ static CertificatesWindowController* gCertificatesWindowController;
   NSString* deleteButton  = NSLocalizedStringFromTable(@"DeleteCertButtonTitle", @"CertificateDialogs", @"");
   NSString* cancelButton  = NSLocalizedStringFromTable(@"CancelButtonTitle", @"CertificateDialogs", @"");
 
-#warning fix for plurals
+  //TODO: fix for plurals
   NSString* title = [NSString stringWithFormat:titleFormat, [[selectedCerts objectAtIndex:0] displayName]];
   
   NSBeginAlertSheet(title,
@@ -693,7 +693,7 @@ static CertificatesWindowController* gCertificatesWindowController;
 {
   int rowIndex = [mCategoriesTable selectedRow];
   NSDictionary* rowDict = nil;
-  if (rowIndex != -1 && rowIndex < [mCertificatesData count])
+  if (rowIndex != -1 && (unsigned int)rowIndex < [mCertificatesData count])
   {
     rowDict = [mCertificatesData objectAtIndex:rowIndex];
     CertificatesDataSource* certsDataSource = [rowDict objectForKey:@"data_source"];
