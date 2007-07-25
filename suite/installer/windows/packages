@@ -67,6 +67,7 @@ bin\jsj3250.dll
 ; GFX files
 bin\thebes.dll
 bin\gkgfx.dll
+bin\mozlcms.dll
 bin\components\gkgfxthebes.dll
 bin\components\gkwidget.dll
 bin\components\gfx.xpt
@@ -282,10 +283,6 @@ bin\modules\*
 
 ; NegotiateAuth
 bin\components\auth.dll
-
-; webservices
-bin\components\websrvcs.dll
-bin\components\websrvcs.xpt
 
 ; LDAP components need to be in the browser for AutoConfig
 bin\components\mozldap.dll
