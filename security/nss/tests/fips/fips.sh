@@ -138,19 +138,33 @@ fips_140()
 
   echo "$SCRIPTNAME: List the FIPS module certificates -----------------"
   echo "certutil -d ${P_R_FIPSDIR} -L"
-  certutil -d ${P_R_FIPSDIR} -L 2>&1
-  html_msg $? 0 "List the FIPS module certificates (certutil -L)" "."
+  certs=`certutil -d ${P_R_FIPSDIR} -L 2>&1`
+  ret=$?
+  echo "${certs}" 
+  if [ ${ret} -eq 0 ]; then
+    echo "${certs}" | grep FIPS_PUB_140_Test_Certificate > /dev/null
+    ret=$?
+  fi
+  html_msg $ret 0 "List the FIPS module certificates (certutil -L)" "."
+
 
   echo "$SCRIPTNAME: Delete the certificate and key from the FIPS module"
   echo "certutil -d ${P_R_FIPSDIR} -F -n ${FIPSCERTNICK} -f ${R_FIPSPWFILE}"
   certutil -d ${P_R_FIPSDIR} -F -n ${FIPSCERTNICK} -f ${R_FIPSPWFILE} 2>&1
-  html_msg $? 0 "Delete the certificate and key from the FIPS module (certutil -D)" "."
-
+  html_msg $? 0 "Delete the certificate and key from the FIPS module (certutil -F)" "."
 
   echo "$SCRIPTNAME: List the FIPS module certificates -----------------"
   echo "certutil -d ${P_R_FIPSDIR} -L"
-  certutil -d ${P_R_FIPSDIR} -L 2>&1
-  html_msg $? 0 "List the FIPS module certificates (certutil -L)" "."
+  certs=`certutil -d ${P_R_FIPSDIR} -L 2>&1`
+  ret=$?
+  echo "${certs}" 
+  if [ ${ret} -eq 0 ]; then
+    echo "${certs}" | grep FIPS_PUB_140_Test_Certificate > /dev/null
+    if [ $? -eq 0 ]; then
+      ret=255
+    fi
+  fi
+  html_msg $ret 0 "List the FIPS module certificates (certutil -L)" "."
 
   echo "$SCRIPTNAME: List the FIPS module keys."
   echo "certutil -d ${P_R_FIPSDIR} -K -f ${R_FIPSPWFILE}"
@@ -159,6 +173,7 @@ fips_140()
   # our delete succeded.
   html_msg $? 255 "List the FIPS module keys (certutil -K)" "."
 
+
   echo "$SCRIPTNAME: Import the certificate and key from the PKCS#12 file"
   echo "pk12util -d ${P_R_FIPSDIR} -i fips140.p12 -w ${R_FIPSP12PWFILE} -k ${R_FIPSPWFILE}"
   pk12util -d ${P_R_FIPSDIR} -i fips140.p12 -w ${R_FIPSP12PWFILE} -k ${R_FIPSPWFILE} 2>&1
@@ -166,13 +181,61 @@ fips_140()
 
   echo "$SCRIPTNAME: List the FIPS module certificates -----------------"
   echo "certutil -d ${P_R_FIPSDIR} -L"
-  certutil -d ${P_R_FIPSDIR} -L 2>&1
-  html_msg $? 0 "List the FIPS module certificates (certutil -L)" "."
+  certs=`certutil -d ${P_R_FIPSDIR} -L 2>&1`
+  ret=$?
+  echo "${certs}" 
+  if [ ${ret} -eq 0 ]; then
+    echo "${certs}" | grep FIPS_PUB_140_Test_Certificate > /dev/null
+    ret=$?
+  fi
+  html_msg $ret 0 "List the FIPS module certificates (certutil -L)" "."
 
   echo "$SCRIPTNAME: List the FIPS module keys --------------------------"
   echo "certutil -d ${P_R_FIPSDIR} -K -f ${R_FIPSPWFILE}"
   certutil -d ${P_R_FIPSDIR} -K -f ${R_FIPSPWFILE} 2>&1
   html_msg $? 0 "List the FIPS module keys (certutil -K)" "."
+
+
+  echo "$SCRIPTNAME: Delete the certificate from the FIPS module"
+  echo "certutil -d ${P_R_FIPSDIR} -D -n ${FIPSCERTNICK}"
+  certutil -d ${P_R_FIPSDIR} -D -n ${FIPSCERTNICK} 2>&1
+  html_msg $? 0 "Delete the certificate from the FIPS module (certutil -D)" "."
+
+  echo "$SCRIPTNAME: List the FIPS module certificates -----------------"
+  echo "certutil -d ${P_R_FIPSDIR} -L"
+  certs=`certutil -d ${P_R_FIPSDIR} -L 2>&1`
+  ret=$?
+  echo "${certs}" 
+  if [ ${ret} -eq 0 ]; then
+    echo "${certs}" | grep FIPS_PUB_140_Test_Certificate > /dev/null
+    if [ $? -eq 0 ]; then
+      ret=255
+    fi
+  fi
+  html_msg $ret 0 "List the FIPS module certificates (certutil -L)" "."
+
+
+  echo "$SCRIPTNAME: Import the certificate and key from the PKCS#12 file"
+  echo "pk12util -d ${P_R_FIPSDIR} -i fips140.p12 -w ${R_FIPSP12PWFILE} -k ${R_FIPSPWFILE}"
+  pk12util -d ${P_R_FIPSDIR} -i fips140.p12 -w ${R_FIPSP12PWFILE} -k ${R_FIPSPWFILE} 2>&1
+  html_msg $? 0 "Import the certificate and key from the PKCS#12 file (pk12util -i)" "."
+
+  echo "$SCRIPTNAME: List the FIPS module certificates -----------------"
+  echo "certutil -d ${P_R_FIPSDIR} -L"
+  certs=`certutil -d ${P_R_FIPSDIR} -L 2>&1`
+  ret=$?
+  echo "${certs}" 
+  if [ ${ret} -eq 0 ]; then
+    echo "${certs}" | grep FIPS_PUB_140_Test_Certificate > /dev/null
+    ret=$?
+  fi
+  html_msg $ret 0 "List the FIPS module certificates (certutil -L)" "."
+
+  echo "$SCRIPTNAME: List the FIPS module keys --------------------------"
+  echo "certutil -d ${P_R_FIPSDIR} -K -f ${R_FIPSPWFILE}"
+  certutil -d ${P_R_FIPSDIR} -K -f ${R_FIPSPWFILE} 2>&1
+  html_msg $? 0 "List the FIPS module keys (certutil -K)" "."
+
 
   echo "$SCRIPTNAME: Run PK11MODE in FIPSMODE  -----------------"
   echo "pk11mode -d ${P_R_FIPSDIR} -p fips- -f ${R_FIPSPWFILE}"
