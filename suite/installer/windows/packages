@@ -264,7 +264,6 @@ bin\components\nsComposerCmdLineHandler.js
 bin\components\nsDictionary.js
 bin\components\nsExtensionManager.js
 bin\components\nsInterfaceInfoToIDL.js
-bin\components\nsKillAll.js
 bin\components\nsPostUpdateWin.js
 bin\components\nsProxyAutoConfig.js
 bin\components\nsResetPref.js
