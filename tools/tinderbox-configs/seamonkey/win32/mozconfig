@@ -7,15 +7,5 @@
 mk_add_options MOZ_CO_PROJECT=suite
 ac_add_options --enable-application=suite
 
-ac_add_options --enable-default-toolkit=cairo-windows
-
-ac_add_options --without-system-jpg
-ac_add_options --without-system-zlib
-ac_add_options --enable-extensions=default,tasks
-ac_add_options --enable-crypto
-ac_add_options --disable-auto-deps
 ac_add_options --disable-debug
 ac_add_options --enable-optimize
-
-ac_add_options --enable-svg
-ac_add_options --enable-canvas
