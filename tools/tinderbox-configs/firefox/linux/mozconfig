@@ -18,13 +18,6 @@ ac_add_options --disable-debug
 ac_add_options --disable-tests
 #not yet
 #ac_add_options --enable-glitz
-ac_add_options --enable-canvas
-ac_add_options --enable-svg
-ac_add_options --enable-pango
-ac_add_options --enable-default-toolkit=cairo-gtk2
-
-ac_add_options --enable-libxul
-ac_add_options --enable-places-bookmarks
 
 ac_add_options --enable-codesighs
 

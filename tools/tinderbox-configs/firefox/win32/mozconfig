@@ -3,7 +3,6 @@
 ## uname: CYGWIN_NT-5.2 fx-win32-tbox 1.5.19(0.150/4/2) 2006-01-20 13:28 i686 Cygwin
 #
 
-
 # . $topsrcdir/browser/config/mozconfig
 
 mk_add_options MOZ_CO_PROJECT=browser
@@ -18,7 +17,4 @@ ac_add_options --disable-debug
 # ac_add_options --enable-codesighs
 ac_add_options --disable-tests
 # ac_add_options --enable-official-branding
-ac_add_options --enable-svg
-ac_add_options --enable-canvas
-ac_add_options --enable-default-toolkit=cairo-windows
 ac_add_options --enable-update-packaging
