@@ -791,6 +791,8 @@ safe_popen(char *cmd)
 
     pid = fork();
     switch (pid) {
+      int ndesc;
+
       case -1:
 	fclose(fp); /* this closes p[0], the fd associated with fp */
 	close(p[1]);
@@ -801,11 +803,15 @@ safe_popen(char *cmd)
 	/* dup write-side of pipe to stderr and stdout */
 	if (p[1] != 1) dup2(p[1], 1);
 	if (p[1] != 2) dup2(p[1], 2);
-	close(0);
-        {
-            int ndesc = getdtablesize();
-            for (fd = PR_MIN(65536, ndesc); --fd > 2; close(fd));
-        }
+
+	/* 
+	 * close the other file descriptors, except stdin which we
+	 * try reassociating with /dev/null, first (bug 174993)
+	 */
+	if (!freopen("/dev/null", "r", stdin))
+	    close(0);
+	ndesc = getdtablesize();
+	for (fd = PR_MIN(65536, ndesc); --fd > 2; close(fd));
 
 	/* clean up environment in the child process */
 	putenv("PATH=/bin:/usr/bin:/sbin:/usr/sbin:/etc:/usr/etc");
