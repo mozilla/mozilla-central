@@ -124,6 +124,7 @@ struct _md_sockaddr_in6 {
 #define _PR_PEEK_BUFFER_MAX (32 * 1024)
 #define _PR_FD_NEED_EMULATE_MSG_PEEK(fd) \
     (!(fd)->secret->nonblocking && (fd)->secret->inheritable != _PR_TRI_TRUE)
+#define _PR_NEED_SECRET_AF
 
 /* --- Common User-Thread/Native-Thread Definitions --------------------- */
 

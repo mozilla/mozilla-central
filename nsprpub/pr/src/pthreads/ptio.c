@@ -3465,7 +3465,7 @@ PR_IMPLEMENT(PRFileDesc*) PR_Socket(PRInt32 domain, PRInt32 type, PRInt32 proto)
         fd = pt_SetMethods(osfd, ftype, PR_FALSE, PR_FALSE);
         if (fd == NULL) close(osfd);
     }
-#ifdef _PR_STRICT_ADDR_LEN
+#ifdef _PR_NEED_SECRET_AF
     if (fd != NULL) fd->secret->af = domain;
 #endif
 #if defined(_PR_INET6_PROBE) || !defined(_PR_INET6)
@@ -4456,7 +4456,7 @@ PR_IMPLEMENT(PRFileDesc*) PR_ImportTCPSocket(PRInt32 osfd)
     if (!_pr_initialized) _PR_ImplicitInitialization();
     fd = pt_SetMethods(osfd, PR_DESC_SOCKET_TCP, PR_FALSE, PR_TRUE);
     if (NULL == fd) close(osfd);
-#ifdef _PR_STRICT_ADDR_LEN
+#ifdef _PR_NEED_SECRET_AF
     if (NULL != fd) fd->secret->af = PF_INET;
 #endif
     return fd;

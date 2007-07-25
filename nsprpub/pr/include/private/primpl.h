@@ -1745,12 +1745,10 @@ struct PRFilePrivate {
                          * append mode.  See Bugzilla 4090, 276330. */
 #endif
     _MDFileDesc md;
-#ifdef _PR_STRICT_ADDR_LEN
-    PRUint16 af;        /* If the platform requires passing the exact
-                         * length of the sockaddr structure for the
-                         * address family of the socket to socket
-                         * functions like accept(), we need to save
-                         * the address family of the socket. */
+#ifdef _PR_NEED_SECRET_AF
+    PRUint16 af;        /* If the platform's implementation of accept()
+                         * requires knowing the address family of the 
+			 * socket, we save the address family here. */
 #endif
 };
 

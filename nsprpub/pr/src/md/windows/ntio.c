@@ -64,8 +64,10 @@ static PRThread             *_pr_io_completion_thread;
 
 #define RECYCLE_SIZE 512
 static struct _MDLock        _pr_recycle_lock;
-static PRInt32               _pr_recycle_array[RECYCLE_SIZE];
-static PRInt32               _pr_recycle_tail = 0; 
+static PRInt32               _pr_recycle_INET_array[RECYCLE_SIZE];
+static PRInt32               _pr_recycle_INET_tail = 0; 
+static PRInt32               _pr_recycle_INET6_array[RECYCLE_SIZE];
+static PRInt32               _pr_recycle_INET6_tail = 0; 
 
 __declspec(thread) PRThread *_pr_io_restarted_io = NULL;
 DWORD _pr_io_restartedIOIndex;  /* The thread local storage slot for each
@@ -965,15 +967,20 @@ _PR_MD_INIT_IO()
  * second argument.
  */
 static SOCKET
-_md_get_recycled_socket()
+_md_get_recycled_socket(int af)
 {
     SOCKET rv;
-    int af = AF_INET;
 
     _MD_LOCK(&_pr_recycle_lock);
-    if (_pr_recycle_tail) {
-        _pr_recycle_tail--;
-        rv = _pr_recycle_array[_pr_recycle_tail];
+    if (af == AF_INET && _pr_recycle_INET_tail) {
+        _pr_recycle_INET_tail--;
+        rv = _pr_recycle_INET_array[_pr_recycle_INET_tail];
+        _MD_UNLOCK(&_pr_recycle_lock);
+        return rv;
+    }
+    if (af == AF_INET6 && _pr_recycle_INET6_tail) {
+        _pr_recycle_INET6_tail--;
+        rv = _pr_recycle_INET6_array[_pr_recycle_INET6_tail];
         _MD_UNLOCK(&_pr_recycle_lock);
         return rv;
     }
@@ -991,14 +998,19 @@ _md_get_recycled_socket()
  * Add a socket to the recycle bin.
  */
 static void
-_md_put_recycled_socket(SOCKET newsock)
+_md_put_recycled_socket(SOCKET newsock, int af)
 {
-    PR_ASSERT(_pr_recycle_tail >= 0);
+    PR_ASSERT(_pr_recycle_INET_tail >= 0);
+    PR_ASSERT(_pr_recycle_INET6_tail >= 0);
 
     _MD_LOCK(&_pr_recycle_lock);
-    if (_pr_recycle_tail < RECYCLE_SIZE) {
-        _pr_recycle_array[_pr_recycle_tail] = newsock;
-        _pr_recycle_tail++;
+    if (af == AF_INET && _pr_recycle_INET_tail < RECYCLE_SIZE) {
+        _pr_recycle_INET_array[_pr_recycle_INET_tail] = newsock;
+        _pr_recycle_INET_tail++;
+        _MD_UNLOCK(&_pr_recycle_lock);
+    } else if (af == AF_INET6 && _pr_recycle_INET6_tail < RECYCLE_SIZE) {
+        _pr_recycle_INET6_array[_pr_recycle_INET6_tail] = newsock;
+        _pr_recycle_INET6_tail++;
         _MD_UNLOCK(&_pr_recycle_lock);
     } else {
         _MD_UNLOCK(&_pr_recycle_lock);
@@ -1327,7 +1339,7 @@ _PR_MD_FAST_ACCEPT(PRFileDesc *fd, PRNetAddr *raddr, PRUint32 *rlen,
         }
     }
 
-    accept_sock = _md_get_recycled_socket();
+    accept_sock = _md_get_recycled_socket(fd->secret->af);
     if (accept_sock == INVALID_SOCKET)
         return -1;
 
@@ -1357,7 +1369,7 @@ _PR_MD_FAST_ACCEPT(PRFileDesc *fd, PRNetAddr *raddr, PRUint32 *rlen,
                   &bytes,
                   &(me->md.overlapped.overlapped));
 
-    if ( (rv == 0) && ((err = GetLastError()) != ERROR_IO_PENDING))  {
+    if ( (rv == 0) && ((err = WSAGetLastError()) != ERROR_IO_PENDING))  {
         /* Argh! The IO failed */
 		closesocket(accept_sock);
 		_PR_THREAD_LOCK(me);
@@ -1450,7 +1462,7 @@ _PR_MD_FAST_ACCEPT_READ(PRFileDesc *sd, PROsfd *newSock, PRNetAddr **raddr,
         sd->secret->md.io_model_committed = PR_TRUE;
     }
 
-    *newSock = _md_get_recycled_socket();
+    *newSock = _md_get_recycled_socket(sd->secret->af);
     if (*newSock == INVALID_SOCKET)
         return -1;
 
@@ -1700,7 +1712,7 @@ _PR_MD_SENDFILE(PRFileDesc *sock, PRSendFileData *sfd,
     }
 
     if (flags & PR_TRANSMITFILE_CLOSE_SOCKET) {
-        _md_put_recycled_socket(sock->secret->md.osfd);
+        _md_put_recycled_socket(sock->secret->md.osfd, sock->secret->af);
     }
 
     PR_ASSERT(me->io_pending == PR_FALSE);
