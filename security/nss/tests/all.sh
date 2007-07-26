@@ -147,11 +147,11 @@ done
 
 if [ -d fips ]; then
    echo "upgrading db fips" | tee -a ${LOGFILE}
-   certutil -S -g 512 -n tmprsa -t "u,u,u" -s "CN=tmprsa, C=US" -x -d sql:fips -f ${FIPSPWFILE} -z ${NOISE_FILE} 2&>1 | tee -a ${LOGFILE}
+   certutil -S -g 512 -n tmprsa -t "u,u,u" -s "CN=tmprsa, C=US" -x -d sql:fips -f ${FIPSPWFILE} -z ${NOISE_FILE} 2>&1 | tee -a ${LOGFILE}
    html_msg $? 0 "Upgrading fips"
    # remove our temp certificate we created in the fist token
-   certutil -F -n tmprsa -d sql:fips -f ${FIPSPWFILE} 2&>1 | tee -a ${LOGFILE}
-   certutil -L -d sql:fips 2&>1 | tee -a ${LOGFILE}
+   certutil -F -n tmprsa -d sql:fips -f ${FIPSPWFILE} 2>&1 | tee -a ${LOGFILE}
+   certutil -L -d sql:fips 2>&1 | tee -a ${LOGFILE}
 fi
 
 html "</TABLE><BR>"
