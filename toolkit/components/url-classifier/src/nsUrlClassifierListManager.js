@@ -39,6 +39,7 @@ const Cc = Components.classes;
 const Ci = Components.interfaces;
 
 #include ../content/listmanager.js
+#include ../content/wireformat.js
 
 var modScope = this;
 function Init() {
