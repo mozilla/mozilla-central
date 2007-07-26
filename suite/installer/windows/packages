@@ -278,6 +278,7 @@ bin\components\txEXSLTRegExFunctions.js
 bin\components\nsAboutAbout.js
 bin\components\nsDefaultCLH.js
 bin\components\nsContentDispatchChooser.js
+bin\components\nsHandlerService.js
 
 ; Modules
 bin\modules\*
