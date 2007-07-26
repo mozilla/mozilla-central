@@ -2640,7 +2640,6 @@ nsresult nsMsgDBView::DeleteMessages(nsIMsgWindow *window, nsMsgViewIndex *indic
     NS_WARNING("Last delete did not complete");
     return NS_OK;
   }
-
   if (mDeleteModel != nsMsgImapDeleteModels::IMAPDelete)
     m_deletingRows = PR_TRUE;
 
@@ -3062,12 +3061,6 @@ nsMsgDBView::DetermineActionsForJunkMsgs(PRBool* movingJunkMessages, PRBool* mar
 
   if (manualMarkMode == nsISpamSettings::MANUAL_MARK_MODE_MOVE)
   {
-    PRBool moveOnSpam;
-    (void)spamSettings->GetMoveOnSpam(&moveOnSpam);
-    // if move of spam not enabled, bail out
-    if (!moveOnSpam)
-      return NS_OK;
-
     // if this is a junk folder
     // (not only "the" junk folder for this account)
     // don't do the move
