@@ -1776,7 +1776,7 @@ nsSaveMsgListener::OnStopRunningUrl(nsIURI *url, nsresult exitCode)
 
   if (m_outputStream)
   {
-    if (mRequestHasStopped)
+    if (mRequestHasStopped || !m_templateUri.IsEmpty())
     {
       m_outputStream->Close();
       m_outputStream = nsnull;
@@ -1796,8 +1796,12 @@ nsSaveMsgListener::OnStopRunningUrl(nsIURI *url, nsresult exitCode)
       if (NS_FAILED(rv)) goto done;
       nsCOMPtr<nsIMsgCopyService> copyService = do_GetService(NS_MSGCOPYSERVICE_CONTRACTID);
       if (copyService)
-        rv = copyService->CopyFileMessage(m_file, templateFolder, nsnull,
+      {
+        nsCOMPtr <nsIFile> clone;
+        m_file->Clone(getter_AddRefs(clone));
+        rv = copyService->CopyFileMessage(clone, templateFolder, nsnull,
                                           PR_TRUE, MSG_FLAG_READ, this, nsnull);
+      }
       killSelf = PR_FALSE;
     }
   }
