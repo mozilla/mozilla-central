@@ -1962,8 +1962,10 @@ nsXFormsUtils::GetElementById(const nsAString  &aId,
     if (type == nsIDOMNode::ELEMENT_NODE) {
       nsCOMPtr<nsIContent> content(do_QueryInterface(childNode));
       NS_ASSERTION(content, "An ELEMENT_NODE not implementing nsIContent?!");
-      if (content->AttrValueIs(kNameSpaceID_None, content->GetIDAttributeName(),
-                               aId, eCaseMatters)) {
+      PRInt32 namespaceID;
+      nsIAtom* idAtom = content->GetIDAttributeName(namespaceID);
+      if (idAtom &&
+          content->AttrValueIs(namespaceID, idAtom, aId, eCaseMatters)) {
         element = do_QueryInterface(childNode);
         break;
       }
