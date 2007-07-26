@@ -148,7 +148,10 @@ class BonsaiParser:
         elif len(logs) > 1:
             raise InvalidResultError("Multiple logs present")
 
-        return logs[0].firstChild.data
+        # catch empty check-in comments
+        if logs[0].firstChild:
+            return logs[0].firstChild.data
+        return ''
 
     def _getWho(self):
         """Returns the e-mail address of the commiter"""
@@ -290,7 +293,6 @@ class BonsaiPoller(base.ChangeSource):
         return defer.maybeDeferred(urlopen, url)
 
     def _process_changes(self, query):
-        files = []
         try:
             bp = BonsaiParser(query)
             result = bp.getData()
@@ -301,8 +303,8 @@ class BonsaiPoller(base.ChangeSource):
             return
 
         for cinode in result.nodes:
-            for file in cinode.files:
-                files.append(file.filename+' (revision '+file.revision+')')
+            files = [file.filename + ' (revision '+file.revision+')'
+                     for file in cinode.files]
             c = changes.Change(who = cinode.who,
                                files = files,
                                comments = cinode.log,
