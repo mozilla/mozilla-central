@@ -397,26 +397,28 @@ function SwitchView(command)
 
   switch(command)
   {
-    case "cmd_viewUnreadMsgs":
-
-      viewFlags = viewFlags | nsMsgViewFlagsType.kUnreadOnly;
-      CreateDBView(msgWindow.openFolder, nsMsgViewType.eShowAllThreads, viewFlags,
-            oldSortType, oldSortOrder );
-    break;
+    // "All" threads and "Unread" threads don't change threading state
     case "cmd_viewAllMsgs":
       viewFlags = viewFlags & ~nsMsgViewFlagsType.kUnreadOnly;
       CreateDBView(msgWindow.openFolder, nsMsgViewType.eShowAllThreads, viewFlags,
             oldSortType, oldSortOrder);
-    break;
+      break;
+    case "cmd_viewUnreadMsgs":
+      viewFlags = viewFlags | nsMsgViewFlagsType.kUnreadOnly;
+      CreateDBView(msgWindow.openFolder, nsMsgViewType.eShowAllThreads, viewFlags,
+            oldSortType, oldSortOrder );
+      break;
+    // "Threads with Unread" and "Watched Threads with Unread" force threading
     case "cmd_viewThreadsWithUnread":
       CreateDBView(msgWindow.openFolder, nsMsgViewType.eShowThreadsWithUnread, nsMsgViewFlagsType.kThreadedDisplay,
-            nsMsgViewSortType.byThread, oldSortOrder);
-
-    break;
+            oldSortType, oldSortOrder);
+      break;
     case "cmd_viewWatchedThreadsWithUnread":
       CreateDBView(msgWindow.openFolder, nsMsgViewType.eShowWatchedThreadsWithUnread, nsMsgViewFlagsType.kThreadedDisplay,
-            nsMsgViewSortType.byThread, oldSortOrder);
-   break;
+            oldSortType, oldSortOrder);
+      break;
+    // "Ignored Threads" toggles 'ignored' inclusion --
+    //   but it also resets 'With Unread' views to 'All'
     case "cmd_viewIgnoredThreads":
       if (viewFlags & nsMsgViewFlagsType.kShowIgnored)
         viewFlags = viewFlags & ~nsMsgViewFlagsType.kShowIgnored;
@@ -424,7 +426,7 @@ function SwitchView(command)
         viewFlags = viewFlags | nsMsgViewFlagsType.kShowIgnored;
       CreateDBView(msgWindow.openFolder, nsMsgViewType.eShowAllThreads, viewFlags,
             oldSortType, oldSortOrder);
-    break;
+      break;
   }
 
   RerootThreadPane();
