@@ -277,6 +277,7 @@ bin\components\pluginGlue.js
 bin\components\txEXSLTRegExFunctions.js
 bin\components\nsAboutAbout.js
 bin\components\nsDefaultCLH.js
+bin\components\nsContentDispatchChooser.js
 
 ; Modules
 bin\modules\*
