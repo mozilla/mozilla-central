@@ -415,9 +415,9 @@ function refreshCalendarQuery()
 {
     var filter = this.calendar.ITEM_FILTER_CLASS_OCCURRENCES;
     if (document.getElementById("completed-tasks-checkbox").checked) {
-        filter = this.calendar.ITEM_FILTER_COMPLETED_ALL;
+        filter |= this.calendar.ITEM_FILTER_COMPLETED_ALL;
     } else {
-        filter = this.calendar.ITEM_FILTER_COMPLETED_NO;
+        filter |= this.calendar.ITEM_FILTER_COMPLETED_NO;
     }
 
     if (!this.filterType)
