@@ -187,10 +187,6 @@ nsDateTimeChannel::Open(nsIInputStream **_retval)
 NS_IMETHODIMP
 nsDateTimeChannel::AsyncOpen(nsIStreamListener *aListener, nsISupports *ctxt)
 {
-    if (mLoadFlags & LOAD_NO_NETWORK_IO) {
-        return NS_ERROR_NEEDS_NETWORK;
-    }
-
     nsresult rv = NS_CheckPortSafety(mPort, "datetime");
     if (NS_FAILED(rv)) return rv;
 
