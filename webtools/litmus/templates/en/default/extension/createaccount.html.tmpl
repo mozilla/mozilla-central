@@ -35,7 +35,10 @@
 #%]
 
 [% INCLUDE global/html_header.tmpl js_files = ['js/FormValidation.js'] %] 
-[% INCLUDE global/litmus_header.tmpl %] 
+
+<body style="background: none;">
+<div id="message"></div>
+ <div id="help"></div>
 
 [% # Dump CGI data into hidden fields for safekeeping as the user 
    # logs in
@@ -73,12 +76,8 @@ function checkNewAccountFormContents(f) {
          );
 }
 </script>
-
-
-
-
-    <div class="section-full">
-      <div class="section-content">
+	
+      <div class="section-content" style="width: 450px;">
       
       [% IF adminrequired %]
         <h2 class="login_important">You must login to an administrative account to perform this function.</h2>
@@ -88,7 +87,9 @@ function checkNewAccountFormContents(f) {
 
           <div class="login_form" style="left: 10px;right: 20px; width: auto;height: auto;margin-top: 10px;">
 
-            <form name="litmus_login" action="[% return_to | none %]" method="post" onSubmit="return checkNewAccountFormContents(this);">
+            <form name="litmus_login" action="[% return_to | none %]" 
+              method="post" onSubmit="return checkNewAccountFormContents(this);"
+              autocomplete="off">
               <input name="login_type" type="hidden" value="newaccount">
               <input name="login_loc" type="hidden" value="[% return_to | html %]">
 			  <input name="login_extension" type="hidden" value="true">
@@ -130,7 +131,6 @@ function checkNewAccountFormContents(f) {
          </div>
 
       </div>
-    </div>
-    
+ 
 
 [% INCLUDE global/html_footer.tmpl %]
