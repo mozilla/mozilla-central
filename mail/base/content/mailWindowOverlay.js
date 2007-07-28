@@ -1461,18 +1461,18 @@ function CreateToolbarTooltip(document, event)
 function DisplayFolderAndThreadPane(show)
 {
   var collapse = !show;
-  if (gCurrentPaneConfig == kWidePaneConfig)
+  if (pref.getIntPref("mail.pane_config.dynamic") == kWidePaneConfig)
   {
-    document.getElementById("mailContent").collapsed = collapse;
+    document.getElementById("messengerBox").collapsed = collapse;
     // if opening a standalone message, need to give the messagepanebox flex.
     if (collapse)
       document.getElementById("messagepanebox").flex = 1;
   }
 
+  document.getElementById("displayDeck").collapsed = collapse;
   document.getElementById("threadpane-splitter").collapsed = collapse;
   document.getElementById("folderpane_splitter").collapsed = collapse;
   document.getElementById("folderPaneBox").collapsed = collapse;
-  document.getElementById("messengerBox").collapsed = collapse;
   try {
     document.getElementById("search-container").collapsed = collapse;
   } catch (ex) {}
@@ -1973,7 +1973,6 @@ function MsgApplyFilters()
 function ChangeMailLayout(newLayout)
 {
   gPrefBranch.setIntPref("mail.pane_config.dynamic", newLayout);
-  return true;
 }
 
 function MsgViewAllHeaders()

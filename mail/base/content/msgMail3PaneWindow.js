@@ -65,8 +65,7 @@ var gSearchInput;
 var gThreadAndMessagePaneSplitter = null;
 var gUnreadCount = null;
 var gTotalCount = null;
-var gCurrentPaneConfig = 0;
-var gCurrentFolderView;  
+var gCurrentFolderView;
 var gCurrentLoadingFolderURI;
 var gCurrentFolderToReroot;
 var gCurrentLoadingFolderSortType = 0;
@@ -685,81 +684,25 @@ var gThreePaneIncomingServerListener = {
 }
 
 // aMsgWindowInitialized: false if we are calling from the onload handler, otherwise true
-
 function UpdateMailPaneConfig(aMsgWindowInitialized) {
-  var paneConfig = pref.getIntPref("mail.pane_config.dynamic");
-  
-  if (paneConfig == kStandardPaneConfig)
-    document.getElementById('messagepanebox').setAttribute('flex', 1);
-  else 
-    document.getElementById('messagepanebox').removeAttribute('flex');
-      
-  // don't do anything if we are already in the correct configuration
-  if (paneConfig == gCurrentPaneConfig)
-    return;
-
-  var mailContentWrapper = document.getElementById("mailContentWrapper");
-  var messagesBox = document.getElementById("messagesBox");
-  var messengerBox = document.getElementById("messengerBox");
-  var messagePaneBox = GetMessagePane();
-  var msgPaneReRooted = false;
-  var threadPaneSplitter = GetThreadAndMessagePaneSplitter();
-
-  // the only element we need to re-root is the message pane.
-  var desiredMsgPaneParentId = (paneConfig == "0" || paneConfig == "2") ? "messagesBox" : "mailContentWrapper";
-
-  if (messagePaneBox.parentNode.id != desiredMsgPaneParentId)
-  {
-    var messagePaneParent = document.getElementById(messagePaneBox.parentNode.id);
-    messagePaneParent.removeChild(threadPaneSplitter);
-    messagePaneParent.removeChild(messagePaneBox);
-
-    var messagePaneNewParent = document.getElementById(desiredMsgPaneParentId);
-    messagePaneNewParent.appendChild(threadPaneSplitter);
-    messagePaneNewParent.appendChild(messagePaneBox);
-    msgPaneReRooted = true;
+  const dynamicIds = ["messagesBox", "mailContent", "threadPaneBox"];
+  var desiredId = dynamicIds[pref.getIntPref("mail.pane_config.dynamic")];
+  var messagePane = GetMessagePane();
+  if (messagePane.parentNode.id != desiredId) {
+    ClearAttachmentList();
+    var messagePaneSplitter = GetThreadAndMessagePaneSplitter();
+    var desiredParent = document.getElementById(desiredId);
+    desiredParent.appendChild(messagePaneSplitter);
+    desiredParent.appendChild(messagePane);
+    messagePaneSplitter.orient = desiredParent.orient;
+    if (aMsgWindowInitialized)
+    {
+      messenger.setWindow(null, null);
+      messenger.setWindow(window, msgWindow);
+      if (gDBView && GetNumSelectedMessages() == 1)
+        gDBView.reloadMessage();
+    }
   }
-
-  // now for each config, handle any extra clean up to create that view (such as changing a box orientation)
-  if (paneConfig == kStandardPaneConfig) // standard 3-Pane Layout
-  {     
-    threadPaneSplitter.setAttribute("orient", "vertical");
-
-    // finally, make sure mailContentWrapper has the correct orientation
-    mailContentWrapper.setAttribute("orient", "horizontal");
-    messagesBox.setAttribute("orient", "vertical");
-  }
-  else if (paneConfig == kWidePaneConfig)  // "Wide" Window Pane Layout
-  {     
-    threadPaneSplitter.setAttribute("orient", "vertical");
-
-    // finally, make sure mailContentWrapper has the correct orientation
-    mailContentWrapper.setAttribute("orient", "vertical");
-    messagesBox.setAttribute("orient", "vertical");
-  }  
-  else if (paneConfig == kVerticalPaneConfig) // Vertical Pane Layout
-  {
-    messagesBox.setAttribute("orient", "horizontal");
-    threadPaneSplitter.removeAttribute("orient");
-    // finally, make sure mailContentWrapper has the correct orientation
-    mailContentWrapper.setAttribute("orient", "horizontal");
-  }
-
-  // re-rooting the message pane causes the docshell to get destroyed 
-  // and replaced with another one. As such, we need to re-set the window (and thus the 
-  // internal references nsMessenger keeps for the message pane docshell)
-  // XXX: is it safe to call this multiple times? May need to add a setMessagePaneDocShell
-  //      routine to nsIMessenger.
-
-  if (aMsgWindowInitialized && msgPaneReRooted)
-  {
-    messenger.setWindow(null, null);
-    messenger.setWindow(window, msgWindow);
-    MsgReload(); 
-  }
-
-  // record the new configuration
-  gCurrentPaneConfig = paneConfig; 
 }
 
 const MailPrefObserver = {

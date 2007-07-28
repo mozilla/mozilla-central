@@ -1473,7 +1473,7 @@ function HandleAllAttachments(action)
 
    // populate these arrays..
    var actionIndex = 0;
-   for (index in currentAttachments)
+   for (var index in currentAttachments)
    {
      // exclude all attachments already deleted
      var attachment = currentAttachments[index];
@@ -1514,7 +1514,7 @@ function HandleAllAttachments(action)
 function ClearAttachmentList() 
 { 
   // we also have to disable the File/Attachments menuitem
-  node = document.getElementById("fileAttachmentMenu");
+  var node = document.getElementById("fileAttachmentMenu");
   if (node)
     node.setAttribute("disabled", "true");
 

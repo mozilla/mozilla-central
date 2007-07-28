@@ -166,8 +166,8 @@
   </toolbox>
   <tabmail id="tabmail" flex="1">
     <!-- when we move to the alternate 3-pane, mailContentWrapper gets toggled to a vertical orientation -->
-    <box id="mailContentWrapper" orient="horizontal" flex="1">
-    <hbox id="mailContent" flex="1">
+    <box id="mailContent" orient="vertical" flex="1">
+    <box id="messengerBox" orient="horizontal" flex="1" minheight="100" heigh="100" persist="height">
     <vbox id="folderPaneBox" minwidth="100" width="200" persist="collapsed width">
       <label id="folderColumnLabel" hidden="true" value="&folderColumn.label;"/>
       <sidebarheader id="folderPaneHeader" align="center">
@@ -305,7 +305,6 @@
 
     <vbox flex="1">
       <box orient="vertical" id="messagesBox" flex="1">
-        <hbox id="messengerBox" flex="1" minheight="100" height="100" persist="height">
           <deck id="displayDeck" flex="1" selectedIndex="0"
                 onselect="ObserveDisplayDeckChange(event)">
           <!-- first panel in displayDeck is Account Central -->
@@ -313,7 +312,7 @@
             <iframe name="accountCentralPane" width="150" flex="1" src="about:blank"/>
           </vbox>
           <!-- second panel is the threadPane -->
-          <vbox id="threadPaneBox" flex="1">
+          <hbox id="threadPaneBox">
             <tree id="threadTree" persist="lastfoldersent" flex="2" enableColumnDrag="true" _selectDelay="500" class="plain focusring" lastfoldersent="false"
                          disableKeyNavigation="true"
                          context="threadPaneContext"
@@ -383,16 +382,15 @@
               </treecols>
             <treechildren ondraggesture="BeginDragThreadPane(event);"/>
           </tree>
-        </vbox>
+        </hbox>
         <!-- extensions may overlay in additional panels; don't assume that there are only 2! -->
         </deck> <!-- displayDeck -->
-      </hbox>
 
       <!-- if you change this id, please change GetThreadAndMessagePaneSplitter() and MsgToggleMessagePane() -->
         <splitter id="threadpane-splitter" collapse="after" persist="state" collapsed="true"
                   onmouseup="OnMouseUpThreadAndMessagePaneSplitter()"/>
 
-        <vbox id="messagepanebox" flex="1" minheight="100" height="200"
+        <vbox id="messagepanebox" flex="2" minheight="100" height="200"
               minwidth="100" width="200" persist="height width">
           <deck id="msgNotificationBar"/>
           <hbox id="msgHeaderView"/>
@@ -406,8 +404,8 @@
         </vbox>
       </box>
     </vbox>
-  </hbox>
-  </box> <!-- end of mailContentWrapper -->
+  </box>
+  </box> <!-- end of mailContent -->
 
     </tabmail>
 
