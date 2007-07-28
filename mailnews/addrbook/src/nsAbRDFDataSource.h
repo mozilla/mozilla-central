@@ -38,12 +38,12 @@
 #ifndef nsAbRDFDataSource_h__
 #define nsAbRDFDataSource_h__
 
-
 #include "nsCOMPtr.h"
 #include "nsIRDFDataSource.h"
 #include "nsIRDFService.h"
-#include "nsISupportsArray.h"
+#include "nsCOMArray.h"
 #include "nsString.h"
+#include "nsCycleCollectionParticipant.h"
 
 /**
  * The addressbook data source.
@@ -51,45 +51,46 @@
 class nsAbRDFDataSource : public nsIRDFDataSource
 {
 public:
-	NS_DECL_ISUPPORTS
-	NS_DECL_NSIRDFDATASOURCE
+  NS_DECL_CYCLE_COLLECTING_ISUPPORTS
+  NS_DECL_CYCLE_COLLECTION_CLASS_AMBIGUOUS(nsAbRDFDataSource,
+                                           nsIRDFDataSource)
+  NS_DECL_NSIRDFDATASOURCE
 
-	nsAbRDFDataSource();
-	virtual ~nsAbRDFDataSource();
-  
+  nsAbRDFDataSource();
+  virtual ~nsAbRDFDataSource();
+
 protected:
 
-	nsresult createNode(const PRUnichar *str, nsIRDFNode **node);
+  nsresult createNode(const PRUnichar *str, nsIRDFNode **node);
   nsresult createBlobNode(PRUint8 *value, PRUint32 &length, nsIRDFNode **node, nsIRDFService *rdfService);
 
-	nsresult NotifyPropertyChanged(
-		nsIRDFResource *resource,
-		nsIRDFResource *propertyResource,
-		const PRUnichar *oldValue,
-		const PRUnichar *newValue);
+  nsresult NotifyPropertyChanged(
+    nsIRDFResource *resource,
+    nsIRDFResource *propertyResource,
+    const PRUnichar *oldValue,
+    const PRUnichar *newValue);
 
-	nsresult NotifyObservers(
-		nsIRDFResource *subject,
-		nsIRDFResource *property,
-		nsIRDFNode *object,
-		PRBool assert,
-		PRBool change);
+  nsresult NotifyObservers(
+    nsIRDFResource *subject,
+    nsIRDFResource *property,
+    nsIRDFNode *object,
+    PRBool assert,
+    PRBool change);
 
-	nsresult CreateProxyObservers ();
+  nsresult CreateProxyObservers ();
 
-	nsresult CreateProxyObserver (
-		nsIRDFObserver* observer,
-		nsIRDFObserver** proxyObserver);
+  nsresult CreateProxyObserver (
+  nsIRDFObserver* observer,
+  nsIRDFObserver** proxyObserver);
 
-	static PRBool assertEnumFunc(nsISupports *aElement, void *aData);
-	static PRBool unassertEnumFunc(nsISupports *aElement, void *aData);
-	static PRBool changeEnumFunc(nsISupports *aElement, void *aData);
+  static PRBool assertEnumFunc(nsIRDFObserver *aObserver, void *aData);
+  static PRBool unassertEnumFunc(nsIRDFObserver *aObserver, void *aData);
+  static PRBool changeEnumFunc(nsIRDFObserver *aObserver, void *aData);
 
 private:
-	nsCOMPtr<nsISupportsArray> mObservers;
-	nsCOMPtr<nsISupportsArray> mProxyObservers;
-
-	PRLock* mLock;
+  nsCOMArray<nsIRDFObserver> mObservers;
+  nsCOMArray<nsIRDFObserver> mProxyObservers;
+  PRLock* mLock;
 };
 
 #endif

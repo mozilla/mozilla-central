@@ -54,97 +54,97 @@
  * The addressbook data source.
  */
 class nsAbDirectoryDataSource : public nsAbRDFDataSource,
-							    public nsIAbListener, public nsIObserver, public nsSupportsWeakReference
+                  public nsIAbListener, public nsIObserver, public nsSupportsWeakReference
 {
 private:
-	PRBool	mInitialized;
+  PRBool  mInitialized;
 
 public:
   
-	NS_DECL_ISUPPORTS_INHERITED
+  NS_DECL_ISUPPORTS_INHERITED
   NS_DECL_NSIABLISTENER
   NS_DECL_NSIOBSERVER
 
-	nsAbDirectoryDataSource(void);
-	virtual ~nsAbDirectoryDataSource (void);
-	virtual nsresult Init();
+  nsAbDirectoryDataSource(void);
+  virtual ~nsAbDirectoryDataSource (void);
+  virtual nsresult Init();
 
-	// nsIRDFDataSource methods
-	NS_IMETHOD GetURI(char* *uri);
+  // nsIRDFDataSource methods
+  NS_IMETHOD GetURI(char* *uri);
 
-	NS_IMETHOD GetTarget(nsIRDFResource* source,
-					   nsIRDFResource* property,
-					   PRBool tv,
-					   nsIRDFNode** target);
+  NS_IMETHOD GetTarget(nsIRDFResource* source,
+             nsIRDFResource* property,
+             PRBool tv,
+             nsIRDFNode** target);
 
-	NS_IMETHOD GetTargets(nsIRDFResource* source,
-						nsIRDFResource* property,    
-						PRBool tv,
-						nsISimpleEnumerator** targets);
+  NS_IMETHOD GetTargets(nsIRDFResource* source,
+            nsIRDFResource* property,    
+            PRBool tv,
+            nsISimpleEnumerator** targets);
 
-	NS_IMETHOD Assert(nsIRDFResource* source,
-					nsIRDFResource* property, 
-					nsIRDFNode* target,
-					PRBool tv);
+  NS_IMETHOD Assert(nsIRDFResource* source,
+          nsIRDFResource* property, 
+          nsIRDFNode* target,
+          PRBool tv);
 
-	NS_IMETHOD HasAssertion(nsIRDFResource* source,
-						  nsIRDFResource* property,
-						  nsIRDFNode* target,
-						  PRBool tv,
-						  PRBool* hasAssertion);
+  NS_IMETHOD HasAssertion(nsIRDFResource* source,
+              nsIRDFResource* property,
+              nsIRDFNode* target,
+              PRBool tv,
+              PRBool* hasAssertion);
 
-	NS_IMETHOD HasArcOut(nsIRDFResource *aSource, nsIRDFResource *aArc, PRBool *result);
+  NS_IMETHOD HasArcOut(nsIRDFResource *aSource, nsIRDFResource *aArc, PRBool *result);
 
-	NS_IMETHOD ArcLabelsOut(nsIRDFResource* source,
-						  nsISimpleEnumerator** labels); 
+  NS_IMETHOD ArcLabelsOut(nsIRDFResource* source,
+              nsISimpleEnumerator** labels); 
 
-	NS_IMETHOD IsCommandEnabled(nsISupportsArray/*<nsIRDFResource>*/* aSources,
-							  nsIRDFResource*   aCommand,
-							  nsISupportsArray/*<nsIRDFResource>*/* aArguments,
-							  PRBool* aResult);
+  NS_IMETHOD IsCommandEnabled(nsISupportsArray/*<nsIRDFResource>*/* aSources,
+                nsIRDFResource*   aCommand,
+                nsISupportsArray/*<nsIRDFResource>*/* aArguments,
+                PRBool* aResult);
 
-	NS_IMETHOD DoCommand(nsISupportsArray/*<nsIRDFResource>*/* aSources,
-					   nsIRDFResource*   aCommand,
-					   nsISupportsArray/*<nsIRDFResource>*/* aArguments);
+  NS_IMETHOD DoCommand(nsISupportsArray/*<nsIRDFResource>*/* aSources,
+             nsIRDFResource*   aCommand,
+             nsISupportsArray/*<nsIRDFResource>*/* aArguments);
 
 protected:
 
-	nsresult createDirectoryNode(nsIAbDirectory* directory, nsIRDFResource* property,
+  nsresult createDirectoryNode(nsIAbDirectory* directory, nsIRDFResource* property,
                                  nsIRDFNode** target);
-	nsresult createDirectoryNameNode(nsIAbDirectory *directory,
+  nsresult createDirectoryNameNode(nsIAbDirectory *directory,
                                      nsIRDFNode **target);
-	nsresult createDirectoryUriNode(nsIAbDirectory *directory,
+  nsresult createDirectoryUriNode(nsIAbDirectory *directory,
                                      nsIRDFNode **target);
-	nsresult createDirectoryChildNode(nsIAbDirectory *directory,
+  nsresult createDirectoryChildNode(nsIAbDirectory *directory,
                                       nsIRDFNode **target);
-	nsresult createDirectoryIsMailListNode(nsIAbDirectory *directory,
+  nsresult createDirectoryIsMailListNode(nsIAbDirectory *directory,
                                       nsIRDFNode **target);
   nsresult createDirectoryIsRemoteNode(nsIAbDirectory *directory,
     nsIRDFNode **target);
   nsresult createDirectoryIsSecureNode(nsIAbDirectory *directory,
     nsIRDFNode **target);
-	nsresult createDirectoryIsWriteableNode(nsIAbDirectory *directory,
+  nsresult createDirectoryIsWriteableNode(nsIAbDirectory *directory,
                                             nsIRDFNode **target);
   nsresult createDirectorySupportsMailingListsNode(nsIAbDirectory* directory,
                                                    nsIRDFNode **target);
   nsresult createDirectoryTreeNameSortNode(nsIAbDirectory *directory,
                                             nsIRDFNode **target);
-	nsresult getDirectoryArcLabelsOut(nsIAbDirectory *directory,
-										   nsISupportsArray **arcs);
+  nsresult getDirectoryArcLabelsOut(nsIAbDirectory *directory,
+                       nsISupportsArray **arcs);
 
-	nsresult DoDeleteFromDirectory(nsISupportsArray *parentDirs,
-							  nsISupportsArray *delDirs);
-	nsresult DoDeleteCardsFromDirectory(nsIAbDirectory *directory,
-							  nsISupportsArray *delDirs);
+  nsresult DoDeleteFromDirectory(nsISupportsArray *parentDirs,
+                nsISupportsArray *delDirs);
+  nsresult DoDeleteCardsFromDirectory(nsIAbDirectory *directory,
+                nsISupportsArray *delDirs);
 
-	nsresult DoDirectoryAssert(nsIAbDirectory *directory, 
-					nsIRDFResource *property, nsIRDFNode *target);
-	nsresult DoDirectoryHasAssertion(nsIAbDirectory *directory, 
-							 nsIRDFResource *property, nsIRDFNode *target,
-							 PRBool tv, PRBool *hasAssertion);
+  nsresult DoDirectoryAssert(nsIAbDirectory *directory, 
+          nsIRDFResource *property, nsIRDFNode *target);
+  nsresult DoDirectoryHasAssertion(nsIAbDirectory *directory, 
+               nsIRDFResource *property, nsIRDFNode *target,
+               PRBool tv, PRBool *hasAssertion);
 
-	nsresult GetTargetHasAssertion(nsIRDFDataSource *dataSource, nsIRDFResource* dirResource,
-							   nsIRDFResource *property,PRBool tv, nsIRDFNode *target,PRBool* hasAssertion);
+  nsresult GetTargetHasAssertion(nsIRDFDataSource *dataSource, nsIRDFResource* dirResource,
+                 nsIRDFResource *property,PRBool tv, nsIRDFNode *target,PRBool* hasAssertion);
   nsresult CreateCollationKey(const nsString &aSource,  PRUint8 **aKey, PRUint32 *aLength);
 
   nsCOMPtr<nsIRDFResource> kNC_Child;

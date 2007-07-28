@@ -63,21 +63,18 @@ typedef struct _nsAbRDFNotification {
   nsIRDFResource *property;
   nsIRDFNode *object;
 } nsAbRDFNotification;
-                                                
 
 nsresult nsAbRDFDataSource::createNode(const PRUnichar *str, nsIRDFNode **node)
 {
-	*node = nsnull;
-	nsresult rv; 
-    nsCOMPtr<nsIRDFService> rdf(do_GetService("@mozilla.org/rdf/rdf-service;1", &rv)); 
-	NS_ENSURE_SUCCESS(rv, rv); // always check this before proceeding 
-	nsCOMPtr<nsIRDFLiteral> value;
-	rv = rdf->GetLiteral(str, getter_AddRefs(value));
-	if (NS_SUCCEEDED(rv)) 
-	{
-		NS_IF_ADDREF(*node = value);
-	}
-	return rv;
+  *node = nsnull;
+  nsresult rv;
+  nsCOMPtr<nsIRDFService> rdf(do_GetService("@mozilla.org/rdf/rdf-service;1", &rv));
+  NS_ENSURE_SUCCESS(rv, rv); // always check this before proceeding
+  nsCOMPtr<nsIRDFLiteral> value;
+  rv = rdf->GetLiteral(str, getter_AddRefs(value));
+  if (NS_SUCCEEDED(rv)) 
+    NS_IF_ADDREF(*node = value);
+  return rv;
 }
 
 nsresult nsAbRDFDataSource::createBlobNode(PRUint8 *value, PRUint32 &length, nsIRDFNode **node, nsIRDFService *rdfService)
@@ -93,36 +90,30 @@ nsresult nsAbRDFDataSource::createBlobNode(PRUint8 *value, PRUint32 &length, nsI
   return rv;
 }
 
-PRBool nsAbRDFDataSource::changeEnumFunc(nsISupports *aElement, void *aData)
+PRBool nsAbRDFDataSource::changeEnumFunc(nsIRDFObserver *aObserver, void *aData)
 {
   nsAbRDFNotification* note = (nsAbRDFNotification *)aData;
-  nsIRDFObserver* observer = (nsIRDFObserver *)aElement;
-
-  observer->OnChange(note->datasource,
+  aObserver->OnChange(note->datasource,
                      note->subject,
                      note->property,
                      nsnull, note->object);
   return PR_TRUE;
 }
 
-PRBool nsAbRDFDataSource::assertEnumFunc(nsISupports *aElement, void *aData)
+PRBool nsAbRDFDataSource::assertEnumFunc(nsIRDFObserver *aObserver, void *aData)
 {
   nsAbRDFNotification *note = (nsAbRDFNotification *)aData;
-  nsIRDFObserver* observer = (nsIRDFObserver *)aElement;
-  
-  observer->OnAssert(note->datasource,
+  aObserver->OnAssert(note->datasource,
                      note->subject,
                      note->property,
                      note->object);
   return PR_TRUE;
 }
 
-PRBool nsAbRDFDataSource::unassertEnumFunc(nsISupports *aElement, void *aData)
+PRBool nsAbRDFDataSource::unassertEnumFunc(nsIRDFObserver *aObserver, void *aData)
 {
   nsAbRDFNotification* note = (nsAbRDFNotification *)aData;
-  nsIRDFObserver* observer = (nsIRDFObserver *)aElement;
-
-  observer->OnUnassert(note->datasource,
+  aObserver->OnUnassert(note->datasource,
                        note->subject,
                        note->property,
                        note->object);
@@ -130,166 +121,162 @@ PRBool nsAbRDFDataSource::unassertEnumFunc(nsISupports *aElement, void *aData)
 }
 
 nsresult nsAbRDFDataSource::CreateProxyObserver (nsIRDFObserver* observer,
-	nsIRDFObserver** proxyObserver)
+  nsIRDFObserver** proxyObserver)
 {
-	nsresult rv;
+  nsresult rv;
 
-	// Proxy the observer on the UI thread
-	/*
-	 * TODO
-	 * Currenly using NS_PROXY_ASYNC, however
-	 * this can flood the event queue if
-	 * rate of events on the observer is
-	 * greater that the time to process the
-	 * events.
-	 * This causes the UI to pause.
-	 */
-	rv = NS_GetProxyForObject (
+  // Proxy the observer on the UI thread
+  /*
+   * TODO
+   * Currenly using NS_PROXY_ASYNC, however
+   * this can flood the event queue if
+   * rate of events on the observer is
+   * greater that the time to process the
+   * events.
+   * This causes the UI to pause.
+   */
+  rv = NS_GetProxyForObject (
     NS_PROXY_TO_MAIN_THREAD,
-		NS_GET_IID(nsIRDFObserver),
-		observer,
-		NS_PROXY_ASYNC | NS_PROXY_ALWAYS,
-		(void** )proxyObserver);
+    NS_GET_IID(nsIRDFObserver),
+    observer,
+    NS_PROXY_ASYNC | NS_PROXY_ALWAYS,
+    (void** )proxyObserver);
 
-	return rv;
+  return rv;
 }
 
 nsresult nsAbRDFDataSource::CreateProxyObservers ()
 {
-	nsresult rv = NS_OK;
+  nsresult rv = NS_OK;
 
-	PRUint32 nObservers;
-	mObservers->Count (&nObservers);
+  PRUint32 nObservers = mObservers.Count();
 
-	if (!mProxyObservers)
-	{
-		rv = NS_NewISupportsArray(getter_AddRefs(mProxyObservers));
-		NS_ENSURE_SUCCESS(rv, rv);
-	}
+  PRUint32 nProxyObservers = mProxyObservers.Count();
 
-	PRUint32 nProxyObservers;
-	mProxyObservers->Count (&nProxyObservers);
+  /*
+   * For all the outstanding observers that
+   * have not been proxied
+   */
+  for (PRUint32 i = nProxyObservers; i < nObservers; i++)
+  {
+    nsIRDFObserver * observer = mObservers.ObjectAt(i);
 
-	/*
-	 * For all the outstanding observers that
-	 * have not been proxied
-	 */
-	for (PRUint32 i = nProxyObservers; i < nObservers; i++)
-	{
-		nsCOMPtr<nsISupports> supports;
-		rv = mObservers->GetElementAt (i, getter_AddRefs (supports));
-		NS_ENSURE_SUCCESS(rv, rv);
+    // Create the proxy
+    nsCOMPtr<nsIRDFObserver> proxyObserver;
+    rv = CreateProxyObserver (observer, getter_AddRefs (proxyObserver));
+    NS_ENSURE_SUCCESS(rv, rv);
+    mProxyObservers.AppendObject(proxyObserver);
+  }
 
-		nsCOMPtr<nsIRDFObserver> observer (do_QueryInterface (supports, &rv));
-		NS_ENSURE_SUCCESS(rv, rv);
-		
-		// Create the proxy
-		nsCOMPtr<nsIRDFObserver> proxyObserver;
-		rv = CreateProxyObserver (observer, getter_AddRefs (proxyObserver));
-		NS_ENSURE_SUCCESS(rv, rv);
-
-		mProxyObservers->AppendElement(proxyObserver);
-	}
-
-	return rv;
+  return rv;
 }
 
 nsresult nsAbRDFDataSource::NotifyObservers(nsIRDFResource *subject,
-	nsIRDFResource *property,
-	nsIRDFNode *object,
-	PRBool assert,
-	PRBool change)
+  nsIRDFResource *property,
+  nsIRDFNode *object,
+  PRBool assert,
+  PRBool change)
 {
-	NS_ASSERTION(!(change && assert),
+  NS_ASSERTION(!(change && assert),
                  "Can't change and assert at the same time!\n");
 
-	if(!mLock)
-	{
-		NS_ERROR("Error in AutoLock resource in nsAbRDFDataSource::NotifyObservers()");
-		return NS_ERROR_OUT_OF_MEMORY;
-	}
+  if(!mLock)
+  {
+    NS_ERROR("Error in AutoLock resource in nsAbRDFDataSource::NotifyObservers()");
+    return NS_ERROR_OUT_OF_MEMORY;
+  }
 
-	nsresult rv;
+  nsresult rv;
 
-	nsAutoLock lockGuard (mLock);
+  nsAutoLock lockGuard (mLock);
 
-	if (!mObservers)
-		return NS_OK;
+  /*
+   * TODO
+   * Is the main thread always guaranteed to be
+   * the UI thread?
+   *
+   * Note that this also binds the data source
+   * to the UI which is supposedly the only
+   * place where it is used, but what about
+   * RDF datasources that are not UI specific
+   * but are used in the UI?
+   */
+  nsCOMArray<nsIRDFObserver> * observers;
+  if (NS_IsMainThread())
+  {
+    /*
+     * Since this is the UI Thread use the
+     * observers list directly for performance
+     */
+    observers = &mObservers;
+  }
+  else
+  {
+    /*
+     * This is a different thread to the UI
+     * thread need to use proxies to the
+     * observers
+     *
+     * Create the proxies
+     */
+    rv = CreateProxyObservers();
+    NS_ENSURE_SUCCESS (rv, rv);
+    observers = &mProxyObservers;
+  }
 
+  nsAbRDFNotification note = { this, subject, property, object };
+  if (change)
+    observers->EnumerateForwards(changeEnumFunc, &note);
+  else if (assert)
+    observers->EnumerateForwards(assertEnumFunc, &note);
+  else
+    observers->EnumerateForwards(unassertEnumFunc, &note);
 
-	/*
-	 * TODO
-	 * Is the main thread always guaranteed to be
-	 * the UI thread?
-	 *
-	 * Note that this also binds the data source
-	 * to the UI which is supposedly the only
-	 * place where it is used, but what about
-	 * RDF datasources that are not UI specific
-	 * but are used in the UI?
-	 */
-	nsCOMPtr<nsISupportsArray> observers;
-	if (NS_IsMainThread())
-	{
-		/*
-		 * Since this is the UI Thread use the
-		 * observers list directly for performance
-		 */
-		observers = mObservers;
-	}
-	else
-	{
-		/*
-		 * This is a different thread to the UI
-		 * thread need to use proxies to the
-		 * observers
-		 *
-		 * Create the proxies
-		 */
-		rv = CreateProxyObservers ();
-		NS_ENSURE_SUCCESS (rv, rv);
-
-		observers = mProxyObservers;
-	}
-
-	nsAbRDFNotification note = { this, subject, property, object };
-	if (change)
-		observers->EnumerateForwards(changeEnumFunc, &note);
-	else if (assert)
-		observers->EnumerateForwards(assertEnumFunc, &note);
-	else
-		observers->EnumerateForwards(unassertEnumFunc, &note);
-
-	return NS_OK;
+  return NS_OK;
 }
 
 nsresult nsAbRDFDataSource::NotifyPropertyChanged(nsIRDFResource *resource,
-	nsIRDFResource *propertyResource,
-	const PRUnichar *oldValue, 
-	const PRUnichar *newValue)
+  nsIRDFResource *propertyResource,
+  const PRUnichar *oldValue,
+  const PRUnichar *newValue)
 {
-	nsCOMPtr<nsIRDFNode> newValueNode;
-	createNode(newValue, getter_AddRefs(newValueNode));
-	NotifyObservers(resource, propertyResource, newValueNode, PR_FALSE, PR_TRUE);
-	return NS_OK;
+  nsCOMPtr<nsIRDFNode> newValueNode;
+  createNode(newValue, getter_AddRefs(newValueNode));
+  NotifyObservers(resource, propertyResource, newValueNode, PR_FALSE, PR_TRUE);
+  return NS_OK;
 }
 
 
 nsAbRDFDataSource::nsAbRDFDataSource():
-  mObservers(nsnull),
-  mProxyObservers(nsnull),
   mLock(nsnull)
 {
-	mLock = PR_NewLock ();
+  mLock = PR_NewLock ();
 }
 
 nsAbRDFDataSource::~nsAbRDFDataSource (void)
 {
-	if(mLock)
-		PR_DestroyLock (mLock);
+  if(mLock)
+    PR_DestroyLock (mLock);
 }
 
-NS_IMPL_THREADSAFE_ISUPPORTS1(nsAbRDFDataSource, nsIRDFDataSource)
+NS_IMPL_CYCLE_COLLECTION_CLASS(nsAbRDFDataSource)
+NS_IMPL_CYCLE_COLLECTION_UNLINK_BEGIN(nsAbRDFDataSource)
+  NS_IMPL_CYCLE_COLLECTION_UNLINK_NSCOMARRAY(mObservers)
+  NS_IMPL_CYCLE_COLLECTION_UNLINK_NSCOMARRAY(mProxyObservers)
+NS_IMPL_CYCLE_COLLECTION_UNLINK_END
+NS_IMPL_CYCLE_COLLECTION_TRAVERSE_BEGIN(nsAbRDFDataSource)
+  NS_IMPL_CYCLE_COLLECTION_TRAVERSE_NSCOMARRAY(mObservers)
+  NS_IMPL_CYCLE_COLLECTION_UNLINK_NSCOMARRAY(mProxyObservers)
+NS_IMPL_CYCLE_COLLECTION_TRAVERSE_END
+
+NS_IMPL_CYCLE_COLLECTING_ADDREF_AMBIGUOUS(nsAbRDFDataSource, nsIRDFDataSource)
+NS_IMPL_CYCLE_COLLECTING_RELEASE_AMBIGUOUS(nsAbRDFDataSource, nsIRDFDataSource)
+
+NS_INTERFACE_MAP_BEGIN(nsAbRDFDataSource)
+  NS_INTERFACE_MAP_ENTRY(nsIRDFDataSource)
+  NS_INTERFACE_MAP_ENTRY_AMBIGUOUS(nsISupports, nsIRDFDataSource)
+  NS_INTERFACE_MAP_ENTRIES_CYCLE_COLLECTION(nsAbRDFDataSource)
+NS_INTERFACE_MAP_END
 
  // nsIRDFDataSource methods
 NS_IMETHODIMP nsAbRDFDataSource::GetURI(char* *uri)
@@ -324,7 +311,7 @@ NS_IMETHODIMP nsAbRDFDataSource::GetSources(nsIRDFResource* property,
 }
 
 NS_IMETHODIMP nsAbRDFDataSource::GetTargets(nsIRDFResource* source,
-                                                nsIRDFResource* property,    
+                                                nsIRDFResource* property,
                                                 PRBool tv,
                                                 nsISimpleEnumerator** targets)
 {
@@ -332,7 +319,7 @@ NS_IMETHODIMP nsAbRDFDataSource::GetTargets(nsIRDFResource* source,
 }
 
 NS_IMETHODIMP nsAbRDFDataSource::Assert(nsIRDFResource* source,
-                      nsIRDFResource* property, 
+                      nsIRDFResource* property,
                       nsIRDFNode* target,
                       PRBool tv)
 {
@@ -375,85 +362,53 @@ NS_IMETHODIMP nsAbRDFDataSource::HasAssertion(nsIRDFResource* source,
 
 NS_IMETHODIMP nsAbRDFDataSource::AddObserver(nsIRDFObserver* observer)
 {
-	if(!mLock)
-	{
-		NS_ERROR("Error in AutoLock resource in nsAbRDFDataSource::AddObservers()");
-		return NS_ERROR_OUT_OF_MEMORY;
-	}
+  if(!mLock)
+  {
+    NS_ERROR("Error in AutoLock resource in nsAbRDFDataSource::AddObservers()");
+    return NS_ERROR_OUT_OF_MEMORY;
+  }
 
-	nsresult rv;
+  nsresult rv;
 
-	// Lock the whole method
-	nsAutoLock lockGuard (mLock);
+  // Lock the whole method
+  nsAutoLock lockGuard (mLock);
 
-	if (!mObservers)
-	{
-		rv = NS_NewISupportsArray(getter_AddRefs(mObservers));
-		NS_ENSURE_SUCCESS(rv, rv);
-	}
+  // Do not add if already present
+  if (mObservers.IndexOf(observer) >= 0)
+    return NS_OK;
 
-	// Do not add if already present
-	PRInt32 i;
-	mObservers->GetIndexOf (observer, &i);
-	if (i >= 0)
-		return NS_OK;
-
-	mObservers->AppendElement(observer);
-
-	/*
-	 * If the proxy observers has been created
-	 * then do the work here to avoid unecessary
-	 * delay when performing the notify from a
-	 * different thread
-	 */
-	if (mProxyObservers)
-	{
-		nsCOMPtr<nsIRDFObserver> proxyObserver;
-		rv = CreateProxyObserver (observer,
-			getter_AddRefs(proxyObserver));
-		NS_ENSURE_SUCCESS(rv, rv);
-
-		mProxyObservers->AppendElement (proxyObserver);
-	}
-
-	return NS_OK;
+  mObservers.AppendObject(observer);
+  return NS_OK;
 }
 
 NS_IMETHODIMP nsAbRDFDataSource::RemoveObserver(nsIRDFObserver* observer)
 {
-	if(!mLock)
-	{
-		NS_ERROR("Error in AutoLock resource in nsAbRDFDataSource::RemoveObservers()");
-		return NS_ERROR_OUT_OF_MEMORY;
-	}
+  if(!mLock)
+  {
+    NS_ERROR("Error in AutoLock resource in nsAbRDFDataSource::RemoveObservers()");
+    return NS_ERROR_OUT_OF_MEMORY;
+  }
 
-	// Lock the whole method
-	nsAutoLock lockGuard (mLock);
+  // Lock the whole method
+  nsAutoLock lockGuard (mLock);
+  PRInt32 index = mObservers.IndexOf(observer);
+  if (index >= 0)
+  {
+    mObservers.RemoveObjectAt(index);
+    mProxyObservers.RemoveObjectAt(index);
+  }
 
-	if (!mObservers)
-		return NS_OK;
-
-	PRInt32 i;
-	mObservers->GetIndexOf (observer, &i);
-	if (i >= 0)
-	{
-		mObservers->RemoveElementAt(i);
-
-		if (mProxyObservers)
-			mProxyObservers->RemoveElementAt(i);
-	}
-
-	return NS_OK;
+  return NS_OK;
 }
 
-NS_IMETHODIMP 
+NS_IMETHODIMP
 nsAbRDFDataSource::HasArcIn(nsIRDFNode *aNode, nsIRDFResource *aArc, PRBool *result)
 {
   *result = PR_FALSE;
   return NS_OK;
 }
 
-NS_IMETHODIMP 
+NS_IMETHODIMP
 nsAbRDFDataSource::HasArcOut(nsIRDFResource *aSource, nsIRDFResource *aArc, PRBool *result)
 {
   *result = PR_FALSE;
