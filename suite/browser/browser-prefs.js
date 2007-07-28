@@ -164,7 +164,8 @@ pref("offline.download.download_messages",  0);
 pref("signon.rememberSignons",              true);
 pref("signon.expireMasterPassword",         false);
 
-pref("wallet.captureForms",                 true);
+pref("browser.formfill.enable",             true);
+pref("wallet.captureForms",                 false);
 pref("wallet.enabled",                      true);
 pref("wallet.crypto",                       false);
 pref("wallet.crypto.autocompleteoverride",  false); // Ignore 'autocomplete=off' - available only when wallet.crypto is enabled. 

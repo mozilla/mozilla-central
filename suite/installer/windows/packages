@@ -159,6 +159,7 @@ bin\components\layout_printing.xpt
 bin\components\layout_xul.xpt
 bin\components\layout_xul_tree.xpt
 bin\components\locale.xpt
+bin\components\loginmgr.xpt
 bin\components\lwbrk.xpt
 bin\components\mimetype.xpt
 bin\components\mork.dll
@@ -191,6 +192,8 @@ bin\components\proxyObject.xpt
 bin\components\rdf.dll
 bin\components\rdf.xpt
 bin\components\related.xpt
+bin\components\satchel.dll
+bin\components\satchel.xpt
 bin\components\saxparser.xpt
 bin\components\search.xpt
 bin\components\shistory.xpt
@@ -201,6 +204,7 @@ bin\components\storage.xpt
 bin\components\strgcmps.dll
 bin\components\suite.dll
 bin\components\suitemigration.xpt
+bin\components\tkautoc.dll
 bin\components\tkitcmps.dll
 bin\components\toolkitprofile.xpt
 bin\components\txmgr.dll
@@ -265,6 +269,9 @@ bin\components\nsComposerCmdLineHandler.js
 bin\components\nsDictionary.js
 bin\components\nsExtensionManager.js
 bin\components\nsInterfaceInfoToIDL.js
+bin\components\nsLoginInfo.js
+bin\components\nsLoginManager.js
+bin\components\nsLoginManagerPrompter.js
 bin\components\nsPostUpdateWin.js
 bin\components\nsProxyAutoConfig.js
 bin\components\nsResetPref.js
@@ -274,6 +281,7 @@ bin\components\nsUpdateService.js
 bin\components\nsURLFormatter.js
 bin\components\nsXmlRpcClient.js
 bin\components\pluginGlue.js
+bin\components\storage-Legacy.js
 bin\components\txEXSLTRegExFunctions.js
 bin\components\nsAboutAbout.js
 bin\components\nsDefaultCLH.js

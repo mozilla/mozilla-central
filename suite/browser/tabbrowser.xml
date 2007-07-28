@@ -120,7 +120,7 @@
           </xul:tabs>
         </xul:hbox>
         <xul:tabpanels flex="1" class="plain" selectedIndex="0" anonid="panelcontainer">
-          <xul:browser type="content-primary" xbl:inherits="tooltip=contenttooltip,contextmenu=contentcontextmenu"/>
+          <xul:browser type="content-primary" xbl:inherits="tooltip=contenttooltip,contextmenu=contentcontextmenu,autocompletepopup"/>
         </xul:tabpanels>
       </xul:tabbox>
       <children/>
@@ -1017,6 +1017,7 @@
             b.setAttribute("type", "content-targetable");
             b.setAttribute("contextmenu", this.getAttribute("contentcontextmenu"));
             b.setAttribute("tooltip", this.getAttribute("contenttooltip"));
+            b.setAttribute("autocompletepopup", this.getAttribute("autocompletepopup"));
 
             this.mPanelContainer.appendChild(b);
 

@@ -136,6 +136,8 @@
   <!-- context menu -->
   <popupset id="contentAreaContextSet"/>
 
+  <panel type="autocomplete" id="PopupAutoComplete"/>
+
   <toolbox id="navigator-toolbox" class="toolbox-top" deferattached="true">
     <!-- Menu -->
     <menubar id="main-menubar" persist="collapsed" grippytooltiptext="&menuBar.tooltip;"/>
@@ -349,6 +351,7 @@
                     flex="1" contenttooltip="aHTMLTooltip"
                     contentcontextmenu="contentAreaContextMenu"
                     onnewtab="BrowserOpenTab();"
+                    autocompletepopup="PopupAutoComplete"
                     onbookmarkgroup="addGroupmarkAs();"
                     onclick="return contentAreaClick(event);"/>
       </hbox>
