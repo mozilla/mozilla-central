@@ -465,7 +465,7 @@ toolbox {
   background-color: #DDE3EB;
 }
 
-.autocomplete-result-popup[nomatch="true"] > .autocomplete-search-box {
+panel[nomatch="true"] > .autocomplete-search-box {
   border-top: 1px solid #E4EAEF;
 }
 

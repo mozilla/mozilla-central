@@ -28,7 +28,7 @@ tabbrowser {
   -moz-binding: url("chrome://navigator/content/urlbarBindings.xml#urlbar");
 }
 
-.autocomplete-result-popup[for="urlbar"] {
+panel[for="urlbar"] {
   -moz-binding: url("chrome://navigator/content/urlbarBindings.xml#autocomplete-result-popup") !important;
 }
 
