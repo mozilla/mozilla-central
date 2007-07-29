@@ -87,6 +87,8 @@
 <!ENTITY folderProps.information.label           "Information:">
 <!ENTITY folderProps.name.label                  "Name:">
 <!ENTITY folderProps.name.accesskey              "N">
+<!ENTITY folderProps.location.label              "Location:">
+<!ENTITY folderProps.location.accesskey          "L">
 
 <!ENTITY folderSharingTab.label                  "Sharing">
 <!ENTITY privilegesDesc.label                    "Share this and other folders with network users and display and set access privileges">

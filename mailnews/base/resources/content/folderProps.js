@@ -248,6 +248,9 @@ function folderPropsOnLoad()
     dump("no gMsgFolder preselectfolder uri = "+gPreselectedFolderURI+'\n');
 
   if (gMsgFolder) {
+    var locationTextbox = document.getElementById("location");
+    locationTextbox.value = gMsgFolder.folderURL;
+
     if (gMsgFolder.canRename)
       gNameTextbox.removeAttribute("readonly");
 

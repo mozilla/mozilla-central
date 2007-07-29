@@ -525,8 +525,6 @@
 <!ENTITY folderContextSearchMessages.accesskey "S">
 <!ENTITY folderContextProperties.label "Properties...">
 <!ENTITY folderContextProperties.accesskey "P">
-<!ENTITY folderContextCopyLocation.label "Copy Folder Location">
-<!ENTITY folderContextCopyLocation.accesskey "L">
 <!ENTITY folderContextFavoriteFolder.label "Favorite Folder">
 <!ENTITY folderContextFavoriteFolder.accesskey "a">
 

@@ -756,11 +756,6 @@
         label="&folderContextUnsubscribe.label;"
         accesskey="&folderContextUnsubscribe.accesskey;"
         oncommand="MsgUnsubscribe();"/>
-    <!-- To Do: Move this to the folder properties dialog -->
-    <menuitem id="folderPaneContext-copy-location"
-        label="&folderContextCopyLocation.label;"
-        accesskey="&folderContextCopyLocation.accesskey;"
-        oncommand="CopyFolderUrl();"/>
 
     <menuseparator id="folderPaneContext-sep1"/>
 

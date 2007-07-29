@@ -552,8 +552,6 @@
 <!ENTITY folderContextSearchMessages.accesskey "S">
 <!ENTITY folderContextProperties.label "Properties...">
 <!ENTITY folderContextProperties.accesskey "P">
-<!ENTITY folderContextCopyLocation.label "Copy Folder Location">
-<!ENTITY folderContextCopyLocation.accesskey "C">
 
 <!---SearchBar-->
 <!-- also used by addressbook -->

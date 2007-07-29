@@ -626,26 +626,6 @@ function getEmail (url)
   return addresses;
 }
 
-function CopyFolderUrl()
-{
-  try 
-  {
-    var folderResource = GetSelectedFolderResource();
-    if (folderResource)
-    {
-      var msgFolder = folderResource.QueryInterface(Components.interfaces.nsIMsgFolder);
-      var contractid = "@mozilla.org/widget/clipboardhelper;1";
-      var iid = Components.interfaces.nsIClipboardHelper;
-      var clipboard = Components.classes[contractid].getService(iid);
-      clipboard.copyString(msgFolder.folderURL);
-    }
-  }
-  catch (ex) 
-  {
-    dump("ex="+ex+"\n");
-  }
-}
-
 function CopyMessageUrl()
 {
   try {

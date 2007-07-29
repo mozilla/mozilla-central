@@ -602,23 +602,6 @@ function CreateFilterFromMail(emailAddress)
     top.MsgFilters(emailAddress, GetFirstSelectedMsgFolder());
 }
 
-function CopyFolderUrl()
-{
-  try 
-  {
-    var folderResource = GetSelectedFolderResource();
-    if (folderResource)
-    {
-      var msgFolder = folderResource.QueryInterface(Components.interfaces.nsIMsgFolder);
-      CopyString(msgFolder.folderURL);
-    }
-  }
-  catch (ex) 
-  {
-    dump("ex="+ex+"\n");
-  }
-}
-
 function CopyMessageUrl()
 {
   try {
