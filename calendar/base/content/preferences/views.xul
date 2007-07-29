@@ -42,14 +42,10 @@
    - ***** END LICENSE BLOCK ***** -->
 
 <!DOCTYPE overlay [
-    <!ENTITY % brandDTD SYSTEM "chrome://branding/locale/brand.dtd">
     <!ENTITY % viewsDTD SYSTEM "chrome://calendar/locale/preferences/views.dtd">
     <!ENTITY % globalDTD SYSTEM "chrome://calendar/locale/global.dtd">
-    <!ENTITY % preferencesDTD SYSTEM "chrome://calendar/locale/preferences/preferences.dtd">
-    %brandDTD;
     %viewsDTD;
     %globalDTD;
-    %preferencesDTD;
 ]>
 
 <overlay id="ViewsPaneOverlay"

@@ -38,14 +38,10 @@
    - ***** END LICENSE BLOCK ***** -->
 
 <!DOCTYPE overlay [
-    <!ENTITY % brandDTD SYSTEM "chrome://branding/locale/brand.dtd">
     <!ENTITY % generalDTD SYSTEM "chrome://calendar/locale/preferences/general.dtd">
     <!ENTITY % globalDTD SYSTEM "chrome://calendar/locale/global.dtd">
-    <!ENTITY % preferencesDTD SYSTEM "chrome://calendar/locale/preferences/preferences.dtd">
-    %brandDTD;
     %generalDTD;
     %globalDTD;
-    %preferencesDTD;
 ]>
 
 <overlay id="CalendarGeneralPaneOverlay"

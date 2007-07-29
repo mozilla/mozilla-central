@@ -38,12 +38,7 @@
    -
    - ***** END LICENSE BLOCK ***** -->
 
-<!DOCTYPE overlay [
-    <!ENTITY % brandDTD SYSTEM "chrome://branding/locale/brand.dtd">
-    <!ENTITY % categoriesDTD SYSTEM "chrome://calendar/locale/preferences/categories.dtd">
-    %brandDTD;
-    %categoriesDTD;
-]>
+<!DOCTYPE overlay SYSTEM "chrome://calendar/locale/preferences/categories.dtd">
 
 <overlay id="CategoriesPaneOverlay"
          xmlns="http://www.mozilla.org/keymaster/gatekeeper/there.is.only.xul">

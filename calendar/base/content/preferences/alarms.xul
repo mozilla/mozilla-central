@@ -40,14 +40,10 @@
    - ***** END LICENSE BLOCK ***** -->
 
 <!DOCTYPE overlay [
-    <!ENTITY % brandDTD SYSTEM "chrome://branding/locale/brand.dtd">
     <!ENTITY % alarmsDTD SYSTEM "chrome://calendar/locale/preferences/alarms.dtd">
     <!ENTITY % globalDTD SYSTEM "chrome://calendar/locale/global.dtd">
-    <!ENTITY % preferencesDTD SYSTEM "chrome://calendar/locale/preferences/preferences.dtd">
-    %brandDTD;
     %alarmsDTD;
     %globalDTD;
-    %preferencesDTD;
 ]>
 
 <overlay id="AlarmsPaneOverlay"

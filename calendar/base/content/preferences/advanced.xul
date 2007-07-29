@@ -41,14 +41,8 @@
 <!DOCTYPE overlay [
     <!ENTITY % brandDTD SYSTEM "chrome://branding/locale/brand.dtd">
     <!ENTITY % advancedDTD SYSTEM "chrome://calendar/locale/preferences/advanced.dtd">
-    <!ENTITY % connectionDTD SYSTEM "chrome://calendar/locale/preferences/connection.dtd">
-    <!ENTITY % globalDTD SYSTEM "chrome://calendar/locale/global.dtd">
-    <!ENTITY % preferencesDTD SYSTEM "chrome://calendar/locale/preferences/preferences.dtd">
     %brandDTD;
     %advancedDTD;
-    %connectionDTD;
-    %globalDTD;
-    %preferencesDTD;
 ]>
 
 <overlay id="AdvancedPaneOverlay"
@@ -110,10 +104,10 @@
                 <!-- General -->
                 <tabpanel orient="vertical">
                     <hbox align="center" pack="start">
-                        <description flex="1">&pref.proxiesInfo.label;</description>
+                        <description flex="1">&pref.calendar.advanced.proxiesInfo.label;</description>
                         <button id="catProxiesButton"
-                                label="&pref.showConnections.label;"
-                                accesskey="&pref.showConnections.accesskey;"
+                                label="&pref.calendar.advanced.showConnections.label;"
+                                accesskey="&pref.calendar.advanced.showConnections.accesskey;"
                                 oncommand="gAdvancedPane.showConnections();"/>
                     </hbox>
 

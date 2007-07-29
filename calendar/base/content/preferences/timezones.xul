@@ -38,16 +38,7 @@
    -
    - ***** END LICENSE BLOCK ***** -->
 
-<!DOCTYPE overlay [
-    <!ENTITY % brandDTD SYSTEM "chrome://branding/locale/brand.dtd">
-    <!ENTITY % timezonesDTD SYSTEM "chrome://calendar/locale/preferences/timezones.dtd">
-    <!ENTITY % globalDTD SYSTEM "chrome://calendar/locale/global.dtd">
-    <!ENTITY % preferencesDTD SYSTEM "chrome://calendar/locale/preferences/preferences.dtd">
-    %brandDTD;
-    %timezonesDTD;
-    %globalDTD;
-    %preferencesDTD;
-]>
+<!DOCTYPE overlay SYSTEM "chrome://calendar/locale/preferences/timezones.dtd">
 
 <overlay id="TimezonesPaneOverlay"
          xmlns="http://www.mozilla.org/keymaster/gatekeeper/there.is.only.xul">
