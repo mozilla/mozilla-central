@@ -112,7 +112,6 @@ classic.jar:
   skin/classic/communicator/taskbar/composer.gif                        (communicator/taskbar/composer.gif)
   skin/classic/communicator/taskbar/composer-16.gif                     (communicator/taskbar/composer-16.gif)
   skin/classic/communicator/taskbar/addressbook-hov.gif                 (communicator/taskbar/addressbook-hov.gif)
-  skin/classic/communicator/alerts/alert.css                            (communicator/alerts/alert.css)
 #ifdef XP_MACOSX
   skin/classic/communicator/toolbar.css                                 (communicator/mac/toolbar.css)
 #elif XP_OS2

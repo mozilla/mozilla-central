@@ -80,7 +80,6 @@ modern.jar:
   skin/modern/communicator/search/internetresults.css              (communicator/search/internetresults.css)
   skin/modern/communicator/search/search-editor.css                (communicator/search/search-editor.css)
   skin/modern/communicator/search/search.css                       (communicator/search/search.css)
-  skin/modern/communicator/alerts/alert.css                        (communicator/alerts/alert.css)
   skin/modern/communicator/sidebar/sidebarBindings.xml             (communicator/sidebar/sidebarBindings.xml)
   skin/modern/communicator/sidebar/sbar-top.gif                    (communicator/sidebar/sbar-top.gif)
   skin/modern/communicator/sidebar/sbar-top-tabopen.gif            (communicator/sidebar/sbar-top-tabopen.gif)
@@ -192,6 +191,7 @@ modern.jar:
 # referenced as chrome://global/skin/xulscrollbars.css on non-Mac platforms
   skin/modern/global/xulscrollbars.css                             (global/scrollbars.css)
   skin/modern/global/scrollbars-mini.css                           (global/scrollbars-mini.css)
+  skin/modern/global/alerts/alert.css                              (global/alerts/alert.css)
   skin/modern/global/arrow/arrow-dn-dis.gif                        (global/arrow/arrow-dn-dis.gif)
   skin/modern/global/arrow/arrow-dn.gif                            (global/arrow/arrow-dn.gif)
   skin/modern/global/arrow/arrow-lft-dis.gif                       (global/arrow/arrow-lft-dis.gif)
