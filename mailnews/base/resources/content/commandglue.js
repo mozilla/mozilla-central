@@ -766,10 +766,12 @@ function GetSelectedFolderResource()
 
 function ChangeMessagePaneVisibility(now_hidden)
 {
-  // we also have to hide the File/Attachments menuitem
-  var node = document.getElementById("fileAttachmentMenu");
-  if (node)
-    node.hidden = now_hidden;
+  // We also have to disable the Message/Attachments menuitem.
+  // It will be enabled when loading a message with attachments
+  // (see messageHeaderSink.handleAttachment).
+  var node = document.getElementById("msgAttachmentMenu");
+  if (node && now_hidden)
+    node.setAttribute("disabled", "true");
 
   if (gDBView) {
     // clear the subject, collapsing won't automatically do this

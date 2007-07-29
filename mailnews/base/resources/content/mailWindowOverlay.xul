@@ -1043,9 +1043,6 @@
         key="key_openFileMessage"
         accesskey="&openMessageFileCmd.accesskey;"
         oncommand="MsgOpenFromFile();"/>
-      <menu id="fileAttachmentMenu" label="&openAttachmentCmd.label;" accesskey="&openAttachmentCmd.accesskey;" disabled="true" persist="hidden">
-        <menupopup id="attachmentMenuList" onpopupshowing="FillAttachmentListPopup(this);"/>
-      </menu>
       <menuitem id="menu_close"/>
       <menuseparator/>
       <menu label="&saveAsMenu.label;" accesskey="&saveAsMenu.accesskey;">
@@ -1448,6 +1445,10 @@
     <menuitem id="openMessageWindowMenuitem" label="&openMessageWindowCmd.label;"
               command="cmd_openMessage" accesskey="&openMessageWindowCmd.accesskey;"
               key="key_openMessage" observes="mailHideMenus"/>
+   <menuseparator/>
+   <menu id="msgAttachmentMenu" label="&openAttachmentCmd.label;" accesskey="&openAttachmentCmd.accesskey;" disabled="true">
+      <menupopup id="attachmentMenuList" onpopupshowing="FillAttachmentListPopup(this);"/>
+   </menu>
    <menuseparator/>
     <menu label="&moveMsgMenu.label;" accesskey="&moveMsgMenu.accesskey;" id="moveMenu" datasources="rdf:null"
      sortResource="http://home.netscape.com/NC-rdf#FolderTreeName"
