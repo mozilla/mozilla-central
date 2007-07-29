@@ -574,6 +574,6 @@ bin\extensions\p@m\install.rdf
 bin\extensions\p@m\mozABConduit.dll
 bin\extensions\p@m\PalmSyncInstall.exe
 bin\extensions\p@m\PalmSyncProxy.dll
-bin\extensions\p@m\palmsync.dll
-bin\extensions\p@m\palmsync.xpt
+bin\extensions\p@m\components\palmsync.dll
+bin\extensions\p@m\components\palmsync.xpt
 bin\extensions\p@m\defaults\preferences\palmsync.js
