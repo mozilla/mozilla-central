@@ -56,6 +56,7 @@
 #include "nsISmtpService.h"  // for actually sending the message...
 #include "nsMsgCompCID.h"
 #include "nsIPrompt.h"
+#include "nsIMsgHeaderParser.h"
 #include "nsIMsgCompUtils.h"
 #include "nsIPrefService.h"
 #include "nsIPrefBranch.h"
@@ -410,8 +411,6 @@ nsresult nsMsgMdnGenerator::CreateMdnMsg()
     if (!m_reallySendMdn)
         return NS_OK;
 
-
-
     nsCOMPtr<nsIFile> tmpFile;
     rv = GetSpecialDirectoryWithFileName(NS_OS_TEMP_DIR,
                                          "mdnmsg",
@@ -504,9 +503,22 @@ nsresult nsMsgMdnGenerator::CreateFirstPart()
     if (compUtils)
       compUtils->GetMsgMimeConformToStandard(&conformToStandard);
 
+    nsString fullName;
+    m_identity->GetFullName(fullName);
+
+    nsCString fullAddress;
+    nsCOMPtr<nsIMsgHeaderParser> parser (do_GetService(NS_MAILNEWS_MIME_HEADER_PARSER_CONTRACTID));
+    if (parser)
+    {
+        // convert fullName to UTF8 before passing it to MakeFullAddress
+        parser->MakeFullAddress(nsnull, NS_ConvertUTF16toUTF8(fullName).get(),
+                                m_email.get(), getter_Copies(fullAddress));
+    }
+
     convbuf = nsMsgI18NEncodeMimePartIIStr(
-        m_email.get(), PR_TRUE, m_charset.get(), 0,
-        conformToStandard);
+        (!fullAddress.IsEmpty()) ? fullAddress.get(): m_email.get(),
+        PR_TRUE, m_charset.get(), 0, conformToStandard);
+
     parm = PR_smprintf("From: %s" CRLF, convbuf ? convbuf : m_email.get());
 
     rv = FormatStringFromName(NS_LITERAL_STRING("MsgMdnMsgSentTo").get(), NS_ConvertASCIItoUTF16(m_email).get(),
