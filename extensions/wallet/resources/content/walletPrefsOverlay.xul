@@ -45,12 +45,6 @@
   <treechildren id="securityChildren">
     <treeitem insertafter="popupspref">
       <treerow>
-        <treecell url="chrome://wallet/content/pref-wallet.xul"
-                      label="&wallet.label;"/> 
-      </treerow>
-    </treeitem>
-    <treeitem>
-      <treerow>
         <treecell url="chrome://wallet/content/pref-passwords.xul"
                       label="&passwords.label;"/> 
       </treerow>
