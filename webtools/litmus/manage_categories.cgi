@@ -96,6 +96,15 @@ if ($c->param) {
       my $new_product = 
         Litmus::DB::Product->create(\%hash);
       if ($new_product) {
+        # add a new security group by default for admins of the new product
+        my $secgroup = Litmus::DB::SecurityGroup->create({
+        	name => $new_product->name()." Administrators",
+        	description => "Administrators of the ".$new_product->name()." product",
+        	grouptype => 3,
+        	isactive => 1,
+        });
+        Litmus::DB::GroupProductMap->create({group=>$secgroup, product=>$new_product});
+      
         $status = "success";
         $message = "Product added successfully. New product ID# is " . $new_product->product_id;
         $defaults->{'product_id'} = $new_product->product_id;
