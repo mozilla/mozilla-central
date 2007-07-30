@@ -286,12 +286,11 @@ function moveView(aNumber) {
     currentView().moveView(aNumber);
 }
 
-// Helper function to get the view deck in a neutral way, regardless of whether
-// we're in Sunbird or Lightning.
+/**
+ * Returns the calendar view deck.
+ */
 function getViewDeck() {
-    var sbDeck = document.getElementById("view-deck");
-    var ltnDeck = document.getElementById("calendar-view-box");
-    return sbDeck || ltnDeck;
+    return document.getElementById("view-deck");
 }
 
 /**
