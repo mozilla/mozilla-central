@@ -323,7 +323,7 @@ var ltnCalendarTreeView = {
             return;
 
         // Find the row clicked on
-        var tree = document.getElementById("agenda-tree");
+        var tree = document.getElementById("calendarTree");
         var row = tree.treeBoxObject.getRowAt(event.clientX, event.clientY);
 
         // If we clicked on a calendar, edit it, otherwise create a new one
