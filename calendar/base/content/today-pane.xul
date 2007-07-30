@@ -73,13 +73,9 @@
         <toolbarbutton class="ab-closebutton" command="cmd_toggleTodayPane"/>
       </sidebarheader>
       <vbox flex="1">
-        <groupbox id="agenda-groupbox" class="today-groupbox" persist="height collapsed" flex="1" minheight="200">
-          <vbox id="agenda-tab-panel" flex="1"/>
-        </groupbox>
+        <vbox id="agenda-tab-panel" flex="1" persist="height collapsed" minheight="200"/>
         <splitter id="today-pane-splitter" persist="hidden"/>
-        <groupbox id="todo-groupbox" class="today-groupbox" persist="collapsed height" flex="1" minheight="200">
-          <vbox id="todo-tab-panel" flex="1"/>
-        </groupbox>
+        <vbox id="todo-tab-panel" flex="1" persist="collapsed height" minheight="200"/>
     </vbox>
   </vbox>
 </box>

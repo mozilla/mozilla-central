@@ -65,8 +65,8 @@ var TodayPane = {
       todaypanebox.setAttribute("addtoolbarbutton", "false");
     }    
 
-    var agendaPanel = document.getElementById("agenda-groupbox");
-    var todoPanel = document.getElementById("todo-groupbox");
+    var agendaPanel = document.getElementById("agenda-tab-panel");
+    var todoPanel = document.getElementById("todo-tab-panel");
     if (agendaPanel.hasAttribute("collapsed")) {
       if (!todoPanel.hasAttribute("collapsed")) {
         this.CurrentPaneView = 1;
@@ -178,8 +178,8 @@ var TodayPane = {
     else if (this.CurrentPaneView == -1) {
         this.CurrentPaneView = nViewLen -1;
     }
-    var agendapanel = document.getElementById("agenda-groupbox");
-    var todopanel = document.getElementById("todo-groupbox");
+    var agendapanel = document.getElementById("agenda-tab-panel");
+    var todopanel = document.getElementById("todo-tab-panel");
     var todayheader = document.getElementById("today-header");
     todayheader.setAttribute("value", this.paneViews[this.CurrentPaneView]);
     switch (this.CurrentPaneView) {
