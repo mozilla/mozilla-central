@@ -23,6 +23,7 @@
  *   Joey Minta <jminta@gmail.com>
  *   Michiel van Leeuwen <mvl@exedo.nl>
  *   Philipp Kewisch <mozilla@kewis.ch>
+ *   Markus Adrario <MarkusAdrario@web.de>
  *
  * Alternatively, the contents of this file may be used under the terms of
  * either the GNU General Public License Version 2 or later (the "GPL"), or
@@ -357,7 +358,23 @@ calendar-month-day-box-item[selected="true"] .calendar-event-selection {
 }
 
 .calendar-month-day-box-item-label[time="true"] {
-  margin-right: 8px;
+  margin-right: 4px;
+}
+
+.calendar-month-day-box-item-image {
+  list-style-image: url("chrome://calendar/skin/day-box-item-image.png");
+  margin: 2px;
+  margin-right: 4px;
+  display: none;
+}
+
+.calendar-month-day-box-item-image[type="todo"] {
+  -moz-image-region: rect(0px 11px 11px 0px);
+  display: inline;
+}
+
+.calendar-month-day-box-item-image[type="todo"][completed="true"] {
+  -moz-image-region: rect(0px 22px 11px 11px);
 }
 
 calendar-month-view-column-header {

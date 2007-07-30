@@ -88,6 +88,7 @@ calendar.jar:
     skin/classic/calendar/shadow-edge-right.png  (themes/common/shadow-edge-right.png)
     skin/classic/calendar/shadow-left.png        (themes/common/shadow-left.png)
     skin/classic/calendar/shadow-right.png       (themes/common/shadow-right.png)
+    skin/classic/calendar/day-box-item-image.png (themes/common/day-box-item-image.png)
 #expand    skin/classic/calendar/sun-calendar-event-dialog.css  (/calendar/prototypes/themes/__THEME__/sun-calendar-event-dialog.css)
 #expand    skin/classic/calendar/sun-calendar-event-dialog-attendees.png  (/calendar/prototypes/themes/__THEME__/sun-calendar-event-dialog-attendees.png)
 #expand    skin/classic/calendar/sun-calendar-event-dialog-toolbar.png  (/calendar/prototypes/themes/__THEME__/sun-calendar-event-dialog-toolbar.png)

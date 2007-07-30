@@ -59,6 +59,8 @@
           <xul:box anonid="event-container" flex="1">
             <xul:stack class="calendar-event-selection" flex="1">
               <xul:hbox class="calendar-event-details">
+                <xul:image anonid="item-icon"
+                           class="calendar-month-day-box-item-image"/>
                 <xul:label anonid="item-label"
                            class="calendar-month-day-box-item-label"
                            xbl:inherits="context"/>
@@ -124,24 +126,26 @@
         <setter><![CDATA[
           this.mOccurrence = val;
 
-          var label = document.getAnonymousElementByAttribute(this,
-                                                              "anonid",
-                                                              "item-label");
-          var str = null;
-          // if val is an event and not an all day event, show start time in title
-          if (isEvent(val) && !val.startDate.isDate) {
-            var df = Cc["@mozilla.org/calendar/datetime-formatter;1"].
-                     getService(Ci.calIDateTimeFormatter);
-            str = df.formatTime(val.startDate.getInTimezone(this.calendarView.mTimezone));
-            label.setAttribute("time", "true");
+          var icon = document.getAnonymousElementByAttribute(this,"anonid","item-icon");                                                              
+          if (isEvent(val)) {
+            icon.setAttribute("type", "event");
+            if (val.startDate.isDate) {
+              icon.setAttribute("type", "all-day");
+            } else {
+              var label = document.getAnonymousElementByAttribute(this,"anonid","item-label");
+              var df = Cc["@mozilla.org/calendar/datetime-formatter;1"].
+                       getService(Ci.calIDateTimeFormatter);
+              label.value = df.formatTime(
+                val.startDate.getInTimezone(
+                  this.calendarView.mTimezone));
+              label.setAttribute("time", "true");
+            }
           } else if (isToDo(val)) {
-            // yeah, this should really be a little picture instead of a "*"
-            str = "*";
-          } else {
-            str = "";
+            icon.setAttribute("type", "todo");
+            if (val.isCompleted) {
+              icon.setAttribute("completed", "true");
+            }
           }
-
-          label.value = str;
 
           this.setEditableLabel();
           this.setCSSClasses();
