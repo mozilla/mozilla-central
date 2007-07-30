@@ -20,6 +20,7 @@
  * the Initial Developer. All Rights Reserved.
  *
  * Contributor(s):
+ *   Christian Eyrich <ch.ey@gmx.net>
  *
  * Alternatively, the contents of this file may be used under the terms of
  * either of the GNU General Public License Version 2 or later (the "GPL"),
@@ -287,8 +288,8 @@ void nsSmtpProtocol::Initialize(nsIURI * aURL)
     m_tlsEnabled = PR_FALSE;
     m_addressCopy = nsnull;
     m_addresses = nsnull;
+    m_addressesLeft = 0;
 
-    m_addressesLeft = nsnull;
     m_verifyAddress = nsnull;
 #ifdef UNREADY_CODE
     m_totalAmountWritten = 0;
@@ -1152,27 +1153,27 @@ PRInt32 nsSmtpProtocol::AuthLoginStep1()
   PRInt32 status = 0;
   nsCString username;
   char *base64Str = nsnull;
-  nsCString origPassword;
   nsCAutoString password;
   nsCOMPtr<nsISmtpServer> smtpServer;
   rv = m_runningURL->GetSmtpServer(getter_AddRefs(smtpServer));
   if (NS_FAILED(rv)) return NS_ERROR_FAILURE;
 
   rv = smtpServer->GetUsername(getter_Copies(username));
-
-  if (username.IsEmpty()) {
-    rv = GetUsernamePassword(getter_Copies(username), getter_Copies(origPassword));
+  if (username.IsEmpty())
+  {
+    rv = GetUsernamePassword(getter_Copies(username), getter_Copies(password));
     m_usernamePrompted = PR_TRUE;
-    password.Assign(origPassword);
     if (username.IsEmpty() || password.IsEmpty())
       return NS_ERROR_SMTP_PASSWORD_UNDEFINED;
   }
   else if (!TestFlag(SMTP_USE_LOGIN_REDIRECTION))
   {
-    rv = GetPassword(getter_Copies(origPassword));
-    password.Assign(origPassword);
+    GetPassword(getter_Copies(password));
     if (password.IsEmpty())
+    {
+      m_urlErrorState = NS_ERROR_SMTP_PASSWORD_UNDEFINED;
       return NS_ERROR_SMTP_PASSWORD_UNDEFINED;
+    }
   }
   else
     password.Assign(mLogonCookie);
@@ -1226,7 +1227,6 @@ PRInt32 nsSmtpProtocol::AuthLoginStep1()
 
 PRInt32 nsSmtpProtocol::AuthLoginStep2()
 {
-
   /* use cached smtp password first
   * if not then use cached pop password
   * if pop password undefined
@@ -1238,9 +1238,12 @@ PRInt32 nsSmtpProtocol::AuthLoginStep2()
 
   if (!TestFlag(SMTP_USE_LOGIN_REDIRECTION))
   {
-    rv = GetPassword(getter_Copies(password));
+    GetPassword(getter_Copies(password));
     if (password.IsEmpty())
+    {
+      m_urlErrorState = NS_ERROR_SMTP_PASSWORD_UNDEFINED;
       return NS_ERROR_SMTP_PASSWORD_UNDEFINED;
+    }
   }
   else
     password.Assign(mLogonCookie);
@@ -1281,7 +1284,7 @@ PRInt32 nsSmtpProtocol::AuthLoginStep2()
         PR_snprintf(buffer, sizeof(buffer), "%s %s", userName.get(), encodedDigest.get());
         char *base64Str = PL_Base64Encode(buffer, strlen(buffer), nsnull);
         PR_snprintf(buffer, sizeof(buffer), "%s" CRLF, base64Str);
-        PR_Free(base64Str);
+        NS_Free(base64Str);
       }
       if (NS_FAILED(rv))
         PR_snprintf(buffer, sizeof(buffer), "*" CRLF);
@@ -1333,14 +1336,17 @@ PRInt32 nsSmtpProtocol::SendMailResponse()
   nsCAutoString buffer;
   nsresult rv;
 
-  if(m_responseCode != 250 || CHECK_SIMULATED_ERROR(SIMULATED_SEND_ERROR_11))
+  if (m_responseCode/10 != 25 || CHECK_SIMULATED_ERROR(SIMULATED_SEND_ERROR_11))
   {
-    rv = nsExplainErrorDetails(m_runningURL,
-     (m_responseCode == 452) ? NS_ERROR_SMTP_TEMP_SIZE_EXCEEDED :
-    ((m_responseCode == 552) ? NS_ERROR_SMTP_PERM_SIZE_EXCEEDED_2 :
-                               NS_ERROR_SENDING_FROM_COMMAND),
-                               m_responseText.get());
+    int errorcode;
+    if (TestFlag(SMTP_EHLO_SIZE_ENABLED))
+      errorcode = (m_responseCode == 452) ? NS_ERROR_SMTP_TEMP_SIZE_EXCEEDED :
+                  (m_responseCode == 552) ? NS_ERROR_SMTP_PERM_SIZE_EXCEEDED_2 :
+                  NS_ERROR_SENDING_FROM_COMMAND;
+    else
+      errorcode = NS_ERROR_SENDING_FROM_COMMAND;
 
+    rv = nsExplainErrorDetails(m_runningURL, errorcode, m_responseText.get());
     NS_ASSERTION(NS_SUCCEEDED(rv), "failed to explain SMTP error");
 
     m_urlErrorState = NS_ERROR_BUT_DONT_SHOW_ALERT;
@@ -1396,15 +1402,18 @@ PRInt32 nsSmtpProtocol::SendRecipientResponse()
   nsCAutoString buffer;
   nsresult rv;
 
-  if(m_responseCode != 250 && m_responseCode != 251)
+  if (m_responseCode / 10 != 25)
   {
-    rv = nsExplainErrorDetails(m_runningURL,
-     (m_responseCode == 452) ? NS_ERROR_SMTP_TEMP_SIZE_EXCEEDED :
-    ((m_responseCode == 552) ? NS_ERROR_SMTP_PERM_SIZE_EXCEEDED_2 :
-                               NS_ERROR_SENDING_RCPT_COMMAND),
-                               m_responseText.get(),
-                               m_addresses);
+    int errorcode;
+    if (TestFlag(SMTP_EHLO_SIZE_ENABLED))
+      errorcode = (m_responseCode == 452) ? NS_ERROR_SMTP_TEMP_SIZE_EXCEEDED :
+                  (m_responseCode == 552) ? NS_ERROR_SMTP_PERM_SIZE_EXCEEDED_2 :
+                  NS_ERROR_SENDING_RCPT_COMMAND;
+    else
+      errorcode = NS_ERROR_SENDING_RCPT_COMMAND;
 
+    rv = nsExplainErrorDetails(m_runningURL, errorcode,
+                               m_responseText.get(), m_addresses);
     NS_ASSERTION(NS_SUCCEEDED(rv), "failed to explain SMTP error");
 
     m_urlErrorState = NS_ERROR_BUT_DONT_SHOW_ALERT;
@@ -1412,13 +1421,11 @@ PRInt32 nsSmtpProtocol::SendRecipientResponse()
   }
 
   /* take the address we sent off the list (move the pointer to just
-     past the terminating null.)
-   */
+     past the terminating null.) */
   m_addresses += PL_strlen (m_addresses) + 1;
-  if(--m_addressesLeft > 0)
+  if (--m_addressesLeft > 0)
   {
-    /* more senders to RCPT to
-    */
+    // more senders to RCPT to
     // fake to 250 because SendMailResponse() can't handle 251
     m_responseCode = 250;
     m_nextState = SMTP_SEND_MAIL_RESPONSE;
@@ -1455,26 +1462,27 @@ PRInt32 nsSmtpProtocol::SendData(nsIURI *url, const char *dataBuffer, PRBool aSu
 PRInt32 nsSmtpProtocol::SendDataResponse()
 {
   PRInt32 status = 0;
-  char * command=0;
+  char *command = nsnull;
 
-  if((m_responseCode != 354) && (m_responseCode != 250)) {
+  if (m_responseCode != 354)
+  {
     nsresult rv = nsExplainErrorDetails(m_runningURL, NS_ERROR_SENDING_DATA_COMMAND, m_responseText.get());
     NS_ASSERTION(NS_SUCCEEDED(rv), "failed to explain SMTP error");
 
     m_urlErrorState = NS_ERROR_BUT_DONT_SHOW_ALERT;
     return(NS_ERROR_SENDING_DATA_COMMAND);
-	}
+    }
 
-	PR_FREEIF(command);
+    PR_FREEIF(command);
 
     m_nextState = SMTP_SEND_POST_DATA;
     ClearFlag(SMTP_PAUSE_FOR_READ);   /* send data directly */
 
     UpdateStatus(SMTP_DELIV_MAIL);
 
-	  {
-//		m_runningURL->GetBodySize(&m_totalMessageSize);
-	  }
+    {
+//      m_runningURL->GetBodySize(&m_totalMessageSize);
+    }
 
 
     return(status);
@@ -1534,24 +1542,24 @@ PRInt32 nsSmtpProtocol::SendPostData()
 
 PRInt32 nsSmtpProtocol::SendMessageResponse()
 {
-
-  if(((m_responseCode != 354) && (m_responseCode != 250)) || CHECK_SIMULATED_ERROR(SIMULATED_SEND_ERROR_12)) {
+  if((m_responseCode/10 != 25) || CHECK_SIMULATED_ERROR(SIMULATED_SEND_ERROR_12))
+  {
     nsresult rv = nsExplainErrorDetails(m_runningURL, NS_ERROR_SENDING_MESSAGE, m_responseText.get());
     NS_ASSERTION(NS_SUCCEEDED(rv), "failed to explain SMTP error");
 
     m_urlErrorState = NS_ERROR_BUT_DONT_SHOW_ALERT;
     return(NS_ERROR_SENDING_MESSAGE);
-	}
+  }
 
   UpdateStatus(SMTP_PROGRESS_MAILSENT);
 
     /* else */
     m_sendDone = PR_TRUE;
-	nsCOMPtr<nsIURI> url = do_QueryInterface(m_runningURL);
+    nsCOMPtr<nsIURI> url = do_QueryInterface(m_runningURL);
        SendData(url, "QUIT"CRLF); // send a quit command to close the connection with the server.
-	m_nextState = SMTP_RESPONSE;
-	m_nextStateAfterResponse = SMTP_DONE;
-	return(0);
+    m_nextState = SMTP_RESPONSE;
+    m_nextStateAfterResponse = SMTP_DONE;
+    return(0);
 }
 
 
@@ -1789,8 +1797,9 @@ nsresult nsSmtpProtocol::LoadUrl(nsIURI * aURL, nsISupports * aConsumer )
         {
           nsCOMPtr <nsIMsgMailNewsUrl> mailNewsUrl = do_QueryInterface(m_runningURL);
           mailNewsUrl->SetUrlState(PR_FALSE, NS_OK);
-          m_nextState = SMTP_FREE;
         }
+
+        m_nextState = SMTP_FREE;
         break;
 
       case SMTP_ERROR_DONE:
@@ -1858,7 +1867,7 @@ nsSmtpProtocol::GetPassword(char **aPassword)
     // empty password
 
     NS_Free(*aPassword);
-    *aPassword = 0;
+    *aPassword = nsnull;
 
     nsCString redirectorType;
     rv = smtpServer->GetRedirectorType(getter_Copies(redirectorType));
@@ -1929,8 +1938,8 @@ nsSmtpProtocol::PromptForPassword(nsISmtpServer *aSmtpServer, nsISmtpUrl *aSmtpU
   nsCOMPtr<nsIAuthPrompt> netPrompt;
   rv = aSmtpUrl->GetAuthPrompt(getter_AddRefs(netPrompt));
   NS_ENSURE_SUCCESS(rv, rv);
-  nsString passwordTitle;
 
+  nsString passwordTitle;
   rv = composeStringBundle->GetStringFromID(NS_SMTP_PASSWORD_PROMPT_TITLE, getter_Copies(passwordTitle));
   NS_ENSURE_SUCCESS(rv,rv);
 
@@ -2142,4 +2151,3 @@ NS_IMETHODIMP nsSmtpProtocol::OnLogonRedirectionReply(const PRUnichar * aHost, u
   // we may want to always return NS_OK regardless of an error
   return rv;
 }
-

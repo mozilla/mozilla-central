@@ -3352,11 +3352,25 @@ SendDeliveryCallback(nsIURI *aUrl, nsresult aExitCode, nsMsgDeliveryType deliver
         {
           case NS_ERROR_UNKNOWN_HOST:
           case NS_ERROR_UNKNOWN_PROXY_HOST:
-            aExitCode = NS_ERROR_COULD_NOT_LOGIN_TO_SMTP_SERVER;
+            aExitCode = NS_ERROR_SMTP_SEND_FAILED_UNKNOWN_SERVER;
+            break;
+          case NS_ERROR_CONNECTION_REFUSED:
+          case NS_ERROR_PROXY_CONNECTION_REFUSED:
+            aExitCode = NS_ERROR_SMTP_SEND_FAILED_REFUSED;
+            break;
+          case NS_ERROR_NET_INTERRUPT:
+            aExitCode = NS_ERROR_SMTP_SEND_FAILED_INTERRUPTED;
+            break;
+          case NS_ERROR_NET_TIMEOUT:
+          case NS_ERROR_NET_RESET:
+            aExitCode = NS_ERROR_SMTP_SEND_FAILED_TIMEOUT;
+            break;
+          case NS_ERROR_SMTP_PASSWORD_UNDEFINED:
+            // nothing to do, just keep the code
             break;
           default:
             if (aExitCode != NS_ERROR_ABORT && !NS_IS_MSG_ERROR(aExitCode))
-              aExitCode = NS_ERROR_SMTP_SEND_FAILED;
+              aExitCode = NS_ERROR_SMTP_SEND_FAILED_UNKNOWN_REASON;
             break;
         }
       msgSend->DeliverAsMailExit(aUrl, aExitCode);
@@ -3751,7 +3765,11 @@ nsMsgComposeAndSend::DoDeliveryExitProcessing(nsIURI * aUri, nsresult aExitCode,
 #endif
 
     nsString eMsg;
-    if (aExitCode == NS_ERROR_SMTP_SEND_FAILED ||
+    if (aExitCode == NS_ERROR_SMTP_SEND_FAILED_UNKNOWN_SERVER ||
+        aExitCode == NS_ERROR_SMTP_SEND_FAILED_REFUSED ||
+        aExitCode == NS_ERROR_SMTP_SEND_FAILED_INTERRUPTED ||
+        aExitCode == NS_ERROR_SMTP_SEND_FAILED_TIMEOUT ||
+        aExitCode == NS_ERROR_SMTP_PASSWORD_UNDEFINED ||
         aExitCode == NS_ERROR_COULD_NOT_LOGIN_TO_SMTP_SERVER ||
         aExitCode == NS_ERROR_STARTTLS_FAILED_EHLO_STARTTLS ||
         aExitCode == NS_ERROR_COULD_NOT_LOGIN_TO_SMTP_SERVER_INSECAUTH ||
