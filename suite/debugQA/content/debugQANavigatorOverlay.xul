@@ -59,7 +59,7 @@
       document.documentElement.setAttribute("titlemodifier", titlemodifier);
 
       // Now set the title of the window
-      document.title = titlemodifier
+      document.title = titlemodifier;
     }
   ]]>
   </script>
