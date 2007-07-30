@@ -569,7 +569,8 @@
     <content>
       <xul:spacer flex="1"/>
       <xul:vbox anonid="hourbox"
-                onclick="clickHour(this.parentNode, this.parentNode.getAttribute('value'))">
+                onclick="clickHour(this.parentNode, this.parentNode.getAttribute('value'))"
+                ondblclick="doubleClickHour(this.parentNode, this.parentNode.getAttribute('value'))">
         <xul:box>
           <xul:label class="time-picker-hour-label" anonid="hourlabel" xbl:inherits="value=label,selected"/>
         </xul:box> 
@@ -1032,6 +1033,22 @@
             this.mSelectedTime.setHours( hourNumber );
 
             this.hasChanged = true;
+          ]]>
+        </body>
+      </method>
+
+      <!-- Called when one of the hour boxes is double clicked
+           Sets the time to the selected hour, on the hour, and closes the popup -->
+      <method name="doubleClickHour">
+        <parameter name="hourItem"/>
+        <parameter name="hourNumber"/>
+        <body>
+          <![CDATA[
+            // set the minutes to :00
+            this.mSelectedTime.setMinutes(0);
+            
+            // remove the popup grid
+            this.mPopup.hidePopup();
           ]]>
         </body>
       </method>
