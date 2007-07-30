@@ -1,5 +1,19 @@
 chrome/debugqa.jar
 chrome/debugqa.manifest
+extensions/talkback@mozilla.org/install.rdf
+extensions/talkback@mozilla.org/chrome.manifest
+extensions/talkback@mozilla.org/components/qfaservices.xpt
+extensions/talkback@mozilla.org/components/@DLL_PREFIX@qfaservices@DLL_SUFFIX@
+#ifdef XP_WIN
+extensions/talkback@mozilla.org/components/BrandRes.dll
+extensions/talkback@mozilla.org/components/fullsoft.dll
+extensions/talkback@mozilla.org/components/master.ini
+extensions/talkback@mozilla.org/components/talkback-l10n.ini
+extensions/talkback@mozilla.org/components/talkback.cnt
+extensions/talkback@mozilla.org/components/talkback.exe
+extensions/talkback@mozilla.org/components/talkback.hlp
+extensions/talkback@mozilla.org/InstallDisabled
+#endif
 components/airbag.xpt
 components/nsCloseAllWindows.js
 components/nsKillAll.js

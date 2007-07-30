@@ -97,6 +97,7 @@ Var fhUninstallLog
 !include common.nsh
 !include locales.nsi
 !include version.nsh
+!include custom.nsi
 
 VIAddVersionKey "FileDescription" "${BrandShortName} Installer"
 
@@ -254,24 +255,8 @@ Section "-Application" Section1
   StrCpy $0 "Software\Microsoft\Windows\CurrentVersion\Uninstall\${BrandFullNameInternal} (${AppVersion})"
   DeleteRegKey HKLM "$0"
 
-  ; For a "Standard" upgrade without talkback installed add the InstallDisabled
-  ; file to the talkback source files so it will be disabled by the extension
-  ; manager. This is done at the start of the installation since we check for
-  ; the existence of a directory to determine if this is an upgrade.
-  ${If} $InstallType == 1
-  ${AndIf} ${FileExists} "$INSTDIR\greprefs"
-  ${AndIf} ${FileExists} "$EXEDIR\optional\extensions\talkback@mozilla.org"
-    ${Unless} ${FileExists} "$INSTDIR\extensions\talkback@mozilla.org"
-      ${Unless} ${FileExists} "$INSTDIR\extensions"
-        CreateDirectory "$INSTDIR\extensions"
-      ${EndUnless}
-      CreateDirectory "$INSTDIR\extensions\talkback@mozilla.org"
-      FileOpen $2 "$EXEDIR\optional\extensions\talkback@mozilla.org\InstallDisabled" w
-      FileWrite $2 "$\r$\n"
-      FileClose $2
-    ${EndUnless}
-  ${Else}
-    ; Custom installs.
+  ; Custom installs.
+  ${If} $InstallType != 1
     ; If DOMi is installed and this install includes DOMi remove it from
     ; the installation directory. This will remove it if the user deselected
     ; DOMi on the components page.
@@ -279,12 +264,21 @@ Section "-Application" Section1
     ${AndIf} ${FileExists} "$EXEDIR\optional\extensions\inspector@mozilla.org"
       RmDir /r "$INSTDIR\extensions\inspector@mozilla.org"
     ${EndIf}
-    ; If TalkBack is installed and this install includes TalkBack remove it from
-    ; the installation directory. This will remove it if the user deselected
-    ; TalkBack on the components page.
-    ${If} ${FileExists} "$INSTDIR\extensions\talkback@mozilla.org"
-    ${AndIf} ${FileExists} "$EXEDIR\optional\extensions\talkback@mozilla.org"
-      RmDir /r "$INSTDIR\extensions\talkback@mozilla.org"
+
+    ; If DebugQA is installed and this install includes DebugQA remove it
+    ; from the installation directory. This will remove it if the user
+    ; deselected DebugQA on the components page.
+    ${If} ${FileExists} "$INSTDIR\extensions\debugQA@mozilla.org"
+    ${AndIf} ${FileExists} "$EXEDIR\optional\extensions\debugQA@mozilla.org"
+      RmDir /r "$INSTDIR\extensions\debugQA@mozilla.org"
+    ${EndIf}
+
+    ; If PalmSync is installed and this install includes PalmSync remove it
+    ; from the installation directory. This will remove it if the user
+    ; deselected PalmSync on the components page.
+    ${If} ${FileExists} "$INSTDIR\extensions\p@m"
+    ${AndIf} ${FileExists} "$EXEDIR\optional\extensions\p@m"
+      RmDir /r "$INSTDIR\extensions\p@m"
     ${EndIf}
   ${EndIf}
 
@@ -387,10 +381,7 @@ Section "-Application" Section1
   Call DoCopyFiles
 
   ${If} $InstallType != 4
-    Call installTalkback
-    ${If} ${FileExists} "$INSTDIR\extensions\inspector@mozilla.org"
-      Call installInspector
-    ${EndIf}
+    Call installInspector
   ${EndIf}
 
   ${LogHeader} "Adding Additional Files"
@@ -546,8 +537,12 @@ Section /o "Developer Tools" Section2
   Call installInspector
 SectionEnd
 
-Section /o "Quality Feedback Agent" Section3
-  Call installTalkback
+Section /o "Debug and QA Tools" Section3
+  Call installDebugQA
+SectionEnd
+
+Section /o "Palm Address Book Synchronization Tool" Section4
+  Call installPalmSync
 SectionEnd
 
 ################################################################################
@@ -567,39 +562,30 @@ Function installInspector
   ${EndIf}
 FunctionEnd
 
-Function installTalkback
-  StrCpy $R0 "$EXEDIR\optional\extensions\talkback@mozilla.org"
-  ${If} ${FileExists} "$R0"
+Function installDebugQA
+  ${If} ${FileExists} "$EXEDIR\optional\extensions\debugQA@mozilla.org"
     SetDetailsPrint textonly
     DetailPrint $(STATUS_INSTALL_OPTIONAL)
     SetDetailsPrint none
-    StrCpy $R1 "$INSTDIR\extensions\talkback@mozilla.org"
-    ${If} ${FileExists} "$R1"
-      ; If there is an existing InstallDisabled file copy it to the source dir.
-      ; This will add it during install to the uninstall.log and retains the
-      ; original disabled state from the installation.
-      ${If} ${FileExists} "$R1\InstallDisabled"
-        CopyFiles /SILENT "$R1\InstallDisabled" "$R0"
-      ${EndIf}
-      ; Remove the existing install of talkback
-      RmDir /r "$R1"
-    ${ElseIf} $InstallType == 1
-      ; For standard installations only enable talkback for the x percent as
-      ; defined by the application. We use QueryPerformanceCounter for the seed
-      ; since it returns a 64bit integer which should improve the accuracy.
-      System::Call "kernel32::QueryPerformanceCounter(*l.r1)"
-      System::Int64Op $1 % 100
-      Pop $0
-      ; The percentage provided by the application refers to the percentage to
-      ; include so all numbers equal or greater than should be disabled.
-      ${If} $0 >= ${RandomPercent}
-        FileOpen $2 "$R0\InstallDisabled" w
-        FileWrite $2 "$\r$\n"
-        FileClose $2
-      ${EndIf}
-    ${EndIf}
+    ${RemoveDir} "$INSTDIR\extensions\debugQA@mozilla.org"
     ClearErrors
-    ${LogHeader} "Installing Quality Feedback Agent"
+    ${LogHeader} "Installing Debug and QA Tools"
+    StrCpy $R0 "$EXEDIR\optional\extensions\debugQA@mozilla.org"
+    StrCpy $R1 "$INSTDIR\extensions\debugQA@mozilla.org"
+    Call DoCopyFiles
+  ${EndIf}
+FunctionEnd
+
+Function installPalmSync
+  ${If} ${FileExists} "$EXEDIR\optional\extensions\p@m"
+    SetDetailsPrint textonly
+    DetailPrint $(STATUS_INSTALL_OPTIONAL)
+    SetDetailsPrint none
+    ${RemoveDir} "$INSTDIR\extensions\p@m"
+    ClearErrors
+    ${LogHeader} "Installing Palm Address Book Synchronization Tool"
+    StrCpy $R0 "$EXEDIR\optional\extensions\p@m"
+    StrCpy $R1 "$INSTDIR\extensions\p@m"
     Call DoCopyFiles
   ${EndIf}
 FunctionEnd
@@ -885,18 +871,15 @@ FunctionEnd
 
 Function preComponents
   Call CheckCustom
-  ; If DOMi isn't available skip the components page
-  ${Unless} ${FileExists} "$EXEDIR\optional\extensions\inspector@mozilla.org"
-    Abort
-  ${EndUnless}
+  !insertmacro checkSuiteComponents
   !insertmacro MUI_HEADER_TEXT "$(OPTIONAL_COMPONENTS_TITLE)" "$(OPTIONAL_COMPONENTS_SUBTITLE)"
   !insertmacro MUI_INSTALLOPTIONS_DISPLAY "components.ini"
 FunctionEnd
 
 Function leaveComponents
   ; If DOMi exists then it will be Field 2.
-  ; If DOMi doesn't exist and talkback exists then TalkBack will be Field 2 but
-  ; if DOMi doesn't exist we won't display this page anyways.
+  ; If DOMi doesn't exist then debugQA will be Field 2 (when DOMI and debugQA
+  ; don't exist, palm sync will be Field 2).
   StrCpy $R1 2
   ${If} ${FileExists} "$EXEDIR\optional\extensions\inspector@mozilla.org"
     ${MUI_INSTALLOPTIONS_READ} $R0 "components.ini" "Field $R1" "State"
@@ -908,13 +891,24 @@ Function leaveComponents
     SectionSetFlags 1 0 ; Disable install for DOMi
   ${EndIf}
 
-  ${If} ${FileExists} "$EXEDIR\optional\extensions\talkback@mozilla.org"
+  ${If} ${FileExists} "$EXEDIR\optional\extensions\debugQA@mozilla.org"
     ${MUI_INSTALLOPTIONS_READ} $R0 "components.ini" "Field $R1" "State"
     ; State will be 1 for checked and 0 for unchecked so we can use that to set
     ; the section flags for installation.
     SectionSetFlags 2 $R0
+    IntOp $R1 $R1 + 1
   ${Else}
-    SectionSetFlags 2 0 ; Disable install for TalkBack
+    SectionSetFlags 2 0 ; Disable install for debugQA
+  ${EndIf}
+
+  ${If} ${FileExists} "$EXEDIR\optional\extensions\p@m"
+    ${MUI_INSTALLOPTIONS_READ} $R0 "components.ini" "Field $R1" "State"
+    ; State will be 1 for checked and 0 for unchecked so we can use that to set
+    ; the section flags for installation.
+    SectionSetFlags 3 $R0
+    IntOp $R1 $R1 + 1
+  ${Else}
+    SectionSetFlags 3 0 ; Disable install for palmsync
   ${EndIf}
 FunctionEnd
 
@@ -1126,7 +1120,7 @@ Function .onInit
   !insertmacro MUI_INSTALLOPTIONS_EXTRACT "components.ini"
   !insertmacro MUI_INSTALLOPTIONS_EXTRACT "shortcuts.ini"
   !insertmacro createBasicCustomOptionsINI
-  !insertmacro createComponentsINI
+  !insertmacro createSuiteComponentsINI
   !insertmacro createShortcutsINI
 
   ; There must always be nonlocalized and localized directories.
@@ -1135,23 +1129,4 @@ Function .onInit
   IntOp $0 $1 + $2
   SectionSetSize 0 $0
 
-  ${If} ${FileExists} "$EXEDIR\optional\extensions\inspector@mozilla.org"
-    ; Set the section size for DOMi.
-    ${GetSize} "$EXEDIR\optional\extensions\inspector@mozilla.org" "/S=0K" $0 $8 $9
-    SectionSetSize 1 $0
-  ${Else}
-    ; Hide DOMi in the components page if it isn't available.
-    SectionSetText 1 ""
-  ${EndIf}
-
-  ; Set the section size for Talkback only if it exists.
-  ${If} ${FileExists} "$EXEDIR\optional\extensions\talkback@mozilla.org"
-    ${GetSize} "$EXEDIR\optional\extensions\talkback@mozilla.org" "/S=0K" $0 $8 $9
-    SectionSetSize 2 $0
-    ; Install Talkback by default.
-    SectionSetFlags 2 1
-  ${Else}
-    ; Hide Talkback in the components page if it isn't available.
-    SectionSetText 2 ""
-  ${EndIf}
 FunctionEnd

@@ -539,19 +539,6 @@ bin\components\venkman-service.js
 bin\chrome\venkman.jar
 bin\chrome\icons\default\venkman-window.ico
 
-[talkback]
-bin\extensions\talkback@mozilla.org\install.rdf
-bin\extensions\talkback@mozilla.org\chrome.manifest
-bin\extensions\talkback@mozilla.org\components\qfaservices.dll
-bin\extensions\talkback@mozilla.org\components\qfaservices.xpt
-bin\extensions\talkback@mozilla.org\components\BrandRes.dll
-bin\extensions\talkback@mozilla.org\components\fullsoft.dll
-bin\extensions\talkback@mozilla.org\components\master.ini
-bin\extensions\talkback@mozilla.org\components\talkback-l10n.ini
-bin\extensions\talkback@mozilla.org\components\talkback.cnt
-bin\extensions\talkback@mozilla.org\components\talkback.exe
-bin\extensions\talkback@mozilla.org\components\talkback.hlp
-
 [inspector]
 bin\extensions\inspector@mozilla.org\install.rdf
 bin\extensions\inspector@mozilla.org\chrome.manifest

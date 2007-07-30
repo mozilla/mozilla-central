@@ -57,6 +57,7 @@ INSTALLER_FILES = \
 	nsis/installer.nsi \
 	nsis/uninstaller.nsi \
 	nsis/shared.nsh \
+	nsis/custom.nsi \
 	$(NULL)
 
 BRANDING_FILES = \

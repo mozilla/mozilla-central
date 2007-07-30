@@ -62,8 +62,6 @@ MOZ_NONLOCALIZED_PKG_LIST = \
 	venkman \
 	chatzilla \
 	reporter \
-	debugqa \
-	palmsync \
 	$(NULL)
 
 MOZ_LOCALIZED_PKG_LIST = \
@@ -71,8 +69,9 @@ MOZ_LOCALIZED_PKG_LIST = \
 	$(NULL)
 
 MOZ_OPTIONAL_PKG_LIST = \
+	debugqa \
 	inspector \
-	talkback \
+	palmsync \
 	$(NULL)
 
 DEFINES += -DAB_CD=$(AB_CD)
