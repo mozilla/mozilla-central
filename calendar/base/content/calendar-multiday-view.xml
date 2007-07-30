@@ -1912,8 +1912,11 @@
       ]]></constructor>
 
       <destructor><![CDATA[
-        if (this.mCalendar)
+        if (this.mCalendar) {
             this.mCalendar.removeObserver(this.mObserver);
+        }
+        window.removeEventListener("scroll", this.mScrollHandler, true);
+        window.removeEventListener("resize", this.mResizeHandler, true);
       ]]></destructor>
 
       <property name="daysInView" readonly="true">

@@ -19,6 +19,7 @@
  *
  * Contributor(s):
  *   Stuart Parmenter <stuart.parmenter@oracle.com>
+ *   Philipp Kewisch <mozilla@kewis.ch>
  *
  * Alternatively, the contents of this file may be used under the terms of
  * either the GNU General Public License Version 2 or later (the "GPL"), or
@@ -99,6 +100,9 @@ function onSnoozeAlarm(event)
 
   alarmService.snoozeEvent(alarmWidget.item, duration);
 
+  alarmWidget.removeEventListener("snooze", onSnoozeAlarm, false);
+  alarmWidget.removeEventListener("dismiss", onDismissAlarm, false);
+
   var parent = alarmWidget.parentNode;
   parent.removeChild(alarmWidget);
   if (!parent.hasChildNodes()) {
@@ -131,6 +135,9 @@ function onDismissWidget(alarmWidget) {
   }
   item.calendar.modifyItem(item, alarmWidget.item, null);
 
+  alarmWidget.removeEventListener("snooze", onSnoozeAlarm, false);
+  alarmWidget.removeEventListener("dismiss", onDismissAlarm, false);
+
   var parent = alarmWidget.parentNode;
   parent.removeChild(alarmWidget);
 
@@ -140,4 +147,3 @@ function onDismissWidget(alarmWidget) {
   }
 
 }
-
