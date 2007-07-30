@@ -1656,7 +1656,8 @@ nsresult nsMsgCompose::CreateMessage(const char * originalMsgURI,
 
   // store the original message URI so we can extract it after we send the message to properly
   // mark any disposition flags like replied or forwarded on the message.
-  mOriginalMsgURI = originalMsgURI;
+  if (mOriginalMsgURI.IsEmpty())
+    mOriginalMsgURI = originalMsgURI;
 
   // If we are forwarding inline, mime did already setup the compose fields therefore we should stop now
   if (type == nsIMsgCompType::ForwardInline )
@@ -2881,14 +2882,53 @@ NS_IMETHODIMP nsMsgCompose::RememberQueuedDisposition()
           mType == nsIMsgCompType::ForwardInline)
           dispositionSetting = "forwarded";
         nsCAutoString msgUri(m_folderName);
-        msgUri.Insert("-message", 7); // "mailbox: -> "mailbox-message:"
+
+        PRInt32 insertIndex = StringBeginsWith(msgUri, NS_LITERAL_CSTRING("mailbox")) ? 7 : 4;
+        msgUri.Insert("-message", insertIndex); // "mailbox/imap: -> "mailbox/imap-message:"
         msgUri.Append('#');
         msgUri.AppendInt(msgKey);
         nsCOMPtr <nsIMsgDBHdr> msgHdr;
         nsresult rv = GetMsgDBHdrFromURI(msgUri.get(), getter_AddRefs(msgHdr));
         NS_ENSURE_SUCCESS(rv, rv);
-        msgHdr->SetStringProperty(ORIG_URI_PROPERTY, mOriginalMsgURI.get());
-        msgHdr->SetStringProperty(QUEUED_DISPOSITION_PROPERTY, dispositionSetting);
+        // If we did't find the msg hdr, and it's an IMAP message,
+        // we must not have downloaded the header. So we're going to set some 
+        // pending attributes on the header for the queued disposition, so that
+        // we can associate them with the header, once we've downloaded it from
+        // the imap server.
+        if (!msgHdr && insertIndex == 4)
+        {
+          nsCOMPtr<nsIRDFService> rdfService (do_GetService("@mozilla.org/rdf/rdf-service;1", &rv));
+          NS_ENSURE_SUCCESS(rv, rv);
+
+          nsCOMPtr <nsIRDFResource> resource;
+          rv = rdfService->GetResource(m_folderName, getter_AddRefs(resource));
+          NS_ENSURE_SUCCESS(rv, rv);
+
+          nsCOMPtr <nsIMsgFolder> msgFolder(do_QueryInterface(resource));
+          if (msgFolder)
+          {
+            nsCOMPtr <nsIMsgDatabase> msgDB;
+            msgFolder->GetMsgDatabase(nsnull, getter_AddRefs(msgDB));
+            if (msgDB)
+            {
+              msgDB->CreateNewHdr(msgKey, getter_AddRefs(msgHdr));
+              if (msgHdr)
+              {
+                nsCString messageId;
+                mMsgSend->GetMessageId(messageId);
+                msgHdr->SetMessageId(messageId.get());
+                msgDB->SetAttributesOnPendingHdr(msgHdr, ORIG_URI_PROPERTY, mOriginalMsgURI.get(), 0);
+                msgDB->SetAttributesOnPendingHdr(msgHdr, QUEUED_DISPOSITION_PROPERTY, dispositionSetting, 0); 
+                msgDB->RemoveHeaderMdbRow(msgHdr);
+              }
+            }
+          }
+        }
+        else if (msgHdr)
+        {
+          msgHdr->SetStringProperty(ORIG_URI_PROPERTY, mOriginalMsgURI.get());
+          msgHdr->SetStringProperty(QUEUED_DISPOSITION_PROPERTY, dispositionSetting);
+        }
       }
     }
   }
