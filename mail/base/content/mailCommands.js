@@ -162,6 +162,38 @@ function getIdentityForServer(server, optionalHint)
     return identity;
 }
 
+function getIdentityForHeader(hdr, type)
+{
+  // If we treat reply from sent specially, do we check for that folder flag here ?
+  var hintForIdentity = (type == msgComposeType.Template) ? hdr.author : hdr.recipients + hdr.ccList;
+  var identity = null;
+  
+  var folder = hdr.folder;
+  if (folder)
+  {
+    server = folder.server;
+    identity = folder.customIdentity;
+  }
+  
+  var accountKey = hdr.accountKey;
+  if (accountKey.length > 0)
+  {
+    var account = accountManager.getAccount(accountKey);
+    if (account)
+      server = account.incomingServer;
+  }
+
+  if (server && !identity) 
+    identity = getIdentityForServer(server, hintForIdentity);
+  
+  if (!identity)
+  {
+    var allIdentities = accountManager.allIdentities;
+    identity = getBestIdentity(allIdentities, hintForIdentity);
+  }  
+  return identity;                         
+}
+
 function GetNextNMessages(folder)
 {
   if (folder) {
@@ -249,31 +281,7 @@ function ComposeMessage(type, format, folder, messageArray)
       var messageUri = messageArray[i];
 
       var hdr = messenger.msgHdrFromURI(messageUri);
-      // If we treat reply from sent specially, do we check for that folder flag here ?
-      var hintForIdentity = (type == msgComposeType.Template) ? hdr.author : hdr.recipients + hdr.ccList;
-      var customIdentity = null;
-      
-      // override the passed in folder (which could very well be a saved search folder, and use
-      // the underlying folder for the particular message.
-      folder = hdr.folder;
-      if (folder)
-      {
-        server = folder.server;
-        customIdentity = folder.customIdentity;
-      }
-      
-      var accountKey = hdr.accountKey;
-      if (accountKey.length > 0)
-      {
-        var account = accountManager.getAccount(accountKey);
-        if (account)
-          server = account.incomingServer;
-      }
-
-      identity = (server && !customIdentity) 
-        ? getIdentityForServer(server, hintForIdentity)
-        : customIdentity;                         
-
+      identity = getIdentityForHeader(hdr, type);
       var messageID = hdr.messageId;
       var messageIDScheme = messageID ? messageID.split(":")[0] : "";
       if (messageIDScheme && (messageIDScheme == 'http' || messageIDScheme == 'https') &&  "openComposeWindowForRSSArticle" in this)
@@ -458,8 +466,10 @@ function SaveAsFile(uri)
 
 function SaveAsTemplate(uri, folder)
 {
-  if (uri) {
-    var identity = getIdentityForServer(folder.server);
+  if (uri) 
+  {
+    var hdr = messenger.msgHdrFromURI(uri);
+    var identity = getIdentityForHeader(hdr, msgComposeType.Template);
     messenger.saveAs(uri, false, identity, null);
   }
 }
