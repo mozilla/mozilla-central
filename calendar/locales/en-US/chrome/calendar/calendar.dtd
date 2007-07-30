@@ -26,6 +26,7 @@
    -                 Matthew Willis <mattwillis@gmail.com>
    -                 Simon Paquet <bugzilla@babylonsounds.com>
    -                 Stefan Sitter <ssitter@googlemail.com>
+   -                 Philipp Kewisch <mozilla@kewis.ch>
    -
    - Alternatively, the contents of this file may be used under the terms of
    - either the GNU General Public License Version 2 or later (the "GPL"), or
@@ -156,6 +157,9 @@
 <!ENTITY calendar.onlyworkday.checkbox.accesskey  "r" >
 <!ENTITY calendar.displaytodos.checkbox.label   "Tasks in View" >
 <!ENTITY calendar.displaytodos.checkbox.accesskey "k" >
+
+<!ENTITY calendar.orientation.label "Rotate View" >
+<!ENTITY calendar.orientation.accesskey "o" >
 
 <!ENTITY calendar.menu.options.close.key        "W">
 

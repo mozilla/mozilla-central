@@ -510,6 +510,8 @@ function showCalendarView(type)
     }
 
     var view = document.getElementById(type+"-view");
+    var rotated = document.getElementById("ltn-multiday-rotated");
+
     if (!view.initialized) {
         // Set up this view with the current view-checkbox values
         var workdaysMenu = document.getElementById("ltn-workdays-only");
@@ -518,6 +520,15 @@ function showCalendarView(type)
         var tasksMenu = document.getElementById("ltn-tasks-in-view")
         view.tasksInView = (tasksMenu.getAttribute("checked") == 'true');
         view.showCompleted = document.getElementById("completed-tasks-checkbox").checked;
+
+        view.rotated = (rotated.getAttribute("checked") == 'true');
+    }
+
+    // Disable the menuitem when not in day or week view.
+    if (type == "day" || type == "week") {
+        rotated.removeAttribute("disabled");
+    } else {
+        rotated.setAttribute("disabled", true);
     }
 
     document.getElementById("displayDeck").selectedPanel =  calendarViewBox;
@@ -603,6 +614,10 @@ function LtnObserveDisplayDeckChange(event)
         if (searchBox) {
             uncollapseElement(searchBox);
         }
+
+        // Disable the rotate view menuitem
+        document.getElementById("ltn-multiday-rotated")
+                .setAttribute("disabled", true);
     }
 }
 
@@ -669,6 +684,17 @@ function findMailSearchBox() {
     // In later versions, it's possible that a user removed the search box from
     // the toolbar.
     return null;
+}
+
+function updateOrientation() {
+
+    var value = (document.getElementById("ltn-multiday-rotated")
+                         .getAttribute("checked") == 'true');
+
+    var deck = document.getElementById("calendar-view-box")
+    for each (view in deck.childNodes) {
+        view.rotated = value;
+    }
 }
 
 function toggleWorkdaysOnly() {

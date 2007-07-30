@@ -21,6 +21,7 @@
  *
  * Contributor(s):
  *   Dan Mosedale <dan.mosedale@oracle.com>
+ *   Philipp Kewisch <mozilla@kewis.ch>
  *
  * Alternatively, the contents of this file may be used under the terms of
  * either the GNU General Public License Version 2 or later (the "GPL"), or
@@ -58,7 +59,7 @@ interface calIItemBase;
  * shouldn't need to know about view-specific preferences.
  */
 
-[scriptable, uuid(229049e0-e36f-4706-9fe1-37eb370273b9)]
+[scriptable, uuid(7ba617eb-f19b-400b-9a7d-4156b7c6f028)]
 interface calIDecoratedView : nsISupports
 {
   /**
@@ -98,6 +99,11 @@ interface calIDecoratedView : nsISupports
    * Whether or not tasks are to be displayed in the calICalendarView
    */
   attribute boolean tasksInView;
+
+  /**
+   * If set, the view will be rotated (i.e time on top, date at left)
+   */
+  attribute boolean rotated;
 
   /**
    * Whether or not completed tasks are shown in the calICalendarView

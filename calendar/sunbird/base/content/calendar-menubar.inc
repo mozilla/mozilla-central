@@ -28,6 +28,7 @@
 #                 Eric Belhaire <belhaire@ief.u-psud.fr>
 #                 Matthew Willis <mattwillis@gmail.com>
 #                 Stefan Sitter <ssitter@googlemail.com>
+#                 Philipp Kewisch <mozilla@kewis.ch>
 #
 # Alternatively, the contents of this file may be used under the terms of
 # either the GNU General Public License Version 2 or later (the "GPL"), or
@@ -271,6 +272,13 @@
                      accesskey="&calendar.monthview.accesskey;"
                      observes="month_view_command"/>
            <menuseparator/>
+           <menuitem id="menu-multiday-rotated"
+                     type="checkbox"
+                     label="&calendar.orientation.label;"
+                     accesskey="&calendar.orientation.accesskey;"
+                     oncommand="updateOrientation()"
+                     persist="checked"
+                     disabled="true"/>
            <menuitem id="only-workday-checkbox-1"
                      type="checkbox"
                      label="&calendar.onlyworkday.checkbox.label;"

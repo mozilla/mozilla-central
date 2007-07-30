@@ -1870,10 +1870,7 @@
       <xul:box anonid="mainbox" flex="1" onoverflow="adjustWeekdayLength();">
         <!-- these boxes are tricky: width or height in CSS depend on orient -->
         <xul:box anonid="labelbox">
-          <xul:box anonid="labeltimespacer">
-            <xul:button anonid="rotate-button"
-             oncommand="var e=this.parentNode.parentNode.parentNode.parentNode; if (e.orient == 'horizontal') e.orient = 'vertical'; else e.orient = 'horizontal';" align="center"/>
-          </xul:box>
+          <xul:box anonid="labeltimespacer"/>
           <xul:box anonid="labeldaybox" class="calendar-label-day-box" flex="1"
                    equalsize="always" />
           <xul:box anonid="labelscrollbarspacer"/>
@@ -1903,8 +1900,6 @@
         window.addEventListener("resize", this.mResizeHandler, true);
         this.mScrollHandler = function scrollHandler() { self.onScroll(); };
         window.addEventListener("scroll", this.mScrollHandler, true);
-        var rButton = document.getAnonymousElementByAttribute(this, "anonid", "rotate-button");
-        rButton.label = calGetString("calendar", "rotate");
 
         // set the flex attribute at the scrollbox-innerbox
         // (this can be removed, after Bug 343555 is fixed)
@@ -2521,8 +2516,8 @@
       </property>
 
       <property name="orient">
-        <getter>return (this.getAttribute("orient") || "vertical");</getter>
-        <setter>this.setAttribute("orient", val); return val;</setter>
+        <getter><![CDATA[return (this.getAttribute("orient") || "vertical");]]></getter>
+        <setter><![CDATA[this.setAttribute("orient", val); return val;]]></setter>
       </property>
 
       <method name="setAttribute">

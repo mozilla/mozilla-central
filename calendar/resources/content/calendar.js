@@ -111,6 +111,8 @@ function calendarInit()
        deck.selectedPanel.goToDay(deck.selectedPanel.selectedDay);
    }
 
+   updateOrientation();
+
    // set up the unifinder
    
    prepareCalendarUnifinder();
@@ -386,6 +388,17 @@ function onSelectionChanged(aEvent) {
         } else {
             elements[i].setAttribute("disabled", "true");
         }
+    }
+}
+
+function updateOrientation() {
+
+    var value = (document.getElementById("menu-multiday-rotated")
+                         .getAttribute("checked") == 'true');
+
+    // This makes the views refresh themselves
+    for each (view in document.getElementById("view-deck").childNodes) {
+        view.rotated = value;
     }
 }
 

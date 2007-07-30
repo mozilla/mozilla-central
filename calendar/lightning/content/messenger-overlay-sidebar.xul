@@ -143,6 +143,13 @@
                     label="&calendar.displaytodos.checkbox.label;"
                     accesskey="&calendar.displaytodos.checkbox.accesskey;"
                     oncommand="toggleTasksInView()"/>
+          <menuitem type="checkbox"
+                    id="ltn-multiday-rotated"
+                    persist="checked"
+                    disabled="true"
+                    label="&calendar.orientation.label;"
+                    accesskey="&calendar.orientation.accesskey;"
+                    oncommand="updateOrientation()"/>
         </menupopup>
       </menu>
       <menuitem id="ltnGoToToday"

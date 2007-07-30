@@ -23,6 +23,7 @@
  *                 Eric Belhaire <belhaire@ief.u-psud.fr>
  *                 Robin Edrenius <robin.edrenius@gmail.com>
  *                 Joey Minta <jminta@gmail.com>
+ *                 Philipp Kewisch <mozilla@kewis.ch>
  *
  * Alternatively, the contents of this file may be used under the terms of
  * either the GNU General Public License Version 2 or later (the "GPL"), or
@@ -169,6 +170,14 @@ CalendarWindow.prototype.switchToView = function calWin_switchToView( newView )
         mwWeeksCommand.removeAttribute("disabled");
     } else {
         mwWeeksCommand.setAttribute("disabled", true);
+    }
+
+    // Disable the orientation menuitem on non multiday views
+    var mwOrientCommand = document.getElementById("menu-multiday-rotated");
+    if (newView == "day" || newView == "week") {
+        mwOrientCommand.removeAttribute("disabled");
+    } else {
+        mwOrientCommand.setAttribute("disabled", true);
     }
 
     // Call the common view switching code in calendar-views.js
