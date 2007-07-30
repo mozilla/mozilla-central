@@ -325,20 +325,22 @@
 </hbox>
 
 <deck id="displayDeck">
-  <deck flex="1" id="calendar-view-box">
-    <calendar-decorated-day-view id="day-view" flex="1"
-                                       context="calendar-view-context-menu"
-                                       item-context="calendar-item-context-menu"/>
-    <calendar-decorated-week-view id="week-view" flex="1"
-                                       context="calendar-view-context-menu"
-                                       item-context="calendar-item-context-menu"/>
-    <calendar-decorated-multiweek-view id="multiweek-view" flex="1"
-                                       context="calendar-view-context-menu"
-                                       item-context="calendar-item-context-menu"/>
-    <calendar-decorated-month-view id="month-view" flex="1"
-                                       context="calendar-view-context-menu"
-                                       item-context="calendar-item-context-menu"/>
-  </deck>
+  <vbox id="calendar-view-box">
+    <deck flex="1" id="view-deck">
+      <calendar-decorated-day-view id="day-view" flex="1"
+                                         context="calendar-view-context-menu"
+                                         item-context="calendar-item-context-menu"/>
+      <calendar-decorated-week-view id="week-view" flex="1"
+                                         context="calendar-view-context-menu"
+                                         item-context="calendar-item-context-menu"/>
+      <calendar-decorated-multiweek-view id="multiweek-view" flex="1"
+                                         context="calendar-view-context-menu"
+                                         item-context="calendar-item-context-menu"/>
+      <calendar-decorated-month-view id="month-view" flex="1"
+                                         context="calendar-view-context-menu"
+                                         item-context="calendar-item-context-menu"/>
+    </deck>
+  </vbox>
 </deck>
 
 <vbox id="messagepanebox"/>

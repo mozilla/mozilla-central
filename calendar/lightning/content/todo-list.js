@@ -81,8 +81,7 @@ function toggleCompletedTasks()
 
     agendaTreeView.refreshCalendarQuery();
 
-    var deck = document.getElementById("calendar-view-box")
-    for each (view in deck.childNodes) {
+    for each (view in getViewDeck().childNodes) {
         view.showCompleted = !view.showCompleted;
     }
 

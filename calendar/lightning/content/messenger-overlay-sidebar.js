@@ -672,8 +672,7 @@ function findMailSearchBox() {
 }
 
 function toggleWorkdaysOnly() {
-    var deck = document.getElementById("calendar-view-box")
-    for each (view in deck.childNodes) {
+    for each (view in getViewDeck().childNodes) {
         view.workdaysOnly = !view.workdaysOnly;
     }
 
@@ -682,8 +681,7 @@ function toggleWorkdaysOnly() {
 }
 
 function toggleTasksInView() {
-    var deck = document.getElementById("calendar-view-box")
-    for each (view in deck.childNodes) {
+    for each (view in getViewDeck().childNodes) {
         view.tasksInView = !view.tasksInView;
     }
 
