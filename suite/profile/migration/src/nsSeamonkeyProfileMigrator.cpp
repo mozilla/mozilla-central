@@ -310,6 +310,7 @@ nsSeamonkeyProfileMigrator::PrefTransform gTransforms[] = {
   MAKESAMETYPEPREFTRANSFORM("browser.history_expire_days",             Int),
   MAKESAMETYPEPREFTRANSFORM("browser.link.open_external",              Int),
   MAKESAMETYPEPREFTRANSFORM("browser.link.open_newwindow",             Int),
+  MAKESAMETYPEPREFTRANSFORM("browser.open.dir",                        String),
   MAKESAMETYPEPREFTRANSFORM("browser.related.disableForDomains",       String),
   MAKESAMETYPEPREFTRANSFORM("browser.related.provider",                String),
   MAKESAMETYPEPREFTRANSFORM("browser.send_pings",                      Bool),
@@ -353,6 +354,7 @@ nsSeamonkeyProfileMigrator::PrefTransform gTransforms[] = {
   MAKESAMETYPEPREFTRANSFORM("intl.accept_charsets",                    String),
   MAKESAMETYPEPREFTRANSFORM("intl.accept_languages",                   String),
   MAKESAMETYPEPREFTRANSFORM("intl.charset.default",                    String),
+  MAKESAMETYPEPREFTRANSFORM("intl.charsetmenu.browser.static",         String),
 
   MAKESAMETYPEPREFTRANSFORM("javascript.allow.mailnews",               Bool),
   MAKESAMETYPEPREFTRANSFORM("javascript.enabled",                      Bool),
@@ -385,6 +387,7 @@ nsSeamonkeyProfileMigrator::PrefTransform gTransforms[] = {
   MAKESAMETYPEPREFTRANSFORM("mail.collect_email_address_newsgroup",    Bool),
   MAKESAMETYPEPREFTRANSFORM("mail.collect_email_address_outgoing",     Bool),
   MAKESAMETYPEPREFTRANSFORM("mail.compose.add_undisclosed_recipients", Bool),
+  MAKESAMETYPEPREFTRANSFORM("mail.compose.attach.dir",                 String),
   MAKESAMETYPEPREFTRANSFORM("mail.compose.autosave",                   Bool),
   MAKESAMETYPEPREFTRANSFORM("mail.compose.autosaveinterval",           Int),
   MAKESAMETYPEPREFTRANSFORM("mail.compose.dont_attach_source_of_local_network_links", Bool),
@@ -448,6 +451,7 @@ nsSeamonkeyProfileMigrator::PrefTransform gTransforms[] = {
   MAKESAMETYPEPREFTRANSFORM("mail.thread_without_re",                  Bool),
   MAKESAMETYPEPREFTRANSFORM("mail.trusteddomains",                     String),
   MAKESAMETYPEPREFTRANSFORM("mail.warn_on_send_accel_key",             Bool),
+  MAKESAMETYPEPREFTRANSFORM("mail.warn_filter_changed",                Bool),
   MAKESAMETYPEPREFTRANSFORM("mail.wrap_long_lines",                    Bool),
 
   MAKESAMETYPEPREFTRANSFORM("mailnews.account_central_page.url",       String),
@@ -495,7 +499,7 @@ nsSeamonkeyProfileMigrator::PrefTransform gTransforms[] = {
   MAKESAMETYPEPREFTRANSFORM("mailnews.search_date_leading_zeros",      String),
   MAKESAMETYPEPREFTRANSFORM("mailnews.search_date_separator",          String),
   MAKESAMETYPEPREFTRANSFORM("mailnews.send_default_charset",           String),
-  MAKESAMETYPEPREFTRANSFORM("mailnews.send_plaintext_flowed",          String),
+  MAKESAMETYPEPREFTRANSFORM("mailnews.send_plaintext_flowed",          Bool),
   MAKESAMETYPEPREFTRANSFORM("mailnews.show_send_progress",             String),
   MAKESAMETYPEPREFTRANSFORM("mailnews.start_page.enabled",             Bool),
   MAKESAMETYPEPREFTRANSFORM("mailnews.start_page.url",                 String),
@@ -504,6 +508,7 @@ nsSeamonkeyProfileMigrator::PrefTransform gTransforms[] = {
   MAKESAMETYPEPREFTRANSFORM("mailnews.view_default_charset",           String),
   MAKESAMETYPEPREFTRANSFORM("mailnews.wraplength",                     Int),
 
+  MAKESAMETYPEPREFTRANSFORM("messenger.save.dir",                      String),
   MAKESAMETYPEPREFTRANSFORM("messenger.throbber.url",                  String),
 
   MAKESAMETYPEPREFTRANSFORM("msgcompose.background_color",             String),
@@ -558,9 +563,7 @@ nsSeamonkeyProfileMigrator::PrefTransform gTransforms[] = {
   MAKESAMETYPEPREFTRANSFORM("security.enable_ssl3",                    Bool),
   MAKESAMETYPEPREFTRANSFORM("security.enable_tls",                     Bool),
   MAKESAMETYPEPREFTRANSFORM("security.enable_java",                    Bool),
-  MAKESAMETYPEPREFTRANSFORM("security.OSCP.enabled",                   Int),
-  MAKESAMETYPEPREFTRANSFORM("security.OSCP.signingCA",                 String),
-  MAKESAMETYPEPREFTRANSFORM("security.OSCP.URL",                       String),
+  MAKESAMETYPEPREFTRANSFORM("security.password_lifetime",              Int),
   MAKESAMETYPEPREFTRANSFORM("security.warn_entering_secure",           Bool),
   MAKESAMETYPEPREFTRANSFORM("security.warn_entering_weak",             Bool),
   MAKESAMETYPEPREFTRANSFORM("security.warn_leaving_secure",            Bool),
@@ -648,6 +651,8 @@ nsSeamonkeyProfileMigrator::TransformPreferences(const char* aSourcePrefFileName
     "network.http.",
     "print.",
     "privacy.",
+    "security.OSCP.",
+    "security.crl.",
     "ui.key.",
     "wallet."
   };

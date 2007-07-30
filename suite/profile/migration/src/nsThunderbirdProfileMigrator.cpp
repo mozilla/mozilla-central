@@ -425,6 +425,7 @@ nsThunderbirdProfileMigrator::PrefTransform gTransforms[] = {
   MAKESAMETYPEPREFTRANSFORM("mail.thread_without_re",                  Bool),
   MAKESAMETYPEPREFTRANSFORM("mail.trusteddomains",                     String),
   MAKESAMETYPEPREFTRANSFORM("mail.warn_on_send_accel_key",             Bool),
+  MAKESAMETYPEPREFTRANSFORM("mail.warn_filter_changed",                Bool),
   MAKESAMETYPEPREFTRANSFORM("mail.wrap_long_lines",                    Bool),
 
   MAKESAMETYPEPREFTRANSFORM("mailnews.account_central_page.url",       String),
@@ -472,7 +473,7 @@ nsThunderbirdProfileMigrator::PrefTransform gTransforms[] = {
   MAKESAMETYPEPREFTRANSFORM("mailnews.search_date_leading_zeros",      String),
   MAKESAMETYPEPREFTRANSFORM("mailnews.search_date_separator",          String),
   MAKESAMETYPEPREFTRANSFORM("mailnews.send_default_charset",           String),
-  MAKESAMETYPEPREFTRANSFORM("mailnews.send_plaintext_flowed",          String),
+  MAKESAMETYPEPREFTRANSFORM("mailnews.send_plaintext_flowed",          Bool),
   MAKESAMETYPEPREFTRANSFORM("mailnews.show_send_progress",             String),
   MAKESAMETYPEPREFTRANSFORM("mailnews.start_page.enabled",             Bool),
   MAKESAMETYPEPREFTRANSFORM("mailnews.start_page.url",                 String),
@@ -481,6 +482,7 @@ nsThunderbirdProfileMigrator::PrefTransform gTransforms[] = {
   MAKESAMETYPEPREFTRANSFORM("mailnews.view_default_charset",           String),
   MAKESAMETYPEPREFTRANSFORM("mailnews.wraplength",                     Int),
 
+  MAKESAMETYPEPREFTRANSFORM("messenger.save.dir",                      String),
   MAKESAMETYPEPREFTRANSFORM("messenger.throbber.url",                  String),
 
   MAKESAMETYPEPREFTRANSFORM("msgcompose.background_color",             String),
@@ -534,9 +536,7 @@ nsThunderbirdProfileMigrator::PrefTransform gTransforms[] = {
   MAKESAMETYPEPREFTRANSFORM("security.enable_ssl3",                    Bool),
   MAKESAMETYPEPREFTRANSFORM("security.enable_tls",                     Bool),
   MAKESAMETYPEPREFTRANSFORM("security.enable_java",                    Bool),
-  MAKESAMETYPEPREFTRANSFORM("security.OSCP.enabled",                   Int),
-  MAKESAMETYPEPREFTRANSFORM("security.OSCP.signingCA",                 String),
-  MAKESAMETYPEPREFTRANSFORM("security.OSCP.URL",                       String),
+  MAKESAMETYPEPREFTRANSFORM("security.password_lifetime",              Int),
   MAKESAMETYPEPREFTRANSFORM("security.warn_entering_secure",           Bool),
   MAKESAMETYPEPREFTRANSFORM("security.warn_entering_weak",             Bool),
   MAKESAMETYPEPREFTRANSFORM("security.warn_leaving_secure",            Bool),
@@ -606,6 +606,8 @@ nsThunderbirdProfileMigrator::TransformPreferences(
     "network.http.",
     "print.",
     "privacy.",
+    "security.OSCP.",
+    "security.crl.",
     "ui.key.",
     "wallet."
   };
