@@ -511,7 +511,7 @@ PRInt32 nsSmtpProtocol::SmtpResponse(nsIInputStream * inputStream, PRUint32 leng
     if (m_continuationResponse == m_responseCode && cont_char == ' ')
       m_continuationResponse = -1;    /* ended */
 
-    if (m_responseText.CharAt(m_responseText.Length() - 1) != '\n')
+    if (m_responseText.IsEmpty() || m_responseText.Last() != '\n')
       m_responseText += "\n";
 
     m_responseText += (PL_strlen(line) > 3) ? line + 4 : line;
