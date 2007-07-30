@@ -61,6 +61,27 @@ sub litmus_locations {
     };
 }
 
+# Enabled (only) admin action tracking (auditing).
+# NOTE: this can be overridden in localconfig
+our $AUDIT_TRAIL = 1;
+
+# This hash contains a list of database queries to ignore when auditing. By
+# default, we don't care about the initial INSERT of test_results. We're more
+# concerned about changes to testcases (and subgroups, etc.) than test_results.
+# NOTE: this can be overridden/extended in localconfig
+our %AUDIT_ACTIONS_TO_IGNORE = (
+    'INSERT' => [		 
+		 'test_result', # This happens to cover all the subsidiary
+				# tables as well due to the nature of the
+				# regexp.
+		 'audit_trail',
+		],
+    'UPDATE' => [
+		],
+    'DELETE' => [
+		],
+    );
+
 our $localconfig = litmus_locations()->{'localconfig'};
 do $localconfig;
 
@@ -71,5 +92,6 @@ our $disabled = 0;
 
 # Set/unset this to display inline debugging value/code.
 our $DEBUG = 0;
+
 
 1;

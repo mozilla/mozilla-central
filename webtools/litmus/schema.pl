@@ -27,6 +27,19 @@
 
 our $table;
 
+$table{audit_trail} =
+   'user_id int(11) NOT NULL,
+    action_timestamp timestamp NOT NULL default CURRENT_TIMESTAMP,
+    action_type enum("INSERT","UPDATE","DELETE") NOT NULL,
+    sql_log longtext character set latin1 collate latin1_bin,
+    bind_values longtext character set latin1 collate latin1_bin,   
+    KEY `user_id` (user_id),
+    KEY `action_timestamp` (action_timestamp),
+    KEY `action_type` (action_type),
+    KEY `sql_log` (sql_log(255)),
+    KEY `bind_values` (bind_values(255))
+    ';
+
 $table{branches} = 
    'branch_id smallint(6) not null primary key auto_increment,
     product_id tinyint(4) not null,
