@@ -48,7 +48,6 @@ const kMANY_EVENTS = 0x7FFFFFFF;
 function calGoogleSession(aUsername) {
 
     this.mItemQueue = new Array();
-    this.mObservers = new Array();
     this.mGoogleUser = aUsername;
 
     var username = { value: aUsername };
@@ -84,7 +83,6 @@ calGoogleSession.prototype = {
     mItemQueue: null,
 
     mCalendarName: null,
-    mObservers: null,
 
     /**
      * readonly attribute authToken

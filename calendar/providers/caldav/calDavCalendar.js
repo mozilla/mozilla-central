@@ -61,7 +61,7 @@ const xmlHeader = '<?xml version="1.0" encoding="UTF-8"?>\n';
 
 function calDavCalendar() {
     this.wrappedJSObject = this;
-    this.mObservers = [];
+    this.mObservers = new calListenerBag(Ci.calIObserver);
     this.unmappedProperties = [];
     this.mPendingStartupRequests = [];
     this.mUriParams = null;
@@ -186,8 +186,7 @@ calDavCalendar.prototype = {
     mPendingStartupRequests: null,
 
     get canRefresh() {
-        // refresh() is currently not implemented, but we may want to change that
-        return false;
+        return true;
     },
 
     // mUriParams stores trailing ?parameters from the
@@ -225,8 +224,10 @@ calDavCalendar.prototype = {
         return decodeURIComponent(this.mCalendarUri.path);
     },
 
-    refresh: function() {
-        throw Components.results.NS_ERROR_NOT_IMPLEMENTED;
+    refresh: function caldav_refresh() {
+        // clear etag cache
+        this.mEtagCache = [];
+        this.mObservers.notify("onLoad", [this]);
     },
 
     // attribute boolean suppressAlarms;
@@ -244,22 +245,12 @@ calDavCalendar.prototype = {
 
     // void addObserver( in calIObserver observer );
     addObserver: function caldav_addObserver(aObserver) {
-        for each (obs in this.mObservers) {
-            // XXX todo: this is kind of complicated, if the same obsever is added multiple times,
-            //           we should add ref-counting like in wcap
-            if (compareObjects(obs, aObserver, Ci.calIObserver)) {
-                return;
-            }
-        }
-
-        this.mObservers.push(aObserver);
+        this.mObservers.add(aObserver);
     },
 
     // void removeObserver( in calIObserver observer );
     removeObserver: function (aObserver) {
-        this.mObservers = this.mObservers.filter(
-            // XXX todo: compareObjects missing?
-            function(o) {return (o != aObserver);});
+        this.mObservers.remove(aObserver);
     },
 
     /**
@@ -494,7 +485,7 @@ calDavCalendar.prototype = {
 
             // notify observers
             if (Components.isSuccessCode(retVal)) {
-                thisCalendar.observeAddItem(aItem);
+                thisCalendar.mObservers.notify("onAddItem", [aItem]);
             }
         }
   
@@ -646,7 +637,8 @@ calDavCalendar.prototype = {
 
             // notify observers
             if (Components.isSuccessCode(retVal)) {
-                thisCalendar.observeModifyItem(aNewItem, aOldItem.parentItem);
+                thisCalendar.mObservers.notify("onModifyItem",
+                                               [aNewItem, aOldItem.parentItem]);
             }
 
             return;
@@ -738,7 +730,7 @@ calDavCalendar.prototype = {
 
             // notify observers
             if (Components.isSuccessCode(retVal)) {
-                thisCalendar.observeDeleteItem(aItem);
+                thisCalendar.mObservers.notify("onDeleteItem", [aItem]);
             }
         }
 
@@ -913,9 +905,11 @@ calDavCalendar.prototype = {
                   return;
                 }
                 LOG("item result = \n" + calData);
-                this.mICSService = Cc["@mozilla.org/calendar/ics-service;1"].
-                                   getService(Components.interfaces.calIICSService);
-                var rootComp = this.mICSService.parseICS(calData);
+                if (!thisCalendar.mICSService) {
+                    thisCalendar.mICSService = Cc["@mozilla.org/calendar/ics-service;1"].
+                                               getService(Ci.calIICSService);
+                }
+                var rootComp = thisCalendar.mICSService.parseICS(calData);
 
                 var calComp;
                 if (rootComp.componentType == 'VCALENDAR') {
@@ -956,7 +950,8 @@ calDavCalendar.prototype = {
                                 // do anything with it here.
                                 break;
                             default:
-                                this.unmappedComponents.push(subComp);
+                                thisCalendar.unmappedComponents.push(subComp);
+                                break;
                             }
                             if (item != null) {
 
@@ -983,7 +978,7 @@ calDavCalendar.prototype = {
                                 }
                             }
                         } catch (ex) { 
-                            this.mObserver.onError(ex.result, ex.toString());
+                            thisCalendar.mObservers.notify("onError", [ex.result, ex.toString()]);
                         }
                         subComp = calComp.getNextSubcomponent("ANY");
                     }
@@ -1013,7 +1008,8 @@ calDavCalendar.prototype = {
                     // changes. So in order to have the updated item displayed
                     // we need to modify the item currently displayed with
                     // the one just fetched
-                    thisCalendar.observeModifyItem(item, aItem.parentItem);
+                    thisCalendar.mObservers.notify("onModifyItem",
+                                                   [item, aItem.parentItem]);
                 }
 
                 // figure out what type of item to return
@@ -1245,11 +1241,11 @@ calDavCalendar.prototype = {
 
     startBatch: function ()
     {
-        this.observeBatchChange(true);
+        this.mObservers.notify("onStartBatch");
     },
     endBatch: function ()
     {
-        this.observeBatchChange(false);
+        this.mObservers.notify("onEndBatch");
     },
 
     // nsIInterfaceRequestor impl
@@ -1280,65 +1276,6 @@ calDavCalendar.prototype = {
     //
     // Helper functions
     //
-    observeBatchChange: function observeBatchChange (aNewBatchMode) {
-        for each (obs in this.mObservers) {
-            if (aNewBatchMode) {
-                try {
-                    obs.onStartBatch();
-                } catch (ex) {
-                    LOG("observer's onStartBatch threw an exception " + ex 
-                          + "; ignoring");
-                }
-            } else {
-                try {
-                    obs.onEndBatch();
-                } catch (ex) {
-                    LOG("observer's onEndBatch threw an exception " + ex 
-                          + "; ignoring");
-                }
-            }
-        }
-        return;
-    },
-
-    observeAddItem: 
-        function observeAddItem(aItem) {
-            for each (obs in this.mObservers) {
-                try {
-                    obs.onAddItem(aItem);
-                } catch (ex) {
-                    LOG("observer's onAddItem threw an exception " + ex 
-                          + "; ignoring");
-                }
-            }
-            return;
-        },
-
-    observeModifyItem: 
-        function observeModifyItem(aNewItem, aOldItem) {
-            for each (obs in this.mObservers) {
-                try {
-                    obs.onModifyItem(aNewItem, aOldItem);
-                } catch (ex) {
-                    LOG("observer's onModifyItem threw an exception " + ex 
-                          + "; ignoring");
-                }
-            }
-            return;
-        },
-
-    observeDeleteItem: 
-        function observeDeleteItem(aDeletedItem) {
-            for each (obs in this.mObservers) {
-                try {
-                    obs.onDeleteItem(aDeletedItem);
-                } catch (ex) {
-                    LOG("observer's onDeleteItem threw an exception " + ex 
-                          + "; ignoring");
-                }
-            }
-            return;
-        },
 
     // Unless an error number is in this array, we consider it very bad, set
     // the calendar to readOnly, and give up.
@@ -1355,9 +1292,7 @@ calDavCalendar.prototype = {
         if (!errorIsOk) {
             this.mReadOnly = true;
         }
-        for (var i = 0; i < this.mObservers.length; i++) {
-            this.mObservers[i].onError(aErrNo, aMessage);
-        }
+        this.mObservers.notify("onError", [aErrNo, aMessage]);
     },
 
     popStartupRequest: function popStartupRequest() {
@@ -1441,10 +1376,6 @@ calDavCalendar.prototype = {
         this.onError(aErrNo, errMsg);
     },
 
-    refresh: function calDAV_refresh() {
-        // XXX-fill this in, get a report for modifications+onModifyItem
-    },
-    
     // stubs to keep callbacks we don't support yet from throwing errors 
     // we don't care about
     // nsIProgressEventSink

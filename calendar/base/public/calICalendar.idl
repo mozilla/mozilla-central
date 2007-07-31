@@ -313,8 +313,8 @@ interface calICalendar : nsISupports
 
   /**
    * Refresh the datasource, and call the observers for any changes found.
-   * May call the onLoad function of the observers if the provider doesn't
-   * know the details of the changes.
+   * If the provider doesn't know the details of the changes it must call
+   * onLoad on its observers.
    */
   void refresh();
   

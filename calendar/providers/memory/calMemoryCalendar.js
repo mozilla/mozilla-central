@@ -59,6 +59,7 @@ calMemoryCalendar.prototype = {
     // This will be returned from getItems as the calendar. The ics
     // calendar overwrites this.
     calendarToReturn: null,
+    mObservers: null,
 
     //
     // nsISupports interface
@@ -74,7 +75,7 @@ calMemoryCalendar.prototype = {
     },
 
     initMemoryCalendar: function() {
-        this.mObservers = Array();
+        this.mObservers = new calListenerBag(Ci.calIObserver);
         this.mItems = { };
     },
 
@@ -159,17 +160,13 @@ calMemoryCalendar.prototype = {
     get sendItipInvitations() { return true; },
 
     // void addObserver( in calIObserver observer );
-    addObserver: function (aObserver, aItemFilter) {
-        if (this.mObservers.some(function(o) { return (o == aObserver); }))
-            return;
-
-        this.mObservers.push(aObserver);
+    addObserver: function (aObserver) {
+        this.mObservers.add(aObserver);
     },
 
     // void removeObserver( in calIObserver observer );
     removeObserver: function (aObserver) {
-        var newObservers = this.mObservers.filter(function(o) { return (o != aObserver); });
-        this.mObservers = newObservers;
+        this.mObservers.remove(aObserver);
     },
 
     // void addItem( in calIItemBase aItem, in calIOperationListener aListener );
@@ -234,7 +231,7 @@ calMemoryCalendar.prototype = {
                                            aItem.id,
                                            aItem);
         // notify observers
-        this.observeAddItem(aItem);
+        this.mObservers.notify("onAddItem", [aItem]);
     },
 
     // void modifyItem( in calIItemBase aNewItem, in calIItemBase aOldItem, in calIOperationListener aListener );
@@ -304,7 +301,7 @@ calMemoryCalendar.prototype = {
                                            modifiedItem.id,
                                            modifiedItem);
         // notify observers
-        this.observeModifyItem(modifiedItem, aOldItem);
+        this.mObservers.notify("onModifyItem", [modifiedItem, aOldItem]);
     },
 
     // void deleteItem( in calIItemBase aItem, in calIOperationListener aListener );
@@ -341,7 +338,7 @@ calMemoryCalendar.prototype = {
                                            aItem.id,
                                            null);
         // notify observers
-        this.observeDeleteItem(oldItem);
+        this.mObservers.notify("onDeleteItem", [oldItem]);
     },
 
     // void getItem( in string id, in calIOperationListener aListener );
@@ -521,38 +518,11 @@ calMemoryCalendar.prototype = {
 
     startBatch: function ()
     {
-        this.observeBatchChange(true);
+        this.mObservers.notify("onStartBatch");
     },
     endBatch: function ()
     {
-        this.observeBatchChange(false);
-    },
-
-    //
-    // Helper functions
-    //
-    observeBatchChange: function (aNewBatchMode) {
-        for each (obs in this.mObservers) {
-            if (aNewBatchMode)
-                obs.onStartBatch ();
-            else
-                obs.onEndBatch ();
-        }
-    },
-
-    observeAddItem: function (aItem) {
-        for each (obs in this.mObservers)
-            obs.onAddItem (aItem);
-    },
-
-    observeModifyItem: function (aOldItem, aNewItem) {
-        for each (obs in this.mObservers)
-            obs.onModifyItem (aOldItem, aNewItem);
-    },
-
-    observeDeleteItem: function (aDeletedItem) {
-        for each (obs in this.mObservers)
-            obs.onDeleteItem (aDeletedItem);
+        this.mObservers.notify("onEndBatch");
     }
 }
 

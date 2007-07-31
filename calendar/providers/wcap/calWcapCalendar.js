@@ -253,6 +253,8 @@ calWcapCalendar.prototype = {
         log("refresh.", this);
         // invalidate cached results:
         delete this.m_cachedResults;
+        // notify about refreshed calendar:
+        this.notifyObservers("onLoad", [this]);
     },
     
     issueNetworkRequest: function calWcapCalendar_issueNetworkRequest(

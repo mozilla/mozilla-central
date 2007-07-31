@@ -1059,3 +1059,42 @@ function hasPositiveIntegerValue(elementId)
     }
     return false;
 }
+
+function calListenerBag(iid) {
+    this.mIid = iid;
+    this.mListeners = [];
+}
+calListenerBag.prototype = {
+    mIid: null,
+    mListeners: null,
+
+    add: function calListenerBag_add(listener) {
+        var iid = this.mIid;
+        function eq(obj) {
+            return compareObjects(obj, listener, iid);
+        }
+        if (!this.mListeners.some(eq)) {
+            this.mListeners.push(listener);
+        }
+    },
+
+    remove: function calListenerBag_remove(listener) {
+        var iid = this.mIid;
+        function neq(obj) {
+            return !compareObjects(obj, listener, iid);
+        }
+        this.mListeners = this.mListeners.filter(neq);
+    },
+
+    notify: function calListenerBag_notify(func, args) {
+        function notifyFunc(obj) {
+            try {
+                obj[func].apply(obj, args ? args : []);
+            }
+            catch (exc) {
+                Components.utils.reportError(exc);
+            }
+        }
+        this.mListeners.forEach(notifyFunc);
+    }
+};

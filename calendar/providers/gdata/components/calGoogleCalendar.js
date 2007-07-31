@@ -45,7 +45,7 @@
  */
 function calGoogleCalendar() {
 
-    this.mObservers = new Array();
+    this.mObservers = new calListenerBag(Ci.calIObserver);
 
     var calObject = this;
 
@@ -124,13 +124,7 @@ calGoogleCalendar.prototype = {
      * @param aArgs        An array of arguments that is passed to the observer
      */
     notifyObservers: function cGC_notifyObservers(aEvent, aArgs) {
-        for each (var obs in this.mObservers) {
-            try {
-                obs[aEvent].apply(obs, aArgs);
-            } catch (e) {
-                Components.utils.reportError(e);
-            }
-        }
+        this.mObservers.notify(aEvent, aArgs);
     },
 
     /**
@@ -240,20 +234,15 @@ calGoogleCalendar.prototype = {
     },
 
     get canRefresh() {
-        return false;
+        return true;
     },
 
     addObserver: function cGC_addObserver(aObserver) {
-        if (this.mObservers.indexOf(aObserver) == -1) {
-            this.mObservers.push(aObserver);
-        }
+        this.mObservers.add(aObserver);
     },
 
     removeObserver: function cGC_removeObserver(aObserver) {
-        function cGC_removeObserver_remove(obj) {
-            return ( obj != aObserver );
-        }
-        this.mObservers = this.mObservers.filter(cGC_removeObserver_remove);
+        this.mObservers.remove(aObserver);
     },
 
     adoptItem: function cGC_adoptItem(aItem, aListener) {
@@ -497,7 +486,9 @@ calGoogleCalendar.prototype = {
         }
     },
 
-    refresh: function cGC_refresh() { },
+    refresh: function cGC_refresh() {
+        this.notifyObservers("onLoad", [this]);
+    },
 
     startBatch: function cGC_startBatch() {
         this.notifyObservers("onStartBatch", []);

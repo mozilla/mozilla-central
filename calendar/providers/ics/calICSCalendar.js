@@ -759,40 +759,34 @@ calICSCalendar.prototype = {
 
 function calICSObserver(aCalendar) {
     this.mCalendar = aCalendar;
-    this.mObservers = new Array();
+    this.mObservers = new calListenerBag(Ci.calIObserver);
 }
 
 calICSObserver.prototype = {
     mCalendar: null,
+    mObservers: null,
     mInBatch: false,
 
     // calIObserver:
     onStartBatch: function() {
-        for (var i = 0; i < this.mObservers.length; i++)
-            this.mObservers[i].onStartBatch();
+        this.mObservers.notify("onStartBatch");
         this.mInBatch = true;
     },
     onEndBatch: function() {
-        for (var i = 0; i < this.mObservers.length; i++)
-            this.mObservers[i].onEndBatch();
-
+        this.mObservers.notify("onEndBatch");
         this.mInBatch = false;
     },
     onLoad: function(calendar) {
-        for (var i = 0; i < this.mObservers.length; i++)
-            this.mObservers[i].onLoad(calendar);
+        this.mObservers.notify("onLoad", [calendar]);
     },
     onAddItem: function(aItem) {
-        for (var i = 0; i < this.mObservers.length; i++)
-            this.mObservers[i].onAddItem(aItem);
+        this.mObservers.notify("onAddItem", [aItem]);
     },
     onModifyItem: function(aNewItem, aOldItem) {
-        for (var i = 0; i < this.mObservers.length; i++)
-            this.mObservers[i].onModifyItem(aNewItem, aOldItem);
+        this.mObservers.notify("onModifyItem", [aNewItem, aOldItem]);
     },
     onDeleteItem: function(aDeletedItem) {
-        for (var i = 0; i < this.mObservers.length; i++)
-            this.mObservers[i].onDeleteItem(aDeletedItem);
+        this.mObservers.notify("onDeleteItem", [aDeletedItem]);
     },
 
     // Unless an error number is in this array, we consider it very bad, set
@@ -809,28 +803,17 @@ calICSObserver.prototype = {
         }
         if (!errorIsOk)
             this.mCalendar.readOnly = true;
-        for (var i = 0; i < this.mObservers.length; i++)
-            this.mObservers[i].onError(aErrNo, aMessage);
+        this.mObservers.notify("onError", [aErrNo, aMessage]);
     },
 
     // This observer functions as proxy for all the other observers
     // So need addObserver and removeObserver here
     addObserver: function (aObserver) {
-        for each (obs in this.mObservers) {
-            if (obs == aObserver)
-                return;
-        }
-
-        this.mObservers.push(aObserver);
+        this.mObservers.add(aObserver);
     },
 
     removeObserver: function (aObserver) {
-        var newObservers = Array();
-        for each (obs in this.mObservers) {
-            if (obs != aObserver)
-                newObservers.push(obs);
-        }
-        this.mObservers = newObservers;
+        this.mObservers.remove(aObserver);
     }
 };
 

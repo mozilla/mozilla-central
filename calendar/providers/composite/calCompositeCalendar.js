@@ -47,51 +47,39 @@ function calCompositeCalendarObserverHelper (compCalendar) {
 }
 
 calCompositeCalendarObserverHelper.prototype = {
-    QueryInterface: function (aIID) {
-        if (!aIID.equals(Components.interfaces.calIObserver) &&
-            !aIID.equals(Components.interfaces.nsISupports))
-        {
-            throw Components.results.NS_ERROR_NO_INTERFACE;
-        }
+    suppressOnLoad: false,
 
-        return this;
-    },
-
-    // We could actually reach up into our caller for method name
-    // and arguments, but it hardly seems worth it.
-    notifyObservers: function(method, args) {
-        this.compCalendar.mObservers.forEach(function (o) {
-            try { o[method].apply(o, args); }
-            catch (e) { }
-        });
-    },
-    
     onStartBatch: function() {
-        this.notifyObservers("onStartBatch");
+        this.compCalendar.mObservers.notify("onStartBatch");
     },
 
     onEndBatch: function() {
-        this.notifyObservers("onEndBatch");
+        this.compCalendar.mObservers.notify("onEndBatch");
     },
 
     onLoad: function(calendar) {
-        this.notifyObservers("onLoad", [calendar]);
+        if (!this.suppressOnLoad) {
+            // any refreshed dependent calendar logically refreshes
+            // this composite calendar, thus we send out an onLoad
+            // for this composite calendar:
+            this.compCalendar.mObservers.notify("onLoad", [this.compCalendar]);
+        }
     },
 
     onAddItem: function(aItem) {
-        this.notifyObservers("onAddItem", arguments);
+        this.compCalendar.mObservers.notify("onAddItem", arguments);
     },
 
     onModifyItem: function(aNewItem, aOldItem) {
-        this.notifyObservers("onModifyItem", arguments);
+        this.compCalendar.mObservers.notify("onModifyItem", arguments);
     },
 
     onDeleteItem: function(aDeletedItem) {
-        this.notifyObservers("onDeleteItem", arguments);
+        this.compCalendar.mObservers.notify("onDeleteItem", arguments);
     },
 
     onError: function(aErrNo, aMessage) {
-        this.notifyObservers("onError", arguments);
+        this.compCalendar.mObservers.notify("onError", arguments);
     }
 };
 
@@ -100,8 +88,8 @@ function calCompositeCalendar () {
     this.wrappedJSObject = this;
 
     this.mCalendars = new Array();
-    this.mCompositeObservers = new Array();
-    this.mObservers = new Array();
+    this.mCompositeObservers = new calListenerBag(Ci.calICompositeObserver);
+    this.mObservers = new calListenerBag(Ci.calIObserver);
     this.mDefaultCalendar = null;
 }
 
@@ -195,7 +183,7 @@ calCompositeCalendar.prototype = {
             getCalendarManager().setCalendarPref(aCalendar, this.mActivePref,
                                          "true");
         }
-        this.notifyObservers("onCalendarAdded", [aCalendar]);
+        this.mCompositeObservers.notify("onCalendarAdded", [aCalendar]);
 
         // if we have no default calendar, we need one here
         if (this.mDefaultCalendar == null)
@@ -221,7 +209,7 @@ calCompositeCalendar.prototype = {
                                                 this.mDefaultPref);
             }   
             calToRemove.removeObserver(this.mObserverHelper);
-            this.notifyObservers("onCalendarRemoved", [calToRemove]);
+            this.mCompositeObservers.notify("onCalendarRemoved", [calToRemove]);
         }
     },
 
@@ -260,7 +248,7 @@ calCompositeCalendar.prototype = {
             }
         }
         this.mDefaultCalendar = cal;
-        this.notifyObservers("onDefaultCalendarChanged", [cal]);
+        this.mCompositeObservers.notify("onDefaultCalendarChanged", [cal]);
     },
 
     set defaultCalendar(v) {
@@ -307,30 +295,37 @@ calCompositeCalendar.prototype = {
     mCompositeObservers: null,
     mObservers: null,
     addObserver: function (aObserver) {
-        const calICompositeObserver = Components.interfaces.calICompositeObserver;
-        if (aObserver instanceof calICompositeObserver) {
-            if (this.mCompositeObservers.indexOf(aObserver) == -1) {
-                var compobs = aObserver.QueryInterface (calICompositeObserver);
-                this.mCompositeObservers.push(compobs);
-            }
+        if (aObserver instanceof Ci.calICompositeObserver) {
+            this.mCompositeObservers.add(aObserver);
         }
-
-        if (this.mObservers.indexOf(aObserver) == -1)
-            this.mObservers.push(aObserver);
+        this.mObservers.add(aObserver);
     },
 
     // void removeObserver( in calIObserver observer );
     removeObserver: function (aObserver) {
-        const calICompositeObserver = Components.interfaces.calICompositeObserver;
-        if (aObserver instanceof calICompositeObserver)
-            this.mCompositeObservers = this.mCompositeObservers.filter( function (v) { return v != aObserver; } );
-
-        this.mObservers = this.mObservers.filter( function (v) { return v != aObserver; } );
+        if (aObserver instanceof Ci.calICompositeObserver) {
+            this.mCompositeObservers.remove(aObserver);
+        }
+        this.mObservers.remove(aObserver);
     },
 
     refresh: function() {
-        for each (cal in this.mCalendars) {
-            try { cal.refresh(); } catch (e) { }
+        this.mObserverHelper.suppressOnLoad = true;
+        try {
+            for each (cal in this.mCalendars) {
+                try {
+                    if (cal.canRefresh) {
+                        cal.refresh();
+                    }
+                } catch (e) { }
+            }
+        } finally {
+            this.mObserverHelper.suppressOnLoad = false;
+            // send out a single onLoad for this composite calendar,
+            // although e.g. the ics provider will trigger another
+            // onLoad asynchronously; we cannot rely on every calendar
+            // sending an onLoad:
+            this.mObservers.notify("onLoad", [this]);
         }
     },
 
@@ -389,21 +384,11 @@ calCompositeCalendar.prototype = {
 
     startBatch: function ()
     {
-        this.notifyObservers("onStartBatch");
+        this.mCompositeObservers.notify("onStartBatch");
     },
     endBatch: function ()
     {
-        this.notifyObservers("onEndBatch");
-    },
-
-    //
-    // observer helpers
-    //
-    notifyObservers: function(method, args) {
-        this.mCompositeObservers.forEach(function (o) {
-            try { o[method].apply(o, args); }
-            catch (e) { }
-        });
+        this.mCompositeObservers.notify("onEndBatch");
     }
 };
 

@@ -196,7 +196,7 @@ function newDateTime(aNativeTime, aTimezone) {
 
 function calStorageCalendar() {
     this.wrappedJSObject = this;
-    this.mObservers = new Array();
+    this.mObservers = new calListenerBag(Ci.calIObserver);
     this.mItemCache = new Array();
 }
 
@@ -359,23 +359,13 @@ calStorageCalendar.prototype = {
     get sendItipInvitations() { return true; },
 
     // void addObserver( in calIObserver observer );
-    addObserver: function (aObserver, aItemFilter) {
-        for each (obs in this.mObservers) {
-            if (obs == aObserver)
-                return;
-        }
-
-        this.mObservers.push(aObserver);
+    addObserver: function (aObserver) {
+        this.mObservers.add(aObserver);
     },
 
     // void removeObserver( in calIObserver observer );
     removeObserver: function (aObserver) {
-        var newObservers = Array();
-        for each (obs in this.mObservers) {
-            if (obs != aObserver)
-                newObservers.push(obs);
-        }
-        this.mObservers = newObservers;
+        this.mObservers.remove(aObserver);
     },
 
     // void addItem( in calIItemBase aItem, in calIOperationListener aListener );
@@ -427,7 +417,7 @@ calStorageCalendar.prototype = {
                                            aItem);
 
         // notify observers
-        this.observeAddItem(aItem);
+        this.mObservers.notify("onAddItem", [aItem]);
     },
 
     // void modifyItem( in calIItemBase aNewItem, in calIItemBase aOldItem, in calIOperationListener aListener );
@@ -495,7 +485,7 @@ calStorageCalendar.prototype = {
                                            modifiedItem);
 
         // notify observers
-        this.observeModifyItem(modifiedItem, aOldItem);
+        this.mObservers.notify("onModifyItem", [modifiedItem, aOldItem]);
     },
 
     // void deleteItem( in string id, in calIOperationListener aListener );
@@ -527,7 +517,7 @@ calStorageCalendar.prototype = {
                                            null);
 
         // notify observers 
-        this.observeDeleteItem(aItem);
+        this.mObservers.notify("onDeleteItem", [aItem]);
     },
 
     // void getItem( in string id, in calIOperationListener aListener );
@@ -831,44 +821,16 @@ calStorageCalendar.prototype = {
 
     startBatch: function ()
     {
-        this.observeBatchChange(true);
+        this.mObservers.notify("onStartBatch");
     },
     endBatch: function ()
     {
-        this.observeBatchChange(false);
+        this.mObservers.notify("onEndBatch");
     },
 
     //
     // Helper functions
     //
-    observeLoad: function () {
-        for each (obs in this.mObservers)
-            obs.onLoad (this);
-    },
-
-    observeBatchChange: function (aNewBatchMode) {
-        for each (obs in this.mObservers) {
-            if (aNewBatchMode)
-                obs.onStartBatch ();
-            else
-                obs.onEndBatch ();
-        }
-    },
-
-    observeAddItem: function (aItem) {
-        for each (obs in this.mObservers)
-            obs.onAddItem (aItem);
-    },
-
-    observeModifyItem: function (aNewItem, aOldItem) {
-        for each (obs in this.mObservers)
-            obs.onModifyItem (aNewItem, aOldItem);
-    },
-
-    observeDeleteItem: function (aDeletedItem) {
-        for each (obs in this.mObservers)
-            obs.onDeleteItem (aDeletedItem);
-    },
 
     //
     // database handling
