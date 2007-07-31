@@ -127,13 +127,12 @@ sub do_json($) {
     my $tinderbox_data = tb_load_data($form_ref);
     print "Content-type: text/javascript\n\n" unless $form_ref->{static};
     print "tinderbox_data";
-    my @data_dump = split("\n", Dumper($tinderbox_data));
-    for my $line (@data_dump) {
-      $line =~ s/=>/:/;
-      $line =~ s/\$VAR1//;
-      $line =~ s/: ,/: '',/;
-      print "$line\n";
-    }
+    $Data::Dumper::Indent = 0;
+    my $line = Dumper($tinderbox_data);
+    $line =~ s/=>/:/g;
+    $line =~ s/\$VAR1//g;
+    $line =~ s/: ,/: '',/g;
+    print "$line\n";
 }
 
 sub print_page_head($$) {
