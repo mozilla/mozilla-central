@@ -38,6 +38,17 @@
       </Description>
     </em:targetApplication>
 
+#ifndef MOZILLA_1_8_BRANCH
+    <em:targetApplication>
+      <Description>
+        <!-- seamonkey -->
+        <em:id>{92650c4d-4b8e-4d2a-b7eb-24ecf4f6b63a}</em:id>
+        <em:minVersion>@SEAMONKEY_VERSION@</em:minVersion>
+        <em:maxVersion>@SEAMONKEY_VERSION@</em:maxVersion>
+      </Description>
+    </em:targetApplication>
+#endif
+
     <em:id>{e2fda1a4-762b-4020-b5ad-a41df1933103}</em:id>
     <em:name>Lightning</em:name>
     <em:version>@LIGHTNING_VERSION@</em:version>
