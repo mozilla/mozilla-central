@@ -374,7 +374,7 @@ InvitationsManager.prototype = {
 
     hasItem: function(item) {
         for (var i = 0; i < this.mItemList.length; ++i) {
-            if (this.mItemList[i].hasSameIds(item)) {
+            if (this.mItemList[i].hashId == item.hashId) {
                 return true;
             }
         }

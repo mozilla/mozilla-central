@@ -650,8 +650,11 @@ calendarEventView.prototype.getCalendarEventAtRow = function( i )
 
 calendarEventView.prototype.getRowOfCalendarEvent = function( Event )
 {
+   if (!Event) {
+      return null;
+   }
    for (var i in gEventArray) {
-      if (gEventArray[i].hasSameIds(Event))
+      if (gEventArray[i].hashId == Event.hashId)
          return i;
    }
    return null;

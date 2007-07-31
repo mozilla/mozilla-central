@@ -24,6 +24,7 @@
  *   Mike Shaver <shaver@off.net>
  *   Joey Minta <jminta@gmail.com>
  *   Matthew Willis <lilmatt@mozilla.com>
+ *   Daniel Boelzle <daniel.boelzle@sun.com>
  *
  * Alternatively, the contents of this file may be used under the terms of
  * either the GNU General Public License Version 2 or later (the "GPL"), or
@@ -71,6 +72,37 @@ calItemBase.prototype = {
         }
 
         return this;
+    },
+
+    mHashId: null,
+    get hashId() {
+        if (this.mHashId === null) {
+            var rid = this.recurrenceId;
+            var cal = this.calendar;
+            // some unused delim character:
+            this.mHashId = [encodeURIComponent(this.id),
+                            rid ? rid.getInTimezone("UTC").icalString : "",
+                            cal ? encodeURIComponent(cal.id) : ""].join("#");
+        }
+        return this.mHashId;
+    },
+
+    get id() {
+        return this.getProperty("UID");
+    },
+    set id(uid) {
+        this.modify();
+        this.mHashId = null; // recompute hashId
+        return this.setProperty("UID", uid);
+    },
+
+    get recurrenceId() {
+        return this.getProperty("RECURRENCE-ID");
+    },
+    set recurrenceId(rid) {
+        this.modify();
+        this.mHashId = null; // recompute hashId
+        return this.setProperty("RECURRENCE-ID", rid);
     },
 
     mParentItem: null,
@@ -194,7 +226,7 @@ calItemBase.prototype = {
         m.mImmutable = false;
         m.mIsProxy = this.mIsProxy;
         m.mParentItem = aNewParent || this.mParentItem;
-
+        m.mHashId = this.mHashId;
         m.mCalendar = this.mCalendar;
         if (this.mRecurrenceInfo) {
             m.mRecurrenceInfo = this.mRecurrenceInfo.clone();
@@ -461,6 +493,7 @@ calItemBase.prototype = {
     set calendar (v) {
         if (this.mImmutable)
             throw Components.results.NS_ERROR_OBJECT_IS_IMMUTABLE;
+        this.mHashId = null; // recompute hashId
         this.mCalendar = v;
     },
 
@@ -732,13 +765,11 @@ calItemBase.prototype = {
 
 makeMemberAttr(calItemBase, "X-MOZILLA-GENERATION", 0, "generation", true);
 makeMemberAttr(calItemBase, "CREATED", null, "creationDate", true);
-makeMemberAttr(calItemBase, "UID", null, "id", true);
 makeMemberAttr(calItemBase, "SUMMARY", null, "title", true);
 makeMemberAttr(calItemBase, "PRIORITY", 0, "priority", true);
 makeMemberAttr(calItemBase, "CLASS", "PUBLIC", "privacy", true);
 makeMemberAttr(calItemBase, "STATUS", null, "status", true);
 makeMemberAttr(calItemBase, "ALARMTIME", null, "alarmTime", true);
-makeMemberAttr(calItemBase, "RECURRENCE-ID", null, "recurrenceId", true);
 
 makeMemberAttr(calItemBase, "mRecurrenceInfo", null, "recurrenceInfo");
 makeMemberAttr(calItemBase, "mAttachments", null, "attachments");
@@ -756,9 +787,9 @@ function makeMemberAttr(ctor, varname, dflt, attr, asProperty)
     var setter = function (v) {
         this.modify();
         if (asProperty)
-            this.setProperty(varname, v);
+            return this.setProperty(varname, v);
         else
-            this[varname] = v;
+            return (this[varname] = v);
     };
     ctor.prototype.__defineGetter__(attr, getter);
     ctor.prototype.__defineSetter__(attr, setter);

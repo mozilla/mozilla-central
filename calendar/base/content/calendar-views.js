@@ -123,9 +123,9 @@ var calendarViewController = {
       for each (var job in this.pendingJobs) {
           var item = job.item;
           var parent = item.parent;
-          if (item.hasSameIds(aOccurrence) ||
-              item.parentItem.hasSameIds(aOccurrence) ||
-              item.hasSameIds(aOccurrence.parentItem)) {
+          if ((item.hashId == aOccurrence.hashId) ||
+              (item.parentItem.hashId == aOccurrence.hashId) ||
+              (item.hashId == aOccurrence.parentItem.hashId)) {
               // terminate() will most probably create a modified item instance.
               aOccurrence = job.finalize();
               break;
@@ -193,11 +193,8 @@ var calendarViewController = {
 
         function getSavedItem(aItemToDelete) {
             // Get the parent item, saving it in our recurringItems object for
-            // later use. Use one string twice to resolve "ab" + "cd" vs. "a" +
-            // "bcd" ambiguity.
-            var hashVal = aItemToDelete.parentItem.calendar.id +
-                          aItemToDelete.parentItem.id +
-                          aItemToDelete.parentItem.calendar.id;
+            // later use.
+            var hashVal = aItemToDelete.parentItem.hashId;
             if (!recurringItems[hashVal]) {
                 recurringItems[hashVal] = {
                     oldItem: aItemToDelete.parentItem,
@@ -228,7 +225,7 @@ var calendarViewController = {
                 continue;
             }
             itemToDelete = this.finalizePendingModification(itemToDelete);
-            if (!itemToDelete.parentItem.hasSameIds(itemToDelete)) {
+            if (itemToDelete.parentItem.hashId != itemToDelete.hashId) {
                 var savedItem = getSavedItem(itemToDelete);
                 savedItem.newItem.recurrenceInfo
                          .removeOccurrenceAt(itemToDelete.recurrenceId);

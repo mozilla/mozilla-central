@@ -463,7 +463,7 @@
         <parameter name="aOccurrence"/>
         <body><![CDATA[
           for each (var chunk in this.mEvents) {
-              if (chunk.event.hasSameIds(aOccurrence)) {
+              if (chunk.event.hashId == aOccurrence.hashId) {
                   return chunk;
               }
           }
@@ -507,7 +507,7 @@
            var i;
            for (var i in this.mEvents) {
                occ = this.mEvents[i].event;
-               if (occ.hasSameIds(aOccurrence))
+               if (occ.hashId == aOccurrence.hashId)
                {
                    itemIndex = i;
                    break;
@@ -516,7 +516,7 @@
 
            if (itemIndex != -1) {
                function isNotItem(a) {
-                  return !a.event.hasSameIds(aOccurrence);
+                  return a.event.hashId != aOccurrence.hashId;
                }
                this.mSelectedChunks = this.mSelectedChunks.filter(isNotItem);
 
@@ -760,13 +760,13 @@
                       // Because we're on a timeout here, it may have been that
                       // someone selected us in that window.  Check for that.
                       for each (var item in this.calendarView.mSelectedItems) {
-                          if (chunk.event.event.hasSameIds(item)) {
+                          if (chunk.event.event.hashId == item.hashId) {
                               chunkBox.selected = true;
                           }
                       }
 
                       if (this.mEventToEdit && 
-                          chunkBox.occurrence.hasSameIds(this.mEventToEdit)) {
+                          chunkBox.occurrence.hashId == this.mEventToEdit.hashId) {
                           boxToEdit = chunkBox;
                       }
                   } else {
@@ -1481,7 +1481,7 @@
         <body><![CDATA[
           // prevent same items being added
           if (this.mItemBoxes.some(function (itemBox) {
-                                     return itemBox.occurrence.hasSameIds(aItem);
+                                     return itemBox.occurrence.hashId == aItem.hashId;
                                    })) {
             return;
           }
@@ -1506,7 +1506,7 @@
         <parameter name="aItem"/>
         <body><![CDATA[
           for (var i in this.mItemBoxes) {
-            if (this.mItemBoxes[i].occurrence.hasSameIds(aItem)) {
+            if (this.mItemBoxes[i].occurrence.hashId == aItem.hashId) {
               this.mainbox.removeChild(this.mItemBoxes[i]);
               this.mItemBoxes.splice(i, 1);
               break;
@@ -1519,7 +1519,7 @@
         <parameter name="aItem"/>
         <body><![CDATA[
           for each (itemBox in this.mItemBoxes) {
-            if (aItem && itemBox.occurrence.hasSameIds(aItem)) {
+            if (aItem && (itemBox.occurrence.hashId == aItem.hashId)) {
               itemBox.selected = true;
             } 
 
@@ -1530,7 +1530,7 @@
         <parameter name="aItem"/>
         <body><![CDATA[
           for each (itemBox in this.mItemBoxes) {
-            if (aItem && itemBox.occurrence.hasSameIds(aItem)) {
+            if (aItem && (itemBox.occurrence.hashId == aItem.hashId)) {
               itemBox.selected = false;
             }
           }
@@ -2949,7 +2949,7 @@
           // fire the appropriate event so our watchers can update
           var found = false;
           for (var i = 0; i < this.mSelectedItems.length; i++) {
-              if (this.mSelectedItems[i].hasSameIds(aEvent)) {
+              if (this.mSelectedItems[i].hashId == aEvent.hashId) {
                   this.mSelectedItems.splice(i, 1);
                   found = true;
               }

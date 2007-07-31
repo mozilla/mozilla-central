@@ -79,6 +79,17 @@ interface calIItemBase : nsISupports
   calIItemBase clone();
 
   /**
+   * Hash Id that incorporates the item's UID, RECURRENCE-ID and calendar.id
+   * to be used for lookup of items that come from different calendars.
+   * Setting either id, recurrenceId or the calendar attribute leads to
+   * a recomputation of hashId.
+   *
+   * @attention Individual implementors of calIItemBase must stick to the
+   *            same algorithm that base/src/calItemBase.js uses.
+   */
+  readonly attribute AUTF8String hashId;
+
+  /**
    * Checks whether the argument object refers the same calendar item as
    * this one, by testing both the id and recurrenceId property.  This 
    *
