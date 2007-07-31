@@ -46,6 +46,10 @@ bin\msvcr80.dll
 [calendar]
 ; [Base Calendar Files]
 bin\sunbird.exe
+#ifndef MOZILLA_1_8_BRANCH
+bin\application.ini                                                             
+bin\platform.ini
+#endif
 bin\res\cmessage.txt
 bin\xpicleanup.exe
 bin\LICENSE
@@ -169,6 +173,9 @@ bin\components\windowwatcher.xpt
 bin\components\winhooks.xpt
 bin\components\xpautocomplete.xpt
 bin\components\xpcom_base.xpt
+#ifndef MOZILLA_1_8_BRANCH
+bin\components\xpcom_system.xpt
+#endif
 bin\components\xpcom_components.xpt
 bin\components\xpcom_ds.xpt
 bin\components\xpcom_io.xpt

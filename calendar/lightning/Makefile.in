@@ -76,7 +76,13 @@ DEFINES += -DTARGET_PLATFORM=$(OS_TARGET)_$(TARGET_XPCOM_ABI)
 
 LIGHTNING_VERSION := $(shell cat $(srcdir)/../sunbird/config/version.txt)
 DEFINES += -DLIGHTNING_VERSION=$(LIGHTNING_VERSION)
+
+ifdef MOZILLA_1_8_BRANCH
 DEFINES += -DBUILD_ID=$(BUILD_ID)
+else
+GRE_BUILDID = $(shell $(PYTHON) $(topsrcdir)/config/printconfigsetting.py $(LIBXUL_DIST)/bin/platform.ini Build BuildID)
+DEFINES += -DGRE_BUILDID=$(GRE_BUILDID)
+endif
 
 PREF_JS_EXPORTS = $(srcdir)/content/lightning.js
 
