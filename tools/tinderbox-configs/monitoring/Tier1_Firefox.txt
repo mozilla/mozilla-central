@@ -1,5 +1,5 @@
-fx-linux-tbox|Depend
-bl-bldlnx01|perf test|fx-linux-tbox
+fxnewref-linux-tbox|Depend
+bl-bldlnx03|perf test|fxnewref-linux-tbox
 bl-bldxp01|perf test|fx-win32-tbox
 bm-xserve08|Depend
 fxdbug-linux-tbox|Depend
