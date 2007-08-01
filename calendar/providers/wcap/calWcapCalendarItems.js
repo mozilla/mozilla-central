@@ -64,6 +64,18 @@ function calWcapCalendar_encodeAttendee(att)
     return encodeAttr(att.id, null, params);
 };
 
+calWcapCalendar.prototype.encodeNscpTzid =
+function calWcapCalendar_encodeNscpTzid(dateTime)
+{
+    var params = "X-NSCP-ORIGINAL-OPERATION=X-NSCP-WCAP-PROPERTY-";
+    if (!dateTime || !dateTime.isValid || dateTime.isDate || (dateTime.timezone == "floating")) {
+        params += "DELETE^";
+    } else {
+        params += ("REPLACE^" + encodeURIComponent(this.getAlignedTimezone(dateTime.timezone)));
+    }
+    return params;
+};
+
 calWcapCalendar.prototype.getRecurrenceParams =
 function calWcapCalendar_getRecurrenceParams(
     item, out_rrules, out_rdates, out_exrules, out_exdates)
@@ -336,13 +348,9 @@ function calWcapCalendar_storeItem(bAddItem, item, oldItem, request, netRespFunc
             if (!oldItem || !identicalDatetimes(dtstart, oldItem.startDate)
                          || !identicalDatetimes(dtend, oldItem.endDate)) {
                 params += ("&dtstart=" + getIcalUTC(dtstart));
-                params += ("&X-NSCP-DTSTART-TZID=" +
-                           "X-NSCP-ORIGINAL-OPERATION=X-NSCP-WCAP-PROPERTY-REPLACE^" + 
-                           encodeURIComponent(this.getAlignedTimezone(dtstart.timezone)));
+                params += ("&X-NSCP-DTSTART-TZID=" + this.encodeNscpTzid(dtstart));
                 params += ("&dtend=" + getIcalUTC(dtend));
-                params += ("&X-NSCP-DTEND-TZID=" +
-                           "X-NSCP-ORIGINAL-OPERATION=X-NSCP-WCAP-PROPERTY-REPLACE^" + 
-                           encodeURIComponent(this.getAlignedTimezone(dtend.timezone)));
+                params += ("&X-NSCP-DTEND-TZID=" + this.encodeNscpTzid(dtend));
                 params += (bIsAllDay ? "&isAllDay=1" : "&isAllDay=0");
                 
                 if (bIsParent && item.recurrenceInfo)
@@ -358,17 +366,9 @@ function calWcapCalendar_storeItem(bAddItem, item, oldItem, request, netRespFunc
             if (!oldItem || !identicalDatetimes(dtstart, oldItem.entryDate)
                          || !identicalDatetimes(dtend, oldItem.dueDate)) {
                 params += ("&dtstart=" + getIcalUTC(dtstart));
-                if (dtstart) {
-                    params += ("&X-NSCP-DTSTART-TZID=" +
-                               "X-NSCP-ORIGINAL-OPERATION=X-NSCP-WCAP-PROPERTY-REPLACE^" + 
-                               encodeURIComponent(this.getAlignedTimezone(dtstart.timezone)));
-                }
+                params += ("&X-NSCP-DTSTART-TZID=" + this.encodeNscpTzid(dtstart));
                 params += ("&due=" + getIcalUTC(dtend));
-                if (dtend) {
-                    params += ("&X-NSCP-DUE-TZID=" +
-                               "X-NSCP-ORIGINAL-OPERATION=X-NSCP-WCAP-PROPERTY-REPLACE^" + 
-                               encodeURIComponent(this.getAlignedTimezone(dtend.timezone)));
-                }
+                params += ("&X-NSCP-DUE-TZID=" + this.encodeNscpTzid(dtend));
                 params += (bIsAllDay ? "&isAllDay=1" : "&isAllDay=0");
                 
                 if (bIsParent && item.recurrenceInfo)

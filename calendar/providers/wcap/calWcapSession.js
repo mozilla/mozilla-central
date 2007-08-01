@@ -692,7 +692,7 @@ calWcapSession.prototype = {
                                 }
                             }
                             else {
-                                cal = createWcapCalendar(this_, node);
+                                cal = new calWcapCalendar(this_, node);
                                 this_.m_subscribedCals[calId] = cal;
                                 getCalendarManager().registerCalendar(cal);
                                 log("installed subscribed calendar: " + calId, this_);
@@ -917,7 +917,7 @@ calWcapSession.prototype = {
     m_defaultCalendar: null,
     get defaultCalendar() {
         if (!this.m_defaultCalendar)
-            this.m_defaultCalendar = createWcapCalendar(this);
+            this.m_defaultCalendar = new calWcapCalendar(this);
         return this.m_defaultCalendar;
     },
     
@@ -1008,8 +1008,9 @@ calWcapSession.prototype = {
                                             log("installed default cal props.", this_);
                                         }
                                     }
-                                    else
-                                        cal = createWcapCalendar(this_, node);
+                                    else {
+                                        cal = new calWcapCalendar(this_, node);
+                                    }
                                 }
                                 ret.push(cal);
                             }

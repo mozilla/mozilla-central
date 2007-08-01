@@ -36,21 +36,6 @@
  *
  * ***** END LICENSE BLOCK ***** */
 
-function createWcapCalendar(session, /*optional*/calProps)
-{
-    var cal = new calWcapCalendar(session, calProps);
-//     switch (CACHE) {
-//     case "memory":
-//     case "storage":
-//         // wrap it up:
-//         var cal_ = new calWcapCachedCalendar();
-//         cal_.remoteCal = cal;
-//         cal = cal_;
-//         break;
-//     }
-    return cal;
-}
-
 function calWcapCalendar(session, /*optional*/calProps) {
     this.wrappedJSObject = this;
     this.m_session = session;

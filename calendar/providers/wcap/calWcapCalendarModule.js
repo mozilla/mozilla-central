@@ -66,10 +66,6 @@ var g_busyItemTitle;
 var g_busyPhantomItemUuidPrefix;
 
 // global preferences:
-// caching: off|memory|storage:
-var CACHE = "off";
-// denotes where to host local storage calendar(s)
-var CACHE_DIR = null;
 
 // caching the last data retrievals:
 var CACHE_LAST_RESULTS = 4;
@@ -133,30 +129,6 @@ function initWcapProvider()
         
         CACHE_LAST_RESULTS = getPref("calendar.wcap.cache_last_results", 4);
         CACHE_LAST_RESULTS_INVALIDATE = getPref("calendar.wcap.cache_last_results_invalidate", 120);
-        
-        // init cache dir directory:
-        CACHE = getPref("calendar.wcap.cache", "off");
-        if (CACHE == "storage") {
-            var cacheDir = null;
-            var sCacheDir = getPref("calendar.wcap.cache_dir", null);
-            if (sCacheDir != null) {
-                cacheDir = Components.classes["@mozilla.org/file/local;1"]
-                           .createInstance(Components.interfaces.nsILocalFile);
-                cacheDir.initWithPath( sCacheDir );
-            }
-            else { // not found: default to wcap/ directory in profile
-                var dirService = Components.classes["@mozilla.org/file/directory_service;1"]
-                                           .getService(Components.interfaces.nsIProperties);
-                cacheDir = dirService.get("ProfD", Components.interfaces.nsILocalFile);
-                cacheDir.append("wcap");
-            }
-            CACHE_DIR = cacheDir;
-            log(CACHE_DIR.path, "cache dir");
-            if (!CACHE_DIR.exists()) {
-                CACHE_DIR.create(Components.interfaces.nsIFile.DIRECTORY_TYPE,
-                                 0700 /* read, write, execute/search by owner */);
-            }
-        }
     }
     catch (exc) {
         logError(exc, "error in init sequence");
