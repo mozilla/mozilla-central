@@ -67,7 +67,11 @@ sub validate_treedata() {
 	    $treedata{treedata_version} == $::default_treedata{treedata_version}) {
 	    print "\t$treedir is current\n" if ($verbose);
 	    next;
-	}
+	} else {
+            # Bump the treedata_version
+            $treedata{treedata_version} = $::default_treedata{treedata_version};
+            $changedvalues++;
+        }
 	# Fill in missing gaps
 	for my $var (keys %treedata) {
 	    if (!defined($treedata{$var})) {
