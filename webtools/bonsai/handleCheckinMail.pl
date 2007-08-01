@@ -35,19 +35,16 @@ if (($#ARGV >= 0) && (-d $ARGV[0])) {
     chdir($bonsaidir);
 }
 
-my $filename = "data/temp.$$";
-unlink($filename);
+my $time = time();
+my $filename = "data/bonsai.$time.$$";
 
-die "Cannot Open data file (cwd: ". cwd() . "; $filename): $!\n"
-     unless (open(FILE, "> $filename"));
+open(FILE, "> $filename") or die ("Could not open data file, $filename\n");
 
 while (<STDIN>) {
      print FILE $_;
 }
+
 close(FILE);
 chmod(0666, $filename);
-system("/usr/bin/perl", "-w", "addcheckin.pl",  $filename);
-
-unlink($filename);
 
 exit;
