@@ -6,7 +6,7 @@ nspr_lib_dir=forwardtoback(nspr_lib_dir);
 'echo 'dist
 'echo 'objdir
 'echo 'nspr_lib_dir
-'set BEGINLIBPATH='dist'\lib;'nspr_lib_dir';%BEGINLIBPATH%'
+'set BEGINLIBPATH='dist'\lib;'nspr_lib_dir';'dist'\bin;%BEGINLIBPATH%'
 'set LIBPATHSTRICT=T'
 objdir'\shlibsign -v -i 'therest
 exit
