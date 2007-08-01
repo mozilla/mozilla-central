@@ -41,7 +41,7 @@
 #import "BookmarkToolbar.h"
 #import "BrowserTabView.h"
 #import "BrowserTabBarView.h"
-
+#import "TabThumbnailGridView.h"
 
 /*
   These various content views are required to deal with several non-standard sizing issues
@@ -93,6 +93,7 @@
 
 - (void) dealloc
 {
+  [mTabThumbnailGridView release];
   [super dealloc];
 }
 
@@ -146,6 +147,12 @@
   [mBrowserContainerView setFrame:browserRect];
   [mBrowserContainerView setNeedsDisplay:YES];
   // NSLog(@"resizing to %f %f", browserRect.size.width, browserRect.size.height);
+
+  if (mTabThumbnailGridView)
+  {
+    NSRect tabposeRect = NSMakeRect(0, 0, browserRect.size.width,browserRect.size.height + statusBarHeight);
+    [mTabThumbnailGridView setFrame:tabposeRect];
+  }
 }
 
 
@@ -163,6 +170,57 @@
 {
   // figure out if mStatusBar or mBookmarksToolbar has been added back?
   [super didAddSubview:subview];
+}
+
+- (void)showTabThumbnailGridView
+{
+  if (!mTabThumbnailGridView) {
+    NSRect browserRect = [self bounds];
+    float bookmarkBarHeight = [mBookmarksToolbar isVisible] ? NSHeight([mBookmarksToolbar frame]) : 0;
+    NSRect newRect = NSMakeRect(0, 0, browserRect.size.width,browserRect.size.height - bookmarkBarHeight);
+    mTabThumbnailGridView = [[TabThumbnailGridView alloc] initWithFrame:newRect];
+  }
+
+  mStatusBarWasHidden = [mStatusBar isHidden];
+  [mStatusBar setHidden:YES];
+  [mBrowserContainerView setHidden:YES];
+
+  [self addSubview:mTabThumbnailGridView];
+
+}
+
+- (void)hideTabThumbnailGridView
+{
+  [mTabThumbnailGridView removeFromSuperview];
+  [mBrowserContainerView setHidden:NO];
+
+  if (!mStatusBarWasHidden)
+    [mStatusBar setHidden:NO];
+
+  [mTabThumbnailGridView release];
+  mTabThumbnailGridView = nil;
+}
+
+//
+// Temporary, For testing purposes only
+//
+- (BOOL)performKeyEquivalent:(NSEvent *)theEvent
+{
+  // Control+Command+T envokes tabpose
+  if ([theEvent modifierFlags] & NSControlKeyMask && NSCommandKeyMask) {
+    NSString *keystroke = [theEvent charactersIgnoringModifiers];
+    if ([keystroke isEqualToString:@"t"]) {
+
+      if (![mTabThumbnailGridView isDescendantOf:self])
+        [self showTabThumbnailGridView];
+
+      else if ([mTabThumbnailGridView isDescendantOf:self])
+        [self hideTabThumbnailGridView];
+
+      return YES;
+    }
+  }
+  return NO;
 }
 
 @end

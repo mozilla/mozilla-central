@@ -41,12 +41,15 @@
 @class BookmarkToolbar;
 @class BrowserTabView;
 @class BrowserTabBarView;
+@class TabThumbnailGridView;
 
 @interface BrowserContentView : NSView
 {
   IBOutlet BookmarkToolbar  *mBookmarksToolbar;
   IBOutlet NSView           *mBrowserContainerView;   // manages tabs and web content
   IBOutlet NSView           *mStatusBar;
+  TabThumbnailGridView      *mTabThumbnailGridView;
+  BOOL                       mStatusBarWasHidden;
 }
 
 @end

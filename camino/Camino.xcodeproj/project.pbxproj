@@ -219,6 +219,14 @@
 		0FFE0A84079B147F00966027 /* bm_sort.tiff in Resources */ = {isa = PBXBuildFile; fileRef = 0FFE0A7E079B147F00966027 /* bm_sort.tiff */; };
 		0FFE0A85079B147F00966027 /* bm_add.tiff in Resources */ = {isa = PBXBuildFile; fileRef = 0FFE0A7F079B147F00966027 /* bm_add.tiff */; };
 		0FFE0A86079B147F00966027 /* bm_action.tiff in Resources */ = {isa = PBXBuildFile; fileRef = 0FFE0A80079B147F00966027 /* bm_action.tiff */; };
+		1F8407070C5705CC007B893D /* TabThumbnailGridView.mm in Sources */ = {isa = PBXBuildFile; fileRef = 1F8407030C5705CC007B893D /* TabThumbnailGridView.mm */; };
+		1F8407080C5705CC007B893D /* TabThumbnailGridView.h in Headers */ = {isa = PBXBuildFile; fileRef = 1F8407040C5705CC007B893D /* TabThumbnailGridView.h */; };
+		1F8407090C5705CC007B893D /* ThumbnailView.h in Headers */ = {isa = PBXBuildFile; fileRef = 1F8407050C5705CC007B893D /* ThumbnailView.h */; };
+		1F84070A0C5705CC007B893D /* ThumbnailView.m in Sources */ = {isa = PBXBuildFile; fileRef = 1F8407060C5705CC007B893D /* ThumbnailView.m */; };
+		1F840B2B0C57D807007B893D /* TabThumbnailGridView.h in Headers */ = {isa = PBXBuildFile; fileRef = 1F8407040C5705CC007B893D /* TabThumbnailGridView.h */; };
+		1F840B2C0C57D807007B893D /* TabThumbnailGridView.mm in Sources */ = {isa = PBXBuildFile; fileRef = 1F8407030C5705CC007B893D /* TabThumbnailGridView.mm */; };
+		1F840B2D0C57D807007B893D /* ThumbnailView.h in Headers */ = {isa = PBXBuildFile; fileRef = 1F8407050C5705CC007B893D /* ThumbnailView.h */; };
+		1F840B2E0C57D807007B893D /* ThumbnailView.m in Sources */ = {isa = PBXBuildFile; fileRef = 1F8407060C5705CC007B893D /* ThumbnailView.m */; };
 		33B775AA0C4EAC1E00A6D67F /* libsqlite3.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = 33B775A90C4EAC1E00A6D67F /* libsqlite3.dylib */; };
 		33B775AB0C4EAC1E00A6D67F /* libsqlite3.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = 33B775A90C4EAC1E00A6D67F /* libsqlite3.dylib */; };
 		33B7763C0C4EB32C00A6D67F /* libsqlite3.dylib in Copy Libraries */ = {isa = PBXBuildFile; fileRef = 33B775A90C4EAC1E00A6D67F /* libsqlite3.dylib */; };
@@ -2432,6 +2440,10 @@
 		0FFE0A7F079B147F00966027 /* bm_add.tiff */ = {isa = PBXFileReference; lastKnownFileType = image.tiff; name = bm_add.tiff; path = chrome/bm_add.tiff; sourceTree = "<group>"; };
 		0FFE0A80079B147F00966027 /* bm_action.tiff */ = {isa = PBXFileReference; lastKnownFileType = image.tiff; name = bm_action.tiff; path = chrome/bm_action.tiff; sourceTree = "<group>"; };
 		1058C7A1FEA54F0111CA2CBB /* Cocoa.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = Cocoa.framework; path = /System/Library/Frameworks/Cocoa.framework; sourceTree = "<absolute>"; };
+		1F8407030C5705CC007B893D /* TabThumbnailGridView.mm */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.cpp.objcpp; name = TabThumbnailGridView.mm; path = ../../mozilla/camino/src/browser/TabThumbnailGridView.mm; sourceTree = SOURCE_ROOT; };
+		1F8407040C5705CC007B893D /* TabThumbnailGridView.h */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.c.h; name = TabThumbnailGridView.h; path = ../../mozilla/camino/src/browser/TabThumbnailGridView.h; sourceTree = SOURCE_ROOT; };
+		1F8407050C5705CC007B893D /* ThumbnailView.h */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.c.h; name = ThumbnailView.h; path = ../../mozilla/camino/src/browser/ThumbnailView.h; sourceTree = SOURCE_ROOT; };
+		1F8407060C5705CC007B893D /* ThumbnailView.m */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.c.objc; name = ThumbnailView.m; path = ../../mozilla/camino/src/browser/ThumbnailView.m; sourceTree = SOURCE_ROOT; };
 		29B97316FDCFA39411CA2CEA /* main.m */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.c.objc; name = main.m; path = src/application/main.m; sourceTree = SOURCE_ROOT; };
 		29B97319FDCFA39411CA2CEA /* English */ = {isa = PBXFileReference; lastKnownFileType = wrapper.nib; name = English; path = resources/localized/English.lproj/MainMenu.nib; sourceTree = SOURCE_ROOT; };
 		29B97324FDCFA39411CA2CEA /* AppKit.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = AppKit.framework; path = /System/Library/Frameworks/AppKit.framework; sourceTree = "<absolute>"; };
@@ -3874,6 +3886,10 @@
 				F5B950BD030C83B601A96654 /* BrowserTabViewItem.mm */,
 				3FFFEC1C081C3F0B00843C07 /* StatusBarView.h */,
 				3FFFEC1D081C3F0B00843C07 /* StatusBarView.mm */,
+				1F8407040C5705CC007B893D /* TabThumbnailGridView.h */,
+				1F8407030C5705CC007B893D /* TabThumbnailGridView.mm */,
+				1F8407050C5705CC007B893D /* ThumbnailView.h */,
+				1F8407060C5705CC007B893D /* ThumbnailView.m */,
 				3003B8890445124400B85BF3 /* SearchTextField */,
 				F558137B030AEF9B0176F207 /* Site icons */,
 			);
@@ -4717,6 +4733,8 @@
 				DEB968190B0D8E0B0023F8B1 /* KeychainItem.h in Headers */,
 				DEE34A550B84F5C600BCD687 /* FileChangeWatcher.h in Headers */,
 				DE6D27E50C1A013800292043 /* CHPermissionManager.h in Headers */,
+				1F8407080C5705CC007B893D /* TabThumbnailGridView.h in Headers */,
+				1F8407090C5705CC007B893D /* ThumbnailView.h in Headers */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -4872,6 +4890,8 @@
 				DEB968180B0D8E0B0023F8B1 /* KeychainItem.h in Headers */,
 				DEE34A540B84F5C600BCD687 /* FileChangeWatcher.h in Headers */,
 				DE6D27E40C1A013800292043 /* CHPermissionManager.h in Headers */,
+				1F840B2B0C57D807007B893D /* TabThumbnailGridView.h in Headers */,
+				1F840B2D0C57D807007B893D /* ThumbnailView.h in Headers */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -5722,6 +5742,8 @@
 				DEB968160B0D8DF70023F8B1 /* KeychainItem.m in Sources */,
 				DEE34A580B84F5E100BCD687 /* FileChangeWatcher.m in Sources */,
 				DE6D27E80C1A014D00292043 /* CHPermissionManager.mm in Sources */,
+				1F8407070C5705CC007B893D /* TabThumbnailGridView.mm in Sources */,
+				1F84070A0C5705CC007B893D /* ThumbnailView.m in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -5889,6 +5911,8 @@
 				DEB968150B0D8DF70023F8B1 /* KeychainItem.m in Sources */,
 				DEE34A570B84F5E100BCD687 /* FileChangeWatcher.m in Sources */,
 				DE6D27E70C1A014D00292043 /* CHPermissionManager.mm in Sources */,
+				1F840B2C0C57D807007B893D /* TabThumbnailGridView.mm in Sources */,
+				1F840B2E0C57D807007B893D /* ThumbnailView.m in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
