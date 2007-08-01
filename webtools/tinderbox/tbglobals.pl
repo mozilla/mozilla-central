@@ -904,8 +904,6 @@ sub load_who {
       if ($checkin_time < ${$td_ref}->{build_time_times}->[$ii]) {
         $who_list->[$ii+1]->{$email} = 1;
         last;
-      } elsif ($ii == 0) {
-        $who_list->[0]->{$email} = 1;
       }
     }
   }
@@ -1092,10 +1090,6 @@ sub make_build_table {
                         $build_table->[$ti1][$bi] = -1;
                         $ti1--;
                     }
-                }
-
-                if ($ti1 > 0 and defined($br1 = $build_table->[$ti1][$bi])) {
-                    $br->{nextbuildtime} = $br1->{buildtime};
                 }
 
                 $br->{rowspan} = $ti - $ti1;
