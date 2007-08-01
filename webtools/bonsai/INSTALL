@@ -339,6 +339,19 @@ in /etc/smrsh. For example:
 and change the bonsai-checkin-daemon in /etc/aliases to point to
 /etc/smrsh/handleCheckinMail.pl
  
+To process the queued mail from handleCheckinMail.pl, you will need to setup
+a cron job to call processMail.pl.  processMail.pl does take an optional
+parameter to locate the bonsai data directory, but if it's not present it
+will default to the directory where processMail.pl resides.
+
+As the bonsai user, add a cron job to call 'processMail.pl'.
+    For example,
+        MAILTO="root"
+        USER=bonsai
+        */5 * * * *     /usr/local/bonsai/processMail.pl
+
+This will cause the bonsai mail to be processed every five minutes and
+to mail the root user if any errors occur.
 
 4. Registry
 
