@@ -226,14 +226,16 @@
 
     <popup id="calendar-view-context-menu" onpopupshowing="return true;">
       <!-- These labels are set dynamically, based on the current view -->
-      <menuitem id="context_previous" label="" oncommand="moveView(-1)" disabled="true"
+      <menuitem id="context_previous" label="" oncommand="moveView(-1)"
                 label-day="&calendar.prevday.button.tooltip;"
                 label-week="&calendar.prevweek.button.tooltip;"
+                label-multiweek="&calendar.prevweek.button.tooltip;"
                 label-month="&calendar.prevmonth.button.tooltip;"
                 accesskey="&goPreviousCmd.accesskey;"/>
-      <menuitem id="context_next" label="" oncommand="moveView(1)" disabled="true"
+      <menuitem id="context_next" label="" oncommand="moveView(1)"
                 label-day="&calendar.nextday.button.tooltip;"
                 label-week="&calendar.nextweek.button.tooltip;"
+                label-multiweek="&calendar.nextweek.button.tooltip;"
                 label-month="&calendar.nextmonth.button.tooltip;"
                 accesskey="&goNextCmd.accesskey;"/>
       <menuitem label="&calendar.context.newevent.label;" oncommand="ltnCreateEvent()"
