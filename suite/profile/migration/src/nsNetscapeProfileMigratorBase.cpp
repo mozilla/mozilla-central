@@ -796,25 +796,6 @@ nsNetscapeProfileMigratorBase::CopyCookies(PRBool aReplace)
 }
 
 nsresult
-nsNetscapeProfileMigratorBase::CopyFormData(PRBool aReplace)
-{
-  nsCString svFileName;
-  GetSchemaValueFileName(aReplace, getter_Copies(svFileName));
-
-  if (svFileName.IsEmpty())
-    return NS_ERROR_FILE_NOT_FOUND;
-
-  if (aReplace)
-    return CopyFile(svFileName.get(), svFileName.get());
-
-  // We don't need to do anything else here - there's no import function
-  // for form data, so instead we just let the pref functions copy the
-  // wallet.* prefs across and that'll get us the pref with the correct
-  // filename in it.
-  return NS_OK;
-}
-
-nsresult
 nsNetscapeProfileMigratorBase::CopyPasswords(PRBool aReplace)
 {
   nsCString signonsFileName;
@@ -861,26 +842,6 @@ nsNetscapeProfileMigratorBase::CopyUserSheet(const char* aFileName)
 
   return sourceUserContent->CopyToNative(targetChromeDir,
                                          nsDependentCString(aFileName));
-}
-
-nsresult
-nsNetscapeProfileMigratorBase::GetSchemaValueFileName(PRBool aReplace,
-                                                      char** aFileName)
-{
-  if (aReplace) {
-    // Find out what the signons file was called, this is stored in a pref
-    // in Seamonkey.
-    nsCOMPtr<nsIPrefService> psvc(do_GetService(NS_PREFSERVICE_CONTRACTID));
-
-    if (psvc) {
-      nsCOMPtr<nsIPrefBranch> branch(do_QueryInterface(psvc));
-
-      if (NS_SUCCEEDED(branch->GetCharPref("wallet.SchemaValueFileName",
-                                           aFileName)))
-        return NS_OK;
-    }
-  }
-  return LocateWalletFile("w", aFileName);
 }
 
 nsresult

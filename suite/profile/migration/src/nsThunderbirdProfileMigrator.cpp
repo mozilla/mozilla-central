@@ -99,7 +99,6 @@ nsThunderbirdProfileMigrator::Migrate(PRUint16 aItems,
   COPY_DATA(CopyCookies,      aReplace, nsISuiteProfileMigrator::COOKIES);
   COPY_DATA(CopyHistory,      aReplace, nsISuiteProfileMigrator::HISTORY);
   COPY_DATA(CopyPasswords,    aReplace, nsISuiteProfileMigrator::PASSWORDS);
-  COPY_DATA(CopyFormData,     aReplace, nsISuiteProfileMigrator::FORMDATA);
   COPY_DATA(CopyOtherData,    aReplace, nsISuiteProfileMigrator::OTHERDATA);
 
   // fake notifications for things we've already imported as part of
@@ -198,23 +197,6 @@ nsThunderbirdProfileMigrator::GetMigrateData(const PRUnichar* aProfile,
       *aResult |= nsISuiteProfileMigrator::PASSWORDS;
   }
 
-  // Now locate form data
-  nsCString formDataFileName;
-  GetSchemaValueFileName(aReplace, getter_Copies(formDataFileName));
-
-  if (!formDataFileName.IsEmpty()) {
-    nsAutoString fileName;
-    fileName.Assign(NS_ConvertUTF8toUTF16(formDataFileName));
-    nsCOMPtr<nsIFile> sourceFormDataFile;
-    mSourceProfile->Clone(getter_AddRefs(sourceFormDataFile));
-    sourceFormDataFile->Append(fileName);
-    
-    PRBool exists;
-    sourceFormDataFile->Exists(&exists);
-    if (exists)
-      *aResult |= nsISuiteProfileMigrator::FORMDATA;
-  }
-
   return NS_OK;
 }
 
@@ -229,7 +211,6 @@ nsThunderbirdProfileMigrator::GetSupportedItems(PRUint16 *aSupportedItems)
     nsISuiteProfileMigrator::OTHERDATA |
     nsISuiteProfileMigrator::JUNKTRAINING |
     nsISuiteProfileMigrator::PASSWORDS |
-    nsISuiteProfileMigrator::FORMDATA |
     nsISuiteProfileMigrator::ACCOUNT_SETTINGS |
     nsISuiteProfileMigrator::MAILDATA |
     nsISuiteProfileMigrator::NEWSDATA |

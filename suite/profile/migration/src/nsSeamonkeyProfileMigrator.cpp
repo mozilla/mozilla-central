@@ -99,7 +99,6 @@ nsSeamonkeyProfileMigrator::Migrate(PRUint16 aItems,
   COPY_DATA(CopyCookies,      aReplace, nsISuiteProfileMigrator::COOKIES);
   COPY_DATA(CopyHistory,      aReplace, nsISuiteProfileMigrator::HISTORY);
   COPY_DATA(CopyPasswords,    aReplace, nsISuiteProfileMigrator::PASSWORDS);
-  COPY_DATA(CopyFormData,     aReplace, nsISuiteProfileMigrator::FORMDATA);
   COPY_DATA(CopyOtherData,    aReplace, nsISuiteProfileMigrator::OTHERDATA);
   COPY_DATA(CopyBookmarks,    aReplace, nsISuiteProfileMigrator::BOOKMARKS);
 
@@ -200,21 +199,6 @@ nsSeamonkeyProfileMigrator::GetMigrateData(const PRUnichar* aProfile,
       *aResult |= nsISuiteProfileMigrator::PASSWORDS;
   }
 
-  // Now locate form data
-  nsCString formDataFileName;
-  GetSchemaValueFileName(aReplace, getter_Copies(formDataFileName));
-
-  if (!formDataFileName.IsEmpty()) {
-    nsCOMPtr<nsIFile> sourceFormDataFile;
-    mSourceProfile->Clone(getter_AddRefs(sourceFormDataFile));
-    sourceFormDataFile->AppendNative(formDataFileName);
-    
-    PRBool exists;
-    sourceFormDataFile->Exists(&exists);
-    if (exists)
-      *aResult |= nsISuiteProfileMigrator::FORMDATA;
-  }
-
   return NS_OK;
 }
 
@@ -223,7 +207,9 @@ nsSeamonkeyProfileMigrator::GetSupportedItems(PRUint16 *aSupportedItems)
 {
   NS_ENSURE_ARG_POINTER(aSupportedItems);
 
-  *aSupportedItems = nsISuiteProfileMigrator::ALL;
+  // All except form data
+  *aSupportedItems = nsISuiteProfileMigrator::ALL &
+                     ~nsISuiteProfileMigrator::FORMDATA;
 
   return NS_OK;
 }
@@ -585,7 +571,15 @@ nsSeamonkeyProfileMigrator::PrefTransform gTransforms[] = {
   MAKESAMETYPEPREFTRANSFORM("ui.click_hold_context_menus",             Bool),
 
   MAKESAMETYPEPREFTRANSFORM("view_source.syntax_highlight",            Bool),
-  MAKESAMETYPEPREFTRANSFORM("view_source.wrap_long_lines",             Bool)
+  MAKESAMETYPEPREFTRANSFORM("view_source.wrap_long_lines",             Bool),
+
+  // XXX Because SeaMonkey's default pref for wallet.captureForms is now the
+  // opposite sense, we can't actually migrate this preference. Therefore,
+  // disable it for now, and re-enable/fix once bug 390025 is fixed.
+  //  MAKEPREFTRANSFORM("wallet.captureForms", "browser.formfill.enabled", Bool, Bool),
+  MAKESAMETYPEPREFTRANSFORM("wallet.enabled",                          Bool),
+  MAKESAMETYPEPREFTRANSFORM("wallet.crypto",                           Bool),
+  MAKESAMETYPEPREFTRANSFORM("wallet.crypto.autocompleteoverride",      Bool)
 };
 
 nsresult
@@ -654,8 +648,7 @@ nsSeamonkeyProfileMigrator::TransformPreferences(const char* aSourcePrefFileName
     "privacy.",
     "security.OSCP.",
     "security.crl.",
-    "ui.key.",
-    "wallet."
+    "ui.key."
   };
 
   PBStructArray branches[NS_ARRAY_LENGTH(branchNames)];

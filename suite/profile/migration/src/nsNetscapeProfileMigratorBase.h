@@ -117,7 +117,7 @@ public:
   NS_IMETHOD GetSourceProfiles(nsISupportsArray * *aSourceProfiles);
   NS_IMETHOD GetSourceHomePageURL(nsACString & aSourceHomePageURL);
 
-  // Pref Transform Methods - these seem only to be used by the dogbert migrator
+  // Pref Transform Methods
   static nsresult GetString(PrefTransform* aTransform, nsIPrefBranch* aBranch);
   static nsresult SetString(PrefTransform* aTransform, nsIPrefBranch* aBranch);
   static nsresult GetBool(PrefTransform* aTransform, nsIPrefBranch* aBranch);
@@ -156,10 +156,8 @@ protected:
 
   // Generic Import Functions
   nsresult CopyCookies(PRBool aReplace);
-  nsresult CopyFormData(PRBool aReplace);
   nsresult CopyPasswords(PRBool aReplace);
   nsresult CopyUserSheet(const char* aFileName);
-  nsresult GetSchemaValueFileName(PRBool aReplace, char** aFileName);
   nsresult GetSignonFileName(PRBool aReplace, char** aFileName);
   nsresult ImportNetscapeCookies(nsIFile* aCookiesFile);
   nsresult LocateWalletFile(const char* aExtension, char** aResult);
