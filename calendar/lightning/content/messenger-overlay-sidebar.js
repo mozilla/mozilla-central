@@ -691,7 +691,7 @@ function updateOrientation() {
     var value = (document.getElementById("ltn-multiday-rotated")
                          .getAttribute("checked") == 'true');
 
-    var deck = document.getElementById("calendar-view-box")
+    var deck = getViewDeck();
     for each (view in deck.childNodes) {
         view.rotated = value;
     }
