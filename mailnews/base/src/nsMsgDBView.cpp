@@ -114,6 +114,8 @@ nsDateFormatSelector  nsMsgDBView::m_dateFormatDefault = kDateFormatShort;
 nsDateFormatSelector  nsMsgDBView::m_dateFormatThisWeek = kDateFormatShort;
 nsDateFormatSelector  nsMsgDBView::m_dateFormatToday = kDateFormatNone;
 
+static const PRUint32 kMaxNumSortColumns = 2;
+
 // this is passed into NS_QuickSort as custom data.
 class viewSortInfo
 {
@@ -121,6 +123,7 @@ public:
   nsMsgDBView *view;
   nsIMsgDatabase *db;
   PRBool isSecondarySort;
+  PRBool ascendingSort;
 };
 
 
@@ -142,6 +145,7 @@ nsMsgDBView::nsMsgDBView()
   m_sortOrder = nsMsgViewSortOrder::none;
   m_viewFlags = nsMsgViewFlagsType::kNone;
   m_secondarySort = nsMsgViewSortType::byId;
+  m_secondarySortOrder = nsMsgViewSortOrder::ascending;
   m_cachedMsgKey = nsMsgKey_None;
   m_currentlyDisplayedMsgKey = nsMsgKey_None;
   m_currentlyDisplayedViewIndex = nsMsgViewIndex_None;
@@ -1567,7 +1571,6 @@ PRBool nsMsgDBView::WasHdrRecentlyDeleted(nsIMsgDBHdr *msgHdr)
 {
   nsCString messageId;
   msgHdr->GetMessageId(getter_Copies(messageId));
-  PRInt32 arrayCount;
   for (PRInt32 i = 0; i < mRecentlyDeletedMsgIds.Count(); i++)
   {
     if (messageId.Equals(*(mRecentlyDeletedMsgIds[i])))
@@ -1597,7 +1600,15 @@ NS_IMETHODIMP nsMsgDBView::AddColumnHandler(const nsAString& column, nsIMsgCusto
     m_customColumnHandlers.ReplaceObjectAt(handler, index);
 
   }
-
+  // Check if the column name matches any of the columns in
+  // m_sortColumns, and if so, set m_sortColumns[i].mColHandler
+  for (PRUint32 i = 0; i < m_sortColumns.Length(); i++)
+  {
+    MsgViewSortColumnInfo &sortInfo = m_sortColumns[i];
+    if (sortInfo.mSortType == nsMsgViewSortType::byCustom && 
+          sortInfo.mCustomColumnName.Equals(column))
+      sortInfo.mColHandler = handler;
+  }
   return NS_OK;
 }
 
@@ -1605,12 +1616,23 @@ NS_IMETHODIMP nsMsgDBView::AddColumnHandler(const nsAString& column, nsIMsgCusto
 NS_IMETHODIMP nsMsgDBView::RemoveColumnHandler(const nsAString& aColID)
 {
 
+  // here we should check if the column name matches any of the columns in
+  // m_sortColumns, and if so, clear m_sortColumns[i].mColHandler
   PRInt32 index = m_customColumnHandlerIDs.IndexOf(aColID);
 
   if (index != -1)
   {
     m_customColumnHandlerIDs.RemoveStringAt(index);
     m_customColumnHandlers.RemoveObjectAt(index);
+    // Check if the column name matches any of the columns in
+    // m_sortColumns, and if so, clear m_sortColumns[i].mColHandler
+    for (PRUint32 i = 0; i < m_sortColumns.Length(); i++)
+    {
+      MsgViewSortColumnInfo &sortInfo = m_sortColumns[i];
+      if (sortInfo.mSortType == nsMsgViewSortType::byCustom && 
+            sortInfo.mCustomColumnName.Equals(aColID))
+        sortInfo.mColHandler = nsnull;
+    }
 
     return NS_OK;
   }
@@ -1621,24 +1643,26 @@ NS_IMETHODIMP nsMsgDBView::RemoveColumnHandler(const nsAString& aColID)
 //TODO: NS_ENSURE_SUCCESS
 nsIMsgCustomColumnHandler* nsMsgDBView::GetCurColumnHandlerFromDBInfo()
 {
-  if (!m_db)
-    return nsnull;
-
-  nsresult rv;
-
-  nsCOMPtr<nsIDBFolderInfo>  dbInfo;
-
-  m_db->GetDBFolderInfo(getter_AddRefs(dbInfo));
-
-  if (!dbInfo)
-    return nsnull;
 
   nsAutoString colID;
-  rv = dbInfo->GetProperty("customSortCol", colID);
-
+  GetCurCustomColumn(colID);
   return GetColumnHandler(colID.get());
 }
 
+void nsMsgDBView::GetCurCustomColumn(nsString &colID)
+{
+  if (!m_db)
+    return;
+  
+  nsCOMPtr<nsIDBFolderInfo>  dbInfo;
+  m_db->GetDBFolderInfo(getter_AddRefs(dbInfo));
+  
+  if (!dbInfo)
+    return;
+  
+ dbInfo->GetProperty("customSortCol", colID);
+  
+}
 nsIMsgCustomColumnHandler* nsMsgDBView::GetColumnHandler(const PRUnichar *colID)
 {
   nsIMsgCustomColumnHandler* columnHandler = nsnull;
@@ -1650,6 +1674,7 @@ nsIMsgCustomColumnHandler* nsMsgDBView::GetColumnHandler(const PRUnichar *colID)
 
   return columnHandler;
 }
+
 
 NS_IMETHODIMP nsMsgDBView::GetColumnHandler(const nsAString& aColID, nsIMsgCustomColumnHandler** aHandler)
 {
@@ -1923,6 +1948,10 @@ NS_IMETHODIMP nsMsgDBView::Open(nsIMsgFolder *folder, nsMsgViewSortTypeValue sor
 
     SetMRUTimeForFolder(m_folder);
 
+    // restore m_sortColumns from db
+    nsString sortColumnsString;
+    folderInfo->GetProperty("sortColumns", sortColumnsString);
+    DecodeColumnSort(sortColumnsString);
     // determine if we are in a news folder or not.
     // if yes, we'll show lines instead of size, and special icons in the thread pane
     nsCOMPtr <nsIMsgIncomingServer> server;
@@ -3226,7 +3255,7 @@ struct IdKeyPtr : public IdDWord
 };
 
 int PR_CALLBACK
-FnSortIdKey(const void *pItem1, const void *pItem2, void *privateData)
+nsMsgDBView::FnSortIdKey(const void *pItem1, const void *pItem2, void *privateData)
 {
     PRInt32 retVal = 0;
     nsresult rv;
@@ -3240,53 +3269,57 @@ FnSortIdKey(const void *pItem1, const void *pItem2, void *privateData)
     rv = db->CompareCollationKeys((*p1)->key, (*p1)->dword, (*p2)->key, (*p2)->dword, &retVal);
     NS_ASSERTION(NS_SUCCEEDED(rv),"compare failed");
 
-    if (retVal != 0)
-        return(retVal);
+    if (retVal)
+      return sortInfo->ascendingSort ? retVal : ~retVal;
     if (sortInfo->view->m_secondarySort == nsMsgViewSortType::byId)
-      return ((*p1)->id >= (*p2)->id) ? 1 : -1;
+      return (sortInfo->view->m_secondarySortOrder == nsMsgViewSortOrder::ascending &&
+              (*p1)->id >= (*p2)->id) ? 1 : -1;
     else
       return sortInfo->view->SecondarySort((*p1)->id, (*p1)->folder, (*p2)->id, (*p2)->folder, sortInfo);
     // here we'd use the secondary sort
 }
 
 int PR_CALLBACK
-FnSortIdKeyPtr(const void *pItem1, const void *pItem2, void *privateData)
+nsMsgDBView::FnSortIdKeyPtr(const void *pItem1, const void *pItem2, void *privateData)
 {
-    PRInt32 retVal = 0;
-    nsresult rv;
+  PRInt32 retVal = 0;
+  nsresult rv;
 
-    IdKeyPtr** p1 = (IdKeyPtr**)pItem1;
-    IdKeyPtr** p2 = (IdKeyPtr**)pItem2;
+  IdKeyPtr** p1 = (IdKeyPtr**)pItem1;
+  IdKeyPtr** p2 = (IdKeyPtr**)pItem2;
+  viewSortInfo* sortInfo = (viewSortInfo *) privateData;
 
-    nsIMsgDatabase *db = ((viewSortInfo *)privateData)->db;
+  nsIMsgDatabase *db = sortInfo->db;
 
-    rv = db->CompareCollationKeys((*p1)->key, (*p1)->dword, (*p2)->key, (*p2)->dword, &retVal);
-    NS_ASSERTION(NS_SUCCEEDED(rv),"compare failed");
+  rv = db->CompareCollationKeys((*p1)->key, (*p1)->dword, (*p2)->key, (*p2)->dword, &retVal);
+  NS_ASSERTION(NS_SUCCEEDED(rv),"compare failed");
 
-    if (retVal != 0)
-        return(retVal);
-    // here we'd use the secondary sort
-    if ((*p1)->id >= (*p2)->id)
-        return(1);
-    else
-        return(-1);
+  if (retVal)
+    return sortInfo->ascendingSort ? retVal : ~retVal;
+
+  if (sortInfo->view->m_secondarySort == nsMsgViewSortType::byId)
+    return (sortInfo->view->m_secondarySortOrder == nsMsgViewSortOrder::ascending &&
+            (*p1)->id >= (*p2)->id) ? 1 : -1;
+  else
+    return sortInfo->view->SecondarySort((*p1)->id, (*p1)->folder, (*p2)->id, (*p2)->folder, sortInfo);
 }
 
 int PR_CALLBACK
-FnSortIdDWord(const void *pItem1, const void *pItem2, void *privateData)
+nsMsgDBView::FnSortIdDWord(const void *pItem1, const void *pItem2, void *privateData)
 {
-    IdDWord** p1 = (IdDWord**)pItem1;
-    IdDWord** p2 = (IdDWord**)pItem2;
+  IdDWord** p1 = (IdDWord**)pItem1;
+  IdDWord** p2 = (IdDWord**)pItem2;
+  viewSortInfo* sortInfo = (viewSortInfo *) privateData;
 
-    if ((*p1)->dword > (*p2)->dword)
-        return(1);
-    else if ((*p1)->dword < (*p2)->dword)
-        return(-1);
-    // here we'd use the secondary sort
-    else if ((*p1)->id >= (*p2)->id)
-        return(1);
-    else
-        return(-1);
+  if ((*p1)->dword > (*p2)->dword)
+    return (sortInfo->ascendingSort) ? 1 : -1;
+  else if ((*p1)->dword < (*p2)->dword)
+      return (sortInfo->ascendingSort) ? -1 : 1;
+  if (sortInfo->view->m_secondarySort == nsMsgViewSortType::byId)
+    return (sortInfo->view->m_secondarySortOrder == nsMsgViewSortOrder::ascending &&
+            (*p1)->id >= (*p2)->id) ? 1 : -1;
+  else
+    return sortInfo->view->SecondarySort((*p1)->id, (*p1)->folder, (*p2)->id, (*p2)->folder, sortInfo);
 }
 
 
@@ -3495,6 +3528,70 @@ nsresult nsMsgDBView::GetLongField(nsIMsgDBHdr *msgHdr, nsMsgViewSortTypeValue s
     return NS_OK;
 }
 
+MsgViewSortColumnInfo::MsgViewSortColumnInfo(const MsgViewSortColumnInfo &other)
+{
+  mSortType = other.mSortType;
+  mSortOrder = other.mSortOrder;
+  mCustomColumnName = other.mCustomColumnName;
+  mColHandler = other.mColHandler;
+}
+
+PRBool MsgViewSortColumnInfo::operator== (const MsgViewSortColumnInfo& other) const
+{
+  return (mSortType == nsMsgViewSortType::byCustom) ? 
+    mCustomColumnName.Equals(other.mCustomColumnName) : mSortType == other.mSortType;
+}
+
+nsresult nsMsgDBView::EncodeColumnSort(nsString &columnSortString)
+{
+  for (PRUint32 i = 0; i < m_sortColumns.Length(); i++)
+  {
+    MsgViewSortColumnInfo &sortInfo = m_sortColumns[i];
+    columnSortString.Append((char) sortInfo.mSortType);
+    columnSortString.Append((char) sortInfo.mSortOrder + '0');
+    if (sortInfo.mSortType == nsMsgViewSortType::byCustom)
+    {
+      columnSortString.Append(sortInfo.mCustomColumnName);
+      columnSortString.Append((PRUnichar) '\r');
+    }
+  }
+  return NS_OK;
+}
+
+nsresult nsMsgDBView::DecodeColumnSort(nsString &columnSortString)
+{
+  const PRUnichar *stringPtr = columnSortString.BeginReading();
+  while (*stringPtr)
+  {
+    MsgViewSortColumnInfo sortColumnInfo;
+    sortColumnInfo.mSortType = (nsMsgViewSortTypeValue) *stringPtr++;
+    sortColumnInfo.mSortOrder = (nsMsgViewSortOrderValue) (*stringPtr++) - '0';
+    if (sortColumnInfo.mSortType == nsMsgViewSortType::byCustom)
+    {
+      while (*stringPtr && *stringPtr != '\r')
+        sortColumnInfo.mCustomColumnName.Append(*stringPtr++);
+      sortColumnInfo.mColHandler = GetColumnHandler(sortColumnInfo.mCustomColumnName.get());
+      if (*stringPtr) // advance past '\r'
+        stringPtr++;
+    }
+    m_sortColumns.AppendElement(sortColumnInfo);
+  }
+  return NS_OK;
+}
+
+void nsMsgDBView::PushSort(const MsgViewSortColumnInfo &newSort)
+{
+  // no sense in keeping secondary sorts if primary sort is date or id
+  if (newSort.mSortType == nsMsgViewSortType::byDate || newSort.mSortType == nsMsgViewSortType::byId)
+    m_sortColumns.Clear();
+  PRInt32 sortIndex = m_sortColumns.IndexOf(newSort, 0);
+  if (sortIndex != kNotFound)
+    m_sortColumns. RemoveElementAt(sortIndex);
+  m_sortColumns.InsertElementAt(0, newSort);
+  if (m_sortColumns.Length() > kMaxNumSortColumns)
+    m_sortColumns.RemoveElementAt(kMaxNumSortColumns);
+}
+
 nsresult
 nsMsgDBView::GetCollationKey(nsIMsgDBHdr *msgHdr, nsMsgViewSortTypeValue sortType, PRUint8 **result, PRUint32 *len, nsIMsgCustomColumnHandler* colHandler)
 {
@@ -3597,6 +3694,11 @@ nsresult nsMsgDBView::SaveSortInfo(nsMsgViewSortTypeValue sortType, nsMsgViewSor
       // save off sort type and order, view type and flags
       folderInfo->SetSortType(sortType);
       folderInfo->SetSortOrder(sortOrder);
+      
+      nsString sortColumnsString;
+      rv = EncodeColumnSort(sortColumnsString);
+      NS_ENSURE_SUCCESS(rv, rv);
+      folderInfo->SetProperty("sortColumns", sortColumnsString);
     }
   }
   return NS_OK;
@@ -3625,6 +3727,7 @@ PRInt32  nsMsgDBView::SecondarySort(nsMsgKey key1, nsISupports *supports1, nsMsg
   PRUint16	maxLen;
   eFieldType fieldType;
   nsMsgViewSortTypeValue sortType = comparisonContext->view->m_secondarySort;
+  nsMsgViewSortOrderValue sortOrder = comparisonContext->view->m_secondarySortOrder;
   rv = GetFieldTypeAndLenForSort(sortType, &maxLen, &fieldType);
   const void *pValue1 = &EntryInfo1, *pValue2 = &EntryInfo2;
   
@@ -3637,6 +3740,9 @@ PRInt32  nsMsgDBView::SecondarySort(nsMsgKey key1, nsISupports *supports1, nsMsg
   //to either GetCollationKey or GetLongField - we need the custom column handler for
   // the previous sort, if any.
   nsIMsgCustomColumnHandler* colHandler = nsnull; // GetCurColumnHandlerFromDBInfo();
+  if (sortType == nsMsgViewSortType::byCustom)
+    colHandler = comparisonContext->view->m_sortColumns[1].mColHandler;
+
   
   switch (fieldType)
   {
@@ -3655,8 +3761,9 @@ PRInt32  nsMsgDBView::SecondarySort(nsMsgKey key1, nsISupports *supports1, nsMsg
     default:
       return 0;
   }
+  PRBool saveAscendingSort = comparisonContext->ascendingSort;
   comparisonContext->isSecondarySort = PR_TRUE;
-  
+  comparisonContext->ascendingSort = (sortOrder == nsMsgViewSortOrder::ascending);
   if (fieldType == kCollationKey)
   {
     PR_FREEIF(EntryInfo2.key);
@@ -3673,6 +3780,8 @@ PRInt32  nsMsgDBView::SecondarySort(nsMsgKey key1, nsISupports *supports1, nsMsg
   retStatus = (*comparisonFun)(&pValue1, &pValue2, comparisonContext);
   
   comparisonContext->isSecondarySort = PR_FALSE;
+  comparisonContext->ascendingSort = saveAscendingSort;
+
   return retStatus;
 }
 
@@ -3680,37 +3789,55 @@ PRInt32  nsMsgDBView::SecondarySort(nsMsgKey key1, nsISupports *supports1, nsMsg
 NS_IMETHODIMP nsMsgDBView::Sort(nsMsgViewSortTypeValue sortType, nsMsgViewSortOrderValue sortOrder)
 {
   nsresult rv;
-  if (m_sortType == sortType && m_sortValid && sortType != nsMsgViewSortType::byCustom)
+  // if we're doing a stable sort, we can't just reverse the messages.
+  // And the custom column we're sorting on might have changed, so to be
+  // on the safe side, resort.
+  if (m_sortType == sortType && m_sortValid && sortType != nsMsgViewSortType::byCustom
+    && m_sortColumns.Length() < 2)
   {
+    // same as it ever was.  do nothing
     if (m_sortOrder == sortOrder)
-    {
-      // same as it ever was.  do nothing
       return NS_OK;
+    
+    // for secondary sort, remember the sort order on a per column basis.
+    m_sortColumns[0].mSortOrder = sortOrder;
+    SaveSortInfo(sortType, sortOrder);
+    if (! (m_viewFlags & nsMsgViewFlagsType::kThreadedDisplay))
+    {
+      (void ) ReverseSort(); // doesn't fail.
     }
     else
     {
-      SaveSortInfo(sortType, sortOrder);
-      if (! (m_viewFlags & nsMsgViewFlagsType::kThreadedDisplay))
-      {
-        (void ) ReverseSort(); // doesn't fail.
-      }
-      else
-      {
-        rv = ReverseThreads();
-        NS_ENSURE_SUCCESS(rv,rv);
-      }
-
-      m_sortOrder = sortOrder;
-      // we just reversed the sort order...we still need to invalidate the view
-      return NS_OK;
+      rv = ReverseThreads();
+      NS_ENSURE_SUCCESS(rv,rv);
     }
+
+    m_sortOrder = sortOrder;
+    // we just reversed the sort order...we still need to invalidate the view
+    return NS_OK;
   }
 
   if (sortType == nsMsgViewSortType::byThread)
     return NS_OK;
 
   if (m_sortType != sortType)
-    m_secondarySort = m_sortType;
+  {
+    MsgViewSortColumnInfo sortColumnInfo;
+    sortColumnInfo.mSortType = sortType;
+    sortColumnInfo.mSortOrder = sortOrder;
+    if (sortType == nsMsgViewSortType::byCustom)
+    {
+      GetCurCustomColumn(sortColumnInfo.mCustomColumnName);
+      sortColumnInfo.mColHandler = GetCurColumnHandlerFromDBInfo();
+    }
+
+    PushSort(sortColumnInfo);
+    if (m_sortColumns.Length() > 1)
+    {
+      m_secondarySort = m_sortColumns[1].mSortType;
+      m_secondarySortOrder = m_sortColumns[1].mSortOrder;
+    }
+  }
   
   SaveSortInfo(sortType, sortOrder);
   // figure out how much memory we'll need, and the malloc it
@@ -3854,6 +3981,8 @@ NS_IMETHODIMP nsMsgDBView::Sort(nsMsgViewSortTypeValue sortType, nsMsgViewSortOr
   viewSortInfo qsPrivateData;
   qsPrivateData.view = this;
   qsPrivateData.isSecondarySort = PR_FALSE;
+  qsPrivateData.ascendingSort = (sortOrder == nsMsgViewSortOrder::ascending);
+
   // do the sort
   switch (fieldType)
   {
@@ -3895,7 +4024,7 @@ NS_IMETHODIMP nsMsgDBView::Sort(nsMsgViewSortTypeValue sortType, nsMsgViewSortOr
 
   if (sortOrder == nsMsgViewSortOrder::descending)
   {
-    rv = ReverseSort();
+ //   rv = ReverseSort();
     NS_ASSERTION(NS_SUCCEEDED(rv),"failed to reverse sort");
   }
 
@@ -4459,14 +4588,15 @@ nsMsgViewIndex nsMsgDBView::GetInsertIndexHelper(nsIMsgDBHdr *msgHdr, nsMsgKeyAr
 
   viewSortInfo comparisonContext;
   comparisonContext.view = this;
-  
+  comparisonContext.isSecondarySort = PR_FALSE;
+  comparisonContext.ascendingSort = (sortOrder == nsMsgViewSortOrder::ascending);
+  comparisonContext.db = m_db.get();
   switch (fieldType)
   {
     case kCollationKey:
       rv = GetCollationKey(msgHdr, sortType, &EntryInfo1.key, &EntryInfo1.dword, colHandler);
       NS_ASSERTION(NS_SUCCEEDED(rv),"failed to create collation key");
       comparisonFun = FnSortIdKeyPtr;
-      comparisonContext.db = m_db.get();
       break;
     case kU32:
       if (sortType == nsMsgViewSortType::byId)
@@ -4510,8 +4640,6 @@ nsMsgViewIndex nsMsgDBView::GetInsertIndexHelper(nsIMsgDBHdr *msgHdr, nsMsgKeyAr
       highIndex = tryIndex;
       break;
     }
-    if (sortOrder == nsMsgViewSortOrder::descending)	//switch retStatus based on sort order
-      retStatus = ~retStatus;
 
     if (retStatus < 0)
     {

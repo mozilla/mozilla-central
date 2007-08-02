@@ -65,6 +65,8 @@
 #include "nsIStringBundle.h"
 #include "nsMsgTagService.h"
 #include "nsCOMArray.h"
+#include "nsTArray.h"
+#include "nsIMsgCustomColumnHandler.h"
 
 #define MESSENGER_STRING_URL       "chrome://messenger/locale/messenger.properties"
 
@@ -72,6 +74,20 @@ enum eFieldType {
     kCollationKey,
     kU32
 };
+
+// this is used in an nsTArray<> to keep track of a multi-column sort
+class MsgViewSortColumnInfo
+{
+public:
+  MsgViewSortColumnInfo(const MsgViewSortColumnInfo &other);
+  MsgViewSortColumnInfo() {}
+  PRBool operator == (const MsgViewSortColumnInfo &other) const;
+  nsMsgViewSortTypeValue mSortType;
+  nsMsgViewSortOrderValue mSortOrder;
+  // if mSortType == byCustom, info about the custom column sort
+  nsString mCustomColumnName;
+  nsCOMPtr <nsIMsgCustomColumnHandler> mColHandler;
+} ;
 
 // reserve the top 8 bits in the msg flags for the view-only flags.
 #define MSG_VIEW_FLAGS 0xEE000000
@@ -87,9 +103,8 @@ enum eFieldType {
 #define LABEL_COLOR_STRING "lc-"
 #define LABEL_COLOR_WHITE_STRING "#FFFFFF"
 
-// I think this will be an abstract implementation class.
-// The classes that implement the tree support will probably
-// inherit from this class.
+// This is an abstract implementation class.
+// The actual view objects will be instances of sub-classes of this class
 class nsMsgDBView : public nsIMsgDBView, public nsIDBChangeListener,
                     public nsITreeView,
                     public nsIJunkMailClassificationListener
@@ -108,8 +123,7 @@ public:
                                         nsMsgViewSortOrderValue sortOrder,
                                         nsMsgViewSortTypeValue sortType);
   PRInt32  SecondarySort(nsMsgKey key1, nsISupports *folder1, nsMsgKey key2, nsISupports *folder2,
-                         struct viewSortInfo *comparisonContext);
-  nsMsgViewSortTypeValue m_secondarySort;
+                         class viewSortInfo *comparisonContext);
 protected:
   static nsrefcnt gInstanceCount;
   // atoms used for styling the view. we're going to have a lot of
@@ -280,9 +294,9 @@ protected:
   nsresult OrExtraFlag(nsMsgViewIndex index, PRUint32 orflag);
   nsresult AndExtraFlag(nsMsgViewIndex index, PRUint32 andflag);
   nsresult SetExtraFlag(nsMsgViewIndex index, PRUint32 extraflag);
-	virtual nsresult RemoveByIndex(nsMsgViewIndex index);
-  virtual void		OnExtraFlagChanged(nsMsgViewIndex /*index*/, PRUint32 /*extraFlag*/) {}
-	virtual void		OnHeaderAddedOrDeleted() {}	
+  virtual nsresult RemoveByIndex(nsMsgViewIndex index);
+  virtual void OnExtraFlagChanged(nsMsgViewIndex /*index*/, PRUint32 /*extraFlag*/) {}
+  virtual void OnHeaderAddedOrDeleted() {}	
   nsresult ToggleWatched( nsMsgViewIndex* indices,	PRInt32 numIndices);
   nsresult SetThreadWatched(nsIMsgThread *thread, nsMsgViewIndex index, PRBool watched);
   nsresult SetThreadIgnored(nsIMsgThread *thread, nsMsgViewIndex threadIndex, PRBool ignored);
@@ -296,9 +310,15 @@ protected:
                           PRUint32 *len, nsIMsgCustomColumnHandler* colHandler = nsnull);
   nsresult GetLongField(nsIMsgDBHdr *msgHdr, nsMsgViewSortTypeValue sortType, PRUint32 *result, 
                           nsIMsgCustomColumnHandler* colHandler = nsnull);
+  static int PR_CALLBACK FnSortIdKey(const void *pItem1, const void *pItem2, void *privateData);
+  static int PR_CALLBACK FnSortIdKeyPtr(const void *pItem1, const void *pItem2, void *privateData);
+  static int PR_CALLBACK FnSortIdDWord(const void *pItem1, const void *pItem2, void *privateData);
+
   nsresult GetStatusSortValue(nsIMsgDBHdr *msgHdr, PRUint32 *result);
   nsresult GetLocationCollationKey(nsIMsgDBHdr *msgHdr, PRUint8 **result, PRUint32 *len);
-
+  void PushSort(const MsgViewSortColumnInfo &newSort);
+  nsresult EncodeColumnSort(nsString &columnSortString);
+  nsresult DecodeColumnSort(nsString &columnSortString);
   // for view navigation
   nsresult NavigateFromPos(nsMsgNavigationTypeValue motion, nsMsgViewIndex startIndex, nsMsgKey *pResultKey, 
               nsMsgViewIndex *pResultIndex, nsMsgViewIndex *pThreadIndex, PRBool wrap);
@@ -358,8 +378,11 @@ protected:
   nsCOMPtr <nsIMsgFolder> m_viewFolder; // for virtual folders, the VF db.
   nsCOMPtr <nsIAtom> mRedirectorTypeAtom;
   nsCOMPtr <nsIAtom> mMessageTypeAtom; // news, rss, mail, etc. 
+  nsTArray <MsgViewSortColumnInfo> m_sortColumns;
   nsMsgViewSortTypeValue  m_sortType;
   nsMsgViewSortOrderValue m_sortOrder;
+  nsMsgViewSortTypeValue m_secondarySort;
+  nsMsgViewSortOrderValue m_secondarySortOrder;
   nsMsgViewFlagsTypeValue m_viewFlags;
 
   // I18N date formater service which we'll want to cache locally.
@@ -407,6 +430,7 @@ protected:
   
   nsIMsgCustomColumnHandler* GetColumnHandler(const PRUnichar*);
   nsIMsgCustomColumnHandler* GetCurColumnHandlerFromDBInfo();
+  void GetCurCustomColumn(nsString &colID);
 
 protected:
   static nsresult   InitDisplayFormats();
