@@ -81,7 +81,7 @@ nsAbOutlookDirFactory::GetDirectories(const nsAString &aDirName,
     *aDirectories = nsnull ;
     nsresult retCode = NS_OK ;
     nsAbWinType abType = getAbWinType(kOutlookDirectoryScheme,
-                                      nsCString(uri).get(), stub, entry);
+                                      nsCString(aURI).get(), stub, entry);
 
     if (abType == nsAbWinType_Unknown) {
         return NS_ERROR_FAILURE ;
