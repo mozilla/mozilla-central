@@ -43,25 +43,9 @@ VPATH		= @srcdir@
 include $(DEPTH)/config/autoconf.mk
 
 MODULE		= suitebrowser
-LIBRARY_NAME	= suitebrowser_s
-META_COMPONENT  = suite
+XPIDL_MODULE	= suitebrowser
 
-REQUIRES	= \
-		  xpcom \
-		  string \
-		  docshell \
-		  dom \
-		  content \
-		  js \
-		  widget \
-		  gfx \
-		  layout \
-		  necko \
-		  $(NULL)
-
-CPPSRCS		= nsUrlWidget.cpp
-
-FORCE_STATIC_LIB = 1
+XPIDLSRCS	= nsIUrlWidget.idl
 
 include $(topsrcdir)/config/rules.mk
 

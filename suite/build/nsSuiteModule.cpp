@@ -42,8 +42,15 @@
 #include "nsSeamonkeyProfileMigrator.h"
 #include "nsThunderbirdProfileMigrator.h"
 
+#if defined(XP_WIN)
+#include "nsUrlWidget.h"
+#endif
+
 /////////////////////////////////////////////////////////////////////////////
 
+#if defined(XP_WIN)
+NS_GENERIC_FACTORY_CONSTRUCTOR_INIT(nsUrlWidget, Init)
+#endif // Windows
 NS_GENERIC_FACTORY_CONSTRUCTOR(nsSuiteDirectoryProvider)
 NS_GENERIC_FACTORY_CONSTRUCTOR(nsProfileMigrator)
 NS_GENERIC_FACTORY_CONSTRUCTOR(nsSeamonkeyProfileMigrator)
@@ -52,6 +59,11 @@ NS_GENERIC_FACTORY_CONSTRUCTOR(nsThunderbirdProfileMigrator)
 /////////////////////////////////////////////////////////////////////////////
 
 static const nsModuleComponentInfo components[] = {
+#ifdef XP_WIN
+  { NS_IURLWIDGET_CLASSNAME, NS_IURLWIDGET_CID,
+    NS_IURLWIDGET_CONTRACTID, nsUrlWidgetConstructor },
+#endif // XP_WIN
+
   { "nsSuiteDirectoryProvider",
     NS_SUITEDIRECTORYPROVIDER_CID,
     NS_SUITEDIRECTORYPROVIDER_CONTRACTID,

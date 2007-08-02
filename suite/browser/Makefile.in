@@ -42,6 +42,11 @@ VPATH		= @srcdir@
 
 include $(DEPTH)/config/autoconf.mk
 
+# For now, only build public and src on windows
+ifeq ($(OS_ARCH),WINNT)
+DIRS = public src
+endif
+
 EXTRA_COMPONENTS = nsBrowserContentHandler.js \
 	nsAboutAbout.js \
 	$(NULL)
