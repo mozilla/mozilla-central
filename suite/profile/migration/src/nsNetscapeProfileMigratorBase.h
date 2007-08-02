@@ -158,7 +158,7 @@ protected:
   nsresult CopyCookies(PRBool aReplace);
   nsresult CopyFormData(PRBool aReplace);
   nsresult CopyPasswords(PRBool aReplace);
-  nsresult CopyUserContentSheet();
+  nsresult CopyUserSheet(const char* aFileName);
   nsresult GetSchemaValueFileName(PRBool aReplace, char** aFileName);
   nsresult GetSignonFileName(PRBool aReplace, char** aFileName);
   nsresult ImportNetscapeCookies(nsIFile* aCookiesFile);

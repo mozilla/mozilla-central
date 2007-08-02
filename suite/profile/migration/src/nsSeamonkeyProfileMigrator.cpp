@@ -62,6 +62,7 @@
 #define FILE_NAME_USER_PREFS      "user.js"
 #define FILE_NAME_PERSONALDICTIONARY "persdict.dat"
 #define FILE_NAME_MAILVIEWS       "mailViews.dat"
+#define FILE_NAME_USERCHROME      "userChrome.css"
 
 NS_IMPL_ISUPPORTS2(nsSeamonkeyProfileMigrator, nsISuiteProfileMigrator,
                    nsITimerCallback)
@@ -717,7 +718,9 @@ nsSeamonkeyProfileMigrator::CopyPreferences(PRBool aReplace)
   rv |= CopyFile(FILE_NAME_PERSONALDICTIONARY, FILE_NAME_PERSONALDICTIONARY);
   rv |= CopyFile(FILE_NAME_MAILVIEWS, FILE_NAME_MAILVIEWS);
 
-  return rv | CopyUserContentSheet();
+  // User sheets
+  rv |= CopyUserSheet(FILE_NAME_USERCHROME);
+  return rv | CopyUserSheet(FILE_NAME_USERCONTENT);
 }
 
 nsresult

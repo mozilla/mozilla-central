@@ -836,12 +836,12 @@ nsNetscapeProfileMigratorBase::CopyPasswords(PRBool aReplace)
 }
 
 nsresult
-nsNetscapeProfileMigratorBase::CopyUserContentSheet()
+nsNetscapeProfileMigratorBase::CopyUserSheet(const char* aFileName)
 {
   nsCOMPtr<nsIFile> sourceUserContent;
   mSourceProfile->Clone(getter_AddRefs(sourceUserContent));
   sourceUserContent->Append(DIR_NAME_CHROME);
-  sourceUserContent->AppendNative(NS_LITERAL_CSTRING(FILE_NAME_USERCONTENT));
+  sourceUserContent->AppendNative(nsDependentCString(aFileName));
 
   PRBool exists = PR_FALSE;
   sourceUserContent->Exists(&exists);
@@ -853,14 +853,14 @@ nsNetscapeProfileMigratorBase::CopyUserContentSheet()
   targetUserContent->Append(DIR_NAME_CHROME);
   nsCOMPtr<nsIFile> targetChromeDir;
   targetUserContent->Clone(getter_AddRefs(targetChromeDir));
-  targetUserContent->AppendNative(NS_LITERAL_CSTRING(FILE_NAME_USERCONTENT));
+  targetUserContent->AppendNative(nsDependentCString(aFileName));
 
   targetUserContent->Exists(&exists);
   if (exists)
     targetUserContent->Remove(PR_FALSE);
 
-  return sourceUserContent->CopyTo(targetChromeDir,
-                                   NS_LITERAL_STRING(FILE_NAME_USERCONTENT));
+  return sourceUserContent->CopyToNative(targetChromeDir,
+                                         nsDependentCString(aFileName));
 }
 
 nsresult

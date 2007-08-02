@@ -672,7 +672,7 @@ nsThunderbirdProfileMigrator::CopyPreferences(PRBool aReplace)
   rv |= CopyFile(FILE_NAME_PERSONALDICTIONARY, FILE_NAME_PERSONALDICTIONARY);
   rv |= CopyFile(FILE_NAME_MAILVIEWS, FILE_NAME_MAILVIEWS);
 
-  return rv | CopyUserContentSheet();
+  return rv | CopyUserSheet(FILE_NAME_USERCONTENT);
 }
 
 nsresult
