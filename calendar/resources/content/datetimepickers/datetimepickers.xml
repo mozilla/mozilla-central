@@ -333,9 +333,15 @@
 
               if (formattedValue) {
                 // format succeeded, safe to set value
+                var dateChanged = true;
+                if (this.mValue != null) {
+                  dateChanged = (this.mValue.getDate() != aValue.getDate()) ||
+                                (this.mValue.getMonth() != aValue.getMonth()) ||
+                                (this.mValue.getFullYear() != aValue.getFullYear());
+                }
                 this.mValue = aValue;
                 this.kTextBox.value = formattedValue;
-                if (aRefresh) {
+                if (aRefresh && dateChanged) {
                   this.fireEvent("change");
                   return;
                 }
