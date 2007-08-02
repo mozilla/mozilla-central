@@ -1,4 +1,3 @@
-/* -*- Mode: javascript; tab-width: 20; indent-tabs-mode: nil; c-basic-offset: 4 -*- */
 /* ***** BEGIN LICENSE BLOCK *****
  * Version: MPL 1.1/GPL 2.0/LGPL 2.1
  *
@@ -12,15 +11,13 @@
  * for the specific language governing rights and limitations under the
  * License.
  *
- * The Original Code is Oracle Corporation code.
+ * The Original Code is Sun Microsystems code.
  *
- * The Initial Developer of the Original Code is Oracle Corporation
- * Portions created by the Initial Developer are Copyright (C) 2005
+ * The Initial Developer of the Original Code is Sun Microsystems.
+ * Portions created by the Initial Developer are Copyright (C) 2006
  * the Initial Developer. All Rights Reserved.
  *
  * Contributor(s):
- *   Stuart Parmenter <stuart.parmenter@oracle.com>
- *   Joey Minta <jminta@gmail.com>
  *   Michael Buettner <michael.buettner@sun.com>
  *
  * Alternatively, the contents of this file may be used under the terms of
@@ -37,44 +34,23 @@
  *
  * ***** END LICENSE BLOCK ***** */
 
-//////////////////////////////////////////////////////////////////////////////
-// onLoad
-//////////////////////////////////////////////////////////////////////////////
-
-function onLoad()
-{
-  var args = window.arguments[0];
-  window.onAcceptCallback = args.onOk;
-
-  opener.setCursor("auto");
-
-  self.focus();
+function onLoad() {
+    var args = window.arguments[0];
+    window.onAcceptCallback = args.onOk;
+    opener.setCursor("auto");
+    self.focus();
 }
 
-//////////////////////////////////////////////////////////////////////////////
-// onAccept
-//////////////////////////////////////////////////////////////////////////////
-
-function onAccept()
-{
-  var attendeespage = document.getElementById("attendees-page");
-  attendeespage.saveDateTime();
-  var attendees = attendeespage.attendees;
-  var organizer = attendeespage.organizer;
-  var startTime = attendeespage.startDate;
-  var endTime = attendeespage.endDate;
-  window.onAcceptCallback(attendees,organizer,startTime,endTime);
-  return true;
+function onAccept() {
+    var attendeespage = document.getElementById("attendees-page");
+    attendeespage.saveDateTime();
+    var attendees = attendeespage.attendees;
+    var organizer = attendeespage.organizer;
+    var startTime = attendeespage.startDate;
+    var endTime = attendeespage.endDate;
+    window.onAcceptCallback(attendees, organizer, startTime, endTime);
+    return true;
 }
 
-//////////////////////////////////////////////////////////////////////////////
-// onCancel
-//////////////////////////////////////////////////////////////////////////////
-
-function onCancel()
-{
+function onCancel() {
 }
-
-//////////////////////////////////////////////////////////////////////////////
-// End of file
-//////////////////////////////////////////////////////////////////////////////

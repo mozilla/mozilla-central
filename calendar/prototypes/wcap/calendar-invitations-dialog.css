@@ -35,12 +35,12 @@
  * ***** END LICENSE BLOCK ***** */
 
 calendar-invitations-richlistbox {
-  -moz-binding: url("chrome://calendar/content/calendar-invitations-list.xml#calendar-invitations-richlistbox");
+  -moz-binding: url(chrome://calendar/content/calendar-invitations-list.xml#calendar-invitations-richlistbox);
   -moz-user-focus: normal;
 }
 
 calendar-invitations-richlistitem {
-  -moz-binding: url("chrome://calendar/content/calendar-invitations-list.xml#calendar-invitations-richlistitem");
+  -moz-binding: url(chrome://calendar/content/calendar-invitations-list.xml#calendar-invitations-richlistitem);
   -moz-user-focus: none;
 }
 

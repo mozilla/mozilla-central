@@ -1,4 +1,3 @@
-/* -*- Mode: javascript; tab-width: 20; indent-tabs-mode: nil; c-basic-offset: 4 -*- */
 /* ***** BEGIN LICENSE BLOCK *****
  * Version: MPL 1.1/GPL 2.0/LGPL 2.1
  *
@@ -37,8 +36,11 @@
 
 function onLoad() {
     var operationListener = {
-        onOperationComplete:
-        function(aCalendar, aStatus, aOperationType, aId, aDetail) {
+        onOperationComplete: function oL_onOperationComplete(aCalendar,
+                                                             aStatus,
+                                                             aOperationType,
+                                                             aId,
+                                                             aDetail) {
             var updatingBox = document.getElementById("updating-box");
             updatingBox.setAttribute("hidden", "true");
             var richListBox = document.getElementById("invitations-listbox");
@@ -50,10 +52,15 @@ function onLoad() {
                 noInvitationsBox.removeAttribute("hidden");
             }
         },
-        onGetResult:
-        function(aCalendar, aStatus, aItemType, aDetail, aCount, aItems) {
-            if (!Components.isSuccessCode(aStatus))
+        onGetResult: function oL_onGetResult(aCalendar,
+                                             aStatus,
+                                             aItemType,
+                                             aDetail,
+                                             aCount,
+                                             aItems) {
+            if (!Components.isSuccessCode(aStatus)) {
                 return;
+            }
             document.title = invitationsText + " (" + aCount + ")";
             var updatingBox = document.getElementById("updating-box");
             updatingBox.setAttribute("hidden", "true");

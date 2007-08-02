@@ -1,5 +1,4 @@
 <?xml version="1.0"?>
-
 <!-- ***** BEGIN LICENSE BLOCK *****
    - Version: MPL 1.1/GPL 2.0/LGPL 2.1
    -
@@ -33,28 +32,21 @@
    - the provisions above, a recipient may use your version of this file under
    - the terms of any one of the MPL, the GPL or the LGPL.
    -
-   - ***** END LICENSE BLOCK *****
--->
+   - ***** END LICENSE BLOCK ***** -->
 
-<!DOCTYPE dialog
-[
+<!DOCTYPE dialog [
   <!ENTITY % dtd1 SYSTEM "chrome://calendar/locale/calendar-invitations-dialog.dtd" >  %dtd1;
 ]>
 
 <bindings id="calendar-invitations-list-bindings"
-  xmlns="http://www.mozilla.org/xbl"
-  xmlns:html="http://www.w3.org/1999/xhtml"
-  xmlns:xul="http://www.mozilla.org/keymaster/gatekeeper/there.is.only.xul"
-  xmlns:xbl="http://www.mozilla.org/xbl">
-
+          xmlns="http://www.mozilla.org/xbl"
+          xmlns:xul="http://www.mozilla.org/keymaster/gatekeeper/there.is.only.xul"
+          xmlns:xbl="http://www.mozilla.org/xbl">
   <binding id="calendar-invitations-richlistbox"
            extends="chrome://global/content/bindings/richlistbox.xml#richlistbox"
            xbl:inherits="flex">
-
     <implementation>
-
       <!-- methods -->
-
       <method name="addCalendarItem">
         <parameter name="aItem"/>
         <body><![CDATA[
@@ -67,7 +59,6 @@
           newNode.calendarItem = aItem;
         ]]></body>
       </method>
-
     </implementation>
   </binding>
 
@@ -86,7 +77,7 @@
           <xul:label anonid="spacer" value="" hidden="true"/>
         </xul:vbox>
         <xul:vbox>
-          <xul:button anonid="accept" 
+          <xul:button anonid="accept"
             class="calendar-invitations-richlistitem-accept-button
             calendar-invitations-richlistitem-button"
             label="&calendar.invitations.list.accept.button.label;"
@@ -99,17 +90,15 @@
         </xul:vbox>
       </xul:hbox>
     </content>
+
     <implementation>
-
       <!-- fields -->
-
       <field name="mDateFormatter">null</field>
       <field name="mCalendarItem">null</field>
       <field name="mInitialParticipationStatus">null</field>
       <field name="mParticipationStatus">null</field>
 
       <!-- properties -->
-
       <property name="calendarItem">
         <getter><![CDATA[
           return this.mCalendarItem;
@@ -144,15 +133,13 @@
       </property>
 
       <!-- constructor -->
-
       <constructor><![CDATA[
-        this.mDateFormatter = 
+        this.mDateFormatter =
             Components.classes["@mozilla.org/calendar/datetime-formatter;1"]
                       .getService(Components.interfaces.calIDateTimeFormatter);
       ]]></constructor>
 
       <!-- methods -->
-
       <method name="setCalendarItem">
         <parameter name="aItem"/>
         <body>
@@ -182,22 +169,22 @@
                 startDate, endDate, startString, endString);
             var dateString = startString.value;
             if (endString.value != null && endString.value.length > 0) {
-              dateString += " - " + endString.value;
+                dateString += " - " + endString.value;
             }
             if (startDate.isDate) {
-              dateString += ", " + alldayEventText;
+                dateString += ", " + alldayEventText;
             }
             dateLabel.setAttribute("value", dateString);
 
             var recurrenceLabel = document.getAnonymousElementByAttribute(
                 this, "anonid", "recurrence");
             if (aItem.recurrenceInfo) {
-              recurrenceLabel.setAttribute("value", recurrentEventText);
+                recurrenceLabel.setAttribute("value", recurrentEventText);
             } else {
-              recurrenceLabel.setAttribute("hidden", "true");
-              var spacer = document.getAnonymousElementByAttribute(
-                  this, "anonid", "spacer");
-              spacer.removeAttribute("hidden");
+                recurrenceLabel.setAttribute("hidden", "true");
+                var spacer = document.getAnonymousElementByAttribute(
+                    this, "anonid", "spacer");
+                spacer.removeAttribute("hidden");
             }
 
             var locationLabel = document.getAnonymousElementByAttribute(
@@ -205,9 +192,9 @@
             var locationString = locationText;
             var locationProperty = aItem.getProperty("LOCATION");
             if (locationProperty && locationProperty.length > 0) {
-              locationString += locationProperty;
+                locationString += locationProperty;
             } else {
-              locationString += noneText;
+                locationString += noneText;
             }
             locationLabel.setAttribute("value", locationString);
 
@@ -227,12 +214,13 @@
         <parameter name="aItem"/>
         <body><![CDATA[
           try {
-            var wcapCalendar = aItem.calendar.QueryInterface(
-                Components.interfaces.calIWcapCalendar);
-            var att = wcapCalendar.getInvitedAttendee(aItem);
-            if (att)
-                return att.participationStatus;
-          } catch(e) {}
+              var wcapCalendar = aItem.calendar.QueryInterface(
+                  Components.interfaces.calIWcapCalendar);
+              var att = wcapCalendar.getInvitedAttendee(aItem);
+              if (att) {
+                  return att.participationStatus;
+              }
+          } catch (e) {}
           return null;
         ]]></body>
       </method>
@@ -242,17 +230,17 @@
         <parameter name="aStatus"/>
         <body><![CDATA[
           try {
-            var wcapCalendar = aItem.calendar.QueryInterface(
-                Components.interfaces.calIWcapCalendar);
-            var att = wcapCalendar.getInvitedAttendee(aItem);
-            if (att) {
-                var att_ = att.clone();
-                att_.participationStatus = aStatus;
-                aItem.removeAttendee(att);
-                aItem.addAttendee(att_);
-                return true;
-            }
-          } catch(e) {}
+              var wcapCalendar = aItem.calendar.QueryInterface(
+                  Components.interfaces.calIWcapCalendar);
+              var att = wcapCalendar.getInvitedAttendee(aItem);
+              if (att) {
+                  var att_ = att.clone();
+                  att_.participationStatus = aStatus;
+                  aItem.removeAttendee(att);
+                  aItem.addAttendee(att_);
+                  return true;
+              }
+          } catch (e) {}
           return false;
         ]]></body>
       </method>
@@ -268,7 +256,6 @@
           this.participationStatus = "DECLINED";
         ]]></body>
       </method>
-
     </implementation>
 
     <handlers>
@@ -283,17 +270,13 @@
         var declineButton = document.getAnonymousElementByAttribute(
             this, "anonid", "decline");
         if (event.newValue == "true") {
-          acceptButton.removeAttribute("hidden");
-          declineButton.removeAttribute("hidden");
+            acceptButton.removeAttribute("hidden");
+            declineButton.removeAttribute("hidden");
         } else if (event.newValue == "false") {
-          acceptButton.setAttribute("hidden", "true");
-          declineButton.setAttribute("hidden", "true");
+            acceptButton.setAttribute("hidden", "true");
+            declineButton.setAttribute("hidden", "true");
         }
       ]]></handler>
     </handlers>
-
   </binding>
-
 </bindings>
-
-<!-- -*- Mode: xml; indent-tabs-mode: nil; -*- -->

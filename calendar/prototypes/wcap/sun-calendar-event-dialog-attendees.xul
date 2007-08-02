@@ -1,6 +1,5 @@
 <?xml version="1.0"?>
-<!--
-   - ***** BEGIN LICENSE BLOCK *****
+<!-- ***** BEGIN LICENSE BLOCK *****
    - Version: MPL 1.1/GPL 2.0/LGPL 2.1
    -
    - The contents of this file are subject to the Mozilla Public License Version
@@ -34,31 +33,27 @@
    - the provisions above, a recipient may use your version of this file under
    - the terms of any one of the MPL, the GPL or the LGPL.
    -
-   - ***** END LICENSE BLOCK *****
--->
+   - ***** END LICENSE BLOCK ***** -->
 
-<?xml-stylesheet href="chrome://global/skin/global.css" type="text/css"?>
-<?xml-stylesheet href="chrome://calendar/skin/sun-calendar-event-dialog.css" ?>
-<?xml-stylesheet href="chrome://calendar/content/sun-calendar-event-dialog.css" type="text/css"?>
-<?xml-stylesheet href="chrome://calendar/content/datetimepickers/datetimepickers.css" ?>
+<?xml-stylesheet type="text/css" href="chrome://global/skin/global.css"?>
+<?xml-stylesheet type="text/css" href="chrome://calendar/skin/sun-calendar-event-dialog.css"?>
+<?xml-stylesheet type="text/css" href="chrome://calendar/content/sun-calendar-event-dialog.css"?>
+<?xml-stylesheet type="text/css" href="chrome://calendar/content/datetimepickers/datetimepickers.css"?>
 
-<!DOCTYPE dialog
-[
-  <!ENTITY % dtd1 SYSTEM "chrome://calendar/locale/calendar.dtd" >  %dtd1;
-  <!ENTITY % dtd2 SYSTEM "chrome://calendar/locale/sun-calendar-event-dialog.dtd" >  %dtd2;
-  <!ENTITY % calendar-event-dialogDTD SYSTEM "chrome://calendar/locale/calendar-event-dialog.dtd">
-  %calendar-event-dialogDTD;
-]>     
+<!DOCTYPE dialog [
+  <!ENTITY % dtd1 SYSTEM "chrome://calendar/locale/calendar.dtd" > %dtd1;
+  <!ENTITY % dtd2 SYSTEM "chrome://calendar/locale/sun-calendar-event-dialog.dtd" > %dtd2;
+  <!ENTITY % calendar-event-dialogDTD SYSTEM "chrome://calendar/locale/calendar-event-dialog.dtd"> %calendar-event-dialogDTD;
+]>
 
-<dialog
-  id="sun-calendar-event-dialog-recurrence"
-  title="&event.title.label;"
-  onload="onLoad()"
-  ondialogaccept="return onAccept();"
-  ondialogcancel="return onCancel();"
-  persist="screenX screenY"
-  style="padding: 8px 10px 10px 8px;"
-  xmlns="http://www.mozilla.org/keymaster/gatekeeper/there.is.only.xul">
+<dialog id="sun-calendar-event-dialog-recurrence"
+        title="&event.title.label;"
+        onload="onLoad()"
+        ondialogaccept="return onAccept();"
+        ondialogcancel="return onCancel();"
+        persist="screenX screenY"
+        style="padding: 8px 10px 10px 8px;"
+        xmlns="http://www.mozilla.org/keymaster/gatekeeper/there.is.only.xul">
 
   <!-- Javascript includes -->
   <script type="application/x-javascript" src="chrome://calendar/content/sun-calendar-event-dialog-attendees.js"/>
@@ -66,5 +61,4 @@
   <script type="application/x-javascript" src="chrome://calendar/content/calUtils.js"/>
 
   <attendees-page id="attendees-page" range="16" flex="1"/>
-  
 </dialog>

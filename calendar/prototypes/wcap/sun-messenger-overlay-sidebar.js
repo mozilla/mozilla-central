@@ -1,4 +1,3 @@
-/* -*- Mode: javascript; tab-width: 20; indent-tabs-mode: nil; c-basic-offset: 4 -*- */
 /* ***** BEGIN LICENSE BLOCK *****
  * Version: MPL 1.1/GPL 2.0/LGPL 2.1
  *
@@ -42,13 +41,23 @@ const FIRST_DELAY_UNREGISTER = 0;
 const REPEAT_DELAY = 180000;
 
 var sideBarOperationListener = {
-    onOperationComplete: function(aCalendar, aStatus, aOperationType, aId, aDetail) {
+    onOperationComplete: function sBOL_onOperationComplete(aCalendar,
+                                                           aStatus,
+                                                           aOperationType,
+                                                           aId,
+                                                           aDetail) {
         if (!Components.isSuccessCode(aStatus)) {
             var invitationsBox = document.getElementById("invitations");
             invitationsBox.setAttribute("hidden", "true");
         }
     },
-    onGetResult: function(aCalendar, aStatus, aItemType, aDetail, aCount, aItems) {
+
+    onGetResult: function sBOL_onGetResult(aCalendar,
+                                           aStatus,
+                                           aItemType,
+                                           aDetail,
+                                           aCount,
+                                           aItems) {
         if (!Components.isSuccessCode(aStatus)) {
             return;
         }
@@ -61,17 +70,26 @@ var sideBarOperationListener = {
 
 var calendarManagerObserver = {
     mSideBar: this,
-    onCalendarRegistered: function(aCalendar) {
-        this.mSideBar.rescheduleInvitationsUpdate(FIRST_DELAY_REGISTER, REPEAT_DELAY);
+
+    onCalendarRegistered: function cMO_onCalendarRegistered(aCalendar) {
+        this.mSideBar.rescheduleInvitationsUpdate(FIRST_DELAY_REGISTER,
+                                                  REPEAT_DELAY);
     },
-    onCalendarUnregistering: function(aCalendar) {
-        this.mSideBar.rescheduleInvitationsUpdate(FIRST_DELAY_UNREGISTER, REPEAT_DELAY);
+
+    onCalendarUnregistering: function cMO_onCalendarUnregistering(aCalendar) {
+        this.mSideBar.rescheduleInvitationsUpdate(FIRST_DELAY_UNREGISTER,
+                                                  REPEAT_DELAY);
     },
-    onCalendarDeleting: function(aCalendar) {
+
+    onCalendarDeleting: function cMO_onCalendarDeleting(aCalendar) {
     },
-    onCalendarPrefSet: function(aCalendar, aName, aValue) {
+
+    onCalendarPrefSet: function cMO_onCalendarPrefSet(aCalendar,
+                                                      aName,
+                                                      aValue) {
     },
-    onCalendarPrefDeleting: function(aCalendar, aName) {
+
+    onCalendarPrefDeleting: function cMO_onCalendarPrefSet(aCalendar, aName) {
     }
 };
 
@@ -87,7 +105,9 @@ function onUnload() {
 }
 
 function scheduleInvitationsUpdate(firstDelay, repeatDelay) {
-    getInvitationsManager().scheduleInvitationsUpdate(firstDelay, repeatDelay, sideBarOperationListener);
+    getInvitationsManager().scheduleInvitationsUpdate(firstDelay,
+                                                      repeatDelay,
+                                                      sideBarOperationListener);
 }
 
 function rescheduleInvitationsUpdate(firstDelay, repeatDelay) {
@@ -99,7 +119,10 @@ function openInvitationsDialog() {
     getInvitationsManager().cancelInvitationsUpdate();
     getInvitationsManager().openInvitationsDialog(
         sideBarOperationListener,
-        function() { scheduleInvitationsUpdate(FIRST_DELAY_RESCHEDULE, REPEAT_DELAY); });
+        function oiD_callback() {
+            scheduleInvitationsUpdate(FIRST_DELAY_RESCHEDULE,
+                                     REPEAT_DELAY);
+        });
 }
 
 onLoad();

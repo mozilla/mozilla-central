@@ -1,6 +1,5 @@
 <?xml version="1.0"?>
-<!--
-   - ***** BEGIN LICENSE BLOCK *****
+<!-- ***** BEGIN LICENSE BLOCK *****
    - Version: MPL 1.1/GPL 2.0/LGPL 2.1
    -
    - The contents of this file are subject to the Mozilla Public License Version
@@ -34,29 +33,26 @@
    - the provisions above, a recipient may use your version of this file under
    - the terms of any one of the MPL, the GPL or the LGPL.
    -
-   - ***** END LICENSE BLOCK *****
--->
+   - ***** END LICENSE BLOCK ***** -->
 
-<?xml-stylesheet href="chrome://global/skin/global.css" type="text/css"?>
-<?xml-stylesheet href="chrome://calendar/skin/sun-calendar-event-dialog.css" ?>
-<?xml-stylesheet href="chrome://calendar/content/datetimepickers/datetimepickers.css" ?>
+<?xml-stylesheet type="text/css" href="chrome://global/skin/global.css"?>
+<?xml-stylesheet type="text/css" href="chrome://calendar/skin/sun-calendar-event-dialog.css"?>
+<?xml-stylesheet type="text/css" href="chrome://calendar/content/datetimepickers/datetimepickers.css"?>
 
-<!DOCTYPE dialog
-[
+<!DOCTYPE dialog [
   <!ENTITY % dtd1 SYSTEM "chrome://calendar/locale/global.dtd" > %dtd1;
   <!ENTITY % dtd2 SYSTEM "chrome://calendar/locale/calendar.dtd" > %dtd2;
   <!ENTITY % dtd3 SYSTEM "chrome://calendar/locale/sun-calendar-event-dialog.dtd" > %dtd3;
   <!ENTITY % dtd4 SYSTEM "chrome://calendar/locale/preferences/timezones.dtd" > %dtd4;
 ]>
 
-<dialog
-  id="sun-calendar-event-dialog-timezone"
-  title="&timezone.title.label;"
-  onload="onLoad()"
-  ondialogaccept="return onAccept();"
-  ondialogcancel="return onCancel();"
-  persist="screenX screenY"
-  xmlns="http://www.mozilla.org/keymaster/gatekeeper/there.is.only.xul">
+<dialog id="sun-calendar-event-dialog-timezone"
+        title="&timezone.title.label;"
+        onload="onLoad()"
+        ondialogaccept="return onAccept();"
+        ondialogcancel="return onCancel();"
+        persist="screenX screenY"
+        xmlns="http://www.mozilla.org/keymaster/gatekeeper/there.is.only.xul">
 
   <!-- Javascript includes -->
   <script type="application/x-javascript" src="chrome://calendar/content/sun-calendar-event-dialog-timezone.js"/>
@@ -908,5 +904,4 @@
     <image src="chrome://calendar/skin/timezone_-12h45.png" offset="-45900" tzid="-1245" hidden="true"/>
     <image src="chrome://calendar/skin/timezone_-12h.png" offset="-43200" tzid="-1200" hidden="true"/>
   </stack>
-
 </dialog>

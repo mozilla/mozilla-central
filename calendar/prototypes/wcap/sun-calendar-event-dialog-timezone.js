@@ -1,4 +1,3 @@
-/* -*- Mode: javascript; tab-width: 20; indent-tabs-mode: nil; c-basic-offset: 4 -*- */
 /* ***** BEGIN LICENSE BLOCK *****
  * Version: MPL 1.1/GPL 2.0/LGPL 2.1
  *
@@ -35,129 +34,96 @@
  *
  * ***** END LICENSE BLOCK ***** */
 
-//////////////////////////////////////////////////////////////////////////////
-// onLoad
-//////////////////////////////////////////////////////////////////////////////
-
 function onLoad() {
+    var args = window.arguments[0];
+    window.time = args.time;
+    window.onAcceptCallback = args.onOk;
 
-  var args = window.arguments[0];
-  window.time = args.time;
-  window.onAcceptCallback = args.onOk;
-
-  var tzname = timezoneString(window.time.timezone);
-  var menulist = document.getElementById("timezone-menulist");
-  var index = findTimezone(tzname);
-  if(index < 0) {
-    var kDefaultTimezone = calendarDefaultTimezone();
-    tzname = timezoneString(window.time.getInTimezone(kDefaultTimezone).timezone);
-    index = findTimezone(tzname);
-  }
-  
-  var menulist = document.getElementById("timezone-menulist");
-  menulist.selectedIndex = index;
-  
-  updateTimezone();
-
-  opener.setCursor("auto");
-}
-
-//////////////////////////////////////////////////////////////////////////////
-// findTimezone
-//////////////////////////////////////////////////////////////////////////////
-
-function findTimezone(timezone)
-{
-  var menulist = document.getElementById("timezone-menulist");
-  var numChilds = menulist.childNodes[0].childNodes.length;
-  for(var i=0; i<numChilds; i++) {
-    var menuitem = menulist.childNodes[0].childNodes[i];
-    if(timezoneString(menuitem.getAttribute("value")) == timezone) {
-      return i;
+    var tzname = timezoneString(window.time.timezone);
+    var menulist = document.getElementById("timezone-menulist");
+    var index = findTimezone(tzname);
+    if (index < 0) {
+        var kDefaultTimezone = calendarDefaultTimezone();
+        var tzstring = window.time.getInTimezone(kDefaultTimezone).timezone;
+        tzname = timezoneString(tzstring);
+        index = findTimezone(tzname);
     }
-  }
-  return -1;
+
+    var menulist = document.getElementById("timezone-menulist");
+    menulist.selectedIndex = index;
+
+    updateTimezone();
+
+    opener.setCursor("auto");
 }
 
-//////////////////////////////////////////////////////////////////////////////
-// timezoneString
-//////////////////////////////////////////////////////////////////////////////
-
-function timezoneString(timezone)
-{
-  var fragments = timezone.split('/');
-  var num = fragments.length;
-  if(num <= 1)
-    return fragments[0];
-  return fragments[num-2]+'/'+fragments[num-1];
+function findTimezone(timezone) {
+    var menulist = document.getElementById("timezone-menulist");
+    var numChilds = menulist.childNodes[0].childNodes.length;
+    for (var i=0; i<numChilds; i++) {
+        var menuitem = menulist.childNodes[0].childNodes[i];
+        if (timezoneString(menuitem.getAttribute("value")) == timezone) {
+            return i;
+        }
+    }
+    return -1;
 }
 
-//////////////////////////////////////////////////////////////////////////////
-// updateTimezone
-//////////////////////////////////////////////////////////////////////////////
+function timezoneString(timezone) {
+    var fragments = timezone.split('/');
+    var num = fragments.length;
+    if (num <= 1) {
+        return fragments[0];
+    }
+    return fragments[num-2] + '/' + fragments[num - 1];
+}
 
 function updateTimezone() {
+    var menulist = document.getElementById("timezone-menulist");
+    var menuitem = menulist.selectedItem;
+    var someTZ = menuitem.getAttribute("value");
 
-  var menulist = document.getElementById("timezone-menulist");
-  var menuitem = menulist.selectedItem;
-  var someTZ = menuitem.getAttribute("value");
+    // convert the date/time to the currently selected timezone
+    // and display the result in the appropriate control.
+    // before feeding the date/time value into the control we need
+    // to set the timezone to 'floating' in order to avoid the
+    // automatic conversion back into the OS timezone.
+    var datetime = document.getElementById("timezone-time");
+    var time = window.time.getInTimezone(someTZ);
+    time.timezone = "floating";
+    datetime.value = time.jsDate;
 
-  // convert the date/time to the currently selected timezone
-  // and display the result in the appropriate control.
-  // before feeding the date/time value into the control we need
-  // to set the timezone to 'floating' in order to avoid the
-  // automatic conversion back into the OS timezone.
-  var datetime = document.getElementById("timezone-time");
-  var time = window.time.getInTimezone(someTZ);
-  time.timezone = "floating";
-  datetime.value = time.jsDate;
-  
-  var icssrv = Components.classes["@mozilla.org/calendar/ics-service;1"]
-                     .getService(Components.interfaces.calIICSService);
-  
-  var comp = icssrv.getTimezone(someTZ);
-  var subComp = comp.getFirstSubcomponent("VTIMEZONE");
-  var standard = subComp.getFirstSubcomponent("STANDARD");
-  var standardTZOffset = standard.getFirstProperty("TZOFFSETTO").valueAsIcalString;
-  
-  var stack = document.getElementById("timezone-stack");
-  var numChilds = stack.childNodes.length;
-  for(var i=0; i<numChilds; i++) {
-    var image = stack.childNodes[i];
-    if(image.hasAttribute("tzid")) {
-      var offset = image.getAttribute("tzid");
-      if(offset == standardTZOffset) {
-        image.removeAttribute("hidden");
-      } else {
-        image.setAttribute("hidden","true");
-      }
+    var icssrv = Cc["@mozilla.org/calendar/ics-service;1"]
+                 .getService(Ci.calIICSService);
+
+    var comp = icssrv.getTimezone(someTZ);
+    var subComp = comp.getFirstSubcomponent("VTIMEZONE");
+    var standard = subComp.getFirstSubcomponent("STANDARD");
+    var standardTZOffset = standard.getFirstProperty("TZOFFSETTO").valueAsIcalString;
+
+    var stack = document.getElementById("timezone-stack");
+    var numChilds = stack.childNodes.length;
+    for (var i = 0; i < numChilds; i++) {
+        var image = stack.childNodes[i];
+        if (image.hasAttribute("tzid")) {
+            var offset = image.getAttribute("tzid");
+            if (offset == standardTZOffset) {
+                image.removeAttribute("hidden");
+            } else {
+                image.setAttribute("hidden","true");
+            }
+        }
     }
-  }
 }
 
-//////////////////////////////////////////////////////////////////////////////
-// onAccept
-//////////////////////////////////////////////////////////////////////////////
-
-function onAccept()
-{
-  var menulist = document.getElementById("timezone-menulist");
-  var menuitem = menulist.selectedItem;
-  var timezone = menuitem.getAttribute("value");
-  var datetime = window.time.getInTimezone(timezone);  
-  window.onAcceptCallback(datetime);
-  
-  return true;
+function onAccept() {
+    var menulist = document.getElementById("timezone-menulist");
+    var menuitem = menulist.selectedItem;
+    var timezone = menuitem.getAttribute("value");
+    var datetime = window.time.getInTimezone(timezone);
+    window.onAcceptCallback(datetime);
+    return true;
 }
 
-//////////////////////////////////////////////////////////////////////////////
-// onCancel
-//////////////////////////////////////////////////////////////////////////////
-
-function onCancel()
-{
+function onCancel() {
 }
-
-//////////////////////////////////////////////////////////////////////////////
-// End of file
-//////////////////////////////////////////////////////////////////////////////

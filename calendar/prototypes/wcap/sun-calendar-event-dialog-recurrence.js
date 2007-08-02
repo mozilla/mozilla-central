@@ -1,4 +1,3 @@
-/* -*- Mode: javascript; tab-width: 20; indent-tabs-mode: nil; c-basic-offset: 4 -*- */
 /* ***** BEGIN LICENSE BLOCK *****
  * Version: MPL 1.1/GPL 2.0/LGPL 2.1
  *
@@ -37,72 +36,21 @@
  *
  * ***** END LICENSE BLOCK ***** */
 
-//////////////////////////////////////////////////////////////////////////////
-// onLoad
-//////////////////////////////////////////////////////////////////////////////
-
-function onLoad()
-{
-  var args = window.arguments[0];
-
-  window.onAcceptCallback = args.onOk;
-  window.calendarItem = args.calendarEvent;
-  window.accept = [ true,true ];
-
-  opener.setCursor("auto");
-
-  self.focus();
+function onLoad() {
+    var args = window.arguments[0];
+    window.onAcceptCallback = args.onOk;
+    window.calendarItem = args.calendarEvent;
+    window.accept = [true, true];
+    opener.setCursor("auto");
+    self.focus();
 }
 
-//////////////////////////////////////////////////////////////////////////////
-// onAccept
-//////////////////////////////////////////////////////////////////////////////
-
-function onAccept()
-{
-  // the start/enddate is unfortunately duplicated [once on the
-  // mainpage and once more on the attendees-page]. that's why
-  // we need to check if we're called while being on the attendees-page.
-  // in this case we manually transfer the start/enddate to the appropriate
-  // controls on the mainpage.
-  /*var tab = document.getElementById("dialog-tab");
-  if(tab.selectedIndex == 2) {
-    var attendees = document.getElementById("attendees-page");
-    if(attendees.startDate) {
-      setElementValue("event-starttime",   attendees.startDate.jsDate);
-      setElementValue("event-endtime",     attendees.endDate.jsDate);
-    }
-  }*/
-
-  // if this event isn't mutable, we need to clone it like a sheep
-  /*var originalItem = window.calendarItem;
-  var item = (originalItem.isMutable) ? originalItem : originalItem.clone();
-
-  var mainpage = document.getElementById("main-page");
-  mainpage.onSave(item);
-  var recurrencepage = document.getElementById("recurrence-page");
-  item.recurrenceInfo = recurrencepage.onSave(item);
-  var attendeespage = document.getElementById("attendees-page");
-  attendeespage.onSave(item);
-  dump(item.icalString + "\n");*/
-
-  //var calendar = document.getElementById("item-calendar").selectedItem.calendar;
-  //window.onAcceptCallback(item, calendar, originalItem);
-
-  var item = window.calendarItem;
-  var recurrencepage = document.getElementById("recurrence-page");
-  window.onAcceptCallback(recurrencepage.onSave(item));
-  return true;
+function onAccept() {
+    var item = window.calendarItem;
+    var recurrencepage = document.getElementById("recurrence-page");
+    window.onAcceptCallback(recurrencepage.onSave(item));
+    return true;
 }
 
-//////////////////////////////////////////////////////////////////////////////
-// onCancel
-//////////////////////////////////////////////////////////////////////////////
-
-function onCancel()
-{
+function onCancel() {
 }
-
-//////////////////////////////////////////////////////////////////////////////
-// End of file
-//////////////////////////////////////////////////////////////////////////////

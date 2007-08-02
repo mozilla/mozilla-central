@@ -1,4 +1,3 @@
-/* -*- Mode: javascript; tab-width: 20; indent-tabs-mode: nil; c-basic-offset: 4 -*- */
 /* ***** BEGIN LICENSE BLOCK *****
  * Version: MPL 1.1/GPL 2.0/LGPL 2.1
  *
@@ -49,10 +48,9 @@ function InvitationsRequestManager() {
 }
 
 InvitationsRequestManager.prototype = {
-
     mRequestStatusList: null,
 
-    getRequestStatus: function(calendar) {
+    getRequestStatus: function IRM_getRequestStatus(calendar) {
         var calendarId = this._getCalendarId(calendar);
         if (calendarId in this.mRequestStatusList) {
             return this.mRequestStatusList[calendarId];
@@ -60,19 +58,19 @@ InvitationsRequestManager.prototype = {
         return null;
     },
 
-    addRequestStatus: function(calendar, requestStatus) {
+    addRequestStatus: function IRM_addRequestStatus(calendar, requestStatus) {
         var calendarId = this._getCalendarId(calendar);
         this.mRequestStatusList[calendarId] = requestStatus;
     },
 
-    deleteRequestStatus: function(calendar) {
+    deleteRequestStatus: function IRM_deleteRequestStatus(calendar) {
         var calendarId = this._getCalendarId(calendar);
         if (calendarId in this.mRequestStatusList) {
             delete this.mRequestStatusList[calendarId];
         }
     },
 
-    getPendingRequests: function() {
+    getPendingRequests: function IRM_getPendingRequests() {
         var count = 0;
         for each (var requestStatus in this.mRequestStatusList) {
             var request = requestStatus.request;
@@ -83,7 +81,7 @@ InvitationsRequestManager.prototype = {
         return count;
     },
 
-    cancelPendingRequests: function() {
+    cancelPendingRequests: function IRM_cancelPendingRequests() {
         for each (var requestStatus in this.mRequestStatusList) {
             var request = requestStatus.request;
             if (request && request.isPending) {
@@ -92,10 +90,10 @@ InvitationsRequestManager.prototype = {
         }
     },
 
-    _getCalendarId: function(calendar) {
+    _getCalendarId: function IRM__getCalendarId(calendar) {
         return encodeURIComponent(calendar.uri.spec);
     }
-}
+};
 
 var gInvitationsManager = null;
 
@@ -114,7 +112,7 @@ function InvitationsManager() {
     this.mTimer = null;
     this.mUnregisteredCalendars = new Array();
     var calendarManagerObserver = {
-        mInvitationsManager: this,        
+        mInvitationsManager: this,
         onCalendarRegistered: function(aCalendar) {
         },
         onCalendarUnregistering: function(aCalendar) {
@@ -131,7 +129,6 @@ function InvitationsManager() {
 }
 
 InvitationsManager.prototype = {
-
     mItemList: null,
     mOperationListeners: null,
     mStartDate: null,
@@ -139,14 +136,14 @@ InvitationsManager.prototype = {
     mTimer: null,
     mUnregisteredCalendars: null,
 
-    scheduleInvitationsUpdate:
-    function(firstDelay, repeatDelay, operationListener) {
+    scheduleInvitationsUpdate: function IM_scheduleInvitationsUpdate(firstDelay,
+                                                                     repeatDelay,
+                                                                     operationListener) {
         if (this.mTimer) {
             this.mTimer.cancel();
         } else {
-            this.mTimer = 
-                Components.classes["@mozilla.org/timer;1"]
-                          .createInstance(Components.interfaces.nsITimer);
+            this.mTimer = Cc["@mozilla.org/timer;1"]
+                          .createInstance(Ci.nsITimer);
         }
         var callback = {
             mInvitationsManager: this,
@@ -164,13 +161,15 @@ InvitationsManager.prototype = {
             this.mTimer.TYPE_REPEATING_SLACK);
     },
 
-    cancelInvitationsUpdate: function() {
+    cancelInvitationsUpdate: function IM_cancelInvitationsUpdate() {
         if (this.mTimer) {
             this.mTimer.cancel();
         }
     },
 
-    getInvitations: function(suppressOnError, operationListener1, operationListener2) {
+    getInvitations: function IM_getInvitations(suppressOnError,
+                                               operationListener1,
+                                               operationListener2) {
         if (operationListener1) {
             this.addOperationListener(operationListener1);
         }
@@ -182,27 +181,32 @@ InvitationsManager.prototype = {
         var calendars = getCalendarManager().getCalendars({});
         for each (var calendar in calendars) {
             try {
-                var wcapCalendar = calendar.QueryInterface(
-                    Components.interfaces.calIWcapCalendar);
+                var wcapCalendar = calendar.QueryInterface(Ci.calIWcapCalendar);
                 if (!wcapCalendar.isOwnedCalendar) {
                     continue;
                 }
                 var listener = {
                     mRequestManager: requestManager,
                     mInvitationsManager: this,
+
                     QueryInterface: function(aIID) {
-                        if (!aIID.equals(Components.interfaces.nsISupports) &&
-                            !aIID.equals(Components.interfaces.calIOperationListener) &&
-                            !aIID.equals(Components.interfaces.calIObserver)) {
-                            throw Components.results.NS_ERROR_NO_INTERFACE;
+                        if (!aIID.equals(Ci.nsISupports) &&
+                            !aIID.equals(Ci.calIOperationListener) &&
+                            !aIID.equals(Ci.calIObserver)) {
+                            throw Cr.NS_ERROR_NO_INTERFACE;
                         }
                         return this;
                     },
+
                     // calIOperationListener
-                    onOperationComplete:
-                    function(aCalendar, aStatus, aOperationType, aId, aDetail) {
-                        if (aOperationType != Components.interfaces.calIOperationListener.GET &&
-                            aOperationType != Components.interfaces.calIWcapCalendar.SYNC) {
+                    onOperationComplete: function(aCalendar,
+                                                  aStatus,
+                                                  aOperationType,
+                                                  aId,
+                                                  aDetail) {
+
+                        if (aOperationType != Ci.calIOperationListener.GET &&
+                            aOperationType != Ci.calIWcapCalendar.SYNC) {
                             return;
                         }
                         var requestStatus =
@@ -210,13 +214,15 @@ InvitationsManager.prototype = {
                         if (Components.isSuccessCode(aStatus)) {
                             if (requestStatus.firstRequest) {
                                 requestStatus.firstRequest = false;
-                                requestStatus.lastUpdate = requestStatus.firstRequestStarted;
+                                requestStatus.lastUpdate =
+                                    requestStatus.firstRequestStarted;
                             } else {
                                 requestStatus.lastUpdate = aDetail;
                             }
                         }
                         if (this.mRequestManager.getPendingRequests() == 0) {
-                            this.mInvitationsManager.deleteUnregisteredCalendarItems();
+                            this.mInvitationsManager
+                                .deleteUnregisteredCalendarItems();
                             this.mInvitationsManager.mItemList.sort(
                                 function (a, b) {
                                     var dateA = a.startDate.getInTimezone(calendarDefaultTimezone());
@@ -227,22 +233,27 @@ InvitationsManager.prototype = {
                             while ((listener = this.mInvitationsManager.mOperationListeners.shift())) {
                                 listener.onGetResult(
                                     null,
-                                    Components.results.NS_OK,
-                                    Components.interfaces.calIItemBase,
+                                    Cr.NS_OK,
+                                    Ci.calIItemBase,
                                     null,
                                     this.mInvitationsManager.mItemList.length,
                                     this.mInvitationsManager.mItemList);
                                 listener.onOperationComplete(
                                     null,
-                                    Components.results.NS_OK,
-                                    Components.interfaces.calIOperationListener.GET,
+                                    Cr.NS_OK,
+                                    Ci.calIOperationListener.GET,
                                     null,
-                                    null );
+                                    null);
                             }
                         }
                     },
-                    onGetResult:
-                    function(aCalendar, aStatus, aItemType, aDetail, aCount, aItems) {
+
+                    onGetResult: function(aCalendar,
+                                          aStatus,
+                                          aItemType,
+                                          aDetail,
+                                          aCount,
+                                          aItems) {
                         if (!Components.isSuccessCode(aStatus)) {
                             return;
                         }
@@ -250,27 +261,35 @@ InvitationsManager.prototype = {
                             this.mInvitationsManager.addItem(item);
                         }
                     },
+
                     // calIObserver
                     onStartBatch: function() {
                     },
+
                     onEndBatch: function() {
                     },
+
                     onLoad: function() {
                     },
+
                     onAddItem: function(aItem) {
                         this.mInvitationsManager.addItem(aItem);
                     },
+
                     onModifyItem: function(aNewItem, aOldItem) {
                         this.mInvitationsManager.deleteItem(aNewItem);
                         this.mInvitationsManager.addItem(aNewItem);
                     },
+
                     onDeleteItem: function(aDeletedItem) {
                         this.mInvitationsManager.deleteItem(aDeletedItem);
                     },
+
                     onError: function(aErrNo, aMessage) {
                     }
                 };
-                var requestStatus = requestManager.getRequestStatus(wcapCalendar);
+                var requestStatus =
+                    requestManager.getRequestStatus(wcapCalendar);
                 if (!requestStatus) {
                     requestStatus = {
                         request: null,
@@ -278,11 +297,14 @@ InvitationsManager.prototype = {
                         firstRequestStarted: null,
                         lastUpdate: null
                     };
-                    requestManager.addRequestStatus(wcapCalendar, requestStatus);
+                    requestManager.addRequestStatus(wcapCalendar,
+                                                    requestStatus);
                 }
-                if (!requestStatus.request || !requestStatus.request.isPending) {
-                    var filter = (suppressOnError
-                        ? wcapCalendar.ITEM_FILTER_SUPPRESS_ONERROR : 0);
+                if (!requestStatus.request ||
+                    !requestStatus.request.isPending) {
+                    var filter = (suppressOnError ?
+                                  wcapCalendar.ITEM_FILTER_SUPPRESS_ONERROR :
+                                  0);
                     var request;
                     if (requestStatus.firstRequest) {
                         requestStatus.firstRequestStarted = this.getDate();
@@ -296,26 +318,28 @@ InvitationsManager.prototype = {
                     }
                     requestStatus.request = request;
                 }
-            } catch(e) {
+            } catch (e) {
             }
         }
+
         if (requestManager.getPendingRequests() == 0) {
             this.deleteUnregisteredCalendarItems();
             var listener;
             while ((listener = this.mOperationListeners.shift())) {
                 listener.onOperationComplete(
                     null,
-                    Components.results.NS_ERROR_FAILURE,
-                    Components.interfaces.calIOperationListener.GET,
+                    Cr.NS_ERROR_FAILURE,
+                    Ci.calIOperationListener.GET,
                     null,
                     null );
             }
         }
     },
 
-    openInvitationsDialog: function(onLoadOperationListener, finishedCallBack) {
+    openInvitationsDialog: function IM_openInvitationsDialog(onLoadOpListener,
+                                                             finishedCallBack) {
         var args = new Object();
-        args.onLoadOperationListener = onLoadOperationListener;
+        args.onLoadOperationListener = onLoadOpListener;
         args.queue = new Array();
         args.finishedCallBack = finishedCallBack;
         args.requestManager = getInvitationsRequestManager();
@@ -330,26 +354,37 @@ InvitationsManager.prototype = {
             args);
     },
 
-    processJobQueue: function(queue, jobQueueFinishedCallBack) {
+    processJobQueue: function IM_processJobQueue(queue,
+                                                 jobQueueFinishedCallBack) {
         // TODO: undo/redo
         var operationListener = {
             mInvitationsManager: this,
             mJobQueueFinishedCallBack: jobQueueFinishedCallBack,
-            onOperationComplete:
-            function(aCalendar, aStatus, aOperationType, aId, aDetail) {
+
+            onOperationComplete: function (aCalendar,
+                                           aStatus,
+                                           aOperationType,
+                                           aId,
+                                           aDetail) {
                 if (Components.isSuccessCode(aStatus) &&
-                    aOperationType == Components.interfaces.calIOperationListener.MODIFY) {
+                    aOperationType == Ci.calIOperationListener.MODIFY) {
                     this.mInvitationsManager.deleteItem(aDetail);
                     this.mInvitationsManager.addItem(aDetail);
                 }
                 this.mInvitationsManager.mJobsPending--;
-                if (this.mInvitationsManager.mJobsPending == 0 && 
+                if (this.mInvitationsManager.mJobsPending == 0 &&
                     this.mJobQueueFinishedCallBack) {
                     this.mJobQueueFinishedCallBack();
                 }
             },
-            onGetResult:
-            function(aCalendar, aStatus, aItemType, aDetail, aCount, aItems) {
+
+            onGetResult: function(aCalendar,
+                                  aStatus,
+                                  aItemType,
+                                  aDetail,
+                                  aCount,
+                                  aItems) {
+
             }
         };
         this.mJobsPending = 0;
@@ -360,8 +395,9 @@ InvitationsManager.prototype = {
             switch (job.action) {
                 case 'modify':
                     this.mJobsPending++;
-                    newItem.calendar.modifyItem(
-                        newItem, oldItem, operationListener);
+                    newItem.calendar.modifyItem(newItem,
+                                                oldItem,
+                                                operationListener);
                     break;
                 default:
                     break;
@@ -372,7 +408,7 @@ InvitationsManager.prototype = {
         }
     },
 
-    hasItem: function(item) {
+    hasItem: function IM_hasItem(item) {
         for (var i = 0; i < this.mItemList.length; ++i) {
             if (this.mItemList[i].hashId == item.hashId) {
                 return true;
@@ -381,7 +417,7 @@ InvitationsManager.prototype = {
         return false;
     },
 
-    addItem: function(item) {
+    addItem: function IM_addItem(item) {
         var recInfo = item.recurrenceInfo;
         if (recInfo && this.getParticipationStatus(item) != "NEEDS-ACTION") {
             var ids = recInfo.getExceptionIds({});
@@ -391,18 +427,16 @@ InvitationsManager.prototype = {
                     this.mItemList.push(ex);
                 }
             }
-        } else {
-            if (this.validateItem(item) && !this.hasItem(item)) {
-                this.mItemList.push(item);
-            }
+        } else if (this.validateItem(item) && !this.hasItem(item)) {
+            this.mItemList.push(item);
         }
     },
 
-    deleteItem: function(item) {
+    deleteItem: function IM_deleteItem(item) {
         var i = 0;
         while (i < this.mItemList.length) {
-            // delete all items with the same id from the list;
-            // if item is a recurrent event, also all exceptions are deleted
+            // Delete all items with the same id from the list.
+            // If item is a recurrent event, also all exceptions are deleted.
             if (this.mItemList[i].id == item.id) {
                 this.mItemList.splice(i, 1);
             } else {
@@ -411,7 +445,7 @@ InvitationsManager.prototype = {
         }
     },
 
-    addOperationListener: function(operationListener) {
+    addOperationListener: function IM_addOperationListener(operationListener) {
         for each (var listener in this.mOperationListeners) {
             if (listener == operationListener) {
                 return false;
@@ -421,16 +455,16 @@ InvitationsManager.prototype = {
         return true;
     },
 
-    getDate: function() {
-        var date = Components.classes["@mozilla.org/calendar/datetime;1"]
-                             .createInstance(Components.interfaces.calIDateTime);
+    getDate: function IM_getDate() {
+        var date = Cc["@mozilla.org/calendar/datetime;1"]
+                   .createInstance(Ci.calIDateTime);
         date.jsDate = new Date();
         return date;
     },
 
-    getStartDate: function() {
-        var date = Components.classes["@mozilla.org/calendar/datetime;1"]
-                             .createInstance(Components.interfaces.calIDateTime);
+    getStartDate: function IM_getStartDate() {
+        var date = Cc["@mozilla.org/calendar/datetime;1"]
+                   .createInstance(Ci.calIDateTime);
         date.jsDate = new Date();
         date = date.getInTimezone(calendarDefaultTimezone());
         date.hour = 0;
@@ -439,7 +473,7 @@ InvitationsManager.prototype = {
         return date;
     },
 
-    updateStartDate: function() {
+    updateStartDate: function IM_updateStartDate() {
         if (!this.mStartDate) {
             this.mStartDate = this.getStartDate();
         } else {
@@ -458,7 +492,7 @@ InvitationsManager.prototype = {
         }
     },
 
-    validateItem: function(item) {
+    validateItem: function IM_validateItem(item) {
         var participationStatus = this.getParticipationStatus(item);
         if (participationStatus != "NEEDS-ACTION") {
             return false;
@@ -466,7 +500,8 @@ InvitationsManager.prototype = {
         if (item.recurrenceInfo) {
             return true;
         } else {
-            var startDate = item.startDate.getInTimezone(calendarDefaultTimezone());
+            var startDate = item.startDate
+                                .getInTimezone(calendarDefaultTimezone());
             if (startDate.compare(this.mStartDate) >= 0) {
                 return true;
             }
@@ -474,26 +509,26 @@ InvitationsManager.prototype = {
         return false;
     },
 
-    getParticipationStatus: function(item) {
+    getParticipationStatus: function IM_getParticipationStatus(item) {
         try {
             var wcapCalendar = item.calendar.QueryInterface(
-                Components.interfaces.calIWcapCalendar);
+                Ci.calIWcapCalendar);
             var attendee = wcapCalendar.getInvitedAttendee(item);
             if (attendee)
                 return attendee.participationStatus;
-        } catch(e) {}
+        } catch (e) {}
         return null;
     },
 
-    unregisterCalendar: function(calendar) {
+    unregisterCalendar: function IM_unregisterCalendar(calendar) {
         try {
             var wcapCalendar = calendar.QueryInterface(
-                Components.interfaces.calIWcapCalendar);
+                Ci.calIWcapCalendar);
             this.mUnregisteredCalendars.push(wcapCalendar);
-        } catch(e) {}
+        } catch (e) {}
     },
 
-    deleteUnregisteredCalendarItems: function() {
+    deleteUnregisteredCalendarItems: function IM_deleteUnregisteredCalendarItems() {
         var calendar;
         while ((calendar = this.mUnregisteredCalendars.shift())) {
             // delete all unregistered calendar items
