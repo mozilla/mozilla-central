@@ -402,7 +402,7 @@ Section "-Application" Section1
           ${LogMsg} "** ERROR Installing File: $INSTDIR\components\nsIQTScriptablePlugin.xpt **"
         ${Else}
           ${LogMsg} "Installed File: $INSTDIR\components\nsIQTScriptablePlugin.xpt"
-          ${LogUninstall} "File: $R3"
+          ${LogUninstall} "File: \components\nsIQTScriptablePlugin.xpt"
         ${EndIf}
       ${EndUnless}
     ${EndUnless}
