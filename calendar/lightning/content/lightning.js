@@ -20,6 +20,7 @@
  *
  * Contributor(s):
  *   Stefan Sitter <ssitter@googlemail.com>
+ *   Philipp Kewisch <mozilla@kewis.ch>
  *
  * Alternatively, the contents of this file may be used under the terms of
  * either the GNU General Public License Version 2 or later (the "GPL"), or 
@@ -92,3 +93,7 @@ pref("calendar.view.visiblehours", 9);
 // XXX One day we might want to move this to a locale specific file
 //     and include a list of locale specific default categories
 pref("calendar.categories.names", "");
+
+// Make sure mouse wheel shift and no key actions to scroll lines.
+pref("mousewheel.withnokey.action", 0);
+pref("mousewheel.withshiftkey.action", 0);

@@ -301,7 +301,7 @@
               this.moveView(event.detail);
             ]]>
           </handler>
-        <handler event="keypress"><![CDATA[
+          <handler event="keypress"><![CDATA[
             const kKE = Components.interfaces.nsIDOMKeyEvent;
             switch (event.keyCode) {
                 case kKE.DOM_VK_PAGE_UP:
@@ -311,8 +311,15 @@
                     this.moveView(1);
                     break;
             }
-            ]]>
-          </handler>
+          ]]></handler>
+          <handler event="DOMMouseScroll"><![CDATA[
+            if (event.shiftKey) {
+                this.moveView(event.detail < 0 ? -1 : 1);
+            }
+
+            // Prevent default scroll handling
+            event.preventDefault();
+          ]]></handler>
         </handlers>
     </binding>
 </bindings>

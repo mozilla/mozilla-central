@@ -3119,6 +3119,20 @@
     </implementation>
 
     <handlers>
+      <handler event="DOMMouseScroll"><![CDATA[
+        if (!event.ctrlKey &&
+            !event.shiftKey &&
+            !event.altKey &&
+            !event.metaKey) {
+            // Only shift hours if no modifier is pressed.
+            this.scrollToMinute(this.mFirstVisibleMinute +
+                                (event.detail < 0 ? -60 : 60));
+        }
+
+        // We are taking care of scrolling, so prevent the default
+        // action in any case.
+        event.preventDefault();
+      ]]></handler>
       <handler event="keypress"><![CDATA[
         const kKE = Ci.nsIDOMKeyEvent;
         if (event.keyCode == kKE.DOM_VK_BACK_SPACE ||

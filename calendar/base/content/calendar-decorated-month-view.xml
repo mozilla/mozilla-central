@@ -21,6 +21,7 @@
    - the Initial Developer. All Rights Reserved.
    -
    - Contributor(s):
+   -   Philipp Kewisch <mozilla@kewis.ch>
    -
    - Alternatively, the contents of this file may be used under the terms of
    - either the GNU General Public License Version 2 or later (the "GPL"), or
@@ -220,5 +221,19 @@
                 ]]></body>
             </method>
         </implementation>
+        <handlers>
+            <handler event="DOMMouseScroll"><![CDATA[
+              if (!event.ctrlKey &&
+                  !event.shiftKey &&
+                  !event.altKey &&
+                  !event.metaKey) {
+                  // In the month view, the only thing that can be scrolled
+                  // is the month the user is in. decorated-base takes care
+                  // of the shift key, so only move the view when no modifier
+                  // is pressed.
+                  this.moveView(event.detail < 0 ? -1 : 1);
+              }
+            ]]></handler>
+        </handlers>
     </binding>
 </bindings>

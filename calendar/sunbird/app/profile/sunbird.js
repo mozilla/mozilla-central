@@ -20,6 +20,7 @@
  * the Initial Developer. All Rights Reserved.
  *
  * Contributor(s):
+ *   Philipp Kewisch <mozilla@kewis.ch>
  *
  * Alternatively, the contents of this file may be used under the terms of
  * either the GNU General Public License Version 2 or later (the "GPL"), or 
@@ -198,9 +199,10 @@ pref("intl.menuitems.alwaysappendaccesskeys","chrome://global/locale/intl.proper
 pref("intl.menuitems.insertseparatorbeforeaccesskeys","chrome://global/locale/intl.properties");
 
 // 0=lines, 1=pages, 2=history , 3=text size
-pref("mousewheel.withcontrolkey.action",3);
-pref("mousewheel.withshiftkey.action",2);
-pref("mousewheel.withaltkey.action",0);
+pref("mousewheel.withcontrolkey.action", 3);
+pref("mousewheel.withshiftkey.action", 0);
+pref("mousewheel.withaltkey.action", 0);
+pref("mousewheel.withnokey.action", 0);
 
 pref("profile.allow_automigration", false);   // setting to false bypasses automigration in the profile code
 
