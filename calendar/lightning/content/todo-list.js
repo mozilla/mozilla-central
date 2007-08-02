@@ -20,6 +20,7 @@
  * Contributor(s):
  *   Mike Shaver <shaver@mozilla.org>
  *   Stefan Sitter <ssitter@googlemail.com>
+ *   Philipp Kewisch <mozilla@kewis.ch>
  *
  * Alternatively, the contents of this file may be used under the terms of
  * either the GNU General Public License Version 2 or later (the "GPL"), or 
@@ -74,6 +75,13 @@ function initializeTodoList()
     return;
 }
 
+function finishTodoList() {
+    var todoList = document.getElementById("calendar-todo-list");
+    todoList.removeEventListener("todo-item-open", editTodoItem, false);
+    todoList.removeEventListener("todo-item-delete", deleteTodoItem, false);
+    todoList.removeEventListener("todo-empty-dblclick", newTodoItem, false);
+}
+
 function toggleCompletedTasks()
 {
     document.getElementById("calendar-todo-list").showCompleted =
@@ -92,3 +100,4 @@ function toggleCompletedTasks()
 }
 
 window.addEventListener("load", initializeTodoList, false);
+window.addEventListener("unload", finishTodoList, false);
