@@ -1,4 +1,4 @@
-/* -*- Mode: C++; tab-width: 4; indent-tabs-mode: nil; c-basic-offset: 4 -*- */
+/* -*- Mode: C++; tab-width: 2; indent-tabs-mode: nil; c-basic-offset: 2 -*- */
 /* ***** BEGIN LICENSE BLOCK *****
  * Version: MPL 1.1/GPL 2.0/LGPL 2.1
  *
@@ -62,63 +62,51 @@ nsAbLDAPDirFactory::~nsAbLDAPDirFactory()
 {
 }
 
-NS_IMETHODIMP nsAbLDAPDirFactory::GetDirectories(nsIAbDirectoryProperties *aProperties,
-    nsISimpleEnumerator **aDirectories)
+NS_IMETHODIMP
+nsAbLDAPDirFactory::GetDirectories(const nsAString &aDirName,
+                                   const nsACString &aURI,
+                                   const nsACString &aPrefName,
+                                   nsISimpleEnumerator **aDirectories)
 {
-    NS_ENSURE_ARG_POINTER(aProperties);
-    NS_ENSURE_ARG_POINTER(aDirectories);
+  NS_ENSURE_ARG_POINTER(aDirectories);
 
-    nsresult rv;
+  nsresult rv;
+  nsCOMPtr<nsIRDFService> rdf = do_GetService (NS_RDF_CONTRACTID "/rdf-service;1", &rv);
+  NS_ENSURE_SUCCESS(rv, rv);
 
-    nsCString uri;
-    nsAutoString description;
-    
-    rv = aProperties->GetDescription(description);
-    NS_ENSURE_SUCCESS(rv, rv);
+  nsCOMPtr<nsIRDFResource> resource;
+  if (Substring(aURI, 0, 5).EqualsLiteral("ldap:") ||
+      Substring(aURI, 0, 6).EqualsLiteral("ldaps:")) {
+    /*
+     * if the URI starts with ldap: or ldaps:
+     * then this directory is an LDAP directory.
+     *
+     * we don't want to use the ldap:// or ldaps:// URI 
+     * as the RDF resource URI because the ldap:// or ldaps:// URI 
+     * will contain the hostname, basedn, port, etc.
+     * so if those attributes changed, we'll run into the
+     * the same problem that we hit with changing username / hostname
+     * for mail servers.  to solve this problem, we add an extra
+     * level of indirection.  the RDF resource URI that we generate
+     * (the bridge URI) will be moz-abldapdirectory://<prefName>
+     * and when we need the hostname, basedn, port, etc,
+     * we'll use the <prefName> to get the necessary prefs.
+     * note, <prefName> does not change.
+     */
+    nsCAutoString bridgeURI;
+    bridgeURI = NS_LITERAL_CSTRING(kLDAPDirectoryRoot);
+    bridgeURI += aPrefName;
+    rv = rdf->GetResource(bridgeURI, getter_AddRefs(resource));
+  }
+  else {
+    rv = rdf->GetResource(aURI, getter_AddRefs(resource));
+  }
+  NS_ENSURE_SUCCESS(rv, rv);
 
-    rv = aProperties->GetURI(getter_Copies(uri));
-    NS_ENSURE_SUCCESS(rv, rv);
-    
-    nsCOMPtr<nsIRDFService> rdf = do_GetService (NS_RDF_CONTRACTID "/rdf-service;1", &rv);
-    NS_ENSURE_SUCCESS(rv, rv);
+  nsCOMPtr<nsIAbDirectory> directory(do_QueryInterface(resource, &rv));
+  NS_ENSURE_SUCCESS(rv, rv);
 
-    nsCOMPtr<nsIRDFResource> resource;
-    if ((strncmp(uri.get(), "ldap:", 5) == 0) ||
-        (strncmp(uri.get(), "ldaps:", 6) == 0)) {
-      nsCString prefName;
-      rv = aProperties->GetPrefName(getter_Copies(prefName));
-      NS_ENSURE_SUCCESS(rv, rv);
-
-      /*
-       * if the URI starts with ldap: or ldaps:
-       * then this directory is an LDAP directory.
-       *
-       * we don't want to use the ldap:// or ldaps:// URI 
-       * as the RDF resource URI because the ldap:// or ldaps:// URI 
-       * will contain the hostname, basedn, port, etc.
-       * so if those attributes changed, we'll run into the
-       * the same problem that we hit with changing username / hostname
-       * for mail servers.  to solve this problem, we add an extra
-       * level of indirection.  the RDF resource URI that we generate
-       * (the bridge URI) will be moz-abldapdirectory://<prefName>
-       * and when we need the hostname, basedn, port, etc,
-       * we'll use the <prefName> to get the necessary prefs.
-       * note, <prefName> does not change.
-       */
-      nsCAutoString bridgeURI;
-      bridgeURI = NS_LITERAL_CSTRING(kLDAPDirectoryRoot);
-      bridgeURI += prefName;
-      rv = rdf->GetResource(bridgeURI, getter_AddRefs(resource));
-    }
-    else {
-      rv = rdf->GetResource(uri, getter_AddRefs(resource));
-    }
-    NS_ENSURE_SUCCESS(rv, rv);
-
-    nsCOMPtr<nsIAbDirectory> directory(do_QueryInterface(resource, &rv));
-    NS_ENSURE_SUCCESS(rv, rv);
-
-    return NS_NewSingletonEnumerator(aDirectories, directory);
+  return NS_NewSingletonEnumerator(aDirectories, directory);
 }
 
 /* void deleteDirectory (in nsIAbDirectory directory); */

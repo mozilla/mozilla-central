@@ -70,34 +70,18 @@ nsAbOutlookDirFactory::~nsAbOutlookDirFactory(void)
 
 extern const char *kOutlookDirectoryScheme ;
 
-static nsresult parseProperties(nsIAbDirectoryProperties *aProperties, nsAbWinType& aWinType)
+NS_IMETHODIMP
+nsAbOutlookDirFactory::GetDirectories(const nsAString &aDirName,
+                                      const nsACString &aURI,
+                                      const nsACString &aPrefName,
+                                      nsISimpleEnumerator **aDirectories)
 {
-    aWinType = nsAbWinType_Unknown ;
-
-    nsCString uri;
-    nsresult rv = aProperties->GetURI(getter_Copies(uri));
-    NS_ENSURE_SUCCESS(rv,rv);
-    
-            nsCString stub ;
-            nsCString entry ;
-
-            aWinType = getAbWinType(kOutlookDirectoryScheme, uri.get(), stub, entry) ;
-    return NS_OK;
-}
-
-NS_IMETHODIMP nsAbOutlookDirFactory::GetDirectories(
-  nsIAbDirectoryProperties *aProperties, 
-  nsISimpleEnumerator **aDirectories)
-{
-    NS_ENSURE_ARG_POINTER(aProperties);
     NS_ENSURE_ARG_POINTER(aDirectories);
 
     *aDirectories = nsnull ;
     nsresult retCode = NS_OK ;
-    nsAbWinType abType = nsAbWinType_Unknown ;
-
-    retCode = parseProperties(aProperties, abType) ;
-    NS_ENSURE_SUCCESS(retCode, retCode);
+    nsAbWinType abType = getAbWinType(kOutlookDirectoryScheme,
+                                      nsCString(uri).get(), stub, entry);
 
     if (abType == nsAbWinType_Unknown) {
         return NS_ERROR_FAILURE ;

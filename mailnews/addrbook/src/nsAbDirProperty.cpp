@@ -284,10 +284,15 @@ nsAbDirProperty::HasDirectory(nsIAbDirectory *dir, PRBool *hasDir)
 { return NS_ERROR_NOT_IMPLEMENTED; }
 
 NS_IMETHODIMP
-nsAbDirProperty::CreateNewDirectory(nsIAbDirectoryProperties *aProperties)
+nsAbDirProperty::CreateNewDirectory(const nsAString &aDirName,
+                                    const nsACString &aURI,
+                                    const PRUint32 aType, nsACString &aResult)
 { return NS_ERROR_NOT_IMPLEMENTED; }
 
-NS_IMETHODIMP nsAbDirProperty::CreateDirectoryByURI(const PRUnichar *dirName, const char *uri, PRBool migrating)
+NS_IMETHODIMP
+nsAbDirProperty::CreateDirectoryByURI(const nsAString &aDisplayName,
+                                      const nsACString &aURI,
+                                      PRBool migrating)
 { return NS_ERROR_NOT_IMPLEMENTED; }
 
 NS_IMETHODIMP nsAbDirProperty::AddMailList(nsIAbDirectory *list)
@@ -478,101 +483,4 @@ NS_IMETHODIMP nsAbDirProperty::SetStringValue(const char *aName,
     return NS_ERROR_NOT_INITIALIZED;
 
   return m_DirectoryPrefs->SetCharPref(aName, nsCString(aValue).get());
-}
-
-/////////////////////////////////////////////////////////////////////////////////////////////////////////
-
-nsAbDirectoryProperties::nsAbDirectoryProperties(void)
-{
-  mDirType = LDAPDirectory;
-  mPosition = 0;
-}
-
-nsAbDirectoryProperties::~nsAbDirectoryProperties(void)
-{
-}
-
-NS_IMPL_ISUPPORTS1(nsAbDirectoryProperties,nsIAbDirectoryProperties)
-
-NS_IMETHODIMP 
-nsAbDirectoryProperties::SetDescription(const nsAString &aDescription)
-{
-  mDescription = aDescription;
-  return NS_OK;
-}
-
-NS_IMETHODIMP 
-nsAbDirectoryProperties::GetDescription(nsAString &aDescription)
-{
-  aDescription = mDescription;
-  return NS_OK;
-}
-
-NS_IMETHODIMP 
-nsAbDirectoryProperties::SetURI(const char *aURI)
-{
-  mURI = aURI;
-  return NS_OK;
-}
-
-NS_IMETHODIMP 
-nsAbDirectoryProperties::GetURI(char **aURI)
-{
-  NS_ENSURE_ARG_POINTER(aURI);
-  *aURI = ToNewCString(mURI);
-  return NS_OK;
-}
-
-NS_IMETHODIMP 
-nsAbDirectoryProperties::SetFileName(const char *aFileName)
-{
-  mFileName = aFileName;
-  return NS_OK;
-}
-
-NS_IMETHODIMP 
-nsAbDirectoryProperties::GetFileName(char **aFileName)
-{
-  NS_ENSURE_ARG_POINTER(aFileName);
-  *aFileName = ToNewCString(mFileName);
-  return NS_OK;
-}
-
-NS_IMETHODIMP nsAbDirectoryProperties::SetPrefName(const char *aPrefName)
-{
-  mPrefName = aPrefName;
-  return NS_OK;
-}
-
-NS_IMETHODIMP nsAbDirectoryProperties::GetPrefName(char **aPrefName)
-{
-  NS_ENSURE_ARG_POINTER(aPrefName);
-  *aPrefName = ToNewCString(mPrefName);
-  return NS_OK;
-}
-
-NS_IMETHODIMP nsAbDirectoryProperties::SetDirType(PRUint32 aDirType)
-{
-  mDirType = aDirType;
-  return NS_OK;
-}
-
-NS_IMETHODIMP nsAbDirectoryProperties::GetDirType(PRUint32 *aDirType)
-{
-  NS_ENSURE_ARG_POINTER(aDirType);
-  *aDirType = mDirType;
-  return NS_OK;
-}
-
-NS_IMETHODIMP nsAbDirectoryProperties::SetPosition(PRInt32 aPosition)
-{
-  mPosition = aPosition;
-  return NS_OK;
-}
-
-NS_IMETHODIMP nsAbDirectoryProperties::GetPosition(PRInt32 *aPosition)
-{
-  NS_ENSURE_ARG_POINTER(aPosition);
-  *aPosition = mPosition;
-  return NS_OK;
 }

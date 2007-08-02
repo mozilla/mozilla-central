@@ -385,10 +385,7 @@ function AbRenameAddressBook()
 
 function AbOnCreateNewAddressBook(aName)
 {
-  var properties = Components.classes["@mozilla.org/addressbook/properties;1"].createInstance(Components.interfaces.nsIAbDirectoryProperties);
-  properties.description = aName;
-  properties.dirType = kPABDirectory;
-  top.addressbook.newAddressBook(properties);
+  top.addressbook.newAddressBook(aName, "", kPABDirectory);
 }
 
 function AbOnRenameAddressBook(aName)

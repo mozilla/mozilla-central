@@ -94,22 +94,4 @@ protected:
   nsCOMPtr<nsIPrefBranch> m_DirectoryPrefs;
   nsCOMPtr<nsISupportsArray> m_AddressList;
 };
-
-class nsAbDirectoryProperties: public nsIAbDirectoryProperties
-{
-public: 
-  nsAbDirectoryProperties(void);
-  virtual ~nsAbDirectoryProperties(void);
-
-  NS_DECL_ISUPPORTS
-  NS_DECL_NSIABDIRECTORYPROPERTIES
-
-private:
-  nsString  mDescription;
-  nsCString mURI;
-  nsCString mFileName;
-  nsCString mPrefName;
-  PRUint32  mDirType;
-  PRInt32   mPosition;
-};
 #endif

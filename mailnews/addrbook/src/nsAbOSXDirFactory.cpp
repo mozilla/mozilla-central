@@ -50,18 +50,15 @@
 NS_IMPL_ISUPPORTS1(nsAbOSXDirFactory, nsIAbDirFactory)
 
 NS_IMETHODIMP
-nsAbOSXDirFactory::GetDirectories(nsIAbDirectoryProperties *aProperties,
+nsAbOSXDirFactory::GetDirectories(const nsAString &aDirName,
+                                  const nsACString &aURI,
+                                  const nsACString &aPrefName,
                                   nsISimpleEnumerator **aDirectories)
 {
-  NS_ENSURE_ARG_POINTER(aProperties);
   NS_ENSURE_ARG_POINTER(aDirectories);
   
   *aDirectories = nsnull;
-  
-  nsAutoString description;
-  nsresult rv = aProperties->GetDescription(description);
-  NS_ENSURE_SUCCESS(rv, rv);
-  
+
   nsCOMPtr<nsIRDFService> rdf =
     do_GetService(NS_RDF_CONTRACTID "/rdf-service;1", &rv);
   NS_ENSURE_SUCCESS(rv, rv);

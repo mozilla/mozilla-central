@@ -42,20 +42,24 @@
 #include "nsISimpleEnumerator.idl"
 
 interface nsIAbDirectory;
-interface nsIAbDirectoryProperties;
 
-[scriptable, uuid(19125c19-4582-420d-894c-cb3cf10b9eab)]
+[scriptable, uuid(ad61b4fc-d8d8-40b2-b924-4c10f28a8a17)]
 interface nsIAbDirFactory : nsISupports
 {
     /**
      * Get a top level address book directory and sub directories, given some
      * properties.
      *
-     * @param aProperties nsIAbDirectoryProperties with the properties
+     * @param aDirName  Name of the address book
      *
-     * @return            Enumeration of nsIAbDirectory interfaces
+     * @param aURI      URI of the address book
+     *
+     * @param aPrefName Pref name for the preferences of the address book
+     *
+     * @return          Enumeration of nsIAbDirectory interfaces
      */
-    nsISimpleEnumerator getDirectories(in nsIAbDirectoryProperties aProperties);
+    nsISimpleEnumerator getDirectories(in AString aDirName, in ACString aURI,
+                                       in ACString aPrefName);
 
     /**
      * Delete a top level address book directory

@@ -1,4 +1,4 @@
-/* -*- Mode: C++; tab-width: 4; indent-tabs-mode: nil; c-basic-offset: 4 -*- */
+/* -*- Mode: C++; tab-width: 2; indent-tabs-mode: nil; c-basic-offset: 2 -*- */
 /* ***** BEGIN LICENSE BLOCK *****
  * Version: MPL 1.1/GPL 2.0/LGPL 2.1
  *
@@ -101,86 +101,71 @@ static nsresult RemoveMailListDBListeners (nsIAddrDatabase* database, nsIAbDirec
     return NS_OK;
 }
 
-NS_IMETHODIMP nsAbMDBDirFactory::GetDirectories(
-  nsIAbDirectoryProperties *aProperties,
-  nsISimpleEnumerator **_retval)
+NS_IMETHODIMP nsAbMDBDirFactory::GetDirectories(const nsAString &aDirName,
+                                                const nsACString &aURI,
+                                                const nsACString &aPrefName,
+                                                nsISimpleEnumerator **_retval)
 {
-    NS_ENSURE_ARG_POINTER(aProperties);
-    NS_ENSURE_ARG_POINTER(_retval);
+  NS_ENSURE_ARG_POINTER(_retval);
+  
+  nsresult rv;
 
-    nsresult rv;
-
-    nsCString uri;
-    nsAutoString description;
-    nsCString prefName;
-
-    rv = aProperties->GetDescription(description);
-    NS_ENSURE_SUCCESS(rv, rv);
-
-    rv = aProperties->GetURI(getter_Copies(uri));
-    NS_ENSURE_SUCCESS(rv, rv);
-    
-    rv = aProperties->GetPrefName(getter_Copies(prefName));
-    NS_ENSURE_SUCCESS(rv, rv);
-    
 	nsCOMPtr<nsIRDFService> rdf = do_GetService (NS_RDF_CONTRACTID "/rdf-service;1", &rv);
-    NS_ENSURE_SUCCESS(rv, rv);
+  NS_ENSURE_SUCCESS(rv, rv);
 
-    nsCOMPtr<nsIRDFResource> resource;
-    rv = rdf->GetResource(uri, getter_AddRefs(resource));
-    NS_ENSURE_SUCCESS(rv, rv);
+  nsCOMPtr<nsIRDFResource> resource;
+  rv = rdf->GetResource(aURI, getter_AddRefs(resource));
+  NS_ENSURE_SUCCESS(rv, rv);
 
-    nsCOMPtr<nsIAbDirectory> directory(do_QueryInterface(resource, &rv));
-    NS_ENSURE_SUCCESS(rv, rv);
+  nsCOMPtr<nsIAbDirectory> directory(do_QueryInterface(resource, &rv));
+  NS_ENSURE_SUCCESS(rv, rv);
 
-    rv = directory->SetDirPrefId(prefName);
-    NS_ENSURE_SUCCESS(rv, rv);
+  rv = directory->SetDirPrefId(aPrefName);
+  NS_ENSURE_SUCCESS(rv, rv);
 
-    nsCOMPtr<nsIAddrBookSession> abSession = do_GetService(NS_ADDRBOOKSESSION_CONTRACTID, &rv);
-    NS_ENSURE_SUCCESS(rv, rv);
+  nsCOMPtr<nsIAddrBookSession> abSession = do_GetService(NS_ADDRBOOKSESSION_CONTRACTID, &rv);
+  NS_ENSURE_SUCCESS(rv, rv);
 
-    nsCOMPtr<nsILocalFile> dbPath;
-    rv = abSession->GetUserProfileDirectory(getter_AddRefs(dbPath));
+  nsCOMPtr<nsILocalFile> dbPath;
+  rv = abSession->GetUserProfileDirectory(getter_AddRefs(dbPath));
 
-    nsCOMPtr<nsIAddrDatabase>  listDatabase;
-    if (NS_SUCCEEDED(rv))
-    {
-      nsCAutoString fileName;
-      nsDependentCString uriStr(uri);
+  nsCOMPtr<nsIAddrDatabase> listDatabase;
+  if (NS_SUCCEEDED(rv))
+  {
+    nsCAutoString fileName;
+    nsDependentCString uriStr(aURI);
       
-      if (StringBeginsWith(uriStr, NS_LITERAL_CSTRING(kMDBDirectoryRoot)))
-          fileName = Substring(uriStr, kMDBDirectoryRootLen, uriStr.Length() - kMDBDirectoryRootLen);
+    if (StringBeginsWith(uriStr, NS_LITERAL_CSTRING(kMDBDirectoryRoot)))
+      fileName = Substring(uriStr, kMDBDirectoryRootLen, uriStr.Length() - kMDBDirectoryRootLen);
 
-      rv = dbPath->AppendNative(fileName);
-      NS_ENSURE_SUCCESS(rv, rv);
-
-      nsCOMPtr<nsIAddrDatabase> addrDBFactory = do_GetService(NS_ADDRDATABASE_CONTRACTID, &rv);
-      NS_ENSURE_SUCCESS(rv, rv);
-
-      rv = addrDBFactory->Open(dbPath, PR_TRUE, PR_TRUE, getter_AddRefs(listDatabase));
-    }
+    rv = dbPath->AppendNative(fileName);
     NS_ENSURE_SUCCESS(rv, rv);
 
-    rv = listDatabase->GetMailingListsFromDB(directory);
+    nsCOMPtr<nsIAddrDatabase> addrDBFactory = do_GetService(NS_ADDRDATABASE_CONTRACTID, &rv);
     NS_ENSURE_SUCCESS(rv, rv);
 
-    /*
-     * This is a hack because of the way
-     * MDB databases reference MDB directories
-     * after the mail lists have been created.
-     *
-     * To stop assertions when the listDatabase
-     * goes out of scope it is necessary to remove
-     * all mail lists which have been added as
-     * listeners to the database
-     */
-    rv = RemoveMailListDBListeners (listDatabase, directory);
-    NS_ENSURE_SUCCESS(rv, rv);
+    rv = addrDBFactory->Open(dbPath, PR_TRUE, PR_TRUE, getter_AddRefs(listDatabase));
+  }
+  NS_ENSURE_SUCCESS(rv, rv);
 
-    return NS_NewSingletonEnumerator(_retval, directory);
+  rv = listDatabase->GetMailingListsFromDB(directory);
+  NS_ENSURE_SUCCESS(rv, rv);
+
+  /*
+   * This is a hack because of the way
+   * MDB databases reference MDB directories
+   * after the mail lists have been created.
+   *
+   * To stop assertions when the listDatabase
+   * goes out of scope it is necessary to remove
+   * all mail lists which have been added as
+   * listeners to the database
+   */
+  rv = RemoveMailListDBListeners (listDatabase, directory);
+  NS_ENSURE_SUCCESS(rv, rv);
+
+  return NS_NewSingletonEnumerator(_retval, directory);
 }
-
-
 
 /* void deleteDirectory (in nsIAbDirectory directory); */
 NS_IMETHODIMP nsAbMDBDirFactory::DeleteDirectory(nsIAbDirectory *directory)

@@ -288,8 +288,9 @@ nsresult DIR_ContainsServer(DIR_Server* pServer, PRBool *hasDir)
   return NS_OK;
 }
 
-nsresult DIR_AddNewAddressBook(const PRUnichar *dirName, const char *fileName,
-                               PRBool migrating, const char * uri, 
+nsresult DIR_AddNewAddressBook(const nsAString &dirName,
+                               const nsACString &fileName,
+                               PRBool migrating, const nsACString &uri, 
                                DirectoryType dirType, DIR_Server** pServer)
 {
   DIR_Server * server = (DIR_Server *) PR_Malloc(sizeof(DIR_Server));
@@ -305,13 +306,13 @@ nsresult DIR_AddNewAddressBook(const PRUnichar *dirName, const char *fileName,
     server->description = ToNewCString(utf8str);
     server->position = kDefaultPosition; // don't set position so alphabetic sort will happen.
     
-    if (fileName)
-      server->fileName = strdup(fileName);
+    if (!fileName.IsEmpty())
+      server->fileName = ToNewCString(fileName);
     else
       DIR_SetFileName(&server->fileName, kPersonalAddressbook);
     if (dirType == LDAPDirectory) {
-      if (uri)
-        server->uri = strdup(uri);
+      if (!uri.IsEmpty())
+        server->uri = ToNewCString(uri);
     }
 
     dir_ServerList->AppendElement(server);

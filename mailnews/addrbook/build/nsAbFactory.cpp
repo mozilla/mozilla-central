@@ -95,7 +95,6 @@
 NS_GENERIC_FACTORY_CONSTRUCTOR(nsAddressBook)
 NS_GENERIC_FACTORY_CONSTRUCTOR_INIT(nsAbDirectoryDataSource,Init)
 NS_GENERIC_FACTORY_CONSTRUCTOR(nsAbDirProperty)
-NS_GENERIC_FACTORY_CONSTRUCTOR(nsAbDirectoryProperties)
 NS_GENERIC_FACTORY_CONSTRUCTOR(nsAbCardProperty)
 NS_GENERIC_FACTORY_CONSTRUCTOR(nsAbBSDirectory)
 NS_GENERIC_FACTORY_CONSTRUCTOR(nsAbMDBDirectory)
@@ -187,10 +186,6 @@ static const nsModuleComponentInfo components[] =
     NS_ABDIRPROPERTY_CID,
     NS_ABDIRPROPERTY_CONTRACTID,
     nsAbDirPropertyConstructor },
-  { "AB Directory Properties",
-    NS_ABDIRECTORYPROPERTIES_CID,
-    NS_ABDIRECTORYPROPERTIES_CONTRACTID,
-    nsAbDirectoryPropertiesConstructor },
   { "Address Book Session",
     NS_ADDRBOOKSESSION_CID,
     NS_ADDRBOOKSESSION_CONTRACTID,

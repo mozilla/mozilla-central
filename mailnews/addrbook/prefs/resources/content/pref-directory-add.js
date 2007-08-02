@@ -330,15 +330,8 @@ function onAccept()
         window.opener.gNewServerString = gCurrentDirectory.dirPrefId;
       }
       else { // adding a new directory
-        var properties = Components.classes["@mozilla.org/addressbook/properties;1"]
-          .createInstance(Components.interfaces.nsIAbDirectoryProperties);
-
-        properties.dirType = kLDAPDirectory;
-        properties.description = description;
-        properties.URI = ldapUrl.spec;
-
-        addressbook.newAddressBook(properties);
-        window.opener.gNewServerString = properties.prefName;
+        window.opener.gNewServerString =
+          addressbook.newAddressBook(description, ldapUrl.spec, kLDAPDirectory);
       }
 
       // the rdf service

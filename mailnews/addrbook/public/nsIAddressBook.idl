@@ -1,4 +1,4 @@
-/* -*- Mode: IDL; tab-width: 4; indent-tabs-mode: nil; c-basic-offset: 4 -*- */
+/* -*- Mode: IDL; tab-width: 2; indent-tabs-mode: nil; c-basic-offset: 2 -*- */
 /* ***** BEGIN LICENSE BLOCK *****
  * Version: MPL 1.1/GPL 2.0/LGPL 2.1
  *
@@ -44,11 +44,24 @@ interface nsIDOMWindow;
 interface nsIAbDirectory;
 interface nsIAbCard;
 
-[scriptable, uuid(5b9c08f1-3e80-473a-acba-4ffbd5328e53)]
+[scriptable, uuid(8b1bdc86-c6bd-4df0-8123-8b30c3e3ae43)]
 interface nsIAddressBook : nsISupports 
 {
-  void newAddressBook(in nsIAbDirectoryProperties aProperties);
+  /**
+   * Creates a new address book.
+   *
+   * @param aDirName  The description of the address book.
+   *
+   * @param aURI      The URI for the address book. This is specific to each
+   *                  type of address book.
+   *
+   * @param aType     The type of the address book (see nsDirPrefs.h)
+   */
+  ACString newAddressBook(in AString aDirName, in ACString aURI,
+                          in unsigned long aType);
+
   void deleteAddressBooks(in nsIRDFDataSource aDS, in nsISupportsArray aParentDir, in nsISupportsArray aResourceArray);
+
   void exportAddressBook(in nsIDOMWindow aParentWin, in nsIAbDirectory aDirectory);
   nsIAddrDatabase getAbDatabaseFromURI(in string URI);
   boolean mailListNameExists(in wstring name);

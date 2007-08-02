@@ -56,20 +56,7 @@
 #define kABFileName_CurrentSuffix ".mab"  /* v3 address book extension */
 %}
 
-// used for when creating new directories
-// either from user input, or during bootstrapping
-// Note this interface is expected to go away soon, see bug 331557
-[scriptable, uuid(4131f051-ad93-47f3-9532-bd2f135e3d7c)]
-interface nsIAbDirectoryProperties : nsISupports {
-  attribute AString description;
-  attribute string URI;
-  attribute string prefName;
-  attribute string fileName;
-  attribute unsigned long dirType;
-  attribute long position;
-};
-
-[scriptable, uuid(95eb0c05-1c91-4daf-850e-066c495519c4)]
+[scriptable, uuid(a49f2ed2-095d-4e54-98ac-b42f152e2588)]
 interface nsIAbDirectory : nsISupports {
 
   // Types of operation
@@ -221,10 +208,12 @@ interface nsIAbDirectory : nsISupports {
     This method should become redundant or 
     be only associated with card folders
   */
-  void createNewDirectory(in nsIAbDirectoryProperties aProperties);
+  ACString createNewDirectory(in AString aDirName, in ACString aURI,
+                              in unsigned long aType);
 
   /* create a directory by passing the display name and address book uri */
-  void createDirectoryByURI(in wstring displayName, in string uri, in boolean migrating);
+  void createDirectoryByURI(in AString displayName, in ACString aURI,
+                            in boolean migrating);
 
   /**
    * The id of the directory used in prefs e.g. "ldap_2.servers.pab"
