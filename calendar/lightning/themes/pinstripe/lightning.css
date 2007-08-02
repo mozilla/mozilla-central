@@ -21,6 +21,7 @@
  *   Mike Shaver <shaver@mozilla.org>
  *   Vladimir Vukicevic <vladimir@pobox.com>
  *   Joey Minta <jminta@gmail.com>
+ *   Simon Paquet <bugzilla@babylonsounds.com>
  *
  * Alternatively, the contents of this file may be used under the terms of
  * either the GNU General Public License Version 2 or later (the "GPL"), or 
@@ -172,14 +173,22 @@ radio[pane=paneLightning] {
 /* ::::: mode toolbar buttons ::::: */
 
 #mode-toolbar {
-  padding: 5px 0px 5px 10px;
+  padding: 5px 2px 5px 2px;
   border-top: 1px solid ThreeDShadow !important;
+}
+
+#mode-toolbar[location="top"] {
+  border-top: 0 !important;
 }
 
 .toolbarbutton-2 {
   -moz-box-orient: vertical;
-  min-width: 50px;
- list-style-image: url("chrome://calendar/skin/mode-switch-icons.png");
+  min-width: 0px;
+  list-style-image: url("chrome://calendar/skin/mode-switch-icons.png");
+}
+
+toolbar[mode="full"] .toolbarbutton-2 {
+  min-width: 55px;
 }
 
 .toolbarbutton-2[type="menu"] {

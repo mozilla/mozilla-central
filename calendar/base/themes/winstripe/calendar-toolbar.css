@@ -30,6 +30,7 @@
 #                 Christopher Cook <tangent@intraplanar.net>
 #                 Kevin Gerich <webmail@kmgerich.com>
 #                 Matthew Willis <mattwillis@gmail.com>
+#                 Simon Paquet <bugzilla@babylonsounds.com>
 #
 # Alternatively, the contents of this file may be used under the terms of
 # either the GNU General Public License Version 2 or later (the "GPL"), or
@@ -52,8 +53,12 @@
 
 .cal-toolbarbutton-1 {
     -moz-box-orient: vertical;
-    min-width: 50px;
+    min-width: 0px;
     list-style-image: url("chrome://calendar/skin/toolbar-large.png");
+}
+
+toolbar[mode="full"] .cal-toolbarbutton-1 {
+    min-width: 55px;
 }
 
 /*--------------------------------------------------------------------
@@ -62,7 +67,7 @@
 
 toolbar[iconsize="small"] .cal-toolbarbutton-1 {
     -moz-box-orient: vertical;
-    min-width: 50px;
+    min-width: 0px;
     list-style-image: url("chrome://calendar/skin/toolbar-small.png");
 }
 
