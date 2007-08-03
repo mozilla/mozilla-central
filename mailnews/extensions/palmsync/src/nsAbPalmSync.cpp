@@ -1026,7 +1026,9 @@ nsresult nsAbPalmHotSync::NewAB(const nsString& aAbName)
   nsCOMPtr <nsIAddressBook> ab = do_CreateInstance(NS_ADDRESSBOOK_CONTRACTID, &rv);
   NS_ENSURE_SUCCESS(rv, rv);
 
-  return ab->NewAddressBook(aAbName, EmptyCString(), kPABDirectory);
+  // Don't actually need to keep the result
+  nsCString result;
+  return ab->NewAddressBook(aAbName, EmptyCString(), kPABDirectory, result);
 }
 
 nsresult nsAbPalmHotSync::UpdateABInfo(PRUint32 aModTime, PRInt32 aCategoryIndex)
