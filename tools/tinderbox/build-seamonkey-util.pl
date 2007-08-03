@@ -24,7 +24,7 @@ use Config;         # for $Config{sig_name} and $Config{sig_num}
 use File::Find ();
 use File::Copy;
 
-$::UtilsVersion = '$Revision: 1.365 $ ';
+$::UtilsVersion = '$Revision: 1.366 $ ';
 
 package TinderUtils;
 
@@ -724,7 +724,8 @@ sub mail_build_started_message {
     if ($Settings::blat ne "" && $Settings::use_blat) {
         system("$Settings::blat $msg_log -to $Settings::Tinderbox_server");
     } else {
-        system "$Settings::mail $Settings::Tinderbox_server "
+        system "$Settings::mail -s 'Tinderbox started $Settings::BuildName' ".
+               "$Settings::Tinderbox_server "
             ." < $msg_log";
     }
     unlink "$msg_log";
@@ -753,7 +754,7 @@ sub mail_build_failed_message {
     if ($Settings::blat ne "" && $Settings::use_blat) {
         system("$Settings::blat $msg_log -to $Settings::FailedBuildAdministrator");
     } else {
-        system "$Settings::mail " .
+        system "$Settings::mail -s 'Tinderbox failed $Settings::BuildName' " .
             "$Settings::FailedBuildAdministrator < $msg_log";
     }
     unlink "$msg_log";
@@ -858,7 +859,9 @@ sub mail_build_finished_message {
         if ($Settings::blat ne "" && $Settings::use_blat) {
             system("$Settings::blat $logfile.last -to $Settings::Tinderbox_server");
         } else {
-            system "$Settings::mail $Settings::Tinderbox_server "
+            system "$Settings::mail ".
+                   "-s 'Tinderbox $build_status $Settings::BuildName' ".
+                   "$Settings::Tinderbox_server "
                 ." < $logfile.last";
         }
     }
