@@ -22,6 +22,7 @@
  * Contributor(s):
  *   Jan Varga (varga@ku.sk)
  *   Håkan Waara (hwaara@chello.se)
+ *   Jeremy Morton (bugzilla@game-point.net)
  *
  * Alternatively, the contents of this file may be used under the terms of
  * either of the GNU General Public License Version 2 or later (the "GPL"),
@@ -456,17 +457,34 @@ nsresult nsMsgDBView::FetchSubject(nsIMsgDBHdr * aMsgHdr, PRUint32 aFlags, nsASt
 }
 
 // in case we want to play around with the date string, I've broken it out into
-// a separate routine.
-nsresult nsMsgDBView::FetchDate(nsIMsgDBHdr * aHdr, nsAString &aDateString)
+// a separate routine.  Set rcvDate to PR_TRUE to get the Received: date instead
+// of the Date: date.
+nsresult nsMsgDBView::FetchDate(nsIMsgDBHdr * aHdr, nsAString &aDateString, PRBool rcvDate)
 {
   PRTime dateOfMsg;
   PRTime dateOfMsgLocal;
+  PRUint32 rcvDateSecs;
+  nsresult rv;
 
   if (!mDateFormater)
     mDateFormater = do_CreateInstance(NS_DATETIMEFORMAT_CONTRACTID);
 
   NS_ENSURE_TRUE(mDateFormater, NS_ERROR_FAILURE);
-  nsresult rv = aHdr->GetDate(&dateOfMsg);
+  if (!rcvDate)
+    rv = aHdr->GetDate(&dateOfMsg);
+  else
+  {
+    rv = aHdr->GetUint32Property("dateReceived", &rcvDateSecs);
+    if (rcvDateSecs == 0)
+    {
+      // No Received header!
+      nsAutoString formattedRcvdString;
+      formattedRcvdString.AssignLiteral("");
+      aDateString = formattedRcvdString;
+      return rv;
+    }
+    Seconds2PRTime(rcvDateSecs, &dateOfMsg);
+  }
 
   PRTime currentTime = PR_Now();
   PRExplodedTime explodedCurrentTime;
@@ -486,10 +504,9 @@ nsresult nsMsgDBView::FetchDate(nsIMsgDBHdr * aHdr, nsAString &aDateString)
     // same day...
     dateFormat = m_dateFormatToday;
   }
-  // the following chunk of code causes us to show a day instead of a number if the message was received
-  // within the last 7 days. i.e. Mon 5:10pm.
-  // The concrete format used is dependent on a preference setting (see InitDisplayFormats), but the default
-  // is the format described above.
+  // the following chunk of code allows us to show a day instead of a number if the message was received
+  // within the last 7 days. i.e. Mon 5:10pm. (depending on the mail.ui.display.dateformat.thisweek pref)
+  // The concrete format used is dependent on a preference setting (see InitDisplayFormats).
   else if (LL_CMP(currentTime, >, dateOfMsg))
   {
     // some constants for calculation
@@ -1733,8 +1750,11 @@ NS_IMETHODIMP nsMsgDBView::GetCellText(PRInt32 aRow, nsITreeColumn* aCol, nsAStr
       rv = FetchStatus(flags, aValue);
     }
     break;
-  case 'r': // recipient
-    rv = FetchRecipients(msgHdr, aValue);
+  case 'r':
+    if (colID[3] == 'i') // recipient
+      rv = FetchRecipients(msgHdr, aValue);
+    else if (colID[3] == 'e') // received
+      rv = FetchDate(msgHdr, aValue, PR_TRUE);
     break;
   case 'd':  // date
     rv = FetchDate(msgHdr, aValue);
@@ -3358,6 +3378,7 @@ nsresult nsMsgDBView::GetFieldTypeAndLenForSort(nsMsgViewSortTypeValue sortType,
             *pMaxLen = kMaxAuthorKey;
             break;
         case nsMsgViewSortType::byDate:
+        case nsMsgViewSortType::byReceived:
         case nsMsgViewSortType::byPriority:
         case nsMsgViewSortType::byThread:
         case nsMsgViewSortType::byId:
@@ -3503,6 +3524,9 @@ nsresult nsMsgDBView::GetLongField(nsIMsgDBHdr *msgHdr, nsMsgViewSortTypeValue s
       }
       else
         rv = msgHdr->GetDateInSeconds(result);
+      break;
+    case nsMsgViewSortType::byReceived:
+      rv = msgHdr->GetUint32Property("dateReceived", result);  // Already in seconds...
       break;
     case nsMsgViewSortType::byCustom:
       if (colHandler != nsnull)
@@ -3983,30 +4007,26 @@ NS_IMETHODIMP nsMsgDBView::Sort(nsMsgViewSortTypeValue sortType, nsMsgViewSortOr
   qsPrivateData.isSecondarySort = PR_FALSE;
   qsPrivateData.ascendingSort = (sortOrder == nsMsgViewSortOrder::ascending);
 
-  // do the sort
-  switch (fieldType)
+  nsCOMPtr <nsIMsgDatabase> dbToUse = m_db;
+
+  if (!dbToUse) // probably search view
+    GetDBForViewIndex(0, getter_AddRefs(dbToUse));
+  qsPrivateData.db = dbToUse;
+  if (dbToUse)
   {
-    case kCollationKey:
+    // do the sort
+    switch (fieldType)
     {
-
-      nsCOMPtr <nsIMsgDatabase> dbToUse = m_db;
-
-      if (!dbToUse) // probably search view
-        GetDBForViewIndex(0, getter_AddRefs(dbToUse));
-      if (dbToUse)
-      {
-        
-        qsPrivateData.db = dbToUse;
+      case kCollationKey:
         NS_QuickSort(pPtrBase, numSoFar, sizeof(IdKey*), FnSortIdKey, &qsPrivateData);
-      }
+        break;
+      case kU32:
+        NS_QuickSort(pPtrBase, numSoFar, sizeof(IdKey*), FnSortIdDWord, &qsPrivateData);
+        break;
+      default:
+        NS_ASSERTION(0, "not supposed to get here");
+        break;
     }
-      break;
-    case kU32:
-      NS_QuickSort(pPtrBase, numSoFar, sizeof(IdKey*), FnSortIdDWord, &qsPrivateData);
-      break;
-    default:
-      NS_ASSERTION(0, "not supposed to get here");
-      break;
   }
 
   // now put the IDs into the array in proper order
