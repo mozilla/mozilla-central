@@ -22,7 +22,6 @@
  * Contributor(s):
  *   Jan Varga (varga@ku.sk)
  *   Håkan Waara (hwaara@chello.se)
- *   Jeremy Morton (bugzilla@game-point.net)
  *
  * Alternatively, the contents of this file may be used under the terms of
  * either of the GNU General Public License Version 2 or later (the "GPL"),
@@ -457,34 +456,17 @@ nsresult nsMsgDBView::FetchSubject(nsIMsgDBHdr * aMsgHdr, PRUint32 aFlags, nsASt
 }
 
 // in case we want to play around with the date string, I've broken it out into
-// a separate routine.  Set rcvDate to PR_TRUE to get the Received: date instead
-// of the Date: date.
-nsresult nsMsgDBView::FetchDate(nsIMsgDBHdr * aHdr, nsAString &aDateString, PRBool rcvDate)
+// a separate routine.
+nsresult nsMsgDBView::FetchDate(nsIMsgDBHdr * aHdr, nsAString &aDateString)
 {
   PRTime dateOfMsg;
   PRTime dateOfMsgLocal;
-  PRUint32 rcvDateSecs;
-  nsresult rv;
 
   if (!mDateFormater)
     mDateFormater = do_CreateInstance(NS_DATETIMEFORMAT_CONTRACTID);
 
   NS_ENSURE_TRUE(mDateFormater, NS_ERROR_FAILURE);
-  if (!rcvDate)
-    rv = aHdr->GetDate(&dateOfMsg);
-  else
-  {
-    rv = aHdr->GetUint32Property("dateReceived", &rcvDateSecs);
-    if (rcvDateSecs == 0)
-    {
-      // No Received header!
-      nsAutoString formattedRcvdString;
-      formattedRcvdString.AssignLiteral("");
-      aDateString = formattedRcvdString;
-      return rv;
-    }
-    Seconds2PRTime(rcvDateSecs, &dateOfMsg);
-  }
+  nsresult rv = aHdr->GetDate(&dateOfMsg);
 
   PRTime currentTime = PR_Now();
   PRExplodedTime explodedCurrentTime;
@@ -504,9 +486,10 @@ nsresult nsMsgDBView::FetchDate(nsIMsgDBHdr * aHdr, nsAString &aDateString, PRBo
     // same day...
     dateFormat = m_dateFormatToday;
   }
-  // the following chunk of code allows us to show a day instead of a number if the message was received
-  // within the last 7 days. i.e. Mon 5:10pm. (depending on the mail.ui.display.dateformat.thisweek pref)
-  // The concrete format used is dependent on a preference setting (see InitDisplayFormats).
+  // the following chunk of code causes us to show a day instead of a number if the message was received
+  // within the last 7 days. i.e. Mon 5:10pm.
+  // The concrete format used is dependent on a preference setting (see InitDisplayFormats), but the default
+  // is the format described above.
   else if (LL_CMP(currentTime, >, dateOfMsg))
   {
     // some constants for calculation
@@ -1750,11 +1733,8 @@ NS_IMETHODIMP nsMsgDBView::GetCellText(PRInt32 aRow, nsITreeColumn* aCol, nsAStr
       rv = FetchStatus(flags, aValue);
     }
     break;
-  case 'r':
-    if (colID[3] == 'i') // recipient
-      rv = FetchRecipients(msgHdr, aValue);
-    else if (colID[3] == 'e') // received
-      rv = FetchDate(msgHdr, aValue, PR_TRUE);
+  case 'r': // recipient
+    rv = FetchRecipients(msgHdr, aValue);
     break;
   case 'd':  // date
     rv = FetchDate(msgHdr, aValue);
@@ -3378,7 +3358,6 @@ nsresult nsMsgDBView::GetFieldTypeAndLenForSort(nsMsgViewSortTypeValue sortType,
             *pMaxLen = kMaxAuthorKey;
             break;
         case nsMsgViewSortType::byDate:
-        case nsMsgViewSortType::byReceived:
         case nsMsgViewSortType::byPriority:
         case nsMsgViewSortType::byThread:
         case nsMsgViewSortType::byId:
@@ -3524,9 +3503,6 @@ nsresult nsMsgDBView::GetLongField(nsIMsgDBHdr *msgHdr, nsMsgViewSortTypeValue s
       }
       else
         rv = msgHdr->GetDateInSeconds(result);
-      break;
-    case nsMsgViewSortType::byReceived:
-      rv = msgHdr->GetUint32Property("dateReceived", result);  // Already in seconds...
       break;
     case nsMsgViewSortType::byCustom:
       if (colHandler != nsnull)
