@@ -2004,7 +2004,7 @@ function cmdMotif(e)
             pm.clearPref("motif.current");
             e.motif = pm.prefs["motif.current"];
         }
-        else if (e.motif.search(/\.css$/i) != -1)
+        else if (e.motif.search(/^(file|https?|ftp):/i) != -1)
         {
             // specific css file
             pm.prefs["motif.current"] = e.motif;
