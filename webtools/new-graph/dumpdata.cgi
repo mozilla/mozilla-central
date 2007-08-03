@@ -103,6 +103,11 @@ for numField in ["starttime", "endtime"]:
         sys.exit(500)
     globals()[numField] = val
 
+if not setid:
+    print "Content-Type: text/plain\n"
+    print "No data set selected\n"
+    sys.exit(500)
+
 zbuf = cStringIO.StringIO()
 zfile = zbuf
 if doGzip == 1:
