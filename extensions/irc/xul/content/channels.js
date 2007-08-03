@@ -118,6 +118,18 @@ function onLoad()
     document.title = getMsg(MSG_CD_TITLE, [network.unicodeName,
                                            network.getURL()]);
 
+    var opener = window.arguments[0].opener;
+    if (opener)
+    {
+        // Force the window to be the right size now, not later.
+        window.sizeToContent();
+
+        // Position it centered over, but never up or left of parent.
+        var sx = Math.max((opener.outerWidth  - window.outerWidth ) / 2, 0);
+        var sy = Math.max((opener.outerHeight - window.outerHeight) / 2, 0);
+        window.moveTo(opener.screenX + sx, opener.screenY + sy);
+    }
+
     setInterval(doCurrentStatus, STATE_DELAY);
     setState(STATE_LOAD);
 }
