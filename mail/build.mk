@@ -60,3 +60,6 @@ installer:
 
 package:
 	@$(MAKE) -C mail/installer
+
+install::
+	@$(MAKE) -C mail/installer install

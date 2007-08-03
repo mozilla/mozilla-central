@@ -69,3 +69,6 @@ installer:
 
 package:
 	@$(MAKE) -C suite/installer
+
+install::
+	@$(MAKE) -C suite/installer install
