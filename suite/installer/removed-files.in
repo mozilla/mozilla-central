@@ -17,3 +17,4 @@ extensions/talkback@mozilla.org/InstallDisabled
 components/airbag.xpt
 components/nsCloseAllWindows.js
 components/nsKillAll.js
+components/urlwidgt.xpt

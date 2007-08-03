@@ -203,6 +203,7 @@ bin\components\srchsvc.dll
 bin\components\storage.xpt
 bin\components\strgcmps.dll
 bin\components\suite.dll
+bin\components\suitebrowser.xpt
 bin\components\suitemigration.xpt
 bin\components\tkautoc.dll
 bin\components\tkitcmps.dll
@@ -217,7 +218,6 @@ bin\components\universalchardet.dll
 bin\components\update.xpt
 bin\components\uriloader.xpt
 bin\components\urlformatter.xpt
-bin\components\urlwidgt.xpt
 bin\components\util.xpt
 bin\components\wallet.dll
 bin\components\wallet.xpt
