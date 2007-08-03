@@ -1737,8 +1737,8 @@ lg_SetAttributeValue(SDB *sdb, CK_OBJECT_HANDLE handle,
 	char * label = lg_FindKeyNicknameByPublicKey(obj->sdb, &obj->dbKey);
 
 	if (privKey) {
-	    rv = nsslowkey_StoreKeyByPublicKey(lg_getKeyDB(sdb), privKey, 
-		&obj->dbKey, label, sdb );
+	    rv = nsslowkey_StoreKeyByPublicKeyAlg(lg_getKeyDB(sdb), privKey, 
+		&obj->dbKey, label, sdb, PR_TRUE );
 	}
 	if (rv != SECSuccess) {
 	    crv = CKR_DEVICE_ERROR;
