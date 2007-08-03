@@ -5,6 +5,5 @@ ThrobberPageDefault = "http://www.mozilla.org/projects/camino/";
 FeedbackPageDefault = "http://www.mozilla.org/projects/camino/feedback.html";
 InfoPageDefault = "http://www.mozilla.org/projects/camino/";
 RendezvousPageDefault ="http://www.zeroconf.org/webbrowsers.html";
-CorruptedBookmarksDefault = "http://www.mozilla.org/projects/camino/damagedBookmarks.html";
 KeyboardShortcutsPageDefault = "http://www.mozilla.org/projects/camino/shortcuts.html";
 

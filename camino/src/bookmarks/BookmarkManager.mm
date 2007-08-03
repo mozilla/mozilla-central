@@ -124,7 +124,6 @@ enum {
 // Reading bookmark files
 - (BOOL)readBookmarks;
 - (void)showCorruptBookmarksAlert;
-- (void)showRestoredBookmarksAlert;
 
 // these versions assume that we're reading all the bookmarks from the file (i.e. not an import into a subfolder)
 - (BOOL)readPListBookmarks:(NSString *)pathToFile;    // camino or safari
@@ -406,9 +405,6 @@ static BookmarkManager* gBookmarkManager = nil;
 - (void)shutdown
 {
   [self writeBookmarks:nil];
-  // Temporary logging to try to help nail down bug 337750
-  long long bmFileSize = [[NSFileManager defaultManager] sizeOfFileAtPath:mPathToBookmarkFile traverseLink:YES];
-  NSLog(@"Bookmarks file '%@' is %qi bytes on shutdown", mPathToBookmarkFile, bmFileSize);
 }
 
 - (BOOL)bookmarksLoaded
@@ -1318,12 +1314,6 @@ static BookmarkManager* gBookmarkManager = nil;
     else {
       bookmarksAreCorrupt = YES;
       // save the corrupted bookmarks to a backup file
-      long long bmFileSize = [fM sizeOfFileAtPath:bookmarkPath traverseLink:YES];
-      NSLog(@"Corrupted bookmarks file '%@' is %qi bytes", bookmarkPath, bmFileSize);
-      NSDictionary* fileAttributesDict = [fM fileAttributesAtPath:bookmarkPath traverseLink:YES];
-      NSDate* modificationDate = [fileAttributesDict objectForKey:NSFileModificationDate];
-      NSLog(@"Corrupted bookmarks.plist was last modified %@", modificationDate);
-
       NSString* uniqueName = [fM backupFileNameFromPath:bookmarkPath withSuffix:@"-corrupted"];
       if ([fM movePath:bookmarkPath toPath:uniqueName handler:nil])
         NSLog(@"Moved corrupted bookmarks file to '%@'", uniqueName);
@@ -1333,8 +1323,6 @@ static BookmarkManager* gBookmarkManager = nil;
       // Try to recover from the backup, if there is one
       if ([fM fileExistsAtPath:backupPath]) {
         if ([self readPListBookmarks:backupPath]) {
-          // This is a background thread, so we can't put up an alert directly.
-          [self performSelectorOnMainThread:@selector(showRestoredBookmarksAlert) withObject:nil waitUntilDone:NO];
           NSLog(@"Recovering from backup bookmarks file '%@'", backupPath);
 
           [fM copyPath:backupPath toPath:bookmarkPath handler:self];
@@ -1366,18 +1354,6 @@ static BookmarkManager* gBookmarkManager = nil;
                   NSLocalizedString(@"OKButtonText", nil),
                   nil,
                   nil);
-}
-
-- (void)showRestoredBookmarksAlert
-{
-  if (NSRunAlertPanel(NSLocalizedString(@"RestoredBookmarksAlert", nil),
-                      NSLocalizedString(@"RestoredBookmarksMsg", nil),
-                      NSLocalizedString(@"RestoredBookmarksInfoButton", nil),
-                      NSLocalizedString(@"CancelButtonText", nil),
-                      nil) == NSAlertDefaultReturn)
-  {
-    [[NSApp delegate] showURL:NSLocalizedStringFromTable(@"CorruptedBookmarksDefault", @"WebsiteDefaults", nil)];
-  }
 }
 
 - (BOOL)readPListBookmarks:(NSString *)pathToFile
