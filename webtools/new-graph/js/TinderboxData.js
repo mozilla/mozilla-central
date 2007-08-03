@@ -258,3 +258,160 @@ DiscreteTinderboxData.prototype = {
             function () {alert ("requestSearchList: Error talking to " + getdatacgi); });
     },
 };
+function ExtraDataTinderboxData() {
+};
+
+ExtraDataTinderboxData.prototype = {
+    __proto__: new TinderboxData(),
+   
+    init: function () {
+    },
+    
+    requestTestList: function (limitDate, branch, machine, testname, callback) {
+        var self = this;
+        //netscape.security.PrivilegeManager.enablePrivilege("UniversalXPConnect")
+        var limiters = "";
+
+        var tDate = 0;
+        if (limitDate != null) {
+          tDate = new Date().getTime();
+          tDate -= limitDate * 86400 * 1000;
+          //log ("returning test lists greater than this date" + (new Date(tDate)).toGMTString());
+          //TODO hack hack hack
+          tDate = Math.floor(tDate/1000)
+          
+        }
+        if (branch != null) limiters += "&branch=" + branch;
+        if (machine != null) limiters += "&machine=" + machine;
+        if (testname != null) limiters += "&test=" + testname;
+        //log("drequestTestList: " + getdatacgi + "type=discrete&datelimit=" + tDate + limiters);
+        loadJSONDoc(getdatacgi + "type=discrete&graphby=bydata&datelimit=" + tDate + limiters)
+        .addCallbacks(
+            function (obj) {
+                if (!checkErrorReturn(obj)) return;
+                self.testList = obj.results;
+                //log ("testlist: " + self.testList);
+                callback.call(window, self.testList);
+            },
+            function () {alert ("requestTestList: Error talking to " + getdatacgi + ""); });
+    },
+
+    requestSearchList: function (branch, machine, testname, callback) {
+        var self = this;
+        limiters = ""; 
+        if (branch != null) limiters += "&branch=" + branch;
+        if (machine != null) limiters += "&machine=" + machine;
+        if (testname != null) limiters += "&test=" + testname;
+        //log(getdatacgi + "getlist=1&type=discrete" + limiters);
+        loadJSONDoc(getdatacgi + "getlist=1&type=discrete" + limiters)
+        .addCallbacks(
+            function (obj) {
+                if (!checkErrorReturn(obj)) return;
+                callback.call(window, obj.results);
+            },
+            function () {alert ("requestSearchList: Error talking to " + getdatacgi); });
+    },
+    // arg1 = startTime, arg2 = endTime, arg3 = callback
+    // arg1 = callback, arg2/arg3 == null
+    requestDataSetFor: function (testId, arg1, arg2, arg3) {
+        var self = this;
+
+        var startTime = arg1;
+        var endTime = arg2;
+        var callback = arg3;
+
+        var tempArray = new Array();
+        tempArray = testId.split("_",2);
+        testId = tempArray[0];
+        var extradata = tempArray[1];
+
+        if (arg1 && arg2 == null && arg3 == null) {
+            callback = arg1;
+            if (this.defaultLoadRange) {
+                startTime = this.defaultLoadRange[0];
+                endTime = this.defaultLoadRange[1];
+                //log ("load range using default", startTime, endTime);
+            } else {
+                startTime = null;
+                endTime = null;
+            }
+        }
+
+        if (testId in this.testData) {
+            var ds = this.testData[testId];
+            //log ("Can maybe use cached?");
+            if ((ds.requestedFirstTime == null && ds.requestedLastTime == null) ||
+                (ds.requestedFirstTime <= startTime &&
+                 ds.requestedLastTime >= endTime))
+            {
+                //log ("Using cached ds");
+                callback.call (window, testId, ds);
+                return;
+            }
+
+            // this can be optimized, if we request just the bookend bits,
+            // but that's overkill
+            if (ds.firstTime < startTime)
+                startTime = ds.firstTime;
+            if (ds.lastTime > endTime)
+                endTime = ds.lastTime;
+        }
+
+        var cb = 
+        function (type, args, obj) {
+            if (args[0] != testId ||
+                args[2] > startTime ||
+                args[3] < endTime)
+            {
+                // not useful for us; there's another
+                // outstanding request for our time range, so wait for that
+                return;
+            }
+
+            self.onDataSetAvailable.unsubscribe(cb, obj);
+            obj.call (window, args[0], args[1]);
+        };
+        this.onDataSetAvailable.subscribe (cb, callback);
+
+        //netscape.security.PrivilegeManager.enablePrivilege("UniversalXPConnect")
+
+        var reqstr = getdatacgi + "setid=" + testId;
+        if (startTime)
+            reqstr += "&starttime=" + startTime;
+        if (endTime)
+            reqstr += "&endtime=" + endTime;
+        //raw data is the extra_data column
+        if (this.raw)
+            reqstr += "&raw=1";
+        reqstr += "&graphby=bydata";
+        reqstr += "&extradata=" + extradata;
+        //log (reqstr);
+        loadJSONDoc(reqstr)
+        .addCallbacks(
+            function (obj) {
+                if (!checkErrorReturn(obj)) return;
+
+                var ds = new TimeValueDataSet(obj.results);
+
+                //this is the the case of a discrete graph - where the entire test run is always requested
+                //so the start and end points are the first and last entries in the returned data set
+                if  (!startTime && !endTime)  {
+                    startTime = ds.data[0];
+                    endTime = ds.data[ds.data.length -2];
+                }
+                ds.requestedFirstTime = startTime;
+                ds.requestedLastTime = endTime;
+                self.testData[testId] = ds;
+                if (obj.annotations)
+                    ds.annotations = new TimeStringDataSet(obj.annotations);
+                if (obj.baselines)
+                    ds.baselines = obj.baselines;
+                if (obj.rawdata)
+                    ds.rawdata = obj.rawdata;
+                if (obj.stats)
+                    ds.stats = obj.stats;
+                self.onDataSetAvailable.fire(testId, ds, startTime, endTime);
+            },
+            function (obj) {alert ("Error talking to " + getdatacgi + " (" + obj + ")"); log (obj.stack); });
+    },
+};

@@ -81,7 +81,7 @@ def doGetList(fo, type, branch, machine, testname):
     cur.close()
     fo.write(json.write( {"resultcode": 0, "results": results} ))  
 
-def doListTests(fo, type, datelimit, branch, machine, testname):
+def doListTests(fo, type, datelimit, branch, machine, testname, graphby):
     results = []
     s1 = ""
 
@@ -94,20 +94,51 @@ def doListTests(fo, type, datelimit, branch, machine, testname):
        s1 += " AND test = '" + testname + "' "
    
     cur = db.cursor()
-    cur.execute("SELECT id, machine, test, test_type, date, extra_data, branch FROM dataset_info WHERE type = ? AND test_type != ? and (date >= ?)" + s1, (type, "baseline", datelimit))
+    if graphby and graphby == 'bydata':
+        cur.execute("SELECT id, machine, test, test_type, dataset_extra_data.data, extra_data, branch FROM dataset_extra_data JOIN dataset_info ON dataset_extra_data.dataset_id = dataset_info.id WHERE type = ? AND test_type != ? and (date >= ?) " + s1 +" GROUP BY machine,test,test_type,dataset_extra_data.data, extra_data, branch", (type, "baseline", datelimit))
+    else:
+        cur.execute("SELECT id, machine, test, test_type, date, extra_data, branch FROM dataset_info WHERE type = ? AND test_type != ? and (date >= ?)" + s1, (type, "baseline", datelimit))
     for row in cur:
-        results.append( {"id": row[0],
-                         "machine": row[1],
-                         "test": row[2],
-                         "test_type": row[3],
-                         "date": row[4],
-                         "extra_data": row[5],
-                         "branch": row[6]})
+        if graphby and graphby == 'bydata':
+            results.append( {"id": row[0],
+                             "machine": row[1],
+                             "test": row[2],
+                             "test_type": row[3],
+                             "data": row[4],
+                             "extra_data": row[5],
+                             "branch": row[6]})
+        else:
+            results.append( {"id": row[0],
+                             "machine": row[1],
+                             "test": row[2],
+                             "test_type": row[3],
+                             "date": row[4],
+                             "extra_data": row[5],
+                             "branch": row[6]})
 
     cur.close()
     fo.write (json.write( {"resultcode": 0, "results": results} ))
 
-def doSendResults(fo, setid, starttime, endtime, raw):
+
+def getByDataResults(cur,setid,extradata,starttime,endtime):
+    s1 = ""
+    s2 = ""
+    cur.execute("""
+                    SELECT dataset_info.date,avg(dataset_values.value)
+                        FROM dataset_info
+                        JOIN dataset_extra_data 
+                            ON dataset_extra_data.dataset_id = dataset_info.id
+                        JOIN dataset_values
+                            ON dataset_extra_data.time = dataset_values.time
+                            AND dataset_info.id = dataset_values.dataset_id
+                        WHERE 
+                            (dataset_info.machine,dataset_info.test,dataset_info.test_type,dataset_info.extra_data,dataset_info.branch) = (SELECT machine,test,test_type,extra_data,branch from dataset_info where id = ? limit 1) 
+                        AND dataset_extra_data.data = ?
+                        GROUP BY dataset_info.date ORDER BY dataset_info.date
+                """, (setid,extradata))
+                        
+
+def doSendResults(fo, setid, starttime, endtime, raw, graphby, extradata=None):
     s1 = ""
     s2 = ""
     if starttime:
@@ -118,7 +149,10 @@ def doSendResults(fo, setid, starttime, endtime, raw):
     fo.write ("{ resultcode: 0,")
 
     cur = db.cursor()
-    cur.execute("SELECT time, value FROM dataset_values WHERE dataset_id = ? " + s1 + s2 + " ORDER BY time", (setid,))
+    if not graphby or graphby == "time": 
+        cur.execute("SELECT time, value FROM dataset_values WHERE dataset_id = ? " + s1 + s2 + " ORDER BY time", (setid,))
+    else:
+        getByDataResults(cur,setid, extradata,starttime,endtime) 
     fo.write ("results: [")
     for row in cur:
         if row[1] == 'nan':
@@ -156,7 +190,7 @@ def doSendResults(fo, setid, starttime, endtime, raw):
         cur.execute("SELECT time, data FROM dataset_extra_data WHERE dataset_id = ? " + s1 + s2 + " ORDER BY time", (setid,))
         fo.write ("rawdata: [")
         for row in cur:
-            blob = row[1].tostring()
+            blob = row[1]
             if "\\" in blob:
                 blob = blob.replace("\\", "\\\\")
             if "'" in blob:
@@ -199,7 +233,7 @@ except:
 form = cgi.FieldStorage()
 
 #make sure that we are getting clean data from the user
-for strField in ["type", "machine", "branch", "test"]:
+for strField in ["type", "machine", "branch", "test", "graphby","extradata"]:
     val = form.getfirst(strField)
     if strField == "test":
         strField = "testname"
@@ -224,9 +258,9 @@ if doGzip == 1:
     zfile = gzip.GzipFile(mode = 'wb', fileobj = zbuf, compresslevel = 5)
 
 if not setid and not getlist:
-    doListTests(zfile, type, datelimit, branch, machine, testname)
+    doListTests(zfile, type, datelimit, branch, machine, testname, graphby)
 elif not getlist:
-    doSendResults(zfile, setid, starttime, endtime, raw)
+    doSendResults(zfile, setid, starttime, endtime, raw, graphby,extradata)
 else:
     doGetList(zfile, type, branch, machine, testname)
 

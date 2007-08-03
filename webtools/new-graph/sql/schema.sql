@@ -25,16 +25,6 @@ CREATE TABLE `annotations` (
 ) ENGINE=MyISAM DEFAULT CHARSET=latin1;
 
 --
--- Dumping data for table `annotations`
---
-
-
-/*!40000 ALTER TABLE `annotations` DISABLE KEYS */;
-LOCK TABLES `annotations` WRITE;
-UNLOCK TABLES;
-/*!40000 ALTER TABLE `annotations` ENABLE KEYS */;
-
---
 -- Table structure for table `dataset_branchinfo`
 --
 
@@ -47,16 +37,6 @@ CREATE TABLE `dataset_branchinfo` (
 ) ENGINE=MyISAM DEFAULT CHARSET=latin1;
 
 --
--- Dumping data for table `dataset_branchinfo`
---
-
-
-/*!40000 ALTER TABLE `dataset_branchinfo` DISABLE KEYS */;
-LOCK TABLES `dataset_branchinfo` WRITE;
-UNLOCK TABLES;
-/*!40000 ALTER TABLE `dataset_branchinfo` ENABLE KEYS */;
-
---
 -- Table structure for table `dataset_extra_data`
 --
 
@@ -64,20 +44,10 @@ DROP TABLE IF EXISTS `dataset_extra_data`;
 CREATE TABLE `dataset_extra_data` (
   `dataset_id` int(11) default NULL,
   `time` int(11) default NULL,
-  `data` blob,
+  `data` varchar(255) default NULL,
   KEY `datasets_extradata_id_idx` (`dataset_id`),
-  KEY `datasets_extra_data_supplemental_idx` (`dataset_id`,`time`,`data`(255))
+  KEY `datasets_extra_data_supplemental_idx` (`dataset_id`,`time`,`data`)
 ) ENGINE=MyISAM DEFAULT CHARSET=latin1;
-
---
--- Dumping data for table `dataset_extra_data`
---
-
-
-/*!40000 ALTER TABLE `dataset_extra_data` DISABLE KEYS */;
-LOCK TABLES `dataset_extra_data` WRITE;
-UNLOCK TABLES;
-/*!40000 ALTER TABLE `dataset_extra_data` ENABLE KEYS */;
 
 --
 -- Table structure for table `dataset_info`
@@ -97,16 +67,6 @@ CREATE TABLE `dataset_info` (
 ) ENGINE=MyISAM DEFAULT CHARSET=latin1;
 
 --
--- Dumping data for table `dataset_info`
---
-
-
-/*!40000 ALTER TABLE `dataset_info` DISABLE KEYS */;
-LOCK TABLES `dataset_info` WRITE;
-UNLOCK TABLES;
-/*!40000 ALTER TABLE `dataset_info` ENABLE KEYS */;
-
---
 -- Table structure for table `dataset_values`
 --
 
@@ -119,16 +79,6 @@ CREATE TABLE `dataset_values` (
   KEY `datasets_time_idx` (`time`),
   KEY `datasets_time_id_idx` (`dataset_id`,`time`)
 ) ENGINE=MyISAM DEFAULT CHARSET=latin1;
-
---
--- Dumping data for table `dataset_values`
---
-
-
-/*!40000 ALTER TABLE `dataset_values` DISABLE KEYS */;
-LOCK TABLES `dataset_values` WRITE;
-UNLOCK TABLES;
-/*!40000 ALTER TABLE `dataset_values` ENABLE KEYS */;
 
 /*!40101 SET SQL_MODE=@OLD_SQL_MODE */;
 /*!40014 SET FOREIGN_KEY_CHECKS=@OLD_FOREIGN_KEY_CHECKS */;

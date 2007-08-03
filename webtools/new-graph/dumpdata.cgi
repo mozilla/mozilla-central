@@ -62,7 +62,7 @@ def dumpData(fo, setid, starttime, endtime):
     #cur.execute("SELECT dataset_id, time, value, branchid, data from ((dataset_values NATURAL JOIN dataset_branchinfo) NATURAL JOIN dataset_extra_data) WHERE dataset_id IN (%s) %s %s ORDER BY dataset_id, time" % (setid, s1, s2,))
     cur.execute("SELECT dataset_values.dataset_id, dataset_values.time, dataset_values.value, dataset_branchinfo.branchid, dataset_extra_data.data FROM dataset_values LEFT JOIN dataset_branchinfo ON dataset_values.dataset_id = dataset_branchinfo.dataset_id AND dataset_values.time = dataset_branchinfo.time LEFT JOIN dataset_extra_data ON dataset_values.dataset_id = dataset_extra_data.dataset_id AND dataset_values.time = dataset_extra_data.time WHERE dataset_values.dataset_id IN (%s) %s %s ORDER BY dataset_values.dataset_id, dataset_values.time" % (setid, s1, s2))
     for row in cur:
-        fo.write ('%s,%s,%s,%s,%s\n' % (esc(row[0]), esc(row[1]), esc(row[2]), esc(row[3]), esc(row[4].tostring())))
+        fo.write ('%s,%s,%s,%s,%s\n' % (esc(row[0]), esc(row[1]), esc(row[2]), esc(row[3]), esc(row[4])))
     cur.close()
 
 #if var is a number returns a value other than None

@@ -47,6 +47,7 @@ const MONTH_ABBREV = [ "Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "
 
 const CONTINUOUS_GRAPH = 0;
 const DISCRETE_GRAPH = 1;
+const DATA_GRAPH = 2;
 
 const bonsaicgi = "bonsaibouncer.cgi";
 
@@ -73,6 +74,10 @@ function loadingDone(graphTypePref) {
         SmallPerfGraph = new CalendarTimeGraph("smallgraph");
         BigPerfGraph = new CalendarTimeGraph("graph");
         onDataLoadChanged();
+    } else if (graphType == DATA_GRAPH) {
+        Tinderbox = new ExtraDataTinderboxData();
+        SmallPerfGraph = new CalendarTimeGraph("smallgraph");
+        BigPerfGraph = new CalendarTimeGraph("graph");
     }
     else {
         Tinderbox = new DiscreteTinderboxData();
@@ -158,6 +163,23 @@ function loadingDone(graphTypePref) {
                        }
                    });
     }
+    else if (graphType == DATA_GRAPH) {
+         BigPerfGraph.onCursorMoved.
+             subscribe (function (type, args, obj) {
+                       var time = args[0];
+                       var val = args[1];
+                       if (time != null && val != null) {
+                           // cheat
+                           showStatus("Date: " + formatTime(time) + " Value: " + val.toFixed(2));
+                       } else {
+                           showStatus(null);
+                       }
+                   });
+         BigPerfGraph.onNewGraph.
+             subscribe (function(type, args, obj) {
+                 showGraphList(args[0]);
+             });
+    }
     else {
         BigPerfGraph.onCursorMoved.
             subscribe (function (type, args, obj) {
@@ -182,10 +204,26 @@ function loadingDone(graphTypePref) {
         if (graphType == CONTINUOUS_GRAPH) {
             addGraphForm();
         }
+        else if ( graphType == DATA_GRAPH ) {
+            addExtraDataGraphForm();
+        }
         else {
             addDiscreteGraphForm();
         }
     }
+}
+
+
+function addExtraDataGraphForm(config, name) {
+    showLoadingAnimation("populating lists");
+    var ed = new ExtraDataGraphFormModule(config, name);
+    ed.onLoading.subscribe (function(type,args,obj) { showLoadingAnimation(args[0]);});
+    ed.onLoadingDone.subscribe (function(type,args,obj) { clearLoadingAnimation();});
+    if (config) {
+        ed.addedInitialInfo.subscribe(function(type,args,obj) { graphInitial();});
+    }
+    ed.render (getElement("graphforms"));
+    return ed;
 }
 
 function addDiscreteGraphForm(config, name) {
@@ -240,7 +278,7 @@ function onUpdateBonsai() {
 
 
 function onGraph()  {
-    if (graphType == DISCRETE_GRAPH) {
+    if (graphType == DISCRETE_GRAPH || graphType == DATA_GRAPH) {
       showLoadingAnimation("building graph");
     }
     for each (var g in [BigPerfGraph, SmallPerfGraph]) {
@@ -381,6 +419,16 @@ function onDataLoadChanged() {
     // hack, reset colors
     randomColorBias = 0;
 }
+
+function onExtraDataLoadChanged() {
+    log ("loadchanged");
+    Tinderbox.defaultLoadRange = null;
+    gCurrentLoadRange = null;
+
+    // hack, reset colors
+    randomColorBias = 0;
+}
+
 
 function onDiscreteDataLoadChanged() {
     log ("loadchanged");
