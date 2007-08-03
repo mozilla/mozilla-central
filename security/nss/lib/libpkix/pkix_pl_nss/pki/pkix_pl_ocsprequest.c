@@ -358,7 +358,7 @@ pkix_pl_OcspRequest_Create(
 
         if (location == NULL) {
                 PKIX_PL_NSSCALLRV(OCSPREQUEST, locError, PORT_GetError, ());
-                if (locError == SEC_ERROR_EXTENSION_NOT_FOUND) {
+                if (locError == SEC_ERROR_CERT_BAD_ACCESS_LOCATION) {
                         *pURIFound = PKIX_FALSE;
                         goto cleanup;
                 } else {
