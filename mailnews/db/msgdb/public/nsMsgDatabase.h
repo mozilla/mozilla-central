@@ -170,13 +170,15 @@ protected:
     // retrieval methods
   nsIMsgThread *  GetThreadForReference(nsCString &msgID, nsIMsgDBHdr **pMsgHdr);
   nsIMsgThread *  GetThreadForSubject(nsCString &subject);
+  nsIMsgThread *  GetThreadForMessageId(nsCString &msgId);
   nsIMsgThread *  GetThreadForThreadId(nsMsgKey threadId);
   nsMsgHdr     *  GetMsgHdrForReference(nsCString &reference);
-  nsIMsgDBHdr  *  GetMsgHdrForSubject(nsCString &msgID);
+  nsIMsgDBHdr  *  GetMsgHdrForSubject(nsCString &subject);
   // threading interfaces
   virtual nsresult CreateNewThread(nsMsgKey key, const char *subject, nsMsgThread **newThread);
   virtual PRBool  ThreadBySubjectWithoutRe();
   virtual PRBool  UseStrictThreading();
+  virtual PRBool  UseCorrectThreading();
   virtual nsresult ThreadNewHdr(nsMsgHdr* hdr, PRBool &newThread);
   virtual nsresult AddNewThread(nsMsgHdr *msgHdr);
   virtual nsresult AddToThread(nsMsgHdr *newHdr, nsIMsgThread *thread, nsIMsgDBHdr *pMsgHdr, PRBool threadInThread);
@@ -311,6 +313,22 @@ protected:
   nsMsgKey  m_cachedThreadId;
   nsCOMPtr <nsIMsgThread> m_cachedThread;
   nsCOMPtr<nsIMdbFactory> mMdbFactory;
+
+  // Message reference hash table
+  static PLDHashTableOps gRefHashTableOps;
+  struct RefHashElement : public PLDHashEntryHdr {
+    const char     *mRef;       // Hash entry key, must come first
+    nsMsgKey        mThreadId;
+    PRUint32        mCount;
+  };
+  PLDHashTable *m_msgReferences;
+  nsresult GetRefFromHash(nsCString &reference, nsMsgKey *threadId);
+  nsresult AddRefToHash(nsCString &reference, nsMsgKey threadId);
+  nsresult AddMsgRefsToHash(nsIMsgDBHdr *msgHdr);
+  nsresult RemoveRefFromHash(nsCString &reference);
+  nsresult RemoveMsgRefsFromHash(nsIMsgDBHdr *msgHdr);
+  nsresult InitRefHash();
+
 private:
   PRUint32 m_cacheSize;
 };

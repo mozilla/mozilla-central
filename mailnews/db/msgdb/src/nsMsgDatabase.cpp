@@ -223,6 +223,7 @@ NS_IMETHODIMP nsMsgDBService::UnregisterPendingListener(nsIDBChangeListener *aLi
 static PRBool gGotGlobalPrefs = PR_FALSE;
 static PRBool gThreadWithoutRe = PR_TRUE;
 static PRBool gStrictThreading = PR_FALSE;
+static PRBool gCorrectThreading = PR_FALSE;
 
 void nsMsgDatabase::GetGlobalPrefs()
 {
@@ -230,6 +231,7 @@ void nsMsgDatabase::GetGlobalPrefs()
   {
     GetBoolPref("mail.thread_without_re", &gThreadWithoutRe);
     GetBoolPref("mail.strict_threading", &gStrictThreading);
+    GetBoolPref("mail.correct_threading", &gCorrectThreading);
     gGotGlobalPrefs = PR_TRUE;
   }
 }
@@ -896,7 +898,8 @@ nsMsgDatabase::nsMsgDatabase()
         m_cachedHeaders(nsnull),
         m_bCacheHeaders(PR_TRUE),
         m_cachedThreadId(nsMsgKey_None),
-        m_cacheSize(kMaxHdrsInCache)
+        m_cacheSize(kMaxHdrsInCache),
+        m_msgReferences(nsnull)
 {
 }
 
@@ -906,6 +909,7 @@ nsMsgDatabase::~nsMsgDatabase()
   ClearCachedObjects(PR_TRUE);
   delete m_cachedHeaders;
   delete m_headersInUse;
+  delete m_msgReferences;
   RemoveFromCache(this);
 #ifdef DEBUG_bienvenu1
   if (GetNumInCache() != 0)
@@ -1895,6 +1899,8 @@ nsresult nsMsgDatabase::RemoveHeaderFromDB(nsMsgHdr *msgHdr)
   ret = m_mdbAllMsgHeadersTable->CutRow(GetEnv(), row);
   row->CutAllColumns(GetEnv());
   msgHdr->m_initedValues = 0; // invalidate cached values.
+  if (UseCorrectThreading())
+	RemoveMsgRefsFromHash(msgHdr);
   return ret;
 }
 
@@ -3000,9 +3006,9 @@ NS_IMETHODIMP nsMsgDatabase::AddNewHdrToDB(nsIMsgDBHdr *newHdr, PRBool notify)
 
   nsresult err = ThreadNewHdr(hdr, newThread);
   // we thread header before we add it to the all headers table
-  // so that subject threading will work (otherwise, when we try
-  // to find the first header with the same subject, we get the
-  // new header!
+  // so that subject and reference threading will work (otherwise,
+  // when we try to find the first header with the same subject or
+  // reference, we get the new header!)
   if (NS_SUCCEEDED(err))
   {
     nsMsgKey key;
@@ -3037,6 +3043,9 @@ NS_IMETHODIMP nsMsgDatabase::AddNewHdrToDB(nsIMsgDBHdr *newHdr, PRBool notify)
       newHdr->GetThreadParent(&threadParent);
       NotifyHdrAddedAll(newHdr, threadParent, flags, NULL);
     }
+
+    if (UseCorrectThreading())
+      err = AddMsgRefsToHash(newHdr);
   }
   NS_ASSERTION(NS_SUCCEEDED(err), "error creating thread");
   return err;
@@ -3543,6 +3552,174 @@ PRBool nsMsgDatabase::UseStrictThreading()
   return gStrictThreading;
 }
 
+// Should we make sure messages are always threaded correctly (see bug 181446)
+PRBool nsMsgDatabase::UseCorrectThreading()
+{
+  GetGlobalPrefs();
+  return gCorrectThreading;
+}
+
+PLDHashTableOps nsMsgDatabase::gRefHashTableOps =
+{
+  PL_DHashAllocTable,
+  PL_DHashFreeTable,
+  PL_DHashStringKey,
+  PL_DHashMatchStringKey,
+  PL_DHashMoveEntryStub,
+  PL_DHashFreeStringKey,
+  PL_DHashFinalizeStub,
+  nsnull
+};
+
+nsresult nsMsgDatabase::GetRefFromHash(nsCString &reference, nsMsgKey *threadId)
+{
+  // Initialize the reference hash
+  if (!m_msgReferences)
+  {
+    nsresult rv = InitRefHash();
+    if (NS_FAILED(rv))
+      return rv;
+  }
+
+  // Find reference from the hash
+  PLDHashEntryHdr *entry;
+  entry = PL_DHashTableOperate(m_msgReferences, (const void *) reference.get(), PL_DHASH_LOOKUP);
+  if (PL_DHASH_ENTRY_IS_BUSY(entry))
+  {
+    RefHashElement *element = NS_REINTERPRET_CAST(RefHashElement *, entry);
+    *threadId = element->mThreadId;
+    return NS_OK;
+  }
+
+  return NS_ERROR_FAILURE;
+}
+
+nsresult nsMsgDatabase::AddRefToHash(nsCString &reference, nsMsgKey threadId)
+{
+  if (m_msgReferences)
+  {
+    PLDHashEntryHdr *entry = PL_DHashTableOperate(m_msgReferences, (void *) reference.get(), PL_DHASH_ADD);
+    if (!entry)
+      return NS_ERROR_OUT_OF_MEMORY; // XXX out of memory
+
+    RefHashElement *element = NS_REINTERPRET_CAST(RefHashElement *, entry);
+    if (!element->mRef)
+    {
+      element->mRef = ToNewCString(reference);  // Will be freed in PL_DHashFreeStringKey()
+      element->mThreadId = threadId;
+      element->mCount = 1;
+    }
+    else
+      element->mCount++;
+  }
+
+  return NS_OK;
+}
+
+nsresult nsMsgDatabase::AddMsgRefsToHash(nsIMsgDBHdr *msgHdr)
+{
+  PRUint16 numReferences = 0;
+  nsMsgKey threadId;
+  nsresult rv = NS_OK;
+
+  msgHdr->GetThreadId(&threadId);
+  msgHdr->GetNumReferences(&numReferences);
+
+  for (PRInt32 i = 0; i < numReferences; i++)
+  {
+    nsCAutoString reference;
+    
+    msgHdr->GetStringReference(i, reference);
+    if (reference.IsEmpty())
+      break;
+
+    rv = AddRefToHash(reference, threadId);
+    if (NS_FAILED(rv))
+      break;
+  }
+
+  return rv;
+}
+
+nsresult nsMsgDatabase::RemoveRefFromHash(nsCString &reference)
+{
+  if (m_msgReferences)
+  {
+    PLDHashEntryHdr *entry;
+    entry = PL_DHashTableOperate(m_msgReferences, (const void *) reference.get(), PL_DHASH_LOOKUP);
+    if (PL_DHASH_ENTRY_IS_BUSY(entry))
+    {
+      RefHashElement *element = NS_REINTERPRET_CAST(RefHashElement *, entry);
+      if (--element->mCount == 0)
+        PL_DHashTableOperate(m_msgReferences, (void *) reference.get(), PL_DHASH_REMOVE);
+    }
+  }
+  return NS_OK;
+}
+
+// Filter only messages with one or more references
+nsresult nsMsgDatabase::RemoveMsgRefsFromHash(nsIMsgDBHdr *msgHdr)
+{
+  PRUint16 numReferences = 0;
+  nsresult rv = NS_OK;
+
+  msgHdr->GetNumReferences(&numReferences);
+
+  for (PRInt32 i = 0; i < numReferences; i++)
+  {
+    nsCAutoString reference;
+    
+    msgHdr->GetStringReference(i, reference);
+    if (reference.IsEmpty())
+      break;
+
+    rv = RemoveRefFromHash(reference);
+    if (NS_FAILED(rv))
+      break;
+  }
+
+  return rv;
+}
+
+static nsresult nsReferencesOnlyFilter(nsIMsgDBHdr *msg, void *closure)
+{
+  PRUint16 numReferences = 0;
+  msg->GetNumReferences(&numReferences);
+  return (numReferences) ? NS_OK : NS_ERROR_FAILURE;
+}
+
+nsresult nsMsgDatabase::InitRefHash()
+{
+  // Delete an existing table just in case
+  delete m_msgReferences;
+
+  // Create new table
+  m_msgReferences = PL_NewDHashTable(&gRefHashTableOps, (void *) nsnull, sizeof(struct RefHashElement), MSG_HASH_SIZE);
+  if (!m_msgReferences)
+    return NS_ERROR_OUT_OF_MEMORY;
+
+  // Create enumerator to go through all messages with references
+  nsCOMPtr <nsMsgDBEnumerator> enumerator;
+  enumerator = new nsMsgDBEnumerator(this, m_mdbAllMsgHeadersTable, nsReferencesOnlyFilter, nsnull);
+  if (enumerator == nsnull)
+    return NS_ERROR_OUT_OF_MEMORY;
+
+  // Populate table with references of existing messages
+  PRBool hasMore;
+  nsresult rv = NS_OK;
+  while (NS_SUCCEEDED(rv = enumerator->HasMoreElements(&hasMore)) && (hasMore == PR_TRUE)) 
+  {
+    nsCOMPtr <nsIMsgDBHdr> msgHdr;
+    rv = enumerator->GetNext(getter_AddRefs(msgHdr));
+    NS_ASSERTION(NS_SUCCEEDED(rv), "nsMsgDBEnumerator broken");
+    if (msgHdr && NS_SUCCEEDED(rv))
+      rv = AddMsgRefsToHash(msgHdr);
+    if (NS_FAILED(rv))
+      break;
+  }
+
+  return rv;
+}
 
 nsresult nsMsgDatabase::CreateNewThread(nsMsgKey threadId, const char *subject, nsMsgThread **pnewThread)
 {
@@ -3591,13 +3768,13 @@ nsresult nsMsgDatabase::CreateNewThread(nsMsgKey threadId, const char *subject, 
 
 nsIMsgThread *nsMsgDatabase::GetThreadForReference(nsCString &msgID, nsIMsgDBHdr **pMsgHdr)
 {
+  nsMsgKey threadId;
   nsIMsgDBHdr  *msgHdr = nsnull;
   GetMsgHdrForMessageID(msgID.get(), &msgHdr);
   nsIMsgThread *thread = NULL;
 
   if (msgHdr != NULL)
   {
-    nsMsgKey threadId;
     if (NS_SUCCEEDED(msgHdr->GetThreadId(&threadId)))
     {
       // find thread header for header whose message id we matched.
@@ -3608,6 +3785,13 @@ nsIMsgThread *nsMsgDatabase::GetThreadForReference(nsCString &msgID, nsIMsgDBHdr
     else
       msgHdr->Release();
   }
+  // Referenced message not found, check if there are messages that reference same message
+  else if (UseCorrectThreading())
+  {
+	if (NS_SUCCEEDED(GetRefFromHash(msgID, &threadId)))
+	  thread = GetThreadForThreadId(threadId);
+  }
+
   return thread;
 }
 
@@ -3682,6 +3866,18 @@ nsIMsgThread *  nsMsgDatabase::GetThreadForSubject(nsCString &subject)
   return thread;
 }
 
+// Returns thread that contains a message that references the passed message ID
+nsIMsgThread *nsMsgDatabase::GetThreadForMessageId(nsCString &msgId)
+{
+  nsIMsgThread *thread = NULL;
+  nsMsgKey threadId;
+  
+  if (NS_SUCCEEDED(GetRefFromHash(msgId, &threadId)))
+    thread = GetThreadForThreadId(threadId);
+
+  return thread;
+}
+
 nsresult nsMsgDatabase::ThreadNewHdr(nsMsgHdr* newHdr, PRBool &newThread)
 {
   nsresult result=NS_ERROR_UNEXPECTED;
@@ -3739,12 +3935,12 @@ nsresult nsMsgDatabase::ThreadNewHdr(nsMsgHdr* newHdr, PRBool &newThread)
     }
   }
   // if user hasn't said "only thread by ref headers", thread by subject
-  if (!UseStrictThreading())
+  if (!thread && !UseStrictThreading())
   {
     // try subject threading if we couldn't find a reference and the subject starts with Re:
     nsCString subject;
     newHdr->GetSubject(getter_Copies(subject));
-    if ((ThreadBySubjectWithoutRe() || (newHdrFlags & MSG_FLAG_HAS_RE)) && (!thread))
+    if (ThreadBySubjectWithoutRe() || (newHdrFlags & MSG_FLAG_HAS_RE))
     {
       nsCAutoString cSubject(subject);
       thread = getter_AddRefs(GetThreadForSubject(cSubject));
@@ -3760,9 +3956,24 @@ nsresult nsMsgDatabase::ThreadNewHdr(nsMsgHdr* newHdr, PRBool &newThread)
     }
   }
 
+  // Check if this is a new parent to an existing message (that has a reference to this message)
+  if (!thread && UseCorrectThreading())
+  {
+    nsCString msgId;
+    newHdr->GetMessageId(getter_Copies(msgId));
+
+    thread = getter_AddRefs(GetThreadForMessageId(msgId));
+    if (thread)
+    {
+      thread->GetThreadKey(&threadId);
+      newHdr->SetThreadId(threadId);
+      result = AddToThread(newHdr, thread, nsnull, PR_TRUE);
+    }
+  }
+
   if (!thread)
   {
-    // couldn't find any parent articles - msgHdr is top-level thread, for now
+    // Not a parent or child, make it a new thread for now
     result = AddNewThread(newHdr);
     newThread = PR_TRUE;
   }
