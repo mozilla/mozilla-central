@@ -59,12 +59,11 @@
      oncommand="handleAttachmentSelection('openAttachment');"/>
   <menuitem id="context-saveAttachment" label="&saveAsAttachmentCmd.label;" accesskey="&saveAsAttachmentCmd.accesskey;"
      oncommand="handleAttachmentSelection('saveAttachment');"/>
-  <menuseparator id="context-menu-singleSeparator"/>
+  <menuseparator id="context-menu-separator"/>
   <menuitem id="context-detachAttachment" label="&detachAttachmentCmd.label;" 
      oncommand="handleAttachmentSelection('detachAttachment');"/>
   <menuitem id="context-deleteAttachment" label="&deleteAttachmentCmd.label;" 
      oncommand="handleAttachmentSelection('deleteAttachment');"/>
-  <menuseparator id="context-menu-allSeparator"/>
   <menuitem id="context-saveAllAttachments" oncommand="HandleAllAttachments('save');" 
     label="&saveAllAttachmentsCmd.label;" accesskey="&saveAllAttachmentsCmd.accesskey;"/>
   <menuitem id="context-detachAllAttachments" oncommand="HandleAllAttachments('detach');" 
