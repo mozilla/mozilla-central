@@ -49,6 +49,7 @@ bin\sunbird.exe
 #ifndef MOZILLA_1_8_BRANCH
 bin\application.ini                                                             
 bin\platform.ini
+bin\sqlite3.dll
 #endif
 bin\res\cmessage.txt
 bin\xpicleanup.exe
@@ -300,6 +301,9 @@ bin\res\entityTables\*
 ; [Personal Security Manager]
 ;
 bin\nssckbi.dll
+#ifndef MOZILLA_1_8_BRANCH
+bin\nssdbm3.dll
+#endif
 bin\components\pipboot.xpt
 bin\components\pipnss.xpt
 bin\components\pippki.xpt
