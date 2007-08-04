@@ -387,5 +387,7 @@ pref("browser.urlbar.clickSelectsAll", false);
 pref("browser.backspace_action", 2);
 
 pref("general.autoScroll", false);
+
+pref("layout.word_select.stop_at_punctuation", false);
 #endif
 #endif
