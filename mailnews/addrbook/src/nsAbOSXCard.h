@@ -52,10 +52,12 @@
 class nsIAbOSXCard : public nsISupports
 {
 public:
-  NS_DEFINE_STATIC_IID_ACCESSOR(NS_IABOSXCARD_IID)
+  NS_DECLARE_STATIC_IID_ACCESSOR(NS_IABOSXCARD_IID)
 
   virtual nsresult Update(PRBool aNotify) = 0;
 };
+
+NS_DEFINE_STATIC_IID_ACCESSOR(nsIAbOSXCard, NS_IABOSXCARD_IID)
 
 class nsAbOSXCard : public nsRDFResource, 
                     public nsAbCardProperty,

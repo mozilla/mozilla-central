@@ -59,6 +59,7 @@ nsAbOSXDirFactory::GetDirectories(const nsAString &aDirName,
   
   *aDirectories = nsnull;
 
+  nsresult rv;
   nsCOMPtr<nsIRDFService> rdf =
     do_GetService(NS_RDF_CONTRACTID "/rdf-service;1", &rv);
   NS_ENSURE_SUCCESS(rv, rv);
@@ -76,7 +77,7 @@ nsAbOSXDirFactory::GetDirectories(const nsAString &aDirName,
   rv = osxDirectory->AssertChildNodes();
   NS_ENSURE_SUCCESS(rv, rv);
   
-  return NS_NewSingletonEnumerator(aDirectories, directory);
+  return NS_NewSingletonEnumerator(aDirectories, osxDirectory);
 }
 
 // No actual deletion, since you cannot create the address books from Mozilla.

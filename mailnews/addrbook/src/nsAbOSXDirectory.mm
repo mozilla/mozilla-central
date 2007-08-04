@@ -464,8 +464,10 @@ nsAbOSXDirectory::Init(const char *aUri)
     NS_ASSERTION([card isKindOfClass:[ABGroup class]], "Huh.");
     
     m_IsMailList = PR_TRUE;
-    AppendToString([card valueForProperty:kABGroupNameProperty], m_DirName);
+    AppendToString([card valueForProperty:kABGroupNameProperty], m_ListDirName);
   }
+  else
+    m_DirPrefId.AssignLiteral("ldap_2.servers.osx");
   
   return NS_OK;
 }
@@ -559,13 +561,13 @@ nsAbOSXDirectory::Update()
   
   card = (ABRecord*)[addressBook recordForUniqueId:[NSString stringWithUTF8String:nsCAutoString(Substring(mURINoQuery, 21)).get()]];
   NSString * stringValue = [card valueForProperty:kABGroupNameProperty];
-  if (![stringValue isEqualToString:WrapString(m_DirName)]) {
-    nsAutoString oldValue(m_DirName);
-    AssignToString(stringValue, m_DirName);
+  if (![stringValue isEqualToString:WrapString(m_ListDirName)]) {
+    nsAutoString oldValue(m_ListDirName);
+    AssignToString(stringValue, m_ListDirName);
     nsISupports *supports =
       NS_ISUPPORTS_CAST(nsAbDirectoryRDFResource*, this);
     abSession->NotifyItemPropertyChanged(supports, "DirName",
-                                         oldValue.get(), m_DirName.get());
+                                         oldValue.get(), m_ListDirName.get());
   }
   
   if (groups) {
@@ -580,7 +582,7 @@ nsAbOSXDirectory::Update()
           do_QueryInterface(directory);
         
         nsCAutoString uri;
-        osxDirectory->GetURI(uri);
+        directory->GetURI(uri);
         uri.Cut(0, 21);
         NSString *uid = [NSString stringWithUTF8String:uri.get()];
         
@@ -716,7 +718,7 @@ nsAbOSXDirectory::GetChildNodes(nsISimpleEnumerator **aNodes)
 }
 
 NS_IMETHODIMP
-nsAbOSXDirectory::GetChildCards(nsIEnumerator **aCards)
+nsAbOSXDirectory::GetChildCards(nsISimpleEnumerator **aCards)
 {
   NS_ENSURE_ARG_POINTER(aCards);
   
@@ -774,7 +776,7 @@ nsAbOSXDirectory::GetChildCards(nsIEnumerator **aCards)
     mCardList.PutEntry(card);
   }
   
-  return GetEnumerator(cardList, aCards);
+  return NS_NewArrayEnumerator(aCards, cardList);
 }
 
 NS_IMETHODIMP
@@ -829,7 +831,7 @@ nsAbOSXDirectory::OnSearchFoundCard(nsIAbCard *aCard)
 
 nsresult
 nsAbOSXDirectory::FallbackSearch(nsIAbBooleanExpression *aExpression,
-                                 nsIEnumerator **aCards)
+                                 nsISimpleEnumerator **aCards)
 {
   nsresult rv;
   
@@ -893,5 +895,5 @@ nsAbOSXDirectory::FallbackSearch(nsIAbBooleanExpression *aExpression,
   rv = queryProxy->DoQuery(arguments, queryListener, -1, 0, &context);
   NS_ENSURE_SUCCESS(rv, rv);
   
-  return GetEnumerator(m_AddressList, aCards);
+  return NS_NewArrayEnumerator(aCards, m_AddressList);
 }
