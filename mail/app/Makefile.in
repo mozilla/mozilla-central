@@ -208,7 +208,7 @@ DEFINES += -DAPP_VERSION="$(APP_VERSION)"
 
 ifneq (,$(filter mac cocoa,$(MOZ_WIDGET_TOOLKIT)))
 ifdef BUILD_STATIC_LIBS
-LIBS	+= -lcups
+LIBS	+= -lcups -framework AddressBook
 endif
 endif
 
