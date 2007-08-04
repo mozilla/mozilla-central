@@ -77,6 +77,12 @@ class nsXFormsInsertDeleteElement : public nsXFormsActionModuleBase
 private:
   PRBool mIsInsert;
 
+  enum Location {
+    eLocation_After,
+    eLocation_Before,
+    eLocation_FirstChild,
+  };
+
   /** Get the first node of a given type in aNodes.
    *
    *  @param aNodes        array of nodes
@@ -92,12 +98,12 @@ private:
    *
    *  @param aTargetNode     target location node
    *  @param aNewNode        node to insert
-   *  @param aInsertAfter    insert before or after target?
+   *  @param aLocation       insert location relative to target
    *
    *  @return aResult        result node
    */
   nsresult InsertNode(nsIDOMNode *aTargetNode, nsIDOMNode *aNewNode,
-                      PRBool aInsertAfter, nsIDOMNode **aResNode);
+                      Location aLocation, nsIDOMNode **aResNode);
 
   nsresult RefreshRepeats(nsCOMArray<nsIDOMNode> *aNodes);
 
@@ -463,15 +469,24 @@ nsXFormsInsertDeleteElement::HandleAction(nsIDOMEvent            *aEvent,
       // the first attribute of the insert location node. If the cloned node is
       // not an attribute, then the target location is before the first child
       // of the insert location node.
-      if (!nodeset ||
+      if ((!nodeset || nodesetSize < 1) ||
           (nodeset && nodesetSize > 1 && newNodeType != locationNodeType)) {
+        Location location = eLocation_Before;
         if (newNodeType != nsIDOMNode::ATTRIBUTE_NODE) {
-          // target location is before first child of location node.
+          // Target location is before the first child of location node. If the
+          // location node is empty (has no children), it remains the location
+          // node and the new node will become the first child of the location
+          // node.
           nsCOMPtr<nsIDOMNode> targetNode;
           locationNode->GetFirstChild(getter_AddRefs(targetNode));
-          locationNode.swap(targetNode);
+          if (targetNode) {
+            locationNode.swap(targetNode);
+          } else {
+            // New node will become first child of locationNode.
+            location = eLocation_FirstChild;
+          }
         }
-        InsertNode(locationNode, newNode, PR_FALSE, getter_AddRefs(resNode));
+        InsertNode(locationNode, newNode, location, getter_AddRefs(resNode));
       } else {
           // Step 6c - If insert location node is the root element of an
           // instance, then that instance root element location is the target
@@ -512,7 +527,9 @@ nsXFormsInsertDeleteElement::HandleAction(nsIDOMEvent            *aEvent,
                 return NS_ERROR_FAILURE;
               }
             }
-            InsertNode(locationNode, newNode, insertAfter, getter_AddRefs(resNode)); 
+            InsertNode(locationNode, newNode,
+                       insertAfter ? eLocation_After: eLocation_Before,
+                       getter_AddRefs(resNode));
           }
         }
       }
@@ -559,20 +576,35 @@ nsXFormsInsertDeleteElement::HandleAction(nsIDOMEvent            *aEvent,
     while ((deleteIndex < deleteCount) && locationNode) {
       // Delete the node(s) unless the delete location is the root document
       // element of an instance.
-      if (!SameCOMIdentity(locationNode, locationDocElement)) {
-        locationNode->GetParentNode(getter_AddRefs(parentNode));
-        NS_ENSURE_STATE(parentNode);
+      PRUint16 locationNodeType;
+      locationNode->GetNodeType(&locationNodeType);
+      if (locationNodeType == nsIDOMNode::ATTRIBUTE_NODE) {
+        nsCOMPtr<nsIDOMElement> ownerElement;
+        nsCOMPtr<nsIDOMAttr> attrNode(do_QueryInterface(locationNode));
+        attrNode->GetOwnerElement(getter_AddRefs(ownerElement));
+        NS_ENSURE_STATE(ownerElement);
 
-        rv = parentNode->RemoveChild(locationNode, getter_AddRefs(resNode));
-        NS_ENSURE_SUCCESS(rv, rv);
-
-        // Get the next node in the node-set.
-        ++deleteIndex;
-        nodeset->SnapshotItem(deleteIndex, getter_AddRefs(locationNode));
+        nsCOMPtr<nsIDOMAttr> resAttr;
+        ownerElement->RemoveAttributeNode(attrNode, getter_AddRefs(resAttr));
+        resNode = locationNode;
 
         // Deleted at least one node so delete will not terminate.
         didDelete = PR_TRUE;
+      } else {
+        if (!SameCOMIdentity(locationNode, locationDocElement)) {
+          locationNode->GetParentNode(getter_AddRefs(parentNode));
+          NS_ENSURE_STATE(parentNode);
+
+          rv = parentNode->RemoveChild(locationNode, getter_AddRefs(resNode));
+          NS_ENSURE_SUCCESS(rv, rv);
+
+          // Deleted at least one node so delete will not terminate.
+          didDelete = PR_TRUE;
+        }
       }
+      // Get the next node in the node-set.
+      ++deleteIndex;
+      nodeset->SnapshotItem(deleteIndex, getter_AddRefs(locationNode));
     }
 
     // The delete action is terminated with no effect if no node is deleted.
@@ -631,7 +663,7 @@ nsXFormsInsertDeleteElement::GetFirstNodeOfType(nsCOMArray<nsIDOMNode> *aNodes,
 nsresult
 nsXFormsInsertDeleteElement::InsertNode(nsIDOMNode *aTargetNode,
                                         nsIDOMNode *aNewNode,
-                                        PRBool aInsertAfter,
+                                        Location   aLocation,
                                         nsIDOMNode **aResNode)
 {
   NS_ENSURE_ARG(aTargetNode);
@@ -657,16 +689,17 @@ nsXFormsInsertDeleteElement::InsertNode(nsIDOMNode *aTargetNode,
     // Can add an attribute to an element node or the owning element
     // of an attribute node.
     nsCOMPtr<nsIDOMElement> ownerElement;
-    nsCOMPtr<nsIDOMAttr> attrNode(do_QueryInterface(aNewNode));
 
     if (targetNodeType == nsIDOMNode::ELEMENT_NODE) {
       ownerElement = do_QueryInterface(aTargetNode);
     } else if (targetNodeType == nsIDOMNode::ATTRIBUTE_NODE) {
-      attrNode->GetOwnerElement(getter_AddRefs(ownerElement));
+      nsCOMPtr<nsIDOMAttr> targetAttrNode(do_QueryInterface(aTargetNode));
+      targetAttrNode->GetOwnerElement(getter_AddRefs(ownerElement));
     }
     NS_ENSURE_STATE(ownerElement);
 
     // Check for a duplicate attribute.
+    nsCOMPtr<nsIDOMAttr> attrNode(do_QueryInterface(aNewNode));
     nsAutoString attrName, attrValue;
     attrNode->GetName(attrName);
     attrNode->GetValue(attrValue);
@@ -681,18 +714,18 @@ nsXFormsInsertDeleteElement::InsertNode(nsIDOMNode *aTargetNode,
     resNode.swap(*aResNode);
 
   } else {
-    // New node is not an attribute so it can only be inserted to an
-    // element node.
-    if (targetNodeType == nsIDOMNode::ELEMENT_NODE) {
-      // New node will be inserted either before or after targetNode.
-      nsCOMPtr<nsIDOMNode> targetNode;
-      targetNode = aTargetNode;
+    // New node will be inserted at location aLocation.
+    nsCOMPtr<nsIDOMNode> targetNode = aTargetNode;
 
-      nsCOMPtr<nsIDOMNode> parentNode;
-      targetNode->GetParentNode(getter_AddRefs(parentNode));
-      NS_ENSURE_STATE(parentNode);
+    nsCOMPtr<nsIDOMNode> parentNode;
+    targetNode->GetParentNode(getter_AddRefs(parentNode));
+    NS_ENSURE_STATE(parentNode);
 
-      if (aInsertAfter) {
+    if (aLocation == eLocation_FirstChild) {
+      aTargetNode->AppendChild(aNewNode, getter_AddRefs(resNode));
+      resNode.swap(*aResNode);
+    } else {
+      if (aLocation == eLocation_After) {
         // If we're at the end of the nodeset, this returns nsnull, which is
         // fine, because InsertBefore then inserts at the end of the nodeset.
         aTargetNode->GetNextSibling(getter_AddRefs(targetNode));
