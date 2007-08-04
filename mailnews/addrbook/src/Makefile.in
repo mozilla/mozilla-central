@@ -156,6 +156,24 @@ endif
 
 
 
+ifeq ($(OS_ARCH),Darwin)
+EXPORTS		+= \
+		nsAbOSXCard.h \
+		nsAbOSXDirFactory.h \
+		nsAbOSXDirectory.h \
+		$(NULL)
+
+CPPSRCS		+= \
+		nsAbOSXDirFactory.cpp \
+		$(NULL)
+
+CMMSRCS		+= \
+		nsAbOSXCard.mm \
+		nsAbOSXDirectory.mm \
+		nsAbOSXUtils.mm \
+		$(NULL)
+endif
+
 # we don't want the shared lib, but we want to force the creation of a static lib.
 FORCE_STATIC_LIB = 1
 

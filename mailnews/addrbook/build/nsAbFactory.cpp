@@ -92,6 +92,12 @@
 #include "nsAbOutlookCard.h"
 #endif
 
+#ifdef XP_MACOSX
+#include "nsAbOSXDirectory.h"
+#include "nsAbOSXCard.h"
+#include "nsAbOSXDirFactory.h"
+#endif
+
 NS_GENERIC_FACTORY_CONSTRUCTOR(nsAddressBook)
 NS_GENERIC_FACTORY_CONSTRUCTOR_INIT(nsAbDirectoryDataSource,Init)
 NS_GENERIC_FACTORY_CONSTRUCTOR(nsAbDirProperty)
@@ -134,6 +140,13 @@ NS_GENERIC_FACTORY_CONSTRUCTOR(nsLDAPAutoCompleteSession)
 #endif
 
 NS_GENERIC_FACTORY_CONSTRUCTOR(nsAbDirectoryQueryProxy)
+
+#ifdef XP_MACOSX
+NS_GENERIC_FACTORY_CONSTRUCTOR(nsAbOSXDirectory)
+NS_GENERIC_FACTORY_CONSTRUCTOR(nsAbOSXCard)
+NS_GENERIC_FACTORY_CONSTRUCTOR(nsAbOSXDirFactory)
+#endif
+
 NS_GENERIC_FACTORY_CONSTRUCTOR(nsAbView)
 NS_GENERIC_FACTORY_CONSTRUCTOR(nsMsgVCardService)
 NS_GENERIC_FACTORY_CONSTRUCTOR(nsAbLDIFService)
@@ -329,6 +342,23 @@ static const nsModuleComponentInfo components[] =
     NS_ABDIRECTORYQUERYPROXY_CID,
     NS_ABDIRECTORYQUERYPROXY_CONTRACTID,
     nsAbDirectoryQueryProxyConstructor },
+
+#ifdef XP_MACOSX
+  { "OS X Address Book Directory",
+    NS_ABOSXDIRECTORY_CID,
+    NS_ABOSXDIRECTORY_CONTRACTID,
+    nsAbOSXDirectoryConstructor },
+
+  { "OS X Address Book Card",
+    NS_ABOSXCARD_CID,
+    NS_ABOSXCARD_CONTRACTID,
+    nsAbOSXCardConstructor },
+
+  { "The OS X factory Interface", 
+    NS_ABOSXDIRFACTORY_CID,
+    NS_ABOSXDIRFACTORY_CONTRACTID,
+    nsAbOSXDirFactoryConstructor },
+#endif
 
   { "addressbook view",
     NS_ABVIEW_CID,
