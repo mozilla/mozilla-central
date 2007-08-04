@@ -153,10 +153,7 @@
               observes="cmd_createFilterFromPopup"/>
 </popup>
 
-<popup id="allHeadersPopup"  onpopupshowing="return fillAllHeadersPopup(document.popupNode);" popupanchor="bottomleft">
-  <hbox id="allHeadersPopupContainer">
-  </hbox>
-</popup>
+<popup id="messageIdContext"/>
 
 <tooltip id="folderpopup" class="folderSummaryPopup"/>
 

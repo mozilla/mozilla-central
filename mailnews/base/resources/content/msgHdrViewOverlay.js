@@ -23,6 +23,7 @@
  * Contributor(s):
  *   Karsten Düsterloh <mnyromyr@tprac.de>
  *   Manuel Reimer <manuel.reimer@gmx.de>
+ *   Markus Hossner <markushossner@gmx.de>
  *
  * Alternatively, the contents of this file may be used under the terms of
  * either of the GNU General Public License Version 2 or later (the "GPL"),
@@ -57,6 +58,8 @@ var abAddressCollectorContractID	 = "@mozilla.org/addressbook/services/addressCo
 var gViewAllHeaders = false;
 var gShowOrganization = false;
 var gShowUserAgent = false;
+var gShowReferences = false;
+var gShowMessageId = false;
 var gCollectIncoming = false;
 var gCollectOutgoing = false;
 var gCollectNewsgroup = false;
@@ -124,6 +127,7 @@ var gExpandedHeaderList = [ {name:"subject"},
                             {name:"cc", useToggle:true, outputFunction:OutputEmailAddresses},
                             {name:"bcc", useToggle:true, outputFunction:OutputEmailAddresses},
                             {name:"newsgroups", outputFunction:OutputNewsgroups},
+                            {name:"references", outputFunction:OutputMessageIds},
                             {name:"followup-to", outputFunction:OutputNewsgroups},
                             {name:"tags"}];
 
@@ -231,6 +235,12 @@ function initializeHeaderViewTables()
     var userAgentEntry = {name:"user-agent", outputFunction:updateHeaderValue};
     gExpandedHeaderView[userAgentEntry.name] = new createHeaderEntry('expanded', userAgentEntry);
   }
+
+  if (gShowMessageId)
+  {
+    var messageIdEntry = {name:"message-id", outputFunction:OutputMessageIds};
+    gExpandedHeaderView[messageIdEntry.name] = new createHeaderEntry('expanded', messageIdEntry);
+  }
 }
 
 function OnLoadMsgHeaderPane()
@@ -247,6 +257,8 @@ function OnLoadMsgHeaderPane()
   gCollectOutgoing = pref.getBoolPref("mail.collect_email_address_outgoing");
   gShowUserAgent = pref.getBoolPref("mailnews.headers.showUserAgent");
   gShowOrganization = pref.getBoolPref("mailnews.headers.showOrganization");
+  gShowReferences = pref.getBoolPref("mailnews.headers.showReferences");
+  gShowMessageId = pref.getBoolPref("mailnews.headers.showMessageId");
   gExtraExpandedHeaders = pref.getCharPref("mailnews.headers.extraExpandedHeaders");
   initializeHeaderViewTables();
 
@@ -643,7 +655,7 @@ function ClearHeaderView(headerTable)
      var headerEntry = headerTable[index];
      if (headerEntry.useToggle)
      {
-       headerEntry.enclosingBox.clearEmailAddresses();    
+       headerEntry.enclosingBox.clearHeaderValues();
      }
 
      headerEntry.valid = false;
@@ -802,15 +814,35 @@ function UpdateMessageHeaders()
       {
         // for view all headers, if we don't have a header field for this value....cheat and create one....then
         // fill in a headerEntry
-        gExpandedHeaderView[headerName] = new createNewHeaderView(headerName, currentHeaderData[headerName].headerName + ':');
+        if (headerName == "message-id" || headerName == "in-reply-to")
+        {
+          var messageIdEntry = {name:headerName, outputFunction:OutputMessageIds};
+          gExpandedHeaderView[headerName] = new createHeaderEntry('expanded', messageIdEntry);
+        }
+        else
+        {
+          gExpandedHeaderView[headerName] = new createNewHeaderView(headerName,
+                                                                    currentHeaderData[headerName].headerName + ':');
+        }
+
         headerEntry = gExpandedHeaderView[headerName];
       }
     } // if we are in expanded view....
 
     if (headerEntry)
-    {  
-      headerEntry.outputFunction(headerEntry, headerField.headerValue);
-      headerEntry.valid = true;    
+    {
+      if (headerName == "references" &&
+          !(gViewAllHeaders || gShowReferences || gDBView.msgFolder.server.type == "nntp"))
+      {
+        // hide references header if view all headers mode isn't selected, the pref show references is
+        // deactivated and the currently displayed message isn't a newsgroup posting
+        headerEntry.valid = false;   
+      }
+      else
+      {
+        headerEntry.outputFunction(headerEntry, headerField.headerValue);
+        headerEntry.valid = true;
+      }
     }
   }
 
@@ -877,6 +909,20 @@ function OutputNewsgroups(headerEntry, headerValue)
 { 
   headerValue = headerValue.replace(/,/g,", ");
   updateHeaderValue(headerEntry, headerValue);
+}
+
+// take string of message-ids separated by whitespace, split it
+// into message-ids and send them together with the index number
+// to the corresponding mail-messageids-headerfield element
+function OutputMessageIds(headerEntry, headerValue)
+{
+  var messageIdArray = headerValue.split(/\s+/);
+
+  headerEntry.enclosingBox.clearHeaderValues();
+  for (var i = 0; i < messageIdArray.length; i++)
+    headerEntry.enclosingBox.addMessageIdView(messageIdArray[i]);
+
+  headerEntry.enclosingBox.fillMessageIdNodes();
 }
 
 // OutputEmailAddresses --> knows how to take a comma separated list of email addresses,
@@ -1126,6 +1172,15 @@ function onShowAttachmentContextMenu()
   {
     detachAllMenu.setAttribute('disabled', 'true');
     deleteAllMenu.setAttribute('disabled', 'true');
+  }
+}
+
+function MessageIdClick(node, event)
+{
+  if (event.button == 0)
+  {
+    var messageId = GetMessageIdFromNode(node, true);
+    OpenMessageForMessageId(messageId);
   }
 }
 

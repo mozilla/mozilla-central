@@ -51,6 +51,9 @@
 <!ENTITY tagsHdr.label "Tags: ">
 <!ENTITY dateField.label "Date: ">
 <!ENTITY userAgentField.label "User-Agent: ">
+<!ENTITY referencesField.label "References: ">
+<!ENTITY messageIdField.label "Message-ID: ">
+<!ENTITY inReplyToField.label "In-Reply-To: ">
 <!ENTITY originalWebsite.label "Website: ">
 
 <!ENTITY editMessage.label "Edit Draft...">

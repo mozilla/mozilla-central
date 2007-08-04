@@ -110,6 +110,8 @@
   </keyset>
 
   <popupset>
+    <popup id="messageIdContext"/>
+
     <popup id="emailAddressPopup"/>
 
     <popup id="allHeadersPopup"  onpopupshowing="return fillAllHeadersPopup(document.popupNode);" popupanchor="bottomleft">

@@ -168,6 +168,25 @@ description[selectable="true"]:focus > descriptionitem[selected="true"]
   margin-left: 0px;
   margin-top: 0px;
 }
+/* ::::: msg header message ids ::::: */
+
+.messageIdDisplayButton {
+  cursor: pointer;
+  color: #0000FF;
+  text-decoration: underline;
+  margin: 0;
+  background-color: transparent;
+}
+
+.messageIdDisplayButton:hover {
+  color: #FF0000;
+}
+
+.messageIdDisplayImage {
+  -moz-padding-start: 2px;
+  -moz-box-pack: end;
+}
+
 
 /* ::::: msg header email addresses ::::: */
 

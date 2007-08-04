@@ -421,7 +421,7 @@
         </body>
       </method>
 
-      <method name="clearEmailAddresses">
+      <method name="clearHeaderValues">
         <body>
           <![CDATA[
             // clear out our local state
@@ -461,6 +461,170 @@
         <parameter name="aPartId"/>
         <body><![CDATA[
           return document.getAnonymousElementByAttribute(this, "anonid", aPartId);
+        ]]></body>
+      </method>
+    </implementation>
+  </binding>
+
+  <binding id="mail-messageids-headerfield">
+    <content>
+      <xul:hbox class="headerNameBox" align="start" pack="end">
+        <xul:image class="addresstwisty" anonid="toggleIcon"
+                   onclick="toggleWrap();"/>
+        <xul:label class="headerName" xbl:inherits="value=label"/>
+      </xul:hbox>
+      <xul:hbox class="headerValueBox" flex="1">
+      <xul:label class="headerValue" anonid="headerValue" flex="1"/>
+      </xul:hbox>
+    </content>
+
+    <implementation>
+      <constructor>
+        <![CDATA[
+          this.mMessageIds = [];
+          this.showFullMessageIds = false;
+        ]]>
+      </constructor>
+
+      <property name="headerValue" readonly="true"
+                onget="return document.getAnonymousElementByAttribute(this, 'anonid', 'headerValue');"/>
+      <property name="toggleIcon" readonly="true"
+                onget="return document.getAnonymousElementByAttribute(this, 'anonid', 'toggleIcon');"/>
+
+      <field name="mMessageIds"/>
+
+      <!-- addMessageIdView: a public method used to add a message-id to this widget. -->
+      <method name="addMessageIdView">
+        <parameter name="aMessageId"/>
+        <body>
+          <![CDATA[
+            this.mMessageIds.push(aMessageId);
+          ]]>
+        </body>
+      </method>
+
+      <!-- updateMessageIdNode: private method used to set properties on an MessageId node -->
+      <method name="updateMessageIdNode">
+        <parameter name="aMessageIdNode"/>
+        <parameter name="aIndex"/>
+        <parameter name="aMessageId"/>
+        <body>
+          <![CDATA[
+            var showFullMessageIds = this.showFullMessageIds;
+
+            if (showFullMessageIds)
+            {
+              aMessageIdNode.setAttribute("label", aMessageId);
+              aMessageIdNode.removeAttribute("tooltiptext");
+            }
+            else
+            {
+              aMessageIdNode.setAttribute("label", aIndex);
+              aMessageIdNode.setAttribute("tooltiptext", aMessageId);
+            }
+
+            aMessageIdNode.setAttribute("index", aIndex);
+            aMessageIdNode.setAttribute("messageid", aMessageId);
+          ]]>
+        </body>
+      </method>
+
+      <method name="fillMessageIdNodes">
+        <body>
+          <![CDATA[
+            var headerValue    = this.headerValue;
+            var messageIdNodes = headerValue.childNodes;
+            var numMessageIds  = this.mMessageIds.length;
+            var index = 0;
+
+            while (messageIdNodes.length > numMessageIds * 2 - 1)
+              headerValue.removeChild(headerValue.lastChild);
+
+            for (var index = 0; index < numMessageIds; index++)
+            {
+              if (index * 2 <= messageIdNodes.length - 1)
+              {
+                this.updateMessageIdNode(messageIdNodes[index * 2], index + 1, this.mMessageIds[index]);
+              }
+              else
+              {
+                var newMessageIdNode = document.createElement("mail-messageid");
+
+                if (index)
+                {
+                  var textNode = document.createElement("text");
+                  textNode.setAttribute("value", ", ");
+                  textNode.setAttribute("class", "messageIdSeparator");
+                  headerValue.appendChild(textNode);
+                }
+                var itemInDocument = headerValue.appendChild(newMessageIdNode);
+                this.updateMessageIdNode(itemInDocument, index + 1, this.mMessageIds[index]);
+              }
+            }
+          ]]>
+        </body>
+      </method>
+
+      <method name="toggleWrap">
+        <body>
+          <![CDATA[
+            var headerValue        = this.headerValue;
+            var messageIdNodes     = headerValue.childNodes;
+            var showFullMessageIds = !this.showFullMessageIds;
+            var messageIds         = this.mMessageIds
+
+            for (var i = 0; i < messageIdNodes.length; i += 2)
+            {
+              if (showFullMessageIds)
+              {
+                this.toggleIcon.setAttribute("open", "true");
+                messageIdNodes[i].setAttribute("label", messageIds[i / 2]);
+                messageIdNodes[i].removeAttribute("tooltiptext");
+                headerValue.removeAttribute("singleline");
+              } else
+              {
+                this.toggleIcon.removeAttribute("open");
+                messageIdNodes[i].setAttribute("label", i / 2 + 1);
+                messageIdNodes[i].setAttribute("tooltiptext", messageIds[i / 2]);
+              }
+            }
+
+            this.showFullMessageIds = showFullMessageIds;
+          ]]>
+        </body>
+      </method>
+
+      <method name="clearHeaderValues">
+        <body>
+          <![CDATA[
+            // clear out our local state
+            this.mMessageIds = new Array;
+            if (this.showFullMessageIds)
+            {
+              this.showFullMessageIds = false;
+              this.toggleIcon.removeAttribute("open");
+            }
+          ]]>
+        </body>
+      </method>
+    </implementation>
+  </binding>
+
+  <binding id="mail-messageid">
+    <content context="messageIdContext" onclick="MessageIdClick(this, event);">
+      <xul:label anonid="messageIdValue" class="messageIdDisplayButton plain"
+                 xbl:inherits="value=label"/>
+      <xul:image class="messageIdDisplayImage" anonid="messageIdImage"/>
+    </content>
+
+    <implementation>
+      <property name="label"      onset="this.getPart().setAttribute('label',val); return val;"
+                                  onget="return this.getPart('messageIdValue').getAttribute('label');"/>
+
+      <method name="getPart">
+        <parameter name="aPartId"/>
+        <body><![CDATA[
+          return document.getAnonymousElementByAttribute(this, "anonid", 'messageIdValue');
         ]]></body>
       </method>
     </implementation>

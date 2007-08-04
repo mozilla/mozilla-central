@@ -59,6 +59,22 @@
   <stringbundle id="bundle_messenger" src="chrome://messenger/locale/messenger.properties"/>
 </stringbundleset>
 
+<popup id="messageIdContext" popupanchor="bottomleft"
+       onpopupshowing="FillMessageIdContextMenu(document.popupNode);">
+  <menuitem id="messageIdContext-messageIdTarget"
+            disabled="true"/>
+  <menuseparator/>
+  <menuitem label="&OpenMessageForMsgId.label;"
+            oncommand="var messageId = GetMessageIdFromNode(document.popupNode, true);
+                       OpenMessageForMessageId(messageId)"/>
+  <menuitem label="&OpenBrowserWithMsgId.label;"
+            oncommand="var messageId = GetMessageIdFromNode(document.popupNode, true);
+                       OpenBrowserWithMessageId(messageId)"/>
+  <menuitem label="&CopyMessageId.label;"
+            oncommand="var messageId = GetMessageIdFromNode(document.popupNode, false);
+                       CopyString(messageId);"/>
+</popup>
+
 <popup id="emailAddressPopup" popupanchor="bottomleft"
        onpopupshowing="goUpdateCommand('cmd_createFilterFromPopup');">
   <menuitem label="&SendMailTo.label;"
@@ -174,8 +190,11 @@
 
     <mail-headerfield keywordrelated="true" id="expandednewsgroupsBox"  label="&newsgroupsField.label;" collapsed="true"/>
     <mail-headerfield keywordrelated="true" id="expandedfollowup-toBox" label="&followupToField.label;" collapsed="true"/>
+    <mail-messageids-headerfield id="expandedmessage-idBox" label="&messageIdField.label;" collapsed="true"/>
+    <mail-messageids-headerfield id="expandedin-reply-toBox" label="&inReplyToField.label;" collapsed="true"/>
+    <mail-messageids-headerfield id="expandedreferencesBox" label="&referencesField.label;" collapsed="true"/>
     <mail-tagfield id="expandedtagsBox" label="&tagsHdr.label;" collapsed="true"/>
-    <mail-headerfield keywordrelated="true" id="expandeduser-agentBox"  label="&userAgentField.label;"  collapsed="true"/> 
+    <mail-headerfield keywordrelated="true" id="expandeduser-agentBox"  label="&userAgentField.label;"  collapsed="true"/>
   </vbox>
 
   <vbox id="expandedKeywordBox">

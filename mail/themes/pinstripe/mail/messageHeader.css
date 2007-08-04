@@ -196,6 +196,21 @@ description[selectable="true"]:focus > descriptionitem[selected="true"]
   margin-left: 0px;
 }
 
+/* ::::: msg header message ids ::::: */
+
+.messageIdDisplayButton {
+  margin: 0;
+  padding: 0 10px 0 0 !important;
+  background-color: transparent;
+  background: url("chrome://messenger/skin/icons/arrow-dn-7.png") no-repeat center right;
+}
+
+.messageIdDisplayButton:hover {
+  cursor: pointer;
+  text-decoration: underline;
+  color: blue;
+}
+
 /* ::::: msg header email addresses ::::: */
 
 .emailDisplayButton {

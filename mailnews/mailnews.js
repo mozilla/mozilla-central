@@ -72,6 +72,22 @@ pref("mailnews.headers.showUserAgent",       false);
 // is displayed in the message pane or not...
 pref("mailnews.headers.showOrganization",    false);
 
+// hidden pref for controlling if the references header
+// is displayed in the message pane or not...
+pref("mailnews.headers.showReferences",      false);
+
+// hidden pref for controlling if the message-id header
+// is displayed in the message pane or not...
+pref("mailnews.headers.showMessageId",       false);
+
+// hidden pref for controlling if the message to a message-id
+// is opened in a new window or in the same window
+pref("mailnews.messageid.openInNewWindow",   false);
+
+// hidden pref for url which will be used to open  message-ids
+// in browser (%mid ist replaced with the message-id)
+pref("mailnews.messageid_browser.url", "chrome://messenger-region/locale/region.properties");
+
 // space-delimited list of extra headers to show in msg header display area.
 pref("mailnews.headers.extraExpandedHeaders", "");
 

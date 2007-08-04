@@ -24,6 +24,7 @@
 # Contributor(s):
 #   Jan Varga <varga@nixcorp.com>
 #   Hakan Waara <hwaara@chello.se>
+#   Markus Hossner <markushossner@gmx.de>
 #
 # Alternatively, the contents of this file may be used under the terms of
 # either the GNU General Public License Version 2 or later (the "GPL"), or
@@ -282,6 +283,229 @@ function SetupDeleteMenuItem(menuID, numSelected, forceHide)
   ShowMenuItem(menuID, !forceHide);
   EnableMenuItem(menuID, (numSelected > 0));
   goUpdateCommand('cmd_delete');
+}
+
+// show the message id in the context menu
+function FillMessageIdContextMenu(messageIdNode)
+{
+  if (messageIdNode)
+  {
+    document.getElementById("messageIdContext-messageIdTarget")
+            .setAttribute("label", messageIdNode.getAttribute("messageid"));
+  }
+}
+
+function CopyMessageId(messageId)
+{
+   var clipboard = Components.classes["@mozilla.org/widget/clipboardhelper;1"]
+                             .getService(Components.interfaces.nsIClipboardHelper);
+
+   clipboard.copyString(messageId);
+}
+
+function GetMessageIdFromNode(messageIdNode, cleanMessageId)
+{
+  var messageId  = messageIdNode.getAttribute("messageid");
+
+  // remove < and >
+  if (cleanMessageId)
+    messageId = messageId.substring(1, messageId.length - 1);
+
+  return messageId;
+}
+
+// take the message id from the messageIdNode and use the
+// url defined in the hidden pref "mailnews.messageid_browser.url"
+// to open it in a browser window (%mid is replaced by the message id)
+function OpenBrowserWithMessageId(messageId)
+{
+  var browserURL = pref.getComplexValue("mailnews.messageid_browser.url",
+                                        Components.interfaces.nsIPrefLocalizedString).data;
+
+  browserURL = browserURL.replace(/%mid/, messageId);
+  try
+  {
+    messenger.launchExternalURL(browserURL);
+  }
+  catch (ex)
+  {
+    dump("Failed to open message-id in browser!");
+  }
+}
+
+// take the message id from the messageIdNode, search for the
+// corresponding message in all folders starting with the current
+// selected folder, then the current account followed by the other
+// accounts and open corresponding message if found
+function OpenMessageForMessageId(messageId)
+{
+  var startServer = msgWindow.openFolder.server;
+  var messageHeader;
+
+  window.setCursor("wait");
+
+  // first search in current folder for message id
+  var messageHeader = CheckForMessageIdInFolder(msgWindow.openFolder, messageId);
+
+  // if message id not found in current folder search in all folders
+  if (!messageHeader)
+  {
+    var accountManager = Components.classes["@mozilla.org/messenger/account-manager;1"]
+                                   .getService(Components.interfaces.nsIMsgAccountManager);
+    var allServers = accountManager.allServers;
+
+    messageHeader = SearchForMessageIdInSubFolder(startServer.rootFolder, messageId);
+
+    for (var i = 0; i < allServers.Count() && !messageHeader; i++)
+    {
+      var currentServer = allServers.GetElementAt(i);
+      if ((currentServer instanceof Components.interfaces.nsIMsgIncomingServer) &&
+          startServer != currentServer && currentServer.canSearchMessages &&
+          !currentServer.isDeferredTo)
+      {
+        messageHeader = SearchForMessageIdInSubFolder(currentServer.rootFolder, messageId);
+      }
+    }
+  }
+  window.setCursor("auto");
+
+  // if message id was found open corresponding message
+  // else show error message
+  if (messageHeader)
+    OpenMessageByHeader(messageHeader, pref.getBoolPref("mailnews.messageid.openInNewWindow"));
+  else
+  {
+    var messageIdStr = "<" + messageId + ">";
+    var errorTitle   = gMessengerBundle.getString("errorOpenMessageForMessageIdTitle");
+    var errorMessage = gMessengerBundle.getFormattedString("errorOpenMessageForMessageIdMessage",
+                                                           [messageIdStr]);
+    var promptService = Components.classes["@mozilla.org/embedcomp/prompt-service;1"]
+                                  .getService(Components.interfaces.nsIPromptService);
+
+    promptService.alert(window, errorTitle, errorMessage);
+  }
+}
+
+function OpenMessageByHeader(messageHeader, openInNewWindow)
+{
+  var folder    = messageHeader.folder;
+  var folderURI = folder.URI;
+
+  if (openInNewWindow)
+  {
+    var messageURI = folder.getUriForMsg(messageHeader);
+
+    window.openDialog("chrome://messenger/content/messageWindow.xul",
+                      "_blank", "all,chrome,dialog=no,status,toolbar",
+                      messageURI, folderURI, null);
+  }
+  else
+  {
+    if (msgWindow.openFolder != folderURI)
+      SelectFolder(folderURI);
+
+    var tree = null;
+    var wintype = document.documentElement.getAttribute('windowtype');
+    if (wintype != "mail:messageWindow")
+    {
+      tree = GetThreadTree();
+      tree.view.selection.clearSelection();
+    }
+
+    try
+    {
+      gDBView.selectMsgByKey(messageHeader.messageKey);
+    }
+    catch(e)
+    { // message not in the thread pane
+      try
+      {
+        goDoCommand("cmd_viewAllMsgs");
+        gDBView.selectMsgByKey(messageHeader.messageKey);
+      }
+      catch(e)
+      {
+         dump("select messagekey " + messageHeader.messageKey +
+              " failed in folder " + folder.URI);
+      }
+    }
+
+    if (tree)
+    {
+      var length = {};
+      var indicesArray = {};
+
+      gDBView.getIndicesForSelection(indicesArray, length);
+      tree.treeBoxObject.ensureRowIsVisible(indicesArray.value[0]);
+    }
+  }
+}
+
+// search for message by message id in given folder and its subfolders
+// return message header if message was found
+function SearchForMessageIdInSubFolder(folder, messageId)
+{
+  var messageHeader;
+  var subFolders = folder.GetSubFolders();
+
+  // search in folder
+  if (!folder.isServer)
+    messageHeader = CheckForMessageIdInFolder(folder, messageId);
+
+  // search subfolders recursively
+  var done = !folder.hasSubFolders;
+  while (!done && !messageHeader)
+  {
+    // search in current folder
+    var currentFolder = subFolders.currentItem().QueryInterface(Components.interfaces.nsIMsgFolder);
+    messageHeader = CheckForMessageIdInFolder(currentFolder, messageId);
+
+    // search in its subfolder
+    if (!messageHeader && currentFolder.hasSubFolders)
+      messageHeader = SearchForMessageIdInSubFolder(currentFolder, messageId);
+
+    try
+    {
+      subFolders.next();
+    }
+    catch(e)
+    {
+      done = true;
+    }
+  }
+
+  return messageHeader;
+}
+
+// check folder for corresponding message to given message id
+// return message header if message was found
+function CheckForMessageIdInFolder(folder, messageId)
+{
+  var messageDatabase = folder.getMsgDatabase(msgWindow);
+  var messageHeader;
+
+  try
+  {
+    messageHeader = messageDatabase.getMsgHdrForMessageID(messageId);
+  }
+  catch (ex)
+  {
+    dump("Failed to find message-id in folder!");
+  }
+
+  if (!gMailSession)
+  {
+    gMailSession = Components.classes[mailSessionContractID]
+                             .getService(Components.interfaces.nsIMsgMailSession);
+  }
+
+  if (!gMailSession.IsFolderOpenInWindow(folder) &&
+      !(folder.flags & (MSG_FOLDER_FLAG_TRASH | MSG_FOLDER_FLAG_INBOX)))
+  {
+    folder.setMsgDatabase(null);
+  }
+
+  return messageHeader;
 }
 
 function folderPaneOnPopupHiding()

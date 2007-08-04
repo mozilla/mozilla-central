@@ -202,6 +202,7 @@ nsresult nsMimeHtmlDisplayEmitter::BroadcastHeaders(nsIMsgHeaderSink * aHeaderSi
           PL_strcasecmp("date", headerInfo->name) && PL_strcasecmp("x-mailer", headerInfo->name) &&
           PL_strcasecmp("content-type", headerInfo->name) && PL_strcasecmp("message-id", headerInfo->name) &&
           PL_strcasecmp("x-newsreader", headerInfo->name) && PL_strcasecmp("x-mimeole", headerInfo->name) &&
+          PL_strcasecmp("references", headerInfo->name) && PL_strcasecmp("in-reply-to", headerInfo->name) &&
           // make headerStr lower case because IndexOf is case-sensitive
          (!extraExpandedHeadersArray.Count() || (ToLowerCase(headerStr),
             extraExpandedHeadersArray.IndexOf(headerStr) == kNotFound)))

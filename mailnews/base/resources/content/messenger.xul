@@ -126,6 +126,8 @@
 <popup id="attachmentListContext"/>
 <tooltip id="attachmentListTooltip"/>
 
+<popup id="messageIdContext"/>
+
 <popup id="emailAddressPopup"/>
 
 <popup id="allHeadersPopup"  onpopupshowing="return fillAllHeadersPopup(document.popupNode);" popupanchor="bottomleft">
