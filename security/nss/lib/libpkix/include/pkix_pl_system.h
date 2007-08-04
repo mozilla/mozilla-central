@@ -1155,7 +1155,7 @@ PKIX_PL_MonitorLock_Exit(
 PKIX_Error *
 PKIX_PL_String_Create(
         PKIX_UInt32 fmtIndicator,
-        void *stringRep,
+        const void *stringRep,
         PKIX_UInt32 stringLen,
         PKIX_PL_String **pString,
         void *plContext);

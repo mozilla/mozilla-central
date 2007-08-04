@@ -53,6 +53,7 @@ CSRCS = \
 	pkix_error.c \
 	pkix_logger.c \
 	pkix_list.c \
+	pkix_errpaths.c \
 	$(NULL)
 
 REQUIRES = dbm

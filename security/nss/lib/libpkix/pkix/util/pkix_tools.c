@@ -160,8 +160,8 @@ cleanup:
 PKIX_Error *
 pkix_Throw(
         PKIX_UInt32 errorCode,
-        char *funcName,
-        char *errorText,
+        const char *funcName,
+        const char *errorText,
         PKIX_Error *cause,
         PKIX_Error **pError,
         void *plContext)

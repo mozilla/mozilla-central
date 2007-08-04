@@ -1628,7 +1628,7 @@ pkix_Build_ValidateEntireChain(
         PKIX_PL_PublicKey *subjPubKey = NULL;
         PKIX_PolicyNode *policyTree = NULL;
         PKIX_ValidateResult *valResult = NULL;
-        void *nbioContext = PKIX_FALSE;
+        void *nbioContext = NULL;
         PKIX_Error *certCheckError = NULL;
 
         PKIX_ENTER(BUILD, "pkix_Build_ValidateEntireChain");

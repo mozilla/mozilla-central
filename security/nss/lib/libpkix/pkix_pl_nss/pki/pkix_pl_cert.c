@@ -179,7 +179,6 @@ pkix_pl_Cert_DecodePolicyInfo(
         certPol = CERT_DecodeCertificatePoliciesExtension
                 (&encodedCertPolicyInfo);
 
-        PKIX_CERT_DEBUG("\t\tCalling PORT_Free).\n");
         PORT_Free(encodedCertPolicyInfo.data);
 
         if (NULL == certPol) {
@@ -307,7 +306,6 @@ pkix_pl_Cert_DecodePolicyInfo(
         *pCertPolicyInfos = infos;
 
 cleanup:
-
         if (certPol) {
             PKIX_CERT_DEBUG
                 ("\t\tCalling CERT_DestroyCertificatePoliciesExtension).\n");
@@ -392,7 +390,6 @@ pkix_pl_Cert_DecodePolicyMapping(
         certPolMaps = CERT_DecodePolicyMappingsExtension
                 (&encodedCertPolicyMaps);
 
-        PKIX_CERT_DEBUG("\t\tCalling PORT_Free).\n");
         PORT_Free(encodedCertPolicyMaps.data);
 
         if (!certPolMaps) {
@@ -466,7 +463,6 @@ pkix_pl_Cert_DecodePolicyMapping(
         *pCertPolicyMaps = maps;
 
 cleanup:
-
         if (certPolMaps) {
             PKIX_CERT_DEBUG
                 ("\t\tCalling CERT_DestroyPolicyMappingsExtension).\n");
@@ -548,7 +544,6 @@ pkix_pl_Cert_DecodePolicyConstraints(
                 rv = CERT_DecodePolicyConstraintsExtension
                         (&policyConstraints, &encodedCertPolicyConstraints);
 
-                PKIX_CERT_DEBUG("\t\tCalling PORT_Free).\n");
                 PORT_Free(encodedCertPolicyConstraints.data);
 
                 if (rv != SECSuccess) {
@@ -561,7 +556,6 @@ pkix_pl_Cert_DecodePolicyConstraints(
         *pInhibitMappingSkipCerts = inhibitMappingSkipCerts;
 
 cleanup:
-
         PKIX_RETURN(CERT);
 }
 
@@ -617,7 +611,6 @@ pkix_pl_Cert_DecodeInhibitAnyPolicy(
                 rv = CERT_DecodeInhibitAnyExtension
                         (&inhibitAny, &encodedCertInhibitAny);
 
-                PKIX_CERT_DEBUG("\t\tCalling PORT_Free).\n");
                 PORT_Free(encodedCertInhibitAny.data);
 
                 if (rv != SECSuccess) {
@@ -628,7 +621,6 @@ pkix_pl_Cert_DecodeInhibitAnyPolicy(
         *pSkipCerts = skipCerts;
 
 cleanup:
-
         PKIX_RETURN(CERT);
 }
 
@@ -733,10 +725,7 @@ pkix_pl_Cert_GetNssSubjectAltNames(
         *pNssSubjAltNames = cert->nssSubjAltNames;
 
 cleanup:
-        if (objectIsLocked == PKIX_TRUE) {
-                PKIX_OBJECT_UNLOCK(lockedObject);
-        }
-
+	PKIX_OBJECT_UNLOCK(lockedObject);
         PKIX_RETURN(CERT);
 }
 
@@ -841,9 +830,7 @@ pkix_pl_Cert_CheckExtendedKeyUsage(
         *pPass = PKIX_TRUE;
 
 cleanup:
-
         PKIX_DECREF(basicConstraints);
-
         PKIX_RETURN(CERT);
 }
 
@@ -1160,7 +1147,6 @@ pkix_pl_Cert_ToString_Helper(
         *pString = certString;
 
 cleanup:
-
         PKIX_DECREF(certSN);
         PKIX_DECREF(certSNString);
         PKIX_DECREF(certIssuer);
@@ -1249,7 +1235,6 @@ pkix_pl_Cert_Destroy(
         cert->nssCert = NULL;
 
 cleanup:
-
         PKIX_RETURN(CERT);
 }
 
@@ -1281,7 +1266,6 @@ pkix_pl_Cert_ToString(
         *pString = certString;
 
 cleanup:
-
         PKIX_RETURN(CERT);
 }
 
@@ -1319,7 +1303,6 @@ pkix_pl_Cert_Hashcode(
         *pHashcode = certHash;
 
 cleanup:
-
         PKIX_RETURN(CERT);
 }
 
@@ -1378,7 +1361,6 @@ pkix_pl_Cert_Equals(
         *pResult = cmpResult;
 
 cleanup:
-
         PKIX_RETURN(CERT);
 }
 
@@ -1510,7 +1492,6 @@ pkix_pl_Cert_CreateWithNSSCert(
         *pCert = cert;
 
 cleanup:
-
         PKIX_RETURN(CERT);
 }
 
@@ -1570,9 +1551,7 @@ pkix_pl_Cert_CreateToList(
         }
 
 cleanup:
-
         PKIX_DECREF(cert);
-
         PKIX_RETURN(CERT);
 }
 
@@ -1607,13 +1586,11 @@ PKIX_PL_Cert_Create(
                     (byteArray, &derLength, plContext),
                     PKIX_BYTEARRAYGETLENGTHFAILED);
 
-        PKIX_CERT_DEBUG("\t\tCalling SECITEM_AllocItem).\n");
         derCertItem = SECITEM_AllocItem(NULL, NULL, derLength);
         if (derCertItem == NULL){
                 PKIX_ERROR(PKIX_UNABLETOALLOCATESECITEM);
         }
 
-        PKIX_CERT_DEBUG("\t\tCalling PORT_Memcpy).\n");
         (void) PORT_Memcpy(derCertItem->data, derBytes, derLength);
 
         /*
@@ -1636,7 +1613,6 @@ PKIX_PL_Cert_Create(
 
 cleanup:
         if (derCertItem){
-                PKIX_CERT_DEBUG("\t\tCalling SECITEM_FreeItem).\n");
                 SECITEM_FreeItem(derCertItem, PKIX_TRUE);
         }
 
@@ -1647,7 +1623,6 @@ cleanup:
         }
 
         PKIX_FREE(derBytes);
-
         PKIX_RETURN(CERT);
 }
 
@@ -1677,7 +1652,6 @@ PKIX_PL_Cert_GetVersion(
         *pVersion = myVersion;
 
 cleanup:
-
         PKIX_RETURN(CERT);
 }
 
@@ -1726,11 +1700,7 @@ PKIX_PL_Cert_GetSerialNumber(
         *pSerialNumber = cert->serialNumber;
 
 cleanup:
-        if (objectIsLocked == PKIX_TRUE) {
-                PKIX_OBJECT_UNLOCK(lockedObject);
-        }
-
-
+	PKIX_OBJECT_UNLOCK(lockedObject);
         PKIX_RETURN(CERT);
 }
 
@@ -1783,13 +1753,8 @@ PKIX_PL_Cert_GetSubject(
         *pCertSubject = cert->subject;
 
 cleanup:
-        if (objectIsLocked == PKIX_TRUE) {
-                PKIX_OBJECT_UNLOCK(lockedObject);
-        }
-
-
+	PKIX_OBJECT_UNLOCK(lockedObject);
         PKIX_RETURN(CERT);
-
 }
 
 /*
@@ -1833,9 +1798,7 @@ PKIX_PL_Cert_GetIssuer(
         *pCertIssuer = cert->issuer;
 
 cleanup:
-
         PKIX_RETURN(CERT);
-
 }
 
 /*
@@ -1918,13 +1881,10 @@ PKIX_PL_Cert_GetSubjectAltNames(
         *pSubjectAltNames = cert->subjAltNames;
 
 cleanup:
-
         PKIX_DECREF(pkixAltName);
-
         if (PKIX_ERROR_RECEIVED){
                 PKIX_DECREF(altNamesList);
         }
-
         PKIX_RETURN(CERT);
 }
 
@@ -1959,7 +1919,6 @@ PKIX_PL_Cert_GetAllSubjectNames(
 
         } else { /* get subject DN and altnames */
 
-                PKIX_CERT_DEBUG("\t\tCalling PORT_NewArena\n");
                 arena = PORT_NewArena(DER_DEFAULT_CHUNKSIZE);
                 if (arena == NULL) {
                         PKIX_ERROR(PKIX_PORTNEWARENAFAILED);
@@ -2003,18 +1962,14 @@ PKIX_PL_Cert_GetAllSubjectNames(
         *pAllSubjectNames = allSubjectNames;
 
 cleanup:
-
         if (PKIX_ERROR_RECEIVED){
                 PKIX_DECREF(allSubjectNames);
         }
 
         if (arena){
-                PKIX_CERT_DEBUG("\t\tCalling PORT_FreeArena).\n");
                 PORT_FreeArena(arena, PR_FALSE);
         }
-
         PKIX_DECREF(pkixSubjectName);
-
         PKIX_RETURN(CERT);
 }
 
@@ -2072,9 +2027,7 @@ PKIX_PL_Cert_GetSubjectPublicKeyAlgId(
         *pSubjKeyAlgId = cert->publicKeyAlgId;
 
 cleanup:
-
         PKIX_FREE(asciiOID);
-
         PKIX_RETURN(CERT);
 }
 
@@ -2151,14 +2104,12 @@ PKIX_PL_Cert_GetSubjectPublicKey(
 
                         toItem->type = fromItem->type;
 
-                        PKIX_CERT_DEBUG("\t\tCalling PORT_ZAlloc).\n");
                         toItem->data =
                                 (unsigned char*) PORT_ZAlloc(fromItem->len);
                         if (!toItem->data){
                                 PKIX_ERROR(PKIX_PORTZALLOCFAILED);
                         }
 
-                        PKIX_CERT_DEBUG("\t\tCalling PORT_Memcpy).\n");
                         (void) PORT_Memcpy(toItem->data,
                                     fromItem->data,
                                     (fromItem->len + 7)>>3);
@@ -2175,15 +2126,10 @@ PKIX_PL_Cert_GetSubjectPublicKey(
         *pPublicKey = cert->publicKey;
 
 cleanup:
-        if (objectIsLocked == PKIX_TRUE) {
-                PKIX_OBJECT_UNLOCK(lockedObject);
-        }
-
-
+	PKIX_OBJECT_UNLOCK(lockedObject);
         if (PKIX_ERROR_RECEIVED){
                 PKIX_DECREF(pkixPubKey);
         }
-
         PKIX_RETURN(CERT);
 }
 
@@ -2241,11 +2187,7 @@ PKIX_PL_Cert_GetCriticalExtensionOIDs(
                 PKIX_OBJECTDUPLICATELISTFAILED);
 
 cleanup:
-        if (objectIsLocked == PKIX_TRUE) {
-                PKIX_OBJECT_UNLOCK(lockedObject);
-        }
-
-
+	PKIX_OBJECT_UNLOCK(lockedObject);
         PKIX_RETURN(CERT);
 }
 
@@ -2275,7 +2217,6 @@ PKIX_PL_Cert_GetAuthorityKeyIdentifier(
 
                 if ((cert->authKeyId == NULL) && (!cert->authKeyIdAbsent)){
 
-                        PKIX_CERT_DEBUG("\t\tCalling PORT_NewArena).\n");
                         arena = PORT_NewArena(DER_DEFAULT_CHUNKSIZE);
                         if (arena == NULL) {
                                 PKIX_ERROR(PKIX_PORTNEWARENAFAILED);
@@ -2317,16 +2258,10 @@ PKIX_PL_Cert_GetAuthorityKeyIdentifier(
         *pAuthKeyId = cert->authKeyId;
 
 cleanup:
-        if (objectIsLocked == PKIX_TRUE) {
-                PKIX_OBJECT_UNLOCK(lockedObject);
-        }
-
-
+	PKIX_OBJECT_UNLOCK(lockedObject);
         if (arena){
-                PKIX_CERT_DEBUG("\t\tCalling PORT_FreeArena).\n");
                 PORT_FreeArena(arena, PR_FALSE);
         }
-
         PKIX_RETURN(CERT);
 }
 
@@ -2355,7 +2290,6 @@ PKIX_PL_Cert_GetSubjectKeyIdentifier(
 
                 if ((cert->subjKeyId == NULL) && (!cert->subjKeyIdAbsent)){
 
-                        PKIX_CERT_DEBUG("\t\tCalling SECITEM_AllocItem).\n");
                         retItem = SECITEM_AllocItem(NULL, NULL, 0);
                         if (retItem == NULL){
                                 PKIX_ERROR(PKIX_UNABLETOALLOCATESECITEM);
@@ -2389,16 +2323,10 @@ PKIX_PL_Cert_GetSubjectKeyIdentifier(
         *pSubjKeyId = cert->subjKeyId;
 
 cleanup:
-        if (objectIsLocked == PKIX_TRUE) {
-                PKIX_OBJECT_UNLOCK(lockedObject);
-        }
-
-
+	PKIX_OBJECT_UNLOCK(lockedObject);
         if (retItem){
-                PKIX_CERT_DEBUG("\t\tCalling SECITEM_FreeItem).\n");
                 SECITEM_FreeItem(retItem, PKIX_TRUE);
         }
-
         PKIX_RETURN(CERT);
 }
 
@@ -2449,7 +2377,6 @@ PKIX_PL_Cert_GetExtendedKeyUsage(
                                 PKIX_ERROR(PKIX_CERTDECODEOIDSEQUENCEFAILED);
                         }
 
-                        PKIX_CERT_DEBUG("\t\tCalling PORT_Free).\n");
                         PORT_Free(encodedExtKeyUsage.data);
 
                         oids = extKeyUsage->oids;
@@ -2505,9 +2432,7 @@ PKIX_PL_Cert_GetExtendedKeyUsage(
         *pKeyUsage = cert->extKeyUsages;
 
 cleanup:
-        if (objectIsLocked == PKIX_TRUE) {
-                PKIX_OBJECT_UNLOCK(lockedObject);
-        }
+	PKIX_OBJECT_UNLOCK(lockedObject);
 
         PKIX_FREE(oidAscii);
         PKIX_DECREF(pkixOID);
@@ -2589,11 +2514,7 @@ PKIX_PL_Cert_GetBasicConstraints(
         *pBasicConstraints = cert->certBasicConstraints;
 
 cleanup:
-        if (objectIsLocked == PKIX_TRUE) {
-                PKIX_OBJECT_UNLOCK(lockedObject);
-        }
-
-
+	PKIX_OBJECT_UNLOCK(lockedObject);
         PKIX_RETURN(CERT);
 }
 
@@ -2643,10 +2564,7 @@ PKIX_PL_Cert_GetPolicyInformation(
         *pPolicyInfo = cert->certPolicyInfos;
 
 cleanup:
-        if (objectIsLocked == PKIX_TRUE) {
-                PKIX_OBJECT_UNLOCK(lockedObject);
-        }
-
+	PKIX_OBJECT_UNLOCK(lockedObject);
         PKIX_RETURN(CERT);
 }
 
@@ -2693,10 +2611,7 @@ PKIX_PL_Cert_GetPolicyMappings(
         *pPolicyMappings = cert->certPolicyMappings;
 
 cleanup:
-        if (objectIsLocked == PKIX_TRUE) {
-                PKIX_OBJECT_UNLOCK(lockedObject);
-        }
-
+	PKIX_OBJECT_UNLOCK(lockedObject);
         PKIX_RETURN(CERT);
 }
 
@@ -2748,11 +2663,7 @@ PKIX_PL_Cert_GetRequireExplicitPolicy(
         *pSkipCerts = cert->policyConstraintsExplicitPolicySkipCerts;
 
 cleanup:
-
-        if (objectIsLocked == PKIX_TRUE) {
-                PKIX_OBJECT_UNLOCK(lockedObject);
-        }
-
+	PKIX_OBJECT_UNLOCK(lockedObject);
         PKIX_RETURN(CERT);
 }
 
@@ -2804,11 +2715,7 @@ PKIX_PL_Cert_GetPolicyMappingInhibited(
         *pSkipCerts = cert->policyConstraintsInhibitMappingSkipCerts;
 
 cleanup:
-
-        if (objectIsLocked == PKIX_TRUE) {
-                PKIX_OBJECT_UNLOCK(lockedObject);
-        }
-
+	PKIX_OBJECT_UNLOCK(lockedObject);
         PKIX_RETURN(CERT);
 }
 
@@ -2850,13 +2757,8 @@ PKIX_PL_Cert_GetInhibitAnyPolicy(
         }
 
 cleanup:
-
-        if (objectIsLocked == PKIX_TRUE) {
-                PKIX_OBJECT_UNLOCK(lockedObject);
-        }
-
+	PKIX_OBJECT_UNLOCK(lockedObject);
         *pSkipCerts = cert->inhibitAnySkipCerts;
-
         PKIX_RETURN(CERT);
 }
 
@@ -2885,7 +2787,6 @@ PKIX_PL_Cert_AreCertPoliciesCritical(
         *pCritical = criticality;
 
 cleanup:
-
         PKIX_RETURN(CERT);
 }
 
@@ -2957,7 +2858,6 @@ PKIX_PL_Cert_VerifySignature(
         }
 
 cleanup:
-
         if (nssPubKey){
                 PKIX_CERT_DEBUG("\t\tCalling SECKEY_DestroyPublicKey).\n");
                 SECKEY_DestroyPublicKey(nssPubKey);
@@ -2991,7 +2891,6 @@ PKIX_PL_Cert_CheckValidity(
                         (date, &timeToCheck, plContext),
                         PKIX_DATEGETPRTIMEFAILED);
         } else {
-                PKIX_CERT_DEBUG("\t\tCalling PR_Now).\n");
                 timeToCheck = PR_Now();
         }
 
@@ -3002,7 +2901,6 @@ PKIX_PL_Cert_CheckValidity(
         }
 
 cleanup:
-
         PKIX_RETURN(CERT);
 }
 
@@ -3032,7 +2930,6 @@ PKIX_PL_Cert_GetValidityNotAfter(
                     PKIX_DATECREATEFROMPRTIMEFAILED);
 
 cleanup:
-
         PKIX_RETURN(CERT);
 }
 
@@ -3102,7 +2999,6 @@ PKIX_PL_Cert_VerifyKeyUsage(
         }
 
 cleanup:
-
         PKIX_RETURN(CERT);
 }
 
@@ -3149,11 +3045,7 @@ PKIX_PL_Cert_GetNameConstraints(
         *pNameConstraints = cert->nameConstraints;
 
 cleanup:
-
-        if (objectIsLocked == PKIX_TRUE) {
-                PKIX_OBJECT_UNLOCK(lockedObject);
-        }
-
+	PKIX_OBJECT_UNLOCK(lockedObject);
         PKIX_RETURN(CERT);
 }
 
@@ -3176,7 +3068,6 @@ PKIX_PL_Cert_CheckNameConstraints(
 
         if (nameConstraints != NULL) {
 
-                PKIX_CERT_DEBUG("\t\tCalling PORT_NewArena\n");
                 arena = PORT_NewArena(DER_DEFAULT_CHUNKSIZE);
                 if (arena == NULL) {
                         PKIX_ERROR(PKIX_PORTNEWARENAFAILED);
@@ -3200,9 +3091,7 @@ PKIX_PL_Cert_CheckNameConstraints(
         }
 
 cleanup:
-
         if (arena){
-                PKIX_CERT_DEBUG("\t\tCalling PORT_FreeArena).\n");
                 PORT_FreeArena(arena, PR_FALSE);
         }
 
@@ -3240,7 +3129,6 @@ PKIX_PL_Cert_MergeNameConstraints(
         *pResultNC = mergedNC;
 
 cleanup:
-
         PKIX_RETURN(CERT);
 }
 
@@ -3323,7 +3211,6 @@ PKIX_PL_Cert_IsCertTrusted(
         *pTrusted = trusted;
 
 cleanup:
-
         PKIX_RETURN(CERT);
 }
 
@@ -3465,17 +3352,12 @@ PKIX_PL_Cert_GetAuthorityInfoAccess(
         *pAiaList = cert->authorityInfoAccess;
 
 cleanup:
-        if (objectIsLocked == PKIX_TRUE) {
-                PKIX_OBJECT_UNLOCK(lockedObject);
-        }
-
+	PKIX_OBJECT_UNLOCK(lockedObject);
         if (arena != NULL) {
-                PKIX_CERT_DEBUG("\t\tCalling PORT_FreeArena).\n");
                 PORT_FreeArena(arena, PR_FALSE);
         }
 
         if (encodedAIA != NULL) {
-                PKIX_CERT_DEBUG("\t\tCalling SECITEM_FreeItem).\n");
                 SECITEM_FreeItem(encodedAIA, PR_TRUE);
         }
 
@@ -3520,7 +3402,6 @@ PKIX_PL_Cert_GetSubjectInfoAccess(
 
                 if (cert->subjectInfoAccess == NULL) {
 
-                    PKIX_CERT_DEBUG("\t\tCalling SECITEM_AllocItem).\n");
                     encodedSubjInfoAccess = SECITEM_AllocItem(NULL, NULL, 0);
                     if (encodedSubjInfoAccess == NULL) {
                         goto cleanup;
@@ -3535,7 +3416,6 @@ PKIX_PL_Cert_GetSubjectInfoAccess(
                         goto cleanup;
                     }
 
-                    PKIX_CERT_DEBUG("\t\tCalling PORT_NewArena).\n");
                     arena = PORT_NewArena(DER_DEFAULT_CHUNKSIZE);
                     if (arena == NULL) {
                         goto cleanup;
@@ -3564,23 +3444,16 @@ PKIX_PL_Cert_GetSubjectInfoAccess(
         }
 
         PKIX_INCREF(cert->subjectInfoAccess);
-
         *pSiaList = cert->subjectInfoAccess;
 
 cleanup:
-        if (objectIsLocked == PKIX_TRUE) {
-                PKIX_OBJECT_UNLOCK(lockedObject);
-        }
-
+	PKIX_OBJECT_UNLOCK(lockedObject);
         if (arena != NULL) {
-                PKIX_CERT_DEBUG("\t\tCalling PORT_FreeArena).\n");
                 PORT_FreeArena(arena, PR_FALSE);
         }
 
         if (encodedSubjInfoAccess != NULL) {
-                PKIX_CERT_DEBUG("\t\tCalling SECITEM_FreeItem).\n");
                 SECITEM_FreeItem(encodedSubjInfoAccess, PR_TRUE);
         }
-
         PKIX_RETURN(CERT);
 }

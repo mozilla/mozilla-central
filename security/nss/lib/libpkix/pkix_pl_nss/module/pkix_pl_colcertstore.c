@@ -185,7 +185,6 @@ pkix_pl_CollectionCertStoreContext_Create(
         *pColCertStoreContext = colCertStoreContext;
 
 cleanup:
-
         PKIX_RETURN(COLLECTIONCERTSTORECONTEXT);
 }
 
@@ -215,7 +214,6 @@ pkix_pl_CollectionCertStoreContext_Destroy(
         PKIX_DECREF(colCertStoreContext->certList);
 
 cleanup:
-
         PKIX_RETURN(COLLECTIONCERTSTORECONTEXT);
 }
 
@@ -255,7 +253,6 @@ pkix_pl_CollectionCertStoreContext_Hashcode(
         /* should not hash on crlList and certList, values are dynamic */
 
 cleanup:
-
         PKIX_RETURN(COLLECTIONCERTSTORECONTEXT);
 }
 
@@ -307,7 +304,6 @@ pkix_pl_CollectionCertStoreContext_Equals(
         /* should not check equal on crlList and certList, data are dynamic */
 
 cleanup:
-
         PKIX_RETURN(COLLECTIONCERTSTORECONTEXT);
 }
 
@@ -423,7 +419,6 @@ pkix_pl_CollectionCertStoreContext_CreateCert(
         *pCert = cert;
 
 cleanup:
-
         if (inFile){
                 PKIX_COLLECTIONCERTSTORECONTEXT_DEBUG
                         ("\t\t Calling PR_CloseDir.\n");
@@ -437,9 +432,7 @@ cleanup:
 
                 PKIX_DECREF(cert);
         }
-
         PKIX_DECREF(byteArray);
-
         PKIX_RETURN(COLLECTIONCERTSTORECONTEXT);
 }
 
@@ -518,7 +511,6 @@ pkix_pl_CollectionCertStoreContext_CreateCRL(
         *pCrl = crl;
 
 cleanup:
-
         if (inFile){
                 PKIX_COLLECTIONCERTSTORECONTEXT_DEBUG
                         ("\t\t Calling PR_CloseDir.\n");
@@ -698,7 +690,6 @@ pkix_pl_CollectionCertStoreContext_PopulateCert(
         colCertStoreContext->certList = certList;
 
 cleanup:
-
         if (dir) {
                 PKIX_COLLECTIONCERTSTORECONTEXT_DEBUG
                         ("\t\t Calling PR_CloseDir.\n");
@@ -877,7 +868,6 @@ pkix_pl_CollectionCertStoreContext_PopulateCRL(
         colCertStoreContext->crlList = crlList;
 
 cleanup:
-
         if (dir) {
                 PKIX_COLLECTIONCERTSTORECONTEXT_DEBUG
                         ("\t\t Calling PR_CloseDir.\n");
@@ -993,7 +983,6 @@ pkix_pl_CollectionCertStoreContext_GetSelectedCert(
         *pSelectedCertList = selectCertList;
 
 cleanup:
-
         PKIX_RETURN(COLLECTIONCERTSTORECONTEXT);
 }
 
@@ -1091,7 +1080,6 @@ pkix_pl_CollectionCertStoreContext_GetSelectedCRL(
         *pSelectedCrlList = selectCrlList;
 
 cleanup:
-
         PKIX_RETURN(COLLECTIONCERTSTORECONTEXT);
 }
 
@@ -1171,12 +1159,8 @@ pkix_pl_CollectionCertStore_GetCert(
         *pCerts = selectedCerts;
 
 cleanup:
-        if (objectIsLocked == PKIX_TRUE) {
-                PKIX_OBJECT_UNLOCK(lockedObject);
-        }
-
+	PKIX_OBJECT_UNLOCK(lockedObject);
         PKIX_DECREF(colCertStoreContext);
-
         PKIX_RETURN(CERTSTORE);
 }
 
@@ -1257,12 +1241,8 @@ pkix_pl_CollectionCertStore_GetCRL(
         *pCrlList = selectCrl;
 
 cleanup:
-        if (objectIsLocked == PKIX_TRUE) {
-                PKIX_OBJECT_UNLOCK(lockedObject);
-        }
-
+	PKIX_OBJECT_UNLOCK(lockedObject);
         PKIX_DECREF(colCertStoreContext);
-
         PKIX_RETURN(CERTSTORE);
 }
 
@@ -1342,6 +1322,5 @@ PKIX_PL_CollectionCertStore_Create(
         *pCertStore = certStore;
 
 cleanup:
-
         PKIX_RETURN(CERTSTORE);
 }

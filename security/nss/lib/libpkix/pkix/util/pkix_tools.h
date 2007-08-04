@@ -47,6 +47,7 @@
 #include "pkix.h"
 #include <stddef.h>
 #include <stdio.h>
+#include "secport.h"
 
 /* private PKIX system headers */
 #include "pkix_basicconstraintschecker.h"
@@ -81,6 +82,63 @@
 extern "C" {
 #endif
 
+typedef struct pkixStdVarsStr {
+    const char        *aMyFuncName;
+    PKIX_Error        *aPkixErrorResult;
+    PKIX_Error        *aPkixTempResult;
+    PKIX_Error        *aPkixReturnResult;
+    PKIX_ERRSTRINGNUM  aPkixErrMsgNum;
+    const char        *aPkixErrorMsg;
+    PKIX_Boolean       aPkixErrorReceived;
+    PKIX_Boolean       aPkixTempErrorReceived;
+    PKIX_UInt32        aPkixErrorCode;
+    PKIX_UInt32        aPkixType;
+    PKIX_PL_Object    *aLockedObject;
+    PKIX_PL_Mutex     *aLockedMutex;
+} PKIX_StdVars;
+
+#ifdef PKIX_STDVARS_POINTER
+#define myFuncName              stdVars->aMyFuncName
+#define pkixErrorResult		stdVars->aPkixErrorResult
+#define pkixTempResult		stdVars->aPkixTempResult
+#define pkixReturnResult	stdVars->aPkixReturnResult
+#define pkixErrMsgNum		stdVars->aPkixErrMsgNum
+#define pkixErrorMsg		stdVars->aPkixErrorMsg
+#define pkixErrorReceived	stdVars->aPkixErrorReceived
+#define pkixTempErrorReceived 	stdVars->aPkixTempErrorReceived 
+#define pkixErrorCode		stdVars->aPkixErrorCode
+#define pkixType		stdVars->aPkixType
+#define lockedObject		stdVars->aLockedObject
+#define lockedMutex		stdVars->aLockedMutex
+#else
+#define myFuncName              stdVars.aMyFuncName
+#define pkixErrorResult		stdVars.aPkixErrorResult
+#define pkixTempResult		stdVars.aPkixTempResult
+#define pkixReturnResult	stdVars.aPkixReturnResult
+#define pkixErrMsgNum		stdVars.aPkixErrMsgNum
+#define pkixErrorMsg		stdVars.aPkixErrorMsg
+#define pkixErrorReceived	stdVars.aPkixErrorReceived
+#define pkixTempErrorReceived 	stdVars.aPkixTempErrorReceived 
+#define pkixErrorCode		stdVars.aPkixErrorCode
+#define pkixType		stdVars.aPkixType
+#define lockedObject		stdVars.aLockedObject
+#define lockedMutex		stdVars.aLockedMutex
+#endif
+
+extern PKIX_Error * PKIX_DoReturn(PKIX_StdVars * stdVars, 
+                                  PKIX_ERRORNUM errorCode, 
+                                  PKIX_Boolean doLogger,
+				  void * plContext);
+
+extern PKIX_Error * PKIX_DoThrow(PKIX_StdVars * stdVars, 
+                                 PKIX_ERRORNUM errorCode, 
+				 const char * desc, void * plContext);
+
+extern PKIX_Error * PKIX_DoCheck(PKIX_StdVars * stdVars, 
+				 int descNum, void * plContext);
+
+extern const PKIX_StdVars zeroStdVars;
+
 /*
  * UTILITY MACROS
  * Documentation for these common utility macros can be found in the
@@ -94,342 +152,351 @@ extern "C" {
  * not reached"), so we just use "{<body>}" to group the statements together.
  */
 
+#define PKIX_STD_VARS(funcName) \
+    static const char cMyFuncName[] = {funcName}; \
+    PKIX_StdVars      stdVars = zeroStdVars; \
+    myFuncName = cMyFuncName
+
+#ifdef DEBUG
+#define _PKIX_DEBUG_TRACE(cond, prefix, level) \
+    do { \
+	if (cond) { \
+	    pkix_Logger_Check(pkixLoggersDebugTrace, myFuncName, \
+	                      prefix, pkixType, level, plContext); \
+	} \
+    } while (0)
+#else
+#define _PKIX_DEBUG_TRACE(cond, prefix, level) 
+#endif
+
+#define _PKIX_LOG_ERROR(msg, level) \
+    { \
+	if (pkixLoggersErrors) { \
+	    pkix_Logger_Check(pkixLoggersErrors, msg, \
+	                      NULL, pkixType, level, plContext); \
+	} \
+    }
+
 #define PKIX_ENTER(type, funcName) \
-        PKIX_STD_VARS(funcName); \
-        pkixType = PKIX_ ## type ## _ERROR; \
-        PKIX_DEBUG_ENTER(type); \
-        do { \
-            if (pkixLoggersDebugTrace) { \
-                (pkix_Logger_Check(pkixLoggersDebugTrace, \
-                        funcName, ">>>", pkixType, \
-                        PKIX_LOGGER_LEVEL_TRACE, plContext)); \
-            } \
-        } while (0)
+    PKIX_STD_VARS(funcName); \
+    pkixType = PKIX_ ## type ## _ERROR; \
+    PKIX_DEBUG_ENTER(type); \
+    _PKIX_DEBUG_TRACE(pkixLoggersDebugTrace, ">>>", PKIX_LOGGER_LEVEL_TRACE);
 
 #define PKIX_ENTER_NO_LOGGER(type, funcName) \
-        PKIX_STD_VARS(funcName); \
-        pkixType = PKIX_ ## type ## _ERROR; \
-        PKIX_DEBUG_ENTER(type);
-
-#define PKIX_STD_VARS(funcName) \
-        PKIX_Error *pkixErrorResult = NULL;     \
-        PKIX_Error *pkixTempResult = NULL; \
-        PKIX_Error *pkixReturnResult = NULL; \
-        PKIX_ERRSTRINGNUM pkixErrMsgNum = 0; \
-        char *pkixErrorMsg = NULL; \
-        PKIX_Boolean pkixErrorReceived = PKIX_FALSE; \
-        PKIX_Boolean pkixTempErrorReceived = PKIX_FALSE; \
-        /* ARGSUSED */ PKIX_UInt32 pkixErrorCode = 0; \
-        char *myFuncName = (funcName); \
-        PKIX_UInt32 pkixType = 0; \
-        PKIX_Boolean objectIsLocked = PKIX_FALSE; \
-        PKIX_PL_Object *lockedObject = NULL; \
-        PKIX_Boolean mutexIsLocked = PKIX_FALSE; \
-        PKIX_PL_Mutex *lockedMutex = NULL;
+    PKIX_STD_VARS(funcName); \
+    pkixType = PKIX_ ## type ## _ERROR; \
+    PKIX_DEBUG_ENTER(type);
 
 #define PKIX_DEBUG_ENTER(type) \
-        PKIX_ ## type ## _DEBUG_ARG("( Entering %s).\n", myFuncName)
-
-#define PKIX_NULLCHECK_ONE(a) \
-        do { \
-                if ((a) == NULL){ \
-                        PKIX_ERROR_FATAL(PKIX_NULLARGUMENT); \
-                } \
-        } while (0)
-
-#define PKIX_NULLCHECK_TWO(a, b) \
-        do { \
-                if (((a) == NULL) || ((b) == NULL)){ \
-                        PKIX_ERROR_FATAL(PKIX_NULLARGUMENT); \
-                } \
-        } while (0)
-
-#define PKIX_NULLCHECK_THREE(a, b, c) \
-        do { \
-                if (((a) == NULL) || ((b) == NULL) || ((c) == NULL)){ \
-                        PKIX_ERROR_FATAL(PKIX_NULLARGUMENT); \
-                } \
-        } while (0)
-
-#define PKIX_NULLCHECK_FOUR(a, b, c, d) \
-        do { \
-                if (((a) == NULL) || ((b) == NULL) || \
-                    ((c) == NULL) || ((d) == NULL)){ \
-                        PKIX_ERROR_FATAL(PKIX_NULLARGUMENT); \
-                } \
-        } while (0)
-
-#define PKIX_CHECK(func, descNum) \
-        do { \
-                pkixErrorResult = (func); \
-                if (pkixErrorResult) { \
-                        pkixTempResult = PKIX_Error_GetErrorCode \
-                                (pkixErrorResult, &pkixErrorCode, plContext); \
-                        if (pkixTempResult) return pkixTempResult; \
-                        if (pkixErrorCode == PKIX_FATAL_ERROR){ \
-                                pkixErrorMsg = PKIX_ErrorText[descNum]; \
-                                PKIX_RETURN(FATAL); \
-                        } else { \
-                                pkixErrorMsg = PKIX_ErrorText[descNum]; \
-                                goto cleanup; \
-                        } \
-                } \
-        } while (0)
-
-#define PKIX_CHECK_ONLY_FATAL(func, descNum) \
-        do { \
-                pkixTempErrorReceived = PKIX_FALSE; \
-                pkixErrorResult = (func); \
-                if (pkixErrorResult) { \
-                        pkixTempErrorReceived = PKIX_TRUE; \
-                        pkixTempResult = PKIX_Error_GetErrorCode \
-                                (pkixErrorResult, &pkixErrorCode, plContext); \
-                        if (pkixTempResult) return pkixTempResult; \
-                        if (pkixErrorCode == PKIX_FATAL_ERROR){ \
-                                pkixErrorMsg = PKIX_ErrorText[descNum]; \
-                                PKIX_RETURN(FATAL); \
-                        } \
-                        PKIX_DECREF(pkixErrorResult); \
-                } \
-        } while (0)
-
-#define PKIX_CHECK_FATAL(func, descNum) \
-        do { \
-                pkixTempResult = (func); \
-                if (pkixTempResult) { \
-                        PKIX_ERROR_FATAL(descNum); \
-                } \
-        } while (0)
-
-#define PKIX_LOG_ERROR(descNum) \
-        { \
-                if (pkixLoggersErrors) { \
-                    (pkix_Logger_Check(pkixLoggersErrors, \
-                        PKIX_ErrorText[descNum], NULL, pkixType, \
-                        PKIX_LOGGER_LEVEL_ERROR, plContext)); \
-                } \
-        }
-
-#define PKIX_ERROR(descNum) \
-        { \
-                PKIX_LOG_ERROR(descNum) \
-                pkixErrorReceived = PKIX_TRUE; \
-                pkixErrorMsg = PKIX_ErrorText[descNum]; \
-                goto cleanup; \
-        }
-
-#define PKIX_ERROR_FATAL(descNum) \
-        { \
-                pkixErrorReceived = PKIX_TRUE; \
-                pkixErrorMsg = PKIX_ErrorText[descNum]; \
-                if (pkixLoggersErrors) { \
-                    (pkix_Logger_Check(pkixLoggersErrors, \
-                        pkixErrorMsg, NULL, pkixType, \
-                        PKIX_LOGGER_LEVEL_FATALERROR, plContext)); \
-                } \
-                PKIX_RETURN(FATAL); \
-        }
-
-#define PKIX_OBJECT_LOCK(obj) \
-        do { \
-                if (obj){ \
-                        PKIX_CHECK(PKIX_PL_Object_Lock \
-                                ((PKIX_PL_Object*)(obj), plContext), \
-                                PKIX_OBJECTLOCKFAILED); \
-                        objectIsLocked = PKIX_TRUE; \
-                        lockedObject = (PKIX_PL_Object *)(obj); \
-                } \
-        } while (0)
-
-#define PKIX_OBJECT_UNLOCK(obj) \
-        do { \
-                if (obj){ \
-                        pkixTempResult = \
-                                PKIX_PL_Object_Unlock \
-                                ((PKIX_PL_Object *)(obj), plContext); \
-                        if (pkixTempResult) return pkixTempResult; \
-                        objectIsLocked = PKIX_FALSE; \
-                        lockedObject = NULL; \
-                } \
-        } while (0)
-
-#define PKIX_MUTEX_LOCK(obj) \
-        do { \
-                if (obj){ \
-                        PKIX_CHECK(PKIX_PL_Mutex_Lock((obj), plContext), \
-                                PKIX_MUTEXLOCKFAILED); \
-                        mutexIsLocked = PKIX_TRUE; \
-                        lockedMutex = (obj); \
-                } \
-        } while (0)
-
-#define PKIX_MUTEX_UNLOCK(obj) \
-        do { \
-                if (obj){ \
-                        pkixTempResult = \
-                                PKIX_PL_Mutex_Unlock((obj), plContext); \
-                        if (pkixTempResult) return pkixTempResult; \
-                        mutexIsLocked = PKIX_FALSE; \
-                        lockedMutex = NULL; \
-                } \
-        } while (0)
-
-
-#define PKIX_RETURN(type) \
-        { \
-                if (objectIsLocked){ \
-                        PKIX_OBJECT_UNLOCK(lockedObject); \
-                } \
-                if (mutexIsLocked){ \
-                        PKIX_MUTEX_UNLOCK(lockedMutex); \
-                } \
-                if ((pkixErrorReceived) || (pkixErrorResult)){ \
-                        PKIX_THROW(type, pkixErrorMsg); \
-                } \
-                PKIX_DEBUG_EXIT(type); \
-                do { \
-                    if (pkixLoggersDebugTrace) { \
-                        (pkix_Logger_Check(pkixLoggersDebugTrace, \
-                            myFuncName, "<<<", \
-                            pkixType, PKIX_LOGGER_LEVEL_TRACE, plContext)); \
-                    } \
-                } while (0); \
-                pkixErrorCode = 0; \
-                return (NULL); \
-        }
-
-#define PKIX_RETURN_NO_LOGGER(type) \
-        { \
-                if (objectIsLocked){ \
-                        PKIX_OBJECT_UNLOCK(lockedObject); \
-                } \
-                if (mutexIsLocked){ \
-                        PKIX_MUTEX_UNLOCK(lockedMutex); \
-                } \
-                if ((pkixErrorReceived) || (pkixErrorResult)){ \
-                        PKIX_THROW(type, pkixErrorMsg); \
-                } \
-                PKIX_DEBUG_EXIT(type); \
-                pkixErrorCode = 0; \
-                return (NULL); \
-        }
-
-#define PKIX_THROW(type, desc) \
-        { \
-                pkixTempResult = (PKIX_Error*)pkix_Throw \
-                        (PKIX_ ## type ## _ERROR, myFuncName, desc, \
-                        pkixErrorResult, &pkixReturnResult, plContext); \
-                if (pkixErrorResult != PKIX_ALLOC_ERROR()){ \
-                        PKIX_DECREF(pkixErrorResult); \
-                } \
-                if (pkixTempResult) return (pkixTempResult); \
-                else return (pkixReturnResult); \
-        }
-
-#define PKIX_ERROR_CREATE(type, descNum, error) \
-	{ \
-                pkixTempResult = (PKIX_Error*)pkix_Throw \
-                        (PKIX_ ## type ## _ERROR,  myFuncName, \
-                        PKIX_ErrorText[descNum], NULL, &error, plContext); \
-                if (pkixTempResult) error = pkixTempResult; \
-        }
-		
-
-#define PKIX_ERROR_RECEIVED (pkixErrorReceived || pkixErrorResult ||\
-                        pkixTempErrorReceived)
+    PKIX_ ## type ## _DEBUG_ARG("( Entering %s).\n", myFuncName)
 
 #define PKIX_DEBUG_EXIT(type) \
-        PKIX_ ## type ## _DEBUG_ARG("( Exiting %s).\n", myFuncName)
+    PKIX_ ## type ## _DEBUG_ARG("( Exiting %s).\n", myFuncName)
+
+
+
+#define PKIX_OBJECT_UNLOCK(obj) \
+    do { \
+	if (obj){ \
+	    PORT_Assert(lockedObject == (PKIX_PL_Object *)(obj)); \
+	    pkixTempResult = \
+		    PKIX_PL_Object_Unlock \
+		    ((PKIX_PL_Object *)(obj), plContext); \
+	    if (pkixTempResult) \
+		return pkixTempResult; \
+	    lockedObject = NULL; \
+	} \
+    } while (0)
+
+#define PKIX_MUTEX_UNLOCK(mutex) \
+    do { \
+	if (mutex){ \
+	    PORT_Assert(lockedMutex == (PKIX_PL_Mutex *)(mutex)); \
+	    pkixTempResult = \
+		    PKIX_PL_Mutex_Unlock((mutex), plContext); \
+	    if (pkixTempResult) \
+		return pkixTempResult; \
+	    lockedMutex = NULL; \
+	} \
+    } while (0)
 
 #define PKIX_DECREF(obj) \
-        do { \
-                if (obj){ \
-                        pkixTempResult = PKIX_PL_Object_DecRef \
-                        ((PKIX_PL_Object *)(obj), plContext); \
-                        if (pkixTempResult) return pkixTempResult; \
-                        obj = NULL; \
-                } \
-        } while (0)
+    do { \
+	if (obj){ \
+	    pkixTempResult = PKIX_PL_Object_DecRef \
+			((PKIX_PL_Object *)(obj), plContext); \
+	    if (pkixTempResult) \
+		return pkixTempResult; \
+	    obj = NULL; \
+	} \
+    } while (0)
+
+#if defined(DEBUG) && !defined(DEBUG_nb95248)
+#define PKIX_THROW(type, desc) \
+    { \
+	pkixTempResult = (PKIX_Error*)pkix_Throw \
+		(PKIX_ ## type ## _ERROR, myFuncName, desc, \
+		pkixErrorResult, &pkixReturnResult, plContext); \
+	if (pkixErrorResult != PKIX_ALLOC_ERROR()) \
+	    PKIX_DECREF(pkixErrorResult); \
+	if (pkixTempResult) \
+	    return pkixTempResult; \
+	return pkixReturnResult; \
+    }
+#else
+#define PKIX_THROW(type, desc) \
+    return PKIX_DoThrow(&stdVars, (PKIX_ ## type ## _ERROR), desc, plContext);
+#endif
+
+
+#if defined(DEBUG) && !defined(DEBUG_nb95248)
+#define PKIX_RETURN(type) \
+    { \
+	PKIX_OBJECT_UNLOCK(lockedObject); \
+	PKIX_MUTEX_UNLOCK(lockedMutex); \
+	if ((pkixErrorReceived) || (pkixErrorResult)) \
+	    PKIX_THROW(type, pkixErrorMsg); \
+	PKIX_DEBUG_EXIT(type); \
+	_PKIX_DEBUG_TRACE(pkixLoggersDebugTrace, "<<<", PKIX_LOGGER_LEVEL_TRACE); \
+	return NULL; \
+    }
+#else
+#define PKIX_RETURN(type) \
+    return PKIX_DoReturn(&stdVars, (PKIX_ ## type ## _ERROR), PKIX_TRUE, plContext);
+#endif
+
+#if defined(DEBUG) && !defined(DEBUG_nb95248)
+#define PKIX_RETURN_NO_LOGGER(type) \
+    { \
+	PKIX_OBJECT_UNLOCK(lockedObject); \
+	PKIX_MUTEX_UNLOCK(lockedMutex); \
+	if ((pkixErrorReceived) || (pkixErrorResult)) \
+	    PKIX_THROW(type, pkixErrorMsg); \
+	PKIX_DEBUG_EXIT(type); \
+	return NULL; \
+    }
+#else
+#define PKIX_RETURN_NO_LOGGER(type) \
+    return PKIX_DoReturn(&stdVars, (PKIX_ ## type ## _ERROR), PKIX_FALSE, plContext);
+#endif
+
+
+
+#if defined(DEBUG) && !defined(DEBUG_nb95248)
+#define PKIX_CHECK(func, descNum) \
+    do { \
+	pkixErrorResult = (func); \
+	if (pkixErrorResult) { \
+	    pkixTempResult = PKIX_Error_GetErrorCode \
+		    (pkixErrorResult, &pkixErrorCode, plContext); \
+	    if (pkixTempResult) \
+	    	return pkixTempResult; \
+	    pkixErrorMsg = PKIX_ErrorText[descNum]; \
+	    if (pkixErrorCode == PKIX_FATAL_ERROR) \
+		PKIX_RETURN(FATAL); \
+	    goto cleanup; \
+	} \
+    } while (0)
+#else
+#define PKIX_CHECK(func, descNum) \
+    do { \
+	pkixErrorResult = (func); \
+	if (pkixErrorResult) { \
+	    pkixTempResult = PKIX_DoCheck(&stdVars, descNum, plContext); \
+	    if (pkixTempResult) \
+	    	return pkixTempResult; \
+	    goto cleanup; \
+	} \
+    } while (0)
+#endif
+
+#define PKIX_CHECK_ONLY_FATAL(func, descNum) \
+    do { \
+	pkixTempErrorReceived = PKIX_FALSE; \
+	pkixErrorResult = (func); \
+	if (pkixErrorResult) { \
+	    pkixTempErrorReceived = PKIX_TRUE; \
+	    pkixTempResult = PKIX_Error_GetErrorCode \
+		    (pkixErrorResult, &pkixErrorCode, plContext); \
+	    if (pkixTempResult)  \
+	    	return pkixTempResult; \
+	    if (pkixErrorCode == PKIX_FATAL_ERROR){ \
+		pkixErrorMsg = PKIX_ErrorText[descNum]; \
+		PKIX_RETURN(FATAL); \
+	    } \
+	    PKIX_DECREF(pkixErrorResult); \
+	} \
+    } while (0)
+
+#define PKIX_LOG_ERROR(descNum) \
+    _PKIX_LOG_ERROR(PKIX_ErrorText[descNum], PKIX_LOGGER_LEVEL_ERROR)
+
+#define PKIX_ERROR(descNum) \
+    { \
+	PKIX_LOG_ERROR(descNum) \
+	pkixErrorReceived = PKIX_TRUE; \
+	pkixErrorMsg = PKIX_ErrorText[descNum]; \
+	goto cleanup; \
+    }
+
+#define PKIX_ERROR_FATAL(descNum) \
+    { \
+	pkixErrorReceived = PKIX_TRUE; \
+	pkixErrorMsg = PKIX_ErrorText[descNum]; \
+	_PKIX_LOG_ERROR(pkixErrorMsg, PKIX_LOGGER_LEVEL_FATALERROR); \
+	PKIX_RETURN(FATAL); \
+    }
+
+#define PKIX_CHECK_FATAL(func, descNum) \
+    do { \
+	pkixTempResult = (func); \
+	if (pkixTempResult) { \
+	    PKIX_ERROR_FATAL(descNum); \
+	} \
+    } while (0)
+
+#define PKIX_NULLCHECK_ONE(a) \
+    do { \
+	if ((a) == NULL){ \
+	    PKIX_ERROR_FATAL(PKIX_NULLARGUMENT); \
+	} \
+    } while (0)
+
+#define PKIX_NULLCHECK_TWO(a, b) \
+    do { \
+	if (((a) == NULL) || ((b) == NULL)){ \
+	    PKIX_ERROR_FATAL(PKIX_NULLARGUMENT); \
+	} \
+    } while (0)
+
+#define PKIX_NULLCHECK_THREE(a, b, c) \
+    do { \
+	if (((a) == NULL) || ((b) == NULL) || ((c) == NULL)){ \
+	    PKIX_ERROR_FATAL(PKIX_NULLARGUMENT); \
+	} \
+    } while (0)
+
+#define PKIX_NULLCHECK_FOUR(a, b, c, d) \
+    do { \
+	if (((a) == NULL) || ((b) == NULL) || \
+	    ((c) == NULL) || ((d) == NULL)){ \
+	    PKIX_ERROR_FATAL(PKIX_NULLARGUMENT); \
+	} \
+    } while (0)
+
+#define PKIX_OBJECT_LOCK(obj) \
+    do { \
+	if (obj){ \
+	    PKIX_CHECK(PKIX_PL_Object_Lock \
+		    ((PKIX_PL_Object*)(obj), plContext), \
+		    PKIX_OBJECTLOCKFAILED); \
+	    lockedObject = (PKIX_PL_Object *)(obj); \
+	} \
+    } while (0)
+
+#define PKIX_MUTEX_LOCK(obj) \
+    do { \
+	if (obj){ \
+	    PKIX_CHECK(PKIX_PL_Mutex_Lock((obj), plContext), \
+		    PKIX_MUTEXLOCKFAILED); \
+	    lockedMutex = (obj); \
+	} \
+    } while (0)
+
+#define PKIX_ERROR_CREATE(type, descNum, error) \
+    { \
+	pkixTempResult = (PKIX_Error*)pkix_Throw \
+		(PKIX_ ## type ## _ERROR,  myFuncName, \
+		PKIX_ErrorText[descNum], NULL, &error, plContext); \
+	if (pkixTempResult)  \
+	    error = pkixTempResult; \
+    }
+		
+
+#define PKIX_ERROR_RECEIVED \
+    (pkixErrorReceived || pkixErrorResult || pkixTempErrorReceived)
 
 #define PKIX_INCREF(obj) \
-        do { \
-                if (obj){ \
-                        pkixTempResult = PKIX_PL_Object_IncRef \
-                        ((PKIX_PL_Object *)(obj), plContext); \
-                        if (pkixTempResult) return pkixTempResult; \
-                } \
-        } while (0)
+    do { \
+	if (obj){ \
+	    pkixTempResult = PKIX_PL_Object_IncRef \
+			((PKIX_PL_Object *)(obj), plContext); \
+	    if (pkixTempResult)  \
+		return pkixTempResult; \
+	} \
+    } while (0)
 
 #define PKIX_FREE(obj) \
-        do { \
-                if (obj) { \
-                        pkixTempResult = PKIX_PL_Free((obj), plContext); \
-                        obj = NULL; \
-                } \
-        } while (0)
+    do { \
+	if (obj) { \
+	    pkixTempResult = PKIX_PL_Free((obj), plContext); \
+	    obj = NULL; \
+	} \
+    } while (0)
 
 #define PKIX_EXACTLY_ONE_NULL(a, b) (((a) && !(b)) || ((b) && !(a)))
 
 /* DIGIT MACROS */
 
-#define PKIX_ISDIGIT(c) (((c) >= '0')&&((c) <= '9'))
+#define PKIX_ISDIGIT(c) (((c) >= '0') && ((c) <= '9'))
 
 #define PKIX_ISXDIGIT(c) \
-        (PKIX_ISDIGIT(c)||\
-        (((c) >= 'a')&&((c) <= 'f'))||\
-        (((c) >= 'A')&&((c) <= 'F')))
+    (PKIX_ISDIGIT(c) || ( (((c)|0x20) >= 'a') && (((c)|0x20) <= 'f') ))
 
 #define PKIX_TOSTRING(a, b, c, d) \
-        do { \
-                if ((a) != NULL) { \
-                    PKIX_CHECK(PKIX_PL_Object_ToString\
-                        ((PKIX_PL_Object *)(a), (b), (c)), (d)); \
-                } else { \
-                    PKIX_CHECK(PKIX_PL_String_Create(PKIX_ESCASCII, "(null)", \
-                        0, (b), (c)), PKIX_STRINGCREATEFAILED); \
-                } \
-        } while (0)
+    do { \
+	int descNum; \
+	if ((a) != NULL) { \
+	    pkixErrorResult =  \
+		PKIX_PL_Object_ToString((PKIX_PL_Object *)(a), (b), (c)); \
+	    descNum = (d); \
+	} else { \
+	    pkixErrorResult =  \
+		PKIX_PL_String_Create(PKIX_ESCASCII, "(null)", 0, (b), (c)); \
+	    descNum = PKIX_STRINGCREATEFAILED; \
+	} \
+	PKIX_CHECK(pkixErrorResult, descNum); \
+    } while (0)
 
 #define PKIX_EQUALS(a, b, c, d, e) \
-        do { \
-                if ((a) != NULL && (b) != NULL) { \
-                    PKIX_CHECK(PKIX_PL_Object_Equals\
-                        ((PKIX_PL_Object *)(a), \
-                        (PKIX_PL_Object*)(b), \
-                        (c), \
-                        (d)), \
-                        (e)); \
-                } else { \
-                    if ((a) == NULL && (b) == NULL) { \
-                        *(c) = PKIX_TRUE; \
-                    } else { \
-                        *(c) = PKIX_FALSE; \
-                    } \
-                } \
-        } while (0)
+    do { \
+	if ((a) != NULL && (b) != NULL) { \
+	    PKIX_CHECK(PKIX_PL_Object_Equals\
+			((PKIX_PL_Object *)(a), \
+			(PKIX_PL_Object*)(b), \
+			(c), \
+			(d)), \
+			(e)); \
+	} else if ((a) == NULL && (b) == NULL) { \
+	    *(c) = PKIX_TRUE; \
+	} else { \
+	    *(c) = PKIX_FALSE; \
+	} \
+    } while (0)
 
 #define PKIX_HASHCODE(a, b, c, d) \
-        do { \
-                if ((a) != NULL) { \
-                    PKIX_CHECK(PKIX_PL_Object_Hashcode\
-                        ((PKIX_PL_Object *)(a), (b), (c)), (d)); \
-                } else { \
-                    *(b) = 0; \
-                } \
-        } while (0)
+    do { \
+	if ((a) != NULL) { \
+	    PKIX_CHECK(PKIX_PL_Object_Hashcode\
+		((PKIX_PL_Object *)(a), (b), (c)), (d)); \
+	} else { \
+	    *(b) = 0; \
+	} \
+    } while (0)
 
 #define PKIX_DUPLICATE(a, b, c, d) \
-        do { \
-                if ((a) != NULL) { \
-                    PKIX_CHECK(PKIX_PL_Object_Duplicate\
-                        ((PKIX_PL_Object *)(a), \
-                        (PKIX_PL_Object **)(b), \
-                        (c)), \
-                        (d)); \
-                } else { \
-                    *(b) = (a); \
-                } \
-        } while (0)
+    do { \
+	if ((a) != NULL) { \
+	    PKIX_CHECK(PKIX_PL_Object_Duplicate\
+			((PKIX_PL_Object *)(a), \
+			(PKIX_PL_Object **)(b), \
+			(c)), \
+			(d)); \
+	} else { \
+	    *(b) = (a); \
+	} \
+    } while (0)
 
 /*
  * DEBUG MACROS
@@ -529,22 +596,18 @@ extern "C" {
  */
 
 #define PKIX_DEBUG(expr) \
-        do { \
-                if (pkixLoggersErrors) { \
-                     (pkix_Logger_Check(pkixLoggersDebugTrace, \
-                                myFuncName, expr, pkixType, \
-                                PKIX_LOGGER_LEVEL_DEBUG, plContext)); \
-                } \
-                (void) printf("(%s: ", myFuncName); \
-                (void) printf(expr); \
-        } while (0)
+    do { \
+	_PKIX_DEBUG_TRACE(pkixLoggersErrors, expr, PKIX_LOGGER_LEVEL_DEBUG); \
+	(void) printf("(%s: ", myFuncName); \
+	(void) printf(expr); \
+    } while (0)
 
 /* Logging doesn't support DEBUG with ARG: cannot convert control and arg */
 #define PKIX_DEBUG_ARG(expr, arg) \
-        do { \
-                (void) printf("(%s: ", myFuncName); \
-                (void) printf(expr, arg); \
-        } while (0)
+    do { \
+	(void) printf("(%s: ", myFuncName); \
+	(void) printf(expr, arg); \
+    } while (0)
 
 #if PKIX_FATALDEBUG
 #define PKIX_FATAL_DEBUG(expr) \
@@ -1311,8 +1374,8 @@ pkix_IsCertSelfIssued(
 PKIX_Error *
 pkix_Throw(
         PKIX_UInt32 code,
-        char *funcName,
-        char *errorText,
+        const char *funcName,
+        const char *errorText,
         PKIX_Error *cause,
         PKIX_Error **pError,
         void *plContext);

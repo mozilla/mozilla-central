@@ -46,7 +46,8 @@
 #undef PKIX_ERRORENTRY
 
 #define PKIX_ERRORENTRY(name,desc) #desc
-char *PKIX_ErrorText[] =
+
+const char * const PKIX_ErrorText[] =
 {
 #include "pkix_errorstrings.h"
 };

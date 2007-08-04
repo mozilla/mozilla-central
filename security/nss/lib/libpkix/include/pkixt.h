@@ -365,7 +365,7 @@ typedef enum    {
 #include "pkix_errorstrings.h"
 } PKIX_ERRSTRINGNUM;
 
-extern char *PKIX_ErrorText[];
+extern const char * const PKIX_ErrorText[];
 
 
 /* String Formats

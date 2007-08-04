@@ -35,34 +35,53 @@
  *
  * ***** END LICENSE BLOCK ***** */
 /*
- * pkix_error.h
+ * pkix_error.c
  *
- * Error Object Type Definition
+ * Error Object Functions
  *
  */
 
-#ifndef _PKIX_ERROR_H
-#define _PKIX_ERROR_H
+#define PKIX_STDVARS_POINTER
+#include "pkix_error.h"
 
-#include "pkix_tools.h"
+const PKIX_StdVars zeroStdVars;
 
-#ifdef __cplusplus
-extern "C" {
-#endif
-
-struct PKIX_ErrorStruct {
-        PKIX_UInt32 code;
-        PKIX_Error *cause;
-        PKIX_PL_Object *info;
-        PKIX_PL_String *desc;
-};
-
-/* see source file for function documentation */
-
-extern PKIX_Error * pkix_Error_RegisterSelf(void *plContext);
-
-#ifdef __cplusplus
+PKIX_Error *
+PKIX_DoThrow(PKIX_StdVars * stdVars, PKIX_ERRORNUM errorCode, 
+             const char * desc, void *plContext)
+{
+    pkixTempResult = (PKIX_Error*)pkix_Throw(errorCode, myFuncName, desc,
+	                 pkixErrorResult, &pkixReturnResult, plContext);
+    if (pkixErrorResult != PKIX_ALLOC_ERROR())
+	PKIX_DECREF(pkixErrorResult);
+    if (pkixTempResult)
+	return pkixTempResult;
+    return pkixReturnResult;
 }
-#endif
 
-#endif /* _PKIX_ERROR_H */
+PKIX_Error *
+PKIX_DoReturn(PKIX_StdVars * stdVars, PKIX_ERRORNUM errorCode,
+              PKIX_Boolean doLogger, void *plContext)
+{
+    PKIX_OBJECT_UNLOCK(lockedObject);
+    PKIX_MUTEX_UNLOCK(lockedMutex);
+    if ((pkixErrorReceived) || (pkixErrorResult))
+	return PKIX_DoThrow(stdVars, errorCode, pkixErrorMsg, plContext);
+    /* PKIX_DEBUG_EXIT(type); */
+    if (doLogger)
+	_PKIX_DEBUG_TRACE(pkixLoggersDebugTrace, "<<<", PKIX_LOGGER_LEVEL_TRACE);
+    return NULL;
+}
+
+PKIX_Error *
+PKIX_DoCheck(PKIX_StdVars * stdVars, int descNum, void *plContext)
+{
+    pkixTempResult = 
+	PKIX_Error_GetErrorCode(pkixErrorResult, &pkixErrorCode, plContext);
+    if (pkixTempResult)
+	return pkixTempResult;
+    pkixErrorMsg = PKIX_ErrorText[descNum];
+    if (pkixErrorCode == PKIX_FATAL_ERROR)
+	return PKIX_DoReturn(stdVars, pkixErrorCode, PKIX_TRUE, plContext);
+    return NULL;
+}

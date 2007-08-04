@@ -41,7 +41,7 @@
  * by defining PKIX_ERRORENTRY(x,y) as PKIX_ ## x  and then listing thim within
  * an enum. It is included in pkix_error.c to define an array of error strings
  * by defining PKIX_ERRORENTRY(x,y) #y and then listing thim within an array
- * char *PKIX_ErrorText[]
+ * const char * const PKIX_ErrorText[]
  */
 PKIX_ERRORENTRY(ADDHEADERFUNCTIONNOTSUPPORTED,AddHeader function not supported),
 PKIX_ERRORENTRY(ADDTOVERIFYLOGFAILED,pkix_AddToVerifyLog failed),
