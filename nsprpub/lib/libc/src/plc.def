@@ -97,3 +97,8 @@ libVersionPoint;
 ;+    global:
 PL_strtok_r;
 ;+} NSPR_4.0;
+;+
+;+NSPR_4.7 {
+;+    global:
+PL_CreateLongOptState;
+;+} NSPR_4.2;

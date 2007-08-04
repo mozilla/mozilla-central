@@ -57,7 +57,10 @@ struct PLOptionInternal
     char **argv;                /* vector of pointers to arguments */
     PRIntn xargc;               /* which one we're processing now */
     const char *xargv;          /* where within *argv[xargc] */
-    PRBool minus;               /* do we already have the '-'? */
+    PRIntn minus;               /* do we already have the '-'? */
+    const PLLongOpt *longOpts;  /* Caller's array */
+    PRBool endOfOpts;           /* have reached a "--" argument */
+    PRIntn optionsLen;          /* is strlen(options) */
 };
 
 /*
@@ -70,39 +73,55 @@ struct PLOptionInternal
 PR_IMPLEMENT(PLOptState*) PL_CreateOptState(
     PRIntn argc, char **argv, const char *options)
 {
-    PLOptState *opt = NULL;
-    if (NULL == options)
-        PR_SetError(PR_INVALID_ARGUMENT_ERROR, 0);
-    else
-    {
-        opt = PR_NEWZAP(PLOptState);
-        if (NULL == opt)
-            PR_SetError(PR_OUT_OF_MEMORY_ERROR, 0);
-        else
-        {
-            PLOptionInternal *internal = PR_NEW(PLOptionInternal);
-            if (NULL == internal)
-            {
-                PR_DELETE(opt);
-                PR_SetError(PR_OUT_OF_MEMORY_ERROR, 0);
-            }
-            else
-            {
-				opt->option = 0;
-				opt->value = NULL;
-				opt->internal = internal;
-
-                internal->argc = argc;
-                internal->argv = argv;
-                internal->xargc = 0;
-                internal->xargv = &static_Nul;
-                internal->minus = PR_FALSE;
-                internal->options = options;
-            }
-        }
-    }
-    return opt;
+    return PL_CreateLongOptState( argc, argv, options, NULL);
 }  /* PL_CreateOptState */
+
+PR_IMPLEMENT(PLOptState*) PL_CreateLongOptState(
+    PRIntn argc, char **argv, const char *options, 
+    const PLLongOpt *longOpts)
+{
+    PLOptState *opt = NULL;
+    PLOptionInternal *internal;
+
+    if (NULL == options) 
+    {
+        PR_SetError(PR_INVALID_ARGUMENT_ERROR, 0);
+        return opt;
+    }
+
+    opt = PR_NEWZAP(PLOptState);
+    if (NULL == opt) 
+    {
+        PR_SetError(PR_OUT_OF_MEMORY_ERROR, 0);
+        return opt;
+    }
+
+    internal = PR_NEW(PLOptionInternal);
+    if (NULL == internal)
+    {
+        PR_DELETE(opt);
+        PR_SetError(PR_OUT_OF_MEMORY_ERROR, 0);
+        return NULL;
+    }
+
+    opt->option = 0;
+    opt->value = NULL;
+    opt->internal = internal;
+    opt->longOption   =  0;
+    opt->longOptIndex = -1;
+
+    internal->argc = argc;
+    internal->argv = argv;
+    internal->xargc = 0;
+    internal->xargv = &static_Nul;
+    internal->minus = 0;
+    internal->options = options;
+    internal->longOpts = longOpts;
+    internal->endOfOpts = PR_FALSE;
+    internal->optionsLen = PL_strlen(options);
+
+    return opt;
+}  /* PL_CreateLongOptState */
 
 /*
 ** Destroy object created by CreateOptState()
@@ -116,56 +135,107 @@ PR_IMPLEMENT(void) PL_DestroyOptState(PLOptState *opt)
 PR_IMPLEMENT(PLOptStatus) PL_GetNextOpt(PLOptState *opt)
 {
     PLOptionInternal *internal = opt->internal;
-    PRIntn cop, eoo = PL_strlen(internal->options);
 
+    opt->longOption   =  0;
+    opt->longOptIndex = -1;
     /*
     ** If the current xarg points to nul, advance to the next
     ** element of the argv vector. If the vector index is equal
     ** to argc, we're out of arguments, so return an EOL.
-	** Note whether the first character of the new argument is
-	** a '-' and skip by it if it is.
+    ** Note whether the first character of the new argument is
+    ** a '-' and skip by it if it is.
     */
     while (0 == *internal->xargv)
     {
         internal->xargc += 1;
         if (internal->xargc >= internal->argc)
-		{
-			opt->option = 0;
-			opt->value = NULL;
-			return PL_OPT_EOL;
-		}
+        {
+            opt->option = 0;
+            opt->value = NULL;
+            return PL_OPT_EOL;
+        }
         internal->xargv = internal->argv[internal->xargc];
-		internal->minus = ('-' == *internal->xargv ? PR_TRUE : PR_FALSE);  /* not it */
-		if (internal->minus) internal->xargv += 1;  /* and consume */
+        internal->minus = 0;
+        if (!internal->endOfOpts && ('-' == *internal->xargv)) 
+        {
+            internal->minus++;
+            internal->xargv++;  /* and consume */
+            if ('-' == *internal->xargv && internal->longOpts) 
+            {
+                internal->minus++;
+                internal->xargv++;
+                if (0 == *internal->xargv) 
+                {
+                    internal->endOfOpts = PR_TRUE;
+                }
+            }
+        }
     }
 
     /*
-    ** If we already have a '-' in hand, xargv points to the next
+    ** If we already have a '-' or '--' in hand, xargv points to the next
     ** option. See if we can find a match in the list of possible
     ** options supplied.
     */
 
+    if (internal->minus == 2) 
+    {
+        char * foundEqual = strchr(internal->xargv,'=');
+        PRIntn optNameLen = foundEqual ? (foundEqual - internal->xargv) :
+                            strlen(internal->xargv);
+        const PLLongOpt *longOpt = internal->longOpts;
+
+        opt->option = 0;
+        opt->value  = NULL;
+
+        for (; longOpt->longOptName; ++longOpt) 
+        {
+            if (strncmp(longOpt->longOptName, internal->xargv, optNameLen))
+                continue;  /* not a possible match */
+            if (strlen(longOpt->longOptName) != optNameLen)
+                continue;  /* not a match */
+            /* option name match */
+            opt->longOptIndex = longOpt - internal->longOpts;
+            opt->longOption   = longOpt->longOption;
+            if (foundEqual) 
+            {
+                opt->value = foundEqual[1] ? foundEqual + 1 : NULL;
+            }
+            else if (longOpt->valueRequired)
+            {
+                opt->value = internal->argv[++(internal->xargc)];
+            }
+            internal->xargv = &static_Nul; /* consume this */
+            return PL_OPT_OK;
+        }
+        internal->xargv = &static_Nul; /* consume this */
+        return PL_OPT_BAD;
+    }
     if (internal->minus)
     {
+        PRIntn cop;
+        PRIntn eoo = internal->optionsLen;
         for (cop = 0; cop < eoo; ++cop)
         {
             if (internal->options[cop] == *internal->xargv)
             {
-                opt->option = *internal->xargv;
-                internal->xargv += 1;
+                opt->option = *internal->xargv++;
+                opt->longOption = opt->option & 0xff;
                 /*
                 ** if options indicates that there's an associated
-				** value, this argv is finished and the next is the
-				** option's value.
+                ** value, this argv is finished and the next is the
+                ** option's value.
                 */
                 if (':' == internal->options[cop + 1])
                 {
-                    if (0 != *internal->xargv) return PL_OPT_BAD;
+                    if (0 != *internal->xargv) 
+                        return PL_OPT_BAD;
                     opt->value = internal->argv[++(internal->xargc)];
                     internal->xargv = &static_Nul;
-                    internal->minus = PR_FALSE;
+                    internal->minus = 0;
                 }
-				else opt->value = NULL;
+                else 
+                    opt->value = NULL; 
                 return PL_OPT_OK;
             }
         }
