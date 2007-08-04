@@ -105,7 +105,7 @@ private:
 class nsIAbOSXDirectory : public nsISupports
 {
 public:
-  NS_DEFINE_STATIC_IID_ACCESSOR(NS_IABOSXDIRECTORY_IID)
+  NS_DECLARE_STATIC_IID_ACCESSOR(NS_IABOSXDIRECTORY_IID)
   
   virtual nsresult AssertChildNodes() = 0;
   virtual nsresult Update() = 0;
@@ -117,8 +117,9 @@ public:
                                      nsIAbDirectory *aDirectory) = 0;
   virtual nsresult UnassertCard(nsIAddrBookSession *aSession,
                                 nsIAbCard *aCard) = 0;
-  virtual void GetURI(nsACString &aURI) = 0;
 };
+
+NS_DEFINE_STATIC_IID_ACCESSOR(nsIAbOSXDirectory, NS_IABOSXDIRECTORY_IID)
 
 class nsAbOSXDirectory : public nsAbDirectoryRDFResource,
 public nsAbDirProperty,
@@ -135,7 +136,7 @@ public:
   
   // nsAbDirProperty methods
   NS_IMETHOD GetOperations(PRInt32 *aOperations);
-  NS_IMETHOD GetChildCards(nsIEnumerator **aCards);
+  NS_IMETHOD GetChildCards(nsISimpleEnumerator **aCards);
   NS_IMETHOD GetChildNodes(nsISimpleEnumerator **aNodes);
   NS_IMETHOD HasCard(nsIAbCard *aCard, PRBool *aHasCard);
   NS_IMETHOD HasDirectory(nsIAbDirectory *aDirectory, PRBool *aHasDirectory);
@@ -156,28 +157,13 @@ public:
                         nsIAbCard *aCard);
   
   nsresult Update();
-  void GetURI(nsACString &aURI)
-  {
-    aURI = mURI;
-  }
   
 private:
-    static nsresult GetEnumerator(nsISupportsArray *aArray,
-                                  nsIEnumerator **aEnumerator)
-  {
-      nsIBidirectionalEnumerator *enumerator;
-      nsresult rv = NS_NewISupportsArrayEnumerator(aArray,
-                                                   &enumerator);
-      NS_ENSURE_SUCCESS(rv, rv);
-      
-      *aEnumerator = enumerator;
-      
-      return NS_OK;
-  }
   nsresult FallbackSearch(nsIAbBooleanExpression *aExpression,
-                          nsIEnumerator **aCards);
+                          nsISimpleEnumerator **aCards);
   
   nsTHashtable<nsIAbCardHashKey> mCardList;
+  nsCString m_DirName;
 };
 
 #endif // nsAbOSXDirectory_h___
