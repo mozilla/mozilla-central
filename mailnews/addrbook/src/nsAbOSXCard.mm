@@ -45,6 +45,15 @@
 #include "nsServiceManagerUtils.h"
 
 #include <AddressBook/AddressBook.h>
+#if (MAC_OS_X_VERSION_MAX_ALLOWED < MAC_OS_X_VERSION_10_3)    
+#define kABPersonFlags nil
+#define kABShowAsCompany (0)
+#define kABNameOrderingMask (0)
+#define kABDefaultNameOrdering (-1)
+#define kABFirstNameFirst (-1)
+#define kABOtherDatesProperty nil
+#define kABAnniversaryLabel nil
+#endif
 
 NS_IMPL_ISUPPORTS_INHERITED2(nsAbOSXCard,
                              nsRDFResource,
@@ -232,18 +241,18 @@ nsAbOSXCard::Update(PRBool aNotify)
   SetStringProperty(this, _value, m_##_name, #_name, _notify, _session)
     
     // If kABShowAsCompany is set we use the company name as display name.
-    if (flags & kABShowAsCompany) {
+    if (kABPersonFlags && (flags & kABShowAsCompany)) {
       SET_STRING(m_Company, DisplayName, aNotify, abSession);
     }
   else {
     // Use the order used in the OS X address book to set DisplayName.
-    int order = flags & kABNameOrderingMask;
-    if (order == kABDefaultNameOrdering) {
+    int order = kABPersonFlags && (flags & kABNameOrderingMask);
+    if (kABPersonFlags && (order == kABDefaultNameOrdering)) {
       order = [addressBook defaultNameOrdering];
     }
     
     nsAutoString displayName;
-    if (order == kABFirstNameFirst) {
+    if (kABPersonFlags && (order == kABFirstNameFirst)) {
       displayName.Append(m_FirstName);
       displayName.Append(' ');
       displayName.Append(m_LastName);

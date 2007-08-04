@@ -51,6 +51,15 @@
 #include "nsServiceManagerUtils.h"
 
 #include <AddressBook/AddressBook.h>
+#if (MAC_OS_X_VERSION_MAX_ALLOWED < MAC_OS_X_VERSION_10_3)
+#define kABDeletedRecords @"ABDeletedRecords"
+#define kABUpdatedRecords @"ABUpdatedRecords"
+#define kABInsertedRecords @"ABInsertedRecords"
+#elif (MAC_OS_X_VERSION_MIN_REQUIRED < MAC_OS_X_VERSION_10_3)
+#define kABDeletedRecords (kABDeletedRecords? kABDeletedRecords : @"ABDeletedRecords")
+#define kABUpdatedRecords (kABUpdatedRecords ? kABUpdatedRecords : @"ABUpdatedRecords")
+#define kABInsertedRecords (kABInsertedRecords ? kABInsertedRecords : @"ABInsertedRecords")
+#endif
 
 static nsresult
 ConvertToGroupResource(nsIRDFService *aRDFService, NSString *aUid,
@@ -194,9 +203,9 @@ Update(nsIRDFService *aRDFService, NSString *aUid)
     unsigned int i, count = [deleted count];
     for (i = 0; i < count; ++i) {
       ABAddressBook *addressBook = [ABAddressBook sharedAddressBook];
-      NSString *recordClass =
-        [addressBook recordClassFromUniqueId:[deleted objectAtIndex:i]];
-      if ([recordClass isEqualToString:@"ABGroup"]) {
+      ABRecord* card
+          = [addressBook recordForUniqueId: [deleted objectAtIndex:i]];
+      if ([card isKindOfClass: [ABGroup class]]) {
         nsCOMPtr<nsIAbDirectory> directory;
         ConvertToGroupResource(rdfService, [deleted objectAtIndex:i],
                                getter_AddRefs(directory));
