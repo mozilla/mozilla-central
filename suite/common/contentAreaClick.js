@@ -49,67 +49,6 @@
   pref = Components.classes["@mozilla.org/preferences-service;1"]
                    .getService(Components.interfaces.nsIPrefBranch);
 
-  // Prefill a single text field
-  function prefillTextBox(target) {
-    // obtain values to be used for prefilling
-    var walletService = Components.classes["@mozilla.org/wallet/wallet-service;1"].getService(Components.interfaces.nsIWalletService);
-    var value = walletService.WALLET_PrefillOneElement(window.content, target);
-    if (value) {
-
-      // result is a linear sequence of values, each preceded by a separator character
-      // convert linear sequence of values into an array of values
-      var separator = value[0];
-      var valueList = value.substring(1, value.length).split(separator);
-
-      target.value = valueList[0];
-/*
- * Following code is a replacement for above line.  In the case of multiple values, it
- * presents the user with a dialog containing a list from which he can select the value
- * he wants.  However it is being commented out for now because of several problems, namely
- *
- *   1. There is no easy way to put localizable strings for the title and message of
- *      the dialog without introducing a .properties file which currently doesn't exist
- *   2. Using blank title and messages as shown below have a problem because a zero-length
- *      title is being displayed as some garbage characters (which is why the code below
- *      has a title of " " instead of "").  This is a separate bug which will have to be
- *      investigated further.
- *   3. The current wallet tables present alternate values for items such as shipping
- *      address -- namely billing address and home address.  Up until now, these alternate
- *      values have never been a problem because the preferred value is always first and is
- *      all the user sees when doing a prefill.  However now he will be presented with a
- *      list showing all these values and asking him to pick one, even though the wallet
- *      code was clearly able to determine that he meant shipping address and not billing
- *      address.
- *   4. There is a relatively long delay before the dialog come up whereas values are
- *      filled in quickly when no dialog is involved.
- *
- * Once this feature is checked in, a separate bug will be opened asking that the above
- * problems be examined and this dialog turned on
- 
-      if (valueList.length == 1) {
-        // only one value, use it for prefilling
-        target.value = valueList[0];
-      } else {
-
-        // more than one value, have user select the one he wants
-        var promptService = Components.classes["@mozilla.org/embedcomp/prompt-service;1"].getService();
-        promptService = promptService.QueryInterface(Components.interfaces.nsIPromptService);
-        var position = {};
-        var title = " ";
-        var message = "";
-        var ok =
-          promptService.select
-            (window, title, message, valueList.length, valueList, position)
-        if (ok) {
-          target.value = valueList[position.value];
-        }
-      }
-
- * End of commented out code
- */
-    }
-  }
-  
   function hrefAndLinkNodeForClickEvent(event)
   {
     var href = "";
@@ -122,16 +61,6 @@
          target instanceof HTMLLinkElement ) {
       if (target.hasAttribute("href")) 
         linkNode = target;
-    }
-    else if ( target instanceof HTMLInputElement
-            && (event.target.type == "text") // text field
-            && !isKeyCommand // not a key event
-            && event.detail == 2 // double click
-            && event.button == 0 // left mouse button
-            && event.target.value.length == 0 // no text has been entered
-            && "@mozilla.org/wallet/wallet-service;1" in Components.classes // wallet is available
-    ) {
-      prefillTextBox(target); // prefill the empty text field if possible
     }
     else {
       linkNode = event.originalTarget;
