@@ -68,7 +68,7 @@ static void Output(const char *fmt, ... )
 }
 
 /**
- * A helper class which calls NS_LogTerm/NS_LogTerm in it's scope.
+ * A helper class which calls NS_LogInit/NS_LogTerm in it's scope.
  */
 class ScopedLogging
 {
