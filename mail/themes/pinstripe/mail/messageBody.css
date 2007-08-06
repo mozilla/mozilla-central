@@ -121,11 +121,11 @@ span.moz-txt-underscore {
 
 
 /* ::::: attached images ::::: */
-.moz-attached-image-unscaled { 
+.moz-attached-image[overflowing="true"] { 
   cursor: -moz-zoom-out;
 }
 
-.moz-attached-image-scaled { 
+.moz-attached-image[isshrunk="true"] { 
   cursor: -moz-zoom-in;
   max-width: 100%;
 }

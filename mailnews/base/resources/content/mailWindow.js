@@ -219,22 +219,28 @@ function InitMsgWindow()
   msgWindow.rootDocShell.appType = Components.interfaces.nsIDocShell.APP_TYPE_MAIL;
 }
 
-function messagePaneOnResize(event) {
+function messagePaneOnResize(event)
+{
   // scale any overflowing images
   var messagepane = document.getElementById("messagepane");
   var doc = messagepane.contentDocument;
   var imgs = doc.images;
-  for each (var img in imgs) {
-    if (img.className == "moz-attached-image") {
-      if (img.naturalWidth <= doc.width) {
+  for each (var img in imgs)
+  {
+    if (img.className == "moz-attached-image")
+    {
+      if (img.naturalWidth <= doc.width)
+      {
         img.removeAttribute("isshrunk");
         img.removeAttribute("overflowing");
       }
-      else if (img.hasAttribute("shrinktofit")) {
+      else if (img.hasAttribute("shrinktofit"))
+      {
         img.setAttribute("isshrunk", "true");
         img.removeAttribute("overflowing");
       }
-      else {
+      else
+      {
         img.setAttribute("overflowing", "true");
         img.removeAttribute("isshrunk");
       }
@@ -253,23 +259,28 @@ function messagePaneOnClick(event)
   // try to determine the href for what you are clicking on.  
   // for example, it might be "" if you aren't left clicking on a link
   var ceParams = hrefAndLinkNodeForClickEvent(event);
-  if (!ceParams && !event.button) {
+  if (!ceParams && !event.button)
+  {
     var target = event.target;
     // is this an image that we might want to scale?
-    if (target instanceof Components.interfaces.nsIImageLoadingContent) {
+    if (target instanceof Components.interfaces.nsIImageLoadingContent)
+    {
       // make sure it loaded successfully
       var req = target.getRequest(Components.interfaces.nsIImageLoadingContent.CURRENT_REQUEST);
       if (!req || req.imageStatus & Components.interfaces.imgIRequest.STATUS_ERROR)
         return true;
       // is it an inline attachment?
-      if (/^moz-attached-image/.test(target.className)) {
-        if (target.hasAttribute("isshrunk")) {
+      if (/^moz-attached-image/.test(target.className))
+      {
+        if (target.hasAttribute("isshrunk"))
+        {
           // currently shrunk to fit, so unshrink it
           target.removeAttribute("isshrunk");
           target.removeAttribute("shrinktofit");
           target.setAttribute("overflowing", "true");
         }
-        else if (target.hasAttribute("overflowing")) {
+        else if (target.hasAttribute("overflowing"))
+        {
           // user wants to shrink now
           target.setAttribute("isshrunk", "true");
           target.setAttribute("shrinktofit", "true");

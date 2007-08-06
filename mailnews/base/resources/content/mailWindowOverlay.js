@@ -811,7 +811,7 @@ function MsgGetMessage()
     GetFolderMessages();
   else if (DoGetNewMailWhenOffline())
       GetFolderMessages();
-    }
+}
 
 function MsgGetMessagesForAllServers(defaultServer)
 {
@@ -2386,8 +2386,10 @@ function OnMsgParsed(aUrl)
   // scale any overflowing images
   var doc = getMessageBrowser().contentDocument;
   var imgs = doc.getElementsByTagName("img");
-  for each (var img in imgs) {
-    if (img.className == "moz-attached-image" && img.naturalWidth > doc.width) {
+  for each (var img in imgs)
+  {
+    if (img.className == "moz-attached-image" && img.naturalWidth > doc.width)
+    {
       if (img.hasAttribute("shrinktofit"))
         img.setAttribute("isshrunk", "true");
       else

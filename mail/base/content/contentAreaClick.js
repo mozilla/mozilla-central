@@ -20,10 +20,11 @@
 # the Initial Developer. All Rights Reserved.
 #
 # Contributor(s):
-#   Alec Flett      <alecf@netscape.com>
-#   Ben Goodger     <ben@netscape.com>
-#   Mike Pinkerton  <pinkerton@netscape.com>
-#   Blake Ross      <blakeross@telocity.com>
+#   Alec Flett         <alecf@netscape.com>
+#   Ben Goodger        <ben@netscape.com>
+#   Mike Pinkerton     <pinkerton@netscape.com>
+#   Blake Ross         <blakeross@telocity.com>
+#   Christopher Thomas <cst@yecc.com>
 #
 # Alternatively, the contents of this file may be used under the terms of
 # either the GNU General Public License Version 2 or later (the "GPL"), or
@@ -86,6 +87,35 @@
     return href;
   }
 
+  function messagePaneOnResize(event)
+  {
+    // scale any overflowing images
+    var messagepane = document.getElementById("messagepane");
+    var doc = messagepane.contentDocument;
+    var imgs = doc.images;
+    for each (var img in imgs)
+    {
+      if (img.className == "moz-attached-image")
+      {
+        if (img.naturalWidth <= doc.width)
+        {
+          img.removeAttribute("isshrunk");
+          img.removeAttribute("overflowing");
+        }
+        else if (img.hasAttribute("shrinktofit")) 
+        {
+          img.setAttribute("isshrunk", "true");
+          img.removeAttribute("overflowing");
+        }
+        else
+        {
+          img.setAttribute("overflowing", "true");
+          img.removeAttribute("isshrunk");
+        }
+      }
+    }
+  }
+
   // Called whenever the user clicks in the content area,
   // except when left-clicking on links (special case)
   // should always return true for click to go through
@@ -100,20 +130,33 @@
     }
     else if (!event.button)
     {
-      var targ = event.target;
+      var target = event.target;
       // is this an image that we might want to scale?
       const Ci = Components.interfaces;
-      if (targ instanceof Ci.nsIImageLoadingContent) 
+      if (target instanceof Ci.nsIImageLoadingContent) 
       {
         // make sure it loaded successfully
-        var req = targ.getRequest(Ci.nsIImageLoadingContent.CURRENT_REQUEST);
+        var req = target.getRequest(Ci.nsIImageLoadingContent.CURRENT_REQUEST);
         if (!req || req.imageStatus & Ci.imgIRequest.STATUS_ERROR)
           return true;
         // is it an inline attachment?
-        if (targ.className == "moz-attached-image-scaled")
-          targ.className = "moz-attached-image-unscaled";
-        else if (targ.className == "moz-attached-image-unscaled")
-          targ.className = "moz-attached-image-scaled";
+        if (/^moz-attached-image/.test(target.className))
+        {
+          if (target.hasAttribute("isshrunk"))
+          {
+            // currently shrunk to fit, so unshrink it
+            target.removeAttribute("isshrunk");
+            target.removeAttribute("shrinktofit");
+            target.setAttribute("overflowing", "true");
+          }
+          else if (target.hasAttribute("overflowing"))
+          {
+            // user wants to shrink now
+            target.setAttribute("isshrunk", "true");
+            target.setAttribute("shrinktofit", "true");
+            target.removeAttribute("overflowing");
+          }
+        }
       }
     }
     

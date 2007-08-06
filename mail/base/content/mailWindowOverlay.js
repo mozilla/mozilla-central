@@ -1,4 +1,4 @@
-# -*- Mode: C++; tab-width: 2; indent-tabs-mode: nil; c-basic-offset: 4 -*-
+# -*- Mode: javascript; tab-width: 2; indent-tabs-mode: nil; c-basic-offset: 2 -*-
 # ***** BEGIN LICENSE BLOCK *****
 # Version: MPL 1.1/GPL 2.0/LGPL 2.1
 #
@@ -28,6 +28,7 @@
 #   Seth Spitzer <sspitzer@netscape.com>
 #   David Bienvenu <bienvenu@nventure.com>
 #   Karsten Düsterloh <mnyromyr@tprac.de>
+#   Christopher Thomas <cst@yecc.com>
 #
 # Alternatively, the contents of this file may be used under the terms of
 # either the GNU General Public License Version 2 or later (the "GPL"), or
@@ -2741,6 +2742,20 @@ function OnMsgParsed(aUrl)
   var msgURI = GetLoadedMessage();
   var observerService = Components.classes["@mozilla.org/observer-service;1"].getService(Components.interfaces.nsIObserverService);
   observerService.notifyObservers(msgWindow.msgHeaderSink, "MsgMsgDisplayed", msgURI);
+
+  // scale any overflowing images
+  var doc = getMessageBrowser().contentDocument;
+  var imgs = doc.getElementsByTagName("img");
+  for each (var img in imgs)
+  {
+    if (img.className == "moz-attached-image" && img.naturalWidth > doc.width)
+    {
+      if (img.hasAttribute("shrinktofit"))
+        img.setAttribute("isshrunk", "true");
+      else
+        img.setAttribute("overflowing", "true");
+    }
+  }
 }
 
 function OnMsgLoaded(aUrl)
