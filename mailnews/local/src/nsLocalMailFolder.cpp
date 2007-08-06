@@ -2045,7 +2045,6 @@ nsMsgLocalMailFolder::CopyFileMessage(nsIFile* aFile, nsIMsgDBHdr*
                                       nsIMsgCopyServiceListener* listener)
 {
   nsresult rv = NS_ERROR_NULL_POINTER;
-  nsCOMPtr<nsIInputStream> inputStream;
   nsParseMailMessageState* parseMsgState = nsnull;
   PRUint32 fileSize = 0;
   nsCOMPtr<nsISupports> fileSupport(do_QueryInterface(aFile, &rv));
@@ -2062,40 +2061,43 @@ nsMsgLocalMailFolder::CopyFileMessage(nsIFile* aFile, nsIMsgDBHdr*
 
   rv = InitCopyState(fileSupport, messages, msgToReplace ? PR_TRUE:PR_FALSE,
                      listener, msgWindow, PR_FALSE, PR_FALSE);
-  if (NS_FAILED(rv)) goto done;
-
-  parseMsgState = new nsParseMailMessageState();
-  if (parseMsgState)
+  if (NS_SUCCEEDED(rv))
   {
-    nsCOMPtr<nsIMsgDatabase> msgDb;
-    mCopyState->m_parseMsgState = do_QueryInterface(parseMsgState, &rv);
-    GetDatabaseWOReparse(getter_AddRefs(msgDb));
-    if (msgDb)
-      parseMsgState->SetMailDB(msgDb);
+    parseMsgState = new nsParseMailMessageState();
+    if (parseMsgState)
+    {
+      nsCOMPtr<nsIMsgDatabase> msgDb;
+      mCopyState->m_parseMsgState = do_QueryInterface(parseMsgState, &rv);
+      GetDatabaseWOReparse(getter_AddRefs(msgDb));
+      if (msgDb)
+        parseMsgState->SetMailDB(msgDb);
+    }
+
+    nsCOMPtr<nsIInputStream> inputStream;
+    rv = NS_NewLocalFileInputStream(getter_AddRefs(inputStream), aFile);
+    if (NS_SUCCEEDED(rv) && inputStream) 
+      rv = inputStream->Available(&fileSize);
+
+    if (NS_SUCCEEDED(rv))
+      rv = BeginCopy(nsnull);
+
+    if (NS_SUCCEEDED(rv))
+      rv = CopyData(inputStream, (PRInt32) fileSize);
+
+    if (NS_SUCCEEDED(rv))
+      rv = EndCopy(PR_TRUE);
+
+    //mDatabase should have been initialized above - if we got msgDb
+    if (NS_SUCCEEDED(rv) && msgToReplace && mDatabase)
+      rv = DeleteMessage(msgToReplace, msgWindow, PR_TRUE, PR_TRUE);
+
+    if (inputStream)
+      inputStream->Close();
   }
 
-  rv = NS_NewLocalFileInputStream(getter_AddRefs(inputStream), aFile);
-  if (NS_FAILED(rv)) goto done;
-
-  rv = NS_ERROR_NULL_POINTER;
-  if (inputStream)
-    rv = inputStream->Available(&fileSize);
-  if (NS_FAILED(rv)) goto done;
-  rv = BeginCopy(nsnull);
-  if (NS_FAILED(rv)) goto done;
-  rv = CopyData(inputStream, (PRInt32) fileSize);
-  if (NS_FAILED(rv)) goto done;
-  rv = EndCopy(PR_TRUE);
-  if (NS_FAILED(rv)) goto done;
-
-  if (msgToReplace && mDatabase)  //mDatabase should have been initialized above - if we got msgDb
-    rv = DeleteMessage(msgToReplace, msgWindow, PR_TRUE, PR_TRUE);
-
-done:
   if(NS_FAILED(rv))
     (void) OnCopyCompleted(fileSupport, PR_FALSE);
 
-  inputStream->Close();
   return rv;
 }
 
