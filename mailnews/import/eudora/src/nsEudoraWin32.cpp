@@ -1182,12 +1182,12 @@ PRBool nsEudoraWin32::FindAddressFolder( nsIFile **pFolder)
 
 nsresult nsEudoraWin32::FindAddressBooks( nsIFile *pRoot, nsISupportsArray **ppArray)
 {
-
-  nsCOMPtr<nsILocalFile>	file;
+  nsresult rv;
+  nsCOMPtr<nsILocalFile> file = do_CreateInstance(NS_LOCAL_FILE_CONTRACTID, &rv);
+  NS_ENSURE_SUCCESS(rv, rv);
   nsCOMPtr<nsILocalFile> localRoot = do_QueryInterface(pRoot);
-  nsresult rv = file->InitWithFile( localRoot);
-  if (NS_FAILED( rv))
-    return( rv);
+  rv = file->InitWithFile( localRoot);
+  NS_ENSURE_SUCCESS(rv, rv);
 
   rv = NS_NewISupportsArray( ppArray);
   if (NS_FAILED( rv)) {
