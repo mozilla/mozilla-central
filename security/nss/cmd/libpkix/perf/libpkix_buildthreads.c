@@ -68,6 +68,7 @@
 
 void *plContext = NULL;
 
+#undef pkixTempResult
 #define PERF_DECREF(obj) \
         { \
                 PKIX_Error *pkixTempResult = NULL; \
