@@ -2744,7 +2744,7 @@ char *nsImapProtocol::CreateEscapedMailboxName(const char *rawName)
 
 void nsImapProtocol::SelectMailbox(const char *mailboxName)
 {
-  ProgressEventFunctionUsingId (IMAP_STATUS_SELECTING_MAILBOX);
+  ProgressEventFunctionUsingIdWithString (IMAP_STATUS_SELECTING_MAILBOX, mailboxName);
   IncrementCommandTagNumber();
 
   m_closeNeededBeforeSelect = PR_FALSE;   // initial value
