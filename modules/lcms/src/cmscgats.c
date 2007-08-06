@@ -963,15 +963,15 @@ void LCMSEXPORT cmsIT8Free(LCMSHANDLE hIT8)
         for (p = it8->MemorySink; p != NULL; p = n) {
 
             n = p->Next;
-            if (p->Ptr) free(p->Ptr);
-            free(p);
+            if (p->Ptr) _cmsFree(p->Ptr);
+            _cmsFree(p);
         }
     }
 
     if (it8->MemoryBlock)
-        free(it8->MemoryBlock);    
+        _cmsFree(it8->MemoryBlock);    
 
-    free(it8);
+     _cmsFree(it8);
 }
 
 
@@ -989,7 +989,7 @@ void* AllocBigBlock(LPIT8 it8, size_t size)
 
                 if (ptr1 == NULL) {
 
-                    free(ptr);
+                     _cmsFree(ptr);
                     return NULL;
                 }
 
@@ -2097,7 +2097,7 @@ LCMSHANDLE LCMSEXPORT cmsIT8LoadFromMem(void *Ptr, size_t len)
     CookPointers(it8);
     it8 ->nTable = 0;
 
-    free(it8->MemoryBlock);
+     _cmsFree(it8->MemoryBlock);
     it8 -> MemoryBlock = NULL;
 
     return hIT8;

@@ -208,11 +208,11 @@ void cmsFreeMatShaper(LPMATSHAPER MatShaper)
 
        for (i=0; i < 3; i++)
        {
-              if (MatShaper -> L[i]) free(MatShaper ->L[i]);
-              if (MatShaper -> L2[i]) free(MatShaper ->L2[i]);
+              if (MatShaper -> L[i]) _cmsFree(MatShaper ->L[i]);
+              if (MatShaper -> L2[i]) _cmsFree(MatShaper ->L2[i]);
        }
 
-       free(MatShaper);
+       _cmsFree(MatShaper);
 }
 
 

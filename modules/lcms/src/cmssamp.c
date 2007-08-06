@@ -116,12 +116,16 @@ LCMSBOOL LCMSEXPORT cmsSample3DGrid(LPLUT Lut, _cmsSAMPLER Sampler, LPVOID Cargo
                                                 &Lut -> In16params);
         }
 
+		for (t=0; t < (int) Lut -> OutputChan; t++)
+                     Out[t] = Lut->T[index + t];
 
-        // if (dwFlags & SAMPLER_INSPECT) {
+        if (dwFlags & SAMPLER_HASTL2) {
 
              for (t=0; t < (int) Lut -> OutputChan; t++)
-                        Out[t] = Lut->T[index + t];
-        // }
+                     Out[t] = cmsLinearInterpLUT16(Out[t],
+                                                   Lut -> L2[t],
+                                                   &Lut -> Out16params);               
+        }	
 
 
         if (!Sampler(In, Out, Cargo))
@@ -448,6 +452,7 @@ int LCMSEXPORT cmsSetCMYKPreservationStrategy(int n)
     return OldVal;
 }
 
+#pragma warning(disable: 4550)
 
 // Get a pointer to callback on depending of strategy
 static

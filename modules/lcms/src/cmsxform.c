@@ -1642,7 +1642,7 @@ void LCMSEXPORT cmsDeleteTransform(cmsHTRANSFORM hTransform)
 
 	   LCMS_FREE_LOCK(&p->rwlock);
 
-       free((void *) p);
+       _cmsFree((void *) p);
 }
 
 

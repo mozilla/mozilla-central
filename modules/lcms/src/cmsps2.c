@@ -1204,7 +1204,7 @@ DWORD LCMSEXPORT cmsGetPostScriptCSA(cmsHPROFILE hProfile,
 
         if (!WriteNamedColorCSA(mem, hProfile, Intent)) {
 
-                    free((void*) mem);
+                    _cmsFree((void*) mem);
                     return 0;
         }
     }
@@ -1219,7 +1219,7 @@ DWORD LCMSEXPORT cmsGetPostScriptCSA(cmsHPROFILE hProfile,
         ColorSpace != icSigLabData) {
 
             cmsSignalError(LCMS_ERRC_ABORTED, "Invalid output color space");
-            free((void*) mem);
+            _cmsFree((void*) mem);
             return 0;
     }
     
@@ -1229,7 +1229,7 @@ DWORD LCMSEXPORT cmsGetPostScriptCSA(cmsHPROFILE hProfile,
         // Yes, so handle as LUT-based
         if (!WriteInputLUT(mem, hProfile, Intent)) {
 
-                    free((void*) mem);
+                    _cmsFree((void*) mem);
                     return 0;
         }
     }
@@ -1239,7 +1239,7 @@ DWORD LCMSEXPORT cmsGetPostScriptCSA(cmsHPROFILE hProfile,
 
         if (!WriteInputMatrixShaper(mem, hProfile)) {
 
-                    free((void*) mem);  // Something went wrong
+                    _cmsFree((void*) mem);  // Something went wrong
                     return 0;
         }
     }
@@ -1250,7 +1250,7 @@ DWORD LCMSEXPORT cmsGetPostScriptCSA(cmsHPROFILE hProfile,
     dwBytesUsed = mem ->dwUsed;
 
     // Get rid of memory stream
-    free((void*) mem);
+    _cmsFree((void*) mem);
 
     // Finally, return used byte count
     return dwBytesUsed;
@@ -1671,7 +1671,7 @@ DWORD LCMSEXPORT cmsGetPostScriptCRDEx(cmsHPROFILE hProfile,
 
         if (!WriteNamedColorCRD(mem, hProfile, Intent, dwFlags)) {
 
-                    free((void*) mem);
+                    _cmsFree((void*) mem);
                     return 0;
         }
     }
@@ -1681,7 +1681,7 @@ DWORD LCMSEXPORT cmsGetPostScriptCRDEx(cmsHPROFILE hProfile,
 
 
     if (!WriteOutputLUT(mem, hProfile, Intent, dwFlags)) {
-        free((void*) mem);
+        _cmsFree((void*) mem);
         return 0;
     }
     }
@@ -1696,7 +1696,7 @@ DWORD LCMSEXPORT cmsGetPostScriptCRDEx(cmsHPROFILE hProfile,
     dwBytesUsed = mem ->dwUsed;
 
     // Get rid of memory stream
-    free((void*) mem);
+    _cmsFree((void*) mem);
 
     // Finally, return used byte count
     return dwBytesUsed;

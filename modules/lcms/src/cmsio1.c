@@ -358,7 +358,7 @@ ErrorCleanup:
              cmsSignalError(LCMS_ERRC_ABORTED, "Corrupted profile: '%s'", Icc->PhysicalFile);
 
       
-       free(Icc);
+        _cmsFree(Icc);
        return NULL;
 }
 
@@ -539,13 +539,13 @@ LCMSBOOL ReadLUT8(LPLCMSICCPROFILE Icc, LPLUT NewLUT, icTagSignature sig)
 
               PtrW = (LPWORD) _cmsMalloc(sizeof(WORD) * 256);
               if (PtrW == NULL) {
-                  free(Temp);
+                   _cmsFree(Temp);
                   return FALSE;
                   }
 
               NewLUT -> L1[i] = PtrW;
               if (Icc ->Read(Temp, 1, 256, Icc) != 256) {
-                  free(Temp);
+                   _cmsFree(Temp);
                   return FALSE;
                   }
 
@@ -561,7 +561,7 @@ LCMSBOOL ReadLUT8(LPLCMSICCPROFILE Icc, LPLUT NewLUT, icTagSignature sig)
               NewLUT -> wFlags &= ~LUT_HASTL1;
        }
 
-       free(Temp);
+        _cmsFree(Temp);
 
        // Copy 3D CLUT
 
@@ -575,13 +575,13 @@ LCMSBOOL ReadLUT8(LPLCMSICCPROFILE Icc, LPLUT NewLUT, icTagSignature sig)
 
             Temp = (LPBYTE) _cmsMalloc(nTabSize);
             if (Temp == NULL) {
-                free(PtrW);
+                 _cmsFree(PtrW);
                 return FALSE;
                 }
 
             if (Icc ->Read(Temp, 1, nTabSize, Icc) != nTabSize) {
-                free(Temp);
-                free(PtrW);
+                 _cmsFree(Temp);
+                _cmsFree(PtrW);
                 return FALSE;
                 }
 
@@ -592,7 +592,7 @@ LCMSBOOL ReadLUT8(LPLCMSICCPROFILE Icc, LPLUT NewLUT, icTagSignature sig)
 
                      *PtrW++ = TO16_TAB(Temp[i]);
             }
-            free(Temp);
+            _cmsFree(Temp);
        }
        else {
            NewLUT ->T = NULL;
@@ -613,13 +613,13 @@ LCMSBOOL ReadLUT8(LPLCMSICCPROFILE Icc, LPLUT NewLUT, icTagSignature sig)
 
               PtrW = (LPWORD) _cmsMalloc(sizeof(WORD) * 256);
               if (PtrW == NULL) {
-                  free(Temp);
+                  _cmsFree(Temp);
                   return FALSE;
                   }
 
               NewLUT -> L2[i] = PtrW;
               if (Icc ->Read(Temp, 1, 256, Icc) != 256) {
-                  free(Temp);
+                  _cmsFree(Temp);
                   return FALSE;
                   }
 
@@ -636,7 +636,7 @@ LCMSBOOL ReadLUT8(LPLCMSICCPROFILE Icc, LPLUT NewLUT, icTagSignature sig)
        }
 
 
-       free(Temp);
+       _cmsFree(Temp);
 
        cmsCalcL16Params(NewLUT -> InputEntries,  &NewLUT -> In16params);
        cmsCalcL16Params(NewLUT -> OutputEntries, &NewLUT -> Out16params);
@@ -799,7 +799,7 @@ LCMSBOOL ReadLUT16(LPLCMSICCPROFILE Icc, LPLUT NewLUT)
 
            PtrW = (LPWORD) _cmsMalloc(sizeof(WORD) * nTabSize);
            if (PtrW == NULL) {
-               free(PtrW);
+               _cmsFree(PtrW);
                return FALSE;
            }
 
@@ -1452,11 +1452,12 @@ int ReadEmbeddedTextTag(LPLCMSICCPROFILE Icc, size_t size, char* Name, size_t si
 
            if (UnicodeCount > size) return (int) size;
 
-           for (i=0; i < UnicodeCount; i++) 
-                Icc ->Read(&Dummy, sizeof(icUInt16Number), 1, Icc);
-           
-           size -= UnicodeCount * sizeof(icUInt16Number);
-            
+           for (i=0; i < UnicodeCount; i++) { 
+                size_t nread = Icc ->Read(&Dummy, sizeof(icUInt16Number), 1, Icc);
+                if (nread != 1) return (int) size;
+                size -= sizeof(icUInt16Number);
+           }
+                       
           // Skip ScriptCode code
 
            if (Icc ->Read(&ScriptCodeCode,  sizeof(icUInt16Number), 1, Icc) != 1) return -1;
@@ -1464,12 +1465,15 @@ int ReadEmbeddedTextTag(LPLCMSICCPROFILE Icc, size_t size, char* Name, size_t si
            if (Icc ->Read(&ScriptCodeCount, sizeof(icUInt8Number), 1, Icc) != 1) return -1;
            size -= sizeof(icUInt8Number);
 
+           // Should remain 67 bytes as filler
+
            if (size < 67) return (int) size;
 
-           for (i=0; i < 67; i++) 
-                Icc ->Read(&Dummy, sizeof(icUInt8Number), 1, Icc);
-
-           size -= 67;                      
+           for (i=0; i < 67; i++) {
+                size_t nread = Icc ->Read(&Dummy, sizeof(icUInt8Number), 1, Icc);
+                if (nread != 1) return (int) size;
+                size --;
+               }           
            }
            break;
 
@@ -1574,7 +1578,7 @@ int ReadEmbeddedTextTag(LPLCMSICCPROFILE Icc, size_t size, char* Name, size_t si
                 Name[0] = 0;    // Error
             }
 
-            free((void*) wchar);
+            _cmsFree((void*) wchar);
             }
             break;
 
@@ -2349,7 +2353,7 @@ LPcmsSEQ LCMSEXPORT cmsReadProfileSequenceDescription(cmsHPROFILE hProfile)
 void LCMSEXPORT cmsFreeProfileSequenceDescription(LPcmsSEQ pseq)
 {
     if (pseq) 
-        free(pseq);
+        _cmsFree(pseq);
 }
 
 
@@ -3298,7 +3302,7 @@ LCMSBOOL SaveTagDirectory(LPLCMSICCPROFILE Icc)
 // Dump tag contents
 
 static
-LCMSBOOL SaveTags(LPLCMSICCPROFILE Icc)
+LCMSBOOL SaveTags(LPLCMSICCPROFILE Icc, LPLCMSICCPROFILE FileOrig)
 {
 
     LPBYTE Data;
@@ -3326,8 +3330,31 @@ LCMSBOOL SaveTags(LPLCMSICCPROFILE Icc)
         
        Icc -> TagOffsets[i] = Begin = Icc ->UsedSpace;
        Data = (LPBYTE) Icc -> TagPtrs[i];
-       if (!Data)
+	   if (!Data) {
+
+		   // Reach here if we are copying a tag from a disk-based ICC profile which has not been modified by user. 
+		   // In this case a blind copy of the block data is performed
+
+		   if (Icc -> TagOffsets[i]) {
+
+					size_t TagSize   = FileOrig -> TagSizes[i];
+					size_t TagOffset = FileOrig -> TagOffsets[i];
+					void* Mem;
+
+					if (FileOrig ->Seek(FileOrig, TagOffset)) return FALSE;
+
+					Mem = _cmsMalloc(TagSize);					
+
+					if (FileOrig ->Read(Mem, TagSize, 1, FileOrig) != 1) return FALSE;
+					if (!Icc ->Write(Icc, TagSize, Mem)) return FALSE;
+
+					Icc -> TagSizes[i] = (Icc ->UsedSpace - Begin);
+					free(Mem);
+		   }
+
               continue;
+	   }
+
 
        switch (Icc -> TagNames[i]) {
 
@@ -3532,7 +3559,7 @@ LCMSBOOL LCMSEXPORT _cmsSaveProfile(cmsHPROFILE hProfile, const char* FileName)
      
        if (!SaveHeader(Icc)) return FALSE;
        if (!SaveTagDirectory(Icc)) return FALSE;
-       if (!SaveTags(Icc)) return FALSE;
+       if (!SaveTags(Icc, &Keep)) return FALSE;
 
 
        _cmsSetSaveToDisk(Icc, FileName);    
@@ -3542,7 +3569,7 @@ LCMSBOOL LCMSEXPORT _cmsSaveProfile(cmsHPROFILE hProfile, const char* FileName)
      
        if (!SaveHeader(Icc)) goto CleanUp;
        if (!SaveTagDirectory(Icc)) goto CleanUp;
-       if (!SaveTags(Icc)) goto CleanUp;
+       if (!SaveTags(Icc, &Keep)) goto CleanUp;
       
        rc = (Icc ->Close(Icc) == 0);
        CopyMemory(Icc, &Keep, sizeof(LCMSICCPROFILE));
@@ -3574,7 +3601,7 @@ LCMSBOOL LCMSEXPORT _cmsSaveProfileToMem(cmsHPROFILE hProfile, void *MemPtr,
     
     if (!SaveHeader(Icc)) return FALSE;
     if (!SaveTagDirectory(Icc)) return FALSE;
-    if (!SaveTags(Icc)) return FALSE;              
+    if (!SaveTags(Icc, &Keep)) return FALSE;              
     
     if (!MemPtr) {
         
@@ -3597,7 +3624,7 @@ LCMSBOOL LCMSEXPORT _cmsSaveProfileToMem(cmsHPROFILE hProfile, void *MemPtr,
     // Pass #2 does save to file into supplied stream     
     if (!SaveHeader(Icc)) goto CleanUp;
     if (!SaveTagDirectory(Icc)) goto CleanUp;
-    if (!SaveTags(Icc)) goto CleanUp;
+    if (!SaveTags(Icc, &Keep)) goto CleanUp;
        
     // update BytesSaved so caller knows how many bytes put into stream
     *BytesNeeded = Icc ->UsedSpace;

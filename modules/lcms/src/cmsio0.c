@@ -50,7 +50,7 @@ LPVOID MemoryOpen(LPBYTE Block, size_t Size, char Mode)
 
         fm ->Block   = (LPBYTE) _cmsMalloc(Size);
         if (fm ->Block == NULL) {
-            free(fm);
+             _cmsFree(fm);
             return NULL;
         }
     
@@ -144,9 +144,9 @@ LCMSBOOL MemoryClose(struct _lcms_iccprofile_struct* Icc)
 
     if (ResData ->FreeBlockOnClose) {
 
-        if (ResData ->Block) free(ResData ->Block);
+        if (ResData ->Block)  _cmsFree(ResData ->Block);
     }
-    free(ResData);
+     _cmsFree(ResData);
     return 0;
 }
 
@@ -302,7 +302,7 @@ LPVOID _cmsInitTag(LPLCMSICCPROFILE Icc, icTagSignature sig, size_t size, const 
 
     if (i >=0) {
         
-        if (Icc -> TagPtrs[i]) free(Icc -> TagPtrs[i]);
+        if (Icc -> TagPtrs[i]) _cmsFree(Icc -> TagPtrs[i]);
     }
     else  {
 

@@ -550,7 +550,7 @@ WORD cmsReverseLinearInterpLUT16(WORD Value, WORD LutTable[], LPL16PARAMS p)
 
                 // Identify if value fall downto 0 or FFFF zone             
                 if (Value == 0) return 0;
-                if (Value == 0xFFFF) return 0xFFFF;
+               // if (Value == 0xFFFF) return 0xFFFF;
 
                 // else restrict to valid zone
 
@@ -602,7 +602,7 @@ WORD cmsReverseLinearInterpLUT16(WORD Value, WORD LutTable[], LPL16PARAMS p)
         a = (y1 - y0) / (x1 - x0);
         b = y0 - a * x0;
 
-        if (a == 0) return (WORD) x;
+        if (fabs(a) < 0.01) return (WORD) x;
 
         f = ((Value - b) / a);
 

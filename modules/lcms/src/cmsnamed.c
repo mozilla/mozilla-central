@@ -57,7 +57,7 @@ LPcmsNAMEDCOLORLIST GrowNamedColorList(LPcmsNAMEDCOLORLIST v, int ByElements)
               CopyMemory(TheNewList, v, sizeof(cmsNAMEDCOLORLIST) + (v ->nColors - 1) * sizeof(cmsNAMEDCOLOR));
               TheNewList -> Allocated = NewElements;
 
-              free(v);
+              _cmsFree(v);
               return TheNewList;
         }
     }
@@ -95,7 +95,7 @@ void cmsFreeNamedColorList(LPcmsNAMEDCOLORLIST v)
         return;
     }
                     
-    free(v);
+    _cmsFree(v);
 }   
 
 LCMSBOOL cmsAppendNamedColor(cmsHTRANSFORM xform, const char* Name, WORD PCS[3], WORD Colorant[MAXCHANNELS])

@@ -134,7 +134,7 @@ LPGAMMATABLE LCMSEXPORT cmsAllocGamma(int nEntries)
 
 void LCMSEXPORT cmsFreeGamma(LPGAMMATABLE Gamma)
 {
-       if (Gamma) free(Gamma);
+       if (Gamma)  _cmsFree(Gamma);
 }
 
 
@@ -625,7 +625,7 @@ LPSAMPLEDCURVE cmsAllocSampledCurve(int nItems)
 
     if((pOut->Values = (double *) _cmsMalloc(nItems * sizeof(double))) == NULL)
     {
-        free(pOut);
+         _cmsFree(pOut);
         return NULL;
     }
 
@@ -638,8 +638,8 @@ LPSAMPLEDCURVE cmsAllocSampledCurve(int nItems)
 
 void cmsFreeSampledCurve(LPSAMPLEDCURVE p)
 {
-    free((LPVOID) p -> Values);
-    free((LPVOID) p);
+     _cmsFree((LPVOID) p -> Values);
+     _cmsFree((LPVOID) p);
 }
 
 

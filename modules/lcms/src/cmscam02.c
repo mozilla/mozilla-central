@@ -442,7 +442,7 @@ LCMSHANDLE LCMSEXPORT cmsCIECAM02Init(LPcmsViewingConditions pVC)
 void LCMSEXPORT cmsCIECAM02Done(LCMSHANDLE hModel)
 {
     LPcmsCIECAM02 lpMod = (LPcmsCIECAM02) (LPSTR) hModel;
-    if (lpMod) free(lpMod);
+    if (lpMod) _cmsFree(lpMod);
 }
 
 

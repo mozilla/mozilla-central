@@ -409,9 +409,6 @@ extern "C" {
 #ifndef itoa
 #       define itoa   _itoa
 #endif
-#ifndef filelength
-#       define filelength _filelength
-#endif
 #ifndef fileno
 #       define fileno   _fileno
 #endif
@@ -1403,6 +1400,7 @@ LCMS_INLINE WORD _cmsClampWord(int in)
        return (WORD) in;
 }
 
+#ifndef LCMS_USER_ALLOC
 
 // Low-level alloc hook
 
@@ -1413,6 +1411,14 @@ LCMS_INLINE void* _cmsMalloc(size_t size)
 
     return (void*) malloc(size);
 }
+
+
+LCMS_INLINE void _cmsFree(void *Ptr)
+{
+    if (Ptr) free(Ptr);    
+}
+
+#endif
 
 // ------------------------------------------------------------------------------------------- end of inline functions
 

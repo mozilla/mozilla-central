@@ -145,7 +145,7 @@ typedef struct {
 LCMSAPI void LCMSEXPORT cmsCIECAM97sDone(LCMSHANDLE hModel)
 {
     LPcmsCIECAM97s lpMod = (LPcmsCIECAM97s) (LPSTR) hModel;
-    if (lpMod) free(lpMod);
+    if (lpMod) _cmsFree(lpMod);
 }
 
 // Partial discounting for adaptation degree computation
