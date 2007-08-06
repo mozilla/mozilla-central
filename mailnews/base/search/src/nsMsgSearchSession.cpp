@@ -269,7 +269,7 @@ NS_IMETHODIMP nsMsgSearchSession::Search(nsIMsgWindow *aWindow)
                 listener->OnNewSearch();
         }
     }
-  m_window = aWindow;
+  m_msgWindowWeak = do_GetWeakReference(aWindow);
   if (NS_SUCCEEDED(err))
     err = BeginSearching ();
   return err;
@@ -278,11 +278,12 @@ NS_IMETHODIMP nsMsgSearchSession::Search(nsIMsgWindow *aWindow)
 /* void InterruptSearch (); */
 NS_IMETHODIMP nsMsgSearchSession::InterruptSearch()
 {
-  if (m_window)
+  nsCOMPtr<nsIMsgWindow> msgWindow(do_QueryReferent(m_msgWindowWeak));
+  if (msgWindow)
   {
     EnableFolderNotifications(PR_TRUE);
     if (m_idxRunningScope < m_scopeList.Count())
-          m_window->StopUrls();
+      msgWindow->StopUrls();
 
     while (m_idxRunningScope < m_scopeList.Count())
     {
@@ -333,32 +334,33 @@ NS_IMETHODIMP nsMsgSearchSession::GetSearchParam(void * *aSearchParam)
 /* readonly attribute nsMsgSearchType searchType; */
 NS_IMETHODIMP nsMsgSearchSession::GetSearchType(nsMsgSearchType * *aSearchType)
 {
-    return NS_ERROR_NOT_IMPLEMENTED;
+  return NS_ERROR_NOT_IMPLEMENTED;
 }
 
 /* [noscript] nsMsgSearchType SetSearchParam (in nsMsgSearchType type, in voidStar param); */
 NS_IMETHODIMP nsMsgSearchSession::SetSearchParam(nsMsgSearchType *type, void * param, nsMsgSearchType **_retval)
 {
-    return NS_ERROR_NOT_IMPLEMENTED;
+  return NS_ERROR_NOT_IMPLEMENTED;
 }
 
 /* readonly attribute long numResults; */
 NS_IMETHODIMP nsMsgSearchSession::GetNumResults(PRInt32 *aNumResults)
 {
-    return NS_ERROR_NOT_IMPLEMENTED;
+  return NS_ERROR_NOT_IMPLEMENTED;
 }
 
 NS_IMETHODIMP nsMsgSearchSession::SetWindow(nsIMsgWindow *aWindow)
 {
-  m_window = aWindow;
+  m_msgWindowWeak = do_GetWeakReference(aWindow);
   return NS_OK;
 }
 
-NS_IMETHODIMP nsMsgSearchSession::GetWindow(nsIMsgWindow **aWindowPtr)
+NS_IMETHODIMP nsMsgSearchSession::GetWindow(nsIMsgWindow **aWindow)
 {
-  NS_ENSURE_ARG(aWindowPtr);
-  *aWindowPtr = m_window;
-  NS_IF_ADDREF(*aWindowPtr);
+  NS_ENSURE_ARG(aWindow);
+  *aWindow = nsnull;
+  nsCOMPtr<nsIMsgWindow> msgWindow(do_QueryReferent(m_msgWindowWeak));
+  msgWindow.swap(*aWindow);
   return NS_OK;
 }
 
@@ -439,9 +441,9 @@ nsresult nsMsgSearchSession::BeginSearching()
   // unify the scheduling mechanisms. If the first scope is a newsgroup, and
   // it's not Dredd-capable, we build the URL queue. All other searches can be
   // done with one URL
-  
-  if (m_window)
-    m_window->SetStopped(PR_FALSE);
+  nsCOMPtr<nsIMsgWindow> msgWindow(do_QueryReferent(m_msgWindowWeak));
+  if (msgWindow)
+    msgWindow->SetStopped(PR_FALSE);
   return DoNextSearch();
 }
 
@@ -486,11 +488,10 @@ nsresult nsMsgSearchSession::GetNextUrl()
   nsCString nextUrl;
   nsCOMPtr <nsIMsgMessageService> msgService;
 
-
   PRBool stopped = PR_FALSE;
-
-  if (m_window)
-    m_window->GetStopped(&stopped);
+  nsCOMPtr<nsIMsgWindow> msgWindow(do_QueryReferent(m_msgWindowWeak));
+  if (msgWindow)
+    msgWindow->GetStopped(&stopped);
   if (stopped)
     return NS_OK;
 
@@ -505,7 +506,7 @@ nsresult nsMsgSearchSession::GetNextUrl()
     nsresult rv = GetMessageServiceFromURI(folderUri, getter_AddRefs(msgService));
 
     if (NS_SUCCEEDED(rv) && msgService && currentTerm)
-      msgService->Search(this, m_window, currentTerm->m_folder, nextUrl.get());
+      msgService->Search(this, msgWindow, currentTerm->m_folder, nextUrl.get());
 
     return rv;
   }
@@ -526,8 +527,9 @@ nsresult nsMsgSearchSession::AddUrl(const char *url)
   PRBool stopped = PR_FALSE;
 
   searchSession->TimeSlice(&done);
-  if (searchSession->m_window)
-    searchSession->m_window->GetStopped(&stopped);
+  nsCOMPtr<nsIMsgWindow> msgWindow(do_QueryReferent(searchSession->m_msgWindowWeak));
+  if (msgWindow)
+    msgWindow->GetStopped(&stopped);
 
   if (done || stopped)
   {

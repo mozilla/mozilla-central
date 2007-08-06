@@ -63,14 +63,12 @@ public:
   virtual ~nsMsgSearchSession();
 
 protected:
-
-  nsCOMPtr <nsIMsgWindow> m_window;
-
+  nsWeakPtr m_msgWindowWeak;
   nsresult Initialize();
   nsresult StartTimer();
   nsresult TimeSlice (PRBool *aDone);
   nsMsgSearchScopeTerm *GetRunningScope();
-  void			StopRunning();
+  void StopRunning();
   nsresult BeginSearching();
   nsresult DoNextSearch();
   nsresult BuildUrlQueue ();
