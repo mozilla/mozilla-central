@@ -23,7 +23,7 @@ calendar.jar:
     content/calendar/calendar-item-editing.js    (content/calendar-item-editing.js)
     content/calendar/calendar-month-view.xml     (content/calendar-month-view.xml)
     content/calendar/calendar-multiday-view.xml  (content/calendar-multiday-view.xml)
-    content/calendar/today-pane.xul              (content/today-pane.xul)
+*   content/calendar/today-pane.xul              (content/today-pane.xul)
     content/calendar/today-pane.js               (content/today-pane.js)
     content/calendar/calendar-minimonth-busy.js  (content/calendar-minimonth-busy.js)
     content/calendar/calendar-recurrence-dialog.js  (content/calendar-recurrence-dialog.js)

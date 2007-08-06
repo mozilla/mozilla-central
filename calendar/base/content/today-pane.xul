@@ -57,7 +57,11 @@
   var todaylabel = "&calendar.context.button.label;";
 </script>
 
+#ifdef MOZILLA_1_8_BRANCH
 <box id="mailContent">
+#else
+<box id="messengerBox">
+#endif
     <splitter id="gray_vertical_splitter" collapse="true" persist="state" resizebefore="closest">
         <grippy/>
     </splitter>
