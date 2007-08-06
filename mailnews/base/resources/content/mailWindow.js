@@ -1,4 +1,4 @@
-/* -*- Mode: Java; tab-width: 2; indent-tabs-mode: nil; c-basic-offset: 2 -*-
+/* -*- Mode: javascript; tab-width: 2; indent-tabs-mode: nil; c-basic-offset: 2 -*-
  * ***** BEGIN LICENSE BLOCK *****
  * Version: MPL 1.1/GPL 2.0/LGPL 2.1
  *
@@ -23,6 +23,7 @@
  * Contributor(s):
  *   Jan Varga <varga@ku.sk>
  *   Håkan Waara (hwaara@chello.se)
+ *   Christopher Thomas <cst@yecc.com>
  *
  * Alternatively, the contents of this file may be used under the terms of
  * either of the GNU General Public License Version 2 or later (the "GPL"),
@@ -218,6 +219,30 @@ function InitMsgWindow()
   msgWindow.rootDocShell.appType = Components.interfaces.nsIDocShell.APP_TYPE_MAIL;
 }
 
+function messagePaneOnResize(event) {
+  // scale any overflowing images
+  var messagepane = document.getElementById("messagepane");
+  var doc = messagepane.contentDocument;
+  var imgs = doc.images;
+  for each (var img in imgs) {
+    if (img.className == "moz-attached-image") {
+      if (img.naturalWidth <= doc.width) {
+        img.removeAttribute("isshrunk");
+        img.removeAttribute("overflowing");
+      }
+      else if (img.hasAttribute("shrinktofit")) {
+        img.setAttribute("isshrunk", "true");
+        img.removeAttribute("overflowing");
+      }
+      else {
+        img.setAttribute("overflowing", "true");
+        img.removeAttribute("isshrunk");
+      }
+    }
+  }
+
+}
+
 function messagePaneOnClick(event)
 {
   // if this is stand alone mail (no browser)
@@ -237,10 +262,20 @@ function messagePaneOnClick(event)
       if (!req || req.imageStatus & Components.interfaces.imgIRequest.STATUS_ERROR)
         return true;
       // is it an inline attachment?
-      if (target.className == "moz-attached-image-scaled")
-        target.className = "moz-attached-image-unscaled";
-      else if (target.className == "moz-attached-image-unscaled")
-        target.className = "moz-attached-image-scaled";
+      if (/^moz-attached-image/.test(target.className)) {
+        if (target.hasAttribute("isshrunk")) {
+          // currently shrunk to fit, so unshrink it
+          target.removeAttribute("isshrunk");
+          target.removeAttribute("shrinktofit");
+          target.setAttribute("overflowing", "true");
+        }
+        else if (target.hasAttribute("overflowing")) {
+          // user wants to shrink now
+          target.setAttribute("isshrunk", "true");
+          target.setAttribute("shrinktofit", "true");
+          target.removeAttribute("overflowing");
+        }
+      }
     }
     return true;
   }

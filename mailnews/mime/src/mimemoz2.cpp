@@ -1177,8 +1177,9 @@ mime_image_make_image_html(void *image_closure)
     (mime_image_stream_data *) image_closure;
 
   const char *prefix;
-  const char *scaledPrefix = "<P><CENTER><IMG CLASS=\"moz-attached-image-scaled\" SRC=\"";
-  const char *unscaledPrefix = "<P><CENTER><IMG CLASS=\"moz-attached-image-unscaled\" SRC=\"";
+  /* Wouldn't it be nice if attributes were case-sensitive? */
+  const char *scaledPrefix = "<P><CENTER><IMG CLASS=\"moz-attached-image\" shrinktofit=\"yes\" SRC=\"";
+  const char *unscaledPrefix = "<P><CENTER><IMG CLASS=\"moz-attached-image\" SRC=\"";
   const char *suffix = "\"></CENTER><P>";
   const char *url;
   char *buf;

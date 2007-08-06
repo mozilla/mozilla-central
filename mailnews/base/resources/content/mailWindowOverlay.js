@@ -1,4 +1,4 @@
-/* -*- Mode: C++; tab-width: 4; indent-tabs-mode: nil; c-basic-offset: 4 -*-
+/* -*- Mode: javascript; tab-width: 2; indent-tabs-mode: nil; c-basic-offset: 2 -*-
  * ***** BEGIN LICENSE BLOCK *****
  * Version: MPL 1.1/GPL 2.0/LGPL 2.1
  *
@@ -29,6 +29,7 @@
  *   David Bienvenu <bienvenu@netscape.com>
  *   Ian Neal <bugzilla@arlen.demon.co.uk>
  *   Karsten Düsterloh <mnyromyr@tprac.de>
+ *   Christopher Thomas <cst@yecc.com>
  *
  * Alternatively, the contents of this file may be used under the terms of
  * either of the GNU General Public License Version 2 or later (the "GPL"),
@@ -2381,6 +2382,18 @@ function ClearPendingReadTimer()
 function OnMsgParsed(aUrl)
 {
   gMessageNotificationBar.setPhishingMsg(aUrl);
+
+  // scale any overflowing images
+  var doc = getMessageBrowser().contentDocument;
+  var imgs = doc.getElementsByTagName("img");
+  for each (var img in imgs) {
+    if (img.className == "moz-attached-image" && img.naturalWidth > doc.width) {
+      if (img.hasAttribute("shrinktofit"))
+        img.setAttribute("isshrunk", "true");
+      else
+        img.setAttribute("overflowing", "true");
+    }
+  }
 }
 
 function OnMsgLoaded(aUrl)
