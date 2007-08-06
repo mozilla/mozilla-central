@@ -611,9 +611,7 @@ nsMsgSearchDBView::GetHdrForFirstSelectedMessage(nsIMsgDBHdr **hdr)
   nsresult rv = mTreeSelection->GetCurrentIndex(&index);
   NS_ENSURE_SUCCESS(rv,rv);
 
-  rv = GetMsgHdrForViewIndex(index, hdr);
-  NS_ENSURE_SUCCESS(rv,rv);
-  return NS_OK;
+  return GetMsgHdrForViewIndex(index, hdr);
 }
 
 nsresult
