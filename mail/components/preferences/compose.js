@@ -298,7 +298,7 @@ var gComposePane = {
   initLanguageMenu: function ()
   {
     var languageMenuList = document.getElementById("languageMenuList");
-    this.mSpellChecker = Components.classes['@mozilla.org/spellchecker/myspell;1'].getService(Components.interfaces.mozISpellCheckingEngine);
+    this.mSpellChecker = Components.classes['@mozilla.org/spellchecker/hunspell;1'].getService(Components.interfaces.mozISpellCheckingEngine);
     var o1 = {};
     var o2 = {};
 

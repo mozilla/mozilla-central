@@ -2163,7 +2163,7 @@ function InitLanguageMenu()
   if (!languageMenuList)
     return;
 
-  var spellChecker = Components.classes['@mozilla.org/spellchecker/myspell;1']
+  var spellChecker = Components.classes['@mozilla.org/spellchecker/hunspell;1']
                                .getService(mozISpellCheckingEngine);
   var o1 = {};
   var o2 = {};
@@ -2260,7 +2260,7 @@ function ChangeLanguage(event)
   // We need to change the dictionary language and if we are using inline spell check,
   // recheck the message
 
-  var spellChecker = Components.classes['@mozilla.org/spellchecker/myspell;1']
+  var spellChecker = Components.classes['@mozilla.org/spellchecker/hunspell;1']
                                .getService(mozISpellCheckingEngine);
   if (spellChecker.dictionary != event.target.value)
   {
