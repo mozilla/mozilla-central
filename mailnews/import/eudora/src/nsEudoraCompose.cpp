@@ -78,6 +78,9 @@ static NS_DEFINE_CID( kMsgCompFieldsCID, NS_MSGCOMPFIELDS_CID);
 #define kHungCount 100000
 #define kHungAbortCount 1000
 
+// Define maximum possible length for content type sanity check
+#define kContentTypeLengthSanityCheck 32
+
 
 #ifdef IMPORT_DEBUG
 static char *p_test_headers =
@@ -564,7 +567,6 @@ nsMsgAttachedFile * nsEudoraCompose::GetLocalAttachments( void)
     return( nsnull);
   memset(a, 0, sizeof(nsMsgAttachedFile) * (count + 1));
 
-  nsresult rv;
   nsCString urlStr;
   ImportAttachment * pAttach;
 
@@ -630,7 +632,10 @@ nsresult nsEudoraCompose::SendTheMessage( nsIFile **pMsg)
   // Use platform charset as default if the msg doesn't specify one
   // (ie, no 'charset' param in the Content-Type: header). As the last
   // resort we'll use the mail default charset.
-  if (headerVal.IsEmpty())
+  // (ie, no 'charset' param in the Content-Type: header) or if the
+  // charset parameter fails a length sanity check.
+  // As the last resort we'll use the mail default charset.
+  if ( headerVal.IsEmpty() || (headerVal.Length() > kContentTypeLengthSanityCheck) )
   {
     CopyASCIItoUTF16(nsMsgI18NFileSystemCharset(), headerVal);
     if (headerVal.IsEmpty())
