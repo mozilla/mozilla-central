@@ -1,4 +1,4 @@
-/* -*- Mode: C++; tab-width: 2; indent-tabs-mode: nil; c-basic-offset: 2 -*- */
+/* -*- Mode: C++; tab-width: 8; indent-tabs-mode: nil; c-basic-offset: 4 -*- */
 /* ***** BEGIN LICENSE BLOCK *****
  * Version: MPL 1.1/GPL 2.0/LGPL 2.1
  *
@@ -35,37 +35,48 @@
  *
  * ***** END LICENSE BLOCK ***** */
 
-#ifndef nsCycleCollector_h__
-#define nsCycleCollector_h__
+#include "nsCycleCollectionParticipant.h"
+#include "nsCOMPtr.h"
 
-class nsISupports;
-class nsCycleCollectionParticipant;
-
-// An nsCycleCollectionLanguageRuntime is a per-language object that
-// implements language-specific aspects of the cycle collection task.
-
-struct nsCycleCollectionLanguageRuntime
+nsresult
+nsXPCOMCycleCollectionParticipant::Root(void *p)
 {
-    virtual nsresult BeginCycleCollection() = 0;
-    virtual nsresult FinishCycleCollection() = 0;
-    virtual nsCycleCollectionParticipant *ToParticipant(void *p) = 0;
-};
+    nsISupports *s = static_cast<nsISupports*>(p);
+    NS_ADDREF(s);
+    return NS_OK;
+}
 
-// PRBool nsCycleCollector_suspect(nsISupports *n);
-NS_COM void nsCycleCollector_suspectCurrent(nsISupports *n);
-// NS_COM PRBool nsCycleCollector_forget(nsISupports *n);
-nsresult nsCycleCollector_startup();
-NS_COM void nsCycleCollector_collect();
-void nsCycleCollector_shutdown();
+nsresult
+nsXPCOMCycleCollectionParticipant::Unlink(void *p)
+{
+  return NS_OK;
+}
 
-#ifdef DEBUG
-NS_COM void nsCycleCollector_DEBUG_shouldBeFreed(nsISupports *n);
-NS_COM void nsCycleCollector_DEBUG_wasFreed(nsISupports *n);
-#endif
+nsresult
+nsXPCOMCycleCollectionParticipant::Unroot(void *p)
+{
+    nsISupports *s = static_cast<nsISupports*>(p);
+    NS_RELEASE(s);
+    return NS_OK;
+}
 
-// Helpers for interacting with language-identified scripts
+nsresult
+nsXPCOMCycleCollectionParticipant::Traverse
+    (void *p, nsCycleCollectionTraversalCallback &cb)
+{
+  return NS_OK;
+}
 
-NS_COM void nsCycleCollector_registerRuntime(PRUint32 langID, nsCycleCollectionLanguageRuntime *rt);
-NS_COM void nsCycleCollector_forgetRuntime(PRUint32 langID);
+void
+nsXPCOMCycleCollectionParticipant::UnmarkPurple(nsISupports *n)
+{
+}
 
-#endif // nsCycleCollector_h__
+PRBool
+nsXPCOMCycleCollectionParticipant::CheckForRightISupports(nsISupports *s)
+{
+    nsCOMPtr<nsISupports> foo;
+    s->QueryInterface(NS_GET_IID(nsCycleCollectionISupports),
+                      getter_AddRefs(foo));
+    return s == foo;
+}
