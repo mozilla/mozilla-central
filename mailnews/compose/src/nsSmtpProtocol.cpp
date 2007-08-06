@@ -2029,7 +2029,7 @@ nsresult nsSmtpProtocol::RequestOverrideInfo(nsISmtpServer * aSmtpServer)
 
     nsCOMPtr<nsIPrompt> prompter;
     m_runningURL->GetPrompt(getter_AddRefs(prompter));
-    rv = m_logonRedirector->Logon(userName.get(), password.get(), redirectionTypeStr.get(), prompter, NS_STATIC_CAST(nsIMsgLogonRedirectionRequester *, this), nsMsgLogonRedirectionServiceIDs::Smtp);
+    rv = m_logonRedirector->Logon(userName.get(), password.get(), redirectionTypeStr.get(), prompter, static_cast<nsIMsgLogonRedirectionRequester *>(this), nsMsgLogonRedirectionServiceIDs::Smtp);
   }
 
   // this protocol instance now needs to wait until

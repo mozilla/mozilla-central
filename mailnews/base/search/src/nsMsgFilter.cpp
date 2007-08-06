@@ -240,7 +240,7 @@ NS_IMETHODIMP nsMsgFilter::AppendTerm(nsIMsgSearchTerm * aTerm)
     // invalidate expression tree if we're changing the terms
     delete m_expressionTree;
     m_expressionTree = nsnull;
-    return m_termList->AppendElement(NS_STATIC_CAST(nsISupports*,aTerm));
+    return m_termList->AppendElement(static_cast<nsISupports*>(aTerm));
 }
 
 NS_IMETHODIMP
@@ -249,7 +249,7 @@ nsMsgFilter::CreateTerm(nsIMsgSearchTerm **aResult)
     nsMsgSearchTerm *term = new nsMsgSearchTerm;
     NS_ENSURE_TRUE(term, NS_ERROR_OUT_OF_MEMORY);
 
-    *aResult = NS_STATIC_CAST(nsIMsgSearchTerm*,term);
+    *aResult = static_cast<nsIMsgSearchTerm*>(term);
     NS_ADDREF(*aResult);
     return NS_OK;
 }
@@ -261,7 +261,7 @@ nsMsgFilter::CreateAction(nsIMsgRuleAction **aAction)
   nsMsgRuleAction *action = new nsMsgRuleAction;
   NS_ENSURE_TRUE(action, NS_ERROR_OUT_OF_MEMORY);
 
-  *aAction = NS_STATIC_CAST(nsIMsgRuleAction*,action);
+  *aAction = static_cast<nsIMsgRuleAction*>(action);
   NS_ADDREF(*aAction);
   return NS_OK;
 }
@@ -361,7 +361,7 @@ nsMsgFilter::GetSortedActionList(nsISupportsArray *actionList)
 NS_IMETHODIMP
 nsMsgFilter::AppendAction(nsIMsgRuleAction *aAction)
 {
-  return m_actionList->AppendElement(NS_STATIC_CAST(nsISupports*,aAction));
+  return m_actionList->AppendElement(static_cast<nsISupports*>(aAction));
 }
 
 NS_IMETHODIMP

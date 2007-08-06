@@ -353,7 +353,7 @@ NS_IMETHODIMP nsMsgProtocol::OnStartRequest(nsIRequest *request, nsISupports *ct
   {
     rv = aMsgUrl->SetUrlState(PR_TRUE, NS_OK);
     if (m_loadGroup)
-      m_loadGroup->AddRequest(NS_STATIC_CAST(nsIRequest *, this), nsnull /* context isupports */);
+      m_loadGroup->AddRequest(static_cast<nsIRequest *>(this), nsnull /* context isupports */);
   }
 
   // if we are set up as a channel, we should notify our channel listener that we are starting...
@@ -391,7 +391,7 @@ NS_IMETHODIMP nsMsgProtocol::OnStopRequest(nsIRequest *request, nsISupports *ctx
   {
     rv = msgUrl->SetUrlState(PR_FALSE, aStatus);
     if (m_loadGroup)
-      m_loadGroup->RemoveRequest(NS_STATIC_CAST(nsIRequest *, this), nsnull, aStatus);
+      m_loadGroup->RemoveRequest(static_cast<nsIRequest *>(this), nsnull, aStatus);
 
     // !NS_BINDING_ABORTED because we don't want to see an alert if the user
     // cancelled the operation.  also, we'll get here because we call Cancel()
@@ -1168,9 +1168,9 @@ nsresult nsMsgAsyncWriteProtocol::PostMessage(nsIURI* url, nsIFile *file)
   mSuspendedReadBytesPostPeriod = 0;
   mGenerateProgressNotifications = PR_TRUE;
 
-  mFilePostHelper = NS_STATIC_CAST(nsMsgFilePostHelper*,NS_STATIC_CAST(nsIStreamListener*, listener));
+  mFilePostHelper = static_cast<nsMsgFilePostHelper*>(static_cast<nsIStreamListener*>(listener));
 
-  NS_STATIC_CAST(nsMsgFilePostHelper*,NS_STATIC_CAST(nsIStreamListener*, listener))->Init(m_outputStream, this, file);
+  static_cast<nsMsgFilePostHelper*>(static_cast<nsIStreamListener*>(listener))->Init(m_outputStream, this, file);
 
   return NS_OK;
 }

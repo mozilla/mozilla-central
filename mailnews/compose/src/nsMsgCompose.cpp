@@ -1572,7 +1572,7 @@ nsresult nsMsgCompose::CreateMessage(const char * originalMsgURI,
   if (compFields)
   {
     NS_IF_RELEASE(m_compFields);
-    m_compFields = NS_REINTERPRET_CAST(nsMsgCompFields*, compFields);
+    m_compFields = reinterpret_cast<nsMsgCompFields*>(compFields);
     NS_ADDREF(m_compFields);
   }
   else

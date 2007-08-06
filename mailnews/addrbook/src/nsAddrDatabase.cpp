@@ -216,7 +216,7 @@ NS_IMETHODIMP nsAddrDatabase::QueryInterface(REFNSIID aIID, void** aResult)
     if (aIID.Equals(NS_GET_IID(nsIAddrDatabase)) ||
         aIID.Equals(NS_GET_IID(nsIAddrDBAnnouncer)) ||
         aIID.Equals(NS_GET_IID(nsISupports))) {
-        *aResult = NS_STATIC_CAST(nsIAddrDatabase*, this);
+        *aResult = static_cast<nsIAddrDatabase*>(this);
         NS_ADDREF_THIS();
         return NS_OK;
     }
@@ -365,7 +365,7 @@ nsAddrDatabase::CleanupCache()
         PRInt32 i;
         for (i = 0; i < GetDBCache()->Count(); i++)
         {
-            nsAddrDatabase* pAddrDB = NS_STATIC_CAST(nsAddrDatabase*, GetDBCache()->ElementAt(i));
+            nsAddrDatabase* pAddrDB = static_cast<nsAddrDatabase*>(GetDBCache()->ElementAt(i));
             if (pAddrDB)
             {
                 pAddrDB->ForceClosed();
@@ -388,7 +388,7 @@ nsAddrDatabase* nsAddrDatabase::FindInCache(nsIFile *dbName)
     PRInt32 i;
     for (i = 0; i < GetDBCache()->Count(); i++)
     {
-        nsAddrDatabase* pAddrDB = NS_STATIC_CAST(nsAddrDatabase*, GetDBCache()->ElementAt(i));
+        nsAddrDatabase* pAddrDB = static_cast<nsAddrDatabase*>(GetDBCache()->ElementAt(i));
         if (pAddrDB->MatchDbName(dbName))
         {
             NS_ADDREF(pAddrDB);

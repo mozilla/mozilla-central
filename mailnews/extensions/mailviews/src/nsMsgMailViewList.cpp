@@ -128,7 +128,7 @@ NS_IMETHODIMP nsMsgMailView::AppendTerm(nsIMsgSearchTerm * aTerm)
 {
     NS_ENSURE_TRUE(aTerm, NS_ERROR_NULL_POINTER);
     
-    return mViewSearchTerms->AppendElement(NS_STATIC_CAST(nsISupports*,aTerm));
+    return mViewSearchTerms->AppendElement(static_cast<nsISupports*>(aTerm));
 }
 
 NS_IMETHODIMP nsMsgMailView::CreateTerm(nsIMsgSearchTerm **aResult)
@@ -183,13 +183,13 @@ NS_IMETHODIMP nsMsgMailViewList::AddMailView(nsIMsgMailView * aMailView)
     NS_ENSURE_ARG_POINTER(aMailView);
     NS_ENSURE_TRUE(m_mailViews, NS_ERROR_FAILURE);
 
-    m_mailViews->AppendElement(NS_STATIC_CAST(nsISupports*, aMailView));
+    m_mailViews->AppendElement(static_cast<nsISupports*>(aMailView));
     return NS_OK;
 }
 
 NS_IMETHODIMP nsMsgMailViewList::RemoveMailView(nsIMsgMailView * aMailView)
 {
-    m_mailViews->RemoveElement(NS_STATIC_CAST(nsISupports*, aMailView));
+    m_mailViews->RemoveElement(static_cast<nsISupports*>(aMailView));
     return NS_OK;
 }
 
@@ -324,7 +324,7 @@ nsresult nsMsgMailViewList::ConvertFilterListToMailView(nsIMsgFilterList * aFilt
         newMailView->SetSearchTerms(filterSearchTerms);
 
         // now append this new mail view to our global list view
-        mailViewList->AppendElement(NS_STATIC_CAST(nsISupports*, newMailView));
+        mailViewList->AppendElement(static_cast<nsISupports*>(newMailView));
     }
 
     NS_IF_ADDREF(*aMailViewList = mailViewList);

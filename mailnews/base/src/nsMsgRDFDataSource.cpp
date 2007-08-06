@@ -70,7 +70,7 @@ nsMsgRDFDataSource::Init()
   /* Add an observer to XPCOM shutdown */
   nsCOMPtr<nsIObserverService> obs = do_GetService("@mozilla.org/observer-service;1", &rv);
   NS_ENSURE_SUCCESS(rv, rv);
-  rv = obs->AddObserver(NS_STATIC_CAST(nsIObserver*, this), NS_XPCOM_SHUTDOWN_OBSERVER_ID, PR_TRUE);
+  rv = obs->AddObserver(static_cast<nsIObserver*>(this), NS_XPCOM_SHUTDOWN_OBSERVER_ID, PR_TRUE);
   NS_ENSURE_SUCCESS(rv, rv);
 
   getRDFService();
@@ -89,7 +89,7 @@ void nsMsgRDFDataSource::Cleanup()
     nsCOMPtr<nsIObserverService> obs = do_GetService("@mozilla.org/observer-service;1",
                                                      &rv);
     if (NS_SUCCEEDED(rv)) {
-        rv = obs->RemoveObserver(NS_STATIC_CAST(nsIObserver*, this),
+        rv = obs->RemoveObserver(static_cast<nsIObserver*>(this),
                                  NS_XPCOM_SHUTDOWN_OBSERVER_ID);
     }
 

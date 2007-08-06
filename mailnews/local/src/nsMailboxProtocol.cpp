@@ -348,7 +348,7 @@ NS_IMETHODIMP nsMailboxProtocol::OnStopRequest(nsIRequest *request, nsISupports 
                 
                 NS_ASSERTION(NS_SUCCEEDED(rv), "AsyncRead failed");
                 if (m_loadGroup)
-                  m_loadGroup->RemoveRequest(NS_STATIC_CAST(nsIRequest *, this), nsnull, aStatus);
+                  m_loadGroup->RemoveRequest(static_cast<nsIRequest *>(this), nsnull, aStatus);
                 m_socketIsOpen = PR_TRUE; // mark the channel as open
                 return aStatus;
               }

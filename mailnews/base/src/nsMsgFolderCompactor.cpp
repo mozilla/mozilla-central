@@ -243,7 +243,7 @@ nsFolderCompactState::Compact(nsIMsgFolder *folder, PRBool aOfflineStore, nsIMsg
    m_folder->GetLocked(&isLocked);
    if(!isLocked)
    {
-     nsCOMPtr <nsISupports> supports = do_QueryInterface(NS_STATIC_CAST(nsIMsgFolderCompactor*, this));
+     nsCOMPtr <nsISupports> supports = do_QueryInterface(static_cast<nsIMsgFolderCompactor*>(this));
      m_folder->AcquireSemaphore(supports);
      return StartCompacting();
    }
@@ -469,7 +469,7 @@ nsFolderCompactState::ReleaseFolderLock()
   nsresult result = NS_OK;
   if (!m_folder) return result;
   PRBool haveSemaphore;
-  nsCOMPtr <nsISupports> supports = do_QueryInterface(NS_STATIC_CAST(nsIMsgFolderCompactor*, this));
+  nsCOMPtr <nsISupports> supports = do_QueryInterface(static_cast<nsIMsgFolderCompactor*>(this));
   result = m_folder->TestSemaphore(supports, &haveSemaphore);
   if(NS_SUCCEEDED(result) && haveSemaphore)
     result = m_folder->ReleaseSemaphore(supports);

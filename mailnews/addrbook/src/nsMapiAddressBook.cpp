@@ -76,20 +76,15 @@ BOOL nsMapiAddressBook::LoadMapiLibrary(void)
     }
     mLibrary = libraryHandle ;
     ++ mLibUsage ;
-    mMAPIInitialize = NS_REINTERPRET_CAST(LPMAPIINITIALIZE, 
-        GetProcAddress(mLibrary, "MAPIInitialize")) ;
+    mMAPIInitialize = reinterpret_cast<LPMAPIINITIALIZE>(GetProcAddress(mLibrary, "MAPIInitialize")) ;
     if (!mMAPIInitialize) { return FALSE ; }
-    mMAPIUninitialize = NS_REINTERPRET_CAST(LPMAPIUNINITIALIZE, 
-        GetProcAddress(mLibrary, "MAPIUninitialize")) ;
+    mMAPIUninitialize = reinterpret_cast<LPMAPIUNINITIALIZE>(GetProcAddress(mLibrary, "MAPIUninitialize")) ;
     if (!mMAPIUninitialize) { return FALSE ; }
-    mMAPIAllocateBuffer = NS_REINTERPRET_CAST(LPMAPIALLOCATEBUFFER, 
-        GetProcAddress(mLibrary, "MAPIAllocateBuffer")) ;
+    mMAPIAllocateBuffer = reinterpret_cast<LPMAPIALLOCATEBUFFER>(GetProcAddress(mLibrary, "MAPIAllocateBuffer")) ;
     if (!mMAPIAllocateBuffer) { return FALSE ; }
-    mMAPIFreeBuffer = NS_REINTERPRET_CAST(LPMAPIFREEBUFFER, 
-        GetProcAddress(mLibrary, "MAPIFreeBuffer")) ;
+    mMAPIFreeBuffer = reinterpret_cast<LPMAPIFREEBUFFER>(GetProcAddress(mLibrary, "MAPIFreeBuffer")) ;
     if (!mMAPIFreeBuffer) { return FALSE ; }
-    mMAPILogonEx = NS_REINTERPRET_CAST(LPMAPILOGONEX, 
-        GetProcAddress(mLibrary, "MAPILogonEx")) ;
+    mMAPILogonEx = reinterpret_cast<LPMAPILOGONEX>(GetProcAddress(mLibrary, "MAPILogonEx")) ;
     if (!mMAPILogonEx) { return FALSE ; }
     MAPIINIT_0 mapiInit = { MAPI_INIT_VERSION, MAPI_MULTITHREAD_NOTIFICATIONS } ;
     HRESULT retCode = mMAPIInitialize(&mapiInit) ;

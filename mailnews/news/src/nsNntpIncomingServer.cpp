@@ -744,7 +744,7 @@ nsNntpIncomingServer::OnStopRunningUrl(nsIURI *url, nsresult exitCode)
 PRBool
 checkIfSubscribedFunction(nsCString &aElement, void *aData)
 {
-    if (aElement.Equals(*NS_STATIC_CAST(nsACString *, aData))) {
+    if (aElement.Equals(*static_cast<nsACString *>(aData))) {
         return PR_FALSE;
     }
     else {

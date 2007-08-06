@@ -96,11 +96,11 @@ NS_IMETHODIMP nsSMimeJSHelper::GetRecipientCertsInfo(
 
   if (mailbox_count)
   {
-    PRUnichar **outEA = NS_STATIC_CAST(PRUnichar **, nsMemory::Alloc(mailbox_count * sizeof(PRUnichar *)));
-    PRInt32 *outCV = NS_STATIC_CAST(PRInt32 *, nsMemory::Alloc(mailbox_count * sizeof(PRInt32)));
-    PRUnichar **outCII = NS_STATIC_CAST(PRUnichar **, nsMemory::Alloc(mailbox_count * sizeof(PRUnichar *)));
-    PRUnichar **outCEI = NS_STATIC_CAST(PRUnichar **, nsMemory::Alloc(mailbox_count * sizeof(PRUnichar *)));
-    nsIX509Cert **outCerts = NS_STATIC_CAST(nsIX509Cert **, nsMemory::Alloc(mailbox_count * sizeof(nsIX509Cert *)));
+    PRUnichar **outEA = static_cast<PRUnichar **>(nsMemory::Alloc(mailbox_count * sizeof(PRUnichar *)));
+    PRInt32 *outCV = static_cast<PRInt32 *>(nsMemory::Alloc(mailbox_count * sizeof(PRInt32)));
+    PRUnichar **outCII = static_cast<PRUnichar **>(nsMemory::Alloc(mailbox_count * sizeof(PRUnichar *)));
+    PRUnichar **outCEI = static_cast<PRUnichar **>(nsMemory::Alloc(mailbox_count * sizeof(PRUnichar *)));
+    nsIX509Cert **outCerts = static_cast<nsIX509Cert **>(nsMemory::Alloc(mailbox_count * sizeof(nsIX509Cert *)));
 
     if (!outEA || !outCV || !outCII || !outCEI || !outCerts)
     {
@@ -321,7 +321,7 @@ NS_IMETHODIMP nsSMimeJSHelper::GetNoCertAddresses(
 
   if (missing_count)
   {
-    PRUnichar **outEA = NS_STATIC_CAST(PRUnichar **, nsMemory::Alloc(missing_count * sizeof(PRUnichar *)));
+    PRUnichar **outEA = static_cast<PRUnichar **>(nsMemory::Alloc(missing_count * sizeof(PRUnichar *)));
     if (!outEA )
     {
       rv = NS_ERROR_OUT_OF_MEMORY;

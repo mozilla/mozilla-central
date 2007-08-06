@@ -453,7 +453,7 @@ nsMsgIncomingServer::GetFileValue(const char* aRelPrefName,
   } else {
     rv = mPrefBranch->GetComplexValue(aAbsPrefName,
                                       NS_GET_IID(nsILocalFile),
-                                      NS_REINTERPRET_CAST(void**, aLocalFile));
+                                      reinterpret_cast<void**>(aLocalFile));
     if (NS_FAILED(rv))
       return rv;
 

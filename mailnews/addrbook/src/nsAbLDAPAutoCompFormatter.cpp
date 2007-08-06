@@ -398,7 +398,7 @@ nsAbLDAPAutoCompFormatter::GetAttributes(PRUint32 *aCount, char ** *aAttrs)
     //
     PRUint32 rawSearchAttrsSize = 0;        // grown as XPCOM array is built
     char **rawSearchAttrs = 
-        NS_STATIC_CAST(char **, nsMemory::Alloc(count * sizeof(char *)));
+        static_cast<char **>(nsMemory::Alloc(count * sizeof(char *)));
     if (!rawSearchAttrs) {
         NS_ERROR("nsAbLDAPAutoCompFormatter::GetAttributes(): out of "
 		 "memory");
@@ -610,7 +610,7 @@ nsAbLDAPAutoCompFormatter::ParseAttrName(
 
             // this must be part of the attribute name
             //
-            aAttrName.Append(NS_STATIC_CAST(char,*aIter));
+            aAttrName.Append(static_cast<char>(*aIter));
         }
 
         ++aIter;

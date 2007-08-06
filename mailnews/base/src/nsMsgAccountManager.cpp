@@ -1420,7 +1420,7 @@ nsMsgAccountManager::createKeyedAccount(const nsCString& key,
   account->SetKey(key);
 
   // add to internal nsISupportsArray
-  m_accounts->AppendElement(NS_STATIC_CAST(nsISupports*, account));
+  m_accounts->AppendElement(static_cast<nsISupports*>(account));
 
   // add to string list
   if (mAccountKeyList.IsEmpty())

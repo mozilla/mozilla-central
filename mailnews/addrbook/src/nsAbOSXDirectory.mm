@@ -500,7 +500,7 @@ struct nsEnumeratorData
 PLDHashOperator
 Enumerator(nsIAbCardHashKey *aKey, void *aUserArg)
 {
-  nsEnumeratorData *data = NS_STATIC_CAST(nsEnumeratorData*, aUserArg);
+  nsEnumeratorData *data = static_cast<nsEnumeratorData*>(aUserArg);
   
   nsIAbCard *abCard = aKey->GetCard();
   

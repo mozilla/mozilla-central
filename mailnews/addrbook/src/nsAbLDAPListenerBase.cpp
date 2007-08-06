@@ -228,7 +228,7 @@ NS_IMETHODIMP nsAbLDAPListenerBase::OnLDAPInit(nsILDAPConnection *aConn, nsresul
   nsCOMPtr<nsILDAPMessageListener> proxyListener;
   rv = NS_GetProxyForObject(NS_PROXY_TO_MAIN_THREAD,
                             NS_GET_IID(nsILDAPMessageListener),
-                            NS_STATIC_CAST(nsILDAPMessageListener *, this),
+                            static_cast<nsILDAPMessageListener *>(this),
                             NS_PROXY_SYNC | NS_PROXY_ALWAYS,
                             getter_AddRefs(proxyListener));
   NS_ENSURE_SUCCESS(rv, rv);

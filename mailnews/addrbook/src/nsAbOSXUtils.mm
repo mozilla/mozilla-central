@@ -51,7 +51,7 @@
 NSString*
 WrapString(const nsString &aString)
 {
-    PRUnichar* chars = NS_CONST_CAST(PRUnichar*, aString.get());
+    PRUnichar* chars = const_cast<PRUnichar*>(aString.get());
 
     return [NSString stringWithCharacters:chars
                                    length:aString.Length()];

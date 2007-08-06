@@ -1942,7 +1942,7 @@ mime_gen_content_id(PRUint32 aPartNum, const char *aEmailAddress)
 
   // Find the @domain.com string...
   if (aEmailAddress && *aEmailAddress)
-    domain = NS_CONST_CAST(const char*, PL_strchr(aEmailAddress, '@'));
+    domain = const_cast<const char*>(PL_strchr(aEmailAddress, '@'));
 
   if (!domain)
     domain = defaultDomain;

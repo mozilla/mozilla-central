@@ -458,7 +458,7 @@ nsMsgMailboxParser::ReleaseFolderLock()
   if (!folder)
     return;
   PRBool haveSemaphore;
-  nsCOMPtr <nsISupports> supports = do_QueryInterface(NS_STATIC_CAST(nsIMsgParseMailMsgState*, this));
+  nsCOMPtr <nsISupports> supports = do_QueryInterface(static_cast<nsIMsgParseMailMsgState*>(this));
   result = folder->TestSemaphore(supports, &haveSemaphore);
   if(NS_SUCCEEDED(result) && haveSemaphore)
     result = folder->ReleaseSemaphore(supports);
@@ -2262,7 +2262,7 @@ nsresult nsParseNewMailState::MoveIncorporatedMessage(nsIMsgDBHdr *mailHdr,
   if (NS_FAILED(err))
     return err;
 
-  nsCOMPtr <nsISupports> myISupports = do_QueryInterface(NS_STATIC_CAST(nsIMsgParseMailMsgState*, this));
+  nsCOMPtr <nsISupports> myISupports = do_QueryInterface(static_cast<nsIMsgParseMailMsgState*>(this));
 
   //	NS_RELEASE(myThis);
   // Make sure no one else is writing into this folder

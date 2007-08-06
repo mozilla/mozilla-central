@@ -210,7 +210,7 @@ nsresult nsMsgThread::RerootThread(nsIMsgDBHdr *newParentOfOldRoot, nsIMsgDBHdr 
   if (ancestorHdr)
   {
     nsIMsgDBHdr *msgHdr = ancestorHdr;
-    nsMsgHdr* rootMsgHdr = NS_STATIC_CAST(nsMsgHdr*, msgHdr);          // closed system, cast ok
+    nsMsgHdr* rootMsgHdr = static_cast<nsMsgHdr*>(msgHdr);          // closed system, cast ok
     nsIMdbRow *newRootHdrRow = rootMsgHdr->GetMDBRow();
     // move the  root hdr to pos 0.
     m_mdbTable->MoveRow(m_mdbDB->GetEnv(), newRootHdrRow, -1, 0, &outPos);
@@ -223,7 +223,7 @@ NS_IMETHODIMP nsMsgThread::AddChild(nsIMsgDBHdr *child, nsIMsgDBHdr *inReplyTo, 
                                     nsIDBChangeAnnouncer *announcer)
 {
   nsresult rv = NS_OK;
-  nsMsgHdr* hdr = NS_STATIC_CAST(nsMsgHdr*, child);          // closed system, cast ok
+  nsMsgHdr* hdr = static_cast<nsMsgHdr*>(child);          // closed system, cast ok
   PRUint32 newHdrFlags = 0;
   PRUint32 msgDate;
   nsMsgKey newHdrKey = 0;
@@ -398,7 +398,7 @@ NS_IMETHODIMP nsMsgThread::AddChild(nsIMsgDBHdr *child, nsIMsgDBHdr *inReplyTo, 
     m_mdbDB->MarkHdrRead(child, PR_TRUE, nsnull);
 
 #ifdef DEBUG_bienvenu1
-  nsMsgDatabase *msgDB = NS_STATIC_CAST(nsMsgDatabase*, m_mdbDB);
+  nsMsgDatabase *msgDB = static_cast<nsMsgDatabase*>(m_mdbDB);
   msgDB->DumpThread(m_threadRootKey);
 #endif
   return rv;
@@ -421,7 +421,7 @@ nsresult nsMsgThread::ReparentNonReferenceChildrenOf(nsIMsgDBHdr *oldTopLevelHdr
     if (NS_SUCCEEDED(rv) && curHdr)
     {
       nsMsgKey oldThreadParent, curHdrKey;
-      nsMsgHdr* oldTopLevelMsgHdr = NS_STATIC_CAST(nsMsgHdr*, oldTopLevelHdr);      // closed system, cast ok
+      nsMsgHdr* oldTopLevelMsgHdr = static_cast<nsMsgHdr*>(oldTopLevelHdr);      // closed system, cast ok
       curHdr->GetThreadParent(&oldThreadParent);
       curHdr->GetMessageKey(&curHdrKey);
       if (oldThreadParent == oldTopLevelHdrKey && curHdrKey != newParentKey && !oldTopLevelMsgHdr->IsParentOf(curHdr))

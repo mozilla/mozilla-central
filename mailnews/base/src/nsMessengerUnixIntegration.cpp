@@ -228,7 +228,7 @@ nsresult nsMessengerUnixIntegration::ShowNewAlertNotification(PRBool aUserInitia
     // pass in the observer
     ifptr = do_CreateInstance(NS_SUPPORTS_INTERFACE_POINTER_CONTRACTID, &rv);
     NS_ENSURE_SUCCESS(rv, rv);
-    nsCOMPtr <nsISupports> supports = do_QueryInterface(NS_STATIC_CAST(nsIMessengerOSIntegration*, this));
+    nsCOMPtr <nsISupports> supports = do_QueryInterface(static_cast<nsIMessengerOSIntegration*>(this));
     ifptr->SetData(supports);
     ifptr->SetDataIID(&NS_GET_IID(nsIObserver));
     argsArray->AppendElement(ifptr);

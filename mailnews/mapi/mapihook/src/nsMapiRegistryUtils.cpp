@@ -744,7 +744,7 @@ nsresult nsMapiRegistryUtils::registerMailApp(PRBool aForceRegistration)
 
         nsCAutoString nativeTitle;
         NS_CopyUnicodeToNative(defaultMailTitle, nativeTitle);
-        rv = SetRegistryKey(HKEY_LOCAL_MACHINE, keyName.get(), "", NS_CONST_CAST(char *, nativeTitle.get()) );
+        rv = SetRegistryKey(HKEY_LOCAL_MACHINE, keyName.get(), "", const_cast<char *>(nativeTitle.get()) );
     }
     else
         rv = NS_ERROR_FAILURE;
@@ -852,7 +852,7 @@ nsresult nsMapiRegistryUtils::registerNewsApp(PRBool aForceRegistration)
         nsCAutoString nativeTitle;
         NS_CopyUnicodeToNative(defaultMailTitle, nativeTitle);
 
-        rv = SetRegistryKey(HKEY_LOCAL_MACHINE, keyName.get(), "", NS_CONST_CAST(char *, nativeTitle.get()) );
+        rv = SetRegistryKey(HKEY_LOCAL_MACHINE, keyName.get(), "", const_cast<char *>(nativeTitle.get()) );
     }
     else
         rv = NS_ERROR_FAILURE;

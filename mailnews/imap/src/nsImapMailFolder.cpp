@@ -340,7 +340,7 @@ NS_IMETHODIMP nsImapMailFolder::AddSubfolder(const nsAString& aName, nsIMsgFolde
   NS_ENSURE_SUCCESS(rv, rv);
 
   nsCOMPtr <nsILocalFile> path;
-  nsMsgDBFolder *dbFolder = NS_STATIC_CAST(nsMsgDBFolder *, NS_STATIC_CAST(nsIMsgFolder *, folder.get()));
+  nsMsgDBFolder *dbFolder = static_cast<nsMsgDBFolder *>(static_cast<nsIMsgFolder *>(folder.get()));
   rv = dbFolder->CreateDirectoryForFolder(getter_AddRefs(path));
   NS_ENSURE_SUCCESS(rv, rv);
 
@@ -3819,7 +3819,7 @@ NS_IMETHODIMP nsImapMailFolder::DownloadMessagesForOffline(nsISupportsArray *mes
   NS_ENSURE_SUCCESS(rv,rv);
 
   SetNotifyDownloadedLines(PR_TRUE);
-  rv = AcquireSemaphore(NS_STATIC_CAST(nsIMsgImapMailFolder*, this));
+  rv = AcquireSemaphore(static_cast<nsIMsgImapMailFolder*>(this));
   if (NS_FAILED(rv))
   {
     ThrowAlertMsg("operationFailedFolderBusy", window);
@@ -3844,7 +3844,7 @@ NS_IMETHODIMP nsImapMailFolder::DownloadAllForOffline(nsIUrlListener *listener, 
     GetDatabase(msgWindow);
     m_downloadingFolderForOfflineUse = PR_TRUE;
 
-    rv = AcquireSemaphore(NS_STATIC_CAST(nsIMsgImapMailFolder*, this));
+    rv = AcquireSemaphore(static_cast<nsIMsgImapMailFolder*>(this));
     if (NS_FAILED(rv))
     {
       ThrowAlertMsg("operationFailedFolderBusy", msgWindow);
@@ -4367,7 +4367,7 @@ nsImapMailFolder::OnStopRunningUrl(nsIURI *aUrl, nsresult aExitCode)
   m_updatingFolder = PR_FALSE;
   if (m_downloadingFolderForOfflineUse)
   {
-    ReleaseSemaphore(NS_STATIC_CAST(nsIMsgImapMailFolder*, this));
+    ReleaseSemaphore(static_cast<nsIMsgImapMailFolder*>(this));
     m_downloadingFolderForOfflineUse = PR_FALSE;
     endedOfflineDownload = PR_TRUE;
     EndOfflineDownload();
@@ -4397,7 +4397,7 @@ nsImapMailFolder::OnStopRunningUrl(nsIURI *aUrl, nsresult aExitCode)
       imapUrl->GetImapAction(&imapAction);
       if (imapAction == nsIImapUrl::nsImapMsgFetch || imapAction == nsIImapUrl::nsImapMsgDownloadForOffline)
       {
-        ReleaseSemaphore(NS_STATIC_CAST(nsIMsgImapMailFolder*, this));
+        ReleaseSemaphore(static_cast<nsIMsgImapMailFolder*>(this));
         SetNotifyDownloadedLines(PR_FALSE);
         if (!endedOfflineDownload)
           EndOfflineDownload();
@@ -4930,7 +4930,7 @@ nsImapMailFolder::HeaderFetchCompleted(nsIImapProtocol* aProtocol)
       if (autoDownloadNewHeaders || autoSyncOfflineStores)
       {
           // acquire semaphore for offline store. If it fails, we won't download for offline use.
-        if (NS_SUCCEEDED(AcquireSemaphore(NS_STATIC_CAST(nsIMsgImapMailFolder*, this))))
+        if (NS_SUCCEEDED(AcquireSemaphore(static_cast<nsIMsgImapMailFolder*>(this))))
           m_downloadingFolderForOfflineUse = PR_TRUE;
       }
     }
@@ -5825,7 +5825,7 @@ nsImapMailFolder::SetUrlState(nsIImapProtocol* aProtocol,
       EndOfflineDownload();
       if (m_downloadingFolderForOfflineUse)
       {
-        ReleaseSemaphore(NS_STATIC_CAST(nsIMsgImapMailFolder*, this));
+        ReleaseSemaphore(static_cast<nsIMsgImapMailFolder*>(this));
         m_downloadingFolderForOfflineUse = PR_FALSE;
       }
     }

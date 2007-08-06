@@ -264,7 +264,7 @@ nsMsgSearchDBView::OnNewSearch()
 
 NS_IMETHODIMP nsMsgSearchDBView::OnAnnouncerGoingAway(nsIDBChangeAnnouncer *instigator)
 {
-  nsIMsgDatabase *db = NS_STATIC_CAST(nsIMsgDatabase *, instigator);
+  nsIMsgDatabase *db = static_cast<nsIMsgDatabase *>(instigator);
   if (db)
   {
     db->RemoveListener(this);

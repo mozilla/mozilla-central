@@ -591,7 +591,7 @@ nsresult nsMsgFilterList::LoadTextFilters(nsIInputStream *aStream)
           err = NS_ERROR_OUT_OF_MEMORY;
           break;
         }
-        filter->SetFilterList(NS_STATIC_CAST(nsIMsgFilterList*,this));
+        filter->SetFilterList(static_cast<nsIMsgFilterList*>(this));
         if (m_fileVersion == k45Version)
         {
           nsAutoString unicodeStr;
@@ -611,7 +611,7 @@ nsresult nsMsgFilterList::LoadTextFilters(nsIInputStream *aStream)
           nsTextFormatter::smprintf_free(unicodeString);
         }
         m_curFilter = filter;
-        m_filters->AppendElement(NS_STATIC_CAST(nsISupports*,filter));
+        m_filters->AppendElement(static_cast<nsISupports*>(filter));
       }
       break;
     case nsIMsgFilterList::attribEnabled:
@@ -1005,12 +1005,12 @@ nsresult nsMsgFilterList::RemoveFilterAt(PRUint32 filterIndex)
 nsresult
 nsMsgFilterList::RemoveFilter(nsIMsgFilter *aFilter)
 {
-    return m_filters->RemoveElement(NS_STATIC_CAST(nsISupports*, aFilter));
+    return m_filters->RemoveElement(static_cast<nsISupports*>(aFilter));
 }
 
 nsresult nsMsgFilterList::InsertFilterAt(PRUint32 filterIndex, nsIMsgFilter *aFilter)
 {
-  nsMsgFilter *filter = NS_STATIC_CAST(nsMsgFilter *, aFilter);
+  nsMsgFilter *filter = static_cast<nsMsgFilter *>(aFilter);
   if (!m_temporaryList)
     filter->SetFilterList(this);
   m_filters->InsertElementAt(aFilter, filterIndex);
@@ -1057,7 +1057,7 @@ nsresult nsMsgFilterList::MoveFilter(nsIMsgFilter *aFilter,
     nsresult rv;
 
     PRInt32 filterIndex;
-    rv = m_filters->GetIndexOf(NS_STATIC_CAST(nsISupports*,aFilter),
+    rv = m_filters->GetIndexOf(static_cast<nsISupports*>(aFilter),
                                &filterIndex);
     NS_ENSURE_SUCCESS(rv, rv);
     NS_ENSURE_ARG(filterIndex >= 0);

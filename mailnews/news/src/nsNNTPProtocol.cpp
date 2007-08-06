@@ -780,7 +780,7 @@ nsresult nsNNTPProtocol::ReadFromMemCache(nsICacheEntryDescriptor *entry)
     m_typeWanted = ARTICLE_WANTED;
 
     nsCOMPtr<nsIMsgMailNewsUrl> mailnewsUrl = do_QueryInterface(m_runningURL);
-    cacheListener->Init(m_channelListener, NS_STATIC_CAST(nsIChannel *, this), mailnewsUrl);
+    cacheListener->Init(m_channelListener, static_cast<nsIChannel *>(this), mailnewsUrl);
 
     m_ContentType = ""; // reset the content type for the upcoming read....
 
@@ -845,7 +845,7 @@ PRBool nsNNTPProtocol::ReadFromLocalCache()
           return PR_FALSE;
 
         NS_ADDREF(cacheListener);
-        cacheListener->Init(m_channelListener, NS_STATIC_CAST(nsIChannel *, this), mailnewsUrl);
+        cacheListener->Init(m_channelListener, static_cast<nsIChannel *>(this), mailnewsUrl);
 
         // create a stream pump that will async read the specified amount of data.
         // XXX make offset and size 64-bit ints
@@ -3224,7 +3224,7 @@ PRInt32 nsNNTPProtocol::ReadNewsList(nsIInputStream * inputStream, PRUint32 leng
     mInputStream = inputStream;
 
     const PRUint32 kUpdateTimerDelay = READ_NEWS_LIST_TIMEOUT;
-    rv = mUpdateTimer->InitWithCallback(NS_STATIC_CAST(nsITimerCallback*,this), kUpdateTimerDelay,
+    rv = mUpdateTimer->InitWithCallback(static_cast<nsITimerCallback*>(this), kUpdateTimerDelay,
       nsITimer::TYPE_ONE_SHOT);
     NS_ASSERTION(NS_SUCCEEDED(rv),"failed to init timer");
     if (NS_FAILED(rv)) {
@@ -5261,7 +5261,7 @@ nsresult nsNNTPProtocol::CleanupAfterRunningUrl()
     rv = m_channelListener->OnStopRequest(this, m_channelContext, NS_OK);
 
   if (m_loadGroup)
-    m_loadGroup->RemoveRequest(NS_STATIC_CAST(nsIRequest *, this), nsnull, NS_OK);
+    m_loadGroup->RemoveRequest(static_cast<nsIRequest *>(this), nsnull, NS_OK);
   CleanupNewsgroupList();
 
   // clear out mem cache entry so we're not holding onto it.

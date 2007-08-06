@@ -274,7 +274,7 @@ nsAbAutoCompleteSession::AddToResult(const PRUnichar* pNickNameStr,
 
 static PRBool CommonPrefix(const PRUnichar *aString, const PRUnichar *aSubstr, PRInt32 aSubstrLen)
 {
-  if (!aSubstrLen || (NS_strlen(aString) < NS_STATIC_CAST(PRUint32, aSubstrLen)))
+  if (!aSubstrLen || (NS_strlen(aString) < static_cast<PRUint32>(aSubstrLen)))
     return PR_FALSE;
 
   return (Substring(aString,

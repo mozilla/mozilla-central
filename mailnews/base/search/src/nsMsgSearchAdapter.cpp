@@ -850,7 +850,7 @@ nsMsgSearchValidityTable::ValidateTerms (nsISupportsArray *searchTerms)
                              (void **)getter_AddRefs(pTerm));
 
 		nsIMsgSearchTerm *iTerm = pTerm;
-		nsMsgSearchTerm *term = NS_STATIC_CAST(nsMsgSearchTerm *, iTerm);
+		nsMsgSearchTerm *term = static_cast<nsMsgSearchTerm *>(iTerm);
 //		XP_ASSERT(term->IsValid());
         PRBool enabled;
         PRBool available;

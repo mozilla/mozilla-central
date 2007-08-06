@@ -587,7 +587,7 @@ NS_IMETHODIMP nsPop3IncomingServer::MarkMessages()
   PRUint32 count = m_uidlsToMark.Count();
   for (PRUint32 i = 0; i < count; i++)
   {
-    Pop3UidlEntry *ue = NS_STATIC_CAST(Pop3UidlEntry*,m_uidlsToMark[i]);
+    Pop3UidlEntry *ue = static_cast<Pop3UidlEntry*>(m_uidlsToMark[i]);
     PR_Free(ue->uidl);
     PR_Free(ue);
   }

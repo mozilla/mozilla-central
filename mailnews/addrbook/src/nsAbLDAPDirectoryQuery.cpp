@@ -419,8 +419,7 @@ nsAbLDAPDirectoryQuery::nsAbLDAPDirectoryQuery() :
 nsAbLDAPDirectoryQuery::~nsAbLDAPDirectoryQuery()
 {
      nsAbQueryLDAPMessageListener *msgListener = 
-        NS_STATIC_CAST(nsAbQueryLDAPMessageListener *, 
-        NS_STATIC_CAST(nsILDAPMessageListener *, mListener.get()));
+        static_cast<nsAbQueryLDAPMessageListener *>(static_cast<nsILDAPMessageListener *>(mListener.get()));
      if (msgListener)
      {
        msgListener->mDirectoryQuery = nsnull;
@@ -630,8 +629,7 @@ NS_IMETHODIMP nsAbLDAPDirectoryQuery::DoQuery(nsIAbDirectoryQueryArguments* argu
   if (!redoConnection)
   {
     nsAbQueryLDAPMessageListener *msgListener = 
-      NS_STATIC_CAST(nsAbQueryLDAPMessageListener *, 
-                     NS_STATIC_CAST(nsILDAPMessageListener *, mListener.get()));
+      static_cast<nsAbQueryLDAPMessageListener *>(static_cast<nsILDAPMessageListener *>(mListener.get()));
     if (msgListener)
     {
       // Ensure the urls are correct
@@ -677,8 +675,7 @@ NS_IMETHODIMP nsAbLDAPDirectoryQuery::StopQuery(PRInt32 contextID)
     return NS_OK;
 
   nsAbQueryLDAPMessageListener *listener = 
-    NS_STATIC_CAST(nsAbQueryLDAPMessageListener *, 
-                   NS_STATIC_CAST(nsILDAPMessageListener *, mListener.get()));
+    static_cast<nsAbQueryLDAPMessageListener *>(static_cast<nsILDAPMessageListener *>(mListener.get()));
   if (listener)
     return listener->Cancel();
 

@@ -292,7 +292,7 @@ nsMsgGroupThread *nsMsgGroupView::AddHdrToThread(nsIMsgDBHdr *msgHdr, PRBool *pN
   *pNewThread = newThread;
   nsMsgViewIndex viewIndexOfThread;
 
-  nsMsgGroupThread *foundThread = NS_STATIC_CAST(nsMsgGroupThread *, msgThread.get());
+  nsMsgGroupThread *foundThread = static_cast<nsMsgGroupThread *>(msgThread.get());
   if (!foundThread)
   {
     foundThread = new nsMsgGroupThread(m_db);
@@ -385,7 +385,7 @@ NS_IMETHODIMP nsMsgGroupView::OpenWithHdrs(nsISimpleEnumerator *aHeaders, nsMsgV
         OrExtraFlag(viewIndex, viewFlag | MSG_VIEW_FLAG_HASCHILDREN);
       if (expandFlags)
       {
-        nsMsgGroupThread *groupThread = NS_STATIC_CAST(nsMsgGroupThread *, (nsIMsgThread *) thread);
+        nsMsgGroupThread *groupThread = static_cast<nsMsgGroupThread *>((nsIMsgThread *) thread);
         if (expandFlags & (1 << groupThread->m_threadKey))
         {
           PRUint32 numExpanded;
@@ -556,7 +556,7 @@ NS_IMETHODIMP nsMsgGroupView::OnHdrDeleted(nsIMsgDBHdr *aHdrDeleted, nsMsgKey aP
   nsMsgViewIndex viewIndexOfThread = GetIndexOfFirstDisplayedKeyInThread(thread);
   thread->RemoveChildHdr(aHdrDeleted, nsnull);
 
-  nsMsgGroupThread *groupThread = NS_STATIC_CAST(nsMsgGroupThread *, (nsIMsgThread *) thread);
+  nsMsgGroupThread *groupThread = static_cast<nsMsgGroupThread *>((nsIMsgThread *) thread);
 
   PRBool rootDeleted = viewIndexOfThread != nsMsgKey_None &&
     m_keys.GetAt(viewIndexOfThread) == keyDeleted;
@@ -621,7 +621,7 @@ NS_IMETHODIMP nsMsgGroupView::GetCellText(PRInt32 aRow, nsITreeColumn* aCol, nsA
       return NS_OK;
     nsCOMPtr<nsIMsgThread> msgThread;
     m_groupsTable.Get(hashKey, getter_AddRefs(msgThread));
-    nsMsgGroupThread * groupThread = NS_STATIC_CAST(nsMsgGroupThread *, msgThread.get());
+    nsMsgGroupThread * groupThread = static_cast<nsMsgGroupThread *>(msgThread.get());
     if (colID[0] == 's'  && colID[1] == 'u' )
     {
       PRUint32 flags;

@@ -182,8 +182,8 @@ static void CALLBACK delayedSingleClick(HWND msgWindow, UINT msg, INT_PTR idEven
   if (NS_SUCCEEDED(rv))
   {
     // we know we are dealing with the windows integration object
-    nsMessengerWinIntegration * winIntegrationService = NS_STATIC_CAST(nsMessengerWinIntegration*,
-                                                                       NS_STATIC_CAST(nsIMessengerOSIntegration*, integrationService.get()));
+    nsMessengerWinIntegration * winIntegrationService = static_cast<nsMessengerWinIntegration*>
+                                                                   (static_cast<nsIMessengerOSIntegration*>(integrationService.get()));
     winIntegrationService->ShowNewAlertNotification(PR_TRUE);
   }
 #endif
@@ -529,7 +529,7 @@ nsresult nsMessengerWinIntegration::ShowNewAlertNotification(PRBool aUserInitiat
     // pass in the observer
     ifptr = do_CreateInstance(NS_SUPPORTS_INTERFACE_POINTER_CONTRACTID, &rv);
     NS_ENSURE_SUCCESS(rv, rv);
-    nsCOMPtr <nsISupports> supports = do_QueryInterface(NS_STATIC_CAST(nsIMessengerOSIntegration*, this));
+    nsCOMPtr <nsISupports> supports = do_QueryInterface(static_cast<nsIMessengerOSIntegration*>(this));
     ifptr->SetData(supports);
     ifptr->SetDataIID(&NS_GET_IID(nsIObserver));
     rv = argsArray->AppendElement(ifptr);

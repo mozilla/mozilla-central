@@ -69,7 +69,7 @@ BOOL nsWabAddressBook::LoadWabLibrary(void)
     mLibrary = LoadLibrary( (lstrlen(wabDLLPath)) ? wabDLLPath : WAB_DLL_NAME );
     if (!mLibrary) { return FALSE ; }
     ++ mLibUsage ;
-    mWABOpen = NS_REINTERPRET_CAST(LPWABOPEN, GetProcAddress(mLibrary, "WABOpen")) ;
+    mWABOpen = reinterpret_cast<LPWABOPEN>(GetProcAddress(mLibrary, "WABOpen")) ;
     if (!mWABOpen) { return FALSE ; }
     HRESULT retCode = mWABOpen(&mRootBook, &mRootSession, NULL, 0) ;
 

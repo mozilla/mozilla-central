@@ -519,7 +519,7 @@ NS_IMETHODIMP  nsMailDatabase::RemoveOfflineOp(nsIMsgOfflineImapOperation *op)
   
   if (!op || !m_mdbAllOfflineOpsTable)
     return NS_ERROR_NULL_POINTER;
-  nsMsgOfflineImapOperation* offlineOp = NS_STATIC_CAST(nsMsgOfflineImapOperation*, op);  // closed system, so this is ok
+  nsMsgOfflineImapOperation* offlineOp = static_cast<nsMsgOfflineImapOperation*>(op);  // closed system, so this is ok
   nsIMdbRow* row = offlineOp->GetMDBRow();
   rv = m_mdbAllOfflineOpsTable->CutRow(GetEnv(), row);
   row->CutAllColumns(GetEnv());
@@ -625,8 +625,7 @@ NS_IMETHODIMP nsMailDatabase::ListAllOfflineOpIds(nsMsgKeyArray *offlineOpIds)
           GetOfflineOpForKey(outOid.mOid_Id, PR_FALSE, getter_AddRefs(offlineOp));
           if (offlineOp)
           {
-            nsMsgOfflineImapOperation *logOp = NS_STATIC_CAST(nsMsgOfflineImapOperation *, 
-              NS_STATIC_CAST(nsIMsgOfflineImapOperation *, offlineOp.get()));
+            nsMsgOfflineImapOperation *logOp = static_cast<nsMsgOfflineImapOperation *>(static_cast<nsIMsgOfflineImapOperation *>(offlineOp.get()));
             if (logOp)
               logOp->Log(IMAPOffline);
 

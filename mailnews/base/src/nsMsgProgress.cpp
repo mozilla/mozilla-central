@@ -100,7 +100,7 @@ NS_IMETHODIMP nsMsgProgress::OpenProgressDialog(nsIDOMWindowInternal *parent, ns
     do_CreateInstance(NS_SUPPORTS_INTERFACE_POINTER_CONTRACTID, &rv);
   NS_ENSURE_SUCCESS(rv, rv);
 
-  ifptr->SetData(NS_STATIC_CAST(nsIMsgProgress*, this));
+  ifptr->SetData(static_cast<nsIMsgProgress*>(this));
   ifptr->SetDataIID(&NS_GET_IID(nsIMsgProgress));
 
   array->AppendElement(ifptr);

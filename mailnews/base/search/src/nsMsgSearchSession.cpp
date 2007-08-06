@@ -124,7 +124,7 @@ nsMsgSearchSession::CreateTerm(nsIMsgSearchTerm **aResult)
     nsMsgSearchTerm *term = new nsMsgSearchTerm;
     NS_ENSURE_TRUE(term, NS_ERROR_OUT_OF_MEMORY);
     
-    *aResult = NS_STATIC_CAST(nsIMsgSearchTerm*,term);
+    *aResult = static_cast<nsIMsgSearchTerm*>(term);
     NS_ADDREF(*aResult);
     return NS_OK;
 }

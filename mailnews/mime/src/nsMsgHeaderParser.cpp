@@ -341,7 +341,7 @@ nsresult nsMsgHeaderParser::ReformatUnquotedAddresses (const PRUnichar *line, PR
         /* Ok, we found an address delimiter, temporary replace the delimiter with a \0
            and quote the full address
         */
-        char * tempEnd = NS_CONST_CAST(char *, readPtr);
+        char * tempEnd = const_cast<char *>(readPtr);
         *tempEnd = 0;
 
         reformated = msg_reformat_Header_addresses(startRecipient);

@@ -165,7 +165,7 @@ nsDBFolderInfo::QueryInterface(REFNSIID iid, void** result)
   if(iid.Equals(NS_GET_IID(nsIDBFolderInfo)) ||
     iid.Equals(NS_GET_IID(nsISupports)))
   {
-    *result = NS_STATIC_CAST(nsIDBFolderInfo*, this);
+    *result = static_cast<nsIDBFolderInfo*>(this);
     AddRef();
     return NS_OK;
   }
@@ -972,7 +972,7 @@ NS_IMETHODIMP nsDBFolderInfo::InitFromTransferInfo(nsIDBFolderInfo *aTransferInf
 {
   NS_ENSURE_ARG(aTransferInfo);
 
-  nsTransferDBFolderInfo *transferInfo = NS_STATIC_CAST(nsTransferDBFolderInfo *, aTransferInfo);
+  nsTransferDBFolderInfo *transferInfo = static_cast<nsTransferDBFolderInfo *>(aTransferInfo);
 
   for (PRInt32 i = 0; i < transferInfo->m_values.Count(); i++)
     SetCharPtrProperty(transferInfo->m_properties[i]->get(), transferInfo->m_values[i]->get());

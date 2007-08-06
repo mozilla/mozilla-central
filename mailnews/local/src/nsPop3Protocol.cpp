@@ -456,7 +456,7 @@ nsPop3Protocol::MarkMsgForHost(const char *hostName, const char *userName,
   for (PRUint32 i = 0; i < count; i++)
   {
     MarkMsgInHashTable(uidlHost->hash,
-      NS_STATIC_CAST(Pop3UidlEntry*,UIDLArray[i]), &changed);
+      static_cast<Pop3UidlEntry*>(UIDLArray[i]), &changed);
   }
 
   if (changed)
@@ -3766,9 +3766,9 @@ NS_IMETHODIMP nsPop3Protocol::MarkMessages(nsVoidArray *aUIDLArray)
   {
     PRBool changed;
     if (m_pop3ConData->newuidl)
-      MarkMsgInHashTable(m_pop3ConData->newuidl, NS_STATIC_CAST(Pop3UidlEntry*,aUIDLArray->ElementAt(i)), &changed);
+      MarkMsgInHashTable(m_pop3ConData->newuidl, static_cast<Pop3UidlEntry*>(aUIDLArray->ElementAt(i)), &changed);
     if (m_pop3ConData->uidlinfo)
-      MarkMsgInHashTable(m_pop3ConData->uidlinfo->hash, NS_STATIC_CAST(Pop3UidlEntry*,aUIDLArray->ElementAt(i)), &changed);
+      MarkMsgInHashTable(m_pop3ConData->uidlinfo->hash, static_cast<Pop3UidlEntry*>(aUIDLArray->ElementAt(i)), &changed);
   }
   return NS_OK;
 }

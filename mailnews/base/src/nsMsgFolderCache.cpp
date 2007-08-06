@@ -324,7 +324,7 @@ NS_IMETHODIMP nsMsgFolderCache::RemoveElement(const nsACString& key)
   m_cacheElements.Get(key, getter_AddRefs(folderCacheEl));
   if (!folderCacheEl)
     return NS_ERROR_FAILURE;
-  nsMsgFolderCacheElement *element = NS_STATIC_CAST(nsMsgFolderCacheElement *, NS_STATIC_CAST(nsISupports *, folderCacheEl.get())); // why the double cast??
+  nsMsgFolderCacheElement *element = static_cast<nsMsgFolderCacheElement *>(static_cast<nsISupports *>(folderCacheEl.get())); // why the double cast??
   m_mdbAllFoldersTable->CutRow(GetEnv(), element->m_mdbRow);
   m_cacheElements.Remove(key);
   return NS_OK;

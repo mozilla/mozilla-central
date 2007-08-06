@@ -67,7 +67,7 @@ template <class tInterface> struct nsMapiInterfaceWrapper
     ~nsMapiInterfaceWrapper(void) {
         if (mInterface != NULL) { mInterface->Release() ; }
     }
-    operator LPUNKNOWN *(void) { return NS_REINTERPRET_CAST(LPUNKNOWN *, &mInterface) ; }
+    operator LPUNKNOWN *(void) { return reinterpret_cast<LPUNKNOWN *>(&mInterface) ; }
     tInterface operator -> (void) const { return mInterface ; }
     operator tInterface *(void) { return &mInterface ; }
 } ;
@@ -75,11 +75,11 @@ template <class tInterface> struct nsMapiInterfaceWrapper
 static void assignEntryID(LPENTRYID& aTarget, LPENTRYID aSource, ULONG aByteCount)
 {
     if (aTarget != NULL) {
-        delete [] (NS_REINTERPRET_CAST (LPBYTE, aTarget)) ;
+        delete [] (reinterpret_cast<LPBYTE>(aTarget)) ;
         aTarget = NULL ;
     }
     if (aSource != NULL) {
-        aTarget = NS_REINTERPRET_CAST(LPENTRYID, new BYTE [aByteCount]) ;
+        aTarget = reinterpret_cast<LPENTRYID>(new BYTE [aByteCount]) ;
         memcpy(aTarget, aSource, aByteCount) ;
     }
 }
@@ -152,8 +152,8 @@ static void UnsignedToBase64(unsigned char *& aUnsigned,
 
 static unsigned char CharToUnsigned(char aChar)
 {
-    if (aChar >= '0' && aChar <= '9') { return NS_STATIC_CAST(unsigned char, aChar) - '0' ; }
-    return NS_STATIC_CAST(unsigned char, aChar) - 'A' + 0xA ;
+    if (aChar >= '0' && aChar <= '9') { return static_cast<unsigned char>(aChar) - '0' ; }
+    return static_cast<unsigned char>(aChar) - 'A' + 0xA ;
 }
 
 // This function must return the rank in kBase64Encoding of the 
@@ -161,13 +161,13 @@ static unsigned char CharToUnsigned(char aChar)
 static unsigned char Base64To6Bits(char aBase64)
 {
     if (aBase64 >= 'A' && aBase64 <= 'Z') { 
-        return NS_STATIC_CAST(unsigned char, aBase64 - 'A' + kARank) ; 
+        return static_cast<unsigned char>(aBase64 - 'A' + kARank) ; 
     }
     if (aBase64 >= 'a' && aBase64 <= 'z') { 
-        return NS_STATIC_CAST(unsigned char, aBase64 - 'a' + kaRank) ; 
+        return static_cast<unsigned char>(aBase64 - 'a' + kaRank) ; 
     }
     if (aBase64 >= '0' && aBase64 <= '9') {
-        return NS_STATIC_CAST(unsigned char, aBase64 - '0' + k0Rank) ;
+        return static_cast<unsigned char>(aBase64 - '0' + k0Rank) ;
     }
     if (aBase64 == '-') { return kMinusRank ; }
     if (aBase64 == '.') { return kDotRank ; }
@@ -215,7 +215,7 @@ void nsMapiEntry::Assign(const nsCString& aString)
     PRUint32 i = 0 ;
 
     mByteCount = byteCount ;
-    mEntryId = NS_REINTERPRET_CAST(LPENTRYID, currentTarget) ;
+    mEntryId = reinterpret_cast<LPENTRYID>(currentTarget) ;
     for (i = aString.Length() ; i >= 4 ; i -= 4) {
         Base64ToUnsigned(currentSource, 4, currentTarget) ;
     }
@@ -226,7 +226,7 @@ void nsMapiEntry::ToString(nsCString& aString) const
 {
     aString.Truncate() ;
     ULONG i = 0 ;
-    unsigned char *currentSource = NS_REINTERPRET_CAST(unsigned char *, mEntryId) ;
+    unsigned char *currentSource = reinterpret_cast<unsigned char *>(mEntryId) ;
 
     for (i = mByteCount ; i >= 3 ; i -= 3) {
         UnsignedToBase64(currentSource, 3, aString) ;
@@ -238,7 +238,7 @@ void nsMapiEntry::Dump(void) const
 {
     PRINTF(("%d\n", mByteCount)) ;
     for (ULONG i = 0 ; i < mByteCount ; ++ i) {
-        PRINTF(("%02X", (NS_REINTERPRET_CAST(unsigned char *, mEntryId)) [i])) ;
+        PRINTF(("%02X", (reinterpret_cast<unsigned char *>(mEntryId)) [i])) ;
     }
     PRINTF(("\n")) ;
 }
@@ -338,7 +338,7 @@ BOOL nsAbWinHelper::GetFolders(nsMapiEntryArray& aFolders)
                     SPropValue& currentValue = rowSet->aRow->lpProps [0] ;
                     
                     current.Assign(currentValue.Value.bin.cb,
-                                   NS_REINTERPRET_CAST(LPENTRYID, currentValue.Value.bin.lpb)) ;
+                                   reinterpret_cast<LPENTRYID>(currentValue.Value.bin.lpb)) ;
                 }
                 MyFreeProws(rowSet) ;
             }
@@ -488,7 +488,7 @@ BOOL nsAbWinHelper::GetPropertyBin(const nsMapiEntry& aObject, ULONG aPropertyTa
     if (!GetMAPIProperties(aObject, &aPropertyTag, 1, values, valueCount)) { return FALSE ; }
     if (valueCount == 1 && values != NULL && PROP_TYPE(values->ulPropTag) == PT_BINARY) {
         aValue.Assign(values->Value.bin.cb, 
-                      NS_REINTERPRET_CAST(LPENTRYID, values->Value.bin.lpb)) ;
+                      reinterpret_cast<LPENTRYID>(values->Value.bin.lpb)) ;
     }
     FreeBuffer(values) ;
     return TRUE ;
@@ -530,7 +530,7 @@ BOOL nsAbWinHelper::DeleteEntry(const nsMapiEntry& aContainer, const nsMapiEntry
         return FALSE ;
     }
     entry.cb = aEntry.mByteCount ;
-    entry.lpb = NS_REINTERPRET_CAST(LPBYTE, aEntry.mEntryId) ;
+    entry.lpb = reinterpret_cast<LPBYTE>(aEntry.mEntryId) ;
     entryArray.cValues = 1 ;
     entryArray.lpbin = &entry ;
     mLastError = container->DeleteEntries(&entryArray, 0) ;
@@ -549,11 +549,11 @@ BOOL nsAbWinHelper::SetPropertyUString(const nsMapiEntry& aObject, ULONG aProper
 
     value.ulPropTag = aPropertyTag ;
     if (PROP_TYPE(aPropertyTag) == PT_UNICODE) {
-        value.Value.lpszW = NS_CONST_CAST(WCHAR *, aValue) ;
+        value.Value.lpszW = const_cast<WCHAR *>(aValue) ;
     }
     else if (PROP_TYPE(aPropertyTag) == PT_STRING8) {
         LossyCopyUTF16toASCII(aValue, alternativeValue);
-        value.Value.lpszA = NS_CONST_CAST(char *, alternativeValue.get()) ;
+        value.Value.lpszA = const_cast<char *>(alternativeValue.get()) ;
     }
     else {
         PRINTF(("Property %08x is not a string.\n", aPropertyTag)) ;
@@ -577,7 +577,7 @@ BOOL nsAbWinHelper::SetPropertiesUString(const nsMapiEntry& aObject, const ULONG
     for (i = 0 ; i < aNbProperties ; ++ i) {
         values [currentValue].ulPropTag = aPropertiesTag [i] ;
         if (PROP_TYPE(aPropertiesTag [i]) == PT_UNICODE) {
-            values [currentValue ++].Value.lpszW = NS_CONST_CAST(WCHAR *, aValues [i].get()) ;
+            values [currentValue ++].Value.lpszW = const_cast<WCHAR *>(aValues [i].get()) ;
         }
         else if (PROP_TYPE(aPropertiesTag [i]) == PT_STRING8) {
             LossyCopyUTF16toASCII(aValues [i].get(), alternativeValue);
@@ -651,7 +651,7 @@ BOOL nsAbWinHelper::CreateEntry(const nsMapiEntry& aParent, nsMapiEntry& aNewEnt
     nsMapiInterfaceWrapper<LPMAPIPROP> newEntry ;
 
     mLastError = container->CreateEntry(value->Value.bin.cb, 
-                                        NS_REINTERPRET_CAST(LPENTRYID, value->Value.bin.lpb),
+                                        reinterpret_cast<LPENTRYID>(value->Value.bin.lpb),
                                         CREATE_CHECK_DUP_LOOSE,
                                         newEntry) ;
     FreeBuffer(value) ;
@@ -666,7 +666,7 @@ BOOL nsAbWinHelper::CreateEntry(const nsMapiEntry& aParent, nsMapiEntry& aNewEnt
     displayName.ulPropTag = PR_DISPLAY_NAME_W ;
     tempName.AssignLiteral("__MailUser__") ;
     tempName.AppendInt(mEntryCounter ++) ;
-    displayName.Value.lpszW = NS_CONST_CAST(WCHAR *, tempName.get()) ;
+    displayName.Value.lpszW = const_cast<WCHAR *>(tempName.get()) ;
     mLastError = newEntry->SetProps(1, &displayName, &problems) ;
     if (HR_FAILED(mLastError)) {
         PRINTF(("Cannot set temporary name %08x.\n", mLastError)) ;
@@ -683,7 +683,7 @@ BOOL nsAbWinHelper::CreateEntry(const nsMapiEntry& aParent, nsMapiEntry& aNewEnt
         PRINTF(("Cannot get entry id %08x.\n", mLastError)) ;
         return FALSE ;
     }
-    aNewEntry.Assign(value->Value.bin.cb, NS_REINTERPRET_CAST(LPENTRYID, value->Value.bin.lpb)) ;
+    aNewEntry.Assign(value->Value.bin.cb, reinterpret_cast<LPENTRYID>(value->Value.bin.lpb)) ;
     FreeBuffer(value) ;
     return TRUE ;
 }
@@ -714,7 +714,7 @@ BOOL nsAbWinHelper::CreateDistList(const nsMapiEntry& aParent, nsMapiEntry& aNew
     nsMapiInterfaceWrapper<LPMAPIPROP> newEntry ;
 
     mLastError = container->CreateEntry(value->Value.bin.cb, 
-                                        NS_REINTERPRET_CAST(LPENTRYID, value->Value.bin.lpb),
+                                        reinterpret_cast<LPENTRYID>(value->Value.bin.lpb),
                                         CREATE_CHECK_DUP_LOOSE,
                                         newEntry) ;
     FreeBuffer(value) ;
@@ -729,7 +729,7 @@ BOOL nsAbWinHelper::CreateDistList(const nsMapiEntry& aParent, nsMapiEntry& aNew
     displayName.ulPropTag = PR_DISPLAY_NAME_W ;
     tempName.AssignLiteral("__MailList__") ;
     tempName.AppendInt(mEntryCounter ++) ;
-    displayName.Value.lpszW = NS_CONST_CAST(WCHAR *, tempName.get()) ;
+    displayName.Value.lpszW = const_cast<WCHAR *>(tempName.get()) ;
     mLastError = newEntry->SetProps(1, &displayName, &problems) ;
     if (HR_FAILED(mLastError)) {
         PRINTF(("Cannot set temporary name %08x.\n", mLastError)) ;
@@ -747,7 +747,7 @@ BOOL nsAbWinHelper::CreateDistList(const nsMapiEntry& aParent, nsMapiEntry& aNew
         return FALSE ;
     }
     aNewEntry.Assign(value->Value.bin.cb, 
-                     NS_REINTERPRET_CAST(LPENTRYID, value->Value.bin.lpb)) ;
+                     reinterpret_cast<LPENTRYID>(value->Value.bin.lpb)) ;
     FreeBuffer(value) ;
     return TRUE ;
 }
@@ -790,7 +790,7 @@ BOOL nsAbWinHelper::CopyEntry(const nsMapiEntry& aContainer, const nsMapiEntry& 
         return FALSE ;
     }
     aTarget.Assign(value->Value.bin.cb, 
-                   NS_REINTERPRET_CAST(LPENTRYID, value->Value.bin.lpb)) ;
+                   reinterpret_cast<LPENTRYID>(value->Value.bin.lpb)) ;
     FreeBuffer(value) ;
     return TRUE ;
 }
@@ -887,7 +887,7 @@ BOOL nsAbWinHelper::GetContents(const nsMapiEntry& aParent, LPSRestriction aRest
                 SPropValue& currentValue = rowSet->aRow->lpProps[ContentsColumnEntryId] ;
                 
                 current.Assign(currentValue.Value.bin.cb,
-                    NS_REINTERPRET_CAST(LPENTRYID, currentValue.Value.bin.lpb)) ;
+                    reinterpret_cast<LPENTRYID>(currentValue.Value.bin.lpb)) ;
             }
             ++ aNbElements ;
         }
@@ -913,7 +913,7 @@ BOOL nsAbWinHelper::GetMAPIProperties(const nsMapiEntry& aObject, const ULONG *a
         return FALSE ; 
     }
     AllocateBuffer(CbNewSPropTagArray(aNbProperties), 
-                   NS_REINTERPRET_CAST(void **, &properties)) ;
+                   reinterpret_cast<void **>(&properties)) ;
     properties->cValues = aNbProperties ;
     for (i = 0 ; i < aNbProperties ; ++ i) {
         properties->aulPropTag [i] = aPropertyTags [i] ;

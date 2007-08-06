@@ -250,7 +250,7 @@ nsPop3Sink::CheckPartialMessages(nsIPop3Protocol *protocol)
   {
     partialRecord *partialMsg;
     PRBool found = PR_TRUE;
-    partialMsg = NS_STATIC_CAST(partialRecord *,m_partialMsgsArray.ElementAt(i));
+    partialMsg = static_cast<partialRecord *>(m_partialMsgsArray.ElementAt(i));
     protocol->CheckMessage(partialMsg->m_uidl.get(), &found);
     if (!found) 
     {
@@ -289,7 +289,7 @@ nsPop3Sink::BeginMailDelivery(PRBool uidlDownload, nsIMsgWindow *aMsgWindow, PRB
       account->GetKey(m_accountKey);
 
     PRBool isLocked;
-    nsCOMPtr <nsISupports> supports = do_QueryInterface(NS_STATIC_CAST(nsIPop3Sink*, this));
+    nsCOMPtr <nsISupports> supports = do_QueryInterface(static_cast<nsIPop3Sink*>(this));
     m_folder->GetLocked(&isLocked);
     if(!isLocked)
       m_folder->AcquireSemaphore(supports);
@@ -510,7 +510,7 @@ nsPop3Sink::ReleaseFolderLock()
   if (!m_folder)
     return result;
   PRBool haveSemaphore;
-  nsCOMPtr <nsISupports> supports = do_QueryInterface(NS_STATIC_CAST(nsIPop3Sink*, this));
+  nsCOMPtr <nsISupports> supports = do_QueryInterface(static_cast<nsIPop3Sink*>(this));
   result = m_folder->TestSemaphore(supports, &haveSemaphore);
   if(NS_SUCCEEDED(result) && haveSemaphore)
     result = m_folder->ReleaseSemaphore(supports);
@@ -588,7 +588,7 @@ nsPop3Sink::IncorporateBegin(const char* uidlString,
       nsCAutoString uidlCString("X-UIDL: ");
       uidlCString += uidlString;
       uidlCString += MSG_LINEBREAK;
-      rv = WriteLineToMailbox(NS_CONST_CAST(char*, uidlCString.get()));
+      rv = WriteLineToMailbox(const_cast<char*>(uidlCString.get()));
       NS_ENSURE_SUCCESS(rv, rv);
     }
     // WriteLineToMailbox("X-Mozilla-Status: 8000" MSG_LINEBREAK);

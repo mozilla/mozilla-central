@@ -188,7 +188,7 @@ NS_IMETHODIMP nsImapMailDatabase::AddNewHdrToDB(nsIMsgDBHdr *newHdr, PRBool noti
             err = pendingRow->AliasCellYarn(GetEnv(), cellColumn, &cellYarn);
             if (err == 0)
             {
-              nsMsgHdr* msgHdr = NS_STATIC_CAST(nsMsgHdr*, newHdr);      // closed system, cast ok
+              nsMsgHdr* msgHdr = static_cast<nsMsgHdr*>(newHdr);      // closed system, cast ok
               nsIMdbRow *row = msgHdr->GetMDBRow();
               if (row)
                 row->AddColumn(GetEnv(), cellColumn, &cellYarn);

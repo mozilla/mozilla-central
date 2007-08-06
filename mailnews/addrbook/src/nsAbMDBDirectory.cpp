@@ -609,7 +609,7 @@ NS_IMETHODIMP nsAbMDBDirectory::HasCard(nsIAbCard *cards, PRBool *hasCard)
 
   if (mIsQueryURI)
   {
-    nsVoidKey key (NS_STATIC_CAST(void*, cards));
+    nsVoidKey key (static_cast<void*>(cards));
     *hasCard = mSearchCache.Exists (&key);
     return NS_OK;
   }
@@ -1016,7 +1016,7 @@ nsresult nsAbMDBDirectory::OnSearchFinished (PRInt32 result)
 
 nsresult nsAbMDBDirectory::OnSearchFoundCard (nsIAbCard* card)
 {
-  nsVoidKey key (NS_STATIC_CAST(void*, card));
+  nsVoidKey key (static_cast<void*>(card));
   mSearchCache.Put (&key, card);
 
   // TODO

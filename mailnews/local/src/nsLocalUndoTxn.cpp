@@ -67,7 +67,7 @@ nsLocalMoveCopyMsgTxn::QueryInterface(REFNSIID aIID, void** aInstancePtr)
 
     if (aIID.Equals(NS_GET_IID(nsLocalMoveCopyMsgTxn))) 
     {
-        *aInstancePtr = NS_STATIC_CAST(nsLocalMoveCopyMsgTxn*, this);
+        *aInstancePtr = static_cast<nsLocalMoveCopyMsgTxn*>(this);
     }
 
     if (*aInstancePtr)

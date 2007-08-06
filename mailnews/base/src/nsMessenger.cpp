@@ -1542,7 +1542,7 @@ nsMessenger::Undo(nsIMsgWindow *msgWindow)
         rv = mTxnMgr->PeekUndoStack(getter_AddRefs(txn));
         if (NS_SUCCEEDED(rv) && txn)
         {
-            NS_STATIC_CAST(nsMsgTxn*, NS_STATIC_CAST(nsITransaction*, txn.get()))->SetMsgWindow(msgWindow);
+            static_cast<nsMsgTxn*>(static_cast<nsITransaction*>(txn.get()))->SetMsgWindow(msgWindow);
         }
         mTxnMgr->UndoTransaction();
     }
@@ -1564,7 +1564,7 @@ nsMessenger::Redo(nsIMsgWindow *msgWindow)
         rv = mTxnMgr->PeekRedoStack(getter_AddRefs(txn));
         if (NS_SUCCEEDED(rv) && txn)
         {
-            NS_STATIC_CAST(nsMsgTxn*, NS_STATIC_CAST(nsITransaction*, txn.get()))->SetMsgWindow(msgWindow);
+            static_cast<nsMsgTxn*>(static_cast<nsITransaction*>(txn.get()))->SetMsgWindow(msgWindow);
         }
         mTxnMgr->RedoTransaction();
     }

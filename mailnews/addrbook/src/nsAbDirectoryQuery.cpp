@@ -197,7 +197,7 @@ NS_IMETHODIMP nsAbDirectoryQueryArguments::GetReturnProperties(PRUint32* returnP
 
     PRUint32 size = mReturnProperties.Count();
     *returnPropertiesSize = size;
-    *returnPropertiesArray = NS_STATIC_CAST(char**, nsMemory::Alloc (sizeof (char* ) * size));
+    *returnPropertiesArray = static_cast<char**>(nsMemory::Alloc (sizeof (char* ) * size));
     if (!(*returnPropertiesArray))
         return NS_ERROR_OUT_OF_MEMORY;
 

@@ -3665,7 +3665,7 @@ nsresult nsMsgDBFolder::ListFoldersWithFlag(PRUint32 flag, nsISupportsArray *arr
       if (NS_SUCCEEDED(rv) && folder)
       {
         nsIMsgFolder *msgFolder = folder.get();
-        nsMsgDBFolder *dbFolder = NS_STATIC_CAST(nsMsgDBFolder *, msgFolder);
+        nsMsgDBFolder *dbFolder = static_cast<nsMsgDBFolder *>(msgFolder);
         dbFolder->ListFoldersWithFlag(flag,array);
       }
     }

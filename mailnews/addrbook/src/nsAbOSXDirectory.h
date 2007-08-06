@@ -59,7 +59,7 @@ public:
   typedef const nsIAbCard* KeyTypePointer;
   
   nsIAbCardHashKey(const nsIAbCard* key)
-    : mCard(NS_CONST_CAST(nsIAbCard*, key))
+    : mCard(const_cast<nsIAbCard*>(key))
   {
   }
   nsIAbCardHashKey(const nsIAbCardHashKey& toCopy)

@@ -88,7 +88,7 @@ nsOutlookProfileMigrator::Notify(nsITimer *timer)
     // fire a timer to handle the next one.
     mFileIOTimer = do_CreateInstance("@mozilla.org/timer;1");
     if (mFileIOTimer)
-      mFileIOTimer->InitWithCallback(NS_STATIC_CAST(nsITimerCallback *, this), 100, nsITimer::TYPE_ONE_SHOT);
+      mFileIOTimer->InitWithCallback(static_cast<nsITimerCallback *>(this), 100, nsITimer::TYPE_ONE_SHOT);
   }
   return NS_OK;
 }

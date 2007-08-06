@@ -582,7 +582,7 @@ nsLDAPAutoCompleteSession::OnLDAPInit(nsILDAPConnection *aConn, nsresult aStatus
     //
     rv = NS_GetProxyForObject(NS_PROXY_TO_MAIN_THREAD,
                               NS_GET_IID(nsILDAPMessageListener), 
-                              NS_STATIC_CAST(nsILDAPMessageListener *, this), 
+                              static_cast<nsILDAPMessageListener *>(this), 
                               NS_PROXY_ASYNC | NS_PROXY_ALWAYS, 
                               getter_AddRefs(selfProxy));
     if (NS_FAILED(rv)) {
@@ -867,7 +867,7 @@ nsLDAPAutoCompleteSession::StartLDAPSearch()
     //
     rv = NS_GetProxyForObject(NS_PROXY_TO_MAIN_THREAD, 
                               NS_GET_IID(nsILDAPMessageListener), 
-                              NS_STATIC_CAST(nsILDAPMessageListener *, this), 
+                              static_cast<nsILDAPMessageListener *>(this), 
                               NS_PROXY_ASYNC | NS_PROXY_ALWAYS, 
                               getter_AddRefs(selfProxy));
     if (NS_FAILED(rv)) {
@@ -1054,7 +1054,7 @@ nsLDAPAutoCompleteSession::StartLDAPSearch()
     // XXXdmose what about timeouts? 
     //
     rv = mOperation->SearchExt(dn, scope, searchFilter, mSearchAttrsSize,
-                               NS_CONST_CAST(const char **, mSearchAttrs),
+                               const_cast<const char **>(mSearchAttrs),
                                0, mMaxHits);
     if (NS_FAILED(rv)) {
         switch(rv) {
@@ -1173,7 +1173,7 @@ nsLDAPAutoCompleteSession::InitConnection()
     //
     rv = NS_GetProxyForObject(NS_PROXY_TO_MAIN_THREAD,
                               NS_GET_IID(nsILDAPMessageListener), 
-                              NS_STATIC_CAST(nsILDAPMessageListener *, this), 
+                              static_cast<nsILDAPMessageListener *>(this), 
                               NS_PROXY_ASYNC | NS_PROXY_ALWAYS, 
                               getter_AddRefs(selfProxy));
     if (NS_FAILED(rv)) {

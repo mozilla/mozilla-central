@@ -8461,7 +8461,7 @@ nsresult nsImapMockChannel::SetupPartExtractorListener(nsIImapUrl * aUrl, nsIStr
     {
       nsCOMPtr<nsIStreamListener> newConsumer;
       converter->AsyncConvertData("message/rfc822", "*/*",
-           aConsumer, NS_STATIC_CAST(nsIChannel *, this), getter_AddRefs(newConsumer));
+           aConsumer, static_cast<nsIChannel *>(this), getter_AddRefs(newConsumer));
       if (newConsumer)
         m_channelListener = newConsumer;
     }

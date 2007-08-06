@@ -414,7 +414,7 @@ nsMsgPrintEngine::ShowProgressDialog(PRBool aIsForPrinting, PRBool& aDoNotify)
 
         if (showProgressDialog) 
         {
-          nsIWebProgressListener* wpl = NS_STATIC_CAST(nsIWebProgressListener*, mPrintProgressListener.get());
+          nsIWebProgressListener* wpl = static_cast<nsIWebProgressListener*>(mPrintProgressListener.get());
           NS_ASSERTION(wpl, "nsIWebProgressListener is NULL!");
           NS_ADDREF(wpl);
           nsString msg;

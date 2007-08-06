@@ -755,8 +755,8 @@ static void DIR_DeleteServerList(nsVoidArray *wholeList)
 PR_STATIC_CALLBACK(int)
 comparePrefArrayMembers(const void* aElement1, const void* aElement2, void* aData)
 {
-    const char* element1 = *NS_STATIC_CAST(const char* const *, aElement1);
-    const char* element2 = *NS_STATIC_CAST(const char* const *, aElement2);
+    const char* element1 = *static_cast<const char* const *>(aElement1);
+    const char* element2 = *static_cast<const char* const *>(aElement2);
     const PRUint32 offset = *((const PRUint32*)aData);
 
     // begin the comparison at |offset| chars into the string -

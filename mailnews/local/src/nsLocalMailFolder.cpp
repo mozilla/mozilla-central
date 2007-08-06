@@ -312,7 +312,7 @@ NS_IMETHODIMP nsMsgLocalMailFolder::ParseFolder(nsIMsgWindow *aMsgWindow, nsIUrl
   NS_ENSURE_TRUE(parser, NS_ERROR_OUT_OF_MEMORY);
 
   PRBool isLocked;
-  nsCOMPtr <nsISupports> supports = do_QueryInterface(NS_STATIC_CAST(nsIMsgParseMailMsgState*, parser));
+  nsCOMPtr <nsISupports> supports = do_QueryInterface(static_cast<nsIMsgParseMailMsgState*>(parser));
   GetLocked(&isLocked);
   if(!isLocked)
     AcquireSemaphore(supports);
@@ -1467,7 +1467,7 @@ nsMsgLocalMailFolder::InitCopyState(nsISupports* aSupport,
 
   GetLocked(&isLocked);
   if(!isLocked)
-    AcquireSemaphore(NS_STATIC_CAST(nsIMsgLocalMailFolder*, this));
+    AcquireSemaphore(static_cast<nsIMsgLocalMailFolder*>(this));
   else
     return NS_MSG_FOLDER_BUSY;
 
@@ -1530,9 +1530,9 @@ nsMsgLocalMailFolder::OnCopyCompleted(nsISupports *srcSupport, PRBool moveCopySu
   }
 
   PRBool haveSemaphore;
-  nsresult rv = TestSemaphore(NS_STATIC_CAST(nsIMsgLocalMailFolder*, this), &haveSemaphore);
+  nsresult rv = TestSemaphore(static_cast<nsIMsgLocalMailFolder*>(this), &haveSemaphore);
   if(NS_SUCCEEDED(rv) && haveSemaphore)
-    ReleaseSemaphore(NS_STATIC_CAST(nsIMsgLocalMailFolder*, this));
+    ReleaseSemaphore(static_cast<nsIMsgLocalMailFolder*>(this));
 
   nsCOMPtr<nsIMsgCopyService> copyService = do_GetService(NS_MSGCOPYSERVICE_CONTRACTID, &rv);
   NS_ENSURE_SUCCESS(rv, rv);
@@ -2246,7 +2246,7 @@ NS_IMETHODIMP nsMsgLocalMailFolder::CopyData(nsIInputStream *aIStream, PRInt32 a
   PRBool haveSemaphore;
   nsresult rv = NS_OK;
 
-  rv = TestSemaphore(NS_STATIC_CAST(nsIMsgLocalMailFolder*, this), &haveSemaphore);
+  rv = TestSemaphore(static_cast<nsIMsgLocalMailFolder*>(this), &haveSemaphore);
   if(NS_FAILED(rv))
     return rv;
   if(!haveSemaphore)
@@ -3636,7 +3636,7 @@ nsMsgLocalMailFolder::AddMessage(const char *aMessage)
 
   GetLocked(&isLocked);
   if(!isLocked)
-    AcquireSemaphore(NS_STATIC_CAST(nsIMsgLocalMailFolder*, this));
+    AcquireSemaphore(static_cast<nsIMsgLocalMailFolder*>(this));
   else
     return NS_MSG_FOLDER_BUSY;
 
@@ -3660,7 +3660,7 @@ nsMsgLocalMailFolder::AddMessage(const char *aMessage)
     outFileStream->Close();
     newMailParser->EndMsgDownload();
   }
-  ReleaseSemaphore(NS_STATIC_CAST(nsIMsgLocalMailFolder*, this));
+  ReleaseSemaphore(static_cast<nsIMsgLocalMailFolder*>(this));
   return rv;
 }
 

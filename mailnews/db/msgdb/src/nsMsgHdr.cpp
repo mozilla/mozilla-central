@@ -826,7 +826,7 @@ PRBool nsMsgHdr::IsParentOf(nsIMsgDBHdr *possibleChild)
 PRBool nsMsgHdr::IsAncestorOf(nsIMsgDBHdr *possibleChild)
 {
   const char *references;
-  nsMsgHdr* curHdr = NS_STATIC_CAST(nsMsgHdr*, possibleChild);      // closed system, cast ok
+  nsMsgHdr* curHdr = static_cast<nsMsgHdr*>(possibleChild);      // closed system, cast ok
   m_mdb->RowCellColumnToConstCharPtr(curHdr->GetMDBRow(), m_mdb->m_referencesColumnToken, &references);
   if (!references)
     return PR_FALSE;

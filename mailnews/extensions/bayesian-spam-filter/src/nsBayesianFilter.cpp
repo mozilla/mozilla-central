@@ -131,7 +131,7 @@ inline Token* TokenEnumeration::nextToken()
         PLDHashEntryHdr* entry = (PLDHashEntryHdr*) entryAddr;
         entryAddr += entrySize;
         if (PL_DHASH_ENTRY_IS_LIVE(entry)) {
-            token = NS_STATIC_CAST(Token*, entry);
+            token = static_cast<Token*>(entry);
             ++mEntryOffset;
             break;
         }
@@ -148,8 +148,8 @@ struct VisitClosure {
 static PLDHashOperator PR_CALLBACK VisitEntry(PLDHashTable* table, PLDHashEntryHdr* entry,
                                               PRUint32 number, void* arg)
 {
-    VisitClosure* closure = NS_REINTERPRET_CAST(VisitClosure*, arg);
-    Token* token = NS_STATIC_CAST(Token*, entry);
+    VisitClosure* closure = reinterpret_cast<VisitClosure*>(arg);
+    Token* token = static_cast<Token*>(entry);
     return (closure->f(token, closure->data) ? PL_DHASH_NEXT : PL_DHASH_STOP);
 }
 
@@ -204,14 +204,14 @@ char* Tokenizer::copyWord(const char* word, PRUint32 len)
     PL_ARENA_ALLOCATE(result, &mWordPool, size);
     if (result)
         memcpy(result, word, size);
-    return NS_REINTERPRET_CAST(char*, result);
+    return reinterpret_cast<char*>(result);
 }
 
 inline Token* Tokenizer::get(const char* word)
 {
     PLDHashEntryHdr* entry = PL_DHashTableOperate(&mTokenTable, word, PL_DHASH_LOOKUP);
     if (PL_DHASH_ENTRY_IS_BUSY(entry))
-        return NS_STATIC_CAST(Token*, entry);
+        return static_cast<Token*>(entry);
     return NULL;
 }
 
@@ -220,7 +220,7 @@ Token* Tokenizer::add(const char* word, PRUint32 count)
     PR_LOG(BayesianFilterLogModule, PR_LOG_ALWAYS, ("add word: %s (count=%d)", word, count));
 
     PLDHashEntryHdr* entry = PL_DHashTableOperate(&mTokenTable, word, PL_DHASH_ADD);
-    Token* token = NS_STATIC_CAST(Token*, entry);
+    Token* token = static_cast<Token*>(entry);
     if (token) {
         if (token->mWord == NULL) {
             PRUint32 len = strlen(word);
@@ -825,7 +825,7 @@ NS_IMETHODIMP TokenStreamListener::OnStartRequest(nsIRequest *aRequest, nsISuppo
         channel->GetURI(getter_AddRefs(uri));
         nsCOMPtr<nsIMsgMailNewsUrl> mailUrl = do_QueryInterface(uri);
         if (mailUrl)
-            mailUrl->SetMsgHeaderSink(NS_STATIC_CAST(nsIMsgHeaderSink*, this));
+            mailUrl->SetMsgHeaderSink(static_cast<nsIMsgHeaderSink*>(this));
     }
 
     return NS_OK;
@@ -971,7 +971,7 @@ nsBayesianFilter::TimerCallback(nsITimer* aTimer, void* aClosure)
     // we will flush the training data to disk after enough time has passed
     // since the first time a message has been classified after the last flush
 
-    nsBayesianFilter *filter = NS_STATIC_CAST(nsBayesianFilter *, aClosure);
+    nsBayesianFilter *filter = static_cast<nsBayesianFilter *>(aClosure);
     filter->writeTrainingData();
 }
 

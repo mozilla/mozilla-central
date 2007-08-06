@@ -66,7 +66,7 @@ NS_IMETHODIMP nsNewsDatabase::QueryInterface(REFNSIID aIID, void** aInstancePtr)
 
   if (aIID.Equals(NS_GET_IID(nsINewsDatabase)))
   {
-    *aInstancePtr = NS_STATIC_CAST(nsINewsDatabase *, this);
+    *aInstancePtr = static_cast<nsINewsDatabase *>(this);
   }
 
   if(*aInstancePtr)

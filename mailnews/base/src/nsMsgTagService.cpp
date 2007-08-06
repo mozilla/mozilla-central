@@ -63,8 +63,8 @@ static PRBool gMigratingKeys = PR_FALSE;
 PR_STATIC_CALLBACK(int)
 CompareMsgTagKeys(const void* aTagPref1, const void* aTagPref2, void* aData)
 {
-  return strcmp(*NS_STATIC_CAST(const char* const*, aTagPref1),
-                *NS_STATIC_CAST(const char* const*, aTagPref2));
+  return strcmp(*static_cast<const char* const*>(aTagPref1),
+                *static_cast<const char* const*>(aTagPref2));
 }
 
 PR_STATIC_CALLBACK(int)

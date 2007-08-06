@@ -305,7 +305,7 @@ static PRUint32 StringHash(const char *ubuf, PRInt32 len = -1)
 
 inline PRUint32 StringHash(const nsAutoString& str)
 {
-    return StringHash(NS_REINTERPRET_CAST(const char*, str.get()),
+    return StringHash(reinterpret_cast<const char*>(str.get()),
                       str.Length() * 2);
 }
 
@@ -1279,7 +1279,7 @@ nsresult MsgGetFileStream(nsILocalFile *file, nsIOutputStream **fileStream)
 
 nsresult MsgReopenFileStream(nsILocalFile *file, nsIInputStream *fileStream)
 {
-  nsMsgFileStream *msgFileStream = NS_STATIC_CAST(nsMsgFileStream *, fileStream);
+  nsMsgFileStream *msgFileStream = static_cast<nsMsgFileStream *>(fileStream);
   if (msgFileStream)
     return msgFileStream->InitWithFile(file);
   else

@@ -132,7 +132,7 @@ NS_IMETHODIMP nsMsgDBService::OpenFolderDB(nsIMsgFolder *aFolder, PRBool aCreate
     && rv != NS_MSG_ERROR_FOLDER_SUMMARY_OUT_OF_DATE || !aCreate))
     return rv;
   NS_IF_ADDREF(*_retval = msgDB);
-  nsMsgDatabase *msgDatabase = NS_STATIC_CAST(nsMsgDatabase *, *_retval);
+  nsMsgDatabase *msgDatabase = static_cast<nsMsgDatabase *>(*_retval);
   msgDatabase->m_folder = aFolder;
   PRUint32 folderFlags;
   aFolder->GetFlags(&folderFlags);
@@ -252,7 +252,7 @@ nsresult nsMsgDatabase::GetHdrFromCache(nsMsgKey key, nsIMsgDBHdr* *result)
     entry = PL_DHashTableOperate(m_cachedHeaders, (const void *) key, PL_DHASH_LOOKUP);
     if (PL_DHASH_ENTRY_IS_BUSY(entry))
     {
-      MsgHdrHashElement* element = NS_REINTERPRET_CAST(MsgHdrHashElement*, entry);
+      MsgHdrHashElement* element = reinterpret_cast<MsgHdrHashElement*>(entry);
       *result = element->mHdr;
       // need to do our own add ref because the PL_DHashTable doesn't addref.
       if (*result)
@@ -282,7 +282,7 @@ nsresult nsMsgDatabase::AddHdrToCache(nsIMsgDBHdr *hdr, nsMsgKey key) // do we w
       if (!entry)
         return NS_ERROR_OUT_OF_MEMORY; // XXX out of memory
 
-      MsgHdrHashElement* element = NS_REINTERPRET_CAST(MsgHdrHashElement*, entry);
+      MsgHdrHashElement* element = reinterpret_cast<MsgHdrHashElement*>(entry);
       element->mHdr = hdr;
       element->mKey = key;
       NS_ADDREF(hdr);     // make the cache hold onto the header
@@ -297,7 +297,7 @@ nsresult nsMsgDatabase::AddHdrToCache(nsIMsgDBHdr *hdr, nsMsgKey key) // do we w
                                PRUint32 number, void *arg)
 {
 
-  MsgHdrHashElement* element = NS_REINTERPRET_CAST(MsgHdrHashElement*, hdr);
+  MsgHdrHashElement* element = reinterpret_cast<MsgHdrHashElement*>(hdr);
   NS_IF_RELEASE(element->mHdr);
   return PL_DHASH_NEXT;
 }
@@ -306,10 +306,10 @@ nsresult nsMsgDatabase::AddHdrToCache(nsIMsgDBHdr *hdr, nsMsgKey key) // do we w
                                PRUint32 number, void *arg)
 {
 
-  MsgHdrHashElement* element = NS_REINTERPRET_CAST(MsgHdrHashElement*, hdr);
+  MsgHdrHashElement* element = reinterpret_cast<MsgHdrHashElement*>(hdr);
   if (element && element->mHdr)
   {
-    nsMsgHdr* msgHdr = NS_STATIC_CAST(nsMsgHdr*, element->mHdr);  // closed system, so this is ok
+    nsMsgHdr* msgHdr = static_cast<nsMsgHdr*>(element->mHdr);  // closed system, so this is ok
     // clear out m_mdbRow member variable - the db is going away, which means that this member
     // variable might very well point to a mork db that is gone.
     msgHdr->m_mdbRow = nsnull;
@@ -421,7 +421,7 @@ nsresult nsMsgDatabase::GetHdrFromUseCache(nsMsgKey key, nsIMsgDBHdr* *result)
     entry = PL_DHashTableOperate(m_headersInUse, (const void *) key, PL_DHASH_LOOKUP);
     if (PL_DHASH_ENTRY_IS_BUSY(entry))
     {
-      MsgHdrHashElement* element = NS_REINTERPRET_CAST(MsgHdrHashElement*, entry);
+      MsgHdrHashElement* element = reinterpret_cast<MsgHdrHashElement*>(entry);
       *result = element->mHdr;
     }
     if (*result)
@@ -456,15 +456,15 @@ nsMsgDatabase::HashKey(PLDHashTable* aTable, const void* aKey)
 PRBool PR_CALLBACK
 nsMsgDatabase::MatchEntry(PLDHashTable* aTable, const PLDHashEntryHdr* aEntry, const void* aKey)
 {
-  const MsgHdrHashElement* hdr = NS_REINTERPRET_CAST(const MsgHdrHashElement*, aEntry);
+  const MsgHdrHashElement* hdr = reinterpret_cast<const MsgHdrHashElement*>(aEntry);
   return aKey == (const void *) hdr->mKey; // ### or get the key from the hdr...
 }
 
 void PR_CALLBACK
 nsMsgDatabase::MoveEntry(PLDHashTable* aTable, const PLDHashEntryHdr* aFrom, PLDHashEntryHdr* aTo)
 {
-  const MsgHdrHashElement* from = NS_REINTERPRET_CAST(const MsgHdrHashElement*, aFrom);
-  MsgHdrHashElement* to = NS_REINTERPRET_CAST(MsgHdrHashElement*, aTo);
+  const MsgHdrHashElement* from = reinterpret_cast<const MsgHdrHashElement*>(aFrom);
+  MsgHdrHashElement* to = reinterpret_cast<MsgHdrHashElement*>(aTo);
   // ### eh? Why is this needed? I don't think we have a copy operator?
   *to = *from;
 }
@@ -472,7 +472,7 @@ nsMsgDatabase::MoveEntry(PLDHashTable* aTable, const PLDHashEntryHdr* aFrom, PLD
 void PR_CALLBACK
 nsMsgDatabase::ClearEntry(PLDHashTable* aTable, PLDHashEntryHdr* aEntry)
 {
-  MsgHdrHashElement* element = NS_REINTERPRET_CAST(MsgHdrHashElement*, aEntry);
+  MsgHdrHashElement* element = reinterpret_cast<MsgHdrHashElement*>(aEntry);
   element->mHdr = nsnull; // eh? Need to release this or not?
   element->mKey = nsMsgKey_None; // eh?
 }
@@ -495,7 +495,7 @@ nsresult nsMsgDatabase::AddHdrToUseCache(nsIMsgDBHdr *hdr, nsMsgKey key)
     if (!entry)
       return NS_ERROR_OUT_OF_MEMORY; // XXX out of memory
 
-    MsgHdrHashElement* element = NS_REINTERPRET_CAST(MsgHdrHashElement*, entry);
+    MsgHdrHashElement* element = reinterpret_cast<MsgHdrHashElement*>(entry);
     element->mHdr = hdr;
     element->mKey = key;
     // the hash table won't add ref, we'll do it ourselves
@@ -747,7 +747,7 @@ nsMsgDatabase::CleanupCache()
   {
     for (PRInt32 i = 0; i < GetDBCache()->Count(); i++)
     {
-      nsMsgDatabase* pMessageDB = NS_STATIC_CAST(nsMsgDatabase*, GetDBCache()->ElementAt(i));
+      nsMsgDatabase* pMessageDB = static_cast<nsMsgDatabase*>(GetDBCache()->ElementAt(i));
       if (pMessageDB)
       {
         // hold onto the db until we're finished closing it.
@@ -785,7 +785,7 @@ nsMsgDatabase* nsMsgDatabase::FindInCache(nsILocalFile *dbName)
 {
   for (PRInt32 i = 0; i < GetDBCache()->Count(); i++)
   {
-    nsMsgDatabase* pMessageDB = NS_STATIC_CAST(nsMsgDatabase*, GetDBCache()->ElementAt(i));
+    nsMsgDatabase* pMessageDB = static_cast<nsMsgDatabase*>(GetDBCache()->ElementAt(i));
     if (pMessageDB->MatchDbName(dbName))
     {
       if (pMessageDB->m_mdbStore)  // don't return db without store
@@ -852,7 +852,7 @@ void nsMsgDatabase::DumpCache()
   nsMsgDatabase* pMessageDB = nsnull;
   for (PRInt32 i = 0; i < GetDBCache()->Count(); i++)
   {
-    pMessageDB = NS_STATIC_CAST(nsMsgDatabase*, GetDBCache()->ElementAt(i));
+    pMessageDB = static_cast<nsMsgDatabase*>(GetDBCache()->ElementAt(i));
   }
 }
 #endif /* DEBUG */
@@ -967,7 +967,7 @@ NS_IMETHODIMP nsMsgDatabase::QueryInterface(REFNSIID aIID, void** aResult)
     aIID.Equals(NS_GET_IID(nsIDBChangeAnnouncer)) ||
     aIID.Equals(NS_GET_IID(nsISupports)))
   {
-    *aResult = NS_STATIC_CAST(nsIMsgDatabase*, this);
+    *aResult = static_cast<nsIMsgDatabase*>(this);
     NS_ADDREF_THIS();
     return NS_OK;
   }
@@ -1805,7 +1805,7 @@ nsresult nsMsgDatabase::AdjustExpungedBytesOnDelete(nsIMsgDBHdr *msgHdr)
 
 NS_IMETHODIMP nsMsgDatabase::DeleteHeader(nsIMsgDBHdr *msg, nsIDBChangeListener *instigator, PRBool commit, PRBool notify)
 {
-  nsMsgHdr* msgHdr = NS_STATIC_CAST(nsMsgHdr*, msg);  // closed system, so this is ok
+  nsMsgHdr* msgHdr = static_cast<nsMsgHdr*>(msg);  // closed system, so this is ok
   nsMsgKey key;
   (void)msg->GetMessageKey(&key);
   // only need to do this for mail - will this speed up news expiration?
@@ -1854,7 +1854,7 @@ nsMsgDatabase::UndoDelete(nsIMsgDBHdr *aMsgHdr)
 {
     if (aMsgHdr)
     {
-        nsMsgHdr* msgHdr = NS_STATIC_CAST(nsMsgHdr*, aMsgHdr);  // closed system, so this is ok
+        nsMsgHdr* msgHdr = static_cast<nsMsgHdr*>(aMsgHdr);  // closed system, so this is ok
         // force deleted flag, so SetHdrFlag won't bail out because  deleted flag isn't set
         msgHdr->m_flags |= MSG_FLAG_EXPUNGED;
         SetHdrFlag(msgHdr, PR_FALSE, MSG_FLAG_EXPUNGED); // clear deleted flag in db
@@ -1880,7 +1880,7 @@ nsresult nsMsgDatabase::RemoveHeaderFromThread(nsMsgHdr *msgHdr)
 NS_IMETHODIMP nsMsgDatabase::RemoveHeaderMdbRow(nsIMsgDBHdr *msg)
 {
   NS_ENSURE_ARG_POINTER(msg);
-  nsMsgHdr* msgHdr = NS_STATIC_CAST(nsMsgHdr*, msg);  // closed system, so this is ok
+  nsMsgHdr* msgHdr = static_cast<nsMsgHdr*>(msg);  // closed system, so this is ok
   return RemoveHeaderFromDB(msgHdr);
 }
 
@@ -1936,7 +1936,7 @@ nsresult nsMsgDatabase::IsHeaderRead(nsIMsgDBHdr *msgHdr, PRBool *pRead)
   if (!msgHdr)
     return NS_MSG_MESSAGE_NOT_FOUND;
 
-  nsMsgHdr* hdr = NS_STATIC_CAST(nsMsgHdr*, msgHdr);          // closed system, cast ok
+  nsMsgHdr* hdr = static_cast<nsMsgHdr*>(msgHdr);          // closed system, cast ok
   // can't call GetFlags, because it will be recursive.
   PRUint32 flags;
   hdr->GetRawFlags(&flags);
@@ -3001,7 +3001,7 @@ NS_IMETHODIMP nsMsgDatabase::CreateNewHdr(nsMsgKey key, nsIMsgDBHdr **pnewHdr)
 
 NS_IMETHODIMP nsMsgDatabase::AddNewHdrToDB(nsIMsgDBHdr *newHdr, PRBool notify)
 {
-  nsMsgHdr* hdr = NS_STATIC_CAST(nsMsgHdr*, newHdr);          // closed system, cast ok
+  nsMsgHdr* hdr = static_cast<nsMsgHdr*>(newHdr);          // closed system, cast ok
   PRBool newThread;
 
   nsresult err = ThreadNewHdr(hdr, newThread);
@@ -3060,7 +3060,7 @@ NS_IMETHODIMP nsMsgDatabase::CopyHdrFromExistingHdr(nsMsgKey key, nsIMsgDBHdr *e
     if (key == nsMsgKey_None)
       return NS_MSG_MESSAGE_NOT_FOUND;
 
-    nsMsgHdr* sourceMsgHdr = NS_STATIC_CAST(nsMsgHdr*, existingHdr);      // closed system, cast ok
+    nsMsgHdr* sourceMsgHdr = static_cast<nsMsgHdr*>(existingHdr);      // closed system, cast ok
     nsMsgHdr *destMsgHdr = nsnull;
     CreateNewHdr(key, (nsIMsgDBHdr **) &destMsgHdr);
     if (!destMsgHdr)
@@ -3586,7 +3586,7 @@ nsresult nsMsgDatabase::GetRefFromHash(nsCString &reference, nsMsgKey *threadId)
   entry = PL_DHashTableOperate(m_msgReferences, (const void *) reference.get(), PL_DHASH_LOOKUP);
   if (PL_DHASH_ENTRY_IS_BUSY(entry))
   {
-    RefHashElement *element = NS_REINTERPRET_CAST(RefHashElement *, entry);
+    RefHashElement *element = reinterpret_cast<RefHashElement *>(entry);
     *threadId = element->mThreadId;
     return NS_OK;
   }
@@ -3602,7 +3602,7 @@ nsresult nsMsgDatabase::AddRefToHash(nsCString &reference, nsMsgKey threadId)
     if (!entry)
       return NS_ERROR_OUT_OF_MEMORY; // XXX out of memory
 
-    RefHashElement *element = NS_REINTERPRET_CAST(RefHashElement *, entry);
+    RefHashElement *element = reinterpret_cast<RefHashElement *>(entry);
     if (!element->mRef)
     {
       element->mRef = ToNewCString(reference);  // Will be freed in PL_DHashFreeStringKey()
@@ -3649,7 +3649,7 @@ nsresult nsMsgDatabase::RemoveRefFromHash(nsCString &reference)
     entry = PL_DHashTableOperate(m_msgReferences, (const void *) reference.get(), PL_DHASH_LOOKUP);
     if (PL_DHASH_ENTRY_IS_BUSY(entry))
     {
-      RefHashElement *element = NS_REINTERPRET_CAST(RefHashElement *, entry);
+      RefHashElement *element = reinterpret_cast<RefHashElement *>(entry);
       if (--element->mCount == 0)
         PL_DHashTableOperate(m_msgReferences, (void *) reference.get(), PL_DHASH_REMOVE);
     }
@@ -4353,7 +4353,7 @@ nsresult nsMsgDatabase::DumpContents()
     key = keys[i];
     nsIMsgDBHdr *msg = NULL;
     rv = GetMsgHdrForKey(key, &msg);
-    nsMsgHdr* msgHdr = NS_STATIC_CAST(nsMsgHdr*, msg);      // closed system, cast ok
+    nsMsgHdr* msgHdr = static_cast<nsMsgHdr*>(msg);      // closed system, cast ok
     if (NS_SUCCEEDED(rv))
     {
       nsCString author;
@@ -4987,7 +4987,7 @@ nsMsgDatabase::GetNewList(PRUint32 *aCount, PRUint32 **aNewKeys)
     *aCount = m_newSet.GetSize();
     if (*aCount > 0)
     {
-      *aNewKeys = NS_STATIC_CAST(PRUint32 *, nsMemory::Alloc(*aCount * sizeof(PRUint32)));
+      *aNewKeys = static_cast<PRUint32 *>(nsMemory::Alloc(*aCount * sizeof(PRUint32)));
       if (!*aNewKeys)
         return NS_ERROR_OUT_OF_MEMORY;
       memcpy(*aNewKeys, m_newSet.GetArray(), *aCount * sizeof(PRUint32));
@@ -5099,7 +5099,7 @@ NS_IMETHODIMP nsMsgDatabase::RefreshCache(const char *aSearchFolderUri, PRUint32
    *aNumBadHits = staleHits.GetSize();
    if (*aNumBadHits)
    {
-     *aStaleHits = NS_STATIC_CAST(PRUint32 *, nsMemory::Alloc(*aNumBadHits * sizeof(PRUint32)));
+     *aStaleHits = static_cast<PRUint32 *>(nsMemory::Alloc(*aNumBadHits * sizeof(PRUint32)));
      if (!*aStaleHits)
        return NS_ERROR_OUT_OF_MEMORY;
      memcpy(*aStaleHits, staleHits.GetArray(), *aNumBadHits * sizeof(PRUint32));
@@ -5164,7 +5164,7 @@ nsMsgDatabase::UpdateHdrInCache(const char *aSearchFolderUri, nsIMsgDBHdr *aHdr,
   NS_ENSURE_SUCCESS(err, err);
   nsMsgKey key;
   aHdr->GetMessageKey(&key);
-  nsMsgHdr* msgHdr = NS_STATIC_CAST(nsMsgHdr*, aHdr);  // closed system, so this is ok
+  nsMsgHdr* msgHdr = static_cast<nsMsgHdr*>(aHdr);  // closed system, so this is ok
   if (err == NS_OK && m_mdbStore && msgHdr->m_mdbRow)
   {
     if (!aAdd)

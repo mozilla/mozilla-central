@@ -130,7 +130,7 @@ nsImapMoveCopyMsgTxn::QueryInterface(REFNSIID aIID, void** aInstancePtr)
 
     if (aIID.Equals(NS_GET_IID(nsImapMoveCopyMsgTxn))) 
     {
-        *aInstancePtr = NS_STATIC_CAST(nsImapMoveCopyMsgTxn*, this);
+        *aInstancePtr = static_cast<nsImapMoveCopyMsgTxn*>(this);
     }
 
     if (*aInstancePtr)

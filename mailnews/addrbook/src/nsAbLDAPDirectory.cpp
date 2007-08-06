@@ -193,7 +193,7 @@ NS_IMETHODIMP nsAbLDAPDirectory::HasCard(nsIAbCard* card, PRBool* hasCard)
   nsresult rv = Initiate ();
   NS_ENSURE_SUCCESS(rv, rv);
 
-  nsVoidKey key (NS_STATIC_CAST(void* ,card));
+  nsVoidKey key (static_cast<void*>(card));
 
   // Enter lock
   nsAutoLock lock (mLock);
@@ -374,7 +374,7 @@ nsresult nsAbLDAPDirectory::OnSearchFoundCard(nsIAbCard* card)
   nsresult rv = Initiate();
   NS_ENSURE_SUCCESS(rv, rv);
 
-  nsVoidKey key (NS_STATIC_CAST(void* ,card));
+  nsVoidKey key (static_cast<void*>(card));
   // Enter lock
   {
     nsAutoLock lock(mLock);

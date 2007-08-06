@@ -141,7 +141,7 @@ void nsSeamonkeyProfileMigrator::CopyNextFolder()
     // fire a timer to handle the next one.
     mFileIOTimer = do_CreateInstance("@mozilla.org/timer;1");
     if (mFileIOTimer)
-      mFileIOTimer->InitWithCallback(NS_STATIC_CAST(nsITimerCallback *, this), percentage == 100 ? 500 : 0, nsITimer::TYPE_ONE_SHOT);
+      mFileIOTimer->InitWithCallback(static_cast<nsITimerCallback *>(this), percentage == 100 ? 500 : 0, nsITimer::TYPE_ONE_SHOT);
   } else
     EndCopyFolders();
 

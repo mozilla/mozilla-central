@@ -138,7 +138,7 @@ NS_IMETHODIMP nsMsgNewsFolder::QueryInterface(REFNSIID aIID, void** aInstancePtr
   *aInstancePtr = nsnull;
 
   if (aIID.Equals(NS_GET_IID(nsIMsgNewsFolder)))
-    *aInstancePtr = NS_STATIC_CAST(nsIMsgNewsFolder*, this);
+    *aInstancePtr = static_cast<nsIMsgNewsFolder*>(this);
   if(*aInstancePtr)
   {
     AddRef();
