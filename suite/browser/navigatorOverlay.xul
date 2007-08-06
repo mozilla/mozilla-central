@@ -435,18 +435,21 @@
         <menuitem accesskey="&pageInfoCmd.accesskey;"   label="&pageInfoCmd.label;"   key="key_viewInfo"   command="View:PageInfo"/>
         <menuseparator />
         <menu label="&applyTheme.label;" accesskey="&applyTheme.accesskey;">
-          <menupopup id="theme" datasources="rdf:chrome" ref="urn:mozilla:skin:root" oncommand="applyTheme(event.target)" onpopupshowing="checkTheme()"
-                     sortResource="http://www.mozilla.org/rdf/chrome#displayName"
+          <menupopup datasources="rdf:extensions" ref="urn:mozilla:item:root" oncommand="applyTheme(event.target);" onpopupshowing="checkTheme(this);"
+                     sortResource="http://www.mozilla.org/2004/em-rdf#name"
                      sortDirection="ascending">
             <menuitem label="&getNewThemesCmd.label;" accesskey="&getNewThemesCmd.accesskey;" oncommand="getNewThemes();"/>
             <menuseparator/>
             <template>
-            <menuitem uri="..."
-                      label="rdf:http://www.mozilla.org/rdf/chrome#displayName"
-                      accesskey="rdf:http://www.mozilla.org/rdf/chrome#accessKey"
-                      id="rdf:http://www.mozilla.org/rdf/chrome#name"
-                      type="radio"
-                      name="themeGroup"/>
+              <rule em-rdf:type="4" parsetype="Integer" xmlns:em-rdf="http://www.mozilla.org/2004/em-rdf">
+                <menuitem uri="..."
+                          label="rdf:http://www.mozilla.org/2004/em-rdf#name"
+                          hidden="rdf:http://www.mozilla.org/2004/em-rdf#hidden"
+                          disabled="rdf:http://www.mozilla.org/2004/em-rdf#isDisabled"
+                          internalName="rdf:http://www.mozilla.org/2004/em-rdf#internalName"
+                          type="radio"
+                          name="themeGroup"/>
+              </rule>
             </template>
           </menupopup>
         </menu>

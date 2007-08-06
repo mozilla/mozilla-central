@@ -2010,74 +2010,29 @@ function setStyleDisabled(disabled) {
 
 function applyTheme(themeName)
 {
-  var id = themeName.getAttribute('id'); 
-  var name=id.substring('urn:mozilla.skin.'.length, id.length);
+  var name = themeName.getAttribute("internalName");
   if (!name)
     return;
 
-  var chromeRegistry = Components.classes["@mozilla.org/chrome/chrome-registry;1"]
-    .getService(Components.interfaces.nsIChromeRegistrySea);
+  var str = Components.classes["@mozilla.org/supports-string;1"].createInstance(Components.interfaces.nsISupportsString);
+  str.data = name;
 
-  var oldTheme = false;
-  try {
-    oldTheme = !chromeRegistry.checkThemeVersion(name);
-  }
-  catch(e) {
-  }
-
-  var str = Components.classes["@mozilla.org/supports-string;1"]
-                      .createInstance(Components.interfaces.nsISupportsString);
-
-  var promptService = Components.classes["@mozilla.org/embedcomp/prompt-service;1"].getService(Components.interfaces.nsIPromptService);
-  if (oldTheme) {
-    var title = gNavigatorBundle.getString("oldthemetitle");
-    var message = gNavigatorBundle.getString("oldTheme");
-
-    message = message.replace(/%theme_name%/, themeName.getAttribute("displayName"));
-    message = message.replace(/%brand%/g, gBrandBundle.getString("brandShortName"));
-
-    if (promptService.confirm(window, title, message)){
-      var inUse = chromeRegistry.isSkinSelected(name, true);
-
-      chromeRegistry.uninstallSkin( name, true );
-      // XXX - this sucks and should only be temporary.
-
-      str.data = true;
-      pref.setComplexValue("general.skins.removelist." + name,
-                           Components.interfaces.nsISupportsString, str);
-      
-      if (inUse)
-        chromeRegistry.refreshSkins();
-    }
-
+  if (pref.getBoolPref("extensions.dss.enabled")) {
+    pref.setComplexValue("general.skins.selectedSkin", Components.interfaces.nsISupportsString, str);
     return;
   }
 
- str.data = name;
- pref.setComplexValue("general.skins.selectedSkin", Components.interfaces.nsISupportsString, str);
-
- if (pref.getBoolPref("extensions.dss.enabled")) {
-   pref.clearUserPref("general.skins.selectedSkin");
-   chromeRegistry.selectSkin(name, true);
-   chromeRegistry.refreshSkins();
-   return;
- }
+  pref.setComplexValue("extensions.lastSelectedSkin", Components.interfaces.nsISupportsString, str);
+  var switchPending = str != pref.getComplexValue("general.skins.selectedSkin", Components.interfaces.nsISupportsString);
+  pref.setBoolPref("extensions.dss.switchPending", switchPending);
  
- // shut down quicklaunch so the next launch will have the new skin
- var appStartup = Components.classes["@mozilla.org/toolkit/app-startup;1"]
-   .getService(Components.interfaces.nsIAppStartup);
- try {
-   appStartup.nativeAppSupport.isServerMode = false;
- }
- catch(ex) {
- }
- 
- if (promptService) {                                                          
-   var dialogTitle = gNavigatorBundle.getString("switchskinstitle");           
-   var brandName = gBrandBundle.getString("brandShortName");                   
-   var msg = gNavigatorBundle.getFormattedString("switchskins", [brandName]);  
-   promptService.alert(window, dialogTitle, msg);                              
- }                                                                             
+  if (switchPending) {
+    var promptService = Components.classes["@mozilla.org/embedcomp/prompt-service;1"].getService(Components.interfaces.nsIPromptService);
+    var dialogTitle = gNavigatorBundle.getString("switchskinstitle");
+    var brandName = gBrandBundle.getString("brandShortName");
+    var msg = gNavigatorBundle.getFormattedString("switchskins", [brandName]);
+    promptService.alert(window, dialogTitle, msg);
+  }
 }
 
 function getNewThemes()
@@ -2469,24 +2424,13 @@ function toHistory()
   toOpenWindowByType("history:manager", "chrome://communicator/content/history/history.xul");
 }
 
-function checkTheme()
+function checkTheme(popup)
 {
-  var theSkinKids = document.getElementById("theme");
-  var chromeRegistry = Components.classes["@mozilla.org/chrome/chrome-registry;1"]
-    .getService(Components.interfaces.nsIChromeRegistrySea);
-  for (var i = 0; i < theSkinKids.childNodes.length; ++i) {
-    var child = theSkinKids.childNodes[i];
-    var id=child.getAttribute("id");
-    if (id.length > 0) {
-      var themeName = id.substring('urn:mozilla:skin:'.length, id.length);       
-      var selected = chromeRegistry.isSkinSelected(themeName, true);
-      if (selected == Components.interfaces.nsIChromeRegistry.FULL) {
-        var menuitem=document.getElementById(id);
-        menuitem.setAttribute("checked", true);
-        break;
-      }
-    }
-  } 
+  var prefName = pref.getBoolPref("extensions.dss.switchPending") ? "extensions.lastSelectedSkin" : "general.skins.selectedSkin";
+  var currentTheme = pref.getComplexValue(prefName, Components.interfaces.nsISupportsString);
+  var menuitem = popup.getElementsByAttribute("internalName", currentTheme)[0];
+  if (menuitem)
+    menuitem.setAttribute("checked", true);
 }
 
 // opener may not have been initialized by load time (chrome windows only)
