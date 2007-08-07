@@ -234,8 +234,12 @@ NSPR_API(PRTimeParameters) PR_GMTParameters(const PRExplodedTime *gmt);
 NSPR_API(PRTimeParameters) PR_USPacificTimeParameters(const PRExplodedTime *gmt);
 
 /*
- * This parses a time/date string into a PRTime
- * (microseconds after "1-Jan-1970 00:00:00 GMT").
+ * This parses a time/date string into a PRExplodedTime
+ * struct. It populates all fields but it can't split
+ * the offset from UTC into tp_gmt_offset and tp_dst_offset in
+ * most cases (exceptions: PST/PDT, MST/MDT, CST/CDT, EST/EDT, GMT/BST).
+ * In those cases tp_gmt_offset will be the sum of these two and
+ * tp_dst_offset will be 0.
  * It returns PR_SUCCESS on success, and PR_FAILURE
  * if the time/date string can't be parsed.
  *
@@ -262,6 +266,19 @@ NSPR_API(PRTimeParameters) PR_USPacificTimeParameters(const PRExplodedTime *gmt)
  * be interpreted relative to the local time zone (PR_FALSE) or GMT (PR_TRUE).
  * The correct value for this argument depends on what standard specified
  * the time string which you are parsing.
+ */
+
+NSPR_API(PRStatus) PR_ParseTimeStringToExplodedTime (
+        const char *string,
+        PRBool default_to_gmt,
+        PRExplodedTime *result);
+
+/*
+ * This uses PR_ParseTimeStringToExplodedTime to parse
+ * a time/date string and PR_ImplodeTime to transform it into
+ * a PRTime (microseconds after "1-Jan-1970 00:00:00 GMT").
+ * It returns PR_SUCCESS on success, and PR_FAILURE
+ * if the time/date string can't be parsed.
  */
 
 NSPR_API(PRStatus) PR_ParseTimeString (

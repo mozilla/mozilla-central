@@ -465,3 +465,7 @@ EXPORTS ;-
 ;+	global:
 		PR_GetPhysicalMemorySize;
 ;+} NSPR_4.5;
+;+NSPR_4.7 {
+;+	global:
+		PR_ParseTimeStringToExplodedTime;
+;+} NSPR_4.6;

@@ -994,16 +994,16 @@ typedef enum
  */
 
 PR_IMPLEMENT(PRStatus)
-PR_ParseTimeString(
+PR_ParseTimeStringToExplodedTime(
         const char *string,
         PRBool default_to_gmt,
-        PRTime *result)
+        PRExplodedTime *result)
 {
-  PRExplodedTime tm;
   TIME_TOKEN dotw = TT_UNKNOWN;
   TIME_TOKEN month = TT_UNKNOWN;
   TIME_TOKEN zone = TT_UNKNOWN;
   int zone_offset = -1;
+  int dst_offset = 0;
   int date = -1;
   PRInt32 year = -1;
   int hour = -1;
@@ -1526,17 +1526,17 @@ PR_ParseTimeString(
           switch (zone)
                 {
                 case TT_PST: zone_offset = -8 * 60; break;
-                case TT_PDT: zone_offset = -7 * 60; break;
+                case TT_PDT: zone_offset = -8 * 60; dst_offset = 1 * 60; break;
                 case TT_MST: zone_offset = -7 * 60; break;
-                case TT_MDT: zone_offset = -6 * 60; break;
+                case TT_MDT: zone_offset = -7 * 60; dst_offset = 1 * 60; break;
                 case TT_CST: zone_offset = -6 * 60; break;
-                case TT_CDT: zone_offset = -5 * 60; break;
+                case TT_CDT: zone_offset = -6 * 60; dst_offset = 1 * 60; break;
                 case TT_EST: zone_offset = -5 * 60; break;
-                case TT_EDT: zone_offset = -4 * 60; break;
+                case TT_EDT: zone_offset = -5 * 60; dst_offset = 1 * 60; break;
                 case TT_AST: zone_offset = -4 * 60; break;
                 case TT_NST: zone_offset = -3 * 60 - 30; break;
                 case TT_GMT: zone_offset =  0 * 60; break;
-                case TT_BST: zone_offset =  1 * 60; break;
+                case TT_BST: zone_offset =  0 * 60; dst_offset = 1 * 60; break;
                 case TT_MET: zone_offset =  1 * 60; break;
                 case TT_EET: zone_offset =  2 * 60; break;
                 case TT_JST: zone_offset =  9 * 60; break;
@@ -1553,21 +1553,21 @@ PR_ParseTimeString(
   if (month == TT_UNKNOWN || date == -1 || year == -1)
       return PR_FAILURE;
 
-  memset(&tm, 0, sizeof(tm));
+  memset(result, 0, sizeof(*result));
   if (sec != -1)
-        tm.tm_sec = sec;
+        result->tm_sec = sec;
   if (min != -1)
-  tm.tm_min = min;
+        result->tm_min = min;
   if (hour != -1)
-        tm.tm_hour = hour;
+        result->tm_hour = hour;
   if (date != -1)
-        tm.tm_mday = date;
+        result->tm_mday = date;
   if (month != TT_UNKNOWN)
-        tm.tm_month = (((int)month) - ((int)TT_JAN));
+        result->tm_month = (((int)month) - ((int)TT_JAN));
   if (year != -1)
-        tm.tm_year = year;
+        result->tm_year = year;
   if (dotw != TT_UNKNOWN)
-        tm.tm_wday = (((int)dotw) - ((int)TT_SUN));
+        result->tm_wday = (((int)dotw) - ((int)TT_SUN));
 
   if (zone == TT_UNKNOWN && default_to_gmt)
         {
@@ -1583,11 +1583,11 @@ PR_ParseTimeString(
           struct tm localTime;
           time_t secs;
 
-          PR_ASSERT(tm.tm_month > -1 
-                                   && tm.tm_mday > 0 
-                                   && tm.tm_hour > -1
-                                   && tm.tm_min > -1
-                                   && tm.tm_sec > -1);
+          PR_ASSERT(result->tm_month > -1 &&
+                    result->tm_mday > 0 &&
+                    result->tm_hour > -1 &&
+                    result->tm_min > -1 &&
+                    result->tm_sec > -1);
 
             /*
              * To obtain time_t from a tm structure representing the local
@@ -1602,16 +1602,16 @@ PR_ParseTimeString(
 
           /* month, day, hours, mins and secs are always non-negative
              so we dont need to worry about them. */  
-            if(tm.tm_year >= 1970)
+          if(result->tm_year >= 1970)
                 {
                   PRInt64 usec_per_sec;
 
-                  localTime.tm_sec = tm.tm_sec;
-                  localTime.tm_min = tm.tm_min;
-                  localTime.tm_hour = tm.tm_hour;
-                  localTime.tm_mday = tm.tm_mday;
-                  localTime.tm_mon = tm.tm_month;
-                  localTime.tm_year = tm.tm_year - 1900;
+                  localTime.tm_sec = result->tm_sec;
+                  localTime.tm_min = result->tm_min;
+                  localTime.tm_hour = result->tm_hour;
+                  localTime.tm_mday = result->tm_mday;
+                  localTime.tm_mon = result->tm_month;
+                  localTime.tm_year = result->tm_year - 1900;
                   /* Set this to -1 to tell mktime "I don't care".  If you set
                      it to 0 or 1, you are making assertions about whether the
                      date you are handing it is in daylight savings mode or not;
@@ -1620,19 +1620,11 @@ PR_ParseTimeString(
                   secs = mktime(&localTime);
                   if (secs != (time_t) -1)
                     {
-#if defined(XP_MAC) && (__MSL__ < 0x6000)
-                      /*
-                       * The mktime() routine in MetroWerks MSL C
-                       * Runtime library returns seconds since midnight,
-                       * 1 Jan. 1900, not 1970 - in versions of MSL (Metrowerks Standard
-                       * Library) prior to version 6.  Only for older versions of
-                       * MSL do we adjust the value of secs to the NSPR epoch
-                       */
-                      secs -= ((365 * 70UL) + 17) * 24 * 60 * 60;
-#endif
-                      LL_I2L(*result, secs);
+                      PRTime usecs64;
+                      LL_I2L(usecs64, secs);
                       LL_I2L(usec_per_sec, PR_USEC_PER_SEC);
-                      LL_MUL(*result, *result, usec_per_sec);
+                      LL_MUL(usecs64, usecs64, usec_per_sec);
+                      PR_ExplodeTime(usecs64, PR_LocalTimeParameters, result);
                       return PR_SUCCESS;
                     }
                 }
@@ -1647,15 +1639,28 @@ PR_ParseTimeString(
                               + 1440 * (localTime.tm_mday - 2);
         }
 
-        /* Adjust the hours and minutes before handing them to
-           PR_ImplodeTime(). Note that it's ok for them to be <0 or >24/60 
+  /* mainly to compute wday and yday */
+  PR_NormalizeTime(result, PR_GMTParameters);
+  result->tm_params.tp_gmt_offset = zone_offset * 60;
+  result->tm_params.tp_dst_offset = dst_offset * 60;
 
-           We adjust the time to GMT before going into PR_ImplodeTime().
-           The zone_offset represents the difference between the time
-           zone parsed and GMT
-         */
-        tm.tm_hour -= (zone_offset / 60);
-        tm.tm_min  -= (zone_offset % 60);
+  return PR_SUCCESS;
+}
+
+PR_IMPLEMENT(PRStatus)
+PR_ParseTimeString(
+        const char *string,
+        PRBool default_to_gmt,
+        PRTime *result)
+{
+  PRExplodedTime tm;
+  PRStatus rv;
+
+  rv = PR_ParseTimeStringToExplodedTime(string,
+                                        default_to_gmt,
+                                        &tm);
+  if (rv != PR_SUCCESS)
+        return rv;
 
   *result = PR_ImplodeTime(&tm);
 
