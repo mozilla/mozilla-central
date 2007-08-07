@@ -166,6 +166,7 @@ wait_for_selfserv()
               -d ${P_R_CLIENTDIR} < ${REQUEST_FILE}
       if [ $? -ne 0 ]; then
           html_failed "<TR><TD> Waiting for Server"
+          echo "${SCRIPTNAME}: Waiting for Server - FAILED"
       fi
   fi
   is_selfserv_alive
