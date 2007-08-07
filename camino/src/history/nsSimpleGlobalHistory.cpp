@@ -313,7 +313,7 @@ nsHistoryMdbTableEnumerator::GetNext(nsISupports** _result)
   nsIHistoryItem *item;
   rv = mHistory->CreateHistoryItemForRow(mCurrent, &item); // addrefs item
   if (item)
-    *_result = NS_STATIC_CAST(nsISupports*, item);
+    *_result = static_cast<nsISupports*>(item);
     
   mCurrent = nsnull;
 
@@ -2702,7 +2702,7 @@ nsSimpleGlobalHistory::AutoCompleteSearch(const nsACString& aSearchString,
     // place the sorted array into the autocomplete results
     for (PRInt32 i = 0; i < itemArray.Count(); ++i) {
       nsIHistoryItem* item = itemArray[i];
-      resultItems->AppendElement(NS_STATIC_CAST(nsISupports*, item));
+      resultItems->AppendElement(static_cast<nsISupports*>(item));
     }
   }
     

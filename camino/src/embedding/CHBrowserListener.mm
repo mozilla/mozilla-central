@@ -704,7 +704,7 @@ CHBrowserListener::OnLocationChange(nsIWebProgress *aWebProgress, nsIRequest *aR
   // only pay attention to location change for our nsIDOMWindow
   nsCOMPtr<nsIDOMWindow> windowForProgress;
   aWebProgress->GetDOMWindow(getter_AddRefs(windowForProgress));
-  nsCOMPtr<nsIDOMWindow> ourWindow = do_GetInterface(NS_STATIC_CAST(nsIInterfaceRequestor*, this));
+  nsCOMPtr<nsIDOMWindow> ourWindow = do_GetInterface(static_cast<nsIInterfaceRequestor*>(this));
   if (windowForProgress != ourWindow)
     return NS_OK;
 

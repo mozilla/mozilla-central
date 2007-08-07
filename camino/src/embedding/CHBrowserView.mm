@@ -215,10 +215,10 @@ const char kDirServiceContractID[] = "@mozilla.org/file/directory_service;1";
     NS_ADDREF(_webBrowser);
     
 // Set the container nsIWebBrowserChrome
-    _webBrowser->SetContainerWindow(NS_STATIC_CAST(nsIWebBrowserChrome *, _listener));
+    _webBrowser->SetContainerWindow(static_cast<nsIWebBrowserChrome *>(_listener));
     
 // Register as a listener for web progress
-    nsCOMPtr<nsIWeakReference> weak = do_GetWeakReference(NS_STATIC_CAST(nsIWebProgressListener*, _listener));
+    nsCOMPtr<nsIWeakReference> weak = do_GetWeakReference(static_cast<nsIWebProgressListener*>(_listener));
     _webBrowser->AddWebBrowserListener(weak, NS_GET_IID(nsIWebProgressListener));
     
 // Hook up the widget hierarchy with us as the parent
@@ -249,11 +249,11 @@ const char kDirServiceContractID[] = "@mozilla.org/file/directory_service;1";
     if (eventTarget)
     {
       rv = eventTarget->AddEventListener(NS_LITERAL_STRING("DOMPopupBlocked"), 
-                                          NS_STATIC_CAST(nsIDOMEventListener*, _listener), PR_FALSE);
+                                          static_cast<nsIDOMEventListener*>(_listener), PR_FALSE);
       NS_ASSERTION(NS_SUCCEEDED(rv), "AddEventListener failed");
 
       rv = eventTarget->AddEventListener(NS_LITERAL_STRING("DOMLinkAdded"), 
-                                          NS_STATIC_CAST(nsIDOMEventListener*, _listener), PR_FALSE);
+                                          static_cast<nsIDOMEventListener*>(_listener), PR_FALSE);
       NS_ASSERTION(NS_SUCCEEDED(rv), "AddEventListener failed");
     }
   }
@@ -623,7 +623,7 @@ const char kDirServiceContractID[] = "@mozilla.org/file/directory_service;1";
 
   if (_webBrowser) {
     // Set the container nsIWebBrowserChrome
-    _webBrowser->SetContainerWindow(NS_STATIC_CAST(nsIWebBrowserChrome *, _listener));
+    _webBrowser->SetContainerWindow(static_cast<nsIWebBrowserChrome *>(_listener));
 
     NSRect frame = [self frame];
  

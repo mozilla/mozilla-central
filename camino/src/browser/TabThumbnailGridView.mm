@@ -247,7 +247,7 @@ static void drawGradientBackground(CGContextRef context, NSRect rect)
 //
 static void VerticalGrayGradient(void* inInfo, float const* inData, float* outData)
 {
-  float* grays = NS_STATIC_CAST(float*, inInfo);
+  float* grays = static_cast<float*>(inInfo);
   outData[0] = (1.0-inData[0])*grays[0] + inData[0]*grays[1];
   outData[1] = 1.0;
 }

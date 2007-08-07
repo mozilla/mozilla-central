@@ -252,7 +252,7 @@ public:
       PRInt32 count = LIST_COUNT(itemList);
       wallet_Sublist * sublistPtr;
       for (PRInt32 i=0; i<count; i++) {
-        sublistPtr = NS_STATIC_CAST(wallet_Sublist*, itemList->ElementAt(i));
+        sublistPtr = static_cast<wallet_Sublist*>(itemList->ElementAt(i));
         delete sublistPtr;
       }
       delete itemList;
@@ -361,12 +361,12 @@ wallet_Dump(nsVoidArray * list) {
   wallet_MapElement * mapElementPtr;
   PRInt32 count = LIST_COUNT(list);
   for (PRInt32 i=0; i<count; i++) {
-    mapElementPtr = NS_STATIC_CAST(wallet_MapElement*, list->ElementAt(i));
+    mapElementPtr = static_cast<wallet_MapElement*>(list->ElementAt(i));
     fprintf(stdout, "%s %s \n", (mapElementPtr->item1), (mapElementPtr->item2));
     wallet_Sublist * sublistPtr;
     PRInt32 count2 = LIST_COUNT(mapElementPtr->itemList);
     for (PRInt32 i2=0; i2<count2; i2++) {
-      sublistPtr = NS_STATIC_CAST(wallet_Sublist*, mapElementPtr->itemList->ElementAt(i2));
+      sublistPtr = static_cast<wallet_Sublist*>(mapElementPtr->itemList->ElementAt(i2));
       fprintf(stdout, "     %s \n", (sublistPtr->item));
     }
   }
@@ -893,7 +893,7 @@ wallet_Clear(nsVoidArray ** list) {
     wallet_MapElement * mapElementPtr;
     PRInt32 count = LIST_COUNT((*list));
     for (PRInt32 i=count-1; i>=0; i--) {
-      mapElementPtr = NS_STATIC_CAST(wallet_MapElement*, (*list)->ElementAt(i));
+      mapElementPtr = static_cast<wallet_MapElement*>((*list)->ElementAt(i));
       delete mapElementPtr;
     }
   }
@@ -939,8 +939,8 @@ wallet_DeallocateMapElements() {
   // initialize remainder of last allocated block so we don't crash on []delete
   for (PRInt32 j=wallet_NextAllocSlot; j<kAllocBlockElems; j++) {
     mapElementPtr =
-      NS_STATIC_CAST(wallet_MapElement*,
-                     (wallet_MapElementAllocations_list)->ElementAt(count-1));
+      static_cast<wallet_MapElement*>
+                 ((wallet_MapElementAllocations_list)->ElementAt(count-1));
     mapElementPtr[j].item1 = nsnull;
     mapElementPtr[j].item2 = nsnull;
     mapElementPtr[j].itemList = nsnull;
@@ -948,7 +948,7 @@ wallet_DeallocateMapElements() {
 
   for (PRInt32 i=count-1; i>=0; i--) {
     mapElementPtr =
-      NS_STATIC_CAST(wallet_MapElement*, (wallet_MapElementAllocations_list)->ElementAt(i));
+      static_cast<wallet_MapElement*>((wallet_MapElementAllocations_list)->ElementAt(i));
     delete [] mapElementPtr;
   }  
   delete wallet_MapElementAllocations_list;
@@ -1024,7 +1024,7 @@ wallet_WriteToList(
   }
   PRInt32 count = LIST_COUNT(list);
   for (PRInt32 i=0; i<count; i++) {
-    mapElementPtr = NS_STATIC_CAST(wallet_MapElement*, list->ElementAt(i));
+    mapElementPtr = static_cast<wallet_MapElement*>(list->ElementAt(i));
     if (BY_LENGTH==placement) {
       if (LIST_COUNT(mapElementPtr->itemList) < LIST_COUNT(itemList)) {
         list->InsertElementAt(mapElement, i);
@@ -1034,8 +1034,8 @@ wallet_WriteToList(
         if (itemList) {
           wallet_Sublist * sublistPtr;
           wallet_Sublist * sublistPtr2;
-          sublistPtr = NS_STATIC_CAST(wallet_Sublist*, mapElementPtr->itemList->ElementAt(0));
-          sublistPtr2 = NS_STATIC_CAST(wallet_Sublist*, itemList->ElementAt(0));
+          sublistPtr = static_cast<wallet_Sublist*>(mapElementPtr->itemList->ElementAt(0));
+          sublistPtr2 = static_cast<wallet_Sublist*>(itemList->ElementAt(0));
           if(PL_strlen(sublistPtr->item) < PL_strlen(sublistPtr2->item)) {
             list->InsertElementAt(mapElement, i);
             added_to_list = PR_TRUE;
@@ -1095,7 +1095,7 @@ wallet_ReadFromList(
   wallet_MapElement * mapElementPtr;
   PRInt32 count = LIST_COUNT(list);
   for (PRInt32 i=index; i<count; i++) {
-    mapElementPtr = NS_STATIC_CAST(wallet_MapElement*, list->ElementAt(i));
+    mapElementPtr = static_cast<wallet_MapElement*>(list->ElementAt(i));
     if(item1.Equals(mapElementPtr->item1,  nsCaseInsensitiveCStringComparator())) {
       if (obscure) {
         char * plaintext = nsnull;
@@ -1297,7 +1297,7 @@ wallet_WriteToFile(const char * filename, nsVoidArray* list) {
   /* traverse the list */
   PRInt32 count = LIST_COUNT(list);
   for (PRInt32 i=0; i<count; i++) {
-    mapElementPtr = NS_STATIC_CAST(wallet_MapElement*, list->ElementAt(i));
+    mapElementPtr = static_cast<wallet_MapElement*>(list->ElementAt(i));
     wallet_PutLine(strm, (*mapElementPtr).item1);
     if (!WALLET_NULL((*mapElementPtr).item2)) {
       wallet_PutLine(strm, (*mapElementPtr).item2);
@@ -1305,7 +1305,7 @@ wallet_WriteToFile(const char * filename, nsVoidArray* list) {
       wallet_Sublist * sublistPtr;
       PRInt32 count2 = LIST_COUNT(mapElementPtr->itemList);
       for (PRInt32 j=0; j<count2; j++) {
-        sublistPtr = NS_STATIC_CAST(wallet_Sublist*, mapElementPtr->itemList->ElementAt(j));
+        sublistPtr = static_cast<wallet_Sublist*>(mapElementPtr->itemList->ElementAt(j));
         wallet_PutLine(strm, (*sublistPtr).item);
       }
     }
@@ -1626,7 +1626,7 @@ wallet_ReleasePrefillElementList(nsVoidArray * wallet_PrefillElement_list) {
     wallet_PrefillElement * prefillElementPtr;
     PRInt32 count = LIST_COUNT(wallet_PrefillElement_list);
     for (PRInt32 i=count-1; i>=0; i--) {
-      prefillElementPtr = NS_STATIC_CAST(wallet_PrefillElement*, wallet_PrefillElement_list->ElementAt(i));
+      prefillElementPtr = static_cast<wallet_PrefillElement*>(wallet_PrefillElement_list->ElementAt(i));
       delete prefillElementPtr;
     }
     delete wallet_PrefillElement_list;
@@ -1708,7 +1708,7 @@ TextToSchema(
 
     /* get each string associated with this schema */
     PRBool isSubstring = PR_TRUE;
-    mapElementPtr = NS_STATIC_CAST(wallet_MapElement*, wallet_SchemaStrings_list->ElementAt(i));
+    mapElementPtr = static_cast<wallet_MapElement*>(wallet_SchemaStrings_list->ElementAt(i));
     wallet_Sublist * sublistPtr;
     PRInt32 count2 = LIST_COUNT(mapElementPtr->itemList);
 
@@ -1716,7 +1716,7 @@ TextToSchema(
       for (PRInt32 i2=0; i2<count2; i2++) {
 
         /* see if displayable text contains this string */
-        sublistPtr = NS_STATIC_CAST(wallet_Sublist*, mapElementPtr->itemList->ElementAt(i2));
+        sublistPtr = static_cast<wallet_Sublist*>(mapElementPtr->itemList->ElementAt(i2));
         if (text.Find(sublistPtr->item, PR_TRUE) == -1) {
  
           /* displayable text does not contain this string, reject this schema */
@@ -1822,7 +1822,7 @@ FieldToValue(
         /* process each item in a multi-rhs rule */
         PRInt32 count = LIST_COUNT(itemList2);
         for (PRInt32 i=0; i<count; i++) {
-          sublistPtr = NS_STATIC_CAST(wallet_Sublist*, itemList2->ElementAt(i));
+          sublistPtr = static_cast<wallet_Sublist*>(itemList2->ElementAt(i));
 
           /* skip over values found previously */
           /*   note: a returned index of -1 means not-found.  So we will use the
@@ -2078,7 +2078,7 @@ wallet_ResolvePositionalSchema(nsIDOMNode* elementNode, nsACString& schema) {
   wallet_MapElement * mapElementPtr;
   PRInt32 count = LIST_COUNT(wallet_PositionalSchema_list);
   for (PRInt32 i=0; i<count; i++) {
-    mapElementPtr = NS_STATIC_CAST(wallet_MapElement*, wallet_PositionalSchema_list->ElementAt(i));
+    mapElementPtr = static_cast<wallet_MapElement*>(wallet_PositionalSchema_list->ElementAt(i));
     if (schema.Equals(mapElementPtr->item1, nsCaseInsensitiveCStringComparator())) {
       /* found our positional schema in the list */
 
@@ -2179,11 +2179,11 @@ wallet_ResolvePositionalSchema(nsIDOMNode* elementNode, nsACString& schema) {
       wallet_Sublist * sublistPtr;
       PRInt32 count2 = LIST_COUNT(mapElementPtr->itemList);
       for (PRInt32 j=0; j<count2; j=j+2) {
-        sublistPtr = NS_STATIC_CAST(wallet_Sublist*, mapElementPtr->itemList->ElementAt(j));
+        sublistPtr = static_cast<wallet_Sublist*>(mapElementPtr->itemList->ElementAt(j));
 
         if (!PL_strcmp(sublistPtr->item, fractionString.get()) ||
             !PL_strcmp(sublistPtr->item, fractionStringWithoutDenominator.get())) {
-          sublistPtr = NS_STATIC_CAST(wallet_Sublist*, mapElementPtr->itemList->ElementAt(j+1));
+          sublistPtr = static_cast<wallet_Sublist*>(mapElementPtr->itemList->ElementAt(j+1));
           schema.Assign(sublistPtr->item);
           return;
         }
@@ -2213,7 +2213,7 @@ wallet_ResolveStateSchema(nsIDOMNode* elementNode, nsACString& schema) {
   wallet_MapElement * mapElementPtr;
   PRInt32 count = LIST_COUNT(wallet_StateSchema_list);
   for (PRInt32 i=0; i<count; i++) {
-    mapElementPtr = NS_STATIC_CAST(wallet_MapElement*, wallet_StateSchema_list->ElementAt(i));
+    mapElementPtr = static_cast<wallet_MapElement*>(wallet_StateSchema_list->ElementAt(i));
     if (schema.Equals(mapElementPtr->item1, nsCaseInsensitiveCStringComparator())) {
       /* found our state schema in the list */
 
@@ -2253,10 +2253,10 @@ wallet_ResolveStateSchema(nsIDOMNode* elementNode, nsACString& schema) {
           PRInt32 count2 = LIST_COUNT(mapElementPtr->itemList);
           PRInt32 j;
           for (j=0; j<count2; j=j+2) {
-            sublistPtr = NS_STATIC_CAST(wallet_Sublist*, mapElementPtr->itemList->ElementAt(j));
+            sublistPtr = static_cast<wallet_Sublist*>(mapElementPtr->itemList->ElementAt(j));
             if (!PL_strcasecmp(sublistPtr->item, previousElementState)) {
               previousElementState = sublistPtr->item;
-              sublistPtr = NS_STATIC_CAST(wallet_Sublist*, mapElementPtr->itemList->ElementAt(j+1));
+              sublistPtr = static_cast<wallet_Sublist*>(mapElementPtr->itemList->ElementAt(j+1));
               schema.Assign(sublistPtr->item);
               return;
             }
@@ -2265,7 +2265,7 @@ wallet_ResolveStateSchema(nsIDOMNode* elementNode, nsACString& schema) {
              *   Note: the catch-all must be the last entry in the list
              */
             if (!PL_strcmp(sublistPtr->item, "*")) {
-              sublistPtr = NS_STATIC_CAST(wallet_Sublist*, mapElementPtr->itemList->ElementAt(j+1));
+              sublistPtr = static_cast<wallet_Sublist*>(mapElementPtr->itemList->ElementAt(j+1));
               schema.Assign(sublistPtr->item);
               return;
             }
@@ -2279,13 +2279,13 @@ wallet_ResolveStateSchema(nsIDOMNode* elementNode, nsACString& schema) {
         wallet_Sublist * sublistPtr;
         PRInt32 count2 = LIST_COUNT(mapElementPtr->itemList);
         for (PRInt32 j=0; j<count2; j=j+2) {
-          sublistPtr = NS_STATIC_CAST(wallet_Sublist*, mapElementPtr->itemList->ElementAt(j));
+          sublistPtr = static_cast<wallet_Sublist*>(mapElementPtr->itemList->ElementAt(j));
 
           /* next state obtained, test to see if it is in the text */
           if (text.Find(sublistPtr->item, PR_TRUE) != -1) {
             previousElementState = sublistPtr->item;
             previousElementNode = elementNode;
-            sublistPtr = NS_STATIC_CAST(wallet_Sublist*, mapElementPtr->itemList->ElementAt(j+1));
+            sublistPtr = static_cast<wallet_Sublist*>(mapElementPtr->itemList->ElementAt(j+1));
             schema.Assign(sublistPtr->item);
             return;
           }
@@ -2296,10 +2296,10 @@ wallet_ResolveStateSchema(nsIDOMNode* elementNode, nsACString& schema) {
       wallet_Sublist * sublistPtr;
       PRInt32 count2 = LIST_COUNT(mapElementPtr->itemList);
       for (PRInt32 j=0; j<count2; j=j+2) {
-        sublistPtr = NS_STATIC_CAST(wallet_Sublist*, mapElementPtr->itemList->ElementAt(j));
+        sublistPtr = static_cast<wallet_Sublist*>(mapElementPtr->itemList->ElementAt(j));
         if (!PL_strcmp(sublistPtr->item, "*")) {
           previousElementNode = localElementNode;
-          sublistPtr = NS_STATIC_CAST(wallet_Sublist*, mapElementPtr->itemList->ElementAt(j+1));
+          sublistPtr = static_cast<wallet_Sublist*>(mapElementPtr->itemList->ElementAt(j+1));
           schema.Assign(sublistPtr->item);
           previousElementNode = elementNode;
           return;
@@ -2538,7 +2538,7 @@ wallet_Size(nsVoidArray * list) {
   wallet_MapElement * mapElementPtr;
   PRInt32 count = LIST_COUNT(list);
   for (PRInt32 i=0; i<count; i++) {
-    mapElementPtr = NS_STATIC_CAST(wallet_MapElement*, list->ElementAt(i));
+    mapElementPtr = static_cast<wallet_MapElement*>(list->ElementAt(i));
     size += sizeof(wallet_MapElement*);
     size += sizeof(wallet_MapElement);
     size += PL_strlen(mapElementPtr->item1);
@@ -2546,7 +2546,7 @@ wallet_Size(nsVoidArray * list) {
     wallet_Sublist * sublistPtr;
     PRInt32 count2 = LIST_COUNT(mapElementPtr->itemList);
     for (PRInt32 i2=0; i2<count2; i2++) {
-      sublistPtr = NS_STATIC_CAST(wallet_Sublist*, mapElementPtr->itemList->ElementAt(i2));
+      sublistPtr = static_cast<wallet_Sublist*>(mapElementPtr->itemList->ElementAt(i2));
       size += sizeof(wallet_Sublist);
       size += PL_strlen(sublistPtr->item);
     }
@@ -2612,7 +2612,7 @@ WLLT_GetPrefillListForViewer(nsAString& aPrefillList)
   nsAutoString buffer;
   PRInt32 count = LIST_COUNT(wallet_list);
   for (PRInt32 i=0; i<count; i++) {
-    prefillElementPtr = NS_STATIC_CAST(wallet_PrefillElement*, wallet_list->ElementAt(i));
+    prefillElementPtr = static_cast<wallet_PrefillElement*>(wallet_list->ElementAt(i));
     buffer.Append(BREAK);
     buffer.AppendInt(prefillElementPtr->count,10);
     buffer.Append(BREAK);
@@ -2657,7 +2657,7 @@ Wallet_SignonViewerReturn(const nsAString& results)
     PRInt32 count = LIST_COUNT(wallet_URL_list);
     while (count>0) {
       count--;
-      url = NS_STATIC_CAST(wallet_MapElement*, wallet_URL_list->ElementAt(count));
+      url = static_cast<wallet_MapElement*>(wallet_URL_list->ElementAt(count));
       if (url && SI_InSequence(gone, count)) {
         /* clear the NO_PREVIEW indicator */
         oldPermissionChar = NO_CAPTURE(url->item2);
@@ -2681,7 +2681,7 @@ Wallet_SignonViewerReturn(const nsAString& results)
     PRInt32 count2 = LIST_COUNT(wallet_URL_list);
     while (count2>0) {
       count2--;
-      url = NS_STATIC_CAST(wallet_MapElement*, wallet_URL_list->ElementAt(count2));
+      url = static_cast<wallet_MapElement*>(wallet_URL_list->ElementAt(count2));
       if (url && SI_InSequence(gone, count2)) {
         /* clear the NO_CAPTURE indicator */
         oldPermissionChar = NO_PREVIEW(url->item2);
@@ -2941,7 +2941,7 @@ Wallet_Prefill(nsIDOMWindowInternal* win)
     wallet_PrefillElement * mapElementPtr;
     PRInt32 count = LIST_COUNT(wallet_PrefillElement_list);
     for (PRInt32 i=0; i<count; i++) {
-      mapElementPtr = NS_STATIC_CAST(wallet_PrefillElement*, wallet_PrefillElement_list->ElementAt(i));
+      mapElementPtr = static_cast<wallet_PrefillElement*>(wallet_PrefillElement_list->ElementAt(i));
       if (mapElementPtr->count) {
         if (mapElementPtr->inputElement) {
           mapElementPtr->inputElement->SetValue(mapElementPtr->value);
@@ -3106,7 +3106,7 @@ WLLT_GetNopreviewListForViewer(nsAString& aNopreviewList)
   wallet_InitializeURLList();
   PRInt32 count = LIST_COUNT(wallet_URL_list);
   for (PRInt32 i=0; i<count; i++) {
-    url = NS_STATIC_CAST(wallet_MapElement*, wallet_URL_list->ElementAt(i));
+    url = static_cast<wallet_MapElement*>(wallet_URL_list->ElementAt(i));
     if (NO_PREVIEW(url->item2) == 'y') {
       buffer.Append(BREAK);
       AppendUTF8toUTF16(url->item1, buffer);
@@ -3124,7 +3124,7 @@ WLLT_GetNocaptureListForViewer(nsAString& aNocaptureList)
   wallet_InitializeURLList();
   PRInt32 count = LIST_COUNT(wallet_URL_list);
   for (PRInt32 i=0; i<count; i++) {
-    url = NS_STATIC_CAST(wallet_MapElement*, wallet_URL_list->ElementAt(i));
+    url = static_cast<wallet_MapElement*>(wallet_URL_list->ElementAt(i));
     if (NO_CAPTURE(url->item2) == 'y') {
       buffer.Append(BREAK);
       AppendUTF8toUTF16(url->item1, buffer);
@@ -3218,7 +3218,7 @@ WLLT_PreEdit(nsAString& walletList)
   wallet_MapElement * mapElementPtr;
   PRInt32 count = LIST_COUNT(wallet_SchemaToValue_list);
   for (PRInt32 i=0; i<count; i++) {
-    mapElementPtr = NS_STATIC_CAST(wallet_MapElement*, wallet_SchemaToValue_list->ElementAt(i));
+    mapElementPtr = static_cast<wallet_MapElement*>(wallet_SchemaToValue_list->ElementAt(i));
 
     AppendUTF8toUTF16(mapElementPtr->item1, walletList);
     walletList.Append(BREAK);
@@ -3229,7 +3229,7 @@ WLLT_PreEdit(nsAString& walletList)
       wallet_Sublist * sublistPtr;
       PRInt32 count2 = LIST_COUNT(mapElementPtr->itemList);
       for (PRInt32 i2=0; i2<count2; i2++) {
-        sublistPtr = NS_STATIC_CAST(wallet_Sublist*, mapElementPtr->itemList->ElementAt(i2));
+        sublistPtr = static_cast<wallet_Sublist*>(mapElementPtr->itemList->ElementAt(i2));
         AppendUTF8toUTF16(sublistPtr->item, walletList);
         walletList.Append(BREAK);
       }
@@ -3294,7 +3294,7 @@ if (!changingPassword) {
   wallet_MapElement * mapElementPtr;
   gEncryptionFailure = PR_FALSE;
   for (i=0; i<count && !gEncryptionFailure; i++) {
-    mapElementPtr = NS_STATIC_CAST(wallet_MapElement*, wallet_SchemaToValue_list->ElementAt(i));
+    mapElementPtr = static_cast<wallet_MapElement*>(wallet_SchemaToValue_list->ElementAt(i));
     char * crypt = nsnull;
     if (!WALLET_NULL(mapElementPtr->item2)) {
       if (NS_FAILED(DecryptString(mapElementPtr->item2, plainText))) {
@@ -3308,7 +3308,7 @@ if (!changingPassword) {
       wallet_Sublist * sublistPtr;
       PRInt32 count2 = LIST_COUNT(mapElementPtr->itemList);
       for (PRInt32 i2=0; i2<count2; i2++) {
-        sublistPtr = NS_STATIC_CAST(wallet_Sublist*, mapElementPtr->itemList->ElementAt(i2));
+        sublistPtr = static_cast<wallet_Sublist*>(mapElementPtr->itemList->ElementAt(i2));
         if (NS_FAILED(DecryptString(sublistPtr->item, plainText))) {
           goto fail;
         }
@@ -3438,7 +3438,7 @@ WLLT_PrefillReturn(const nsAString& results)
   /* step through pre-fill list */
   PRInt32 count = LIST_COUNT(wallet_list);
   for (PRInt32 i=0; i<count; i++) {
-    mapElementPtr = NS_STATIC_CAST(wallet_PrefillElement*, wallet_list->ElementAt(i));
+    mapElementPtr = static_cast<wallet_PrefillElement*>(wallet_list->ElementAt(i));
 
     /* advance in fillins list each time a new schema name in pre-fill list is encountered */
     if (mapElementPtr->count != 0) {
@@ -4000,7 +4000,7 @@ WLLT_OnSubmit(nsIDOMHTMLFormElement* currentFormNode, nsIDOMWindowInternal* wind
           }
           PRInt32 count2 = signonData->Count();
           for (PRInt32 i=count2-1; i>=0; i--) {
-            data = NS_STATIC_CAST(si_SignonDataStruct*, signonData->ElementAt(i));
+            data = static_cast<si_SignonDataStruct*>(signonData->ElementAt(i));
             delete data;
           }
           delete signonData;

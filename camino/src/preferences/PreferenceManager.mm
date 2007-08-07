@@ -319,7 +319,7 @@ PrefChangeObserver::Observe(nsISupports* aSubject, const char* aTopic, const PRU
 {
   NSLog(@"unregistering observer %@ on %@", self, mPrefName);
 
-  PrefChangeObserver* changeObserver = NS_REINTERPRET_CAST(PrefChangeObserver*, [super value]);
+  PrefChangeObserver* changeObserver = reinterpret_cast<PrefChangeObserver*>([super value]);
   if (changeObserver)
     changeObserver->UnregisterForPref([mPrefName UTF8String]);
 
@@ -329,7 +329,7 @@ PrefChangeObserver::Observe(nsISupports* aSubject, const char* aTopic, const PRU
 
 - (BOOL)hasObject:(id)inObject
 {
-  PrefChangeObserver* changeObserver = NS_REINTERPRET_CAST(PrefChangeObserver*, [super value]);
+  PrefChangeObserver* changeObserver = reinterpret_cast<PrefChangeObserver*>([super value]);
   return (changeObserver && (changeObserver->GetObject() == inObject));
 }
 
