@@ -826,7 +826,8 @@ function UpdateMessageHeaders()
         }
         else
         {
-          gExpandedHeaderView[headerName] = new createNewHeaderView(headerName);
+          gExpandedHeaderView[headerName] = new createNewHeaderView(headerName,
+                                                                    currentHeaderData[headerName].headerName + ':');
         }
 
         headerEntry = gExpandedHeaderView[headerName];
