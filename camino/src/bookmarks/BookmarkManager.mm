@@ -658,7 +658,7 @@ static BookmarkManager* gBookmarkManager = nil;
   // XXX this will fire a lot of changed notifications.
   NSEnumerator* bookmarksEnum = [[self rootBookmarks] objectEnumerator];
   BookmarkItem* curItem;
-  while (curItem = [bookmarksEnum nextObject]) {
+  while ((curItem = [bookmarksEnum nextObject])) {
     if ([curItem isKindOfClass:[Bookmark class]])
       [(Bookmark*)curItem setNumberOfVisits:0];
   }
@@ -955,7 +955,7 @@ static BookmarkManager* gBookmarkManager = nil;
   NSMutableSet* seenBookmarks = [NSMutableSet setWithCapacity:[bookmarkItems count]];
   NSEnumerator* bookmarkItemsEnum = [bookmarkItems objectEnumerator];
   BookmarkItem* curItem;
-  while (curItem = [bookmarkItemsEnum nextObject]) {
+  while ((curItem = [bookmarkItemsEnum nextObject])) {
     if ([curItem isKindOfClass:[Bookmark class]] && ![curItem isSeparator] && ![seenBookmarks containsObject:curItem]) {
       [seenBookmarks addObject:curItem]; // now we've seen it
       [urlList addObject:[(Bookmark*)curItem url]];
@@ -965,7 +965,7 @@ static BookmarkManager* gBookmarkManager = nil;
       NSArray* children = [(BookmarkFolder*)curItem allChildBookmarks];
       NSEnumerator* childrenEnum = [children objectEnumerator];
       Bookmark* curChild;
-      while (curChild = [childrenEnum nextObject]) {
+      while ((curChild = [childrenEnum nextObject])) {
         if (![seenBookmarks containsObject:curChild] && ![curItem isSeparator]) {
           [seenBookmarks addObject:curChild]; // now we've seen it
           [urlList addObject:[curChild url]];

@@ -217,7 +217,7 @@ static OSStatus MenuEventHandler(EventHandlerCallRef inHandlerCallRef, EventRef 
 
 - (id)initAlternateWithTitle:(NSString *)title action:(SEL)action target:(id)target modifiers:(int)modifiers
 {
-  if (self = [self initWithTitle:title action:action keyEquivalent:@""]) {
+  if ((self = [self initWithTitle:title action:action keyEquivalent:@""])) {
     [self setTarget:target];
     [self setKeyEquivalentModifierMask:modifiers];
     [self setAlternate:YES];

@@ -211,7 +211,7 @@
   NSMutableArray *titleArray= [NSMutableArray array];
   NSString* curFilename = nil;
   NSString *curPath = nil;
-  while (curPath = [enumerator nextObject]) {
+  while ((curPath = [enumerator nextObject])) {
     curFilename = [curPath lastPathComponent];
     // What folder we import into depends on what OmniWeb file we're importing.
     if ([curFilename isEqualToString:@"Bookmarks.html"])

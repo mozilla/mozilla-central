@@ -1121,7 +1121,7 @@ const int kOutlineViewLeftMargin = 19; // determined empirically, since it doesn
   NSMutableArray* titleList = [NSMutableArray array];
   NSEnumerator* bookmarkItemsEnum = [bookmarkItemsToCopy objectEnumerator];
   BookmarkItem* curItem;
-  while (curItem = [bookmarkItemsEnum nextObject]) {
+  while ((curItem = [bookmarkItemsEnum nextObject])) {
     if ([curItem isKindOfClass:[Bookmark class]]) {
       [urlList addObject:[(Bookmark*)curItem url]];
       [titleList addObject:[(Bookmark*)curItem title]];

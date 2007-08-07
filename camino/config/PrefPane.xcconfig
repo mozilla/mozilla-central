@@ -14,10 +14,6 @@ GCC_ENABLE_CPP_EXCEPTIONS = NO
 GCC_ENABLE_CPP_RTTI = NO
 
 // Thes warning settings should be revisited once pref panes aren't tied to core
-// GCC_WARN_NON_VIRTUAL_DESTRUCTOR = NO
-GCC_WARN_MISSING_PARENTHESES = NO
-GCC_WARN_UNUSED_LABEL = YES
-GCC_WARN_UNUSED_VARIABLE = YES
-GCC_WARN_UNKNOWN_PRAGMAS = YES
 GCC_WARN_SIGN_COMPARE = YES
-WARNING_CFLAGS = -Wmost -Wno-four-char-constants -Wno-unknown-pragmas -Wno-non-virtual-dtor
+WARNING_CFLAGS = -Wall -Wno-four-char-constants
+OTHER_CPLUSPLUSFLAGS = $(OTHER_CPLUSPLUSFLAGS) -Wno-non-virtual-dtor

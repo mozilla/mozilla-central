@@ -1006,7 +1006,7 @@ PR_STATIC_CALLBACK(int) compareValues(nsICookie* aCookie1, nsICookie* aCookie2, 
     //
     NSEnumerator *theEnum = [indexToRemove reverseObjectEnumerator];
     NSNumber *currentItem;
-    while (currentItem = [theEnum nextObject])
+    while ((currentItem = [theEnum nextObject]))
       mCachedPermissions->RemoveObjectAt([currentItem intValue]);
   }
 }
@@ -1031,7 +1031,7 @@ PR_STATIC_CALLBACK(int) compareValues(nsICookie* aCookie1, nsICookie* aCookie2, 
     //
     NSEnumerator *theEnum = [indexToRemove reverseObjectEnumerator];
     NSNumber *currentItem;
-    while (currentItem = [theEnum nextObject])
+    while ((currentItem = [theEnum nextObject]))
       mCachedCookies->RemoveObjectAt([currentItem intValue]);
   }
 }

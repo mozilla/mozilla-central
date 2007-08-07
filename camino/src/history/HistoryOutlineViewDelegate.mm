@@ -571,7 +571,7 @@ static NSString* const kExpandedHistoryStatesDefaultsKey = @"history_expand_stat
   NSMutableArray* urlList = [NSMutableArray array];
   NSEnumerator* historyItemsEnum = [historyItemsToCopy objectEnumerator];
   HistoryItem* curItem;
-  while (curItem = [historyItemsEnum nextObject])
+  while ((curItem = [historyItemsEnum nextObject]))
   {
     if ([curItem isKindOfClass:[HistorySiteItem class]]) {
       [urlList addObject:[(HistorySiteItem*)curItem url]];
