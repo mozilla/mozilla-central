@@ -673,6 +673,9 @@ static const float kScrollButtonInterval = 0.15;  // time (in seconds) between f
   NSRect rect = [self frame];
 
   if (overflowing) {
+    // Makes sure the buttons exist before getting their frame information.
+    [self ensureOverflowButtonsInitted];
+
     float overflowLeftButtonWidth = [mOverflowLeftButton frame].size.width;
     rect.origin.x += overflowLeftButtonWidth;
     rect.size.width -= overflowLeftButtonWidth +
