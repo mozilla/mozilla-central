@@ -190,7 +190,7 @@ NS_IMETHODIMP nsAbBSDirectory::GetChildNodes(nsISimpleEnumerator* *aResult)
 
 NS_IMETHODIMP nsAbBSDirectory::CreateNewDirectory(const nsAString &aDirName,
                                                   const nsACString &aURI,
-                                                  const PRUint32 aType,
+                                                  PRUint32 aType,
                                                   nsACString &aResult)
 {
   /*
