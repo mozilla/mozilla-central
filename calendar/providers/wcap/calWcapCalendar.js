@@ -40,8 +40,9 @@ function calWcapCalendar(session, /*optional*/calProps) {
     this.wrappedJSObject = this;
     this.m_session = session;
     this.m_calProps = calProps;
+    this.m_observers = new calListenerBag(Components.interfaces.calIObserver);
     this.m_bSuppressAlarms = SUPPRESS_ALARMS;
-    
+
     if (this.m_calProps) {
         var ar = this.getCalProps("X-NSCP-CALPROPS-RELATIVE-CALID");
         if (ar.length > 0)
@@ -50,6 +51,11 @@ function calWcapCalendar(session, /*optional*/calProps) {
             this.notifyError("no X-NSCP-CALPROPS-RELATIVE-CALID!");
     }
 }
+
+var g_lastOnErrorTime = 0;
+var g_lastOnErrorNo = 0;
+var g_lastOnErrorMsg = null;
+
 calWcapCalendar.prototype = {
     m_ifaces: [ calIWcapCalendar,
                 calICalendar,
@@ -191,23 +197,41 @@ calWcapCalendar.prototype = {
     set uri(thatUri) {
         return (this.session.uri = thatUri);
     },
-    
+
+    m_observers: null,
     notifyObservers: function calWcapCalendar_notifyObservers(func, args) {
-        this.session.notifyObservers(func, args);
+        if (g_bShutdown)
+            return;
+        if (func == "onError") {
+            // xxx todo: hack
+            // suppress identical error bursts when multiple similar calls eg on getItems() fail.
+            var now = (new Date()).getTime();
+            if ((now - g_lastOnErrorTime) < 1000 &&
+                (args[0] == g_lastOnErrorNo) &&
+                (args[1] == g_lastOnErrorMsg)) {
+                log("suppressing calIObserver::onError.", this);
+                return;
+            }
+            g_lastOnErrorTime = now;
+            g_lastOnErrorNo = args[0];
+            g_lastOnErrorMsg = args[1];
+        }
+
+        this.m_observers.notify(func, args);
     },
     addObserver: function calWcapCalendar_addObserver(observer) {
-        this.session.addObserver(observer);
+        this.m_observers.add(observer);
     },
     removeObserver: function calWcapCalendar_removeObserver(observer) {
-        this.session.removeObserver(observer);
+        this.m_observers.remove(observer);
     },
     
     // xxx todo: batch currently not used
     startBatch: function calWcapCalendar_startBatch() {
-        this.notifyObservers("onStartBatch", []);
+        this.notifyObservers("onStartBatch");
     },
     endBatch: function calWcapCalendar_endBatch() {
-        this.notifyObservers("onEndBatch", []);
+        this.notifyObservers("onEndBatch");
     },
     
     // xxx todo: rework like in

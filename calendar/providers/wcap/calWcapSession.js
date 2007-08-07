@@ -106,75 +106,14 @@ calWcapSession.prototype = {
         debugger;
         var msg = logError(err, this);
         if (!suppressOnError) {
-            this.notifyObservers(
+            // xxx todo: currently takes observer bag of default calendar (which is always present):
+            this.defaultCalendar.notifyObservers(
                 "onError",
                 err instanceof Components.interfaces.nsIException
                 ? [err.result, err.message] : [isNaN(err) ? -1 : err, msg]);
         }
     },
-    
-    m_lastOnErrorTime: 0,
-    m_lastOnErrorNo: 0,
-    m_lastOnErrorMsg: null,
-    
-    m_observers: null,
-    notifyObservers: function calWcapSession_notifyObservers(func, args)
-    {
-        if (g_bShutdown)
-            return;
-        
-        // xxx todo: hack
-        // suppress identical error bursts when multiple similar calls eg on getItems() fail.
-        if (func == "onError") {
-            var now = (new Date()).getTime();
-            if ((now - this.m_lastOnError) < 2000 &&
-                (args[0] == this.m_lastOnErrorNo) &&
-                (args[1] == this.m_lastOnErrorMsg)) {
-                log("suppressing calIObserver::onError.", this);
-                return;
-            }
-            this.m_lastOnError = now;
-            this.m_lastOnErrorNo = args[0];
-            this.m_lastOnErrorMsg = args[1];
-        }
-        
-        this.m_observers.forEach(
-            function notifyFunc(entry) {
-                var obj = entry.obj;
-                try {
-                    obj[func].apply(obj, args);
-                }
-                catch (exc) {
-                    // don't call notifyError() here:
-                    Components.utils.reportError(exc);
-                }
-            });
-    },
-    
-    addObserver: function calWcapSession_addObserver(observer)
-    {
-        for each (var entry in this.m_observers) {
-            if (entry.obj == observer) {
-                ++entry.count;
-                return;
-            }
-        }
-        this.m_observers.push( { obj: observer, count: 1 } );
-    },
-    
-    removeObserver: function calWcapSession_removeObserver(observer)
-    {
-        function filterFunc(entry) {
-            if (entry.obj == observer) {
-                --entry.count;
-                if (entry.count == 0)
-                    return false;
-            }
-            return true;
-        }
-        this.m_observers = this.m_observers.filter(filterFunc);
-    },
-    
+
     m_serverTimezones: null,
     isSupportedTimezone: function calWcapSession_isSupportedTimezone(tzid)
     {
@@ -339,10 +278,10 @@ calWcapSession.prototype = {
                         log("prompting for user/pw...", this_);
                         var prompt = getWindowWatcher().getNewPrompter(null);
                         if (prompt.promptUsernameAndPassword(
-                                getWcapBundle().GetStringFromName("loginDialog.label"),
+                                calGetString("wcap", "loginDialog.label"),
                                 loginText, outUser, outPW,
                                 getPref("signon.rememberSignons", true)
-                                ? getWcapBundle().GetStringFromName("loginDialog.check.text")
+                                ? calGetString("wcap", "loginDialog.check.text")
                                 : null, outSavePW)) {
                             this_.login(request, promptAndLoginLoop_resp,
                                         outUser.value, outPW.value);
@@ -424,9 +363,8 @@ calWcapSession.prototype = {
                     else if (getErrorModule(rc) == NS_ERROR_MODULE_NETWORK) {
                         // server seems unavailable:
                         err = new Components.Exception(
-                            getWcapBundle().formatStringFromName(
-                                "accessingServerFailedError.text",
-                                [this_.sessionUri.hostPort], 1),
+                            calGetString( "wcap", "accessingServerFailedError.text",
+                                          [this_.sessionUri.hostPort]),
                             exc);
                     }
                 }
@@ -502,9 +440,8 @@ calWcapSession.prototype = {
                     if (err) { // soft error; request denied etc.
                                // map into localized message:
                         throw new Components.Exception(
-                            getWcapBundle().formatStringFromName(
-                                "accessingServerFailedError.text",
-                                [this_.sessionUri.hostPort], 1),
+                            calGetString("wcap", "accessingServerFailedError.text",
+                                         [this_.sessionUri.hostPort]),
                             calIWcapErrors.WCAP_LOGIN_FAILED);
                     }
                     var prop = icalRootComp.getFirstProperty("X-NSCP-WCAPVERSION");
@@ -521,20 +458,16 @@ calWcapSession.prototype = {
                         vars.push(strVers);
                         
                         var prompt = getWindowWatcher().getNewPrompter(null);
-                        var bundle = getWcapBundle();
-                        var labelText = bundle.GetStringFromName(
-                            "insufficientWcapVersionConfirmation.label");
+                        var labelText = calGetString(
+                            "wcap", "insufficientWcapVersionConfirmation.label");
                         if (!prompt.confirm(
                                 labelText,
-                                bundle.formatStringFromName(
-                                    "insufficientWcapVersionConfirmation.text",
-                                    vars, vars.length))) {
+                                calGetString("wcap", "insufficientWcapVersionConfirmation.text", vars))) {
                             throw new Components.Exception(
                                 labelText, calIWcapErrors.WCAP_LOGIN_FAILED);
                         }
                     }
-                    loginText = getWcapBundle().formatStringFromName(
-                        "loginDialog.text", [this_.sessionUri.hostPort], 1);
+                    loginText = calGetString("wcap", "loginDialog.text", [this_.sessionUri.hostPort]);
                 }
                 catch (exc) {
                     err = exc;
@@ -1081,7 +1014,17 @@ calWcapSession.prototype = {
             params += ("&dtstart=" + zRangeStart);
             params += ("&dtend=" + zRangeEnd);
             params += "&fmt-out=text%2Fxml";
-            
+
+            // cannot use stringToXml here, because cs 6.3 returns plain nothing
+            // on invalid user freebusy requests. WTF.
+            function stringToXml_(data) {
+                if (!data || data.length == 0) { // assuming invalid user
+                    throw new Components.Exception(
+                        wcapErrorToString(calIWcapErrors.WCAP_CALENDAR_DOES_NOT_EXIST),
+                        calIWcapErrors.WCAP_CALENDAR_DOES_NOT_EXIST);
+                }
+                return stringToXml(data);
+            }
             this.issueNetworkRequest(
                 request,
                 function getFreeBusyTimes_resp(err, xml) {
@@ -1111,7 +1054,7 @@ calWcapSession.prototype = {
                         request.execRespFunc(null, ret);
                     }
                 },
-                stringToXml, "get_freebusy", params);
+                stringToXml_, "get_freebusy", params);
         }
         catch (exc) {
             request.execRespFunc(exc);
@@ -1251,7 +1194,7 @@ function confirmInsecureLogin(uri)
         var confirmedHttpLogins = getPref(
             "calendar.wcap.confirmed_http_logins", "");
         var tuples = confirmedHttpLogins.split(',');
-        for each ( var tuple in tuples ) {
+        for each (var tuple in tuples) {
             var ar = tuple.split(':');
             g_confirmedHttpLogins[ar[0]] = ar[1];
         }
@@ -1267,28 +1210,27 @@ function confirmInsecureLogin(uri)
     }
     else {
         var prompt = getWindowWatcher().getNewPrompter(null);
-        var bundle = getWcapBundle();
         var out_dontAskAgain = { value: false };
         var bConfirmed = prompt.confirmCheck(
-            bundle.GetStringFromName("noHttpsConfirmation.label"),
-            bundle.formatStringFromName("noHttpsConfirmation.text", [host], 1),
-            bundle.GetStringFromName("noHttpsConfirmation.check.text"),
+            calGetString("wcap", "noHttpsConfirmation.label"),
+            calGetString("wcap", "noHttpsConfirmation.text", [host]),
+            calGetString("wcap", "noHttpsConfirmation.check.text"),
             out_dontAskAgain);
-        
+
         if (out_dontAskAgain.value) {
             // save decision for all running calendars and
             // all future confirmations:
-            var confirmedHttpLogins = getPref(
-                "calendar.wcap.confirmed_http_logins", "");
+            var confirmedHttpLogins = getPref("calendar.wcap.confirmed_http_logins", "");
             if (confirmedHttpLogins.length > 0)
                 confirmedHttpLogins += ",";
             confirmedEntry = (bConfirmed ? "1" : "0");
             confirmedHttpLogins += (encodedHost + ":" + confirmedEntry);
-            setPref("calendar.wcap.confirmed_http_logins", confirmedHttpLogins);
+            setPref("calendar.wcap.confirmed_http_logins", "CHAR", confirmedHttpLogins);
+            getPref("calendar.wcap.confirmed_http_logins"); // log written entry
             g_confirmedHttpLogins[encodedHost] = confirmedEntry;
         }
     }
-    
+
     log("returned: " + bConfirmed, "confirmInsecureLogin(" + host + ")");
     return bConfirmed;
 }

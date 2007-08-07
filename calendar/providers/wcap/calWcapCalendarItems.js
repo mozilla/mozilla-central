@@ -1401,8 +1401,7 @@ function calWcapCalendar_syncChangesTo(destCal, itemFilter, dtFrom_, listener)
         var calObserver = null;
         if (listener) {
             try {
-                calObserver = listener.QueryInterface(
-                    Components.interfaces.calIObserver);
+                calObserver = listener.QueryInterface(Components.interfaces.calIObserver);
             }
             catch (exc) {
             }

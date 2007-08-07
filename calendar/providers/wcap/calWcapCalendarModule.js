@@ -120,13 +120,13 @@ function initWcapProvider()
         initLogging();
         
         // some string resources:
-        g_privateItemTitle = getWcapBundle().GetStringFromName("privateItem.title.text");
-        g_confidentialItemTitle = getWcapBundle().GetStringFromName("confidentialItem.title.text");
-        g_busyItemTitle = getWcapBundle().GetStringFromName("busyItem.title.text");
-        g_busyPhantomItemUuidPrefix = ("PHANTOM_uuid" + getTime().icalString);
-        
+        g_privateItemTitle = calGetString("wcap", "privateItem.title.text");
+        g_confidentialItemTitle = calGetString("wcap", "confidentialItem.title.text");
+        g_busyItemTitle = calGetString("wcap", "busyItem.title.text");
+        g_busyPhantomItemUuidPrefix = ("PHANTOM_uuid_" + getUUID());
+
         SUPPRESS_ALARMS = getPref("calendar.wcap.suppress_alarms", true);
-        
+
         CACHE_LAST_RESULTS = getPref("calendar.wcap.cache_last_results", 4);
         CACHE_LAST_RESULTS_INVALIDATE = getPref("calendar.wcap.cache_last_results_invalidate", 120);
     }
@@ -185,7 +185,7 @@ var calWcapCalendarModule = { // nsIModule:
     {
         if (!this.m_scriptsLoaded) {
             // loading extra scripts from ../js:
-            const scripts = [ "calWcapUtils.js", "calWcapErrors.js",
+            const scripts = [ "calUtils.js", "calWcapUtils.js", "calWcapErrors.js",
                               "calWcapRequest.js", "calWcapSession.js",
                               "calWcapCalendar.js", "calWcapCalendarItems.js" ];
             var scriptLoader =
