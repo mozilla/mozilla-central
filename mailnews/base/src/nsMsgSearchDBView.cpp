@@ -473,6 +473,15 @@ nsMsgSearchDBView::GetFoldersAndHdrsForSelection(nsMsgViewIndex *indices, PRInt3
 
 }
 
+nsresult
+nsMsgSearchDBView::ApplyCommandToIndicesWithFolder(nsMsgViewCommandTypeValue command, nsMsgViewIndex* indices,
+                    PRInt32 numIndices, nsIMsgFolder *destFolder)
+{
+  mCommand = command;
+  mDestFolder = destFolder;
+  return nsMsgDBView::ApplyCommandToIndicesWithFolder(command, indices, numIndices, destFolder);
+}
+
 // nsIMsgCopyServiceListener methods
 
 NS_IMETHODIMP
