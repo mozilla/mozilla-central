@@ -1012,9 +1012,7 @@ PR_ParseTimeStringToExplodedTime(
 
   const char *rest = string;
 
-#ifdef DEBUG
   int iterations = 0;
-#endif
 
   PR_ASSERT(string && result);
   if (!string || !result) return PR_FAILURE;
@@ -1022,13 +1020,10 @@ PR_ParseTimeStringToExplodedTime(
   while (*rest)
         {
 
-#ifdef DEBUG
           if (iterations++ > 1000)
                 {
-                  PR_ASSERT(0);
                   return PR_FAILURE;
                 }
-#endif
 
           switch (*rest)
                 {
@@ -1038,7 +1033,7 @@ PR_ParseTimeStringToExplodedTime(
                           (rest[2] == 'r' || rest[2] == 'R'))
                         month = TT_APR;
                   else if (zone == TT_UNKNOWN &&
-                                   (rest[1] == 's' || rest[1] == 's') &&
+                                   (rest[1] == 's' || rest[1] == 'S') &&
                                    (rest[2] == 't' || rest[2] == 'T'))
                         zone = TT_AST;
                   else if (month == TT_UNKNOWN &&
