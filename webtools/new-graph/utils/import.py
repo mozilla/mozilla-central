@@ -1,13 +1,19 @@
 #!/usr/bin/env python
 
 import string
-import sys
+import sys, os
 import time
 import re
 from optparse import OptionParser
 from optparse import OptionValueError
 
-from pysqlite2 import dbapi2 as sqlite
+DIRNAME= os.path.dirname(sys.argv[0])
+if DIRNAME:
+	sys.path.append(DIRNAME  + "/../")
+else:
+    sys.path.append("../")
+
+from graphsdb import db
 
 parser = OptionParser(usage="Usage: %prog [options] test_name tinderbox_name tinderbox_machine_type tinderbox_branch < data.txt")
 parser.add_option("-b", "--baseline", dest="baseline", metavar="NAME",
@@ -32,33 +38,14 @@ branchid = "xxxxxxxx"
 date = ""
 graph_type = "continuous"
 
-DBPATH = "/path/to/db/data.sqlite"
-db = sqlite.connect(DBPATH)
-
-try:
-    db.execute("CREATE TABLE dataset_info (id INTEGER PRIMARY KEY AUTOINCREMENT, type STRING, machine STRING, test STRING, test_type STRING, extra_data STRING, branch STRING, date INTEGER);")
-    db.execute("CREATE TABLE dataset_values (dataset_id INTEGER, time INTEGER, value FLOAT);")
-    db.execute("CREATE TABLE dataset_branchinfo (dataset_id INTEGER, time INTEGER, branchid STRING);")
-    db.execute("CREATE TABLE dataset_extra_data (dataset_id INTEGER, time INTEGER, data BLOB);");
-    db.execute("CREATE TABLE annotations (dataset_id INTEGER, time INTEGER, value STRING);")
-    db.execute("CREATE INDEX datasets_id_idx ON dataset_values(dataset_id);")
-    db.execute("CREATE INDEX datasets_branchinfo_id_idx ON dataset_branchinfo(dataset_id);")
-    db.execute("CREATE INDEX datasets_extradata_id_idx ON dataset_extra_data(dataset_id);")
-    db.execute("CREATE INDEX datasets_time_idx ON dataset_values(time);")
-    db.execute("CREATE INDEX datasets_time_id_idx ON dataset_values(dataset_id, time);")
-    db.execute("CREATE INDEX datasets_extra_data_supplemental_idx ON dataset_extra_data(dataset_id, time, data);")
-    db.commit()
-except:
-    pass
-
 setid = -1
 while setid == -1:
     cur = db.cursor()
     if options.baseline:
-        cur.execute("SELECT id FROM dataset_info WHERE type = ? AND machine=? AND test=? AND test_type=? AND extra_data=? AND branch=?",
+        cur.execute("SELECT id FROM dataset_info WHERE type = ? AND machine <=> ? AND test <=> ? AND test_type=? AND extra_data <=> ? AND branch <=> ?",
             (graph_type, tbox, testname, test_type, options.baseline, branch))
     else:
-        cur.execute("SELECT id FROM dataset_info WHERE type = ? AND machine=? AND test=? AND test_type=? AND branch=? AND extra_data IS NULL",
+        cur.execute("SELECT id FROM dataset_info WHERE type = ? AND machine <=> ? AND test <=> ? AND test_type=? AND branch<=>? AND extra_data IS NULL",
             (graph_type, tbox, testname, test_type, branch))
     res = cur.fetchall()
     cur.close()
