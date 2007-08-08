@@ -199,7 +199,7 @@ ac_help="$ac_help
   --enable-javaxpcom
                           Enable Java-XPCOM bridge"
 ac_help="$ac_help
-  --disable-airbag          Disable airbag crash reporting"
+  --disable-crashreporter          Disable breakpad crash reporting"
 ac_help="$ac_help
   --disable-mochitest        Disable mochitest harness"
 ac_help="$ac_help
@@ -15058,25 +15058,25 @@ if (test "$OS_ARCH" = "WINNT" -a -z "$GNU_CC" \
     || test "$OS_ARCH" = "Darwin" \
     || test "$OS_ARCH" = "Linux" -a "$CPU_ARCH" = "x86") \
    && test -z "$HAVE_64BIT_OS"; then
-   MOZ_AIRBAG=1
+   MOZ_CRASHREPORTER=1
 fi
 
-# Check whether --enable-airbag or --disable-airbag was given.
-if test "${enable_airbag+set}" = set; then
-  enableval="$enable_airbag"
+# Check whether --enable-crashreporter or --disable-crashreporter was given.
+if test "${enable_crashreporter+set}" = set; then
+  enableval="$enable_crashreporter"
   if test "$enableval" = "no"; then
-    MOZ_AIRBAG=
+    MOZ_CRASHREPORTER=
   elif test "$enableval" = "yes"; then
-    MOZ_AIRBAG=1
+    MOZ_CRASHREPORTER=1
   else
-    { echo "configure: error: Option, airbag, does not take an argument ($enableval)." 1>&2; exit 1; }
+    { echo "configure: error: Option, crashreporter, does not take an argument ($enableval)." 1>&2; exit 1; }
   fi
 fi
 
 
-if test -n "$MOZ_AIRBAG"; then
+if test -n "$MOZ_CRASHREPORTER"; then
    cat >> confdefs.h <<\EOF
-#define MOZ_AIRBAG 1
+#define MOZ_CRASHREPORTER 1
 EOF
 
 
@@ -15111,7 +15111,7 @@ fi
 
 echo "$ac_t""$ac_cv_have_libcurl" 1>&6
     if test "$ac_cv_have_libcurl" = "no"; then
-        { echo "configure: error: Couldn't find libcurl, which is required for the crash reporter.  Use --disable-airbag to disable the crash reporter." 1>&2; exit 1; }
+        { echo "configure: error: Couldn't find libcurl, which is required for the crash reporter.  Use --disable-crashreporter to disable the crash reporter." 1>&2; exit 1; }
     fi
     LDFLAGS=$_SAVE_LDFLAGS
   fi
@@ -20682,7 +20682,7 @@ s%@MOZ_VIEW_SOURCE@%$MOZ_VIEW_SOURCE%g
 s%@MOZ_SPELLCHECK@%$MOZ_SPELLCHECK%g
 s%@MOZ_XPFE_COMPONENTS@%$MOZ_XPFE_COMPONENTS%g
 s%@MOZ_USER_DIR@%$MOZ_USER_DIR%g
-s%@MOZ_AIRBAG@%$MOZ_AIRBAG%g
+s%@MOZ_CRASHREPORTER@%$MOZ_CRASHREPORTER%g
 s%@MOZ_MOCHITEST@%$MOZ_MOCHITEST%g
 s%@ENABLE_STRIP@%$ENABLE_STRIP%g
 s%@USE_ELF_DYNSTR_GC@%$USE_ELF_DYNSTR_GC%g
