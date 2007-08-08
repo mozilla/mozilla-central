@@ -314,8 +314,7 @@ CertReq(SECKEYPrivateKey *privk, SECKEYPublicKey *pubk, KeyType keyType,
 
 	name = CERT_GetCommonName(subject);
 	if (!name) {
-	    fprintf(stderr, "You must specify a common name\n");
-	    return SECFailure;
+	    name = strdup("(not specified)");
 	}
 
 	if (!phone)
@@ -2135,6 +2134,7 @@ secuCommandFlag certutil_options[] =
 		rv = SECFailure;
 		goto shutdown;
 	    }
+	    keytype = privkey->keyType;
 	} else {
 	    privkey = 
 		CERTUTIL_GeneratePrivateKey(keytype, slot, keysize,
