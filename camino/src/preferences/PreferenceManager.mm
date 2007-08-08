@@ -217,7 +217,6 @@ WriteVersion(nsIFile* aProfileDir, const nsACString& aVersion,
 - (void)registerForProxyChanges;
 - (void)readSystemProxySettings;
 
-- (BOOL)cleanupUserContentCSS;
 - (void)refreshAdBlockingStyleSheet:(BOOL)inLoad;
 - (void)refreshFlashBlockStyleSheet:(BOOL)inLoad;
 - (void)refreshStyleSheet:(nsIURI *)cssFileURI load:(BOOL)inLoad;
@@ -824,12 +823,7 @@ static BOOL gMadePrefManager;
     }
 
     // load up the default stylesheet (is this the best place to do this?)
-    BOOL prefExists = NO;
-    BOOL enableAdBlocking = [self getBooleanPref:"camino.enable_ad_blocking" withSuccess:&prefExists];
-    if (!prefExists) {
-      enableAdBlocking = [self cleanupUserContentCSS];
-      [self setPref:"camino.enable_ad_blocking" toBoolean:enableAdBlocking];
-    }
+    BOOL enableAdBlocking = [self getBooleanPref:"camino.enable_ad_blocking" withSuccess:NULL];
 
     if (enableAdBlocking)
       [self refreshAdBlockingStyleSheet:YES];
@@ -1014,29 +1008,6 @@ typedef enum EProxyConfig {
  
   BOOL flashBlockEnabled = allowed && [self getBooleanPref:"camino.enable_flashblock" withSuccess:nil];
   [self refreshFlashBlockStyleSheet:flashBlockEnabled];
-}
-
-// some versions of 0.9a copied ad_blocking.css into <profile>/chrome/userContent.css.
-// now that we load ad_blocking.css dynamically, we have to move that file aside to
-// avoid loading it.
-// returns YES if there was a userContent.css in the chrome dir.
-- (BOOL)cleanupUserContentCSS
-{
-  NSString* profilePath = [self profilePath];
-  NSString* chromeDirPath = [profilePath stringByAppendingPathComponent:@"chrome"];
-  NSString* userContentCSSPath = [chromeDirPath stringByAppendingPathComponent:@"userContent.css"];
-  
-  if ([[NSFileManager defaultManager] fileExistsAtPath:userContentCSSPath]) {
-    NSString* userContentBackPath = [chromeDirPath stringByAppendingPathComponent:@"userContent_unused.css"];
-    BOOL moveSucceeded = [[NSFileManager defaultManager] movePath:userContentCSSPath toPath:userContentBackPath handler:nil];
-    NSLog(@"Ad blocking now users a built-in CSS file; moving previous userContent.css file at\n  %@\nto\n  %@",
-      userContentCSSPath, userContentBackPath);
-    if (!moveSucceeded)
-      NSLog(@"Move failed; does %@ exist already?", userContentBackPath);
-    return YES;
-  }
-  
-  return NO;
 }
 
 // this will reload the sheet if it's already registered, or unload it if the 
