@@ -405,3 +405,54 @@ class MozillaOSXMochichrome(MozillaMochichrome):
               "--autorun",
               "--console-level=INFO",
               "--close-when-done"]
+
+class MozillaBrowserChromeTest(ShellCommand):
+    name = "browser chrome test"
+    warnOnFailure = True
+    description = ["browser chrome test"]
+    descriptionDone = ["browser chrome test complete"]
+    command = ["perl",
+               "runtests.pl",
+               "--appname=../../../dist/bin/firefox",
+               "--autorun",
+               "--browser-chrome", 
+               "--close-when-done"]
+    
+    def createSummary(self, log):
+        passCount = 0
+        failCount = 0
+        todoCount = 0
+        for line in log.readlines():
+            if "Pass:" in line:
+                passCount = int(line.split()[-1])
+            if "Fail:" in line:
+                failCount = int(line.split()[-1])
+            if "Todo:" in line:
+                todoCount = int(line.split()[-1])
+        summary = "TinderboxPrint: browser<br/>"
+        if not (passCount + failCount + todoCount):
+            summary += "FAIL\n"
+        else:
+            summary +=  str(passCount) + "/" + str(failCount) + "/" + str(todoCount) + "\n"
+        self.addCompleteLog('summary', summary)
+    
+    def evaluateCommand(self, cmd):
+        superResult = ShellCommand.evaluateCommand(self, cmd)
+        if SUCCESS != superResult:
+            return WARNINGS
+        if re.search('FAIL -', cmd.logs['stdio'].getText()):
+            return WARNINGS
+        if re.search('FAIL Exited', cmd.logs['stdio'].getText()):
+            return WARNINGS
+        return SUCCESS
+    
+class MozillaWin32BrowserChromeTest(MozillaBrowserChromeTest):
+    command = ['perl runtests.pl --appname=../../../dist/bin/firefox.exe --autorun --browser-chrome --close-when-done']
+
+class MozillaOSXBrowserChromeTest(MozillaBrowserChromeTest):
+    command = ["perl",
+               "runtests.pl",
+               "--appname=../../../dist/Minefield.app/Contents/MacOS/firefox",
+               "--autorun",
+               "--browser-chrome",
+               "--close-when-done"]

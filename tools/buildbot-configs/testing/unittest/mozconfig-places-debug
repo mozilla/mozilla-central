@@ -3,7 +3,6 @@
 # to the top of your mozconfig file.
 
 mk_add_options MOZ_CO_PROJECT=browser
-ac_add_options --enable-places
 ac_add_options --enable-application=browser
 mk_add_options MOZ_OBJDIR=@TOPSRCDIR@/objdir
 mk_add_options MOZ_CO_MODULE=mozilla/js/tests
