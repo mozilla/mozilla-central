@@ -85,6 +85,9 @@ REQUIRES	= xpcom \
 		  webbrwsr \
 		  exthandler \
 		  xulapp \
+		  caps \
+		  xpconnect \
+		  js \
 		  $(NULL)
 
 CPPSRCS		= \

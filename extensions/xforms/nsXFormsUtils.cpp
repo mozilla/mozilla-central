@@ -1571,13 +1571,11 @@ nsXFormsUtils::CheckContentPolicy(nsIDOMElement *aElement,
 {
   NS_ASSERTION(aElement && aDoc && aURI, "Got null parameters?!");
 
-  nsIURI *docURI = aDoc->GetDocumentURI();
-  NS_ENSURE_TRUE(docURI, PR_FALSE);
-
   PRInt16 decision = nsIContentPolicy::ACCEPT;
   nsresult rv = NS_CheckContentLoadPolicy(nsIContentPolicy::TYPE_OTHER,
                                           aURI,
-                                          docURI,
+                                          nsnull,
+                                          aDoc->NodePrincipal(),
                                           aElement,        // context
                                           EmptyCString(),  // mime guess
                                           nsnull,          // extra
