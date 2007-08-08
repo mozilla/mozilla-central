@@ -49,7 +49,6 @@ var gSearchService = null;
 var gNavigatorBundle;
 var gBrandBundle;
 var gNavigatorRegionBundle;
-var gBrandRegionBundle;
 var gLastValidURLStr = "";
 var gLastValidURL = null;
 var gClickSelectsAll = false;
@@ -516,7 +515,6 @@ function Startup()
   gNavigatorBundle = document.getElementById("bundle_navigator");
   gBrandBundle = document.getElementById("bundle_brand");
   gNavigatorRegionBundle = document.getElementById("bundle_navigator_region");
-  gBrandRegionBundle = document.getElementById("bundle_brand_region");
 
   gBrowser = document.getElementById("content");
   gURLBar = document.getElementById("urlbar");
@@ -1790,7 +1788,6 @@ function hiddenWindowStartup()
   // init string bundles
   gNavigatorBundle = document.getElementById("bundle_navigator");
   gNavigatorRegionBundle = document.getElementById("bundle_navigator_region");
-  gBrandRegionBundle = document.getElementById("bundle_brand_region");
   gBrandBundle = document.getElementById("bundle_brand");
 
   // now load bookmarks after a delay
@@ -2037,7 +2034,15 @@ function applyTheme(themeName)
 
 function getNewThemes()
 {
-  openTopWin(gBrandRegionBundle.getString("getNewThemesURL"));
+  // get URL for more themes from prefs
+  try {
+    var formatter = Components.classes["@mozilla.org/toolkit/URLFormatterService;1"]
+                              .getService(Components.interfaces.nsIURLFormatter);
+    openTopWin(formatter.formatURLPref("extensions.getMoreThemesURL"));
+  }
+  catch (ex) { 
+    dump(ex); 
+  }
 }
 
 function URLBarFocusHandler(aEvent)
