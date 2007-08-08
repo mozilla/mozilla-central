@@ -52,8 +52,9 @@ endif
 
 CSRCS = \
 	arena.c \
-	string.c \
-	base64t.c
+	base64t.c \
+	getopt.c \
+	string.c
 
 ifeq (,$(filter-out WINNT OS2,$(OS_ARCH)))
 CSRCS += arena.c
