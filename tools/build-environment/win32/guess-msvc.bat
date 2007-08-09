@@ -14,6 +14,8 @@ SET MSVC6KEY=%MSVCROOTKEY%\6.0\Setup\Microsoft Visual C++
 SET MSVC71KEY=%MSVCROOTKEY%\7.1\Setup\VC
 SET MSVC8KEY=%MSVCROOTKEY%\8.0\Setup\VC
 SET MSVC8EXPRESSKEY=HKLM\SOFTWARE\Microsoft\VCExpress\8.0\Setup\VC
+SET MSVC9KEY=%MSVCROOTKEY%\9.0\Setup\VC
+SET MSVC9EXPRESSKEY=HKLM\SOFTWARE\Microsoft\VCExpress\9.0\Setup\VC
 
 REM First see if we can find MSVC, then set the variable
 REM NOTE: delims=<tab><space>
@@ -47,10 +49,25 @@ if "%VC8EXPRESSDIR%"=="" (
   )
 )
 
+REG QUERY "%MSVC9KEY%" /v ProductDir >nul 2>nul
+if "%VC9DIR%"=="" (
+  IF %ERRORLEVEL% EQU 0 (
+    FOR /F "tokens=2* delims=	 " %%A IN ('REG QUERY "%MSVC9KEY%" /v ProductDir') DO SET VC9DIR=%%B
+  )
+)
+
+REG QUERY "%MSVC9EXPRESSKEY%" /v ProductDir >nul 2>nul
+if "%VC9EXPRESSDIR%"=="" (
+  IF %ERRORLEVEL% EQU 0 (
+    FOR /F "tokens=2* delims=	 " %%A IN ('REG QUERY "%MSVC9EXPRESSKEY%" /v ProductDir') DO SET VC9EXPRESSDIR=%%B
+  )
+)
+
 REM Look for Installed SDKs:
 SET SDKROOTKEY=HKLM\SOFTWARE\Microsoft\MicrosoftSDK\InstalledSDKs
 SET SDK2003SP1KEY=%SDKROOTKEY%\8F9E5EF3-A9A5-491B-A889-C58EFFECE8B3
 SET SDK2003SP2KEY=%SDKROOTKEY%\D2FF9F89-8AA2-4373-8A31-C838BF4DBBE1
+SET SDK6KEY=HKLM\SOFTWARE\Microsoft\Microsoft SDKs\Windows\v6.0\WinSDKBuild
 
 REG QUERY "%SDK2003SP2KEY%" /v "Install Dir" >nul 2>nul
 if "%SDKDIR%"=="" (
@@ -66,8 +83,17 @@ if "%SDKDIR%"=="" (
   )
 )
 
+REG QUERY "%SDK6KEY%" /v InstallationFolder >nul 2>nul
+if "%SDKDIR%"=="" (
+  IF %ERRORLEVEL% EQU 0 (
+    FOR /F "tokens=2* usebackq delims= " %%A IN (`REG QUERY "HKLM\SOFTWARE\Microsoft\Microsoft SDKs\Windows\v6.0\WinSDKBuild" /v InstallationFolder`) DO SET SDKDIR=%%B
+  )
+)
+
 ECHO Visual C++ 6 directory: %VC6DIR%
 ECHO Visual C++ 7.1 directory: %VC71DIR%
 ECHO Visual C++ 8 directory: %VC8DIR%
 ECHO Visual C++ 8 Express directory: %VC8EXPRESSDIR%
+ECHO Visual C++ 9 directory: %VC9DIR%
+ECHO Visual C++ 9 Express directory: %VC9EXPRESSDIR%
 ECHO SDK directory: %SDKDIR%
