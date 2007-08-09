@@ -15,8 +15,8 @@
    - The Original Code is Google Calendar Provider code.
    -
    - The Initial Developer of the Original Code is
-   -   Philipp Kewisch (mozilla@kewis.ch)
-   - Portions created by the Initial Developer are Copyright (C) 2006
+   -   Philipp Kewisch <mozilla@kewis.ch>
+   - Portions created by the Initial Developer are Copyright (C) 2007
    - the Initial Developer. All Rights Reserved.
    -
    - Contributor(s):
@@ -40,7 +40,7 @@
 
   <Description about="urn:mozilla:install-manifest">
     <em:id>{a62ef8ec-5fdc-40c2-873c-223b8a6925cc}</em:id>
-    <em:version>0.2</em:version>
+    <em:version>0.2.2</em:version>
     <em:type>2</em:type>
 
     <!-- Target Application this extension can install into,
@@ -49,8 +49,8 @@
       <Description>
         <!-- sunbird -->
         <em:id>{718e30fb-e89b-41dd-9da7-e25a45638b28}</em:id>
-        <em:minVersion>0.4a1</em:minVersion>
-        <em:maxVersion>0.6a1</em:maxVersion>
+        <em:minVersion>0.5</em:minVersion>
+        <em:maxVersion>0.7pre</em:maxVersion>
       </Description>
     </em:targetApplication>
     <em:targetApplication>
@@ -62,19 +62,10 @@
       </Description>
     </em:targetApplication>
 
-    <!-- Front End MetaData -->
-    <!-- When localizing the following, please keep in mind that these strings
-         had to be approved by the Google Brand Features Team. Be sure to make
-         clear that this extension is *FOR* Google Calendar and not *BY* Google.
-
-         Also, it was explicitly stated, that the phrase "Google Calendar"
-         should be localized just as it is on the localized versions of the
-         Google Calendar UI.
-     -->
     <em:name>Provider for Google Calendar</em:name>
     <em:description>Allows bidirectional access to Google Calendar</em:description>
     <em:creator>Philipp Kewisch</em:creator>
-    <em:homepageURL>http://mozilla.kewis.ch/</em:homepageURL>
+    <em:homepageURL>https://addons.mozilla.org/en-US/sunbird/addon/4631</em:homepageURL>
     <em:iconURL>chrome://gdata-provider/content/gcal.png</em:iconURL>
   </Description>
 </RDF>

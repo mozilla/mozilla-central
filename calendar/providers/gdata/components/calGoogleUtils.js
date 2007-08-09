@@ -961,7 +961,7 @@ function XMLEntryToItem(aXMLEntry, aTimezone, aCalendar) {
         if (item.privacy == "DEFAULT") {
             // Currently we will use a preference to substitue the
             // default value
-            item.privacy = getPrefSafe("calendar.defaultprivacy",
+            item.privacy = getPrefSafe("calendar.google.defaultPrivacy",
                                        "private").toUpperCase();
         }
 

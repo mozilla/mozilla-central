@@ -15,7 +15,7 @@
 #
 # The Initial Developer of the Original Code is
 #   Philipp Kewisch <mozilla@kewis.ch>
-# Portions created by the Initial Developer are Copyright (C) 2006
+# Portions created by the Initial Developer are Copyright (C) 2007
 # the Initial Developer. All Rights Reserved.
 #
 # Contributor(s):
@@ -43,13 +43,14 @@ include $(DEPTH)/config/autoconf.mk
 
 MODULE = gdata-provider
 
-USE_EXTENSION_MANIFEST = 1
+export USE_EXTENSION_MANIFEST = 1
 export XPI_NAME = gdata-provider
 DIST_FILES = install.rdf
 XPI_PKGNAME = gdata-provider
 DEFINES += -DAB_CD=$(AB_CD)
 STRIP_XPI = 1
 
+PREFS_JS_EXPORTS=defaults/preferences.js
 DIRS = components
 
 include $(topsrcdir)/config/rules.mk
