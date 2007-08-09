@@ -84,12 +84,15 @@ function getCalendarPref(aCalendar, aPrefName) {
  * @param aBundleName   The .properties file to access
  * @param aStringName   The property to access
  * @param aFormatArgs   An array of arguments to format the string
+ * @param aComponent    Optionally, the stringbundle component name
  * @return              The formatted string
  */
-function getFormattedString(aBundleName, aStringName, aFormatArgs) {
+function getFormattedString(aBundleName, aStringName, aFormatArgs, aComponent) {
     var bundlesvc = Cc["@mozilla.org/intl/stringbundle;1"].
                     getService(Ci.nsIStringBundleService);
-    var bundle = bundlesvc.createBundle("chrome://gdata-provider/locale/" +
+
+    var component = aComponent || "gdata-provider";
+    var bundle = bundlesvc.createBundle("chrome://" + component + "/locale/" +
                                         aBundleName + ".properties");
 
     if (aFormatArgs) {
@@ -127,7 +130,7 @@ function getSessionByUsername(aUsername) {
         LOG("Creating session for: " + aUsername);
         g_sessionMap[aUsername] = new calGoogleSession(aUsername);
     } else {
-        LOG("Reusing session for Username: " + aUsername);
+        LOG("Reusing session for: " + aUsername);
     }
 
     return g_sessionMap[aUsername];
@@ -161,12 +164,30 @@ function getCalendarCredentials(aCalendarName,
 
     // Retrieve strings from properties file
     var title = getFormattedString("gdata", "loginDialogTitle");
-    var text = getFormattedString("gdata", "loginDialogText", [aCalendarName]);
+
+    var text;
+    try {
+        // Branch uses chrome://necko/locale/necko.properties
+        text = getFormattedString("necko",
+                                  "EnterUserPasswordFor",
+                                  [aCalendarName],
+                                  "necko");
+    } catch (e) {
+        // Trunk uses chrome://global/locale/prompts.properties
+        text = getFormattedString("prompts",
+                                  "EnterUserPasswordFor",
+                                  [aCalendarName],
+                                  "global");
+    }
 
     // Only show the save password box if we are supposed to.
-    var savepassword = (getPrefSafe("signon.rememberSignons", true) ?
-                        getFormattedString("gdata", "loginDialogCheckText") :
-                        null);
+    var savepassword;
+    if (getPrefSafe("signon.rememberSignons", true)) {
+        savepassword = getFormattedString("passwordmgr",
+                                          "rememberPassword",
+                                          null,
+                                          "passwordmgr");
+    }
 
     return prompter.promptUsernameAndPassword(title,
                                               text,
@@ -357,40 +378,96 @@ function passwordManagerSave(aUsername, aPassword) {
     ASSERT(aUsername);
     ASSERT(aPassword);
 
-    var passwordManager = Cc["@mozilla.org/passwordmanager;1"].
-                          getService(Ci.nsIPasswordManager);
+    if (Cc["@mozilla.org/passwordmanager;1"]) {
+        var passwordManager = Cc["@mozilla.org/passwordmanager;1"].
+                              getService(Ci.nsIPasswordManager);
 
-    // The realm and the username are the same, since we only save
-    // credentials per session, which only needs a user and a password
-    passwordManager.addUser(aUsername, aUsername, aPassword);
+        // The realm and the username are the same, since we only save
+        // credentials per session, which only needs a user and a password
+        passwordManager.addUser(aUsername, aUsername, aPassword);
+    } else if (Cc["@mozilla.org/login-manager;1"]) {
+        // Trunk uses LoginManager
+        var loginManager = Cc["@mozilla.org/login-manager;1"].
+                           getService(Ci.nsILoginManager);
+        var hostname = "chrome://gdata-provider/" +
+                       encodeURIComponent(aUsername);
+        var logins = loginManager.findLogins({},
+                                             hostname,
+                                             null,
+                                             "Google Calendar");
+        if (logins.length > 0) {
+            var loginInfo = logins[0].clone();
+            loginInfo.password = aPassword;
+            loginManager.modifyLogin(logins[0], loginInfo);
+        } else {
+            var loginInfo = Cc["@mozilla.org/login-manager/loginInfo;1"].
+                            createInstance(Ci.nsILoginInfo);
+            loginInfo.init(hostname,
+                           null,
+                           "Google Calendar",
+                           aUsername,
+                           aPassword,
+                           null,
+                           null);
+            loginManager.addLogin(loginInfo);
+        }
+    }
 }
 
 /**
  * passwordManagerGet
  * Helper to retrieve an entry from the password manager
  *
- * @param in  aUserName     The username to search
+ * @param in  aUsername     The username to search
  * @param out aPassword     The corresponding password
- * @return Does an entry exist in the password manager
+ * @return                  Does an entry exist in the password manager
  */
 function passwordManagerGet(aUsername, aPassword) {
+
+    ASSERT(aUsername);
 
     if (typeof aPassword != "object") {
         throw new Components.Exception("", Cr.NS_ERROR_XPC_NEED_OUT_OBJECT);
     }
 
-    var passwordManager = Cc["@mozilla.org/passwordmanager;1"].
-                          getService(Ci.nsIPasswordManager);
+    if (Cc["@mozilla.org/passwordmanager;1"]) {
+        // Branch uses PasswordManager
+        var passwordManager = Cc["@mozilla.org/passwordmanager;1"].
+                              getService(Ci.nsIPasswordManager);
 
-    var enumerator = passwordManager.enumerator;
+        var enumerator = passwordManager.enumerator;
 
-    while (enumerator.hasMoreElements()) {
-        var entry = enumerator.getNext().QueryInterface(Ci.nsIPassword);
+        while (enumerator.hasMoreElements()) {
+            var entry = enumerator.getNext().QueryInterface(Ci.nsIPassword);
 
-        // We only care about the "host" field, since the username field is the
-        // same for our purposes.
-        if (entry.host == aUsername) {
-            aPassword.value = entry.password;
+            // We only care about the "host" field, since the username field is the
+            // same for our purposes.
+            if (entry.host == aUsername) {
+                aPassword.value = entry.password;
+                return true;
+            }
+        }
+    } else if (Cc["@mozilla.org/login-manager;1"]) {
+        // Trunk uses LoginManager
+        var loginManager = Cc["@mozilla.org/login-manager;1"].
+                           getService(Ci.nsILoginManager);
+        if (!loginManager.getLoginSavingEnabled(aUsername)) {
+            return false;
+        }
+
+        // We use the hostname field to save the username, to avoid the need to
+        // manually iterate through all google.com logins, and to make it
+        // easier to check for per-user per-scheme login saving. Since we are
+        // saving on a on a per-account basis, so only the first login is
+        // important.
+        var hostname = "chrome://gdata-provider/" +
+                       encodeURIComponent(aUsername);
+        var logins = loginManager.findLogins({},
+                                             hostname,
+                                             null,
+                                             "Google Calendar Login");
+        if (logins.length > 0) {
+            aPassword.value = logins[0].password;
             return true;
         }
     }
@@ -402,21 +479,41 @@ function passwordManagerGet(aUsername, aPassword) {
  * Helper to remove an entry from the password manager
  *
  * @param aUsername     The username to remove.
- * @return Could the username be removed?
+ * @return              Could the user be removed?
  */
 function passwordManagerRemove(aUsername) {
 
-    var passwordManager = Cc["@mozilla.org/passwordmanager;1"].
-                          getService(Ci.nsIPasswordManager);
+    if (Cc["@mozilla.org/passwordmanager;1"]) {
+        // Branch uses PasswordManager
+        var passwordManager = Cc["@mozilla.org/passwordmanager;1"].
+                              getService(Ci.nsIPasswordManager);
 
-    // Remove from Password Manager. Again, the host and username is always the
-    // same for our purposes.
-    try {
-        passwordManager.removeUser(aUsername, aUsername);
-        return true;
-    } catch (e) {
-        return false;
+        // Remove from Password Manager. Again, the host and username is always the
+        // same for our purposes.
+        try {
+            passwordManager.removeUser(aUsername, aUsername);
+        } catch (e) {
+            return false;
+        }
+    } else if (Cc["@mozilla.org/login-manager;1"]) {
+        // Trunk uses LoginManager
+        var loginManager = Cc["@mozilla.org/login-manager;1"].
+                           getService(Ci.nsILoginManager);
+        var hostname = "chrome://gdata-provider/" +
+                       encodeURIComponent(aUsername);
+        var logins = loginManager.findLogins({},
+                                             hostname,
+                                             null,
+                                             "Google Calendar");
+        if (logins.length > 0) {
+            for (var i = 0; i < logins.length; i++) {
+                loginManager.removeLogin(logins[i]);
+            }
+        } else {
+            return false;
+        }
     }
+    return true;
 }
 
 /**
