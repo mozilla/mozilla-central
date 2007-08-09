@@ -667,14 +667,22 @@ nsresult nsImapService::FetchMimePart(nsIImapUrl *aImapUrl,
       if (NS_SUCCEEDED(rv) && aStreamListener)
       {
         nsCOMPtr<nsIChannel> aChannel;
-        nsCOMPtr<nsILoadGroup> aLoadGroup;
+        nsCOMPtr<nsILoadGroup> loadGroup;
         nsCOMPtr<nsIMsgMailNewsUrl> mailnewsUrl = do_QueryInterface(aImapUrl, &rv);
         if (NS_SUCCEEDED(rv) && mailnewsUrl)
-          mailnewsUrl->GetLoadGroup(getter_AddRefs(aLoadGroup));
+          mailnewsUrl->GetLoadGroup(getter_AddRefs(loadGroup));
         
         rv = NewChannel(url, getter_AddRefs(aChannel));
         NS_ENSURE_SUCCESS(rv, rv);
         
+        // we need a load group to hold onto the channel. When the request is finished,
+        // it'll get removed from the load group, and the channel will go away,
+        // which will free the load group.
+        if (!loadGroup)
+          loadGroup = do_CreateInstance(NS_LOADGROUP_CONTRACTID);
+
+        aChannel->SetLoadGroup(loadGroup);
+
         nsCOMPtr<nsISupports> aCtxt = do_QueryInterface(url);
         //  now try to open the channel passing in our display consumer as the listener
         rv = aChannel->AsyncOpen(aStreamListener, aCtxt);
@@ -1065,6 +1073,12 @@ NS_IMETHODIMP nsImapService::FetchMessage(nsIImapUrl *aImapUrl,
       rv = NewChannel(url, getter_AddRefs(channel));
       NS_ENSURE_SUCCESS(rv, rv);
       
+      // we need a load group to hold onto the channel. When the request is finished,
+      // it'll get removed from the load group, and the channel will go away,
+      // which will free the load group.
+      if (!loadGroup)
+        loadGroup = do_CreateInstance(NS_LOADGROUP_CONTRACTID);
+
       rv = channel->SetLoadGroup(loadGroup);
       NS_ENSURE_SUCCESS(rv, rv);
       
