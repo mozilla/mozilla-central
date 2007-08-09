@@ -106,50 +106,6 @@ SEC_PKCS12IsEncryptionAllowed(void)
     return PR_FALSE;
 }
 
-/* get the preferred algorithm.
- */
-SECOidTag
-SEC_PKCS12GetPreferredEncryptionAlgorithm(void)
-{
-    int i;
-
-    i = 0;
-    while(pkcs12SuiteMaps[i].algTag != SEC_OID_UNKNOWN) {
-	if((pkcs12SuiteMaps[i].preferred == PR_TRUE) && 
-	   (pkcs12SuiteMaps[i].allowed == PR_TRUE)) {
-	    return SEC_PKCS5GetPBEAlgorithm(pkcs12SuiteMaps[i].algTag,
-	    				    pkcs12SuiteMaps[i].keyLengthBits);
-	}
-	i++;
-    }
-
-    return SEC_OID_UNKNOWN;
-}
-
-/* return the strongest algorithm allowed */
-SECOidTag
-SEC_PKCS12GetStrongestAllowedAlgorithm(void)
-{
-    int i, keyLengthBits = 0;
-    SECOidTag algorithm = SEC_OID_UNKNOWN;
-
-    i = 0;
-    while(pkcs12SuiteMaps[i].algTag != SEC_OID_UNKNOWN) {
-	if((pkcs12SuiteMaps[i].allowed == PR_TRUE) && 
-	   (pkcs12SuiteMaps[i].keyLengthBits > (unsigned int)keyLengthBits) &&
-	   (pkcs12SuiteMaps[i].algTag != SEC_OID_RC4)) {
-	    algorithm = pkcs12SuiteMaps[i].algTag;
-	    keyLengthBits = pkcs12SuiteMaps[i].keyLengthBits;
-	}
-	i++;
-    }
-
-    if(algorithm == SEC_OID_UNKNOWN) {
-	return SEC_OID_UNKNOWN;
-    }
-
-    return SEC_PKCS5GetPBEAlgorithm(algorithm, keyLengthBits);
-}
 
 SECStatus
 SEC_PKCS12EnableCipher(long which, int on) 

@@ -263,6 +263,7 @@ SEC_PKCS7EncodeItem;
 ;+    global:
 SEC_PKCS12DecoderIterateInit;
 SEC_PKCS12DecoderIterateNext;
+SEC_PKCS12DecryptionAllowed;
 ;+    local:
 ;+       *;
 ;+};
