@@ -24,7 +24,7 @@ use Config;         # for $Config{sig_name} and $Config{sig_num}
 use File::Find ();
 use File::Copy;
 
-$::UtilsVersion = '$Revision: 1.366 $ ';
+$::UtilsVersion = '$Revision: 1.367 $ ';
 
 package TinderUtils;
 
@@ -314,9 +314,11 @@ sub GetSystemInfo {
         $os_ver =~ s/^([0-9])([0-9]*)$/$1.$2/;
     }
 
-    if ($Settings::OS =~ /^CYGWIN_(.*?)-(.*)$/) {
+    if ($Settings::OS =~ /^CYGWIN_(.*?)-(.*)$/ ||
+        $Settings::OS =~ /^MINGW32_(.*?)-(.*)$/) {
         # the newer cygwin apparently has different output for 'uname'
         # e.g., CYGWIN_98-4.10 == win98SE, and CYGWIN_NT-5.0 == win2k
+        # also MSYS
         $Settings::OS = 'WIN' . $1;
         $os_ver = $2;
         $host =~ tr/A-Z/a-z/;
