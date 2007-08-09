@@ -49,7 +49,6 @@ EXTRA_SCRIPTS = \
     calGoogleRequest.js \
     calGoogleSession.js \
     calGoogleUtils.js \
-    calUtils.js \
     $(NULL)
 
 # Use NSINSTALL to make the directory, as there's no mtime to preserve.

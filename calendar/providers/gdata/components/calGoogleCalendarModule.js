@@ -14,8 +14,8 @@
  * The Original Code is Google Calendar Provider code.
  *
  * The Initial Developer of the Original Code is
- *   Philipp Kewisch (mozilla@kewis.ch)
- * Portions created by the Initial Developer are Copyright (C) 2006
+ *   Philipp Kewisch <mozilla@kewis.ch>
+ * Portions created by the Initial Developer are Copyright (C) 2007
  * the Initial Developer. All Rights Reserved.
  *
  * Contributor(s):
@@ -71,9 +71,8 @@ var calGoogleCalendarModule = {
         if (this.mUtilsLoaded)
             return;
 
-        const scripts = ["calUtils.js","calGoogleCalendar.js",
-                         "calGoogleSession.js", "calGoogleRequest.js",
-                         "calGoogleUtils.js"];
+        const scripts = ["calGoogleCalendar.js", "calGoogleSession.js",
+                         "calGoogleRequest.js", "calGoogleUtils.js"];
 
         var loader = Components.classes["@mozilla.org/moz/jssubscript-loader;1"]
                                .getService(Components.interfaces.mozIJSSubScriptLoader);
@@ -97,6 +96,14 @@ var calGoogleCalendarModule = {
                 dump("Error while loading " + scriptUri.spec + "\n");
                 throw e;
             }
+        }
+
+        // Additionally, load Calendar's calUtils.js
+        try {
+            loader.loadSubScript("chrome://calendar/content/calUtils.js", null);
+        } catch (e) {
+            dump("Error while loading " + scriptUri.spec + "\n");
+            throw e;
         }
 
         this.mUtilsLoaded = true;
