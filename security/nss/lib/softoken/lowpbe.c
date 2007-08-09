@@ -74,6 +74,42 @@ static const SEC_ASN1Template NSSPKCS5PKCS12V2PBEParameterTemplate[] =
     { 0 }
 };
 
+
+/* PKCS5 v2 */
+
+struct nsspkcs5V2PBEParameterStr {
+    SECAlgorithmID keyParams;  /* parameters of the key generation */
+    SECAlgorithmID algParams;  /* paramters for the encryption or mac op */
+};
+
+typedef struct nsspkcs5V2PBEParameterStr nsspkcs5V2PBEParameter;
+#define PBKDF2
+
+#ifdef PBKDF2
+static const SEC_ASN1Template NSSPKCS5V2PBES2ParameterTemplate[] =
+{   
+    { SEC_ASN1_SEQUENCE, 0, NULL, sizeof(nsspkcs5V2PBEParameter) },
+    { SEC_ASN1_INLINE, offsetof(nsspkcs5V2PBEParameter, keyParams), 
+					SECOID_AlgorithmIDTemplate },
+    { SEC_ASN1_INLINE, offsetof(nsspkcs5V2PBEParameter, algParams), 
+					SECOID_AlgorithmIDTemplate },
+    { 0 }
+};
+
+static const SEC_ASN1Template NSSPKCS5V2PBEParameterTemplate[] =
+{   
+    { SEC_ASN1_SEQUENCE, 0, NULL, sizeof(NSSPKCS5PBEParameter) },
+    /* this is really a choice, but since we don't understand any other
+     *choice, just inline it. */
+    { SEC_ASN1_OCTET_STRING, offsetof(NSSPKCS5PBEParameter, salt) },
+    { SEC_ASN1_INTEGER, offsetof(NSSPKCS5PBEParameter, iteration) },
+    { SEC_ASN1_INTEGER, offsetof(NSSPKCS5PBEParameter, keyLength) },
+    { SEC_ASN1_INLINE, offsetof(NSSPKCS5PBEParameter, prfAlg), 
+					SECOID_AlgorithmIDTemplate },
+    { 0 }
+};
+#endif
+
 SECStatus
 nsspkcs5_HashBuf(const SECHashObject *hashObj, unsigned char *dest,
 					 unsigned char *src, int len)
@@ -297,28 +333,16 @@ nsspkcs5_PBKDF1Extended(const SECHashObject *hashObj,
 /*
  * PBDKDF2 is PKCS #5 v2.0 it's currently not used by NSS
  */
-/*
- * We This is safe because hLen for all our
- * HMAC algorithms are multiples of 4.
- */
 static void
-xorbytes(unsigned char *dest, unsigned char *src, int len)
+do_xor(unsigned char *dest, unsigned char *src, int len)
 {
-#ifdef PARANOIA
+   /* use byt xor, not all platforms are happy about inaligned 
+    * integer fetches */
     while (len--) {
     	*dest = *dest ^ *src;
 	dest++;
 	src++;
     }
-#else
-    PRUInt32 dest32 = (PRUInt32 *)dest;
-    PRUInt32 src32 = (PRUInt32 *)dest;
-    while (len -= sizeof(PRUInt32)) {
-    	*dest32 = *dest32 ^ *src32;
-	dest++;
-	src++;
-    }
-#endif
 }
 
 static SECStatus
@@ -327,33 +351,31 @@ nsspkcs5_PBKFD2_F(const SECHashObject *hashobj, SECItem *pwitem, SECItem *salt,
 {
     int j;
     HMACContext *cx = NULL;
-    unsigned int hLen = hashObject->length
+    unsigned int hLen = hashobj->length;
     SECStatus rv = SECFailure;
     unsigned char *last = NULL;
-    int lastLength = salt->len + 4;
+    unsigned int lastLength = salt->len + 4;
+    unsigned int lastBufLength;
 
     cx=HMAC_Create(hashobj,pwitem->data,pwitem->len,PR_TRUE);
     if (cx == NULL) {
 	goto loser;
     }
     PORT_Memset(T,0,hLen);
-    realLastLength= MAX(lastLength,hLen);
-    last = PORT_Alloc(realLastLength);
+    lastBufLength = PR_MAX(lastLength, hLen);
+    last = PORT_Alloc(lastBufLength);
     if (last == NULL) {
 	goto loser;
     }
-    PORT_Memcpy(last,salt.data,salt.len);
+    PORT_Memcpy(last,salt->data,salt->len);
     last[salt->len  ] = (i >> 24) & 0xff;
     last[salt->len+1] = (i >> 16) & 0xff;
     last[salt->len+2] = (i >> 8) & 0xff;
     last[salt->len+3] =    i  & 0xff;
 
     /* NOTE: we need at least one iteration to return success! */
-    for (j=0; j < interations; j++) {
-	rv =HMAC_Begin(cx);
-	if (rv !=SECSuccess) {
-	   break;
-	}
+    for (j=0; j < iterations; j++) {
+	HMAC_Begin(cx);
 	HMAC_Update(cx,last,lastLength);
 	rv =HMAC_Finish(cx,last,&lastLength,hLen);
 	if (rv !=SECSuccess) {
@@ -363,26 +385,29 @@ nsspkcs5_PBKFD2_F(const SECHashObject *hashobj, SECItem *pwitem, SECItem *salt,
     }
 loser:
     if (cx) {
-	HMAC_DestroyContext(cx, PR_TRUE);
+	HMAC_Destroy(cx, PR_TRUE);
     }
     if (last) {
-	PORT_ZFree(last,reaLastLength);
+	PORT_ZFree(last,lastBufLength);
     }
     return rv;
 }
 
 static SECItem *
-nsspkcs5_PBKFD2(const SECHashObject *hashObj, NSSPKCS5PBEParameter *pbe_param, 
+nsspkcs5_PBKDF2(const SECHashObject *hashobj, NSSPKCS5PBEParameter *pbe_param, 
 							SECItem *pwitem)
 {
-    unsigned int dkLen = bytesNeeded;
-    unsigned int hLen = hashObject->length
-    unsigned int l = (dkLen+hLen-1) / hLen;
-    unsigned char *rp;
-    SECItem *result;
-    SECItem *salt = pbe_param->salt;
-    int interations = pbe_param->iter;
+    int iterations = pbe_param->iter;
     int bytesNeeded = pbe_param->keyLen;
+    unsigned int dkLen = bytesNeeded;
+    unsigned int hLen = hashobj->length;
+    unsigned int l = (dkLen+hLen-1) / hLen;
+    unsigned int i;
+    unsigned char *rp;
+    unsigned char *T = NULL;
+    SECItem *result = NULL;;
+    SECItem *salt = &pbe_param->salt;
+    SECStatus rv = SECFailure;
 
     result = SECITEM_AllocItem(NULL,NULL,l*hLen);
     if (result == NULL) {
@@ -394,7 +419,7 @@ nsspkcs5_PBKFD2(const SECHashObject *hashObj, NSSPKCS5PBEParameter *pbe_param,
 	goto loser;
     }
 
-    for (i=0,rp=results->data; i < l ; i++, rp +=hLen) {
+    for (i=0,rp=result->data; i < l ; i++, rp +=hLen) {
 	rv = nsspkcs5_PBKFD2_F(hashobj,pwitem,salt,iterations,i,T);
 	if (rv != SECSuccess) {
 	    break;
@@ -404,10 +429,10 @@ nsspkcs5_PBKFD2(const SECHashObject *hashObj, NSSPKCS5PBEParameter *pbe_param,
 
 loser:
     if (T) {
-	PORT_ZFree(T);
+	PORT_ZFree(T,hLen);
     }
     if (rv != SECSuccess) {
-	SECITEM_FreeITEM(result,PR_TRUE);
+	SECITEM_FreeItem(result,PR_TRUE);
 	result = NULL;
     } else {
 	result->len = dkLen;
@@ -580,7 +605,7 @@ nsspkcs5_ComputeKeyAndIV(NSSPKCS5PBEParameter *pbe_param, SECItem *pwitem,
 	return NULL;
     }
 
-    if ((pbe_param->ivLen) && (iv->data == NULL)) {
+    if (iv && (pbe_param->ivLen) && (iv->data == NULL)) {
 	getIV = PR_TRUE;
     	iv->data = (unsigned char *)PORT_Alloc(pbe_param->ivLen);
     	if (iv->data == NULL) {
@@ -596,15 +621,18 @@ nsspkcs5_ComputeKeyAndIV(NSSPKCS5PBEParameter *pbe_param, SECItem *pwitem,
 	if (hash == NULL) {
 	    goto loser;
 	}
-	PORT_Assert(hash->len >= key->len+iv->len);
+	PORT_Assert(hash->len >= key->len+(getIV ? iv->len : 0));
 	if (getIV) {
 	    PORT_Memcpy(iv->data, hash->data+(hash->len - iv->len),iv->len);
-	}
+	} 
+	
     	break;
 #ifdef PBKDF2
     case NSSPKCS5_PBKDF2:
 	hash = nsspkcs5_PBKDF2(hashObj,pbe_param,pwitem);
-	PORT_Assert(!getIV);
+	if (getIV) {
+	    PORT_Memcpy(iv->data, pbe_param->ivData, iv->len);
+	}
     	break;
 #endif
     case NSSPKCS5_PKCS12_V2:
@@ -715,6 +743,19 @@ finish_des:
         pbe_param->ivLen = 0;
         pbe_param->encAlg =  SEC_OID_RC4;
         break;
+
+#ifdef PBKDF2
+    case SEC_OID_PKCS5_PBKDF2:
+    case SEC_OID_PKCS5_PBES2:
+    case SEC_OID_PKCS5_PBMAC1:
+	/* everything else will be filled in by the template */
+        pbe_param->ivLen = 0;
+	pbe_param->pbeType = NSSPKCS5_PBKDF2;
+        pbe_param->encAlg =  SEC_OID_PKCS5_PBKDF2;
+	pbe_param->keyLen = 0; /* needs to be set by caller after return */
+	break;
+#endif
+
     default:
         return SECFailure;
     }
@@ -767,12 +808,36 @@ loser:
     return pbe_param;
 }
 
+/*
+ * find the hash type needed to implement a specific HMAC.
+ * OID definitions are from pkcs 5 v2.0 and 2.1
+ */
+HASH_HashType
+HASH_FromHMACOid(SECOidTag hmac)
+{
+    switch (hmac) {
+    case SEC_OID_HMAC_SHA1:
+    	return HASH_AlgSHA1;
+    case SEC_OID_HMAC_SHA256:
+    	return HASH_AlgSHA256;
+    case SEC_OID_HMAC_SHA384:
+    	return HASH_AlgSHA384;
+    case SEC_OID_HMAC_SHA512:
+    	return HASH_AlgSHA512;
+    case SEC_OID_HMAC_SHA224:
+    default:
+	break;
+    }
+    return HASH_AlgNULL;
+}
+
 /* decode the algid and generate a PKCS 5 parameter from it
  */
 NSSPKCS5PBEParameter *
 nsspkcs5_AlgidToParam(SECAlgorithmID *algid)
 {
     NSSPKCS5PBEParameter *pbe_param = NULL;
+    nsspkcs5V2PBEParameter pbev2_param;
     SECOidTag algorithm;
     SECStatus rv = SECFailure;
 
@@ -801,8 +866,42 @@ nsspkcs5_AlgidToParam(SECAlgorithmID *algid)
 	rv = SEC_ASN1DecodeItem(pbe_param->poolp, pbe_param, 
 		NSSPKCS5PKCS12V2PBEParameterTemplate, &algid->parameters);
 	break;
+#ifdef PBKDF2
     case NSSPKCS5_PBKDF2:
+	PORT_Memset(&pbev2_param,0, sizeof(pbev2_param));
+	/* just the PBE */
+	if (algorithm == SEC_OID_PKCS5_PBKDF2) {
+	    rv = SEC_ASN1DecodeItem(pbe_param->poolp, pbe_param,
+		NSSPKCS5V2PBEParameterTemplate, &algid->parameters);
+	} else {
+	    /* PBE data an others */
+	    rv = SEC_ASN1DecodeItem(pbe_param->poolp, &pbev2_param, 
+		NSSPKCS5V2PBES2ParameterTemplate, &algid->parameters);
+	    if (rv != SECSuccess) {
+		break;
+	    }
+            pbe_param->encAlg = SECOID_GetAlgorithmTag(&pbev2_param.algParams);
+	    rv = SEC_ASN1DecodeItem(pbe_param->poolp, pbe_param,
+		NSSPKCS5V2PBEParameterTemplate, 
+		&pbev2_param.keyParams.parameters);
+	    if (rv != SECSuccess) {
+		break;
+	    }
+    	    pbe_param->keyLen = DER_GetInteger(&pbe_param->keyLength);
+	}
+	/* we we are encrypting, save any iv's */
+	if (algorithm == SEC_OID_PKCS5_PBES2) {
+	    pbe_param->ivLen = pbev2_param.algParams.parameters.len;
+	    pbe_param->ivData = pbev2_param.algParams.parameters.data;
+	}
+	pbe_param->hashType = 
+	    HASH_FromHMACOid(SECOID_GetAlgorithmTag(&pbe_param->prfAlg));
+	if (pbe_param->hashType == HASH_AlgNULL) {
+	    PORT_SetError(SEC_ERROR_INVALID_ALGORITHM);
+	    rv = SECFailure;
+	}
 	break;
+#endif
     }
 
 loser:
@@ -853,8 +952,8 @@ sec_pkcs5_des(SECItem *key, SECItem *iv, SECItem *src, PRBool triple_des,
     if(encrypt != PR_FALSE) {
 	void *dummy;
 
-	dummy = DES_PadBuffer(NULL, dup_src->data, 
-	    dup_src->len, &dup_src->len);
+	dummy = CBC_PadBuffer(NULL, dup_src->data, 
+	    dup_src->len, &dup_src->len, 8 /* DES_BLOCK_SIZE */);
 	if(dummy == NULL) {
 	    SECITEM_FreeItem(dup_src, PR_TRUE);
 	    return NULL;
@@ -911,6 +1010,85 @@ sec_pkcs5_des(SECItem *key, SECItem *iv, SECItem *src, PRBool triple_des,
     return dest;
 }
 
+/* perform aes encryption/decryption if an error occurs, NULL is returned
+ */
+static SECItem *
+sec_pkcs5_aes(SECItem *key, SECItem *iv, SECItem *src, PRBool triple_des, 
+								PRBool encrypt)
+{
+    SECItem *dest;
+    SECItem *dup_src;
+    SECStatus rv = SECFailure;
+    int pad;
+
+    if((src == NULL) || (key == NULL) || (iv == NULL))
+	return NULL;
+
+    dup_src = SECITEM_DupItem(src);
+    if(dup_src == NULL) {
+	return NULL;
+    }
+
+    if(encrypt != PR_FALSE) {
+	void *dummy;
+
+	dummy = CBC_PadBuffer(NULL, dup_src->data, 
+	    dup_src->len, &dup_src->len,AES_BLOCK_SIZE);
+	if(dummy == NULL) {
+	    SECITEM_FreeItem(dup_src, PR_TRUE);
+	    return NULL;
+	}
+	dup_src->data = (unsigned char*)dummy;
+    }
+
+    dest = (SECItem *)PORT_ZAlloc(sizeof(SECItem));
+    if(dest != NULL) {
+	/* allocate with over flow */
+	dest->data = (unsigned char *)PORT_ZAlloc(dup_src->len + 64);
+	if(dest->data != NULL) {
+	    AESContext *ctxt;
+	    ctxt = AES_CreateContext(key->data, iv->data, 
+			NSS_AES_CBC, encrypt, key->len, 16);
+	
+	    if(ctxt != NULL) {
+		rv = (encrypt ? AES_Encrypt : AES_Decrypt)(
+			ctxt, dest->data, &dest->len,
+			dup_src->len + 64, dup_src->data, dup_src->len);
+
+		/* remove padding -- assumes 64 bit blocks */
+		if((encrypt == PR_FALSE) && (rv == SECSuccess)) {
+		    pad = dest->data[dest->len-1];
+		    if((pad > 0) && (pad <= 16)) {
+			if(dest->data[dest->len-pad] != pad) {
+			    rv = SECFailure;
+			    PORT_SetError(SEC_ERROR_BAD_PASSWORD);
+			} else {
+			    dest->len -= pad;
+			}
+		    } else {
+			rv = SECFailure;
+			PORT_SetError(SEC_ERROR_BAD_PASSWORD);
+		    }
+		}
+		AES_DestroyContext(ctxt, PR_TRUE);
+	    }
+	}
+    }
+
+    if(rv == SECFailure) {
+	if(dest != NULL) {
+	    SECITEM_FreeItem(dest, PR_TRUE);
+	}
+	dest = NULL;
+    }
+
+    if(dup_src != NULL) {
+	SECITEM_FreeItem(dup_src, PR_TRUE);
+    }
+
+    return dest;
+}
+
 /* perform rc2 encryption/decryption if an error occurs, NULL is returned
  */
 static SECItem *
@@ -934,8 +1112,8 @@ sec_pkcs5_rc2(SECItem *key, SECItem *iv, SECItem *src, PRBool dummy,
     if(encrypt != PR_FALSE) {
 	void *dummy;
 
-	dummy = DES_PadBuffer(NULL, dup_src->data, 
-			      dup_src->len, &dup_src->len);
+	dummy = CBC_PadBuffer(NULL, dup_src->data, 
+		      dup_src->len, &dup_src->len, 8 /* RC2_BLOCK_SIZE */);
 	if(dummy == NULL) {
 	    SECITEM_FreeItem(dup_src, PR_TRUE);
 	    return NULL;
@@ -1062,6 +1240,12 @@ nsspkcs5_CipherData(NSSPKCS5PBEParameter *pbe_param, SECItem *pwitem,
     }
 
     switch(pbe_param->encAlg) {
+    /* PKCS 5 v2 only */
+    case SEC_OID_AES_128_CBC:
+    case SEC_OID_AES_192_CBC:
+    case SEC_OID_AES_256_CBC:
+	cryptof = sec_pkcs5_aes;
+	break;
     case SEC_OID_DES_EDE3_CBC:
 	cryptof = sec_pkcs5_des;
 	tripleDES = PR_TRUE;
@@ -1125,6 +1309,8 @@ nsspkcs5_CreateAlgorithmID(PRArenaPool *arena, SECOidTag algorithm,
 {
     SECAlgorithmID *algid, *ret_algid = NULL;
     SECItem der_param;
+    nsspkcs5V2PBEParameter pkcs5v2_param;
+
     SECStatus rv = SECFailure;
     void *dummy = NULL;
 
@@ -1157,6 +1343,38 @@ nsspkcs5_CreateAlgorithmID(PRArenaPool *arena, SECOidTag algorithm,
 	dummy = SEC_ASN1EncodeItem(arena, &der_param, pbe_param,
 	    				NSSPKCS5PKCS12V2PBEParameterTemplate);
 	break;
+#ifdef PBKDF2
+    case NSSPKCS5_PBKDF2:
+        if (pbe_param->keyLength.data == NULL) {
+	    dummy = SEC_ASN1EncodeInteger(pbe_param->poolp,
+				&pbe_param->keyLength, pbe_param->keyLen);
+	    if (dummy == NULL) {
+		goto loser;
+	    }
+	}
+	PORT_Memset(&pkcs5v2_param, 0, sizeof(pkcs5v2_param));
+	dummy = SEC_ASN1EncodeItem(arena, &der_param, pbe_param,
+	    				NSSPKCS5V2PBEParameterTemplate);
+	if (dummy == NULL) {
+	    break;
+	}
+	dummy = NULL;
+	rv = SECOID_SetAlgorithmID(arena, &pkcs5v2_param.keyParams, 
+				  SEC_OID_PKCS5_PBKDF2, &der_param);
+	if (rv != SECSuccess) {
+	    break;
+	}
+	der_param.data = pbe_param->ivData;
+	der_param.len = pbe_param->ivLen;
+	rv = SECOID_SetAlgorithmID(arena, &pkcs5v2_param.algParams, 
+		pbe_param->encAlg, pbe_param->ivLen ? &der_param : NULL);
+	if (rv != SECSuccess) {
+	    break;
+	}
+	dummy = SEC_ASN1EncodeItem(arena,  &der_param, &pkcs5v2_param,
+	    				NSSPKCS5V2PBES2ParameterTemplate);
+	break;
+#endif
     default:
 	break;
     }

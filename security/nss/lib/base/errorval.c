@@ -35,7 +35,7 @@
  * ***** END LICENSE BLOCK ***** */
 
 #ifdef DEBUG
-static const char CVS_ID[] = "@(#) $RCSfile: errorval.c,v $ $Revision: 1.11 $ $Date: 2005-01-20 02:25:45 $";
+static const char CVS_ID[] = "@(#) $RCSfile: errorval.c,v $ $Revision: 1.12 $ $Date: 2007-08-09 22:36:15 $";
 #endif /* DEBUG */
 
 /*
@@ -93,4 +93,6 @@ const NSSError NSS_ERROR_DEVICE_ERROR                   = 34;
 const NSSError NSS_ERROR_INVALID_CERTIFICATE            = 35;
 const NSSError NSS_ERROR_BUSY                           = 36;
 const NSSError NSS_ERROR_ALREADY_INITIALIZED            = 37;
+
+const NSSError NSS_ERROR_PKCS11                         = 38;
 

@@ -920,7 +920,7 @@ cert_ssl()
   echo "             ${HOSTADDR} ------------------------------------"
   cert_create_cert ${SERVERDIR} "${HOSTADDR}" 100 ${D_SERVER}
   CU_ACTION="Modify trust attributes of Root CA -t TC,TC,TC"
-  certu -M -n "TestCA" -t "TC,TC,TC" -d ${PROFILEDIR}
+  certu -M -n "TestCA" -t "TC,TC,TC" -d ${PROFILEDIR} -f "${R_PWFILE}"
   if [ -n "$NSS_ENABLE_ECC" ] ; then
       CU_ACTION="Modify trust attributes of EC Root CA -t TC,TC,TC"
       certu -M -n "TestCA-ec" -t "TC,TC,TC" -d ${PROFILEDIR}

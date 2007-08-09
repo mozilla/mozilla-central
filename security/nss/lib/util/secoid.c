@@ -181,6 +181,11 @@
 CONST_OID md2[]        				= { DIGEST, 0x02 };
 CONST_OID md4[]        				= { DIGEST, 0x04 };
 CONST_OID md5[]        				= { DIGEST, 0x05 };
+CONST_OID hmac_sha1[]   			= { DIGEST, 7 };
+CONST_OID hmac_sha224[]				= { DIGEST, 8 };
+CONST_OID hmac_sha256[]				= { DIGEST, 9 };
+CONST_OID hmac_sha384[]				= { DIGEST, 10 };
+CONST_OID hmac_sha512[]				= { DIGEST, 11 };
 
 CONST_OID rc2cbc[]     				= { CIPHER, 0x02 };
 CONST_OID rc4[]        				= { CIPHER, 0x04 };
@@ -210,6 +215,9 @@ CONST_OID pkcs1SHA512WithRSAEncryption[] 	= { PKCS1, 13 };
 CONST_OID pkcs5PbeWithMD2AndDEScbc[]  		= { PKCS5, 0x01 };
 CONST_OID pkcs5PbeWithMD5AndDEScbc[]  		= { PKCS5, 0x03 };
 CONST_OID pkcs5PbeWithSha1AndDEScbc[] 		= { PKCS5, 0x0a };
+CONST_OID pkcs5Pbkdf2[]  			= { PKCS5, 12 };
+CONST_OID pkcs5Pbes2[]  			= { PKCS5, 13 };
+CONST_OID pkcs5Pbmac1[]				= { PKCS5, 14 };
 
 CONST_OID pkcs7[]                     		= { PKCS7 };
 CONST_OID pkcs7Data[]                 		= { PKCS7, 0x01 };
@@ -1530,6 +1538,27 @@ const static SECOidData oids[] = {
 	"CAMELLIA-192-CBC", CKM_CAMELLIA_CBC, INVALID_CERT_EXTENSION ),
     OD( camellia256_CBC, SEC_OID_CAMELLIA_256_CBC,
 	"CAMELLIA-256-CBC", CKM_CAMELLIA_CBC, INVALID_CERT_EXTENSION ),
+
+    /* PKCS 5 v2 OIDS */
+    OD( pkcs5Pbkdf2, SEC_OID_PKCS5_PBKDF2,
+	"PKCS #5 Password Based Key Dervive Function v2 ", 
+	CKM_PKCS5_PBKD2, INVALID_CERT_EXTENSION ),
+    OD( pkcs5Pbes2, SEC_OID_PKCS5_PBES2,
+	"PKCS #5 Password Based Encryption v2 ", 
+	CKM_INVALID_MECHANISM, INVALID_CERT_EXTENSION ),
+    OD( pkcs5Pbmac1, SEC_OID_PKCS5_PBMAC1,
+	"PKCS #5 Password Based Authentication v1 ", 
+	CKM_INVALID_MECHANISM, INVALID_CERT_EXTENSION ),
+    OD( hmac_sha1, SEC_OID_HMAC_SHA1, "HMAC SHA-1", 
+	CKM_SHA_1_HMAC, INVALID_CERT_EXTENSION ),
+    OD( hmac_sha224, SEC_OID_HMAC_SHA224, "HMAC SHA-224", 
+	CKM_SHA224_HMAC, INVALID_CERT_EXTENSION ),
+    OD( hmac_sha256, SEC_OID_HMAC_SHA256, "HMAC SHA-256", 
+	CKM_SHA256_HMAC, INVALID_CERT_EXTENSION ),
+    OD( hmac_sha384, SEC_OID_HMAC_SHA384, "HMAC SHA-384", 
+	CKM_SHA384_HMAC, INVALID_CERT_EXTENSION ),
+    OD( hmac_sha512, SEC_OID_HMAC_SHA512, "HMAC SHA-512", 
+	CKM_SHA512_HMAC, INVALID_CERT_EXTENSION ),
 
 };
 

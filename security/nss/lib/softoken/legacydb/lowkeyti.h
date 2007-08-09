@@ -158,4 +158,13 @@ struct NSSLOWKEYPrivateKeyStr {
 };
 typedef struct NSSLOWKEYPrivateKeyStr NSSLOWKEYPrivateKey;
 
+
+typedef struct NSSLOWKEYPasswordEntryStr NSSLOWKEYPasswordEntry;
+struct NSSLOWKEYPasswordEntryStr {
+    SECItem salt;
+    SECItem value;
+    unsigned char data[128];
+};
+
+
 #endif	/* _LOWKEYTI_H_ */

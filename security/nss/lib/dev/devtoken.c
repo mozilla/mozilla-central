@@ -35,7 +35,7 @@
  * ***** END LICENSE BLOCK ***** */
 
 #ifdef DEBUG
-static const char CVS_ID[] = "@(#) $RCSfile: devtoken.c,v $ $Revision: 1.40 $ $Date: 2007-07-11 04:47:41 $";
+static const char CVS_ID[] = "@(#) $RCSfile: devtoken.c,v $ $Revision: 1.41 $ $Date: 2007-08-09 22:36:17 $";
 #endif /* DEBUG */
 
 #ifndef NSSCKEPV_H
@@ -57,6 +57,8 @@ static const char CVS_ID[] = "@(#) $RCSfile: devtoken.c,v $ $Revision: 1.40 $ $D
 #endif
 
 extern const NSSError NSS_ERROR_NOT_FOUND;
+extern const NSSError NSS_ERROR_INVALID_ARGUMENT;
+extern const NSSError NSS_ERROR_PKCS11;
 
 /* The number of object handles to grab during each call to C_FindObjects */
 #define OBJECT_STACK_SIZE 16
@@ -97,7 +99,9 @@ nssToken_Create (
     /* Get token information */
     ckrv = CKAPI(epv)->C_GetTokenInfo(slotID, &tokenInfo);
     if (ckrv != CKR_OK) {
-	/* set an error here, eh? */
+	/* use the error stack to pass the PKCS #11 error out  */
+	nss_SetError(ckrv);
+	nss_SetError(NSS_ERROR_PKCS11);
 	goto loser;
     }
     /* Grab the slot description from the PKCS#11 fixed-length buffer */
@@ -292,7 +296,13 @@ nssToken_DeleteStoredObject (
     if (createdSession) {
 	nssSession_Destroy(session);
     }
-    status = (ckrv == CKR_OK) ? PR_SUCCESS : PR_FAILURE;
+    status = PR_SUCCESS;
+    if (ckrv != CKR_OK) {
+	status = PR_FAILURE;
+	/* use the error stack to pass the PKCS #11 error out  */
+	nss_SetError(ckrv);
+	nss_SetError(NSS_ERROR_PKCS11);
+    }
     return status;
 }
 
@@ -313,7 +323,8 @@ import_object (
     if (nssCKObject_IsTokenObjectTemplate(objectTemplate, otsize)) {
 	if (sessionOpt) {
 	    if (!nssSession_IsReadWrite(sessionOpt)) {
-		return CK_INVALID_HANDLE;
+		nss_SetError(NSS_ERROR_INVALID_ARGUMENT);
+		return NULL;
 	    } else {
 		session = sessionOpt;
 	    }
@@ -327,7 +338,8 @@ import_object (
 	session = (sessionOpt) ? sessionOpt : tok->defaultSession;
     }
     if (session == NULL) {
-	return CK_INVALID_HANDLE;
+	nss_SetError(NSS_ERROR_INVALID_ARGUMENT);
+	return NULL;
     }
     nssSession_EnterMonitor(session);
     ckrv = CKAPI(epv)->C_CreateObject(session->handle, 
@@ -336,6 +348,9 @@ import_object (
     nssSession_ExitMonitor(session);
     if (ckrv == CKR_OK) {
 	object = nssCryptokiObject_Create(tok, session, handle);
+    } else {
+	nss_SetError(ckrv);
+	nss_SetError(NSS_ERROR_PKCS11);
     }
     if (createdSession) {
 	nssSession_Destroy(session);
@@ -485,6 +500,8 @@ loser:
 	nss_SetError(NSS_ERROR_NOT_FOUND);
 	if (statusOpt) *statusOpt = PR_SUCCESS;
     } else {
+	nss_SetError(ckrv);
+	nss_SetError(NSS_ERROR_PKCS11);
 	if (statusOpt) *statusOpt = PR_FAILURE;
     }
     return (nssCryptokiObject **)NULL;

@@ -189,8 +189,9 @@ CK_RV lg_Reset(SDB *sdb);
 CK_RV lg_Begin(SDB *sdb);
 CK_RV lg_Commit(SDB *sdb);
 CK_RV lg_Abort(SDB *sdb);
-CK_RV lg_GetPWEntry(SDB *sdb, SDBPasswordEntry *entry);
-CK_RV lg_PutPWEntry(SDB *sdb, SDBPasswordEntry *entry);
+CK_RV lg_GetMetaData(SDB *sdb, const char *id, SECItem *item1, SECItem *item2);
+CK_RV lg_PutMetaData(SDB *sdb, const char *id, 
+			const SECItem *item1, const SECItem *item2);
 
 SEC_END_PROTOS
 

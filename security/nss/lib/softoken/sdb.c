@@ -282,8 +282,8 @@ struct SDBFindStr {
 };
 
 
-#define FIND_OBJECTS_CMD "SELECT ALL * FROM %s WHERE %s;"
-#define FIND_OBJECTS_ALL_CMD "SELECT ALL * FROM %s;"
+static const char FIND_OBJECTS_CMD[] =  "SELECT ALL * FROM %s WHERE %s;";
+static const char FIND_OBJECTS_ALL_CMD[] = "SELECT ALL * FROM %s;";
 CK_RV
 sdb_FindObjectsInit(SDB *sdb, const CK_ATTRIBUTE *template, CK_ULONG count, 
 				SDBFind **find)
@@ -420,7 +420,7 @@ sdb_FindObjectsFinal(SDB *sdb, SDBFind *sdbFind)
     return sdb_mapSQLError(sdb_p->type, sqlerr);
 }
 
-#define GET_ATTRIBUTE_CMD "SELECT ALL %s FROM %s WHERE id=$ID;"
+static const char GET_ATTRIBUTE_CMD[] = "SELECT ALL %s FROM %s WHERE id=$ID;";
 CK_RV
 sdb_GetAttributeValueNoLock(SDB *sdb, CK_OBJECT_HANDLE object_id, 
 				CK_ATTRIBUTE *template, CK_ULONG count)
@@ -547,7 +547,7 @@ sdb_GetAttributeValue(SDB *sdb, CK_OBJECT_HANDLE object_id,
     return crv;
 }
    
-#define SET_ATTRIBUTE_CMD "UPDATE %s SET %s WHERE id=$ID;"
+static const char SET_ATTRIBUTE_CMD[] = "UPDATE %s SET %s WHERE id=$ID;";
 CK_RV
 sdb_SetAttributeValue(SDB *sdb, CK_OBJECT_HANDLE object_id, 
 			const CK_ATTRIBUTE *template, CK_ULONG count)
@@ -562,7 +562,7 @@ sdb_SetAttributeValue(SDB *sdb, CK_OBJECT_HANDLE object_id,
     CK_RV error = CKR_OK;
     int i;
 
-    if (sdb->sdb_flags == SDB_RDONLY) {
+    if ((sdb->sdb_flags & SDB_RDONLY) != 0) {
 	return CKR_TOKEN_WRITE_PROTECTED;
     }
 
@@ -697,7 +697,7 @@ sdb_getObjectId(SDB *sdb)
     return CK_INVALID_HANDLE;
 }
 
-#define CREATE_CMD "INSERT INTO %s (id%s) VALUES($ID%s);"
+static const char CREATE_CMD[] = "INSERT INTO %s (id%s) VALUES($ID%s);";
 CK_RV
 sdb_CreateObject(SDB *sdb, CK_OBJECT_HANDLE *object_id, 
 		 const CK_ATTRIBUTE *template, CK_ULONG count)
@@ -714,7 +714,7 @@ sdb_CreateObject(SDB *sdb, CK_OBJECT_HANDLE *object_id,
     int retry = 0;
     int i;
 
-    if (sdb->sdb_flags == SDB_RDONLY) {
+    if ((sdb->sdb_flags & SDB_RDONLY) != 0) {
 	return CKR_TOKEN_WRITE_PROTECTED;
     }
 
@@ -801,7 +801,7 @@ loser:
     return error;
 }
 
-#define DESTROY_CMD "DELETE FROM %s WHERE (id=$ID);"
+static const char DESTROY_CMD[] = "DELETE FROM %s WHERE (id=$ID);";
 CK_RV
 sdb_DestroyObject(SDB *sdb, CK_OBJECT_HANDLE object_id)
 {
@@ -813,7 +813,7 @@ sdb_DestroyObject(SDB *sdb, CK_OBJECT_HANDLE object_id)
     CK_RV error = CKR_OK;
     int retry = 0;
 
-    if (sdb->sdb_flags == SDB_RDONLY) {
+    if ((sdb->sdb_flags & SDB_RDONLY) != 0) {
 	return CKR_TOKEN_WRITE_PROTECTED;
     }
 
@@ -858,7 +858,7 @@ loser:
     return error;
 }
    
-#define BEGIN_CMD    "BEGIN IMMEDIATE TRANSACTION;"
+static const char BEGIN_CMD[] = "BEGIN IMMEDIATE TRANSACTION;";
 /*
  * start a transaction.
  *
@@ -877,7 +877,7 @@ sdb_Begin(SDB *sdb)
     int retry = 0;
 
 
-    if (sdb->sdb_flags == SDB_RDONLY) {
+    if ((sdb->sdb_flags & SDB_RDONLY) != 0) {
 	return CKR_TOKEN_WRITE_PROTECTED;
     }
 
@@ -957,7 +957,7 @@ sdb_complete(SDB *sdb, const char *cmd)
     int retry = 0;
 
 
-    if (sdb->sdb_flags == SDB_RDONLY) {
+    if ((sdb->sdb_flags & SDB_RDONLY) != 0) {
 	return CKR_TOKEN_WRITE_PROTECTED;
     }
 
@@ -1011,7 +1011,7 @@ sdb_complete(SDB *sdb, const char *cmd)
     return error;
 }
 
-#define COMMIT_CMD   "COMMIT TRANSACTION;"
+static const char COMMIT_CMD[] = "COMMIT TRANSACTION;";
 CK_RV
 sdb_Commit(SDB *sdb)
 {
@@ -1022,7 +1022,7 @@ sdb_Commit(SDB *sdb)
     return crv;
 }
 
-#define ROLLBACK_CMD "ROLLBACK TRANSACTION;"
+static const char ROLLBACK_CMD[] = "ROLLBACK TRANSACTION;";
 CK_RV
 sdb_Abort(SDB *sdb)
 {
@@ -1033,9 +1033,11 @@ sdb_Abort(SDB *sdb)
     return crv;
 }
 
-#define GET_PW_CMD "SELECT ALL * FROM password WHERE id='password';"
+static int tableExists(sqlite3 *sqlDB, const char *tableName);
+
+static const char GET_PW_CMD[] = "SELECT ALL * FROM metaData WHERE id=$ID;";
 CK_RV
-sdb_GetPWEntry(SDB *sdb, SDBPasswordEntry *entry)
+sdb_GetMetaData(SDB *sdb, const char *id, SECItem *item1, SECItem *item2)
 {
     SDBPrivate *sdb_p = sdb->private;
     sqlite3  *sqlDB = sdb_p->sqlXactDB;
@@ -1045,7 +1047,7 @@ sdb_GetPWEntry(SDB *sdb, SDBPasswordEntry *entry)
     int found = 0;
     int retry = 0;
 
-    /* only Key databases have password entries */
+    /* currently only Key databases have meta data entries */
     if (sdb_p->type != SDB_KEY) {
 	return CKR_OBJECT_HANDLE_INVALID;
     }
@@ -1056,7 +1058,10 @@ sdb_GetPWEntry(SDB *sdb, SDBPasswordEntry *entry)
 	goto loser;
     }
 
+    /* handle 'test' versions of the sqlite db */
     sqlerr = sqlite3_prepare(sqlDB, GET_PW_CMD, -1, &stmt, NULL);
+    if (sqlerr != SQLITE_OK) goto loser;
+    sqlerr = sqlite3_bind_text(stmt, 1, id, PORT_Strlen(id), SQLITE_STATIC);
     do {
 	sqlerr = sqlite3_step(stmt);
 	if (sqlerr == SQLITE_BUSY) {
@@ -1064,22 +1069,22 @@ sdb_GetPWEntry(SDB *sdb, SDBPasswordEntry *entry)
 	}
 	if (sqlerr == SQLITE_ROW) {
 	    const char *blobData;
-	    entry->salt.data = entry->data;
-	    entry->salt.len = sqlite3_column_bytes(stmt, 1);
-	    if (entry->salt.len > sizeof(entry->data)) {
+	    item1->len = sqlite3_column_bytes(stmt, 1);
+	    if (item1->len > SDB_MAX_META_DATA_LEN) {
 		error = CKR_BUFFER_TOO_SMALL;
 		continue;
 	    }
 	    blobData = sqlite3_column_blob(stmt, 1);
-	    PORT_Memcpy(entry->salt.data,blobData, entry->salt.len);
-	    entry->value.data = &entry->data[entry->salt.len];
-	    entry->value.len = sqlite3_column_bytes(stmt, 2);
-	    if ((entry->value.len+entry->salt.len) > sizeof(entry->data)) {
-		error = CKR_BUFFER_TOO_SMALL;
-		continue;
+	    PORT_Memcpy(item1->data,blobData, item1->len);
+	    if (item2) {
+		item2->len = sqlite3_column_bytes(stmt, 2);
+		if (item2->len > SDB_MAX_META_DATA_LEN) {
+		    error = CKR_BUFFER_TOO_SMALL;
+		    continue;
+		}
+		blobData = sqlite3_column_blob(stmt, 2);
+		PORT_Memcpy(item2->data,blobData, item2->len);
 	    }
-	    blobData = sqlite3_column_blob(stmt, 2);
-	    PORT_Memcpy(entry->value.data,blobData, entry->value.len);
 	    found = 1;
 	}
     } while (!sdb_done(sqlerr,&retry));
@@ -1106,13 +1111,15 @@ loser:
     return error;
 }
 
-static int tableExists(sqlite3 *sqlDB, const char *tableName);
-#define PW_CREATE_TABLE_CMD \
- "CREATE TABLE password (id PRIMARY KEY UNIQUE ON CONFLICT REPLACE, salt, value);"
-#define PW_CREATE_CMD \
- "INSERT INTO password (id,salt,value) VALUES('password',$SALT,$VALUE);"
+static const char PW_CREATE_TABLE_CMD[] =
+ "CREATE TABLE metaData (id PRIMARY KEY UNIQUE ON CONFLICT REPLACE, item1, item2);";
+static const char PW_CREATE_CMD[] =
+ "INSERT INTO metaData (id,item1,item2) VALUES($ID,$ITEM1,$ITEM2);";
+static const char MD_CREATE_CMD[]  =
+ "INSERT INTO metaData (id,item1) VALUES($ID,$ITEM1);";
 CK_RV
-sdb_PutPWEntry(SDB *sdb, SDBPasswordEntry *entry)
+sdb_PutMetaData(SDB *sdb, const char *id, const SECItem *item1, 
+					   const SECItem *item2)
 {
     SDBPrivate *sdb_p = sdb->private;
     sqlite3  *sqlDB = sdb_p->sqlXactDB;
@@ -1120,6 +1127,7 @@ sdb_PutPWEntry(SDB *sdb, SDBPasswordEntry *entry)
     int sqlerr = SQLITE_OK;
     CK_RV error = CKR_OK;
     int retry = 0;
+    const char *cmd = PW_CREATE_CMD;
 
     /* only Key databases have password entries */
     if (sdb_p->type != SDB_KEY) {
@@ -1132,18 +1140,24 @@ sdb_PutPWEntry(SDB *sdb, SDBPasswordEntry *entry)
 	goto loser;
     }
 
-    if (!tableExists(sqlDB, "password")) {
+    if (!tableExists(sqlDB, "metaData")) {
     	sqlerr = sqlite3_exec(sqlDB, PW_CREATE_TABLE_CMD, NULL, 0, NULL);
         if (sqlerr != SQLITE_OK) goto loser;
     }
-    sqlerr = sqlite3_prepare(sqlDB, PW_CREATE_CMD, -1, &stmt, NULL);
+    if (item2 == NULL) {
+	cmd = MD_CREATE_CMD;
+    }
+    sqlerr = sqlite3_prepare(sqlDB, cmd, -1, &stmt, NULL);
     if (sqlerr != SQLITE_OK) goto loser;
-    sqlerr = sqlite3_bind_blob(stmt, 1, entry->salt.data, 
-			       entry->salt.len, SQLITE_STATIC);
+    sqlerr = sqlite3_bind_text(stmt, 1, id, PORT_Strlen(id), SQLITE_STATIC);
     if (sqlerr != SQLITE_OK) goto loser;
-    sqlerr = sqlite3_bind_blob(stmt, 2, entry->value.data, 
-			       entry->value.len, SQLITE_STATIC);
+    sqlerr = sqlite3_bind_blob(stmt, 2, item1->data, item1->len, SQLITE_STATIC);
     if (sqlerr != SQLITE_OK) goto loser;
+    if (item2) {
+    	sqlerr = sqlite3_bind_blob(stmt, 3, item2->data, 
+				   item2->len, SQLITE_STATIC);
+        if (sqlerr != SQLITE_OK) goto loser;
+    }
 
     do {
 	sqlerr = sqlite3_step(stmt);
@@ -1171,7 +1185,7 @@ loser:
     return error;
 }
 
-#define RESET_CMD "DROP TABLE IF EXISTS %s;"
+static const char RESET_CMD[] = "DROP TABLE IF EXISTS %s;";
 CK_RV
 sdb_Reset(SDB *sdb)
 {
@@ -1204,7 +1218,7 @@ sdb_Reset(SDB *sdb)
     if (sqlerr != SQLITE_OK) goto loser;
 
     /* delete the password entry table */
-    sqlerr = sqlite3_exec(sqlDB, "DROP TABLE IF EXISTS password;", 
+    sqlerr = sqlite3_exec(sqlDB, "DROP TABLE IF EXISTS metaData;", 
                           NULL, 0, NULL);
 
 loser:
@@ -1241,7 +1255,7 @@ sdb_Close(SDB *sdb)
  * functions to support open
  */
 
-#define CHECK_TABLE_CMD "SELECT ALL * FROM %s LIMIT 0;"
+static const char CHECK_TABLE_CMD[] = "SELECT ALL * FROM %s LIMIT 0;";
 /* return 1 if sqlDB contains table 'tableName */
 static int tableExists(sqlite3 *sqlDB, const char *tableName)
 {
@@ -1261,11 +1275,10 @@ static int tableExists(sqlite3 *sqlDB, const char *tableName)
 /*
  * initialize a single database
  */
-#define INIT_CMD  \
- "CREATE TABLE %s (id PRIMARY KEY UNIQUE ON CONFLICT ABORT%s)"
-#define ALTER_CMD  \
- "ALTER TABLE %s ADD COLUMN a%x"
-
+static const char INIT_CMD[] =
+ "CREATE TABLE %s (id PRIMARY KEY UNIQUE ON CONFLICT ABORT%s)";
+static const char ALTER_CMD[] = 
+ "ALTER TABLE %s ADD COLUMN a%x";
 
 CK_RV 
 sdb_init(char *dbname, char *table, sdbDataType type, int *inUpdate,
@@ -1357,7 +1370,7 @@ sdb_init(char *dbname, char *table, sdbDataType type, int *inUpdate,
     sdb_p->sqlXactThread = NULL;
     sdb->private = sdb_p;
     sdb->sdb_type = SDB_SQL;
-    sdb->sdb_flags = flags;
+    sdb->sdb_flags = flags | SDB_HAS_META;
     sdb->sdb_FindObjectsInit = sdb_FindObjectsInit;
     sdb->sdb_FindObjects = sdb_FindObjects;
     sdb->sdb_FindObjectsFinal = sdb_FindObjectsFinal;
@@ -1365,8 +1378,8 @@ sdb_init(char *dbname, char *table, sdbDataType type, int *inUpdate,
     sdb->sdb_SetAttributeValue = sdb_SetAttributeValue;
     sdb->sdb_CreateObject = sdb_CreateObject;
     sdb->sdb_DestroyObject = sdb_DestroyObject;
-    sdb->sdb_GetPWEntry = sdb_GetPWEntry;
-    sdb->sdb_PutPWEntry = sdb_PutPWEntry;
+    sdb->sdb_GetMetaData = sdb_GetMetaData;
+    sdb->sdb_PutMetaData = sdb_PutMetaData;
     sdb->sdb_Begin = sdb_Begin;
     sdb->sdb_Commit = sdb_Commit;
     sdb->sdb_Abort = sdb_Abort;

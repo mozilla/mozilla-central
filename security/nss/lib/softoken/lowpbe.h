@@ -65,13 +65,16 @@ struct NSSPKCS5PBEParameterStr {
     PRArenaPool *poolp;
     SECItem	salt;		/* octet string */
     SECItem	iteration;	/* integer */
+    SECItem	keyLength;	/* integer */
 
     /* used locally */
     int		iter;
     int 	keyLen;
     int		ivLen;
+    unsigned char *ivData;
     HASH_HashType hashType;
     NSSPKCS5PBEType pbeType;
+    SECAlgorithmID  prfAlg;	
     PBEBitGenID	keyID;
     SECOidTag	encAlg;
     PRBool	is2KeyDES;
@@ -129,6 +132,8 @@ nsspkcs5_ComputeKeyAndIV(NSSPKCS5PBEParameter *, SECItem *pwitem,
 /* Destroys PBE parameter */
 extern void
 nsspkcs5_DestroyPBEParameter(NSSPKCS5PBEParameter *param);
+
+HASH_HashType HASH_FromHMACOid(SECOidTag oid);
 
 SEC_END_PROTOS
 

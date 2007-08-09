@@ -34,7 +34,7 @@
  * the terms of any one of the MPL, the GPL or the LGPL.
  *
  * ***** END LICENSE BLOCK ***** */
-/* $Id: keydb.c,v 1.3 2007-06-13 06:21:12 rrelyea%redhat.com Exp $ */
+/* $Id: keydb.c,v 1.4 2007-08-09 22:36:19 rrelyea%redhat.com Exp $ */
 
 #include "lowkeyi.h"
 #include "secasn1.h"
@@ -1355,7 +1355,7 @@ loser:
  * check to see if the user has a password
  */
 static SECStatus
-nsslowkey_GetPWCheckEntry(NSSLOWKEYDBHandle *handle,SDBPasswordEntry *entry)
+nsslowkey_GetPWCheckEntry(NSSLOWKEYDBHandle *handle,NSSLOWKEYPasswordEntry *entry)
 {
     DBT checkkey; /*, checkdata; */
     NSSLOWKEYDBKey *dbkey = NULL;
@@ -1427,7 +1427,7 @@ loser:
  * check to see if the user has a password
  */
 static SECStatus
-nsslowkey_PutPWCheckEntry(NSSLOWKEYDBHandle *handle,SDBPasswordEntry *entry)
+nsslowkey_PutPWCheckEntry(NSSLOWKEYDBHandle *handle,NSSLOWKEYPasswordEntry *entry)
 {
     DBT checkkey;
     NSSLOWKEYDBKey *dbkey = NULL;
@@ -2224,33 +2224,50 @@ keydb_Close(NSSLOWKEYDBHandle *kdb)
  */
 
 CK_RV
-lg_GetPWEntry(SDB *sdb, SDBPasswordEntry *entry)
+lg_GetMetaData(SDB *sdb, const char *id, SECItem *item1, SECItem *item2)
 {
     NSSLOWKEYDBHandle *keydb;
+    NSSLOWKEYPasswordEntry entry;
     SECStatus rv;
 
     keydb = lg_getKeyDB(sdb);
     if (keydb == NULL) {
         return CKR_TOKEN_WRITE_PROTECTED;
     }
-    rv = nsslowkey_GetPWCheckEntry(keydb, entry);
+    if (PORT_Strcmp(id,"password") != 0) {
+	/* shouldn't happen */
+	return CKR_GENERAL_ERROR; /* no extra data stored */
+    }
+    rv = nsslowkey_GetPWCheckEntry(keydb, &entry);
     if (rv != SECSuccess) {
         return CKR_GENERAL_ERROR;
     }
+    item1->len = entry.salt.len;
+    PORT_Memcpy(item1->data, entry.salt.data, item1->len);
+    item2->len = entry.value.len;
+    PORT_Memcpy(item2->data, entry.value.data, item2->len);
     return CKR_OK;
 }
 
 CK_RV
-lg_PutPWEntry(SDB *sdb, SDBPasswordEntry *entry)
+lg_PutMetaData(SDB *sdb, const char *id, 
+	       const SECItem *item1, const SECItem *item2)
 {
     NSSLOWKEYDBHandle *keydb;
+    NSSLOWKEYPasswordEntry entry;
     SECStatus rv;
 
     keydb = lg_getKeyDB(sdb);
     if (keydb == NULL) {
         return CKR_TOKEN_WRITE_PROTECTED;
     }
-    rv = nsslowkey_PutPWCheckEntry(keydb, entry);
+    if (PORT_Strcmp(id,"password") != 0) {
+	/* shouldn't happen */
+	return CKR_GENERAL_ERROR; /* no extra data stored */
+    }
+    entry.salt = *item1;
+    entry.value = *item2;
+    rv = nsslowkey_PutPWCheckEntry(keydb, &entry);
     if (rv != SECSuccess) {
         return CKR_GENERAL_ERROR;
     }

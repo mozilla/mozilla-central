@@ -40,7 +40,7 @@
 /*
  * secoidt.h - public data structures for ASN.1 OID functions
  *
- * $Id: secoidt.h,v 1.23 2007-05-05 22:45:16 nelson%bolyard.com Exp $
+ * $Id: secoidt.h,v 1.24 2007-08-09 22:36:19 rrelyea%redhat.com Exp $
  */
 
 #include "secitem.h"
@@ -427,6 +427,16 @@ typedef enum {
     SEC_OID_CAMELLIA_128_CBC                = 288,
     SEC_OID_CAMELLIA_192_CBC                = 289,
     SEC_OID_CAMELLIA_256_CBC                = 290,
+
+    /* PKCS 5 V2 OIDS */
+    SEC_OID_PKCS5_PBKDF2                    = 291,
+    SEC_OID_PKCS5_PBES2                     = 292,
+    SEC_OID_PKCS5_PBMAC1                    = 293,
+    SEC_OID_HMAC_SHA1                       = 294,
+    SEC_OID_HMAC_SHA224                     = 295,
+    SEC_OID_HMAC_SHA256                     = 296,
+    SEC_OID_HMAC_SHA384                     = 297,
+    SEC_OID_HMAC_SHA512                     = 298,
 
     SEC_OID_TOTAL
 } SECOidTag;

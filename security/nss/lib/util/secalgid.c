@@ -120,7 +120,7 @@ SECOID_SetAlgorithmID(PRArenaPool *arena, SECAlgorithmID *id, SECOidTag which,
 	 */
 	PORT_Assert(!add_null_param || (params->len == 2
 					&& params->data[0] == SEC_ASN1_NULL
-					&& params->data[1] == 0));
+					&& params->data[1] == 0)); 
 	if (SECITEM_CopyItem(arena, &id->parameters, params)) {
 	    return SECFailure;
 	}

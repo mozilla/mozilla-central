@@ -64,6 +64,7 @@
 #include "secdert.h"
 #include "prsystem.h"
 #include "lgglue.h"
+#include "secerr.h"
 
 /*
  * private defines
@@ -85,10 +86,18 @@ struct SFTKDBHandleStr {
 #define SFTK_OBJ_ID_MASK (~SFTK_OBJ_TYPE_MASK)
 #define SFTK_TOKEN_TYPE 0x80000000
 
-static SECStatus sftkdb_decrypt(SECItem *passKey, SECItem *cipherText, 
+static SECStatus sftkdb_decryptAttribute(SECItem *passKey, SECItem *cipherText, 
                                 SECItem **plainText);
-static SECStatus sftkdb_encrypt(PLArenaPool *arena, SECItem *passKey, 
+static SECStatus sftkdb_encryptAttribute(PLArenaPool *arena, SECItem *passKey, 
                                 SECItem *plainText, SECItem **cipherText);
+static SECStatus sftkdb_signAttribute(PLArenaPool *arena, SECItem *passKey, 
+				CK_OBJECT_HANDLE objectID,
+				CK_ATTRIBUTE_TYPE attrType,
+                                SECItem *plainText, SECItem **sigText);
+static SECStatus sftkdb_verifyAttribute(SECItem *passKey,
+				CK_OBJECT_HANDLE objectID,
+				CK_ATTRIBUTE_TYPE attrType,
+				SECItem *plainText, SECItem *sigText);
 
 
 /*
@@ -104,7 +113,7 @@ static SECStatus sftkdb_encrypt(PLArenaPool *arena, SECItem *passKey,
 #define BBP 8
 
 static PRBool
-sftkdb_isULONG(CK_ATTRIBUTE_TYPE type) 
+sftkdb_isULONGAttribute(CK_ATTRIBUTE_TYPE type) 
 {
     switch(type) {
     case CKA_CLASS:
@@ -140,7 +149,7 @@ sftkdb_isULONG(CK_ATTRIBUTE_TYPE type)
 
 /* are the attributes private? */
 static PRBool
-sftkdb_isPrivate(CK_ATTRIBUTE_TYPE type) 
+sftkdb_isPrivateAttribute(CK_ATTRIBUTE_TYPE type) 
 {
     switch(type) {
     case CKA_VALUE:
@@ -157,6 +166,42 @@ sftkdb_isPrivate(CK_ATTRIBUTE_TYPE type)
     return PR_FALSE;
 }
 
+/* These attributes must be authenticated with an hmac. */
+static PRBool
+sftkdb_isAuthenticatedAttribute(CK_ATTRIBUTE_TYPE type) 
+{
+    switch(type) {
+    case CKA_MODULUS:
+    case CKA_PUBLIC_EXPONENT:
+    case CKA_CERT_SHA1_HASH:
+    case CKA_CERT_MD5_HASH:
+    case CKA_TRUST_SERVER_AUTH:
+    case CKA_TRUST_CLIENT_AUTH:
+    case CKA_TRUST_EMAIL_PROTECTION:
+    case CKA_TRUST_CODE_SIGNING:
+    case CKA_TRUST_STEP_UP_APPROVED:
+    case CKA_NSS_OVERRIDE_EXTENSIONS:
+	return PR_TRUE;
+    default:
+	break;
+    }
+    return PR_FALSE;
+}
+
+/*
+ * convert a native ULONG to a database ulong. Database ulong's
+ * are all 4 byte big endian values.
+ */
+static void
+sftk_uLong2DBULong(unsigned char *data, CK_ULONG value)
+{ 
+    int i;
+
+    for (i=0; i < DB_ULONG_SIZE; i++) {
+	data[i] = (value >> (DB_ULONG_SIZE-1-i)*BBP) & 0xff;
+    }
+}
+
 /*
  * fix up the input templates. Our fixed up ints are stored in data and must
  * be freed by the caller. The new template must also be freed. If there are no
@@ -166,7 +211,7 @@ static CK_ATTRIBUTE *
 sftkdb_fixupTemplateIn(const CK_ATTRIBUTE *template, int count, 
 			unsigned char **dataOut)
 {
-    int i,j;
+    int i;
     int ulongCount = 0;
     unsigned char *data;
     CK_ATTRIBUTE *ntemplate;
@@ -180,7 +225,7 @@ sftkdb_fixupTemplateIn(const CK_ATTRIBUTE *template, int count,
 	    continue;
 	}
 	if (template[i].ulValueLen == sizeof (CK_ULONG)) {
-	    if ( sftkdb_isULONG(template[i].type)) {
+	    if ( sftkdb_isULONGAttribute(template[i].type)) {
 		ulongCount++;
 	    }
 	}
@@ -211,11 +256,9 @@ sftkdb_fixupTemplateIn(const CK_ATTRIBUTE *template, int count,
 	    continue;
 	}
 	if (template[i].ulValueLen == sizeof (CK_ULONG)) {
-	    if ( sftkdb_isULONG(template[i].type) ) {
+	    if ( sftkdb_isULONGAttribute(template[i].type) ) {
 		CK_ULONG value = *(CK_ULONG *) template[i].pValue;
-		for (j=0; j < DB_ULONG_SIZE; j++) {
-		    data[j] = (value >> (DB_ULONG_SIZE-1-j)*BBP) & 0xff;
-		}
+		sftk_uLong2DBULong(data, value);
 		ntemplate[i].pValue = data;
 		ntemplate[i].ulValueLen = DB_ULONG_SIZE;
 		data += DB_ULONG_SIZE;
@@ -225,6 +268,66 @@ sftkdb_fixupTemplateIn(const CK_ATTRIBUTE *template, int count,
     return ntemplate;
 }
 
+#define GET_SDB(handle) ((handle)->update ? (handle)->update : (handle)->db)
+
+static const char SFTKDB_META_SIG_TEMPLATE[] = "sig_%s_%08x_%08x";
+
+/*
+ * Some attributes are signed with an Hmac and a pbe key generated from
+ * the password. This signature is stored indexed by object handle and
+ * attribute type in the meta data table in the key database.
+ *
+ * Signature entries are indexed by the string
+ * sig_[cert/key]_{ObjectID}_{Attribute}
+ *
+ * This function fetches that pkcs5 signature. Caller supplies a SECItem
+ * pre-allocated to the appropriate size if the SECItem is too small the
+ * function will fail with CKR_BUFFER_TOO_SMALL.
+ */
+static CK_RV
+sftkdb_getAttributeSignature(SFTKDBHandle *handle, SFTKDBHandle *keyHandle, 
+		CK_OBJECT_HANDLE objectID, CK_ATTRIBUTE_TYPE type,
+		SECItem *signText)
+{
+    SDB *db;
+    char id[30];
+    CK_RV crv;
+
+    db = GET_SDB(keyHandle);
+
+    sprintf(id, SFTKDB_META_SIG_TEMPLATE,
+	handle->type == SFTK_KEYDB_TYPE ? "key":"cert",
+	(unsigned int)objectID, (unsigned int)type);
+
+    crv = (*db->sdb_GetMetaData)(db, id, signText, NULL);
+    return crv;
+}
+
+/*
+ * Some attributes are signed with an Hmac and a pbe key generated from
+ * the password. This signature is stored indexed by object handle and
+ * attribute type in the meta data table in the key database.
+ *
+ * Signature entries are indexed by the string
+ * sig_[cert/key]_{ObjectID}_{Attribute}
+ *
+ * This function stores that pkcs5 signature.
+ */
+static CK_RV
+sftkdb_putAttributeSignature(SFTKDBHandle *handle, SDB *keyTarget, 
+		CK_OBJECT_HANDLE objectID, CK_ATTRIBUTE_TYPE type,
+		SECItem *signText)
+{
+    char id[30];
+    CK_RV crv;
+
+    sprintf(id, SFTKDB_META_SIG_TEMPLATE,
+	handle->type == SFTK_KEYDB_TYPE ? "key":"cert", 
+	(unsigned int)objectID, (unsigned int)type);
+
+    crv = (*keyTarget->sdb_PutMetaData)(keyTarget, id, signText, NULL);
+    return crv;
+}
 
 
 /*
@@ -232,18 +335,36 @@ sftkdb_fixupTemplateIn(const CK_ATTRIBUTE *template, int count,
  * separate data sections for the database ULONG values.
  */
 static CK_RV
-sftkdb_fixupTemplateOut(CK_ATTRIBUTE *template, CK_ATTRIBUTE *ntemplate, 
-		int count, SFTKDBHandle *handle)
+sftkdb_fixupTemplateOut(CK_ATTRIBUTE *template, CK_OBJECT_HANDLE objectID,
+		CK_ATTRIBUTE *ntemplate, int count, SFTKDBHandle *handle)
 {
     int i,j;
     CK_RV crv = CKR_OK;
+    SFTKDBHandle *keyHandle;
+    PRBool checkSig = PR_TRUE;
+    PRBool checkEnc = PR_TRUE;
+
+    PORT_Assert(handle);
+
+    /* find the key handle */
+    keyHandle = handle;
+    if (handle->type != SFTK_KEYDB_TYPE) {
+	checkEnc = PR_FALSE;
+	keyHandle = handle->peerDB;
+    }
+
+    if ((keyHandle == NULL) || 
+	((GET_SDB(keyHandle)->sdb_flags & SDB_HAS_META) == 0)  ||
+	(keyHandle->passwordKey.data == NULL)) {
+	checkSig = PR_FALSE;
+    }
 
     for (i=0; i < count; i++) {
 	CK_ULONG length = template[i].ulValueLen;
 	template[i].ulValueLen = ntemplate[i].ulValueLen;
 	/* fixup ulongs */
 	if (ntemplate[i].ulValueLen == DB_ULONG_SIZE) {
-	    if (sftkdb_isULONG(template[i].type)) {
+	    if (sftkdb_isULONGAttribute(template[i].type)) {
 		if (template[i].pValue) {
 		    CK_ULONG value = 0;
 		    unsigned char *data;
@@ -262,10 +383,15 @@ sftkdb_fixupTemplateOut(CK_ATTRIBUTE *template, CK_ATTRIBUTE *ntemplate,
 		template[i].ulValueLen = sizeof(CK_ULONG);
 	    }
 	}
+
+	/* if no data was retrieved, no need to process encrypted or signed
+	 * attributes */
+	if ((template[i].pValue == NULL) || (template[i].ulValueLen == -1)) {
+	    continue;
+	}
+
 	/* fixup private attributes */
-	if ((handle != NULL) && (handle->type == SFTK_KEYDB_TYPE) &&
-	  (template[i].pValue != NULL) &&  (template[i].ulValueLen != -1)
-	  && sftkdb_isPrivate(ntemplate[i].type)) {
+	if (checkEnc && sftkdb_isPrivateAttribute(ntemplate[i].type)) {
 	    /* we have a private attribute */
 	    /* This code depends on the fact that the cipherText is bigger
 	     * than the plain text */
@@ -282,7 +408,8 @@ sftkdb_fixupTemplateOut(CK_ATTRIBUTE *template, CK_ATTRIBUTE *ntemplate,
 		crv = CKR_USER_NOT_LOGGED_IN;
 		continue;
 	    }
-	    rv = sftkdb_decrypt(&handle->passwordKey, &cipherText, &plainText);
+	    rv = sftkdb_decryptAttribute(&handle->passwordKey, 
+					&cipherText, &plainText);
 	    PZ_Unlock(handle->passwordLock);
 	    if (rv != SECSuccess) {
 		PORT_Memset(template[i].pValue, 0, template[i].ulValueLen);
@@ -304,12 +431,154 @@ sftkdb_fixupTemplateOut(CK_ATTRIBUTE *template, CK_ATTRIBUTE *ntemplate,
 	    template[i].ulValueLen = plainText->len;
 	    SECITEM_FreeItem(plainText,PR_TRUE);
 	}
+	/* make sure signed attributes are valid */
+	if (checkSig && sftkdb_isAuthenticatedAttribute(ntemplate[i].type)) {
+	    SECStatus rv;
+	    SECItem signText;
+	    SECItem plainText;
+	    unsigned char signData[SDB_MAX_META_DATA_LEN];
+
+	    signText.data = signData;
+	    signText.len = sizeof(signData);
+
+	    rv = sftkdb_getAttributeSignature(handle, keyHandle, 
+				objectID, ntemplate[i].type, &signText);
+	    if (rv != SECSuccess) {
+		PORT_Memset(template[i].pValue, 0, template[i].ulValueLen);
+		template[i].ulValueLen = -1;
+		crv = CKR_DATA_INVALID; /* better error code? */
+		continue;
+	    }
+
+	    plainText.data = ntemplate[i].pValue;
+	    plainText.len = ntemplate[i].ulValueLen;
+
+	    /*
+	     * we do a second check holding the lock just in case the user
+	     * loggout while we were trying to get the signature.
+	     */
+    	    PZ_Lock(keyHandle->passwordLock);
+	    if (keyHandle->passwordKey.data == NULL) {
+		/* if we are no longer logged in, no use checking the other
+		 * Signatures either. */
+		checkSig = PR_FALSE; 
+		PZ_Unlock(keyHandle->passwordLock);
+		continue;
+	    }
+
+	    rv = sftkdb_verifyAttribute(&keyHandle->passwordKey, 
+				objectID, ntemplate[i].type,
+				&plainText, &signText);
+	    PZ_Unlock(keyHandle->passwordLock);
+	    if (rv != SECSuccess) {
+		PORT_Memset(template[i].pValue, 0, template[i].ulValueLen);
+		template[i].ulValueLen = -1;
+		crv = CKR_SIGNATURE_INVALID; /* better error code? */
+	    }
+	    /* This Attribute is fine */
+	}
     }
     return crv;
 }
 
+/*
+ * Some attributes are signed with an HMAC and a pbe key generated from
+ * the password. This signature is stored indexed by object handle and
+ *
+ * Those attributes are:
+ * 1) Trust object hashes and trust values.
+ * 2) public key values.
+ *
+ * Certs themselves are considered properly authenticated by virtue of their
+ * signature, or their matching hash with the trust object.
+ *
+ * These signature is only checked for objects coming from shared databases. 
+ * Older dbm style databases have such no signature checks. HMACs are also 
+ * only checked when the token is logged in, as it requires a pbe generated 
+ * from the password.
+ *
+ * Tokens which have no key database (and therefore no master password) do not
+ * have any stored signature values. Signature values are stored in the key
+ * database, since the signature data is tightly coupled to the key database
+ * password. 
+ *
+ * This function takes a template of attributes that were either created or
+ * modified. These attributes are checked to see if the need to be signed.
+ * If they do, then this function signs the attributes and writes them
+ * to the meta data store.
+ *
+ * This function can fail if there are attributes that must be signed, but
+ * the token is not logged in.
+ *
+ * The caller is expected to abort any transaction he was in in the
+ * event of a failure of this function.
+ */
 static CK_RV
-sftkdb_CreateObject(SFTKDBHandle *handle, SDB *db, CK_OBJECT_HANDLE *objectID,
+sftk_signTemplate(PLArenaPool *arena, SFTKDBHandle *handle, 
+		  PRBool mayBeUpdateDB,
+		  CK_OBJECT_HANDLE objectID, CK_ATTRIBUTE *template,
+		  CK_ULONG count)
+{
+    int i;
+    SFTKDBHandle *keyHandle = handle;
+    SDB *keyTarget = NULL;
+
+    PORT_Assert(handle);
+
+    if (handle->type != SFTK_KEYDB_TYPE) {
+	keyHandle = handle->peerDB;
+    }
+
+    /* no key DB defined? then no need to sign anything */
+    if (keyHandle == NULL) {
+	return CKR_OK;
+    }
+
+    /* When we are in a middle of an update, we have an update database set, 
+     * but we want to write to the real database. The bool mayBeUpdateDB is
+     * set to TRUE if it's possible that we want to write an update database
+     * rather than a primary */
+    keyTarget = (mayBeUpdateDB && keyHandle->update) ? 
+		keyHandle->update : keyHandle->db;
+
+    /* skip the the database does not support meta data */
+    if ((keyTarget->sdb_flags & SDB_HAS_META) == 0) {
+	return CKR_OK;
+    }
+
+    for (i=0; i < count; i ++) {
+	if (sftkdb_isAuthenticatedAttribute(template[i].type)) {
+	    SECStatus rv;
+	    SECItem *signText;
+	    SECItem plainText;
+
+	    plainText.data = template[i].pValue;
+	    plainText.len = template[i].ulValueLen;
+	    PZ_Lock(keyHandle->passwordLock);
+	    if (keyHandle->passwordKey.data == NULL) {
+		PZ_Unlock(keyHandle->passwordLock);
+		return CKR_USER_NOT_LOGGED_IN;
+	    }
+	    rv = sftkdb_signAttribute(arena, &keyHandle->passwordKey, 
+				objectID, template[i].type,
+				&plainText, &signText);
+	    PZ_Unlock(keyHandle->passwordLock);
+	    if (rv != SECSuccess) {
+		return CKR_GENERAL_ERROR; /* better error code here? */
+	    }
+	    rv = sftkdb_putAttributeSignature(handle, keyTarget, 
+				objectID, template[i].type, signText);
+	    if (rv != SECSuccess) {
+		return CKR_GENERAL_ERROR; /* better error code here? */
+	    }
+	}
+    }
+    return CKR_OK;
+}
+
+static CK_RV
+sftkdb_CreateObject(PRArenaPool *arena, SFTKDBHandle *handle, 
+	SDB *db, CK_OBJECT_HANDLE *objectID,
         CK_ATTRIBUTE *template, CK_ULONG count)
 {
     PRBool inTransaction = PR_FALSE;
@@ -321,6 +590,11 @@ sftkdb_CreateObject(SFTKDBHandle *handle, SDB *db, CK_OBJECT_HANDLE *objectID,
     }
     inTransaction = PR_TRUE;
     crv = (*db->sdb_CreateObject)(db, objectID, template, count);
+    if (crv != CKR_OK) {
+	goto loser;
+    }
+    crv = sftk_signTemplate(arena, handle, (db == handle->update),
+					*objectID, template, count);
     if (crv != CKR_OK) {
 	goto loser;
     }
@@ -339,6 +613,7 @@ loser:
     return crv;
 }
 
+
 CK_ATTRIBUTE * 
 sftk_ExtractTemplate(PLArenaPool *arena, SFTKObject *object, 
 		     SFTKDBHandle *handle,CK_ULONG *pcount, 
@@ -348,12 +623,19 @@ sftk_ExtractTemplate(PLArenaPool *arena, SFTKObject *object,
     CK_ATTRIBUTE *template;
     int i, templateIndex;
     SFTKSessionObject *sessObject = sftk_narrowToSessionObject(object);
+    PRBool doEnc = PR_TRUE;
 
     *crv = CKR_OK;
 
     if (sessObject == NULL) {
 	*crv = CKR_GENERAL_ERROR; /* internal programming error */
 	return NULL;
+    }
+
+    PORT_Assert(handle);
+    /* find the key handle */
+    if (handle->type != SFTK_KEYDB_TYPE) {
+	doEnc = PR_FALSE;
     }
 
     PZ_Lock(sessObject->attributeLock);
@@ -380,7 +662,7 @@ sftk_ExtractTemplate(PLArenaPool *arena, SFTKObject *object,
 
 	    /* fixup  ULONG s */
 	    if ((tp->ulValueLen == sizeof (CK_ULONG)) &&
-		(sftkdb_isULONG(tp->type)) ) {
+		(sftkdb_isULONGAttribute(tp->type)) ) {
 		CK_ULONG value = *(CK_ULONG *) tp->pValue;
 		unsigned char *data;
 		int j;
@@ -398,8 +680,7 @@ sftk_ExtractTemplate(PLArenaPool *arena, SFTKObject *object,
 	    }
 
 	    /* encrypt private attributes */
-	    if ((handle != NULL) && (handle->type == SFTK_KEYDB_TYPE) &&
-	         sftkdb_isPrivate(tp->type)) {
+	    if (doEnc && sftkdb_isPrivateAttribute(tp->type)) {
 
 		/* we have a private attribute */
 		SECItem *cipherText;
@@ -414,8 +695,8 @@ sftk_ExtractTemplate(PLArenaPool *arena, SFTKObject *object,
 		    *crv = CKR_USER_NOT_LOGGED_IN;
 		    break;
 		}
-		rv = sftkdb_encrypt(arena, &handle->passwordKey, &plainText, 
-				    &cipherText);
+		rv = sftkdb_encryptAttribute(arena, &handle->passwordKey, 
+						&plainText, &cipherText);
 		PZ_Unlock(handle->passwordLock);
 		if (rv == SECSuccess) {
 		    tp->pValue = cipherText->data;
@@ -440,8 +721,6 @@ sftk_ExtractTemplate(PLArenaPool *arena, SFTKObject *object,
     return template;
 
 }
-
-#define GET_SDB(handle) ((handle)->update ? (handle)->update : (handle)->db)
 
 CK_RV
 sftkdb_write(SFTKDBHandle *handle, SFTKObject *object, 
@@ -470,7 +749,7 @@ sftkdb_write(SFTKDBHandle *handle, SFTKObject *object,
 	goto loser;
     }
 
-    crv = sftkdb_CreateObject(handle, db, objectID, template, count);
+    crv = sftkdb_CreateObject(arena, handle, db, objectID, template, count);
 
 loser:
     if (arena) {
@@ -550,7 +829,7 @@ CK_RV sftkdb_FindObjectsFinal(SFTKDBHandle *handle, SDBFind *find)
 }
 
 CK_RV
-sftkdb_GetAttributeValue(SFTKDBHandle *handle, CK_OBJECT_HANDLE object_id,
+sftkdb_GetAttributeValue(SFTKDBHandle *handle, CK_OBJECT_HANDLE objectID,
                                 CK_ATTRIBUTE *template, CK_ULONG count)
 {
     CK_RV crv,crv2;
@@ -600,10 +879,11 @@ sftkdb_GetAttributeValue(SFTKDBHandle *handle, CK_OBJECT_HANDLE object_id,
     if (ntemplate == NULL) {
 	return CKR_HOST_MEMORY;
     }
-    object_id &= SFTK_OBJ_ID_MASK;
-    crv = (*db->sdb_GetAttributeValue)(db, object_id, 
+    objectID &= SFTK_OBJ_ID_MASK;
+    crv = (*db->sdb_GetAttributeValue)(db, objectID, 
 						ntemplate, count);
-    crv2 = sftkdb_fixupTemplateOut(template, ntemplate, count, handle);
+    crv2 = sftkdb_fixupTemplateOut(template, objectID, ntemplate, 
+						count, handle);
     if (crv == CKR_OK) crv = crv2;
     if (data) {
 	PORT_Free(ntemplate);
@@ -614,12 +894,13 @@ sftkdb_GetAttributeValue(SFTKDBHandle *handle, CK_OBJECT_HANDLE object_id,
 }
 
 CK_RV
-sftkdb_SetAttributeValue(SFTKDBHandle *handle, CK_OBJECT_HANDLE object_id,
+sftkdb_SetAttributeValue(SFTKDBHandle *handle, CK_OBJECT_HANDLE objectID,
                                 const CK_ATTRIBUTE *template, CK_ULONG count)
 {
     CK_RV crv = CKR_OK;
     CK_ATTRIBUTE *ntemplate;
     unsigned char *data = NULL;
+    PLArenaPool *arena = NULL;
     SDB *db;
 
     if (handle == NULL) {
@@ -631,17 +912,27 @@ sftkdb_SetAttributeValue(SFTKDBHandle *handle, CK_OBJECT_HANDLE object_id,
     if (count == 0) {
 	return CKR_OK;
     }
+
     ntemplate = sftkdb_fixupTemplateIn(template, count, &data);
     if (ntemplate == NULL) {
 	return CKR_HOST_MEMORY;
     }
-    object_id &= SFTK_OBJ_ID_MASK;
+
+    arena = PORT_NewArena(256);
+    if (arena ==  NULL) {
+	return CKR_HOST_MEMORY;
+    }
+
+    objectID &= SFTK_OBJ_ID_MASK;
     crv = (*db->sdb_Begin)(db);
     if (crv != CKR_OK) {
 	goto loser;
     }
-    crv = (*db->sdb_SetAttributeValue)(db, object_id, 
-						ntemplate, count);
+    crv = (*db->sdb_SetAttributeValue)(db, objectID, ntemplate, count);
+    if (crv != CKR_OK) {
+	goto loser;
+    }
+    crv = sftk_signTemplate(arena, handle, PR_TRUE, objectID, ntemplate, count);
     if (crv != CKR_OK) {
 	goto loser;
     }
@@ -654,11 +945,12 @@ loser:
 	PORT_Free(ntemplate);
 	PORT_Free(data);
     }
+    PORT_FreeArena(arena, PR_FALSE);
     return crv;
 }
 
 CK_RV
-sftkdb_DestroyObject(SFTKDBHandle *handle, CK_OBJECT_HANDLE object_id)
+sftkdb_DestroyObject(SFTKDBHandle *handle, CK_OBJECT_HANDLE objectID)
 {
     CK_RV crv = CKR_OK;
     SDB *db;
@@ -667,12 +959,12 @@ sftkdb_DestroyObject(SFTKDBHandle *handle, CK_OBJECT_HANDLE object_id)
 	return CKR_TOKEN_WRITE_PROTECTED;
     }
     db = GET_SDB(handle);
-    object_id &= SFTK_OBJ_ID_MASK;
+    objectID &= SFTK_OBJ_ID_MASK;
     crv = (*db->sdb_Begin)(db);
     if (crv != CKR_OK) {
 	goto loser;
     }
-    crv = (*db->sdb_DestroyObject)(db, object_id);
+    crv = (*db->sdb_DestroyObject)(db, objectID);
     if (crv != CKR_OK) {
 	goto loser;
     }
@@ -1432,7 +1724,7 @@ loser:
  * value will be based to a pkcs5 pbe function before it is used
  * in an actual encryption */
 static SECStatus
-sftkdb_passwordToKey(SFTKDBHandle *keydb, SDBPasswordEntry *entry, 
+sftkdb_passwordToKey(SFTKDBHandle *keydb, SECItem *salt,
 			const char *pw, SECItem *key)
 {
     SHA1Context *cx = NULL;
@@ -1449,8 +1741,8 @@ sftkdb_passwordToKey(SFTKDBHandle *keydb, SDBPasswordEntry *entry,
 	goto loser;
     }
     SHA1_Begin(cx);
-    if (entry  && entry->salt.data ) {
-	SHA1_Update(cx, entry->salt.data, entry->salt.len);
+    if (salt  && salt->data ) {
+	SHA1_Update(cx, salt->data, salt->len);
     }
     SHA1_Update(cx, (unsigned char *)pw, PORT_Strlen(pw));
     SHA1_End(cx, key->data, &key->len, key->len);
@@ -1621,7 +1913,7 @@ loser:
  * with SECITEM_FreeItem by the caller.
  */
 static SECStatus
-sftkdb_decrypt(SECItem *passKey, SECItem *cipherText, SECItem **plain) 
+sftkdb_decryptAttribute(SECItem *passKey, SECItem *cipherText, SECItem **plain) 
 {
     SECStatus rv;
     sftkCipherValue cipherValue;
@@ -1658,8 +1950,8 @@ loser:
  * salt automatically.
  */
 static SECStatus
-sftkdb_encrypt(PLArenaPool *arena, SECItem *passKey, SECItem *plainText, 
-	       SECItem **cipherText) 
+sftkdb_encryptAttribute(PLArenaPool *arena, SECItem *passKey, 
+		SECItem *plainText, SECItem **cipherText) 
 {
     SECStatus rv;
     sftkCipherValue cipherValue;
@@ -1700,6 +1992,188 @@ loser:
     return rv;
 }
 
+/*
+ * use the password and the pbe parameters to generate an HMAC for the
+ * given plain text data. This is used by sftkdb_verifyAttribute and
+ * sftkdb_signAttribute. Signature is returned in signData. The caller
+ * must preallocate the space in the secitem.
+ */
+static SECStatus
+sftkdb_pbehash(SECOidTag sigOid, SECItem *passKey, 
+	       NSSPKCS5PBEParameter *param,
+	       CK_OBJECT_HANDLE objectID, CK_ATTRIBUTE_TYPE attrType,
+	       SECItem *plainText, SECItem *signData)
+{
+    SECStatus rv = SECFailure;
+    SECItem *key = NULL;
+    HMACContext *hashCx = NULL;
+    HASH_HashType hashType	= HASH_AlgNULL;
+    const SECHashObject *hashObj;
+    unsigned char addressData[DB_ULONG_SIZE];
+
+    hashType = HASH_FromHMACOid(param->encAlg);
+    if (hashType == HASH_AlgNULL) {
+	PORT_SetError(SEC_ERROR_INVALID_ALGORITHM);
+	return SECFailure;
+    }
+
+    hashObj = HASH_GetRawHashObject(hashType);
+    if (hashObj == NULL) {
+	goto loser;
+    }
+
+    key = nsspkcs5_ComputeKeyAndIV(param, passKey, NULL, PR_FALSE);
+    if (!key) {
+	goto loser;
+    }
+
+    hashCx = HMAC_Create(hashObj, key->data, key->len, PR_TRUE);
+    if (!hashCx) {
+	goto loser;
+    }
+    HMAC_Begin(hashCx);
+    /* Tie this value to a particular object. This is most important for
+     * the trust attributes, where and attacker could copy a value for
+     * 'validCA' from another cert in the database */
+    sftk_uLong2DBULong(addressData, objectID);
+    HMAC_Update(hashCx, addressData, DB_ULONG_SIZE);
+    sftk_uLong2DBULong(addressData, attrType);
+    HMAC_Update(hashCx, addressData, DB_ULONG_SIZE);
+
+    HMAC_Update(hashCx, plainText->data, plainText->len);
+    rv = HMAC_Finish(hashCx, signData->data, &signData->len, signData->len);
+
+loser:
+    if (hashCx) {
+	HMAC_Destroy(hashCx, PR_TRUE);
+    }
+    if (key) {
+	SECITEM_FreeItem(key,PR_TRUE);
+    }
+    return rv;
+}
+
+/*
+ * Use our key to verify a signText block from the database matches
+ * the plainText from the database. The signText is a PKCS 5 v2 pbe.
+ * plainText is the plainText of the attribute.
+ */
+static SECStatus
+sftkdb_verifyAttribute(SECItem *passKey, CK_OBJECT_HANDLE objectID, 
+	     CK_ATTRIBUTE_TYPE attrType, 
+	     SECItem *plainText, SECItem *signText) 
+{
+    SECStatus rv;
+    sftkCipherValue signValue;
+    SECItem signature;
+    unsigned char signData[HASH_LENGTH_MAX];
+    
+
+    /* First get the cipher type */
+    rv = sftkdb_decodeCipherText(signText, &signValue);
+    if (rv != SECSuccess) {
+	goto loser;
+    }
+    signature.data = signData;
+    signature.len = sizeof(signData);
+
+    rv = sftkdb_pbehash(signValue.alg, passKey, signValue.param, 
+			objectID, attrType, plainText, &signature);
+    if (rv != SECSuccess) {
+	goto loser;
+    }
+    if (SECITEM_CompareItem(&signValue.value,&signature) != 0) {
+	PORT_SetError(SEC_ERROR_BAD_SIGNATURE);
+	rv = SECFailure;
+    }
+
+loser:
+    if (signValue.param) {
+	nsspkcs5_DestroyPBEParameter(signValue.param);
+    }
+    if (signValue.arena) {
+	PORT_FreeArena(signValue.arena,PR_FALSE);
+    }
+    return rv;
+}
+
+/*
+ * Use our key to create a signText block the plain text of an
+ * attribute. The signText is a PKCS 5 v2 pbe.
+ */
+static SECStatus
+sftkdb_signAttribute(PLArenaPool *arena, SECItem *passKey, 
+	 CK_OBJECT_HANDLE objectID, CK_ATTRIBUTE_TYPE attrType, 
+	 SECItem *plainText, SECItem **signature) 
+{
+    SECStatus rv;
+    sftkCipherValue signValue;
+    NSSPKCS5PBEParameter *param = NULL;
+    unsigned char saltData[HASH_LENGTH_MAX];
+    unsigned char signData[HASH_LENGTH_MAX];
+    SECOidTag hmacAlg = SEC_OID_HMAC_SHA256; /* hash for authentication */
+    SECOidTag prfAlg = SEC_OID_HMAC_SHA256;  /* hash for pb key generation */
+    HASH_HashType prfType;
+    unsigned int hmacLength;
+    unsigned int prfLength;
+
+    /* this code allows us to fetch the lengths and hashes on the fly
+     * by simply changing the OID above */
+    prfType = HASH_FromHMACOid(prfAlg);
+    PORT_Assert(prfType != HASH_AlgNULL);
+    prfLength = HASH_GetRawHashObject(prfType)->length;
+    PORT_Assert(prfLength <= HASH_LENGTH_MAX);
+
+    hmacLength = HASH_GetRawHashObject(HASH_FromHMACOid(hmacAlg))->length;
+    PORT_Assert(hmacLength <= HASH_LENGTH_MAX);
+
+    /* initialize our CipherValue structure */
+    signValue.alg = SEC_OID_PKCS5_PBMAC1;
+    signValue.salt.len = prfLength;
+    signValue.salt.data = saltData;
+    signValue.value.data = signData;
+    signValue.value.len = hmacLength;
+    RNG_GenerateGlobalRandomBytes(saltData,prfLength);
+
+    /* initialize our pkcs5 paramter */
+    param = nsspkcs5_NewParam(signValue.alg, &signValue.salt, 1);
+    if (param == NULL) {
+	rv = SECFailure;
+	goto loser;
+    }
+    param->keyID = pbeBitGenIntegrityKey;
+    /* set the PKCS 5 v2 parameters, not extractable from the
+     * data passed into nsspkcs5_NewParam */
+    param->encAlg = hmacAlg;
+    param->hashType = prfType;
+    param->keyLen = hmacLength;
+    rv = SECOID_SetAlgorithmID(param->poolp, &param->prfAlg, prfAlg, NULL);
+    if (rv != SECSuccess) {
+	goto loser;
+    }
+
+
+    /* calculate the mac */
+    rv = sftkdb_pbehash(signValue.alg, passKey, param, objectID, attrType,
+			plainText, &signValue.value);
+    if (rv != SECSuccess) {
+	goto loser;
+    }
+    signValue.param = param;
+
+    /* write it out */
+    rv = sftkdb_encodeCipherText(arena, &signValue, signature);
+    if (rv != SECSuccess) {
+	goto loser;
+    }
+
+loser:
+    if (param) {
+	nsspkcs5_DestroyPBEParameter(param);
+    }
+    return rv;
+}
+
 
 /*
  * stub files for legacy db's to be able to encrypt and decrypt
@@ -1733,7 +2207,7 @@ sftkdb_encrypt_stub(PRArenaPool *arena, SDB *sdb, SECItem *plainText,
 	return SECFailure;
     }
 
-    rv = sftkdb_encrypt(arena, 
+    rv = sftkdb_encryptAttribute(arena, 
 	handle->newKey?handle->newKey:&handle->passwordKey, 
 	plainText, cipherText);
     PZ_Unlock(handle->passwordLock);
@@ -1771,7 +2245,7 @@ sftkdb_decrypt_stub(SDB *sdb, SECItem *cipherText, SECItem **plainText)
 	/* PORT_SetError */
 	return SECFailure;
     }
-    rv = sftkdb_decrypt(&handle->passwordKey, cipherText, plainText);
+    rv = sftkdb_decryptAttribute(&handle->passwordKey, cipherText, plainText);
     PZ_Unlock(handle->passwordLock);
 
     return rv;
@@ -1781,8 +2255,8 @@ sftkdb_decrypt_stub(SDB *sdb, SECItem *cipherText, SECItem **plainText)
  * safely swith the passed in key for the one caches in the keydb handle
  * 
  * A key attached to the handle tells us the the token is logged in.
- * We can used the key attached to the handle in sftkdb_encrypt 
- *  and sftkdb_decrypt calls.
+ * We can used the key attached to the handle in sftkdb_encryptAttribute 
+ *  and sftkdb_decryptAttribute calls.
  */  
 static void 
 sftkdb_switchKeys(SFTKDBHandle *keydb, SECItem *passKey)
@@ -1831,11 +2305,11 @@ static const CK_ATTRIBUTE_TYPE known_attributes[] = {
     CKA_CHAR_COLUMNS, CKA_COLOR, CKA_BITS_PER_PIXEL, CKA_CHAR_SETS,
     CKA_ENCODING_METHODS, CKA_MIME_TYPES, CKA_MECHANISM_TYPE,
     CKA_REQUIRED_CMS_ATTRIBUTES, CKA_DEFAULT_CMS_ATTRIBUTES,
-    CKA_SUPPORTED_CMS_ATTRIBUTES, CKA_NETSCAPE_URL, CKA_NETSCAPE_EMAIL,
-    CKA_NETSCAPE_SMIME_INFO, CKA_NETSCAPE_SMIME_TIMESTAMP,
-    CKA_NETSCAPE_PKCS8_SALT, CKA_NETSCAPE_PASSWORD_CHECK, CKA_NETSCAPE_EXPIRES,
-    CKA_NETSCAPE_KRL, CKA_NETSCAPE_PQG_COUNTER, CKA_NETSCAPE_PQG_SEED,
-    CKA_NETSCAPE_PQG_H, CKA_NETSCAPE_PQG_SEED_BITS, CKA_NETSCAPE_MODULE_SPEC,
+    CKA_SUPPORTED_CMS_ATTRIBUTES, CKA_NSS_URL, CKA_NSS_EMAIL,
+    CKA_NSS_SMIME_INFO, CKA_NSS_SMIME_TIMESTAMP,
+    CKA_NSS_PKCS8_SALT, CKA_NSS_PASSWORD_CHECK, CKA_NSS_EXPIRES,
+    CKA_NSS_KRL, CKA_NSS_PQG_COUNTER, CKA_NSS_PQG_SEED,
+    CKA_NSS_PQG_H, CKA_NSS_PQG_SEED_BITS, CKA_NSS_MODULE_SPEC,
     CKA_TRUST_DIGITAL_SIGNATURE, CKA_TRUST_NON_REPUDIATION,
     CKA_TRUST_KEY_ENCIPHERMENT, CKA_TRUST_DATA_ENCIPHERMENT,
     CKA_TRUST_KEY_AGREEMENT, CKA_TRUST_KEY_CERT_SIGN, CKA_TRUST_CRL_SIGN,
@@ -1919,12 +2393,18 @@ sftkdb_copyObject(SFTKDBHandle *handle, CK_OBJECT_HANDLE id, SECItem *key)
     SDB *target = handle->db;
     int i;
     CK_RV crv;
+    PLArenaPool *arena = NULL;
+
+    arena = PORT_NewArena(256);
+    if (arena ==  NULL) {
+	return CKR_HOST_MEMORY;
+    }
 
     ptemplate = &template[0];
     id &= SFTK_OBJ_ID_MASK;
     crv = sftkdb_GetObjectTemplate(source, id, ptemplate, &max_attributes);
     if (crv == CKR_BUFFER_TOO_SMALL) {
-	ptemplate = PORT_NewArray(CK_ATTRIBUTE, max_attributes);
+	ptemplate = PORT_ArenaNewArray(arena, CK_ATTRIBUTE, max_attributes);
 	if (ptemplate == NULL) {
 	    crv = CKR_HOST_MEMORY;
 	} else {
@@ -1937,7 +2417,7 @@ sftkdb_copyObject(SFTKDBHandle *handle, CK_OBJECT_HANDLE id, SECItem *key)
     }
 
     for (i=0; i < max_attributes; i++) {
-	ptemplate[i].pValue = PORT_Alloc(ptemplate[i].ulValueLen);
+	ptemplate[i].pValue = PORT_ArenaAlloc(arena,ptemplate[i].ulValueLen);
 	if (ptemplate[i].pValue == NULL) {
 	    crv = CKR_HOST_MEMORY;
 	    goto loser;
@@ -1949,22 +2429,12 @@ sftkdb_copyObject(SFTKDBHandle *handle, CK_OBJECT_HANDLE id, SECItem *key)
 	goto loser;
     }
 
-    crv = sftkdb_CreateObject(handle, target, &id, ptemplate, max_attributes);
-    if (ptemplate && ptemplate != template) {
-	PORT_Free(ptemplate);
-    }
+    crv = sftkdb_CreateObject(arena, handle, target, &id, 
+				ptemplate, max_attributes);
 
 loser:
-    if (ptemplate) {
-	for (i=0; i < max_attributes; i++) {
-	    if (ptemplate[i].pValue) {
-		PORT_Memset(ptemplate[i].pValue, 0, ptemplate[i].ulValueLen);
-		PORT_Free(ptemplate[i].pValue);
-	    }
-	}
-	if (ptemplate != template) {
-	    PORT_Free(ptemplate);
-	}
+    if (arena) {
+	PORT_FreeArena(arena,PR_TRUE);
     }
     return crv;
 }
@@ -2009,17 +2479,24 @@ sftkdb_update(SFTKDBHandle *handle, SECItem *key)
 loser:
     /* update Meta data - even if we didn't update objects */
     if (handle->type == SFTK_KEYDB_TYPE) {
-	SDBPasswordEntry entry;
+	SECItem item1, item2;
+	unsigned char data1[SDB_MAX_META_DATA_LEN];
+	unsigned char data2[SDB_MAX_META_DATA_LEN];
+
 	crv = (*handle->db->sdb_Begin)(handle->db);
 	if (crv != CKR_OK) {
 	    goto loser2;
 	}
 	inTransaction = PR_TRUE;
-	crv = (*handle->update->sdb_GetPWEntry)(handle->update, & entry);
+	item1.data = data1;
+	item2.data = data2;
+	crv = (*handle->update->sdb_GetMetaData)(handle->update, "password",
+			&item1, &item2);
 	if (crv != CKR_OK) {
 	    goto loser2;
 	}
-	crv = (*handle->db->sdb_PutPWEntry)(handle->db, &entry);
+	crv = (*handle->db->sdb_PutMetaData)(handle->db, "password", &item1,
+						&item2);
 	if (crv != CKR_OK) {
 	    goto loser2;
 	}
@@ -2045,7 +2522,9 @@ loser2:
 SECStatus 
 sftkdb_HasPasswordSet(SFTKDBHandle *keydb)
 {
-    SDBPasswordEntry entry;
+    SECItem item1, item2;
+    unsigned char data1[SDB_MAX_META_DATA_LEN];
+    unsigned char data2[SDB_MAX_META_DATA_LEN];
     CK_RV crv;
     SDB *db;
 
@@ -2058,7 +2537,9 @@ sftkdb_HasPasswordSet(SFTKDBHandle *keydb)
 	return SECFailure;
     }
 
-    crv = (*db->sdb_GetPWEntry)(db, &entry);
+    item1.data = data1;
+    item2.data = data2;
+    crv = (*db->sdb_GetMetaData)(db, "password", &item1, &item2);
     return (crv == CKR_OK) ? SECSuccess : SECFailure;
 }
 
@@ -2072,7 +2553,9 @@ SECStatus
 sftkdb_CheckPassword(SFTKDBHandle *keydb, const char *pw)
 {
     SECStatus rv;
-    SDBPasswordEntry entry;
+    SECItem salt, value;
+    unsigned char data1[SDB_MAX_META_DATA_LEN];
+    unsigned char data2[SDB_MAX_META_DATA_LEN];
     SECItem key;
     SECItem *result = NULL;
     SDB *db;
@@ -2093,20 +2576,22 @@ sftkdb_CheckPassword(SFTKDBHandle *keydb, const char *pw)
     if (pw == NULL) pw="";
 
     /* get the entry from the database */
-    crv = (*db->sdb_GetPWEntry)(db, &entry);
+    salt.data = data1;
+    value.data = data2;
+    crv = (*db->sdb_GetMetaData)(db, "password", &salt, &value);
     if (crv != CKR_OK) {
 	rv = SECFailure;
 	goto loser;
     }
 
     /* get our intermediate key based on the entry salt value */
-    rv = sftkdb_passwordToKey(keydb, &entry, pw, &key);
+    rv = sftkdb_passwordToKey(keydb, &salt, pw, &key);
     if (rv != SECSuccess) {
 	goto loser;
     }
 
     /* decrypt the entry value */
-    rv = sftkdb_decrypt(&key, &entry.value, &result);
+    rv = sftkdb_decryptAttribute(&key, &value, &result);
     if (rv != SECSuccess) {
 	goto loser;
     }
@@ -2247,7 +2732,7 @@ sftk_convertPrivateAttributes(SFTKDBHandle *keydb, CK_OBJECT_HANDLE id,
 
 	plainText.data = first[i].pValue;
 	plainText.len = first[i].ulValueLen;
-    	rv = sftkdb_encrypt(arena, newKey, &plainText, &result);
+    	rv = sftkdb_encryptAttribute(arena, newKey, &plainText, &result);
 	if (rv != SECSuccess) {
 	   goto loser;
 	}
@@ -2332,7 +2817,9 @@ sftkdb_ChangePassword(SFTKDBHandle *keydb, char *oldPin, char *newPin)
     SECItem plainText;
     SECItem newKey;
     SECItem *result = NULL;
-    SDBPasswordEntry entry;
+    SECItem salt, value;
+    unsigned char data1[SDB_MAX_META_DATA_LEN];
+    unsigned char data2[SDB_MAX_META_DATA_LEN];
     CK_RV crv;
     SDB *db;
 
@@ -2353,19 +2840,20 @@ sftkdb_ChangePassword(SFTKDBHandle *keydb, char *oldPin, char *newPin)
 	rv = SECFailure;
 	goto loser;
     }
-    crv = (*db->sdb_GetPWEntry)(db, &entry);
+    salt.data = data1;
+    value.data = data2;
+    crv = (*db->sdb_GetMetaData)(db, "password", &salt, &value);
     if (crv == CKR_OK) {
 	rv = sftkdb_CheckPassword(keydb, oldPin);
 	if (rv == SECFailure) {
 	    goto loser;
 	}
     } else {
-	entry.salt.data = entry.data;
-	entry.salt.len = SALT_LENGTH;
-    	RNG_GenerateGlobalRandomBytes(entry.data,entry.salt.len);
+	salt.len = SALT_LENGTH;
+    	RNG_GenerateGlobalRandomBytes(salt.data,salt.len);
     }
 
-    rv = sftkdb_passwordToKey(keydb, &entry, newPin, &newKey);
+    rv = sftkdb_passwordToKey(keydb, &salt, newPin, &newKey);
     if (rv != SECSuccess) {
 	goto loser;
     }
@@ -2383,13 +2871,13 @@ sftkdb_ChangePassword(SFTKDBHandle *keydb, char *oldPin, char *newPin)
     plainText.data = (unsigned char *)SFTK_PW_CHECK_STRING;
     plainText.len = SFTK_PW_CHECK_LEN;
 
-    rv = sftkdb_encrypt(NULL, &newKey, &plainText, &result);
+    rv = sftkdb_encryptAttribute(NULL, &newKey, &plainText, &result);
     if (rv != SECSuccess) {
 	goto loser;
     }
-    entry.value.data = result->data;
-    entry.value.len = result->len;
-    crv = (*keydb->db->sdb_PutPWEntry)(keydb->db, &entry);
+    value.data = result->data;
+    value.len = result->len;
+    crv = (*keydb->db->sdb_PutMetaData)(keydb->db, "password", &salt, &value);
     if (crv != CKR_OK) {
 	rv = SECFailure;
 	goto loser;

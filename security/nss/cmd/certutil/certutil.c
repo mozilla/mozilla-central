@@ -206,8 +206,20 @@ AddCert(PK11SlotInfo *slot, CERTCertDBHandle *handle, char *name, char *trusts,
 
 	rv = CERT_ChangeCertTrust(handle, cert, trust);
 	if (rv != SECSuccess) {
-	    SECU_PrintError(progName, "could not change trust on certificate");
-	    GEN_BREAK(SECFailure);
+	    if (PORT_GetError() == SEC_ERROR_TOKEN_NOT_LOGGED_IN) {
+		rv = PK11_Authenticate(slot, PR_TRUE, pwdata);
+		if (rv != SECSuccess) {
+		    SECU_PrintError(progName, 
+			"could not authenticate to token or database");
+		    GEN_BREAK(SECFailure);
+		}
+		rv = CERT_ChangeCertTrust(handle, cert, trust);
+	    }
+	    if (rv != SECSuccess) {
+		SECU_PrintError(progName, 
+			"could not change trust on certificate");
+		GEN_BREAK(SECFailure);
+	    }
 	}
 
 	if ( emailcert ) {
@@ -363,7 +375,8 @@ CertReq(SECKEYPrivateKey *privk, SECKEYPublicKey *pubk, KeyType keyType,
 }
 
 static SECStatus 
-ChangeTrustAttributes(CERTCertDBHandle *handle, char *name, char *trusts)
+ChangeTrustAttributes(CERTCertDBHandle *handle, PK11SlotInfo *slot,
+			char *name, char *trusts, void *pwdata)
 {
     SECStatus rv;
     CERTCertificate *cert;
@@ -389,10 +402,25 @@ ChangeTrustAttributes(CERTCertDBHandle *handle, char *name, char *trusts)
 	return SECFailure;
     }
 
+    /* CERT_ChangeCertTrust API does not have a way to pass in
+     * a context, so NSS can't prompt for the password if it needs to.
+     * check to see if the failure was token not logged in and 
+     * log in if need be. */
     rv = CERT_ChangeCertTrust(handle, cert, trust);
-    if (rv) {
-	SECU_PrintError(progName, "unable to modify trust attributes");
-	return SECFailure;
+    if (rv != SECSuccess) {
+	if (PORT_GetError() == SEC_ERROR_TOKEN_NOT_LOGGED_IN) {
+	    rv = PK11_Authenticate(slot, PR_TRUE, pwdata);
+	    if (rv != SECSuccess) {
+		SECU_PrintError(progName, 
+			"could not authenticate to token or database");
+		return SECFailure;
+	    }
+	    rv = CERT_ChangeCertTrust(handle, cert, trust);
+	}
+	if (rv != SECSuccess) {
+	    SECU_PrintError(progName, "unable to modify trust attributes");
+	    return SECFailure;
+	}
     }
     CERT_DestroyCertificate(cert);
 
@@ -2066,8 +2094,8 @@ secuCommandFlag certutil_options[] =
 		goto shutdown;
 	    }
 	}
-	rv = ChangeTrustAttributes(certHandle, name, 
-	                           certutil.options[opt_Trust].arg);
+	rv = ChangeTrustAttributes(certHandle, slot, name, 
+	                           certutil.options[opt_Trust].arg, &pwdata);
 	goto shutdown;
     }
     /*  Change key db password (-W) (future - change pw to slot?)  */

@@ -123,28 +123,152 @@ CERT_GetCertTrust(CERTCertificate *cert, CERTCertTrust *trust)
     return(rv);
 }
 
-#ifdef notdef
-static char *
-cert_parseNickname(char *nickname)
+extern const NSSError NSS_ERROR_NO_ERROR;
+extern const NSSError NSS_ERROR_INTERNAL_ERROR;
+extern const NSSError NSS_ERROR_NO_MEMORY;
+extern const NSSError NSS_ERROR_INVALID_POINTER;
+extern const NSSError NSS_ERROR_INVALID_ARENA;
+extern const NSSError NSS_ERROR_INVALID_ARENA_MARK;
+extern const NSSError NSS_ERROR_DUPLICATE_POINTER;
+extern const NSSError NSS_ERROR_POINTER_NOT_REGISTERED;
+extern const NSSError NSS_ERROR_TRACKER_NOT_EMPTY;
+extern const NSSError NSS_ERROR_TRACKER_NOT_INITIALIZED;
+extern const NSSError NSS_ERROR_ARENA_MARKED_BY_ANOTHER_THREAD;
+extern const NSSError NSS_ERROR_VALUE_TOO_LARGE;
+extern const NSSError NSS_ERROR_UNSUPPORTED_TYPE;
+extern const NSSError NSS_ERROR_BUFFER_TOO_SHORT;
+extern const NSSError NSS_ERROR_INVALID_ATOB_CONTEXT;
+extern const NSSError NSS_ERROR_INVALID_BASE64;
+extern const NSSError NSS_ERROR_INVALID_BTOA_CONTEXT;
+extern const NSSError NSS_ERROR_INVALID_ITEM;
+extern const NSSError NSS_ERROR_INVALID_STRING;
+extern const NSSError NSS_ERROR_INVALID_ASN1ENCODER;
+extern const NSSError NSS_ERROR_INVALID_ASN1DECODER;
+extern const NSSError NSS_ERROR_INVALID_BER;
+extern const NSSError NSS_ERROR_INVALID_ATAV;
+extern const NSSError NSS_ERROR_INVALID_ARGUMENT;
+extern const NSSError NSS_ERROR_INVALID_UTF8;
+extern const NSSError NSS_ERROR_INVALID_NSSOID;
+extern const NSSError NSS_ERROR_UNKNOWN_ATTRIBUTE;
+extern const NSSError NSS_ERROR_NOT_FOUND;
+extern const NSSError NSS_ERROR_INVALID_PASSWORD;
+extern const NSSError NSS_ERROR_USER_CANCELED;
+extern const NSSError NSS_ERROR_MAXIMUM_FOUND;
+extern const NSSError NSS_ERROR_CERTIFICATE_ISSUER_NOT_FOUND;
+extern const NSSError NSS_ERROR_CERTIFICATE_IN_CACHE;
+extern const NSSError NSS_ERROR_HASH_COLLISION;
+extern const NSSError NSS_ERROR_DEVICE_ERROR;
+extern const NSSError NSS_ERROR_INVALID_CERTIFICATE;
+extern const NSSError NSS_ERROR_BUSY;
+extern const NSSError NSS_ERROR_ALREADY_INITIALIZED;
+extern const NSSError NSS_ERROR_PKCS11;
+
+
+/* Look at the stan error stack and map it to NSS 3 errors */
+#define STAN_MAP_ERROR(x,y)   \
+ else if (error == (x)) {     \
+  secError = y;               \
+ }                            \
+
+/* 
+ * map Stan errors into NSS errors
+ * This function examines the stan error stack and automatically sets
+ * PORT_SetError(); to the appropriate SEC_ERROR value.
+ */
+void
+CERT_MapStanError()
 {
-    char *cp;
-    for (cp=nickname; *cp && *cp != ':'; cp++);
-    if (*cp == ':') return cp+1;
-    return nickname;
+    PRInt32 *errorStack;
+    NSSError error, prevError;
+    int secError;
+    int i;
+
+    error = 0;
+
+    errorStack = NSS_GetErrorStack();
+    if (errorStack == 0) {
+	PORT_SetError(0);
+	return;
+    } 
+    error = prevError = CKR_GENERAL_ERROR;
+    /* get the 'top 2' error codes from the stack */
+    for (i=0; errorStack[i]; i++) {
+	prevError = error;
+	error = errorStack[i];
+    }
+    if (error == NSS_ERROR_PKCS11) {
+	/* map it */
+	secError = PK11_MapError(prevError);
+    }
+	STAN_MAP_ERROR(NSS_ERROR_NO_ERROR, 0)
+	STAN_MAP_ERROR(NSS_ERROR_NO_MEMORY, SEC_ERROR_NO_MEMORY)
+	STAN_MAP_ERROR(NSS_ERROR_INVALID_BASE64, SEC_ERROR_BAD_DATA)
+	STAN_MAP_ERROR(NSS_ERROR_INVALID_BER, SEC_ERROR_BAD_DER)
+	STAN_MAP_ERROR(NSS_ERROR_INVALID_ATAV, SEC_ERROR_INVALID_AVA)
+	STAN_MAP_ERROR(NSS_ERROR_INVALID_PASSWORD,SEC_ERROR_BAD_PASSWORD)
+	STAN_MAP_ERROR(NSS_ERROR_BUSY, SEC_ERROR_BUSY)
+	STAN_MAP_ERROR(NSS_ERROR_DEVICE_ERROR, SEC_ERROR_IO)
+	STAN_MAP_ERROR(NSS_ERROR_CERTIFICATE_ISSUER_NOT_FOUND, 
+			SEC_ERROR_UNKNOWN_ISSUER)
+	STAN_MAP_ERROR(NSS_ERROR_INVALID_CERTIFICATE, SEC_ERROR_CERT_NOT_VALID)
+	STAN_MAP_ERROR(NSS_ERROR_INVALID_UTF8, SEC_ERROR_BAD_DATA)
+	STAN_MAP_ERROR(NSS_ERROR_INVALID_NSSOID, SEC_ERROR_BAD_DATA)
+
+	/* these are library failure for lack of a better error code */
+	STAN_MAP_ERROR(NSS_ERROR_NOT_FOUND, SEC_ERROR_LIBRARY_FAILURE)
+	STAN_MAP_ERROR(NSS_ERROR_CERTIFICATE_IN_CACHE,
+						 SEC_ERROR_LIBRARY_FAILURE)
+	STAN_MAP_ERROR(NSS_ERROR_MAXIMUM_FOUND, SEC_ERROR_LIBRARY_FAILURE)
+	STAN_MAP_ERROR(NSS_ERROR_USER_CANCELED, SEC_ERROR_LIBRARY_FAILURE)
+	STAN_MAP_ERROR(NSS_ERROR_TRACKER_NOT_INITIALIZED,
+						 SEC_ERROR_LIBRARY_FAILURE)
+	STAN_MAP_ERROR(NSS_ERROR_ALREADY_INITIALIZED, SEC_ERROR_LIBRARY_FAILURE)
+	STAN_MAP_ERROR(NSS_ERROR_ARENA_MARKED_BY_ANOTHER_THREAD,
+						 SEC_ERROR_LIBRARY_FAILURE)
+	STAN_MAP_ERROR(NSS_ERROR_HASH_COLLISION, SEC_ERROR_LIBRARY_FAILURE)
+
+	STAN_MAP_ERROR(NSS_ERROR_INTERNAL_ERROR, SEC_ERROR_LIBRARY_FAILURE)
+
+	/* these are all invalid arguments */
+	STAN_MAP_ERROR(NSS_ERROR_INVALID_ARGUMENT, SEC_ERROR_INVALID_ARGS)
+	STAN_MAP_ERROR(NSS_ERROR_INVALID_POINTER, SEC_ERROR_INVALID_ARGS)
+	STAN_MAP_ERROR(NSS_ERROR_INVALID_ARENA, SEC_ERROR_INVALID_ARGS)
+	STAN_MAP_ERROR(NSS_ERROR_INVALID_ARENA_MARK, SEC_ERROR_INVALID_ARGS)
+	STAN_MAP_ERROR(NSS_ERROR_DUPLICATE_POINTER, SEC_ERROR_INVALID_ARGS)
+	STAN_MAP_ERROR(NSS_ERROR_POINTER_NOT_REGISTERED, SEC_ERROR_INVALID_ARGS)
+	STAN_MAP_ERROR(NSS_ERROR_TRACKER_NOT_EMPTY, SEC_ERROR_INVALID_ARGS)
+	STAN_MAP_ERROR(NSS_ERROR_VALUE_TOO_LARGE, SEC_ERROR_INVALID_ARGS)
+	STAN_MAP_ERROR(NSS_ERROR_UNSUPPORTED_TYPE, SEC_ERROR_INVALID_ARGS)
+	STAN_MAP_ERROR(NSS_ERROR_BUFFER_TOO_SHORT, SEC_ERROR_INVALID_ARGS)
+	STAN_MAP_ERROR(NSS_ERROR_INVALID_ATOB_CONTEXT, SEC_ERROR_INVALID_ARGS)
+	STAN_MAP_ERROR(NSS_ERROR_INVALID_BTOA_CONTEXT, SEC_ERROR_INVALID_ARGS)
+	STAN_MAP_ERROR(NSS_ERROR_INVALID_ITEM, SEC_ERROR_INVALID_ARGS)
+	STAN_MAP_ERROR(NSS_ERROR_INVALID_STRING, SEC_ERROR_INVALID_ARGS)
+	STAN_MAP_ERROR(NSS_ERROR_INVALID_ASN1ENCODER, SEC_ERROR_INVALID_ARGS)
+	STAN_MAP_ERROR(NSS_ERROR_INVALID_ASN1DECODER, SEC_ERROR_INVALID_ARGS)
+	STAN_MAP_ERROR(NSS_ERROR_UNKNOWN_ATTRIBUTE, SEC_ERROR_INVALID_ARGS)
+    else {
+	secError = SEC_ERROR_LIBRARY_FAILURE;
+    }
+    PORT_SetError(secError);
 }
-#endif
+
+    
 
 SECStatus
 CERT_ChangeCertTrust(CERTCertDBHandle *handle, CERTCertificate *cert,
 		    CERTCertTrust *trust)
 {
-    SECStatus rv = SECFailure;
+    SECStatus rv = SECSuccess;
     PRStatus ret;
 
     CERT_LockCertTrust(cert);
     ret = STAN_ChangeCertTrust(cert, trust);
-    rv = (ret == PR_SUCCESS) ? SECSuccess : SECFailure;
     CERT_UnlockCertTrust(cert);
+    if (ret != PR_SUCCESS) {
+	rv = SECFailure;
+	CERT_MapStanError();
+    }
     return rv;
 }
 
@@ -162,9 +286,11 @@ __CERT_AddTempCertToPerm(CERTCertificate *cert, char *nickname,
     NSSCertificate *c = STAN_GetNSSCertificate(cert);
     nssCertificateStoreTrace lockTrace = {NULL, NULL, PR_FALSE, PR_FALSE};
     nssCertificateStoreTrace unlockTrace = {NULL, NULL, PR_FALSE, PR_FALSE};
+    SECStatus rv;
+    PRStatus ret;
 
     if (c == NULL) {
-        /* error code is set */
+	CERT_MapStanError();
         return SECFailure;
     }
 
@@ -214,6 +340,7 @@ __CERT_AddTempCertToPerm(CERTCertificate *cert, char *nickname,
     cert->nssCertificate = NULL;
     cert = STAN_GetCERTCertificateOrRelease(c); /* should return same pointer */
     if (!cert) {
+	CERT_MapStanError();
         return SECFailure;
     }
     cert->istemp = PR_FALSE;
@@ -221,8 +348,13 @@ __CERT_AddTempCertToPerm(CERTCertificate *cert, char *nickname,
     if (!trust) {
 	return SECSuccess;
     }
-    return (STAN_ChangeCertTrust(cert, trust) == PR_SUCCESS) ? 
-							SECSuccess: SECFailure;
+    ret = STAN_ChangeCertTrust(cert, trust);
+    rv = SECSuccess;
+    if (ret != PR_SUCCESS) {
+	rv = SECFailure;
+	CERT_MapStanError();
+    }
+    return rv;
 }
 
 SECStatus
@@ -236,7 +368,6 @@ CERTCertificate *
 __CERT_NewTempCertificate(CERTCertDBHandle *handle, SECItem *derCert,
 			  char *nickname, PRBool isperm, PRBool copyDER)
 {
-    PRStatus nssrv;
     NSSCertificate *c;
     CERTCertificate *cc;
     NSSCertificate *tempCert = NULL;
@@ -266,16 +397,21 @@ __CERT_NewTempCertificate(CERTCertDBHandle *handle, SECItem *derCert,
 		cc = NULL;
 	    } else {
     		cc = STAN_GetCERTCertificateOrRelease(c);
+		if (cc == NULL) {
+		    CERT_MapStanError();
+		}
 	    }
 	    return cc;
 	}
     }
     pkio = nssPKIObject_Create(NULL, NULL, gTD, gCC, nssPKIMonitor);
     if (!pkio) {
+	CERT_MapStanError();
 	return NULL;
     }
     c = nss_ZNEW(pkio->arena, NSSCertificate);
     if (!c) {
+	CERT_MapStanError();
 	nssPKIObject_Destroy(pkio);
 	return NULL;
     }
@@ -293,6 +429,7 @@ __CERT_NewTempCertificate(CERTCertDBHandle *handle, SECItem *derCert,
      * allocated so far for 'c' */
     cc = STAN_GetCERTCertificate(c);
     if (!cc) {
+	CERT_MapStanError();
         goto loser;
     }
     nssItem_Create(c->object.arena, 
@@ -324,6 +461,7 @@ __CERT_NewTempCertificate(CERTCertDBHandle *handle, SECItem *derCert,
 
     tempCert = NSSCryptoContext_FindOrImportCertificate(gCC, c);
     if (!tempCert) {
+	CERT_MapStanError();
 	goto loser;
     }
     /* destroy our copy */
@@ -333,6 +471,7 @@ __CERT_NewTempCertificate(CERTCertDBHandle *handle, SECItem *derCert,
     cc = STAN_GetCERTCertificateOrRelease(c);
     if (!cc) {
 	/* STAN_GetCERTCertificateOrRelease destroys c on failure. */
+	CERT_MapStanError();
 	return NULL;
     }
 
@@ -623,101 +762,6 @@ CERT_DestroyCertificate(CERTCertificate *cert)
     }
     return;
 }
-
-#ifdef notdef
-SECStatus
-CERT_ChangeCertTrustByUsage(CERTCertDBHandle *certdb,
-			    CERTCertificate *cert, SECCertUsage usage)
-{
-    SECStatus rv;
-    CERTCertTrust trust;
-    CERTCertTrust tmptrust;
-    unsigned int certtype;
-    PRBool saveit;
-    
-    saveit = PR_TRUE;
-    
-    PORT_Memset((void *)&trust, 0, sizeof(trust));
-
-    certtype = cert->nsCertType;
-
-    /* if no app bits in cert type, then set all app bits */
-    if ( ! ( certtype & NS_CERT_TYPE_APP ) ) {
-	certtype |= NS_CERT_TYPE_APP;
-    }
-
-    switch ( usage ) {
-      case certUsageEmailSigner:
-      case certUsageEmailRecipient:
-	if ( certtype & NS_CERT_TYPE_EMAIL ) {
-	     trust.emailFlags = CERTDB_VALID_PEER;
-	     if ( ! ( cert->rawKeyUsage & KU_KEY_ENCIPHERMENT ) ) {
-		/* don't save it if KeyEncipherment is not allowed */
-		saveit = PR_FALSE;
-	    }
-	}
-	break;
-      case certUsageUserCertImport:
-	if ( certtype & NS_CERT_TYPE_EMAIL ) {
-	    trust.emailFlags = CERTDB_VALID_PEER;
-	}
-	/* VALID_USER is already set if the cert was imported, 
-	 * in the case that the cert was already in the database
-	 * through SMIME or other means, we should set the USER
-	 * flags, if they are not already set.
-	 */
-	if( cert->isperm ) {
-	    if ( certtype & NS_CERT_TYPE_SSL_CLIENT ) {
-		if( !(cert->trust->sslFlags & CERTDB_USER) ) {
-		    trust.sslFlags |= CERTDB_USER;
-		}
-	    }
-	    
-	    if ( certtype & NS_CERT_TYPE_EMAIL ) {
-		if( !(cert->trust->emailFlags & CERTDB_USER) ) {
-		    trust.emailFlags |= CERTDB_USER;
-		}
-	    }
-	    
-	    if ( certtype & NS_CERT_TYPE_OBJECT_SIGNING ) {
-		if( !(cert->trust->objectSigningFlags & CERTDB_USER) ) {
-		    trust.objectSigningFlags |= CERTDB_USER;
-		}
-	    }
-	}
-	break;
-      default:	/* XXX added to quiet warnings; no other cases needed? */
-	break;
-    }
-
-    if ( (trust.sslFlags | trust.emailFlags | trust.objectSigningFlags) == 0 ){
-	saveit = PR_FALSE;
-    }
-
-    if ( saveit && cert->isperm ) {
-	/* Cert already in the DB.  Just adjust flags */
-	tmptrust = *cert->trust;
-	tmptrust.sslFlags |= trust.sslFlags;
-	tmptrust.emailFlags |= trust.emailFlags;
-	tmptrust.objectSigningFlags |= trust.objectSigningFlags;
-	    
-	rv = CERT_ChangeCertTrust(cert->dbhandle, cert,
-				  &tmptrust);
-	if ( rv != SECSuccess ) {
-	    goto loser;
-	}
-    }
-
-    rv = SECSuccess;
-    goto done;
-
-loser:
-    rv = SECFailure;
-done:
-
-    return(rv);
-}
-#endif
 
 int
 CERT_GetDBContentVersion(CERTCertDBHandle *handle)

@@ -36,7 +36,7 @@
 /*
  * certi.h - private data structures for the certificate library
  *
- * $Id: certi.h,v 1.17 2007-05-25 07:28:31 alexei.volkov.bugs%sun.com Exp $
+ * $Id: certi.h,v 1.18 2007-08-09 22:36:16 rrelyea%redhat.com Exp $
  */
 #ifndef _CERTI_H_
 #define _CERTI_H_
@@ -264,6 +264,13 @@ SECStatus DPCache_GetAllCRLs(CRLDPCache* dpc, PRArenaPool* arena,
 SECStatus DPCache_GetCRLEntry(CRLDPCache* cache, PRBool readlocked,
                               CERTSignedCrl* crl, SECItem* sn,
                               CERTCrlEntry** returned);
+
+/*
+ * map Stan errors into NSS errors
+ * This function examines the stan error stack and automatically sets
+ * PORT_SetError(); to the appropriate SEC_ERROR value.
+ */
+void CERT_MapStanError();
 
 #endif /* _CERTI_H_ */
 

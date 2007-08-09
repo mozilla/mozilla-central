@@ -2597,14 +2597,20 @@ nsc_pbe_key_gen(NSSPKCS5PBEParameter *pkcs5_pbe, CK_MECHANISM_PTR pMechanism,
 {
     SECItem *pbe_key = NULL, iv, pwitem;
     CK_PBE_PARAMS *pbe_params = NULL;
+    CK_PKCS5_PBKD2_PARAMS *pbkd2_params = NULL;
 
     *key_length = 0;
     iv.data = NULL; iv.len = 0;
 
-    pbe_params = (CK_PBE_PARAMS *)pMechanism->pParameter;
-
-    pwitem.data = (unsigned char *)pbe_params->pPassword;
-    pwitem.len = (unsigned int)pbe_params->ulPasswordLen;
+    if (pMechanism->mechanism == CKM_PKCS5_PBKD2) {
+	pbkd2_params = (CK_PKCS5_PBKD2_PARAMS *)pMechanism->pParameter;
+	pwitem.data = (unsigned char *)pbkd2_params->pPassword;
+	pwitem.len = (unsigned int)pbkd2_params->ulPasswordLen;
+    } else {
+	pbe_params = (CK_PBE_PARAMS *)pMechanism->pParameter;
+	pwitem.data = (unsigned char *)pbe_params->pPassword;
+	pwitem.len = (unsigned int)pbe_params->ulPasswordLen;
+    }
     pbe_key = nsspkcs5_ComputeKeyAndIV(pkcs5_pbe, &pwitem, &iv, faulty3DES);
     if (pbe_key == NULL) {
 	return CKR_HOST_MEMORY;
@@ -2616,7 +2622,7 @@ nsc_pbe_key_gen(NSSPKCS5PBEParameter *pkcs5_pbe, CK_MECHANISM_PTR pMechanism,
     pbe_key = NULL;
 
     if (iv.data) {
-        if (pbe_params->pInitVector != NULL) {
+        if (pbe_params && pbe_params->pInitVector != NULL) {
 	    PORT_Memcpy(pbe_params->pInitVector, iv.data, iv.len);
         }
         PORT_Free(iv.data);
@@ -2697,11 +2703,6 @@ loser:
     }
     return crv;
 }
-
-    
-
-    
-
 
 
 static CK_RV
@@ -2823,16 +2824,19 @@ nsc_SetupHMACKeyGen(CK_MECHANISM_PTR pMechanism, NSSPKCS5PBEParameter **pbe)
     *pbe = params;
     return CKR_OK;
 }
+
 /* maybe this should be table driven? */
 static CK_RV
 nsc_SetupPBEKeyGen(CK_MECHANISM_PTR pMechanism, NSSPKCS5PBEParameter  **pbe,
-							CK_KEY_TYPE *key_type)
+				CK_KEY_TYPE *key_type, CK_ULONG *key_length)
 {
     CK_RV crv = CKR_OK;
     SECOidData *oid;
-    CK_PBE_PARAMS *pbe_params;
-    NSSPKCS5PBEParameter *params;
+    CK_PBE_PARAMS *pbe_params = NULL;
+    NSSPKCS5PBEParameter *params = NULL;
+    CK_PKCS5_PBKD2_PARAMS *pbkd2_params = NULL;
     SECItem salt;
+    CK_ULONG iteration = 0;
 
     *pbe = NULL;
 
@@ -2841,28 +2845,66 @@ nsc_SetupPBEKeyGen(CK_MECHANISM_PTR pMechanism, NSSPKCS5PBEParameter  **pbe,
 	return CKR_MECHANISM_INVALID;
     }
 
-    pbe_params = (CK_PBE_PARAMS *)pMechanism->pParameter;
-    salt.data = (unsigned char *)pbe_params->pSalt;
-    salt.len = (unsigned int)pbe_params->ulSaltLen;
-
-    params=nsspkcs5_NewParam(oid->offset, &salt, pbe_params->ulIteration);
+    if (pMechanism->mechanism == CKM_PKCS5_PBKD2) {
+	pbkd2_params = (CK_PKCS5_PBKD2_PARAMS *)pMechanism->pParameter;
+	if (pbkd2_params->saltSource != CKZ_SALT_SPECIFIED) {
+	    return CKR_MECHANISM_PARAM_INVALID;
+	}
+	salt.data = (unsigned char *)pbkd2_params->pSaltSourceData;
+	salt.len = (unsigned int)pbkd2_params->ulSaltSourceDataLen;
+	iteration = pbkd2_params->iterations;
+    } else {
+	pbe_params = (CK_PBE_PARAMS *)pMechanism->pParameter;
+	salt.data = (unsigned char *)pbe_params->pSalt;
+	salt.len = (unsigned int)pbe_params->ulSaltLen;
+	iteration = pbe_params->ulIteration;
+    }
+    params=nsspkcs5_NewParam(oid->offset, &salt, iteration);
     if (params == NULL) {
 	return CKR_MECHANISM_INVALID;
     }
 
-
     switch (params->encAlg) {
     case SEC_OID_DES_CBC:
 	*key_type = CKK_DES;
+	*key_length = params->keyLen;
 	break;
     case SEC_OID_DES_EDE3_CBC:
 	*key_type = params->is2KeyDES ? CKK_DES2 : CKK_DES3;
+	*key_length = params->keyLen;
 	break;
     case SEC_OID_RC2_CBC:
 	*key_type = CKK_RC2;
+	*key_length = params->keyLen;
 	break;
     case SEC_OID_RC4:
 	*key_type = CKK_RC4;
+	*key_length = params->keyLen;
+	break;
+    case SEC_OID_PKCS5_PBKDF2:
+	/* sigh, PKCS #11 currently only defines SHA1 for the KDF hash type. 
+	 * we do the check here because this where we would handle multiple
+	 * hash types in the future */
+	if (pbkd2_params == NULL || 
+		pbkd2_params->prf != CKP_PKCS5_PBKD2_HMAC_SHA1) {
+	    crv = CKR_MECHANISM_PARAM_INVALID;
+	    break;
+	}
+	/* key type must already be set */
+	if (*key_type == CKK_INVALID_KEY_TYPE) {
+	    crv = CKR_TEMPLATE_INCOMPLETE;
+	    break;
+	}
+	/* PBKDF2 needs to calculate the key length from the other parameters
+	 */
+	if (*key_length == 0) {
+	    *key_length = sftk_MapKeySize(*key_type);
+	}
+	if (*key_length == 0) {
+	    crv = CKR_TEMPLATE_INCOMPLETE;
+	    break;
+	}
+	params->keyLen = *key_length;
 	break;
     default:
 	crv = CKR_MECHANISM_INVALID;
@@ -2918,6 +2960,11 @@ CK_RV NSC_GenerateKey(CK_SESSION_HANDLE hSession,
     for (i=0; i < (int) ulCount; i++) {
 	if (pTemplate[i].type == CKA_VALUE_LEN) {
 	    key_length = *(CK_ULONG *)pTemplate[i].pValue;
+	    continue;
+	}
+	/* some algorithms need keytype specified */
+	if (pTemplate[i].type == CKA_KEY_TYPE) {
+	    key_type = *(CK_ULONG *)pTemplate[i].pValue;
 	    continue;
 	}
 
@@ -2982,7 +3029,7 @@ CK_RV NSC_GenerateKey(CK_SESSION_HANDLE hSession,
     case CKM_PBE_MD5_DES_CBC:
     case CKM_PBE_MD2_DES_CBC:
 	key_gen_type = nsc_pbe;
-	crv = nsc_SetupPBEKeyGen(pMechanism,&pbe_param, &key_type);
+	crv = nsc_SetupPBEKeyGen(pMechanism,&pbe_param, &key_type, &key_length);
 	break;
     case CKM_DSA_PARAMETER_GEN:
 	key_gen_type = nsc_param;
