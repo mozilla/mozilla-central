@@ -52,17 +52,10 @@
 
 /* to use huge pointers in win16 */
 
-#if !defined(XP_WIN16)
 #define xp_HUGE_MEMCPY PORT_Memcpy
 #define xp_HUGE_STRCPY PORT_Strcpy
 #define xp_HUGE_STRLEN PORT_Strlen
 #define xp_HUGE_STRNCASECMP PORT_Strncasecmp
-#else
-#define xp_HUGE_MEMCPY hmemcpy
-int xp_HUGE_STRNCASECMP (char ZHUGEP *buf, char *key, int len);
-size_t xp_HUGE_STRLEN (char ZHUGEP *s);
-char *xp_HUGE_STRCPY (char *to, char ZHUGEP *from);
-#endif
 
 /* from certdb.h */
 #define CERTDB_USER (1<<6)
@@ -140,12 +133,8 @@ static int jar_internal_digest
 int JAR_parse_manifest 
     (JAR *jar, char ZHUGEP *raw_manifest, 
         long length, const char *path, const char *url)
-  {
+{
   int filename_free = 0;
-
-#if defined(XP_WIN16)
-    PORT_Assert( !IsBadHugeReadPtr(raw_manifest, length) );
-#endif
 
   /* fill in the path, if supplied. This is a the location
      of the jar file on disk, if known */
@@ -202,7 +191,7 @@ int JAR_parse_manifest
  
 int jar_parse_sig
     (JAR *jar, const char *path, char ZHUGEP *raw_manifest, long length)
-  {
+{
   JAR_Signer *signer;
   int status = JAR_ERR_ORDER;
 
@@ -249,39 +238,9 @@ int jar_parse_sig
     return JAR_ERR_SIG;
     }
 
-#ifdef XP_WIN16
-  /*
-   * For Win16, copy the portion of the raw_buffer containing the digital 
-   * signature into another buffer...  This insures that the data will
-   * NOT cross a segment boundary.  Therefore, 
-   * jar_parse_digital_signature(...) does NOT need to deal with HUGE 
-   * pointers...
-   */
-
-    {
-    unsigned char *manifest_copy;
-
-    manifest_copy = (unsigned char *) PORT_ZAlloc (length);
-    if (manifest_copy)
-      {
-      xp_HUGE_MEMCPY (manifest_copy, raw_manifest, length);
-
-      status = jar_parse_digital_signature 
-                  (manifest_copy, signer, length, jar);
-
-      PORT_Free (manifest_copy);
-      }
-    else
-      {
-      /* out of memory */
-      return JAR_ERR_MEMORY;
-      }
-    }
-#else
   /* don't expense unneeded calloc overhead on non-win16 */
   status = jar_parse_digital_signature 
                 (raw_manifest, signer, length, jar);
-#endif
 
   return status;
   }
@@ -851,9 +810,6 @@ static int jar_insanity_check (char ZHUGEP *data, long length)
 static int jar_parse_digital_signature 
      (char *raw_manifest, JAR_Signer *signer, long length, JAR *jar)
   {
-#if defined(XP_WIN16)
-  PORT_Assert( LOWORD(raw_manifest) + length < 0xFFFF );
-#endif
   return jar_validate_pkcs7 (jar, signer, raw_manifest, length);
   }
 
@@ -1629,14 +1585,13 @@ static void jar_catch_bytes
 
 static int jar_validate_pkcs7 
      (JAR *jar, JAR_Signer *signer, char *data, long length)
-  {
-  SECItem detdig;
+{
 
   SEC_PKCS7ContentInfo *cinfo = NULL;
   SEC_PKCS7DecoderContext *dcx;
-
+  PRBool goodSig;
   int status = 0;
-  char *errstring = NULL;
+  SECItem detdig;
 
   PORT_Assert( jar != NULL && signer != NULL );
 
@@ -1692,13 +1647,13 @@ static int jar_validate_pkcs7
   detdig.len = SHA1_LENGTH;
   detdig.data = signer->digest->sha1;
 
-  if (SEC_PKCS7VerifyDetachedSignature 
-        (cinfo, certUsageObjectSigner, &detdig, HASH_AlgSHA1, PR_FALSE)==
-		PR_TRUE)
+  goodSig = SEC_PKCS7VerifyDetachedSignature(cinfo, certUsageObjectSigner, 
+                                             &detdig, HASH_AlgSHA1, PR_FALSE);
+  jar_gather_signers (jar, signer, cinfo);
+  if (goodSig == PR_TRUE)
     {
     /* signature is valid */
     signer->valid = 0;
-    jar_gather_signers (jar, signer, cinfo);
     }
   else
     {
@@ -1709,9 +1664,6 @@ static int jar_validate_pkcs7
 
     jar->valid = status;
     signer->valid = status;
-
-    errstring = JAR_get_error (status);
-    /*XP_TRACE(("JAR signature invalid (reason %d = %s)", status, errstring));*/
     }
 
   jar->pkcs7 = PR_TRUE;
@@ -1720,7 +1672,7 @@ static int jar_validate_pkcs7
   SEC_PKCS7DestroyContentInfo (cinfo);
 
   return status;
-  }
+}
 
 /*
  *  j a r _ g a t h e r _ s i g n e r s
@@ -1930,48 +1882,3 @@ loser:
   return JAR_ERR_MEMORY;
   }
 
-/* 
- *  W I N 1 6   s t u f f
- *
- *  These functions possibly belong in xp_mem.c, they operate 
- *  on huge string pointers for win16.
- *
- */
-
-#if defined(XP_WIN16)
-int xp_HUGE_STRNCASECMP (char ZHUGEP *buf, char *key, int len)
-  {
-  while (len--) 
-    {
-    char c1, c2;
-
-    c1 = *buf++;
-    c2 = *key++;
-
-    if (c1 >= 'a' && c1 <= 'z') c1 -= ('a' - 'A');
-    if (c2 >= 'a' && c2 <= 'z') c2 -= ('a' - 'A');
-
-    if (c1 != c2) 
-      return (c1 < c2) ? -1 : 1;
-    }
-  return 0;
-  }
-
-size_t xp_HUGE_STRLEN (char ZHUGEP *s)
-  {
-  size_t len = 0L;
-  while (*s++) len++;
-  return len;
-  }
-
-char *xp_HUGE_STRCPY (char *to, char ZHUGEP *from)
-  {
-  char *ret = to;
-
-  while (*from)
-    *to++ = *from++;
-  *to = 0;
-
-  return ret;
-  }
-#endif
