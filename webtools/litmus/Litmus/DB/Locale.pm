@@ -41,6 +41,7 @@ Litmus::DB::Locale->columns(All => qw/abbrev name/);
 Litmus::DB::Locale->columns(TEMP => qw //);
 
 Litmus::DB::Locale->column_alias("abbrev", "locale");
+Litmus::DB::Locale->column_alias("abbrev", "locale_abbrev");
 
 Litmus::DB::Locale->has_many(test_results => "Litmus::DB::Testresult");
 
