@@ -3,7 +3,7 @@ ac_add_options --enable-places
 ac_add_options --disable-installer
 ac_add_options --enable-application=browser
 mk_add_options MOZ_OBJDIR=@TOPSRCDIR@/objdir
-mk_add_options MOZ_CO_MODULE=mozilla/js/tests
+mk_add_options MOZ_CO_MODULE=mozilla/js/tests,mozilla/tools/tinderbox-configs
 ac_add_options --enable-tests
 #ac_add_options --enable-mochitest
 # ac_add_options --enable-extensions=default,jssh

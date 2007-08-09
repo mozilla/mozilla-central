@@ -8,7 +8,7 @@ CXX=/tools/gcc/bin/g++
 mk_add_options MOZ_CO_PROJECT=browser
 ac_add_options --enable-application=browser
 mk_add_options MOZ_OBJDIR=@TOPSRCDIR@/objdir
-mk_add_options MOZ_CO_MODULE=mozilla/js/tests
+mk_add_options MOZ_CO_MODULE=mozilla/js/tests,mozilla/tools/tinderbox-configs
 #mozilla/testing,mozilla/tools/tinderbox,mozilla/webtools
 
 ac_add_options --enable-tests
