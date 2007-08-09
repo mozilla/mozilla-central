@@ -80,7 +80,7 @@ private:
   enum Location {
     eLocation_After,
     eLocation_Before,
-    eLocation_FirstChild,
+    eLocation_FirstChild
   };
 
   /** Get the first node of a given type in aNodes.
