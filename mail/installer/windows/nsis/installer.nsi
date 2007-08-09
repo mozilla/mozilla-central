@@ -106,6 +106,7 @@ VIAddVersionKey "FileDescription" "${BrandShortName} Installer"
 !insertmacro WriteRegDWORD2
 !insertmacro CanWriteToInstallDir
 !insertmacro CheckDiskSpace
+!insertmacro CleanVirtualStore
 !insertmacro GetPathFromString
 !insertmacro AddHandlerValues
 !insertmacro GetSingleInstallPath
@@ -252,6 +253,10 @@ Section "-Application" Section1
   ; error to the user. See Bug 354000.
   StrCpy $0 "Software\Microsoft\Windows\CurrentVersion\Uninstall\${BrandFullNameInternal} (${AppVersion})"
   DeleteRegKey HKLM "$0"
+
+  ; Remove files that may be left behind by the application in the
+  ; VirtualStore directory.
+  ${CleanVirtualStore}
 
   ; For a "Standard" upgrade without talkback installed add the InstallDisabled
   ; file to the talkback source files so it will be disabled by the extension
