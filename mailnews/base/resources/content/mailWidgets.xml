@@ -1454,12 +1454,9 @@
         <parameter name="event"/>
         <body>
           <![CDATA[
-            var box = this.tree.boxObject;
+            var box = this.tree.treeBoxObject;
             if (event.originalTarget == box.treeBody) {
-              // XXXbz We really want client*, but event.client* is bogus inside a popup!
-              var eventX = event.screenX - document.documentElement.boxObject.screenX;
-              var eventY = event.screenY - document.documentElement.boxObject.screenY;
-              var index = box.getRowAt(eventX, eventY);
+              var index = box.getRowAt(event.clientX, event.clientY);
               box.view.selection.select(index);
               return index;
             }
@@ -1603,6 +1600,7 @@
       </method>
       <constructor>
         <![CDATA[
+          this.setAttribute("ignorekeys", "true");
           this.parentNode.addEventListener("keypress", this.onKeyPressMenuList, true);
         ]]>
       </constructor>
@@ -1626,11 +1624,6 @@
           this.height = height;
           if (index >= 0)
             setTimeout(function() { box.ensureRowIsVisible(index); }, 0);
-        ]]>
-      </handler>
-      <handler event="popupshown">
-        <![CDATA[
-          this.enableKeyboardNavigator(false);
         ]]>
       </handler>
       <handler event="popuphiding">
