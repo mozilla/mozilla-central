@@ -364,13 +364,19 @@ calRecurrenceInfo.prototype = {
         var dates = [];
 
         function checkRange(item) {
-            var dtstart = item.getProperty("DTSTART");
+            var dueDate = null;
+            var occDate = (item.getProperty("DTSTART") ||
+                           (dueDate = item.getProperty("DUE")));
+            if (!occDate) // DTSTART or DUE mandatory
+                return null;
             // tasks may have a due date set or no duration at all
-            var end = item.getProperty("DTEND") || item.getProperty("DUE") || dtstart;
+            var end = (item.getProperty("DTEND") ||
+                       (dueDate ? dueDate : item.getProperty("DUE")) ||
+                       occDate);
             // is the item an intersection of the range?
             if ((!aRangeStart || aRangeStart.compare(end) <= 0) &&
-                (!aRangeEnd || aRangeEnd.compare(dtstart) > 0)) {
-                return dtstart;
+                (!aRangeEnd || aRangeEnd.compare(occDate) > 0)) {
+                return occDate;
             }
             return null;
         }
@@ -379,18 +385,18 @@ calRecurrenceInfo.prototype = {
         // the base item cannot be replaced by an exception;
         // an exception can only be defined on an item resulting from an RDATE/RRULE;
         // DTSTART always equals RECURRENCE-ID for items expanded from RRULE
-        var baseStart = checkRange(this.mBaseItem);
-        if (baseStart) {
-            dates.push(baseStart);
+        var baseOccDate = checkRange(this.mBaseItem);
+        if (baseOccDate) {
+            dates.push(baseOccDate);
         }
 
         // toss in exceptions first:
         if (this.mExceptions) {
             this.mExceptions.forEach(
                 function(ex) {
-                    var dtstart = checkRange(ex.item);
-                    if (dtstart) {
-                        dates.push(aReturnRIDs ? ex.id : dtstart);
+                    var occDate = checkRange(ex.item);
+                    if (occDate) {
+                        dates.push(aReturnRIDs ? ex.id : occDate);
                     }
                 });
         }
