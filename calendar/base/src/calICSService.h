@@ -69,7 +69,7 @@ public:
     NS_DECL_ISUPPORTS
     NS_DECL_CALIICSSERVICE
 protected:
-    mutable nsClassHashtable<nsCStringHashKey, TimezoneEntry> mTzHash;
+    nsClassHashtable<nsCStringHashKey, TimezoneEntry> mTzHash;
     TimezoneEntry const* getTimezoneEntry(nsACString const& tzid);
 };
 
