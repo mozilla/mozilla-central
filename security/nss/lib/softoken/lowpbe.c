@@ -405,7 +405,7 @@ nsspkcs5_PBKDF2(const SECHashObject *hashobj, NSSPKCS5PBEParameter *pbe_param,
     unsigned int i;
     unsigned char *rp;
     unsigned char *T = NULL;
-    SECItem *result = NULL;;
+    SECItem *result = NULL;
     SECItem *salt = &pbe_param->salt;
     SECStatus rv = SECFailure;
 
