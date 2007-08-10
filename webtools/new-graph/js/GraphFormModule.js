@@ -52,6 +52,8 @@ GraphFormModule.prototype = {
     baseline: false,
     average: false,
     color: "#000000",
+    onLoadingDone : new YAHOO.util.CustomEvent("onloadingdone"),
+    onLoading : new YAHOO.util.CustomEvent("onloading"),
 
     init: function (el, userConfig) {
         var self = this;
@@ -146,6 +148,7 @@ GraphFormModule.prototype = {
                                           self.testSelect.value = sortedTests[0].id;
                                       }
                                       setTimeout(function () { self.onChangeTest(forceTestId); }, 0);
+                                      self.onLoadingDone.fire();
                                   });
 
         GraphFormModules.push(this);

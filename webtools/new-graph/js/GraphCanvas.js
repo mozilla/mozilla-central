@@ -394,6 +394,18 @@ Graph.prototype = {
         this.dirty = true;
     },
 
+    clearGraph: function() {
+        var ctx = this.frontBuffer.getContext("2d");
+        var cw = this.frontBuffer.width;
+        var ch = this.frontBuffer.height;
+        with (ctx) {
+            fillStyle = "#FFFFFF";
+            fillRect (0, 0, cw, ch);
+        }
+        replaceChildNodes(this.xLabelContainer, null);
+        replaceChildNodes(this.yLabelContainer, null);
+    },
+
     redraw: function () {
         if (this.dirty)
             this.recompute();
@@ -418,6 +430,8 @@ Graph.prototype = {
 
         for (var i = 0; i < this.dataSets.length; i++) {
             // yScale = pixels-per-value
+            log("this.startTime: " + this.startTime);
+            log("this.endTime: " + this.endTime);
             with (ctx) {
                 clearRect (0, 0, cw, ch);
                 lineWidth = 1.0;

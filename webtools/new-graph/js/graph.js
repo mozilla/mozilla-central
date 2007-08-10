@@ -162,6 +162,12 @@ function loadingDone(graphTypePref) {
                            showStatus(null);
                        }
                    });
+         BigPerfGraph.onNewGraph.
+             subscribe (function(type, args, obj) {
+               if (args[0].length >= GraphFormModules.length) {
+                   clearLoadingAnimation();
+               }
+             });
     }
     else if (graphType == DATA_GRAPH) {
          BigPerfGraph.onCursorMoved.
@@ -241,9 +247,12 @@ function addDiscreteGraphForm(config, name) {
 }
 
 function addGraphForm(config) {
+    showLoadingAnimation("populating list");
     var m = new GraphFormModule(config);
     m.render (getElement("graphforms"));
     m.setColor(randomColor());
+    m.onLoading.subscribe (function(type,args,obj) { showLoadingAnimation(args[0]);});
+    m.onLoadingDone.subscribe (function(type,args,obj) { clearLoadingAnimation();});
     return m;
 }
 
@@ -278,9 +287,8 @@ function onUpdateBonsai() {
 
 
 function onGraph()  {
-    if (graphType == DISCRETE_GRAPH || graphType == DATA_GRAPH) {
-      showLoadingAnimation("building graph");
-    }
+    showLoadingAnimation("building graph");
+    showStatus(null);
     for each (var g in [BigPerfGraph, SmallPerfGraph]) {
         g.clearDataSets();
         g.setTimeRange(null, null);
@@ -334,44 +342,59 @@ function onGraphLoadRemainder(baselineDataSet) {
         var makeCallback = function (module, color, title) {
             return function (testid, ds) {
                 try {
-                    ds.color = color;
-                    if (title) {
-                        ds.title = title;
+                    log("ds.firstTime " + ds.firstTime + " ds.lastTime " + ds.lastTime);
+                    if (!ds.firstTime || !ds.lastTime) {
+                       // got a data set with no data in this time range, or damaged data
+                       // better to not graph
+                       for each (g in [BigPerfGraph, SmallPerfGraph]) {
+                           g.clearGraph();
+
+                       }
+                       showStatus("No data in the given time range");
+                       clearLoadingAnimation();
+                       
                     }
-
-                    if (baselineDataSet)
-                        ds = ds.createRelativeTo(baselineDataSet);
-
-                    //log ("got ds: (", module.id, ")", ds.firstTime, ds.lastTime, ds.data.length);
-                    var avgds = null;
-                    if (baselineDataSet == null &&
-                        module.average)
-                    {
-                        avgds = ds.createAverage(gAverageInterval);
-                    }
-
-                    if (avgds)
-                        log ("got avgds: (", module.id, ")", avgds.firstTime, avgds.lastTime, avgds.data.length);
-                    
-                    for each (g in [BigPerfGraph, SmallPerfGraph]) {
-                        g.addDataSet(ds);
-                        if (avgds)
-                            g.addDataSet(avgds);
-                        if (g == SmallPerfGraph || autoExpand) {
-                            g.expandTimeRange(Math.max(ds.firstTime, gCurrentLoadRange ? gCurrentLoadRange[0] : ds.firstTime),
-                                              Math.min(ds.lastTime, gCurrentLoadRange ? gCurrentLoadRange[1] : ds.lastTime));
+                    else {
+                        ds.color = color;
+                        if (title) {
+                            ds.title = title;
                         }
 
-                        g.autoScale();
+                        if (baselineDataSet)
+                            ds = ds.createRelativeTo(baselineDataSet);
 
-                        g.redraw();
-                        gReadyForRedraw = true;
+                        //log ("got ds: (", module.id, ")", ds.firstTime, ds.lastTime, ds.data.length);
+                        var avgds = null;
+                        if (baselineDataSet == null &&
+                            module.average)
+                        {
+                            avgds = ds.createAverage(gAverageInterval);
+                        }
+
+                        if (avgds)
+                            log ("got avgds: (", module.id, ")", avgds.firstTime, avgds.lastTime, avgds.data.length);
+                        
+                        for each (g in [BigPerfGraph, SmallPerfGraph]) {
+                            g.addDataSet(ds);
+                            if (avgds)
+                                g.addDataSet(avgds);
+                            if (g == SmallPerfGraph || autoExpand) {
+                                g.expandTimeRange(Math.max(ds.firstTime, gCurrentLoadRange ? gCurrentLoadRange[0] : ds.firstTime),
+                                                  Math.min(ds.lastTime, gCurrentLoadRange ? gCurrentLoadRange[1] : ds.lastTime));
+                            }
+
+                            g.autoScale();
+
+                            g.redraw();
+                            gReadyForRedraw = true;
+                        }
+
+                        //if (graphType == CONTINUOUS_GRAPH) {
+                            updateLinkToThis();
+                            updateDumpToCsv();
+                        //}
                     }
 
-                    //if (graphType == CONTINUOUS_GRAPH) {
-                        updateLinkToThis();
-                        updateDumpToCsv();
-                    //}
                 } catch(e) { log(e); }
             };
         };
@@ -455,7 +478,7 @@ function updateDumpToCsv() {
     prefix = "&"
   }
   log ("ds");
-  getElement("dumptocsv").href = "http://" + document.location.host  + "/dumpdata.cgi" + ds;
+  getElement("dumptocsv").href = "http://" + document.location.host + "/dumpdata.cgi" + ds;
 }
 
 function updateLinkToThis() {
@@ -517,7 +540,7 @@ function handleHash(hash) {
     var tstart = new Number(qsdata["spstart"]);
     var tend = new Number(qsdata["spend"]);
 
-    Tinderbox.defaultLoadRange = [tstart, tend];
+    //Tinderbox.defaultLoadRange = [tstart, tend];
 
     if (graphType == CONTINUOUS_GRAPH) {
         Tinderbox.requestTestList(function (tests) {
@@ -538,7 +561,7 @@ function showStatus(s) {
 }
 
 function showLoadingAnimation(message) {
-   // log("starting loading animation");
+    //log("starting loading animation: " + message);
     td = new SPAN();
     el = new IMG({ src: "js/img/Throbber-small.gif"}); 
     appendChildNodes(td, el);
@@ -547,7 +570,7 @@ function showLoadingAnimation(message) {
 }
 
 function clearLoadingAnimation() {
-   // log("ending loading animation");
+    //log("ending loading animation");
     replaceChildNodes("loading", null);
 }
 

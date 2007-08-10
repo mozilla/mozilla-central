@@ -42,9 +42,9 @@
               <tr style="vertical-align: top;">
                 <td>Show</td>
                 <td>
-                  <input id="load-all-radio"  type="radio" name="dataload" onclick="onDataLoadChanged()">
+                  <input id="load-all-radio"  type="radio" name="dataload" onclick="onDataLoadChanged()" checked>
                   <label>all data</label><br>
-                  <input id="load-days-radio" type="radio" name="dataload" onclick="onDataLoadChanged()" checked>
+                  <input id="load-days-radio" type="radio" name="dataload" onclick="onDataLoadChanged()">
                   <label>previous</label> <input type="text" value="30" id="load-days-entry" size="3" onchange="onDataLoadChanged()"> <label>days</label>
                 </td>
               </tr>
@@ -82,6 +82,9 @@
     </form>
 
     <!-- small graph -->
+    <div style="width: 900px; height:20px">
+      <center><span id="status" class="status"></span></center>
+    </div> 
 
     <!-- these are absolute size, so we wrap them in a div that can overflow -->
     <div id="graph-container" style="margin:auto; width:900px;">
@@ -97,9 +100,6 @@
       <div id="graph-labels-x" style="position: relative; left: 50px; margin-left: 1px; margin-right: 1px; height: 50px; width: 700px"></div>
     </div>
 
-    <div style="width: 900px">
-      <center><span id="status" class="status"></span></center>
-    </div>
   <script>
     ResizableBigGraph = new ResizeGraph();
     ResizableBigGraph.init('graph');
