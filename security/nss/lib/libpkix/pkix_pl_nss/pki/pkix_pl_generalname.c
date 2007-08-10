@@ -186,6 +186,7 @@ pkix_pl_DirectoryName_Create(
         void *plContext)
 {
         PKIX_PL_X500Name *pkixDN = NULL;
+        CERTName *dirName = NULL;
         PKIX_PL_String *pkixDNString = NULL;
         char *utf8String = NULL;
         PKIX_UInt32 utf8Length;
@@ -193,27 +194,11 @@ pkix_pl_DirectoryName_Create(
         PKIX_ENTER(GENERALNAME, "pkix_pl_DirectoryName_Create");
         PKIX_NULLCHECK_TWO(nssAltName, pX500Name);
 
-        PKIX_GENERALNAME_DEBUG("\t\tCalling CERT_NameToAscii).\n");
-        /* should be called CERT_NameToUTF8 */
-        utf8String = CERT_NameToAscii(&nssAltName->name.directoryName);
+        dirName = &nssAltName->name.directoryName;
 
-        if (!utf8String){
-                PKIX_ERROR(PKIX_CERTNAMETOASCIIFAILED);
-        }
-
-        PKIX_GENERALNAME_DEBUG("\t\tCalling PL_strlen).\n");
-        utf8Length = PL_strlen(utf8String);
-
-        PKIX_CHECK(PKIX_PL_String_Create
-                    (PKIX_UTF8,
-                    utf8String,
-                    utf8Length,
-                    &pkixDNString,
-                    plContext),
-                    PKIX_STRINGCREATEFAILED);
-
-        PKIX_CHECK(PKIX_PL_X500Name_Create(pkixDNString, &pkixDN, plContext),
-                    PKIX_X500NAMECREATEFAILED);
+        PKIX_CHECK(PKIX_PL_X500Name_CreateFromCERTName(NULL, dirName, 
+                                                       &pkixDN, plContext),
+                   PKIX_X500NAMECREATEFROMCERTNAMEFAILED);
 
         *pX500Name = pkixDN;
 
@@ -810,6 +795,7 @@ pkix_pl_GeneralName_RegisterSelf(void *plContext)
 
 /* --Public-Functions------------------------------------------------------- */
 
+#ifdef BUILD_LIBPKIX_TESTS
 /*
  * FUNCTION: PKIX_PL_GeneralName_Create (see comments in pkix_pl_pki.h)
  */
@@ -868,11 +854,6 @@ PKIX_PL_GeneralName_Create(
                 break;
 
         case certDirectoryName:
-
-
-
-
-
 
                 PKIX_CHECK(PKIX_PL_X500Name_Create
                             (stringRep, &pkixDN, plContext),
@@ -946,3 +927,5 @@ cleanup:
 
         PKIX_RETURN(GENERALNAME);
 }
+
+#endif /* BUILD_LIBPKIX_TESTS */

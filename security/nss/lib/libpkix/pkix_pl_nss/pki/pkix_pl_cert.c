@@ -1714,8 +1714,8 @@ PKIX_PL_Cert_GetSubject(
         void *plContext)
 {
         PKIX_PL_X500Name *pkixSubject = NULL;
-        CERTCertificate *nssCert = NULL;
-        char *utf8Subject = NULL;
+        CERTName *subjName = NULL;
+        SECItem  *derSubjName = NULL;
 
         PKIX_ENTER(CERT, "PKIX_PL_Cert_GetSubject");
         PKIX_NULLCHECK_THREE(cert, cert->nssCert, pCertSubject);
@@ -1727,19 +1727,19 @@ PKIX_PL_Cert_GetSubject(
 
                 if (cert->subject == NULL){
 
-                        nssCert = cert->nssCert;
-                        utf8Subject = nssCert->subjectName;
+                        subjName = &cert->nssCert->subject;
+                        derSubjName = &cert->nssCert->derSubject;
 
                         /* if there is no subject name */
-                        if (utf8Subject == NULL) {
+                        if (derSubjName->data == NULL) {
 
                                 pkixSubject = NULL;
 
                         } else {
-
-                                PKIX_CHECK(pkix_pl_X500Name_CreateFromUtf8
-                                    (utf8Subject, &pkixSubject, plContext),
-                                    PKIX_X500NAMECREATEFROMUTF8FAILED);
+                                PKIX_CHECK(PKIX_PL_X500Name_CreateFromCERTName
+                                    (derSubjName, subjName, &pkixSubject,
+                                     plContext),
+                                    PKIX_X500NAMECREATEFROMCERTNAMEFAILED);
 
                         }
                         /* save a cached copy in case it is asked for again */
@@ -1767,8 +1767,8 @@ PKIX_PL_Cert_GetIssuer(
         void *plContext)
 {
         PKIX_PL_X500Name *pkixIssuer = NULL;
-        CERTCertificate *nssCert = NULL;
-        char *utf8Issuer = NULL;
+        SECItem  *derIssuerName = NULL;
+        CERTName *issuerName = NULL;
 
         PKIX_ENTER(CERT, "PKIX_PL_Cert_GetIssuer");
         PKIX_NULLCHECK_THREE(cert, cert->nssCert, pCertIssuer);
@@ -1780,12 +1780,14 @@ PKIX_PL_Cert_GetIssuer(
 
                 if (cert->issuer == NULL){
 
-                        nssCert = cert->nssCert;
-                        utf8Issuer = nssCert->issuerName;
+                        issuerName = &cert->nssCert->issuer;
+                        derIssuerName = &cert->nssCert->derIssuer;
 
-                        PKIX_CHECK(pkix_pl_X500Name_CreateFromUtf8
-                                    (utf8Issuer, &pkixIssuer, plContext),
-                                    PKIX_X500NAMECREATEFROMUTF8FAILED);
+                        /* if there is no subject name */
+                        PKIX_CHECK(PKIX_PL_X500Name_CreateFromCERTName
+                                    (derIssuerName, issuerName,
+                                     &pkixIssuer, plContext),
+                                    PKIX_X500NAMECREATEFROMCERTNAMEFAILED);
 
                         /* save a cached copy in case it is asked for again */
                         cert->issuer = pkixIssuer;

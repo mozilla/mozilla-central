@@ -191,7 +191,7 @@ pkix_pl_Pk11CertStore_CertQuery(
                 arena = PORT_NewArena(DER_DEFAULT_CHUNKSIZE);
                 if (arena) {
 
-                        PKIX_CHECK(pkix_pl_X500Name_GetSECName
+                        PKIX_CHECK(pkix_pl_X500Name_GetDERName
                                 (subjectName, arena, &nameItem, plContext),
                                 PKIX_X500NAMEGETSECNAMEFAILED);
 
@@ -379,7 +379,7 @@ pkix_pl_Pk11CertStore_CrlQuery(
                         (PKIX_PL_Object **)&issuer,
                         plContext),
                         PKIX_LISTGETITEMFAILED);
-                    PKIX_CHECK(pkix_pl_X500Name_GetSECName
+                    PKIX_CHECK(pkix_pl_X500Name_GetDERName
                         (issuer, arena, &nameItem, plContext),
                         PKIX_X500NAMEGETSECNAMEFAILED);
                     if (nameItem) {

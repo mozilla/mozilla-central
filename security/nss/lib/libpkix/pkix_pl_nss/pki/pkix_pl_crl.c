@@ -965,8 +965,8 @@ PKIX_PL_CRL_GetIssuer(
 {
         PKIX_PL_String *crlString = NULL;
         PKIX_PL_X500Name *issuer = NULL;
-        char *utf8Issuer = NULL;
-        PKIX_UInt32 utf8Length;
+        SECItem  *derIssuerName = NULL;
+        CERTName *issuerName = NULL;
 
         PKIX_ENTER(CRL, "PKIX_PL_CRL_GetIssuer");
         PKIX_NULLCHECK_THREE(crl, crl->nssSignedCrl, pCRLIssuer);
@@ -978,27 +978,16 @@ PKIX_PL_CRL_GetIssuer(
 
                 if (crl->issuer == NULL) {
 
-                        PKIX_CRL_DEBUG("\t\tCalling CERT_NameToAscii\n");
-                        utf8Issuer = CERT_NameToAscii
-                                (&(crl->nssSignedCrl->crl.name));
+                        issuerName = &crl->nssSignedCrl->crl.name;
+                        derIssuerName = &crl->nssSignedCrl->crl.derName;
 
-                        PKIX_CRL_DEBUG("\t\tCalling PL_strlen\n");
-                        utf8Length = PL_strlen(utf8Issuer);
-
-                        PKIX_CHECK(PKIX_PL_String_Create
-                                    (PKIX_UTF8,
-                                    utf8Issuer,
-                                    utf8Length,
-                                    &crlString,
-                                    plContext),
-                                    PKIX_UNABLETOCREATECRLSTRING);
-
-                        PKIX_CHECK(PKIX_PL_X500Name_Create
-                                    (crlString,
-                                    &issuer,
-                                    plContext),
-                                    PKIX_UNABLETOCREATEISSUER);
-
+                        PKIX_CHECK(
+                            PKIX_PL_X500Name_CreateFromCERTName(derIssuerName,
+                                                                issuerName,
+                                                                &issuer,
+                                                                plContext),
+                            PKIX_X500NAMECREATEFROMCERTNAMEFAILED);
+                        
                         /* save a cached copy in case it is asked for again */
                         crl->issuer = issuer;
                 }
@@ -1012,12 +1001,6 @@ PKIX_PL_CRL_GetIssuer(
         *pCRLIssuer = crl->issuer;
 
 cleanup:
-
-        if (utf8Issuer != NULL) {
-                PKIX_CRL_DEBUG("\t\tCalling PORT_Free\n");
-                PR_Free(utf8Issuer);
-                utf8Issuer = NULL;
-        }
 
         PKIX_DECREF(crlString);
 

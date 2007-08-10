@@ -46,123 +46,6 @@
 /* --Private-X500Name-Functions------------------------------------- */
 
 /*
- * FUNCTION: pkix_pl_X500Name_CompareDERBytes
- * DESCRIPTION:
- *
- *  Checks whether the DER encoding of the X500Name pointed to by
- *  "firstX500Name" is byte-for-byte equal with the DER encoding of the
- *  X500Name pointed to by "secondX500Name" and stores the Boolean result at
- *  "pResult".
- *
- * PARAMETERS
- *  "firstX500Name"
- *      Address of first X500Name. Must be non-NULL.
- *  "secondX500Name"
- *      Address of second X500Name. Must be non-NULL.
- *  "pResult"
- *      Address where Boolean will be stored. Must be non-NULL.
- *  "plContext"
- *      Platform-specific context pointer.
- * THREAD SAFETY:
- *  Thread Safe (see Thread Safety Definitions in Programmer's Guide)
- * RETURNS:
- *  Returns NULL if the function succeeds.
- *  Returns a X500Name Error if the function fails in a non-fatal way.
- *  Returns a Fatal Error if the function fails in an unrecoverable way.
- */
-static PKIX_Error *
-pkix_pl_X500Name_CompareDERBytes(
-        PKIX_PL_X500Name *firstX500Name,
-        PKIX_PL_X500Name *secondX500Name,
-        PKIX_Boolean *pResult,
-        void *plContext)
-{
-        CERTName *firstName = NULL;
-        CERTName *secondName = NULL;
-        CERTRDN **ardns = NULL;
-        CERTRDN **brdns = NULL;
-        CERTRDN *ardn = NULL;
-        CERTRDN *brdn = NULL;
-        CERTAVA **aavas = NULL;
-        CERTAVA **bavas = NULL;
-        CERTAVA *aava = NULL;
-        CERTAVA *bava = NULL;
-        PKIX_UInt32 ac, bc;
-        SECComparison rv;
-
-        PKIX_ENTER(X500NAME, "pkix_pl_X500Name_CompareDERBytes");
-        PKIX_NULLCHECK_THREE(firstX500Name, secondX500Name, pResult);
-
-        firstName = firstX500Name->nssDN;
-        secondName = secondX500Name->nssDN;
-
-        PKIX_NULLCHECK_TWO(firstName, secondName);
-
-        ardns = firstName->rdns;
-        brdns = secondName->rdns;
-
-        /* if array of rdn's not same length, names can't be equal */
-        ac = pkix_countArray((void**) ardns);
-        bc = pkix_countArray((void**) brdns);
-        if (ac != bc){
-                *pResult = PKIX_FALSE;
-                goto cleanup;
-        }
-
-        for (;;) {
-                PKIX_NULLCHECK_TWO(ardns, brdns);
-                ardn = *ardns++;
-                brdn = *brdns++;
-                if (!ardn) {
-                        break;
-                }
-
-                PKIX_NULLCHECK_TWO(ardn, brdn);
-                aavas = ardn->avas;
-                bavas = brdn->avas;
-
-                /* if array of ava's not same length, names can't be equal */
-                ac = pkix_countArray((void**) aavas);
-                bc = pkix_countArray((void**) bavas);
-                if (ac != bc){
-                        *pResult = PKIX_FALSE;
-                        goto cleanup;
-                }
-
-                for (;;) {
-                        PKIX_NULLCHECK_TWO(aavas, bavas);
-                        aava = *aavas++;
-                        bava = *bavas++;
-                        if (!aava) {
-                                break;
-                        }
-
-                        PKIX_X500NAME_DEBUG("\t\tCalling "
-                                            "SECITEM_CompareItem).\n");
-                        rv = SECITEM_CompareItem(&aava->type, &bava->type);
-                        if (rv != SECEqual){
-                                *pResult = PKIX_FALSE;
-                                goto cleanup;
-                        }
-
-                        PKIX_X500NAME_DEBUG("\t\tCalling "
-                                            "SECITEM_CompareItem).\n");
-                        rv = SECITEM_CompareItem(&aava->value, &bava->value);
-                        if (rv != SECEqual){
-                                *pResult = PKIX_FALSE;
-                                goto cleanup;
-                        }
-                }
-        }
-
-        *pResult = (rv == SECEqual);
-
-cleanup:
-
-        PKIX_RETURN(X500NAME);
-}
-
-/*
  * FUNCTION: pkix_pl_X500Name_ToString_Helper
  * DESCRIPTION:
  *
@@ -195,7 +78,7 @@ pkix_pl_X500Name_ToString_Helper(
 
         PKIX_ENTER(X500NAME, "pkix_pl_X500Name_ToString_Helper");
         PKIX_NULLCHECK_TWO(name, pString);
-        nssDN = name->nssDN;
+        nssDN = &name->nssDN;
 
         PKIX_X500NAME_DEBUG("\t\tCalling CERT_NameToAscii).\n");
         /* this should really be called CERT_NameToUTF8 */
@@ -237,9 +120,12 @@ pkix_pl_X500Name_Destroy(
 
         name = (PKIX_PL_X500Name *)object;
 
-        PKIX_X500NAME_DEBUG("\t\tCalling CERT_DestroyName).\n");
-        CERT_DestroyName(name->nssDN);
-        name->nssDN = NULL;
+        /* PORT_FreeArena will destroy arena, and, allocated on it, CERTName
+         * and SECItem */
+        if (name->arena) {
+            PORT_FreeArena(name->arena, PR_FALSE);
+            name->arena = NULL;
+        }
 
 cleanup:
 
@@ -289,11 +175,8 @@ pkix_pl_X500Name_Hashcode(
         void *plContext)
 {
         PKIX_PL_X500Name *name = NULL;
-        SECItem *resultSecItem = NULL;
-        PRArenaPool *arena = NULL;
-        CERTName *nssDN = NULL;
+        SECItem *derBytes = NULL;
         PKIX_UInt32 nameHash;
-        SECItem *derBytes;
 
         PKIX_ENTER(X500NAME, "pkix_pl_X500Name_Hashcode");
         PKIX_NULLCHECK_TWO(object, pHashcode);
@@ -305,27 +188,7 @@ pkix_pl_X500Name_Hashcode(
 
         /* we hash over the bytes in the DER encoding */
 
-        nssDN = name->nssDN;
-
-        PKIX_X500NAME_DEBUG("\t\tCalling PORT_NewArena).\n");
-        arena = PORT_NewArena(DER_DEFAULT_CHUNKSIZE);
-        if (arena == NULL) {
-                PKIX_ERROR(PKIX_PORTNEWARENAFAILED);
-        }
-
-        PKIX_X500NAME_DEBUG("\t\tCalling PORT_ArenaZNew).\n");
-        derBytes = PORT_ArenaZNew(arena, SECItem);
-        if (derBytes == NULL) {
-                PKIX_ERROR(PKIX_PORTARENAZNEWFAILED);
-        }
-
-        PKIX_X500NAME_DEBUG("\t\tCalling SEC_ASN1EncodeItem).\n");
-        resultSecItem =
-                SEC_ASN1EncodeItem(arena, derBytes, nssDN, CERT_NameTemplate);
-
-        if (resultSecItem == NULL){
-                PKIX_ERROR(PKIX_SECASN1ENCODEITEMFAILED);
-        }
+        derBytes = &name->derName;
 
         PKIX_CHECK(pkix_hash
                     (derBytes->data, derBytes->len, &nameHash, plContext),
@@ -334,12 +197,6 @@ pkix_pl_X500Name_Hashcode(
         *pHashcode = nameHash;
 
 cleanup:
-
-        if (arena){
-                /* Note that freeing the arena also frees derBytes */
-                PKIX_X500NAME_DEBUG("\t\tCalling PORT_FreeArena).\n");
-                PORT_FreeArena(arena, PR_FALSE);
-        }
 
         PKIX_RETURN(X500NAME);
 }
@@ -356,8 +213,6 @@ pkix_pl_X500Name_Equals(
         PKIX_Boolean *pResult,
         void *plContext)
 {
-        PKIX_PL_X500Name *firstX500Name = NULL;
-        PKIX_PL_X500Name *secondX500Name = NULL;
         PKIX_UInt32 secondType;
 
         PKIX_ENTER(X500NAME, "pkix_pl_X500Name_Equals");
@@ -386,13 +241,11 @@ pkix_pl_X500Name_Equals(
                     PKIX_COULDNOTGETTYPEOFSECONDARGUMENT);
         if (secondType != PKIX_X500NAME_TYPE) goto cleanup;
 
-        firstX500Name = (PKIX_PL_X500Name *)firstObject;
-        secondX500Name = (PKIX_PL_X500Name *)secondObject;
-
-        /* we simply do byte comparison on DER encodings of DN's */
-        PKIX_CHECK(pkix_pl_X500Name_CompareDERBytes
-                    (firstX500Name, secondX500Name, pResult, plContext),
-                    PKIX_X500NAMECOMPAREDERBYTESFAILED);
+        PKIX_CHECK(
+            PKIX_PL_X500Name_Match((PKIX_PL_X500Name *)firstObject,
+                                   (PKIX_PL_X500Name *)secondObject,
+                                   pResult, plContext),
+            PKIX_X500NAMEMATCHFAILED);
 
 cleanup:
 
@@ -432,162 +285,7 @@ pkix_pl_X500Name_RegisterSelf(void *plContext)
         PKIX_RETURN(X500NAME);
 }
 
-/* --Public-Functions------------------------------------------------------- */
-
-/*
- * FUNCTION: PKIX_PL_X500Name_Create (see comments in pkix_pl_pki.h)
- */
-PKIX_Error *
-PKIX_PL_X500Name_Create(
-        PKIX_PL_String *stringRep,
-        PKIX_PL_X500Name **pName,
-        void *plContext)
-{
-        PKIX_PL_X500Name *x500Name = NULL;
-        CERTName *nssDN = NULL;
-        char *utf8String = NULL;
-        PKIX_UInt32 utf8Length;
-
-        PKIX_ENTER(X500NAME, "PKIX_PL_X500Name_Create()");
-        PKIX_NULLCHECK_TWO(pName, stringRep);
-
-        /*
-         * convert the input PKIX_PL_String to PKIX_UTF8_NULL_TERM.
-         * we need to use this format specifier because
-         * CERT_AsciiToName expects a NULL-terminated UTF8 string.
-         * Since UTF8 allow NUL characters in the middle of the
-         * string, this is buggy. However, as a workaround, using
-         * PKIX_UTF8_NULL_TERM gives us a NULL-terminated UTF8 string.
-         */
-
-        PKIX_CHECK(PKIX_PL_String_GetEncoded
-                    (stringRep,
-                    PKIX_UTF8_NULL_TERM,
-                    (void **)&utf8String,
-                    &utf8Length,
-                    plContext),
-                    PKIX_STRINGGETENCODEDFAILED);
-
-        PKIX_X500NAME_DEBUG("\t\tCalling CERT_AsciiToName).\n");
-        /* this should be really be called CERT_UTF8ToName */
-        nssDN = CERT_AsciiToName(utf8String);
-        if (nssDN == NULL) {
-                PKIX_ERROR(PKIX_COULDNOTCREATENSSDN);
-        }
-
-        /* create a PKIX_PL_X500Name object */
-        PKIX_CHECK(PKIX_PL_Object_Alloc
-                    (PKIX_X500NAME_TYPE,
-                    sizeof (PKIX_PL_X500Name),
-                    (PKIX_PL_Object **)&x500Name,
-                    plContext),
-                    PKIX_COULDNOTCREATEX500NAMEOBJECT);
-
-        /* populate the nssDN field */
-        x500Name->nssDN = nssDN;
-
-        *pName = x500Name;
-
-cleanup:
-
-        PKIX_FREE(utf8String);
-
-        if (nssDN && PKIX_ERROR_RECEIVED){
-                PKIX_X500NAME_DEBUG("\t\tCalling CERT_DestroyName).\n");
-                CERT_DestroyName(nssDN);
-                nssDN = NULL;
-        }
-
-        PKIX_RETURN(X500NAME);
-}
-
-/*
- * FUNCTION: PKIX_PL_X500Name_Match (see comments in pkix_pl_pki.h)
- */
-PKIX_Error *
-PKIX_PL_X500Name_Match(
-        PKIX_PL_X500Name *firstX500Name,
-        PKIX_PL_X500Name *secondX500Name,
-        PKIX_Boolean *pResult,
-        void *plContext)
-{
-        CERTName *firstName = NULL;
-        CERTName *secondName = NULL;
-        SECComparison cmpResult;
-
-        PKIX_ENTER(X500NAME, "PKIX_PL_X500Name_Equals");
-        PKIX_NULLCHECK_THREE(firstX500Name, secondX500Name, pResult);
-
-        if (firstX500Name == secondX500Name){
-                *pResult = PKIX_TRUE;
-                goto cleanup;
-        }
-
-        firstName = firstX500Name->nssDN;
-        secondName = secondX500Name->nssDN;
-
-        PKIX_NULLCHECK_TWO(firstName, secondName);
-
-        PKIX_X500NAME_DEBUG("\t\tCalling CERT_CompareName).\n");
-        cmpResult = CERT_CompareName(firstName, secondName);
-
-        *pResult = (cmpResult == SECEqual);
-
-cleanup:
-
-        PKIX_RETURN(X500NAME);
-}
-
-/*
- * FUNCTION: pkix_pl_X500Name_GetSECName
- *
- * DESCRIPTION:
- *  Encodes as a SECItem the CERTName embodied by the X500Name object pointed
- *  to by "xname", using the arena pointed to by "arena", and stores the result
- *  at "pSECName". If the name cannot be successfully encoded, NULL is stored
- *  at "pSECName".
- *
- * PARAMETERS:
- *  "xname"
- *      Address of X500Name whose CERTName flag is to be encoded. Must be
- *      non-NULL.
- *  "arena"
- *      Address of the PRArenaPool to be used in the encoding, and in which
- *      "pSECName" will be allocated. Must be non-NULL.
- *  "pSECName"
- *      Address where result will be stored. Must be non-NULL.
- *  "plContext"
- *      Platform-specific context pointer.
- *
- * THREAD SAFETY:
- *  Thread Safe (see Thread Safety Definitions in Programmer's Guide)
- *
- * RETURNS:
- *  Returns NULL if the function succeeds.
- *  Returns a Fatal Error if the function fails in an unrecoverable way.
- */
-PKIX_Error *
-pkix_pl_X500Name_GetSECName(
-        PKIX_PL_X500Name *xname,
-        PRArenaPool *arena,
-        SECItem **pSECName,
-        void *plContext)
-{
-
-        PKIX_ENTER(X500NAME, "pkix_pl_X500Name_GetCertName");
-
-        PKIX_NULLCHECK_THREE(xname, arena, pSECName);
-
-        /*
-         * SEC_ASN1EncodeItem returns NULL if unsuccessful. We just
-         * store the NULL result.
-         */
-        PKIX_PL_NSSCALLRV(X500NAME, *pSECName, SEC_ASN1EncodeItem,
-                (arena, NULL, (void *)xname->nssDN, CERT_NameTemplate));
-
-        PKIX_RETURN(X500NAME);
-}
-
+#ifdef BUILD_LIBPKIX_TESTS
 /*
  * FUNCTION: pkix_pl_X500Name_CreateFromUtf8
  *
@@ -596,6 +294,9 @@ pkix_pl_X500Name_GetSECName(
  *  to by "stringRep", and stores the result at "pName". If the string cannot
  *  be successfully converted, a non-fatal error is returned.
  *
+ * NOTE: ifdefed BUILD_LIBPKIX_TESTS function: this function is allowed to be
+ * called only by pkix tests programs.
+ * 
  * PARAMETERS:
  *  "stringRep"
  *      Address of the RFC1485 string to be converted. Must be non-NULL.
@@ -619,16 +320,19 @@ pkix_pl_X500Name_CreateFromUtf8(
         void *plContext)
 {
         PKIX_PL_X500Name *x500Name = NULL;
+        PRArenaPool *arena = NULL;
         CERTName *nssDN = NULL;
-
+        SECItem *resultSecItem = NULL;
+        
         PKIX_ENTER(X500NAME, "pkix_pl_X500Name_CreateFromUtf8");
         PKIX_NULLCHECK_TWO(pName, stringRep);
 
-        PKIX_PL_NSSCALLRV(X500NAME, nssDN, CERT_AsciiToName, (stringRep));
-
+        nssDN = CERT_AsciiToName(stringRep);
         if (nssDN == NULL) {
-                PKIX_ERROR(PKIX_COULDNOTCREATENSSDN);
+            PKIX_ERROR(PKIX_COULDNOTCREATENSSDN);
         }
+
+        arena = nssDN->arena;
 
         /* create a PKIX_PL_X500Name object */
         PKIX_CHECK(PKIX_PL_Object_Alloc
@@ -639,17 +343,288 @@ pkix_pl_X500Name_CreateFromUtf8(
                     PKIX_COULDNOTCREATEX500NAMEOBJECT);
 
         /* populate the nssDN field */
-        x500Name->nssDN = nssDN;
+        x500Name->arena = arena;
+        x500Name->nssDN.arena = arena;
+        x500Name->nssDN.rdns = nssDN->rdns;
+        
+        resultSecItem =
+            SEC_ASN1EncodeItem(arena, &x500Name->derName, nssDN,
+                               CERT_NameTemplate);
+        
+        if (resultSecItem == NULL){
+            PKIX_ERROR(PKIX_SECASN1ENCODEITEMFAILED);
+        }
 
         *pName = x500Name;
 
 cleanup:
 
-        if (nssDN && PKIX_ERROR_RECEIVED){
-                PKIX_X500NAME_DEBUG("\t\tCalling CERT_DestroyName).\n");
+        if (PKIX_ERROR_RECEIVED){
+            if (x500Name) {
+                PKIX_PL_Object_DecRef((PKIX_PL_Object*)x500Name,
+                                      plContext);
+            } else if (nssDN) {
                 CERT_DestroyName(nssDN);
-                nssDN = NULL;
+            }
         }
+
+        PKIX_RETURN(X500NAME);
+}
+#endif /* BUILD_LIBPKIX_TESTS */
+
+/*
+ * FUNCTION: pkix_pl_X500Name_GetCERTName
+ *
+ * DESCRIPTION:
+ * 
+ * Returns the pointer to CERTName member of X500Name structure.
+ *
+ * Returned pointed should not be freed.2
+ *
+ * PARAMETERS:
+ *  "xname"
+ *      Address of X500Name whose OrganizationName is to be extracted. Must be
+ *      non-NULL.
+ *  "pCERTName"
+ *      Address where result will be stored. Must be non-NULL.
+ *  "plContext"
+ *      Platform-specific context pointer.
+ *
+ * THREAD SAFETY:
+ *  Thread Safe (see Thread Safety Definitions in Programmer's Guide)
+ *
+ * RETURNS:
+ *  Returns NULL if the function succeeds.
+ *  Returns a Fatal Error if the function fails in an unrecoverable way.
+ */
+PKIX_Error *
+pkix_pl_X500Name_GetCERTName(
+        PKIX_PL_X500Name *xname,
+        CERTName **pCERTName,
+        void *plContext)
+{
+        PKIX_ENTER(X500NAME, "pkix_pl_X500Name_GetCERTName");
+        PKIX_NULLCHECK_TWO(xname, pCERTName);
+
+        *pCERTName = &xname->nssDN;
+
+        PKIX_RETURN(X500NAME);
+}
+
+/* --Public-Functions------------------------------------------------------- */
+
+/*
+ * FUNCTION: PKIX_PL_X500Name_CreateFromCERTName (see comments in pkix_pl_pki.h)
+ */
+
+PKIX_Error *
+PKIX_PL_X500Name_CreateFromCERTName(
+        SECItem *derName,
+        CERTName *name, 
+        PKIX_PL_X500Name **pName,
+        void *plContext)
+{
+        PRArenaPool *arena = NULL;
+        SECStatus rv = SECFailure;
+        PKIX_PL_X500Name *x500Name = NULL;
+
+        PKIX_ENTER(X500NAME, "PKIX_PL_X500Name_CreateFromCERTName");
+        PKIX_NULLCHECK_ONE(pName);
+        if (derName == NULL && name == NULL) {
+            PKIX_ERROR(PKIX_NULLARGUMENT);
+        }
+
+        arena = PORT_NewArena(DER_DEFAULT_CHUNKSIZE);
+        if (arena == NULL) {
+            PKIX_ERROR(PKIX_PORTARENAALLOCFAILED);
+        }
+        
+        PKIX_CHECK(PKIX_PL_Object_Alloc
+                    (PKIX_X500NAME_TYPE,
+                    sizeof (PKIX_PL_X500Name),
+                    (PKIX_PL_Object **)&x500Name,
+                    plContext),
+                    PKIX_COULDNOTCREATEX500NAMEOBJECT);
+
+        x500Name->arena = arena;
+        x500Name->nssDN.arena = NULL;
+
+        if (derName != NULL) {
+            rv = SECITEM_CopyItem(arena, &x500Name->derName, derName);
+            if (rv == SECFailure) {
+                PKIX_ERROR(PKIX_SECITEMCOPYITEMFAILED);
+            }
+        }            
+
+        if (name != NULL) {
+            rv = CERT_CopyName(arena, &x500Name->nssDN, name);
+            if (rv == SECFailure) {
+                PKIX_ERROR(PKIX_CERTCOPYNAMEFAILED);
+            }
+        } else {
+            rv = SEC_QuickDERDecodeItem(arena, &x500Name->nssDN,
+                                        CERT_NameTemplate,
+                                        &x500Name->derName);
+            if (rv == SECFailure) {
+                PKIX_ERROR(PKIX_SECQUICKDERDECODERFAILED);
+            }
+        }
+
+        *pName = x500Name;
+
+cleanup:
+        if (PKIX_ERROR_RECEIVED) {
+            if (x500Name) {
+                PKIX_PL_Object_DecRef((PKIX_PL_Object*)x500Name,
+                                      plContext);
+            } else if (arena) {                
+                PORT_FreeArena(arena, PR_FALSE);
+            }
+        }
+
+        PKIX_RETURN(X500NAME);
+}
+
+#ifdef BUILD_LIBPKIX_TESTS
+/*
+ * FUNCTION: PKIX_PL_X500Name_Create (see comments in pkix_pl_pki.h)
+ *
+ * NOTE: ifdefed BUILD_LIBPKIX_TESTS function: this function is allowed
+ * to be called only by pkix tests programs.
+ */
+PKIX_Error *
+PKIX_PL_X500Name_Create(
+        PKIX_PL_String *stringRep,
+        PKIX_PL_X500Name **pName,
+        void *plContext)
+{
+        char *utf8String = NULL;
+        PKIX_UInt32 utf8Length = 0;
+
+        PKIX_ENTER(X500NAME, "PKIX_PL_X500Name_Create");
+        PKIX_NULLCHECK_TWO(pName, stringRep);
+
+        /*
+         * convert the input PKIX_PL_String to PKIX_UTF8_NULL_TERM.
+         * we need to use this format specifier because
+         * CERT_AsciiToName expects a NULL-terminated UTF8 string.
+         * Since UTF8 allow NUL characters in the middle of the
+         * string, this is buggy. However, as a workaround, using
+         * PKIX_UTF8_NULL_TERM gives us a NULL-terminated UTF8 string.
+         */
+
+        PKIX_CHECK(PKIX_PL_String_GetEncoded
+                    (stringRep,
+                    PKIX_UTF8_NULL_TERM,
+                    (void **)&utf8String,
+                    &utf8Length,
+                    plContext),
+                    PKIX_STRINGGETENCODEDFAILED);
+
+        PKIX_CHECK(
+            pkix_pl_X500Name_CreateFromUtf8(utf8String,
+                                            pName, plContext),
+            PKIX_X500NAMECREATEFROMUTF8FAILED);
+
+cleanup:
+        PKIX_FREE(utf8String);
+
+        PKIX_RETURN(X500NAME);
+}
+#endif /* BUILD_LIBPKIX_TESTS */
+
+/*
+ * FUNCTION: PKIX_PL_X500Name_Match (see comments in pkix_pl_pki.h)
+ */
+PKIX_Error *
+PKIX_PL_X500Name_Match(
+        PKIX_PL_X500Name *firstX500Name,
+        PKIX_PL_X500Name *secondX500Name,
+        PKIX_Boolean *pResult,
+        void *plContext)
+{
+        SECItem *firstDerName = NULL;
+        SECItem *secondDerName = NULL;
+        SECComparison cmpResult;
+
+        PKIX_ENTER(X500NAME, "PKIX_PL_X500Name_Match");
+        PKIX_NULLCHECK_THREE(firstX500Name, secondX500Name, pResult);
+
+        if (firstX500Name == secondX500Name){
+                *pResult = PKIX_TRUE;
+                goto cleanup;
+        }
+
+        firstDerName = &firstX500Name->derName;
+        secondDerName = &secondX500Name->derName;
+
+        PKIX_NULLCHECK_TWO(firstDerName->data, secondDerName->data);
+
+        cmpResult = SECITEM_CompareItem(firstDerName, secondDerName);
+        if (cmpResult != SECEqual) {
+            cmpResult = CERT_CompareName(&firstX500Name->nssDN,
+                                         &secondX500Name->nssDN);
+        }
+
+        *pResult = (cmpResult == SECEqual);
+                   
+cleanup:
+
+        PKIX_RETURN(X500NAME);
+}
+
+/*
+ * FUNCTION: pkix_pl_X500Name_GetSECName
+ *
+ * DESCRIPTION:
+ *  Returns a copy of CERTName DER representation allocated on passed in arena.
+ *  If allocation on arena can not be done, NULL is stored at "pSECName".
+ *
+ * PARAMETERS:
+ *  "xname"
+ *      Address of X500Name whose CERTName flag is to be encoded. Must be
+ *      non-NULL.
+ *  "arena"
+ *      Address of the PRArenaPool to be used in the encoding, and in which
+ *      "pSECName" will be allocated. Must be non-NULL.
+ *  "pSECName"
+ *      Address where result will be stored. Must be non-NULL.
+ *  "plContext"
+ *      Platform-specific context pointer.
+ *
+ * THREAD SAFETY:
+ *  Thread Safe (see Thread Safety Definitions in Programmer's Guide)
+ *
+ * RETURNS:
+ *  Returns NULL if the function succeeds.
+ *  Returns a Fatal Error if the function fails in an unrecoverable way.
+ */
+PKIX_Error *
+pkix_pl_X500Name_GetDERName(
+        PKIX_PL_X500Name *xname,
+        PRArenaPool *arena,
+        SECItem **pDERName,
+        void *plContext)
+{
+        SECItem *derName = NULL;
+
+        PKIX_ENTER(X500NAME, "pkix_pl_X500Name_GetDERName");
+
+        PKIX_NULLCHECK_THREE(xname, arena, pDERName);
+
+        /* Return NULL is X500Name was not created from DER  */
+        if (xname->derName.data == NULL) {
+            *pDERName = NULL;
+            goto cleanup;
+        }
+
+        derName = SECITEM_ArenaDupItem(arena, &xname->derName);
+        if (derName == NULL) {
+            PKIX_ERROR(PKIX_SECITEMCOPYITEMFAILED);
+        }
+
+        *pDERName = derName;
+cleanup:
 
         PKIX_RETURN(X500NAME);
 }
@@ -689,11 +664,7 @@ pkix_pl_X500Name_GetCommonName(
         PKIX_ENTER(X500NAME, "pkix_pl_X500Name_GetCommonName");
         PKIX_NULLCHECK_TWO(xname, pCommonName);
 
-        PKIX_PL_NSSCALLRV
-                (X500NAME,
-                *pCommonName,
-                (unsigned char *)CERT_GetCommonName,
-                (xname->nssDN));
+        *pCommonName = (unsigned char *)CERT_GetCommonName(&xname->nssDN);
 
         PKIX_RETURN(X500NAME);
 }
@@ -733,11 +704,7 @@ pkix_pl_X500Name_GetCountryName(
         PKIX_ENTER(X500NAME, "pkix_pl_X500Name_GetCountryName");
         PKIX_NULLCHECK_TWO(xname, pCountryName);
 
-        PKIX_PL_NSSCALLRV
-                (X500NAME,
-                *pCountryName,
-                (unsigned char *)CERT_GetCountryName,
-                (xname->nssDN));
+        *pCountryName = (unsigned char*)CERT_GetCountryName(&xname->nssDN);
 
         PKIX_RETURN(X500NAME);
 }
@@ -777,24 +744,7 @@ pkix_pl_X500Name_GetOrgName(
         PKIX_ENTER(X500NAME, "pkix_pl_X500Name_GetOrgName");
         PKIX_NULLCHECK_TWO(xname, pOrgName);
 
-        PKIX_PL_NSSCALLRV
-                (X500NAME,
-                *pOrgName,
-                (unsigned char *)CERT_GetOrgName,
-                (xname->nssDN));
-
-        PKIX_RETURN(X500NAME);
-}
-PKIX_Error *
-pkix_pl_X500Name_GetCERTName(
-        PKIX_PL_X500Name *xname,
-        CERTName **pCERTName,
-        void *plContext)
-{
-        PKIX_ENTER(X500NAME, "pkix_pl_X500Name_GetCERTName");
-        PKIX_NULLCHECK_TWO(xname, pCERTName);
-
-        *pCERTName = xname->nssDN;
+        *pOrgName = (unsigned char*)CERT_GetOrgName(&xname->nssDN);
 
         PKIX_RETURN(X500NAME);
 }

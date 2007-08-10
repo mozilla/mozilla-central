@@ -50,24 +50,32 @@
 extern "C" {
 #endif
 
+
 struct PKIX_PL_X500NameStruct{
-        CERTName *nssDN;
+        PRArenaPool *arena; /* X500Name arena. Shared arena with nssDN
+                             * and derName */
+        CERTName nssDN;
+        SECItem derName;    /* adding DER encoded CERTName to the structure
+                             * to avoid unnecessary name encoding when pass
+                             * der name to cert finder */
 };
 
 /* see source file for function documentation */
 
 PKIX_Error *pkix_pl_X500Name_RegisterSelf(void *plContext);
 
-PKIX_Error *pkix_pl_X500Name_GetSECName(
+PKIX_Error *pkix_pl_X500Name_GetDERName(
         PKIX_PL_X500Name *xname,
         PRArenaPool *arena,
         SECItem **pSECName,
         void *plContext);
 
+#ifdef BUILD_LIBPKIX_TESTS
 PKIX_Error * pkix_pl_X500Name_CreateFromUtf8(
         char *stringRep,
         PKIX_PL_X500Name **pName,
         void *plContext);
+#endif /* BUILD_LIBPKIX_TESTS */
 
 PKIX_Error *pkix_pl_X500Name_GetCommonName(
         PKIX_PL_X500Name *xname,
