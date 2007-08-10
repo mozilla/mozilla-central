@@ -854,7 +854,9 @@ NS_IMETHODIMP nsImapMailFolder::CreateClientSubfolderInfo(const nsACString& fold
     NS_ConvertASCIItoUTF16 leafName(folderName);
     nsAutoString folderNameStr;
     nsAutoString parentName = leafName;
-    PRInt32 folderStart = leafName.FindChar('/');
+    // use RFind, because folder can start with a delimiter and
+    // not be a leaf folder.
+    PRInt32 folderStart = leafName.RFindChar('/');
     if (folderStart > 0)
     {
         nsCOMPtr<nsIRDFService> rdf(do_GetService(kRDFServiceCID, &rv));
