@@ -1574,7 +1574,6 @@ nsXFormsUtils::CheckContentPolicy(nsIDOMElement *aElement,
   PRInt16 decision = nsIContentPolicy::ACCEPT;
   nsresult rv = NS_CheckContentLoadPolicy(nsIContentPolicy::TYPE_OTHER,
                                           aURI,
-                                          nsnull,
                                           aDoc->NodePrincipal(),
                                           aElement,        // context
                                           EmptyCString(),  // mime guess
