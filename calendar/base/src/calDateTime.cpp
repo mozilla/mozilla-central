@@ -280,12 +280,6 @@ calDateTime::SubtractDate(calIDateTime *aDate, calIDuration **aDuration)
 {
     NS_ENSURE_ARG_POINTER(aDate);
 
-    struct icaltimetype itt1;
-    struct icaltimetype itt2;
-
-    ToIcalTime(&itt1);
-    aDate->ToIcalTime(&itt2);
-
     // same as icaltime_subtract(), but minding timezones:
     PRTime t2t;
     aDate->GetNativeTime(&t2t);
