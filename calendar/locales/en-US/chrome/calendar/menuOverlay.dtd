@@ -54,7 +54,7 @@
 <!ENTITY calendar.new.server.key                "L">
 <!ENTITY calendar.new.server.accesskey          "l">
 
-<!ENTITY calendar.new.journal.label              "New Journal Item...">
+<!ENTITY calendar.new.journal.label              "New Journal Item…">
 <!ENTITY calendar.new.journal.key                "J">
 <!ENTITY calendar.new.journal.accesskey          "j">
 
@@ -62,7 +62,7 @@
 <!ENTITY calendar.open.file.key                 "O">
 <!ENTITY calendar.open.file.accesskey           "O">
 
-<!ENTITY event.edit.event                       "Edit Selection...">
+<!ENTITY event.edit.event                       "Edit Selection…">
 <!ENTITY event.edit.event.key                   "E">
 <!ENTITY event.edit.event.accesskey             "E">
 
@@ -72,11 +72,11 @@
 <!ENTITY event.delete.tasks                     "Delete Selected Tasks">
 <!ENTITY event.delete.tasks.accesskey           "T">
 
-<!ENTITY event.mail.event                       "Mail Selection...">
+<!ENTITY event.mail.event                       "Mail Selection…">
 <!ENTITY event.mail.event.key                   "M">
 <!ENTITY event.mail.event.accesskey             "M">
 
-<!ENTITY calendar.print.label                   "Print...">
+<!ENTITY calendar.print.label                   "Print…">
 <!ENTITY calendar.print.key                     "P">
 <!ENTITY calendar.print.accesskey               "P">
 
@@ -93,7 +93,7 @@
 <!ENTITY calendar.wizard.label                  "Launch Wizard…">
 <!ENTITY calendar.wizard.accesskey              "W">
 
-<!ENTITY calendar.export.label                  "Export Selection...">
+<!ENTITY calendar.export.label                  "Export Selection…">
 <!ENTITY calendar.export.accesskey              "E">
 
 <!ENTITY calendar.export.calendar.label         "Export Calendar…">
@@ -109,7 +109,7 @@
 <!ENTITY calendar.reloadserver.key              "R">
 <!ENTITY calendar.reloadserver.accesskey        "R">
 
-<!ENTITY calendar.publish.label                 "Publish...">
+<!ENTITY calendar.publish.label                 "Publish…">
 <!ENTITY calendar.publish.accesskey             "b">
 
 <!ENTITY calendar.publish.calendar.label        "Publish Calendar…">
@@ -159,7 +159,7 @@
 
 <!ENTITY calendar.toolbar.label                 "Calendar Toolbar">
 
-<!ENTITY calendar.menu.customize.label          "Customize...">
+<!ENTITY calendar.menu.customize.label          "Customize…">
 <!ENTITY calendar.menu.customize.accesskey      "C">
 
 <!ENTITY calendar.preferences.label             "Preferences…">

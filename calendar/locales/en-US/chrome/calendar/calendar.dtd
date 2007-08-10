@@ -324,7 +324,7 @@
 <!ENTITY calendar.print.settingsGroup.label "Print Settings">
 
 <!-- Error reporting -->
-<!ENTITY calendar.error.detail "Details...">
+<!ENTITY calendar.error.detail "Details…">
 <!ENTITY calendar.error.number "Error number:">
 <!ENTITY calendar.error.description "Description:">
 <!ENTITY calendar.error.title "An error has occurred">

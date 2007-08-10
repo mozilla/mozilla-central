@@ -59,7 +59,7 @@
 <!ENTITY  event.menu.view.toolbars.customize.label        "Customize">
 
 <!ENTITY  event.menu.options.label                        "Options">
-<!ENTITY  event.menu.options.spellcheck.label             "Check Spelling...">
+<!ENTITY  event.menu.options.spellcheck.label             "Check Spelling…">
 <!ENTITY  event.menu.options.inline.spellcheck.label      "Spell Check As You Type">
 <!ENTITY  event.menu.options.url.label                    "Link to Documents">
 <!ENTITY  event.menu.options.timezone.label               "Timezone">
@@ -104,7 +104,7 @@
 <!ENTITY event.reminder.label                             "Reminder:" >
 <!ENTITY event.description.label                          "Description:" >
 <!ENTITY event.document.label                             "Document:" >
-<!ENTITY event.document.change.label                      "Change..." >
+<!ENTITY event.document.change.label                      "Change…" >
 
 <!ENTITY event.private.label                              "Private" >
 <!ENTITY event.public.label                               "Public" >
@@ -124,7 +124,7 @@
 <!ENTITY event.reminder.1day.before.label                 "1 day before" >
 <!ENTITY event.reminder.2days.before.label                "2 days before" >
 <!ENTITY event.reminder.1week.before.label                "1 week before" >
-<!ENTITY event.reminder.custom.label                      "Custom..." >
+<!ENTITY event.reminder.custom.label                      "Custom…" >
 
 <!-- Recurrence dialog -->
 <!ENTITY event.repeat.does.not.repeat.label             "Does not repeat">
@@ -134,7 +134,7 @@
 <!ENTITY event.repeat.bi.weekly.label                   "Bi-weekly">
 <!ENTITY event.repeat.monthly.label                     "Monthly">
 <!ENTITY event.repeat.yearly.label                      "Yearly">
-<!ENTITY event.repeat.custom.label                      "Custom...">
+<!ENTITY event.repeat.custom.label                      "Custom…">
 
 <!ENTITY event.recurrence.pattern.label                 "Recurrence pattern">
 <!ENTITY event.recurrence.occurs.label                  "Repeat" >
