@@ -1,6 +1,6 @@
 #
-## hostname: argo
-## uname: Linux argo.mozilla.org 2.4.21-32.0.1.ELsmp #1 SMP Tue May 17 17:52:23 EDT 2005 i686 i686 i386 GNU/Linux
+## hostname: xr-linux-tbox
+## uname: Linux xr-linux-tbox.build.mozilla.org 2.6.18-8.el5 #1 SMP Thu Mar 15 19:57:35 EDT 2007 i686 i686 i386 GNU/Linux
 #
 
 export MOZILLA_OFFICIAL=1
@@ -11,6 +11,3 @@ mk_add_options MOZ_MAKE_FLAGS="-j8"
 
 ac_add_options --enable-application=xulrunner
 ac_add_options --disable-tests
-
-# argo is old. Remove the following line when we start using the refplatform
-ac_add_options --disable-airbag

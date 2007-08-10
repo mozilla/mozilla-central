@@ -1,6 +1,6 @@
 #
-## hostname: argo
-## uname: Linux argo.mozilla.org 2.4.21-32.0.1.ELsmp #1 SMP Tue May 17 17:52:23 EDT 2005 i686 i686 i386 GNU/Linux
+## hostname: xr-linux-tbox
+## uname: Linux xr-linux-tbox.build.mozilla.org 2.6.18-8.el5 #1 SMP Thu Mar 15 19:57:35 EDT 2007 i686 i686 i386 GNU/Linux
 #
 
 #- tinder-config.pl - Tinderbox configuration file.
@@ -196,8 +196,8 @@ $BinaryName = 'xulrunner-bin';
 $ReleaseBuild  = 1;
 #$LocaleProduct = "browser";
 $shiptalkback  = 0;
-#$ReleaseToLatest = 1; # Push the release to latest-<milestone>?
-#$ReleaseToDated = 1; # Push the release to YYYY-MM-DD-HH-<milestone>?
+$ReleaseToLatest = 0; # Push the release to latest-<milestone>?
+$ReleaseToDated = 0; # Push the release to YYYY-MM-DD-HH-<milestone>?
 #$build_hour    = "8";
 $package_creation_path = "/xulrunner/installer";
 # needs setting for mac + talkback: $mac_bundle_path = "/browser/app";
