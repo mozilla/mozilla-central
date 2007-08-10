@@ -44,9 +44,9 @@ DROP TABLE IF EXISTS `dataset_extra_data`;
 CREATE TABLE `dataset_extra_data` (
   `dataset_id` int(11) default NULL,
   `time` int(11) default NULL,
-  `data` varchar(255) default NULL,
+  `data` text,
   KEY `datasets_extradata_id_idx` (`dataset_id`),
-  KEY `datasets_extra_data_supplemental_idx` (`dataset_id`,`time`,`data`)
+  KEY `datasets_extra_data_supplemental_idx` (`dataset_id`,`time`,`data`(255))
 ) ENGINE=MyISAM DEFAULT CHARSET=latin1;
 
 --
