@@ -206,67 +206,19 @@ calRecurrenceDate::GetOccurrences(calIDateTime *aStartTime,
 NS_IMETHODIMP
 calRecurrenceDate::GetIcalProperty(calIIcalProperty **aProp)
 {
+    NS_ENSURE_ARG_POINTER(aProp);
     if (!mDate)
         return NS_ERROR_FAILURE;
 
-    // we need to set the timezone of the above created property manually,
+    nsCOMPtr<calIICSService> const icsService(do_GetService(kCalICSService));
+    if (!icsService)
+        return NS_ERROR_NOT_AVAILABLE;
+    nsresult rc =icsService->CreateIcalProperty(
+        (mIsNegative ? nsDependentCString("EXDATE") : nsDependentCString("RDATE")), aProp);
+    if (NS_FAILED(rc))
+        return rc;
 
-    // the only reason this is necessary is because the icalproperty_set_value()
-
-    // has the somewhat non-intuitive behavior of not handling the TZID
-    // parameter automagically.
-    nsresult rv;
-    nsCAutoString tzid;
-    rv = mDate->GetTimezone(tzid);
-    if(NS_FAILED(rv))
-      return rv;
-
-    PRBool setTZID = PR_FALSE;
-    if (!tzid.IsEmpty() && !tzid.EqualsLiteral("UTC") &&
-        !tzid.EqualsLiteral("floating")) {
-
-        nsCOMPtr<calIICSService> ics = do_GetService(kCalICSService, &rv);
-        if(NS_FAILED(rv))
-          return NS_ERROR_NOT_AVAILABLE;
-
-        nsCOMPtr<calIIcalComponent> tz;
-        rv = ics->GetTimezone(tzid, getter_AddRefs(tz));
-        if(NS_FAILED(rv))
-          return rv;
-
-        setTZID = PR_TRUE;
-    }
-
-    icalproperty *dateprop = nsnull;
-
-    if (mIsNegative)
-        dateprop = icalproperty_new(ICAL_EXDATE_PROPERTY);
-    else
-        dateprop = icalproperty_new(ICAL_RDATE_PROPERTY);
-
-    struct icaltimetype icalt;
-    mDate->ToIcalTime(&icalt);
-
-    icalvalue *v;
-
-    if (icalt.is_date)
-        v = icalvalue_new_date(icalt);
-    else
-        v = icalvalue_new_datetime(icalt);
-
-    icalproperty_set_value(dateprop, v);
-
-    calIIcalProperty *icp = new calIcalProperty(dateprop, nsnull);
-    if (!icp) {
-        icalproperty_free(dateprop);
-        return NS_ERROR_FAILURE;
-    }
-
-    if(setTZID)
-      icalproperty_set_parameter_from_string(dateprop, "TZID", nsPromiseFlatCString(tzid).get());
-
-    NS_ADDREF(*aProp = icp);
-    return NS_OK;
+    return (*aProp)->SetValueAsDatetime(mDate);
 }
 
 NS_IMETHODIMP
@@ -274,48 +226,16 @@ calRecurrenceDate::SetIcalProperty(calIIcalProperty *aProp)
 {
     NS_ENSURE_ARG_POINTER(aProp);
 
-    icalproperty *prop = aProp->GetIcalProperty();
-    if (!prop)
-        return NS_ERROR_INVALID_ARG;
-
-    int kind = icalproperty_isa(prop);
-
-    if (kind == ICAL_RDATE_PROPERTY) {
+    nsCAutoString name;
+    nsresult rc = aProp->GetPropertyName(name);
+    if (NS_FAILED(rc))
+        return rc;
+    if (name.EqualsLiteral("RDATE"))
         mIsNegative = PR_FALSE;
-    } else if (kind == ICAL_EXDATE_PROPERTY) {
+    else if (name.EqualsLiteral("EXDATE"))
         mIsNegative = PR_TRUE;
-    } else {
+    else
         return NS_ERROR_INVALID_ARG;
-    }
 
-    struct icaltimetype theDate = icalvalue_get_date(icalproperty_get_value(prop));
-
-    // we need to transfer the timezone from the icalproperty to the calIDateTime
-
-    // object manually, the only reason this is necessary is because the
-
-    // icalproperty_get_value() has the somewhat non-intuitive behavior of
-    // not handling the TZID parameter automagically.
-    const char *tzid = icalproperty_get_parameter_as_string(prop, "TZID");
-    if (tzid) {
-        // We have to walk up to our parent VCALENDAR and try to find this tzid
-      icalcomponent *vcalendar = aProp->GetIcalComponent();
-      while (vcalendar && icalcomponent_isa(vcalendar) != ICAL_VCALENDAR_COMPONENT)
-        vcalendar = icalcomponent_get_parent(vcalendar);
-      if (!vcalendar) {
-        NS_WARNING("VCALENDAR not found while looking for VTIMEZONE!");
-        return calIErrors::ICS_ERROR_BASE + icalerrno;
-      }
-      icaltimezone *zone = icalcomponent_get_timezone(vcalendar, tzid);
-      if (!zone) {
-        NS_WARNING("Can't find specified VTIMEZONE in VCALENDAR!");
-        return calIErrors::INVALID_TIMEZONE;
-      }
-      theDate.zone = zone;
-    }
-
-    mDate = new calDateTime(&theDate);
-    if (!mDate)
-        return NS_ERROR_FAILURE;
-    return NS_OK;
+    return aProp->GetValueAsDatetime(getter_AddRefs(mDate));
 }

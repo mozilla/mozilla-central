@@ -69,7 +69,7 @@ public:
     NS_DECL_ISUPPORTS
     NS_DECL_CALIICSSERVICE
 protected:
-    nsClassHashtable<nsCStringHashKey, TimezoneEntry> mTzHash;
+    mutable nsClassHashtable<nsCStringHashKey, TimezoneEntry> mTzHash;
     TimezoneEntry const* getTimezoneEntry(nsACString const& tzid);
 };
 
@@ -84,8 +84,15 @@ public:
             icalproperty_free(mProperty);
     }
 
-    icalproperty *getIcalProperty() { return mProperty; }
-    
+    icalproperty * getIcalProperty() const { return mProperty; }
+
+    static nsresult getDatetime_(calIIcalComponent *comp,
+                                 icalproperty *prop,
+                                 calIDateTime **dtp);
+    static nsresult setDatetime_(calIIcalComponent *comp,
+                                 icalproperty *prop,
+                                 calIDateTime *dt);
+
     NS_DECL_ISUPPORTS
     NS_DECL_CALIICALPROPERTY
 

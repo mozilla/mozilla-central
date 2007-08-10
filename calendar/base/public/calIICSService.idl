@@ -177,6 +177,7 @@ interface calIIcalComponent : nsISupports
     calIIcalComponent clone();
     
     [noscript,notxpcom] icalcomponentptr getIcalComponent();
+    [noscript, notxpcom] nsresult addTimezoneReferenceById(in ACStringPtr tzid);
 };
 
 [scriptable,uuid(17349a10-5d80-47fa-9bea-f22957357675)]
@@ -200,6 +201,13 @@ interface calIIcalProperty : nsISupports
      * The value of the property in (escaped) ical format.
      */
     attribute AUTF8String valueAsIcalString;
+
+    /**
+     * The value of the property as date/datetime value, keeping
+     * track of the used timezone being resolvable and referenced in the
+     * owning component.
+     */
+    attribute calIDateTime valueAsDatetime;
 
     // XXX attribute AUTF8String stringValueWithParams; ?
     readonly attribute AUTF8String propertyName;
