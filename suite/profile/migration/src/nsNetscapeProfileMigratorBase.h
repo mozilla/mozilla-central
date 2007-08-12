@@ -160,7 +160,6 @@ protected:
   nsresult CopyUserSheet(const char* aFileName);
   nsresult GetSignonFileName(PRBool aReplace, char** aFileName);
   nsresult ImportNetscapeCookies(nsIFile* aCookiesFile);
-  nsresult LocateWalletFile(const char* aExtension, char** aResult);
 
   // Browser Import Functions
   nsresult CopyBookmarks(PRBool aReplace);

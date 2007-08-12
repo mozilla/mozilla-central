@@ -845,26 +845,6 @@ nsNetscapeProfileMigratorBase::CopyUserSheet(const char* aFileName)
 }
 
 nsresult
-nsNetscapeProfileMigratorBase::GetSignonFileName(PRBool aReplace,
-                                                 char** aFileName)
-{
-  if (aReplace) {
-    // Find out what the signons file was called, this is stored in a pref
-    // in Seamonkey.
-    nsCOMPtr<nsIPrefService> psvc(do_GetService(NS_PREFSERVICE_CONTRACTID));
-
-    if (psvc) {
-      nsCOMPtr<nsIPrefBranch> branch(do_QueryInterface(psvc));
-
-      if (NS_SUCCEEDED(branch->GetCharPref("signon.SignonFileName",
-                                           aFileName)))
-        return NS_OK;
-    }
-  }
-  return LocateWalletFile("s", aFileName);
-}
-
-nsresult
 nsNetscapeProfileMigratorBase::ImportNetscapeCookies(nsIFile* aCookiesFile)
 {
   nsresult rv;
@@ -954,9 +934,23 @@ nsNetscapeProfileMigratorBase::ImportNetscapeCookies(nsIFile* aCookiesFile)
 }
 
 nsresult
-nsNetscapeProfileMigratorBase::LocateWalletFile(const char* aExtension,
-                                                char** aResult)
+nsNetscapeProfileMigratorBase::GetSignonFileName(PRBool aReplace,
+                                                 char** aFileName)
 {
+  if (aReplace) {
+    // Find out what the signons file was called, this is stored in a pref
+    // in Seamonkey.
+    nsCOMPtr<nsIPrefService> psvc(do_GetService(NS_PREFSERVICE_CONTRACTID));
+
+    if (psvc) {
+      nsCOMPtr<nsIPrefBranch> branch(do_QueryInterface(psvc));
+
+      if (NS_SUCCEEDED(branch->GetCharPref("signon.SignonFileName",
+                                           aFileName)))
+        return NS_OK;
+    }
+  }
+
   nsCOMPtr<nsISimpleEnumerator> entries;
   nsresult rv = mSourceProfile->GetDirectoryEntries(getter_AddRefs(entries));
   if (NS_FAILED(rv))
@@ -986,13 +980,13 @@ nsNetscapeProfileMigratorBase::LocateWalletFile(const char* aExtension,
     nsCAutoString extn;
     url->GetFileExtension(extn);
 
-    if (extn.Equals(aExtension, CaseInsensitiveCompare)) {
+    if (extn.Equals("s", CaseInsensitiveCompare)) {
       url->GetFileName(fileName);
       break;
     }
   };
 
-  *aResult = ToNewCString(fileName);
+  *aFileName = ToNewCString(fileName);
 
   return NS_OK;
 }
