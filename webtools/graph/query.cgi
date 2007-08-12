@@ -326,12 +326,12 @@ sub show_graph {
 
   # Mailto
   print "<li>\n";
-  print "<a href=\"mailto:mozilla-performance\@mozilla.org?subject=Perf: $TBOX/$TESTNAME test regression\">Mail m.performance about regressions for this test</a>";
+  print "<a href=\"mailto:dev-performance\@lists.mozilla.org?subject=Perf: $TBOX/$TESTNAME test regression\">Mail m.d.performance about regressions for this test</a>";
   print "</li>\n";
 
   # Newsgroup
   print "<li>\n";
-  print "<a href=\"news://news.mozilla.org/netscape.public.mozilla.performance\">performance newsgroup</a>";
+  print "<a href=\"news://news.mozilla.org/mozilla.dev.performance\">performance newsgroup</a>";
   print "</li>\n";
 
   print "</font>";
