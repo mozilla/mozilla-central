@@ -40,6 +40,7 @@ my $_cgi;
 sub cgi {
     my $class = shift;
     $_cgi ||= new CGI();
+    $_cgi->charset("UTF-8");
     return $_cgi;
 }
 
