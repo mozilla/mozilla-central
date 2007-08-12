@@ -299,8 +299,12 @@ sub checkout {
     # of the command and any error messages.
     my ($rv, $output, $errors) = Doctor::system_capture("cvs", @args);
 
+    # File was previously added but has since been deleted (and is now in the Attic)
+    if ($rv == 0 && $errors =~ /not \(any longer\) pertinent/) {
+        $self->{_version} = "new";
+    }
     # Extract the content and version.
-    if ($rv == 0) {
+    elsif ($rv == 0) {
         # Extract the version from the CVS/Entries file.
         open(FILE, "<", $self->path . "CVS/Entries")
           or die "Can't open @{[$self->spec]}/CVS/Entries: $!";
@@ -318,6 +322,7 @@ sub checkout {
             close(FILE);
         }
     }
+    # File not found; treat it as new
     elsif ($errors =~ /cannot find/) {
         $self->{_version} = "new";
     }
