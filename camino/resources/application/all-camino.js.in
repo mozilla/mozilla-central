@@ -21,6 +21,7 @@
  *
  * Contributor(s):
  *  Brian Ryner <bryner@brianryner.com>
+ *  Smokey Ardisson <alqahira@ardisson.org>
  *
  * Alternatively, the contents of this file may be used under the terms of
  * either the GNU General Public License Version 2 or later (the "GPL"), or
@@ -42,6 +43,9 @@ pref("accessibility.tabfocus", 3);
 
 // What to load in a new tab: 0 = blank, 1 = homepage, 2 = last page
 pref("browser.tabs.startPage", 0);
+
+// What to load in a new window: 0 = blank, 1 = homepage
+pref("browser.startup.page", 1);
 
 pref("browser.quartz.enable.all_font_sizes", true);
 
@@ -80,6 +84,9 @@ pref("browser.download.progressDnldDialog.keepAlive", true);
 // Download removing policy
 pref("browser.download.downloadRemoveAction", 0);
 
+// bring download window to the front when each download starts
+pref("browser.download.progressDnldDialog.bringToFront", true);
+
 // set typeahead find to search all text by default, but not invoke
 // unless you type '/'
 pref("accessibility.typeaheadfind.linksonly", false);
@@ -90,7 +97,12 @@ pref("browser.enable_automatic_image_resizing", true);
 
 // Languages (note we try to override this with the data from System Preferences,
 // this is just the emergency fall-back)
-pref("intl.accept_languages", "en-us, en" );
+// To override the automatic generation from System Preferences,
+// set camino.accept_languages in user.js
+pref("intl.accept_languages", "en-us, en");
+
+// set camino.useragent.locale to override the automatic determination of the UI
+// language from the bundle
 
 // Scrolling overrides.  For vertical: control for size, option for history.
 // Shift, command, and modifierless scroll the document.  If it's a
@@ -114,7 +126,29 @@ pref("network.protocol-handler.warn-external.nntp", false);
 
 // defaults for cmd-click opening windows or tabs (default to windows)
 pref("browser.tabs.opentabfor.middleclick", false);
+// ...and default to opening new pages in the foreground
 pref("browser.tabs.loadInBackground", false);
+
+// hide the tab bar when only one tab is open
+pref("camino.tab_bar_always_visible", false);
+
+// enable the tab jumpback feature
+pref("camino.enable_tabjumpback", true);
+
+// should we divert new windows into new tabs aka single window mode (SWM)?
+// 1 = current window, 2 = new window, 3 = new tab
+pref("browser.link.open_newwindow", 2);
+
+// should we use SWM with window.open calls? 0 = don't use SWM at all,
+// 1 = use SWM on every window.open, 2 = use SWM unless size or features specified
+pref("browser.link.open_newwindow.restriction", 2);
+
+// load links from external apps: 0 = new window, 1 = new tab,
+// 2 = current window/tab
+pref("browser.reuse_window", 0);
+
+// View source in tab (defaults to new window)
+pref("camino.viewsource_in_tab", false);
 
 // use the html network errors rather than sheets
 pref("browser.xul.error_pages.enabled", true);
@@ -122,18 +156,9 @@ pref("browser.xul.error_pages.enabled", true);
 // map delete key to back button
 pref("browser.backspace_action", 0);
 
-// bring download window to the front when each download starts
-pref("browser.download.progressDnldDialog.bringToFront", true);
-
-// 0 = spellcheck nothing, 1 = check multi-line controls, 2 = check 
-//  multi/single line controls
+// 0 = spellcheck nothing, 1 = check multi-line controls, 2 = check both
+// multi/single line controls
 pref("layout.spellcheckDefault", 2);
-
-// enable the tab jumpback feature
-pref("camino.enable_tabjumpback", true);
-
-// set the window.open behavior to "respect SWM unless the window.open call specifies size or features"
-pref("browser.link.open_newwindow.restriction", 2);
 
 // enable popup blocking
 pref("dom.disable_open_during_load", true);
@@ -143,6 +168,22 @@ pref("browser.fixup.hide_user_pass", false);
 
 // give users the option of restoring windows after a crash
 pref("browser.sessionstore.resume_from_crash", true);
+
+// should we restore tabs and windows on every launch?
+pref("camino.remember_window_state", false);
+
+// check on launch to see if Camino is the default browser
+pref("camino.check_default_browser", true);
+
+// enable bonjour
+pref("camino.disable_bonjour", false);
+
+// ad-blocking and flashblock are off by default
+pref("camino.enable_ad_blocking", false);
+pref("camino.enable_flashblock", false);
+
+// do not override autocomplete=off
+pref("wallet.crypto.autocompleteoverride", false);
 
 // Camino makes its own popup windows (context menus, tooltips)
 pref("ui.use_native_popup_windows", true);
