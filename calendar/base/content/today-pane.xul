@@ -74,7 +74,7 @@
         <toolbarbutton id="folderview-cycler-right" class="folderview-cycler" 
                        onclick="TodayPane.cyclePaneView(1);"/>
         <spacer style="width: 5px;"/>
-        <toolbarbutton class="ab-closebutton" command="cmd_toggleTodayPane"/>
+        <toolbarbutton id="today-closer" class="ab-closebutton" command="cmd_toggleTodayPane"/>
       </sidebarheader>
       <vbox flex="1">
         <vbox id="agenda-tab-panel" flex="1" persist="height collapsed" minheight="200"/>

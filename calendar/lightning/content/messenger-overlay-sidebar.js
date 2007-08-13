@@ -570,6 +570,7 @@ function toggleTodayPaneinMailMode()
     oTodayPane.removeAttribute("collapsed");
     oTodayPane.removeAttribute("collapsedinMailMode");
     todayPaneCommand.setAttribute("checked","true");
+    document.getElementById("today-closer").setAttribute("checked", "false");
   }
   else {
     oTodayPane.setAttribute("collapsed", true);
