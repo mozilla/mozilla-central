@@ -202,7 +202,7 @@ function view_init()
 
 function InitViewLayoutStyleMenu(event)
 {
-  var paneConfig = GetMailPaneConfig();
+  var paneConfig = pref.getIntPref("mail.pane_config.dynamic");
   var layoutStyleMenuitem = event.target.childNodes[paneConfig];
   if (layoutStyleMenuitem)
     layoutStyleMenuitem.setAttribute("checked", "true"); 
