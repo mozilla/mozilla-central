@@ -377,7 +377,8 @@ NeckoCacheHelper::ClearCache()
   NSImage*	faviconImage = nil;
 
   NSURL* inURIAsNSURL = [NSURL URLWithString:inURI];
-  if ([inURIAsNSURL isFileURL]) {
+  BOOL isFile = [inURIAsNSURL isFileURL];
+  if (isFile) {
     faviconImage = [[NSWorkspace sharedWorkspace] iconForFile:[inURIAsNSURL path]];
   }
   else {
@@ -399,10 +400,11 @@ NeckoCacheHelper::ClearCache()
     [faviconImage setSize:NSMakeSize(16, 16)];
 
     // add the image to the cache
+    // Images that are coming from on disk anyway should be memory-only.
     [[SiteIconCache sharedSiteIconCache] setSiteIcon:faviconImage
                                               forURL:inURI
                                       withExpiration:[NSDate dateWithTimeIntervalSinceNow:SITE_ICON_EXPIRATION_SECONDS]
-                                          memoryOnly:NO];
+                                          memoryOnly:isFile];
   }
 
   // figure out what URL triggered this favicon request
