@@ -75,7 +75,7 @@ const int kOpenExternalLinksInNewTab = 1;
     [mCheckboxOpenTabsForExternalLinks setState:NSMixedState];
 
   int swmBehavior = [self getIntPref:"browser.link.open_newwindow" withSuccess:&gotPref];
-  if (swmBehavior == nsIBrowserDOMWindow::OPEN_DEFAULTWINDOW)
+  if (swmBehavior == nsIBrowserDOMWindow::OPEN_NEWWINDOW)
     [mSingleWindowMode setState:NSOffState];
   else if (swmBehavior == nsIBrowserDOMWindow::OPEN_NEWTAB)
     [mSingleWindowMode setState:NSOnState];
@@ -99,7 +99,7 @@ const int kOpenExternalLinksInNewTab = 1;
   }
   else if (sender == mSingleWindowMode) {
     [sender setAllowsMixedState:NO];
-    int newState = ([sender state] == NSOnState) ? nsIBrowserDOMWindow::OPEN_NEWTAB : nsIBrowserDOMWindow::OPEN_DEFAULTWINDOW;
+    int newState = ([sender state] == NSOnState) ? nsIBrowserDOMWindow::OPEN_NEWTAB : nsIBrowserDOMWindow::OPEN_NEWWINDOW;
     [self setPref:"browser.link.open_newwindow" toInt:newState];
   }
 
