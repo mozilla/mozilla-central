@@ -291,6 +291,9 @@ bin\components\websrvcs.xpt
 bin\components\nsURLFormatter.js
 bin\components\urlformatter.xpt
 
+; plugins
+bin\components\plugin.xpt
+
 ; psm2
 ; Optional - only if you need HTTPS support
 bin\components\pipboot.xpt
