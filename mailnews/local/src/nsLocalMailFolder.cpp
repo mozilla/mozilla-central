@@ -2360,7 +2360,7 @@ NS_IMETHODIMP nsMsgLocalMailFolder::EndCopy(PRBool copySucceeded)
     nsCOMPtr <nsILocalFile> pathFile;
     rv = GetFilePath(getter_AddRefs(pathFile));
 
-    if (NS_SUCCEEDED(rv) && pathFile)
+    if (NS_SUCCEEDED(rv) && pathFile && mCopyState->m_curDstKey != nsMsgKey_None)
       pathFile->SetFileSize(mCopyState->m_curDstKey);
 
     if (!mCopyState->m_isMove)
