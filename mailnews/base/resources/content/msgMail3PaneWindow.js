@@ -674,6 +674,9 @@ function UpdateMailPaneConfig() {
     ClearAttachmentList();
     var messagePaneSplitter = GetThreadAndMessagePaneSplitter();
     var desiredParent = document.getElementById(desiredId);
+    // See Bug 381992. The ctor for the browser element will fire again when we re-insert the messagePaneBox back into the document. 
+    // But the dtor doesn't fire when the element is removed from the document. Manually call destroy here to avoid a nasty leak.
+    getMessageBrowser().destroy();
     desiredParent.appendChild(messagePaneSplitter);
     desiredParent.appendChild(messagePane);
     messagePaneSplitter.orient = desiredParent.orient;
