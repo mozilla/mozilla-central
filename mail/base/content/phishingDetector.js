@@ -73,8 +73,8 @@ var gPhishingDetector = {
       // Register tables
       // XXX: move table names to a pref that we originally will download
       // from the provider (need to workout protocol details)
-      phishWarden.registerWhiteTable("goog-white-exp");
-      phishWarden.registerBlackTable("goog-phish-sha128");
+      this.mPhishingWarden.registerWhiteTable("goog-white-exp");
+      this.mPhishingWarden.registerBlackTable("goog-phish-sha128");
 
       // Download/update lists if we're in non-enhanced mode
       this.mPhishingWarden.maybeToggleUpdateChecking();  
