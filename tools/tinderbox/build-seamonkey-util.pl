@@ -24,7 +24,7 @@ use Config;         # for $Config{sig_name} and $Config{sig_num}
 use File::Find ();
 use File::Copy;
 
-$::UtilsVersion = '$Revision: 1.368 $ ';
+$::UtilsVersion = '$Revision: 1.369 $ ';
 
 package TinderUtils;
 
@@ -3711,6 +3711,16 @@ sub download_prebuilt() {
     stop_tinderbox(reason => "No new build available.");
   }
   $status = run_shell_command($unpack_build);
+  ## This fixes a problem on Cygwin-based Tinderboxen with MSYS-derived builds,
+  ## where the bits inside the MSYS-dervied builds don't have the executable
+  ## bit set. There surely must be a better way to fix this, but...
+  my $firefoxExecCheckDir = "$build_dir/$Settings::DownloadBuildDir/firefox";
+  if (is_windows() && 
+     (-e "$firefoxExecCheckDir/firefox.exe") &&
+     !(-x "$firefoxExecCheckDir/firefox.exe")) {
+    run_shell_command("cd $firefoxExecCheckDir && chmod -R -v u+x .");
+  }
+
   stop_tinderbox(reason => "Cannot unpack $build_dir/$Settings::DownloadBuildFile") if ($status); 
 }
 
