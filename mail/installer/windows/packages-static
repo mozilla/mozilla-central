@@ -149,6 +149,7 @@ bin\components\downloads.xpt
 ; Protocol/Content handling
 bin\components\nsContentDispatchChooser.js
 bin\components\nsHandlerService.js
+bin\components\nsWebHandlerApp.js
 
 ; spellchecker (may not be present)
 bin\components\spellchecker.xpt

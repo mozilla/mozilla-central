@@ -1,5 +1,5 @@
-/* -*- Mode: IDL; tab-width: 3; indent-tabs-mode: nil; c-basic-offset: 2 -*-
- *
+/* -*- Mode: C++; tab-width: 2; indent-tabs-mode: nil; c-basic-offset: 2 -*-
+ * vim:expandtab:shiftwidth=2:tabstop=2:cin:
  * ***** BEGIN LICENSE BLOCK *****
  * Version: MPL 1.1/GPL 2.0/LGPL 2.1
  *
@@ -15,13 +15,12 @@
  *
  * The Original Code is the Mozilla browser.
  *
- * The Initial Developer of the Original Code is
- * Netscape Communications, Inc.
- * Portions created by the Initial Developer are Copyright (C) 1999
+ * The Initial Developer of the Original Code is 
+ * the Mozilla Corporation.
+ * Portions created by the Initial Developer are Copyright (C) 2007
  * the Initial Developer. All Rights Reserved.
  *
  * Contributor(s):
- *   Scott MacGregor <mscott@netscape.com>
  *   Dan Mosedale <dmose@mozilla.org>
  *
  * Alternatively, the contents of this file may be used under the terms of
@@ -38,45 +37,32 @@
  *
  * ***** END LICENSE BLOCK ***** */
 
-#include "nsIExternalHelperAppService.idl"
+#ifndef __nsLocalHandlerAppImpl_h__
+#define __nsLocalHandlerAppImpl_h__
 
-/*
-nsCExternalHelperApp implements:
--------------------------
-nsIExternalHelperAppService
-*/
+#include "nsString.h"
+#include "nsIMIMEInfo.h"
+#include "nsIFile.h"
 
-%{ C++
+class nsLocalHandlerApp : public nsILocalHandlerApp
+{
+public:
+  NS_DECL_ISUPPORTS
+  NS_DECL_NSIHANDLERAPP
+  NS_DECL_NSILOCALHANDLERAPP
 
-/* A7F800E0-4306-11d4-98D0-001083010E9B */
-#define NS_EXTERNALHELPERAPPSERVICE_CID   \
- { 0xa7f800e0, 0x4306, 0x11d4, { 0x98, 0xd0, 0x0, 0x10, 0x83, 0x1, 0xe, 0x9b } }
+  nsLocalHandlerApp() { }
 
-#define NS_EXTERNALHELPERAPPSERVICE_CONTRACTID \
-"@mozilla.org/uriloader/external-helper-app-service;1"
+  nsLocalHandlerApp(const PRUnichar *aName, nsIFile *aExecutable) 
+    : mName(aName), mExecutable(aExecutable) { }
 
-#define NS_EXTERNALPROTOCOLSERVICE_CONTRACTID \
-"@mozilla.org/uriloader/external-protocol-service;1"
+  nsLocalHandlerApp(const nsAString & aName, nsIFile *aExecutable) 
+    : mName(aName), mExecutable(aExecutable) { }
+  virtual ~nsLocalHandlerApp() { }
 
-#define NS_MIMESERVICE_CONTRACTID \
-"@mozilla.org/mime;1"
+protected:
+  nsString mName;
+  nsCOMPtr<nsIFile> mExecutable;
+};
 
-#define NS_EXTERNALPROTOCOLHANDLER_CID	\
-{ 0xbd6390c8, 0xfbea, 0x11d4, {0x98, 0xf6, 0x0, 0x10, 0x83, 0x1, 0xe, 0x9b } }
-
-/* 9fa83ce7-d0ab-4ed3-938e-afafee435670 */
-#define NS_BLOCKEDEXTERNALPROTOCOLHANDLER_CID	\
-{ 0x9fa83ce7, 0xd0ab, 0x4ed3, {0x93, 0x8e, 0xaf, 0xaf, 0xee, 0x43, 0x56, 0x70 } }
-
-/* bc0017e3-2438-47be-a567-41db58f17627 */
-#define NS_LOCALHANDLERAPP_CID \
-{ 0xbc0017e3, 0x2438, 0x47be, {0xa5, 0x67, 0x41, 0xdb, 0x58, 0xf1, 0x76, 0x27 } }
-
-#define NS_LOCALHANDLERAPP_CONTRACTID \
-"@mozilla.org/uriloader/local-handler-app;1"
-
-#define NS_WEBHANDLERAPP_CONTRACTID \
-"@mozilla.org/uriloader/web-handler-app;1"
-
-%}
-
+#endif //  __nsLocalHandlerAppImpl_h__

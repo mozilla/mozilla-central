@@ -288,6 +288,7 @@ bin\components\nsAboutAbout.js
 bin\components\nsDefaultCLH.js
 bin\components\nsContentDispatchChooser.js
 bin\components\nsHandlerService.js
+bin\components\nsWebHandlerApp.js
 
 ; Modules
 bin\modules\*
