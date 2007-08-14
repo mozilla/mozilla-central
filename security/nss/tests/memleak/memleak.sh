@@ -495,6 +495,7 @@ run_ciphers_client()
 parse_logfile_dbx()
 {
 	in_mel=0
+	bin_name=""
 	
 	while read line
 	do
@@ -507,7 +508,7 @@ parse_logfile_dbx()
 		if [ -z "${line}" ] ; then
 			if [ ${in_mel} -eq "1" ] ; then
 				in_mel=0
-				echo "${stack_string}"
+				echo "${bin_name}${stack_string}"
 			fi
 		fi
 			
@@ -525,7 +526,12 @@ parse_logfile_dbx()
 				tbytes=`expr "${tbytes}" + "${lbytes}"`
 				tblocks=`expr "${tblocks}" + 1`
 			fi
-		fi	
+		else
+			gline=`echo "${line}" | grep "^Running: "`
+			if [ "${gline}" ] ; then
+				bin_name=`echo "${line}" | cut -d" " -f2`
+			fi
+		fi 
 	done
 }
 
@@ -536,11 +542,16 @@ parse_logfile_valgrind()
 {
 	in_mel=0
 	in_sum=0
+	bin_name=""
 
 	while read line
 	do
 		gline=`echo "${line}" | grep "^=="`
 		if [ ! "${gline}" ] ; then
+			gline=`echo "${line}" | grep "^${VALGRIND} "`
+			if [ "${gline}" ] ; then
+				bin_name=`echo "${line}" | cut -d" " -f6`
+			fi
 			continue
 		fi
 
@@ -562,7 +573,7 @@ parse_logfile_valgrind()
 		if [ -z "${line}" ] ; then
 			if [ ${in_mel} -eq 1 ] ; then
 				in_mel=0
- 				echo "${stack_string}"
+				echo "${bin_name}${stack_string}"
 			elif [ ${in_sum} -eq 1 ] ; then
 				in_sum=0
 			fi
@@ -593,7 +604,7 @@ parse_logfile_valgrind()
 					in_sum=0
 				fi
 			fi
-		fi		
+		fi
 	done
 }
 
