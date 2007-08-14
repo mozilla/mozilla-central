@@ -1962,6 +1962,7 @@ _pr_find_getaddrinfo(void)
 
 #endif /* _PR_HAVE_GETADDRINFO */
 
+#if !defined(_PR_HAVE_GETADDRINFO) || defined(_PR_INET6_PROBE)
 /*
  * If getaddrinfo does not exist, then we will fall back on
  * PR_GetHostByName, which requires that we allocate a buffer for the 
@@ -1995,6 +1996,7 @@ pr_GetAddrInfoByNameFB(const char  *hostname,
 
     return (PRAddrInfo *) ai;
 }
+#endif /* !_PR_HAVE_GETADDRINFO || _PR_INET6_PROBE */
 
 PR_IMPLEMENT(PRAddrInfo *) PR_GetAddrInfoByName(const char  *hostname,
                                                 PRUint16     af,
@@ -2087,10 +2089,17 @@ PR_IMPLEMENT(void *) PR_EnumerateAddrInfo(void             *iterPtr,
     else
         ai = (PRADDRINFO *) base;
 
+    while (ai && ai->ai_addrlen > sizeof(PRNetAddr))
+        ai = ai->ai_next;
+
     if (ai) {
         /* copy sockaddr to PRNetAddr */
         memcpy(result, ai->ai_addr, ai->ai_addrlen);
         result->raw.family = ai->ai_addr->sa_family;
+#ifdef _PR_INET6
+        if (AF_INET6 == result->raw.family)
+            result->raw.family = PR_AF_INET6;
+#endif
         if (ai->ai_addrlen < sizeof(PRNetAddr))
             memset(((char*)result)+ai->ai_addrlen, 0, sizeof(PRNetAddr) - ai->ai_addrlen);
 
@@ -2256,10 +2265,33 @@ static PRStatus pr_NetAddrToStringGNI(
     const PRNetAddr *addr, char *string, PRUint32 size)
 {
     int addrlen;
+    const PRNetAddr *addrp = addr;
+#if defined(_PR_HAVE_SOCKADDR_LEN) || defined(_PR_INET6)
+    PRUint16 md_af = addr->raw.family;
+    PRNetAddr addrcopy;
+#endif
     int rv;  /* 0 for success, or the error code EAI_xxx */
 
+#ifdef _PR_INET6
+    if (addr->raw.family == PR_AF_INET6)
+    {
+        md_af = AF_INET6;
+#ifndef _PR_HAVE_SOCKADDR_LEN
+        addrcopy = *addr;
+        addrcopy.raw.family = AF_INET6;
+        addrp = &addrcopy;
+#endif
+    }
+#endif
+
     addrlen = PR_NETADDR_SIZE(addr);
-    rv = GETNAMEINFO((const struct sockaddr *)addr, addrlen,
+#ifdef _PR_HAVE_SOCKADDR_LEN
+    addrcopy = *addr;
+    ((struct sockaddr*)&addrcopy)->sa_len = addrlen;
+    ((struct sockaddr*)&addrcopy)->sa_family = md_af;
+    addrp = &addrcopy;
+#endif
+    rv = GETNAMEINFO((const struct sockaddr *)addrp, addrlen,
         string, size, NULL, 0, NI_NUMERICHOST);
     if (rv != 0)
     {
