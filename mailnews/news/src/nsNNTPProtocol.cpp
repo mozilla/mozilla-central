@@ -1001,7 +1001,7 @@ nsresult nsNNTPProtocol::LoadUrl(nsIURI * aURL, nsISupports * aConsumer)
   PR_LOG(NNTP,PR_LOG_ALWAYS,("(%p) m_key = %d",this,m_key));
 
   // for now, only support "news://host/message-id?cancel", and not "news://host/group#key?cancel"
-  if (m_messageID && commandSpecificData.EqualsLiteral("cancel")) {
+  if (m_messageID && commandSpecificData.EqualsLiteral("?cancel")) {
      // XXX todo, don't allow manual cancel urls.  only allow internal ones
      cancel = PR_TRUE;
   }
