@@ -145,13 +145,18 @@ sub create {
         
         FILTERS => {
             # disallow all html in testcase data except for non-evil tags
+            # also sneak target="blank" into hrefs so that links open in new 
+            # tabs or windows (based on the user's browser prefs)
             testdata => sub {
                 my ($data) = @_;
                 
                 $strip->parse($data);
                 $strip->eof();
+                my $filtered = $strip->filtered_document;
                 
-                return $strip->filtered_document;
+                $filtered =~ s/<a /<a target="external_link" /;
+                
+                return $filtered;
             }, 
             
             # process the text with the markdown text processor
