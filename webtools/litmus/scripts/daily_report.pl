@@ -78,7 +78,6 @@ $sth->finish;
 if (scalar @failed_results > 0) {
   my $today = &UnixDate("today","%Y/%m/%d");
   my $subject = "[litmus] Daily Report - $today";
-  my @recipients = ('ccooper@deadsquid.com');
   my $message = "Content-type: text/html\n";
   $message .= "Subject: $subject\n";
   $message .= "To: " . join(',',@Litmus::Config::nightly_report_recipients) . "\n\n";
