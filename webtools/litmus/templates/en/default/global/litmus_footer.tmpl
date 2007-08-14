@@ -30,7 +30,8 @@
     <a href="common_results.cgi?status=fail">Most&nbsp;Common Failures</a> | <a href="common_results.cgi?status=unclear">Testcases&nbsp;Most&nbsp;Frequently&nbsp;Marked&nbsp;As&nbsp;Unclear</a> |
     <a href="aggregate_results.cgi"> Testgroup&nbsp;Popularity</a> | <a href="search_results.cgi?has_comments=1">Results&nbsp;with&nbsp;Comments</a><br/>
     Search testcases: <a href="show_test.cgi?searchType=recent&amp;recently=added">Recently&nbsp;Added</a> |
-    <a href="show_test.cgi?searchType=recent&amp;recently=changed">Recently&nbsp;Changed</a>
+    <a href="show_test.cgi?searchType=recent&amp;recently=changed">Recently&nbsp;Changed</a>[% IF defaultemail && defaultemail.isInAdminGroup() %] |
+    <a href="show_test.cgi?searchType=ungrouped">Ungrouped</a>[% END %]
     </div>
 
     </div>

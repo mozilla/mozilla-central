@@ -58,7 +58,7 @@ function filterList() {
   filter_req = doSimpleXMLHttpRequest('manage_testgroups.cgi', {
     searchTestgroupList: 1,
     product: (productfilter.options[productfilter.selectedIndex].value == '' ? '' : productfilter.options[productfilter.selectedIndex].value),
-    branch: (branchfilter.options[branchfilter.selectedIndex].value == '' ? '' : branchfilter.options[branchfilter.selectedIndex].value),
+    branch: (branchfilter.options[branchfilter.selectedIndex].value == '' ? '' : branchfilter.options[branchfilter.selectedIndex].value)
   });
   // if something went wrong, just show all the tests:
   filter_req.addErrback(showAll);
@@ -97,7 +97,7 @@ function loadTestgroup(silent) {
     toggleMessage('loading','Loading Testgroup ID# ' + testgroup_id + '...');
   }
   var url = 'json.cgi?testgroup_id=' + testgroup_id;
-  fetchJSON(url,populateTestgroup,silent);
+  return fetchJSON(url,populateTestgroup,silent);
 }
 
 function populateTestgroup(data) {
@@ -160,6 +160,7 @@ function populateTestgroup(data) {
 
 function blankTestgroupForm(formid) {
   blankForm(formid);
+  updatePersistVars();
   document.getElementById('testgroup_id_display').innerHTML = '';
   var selectBoxAll = document.getElementById('subgroups_for_product');
   selectBoxAll.options.length = 0;
@@ -187,7 +188,7 @@ function switchToAdd() {
   disableModeButtons();
   blankTestgroupForm('edit_testgroup_form');
   document.getElementById('testgroup_id_display').innerHTML = '<em>Automatically generated for a new testgroup</em>';
- document.getElementById('testrunner_plan_id').innerHTML = '<em>Not Applicable</em>';
+  document.getElementById('testrunner_plan_id').innerHTML = '<em>Not Applicable</em>';
   document.getElementById('submit').value = 'Add Testgroup';
   document.getElementById('mode').value = 'add';
   enableForm('edit_testgroup_form');
@@ -264,6 +265,19 @@ function previewSubgroup(selectID) {
     } else {
       toggleMessage('failure','No testgroup selected!');
     }
+  }
+}
+
+function updatePersistVars() {
+  var productBox = document.getElementById('product_filter');
+  var branchBox = document.getElementById('branch_filter');
+  if (productBox.selectedIndex) {
+    var productPersist = document.getElementById('product_persist');
+    productPersist.value = productBox.options[productBox.selectedIndex].value;
+  }
+  if (branchBox.selectedIndex) {
+    var branchPersist = document.getElementById('branch_persist');
+    branchPersist.value = branchBox.options[branchBox.selectedIndex].value;
   }
 }
 

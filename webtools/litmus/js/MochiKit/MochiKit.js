@@ -2255,10 +2255,10 @@ _290=304;
 }
 catch(e){
 }
-if(_290==200||_290==304){
+if(_290==200||_290==304||_290==500){
 d.callback(this);
 }else{
-var err=new MochiKit.Async.XMLHttpRequestError(this,"Request failed");
+var err=new MochiKit.Async.XMLHttpRequestError(this,this.status+": Request failed");
 if(err.number){
 d.errback(err);
 }else{

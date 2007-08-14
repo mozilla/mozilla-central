@@ -62,13 +62,13 @@ var testcases=[% IF testcases_js %][% testcases_js %][% ELSE %]{}[% END %];
 	    </tr>
 	    <tr>
 	      <td>
-                [% INCLUDE form_widgets/select_product_id.tmpl name="product_filter" placeholder=1 size=1 display_id=1 onchange="changeProduct('_filter');filterList();" %]
+                [% INCLUDE form_widgets/select_product_id.tmpl name="product_filter" placeholder=1 size=1 display_id=1 onchange="changeProduct('_filter');changeBranch('_filter');updatePersistVars();filterList();" %]
               </td>
               <td>
-                [% INCLUDE form_widgets/select_branch_id.tmpl name="branch_filter" placeholder=1 size=1 display_id=1 onchange="changeBranch('_filter');filterList();" %]
+                [% INCLUDE form_widgets/select_branch_id.tmpl name="branch_filter" placeholder=1 size=1 display_id=1 onchange="changeBranch('_filter');updatePersistVars();filterList();" %]
 	      </td>
 	      <td>
-                [% INCLUDE form_widgets/select_testgroup_id.tmpl name="testgroup_filter" placeholder=1 size=1 display_id=1 onchange="filterList();" %]
+                [% INCLUDE form_widgets/select_testgroup_id.tmpl name="testgroup_filter" placeholder=1 size=1 display_id=1 onchange="updatePersistVars();filterList();" %]
 	      </td>
 	    </tr>
 	  </table>
@@ -125,6 +125,19 @@ if (em.selectedIndex >= 0) {
 } else {
   disableForm('edit_subgroup_form');
 }
+var suffix='';
+[% IF product_persist %]
+setSelected(document.getElementById('product_filter'),[% product_persist | uri %]);
+[% END %]
+changeProduct('_filter');
+[% IF branch_persist %]
+setSelected(document.getElementById('branch_filter'),[% branch_persist | uri %]);
+changeBranch('_filter');
+[% IF testgroup_persist %]
+setSelected(document.getElementById('testgroup_filter'),[% testgroup_persist | uri %]);
+[% END %]
+[% END %]
+filterList();
 </script>
 
 [% INCLUDE global/litmus_footer.tmpl %]

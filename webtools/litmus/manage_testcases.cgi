@@ -80,6 +80,15 @@ if ($c->param("searchTestcaseList")) {
 # get here, then you need to be an admin:
 Litmus::Auth::requireProductAdmin('manage_testcases.cgi');
 
+my $product_persist = $c->param('product_persist') ? $c->param('product_persist') : 0;
+my $branch_persist = $c->param('branch_persist') ? $c->param('branch_persist') : 0;
+my $testgroup_persist = $c->param('testgroup_persist') ? $c->param('testgroup_persist') : 0;
+my $subgroup_persist = $c->param('subgroup_persist') ? $c->param('subgroup_persist') : 0;
+$vars->{'product_persist'} = $product_persist;
+$vars->{'branch_persist'} = $branch_persist;
+$vars->{'testgroup_persist'} = $testgroup_persist;
+$vars->{'subgroup_persist'} = $subgroup_persist;
+
 if ($c->param("testcase_id")) {
   $testcase_id = $c->param("testcase_id");
   if ($c->param("edit")) {
@@ -129,6 +138,7 @@ if ($c->param("delete_testcase_button")) {
   my $enabled = $c->param('enabled') ? 1 : 0;
   my $community_enabled = $c->param('communityenabled') ? 1 : 0;
   my $now = &UnixDate("today","%q");
+
   if ($c->param("mode") eq "add") {
     Litmus::Auth::requireProductAdmin("manage_testcases.cgi", $c->param('product'));
     my %hash = (

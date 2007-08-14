@@ -60,10 +60,10 @@ var subgroups=[% IF subgroups_js %][% subgroups_js %][% ELSE %]{}[% END %];
 	    </tr>
 	    <tr>
 	      <td>
-                [% INCLUDE form_widgets/select_product_id.tmpl name="product_filter" placeholder=1 size=1 display_id=1 onchange="changeProduct('_filter');filterList();" %]
+                [% INCLUDE form_widgets/select_product_id.tmpl name="product_filter" placeholder=1 size=1 display_id=1 onchange="changeProduct('_filter');updatePersistVars();filterList();" %]
 	      </td>
 	      <td>
-                [% INCLUDE form_widgets/select_branch_id.tmpl name="branch_filter" placeholder=1 size=1 display_id=1 onchange="filterList();" %]
+                [% INCLUDE form_widgets/select_branch_id.tmpl name="branch_filter" placeholder=1 size=1 display_id=1 onchange="updatePersistVars();filterList();" %]
 	      </td>
 	    </tr>
 	  </table>
@@ -121,6 +121,15 @@ if (em.selectedIndex >= 0) {
 } else {
   disableForm('edit_testgroup_form');
 }
+var suffix='';
+[% IF product_persist %]
+setSelected(document.getElementById('product_filter'),[% product_persist | uri %]);
+[% END %]
+changeProduct('_filter');
+[% IF branch_persist %]
+setSelected(document.getElementById('branch_filter'),[% branch_persist | uri %]);
+[% END %]
+filterList();
 </script>
 
 [% INCLUDE global/litmus_footer.tmpl %]

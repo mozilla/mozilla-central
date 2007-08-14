@@ -78,6 +78,13 @@ if ($c->param("searchSubgroupList")) {
 # get here, then you need to be an admin:
 Litmus::Auth::requireProductAdmin('manage_subgroups.cgi');
 
+my $product_persist = $c->param('product_persist') ? $c->param('product_persist') : 0;
+my $branch_persist = $c->param('branch_persist') ? $c->param('branch_persist') : 0;
+my $testgroup_persist = $c->param('testgroup_persist') ? $c->param('testgroup_persist') : 0;
+$vars->{'product_persist'} = $product_persist;
+$vars->{'branch_persist'} = $branch_persist;
+$vars->{'testgroup_persist'} = $testgroup_persist;
+
 if ($c->param("subgroup_id")) {
   $subgroup_id = $c->param("subgroup_id");
 }
@@ -115,6 +122,7 @@ if ($c->param("delete_subgroup_button")) {
   requireField('product', $c->param('product'));
   requireField('branch', $c->param('branch'));
   my $enabled = $c->param('enabled') ? 1 : 0;
+
   if ($c->param("mode") eq "add") {
     Litmus::Auth::requireProductAdmin("manage_subgroups.cgi", $c->param('product'));
     my %hash = (

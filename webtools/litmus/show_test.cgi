@@ -230,6 +230,12 @@ if ($c->param('searchType') eq 'fulltext') {
     ($product ? "product: ".$product->name() : '').
       ($testgroup ? " | testgroup: ".$testgroup->name() : '').
     	($subgroup ? " | subgroup: ".$subgroup->name() : ''); 
+
+} elsif ($c->param('searchType') eq 'ungrouped') {
+    my @testcases = Litmus::DB::Testcase->search_Ungrouped();
+    my $search_string_for_display = "Testcases not associated with any subgroup.";
+    $vars->{'testcases'} = \@testcases;
+    $vars->{'search_string_for_display'} = $search_string_for_display;
 }
 
 if ($c->param('searchType')) {

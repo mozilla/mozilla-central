@@ -8,6 +8,7 @@ function getProductById(productId) {
       return (products[i]);
     }
   }
+  return undefined;
 }
 
 function getTestgroupById(testgroupId) {
@@ -16,6 +17,7 @@ function getTestgroupById(testgroupId) {
       return (testgroups[i]);
     }
   }
+  return undefined;
 }
 
 function getPlatformById(platformId) {
@@ -24,6 +26,7 @@ function getPlatformById(platformId) {
       return (platforms[i]);
     }
   }
+  return undefined;
 }
 
 // pass this the <input> containing the list of possible default values
@@ -201,14 +204,16 @@ function loadSubgroups(subgroupBox,mySuffix,silent) {
   var testgroupId = testgroupBox.options[testgroupBox.selectedIndex].value;
   if (!testgroupId) {
     // No testgroup selected.
-    return;
+    clearSelect(subgroupBox);
+    addNullEntry(subgroupBox);
+    return undefined;
   }
   disableForm(formName);
   if (!silent) {
     toggleMessage('loading','Loading Subgroups...');
   }
   var url = 'json.cgi?testgroup_id=' + testgroupId;
-  fetchJSON(url,populateSubgroups,silent);
+  return fetchJSON(url,populateSubgroups,silent);
 }
 
 function populateSubgroups(data) {
@@ -227,8 +232,8 @@ function populateSubgroups(data) {
                                                          testgroup.subgroups[i].subgroup_id);
     }
   }
-  toggleMessage('none');
   FormInit(document.forms[formName], document.location.search, 'subgroup'+suffix);
+  toggleMessage('none');
   enableForm(formName);
 }
 

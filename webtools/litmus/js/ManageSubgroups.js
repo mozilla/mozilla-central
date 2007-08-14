@@ -182,6 +182,7 @@ function populateSubgroup(data) {
 
 function blankSubgroupForm(formid) {
   blankForm(formid);
+  updatePersistVars();
   document.getElementById('subgroup_id_display').innerHTML = '';
   var selectBoxAll = document.getElementById('testcases_for_product');
   selectBoxAll.options.length = 0;
@@ -203,10 +204,10 @@ function blankSubgroupForm(formid) {
 function switchToAdd() {
   disableModeButtons();
   blankSubgroupForm('edit_subgroup_form');
-  document.getElementById('subgroup_id_display').innerHTML = '<em>Automatically generated for a new subgroup</em>';
+  document.getElementById('subgroup_id_display_edit').innerHTML = '<em>Automatically generated for a new subgroup</em>';
   document.getElementById('testgroups_link_display').innerHTML = '<em>A new subgroup does not belong to any testgroups by default.<br/>Use the <a target="manage_testgroups" href="manage_testgroups.cgi">Manage Testgroups</a> interface to assign the subgroup to testgroups after the new subgroup is created.</em>';
- document.getElementById('testrunner_group_id').innerHTML = '<em>Not Applicable</em>';
- document.getElementById('submit').value = 'Add Subgroup';
+  document.getElementById('testrunner_group_id').innerHTML = '<em>Not Applicable</em>';
+  document.getElementById('submit').value = 'Add Subgroup';
   document.getElementById('mode').value = 'add';
   enableForm('edit_subgroup_form');
   document.getElementById('subgroup_display_div').style.display = 'none';
@@ -278,6 +279,25 @@ function previewTestcase(selectID) {
     }
   }
 }
+
+function updatePersistVars() {
+  var productBox = document.getElementById('product_filter');
+  var branchBox = document.getElementById('branch_filter');
+  var testgroupBox = document.getElementById('testgroup_filter');
+  if (productBox.selectedIndex) {
+    var productPersist = document.getElementById('product_persist');
+    productPersist.value = productBox.options[productBox.selectedIndex].value;
+  }
+  if (branchBox.selectedIndex) {
+    var branchPersist = document.getElementById('branch_persist');
+    branchPersist.value = branchBox.options[branchBox.selectedIndex].value;
+  }
+  if (testgroupBox.selectedIndex) {
+    var testgroupPersist = document.getElementById('testgroup_persist');
+    testgroupPersist.value = testgroupBox.options[testgroupBox.selectedIndex].value;
+  }
+}
+
 
 var manageTestcasesHelpTitle="Help with Managing Testcases";
 var manageTestcasesHelpText="<p>The select box on the left contains all the testcases for the chosen product, <strong><em>INCLUDING</em></strong> any testcases already contained in the subgroup. You can use the <input type='button' value='&rArr;' disabled> button to add testcases to the subgroup, and the <input type='button' value='&lArr;' disabled> button to remove testcases from the subgroup. <strong>NOTE</strong>: neither of the actions will alter the list of testcases on the left.</p><p>You can preview any testcase from the left-hand select box by selecting the testcase, and then clicking on  the 'Preview Testcase' link below the select box. If more than one testcase is selected, only the first testcase will be previewed.</p><p>You can change the display order of testcases within the subgroup using the <input type='button' value='&uArr;' disabled> and <input type='button' value='&dArr;' disabled> buttons to the right of the right-hand select box. Testcases can be re-ordered singly or in groups by selecting multiple testcases in the right-hand select box.</p>";

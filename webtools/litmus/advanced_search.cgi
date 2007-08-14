@@ -172,6 +172,19 @@ if ($c->param) {
                 $limit_criteria .= "Display manual results only<br/>";
               }
             }
+        } elsif ($param eq 'withbugs') {
+            my $value = $c->param($param);
+            if ($value ne 'all') {
+              if ($value eq '1') {
+                push @where, {field => 'withbugs',
+                              value => 1};            
+                $limit_criteria .= "Results with associated bugs<br/>";
+              } else {
+                push @where, {field => 'withbugs',
+                              value => '0E0'};            
+                $limit_criteria .= "Results without associated bugs<br/>";
+              }
+            }
         } elsif ($param eq 'my_results_only') {
             push @where, {field => 'user_id',
                           value => $cookie->{'user_id'}};

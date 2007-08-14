@@ -40,6 +40,35 @@ use CGI;
 use Date::Manip;
 use JSON;
 
+#########################################################################
+sub getCriteria {
+  my ($c) = @_;
+
+  my $matched_rows;
+  my @criteria;
+  for my $param ($c->param) {
+    if ($param =~ /^build_id_new_(\d+)$/ or
+        $param =~ /^platform_new_(\d+)$/ or
+        $param =~ /^opsys_new_(\d+)$/) {
+      my $row_id = $1;
+
+      next if ($matched_rows->{$row_id});
+      
+      my $hash;
+      $hash->{'build_id'} = $c->param("build_id_new_$row_id") ? $c->param("build_id_new_$row_id") : '';
+      $hash->{'platform_id'} = $c->param("platform_new_$row_id") ? $c->param("platform_new_$row_id") : 0;
+      $hash->{'opsys_id'} = $c->param($param) ? $c->param("opsys_new_$row_id") : 0;
+      
+      push @criteria, $hash;
+      $matched_rows->{$row_id} = 1;      
+    }
+  }
+
+  return \@criteria;
+}
+
+#########################################################################
+
 my $c = Litmus->cgi(); 
 
 my $vars;
@@ -71,6 +100,11 @@ if ($c->param("searchTestRunList")) {
 
 
 Litmus::Auth::requireRunDayAdmin('manage_test_runs.cgi');
+
+my $product_persist = $c->param('product_persist') ? $c->param('product_persist') : 0;
+my $branch_persist = $c->param('branch_persist') ? $c->param('branch_persist') : 0;
+$vars->{'product_persist'} = $product_persist;
+$vars->{'branch_persist'} = $branch_persist;
 
 if ($c->param("test_run_id")) {
   $test_run_id = $c->param("test_run_id");
@@ -124,6 +158,7 @@ if ($c->param("delete_test_run_button")) {
   my $now = &UnixDate("today", "%q");
   my @selected_testgroups = $c->param("test_run_testgroups");  
   my $criteria = &getCriteria($c);
+
   if ($c->param("mode") eq "add") {
     my %hash = (
                 name => $c->param('name'),
@@ -287,30 +322,3 @@ print $c->header();
 
 Litmus->template()->process("admin/manage_test_runs.tmpl", $vars) ||
   internalError("Error loading template: $@\n");
-
-#########################################################################
-sub getCriteria {
-  my ($c) = @_;
-
-  my $matched_rows;
-  my @criteria;
-  for my $param ($c->param) {
-    if ($param =~ /^build_id_new_(\d+)$/ or
-        $param =~ /^platform_new_(\d+)$/ or
-        $param =~ /^opsys_new_(\d+)$/) {
-      my $row_id = $1;
-
-      next if ($matched_rows->{$row_id});
-      
-      my $hash;
-      $hash->{'build_id'} = $c->param("build_id_new_$row_id") ? $c->param("build_id_new_$row_id") : '';
-      $hash->{'platform_id'} = $c->param("platform_new_$row_id") ? $c->param("platform_new_$row_id") : 0;
-      $hash->{'opsys_id'} = $c->param($param) ? $c->param("opsys_new_$row_id") : 0;
-      
-      push @criteria, $hash;
-      $matched_rows->{$row_id} = 1;      
-    }
-  }
-
-  return \@criteria;
-}

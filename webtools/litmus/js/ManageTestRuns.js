@@ -67,7 +67,7 @@ function filterList() {
   filter_req = doSimpleXMLHttpRequest('manage_test_runs.cgi', {
     searchTestRunList: 1,
     product: (productfilter.options[productfilter.selectedIndex].value == '' ? '' : productfilter.options[productfilter.selectedIndex].value),
-    branch: (branchfilter.options[branchfilter.selectedIndex].value == '' ? '' : branchfilter.options[branchfilter.selectedIndex].value),
+    branch: (branchfilter.options[branchfilter.selectedIndex].value == '' ? '' : branchfilter.options[branchfilter.selectedIndex].value)
   });
 
   // if something went wrong, just show all the tests:
@@ -112,7 +112,7 @@ function loadTestRun(silent) {
     toggleMessage('loading','Loading Test Run ID# ' + test_run_id + '...');
   }
   var url = 'json.cgi?test_run_id=' + test_run_id;
-  fetchJSON(url,populateTestRun,silent);
+  return fetchJSON(url,populateTestRun,silent);
 }
 
 function populateTestRun(data) {
@@ -142,7 +142,7 @@ function populateTestRun(data) {
     }
   }
 
-  changeProduct();
+  changeProduct('');
   var branchBox = document.getElementById('branch');
   populateBranches(branchBox,productBox);
   var found_branch = setSelected(branchBox,test_run.branch_id.branch_id);
@@ -257,6 +257,7 @@ function populateAllTestgroups() {
 
 function blankTestRunForm(formid) {
   blankForm(formid);
+  updatePersistVars();
   resetTable('tblNewCriteria');
   addRowToTable('tblNewCriteria');
   document.getElementById('test_run_id_display').innerHTML = '';
@@ -276,7 +277,7 @@ function blankTestRunForm(formid) {
 
   test_run = new Object();
 
-  changeProduct();
+  changeProduct('');
   var productBox = document.getElementById('product');
   var branchBox = document.getElementById('branch');
   populateBranches(branchBox,productBox);
@@ -439,3 +440,15 @@ function previewTestgroup(selectID) {
   }
 }
 
+function updatePersistVars() {
+  var productBox = document.getElementById('product_filter');
+  var branchBox = document.getElementById('branch_filter');
+  if (productBox.selectedIndex) {
+    var productPersist = document.getElementById('product_persist');
+    productPersist.value = productBox.options[productBox.selectedIndex].value;
+  }
+  if (branchBox.selectedIndex) {
+    var branchPersist = document.getElementById('branch_persist');
+    branchPersist.value = branchBox.options[branchBox.selectedIndex].value;
+  }
+}

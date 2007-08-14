@@ -189,6 +189,19 @@ No bugs on file.
 
 <div class="section-full">
   <div class="section-header">
+Testcase #<a href="show_test.cgi?id=[% result.testcase_id | uri | html%]">[% result.testcase_id %]: [% result.testcase.summary | html %]</a>
+  </div>
+  <div class="section-content">
+  
+  [% INCLUDE test/test.html.tmpl testcase=result.testcase show_config=0 print=1 %]
+
+  </div> <!--END section-content-->
+
+</div> <!--END section-full-->
+
+
+<div class="section-full">
+  <div class="section-header">
 Comments
   </div>
   <div class="section-content">

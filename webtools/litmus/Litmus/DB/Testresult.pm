@@ -261,6 +261,16 @@ sub getTestResults($\@\@$) {
                 $where .= " AND tr.is_automated_result=";
                 $where .= $criterion->{'value'} == 1 ? '1' : '0';
             }
+        } elsif ($criterion->{'field'} eq 'withbugs') {        
+            if ($criterion->{'value'} ne 'all') {
+              if ($criterion->{'value'} eq '1') {
+                $from .= ", test_result_bugs trb";
+                $where .= " AND tr.testresult_id=trb.test_result_id";
+              } else {
+                $from =~ s/test_results tr,/test_results tr LEFT JOIN test_result_bugs trb ON (tr.testresult_id=trb.test_result_id),/;
+                $where .= " AND trb.bug_id IS NULL";                
+              }
+            }
         } elsif ($criterion->{'field'} eq 'user_id') {        
             if ($from !~ /users u/) {
                 $from .= ", users u";

@@ -34,11 +34,15 @@
       <form id="edit_testcase_form" name="edit_testcase_form" method="post" action="manage_testcases.cgi" onSubmit="return checkFormContents(this);">
       <input id="mode" name="mode" type="hidden" value="edit">
       <input id="editform_testcase_id" name="editform_testcase_id" type="hidden" value="">
+      <input id="product_persist" name="product_persist" type="hidden" value="" />
+      <input id="branch_persist" name="branch_persist" type="hidden" value="" />
+      <input id="testgroup_persist" name="testgroup_persist" type="hidden" value="" />
+      <input id="subgroup_persist" name="subgroup_persist" type="hidden" value="" />
 
       <table class="manage">
 	<tr>
 	<td class="headerleft">Testcase ID#:</td>
-	<td name="testcase_id_display" id="testcase_id_display_edit"></td>
+	<td name="testcase_id_display_edit" id="testcase_id_display_edit"></td>
 	</tr>
 	<tr>
 	<td class="headerleft">Summary:</td>

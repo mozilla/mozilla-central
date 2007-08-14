@@ -32,11 +32,14 @@
       <form id="edit_subgroup_form" name="edit_subgroup_form" method="post" action="manage_subgroups.cgi" onSubmit="selectNone('testcases_for_product');selectAll('subgroup_testcases');return checkFormContents(this);">
       <input id="mode" name="mode" type="hidden" value="edit">
       <input id="editform_subgroup_id" name="editform_subgroup_id" type="hidden" value="">
+      <input id="product_persist" name="product_persist" type="hidden" value="" />
+      <input id="branch_persist" name="branch_persist" type="hidden" value="" />
+      <input id="testgroup_persist" name="testgroup_persist" type="hidden" value="" />
 
       <table class="manage">
 	<tr>
 	<td class="headerleft">Subgroup ID#:</td>
-	<td name="subgroup_id_display" id="subgroup_id_display"></td>
+	<td name="subgroup_id_display_edit" id="subgroup_id_display_edit"></td>
 	</tr>
         <tr>
         <td class="headerleft">Name:</td>

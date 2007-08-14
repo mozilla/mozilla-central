@@ -143,6 +143,12 @@ WHERE
   tc.community_enabled=1
 });
 
+__PACKAGE__->set_sql(Ungrouped => qq{
+SELECT tc.*
+FROM testcases tc LEFT JOIN testcase_subgroups tcsg ON (tc.testcase_id=tcsg.testcase_id)
+WHERE tcsg.subgroup_id IS NULL
+});
+
 #########################################################################
 # isCompleted($$$$$)
 #

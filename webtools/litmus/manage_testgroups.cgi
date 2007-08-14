@@ -72,6 +72,11 @@ if ($c->param("searchTestgroupList")) {
 # get here, then you need to be an admin:
 Litmus::Auth::requireProductAdmin('manage_testgroups.cgi');
 
+my $product_persist = $c->param('product_persist') ? $c->param('product_persist') : 0;
+my $branch_persist = $c->param('branch_persist') ? $c->param('branch_persist') : 0;
+$vars->{'product_persist'} = $product_persist;
+$vars->{'branch_persist'} = $branch_persist;
+
 if ($c->param("testgroup_id")) {
   $testgroup_id = $c->param("testgroup_id");
 }
@@ -109,6 +114,7 @@ if ($c->param("delete_testgroup_button")) {
   requireField('product', $c->param('product'));
   requireField('branch', $c->param('branch'));
   my $enabled = $c->param('enabled') ? 1 : 0;
+
   if ($c->param("mode") eq "add") {
     Litmus::Auth::requireProductAdmin("manage_testgroups.cgi", $c->param('product'));
     my %hash = (

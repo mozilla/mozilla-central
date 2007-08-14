@@ -1,5 +1,6 @@
 var testcase;
 var filter_req;
+var initial_load = 1;
 
 var showAllTests = function(err) {
   // if they cancelled, then just don't change anything:
@@ -74,7 +75,7 @@ function filterList() {
     testgroup: (testgroupfilter.options[testgroupfilter.selectedIndex].value == '' ? 
       '' : testgroupfilter.options[testgroupfilter.selectedIndex].value),
     subgroup: (subgroupfilter.options[subgroupfilter.selectedIndex].value == '' ? 
-      '' : subgroupfilter.options[subgroupfilter.selectedIndex].value),
+      '' : subgroupfilter.options[subgroupfilter.selectedIndex].value)
   });
   // if something went wrong, just show all the tests:
   filter_req.addErrback(showAllTests);
@@ -118,7 +119,7 @@ function loadTestcase(silent) {
     toggleMessage('loading','Loading Testcase ID# ' + testcase_id + '...');
   }
   var url = 'json.cgi?testcase_id=' + testcase_id;
-  fetchJSON(url,populateTestcase,silent);
+  return fetchJSON(url,populateTestcase,silent);
 }
 
 function populateTestcase(data) {
@@ -244,6 +245,9 @@ function populateTestcase(data) {
 
 function blankTestcaseForm(formid) {
   blankForm(formid);
+  updatePersistVars();
+  document.getElementById('enabled').checked = true;
+  document.getElementById('communityenabled').checked = true;
   document.getElementById('testcase_id_display').innerHTML = '';
   document.getElementById('creation_date').innerHTML = '';
   document.getElementById('last_updated').innerHTML = '';
@@ -258,13 +262,34 @@ function switchToAdd() {
   blankTestcaseForm('edit_testcase_form');
   var productBox = document.getElementById('product');
   loadProducts(productBox,'',1);
+  var productfilter = document.getElementById('product_filter');
+  if (productfilter.selectedIndex) {
+    var productId = productfilter.options[productfilter.selectedIndex].value;
+    for (var i=0; i<productBox.options.length; i++) {
+      if (productBox.options[i].value == productId) {
+        productBox.options[i].selected = true;
+        break;
+      }
+    }
+  }
   changeProduct();
+  var branchBox = document.getElementById('branch');
+  var branchfilter = document.getElementById('branch_filter');
+  if (branchfilter.selectedIndex) {
+    var branchId = branchfilter.options[branchfilter.selectedIndex].value;
+    for (var i=0; i<branchBox.options.length; i++) {
+      if (branchBox.options[i].value == branchId) {
+        branchBox.options[i].selected = true;
+        break;
+      }
+    }
+  }
   setAuthor(current_user_id);
   document.getElementById('submit').value = 'Add Testcase';
   document.getElementById('mode').value = 'add';
   enableForm('edit_testcase_form');
   document.getElementById('testcase_display_div').style.display = 'none';
-  document.getElementById('testcase_id_display').innerHTML = '<em>Automatically generated for a new testcase</em>';
+  document.getElementById('testcase_id_display_edit').innerHTML = '<em>Automatically generated for a new testcase</em>';
   document.getElementById('testgroups_link_display').innerHTML = '<em>A new testcase does not belong to any testgroups by default.<br/>Use the <a target="manage_testgroups" href="manage_testgroups.cgi">Manage Testgroups</a> interface to assign the subgroups to testgroups after the new testcase is created.</em>';
   document.getElementById('subgroups_link_display').innerHTML = '<em>A new testcase does not belong to any subgroups by default.<br/>Use the <a target="manage_subgroups" href="manage_subgroups.cgi">Manage Subgroups</a> interface to assign the new testcase to subgroups once it is created.</em>';
   document.getElementById('creation_date').innerHTML = '<em>Automatically generated for a new testcase</em>';
@@ -305,3 +330,79 @@ function generateBugLink(bugID) {
   return 'https://bugzilla.mozilla.org/show_bug.cgi?id=' + bugID;
 }
 
+function updatePersistVars() {
+  var productBox = document.getElementById('product_filter');
+  var branchBox = document.getElementById('branch_filter');
+  var testgroupBox = document.getElementById('testgroup_filter');
+  var subgroupBox = document.getElementById('subgroup_filter');
+  if (productBox.selectedIndex) {
+    var productPersist = document.getElementById('product_persist');
+    productPersist.value = productBox.options[productBox.selectedIndex].value;
+  }
+  if (branchBox.selectedIndex) {
+    var branchPersist = document.getElementById('branch_persist');
+    branchPersist.value = branchBox.options[branchBox.selectedIndex].value;
+  }
+  if (testgroupBox.selectedIndex) {
+    var testgroupPersist = document.getElementById('testgroup_persist');
+    testgroupPersist.value = testgroupBox.options[testgroupBox.selectedIndex].value;
+  }
+  if (subgroupBox.selectedIndex) {
+    var subgroupPersist = document.getElementById('subgroup_persist');
+    subgroupPersist.value = subgroupBox.options[subgroupBox.selectedIndex].value;
+  }
+}
+
+function changeTestgroupFirstPass(mySuffix,silent) {
+  if (!mySuffix) {
+    mySuffix=suffix;
+  }	
+  var subgroupBox = document.getElementById('subgroup'+mySuffix);
+  if (subgroupBox) {
+    loadSubgroupsFirstPass(subgroupBox,mySuffix,silent);
+  }
+}
+
+function loadSubgroupsFirstPass(subgroupBox,mySuffix,silent) {
+  if (!mySuffix) {
+    mySuffix=suffix;
+  }
+  var testgroupBox = document.getElementById('testgroup'+mySuffix);
+  var testgroupId = testgroupBox.options[testgroupBox.selectedIndex].value;
+  if (!testgroupId) {
+    // No testgroup selected.
+    return undefined;
+  }
+  disableForm(formName);
+  if (!silent) {
+    toggleMessage('loading','Loading Subgroups...');
+  }
+  var url = 'json.cgi?testgroup_id=' + testgroupId;
+  return fetchJSON(url,populateSubgroupsFirstPass,silent);
+}
+
+function populateSubgroupsFirstPass(data) {
+  testgroup=data;
+
+  if (typeof(subgroupBox) == "undefined") {
+    subgroupBox = document.getElementById('subgroup'+suffix);
+  }
+
+  clearSelect(subgroupBox);
+  addNullEntry(subgroupBox);
+  if (testgroup) {
+    for (var i=0; i<testgroup.subgroups.length; i++) {
+      var optionText = testgroup.subgroups[i].name + ' (' + testgroup.subgroups[i].subgroup_id + ')';
+      subgroupBox.options[subgroupBox.length] = new Option(optionText,
+                                                         testgroup.subgroups[i].subgroup_id);
+    }
+  }
+  if (initial_subgroup) {
+    setSelected(subgroupBox,initial_subgroup);
+    initial_subgroup=0;
+  }
+  toggleMessage('loading','Filtering testcase list...');
+  filterList();
+  toggleMessage('none');
+  enableForm(formName);
+}
