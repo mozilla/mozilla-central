@@ -1,1 +1,1 @@
-CLOBBER requested due to switching to objdir in Bug 379396
+CLOBBERing to get the bug 392170 fix for a wrong-patch checkin for bug 391243
