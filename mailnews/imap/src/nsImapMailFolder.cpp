@@ -2069,6 +2069,12 @@ NS_IMETHODIMP nsImapMailFolder::DeleteMessages(nsISupportsArray *messages,
         deleteImmediatelyNoTrash = PR_TRUE;
     }
   }
+  else
+  {
+    nsCOMPtr <nsIMsgFolderNotificationService> notifier = do_GetService(NS_MSGNOTIFICATIONSERVICE_CONTRACTID);
+    if (notifier)
+      notifier->NotifyItemDeleted(messages);   
+  }
 
   if ((NS_SUCCEEDED(rv) && deleteImmediatelyNoTrash) || deleteModel == nsMsgImapDeleteModels::IMAPDelete )
   {
@@ -7273,7 +7279,7 @@ NS_IMETHODIMP nsImapMailFolder::RenameClient(nsIMsgWindow *msgWindow, nsIMsgFold
   oldImapFolder->GetHierarchyDelimiter(&hierarchyDelimiter);
   PRInt32 boxflags=0;
   oldImapFolder->GetBoxFlags(&boxflags);
-
+  
   nsAutoString newLeafName;
   nsAutoString newNameString;
   CopyASCIItoUTF16(newName, newNameString);
@@ -7360,6 +7366,9 @@ NS_IMETHODIMP nsImapMailFolder::RenameClient(nsIMsgWindow *msgWindow, nsIMsgFold
     nsCOMPtr <nsIMsgImapMailFolder> oldImapFolder = do_QueryInterface(msgFolder);
     if (oldImapFolder)
       oldImapFolder->SetVerifiedAsOnlineFolder(PR_FALSE);
+    nsCOMPtr <nsIMsgFolderNotificationService> notifier = do_GetService(NS_MSGNOTIFICATIONSERVICE_CONTRACTID);
+    if (notifier)
+      notifier->NotifyFolderRenamed(msgFolder, child);   
     NotifyItemAdded(child);
   }
   return rv;

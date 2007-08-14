@@ -1160,6 +1160,10 @@ NS_IMETHODIMP nsMsgLocalMailFolder::RenameSubFolders(nsIMsgWindow *msgWindow, ns
   nsresult rv =NS_OK;
   mInitialized = PR_TRUE;
 
+  nsCOMPtr <nsIMsgFolderNotificationService> notifier = do_GetService(NS_MSGNOTIFICATIONSERVICE_CONTRACTID);
+  if (notifier)
+    notifier->NotifyFolderRenamed(oldFolder, this);
+  
   PRUint32 flags;
   oldFolder->GetFlags(&flags);
   SetFlags(flags);

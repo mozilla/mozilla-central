@@ -49,6 +49,8 @@ interface nsIMsgFolderNotificationService : nsISupports {
   void removeListener(in nsIMsgFolderListener aListener);
   
   void notifyItemAdded(in nsISupports aItem);
+  // for the convenience of the callers, we allow this to be an nsISupportsArray of items,
+  // or an individual nsISupports.
   void notifyItemDeleted(in nsISupports aItem);
   void notifyItemMoveCopyCompleted(in boolean aMove, 
                               in nsISupportsArray aSrcItems, 

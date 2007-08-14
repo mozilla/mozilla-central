@@ -38,7 +38,7 @@
 
 #include "msgCore.h"
 #include "nsMsgFolderNotificationService.h"
-
+#include "nsISupportsArray.h"
 
 //
 //  nsMsgFolderNotificationService
@@ -102,13 +102,27 @@ NS_IMETHODIMP nsMsgFolderNotificationService::NotifyItemDeleted(nsISupports *aIt
 {
   PRInt32 count = m_listeners.Count();
   
+  // this might be an array of items - use QI to find out.
+  nsCOMPtr <nsISupportsArray> itemArray = do_QueryInterface(aItem);
   for(PRInt32 i = 0; i < count; i++)
   {
     nsCOMPtr<nsIMsgFolderListener> listener = m_listeners[i];
     NS_ASSERTION(listener, "listener is null");
     if (!listener) 
       return NS_ERROR_FAILURE;
-    listener->ItemDeleted(aItem);
+    if (itemArray)
+    {
+      PRUint32 cnt;
+      itemArray->Count(&cnt);
+      for (PRUint32 i = 0; i < cnt; i++)
+      {
+        nsCOMPtr <nsISupports> supports = do_QueryElementAt(itemArray, i);
+        if (supports)
+          listener->ItemDeleted(supports);
+      }
+    }
+    else
+      listener->ItemDeleted(aItem);
   }
   
   return NS_OK;
