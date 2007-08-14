@@ -102,12 +102,7 @@ function createEventWithDialog(calendar, startDate, endDate, summary, event)
     }
     event.endDate = endDate.clone();
 
-    if (calendar) {
-        event.calendar = calendar;
-    } else if ("getSelectedCalendarOrNull" in window) {
-        // Sunbird specific code
-        event.calendar = getSelectedCalendarOrNull();
-    }
+    event.calendar = calendar || getSelectedCalendar();
 
     if (summary)
         event.title = summary;
@@ -138,12 +133,7 @@ function createTodoWithDialog(calendar, dueDate, summary, todo)
 
     todo = createTodo();
 
-    if (calendar) {
-        todo.calendar = calendar;
-    } else if ("getSelectedCalendarOrNull" in window) {
-        // Sunbird specific code
-        todo.calendar = getSelectedCalendarOrNull();
-    }
+    todo.calendar = calendar || getSelectedCalendar();
 
     if (summary)
         todo.title = summary;

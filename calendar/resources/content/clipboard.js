@@ -20,6 +20,7 @@
  *
  * Contributor(s): ArentJan Banck <ajbanck@planet.nl>
  *                 Joey Minta <jminta@gmail.com>
+ *                 Philipp Kewisch <mozilla@kewis.ch>
  *
  * Alternatively, the contents of this file may be used under the terms of
  * either the GNU General Public License Version 2 or later (the "GPL"), or
@@ -251,8 +252,10 @@ function pasteFromClipboard()
                 if (!earliestDate || date.compare(earliestDate) < 0)
                     earliestDate = date;
             }
-            var destCal = ("ltnSelectedCalendar" in window) ?
-              ltnSelectedCalendar() : getDefaultCalendar();
+            var destCal = getSelectedCalendar();
+            if (!destCal) {
+                return;
+            }
             var firstDate = currentView().selectedDay;
             if (!firstDate.isMutable) {
                 firstDate = firstDate.clone();

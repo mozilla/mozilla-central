@@ -51,16 +51,7 @@ var calendarViewController = {
     },
 
     createNewEvent: function (aCalendar, aStartTime, aEndTime) {
-        // XXX If we're adding an item from the view, let's make sure that
-        // XXX the calendar in question is visible!
-        // XXX unify these
-        if (!aCalendar) {
-            if ("ltnSelectedCalendar" in window) {
-                aCalendar = ltnSelectedCalendar();
-            } else {
-                aCalendar = getSelectedCalendarOrNull();
-            }
-        }
+        aCalendar = aCalendar || getSelectedCalendar();
 
         // if we're given both times, skip the dialog
         if (aStartTime && aEndTime && !aStartTime.isDate && !aEndTime.isDate) {

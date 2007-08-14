@@ -21,6 +21,7 @@
  *
  * Contributor(s): Don Crandall (macdoc@interx.net)
  *                 Matthew Willis (mattwillis@gmail.com)
+ *                 Philipp Kewisch <mozilla@kewis.ch>
  *
  * Alternatively, the contents of this file may be used under the terms of
  * either of the GNU General Public License Version 2 or later (the "GPL"),
@@ -37,31 +38,50 @@
  * ***** END LICENSE BLOCK ***** */
 
 #ifdef XP_MACOSX
-function hiddenWindowStartup()
-{
-  // focus the hidden window
-  window.focus();
+function hiddenWindowStartup() {
+    // focus the hidden window
+    window.focus();
 
-  // Disable menus which are not appropriate
-  var disabledItems = ['new_command', 'new_todo_command', 'new_calendar_command', 
-                       'modify_command', 'close_calendar_command',
-                       'print_command', 'cut_command', 'copy_command', 'paste_command', 
-                       'delete_command', 'delete_todo_command', 'select_all_command', 
-                       'day_view_command', 'week_view_command', 'multiweek_view_command', 
-                       'month_view_command', 'cmd_CustomizeToolbars', 'go_today_command', 
-                       'go_date_command', 'previous_command', 'next_command', 
-                       'wizard_command', 'import_command', 'export_command', 
-                       'publish_events_command', 'modify_todo_command', 
-                       'edit_calendar_command', 
-                       'delete_calendar_command', 'find_new_calendar_command', 
-                       'reload_remote_calendars', 'publish_calendar',
-                       'minimizeWindowCmd', 'zoomWindowCmd'];
-  for (var id in disabledItems) 
-  {
-    var broadcaster = document.getElementById(disabledItems[id]);
-    if (broadcaster)
-      broadcaster.setAttribute("disabled", "true");
-  }
+    // Disable menus which are not appropriate
+    var disabledItems = ['calendar_new_event_command',
+                         'calendar_new_todo_command',
+                         'calendar_new_calendar_command',
+                         'modify_command',
+                         'close_calendar_command',
+                         'print_command',
+                         'cut_command',
+                         'copy_command',
+                         'paste_command',
+                         'delete_command',
+                         'delete_todo_command',
+                         'select_all_command',
+                         'day_view_command',
+                         'week_view_command',
+                         'multiweek_view_command',
+                         'month_view_command',
+                         'cmd_CustomizeToolbars',
+                         'go_today_command',
+                         'go_date_command',
+                         'previous_command',
+                         'next_command',
+                         'wizard_command',
+                         'import_command',
+                         'export_command',
+                         'publish_events_command',
+                         'modify_todo_command',
+                         'edit_calendar_command',
+                         'calendar_delete_calendar_command',
+                         'find_new_calendar_command',
+                         'calendar_reload_remote_calendars',
+                         'calendar_publish_calendar',
+                         'minimizeWindowCmd',
+                         'zoomWindowCmd'];
+    for each (var id in disabledItems) {
+        var broadcaster = document.getElementById(id);
+        if (broadcaster) {
+            broadcaster.setAttribute("disabled", "true");
+        }
+    }
 }
 
 // Mac OS X "Window" menu functions

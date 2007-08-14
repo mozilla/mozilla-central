@@ -179,48 +179,6 @@ var CalendarController =
   }
 };
 
-function ltnSidebarCalendarSelected(tree)
-{
-    var selectedCalendar = ltnSelectedCalendar();
-    if (!selectedCalendar) {
-        return;
-    }
-    var compositeCalendar = getCompositeCalendar();
-    if (!compositeCalendar.getCalendar(selectedCalendar.uri)) {
-        compositeCalendar.addCalendar(selectedCalendar);
-    }
-    compositeCalendar.defaultCalendar = selectedCalendar;
-}
-
-function ltnSelectedCalendar()
-{
-    var index = document.getElementById("calendarTree").currentIndex;
-    return getCalendars()[index]; 
-}
-
-function ltnDeleteSelectedCalendar()
-{
-    var promptService = Components.classes["@mozilla.org/embedcomp/prompt-service;1"].getService(Components.interfaces.nsIPromptService); 
-
-    var result = {}; 
-    var calendarBundle = document.getElementById("bundle_calendar");
-    var calendar = ltnSelectedCalendar();
-    var ok = promptService.confirm(
-        window,
-        calendarBundle.getString("unsubscribeCalendarTitle"),
-        calendarBundle.getFormattedString("unsubscribeCalendarMessage",[calendar.name]),
-        result);
-   
-    if (ok) {
-        ltnRemoveCalendar(calendar);
-    }
-}
-
-function ltnEditSelectedCalendar()
-{
-    ltnEditCalendarProperties(ltnSelectedCalendar());
-}
-
 function today()
 {
     var d = Components.classes['@mozilla.org/calendar/datetime;1'].createInstance(Components.interfaces.calIDateTime);
@@ -293,6 +251,9 @@ function ltnGoToDate()
 
 function ltnOnLoad(event)
 {
+    // Load the Calendar Manager
+    loadCalendarManager();
+
     // take the existing folderPaneBox (that's what thunderbird displays
     // at the left side of the application window) and stuff that inside
     // of the deck we're introducing with the contentPanel. this essentially
@@ -409,23 +370,13 @@ function ltnOnLoad(event)
     // Hide the calendar view so it doesn't push the status-bar offscreen
     collapseElement(document.getElementById("calendar-view-box"));
 
-    // Start observing preferences
-    var prefService = Components.classes["@mozilla.org/preferences-service;1"]
-                            .getService(Components.interfaces.nsIPrefService);
-    var rootPrefBranch = prefService.getBranch("");
-    ltnPrefObserver.rootPrefBranch = rootPrefBranch;
-    var pb2 = rootPrefBranch.QueryInterface(
-        Components.interfaces.nsIPrefBranch2);
-    pb2.addObserver("calendar.", ltnPrefObserver, false);
-    ltnPrefObserver.observe(null, null, "");
-
     // fire up the alarm service
     var alarmSvc = Components.classes["@mozilla.org/calendar/alarm-service;1"]
                    .getService(Components.interfaces.calIAlarmService);
     alarmSvc.timezone = calendarDefaultTimezone();
     alarmSvc.startup();
 
-    // Add an unload function to the window so we don't leak the pref observer
+    // Add an unload function to the window so we don't leak any listeners
     document.getElementById("messengerWindow")
             .addEventListener("unload", ltnFinish, false);
 
@@ -622,23 +573,10 @@ function LtnObserveDisplayDeckChange(event)
     }
 }
 
-function ltnPublishCalendar()
-{
-    publishEntireCalendar(ltnSelectedCalendar());
-}
-
 function ltnFinish() {
-    var prefService = Components.classes["@mozilla.org/preferences-service;1"]
-                            .getService(Components.interfaces.nsIPrefService);
-    // Remove the pref observer
-    var pb2 = prefService.getBranch("");
-    pb2 = pb2.QueryInterface(Components.interfaces.nsIPrefBranch2);
-    pb2.removeObserver("calendar.", ltnPrefObserver);
-
     getCompositeCalendar().removeObserver(agendaTreeView.calendarObserver);
-    getCompositeCalendar().removeObserver(ltnCompositeCalendarObserver);
-    getCalendarManager().removeObserver(ltnCalendarManagerObserver);
-    return;
+
+    unloadCalendarManager();
 }
 
 function ltnEditSelectedItem() {
@@ -654,19 +592,6 @@ function ltnDeleteSelectedItem() {
                                              selectedItems,
                                              false,
                                              false);
-}
-
-function ltnCreateEvent() {
-    calendarViewController.createNewEvent(ltnSelectedCalendar());
-}
-
-// Preference observer, watches for changes to any 'calendar.' pref
-var ltnPrefObserver =
-{
-   rootPrefBranch: null,
-   observe: function(aSubject, aTopic, aPrefName)
-   {
-   }
 }
 
 // After 1.5 was released, the search box was moved into an optional toolbar

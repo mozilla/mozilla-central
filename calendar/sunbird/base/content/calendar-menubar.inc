@@ -55,12 +55,12 @@
                      key="new_event_key"
                      label="&event.new.event;"
                      accesskey="&event.new.event.accesskey;"
-                     observes="new_command"/>
+                     observes="calendar_new_event_command"/>
            <menuitem id="calendar-new-todo-menu"
                      key="new_todo_key"
                      label="&event.new.todo;"
                      accesskey="&event.new.todo.accesskey;"
-                     observes="new_todo_command"/>
+                     observes="calendar_new_todo_command"/>
            <!-- XXX lilmatt: Finish this!
            <menuitem key="new_journal_key"
                      id="calendar-new-journal-menu"
@@ -71,7 +71,7 @@
                      key="new_calendar_key"
                      label="&calendar.new.server.label;"
                      accesskey="&calendar.new.server.accesskey;"
-                     observes="new_calendar_command"/>
+                     observes="calendar_new_calendar_command"/>
            <menuitem id="calendar-open-calendar-menu"
                      key="open_calendar_key"
                      label="&calendar.open.file.label;"
@@ -80,7 +80,7 @@
            <menuitem id="calendar-addserver-menu"
                      label="&calendar.subscribe.label;"
                      accesskey="&calendar.subscribe.accesskey;"
-                     observes="new_calendar_command"/>
+                     observes="calendar_new_calendar_command"/>
            <menuseparator id="calendar-new-sep"/>
 
            <!-- import: pulling data into existing files -->
@@ -113,7 +113,7 @@
                      key="reload_server_key"
                      label="&calendar.reloadserver.label;"
                      accesskey="&calendar.reloadserver.accesskey;"
-                     observes="reload_remote_calendars"/>
+                     observes="calendar_reload_remote_calendars"/>
            <menuseparator id="calendar-reload-sep"/>
 
            <menuitem id="calendar-page-setup-menu"

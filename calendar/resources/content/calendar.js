@@ -114,14 +114,14 @@ function calendarInit()
    updateOrientation();
 
    // set up the unifinder
-   
+
    prepareCalendarUnifinder();
 
    prepareCalendarToDoUnifinder();
    
    scheduleMidnightUpdate(refreshUIBits);
 
-   initCalendarManager();
+   loadCalendarManager();
 
    // fire up the alarm service
    var alarmSvc = Components.classes["@mozilla.org/calendar/alarm-service;1"]
@@ -226,75 +226,8 @@ function calendarFinish()
    
    finishCalendarToDoUnifinder();
 
-   finishCalendarManager();
+   unloadCalendarManager();
 }
-
-function newCalendarDialog()
-{
-    openCalendarWizard();
-}
-
-function editCalendarDialog(event)
-{
-    openCalendarProperties(document.popupNode.calendar, null);
-}
-
-function calendarListboxDoubleClick(event) {
-    if(event.target.calendar)
-        openCalendarProperties(event.target.calendar, null);
-    else
-        openCalendarWizard();
-}
-
-function checkCalListTarget() {
-    if(!document.popupNode.calendar) {
-        document.getElementById("calpopup-edit").setAttribute("disabled", "true");
-        document.getElementById("calpopup-delete").setAttribute("disabled", "true");
-        document.getElementById("calpopup-publish").setAttribute("disabled", "true");
-    }
-    else {
-        document.getElementById("calpopup-edit").removeAttribute("disabled");
-        document.getElementById("calpopup-delete").removeAttribute("disabled");
-        document.getElementById("calpopup-publish").removeAttribute("disabled");
-    }
-}
-
-function deleteCalendar(event)
-{
-    var promptService = Components.classes["@mozilla.org/embedcomp/prompt-service;1"].getService(Components.interfaces.nsIPromptService); 
-
-    var result = {}; 
-    var calendarBundle = document.getElementById("bundle_calendar");
-    var calendar = document.popupNode.calendar;
-    var ok = promptService.confirm(
-        window,
-        calendarBundle.getString("unsubscribeCalendarTitle"),
-        calendarBundle.getFormattedString("unsubscribeCalendarMessage",[calendar.name]),
-        result);
-   
-    if (ok) {
-        getCompositeCalendar().removeCalendar(calendar.uri);
-        var calMgr = getCalendarManager();
-        calMgr.unregisterCalendar(calendar);
-        calMgr.deleteCalendar(calendar);
-    }
-}
-
-/**
- * Get the default calendar selected in the calendars tab.
- * Returns a calICalendar object, or null if none selected.
- */
-function getSelectedCalendarOrNull()
-{
-   var selectedCalendarItem = document.getElementById( "list-calendars-listbox" ).selectedItem;
-   
-   if ( selectedCalendarItem )
-     return selectedCalendarItem.calendar;
-   else
-     return null;
-}
-
-
 
 /**
 *  Delete the current selected item with focus from the ToDo unifinder list

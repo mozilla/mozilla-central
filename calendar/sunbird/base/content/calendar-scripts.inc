@@ -55,7 +55,7 @@
 #endif
 
   <!-- NEEDED FOR MULTIPLE CALENDAR SUPPORT -->
-  <script type="application/x-javascript" src="chrome://calendar/content/calendarManagement.js"/>
+  <script type="application/x-javascript" src="chrome://calendar/content/calendar-management.js"/>
 
   <!-- NEEDED FOR CLIPBOARD SUPPORT -->
   <script type="application/x-javascript" src="chrome://calendar/content/clipboard.js"/>

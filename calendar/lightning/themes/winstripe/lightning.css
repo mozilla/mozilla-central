@@ -22,6 +22,7 @@
  *   Vladimir Vukicevic <vladimir@pobox.com>
  *   Joey Minta <jminta@gmail.com>
  *   Simon Paquet <bugzilla@babylonsounds.com>
+ *   Philipp Kewisch <mozilla@kewis.ch>
  *
  * Alternatively, the contents of this file may be used under the terms of
  * either the GNU General Public License Version 2 or later (the "GPL"), or 
@@ -59,21 +60,10 @@ calendar-todo-item[selected="true"] {
   color: HighlightText;
 }
 
-treechildren::-moz-tree-image(col-calendar-Checkbox, checked) {
-   list-style-image: url("chrome://calendar/skin/checkbox_checked.png");
-}
+/* Calendar list rules */
 
-treechildren::-moz-tree-image(col-calendar-Checkbox, unchecked) {
-   list-style-image: url("chrome://calendar/skin/checkbox_unchecked.png");
-}
-
-treechildren::-moz-tree-cell-text(agenda-header) {
-   font-weight: bold;
-}
-
-treechildren::-moz-tree-cell(color-default) {
-   background-color: #a8c2e1;
-   margin: 1px;
+#calendar-panel {
+    padding: 0px 5px 5px;
 }
 
 /*--------------------------------------------------------------------

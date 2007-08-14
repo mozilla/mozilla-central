@@ -29,6 +29,7 @@
 #                 Matthew Willis <mattwillis@gmail.com>
 #                 Stefan Sitter <ssitter@googlemail.com>
 #                 Dan Mosedale <dan.mosedale@oracle.com>
+#                 Philipp Kewisch <mozilla@kewis.ch>
 #
 # Alternatively, the contents of this file may be used under the terms of
 # either the GNU General Public License Version 2 or later (the "GPL"), or
@@ -49,7 +50,7 @@
 </broadcasterset>
 
 <commandset id="calendar_commands">
-  <command id="new_command" oncommand="createEventWithDialog()"/>
+  <command id="calendar_new_event_command" oncommand="createEventWithDialog(getSelectedCalendar());"/>
   <command id="delete_command" oncommand="deleteEventCommand( )" disabled="true" disabledwhennoeventsselected="true"/>
   <command id="delete_command_no_confirm" oncommand="deleteEventCommand( true )" disabled="true" disabledwhennoeventsselected="true"/>
   <command id="modify_command" oncommand="modifyEventWithDialog(currentView().getSelectedItems({})[0])" disabled="true" disabledwhennoeventsselected="true"/>
@@ -63,14 +64,14 @@
   <command id="paste_command" oncommand="pasteFromClipboard()"/>
   <command id="select_all_command" oncommand="selectAllEvents()"/>
 
-  <command id="new_todo_command" oncommand="createTodoWithDialog()"/>
+  <command id="calendar_new_todo_command" oncommand="createTodoWithDialog(getSelectedCalendar());"/>
   <command id="modify_todo_command" oncommand="editToDo()"/>
   <command id="delete_todo_command" oncommand="deleteToDoCommand()" disabled="true"/>
 
-  <command id="new_calendar_command" oncommand="newCalendarDialog()"/>
+  <command id="calendar_new_calendar_command" oncommand="openCalendarWizard();"/>
   <command id="open_local_calendar_command" oncommand="openLocalCalendar()"/>
-  <command id="edit_calendar_command" oncommand="editCalendarDialog(event)"/>
-  <command id="delete_calendar_command" oncommand="deleteCalendar(event)"/>
+  <command id="calendar_edit_calendar_command" oncommand="openCalendarProperties(getSelectedCalendar(), null);"/>
+  <command id="calendar_delete_calendar_command" oncommand="promptDeleteCalendar(getSelectedCalendar());"/>
   <command id="find_new_calendar_command" oncommand="goFindNewCalendars()"/>
 
   <command id="next_command" oncommand="moveView(1)"/>
@@ -87,8 +88,8 @@
   <command id="export_command" oncommand="saveEventsToFile(currentView().getSelectedItems({}))" disabled="true" disabledwhennoeventsselected="true"/>
   <command id="ask_and_export_calendar" oncommand="exportEntireCalendar()"/>
 
-  <command id="reload_remote_calendars" oncommand="reloadCalendars()"/>
-  <command id="publish_calendar" oncommand="publishEntireCalendar(getDefaultCalendar())"/>
+  <command id="calendar_reload_remote_calendars" oncommand="getCompositeCalendar().refresh()"/>
+  <command id="calendar_publish_calendar" oncommand="publishEntireCalendar(getSelectedCalendar())"/>
   <command id="ask_and_publish_calendar" oncommand="publishEntireCalendar()"/>
   <command id="publish_events_command" oncommand="publishCalendarData()" disabled="true" disabledwhennoeventsselected="true"/>
 
@@ -117,13 +118,13 @@
 </commandset>
 
 <keyset>
-  <key id="new_event_key"        key="&event.new.event.key;"             observes="new_command"                 modifiers="accel"/>
-  <key id="new_todo_key"         key="&event.new.todo.key;"              observes="new_todo_command"            modifiers="accel"/>
+  <key id="new_event_key"        key="&event.new.event.key;"             observes="calendar_new_event_command"  modifiers="accel"/>
+  <key id="new_todo_key"         key="&event.new.todo.key;"              observes="calendar_new_todo_command"   modifiers="accel"/>
 #XXX lilmatt: Finish this!
   <key id="new_journal_key"      key="&calendar.new.journal.key;"        modifiers="accel"/>
 
   <key id="modify_event_key"     key="&event.edit.event.key;"            observes="modify_command"              modifiers="accel"/>
-  <key id="new_calendar_key"     key="&calendar.new.server.key;"         observes="new_calendar_command"  modifiers="accel"/>
+  <key id="new_calendar_key"     key="&calendar.new.server.key;"         observes="calendar_new_calendar_command"  modifiers="accel"/>
   <key id="open_calendar_key"    key="&calendar.open.file.key;"          observes="open_local_calendar_command" modifiers="accel"/>
   <key id="key_close"            key="&calendar.menu.options.close.key;" observes="close_calendar_command"      modifiers="accel"/>
   <key id="print_key"            key="&calendar.print.key;"              observes="print_command"               modifiers="accel"/>
@@ -149,7 +150,7 @@
   <key id="go_to_date_key"       keycode="VK_UP"                         observes="go_date_command"             modifiers="accel"/>
 
   <key id="import_key"           key="&calendar.import.key;"             observes="import_command"              modifiers="accel"/>
-  <key id="reload_server_key"    key="&calendar.reloadserver.key;"       observes="reload_remote_calendars"     modifiers="accel"/>
+  <key id="reload_server_key"    key="&calendar.reloadserver.key;"       observes="calendar_reload_remote_calendars"     modifiers="accel"/>
 
   <key id="find_key"
        key="&calendar.find.key;"

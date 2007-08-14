@@ -30,6 +30,7 @@
 #                 Christopher Cook <tangent@intraplanar.net>
 #                 Kevin Gerich <webmail@kmgerich.com>
 #                 Matthew Willis <mattwillis@gmail.com>
+#                 Philipp Kewisch <mozilla@kewis.ch>
 #
 # Alternatively, the contents of this file may be used under the terms of
 # either the GNU General Public License Version 2 or later (the "GPL"), or
@@ -768,101 +769,79 @@ toolbar[iconsize="small"] #navigator-throbber[busy="true"] {
 
 /* TO DO ITEMS */
 
-treechildren::-moz-tree-cell-text(inprogress)
-{
-   color                 : green;
+#unifinder-todo-tree > treechildren::-moz-tree-cell-text(inprogress) {
+   color: green;
 }
 
-treechildren::-moz-tree-row(inprogress,selected)
-{
-   background-color                 : green;
+#unifinder-todo-tree > treechildren::-moz-tree-row(inprogress,selected) {
+   background-color: green;
 }
 
-treechildren::-moz-tree-cell-text(overdue)
-{
-   color                  : red;
+#unifinder-todo-tree > treechildren::-moz-tree-cell-text(overdue) {
+   color: red;
 }
 
-treechildren::-moz-tree-row(overdue,selected)
-{
-   background-color                  : red;
+#unifinder-todo-tree > treechildren::-moz-tree-row(overdue,selected) {
+   background-color: red;
 }
 
-treechildren::-moz-tree-row
-{
-   border-bottom             : 1px dotted #AAA;
+#unifinder-todo-tree > treechildren::-moz-tree-row {
+   border-bottom: 1px dotted #AAA;
 }
 
-treechildren::-moz-tree-cell-text(duetoday)
-{
-   color                  : blue;
+#unifinder-todo-tree > treechildren::-moz-tree-cell-text(duetoday) {
+   color: blue;
 }
 
-treechildren::-moz-tree-row(duetoday,selected)
-{
-   background-color                  : blue;
+#unifinder-todo-tree > treechildren::-moz-tree-row(duetoday,selected) {
+   background-color: blue;
 }
 
-treechildren::-moz-tree-cell-text(future)
-{
-   color                  : gray;
+#unifinder-todo-tree > treechildren::-moz-tree-cell-text(future) {
+   color: gray;
 }
 
-treechildren::-moz-tree-row(future,selected)
-{
-   background-color                  : gray;
+#unifinder-todo-tree > treechildren::-moz-tree-row(future,selected) {
+   background-color: gray;
 }
 
-treechildren::-moz-tree-cell-text(completed)
-{
-   text-decoration        : line-through;
-   color                  : black;
+#unifinder-todo-tree > treechildren::-moz-tree-cell-text(completed) {
+   text-decoration: line-through;
+   color: black;
 }
-
 
 /* TO DO LIST IMAGES */
 
-treechildren::-moz-tree-image(unifinder-todo-tree-col-completed, completed),
+#unifinder-todo-tree > treechildren::-moz-tree-image(unifinder-todo-tree-col-completed, completed),
 #unifinder-todo-tree-col-completed {
    list-style-image      : url("chrome://calendar/skin/unifinder/checkbox_checked.png");
 }
 
-treechildren::-moz-tree-image(unifinder-todo-tree-col-completed, duetoday),
-treechildren::-moz-tree-image(unifinder-todo-tree-col-completed, overdue),
-treechildren::-moz-tree-image(unifinder-todo-tree-col-completed, future),
-treechildren::-moz-tree-image(unifinder-todo-tree-col-completed, inprogress) {
-   list-style-image      : url("chrome://calendar/skin/unifinder/checkbox_unchecked.png");
+#unifinder-todo-tree > treechildren::-moz-tree-image(unifinder-todo-tree-col-completed, duetoday),
+#unifinder-todo-tree > treechildren::-moz-tree-image(unifinder-todo-tree-col-completed, overdue),
+#unifinder-todo-tree > treechildren::-moz-tree-image(unifinder-todo-tree-col-completed, future),
+#unifinder-todo-tree > treechildren::-moz-tree-image(unifinder-todo-tree-col-completed, inprogress) {
+   list-style-image: url("chrome://calendar/skin/unifinder/checkbox_unchecked.png");
 }
 
 #unifinder-todo-tree-col-priority {
-   list-style-image      : url( "chrome://calendar/skin/unifinder/priority_header.png" )
+   list-style-image: url( "chrome://calendar/skin/unifinder/priority_header.png" )
 }
 
-treechildren::-moz-tree-image(unifinder-todo-tree-col-priority, mediumpriority) {
-   list-style-image      : url( "chrome://calendar/skin/unifinder/priority_header.png" )
+#unifinder-todo-tree > treechildren::-moz-tree-image(unifinder-todo-tree-col-priority, mediumpriority) {
+   list-style-image: url( "chrome://calendar/skin/unifinder/priority_header.png" )
 }
 
-treechildren::-moz-tree-image(unifinder-todo-tree-col-priority, highpriority) {
-   list-style-image      : url( "chrome://calendar/skin/unifinder/priority_high.png" )
+#unifinder-todo-tree > treechildren::-moz-tree-image(unifinder-todo-tree-col-priority, highpriority) {
+   list-style-image: url( "chrome://calendar/skin/unifinder/priority_high.png" )
 }
 
-treechildren::-moz-tree-image(unifinder-todo-tree-col-priority, lowpriority) {
-   list-style-image      : url( "chrome://calendar/skin/unifinder/priority_low.png" )
+#unifinder-todo-tree > treechildren::-moz-tree-image(unifinder-todo-tree-col-priority, lowpriority) {
+   list-style-image: url( "chrome://calendar/skin/unifinder/priority_low.png" )
 }
 
-treechildren::-moz-tree-cell-text(selected) {
-   color                  : HighlightText;
-}
-
-.calendar-list-item-class[synching="true"]
-{
-   list-style-image     : url( "chrome://calendar/skin/synch_animated.gif" );
-}
-
-listitem[selected="true"] > .calendar-list-item-class
-{
-  background-color     : White;
-  color                : Black;
+#unifinder-todo-tree > treechildren::-moz-tree-cell-text(selected) {
+   color: HighlightText;
 }
 
 .todo-due-image-class

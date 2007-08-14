@@ -28,6 +28,7 @@
    -                 ArentJan Banck <ajbanck@planet.nl> 
    -                 Eric Belhaire <belhaire@ief.u-psud.fr>
    -                 Stefan Sitter <ssitter@googlemail.com>
+   -                 Philipp Kewisch <mozilla@kewis.ch>
    -
    - Alternatively, the contents of this file may be used under the terms of
    - either the GNU General Public License Version 2 or later (the "GPL"), or
@@ -56,6 +57,7 @@
 
 <!-- Overlays -->
 <?xul-overlay href="chrome://global/content/globalOverlay.xul"?>
+<?xul-overlay href="chrome://calendar/content/calendar-calendars-list.xul"?>
 
 <!-- All DTD information is stored in a separate file so that it can be shared by
      hiddenWindow.xul. -->
@@ -83,186 +85,188 @@
 #include calendar-scripts.inc
 
 <!-- GENERAL CONTEXT MENU -->
-<popup id="context-menu"
-       onpopupshowing="document.getElementById('is_editable').hidden = (document.popupNode.getAttribute('id') == 'lefthandcalendar')">
+<popupset id="calendar-popupset">
+  <popup id="context-menu"
+         onpopupshowing="document.getElementById('is_editable').hidden = (document.popupNode.getAttribute('id') == 'lefthandcalendar')">
 
-  <menuitem label="&calendar.context.newevent.label;"
-            accesskey="&calendar.context.newevent.accesskey;"
-            id="general-context-menu-newevent"
-            observes="new_command"/>
-  <menuitem label="&calendar.context.newtodo.label;"
-            accesskey="&calendar.context.newtodo.accesskey;"
-            id="general-context-menu-newtodo"
-            observes="new_todo_command"/>
-  <menuitem label="&calendar.context.modifyevent.label;"
-            accesskey="&calendar.context.modifyevent.accesskey;"
-            id="general-context-menu-modify"
-            observes="modify_command" />
-  <menuitem label="&calendar.context.deleteevent.label;"
-            accesskey="&calendar.context.deleteevent.accesskey;"
-            id="general-context-menu-delete"
-            observes="delete_command"/>
+    <menuitem label="&calendar.context.newevent.label;"
+              accesskey="&calendar.context.newevent.accesskey;"
+              id="general-context-menu-newevent"
+              observes="new_command"/>
+    <menuitem label="&calendar.context.newtodo.label;"
+              accesskey="&calendar.context.newtodo.accesskey;"
+              id="general-context-menu-newtodo"
+              observes="new_todo_command"/>
+    <menuitem label="&calendar.context.modifyevent.label;"
+              accesskey="&calendar.context.modifyevent.accesskey;"
+              id="general-context-menu-modify"
+              observes="modify_command" />
+    <menuitem label="&calendar.context.deleteevent.label;"
+              accesskey="&calendar.context.deleteevent.accesskey;"
+              id="general-context-menu-delete"
+              observes="delete_command"/>
 
-  <menuseparator/>
-  <menuitem label="&calendar.context.cutevent.label;"
-            accesskey="&calendar.context.cutevent.accesskey;"
-            id="general-context-menu-cut"
-            observes="cut_command">
-    <observes element="is_editable" attribute="hidden"/>
-  </menuitem>
-  <menuitem label="&calendar.context.copyevent.label;"
-            accesskey="&calendar.context.copyevent.accesskey;"
-            id="general-context-menu-copy"
-            observes="copy_command">
-    <observes element="is_editable" attribute="hidden"/>
-  </menuitem>
-  <menuitem label="&calendar.context.pasteevent.label;"
-            accesskey="&calendar.context.pasteevent.accesskey;"
-            id="general-context-menu-paste"
-            observes="paste_command">
-    <observes element="is_editable" attribute="hidden"/>
-  </menuitem>
-  <menuseparator>
-    <observes element="is_editable" attribute="hidden"/>
-  </menuseparator>
-  <menuitem label="&calendar.context.selectall.label;"
-            accesskey="&calendar.context.selectall.accesskey;"
-            id="general-context-menu-selectall"
-            observes="select_all_command">
-    <observes element="is_editable" attribute="hidden"/>
-  </menuitem>
-  <menuseparator>
-    <observes element="is_editable" attribute="hidden"/>
-  </menuseparator>
-  <menuitem label="&calendar.context.gototoday.label;"
-            accesskey="&calendar.context.gototoday.accesskey;"
-            id="general-context-menu-gototoday"
-            observes="go_today_command"/>
-  <menuseparator/>
-  <menuitem id="only-workday-checkbox-2"
-            type="checkbox"
-            label="&calendar.onlyworkday.checkbox.label;"
-            accesskey="&calendar.onlyworkday.checkbox.accesskey;"
-            observes="toggle_workdays_only"/>
-  <menuitem id="display-todo-inview-checkbox-2"
-            type="checkbox"
-            label="&calendar.displaytodos.checkbox.label;"
-            accesskey="&calendar.displaytodos.checkbox.accesskey;"
-            observes="toggle_tasks_in_view"/>
-</popup>
+    <menuseparator/>
+    <menuitem label="&calendar.context.cutevent.label;"
+              accesskey="&calendar.context.cutevent.accesskey;"
+              id="general-context-menu-cut"
+              observes="cut_command">
+      <observes element="is_editable" attribute="hidden"/>
+    </menuitem>
+    <menuitem label="&calendar.context.copyevent.label;"
+              accesskey="&calendar.context.copyevent.accesskey;"
+              id="general-context-menu-copy"
+              observes="copy_command">
+      <observes element="is_editable" attribute="hidden"/>
+    </menuitem>
+    <menuitem label="&calendar.context.pasteevent.label;"
+              accesskey="&calendar.context.pasteevent.accesskey;"
+              id="general-context-menu-paste"
+              observes="paste_command">
+      <observes element="is_editable" attribute="hidden"/>
+    </menuitem>
+    <menuseparator>
+      <observes element="is_editable" attribute="hidden"/>
+    </menuseparator>
+    <menuitem label="&calendar.context.selectall.label;"
+              accesskey="&calendar.context.selectall.accesskey;"
+              id="general-context-menu-selectall"
+              observes="select_all_command">
+      <observes element="is_editable" attribute="hidden"/>
+    </menuitem>
+    <menuseparator>
+      <observes element="is_editable" attribute="hidden"/>
+    </menuseparator>
+    <menuitem label="&calendar.context.gototoday.label;"
+              accesskey="&calendar.context.gototoday.accesskey;"
+              id="general-context-menu-gototoday"
+              observes="go_today_command"/>
+    <menuseparator/>
+    <menuitem id="only-workday-checkbox-2"
+              type="checkbox"
+              label="&calendar.onlyworkday.checkbox.label;"
+              accesskey="&calendar.onlyworkday.checkbox.accesskey;"
+              observes="toggle_workdays_only"/>
+    <menuitem id="display-todo-inview-checkbox-2"
+              type="checkbox"
+              label="&calendar.displaytodos.checkbox.label;"
+              accesskey="&calendar.displaytodos.checkbox.accesskey;"
+              observes="toggle_tasks_in_view"/>
+  </popup>
 
-<!-- TASK ITEM CONTEXT MENU -->
-<popup id="taskitem-context-menu" onpopupshowing="changeContextMenuForToDo( event );">
-  <menuitem label="&calendar.context.newtodo.label;"
-            accesskey="&calendar.context.newtodo.accesskey;"
-            id="task-context-menu-new"
-            observes="new_todo_command"/>
-  <menuitem id="task-context-menu-modify"
-            label="&calendar.context.modifytask.label;"
-            accesskey="&calendar.context.modifytask.accesskey;"
-            oncommand="modifyTaskFromContext()"/>
-  <menuitem label="&calendar.context.deletetask.label;"
-            accesskey="&calendar.context.deletetask.accesskey;"
-            id="task-context-menu-delete"
-            observes="delete_todo_command"/>
-  <menu label="&calendar.context.progress.label;"
-        accesskey="&calendar.context.progress.accesskey;"
-        id="task-context-menu-progress"
-        observes="is_editable">
-    <menupopup>
-      <menuitem type="checkbox"
-                id="percent-0-menuitem"
-                label="&progress.level.0;"
-                accesskey="&progress.level.0.accesskey;"
-                oncommand="contextChangeProgress( event, 0 );"/>
-      <menuitem type="checkbox"
-                id="percent-25-menuitem"
-                label="&progress.level.25;"
-                accesskey="&progress.level.25.accesskey;"
-                oncommand="contextChangeProgress( event, 25 );"/>
-      <menuitem type="checkbox"
-                id="percent-50-menuitem"
-                label="&progress.level.50;"
-                accesskey="&progress.level.50.accesskey;"
-                oncommand="contextChangeProgress( event, 50 );"/>
-      <menuitem type="checkbox"
-                id="percent-75-menuitem"
-                label="&progress.level.75;"
-                accesskey="&progress.level.75.accesskey;"
-                oncommand="contextChangeProgress( event, 75 );"/>
-      <menuitem type="checkbox"
-                id="percent-100-menuitem"
-                label="&progress.level.100;"
-                accesskey="&progress.level.100.accesskey;"
-                oncommand="contextChangeProgress( event, 100 );"/>
-    </menupopup>
-  </menu>
-  <menu label="&calendar.context.priority.label;"
-        accesskey="&calendar.context.priority.accesskey;"
-        id="task-context-menu-priority"
-        observes="is_editable">
-    <menupopup>
-      <menuitem type="checkbox"
-                id="priority-0-menuitem"
-                label="&priority.level.none;"
-                accesskey="&priority.level.none.accesskey;"
-                oncommand="contextChangePriority( event, 0 );"/>
-      <menuitem type="checkbox"
-                id="priority-9-menuitem"
-                label="&priority.level.low;"
-                accesskey="&priority.level.low.accesskey;"
-                oncommand="contextChangePriority( event, 9 );"/>
-      <menuitem type="checkbox"
-                id="priority-5-menuitem"
-                label="&priority.level.medium;"
-                accesskey="&priority.level.medium.accesskey;"
-                oncommand="contextChangePriority( event, 5 );"/>
-      <menuitem type="checkbox"
-                id="priority-1-menuitem"
-                label="&priority.level.high;"
-                accesskey="&priority.level.high.accesskey;"
-                oncommand="contextChangePriority( event, 1 );"/>
-    </menupopup>
-  </menu>
-</popup>
+  <!-- TASK ITEM CONTEXT MENU -->
+  <popup id="taskitem-context-menu" onpopupshowing="changeContextMenuForToDo( event );">
+    <menuitem label="&calendar.context.newtodo.label;"
+              accesskey="&calendar.context.newtodo.accesskey;"
+              id="task-context-menu-new"
+              observes="new_todo_command"/>
+    <menuitem id="task-context-menu-modify"
+              label="&calendar.context.modifytask.label;"
+              accesskey="&calendar.context.modifytask.accesskey;"
+              oncommand="modifyTaskFromContext()"/>
+    <menuitem label="&calendar.context.deletetask.label;"
+              accesskey="&calendar.context.deletetask.accesskey;"
+              id="task-context-menu-delete"
+              observes="delete_todo_command"/>
+    <menu label="&calendar.context.progress.label;"
+          accesskey="&calendar.context.progress.accesskey;"
+          id="task-context-menu-progress"
+          observes="is_editable">
+      <menupopup>
+        <menuitem type="checkbox"
+                  id="percent-0-menuitem"
+                  label="&progress.level.0;"
+                  accesskey="&progress.level.0.accesskey;"
+                  oncommand="contextChangeProgress( event, 0 );"/>
+        <menuitem type="checkbox"
+                  id="percent-25-menuitem"
+                  label="&progress.level.25;"
+                  accesskey="&progress.level.25.accesskey;"
+                  oncommand="contextChangeProgress( event, 25 );"/>
+        <menuitem type="checkbox"
+                  id="percent-50-menuitem"
+                  label="&progress.level.50;"
+                  accesskey="&progress.level.50.accesskey;"
+                  oncommand="contextChangeProgress( event, 50 );"/>
+        <menuitem type="checkbox"
+                  id="percent-75-menuitem"
+                  label="&progress.level.75;"
+                  accesskey="&progress.level.75.accesskey;"
+                  oncommand="contextChangeProgress( event, 75 );"/>
+        <menuitem type="checkbox"
+                  id="percent-100-menuitem"
+                  label="&progress.level.100;"
+                  accesskey="&progress.level.100.accesskey;"
+                  oncommand="contextChangeProgress( event, 100 );"/>
+      </menupopup>
+    </menu>
+    <menu label="&calendar.context.priority.label;"
+          accesskey="&calendar.context.priority.accesskey;"
+          id="task-context-menu-priority"
+          observes="is_editable">
+      <menupopup>
+        <menuitem type="checkbox"
+                  id="priority-0-menuitem"
+                  label="&priority.level.none;"
+                  accesskey="&priority.level.none.accesskey;"
+                  oncommand="contextChangePriority( event, 0 );"/>
+        <menuitem type="checkbox"
+                  id="priority-9-menuitem"
+                  label="&priority.level.low;"
+                  accesskey="&priority.level.low.accesskey;"
+                  oncommand="contextChangePriority( event, 9 );"/>
+        <menuitem type="checkbox"
+                  id="priority-5-menuitem"
+                  label="&priority.level.medium;"
+                  accesskey="&priority.level.medium.accesskey;"
+                  oncommand="contextChangePriority( event, 5 );"/>
+        <menuitem type="checkbox"
+                  id="priority-1-menuitem"
+                  label="&priority.level.high;"
+                  accesskey="&priority.level.high.accesskey;"
+                  oncommand="contextChangePriority( event, 1 );"/>
+      </menupopup>
+    </menu>
+  </popup>
 
-<!-- CALENDAR LIST CONTEXT MENU -->
-<popup id="calendarlist-context-menu" onpopupshowing="checkCalListTarget()">
-  <menuitem label="&calendar.context.newserver.label;"
-            id="calpopup-new"
-            accesskey="&calendar.context.newserver.accesskey;"
-            observes="new_calendar_command"/>
-  <menuitem label="&calendar.context.deleteserver.label;"
-            id="calpopup-delete"
-            accesskey="&calendar.context.deleteserver.accesskey;"
-            observes="delete_calendar_command"/>
-  <menuseparator/>
-  <menuitem label="&calendar.context.export.label;"
-            id="calpopup-export"
-            accesskey="&calendar.context.export.accesskey;"
-            oncommand="exportEntireCalendar(getSelectedCalendarOrNull())"/>
-  <menuitem label="&calendar.context.publish.label;"
-            id="calpopup-publish"
-            accesskey="&calendar.context.publish.accesskey;"
-            observes="publish_calendar"/>
-  <menuseparator/>
-  <menuitem label="&calendar.context.reloadserver.label;"
-            id="calpopup-reload"
-            accesskey="&calendar.context.reloadserver.accesskey;"
-            observes="reload_remote_calendars"/>
-  <menuseparator/>
-  <menuitem label="&calendar.context.properties.label;"
-            id="calpopup-edit"
-            accesskey="&calendar.context.properties.accesskey;"
-            observes="edit_calendar_command"/>
-</popup>
+  <!-- CALENDAR LIST CONTEXT MENU -->
+  <popup id="calendarlist-context-menu" onpopupshowing="checkCalListTarget()">
+    <menuitem label="&calendar.context.newserver.label;"
+              id="calpopup-new"
+              accesskey="&calendar.context.newserver.accesskey;"
+              observes="new_calendar_command"/>
+    <menuitem label="&calendar.context.deleteserver.label;"
+              id="calpopup-delete"
+              accesskey="&calendar.context.deleteserver.accesskey;"
+              observes="delete_calendar_command"/>
+    <menuseparator/>
+    <menuitem label="&calendar.context.export.label;"
+              id="calpopup-export"
+              accesskey="&calendar.context.export.accesskey;"
+              oncommand="exportEntireCalendar(getSelectedCalendarOrNull())"/>
+    <menuitem label="&calendar.context.publish.label;"
+              id="calpopup-publish"
+              accesskey="&calendar.context.publish.accesskey;"
+              observes="publish_calendar"/>
+    <menuseparator/>
+    <menuitem label="&calendar.context.reloadserver.label;"
+              id="calpopup-reload"
+              accesskey="&calendar.context.reloadserver.accesskey;"
+              observes="reload_remote_calendars"/>
+    <menuseparator/>
+    <menuitem label="&calendar.context.properties.label;"
+              id="calpopup-edit"
+              accesskey="&calendar.context.properties.accesskey;"
+              observes="edit_calendar_command"/>
+  </popup>
 
-<popup id="toolbar-context-menu">
-  <menuitem command="cmd_CustomizeToolbars"
-            id="toolbar-context-menu-customize"
-            label="&calendar.context.customize.label;"
-            accesskey="&calendar.context.customize.accesskey;"/>
-</popup>
+  <popup id="toolbar-context-menu">
+    <menuitem command="cmd_CustomizeToolbars"
+              id="toolbar-context-menu-customize"
+              label="&calendar.context.customize.label;"
+              accesskey="&calendar.context.customize.accesskey;"/>
+  </popup>
+</popupset>
 
 <commandset id="commands"/>
 
@@ -284,7 +288,7 @@
                    id="calendar-new-event-button"
                    label="&calendar.newevent.button.label;"
                    tooltiptext="&calendar.newevent.button.tooltip;"
-                   observes="new_command"/>
+                   observes="calendar_new_event_command"/>
     <toolbarbutton class="toolbarbutton-1"
                    id="calendar-edit-event-button"
                    label="&calendar.edit.button.label;"
@@ -358,7 +362,7 @@
                    id="calendar-subscribe-button"
                    label="&calendar.subscribe.button.label;"
                    tooltiptext="&calendar.subscribe.button.tooltip;"
-                   observes="new_calendar_command"/>
+                   observes="calendar_new_calendar_command"/>
 
     <toolbarbutton class="toolbarbutton-1"
                    id="calendar-publish-button"
@@ -376,7 +380,7 @@
                    id="calendar-new-task-button"
                    label="&calendar.newtask.button.label;"
                    tooltiptext="&calendar.newtask.button.tooltip;"
-                   observes="new_todo_command"/>
+                   observes="calendar_new_todo_command"/>
 
     <toolbarbutton class="toolbarbutton-1"
                    id="calendar-go-to-today-button"
@@ -400,7 +404,7 @@
                    id="calendar-remote-reload-button"
                    label="&calendar.remotereload.button.label;"
                    tooltiptext="&calendar.remotereload.button.tooltip;"
-                   observes="reload_remote_calendars"/>
+                   observes="calendar_reload_remote_calendars"/>
 
     <toolbaritem id="throbber-box" align="center" pack="center">
       <button id="navigator-throbber"
@@ -465,16 +469,9 @@
             </vbox>
           </tabpanel>
       
-          <tabpanel>
-            <listbox id="list-calendars-listbox" class="unifinder-tree-class" flex="1" 
-                     contextmenu="calendarlist-context-menu"
-                     ondblclick="calendarListboxDoubleClick(event)">
-              <listcols>
-                <listcol/>
-                <listcol/>
-                <listcol flex="1"/>
-              </listcols>
-            </listbox>
+          <tabpanel id="tablist-calendarlist">
+            <!-- This will be overlayed by calendar-calendars-list.xul -->
+            <tree id="calendar-list-tree" flex="1"/>
           </tabpanel>
         </tabpanels>
       </tabbox>

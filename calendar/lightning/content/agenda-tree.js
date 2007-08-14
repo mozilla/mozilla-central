@@ -28,6 +28,7 @@
  *   richard@duif.net
  *   Matthew Willis <mattwillis@gmail.com>
  *   Markus Adrario <MarkusAdrario@web.de>
+ *   Philipp Kewisch <mozilla@kewis.ch>
  *
  * Alternatively, the contents of this file may be used under the terms of
  * either the GNU General Public License Version 2 or later (the "GPL"), or 
@@ -330,7 +331,7 @@ function agendaDoubleClick(event)
     // Find the row clicked on, and the corresponding event
     var tree = document.getElementById("agenda-tree");
     var row = tree.treeBoxObject.getRowAt(event.clientX, event.clientY);
-    var calendar = ltnSelectedCalendar();
+    var calendar = getSelectedCalendar();
     var calEvent = this.events[row];
 
     if (!calEvent) { // Clicked in empty space, just create a new event

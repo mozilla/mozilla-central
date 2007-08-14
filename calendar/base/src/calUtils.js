@@ -19,6 +19,7 @@
  * the Initial Developer. All Rights Reserved.
  *
  * Contributor(s):
+ *   Philipp Kewisch <mozilla@kewis.ch>
  *
  * Alternatively, the contents of this file may be used under the terms of
  * either the GNU General Public License Version 2 or later (the "GPL"), or
@@ -1058,6 +1059,12 @@ function hasPositiveIntegerValue(elementId)
         return true;
     }
     return false;
+}
+
+function getAtomFromService(aStr) {
+    var atomService = Cc["@mozilla.org/atom-service;1"]
+                      .getService(Ci.nsIAtomService);
+    return atomService.getAtom(aStr);
 }
 
 function calListenerBag(iid) {
