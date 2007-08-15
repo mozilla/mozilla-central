@@ -47,7 +47,6 @@
 function calTodo() {
     this.wrappedJSObject = this;
     this.initItemBase();
-    this.initTodo();
 
     this.todoPromotedProps = {
         "DTSTART": true,
@@ -100,11 +99,6 @@ calTodo.prototype = {
         return this.__proto__.__proto__.QueryInterface.call(this, aIID);
     },
 
-    initTodo: function () {
-        // todos by default don't have any of the dates set, or status, or
-        // percentComplete
-    },
-
     cloneShallow: function (aNewParent) {
         var m = new calTodo();
         this.cloneItemBaseInto(m, aNewParent);
@@ -150,7 +144,7 @@ calTodo.prototype = {
     set isCompleted(v) {
         if (v) {
             if (!this.completedDate)
-                this.completedDate = NewCalDateTime(new Date);
+                this.completedDate = jsDateToDateTime(new Date());
             this.status = "COMPLETED";
             this.percentComplete = 100;
         } else {

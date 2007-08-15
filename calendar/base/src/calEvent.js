@@ -47,7 +47,6 @@
 function calEvent() {
     this.wrappedJSObject = this;
     this.initItemBase();
-    this.initEvent();
 
     this.eventPromotedProps = {
         "DTSTART": true,
@@ -132,11 +131,6 @@ calEvent.prototype = {
 
     makeImmutable: function () {
         this.makeItemBaseImmutable();
-    },
-
-    initEvent: function() {
-        this.startDate = new CalDateTime();
-        this.endDate = new CalDateTime();
     },
 
     get duration() {
@@ -231,11 +225,11 @@ calEvent.prototype = {
         // If the start time is a date-time the event ends on the same calendar
         // date and time of day. If the start time is a date the events
         // non-inclusive end is the end of the calendar date.
-        if (!this.endDate.isValid) {
+        var endDate = this.endDate;
+        if (!endDate || !endDate.isValid) {
             this.endDate = this.startDate.clone();
             if (this.startDate.isDate) {
                 this.endDate.day += 1;
-                this.endDate.normalize();
             }
         }
         

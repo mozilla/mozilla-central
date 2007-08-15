@@ -451,28 +451,22 @@ function updateAgendaFilter(menulist) {
 agendaTreeView.refreshPeriodDates =
 function refreshPeriodDates()
 {
-    var now = new Date();
-    var d = new CalDateTime();
-    d.jsDate = now;
-    d = d.getInTimezone(calendarDefaultTimezone());
+    var d = now();
 
     // Today: now until midnight of tonight
     this.today.start = d.clone();
     d.hour = d.minute = d.second = 0;
     d.day++;
-    d.normalize();
     this.today.end = d.clone();
 
     // Tomorrow: midnight of next day to +24 hrs
     this.tomorrow.start = d.clone();
     d.day++;
-    d.normalize();
     this.tomorrow.end = d.clone();
 
     // Soon: end of tomorrow to 6 six days later (remainder of the week period)
     this.soon.start = d.clone();
     d.day += 6;
-    d.normalize();
     this.soon.end = d.clone();
 
     this.refreshCalendarQuery();

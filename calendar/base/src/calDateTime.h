@@ -47,14 +47,14 @@
 #include "calIDateTime.h"
 
 struct icaltimetype;
-struct _icaltimezone;
+typedef struct _icaltimezone icaltimezone;
 
 /* This class subclasses nsCString so we can check tzids for "freshness". */
 class calTzId : public nsCString
 {
 public:
     /* Used by AssignLiteral when we set the tzid to "utc" or "floating". */
-    void Assign(char* c);
+    void Assign(char const* c);
     /* Used by mTimezone.Assign as our hook to check the tzid's "freshness". */
     void Assign(const nsACString_internal& aStr);
 };
@@ -64,7 +64,7 @@ class calDateTime : public calIDateTime,
 {
 public:
     calDateTime ();
-    calDateTime (struct icaltimetype *timeptr);
+    explicit calDateTime (struct icaltimetype const* timeptr);
     calDateTime (const calDateTime& cdt);
 
     // nsISupports interface
@@ -76,6 +76,8 @@ public:
     // nsIXPCScriptable interface
     NS_DECL_NSIXPCSCRIPTABLE
 protected:
+    calDateTime const& operator=(calDateTime const&);
+
     PRBool mImmutable;
 
     PRBool mIsValid;
@@ -95,13 +97,14 @@ protected:
     PRInt16 mWeekday;
     PRInt16 mYearday;
 
-    void FromIcalTime(icaltimetype *icalt);
-    nsresult GetIcalTZ(const nsACString& tzid, struct _icaltimezone **tzp);
+    void normalize();
+    void FromIcalTime(icaltimetype const* icalt);
 
-    PRTime IcaltimeToPRTime(const icaltimetype *const icalt, struct _icaltimezone *const tz);
-    void PRTimeToIcaltime(const PRTime time, const PRBool isdate, struct _icaltimezone *const tz, icaltimetype *icalt);
+    static nsresult GetIcalTZ(nsACString const& tzid, icaltimezone const** tzp);
 
-    PRTime mLastModified;
+    static PRTime IcaltimeToPRTime(icaltimetype const* icalt, icaltimezone const* tz);
+    static void PRTimeToIcaltime(PRTime time, PRBool isdate,
+                                 icaltimezone const* tz, icaltimetype *icalt);
 };
 
 #endif /* CALDATETIME_H_ */

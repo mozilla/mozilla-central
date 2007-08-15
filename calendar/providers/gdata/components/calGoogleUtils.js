@@ -307,7 +307,6 @@ function fromRFC3339(aStr, aTimezone) {
                 dateTime.timezone = id;
                 if (dateTime.timezoneOffset == offset_in_s) {
                     // This is our last step, so go ahead and return
-                    dateTime.normalize();
                     return dateTime;
                 }
             }
@@ -319,7 +318,6 @@ function fromRFC3339(aStr, aTimezone) {
              }
         }
     }
-    dateTime.normalize();
     return dateTime;
 }
 
@@ -332,7 +330,7 @@ function fromRFC3339(aStr, aTimezone) {
  */
 function toRFC3339(aDateTime) {
 
-    if (!aDateTime || !aDateTime.isValid) {
+    if (!aDateTime) {
         return "";
     }
 
@@ -633,11 +631,11 @@ function ItemToXMLEntry(aItem, aAuthorEmail, aAuthorName) {
     // gd:extendedProperty (snooze time)
     var gdAlarmSnoozeTime = <gd:extendedProperty xmlns:gd={gd}/>;
     var itemSnoozeTime = aItem.getProperty("X-MOZ-SNOOZE-TIME");
-    var icalSnoozeTime = createDateTime();
+    var icalSnoozeTime = null;
     if (itemSnoozeTime) {
         // The propery is saved as a string, translate back to calIDateTime.
+        icalSnoozeTime = createDateTime();
         icalSnoozeTime.icalString = itemSnoozeTime;
-        icalSnoozeTime.normalize();
     }
     gdAlarmSnoozeTime.@name = "X-MOZ-SNOOZE-TIME";
     gdAlarmSnoozeTime.@value = toRFC3339(icalSnoozeTime);
@@ -798,8 +796,8 @@ function XMLEntryToItem(aXMLEntry, aTimezone, aCalendar) {
             var endDate = fromRFC3339(when.@endTime, aTimezone);
 
             if (startDate && endDate) {
-                if ((!item.startDate.isValid && startDate) ||
-                    (item.startDate.isValid &&
+                if ((!item.startDate && startDate) ||
+                    (item.startDate &&
                      item.startDate.compare(startDate) > 0)) {
 
                     item.startDate = startDate;
@@ -916,11 +914,10 @@ function XMLEntryToItem(aXMLEntry, aTimezone, aCalendar) {
             if (matches) {
                 startDate.icalString = matches[2];
                 startDate.timezone = getMozillaTimezone(matches[1]);
-                startDate.normalize();
                 if (!endDate) {
                     endDate = startDate.clone();
                 }
-                if (!item.startDate || !item.startDate.isValid) {
+                if (!item.startDate) {
                     item.startDate = startDate;
                 }
             }
@@ -932,8 +929,7 @@ function XMLEntryToItem(aXMLEntry, aTimezone, aCalendar) {
 
                 offset.icalString = matches[1];
                 endDate.addDuration(offset);
-                endDate.normalize();
-                if (!item.endDate || !item.endDate.isValid) {
+                if (!item.endDate) {
                     item.endDate = endDate;
                 }
             }
@@ -942,8 +938,7 @@ function XMLEntryToItem(aXMLEntry, aTimezone, aCalendar) {
             if (matches) {
                 endDate.icalString = matches[2];
                 endDate.timezone = getMozillaTimezone(matches[1]);
-                endDate.normalize();
-                if (!item.endDate || !item.endDate.isValid) {
+                if (!item.endDate) {
                     item.endDate = endDate;
                 }
             }

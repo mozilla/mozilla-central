@@ -169,7 +169,7 @@ interface calIDateTime : nsISupports
    */
 
   /**
-   * Reset this instance to an invalid state.
+   * Resets this instance to Jan 1, 1970 00:00:00 UTC.
    */
   void reset();
 

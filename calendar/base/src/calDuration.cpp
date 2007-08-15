@@ -75,6 +75,7 @@ calDuration::calDuration(const calDuration& cdt)
 }
 
 calDuration::calDuration(const struct icaldurationtype * const aDurationPtr)
+    : mImmutable(PR_FALSE)
 {
     FromIcalDuration(aDurationPtr);
 }

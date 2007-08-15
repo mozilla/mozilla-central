@@ -49,13 +49,6 @@ const kHashPropertyBagContractID = "@mozilla.org/hash-property-bag;1";
 const kIWritablePropertyBag = Components.interfaces.nsIWritablePropertyBag;
 const HashPropertyBag = new Components.Constructor(kHashPropertyBagContractID, kIWritablePropertyBag);
 
-function NewCalDateTime(aJSDate) {
-    var c = new CalDateTime();
-    if (aJSDate)
-        c.jsDate = aJSDate;
-    return c;
-}
-
 function calItemBase() {
     this.mPropertyParams = {};
 }
@@ -153,7 +146,7 @@ calItemBase.prototype = {
             throw Components.results.NS_ERROR_OBJECT_IS_IMMUTABLE;
         }
 
-        this.setProperty("LAST-MODIFIED", NewCalDateTime(new Date()));
+        this.setProperty("LAST-MODIFIED", jsDateToDateTime(new Date()));
         this.mDirty = false;
     },
 
@@ -203,13 +196,13 @@ calItemBase.prototype = {
 
     // initialize this class's members
     initItemBase: function () {
-        var now = new Date();
+        var now = jsDateToDateTime(new Date());
 
         this.mProperties = new HashPropertyBag();
 
-        this.setProperty("CREATED", NewCalDateTime(now));
-        this.setProperty("LAST-MODIFIED", NewCalDateTime(now));
-        this.setProperty("DTSTAMP", NewCalDateTime(now));
+        this.setProperty("CREATED", now.clone());
+        this.setProperty("LAST-MODIFIED", now.clone());
+        this.setProperty("DTSTAMP", now);
 
         this.mAttendees = null;
 
@@ -298,7 +291,7 @@ calItemBase.prototype = {
             return;
 
         this.modify();
-        this.setProperty("DTSTAMP", NewCalDateTime(new Date()));
+        this.setProperty("DTSTAMP", jsDateToDateTime(new Date()));
     },
 
     get unproxiedPropertyEnumerator() {

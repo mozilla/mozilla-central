@@ -210,11 +210,7 @@ function ltnMinimonthPick(minimonth)
 
     var jsDate = minimonth.value;
     document.getElementById("ltnDateTextPicker").value = jsDate;
-    var cdt = new CalDateTime();
-    cdt.year = jsDate.getFullYear();
-    cdt.month = jsDate.getMonth();
-    cdt.day = jsDate.getDate();
-    cdt.isDate = true;
+    var cdt = jsDateToDateTime(jsDate);
 
     if (document.getElementById("displayDeck").selectedPanel != 
         document.getElementById("calendar-view-box")) {
@@ -225,7 +221,8 @@ function ltnMinimonthPick(minimonth)
         if (!view.initialized) {
             showCalendarView('month');
             view = currentView();
-            cdt.timezone = view.timezone;
+            cdt = cdt.getInTimezone(view.timezone);
+            cdt.isDate = true;
             view.goToDay(cdt);
             return;
         }
@@ -237,7 +234,8 @@ function ltnMinimonthPick(minimonth)
         showCalendarView(viewID);
     }
 
-    cdt.timezone = currentView().timezone;
+    cdt = cdt.getInTimezone(currentView().timezone);
+    cdt.isDate = true;
     currentView().goToDay(cdt);
 }
 

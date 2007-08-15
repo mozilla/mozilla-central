@@ -336,28 +336,6 @@ function jsDateToDateTime(aDate) {
 }
 
 /**
- * Returns a calIDateTime with a floating timezone and each field the same as
- * the equivalent field of the javascript date aDate
- *
- * @param aDate a javascript date
- * @returns     a calIDateTime with all of the fields the same as aDate
- *
- * @warning  Like jsDateToDateTime, use of the function is strongly discouraged.
- */
-function jsDateToFloatingDateTime(aDate) {
-    var newDate = createDateTime();
-    newDate.timezone = "floating";
-    newDate.year = aDate.getFullYear();
-    newDate.month = aDate.getMonth();
-    newDate.day = aDate.getDate();
-    newDate.hour = aDate.getHours();
-    newDate.minute = aDate.getMinutes();
-    newDate.second = aDate.getSeconds();
-    newDate.normalize();
-    return newDate;
-}
-
-/**
  * Selects an item with id aItemId in the radio group with id aRadioGroupId
  *
  * @param aRadioGroupId  the id of the radio group which contains the item

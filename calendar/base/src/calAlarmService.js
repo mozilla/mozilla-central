@@ -425,14 +425,13 @@ dump("snooze time is:"+snoozeTime+'\n');
         alarmTime = alarmTime.getInTimezone("UTC");
         alarmTime = snoozeTime || alarmTime;
 dump("considering alarm for item:"+aItem.title+'\n offset:'+offset+', which makes alarm time:'+alarmTime+'\n');
-        var now;
-        // XXX When the item is floating, should use the default timezone
-        // from the prefs, instead of the javascript timezone (which is what
-        // jsDateToFloatingDateTime uses)
-        if (alarmTime.timezone == "floating")
-            now = jsDateToFloatingDateTime((new Date()));
-        else
-            now = jsDateToDateTime((new Date())).getInTimezone("UTC");
+        var now = jsDateToDateTime((new Date()));
+        if (alarmTime.timezone == "floating") {
+            now = now.getInTimezone(calendarDefaultTimezone());
+            now.timezone = "floating";
+        } else {
+            now = now.getInTimezone("UTC");
+        }
 dump("now is "+now+'\n');
         var callbackObj = {
             alarmService: this,

@@ -179,15 +179,12 @@
                  continue;
                }
                // Figure out what day of the week today is.
-               var today = createDateTime();
-               today.jsDate = new Date();
-               today.getInTimezone(calendarDefaultTimezone());
+               var today = now();
 
                // i-weekday gets the offset. Add 7 to ensure that the %
                // operation stays positive.
                var offset = (i - today.weekday + 7) % 7;
                today.day = today.day + offset;
-               today.normalize();
                return today.jsDate;
              }
              return null;
