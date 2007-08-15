@@ -343,7 +343,7 @@ function onGraphLoadRemainder(baselineDataSet) {
             return function (testid, ds) {
                 try {
                     log("ds.firstTime " + ds.firstTime + " ds.lastTime " + ds.lastTime);
-                    if (!ds.firstTime || !ds.lastTime) {
+                    if (undefined == ds.firstTime || !ds.lastTime) {
                        // got a data set with no data in this time range, or damaged data
                        // better to not graph
                        for each (g in [BigPerfGraph, SmallPerfGraph]) {
