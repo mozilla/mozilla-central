@@ -435,8 +435,13 @@ sub packit {
         TinderUtils::print_log("No files to copy\n");
       }
 
-      # Also copy any built ZIP archives (such as SDK)
-      TinderUtils::run_shell_command("cp $package_location/../*.zip $stagedir/");
+      # Also copy any built archives (such as SDK)
+      if (glob "$package_location/../*.zip") {
+        TinderUtils::run_shell_command("cp $package_location/../*.zip $stagedir/");
+      }
+      if (glob "$package_location/../*.tar.*") {
+        TinderUtils::run_shell_command("cp $package_location/../*.tar.* $stagedir/");
+      }
 
       if ( scalar(@xforms_xpi) gt 0 ) {
         my $xforms_xpi_files = join(' ', @xforms_xpi);
