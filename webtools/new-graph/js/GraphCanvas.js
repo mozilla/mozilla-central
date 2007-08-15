@@ -1104,30 +1104,31 @@ Graph.prototype = {
         if (snapToPoints && this.dataSets.length > 0) {
             // find the nearest point to (pointTime, pointValue) in all the datasets
             var distanceSquared = -1;
-            var nearestDSIndex, nearestPointIndex;
+            var nearestDSIndex, nearestPointIndex = -1;
+
+            var kk = this.dataSets[0].indexForTime(pointTime, true);
 
             for (var i = 0; i < this.dataSets.length; i++) {
-                for (var j = this.dataSetIndices[i][0];
-                     j <= this.dataSetIndices[i][1];
-                     j++)
-                {
-                    var t = this.dataSets[i].data[j*2];
-                    var v = this.dataSets[i].data[j*2+1];
+                var dspt = this.dataSets[i].indexForTime(pointTime, true);
+
+                if (dspt != -1) {
+                    var t = this.dataSets[i].data[dspt*2];
+                    var v = this.dataSets[i].data[dspt*2+1];
                     var d = (pointTime-t)*(pointTime-t)/secondsPerPixel;
-                    if (this.dataSets.length > 1) {
-                        // Use the value as well, if we have more than one dataset displayed
-                        d += (pointValue-v)*(pointValue-v)/valuesPerPixel;
-                    }
+                    d += (pointValue-v)*(pointValue-v)/valuesPerPixel;
 
                     if (distanceSquared == -1 ||
                         d < distanceSquared)
                     {
                         nearestDSIndex = i;
-                        nearestPointIndex = j;
+                        nearestPointIndex = dspt;
                         distanceSquared = d;
                     }
                 }
             }
+
+            if (nearestPointIndex == -1)
+                return;
 
             pointTime = this.dataSets[nearestDSIndex].data[nearestPointIndex*2] + this.offsetTime / 2.0;
             pointValue = this.dataSets[nearestDSIndex].data[nearestPointIndex*2 + 1];

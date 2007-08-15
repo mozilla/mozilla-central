@@ -788,7 +788,6 @@ function saveOptions() {
         var store = globalStorage[document.domain];
         store["graphOptions"] = uneval(gOptions);
     } catch (ex) {
-        alert(ex);
     }
 }
 

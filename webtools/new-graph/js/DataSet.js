@@ -62,6 +62,49 @@ TimeDataSet.prototype = {
         endIndex = (this.data.length/2) - 1;
         return [startIndex, endIndex];
     },
+
+    // Return the index for the given time, or nearest to the given time
+    // if notExactOk is true.  If time is outside of the datasets range,
+    // or if an exact match is found and requested, returns -1.
+    indexForTime: function (time, notExactOk) {
+        if (time < this.data[0] ||
+            time > this.data[this.data.length - 2])
+            return -1;
+
+        // this will find the first index whose time is nearest
+        // to the given time
+        function subSearch(ds, time, start, end) {
+            if (end - start > 10) {
+                var half = Math.floor(start + (end - start) / 2);
+                if (time < ds.data[half*2])
+                    return subSearch(ds, time, start, half);
+                else
+                    return subSearch(ds, time, half, end);
+            }
+
+            var d = null;
+            for (var i = start; i <= end; i++) {
+                var nd = Math.abs(ds.data[i*2] - time);
+                if (d == null ||  nd < d) {
+                    d = nd;
+                } else {
+                    if (i == start)
+                        return i;
+                    else
+                        return i-1;
+                }
+            }
+
+            return end;
+        }
+
+        var k = subSearch(this, time, 0, this.data.length/2 - 1);
+
+        if (!notExactOk && this.data[k*2] != time)
+            return -1;
+
+        return k;
+    }
 };
 
 function TimeValueDataSet(data, color) {
