@@ -773,7 +773,8 @@ calDateTime::GetProperty(nsIXPConnectWrappedNative *wrapper, JSContext * cx,
 
     if (JSVAL_IS_STRING(id)) {
         nsDependentString const jsid(
-            NS_STATIC_CAST(PRUnichar const*, JS_GetStringChars(JSVAL_TO_STRING(id))),
+            NS_REINTERPRET_CAST(PRUnichar const*,
+                                JS_GetStringChars(JSVAL_TO_STRING(id))),
             JS_GetStringLength(JSVAL_TO_STRING(id)));
         if (jsid.EqualsLiteral("jsDate")) {
             PRTime tmp, thousand;
@@ -808,7 +809,8 @@ calDateTime::SetProperty(nsIXPConnectWrappedNative *wrapper, JSContext * cx,
 
     if (JSVAL_IS_STRING(id)) {
         nsDependentString const jsid(
-            NS_STATIC_CAST(PRUnichar const*, JS_GetStringChars(JSVAL_TO_STRING(id))),
+            NS_REINTERPRET_CAST(PRUnichar const*,
+                                JS_GetStringChars(JSVAL_TO_STRING(id))),
             JS_GetStringLength(JSVAL_TO_STRING(id)));
         if (jsid.EqualsLiteral("jsDate") && vp) {
             JSObject *dobj;
@@ -903,8 +905,9 @@ calDateTime::NewResolve(nsIXPConnectWrappedNative *wrapper, JSContext * cx,
 
     if (JSVAL_IS_STRING(id)) {
         JSString *str = JSVAL_TO_STRING(id);
-        nsDependentString const name(NS_STATIC_CAST(PRUnichar const*, JS_GetStringChars(str)),
-                                     JS_GetStringLength(str));
+        nsDependentString const name(
+            NS_REINTERPRET_CAST(PRUnichar const*, JS_GetStringChars(str)),
+            JS_GetStringLength(str));
         if (name.EqualsLiteral("jsDate")) {
             *_retval = JS_DefineUCProperty(cx, obj, JS_GetStringChars(str),
                                            JS_GetStringLength(str),
