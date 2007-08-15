@@ -86,6 +86,7 @@ Graph.prototype = {
     cursorColor: "rgba(200,200,0,0.7)",
     cursorTime: null,
     cursorValue: null,
+    cursorSnapsToPoints: false,
 
     markerColor: "rgba(200,0,0,0.4)",
     markersVisible: true,
@@ -962,8 +963,46 @@ Graph.prototype = {
         var secondsPerPixel = (this.endTime - this.startTime + this.offsetTime) / this.frontBuffer.width;
         var valuesPerPixel = 1.0 / this.yScale;
 
-        this.cursorTime = (event.pageX - pos[0]) * secondsPerPixel + this.startTime;
-        this.cursorValue = (this.frontBuffer.height - (event.pageY - pos[1])) * valuesPerPixel + this.yOffset;
+        var pointTime = (event.pageX - pos[0]) * secondsPerPixel + this.startTime;
+        var pointValue = (this.frontBuffer.height - (event.pageY - pos[1])) * valuesPerPixel + this.yOffset;
+
+        if (this.cursorSnapsToPoints && this.dataSets.length > 0) {
+            // find the nearest point to (pointTime, pointValue) in all the datasets
+            var distanceSquared = -1;
+            var nearestDSIndex, nearestPointIndex;
+
+            for (var i = 0; i < this.dataSets.length; i++) {
+                var lastDistance = -1;
+                for (var j = this.dataSetIndices[i][0];
+                     j < this.dataSetIndices[i][1];
+                     j++)
+                {
+                    var t = this.dataSets[i].data[j*2];
+                    var v = this.dataSets[i].data[j*2+1];
+                    var d = Math.abs(pointTime*pointTime - t*t) + Math.abs(pointValue*pointValue - v*v);
+
+                    // stop looking at this ds if we're getting further away from the point
+                    if (lastDistance != -1 && d > lastDistance)
+                        break;
+
+                    if (distanceSquared == -1 ||
+                        d < distanceSquared)
+                    {
+                        nearestDSIndex = i;
+                        nearestPointIndex = j;
+                        distanceSquared = d;
+                    }
+
+                    lastDistance = d;
+                }
+            }
+
+            pointTime = this.dataSets[nearestDSIndex].data[nearestPointIndex*2];
+            pointValue = this.dataSets[nearestDSIndex].data[nearestPointIndex*2 + 1];
+        }
+
+        this.cursorTime = pointTime;
+        this.cursorValue = pointValue;
 
         //for adding extra_data variable to the status line 
         var extra_data = "";
