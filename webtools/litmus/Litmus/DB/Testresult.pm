@@ -138,6 +138,14 @@ Litmus::DB::Testresult->set_sql(CompletedByTrusted => qq{
     ORDER BY tr.submission_time DESC
 });
 
+Litmus::DB::Testresult->set_sql(NumResultsByUserDays => qq {
+	SELECT COUNT(*) AS num_results
+		FROM test_results
+	WHERE
+		user_id = ? AND
+		submission_time > DATE_SUB(NOW(), interval ? day)
+});
+
 #########################################################################
 # for historical reasons, note() is a shorthand way of saying "the text of 
 # the first comment on this result if that comment was submitted by the 

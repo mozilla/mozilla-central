@@ -153,7 +153,22 @@ if ($c->param("testcase_id")) {
 } elsif ($c->param("branches")) {
   my @branches = Litmus::DB::Branch->retrieve_all();
   $js = $json->objToJson(\@branches);
-} 
+} elsif ($c->param("user_stats")) {
+  my %stats;
+  my $uname = $c->param("user_stats");
+  my @users = Litmus::DB::User->search(email => $uname);
+  my $user = $users[0];
+  if (! $user) {
+  	exit; # invalid user
+  }
+  $stats{'week'} = [Litmus::DB::Testresult->search_NumResultsByUserDays(
+  	$user->id(), 7)]->[0]->num_results();
+  $stats{'month'} = [Litmus::DB::Testresult->search_NumResultsByUserDays(
+  	$user->id(), 30)]->[0]->num_results();
+  $stats{'alltime'} = [Litmus::DB::Testresult->search_NumResultsByUserDays(
+  	$user->id(), 40000)]->[0]->num_results(); # 40000 is close enough to forever :)
+  $js = $json->objToJson(\%stats);
+}
 
 print $js;
 
