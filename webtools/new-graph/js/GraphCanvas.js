@@ -93,12 +93,10 @@ Graph.prototype = {
     // Cursor configuration
     //
 
-    // cursor type; 'none', 'free'
+    // cursor type; 'none', 'free', 'snap'
     cursorType: "none",
     // the color the cursor should be drawn in
     cursorColor: "rgba(200,200,0,0.7)",
-    // should the cursor snap to the closest point on the datasets?
-    cursorSnapsToPoints: false,
     // holds the cursor time/value
     cursorTime: null,
     cursorValue: null,
@@ -303,15 +301,15 @@ Graph.prototype = {
         if (this.cursorType == type)
             return;
 
-        if (this.cursorType == "free") {
+        if (this.cursorType == "free" || this.cursorType == "snap") {
             YAHOO.util.Event.removeListener (this.frontBuffer, "mousemove", this.cursorMouseMove);
             YAHOO.util.Event.removeListener (this.frontBuffer, "mouseout", this.cursorMouseOut);
         }
 
-        if (type == "free") {
+        if (type == "free" || type == "snap") {
             YAHOO.util.Event.addListener (this.frontBuffer, "mousemove", this.cursorMouseMove, this, true);
             YAHOO.util.Event.addListener (this.frontBuffer, "mouseout", this.cursorMouseOut, this, true);
-            this.cursorType = "free";
+            this.cursorType = type;
         } else {
             this.cursorType = "none";
         }
@@ -1089,7 +1087,7 @@ Graph.prototype = {
         if (!this.valid)
             return;
 
-        if (this.cursorType != "free")
+        if (this.cursorType != "free" && this.cursorType != "snap")
             return;
 
         var pos = YAHOO.util.Dom.getXY(this.frontBuffer);
@@ -1101,7 +1099,9 @@ Graph.prototype = {
         var pointTime = (event.pageX - pos[0]) * secondsPerPixel + this.startTime;
         var pointValue = (this.frontBuffer.height - (event.pageY - pos[1])) * valuesPerPixel + this.yOffset;
 
-        if (this.cursorSnapsToPoints && this.dataSets.length > 0) {
+        var snapToPoints = (this.cursorType == "snap");
+
+        if (snapToPoints && this.dataSets.length > 0) {
             // find the nearest point to (pointTime, pointValue) in all the datasets
             var distanceSquared = -1;
             var nearestDSIndex, nearestPointIndex;
@@ -1155,7 +1155,7 @@ Graph.prototype = {
         if (!this.valid)
             return;
 
-        if (this.cursorType != "free")
+        if (this.cursorType != "free" && this.cursorType != "snap")
             return;
 
         this.cursorTime = null;
