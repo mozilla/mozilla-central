@@ -441,6 +441,12 @@ Graph.prototype = {
 
         var xscale = cw / (this.endTime - this.startTime + this.offsetTime);
 
+        if (this.endTime == this.startTime) {
+            // we have just one point
+            xoffs -= cw / 2;
+            xscale = 1.0;
+        }
+
         var hasAverageDSs = false;
         for each (var ds in this.dataSets) {
             if ("averageOf" in ds) {
@@ -1083,7 +1089,7 @@ Graph.prototype = {
 
             for (var i = 0; i < this.dataSets.length; i++) {
                 for (var j = this.dataSetIndices[i][0];
-                     j < this.dataSetIndices[i][1];
+                     j <= this.dataSetIndices[i][1];
                      j++)
                 {
                     var t = this.dataSets[i].data[j*2];

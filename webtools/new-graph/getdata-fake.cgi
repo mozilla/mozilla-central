@@ -35,6 +35,7 @@ def main():
             { 'id': 6, 'machine': 'tbox3', 'test': 'test3', 'test_type': 'perf', 'extra_data': None },
             { 'id': 2, 'machine': 'tbox1', 'test': 'test2', 'test_type': 'perf', 'extra_data': None },
             { 'id': 5, 'machine': 'tbox2', 'test': 'test2', 'test_type': 'perf', 'extra_data': None },
+            { 'id': 50, 'machine': 'single', 'test': 'test2', 'test_type': 'perf', 'extra_data': None },
             ]
             }
         print json.write(data)
@@ -76,7 +77,10 @@ def main():
     
             data = []
             val = int(random.random() * 100 + 200)
-            for z in range(500):
+            r = 500
+            if setid == 50:
+                r = 1
+            for z in range(r):
                 timeval = starttime + (z*60*20) + int(random.random() * 240 - 120);
                 data.append(timeval)
                 data.append(val)
