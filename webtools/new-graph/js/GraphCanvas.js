@@ -1076,8 +1076,6 @@ Graph.prototype = {
         var pointTime = (event.pageX - pos[0]) * secondsPerPixel + this.startTime;
         var pointValue = (this.frontBuffer.height - (event.pageY - pos[1])) * valuesPerPixel + this.yOffset;
 
-        log ("before:", pointTime, pointValue);
-
         if (this.cursorSnapsToPoints && this.dataSets.length > 0) {
             // find the nearest point to (pointTime, pointValue) in all the datasets
             var distanceSquared = -1;
@@ -1106,8 +1104,6 @@ Graph.prototype = {
 
             pointTime = this.dataSets[nearestDSIndex].data[nearestPointIndex*2] + this.offsetTime / 2.0;
             pointValue = this.dataSets[nearestDSIndex].data[nearestPointIndex*2 + 1];
-
-            log ("after:", pointTime, pointValue);
         }
 
         this.cursorTime = pointTime;
