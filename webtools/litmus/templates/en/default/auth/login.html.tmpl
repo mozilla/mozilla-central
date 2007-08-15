@@ -41,13 +41,15 @@
    # logs in
 %]
 [% BLOCK create_hidden_fields %]
-	[% IF params %]
-    	[% FOREACH curdata = params.param() %]
-    		[% IF ! params.param(curdata) %] [% NEXT %] [% END %]
-        	<input name="[%curdata FILTER html %]" type="hidden" 
-            	value="[% params.param(curdata) FILTER html %]">
-    	[% END %]
-	[% END %]
+  [% IF params %]
+    [% FOREACH curdata = params.param() %]
+      [% IF ! params.param(curdata) %] [% NEXT %] [% END %]
+      [% FOREACH p = params.param(curdata) %]
+          <input name="[% curdata FILTER html %]" type="hidden" 
+                 value="[% p FILTER html %]">
+      [% END %]
+    [% END %]
+  [% END %]
 [% END %]
 
 <script type="text/javascript">
