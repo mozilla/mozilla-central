@@ -24,7 +24,7 @@ use Config;         # for $Config{sig_name} and $Config{sig_num}
 use File::Find ();
 use File::Copy;
 
-$::UtilsVersion = '$Revision: 1.369 $ ';
+$::UtilsVersion = '$Revision: 1.370 $ ';
 
 package TinderUtils;
 
@@ -101,6 +101,29 @@ sub UpdateBuildConfigs() {
             die "cvs update in $args->{'TboxBuildConfigDir'} failed\n";
         }
 
+        if ($^O eq 'msys') {
+            # We're MSYS.
+            #
+            # Symlinks don't work at all; hardlinks only work on NTFS.
+            #
+            # We use FAT32 on most of the build machines for build perf reasons,
+            # so do an extra copy!
+            #
+            # You can turn this off by running with # --enable-msys-hardlinks
+            #
+            print STDERR 'MSYS detected; ';
+            if (exists($args->{'MSYSHasHardlinkSupport'})) {
+                print STDERR "hardlink support enabled; skipping manual copy\n";
+            } else {
+                print STDERR "copying tinderbox config files manually\n";
+                foreach my $configFile ('mozconfig', 'tinder-config.pl') {
+                    print STDERR "   copy($configFile, ..)\n";
+                    File::Copy::copy($configFile, '..') or
+                     die "copy() of $configFile to .. failed: $!";
+                }
+            }
+        }
+
         if (-f $CVS_CLOBBER_FILE) {
             my $newClobberFileMTime = (stat($CVS_CLOBBER_FILE))[$ST_MTIME];
 
@@ -170,6 +193,7 @@ sub ParseArgs {
         $args->{TestOnly} = 1, next if $arg eq '--testonly';
         $args->{BuildOnce} = 1, next if $arg eq '--once';
         $args->{UseTimeStamp} = 0, next if $arg eq '--notimestamp';
+        $args->{MSYSHasHardlinkSupport} = 1, next if $arg eq '--enable-msys-hardlinks';
 
         # debug post-mozilla.pl
         $args->{SkipMozilla} = 1, next if $arg eq '--skip-mozilla'; 
