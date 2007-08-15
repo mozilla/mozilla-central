@@ -45,6 +45,7 @@
 # ***** END LICENSE BLOCK *****
 
 const MSG_FLAG_READ              = 0x000001;
+const MSG_FLAG_HAS_RE            = 0x000010;
 const MSG_FLAG_IMAP_DELETED      = 0x200000;
 const MSG_FLAG_MDN_REPORT_NEEDED = 0x400000;
 const MSG_FLAG_MDN_REPORT_SENT   = 0x800000;
@@ -739,8 +740,15 @@ function populateHistoryMenu(menuPopup, isBackMenu)
     var msgHdr = messenger.msgHdrFromURI(historyArray[i]);
     if (!IsCurrentLoadedFolder(folder))
       menuText = folder.prettyName + " - ";
-    menuText += msgHdr.mime2DecodedSubject;
-    menuText += ":";
+
+    var subject = "";
+    if(msgHdr.flags & MSG_FLAG_HAS_RE)
+      subject = "Re: ";
+    if (msgHdr.mime2DecodedSubject)
+      subject += msgHdr.mime2DecodedSubject;
+    if (subject)
+      menuText += subject + " - ";
+
     menuText += msgHdr.mime2DecodedAuthor;
     newMenuItem = document.createElement('menuitem');
     newMenuItem.setAttribute('label', menuText);
