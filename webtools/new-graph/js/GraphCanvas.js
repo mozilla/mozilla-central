@@ -1029,7 +1029,6 @@ Graph.prototype = {
             var nearestDSIndex, nearestPointIndex;
 
             for (var i = 0; i < this.dataSets.length; i++) {
-                var lastDistance = -1;
                 for (var j = this.dataSetIndices[i][0];
                      j < this.dataSetIndices[i][1];
                      j++)
@@ -1038,10 +1037,6 @@ Graph.prototype = {
                     var v = this.dataSets[i].data[j*2+1];
                     var d = Math.abs(pointTime*pointTime - t*t) + Math.abs(pointValue*pointValue - v*v);
 
-                    // stop looking at this ds if we're getting further away from the point
-                    if (lastDistance != -1 && d > lastDistance)
-                        break;
-
                     if (distanceSquared == -1 ||
                         d < distanceSquared)
                     {
@@ -1049,8 +1044,6 @@ Graph.prototype = {
                         nearestPointIndex = j;
                         distanceSquared = d;
                     }
-
-                    lastDistance = d;
                 }
             }
 
