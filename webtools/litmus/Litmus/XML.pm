@@ -310,7 +310,7 @@ sub validateResults {
     }
 
     my @locales = Litmus::DB::Locale->search(
-	locale => $self->{'sysconfig'}->{'locale'});
+	abbrev => $self->{'sysconfig'}->{'locale'}->string_value());
     unless ($locales[0]) { 
 	$self->respErrFatal("Invalid locale: ".$self->{'sysconfig'}->{'locale'});
 	return 0;
@@ -403,11 +403,17 @@ sub authenticate {
     unless ($user) { $self->respErrFatal("User does not exist"); return 0 }
 
     unless ($user->enabled()) { $self->respErrFatal("User disabled"); return 0 }
+    
+    # allow results if the user specifies a password with 
+    # their request
+    if (Litmus::Auth::checkPassword($user, $self->{'user'}->{'token'}->string_value()) == 1) {
+    	return 1;	
+    }
 
-    if ($user->authtoken() ne $self->{'user'}->{'token'}) {
- 	$self->respErrFatal("Invalid authentication token for user " .
-		$self->{'user'}->{'username'});
-	return 0;
+    if ($user->authtoken() ne $self->{'user'}->{'token'}->string_value()) {
+ 		$self->respErrFatal("Invalid authentication token for user " .
+			$self->{'user'}->{'username'});
+		return 0;
     }
     return 1;
 }
