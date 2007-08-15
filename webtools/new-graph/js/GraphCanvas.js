@@ -482,7 +482,7 @@ Graph.prototype = {
                 var p = Math.round((label[1] - xoffs) * xscale) + 0.5;
                 beginPath();
                 moveTo(p, -0.5);
-                lineTo(p, this.frontBuffer.height + 0.5);
+                lineTo(p, ch + 0.5);
                 stroke();
             }
 
@@ -490,8 +490,8 @@ Graph.prototype = {
             for each (var label in valueLabelValues) {
                 var p = Math.round((label[1] - yoffs) * this.yScale) + 0.5;
                 beginPath();
-                moveTo(-0.5, p);
-                lineTo(this.frontBuffer.width + 0.5, p);
+                moveTo(-0.5, ch - p);
+                lineTo(this.frontBuffer.width + 0.5, ch - p);
                 stroke();
             }
 
