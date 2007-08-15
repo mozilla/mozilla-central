@@ -156,9 +156,12 @@ function loadingDone(graphTypePref) {
                        log ("selchanged");
 
                        if (args[0] == "range") {
+                           var t1 = SmallPerfGraph.startTime;
+                           var t2 = SmallPerfGraph.endTime;
+
                            if (args[1] && args[2]) {
-                               var t1 = args[1];
-                               var t2 = args[2];
+                               t1 = args[1];
+                               t2 = args[2];
 
                                var foundIndexes = [];
 
@@ -190,11 +193,12 @@ function loadingDone(graphTypePref) {
 
                                    log("Fixed t1 " + t1 + " t2 " + t2);
                                }
-
-                               BigPerfGraph.setTimeRange (t1, t2);
-                           } else {
-                               BigPerfGraph.setTimeRange (SmallPerfGraph.startTime, SmallPerfGraph.endTime);
                            }
+
+                           if (document.getElementById("bonsailink"))
+                               document.getElementById("bonsailink").href = makeBonsaiLink(t1, t2);
+
+                           BigPerfGraph.setTimeRange (t1, t2);
                            BigPerfGraph.autoScale();
                            BigPerfGraph.redraw();
                        }
@@ -757,3 +761,9 @@ function colorToRgbString(col) {
         + Math.floor(col[1]*255) + ","
         + Math.floor(col[2]*255) + ")";
 }
+
+function makeBonsaiLink(start, end) {
+    // harcode PhoenixTinderbox, oh well.
+    return "http://bonsai.mozilla.org/cvsquery.cgi?treeid=default&module=PhoenixTinderbox&branch=HEAD&branchtype=match&dir=&file=&filetype=match&who=&whotype=match&sortby=Date&hours=2&date=explicit&cvsroot=%2Fcvsroot&mindate=" + Math.floor(start) + "&maxdate=" + Math.ceil(end);
+}
+

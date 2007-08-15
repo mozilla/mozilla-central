@@ -19,6 +19,56 @@
   padding: 10px;
 }
 
+/* Graph containers and labels */
+
+.graph-anchor {
+  position: relative;
+}
+
+/* Small graph */
+#smallgraph-labels-x { 
+  position: relative;
+  left: 50px;
+  top: 0px;
+  height: 30px ! important;
+  border-color: green;
+}
+
+#smallgraph-labels-y { 
+  position: relative;
+  width: 50px ! important;
+  border-color: red;
+}
+
+#smallgraph {
+  position: absolute;
+  left: 50px;
+  top: 30px;
+  outline: 1px solid #888;
+}
+
+/* Big graph */
+#graph-labels-x { 
+  position: relative;
+  left: 50px;
+  top: 0px;
+  height: 30px ! important;
+  border-color: green;
+}
+
+#graph-labels-y { 
+  position: relative;
+  width: 50px ! important;
+  border-color: red;
+}
+
+#graph {
+  position: absolute;
+  left: 50px;
+  top: 0px;
+  outline: 1px solid #888;
+}
+
 /* Yuck */
 
 .graphform-line, .baseline { 
@@ -84,4 +134,23 @@ select.other {
 }
 
 /* debug */
-/*div { border: 1px solid blue; }*/
+/* div { border: 1px solid blue; } */
+
+.floater { 
+  position: absolute;
+  visibility: hidden;
+  z-index: 10;
+  left: 0;
+  top: 0;
+  background: #aaaaaa;
+  background: rgba(175,175,175,0.3);
+  color: #000055;
+  padding: 2px 5px 2px 5px;
+  font-size: small;
+  font-family: Tahoma, Verdana, Vera Sans, "Bitstream Vera Sans", Arial, Helvetica, sans-serif;
+}
+
+.linkbutton, .linkbutton:visited, .linkbutton:hover {
+  color: blue;
+  padding: 0px 3px 0px 3px;
+}
