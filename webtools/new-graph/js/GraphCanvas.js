@@ -257,9 +257,6 @@ Graph.prototype = {
     },
     
     resize: function () {
-        if(this.frontBuffer.width > 900) {
-                getElement('graph-container').style.width = (this.frontBuffer.width + 200) + "px";
-        }
         this.backBuffer.width = this.frontBuffer.width;
         this.backBuffer.height = this.frontBuffer.height;
         /* Always have at least 6 labels on the graph */
@@ -407,6 +404,9 @@ Graph.prototype = {
     },
 
     redraw: function () {
+        if (this.dataSets.length <= 0)
+            return;
+
         if (this.dirty)
             this.recompute();
 
@@ -428,122 +428,117 @@ Graph.prototype = {
             }
         }
 
+        // yScale = pixels-per-value
+        log("this.startTime: " + this.startTime);
+        log("this.endTime: " + this.endTime);
+        with (ctx) {
+            clearRect (0, 0, cw, ch);
+            lineWidth = 1.0;
+
+            // draw gridlines
+            var timeLabelValues = this.getTimeAxisLabels();
+            strokeStyle = "#999999";
+            for each (var label in timeLabelValues) {
+                // label[1] is the actual value of that label line; we need
+                // to scale it into place, but we can't just use scale()
+                // since we want to make sure it's a single-pixel line
+                var p = Math.round((label[1] - xoffs) * xscale) + 0.5;
+                beginPath();
+                moveTo(p, -0.5);
+                lineTo(p, this.frontBuffer.height + 0.5);
+                stroke();
+            }
+
+            var valueLabelValues = this.getValueAxisLabels();
+            for each (var label in valueLabelValues) {
+                var p = Math.round((label[1] - yoffs) * this.yScale) + 0.5;
+                beginPath();
+                moveTo(-0.5, p);
+                lineTo(this.frontBuffer.width + 0.5, p);
+                stroke();
+            }
+
+            // draw markers
+            strokeStyle = this.markerColor;
+            for (var i = 0; i < this.markers.length/2; i++) {
+                var mtime = this.markers[i*2];
+                //var mlabel = this.markers[i*2+1];
+
+                if (mtime < this.startTime || mtime > this.endTime)
+                    continue;
+
+                var p = Math.round((mtime - xoffs) * xscale) + 0.5;
+                beginPath();
+                moveTo(p, Math.round(this.frontBuffer.height*0.8)-0.5);
+                lineTo(p, this.frontBuffer.height+0.5);
+                stroke();
+            }
+        }
+
+        // draw actual graph lines
         for (var i = 0; i < this.dataSets.length; i++) {
-            // yScale = pixels-per-value
-            log("this.startTime: " + this.startTime);
-            log("this.endTime: " + this.endTime);
+            if (this.dataSetIndices[i] == null) {
+                // there isn't anything in the data set in the given time range
+                continue;
+            }
+
             with (ctx) {
-                clearRect (0, 0, cw, ch);
-                lineWidth = 1.0;
-
-                // draw gridlines
-                var timeLabelValues = this.getTimeAxisLabels();
-                strokeStyle = "#999999";
-                for each (var label in timeLabelValues) {
-                    // label[1] is the actual value of that label line; we need
-                    // to scale it into place, but we can't just use scale()
-                    // since we want to make sure it's a single-pixel line
-                    var p = Math.round((label[1] - xoffs) * xscale) + 0.5;
-                    beginPath();
-                    moveTo(p, -0.5);
-                    lineTo(p, this.frontBuffer.height + 0.5);
-                    stroke();
-                }
-
-                var valueLabelValues = this.getValueAxisLabels();
-                for each (var label in valueLabelValues) {
-                    var p = Math.round((label[1] - yoffs) * this.yScale) + 0.5;
-                    beginPath();
-                    moveTo(-0.5, p);
-                    lineTo(this.frontBuffer.width + 0.5, p);
-                    stroke();
-                }
-
-                // draw markers
-                strokeStyle = this.markerColor;
-                for (var i = 0; i < this.markers.length/2; i++) {
-                    var mtime = this.markers[i*2];
-                    //var mlabel = this.markers[i*2+1];
-
-                    if (mtime < this.startTime || mtime > this.endTime)
-                        continue;
-
-                    var p = Math.round((mtime - xoffs) * xscale) + 0.5;
-                    beginPath();
-                    moveTo(p, Math.round(this.frontBuffer.height*0.8)-0.5);
-                    lineTo(p, this.frontBuffer.height+0.5);
-                    stroke();
-                }
-
-                // draw actual graph lines
-
-                for (var i = 0; i < this.dataSets.length; i++) {
-                    if (this.dataSetIndices[i] == null) {
-                        // there isn't anything in the data set in the given time range
-                        continue;
-                    }
-
-                    for (baseline in this.dataSets[i].baselines) {
-                        save();
-                        var v = ch - Math.round((this.dataSets[i].baselines[baseline] - yoffs) * this.yScale);
-                        var x0 = Math.round((this.startTime - xoffs) * xscale);
-                        var x1 = Math.round((this.endTime - xoffs) * xscale);
-                        beginPath();
-                        moveTo(x0-0.5, v+0.5);
-                        lineTo(x1+0.5, v+0.5);
-                        strokeStyle = colorToRgbString(this.dataSets[i].color);
-                        globalAlpha = 0.2;
-                        lineWidth = 5.0;
-                        stroke();
-                        restore();
-                        strokeStyle = colorToRgbString(this.dataSets[i].color);
-                        lineWidth = 1.0;
-                        stroke();
-                    }
-
-                    //log ("ds start end", this.startTime, this.endTime, "timediff:", (this.endTime - this.startTime + this.offsetTime));
+                for (baseline in this.dataSets[i].baselines) {
                     save();
-                    scale(xscale, -this.yScale);
-                    translate(0, -ch/this.yScale);
-
+                    var v = ch - Math.round((this.dataSets[i].baselines[baseline] - yoffs) * this.yScale);
+                    var x0 = Math.round((this.startTime - xoffs) * xscale);
+                    var x1 = Math.round((this.endTime - xoffs) * xscale);
                     beginPath();
-
-                    var startIdx = this.dataSetIndices[i][0];
-                    var endIdx = this.dataSetIndices[i][1];
-
-                    // start one before and go one after if we can,
-                    // so that the plot doesn't have a hole at the start
-                    // and end
-                    if (startIdx > 0) startIdx--;
-                    if (endIdx < ((this.dataSets[i].data.length)/2)) endIdx++;
-
-                   
-                    //using the offsetTime creates a bar graph 
-                    //if offsetTime = 0 then a regular point to point graph is drawn 
-                    for (var j = startIdx; j < endIdx; j++)
-                    {
-                        var t = this.dataSets[i].data[j*2];
-                        var v = this.dataSets[i].data[j*2+1];
-
-                        lineTo(t-xoffs, v-yoffs);
-                        if (this.offsetTime)
-                            lineTo(this.offsetTime+t-xoffs, v-yoffs);
-
-                    }
-
-                    /* bleh. */
-
-                    restore();
-
-                    if (hasAverageDSs && !("averageOf" in this.dataSets[i])) {
-                        lineWidth = 0.5;
-                    } else {
-                        lineWidth = 1.0;
-                    }
-
+                    moveTo(x0-0.5, v+0.5);
+                    lineTo(x1+0.5, v+0.5);
                     strokeStyle = colorToRgbString(this.dataSets[i].color);
+                    globalAlpha = 0.2;
+                    lineWidth = 5.0;
+                    stroke();
+                    restore();
+                    strokeStyle = colorToRgbString(this.dataSets[i].color);
+                    lineWidth = 1.0;
                     stroke();
                 }
+
+                //log ("ds start end", this.startTime, this.endTime, "timediff:", (this.endTime - this.startTime + this.offsetTime));
+                save();
+                scale(xscale, -this.yScale);
+                translate(0, -ch/this.yScale);
+
+                beginPath();
+
+                var startIdx = this.dataSetIndices[i][0];
+                var endIdx = this.dataSetIndices[i][1];
+
+                // start one before and go one after if we can,
+                // so that the plot doesn't have a hole at the start
+                // and end
+                if (startIdx > 0) startIdx--;
+                if (endIdx < ((this.dataSets[i].data.length)/2)) endIdx++;
+
+                //using the offsetTime creates a bar graph 
+                //if offsetTime = 0 then a regular point to point graph is drawn 
+                for (var j = startIdx; j < endIdx; j++)
+                {
+                    var t = this.dataSets[i].data[j*2];
+                    var v = this.dataSets[i].data[j*2+1];
+
+                    lineTo(t-xoffs, v-yoffs);
+                    if (this.offsetTime)
+                        lineTo(this.offsetTime+t-xoffs, v-yoffs);
+                }
+
+                restore();
+
+                if (hasAverageDSs && !("averageOf" in this.dataSets[i])) {
+                    lineWidth = 0.5;
+                } else {
+                    lineWidth = 1.0;
+                }
+
+                strokeStyle = colorToRgbString(this.dataSets[i].color);
+                stroke();
             }
         }
 
@@ -564,6 +559,10 @@ Graph.prototype = {
             globalCompositeOperation = "copy";
             drawImage(this.backBuffer, 0, 0);
         }
+
+        // if we don't have anything to graph, just give up
+        if (this.startTime == this.endTime)
+            return;
 
         var doDrawOverlay = false;
 
