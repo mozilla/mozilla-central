@@ -72,6 +72,10 @@ Graph.prototype = {
     yLabelWidth: 50,
     yLabelHeight: 50,
 
+    // should the Y axis be autoscaled (true),
+    // or always start at 0 (false)
+    autoScaleYAxis: true,
+
     //
     // Selection configuration
     //
@@ -369,6 +373,13 @@ Graph.prototype = {
 
         var vmin, vmax;
 
+        if (!this.autoScaleYAxis) {
+            this.yOffset = 0.0;
+            this.yScale = (this.frontBuffer.height-10) / Math.ceil(this.dataSetMaxMaxVal);
+            this.dirty = true;
+            return;
+        }
+
         if (this.hasRelative) {
             vmin = Math.floor(this.dataSetMinMinVal);
             vmax = Math.ceil(this.dataSetMaxMaxVal);
@@ -380,6 +391,7 @@ Graph.prototype = {
             this.yOffset = vmin;
             this.yScale = this.frontBuffer.height / (vmax - vmin);
             this.dirty = true;
+
             return;
         }
 

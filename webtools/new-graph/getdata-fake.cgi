@@ -35,7 +35,7 @@ def main():
             { 'id': 6, 'machine': 'tbox3', 'test': 'test3', 'test_type': 'perf', 'extra_data': None },
             { 'id': 2, 'machine': 'tbox1', 'test': 'test2', 'test_type': 'perf', 'extra_data': None },
             { 'id': 5, 'machine': 'tbox2', 'test': 'test2', 'test_type': 'perf', 'extra_data': None },
-            { 'id': 50, 'machine': 'single', 'test': 'test2', 'test_type': 'perf', 'extra_data': None },
+            { 'id': 50, 'machine': 'zz-single', 'test': 'test2', 'test_type': 'perf', 'extra_data': None },
             ]
             }
         print json.write(data)

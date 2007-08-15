@@ -59,6 +59,8 @@ var gAverageInterval = 3*ONE_HOUR_SECONDS;
 var gCurrentLoadRange = null;
 var gForceBonsai = false;
 
+var gOptions = { autoScaleYAxis: true };
+
 var Tinderbox;
 var BigPerfGraph;
 var SmallPerfGraph;
@@ -71,6 +73,9 @@ var SmallGraphSizeRuleIndex;
 var BigGraphSizeRuleIndex;
 
 function loadingDone(graphTypePref) {
+
+    loadOptions();
+
     //createLoggingPane(true);
     graphType = graphTypePref;
 
@@ -98,6 +103,17 @@ function loadingDone(graphTypePref) {
         BigPerfGraph.cursorSnapsToPoints = true;
 
         onDiscreteDataLoadChanged();
+    }
+
+    // handle saved options
+    if ("autoScaleYAxis" in gOptions) {
+        if (gOptions.autoScaleYAxis) {
+            getElement("autoscale").checked = true;
+            onAutoScaleClick(true);
+        } else {
+            getElement("autoscale").checked = false;
+            onAutoScaleClick(false);
+        }
     }
 
     // create CSS "smallgraph-size" and "graph-size" rules that the
@@ -767,3 +783,56 @@ function makeBonsaiLink(start, end) {
     return "http://bonsai.mozilla.org/cvsquery.cgi?treeid=default&module=PhoenixTinderbox&branch=HEAD&branchtype=match&dir=&file=&filetype=match&who=&whotype=match&sortby=Date&hours=2&date=explicit&cvsroot=%2Fcvsroot&mindate=" + Math.floor(start) + "&maxdate=" + Math.ceil(end);
 }
 
+function onAutoScaleClick(override) {
+    var checked;
+    if (override != null) {
+        checked = override;
+    } else {
+        checked = getElement("autoscale").checked;
+    }
+
+    var graphs = [ BigPerfGraph, SmallPerfGraph ];
+    for each (var g in graphs) {
+        if (g.autoScaleYAxis != checked) {
+            g.autoScaleYAxis = checked;
+            g.autoScale();
+            g.redraw();
+        }
+    }
+
+    gOptions.autoScaleYAxis = checked;
+    saveOptions();
+}
+
+function loadOptions() {
+    if (!globalStorage || document.domain == "")
+        return false;
+
+    try {
+        var store = globalStorage[document.domain];
+
+        if ("graphOptions" in store) {
+            var s = (store["graphOptions"]).toString();
+            var tmp = eval(s);
+            // don't clobber newly defined options
+            for (var opt in tmp)
+                gOptions[opt] = tmp[opt];
+        }
+    } catch (ex) {
+    }
+}
+
+// This just needs to be called whenever an option changes, we don't
+// have a good mechanism for this, so we just call it from wherever
+// we change an option
+function saveOptions() {
+    if (!globalStorage || document.domain == "")
+        return false;
+
+    try {
+        var store = globalStorage[document.domain];
+        store["graphOptions"] = uneval(gOptions);
+    } catch (ex) {
+        alert(ex);
+    }
+}

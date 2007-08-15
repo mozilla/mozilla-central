@@ -66,11 +66,10 @@
               <!--        <label for="baseline">No baseline</label><input type="radio" name="baseline" checked onclick="onNoBaseLineClick()"> -->
               <a class="linkbutton" id="linktothis" href="graph.html">Link</a> |
               <a class="linkbutton" id="dumptocsv" href="dumpdata.cgi">CSV</a> |
-              <a class="linkbutton" id="bonsailink" target="_new" href="javascript:;">Bonsai</a><br>
+              <a class="linkbutton" id="bonsailink" target="_new" href="javascript:;">Bonsai</a>
+              <br>
+	      <input type="checkbox" name="autoscale" id="autoscale" onclick="onAutoScaleClick()" checked="1">Auto scale Y axis</input>
             </div>
-
-            <br>
-
             <input style="display:none" id="bonsaibutton" type="button" onclick="onUpdateBonsai()" value="Refresh Bonsai Data">
           </td>
 
