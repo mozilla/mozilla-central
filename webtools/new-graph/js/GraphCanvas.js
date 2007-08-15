@@ -72,21 +72,42 @@ Graph.prototype = {
     yLabelWidth: 50,
     yLabelHeight: 50,
 
+    //
+    // Selection configuration
+    //
+
+    // selection type; 'none', 'range'
     selectionType: "none",
+    // selection color
     selectionColor: "rgba(0,0,255,0.5)",
+    // holds the selection start/end/cursor time
     selectionCursorTime: null,
     selectionStartTime: null,
     selectionEndTime: null,
 
+    //
+    // Cursor configuration
+    //
+
+    // cursor type; 'none', 'free'
+    cursorType: "none",
+    // the color the cursor should be drawn in
+    cursorColor: "rgba(200,200,0,0.7)",
+    // should the cursor snap to the closest point on the datasets?
+    cursorSnapsToPoints: false,
+    // holds the cursor time/value
+    cursorTime: null,
+    cursorValue: null,
+
+    // events to fire
     onSelectionChanged: null,
     onCursorMoved: null,
     onNewGraph: null,
 
-    cursorType: "none",
-    cursorColor: "rgba(200,200,0,0.7)",
-    cursorTime: null,
-    cursorValue: null,
-    cursorSnapsToPoints: false,
+    // whether points should be drawn on the graph
+    drawPoints: false,
+    // radius (in pixels) of the points
+    pointRadius: 1.5,
 
     markerColor: "rgba(200,0,0,0.4)",
     markersVisible: true,
@@ -483,6 +504,19 @@ Graph.prototype = {
                 continue;
             }
 
+            var dsHasAverage = false;
+            if (hasAverageDSs) {
+                // figure out if there is an average for this ds being drawn
+                for each (var ds in this.dataSets) {
+                    if ("averageOf" in ds &&
+                        ds.averageOf == this.dataSets[i])
+                    {
+                        dsHasAverage = true;
+                        break;
+                    }
+                }
+            }
+
             with (ctx) {
                 for (baseline in this.dataSets[i].baselines) {
                     save();
@@ -532,7 +566,7 @@ Graph.prototype = {
 
                 restore();
 
-                if (hasAverageDSs && !("averageOf" in this.dataSets[i])) {
+                if (dsHasAverage) {
                     lineWidth = 0.5;
                 } else {
                     lineWidth = 1.0;
@@ -540,6 +574,29 @@ Graph.prototype = {
 
                 strokeStyle = colorToRgbString(this.dataSets[i].color);
                 stroke();
+
+                if (this.drawPoints && !("averageOf" in this.dataSets[i])) {
+                    save();
+
+                    if (dsHasAverage)
+                        globalAlpha = 0.3;
+
+                    fillStyle = colorToRgbString(this.dataSets[i].color);
+
+                    for (var j = startIdx; j < endIdx; j++)
+                    {
+                        var t = this.dataSets[i].data[j*2];
+                        var v = this.dataSets[i].data[j*2+1];
+
+                        beginPath();
+                        arc((t-xoffs) * xscale, ((v-yoffs) + (-ch/this.yScale)) * -this.yScale,
+                            this.pointRadius, 0, Math.PI * 2.0, false);
+                        fill();
+                    }
+
+                    globalAlpha = 1.0;
+                    restore();
+                }
             }
         }
 

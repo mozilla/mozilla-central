@@ -78,19 +78,25 @@ function loadingDone(graphTypePref) {
         Tinderbox = new TinderboxData();
         SmallPerfGraph = new CalendarTimeGraph("smallgraph");
         BigPerfGraph = new CalendarTimeGraph("graph");
+
         BigPerfGraph.cursorSnapsToPoints = true;
+        BigPerfGraph.drawPoints = true;
+
         onDataLoadChanged();
     } else if (graphType == DATA_GRAPH) {
         Tinderbox = new ExtraDataTinderboxData();
         SmallPerfGraph = new CalendarTimeGraph("smallgraph");
         BigPerfGraph = new CalendarTimeGraph("graph");
+
         BigPerfGraph.cursorSnapsToPoints = true;
     } else {
         Tinderbox = new DiscreteTinderboxData();
         Tinderbox.raw = 1;
         SmallPerfGraph = new DiscreteGraph("smallgraph");
         BigPerfGraph = new DiscreteGraph("graph");
+
         BigPerfGraph.cursorSnapsToPoints = true;
+
         onDiscreteDataLoadChanged();
     }
 
