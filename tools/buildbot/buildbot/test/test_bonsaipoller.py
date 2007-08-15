@@ -5,7 +5,6 @@ from buildbot.changes.bonsaipoller import FileNode, CiNode, BonsaiResult, \
      BonsaiParser, BonsaiPoller, InvalidResultError, EmptyResult
 from buildbot.changes.changes import ChangeMaster
 
-from StringIO import StringIO
 from copy import deepcopy
 import re
 
@@ -123,7 +122,7 @@ class FakeBonsaiPoller(BonsaiPoller):
 
 class TestBonsaiPoller(unittest.TestCase):
     def testFullyFormedResult(self):
-        br = BonsaiParser(StringIO(goodUnparsedResult))
+        br = BonsaiParser(goodUnparsedResult)
         result = br.getData()
         # make sure the result is a BonsaiResult
         self.failUnless(isinstance(result, BonsaiResult))
@@ -133,42 +132,42 @@ class TestBonsaiPoller(unittest.TestCase):
 
     def testBadUnparsedResult(self):
         try:
-            BonsaiParser(StringIO(badUnparsedResult))
+            BonsaiParser(badUnparsedResult)
             self.fail(badResultMsgs["badUnparsedResult"])
         except InvalidResultError:
             pass
 
     def testInvalidDateResult(self):
         try:
-            BonsaiParser(StringIO(invalidDateResult))
+            BonsaiParser(invalidDateResult)
             self.fail(badResultMsgs["invalidDateResult"])
         except InvalidResultError:
             pass
 
     def testMissingFilenameResult(self):
         try:
-            BonsaiParser(StringIO(missingFilenameResult))
+            BonsaiParser(missingFilenameResult)
             self.fail(badResultMsgs["missingFilenameResult"])
         except InvalidResultError:
             pass
 
     def testDuplicateLogResult(self):
         try:
-            BonsaiParser(StringIO(duplicateLogResult))
+            BonsaiParser(duplicateLogResult)
             self.fail(badResultMsgs["duplicateLogResult"])
         except InvalidResultError:
             pass
 
     def testDuplicateFilesResult(self):
         try:
-            BonsaiParser(StringIO(duplicateFilesResult))
+            BonsaiParser(duplicateFilesResult)
             self.fail(badResultMsgs["duplicateFilesResult"])
         except InvalidResultError:
             pass
 
     def testMissingCiResult(self):
         try:
-            BonsaiParser(StringIO(missingCiResult))
+            BonsaiParser(missingCiResult)
             self.fail(badResultMsgs["missingCiResult"])
         except EmptyResult:
             pass
@@ -177,7 +176,7 @@ class TestBonsaiPoller(unittest.TestCase):
         "Make sure a change is not submitted if the BonsaiParser fails"
         poller = FakeBonsaiPoller()
         lastChangeBefore = poller.lastChange
-        poller._process_changes(StringIO(badUnparsedResult))
+        poller._process_changes(badUnparsedResult)
         # self.lastChange will not be updated if the change was not submitted
         self.failUnlessEqual(lastChangeBefore, poller.lastChange)
 
@@ -189,9 +188,9 @@ class TestBonsaiPoller(unittest.TestCase):
 
         lastChangeBefore = poller.lastChange
         # generate an exception first
-        poller._process_changes(StringIO(badUnparsedResult))
+        poller._process_changes(badUnparsedResult)
         # now give it a valid one...
-        poller._process_changes(StringIO(goodUnparsedResult))
+        poller._process_changes(goodUnparsedResult)
         # if poller.lastChange has not been updated then the good result
         # was not parsed
         self.failIfEqual(lastChangeBefore, poller.lastChange)
