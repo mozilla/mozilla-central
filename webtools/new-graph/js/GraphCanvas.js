@@ -1179,6 +1179,16 @@ Graph.prototype = {
         this.markers.push (mlabel);
     },
 
+    /*
+     * utility stuff
+     */
+    timeValueToXY: function (time, value) {
+        var pps = (this.frontBuffer.width / (this.endTime - this.startTime + this.offsetTime));
+        var x = (time - this.startTime) * pps;
+        var y = (value - this.yOffset) * this.yScale;
+
+        return {x: x, y: y};
+    }
 };
 
 function DiscreteGraph(canvasId) {

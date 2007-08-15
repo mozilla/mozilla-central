@@ -796,7 +796,7 @@ function onCursorMoved(type, args, obj) {
     var val = args[1];
     var extra_data = args[2];
 
-    var extra = null;
+    var extra = "";
     var label = "Date: ";
     if (graphType == DISCRETE_GRAPH) {
         label = "Index: ";
@@ -806,7 +806,74 @@ function onCursorMoved(type, args, obj) {
     if (time != null && val != null) {
         // cheat
         showStatus(label + formatTime(time) + " Value: " + val.toFixed(2) + " " + extra);
+        showFloater(time, val);
     } else {
         showStatus(null);
+        showFloater(null);
     }
 }
+
+function showFloater(time, value) {
+    var fdiv = getElement("floater");
+
+    if (time == null) {
+        fdiv.style.visibility = "hidden";
+        return;
+    }
+
+    fdiv.style.visibility = "visible";
+
+    var dss = BigPerfGraph.dataSets;
+    if (dss.length == 0)
+        return;
+
+    var s = "";
+
+    var dstv = [];
+
+    for (var i = 0; i < dss.length; i++) {
+        if ("averageOf" in dss[i])
+            continue;
+
+        var idx = dss[i].indexForTime(time, true);
+        if (idx != -1) {
+            var t = dss[i].data[idx*2];
+            var v = dss[i].data[idx*2+1];
+            dstv.push( {time: t, value: v, color: dss[i].color} );
+        }
+    }
+
+    var columns = [];
+    for (var i = 0; i < dstv.length; i++) {
+        var column = [];
+        for (var j = 0; j < dstv.length; j++) {
+            if (i == j) {
+                var v = dstv[i].value;
+                if (v != Math.floor(v))
+                    v = v.toFixed(2);
+                column.push("<b>" + v + "</b>");
+            } else {
+                var ratio = dstv[j].value / dstv[i].value;
+                column.push("<span style='font-size: small'>" + (ratio * 100).toFixed(0) + "%</span>");
+            }
+        }
+        columns.push(column);
+    }
+
+    var s = "<table class='floater-table'>";
+    for (var i = 0; i < dstv.length; i++) {
+        s += "<tr style='color: " + colorToRgbString(dstv[i].color) + "'>";
+        for (var j = 0; j < columns.length; j++) {
+            s += "<td>" + columns[i][j] + "</td>";
+        }
+        s += "</tr>";
+    }
+    s += "</table>";
+
+    // then put the floater in the right spot
+    var xy = BigPerfGraph.timeValueToXY(time, value);
+    fdiv.style.left = Math.floor(xy.x + 65) + "px";
+    fdiv.style.top = Math.floor((BigPerfGraph.frontBuffer.height - xy.y) + 15) + "px";
+    fdiv.innerHTML = s;
+}
+
