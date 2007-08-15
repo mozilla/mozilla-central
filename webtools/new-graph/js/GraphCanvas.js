@@ -595,9 +595,16 @@ Graph.prototype = {
                     strokeStyle = colorToRgbString(this.dataSets[i].color);
                     stroke();
 
-                    // only draw points for non-average datasets (and only if
-                    // points are set)
-                    if (this.drawPoints && !("averageOf" in this.dataSets[i])) {
+                    // only draw points for non-average datasets (and
+                    // only if points are set).  Also only draw points
+                    // if they'd be visible -- that is if the display
+                    // width is greater than the number of points to
+                    // be drawn * 2 * pointRadius
+                    var shouldMaybeDrawPoints = true;
+                    if (endIdx != startIdx && ((endIdx - startIdx) * 2 * this.pointRadius > cw))
+                        shouldMaybeDrawPoints = false;
+
+                    if (shouldMaybeDrawPoints && this.drawPoints && !("averageOf" in this.dataSets[i])) {
                         save();
 
                         // if this ds has an average line, make these fainter
