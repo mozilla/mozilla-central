@@ -105,10 +105,12 @@ def main():
             random.seed()
             data = []
             rawdata = []
-            for z in range(20):
-                tname = chr(65+z) + chr(65+z) + chr(65+z) + chr(65+z)
+            val = int(random.random() * 500)
+            for z in range(300):
+                tname = str(z) + str(z) + str(z)
                 data.append(z)
-                data.append(random.random() * 500)
+                data.append(val)
+                val = max(val + int(random.random() * 100 - 50), 0)
                 rawdata.append(z)
                 rawdata.append(tname)
             result = { 'resultcode': 0, 'results': data, 'annotations': [], 'baselines': {}, 'rawdata': rawdata }
