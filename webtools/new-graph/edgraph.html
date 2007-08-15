@@ -70,36 +70,31 @@
     </table>
     </form>
 
-    <!-- small graph -->
+    <!-- status line -->
     <div style="width: 900px; height:20px">
       <center><span id="status" class="status"></span></center>
-    </div>
-
-   <div id="container" style="width: 100%">
-
-    <!-- these are absolute size, so we wrap them in a div that can overflow -->
-    <div id="graph-container" style="width: 900px; margin:auto">
-      <div id="smallgraph-labels-x" style="position: relative; left: 51px; margin-left: 1px; margin-right: 1px; height: 30px; width: 700px"></div>
-      <div id="smallgraph-labels-y" style="position: relative; left: 0px; top: 0px; float: left; height: 76px; width: 50px;"></div>
-      <canvas style="clear: left; border: 1px solid #888; padding-top: 1px;" id="smallgraph" height="75" width="650"></canvas>
-      
-      <br/>
-      <br/>
-
-      <div id="graph-labels-y" style="position: relative; left: 0px; top: 0px; float: left; margin-top: 1px; margin-bottom: 1px; height: 300px; width: 50px;"></div>
-      <canvas style="clear: left; border: 1px solid #888;" id="graph" height="300" width="650"></canvas>
-      <div id="graph-labels-x" style="position: relative; left: 50px; margin-left: 1px; margin-right: 1px; height: 50px; width: 700px"></div>
-    </div>
-    <div id="graph-label-container" style="float:left;margin-top:30px;">
-      <span id="graph-label-list" class="graph-label-list-member" align="left"></span>
     </div> 
 
+    <!-- small graph -->
+    <div class="graph-anchor">
+      <div class="smallgraph-size" id="smallgraph-labels-x"></div>
+      <div class="smallgraph-size" id="smallgraph-labels-y"></div>
+      <canvas id="smallgraph" height="75" width="700"></canvas>
     </div>
-  <script>
-    ResizableBigGraph = new ResizeGraph();
-    ResizableBigGraph.init('graph');
 
-  </script>
+    <br></br>
+
+    <div class="graph-anchor">
+      <div class="graph-size" id="graph-labels-y"></div>
+      <canvas id="graph" height="300" width="700"></canvas>
+      <div class="graph-size" id="graph-labels-x"></div>
+
+        <div class="floater" id="floater">Hello World</div>
+    </div>
+
+    <div id="graph-label-container" style="float: left; margin-top: 30px;">
+      <span id="graph-label-list" class="graph-label-list-member" align="left"></span>
+    </div>
   </body>
 </html>
 

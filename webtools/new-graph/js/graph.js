@@ -65,6 +65,11 @@ var SmallPerfGraph;
 var Bonsai;
 var graphType;
 
+var ResizableBigGraph;
+
+var SmallGraphSizeRuleIndex;
+var BigGraphSizeRuleIndex;
+
 function loadingDone(graphTypePref) {
     //createLoggingPane(true);
     graphType = graphTypePref;
@@ -86,6 +91,35 @@ function loadingDone(graphTypePref) {
         BigPerfGraph = new DiscreteGraph("graph");
         onDiscreteDataLoadChanged();
     }
+
+    // create CSS "smallgraph-size" and "graph-size" rules that the
+    // layout depends on
+    {
+        var sg = document.getElementById("smallgraph");
+        var g = document.getElementById("graph");
+
+        SmallGraphSizeRuleIndex = document.styleSheets[0].insertRule (
+            ".smallgraph-size { width: " + sg.width + "px; height: " + sg.height + "px; }",
+            document.styleSheets[0].cssRules.length);
+
+        BigGraphSizeRuleIndex = document.styleSheets[0].insertRule (
+            ".graph-size { width: " + g.width + "px; height: " + g.height + "px; }",
+            document.styleSheets[0].cssRules.length);
+    }
+
+    // make the big graph resizable
+    ResizableBigGraph = new ResizeGraph();
+    ResizableBigGraph.init('graph', function (nw, nh) {
+                               document.styleSheets[0].cssRules[BigGraphSizeRuleIndex].style.width = nw + "px";
+                               document.styleSheets[0].cssRules[BigGraphSizeRuleIndex].style.height = nh + "px";
+                               BigPerfGraph.resize();
+
+                               if (nw != document.getElementById("smallgraph").width) {
+                                   document.getElementById("smallgraph").width = nw;
+                                   document.styleSheets[0].cssRules[SmallGraphSizeRuleIndex].style.width = nw + "px";
+                                   SmallPerfGraph.resize();
+                               }
+                           } );
 
     Tinderbox.init();
 
@@ -219,7 +253,6 @@ function loadingDone(graphTypePref) {
     }
 }
 
-
 function addExtraDataGraphForm(config, name) {
     showLoadingAnimation("populating lists");
     var ed = new ExtraDataGraphFormModule(config, name);
@@ -343,7 +376,7 @@ function onGraphLoadRemainder(baselineDataSet) {
             return function (testid, ds) {
                 try {
                     log("ds.firstTime " + ds.firstTime + " ds.lastTime " + ds.lastTime);
-                    if (undefined == ds.firstTime || !ds.lastTime) {
+                    if (!ds.firstTime || !ds.lastTime) {
                        // got a data set with no data in this time range, or damaged data
                        // better to not graph
                        for each (g in [BigPerfGraph, SmallPerfGraph]) {
@@ -600,7 +633,10 @@ function showGraphList(s) {
        appendChildNodes(tbl_tr, new TD(ds.title));
     } 
     appendChildNodes("graph-label-list", tbl);
-    if (s.length == GraphFormModules[0].testIds.length) {
+    if (GraphFormModules.length > 0 &&
+        GraphFormModules[0].testIds &&
+        s.length == GraphFormModules[0].testIds.length)
+    {
       clearLoadingAnimation();
     }
     //replaceChildNodes("graph-label-list",rstring);
