@@ -131,6 +131,8 @@ sub do_json($) {
     my $line = Dumper($tinderbox_data);
     $line =~ s/=>/:/g;
     $line =~ s/\$VAR1//g;
+    $line =~ s/undef/'undef'/g;
+    $line =~ s/\n//g;
     $line =~ s/: ,/: '',/g;
     print "$line\n";
 }
