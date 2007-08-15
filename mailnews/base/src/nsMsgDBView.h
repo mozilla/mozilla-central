@@ -389,10 +389,8 @@ protected:
   nsCOMPtr<nsIDateTimeFormat> mDateFormater;
   nsCOMPtr<nsIMsgHeaderParser> mHeaderParser;
   nsCOMPtr<nsIMsgTagService> mTagService;
-  // i'm not sure if we are going to permamently need a nsIMessenger instance or if we'll be able
-  // to phase it out eventually....for now we need it though.
-  nsCOMPtr<nsIMessenger> mMessengerInstance;
-  nsCOMPtr<nsIMsgWindow> mMsgWindow;
+  nsWeakPtr mMessengerWeak;
+  nsWeakPtr mMsgWindowWeak;
   nsCOMPtr<nsIMsgDBViewCommandUpdater> mCommandUpdater; // we push command update notifications to the UI from this.
   nsCOMPtr<nsIStringBundle> mMessengerStringBundle;  
 

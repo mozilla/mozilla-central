@@ -79,7 +79,7 @@ void nsMsgXFVirtualFolderDBView::RemovePendingDBListeners()
 NS_IMETHODIMP nsMsgXFVirtualFolderDBView::Close()
 {
   RemovePendingDBListeners();
-  return NS_OK;
+  return nsMsgSearchDBView::Close();
 }
 
 NS_IMETHODIMP

@@ -749,8 +749,9 @@ NS_IMETHODIMP nsMsgGroupView::LoadMessageByViewIndex(nsMsgViewIndex aViewIndex)
   if (m_flags[aViewIndex] & MSG_VIEW_FLAG_DUMMY)
   {
     // if we used to have one item selected, and now we have more than one, we should clear the message pane.
+    nsCOMPtr<nsIMsgWindow> msgWindow(do_QueryReferent(mMsgWindowWeak));
     nsCOMPtr <nsIMsgWindowCommands> windowCommands;
-    if (mMsgWindow && NS_SUCCEEDED(mMsgWindow->GetWindowCommands(getter_AddRefs(windowCommands))) && windowCommands)
+    if (msgWindow && NS_SUCCEEDED(msgWindow->GetWindowCommands(getter_AddRefs(windowCommands))) && windowCommands)
       windowCommands->ClearMsgPane();
     // since we are selecting a dummy row, we should also clear out m_currentlyDisplayedMsgUri
     m_currentlyDisplayedMsgUri.Truncate();

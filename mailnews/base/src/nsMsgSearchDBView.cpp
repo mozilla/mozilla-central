@@ -124,7 +124,7 @@ NS_IMETHODIMP nsMsgSearchDBView::Close()
 
   m_dbToUseList.Clear();
 
-  return NS_OK;
+  return nsMsgDBView::Close();
 }
 
 NS_IMETHODIMP nsMsgSearchDBView::GetCellText(PRInt32 aRow, nsITreeColumn* aCol, nsAString& aValue)
@@ -157,7 +157,8 @@ nsresult nsMsgSearchDBView::GetMsgHdrForViewIndex(nsMsgViewIndex index, nsIMsgDB
   if (folder)
     {
       nsCOMPtr <nsIMsgDatabase> db;
-      rv = folder->GetMsgDatabase(mMsgWindow, getter_AddRefs(db));
+      nsCOMPtr<nsIMsgWindow> msgWindow(do_QueryReferent(mMsgWindowWeak));
+      rv = folder->GetMsgDatabase(msgWindow, getter_AddRefs(db));
       NS_ENSURE_SUCCESS(rv, rv);
       if (db)
         rv = db->GetMsgHdrForKey(m_keys.GetAt(index), msgHdr);
@@ -520,7 +521,10 @@ nsMsgSearchDBView::OnStopCopy(nsresult aStatus)
         PRUint32 numFolders =0;
         rv = m_uniqueFoldersSelected->Count(&numFolders);
         if ( mCurIndex < (PRUint32) numFolders)
-          ProcessRequestsInOneFolder(mMsgWindow);
+        {
+          nsCOMPtr<nsIMsgWindow> msgWindow(do_QueryReferent(mMsgWindowWeak));
+          ProcessRequestsInOneFolder(msgWindow);
+        }
     }
 
     return rv;
