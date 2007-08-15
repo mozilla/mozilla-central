@@ -218,70 +218,30 @@ function loadingDone(graphTypePref) {
                        updateDumpToCsv();
                    });
 
+    BigPerfGraph.onCursorMoved.subscribe (onCursorMoved);
+
     if (graphType == CONTINUOUS_GRAPH) {
-         BigPerfGraph.onCursorMoved.
-             subscribe (function (type, args, obj) {
-                       var time = args[0];
-                       var val = args[1];
-                       if (time != null && val != null) {
-                           // cheat
-                           showStatus("Date: " + formatTime(time) + " Value: " + val.toFixed(2));
-                       } else {
-                           showStatus(null);
-                       }
-                   });
          BigPerfGraph.onNewGraph.
              subscribe (function(type, args, obj) {
                if (args[0].length >= GraphFormModules.length) {
                    clearLoadingAnimation();
                }
              });
-    }
-    else if (graphType == DATA_GRAPH) {
-         BigPerfGraph.onCursorMoved.
-             subscribe (function (type, args, obj) {
-                       var time = args[0];
-                       var val = args[1];
-                       if (time != null && val != null) {
-                           // cheat
-                           showStatus("Date: " + formatTime(time) + " Value: " + val.toFixed(2));
-                       } else {
-                           showStatus(null);
-                       }
-                   });
+    } else if (graphType == DATA_GRAPH || graphType == DISCRETE_GRAPH) {
          BigPerfGraph.onNewGraph.
              subscribe (function(type, args, obj) {
-                 showGraphList(args[0]);
-             });
+                            showGraphList(args[0]);
+                        });
     }
-    else {
-        BigPerfGraph.onCursorMoved.
-            subscribe (function (type, args, obj) {
-                       var time = args[0];
-                       var val = args[1];
-                       var extra_data = args[2]
-                       if (time != null && val != null) {
-                           // cheat
-                           showStatus("Interval: " + Math.floor(time) + " Value: " + val.toFixed(2) + " " + extra_data);
-                       } else {
-                           showStatus(null);
-                       }
-                   });
-         BigPerfGraph.onNewGraph.
-             subscribe (function(type, args, obj) {
-                 showGraphList(args[0]);
-             });
-    }
+
     if (document.location.hash) {
         handleHash(document.location.hash);
     } else {
         if (graphType == CONTINUOUS_GRAPH) {
             addGraphForm();
-        }
-        else if ( graphType == DATA_GRAPH ) {
+        } else if (graphType == DATA_GRAPH) {
             addExtraDataGraphForm();
-        }
-        else {
+        } else {
             addDiscreteGraphForm();
         }
     }
@@ -829,5 +789,25 @@ function saveOptions() {
         store["graphOptions"] = uneval(gOptions);
     } catch (ex) {
         alert(ex);
+    }
+}
+
+function onCursorMoved(type, args, obj) {
+    var time = args[0];
+    var val = args[1];
+    var extra_data = args[2];
+
+    var extra = null;
+    var label = "Date: ";
+    if (graphType == DISCRETE_GRAPH) {
+        label = "Index: ";
+        extra = extra_data;
+    }
+
+    if (time != null && val != null) {
+        // cheat
+        showStatus(label + formatTime(time) + " Value: " + val.toFixed(2) + " " + extra);
+    } else {
+        showStatus(null);
     }
 }
