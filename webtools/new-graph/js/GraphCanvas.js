@@ -439,7 +439,6 @@ Graph.prototype = {
         var xoffs = this.startTime;
         var yoffs = this.yOffset;
 
-
         var xscale = cw / (this.endTime - this.startTime + this.offsetTime);
 
         var hasAverageDSs = false;
@@ -498,6 +497,7 @@ Graph.prototype = {
         }
 
         // draw actual graph lines
+
         for (var i = 0; i < this.dataSets.length; i++) {
             if (this.dataSetIndices[i] == null) {
                 // there isn't anything in the data set in the given time range
@@ -518,6 +518,8 @@ Graph.prototype = {
             }
 
             with (ctx) {
+
+                // draw any baselines.  needs to be rethought
                 for (baseline in this.dataSets[i].baselines) {
                     save();
                     var v = ch - Math.round((this.dataSets[i].baselines[baseline] - yoffs) * this.yScale);
@@ -537,12 +539,6 @@ Graph.prototype = {
                 }
 
                 //log ("ds start end", this.startTime, this.endTime, "timediff:", (this.endTime - this.startTime + this.offsetTime));
-                save();
-                scale(xscale, -this.yScale);
-                translate(0, -ch/this.yScale);
-
-                beginPath();
-
                 var startIdx = this.dataSetIndices[i][0];
                 var endIdx = this.dataSetIndices[i][1];
 
@@ -552,50 +548,107 @@ Graph.prototype = {
                 if (startIdx > 0) startIdx--;
                 if (endIdx < ((this.dataSets[i].data.length)/2)) endIdx++;
 
-                //using the offsetTime creates a bar graph 
-                //if offsetTime = 0 then a regular point to point graph is drawn 
-                for (var j = startIdx; j < endIdx; j++)
-                {
-                    var t = this.dataSets[i].data[j*2];
-                    var v = this.dataSets[i].data[j*2+1];
-
-                    lineTo(t-xoffs, v-yoffs);
-                    if (this.offsetTime)
-                        lineTo(this.offsetTime+t-xoffs, v-yoffs);
-                }
-
-                restore();
-
-                if (dsHasAverage) {
-                    lineWidth = 0.5;
-                } else {
-                    lineWidth = 1.0;
-                }
-
-                strokeStyle = colorToRgbString(this.dataSets[i].color);
-                stroke();
-
-                if (this.drawPoints && !("averageOf" in this.dataSets[i])) {
+                // if offsetTime is 0, then draw a normal graph
+                if (this.offsetTime == 0) {
                     save();
+                    scale(xscale, -this.yScale);
+                    translate(0, -ch/this.yScale);
 
-                    if (dsHasAverage)
-                        globalAlpha = 0.3;
-
-                    fillStyle = colorToRgbString(this.dataSets[i].color);
+                    beginPath();
 
                     for (var j = startIdx; j < endIdx; j++)
                     {
                         var t = this.dataSets[i].data[j*2];
                         var v = this.dataSets[i].data[j*2+1];
 
-                        beginPath();
-                        arc((t-xoffs) * xscale, ((v-yoffs) + (-ch/this.yScale)) * -this.yScale,
-                            this.pointRadius, 0, Math.PI * 2.0, false);
-                        fill();
+                        lineTo(t-xoffs, v-yoffs);
                     }
 
-                    globalAlpha = 1.0;
+                    // restore before calling stroke() so that we can
+                    // do a line width in absolute pixel size
                     restore();
+
+                    if (dsHasAverage) {
+                        lineWidth = 0.5;
+                    } else {
+                        lineWidth = 1.0;
+                    }
+
+                    strokeStyle = colorToRgbString(this.dataSets[i].color);
+                    stroke();
+
+                    // only draw points for non-average datasets (and only if
+                    // points are set)
+                    if (this.drawPoints && !("averageOf" in this.dataSets[i])) {
+                        save();
+
+                        // if this ds has an average line, make these fainter
+                        if (dsHasAverage)
+                            globalAlpha = 0.3;
+
+                        fillStyle = colorToRgbString(this.dataSets[i].color);
+
+                        for (var j = startIdx; j < endIdx; j++)
+                        {
+                            var t = this.dataSets[i].data[j*2];
+                            var v = this.dataSets[i].data[j*2+1];
+
+                            beginPath();
+                            arc((t-xoffs) * xscale, ((v-yoffs) + (-ch/this.yScale)) * -this.yScale,
+                                this.pointRadius, 0, Math.PI * 2.0, false);
+                            fill();
+                        }
+
+                        globalAlpha = 1.0;
+                        restore();
+                    }
+                } else {
+                    // we're doing a bar graph, and we don't have to
+                    // worry about any average stuff.
+
+                    // we assume that each "time" index is offset by offsetTime.
+                    // XXX we really should just specify "graph has a constant spacing"
+                    // as opposed to an explicit "offsetTime", and let the graph
+                    // figure out how best to draw that in the available space
+
+                    // Note that we can't round this, but we do round when
+                    // we draw the line coordinates, to get solid vertical lines.
+                    // However, that means that as the graph goes along, the width
+                    // of each "bar" will vary by as much as 1 pixel -- I think that's
+                    // ok, ebcause in practice it's not noticable, and it's much less
+                    // distracting than blurry edges.
+                    var scaledOffset = this.offsetTime * xscale;
+
+                    save();
+                    // we do the scaling/etc. manually, so that we can control pixel position
+                    // of the lines
+                    beginPath();
+
+                    // always start at 0
+                    var zeroY = (- yoffs) * (- this.yScale) + ch;
+                    var lastT = (this.dataSets[i].data[startIdx*2] - xoffs) * xscale;
+                    moveTo(Math.round(lastT) + 0.5, zeroY);
+
+                    for (var j = startIdx; j < endIdx; j++)
+                    {
+                        // don't care about t -- we're always going to draw steps
+                        // exactly scaledOffset apart
+                        var v = this.dataSets[i].data[j*2+1] - yoffs;
+                        v = v * (- this.yScale) + ch;
+                        lineTo(Math.round(lastT) + 0.5, v);
+                        lastT += scaledOffset;
+                        lineTo(Math.round(lastT) + 0.5, v);
+                    }
+
+                    // ... and end at 0, to make a nice square
+                    lineTo(lastT, zeroY)
+
+                    // restore before calling stroke() so that we can
+                    // do a line width in absolute pixel size
+                    restore();
+
+                    strokeStyle = colorToRgbString(this.dataSets[i].color);
+                    stroke();
                 }
             }
         }
@@ -1023,6 +1076,8 @@ Graph.prototype = {
         var pointTime = (event.pageX - pos[0]) * secondsPerPixel + this.startTime;
         var pointValue = (this.frontBuffer.height - (event.pageY - pos[1])) * valuesPerPixel + this.yOffset;
 
+        log ("before:", pointTime, pointValue);
+
         if (this.cursorSnapsToPoints && this.dataSets.length > 0) {
             // find the nearest point to (pointTime, pointValue) in all the datasets
             var distanceSquared = -1;
@@ -1035,7 +1090,9 @@ Graph.prototype = {
                 {
                     var t = this.dataSets[i].data[j*2];
                     var v = this.dataSets[i].data[j*2+1];
-                    var d = Math.abs(pointTime*pointTime - t*t) + Math.abs(pointValue*pointValue - v*v);
+                    var d = Math.abs(pointTime*pointTime/secondsPerPixel - t*t/secondsPerPixel);
+                    /* Just snap to time, ignore value */
+                    /* d += Math.abs(pointValue*pointValue/valuesPerPixel - v*v/valuesPerPixel); */
 
                     if (distanceSquared == -1 ||
                         d < distanceSquared)
@@ -1047,8 +1104,10 @@ Graph.prototype = {
                 }
             }
 
-            pointTime = this.dataSets[nearestDSIndex].data[nearestPointIndex*2];
+            pointTime = this.dataSets[nearestDSIndex].data[nearestPointIndex*2] + this.offsetTime / 2.0;
             pointValue = this.dataSets[nearestDSIndex].data[nearestPointIndex*2 + 1];
+
+            log ("after:", pointTime, pointValue);
         }
 
         this.cursorTime = pointTime;
@@ -1113,52 +1172,10 @@ DiscreteGraph.prototype = {
     getTimeAxisLabels: function () {
         if (!this.dirty)
             return this.xAxisLabels;
-/*
-        // x axis is an interval
 
-        // duration is in seconds
-        var duration = this.endTime - this.startTime + this.offsetTime;
-        log("duration: " + duration);
+        /* These graphs have no x axis labels */
 
-        // we know the pixel size and we know the time, we can
-        // compute the seconds per pixel
-        var secondsPerPixel = Math.ceil(duration / this.frontBuffer.width);
-        secondsPerPixel = Math.ceil(this.frontBuffer.width/duration);
-        log("secondsPerPixel " + secondsPerPixel);
-
-        // so what's the exact duration of one label of our desired size?
-        var labelDuration = this.xLabelWidth * secondsPerPixel;
-        log("labelDuration " + labelDuration);
-
-        // how many labels max can we fit?
-        var numLabels = (this.frontBuffer.width / this.xLabelWidth);
-        log("numLabels " + numLabels);
-
-        var labels = [];
-
-        // we want our first label to land on a multiple of the label duration;
-        // figure out where that lies.
-        var firstLabelOffsetSeconds = (labelDuration - (this.startTime % labelDuration));
-        log("firstLabelOffsetSeconds " + firstLabelOffsetSeconds);
-
-        //log ("sps", secondsPerPixel, "ldur", labelDuration, "nl", numLabels, "flo", firstLabelOffsetSeconds);
-
-        for (var i = 0; i < numLabels; i++) {
-            // figure out the time value of this label
-            var ltime = this.startTime + firstLabelOffsetSeconds + i*labelDuration;
-            if (ltime > this.endTime)
-                break;
-            log("ltime " + ltime);
-            log("firstLabelOffsetSeconds " + firstLabelOffsetSeconds);
-            // the first number is at what px position to place the label;
-            // the second number is the actual value of the label
-            // the third is an array of strings that go into the label
-            var lval = [(ltime - this.startTime)/secondsPerPixel - (this.xLabelWidth/2), ltime, this.formatTimeLabel(ltime)];
-            //log ("ltime", ltime, "lpos", lval[0], "end", this.endTime);
-            labels.push(lval);
-        }
-*/
-        labels= [];
+        labels = [];
         this.xAxisLabels = labels;
         return labels;
     },
