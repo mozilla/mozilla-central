@@ -1088,9 +1088,11 @@ Graph.prototype = {
                 {
                     var t = this.dataSets[i].data[j*2];
                     var v = this.dataSets[i].data[j*2+1];
-                    var d = Math.abs(pointTime*pointTime/secondsPerPixel - t*t/secondsPerPixel);
-                    /* Just snap to time, ignore value */
-                    /* d += Math.abs(pointValue*pointValue/valuesPerPixel - v*v/valuesPerPixel); */
+                    var d = (pointTime-t)*(pointTime-t)/secondsPerPixel;
+                    if (this.dataSets.length > 1) {
+                        // Use the value as well, if we have more than one dataset displayed
+                        d += (pointValue-v)*(pointValue-v)/valuesPerPixel;
+                    }
 
                     if (distanceSquared == -1 ||
                         d < distanceSquared)
