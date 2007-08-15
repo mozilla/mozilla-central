@@ -92,3 +92,6 @@ DEFINES += -DSHLIB_SUFFIX=\"$(DLL_SUFFIX)\" -DSHLIB_PREFIX=\"$(DLL_PREFIX)\" \
 ifdef DEBUG_PKCS11
   DEFINES += -DDEBUG_MODULE -DFORCE_PR_LOG
 endif
+
+# This part of the code, including all sub-dirs, can be optimized for size
+export ALLOW_OPT_CODE_SIZE = 1

@@ -34,7 +34,7 @@
 # the terms of any one of the MPL, the GPL or the LGPL.
 #
 # ***** END LICENSE BLOCK *****
-MANIFEST_CVS_ID = "@(#) $RCSfile: manifest.mn,v $ $Revision: 1.9 $ $Date: 2005-01-20 02:25:49 $"
+MANIFEST_CVS_ID = "@(#) $RCSfile: manifest.mn,v $ $Revision: 1.10 $ $Date: 2007-08-15 15:30:02 $"
 
 CORE_DEPTH = ../../..
 
@@ -67,3 +67,6 @@ xCSRCS =	  \
 REQUIRES = nspr
 
 #LIBRARY_NAME = pki1
+
+# This part of the code, including all sub-dirs, can be optimized for size
+export ALLOW_OPT_CODE_SIZE = 1
