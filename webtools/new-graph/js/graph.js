@@ -107,19 +107,30 @@ function loadingDone(graphTypePref) {
             document.styleSheets[0].cssRules.length);
     }
 
+    var resizeFunction = function (nw, nh) {
+        document.getElementById("graph").width = nw;
+        document.getElementById("graph").height = nh;
+
+        document.styleSheets[0].cssRules[BigGraphSizeRuleIndex].style.width = nw + "px";
+        document.styleSheets[0].cssRules[BigGraphSizeRuleIndex].style.height = nh + "px";
+        BigPerfGraph.resize();
+
+        if (nw != document.getElementById("smallgraph").width) {
+            document.getElementById("smallgraph").width = nw;
+            document.styleSheets[0].cssRules[SmallGraphSizeRuleIndex].style.width = nw + "px";
+            SmallPerfGraph.resize();
+        }
+
+        saveGraphDimensions(nw, nh);
+    }
+
+    var graphSize = { };
+    if (loadGraphDimensions(graphSize))
+        resizeFunction(graphSize.width, graphSize.height);
+
     // make the big graph resizable
     ResizableBigGraph = new ResizeGraph();
-    ResizableBigGraph.init('graph', function (nw, nh) {
-                               document.styleSheets[0].cssRules[BigGraphSizeRuleIndex].style.width = nw + "px";
-                               document.styleSheets[0].cssRules[BigGraphSizeRuleIndex].style.height = nh + "px";
-                               BigPerfGraph.resize();
-
-                               if (nw != document.getElementById("smallgraph").width) {
-                                   document.getElementById("smallgraph").width = nw;
-                                   document.styleSheets[0].cssRules[SmallGraphSizeRuleIndex].style.width = nw + "px";
-                                   SmallPerfGraph.resize();
-                               }
-                           } );
+    ResizableBigGraph.init('graph', resizeFunction);
 
     Tinderbox.init();
 
@@ -251,6 +262,49 @@ function loadingDone(graphTypePref) {
             addDiscreteGraphForm();
         }
     }
+}
+
+function loadGraphDimensions(data) {
+    if (!globalStorage || document.domain == "")
+        return false;
+
+    try {
+        var store = globalStorage[document.domain];
+
+        if (!("graphWidth" in store) || !("graphHeight" in store))
+            return false;
+
+        var w = parseInt(store.graphWidth);
+        var h = parseInt(store.graphHeight);
+
+        if (w != w || h != h || w <= 0 || h <= 0)
+            return false;
+        
+        data.width = w;
+        data.height = h;
+
+        return true;
+    } catch (ex) {
+    }
+
+    return false;
+}
+
+function saveGraphDimensions(w, h) {
+    if (!globalStorage || document.domain == "")
+        return false;
+
+    try {
+        if (parseInt(w) != w || parseInt(h) != h)
+            return false;
+
+        globalStorage[document.domain].graphWidth = w;
+        globalStorage[document.domain].graphHeight = h;
+        return true;
+    } catch (ex) {
+    }
+
+    return false;
 }
 
 function addExtraDataGraphForm(config, name) {
