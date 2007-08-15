@@ -166,7 +166,6 @@ bin\components\autoconfig.xpt
 bin\components\nsPhishingProtectionApplication.js
 bin\components\nsUrlClassifierListManager.js
 bin\components\nsUrlClassifierLib.js
-bin\components\nsUrlClassifierTable.js
 bin\components\url-classifier.xpt
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
