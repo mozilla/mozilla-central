@@ -98,7 +98,7 @@ memleak_init()
 	IGNORED_STACKS="${QADIR}/memleak/ignored"
 	
 	gline=`echo ${OBJDIR} | grep "_64_"`
-	if [ "${gline}" ] ; then
+	if [ -n "${gline}" ] ; then
 		BIT_NAME="64"
 	else
 		BIT_NAME="32"
@@ -521,14 +521,14 @@ parse_logfile_dbx()
 			fi
 				
 			gline=`echo "${line}" | grep "Found leaked block of size"`
-			if [ "${gline}" ] ; then
+			if [ -n "${gline}" ] ; then
 				lbytes=`echo "${line}" | sed "s/Found leaked block of size \(.*\) bytes.*/\1/"`
 				tbytes=`expr "${tbytes}" + "${lbytes}"`
 				tblocks=`expr "${tblocks}" + 1`
 			fi
 		else
 			gline=`echo "${line}" | grep "^Running: "`
-			if [ "${gline}" ] ; then
+			if [ -n "${gline}" ] ; then
 				bin_name=`echo "${line}" | cut -d" " -f2`
 			fi
 		fi 
@@ -547,9 +547,9 @@ parse_logfile_valgrind()
 	while read line
 	do
 		gline=`echo "${line}" | grep "^=="`
-		if [ ! "${gline}" ] ; then
+		if [ -z "${gline}" ] ; then
 			gline=`echo "${line}" | grep "^${VALGRIND} "`
-			if [ "${gline}" ] ; then
+			if [ -n "${gline}" ] ; then
 				bin_name=`echo "${line}" | cut -d" " -f6`
 			fi
 			continue
@@ -558,13 +558,13 @@ parse_logfile_valgrind()
 		line=`echo "${line}" | sed "s/==[0-9]*==\s*\(.*\)/\1/"`
 
 		gline=`echo "${line}" | grep "blocks are"`
-		if [ "${gline}" ] ; then
+		if [ -n "${gline}" ] ; then
 			in_mel=1
 			mel_line=0
 			stack_string=""
 		else
 			gline=`echo "${line}" | grep "LEAK SUMMARY"`
-			if [ "${gline}" ] ; then
+			if [ -n "${gline}" ] ; then
 				in_sum=1
 				mel_line=0
 			fi
@@ -594,7 +594,7 @@ parse_logfile_valgrind()
 			
 			if [ ${mel_line} -ge 2 ] ; then
 				gline=`echo "${line}" | grep "bytes.*blocks"`
-				if [ "${gline}" ] ; then
+				if [ -n "${gline}" ] ; then
 					lbytes=`echo "${line}" | sed "s/.*: \(.*\) bytes.*/\1/" | sed "s/,//g"`
 					lblocks=`echo "${line}" | sed "s/.*bytes in \(.*\) blocks.*/\1/" | sed "s/,//g"`
 
@@ -628,13 +628,13 @@ log_compare()
 		NEXT=0
 
 		gline=`echo "${LINE}" | grep '^#'`
-		if [ "${gline}" ] ; then
+		if [ -n "${gline}" ] ; then
 			BUG_ID="${LINE}"
 			NEXT=1
 		fi
 		
 		gline=`echo "${LINE}" | grep '*'`
-		if [ ! "${gline}" ] ; then
+		if [ -z "${gline}" ] ; then
 			NEXT=1
 		fi
 		
@@ -642,7 +642,7 @@ log_compare()
 		do
 			L_WORD=`echo "${LINE}" | cut -d '/' -f1`
 			gline=`echo "${LINE}" | grep '/'`
-			if [ "${gline}" ] ; then
+			if [ -n "${gline}" ] ; then
 				LINE=`echo "${LINE}" | cut -d '/' -f2-`
 			else
 				LINE=""
@@ -650,7 +650,7 @@ log_compare()
 
 			S_WORD=`echo "${STACK}" | cut -d '/' -f1`
 			gline=`echo "${STACK}" | grep '/'`
-			if [ "${gline}" ] ; then
+			if [ -n "${gline}" ] ; then
 				STACK=`echo "${STACK}" | cut -d '/' -f2-`
 			else
 				STACK=""
