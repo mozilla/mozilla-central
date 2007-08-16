@@ -75,7 +75,7 @@ TimeDataSet.prototype = {
         // to the given time
         function subSearch(ds, time, start, end) {
             if (end - start > 10) {
-                var half = Math.floor(start + (end - start) / 2);
+                var half = Math.floor(start + ((end - start) / 2));
                 if (time < ds.data[half*2])
                     return subSearch(ds, time, start, half);
                 else
@@ -84,15 +84,18 @@ TimeDataSet.prototype = {
 
             var d = null;
             for (var i = start; i <= end; i++) {
-                var nd = Math.abs(ds.data[i*2] - time);
-                if (d == null ||  nd < d) {
-                    d = nd;
-                } else {
-                    if (i == start)
-                        return i;
-                    else
-                        return i-1;
+                var nd = ds.data[i*2] - time;
+                if (nd == 0)
+                    return i;
+
+                if (nd > 0 && d < 0) {
+                    var k = Math.abs(nd) < Math.abs(d) ? i : i - 1;
+                    if (k < start)
+                        return start;
+                    return k;
                 }
+
+                d = nd;
             }
 
             return end;
@@ -121,8 +124,6 @@ function TimeValueDataSet(data, color) {
     } else {
         this.color = "#000000";
     }
-
-    log ("new tds:", this.firstTime, this.lastTime);
 
     this.relativeToSets = new Array();
 }
