@@ -140,7 +140,6 @@ function populateTestgroup(data) {
   } else {
     enabled_em.checked = false;
  } 
-  document.getElementById('testrunner_plan_id').innerHTML = testgroup.testrunner_plan_id;
 
   populateAllSubgroups();
 
@@ -172,7 +171,6 @@ function blankTestgroupForm(formid) {
   selectBoxTestgroup.options[selectBoxTestgroup.length] = new Option("-No testgroup selected-","");
   selectBoxTestgroup.selectedIndex=-1;
 
-  document.getElementById('testrunner_plan_id').innerHTML = '';
   document.getElementById('product_text').innerHTML = '';
   document.getElementById('branch_text').innerHTML = '';
 
@@ -188,7 +186,6 @@ function switchToAdd() {
   disableModeButtons();
   blankTestgroupForm('edit_testgroup_form');
   document.getElementById('testgroup_id_display').innerHTML = '<em>Automatically generated for a new testgroup</em>';
-  document.getElementById('testrunner_plan_id').innerHTML = '<em>Not Applicable</em>';
   document.getElementById('submit').value = 'Add Testgroup';
   document.getElementById('mode').value = 'add';
   enableForm('edit_testgroup_form');

@@ -230,8 +230,6 @@ function populateTestcase(data) {
   document.getElementById('creation_date').innerHTML = testcase.creation_date;
   document.getElementById('last_updated').innerHTML = testcase.last_updated;
   document.getElementById('litmus_version').innerHTML = testcase.version;
-  document.getElementById('testrunner_case_id').innerHTML = testcase.testrunner_case_id;
-  document.getElementById('testrunner_case_version').innerHTML = testcase.testrunner_case_version;
 
   document.getElementById('editform_div').style.display = 'none';
   document.getElementById('testcase_display_div').style.display = 'block';
@@ -252,8 +250,6 @@ function blankTestcaseForm(formid) {
   document.getElementById('creation_date').innerHTML = '';
   document.getElementById('last_updated').innerHTML = '';
   document.getElementById('litmus_version').innerHTML = '';
-  document.getElementById('testrunner_case_id').innerHTML = '';
-  document.getElementById('testrunner_case_version').innerHTML = '';
   changeProduct();
 }
 
@@ -295,8 +291,6 @@ function switchToAdd() {
   document.getElementById('creation_date').innerHTML = '<em>Automatically generated for a new testcase</em>';
   document.getElementById('last_updated').innerHTML = '<em>Automatically generated for a new testcase</em>';
   document.getElementById('litmus_version').innerHTML = '<em>Automatically generated for a new testcase</em>';
-  document.getElementById('testrunner_case_id').innerHTML = '<em>Not Applicable</em>';
-  document.getElementById('testrunner_case_version').innerHTML = '<em>Not Applicable</em>';
   document.getElementById('editform_div').style.display = 'block';
 }
 

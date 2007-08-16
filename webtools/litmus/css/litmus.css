@@ -801,19 +801,26 @@ p.comment {
 
 /* 13 Authentication and login **************************************** */
 
-div.loginbox {
-    background: #dddddd;
-    border: solid #bbbbbb 1px;
-    padding: 5px;
-    font-size: 120%;
-}
-
-div.login_form {
+div.login_form_existing, div.login_form_newuser, div.login_privacy {
     background-color: #efefef; 
     border: solid #bbbbbb 1px;
-    padding: 10px;
-    width: 45%;
-    height: 150px;
+    padding: 20px;
+    width: auto;
+    height: auto;
+}
+
+div.login_form_existing {
+    margin-right: 5px;
+    margin-bottom: 5px;
+}
+
+div.login_form_newuser {
+    margin-right: 5px;
+    margin-top: 5px;
+}
+
+div.login_privacy {
+    margin-left: 5px;
 }
 
 .login_sectitle {
@@ -824,15 +831,6 @@ div.login_form {
 .login_important {
     color: #ff0000;
     font-size: 120%;
-}
-
-.login_forhelp {
-    border: solid #bbbbbb 1px;
-    color: #000000;
-    font-weight: bold;
-    font-size: 120%;
-    position: relative;
-    bottom: 40px;
 }
 
 .login_info {

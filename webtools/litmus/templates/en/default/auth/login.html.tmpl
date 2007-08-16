@@ -97,9 +97,12 @@ function forgotPasswordForm(f) {
       
       [% IF adminrequired %]
         <h2 class="login_important">You must login to an administrative account to perform this function.</h2>
-	  [% END %]
+      [% END %]
 
-        <div class="login_form" style="float: left;">
+    <table border="0" cellpadding="0" cellspacing="0">
+      <tr>
+        <td>
+        <div class="login_form_existing">
           <h2 class="login_sectitle">Login to your Litmus account:</h2>
             <form name="litmus_login" action="[% return_to | none %]" method="post" onSubmit="return checkLitmusFormContents(this);">
               <input name="login_type" type="hidden" value="litmus">
@@ -118,7 +121,7 @@ function forgotPasswordForm(f) {
                 </tr>
               </table>
               <br />
-              <input type="submit" name="Submit" value="Login"> <br /><br />
+              <input class="submit" type="submit" name="Submit" value="Login"> <br /><br />
             </form>
             <form name="litmus_forgot_password" action="[% return_to | none %]" method="post" onSubmit="return forgotPasswordForm(this);">
               <input name="email" id="forgot_email" type="hidden">
@@ -126,45 +129,10 @@ function forgotPasswordForm(f) {
               <input type="submit" name="forgot" value="Forgot Password">
             </form>
           </div>
+        </td>
 
-          <div class="login_form" style="float: right;right: 10px;">
-            <h2 class="login_sectitle">Update your account</h2>
-
-            <p>Already been testing with Litmus? Simply enter the email address you used to test previously, and we'll help you create a full account.</p>
-
-            <form name="litmus_login" action="[% return_to | none %]" method="post" onSubmit="return checkUpdateFormContents(this);">
-              <input name="login_type" type="hidden" value="convert">
-              <input name="login_loc" type="hidden" value="[% return_to | html %]">
-    
-              [% INCLUDE create_hidden_fields params=params %]
-
-              <table border=0>
-                <tr>
-                  <td>Email address:</td>
-                  <td><input name="email" type="text" size="25"></td>
-                </tr>
-              </table>
-              <br /><input type="submit" name="Submit" value="Update Account">
-            </form>
-          </div>
-
-          <br clear="all" />
-
-          <div class="login_form" style="left: 10px;right: 20px; width: auto;height: auto;margin-top: 10px;">
-
-            <form name="litmus_login" action="[% return_to | none %]" method="post" onSubmit="return checkNewAccountFormContents(this);">
-              <input name="login_type" type="hidden" value="newaccount">
-              <input name="login_loc" type="hidden" value="[% return_to | html %]">
-
-              [% INCLUDE create_hidden_fields params=params %]
-
-              <table cellpadding="0" width="100%" border=0>
-                <tr>
-                  <td valign="top" colspan="2">
-                    <h2 class="login_sectitle">Create a new Litmus account:</h2>
-                    <h2 class="login_important">* New Users: Start Here</h2>
-                  </td>
-                  <td width="60%" class="login_info" rowspan="7">
+        <td rowspan="2" valign="top" width="50%">
+          <div class="login_privacy">
 <h2 class="login_sectitle">Concerning Privacy:</h2>
 
 <p>In order to address the privacy concerns of our users, we have introduced a
@@ -178,6 +146,25 @@ system used by the Mozilla community. All testing results you submit will be vis
 your email address, spam cannot be eliminated entirely. We recommend using a free web email service (such as Yahoo, Gmail, or similar) and not your primary email address if this concerns you.</p>
 
 <p>Thank you for your contribution to Mozilla QA.</p>
+          </div>
+        </td>
+      </tr>
+    
+      <tr>
+        <td>
+          <div class="login_form_newuser">
+
+            <form name="litmus_login" action="[% return_to | none %]" method="post" onSubmit="return checkNewAccountFormContents(this);">
+              <input name="login_type" type="hidden" value="newaccount">
+              <input name="login_loc" type="hidden" value="[% return_to | html %]">
+
+              [% INCLUDE create_hidden_fields params=params %]
+
+              <table cellpadding="0" width="100%" border=0>
+                <tr>
+                  <td valign="top" colspan="2">
+                    <h2 class="login_sectitle">Create a new Litmus account:</h2>
+                    <h2 class="login_important">* New Users: Start Here</h2>
                   </td>
                 </tr>
 
@@ -209,7 +196,9 @@ your email address, spam cannot be eliminated entirely. We recommend using a fre
            </form>
 
          </div>
-
+        </td>
+      </tr>
+    </table>  
 <!--
     <div class="login_form" style="position: relative; bottom: 390px;">
     	<h2 class="login_sectitle">Login to an existing Bugzilla account:</h2>

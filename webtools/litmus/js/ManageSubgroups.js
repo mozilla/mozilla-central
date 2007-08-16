@@ -163,7 +163,6 @@ function populateSubgroup(data) {
   } else {
     enabled_em.checked = false;
   } 
-  document.getElementById('testrunner_group_id').innerHTML = subgroup.testrunner_group_id;
 
   populateAllTestcases();
 
@@ -195,8 +194,6 @@ function blankSubgroupForm(formid) {
                                                              "");
   selectBoxSubgroup.selectedIndex=-1;
  
-  document.getElementById('testrunner_group_id').innerHTML = '';
-
   changeProduct();
   changeTestgroup();
 }
@@ -206,7 +203,6 @@ function switchToAdd() {
   blankSubgroupForm('edit_subgroup_form');
   document.getElementById('subgroup_id_display_edit').innerHTML = '<em>Automatically generated for a new subgroup</em>';
   document.getElementById('testgroups_link_display').innerHTML = '<em>A new subgroup does not belong to any testgroups by default.<br/>Use the <a target="manage_testgroups" href="manage_testgroups.cgi">Manage Testgroups</a> interface to assign the subgroup to testgroups after the new subgroup is created.</em>';
-  document.getElementById('testrunner_group_id').innerHTML = '<em>Not Applicable</em>';
   document.getElementById('submit').value = 'Add Subgroup';
   document.getElementById('mode').value = 'add';
   enableForm('edit_subgroup_form');

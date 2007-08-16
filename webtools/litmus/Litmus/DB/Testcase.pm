@@ -46,7 +46,7 @@ our $default_num_days = 7;
 Litmus::DB::Testcase->table('testcases');
 
 Litmus::DB::Testcase->columns(Primary => qw/testcase_id/);
-Litmus::DB::Testcase->columns(Essential => qw/summary details enabled community_enabled format_id regression_bug_id product_id steps expected_results author_id creation_date last_updated version testrunner_case_id testrunner_case_version branch_id/);
+Litmus::DB::Testcase->columns(Essential => qw/summary details enabled community_enabled format_id regression_bug_id product_id steps expected_results author_id creation_date last_updated version branch_id/);
 Litmus::DB::Testcase->columns(TEMP => qw /relevance subgroup_name/);
 
 Litmus::DB::Testcase->column_alias("testcase_id", "testid");
