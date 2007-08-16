@@ -144,6 +144,7 @@ bin\components\passwordmgr.xpt
 bin\components\pipboot.xpt
 bin\components\pipnss.xpt
 bin\components\pippki.xpt
+bin\components\plugin.xpt
 bin\components\pref.xpt
 bin\components\prefetch.xpt
 bin\components\profile.xpt
@@ -206,6 +207,7 @@ bin\components\nsURLFormatter.js
 bin\components\nsHelperAppDlg.js
 bin\components\nsProxyAutoConfig.js
 bin\components\nsExtensionManager.js
+bin\components\nsBlocklistService.js
 bin\components\calendarService.js
 bin\components\calAlarmMonitor.js
 bin\components\calCompositeCalendar.js

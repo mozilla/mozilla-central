@@ -268,6 +268,7 @@ bin\components\nsTryToClose.js
 bin\components\nsComposerCmdLineHandler.js
 bin\components\nsDictionary.js
 bin\components\nsExtensionManager.js
+bin\components\nsBlocklistService.js
 bin\components\nsInterfaceInfoToIDL.js
 bin\components\nsLoginInfo.js
 bin\components\nsLoginManager.js
