@@ -41,16 +41,20 @@
 <?xml-stylesheet type="text/css" href="chrome://calendar/content/datetimepickers/datetimepickers.css"?>
 
 <!DOCTYPE dialog [
-  <!ENTITY % dtd1 SYSTEM "chrome://calendar/locale/calendar.dtd" > %dtd1;
-  <!ENTITY % dtd2 SYSTEM "chrome://calendar/locale/sun-calendar-event-dialog.dtd" > %dtd2;
-  <!ENTITY % calendar-event-dialogDTD SYSTEM "chrome://calendar/locale/calendar-event-dialog.dtd"> %calendar-event-dialogDTD;
+  <!ENTITY % globalDTD SYSTEM "chrome://calendar/locale/global.dtd">
+  <!ENTITY % sunDialogDTD SYSTEM "chrome://calendar/locale/sun-calendar-event-dialog.dtd">
+  <!ENTITY % recurrenceDTD SYSTEM "chrome://calendar/locale/calendar-recurrence-dialog.dtd">
+  <!ENTITY % dialogDTD SYSTEM "chrome://calendar/locale/calendar-event-dialog.dtd">
+  %globalDTD;
+  %sunDialogDTD;
+  %recurrenceDTD;
+  %dialogDTD;
 ]>
 
-<dialog id="sun-calendar-event-dialog-recurrence"
-        title="&event.title.label;"
+<dialog title="&event.title.label;"
         onload="onLoad()"
         ondialogaccept="return onAccept();"
-        ondialogcancel="return onCancel();"
+        ondialogcancel="return true;"
         persist="screenX screenY"
         xmlns="http://www.mozilla.org/keymaster/gatekeeper/there.is.only.xul">
 
@@ -59,5 +63,362 @@
   <script type="application/x-javascript" src="chrome://calendar/content/calendar-dialog-utils.js"/>
   <script type="application/x-javascript" src="chrome://calendar/content/calUtils.js"/>
 
-  <recurrence-page id="recurrence-page" flex="1" orient="vertical"/>
+  <!-- recurrence pattern -->
+  <groupbox>
+    <caption label="&event.recurrence.pattern.label;"/>
+    <grid>
+      <columns>
+        <column/>
+        <column/>
+      </columns>
+      <rows>
+        <row align="center">
+          <label value="&event.recurrence.occurs.label;"
+                 disable-on-readonly="true"
+                 disable-on-occurrence="true"/>
+          <menulist id="period-list"
+                    oncommand="updateRecurrenceDeck();"
+                    disable-on-readonly="true"
+                    disable-on-occurrence="true">
+            <menupopup>
+              <menuitem label="&event.recurrence.day.label;"
+                        value="0"/>
+              <menuitem label="&event.recurrence.week.label;"
+                        value="1"/>
+              <menuitem label="&event.recurrence.month.label;"
+                        value="2"/>
+              <menuitem label="&event.recurrence.year.label;"
+                        value="3"/>
+            </menupopup>
+          </menulist>
+        </row>
+        <row align="top">
+          <spacer/>
+          <deck id="period-deck">
+
+            <!-- Daily -->
+            <box orient="vertical" align="top">
+              <radiogroup id="daily-group"
+                          oncommand="updateRecurrenceControls();">
+                <box orient="horizontal" align="center">
+                  <radio label="&event.recurrence.pattern.every.label;"
+                         disable-on-readonly="true"
+                         disable-on-occurrence="true"
+                         selected="true"/>
+                  <textbox id="daily-days" value="1"
+                           size="3"
+                           oninput="validateIntegerRange(event, 1, 0x7FFF); updateRecurrenceControls();"
+                           disable-on-readonly="true"
+                           disable-on-occurrence="true"/>
+                  <label value="&repeat.units.days;"
+                         disable-on-readonly="true"
+                         disable-on-occurrence="true"/>
+                  <spacer flex="1"/>
+                </box>
+                <radio label="&event.recurrence.pattern.every.weekday.label;"
+                       disable-on-readonly="true"
+                       disable-on-occurrence="true"/>
+              </radiogroup>
+            </box>
+            <!-- Weekly -->
+            <vbox>
+              <hbox align="center">
+                <label value="&event.recurrence.pattern.every.label;"
+                       disable-on-readonly="true"
+                       disable-on-occurrence="true"/>
+                <textbox id="weekly-weeks"
+                         value="1"
+                         size="3"
+                         oninput="validateIntegerRange(event, 1, 0x7FFF); updateRecurrenceControls();"
+                         disable-on-readonly="true"
+                         disable-on-occurrence="true"/>
+                <label value="&repeat.units.weeks.both;"
+                       disable-on-readonly="true"
+                       disable-on-occurrence="true"/>
+              </hbox>
+              <hbox>
+                <label value="&event.recurrence.on.label;"
+                       disable-on-readonly="true"
+                       disable-on-occurrence="true"/>
+                <datepicker-weekday id="datepicker-weekday"
+                                    flex="1"
+                                    disable-on-readonly="true"
+                                    disable-on-occurrence="true"
+                                    onselect="updateRecurrenceControls();"/>
+              </hbox>
+            </vbox>
+
+            <!-- Monthly -->
+            <vbox>
+              <hbox align="center">
+                <label value="&event.recurrence.pattern.every.label;"
+                       disable-on-readonly="true"
+                       disable-on-occurrence="true"/>
+                <textbox id="monthly-interval"
+                         value="1"
+                         size="3"
+                         oninput="validateIntegerRange(event, 1, 0x7FFF); updateRecurrenceControls();"
+                         disable-on-readonly="true"
+                         disable-on-occurrence="true"/>
+                <label value="&repeat.units.months.both;"
+                       disable-on-readonly="true"
+                       disable-on-occurrence="true"/>
+              </hbox>
+              <radiogroup id="monthly-group"
+                          oncommand="updateRecurrenceControls();">
+                <box orient="horizontal" align="center">
+                  <radio label="&event.recurrence.the.label;"
+                         selected="true"
+                         disable-on-readonly="true"
+                         disable-on-occurrence="true"/>
+                  <menulist id="monthly-ordinal"
+                            disable-on-readonly="true"
+                            disable-on-occurrence="true">
+                    <menupopup>
+                      <menuitem label="&event.recurrence.repeat.first.label;"
+                                value="1"/>
+                      <menuitem label="&event.recurrence.repeat.second.label;"
+                                value="2"/>
+                      <menuitem label="&event.recurrence.repeat.third.label;"
+                                value="3"/>
+                      <menuitem label="&event.recurrence.repeat.fourth.label;"
+                                value="4"/>
+                      <menuitem label="&event.recurrence.repeat.last.label;"
+                                value="-1"/>
+                    </menupopup>
+                  </menulist>
+                  <menulist id="monthly-weekday"
+                            disable-on-readonly="true"
+                            disable-on-occurrence="true">
+                    <menupopup>
+                      <menuitem label="&day.1.name;"
+                                value="1"/>
+                      <menuitem label="&day.2.name;"
+                                value="2"/>
+                      <menuitem label="&day.3.name;"
+                                value="3"/>
+                      <menuitem label="&day.4.name;"
+                                value="4"/>
+                      <menuitem label="&day.5.name;"
+                                value="5"/>
+                      <menuitem label="&day.6.name;"
+                                value="6"/>
+                      <menuitem label="&day.7.name;"
+                                value="7"/>
+                    </menupopup>
+                  </menulist>
+                </box>
+                <box orient="horizontal" align="center">
+                  <radio label="&event.recurrence.repeat.recur.label;"
+                         disable-on-readonly="true"
+                         disable-on-occurrence="true"/>
+                  <datepicker-monthday id="monthly-days"
+                                       onselect="updateRecurrenceControls();"
+                                       disable-on-readonly="true"
+                                       disable-on-occurrence="true"/>
+                </box>
+              </radiogroup>
+            </vbox>
+
+            <!-- Yearly -->
+            <box orient="vertical" align="top">
+              <hbox align="center">
+                <label value="&event.recurrence.every.label;"/>
+                <textbox id="yearly-interval"
+                         value="1"
+                         size="3"
+                         oninput="validateIntegerRange(event, 1, 0x7FFF); updateRecurrenceControls();"
+                         disable-on-readonly="true"
+                         disable-on-occurrence="true"/>
+                <label value="&repeat.units.years.both;"/>
+              </hbox>
+              <radiogroup id="yearly-group"
+                          oncommand="updateRecurrenceControls();">
+                <grid>
+                  <columns>
+                    <column/>
+                    <column/>
+                  </columns>
+                  <rows>
+                    <row align="center">
+                      <radio label="&event.recurrence.pattern.every.label;"
+                             selected="true"
+                             disable-on-readonly="true"
+                             disable-on-occurrence="true"/>
+                      <box orient="horizontal"
+                           align="center">
+                        <textbox id="yearly-days"
+                                 value="1"
+                                 size="3"
+                                 oninput="updateRecurrenceControls();"
+                                 disable-on-readonly="true"
+                                 disable-on-occurrence="true"/>
+                        <menulist id="yearly-month-ordinal"
+                                  disable-on-readonly="true"
+                                  disable-on-occurrence="true">
+                          <menupopup>
+                            <menuitem label="&month.1.name;"
+                                      value="1"/>
+                            <menuitem label="&month.2.name;"
+                                      value="2"/>
+                            <menuitem label="&month.3.name;"
+                                      value="3"/>
+                            <menuitem label="&month.4.name;"
+                                      value="4"/>
+                            <menuitem label="&month.5.name;"
+                                      value="5"/>
+                            <menuitem label="&month.6.name;"
+                                      value="6"/>
+                            <menuitem label="&month.7.name;"
+                                      value="7"/>
+                            <menuitem label="&month.8.name;"
+                                      value="8"/>
+                            <menuitem label="&month.9.name;"
+                                      value="9"/>
+                            <menuitem label="&month.10.name;"
+                                      value="10"/>
+                            <menuitem label="&month.11.name;"
+                                      value="11"/>
+                            <menuitem label="&month.12.name;"
+                                      value="12"/>
+                          </menupopup>
+                        </menulist>
+                      </box>
+                    </row>
+                    <row align="center">
+                      <radio label="&event.recurrence.pattern.every.label;"
+                             disable-on-readonly="true"
+                             disable-on-occurrence="true"/>
+                      <box orient="horizontal"
+                           align="center">
+                        <menulist id="yearly-ordinal"
+                                  disable-on-readonly="true"
+                                  disable-on-occurrence="true">
+                          <menupopup>
+                            <menuitem label="&event.recurrence.repeat.first.label;"
+                                      value="1"/>
+                            <menuitem label="&event.recurrence.repeat.second.label;"
+                                      value="2"/>
+                            <menuitem label="&event.recurrence.repeat.third.label;"
+                                      value="3"/>
+                            <menuitem label="&event.recurrence.repeat.fourth.label;"
+                                      value="4"/>
+                            <menuitem label="&event.recurrence.repeat.last.label;"
+                                      value="-1"/>
+                          </menupopup>
+                        </menulist>
+                        <menulist id="yearly-weekday"
+                                  disable-on-readonly="true"
+                                  disable-on-occurrence="true">
+                          <menupopup>
+                            <menuitem label="&day.1.name;"
+                                      value="1"/>
+                            <menuitem label="&day.2.name;"
+                                      value="2"/>
+                            <menuitem label="&day.3.name;"
+                                      value="3"/>
+                            <menuitem label="&day.4.name;"
+                                      value="4"/>
+                            <menuitem label="&day.5.name;"
+                                      value="5"/>
+                            <menuitem label="&day.6.name;"
+                                      value="6"/>
+                            <menuitem label="&day.7.name;"
+                                      value="7"/>
+                          </menupopup>
+                        </menulist>
+                      </box>
+                    </row>
+                    <row align="center">
+                      <label value="&event.recurrence.of.label;"
+                             style="text-align: right"/>
+                      <menulist id="yearly-month-rule"
+                                disable-on-readonly="true"
+                                disable-on-occurrence="true">
+                        <menupopup>
+                          <menuitem label="&month.1.name;"
+                                    value="1"/>
+                          <menuitem label="&month.2.name;"
+                                    value="2"/>
+                          <menuitem label="&month.3.name;"
+                                    value="3"/>
+                          <menuitem label="&month.4.name;"
+                                    value="4"/>
+                          <menuitem label="&month.5.name;"
+                                    value="5"/>
+                          <menuitem label="&month.6.name;"
+                                    value="6"/>
+                          <menuitem label="&month.7.name;"
+                                    value="7"/>
+                          <menuitem label="&month.8.name;"
+                                    value="8"/>
+                          <menuitem label="&month.9.name;"
+                                    value="9"/>
+                          <menuitem label="&month.10.name;"
+                                    value="10"/>
+                          <menuitem label="&month.11.name;"
+                                    value="11"/>
+                          <menuitem label="&month.12.name;"
+                                    value="12"/>
+                        </menupopup>
+                      </menulist>
+                    </row>
+                  </rows>
+                </grid>
+              </radiogroup>
+            </box>
+          </deck>
+        </row>
+      </rows>
+    </grid>
+  </groupbox>
+
+  <!-- range of recurrence -->
+  <groupbox>
+    <caption label="&event.recurrence.range.label;"/>
+    <vbox>
+      <radiogroup id="recurrence-duration"
+                  oncommand="updateRecurrenceControls()">
+        <radio id="recurrence-range-forever"
+               label="&event.recurrence.forever.label;"
+               value="forever"
+               selected="true"
+               disable-on-readonly="true"
+               disable-on-occurrence="true"/>
+        <box orient="horizontal" align="center">
+          <radio id="recurrence-range-for"
+                 label="&event.recurrence.repeat.for.label;"
+                 value="ntimes"
+                 disable-on-readonly="true"
+                 disable-on-occurrence="true"/>
+          <textbox id="repeat-ntimes-count"
+                   size="3"
+                   value="5"
+                   oninput="validateIntegerRange(event, 1, 0x7FFF); updateRecurrenceControls();"
+                   disable-on-readonly="true"
+                   disable-on-occurrence="true"/>
+          <label id="repeat-appointments-label"
+                 value="&event.recurrence.appointments.label;"
+                 disable-on-readonly="true"
+                 disable-on-occurrence="true"/>
+        </box>
+        <box orient="horizontal" align="center">
+          <radio id="recurrence-range-until"
+                 label="&event.repeat.until.label;"
+                 value="until"
+                 disable-on-readonly="true"
+                 disable-on-occurrence="true"/>
+          <datepicker id="repeat-until-date"
+                      onchange="updateRecurrenceControls();"
+                      disable-on-readonly="true"
+                      disable-on-occurrence="true"/>
+        </box>
+      </radiogroup>
+    </vbox>
+  </groupbox>
+
+  <!-- preview -->
+  <label value="&event.recurrence.preview.label;"/>
+  <recurrence-preview id="recurrence-preview" flex="1"/>
+
 </dialog>

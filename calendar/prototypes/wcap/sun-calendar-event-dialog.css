@@ -65,11 +65,6 @@ label.label {
 
 /****************************************************************************************/
 
-recurrence-page {
-    -moz-binding: url(chrome://calendar/content/sun-calendar-event-dialog-recurrence.xml#recurrence-page);
-    -moz-user-focus: normal;
-}
-
 datepicker-weekday {
     -moz-binding: url(chrome://calendar/content/sun-calendar-event-dialog-recurrence-datepicker.xml#datepicker-weekday);
     -moz-user-focus: normal;
@@ -207,13 +202,6 @@ listbox {
 
 #dialog-box {
     padding-top: 8px;
-    padding-bottom: 10px;
-    -moz-padding-start: 8px;
-    -moz-padding-end: 10px;
-}
-
-#recurrence-page {
-    padding-top: 0px;
     padding-bottom: 10px;
     -moz-padding-start: 8px;
     -moz-padding-end: 10px;
