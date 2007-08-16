@@ -210,8 +210,8 @@ calDateTime::GetTimezoneOffset(PRInt32 *aResult)
     struct icaltimetype icalt;
     ToIcalTime(&icalt);
     int dst;
-    *aResult = icaltimezone_get_utc_offset(NS_CONST_CAST(icaltimezone *, icalt.zone),
-                                           &icalt, &dst);
+    *aResult = icaltimezone_get_utc_offset(
+        const_cast<icaltimezone *>(icalt.zone), &icalt, &dst);
     return NS_OK;
 }
 
@@ -280,8 +280,8 @@ calDateTime::SubtractDate(calIDateTime *aDate, calIDuration **aDuration)
     aDate->GetNativeTime(&t2t);
     // for a duration, need to convert the difference in microseconds (prtime)
     // to seconds (libical), so divide by one million.
-    icaldurationtype const idt = 
-        icaldurationtype_from_int(NS_STATIC_CAST(int, (mNativeTime - t2t) / PRInt64(PR_USEC_PER_SEC)));
+    icaldurationtype const idt = icaldurationtype_from_int(
+        static_cast<int>((mNativeTime - t2t) / PRInt64(PR_USEC_PER_SEC)));
 
     nsCOMPtr<calIDuration> const result(new calDuration(&idt));
     if (!result)
@@ -370,8 +370,9 @@ calDateTime::GetInTimezone(const nsACString& aTimezone, calIDateTime **aResult)
         /* If there's a zone, we need to convert; otherwise, we just
          * assign, since this item is floating */
         if (icalt.zone && tz) {
-            icaltimezone_convert_time(&icalt, NS_CONST_CAST(icaltimezone *, icalt.zone),
-                                      NS_CONST_CAST(icaltimezone *, tz));
+            icaltimezone_convert_time(&icalt,
+                                      const_cast<icaltimezone *>(icalt.zone),
+                                      const_cast<icaltimezone *>(tz));
         }
         if (tz == icaltimezone_get_utc_timezone())
             icalt.is_utc = 1;
@@ -588,12 +589,14 @@ calDateTime::FromIcalTime(icaltimetype const* icalt)
     mMinute = t.minute;
     mSecond = t.second;
 
-    if (t.is_utc || t.zone == icaltimezone_get_utc_timezone())
+    if (t.is_utc || t.zone == icaltimezone_get_utc_timezone()) {
         mTimezone.AssignLiteral("UTC");
-    else if (t.zone)
-        mTimezone.Assign(icaltimezone_get_tzid(NS_CONST_CAST(icaltimezone *, t.zone)));
-    else
+    } else if (t.zone) {
+        mTimezone.Assign(icaltimezone_get_tzid(
+                             const_cast<icaltimezone *>(t.zone)));
+    } else {
         mTimezone.AssignLiteral("floating");
+    }
 
     mWeekday = icaltime_day_of_week(t) - 1;
     mYearday = icaltime_day_of_year(t);
@@ -617,7 +620,7 @@ PRTime calDateTime::IcaltimeToPRTime(icaltimetype const* icalt, icaltimezone con
     if (tz) {
         // use libical for timezone conversion, as it can handle all ics
         // timezones. having nspr do it is much harder.
-        tt = icaltime_convert_to_zone(*icalt, NS_CONST_CAST(icaltimezone *, tz));
+        tt = icaltime_convert_to_zone(*icalt, const_cast<icaltimezone *>(tz));
     } else {
         tt = *icalt;
     }
@@ -689,7 +692,8 @@ calDateTime::Compare(calIDateTime *aOther, PRInt32 *aResult)
         if (NS_FAILED(rv))
             return calIErrors::INVALID_TIMEZONE;
 
-        *aResult = icaltime_compare_date_only(a, b, NS_CONST_CAST(icaltimezone *, tz));
+        *aResult = icaltime_compare_date_only(a, b,
+                                              const_cast<icaltimezone *>(tz));
     } else {
         *aResult = icaltime_compare(a, b);
     }
@@ -744,7 +748,7 @@ NS_IMETHODIMP
 calDateTime::GetClassName(char * *aClassName)
 {
     NS_ENSURE_ARG_POINTER(aClassName);
-    *aClassName = NS_STATIC_CAST(char *, nsMemory::Clone("calDateTime", 12));
+    *aClassName = static_cast<char *>(nsMemory::Clone("calDateTime", 12));
     if (!*aClassName)
         return NS_ERROR_OUT_OF_MEMORY;
     return NS_OK;
@@ -773,8 +777,8 @@ calDateTime::GetProperty(nsIXPConnectWrappedNative *wrapper, JSContext * cx,
 
     if (JSVAL_IS_STRING(id)) {
         nsDependentString const jsid(
-            NS_REINTERPRET_CAST(PRUnichar const*,
-                                JS_GetStringChars(JSVAL_TO_STRING(id))),
+            reinterpret_cast<PRUnichar const*>(
+                JS_GetStringChars(JSVAL_TO_STRING(id))),
             JS_GetStringLength(JSVAL_TO_STRING(id)));
         if (jsid.EqualsLiteral("jsDate")) {
             PRTime tmp, thousand;
@@ -809,8 +813,8 @@ calDateTime::SetProperty(nsIXPConnectWrappedNative *wrapper, JSContext * cx,
 
     if (JSVAL_IS_STRING(id)) {
         nsDependentString const jsid(
-            NS_REINTERPRET_CAST(PRUnichar const*,
-                                JS_GetStringChars(JSVAL_TO_STRING(id))),
+            reinterpret_cast<PRUnichar const*>(
+                JS_GetStringChars(JSVAL_TO_STRING(id))),
             JS_GetStringLength(JSVAL_TO_STRING(id)));
         if (jsid.EqualsLiteral("jsDate") && vp) {
             JSObject *dobj;
@@ -906,7 +910,7 @@ calDateTime::NewResolve(nsIXPConnectWrappedNative *wrapper, JSContext * cx,
     if (JSVAL_IS_STRING(id)) {
         JSString *str = JSVAL_TO_STRING(id);
         nsDependentString const name(
-            NS_REINTERPRET_CAST(PRUnichar const*, JS_GetStringChars(str)),
+            reinterpret_cast<PRUnichar const*>(JS_GetStringChars(str)),
             JS_GetStringLength(str));
         if (name.EqualsLiteral("jsDate")) {
             *_retval = JS_DefineUCProperty(cx, obj, JS_GetStringChars(str),

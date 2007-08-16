@@ -513,7 +513,7 @@ TimezoneHashToTimezoneArray(const nsACString& aTzid,
                             calIIcalComponent *aComponent,
                             void *aArg)
 {
-    calIIcalComponent ***arrayPtr = NS_STATIC_CAST(calIIcalComponent ***, aArg);
+    calIIcalComponent ***arrayPtr = static_cast<calIIcalComponent ***>(aArg);
     NS_ADDREF(**arrayPtr = aComponent);
     (*arrayPtr)++;
     return PL_DHASH_NEXT;
@@ -1015,7 +1015,7 @@ AddTimezoneComponentToIcal(const nsACString& aTzid,
                            calIIcalComponent *aTimezone,
                            void *aArg)
 {
-    icalcomponent *comp = NS_STATIC_CAST(icalcomponent *, aArg);
+    icalcomponent *comp = static_cast<icalcomponent *>(aArg);
     icalcomponent *tzcomp = icalcomponent_new_clone(aTimezone->GetIcalComponent());
     icalcomponent_merge_component(comp, tzcomp);
     return PL_DHASH_NEXT;
@@ -1103,7 +1103,7 @@ calIcalComponent::AddSubcomponent(calIIcalComponent *comp)
      * I should probably also return the new/reused component so that the
      * caller has something it can poke at all live-like.
      */
-    calIcalComponent *ical = NS_STATIC_CAST(calIcalComponent *, comp);
+    calIcalComponent *ical = static_cast<calIcalComponent *>(comp);
     if(ical->mParent)
         ical->mComponent = icalcomponent_new_clone(ical->mComponent);
 
@@ -1139,7 +1139,7 @@ calIcalComponent::AddSubcomponent(calIIcalComponent *comp)
 NS_IMETHODIMP
 calIcalComponent::RemoveSubcomponent(calIIcalComponent *comp)
 {
-    calIcalComponent *ical = NS_STATIC_CAST(calIcalComponent *, comp);
+    calIcalComponent *ical = static_cast<calIcalComponent *>(comp);
     icalcomponent_remove_component(mComponent, ical->mComponent);
     ical->mParent = nsnull;
     return NS_OK;
@@ -1224,7 +1224,7 @@ calIcalComponent::AddProperty(calIIcalProperty *prop)
     // XXX like AddSubcomponent, this is questionable
     NS_ENSURE_ARG_POINTER(prop);
 
-    calIcalProperty *ical = NS_STATIC_CAST(calIcalProperty *, prop);
+    calIcalProperty *ical = static_cast<calIcalProperty *>(prop);
     if(ical->mParent)
         ical->mProperty = icalproperty_new_clone(ical->mProperty);
     icalcomponent_add_property(mComponent, ical->mProperty);
@@ -1249,7 +1249,7 @@ NS_IMETHODIMP
 calIcalComponent::RemoveProperty(calIIcalProperty *prop)
 {
     // XXX like AddSubcomponent, this is questionable
-    calIcalProperty *ical = NS_STATIC_CAST(calIcalProperty *, prop);
+    calIcalProperty *ical = static_cast<calIcalProperty *>(prop);
     icalcomponent_remove_property(mComponent, ical->mProperty);
     ical->mParent = nsnull;
     return NS_OK;
@@ -1418,7 +1418,7 @@ calICSService::GetTimezone(const nsACString& tzid,
 PR_STATIC_CALLBACK(PLDHashOperator) TimezoneEntryHashToTimezoneIdArray(
     const nsACString& aTzid, TimezoneEntry * pEntry, void * aArg)
 {
-    nsCStringArray * pArray = NS_STATIC_CAST(nsCStringArray *, aArg);
+    nsCStringArray * pArray = static_cast<nsCStringArray *>(aArg);
     // ignore static ones, those are added nevertheless:
     if (!StringBeginsWith(
             aTzid, nsDependentCString(STRLEN_ARGS(MOZCAL_TZID_PREFIX))))

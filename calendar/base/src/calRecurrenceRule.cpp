@@ -212,7 +212,7 @@ calRecurrenceRule::SetCount(PRInt32 aRecurCount)
     if (aRecurCount != -1) {
         if (aRecurCount < 0 || aRecurCount > INT_MAX)
             return NS_ERROR_ILLEGAL_VALUE;
-        mIcalRecur->count = NS_STATIC_CAST(int, aRecurCount);
+        mIcalRecur->count = static_cast<int>(aRecurCount);
     } else {
         mIcalRecur->count = 0;
     }
@@ -287,7 +287,7 @@ calRecurrenceRule::SetInterval(PRInt32 aInterval)
 {
     if (aInterval < 0 || aInterval > SHRT_MAX)
         return NS_ERROR_ILLEGAL_VALUE;
-    mIcalRecur->interval = NS_STATIC_CAST(short, aInterval);
+    mIcalRecur->interval = static_cast<short>(aInterval);
     return NS_OK;
 }
 
@@ -548,7 +548,7 @@ calRecurrenceRule::SetIcalProperty(calIIcalProperty *aProp)
     nsresult rv;
 
     // XXX we really should do some CID checking here
-    calIcalProperty *cprop = NS_STATIC_CAST(calIcalProperty *, aProp);
+    calIcalProperty *cprop = static_cast<calIcalProperty *>(aProp);
     nsCAutoString propname;
 
     rv = cprop->GetPropertyName(propname);
