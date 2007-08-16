@@ -101,6 +101,7 @@ Var fhUninstallLog
 
 VIAddVersionKey "FileDescription" "${BrandShortName} Installer"
 
+!insertmacro GetLongPath
 !insertmacro RegCleanMain
 !insertmacro RegCleanUninstall
 !insertmacro CloseApp

@@ -86,6 +86,7 @@ Var TmpVal
 ; post update cleanup.
 VIAddVersionKey "FileDescription" "${BrandShortName} Helper"
 
+!insertmacro GetLongPath
 !insertmacro GetPathFromString
 !insertmacro AddHandlerValues
 !insertmacro CleanVirtualStore
@@ -95,6 +96,7 @@ VIAddVersionKey "FileDescription" "${BrandShortName} Helper"
 !insertmacro WriteRegStr2
 !insertmacro WriteRegDWORD2
 
+!insertmacro un.GetLongPath
 !insertmacro un.RegCleanMain
 !insertmacro un.RegCleanUninstall
 !insertmacro un.CleanVirtualStore

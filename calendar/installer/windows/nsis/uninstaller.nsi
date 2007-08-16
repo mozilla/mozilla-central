@@ -74,6 +74,7 @@ Var TmpVal
 ; post update cleanup.
 VIAddVersionKey "FileDescription" "${BrandShortName} Helper"
 
+!insertmacro un.GetLongPath
 !insertmacro un.RegCleanMain
 !insertmacro un.RegCleanUninstall
 !insertmacro un.CloseApp
