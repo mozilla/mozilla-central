@@ -40,8 +40,8 @@ function ResizeGraph() {
 
 ResizeGraph.prototype = {
 
-    margin_right: 25,
-    margin_bottom: 25,
+    margin_right: 10,
+    margin_bottom: 10,
     resizing: false,
     active: false,
     element: null,
@@ -53,15 +53,17 @@ ResizeGraph.prototype = {
     startTop: null,
     startLeft: null,
     currentDirection: '',
+    notifyFunc: null,
 
-
-    init: function(elem) {
+    init: function(elem, notify) {
         this.handle = elem;
         this.element = getElement(elem);
         connect(this.handle,'onmousedown',this, 'mouseDownFunc');
         connect(document,'onmouseup',this, 'mouseUpFunc');
         connect(this.handle,'onmousemove',this, 'mouseMoveFunc');
         connect(document,'onmousemove',this, 'updateElement');
+
+        this.notifyFunc = notify;
     },
     
     directions: function(e) {
@@ -69,12 +71,11 @@ ResizeGraph.prototype = {
         var graphPosition = elementPosition(this.handle);
         var dimensions = elementDimensions(this.handle);
         var dir = '';
-        if ( pointer.page.x > (graphPosition.x + dimensions.w) - this.margin_right ) {
-            dir= "e";
-        } 
-        else if ( pointer.page.y > (graphPosition.y + dimensions.h) - this.margin_bottom ) { 
-            dir = "s";
-        }
+        // s must come first, since the cursor is called "se"
+        if ( pointer.page.y > (graphPosition.y + dimensions.h) - this.margin_bottom )
+            dir += "s";
+        if ( pointer.page.x > (graphPosition.x + dimensions.w) - this.margin_right )
+            dir += "e";
         return dir;
     },
     
@@ -91,9 +92,6 @@ ResizeGraph.prototype = {
         if (this.currentDirection.indexOf('e') != -1) {
             var newWidth = this.startWidth + pointer[0] - this.startX;
             if (newWidth > this.margin_right) {
-                if (newWidth > 900) {
-                    getElement('graph-container').style.width = (newWidth + 200) + "px";
-                }
                 style.width = newWidth + "px";
                 this.element.width = newWidth;
             }
@@ -136,7 +134,6 @@ ResizeGraph.prototype = {
             if ( ! this.resizing ) {
                 var style = getElement(this.handle).style;
                 this.resizing = true;
-                style.position = "relative";
             } 
             this.draw(e);
             e.stop()
@@ -151,7 +148,8 @@ ResizeGraph.prototype = {
     {
         if(this.active && this.resizing) {
             this.finishResize(e,true);
-            BigPerfGraph.resize();
+            if (this.notifyFunc)
+                this.notifyFunc(this.element.width, this.element.height);
             e.stop();
         }
         this.active = false;
