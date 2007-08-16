@@ -79,7 +79,7 @@ cert_init()
        . ../iopr/cert_iopr.sh
   fi
   SCRIPTNAME="cert.sh"
-  CRL_GRP_DATE=`date "+%Y%m%d%H%M%SZ"`
+  CRL_GRP_DATE=`date -u "+%Y%m%d%H%M%SZ"`
   if [ -n "$NSS_ENABLE_ECC" ] ; then
       html_head "Certutil and Crlutil Tests with ECC"
   else
@@ -1189,7 +1189,7 @@ cert_crl_ssl()
   CRL_FILE_GRP_1=${R_SERVERDIR}/root.crl_${CRL_GRP_1_BEGIN}-${CRL_GRP_END}
   CRL_FILE=${CRL_FILE_GRP_1}
   
-  CRLUPDATE=`date +%Y%m%d%H%M%SZ`
+  CRLUPDATE=`date -u "+%Y%m%d%H%M%SZ"`
   CU_ACTION="Generating CRL for range ${CRL_GRP_1_BEGIN}-${CRL_GRP_END} TestCA authority"
   CRL_GRP_END_=`expr ${CRL_GRP_END} - 1`
   crlu -d $CADIR -G -n "TestCA" -f ${R_PWFILE} \
@@ -1226,8 +1226,8 @@ EOF_CRLINI
 
   echo "$SCRIPTNAME: Modifying CA CRL by adding one more cert ============"
   sleep 2
-  CRLUPDATE=`date "+%Y%m%d%H%M%SZ"`
-  CRL_GRP_DATE=`date "+%Y%m%d%H%M%SZ"`
+  CRLUPDATE=`date -u "+%Y%m%d%H%M%SZ"`
+  CRL_GRP_DATE=`date -u "+%Y%m%d%H%M%SZ"`
   CU_ACTION="Modify CRL by adding one more cert"
   crlu -d $CADIR -M -n "TestCA" -f ${R_PWFILE} -o ${CRL_FILE_GRP_1}_or1 \
       -i ${CRL_FILE_GRP_1}_or <<EOF_CRLINI
@@ -1253,7 +1253,7 @@ EOF_CRLINI
   echo "$SCRIPTNAME: Modifying CA CRL by removing one cert ==============="
   CU_ACTION="Modify CRL by removing one cert"
   sleep 2
-  CRLUPDATE=`date "+%Y%m%d%H%M%SZ"`
+  CRLUPDATE=`date -u "+%Y%m%d%H%M%SZ"`
   crlu -d $CADIR -M -n "TestCA" -f ${R_PWFILE} -o ${CRL_FILE_GRP_1} \
       -i ${CRL_FILE_GRP_1}_or1 <<EOF_CRLINI
 update=$CRLUPDATE
@@ -1278,8 +1278,8 @@ EOF_CRLINI
 
   echo "$SCRIPTNAME: Creating CA CRL for groups 1 and 2  ==============="
   sleep 2
-  CRLUPDATE=`date "+%Y%m%d%H%M%SZ"`
-  CRL_GRP_DATE=`date "+%Y%m%d%H%M%SZ"`
+  CRLUPDATE=`date -u "+%Y%m%d%H%M%SZ"`
+  CRL_GRP_DATE=`date -u "+%Y%m%d%H%M%SZ"`
   CU_ACTION="Creating CRL for groups 1 and 2"
   crlu -d $CADIR -M -n "TestCA" -f ${R_PWFILE} -o ${CRL_FILE_GRP_2} \
           -i ${CRL_FILE_GRP_1} <<EOF_CRLINI
@@ -1336,8 +1336,8 @@ cert_test_password()
 
   echo "$SCRIPTNAME: Creating CA CRL for groups 1, 2 and 3  ==============="
   sleep 2
-  CRLUPDATE=`date "+%Y%m%d%H%M%SZ"`
-  CRL_GRP_DATE=`date "+%Y%m%d%H%M%SZ"`
+  CRLUPDATE=`date -u "+%Y%m%d%H%M%SZ"`
+  CRL_GRP_DATE=`date -u "+%Y%m%d%H%M%SZ"`
   CU_ACTION="Creating CRL for groups 1, 2 and 3"
   crlu -d $CADIR -M -n "TestCA" -f ${R_PWFILE} -o ${CRL_FILE_GRP_3} \
             -i ${CRL_FILE_GRP_2} <<EOF_CRLINI
