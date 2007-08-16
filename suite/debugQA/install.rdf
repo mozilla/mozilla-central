@@ -29,6 +29,6 @@
     <em:name>SeaMonkey Debug and QA UI</em:name>
     <em:description>Provides Additional Debug and QA UI for SeaMonkey development</em:description>
     <em:creator>mozilla.org</em:creator>
-    <em:homepageURL>http://www.mozilla.org/projects/seamonkey/</em:homepageURL>
+    <em:homepageURL>http://wiki.mozilla.org/SeaMonkey:Debug_And_QA_UI</em:homepageURL>
   </Description>
 </RDF>
