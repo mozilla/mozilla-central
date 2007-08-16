@@ -77,7 +77,7 @@ $NeckoUnitTest            = 0;
 $RenderPerformanceTest    = 0;  # Tgfx
 
 $TestsPhoneHome           = 0;  # Should test report back to server?
-$GraphNameOverride        = 'fx-win32-tbox';
+$GraphNameOverride        = 'fxnewref-win32-tbox';
 
 # $results_server
 #----------------------------------------------------------------------------
@@ -128,7 +128,7 @@ $Make          = 'make';       # Must be GNU make
 #$CVSCO         = 'checkout -P';
 
 # win32 usually doesn't have /bin/mail
-$blat           = 'd:/moztools/bin/blat';
+$blat           = '/d/mozilla-build/blat261/full/blat';
 $use_blat       = 0;
 
 # Set moz_cvsroot to something like:
@@ -141,7 +141,7 @@ $use_blat       = 0;
 #$moz_cvsroot   = $ENV{CVSROOT};
 $moz_cvsroot = ':ext:cltbld@cvs.mozilla.org:/cvsroot';
 
-$MofoRoot = ":ext:cltbld\@cvs.mozilla.org:/mofo";
+$MofoRoot = ':ext:cltbld@cvs.mozilla.org:/mofo';
 
 #- Set these proper values for your tinderbox server
 #$Tinderbox_server = 'tinderbox-daemon@tinderbox.mozilla.org';
