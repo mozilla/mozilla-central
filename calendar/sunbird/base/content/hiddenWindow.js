@@ -69,7 +69,7 @@ function hiddenWindowStartup() {
                          'export_command',
                          'publish_events_command',
                          'modify_todo_command',
-                         'edit_calendar_command',
+                         'calendar_edit_calendar_command',
                          'calendar_delete_calendar_command',
                          'find_new_calendar_command',
                          'calendar_reload_remote_calendars',

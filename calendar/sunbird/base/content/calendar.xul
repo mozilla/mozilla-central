@@ -92,11 +92,11 @@
     <menuitem label="&calendar.context.newevent.label;"
               accesskey="&calendar.context.newevent.accesskey;"
               id="general-context-menu-newevent"
-              observes="new_command"/>
+              observes="calendar_new_event_command"/>
     <menuitem label="&calendar.context.newtodo.label;"
               accesskey="&calendar.context.newtodo.accesskey;"
               id="general-context-menu-newtodo"
-              observes="new_todo_command"/>
+              observes="calendar_new_todo_command"/>
     <menuitem label="&calendar.context.modifyevent.label;"
               accesskey="&calendar.context.modifyevent.accesskey;"
               id="general-context-menu-modify"
@@ -159,7 +159,7 @@
     <menuitem label="&calendar.context.newtodo.label;"
               accesskey="&calendar.context.newtodo.accesskey;"
               id="task-context-menu-new"
-              observes="new_todo_command"/>
+              observes="calendar_new_todo_command"/>
     <menuitem id="task-context-menu-modify"
               label="&calendar.context.modifytask.label;"
               accesskey="&calendar.context.modifytask.accesskey;"
@@ -234,11 +234,11 @@
     <menuitem label="&calendar.context.newserver.label;"
               id="calpopup-new"
               accesskey="&calendar.context.newserver.accesskey;"
-              observes="new_calendar_command"/>
+              observes="calendar_new_calendar_command"/>
     <menuitem label="&calendar.context.deleteserver.label;"
               id="calpopup-delete"
               accesskey="&calendar.context.deleteserver.accesskey;"
-              observes="delete_calendar_command"/>
+              observes="calendar_delete_calendar_command"/>
     <menuseparator/>
     <menuitem label="&calendar.context.export.label;"
               id="calpopup-export"
@@ -247,17 +247,17 @@
     <menuitem label="&calendar.context.publish.label;"
               id="calpopup-publish"
               accesskey="&calendar.context.publish.accesskey;"
-              observes="publish_calendar"/>
+              observes="calendar_publish_calendar"/>
     <menuseparator/>
     <menuitem label="&calendar.context.reloadserver.label;"
               id="calpopup-reload"
               accesskey="&calendar.context.reloadserver.accesskey;"
-              observes="reload_remote_calendars"/>
+              observes="calendar_reload_remote_calendars"/>
     <menuseparator/>
     <menuitem label="&calendar.context.properties.label;"
               id="calpopup-edit"
               accesskey="&calendar.context.properties.accesskey;"
-              observes="edit_calendar_command"/>
+              observes="calendar_edit_calendar_command"/>
   </popup>
 
   <popup id="toolbar-context-menu">

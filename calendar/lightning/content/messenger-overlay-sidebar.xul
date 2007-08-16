@@ -214,7 +214,8 @@
                 label-multiweek="&calendar.nextweek.button.tooltip;"
                 label-month="&calendar.nextmonth.button.tooltip;"
                 accesskey="&goNextCmd.accesskey;"/>
-      <menuitem label="&calendar.context.newevent.label;" oncommand="ltnCreateEvent()"
+      <menuitem label="&calendar.context.newevent.label;"
+                observes="calendar_new_event_command"
                 accesskey="&lightning.context.newevent.accesskey;"/>
     </popup>
     <popup id="calendar-item-context-menu" onpopupshowing="return true;">
