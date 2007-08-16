@@ -74,6 +74,7 @@
     [self setImagePosition:NSImageLeft];
     [self setRefusesFirstResponder:YES];
     [self setFont:[NSFont labelFontOfSize:11.0]];
+    [[self cell] setLineBreakMode:NSLineBreakByTruncatingTail];
 
     mLastEventWasMenu = NO;
   }
