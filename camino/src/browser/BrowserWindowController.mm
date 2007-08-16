@@ -4887,6 +4887,11 @@ enum BWCOpenDest {
   Wallet_Prefill(internalDomWindow);
 }
 
+- (IBAction)toggleTabThumbnailView:(id)sender
+{
+  [mContentView toggleTabThumbnailGridView];
+}
+
 @end
 
 #pragma mark -

@@ -60,6 +60,29 @@ const int kShadowPadding = 5;
   }
 }
 
+- (void)setRepresentedObject:(id)object
+{
+  if (mRepresentedObject != object) {
+    [mRepresentedObject release];
+    mRepresentedObject = [object retain];
+  }
+}
+
+- (id)representedObject;
+{
+  return mRepresentedObject;
+}
+
+- (void)setDelegate:(id)delegate
+{
+  mDelegate = delegate;
+}
+
+- (id)delegate
+{ 
+  return mDelegate;
+}
+
 - (void)drawRect:(NSRect)rect
 {
   NSShadow* shadow = [[[NSShadow alloc] init] autorelease];
@@ -78,9 +101,16 @@ const int kShadowPadding = 5;
   }
 }
 
+- (void)mouseUp:(NSEvent*)theEvent
+{
+  if ([mDelegate respondsToSelector:@selector(thumbnailViewWasSelected:)])
+    [mDelegate thumbnailViewWasSelected:self];
+}
+
 - (void)dealloc
 {
   [mThumbnail release];
+  [mRepresentedObject release];
   [super dealloc];
 }
 

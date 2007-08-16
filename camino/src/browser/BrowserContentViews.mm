@@ -155,7 +155,6 @@
   }
 }
 
-
 - (void)willRemoveSubview:(NSView *)subview
 {
   if (subview == mBookmarksToolbar)
@@ -201,6 +200,14 @@
   mTabThumbnailGridView = nil;
 }
 
+- (void)toggleTabThumbnailGridView
+{
+  if ([mTabThumbnailGridView isDescendantOf:self])
+    [self hideTabThumbnailGridView];
+  else
+    [self showTabThumbnailGridView];
+}
+
 //
 // Temporary, For testing purposes only
 //
@@ -210,13 +217,7 @@
   if ([theEvent modifierFlags] & NSControlKeyMask && NSCommandKeyMask) {
     NSString *keystroke = [theEvent charactersIgnoringModifiers];
     if ([keystroke isEqualToString:@"t"]) {
-
-      if (![mTabThumbnailGridView isDescendantOf:self])
-        [self showTabThumbnailGridView];
-
-      else if ([mTabThumbnailGridView isDescendantOf:self])
-        [self hideTabThumbnailGridView];
-
+      [self toggleTabThumbnailGridView];
       return YES;
     }
   }

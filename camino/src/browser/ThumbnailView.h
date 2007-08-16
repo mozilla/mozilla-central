@@ -46,9 +46,21 @@
 //
 
 @interface ThumbnailView : NSView {
-  NSImage* mThumbnail;
+  NSImage*  mThumbnail;
+  NSObject* mRepresentedObject;
+  id        mDelegate;
 }
 
 - (void)setThumbnail:(NSImage*)image;
+- (void)setRepresentedObject:(id)object;
+- (id)representedObject;
+- (void)setDelegate:(id)delegate;
+- (id)delegate;
+
+@end
+
+@interface NSObject (ThumbnailViewDelegate)
+
+- (void)thumbnailViewWasSelected:(ThumbnailView*)selectedView;
 
 @end

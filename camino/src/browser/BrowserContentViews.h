@@ -52,6 +52,8 @@
   BOOL                       mStatusBarWasHidden;
 }
 
+- (void)toggleTabThumbnailGridView;
+
 @end
 
 @interface BrowserContainerView : NSView

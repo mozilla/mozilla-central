@@ -264,6 +264,8 @@ typedef enum
 - (IBAction)home:(id)aSender;
 - (void)stopAllPendingLoads;
 
+- (IBAction)toggleTabThumbnailView:(id)sender;
+
 - (IBAction)reloadWithNewCharset:(NSString*)charset;
 - (NSString*)currentCharset;
 

@@ -44,6 +44,7 @@
 #import "BrowserWindowController.h"
 #import "BrowserTabViewItem.h"
 #import "BrowserWrapper.h"
+#import "NSView+Utils.h"
 
 const int kVerticalPadding = 25;
 const int kHorizontalPadding = 25;
@@ -56,7 +57,6 @@ static void shadeBackground(CGContextRef context, NSRect rect);
 CGColorSpaceRef getTheGreyColorSpace(void);
 
 @interface TabThumbnailGridView (Private)
-- (void)removeSubviews;
 - (void)updateGridSizeFor:(int)num;
 - (void)layoutThumbnails;
 - (void)createThumbnailViews;
@@ -96,7 +96,7 @@ CGColorSpaceRef getTheGreyColorSpace(void);
 {
   // Browser wrapper is used here since moving CHBrowserView disconnects needed attributes (i.e. URL)
   // The window isn't hooked up yet, so go through the superview
-  BrowserWindowController* bwc = [[[self superview] window] windowController];
+  BrowserWindowController* bwc = (BrowserWindowController*)[[[self superview] window] windowController];
   BrowserTabView* tabView = [bwc getTabBrowser];
   NSArray* openTabs = [tabView tabViewItems];
 
@@ -109,19 +109,13 @@ CGColorSpaceRef getTheGreyColorSpace(void);
 
     if (curThumbView) {
       [curThumbView setThumbnail:thumb];
+      [curThumbView setRepresentedObject:tabViewItem];
+      [curThumbView setDelegate:self];
       [self addSubview:curThumbView];
     }
   }
 
   [self layoutThumbnails];
-}
-
-- (void)removeSubviews
-{
-  NSEnumerator* subEnum = [[self subviews] objectEnumerator];
-  ThumbnailView* subview;
-  while ((subview = [subEnum nextObject]))
-    [subview removeFromSuperview];
 }
 
 //
@@ -132,7 +126,19 @@ CGColorSpaceRef getTheGreyColorSpace(void);
   if ([self superview])
     [self createThumbnailViews];
   else
-    [self removeSubviews];
+    [self removeAllSubviews];
+}
+
+//
+// Change the tab to the selected ThumbnailView
+//
+- (void)thumbnailViewWasSelected:(ThumbnailView*)selectedView
+{
+  BrowserWindowController* bwc = (BrowserWindowController*)[[self window] windowController];
+  BrowserTabView* tabView = [bwc getTabBrowser];
+
+  [tabView selectTabViewItem:[selectedView representedObject]];
+  [bwc toggleTabThumbnailView:self];
 }
 
 //
