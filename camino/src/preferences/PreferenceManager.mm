@@ -207,6 +207,9 @@ WriteVersion(nsIFile* aProfileDir, const nsACString& aVersion,
 
 - (void)showLaunchFailureAndQuitWithErrorTitle:(NSString*)inTitleFormat errorMessage:(NSString*)inMessageFormat;
 
+- (void)setAcceptLanguagesPref;
+- (void)setLocalePref;
+
 - (void)configureProxies;
 - (BOOL)updateOneProxy:(NSDictionary*)configDict
     protocol:(NSString*)protocol
@@ -680,158 +683,138 @@ static BOOL gMadePrefManager;
 
 - (void)syncMozillaPrefs
 {
-    if (!mPrefs) {
-        NSLog(@"Mozilla prefs not set up successfully");
-        return;
-    }
-    
-    PRInt32 lastRunPrefsVersion = 0;
-    mPrefs->GetIntPref("camino.prefs_version", &lastRunPrefsVersion);
-    mLastRunPrefsVersion = lastRunPrefsVersion;
+  if (!mPrefs) {
+    NSLog(@"Mozilla prefs not set up successfully");
+    return;
+  }
 
-    if (mLastRunPrefsVersion < 1) // version at which we turn off the universal charset detector
-      mPrefs->SetCharPref("intl.charset.detector", "");
+  PRInt32 lastRunPrefsVersion = 0;
+  mPrefs->GetIntPref("camino.prefs_version", &lastRunPrefsVersion);
+  mLastRunPrefsVersion = lastRunPrefsVersion;
 
-    mPrefs->SetIntPref("camino.prefs_version", kCurrentPrefsVersion);
-        
-    // fix up the cookie prefs. If 'p3p' or 'accept foreign cookies' are on, remap them to
-    // something that chimera can deal with.
-    PRInt32 acceptCookies = 0;
-    static const char* kCookieBehaviorPref = "network.cookie.cookieBehavior";
-    mPrefs->GetIntPref(kCookieBehaviorPref, &acceptCookies);
-    if (acceptCookies == 3) {     // p3p, assume all cookies on
-      acceptCookies = 0;
-      mPrefs->SetIntPref(kCookieBehaviorPref, acceptCookies);
-    }
+  // Prior to pref version 1, we had the universal charset detector on, but
+  // turned it off since it didn't work well enough.
+  if (mLastRunPrefsVersion < 1)
+    mPrefs->SetCharPref("intl.charset.detector", "");
 
-    // previous versions set dom.disable_open_click_delay to block some popups, but
-    // we really shouldn't be doing that (mozilla no longer does). Ensure we clear it out
-    // with authority so that it doesn't bite us later. Yes, this will break someone setting
-    // it manually, but that case is pretty rare. This will also clear it for someone who
-    // goes back to a previous version that shares the same pref folder, but that's ok 
-    // as well.
-    mPrefs->ClearUserPref("dom.disable_open_click_delay");
-    
-    // previous versions set capability.policy.* to turn off some web features regarding
-    // windows, but that caused exceptions to be thrown that webpages weren't ready to 
-    // handle. Clear those prefs with authority if they are set.
-    if ([[self getStringPref:"capability.policy.default.Window.defaultStatus" withSuccess:nil] length] > 0) {
-      mPrefs->ClearUserPref("capability.policy.default.Window.defaultStatus");
-      mPrefs->ClearUserPref("capability.policy.default.Window.status");
-      mPrefs->ClearUserPref("capability.policy.default.Window.focus");
-      mPrefs->ClearUserPref("capability.policy.default.Window.innerHeight.set");
-      mPrefs->ClearUserPref("capability.policy.default.Window.innerWidth.set");
-      mPrefs->ClearUserPref("capability.policy.default.Window.moveBy");
-      mPrefs->ClearUserPref("capability.policy.default.Window.moveTo");
-      mPrefs->ClearUserPref("capability.policy.default.Window.outerHeight.set");
-      mPrefs->ClearUserPref("capability.policy.default.Window.outerWidth.set");
-      mPrefs->ClearUserPref("capability.policy.default.Window.resizeBy");
-      mPrefs->ClearUserPref("capability.policy.default.Window.resizeTo");
-      mPrefs->ClearUserPref("capability.policy.default.Window.screenX.set");
-      mPrefs->ClearUserPref("capability.policy.default.Window.screenY.set");
-      mPrefs->ClearUserPref("capability.policy.default.Window.sizeToContent");
-      
-      // now set the correct prefs
-      [self setPref:"dom.disable_window_move_resize" toBoolean:YES];
-      [self setPref:"dom.disable_window_status_change" toBoolean:YES];
-      [self setPref:"dom.disable_window_flip" toBoolean:YES];
-    }
+  mPrefs->SetIntPref("camino.prefs_version", kCurrentPrefsVersion);
 
-    [self configureProxies];
+  // fix up the cookie prefs. If 'p3p' or 'accept foreign cookies' are on,
+  // remap them to something that chimera can deal with.
+  PRInt32 acceptCookies = 0;
+  static const char* kCookieBehaviorPref = "network.cookie.cookieBehavior";
+  mPrefs->GetIntPref(kCookieBehaviorPref, &acceptCookies);
+  if (acceptCookies == 3) {     // p3p, assume all cookies on
+    acceptCookies = 0;
+    mPrefs->SetIntPref(kCookieBehaviorPref, acceptCookies);
+  }
 
-    // Determine if the user specified their own language override. If so
-    // use it. If not work out the languages from the system preferences.
-    BOOL userProvidedLangOverride = NO;
-    NSString* userLanguageOverride = [self getStringPref:"camino.accept_languages" withSuccess:&userProvidedLangOverride];
-    
-    if (userProvidedLangOverride && [userLanguageOverride length] > 0)
-      [self setPref:"intl.accept_languages" toString:userLanguageOverride];
-    else {
-      NSUserDefaults* defs = [NSUserDefaults standardUserDefaults];
-      NSArray* languages = [defs objectForKey:@"AppleLanguages"];
-      NSMutableArray* acceptableLanguages = [NSMutableArray array];
+  [self configureProxies];
 
-      // Build the list of languages the user understands (from System Preferences | International).
-      BOOL languagesOkaySoFar = YES;
-      int indexOfGenericEnglish = -1;
-      BOOL englishDialectExists = NO;
-      for (unsigned int i = 0; languagesOkaySoFar && i < [languages count]; ++i) {
-        NSString* language = [PreferenceManager convertLocaleToHTTPLanguage:[languages objectAtIndex:i]];
-        if (language) {
-          [acceptableLanguages addObject:language];
-          if ((indexOfGenericEnglish == -1) && !englishDialectExists && [language isEqualToString:@"en"])
-            indexOfGenericEnglish = i;
-          else if (!englishDialectExists && [language hasPrefix:@"en-"])
-            englishDialectExists = YES;
-        }
-        else {
-          // If we don't understand a language don't set any, rather than risk leaving the user with
-          // their n'th choice (which may be one Apple made and they don't actually read)
-          // Mainly occurs on systems upgraded from 10.1, see convertLocaleToHTTPLanguage(). 
-          NSLog(@"Unable to set languages - language '%@' not a valid ISO language identifier", [languages objectAtIndex:i]);
-          languagesOkaySoFar = NO;
-        }
-      }
+  [self setAcceptLanguagesPref];
+  [self setLocalePref];
 
-      // Some servers will disregard a generic 'en', causing a fallback to a subsequent
-      // language (see bug 300905). So if the user has only a generic 'en', convert
-      // it to 'en-US', 'en'.
-      if ((indexOfGenericEnglish != -1) && !englishDialectExists)
-        [acceptableLanguages insertObject:@"en-US" atIndex:indexOfGenericEnglish];
+  // load up the default stylesheet (is this the best place to do this?)
+  if ([self getBooleanPref:"camino.enable_ad_blocking" withSuccess:NULL])
+    [self refreshAdBlockingStyleSheet:YES];
 
-      // If we understood all the languages in the list set the accept-language header.
-      // Note that necko will determine quality factors itself.
-      if (languagesOkaySoFar && [acceptableLanguages count] > 0) {
-        NSString* acceptLangHeader = [acceptableLanguages componentsJoinedByString:@","];
-        [self setPref:"intl.accept_languages" toString:acceptLangHeader];
+  // Load flashblock if enabled.  Test dependencies to avoid conflicts
+  BOOL flashBlockAllowed = [self isFlashBlockAllowed];	
+  if (flashBlockAllowed && [self getBooleanPref:"camino.enable_flashblock" withSuccess:NULL])
+    [self refreshFlashBlockStyleSheet:YES];
+}
+
+- (void)setAcceptLanguagesPref
+{
+  // Determine if the user specified their own language override. If so
+  // use it. If not work out the languages from the system preferences.
+  BOOL userProvidedLangOverride = NO;
+  NSString* userLanguageOverride = [self getStringPref:"camino.accept_languages"
+                                           withSuccess:&userProvidedLangOverride];
+
+  if (userProvidedLangOverride && [userLanguageOverride length] > 0)
+    [self setPref:"intl.accept_languages" toString:userLanguageOverride];
+  else {
+    NSUserDefaults* defs = [NSUserDefaults standardUserDefaults];
+    NSArray* languages = [defs objectForKey:@"AppleLanguages"];
+    NSMutableArray* acceptableLanguages = [NSMutableArray array];
+
+    // Build the list of languages the user understands (from System Preferences | International).
+    BOOL languagesOkaySoFar = YES;
+    int indexOfGenericEnglish = -1;
+    BOOL englishDialectExists = NO;
+    for (unsigned int i = 0; languagesOkaySoFar && i < [languages count]; ++i) {
+      NSString* language = [PreferenceManager convertLocaleToHTTPLanguage:[languages objectAtIndex:i]];
+      if (language) {
+        [acceptableLanguages addObject:language];
+        if ((indexOfGenericEnglish == -1) && !englishDialectExists &&
+            [language isEqualToString:@"en"])
+          indexOfGenericEnglish = i;
+        else if (!englishDialectExists && [language hasPrefix:@"en-"])
+          englishDialectExists = YES;
       }
       else {
-        // Fall back to the "en-us, en" default from all-camino.js - clear
-        // any existing user pref
-        [self clearPref:"intl.accept_languages"];
+        // If we don't understand a language don't set any, rather than risk
+        // leaving the user with their n'th choice (which may be one Apple made
+        // and they don't actually read). Mainly occurs on systems upgraded
+        // from 10.1, see convertLocaleToHTTPLanguage().
+        NSLog(@"Unable to set languages - language '%@' not a valid ISO language identifier",
+              [languages objectAtIndex:i]);
+        languagesOkaySoFar = NO;
       }
     }
 
-    // Use the user-selected pref for the user agent locale if it exists
-    NSString* uaLocale = [self getStringPref:"camino.useragent.locale" 
-                                 withSuccess:nil];
+    // Some servers will disregard a generic 'en', causing a fallback to a
+    // subsequent language (see bug 300905). So if the user has only a generic
+    // 'en', convert it to 'en-US', 'en'.
+    if ((indexOfGenericEnglish != -1) && !englishDialectExists)
+      [acceptableLanguages insertObject:@"en-US" atIndex:indexOfGenericEnglish];
 
-    if (![uaLocale length]) {
-      // Find the active localization nib's name and make sure it's in
-      // ab or ab-CD form
-      NSArray* localizations = [[NSBundle mainBundle] preferredLocalizations];
-      if ([localizations count]) {
-        CFStringRef activeLocalization =
-                    ::CFLocaleCreateCanonicalLocaleIdentifierFromString(
-                    NULL, (CFStringRef)[localizations objectAtIndex:0]);
-        if (activeLocalization) {
-          uaLocale = [PreferenceManager
-                     convertLocaleToHTTPLanguage:(NSString*)activeLocalization];
-          ::CFRelease(activeLocalization);
-        }
-      }
-    }
-
-    if (uaLocale && [uaLocale length]) {
-      [self setPref:"general.useragent.locale" toString:uaLocale];
+    // If we understood all the languages in the list set the accept-language
+    // header. Note that necko will determine quality factors itself.
+    if (languagesOkaySoFar && [acceptableLanguages count] > 0) {
+      NSString* acceptLangHeader = [acceptableLanguages componentsJoinedByString:@","];
+      [self setPref:"intl.accept_languages" toString:acceptLangHeader];
     }
     else {
-      NSLog(@"Unable to determine user interface locale\n");
-      // Fall back to the "en-US" default from all.js.  Clear any existing
-      // user pref.
-      [self clearPref:"general.useragent.locale"];
+      // Fall back to the "en-us, en" default from all-camino.js - clear
+      // any existing user pref
+      [self clearPref:"intl.accept_languages"];
     }
+  }
+}
 
-    // load up the default stylesheet (is this the best place to do this?)
-    BOOL enableAdBlocking = [self getBooleanPref:"camino.enable_ad_blocking" withSuccess:NULL];
+- (void)setLocalePref
+{
+  // Use the user-selected pref for the user agent locale if it exists
+  NSString* uaLocale = [self getStringPref:"camino.useragent.locale"
+                               withSuccess:nil];
 
-    if (enableAdBlocking)
-      [self refreshAdBlockingStyleSheet:YES];
+  if (![uaLocale length]) {
+    // Find the active localization nib's name and make sure it's in
+    // ab or ab-CD form
+    NSArray* localizations = [[NSBundle mainBundle] preferredLocalizations];
+    if ([localizations count]) {
+      CFStringRef activeLocalization =
+        ::CFLocaleCreateCanonicalLocaleIdentifierFromString(
+            NULL, (CFStringRef)[localizations objectAtIndex:0]);
+      if (activeLocalization) {
+        uaLocale = [PreferenceManager
+                     convertLocaleToHTTPLanguage:(NSString*)activeLocalization];
+        ::CFRelease(activeLocalization);
+      }
+    }
+  }
 
-    // Load flashblock if enabled.  Make sure to test dependencies to avoid conflicts
-    BOOL flashBlockAllowed = [self isFlashBlockAllowed];	
-    if (flashBlockAllowed && [self getBooleanPref:"camino.enable_flashblock" withSuccess:nil])
-      [self refreshFlashBlockStyleSheet:YES];
+  if (uaLocale && [uaLocale length]) {
+    [self setPref:"general.useragent.locale" toString:uaLocale];
+  }
+  else {
+    NSLog(@"Unable to determine user interface locale\n");
+    // Fall back to the "en-US" default from all.js.  Clear any existing
+    // user pref.
+    [self clearPref:"general.useragent.locale"];
+  }
 }
 
 #pragma mark -
