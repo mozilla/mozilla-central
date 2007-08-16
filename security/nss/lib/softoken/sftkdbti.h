@@ -33,17 +33,51 @@
  * the terms of any one of the MPL, the GPL or the LGPL.
  *
  * ***** END LICENSE BLOCK ***** */
-#include "pkcs11i.h"
-#include "sftkdbt.h"
 
-/* parsing functions */
-char * sftk_argFetchValue(char *string, int *pcount);
-char * sftk_getSecmodName(char *param, SDBType *dbType, char **appName, char **filename,PRBool *rw);
-char *sftk_argStrip(char *c);
-CK_RV sftk_parseParameters(char *param, sftk_parameters *parsed, PRBool isFIPS);
-void sftk_freeParams(sftk_parameters *params);
-const char *sftk_EvaluateConfigDir(const char *configdir, SDBType *dbType, char **app);
-char * sftk_argGetParamValue(char *paramName,char *parameters);
+#ifndef SFTKDBTI_H
+#define SFTKDBTI_H 1
 
+/*
+ * private defines
+ */
+struct SFTKDBHandleStr {
+    SDB   *db;
+    PRInt32 ref;
+    CK_OBJECT_HANDLE  type;
+    SECItem passwordKey;
+    SECItem *newKey;
+    PZLock *passwordLock;
+    SFTKDBHandle *peerDB;
+    SDB   *update;
+};
 
+#define SFTK_KEYDB_TYPE 0x40000000
+#define SFTK_CERTDB_TYPE 0x00000000
+#define SFTK_OBJ_TYPE_MASK 0xc0000000
+#define SFTK_OBJ_ID_MASK (~SFTK_OBJ_TYPE_MASK)
+#define SFTK_TOKEN_TYPE 0x80000000
 
+/* the following is the number of id's to handle on the stack at a time,
+ * it's not an upper limit of IDS that can be stored in the database */
+#define SFTK_MAX_IDS 10
+
+#define SFTK_GET_SDB(handle) \
+	((handle)->update ? (handle)->update : (handle)->db)
+
+SECStatus sftkdb_DecryptAttribute(SECItem *passKey, SECItem *cipherText,
+			SECItem **plainText);
+SECStatus sftkdb_EncryptAttribute(PLArenaPool *arena, SECItem *passKey,
+			SECItem *plainText, SECItem **cipherText);
+SECStatus sftkdb_SignAttribute(PLArenaPool *arena, SECItem *passKey,
+			CK_OBJECT_HANDLE objectID,
+			CK_ATTRIBUTE_TYPE attrType,
+			SECItem *plainText, SECItem **sigText);
+SECStatus sftkdb_VerifyAttribute(SECItem *passKey,
+			CK_OBJECT_HANDLE objectID,
+			CK_ATTRIBUTE_TYPE attrType,
+			SECItem *plainText, SECItem *sigText);
+
+void sftk_ULong2SDBULong(unsigned char *data, CK_ULONG value);
+CK_RV sftkdb_Update(SFTKDBHandle *handle, SECItem *key);
+
+#endif

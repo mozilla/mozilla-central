@@ -39,6 +39,7 @@
  * stored so we can deside that later.
  */
 #include "sftkdb.h"
+#include "sftkdbti.h"
 #include "sdb.h"
 #include "prsystem.h"
 #include "prprf.h"
@@ -187,6 +188,82 @@ done:
 	lib = PR_LoadLibraryWithFlags(libSpec, PR_LD_NOW | PR_LD_LOCAL);
     }
     return lib;
+}
+
+/*
+ * stub files for legacy db's to be able to encrypt and decrypt
+ * various keys and attributes.
+ */
+static SECStatus
+sftkdb_encrypt_stub(PRArenaPool *arena, SDB *sdb, SECItem *plainText,
+		    SECItem **cipherText)
+{
+    SFTKDBHandle *handle = sdb->app_private;
+    SECStatus rv;
+
+    if (handle == NULL) {
+	return SECFailure;
+    }
+
+    /* if we aren't th handle, try the other handle */
+    if (handle->type != SFTK_KEYDB_TYPE) {
+	handle = handle->peerDB;
+    }
+
+    /* not a key handle */
+    if (handle == NULL || handle->passwordLock == NULL) {
+	return SECFailure;
+    }
+
+    PZ_Lock(handle->passwordLock);
+    if (handle->passwordKey.data == NULL) {
+	PZ_Unlock(handle->passwordLock);
+	/* PORT_SetError */
+	return SECFailure;
+    }
+
+    rv = sftkdb_EncryptAttribute(arena, 
+	handle->newKey?handle->newKey:&handle->passwordKey, 
+	plainText, cipherText);
+    PZ_Unlock(handle->passwordLock);
+
+    return rv;
+}
+
+/*
+ * stub files for legacy db's to be able to encrypt and decrypt
+ * various keys and attributes.
+ */
+static SECStatus
+sftkdb_decrypt_stub(SDB *sdb, SECItem *cipherText, SECItem **plainText) 
+{
+    SFTKDBHandle *handle = sdb->app_private;
+    SECStatus rv;
+
+    if (handle == NULL) {
+	return SECFailure;
+    }
+
+    /* if we aren't th handle, try the other handle */
+    if (handle->type != SFTK_KEYDB_TYPE) {
+	handle = handle->peerDB;
+    }
+
+    /* not a key handle */
+    if (handle == NULL || handle->passwordLock == NULL) {
+	return SECFailure;
+    }
+
+    PZ_Lock(handle->passwordLock);
+    if (handle->passwordKey.data == NULL) {
+	PZ_Unlock(handle->passwordLock);
+	/* PORT_SetError */
+	return SECFailure;
+    }
+    rv = sftkdb_DecryptAttribute(&handle->passwordKey, cipherText, plainText);
+    PZ_Unlock(handle->passwordLock);
+
+    return rv;
 }
 
 static PRLibrary *legacy_glue_lib = NULL;
