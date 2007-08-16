@@ -58,7 +58,6 @@ calendar.jar:
     content/calendar/sun-calendar-event-dialog-freebusy.xml  (/calendar/prototypes/wcap/sun-calendar-event-dialog-freebusy.xml)
     content/calendar/sun-calendar-event-dialog-recurrence.xul  (/calendar/prototypes/wcap/sun-calendar-event-dialog-recurrence.xul)
     content/calendar/sun-calendar-event-dialog-recurrence.js  (/calendar/prototypes/wcap/sun-calendar-event-dialog-recurrence.js)
-    content/calendar/sun-calendar-event-dialog-recurrence.xml  (/calendar/prototypes/wcap/sun-calendar-event-dialog-recurrence.xml)
     content/calendar/sun-calendar-event-dialog-recurrence-datepicker.css  (/calendar/prototypes/wcap/sun-calendar-event-dialog-recurrence-datepicker.css)
     content/calendar/sun-calendar-event-dialog-recurrence-datepicker.xml  (/calendar/prototypes/wcap/sun-calendar-event-dialog-recurrence-datepicker.xml)
     content/calendar/sun-calendar-event-dialog-recurrence-preview.css  (/calendar/prototypes/wcap/sun-calendar-event-dialog-recurrence-preview.css)
