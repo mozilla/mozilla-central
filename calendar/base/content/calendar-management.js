@@ -612,19 +612,36 @@ var calendarManagerObserver = {
                 getMinimonth().refreshDisplay(true);
                 break;
             case "calendar.date.format":
-                var currentView = currentView();
-                currentView.goToDay(currentView.selectedDay);
-                refreshEventTree();
-                toDoUnifinderRefresh();
+                var view = currentView();
+                var day = view.selectedDay;
+                if (day) {
+                    // The view may not be initialized, only refresh if there is
+                    // a selected day.
+                    view.goToDay(day);
+                }
+
+
+                if (isSunbird()) {
+                    refreshEventTree();
+                    toDoUnifinderRefresh();
+                }
                 break;
             case "calendar.timezone.local":
                 var subject = aSubject.QueryInterface(Ci.nsIPrefBranch2);
                 gDefaultTimezone = subject.getCharPref(aPrefName);
 
-                var currentView = currentView();
-                currentView.goToDay(currentView.selectedDay);
-                refreshEventTree();
-                toDoUnifinderRefresh();
+                var view = currentView();
+                var day = view.selectedDay;
+                if (day) {
+                    // The view may not be initialized, only refresh if there is
+                    // a selected day.
+                    view.goToDay(day);
+                }
+
+                if (isSunbird()) {
+                    refreshEventTree();
+                    toDoUnifinderRefresh();
+                }
                 break;
             default :
                 break;

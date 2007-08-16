@@ -2507,6 +2507,11 @@
 
           var count = 0;
 
+          if (!this.mStartDate || !this.mEndDate) {
+            // The view has not been initialized, so there are 0 visible dates.
+            return count;
+          }
+
           var d = this.mStartDate.clone();
           while (d.compare(this.mEndDate) <= 0) {
             count++;
