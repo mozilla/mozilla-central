@@ -55,7 +55,8 @@
         persist="screenX screenY width height"
         buttons="accept"
         buttonlabelaccept="&calendar.alarm.dismissall.label;"
-        ondialogaccept="return onDismissAll();"
+        onload="window.arguments[0].wrappedJSObject.window_onLoad();"
+        ondialogaccept="return onDismissAllAlarms();"
         width="400"
         height="200">
 

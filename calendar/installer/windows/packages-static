@@ -209,7 +209,6 @@ bin\components\nsProxyAutoConfig.js
 bin\components\nsExtensionManager.js
 bin\components\nsBlocklistService.js
 bin\components\calendarService.js
-bin\components\calAlarmMonitor.js
 bin\components\calCompositeCalendar.js
 bin\components\calDavCalendar.js
 bin\components\calICSCalendar.js
@@ -221,6 +220,7 @@ bin\components\calWcapCalendarModule.js
 bin\components\jsconsole-clhandler.js
 bin\components\pluginGlue.js
 bin\js\calAlarmService.js
+bin\js\calAlarmMonitor.js
 bin\js\calAttachment.js
 bin\js\calAttendee.js
 bin\js\calCalendarManager.js

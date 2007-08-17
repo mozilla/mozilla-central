@@ -1,4 +1,3 @@
-/* -*- Mode: javascript; tab-width: 20; indent-tabs-mode: nil; c-basic-offset: 2 -*- */
 /* ***** BEGIN LICENSE BLOCK *****
  * Version: MPL 1.1/GPL 2.0/LGPL 2.1
  *
@@ -20,6 +19,7 @@
  *
  * Contributor(s):
  *   Stuart Parmenter <stuart.parmenter@oracle.com>
+ *   Daniel Boelzle <daniel.boelzle@sun.com>
  *
  * Alternatively, the contents of this file may be used under the terms of
  * either the GNU General Public License Version 2 or later (the "GPL"), or
@@ -38,6 +38,7 @@
 #include "nsISupports.idl"
 
 interface calIItemBase;
+interface calICalendar;
 interface calIDuration;
 
 [scriptable,uuid(c9c97643-db45-4790-9441-05384ae5c272)]
@@ -45,6 +46,21 @@ interface calIAlarmServiceObserver : nsISupports
 {
   /* Alarm has fired -- Bring up a dialog or play a sound */
   void onAlarm(in calIItemBase item);
+
+  /**
+   * Called if alarm(s) of a specific item are to be removed from
+   * the alarm window.
+   *
+   * @param aItem corresponding item, maybe master item of recurring
+   *              series (then all alarms belonging to this item are to
+   *              be removed)
+   */
+  void onRemoveAlarmsByItem(in calIItemBase item);
+
+  /**
+   * Called if all alarms of a specific calendar are to be removed.
+   */
+  void onRemoveAlarmsByCalendar(in calICalendar calendar);
 };
 
 [scriptable,uuid(03669cf3-bf4f-4692-97a1-cca891964a1d)]
@@ -83,6 +99,10 @@ interface calIAlarmService : nsISupports
      This will cause an event to be scheduled even if it was not
      previously scheduled.
   */
-  void snoozeEvent(in calIItemBase item, in calIDuration duration);
-};
+  void snoozeAlarm(in calIItemBase item, in calIDuration duration);
 
+  /**
+   * Dismisses an alarm corresponding to the passed item.
+   */
+  void dismissAlarm(in calIItemBase item);
+};

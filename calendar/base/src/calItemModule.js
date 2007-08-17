@@ -106,6 +106,13 @@ const componentData =
      constructor: "calAlarmService",
      service: true},
 
+    {cid: Components.ID("{4b7ae030-ed79-11d9-8cd6-0800200c9a66}"),
+     contractid: "@mozilla.org/calendar/alarm-monitor;1",
+     script: "calAlarmMonitor.js",
+     constructor: "calAlarmMonitor",
+     service: true,
+     categories: ["alarm-service-startup", "alarm-service-shutdown"]},
+
     {cid: Components.ID("{974339d5-ab86-4491-aaaf-2b2ca177c12b}"),
      contractid: "@mozilla.org/calendar/event;1",
      script: "calEvent.js",
@@ -232,14 +239,16 @@ var calItemModule = {
                                             location,
                                             type);
 
-            if (comp.category) {
+            if (comp.categories) {
                 var contractid;
                 if (comp.service)
                     contractid = "service," + comp.contractid;
                 else
                     contractid = comp.contractid;
-                catman.addCategoryEntry(comp.category, comp.categoryEntry,
-                                        contractid, true, true);
+                for each (var category in comp.categories) {
+                    catman.addCategoryEntry(category, "calendar",
+                                            contractid, true, true);
+                }
             }
         }
     },

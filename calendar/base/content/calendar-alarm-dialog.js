@@ -20,6 +20,7 @@
  * Contributor(s):
  *   Stuart Parmenter <stuart.parmenter@oracle.com>
  *   Philipp Kewisch <mozilla@kewis.ch>
+ *   Daniel Boelzle <daniel.boelzle@sun.com>
  *
  * Alternatively, the contents of this file may be used under the terms of
  * either the GNU General Public License Version 2 or later (the "GPL"), or
@@ -35,115 +36,73 @@
  *
  * ***** END LICENSE BLOCK ***** */
 
-function addAlarm(event)
-{
-  var alarmList = document.getElementById("alarmlist");
-
-  var alarmWidget = document.createElement("calendar-alarm-widget");
-  alarmWidget.setAttribute("title", event.title);
-  var time = event.startDate || event.entryDate || event.dueDate;
-  var dateFormatter = Components.classes["@mozilla.org/calendar/datetime-formatter;1"]
-                                .getService(Components.interfaces.calIDateTimeFormatter);
-  alarmWidget.setAttribute("time", dateFormatter.formatDateTime(time));
-  alarmWidget.setAttribute("location", event.getProperty("LOCATION"));
-  alarmWidget.addEventListener("snooze", onSnoozeAlarm, false);
-  alarmWidget.addEventListener("dismiss", onDismissAlarm, false);
-  alarmWidget.item = event;
-
-  alarmList.appendChild(alarmWidget);
-
-   var prefService = Components.classes["@mozilla.org/preferences-service;1"].getService(Components.interfaces.nsIPrefService);
-   var calendarPrefs = prefService.getBranch("calendar.");
-
-   var playSound = calendarPrefs.getBoolPref("alarms.playsound");
-   if (playSound) {
-     try {
-       var soundURL = calendarPrefs.getCharPref("alarms.soundURL");
-       var sound = Components.classes["@mozilla.org/sound;1"]
-                             .createInstance(Components.interfaces.nsISound);
-       if (soundURL && soundURL.length && soundURL.length > 0) {
-         soundURL = makeURL(soundURL);
-         sound.init();
-         sound.play(soundURL);
-       } else {
-         sound.init();
-         sound.beep();
-       }
-     } catch (ex) {
-       dump("unable to play sound...\n" + ex + "\n");
-     }
-   }
-
-  window.getAttention();
+function getAlarmService() {
+    if (!window.mAlarmService) {
+        window.mAlarmService = Components.classes["@mozilla.org/calendar/alarm-service;1"]
+                                         .getService(Components.interfaces.calIAlarmService);
+    }
+    return window.mAlarmService;
 }
 
-function onDismissAll()
-{
-  var box = document.getElementById("alarmlist");
-  for (var i = box.childNodes.length-1; i >= 0; i--) {
-    onDismissWidget(box.childNodes[i]);
-  }
-  return true;
+function onSnoozeAlarm(event) {
+    // reschedule alarm:
+    var duration = Components.classes["@mozilla.org/calendar/duration;1"]
+                             .createInstance(Components.interfaces.calIDuration);
+    duration.minutes = event.detail;
+    duration.normalize();
+    getAlarmService().snoozeAlarm(event.target.item, duration);
 }
 
-function onSnoozeAlarm(event)
-{
-  // i hate xbl..
-  var alarmWidget = event.target;
-
-  var alarmService = Components.classes["@mozilla.org/calendar/alarm-service;1"].getService(Components.interfaces.calIAlarmService);
-  
-  var duration = Components.classes["@mozilla.org/calendar/duration;1"]
-                 .createInstance(Components.interfaces.calIDuration);
-  duration.minutes = event.detail;
-  duration.normalize();
-
-  alarmService.snoozeEvent(alarmWidget.item, duration);
-
-  alarmWidget.removeEventListener("snooze", onSnoozeAlarm, false);
-  alarmWidget.removeEventListener("dismiss", onDismissAlarm, false);
-
-  var parent = alarmWidget.parentNode;
-  parent.removeChild(alarmWidget);
-  if (!parent.hasChildNodes()) {
-    // If this was the last alarm, close the window.
-    window.close();
-  }
+function onDismissAlarm(event) {
+    getAlarmService().dismissAlarm(event.target.item);
 }
 
-function onDismissAlarm(event)
-{
-  onDismissWidget(event.target);
+function onDismissAllAlarms(event) {
+    // removes widgets on the fly:
+    var alarmlist = document.getElementById("alarmlist");
+    for (var i = 0; i < alarmlist.childNodes.length; ++i) {
+        getAlarmService().dismissAlarm(alarmlist.childNodes[i].item);
+    }
+    return true; // close dialog
 }
 
-function onDismissWidget(alarmWidget) {
-  var now = Components.classes["@mozilla.org/calendar/datetime;1"]
-                      .createInstance(Components.interfaces.calIDateTime);
-  now.jsDate = new Date();
-  now = now.getInTimezone("UTC");
-  // We want the parent item, otherwise we're going to accidentally create an 
-  // exception.  We've relnoted (for 0.1) the slightly odd behavior this can
-  // cause if you move an event after dismissing an alarm
-  var item = alarmWidget.item.parentItem.clone();
-  item.alarmLastAck = now;
+function addWidgetFor(item) {
+    var widget = document.createElement("calendar-alarm-widget");
+    widget.setAttribute("title", item.title);
+    var time = item.startDate || item.entryDate || item.dueDate;
+    var dateFormatter = Components.classes["@mozilla.org/calendar/datetime-formatter;1"]
+                                  .getService(Components.interfaces.calIDateTimeFormatter);
+    widget.setAttribute("time", dateFormatter.formatDateTime(time));
+    widget.setAttribute("location", item.getProperty("LOCATION"));
+    widget.addEventListener("snooze", onSnoozeAlarm, false);
+    widget.addEventListener("dismiss", onDismissAlarm, false);
+    widget.item = item;
+    document.getElementById("alarmlist").appendChild(widget);
+    window.getAttention();
+}
 
-  // Make sure to clear out any snoozes that were here.
-  if (item.recurrenceInfo) {
-      item.deleteProperty("X-MOZ-SNOOZE-TIME-"+alarmWidget.item.recurrenceId.nativeTime);
-  } else {
-      item.deleteProperty("X-MOZ-SNOOZE-TIME");
-  }
-  item.calendar.modifyItem(item, alarmWidget.item, null);
-
-  alarmWidget.removeEventListener("snooze", onSnoozeAlarm, false);
-  alarmWidget.removeEventListener("dismiss", onDismissAlarm, false);
-
-  var parent = alarmWidget.parentNode;
-  parent.removeChild(alarmWidget);
-
-  if (!parent.hasChildNodes()) {
-    // If this was the last alarm, close the window.
-    window.close();
-  }
-
+function removeWidgetFor(item) {
+    var hashId = item.hashId;
+    var alarmlist = document.getElementById("alarmlist");
+    var nodes = alarmlist.childNodes;
+    for (var i = nodes.length - 1; i >= 0; --i) {
+        var widget = nodes[i];
+        if (widget.item.hashId == hashId) {
+            widget.removeEventListener("snooze", onSnoozeAlarm, false);
+            widget.removeEventListener("dismiss", onDismissAlarm, false);
+            alarmlist.removeChild(widget);
+            if (!alarmlist.hasChildNodes()) {
+                // check again next round since this removeWidgetFor call may be
+                // followed by an addWidgetFor call (e.g. when refreshing), and
+                // we don't want to close and open the window in that case.
+                function closer() {
+                    if (!alarmlist.hasChildNodes()) {
+                        document.getElementById("calendar-alarmwindow").cancelDialog();
+                    }
+                }
+                setTimeout(closer, 0);
+            }
+            break;
+        }
+    }
 }
