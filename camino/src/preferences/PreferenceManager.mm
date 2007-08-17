@@ -773,6 +773,14 @@ static BOOL gMadePrefManager;
     // If we understood all the languages in the list set the accept-language
     // header. Note that necko will determine quality factors itself.
     if (languagesOkaySoFar && [acceptableLanguages count] > 0) {
+      // Gecko will only assign 10 unique qualilty factors, and duplicate
+      // quality factors breaks the user's ordering (which combined with the
+      // 'en' issue above and the fact that Apple's default list has well over
+      // 10 languages means the wrong thing can happen with a default list).
+      if ([acceptableLanguages count] > 10) {
+        NSRange dropRange = NSMakeRange(10, [acceptableLanguages count] - 10);
+        [acceptableLanguages removeObjectsInRange:dropRange];
+      }
       NSString* acceptLangHeader = [acceptableLanguages componentsJoinedByString:@","];
       [self setPref:"intl.accept_languages" toString:acceptLangHeader];
     }
