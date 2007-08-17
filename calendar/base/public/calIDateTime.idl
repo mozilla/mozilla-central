@@ -98,7 +98,7 @@ interface calIDateTime : nsISupports
   attribute short month;
 
   /**
-   * Day of month, 1-[28,29,31]
+   * Day of month, 1-[28,29,30,31]
    */
   attribute short day;
 
@@ -160,7 +160,7 @@ interface calIDateTime : nsISupports
   readonly attribute short weekday;
 
   /**
-   * Day of the year, 0-365/366.
+   * Day of the year, 1-[365,366].
    */
   readonly attribute short yearday;
 
