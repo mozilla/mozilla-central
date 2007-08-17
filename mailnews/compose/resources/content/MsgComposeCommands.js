@@ -1647,10 +1647,6 @@ function GenericSendMessage( msgType )
       msgCompFields.subject = subject;
       Attachments2CompFields(msgCompFields);
 
-      var event = document.createEvent('Events');
-      event.initEvent('compose-send-message', false, true);
-      document.getElementById("msgcomposeWindow").dispatchEvent(event);
-
       if (msgType == nsIMsgCompDeliverMode.Now || msgType == nsIMsgCompDeliverMode.Later)
       {
         //Do we need to check the spelling?
@@ -1826,6 +1822,16 @@ function GenericSendMessage( msgType )
           gMsgCompose.SetDocumentCharset(fallbackCharset.value);
       }
       try {
+        // just before we try to send the message, fire off the compose-send-message event for listeners
+        // such as smime so they can do any pre-security work such as fetching certificates before sending
+        var event = document.createEvent('UIEvents');
+        event.initEvent('compose-send-message', false, true);
+        var msgcomposeWindow = document.getElementById("msgcomposeWindow");
+        msgcomposeWindow.setAttribute("msgtype", msgType);
+        msgcomposeWindow.dispatchEvent(event);
+        if (event.getPreventDefault())
+          throw Components.results.NS_ERROR_ABORT;
+
         gAutoSaving = msgType == nsIMsgCompDeliverMode.AutoSaveAsDraft;
         // if we're auto saving, mark the body as not changed here, and not
         // when the save is done, because the user might change it between now

@@ -1869,9 +1869,14 @@ function GenericSendMessage( msgType )
 
         // just before we try to send the message, fire off the compose-send-message event for listeners
         // such as smime so they can do any pre-security work such as fetching certificates before sending
-        var event = document.createEvent('Events');
+        var event = document.createEvent('UIEvents');
         event.initEvent('compose-send-message', false, true);
-        document.getElementById("msgcomposeWindow").dispatchEvent(event);
+        var msgcomposeWindow = document.getElementById("msgcomposeWindow");
+        msgcomposeWindow.setAttribute("msgtype", msgType);
+        msgcomposeWindow.dispatchEvent(event);
+        if (event.getPreventDefault())
+          throw Components.results.NS_ERROR_ABORT;
+        
         gAutoSaving = (msgType == nsIMsgCompDeliverMode.AutoSaveAsDraft);
         // disable the ui if we're not auto-saving
         if (!gAutoSaving)
