@@ -126,16 +126,6 @@
 		0FACBFEF07DC020D00DEE23A /* AddBookmark.nib in Resources */ = {isa = PBXBuildFile; fileRef = 0FACBFEC07DC020D00DEE23A /* AddBookmark.nib */; };
 		0FB6D99B089B276100414498 /* bm_favicon.tiff in Resources */ = {isa = PBXBuildFile; fileRef = 0FB6D99A089B276100414498 /* bm_favicon.tiff */; };
 		0FB6D99C089B276100414498 /* bm_favicon.tiff in Resources */ = {isa = PBXBuildFile; fileRef = 0FB6D99A089B276100414498 /* bm_favicon.tiff */; };
-		0FBB8CC608D260D800D58D8D /* SearchLeft_small.tiff in Resources */ = {isa = PBXBuildFile; fileRef = 0FBB8CC108D260D800D58D8D /* SearchLeft_small.tiff */; };
-		0FBB8CC708D260D800D58D8D /* SearchMiddle_small.tiff in Resources */ = {isa = PBXBuildFile; fileRef = 0FBB8CC208D260D800D58D8D /* SearchMiddle_small.tiff */; };
-		0FBB8CC808D260D800D58D8D /* SearchCancel_small.tiff in Resources */ = {isa = PBXBuildFile; fileRef = 0FBB8CC308D260D800D58D8D /* SearchCancel_small.tiff */; };
-		0FBB8CC908D260D800D58D8D /* SearchPopUp_small.tiff in Resources */ = {isa = PBXBuildFile; fileRef = 0FBB8CC408D260D800D58D8D /* SearchPopUp_small.tiff */; };
-		0FBB8CCA08D260D800D58D8D /* SearchRight_small.tiff in Resources */ = {isa = PBXBuildFile; fileRef = 0FBB8CC508D260D800D58D8D /* SearchRight_small.tiff */; };
-		0FBB8CCB08D260D800D58D8D /* SearchLeft_small.tiff in Resources */ = {isa = PBXBuildFile; fileRef = 0FBB8CC108D260D800D58D8D /* SearchLeft_small.tiff */; };
-		0FBB8CCC08D260D800D58D8D /* SearchMiddle_small.tiff in Resources */ = {isa = PBXBuildFile; fileRef = 0FBB8CC208D260D800D58D8D /* SearchMiddle_small.tiff */; };
-		0FBB8CCD08D260D800D58D8D /* SearchCancel_small.tiff in Resources */ = {isa = PBXBuildFile; fileRef = 0FBB8CC308D260D800D58D8D /* SearchCancel_small.tiff */; };
-		0FBB8CCE08D260D800D58D8D /* SearchPopUp_small.tiff in Resources */ = {isa = PBXBuildFile; fileRef = 0FBB8CC408D260D800D58D8D /* SearchPopUp_small.tiff */; };
-		0FBB8CCF08D260D800D58D8D /* SearchRight_small.tiff in Resources */ = {isa = PBXBuildFile; fileRef = 0FBB8CC508D260D800D58D8D /* SearchRight_small.tiff */; };
 		0FBC0ECB0798F92600E8E0E2 /* BookmarksEditing.nib in Resources */ = {isa = PBXBuildFile; fileRef = 0FBC0EC90798F92600E8E0E2 /* BookmarksEditing.nib */; };
 		0FBC0ECC0798F92600E8E0E2 /* BookmarksEditing.nib in Resources */ = {isa = PBXBuildFile; fileRef = 0FBC0EC90798F92600E8E0E2 /* BookmarksEditing.nib */; };
 		0FBC0ECE0798F94900E8E0E2 /* NSDate+Utils.m in Sources */ = {isa = PBXBuildFile; fileRef = 0FBC0ECD0798F94900E8E0E2 /* NSDate+Utils.m */; };
@@ -336,9 +326,6 @@
 		3F44AC1005BDFB9E00CB4B08 /* ProgressViewController.h in Headers */ = {isa = PBXBuildFile; fileRef = F5F415C903B9223E01A80166 /* ProgressViewController.h */; };
 		3F44AC1105BDFB9E00CB4B08 /* NSView+Utils.h in Headers */ = {isa = PBXBuildFile; fileRef = F527C90203BCD43601A80166 /* NSView+Utils.h */; };
 		3F44AC1205BDFB9E00CB4B08 /* ImageAndTextCell.h in Headers */ = {isa = PBXBuildFile; fileRef = 3F2CF8CB042A88B7005FD42F /* ImageAndTextCell.h */; };
-		3F44AC1305BDFB9E00CB4B08 /* SearchTextField.h in Headers */ = {isa = PBXBuildFile; fileRef = 3003B8930445144100B85BF3 /* SearchTextField.h */; };
-		3F44AC1405BDFB9E00CB4B08 /* SearchTextFieldCell.h in Headers */ = {isa = PBXBuildFile; fileRef = 3003B8940445144100B85BF3 /* SearchTextFieldCell.h */; };
-		3F44AC1505BDFB9E00CB4B08 /* STFPopUpButtonCell.h in Headers */ = {isa = PBXBuildFile; fileRef = 3003B8950445144100B85BF3 /* STFPopUpButtonCell.h */; };
 		3F44AC1605BDFB9E00CB4B08 /* Bookmark.h in Headers */ = {isa = PBXBuildFile; fileRef = 3FB2BA7D0545EA80002B9691 /* Bookmark.h */; };
 		3F44AC1705BDFB9E00CB4B08 /* BookmarkButton.h in Headers */ = {isa = PBXBuildFile; fileRef = 3FB2BA7F0545EA80002B9691 /* BookmarkButton.h */; };
 		3F44AC1805BDFB9E00CB4B08 /* BookmarkFolder.h in Headers */ = {isa = PBXBuildFile; fileRef = 3FB2BA810545EA80002B9691 /* BookmarkFolder.h */; };
@@ -398,11 +385,6 @@
 		3F44AC6105BDFB9E00CB4B08 /* ProgressView.nib in Resources */ = {isa = PBXBuildFile; fileRef = F583E3BB03B820AC01A80166 /* ProgressView.nib */; };
 		3F44AC6305BDFB9E00CB4B08 /* Keychain.nib in Resources */ = {isa = PBXBuildFile; fileRef = F5F7EF0D03C1F29C01BDD337 /* Keychain.nib */; };
 		3F44AC6405BDFB9E00CB4B08 /* Charset.dict in Resources */ = {isa = PBXBuildFile; fileRef = 3F22CC1303DF42A200026DCE /* Charset.dict */; };
-		3F44AC6505BDFB9E00CB4B08 /* SearchCancel.tiff in Resources */ = {isa = PBXBuildFile; fileRef = 3003B89C044514B600B85BF3 /* SearchCancel.tiff */; };
-		3F44AC6605BDFB9E00CB4B08 /* SearchLeft.tiff in Resources */ = {isa = PBXBuildFile; fileRef = 3003B89D044514B600B85BF3 /* SearchLeft.tiff */; };
-		3F44AC6705BDFB9E00CB4B08 /* SearchMiddle.tiff in Resources */ = {isa = PBXBuildFile; fileRef = 3003B89E044514B600B85BF3 /* SearchMiddle.tiff */; };
-		3F44AC6805BDFB9E00CB4B08 /* SearchPopUp.tiff in Resources */ = {isa = PBXBuildFile; fileRef = 3003B89F044514B600B85BF3 /* SearchPopUp.tiff */; };
-		3F44AC6905BDFB9E00CB4B08 /* SearchRight.tiff in Resources */ = {isa = PBXBuildFile; fileRef = 3003B8A0044514B600B85BF3 /* SearchRight.tiff */; };
 		3F44AC6A05BDFB9E00CB4B08 /* SearchURLList.plist in Resources */ = {isa = PBXBuildFile; fileRef = 3003B8AB044514E300B85BF3 /* SearchURLList.plist */; };
 		3F44AC6D05BDFB9E00CB4B08 /* BookmarkImportDlg.nib in Resources */ = {isa = PBXBuildFile; fileRef = 3FB2BAE50545EBAB002B9691 /* BookmarkImportDlg.nib */; };
 		3F44AC6E05BDFB9E00CB4B08 /* addressbook_icon.tif in Resources */ = {isa = PBXBuildFile; fileRef = 3FB2BAE90545EBF2002B9691 /* addressbook_icon.tif */; };
@@ -473,9 +455,6 @@
 		3F44ACB805BDFB9E00CB4B08 /* ProgressViewController.mm in Sources */ = {isa = PBXBuildFile; fileRef = F5F415CA03B9223E01A80166 /* ProgressViewController.mm */; };
 		3F44ACB905BDFB9E00CB4B08 /* NSView+Utils.m in Sources */ = {isa = PBXBuildFile; fileRef = F527C90303BCD43601A80166 /* NSView+Utils.m */; };
 		3F44ACBA05BDFB9E00CB4B08 /* ImageAndTextCell.m in Sources */ = {isa = PBXBuildFile; fileRef = 3F2CF8CC042A88B7005FD42F /* ImageAndTextCell.m */; };
-		3F44ACBB05BDFB9E00CB4B08 /* SearchTextField.m in Sources */ = {isa = PBXBuildFile; fileRef = 3003B88A044513FF00B85BF3 /* SearchTextField.m */; };
-		3F44ACBC05BDFB9E00CB4B08 /* SearchTextFieldCell.m in Sources */ = {isa = PBXBuildFile; fileRef = 3003B88B044513FF00B85BF3 /* SearchTextFieldCell.m */; };
-		3F44ACBD05BDFB9E00CB4B08 /* STFPopUpButtonCell.m in Sources */ = {isa = PBXBuildFile; fileRef = 3003B88C0445140000B85BF3 /* STFPopUpButtonCell.m */; };
 		3F44ACBE05BDFB9E00CB4B08 /* Bookmark.mm in Sources */ = {isa = PBXBuildFile; fileRef = 3FB2BA7E0545EA80002B9691 /* Bookmark.mm */; };
 		3F44ACBF05BDFB9E00CB4B08 /* BookmarkButton.mm in Sources */ = {isa = PBXBuildFile; fileRef = 3FB2BA800545EA80002B9691 /* BookmarkButton.mm */; };
 		3F44ACC005BDFB9E00CB4B08 /* BookmarkFolder.mm in Sources */ = {isa = PBXBuildFile; fileRef = 3FB2BA820545EA80002B9691 /* BookmarkFolder.mm */; };
@@ -764,9 +743,6 @@
 		3F44AE4905BDFBA000CB4B08 /* ProgressViewController.h in Headers */ = {isa = PBXBuildFile; fileRef = F5F415C903B9223E01A80166 /* ProgressViewController.h */; };
 		3F44AE4A05BDFBA000CB4B08 /* NSView+Utils.h in Headers */ = {isa = PBXBuildFile; fileRef = F527C90203BCD43601A80166 /* NSView+Utils.h */; };
 		3F44AE4B05BDFBA000CB4B08 /* ImageAndTextCell.h in Headers */ = {isa = PBXBuildFile; fileRef = 3F2CF8CB042A88B7005FD42F /* ImageAndTextCell.h */; };
-		3F44AE4C05BDFBA000CB4B08 /* SearchTextField.h in Headers */ = {isa = PBXBuildFile; fileRef = 3003B8930445144100B85BF3 /* SearchTextField.h */; };
-		3F44AE4D05BDFBA000CB4B08 /* SearchTextFieldCell.h in Headers */ = {isa = PBXBuildFile; fileRef = 3003B8940445144100B85BF3 /* SearchTextFieldCell.h */; };
-		3F44AE4E05BDFBA000CB4B08 /* STFPopUpButtonCell.h in Headers */ = {isa = PBXBuildFile; fileRef = 3003B8950445144100B85BF3 /* STFPopUpButtonCell.h */; };
 		3F44AE4F05BDFBA000CB4B08 /* Bookmark.h in Headers */ = {isa = PBXBuildFile; fileRef = 3FB2BA7D0545EA80002B9691 /* Bookmark.h */; };
 		3F44AE5005BDFBA000CB4B08 /* BookmarkButton.h in Headers */ = {isa = PBXBuildFile; fileRef = 3FB2BA7F0545EA80002B9691 /* BookmarkButton.h */; };
 		3F44AE5105BDFBA000CB4B08 /* BookmarkFolder.h in Headers */ = {isa = PBXBuildFile; fileRef = 3FB2BA810545EA80002B9691 /* BookmarkFolder.h */; };
@@ -826,11 +802,6 @@
 		3F44AE9A05BDFBA000CB4B08 /* ProgressView.nib in Resources */ = {isa = PBXBuildFile; fileRef = F583E3BB03B820AC01A80166 /* ProgressView.nib */; };
 		3F44AE9C05BDFBA000CB4B08 /* Keychain.nib in Resources */ = {isa = PBXBuildFile; fileRef = F5F7EF0D03C1F29C01BDD337 /* Keychain.nib */; };
 		3F44AE9D05BDFBA000CB4B08 /* Charset.dict in Resources */ = {isa = PBXBuildFile; fileRef = 3F22CC1303DF42A200026DCE /* Charset.dict */; };
-		3F44AE9E05BDFBA000CB4B08 /* SearchCancel.tiff in Resources */ = {isa = PBXBuildFile; fileRef = 3003B89C044514B600B85BF3 /* SearchCancel.tiff */; };
-		3F44AE9F05BDFBA000CB4B08 /* SearchLeft.tiff in Resources */ = {isa = PBXBuildFile; fileRef = 3003B89D044514B600B85BF3 /* SearchLeft.tiff */; };
-		3F44AEA005BDFBA000CB4B08 /* SearchMiddle.tiff in Resources */ = {isa = PBXBuildFile; fileRef = 3003B89E044514B600B85BF3 /* SearchMiddle.tiff */; };
-		3F44AEA105BDFBA000CB4B08 /* SearchPopUp.tiff in Resources */ = {isa = PBXBuildFile; fileRef = 3003B89F044514B600B85BF3 /* SearchPopUp.tiff */; };
-		3F44AEA205BDFBA000CB4B08 /* SearchRight.tiff in Resources */ = {isa = PBXBuildFile; fileRef = 3003B8A0044514B600B85BF3 /* SearchRight.tiff */; };
 		3F44AEA305BDFBA000CB4B08 /* SearchURLList.plist in Resources */ = {isa = PBXBuildFile; fileRef = 3003B8AB044514E300B85BF3 /* SearchURLList.plist */; };
 		3F44AEA605BDFBA000CB4B08 /* BookmarkImportDlg.nib in Resources */ = {isa = PBXBuildFile; fileRef = 3FB2BAE50545EBAB002B9691 /* BookmarkImportDlg.nib */; };
 		3F44AEA705BDFBA000CB4B08 /* addressbook_icon.tif in Resources */ = {isa = PBXBuildFile; fileRef = 3FB2BAE90545EBF2002B9691 /* addressbook_icon.tif */; };
@@ -901,9 +872,6 @@
 		3F44AEF205BDFBA000CB4B08 /* ProgressViewController.mm in Sources */ = {isa = PBXBuildFile; fileRef = F5F415CA03B9223E01A80166 /* ProgressViewController.mm */; };
 		3F44AEF305BDFBA000CB4B08 /* NSView+Utils.m in Sources */ = {isa = PBXBuildFile; fileRef = F527C90303BCD43601A80166 /* NSView+Utils.m */; };
 		3F44AEF405BDFBA000CB4B08 /* ImageAndTextCell.m in Sources */ = {isa = PBXBuildFile; fileRef = 3F2CF8CC042A88B7005FD42F /* ImageAndTextCell.m */; };
-		3F44AEF505BDFBA000CB4B08 /* SearchTextField.m in Sources */ = {isa = PBXBuildFile; fileRef = 3003B88A044513FF00B85BF3 /* SearchTextField.m */; };
-		3F44AEF605BDFBA000CB4B08 /* SearchTextFieldCell.m in Sources */ = {isa = PBXBuildFile; fileRef = 3003B88B044513FF00B85BF3 /* SearchTextFieldCell.m */; };
-		3F44AEF705BDFBA000CB4B08 /* STFPopUpButtonCell.m in Sources */ = {isa = PBXBuildFile; fileRef = 3003B88C0445140000B85BF3 /* STFPopUpButtonCell.m */; };
 		3F44AEF805BDFBA000CB4B08 /* Bookmark.mm in Sources */ = {isa = PBXBuildFile; fileRef = 3FB2BA7E0545EA80002B9691 /* Bookmark.mm */; };
 		3F44AEF905BDFBA000CB4B08 /* BookmarkButton.mm in Sources */ = {isa = PBXBuildFile; fileRef = 3FB2BA800545EA80002B9691 /* BookmarkButton.mm */; };
 		3F44AEFA05BDFBA000CB4B08 /* BookmarkFolder.mm in Sources */ = {isa = PBXBuildFile; fileRef = 3FB2BA820545EA80002B9691 /* BookmarkFolder.mm */; };
@@ -1155,8 +1123,6 @@
 		3FF08F2006E7D3C2001C9B19 /* tab_right_side.tif in Resources */ = {isa = PBXBuildFile; fileRef = 3FF08F1406E7D3C2001C9B19 /* tab_right_side.tif */; };
 		3FFE23530847CB0D00D6CAFC /* ad_blocking.css in Resources */ = {isa = PBXBuildFile; fileRef = 3FFE23520847CB0D00D6CAFC /* ad_blocking.css */; };
 		3FFE23540847CB0D00D6CAFC /* ad_blocking.css in Resources */ = {isa = PBXBuildFile; fileRef = 3FFE23520847CB0D00D6CAFC /* ad_blocking.css */; };
-		3FFFEBDA081C2CC500843C07 /* SearchNoPopUp.tiff in Resources */ = {isa = PBXBuildFile; fileRef = 3FFFEBD9081C2CC500843C07 /* SearchNoPopUp.tiff */; };
-		3FFFEBDB081C2CC500843C07 /* SearchNoPopUp.tiff in Resources */ = {isa = PBXBuildFile; fileRef = 3FFFEBD9081C2CC500843C07 /* SearchNoPopUp.tiff */; };
 		3FFFEC1E081C3F0B00843C07 /* StatusBarView.h in Headers */ = {isa = PBXBuildFile; fileRef = 3FFFEC1C081C3F0B00843C07 /* StatusBarView.h */; };
 		3FFFEC1F081C3F0B00843C07 /* StatusBarView.mm in Sources */ = {isa = PBXBuildFile; fileRef = 3FFFEC1D081C3F0B00843C07 /* StatusBarView.mm */; };
 		3FFFEC20081C3F0B00843C07 /* StatusBarView.h in Headers */ = {isa = PBXBuildFile; fileRef = 3FFFEC1C081C3F0B00843C07 /* StatusBarView.h */; };
@@ -2394,11 +2360,6 @@
 		0FA9712F092AF9A0005C1CA6 /* action_button.tiff */ = {isa = PBXFileReference; lastKnownFileType = image.tiff; name = action_button.tiff; path = PreferencePanes/Privacy/images/action_button.tiff; sourceTree = SOURCE_ROOT; };
 		0FACBFED07DC020D00DEE23A /* English */ = {isa = PBXFileReference; lastKnownFileType = wrapper.nib; name = English; path = resources/localized/English.lproj/AddBookmark.nib; sourceTree = "<group>"; };
 		0FB6D99A089B276100414498 /* bm_favicon.tiff */ = {isa = PBXFileReference; lastKnownFileType = image.tiff; name = bm_favicon.tiff; path = chrome/bm_favicon.tiff; sourceTree = "<group>"; };
-		0FBB8CC108D260D800D58D8D /* SearchLeft_small.tiff */ = {isa = PBXFileReference; lastKnownFileType = image.tiff; name = SearchLeft_small.tiff; path = chrome/SearchLeft_small.tiff; sourceTree = "<group>"; };
-		0FBB8CC208D260D800D58D8D /* SearchMiddle_small.tiff */ = {isa = PBXFileReference; lastKnownFileType = image.tiff; name = SearchMiddle_small.tiff; path = chrome/SearchMiddle_small.tiff; sourceTree = "<group>"; };
-		0FBB8CC308D260D800D58D8D /* SearchCancel_small.tiff */ = {isa = PBXFileReference; lastKnownFileType = image.tiff; name = SearchCancel_small.tiff; path = chrome/SearchCancel_small.tiff; sourceTree = "<group>"; };
-		0FBB8CC408D260D800D58D8D /* SearchPopUp_small.tiff */ = {isa = PBXFileReference; lastKnownFileType = image.tiff; name = SearchPopUp_small.tiff; path = chrome/SearchPopUp_small.tiff; sourceTree = "<group>"; };
-		0FBB8CC508D260D800D58D8D /* SearchRight_small.tiff */ = {isa = PBXFileReference; lastKnownFileType = image.tiff; name = SearchRight_small.tiff; path = chrome/SearchRight_small.tiff; sourceTree = "<group>"; };
 		0FBC0ECA0798F92600E8E0E2 /* English */ = {isa = PBXFileReference; lastKnownFileType = wrapper.nib; name = English; path = resources/localized/English.lproj/BookmarksEditing.nib; sourceTree = "<group>"; };
 		0FBC0ECD0798F94900E8E0E2 /* NSDate+Utils.m */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.c.objc; name = "NSDate+Utils.m"; path = "src/extensions/NSDate+Utils.m"; sourceTree = "<group>"; };
 		0FBC0ED00798F95400E8E0E2 /* NSMenu+Utils.m */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.c.objc; name = "NSMenu+Utils.m"; path = "src/extensions/NSMenu+Utils.m"; sourceTree = "<group>"; };
@@ -2459,17 +2420,6 @@
 		2E293A00027F33604B000102 /* PageProxyIcon.h */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.c.h; name = PageProxyIcon.h; path = src/browser/PageProxyIcon.h; sourceTree = SOURCE_ROOT; };
 		2E748B72029A448D4B000102 /* GoMenu.h */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.c.h; name = GoMenu.h; path = src/browser/GoMenu.h; sourceTree = SOURCE_ROOT; };
 		2E748B73029A448D4B000102 /* GoMenu.mm */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.cpp.objcpp; name = GoMenu.mm; path = src/browser/GoMenu.mm; sourceTree = SOURCE_ROOT; };
-		3003B88A044513FF00B85BF3 /* SearchTextField.m */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.c.objc; name = SearchTextField.m; path = src/browser/SearchTextField.m; sourceTree = "<group>"; };
-		3003B88B044513FF00B85BF3 /* SearchTextFieldCell.m */ = {isa = PBXFileReference; fileEncoding = 30; indentWidth = 2; lastKnownFileType = sourcecode.c.objc; name = SearchTextFieldCell.m; path = src/browser/SearchTextFieldCell.m; sourceTree = "<group>"; tabWidth = 2; usesTabs = 0; };
-		3003B88C0445140000B85BF3 /* STFPopUpButtonCell.m */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.c.objc; name = STFPopUpButtonCell.m; path = src/browser/STFPopUpButtonCell.m; sourceTree = "<group>"; };
-		3003B8930445144100B85BF3 /* SearchTextField.h */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.c.h; name = SearchTextField.h; path = src/browser/SearchTextField.h; sourceTree = "<group>"; };
-		3003B8940445144100B85BF3 /* SearchTextFieldCell.h */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.c.h; name = SearchTextFieldCell.h; path = src/browser/SearchTextFieldCell.h; sourceTree = "<group>"; };
-		3003B8950445144100B85BF3 /* STFPopUpButtonCell.h */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.c.h; name = STFPopUpButtonCell.h; path = src/browser/STFPopUpButtonCell.h; sourceTree = "<group>"; };
-		3003B89C044514B600B85BF3 /* SearchCancel.tiff */ = {isa = PBXFileReference; lastKnownFileType = image.tiff; name = SearchCancel.tiff; path = chrome/SearchCancel.tiff; sourceTree = "<group>"; };
-		3003B89D044514B600B85BF3 /* SearchLeft.tiff */ = {isa = PBXFileReference; lastKnownFileType = image.tiff; name = SearchLeft.tiff; path = chrome/SearchLeft.tiff; sourceTree = "<group>"; };
-		3003B89E044514B600B85BF3 /* SearchMiddle.tiff */ = {isa = PBXFileReference; lastKnownFileType = image.tiff; name = SearchMiddle.tiff; path = chrome/SearchMiddle.tiff; sourceTree = "<group>"; };
-		3003B89F044514B600B85BF3 /* SearchPopUp.tiff */ = {isa = PBXFileReference; lastKnownFileType = image.tiff; name = SearchPopUp.tiff; path = chrome/SearchPopUp.tiff; sourceTree = "<group>"; };
-		3003B8A0044514B600B85BF3 /* SearchRight.tiff */ = {isa = PBXFileReference; lastKnownFileType = image.tiff; name = SearchRight.tiff; path = chrome/SearchRight.tiff; sourceTree = "<group>"; };
 		3003B8AC044514E300B85BF3 /* English */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = text.xml; name = English; path = resources/localized/English.lproj/SearchURLList.plist; sourceTree = "<group>"; };
 		332377970C4D0FBD00A34879 /* Camino.xcconfig */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = text.xcconfig; name = Camino.xcconfig; path = config/Camino.xcconfig; sourceTree = "<group>"; };
 		332377CF0C4D886800A34879 /* Debug.xcconfig */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.xcconfig; name = Debug.xcconfig; path = config/Debug.xcconfig; sourceTree = "<group>"; };
@@ -2603,7 +2553,6 @@
 		3FF08F1306E7D3C2001C9B19 /* tab_left_side.tif */ = {isa = PBXFileReference; lastKnownFileType = image.tiff; name = tab_left_side.tif; path = resources/images/chrome/tab_left_side.tif; sourceTree = SOURCE_ROOT; };
 		3FF08F1406E7D3C2001C9B19 /* tab_right_side.tif */ = {isa = PBXFileReference; lastKnownFileType = image.tiff; name = tab_right_side.tif; path = resources/images/chrome/tab_right_side.tif; sourceTree = SOURCE_ROOT; };
 		3FFE23520847CB0D00D6CAFC /* ad_blocking.css */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = text; name = ad_blocking.css; path = resources/application/ad_blocking.css; sourceTree = SOURCE_ROOT; };
-		3FFFEBD9081C2CC500843C07 /* SearchNoPopUp.tiff */ = {isa = PBXFileReference; lastKnownFileType = image.tiff; name = SearchNoPopUp.tiff; path = resources/images/chrome/SearchNoPopUp.tiff; sourceTree = SOURCE_ROOT; };
 		3FFFEC1C081C3F0B00843C07 /* StatusBarView.h */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.c.h; name = StatusBarView.h; path = src/browser/StatusBarView.h; sourceTree = SOURCE_ROOT; };
 		3FFFEC1D081C3F0B00843C07 /* StatusBarView.mm */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.cpp.objcpp; name = StatusBarView.mm; path = src/browser/StatusBarView.mm; sourceTree = SOURCE_ROOT; };
 		4DC28F5D099184B80081939B /* libucvmath.a */ = {isa = PBXFileReference; lastKnownFileType = archive.ar; name = libucvmath.a; path = ../staticlib/components/libucvmath.a; sourceTree = SOURCE_ROOT; };
@@ -3609,16 +3558,6 @@
 			name = Frameworks;
 			sourceTree = "<group>";
 		};
-		3003B8890445124400B85BF3 /* SearchTextField */ = {
-			isa = PBXGroup;
-			children = (
-				3003B88A044513FF00B85BF3 /* SearchTextField.m */,
-				3003B88B044513FF00B85BF3 /* SearchTextFieldCell.m */,
-				3003B88C0445140000B85BF3 /* STFPopUpButtonCell.m */,
-			);
-			name = SearchTextField;
-			sourceTree = "<group>";
-		};
 		332377960C4D0FA200A34879 /* Xcode Configs */ = {
 			isa = PBXGroup;
 			children = (
@@ -3765,17 +3704,6 @@
 				0F2453D508C96478001C264F /* lock_badge.tif */,
 				F5A112C902DF270F01026D5D /* loading-image.gif */,
 				F55B6BF402EF1F7E01026D5D /* broken-image.gif */,
-				3003B89C044514B600B85BF3 /* SearchCancel.tiff */,
-				3003B89D044514B600B85BF3 /* SearchLeft.tiff */,
-				3003B89E044514B600B85BF3 /* SearchMiddle.tiff */,
-				3003B89F044514B600B85BF3 /* SearchPopUp.tiff */,
-				3FFFEBD9081C2CC500843C07 /* SearchNoPopUp.tiff */,
-				3003B8A0044514B600B85BF3 /* SearchRight.tiff */,
-				0FBB8CC108D260D800D58D8D /* SearchLeft_small.tiff */,
-				0FBB8CC208D260D800D58D8D /* SearchMiddle_small.tiff */,
-				0FBB8CC308D260D800D58D8D /* SearchCancel_small.tiff */,
-				0FBB8CC408D260D800D58D8D /* SearchPopUp_small.tiff */,
-				0FBB8CC508D260D800D58D8D /* SearchRight_small.tiff */,
 				3FB2BAE90545EBF2002B9691 /* addressbook_icon.tif */,
 				3FB2BAEA0545EBF2002B9691 /* bookmarkmenu_icon.tif */,
 				3FB2BAEB0545EBF2002B9691 /* bookmarktoolbar_icon.tif */,
@@ -3898,7 +3826,6 @@
 				1F8407060C5705CC007B893D /* ThumbnailView.m */,
 				00335B8B0C655ABC00A607F2 /* WebSearchField.h */,
 				00335B8C0C655ABC00A607F2 /* WebSearchField.mm */,
-				3003B8890445124400B85BF3 /* SearchTextField */,
 				F558137B030AEF9B0176F207 /* Site icons */,
 			);
 			name = "UI elements";
@@ -3998,9 +3925,6 @@
 				F52D5CD7027D3D5001A80166 /* PreferenceManager.h */,
 				F517395A020CE3740189DA0C /* ProgressDlgController.h */,
 				F5581379030AEF9B0176F207 /* RemoteDataProvider.h */,
-				3003B8950445144100B85BF3 /* STFPopUpButtonCell.h */,
-				3003B8930445144100B85BF3 /* SearchTextField.h */,
-				3003B8940445144100B85BF3 /* SearchTextFieldCell.h */,
 				F5D33CBC02EF61A901A967F3 /* SecurityDialogs.h */,
 				DEE9EBA30AF5C379002BC511 /* SessionManager.h */,
 				F558137A030AEF9B0176F207 /* SiteIconProvider.h */,
@@ -4694,9 +4618,6 @@
 				3F44AC1005BDFB9E00CB4B08 /* ProgressViewController.h in Headers */,
 				3F44AC1105BDFB9E00CB4B08 /* NSView+Utils.h in Headers */,
 				3F44AC1205BDFB9E00CB4B08 /* ImageAndTextCell.h in Headers */,
-				3F44AC1305BDFB9E00CB4B08 /* SearchTextField.h in Headers */,
-				3F44AC1405BDFB9E00CB4B08 /* SearchTextFieldCell.h in Headers */,
-				3F44AC1505BDFB9E00CB4B08 /* STFPopUpButtonCell.h in Headers */,
 				3F44AC1605BDFB9E00CB4B08 /* Bookmark.h in Headers */,
 				3F44AC1705BDFB9E00CB4B08 /* BookmarkButton.h in Headers */,
 				3F44AC1805BDFB9E00CB4B08 /* BookmarkFolder.h in Headers */,
@@ -4852,9 +4773,6 @@
 				3F44AE4905BDFBA000CB4B08 /* ProgressViewController.h in Headers */,
 				3F44AE4A05BDFBA000CB4B08 /* NSView+Utils.h in Headers */,
 				3F44AE4B05BDFBA000CB4B08 /* ImageAndTextCell.h in Headers */,
-				3F44AE4C05BDFBA000CB4B08 /* SearchTextField.h in Headers */,
-				3F44AE4D05BDFBA000CB4B08 /* SearchTextFieldCell.h in Headers */,
-				3F44AE4E05BDFBA000CB4B08 /* STFPopUpButtonCell.h in Headers */,
 				3F44AE4F05BDFBA000CB4B08 /* Bookmark.h in Headers */,
 				3F44AE5005BDFBA000CB4B08 /* BookmarkButton.h in Headers */,
 				3F44AE5105BDFBA000CB4B08 /* BookmarkFolder.h in Headers */,
@@ -5271,11 +5189,6 @@
 				3F44AC5D05BDFB9E00CB4B08 /* newTab.tif in Resources */,
 				3F44AC5E05BDFB9E00CB4B08 /* sendLink.tif in Resources */,
 				3F44AC6405BDFB9E00CB4B08 /* Charset.dict in Resources */,
-				3F44AC6505BDFB9E00CB4B08 /* SearchCancel.tiff in Resources */,
-				3F44AC6605BDFB9E00CB4B08 /* SearchLeft.tiff in Resources */,
-				3F44AC6705BDFB9E00CB4B08 /* SearchMiddle.tiff in Resources */,
-				3F44AC6805BDFB9E00CB4B08 /* SearchPopUp.tiff in Resources */,
-				3F44AC6905BDFB9E00CB4B08 /* SearchRight.tiff in Resources */,
 				3F44AC6A05BDFB9E00CB4B08 /* SearchURLList.plist in Resources */,
 				3F44AC6E05BDFB9E00CB4B08 /* addressbook_icon.tif in Resources */,
 				3F44AC6F05BDFB9E00CB4B08 /* bookmarkmenu_icon.tif in Resources */,
@@ -5312,7 +5225,6 @@
 				0FFE0A81079B147F00966027 /* bm_sort.tiff in Resources */,
 				0FFE0A82079B147F00966027 /* bm_add.tiff in Resources */,
 				0FFE0A83079B147F00966027 /* bm_action.tiff in Resources */,
-				3FFFEBDA081C2CC500843C07 /* SearchNoPopUp.tiff in Resources */,
 				3FBDC8E00827C44B00D7F8E0 /* autofill.tif in Resources */,
 				3FFE23530847CB0D00D6CAFC /* ad_blocking.css in Resources */,
 				0FB6D99B089B276100414498 /* bm_favicon.tiff in Resources */,
@@ -5339,11 +5251,6 @@
 				0F0AD72E08CA3682002782ED /* CreatePasswordDialog.nib in Resources */,
 				0FD8182008CB8E8900D8F88C /* GenerateKeyPairDialog.nib in Resources */,
 				0FDEEB5608CC06BC00754D9B /* ChooseCertificateDialog.nib in Resources */,
-				0FBB8CC608D260D800D58D8D /* SearchLeft_small.tiff in Resources */,
-				0FBB8CC708D260D800D58D8D /* SearchMiddle_small.tiff in Resources */,
-				0FBB8CC808D260D800D58D8D /* SearchCancel_small.tiff in Resources */,
-				0FBB8CC908D260D800D58D8D /* SearchPopUp_small.tiff in Resources */,
-				0FBB8CCA08D260D800D58D8D /* SearchRight_small.tiff in Resources */,
 				34D112DE08E9B17400989FD5 /* dl_trash.tif in Resources */,
 				0F01117408F2FE7C00423C02 /* bm_separator.tiff in Resources */,
 				0FEA7E650926BFC600B06154 /* unknown_file_icon.tif in Resources */,
@@ -5470,11 +5377,6 @@
 				3F44AE9605BDFBA000CB4B08 /* newTab.tif in Resources */,
 				3F44AE9705BDFBA000CB4B08 /* sendLink.tif in Resources */,
 				3F44AE9D05BDFBA000CB4B08 /* Charset.dict in Resources */,
-				3F44AE9E05BDFBA000CB4B08 /* SearchCancel.tiff in Resources */,
-				3F44AE9F05BDFBA000CB4B08 /* SearchLeft.tiff in Resources */,
-				3F44AEA005BDFBA000CB4B08 /* SearchMiddle.tiff in Resources */,
-				3F44AEA105BDFBA000CB4B08 /* SearchPopUp.tiff in Resources */,
-				3F44AEA205BDFBA000CB4B08 /* SearchRight.tiff in Resources */,
 				3F44AEA305BDFBA000CB4B08 /* SearchURLList.plist in Resources */,
 				3F44AEA705BDFBA000CB4B08 /* addressbook_icon.tif in Resources */,
 				3F44AEA805BDFBA000CB4B08 /* bookmarkmenu_icon.tif in Resources */,
@@ -5511,7 +5413,6 @@
 				0FFE0A84079B147F00966027 /* bm_sort.tiff in Resources */,
 				0FFE0A85079B147F00966027 /* bm_add.tiff in Resources */,
 				0FFE0A86079B147F00966027 /* bm_action.tiff in Resources */,
-				3FFFEBDB081C2CC500843C07 /* SearchNoPopUp.tiff in Resources */,
 				3FBDC8E10827C44B00D7F8E0 /* autofill.tif in Resources */,
 				3FFE23540847CB0D00D6CAFC /* ad_blocking.css in Resources */,
 				0FB6D99C089B276100414498 /* bm_favicon.tiff in Resources */,
@@ -5538,11 +5439,6 @@
 				0F0AD72F08CA3682002782ED /* CreatePasswordDialog.nib in Resources */,
 				0FD8182108CB8E8900D8F88C /* GenerateKeyPairDialog.nib in Resources */,
 				0FDEEB5708CC06BD00754D9B /* ChooseCertificateDialog.nib in Resources */,
-				0FBB8CCB08D260D800D58D8D /* SearchLeft_small.tiff in Resources */,
-				0FBB8CCC08D260D800D58D8D /* SearchMiddle_small.tiff in Resources */,
-				0FBB8CCD08D260D800D58D8D /* SearchCancel_small.tiff in Resources */,
-				0FBB8CCE08D260D800D58D8D /* SearchPopUp_small.tiff in Resources */,
-				0FBB8CCF08D260D800D58D8D /* SearchRight_small.tiff in Resources */,
 				0F01117508F2FE7C00423C02 /* bm_separator.tiff in Resources */,
 				0FEA7E660926BFC600B06154 /* unknown_file_icon.tif in Resources */,
 				0F8FC52E092ED71C0042429E /* PageInfo.nib in Resources */,
@@ -5691,9 +5587,6 @@
 				3F44ACB805BDFB9E00CB4B08 /* ProgressViewController.mm in Sources */,
 				3F44ACB905BDFB9E00CB4B08 /* NSView+Utils.m in Sources */,
 				3F44ACBA05BDFB9E00CB4B08 /* ImageAndTextCell.m in Sources */,
-				3F44ACBB05BDFB9E00CB4B08 /* SearchTextField.m in Sources */,
-				3F44ACBC05BDFB9E00CB4B08 /* SearchTextFieldCell.m in Sources */,
-				3F44ACBD05BDFB9E00CB4B08 /* STFPopUpButtonCell.m in Sources */,
 				3F44ACBE05BDFB9E00CB4B08 /* Bookmark.mm in Sources */,
 				3F44ACBF05BDFB9E00CB4B08 /* BookmarkButton.mm in Sources */,
 				3F44ACC005BDFB9E00CB4B08 /* BookmarkFolder.mm in Sources */,
@@ -5862,9 +5755,6 @@
 				3F44AEF205BDFBA000CB4B08 /* ProgressViewController.mm in Sources */,
 				3F44AEF305BDFBA000CB4B08 /* NSView+Utils.m in Sources */,
 				3F44AEF405BDFBA000CB4B08 /* ImageAndTextCell.m in Sources */,
-				3F44AEF505BDFBA000CB4B08 /* SearchTextField.m in Sources */,
-				3F44AEF605BDFBA000CB4B08 /* SearchTextFieldCell.m in Sources */,
-				3F44AEF705BDFBA000CB4B08 /* STFPopUpButtonCell.m in Sources */,
 				3F44AEF805BDFBA000CB4B08 /* Bookmark.mm in Sources */,
 				3F44AEF905BDFBA000CB4B08 /* BookmarkButton.mm in Sources */,
 				3F44AEFA05BDFBA000CB4B08 /* BookmarkFolder.mm in Sources */,

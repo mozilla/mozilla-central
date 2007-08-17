@@ -54,7 +54,6 @@
 #include "nsIURI.h"
 #include "nsNetUtil.h"
 #include "nsString.h"
-#include "STFPopUpButtonCell.h"
 
 // we should really get this from "CHBrowserService.h",
 // but that requires linkage and extra search paths.
