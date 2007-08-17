@@ -2055,7 +2055,7 @@
         </deck>
       </toolbaritem>
 
-      <toolbarbutton class="toolbarbutton-1" id="button-delete" label="&deleteButton.label;" tooltiptext="&deleteButton.tooltip;" observes="button_delete" oncommand="goDoCommand('button_delete')"/> 
+      <toolbarbutton class="toolbarbutton-1" id="button-delete" label="&deleteButton.label;" tooltiptext="&deleteButton.tooltip;" observes="button_delete" oncommand="goDoCommand(event.shiftKey ? 'cmd_shiftDelete' : 'cmd_delete')"/> 
 
 #ifdef XP_MACOSX
       <toolbarbutton id="button-print"  class="toolbarbutton-1" label="&printButton.label;"
