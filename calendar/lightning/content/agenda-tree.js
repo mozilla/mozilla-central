@@ -348,7 +348,6 @@ function agendaDoubleClick(event)
             var tom = today().clone();
             var offset = (calEvent == this.tomorrow) ? 1 : 2;
             tom.day += offset;
-            tom.normalize()
             createEventWithDialog(calendar, tom, tom);
         }
     }

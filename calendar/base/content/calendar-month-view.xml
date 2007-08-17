@@ -530,7 +530,6 @@
           this.monthView.mDropShadows = [];
           var shadowStart = this.mDate.clone();
           shadowStart.day -= this.monthView.mShadowIndex;
-          shadowStart.normalize();
           for (var i = 0; i < this.monthView.mShadowLength; i++) {
               var dropbox =  document.createElementNS("http://www.mozilla.org/keymaster/gatekeeper/there.is.only.xul", "box");
               dropbox.setAttribute("dropbox", "true");
@@ -540,14 +539,12 @@
               if (!box) {
                   // Dragging to the end of a view
                   shadowStart.day += 1;
-                  shadowStart.normalize();
                   continue;
               }
               box.box.dayitems.insertBefore(dropbox, box.box.dayitems.firstChild);
               this.monthView.mDropShadows.push(dropbox);
 
               shadowStart.day += 1;
-              shadowStart.normalize();
           }
         ]]></body>
       </method>
@@ -661,10 +658,8 @@
 
            newStart = item.startDate.clone();
            newStart.addDuration(duration);
-           newStart.normalize();
            newEnd = item.endDate.clone();
            newEnd.addDuration(duration);
-           newEnd.normalize();
          } else if (isToDo(item)) {
            if (item.entryDate && item.dueDate) {
              var beginMove = item.entryDate.clone();
@@ -672,10 +667,8 @@
              var duration = boxDate.subtractDate(beginMove);
              newStart = item.entryDate.clone();
              newStart.addDuration(duration);
-             newStart.normalize();
              newEnd = item.dueDate.clone();
              newEnd.addDuration(duration);
-             newEnd.normalize();
            } else if (item.entryDate) {
              newStart = adjustDate(item.entryDate);
              // zero offset so we don't double-count
@@ -687,11 +680,9 @@
          }
          if (newStart && offset) {
            newStart.day -= offset;
-           newStart.normalize();
          }
          if (newEnd && offset) {
            newEnd.day -= offset;
-           newEnd.normalize();
          }
 
          this.removeDropShadows();
@@ -955,7 +946,6 @@
           end = end.clone();
           end.day += 1;
           end.isDate = true;
-          end.normalize();
 
           return end;
         ]]></getter>
@@ -1114,8 +1104,6 @@
 
           this.mStartDate.day += this.mWeekStartOffset;
           this.mEndDate.day += this.mWeekStartOffset;
-          this.mStartDate.normalize();
-          this.mEndDate.normalize();
 
           this.refresh();
         ]]></body>
@@ -1139,13 +1127,11 @@
 
 	  var results = [];
 	  var curDate = this.mStartDate.clone();
-          curDate.isDate = true;
-          curDate.normalize();
+	  curDate.isDate = true;
 
 	  while (curDate.compare(this.mEndDate) <= 0) {
 	    results.push(curDate.clone());
 	    curDate.day += 1;
-	    curDate.normalize();
 	  }
 	  aCount.value = results.length;
 	  return results;
@@ -1443,7 +1429,6 @@
                 boxes.push(box);
             }
             targetDate.day += 1;
-            targetDate.normalize();
           }
 
           return boxes;

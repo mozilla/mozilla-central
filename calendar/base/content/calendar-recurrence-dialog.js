@@ -303,7 +303,6 @@ function saveDialog()
         endDate.setSeconds(59);
         endDate.setMilliseconds(999);
         endDate = jsDateToDateTime(endDate);
-        endDate.normalize();
         recRule.endDate = endDate;
         break;
     }

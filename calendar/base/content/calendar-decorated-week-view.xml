@@ -124,8 +124,6 @@
                             d1.day -= 7;
                             d2.day -= 7;
                         }
-                        d1.normalize();
-                        d2.normalize();
                     }
                     this.setNavLabels(aDate);
                     viewElement.setDateRange(d1, d2);
@@ -137,7 +135,6 @@
                 <body><![CDATA[
                     var d1 = this.selectedDay.clone();
                     d1.day += 7*aNumber;
-                    d1.normalize();
                     this.goToDay(d1);
                 ]]></body>
             </method>
@@ -152,7 +149,6 @@
                         var date = aDate.clone();
                         // Add/subtract i number of weeks
                         date.day = aDate.day + i*7;
-                        date.normalize();
 
                         var weekformatter =
                             Components.classes["@mozilla.org/calendar/weektitle-service;1"]

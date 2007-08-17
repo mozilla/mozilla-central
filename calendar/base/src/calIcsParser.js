@@ -231,7 +231,6 @@ function fixOldSunbirdExceptions(aItem) {
                 newRitem.date.hour     = oldDate.hour;
                 newRitem.date.minute   = oldDate.minute;
                 newRitem.date.second   = oldDate.second;
-                newRitem.date.normalize();
                 item.recurrenceInfo.appendRecurrenceItem(newRitem);
                 item.recurrenceInfo.deleteRecurrenceItem(ritem);
             }

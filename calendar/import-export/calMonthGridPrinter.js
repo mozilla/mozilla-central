@@ -107,7 +107,6 @@ function monthPrint_format(aStream, aStart, aEnd, aCount, aItems, aTitle) {
     maybeNewStart = start.clone();
     maybeNewStart.day = 1;
     maybeNewStart.month = start.month+1;
-    maybeNewStart.normalize();
 
     var date = start.clone();
 
@@ -116,7 +115,6 @@ function monthPrint_format(aStream, aStart, aEnd, aCount, aItems, aTitle) {
 
     var realEnd = end.clone();
     realEnd.day -= 1;
-    realEnd.normalize();
 
     if (start.compare(realEnd) <= 0) {
         // Only adjust dates if start date is earlier than end date.
@@ -133,10 +131,8 @@ function monthPrint_format(aStream, aStart, aEnd, aCount, aItems, aTitle) {
             var startWeekday = testBegin.weekday;
             if (startWeekday < weekStart) {
                 startWeekday += 7;
-                startWeekday.normalize();
             }
             testBegin.day += 7 + weekStart - startWeekday;
-            testBegin.normalize();
             if (testBegin.compare(maybeNewStart) > 0) {
                 start = maybeNewStart;
                 date = start.clone();
@@ -153,19 +149,15 @@ function monthPrint_format(aStream, aStart, aEnd, aCount, aItems, aTitle) {
 
             var lastDayOfPreviousMonth = end.clone();
             lastDayOfPreviousMonth.day = 0;
-            lastDayOfPreviousMonth.normalize();
             var lastDayWeekday = lastDayOfPreviousMonth.weekday;
             if (lastDayWeekday < weekStart) {
                 lastDayWeekday += 7;
-                lastDayWeekday.normalize();
             }
             if (date.month != end.month) {
                 date.day = 1;
-                date.normalize();
             }
             if ((lastDayWeekday + end.day - 1) < (7 + weekStart)) {
                 date.day = end.day;
-                date.normalize();
             }
 
             // Finally, we have to check whether we adjusted the dates too
@@ -174,11 +166,9 @@ function monthPrint_format(aStream, aStart, aEnd, aCount, aItems, aTitle) {
 
             if (date.compare(end) >= 0) {
                 date.day = 1;
-                date.normalize();
             }
         } else {
             date.day = 1;
-            date.normalize();
         }
     } else {
          // If start date is after end date, just print empty month.
@@ -200,7 +190,6 @@ function monthPrint_format(aStream, aStart, aEnd, aCount, aItems, aTitle) {
         // Make sure each month gets put on its own page
         body.appendChild(<br style="page-break-after:always;"/>);
         date.month++;
-        date.normalize();
     }
     html.appendChild(body);
 
@@ -252,18 +241,15 @@ function monthPrint_getHTML(aStart, aItems) {
     var sortedList = filteredItems.sort(compareItems);
     var firstDate = aStart.startOfMonth.startOfWeek.clone();
     firstDate.day += weekStart;
-    firstDate.normalize();
     if (aStart.startOfMonth.weekday < weekStart) {
         // Go back one week to make sure we display this day
         firstDate.day -= 7;
-        firstDate.normalize();
     }
 
     var lastDate = aStart.endOfMonth.endOfWeek.clone();
     if (aStart.endOfMonth.weekday < weekStart) {
         // Go back one week so we don't display any extra days
         lastDate.day -= 7;
-        lastDate.normalize();
     }
     firstDate.isDate = true;
     lastDate.isDate = true;
@@ -318,7 +304,6 @@ function makeHTMLWeek(date, sortedList, targetMonth) {
             if (sDate.isDate) {
                 eDate = eDate.clone();
                 eDate.day -= 1;
-                eDate.normalize();
             }
             if (!eDate || eDate.compare(date) == -1) {
                 continue;
@@ -362,7 +347,6 @@ function makeHTMLWeek(date, sortedList, targetMonth) {
         day.appendChild(innerTable);
         weekRow.appendChild(day);
         date.day++;
-        date.normalize();
     }
     return weekRow;
 };

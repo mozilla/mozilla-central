@@ -357,7 +357,6 @@ function parseDateTime(aDate, aTime, aLocale)
           date.hour += 12;
     }
 
-    date.normalize();
     dump(date+"\n");
     return date;
 }

@@ -210,12 +210,10 @@ function formatInterval(aStartDate, aEndDate, aStartString, aEndString) {
     // to get into a format that's understandable.
     if (aStartDate.isDate) {
         endDate.day -= 1;
-        endDate.normalize();
     }
 
     var testdate = aStartDate.clone();
     testdate.isDate = true;
-    testdate.normalize();
     var sameDay = (testdate.compare(endDate) == 0);
     
     if (aStartDate.isDate) {

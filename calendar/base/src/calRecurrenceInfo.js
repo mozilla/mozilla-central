@@ -653,7 +653,6 @@ calRecurrenceInfo.prototype = {
         var rangeStart = aRecurrenceId;
         var rangeEnd = aRecurrenceId.clone();
         rangeEnd.second += 1;
-        rangeEnd.normalize();
 
         var dates = this.getOccurrenceDates (rangeStart, rangeEnd, 1, {});
         var found = false;
@@ -744,7 +743,6 @@ calRecurrenceInfo.prototype = {
                     ex = ex.cloneShallow(this.item);
                 }
                 ex.recurrenceId.addDuration(timeDiff);
-                ex.recurrenceId.normalize();
                 
                 modifiedExceptions.push(ex);
                 this.removeExceptionFor(exid);
@@ -763,13 +761,11 @@ calRecurrenceInfo.prototype = {
             if (ritem instanceof kCalIRecurrenceDate) {
                 ritem = ritem.QueryInterface(kCalIRecurrenceDate);
                 ritem.date.addDuration(timeDiff);
-                ritem.date.normalize();
             } else if (ritem instanceof kCalIRecurrenceDateSet) {
                 ritem = ritem.QueryInterface(kCalIRecurrenceDateSet);
                 var rdates = ritem.getDates({});
                 for each (var date in rdates) {
                     date.addDuration(timeDiff);
-                    date.normalize();
                 }
                 ritem.setDates(rdates.length,rdates);
             }

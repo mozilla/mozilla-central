@@ -402,7 +402,7 @@ function observeViewDaySelect(event) {
         var endDay = currentView().endDay;
         var firstMonth = startDay.startOfMonth;
         var lastMonth = endDay.startOfMonth;
-        for (var month = firstMonth.clone(); month.compare(lastMonth) <= 0; month.month += 1, month.normalize()) {
+        for (var month = firstMonth.clone(); month.compare(lastMonth) <= 0; month.month += 1) {
             var visibleDays = 0;
             if (month.compare(firstMonth) == 0) {
                 visibleDays = startDay.endOfMonth.day - startDay.day + 1;

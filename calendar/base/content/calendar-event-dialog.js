@@ -183,14 +183,6 @@ function loadDialog(item)
             setElementValue("event-all-day", true, "checked");
             endDate.day -= 1;
             gItemDuration.days -= 1;
-
-            // The date/timepicker uses jsDate internally. Because jsDate does
-            // not know the concept of dates we end up displaying times unequal
-            // to 00:00 for all-day events depending on local timezone setting. 
-            // Calling normalize() recalculates that times to represent 00:00
-            // in local timezone.
-            endDate.normalize();
-            startDate.normalize();
         }
         
         setElementValue("event-starttime",   startDate.jsDate);
@@ -363,11 +355,9 @@ function saveDialog(item)
         var isAllDay = getElementValue("event-all-day", "checked");
         if (isAllDay) {
             startDate.isDate = true;
-            startDate.normalize();
 
             endDate.isDate = true;
             endDate.day += 1;
-            endDate.normalize();
         }
 
         setItemProperty(item, "startDate",   startDate);
@@ -791,7 +781,6 @@ function updateAllDay()
         var endDate = jsDateToDateTime(getElementValue("event-endtime"));
         if (startDate.compare(endDate) == 0) {
             endDate.minute += getPrefSafe("calendar.event.defaultlength", 60);
-            endDate.normalize();
             setElementValue("event-endtime", endDate.jsDate);
         }
     }
@@ -867,7 +856,6 @@ function editRecurrence()
         var startDate = jsDateToDateTime(getElementValue("event-starttime")).getInTimezone(kDefaultTimezone);
         if (getElementValue("event-all-day", "checked")) {
             startDate.isDate = true;
-            startDate.normalize();
         }
         args.startDate = startDate;
     } else if (isToDo(window.calendarItem)) {

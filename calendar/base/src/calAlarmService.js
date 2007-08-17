@@ -80,7 +80,6 @@ function calAlarmService() {
                 // We search 1 month in each direction for alarms.  Therefore,
                 // we need to go back 2 months from the end to get this right.
                 start.month -= 2;
-                start.normalize();
                 occs = aItem.recurrenceInfo.getOccurrences(start, this.alarmService.mRangeEnd, 0, {});
             } else {
                 occs = [aItem];
@@ -311,19 +310,16 @@ calAlarmService.prototype = {
                     // for a month, they'll miss some, but that's a slim chance
                     start = now.clone();
                     start.month -= 1;
-                    start.normalize();
                 } else {
                     // This is a subsequent search, so we got all the past alarms before
                     start = this.alarmService.mRangeEnd.clone();
                 }
                 var until = now.clone();
                 until.month += 1;
-                until.normalize();
                 
                 // We don't set timers for every future alarm, only those within 6 hours
                 var end = now.clone();
                 end.hour += kHoursBetweenUpdates;
-                end.normalize();
                 this.alarmService.mRangeEnd = end.getInTimezone("UTC");
 
                 this.alarmService.findAlarms(this.alarmService.calendarManager.getCalendars({}),
@@ -572,9 +568,7 @@ calAlarmService.prototype = {
         var start = jsDateToDateTime((new Date())).getInTimezone("UTC");
         var until = start.clone();
         start.month -= 1;
-        start.normalize();
         until.month += 1;
-        until.normalize();
         this.findAlarms(calendars, start, until);
     },
 

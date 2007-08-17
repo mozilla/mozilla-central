@@ -137,6 +137,30 @@ interface calIDateTime : nsISupports
   attribute AUTF8String timezone;
 
   /**
+   * Resets the datetime object.
+   *
+   * @param year     full 4-digit year value (e.g. "1989", "2004")
+   * @param month    month, 0-11, 0 = January
+   * @param day      day of month, 1-[28,29,31]
+   * @param hour     hour, 0-23
+   * @param minute   minute, 0-59
+   * @param second   decond, 0-59
+   * @param timezone timezone, e.g. "UTC", "floating", "Europe/Berlin"
+   *
+   * The passed datetime will be normalized, e.g. a minute value of 60 will
+   * increase the hour.
+   *
+   * @throws NS_ERROR_INVALID_ARG if an invalid timezone is passed in.
+   */
+  void resetTo(in short year,
+               in short month,
+               in short day,
+               in short hour,
+               in short minute,
+               in short second,
+               in AUTF8String timezone);
+
+  /**
    * The offset of the timezone this datetime is in, relative to UTC, in
    * seconds. A positive number means that the timezone is ahead of UTC.
    */
@@ -177,10 +201,6 @@ interface calIDateTime : nsISupports
    * Return a string representation of this instance.
    */
   AUTF8String toString();
-
-  // normalize and validate the expanded-out values
-  // XXX going away soon
-  void normalize();
 
   /**
    * Set the value of this calIDateTime instance

@@ -127,11 +127,9 @@ function weekPrint_format(aStream, aStart, aEnd, aCount, aItems, aTitle) {
     var date = start.startOfWeek;
     var startOfWeek = getPrefSafe("calendar.week.start", 0);
     date.day += startOfWeek;
-    date.normalize();
     // Make sure we didn't go too far ahead
     if (date.compare(start) == 1) {
         date.day -= 7;
-        date.normalize();
     }
 
     while(date.compare(end) == -1) {
@@ -150,7 +148,6 @@ function weekPrint_format(aStream, aStart, aEnd, aCount, aItems, aTitle) {
         for (var i = 0; i < 7 ; i++) {
             dayTds[date.weekday] = this.getDayTd(date, sortedList);
             date.day += 1;
-            date.normalize();
         }
 
         var monRow = <tr height="33%"/>;
@@ -233,7 +230,6 @@ function weekPrint_getDayTable(aDate, aItems) {
         if (sDate && sDate.isDate && eDate) {
             eDate = eDate.clone();
             eDate.day -= 1;
-            eDate.normalize();
         }
 
         // If the item has no end date, or if the item's end date is aDate or

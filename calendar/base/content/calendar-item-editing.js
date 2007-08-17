@@ -90,7 +90,6 @@ function createEventWithDialog(calendar, startDate, endDate, summary, event)
         startDate.hour = now().hour;
         startDate.minute = 0;
         startDate.second = 0;
-        startDate.normalize();
    }
 
     event.startDate = startDate.clone();
@@ -98,7 +97,6 @@ function createEventWithDialog(calendar, startDate, endDate, summary, event)
     if (!endDate) {
         endDate = startDate.clone();
         endDate.minute += getPrefSafe("calendar.event.defaultlength", 60);
-        endDate.normalize();
     }
     event.endDate = endDate.clone();
 

@@ -109,7 +109,6 @@ var minimonthBusyListener = {
             }
 
             current.day++;
-            current.normalize();
         }
     },
 

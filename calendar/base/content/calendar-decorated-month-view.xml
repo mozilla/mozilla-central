@@ -163,7 +163,6 @@
                     var date = dates[6].clone();
 		    
                     date.month += aNumber;
-                    date.normalize();
 
                     // Need to store this before we move
                     var oldSelectedDay = this.selectedDay;
@@ -174,13 +173,11 @@
                     // same day number in the next month
                     var newSelectedDay = oldSelectedDay.clone();
                     newSelectedDay.month += aNumber;
-                    newSelectedDay.normalize();
 
                     // correct for accidental rollover into the next month
                     if ((newSelectedDay.month - aNumber + 12)%12 != oldSelectedDay.month) {
                         newSelectedDay.month -= 1;
                         newSelectedDay.day = newSelectedDay.endOfMonth.day;
-                        newSelectedDay.normalize();
                     }
 
                     monthViewElement.selectedDay = newSelectedDay;

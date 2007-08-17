@@ -84,7 +84,6 @@
                 <body><![CDATA[
                     var currentDay = this.startDay.clone();
                     currentDay.day += aNumber;
-                    currentDay.normalize();
                     this.goToDay(currentDay);
                 ]]></body>
             </method>

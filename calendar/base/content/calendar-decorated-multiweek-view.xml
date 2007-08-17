@@ -180,18 +180,15 @@
                     if (aDate.weekday < viewElement.weekStartOffset) {
                         d1.day -= 7;
                     }
-                    d1.normalize();
 
                     // The variable firstWeekDate is a definitely showed date
                     // in the first week of the view (needed for setNavLabels).
                     var firstWeekDate = aDate.clone();
                     firstWeekDate.day -= 7*getPrefSafe("calendar.previousweeks.inview");
-                    firstWeekDate.normalize();
 
                     // The last day we're supposed to show
                     var d2 = d1.endOfWeek.clone();
                     d2.day += 7*(this.mWeeksInView-1);
-                    d2.normalize();
 
                     viewElement.setDateRange(d1,d2);
 
@@ -207,10 +204,8 @@
                     // aNumber only corresponds to the number of weeks to move
                     // make sure to compensate for previous weeks in view too
                     d1.day += 7 * (aNumber + getPrefSafe("calendar.previousweeks.inview", 4));
-                    d1.normalize();
                     this.goToDay(d1);
                     savedSelectedDay.day += 7*aNumber;
-                    savedSelectedDay.normalize();
                     this.viewElem.selectedDay = savedSelectedDay;
                 ]]></body>
             </method>
@@ -229,14 +224,12 @@
                         var date = aDate.clone();
                         // Add/subtract number of weeks
                         date.day = aDate.day + i*7;
-                        date.normalize();
 
                         var weekno1 = weekFormatter.getWeekTitle(date);
 
                         // We'd show several weeks.  Now get the week-number of the
                         // last week that would be shown if the user clicked the label
                         date.day += 7*(this.mWeeksInView-1);
-                        date.normalize();
                         var weekno2 = weekFormatter.getWeekTitle(date);
 
                         // If only one week is in the view, we use "Week X"

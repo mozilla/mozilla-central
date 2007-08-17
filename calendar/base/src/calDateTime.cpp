@@ -123,6 +123,29 @@ calDateTime::Clone(calIDateTime **aResult)
 }
 
 NS_IMETHODIMP
+calDateTime::ResetTo(PRInt16 year,
+                     PRInt16 month,
+                     PRInt16 day,
+                     PRInt16 hour,
+                     PRInt16 minute,
+                     PRInt16 second,
+                     nsACString const& timezone)
+{
+    nsresult rc = SetTimezone(timezone);
+    if (NS_SUCCEEDED(rc)) {
+        mYear = year;
+        mMonth = month;
+        mDay = day;
+        mHour = hour;
+        mMinute = minute;
+        mSecond = second;
+        mIsDate = PR_FALSE;
+        normalize();
+    }
+    return rc;
+}
+
+NS_IMETHODIMP
 calDateTime::Reset()
 {
     if (mImmutable)
@@ -227,18 +250,6 @@ NS_IMETHODIMP
 calDateTime::SetNativeTime(PRTime aNativeTime)
 {
     return SetTimeInTimezone (aNativeTime, NS_LITERAL_CSTRING("UTC"));
-}
-
-// XXX to be removed
-NS_IMETHODIMP
-calDateTime::Normalize()
-{
-    if (mImmutable)
-        return NS_ERROR_OBJECT_IS_IMMUTABLE;
-    // for now will do nothing; we have to purge out all the thousand places
-    // where normalize() is currently called at once;
-    // a patch would break in a minute, I guess ;)
-    return NS_OK;
 }
 
 // internal normalize():
