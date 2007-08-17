@@ -253,7 +253,6 @@
               var time = this.mDateFormatter.formatTime(date);
               template.setAttribute("value", time);
               date.minute += step_in_minutes;
-              date.normalize();
               var count = Math.ceil(
                   (this.mEndHour - this.mStartHour) * 60 / step_in_minutes);
               var remain = count - 1;
@@ -263,7 +262,6 @@
                   newNode.setAttribute("value", value);
                   hours.appendChild(newNode);
                   date.minute += step_in_minutes;
-                  date.normalize();
               }
           }
 
@@ -411,13 +409,11 @@
                   this, "anonid", "container");
           var date = this.mStartDate.clone();
           date.day += val;
-          date.normalize();
           var numChilds = container.childNodes.length;
           for (var i = 0; i < numChilds; i++) {
               var child = container.childNodes[i];
               child.date = date;
               date.day++;
-              date.normalize();
           }
           return val;
         ]]></setter>
@@ -510,7 +506,6 @@
               child.endDate = this.mEndDate;
               child.date = date;
               date.day++;
-              date.normalize();
           }
           var offset = this.mDayOffset;
           this.dayOffset = offset;
@@ -566,7 +561,6 @@
               if (count > 0) {
                   for (var i = 0; i < count; i++) {
                       date.day++;
-                      date.normalize();
                       var newNode = template.cloneNode(false);
                       newNode.force24Hours = this.mForce24Hours;
                       newNode.zoomFactor = this.mZoomFactor;
@@ -804,7 +798,6 @@
               var time = formatter.formatTime(date);
               template.setAttribute("value", time);
               date.minute += step_in_minutes;
-              date.normalize();
               // TODO: hardcoded value
               var num_days = Math.max(2, 4 * this.mZoomFactor / 100);
               var count = Math.ceil(
@@ -817,11 +810,9 @@
                       newNode.setAttribute("value", value);
                       hours.appendChild(newNode);
                       date.minute += step_in_minutes;
-                      date.normalize();
                   }
                   date.hour = this.mStartHour;
                   date.day++;
-                  date.normalize();
                   remain = count;
               }
           }
@@ -850,11 +841,9 @@
               start.minute = 0;
               start.second = 0;
               start.timezone = kDefaultTimezone;
-              start.normalize();
               var end = start.clone();
               end.day += this.mRange;
               end.timezone = kDefaultTimezone;
-              end.normalize();
 
               // First of all set all state slots to 'free'
               for (var i = 0; i < this.mState.length; i++) {
@@ -867,8 +856,6 @@
               for each (var entry in aEntries) {
                   var rangeStart = entry.start.getInTimezone(kDefaultTimezone);
                   var rangeEnd = entry.end.getInTimezone(kDefaultTimezone);
-                  rangeStart.normalize();
-                  rangeEnd.normalize();
 
                   if (rangeStart.compare(start) >= 0 &&
                       rangeEnd.compare(end) < 0) {
@@ -883,7 +870,6 @@
                           dayingrid.month = rangeStart.month;
                           dayingrid.day = rangeStart.day;
                           dayingrid.getInTimezone(kDefaultTimezone);
-                          dayingrid.normalize();
 
                           // Ok, this is an entry we're interested in. Find out
                           // which hours are actually occupied.
@@ -1006,8 +992,6 @@
                     entry.start.getInTimezone(kDefaultTimezone);
                 var rangeEnd =
                     entry.end.getInTimezone(kDefaultTimezone);
-                rangeStart.normalize();
-                rangeEnd.normalize();
 
                 var isZeroLength = !newTime.compare(newEndTime);
                 if ((isZeroLength &&
@@ -1031,7 +1015,6 @@
                             newTime.minute = 0;
                             newTime.second = 0;
                         }
-                        newTime.normalize();
                     }
                     newEndTime = newTime.clone();
                     newEndTime.addDuration(duration);
@@ -1521,18 +1504,15 @@
           if (allDay) {
               step_in_minutes = 60 * 24;
               endTime.day++;
-              endTime.normalize();
           }
 
           var duration = endTime.subtractDate(startTime);
 
           startTime.minute += step_in_minutes;
-          startTime.normalize();
 
           if (startTime.hour < this.mStartHour) {
               startTime.hour = this.mStartHour;
               startTime.minute = 0;
-              startTime.normalize();
           }
 
           endTime = startTime.clone();
@@ -1541,7 +1521,6 @@
               startTime.day++;
               startTime.hour = this.mStartHour;
               startTime.minute = 0;
-              startTime.normalize();
               endTime = startTime.clone();
               endTime.addDuration(duration);
               if (endTime.hour > this.mEndHour) {
@@ -1567,7 +1546,6 @@
                         if (startTime.hour < this.mStartHour) {
                             startTime.hour = this.mStartHour;
                             startTime.minute = 0;
-                            startTime.normalize();
                         }
 
                         endTime = startTime.clone();
@@ -1577,7 +1555,6 @@
                             startTime.day++;
                             startTime.hour = this.mStartHour;
                             startTime.minute = 0;
-                            startTime.normalize();
                             endTime = startTime.clone();
                             endTime.addDuration(duration);
                         }
@@ -1603,7 +1580,6 @@
           // state over to the calculated datetime.
           if (this.mStartDate.isDate) {
               startTime.isDate = true;
-              startTime.normalize();
           }
 
           // In case the new starttime happens to be scheduled

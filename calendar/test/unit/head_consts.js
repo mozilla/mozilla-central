@@ -40,10 +40,7 @@ const Ci = Components.interfaces;
 function createDate(aYear, aMonth, aDay) {
     var cd = Cc["@mozilla.org/calendar/datetime;1"].
              createInstance(Ci.calIDateTime);
-    cd.year = aYear;
-    cd.month = aMonth;
-    cd.day = aDay;
+    cd.resetTo(aYear, aMonth, aDay, 0, 0, 0, "UTC");
     cd.isDate = true;
-    cd.normalize();
     return cd;
 }

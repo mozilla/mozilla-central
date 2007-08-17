@@ -1205,7 +1205,6 @@ calDavCalendar.prototype = {
                 // add a day to rangeEnd since we want to match events all that day
                 // and isDate=false is converting the date to midnight
                 queryRangeEnd.day++;
-                queryRangeEnd.normalize();
                 queryRangeEnd.isDate = false;
             }
             var rangeXml = <time-range start={queryRangeStart.getInTimezone("UTC").icalString}

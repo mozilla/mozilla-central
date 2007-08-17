@@ -1543,7 +1543,6 @@
           if (this.mEndDate.isDate) {
               this.mEndDate.day += 1;
           }
-          this.mEndDate.normalize();
           this.mEndDate.makeImmutable();
           return val;
         ]]></setter>
@@ -1735,7 +1734,6 @@
                       newTime.minute -= clip_minutes;
                   }
               }
-              newTime.normalize();
           }
 
           if (!newTime.isDate) {
@@ -1748,8 +1746,6 @@
                   newTime.day++;
               }
           }
-
-          newTime.normalize();
 
           return newTime;
         ]]></body>
@@ -1795,7 +1791,6 @@
                 // automatically add one day extra for all-day events.
                 if (newEnd.isDate) {
                     newEnd.day--;
-                    newEnd.normalize();
                 }
 
                 this.startDate = newStart;
@@ -1833,7 +1828,6 @@
                 // automatically add one day extra for all-day events.
                 if (newEnd.isDate) {
                     newEnd.day--;
-                    newEnd.normalize();
                 }
 
                 // Don't allow all-day events to be shorter than a single day.
@@ -2178,8 +2172,6 @@
           this.mEndTimezone = aEndDate.timezone;
           this.mStartDate = aStartDate.getInTimezone(kDefaultTimezone);
           this.mEndDate = aEndDate.getInTimezone(kDefaultTimezone);
-          this.mStartDate.normalize();
-          this.mEndDate.normalize();
           this.mStartDate.makeImmutable();
           this.mEndDate.makeImmutable();
         ]]></body>
@@ -2620,8 +2612,6 @@
 
           this.mStartDate.isDate = allDay;
           this.mEndDate.isDate = allDay;
-          this.mStartDate.normalize();
-          this.mEndDate.normalize();
 
           this.propagateDateTime();
 
@@ -2759,14 +2749,6 @@
 
               endTime.day--;
 
-              // The date/timepicker uses jsDate internally. Because jsDate does
-              // not know the concept of dates we end up displaying times unequal
-              // to 00:00 for all-day events depending on local timezone setting.
-              // Calling normalize() recalculates that times to represent 00:00
-              // in local timezone.
-              endTime.normalize();
-              startTime.normalize();
-
               // for all-day events we expand to 24hrs, set zoom-factor to 25%
               // and disable the zoom-control.
               this.force24Hours = true;
@@ -2850,7 +2832,6 @@
           end.addDuration(duration);
           if (start.isDate) {
               end.day++;
-              end.normalize();
           }
           this.mStartDate = start.clone();
           this.mEndDate = end.clone();
@@ -2859,15 +2840,6 @@
           // Check if an all-day event has been passed in (to adapt endDate).
           if (this.mStartDate.isDate) {
               this.mEndDate.day--;
-
-              // The date/timepicker uses jsDate internally. Because jsDate does
-              // not know the concept of dates we end up displaying times unequal
-              // to 00:00 for all-day events depending on local timezone setting.
-              // Calling normalize() recalculates that times to represent 00:00
-              // in local timezone.
-              this.mEndDate.normalize();
-              this.mStartDate.normalize();
-              endDate.normalize();
           }
           this.mStartDate.makeImmutable();
           this.mEndDate.makeImmutable();
@@ -3050,9 +3022,6 @@
       <handler event="timechange"><![CDATA[
         var start = event.startDate.getInTimezone(this.mStartTimezone);
         var end = event.endDate.getInTimezone(this.mEndTimezone);
-
-        start.normalize();
-        end.normalize();
 
         this.loadDateTime(start, end);
 

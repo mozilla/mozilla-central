@@ -458,14 +458,6 @@ function loadDateTime(item) {
 
             endTime.day--;
             duration.days--;
-
-            // The date/timepicker uses jsDate internally. Because jsDate does
-            // not know the concept of dates we end up displaying times unequal
-            // to 00:00 for all-day events depending on local timezone setting.
-            // Calling normalize() recalculates that times to represent 00:00
-            // in local timezone.
-            endTime.normalize();
-            startTime.normalize();
         }
 
         // store the start/end-times as calIDateTime-objects
@@ -1198,10 +1190,8 @@ function saveDateTime(item) {
             startTime = startTime.clone();
             endTime = endTime.clone();
             startTime.isDate = true;
-            startTime.normalize();
             endTime.isDate = true;
             endTime.day += 1;
-            endTime.normalize();
         } else {
             startTime = startTime.clone();
             startTime.isDate = false;
@@ -1466,8 +1456,6 @@ function editAttendees() {
         var duration = endTime.subtractDate(startTime);
         startTime = startTime.clone();
         endTime = endTime.clone();
-        endTime.normalize();
-        startTime.normalize();
         var kDefaultTimezone = calendarDefaultTimezone();
         gStartTimezone = startTime.timezone;
         gEndTimezone = endTime.timezone;
@@ -1487,10 +1475,8 @@ function editAttendees() {
     var isAllDay = getElementValue("event-all-day", "checked");
     if (isAllDay) {
         startTime.isDate = true;
-        startTime.normalize();
         endTime.isDate = true;
         endTime.day += 1;
-        endTime.normalize();
     } else {
         startTime.isDate = false;
         endTime.isDate = false;

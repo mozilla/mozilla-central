@@ -289,15 +289,6 @@ function getDatetimeFromIcalString(val) {
     // assuming timezone is known:
     var dt = new CalDateTime();
     dt.icalString = val;
-    if (LOG_LEVEL > 1) {
-        var dt_ = dt.clone();
-        dt_.normalize();
-        if (dt.icalString != val || dt_.icalString != val) {
-            logError(dt.icalString + " vs. " + val, "date-time error");
-            logError(dt_.icalString + " vs. " + val, "date-time error");
-            debugger;
-        }
-    }
     return dt;
 }
 

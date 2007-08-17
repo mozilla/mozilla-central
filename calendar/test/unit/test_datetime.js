@@ -40,14 +40,9 @@ function run_test() {
 
     var cd = Cc["@mozilla.org/calendar/datetime;1"].
              createInstance(Ci.calIDateTime);
-    cd.year = 2005;
-    cd.month = 10;
-    cd.day = 13;
-    cd.hour = 10;
-    cd.minute = 0;
-    cd.second = 0;
-    cd.timezone = "/mozilla.org/20050126_1/America/Bogota";
-    cd.normalize();
+    cd.resetTo(2005, 10, 13,
+               10, 0, 0,
+               "/mozilla.org/20050126_1/America/Bogota");
 
     do_check_eq(cd.hour, 10);
     do_check_eq(cd.icalString, "20051113T100000");
@@ -60,7 +55,6 @@ function run_test() {
     do_check_eq(cd_utc.icalString, "20051113T150000Z");
 
     cd.hour = 25;
-    cd.normalize();
     do_check_eq(cd.hour, 1);
     do_check_eq(cd.day, 14);
 
@@ -69,25 +63,18 @@ function run_test() {
     // setting .isDate to be true on a date should not change its nativeTime
     // bug 315954,
     cd.hour = 0;
-    cd.normalize();
     cd_allday = cd.clone();
     cd_allday.isDate = true;
     do_check_eq(cd.nativeTime, cd_allday.nativeTime);
 
     // Daylight savings test
-    cd.year = 2006;
-    cd.month = 2;
-    cd.day = 26;
-    cd.hour = 1;
-    cd.minute = 0;
-    cd.second = 0;
-    cd.timezone = "/mozilla.org/20050126_1/Europe/Amsterdam";
-    cd.normalize();
+    cd.resetTo(2006, 2, 26,
+               1, 0, 0,
+               "/mozilla.org/20050126_1/Europe/Amsterdam");
 
     do_check_eq(cd.weekday, 0);
     do_check_eq(cd.timezoneOffset, 1*3600);
 
     cd.day += 1;
-    cd.normalize();
     do_check_eq(cd.timezoneOffset, 2*3600);
 }

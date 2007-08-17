@@ -1117,22 +1117,16 @@
 
           if (dragState.dragType == "modify-start" ||
               dragState.dragType == "new") {
-              newStart.day = dragDay.day;
-              newStart.month = dragDay.month;
-              newStart.year = dragDay.year;
-              newStart.hour = 0;
-              newStart.minute = dragState.startMin + col.mStartMin;
-              newStart.normalize();
+              newStart.resetTo(dragDay.year, dragDay.month, dragDay.day,
+                               0, dragState.startMin + col.mStartMin, 0,
+                               newStart.timezone);
           }
 
           if (dragState.dragType == "modify-end" ||
               dragState.dragType == "new") {
-              newEnd.day = dragDay.day;
-              newEnd.month = dragDay.month;
-              newEnd.year = dragDay.year;
-              newEnd.hour = 0;
-              newEnd.minute = dragState.endMin + col.mStartMin;
-              newEnd.normalize();
+              newEnd.resetTo(dragDay.year, dragDay.month, dragDay.day,
+                             0, dragState.endMin + col.mStartMin, 0,
+                             newEnd.timezone);
           }
 
           if (dragState.dragType == "move") {
@@ -1166,9 +1160,7 @@
               duration.normalize();
 
               newStart.addDuration(duration);
-              newStart.normalize();
               newEnd.addDuration(duration);
-              newEnd.normalize();
           }
 
           // If we tweaked tzs, put times back in their original ones
@@ -1386,7 +1378,6 @@
                 pos = event.screenX - this.parentNode.boxObject.screenX;
             }
             newStart.minute = (Math.round(pos/interval) * ROUND_INTERVAL) + this.mStartMin;
-            newStart.normalize();
             this.calendarView.controller.createNewEvent(null, newStart, null);
         }
       ]]></handler>
@@ -2218,7 +2209,6 @@
           end = end.clone();
           end.day += 1;
           end.isDate = true;
-          end.normalize();
 
           return end;
         ]]></getter>
@@ -2343,7 +2333,6 @@
                 dateList.push(workday);
               }
               d.day += 1;
-              d.normalize();
             }
             this.setDateList(dateList.length, dateList);
           }
@@ -2387,7 +2376,6 @@
                while (d.compare(this.mEndDate) <= 0) {
                    dates.push(d.clone());
                    d.day += 1;
-                   d.normalize();
                }
            } else if (this.mDateList) {
                for each (var d in this.mDateList)
@@ -2516,7 +2504,6 @@
           while (d.compare(this.mEndDate) <= 0) {
             count++;
             d.day += 1;
-            d.normalize();
           }
 
           return count;
@@ -2695,7 +2682,6 @@
               while (theDate.compare(this.mEndDate) <= 0) {
                   computedDateList.push(theDate.clone());
                   theDate.day += 1;
-                  theDate.normalize();
               }
           }
 
@@ -2882,7 +2868,6 @@
                 columns.push(col);
             }
             targetDate.day += 1;
-            targetDate.normalize();
           }
 
           return columns;

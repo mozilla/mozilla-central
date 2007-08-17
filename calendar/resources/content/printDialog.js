@@ -140,7 +140,6 @@ function getEventsAndDialogSettings(receiverFunc)
         // end isn't exclusive, so we need to add one day
         settings.end = settings.end.clone();
         settings.end.day = settings.end.day + 1;
-        settings.end.normalize();
         settings.eventList = [];
         var listener = {
             onOperationComplete:

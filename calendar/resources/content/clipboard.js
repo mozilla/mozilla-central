@@ -272,7 +272,6 @@ function pasteFromClipboard()
                 date.minute = oldDate.minute;
                 date.second = oldDate.second;
                 date.timezone = oldDate.timezone;
-                date.normalize();
                 if (oldDate.isDate) {
                     date.isDate = true;
                 }

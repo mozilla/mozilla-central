@@ -298,7 +298,6 @@ function selectAllEvents()
     // Need to move one day out to get all events
     var end = currentView().endDay.clone();
     end.day += 1;
-    end.normalize();
 
     composite.getItems(filter, 0, currentView().startDay, end, listener);
 }
