@@ -387,7 +387,7 @@ nsSubscribableServer::StartPopulatingWithUri(nsIMsgWindow *aMsgWindow, PRBool aF
 }
 
 NS_IMETHODIMP
-nsSubscribableServer::StartPopulating(nsIMsgWindow *aMsgWindow, PRBool aForceToServer)
+nsSubscribableServer::StartPopulating(nsIMsgWindow *aMsgWindow, PRBool aForceToServer, PRBool aGetOnlyNew /*ignored*/)
 {
     nsresult rv = NS_OK;
 

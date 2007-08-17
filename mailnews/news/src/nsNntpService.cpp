@@ -1593,7 +1593,7 @@ nsNntpService::UpdateCounts(nsINntpIncomingServer *aNntpServer, nsIMsgWindow *aM
 }
 
 NS_IMETHODIMP
-nsNntpService::GetListOfGroupsOnServer(nsINntpIncomingServer *aNntpServer, nsIMsgWindow *aMsgWindow)
+nsNntpService::GetListOfGroupsOnServer(nsINntpIncomingServer *aNntpServer, nsIMsgWindow *aMsgWindow, PRBool aGetOnlyNew)
 {
   nsresult rv;
 
@@ -1605,7 +1605,10 @@ nsNntpService::GetListOfGroupsOnServer(nsINntpIncomingServer *aNntpServer, nsIMs
 
   nsCString serverUri;
   rv = server->GetServerURI(serverUri);
-  serverUri.AppendLiteral("/*");
+  if (aGetOnlyNew)
+    serverUri.AppendLiteral("/?newgroups");
+  else
+    serverUri.AppendLiteral("/*");
 
   nsCOMPtr <nsIUrlListener> listener = do_QueryInterface(aNntpServer, &rv);
   NS_ENSURE_SUCCESS(rv, rv);

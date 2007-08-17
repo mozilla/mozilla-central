@@ -128,6 +128,7 @@ private:
     nsCOMPtr<nsITreeSelection> mTreeSelection;
 
     PRBool   mHasSeenBeginGroups;
+    PRBool   mGetOnlyNew;
     nsresult WriteHostInfoFile();
     nsresult LoadHostInfoFile();
     nsresult AddGroupOnServer(const nsACString &name);

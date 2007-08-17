@@ -55,12 +55,12 @@ interface nsISubscribeListener : nsISupports {
   void OnDonePopulating();
 };
 
-[scriptable, uuid(4afd3d64-f7e9-4eb6-98bf-8200a7dab60f)]
+[scriptable, uuid(c075345d-c353-4a56-97d6-bc4d22020b43)]
 interface nsISubscribableServer : nsISupports {
   attribute nsISubscribeListener subscribeListener;
   attribute char delimiter;
 
-  void startPopulating(in nsIMsgWindow aMsgWindow, in boolean forceToServer);
+  void startPopulating(in nsIMsgWindow aMsgWindow, in boolean forceToServer, in boolean getOnlyNew);
   void startPopulatingWithUri(in nsIMsgWindow aMsgWindow, in boolean forceToServer, in string uri);
   void stopPopulating(in nsIMsgWindow aMsgWindow);
 

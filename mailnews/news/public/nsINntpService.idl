@@ -50,7 +50,7 @@ interface nsIMsgWindow;
 interface nsIMsgFolder;
 interface nsICacheSession;
 
-[scriptable, uuid(11c6a082-9af8-4c4a-99d9-6af828496efe)]
+[scriptable, uuid(2777d192-fb8b-46b1-8c4c-8aa8ca62b011)]
 interface nsINntpService : nsISupports {
   
   /* newsgroupsList is a comma separated list of newsgroups, which may be
@@ -71,7 +71,7 @@ interface nsINntpService : nsISupports {
 
   nsIURI cancelMessage(in string cancelURL, in string messageURI, in nsISupports aConsumer, in nsIUrlListener aUrlListener, in nsIMsgWindow aMsgWindow);
  
-  void getListOfGroupsOnServer(in nsINntpIncomingServer nntpServer, in nsIMsgWindow aMsgWindow);
+  void getListOfGroupsOnServer(in nsINntpIncomingServer nntpServer, in nsIMsgWindow aMsgWindow, in boolean getOnlyNew);
 
   void updateCounts(in nsINntpIncomingServer nntpServer, in nsIMsgWindow aMsgWindow);
 

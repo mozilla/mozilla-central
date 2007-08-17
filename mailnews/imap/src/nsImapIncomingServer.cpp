@@ -2600,14 +2600,14 @@ nsImapIncomingServer::StartPopulatingWithUri(nsIMsgWindow *aMsgWindow, PRBool aF
 }
 
 NS_IMETHODIMP
-nsImapIncomingServer::StartPopulating(nsIMsgWindow *aMsgWindow, PRBool aForceToServer /*ignored*/)
+nsImapIncomingServer::StartPopulating(nsIMsgWindow *aMsgWindow, PRBool aForceToServer /*ignored*/, PRBool aGetOnlyNew)
 {
   nsresult rv;
   mDoingSubscribeDialog = PR_TRUE;
 
   rv = EnsureInner();
   NS_ENSURE_SUCCESS(rv,rv);
-  rv = mInner->StartPopulating(aMsgWindow, aForceToServer);
+  rv = mInner->StartPopulating(aMsgWindow, aForceToServer, aGetOnlyNew);
   NS_ENSURE_SUCCESS(rv,rv);
 
   // imap always uses the canonical delimiter form of paths for subscribe ui.

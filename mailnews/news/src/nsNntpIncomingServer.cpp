@@ -449,9 +449,12 @@ nsNntpIncomingServer::CloseCachedConnections()
   rv = WriteNewsrcFile();
   if (NS_FAILED(rv)) return rv;
 
-  rv = WriteHostInfoFile(); 
-  if (NS_FAILED(rv)) return rv;
-	
+  if (!mGetOnlyNew && !mHostInfoLoaded)
+  {
+    rv = WriteHostInfoFile();
+    NS_ENSURE_SUCCESS(rv,rv);
+  }
+
   return NS_OK;
 }
 
@@ -817,6 +820,8 @@ nsNntpIncomingServer::WriteHostInfoFile()
 
   LL_L2I(firstnewdate, mFirstNewDate);
 
+  mLastUpdatedTime = PRUint32(PR_Now() / PR_USEC_PER_SEC);
+
   nsCString hostname;
   nsresult rv = GetHostName(hostname);
   NS_ENSURE_SUCCESS(rv,rv);
@@ -841,8 +846,8 @@ nsNntpIncomingServer::WriteHostInfoFile()
   newsrcname.Append(hostname);
   WriteLine(hostInfoStream, hostname);
   nsCAutoString dateStr("lastgroupdate=");
-  dateStr.AppendInt(mLastGroupDate);
-  WriteLine(hostInfoStream, dateStr);
+  dateStr.AppendInt(mLastUpdatedTime);
+  WriteLine(hostInfoStream, dateStr); 
   dateStr ="firstnewdate=";
   dateStr.AppendInt(firstnewdate);
   WriteLine(hostInfoStream, dateStr);
@@ -935,7 +940,7 @@ nsNntpIncomingServer::SubscribeCleanup()
 }
 
 NS_IMETHODIMP
-nsNntpIncomingServer::StartPopulating(nsIMsgWindow *aMsgWindow, PRBool aForceToServer)
+nsNntpIncomingServer::StartPopulating(nsIMsgWindow *aMsgWindow, PRBool aForceToServer, PRBool aGetOnlyNew)
 {
   nsresult rv;
 
@@ -944,7 +949,7 @@ nsNntpIncomingServer::StartPopulating(nsIMsgWindow *aMsgWindow, PRBool aForceToS
   rv = EnsureInner();
   NS_ENSURE_SUCCESS(rv,rv);
 
-  rv = mInner->StartPopulating(aMsgWindow, aForceToServer);
+  rv = mInner->StartPopulating(aMsgWindow, aForceToServer, aGetOnlyNew);
   NS_ENSURE_SUCCESS(rv,rv);
 
   rv = SetDelimiter(NEWS_DELIMITER);
@@ -959,6 +964,7 @@ nsNntpIncomingServer::StartPopulating(nsIMsgWindow *aMsgWindow, PRBool aForceToS
   mHostInfoLoaded = PR_FALSE;
   mVersion = INVALID_VERSION;
   mGroupsOnServer.Clear();
+  mGetOnlyNew = aGetOnlyNew;
 
   if (!aForceToServer) {
 	rv = LoadHostInfoFile();	
@@ -966,15 +972,14 @@ nsNntpIncomingServer::StartPopulating(nsIMsgWindow *aMsgWindow, PRBool aForceToS
   }
 
   // mHostInfoLoaded can be false if we failed to load anything
-  if (!mHostInfoLoaded || (mVersion != VALID_VERSION)) {
+  if (aForceToServer || !mHostInfoLoaded || (mVersion != VALID_VERSION)) {
     // set these to true, so when we are done and we call WriteHostInfoFile() 
     // we'll write out to hostinfo.dat
 	mHostInfoHasChanged = PR_TRUE;
 	mVersion = VALID_VERSION;
 
 	mGroupsOnServer.Clear();
-
-	rv = nntpService->GetListOfGroupsOnServer(this, aMsgWindow);
+	rv = nntpService->GetListOfGroupsOnServer(this, aMsgWindow, aGetOnlyNew);
 	if (NS_FAILED(rv)) return rv;
   }
   else {
@@ -1087,6 +1092,8 @@ NS_IMETHODIMP
 nsNntpIncomingServer::SetAsSubscribed(const nsACString &path)
 {
     mTempSubscribed.AppendCString(path);
+    if (mGetOnlyNew && (mGroupsOnServer.IndexOf(path) == -1))
+      return NS_OK;
 
     nsresult rv = EnsureInner();
     NS_ENSURE_SUCCESS(rv,rv);
@@ -1139,28 +1146,33 @@ nsNntpIncomingServer::AddTo(const nsACString &aName, PRBool addAsSubscribed,
 NS_IMETHODIMP
 nsNntpIncomingServer::StopPopulating(nsIMsgWindow *aMsgWindow)
 {
-	nsresult rv = NS_OK;
+  nsresult rv = NS_OK;
 
-    nsCOMPtr<nsISubscribeListener> listener;
-	rv = GetSubscribeListener(getter_AddRefs(listener));
-    NS_ENSURE_SUCCESS(rv,rv);
-	if (!listener) return NS_ERROR_FAILURE;
+  nsCOMPtr<nsISubscribeListener> listener;
+  rv = GetSubscribeListener(getter_AddRefs(listener));
+  NS_ENSURE_SUCCESS(rv,rv);
 
-	rv = listener->OnDonePopulating();
-    NS_ENSURE_SUCCESS(rv,rv);
+  if (!listener)
+    return NS_ERROR_FAILURE;
 
-    rv = EnsureInner();
-    NS_ENSURE_SUCCESS(rv,rv);
-	rv = mInner->StopPopulating(aMsgWindow);
-    NS_ENSURE_SUCCESS(rv,rv);
+  rv = listener->OnDonePopulating();
+  NS_ENSURE_SUCCESS(rv,rv);
+    
+  rv = EnsureInner();
+  NS_ENSURE_SUCCESS(rv,rv);
+  rv = mInner->StopPopulating(aMsgWindow);
+  NS_ENSURE_SUCCESS(rv,rv);
 
+  if (!mGetOnlyNew && !mHostInfoLoaded)
+  {
     rv = WriteHostInfoFile();
-    if (NS_FAILED(rv)) return rv;
+    NS_ENSURE_SUCCESS(rv,rv);
+  }
 
-	//xxx todo when do I set this to null?
-	//rv = ClearInner();
-    //NS_ENSURE_SUCCESS(rv,rv);
-	return NS_OK;
+  //xxx todo when do I set this to null?
+  //rv = ClearInner();
+  //NS_ENSURE_SUCCESS(rv,rv);
+  return NS_OK;
 }
 
 NS_IMETHODIMP
@@ -1259,7 +1271,7 @@ nsNntpIncomingServer::HandleLine(const char* line, PRUint32 line_size)
 		if (equalPos) {
 			*equalPos++ = '\0';
 			if (PL_strcmp(line, "lastgroupdate") == 0) {
-				mLastGroupDate = strtol(equalPos, nsnull, 16);
+				mLastUpdatedTime = strtoul(equalPos, nsnull, 10);
 			} else if (PL_strcmp(line, "firstnewdate") == 0) {
 				PRInt32 firstnewdate = strtol(equalPos, nsnull, 16);
 				LL_I2L(mFirstNewDate, firstnewdate);

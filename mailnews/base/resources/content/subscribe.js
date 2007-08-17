@@ -1,3 +1,42 @@
+/*
+ * ***** BEGIN LICENSE BLOCK *****
+ * Version: MPL 1.1/GPL 2.0/LGPL 2.1
+ *
+ * The contents of this file are subject to the Mozilla Public License Version
+ * 1.1 (the "License"); you may not use this file except in compliance with
+ * the License. You may obtain a copy of the License at
+ * http://www.mozilla.org/MPL/
+ *
+ * Software distributed under the License is distributed on an "AS IS" basis,
+ * WITHOUT WARRANTY OF ANY KIND, either express or implied. See the License
+ * for the specific language governing rights and limitations under the
+ * License.
+ *
+ * The Original Code is Mozilla Communicator client code, released
+ * March 31, 1998.
+ *
+ * The Initial Developer of the Original Code is
+ * Netscape Communications Corporation.
+ * Portions created by the Initial Developer are Copyright (C) 1998-1999
+ * the Initial Developer. All Rights Reserved.
+ *
+ * Contributor(s):
+ *   Markus Hossner <markushossner@gmx.de>
+ *
+ * Alternatively, the contents of this file may be used under the terms of
+ * either of the GNU General Public License Version 2 or later (the "GPL"),
+ * or the GNU Lesser General Public License Version 2.1 or later (the "LGPL"),
+ * in which case the provisions of the GPL or the LGPL are applicable instead
+ * of those above. If you wish to allow use of your version of this file only
+ * under the terms of either the GPL or the LGPL, and not to allow others to
+ * use your version of this file under the terms of the MPL, indicate your
+ * decision by deleting the provisions above and replace them with the notice
+ * and other provisions required by the GPL or the LGPL. If you do not delete
+ * the provisions above, a recipient may use your version of this file under
+ * the terms of any one of the MPL, the GPL or the LGPL.
+ *
+ * ***** END LICENSE BLOCK ***** */
+ 
 var gSubscribeTree = null;
 var gSearchTree;
 var okCallback = null;
@@ -43,12 +82,13 @@ function SetServerTypeSpecificTextValues()
     var serverType = GetMsgFolderFromUri(gServerURI, true).server.type;
 
     // set the server specific ui elements
-    var stringName = "foldersheaderfor-" + serverType;
-    var stringval = gSubscribeBundle.getString(stringName);
-    var element = document.getElementById("nameColumn");
-    element.setAttribute('label',stringval);
-    element = document.getElementById("nameColumn2");
-    element.setAttribute('label',stringval);
+    var currentListTabLabel = gSubscribeBundle.getString("currentListTabLabel-" + serverType);
+    var nameColumnLabel = gSubscribeBundle.getString("columnHeader-" + serverType);
+
+    document.getElementById("currentListTab").setAttribute('label', currentListTabLabel);
+    document.getElementById("newGroupsTab").collapsed = (serverType != "nntp"); // show newGroupsTab only for nntp servers
+    document.getElementById("nameColumn").setAttribute('label', nameColumnLabel);
+    document.getElementById("nameColumn2").setAttribute('label',nameColumnLabel);
 
     //set the delimiter
     try {
@@ -62,13 +102,10 @@ function SetServerTypeSpecificTextValues()
 
 function onServerClick(event)
 {
-	var item = event.target;
-	gServerURI = item.id;
-	//dump("gServerURI="+gServerURI+"\n");
+  gServerURI = event.target.id;
 
-	SetUpTree(false);
-
-	SetServerTypeSpecificTextValues();
+  SetServerTypeSpecificTextValues();
+  ShowCurrentList();
 }
 
 function SetUpServerMenu()
@@ -99,53 +136,62 @@ var MySubscribeListener = {
         // only re-root the tree, if it is null.
         // otherwise, we are in here because we are populating
         // a part of the tree
-  
         var refValue = gSubscribeTree.getAttribute('ref');
         if (!refValue) {
             //dump("root subscribe tree at: "+ gServerURI +"\n");
             gSubscribeTree.database.AddDataSource(subscribeDS);
             gSubscribeTree.setAttribute('ref',gServerURI);
         }
+
+        document.getElementById("refreshButton").disabled = false;
+        document.getElementById("currentListTab").disabled = false;
+        document.getElementById("newGroupsTab").disabled = false;
 	}
 };
 
-function SetUpTree(forceToServer)
+function SetUpTree(forceToServer, getOnlyNew)
 {
-	//dump("SetUpTree()\n");
-	
-	gStatusBar = document.getElementById('statusbar-icon');
-	if (!gServerURI) return;
+  gStatusBar = document.getElementById('statusbar-icon');
+  if (!gServerURI)
+    return;
 
-	var folder = GetMsgFolderFromUri(gServerURI, true);
-	var server = folder.server;
+  var server = GetMsgFolderFromUri(gServerURI, true).server;
+  try
+  {          
+    CleanUpSearchView();
+    gSubscribableServer = server.QueryInterface(Components.interfaces.nsISubscribableServer);
+    gSubscribeTree.setAttribute('ref',null);
 
-	try {
-          CleanUpSearchView();
-          gSubscribableServer = server.QueryInterface(Components.interfaces.nsISubscribableServer);
-          gSubscribeTree.setAttribute('ref',null);
+    // enable (or disable) the search related UI
+    EnableSearchUI();
 
-          // enable (or disable) the search related UI
-          EnableSearchUI();
+    // clear out the text field when switching server
+    gNameField.value = "";
 
-          // clear out the text field when switching server
-          gNameField.value = "";
+    // since there is no text, switch to the non-search view...
+    SwitchToNormalView();
 
-          // since there is no text, switch to the non-search view...
-          SwitchToNormalView();
+    gSubscribeTree.database.RemoveDataSource(subscribeDS);
+    gSubscribableServer.subscribeListener = MySubscribeListener;
 
-          gSubscribeTree.database.RemoveDataSource(subscribeDS);
-          gSubscribableServer.subscribeListener = MySubscribeListener;
+    var currentListTab = document.getElementById("currentListTab");
+    if (currentListTab.selected)
+      document.getElementById("newGroupsTab").disabled = true;
+    else
+      currentListTab.disabled = true;
 
-          gStatusFeedback._startMeteors();
-          gStatusFeedback.showStatusString(gSubscribeBundle.getString("pleaseWaitString"));
+    document.getElementById("refreshButton").disabled = true;
 
-          gSubscribableServer.startPopulating(msgWindow, forceToServer);
-	}
-	catch (ex) {
-          //dump("failed to populate subscribe ds: " + ex + "\n");
-	}
+    gStatusFeedback._startMeteors();
+    gStatusFeedback.showStatusString(gSubscribeBundle.getString("pleaseWaitString"));
+
+    gSubscribableServer.startPopulating(msgWindow, forceToServer, getOnlyNew);
+  }
+  catch (ex) 
+  {
+    dump("failed to populate subscribe ds: " + ex + "\n");
+  }
 }
-
 
 function SubscribeOnUnload()
 {
@@ -237,7 +283,7 @@ function SubscribeOnLoad()
 
 	SetUpServerMenu();
 
-  SetUpTree(false);
+  ShowCurrentList();
 
   gNameField.focus();
 }
@@ -442,10 +488,35 @@ function SubscribeOnClick(event)
 
 function Refresh()
 {
-        // clear out the textfield's entry on call of Refresh()
-        gNameField.value = "";
-        // force it to talk to the server
-        SetUpTree(true);
+  // clear out the textfield's entry
+  gNameField.value = "";
+
+  var newGroupsTab = document.getElementById("newGroupsTab");
+  SetUpTree(true, newGroupsTab.selected);
+}
+
+function ShowCurrentList()
+{
+  // clear out the textfield's entry on call of Refresh()
+  gNameField.value = "";
+
+  // make sure the current list tab is selected
+  document.getElementById("subscribeTabs").selectedIndex = 0;
+
+  // try loading the hostinfo before talk to server
+  SetUpTree(false, false);
+}
+
+function ShowNewGroupsList()
+{
+  // clear out the textfield's entry
+  gNameField.value = "";
+
+  // make sure the new groups tab is selected
+  document.getElementById("subscribeTabs").selectedIndex = 1;
+
+  // force it to talk to the server and get new groups
+  SetUpTree(true, true);
 }
 
 function InvalidateSearchTreeRow(row)

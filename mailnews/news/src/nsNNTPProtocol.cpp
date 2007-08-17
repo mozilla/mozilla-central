@@ -2012,75 +2012,59 @@ PRInt32 nsNNTPProtocol::SendFirstNNTPCommand(nsIURI * url)
         	m_nextState = NEWS_DISPLAY_NEWS_RC;
 		return(0);
     }
-	else if(m_typeWanted == NEW_GROUPS)
+	else if (m_typeWanted == NEW_GROUPS)
 	{
-        PRUint32 last_update;
-        nsresult rv;
+      PRUint32 last_update;
+      nsresult rv;
 
-		if (!m_nntpServer) {
-			NNTP_LOG_NOTE("m_nntpServer is null, panic!");
-			return -1;
-		}
-        rv = m_nntpServer->GetLastUpdatedTime(&last_update);
-		char small_buf[64];
-        PRExplodedTime  expandedTime;
+      if (!m_nntpServer)
+      {
+        NNTP_LOG_NOTE("m_nntpServer is null, panic!");
+        return -1;
+      }
+      rv = m_nntpServer->GetLastUpdatedTime(&last_update);
 
-		if(!last_update)
-		{
-			AlertError(MK_NNTP_NEWSGROUP_SCAN_ERROR, nsnull);
-			m_nextState = NEWS_ERROR;
-			return(MK_INTERRUPTED);
-		}
-
-		/* subtract some hours just to be sure */
-		last_update -= NEWGROUPS_TIME_OFFSET;
-
-        {
-           PRInt64  secToUSec, timeInSec, timeInUSec;
-           LL_I2L(timeInSec, last_update);
-           LL_I2L(secToUSec, PR_USEC_PER_SEC);
-           LL_MUL(timeInUSec, timeInSec, secToUSec);
-           PR_ExplodeTime(timeInUSec, PR_LocalTimeParameters, &expandedTime);
-        }
-		PR_FormatTimeUSEnglish(small_buf, sizeof(small_buf),
-                               "NEWGROUPS %y%m%d %H%M%S", &expandedTime);
-
+      if (!last_update)
+	  {
+        NS_MsgSACopy(&command, "LIST");
+      }
+	  else
+      {
+        char small_buf[64];
+        PRExplodedTime  expandedTime;    
+        PRTime t_usec, usec_per_sec;
+        LL_I2L(t_usec, last_update);
+        LL_I2L(usec_per_sec, PR_USEC_PER_SEC);
+        LL_MUL(t_usec, t_usec, usec_per_sec);
+        PR_ExplodeTime(t_usec, PR_LocalTimeParameters, &expandedTime);
+        PR_FormatTimeUSEnglish(small_buf, sizeof(small_buf),
+                               "NEWGROUPS %y%m%d %H%M%S", &expandedTime);                        
         NS_MsgSACopy(&command, small_buf);
-
+      }
 	}
     else if(m_typeWanted == LIST_WANTED)
     {
 	    nsresult rv;
 
 		ClearFlag(NNTP_USE_FANCY_NEWSGROUP);
-        PRUint32 last_update;
-
+		
         NS_ASSERTION(m_nntpServer, "no m_nntpServer");
 		if (!m_nntpServer) {
           NNTP_LOG_NOTE("m_nntpServer is null, panic!");
           return -1;
 		}
 
-		rv = m_nntpServer->GetLastUpdatedTime(&last_update);
-        if (NS_SUCCEEDED(rv) && last_update!=0)
-		{
-			m_nextState = DISPLAY_NEWSGROUPS;
-        	return(0);
-	    }
-		else
-		{
-			PRBool xactive=PR_FALSE;
-			rv = m_nntpServer->QueryExtension("XACTIVE",&xactive);
-			if (NS_SUCCEEDED(rv) && xactive)
-			{
-				NS_MsgSACopy(&command, "LIST XACTIVE");
-				SetFlag(NNTP_USE_FANCY_NEWSGROUP);
-			}
-			else
-			{
-				NS_MsgSACopy(&command, "LIST");
-			}
-		}
+      PRBool xactive=PR_FALSE;
+      rv = m_nntpServer->QueryExtension("XACTIVE",&xactive);
+      if (NS_SUCCEEDED(rv) && xactive)
+      {
+        NS_MsgSACopy(&command, "LIST XACTIVE");
+        SetFlag(NNTP_USE_FANCY_NEWSGROUP);
+      }
+      else
+      {
+        NS_MsgSACopy(&command, "LIST");
+      }
 	}
 	else if(m_typeWanted == GROUP_WANTED)
     {
