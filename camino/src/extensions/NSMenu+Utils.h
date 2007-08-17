@@ -55,6 +55,9 @@ extern NSString* const NSMenuClosedNotification;
 // turning on the one with the given unmasked tag value.
 - (void)checkItemWithTag:(int)unmaskedTag inGroupWithMask:(int)tagMask;
 
+// gets the first checked item in the menu, or nil if none are checked.
+- (NSMenuItem*)firstCheckedItem;
+
 // enable or disable all items in the menu including and after inFirstItem,
 // optionally recursing into submenus.
 - (void)setAllItemsEnabled:(BOOL)inEnable startingWithItemAtIndex:(int)inFirstItem includingSubmenus:(BOOL)includeSubmenus;

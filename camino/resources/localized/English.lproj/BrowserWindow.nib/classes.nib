@@ -85,12 +85,7 @@
             SUPERCLASS = NSTabView; 
         }, 
         {CLASS = BrowserTabViewItem; LANGUAGE = ObjC; SUPERCLASS = IconTabViewItem; }, 
-        {
-            CLASS = BrowserWindow; 
-            LANGUAGE = ObjC; 
-            OUTLETS = {mAutoCompleteTextField = id; }; 
-            SUPERCLASS = NSWindow; 
-        }, 
+        {CLASS = BrowserWindow; LANGUAGE = ObjC; SUPERCLASS = NSWindow; }, 
         {
             ACTIONS = {
                 addBookmark = id; 
@@ -98,6 +93,7 @@
                 addBookmarkForLink = id; 
                 addBookmarkSeparator = id; 
                 addBookmarkWithoutPrompt = id; 
+                addTabGroup = id; 
                 addTabGroupWithoutPrompt = id; 
                 addToAddressBook = id; 
                 back = id; 
@@ -131,7 +127,6 @@
                 openLinkInNewTab = id; 
                 openLinkInNewWindow = id; 
                 pageSetup = id; 
-                performSearch = id; 
                 previousTab = id; 
                 printDocument = id; 
                 reload = id; 
@@ -142,6 +137,7 @@
                 saveImageAs = id; 
                 saveLinkAs = id; 
                 savePageAs = id; 
+                searchFieldTriggered = id; 
                 searchForSelection = id; 
                 sendURL = id; 
                 sendURLFromLink = id; 
@@ -149,6 +145,7 @@
                 showPageInfo = id; 
                 showSiteCertificate = id; 
                 stop = id; 
+                toggleStatusBar = id; 
                 viewOnlyThisImage = id; 
                 viewPageSource = id; 
                 viewSource = id; 
@@ -173,8 +170,8 @@
                 mPersonalToolbar = BookmarkToolbar; 
                 mProgress = NSProgressIndicator; 
                 mProxyIcon = PageProxyIcon; 
-                mSearchBar = SearchTextField; 
-                mSearchSheetTextField = SearchTextField; 
+                mSearchBar = NSSearchField; 
+                mSearchSheetTextField = NSSearchField; 
                 mSearchSheetWindow = NSWindow; 
                 mStatus = NSTextField; 
                 mStatusBar = NSView; 
@@ -288,7 +285,8 @@
         {CLASS = StatusBarView; LANGUAGE = ObjC; SUPERCLASS = NSView; }, 
         {CLASS = TabButtonCell; LANGUAGE = ObjC; SUPERCLASS = RolloverTrackingCell; }, 
         {CLASS = ThrobberHandler; LANGUAGE = ObjC; SUPERCLASS = NSObject; }, 
-        {CLASS = TruncatingTextAndImageCell; LANGUAGE = ObjC; SUPERCLASS = NSCell; }
+        {CLASS = TruncatingTextAndImageCell; LANGUAGE = ObjC; SUPERCLASS = NSCell; }, 
+        {CLASS = WebSearchField; LANGUAGE = ObjC; SUPERCLASS = NSSearchField; }
     ); 
     IBVersion = 1; 
 }

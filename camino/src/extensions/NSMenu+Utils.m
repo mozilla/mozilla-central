@@ -133,6 +133,17 @@ static OSStatus MenuEventHandler(EventHandlerCallRef inHandlerCallRef, EventRef 
   }
 }
 
+- (NSMenuItem*)firstCheckedItem
+{
+  NSEnumerator* itemsEnumerator = [[self itemArray] objectEnumerator];
+  NSMenuItem* currentItem;
+  while ((currentItem = [itemsEnumerator nextObject])) {
+    if ([currentItem state] == NSOnState)
+      return currentItem;
+  }
+  return nil;
+}
+
 - (void)setAllItemsEnabled:(BOOL)inEnable startingWithItemAtIndex:(int)inFirstItem includingSubmenus:(BOOL)includeSubmenus
 {
   NSArray* menuItems = [self itemArray];

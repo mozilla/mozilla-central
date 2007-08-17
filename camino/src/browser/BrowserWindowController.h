@@ -104,8 +104,8 @@ typedef enum
 @class BrowserContentView;
 @class BrowserTabViewItem;
 @class AutoCompleteTextField;
-@class SearchTextField;
 @class ExtendedSplitView;
+@class WebSearchField;
 
 
 @interface BrowserWindowController : NSWindowController<Find, BrowserUIDelegate, BrowserUICreationDelegate>
@@ -123,8 +123,8 @@ typedef enum
   
   IBOutlet BookmarkToolbar*     mPersonalToolbar;
 
-  IBOutlet SearchTextField*     mSearchBar;
-  IBOutlet SearchTextField*     mSearchSheetTextField;
+  IBOutlet WebSearchField*      mSearchBar;
+  IBOutlet WebSearchField*      mSearchSheetTextField;
   IBOutlet NSWindow*            mSearchSheetWindow;
   
   // Context menu outlets.
@@ -215,7 +215,7 @@ typedef enum
 
 - (IBAction)printDocument:(id)aSender;
 - (IBAction)pageSetup:(id)aSender;
-- (IBAction)performSearch:(id)aSender;
+- (IBAction)searchFieldTriggered:(id)aSender;
 - (IBAction)searchForSelection:(id)aSender;
 - (IBAction)sendURL:(id)aSender;
 - (IBAction)sendURLFromLink:(id)aSender;

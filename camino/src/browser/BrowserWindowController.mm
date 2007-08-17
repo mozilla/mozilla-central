@@ -67,13 +67,11 @@
 #import "UserDefaults.h"
 #import "PageProxyIcon.h"
 #import "AutoCompleteTextField.h"
-#import "SearchTextField.h"
-#import "SearchTextFieldCell.h"
-#import "STFPopUpButtonCell.h"
 #import "DraggableImageAndTextCell.h"
 #import "MVPreferencesController.h"
 #import "ViewCertificateDialogController.h"
 #import "ExtendedSplitView.h"
+#import "WebSearchField.h"
 #import "wallet.h"
 
 #include "nsString.h"
@@ -540,7 +538,7 @@ enum BWCOpenDest {
 - (void)openNewWindowWithDescriptor:(nsISupports*)aDesc displayType:(PRUint32)aDisplayType loadInBackground:(BOOL)aLoadInBG;
 - (void)openNewTabWithDescriptor:(nsISupports*)aDesc displayType:(PRUint32)aDisplayType loadInBackground:(BOOL)aLoadInBG;
 - (BOOL)isPageTextFieldFocused;
-- (void)performSearch:(SearchTextField *)inSearchField inView:(BWCOpenDest)inDest inBackground:(BOOL)inLoadInBG;
+- (void)performSearch:(WebSearchField*)inSearchField inView:(BWCOpenDest)inDest inBackground:(BOOL)inLoadInBG;
 - (int)historyIndexOfPageBeforeBookmarkManager;
 - (void)goToLocationFromToolbarURLField:(AutoCompleteTextField *)inURLField inView:(BWCOpenDest)inDest inBackground:(BOOL)inLoadInBG;
 
@@ -577,6 +575,8 @@ enum BWCOpenDest {
 - (void)getMisspelledWordRange:(nsIDOMRange**)outRange inlineSpellChecker:(nsIInlineSpellChecker**)outInlineChecker;
 - (void)focusedElement:(nsIDOMElement**)outElement;
 - (void)focusController:(nsIFocusController**)outController;
+
+- (void)setUpSearchFields;
 
 @end
 
@@ -870,20 +870,8 @@ enum BWCOpenDest {
     [mStatus setBackgroundColor:[NSColor windowBackgroundColor]];
     [mStatus setDrawsBackground:YES];
 
-    // Set up the toolbar's search text field
-    NSMutableArray *searchTitles =
-      [NSMutableArray arrayWithArray:[[[BrowserWindowController searchURLDictionary] allKeys] sortedArrayUsingSelector:@selector(compare:)]];
-
-    [searchTitles removeObject:@"PreferredSearchEngine"];
-
-    [mSearchBar addPopUpMenuItemsWithTitles:searchTitles];
-    [[[mSearchBar cell] popUpButtonCell] selectItemWithTitle:
-      [[BrowserWindowController searchURLDictionary] objectForKey:@"PreferredSearchEngine"]];
-
-    // Set the sheet's search text field
-    [mSearchSheetTextField addPopUpMenuItemsWithTitles:searchTitles];
-    [[[mSearchSheetTextField cell] popUpButtonCell] selectItemWithTitle:
-      [[BrowserWindowController searchURLDictionary] objectForKey:@"PreferredSearchEngine"]];    
+    // Set up the menus in the search fields
+    [self setUpSearchFields];
     
     // Get our saved dimensions.
     NSRect oldFrame = [[self window] frame];
@@ -1399,9 +1387,6 @@ enum BWCOpenDest {
     [toolbarItem setMinSize:NSMakeSize(kMinimumLocationBarWidth, NSHeight([mLocationToolbarView frame]))];
     [toolbarItem setMaxSize:NSMakeSize(FLT_MAX, NSHeight([mLocationToolbarView frame]))];
 
-    [mSearchBar setTarget:self];
-    [mSearchBar setAction:@selector(performSearch:)];
-
     [menuFormRep setTarget:self];
     [menuFormRep setAction:@selector(performAppropriateLocationAction)];
     [menuFormRep setTitle:[toolbarItem label]];
@@ -1675,6 +1660,10 @@ enum BWCOpenDest {
 - (BOOL)validateMenuItem:(NSMenuItem*)aMenuItem
 {
   SEL action = [aMenuItem action];
+
+  // Always allow the search engine menu to work
+  if (action == @selector(searchEngineChanged:))
+    return YES;
 
   // Disable all window-specific menu items while a sheet is showing.
   // We don't do this in validateActionBySelector: because toolbar items shouldn't
@@ -2261,7 +2250,7 @@ enum BWCOpenDest {
 {
   [mSearchSheetWindow orderOut:self];
   [NSApp endSheet:mSearchSheetWindow returnCode:1];
-  [self performSearch:mSearchSheetTextField];
+  [self performSearch:mSearchSheetTextField inView:kDestinationCurrentView inBackground:NO];
 }
 
 - (IBAction)cancelSearchSheet:(id)sender
@@ -2524,11 +2513,36 @@ enum BWCOpenDest {
   [[mBrowserView getBrowserView] pageSetup];
 }
 
-- (IBAction)performSearch:(id)aSender
+// -searchFieldTriggered:
+//
+// This should be used *only* as an action method for a WebSearchField, and
+// never invoked programatically.
+- (IBAction)searchFieldTriggered:(id)aSender
 {
-  // If we have a valid SearchTextField, perform a search using its contents
-  if ([aSender isKindOfClass:[SearchTextField class]]) 
-    [self performSearch:(SearchTextField *)aSender inView:kDestinationCurrentView inBackground:NO];
+  // WebSearchField sends an action on clearing the search field, which isn't
+  // distinguishable from submitting an empty search, so we make sure the
+  // trigger was someone hitting return/enter if it's empty.
+  BOOL performSearch = NO;
+  if ([[aSender stringValue] length] > 0) {
+    performSearch = YES;
+  }
+  else {
+    NSEvent* currentEvent = [NSApp currentEvent];
+    if (([currentEvent type] == NSKeyDown) && [[currentEvent characters] length] > 0) {
+      unichar character = [[currentEvent characters] characterAtIndex:0];
+      if ((character == NSCarriageReturnCharacter) || (character == NSEnterCharacter))
+        performSearch = YES;
+    }
+  }
+
+  if (performSearch) {
+    // If it came from the search sheet, dismiss the sheet now
+    if (aSender == mSearchSheetTextField) {
+      [mSearchSheetWindow orderOut:self];
+      [NSApp endSheet:mSearchSheetWindow returnCode:1];
+    }
+    [self performSearch:aSender inView:kDestinationCurrentView inBackground:NO];
+  }
 }
 
 //
@@ -2554,7 +2568,7 @@ enum BWCOpenDest {
     [self performSearch:mSearchBar inView:destination inBackground:[BrowserWindowController shouldLoadInBackground:nil]];
   }
   else
-    [self performSearch:mSearchBar];
+    [self performSearch:mSearchBar inView:kDestinationCurrentView inBackground:NO];
 }
 
 //
@@ -2563,25 +2577,16 @@ enum BWCOpenDest {
 // performs a search using searchField and opens either in the current view, a new tab, or a new
 // window. If it's a new tab or window, loadInBG determines whether the window/tab is opened in the background
 //
--(void)performSearch:(SearchTextField *)inSearchField inView:(BWCOpenDest)inDest inBackground:(BOOL)inLoadInBG
+-(void)performSearch:(WebSearchField*)inSearchField inView:(BWCOpenDest)inDest inBackground:(BOOL)inLoadInBG
 {
-  // Get the search URL from our dictionary of sites and search urls
-  NSMutableString *searchURL = [NSMutableString stringWithString:
-    [[BrowserWindowController searchURLDictionary] objectForKey:
-      [inSearchField titleOfSelectedPopUpItem]]];
-  NSString *currentURL = [[self getBrowserWrapper] currentURI];
   NSString *searchString = [inSearchField stringValue];
-  
-  const char *aURLSpec = [currentURL lossyCString];
-  NSString *aDomain = @"";
-  nsCOMPtr<nsIURI> aURI;
+  NSMutableString *searchURL = [[[inSearchField currentSearchURL] mutableCopy] autorelease];
   
   // If we have an about: type URL, remove " site:%d" from the search string
   // This is a fix to deal with Google's Search this Site feature
   // If other sites use %d to search the site, we'll have to have specific rules
   // for those sites.
-  
-  if ([currentURL hasPrefix:@"about:"]) {
+  if ([[[self getBrowserWrapper] currentURI] hasPrefix:@"about:"]) {
     NSRange domainStringRange = [searchURL rangeOfString:@" site:%d"
                                                  options:NSBackwardsSearch];
     
@@ -2592,31 +2597,34 @@ enum BWCOpenDest {
   
   // If they didn't type anything in the search field, visit the domain of
   // the search site, i.e. www.google.com for the Google site
-  if ([[inSearchField stringValue] isEqualToString:@""]) {
-    aURLSpec = [searchURL lossyCString];
+  if ([searchString isEqualToString:@""]) {
+    const char *urlSpec = [searchURL lossyCString];
     
-    if (NS_NewURI(getter_AddRefs(aURI), aURLSpec) == NS_OK) {
+    nsCOMPtr<nsIURI> searchURI;
+    if (NS_NewURI(getter_AddRefs(searchURI), urlSpec) == NS_OK) {
       nsCAutoString spec;
-      aURI->GetHost(spec);
+      searchURI->GetHost(spec);
       
-      aDomain = [NSString stringWithUTF8String:spec.get()];
+      NSString *searchDomain = [NSString stringWithUTF8String:spec.get()];
       
       if (inDest == kDestinationNewTab)
-        [self openNewTabWithURL:aDomain referrer:nil loadInBackground:inLoadInBG allowPopups:NO setJumpback:NO];
+        [self openNewTabWithURL:searchDomain referrer:nil loadInBackground:inLoadInBG allowPopups:NO setJumpback:NO];
       else if (inDest == kDestinationNewWindow)
-        [self openNewWindowWithURL:aDomain referrer:nil loadInBackground:inLoadInBG allowPopups:NO];
+        [self openNewWindowWithURL:searchDomain referrer:nil loadInBackground:inLoadInBG allowPopups:NO];
       else // if it's not a new window or a new tab, load into the current view
-        [self loadURL:aDomain];
+        [self loadURL:searchDomain];
     } 
   } else {
-    aURLSpec = [[[self getBrowserWrapper] currentURI] UTF8String];
+    const char *urlSpec = [[[self getBrowserWrapper] currentURI] UTF8String];
     
     // Get the domain so that we can replace %d in our searchURL
-    if (NS_NewURI(getter_AddRefs(aURI), aURLSpec) == NS_OK) {
+    NSString *currentDomain = @"";
+    nsCOMPtr<nsIURI> currentURI;
+    if (NS_NewURI(getter_AddRefs(currentURI), urlSpec) == NS_OK) {
       nsCAutoString spec;
-      aURI->GetHost(spec);
+      currentURI->GetHost(spec);
       
-      aDomain = [NSString stringWithUTF8String:spec.get()];
+      currentDomain = [NSString stringWithUTF8String:spec.get()];
     }
     
     // Escape the search string so the user can search for strings with
@@ -2624,7 +2632,7 @@ enum BWCOpenDest {
     NSString *escapedSearchString = (NSString *) CFURLCreateStringByAddingPercentEscapes(NULL, (CFStringRef)searchString, NULL, CFSTR(";?:@&=+$,"), kCFStringEncodingUTF8);
     
     // replace the conversion specifiers (%d, %s) in the search string
-    [self transformFormatString:searchURL domain:aDomain search:escapedSearchString];
+    [self transformFormatString:searchURL domain:currentDomain search:escapedSearchString];
     [escapedSearchString release];
     
     if (inDest == kDestinationNewTab)
@@ -4672,6 +4680,31 @@ enum BWCOpenDest {
   return sBrokenIcon;
 }
 
+- (void)setUpSearchFields
+{
+  NSDictionary* searchEngines = [BrowserWindowController searchURLDictionary];
+  NSArray* engineNames = [[searchEngines allKeys] sortedArrayUsingSelector:@selector(caseInsensitiveCompare:)];
+
+  NSMutableArray* engineList = [NSMutableArray arrayWithCapacity:([engineNames count] - 1)];
+  NSEnumerator* engineEnumerator = [engineNames objectEnumerator];
+  NSString* engineName;
+  while ((engineName = [engineEnumerator nextObject])) {
+    if ([engineName isEqualToString:@"PreferredSearchEngine"])
+      continue;
+    [engineList addObject:[NSDictionary dictionaryWithObjectsAndKeys:engineName,
+                                                                     kWebSearchEngineNameKey,
+                                                                     [searchEngines objectForKey:engineName],
+                                                                     kWebSearchEngineURLKey,
+                                                                     nil]];
+  }
+
+  [mSearchBar setSearchEngines:engineList];
+  [mSearchSheetTextField setSearchEngines:engineList];
+  NSString* defaultEngine = [searchEngines objectForKey:@"PreferredSearchEngine"];
+  [mSearchBar setCurrentSearchEngine:defaultEngine];
+  [mSearchSheetTextField setCurrentSearchEngine:defaultEngine];
+}
+
 + (NSDictionary *)searchURLDictionary
 {
   static NSDictionary *searchURLDictionary = nil;
@@ -4680,42 +4713,27 @@ enum BWCOpenDest {
 
   NSString *defaultSearchEngineList = [[NSBundle mainBundle] pathForResource:@"SearchURLList" ofType:@"plist"];
 
-  //
-  // We haven't read the search engine list yet attempt to read from user's profile directory
-  //
-  nsCOMPtr<nsIFile> aDir;
-  NS_GetSpecialDirectory(NS_APP_USER_PROFILE_50_DIR, getter_AddRefs(aDir));
-  if (aDir) {
-    nsCAutoString aDirPath;
-    nsresult rv = aDir->GetNativePath(aDirPath);
-    if (NS_SUCCEEDED(rv)) {
-      NSString *profileDir = [NSString stringWithUTF8String:aDirPath.get()];  
+  // We haven't read the search engine list yet; attempt to read from user's profile directory
+  NSString *profileDir = [[PreferenceManager sharedInstance] profilePath];
+  if (profileDir) {
+    // If the file exists we read it from the profile directory
+    // If it doesn't we attempt to copy it there from our app bundle first
+    // (so that the user has something to edit in future)
+    NSString *searchEngineListPath = [profileDir stringByAppendingPathComponent:@"SearchURLList.plist"];
 
-      //
-      // If the file exists we read it from the profile directory
-      // If it doesn't we attempt to copy it there from our app bundle first
-      // (so that the user has something to edit in future)
-      //
-      NSString *searchEngineListPath    = [profileDir stringByAppendingPathComponent:@"SearchURLList.plist"];
-      NSFileManager *fileManager = [NSFileManager defaultManager];
-      if ( [fileManager isReadableFileAtPath:searchEngineListPath] ||
-           [fileManager copyPath:defaultSearchEngineList toPath:searchEngineListPath handler:nil] )
-        searchURLDictionary = [[NSDictionary alloc] initWithContentsOfFile:searchEngineListPath];
-      else {
-#if DEBUG
-        NSLog(@"Unable to copy search engine list to user profile directory");
-#endif
-      }
-    }
+    NSFileManager *fileManager = [NSFileManager defaultManager];
+    if ([fileManager isReadableFileAtPath:searchEngineListPath] ||
+        [fileManager copyPath:defaultSearchEngineList toPath:searchEngineListPath handler:nil])
+      searchURLDictionary = [[NSDictionary alloc] initWithContentsOfFile:searchEngineListPath];
     else {
 #if DEBUG
-      NSLog(@"Unable to get profile directory");
+      NSLog(@"Unable to copy search engine list to user profile directory");
 #endif
     }
   }
   else {
 #if DEBUG
-    NSLog(@"Unable to determine profile directory");
+    NSLog(@"Unable to get profile directory");
 #endif
   }
   
@@ -4875,7 +4893,8 @@ enum BWCOpenDest {
     [self updateLocationFields:[mBrowserView currentURI] ignoreTyping:YES];
     
   // see if command-return came in the search field
-  } else if ([mSearchBar isFirstResponder]) {
+  } else if ([[[self window] firstResponder] isKindOfClass:[NSView class]] &&
+           [(NSView*)[[self window] firstResponder] isDescendantOf:mSearchBar]) {
     handled = YES;
     [self performSearch:mSearchBar inView:destination inBackground:loadInBG]; 
   }
