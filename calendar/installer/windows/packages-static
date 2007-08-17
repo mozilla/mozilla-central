@@ -215,7 +215,7 @@ bin\components\nsURLFormatter.js
 bin\components\nsHelperAppDlg.js
 bin\components\nsProxyAutoConfig.js
 bin\components\nsExtensionManager.js
-#ifdef MOZILLA_1_8_BRANCH
+#ifndef MOZILLA_1_8_BRANCH
 bin\components\nsBlocklistService.js
 #endif
 bin\components\calendarService.js
