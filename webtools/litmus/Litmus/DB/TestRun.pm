@@ -57,7 +57,7 @@ Litmus::DB::TestRun->set_sql('daterange' => qq {
 	SELECT __ESSENTIAL__ 
 	FROM __TABLE__
 	WHERE
-	  start_timestamp<= ? AND finish_timestamp>?
+	  start_timestamp<=? AND finish_timestamp>=?
 	ORDER BY finish_timestamp ASC, product_id ASC, branch_id ASC, test_run_id ASC
 });
 

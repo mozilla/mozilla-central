@@ -104,20 +104,23 @@ if ($c->param) {
           $c->param('locale') ne "") {
         $hash{locale_abbrev} = $c->param('locale');
       }
+      
+      # Search for other testdays that overlap this one and let the user
+      # know about them:
+      my @overlap = Litmus::DB::TestDay->search_daterange(
+                                                          $hash{finish_timestamp},
+                                                          $hash{start_timestamp}
+                                                         );
+      
       my $new_testday = 
         Litmus::DB::TestDay->create(\%hash);
       if ($new_testday) {
         $status = "success";
         $message = "Testday added successfully. New testday ID# is " . $new_testday->testday_id;
-        
-        
-       # search for other testdays that overlap this one and let the user know about them:
-       my @runs = Litmus::DB::TestRun->search_daterange($hash{start_timestamp},
-       		$hash{finish_timestamp});
-       if (@runs) {
-           $warning = 1;
-       }
-        
+        if (@overlap) {
+          $warning = 1;
+        }
+                
         $defaults->{'testday_id'} = $new_testday->testday_id;
         $rebuild_cache=1;
       } else {
