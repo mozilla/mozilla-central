@@ -1232,18 +1232,12 @@ const int kOutlineViewLeftMargin = 19; // determined empirically, since it doesn
 
 - (id)tableView:(NSTableView *)tableView objectValueForTableColumn:(NSTableColumn *)tableColumn row:(int)row
 {
-  id retValue = nil;
   id item = nil;
 
   if (tableView == mContainersTableView)
     item = [mRootBookmarks objectAtIndex:row];
 
-  NS_DURING
-    retValue = [item valueForKey:[tableColumn identifier]];
-  NS_HANDLER
-    retValue = nil;
-  NS_ENDHANDLER
-  return retValue;
+  return [item valueForKey:[tableColumn identifier]];
 }
 
 - (void)tableView:(NSTableView *)inTableView willDisplayCell:(id)inCell forTableColumn:(NSTableColumn *)inTableColumn row:(int)inRowIndex
@@ -1449,14 +1443,11 @@ const int kOutlineViewLeftMargin = 19; // determined empirically, since it doesn
 - (id)outlineView:(NSOutlineView *)outlineView objectValueForTableColumn:(NSTableColumn *)tableColumn byItem:(id)item
 {
   id retValue = nil;
-  NS_DURING
+  if ([item isKindOfClass:[BookmarkFolder class]] && [[tableColumn identifier] isEqualToString:@"url"])
+    retValue = [BookmarkViewController greyStringWithItemCount:[item count]];
+  else
     retValue = [item valueForKey:[tableColumn identifier]];
-  NS_HANDLER
-    if ([item isKindOfClass:[BookmarkFolder class]] && [[tableColumn identifier] isEqualToString:@"url"])
-      retValue = [BookmarkViewController greyStringWithItemCount:[item count]];
-    else
-      retValue = nil;
-  NS_ENDHANDLER
+
   return retValue;
 }
 
@@ -1482,11 +1473,9 @@ const int kOutlineViewLeftMargin = 19; // determined empirically, since it doesn
 
 - (void)outlineView:(NSOutlineView *)outlineView setObjectValue:(id)object forTableColumn:(NSTableColumn *)tableColumn byItem:(id)item
 {
-  NS_DURING
-    [item takeValue:object forKey:[tableColumn identifier]];
-  NS_HANDLER
-    return;
-  NS_ENDHANDLER
+  // The only time this wouldn't work is the url column for folders, but that
+  // cell isn't editable, so if we are here it's always safe.
+  [item takeValue:object forKey:[tableColumn identifier]];
 }
 
 - (BOOL)outlineView:(NSOutlineView *)outlineView writeItems:(NSArray*)items toPasteboard:(NSPasteboard*)pboard
