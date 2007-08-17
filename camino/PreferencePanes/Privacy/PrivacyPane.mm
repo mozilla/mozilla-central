@@ -39,6 +39,7 @@
 
 #import "NSString+Utils.h"
 #import "NSArray+Utils.h"
+#import "ExtendedTableView.h"
 
 #include "nsCOMPtr.h"
 #include "nsServiceManagerUtils.h"
@@ -58,8 +59,6 @@
 // we should really get this from "CHBrowserService.h",
 // but that requires linkage and extra search paths.
 static NSString* XPCOMShutDownNotificationName = @"XPCOMShutDown";
-
-#import "ExtendedTableView.h"
 
 // prefs for keychain password autofill
 static const char* const gUseKeychainPref = "chimera.store_passwords_with_keychain";
@@ -282,12 +281,8 @@ PR_STATIC_CALLBACK(int) compareValues(nsICookie* aCookie1, nsICookie* aCookie2, 
   [popupButtonCell setEditable:YES];
   [popupButtonCell addItemsWithTitles:[NSArray arrayWithObjects:[self getLocalizedString:@"Allow"],
                                                                 [self getLocalizedString:@"Allow for Session"],
-																[self getLocalizedString:@"Deny"],
-																nil]];
-  
-  //remove the popup from the filter input fields
-  [[mPermissionFilterField cell] setHasPopUpButton: NO];
-  [[mCookiesFilterField cell] setHasPopUpButton: NO];
+                                                                [self getLocalizedString:@"Deny"],
+                                                                nil]];
 }
 
 -(void) mapCookiePrefToGUI:(int)pref
@@ -359,7 +354,7 @@ PR_STATIC_CALLBACK(int) compareValues(nsICookie* aCookie1, nsICookie* aCookie2, 
   }
   
   //clear the filter field
-  [mCookiesFilterField setStringValue: @""];
+  [mCookiesFilterField setStringValue:@""];
 
   // we shouldn't need to do this, but the scrollbar won't enable unless we
   // force the table to reload its data. Oddly it gets the number of rows correct,
@@ -553,7 +548,7 @@ PR_STATIC_CALLBACK(int) compareValues(nsICookie* aCookie1, nsICookie* aCookie2, 
   [mPermissionsTable setUsesAlternatingRowBackgroundColors:YES];
   
   //clear the filter field
-  [mPermissionFilterField setStringValue: @""];
+  [mPermissionFilterField setStringValue:@""];
   
   // we shouldn't need to do this, but the scrollbar won't enable unless we
   // force the table to reload its data. Oddly it gets the number of rows correct,
@@ -960,30 +955,54 @@ PR_STATIC_CALLBACK(int) compareValues(nsICookie* aCookie1, nsICookie* aCookie2, 
   }
 }
 
-- (void)controlTextDidChange:(NSNotification *)aNotification
-{
-  NSString *filterString = [[aNotification object] stringValue];
+// Delegate method for the filter search fields. Watches for an Enter or
+// Return in the filter, and passes it off to the sheet to trigger the default
+// button to dismiss the sheet.
+- (void)controlTextDidEndEditing:(NSNotification *)aNotification {
+  id source = [aNotification object];
+  if (!(source == mCookiesFilterField || source == mPermissionFilterField))
+    return;
   
-  // find out if we are filtering the permission or the cookies
-  if (([aNotification object] == mPermissionFilterField) && mCachedPermissions && mPermissionManager) {
-    // the user wants to filter down the list of cookies. Reinitialize the list of permission in case
-    // they deleted or replaced a letter.
-    [self filterCookiesPermissionsWithString:filterString];
-    // re-sort
-    [self sortPermissionsByColumn:[mPermissionsTable highlightedTableColumn] inAscendingOrder:mSortedAscending];
-      
-    [mPermissionsTable deselectAll: self];   // don't want any traces of previous selection
-    [mPermissionsTable reloadData];
-  } 
-  else if (([aNotification object] == mCookiesFilterField) && mCachedCookies && mCookieManager) {
-    // reinitialize the list of cookies in case user deleted a letter or replaced a letter
-    [self filterCookiesWithString:filterString];
-    // re-sort
-    [self sortCookiesByColumn:[mCookiesTable highlightedTableColumn] inAscendingOrder:mSortedAscending];
-    
-    [mCookiesTable deselectAll: self];   // don't want any traces of previous selection
-    [mCookiesTable reloadData];
+  NSEvent* currentEvent = [NSApp currentEvent];
+  if (([currentEvent type] == NSKeyDown) && [[currentEvent characters] length] > 0) {
+    unichar character = [[currentEvent characters] characterAtIndex:0];
+    if ((character == NSCarriageReturnCharacter) || (character == NSEnterCharacter)) {
+      if (source == mCookiesFilterField)
+        [mCookiesPanel performKeyEquivalent:currentEvent];
+      else
+        [mPermissionsPanel performKeyEquivalent:currentEvent];
+    }
   }
+}
+
+- (IBAction)cookieFilterChanged:(id)sender
+{
+  if (!mCachedCookies || !mCookieManager)
+    return;
+
+  NSString* filterString = [sender stringValue];
+
+  // reinitialize the list of cookies in case user deleted or replaced a letter
+  [self filterCookiesWithString:filterString];
+  // re-sort
+  [self sortCookiesByColumn:[mCookiesTable highlightedTableColumn] inAscendingOrder:mSortedAscending];
+  [mCookiesTable deselectAll:self];   // don't want any traces of previous selection
+  [mCookiesTable reloadData];
+}
+
+- (IBAction)permissionFilterChanged:(id)sender
+{
+  if (!mCachedPermissions || !mPermissionManager)
+    return;
+
+  NSString* filterString = [sender stringValue];
+
+  // reinitialize the list of permission in case user deleted or replaced a letter.
+  [self filterCookiesPermissionsWithString:filterString];
+  // re-sort
+  [self sortPermissionsByColumn:[mPermissionsTable highlightedTableColumn] inAscendingOrder:mSortedAscending];
+  [mPermissionsTable deselectAll:self];   // don't want any traces of previous selection
+  [mPermissionsTable reloadData];
 }
 
 - (void) filterCookiesPermissionsWithString: (NSString*) inFilterString

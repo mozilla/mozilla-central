@@ -42,9 +42,6 @@
 
 #import "nsCOMArray.h"
 
-#import "ExtendedTableView.h"
-#import "SearchTextField.h"
-
 class nsIPref;
 class nsIPermissionManager;
 class nsIPermission;
@@ -84,14 +81,14 @@ typedef enum ECookiePolicyPopupIndex
   IBOutlet id                 mPermissionsPanel;
   IBOutlet ExtendedTableView* mPermissionsTable;
   IBOutlet NSTableColumn*     mPermissionColumn;
-  IBOutlet SearchTextField*   mPermissionFilterField;
+  IBOutlet NSSearchField*     mPermissionFilterField;
   nsIPermissionManager*       mPermissionManager;   // STRONG (should be nsCOMPtr)
   nsCOMArray<nsIPermission>*  mCachedPermissions;   // parallel list for speed, STRONG
       
   // cookie sheet
   IBOutlet id                 mCookiesPanel;
   IBOutlet ExtendedTableView* mCookiesTable;
-  IBOutlet SearchTextField*   mCookiesFilterField;
+  IBOutlet NSSearchField*     mCookiesFilterField;
   nsICookieManager*           mCookieManager;
   nsCOMArray<nsICookie>*      mCachedCookies;
 }
@@ -133,7 +130,9 @@ typedef enum ECookiePolicyPopupIndex
 - (void)sortCookiesByColumn:(NSTableColumn *)aTableColumn inAscendingOrder:(BOOL)ascending;
 - (void)sortPermissionsByColumn:(NSTableColumn *)aTableColumn inAscendingOrder:(BOOL)ascending;
 
-  //filtering methods
+// filtering methods
+- (IBAction)cookieFilterChanged:(id)sender;
+- (IBAction)permissionFilterChanged:(id)sender;
 - (void) filterCookiesPermissionsWithString: (NSString*) inFilterString;
 - (void) filterCookiesWithString: (NSString*) inFilterString;
 @end
