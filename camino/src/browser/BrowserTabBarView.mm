@@ -50,7 +50,7 @@
 
 @interface BrowserTabBarView(TabBarViewPrivate)
 
--(void)layoutButtons;
+-(void)layoutButtonsPreservingVisibility:(BOOL)preserveVisibility;
 -(void)loadImages;
 -(void)drawTabBarBackgroundInRect:(NSRect)rect withActiveTabRect:(NSRect)tabRect;
 -(void)drawTabBarBackgroundHiliteRectInRect:(NSRect)rect;
@@ -181,7 +181,7 @@ static const float kScrollButtonInterval = 0.15;  // time (in seconds) between f
   [super setFrame:frameRect];
   // tab buttons probably need to be resized if the frame changes
   [self unregisterTabButtonsForTracking];
-  [self layoutButtons];
+  [self layoutButtonsPreservingVisibility:YES];
   [self registerTabButtonsForTracking];
 }
 
@@ -354,7 +354,7 @@ static const float kScrollButtonInterval = 0.15;  // time (in seconds) between f
   [self unregisterTabButtonsForTracking];
   [mActiveTabButton release];
   mActiveTabButton = [[(BrowserTabViewItem *)[mTabView selectedTabViewItem] tabButtonCell] retain];
-  [self layoutButtons];
+  [self layoutButtonsPreservingVisibility:NO];
   [self registerTabButtonsForTracking];
 }
 
@@ -468,8 +468,21 @@ static const float kScrollButtonInterval = 0.15;  // time (in seconds) between f
   return [self tabViewItemAtPoint:mousePointInWindow];
 }
 
--(void)layoutButtons
+// Computes sizes and positions of the currently visible tabs.
+// If |preserveVisibility| is YES, then the currently selected tab is forced to
+// remain visible in the new layout if it was previously. If it is NO, then the
+// tab may or may not stay visible in the new layout.
+-(void)layoutButtonsPreservingVisibility:(BOOL)preserveVisibility
 {
+  // before changing anything, get information about the current state
+  BrowserTabViewItem* selectedTab = (BrowserTabViewItem*)[mTabView selectedTabViewItem];
+  int selectedTabIndex = selectedTab ? [mTabView indexOfTabViewItem:selectedTab]
+                                     : -1;
+  // if we aren't currently overflowing, or we were asked to preserve the
+  // visibility of the current tab, make sure the current tab stays visible.
+  BOOL keepCurrentTabVisible = !mOverflowTabs ||
+                               (preserveVisibility && [self tabIndexIsVisible:selectedTabIndex]);
+
   int numberOfTabs = [mTabView numberOfTabViewItems];
 
   // check to see whether or not the tabs will fit without the overflows
@@ -482,6 +495,8 @@ static const float kScrollButtonInterval = 0.15;  // time (in seconds) between f
     widthOfATab = widthOfTabBar / mNumberOfVisibleTabs;
     if (mNumberOfVisibleTabs + mLeftMostVisibleTabIndex > numberOfTabs)
       [self setLeftMostVisibleTabIndex:(numberOfTabs - mNumberOfVisibleTabs)];
+    if (keepCurrentTabVisible && selectedTab)
+      [self scrollTabIndexToVisible:selectedTabIndex];
   }
   else {
     mLeftMostVisibleTabIndex = 0;
@@ -510,11 +525,9 @@ static const float kScrollButtonInterval = 0.15;  // time (in seconds) between f
     }
   }
 
-  BrowserTabViewItem* selectedTab = (BrowserTabViewItem*)[mTabView selectedTabViewItem];
   if (selectedTab) {
     [[selectedTab tabButtonCell] setDrawDivider:NO];
-    int selectedTabIndex = [mTabView indexOfTabViewItem:selectedTab];
-    if (selectedTabIndex > 0 && [self tabIndexIsVisible:selectedTabIndex])
+    if (selectedTabIndex >= 1 && [self tabIndexIsVisible:selectedTabIndex])
       [[(BrowserTabViewItem*)[mTabView tabViewItemAtIndex:(selectedTabIndex - 1)] tabButtonCell] setDrawDivider:NO];
   }
 

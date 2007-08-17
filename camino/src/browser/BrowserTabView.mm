@@ -535,8 +535,8 @@ NSString* const kTabBarBackgroundDoubleClickedNotification = @"kTabBarBackground
 // Tabs should be scrolled into view when selected.
 -(void)selectTabViewItem:(NSTabViewItem*)item
 {
-  [mTabBar scrollTabIndexToVisible:[self indexOfTabViewItem:item]];
   [super selectTabViewItem:item];
+  [mTabBar scrollTabIndexToVisible:[self indexOfTabViewItem:item]];
 }
 
 @end
