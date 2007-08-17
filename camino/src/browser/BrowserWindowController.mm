@@ -1787,21 +1787,30 @@ enum BWCOpenDest {
 
 - (void)setLoadingActive:(BOOL)active
 {
-  if (active)
-  {
+  NSSize statusFieldSize = [mStatus frame].size;
+
+  if (active) {
     [self startThrobber];
     [mProgress setIndeterminate:YES];
     [mProgress setHidden:NO];
     [mProgress startAnimation:self];
+    
+    const int statusBarPadding = 9;
+    statusFieldSize.width = NSMinX([mProgress frame]) - statusBarPadding -
+                            NSMinX([mStatus frame]);
   }
-  else
-  {
+  else {
     [self stopThrobber];
     [mProgress stopAnimation:self];
     [mProgress setHidden:YES];
     [mProgress setIndeterminate:YES];
     [[[self window] toolbar] validateVisibleItems];
+
+    statusFieldSize.width = NSMaxX([mProgress frame]) - NSMinX([mStatus frame]);
   }
+
+  [mStatus setFrameSize:statusFieldSize];
+  [mStatusBar setNeedsDisplay:YES];
 }
 
 - (void)setLoadingProgress:(float)progress
