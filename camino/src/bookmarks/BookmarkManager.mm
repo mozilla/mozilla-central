@@ -1289,19 +1289,23 @@ static BookmarkManager* gBookmarkManager = nil;
 //
 - (BOOL)readBookmarks
 {
-  NSString *profileDir = [[PreferenceManager sharedInstance] profilePath];
-
-  //
   // figure out where Bookmarks.plist is and store it as mPathToBookmarkFile
   // if there is a Bookmarks.plist, read it
-  // if there isn't, move default Bookmarks.plist to profile dir & read it.
-  //
-  NSFileManager *fM = [NSFileManager defaultManager];
+  // if there isn't (or it's corrupt), but there's a backup, restore from the backup
+  // otherwise, move default Bookmarks.plist to profile dir & read it.
+  NSString *profileDir = [[PreferenceManager sharedInstance] profilePath];
   NSString *bookmarkPath = [profileDir stringByAppendingPathComponent:@"bookmarks.plist"];
+  NSString *backupPath = [bookmarkPath stringByAppendingString:@".bak"];
   [self setPathToBookmarkFile:bookmarkPath];
+
+  NSFileManager *fM = [NSFileManager defaultManager];
+
+  // If the bookmark file is somehow missing, grab the backup if there is one.
+  if (![fM fileExistsAtPath:bookmarkPath] && [fM fileExistsAtPath:backupPath])
+    [fM copyPath:backupPath toPath:bookmarkPath handler:self];
+
   BOOL bookmarksAreCorrupt = NO;
   if ([fM isReadableFileAtPath:bookmarkPath]) {
-    NSString *backupPath = [bookmarkPath stringByAppendingString:@".bak"];
     if ([self readPListBookmarks:bookmarkPath]) {
       // since the bookmarks look good, save them aside as a backup in case something goes
       // wrong later (e.g., bug 337750) since users really don't like losing their bookmarks.
