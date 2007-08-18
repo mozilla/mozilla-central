@@ -1,1 +1,1 @@
-Problem with nightly build reported by stevee (bug 392170).
+Clobber to kick fxnewref-win32-tbox into building a nightly update; testing the patch in bug 392579.
