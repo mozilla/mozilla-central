@@ -68,19 +68,37 @@ var minimonthBusyListener = {
         }
 
         for each (var item in aItems) {
-            this.setBusyDaysForEvent(item, true);
+            this.setBusyDaysForOccurrence(item, true);
         }
     },
 
-    setBusyDaysForEvent: function mBL_setBusyDaysForOccurrence(aItem, aState) {
-        if (aItem.getProperty("TRANSP") == "TRANSPARENT") {
+    setBusyDaysForItem: function mBL_setBusyDaysForItem(aItem, aState) {
+        var minimonth = getMinimonth();
+        var items = [aItem];
+
+        if (aItem.recurrenceInfo) {
+            var startDate = jsDateToDateTime(minimonth.firstDate);
+            var endDate = jsDateToDateTime(minimonth.lastDate);
+            items = aItem.getOccurrencesBetween(startDate, endDate, {});
+        }
+
+        for each (var item in items) {
+            this.setBusyDaysForOccurrence(item, aState);
+        }
+    },
+
+    setBusyDaysForOccurrence: function mBL_setBusyDaysForOccurrence(aOccurrence,
+                                                                    aState) {
+        if (aOccurrence.getProperty("TRANSP") == "TRANSPARENT") {
           // Skip transparent events
           return;
         }
 
         var minimonth = getMinimonth();
-        var start = aItem.startDate || aItem.entryDate || aItem.dueDate;
-        var end = aItem.endDate || aItem.dueDate || start;
+        var start = aOccurrence.startDate ||
+                    aOccurrence.entryDate ||
+                    aOccurrence.dueDate;
+        var end = aOccurrence.endDate || aOccurrence.dueDate || start;
         if (!start) {
             return;
         }
@@ -120,16 +138,16 @@ var minimonthBusyListener = {
     onLoad: function mBL_onLoad(aCalendar) {},
 
     onAddItem: function mBL_onAddItem(aItem) {
-        this.setBusyDaysForEvent(aItem, true);
+        this.setBusyDaysForItem(aItem, true);
     },
 
     onDeleteItem: function mBL_onDeleteItem(aItem) {
-        this.setBusyDaysForEvent(aItem, false);
+        this.setBusyDaysForItem(aItem, false);
     },
 
     onModifyItem: function mBL_onModifyItem(aNewItem, aOldItem) {
-        this.setBusyDaysForEvent(aOldItem, false);
-        this.setBusyDaysForEvent(aNewItem, true);
+        this.setBusyDaysForItem(aOldItem, false);
+        this.setBusyDaysForItem(aNewItem, true);
     },
 
     onError: function mBL_onError(aErrNo, aMessage) {},

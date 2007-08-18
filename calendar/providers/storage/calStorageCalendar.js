@@ -25,6 +25,7 @@
  *   Dan Mosedale <dan.mosedale@oracle.com>
  *   Thomas Benisch <thomas.benisch@sun.com>
  *   Matthew Willis <lilmatt@mozilla.com>
+ *   Philipp Kewisch <mozilla@kewis.ch>
  *
  * Alternatively, the contents of this file may be used under the terms of
  * either the GNU General Public License Version 2 or later (the "GPL"), or
@@ -447,6 +448,7 @@ calStorageCalendar.prototype = {
         }
 
         aNewItem = aNewItem.parentItem;
+        aOldItem = aOldItem.parentItem;
 
         // get the old item
         var olditem = this.getItemById(aOldItem.id);
