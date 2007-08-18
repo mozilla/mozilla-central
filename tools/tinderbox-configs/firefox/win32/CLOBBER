@@ -1,1 +1,1 @@
-Clobber to kick fxnewref-win32-tbox into building a nightly update; testing the patch in bug 392579.
+Clobber to kick fxnewref-win32-tbox into building a nightly update; testing a new patch for bug 392579. We'll see if it works this time.
