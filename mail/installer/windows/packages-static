@@ -7,7 +7,6 @@
 [@AB_CD@]
 bin\chrome\@AB_CD@.jar
 bin\chrome\@AB_CD@.manifest
-bin\chrome\mail-locales.manifest
 bin\dictionaries\*
 bin\uninstall\helper.exe
 bin\updater.ini
@@ -288,7 +287,9 @@ bin\components\nsUpdateService.js
 bin\components\nsPostUpdateWin.js
 bin\components\extensions.xpt
 bin\components\update.xpt
+#ifdef MOZ_WEBSERVICES
 bin\components\websrvcs.xpt
+#endif
 bin\components\nsURLFormatter.js
 bin\components\urlformatter.xpt
 
@@ -329,7 +330,6 @@ bin\components\embed_base.xpt
 bin\components\webshell_idls.xpt
 bin\components\widget.xpt
 bin\components\windowds.xpt
-bin\components\progressDlg.xpt
 bin\components\dom_xpath.xpt
 bin\AccessibleMarshal.dll
 bin\components\lwbrk.xpt
@@ -372,9 +372,11 @@ bin\res\table-remove-row-active.gif
 bin\res\table-remove-row-hover.gif
 bin\res\table-remove-row.gif
 
+#ifdef MOZ_SVG
 ; svg
 bin\res\svg.css
 bin\components\dom_svg.xpt
+#endif
 
 ; [Updater]
 bin\updater.exe
