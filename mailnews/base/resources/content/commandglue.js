@@ -580,8 +580,21 @@ function ConvertColumnIDToSortType(columnID)
       sortKey = nsMsgViewSortType.byAttachments;
       break;
     default:
-      dump("unsupported sort column: " + columnID + "\n");
-      sortKey = 0;
+      // no predefined column handler - let's check if there is one custom column handler
+      try {
+        // try to grab the columnHandler (an error is thrown if it does not exist)
+        gDBView.getColumnHandler(columnID);
+
+        // it exists - save this column ID in the customSortCol property of dbFolderInfo
+        // for later use (see nsIMsgDBView.cpp)
+        gDBView.db.dBFolderInfo.setProperty("customSortCol", columnID);
+        
+        sortKey = nsMsgViewSortType.byCustom;
+      }
+      catch (err) {
+        dump("unsupported sort column: " + columnID + " - no custom handler installed. (Error was: " + err + ")\n");
+        sortKey = 0;
+      }
       break;
   }
   return sortKey;
@@ -643,6 +656,13 @@ function ConvertSortTypeToColumnID(sortKey)
       break;
     case nsMsgViewSortType.byAttachments:
       columnID = "attachmentCol";
+      break;
+    case nsMsgViewSortType.byCustom:
+      columnID = gDBView.db.dBFolderInfo.getProperty("customSortCol");
+      if (!columnID) {
+        dump("ConvertSortTypeToColumnID: custom sort key but columnID not found\n");
+        columnID = "dateCol";
+      }
       break;
     default:
       dump("unsupported sort key: " + sortKey + "\n");
@@ -736,6 +756,8 @@ function CreateDBView(msgFolder, viewType, viewFlags, sortType, sortOrder)
   gDBView.suppressMsgDisplay = IsMessagePaneCollapsed();
 
   UpdateSortIndicators(gCurSortType, sortOrder);
+  var ObserverService = Components.classes["@mozilla.org/observer-service;1"].getService(Components.interfaces.nsIObserverService);
+  ObserverService.notifyObservers(msgFolder, "MsgCreateDBView", viewType + ":" + viewFlags);
 }
 
 //------------------------------------------------------------
