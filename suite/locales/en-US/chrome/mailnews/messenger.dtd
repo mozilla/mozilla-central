@@ -156,7 +156,9 @@
 <!-- View Menu -->
 <!ENTITY showMessengerToolbarCmd.label		"Mail Toolbar">
 <!ENTITY showMessengerToolbarCmd.accesskey	"o">
-
+<!ENTITY customizeToolbar.label                 "Customize...">
+<!ENTITY customizeToolbar.accesskey             "C">
+ 
 <!-- showSearchToolbarCmd is also used by addressbook -->
 <!ENTITY showSearchToolbarCmd.label		"Search Bar">
 <!ENTITY showSearchToolbarCmd.accesskey	"e">
