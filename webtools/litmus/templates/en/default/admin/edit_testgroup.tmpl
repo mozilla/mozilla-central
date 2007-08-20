@@ -29,7 +29,7 @@
   # $testgroup - the testgroup object to show
 #%]
 
-      <form id="edit_testgroup_form" name="edit_testgroup_form" method="post" action="manage_testgroups.cgi" onSubmit="selectNone('subgroups_for_product');selectAll('testgroup_subgroups');return checkFormContents(this);">
+      <form id="edit_testgroup_form" name="edit_testgroup_form" method="post" action="manage_testgroups.cgi" onSubmit="updatePersistVars();selectNone('subgroups_for_product');selectAll('testgroup_subgroups');return checkFormContents(this);">
       <input id="mode" name="mode" type="hidden" value="edit">
       <input id="editform_testgroup_id" name="editform_testgroup_id" type="hidden" value="">
       <input id="product_persist" name="product_persist" type="hidden" value="" />

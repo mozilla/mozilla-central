@@ -31,7 +31,7 @@
 
 [% INCLUDE test/formattingHelp.js.tmpl %]
 
-      <form id="edit_testcase_form" name="edit_testcase_form" method="post" action="manage_testcases.cgi" onSubmit="return checkFormContents(this);">
+      <form id="edit_testcase_form" name="edit_testcase_form" method="post" action="manage_testcases.cgi" onSubmit="updatePersistVars();return checkFormContents(this);">
       <input id="mode" name="mode" type="hidden" value="edit">
       <input id="editform_testcase_id" name="editform_testcase_id" type="hidden" value="">
       <input id="product_persist" name="product_persist" type="hidden" value="" />

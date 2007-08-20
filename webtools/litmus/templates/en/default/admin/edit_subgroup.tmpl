@@ -29,7 +29,7 @@
   # $subgroup - the subgroup object to show
 #%]
 
-      <form id="edit_subgroup_form" name="edit_subgroup_form" method="post" action="manage_subgroups.cgi" onSubmit="selectNone('testcases_for_product');selectAll('subgroup_testcases');return checkFormContents(this);">
+      <form id="edit_subgroup_form" name="edit_subgroup_form" method="post" action="manage_subgroups.cgi" onSubmit="updatePersistVars();selectNone('testcases_for_product');selectAll('subgroup_testcases');return checkFormContents(this);">
       <input id="mode" name="mode" type="hidden" value="edit">
       <input id="editform_subgroup_id" name="editform_subgroup_id" type="hidden" value="">
       <input id="product_persist" name="product_persist" type="hidden" value="" />
