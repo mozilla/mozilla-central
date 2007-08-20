@@ -61,7 +61,7 @@
   <keyset id="consoleKeys">
     <keyset id="tasksKeys"/>
     <key id="key_copy"/>
-    <key id="key_close"/>
+    <key id="key_close2" disabled="true"/>
     <key id="key_quit"/>
   </keyset>
 
@@ -109,9 +109,18 @@
       <!-- help menu filled from globalOverlay -->
       <menu id="menu_Help"/>
     </menubar>
-  </toolbox>
 
-  <toolbar id="ToolbarMode" grippytooltiptext="&modeToolbar.tooltip;"/>
-  <toolbar id="ToolbarEval" grippytooltiptext="&entryToolbar.tooltip;"/>
+    <toolbar id="ToolbarMode" grippytooltiptext="&modeToolbar.tooltip;">
+      <toolbarbutton id="Console:modeAll" accesskey="&all.accesskey;"/>
+      <toolbarbutton id="Console:modeErrors" accesskey="&errors.accesskey;"/>
+      <toolbarbutton id="Console:modeWarnings" accesskey="&warnings.accesskey;"/>
+      <toolbarbutton id="Console:modeMessages" accesskey="&messages.accesskey;"/>
+      <toolbarbutton id="Console:clear" accesskey="&clear.accesskey;"/>
+    </toolbar>
+
+    <toolbar id="ToolbarEval" grippytooltiptext="&entryToolbar.tooltip;">
+      <toolbarbutton id="ButtonEval" accesskey="&evaluate.accesskey;"/>
+    </toolbar>
+  </toolbox>
 
 </overlay>
