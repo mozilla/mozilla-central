@@ -143,6 +143,9 @@ pref("browser.link.open_newwindow", 2);
 // 1 = use SWM on every window.open, 2 = use SWM unless size or features specified
 pref("browser.link.open_newwindow.restriction", 2);
 
+// don't force all windows diverted by SWM to load in the background
+pref("browser.tabs.loadDivertedInBackground", false);
+
 // load links from external apps: 0 = new window, 1 = new tab,
 // 2 = current window/tab
 pref("browser.reuse_window", 0);

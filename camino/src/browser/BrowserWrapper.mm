@@ -920,12 +920,18 @@ enum StatusPriority {
   CHBrowserView* viewToUse = mBrowserView;
   int openNewWindow = [[PreferenceManager sharedInstance] getIntPref:"browser.link.open_newwindow" withSuccess:NULL];
   if (openNewWindow == nsIBrowserDOMWindow::OPEN_NEWTAB) {
-    // we decide whether or not to open the new tab in the background based on
-    // if we're the fg tab. If we are, we assume the user wants to see the new tab
-    // because it's contextually relevat. If this tab is in the bg, the user doesn't
-    // want to be bothered with a bg tab throwing things up in their face. We know
+    // If browser.tabs.loadDivertedInBackground isn't set, we decide whether or
+    // not to open the new tab in the background based on whether we're the fg
+    // tab. If we are, we assume the user wants to see the new tab because it's 
+    // contextually relevant. If this tab is in the bg, the user doesn't want to
+    // be bothered with a bg tab throwing things up in their face. We know
     // we're in the bg if our delegate is nil.
-    viewToUse = [mCreateDelegate createNewTabBrowser:(mDelegate == nil)];
+    BOOL loadInBackground;
+    if ([[PreferenceManager sharedInstance] getBooleanPref:"browser.tabs.loadDivertedInBackground" withSuccess:NULL])
+      loadInBackground = YES;
+    else
+      loadInBackground = (mDelegate == nil);
+    viewToUse = [mCreateDelegate createNewTabBrowser:loadInBackground];
   }
 
   return viewToUse;
