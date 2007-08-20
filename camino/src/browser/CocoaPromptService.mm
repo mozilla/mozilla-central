@@ -75,11 +75,12 @@ CocoaPromptService::Alert(nsIDOMWindow *parent,
   
   nsresult rv = NS_OK;
   
-  NS_DURING
+  @try {
     [controller alert:[browserView nativeWindow] title:titleStr text:textStr];
-  NS_HANDLER
+  }
+  @catch (id exception) {
     rv = NS_ERROR_FAILURE;
-  NS_ENDHANDLER
+  }
 
   [browserView doAfterPromptDismissal];
 
@@ -131,7 +132,7 @@ CocoaPromptService::AlertCheck(nsIDOMWindow *parent,
   [browserView doBeforePromptDisplay];
 
   nsresult rv = NS_OK;
-  NS_DURING
+  @try {
     // only show the checkbox if we have an out param and string for it
     if (checkValue && checkMsg && *checkMsg) {
       NSString* msgStr = [NSString stringWithPRUnichars:checkMsg];
@@ -146,9 +147,10 @@ CocoaPromptService::AlertCheck(nsIDOMWindow *parent,
     else {
       [controller alert:[browserView nativeWindow] title:titleStr text:textStr];
     }
-  NS_HANDLER
+  }
+  @catch (id exception) {
     rv = NS_ERROR_FAILURE;
-  NS_ENDHANDLER
+  }
 
   [browserView doAfterPromptDismissal];
 
@@ -174,13 +176,14 @@ CocoaPromptService::Confirm(nsIDOMWindow *parent,
   [browserView doBeforePromptDisplay];
 
   nsresult rv = NS_OK;
-  NS_DURING
+  @try {
     *_retval = (PRBool)[controller confirm:[browserView nativeWindow]
                                      title:titleStr
                                       text:textStr];
-  NS_HANDLER
+  }
+  @catch (id exception) {
     rv = NS_ERROR_FAILURE;
-  NS_ENDHANDLER
+  }
 
   [browserView doAfterPromptDismissal];
 
@@ -207,7 +210,7 @@ CocoaPromptService::ConfirmCheck(nsIDOMWindow *parent,
   [browserView doBeforePromptDisplay];
 
   nsresult rv = NS_OK;
-  NS_DURING
+  @try {
     // only show the checkbox if we have an out param and string for it
     if (checkValue && checkMsg && *checkMsg) {
       NSString* msgStr = [NSString stringWithPRUnichars:checkMsg];
@@ -224,9 +227,10 @@ CocoaPromptService::ConfirmCheck(nsIDOMWindow *parent,
                                        title:titleStr
                                         text:textStr];
     }
-  NS_HANDLER
+  }
+  @catch (id exception) {
     rv = NS_ERROR_FAILURE;
-  NS_ENDHANDLER
+  }
 
   [browserView doAfterPromptDismissal];
 
@@ -268,7 +272,7 @@ CocoaPromptService::ConfirmEx(nsIDOMWindow *parent,
   [browserView doBeforePromptDisplay];
 
   nsresult rv = NS_OK;
-  NS_DURING
+  @try {
     int result;
     // only show the checkbox if we have an out param and string for it
     if (checkValue && checkMsg && *checkMsg) {
@@ -301,9 +305,10 @@ CocoaPromptService::ConfirmEx(nsIDOMWindow *parent,
       case NSAlertAlternateReturn:  *buttonPressed = 1;    break;
       case NSAlertOtherReturn:      *buttonPressed = 2;    break;
     }
-  NS_HANDLER
+  }
+  @catch (id exception) {
     rv = NS_ERROR_FAILURE;
-  NS_ENDHANDLER
+  }
 
   [browserView doAfterPromptDismissal];
 
@@ -341,7 +346,7 @@ CocoaPromptService::Prompt(nsIDOMWindow *parent,
   [browserView doBeforePromptDisplay];
 
   nsresult rv = NS_OK;
-  NS_DURING
+  @try {
     // only show the checkbox if we have a string for it
     *_retval = (PRBool)[controller prompt:[browserView nativeWindow]
                                     title:titleStr
@@ -350,9 +355,10 @@ CocoaPromptService::Prompt(nsIDOMWindow *parent,
                                  checkMsg:msgStr
                                checkValue:&valueBool
                                   doCheck:(checkMsg && *checkMsg)];
-  NS_HANDLER
+  }
+  @catch (id exception) {
     rv = NS_ERROR_FAILURE;
-  NS_ENDHANDLER
+  }
 
   [browserView doAfterPromptDismissal];
 
@@ -405,7 +411,7 @@ CocoaPromptService::PromptUsernameAndPassword(nsIDOMWindow *parent,
   [browserView doBeforePromptDisplay];
 
   nsresult rv = NS_OK;
-  NS_DURING
+  @try {
     // only show the checkbox if we have a string for it
     *_retval = (PRBool)[controller promptUserNameAndPassword:[browserView nativeWindow]
                                                        title:titleStr
@@ -415,9 +421,10 @@ CocoaPromptService::PromptUsernameAndPassword(nsIDOMWindow *parent,
                                                     checkMsg:msgStr
                                                   checkValue:&valueBool
                                                      doCheck:(checkMsg && *checkMsg)];
-  NS_HANDLER
+  }
+  @catch (id exception) {
     rv = NS_ERROR_FAILURE;
-  NS_ENDHANDLER
+  }
 
   [browserView doAfterPromptDismissal];
 
@@ -469,7 +476,7 @@ CocoaPromptService::PromptPassword(nsIDOMWindow *parent,
   [browserView doBeforePromptDisplay];
 
   nsresult rv = NS_OK;
-  NS_DURING
+  @try {
     // only show the checkbox if we have a string for it
     *_retval = (PRBool)[controller promptPassword:[browserView nativeWindow]
                                             title:titleStr
@@ -478,9 +485,10 @@ CocoaPromptService::PromptPassword(nsIDOMWindow *parent,
                                          checkMsg:msgStr
                                        checkValue:&valueBool
                                           doCheck:(checkMsg && *checkMsg)];
-  NS_HANDLER
+  }
+  @catch (id exception) {
     rv = NS_ERROR_FAILURE;
-  NS_ENDHANDLER
+  }
 
   [browserView doAfterPromptDismissal];
 

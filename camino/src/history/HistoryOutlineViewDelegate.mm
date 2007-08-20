@@ -240,15 +240,16 @@ static NSString* const kExpandedHistoryStatesDefaultsKey = @"history_expand_stat
   mUpdatesDisabled = YES;
   
   // catch exceptions to make sure we turn updating back on
-  NS_DURING
+  @try {
     NSEnumerator* itemsEnum = [doomedItems objectEnumerator];
     HistoryItem* curItem;
     while ((curItem = [itemsEnum nextObject]))
     {
       [self recursiveDeleteItem:curItem];
     }
-  NS_HANDLER
-  NS_ENDHANDLER
+  }
+  @catch (id exception) {
+  }
   
   if (clearSelectionWhenDone)
     [mHistoryOutlineView deselectAll:self];

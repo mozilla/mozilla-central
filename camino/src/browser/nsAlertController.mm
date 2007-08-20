@@ -137,14 +137,15 @@ const int kLabelCheckboxAdjustment = 2; // # pixels the label must be pushed dow
   if (NS_SUCCEEDED(rv))
   {
     // be paranoid; we don't want to throw Obj-C exceptions over C++ code
-    NS_DURING
+    @try {
       if (inParentWindow)
         result = [NSApp runModalForWindow:inWindow relativeToWindow:inParentWindow];
       else
         result = [NSApp runModalForWindow:inWindow];
-    NS_HANDLER
-      NSLog(@"Exception caught in safeRunModalForWindow:relativeToWindow: %@", localException);
-    NS_ENDHANDLER
+    }
+    @catch (id exception) {
+      NSLog(@"Exception caught in safeRunModalForWindow:relativeToWindow: %@", exception);
+    }
   }
     
   return result;

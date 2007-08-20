@@ -6,6 +6,7 @@ INSTALL_PATH = $(HOME)/Applications
 INFOPLIST_FILE = Info-Camino.plist
 
 GCC_PREFIX_HEADER = src/includes/ChimeraPrefix.h
+GCC_ENABLE_OBJC_EXCEPTIONS = YES
 GCC_ENABLE_CPP_EXCEPTIONS = NO
 GCC_ENABLE_CPP_RTTI = NO
 OTHER_CFLAGS = -fshort-wchar

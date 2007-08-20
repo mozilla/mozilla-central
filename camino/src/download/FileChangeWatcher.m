@@ -145,15 +145,16 @@ const int kSecondPollingInterval = 60;
     }
 
     NSAutoreleasePool* pool = [[NSAutoreleasePool alloc] init];
-    NS_DURING
+    @try {
       struct kevent event;
       int n = kevent(mQueueFileDesc, NULL, 0, &event, 1, &timeInterval);
       if (n > 0 && event.filter == EVFILT_VNODE && event.fflags) {
         [(id<WatchedFileDelegate>)event.udata fileDidChange];
       }
-    NS_HANDLER
-      NSLog(@"Error in watcherThread: %@", localException);
-    NS_ENDHANDLER
+    }
+    @catch (id exception) {
+      NSLog(@"Error in watcherThread: %@", exception);
+    }
     
     [pool release];
   }

@@ -382,12 +382,13 @@ NeckoCacheHelper::ClearCache()
     faviconImage = [[NSWorkspace sharedWorkspace] iconForFile:[inURIAsNSURL path]];
   }
   else {
-    NS_DURING
+    @try {
       faviconImage = [[[NSImage alloc] initWithData:data] autorelease];
-    NS_HANDLER
-      NSLog(@"Exception \"%@\" making favicon image for %@", localException, inURI);
+    }
+    @catch (id exception) {
+      NSLog(@"Exception \"%@\" making favicon image for %@", exception, inURI);
       faviconImage = nil;
-    NS_ENDHANDLER
+    }
   }
 
   BOOL gotImageData = loadOK && (faviconImage != nil);

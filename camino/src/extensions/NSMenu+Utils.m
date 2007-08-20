@@ -61,7 +61,7 @@ static OSStatus MenuEventHandler(EventHandlerCallRef inHandlerCallRef, EventRef 
         OSStatus err = GetEventParameter(inEvent, kEventParamDirectObject, typeMenuRef, NULL, sizeof(MenuRef), NULL, &theCarbonMenu);
         if (err == noErr)
         {
-          NS_DURING
+          @try {
             // we can't map from MenuRef to NSMenu, so we have to let receivers of the notification
             // do the test.
             NSString* notificationName = @"";
@@ -72,9 +72,10 @@ static OSStatus MenuEventHandler(EventHandlerCallRef inHandlerCallRef, EventRef 
             
             [[NSNotificationCenter defaultCenter] postNotificationName:notificationName
                                                                 object:[NSValue valueWithPointer:theCarbonMenu]];
-          NS_HANDLER
-            NSLog(@"Caught exception %@", localException);
-          NS_ENDHANDLER
+          }
+          @catch (id exception) {
+            NSLog(@"Caught exception %@", exception);
+          }
         }
       }
       break;

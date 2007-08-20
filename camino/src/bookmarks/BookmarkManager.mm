@@ -295,7 +295,7 @@ static BookmarkManager* gBookmarkManager = nil;
   [self startSuppressingChangeNotifications];
 
   // handle exceptions to ensure that turn notification suppression back off
-  NS_DURING
+  @try {
     BookmarkFolder* root = [[BookmarkFolder alloc] init];
 
     // We used to do this:
@@ -335,10 +335,10 @@ static BookmarkManager* gBookmarkManager = nil;
     // set the localized titles of these folders
     [[self toolbarFolder] setTitle:NSLocalizedString(@"Bookmark Bar", nil)];
     [[self bookmarkMenuFolder] setTitle:NSLocalizedString(@"Bookmark Menu", nil)];
-
-  NS_HANDLER
-      NSLog(@"Exception caught in loadBookmarks: %@", localException);
-  NS_ENDHANDLER
+  }
+  @catch (id exception) {
+      NSLog(@"Exception caught in loadBookmarks: %@", exception);
+  }
 
   [self stopSuppressingChangeNotifications];
 

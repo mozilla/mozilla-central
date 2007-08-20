@@ -986,7 +986,7 @@ const int kOutlineViewLeftMargin = 19; // determined empirically, since it doesn
   mBookmarkUpdatesDisabled = YES;
 
   // make sure we re-enable updates
-  NS_DURING
+  @try {
     NSEnumerator *enumerator = [mozBookmarkList objectEnumerator];
 
     id aKid;
@@ -1011,8 +1011,9 @@ const int kOutlineViewLeftMargin = 19; // determined empirically, since it doesn
         }
       }
     }
-  NS_HANDLER
-  NS_ENDHANDLER
+  }
+  @catch (id exception) {
+  }
 
   mBookmarkUpdatesDisabled = NO;
   [self reloadDataForItem:nil reloadChildren:YES];
@@ -1032,7 +1033,7 @@ const int kOutlineViewLeftMargin = 19; // determined empirically, since it doesn
 
   NSMutableArray* newBookmarks = [NSMutableArray arrayWithCapacity:[urls count]];
   // make sure we re-enable updates
-  NS_DURING
+  @try {
     for (unsigned int i = 0; i < [urls count]; ++i) {
       NSString* url = [urls objectAtIndex:i];
       NSString* title = [titles objectAtIndex:i];
@@ -1042,8 +1043,9 @@ const int kOutlineViewLeftMargin = 19; // determined empirically, since it doesn
       [dropFolder insertChild:bookmark atIndex:(index + i) isMove:NO];
       [newBookmarks addObject:bookmark];
     }
-  NS_HANDLER
-  NS_ENDHANDLER
+  }
+  @catch (id exception) {
+  }
 
   mBookmarkUpdatesDisabled = NO;
   [self reloadDataForItem:nil reloadChildren:YES];

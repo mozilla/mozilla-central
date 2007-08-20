@@ -572,7 +572,7 @@ public:
     if (!inHistoryItem || NS_FAILED(inHistoryItem->GetHidden(&hidden)) || hidden)
       return NS_OK;
 
-    NS_DURING // make sure we don't throw out into gecko
+    @try { // make sure we don't throw out into gecko
 
       // The logic here is slightly odd, because even when inFirstVisit is false,
       // we can still get an item that we haven't seen before. This can happen
@@ -593,22 +593,24 @@ public:
         [mDataSource itemAdded:item];
         [item release];
       }
-    NS_HANDLER
-      NSLog(@"Exception caught in ItemLoaded: %@", localException);
-    NS_ENDHANDLER
+    }
+    @catch (id exception) {
+      NSLog(@"Exception caught in ItemLoaded: %@", exception);
+    }
     
     return NS_OK;
   }
 
   NS_IMETHOD ItemRemoved(nsIHistoryItem* inHistoryItem)
   {
-    NS_DURING // make sure we don't throw out into gecko
+    @try { // make sure we don't throw out into gecko
       HistorySiteItem* item = HistoryItemFromItem(inHistoryItem);
       if (item)
         [mDataSource itemRemoved:item];
-    NS_HANDLER
-      NSLog(@"Exception caught in ItemRemoved: %@", localException);
-    NS_ENDHANDLER
+    }
+    @catch (id exception) {
+      NSLog(@"Exception caught in ItemRemoved: %@", exception);
+    }
     return NS_OK;
   }
 
@@ -617,12 +619,13 @@ public:
     HistorySiteItem* item = HistoryItemFromItem(inHistoryItem);
     if (!item) return NS_OK;
 
-    NS_DURING // make sure we don't throw out into gecko
+    @try { // make sure we don't throw out into gecko
       if ([item updateWith_nsIHistoryItem:inHistoryItem])
         [mDataSource itemChanged:item];
-    NS_HANDLER
-      NSLog(@"Exception caught in ItemTitleChanged: %@", localException);
-    NS_ENDHANDLER
+    }
+    @catch (id exception) {
+      NSLog(@"Exception caught in ItemTitleChanged: %@", exception);
+    }
     return NS_OK;
   }
 

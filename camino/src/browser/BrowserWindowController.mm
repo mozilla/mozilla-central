@@ -732,7 +732,7 @@ enum BWCOpenDest {
       BOOL dontShowAgain = NO;
       int result = NSAlertErrorReturn;
 
-      NS_DURING
+      @try {
         // note that this is a pseudo-sheet (and causes Cocoa to complain about runModalForWindow:relativeToWindow).
         // Ideally, we'd be able to get a panel from nsAlertController and run it as a sheet ourselves.
         result = [controller confirmCheckEx:[self window]
@@ -743,8 +743,9 @@ enum BWCOpenDest {
                                     button3:nil
                                    checkMsg:NSLocalizedString(@"DontShowWarningAgainCheckboxLabel", @"")
                                  checkValue:&dontShowAgain];
-      NS_HANDLER
-      NS_ENDHANDLER
+      }
+      @catch (id exception) {
+      }
       
       if (dontShowAgain)
         [[PreferenceManager sharedInstance] setPref:"camino.warn_when_closing" toBoolean:NO];
