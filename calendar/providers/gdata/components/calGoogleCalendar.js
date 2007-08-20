@@ -267,6 +267,13 @@ calGoogleCalendar.prototype = {
             // Add the calendar to the item, for later use.
             aItem.calendar = this;
 
+            // When adding items, the google user is the organizer.
+            var organizer = createAttendee();
+            organizer.isOrganizer = true;
+            organizer.commonName = this.mSession.googleFullName;
+            organizer.id = "mailto:" + this.mSession.googleUser;
+            aItem.organizer = organizer;
+
             this.mSession.addItem(this,
                                   aItem,
                                   this.addItem_response,

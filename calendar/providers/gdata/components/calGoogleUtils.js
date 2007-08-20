@@ -533,10 +533,11 @@ function ItemToXMLEntry(aItem, aAuthorEmail, aAuthorName) {
 
     // Namespace definitions
     var gd = new Namespace("gd", "http://schemas.google.com/g/2005");
+    var gCal = new Namespace("gCal", "http://schemas.google.com/gCal/2005");
     var atom = new Namespace("", "http://www.w3.org/2005/Atom");
     default xml namespace = atom;
 
-    var entry = <entry xmlns={atom} xmlns:gd={gd}/>;
+    var entry = <entry xmlns={atom} xmlns:gd={gd} xmlns:gCal={gCal}/>;
 
     // Basic elements
     entry.category.@scheme = "http://schemas.google.com/g/2005#kind";
@@ -574,6 +575,67 @@ function ItemToXMLEntry(aItem, aAuthorEmail, aAuthorName) {
 
     // gd:where
     entry.gd::where.@valueString = aItem.getProperty("LOCATION") || "";
+
+    // gd:who
+    var attendees = aItem.getAttendees({});
+    if (aItem.organizer) {
+        // Taking care of the organizer is the same as taking care of any other
+        // attendee. Add the organizer to the local attendees list.
+        attendees.push(aItem.organizer);
+    }
+
+    const attendeeStatusMap = {
+        "REQ-PARTICIPANT": "required",
+        "OPT-PARTICIPANT": "optional",
+        "NON-PARTICIPANT": null,
+        "CHAIR": null,
+
+        "NEEDS-ACTION": "invited",
+        "ACCEPTED": "accepted",
+        "DECLINED": "declined",
+        "TENTATIVE": "tentative",
+        "DELEGATED": "tentative"
+    };
+
+    for each (var attendee in attendees) {
+        if (attendee.userType && attendee.userType != "INDIVIDUAL") {
+            // We can only take care of individuals.
+            continue;
+        }
+
+        var xmlAttendee = <gd:who xmlns:gd={gd}/>;
+
+        // Strip "mailto:" part
+        xmlAttendee.@email = attendee.id.substring(7);
+
+        if (attendee.isOrganizer) {
+            xmlAttendee.@rel = kEVENT_SCHEMA + "organizer";
+        } else {
+            xmlAttendee.@rel = kEVENT_SCHEMA + "attendee";
+        }
+
+        if (attendee.commonName) {
+            xmlAttendee.@valueString = attendee.commonName;
+        }
+
+        if (attendeeStatusMap[attendee.role]) {
+            xmlAttendee.gd::attendeeType.@value =
+                attendeeStatusMap[attendee.role];
+        }
+
+        if (attendeeStatusMap[attendee.participationStatus]) {
+            xmlAttendee.gd::attendeeStatus.@value =
+                attendeeStatusMap[attendee.participationStatus];
+        }
+
+        entry.gd::who += xmlAttendee;
+    }
+
+    // Notify attendees by default and let google handle this. Use a preference
+    // in case the user wants this to be turned off. Support on a per event
+    // basis will be taken care of later.
+    var notify = getPrefSafe("calendar.google.sendEventNotifications", true);
+    entry.gCal::sendEventNotifications.@value = (notify ? "true" : "false");
 
     // gd:when
     var duration = aItem.endDate.subtractDate(aItem.startDate);
@@ -655,7 +717,6 @@ function ItemToXMLEntry(aItem, aAuthorEmail, aAuthorName) {
 
     // TODO gd:recurrenceException: Enhancement tracked in bug 362650
     // TODO gd:comments: Enhancement tracked in bug 362653
-    // TODO gd:who Enhancement tracked in bug 355226
 
     // XXX Google currently has no priority support. See
     // http://code.google.com/p/google-gdata/issues/detail?id=52
@@ -706,6 +767,31 @@ function relevantFieldsMatch(a, b) {
     for each (var p in kPROPERTIES) {
         // null and an empty string should be handled as non-relevant
         if ((a.getProperty(p) || "") != (b.getProperty(p) || "")) {
+            return false;
+        }
+    }
+
+    // attendees and organzier
+    var aa = a.getAttendees({});
+    var ab = b.getAttendees({});
+    if (aa.length != ab.length) {
+        return false;
+    }
+
+    if ((a.organizer && !b.organizer) ||
+        (!a.organizer && b.organizer) ||
+        (a.organizer && b.organizer && a.organizer.id != b.organizer.id)) {
+        return false;
+    }
+
+    // go through attendees in a, check if its id is in b
+    for each (var attendee in aa) {
+        var ba = b.getAttendeeById(attendee.id);
+        if (!ba ||
+            ba.participationStatus != attendee.participationStatus ||
+            ba.commonName != attendee.commonName ||
+            ba.isOrganizer != attendee.isOrganizer ||
+            ba.role != attendee.role) {
             return false;
         }
     }
@@ -894,6 +980,45 @@ function XMLEntryToItem(aXMLEntry, aTimezone, aCalendar) {
         // gd:where
         item.setProperty("LOCATION",
                          aXMLEntry.gd::where.@valueString.toString());
+        // gd:who
+
+        // This object can easily translate the Google's values to our values.
+        const attendeeStatusMap = {
+            // role
+            "event.optional": "OPT-PARTICIPANT",
+            "event.required": "REQ-PARTICIPANT",
+
+            // Participation Statii
+            "event.accepted": "ACCEPTED",
+            "event.declined": "DECLINED",
+            "event.invited": "NEEDS-ACTION",
+            "event.tentative": "TENTATIVE"
+        };
+
+        // Iterate all attendee tags.
+        for each (var who in aXMLEntry.gd::who) {
+            var attendee = Cc["@mozilla.org/calendar/attendee;1"]
+                           .createInstance(Ci.calIAttendee);
+
+            var rel = who.@rel.substring(33);
+            var type = who.gd::attendeeType.@value.substring(33);
+            var status = who.gd::attendeeStatus.@value.substring(33);
+
+            attendee.id = "mailto:" + who.@email.toString();
+            attendee.commonName = who.@valueString.toString();
+            attendee.rsvp = false;
+            attendee.userType = "INDIVIDUAL";
+            attendee.isOrganizer = (rel == "event.organizer");
+            attendee.participationStatus = attendeeStatusMap[status];
+            attendee.role = attendeeStatusMap[type]
+            attendee.makeImmutable();
+
+            if (attendee.isOrganizer) {
+                item.organizer = attendee;
+            } else {
+                item.addAttendee(attendee);
+            }
+        }
 
         // gd:recurrence
         var recurrenceInfo = aXMLEntry.gd::recurrence.toString();
@@ -981,7 +1106,6 @@ function XMLEntryToItem(aXMLEntry, aTimezone, aCalendar) {
 
         // TODO gd:recurrenceException: Enhancement tracked in bug 362650
         // TODO gd:comments: Enhancement tracked in bug 362653
-        // TODO gd:who Enhancement tracked in bug 355226
 
         // XXX Google currently has no priority support. See
         // http://code.google.com/p/google-gdata/issues/detail?id=52
@@ -998,23 +1122,43 @@ function XMLEntryToItem(aXMLEntry, aTimezone, aCalendar) {
  * Custom logging functions
  */
 function LOGitem(item) {
-    if (item)
-        LOG("Logging calIEvent:" +
-            "\n\tid:" + item.id +
-            "\n\tediturl:" + item.getProperty("X-GOOGLE-EDITURL") +
-            "\n\tcreated:" + item.getProperty("CREATED") +
-            "\n\tupdated:" + item.getProperty("LAST-MODIFIED") +
-            "\n\ttitle:" + item.title +
-            "\n\tcontent:" + item.getProperty("DESCRIPTION") +
-            "\n\ttransparency:" + item.getProperty("TRANSP") +
-            "\n\tstatus:" + item.status +
-            "\n\tstartTime:" + item.startDate.toString() +
-            "\n\tendTime:" + item.endDate.toString() +
-            "\n\tlocation:" + item.getProperty("LOCATION") +
-            "\n\tprivacy:" + item.privacy +
-            "\n\talarmOffset:" + item.alarmOffset +
-            "\n\talarmLastAck:" + item.alarmLastAck +
-            "\n\tsnoozeTime:" + item.getProperty("X-MOZ-SNOOZE-TIME") +
-            "\n\tisOccurrence:" +
-                    item.getProperty("x-GOOGLE-ITEM-IS-OCCURRENCE"));
+    if (!item) {
+        return;
+    }
+
+    var attendees = item.getAttendees({});
+    var attendeeString = "";
+    for each (var a in attendees) {
+        attendeeString += "\n" + LOGattendee(a);
+    }
+
+    LOG("Logging calIEvent:" +
+        "\n\tid:" + item.id +
+        "\n\tediturl:" + item.getProperty("X-GOOGLE-EDITURL") +
+        "\n\tcreated:" + item.getProperty("CREATED") +
+        "\n\tupdated:" + item.getProperty("LAST-MODIFIED") +
+        "\n\ttitle:" + item.title +
+        "\n\tcontent:" + item.getProperty("DESCRIPTION") +
+        "\n\ttransparency:" + item.getProperty("TRANSP") +
+        "\n\tstatus:" + item.status +
+        "\n\tstartTime:" + item.startDate.toString() +
+        "\n\tendTime:" + item.endDate.toString() +
+        "\n\tlocation:" + item.getProperty("LOCATION") +
+        "\n\tprivacy:" + item.privacy +
+        "\n\talarmOffset:" + item.alarmOffset +
+        "\n\talarmLastAck:" + item.alarmLastAck +
+        "\n\tsnoozeTime:" + item.getProperty("X-MOZ-SNOOZE-TIME") +
+        "\n\tisOccurrence: " + item.getProperty("x-GOOGLE-ITEM-IS-OCCURRENCE") +
+        "\n\tOrganizer: " + LOGattendee(item.organizer) +
+        "\n\tAttendees: " + attendeeString);
+}
+
+function LOGattendee(aAttendee, asString) {
+    return aAttendee &&
+        ("\n\t\tID: " + aAttendee.id +
+         "\n\t\t\tName: " + aAttendee.commonName +
+         "\n\t\t\tRsvp: " + aAttendee.rsvp +
+         "\n\t\t\tIs Organizer: " +  (aAttendee.isOrganizer ? "yes" : "no") +
+         "\n\t\t\tRole: " + aAttendee.role +
+         "\n\t\t\tStatus: " + aAttendee.participationStatus);
 }
