@@ -53,6 +53,7 @@ interface calIObserver;
 interface calIOperationListener;
 interface calIRange;
 interface calIDateTime;
+interface calIOperation;
 
 [scriptable, uuid(74e685e4-d863-11d9-88f2-000b7d081f44)]
 interface calICalendar : nsISupports
@@ -147,6 +148,7 @@ interface calICalendar : nsISupports
    *
    * @param aItem       item to add
    * @param aListener   where to call back the results
+   * @return            optional operation handle to track the operation
    *
    * - If aItem already has an ID, that ID is used when adding.
    * - If aItem is mutable and has no ID, the calendar is expected
@@ -167,7 +169,8 @@ interface calICalendar : nsISupports
    * and aDetail set with the calIItemBase of the internal already
    * existing item.
    */
-  void addItem( in calIItemBase aItem, in calIOperationListener aListener );
+  calIOperation addItem(in calIItemBase aItem,
+                        in calIOperationListener aListener);
 
   /**
    * adoptItem adds the given calIItemBase to the calendar, but doesn't
@@ -177,7 +180,8 @@ interface calICalendar : nsISupports
    *
    * @see addItem
    */
-  void adoptItem( in calIItemBase aItem, in calIOperationListener aListener );
+  calIOperation adoptItem(in calIItemBase aItem,
+                          in calIOperationListener aListener);
 
   /**
    * modifyItem takes a modified mutable item and modifies the
@@ -195,6 +199,7 @@ interface calICalendar : nsISupports
    * @param aNewItem    new version to replace the old one
    * @param aOldItem    caller's view of the item to be changed, as it is now
    * @param aListener   where to call back the results
+   * @return            optional operation handle to track the operation
    *
    * The results of the operation are reported through an
    * onOperationComplete call on the listener, with the following
@@ -205,8 +210,9 @@ interface calICalendar : nsISupports
    * - aDetail: the calIItemBase corresponding to the newly-updated
    *            immutable version of the modified item
    */
-  void modifyItem( in calIItemBase aNewItem, in calIItemBase aOldItem, 
-                   in calIOperationListener aListener );
+  calIOperation modifyItem(in calIItemBase aNewItem,
+                           in calIItemBase aOldItem,
+                           in calIOperationListener aListener);
 
   /**
    * deleteItem takes an item that is to be deleted.  The item is
@@ -216,6 +222,7 @@ interface calICalendar : nsISupports
    *
    * @param aItem       item to delete
    * @param aListener   where to call back the results
+   * @return            optional operation handle to track the operation
    *
    * The results of the operation are reported through an
    * onOperationComplete call on the listener, with the following
@@ -226,7 +233,8 @@ interface calICalendar : nsISupports
    * - aDetail: the calIItemBase corresponding to the immutable version
    *            of the deleted item
    */
-  void deleteItem( in calIItemBase aItem, in calIOperationListener aListener );
+  calIOperation deleteItem(in calIItemBase aItem,
+                           in calIOperationListener aListener);
 
   /**
    * Get a single event.  The event will be typed as one of the subclasses
@@ -234,6 +242,7 @@ interface calICalendar : nsISupports
    * 
    * @param aId        UID of the event
    * @param aListener  listener to which this event will be called back.
+   * @return           optional operation handle to track the operation
    *
    * The results of the operation are reported through the listener,
    * via zero or one onGetResult calls (with aCount set to 1)
@@ -245,7 +254,7 @@ interface calICalendar : nsISupports
    * - aId: the ID of the requested item
    * - aDetail: null (? we can also pass the item back here as well,..)
    */
-  void getItem( in string aId, in calIOperationListener aListener );
+  calIOperation getItem(in string aId, in calIOperationListener aListener);
 
   /**
    * XXX As mentioned above, this method isn't suitably general.  It's just
@@ -283,6 +292,7 @@ interface calICalendar : nsISupports
    * @param aRangeEndEx Items starting before (not including) aRangeEndEx should be
    *                    returned.  If null, assume "until the end of time".
    * @param aListener   The results will be called back through this interface.
+   * @return            optional operation handle to track the operation
    *
    *
    * The results of the operation are reported through the listener,
@@ -294,9 +304,11 @@ interface calICalendar : nsISupports
    * - aId: null
    * - aDetail: null
    */
-  void getItems( in unsigned long aItemFilter, in unsigned long aCount, 
-                 in calIDateTime aRangeStart, in calIDateTime aRangeEndEx,
-                 in calIOperationListener aListener );
+  calIOperation getItems(in unsigned long aItemFilter,
+                         in unsigned long aCount,
+                         in calIDateTime aRangeStart,
+                         in calIDateTime aRangeEndEx,
+                         in calIOperationListener aListener);
 
   /**
    * Whether or not alarms for this calendar should be suppressed.
@@ -315,8 +327,10 @@ interface calICalendar : nsISupports
    * Refresh the datasource, and call the observers for any changes found.
    * If the provider doesn't know the details of the changes it must call
    * onLoad on its observers.
+   *
+   * @return            optional operation handle to track the operation
    */
-  void refresh();
+  calIOperation refresh();
   
   /**
    * Turn on batch mode. Observers will get a notification of this.

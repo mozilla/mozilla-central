@@ -39,7 +39,7 @@
 
 #include "calIWcapCalendar.idl"
 #include "calIDateTime.idl"
-#include "calIWcapRequest.idl"
+#include "calIOperation.idl"
 
 /**
  * WCAP session.
@@ -94,12 +94,12 @@ interface calIWcapSession : nsISupports
      * @param maxResults maximum number of results
      *                   (0 means default, e.g. 200 with respect to Sun calendar servers)
      * @param listener listener called with an array of calIWcapCalendar objects
-     * @return request object to track operation
+     * @return optional object to track operation
      */
-    calIWcapRequest searchForCalendars(in string searchString,
-                                       in unsigned long searchOptions,
-                                       in unsigned long maxResults,
-                                       in calIWcapRequestResultListener listener);
+    calIOperation searchForCalendars(in string searchString,
+                                     in unsigned long searchOptions,
+                                     in unsigned long maxResults,
+                                     in calIGenericOperationListener listener);
     
     /* xxx todo freebusy: separate into own interface? */
     /**
@@ -111,12 +111,12 @@ interface calIWcapSession : nsISupports
      * @param rangeEnd end time of free-busy search
      * @param bBusy whether to return busy entries or free entries
      * @param listener called with an array of calIPeriod objects
-     * @return request object to track operation
+     * @return optional object to track operation
      */
-    calIWcapRequest getFreeBusyTimes(in string calId,
-                                     in calIDateTime rangeStart,
-                                     in calIDateTime rangeEnd,
-                                     in boolean bBusy,
-                                     in calIWcapRequestResultListener listener);
+    calIOperation getFreeBusyTimes(in string calId,
+                                   in calIDateTime rangeStart,
+                                   in calIDateTime rangeEnd,
+                                   in boolean bBusy,
+                                   in calIGenericOperationListener listener);
 };
 

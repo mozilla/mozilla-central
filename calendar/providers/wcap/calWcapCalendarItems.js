@@ -1194,10 +1194,9 @@ function calWcapCalendar_getItems(itemFilter, maxResults, rangeStart, rangeEnd, 
                             (itemFilter & calICalendar.ITEM_FILTER_TYPE_EVENT) &&
                             rangeStart && rangeEnd)
                         {
-                            var freeBusyListener = { // calIWcapRequestResultListener:
-                                onRequestResult:
-                                function freeBusyListener_onRequestResult(request, result) {
-                                    if (!request.succeeded)
+                            var freeBusyListener = { // calIGenericOperationListener:
+                                onResult: function freeBusyListener_onResult(request, result) {
+                                    if (!request.success)
                                         throw request.status;
                                     var items = [];
                                     for each (var period in result) {

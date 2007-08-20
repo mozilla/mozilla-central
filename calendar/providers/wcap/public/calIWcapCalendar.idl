@@ -38,7 +38,7 @@
 
 #include "calICalendar.idl"
 #include "calIDateTime.idl"
-#include "calIWcapRequest.idl"
+#include "calIOperation.idl"
 interface calIWcapSession;
 interface calIAttendee;
 
@@ -117,7 +117,6 @@ interface calIWcapCalendar : calICalendar
      * @param propName property name (e.g. X-S1CS-CALPROPS-COMMON-NAME)
      * @param count length of props array
      * @param listener called with array of strings as result
-     * @return request object to track operation
      * @exception NS_ERROR_NOT_AVAILABLE if not logged in
      */
     void getCalendarProperties(in string propName,
@@ -218,13 +217,11 @@ interface calIWcapCalendar : calICalendar
      * @param listener operation listener for SYNC operation
      *                 (may optionally implemented calIObserver to receive
      *                 onAddItem(), onModifyItem() or onDeleteItem() calls)
-     * @return request object to track operation
      */
-    calIWcapRequest syncChangesTo(
-        in calICalendar destCal,
-        in unsigned long itemFilter,
-        in calIDateTime dtFrom,
-        in calIOperationListener listener);
+    calIOperation syncChangesTo(in calICalendar destCal,
+                                in unsigned long itemFilter,
+                                in calIDateTime dtFrom,
+                                in calIOperationListener listener);
 
     /* xxx todo:
        separate out into another interface and leave only an attribute
@@ -307,47 +304,47 @@ interface calIWcapCalendar : calICalendar
      */
     boolean checkAccess(in unsigned long accessControlBits);
     
-    /**
-     * Defines granted and denied permissions for a specific user or
-     * user domain. Specific user entries precede over domain entries.
-     *
-     * Examples:
-     * a) Allow all users availability and read access,
-     *    but jdoe only availability access:
-     *    defineAccessControl("@", AC_FREEBUSY | AC_COMP_READ);
-     *    defineAccessControl("jdoe", AC_FREEBUSY);
-     *
-     * b) Restrict jdoe to have no access:
-     *    defineAccessControl("jdoe", 0);
-     *
-     * Follow-up definition calls for the same user will overwrite previous
-     * definitions.
-     * 
-     * @param userId user that is affected by the access control bits
-     *               WCAP specific:
-     *                    - @ stands in for everybody
-     *                    xxx todo: change the above
-     * @param accessControlBits access control bits (above AC_ definitions)
-     * @param listener called when access control bits have been updated
-     * @return request object to track operation
-     */
-    calIWcapRequest defineAccessControl(
-        in string userId, in unsigned long accessControlBits,
-        in calIWcapRequestResultListener listener);
+//     /**
+//      * Defines granted and denied permissions for a specific user or
+//      * user domain. Specific user entries precede over domain entries.
+//      *
+//      * Examples:
+//      * a) Allow all users availability and read access,
+//      *    but jdoe only availability access:
+//      *    defineAccessControl("@", AC_FREEBUSY | AC_COMP_READ);
+//      *    defineAccessControl("jdoe", AC_FREEBUSY);
+//      *
+//      * b) Restrict jdoe to have no access:
+//      *    defineAccessControl("jdoe", 0);
+//      *
+//      * Follow-up definition calls for the same user will overwrite previous
+//      * definitions.
+//      * 
+//      * @param userId user that is affected by the access control bits
+//      *               WCAP specific:
+//      *                    - @ stands in for everybody
+//      *                    xxx todo: change the above
+//      * @param accessControlBits access control bits (above AC_ definitions)
+//      * @param listener called when access control bits have been updated
+//      * @return optional object to track operation
+//      */
+//     calIOperation defineAccessControl(
+//         in string userId, in unsigned long accessControlBits,
+//         in calIGenericOperationListener listener);
     
-    /**
-     * To reset a user's access control definition to the default ones
-     * that everybody is granted.
-     * In case the user has no specific access control definition,
-     * Components.results.NS_ERROR_INVALID_ARG is thrown.
-     *
-     * @param userId user id
-     * @param listener called when access control bits have been updated
-     * @return request object to track operation
-     */
-    calIWcapRequest resetAccessControl(
-        in string userId,
-        in calIWcapRequestResultListener listener);
+//     /**
+//      * To reset a user's access control definition to the default ones
+//      * that everybody is granted.
+//      * In case the user has no specific access control definition,
+//      * Components.results.NS_ERROR_INVALID_ARG is thrown.
+//      *
+//      * @param userId user id
+//      * @param listener called when access control bits have been updated
+//      * @return optional object to track operation
+//      */
+//     calIOperation resetAccessControl(
+//         in string userId,
+//         in calIGenericOperationListener listener);
     
 //     /**
 //      * Gets the set of access control definitions (including "everybody").
@@ -357,9 +354,9 @@ interface calIWcapCalendar : calICalendar
 //      * @param users users ids
 //      * @param accessControlBits access control bits
 //      * @param listener called with xxx todo
-//      * @return request object to track operation
+//      * @return optional object to track operation
 //      */
-//     calIWcapRequest getAccessControlDefinitions(
+//     calIOperation getAccessControlDefinitions(
 //         out unsigned long count,
 //         [array, size_is(count)] out string users,
 //         [array, size_is(count)] out unsigned long accessControlBits );

@@ -37,8 +37,6 @@
  * ***** END LICENSE BLOCK ***** */
 
 /**
-   Requests, either the queued calWcapRequest or an async network request.
-   
    A request object is used to track an async action.
    While the action is running, isPending is true.
    Functions issuing an async action usually take a response function along
@@ -48,15 +46,19 @@
    The response function gets the ended request as first parameter to check
    whether the request has been successful and get its data.
    The request function itself may return either
-   - a further calIWcapRequest request object, i.e. an async continuation
+   - a further calIOperation request object, i.e. an async continuation
    - some data (incl null/undefined) which is the result of the async function,
      indicating that there is no further continuation
 */
 
+var g_requestPrefix = null;
 var g_requestId = 0;
 function generateRequestId() {
+    if (!g_requestPrefix) {
+        g_requestPrefix = (getUUID() + "-");
+    }
     ++g_requestId;
-    return g_requestId;
+    return (g_requestPrefix + g_requestId);
 }
 
 function calWcapRequest(respFunc, logContext) {
@@ -190,14 +192,14 @@ calWcapRequest.prototype = {
         }
     },
     
-    // calIWcapRequest:
+    // calIOperation:
     get id() {
         return this.m_id;
     },
     get isPending() {
         return this.m_isPending;
     },
-    get succeeded() {
+    get success() {
         return (!this.isPending && Components.isSuccessCode( getResultCode(this.status) ));
     },
     get status() {
@@ -220,23 +222,18 @@ calWcapRequest.prototype = {
 };
 
 function calWcapNetworkRequest(channel, respFunc, bLogging) {
-//     this.superClass(respFunc);
     this.wrappedJSObject = this;
     this.m_id = generateRequestId();
     this.m_channel = channel;
     this.m_respFunc = respFunc;
     this.m_bLogging = (bLogging === undefined ? true : bLogging);
 }
-// subClass(calWcapNetworkRequest, calWcapRequest);
 
 calWcapNetworkRequest.prototype = {
     m_id: 0,
     m_channel: null,
     m_respFunc: null,
     m_bLogging: false,
-    
-    m_isPending: true,
-    get isPending() { return this.m_isPending; },
     
     toString: function calWcapNetworkRequest_toString() {
         var ret = ("calWcapNetworkRequest id=" + this.id +
@@ -255,9 +252,20 @@ calWcapNetworkRequest.prototype = {
         this.detachFromParent(); // detach without error
         return (this.m_parentRequest = req);
     },
-    
+
+    // calIOperation:
     get id() {
         return this.m_id;
+    },
+    
+    m_isPending: true,
+    get isPending() { return this.m_isPending; },
+    
+    get success() {
+        return (!this.isPending && Components.isSuccessCode( getResultCode(this.status) ));
+    },
+    get status() {
+        return this.m_channel.status;
     },
     
     detachFromParent: function calWcapNetworkRequest_detachFromParent(err) {
@@ -276,7 +284,7 @@ calWcapNetworkRequest.prototype = {
             this.detachFromParent(); // detach without error
             // xxx todo: check whether this works on redirected channels!
             if (this.m_channel.isPending()) {
-                log("cancelling netwerk request...", this);
+                log("canceling netwerk request...", this);
                 this.m_channel.cancel(NS_BINDING_FAILED);
             }
         }
@@ -385,7 +393,7 @@ function issueNetworkRequest(parentRequest, respFunc, url, bLogging)
     }
 }
 
-function getWcapRequestStatusString( xml )
+function getWcapRequestStatusString(xml)
 {
     var str = "request status: ";
     var items = xml.getElementsByTagName("RSTATUS");

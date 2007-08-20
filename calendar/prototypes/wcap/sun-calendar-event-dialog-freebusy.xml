@@ -1174,7 +1174,7 @@
                 return this;
             },
 
-            onRequestResult: function mFBL_onRequestResult(request, entries) {
+            onResult: function mFBL_onResult(request, entries) {
                 // Delegate to the binding
                 this.binding.onFreeBusy(request, entries);
             }

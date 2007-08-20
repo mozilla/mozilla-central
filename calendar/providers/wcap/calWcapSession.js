@@ -387,7 +387,7 @@ calWcapSession.prototype = {
                 else
                     log("logout succeeded.", this_);
                 if (listener)
-                    listener.onRequestResult(request, err);
+                    listener.onResult(request, err);
             },
             log("logout", this));
         
@@ -663,7 +663,7 @@ calWcapSession.prototype = {
         for (var calId in calIds) {
             if (!this_.m_subscribedCals[calId]) {
                 var listener = {
-                    onRequestResult: function search_onRequestResult(request, result) {
+                    onResult: function search_onResult(request, result) {
                         try {
                             if (!request.succeeded)
                                 throw request.status;
@@ -894,7 +894,7 @@ calWcapSession.prototype = {
                 if (err)
                     this_.notifyError(err);
                 if (listener)
-                    listener.onRequestResult(request, data);
+                    listener.onResult(request, data);
             },
             log("searchForCalendars, searchString=" + searchString, this));
         
@@ -1003,7 +1003,7 @@ calWcapSession.prototype = {
                     break;
                 }
                 if (listener)
-                    listener.onRequestResult(request, data);
+                    listener.onResult(request, data);
             },
             log("getFreeBusyTimes():\n\tcalId=" + calId +
                 "\n\trangeStart=" + zRangeStart + ",\n\trangeEnd=" + zRangeEnd, this));
