@@ -371,10 +371,6 @@ var calendarListTreeView = {
         return false;
     },
 
-    isSeparator: function cLTV_isSeparator(aRow) {
-        return false;
-    },
-
     getLevel: function cLTV_getLevel(aRow) {
         return 0;
     },
