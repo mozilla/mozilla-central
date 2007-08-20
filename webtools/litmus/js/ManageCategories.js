@@ -448,7 +448,7 @@ function populateTestday(data) {
   document.getElementById('build_id').value = testday.build_id
   localeBox = document.getElementById('locale');
   if (testday.locale_abbrev) {
-    setSelected(localeBox,testday.locale_abbrev.abbrev);
+    setSelected(localeBox,testday.locale_abbrev.locale_abbrev);
   } else {
     setSelected(localeBox,"");
   }
