@@ -577,8 +577,7 @@
     else
     {
       // should never happen
-      // XXX localize
-      displayString = @"Font missing";
+      displayString = [self getLocalizedString:@"FontMissing"];
       font = [NSFont userFontOfSize:16.0];
     }
   }
