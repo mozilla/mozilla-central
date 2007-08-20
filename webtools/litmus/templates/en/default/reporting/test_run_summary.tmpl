@@ -67,6 +67,9 @@ Build ID: [% IF criterion.build_id_from_user %]<em>[% END %][% criterion.build_i
 [% IF ! loop.last %]<td><strong>OR</strong></td>[%END %]
 </tr>
 [% END %]
+[% IF sysconfig.locale %]
+<tr><td><strong>Locale:</strong></td><td colspan="2"><em>[% sysconfig.locale %]</em></td></tr>
+[% END %]
 [% ELSE %]
 <td>
 No further criteria specified

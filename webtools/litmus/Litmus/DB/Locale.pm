@@ -37,18 +37,17 @@ use base 'Litmus::DBI';
 
 Litmus::DB::Locale->table('locale_lookup');
 
-Litmus::DB::Locale->columns(All => qw/abbrev name/);
+Litmus::DB::Locale->columns(All => qw/locale_abbrev name/);
 Litmus::DB::Locale->columns(TEMP => qw //);
 
-Litmus::DB::Locale->column_alias("abbrev", "locale");
-Litmus::DB::Locale->column_alias("abbrev", "locale_abbrev");
+Litmus::DB::Locale->column_alias("locale_abbrev", "locale");
 
 Litmus::DB::Locale->has_many(test_results => "Litmus::DB::Testresult");
 
 __PACKAGE__->set_sql(RetrieveAll => qq{
                                        SELECT __ESSENTIAL__
                                        FROM   __TABLE__
-                                       ORDER BY abbrev ASC
+                                       ORDER BY locale_abbrev ASC
 });
 
 1;

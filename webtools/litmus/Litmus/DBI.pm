@@ -94,6 +94,7 @@ sub _bind_values_to_string {
         if ($bind_values_string ne "") {
             $bind_values_string .= ",";
         }
+        next if (!$bind_value);
         if ($bind_value =~ /^\d+$/) {
             $bind_values_string .= $bind_value;
         } else {
@@ -240,5 +241,5 @@ sub _auto_increment_value {
 	if (! defined $id) { return $self->SUPER::_auto_increment_value() }
 	return $id;
 }
-    
+  
 1;

@@ -2,8 +2,8 @@
     [% IF placeholder %]<option value="">-Locale-</option>[% END %]
 [% IF locales %]
 [% FOREACH locale=locales %]
-    <option[% IF defaults.locale==locale.abbrev %] selected[% END %] 
-        value="[% locale.abbrev | html %]">[% locale.abbrev | html %]</option>
+    <option[% IF defaults.locale==locale.locale_abbrev %] selected[% END %] 
+        value="[% locale.locale_abbrev | html %]">[% locale.locale_abbrev | html %]</option>
 [% END %]
 [% END %]
 </select>

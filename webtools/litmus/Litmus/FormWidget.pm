@@ -270,7 +270,7 @@ sub getLocales()
   my @locales = Litmus::DB::Locale->retrieve_all();
   # Append an extra copy of 'en-US' at the start of the list.
   foreach my $locale (@locales) {
-    if ($locale->abbrev eq 'en-US') {
+    if ($locale->locale_abbrev eq 'en-US') {
       unshift @locales, $locale;
       last;
     } 

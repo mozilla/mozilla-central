@@ -81,8 +81,8 @@ if (!$sysconfig) {
 };
 
 $c->storeCookie($sysconfig->setCookie());
-
 $test_run->flagCriteriaInUse($sysconfig);
+my $locale = Litmus::DB::Locale->retrieve($sysconfig->{'locale'});
 
 my @names = $c->param();
 
@@ -126,7 +126,8 @@ foreach my $curtestid (@tests) {
   my $bugs = $c->param("bugs_".$curtestid);
   
   my $time = &Date::Manip::UnixDate("now","%q");
-  $user = $user || Litmus::Auth::getCookie()->user_id();
+  $user = $user || Litmus::Auth::getCookie()->user_id();  
+
   my $tr = Litmus::DB::Testresult->create({
                                            user_id       => $user,
                                            testcase      => $curtest,
@@ -137,7 +138,7 @@ foreach my $curtestid (@tests) {
                                            opsys_id      => $sysconfig->{'opsys_id'},
                                            branch_id     => $test_run->branch_id,
                                            build_id      => $sysconfig->{'build_id'},
-                                           locale_abbrev => $sysconfig->{'locale'},
+                                           locale        => $locale,
                                           });
   
   # if there's a note, create an entry in the comments table for it
@@ -189,6 +190,7 @@ $vars->{"test_runs"} = [$test_run];
 $vars->{'testcount'} = $testcount;
 $vars->{'resultcounts'} = \%resultcounts || undef;
 $vars->{'testgroup'} = $testgroup || undef;
+$vars->{'sysconfig'} = $sysconfig;
 $vars->{'return'} = $c->param("return") || undef;
 
 Litmus->template()->process("process/process.html.tmpl", $vars) ||

@@ -310,7 +310,7 @@ sub validateResults {
     }
 
     my @locales = Litmus::DB::Locale->search(
-	abbrev => $self->{'sysconfig'}->{'locale'}->string_value());
+	locale_abbrev => $self->{'sysconfig'}->{'locale'}->string_value());
     unless ($locales[0]) { 
 	$self->respErrFatal("Invalid locale: ".$self->{'sysconfig'}->{'locale'});
 	return 0;

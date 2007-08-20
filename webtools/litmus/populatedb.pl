@@ -277,6 +277,8 @@ $dbtool->AddPrimaryKey('test_result_bugs',"(test_result_id,bug_id)");
 $dbtool->AddKey('security_groups', '(grouptype)', '');
 $dbtool->AddKey('security_groups', 'idtype (group_id, grouptype)', '');
 
+$dbtool->RenameField("locale_lookup", "abbrev", "locale_abbrev");
+
 print "Schema update complete.\n\n";
 
 # javascript cache

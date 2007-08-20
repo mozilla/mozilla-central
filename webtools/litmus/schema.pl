@@ -66,7 +66,7 @@ $table{exit_status_lookup} =
 	 index(name)';
 
 $table{locale_lookup} = 
-	'abbrev varchar(16) not null primary key,
+	'locale_abbrev varchar(16) not null primary key,
 	 name varchar(64) not null,
 	 
 	 index(name)';
