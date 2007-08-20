@@ -7,6 +7,10 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		001FFD970C795D4500D9C2C8 /* contenteditable.css in Copy Gecko Resources */ = {isa = PBXBuildFile; fileRef = 001FFD930C795D3300D9C2C8 /* contenteditable.css */; };
+		001FFD980C795D4500D9C2C8 /* designmode.css in Copy Gecko Resources */ = {isa = PBXBuildFile; fileRef = 001FFD940C795D3300D9C2C8 /* designmode.css */; };
+		001FFD990C795D5400D9C2C8 /* contenteditable.css in Copy Gecko Resources */ = {isa = PBXBuildFile; fileRef = 001FFD930C795D3300D9C2C8 /* contenteditable.css */; };
+		001FFD9A0C795D5400D9C2C8 /* designmode.css in Copy Gecko Resources */ = {isa = PBXBuildFile; fileRef = 001FFD940C795D3300D9C2C8 /* designmode.css */; };
 		00335B8D0C655ABC00A607F2 /* WebSearchField.h in Headers */ = {isa = PBXBuildFile; fileRef = 00335B8B0C655ABC00A607F2 /* WebSearchField.h */; };
 		00335B8E0C655ABC00A607F2 /* WebSearchField.mm in Sources */ = {isa = PBXBuildFile; fileRef = 00335B8C0C655ABC00A607F2 /* WebSearchField.mm */; };
 		00335B8F0C655ABC00A607F2 /* WebSearchField.h in Headers */ = {isa = PBXBuildFile; fileRef = 00335B8B0C655ABC00A607F2 /* WebSearchField.h */; };
@@ -1634,6 +1638,8 @@
 				3F44AD3805BDFB9F00CB4C08 /* svg.css in Copy Gecko Resources */,
 				3F44AD3905BDFB9F00CB4B08 /* ua.css in Copy Gecko Resources */,
 				3F44AD3A05BDFB9F00CB4B08 /* viewsource.css in Copy Gecko Resources */,
+				001FFD970C795D4500D9C2C8 /* contenteditable.css in Copy Gecko Resources */,
+				001FFD980C795D4500D9C2C8 /* designmode.css in Copy Gecko Resources */,
 			);
 			name = "Copy Gecko Resources";
 			runOnlyForDeploymentPostprocessing = 0;
@@ -1962,6 +1968,8 @@
 				3F44AF5405BDFBA000CB4B08 /* ua.css in Copy Gecko Resources */,
 				3F44AF5505BDFBA000CB4B08 /* viewsource.css in Copy Gecko Resources */,
 				4DD0EFF709918B3200B6BBFD /* mathml.css in Copy Gecko Resources */,
+				001FFD990C795D5400D9C2C8 /* contenteditable.css in Copy Gecko Resources */,
+				001FFD9A0C795D5400D9C2C8 /* designmode.css in Copy Gecko Resources */,
 			);
 			name = "Copy Gecko Resources";
 			runOnlyForDeploymentPostprocessing = 0;
@@ -2288,6 +2296,8 @@
 /* End PBXCopyFilesBuildPhase section */
 
 /* Begin PBXFileReference section */
+		001FFD930C795D3300D9C2C8 /* contenteditable.css */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = text; name = contenteditable.css; path = ../dist/Embed/res/contenteditable.css; sourceTree = SOURCE_ROOT; };
+		001FFD940C795D3300D9C2C8 /* designmode.css */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = text; name = designmode.css; path = ../dist/Embed/res/designmode.css; sourceTree = SOURCE_ROOT; };
 		00335B8B0C655ABC00A607F2 /* WebSearchField.h */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.c.h; name = WebSearchField.h; path = src/browser/WebSearchField.h; sourceTree = "<group>"; };
 		00335B8C0C655ABC00A607F2 /* WebSearchField.mm */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.cpp.objcpp; name = WebSearchField.mm; path = src/browser/WebSearchField.mm; sourceTree = "<group>"; };
 		0081150A0B180DDE001CB3F0 /* libthebes.a */ = {isa = PBXFileReference; lastKnownFileType = archive.ar; name = libthebes.a; path = ../staticlib/libthebes.a; sourceTree = SOURCE_ROOT; };
@@ -4488,6 +4498,8 @@
 				F6BD64DF01B3172601A963F7 /* svg.css */,
 				F6BD64E001B3172601A962F7 /* ua.css */,
 				F6BD64E101B3172601A962F7 /* viewsource.css */,
+				001FFD930C795D3300D9C2C8 /* contenteditable.css */,
+				001FFD940C795D3300D9C2C8 /* designmode.css */,
 			);
 			name = "Gecko Res";
 			sourceTree = "<group>";
