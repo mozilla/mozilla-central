@@ -43,6 +43,11 @@ import org.mozilla.jss.util.Password;
 import java.security.InvalidAlgorithmParameterException;
 import java.security.KeyPair;
 
+/**
+ * Keywrapping tests..
+ *
+ */
+
 public class KeyWrapping {
 
     public static void main(String args[]) {

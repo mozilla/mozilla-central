@@ -48,7 +48,9 @@ import java.io.FileInputStream;
 import java.util.ArrayList;
 import java.util.Iterator;
 
-
+/**
+* Verify Certificate test.
+*/
 public class VerifyCert {
 
     public void showCert( String certFile) {

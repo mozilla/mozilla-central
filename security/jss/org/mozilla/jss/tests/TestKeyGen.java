@@ -45,7 +45,7 @@
  *   use the modutil or keyutil tool,
  *   use the JSS API CryptoToken.changePassword() to set the password
  *   run the test 'TokenAccessTest' 
- *            which will create db with the password 'netscape'.
+ *            which will create db with a password.
  */
 
 package org.mozilla.jss.tests;

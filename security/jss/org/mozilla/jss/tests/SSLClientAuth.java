@@ -57,6 +57,9 @@ import java.io.OutputStreamWriter;
 import java.io.*;
 import java.net.SocketException;
 
+/**
+* SSLClientAuth Server/client test.
+*/
 public class SSLClientAuth implements Runnable {
 
     private CryptoManager cm;

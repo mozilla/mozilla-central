@@ -41,9 +41,14 @@
 # "Starting JSSE JSSE_SSLServer Test..."
 # 
 JSS_CLASSPATH=$1
-TESTDIR=$2
-Port=$3
-shift 3
+Port=$2
+ClientAuth=$3
+TestDir=$4
+dbFile=$5
+provider=$6
+nssConfigFile=$7
+nssPWFile=$8
+shift 8 
 JAVA_BIN_AND_OPT=$@
 
 if [ -z "$JAVA_BIN_AND_OPT" ] ;
@@ -51,5 +56,18 @@ then
   JAVA_BIN_AND_OPT=${JAVA_HOME}/bin/java
 fi
 
-${JAVA_BIN_AND_OPT} -classpath ${JSS_CLASSPATH} org.mozilla.jss.tests.JSSE_SSLServer ${Port} SSLv3 false ${TESTDIR} &
+#echo "command"
+#echo "JSS_CLASSPATH=${JSS_CLASSPATH}"
+#echo "Port=${Port}"
+#echo "ClientAuth=${ClientAuth}"
+#echo "TestDir=${TestDir}"
+#echo "dbFile=${dbFile}"
+#echo "provider=${provider}"
+#echo "nssConfigFile=${nssConfigFile}"
+#echo "nssPWFile=${nssPWFile}"
+#echo "JAVA_BIN_AND_OPT=${JAVA_BIN_AND_OPT}"
+
+echo "${JAVA_BIN_AND_OPT} -classpath ${JSS_CLASSPATH} org.mozilla.jss.tests.JSSE_SSLServer ${Port} TLS ${ClientAuth} ${TestDir} ${dbFile} ${provider} ${nssConfigFile} ${nssPWFile}&"
+echo "command"
+${JAVA_BIN_AND_OPT} -classpath ${JSS_CLASSPATH} org.mozilla.jss.tests.JSSE_SSLServer ${Port} TLS ${ClientAuth} ${TestDir} ${dbFile} ${provider} ${nssConfigFile} ${nssPWFile}&
 

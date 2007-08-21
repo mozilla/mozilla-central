@@ -130,26 +130,9 @@ public class JSS_FileUploadServer  {
         // We have to configure the server session ID cache before
         // creating any server sockets.
         SSLServerSocket.configServerSessionIDCache(10, 100, 100, null);
-        
-        /* enable all the SSL2 cipher suites  */
-        for (int i = SSLSocket.SSL2_RC4_128_WITH_MD5;
-        i <= SSLSocket.SSL2_DES_192_EDE3_CBC_WITH_MD5; ++i) {
-            if (i != SSLSocket.SSL2_IDEA_128_CBC_WITH_MD5) {
-                SSLSocket.setCipherPreferenceDefault( i, true);
-            }
-        }
-        
-        /* enable all the SSL3 and TLS cipher suites */
-        for (int i = 0; Constants.jssCipherSuites[i] != 0;  ++i) {
-            try {
-                SSLSocket.setCipherPreferenceDefault(
-                        Constants.jssCipherSuites[i], true);
-            } catch (Exception ex) {
-                //System.out.println("Exception in setting CipherPreference\n" + 
-                //                   ex.getMessage());
-                //System.exit(1);
-            }
-        }
+        //Disable SSL2
+        SSLSocket.enableSSL2Default(false);
+        //Note we will use the NSS default enabled ciphers suites 
         
         // open the server socket and bind to the port
         if ( Constants.debug_level >= 3 )

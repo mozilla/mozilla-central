@@ -45,6 +45,9 @@ import java.io.*;
 import javax.crypto.*;
 import org.mozilla.jss.asn1.ASN1Util;
 
+/**
+* Secret Decoder ring tests.
+*/ 
 public class TestSDR {
 
     public static final EncryptionAlgorithm encAlg =
@@ -122,7 +125,8 @@ public class TestSDR {
                 "Error: successfully decrypted with deleted key");
         } catch (InvalidKeyException ike) { }
         System.out.println(
-            "Good: failed to decrypt plaintext with deleted key");
+            "Good: as expected did not decrypt plaintext with a " +
+            "deleted key");
 
         System.out.println("TestSDR: Success");
         System.exit(0);

@@ -142,43 +142,29 @@ public class JSS_SSLServer  {
         // creating any server sockets.
         SSLServerSocket.configServerSessionIDCache(10, 100, 100, null);
         
-        /* enable all the SSL2 cipher suites  */
-        if (!bTestFipsMode) {
-	    for (int i = SSLSocket.SSL2_RC4_128_WITH_MD5;
-               i <= SSLSocket.SSL2_DES_192_EDE3_CBC_WITH_MD5; ++i) {
-               if (i != SSLSocket.SSL2_IDEA_128_CBC_WITH_MD5) {
-                SSLSocket.setCipherPreferenceDefault( i, true);
-               }
-            }
-         }
-        
         /**
-         * Enable all the SSL3 and TLS server cipher suites.
-         * Constants.jssCipherSuites[0-9,27,28,29,30,34,40]
+         * Enable all the implemented cipher suites.
          */
-        int [] jssCiphers = {0,1,2,3,4,5,6,7,8,9,27,28,29,30,34,40};
-        int [] jssFIPSCiphers = {27,28,34,40};
-        int [] jssServerCiphers;
-        if (!bTestFipsMode) 
-           jssServerCiphers = jssCiphers;
-        else
-           jssServerCiphers = jssFIPSCiphers;
-
-        System.out.println("JSSServerCipher length" + jssServerCiphers.length);
-        for (int i=0; i<jssServerCiphers.length; i++) {
+        int ciphers[] =
+            org.mozilla.jss.ssl.SSLSocket.getImplementedCipherSuites();
+        for (int i = 0; i < ciphers.length;  ++i) {
             try {
-                SSLSocket.setCipherPreferenceDefault(
-                    Constants.jssCipherSuites[jssServerCiphers[i]], true);
-                    if ( Constants.debug_level >= 3 )
-                        System.out.println("Added Cipher" + i + 
-                        Constants.jssCipherNames[jssServerCiphers[i]]);
-
+                SSLSocket.setCipherPreferenceDefault(ciphers[i], true);
+                if ( Constants.debug_level >= 3 ) {
+                    System.out.println(Constants.cipher.cipherToString(
+                        ciphers[i])  + " " +  Integer.toHexString(ciphers[i]));
+                }
             } catch (Exception ex) {
-                    if ( Constants.debug_level >= 3 )
-                        System.out.println("Added Cipher" + i + 
-                        Constants.jssCipherNames[jssServerCiphers[i]]);
+                ex.printStackTrace();
+                System.exit(1);
             }
         }
+        //disable SSL2 
+        SSLSocket.enableSSL2Default(false);
+        if (bTestFipsMode) {
+            SSLSocket.enableSSL3Default(false);
+        }
+
         
         // open the server socket and bind to the port
         if ( Constants.debug_level >= 3 )

@@ -79,8 +79,10 @@ public class SymKeyGen {
         Password pass = new Password( ("passwd1").toCharArray() );
         byte[] salt = genSalt(alg.getSaltLength());
         PBEKeyGenParams kgp = new PBEKeyGenParams(pass, salt, 2);
+        pass.clear();
         kg.initialize(kgp);
         key = kg.generate();
+        kgp.clear();
         
         if( key.getType() != keyType ) {
             throw new Exception("Wrong key type: "+key.getType());
@@ -116,9 +118,10 @@ public class SymKeyGen {
         Password pass = new Password( ("passwd1").toCharArray() );
         byte[] salt = genSalt(8);
         PBEKeyGenParams kgp = new PBEKeyGenParams(pass, salt, 2);
+        pass.clear();
         kg.initialize(kgp);
         key = kg.generate();
-        
+        kgp.clear();
         if( key.getType() != keyType ) {
             throw new Exception("Wrong key type: "+key.getType());
         }

@@ -234,7 +234,7 @@ public class JSS_SSLClient {
                 sock = new SSLSocket(InetAddress.getByName(hostAddr),
                     port,
                     null,
-                    0,
+                    0, 
                     new TestCertApprovalCallback(),
                     null);
             } else {
@@ -304,7 +304,8 @@ public class JSS_SSLClient {
             try {
                 String mesg = who + " got a completed handshake ";
                 SSLSecurityStatus status = event.getStatus();
-                if( status.isSecurityOn() ) {
+                System.out.println(status.getCipher());
+                if (status.isSecurityOn() ) {
                     mesg += "(security is ON)";
                 } else {
                     mesg += "(security is OFF)";
@@ -443,8 +444,8 @@ public class JSS_SSLClient {
             } else {
                 for ( int i=0; i<Constants.jssCipherSuites.length; i++ ) {
                     try {
-                        jssTest.setCipher(Constants.jssCipherSuites[i]);
-                        jssTest.setEOF(new Integer(i).toString());
+                        jssTest.setCipher(Constants.jssCipherSuites[i].value);
+                        jssTest.setEOF(new Integer(Constants.jssCipherSuites[i].value).toString());
                         jssTest.doIt();
                         while (!jssTest.isHandshakeCompleted()) {
                             // Put the main thread to sleep.  In case we do not
