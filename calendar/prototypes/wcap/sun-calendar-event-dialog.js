@@ -2259,7 +2259,15 @@ function updateDateTime() {
           var hasEntryDate = (startTime != null);
           var hasDueDate = (endTime != null);
 
-          if (hasEntryDate) {
+          if (hasEntryDate && hasDueDate) {
+              setElementValue("todo-has-entrydate", hasEntryDate, "checked");
+              startTime.timezone = "floating";
+              setElementValue("todo-entrydate", startTime.jsDate);
+
+              setElementValue("todo-has-duedate", hasDueDate, "checked");
+              endTime.timezone = "floating";
+              setElementValue("todo-duedate", endTime.jsDate);
+          } else if (hasEntryDate) {
               setElementValue("todo-has-entrydate", hasEntryDate, "checked");
               startTime.timezone = "floating";
               setElementValue("todo-entrydate", startTime.jsDate);
@@ -2298,7 +2306,16 @@ function updateDateTime() {
             var endTime = gEndTime && gEndTime.getInTimezone(kDefaultTimezone);
             var hasEntryDate = (startTime != null);
             var hasDueDate = (endTime != null);
-            if (hasEntryDate) {
+
+            if (hasEntryDate && hasDueDate) {
+                setElementValue("todo-has-entrydate", hasEntryDate, "checked");
+                startTime.timezone = "floating";
+                setElementValue("todo-entrydate", startTime.jsDate);
+
+                setElementValue("todo-has-duedate", hasDueDate, "checked");
+                endTime.timezone = "floating";
+                setElementValue("todo-duedate", endTime.jsDate);
+            } else if (hasEntryDate) {
                 setElementValue("todo-has-entrydate", hasEntryDate, "checked");
                 startTime.timezone = "floating";
                 setElementValue("todo-entrydate", startTime.jsDate);
