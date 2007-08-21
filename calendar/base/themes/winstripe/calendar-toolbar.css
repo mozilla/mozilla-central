@@ -220,15 +220,15 @@ toolbar[iconsize="small"] #calendar-go-to-today-button:hover:active {
  *-------------------------------------------------------------------*/
 
 #calendar-show-todaypane-button {
-        -moz-image-region: rect(0px 408px 24px 384px);
+        -moz-image-region: rect(0px 504px 24px 480px);
 }
 #calendar-show-todaypane-button[disabled="true"],
 #calendar-show-todaypane-button[disabled="true"]:hover,
 #calendar-show-todaypane-button[disabled="true"]:hover:active {
-        -moz-image-region: rect(48px 408px 72px 384px);
+        -moz-image-region: rect(48px 504px 72px 480px);
 }
 #calendar-show-todaypane-button:hover {
-        -moz-image-region: rect(24px 408px 48px 384px);
+        -moz-image-region: rect(24px 504px 48px 480px);
 }
 #calendar-show-todaypane-button:hover:active {
 }
@@ -238,15 +238,15 @@ toolbar[iconsize="small"] #calendar-go-to-today-button:hover:active {
  *-------------------------------------------------------------------*/
 
 toolbar[iconsize="small"] #calendar-show-todaypane-button {
-        -moz-image-region: rect(0px 272px 16px 256px);
+        -moz-image-region: rect(0px 336px 16px 320px);
 }
 toolbar[iconsize="small"] #calendar-show-todaypane-button[disabled="true"],
 toolbar[iconsize="small"] #calendar-show-todaypane-button[disabled="true"]:hover,
 toolbar[iconsize="small"] #calendar-show-todaypane-button[disabled="true"]:hover:active {
-        -moz-image-region: rect(32px 272px 48px 256px);
+        -moz-image-region: rect(32px 336px 48px 320px);
 }
 toolbar[iconsize="small"] #calendar-show-todaypane-button:hover {
-        -moz-image-region: rect(16px 272px 32px 256px);
+        -moz-image-region: rect(16px 336px 32px 320px);
 }
 toolbar[iconsize="small"] #calendar-show-todaypane-button:hover:active {
 }
