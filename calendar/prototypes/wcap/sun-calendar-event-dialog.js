@@ -871,16 +871,20 @@ function loadReminder(item) {
                 menuitem.getAttribute("relation") == relation) {
                 var unit = menuitem.getAttribute("unit");
                 var length = menuitem.getAttribute("length");
-                if (unit == "minutes" &&
-                    item.alarmOffset.minutes == length) {
+                if (unit == "days" &&
+                    item.alarmOffset.weeks * 7 == length) {
+                    matchingItem = menuitem;
+                    break;
+                } else if (unit == "days" &&
+                           item.alarmOffset.days == length) {
                     matchingItem = menuitem;
                     break;
                 } else if (unit == "hours" &&
                            item.alarmOffset.hours == length) {
                     matchingItem = menuitem;
                     break;
-                } else if (unit == "days" &&
-                           item.alarmOffset.days == length) {
+                } else if (unit == "minutes" &&
+                           item.alarmOffset.minutes == length) {
                     matchingItem = menuitem;
                     break;
                 }

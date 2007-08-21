@@ -767,7 +767,7 @@
                                       relation="START"
                                       unit="days"/>
                             <menuitem label="&event.reminder.1week.before.label;"
-                                      length="2"
+                                      length="7"
                                       origin="1"
                                       relation="START"
                                       unit="days"/>
