@@ -241,14 +241,16 @@ function onCommandCancel() {
         }
     }
 
-    // TODO: retrieve strings from dtd', etc.
     var promptService = Cc["@mozilla.org/embedcomp/prompt-service;1"]
                         .getService(Ci.nsIPromptService);
 
-    var promptTitle = "Save Event";
-    var promptMessage = "Do you want to save changes?";
-    var buttonLabel1 = "Yes";
-    var buttonLabel2 = "No";
+    var promptTitle = calGetString("calendar",
+                                   isEvent(window.calendarItem) ?
+                                      "askSaveTitleEvent" :
+                                      "askSaveTitleTask");
+    var promptMessage = calGetString("calendar", "askSaveMessage");
+    var buttonLabel1 = calGetString("calendar", "askSaveLabel1");
+    var buttonLabel2 = calGetString("calendar", "askSaveLabel2");
 
     var flags = promptService.BUTTON_TITLE_IS_STRING *
                 promptService.BUTTON_POS_0 +
@@ -675,7 +677,7 @@ function updateEndTime() {
             promptService.alert(
                 null,
                 document.title,
-                "The end date you entered occurs before the start date.");
+                calGetString("calendar", "warningNegativeDuration"));
         }
         setTimeout(callback, 1);
     }

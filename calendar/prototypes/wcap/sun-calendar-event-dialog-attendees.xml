@@ -2478,7 +2478,7 @@
                   promptService.alert(
                       null,
                       document.title,
-                      "The end date you entered occurs before the start date.");
+                      calGetString("calendar", "warningNegativeDuration"));
               }
               setTimeout(callback, 1);
           }
