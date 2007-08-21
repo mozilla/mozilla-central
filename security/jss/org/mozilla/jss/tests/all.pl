@@ -524,6 +524,9 @@ $serverCommand = "./startJsseServ.$scriptext $jss_classpath $serverPort false $t
 $command = "$java org.mozilla.jss.tests.JSS_SelfServClient 2 -1 $testdir $pwfile $hostname $serverPort bypass verboseoff JSSE";
 run_ssl_test($testname, $serverCommand, $command);
 
+#don't run the Sunpkcs11-NSS tests on windows for now.
+if ($osname ne /win/i) {
+
 $serverPort=$serverPort+1;
 $testname = "SSL Ciphersuite JSSE Server using Sunpkcs11-NSS provider and JSS client with Bypass Off";
 $serverCommand = "./startJsseServ.$scriptext $jss_classpath $serverPort false $testdir rsa.pfx Sunpkcs11 $configfile $pwfile $java";
@@ -535,6 +538,8 @@ $testname = "SSL Ciphersuite JSSE Server using Sunpkcs11-NSS provider and JSS cl
 $serverCommand = "./startJsseServ.$scriptext $jss_classpath $serverPort false $testdir rsa.pfx Sunpkcs11 $configfile $pwfile $java";
 $command = "$java org.mozilla.jss.tests.JSS_SelfServClient 2 -1 $testdir $pwfile $hostname $serverPort bypass verboseoff JSSE";
 run_ssl_test($testname, $serverCommand, $command);
+
+}
 
 #
 # FIPSMODE tests
