@@ -57,11 +57,11 @@ sub usage {
 $| = 1;
 
 # Global variables
-my $testdir;
-my $testrun = 0;
-my $testpass = 0;
-my $nss_lib_dir;
-my $dist_dir;
+my $testdir        = "";
+my $testrun        = 0;
+my $testpass       = 0;
+my $nss_lib_dir    = "";
+my $dist_dir       = "";
 my $pathsep        = ":";
 my $scriptext      = "sh";
 my $exe_suffix     = "";
@@ -69,11 +69,14 @@ my $lib_suffix     = ".so";
 my $lib_jss        = "libjss";
 my $jss_rel_dir    = "";
 my $jss_classpath  = "";
-my $serverPort = 2876;
+my $serverPort     = 2876;
 my $hostname       = localhost;
 my $dbPwd          = "m1oZilla";
 my $configfile     = "";
 my $keystore       = "";
+my $certSN_file    = "";
+my $certSN         = 0;
+my $osname         = `uname -s`;
 
 # checkPort will return a free Port number
 # otherwise it will die after trying 10 times. 
@@ -104,8 +107,6 @@ sub checkPort {
 
 sub setup_vars {
     my $argv = shift;
-
-    my $osname = `uname -s`;
 
     my $truncate_lib_path = 1;
     if( $osname =~ /HP/ ) {
@@ -276,6 +277,27 @@ sub setup_vars {
     outputEnv();
 }
 
+sub updateCertSN() {
+
+    # $certSN = certificate serial number (first = 100). Stored in $test_dir/cert-SN
+    $certSN_file = $testdir ."/" . "cert-SN";
+    if ( -f $certSN_file) {
+      open (CERT_SN, "< $certSN_file") || die "couldn't open " . $certSN_file . " for read";
+      $certSN = <CERT_SN>;
+      close (CERT_SN);
+      chomp $certSN;
+      $certSN = $certSN + 10;
+    } else {
+      $certSN = 100;
+    }
+
+    # write the version in the file
+    open (CERT_SN, "> $certSN_file")  || die "couldn't open " . $certSN_file . " for write";
+    print CERT_SN $certSN . "\n";
+    close (CERT_SN);
+
+}
+
 sub outputEnv {
 
    print "*****ENVIRONMENT*****\n";
@@ -287,7 +309,8 @@ sub outputEnv {
    print "USE_64=$ENV{USE_64}\n";
    print "testdir=$testdir\n";
    print "serverPort=$serverPort\n";
-   print "LIB_SUFFIX=$lib_suffix\n";         
+   print "LIB_SUFFIX=$lib_suffix\n";
+   print "osname=$osname\n";          
 
    print "java version:";
    system ("$java -version");
@@ -396,16 +419,19 @@ $testname = "Setup DBs";
 $command = "$java org.mozilla.jss.tests.SetupDBs $testdir $pwfile";
 run_test($testname, $command);
 
+updateCertSN();
 $testname = "Generate known ECDSA cert pair";
-$command = "$java org.mozilla.jss.tests.GenerateTestCert $testdir $pwfile localhost SHA-256/EC CA_ECDSA Server_ECDSA Client_ECDSA";
+$command = "$java org.mozilla.jss.tests.GenerateTestCert $testdir $pwfile $certSN localhost SHA-256/EC CA_ECDSA Server_ECDSA Client_ECDSA";
 run_test($testname, $command);
 
+updateCertSN();
 $testname = "Generate known DSS cert pair";
-$command = "$java org.mozilla.jss.tests.GenerateTestCert $testdir $pwfile localhost SHA-1/DSA CA_DSS Server_DSS Client_DSS";
+$command = "$java org.mozilla.jss.tests.GenerateTestCert $testdir $pwfile $certSN localhost SHA-1/DSA CA_DSS Server_DSS Client_DSS";
 run_test($testname, $command);
 
+updateCertSN();
 $testname = "Generate known RSA cert pair";
-$command = "$java org.mozilla.jss.tests.GenerateTestCert $testdir $pwfile localhost SHA-256/RSA CA_RSA Server_RSA Client_RSA";
+$command = "$java org.mozilla.jss.tests.GenerateTestCert $testdir $pwfile $certSN localhost SHA-256/RSA CA_RSA Server_RSA Client_RSA";
 run_test($testname, $command);
 
 $testname = "Create PKCS11 cert to PKCS12 rsa.pfx";
@@ -429,15 +455,17 @@ $testname = "List CA certs";
 $command = "$java org.mozilla.jss.tests.ListCACerts $testdir";
 run_test($testname, $command);
 
+updateCertSN();
 $serverPort = checkPort($serverPort);
 $testname = "SSLClientAuth bypass off";
-$command = "$java org.mozilla.jss.tests.SSLClientAuth $testdir $pwfile $serverPort";
+$command = "$java org.mozilla.jss.tests.SSLClientAuth $testdir $pwfile $serverPort $certSN";
 run_test($testname, $command);
 
+updateCertSN();
 $serverPort=$serverPort+1;
 $serverPort = checkPort($serverPort);
 $testname = "SSLClientAuth bypass on";
-$command = "$java org.mozilla.jss.tests.SSLClientAuth $testdir $pwfile $serverPort bypass";
+$command = "$java org.mozilla.jss.tests.SSLClientAuth $testdir $pwfile $serverPort bypass $certSN";
 run_test($testname, $command);
 
 $serverPort=$serverPort+1;
@@ -484,7 +512,7 @@ run_test($testname, $command);
 
 
 #
-# SSLServer and SSLclient Ciphersuite tests
+# SSLServer and SSLClient Ciphersuite tests
 #
 # Servers are kicked off by the shell script and are told to shutdown by the client test
 #
@@ -524,9 +552,9 @@ $serverCommand = "./startJsseServ.$scriptext $jss_classpath $serverPort false $t
 $command = "$java org.mozilla.jss.tests.JSS_SelfServClient 2 -1 $testdir $pwfile $hostname $serverPort bypass verboseoff JSSE";
 run_ssl_test($testname, $serverCommand, $command);
 
-#don't run the Sunpkcs11-NSS tests on windows for now.
-if ($osname ne /win/i) {
-
+if ($osname =~ /win/i || $osname =~ /_NT/i) {
+print "don't run the Sunpkcs11-NSS tests on windows for now.\n";
+} else {
 $serverPort=$serverPort+1;
 $testname = "SSL Ciphersuite JSSE Server using Sunpkcs11-NSS provider and JSS client with Bypass Off";
 $serverCommand = "./startJsseServ.$scriptext $jss_classpath $serverPort false $testdir rsa.pfx Sunpkcs11 $configfile $pwfile $java";
@@ -538,7 +566,6 @@ $testname = "SSL Ciphersuite JSSE Server using Sunpkcs11-NSS provider and JSS cl
 $serverCommand = "./startJsseServ.$scriptext $jss_classpath $serverPort false $testdir rsa.pfx Sunpkcs11 $configfile $pwfile $java";
 $command = "$java org.mozilla.jss.tests.JSS_SelfServClient 2 -1 $testdir $pwfile $hostname $serverPort bypass verboseoff JSSE";
 run_ssl_test($testname, $serverCommand, $command);
-
 }
 
 #
@@ -553,9 +580,10 @@ $testname = "Enable FipsMODE";
 $command = "$java org.mozilla.jss.tests.FipsTest $testdir chkfips";
 run_test($testname, $command);
 
+updateCertSN();
 $testname = "SSLClientAuth FIPSMODE";
-$serverPort = checkPort($serverPort);
-$command = "$java org.mozilla.jss.tests.SSLClientAuth $testdir $pwfile $serverPort";
+$serverPort = checkPort(++$serverPort);
+$command = "$java org.mozilla.jss.tests.SSLClientAuth $testdir $pwfile $serverPort $certSN";
 run_test($testname, $command);
 
 $serverPort=$serverPort+1;

@@ -141,7 +141,7 @@ public class SSLClientAuth implements Runnable {
         if ( args.length < 2 ) {
             System.out.println("Usage: java org.mozilla.jss.tests." +
                       "SSLClientAuth <dbdir> <passwordFile> [port]" +
-                       " [bypass]");
+                       " [bypass] [Certificate Serial Number]");
             System.exit(1);
         }
 
@@ -161,6 +161,10 @@ public class SSLClientAuth implements Runnable {
            org.mozilla.jss.ssl.SSLSocket.bypassPKCS11Default(true);                
            System.out.println("enabled bypassPKCS11 mode for all sockets");
            System.out.println(SSLSocket.getSSLDefaultOptions());
+        }
+
+        if (args.length == 5) {
+            serialNum = new Integer(args[4]).intValue();
         }
 
         SecureRandom rng= SecureRandom.getInstance("pkcs11prng",
@@ -185,7 +189,7 @@ public class SSLClientAuth implements Runnable {
 
         SEQUENCE extensions = new SEQUENCE();
         extensions.addElement(makeBasicConstraintsExtension());
-        Certificate caCert = makeCert("CACert", "CACert", rand+1,
+        Certificate caCert = makeCert("CACert", "CACert", serialNum++,
             caPair.getPrivate(), caPair.getPublic(), rand, extensions);
         X509Certificate nssCaCert = cm.importUserCACertPackage(
             ASN1Util.encode(caCert), "cacertnick"+rand);
@@ -198,7 +202,7 @@ public class SSLClientAuth implements Runnable {
         // generate server cert
         kpg.initialize(keyLength);
         KeyPair serverPair = kpg.genKeyPair();
-        Certificate serverCert = makeCert("CACert", "localhost", rand+2,
+        Certificate serverCert = makeCert("CACert", "localhost", serialNum++,
             caPair.getPrivate(), serverPair.getPublic(), rand, null);
         serverCertNick = "servercertnick"+rand;
         nssServerCert = cm.importCertPackage(
@@ -207,7 +211,7 @@ public class SSLClientAuth implements Runnable {
         // generate client auth cert
         kpg.initialize(keyLength);
         KeyPair clientPair = kpg.genKeyPair();
-        Certificate clientCert = makeCert("CACert", "ClientCert", rand+3,
+        Certificate clientCert = makeCert("CACert", "ClientCert", serialNum++,
             caPair.getPrivate(), clientPair.getPublic(), rand, null);
         clientCertNick = "clientcertnick"+rand;
         nssClientCert = cm.importCertPackage(
@@ -336,6 +340,7 @@ public class SSLClientAuth implements Runnable {
     private boolean success = true;
 
     public int port = 29752;
+    public int serialNum = 0;
 
     public boolean serverReady = false;
 
@@ -413,7 +418,7 @@ public class SSLClientAuth implements Runnable {
         byte[] bytes = new byte[4];
         rand.nextBytes(bytes);
         i =  ((int)bytes[0])<<24 | ((int)bytes[1])<<16 |
-                ((int)bytes[2])<<8 | ((int)bytes[3]);
+            ((int)bytes[2])<<8 | ((int)bytes[3]);
         System.out.println("generated random value:" + i);
         return i;
     }

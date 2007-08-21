@@ -86,8 +86,8 @@ public class GenerateTestCert {
     public void usage() {
         System.out.println("USAGE: " +
             "java org.mozilla.jss.tests.GenerateTestCert " +
-            "<test dir> <password file> [hostname] [Signature Alg] " +
-            "[CAcertNickname] " +
+            "<test dir> <password file> <serial Number > [hostname] " +
+            "[Signature Alg] [CAcertNickname] " +
             "[ServerCertNickname] [ClientCertNickName]");
         System.out.println("This program creates self signed Certificates." +
             "They are only meant for testing and should never be " +
@@ -156,7 +156,7 @@ public class GenerateTestCert {
         String serverCertNick = SERVERCERT_NICKNAME;
         String clientCertNick = CLIENTCERT_NICKNAME;
         
-        if ( args.length < 2 ) {
+        if ( args.length < 3 ) {
             usage();
         }
         
@@ -169,6 +169,8 @@ public class GenerateTestCert {
             PasswordCallback cb = new FilePasswordCallback(args[1]);
             tok.login(cb);
             
+            int serialNum = new Integer(args[2]).intValue();
+            
             X509Certificate[] permCerts = cm.getPermCerts();
             int originalPermCerts = permCerts.length;
             System.out.println("Number of certificates stored in the " +
@@ -179,18 +181,18 @@ public class GenerateTestCert {
             int rand = nextRandInt(rng);
             
             String hostname = "localhost";
-            if (args.length > 3) {
-                hostname = args[2];
+            if (args.length > 4) {
+                hostname = args[3];
             }
             String alg = "SHA-256/RSA";
-            if (args.length > 4) {
-                alg = args[3];
+            if (args.length > 5) {
+                alg = args[4];
             }
             setSigAlg(alg);
             
             X509Certificate[] certs;
-            if (args.length > 5) {
-                caCertNick = args[4];
+            if (args.length > 6) {
+                caCertNick = args[5];
             }
             
             /* ensure certificate does not already exists */
@@ -200,8 +202,8 @@ public class GenerateTestCert {
                 System.exit(1);
             };
             
-            if (args.length > 6) {
-                serverCertNick = args[5];
+            if (args.length > 7) {
+                serverCertNick = args[6];
             }
             certs = cm.findCertsByNickname(serverCertNick);
             if (certs.length > 0) {
@@ -209,8 +211,8 @@ public class GenerateTestCert {
                 System.exit(1);
             };
             
-            if (args.length == 7) {
-                clientCertNick = args[6];
+            if (args.length == 8) {
+                clientCertNick = args[7];
             }
             certs = cm.findCertsByNickname(clientCertNick);
             if (certs.length > 0) {
@@ -227,7 +229,7 @@ public class GenerateTestCert {
             SEQUENCE extensions = new SEQUENCE();
             extensions.addElement(makeBasicConstraintsExtension());
             
-            Certificate caCert = makeCert("CACert", "CACert", rand+1,
+            Certificate caCert = makeCert("CACert", "CACert", serialNum,
                 caPair.getPrivate(), caPair.getPublic(), rand, extensions);
             X509Certificate nssCaCert = cm.importUserCACertPackage(
                 ASN1Util.encode(caCert), caCertNick);
@@ -240,16 +242,18 @@ public class GenerateTestCert {
             // generate server cert
             kpg.initialize(keyLength);
             KeyPair serverPair = kpg.genKeyPair();
-            Certificate serverCert = makeCert("CACert", hostname, rand+2,
-                caPair.getPrivate(), serverPair.getPublic(), rand, null);
+            Certificate serverCert = makeCert("CACert", hostname, 
+                serialNum+1, caPair.getPrivate(), 
+                serverPair.getPublic(), rand, null);
             nssServerCert = cm.importCertPackage(
                 ASN1Util.encode(serverCert), serverCertNick);
             
             // generate client auth cert
             kpg.initialize(keyLength);
             KeyPair clientPair = kpg.genKeyPair();
-            Certificate clientCert = makeCert("CACert", "ClientCert", rand+3,
-                caPair.getPrivate(), clientPair.getPublic(), rand, null);
+            Certificate clientCert = makeCert("CACert", "ClientCert", 
+                serialNum+2, caPair.getPrivate(), clientPair.getPublic(), 
+                rand, null);
             nssClientCert = cm.importCertPackage(
                 ASN1Util.encode(clientCert), clientCertNick);
             
@@ -287,8 +291,6 @@ public class GenerateTestCert {
                 System.out.println(clientCertNick + " already exists!");
                 System.exit(1);
             };
-            
-
             
         } catch(Exception e) {
             e.printStackTrace();
