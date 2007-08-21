@@ -271,7 +271,7 @@ function restorePreSearchView()
     gDBView = gPreQuickSearchView;
     if (gDBView.viewType == nsMsgViewType.eShowVirtualFolderResults)
     {
-      // readd the view as a listener on the search results
+      // read the view as a listener on the search results
       var saveViewSearchListener = gDBView.QueryInterface(Components.interfaces.nsIMsgSearchNotify);
       if (gSearchSession)
         gSearchSession.registerListener(saveViewSearchListener);

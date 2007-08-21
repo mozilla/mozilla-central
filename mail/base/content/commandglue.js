@@ -169,15 +169,13 @@ function ChangeFolderByURI(uri, viewType, viewFlags, sortType, sortOrder)
   }
 
   //if it's a server, clear the threadpane and don't bother trying to load.
-  if(msgfolder.isServer) {
+  if(msgfolder.isServer) 
+  {
     msgWindow.openFolder = null;
-
     ClearThreadPane();
     UpdateStatusQuota(null);
-
     // Load AccountCentral page here.
     ShowAccountCentral();
-
     return;
   }
   else
@@ -322,13 +320,13 @@ function RerootFolder(uri, newFolder, viewType, viewFlags, sortType, sortOrder)
   // we show "Recipient" instead of "Author"
   SetSentFolderColumns(IsSpecialFolder(newFolder, MSG_FOLDER_FLAG_SENTMAIL | MSG_FOLDER_FLAG_DRAFTS | MSG_FOLDER_FLAG_QUEUE, true));
   ShowLocationColumn(viewType == nsMsgViewType.eShowVirtualFolderResults);
-
   // now create the db view, which will sort it.
   CreateDBView(newFolder, viewType, viewFlags, sortType, sortOrder);
+
   if (oldFolder)
   {
-     /*we don't null out the db reference for inbox because inbox is like the "main" folder
-       and performance outweighs footprint */
+    /* we don't null out the db reference for inbox because inbox is like the "main" folder
+               and performance outweighs footprint*/
     if (!IsSpecialFolder(oldFolder, MSG_FOLDER_FLAG_INBOX, false))
     {
       if (oldFolder.URI != newFolder.URI)
@@ -1001,8 +999,8 @@ function FolderPaneSelectionChange()
     }
     else
     {
-        msgWindow.openFolder = null;
-        ClearThreadPane();
+      msgWindow.openFolder = null;
+      ClearThreadPane();
     }
 
     if (gAccountCentralLoaded)
@@ -1012,9 +1010,9 @@ function FolderPaneSelectionChange()
 
     if (gDisplayStartupPage)
     {
-        loadStartPage();
-        gDisplayStartupPage = false;
-        UpdateMailToolbar("gDisplayStartupPage");
+      loadStartPage();
+      gDisplayStartupPage = false;
+      UpdateMailToolbar("gDisplayStartupPage");
     }  
 }
 
@@ -1246,4 +1244,3 @@ function viewDebug(str)
   if (gViewDebug)
     dump(str);
 }
-

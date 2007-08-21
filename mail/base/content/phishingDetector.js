@@ -97,8 +97,8 @@ var gPhishingDetector = {
   analyzeMsgForPhishingURLs: function (aUrl)
   {
     if (!aUrl || !gPrefBranch.getBoolPref("mail.phishing.detection.enabled"))
-      return;  
-      
+      return;
+
     // Ignore nntp and RSS messages
     var folder;
     try {
@@ -166,7 +166,7 @@ var gPhishingDetector = {
         this.localListCallback(GetLoadedMessage(), failsStaticTests, aUrl, 2 /* not found */);
     }
   },
-  
+
   /**
     * 
     * @param aMsgURI the uri for the loaded message when the look up was initiated.
@@ -204,7 +204,7 @@ var gPhishingDetector = {
        // now send the url to the default browser
        
        var ioService = Components.classes["@mozilla.org/network/io-service;1"]
-                       .getService(Components.interfaces.nsIIOService);                       
+                       .getService(Components.interfaces.nsIIOService);
        var uri = ioService.newURI(reportUrl, null, null);
        var protocolSvc = Components.classes["@mozilla.org/uriloader/external-protocol-service;1"]
                          .getService(Components.interfaces.nsIExternalProtocolService);
