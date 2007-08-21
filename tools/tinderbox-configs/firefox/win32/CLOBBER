@@ -1,2 +1,1 @@
-Preemptively clobbering to avoid crashiness that appears whenever we touch nsIMIMEInfo in combination with the external protocol handler stuff.  Such a change was just made as part of the fix for bug 391144.
-
+Clobber to test symbol push
