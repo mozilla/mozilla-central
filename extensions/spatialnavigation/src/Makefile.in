@@ -65,6 +65,7 @@ REQUIRES	= xpcom \
 		      dom \
 			  dom_base \
 		      gfx \
+		      thebes \
 		      layout \
 		      content \
 		      widget \

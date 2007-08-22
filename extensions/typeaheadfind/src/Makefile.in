@@ -59,6 +59,7 @@ REQUIRES	= appcomps \
 		  find \
 		  intl \
 		  gfx \
+		  thebes \
 		  layout \
 		  locale \
 		  necko \
