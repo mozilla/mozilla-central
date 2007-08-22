@@ -262,7 +262,6 @@ public class GenerateTestCert {
                 "\n\t" + caCertNick +
                 "\n\t" + serverCertNick +
                 "\n\t" + clientCertNick);
-            System.out.println("Exiting main()");
             
             permCerts = cm.getPermCerts();
             if ( (originalPermCerts + 3) !=  permCerts.length) {
@@ -275,22 +274,23 @@ public class GenerateTestCert {
                 " database: " + permCerts.length);
             }
                         
-            /* ensure certificate does not already exists */
+            /* ensure certificates exists */
             certs = cm.findCertsByNickname(caCertNick);
             if (certs.length == 0) {
-                System.out.println(caCertNick + " already exists!");
+                System.out.println(caCertNick + " should exist!");
                 System.exit(1);
             };
             certs = cm.findCertsByNickname(serverCertNick);
             if (certs.length == 0) {
-                System.out.println(serverCertNick + " already exists!");
+                System.out.println(serverCertNick + " should exist!");
                 System.exit(1);
             };
             certs = cm.findCertsByNickname(clientCertNick);
             if (certs.length == 0) {
-                System.out.println(clientCertNick + " already exists!");
+                System.out.println(clientCertNick + " should exist!");
                 System.exit(1);
             };
+            System.out.println("Exiting GenerateTestCert");
             
         } catch(Exception e) {
             e.printStackTrace();

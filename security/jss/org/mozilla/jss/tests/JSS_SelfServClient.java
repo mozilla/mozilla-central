@@ -62,14 +62,14 @@ import java.util.*;
  *
  * Start the server:
  *
- *  java -cp ./jss4.jar org.mozilla.jss.tests.JSS_SelfServServer . passwords localhost 
- *             false 2921 bypassoff verboseoff
+ *  java -cp ./jss4.jar org.mozilla.jss.tests.JSS_SelfServServer . passwords 
+ *             localhost false 2921 bypassoff verboseoff
  *
  * Start the client with 4 threads using ciphersuite 0x33.
  * Look at the file Constant.java for the ciphersuites values.
  *
- * java -cp jss4.jar org.mozilla.jss.tests.JSS_SelfServClient 2 0x33 
- * . localhost 2921 bypassoff verboseoff JSS Client_RSA     
+ * java -cp jss4.jar org.mozilla.jss.tests.JSS_SelfServClient 2 0x33
+ * . localhost 2921 bypassoff verboseoff JSS Client_RSA
  *
  * If you envoke the client with a ciphersuite value -1
  * then all current JSS ciphersuites will be tested fox X number of
@@ -77,7 +77,7 @@ import java.util.*;
  * will closed all client SSLSockets and then tell the server to
  * shutdown. This case is for the nightly automated tests.
  *
- * java -cp jss4.jar org.mozilla.jss.tests.JSS_SelfServClient 4 -1 
+ * java -cp jss4.jar org.mozilla.jss.tests.JSS_SelfServClient 4 -1
  * . passwords localhost 2921 bypassoff verboseoff JSS
  */
 
@@ -169,7 +169,7 @@ public class JSS_SelfServClient implements ConstantsBase, Constants {
         initJSS();
         boolean cipherSuites = true;
         int ciphers[] =
-            org.mozilla.jss.ssl.SSLSocket.getImplementedCipherSuites();
+                org.mozilla.jss.ssl.SSLSocket.getImplementedCipherSuites();
         
         //
         for (int i = 0; i < ciphers.length; i++) {
@@ -178,22 +178,22 @@ public class JSS_SelfServClient implements ConstantsBase, Constants {
             if (Constants.cipher.cipherToString(ciphers[i]) == null) {
                 cipherSuites = false;
                 System.out.println("JSS does not support ciphersuite: " +
-                    Integer.toHexString(ciphers[i]));
+                        Integer.toHexString(ciphers[i]));
             }
         }
         
         if (!cipherSuites) {
             System.out.println("ERROR: NSS has implemented " +
-                "ciphersuites that JSS does not support!\n");
+                    "ciphersuites that JSS does not support!\n");
             System.out.println("see http://mxr.mozilla.org/security/" +
-                "source/security/nss/lib/ssl/sslproto.h");
+                    "source/security/nss/lib/ssl/sslproto.h");
             System.out.println("Update org/mozilla/jss/ssl/" +
-                "SSLSocket.java");
+                    "SSLSocket.java");
             System.out.println("Update org/mozilla/jss/tests/" +
-                "Constants.java");
+                    "Constants.java");
             
             System.out.println("NSS implemented Ciphersuites " +
-                "missing from JSS");
+                    "missing from JSS");
         }
         return cipherSuites;
     }
@@ -219,7 +219,7 @@ public class JSS_SelfServClient implements ConstantsBase, Constants {
     
     public void configureCipherSuites(String server) {
         int ciphers[] =
-            org.mozilla.jss.ssl.SSLSocket.getImplementedCipherSuites();
+                org.mozilla.jss.ssl.SSLSocket.getImplementedCipherSuites();
         boolean testCipher;
         
         for (int i = 0; i < ciphers.length;  ++i) {
@@ -229,12 +229,12 @@ public class JSS_SelfServClient implements ConstantsBase, Constants {
                 System.out.print(ciphersuite);
             }
             if (server.equalsIgnoreCase("JSS")) {
-                //For JSS SSLServer don'te test 
+                //For JSS SSLServer don'te test
                 if (ciphersuite.contains("_DHE_") ||
-                    ciphersuite.contains("SSL2") ||
-                    //Need to figure out why _ECDH_RSA ciphersuites don't work
-                    (ciphersuite.contains("RSA") &&
-                    ciphersuite.contains("_ECDH_")) ) {
+                        ciphersuite.contains("SSL2") ||
+                        //Need to figure out why _ECDH_RSA don't work
+                        (ciphersuite.contains("RSA") &&
+                        ciphersuite.contains("_ECDH_")) ) {
                     if (bVerbose) System.out.print(" -");
                     testCipher = false;
                 }
@@ -242,15 +242,40 @@ public class JSS_SelfServClient implements ConstantsBase, Constants {
             if (server.equalsIgnoreCase("JSSE")) {
                 //For JSSE SSLServers don't test
                 if (ciphersuite.contains("SSL2_")    ||
-                    ciphersuite.contains("_ECDHE_")   ||
-                    ciphersuite.contains("_ECDH_")    ||
-                    ciphersuite.contains("_CAMELLIA_")||
-                    ciphersuite.contains("_DHE_DSS_") ||
-                    ciphersuite.contains("_EXPORT1024_") ||
-                    ciphersuite.contains("_RSA_FIPS_")   ||
-                    ciphersuite.contains("EXPORT_WITH_RC2") ||
-                    ciphersuite.contains("_ECDSA_") || 
-                    ciphersuite.contains("_256_")   ) {
+                        ciphersuite.contains("_ECDHE_")   ||
+                        ciphersuite.contains("_ECDH_")    ||
+                        ciphersuite.contains("_CAMELLIA_")||
+                        ciphersuite.contains("_DHE_DSS_") ||
+                        ciphersuite.contains("_EXPORT1024_") ||
+                        ciphersuite.contains("_RSA_FIPS_")   ||
+                        ciphersuite.contains("EXPORT_WITH_RC2") ||
+                        ciphersuite.contains("_ECDSA_") ||
+                        ciphersuite.contains("_256_")   ) {
+                    if (bVerbose) System.out.print(" -");
+                    testCipher = false;
+                }
+            }
+            if (server.equalsIgnoreCase("Mozilla-JSS")) {
+                //For JSSE Mozilla-JSS SSLServers don't test
+                if (ciphersuite.contains("SSL2_")    ||
+                        ciphersuite.contains("_ECDHE_")   ||
+                        ciphersuite.contains("_ECDH_")    ||
+                        ciphersuite.contains("_CAMELLIA_")||
+                        ciphersuite.contains("_DHE_DSS_") ||
+                        ciphersuite.contains("_EXPORT1024_") ||
+                        ciphersuite.contains("_RSA_FIPS_")   ||
+                        ciphersuite.contains("EXPORT_WITH_RC2") ||
+                        ciphersuite.contains("_ECDSA_") ||
+                        ciphersuite.contains(
+                        "SSL3_DHE_RSA_WITH_3DES_EDE_CBC_SHA") ||
+                        ciphersuite.contains(
+                        "SSL3_RSA_WITH_3DES_EDE_CBC_SHA") ||
+                        ciphersuite.contains(
+                        "SSL3_DHE_RSA_WITH_DES_CBC_SHA") ||
+                        ciphersuite.contains("SSL3_RSA_WITH_DES_CBC_SHA") ||
+                        ciphersuite.contains(
+                        "SSL3_RSA_EXPORT_WITH_RC4_40_MD5") ||
+                        ciphersuite.contains("_256_")   ) {
                     if (bVerbose) System.out.print(" -");
                     testCipher = false;
                 }
@@ -277,7 +302,7 @@ public class JSS_SelfServClient implements ConstantsBase, Constants {
         if (bVerbose) System.out.print("\n");
         
         if(bVerbose) System.out.println("\nTesting " + ciphersToTest.size() +
-            " ciphersuites.");
+                " ciphersuites.");
         
     }
     /**
@@ -305,13 +330,13 @@ public class JSS_SelfServClient implements ConstantsBase, Constants {
         
         initJSS();
         int ciphers[] =
-            org.mozilla.jss.ssl.SSLSocket.getImplementedCipherSuites();
+                org.mozilla.jss.ssl.SSLSocket.getImplementedCipherSuites();
         
         ciphersuiteTested = Constants.cipher.cipherToString(aCipher);
         
         if (bVerbose || !bTestCiphers) {
             System.out.println("Testing " + Integer.toHexString(aCipher) +
-                " " + ciphersuiteTested);
+                    " " + ciphersuiteTested);
         }
         
         if (ciphersuiteTested != null) {
@@ -324,7 +349,7 @@ public class JSS_SelfServClient implements ConstantsBase, Constants {
         try {
             if (cm.FIPSEnabled() && !SSLSocket.isFipsCipherSuite(aCipher)) {
                 System.out.println("You are trying to test a non FIPS " +
-                    "ciphersuite when FIPS is enabled!");
+                        "ciphersuite when FIPS is enabled!");
                 System.exit(1);
             }
         } catch (SocketException ex) {
@@ -400,7 +425,7 @@ public class JSS_SelfServClient implements ConstantsBase, Constants {
             certs = cm.findCertsByNickname(clientCertNick);
             if (certs.length == 0) {
                 System.out.println("unable to find cert nickname: " +
-                    clientCertNick);
+                        clientCertNick);
                 System.exit(1);
             }
         } catch (TokenException ex) {
@@ -454,7 +479,7 @@ public class JSS_SelfServClient implements ConstantsBase, Constants {
         private String ciphersuite;
         
         public readWriteThread(ThreadGroup tgOb,
-            String tName, String cs, SSLSocket sock) {
+                String tName, String cs, SSLSocket sock) {
             super(tgOb, tName);
             if (bVerbose) {
                 System.out.println("New thread: " + this);
@@ -472,9 +497,9 @@ public class JSS_SelfServClient implements ConstantsBase, Constants {
                 InputStream  is    = clientSock.getInputStream();
                 OutputStream os    = clientSock.getOutputStream();
                 BufferedReader bir = new BufferedReader(
-                    new InputStreamReader(is));
+                        new InputStreamReader(is));
                 PrintWriter out    = new PrintWriter(new BufferedWriter(
-                    new OutputStreamWriter(os)));
+                        new OutputStreamWriter(os)));
                 
                 while (true) {
                     outputLine = ciphersuite + ":" + socketID + "\n";
@@ -486,7 +511,7 @@ public class JSS_SelfServClient implements ConstantsBase, Constants {
                     inputLine = bir.readLine();
                     if (bVerbose) {
                         System.out.println("Received: " + inputLine +
-                            " on Client-" + socketID);
+                                " on Client-" + socketID);
                     }
                     Thread.sleep(50);
                 }
@@ -496,9 +521,9 @@ public class JSS_SelfServClient implements ConstantsBase, Constants {
                 e.printStackTrace();
             } catch (IOException e) {
                 if ((e.getMessage().equalsIgnoreCase(
-                    "SocketException cannot read on socket")) ||
-                    (e.getMessage().equalsIgnoreCase(
-                    "Socket has been closed, and cannot be reused.")) ) {
+                        "SocketException cannot read on socket")) ||
+                        (e.getMessage().equalsIgnoreCase(
+                        "Socket has been closed, and cannot be reused.")) ) {
                     //System.out.println("SSLSocket "
                     //    + socketID + " has been closed.");
                 } else e.printStackTrace();
@@ -515,7 +540,7 @@ public class JSS_SelfServClient implements ConstantsBase, Constants {
         }
         try {
             CryptoManager.InitializationValues vals = new
-                CryptoManager.InitializationValues(fCertDbPath);
+                    CryptoManager.InitializationValues(fCertDbPath);
             CryptoManager.initialize(vals);
             cm  = CryptoManager.getInstance();
             
@@ -564,11 +589,11 @@ public class JSS_SelfServClient implements ConstantsBase, Constants {
         try {
             SSLSocket s = null;
             if (bVerbose) System.out.println("Sending shutdown message " +
-                "to server.");
+                    "to server.");
             
             if (aWorkingCipher == 0) {
                 System.out.println("no ciphersuite was able to connect to " +
-                    "the server!");
+                        "the server!");
                 System.exit(1);
             }
             setCipher(aWorkingCipher);
@@ -576,7 +601,7 @@ public class JSS_SelfServClient implements ConstantsBase, Constants {
             if (s == null) throw new IOException("Unable to connect to server");
             OutputStream os    = s.getOutputStream();
             PrintWriter out    = new PrintWriter(new BufferedWriter(
-                new OutputStreamWriter(os)));
+                    new OutputStreamWriter(os)));
             out.println("shutdown");
             out.flush();
             out.close();
@@ -607,12 +632,24 @@ public class JSS_SelfServClient implements ConstantsBase, Constants {
             }
             
             System.out.println("Waiting till all threads are dead");
+            int i = 0;
             while (socketThreads.activeCount() > 0) {
                 Thread.currentThread().sleep(10);
                 System.out.println("ActiveCount" + socketThreads.activeCount());
+                //This loop should always exit but it has the potential
+                //to hang the QA tests so...
+                if (i == 1000) { // 1000 x 10
+                    System.out.println("It is taking too long for the " +
+                            "threads to die. Exiting the program");
+                    System.out.println("Time taken: " +
+                            (System.currentTimeMillis() - start) + 
+                            " Millieseconds");
+                    System.exit(1);
+                }
+                i++;
             }
             System.out.println("All threads are dead. Time taken: " +
-                (System.currentTimeMillis() - start));
+                    (System.currentTimeMillis() - start) + " Milliseconds.");
         } catch (IOException ex) {
             ex.printStackTrace();
             System.exit(1);
@@ -637,26 +674,26 @@ public class JSS_SelfServClient implements ConstantsBase, Constants {
                 System.out.println("client about to connect...");
             
             String hostAddr =
-                InetAddress.getByName(serverHost).getHostAddress();
+                    InetAddress.getByName(serverHost).getHostAddress();
             
             if ( bVerbose )
                 System.out.println("the host " + serverHost +
-                    " and the address " + hostAddr);
+                        " and the address " + hostAddr);
             
             if (TestCertCallBack) {
                 if ( bVerbose )
                     System.out.println("calling approvalCallBack");
                 sock = new SSLSocket(InetAddress.getByName(hostAddr),
-                    port,
-                    null,
-                    0,
-                    new TestCertificateApprovalCallback(),
-                    null);
+                        port,
+                        null,
+                        0,
+                        new TestCertificateApprovalCallback(),
+                        null);
             } else {
                 if ( bVerbose )
                     System.out.println("NOT calling approvalCallBack");
                 sock = new SSLSocket(InetAddress.getByName(hostAddr),
-                    port);
+                        port);
             }
             
             if (clientCertNick.equalsIgnoreCase("default")) {
@@ -683,7 +720,7 @@ public class JSS_SelfServClient implements ConstantsBase, Constants {
             }
             
             sock.addHandshakeCompletedListener(
-                new HandshakeListener("client",this));
+                    new HandshakeListener("client",this));
             
             sock.forceHandshake();
             sock.setSoTimeout(10*1000);
@@ -711,25 +748,25 @@ public class JSS_SelfServClient implements ConstantsBase, Constants {
     
     public void outputCipherResults() {
         String banner = new String
-            ("\n----------------------------------------------------------\n");
+                ("\n-------------------------------------------------------\n");
         
         System.out.println(banner);
-        System.out.println("JSS has " + 
+        System.out.println("JSS has " +
             org.mozilla.jss.ssl.SSLSocket.getImplementedCipherSuites().length +
-            " ciphersuites and " + 
-            ciphersToTest.size() + " were configured and tested.");
-
+                " ciphersuites and " +
+                ciphersToTest.size() + " were configured and tested.");
+        
         if (ciphersToTest.size() == h_ciphers.size()) {
             System.out.println("All " + ciphersToTest.size() +
-                " configured ciphersuites tested Successfully!\n");
-        } 
+                    " configured ciphersuites tested Successfully!\n");
+        }
         
         if (!h_ciphers.isEmpty()) {
             if (!f_ciphers.isEmpty()) {
                 System.out.println(banner);
                 System.out.println(h_ciphers.size() +
-                    " ciphersuites successfully connected to the "+
-                    "server\n");
+                        " ciphersuites successfully connected to the "+
+                        "server\n");
             }
             Iterator iter = h_ciphers.iterator();
             while (iter.hasNext()) {
@@ -739,7 +776,7 @@ public class JSS_SelfServClient implements ConstantsBase, Constants {
         }
         if (bFipsMode) {
             System.out.println("Note: ciphersuites that have the prefix " +
-                "\"SSL\" or \"SSL3\" were used in TLS mode.");
+                    "\"SSL\" or \"SSL3\" were used in TLS mode.");
         }
         
         if (ciphersToTest.size()
@@ -749,8 +786,8 @@ public class JSS_SelfServClient implements ConstantsBase, Constants {
         if (!f_ciphers.isEmpty()) {
             System.out.println(banner);
             System.out.println(f_ciphers.size() +
-                " ciphersuites that did not connect to the "+
-                "server\n\n");
+                    " ciphersuites that did not connect to the "+
+                    "server\n\n");
             Iterator iter = f_ciphers.iterator();
             while (iter.hasNext()) {
                 System.out.println((String) iter.next());
@@ -776,7 +813,7 @@ public class JSS_SelfServClient implements ConstantsBase, Constants {
             if (sock != null) {
                 String threadName = new String(sockID + "-" + i);
                 readWriteThread rwThread = new readWriteThread(socketThreads,
-                    threadName, ciphersuiteTested, sock);
+                        threadName, ciphersuiteTested, sock);
                 rwThread.start();
                 if (i == 1) {
                     h_ciphers.add(ciphersuiteTested);
@@ -791,7 +828,7 @@ public class JSS_SelfServClient implements ConstantsBase, Constants {
         
         if ( bVerbose ) {
             System.out.println("Active thread count: " +
-                socketThreads.activeCount());
+                    socketThreads.activeCount());
             System.out.println("Total threads created: " + getSockTotal());
         }
     }
@@ -800,7 +837,7 @@ public class JSS_SelfServClient implements ConstantsBase, Constants {
      * SSL Handshake Listeren implementation.
      */
     public class HandshakeListener
-        implements SSLHandshakeCompletedListener {
+            implements SSLHandshakeCompletedListener {
         private String who;
         private JSS_SelfServClient boss;
         public HandshakeListener(String who, JSS_SelfServClient boss) {
@@ -863,21 +900,21 @@ public class JSS_SelfServClient implements ConstantsBase, Constants {
             ex.printStackTrace();
         }
         String  usage      = "\nUSAGE:\n" +
-            "java org.mozilla.jss.tests.JSS_SelfServClient" +
-            " [# sockets] [JSS cipher hex code \"0xC013\" value or -1] " +
-            "\n\nOptional:\n" +
-            "[certdb path] [password file] [server host] [server port]" +
-            "[bypass] [verbose] [server = JSS or JSSE] [ClientCert]";
+                "java org.mozilla.jss.tests.JSS_SelfServClient" +
+                " [# sockets] [JSS cipher hex code \"0xC013\" value or -1] " +
+                "\n\nOptional:\n" +
+                "[certdb path] [password file] [server host] [server port]" +
+                "[bypass] [verbose] [server = JSS or JSSE] [ClientCert]";
         
         try {
             if (args.length <= 0 ||
-                args[0].toLowerCase().equals("-h")) {
+                    args[0].toLowerCase().equals("-h")) {
                 System.out.println(usage);
                 System.exit(1);
             } else {
                 numOfThreads = new Integer(args[0]).intValue();
                 System.out.println("Number of Threads to create: "
-                    + numOfThreads);
+                        + numOfThreads);
             }
             if (args.length >= 2) {
                 if (args[1].startsWith("0x") || args[1].startsWith("0X")) {
@@ -899,7 +936,7 @@ public class JSS_SelfServClient implements ConstantsBase, Constants {
                 testport   = new Integer(args[5]).intValue();
             }
             if ((args.length >= 7) &&
-                args[6].equalsIgnoreCase("bypass")== true) {
+                    args[6].equalsIgnoreCase("bypass")== true) {
                 bBypassPKCS11 = true;
             }
             if ((args.length >= 8) && args[7].equalsIgnoreCase("verbose")
@@ -910,10 +947,10 @@ public class JSS_SelfServClient implements ConstantsBase, Constants {
             if (args.length >= 9) {
                 
                 server = args[8].toUpperCase();
-            }    
+            }
             if (args.length >=10) {
-                    certnick = (String)args[9];
-                    System.out.println("certnickname: " + certnick);
+                certnick = (String)args[9];
+                System.out.println("certnickname: " + certnick);
             }
             
             
@@ -923,7 +960,7 @@ public class JSS_SelfServClient implements ConstantsBase, Constants {
         }
         
         System.out.println("Client connecting to server: " + testhost +
-            ":" + testport);
+                ":" + testport);
         
         JSS_SelfServClient jssTest = new JSS_SelfServClient();
         try {
@@ -968,14 +1005,14 @@ public class JSS_SelfServClient implements ConstantsBase, Constants {
         
         if (jssTest.getSockTotal() == 0 ) {
             System.out.println("No SSLSockets created check your " +
-                "configuration.");
+                    "configuration.");
             System.exit(1);
         }
         
         // choose how to exit the program
         System.out.println(jssTest.getSockTotal() + " SSLSockets created.");
         System.out.println("Each created SSLSocket is reading/writing to" +
-            " the SSLServer.");
+                " the SSLServer.");
         
         if (jssTest.getTestCiphers()) {
             try {
@@ -992,14 +1029,14 @@ public class JSS_SelfServClient implements ConstantsBase, Constants {
         }
         
         System.out.println("You can choose to exit the program enter:" +
-            "\n\t\'A\' to abort with out closing the sockets." +
-            "\n\t\'C\' to close all client sockets (server will not quit)" +
-            "\n\tor any other letter to close all sockets and tell the" +
-            "server to quit.");
+                "\n\t\'A\' to abort with out closing the sockets." +
+                "\n\t\'C\' to close all client sockets (server will not quit)" +
+                "\n\tor any other letter to close all sockets and tell the" +
+                "server to quit.");
         
         try {
             BufferedReader stdin = new BufferedReader(new
-                InputStreamReader(System.in));
+                    InputStreamReader(System.in));
             String p = stdin.readLine();
             if (p.equalsIgnoreCase("a")) {
                 System.out.println("Aborting with out closing SSLSockets.");

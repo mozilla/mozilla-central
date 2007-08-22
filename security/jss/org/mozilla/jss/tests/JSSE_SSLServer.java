@@ -160,9 +160,9 @@ public class JSSE_SSLServer {
         }
         if (args.length >= 7 && args.length >=8 ) {
             if ((args[5].equalsIgnoreCase("Mozilla-JSS"))) {
-            if (args.length >= 8) {
-                pwFile = args[7];
-            }
+                if (args.length >= 8) {
+                    pwFile = args[7];
+                }
                 
                 System.out.println("Initializing " + args[5]);
                 CryptoManager.InitializationValues vals = new
@@ -174,11 +174,15 @@ public class JSSE_SSLServer {
                     new FilePasswordCallback(pwFile) );
                 
              } else if (args[5].equalsIgnoreCase("Sunpkcs11")) {
+                
                 nssConfig = args[6];
-                System.out.println("Initializing " +  args[5] + "-NSS");    
-                Provider nss = new sun.security.pkcs11.SunPKCS11(nssConfig);
-                Security.insertProviderAt(nss, 1);
-                System.out.println("Initialized " +  args[5] + "-NSS"); 
+                System.out.println("Initializing " +  args[5] + "-NSS");
+                    Provider nss = null;
+                    nss = new sun.security.pkcs11.SunPKCS11(nssConfig);
+                    System.out.println("inserting provider?");
+                    Security.insertProviderAt(nss, 1);
+                    System.out.println("Initialized " +  args[5] + "-NSS"); 
+                    
             } else {
                 //use default 
             }
