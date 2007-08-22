@@ -686,7 +686,10 @@ sub update_create_package {
           my $ssh_opts = "";
           my $scp_opts = "";
           if ($Settings::ssh_user eq 'cltbld') {
-             $ssh_opts = "-i $ENV{'HOME'}/.ssh/aus";
+             # $ENV{'HOME'} on MSYS conveniently defaults to 
+             # c:\Documents and Settings\blah, which has spaces, so quote the 
+             # ssh argument to ensure the shell gets it correctly.
+             $ssh_opts = "-i \"$ENV{'HOME'}/.ssh/aus\"";
              $scp_opts = $ssh_opts;
           }
 
