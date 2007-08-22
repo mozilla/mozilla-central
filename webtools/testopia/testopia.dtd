@@ -65,7 +65,7 @@
 <!ELEMENT testcase (summary, testplan_reference+, alias?, requirement?, defaulttester, categoryname?, script?, arguments*, component*, tag*, attachment*, dependson*, blocks*, setup?, breakdown?, action, expectedresults?)>
 <!ATTLIST testcase 
     author CDATA #REQUIRED 
-    priority (P0|P1|P2|P3|P4|p5) "P5" 
+    priority (P0|P1|P2|P3|P4|P5) "P5" 
     automated (Manual|Automatic) "Manual" 
     status (PROPOSED|CONFIRMED|DISABLED) "CONFIRMED"
 >
