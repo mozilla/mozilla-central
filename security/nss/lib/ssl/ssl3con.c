@@ -39,7 +39,7 @@
  * the terms of any one of the MPL, the GPL or the LGPL.
  *
  * ***** END LICENSE BLOCK ***** */
-/* $Id: ssl3con.c,v 1.102 2007-07-06 03:16:54 julien.pierre.bugs%sun.com Exp $ */
+/* $Id: ssl3con.c,v 1.103 2007-08-22 06:12:02 nelson%bolyard.com Exp $ */
 
 #include "nssrenam.h"
 #include "cert.h"
@@ -3614,7 +3614,7 @@ ssl3_SendClientHello(sslSocket *ss)
     if (!num_suites)
     	return SECFailure;	/* ssl3_config_match_init has set error code. */
 
-    if (ss->opt.enableTLS) {
+    if (ss->opt.enableTLS && ss->version > SSL_LIBRARY_VERSION_3_0) {
 	PRUint32 maxBytes = 65535; /* 2^16 - 1 */
 	PRInt32  extLen;
 
