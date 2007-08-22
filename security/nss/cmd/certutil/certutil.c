@@ -1377,7 +1377,8 @@ SignCert(CERTCertDBHandle *handle, CERTCertificate *cert, PRBool selfsign,
     rv = SEC_DerSignData(arena, result, der.data, der.len, privKey, algID);
     if (rv != SECSuccess) {
 	fprintf (stderr, "Could not sign encoded certificate data.\n");
-	PORT_Free(result);
+	/* result allocated out of the arena, it will be freed
+	 * when the arena is freed */
 	result = NULL;
 	goto done;
     }
