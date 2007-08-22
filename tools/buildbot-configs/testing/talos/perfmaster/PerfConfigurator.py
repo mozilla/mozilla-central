@@ -7,6 +7,7 @@ Created by Rob Campbell on 2007-03-02.
 Modified by Rob Campbell on 2007-05-30
 Modified by Rob Campbell on 2007-06-26 - added -i buildid option
 Modified by Rob Campbell on 2007-07-06 - added -d testDate option
+Modified by Rob Campbell on 2007-08-22 - fixed errors in main()
 """
 
 import sys
@@ -136,6 +137,7 @@ def main(argv=None):
     output = ""
     title = defaultTitle
     branch = ""
+    buildid = ""
     testDate = False
     verbose = False
     
@@ -151,7 +153,7 @@ def main(argv=None):
         
         # option processing
         for option, value in opts:
-            if option == ("-v", "--verbose"):
+            if option in ("-v", "--verbose"):
                 verbose = True
             if option in ("-h", "--help"):
                 raise Usage(help_message)
