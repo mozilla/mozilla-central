@@ -133,7 +133,7 @@ class TinderboxShellCommand(ShellCommand):
 
 class MozillaCheckoutClientMk(ShellCommand):
     haltOnFailure = True
-    cvsroot = ":pserver:anonymous@cvs-mirror.mozilla.org:/cvsroot"
+    cvsroot = ":pserver:anonymous@cvs.mozilla.org:/cvsroot"
     
     def __init__(self, **kwargs):
         if 'cvsroot' in kwargs:
@@ -145,7 +145,7 @@ class MozillaCheckoutClientMk(ShellCommand):
     def describe(self, done=False):
         return ["client.mk update"]
     
-
+ 
 class MozillaClientMkPull(ShellCommand):
     haltOnFailure = True
     def __init__(self, **kwargs):
