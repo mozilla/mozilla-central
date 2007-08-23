@@ -223,6 +223,7 @@ calDateTime::SetTimezone(const nsACString& aTimezone)
             return rv;
         mTimezone.Assign(aTimezone);
     }
+    normalize();
     return NS_OK;
 }
 
