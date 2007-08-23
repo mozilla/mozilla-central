@@ -637,11 +637,9 @@
 
          event.stopPropagation();
          var item = session.sourceNode.occurrence;
-         if (isEvent(item)) {
-           var beginMove = item.startDate.clone();
-           beginMove.isDate = true;
+        var beginMove = session.sourceNode.mParentBox.date;
            var duration = boxDate.subtractDate(beginMove);
-           
+        if (isEvent(item)) {
            // Since both boxDate and beginMove are dates (note datetimes),
            // subtractDate will only give us a non-zero number of hours on DST
            // changes. While strictly speaking, subtractDate's behavior is 
@@ -662,9 +660,6 @@
            newEnd.addDuration(duration);
          } else if (isToDo(item)) {
            if (item.entryDate && item.dueDate) {
-             var beginMove = item.entryDate.clone();
-             beginMove.isDate = true;
-             var duration = boxDate.subtractDate(beginMove);
              newStart = item.entryDate.clone();
              newStart.addDuration(duration);
              newEnd = item.dueDate.clone();
@@ -688,7 +683,8 @@
          this.removeDropShadows();
 
          window.removeEventListener("mouseover",
-                                    this.monthView.dropListener, true);
+                                   this.monthView.dropListener,
+                                   true);
 
          this.monthView.controller.modifyOccurrence(item, newStart, newEnd);
       ]]></handler>
