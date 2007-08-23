@@ -412,7 +412,6 @@ sub print_case_result {
         print "JSSTEST_CASE $testrun ($testname): PASS\n";
     } else {
         print "JSSTEST_CASE $testrun ($testname): FAIL return value $result\n";
-        die;
     }
 
 }
