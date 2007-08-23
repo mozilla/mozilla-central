@@ -33,6 +33,21 @@ use Bugzilla::Testopia::TestRun;
 use Bugzilla::Testopia::Search;
 use Bugzilla::Testopia::Table;
 
+###############################################################################
+# tr_new_run.cgi
+# Presents a webform to the user for the creation of a new test run. 
+# 
+# INTERFACE:
+#    plan_id: The id of the plan this run will belong to.
+#                 If no plan_id is found, the user will first 
+#                 be presented with a form to select a plan.
+#
+#    action: undef - Present form for new run creation
+#            "Add" - Form has been submitted with run data. Create the test
+#                    run.
+#
+################################################################################ 
+
 my $vars = {};
 my $template = Bugzilla->template;
 my $query_limit = 10000;
@@ -55,18 +70,21 @@ detaint_natural($plan_id);
 validate_test_id($plan_id, 'plan');
 
 my $plan = Bugzilla::Testopia::TestPlan->new($plan_id);
-
+# Users need write permission on the plan in order to create a test run for
+# that plan. See tr_plan_access.cgi
 unless ($plan->canedit){
     print $cgi->header;
     ThrowUserError("testopia-create-denied", {'object' => 'Test Run', 'plan' => $plan});
 }
-
+# We need at least one build on the product in order to create a run.
 unless (scalar @{$plan->product->builds(1)} > 0){
     print $cgi->header;
     ThrowUserError('testopia-create-build', {'plan' => $plan});
 }
 
 if ($action eq 'Add'){
+    # There might be a lot of cases to add which could cause a timeout from 
+    # a web proxy. Show a progress bar to keep the client happy.
     my $serverpush = support_server_push($cgi);
     if ($serverpush) {
         print $cgi->multipart_init;
@@ -82,38 +100,12 @@ if ($action eq 'Add'){
           || ThrowTemplateError($template->error());
     }
 
-    my $manager  = login_to_id(trim($cgi->param('manager')));
-    my $status   = $cgi->param('status');
-    my $prodver  = $cgi->param('product_version');
-    my $pversion = $cgi->param('plan_version');
     my $build    = $cgi->param('build');
-    my $summary  = $cgi->param('summary');
-    my $notes    = $cgi->param('notes');    
-    my $env      = $cgi->param('environment') ? $cgi->param('environment') : $cgi->param('env_pick');
-    if ($summary  eq ''){
-        print $cgi->multipart_end if $serverpush;
-        ThrowUserError('testopia-missing-required-field', {'field' => 'summary'});
-    }
-    if ($env  eq '' && !$cgi->param('new_env')){
-        print $cgi->multipart_end if $serverpush;
-        ThrowUserError('testopia-missing-required-field', {'field' => 'environment'});
-    }
-    unless ($manager){
-       print $cgi->multipart_end if $serverpush;
-       ThrowUserError("invalid_username", { name => $cgi->param('assignee') });
-    }
+    my $env      = $cgi->param('environment');
      
-    detaint_natural($status);
     detaint_natural($build);
-    detaint_natural($pversion);
     detaint_natural($env);
         
-    # All inserts are done with placeholders so this is OK
-    trick_taint($summary);
-    trick_taint($notes);
-    trick_taint($prodver);
-    trick_taint($manager);
-    
     if ($cgi->param('new_build')){
         my $new_build   = $cgi->param('new_build');
         trick_taint($new_build);
@@ -149,26 +141,25 @@ if ($action eq 'Add'){
             $env = $e->store;
         } 
     }
-    validate_test_id($env, 'environment');
+    
+    # Get the list of cases that we will be including in this run.
     my $reg = qr/c_([\d]+)/;
     my @c;
     foreach my $p ($cgi->param()){
         push @c, $1 if $p =~ $reg;
     }
     
-    my $run = Bugzilla::Testopia::TestRun->new({
-            'plan_id'           => $plan_id,
+    my $run = Bugzilla::Testopia::TestRun->create({
+            'plan_id'           => $plan->id,
             'environment_id'    => $env,
             'build_id'          => $build,
-            'product_version'   => $prodver,
-            'plan_text_version' => $pversion,
-            'manager_id'        => $manager,
-            'summary'        => $summary,
-            'notes'     => $notes,
-            'plan'      => $plan,
+            'product_version'   => $cgi->param('product_version'),
+            'plan_text_version' => $cgi->param('plan_version'),
+            'manager_id'        => $cgi->param('manager'),
+            'summary'           => $cgi->param('summary'),
+            'notes'             => $cgi->param('notes'),
+            'status'            => $cgi->param('status'),
     });
-    my $run_id = $run->store;
-    $run = Bugzilla::Testopia::TestRun->new($run_id);
 
     my $progress_interval = 250;
     my $i = 0;
@@ -194,7 +185,7 @@ if ($action eq 'Add'){
         print $cgi->header;
     }
     $cgi->param('current_tab', 'case_run');
-    $cgi->param('run_id', $run_id);
+    $cgi->param('run_id', $run->id);
     my $search = Bugzilla::Testopia::Search->new($cgi);
     my $table = Bugzilla::Testopia::Table->new('case_run', 'tr_show_run.cgi', $cgi, undef, $search->query);
     if ($table->view_count > $query_limit){
@@ -224,7 +215,6 @@ else {
     $vars->{'case'} = Bugzilla::Testopia::TestCase->new({});
     $vars->{'table'} = $table;    
     $vars->{'dotweak'} = 1;
-    $vars->{'fullwidth'} = 1; #novellonly
     $vars->{'plan'} = $plan;
     $vars->{'action'} = 'Add';
     my $run = Bugzilla::Testopia::TestRun->new(

@@ -325,7 +325,7 @@ sub remove_tag
         die "User Not Authorized";
     }
 
-    my $test_tag = Bugzilla::Testopia::TestTag->check_name($tag_name);
+    my $test_tag = Bugzilla::Testopia::TestTag->check_tag($tag_name);
     if (not defined $test_tag)
     {
         $self->logout;

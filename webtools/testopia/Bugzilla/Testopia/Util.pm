@@ -66,6 +66,7 @@ sub get_test_field_id {
               FROM test_fielddefs 
               WHERE name = ? AND table_name = ?",
               undef, $field, $table);
+    ThrowCodeError('testopia_undefined_field', {fieldname => $field, table => $table}) unless $field_id;
     return $field_id;
 }
 
@@ -141,9 +142,8 @@ sub validate_selection {
     my $dbh = Bugzilla->dbh;
     my ($id, $field, $table) = @_;
     $id = trim($id);
-    
-    # First check that the object exists taint check should have been 
-    # done before calling this function.
+    trick_taint($id);
+
     my ($res) = $dbh->selectrow_array(
         "SELECT $field 
            FROM $table
@@ -172,6 +172,33 @@ sub support_server_push {
 sub percentage {
   my ($total, $count) = (@_);
   return $total == 0 ? 0 : int($count*100/$total);
+}
+
+
+=head2 update
+
+Updates this test plan with new values supplied by the user.
+Accepts a reference to a hash with keys identical to a test plan's
+fields and values representing the new values entered.
+Validation tests should be performed on the values 
+before calling this method. If a field is changed, a history 
+of that change is logged in the test_plan_activity table.
+
+=cut
+
+
+sub log_activity {
+    my ($type, $obj_id, $field, $timestamp, $oldvalue, $newvalue) = @_;
+    my $dbh = Bugzilla->dbh;
+    $timestamp ||= get_time_stamp();
+    
+    my $field_id = Bugzilla::Testopia::Util::get_test_field_id($field, "test_". $type ."s");
+    $dbh->do("INSERT INTO test_". $type ."_activity 
+              (". $type . "_id, fieldid, who, changed, oldvalue, newvalue)
+                   VALUES(?,?,?,?,?,?)",
+              undef, ($obj_id, $field_id, Bugzilla->user->id,
+              $timestamp, $oldvalue, $newvalue));
+    
 }
 
 =head1 AUTHOR

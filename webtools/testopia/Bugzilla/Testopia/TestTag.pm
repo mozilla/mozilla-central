@@ -10,13 +10,14 @@
 # implied. See the License for the specific language governing
 # rights and limitations under the License.
 #
-# The Original Code is the Bugzilla Test Runner System.
+# The Original Code is the Bugzilla Testopia System.
 #
-# The Initial Developer of the Original Code is Maciej Maczynski.
-# Portions created by Maciej Maczynski are Copyright (C) 2001
-# Maciej Maczynski. All Rights Reserved.
+# The Initial Developer of the Original Code is Greg Hendricks.
+# Portions created by Greg Hendricks are Copyright (C) 2006
+# Novell. All Rights Reserved.
 #
 # Contributor(s): Greg Hendricks <ghendricks@novell.com>
+
 =head1 NAME
 
 Bugzilla::Testopia::TestTag - A Testopia tag
@@ -44,6 +45,8 @@ use strict;
 use Bugzilla::Util;
 use Bugzilla::Error;
 
+use base qw(Exporter Bugzilla::Object);
+
 ###############################
 ####    Initialization     ####
 ###############################
@@ -54,16 +57,30 @@ use Bugzilla::Error;
     tag_name
 
 =cut
-
+use constant DB_TABLE   => "test_tags";
+use constant NAME_FIELD => "tag_name";
+use constant ID_FIELD   => "tag_id";
 use constant DB_COLUMNS => qw(
     tag_id
     tag_name
-
 );
 
+use constant REQUIRED_CREATE_FIELDS => qw(tag_name);
+use constant UPDATE_COLUMNS         => qw();
+use constant VALIDATORS => {
+    tag_name => \&_check_name,    
+};
+
 ###############################
-####       Methods         ####
+####       Validators      ####
 ###############################
+sub _check_name {
+    my ($invocant, $name) = @_;
+    $name = trim($name);
+    trick_taint($name);
+    return $name;
+}
+
 
 =head1 METHODS
 
@@ -72,58 +89,42 @@ use constant DB_COLUMNS => qw(
 Instantiates a new TestTag
 
 =cut
-
+###############################
+####       Mutators        ####
+###############################
 sub new {
     my $invocant = shift;
     my $class = ref($invocant) || $invocant;
-    my $self = {};
-    bless($self, $class);
-    return $self->_init(@_);
+    my $param = shift;
+    
+    if (ref $param eq 'HASH'){
+        ThrowCodeError('non-empty-hash');
+    }
+    
+    unshift @_, $param;
+    my $self = $class->SUPER::new(@_);
+    
+    return $self; 
 }
 
-=head2 _init
-
-Private constructor
-
-=cut
-
-sub _init {
-    my $self = shift;
-    my ($param) = (@_);
+sub create {
+    my ($class, $params) = @_;
     my $dbh = Bugzilla->dbh;
-    my $columns = join(", ", DB_COLUMNS);
 
-    my $id = $param unless (ref $param eq 'HASH');
-    my $name = $param unless (ref $param eq 'HASH');
-    my $obj;
-
-    if (defined $id && detaint_natural($id)) {
-
-        $obj = $dbh->selectrow_hashref(qq{
-            SELECT $columns FROM test_tags
-            WHERE tag_id = ?}, undef, $id);
-    } elsif ($name){
-        $obj = $dbh->selectrow_hashref(qq{
-            SELECT $columns FROM test_tags
-            WHERE tag_name = ?}, undef, $name);
-    } elsif (ref $param eq 'HASH'){
-         $obj = $param;   
-    } else {
-        ThrowCodeError('bad_arg',
-            {argument => 'param',
-             function => 'Testopia::TestTag::_init'});
-    }
-
-    return undef unless (defined $obj);
-
-    foreach my $field (keys %$obj) {
-        $self->{$field} = $obj->{$field};
-    }
-    $self->case_count;
-    $self->plan_count;
-    $self->run_count;
-    return $self;
+    $class->SUPER::check_required_create_fields($params);
+    my $field_values = $class->SUPER::run_create_validators($params);
+    
+    my ($key) = $dbh->selectrow_array("SELECT tag_id FROM test_tags 
+                                    WHERE LOWER(tag_name) = ?", 
+                                    undef, lc($field_values->{'tag_name'}));
+                                    
+    return $class->new($key) if $key;
+    return $class->insert_create_data($field_values);
 }
+
+###############################
+####       Methods         ####
+###############################
 
 =head2 check_name
 
@@ -133,7 +134,7 @@ undef.
 
 =cut
 
-sub check_name {
+sub check_tag {
     my $self = shift;
     my ($name) = @_;
     my $dbh = Bugzilla->dbh;
@@ -148,6 +149,26 @@ sub check_name {
         return undef;
     }
 }
+
+sub attach {
+    my $self = shift;
+    my ($obj) = shift;
+    my $dbh = Bugzilla->dbh;
+    
+    $dbh->bz_lock_tables("test_". $obj->type ."_tags WRITE");
+    my $tagged = $dbh->selectrow_array(
+             "SELECT 1 FROM test_". $obj->type ."_tags 
+              WHERE tag_id = ? AND ". $obj->type ."_id = ?",
+              undef, $self->id, $obj->id);
+    if ($tagged) {
+        $dbh->bz_unlock_tables();
+        return;
+    }
+    $dbh->do("INSERT INTO test_". $obj->type ."_tags(tag_id, ". $obj->type ."_id, userid) 
+              VALUES(?,?,?)",
+              undef, $self->id, $obj->id, Bugzilla->user->id);
+    $dbh->bz_unlock_tables();
+} 
 
 =head2 store
 

@@ -368,57 +368,25 @@ sub do_update {
 
     my $timestamp;
     $timestamp = $run->stop_date;
-    $timestamp = undef if $cgi->param('status') && $run->stop_date;
-    $timestamp = get_time_stamp() if !$cgi->param('status') && !$run->stop_date;
+    $timestamp = undef if $cgi->param('status');
+    $timestamp = get_time_stamp() if $cgi->param('status') == 0 && !$run->stop_date;
+ 
+    $run->set_summary($cgi->param('summary'));
+    $run->set_product_version($cgi->param('product_version'));
+    $run->set_plan_text_version($cgi->param('plan_version'));
+    $run->set_build($cgi->param('build'));
+    $run->set_environment($cgi->param('environment'));
+    $run->set_manager($cgi->param('manager'));
+    $run->set_notes($cgi->param('notes'));
+    $run->set_stop_date($timestamp);
     
-    my $summary = $cgi->param('summary') || '';
-    my $prodver = Bugzilla::Version::check_version($run->plan->product, $cgi->param('product_version'));
-    my $planver = $cgi->param('plan_version');
-    my $build   = $cgi->param('build');
-    my $env     = $cgi->param('environment');
-    my $manager = login_to_id(trim($cgi->param('manager'))) ||ThrowUserError("invalid_username", { name => $cgi->param('manager') });
-    my $notes   = trim($cgi->param('notes'));
+    $run->update();
+    
+    # Add new tags
+    $run->add_tag($cgi->param('newtag')); 
 
-    ThrowUserError('testopia-missing-required-field', {'field' => 'summary'}) if ($cgi->param('summary') eq '');
-    ThrowUserError('testopia-missing-required-field', {'field' => 'environment'}) if ($env eq '');
-    
-    trick_taint($summary);
-    trick_taint($planver);
-    trick_taint($notes);
-    trick_taint($manager);
-    
-    detaint_natural($build);
-    detaint_natural($env);
-
-    validate_test_id($build, 'build');
-    validate_test_id($env, 'environment');
-
-    #TODO: Are notes something we want in the history?
-    #$run->update_notes($notes);
-    
-    my %newvalues = ( 
-        'summary'           => $summary,
-        'product_version'   => $prodver->name,
-        'plan_text_version' => $planver,
-        'build_id'          => $build,
-        'environment_id'    => $env,
-        'stop_date'         => $timestamp,
-        'manager_id'        => $manager,
-        'notes'             => $notes
-    );
-    $run->update(\%newvalues);
-    
-    # Add new tags 
-    foreach my $tag_name (split(/[,]+/, $cgi->param('newtag'))){
-        trick_taint($tag_name);
-        my $tag = Bugzilla::Testopia::TestTag->new({tag_name => $tag_name});
-        my $tag_id = $tag->store;
-        $run->add_tag($tag_id);
-    }
-    
     $cgi->delete_all;
     $cgi->param('run_id', $run->id);
-
 }
 
 sub display {

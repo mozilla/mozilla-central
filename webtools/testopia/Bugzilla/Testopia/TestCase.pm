@@ -28,24 +28,6 @@
 #
 # Contributor(s): Greg Hendricks <ghendricks@novell.com>
 
-=head1 NAME
-
-Bugzilla::Testopia::TestCase - Testopia Test Case object
-
-=head1 DESCRIPTION
-
-This module represents a test case in Testopia. Each test case must 
-be linked to one or more test plans.
-
-=head1 SYNOPSIS
-
-use Bugzilla::Testopia::TestCase;
-
- $case = Bugzilla::Testopia::TestCase->new($case_id);
- $case = Bugzilla::Testopia::TestCase->new(\%case_hash);
-
-=cut
-
 package Bugzilla::Testopia::TestCase;
 
 use strict;
@@ -65,30 +47,19 @@ use Bugzilla::Testopia::Category;
 
 use Text::Diff;
 
+use base qw(Exporter Bugzilla::Object);
+@Bugzilla::Testopia::Util::EXPORT = qw(lookup_status lookup_status_by_name 
+                                       lookup_category lookup_category_by_name
+                                       lookup_priority lookup_priority_by_value
+                                       lookup_default_tester);
+
 ###############################
 ####    Initialization     ####
 ###############################
 
-=head1 FIELDS
-
-    case_id
-    case_status_id
-    category_id
-    priority_id
-    author_id
-    default_tester_id  
-    creation_date
-    estimated_time
-    isautomated
-    sortkey
-    script
-    arguments
-    summary
-    requirement
-    alias
-
-=cut
-
+use constant DB_TABLE   => "test_cases";
+use constant NAME_FIELD => "summary";
+use constant ID_FIELD   => "case_id";
 use constant DB_COLUMNS => qw(
     case_id
     case_status_id
@@ -107,24 +78,50 @@ use constant DB_COLUMNS => qw(
     alias
 );
 
+use constant REQUIRED_CREATE_FIELDS => qw(case_status_id category_id priority_id author_id summary plans);
+use constant UPDATE_COLUMNS         => qw(case_status_id category_id priority_id default_tester_id 
+                                          isautomated sortkey script arguments summary requirement
+                                          alias estimated_time dependson blocks runs tags components);
+
+use constant VALIDATORS => {
+    case_status_id    => \&_check_status,
+    category_id       => \&_check_category,
+    priority_id       => \&_check_priority,
+    default_tester_id => \&_check_tester,
+    isautomated       => \&_check_automated,
+    sortkey           => \&_check_sortkey,
+    script            => \&_check_script,
+    arguments         => \&_check_arguments,
+    summary           => \&_check_summary,
+    requirement       => \&_check_requirements,
+    alias             => \&_check_alias,
+    estimated_time    => \&_check_time,
+    dependson         => \&_check_dependency,
+    blocks            => \&_check_dependency,
+    plans             => \&_check_plans,
+    runs              => \&_check_runs,
+    tags              => \&_check_tags,
+    components        => \&_check_components,
+};
+
 use constant ALIAS_MAX_LENGTH => 255;
 use constant REQUIREMENT_MAX_LENGTH => 255;
 use constant SUMMARY_MAX_LENGTH => 255;
 use constant TAG_MAX_LENGTH => 255;
 
 sub display_columns {
-my $self = shift;
-my @columns = 
-   [{column => 'case_id',        desc => 'ID'          },
-    {column => 'case_status_id', desc => 'Status'      },
-    {column => 'category_id',    desc => 'Category'    },
-    {column => 'priority_id',    desc => 'Priority'    },
-    {column => 'summary',        desc => 'Summary'     },
-    {column => 'requirement',    desc => 'Requirement' },
-    {column => 'alias',          desc => 'Alias'       }];
-
-$self->{'display_columns'} = \@columns;
-return $self->{'display_columns'};
+    my $self = shift;
+    my @columns = 
+       [{column => 'case_id',        desc => 'ID'          },
+        {column => 'case_status_id', desc => 'Status'      },
+        {column => 'category_id',    desc => 'Category'    },
+        {column => 'priority_id',    desc => 'Priority'    },
+        {column => 'summary',        desc => 'Summary'     },
+        {column => 'requirement',    desc => 'Requirement' },
+        {column => 'alias',          desc => 'Alias'       }];
+    
+    $self->{'display_columns'} = \@columns;
+    return $self->{'display_columns'};
 }
 
 sub report_columns {
@@ -148,66 +145,421 @@ sub report_columns {
         
 }
 
-=head1 METHODS
+###############################
+####       Validators      ####
+###############################
 
-=cut
+sub _check_status{
+    my ($invocant, $status) = @_;
+    $status = trim($status);
+    my $status_id;
+    if ($status =~ /^\d+$/){
+        $status_id = Bugzilla::Testopia::Util::validate_selection($status, 'case_status_id', 'test_case_status');
+    }
+    else {
+        $status_id = lookup_status_by_name($status);
+    }
+    ThrowUserError('invalid_status') unless $status_id;
+    return $status_id;
+}
+
+sub _check_category{
+    my ($invocant, $category) = @_;
+    $category = trim($category);
+    my $category_id;
+    if ($category =~ /^\d+$/){
+        $category_id = Bugzilla::Testopia::Util::validate_selection($category, 'category_id', 'test_case_categories');
+    }
+    else {
+        $category_id = lookup_category_by_name($category);
+    }
+    ThrowUserError('invalid_category') unless $category_id;
+    return $category_id;
+}
+
+sub _check_priority{
+    my ($invocant, $priority) = @_;
+    $priority = trim($priority);
+    my $priority_id;
+    if ($priority =~ /^\d+$/){
+        $priority_id = Bugzilla::Testopia::Util::validate_selection($priority, 'id', 'priority');
+    }
+    else {
+        $priority_id = lookup_priority_by_value($priority);
+    }
+    ThrowUserError('invalid_priority') unless $priority_id; 
+    return $priority_id;
+
+}
+
+sub _check_tester{
+    my ($invocant, $tester) = @_;
+    $tester = trim($tester);
+    return unless $tester;
+    if ($tester =~ /^\d+$/){
+        $tester = Bugzilla::User->new($tester);
+        return $tester->id;
+    }
+    else {
+        my $id = login_to_id($tester, THROW_ERROR);
+        return $id;
+    }
+}
+
+sub _check_automated{
+    my ($invocant, $isactive) = @_;
+    $isactive = trim($isactive);
+    ThrowCodeError('bad_arg', {argument => 'isactive', function => 'set_isactive'}) unless ($isactive =~ /(1|0)/);
+    return $isactive;
+}
+
+sub _check_sortkey{
+    my ($invocant, $sortkey) = @_;
+    $sortkey = trim($sortkey);
+    ThrowUserError('invalid_value', {argument => 'sortkey', value => $sortkey}) unless ($sortkey =~ /^\d+$/);
+    return $sortkey;
+}
+
+sub _check_script{
+    my ($invocant, $value) = @_;
+    return $value;
+}
+
+sub _check_arguments{
+    my ($invocant, $value) = @_;
+    return $value;
+}
+
+sub _check_summary{
+    my ($invocant, $summary) = @_;
+    $summary = clean_text($summary) if $summary;
+
+    if (!defined $summary || $summary eq '') {
+        ThrowUserError('testopia-missing-required-field', {'field' => 'summary'});
+    }
+    return $summary;
+}
+
+sub _check_requirements{
+    my ($invocant, $value) = @_;
+    return $value;
+}
+
+sub _check_alias {
+    my ($invocant, $alias) = @_;
+    $alias = trim($alias);
+    return unless $alias;
+    trick_taint($alias);
+    my $id;
+    my $dbh = Bugzilla->dbh;
+    
+    my $query = "SELECT case_id 
+                   FROM test_cases 
+                  WHERE alias = ?";
+    
+    # If this is a new test case then we only need to check if another test case
+    # has this alias already. If we are updating the test case though, we know 
+    # there is already at least one that has this alias - this case.
+    $query .= " AND case_id != ?" if ref $invocant;
+     
+    if (ref $invocant){ 
+        ($id) = $dbh->selectrow_array($query, undef, ($alias, $invocant->id));
+    }
+    else {
+        ($id) = $dbh->selectrow_array($query, undef, $alias);
+    }
+    ThrowUserError('testiopia-alias-exists', {'alias' => $alias}) if $id; 
+    return $alias;
+}
+
+sub _check_time{
+    my ($invocant, $time) = @_;
+    $time = trim($time) || 0;    
+    $time =~ m/(\d+)[:\s](\d+)[:\s](\d+)/;
+    ThrowUserError('testopia-format-error', {'field' => 'Estimated Time' })
+      unless ($1 < 24 && $2 < 60 && $3 < 60);
+    $time = "$1:$2:$3";
+    return $time;
+}
+
+sub _check_dependency{
+    my ($invocant, $value) = @_;
+    $value = trim($value);
+    if ($value) {
+        my @validvalues;
+        foreach my $id (split(/[\s,]+/, $value)) {
+            next unless $id;
+            Bugzilla::Testopia::Util::validate_test_id($id, 'case');
+            push(@validvalues, $id);
+        }
+        $value = join(",", @validvalues);
+        return $value;
+    }
+    return;
+}
+
+sub _check_plans {
+    my ($invocant, $plans) = @_;
+    ThrowUserError('plan_needed') unless scalar @$plans > 0;
+    return $plans;
+}
+
+sub _check_runs {
+    my ($invocant, $runids) = @_;
+    my @runs;
+    foreach my $runid (split(/[\s,]+/, $runids)){
+        Bugzilla::Testopia::Util::validate_test_id($runid, 'run');
+        push @runs, Bugzilla::Testopia::TestRun->new($runid);
+    }
+    return \@runs;
+}
+
+sub _check_tags {
+    my ($invocant, $tags) = @_;
+    
+    return $tags;
+}
+
+sub _check_components {
+    my ($invocant, $components) = @_;
+    my @components;
+    my $dbh = Bugzilla->dbh;
+  
+    foreach my $id (@$components){
+        Bugzilla::Testopia::Util::validate_selection($id, 'id', 'components');
+        if (ref $invocant){
+            my ($is) = $dbh->selectrow_array(
+                "SELECT case_id FROM test_case_components
+                 WHERE case_id = ? AND component_id = ?",
+                 undef, ($invocant->id, $id));
+            ThrowUserError('testopia_component_attached') if $is;
+        }
+        trick_taint($id);
+        push @components, $id;
+    }
+    return \@components;
+}
+
+sub _check_bugs {
+    my ($invocant, $bugids) = @_;
+    my @bugids;
+    my $dbh = Bugzilla->dbh;
+    
+    foreach my $bug (split(/[\s,]+/, $bugids)){
+        trick_taint($bug);
+        ValidateBugID($bug);
+        if (ref $invocant){
+            my ($exists) = $dbh->selectrow_array(
+                    "SELECT bug_id 
+                       FROM test_case_bugs 
+                      WHERE case_id=?
+                        AND bug_id=?", 
+                     undef, ($invocant->id, $bug));
+            next if ($exists);
+        }
+        push @bugids, $bug;
+    }
+    
+    return \@bugids;
+}
+
+###############################
+####       Mutators        ####
+###############################
+sub set_case_status        { $_[0]->set('case_status_id', $_[1]); }
+sub set_category           { $_[0]->set('category_id', $_[1]); }
+sub set_priority           { $_[0]->set('priority_id', $_[1]); }
+sub set_default_tester     { $_[0]->set('default_tester_id', $_[1]); }
+sub set_sortkey            { $_[0]->set('sortkey', $_[1]); }
+sub set_requirement        { $_[0]->set('requirement', $_[1]); }
+sub set_isautomated        { $_[0]->set('isautomated', $_[1]); }
+sub set_script             { $_[0]->set('script', $_[1]); }
+sub set_arguments          { $_[0]->set('arguments', $_[1]); }
+sub set_summary            { $_[0]->set('summary', $_[1]); }
+sub set_alias              { $_[0]->set('alias', $_[1]); }
+sub set_estimated_time     { $_[0]->set('estimated_time', $_[1]); }
+sub set_dependson          { $_[0]->set('dependson', $_[1]); }
+sub set_blocks             { $_[0]->set('blocks', $_[1]); }
+
+sub new {
+    my $invocant = shift;
+    my $class = ref($invocant) || $invocant;
+    my $param = shift;
+    
+    # We want to be able to supply an empty object to the templates for numerous
+    # lists etc. This is much cleaner than exporting a bunch of subroutines and
+    # adding them to $vars one by one. Probably just Laziness shining through.
+    if (ref $param eq 'HASH'){
+        bless($param, $class);
+        return $param;
+    }
+    
+    unshift @_, $param;
+    my $self = $class->SUPER::new(@_);
+    
+    return $self; 
+}
+
+sub create {
+    my ($class, $params) = @_;
+
+    $class->SUPER::check_required_create_fields($params);
+    my $field_values = $class->run_create_validators($params);
+    
+    $field_values->{creation_date} = Bugzilla::Testopia::Util::get_time_stamp();
+       
+    # We have to handle these fields a bit differently since they have their own tables.
+    my $action    = $field_values->{action};
+    my $effect    = $field_values->{effect};
+    my $setup     = $field_values->{setup};
+    my $breakdown = $field_values->{breakdown};
+    my $dependson = $field_values->{dependson};
+    my $blocks    = $field_values->{blocks};
+    my $plans     = $field_values->{plans};
+    my $runs      = $field_values->{runs};
+    my $component = $field_values->{components};
+    my $tags      = $field_values->{tags};
+    my $bugs      = $field_values->{bugs};
+    
+    # Since these are not part of a case strictly speaking, we remove them before 
+    # calling insert_create_data.
+    foreach my $field (qw(action effect setup breakdown dependson blocks plans runs components tags bugs)){
+        delete $field_values->{$field};
+    }
+    
+    my $self = $class->SUPER::insert_create_data($field_values);
+
+    $self->store_text($self->id, $field_values->{'author_id'}, $action, $effect,  
+                      $setup, $breakdown,0);
+                      
+    $self->update_deps($dependson, $blocks, $self->id);    
+    
+    foreach my $p (@$plans){
+        $self->link_plan($p->id, $self->id);
+    }
+    
+    foreach my $run (@$runs){
+        $run->add_case_run($self->id);
+    }
+    
+    $self->add_component($component, "VALIDATED");
+    $self->add_tag($tags);
+    $self->attach_bug($bugs);
+    
+    return $self;
+}
+
+sub update {
+    my $self = shift;
+    my $dbh = Bugzilla->dbh;
+    my $timestamp = Bugzilla::Testopia::Util::get_time_stamp();
+    
+    # Update the dependencies and then set the object back to the way
+    # it was so that Object::update doesn't try to add them to the table
+    # where it doesn't exist.
+    $self->update_deps($self->{'dependson'}, $self->{'blocks'});
+    my $old_self = $self->new($self->id);
+    $self->{'dependson'} = $old_self->{'dependson'};
+    $self->{'blocks'} = $old_self->{'blocks'};
+    
+    $dbh->bz_lock_tables('test_cases WRITE', 'test_case_activity WRITE',
+                         'test_fielddefs READ');
+    
+    my $changed = $self->SUPER::update();
+    
+    foreach my $field (keys %$changed){
+        Bugzilla::Testopia::Util::log_activity('case', $self->id, $field, $timestamp, 
+                                               $changed->{$field}->[0], $changed->{$field}->[1]);
+    }
+
+    $dbh->bz_unlock_tables();
+}
+
+###############################
+####      Functions        ####
+###############################
+
+sub lookup_status {
+    my ($id) = @_;
+    my $dbh = Bugzilla->dbh;
+    my ($value) = $dbh->selectrow_array(
+            "SELECT name 
+               FROM test_case_status
+              WHERE case_status_id = ?",
+              undef, $id);
+    return $value;
+}
+
+sub lookup_status_by_name {
+    my ($name) = @_;
+    my $dbh = Bugzilla->dbh;
+    my ($value) = $dbh->selectrow_array(
+            "SELECT case_status_id 
+               FROM test_case_status
+              WHERE name = ?",
+              undef, $name);
+    return $value;
+}
+
+sub lookup_category {
+    my ($id) = @_;
+    my $dbh = Bugzilla->dbh;
+    my ($value) = $dbh->selectrow_array(
+            "SELECT name 
+               FROM test_case_categories
+              WHERE category_id = ?",
+              undef, $id);
+    return $value;
+}
+
+sub lookup_category_by_name {
+    my ($name) = @_;
+    my $dbh = Bugzilla->dbh;
+    my ($value) = $dbh->selectrow_array(
+            "SELECT category_id 
+               FROM test_case_categories
+              WHERE name = ?",
+              undef, $name);
+    return $value;
+}
+
+sub lookup_priority {
+    my ($id) = @_;
+    my $dbh = Bugzilla->dbh;
+    my ($value) = $dbh->selectrow_array(
+            "SELECT value 
+               FROM priority
+              WHERE id = ?",
+              undef, $id);
+    return $value;
+}
+
+sub lookup_priority_by_value {
+    my ($value) = @_;
+    my $dbh = Bugzilla->dbh;
+    my ($id) = $dbh->selectrow_array(
+            "SELECT id 
+               FROM priority
+              WHERE value = ?",
+              undef, $value);
+    return $id;
+}
+
+sub lookup_default_tester {
+    my ($id) = @_;
+    my $dbh = Bugzilla->dbh;
+    my ($value) = $dbh->selectrow_array(
+            "SELECT login_name 
+               FROM profiles
+              WHERE userid = ?",
+              undef, $id);
+    return $value;
+}
 
 ###############################
 ####       Methods         ####
 ###############################
 
-=head2 new
-
-Instantiate a new Test Case. This takes a single argument 
-either a test case ID or a reference to a hash containing keys 
-identical to a test case's fields and desired values.
-
-=cut
-
-sub new {
-    my $invocant = shift;
-    my $class = ref($invocant) || $invocant;
-    my $self = {};
-    bless($self, $class);
-    return $self->_init(@_);
-}
-
-=head2 _init
-
-Private Test Case constructor. This does the actual work of building 
-a test case object which is passed to new to be blessed
-
-=cut
-
-sub _init {
-    my $self = shift;
-    my ($param) = (@_);
-    my $dbh = Bugzilla->dbh;
-    my $columns = join(", ", DB_COLUMNS);
-
-    my $id = $param unless (ref $param eq 'HASH');
-    my $obj;
-
-    if (defined $id && detaint_natural($id)) {
-
-        $obj = $dbh->selectrow_hashref(qq{
-            SELECT $columns FROM test_cases
-            WHERE case_id = ?}, undef, $id);
-    } elsif (ref $param eq 'HASH'){
-         $obj = $param;   
-    } else {
-        ThrowCodeError('bad_arg',
-            {argument => 'param',
-             function => 'Testopia::TestCase::_init'});
-    }
-
-    return undef unless (defined $obj);
-
-    foreach my $field (keys %$obj) {
-        $self->{$field} = $obj->{$field};
-    }
-    return $self;
-}
 
 =head2 get_selectable_components
 
@@ -357,23 +709,16 @@ Associates a tag with this test case
 
 sub add_tag {
     my $self = shift;
-    my ($tag_id) = @_;
     my $dbh = Bugzilla->dbh;
-
-    $dbh->bz_lock_tables('test_case_tags WRITE');
-    my $tagged = $dbh->selectrow_array(
-             "SELECT 1 FROM test_case_tags 
-              WHERE tag_id = ? AND case_id = ?",
-              undef, $tag_id, $self->{'case_id'});
-    if ($tagged) {
-        $dbh->bz_unlock_tables();
-        return 1;
+    my @tags;
+    foreach my $t (@_){
+         push @tags, split(',', $t);
     }
-    $dbh->do("INSERT INTO test_case_tags(tag_id, case_id, userid) VALUES(?,?,?)",
-              undef, $tag_id, $self->{'case_id'}, Bugzilla->user->id);
-    $dbh->bz_unlock_tables();
 
-    return 0;
+    foreach my $name (@tags){
+        my $tag = Bugzilla::Testopia::TestTag->create({'tag_name' => $name});
+        $tag->attach($self);
+    }
 }
 
 =head2 remove_tag
@@ -400,23 +745,19 @@ Attaches the specified bug to this test case
 
 sub attach_bug {
     my $self = shift;
-    my ($bug, $case_id) = @_;
-    $case_id ||= $self->{'case_id'};
+    my ($bugids, $case_id) = @_;
     my $dbh = Bugzilla->dbh;
-
+    
+    $case_id ||= $self->{'case_id'};
+    $bugids = $self->_check_bugs($bugids);
+    
     $dbh->bz_lock_tables('test_case_bugs WRITE');
-    my ($exists) = $dbh->selectrow_array(
-            "SELECT bug_id 
-               FROM test_case_bugs 
-              WHERE case_id=?
-                AND bug_id=?", 
-             undef, ($case_id, $bug));
-    if ($exists) {
-        $dbh->bz_unlock_tables();
-        return;
+    
+    foreach my $bug (@$bugids){
+        $dbh->do("INSERT INTO test_case_bugs (bug_id, case_run_id, case_id)
+                  VALUES(?,?,?)", undef, ($bug, undef, $self->id));
     }
-    $dbh->do("INSERT INTO test_case_bugs (bug_id, case_run_id, case_id)
-              VALUES(?,?,?)", undef, ($bug, undef, $self->{'case_id'}));
+
     $dbh->bz_unlock_tables();
 }
 
@@ -445,17 +786,26 @@ Associates a component with this test case
 
 sub add_component {
     my $self = shift;
-    my ($comp_id) = @_;
+    my ($compids, $validated) = @_;
     my $dbh = Bugzilla->dbh;
-    my ($is) = $dbh->selectrow_array(
-        "SELECT case_id FROM test_case_components
-         WHERE case_id = ? AND component_id = ?",
-         undef, ($self->id, $comp_id));
-    return 0 if $is;
+    my $comps = $validated ? $compids : $self->_check_components($compids);   
+    foreach my $id (@$comps){
+        
+        $dbh->do("INSERT INTO test_case_components (case_id, component_id)
+                  VALUES (?,?)",undef,  $self->{'case_id'}, $id);
+    }
     
-    $dbh->do("INSERT INTO test_case_components (case_id, component_id)
-              VALUES (?,?)",undef,  $self->{'case_id'}, $comp_id);
     delete $self->{'components'};          
+}
+
+sub add_to_run {
+    my $self = shift;
+    my ($runids) = @_;
+    my $runs = $self->_check_runs($runids);
+     
+    foreach my $run (@$runs){
+        $run->add_case_run($self->id);
+    }
 }
 
 =head2 remove_component
@@ -604,6 +954,11 @@ sub store_text {
     if (!defined $timestamp){
         ($timestamp) = Bugzilla::Testopia::Util::get_time_stamp();
     }
+    trick_taint($action);
+    trick_taint($effect);
+    trick_taint($breakdown);
+    trick_taint($setup);
+    
     my $version = $reset_version ? 0 : $self->version || 0;
     $dbh->do("INSERT INTO test_case_texts 
               (case_id, case_text_version, who, creation_ts, action, effect, setup, breakdown) 
@@ -743,22 +1098,7 @@ the matching case if it does.
 
 =cut
 
-sub check_alias {
-    my $self = shift;
-    my ($alias) = @_;
-    
-    return unless $alias;
-    my $id = $self->{'case_id'} || '';
-    my $dbh = Bugzilla->dbh;
-    ($id) = $dbh->selectrow_array(
-            "SELECT case_id 
-               FROM test_cases 
-              WHERE alias = ?
-                AND case_id != ?",
-              undef, ($alias, $id));
 
-    return $id;
-}
 
 =head2 class_check_alias
 
@@ -793,31 +1133,6 @@ of that change is logged in the test_case_activity table.
 
 =cut
 
-sub update {
-    my $self = shift;
-    my ($newvalues) = @_;
-    my $dbh = Bugzilla->dbh;
-    my $timestamp = Bugzilla::Testopia::Util::get_time_stamp();
-
-    $dbh->bz_lock_tables('test_cases WRITE', 'test_case_activity WRITE',
-        'test_fielddefs READ');
-    foreach my $field (keys %{$newvalues}){
-        if ($self->{$field} ne $newvalues->{$field}){
-            $dbh->do("UPDATE test_cases 
-                      SET $field = ? WHERE case_id = ?",
-                      undef, $newvalues->{$field}, $self->{'case_id'});
-            # Update the history
-            my $field_id = Bugzilla::Testopia::Util::get_test_field_id($field, "test_cases");
-            $dbh->do("INSERT INTO test_case_activity 
-                      (case_id, fieldid, who, changed, oldvalue, newvalue)
-                      VALUES(?,?,?,?,?,?)",
-                      undef, $self->{'case_id'}, $field_id, Bugzilla->user->id,
-                      $timestamp, $self->{$field}, $newvalues->{$field});
-            $self->{$field} = $newvalues->{$field};
-        }
-    }
-    $dbh->bz_unlock_tables();
-}
 
 =head2 history
 
@@ -874,129 +1189,6 @@ sub last_changed {
     
 }
 
-=head2 lookup_status
-
-Takes an ID of the status field and returns the value
-
-=cut
-
-sub lookup_status {
-    my $self = shift;
-    my ($id) = @_;
-    my $dbh = Bugzilla->dbh;
-    my ($value) = $dbh->selectrow_array(
-            "SELECT name 
-               FROM test_case_status
-              WHERE case_status_id = ?",
-              undef, $id);
-    return $value;
-}
-
-=head2 lookup_status_by_name
-
-Returns the id of the status name passed.
-
-=cut
-
-sub lookup_status_by_name {
-    my ($name) = @_;
-    my $dbh = Bugzilla->dbh;
-    my ($value) = $dbh->selectrow_array(
-            "SELECT case_status_id 
-               FROM test_case_status
-              WHERE name = ?",
-              undef, $name);
-    return $value;
-}
-
-=head2 lookup_category
-
-Takes an ID of the category field and returns the value
-
-=cut
-
-sub lookup_category {
-    my $self = shift;
-    my ($id) = @_;
-    my $dbh = Bugzilla->dbh;
-    my ($value) = $dbh->selectrow_array(
-            "SELECT name 
-               FROM test_case_categories
-              WHERE category_id = ?",
-              undef, $id);
-    return $value;
-}
-
-=head2 lookup_category_by_name
-
-Returns the id of the category name passed.
-
-=cut
-
-sub lookup_category_by_name {
-    my ($name) = @_;
-    my $dbh = Bugzilla->dbh;
-    my ($value) = $dbh->selectrow_array(
-            "SELECT category_id 
-               FROM test_case_categories
-              WHERE name = ?",
-              undef, $name);
-    return $value;
-}
-
-=head2 lookup_priority
-
-Takes an ID of the priority field and returns the value
-
-=cut
-
-sub lookup_priority {
-    my $self = shift;
-    my ($id) = @_;
-    my $dbh = Bugzilla->dbh;
-    my ($value) = $dbh->selectrow_array(
-            "SELECT value 
-               FROM priority
-              WHERE id = ?",
-              undef, $id);
-    return $value;
-}
-
-=head2 lookup_priority_by_name
-
-Returns the id of the priority name passed.
-
-=cut
-
-sub lookup_priority_by_value {
-    my ($value) = @_;
-    my $dbh = Bugzilla->dbh;
-    my ($id) = $dbh->selectrow_array(
-            "SELECT id 
-               FROM priority
-              WHERE value = ?",
-              undef, $value);
-    return $id;
-}
-
-
-=head2 lookup_default_tester
-
-Takes an ID of the default_tester field and returns the value
-
-=cut
-
-sub lookup_default_tester {
-    my $self = shift;
-    my ($id) = @_;
-    my $dbh = Bugzilla->dbh;
-    my ($value) = $dbh->selectrow_array(
-            "SELECT login_name 
-               FROM profiles
-              WHERE userid = ?",
-              undef, $id);
-    return $value;
-}
 
 # From process bug
 sub _snap_shot_deps {
@@ -1823,3 +2015,88 @@ Greg Hendricks <ghendricks@novell.com>
 =cut
 
 1;
+
+__END__
+
+=head1 NAME
+
+Bugzilla::Testopia::TestCase - Testopia Test Case object
+
+=head1 DESCRIPTION
+
+This module represents a test case in Testopia. Each test case must 
+be linked to one or more test plans.
+
+=head1 SYNOPSIS
+
+use Bugzilla::Testopia::TestCase;
+
+ $case = Bugzilla::Testopia::TestCase->new($case_id);
+ $case = Bugzilla::Testopia::TestCase->new(\%case_hash);
+
+=cut
+
+=head1 FIELDS
+
+    case_id
+    case_status_id
+    category_id
+    priority_id
+    author_id
+    default_tester_id  
+    creation_date
+    estimated_time
+    isautomated
+    sortkey
+    script
+    arguments
+    summary
+    requirement
+    alias
+
+=cut
+
+=head1 METHODS
+
+=cut
+=head2 lookup_status
+
+Takes an ID of the status field and returns the value
+
+=cut
+=head2 lookup_status_by_name
+
+Returns the id of the status name passed.
+
+=cut
+
+=head2 lookup_category
+
+Takes an ID of the category field and returns the value
+
+=cut
+
+=head2 lookup_category_by_name
+
+Returns the id of the category name passed.
+
+=cut
+
+=head2 lookup_priority
+
+Takes an ID of the priority field and returns the value
+
+=cut
+
+=head2 lookup_priority_by_name
+
+Returns the id of the priority name passed.
+
+=cut
+
+=head2 lookup_default_tester
+
+Takes an ID of the default_tester field and returns the value
+
+=cut
+

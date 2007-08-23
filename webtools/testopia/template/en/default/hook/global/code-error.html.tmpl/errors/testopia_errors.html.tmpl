@@ -21,4 +21,7 @@
   [% IF error == "non-empty-hash" %]
     [% title = "Non-Empty Anonymous Hash Detected" %]
     Creating non-empty anonymous Testopia objects is deprectated. Please see the documentation for the Testopia API.
+  [% ELSIF error == "testopia_undefined_field" %]
+    [% title = "Missing Field in test_fielddefs" %]
+    The [% fieldname %] field was not found for the [% table %] table while logging activity.
   [% END %]

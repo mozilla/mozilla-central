@@ -18,25 +18,6 @@
 #
 # Contributor(s): Greg Hendricks <ghendricks@novell.com>
 
-=head1 NAME
-
-Bugzilla::Testopia::TestPlan - Testopia Test Plan object
-
-=head1 DESCRIPTION
-
-This module represents a test plan in Testopia. The test plan
-is the glue of testopia. Virtually all other objects associate 
-to a plan.
-
-=head1 SYNOPSIS
-
-use Bugzilla::Testopia::TestPlan;
-
- $plan = Bugzilla::Testopia::TestPlan->new($plan_id);
- $plan = Bugzilla::Testopia::TestPlan->new({});
-
-=cut
-
 package Bugzilla::Testopia::TestPlan;
 
 use strict;
@@ -78,9 +59,9 @@ use base qw(Exporter Bugzilla::Object);
 
 =cut
 
-use constant DB_TABLE => "test_plans";
+use constant DB_TABLE   => "test_plans";
 use constant NAME_FIELD => "name";
-use constant ID_FIELD => "plan_id";
+use constant ID_FIELD   => "plan_id";
 use constant DB_COLUMNS => qw(
     plan_id
     product_id
@@ -93,7 +74,7 @@ use constant DB_COLUMNS => qw(
 );
 
 use constant REQUIRED_CREATE_FIELDS => qw(product_id author_id type_id default_product_version name);
-use constant UPDATE_COLUMNS => qw(product_id type_id default_product_version name isactive);
+use constant UPDATE_COLUMNS         => qw(product_id type_id default_product_version name isactive);
 
 use constant VALIDATORS => {
     product_id => \&_check_product,
@@ -103,6 +84,23 @@ use constant VALIDATORS => {
 };
 
 use constant NAME_MAX_LENGTH => 255;
+
+sub report_columns {
+    my $self = shift;
+    my %columns;
+    # Changes here need to match Report.pm
+    $columns{'Type'}          = "plan_type";        
+    $columns{'Version'}       = "default_product_version";
+    $columns{'Product'}       = "product";
+    $columns{'Archived'}      = "archived";
+    $columns{'Tags'}          = "tags";
+    $columns{'Author'}        = "author";
+    my @result;
+    push @result, {'name' => $_, 'id' => $columns{$_}} foreach (sort(keys %columns));
+    unshift @result, {'name' => '<none>', 'id'=> ''};
+    return \@result;     
+        
+}
 
 ###############################
 ####       Validators      ####
@@ -133,7 +131,8 @@ sub _check_author {
         $author = Bugzilla::User->new($author);
     }
     else {
-        $author = Bugzilla::User->new({name => $author});
+        my $id = login_to_id($author, THROW_ERROR);
+        return $id;
     }
     return $author->id;
 }
@@ -162,6 +161,42 @@ sub _check_isactive {
     return $isactive;
 }
 
+###############################
+####       Mutators        ####
+###############################
+sub set_name        { $_[0]->set('name', $_[1]); }
+sub set_type        { $_[0]->set('type_id', $_[1]); }
+sub set_isactive    { $_[0]->set('isactive', $_[1]); }
+sub set_product_id  { $_[0]->set('product_id', $_[1]); }
+sub set_default_product_version { 
+    my ($self, $value) = @_;
+    $value = $self->_check_product_version($value);
+    $self->set('default_product_version', $value); 
+}
+
+sub new {
+    my $invocant = shift;
+    my $class = ref($invocant) || $invocant;
+    my $param = shift;
+    
+    # We want to be able to supply an empty object to the templates for numerous
+    # lists etc. This is much cleaner than exporting a bunch of subroutines and
+    # adding them to $vars one by one. Probably just Laziness shining through.
+    if (ref $param eq 'HASH'){
+        if (keys %$param){
+            bless($param, $class);
+            return $param;
+        }
+        bless($param, $class);
+        return $param;
+    }
+    
+    unshift @_, $param;
+    my $self = $class->SUPER::new(@_);
+    
+    return $self; 
+}
+
 sub run_create_validators {
     my $class  = shift;
     my $params = $class->SUPER::run_create_validators(@_);
@@ -172,16 +207,6 @@ sub run_create_validators {
     
     return $params;
 }
-
-###############################
-####       Mutators        ####
-###############################
-sub set_name        { $_[0]->set('name', $_[1]); }
-sub set_type        { $_[0]->set('type_id', $_[1]); }
-sub set_isactive    { $_[0]->set('isactive', $_[1]); }
-sub set_product_id  { $_[0]->set('product_id', $_[1]); }
-sub set_default_product_version { $_[0]->set('default_product_version', $_[1]); }
-
 
 sub create {
     my ($class, $params) = @_;
@@ -220,56 +245,24 @@ sub create {
     return $self;
 }
 
+sub update {
+    my $self = shift;
+    my $dbh = Bugzilla->dbh;
+    my $timestamp = Bugzilla::Testopia::Util::get_time_stamp();
+    $dbh->bz_lock_tables('test_plans WRITE', 'test_plan_activity WRITE',
+            'test_fielddefs READ');
+
+    my $changed = $self->SUPER::update();
+    
+    foreach my $field (keys %$changed){
+        Bugzilla::Testopia::Util::log_activity('plan', $self->id, $field, $timestamp, $changed->{$field}->[0], $changed->{$field}->[1]);
+    }
+    $dbh->bz_unlock_tables();
+}
+
 ###############################
 ####       Methods         ####
 ###############################
-
-sub report_columns {
-    my $self = shift;
-    my %columns;
-    # Changes here need to match Report.pm
-    $columns{'Type'}          = "plan_type";        
-    $columns{'Version'}       = "default_product_version";
-    $columns{'Product'}       = "product";
-    $columns{'Archived'}      = "archived";
-    $columns{'Tags'}          = "tags";
-    $columns{'Author'}        = "author";
-    my @result;
-    push @result, {'name' => $_, 'id' => $columns{$_}} foreach (sort(keys %columns));
-    unshift @result, {'name' => '<none>', 'id'=> ''};
-    return \@result;     
-        
-}
-
-=head2 new
-
-Instantiate a new test plan. This takes a single argument 
-either a test plan ID or a reference to a hash containing keys 
-identical to a test plan's fields and desired values.
-
-=cut
-
-sub new {
-    my $invocant = shift;
-    my $class = ref($invocant) || $invocant;
-    my $param = shift;
-    
-    # We want to be able to supply an empty object to the templates for numerous
-    # lists etc. This is much cleaner than exporting a bunch of subroutines and
-    # adding them to $vars one by one. Probably just Laziness shining through.
-    if (ref $param eq 'HASH'){
-        if (keys %$param){
-            ThrowCodeError('non-empty-hash');
-        }
-        bless($param, $class);
-        return $param;
-    }
-    
-    unshift @_, $param;
-    my $self = $class->SUPER::new(@_);
-    
-    return $self; 
-}
 
 =head2 store
 
@@ -393,22 +386,16 @@ to link.
 
 sub add_tag {
     my $self = shift;
-    my ($tag_id) = @_;
     my $dbh = Bugzilla->dbh;
-
-    $dbh->bz_lock_tables('test_plan_tags WRITE');
-    my $tagged = $dbh->selectrow_array(
-             "SELECT 1 FROM test_plan_tags 
-               WHERE tag_id = ? AND plan_id = ?",
-              undef, ($tag_id, $self->{'plan_id'}));
-    if ($tagged) {
-        $dbh->bz_unlock_tables();
-        return 1;
+    my @tags;
+    foreach my $t (@_){
+         push @tags, split(',', $t);
     }
-    $dbh->do("INSERT INTO test_plan_tags(tag_id, plan_id, userid) VALUES(?,?,?)",
-              undef, ($tag_id, $self->{'plan_id'}), Bugzilla->user->id);
-    $dbh->bz_unlock_tables();
 
+    foreach my $name (@tags){
+        my $tag = Bugzilla::Testopia::TestTag->create({'tag_name' => $name});
+        $tag->attach($self);
+    }
 }
 
 =head2 remove_tag
@@ -638,48 +625,6 @@ sub diff_plan_doc {
             undef, ($self->{'plan_id'}, $old));
     my $diff = diff(\$newdoc, \$olddoc);
     return $diff
-}
-
-=head2 update
-
-Updates this test plan with new values supplied by the user.
-Accepts a reference to a hash with keys identical to a test plan's
-fields and values representing the new values entered.
-Validation tests should be performed on the values 
-before calling this method. If a field is changed, a history 
-of that change is logged in the test_plan_activity table.
-
-=cut
-
-sub update {
-    my $self = shift;
-    my $dbh = Bugzilla->dbh;
-    my $timestamp = Bugzilla::Testopia::Util::get_time_stamp();
-    $dbh->bz_lock_tables('test_plans WRITE', 'test_plan_activity WRITE',
-            'test_fielddefs READ');
-
-    my $changed = $self->SUPER::update();
-    
-    foreach my $field (keys %$changed){
-        $self->log_activity($field, $timestamp, $changed->{$field}->[0], $changed->{$field}->[1]);
-    }
-    $dbh->bz_unlock_tables();
-}
-
-sub log_activity {
-    my $self = shift;
-    my ($field, $timestamp, $oldvalue, $newvalue) = @_;
-    my $dbh = Bugzilla->dbh;
-    $timestamp ||= Bugzilla::Testopia::Util::get_time_stamp();
-    
-    trick_taint($newvalue);
-    my $field_id = Bugzilla::Testopia::Util::get_test_field_id($field, "test_plans");
-    $dbh->do("INSERT INTO test_plan_activity 
-              (plan_id, fieldid, who, changed, oldvalue, newvalue)
-                   VALUES(?,?,?,?,?,?)",
-              undef, ($self->{'plan_id'}, $field_id, Bugzilla->user->id,
-              $timestamp, $oldvalue, $newvalue));
-    
 }
 
 =head2 history
@@ -1440,3 +1385,32 @@ Greg Hendricks <ghendricks@novell.com>
 =cut
 
 1;
+
+__END__
+
+=head1 NAME
+
+Bugzilla::Testopia::TestPlan - Testopia Test Plan object
+
+=head1 DESCRIPTION
+
+This module represents a test plan in Testopia. The test plan
+is the glue of testopia. Virtually all other objects associate 
+to a plan.
+
+=head1 SYNOPSIS
+
+use Bugzilla::Testopia::TestPlan;
+
+ $plan = Bugzilla::Testopia::TestPlan->new($plan_id);
+ $plan = Bugzilla::Testopia::TestPlan->new({});
+
+=cut
+
+=head2 new
+
+Instantiate a new test plan. This takes a single argument 
+either a test plan ID or a reference to a hash containing keys 
+identical to a test plan's fields and desired values.
+
+=cut

@@ -64,10 +64,6 @@ if ($action eq 'delete'){
 ### Ajax Actions ###
 ####################
 elsif ($action eq 'addtag'){
-    my $tag_name = $cgi->param('tag');
-    trick_taint($tag_name);
-    my $tag = Bugzilla::Testopia::TestTag->new({tag_name => $tag_name});
-    my $tag_id = $tag->store;
     my $obj;
     if ($type eq 'plan'){
         $obj = Bugzilla::Testopia::TestPlan->new($id);
@@ -86,30 +82,21 @@ elsif ($action eq 'addtag'){
         print $vars->{'tr_error'};
         exit;
     }
-    my $tagged = $obj->add_tag($tag_id);
+    
+    $obj->add_tag($cgi->param('tag'));
 
-    if ($tagged) {
-        $vars->{'tr_error'} = "Error - This tag is already associated with this $type";
-        unless ($cgi->param('method')){
-            print $vars->{'tr_error'};
-            exit 1;
-        }
+    if ($cgi->param('method')){
+        $vars->{'tr_message'} = "Added tag " . $cgi->param('tag') . " To $type " . $obj->id;
+        $cgi->param($type.'_id', $obj->id);
         display();
+        exit;
     }
-    else{
-        if ($cgi->param('method')){
-            $vars->{'tr_message'} = "Added tag " . $tag->name . " To $type " . $obj->id;
-            $cgi->param($type.'_id', $obj->id);
-            display();
-            exit;
-        }
-        
-        $vars->{'item'} = $obj;
-        $vars->{'type'} = $type;
-        print "OK";
-        $template->process("testopia/tag/table.html.tmpl", $vars)
-            || print $template->error();
-    }
+    
+    $vars->{'item'} = $obj;
+    $vars->{'type'} = $type;
+    print "OK";
+    $template->process("testopia/tag/table.html.tmpl", $vars)
+        || print $template->error();
         
 }
 elsif ($action eq 'removetag'){

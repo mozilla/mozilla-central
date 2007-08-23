@@ -63,8 +63,7 @@ local our $format = $template->get_format("testopia/case/show", scalar $cgi->par
 my $disp = "inline";
 # We set CSV files to be downloaded, as they are designed for importing
 # into other programs.
-if ( $format->{'extension'} eq "csv" || $format->{'extension'} eq "xml" )
-{
+if ( $format->{'extension'} eq "csv" || $format->{'extension'} eq "xml" ){
     $disp = "attachment";
     $vars->{'displaycolumns'} = \@Bugzilla::Testopia::Constants::TESTCASE_EXPORT;
 }
@@ -350,102 +349,31 @@ sub do_update{
     my $newtceffect = $cgi->param("tceffect");
     my $newtcsetup  = $cgi->param("tcsetup") || '';
     my $newtcbreakdown = $cgi->param("tcbreakdown") || '';
-    my $alias       = $cgi->param('alias')|| '';
-    my $category    = $cgi->param('category');
-    my $status      = $cgi->param('status');
-    my $priority    = $cgi->param('priority');
-    my $isautomated = $cgi->param("isautomated");
-    my $script      = $cgi->param("script")|| '';
-    my $arguments   = $cgi->param("arguments")|| '';    
-    my $summary     = $cgi->param("summary")|| '';
-    my $requirement = $cgi->param("requirement")|| '';
-    my $tcdependson = $cgi->param("tcdependson")|| '';
-    my $tcblocks    = $cgi->param("tcblocks")|| '';
-    my $tester      = $cgi->param("tester") || undef;
-    my $est_time    = $cgi->param("estimated_time") || undef;
-    if ($tester){
-        $tester = login_to_id(trim($cgi->param('tester'))) || ThrowUserError("invalid_username", { name => $cgi->param('tester') });
-    }
-
-    ThrowUserError('testopia-missing-required-field', {'field' => 'summary'})  if $summary  eq '';
     
-    detaint_natural($status);
-    detaint_natural($category);
-    detaint_natural($priority);
-    detaint_natural($isautomated);
-    if ($est_time){
-        $est_time =~ m/(\d+)[:\s](\d+)[:\s](\d+)/;
-        ThrowUserError('testopia-format-error', {'field' => 'Estimated Time' })
-          unless ($1 < 24 && $2 < 60 && $3 < 60);
-        $est_time = "$1:$2:$3";
-    }    
-    # All inserts are done with placeholders so this is OK
-    trick_taint($alias);
-    trick_taint($script);
-    trick_taint($arguments);
-    trick_taint($summary);
-    trick_taint($requirement);
-    trick_taint($newtcaction);
-    trick_taint($newtceffect);
-    trick_taint($newtcbreakdown);
-    trick_taint($newtcsetup);
-    trick_taint($tcdependson);
-    trick_taint($tcblocks);
-
-    validate_selection($category, 'category_id', 'test_case_categories');
-    validate_selection($status, 'case_status_id', 'test_case_status');
+    $case->set_alias($cgi->param('alias'));
+    $case->set_category($cgi->param('category'));
+    $case->set_case_status($cgi->param('status'));
+    $case->set_priority($cgi->param('priority'));
+    $case->set_isautomated($cgi->param("isautomated"));
+    $case->set_script($cgi->param("script"));
+    $case->set_arguments($cgi->param("arguments"));    
+    $case->set_summary($cgi->param("summary"));
+    $case->set_requirement($cgi->param("requirement"));
+    $case->set_dependson($cgi->param("tcdependson"));
+    $case->set_blocks($cgi->param("tcblocks"));
+    $case->set_default_tester($cgi->param("tester"));
+    $case->set_estimated_time($cgi->param("estimated_time"));
     
-    my @buglist;
-    foreach my $bug (split(/[\s,]+/, $cgi->param('bugs'))){
-        ValidateBugID($bug);
-        push @buglist, $bug;
-    }
-    my @runs;
-    foreach my $runid (split(/[\s,]+/, $cgi->param('addruns'))){
-        validate_test_id($runid, 'run');
-        push @runs, Bugzilla::Testopia::TestRun->new($runid);
-    }
+    $case->add_to_run($cgi->param('addruns'));
+    $case->add_tag($cgi->param('newtag'));
+    $case->attach_bug($cgi->param('bugs'));
     
-    ThrowUserError('testiopia-alias-exists', 
-        {'alias' => $alias}) if $case->check_alias($alias);
-    ThrowUserError('testiopia-invalid-data', 
-        {'field' => 'isautomated', 'value' => $isautomated }) 
-            if ($isautomated !~ /^[01]$/);
-            
     if($case->diff_case_doc($newtcaction, $newtceffect, $newtcsetup, $newtcbreakdown) ne ''){
         $case->store_text($case->id, Bugzilla->user->id, $newtcaction, $newtceffect, $newtcsetup, $newtcbreakdown);
     }
 
-    my %newvalues = ( 
-        'case_status_id' => $status,
-        'category_id'    => $category,
-        'priority_id'    => $priority,
-        'summary'        => $summary,
-        'estimated_time' => $est_time,
-        'isautomated'    => $isautomated,
-        'alias'          => $alias,
-        'requirement'    => $requirement,
-        'script'         => $script,
-        'arguments'      => $arguments,
-        'default_tester_id' => $tester,
-    );
-    $case->update(\%newvalues);
-    $case->update_deps($cgi->param('tcdependson'), $cgi->param('tcblocks'));
-    # Add new tags 
-    foreach my $tag_name (split(/[,]+/, $cgi->param('newtag'))){
-        trick_taint($tag_name);
-        my $tag = Bugzilla::Testopia::TestTag->new({tag_name => $tag_name});
-        my $tag_id = $tag->store;
-        $case->add_tag($tag_id);
-    }
-    # Attach bugs
-    foreach my $bug (@buglist){
-        $case->attach_bug($bug);
-    }
-    # Add to runs
-    foreach my $run (@runs){
-        $run->add_case_run($case->id);
-    }
+    $case->update();
+
     $cgi->delete_all;
     $cgi->param('case_id', $case->id);
 }

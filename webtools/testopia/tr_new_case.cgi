@@ -31,6 +31,21 @@ use Bugzilla::Testopia::Util;
 use Bugzilla::Testopia::TestCase;
 use JSON;
 
+###############################################################################
+# tr_new_case.cgi
+# Presents a webform to the user for the creation of a new test case. 
+# 
+# INTERFACE:
+#    plan_id: list - list of plans that the newly created test case will
+#                 be attached to. If no plan_id is found, the user will first 
+#                 be presented with a form to select a plan.
+#
+#    action: undef - Present form for new case creation
+#            "Add" - Form has been submitted with case data. Create the test
+#                    case.
+#
+################################################################################ 
+
 my $vars = {};
 
 Bugzilla->login(LOGIN_REQUIRED);
@@ -55,6 +70,8 @@ my %seen;
 my @plans;
 my @plan_ids;
 my @categories;
+
+# Weed out duplicates.
 foreach my $entry (@plan_id){
     foreach my $id (split(/[\s,]+/, $entry)){
         detaint_natural($id);
@@ -62,6 +79,9 @@ foreach my $entry (@plan_id){
         $seen{$id} = 1;
     }
 }
+
+# Users need write permission on the plan in order to create a test case against
+# that plan. See tr_plan_access.cgi
 foreach my $id (keys %seen){
     my $plan = Bugzilla::Testopia::TestPlan->new($id);
     ThrowUserError("testopia-create-denied", {'object' => 'Test Case', 'plan' => $plan}) unless $plan->canedit;
@@ -70,136 +90,42 @@ foreach my $id (keys %seen){
     push @categories, @{$plan->product->categories};
 }
 
+# We need at least one category in the list.
 ThrowUserError('testopia-create-category', {'plan' => $plans[0] }) if scalar @categories < 1;
-if ($action eq 'Add'){
-    my $alias       = $cgi->param('alias')|| '';
-    my $category    = $cgi->param('category');
-    my $status      = $cgi->param('status');
-    my $priority    = $cgi->param('priority');
-    my $isautomated = $cgi->param("isautomated");
-    my $script      = $cgi->param("script")|| '';
-    my $arguments   = $cgi->param("arguments")|| '';    
-    my $summary     = $cgi->param("summary")|| '';
-    my $requirement = $cgi->param("requirement")|| '';
-    my $tcaction    = $cgi->param("tcaction") || '';
-    my $tceffect    = $cgi->param("tceffect") || '';
-    my $tcsetup     = $cgi->param("tcsetup") || '';
-    my $tcbreakdown = $cgi->param("tcbreakdown") || '';
-    my $tcdependson = $cgi->param("tcdependson")|| '';
-    my $tcblocks    = $cgi->param("tcblocks")|| '';
-    my $tester      = $cgi->param("tester") || undef;
-    my $est_time    = $cgi->param("estimated_time") || undef;
-    my @comps       = $cgi->param("components");
-    if ($tester){
-        $tester = login_to_id(trim($cgi->param('tester')))
-          || ThrowUserError("invalid_username", { name => $cgi->param('tester') });
-        trick_taint($tester);
-    }
-    
-    ThrowUserError('testopia-missing-required-field', {'field' => 'summary'})  if $summary  eq '';
-    
-    detaint_natural($status);
-    detaint_natural($category);
-    detaint_natural($priority);
-    detaint_natural($isautomated);
-    
-    if ($est_time){
-        $est_time =~ m/(\d+)[:\s](\d+)[:\s](\d+)/;
-        ThrowUserError('testopia-format-error', {'field' => 'Estimated Time' })
-          unless ($1 < 24 && $2 < 60 && $3 < 60);
-        $est_time = "$1:$2:$3";
-    }
-    
-    # All inserts are done with placeholders so this is OK
-    trick_taint($alias);
-    trick_taint($script);
-    trick_taint($arguments);
-    trick_taint($summary);
-    trick_taint($requirement);
-    trick_taint($tcaction);
-    trick_taint($tceffect);
-    trick_taint($tcdependson);
-    trick_taint($tcsetup);
-    trick_taint($tcbreakdown);
-    trick_taint($tcblocks);
-    
-    validate_selection($category, 'category_id', 'test_case_categories');
-    validate_selection($status, 'case_status_id', 'test_case_status');
-    
-    my @components;
-    foreach my $id (@comps){
-        detaint_natural($id);
-        validate_selection($id, 'id', 'components');
-        push @components, $id;
-    }
-    my @runs;
-    foreach my $runid (split(/[\s,]+/, $cgi->param('addruns'))){
-        validate_test_id($runid, 'run');
-        push @runs, Bugzilla::Testopia::TestRun->new($runid);
-    }
-    
-    my $case = Bugzilla::Testopia::TestCase->new({
-            'alias'          => $alias || undef,
-            'case_status_id' => $status,
-            'category_id'    => $category,
-            'priority_id'    => $priority,
-            'isautomated'    => $isautomated,
-            'estimated_time' => $est_time,
-            'script'         => $script,
-            'arguments'      => $arguments,
-            'summary'        => $summary,
-            'requirement'    => $requirement,
-            'default_tester_id' => $tester,
-            'author_id'  => Bugzilla->user->id,
-            'action'     => $tcaction,
-            'effect'     => $tceffect,
-            'setup'      => $tcsetup,
-            'breakdown'  => $tcbreakdown,
-            'dependson'  => $tcdependson,
-            'blocks'     => $tcblocks,
-            'plans'      => \@plans,
-    });
 
-    # Check for valid ids or aliases in dependecy fields
-    
-    foreach my $field ("dependson", "blocks") {
-        if ($case->{$field}) {
-            my @validvalues;
-            foreach my $id (split(/[\s,]+/, $case->{$field})) {
-                next unless $id;
-                Bugzilla::Testopia::Util::validate_test_id($id, 'case');
-                push(@validvalues, $id);
-            }
-            $case->{$field} = join(",", @validvalues);
-        }
-    }
-    
-    ThrowUserError('testiopia-alias-exists', 
-        {'alias' => $alias}) if $case->check_alias($alias);
-    ThrowUserError('testiopia-invalid-data', 
-        {'field' => 'isautomated', 'value' => $isautomated }) 
-            if ($isautomated !~ /^[01]$/);
+if ($action eq 'Add'){
+    my @comps = $cgi->param("components");
+    my $case = Bugzilla::Testopia::TestCase->create({
+            'alias'          => $cgi->param('alias'),
+            'case_status_id' => $cgi->param('status'),
+            'category_id'    => $cgi->param('category'),
+            'priority_id'    => $cgi->param('priority'),
+            'isautomated'    => $cgi->param("isautomated"),
+            'estimated_time' => $cgi->param("estimated_time"),
+            'script'         => $cgi->param("script"),
+            'arguments'      => $cgi->param("arguments"),
+            'summary'        => $cgi->param("summary"),
+            'requirement'    => $cgi->param("requirement"),
+            'default_tester_id' => $cgi->param("tester"),
+            'author_id'      => Bugzilla->user->id,
+            'action'         => $cgi->param("tcaction"),
+            'effect'         => $cgi->param("tceffect"),
+            'setup'          => $cgi->param("tcsetup"),
+            'breakdown'      => $cgi->param("tcbreakdown"),
+            'dependson'      => $cgi->param("tcdependson"),
+            'blocks'         => $cgi->param("tcblocks"),
+            'tags'           => $cgi->param('addtags'),
+            'runs'           => $cgi->param('addruns'),
+            'bugs'           => $cgi->param('bugs'),
+            'plans'          => \@plans,
+            'components'     => \@comps,
             
-    my $case_id = $case->store;
-    $case = Bugzilla::Testopia::TestCase->new($case_id);
-    
-    $case->add_component($_) foreach (@components);
-    if ($cgi->param('addtags')){
-        foreach my $name (split(/,/, $cgi->param('addtags'))){
-            trick_taint($name);
-            my $tag = Bugzilla::Testopia::TestTag->new({'tag_name' => $name});
-            my $tag_id = $tag->store;
-            $case->add_tag($tag_id);
-        }
-    }
-    foreach my $run (@runs){
-        $run->add_case_run($case->id);
-    }
+    });
 
     $vars->{'action'} = "Commit";
     $vars->{'form_action'} = "tr_show_case.cgi";
     $vars->{'case'} = $case;
-    $vars->{'tr_message'} = "Case $case_id Created. 
+    $vars->{'tr_message'} = "Case ". $case->id ." Created. 
         <a href=\"tr_new_case.cgi?plan_id=" . join(",", @plan_ids) . "\">Add another</a>";
     $vars->{'backlink'} = $case;
     $template->process("testopia/case/show.html.tmpl", $vars) ||
@@ -211,10 +137,11 @@ if ($action eq 'Add'){
 ### Display Form ###
 ####################
 else {
-    my $bug;
+    
     my $summary;
     my $text;
     if( $cgi->param('bug')){
+        my $bug;
         $bug = Bugzilla::Bug->new($cgi->param('bug'),Bugzilla->user->id);
         
         my $bug_id = $bug->bug_id;
@@ -234,6 +161,8 @@ else {
         $effect  =~ s/%id%/<a href="show_bug.cgi?id=$bug_id">$bug_id<\/a>/g;
         
         $text = {'action' => $action, 'effect' => $effect};
+        
+        $vars->{'bugs'} = $bug->bug_id;
     }
     else {
         $text = {'action' => Bugzilla->params->{"new-case-action-template"}, 
@@ -241,9 +170,8 @@ else {
     }
         
     my $case = Bugzilla::Testopia::TestCase->new(
-                        {'case_id' => 0, 
-                         'plans' => \@plans, 
-                         'category' => {'name' => 'Default'},
+                        {'plans' => \@plans,
+                         'category' => {name => '--default--'}, 
                          'summary' =>  $summary,
                          'text' => $text,
     });
@@ -253,6 +181,7 @@ else {
     }
     
     $vars->{'case'} = $case;
+    
     $vars->{'components'} = objToJson(\@comps);
     $vars->{'action'} = "Add";
     $vars->{'form_action'} = "tr_new_case.cgi";

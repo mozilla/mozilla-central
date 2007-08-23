@@ -33,6 +33,17 @@ use Bugzilla::Testopia::Util;
 use Bugzilla::Testopia::TestPlan;
 use Bugzilla::Testopia::Product;
 
+###############################################################################
+# tr_new_plan.cgi
+# Presents a webform to the user for the creation of a new test plan. 
+# 
+# INTERFACE:
+#    action: undef - Present form for new plan creation
+#            "Add" - Form has been submitted with plan data. Create the test
+#                    plan.
+#
+################################################################################ 
+
 my $vars = {};
 my $template = Bugzilla->template;
 

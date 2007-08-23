@@ -39,6 +39,7 @@ package Bugzilla::Testopia::Category;
 use strict;
 
 use Bugzilla::Util;
+use Bugzilla::Error;
 use Bugzilla::Testopia::TestPlan;
 use Bugzilla::Testopia::TestCase;
 

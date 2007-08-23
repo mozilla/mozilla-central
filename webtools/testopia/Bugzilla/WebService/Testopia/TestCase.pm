@@ -380,11 +380,7 @@ sub add_tag
         die "User Not Authorized";
     }
     
-    #Create new tag or retrieve id of existing tag
-    my $test_tag = new Bugzilla::Testopia::TestTag({tag_name=>$tag_name});
-    my $tag_id = $test_tag->store;
-
-    my $result = $test_case->add_tag($tag_id);
+    my $result = $test_case->add_tag($tag_name);
     
     if ($result == 1)
     {
@@ -419,7 +415,7 @@ sub remove_tag
         die "User Not Authorized";
     }
 
-    my $test_tag = Bugzilla::Testopia::TestTag->check_name($tag_name);
+    my $test_tag = Bugzilla::Testopia::TestTag->check_tag($tag_name);
     if (not defined $test_tag)
     {
         $self->logout;
@@ -470,7 +466,7 @@ sub lookup_status_id_by_name
     
     $self->login;
 
-      my $result = Bugzilla::Testopia::TestCase::lookup_status_by_name($name);
+      my $result = lookup_status_by_name($name);
 
     $self->logout;
 
@@ -485,9 +481,8 @@ sub lookup_status_name_by_id
     
     $self->login;
 
-    my $test_case = new Bugzilla::Testopia::TestCase({});
      
-    my $result = $test_case->lookup_status($id);
+    my $result = lookup_status($id);
 
     $self->logout;
 
@@ -507,7 +502,7 @@ sub lookup_category_id_by_name
     
     $self->login;
 
-      my $result = Bugzilla::Testopia::TestCase::lookup_category_by_name($name);
+      my $result = lookup_category_by_name($name);
 
     $self->logout;
 
@@ -522,9 +517,7 @@ sub lookup_category_name_by_id
     
     $self->login;
 
-    my $test_case = new Bugzilla::Testopia::TestCase({});
-     
-    my $result = $test_case->lookup_category($id);
+    my $result = lookup_category($id);
 
     $self->logout;
 
@@ -544,7 +537,7 @@ sub lookup_priority_id_by_name
     
     $self->login;
 
-      my $result = Bugzilla::Testopia::TestCase::lookup_priority_by_value($name);
+      my $result = lookup_priority_by_value($name);
 
     $self->logout;
 
@@ -559,9 +552,7 @@ sub lookup_priority_name_by_id
     
     $self->login;
 
-    my $test_case = new Bugzilla::Testopia::TestCase({});
-     
-    my $result = $test_case->lookup_priority($id);
+    my $result = lookup_priority($id);
 
     $self->logout;
 

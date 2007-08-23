@@ -19,26 +19,6 @@
 # Contributor(s): Greg Hendricks <ghendricks@novell.com>
 #                 Ed Fuentetaja <efuentetaja@acm.org>
 
-=head1 NAME
-
-Bugzilla::Testopia::TestRun - Testopia Test Run object
-
-=head1 DESCRIPTION
-
-This module represents a test run in Testopia. A test run is the 
-place where most of the work of testing is done. A run is associated 
-with a single test plan and multiple test cases through the test 
-case-runs.
-
-=head1 SYNOPSIS
-
-use Bugzilla::Testopia::TestRun;
-
- $run = Bugzilla::Testopia::TestRun->new($run_id);
- $run = Bugzilla::Testopia::TestRun->new(\%run_hash);
-
-=cut
-
 package Bugzilla::Testopia::TestRun;
 
 use strict;
@@ -56,22 +36,6 @@ use base qw(Exporter Bugzilla::Object);
 ###############################
 ####    Initialization     ####
 ###############################
-
-=head1 FIELDS
-
-    run_id
-    plan_id
-    environment_id
-    product_version
-    build_id
-    plan_text_version
-    manager_id
-    start_date
-    stop_date
-    summary
-    notes
-
-=cut
 
 use constant DB_TABLE => "test_runs";
 use constant NAME_FIELD => "summary";
@@ -113,74 +77,176 @@ use constant REQUIRED_CREATE_FIELDS => qw(plan_id environment_id build_id
                                           product_version summary manager_id 
                                           plan_text_version);
 
+use constant UPDATE_COLUMNS         => qw(environment_id build_id product_version 
+                                          summary manager_id plan_text_version notes);
+
 use constant VALIDATORS => {
-    plan_id => \&_check_plan,
-    environment_id => \&_check_env,
-    build_id => \&_check_build,
-    product_version => \&_check_product_version,
-    summary => \&_check_summary,
-    manager_id => \&_check_manager,
+    plan_id           => \&_check_plan,
+    environment_id    => \&_check_env,
+    build_id          => \&_check_build,
+    summary           => \&_check_summary,
+    manager_id        => \&_check_manager,
     plan_text_version => \&_check_plan_text_version,
+    notes             => \&_check_notes,
 };
 
 ###############################
-####       Methods         ####
+####       Validators      ####
 ###############################
+sub _check_plan {
+    my ($invocant, $plan_id) = @_;
+    trick_taint($plan_id);
+    ThrowUserError('testopia-missing-required-field', {'field' => 'plan'}) unless $plan_id;
+    Bugzilla::Testopia::Util::validate_test_id($plan_id, 'plan');
+    return $plan_id;
+}
 
-=head2 new
+sub _check_env {
+    my ($invocant, $env_id) = @_;
+    trick_taint($env_id);
+    ThrowUserError('testopia-missing-required-field', {'field' => 'environment'}) unless $env_id;
+    Bugzilla::Testopia::Util::validate_test_id($env_id, 'environment');
+    return $env_id;
+}
 
-Instantiate a new Test Run. This takes a single argument 
-either a test run ID or a reference to a hash containing keys 
-identical to a test run's fields and desired values.
+sub _check_build {
+    my ($invocant, $build_id) = @_;
+    trick_taint($build_id);
+    ThrowUserError('testopia-missing-required-field', {'field' => 'build'}) unless $build_id;
+    Bugzilla::Testopia::Util::validate_test_id($build_id, 'build');
+    return $build_id;
+}
 
-=cut
+sub _check_product_version {
+    my ($invocant, $version, $product) = @_;
+    if (ref $invocant){
+        $product = $invocant->plan->product;
+    }
+    $version = trim($version);
+    trick_taint($version);
+    $version = Bugzilla::Version::check_version($product, $version);
+    return $version->name;
+}
+
+sub _check_summary{
+    my ($invocant, $summary) = @_;
+    $summary = clean_text($summary) if $summary;
+    trick_taint($summary);
+    if (!defined $summary || $summary eq '') {
+        ThrowUserError('testopia-missing-required-field', {'field' => 'summary'});
+    }
+    return $summary;
+}
+
+sub _check_manager {
+    my ($invocant, $login) = @_;
+    $login = trim($login);
+    return unless $login;
+    if ($login =~ /^\d+$/){
+        $login = Bugzilla::User->new($login);
+        return $login->id;
+    }
+    else {
+        my $id = login_to_id($login, THROW_ERROR);
+        return $id;
+    }
+}
+
+sub _check_plan_text_version {
+    my ($invocant, $version) = @_;
+    trick_taint($version);
+    ThrowUserError('testopia-missing-required-field', {'field' => 'plan_version'}) unless $version;
+    return $version
+}
+
+sub _check_notes {
+    my ($invocant, $notes) = @_;
+    trick_taint($notes);
+    $notes = trim($notes);
+    $notes =~ s/\n$//;
+    return $notes;
+}
+
+###############################
+####       Mutators        ####
+###############################
+sub set_environment        { $_[0]->set('environment_id', $_[1]); }
+sub set_build              { $_[0]->set('build_id', $_[1]); }
+sub set_summary            { $_[0]->set('summary', $_[1]); }
+sub set_manager            { $_[0]->set('manager_id', $_[1]); }
+sub set_plan_text_version  { $_[0]->set('plan_text_version', $_[1]); }
+sub set_notes              { $_[0]->set('notes', $_[1]); }
+sub set_stop_date          { $_[0]->set('stop_date', $_[1]); }
+sub set_product_version    { 
+    my ($self, $value) = @_;
+    $value = $self->_check_product_version($value);
+    $self->set('product_version', $value); 
+}
 
 sub new {
     my $invocant = shift;
     my $class = ref($invocant) || $invocant;
-    my $self = {};
-    bless($self, $class);
-    return $self->_init(@_);
+    my $param = shift;
+    
+    # We want to be able to supply an empty object to the templates for numerous
+    # lists etc. This is much cleaner than exporting a bunch of subroutines and
+    # adding them to $vars one by one. Probably just Laziness shining through.
+    if (ref $param eq 'HASH'){
+        bless($param, $class);
+        return $param;
+    }
+    
+    unshift @_, $param;
+    my $self = $class->SUPER::new(@_);
+    
+    return $self; 
 }
 
-=head2 _init
+sub run_create_validators {
+    my $class  = shift;
+    my $params = $class->SUPER::run_create_validators(@_);
+    my $plan = Bugzilla::Testopia::TestPlan->new($params->{plan_id});
+    
+    $params->{product_version} = $class->_check_product_version($params->{product_version}, $plan->product);
+    
+    return $params;
+}
 
-Private constructor for this object 
+sub create {
+    my ($class, $params) = @_;
 
-=cut
+    $class->SUPER::check_required_create_fields($params);
+    my $field_values = $class->run_create_validators($params);
+    my $timestamp = Bugzilla::Testopia::Util::get_time_stamp();
+    $field_values->{start_date} = $timestamp; 
+    $field_values->{stop_date} = Bugzilla::Testopia::Util::get_time_stamp() if $field_values->{status} == 0;  
+    delete $field_values->{status};
+    
+    my $self = $class->SUPER::insert_create_data($field_values);
 
-sub _init {
-    my $self = shift;
-    my ($param) = (@_);
-    my $dbh = Bugzilla->dbh;
-    my $columns = join(", ", DB_COLUMNS);
-
-    my $id = $param unless (ref $param eq 'HASH');
-    my $obj;
-
-    if (defined $id && detaint_natural($id)) {
-
-        $obj = $dbh->selectrow_hashref(qq{
-            SELECT $columns FROM test_runs
-            WHERE run_id = ?}, undef, $id);
-
-    } elsif (ref $param eq 'HASH'){
-         $obj = $param;   
-
-    } else {
-        Bugzilla::Error::ThrowCodeError('bad_arg',
-            {argument => 'param',
-             function => 'Testopia::TestRun::_init'});
-    }
-
-    return undef unless (defined $obj);
-
-    foreach my $field (keys %$obj) {
-        $self->{$field} = $obj->{$field};
-    }
-      
     return $self;
 }
+
+sub update {
+    my $self = shift;
+    my $dbh = Bugzilla->dbh;
+    my $timestamp = Bugzilla::Testopia::Util::get_time_stamp();
+
+    $dbh->bz_lock_tables('test_runs WRITE', 'test_run_activity WRITE',
+            'test_fielddefs READ');
+    
+    my $changed = $self->SUPER::update();
+
+    foreach my $field (keys %$changed){
+        Bugzilla::Testopia::Util::log_activity('run', $self->id, $field, $timestamp, $changed->{$field}->[0], $changed->{$field}->[1]);
+    }
+
+    $dbh->bz_unlock_tables();
+}
+
+###############################
+####       Methods         ####
+###############################
 
 =head2 calculate_percent_completed
 
@@ -242,34 +308,27 @@ sub remove_cc{
 
 =head2 add_tag
 
-Associates a tag with this test case
+Associates a tag with this test run
 
 =cut
 
 sub add_tag {
     my $self = shift;
-    my ($tag_id) = @_;
     my $dbh = Bugzilla->dbh;
-
-    $dbh->bz_lock_tables('test_run_tags WRITE');
-    my $tagged = $dbh->selectrow_array(
-             "SELECT 1 FROM test_run_tags 
-              WHERE tag_id = ? AND run_id = ?",
-              undef, $tag_id, $self->{'run_id'});
-    if ($tagged) {
-        $dbh->bz_unlock_tables;
-        return 1;
+    my @tags;
+    foreach my $t (@_){
+         push @tags, split(',', $t);
     }
-    $dbh->do("INSERT INTO test_run_tags(tag_id, run_id, userid) VALUES(?,?,?)",
-              undef, $tag_id, $self->{'run_id'}, Bugzilla->user->id);
-    $dbh->bz_unlock_tables;
-    
-    return 0;
+
+    foreach my $name (@tags){
+        my $tag = Bugzilla::Testopia::TestTag->create({'tag_name' => $name});
+        $tag->attach($self);
+    }
 }
 
 =head2 remove_tag
 
-Disassociates a tag from this test case
+Disassociates a tag from this test run
 
 =cut
 
@@ -329,43 +388,6 @@ sub store {
               $timestamp, undef, $self->{'summary'}, $self->{'notes'}));
     my $key = $dbh->bz_last_key( 'test_runs', 'run_id' );
     return $key;
-}
-
-=head2 update
-
-Updates this test run with new values supplied by the user.
-Accepts a reference to a hash with keys identical to a test run's
-fields and values representing the new values entered.
-Validation tests should be performed on the values 
-before calling this method. If a field is changed, a history 
-of that change is logged in the test_run_activity table.
-
-=cut
-
-sub update {
-    my $self = shift;
-    my ($newvalues) = @_;
-    my $dbh = Bugzilla->dbh;
-    my $timestamp = Bugzilla::Testopia::Util::get_time_stamp();
-
-    $dbh->bz_lock_tables('test_runs WRITE', 'test_run_activity WRITE',
-        'test_fielddefs READ');
-    foreach my $field (keys %{$newvalues}){
-        if ($newvalues->{$field} && $self->{$field} ne $newvalues->{$field}){
-            $dbh->do("UPDATE test_runs 
-                      SET $field = ? WHERE run_id = ?",
-                      undef, ($newvalues->{$field}, $self->{'run_id'}));
-            # Update the history
-            my $field_id = Bugzilla::Testopia::Util::get_test_field_id($field, "test_runs");
-            $dbh->do("INSERT INTO test_run_activity 
-            (run_id, fieldid, who, changed, oldvalue, newvalue)
-                      VALUES(?,?,?,?,?,?)",
-                      undef, ($self->{'run_id'}, $field_id, Bugzilla->user->id,
-                      $timestamp, $self->{$field}, $newvalues->{$field}));
-            $self->{$field} = $newvalues->{$field};
-        }
-    }
-    $dbh->bz_unlock_tables();
 }
 
 =head2 update_notes
@@ -680,8 +702,8 @@ Returns a list of statuses for a run
 
 sub get_status_list {
     my @status = (
-        { 'id' => 0, 'name' => 'Running' },
-        { 'id' => 1, 'name' => 'Stopped' },
+        { 'id' => 1, 'name' => 'RUNNING' },
+        { 'id' => 0, 'name' => 'STOPPED' },
     );
     return \@status;
 }
@@ -1164,3 +1186,49 @@ Greg Hendricks <ghendricks@novell.com>
 =cut
 
 1;
+
+__END__
+
+=head1 NAME
+
+Bugzilla::Testopia::TestRun - Testopia Test Run object
+
+=head1 DESCRIPTION
+
+This module represents a test run in Testopia. A test run is the 
+place where most of the work of testing is done. A run is associated 
+with a single test plan and multiple test cases through the test 
+case-runs.
+
+=head1 SYNOPSIS
+
+use Bugzilla::Testopia::TestRun;
+
+ $run = Bugzilla::Testopia::TestRun->new($run_id);
+ $run = Bugzilla::Testopia::TestRun->new(\%run_hash);
+
+=cut
+
+=head1 FIELDS
+
+    run_id
+    plan_id
+    environment_id
+    product_version
+    build_id
+    plan_text_version
+    manager_id
+    start_date
+    stop_date
+    summary
+    notes
+
+=cut
+
+=head2 new
+
+Instantiate a new Test Run. This takes a single argument 
+either a test run ID or a reference to a hash containing keys 
+identical to a test run's fields and desired values.
+
+=cut
