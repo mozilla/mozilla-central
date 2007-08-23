@@ -18,6 +18,7 @@
    - the Initial Developer. All Rights Reserved.
    -
    - Contributor(s): Michael Büttner <michael.buettner@sun.com>
+   -   Philipp Kewisch <mozilla@kewis.ch>
    -
    - Alternatively, the contents of this file may be used under the terms of
    - either the GNU General Public License Version 2 or later (the "GPL"), or
@@ -80,6 +81,10 @@
 <!ENTITY event.help.release.notes.label                   "Release Notes">
 <!ENTITY event.help.help.label                            "&brandShortName; Help">
 <!ENTITY event.help.about.label                           "About &brandShortName;">
+
+<!ENTITY event.invite.attendees.label                     "Invite Attendees…">
+<!ENTITY event.email.attendees.label                      "Compose E-Mail to All Attendees…">
+<!ENTITY event.email.tentative.attendees.label            "Compose E-Mail to Undecided Attendees…">
 
 <!-- Toolbar -->
 <!ENTITY  event.toolbar.save.label                        "Save and Close">

@@ -19,6 +19,7 @@
  *
  * Contributor(s):
  *   Michael Buettner <michael.buettner@sun.com>
+ *   Philipp Kewisch <mozilla@kewis.ch>
  *
  * Alternatively, the contents of this file may be used under the terms of
  * either the GNU General Public License Version 2 or later (the "GPL"), or
@@ -1268,8 +1269,8 @@ function updateAccept() {
 
         var menuItem = document.getElementById('menu-options-timezone');
         if (menuItem.getAttribute('checked') == 'true') {
-            startTimezone = gStartTimezone;
-            endTimezone = gEndTimezone;
+            var startTimezone = gStartTimezone;
+            var endTimezone = gEndTimezone;
             if (endTimezone == "UTC") {
                 if (gStartTimezone != gEndTimezone) {
                     endTimezone = gStartTimezone;
@@ -2760,4 +2761,149 @@ function updateRepeatDetails() {
             }
         }
     }
+}
+
+/**
+ * This function does not strictly check if the given attendee has the status
+ * TENTATIVE, but also if he hasn't responded.
+ *
+ * @param aAttendee     The attendee to check.
+ * @return              True, if the attendee hasn't responded.
+ */
+function isAttendeeUndecided(aAttendee) {
+    return aAttendee.participationStatus != "ACCEPTED" &&
+           aAttendee.participationStatus != "DECLINED" &&
+           aAttendee.participationStatus != "DELEGATED";
+}
+
+/**
+ * Event handler to set up the attendee-popup. This builds the popup menuitems.
+ *
+ * @param event         The popupshowing event
+ */
+function showAttendeePopup(event) {
+    // Don't do anything for right/middle-clicks
+    if (event.button != 0) {
+        return;
+    }
+
+    var responsiveAttendees = 0;
+
+    // anonymous helper function to
+    // initialize a dynamically created menuitem
+    function setup_node(aNode, aAttendee) {
+        // Count attendees that have done something.
+        if (!isAttendeeUndecided(aAttendee)) {
+            responsiveAttendees++;
+        }
+
+        // Construct the display string from common name and/or email address.
+        var re = new RegExp("^mailto:(.*)", "i");
+        var name = aAttendee.commonName;
+        if (name) {
+            var email = aAttendee.id;
+            if (email && email.length) {
+                if (re.test(email)) {
+                    name += ' <' + RegExp.$1 + '>';
+                } else {
+                    name += ' <' + email + '>';
+                }
+            }
+        } else {
+            var email = aAttendee.id;
+            if (email && email.length) {
+                if (re.test(email)) {
+                    name = RegExp.$1;
+                } else {
+                    name = email;
+                }
+            }
+        }
+        aNode.setAttribute("label", name);
+        aNode.setAttribute("status", aAttendee.participationStatus);
+        aNode.attendee = aAttendee;
+    }
+
+    // Setup the first menuitem, this one serves as the template for further
+    // menuitems.
+    var attendees = window.attendees;
+    var popup = document.getElementById("attendee-popup");
+    var separator = document.getElementById("attendee-popup-separator");
+    var template = separator.nextSibling;
+
+    setup_node(template, attendees[0]);
+
+    // Remove all remaining menu items after the separator and the template menu
+    // item.
+    while (template.nextSibling) {
+        popup.removeChild(template.nextSibling);
+    }
+
+    // Add the rest of the attendees.
+    for (var i = 1; i < attendees.length; i++) {
+        var attendee = attendees[i];
+        var newNode = template.cloneNode(true);
+        setup_node(newNode, attendee);
+        popup.appendChild(newNode);
+    }
+
+    // Set up the unanswered attendees item.
+    if (responsiveAttendees == attendees.length) {
+        document.getElementById("cmd_email_undecided")
+                .setAttribute("disabled", "true");
+    } else {
+        document.getElementById("cmd_email_undecided")
+                .removeAttribute("disabled");
+    }
+
+    // Show the popup.
+    var attendeeList = document.getElementById("attendee-list");
+    popup.showPopup(attendeeList, -1, -1, "context", "bottomleft", "topleft");
+}
+
+/**
+ * Send Email to all attendees that haven't responded or are tentative.
+ *
+ * @param aAttendees    The attendees to check.
+ */
+function sendMailToUndecidedAttendees(aAttendees) {
+    var targetAttendees = attendees.filter(isAttendeeUndecided);
+    sendMailToAttendees(targetAttendees);
+}
+
+/**
+ * Send Email to all given attendees.
+ *
+ * @param aAttendees    The attendees to send mail to.
+ */
+function sendMailToAttendees(aAttendees) {
+    var toList = "";
+    var item = saveItem();
+
+    for each (var attendee in aAttendees) {
+        if (attendee.id && attendee.id.length) {
+            var email = attendee.id;
+            var re = new RegExp("^mailto:(.*)", "i");
+            if (email && email.length) {
+                if (re.test(email)) {
+                    email = RegExp.$1;
+                } else {
+                    email = email;
+                }
+            }
+            // Prevent trailing commas.
+            if (toList.length > 0) {
+                toList += ",";
+            }
+            // Add this recipient id to the list.
+            toList += email;
+        }
+    }
+
+    // Set up the subject
+    var emailSubject = calGetString("sun-calendar-event-dialog",
+                                    "emailSubjectReply",
+                                    [item.title]);
+
+    sendMailTo(toList, emailSubject);
 }

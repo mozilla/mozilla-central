@@ -1083,3 +1083,53 @@ calListenerBag.prototype = {
         this.mListeners.forEach(notifyFunc);
     }
 };
+
+function sendMailTo(aRecipient, aSubject, aBody) {
+    if (!aRecipient || aRecipient.length < 1) {
+        return;
+    }
+
+    if (Cc["@mozilla.org/messengercompose;1"]) {
+        // We are in Thunderbird, we can use the compose interface directly
+        var msgComposeService = Cc["@mozilla.org/messengercompose;1"]
+                                .getService(Ci.nsIMsgComposeService);
+        var msgParams = Cc["@mozilla.org/messengercompose/composeparams;1"]
+                        .createInstance(Ci.nsIMsgComposeParams);
+        var composeFields = Cc["@mozilla.org/messengercompose/composefields;1"]
+                            .createInstance(Ci.nsIMsgCompFields);
+
+        composeFields.to = aRecipient;
+        composeFields.subject = aSubject;
+        composeFields.body = aBody;
+
+        msgParams.type = Ci.nsIMsgCompType.New;
+        msgParams.format = Ci.nsIMsgCompFormat.Default;
+        msgParams.composeFields = composeFields;
+
+        msgComposeService.OpenComposeWindowWithParams(null, msgParams);
+    } else {
+        // We are in a place without a composer. Use the external protocol
+        // service.
+        var protoSvc = Cc["@mozilla.org/uriloader/external-protocol-service;1"]
+                       .getService(Ci.nsIExternalProtocolService);
+        var ioService = Cc["@mozilla.org/network/io-service;1"]
+                        .getService(Ci.nsIIOService);
+
+        var uriString = "mailto:" + aRecipient;
+        var uriParams = [];
+
+        if (aSubject) {
+            uriParams.push("subject=" + encodeURIComponent(aSubject));
+        }
+
+        if (aBody) {
+            uriParams.push("body=" + encodeURIComponent(aSubject));
+        }
+
+        if (uriParams.length > 0) {
+            uriString += "?" + uriParams.join("&");
+        }
+
+        protoSvc.loadUrl(ioService.newURI(uriString, null, null));
+    }
+}

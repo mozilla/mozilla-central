@@ -20,6 +20,7 @@
    -
    - Contributor(s):
    -   Michael Buettner <michael.buettner@sun.com>
+   -   Philipp Kewisch <mozilla@kewis.ch>
    -
    - Alternatively, the contents of this file may be used under the terms of
    - either the GNU General Public License Version 2 or later (the "GPL"), or
@@ -156,6 +157,10 @@
                  oncommand="editRepeat();"/>
         <command id="cmd_attendees"
                  oncommand="editAttendees();"/>
+        <command id="cmd_email"
+                 oncommand="sendMailToAttendees(window.attendees);"/>
+        <command id="cmd_email_undecided"
+                 oncommand="sendMailToUndecidedAttendees(window.attendees);"/>
         <command id="cmd_privacy_public"
                  oncommand="editPrivacy(event.target)"
                  value="PUBLIC"/>
@@ -529,7 +534,7 @@
                 <label id="attendee-list"
                        class="text-link"
                        crop="right"
-                       onclick="editAttendees()"/>
+                       onclick="showAttendeePopup(event)"/>
             </row>
 
             <separator class="groove"/>
@@ -869,4 +874,19 @@
                            value="0"/>
         </statusbarpanel>
     </statusbar>
+
+    <popupset id="event-dialog-popupset">
+      <popup id="attendee-popup" position="after_start">
+        <menuitem label="&event.invite.attendees.label;"
+                  command="cmd_attendees"
+                  disable-on-readonly="true"/>
+        <menuseparator/>
+        <menuitem label="&event.email.attendees.label;"
+                  command="cmd_email"/>
+        <menuitem label="&event.email.tentative.attendees.label;"
+                  command="cmd_email_undecided"/>
+        <menuseparator id="attendee-popup-separator"/>
+        <menuitem class="status-icon menuitem-iconic" oncommand="sendMailToAttendees([event.target.attendee])" crop="end"/>
+      </popup>
+    </popupset>
 </dialog>
