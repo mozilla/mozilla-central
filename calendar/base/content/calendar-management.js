@@ -124,9 +124,9 @@ function loadCalendarManager() {
     }
 
     // The calendar manager will not notify for existing calendars. Go through
-    // them all and fire our observers manually.
+    // them all and set up manually.
     for each (var calendar in calendars) {
-        calendarManagerObserver.onCalendarRegistered(calendar);
+        calendarManagerObserver.initializeCalendar(calendar);
     }
 }
 
@@ -218,10 +218,14 @@ var calendarListTreeView = {
     },
 
     addCalendar: function cLTV_addCalendar(aCalendar) {
+        var composite = getCompositeCalendar();
         this.mCalendarList.push(aCalendar);
         calendarListUpdateColor(aCalendar);
         this.treebox.rowCountChanged(this.mCalendarList.length - 1, 1);
-        this.tree.view.selection.select(Math.max(0, this.tree.currentIndex));
+
+        if (aCalendar.id == composite.defaultCalendar.id) {
+            this.tree.view.selection.select(this.mCalendarList.length - 1);
+        }
     },
 
     removeCalendar: function cLTV_removeCalendar(aCalendar) {
@@ -489,11 +493,13 @@ var calendarManagerObserver = {
         return this;
     },
 
-    // calICalendarManagerObserver
-    onCalendarRegistered: function cMO_onCalendarRegistered(aCalendar) {
-        // Enable new calendars by default
+    /**
+     * Set up the UI for a new calendar.
+     *
+     * @param aCalendar     The calendar to add.
+     */
+    initializeCalendar: function cMO_initializeCalendar(aCalendar) {
         calendarListTreeView.addCalendar(aCalendar);
-        getCompositeCalendar().addCalendar(aCalendar);
 
         // Watch the calendar for changes, to ensure its visibility when adding
         // or changing items.
@@ -510,6 +516,12 @@ var calendarManagerObserver = {
             document.getElementById("calendar_reload_remote_calendars")
                     .removeAttribute("disabled");
         }
+    },
+
+    // calICalendarManagerObserver
+    onCalendarRegistered: function cMO_onCalendarRegistered(aCalendar) {
+        this.initializeCalendar(aCalendar);
+        getCompositeCalendar().addCalendar(aCalendar);
     },
 
     onCalendarUnregistering: function cMO_onCalendarUnregistering(aCalendar) {
