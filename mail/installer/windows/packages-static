@@ -242,6 +242,7 @@ bin\components\unicharutil.xpt
 ; dom
 bin\components\dom.xpt
 bin\components\dom_base.xpt
+bin\components\dom_canvas.xpt
 bin\components\dom_core.xpt
 bin\components\dom_css.xpt
 bin\components\dom_events.xpt
