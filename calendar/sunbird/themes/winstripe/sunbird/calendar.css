@@ -956,8 +956,6 @@ calendar-navigation-buttons {
 .title2 {
     font-size:1.2em;
     color: #4e84c2;
-    margin:0px;
-    padding:0px;
     cursor:pointer;
     -moz-appearance: none;
     border: 0px;
@@ -975,8 +973,6 @@ calendar-navigation-buttons {
     font-size:2.0em;
     color: #2e4e73;
     font-weight:bold;
-    margin:0px;
-    padding:0px;
     -moz-appearance: none;
     border: 0px;
 }
