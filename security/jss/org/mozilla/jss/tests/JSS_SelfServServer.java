@@ -239,7 +239,7 @@ public class JSS_SelfServServer  {
         if (bVerbose)
             System.out.println("Server created socket");
         
-        //serverSock.setSoTimeout(5000);  // Set timeout for 5 sec
+        serverSock.setSoTimeout(300*1000);  // Set timeout for 5 minutes
         serverSock.requireClientAuth(SSLSocket.SSL_REQUIRE_NO_ERROR);
         
         serverSock.setServerCertNickname("Server_ECDSA");
@@ -258,7 +258,7 @@ public class JSS_SelfServServer  {
             sock.addHandshakeCompletedListener(
                 new HandshakeListener("server", this));
             socketCntr++;
-            //sock.setSoTimeout(30*1000);
+            sock.setSoTimeout(300*1000);
             if (bVerbose) {
                 System.out.println("Timeout value for sockets: " +
                     sock.getSoTimeout());

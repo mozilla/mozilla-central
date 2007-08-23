@@ -638,7 +638,7 @@ public class JSS_SelfServClient implements ConstantsBase, Constants {
                 System.out.println("ActiveCount" + socketThreads.activeCount());
                 //This loop should always exit but it has the potential
                 //to hang the QA tests so...
-                if (i == 1000) { // 1000 x 10
+                if (i == 100) { // 100 x 10
                     System.out.println("It is taking too long for the " +
                             "threads to die. Exiting the program");
                     System.out.println("Time taken: " +

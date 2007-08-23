@@ -83,7 +83,7 @@ my $osname         = `uname -s`;
 sub checkPort {
    my ($p) = @_; 
    my $localhost = inet_aton("localhost");
-   my $max = $p + 10; # try to find a port 10 times
+   my $max = $p + 20; # try to find a port 10 times
    my $port = sockaddr_in($p, $localhost);
 
    #create a socket 
@@ -268,9 +268,9 @@ sub setup_vars {
     $testdir = $result_dir . "/" . $host . "." . $version;
 
     #in case multiple tests are being run on the same machine increase  
-    #the port numbers with version number + 20
+    #the port numbers with version number * 10
     
-    $serverPort = $serverPort + $version + 20;
+    $serverPort = $serverPort + ($version * 10);
 
     outputEnv();
 }
@@ -380,8 +380,8 @@ sub run_ssl_test {
         print "launching server FAILED with return value $result\n";
         return;
     }
-    sleep 1;
-    print "\nServer is envoked using port $serverPort \n" ;
+    sleep 3;
+    print "\nSSL Server is envoked using port $serverPort \n" ;
     print "$clientCommand \n";
     $result = system("$clientCommand");
     $result >>=8;
@@ -412,6 +412,7 @@ sub print_case_result {
         print "JSSTEST_CASE $testrun ($testname): PASS\n";
     } else {
         print "JSSTEST_CASE $testrun ($testname): FAIL return value $result\n";
+        die;
     }
 
 }
@@ -488,17 +489,14 @@ run_test($testname, $command);
 updateCertSN();
 $serverPort = checkPort($serverPort);
 $testname = "SSLClientAuth bypass off";
-$command = "$java -cp $jss_classpath org.mozilla.jss.tests.SSLClientAuth $testdir $pwfile $serverPort $certSN";
+$command = "$java -cp $jss_classpath org.mozilla.jss.tests.SSLClientAuth $testdir $pwfile $serverPort bypassoff $certSN";
 run_test($testname, $command);
 
 updateCertSN();
-$serverPort=$serverPort+1;
 $serverPort = checkPort($serverPort);
 $testname = "SSLClientAuth bypass on";
 $command = "$java -cp $jss_classpath org.mozilla.jss.tests.SSLClientAuth $testdir $pwfile $serverPort bypass $certSN";
 run_test($testname, $command);
-
-$serverPort=$serverPort+1;
 
 $testname = "Key Generation";
 $command = "$java -cp $jss_classpath org.mozilla.jss.tests.TestKeyGen $testdir $pwfile";
@@ -546,25 +544,26 @@ run_test($testname, $command);
 #
 # Servers are kicked off by the shell script and are told to shutdown by the client test
 #
-$serverPort=$serverPort+1;
+
+$serverPort = checkPort($serverPort);
 $testname = "SSL Ciphersuite JSS Server and JSS client both with Bypass Off";
 $serverCommand = "./startJssSelfServ.$scriptext $jss_classpath $testdir $hostname $serverPort bypassoff $java";
 $command = "$java -cp $jss_classpath org.mozilla.jss.tests.JSS_SelfServClient 2 -1 $testdir $pwfile $hostname $serverPort bypassOff verboseoff JSS";
 run_ssl_test($testname, $serverCommand, $command);
 
-$serverPort=$serverPort+1;
+$serverPort = checkPort($serverPort);
 $testname = "SSL Ciphersuite JSS Server and JSS client both with Bypass On";
 $serverCommand = "./startJssSelfServ.$scriptext $jss_classpath $testdir $hostname $serverPort bypass $java";
 $command = "$java -cp $jss_classpath org.mozilla.jss.tests.JSS_SelfServClient 2 -1 $testdir $pwfile $hostname $serverPort bypass verboseoff JSS";
 run_ssl_test($testname, $serverCommand, $command);
 
-$serverPort=$serverPort+1;
+$serverPort = checkPort($serverPort);
 $testname = "SSL Ciphersuite JSS Server with Bypass Off and JSSE client";
 $serverCommand = "./startJssSelfServ.$scriptext $jss_classpath $testdir $hostname $serverPort bypassOff $java";
 $command = "$java -cp $jss_classpath org.mozilla.jss.tests.JSSE_SSLClient $testdir $serverPort $hostname JSS";
 run_ssl_test($testname, $serverCommand, $command);
 
-$serverPort=$serverPort+1;
+$serverPort = checkPort($serverPort);
 $testname = "SSL Ciphersuite JSS Server with Bypass On and JSSE client";
 $serverCommand = "./startJssSelfServ.$scriptext $jss_classpath $testdir $hostname $serverPort bypass $java";
 $command = "$java -cp $jss_classpath org.mozilla.jss.tests.JSSE_SSLClient $testdir $serverPort $hostname JSS";
@@ -575,38 +574,37 @@ if ($osname =~ /HP/) {
     print "Java 5 on HP does not have SunPKCS11 class\n"; 
 } else {
 
-$serverPort=$serverPort+1;
+$serverPort = checkPort($serverPort);
 $testname = "SSL Ciphersuite JSSE Server using default provider and JSS client with Bypass Off";
 $serverCommand = "./startJsseServ.$scriptext $jss_classpath $serverPort false $testdir rsa.pfx default $configfile $pwfile $java";
 $command = "$java -cp $jss_classpath org.mozilla.jss.tests.JSS_SelfServClient 2 -1 $testdir $pwfile $hostname $serverPort bypassOff verboseoff JSSE";
 run_ssl_test($testname, $serverCommand, $command);
 
-$serverPort=$serverPort+1;
+$serverPort = checkPort($serverPort);
 $testname = "SSL Ciphersuite JSSE Server using default provider and JSS client with Bypass ON";
 $serverCommand = "./startJsseServ.$scriptext $jss_classpath $serverPort false $testdir rsa.pfx default $configfile $pwfile $java";
 $command = "$java -cp $jss_classpath org.mozilla.jss.tests.JSS_SelfServClient 2 -1 $testdir $pwfile $hostname $serverPort bypass verboseoff JSSE";
 run_ssl_test($testname, $serverCommand, $command);
 
-
-$serverPort=$serverPort+1;
+$serverPort = checkPort($serverPort);
 $testname = "SSL Ciphersuite JSSE Server using Sunpkcs11-NSS provider and JSS client with Bypass Off";
 $serverCommand = "./startJsseServ.$scriptext $jss_classpath $serverPort false $testdir rsa.pfx Sunpkcs11 $configfile $pwfile $java";
 $command = "$java -cp $jss_classpath org.mozilla.jss.tests.JSS_SelfServClient 2 -1 $testdir $pwfile $hostname $serverPort bypassOff verboseoff JSSE";
 run_ssl_test($testname, $serverCommand, $command);
 
-$serverPort=$serverPort+1;
+$serverPort = checkPort($serverPort);
 $testname = "SSL Ciphersuite JSSE Server using Sunpkcs11-NSS provider and JSS client with Bypass ON";
 $serverCommand = "./startJsseServ.$scriptext $jss_classpath $serverPort false $testdir rsa.pfx Sunpkcs11 $configfile $pwfile $java";
 $command = "$java -cp $jss_classpath org.mozilla.jss.tests.JSS_SelfServClient 2 -1 $testdir $pwfile $hostname $serverPort bypass verboseoff JSSE";
 run_ssl_test($testname, $serverCommand, $command);
 
-$serverPort=$serverPort+1;
+$serverPort = checkPort($serverPort);
 $testname = "SSL Ciphersuite JSSE Server using Mozilla-JSS provider and JSS client with Bypass Off";
 $serverCommand = "./startJsseServ.$scriptext $jss_classpath $serverPort false $testdir rsa.pfx Mozilla-JSS $configfile $pwfile $java";
 $command = "$java -cp $jss_classpath org.mozilla.jss.tests.JSS_SelfServClient 2 -1 $testdir $pwfile $hostname $serverPort bypass verboseoff Mozilla-JSS";
 run_ssl_test($testname, $serverCommand, $command);
 
-$serverPort=$serverPort+1;
+$serverPort = checkPort($serverPort);
 $testname = "SSL Ciphersuite JSSE Server using Mozilla-JSS provider and JSS client with Bypass ON";
 $serverCommand = "./startJsseServ.$scriptext $jss_classpath $serverPort false $testdir rsa.pfx Mozilla-JSS $configfile $pwfile $java";
 $command = "$java -cp $jss_classpath org.mozilla.jss.tests.JSS_SelfServClient 2 -1 $testdir $pwfile $hostname $serverPort bypass verboseoff Mozilla-JSS";
@@ -629,10 +627,11 @@ run_test($testname, $command);
 updateCertSN();
 $testname = "SSLClientAuth FIPSMODE";
 $serverPort = checkPort(++$serverPort);
-$command = "$java -cp $jss_classpath org.mozilla.jss.tests.SSLClientAuth $testdir $pwfile $serverPort $certSN";
+$command = "$java -cp $jss_classpath org.mozilla.jss.tests.SSLClientAuth $testdir $pwfile $serverPort bypassoff $certSN";
 run_test($testname, $command);
 
-$serverPort=$serverPort+1;
+
+$serverPort = checkPort($serverPort);
 $testname = "SSL Ciphersuite JSS Server and JSS client both with Bypass Off";
 $serverCommand = "./startJssSelfServ.$scriptext $jss_classpath $testdir $hostname $serverPort bypassoff $java";
 $command = "$java -cp $jss_classpath org.mozilla.jss.tests.JSS_SelfServClient 2 -1 $testdir $pwfile $hostname $serverPort bypassOff verboseoff JSS";

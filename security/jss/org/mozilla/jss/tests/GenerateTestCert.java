@@ -176,10 +176,6 @@ public class GenerateTestCert {
             System.out.println("Number of certificates stored in the " +
                 " database: " + originalPermCerts);
             
-            SecureRandom rng= SecureRandom.getInstance("pkcs11prng",
-                "Mozilla-JSS");
-            int rand = nextRandInt(rng);
-            
             String hostname = "localhost";
             if (args.length > 4) {
                 hostname = args[3];
@@ -222,7 +218,8 @@ public class GenerateTestCert {
             
             // generate CA cert
             java.security.KeyPairGenerator kpg =
-                java.security.KeyPairGenerator.getInstance(keyType, "Mozilla-JSS");
+                java.security.KeyPairGenerator.getInstance(
+                    keyType, "Mozilla-JSS");
             kpg.initialize(keyLength);
             KeyPair caPair = kpg.genKeyPair();
             
@@ -230,7 +227,7 @@ public class GenerateTestCert {
             extensions.addElement(makeBasicConstraintsExtension());
             
             Certificate caCert = makeCert("CACert", "CACert", serialNum,
-                caPair.getPrivate(), caPair.getPublic(), rand, extensions);
+                caPair.getPrivate(), caPair.getPublic(), serialNum, extensions);
             X509Certificate nssCaCert = cm.importUserCACertPackage(
                 ASN1Util.encode(caCert), caCertNick);
             InternalCertificate intern = (InternalCertificate)nssCaCert;
@@ -244,7 +241,7 @@ public class GenerateTestCert {
             KeyPair serverPair = kpg.genKeyPair();
             Certificate serverCert = makeCert("CACert", hostname, 
                 serialNum+1, caPair.getPrivate(), 
-                serverPair.getPublic(), rand, null);
+                serverPair.getPublic(), serialNum, null);
             nssServerCert = cm.importCertPackage(
                 ASN1Util.encode(serverCert), serverCertNick);
             
@@ -253,7 +250,7 @@ public class GenerateTestCert {
             KeyPair clientPair = kpg.genKeyPair();
             Certificate clientCert = makeCert("CACert", "ClientCert", 
                 serialNum+2, caPair.getPrivate(), clientPair.getPublic(), 
-                rand, null);
+                serialNum, null);
             nssClientCert = cm.importCertPackage(
                 ASN1Util.encode(clientCert), clientCertNick);
             
@@ -290,23 +287,12 @@ public class GenerateTestCert {
                 System.out.println(clientCertNick + " should exist!");
                 System.exit(1);
             };
-            System.out.println("Exiting GenerateTestCert");
             
         } catch(Exception e) {
             e.printStackTrace();
             System.exit(1);
         }
         System.exit(0);
-    }
-    
-    static int nextRandInt(SecureRandom rand) throws Exception {
-        int i;
-        byte[] bytes = new byte[4];
-        rand.nextBytes(bytes);
-        i =  ((int)bytes[0])<<24 | ((int)bytes[1])<<16 |
-            ((int)bytes[2])<<8 | ((int)bytes[3]);
-        System.out.println("generated random value:" + i);
-        return i;
     }
     
     /**
@@ -345,16 +331,16 @@ public class GenerateTestCert {
         AlgorithmIdentifier sigAlgID = new AlgorithmIdentifier(sigAlg.toOID());
         
         Name issuer = new Name();
-        issuer.addCommonName(issuerName);
         issuer.addCountryName("US");
-        issuer.addOrganizationName("Mozilla"+rand);
-        issuer.addOrganizationalUnitName("JSS Testing");
+        issuer.addOrganizationName("Mozilla");
+        issuer.addOrganizationalUnitName("JSS Testing" + rand);
+        issuer.addCommonName(issuerName);
         
         Name subject = new Name();
-        subject.addCommonName(subjectName);
         subject.addCountryName("US");
-        subject.addOrganizationName("Mozilla"+rand);
-        subject.addOrganizationalUnitName("JSS Testing");
+        subject.addOrganizationName("Mozilla");
+        subject.addOrganizationalUnitName("JSS Testing" + rand);
+        subject.addCommonName(subjectName);
         
         Calendar cal = Calendar.getInstance();
         Date notBefore = cal.getTime();

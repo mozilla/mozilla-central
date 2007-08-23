@@ -48,8 +48,6 @@ import org.mozilla.jss.crypto.*;
 import org.mozilla.jss.pkix.cert.Certificate;
 import org.mozilla.jss.pkix.cert.CertificateInfo;
 import org.mozilla.jss.pkix.cert.Extension;
-import java.security.Security;
-import java.security.Provider;
 
 public class ListCerts {
     
@@ -69,12 +67,7 @@ public class ListCerts {
             CryptoManager cm = CryptoManager.getInstance();
             
             X509Certificate[] certs = cm.findCertsByNickname(nickname);
-           Provider[] providers = Security.getProviders();
-           for ( int i=0; i < providers.length; i++ ) {
-               System.out.println("Provider "+i+": "+providers[i].getName());
-           } 
             System.out.println(certs.length + " certs found with this nickname.");
-            
             for(int i=0; i < certs.length; i++) {
                 System.out.println("\nSubject: "+certs[i].getSubjectDN());
                 Certificate cert =

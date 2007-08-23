@@ -179,7 +179,6 @@ public class JSSE_SSLServer {
                 System.out.println("Initializing " +  args[5] + "-NSS");
                     Provider nss = null;
                     nss = new sun.security.pkcs11.SunPKCS11(nssConfig);
-                    System.out.println("inserting provider?");
                     Security.insertProviderAt(nss, 1);
                     System.out.println("Initialized " +  args[5] + "-NSS"); 
                     
@@ -212,8 +211,8 @@ public class JSSE_SSLServer {
             if ( ssf != null ) {
                 SSLServerSocket ss =
                     (SSLServerSocket)ssf.createServerSocket(port);
-                // Set server socket timeout to 90 sec
-//                ss.setSoTimeout(15 * 1000);
+                // Set server socket timeout to 5 minutes
+                ss.setSoTimeout(300 * 1000);
                 System.out.println("Enable ciphers.");
                 // Enable all the JSSE ciphersuites
                 ss.setEnabledCipherSuites(ss.getSupportedCipherSuites());
@@ -227,6 +226,7 @@ public class JSSE_SSLServer {
                     try {
                         //The client will tell the server to shutdown
                         Socket socket = ss.accept();
+                        socket.setSoTimeout(300 * 1000);
                         socketCntr ++;
                         readWriteThread rwThread = new readWriteThread(socket,
                             socketCntr);
