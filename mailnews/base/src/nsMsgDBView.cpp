@@ -4577,6 +4577,10 @@ nsMsgViewIndex nsMsgDBView::GetInsertIndexHelper(nsIMsgDBHdr *msgHdr, nsMsgKeyAr
   rv = GetFieldTypeAndLenForSort(sortType, &maxLen, &fieldType);
   const void *pValue1 = &EntryInfo1, *pValue2 = &EntryInfo2;
 
+  EntryInfo1.folder = m_folder;
+  nsCOMPtr <nsISupportsArray> folders;
+  GetFolders(getter_AddRefs(folders));
+  
   int (* PR_CALLBACK comparisonFun) (const void *pItem1, const void *pItem2, void *privateData) = nsnull;
   int retStatus = 0;
   msgHdr->GetMessageKey(&EntryInfo1.id);
@@ -4611,6 +4615,15 @@ nsMsgViewIndex nsMsgDBView::GetInsertIndexHelper(nsIMsgDBHdr *msgHdr, nsMsgKeyAr
   {
     nsMsgViewIndex tryIndex = (lowIndex + highIndex - 1) / 2;
     EntryInfo2.id = keys->GetAt(tryIndex);
+    if (folders)
+    {
+      nsCOMPtr<nsISupports> curFolder;
+      folders->GetElementAt(tryIndex, getter_AddRefs(curFolder));
+       EntryInfo2.folder = curFolder;
+    }
+    else
+       EntryInfo2.folder = m_folder;
+    
     nsCOMPtr <nsIMsgDBHdr> tryHdr;
     nsCOMPtr <nsIMsgDatabase> db;
     GetDBForViewIndex(tryIndex, getter_AddRefs(db));
