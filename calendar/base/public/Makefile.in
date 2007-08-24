@@ -80,6 +80,7 @@ XPIDLSRCS	= calIAlarmService.idl \
 		  calIPrintFormatter.idl \
 		  calITransactionManager.idl \
 		  calIOperation.idl \
+		  calIFreeBusyProvider.idl \
 		  $(NULL)
 
 EXPORTS		= calBaseCID.h
