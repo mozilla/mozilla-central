@@ -328,3 +328,59 @@ function sbCheckForUpdates()
         prompter.checkForUpdates();
     }
 }
+
+/** 
+ * Controls the update check menu item
+ */
+function sbUpdateItem()
+{
+    var updateService = Components.classes["@mozilla.org/updates/update-service;1"]
+                                  .getService(Components.interfaces.nsIApplicationUpdateService);
+    var updateManager = Components.classes["@mozilla.org/updates/update-manager;1"]
+                                  .getService(Components.interfaces.nsIUpdateManager);
+
+    // Disable the UI if the update enabled pref has been locked by the 
+    // administrator or if we cannot update for some other reason
+    var checkForUpdates = document.getElementById("checkForUpdates");
+    var canUpdate = updateService.canUpdate;
+    checkForUpdates.setAttribute("disabled", !canUpdate);
+    if (!canUpdate) {
+        return;
+    } 
+
+    var strings = document.getElementById("bundle_calendar");
+    var activeUpdate = updateManager.activeUpdate;
+
+    // By default, show "Check for Updates..."
+    var key = "default";
+    if (activeUpdate) {
+        switch (activeUpdate.state) {
+            case "downloading":
+                // If we're downloading an update at present, show the text:
+                // "Downloading Sunbird x.x..." otherwise we're paused, and show
+                // "Resume Downloading Sunbird x.x..."
+                key = updateService.isDownloading ? "downloading" : "resume";
+                break;
+            case "pending":
+                // If we're waiting for the user to restart, show: "Apply Downloaded
+                // Updates Now..."
+                key = "pending";
+                break;
+        }
+    }
+
+    // If there's an active update, substitute its name into the label
+    // we show for this item, otherwise display a generic label.
+    if (activeUpdate && activeUpdate.name) {
+        checkForUpdates.label = strings.getFormattedString("updatesItem_" + key, [activeUpdate.name]);
+    } else {
+        checkForUpdates.label = strings.getString("updatesItem_" + key + "Fallback");
+    }
+
+    if (updateManager.activeUpdate && updateService.isDownloading) {
+        checkForUpdates.setAttribute("loading", "true");
+    }
+    else {
+        checkForUpdates.removeAttribute("loading");
+    }
+}

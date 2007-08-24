@@ -465,7 +465,7 @@
          label="&helpMenu.label;"
          accesskey="&helpMenu.accesskey;">
 #endif
-         <menupopup id="menu_HelpPopup">
+         <menupopup id="menu_HelpPopup" onpopupshowing="sbUpdateItem();">
            <!-- XXX lilmatt: Finish this!  oncommand="openTopWin('&helpURL;');" -->
            <menuitem label="&calendar.help.label;"
                      disabled="true"/>
