@@ -44,7 +44,7 @@
 #include "testutil.h"
 #include "testutil_nss.h"
 
-void *plContext = NULL;
+static void *plContext = NULL;
 
 static void
 testDestroy(void *goodObject, void *equalObject, void *diffObject)
@@ -63,6 +63,7 @@ cleanup:
 
 }
 
+static
 void testGetPublicKey(
         PKIX_ValidateResult *goodObject,
         PKIX_ValidateResult *equalObject){
@@ -93,6 +94,7 @@ cleanup:
         PKIX_TEST_RETURN();
 }
 
+static
 void testGetTrustAnchor(
         PKIX_ValidateResult *goodObject,
         PKIX_ValidateResult *equalObject){
@@ -123,6 +125,7 @@ cleanup:
         PKIX_TEST_RETURN();
 }
 
+static
 void testGetPolicyTree(
         PKIX_ValidateResult *goodObject,
         PKIX_ValidateResult *equalObject){
@@ -157,11 +160,12 @@ cleanup:
         PKIX_TEST_RETURN();
 }
 
+static
 void printUsage(char *pName){
         printf("\nUSAGE: %s <central-data-dir>\n\n", pName);
 }
 
-int main(int argc, char *argv[]) {
+int test_valresult(int argc, char *argv[]) {
 
         PKIX_ValidateResult *goodObject = NULL;
         PKIX_ValidateResult *equalObject = NULL;

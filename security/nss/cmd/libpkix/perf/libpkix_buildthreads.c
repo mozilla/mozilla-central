@@ -66,7 +66,7 @@
 #include "testutil.h"
 #include "testutil_nss.h"
 
-void *plContext = NULL;
+static void *plContext = NULL;
 
 #undef pkixTempResult
 #define PERF_DECREF(obj) \
@@ -79,7 +79,7 @@ void *plContext = NULL;
                 } \
         }
 
-void finish(char* message, int code);
+static void finish(char* message, int code);
 
 typedef struct ThreadDataStr tData;
 
@@ -104,7 +104,7 @@ char *logLevels[] = {
         "Trace"
 };
 
-PKIX_Error *loggerCallback(
+static PKIX_Error *loggerCallback(
         PKIX_Logger *logger,
         PKIX_PL_String *message,
         PKIX_UInt32 logLevel,
@@ -126,7 +126,7 @@ PKIX_Error *loggerCallback(
 
 #endif /* PKIX_LOGGER_ON */
 
-void ThreadEntry(void* data)
+static void ThreadEntry(void* data)
 {
         tData* tdata = (tData*) data;
         PRIntervalTime duration = tdata->duration;
@@ -245,7 +245,7 @@ void ThreadEntry(void* data)
 
 }
 
-void
+static void
 Test(
         CERTCertificate* anchor,
         char* eecertName,
@@ -304,20 +304,21 @@ Test(
 }
 
 
-void finish(char* message, int code)
+static void finish(char* message, int code)
 {
         (void) printf(message);
         exit(code);
 }
 
-void usage(char* progname)
+static void usage(char* progname)
 {
         (void) printf("Usage : %s <duration> <threads> <anchorNickname> "
                 "<eecertNickname>\n\n", progname);
         finish("", 0);
 }
 
-int main(int argc, char** argv)
+int
+libpkix_buildthreads(int argc, char** argv)
 {
         CERTCertDBHandle *handle = NULL;
         CERTCertificate* eecert = NULL;

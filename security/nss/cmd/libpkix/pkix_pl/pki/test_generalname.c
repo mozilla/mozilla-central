@@ -44,7 +44,7 @@
 #include "testutil.h"
 #include "testutil_nss.h"
 
-void *plContext = NULL;
+static void *plContext = NULL;
 
 static void
 createGeneralNames(PKIX_UInt32 nameType, char *goodInput, char *diffInput,
@@ -80,7 +80,7 @@ cleanup:
 
 }
 
-void testNameType
+static void testNameType
 (PKIX_UInt32 nameType, char *goodInput, char *diffInput, char *expectedAscii){
 
         PKIX_PL_GeneralName *goodName = NULL;
@@ -101,7 +101,7 @@ void testNameType
         testDestroy(goodName, equalName, diffName);
 }
 
-int main(int argc, char *argv[]) {
+int test_generalname(int argc, char *argv[]) {
 
         char *goodInput = NULL;
         char *diffInput = NULL;

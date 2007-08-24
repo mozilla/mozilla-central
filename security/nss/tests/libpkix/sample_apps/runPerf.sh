@@ -126,7 +126,7 @@ Display "***********************************************************************
 
     errors=0
     iLoop=0
-    perfPgm="${DIST_BIN}/libpkix_buildthreads 5 8 ValidCertificatePathTest1EE"
+    perfPgm="${DIST_BIN}/pkixutil libpkix_buildthreads 5 8 ValidCertificatePathTest1EE"
 
     while [ $iLoop -lt $totalLoop ]
     do
@@ -155,10 +155,10 @@ Display "***********************************************************************
 #main
 
 perfTest <<EOF
-libpkix_buildthreads 5 1 ValidCertificatePathTest1EE
-libpkix_buildthreads 5 8 ValidCertificatePathTest1EE
-nss_threads 5 1 ValidCertificatePathTest1EE
-nss_threads 5 8 ValidCertificatePathTest1EE
+pkixutil libpkix_buildthreads 5 1 ValidCertificatePathTest1EE
+pkixutil libpkix_buildthreads 5 8 ValidCertificatePathTest1EE
+pkixutil nss_threads 5 1 ValidCertificatePathTest1EE
+pkixutil nss_threads 5 8 ValidCertificatePathTest1EE
 EOF
 
 totalErrors=$?

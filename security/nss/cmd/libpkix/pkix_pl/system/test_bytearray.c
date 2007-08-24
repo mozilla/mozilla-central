@@ -44,9 +44,9 @@
 #include "testutil.h"
 #include "testutil_nss.h"
 
-void *plContext = NULL;
+static void *plContext = NULL;
 
-void
+static void
 createByteArray(
         PKIX_PL_ByteArray **byteArray,
         char *bytes,
@@ -63,7 +63,7 @@ cleanup:
 }
 
 
-void
+static void
 testZeroLength(void)
 {
         PKIX_PL_ByteArray *byteArray = NULL;
@@ -96,7 +96,7 @@ cleanup:
 }
 
 
-void
+static void
 testToString(
         PKIX_PL_ByteArray *byteArray,
         char *expAscii)
@@ -130,7 +130,7 @@ cleanup:
         PKIX_TEST_RETURN();
 }
 
-void
+static void
 testGetLength(
         PKIX_PL_ByteArray *byteArray,
         PKIX_UInt32 expLength)
@@ -153,7 +153,7 @@ cleanup:
         PKIX_TEST_RETURN();
 }
 
-void
+static void
 testGetPointer(
         PKIX_PL_ByteArray *byteArray,
         char *expBytes,
@@ -192,7 +192,7 @@ cleanup:
         PKIX_TEST_RETURN();
 }
 
-int main(int argc, char *argv[]) {
+int test_bytearray(int argc, char *argv[]) {
 
         PKIX_PL_ByteArray *testByteArray[4];
 

@@ -46,9 +46,9 @@
 #include "testutil.h"
 #include "testutil_nss.h"
 
-void *plContext = NULL;
+static void *plContext = NULL;
 
-int main(int argc, char *argv[]) {
+int test_authorityinfoaccess(int argc, char *argv[]) {
 
         PKIX_PL_Cert *cert = NULL;
         PKIX_PL_Cert *certDiff = NULL;

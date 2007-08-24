@@ -36,6 +36,8 @@
 # ***** END LICENSE BLOCK *****
 
 PKIX_DEPTH = ../..
+PLAT_DEPTH = $(PKIX_DEPTH)/..
+CORE_DEPTH = $(PKIX_DEPTH)/../../..
 
 # MODULE public and private header directories are implicitly REQUIRED.
 MODULE = nss
@@ -60,8 +62,11 @@ CSRCS = test_bigint.c \
 	test_string2.c \
 	$(NULL)
 
-PROGRAMS = $(CSRCS:.c=)
 
-TARGETS = $(PROGRAMS)
+LIBRARY_NAME=pkixtoolsys
 
+TARGETS = $(LIBRARY)
+
+SOURCE_LIB_DIR=$(PKIX_DEPTH)/$(OBJDIR)
+ 
 NO_MD_RELEASE = 1

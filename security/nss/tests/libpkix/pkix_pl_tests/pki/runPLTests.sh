@@ -95,15 +95,15 @@ TZ=US/Eastern
 ParseArgs $*
 
 RunTests <<EOF
-test_cert NIST-Test-Files-Used ../../certs ${HOSTDIR}/rev_data/local
-test_crl NIST-Test-Files-Used ../../certs
-test_x500name
-test_generalname
-test_date NIST-Test-Files-Used
-test_crlentry ../../certs
-test_nameconstraints NIST-Test-Files-Used rev_data/local ${HOSTDIR}
-test_authorityinfoaccess NIST-PDTest ${NIST_PDTEST} certs/BasicLDAPURIPathDiscoveryOU1EE1.crt certs/BasicHTTPURITrustAnchorRootCert.crt
-test_subjectinfoaccess NIST-PDTest ${NIST_PDTEST} certs/BasicHTTPURITrustAnchorRootCert.crt certs/BasicLDAPURIPathDiscoveryOU1EE1.crt
+pkixutil test_cert NIST-Test-Files-Used ../../certs ${HOSTDIR}/rev_data/local
+pkixutil test_crl NIST-Test-Files-Used ../../certs
+pkixutil test_x500name
+pkixutil test_generalname
+pkixutil test_date NIST-Test-Files-Used
+pkixutil test_crlentry ../../certs
+pkixutil test_nameconstraints NIST-Test-Files-Used rev_data/local ${HOSTDIR}
+pkixutil test_authorityinfoaccess NIST-PDTest ${NIST_PDTEST} certs/BasicLDAPURIPathDiscoveryOU1EE1.crt certs/BasicHTTPURITrustAnchorRootCert.crt
+pkixutil test_subjectinfoaccess NIST-PDTest ${NIST_PDTEST} certs/BasicHTTPURITrustAnchorRootCert.crt certs/BasicLDAPURIPathDiscoveryOU1EE1.crt
 EOF
 
 totalErrors=$?

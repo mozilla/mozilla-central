@@ -47,20 +47,20 @@
 #include "testutil_nss.h"
 
 #define LDAP_PORT 389
-PKIX_Boolean usebind = PKIX_FALSE;
-PKIX_Boolean useLDAP = PKIX_FALSE;
-char buf[PR_NETDB_BUF_SIZE];
-char *serverName = NULL;
-char *sepPtr = NULL;
-PRNetAddr netAddr;
-PRHostEnt hostent;
-PKIX_UInt32 portNum = 0;
-PRIntn hostenum = 0;
-PRStatus prstatus = PR_FAILURE;
-void *ipaddr = NULL;
+static PKIX_Boolean usebind = PKIX_FALSE;
+static PKIX_Boolean useLDAP = PKIX_FALSE;
+static char buf[PR_NETDB_BUF_SIZE];
+static char *serverName = NULL;
+static char *sepPtr = NULL;
+static PRNetAddr netAddr;
+static PRHostEnt hostent;
+static PKIX_UInt32 portNum = 0;
+static PRIntn hostenum = 0;
+static PRStatus prstatus = PR_FAILURE;
+static void *ipaddr = NULL;
 
 
-void *plContext = NULL;
+static void *plContext = NULL;
 
 static void printUsage(void) {
     (void) printf("\nUSAGE:\ttest_buildchain [-arenas] [usebind] "
@@ -122,7 +122,7 @@ cleanup:
 
 }
 
-int main(int argc, char *argv[])
+int test_buildchain(int argc, char *argv[])
 {
         PKIX_BuildResult *buildResult = NULL;
         PKIX_ComCertSelParams *certSelParams = NULL;

@@ -55,7 +55,7 @@ testunit=CHECKER
 ParseArgs $*
 
 RunTests <<EOF
-test_certchainchecker
+pkixutil test_certchainchecker
 EOF
 
 totalErrors=$?

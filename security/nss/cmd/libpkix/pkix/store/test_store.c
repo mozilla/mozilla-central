@@ -44,8 +44,9 @@
 #include "testutil.h"
 #include "testutil_nss.h"
 
-void *plContext = NULL;
+static void *plContext = NULL;
 
+static
 PKIX_Error *testCRLCallback(
         PKIX_CertStore *store,
         PKIX_CRLSelector *selector,
@@ -56,6 +57,7 @@ PKIX_Error *testCRLCallback(
         return (0);
 }
 
+static
 PKIX_Error *testCRLContinue(
         PKIX_CertStore *store,
         PKIX_CRLSelector *selector,
@@ -66,6 +68,7 @@ PKIX_Error *testCRLContinue(
         return (0);
 }
 
+static
 PKIX_Error *testCertCallback(
         PKIX_CertStore *store,
         PKIX_CertSelector *selector,
@@ -76,6 +79,7 @@ PKIX_Error *testCertCallback(
         return (0);
 }
 
+static
 PKIX_Error *testCertContinue(
         PKIX_CertStore *store,
         PKIX_CertSelector *selector,
@@ -111,6 +115,7 @@ cleanup:
         return (pathName);
 }
 
+static
 void testCertStore(char *crlDir)
 {
         PKIX_PL_String *dirString = NULL;
@@ -176,13 +181,14 @@ cleanup:
 }
 
 
+static
 void printUsage(char *pName){
         printf("\nUSAGE: %s testName <data-dir> <platform-dir>\n\n", pName);
 }
 
 /* Functional tests for CertStore public functions */
 
-int main(int argc, char *argv[]) {
+int test_store(int argc, char *argv[]) {
 
         char *platformDir = NULL;
         char *dataDir = NULL;

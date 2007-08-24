@@ -44,7 +44,7 @@
 #include "testutil.h"
 #include "testutil_nss.h"
 
-void *plContext = NULL;
+static void *plContext = NULL;
 
 static char *catDirName(char *platform, char *dir, void *plContext)
 {
@@ -107,6 +107,7 @@ cleanup:
         PKIX_TEST_RETURN();
 }
 
+static
 void printUsage(void) {
         (void) printf
 		("\nUSAGE:\ttest_nameconstraints <test-purpose>"
@@ -115,7 +116,7 @@ void printUsage(void) {
 
 /* Functional tests for CRL public functions */
 
-int main(int argc, char *argv[]) {
+int test_nameconstraints(int argc, char *argv[]) {
         PKIX_UInt32 actualMinorVersion;
         PKIX_UInt32 j = 0;
         char *platformDir = NULL;

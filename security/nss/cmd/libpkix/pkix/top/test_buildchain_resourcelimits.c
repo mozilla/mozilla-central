@@ -46,11 +46,11 @@
 
 #define PKIX_TESTUSERCHECKER_TYPE (PKIX_NUMTYPES+30)
 
-void *plContext = NULL;
-PKIX_Boolean usebind = PKIX_FALSE;
-PKIX_Boolean useLDAP = PKIX_FALSE;
-char buf[PR_NETDB_BUF_SIZE];
-char *serverName = NULL;
+static void *plContext = NULL;
+static PKIX_Boolean usebind = PKIX_FALSE;
+static PKIX_Boolean useLDAP = PKIX_FALSE;
+static char buf[PR_NETDB_BUF_SIZE];
+static char *serverName = NULL;
 
 static void printUsage(void) {
     (void) printf("\nUSAGE:\ttest_buildchain_resourcelimits [-arenas] "
@@ -262,7 +262,7 @@ cleanup:
 
 }
 
-int main(int argc, char *argv[])
+int test_buildchain_resourcelimits(int argc, char *argv[])
 {
         PKIX_ComCertSelParams *certSelParams = NULL;
         PKIX_CertSelector *certSelector = NULL;

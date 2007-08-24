@@ -44,8 +44,9 @@
 #include "testutil.h"
 #include "testutil_nss.h"
 
-void *plContext = NULL;
+static void *plContext = NULL;
 
+static
 void createCRLs(
         char *dataDir,
         char *goodInput,
@@ -237,13 +238,14 @@ cleanup:
         PKIX_TEST_RETURN();
 }
 
+static
 void printUsage(void) {
         (void) printf("\nUSAGE:\ttest_crl <test-purpose> <data-central-dir>\n\n");
 }
 
 /* Functional tests for CRL public functions */
 
-int main(int argc, char *argv[]) {
+int test_crl(int argc, char *argv[]) {
         PKIX_PL_CRL *goodObject = NULL;
         PKIX_PL_CRL *equalObject = NULL;
         PKIX_PL_CRL *diffObject = NULL;

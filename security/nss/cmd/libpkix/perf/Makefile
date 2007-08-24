@@ -46,7 +46,6 @@ include manifest.mn
 # (2) Include "global" configuration information. (OPTIONAL)          #
 #######################################################################
 
-include $(PKIX_DEPTH)/pkixrules.mk
 include $(CORE_DEPTH)/coreconf/config.mk
 
 #######################################################################
@@ -58,7 +57,6 @@ include $(CORE_DEPTH)/coreconf/config.mk
 #######################################################################
 
 include $(PLAT_DEPTH)/platlibs.mk
-include $(PKIX_DEPTH)/pkixlibs.mk
 
 #######################################################################
 # (5) Execute "global" rules. (OPTIONAL)                              #
@@ -69,8 +67,6 @@ include $(CORE_DEPTH)/coreconf/rules.mk
 #######################################################################
 # (6) Execute "component" rules. (OPTIONAL)                           #
 #######################################################################
-
-
 
 #######################################################################
 # (7) Execute "local" rules. (OPTIONAL).                              #

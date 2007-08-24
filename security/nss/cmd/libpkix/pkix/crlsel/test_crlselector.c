@@ -44,7 +44,7 @@
 #include "testutil.h"
 #include "testutil_nss.h"
 
-void *plContext = NULL;
+static void *plContext = NULL;
 
 static void
 testGetMatchCallback(PKIX_CRLSelector *goodObject)
@@ -68,6 +68,7 @@ cleanup:
 
 }
 
+static
 void testGetCRLSelectorContext(PKIX_CRLSelector *goodObject)
 {
         PKIX_PL_Object *context = NULL;
@@ -89,6 +90,7 @@ cleanup:
         PKIX_TEST_RETURN();
 }
 
+static
 void testCommonCRLSelectorParams(PKIX_CRLSelector *goodObject){
         PKIX_ComCRLSelParams *setParams = NULL;
         PKIX_ComCRLSelParams *getParams = NULL;
@@ -142,7 +144,7 @@ cleanup:
 
 /* Functional tests for CRLSelector public functions */
 
-int main(int argc, char *argv[]){
+int test_crlselector(int argc, char *argv[]){
 
         PKIX_PL_Date *context = NULL;
         PKIX_CRLSelector *goodObject = NULL;

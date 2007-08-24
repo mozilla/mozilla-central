@@ -44,9 +44,9 @@
 #include "testutil.h"
 #include "testutil_nss.h"
 
-void *plContext = NULL;
+static void *plContext = NULL;
 
-int main(int argc, char *argv[]) {
+int test_list2(int argc, char *argv[]) {
 
         PKIX_List *list;
         char *temp;

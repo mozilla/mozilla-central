@@ -44,9 +44,9 @@
 #include "testutil.h"
 #include "testutil_nss.h"
 
-void *plContext = NULL;
+static void *plContext = NULL;
 
-int main(int argc, char *argv[]) {
+int stress_test(int argc, char *argv[]) {
 
         PKIX_UInt32 i, k, length, hashcode;
         PKIX_UInt32 size = 17576;

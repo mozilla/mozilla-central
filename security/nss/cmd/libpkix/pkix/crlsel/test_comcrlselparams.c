@@ -44,7 +44,7 @@
 #include "testutil.h"
 #include "testutil_nss.h"
 
-void *plContext = NULL;
+static void *plContext = NULL;
 
 static void
 testIssuer(PKIX_ComCRLSelParams *goodObject)
@@ -198,6 +198,7 @@ cleanup:
 
 }
 
+static
 void testCertificateChecking(
         char *dataCentralDir,
         char *goodInput,
@@ -243,6 +244,7 @@ cleanup:
         PKIX_TEST_RETURN();
 }
 
+static
 void testDateAndTime(PKIX_ComCRLSelParams *goodObject){
 
         PKIX_PL_Date *setDate = NULL;
@@ -282,6 +284,7 @@ cleanup:
         PKIX_TEST_RETURN();
 }
 
+static
 void testMaxMinCRLNumbers(PKIX_ComCRLSelParams *goodObject){
         PKIX_PL_BigInt *setMaxCrlNumber = NULL;
         PKIX_PL_BigInt *getMaxCrlNumber = NULL;
@@ -368,6 +371,7 @@ cleanup:
         PKIX_TEST_RETURN();
 }
 
+static
 void testDuplicate(PKIX_ComCRLSelParams *goodObject){
 
         PKIX_ComCRLSelParams *dupObject = NULL;
@@ -397,13 +401,14 @@ cleanup:
         PKIX_TEST_RETURN();
 }
 
+static
 void printUsage(char *pName){
         printf("\nUSAGE: %s <central-data-dir>\n\n", pName);
 }
 
 /* Functional tests for ComCRLSelParams public functions */
 
-int main(int argc, char *argv[]){
+int test_comcrlselparams(int argc, char *argv[]){
 
         char *dataCentralDir = NULL;
         char *goodInput = "yassir2yassir";

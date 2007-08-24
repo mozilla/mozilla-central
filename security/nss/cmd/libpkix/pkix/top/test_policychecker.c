@@ -46,8 +46,9 @@
 
 #define PKIX_TEST_MAX_CERTS     10
 
-void *plContext = NULL;
+static void *plContext = NULL;
 
+static
 void printUsage(char *testname) {
         char *fmt =
                 "USAGE: %s testname"
@@ -59,12 +60,14 @@ void printUsage(char *testname) {
         printf(fmt, testname);
 }
 
+static
 void printUsageMax(PKIX_UInt32 numCerts)
 {
         printf("\nUSAGE ERROR: number of certs %d exceed maximum %d\n",
                 numCerts, PKIX_TEST_MAX_CERTS);
 }
 
+static
 PKIX_List *policySetParse(char *policyString)
 {
         char *p = NULL;
@@ -157,7 +160,7 @@ cleanup:
  * RETURNS:
  *  Nothing.
  */
-void
+static void
 treeToStringHelper(PKIX_PolicyNode *parent, char *expected)
 {
         PKIX_PL_String *stringRep = NULL;
@@ -188,6 +191,7 @@ cleanup:
         PKIX_TEST_RETURN();
 }
 
+static
 void testPass(char *dirName, char *goodInput, char *diffInput, char *dateAscii){
 
         PKIX_List *chain = NULL;
@@ -228,6 +232,7 @@ cleanup:
         PKIX_TEST_RETURN();
 }
 
+static
 void testNistTest1(char *dirName)
 {
 #define PKIX_TEST_NUM_CERTS     2
@@ -302,6 +307,7 @@ cleanup:
         PKIX_TEST_RETURN();
 }
 
+static
 void testNistTest2(char *dirName)
 {
 #define PKIX_TEST_NUM_CERTS     2
@@ -403,7 +409,7 @@ cleanup:
         PKIX_TEST_RETURN();
 }
 
-int main(int argc, char *argv[])
+int test_policychecker(int argc, char *argv[])
 {
 
         PKIX_Boolean initialPolicyMappingInhibit = PKIX_FALSE;

@@ -44,7 +44,7 @@
 #include "testutil.h"
 #include "testutil_nss.h"
 
-void *plContext = NULL;
+static void *plContext = NULL;
 
 static void
 testDestroy(void *goodObject, void *equalObject, void *diffObject)
@@ -63,7 +63,7 @@ cleanup:
 
 }
 
-int main(int argc, char *argv[]) {
+int test_resourcelimits(int argc, char *argv[]) {
 
         PKIX_ResourceLimits *goodObject = NULL;
         PKIX_ResourceLimits *equalObject = NULL;

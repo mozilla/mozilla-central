@@ -44,8 +44,9 @@
 #include "testutil.h"
 #include "testutil_nss.h"
 
-void *plContext = NULL;
+static void *plContext = NULL;
 
+static
 void createErrors(
         PKIX_Error **error,
         PKIX_Error **error2,
@@ -138,6 +139,7 @@ cleanup:
         PKIX_TEST_RETURN();
 }
 
+static
 void testGetErrorCode(PKIX_Error *error, PKIX_Error *error2){
 
         PKIX_UInt32 code;
@@ -171,6 +173,7 @@ cleanup:
 
 }
 
+static
 void testGetDescription(
         PKIX_Error *error,
         PKIX_Error *error2,
@@ -226,6 +229,7 @@ cleanup:
         PKIX_TEST_RETURN();
 }
 
+static
 void testGetCause(PKIX_Error *error, PKIX_Error *error2, PKIX_Error *error3){
 
         PKIX_Error *error4 = NULL;
@@ -275,6 +279,7 @@ cleanup:
 
 }
 
+static
 void testGetSupplementaryInfo(PKIX_Error *error, char *infoChar){
 
         PKIX_PL_Object *targetString = NULL;
@@ -301,7 +306,7 @@ cleanup:
 
 }
 
-void
+static void
 testPrimitiveError(void)
 {
         PKIX_PL_String *targetString = NULL;
@@ -334,7 +339,7 @@ cleanup:
         PKIX_TEST_RETURN();
 }
 
-void
+static void
 testChaining(PKIX_Error *error7)
 {
         PKIX_PL_String *targetString = NULL;
@@ -375,7 +380,7 @@ cleanup:
         PKIX_TEST_RETURN();
 }
 
-void
+static void
 testDestroy(PKIX_Error *error)
 {
         PKIX_TEST_STD_VARS();
@@ -387,7 +392,7 @@ cleanup:
         PKIX_TEST_RETURN();
 }
 
-int main(int argc, char *argv[]) {
+int test_error(int argc, char *argv[]) {
 
         PKIX_Error *error, *error2, *error3, *error5, *error6, *error7;
         char *descChar = "Error Message";

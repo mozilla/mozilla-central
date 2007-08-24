@@ -44,8 +44,9 @@
 #include "testutil.h"
 #include "testutil_nss.h"
 
-void *plContext = NULL;
+static void *plContext = NULL;
 
+static
 void printUsage(void){
         (void) printf("\nUSAGE:\ntest_validateChain_NB TestName [ENE|EE] "
                     "<certStoreDirectory> <trustedCert> <targetCert>\n\n");
@@ -58,6 +59,7 @@ void printUsage(void){
                 "If EE is specified, an Error is Expected.\n");
 }
 
+static
 char *createFullPathName(
         char *dirName,
         char *certFile,
@@ -89,7 +91,7 @@ cleanup:
         return (certPathName);
 }
 
-PKIX_Error *
+static PKIX_Error *
 testSetupCertStore(PKIX_ValidateParams *valParams, char *ldapName)
 {
         PKIX_PL_String *dirString = NULL;
@@ -137,11 +139,11 @@ cleanup:
         return (0);
 }
 
-char *levels[] = {
+static char *levels[] = {
         "None", "Fatal Error", "Error", "Warning", "Debug", "Trace"
 };
 
-PKIX_Error *loggerCallback(
+static PKIX_Error *loggerCallback(
         PKIX_Logger *logger,
         PKIX_PL_String *message,
         PKIX_UInt32 logLevel,
@@ -167,6 +169,7 @@ cleanup:
         PKIX_TEST_RETURN();
 }
 
+static
 void testLogErrors(
 	PKIX_ERRORNUM module,
 	PKIX_UInt32 loggingLevel,
@@ -194,7 +197,7 @@ cleanup:
         PKIX_TEST_RETURN();
 }
 
-int main(int argc, char *argv[]){
+int test_validatechain_NB(int argc, char *argv[]){
 
         PKIX_ValidateParams *valParams = NULL;
         PKIX_ValidateResult *valResult = NULL;

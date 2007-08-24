@@ -50,7 +50,7 @@
 #define PKIX_TEST_CERTSELECTOR_ISSUER_NUM_CERTS 4
 #define PKIX_TEST_CERTSELECTOR_SERIALNUMBER_NUM_CERTS 1
 
-void *plContext = NULL;
+static void *plContext = NULL;
 
 /*
  * The first three certs are used to obtain policies to test
@@ -141,6 +141,7 @@ static char *sanCertList[] = {
  * (For example, if you expect every cert to pass, "expectedResult" can be
  * set to 0xFFFFFFFF, even if the chain has fewer than 32 certs.)
  */
+static
 void testSelector(
         PKIX_CertSelector *selector,
         PKIX_List *certs,
@@ -199,7 +200,7 @@ cleanup:
  * to the index provided by "index", creates an immutable List containing the
  * OID of that policy, and stores the result at "pPolicyList".
  */
-void testGetPolicyFromCert(
+static void testGetPolicyFromCert(
         PKIX_PL_Cert *cert,
         PKIX_UInt32 index,
         PKIX_List **pPolicyList)
@@ -412,6 +413,7 @@ cleanup:
         return(error);
 }
 
+static 
 void testSubjectMatch(
         PKIX_List *certs,
         PKIX_PL_Cert *certNameToMatch)
@@ -445,6 +447,7 @@ cleanup:
         PKIX_TEST_RETURN();
 }
 
+static 
 void testBasicConstraintsMatch(
         PKIX_List *certs)
 {
@@ -502,6 +505,7 @@ cleanup:
         PKIX_TEST_RETURN();
 }
 
+static 
 void testPolicyMatch(
         PKIX_List *certs,
         PKIX_PL_Cert *NIST1Cert, /* a source for policy NIST1 */
@@ -584,6 +588,7 @@ cleanup:
         PKIX_TEST_RETURN();
 }
 
+static 
 void testCertificateMatch(
         PKIX_List *certs,
         PKIX_PL_Cert *certToMatch)
@@ -613,6 +618,7 @@ cleanup:
         PKIX_TEST_RETURN();
 }
 
+static 
 void testNameConstraintsMatch(PKIX_List *certs)
 {
         PKIX_CertSelector *selector = NULL;
@@ -743,6 +749,7 @@ cleanup:
         PKIX_TEST_RETURN();
 }
 
+static 
 void testPathToNamesMatch(PKIX_List *certs)
 {
         PKIX_CertSelector *selector = NULL;
@@ -917,6 +924,7 @@ cleanup:
         PKIX_TEST_RETURN();
 }
 
+static 
 void testSubjAltNamesMatch(PKIX_List *certs)
 {
         PKIX_CertSelector *selector = NULL;
@@ -996,6 +1004,7 @@ cleanup:
         PKIX_TEST_RETURN();
 }
 
+static 
 void testCertificateValidMatch(
         PKIX_List *certs)
 {
@@ -1034,6 +1043,7 @@ cleanup:
         PKIX_TEST_RETURN();
 }
 
+static
 void test_customCallback1(PKIX_List *certs)
 {
         PKIX_CertSelector *selector = NULL;
@@ -1057,6 +1067,7 @@ cleanup:
         PKIX_TEST_RETURN();
 }
 
+static 
 void test_customCallback2
         (PKIX_List *certs,
         PKIX_PL_Cert *anyPolicyCert) /* a source for policy anyPolicy */
@@ -1091,6 +1102,7 @@ cleanup:
         PKIX_TEST_RETURN();
 }
 
+static 
 void testExtendedKeyUsageMatch(char *certDir)
 {
         PKIX_ComCertSelParams *goodParams = NULL;
@@ -1178,6 +1190,7 @@ cleanup:
         PKIX_TEST_RETURN();
 }
 
+static 
 void testKeyUsageMatch(char *certDir)
 {
         PKIX_ComCertSelParams *goodParams = NULL;
@@ -1242,6 +1255,7 @@ cleanup:
         PKIX_TEST_RETURN();
 }
 
+static 
 void testCertValidMatch(char *certDir)
 {
         PKIX_ComCertSelParams *goodParams = NULL;
@@ -1310,6 +1324,7 @@ cleanup:
         PKIX_TEST_RETURN();
 }
 
+static 
 void testIssuerMatch(char *certDir)
 {
         PKIX_ComCertSelParams *goodParams = NULL;
@@ -1385,6 +1400,7 @@ cleanup:
         PKIX_TEST_RETURN();
 }
 
+static 
 void testSerialNumberVersionMatch(char *certDir)
 {
         PKIX_ComCertSelParams *goodParams = NULL;
@@ -1480,6 +1496,7 @@ cleanup:
         PKIX_TEST_RETURN();
 }
 
+static 
 void testSubjKeyIdMatch(PKIX_List *certs)
 {
         PKIX_CertSelector *selector = NULL;
@@ -1527,6 +1544,7 @@ cleanup:
         PKIX_TEST_RETURN();
 }
 
+static 
 void testAuthKeyIdMatch(PKIX_List *certs)
 {
         PKIX_CertSelector *selector = NULL;
@@ -1575,6 +1593,7 @@ cleanup:
         PKIX_TEST_RETURN();
 }
 
+static 
 void testSubjPKAlgIdMatch(PKIX_List *certs)
 {
         PKIX_CertSelector *selector = NULL;
@@ -1621,6 +1640,7 @@ cleanup:
         PKIX_TEST_RETURN();
 }
 
+static 
 void testSubjPublicKeyMatch(PKIX_List *certs)
 {
         PKIX_CertSelector *selector = NULL;
@@ -1667,6 +1687,7 @@ cleanup:
         PKIX_TEST_RETURN();
 }
 
+static 
 void test_CertSelector_Duplicate(PKIX_CertSelector *selector)
 {
         PKIX_Int32 goodBasicConstraints = 0;
@@ -1799,11 +1820,12 @@ cleanup:
         PKIX_TEST_RETURN();
 }
 
+static 
 void printUsage(void) {
         (void) printf("\nUSAGE:\ttest_certselector <NIST_FILES_DIR> <cert-dir>\n\n");
 }
 
-int main(int argc, char *argv[]) {
+int test_certselector(int argc, char *argv[]) {
 
         PKIX_UInt32 i = 0;
         PKIX_UInt32 j = 0;

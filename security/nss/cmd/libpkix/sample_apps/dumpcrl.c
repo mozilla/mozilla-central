@@ -54,19 +54,21 @@
 #include "secasn1t.h"
 #include "certt.h"
 
-void *plContext = NULL;
+static void *plContext = NULL;
 
+static 
 void printUsage(void){
         (void) printf("\nUSAGE:\tdumpcrl <crlFile>\n");
         (void) printf("\tParses a CRL located at <crlFile> "
                 "and displays it.\n");
 }
 
+static 
 void printFailure(char *msg){
         (void) printf("FAILURE: %s\n", msg);
 }
 
-PKIX_PL_CRL *
+static PKIX_PL_CRL *
 createCRL(char *inFileName)
 {
         PKIX_PL_ByteArray *byteArray = NULL;
@@ -133,7 +135,7 @@ cleanup:
         return (crl);
 }
 
-int main(int argc, char *argv[])
+int dumpcrl(int argc, char *argv[])
 {
 
         PKIX_PL_String *string = NULL;

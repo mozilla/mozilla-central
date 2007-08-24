@@ -46,7 +46,7 @@
 #include "testutil.h"
 #include "testutil_nss.h"
 
-void *plContext = NULL;
+static void *plContext = NULL;
 
 static void
 createDates(char *goodInput, char *diffInput,
@@ -82,6 +82,7 @@ cleanup:
 
 }
 
+static
 void testDate(char *goodInput, char *diffInput){
 
         PKIX_PL_Date *goodDate = NULL;
@@ -110,7 +111,7 @@ void testDate(char *goodInput, char *diffInput){
 
 }
 
-int main(int argc, char *argv[]) {
+int test_date(int argc, char *argv[]) {
 
         char *goodInput = NULL;
         char *diffInput = NULL;

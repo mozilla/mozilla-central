@@ -44,8 +44,9 @@
 #include "testutil.h"
 #include "testutil_nss.h"
 
-void *plContext = NULL;
+static void *plContext = NULL;
 
+static
 void createMutexes(
         PKIX_PL_Mutex **mutex,
         PKIX_PL_Mutex **mutex2,
@@ -64,6 +65,7 @@ cleanup:
         PKIX_TEST_RETURN();
 }
 
+static
 void testLock(PKIX_PL_Mutex *mutex)
 {
         PKIX_TEST_STD_VARS();
@@ -75,6 +77,7 @@ cleanup:
         PKIX_TEST_RETURN();
 }
 
+static
 void testDestroy(
         PKIX_PL_Mutex *mutex,
         PKIX_PL_Mutex *mutex2,
@@ -90,7 +93,7 @@ cleanup:
         PKIX_TEST_RETURN();
 }
 
-int main(int argc, char *argv[]) {
+int test_mutex(int argc, char *argv[]) {
 
         PKIX_PL_Mutex *mutex, *mutex2, *mutex3;
         PKIX_UInt32 actualMinorVersion;

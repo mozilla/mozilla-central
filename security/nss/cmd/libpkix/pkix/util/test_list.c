@@ -44,9 +44,9 @@
 #include "testutil.h"
 #include "testutil_nss.h"
 
-void *plContext = NULL;
+static void *plContext = NULL;
 
-void
+static void
 createLists(PKIX_List **list, PKIX_List **list2)
 {
         PKIX_TEST_STD_VARS();
@@ -59,7 +59,7 @@ cleanup:
         PKIX_TEST_RETURN();
 }
 
-void
+static void
 testReverseList(void)
 {
         PKIX_List *firstList = NULL;
@@ -176,7 +176,7 @@ cleanup:
         PKIX_TEST_RETURN();
 }
 
-void
+static void
 testZeroLengthList(PKIX_List *list)
 {
         PKIX_UInt32 length;
@@ -257,7 +257,7 @@ cleanup:
         PKIX_TEST_RETURN();
 }
 
-void
+static void
 testGetLength(PKIX_List *list)
 {
         PKIX_UInt32 length;
@@ -275,7 +275,7 @@ cleanup:
         PKIX_TEST_RETURN();
 }
 
-void
+static void
 testGetSetItem(
         PKIX_List *list,
         char *testItemString,
@@ -396,7 +396,7 @@ cleanup:
         PKIX_TEST_RETURN();
 }
 
-void
+static void
 testInsertItem(
         PKIX_List *list,
         PKIX_PL_String *testItem,
@@ -441,7 +441,7 @@ cleanup:
         PKIX_TEST_RETURN();
 }
 
-void
+static void
 testAppendItem(PKIX_List *list, PKIX_PL_String *testItem)
 {
         PKIX_UInt32 length2;
@@ -474,7 +474,7 @@ cleanup:
         PKIX_TEST_RETURN();
 }
 
-void
+static void
 testNestedLists(
         PKIX_List *list,
         PKIX_List *list2,
@@ -533,7 +533,7 @@ cleanup:
         PKIX_TEST_RETURN();
 }
 
-void
+static void
 testDeleteItem(
         PKIX_List *list,
         PKIX_List *list2,
@@ -659,7 +659,7 @@ cleanup:
 
 #if testContainsFunction
 /* This test requires pkix_List_Contains to be in nss.def */
-void
+static void
 testContains(void)
 {
 
@@ -743,7 +743,7 @@ cleanup:
 }
 #endif
 
-void
+static void
 testErrorHandling(void)
 {
         PKIX_List *emptylist = NULL;
@@ -779,7 +779,7 @@ cleanup:
         PKIX_TEST_RETURN();
 }
 
-void
+static void
 testDestroy(PKIX_List *list)
 {
         PKIX_TEST_STD_VARS();
@@ -791,7 +791,7 @@ cleanup:
         PKIX_TEST_RETURN();
 }
 
-int main(int argc, char *argv[]) {
+int test_list(int argc, char *argv[]) {
 
         PKIX_List *list, *list2;
         PKIX_PL_String *testItem, *testItem2, *testItem3;

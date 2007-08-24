@@ -44,8 +44,9 @@
 #include "testutil.h"
 #include "testutil_nss.h"
 
-void *plContext = NULL;
+static void *plContext = NULL;
 
+static
 void createTrustAnchors(
         char *dirName,
         char *goodInput,
@@ -66,6 +67,7 @@ void createTrustAnchors(
                         (dirName, goodInput, PKIX_TRUE, plContext);
 }
 
+static
 void testGetCAName(
         PKIX_PL_Cert *diffCert,
         PKIX_TrustAnchor *equalObject){
@@ -95,6 +97,7 @@ cleanup:
         PKIX_TEST_RETURN();
 }
 
+static
 void testGetCAPublicKey(
         PKIX_PL_Cert *diffCert,
         PKIX_TrustAnchor *equalObject){
@@ -124,6 +127,7 @@ cleanup:
         PKIX_TEST_RETURN();
 }
 
+static
 void testGetNameConstraints(char *dirName)
 {
         PKIX_TrustAnchor *goodObject = NULL;
@@ -211,11 +215,12 @@ cleanup:
 
 }
 
+static
 void printUsage(void) {
         (void) printf("\nUSAGE:\ttest_trustanchor <NIST_FILES_DIR> <central-data-dir>\n\n");
 }
 
-int main(int argc, char *argv[]) {
+int test_trustanchor(int argc, char *argv[]) {
 
         PKIX_TrustAnchor *goodObject = NULL;
         PKIX_TrustAnchor *equalObject = NULL;

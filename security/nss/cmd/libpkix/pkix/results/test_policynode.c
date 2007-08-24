@@ -44,7 +44,7 @@
 #include "testutil.h"
 #include "testutil_nss.h"
 
-void *plContext =  NULL;
+static void *plContext =  NULL;
 
 static void
 test_GetChildren(
@@ -357,11 +357,12 @@ cleanup:
         PKIX_TEST_RETURN();
 }
 
+static
 void printUsage(void) {
         (void) printf("\nUSAGE:\ttest_policynode <NIST_FILES_DIR> \n\n");
 }
 
-int main(int argc, char *argv[]) {
+int test_policynode(int argc, char *argv[]) {
 
         /*
          * Create a tree with parent = anyPolicy,

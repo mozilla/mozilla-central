@@ -44,9 +44,9 @@
 #include "testutil.h"
 #include "testutil_nss.h"
 
-void *plContext = NULL;
+static void *plContext = NULL;
 
-void
+static void
 createString(
         PKIX_PL_String **testString,
         PKIX_UInt32 format,
@@ -64,7 +64,7 @@ cleanup:
         PKIX_TEST_RETURN();
 }
 
-void
+static void
 createStringOther(
         PKIX_PL_String **testEscAscii,
         PKIX_PL_String **testUtf16,
@@ -111,7 +111,7 @@ cleanup:
         PKIX_TEST_RETURN();
 }
 
-void
+static void
 testGetEncoded(
         PKIX_PL_String *testEscAscii,
         PKIX_PL_String *testString0,
@@ -188,7 +188,7 @@ cleanup:
         PKIX_TEST_RETURN();
 }
 
-void
+static void
 testSprintf(void)
 {
         PKIX_Int32 x = 0xCAFE;
@@ -245,7 +245,7 @@ cleanup:
         PKIX_TEST_RETURN();
 }
 
-void
+static void
 testErrorHandling(void)
 {
         char *debugAsciiString =
@@ -369,7 +369,7 @@ cleanup:
         PKIX_TEST_RETURN();
 }
 
-void
+static void
 testDestroy(
         PKIX_PL_String *string)
 {
@@ -383,7 +383,7 @@ cleanup:
 }
 
 
-int main(int argc, char *argv[]) {
+int test_string(int argc, char *argv[]) {
 
         PKIX_PL_String *testString[6] = {NULL};
         PKIX_PL_String *testNullString = NULL;

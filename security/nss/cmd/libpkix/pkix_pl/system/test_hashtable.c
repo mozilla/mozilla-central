@@ -44,9 +44,9 @@
 #include "testutil.h"
 #include "testutil_nss.h"
 
-void *plContext = NULL;
+static void *plContext = NULL;
 
-void
+static void
 createHashTables(
         PKIX_PL_HashTable **ht,
         PKIX_PL_HashTable **ht2,
@@ -72,7 +72,7 @@ cleanup:
         PKIX_TEST_RETURN();
 }
 
-void
+static void
 testAdd(
         PKIX_PL_HashTable *ht,
         PKIX_PL_HashTable *ht2,
@@ -157,7 +157,7 @@ cleanup:
         PKIX_TEST_RETURN();
 }
 
-void
+static void
 testAddFIFO(
         PKIX_PL_HashTable *ht,
         PKIX_PL_String **testString,
@@ -222,7 +222,7 @@ cleanup:
         PKIX_TEST_RETURN();
 }
 
-void
+static void
 testLookup(
         PKIX_PL_HashTable *ht,
         PKIX_PL_HashTable *ht2,
@@ -345,7 +345,7 @@ cleanup:
         PKIX_TEST_RETURN();
 }
 
-void
+static void
 testRemove(
         PKIX_PL_HashTable *ht,
         PKIX_PL_HashTable *ht2,
@@ -380,7 +380,7 @@ cleanup:
         PKIX_TEST_RETURN();
 }
 
-void
+static void
 testDestroy(
         PKIX_PL_HashTable *ht,
         PKIX_PL_HashTable *ht2,
@@ -401,7 +401,7 @@ cleanup:
 
 
 
-int main(int argc, char *argv[]) {
+int test_hashtable(int argc, char *argv[]) {
 
         PKIX_PL_HashTable *ht, *ht2, *ht3, *ht4;
         PKIX_PL_String *testString, *testString2, *testString3;

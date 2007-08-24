@@ -56,17 +56,17 @@ testunit=SYSTEM
 ParseArgs $*
 
 RunTests <<EOF
-test_mem
-test_object
-test_string
-test_bigint
-test_bytearray
-test_mutex
-test_mutex2
-test_mutex3
-test_monitorlock
-test_oid
-test_hashtable
+pkixutil test_mem
+pkixutil test_object
+pkixutil test_string
+pkixutil test_bigint
+pkixutil test_bytearray
+pkixutil test_mutex
+pkixutil test_mutex2
+pkixutil test_mutex3
+pkixutil test_monitorlock
+pkixutil test_oid
+pkixutil test_hashtable
 EOF
 
 totalErrors=$?

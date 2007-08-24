@@ -46,19 +46,20 @@
 
 #define PKIX_TEST_MAX_CERTS     10
 
-void *plContext = NULL;
+static void *plContext = NULL;
 
+static 
 void printUsage1(char *pName){
         printf("\nUSAGE: %s test-purpose [ENE|EE] ", pName);
         printf("[E]oid[,oid]* <data-dir> cert [certs].\n");
 }
 
-void printUsageMax(PKIX_UInt32 numCerts){
+static void printUsageMax(PKIX_UInt32 numCerts){
         printf("\nUSAGE ERROR: number of certs %d exceed maximum %d\n",
                 numCerts, PKIX_TEST_MAX_CERTS);
 }
 
-PKIX_Error *
+static PKIX_Error *
 testCertSelectorMatchCallback(
         PKIX_CertSelector *selector,
         PKIX_PL_Cert *cert,
@@ -70,7 +71,7 @@ testCertSelectorMatchCallback(
         return (0);
 }
 
-PKIX_Error *
+static PKIX_Error *
 testEkuSetup(
         PKIX_ValidateParams *valParams,
         char *ekuOidString,
@@ -183,7 +184,7 @@ cleanup:
         return (0);
 }
 
-PKIX_Error *
+static PKIX_Error *
 testEkuChecker(
         PKIX_ValidateParams *valParams,
         PKIX_Boolean only4EE)
@@ -214,7 +215,7 @@ cleanup:
         return (0);
 }
 
-int main(int argc, char *argv[]){
+int test_ekuchecker(int argc, char *argv[]){
         PKIX_List *chain = NULL;
         PKIX_ValidateParams *valParams = NULL;
         PKIX_ValidateResult *valResult = NULL;

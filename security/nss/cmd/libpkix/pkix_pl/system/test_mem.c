@@ -44,8 +44,9 @@
 #include "testutil.h"
 #include "testutil_nss.h"
 
-void *plContext = NULL;
+static void *plContext = NULL;
 
+static
 void testMalloc(PKIX_UInt32 **array)
 {
         PKIX_UInt32 i, arraySize = 10;
@@ -72,6 +73,7 @@ cleanup:
         PKIX_TEST_RETURN();
 }
 
+static
 void testRealloc(PKIX_UInt32 **array)
 {
         PKIX_UInt32 i, arraySize = 20;
@@ -97,6 +99,7 @@ cleanup:
         PKIX_TEST_RETURN();
 }
 
+static
 void testFree(PKIX_UInt32 *array)
 {
 
@@ -107,7 +110,7 @@ cleanup:
         PKIX_TEST_RETURN();
 }
 
-int main(int argc, char *argv[]) {
+int test_mem(int argc, char *argv[]) {
 
         unsigned int *array = NULL;
         int arraySize = 10;

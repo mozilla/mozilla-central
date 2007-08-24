@@ -44,7 +44,7 @@
 #include "testutil.h"
 #include "testutil_nss.h"
 
-void *plContext = NULL;
+static void *plContext = NULL;
 
 static void
 testDestroy(void *goodObject, void *equalObject, void *diffObject)
@@ -63,6 +63,7 @@ cleanup:
 
 }
 
+static
 void testGetProcParams(
         PKIX_ValidateParams *goodObject,
         PKIX_ValidateParams *equalObject){
@@ -94,6 +95,7 @@ cleanup:
 }
 
 
+static
 void testGetCertChain(
         PKIX_ValidateParams *goodObject,
         PKIX_ValidateParams *equalObject){
@@ -124,11 +126,12 @@ cleanup:
         PKIX_TEST_RETURN();
 }
 
+static
 void printUsage(char *pName){
         printf("\nUSAGE: %s <central-data-dir>\n\n", pName);
 }
 
-int main(int argc, char *argv[]) {
+int test_valparams(int argc, char *argv[]) {
 
         PKIX_ValidateParams *goodObject = NULL;
         PKIX_ValidateParams *equalObject = NULL;

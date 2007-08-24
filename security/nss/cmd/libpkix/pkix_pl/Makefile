@@ -46,7 +46,6 @@ include manifest.mn
 # (2) Include "global" configuration information. (OPTIONAL)          #
 #######################################################################
 
-include $(PKIX_DEPTH)/pkixrules.mk
 include $(CORE_DEPTH)/coreconf/config.mk
 
 #######################################################################

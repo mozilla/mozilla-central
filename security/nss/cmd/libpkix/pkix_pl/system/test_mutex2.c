@@ -48,7 +48,7 @@
 static int box1 = 0, box2 = 0, box3 = 0;
 static PKIX_PL_Mutex *mutex;
 static PRCondVar *cv;
-void *plContext = NULL;
+static void *plContext = NULL;
 
 static void consumer(/* ARGSUSED */ void* arg) {
         PRStatus status = PR_SUCCESS;
@@ -108,7 +108,7 @@ static void producer(void* arg) {
         }
 }
 
-int main(int argc, char *argv[]) {
+int test_mutex2(int argc, char *argv[]) {
 
         PRThread *consThread, *prodThread, *prodThread2, *prodThread3;
         int x = 10, y = 20, z = 30;

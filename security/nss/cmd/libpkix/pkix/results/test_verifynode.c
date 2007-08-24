@@ -44,13 +44,14 @@
 #include "testutil.h"
 #include "testutil_nss.h"
 
-void *plContext =  NULL;
+static void *plContext =  NULL;
 
+static
 void printUsage(void) {
         (void) printf("\nUSAGE:\ttest_verifynode path cert1 cert2 cert3\n\n");
 }
 
-int main(int argc, char *argv[]) {
+int test_verifynode(int argc, char *argv[]) {
 
         /*
          * Create a tree with parent = cert1, child=cert2, grandchild=cert3

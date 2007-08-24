@@ -44,7 +44,7 @@
 
 static PKIX_PL_RWLock *rwlock = NULL, *rwlock2 = NULL, *rwlock3 = NULL;
 static PRThread *thread = NULL, *thread2 = NULL, *thread3 = NULL;
-void *plContext = NULL;
+static void *plContext = NULL;
 
 static void reader(void) {
         PKIX_Error *errorResult;
@@ -120,7 +120,7 @@ static void reader2(void) {
 
 
 
-int main() {
+int test_rwlock() {
         PKIX_PL_String* outputString = NULL;
         PKIX_UInt32 j = 0;
         PKIX_Boolean useArenas = PKIX_FALSE;

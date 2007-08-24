@@ -56,8 +56,8 @@ testunit=CRLSEL
 ParseArgs $*
 
 RunTests <<EOF
-test_comcrlselparams ../../certs
-test_crlselector
+pkixutil test_comcrlselparams ../../certs
+pkixutil test_crlselector
 EOF
 
 totalErrors=$?

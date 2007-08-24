@@ -49,9 +49,9 @@
 #define PKIX_TEST_COLLECTIONCERTSTORE_NUM_CRLS 4
 #define PKIX_TEST_COLLECTIONCERTSTORE_NUM_CERTS 15
 
-void *plContext = NULL;
+static void *plContext = NULL;
 
-PKIX_Error *
+static PKIX_Error *
 testCRLSelectorMatchCallback(
         PKIX_CRLSelector *selector,
         PKIX_PL_CRL *crl,
@@ -63,7 +63,7 @@ testCRLSelectorMatchCallback(
         return (0);
 }
 
-PKIX_Error *
+static PKIX_Error *
 testCertSelectorMatchCallback(
         PKIX_CertSelector *selector,
         PKIX_PL_Cert *cert,
@@ -75,7 +75,7 @@ testCertSelectorMatchCallback(
         return (0);
 }
 
-PKIX_Error *
+static PKIX_Error *
 getCertCallback(
         PKIX_CertStore *store,
         PKIX_CertSelector *certSelector,
@@ -110,6 +110,7 @@ cleanup:
         return (pathName);
 }
 
+static 
 void testGetCRL(char *crlDir)
 {
         PKIX_PL_String *dirString = NULL;
@@ -173,6 +174,7 @@ cleanup:
         PKIX_TEST_RETURN();
 }
 
+static 
 void testGetCert(char *certDir)
 {
         PKIX_PL_String *dirString = NULL;
@@ -236,13 +238,13 @@ cleanup:
         PKIX_TEST_RETURN();
 }
 
-void printUsage(char *pName){
+static void printUsage(char *pName){
         printf("\nUSAGE: %s test-purpose <data-dir> <platform-dir>\n\n", pName);
 }
 
 /* Functional tests for CollectionCertStore public functions */
 
-int main(int argc, char *argv[]) {
+int test_colcertstore(int argc, char *argv[]) {
 
         PKIX_UInt32 actualMinorVersion;
         PKIX_Boolean useArenas = PKIX_FALSE;

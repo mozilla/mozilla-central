@@ -55,9 +55,9 @@ testunit=UTIL
 ParseArgs $*
 
 RunTests <<EOF
-test_error
-test_list
-test_list2
+pkixutil test_error
+pkixutil test_list
+pkixutil test_list2
 EOF
 
 totalErrors=$?

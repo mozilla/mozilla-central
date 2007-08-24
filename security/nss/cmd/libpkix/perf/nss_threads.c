@@ -67,7 +67,7 @@ struct ThreadDataStr {
     PRUint32 iterations;
 };
 
-void ThreadEntry(void* data)
+static void ThreadEntry(void* data)
 {
         tData* tdata = (tData*) data;
         PRIntervalTime duration = tdata->duration;
@@ -99,7 +99,7 @@ void ThreadEntry(void* data)
         } while ((PR_IntervalNow() - start) < duration);
 }
 
-void Test(CERTCertificate* cert, PRIntervalTime duration, PRUint32 threads)
+static void Test(CERTCertificate* cert, PRIntervalTime duration, PRUint32 threads)
 {
         tData data;
         tData** alldata;
@@ -150,20 +150,20 @@ void Test(CERTCertificate* cert, PRIntervalTime duration, PRUint32 threads)
 }
 
 
-void finish(char* message, int code)
+static void finish(char* message, int code)
 {
         (void) printf(message);
         exit(code);
 }
 
-void usage(char* progname)
+static void usage(char* progname)
 {
         (void) printf("Usage : %s <duration> <threads> <certnickname>\n\n",
                     progname);
         finish("", 0);
 }
 
-int main(int argc, char** argv)
+int nss_threads(int argc, char** argv)
 {
         SECStatus rv = SECSuccess;
         CERTCertDBHandle *handle = NULL;

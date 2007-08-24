@@ -53,13 +53,15 @@
 
 #define PKIX_TEST_MAX_CERTS     10
 
-void *plContext = NULL;
+static void *plContext = NULL;
 
+static
 void printUsage1(char *pName){
         printf("\nUSAGE: %s test-name [ENE|EE] ", pName);
         printf("cert [certs].\n");
 }
 
+static
 void printUsage2(char *name) {
         printf("\ninvalid test-name syntax - %s", name);
         printf("\ntest-name syntax: [01][DNORU]:<name>+...");
@@ -73,11 +75,13 @@ void printUsage2(char *name) {
         printf("\n                + separator for more names\n\n");
 }
 
+static
 void printUsageMax(PKIX_UInt32 numCerts){
         printf("\nUSAGE ERROR: number of certs %d exceed maximum %d\n",
                 numCerts, PKIX_TEST_MAX_CERTS);
 }
 
+static
 PKIX_UInt32 getNameType(char *name){
         PKIX_UInt32 nameType;
 
@@ -111,7 +115,7 @@ cleanup:
         return (nameType);
 }
 
-int main(int argc, char *argv[]){
+int test_subjaltnamechecker(int argc, char *argv[]){
 
         PKIX_List *chain = NULL;
         PKIX_ValidateParams *valParams = NULL;

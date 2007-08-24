@@ -44,9 +44,9 @@
 #include "testutil.h"
 #include "testutil_nss.h"
 
-void *plContext = NULL;
+static void *plContext = NULL;
 
-void
+static void
 createString(
         PKIX_PL_String **vivaEspanaString,
         PKIX_PL_String **straussString,
@@ -130,7 +130,7 @@ cleanup:
         PKIX_TEST_RETURN();
 }
 
-void
+static void
 testGetEncoded(PKIX_PL_String *string, PKIX_UInt32 format)
 {
         void *dest = NULL;
@@ -155,7 +155,7 @@ cleanup:
 }
 
 
-void
+static void
 testHTMLOutput(
         PKIX_PL_String *vivaEspanaString,
         PKIX_PL_String *straussString,
@@ -296,7 +296,7 @@ cleanup:
         PKIX_TEST_RETURN();
 }
 
-void
+static void
 testDestroy(
         PKIX_PL_String *string)
 {
@@ -309,7 +309,7 @@ cleanup:
         PKIX_TEST_RETURN();
 }
 
-int main(int argc, char *argv[]) {
+int test_string2(int argc, char *argv[]) {
 
         PKIX_PL_String *vivaEspanaString, *straussString, *testUTF16String;
         PKIX_PL_String *chineseString, *jeanRenoString, *gorbachevString;

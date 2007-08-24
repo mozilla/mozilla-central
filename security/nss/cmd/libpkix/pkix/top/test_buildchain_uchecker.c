@@ -46,9 +46,10 @@
 
 #define PKIX_TESTUSERCHECKER_TYPE (PKIX_NUMTYPES+30)
 
-void *plContext = NULL;
+static void *plContext = NULL;
 static PKIX_UInt32 numUserCheckerCalled = 0;
 
+static
 void printUsage(void){
         (void) printf("\nUSAGE:\ttest_buildchain_uchecker [ENE|EE] "
                     "[-|[F]<userOID>] "
@@ -76,7 +77,7 @@ testUserChecker(
         return(0);
 }
 
-int main(int argc, char *argv[])
+int test_buildchain_uchecker(int argc, char *argv[])
 {
         PKIX_BuildResult *buildResult = NULL;
         PKIX_ComCertSelParams *certSelParams = NULL;

@@ -44,9 +44,9 @@
 #include "testutil.h"
 #include "testutil_nss.h"
 
-void *plContext = NULL;
+static void *plContext = NULL;
 
-void
+static void
 createBigInt(
         PKIX_PL_BigInt **bigInts,
         char *bigIntAscii,
@@ -82,7 +82,7 @@ cleanup:
         PKIX_TEST_RETURN();
 }
 
-void
+static void
 testToString(
         PKIX_PL_BigInt *bigInt,
         char *expAscii)
@@ -116,7 +116,7 @@ cleanup:
         PKIX_TEST_RETURN();
 }
 
-void
+static void
 testCompare(
         PKIX_PL_BigInt *firstBigInt,
         PKIX_PL_BigInt *secondBigInt,
@@ -133,7 +133,7 @@ cleanup:
         PKIX_TEST_RETURN();
 }
 
-void
+static void
 testDestroy(
         PKIX_PL_BigInt *bigInt)
 {
@@ -146,7 +146,7 @@ cleanup:
         PKIX_TEST_RETURN();
 }
 
-int main(int argc, char *argv[]) {
+int test_bigint(int argc, char *argv[]) {
 
         PKIX_UInt32 size = 4, badSize = 3, i = 0;
         PKIX_PL_BigInt *testBigInt[4] = {NULL};

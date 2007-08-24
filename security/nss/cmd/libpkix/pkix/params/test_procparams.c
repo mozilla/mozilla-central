@@ -44,7 +44,7 @@
 #include "testutil.h"
 #include "testutil_nss.h"
 
-void *plContext = NULL;
+static void *plContext = NULL;
 
 static void
 testDestroy(void *goodObject, void *equalObject, void *diffObject)
@@ -63,6 +63,7 @@ cleanup:
 
 }
 
+static
 void testGetAnchors(
         PKIX_ProcessingParams *goodObject,
         PKIX_ProcessingParams *equalObject){
@@ -92,6 +93,7 @@ cleanup:
         PKIX_TEST_RETURN();
 }
 
+static
 void testGetSetDate(
         PKIX_ProcessingParams *goodObject,
         PKIX_ProcessingParams *equalObject){
@@ -130,6 +132,7 @@ cleanup:
         PKIX_TEST_RETURN();
 }
 
+static
 PKIX_Error *userChecker1cb(
         PKIX_CertChainChecker *checker,
         PKIX_PL_Cert *cert,
@@ -140,6 +143,7 @@ PKIX_Error *userChecker1cb(
         return(NULL);
 }
 
+static
 void testGetSetCertChainCheckers(
         PKIX_ProcessingParams *goodObject,
         PKIX_ProcessingParams *equalObject){
@@ -199,6 +203,7 @@ cleanup:
         PKIX_TEST_RETURN();
 }
 
+static
 PKIX_Error *userChecker2cb(
         PKIX_RevocationChecker *checker,
         PKIX_PL_Cert *cert,
@@ -208,6 +213,7 @@ PKIX_Error *userChecker2cb(
         return(NULL);
 }
 
+static
 void testGetSetRevocationCheckers(
         PKIX_ProcessingParams *goodObject,
         PKIX_ProcessingParams *equalObject){
@@ -263,6 +269,7 @@ cleanup:
         PKIX_TEST_RETURN();
 }
 
+static
 void testGetSetResourceLimits(
         PKIX_ProcessingParams *goodObject,
         PKIX_ProcessingParams *equalObject)
@@ -307,6 +314,7 @@ cleanup:
         PKIX_TEST_RETURN();
 }
 
+static
 void testGetSetConstraints(PKIX_ProcessingParams *goodObject){
 
         PKIX_CertSelector *setConstraints = NULL;
@@ -341,6 +349,7 @@ cleanup:
         PKIX_TEST_RETURN();
 }
 
+static
 void testGetSetInitialPolicies(
         PKIX_ProcessingParams *goodObject,
         char *asciiPolicyOID)
@@ -383,6 +392,7 @@ cleanup:
         PKIX_TEST_RETURN();
 }
 
+static
 void testGetSetPolicyQualifiersRejected(
         PKIX_ProcessingParams *goodObject,
         PKIX_Boolean rejected)
@@ -410,11 +420,12 @@ cleanup:
         PKIX_TEST_RETURN();
 }
 
+static
 void printUsage(char *pName){
         printf("\nUSAGE: %s <central-data-dir>\n\n", pName);
 }
 
-int main(int argc, char *argv[]) {
+int test_procparams(int argc, char *argv[]) {
 
         PKIX_ProcessingParams *goodObject = NULL;
         PKIX_ProcessingParams *equalObject = NULL;

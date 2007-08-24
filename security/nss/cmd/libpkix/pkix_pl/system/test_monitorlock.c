@@ -44,8 +44,9 @@
 #include "testutil.h"
 #include "testutil_nss.h"
 
-void *plContext = NULL;
+static void *plContext = NULL;
 
+static
 void createMonitorLockes(
         PKIX_PL_MonitorLock **monitorLock,
         PKIX_PL_MonitorLock **monitorLock2,
@@ -66,6 +67,7 @@ cleanup:
         PKIX_TEST_RETURN();
 }
 
+static
 void testLock(PKIX_PL_MonitorLock *monitorLock)
 {
         PKIX_TEST_STD_VARS();
@@ -83,6 +85,7 @@ cleanup:
         PKIX_TEST_RETURN();
 }
 
+static
 void testDestroy(
         PKIX_PL_MonitorLock *monitorLock,
         PKIX_PL_MonitorLock *monitorLock2,
@@ -98,7 +101,7 @@ cleanup:
         PKIX_TEST_RETURN();
 }
 
-int main(int argc, char *argv[]) {
+int test_monitorlock(int argc, char *argv[]) {
 
         PKIX_PL_MonitorLock *monitorLock, *monitorLock2, *monitorLock3;
         PKIX_UInt32 actualMinorVersion;

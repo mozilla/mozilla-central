@@ -65,9 +65,9 @@ static PKIX_PL_Cert *altNameOidCert = NULL;
 static PKIX_PL_Cert *altNameOidCert_diff = NULL;
 static PKIX_PL_Cert *altNameMultipleCert = NULL;
 
-void *plContext = NULL;
+static void *plContext = NULL;
 
-void createCerts(
+static void createCerts(
         char *dataCentralDir,
         char *goodInput,
         char *diffInput,
@@ -2225,11 +2225,12 @@ cleanup:
 
 }
 
+static
 void printUsage(void) {
         (void) printf("\nUSAGE:\ttest_cert <test-purpose> <data-central-dir> <data-dir>\n\n");
 }
 
-int main(int argc, char *argv[]) {
+int test_cert(int argc, char *argv[]) {
 
         PKIX_PL_Cert *goodObject = NULL;
         PKIX_PL_Cert *equalObject = NULL;

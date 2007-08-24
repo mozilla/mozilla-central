@@ -44,8 +44,9 @@
 #include "testutil.h"
 #include "testutil_nss.h"
 
-void *plContext = NULL;
+static void *plContext = NULL;
 
+static
 void createCRLEntries(
         char *dataDir,
         char *crlInput,
@@ -170,13 +171,14 @@ testGetCriticalExtensionOIDs(PKIX_PL_CRLEntry *goodObject)
 
 }
 
+static
 void printUsage(void) {
         (void) printf("\nUSAGE:\ttest_crlentry <data-dir>\n\n");
 }
 
 /* Functional tests for CRLENTRY public functions */
 
-int main(int argc, char *argv[]) {
+int test_crlentry(int argc, char *argv[]) {
         PKIX_PL_CRL *crl = NULL;
         PKIX_PL_CRLEntry *goodObject = NULL;
         PKIX_PL_CRLEntry *equalObject = NULL;

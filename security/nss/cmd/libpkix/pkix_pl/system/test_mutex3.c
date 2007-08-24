@@ -45,7 +45,7 @@
 #include "testutil_nss.h"
 
 static PKIX_PL_Mutex *mutex;
-void *plContext = NULL;
+static void *plContext = NULL;
 
 static void t1(/* ARGSUSED */ void* arg) {
         PKIX_Error *errorResult;
@@ -78,7 +78,7 @@ static void t2(/* ARGSUSED */ void* arg) {
         (void) printf("t2 exiting...\n");
 }
 
-int main(int argc, char *argv[]) {
+int test_mutex3(int argc, char *argv[]) {
         PRThread *thread, *thread2;
         PKIX_UInt32 actualMinorVersion;
         PKIX_UInt32 j = 0;

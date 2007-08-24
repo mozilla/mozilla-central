@@ -44,8 +44,9 @@
 #include "testutil.h"
 #include "testutil_nss.h"
 
-void *plContext = NULL;
+static void *plContext = NULL;
 
+static
 void testPass(char *dirName, char *goodInput, char *diffInput, char *dateAscii){
 
         PKIX_List *chain = NULL;
@@ -94,6 +95,7 @@ cleanup:
         PKIX_TEST_RETURN();
 }
 
+static
 void testNameChainingFail(
         char *dirName,
         char *goodInput,
@@ -139,6 +141,7 @@ cleanup:
         PKIX_TEST_RETURN();
 }
 
+static
 void testDateFail(char *dirName, char *goodInput, char *diffInput){
 
         PKIX_List *chain = NULL;
@@ -175,6 +178,7 @@ cleanup:
         PKIX_TEST_RETURN();
 }
 
+static
 void testSignatureFail(
        char *dirName,
        char *goodInput,
@@ -216,11 +220,12 @@ cleanup:
         PKIX_TEST_RETURN();
 }
 
+static
 void printUsage(char *pName){
         printf("\nUSAGE: %s <central-data-dir>\n\n", pName);
 }
 
-int main(int argc, char *argv[]) {
+int test_basicchecker(int argc, char *argv[]) {
 
         char *goodInput = "yassir2yassir";
         char *diffInput = "yassir2bcn";

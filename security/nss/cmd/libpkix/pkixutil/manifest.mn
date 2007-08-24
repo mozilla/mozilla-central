@@ -1,12 +1,11 @@
-#!/bin/sh
 # 
 # ***** BEGIN LICENSE BLOCK *****
-# Version: MPL 1.1/GPL 2.0/LGPL 2.1
+# Version: MPL 1GPL 2.0/LGPL 2.1
 #
 # The contents of this file are subject to the Mozilla Public License Version
 # 1.1 (the "License"); you may not use this file except in compliance with
 # the License. You may obtain a copy of the License at
-# http://www.mozilla.org/MPL/
+# htt/www.mozilla.org/MPL/
 #
 # Software distributed under the License is distributed on an "AS IS" basis,
 # WITHOUT WARRANTY OF ANY KIND, either express or implied. See the License
@@ -35,30 +34,40 @@
 # the terms of any one of the MPL, the GPL or the LGPL.
 #
 # ***** END LICENSE BLOCK *****
-#
-# runTests.sh
-#
 
-curdir=`pwd`
-cd ../../common
-. ./libpkix_init.sh > /dev/null
-cd ${curdir}
+PKIX_DEPTH = ..
+PLAT_DEPTH = $(PKIX_DEPTH)/..
+CORE_DEPTH = $(PKIX_DEPTH)/../../..
 
-numtests=0
-passed=0
-testunit=STORE
+# MODULE public and private header directories are implicitly REQUIRED.
+MODULE = nss
 
+CSRCS = \
+	pkixutil.c \
+	$(NULL)
 
-##########
-# main
-##########
+PROGRAM = pkixutil
 
-ParseArgs $*
+TOOLS_LIB_DIR=$(PKIX_DEPTH)/$(OBJDIR)
 
-RunTests <<EOF
-pkixutil test_store genericCertStore rev_data/crlchecker ${HOSTDIR}
-EOF
+EXTRA_LIBS += \
+	$(TOOLS_LIB_DIR)/$(LIB_PREFIX)pkixtoolperf.$(LIB_SUFFIX) \
+	$(TOOLS_LIB_DIR)/$(LIB_PREFIX)pkixtoolcertsel.$(LIB_SUFFIX) \
+	$(TOOLS_LIB_DIR)/$(LIB_PREFIX)pkixtoolparams.$(LIB_SUFFIX) \
+	$(TOOLS_LIB_DIR)/$(LIB_PREFIX)pkixtoolmodule.$(LIB_SUFFIX) \
+	$(TOOLS_LIB_DIR)/$(LIB_PREFIX)pkixtoolpki.$(LIB_SUFFIX) \
+	$(TOOLS_LIB_DIR)/$(LIB_PREFIX)pkixtoolsys.$(LIB_SUFFIX) \
+	$(TOOLS_LIB_DIR)/$(LIB_PREFIX)pkixtoolresults.$(LIB_SUFFIX) \
+	$(TOOLS_LIB_DIR)/$(LIB_PREFIX)pkixtoolstore.$(LIB_SUFFIX) \
+	$(TOOLS_LIB_DIR)/$(LIB_PREFIX)pkixtooltop.$(LIB_SUFFIX) \
+	$(TOOLS_LIB_DIR)/$(LIB_PREFIX)pkixtoolutil.$(LIB_SUFFIX) \
+	$(TOOLS_LIB_DIR)/$(LIB_PREFIX)pkixtoolsmplapps.$(LIB_SUFFIX) \
+	$(TOOLS_LIB_DIR)/$(LIB_PREFIX)pkixtoolchecker.$(LIB_SUFFIX) \
+	$(TOOLS_LIB_DIR)/$(LIB_PREFIX)pkixtoolcrlsel.$(LIB_SUFFIX) \
+	$(TOOLS_LIB_DIR)/$(LIB_PREFIX)pkixtooltestutil.$(LIB_SUFFIX) \
+	$(NULL)
 
-totalErrors=$?
-html_msg ${totalErrors} 0 "&nbsp;&nbsp;&nbsp;${testunit}: passed ${passed} of ${numtests} tests"
-exit ${totalErrors}
+NO_MD_RELEASE = 1
+
+USE_STATIC_LIBS = 1
+

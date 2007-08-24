@@ -44,7 +44,7 @@
 #include "testutil.h"
 #include "testutil_nss.h"
 
-void *plContext = NULL;
+static void *plContext = NULL;
 
 static void
 testDestroy(void *goodObject, void *equalObject, void *diffObject)
@@ -63,6 +63,7 @@ cleanup:
 
 }
 
+static
 void testGetProcParams(
         PKIX_BuildParams *goodObject,
         PKIX_BuildParams *equalObject){
@@ -93,11 +94,12 @@ cleanup:
         PKIX_TEST_RETURN();
 }
 
+static
 void printUsage(char *pName){
         printf("\nUSAGE: %s <central-data-dir>\n\n", pName);
 }
 
-int main(int argc, char *argv[]) {
+int test_buildparams(int argc, char *argv[]) {
 
         PKIX_BuildParams *goodObject = NULL;
         PKIX_BuildParams *equalObject = NULL;

@@ -46,19 +46,21 @@
 
 #define PKIX_TEST_MAX_CERTS     10
 
-void *plContext = NULL;
+static void *plContext = NULL;
 
+static
 void printUsage1(char *pName){
         printf("\nUSAGE: %s test-purpose [ENE|EE] ", pName);
         printf("crl-directory cert [certs].\n");
 }
 
+static
 void printUsageMax(PKIX_UInt32 numCerts){
         printf("\nUSAGE ERROR: number of certs %d exceed maximum %d\n",
                 numCerts, PKIX_TEST_MAX_CERTS);
 }
 
-PKIX_Error *
+static PKIX_Error *
 getCertCallback(
         PKIX_CertStore *store,
         PKIX_CertSelector *certSelector,
@@ -68,7 +70,7 @@ getCertCallback(
         return (NULL);
 }
 
-PKIX_Error *
+static PKIX_Error *
 testDefaultMultipleCertStores(PKIX_ValidateParams *valParams,
                         char *crlDir1,
                         char *crlDir2)
@@ -156,7 +158,7 @@ cleanup:
  *      required for revocation check to pass.
  */
 
-int main(int argc, char *argv[]){
+int test_defaultcrlchecker2stores(int argc, char *argv[]){
 
         PKIX_List *chain = NULL;
         PKIX_ValidateParams *valParams = NULL;

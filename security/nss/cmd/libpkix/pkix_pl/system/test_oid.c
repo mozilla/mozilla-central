@@ -44,9 +44,9 @@
 #include "testutil.h"
 #include "testutil_nss.h"
 
-void *plContext = NULL;
+static void *plContext = NULL;
 
-void
+static void
 createOID(
         PKIX_PL_OID **testOID,
         char *oidAscii,
@@ -68,7 +68,7 @@ cleanup:
         PKIX_TEST_RETURN();
 }
 
-void
+static void
 testToString(
         PKIX_PL_OID *oid,
         char *expAscii)
@@ -102,7 +102,7 @@ cleanup:
         PKIX_TEST_RETURN();
 }
 
-void
+static void
 testCompare(
             PKIX_PL_OID *oid0,
             PKIX_PL_OID *oid1,
@@ -143,7 +143,7 @@ cleanup:
         PKIX_TEST_RETURN();
 }
 
-void
+static void
 testDestroy(
         PKIX_PL_OID *oid)
 {
@@ -157,7 +157,7 @@ cleanup:
 }
 
 
-int main(int argc, char *argv[]) {
+int test_oid(int argc, char *argv[]) {
 
         PKIX_PL_OID *testOID[6] = {NULL};
         PKIX_PL_OID *badTestOID = NULL;

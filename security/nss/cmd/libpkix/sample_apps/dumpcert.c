@@ -54,19 +54,21 @@
 #include "secasn1t.h"
 #include "certt.h"
 
-void *plContext = NULL;
+static void *plContext = NULL;
 
+static 
 void printUsage(void){
         (void) printf("\nUSAGE:\tdumpcert <certFile>\n");
         (void) printf("\tParses a certificate located at <certFile> "
                 "and displays it.\n");
 }
 
+static 
 void printFailure(char *msg){
         (void) printf("FAILURE: %s\n", msg);
 }
 
-PKIX_PL_Cert *
+static PKIX_PL_Cert *
 createCert(char *inFileName)
 {
         PKIX_PL_ByteArray *byteArray = NULL;
@@ -129,7 +131,7 @@ cleanup:
         return (cert);
 }
 
-int main(int argc, char *argv[])
+int dumpcert(int argc, char *argv[])
 {
 
         PKIX_PL_String *string = NULL;

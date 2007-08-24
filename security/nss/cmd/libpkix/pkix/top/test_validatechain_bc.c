@@ -65,13 +65,14 @@
 #include "keythi.h"
 #include "nss.h"
 
-void *plContext = NULL;
+static void *plContext = NULL;
 
+static
 void printUsage(void){
         printf("\nUSAGE: incorrect.\n");
 }
 
-PKIX_PL_Cert *
+static PKIX_PL_Cert *
 createCert(char *inFileName)
 {
         PKIX_PL_ByteArray *byteArray = NULL;
@@ -129,7 +130,7 @@ cleanup:
         return (cert);
 }
 
-int main(int argc, char *argv[])
+int test_validatechain_bc(int argc, char *argv[])
 {
 
         PKIX_TrustAnchor *anchor = NULL;

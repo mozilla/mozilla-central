@@ -44,7 +44,7 @@
 #include "testutil.h"
 #include "testutil_nss.h"
 
-void *plContext = NULL;
+static void *plContext = NULL;
 
 static void
 testDestroy(void *goodObject, void *equalObject, void *diffObject)
@@ -63,6 +63,7 @@ cleanup:
 
 }
 
+static
 void testGetValidateResult(
         PKIX_BuildResult *goodObject,
         PKIX_BuildResult *equalObject){
@@ -93,6 +94,7 @@ cleanup:
         PKIX_TEST_RETURN();
 }
 
+static
 void testGetCertChain(
         PKIX_BuildResult *goodObject,
         PKIX_BuildResult *equalObject){
@@ -123,11 +125,12 @@ cleanup:
         PKIX_TEST_RETURN();
 }
 
+static
 void printUsage(char *pName){
         printf("\nUSAGE: %s <central-data-dir>\n\n", pName);
 }
 
-int main(int argc, char *argv[]) {
+int test_buildresult(int argc, char *argv[]) {
 
         PKIX_BuildResult *goodObject = NULL;
         PKIX_BuildResult *equalObject = NULL;

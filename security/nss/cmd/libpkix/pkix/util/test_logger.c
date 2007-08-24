@@ -44,9 +44,9 @@
 #include "testutil.h"
 #include "testutil_nss.h"
 
-void *plContext = NULL;
+static void *plContext = NULL;
 
-char *levels[] = {
+static char *levels[] = {
         "None",
         "Fatal Error",
         "Error",
@@ -55,6 +55,7 @@ char *levels[] = {
         "Trace"
 };
 
+static
 PKIX_Error *testLoggerCallback(
         PKIX_Logger *logger,
         PKIX_PL_String *message,
@@ -85,6 +86,7 @@ cleanup:
         PKIX_TEST_RETURN();
 }
 
+static
 PKIX_Error *testLoggerCallback2(
         PKIX_Logger *logger,
         PKIX_PL_String *message,
@@ -108,7 +110,7 @@ cleanup:
         PKIX_TEST_RETURN();
 }
 
-void
+static void
 createLogger(PKIX_Logger **logger,
         PKIX_PL_Object *context,
         PKIX_Logger_LogCallback cb)
@@ -123,7 +125,7 @@ cleanup:
         PKIX_TEST_RETURN();
 }
 
-void
+static void
 testContextCallback(PKIX_Logger *logger, PKIX_Logger *logger2)
 {
         PKIX_Logger_LogCallback cb = NULL;
@@ -154,7 +156,7 @@ cleanup:
         PKIX_TEST_RETURN();
 }
 
-void
+static void
 testComponent(PKIX_Logger *logger)
 {
         PKIX_ERRORNUM compName = (PKIX_ERRORNUM)NULL;
@@ -187,7 +189,7 @@ cleanup:
         PKIX_TEST_RETURN();
 }
 
-void
+static void
 testMaxLoggingLevel(PKIX_Logger *logger)
 {
         PKIX_UInt32 level = 0;
@@ -218,7 +220,7 @@ cleanup:
         PKIX_TEST_RETURN();
 }
 
-void
+static void
 testLogger(PKIX_Logger *logger, PKIX_Logger *logger2)
 {
         PKIX_List *loggerList = NULL;
@@ -305,7 +307,8 @@ cleanup:
         PKIX_TEST_DECREF_AC(checkList);
         PKIX_TEST_RETURN();
 }
-void
+
+static void
 testDestroy(PKIX_Logger *logger)
 {
         PKIX_TEST_STD_VARS();
@@ -317,7 +320,7 @@ cleanup:
         PKIX_TEST_RETURN();
 }
 
-int main(int argc, char *argv[]) {
+int test_logger(int argc, char *argv[]) {
 
         PKIX_Logger *logger, *logger2;
         PKIX_UInt32 actualMinorVersion;

@@ -35,22 +35,26 @@
 #
 # ***** END LICENSE BLOCK *****
 
-CORE_DEPTH = ../../../..
-PLAT_DEPTH = ../..
+PKIX_DEPTH = ..
+CORE_DEPTH = $(PKIX_DEPTH)/../../..
+PLAT_DEPTH = $(PKIX_DEPTH)/..
 
-
-LIBRARY_NAME = pkixutil
+MODULE = nss
 
 PRIVATE_EXPORTS = \
 	testutil_nss.h \
 	testutil.h \
 	$(NULL)
 
-MODULE = nss
-MAPFILE = $(OBJDIR)/pkixutil.def
-
 CSRCS = \
 	testutil_nss.c \
 	testutil.c \
 	$(NULL)
 
+LIBRARY_NAME = pkixtooltestutil
+
+TARGETS = $(LIBRARY)
+
+SOURCE_LIB_DIR = $(PKIX_DEPTH)/$(OBJDIR)
+
+NO_MD_RELEASE = 1

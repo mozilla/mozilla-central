@@ -47,20 +47,22 @@
 #define PKIX_TEST_MAX_CERTS     10
 #define PKIX_TEST_COLLECTIONCERTSTORE_NUM_CRLS 5
 
-void *plContext = NULL;
+static void *plContext = NULL;
 char *dirName = NULL; /* also used in callback */
 
+static
 void printUsage1(char *pName){
         printf("\nUSAGE: %s test-purpose [ENE|EE] ", pName);
         printf("cert [certs].\n");
 }
 
+static
 void printUsageMax(PKIX_UInt32 numCerts){
         printf("\nUSAGE ERROR: number of certs %d exceed maximum %d\n",
                 numCerts, PKIX_TEST_MAX_CERTS);
 }
 
-PKIX_Error *
+static PKIX_Error *
 getCRLCallback(
         PKIX_CertStore *store,
         PKIX_CRLSelector *crlSelector,
@@ -105,7 +107,7 @@ cleanup:
 
 }
 
-PKIX_Error *
+static PKIX_Error *
 getCRLContinue(
         PKIX_CertStore *store,
         PKIX_CRLSelector *crlSelector,
@@ -116,7 +118,7 @@ getCRLContinue(
         return (NULL);
 }
 
-PKIX_Error *
+static PKIX_Error *
 getCertCallback(
         PKIX_CertStore *store,
         PKIX_CertSelector *certSelector,
@@ -127,7 +129,7 @@ getCertCallback(
         return (NULL);
 }
 
-PKIX_Error *
+static PKIX_Error *
 getCertContinue(
         PKIX_CertStore *store,
         PKIX_CertSelector *certSelector,
@@ -138,7 +140,7 @@ getCertContinue(
         return (NULL);
 }
 
-PKIX_Error *
+static PKIX_Error *
 testCRLSelectorMatchCallback(
         PKIX_CRLSelector *selector,
         PKIX_PL_CRL *crl,
@@ -241,7 +243,7 @@ cleanup:
 
 }
 
-PKIX_Error *
+static PKIX_Error *
 testAddIssuerName(PKIX_ComCRLSelParams *comCrlSelParams, char *issuerName)
 {
         PKIX_PL_String *issuerString = NULL;
@@ -278,7 +280,7 @@ cleanup:
         return (0);
 }
 
-PKIX_Error *
+static PKIX_Error *
 testCustomCertStore(PKIX_ValidateParams *valParams)
 {
         PKIX_CertStore_CRLCallback crlCallback;
@@ -398,7 +400,7 @@ cleanup:
  *      revocation check, CRL's are filtered based on the criteria set.
  */
 
-int main(int argc, char *argv[]){
+int test_customcrlchecker(int argc, char *argv[]){
 
         PKIX_List *chain = NULL;
         PKIX_ValidateParams *valParams = NULL;

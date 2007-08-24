@@ -44,8 +44,9 @@
 #include "testutil.h"
 #include "testutil_nss.h"
 
-void *plContext = NULL;
+static void *plContext = NULL;
 
+static
 void printUsage(void){
         (void) printf("\nUSAGE:\nOcspChecker TestName [ENE|EE] "
                     "<certStoreDirectory> <trustedCert> <targetCert>\n\n");
@@ -58,6 +59,7 @@ void printUsage(void){
                 "If EE is specified, an Error is Expected.\n");
 }
 
+static
 char *createFullPathName(
         char *dirName,
         char *certFile,
@@ -89,7 +91,7 @@ cleanup:
         return (certPathName);
 }
 
-PKIX_Error *
+static PKIX_Error *
 testDefaultCertStore(PKIX_ValidateParams *valParams, char *crlDir)
 {
         PKIX_PL_String *dirString = NULL;
@@ -176,7 +178,7 @@ cleanup:
         return (0);
 }
 
-int main(int argc, char *argv[]){
+int test_ocsp(int argc, char *argv[]){
 
         PKIX_ValidateParams *valParams = NULL;
         PKIX_ProcessingParams *procParams = NULL;

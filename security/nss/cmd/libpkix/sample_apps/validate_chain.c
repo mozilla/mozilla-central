@@ -65,8 +65,9 @@
 #include "keythi.h"
 #include "nss.h"
 
-void *plContext = NULL;
+static void *plContext = NULL;
 
+static 
 void printUsage(void){
         (void) printf("\nUSAGE:\tvalidateChain <trustedCert> "
                 "<cert_1> <cert_2> ... <cert_n>\n");
@@ -75,7 +76,7 @@ void printUsage(void){
 
 }
 
-PKIX_PL_Cert *
+static PKIX_PL_Cert *
 createCert(char *inFileName)
 {
         PKIX_PL_ByteArray *byteArray = NULL;
@@ -133,7 +134,7 @@ cleanup:
         return (cert);
 }
 
-int main(int argc, char *argv[])
+int validate_chain(int argc, char *argv[])
 {
         PKIX_TrustAnchor *anchor = NULL;
         PKIX_List *anchors = NULL;

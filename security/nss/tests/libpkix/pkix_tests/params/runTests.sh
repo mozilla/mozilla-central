@@ -57,10 +57,10 @@ testunit=PARAMS
 ParseArgs $*
 
 RunTests <<EOF
-test_valparams ../../certs
-test_procparams ../../certs
-test_trustanchor ${NIST} ../../certs NIST-Test-Files-Used
-test_resourcelimits
+pkixutil test_valparams ../../certs
+pkixutil test_procparams ../../certs
+pkixutil test_trustanchor ${NIST} ../../certs NIST-Test-Files-Used
+pkixutil test_resourcelimits
 EOF
 
 totalErrors=$?

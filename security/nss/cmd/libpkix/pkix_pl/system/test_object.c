@@ -44,7 +44,7 @@
 #include "testutil.h"
 #include "testutil_nss.h"
 
-void *plContext = NULL;
+static void *plContext = NULL;
 
 static PKIX_Error *
 destructor(
@@ -111,7 +111,7 @@ comparator(
 }
 
 
-PKIX_Error *
+static PKIX_Error *
 hashcodeCallback(
         PKIX_PL_Object *object,
         PKIX_UInt32 *pValue,
@@ -142,7 +142,7 @@ equalsCallback(
         return (NULL);
 }
 
-void
+static void
 createObjects(
         PKIX_PL_Object **obj,
         PKIX_PL_Object **obj2,
@@ -199,7 +199,7 @@ cleanup:
 }
 
 
-void
+static void
 testGetType(
             PKIX_PL_Object *obj,
             PKIX_PL_Object *obj2,
@@ -230,7 +230,7 @@ cleanup:
         PKIX_TEST_RETURN();
 }
 
-void
+static void
 testCompare(
             PKIX_PL_Object *obj2,
             PKIX_PL_Object *obj4)
@@ -261,7 +261,7 @@ cleanup:
 }
 
 
-void
+static void
 testDestroy(
             PKIX_PL_Object *obj,
             PKIX_PL_Object *obj2,
@@ -280,7 +280,7 @@ cleanup:
         PKIX_TEST_RETURN();
 }
 
-int main(int argc, char *argv[]) {
+int test_object(int argc, char *argv[]) {
 
         PKIX_PL_Object *obj, *obj2, *obj3, *obj4;
         PKIX_UInt32 actualMinorVersion;

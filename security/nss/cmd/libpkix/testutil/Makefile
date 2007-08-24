@@ -47,9 +47,6 @@ include manifest.mn
 #######################################################################
 
 include $(CORE_DEPTH)/coreconf/config.mk
-include config.mk
-EXTRA_LIBS = \
-        $(NULL)
 
 #######################################################################
 # (3) Include "component" configuration information. (OPTIONAL)       #
@@ -77,6 +74,8 @@ include $(CORE_DEPTH)/coreconf/rules.mk
 # (7) Execute "local" rules. (OPTIONAL).                              #
 #######################################################################
 
+
 include $(PLAT_DEPTH)/platrules.mk
 
 export:: private_export
+

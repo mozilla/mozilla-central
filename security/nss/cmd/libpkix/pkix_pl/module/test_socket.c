@@ -41,7 +41,7 @@
 
 #define LDAP_PORT 389
 
-void *plContext = NULL;
+static void *plContext = NULL;
 
 typedef enum {
         SERVER_LISTENING,
@@ -90,16 +90,19 @@ char *sendBuf4 = "What do you mean, \"What do you mean, \'Ack\'?\"?";
 char rcvBuf1[100];
 char rcvBuf2[100];
 
+static 
 void printUsage(char *testname) {
         char *fmt = "USAGE: %s [-arenas] server:port\n";
         printf(fmt, testname);
 }
 
 /* Functional tests for Socket public functions */
+static 
 void do_other_work(void) { /* while waiting for nonblocking I/O to complete */
         (void) PR_Sleep(2*60);
 }
 
+static 
 PKIX_Boolean server()
 {
         PKIX_Int32 bytesRead = 0;
@@ -249,6 +252,7 @@ cleanup:
         return (keepGoing);
 }
 
+static 
 PKIX_Boolean client() {
         PKIX_Boolean keepGoing = PKIX_FALSE;
         PKIX_Int32 bytesRead = 0;
@@ -413,6 +417,7 @@ cleanup:
         return (keepGoing);
 }
 
+static
 void dispatcher()
 {
         PKIX_Boolean keepGoing = PKIX_FALSE;
@@ -437,7 +442,7 @@ void dispatcher()
         PKIX_TEST_RETURN();
 }
 
-int main(int argc, char *argv[]) {
+int test_socket(int argc, char *argv[]) {
 
         PKIX_Boolean useArenas = PKIX_FALSE;
         int j = 0;

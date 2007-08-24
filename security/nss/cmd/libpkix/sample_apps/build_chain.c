@@ -65,8 +65,9 @@
 #include "keythi.h"
 #include "nss.h"
 
-void *plContext = NULL;
+static void *plContext = NULL;
 
+static
 void printUsage(void){
         (void) printf("\nUSAGE:\tbuildChain "
                         "<trustedCert> <targetCert> <certStoreDirectory>\n\n");
@@ -76,7 +77,7 @@ void printUsage(void){
                 "using the certs and CRLs in <certStoreDirectory>.\n");
 }
 
-PKIX_PL_Cert *
+static PKIX_PL_Cert *
 createCert(char *inFileName)
 {
         PKIX_PL_ByteArray *byteArray = NULL;
@@ -133,7 +134,7 @@ cleanup:
         return (cert);
 }
 
-int main(int argc, char *argv[])
+int build_chain(int argc, char *argv[])
 {
         PKIX_BuildResult *buildResult = NULL;
         PKIX_ComCertSelParams *certSelParams = NULL;

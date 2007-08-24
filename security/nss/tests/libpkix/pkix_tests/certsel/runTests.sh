@@ -56,8 +56,8 @@ testunit=CERTSEL
 ParseArgs $*
 
 RunTests <<EOF
-test_comcertselparams ${NIST} NIST-Test-Files-Used
-test_certselector ${NIST} NIST-Test-Files-Used ../../pkix_pl_tests/module/rev_data
+pkixutil test_comcertselparams ${NIST} NIST-Test-Files-Used
+pkixutil test_certselector ${NIST} NIST-Test-Files-Used ../../pkix_pl_tests/module/rev_data
 EOF
 
 totalErrors=$?

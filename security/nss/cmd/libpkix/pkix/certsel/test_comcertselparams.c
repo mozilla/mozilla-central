@@ -44,8 +44,9 @@
 #include "testutil.h"
 #include "testutil_nss.h"
 
-void *plContext = NULL;
+static void *plContext = NULL;
 
+static
 void test_CreateOIDList(PKIX_List *certPolicyInfos, PKIX_List **pPolicyOIDs)
 {
         PKIX_UInt32 i = 0;
@@ -90,6 +91,7 @@ cleanup:
         PKIX_TEST_RETURN();
 }
 
+static
 void test_NameConstraints(char *dirName)
 {
         PKIX_PL_Cert *goodCert = NULL;
@@ -149,6 +151,7 @@ cleanup:
         PKIX_TEST_RETURN();
 }
 
+static
 void test_PathToNames(void)
 {
         PKIX_ComCertSelParams *goodParams = NULL;
@@ -257,6 +260,7 @@ cleanup:
         PKIX_TEST_RETURN();
 }
 
+static
 void test_SubjAltNames(void)
 {
         PKIX_ComCertSelParams *goodParams = NULL;
@@ -383,6 +387,7 @@ cleanup:
         PKIX_TEST_RETURN();
 }
 
+static
 void test_KeyUsages(void)
 {
         PKIX_ComCertSelParams *goodParams = NULL;
@@ -453,6 +458,7 @@ cleanup:
         PKIX_TEST_RETURN();
 }
 
+static
 void test_Version_Issuer_SerialNumber(void)
 {
         PKIX_ComCertSelParams *goodParams = NULL;
@@ -548,6 +554,7 @@ cleanup:
         PKIX_TEST_RETURN();
 }
 
+static
 void test_SubjKeyId_AuthKeyId(void)
 {
         PKIX_ComCertSelParams *goodParams = NULL;
@@ -621,6 +628,7 @@ cleanup:
         PKIX_TEST_RETURN();
 }
 
+static
 void test_SubjAlgId_SubjPublicKey(char *dirName)
 {
         PKIX_ComCertSelParams *goodParams = NULL;
@@ -702,11 +710,12 @@ cleanup:
         PKIX_TEST_RETURN();
 }
 
+static
 void printUsage(void) {
         (void) printf("\nUSAGE:\ttest_comcertselparams <NIST_FILES_DIR> \n\n");
 }
 
-int main(int argc, char *argv[]) {
+int test_comcertselparams(int argc, char *argv[]) {
 
         PKIX_UInt32 actualMinorVersion;
         PKIX_UInt32 j = 0;

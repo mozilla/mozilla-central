@@ -44,7 +44,7 @@
 #include "testutil.h"
 #include "testutil_nss.h"
 
-void *plContext = NULL;
+static void *plContext = NULL;
 
 static PKIX_PL_X500Name *
 createX500Name(char *asciiName, PKIX_Boolean expectedToPass){
@@ -160,7 +160,7 @@ cleanup:
 
 }
 
-int main(int argc, char *argv[]) {
+int test_x500name(int argc, char *argv[]) {
 
         PKIX_PL_X500Name *goodObject = NULL;
         PKIX_PL_X500Name *equalObject = NULL;

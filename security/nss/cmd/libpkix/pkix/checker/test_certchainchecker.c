@@ -44,8 +44,10 @@
 #include "testutil.h"
 #include "testutil_nss.h"
 
-void *plContext = NULL;
+static void *plContext = NULL;
 
+
+static
 PKIX_Error *dummyChecker_Check(
         PKIX_CertChainChecker *checker,
         PKIX_PL_Cert *cert,
@@ -61,6 +63,7 @@ cleanup:
 }
 
 
+static
 void test_CertChainChecker_Duplicate(PKIX_CertChainChecker *original)
 {
         PKIX_Boolean originalForward = PKIX_FALSE;
@@ -151,7 +154,7 @@ cleanup:
         PKIX_TEST_RETURN();
 }
 
-int main(int argc, char *argv[]) {
+int test_certchainchecker(int argc, char *argv[]) {
 
         PKIX_UInt32 actualMinorVersion;
         PKIX_PL_OID *bcOID = NULL;
