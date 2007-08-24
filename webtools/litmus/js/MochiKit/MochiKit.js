@@ -2258,11 +2258,11 @@ catch(e){
 if(_290==200||_290==304){
 d.callback(this);
 }else{
+try{
 var err=new MochiKit.Async.XMLHttpRequestError(this,this.status+": Request failed");
-if(err.number){
 d.errback(err);
-}else{
-d.errback(err);
+}
+catch(e){
 }
 }
 }
