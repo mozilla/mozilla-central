@@ -651,12 +651,13 @@ char * apply_rfc2047_encoding(const char *_src, PRBool structured, const char *c
             cursor = usedlen - 2; /* \r\n */
           }
           else {
-            if (PR_snprintf(outputtail, outputlen - 1, " %s", list->addrspec) < 0) {
+            if (PR_snprintf(outputtail, outputlen - 1, list->displayname ? " %s" : "%s", list->addrspec) < 0) {
               PR_Free(output);
               destroy_addresslist(listhead);
               return nsnull;
             }
-            usedlen++;
+            if (list->displayname)
+              usedlen++;
             cursor += usedlen;
           }
           outputtail += usedlen;
