@@ -125,7 +125,10 @@ sub do_tinderbox($) {
 sub do_json($) {
     my ($form_ref) = (@_);
     my $tinderbox_data = tb_load_data($form_ref);
-    print "Content-type: text/javascript\n\n" unless $form_ref->{static};
+    if (!$form_ref->{static}) {
+        print "Content-type: text/javascript\n";
+        print "Content-Access-Control: allow <*>\n\n";
+    }
     print "tinderbox_data";
     $Data::Dumper::Indent = 0;
     my $line = Dumper($tinderbox_data);
