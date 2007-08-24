@@ -381,7 +381,7 @@ function internalSave(aURL, aDocument, aDefaultFileName, aContentDisposition,
     source      : source,
     contentType : (!aChosenData && useSaveDocument &&
                    saveAsType == SAVETYPE_TEXT_ONLY) ?
-                  "text/plain" : aContentType,
+                  "text/plain" : null,
     target      : fileURL,
     postData    : isDocument ? getPostData() : null,
     bypassCache : aShouldBypassCache
