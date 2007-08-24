@@ -265,13 +265,9 @@ function setDefaultAlarmValues(aItem)
             if (alarmsBranch.getIntPref("onforevents") == 1) {
                 var alarmOffset = Components.classes["@mozilla.org/calendar/duration;1"]
                                             .createInstance(Components.interfaces.calIDuration);
-                try {
-                    var units = alarmsBranch.getCharPref("eventalarmunit");
-                    alarmOffset[units] = alarmsBranch.getIntPref("eventalarmlen");
-                    alarmOffset.isNegative = true;
-                } catch(ex) {
-                    alarmOffset.minutes = 15;
-                }
+                var units = alarmsBranch.getCharPref("eventalarmunit");
+                alarmOffset[units] = alarmsBranch.getIntPref("eventalarmlen");
+                alarmOffset.isNegative = true;
                 aItem.alarmOffset = alarmOffset;
                 aItem.alarmRelated = Components.interfaces.calIItemBase.ALARM_RELATED_START;
             }
@@ -288,13 +284,9 @@ function setDefaultAlarmValues(aItem)
                 }
                 var alarmOffset = Components.classes["@mozilla.org/calendar/duration;1"]
                                             .createInstance(Components.interfaces.calIDuration);
-                try {
-                    var units = alarmsBranch.getCharPref("todoalarmunit");
-                    alarmOffset[units] = alarmsBranch.getIntPref("todoalarmlen");
-                    alarmOffset.isNegative = true;
-                } catch(ex) {
-                    alarmOffset.minutes = 15;
-                }
+                var units = alarmsBranch.getCharPref("todoalarmunit");
+                alarmOffset[units] = alarmsBranch.getIntPref("todoalarmlen");
+                alarmOffset.isNegative = true;
                 aItem.alarmOffset = alarmOffset;
                 aItem.alarmRelated = Components.interfaces.calIItemBase.ALARM_RELATED_START;
             }
