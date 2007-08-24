@@ -348,7 +348,7 @@
                   <menuitem label="&event.toolbar.attendees.label;"
                             command="cmd_attendees"
                             disable-on-readonly="true"/>
-                  <menuitem label="&event.menu.options.url.label;"
+                  <menuitem label="&event.menu.options.link.label;"
                             command="cmd_url"/>
                   <menuitem label="&event.menu.options.timezone.label;"
                             id="menu-options-timezone"
@@ -456,7 +456,7 @@
             </toolbarbutton>
             <toolbarbutton class="toolbarbutton-1"
                            id="button-url"
-                           label="&event.toolbar.document.label;"
+                           label="&event.toolbar.link.label;"
                            command="cmd_url"
                            disable-on-readonly="true"/>
         </toolbarpalette>

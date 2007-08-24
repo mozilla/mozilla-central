@@ -1630,8 +1630,8 @@ function editURL() {
         var result = { value: gURL };
         if (promptService.prompt(
             window,
-            "Please specify the document location",
-            "Target:",
+            calGetString("sun-calendar-event-dialog", "SpecifyLinkLocation"),
+            calGetString("sun-calendar-event-dialog", "EnterLinkLocation"),
             result,
             null,
             { value: 0 })) {

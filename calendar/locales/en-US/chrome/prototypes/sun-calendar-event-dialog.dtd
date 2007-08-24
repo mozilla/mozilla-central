@@ -62,7 +62,7 @@
 <!ENTITY  event.menu.options.label                        "Options">
 <!ENTITY  event.menu.options.spellcheck.label             "Check Spelling…">
 <!ENTITY  event.menu.options.inline.spellcheck.label      "Spell Check As You Type">
-<!ENTITY  event.menu.options.url.label                    "Link to Documents">
+<!ENTITY  event.menu.options.link.label                   "Add Link…">
 <!ENTITY  event.menu.options.timezone.label               "Timezone">
 <!ENTITY  event.menu.options.priority.label               "Importance">
 <!ENTITY  event.menu.options.priority.none.label          "None">
@@ -91,7 +91,7 @@
 <!ENTITY  event.toolbar.attendees.label                   "Invite Attendees">
 <!ENTITY  event.toolbar.spellcheck.label                  "Spellcheck">
 <!ENTITY  event.toolbar.privacy.label                     "Privacy">
-<!ENTITY  event.toolbar.document.label                    "Documents">
+<!ENTITY  event.toolbar.link.label                        "Add Link">
 
 <!-- Main page -->
 <!ENTITY event.title.textbox.label                        "Title:" >
