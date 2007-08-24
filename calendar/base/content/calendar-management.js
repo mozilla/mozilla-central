@@ -223,7 +223,8 @@ var calendarListTreeView = {
         calendarListUpdateColor(aCalendar);
         this.treebox.rowCountChanged(this.mCalendarList.length - 1, 1);
 
-        if (aCalendar.id == composite.defaultCalendar.id) {
+        if (!composite.defaultCalendar ||
+            aCalendar.id == composite.defaultCalendar.id) {
             this.tree.view.selection.select(this.mCalendarList.length - 1);
         }
     },
