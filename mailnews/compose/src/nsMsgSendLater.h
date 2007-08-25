@@ -46,7 +46,6 @@
 #include "nsIMsgFolder.h"
 #include "nsIMsgSendListener.h"
 #include "nsIMsgSendLaterListener.h"
-#include "nsMsgDeliveryListener.h"
 #include "nsIMsgSendLater.h"
 #include "nsIMsgWindow.h"
 
@@ -55,7 +54,6 @@
 // to listen for message send completion and eventually notify the caller
 ////////////////////////////////////////////////////////////////////////////////////
 class nsMsgSendLater;
-class nsMsgDeliveryListener;
 
 class SendOperationListener : public nsIMsgSendListener,
                               public nsIMsgCopyServiceListener
@@ -126,8 +124,6 @@ private:
 
   nsIMsgSendLaterListener   **mListenerArray;
   PRInt32                   mListenerArrayCount;
-
-  nsMsgSendUnsentMessagesCallback  mCompleteCallback;
 
   nsCOMPtr<nsIMsgDBHdr>      mMessage;
 

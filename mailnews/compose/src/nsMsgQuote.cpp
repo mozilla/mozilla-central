@@ -52,7 +52,6 @@
 #include "nsMsgCompUtils.h"
 #include "nsIMsgMessageService.h"
 #include "nsMsgUtils.h"
-#include "nsMsgDeliveryListener.h"
 #include "nsNetUtil.h"
 #include "nsMsgMimeCID.h"
 #include "nsMsgCompCID.h"

@@ -182,7 +182,6 @@
 //
 class nsMsgSendPart;
 class nsMsgCopy;
-class nsMsgDeliveryListener;
 class nsIPrompt;
 class nsIInterfaceRequestor;
 

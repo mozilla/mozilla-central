@@ -44,7 +44,6 @@
 #include "nsIFile.h"
 #include "nsISmtpService.h"
 #include "nsIMsgMailNewsUrl.h"
-#include "nsMsgDeliveryListener.h"
 #include "nsIMsgIncomingServer.h"
 #include "nsICopyMessageListener.h"
 #include "nsIMsgMessageService.h"

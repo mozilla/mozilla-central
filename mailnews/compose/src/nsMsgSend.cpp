@@ -51,7 +51,6 @@
 #include "nsIPrefService.h"
 #include "nsIPrefBranch.h"
 #include "nsIMsgMailNewsUrl.h"
-#include "nsMsgDeliveryListener.h"
 #include "nsMsgEncoders.h"
 #include "nsMsgCompUtils.h"
 #include "nsMsgI18N.h"
@@ -224,6 +223,62 @@ static nsresult StripOutGroupNames(char * addresses)
 
   return NS_OK;
 }
+
+
+// This private class just provides us an external URL listener, with callback functionality.
+
+class MsgDeliveryListener : public nsIUrlListener
+{
+public:
+  MsgDeliveryListener(nsIMsgSend *aMsgSend, PRBool inIsNewsDelivery);
+  virtual ~MsgDeliveryListener();
+  
+  NS_DECL_ISUPPORTS
+  NS_DECL_NSIURLLISTENER
+    
+private:
+  nsCOMPtr<nsIMsgSend> mMsgSend;
+  PRBool               mIsNewsDelivery;
+};
+
+NS_IMPL_ISUPPORTS1(MsgDeliveryListener, nsIUrlListener);
+
+MsgDeliveryListener::MsgDeliveryListener(nsIMsgSend *aMsgSend, PRBool inIsNewsDelivery)
+{
+  mMsgSend = aMsgSend;
+  mIsNewsDelivery = inIsNewsDelivery;
+}
+
+MsgDeliveryListener::~MsgDeliveryListener()
+{
+}
+
+NS_IMETHODIMP MsgDeliveryListener::OnStartRunningUrl(nsIURI *url)
+{
+  if (mMsgSend)
+    mMsgSend->NotifyListenerOnStartSending(nsnull, nsnull);
+  
+  return NS_OK;
+}
+
+NS_IMETHODIMP MsgDeliveryListener::OnStopRunningUrl(nsIURI *url, nsresult aExitCode)
+{  
+  if (url)
+  {
+    nsCOMPtr<nsIMsgMailNewsUrl> mailUrl = do_QueryInterface(url);
+    if (mailUrl)
+      mailUrl->UnRegisterListener(this);
+  }
+  
+  if (mMsgSend)
+  {
+    mMsgSend->NotifyListenerOnStopSending(nsnull, aExitCode, nsnull, nsnull);
+    mMsgSend->SendDeliveryCallback(url, mIsNewsDelivery, aExitCode);
+  }
+      
+  return NS_OK;
+}
+
 
 /* the following macro actually implement addref, release and query interface for our component. */
 NS_IMPL_THREADSAFE_ISUPPORTS1(nsMsgComposeAndSend, nsIMsgSend)
@@ -3336,58 +3391,49 @@ nsMsgComposeAndSend::Init(
   return HackAttachments(attachments, preloaded_attachments);
 }
 
-nsresult
-SendDeliveryCallback(nsIURI *aUrl, nsresult aExitCode, nsMsgDeliveryType deliveryType, nsISupports *tagData)
+NS_IMETHODIMP nsMsgComposeAndSend::SendDeliveryCallback(nsIURI *aUrl, PRBool inIsNewsDelivery, nsresult aExitCode)
 {
-  if (tagData)
+  if (inIsNewsDelivery)
   {
-    nsCOMPtr<nsIMsgSend> msgSend = do_QueryInterface(tagData);
-    if (!msgSend)
-      return NS_ERROR_NULL_POINTER;
-
-    if (deliveryType == nsMailDelivery)
-    {
-      if (NS_FAILED(aExitCode))
-        switch (aExitCode)
-        {
-          case NS_ERROR_UNKNOWN_HOST:
-          case NS_ERROR_UNKNOWN_PROXY_HOST:
-            aExitCode = NS_ERROR_SMTP_SEND_FAILED_UNKNOWN_SERVER;
-            break;
-          case NS_ERROR_CONNECTION_REFUSED:
-          case NS_ERROR_PROXY_CONNECTION_REFUSED:
-            aExitCode = NS_ERROR_SMTP_SEND_FAILED_REFUSED;
-            break;
-          case NS_ERROR_NET_INTERRUPT:
-            aExitCode = NS_ERROR_SMTP_SEND_FAILED_INTERRUPTED;
-            break;
-          case NS_ERROR_NET_TIMEOUT:
-          case NS_ERROR_NET_RESET:
-            aExitCode = NS_ERROR_SMTP_SEND_FAILED_TIMEOUT;
-            break;
-          case NS_ERROR_SMTP_PASSWORD_UNDEFINED:
-            // nothing to do, just keep the code
-            break;
-          default:
-            if (aExitCode != NS_ERROR_ABORT && !NS_IS_MSG_ERROR(aExitCode))
-              aExitCode = NS_ERROR_SMTP_SEND_FAILED_UNKNOWN_REASON;
-            break;
-        }
-      msgSend->DeliverAsMailExit(aUrl, aExitCode);
-    }
-
-    else if (deliveryType == nsNewsDelivery)
-    {
-      if (NS_FAILED(aExitCode))
-        if (aExitCode != NS_ERROR_ABORT && !NS_IS_MSG_ERROR(aExitCode))
-          aExitCode = NS_ERROR_POST_FAILED;
-
-      msgSend->DeliverAsNewsExit(aUrl, aExitCode);
-    }
-
-    msgSend->SetRunningRequest(nsnull);
+    if (NS_FAILED(aExitCode))
+      if (aExitCode != NS_ERROR_ABORT && !NS_IS_MSG_ERROR(aExitCode))
+        aExitCode = NS_ERROR_POST_FAILED;
+    
+    DeliverAsNewsExit(aUrl, aExitCode);
   }
-
+  else
+  {
+    if (NS_FAILED(aExitCode))
+    {
+      switch (aExitCode)
+      {
+        case NS_ERROR_UNKNOWN_HOST:
+        case NS_ERROR_UNKNOWN_PROXY_HOST:
+          aExitCode = NS_ERROR_SMTP_SEND_FAILED_UNKNOWN_SERVER;
+          break;
+        case NS_ERROR_CONNECTION_REFUSED:
+        case NS_ERROR_PROXY_CONNECTION_REFUSED:
+          aExitCode = NS_ERROR_SMTP_SEND_FAILED_REFUSED;
+          break;
+        case NS_ERROR_NET_INTERRUPT:
+          aExitCode = NS_ERROR_SMTP_SEND_FAILED_INTERRUPTED;
+          break;
+        case NS_ERROR_NET_TIMEOUT:
+        case NS_ERROR_NET_RESET:
+          aExitCode = NS_ERROR_SMTP_SEND_FAILED_TIMEOUT;
+          break;
+        case NS_ERROR_SMTP_PASSWORD_UNDEFINED:
+            // nothing to do, just keep the code
+          break;
+        default:
+          if (aExitCode != NS_ERROR_ABORT && !NS_IS_MSG_ERROR(aExitCode))
+            aExitCode = NS_ERROR_SMTP_SEND_FAILED_UNKNOWN_REASON;
+          break;
+      }
+    }
+    DeliverAsMailExit(aUrl, aExitCode);
+  }
+  
   return aExitCode;
 }
 
@@ -3514,7 +3560,7 @@ nsMsgComposeAndSend::DeliverFileAsMail()
     NotifyListenerOnStopSending(nsnull, NS_ERROR_OUT_OF_MEMORY, nsnull, nsnull);
     return NS_ERROR_OUT_OF_MEMORY;
   }
-
+  
   PRBool collectOutgoingAddresses = PR_TRUE;
   nsCOMPtr<nsIPrefBranch> pPrefBranch(do_GetService(NS_PREFSERVICE_CONTRACTID));
   if (pPrefBranch)
@@ -3603,13 +3649,9 @@ nsMsgComposeAndSend::DeliverFileAsMail()
   nsCOMPtr<nsISmtpService> smtpService(do_GetService(NS_SMTPSERVICE_CONTRACTID, &rv));
   if (NS_SUCCEEDED(rv) && smtpService)
   {
-    nsMsgDeliveryListener * aListener = new nsMsgDeliveryListener(SendDeliveryCallback, nsMailDelivery, this);
-    nsCOMPtr<nsIUrlListener> uriListener = do_QueryInterface(aListener);
-    if (!uriListener)
+    MsgDeliveryListener *deliveryListener = new MsgDeliveryListener(this, PR_FALSE);
+    if (!deliveryListener)
       return NS_ERROR_OUT_OF_MEMORY;
-
-    // Note: Don't do a SetMsgComposeAndSendObject since we are in the same thread, and
-    // using callbacks for notification
 
     // we used to get the prompt from the compose window and we'd pass that in
     // to the smtp protocol as the prompt to use. But when you send a message,
@@ -3631,7 +3673,7 @@ nsMsgComposeAndSend::DeliverFileAsMail()
       msgStatus = do_QueryInterface(mStatusFeedback);
 
     rv = smtpService->SendMailMessage(mTempFile, buf, mUserIdentity,
-                                      mSmtpPassword.get(), uriListener, msgStatus,
+                                      mSmtpPassword.get(), deliveryListener, msgStatus,
                                       callbacks, nsnull, getter_AddRefs(mRunningRequest));
   }
 
@@ -3656,13 +3698,9 @@ nsMsgComposeAndSend::DeliverFileAsNews()
 
   if (NS_SUCCEEDED(rv) && nntpService)
   {
-    nsMsgDeliveryListener * aListener = new nsMsgDeliveryListener(SendDeliveryCallback, nsNewsDelivery, this);
-    nsCOMPtr<nsIUrlListener> uriListener = do_QueryInterface(aListener);
-    if (!uriListener)
+    MsgDeliveryListener *deliveryListener = new MsgDeliveryListener(this, PR_TRUE);
+    if (!deliveryListener)
       return NS_ERROR_OUT_OF_MEMORY;
-
-    // Note: Don't do a SetMsgComposeAndSendObject since we are in the same thread, and
-    // using callbacks for notification
 
     // Tell the user we are posting the message!
     nsString msg;
@@ -3681,7 +3719,7 @@ nsMsgComposeAndSend::DeliverFileAsNews()
       msgWindow = nsnull;
 
     rv = nntpService->PostMessage(mTempFile, mCompFields->GetNewsgroups(), mAccountKey.get(),
-                                  uriListener, msgWindow, nsnull);
+                                  deliveryListener, msgWindow, nsnull);
     if (NS_FAILED(rv)) return rv;
   }
 

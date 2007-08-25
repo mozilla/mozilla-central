@@ -916,7 +916,8 @@ NS_IMETHODIMP nsMsgCompose::RemoveMsgSendListener( nsIMsgSendListener *aMsgSendL
   return mExternalSendListeners.RemoveObject( aMsgSendListener );
 }
 
-nsresult nsMsgCompose::_SendMsg(MSG_DeliverMode deliverMode, nsIMsgIdentity *identity, const char *accountKey, PRBool entityConversionDone)
+nsresult nsMsgCompose::_SendMsg(MSG_DeliverMode deliverMode, nsIMsgIdentity *identity, 
+                                const char *accountKey, PRBool entityConversionDone)
 {
   nsresult rv = NS_OK;
 
@@ -995,7 +996,8 @@ nsresult nsMsgCompose::_SendMsg(MSG_DeliverMode deliverMode, nsIMsgIdentity *ide
       if (deliverMode == nsIMsgCompDeliverMode::AutoSaveAsDraft)
         deliverMode = nsIMsgCompDeliverMode::SaveAsDraft;
 
-      composeSendListener->SetMsgCompose(this);
+      nsRefPtr<nsIMsgCompose> msgCompose(this);
+      composeSendListener->SetMsgCompose(msgCompose);
       composeSendListener->SetDeliverMode(deliverMode);
 
       if (mProgress)
@@ -3087,39 +3089,31 @@ NS_IMETHODIMP nsMsgComposeSendListener::SetDeliverMode(MSG_DeliverMode deliverMo
 nsresult
 nsMsgComposeSendListener::OnStartSending(const char *aMsgID, PRUint32 aMsgSize)
 {
-#ifdef NS_DEBUG
-  printf("nsMsgComposeSendListener::OnStartSending()\n");
-#endif
-
-  nsCOMPtr<nsIMsgSendListener> composeSendlistener = do_QueryReferent(mWeakComposeObj);
-  if (composeSendlistener)
-    composeSendlistener->OnStartSending(aMsgID, aMsgSize);
+  nsresult rv;
+  nsCOMPtr<nsIMsgSendListener> composeSendListener = do_QueryReferent(mWeakComposeObj, &rv);
+  if (NS_SUCCEEDED(rv) && composeSendListener)
+    composeSendListener->OnStartSending(aMsgID, aMsgSize);
+  
   return NS_OK;
 }
 
 nsresult
 nsMsgComposeSendListener::OnProgress(const char *aMsgID, PRUint32 aProgress, PRUint32 aProgressMax)
 {
-#ifdef NS_DEBUG
-  printf("nsMsgComposeSendListener::OnProgress()\n");
-#endif
-
-  nsCOMPtr<nsIMsgSendListener> composeSendlistener = do_QueryReferent(mWeakComposeObj);
-  if (composeSendlistener)
-    composeSendlistener->OnProgress(aMsgID, aProgress, aProgressMax);
+  nsresult rv;
+  nsCOMPtr<nsIMsgSendListener> composeSendListener = do_QueryReferent(mWeakComposeObj, &rv);
+  if (NS_SUCCEEDED(rv) && composeSendListener)
+    composeSendListener->OnProgress(aMsgID, aProgress, aProgressMax);
   return NS_OK;
 }
 
 nsresult
 nsMsgComposeSendListener::OnStatus(const char *aMsgID, const PRUnichar *aMsg)
 {
-#ifdef NS_DEBUG
-  printf("nsMsgComposeSendListener::OnStatus()\n");
-#endif
-
-  nsCOMPtr<nsIMsgSendListener> composeSendlistener = do_QueryReferent(mWeakComposeObj);
-  if (composeSendlistener)
-    composeSendlistener->OnStatus(aMsgID, aMsg);
+  nsresult rv;
+  nsCOMPtr<nsIMsgSendListener> composeSendListener = do_QueryReferent(mWeakComposeObj, &rv);
+  if (NS_SUCCEEDED(rv) && composeSendListener)
+    composeSendListener->OnStatus(aMsgID, aMsg);
   return NS_OK;
 }
 
@@ -3130,29 +3124,27 @@ nsresult nsMsgComposeSendListener::OnSendNotPerformed(const char *aMsgID, nsresu
  // for closing the windows. However we would need to do the other operations as below.
 
   nsresult rv = NS_OK;
+  nsCOMPtr<nsIMsgCompose> msgCompose = do_QueryReferent(mWeakComposeObj, &rv);
+  if (msgCompose)
+    msgCompose->NotifyStateListeners(nsIMsgComposeNotificationType::ComposeProcessDone, aStatus);
 
-  nsCOMPtr<nsIMsgCompose>compose = do_QueryReferent(mWeakComposeObj);
-  if (compose)
-    compose->NotifyStateListeners(nsIMsgComposeNotificationType::ComposeProcessDone, aStatus);
+  nsCOMPtr<nsIMsgSendListener> composeSendListener = do_QueryReferent(mWeakComposeObj, &rv);
+  if (NS_SUCCEEDED(rv) && composeSendListener)
+    composeSendListener->OnSendNotPerformed(aMsgID, aStatus);
 
-  nsCOMPtr<nsIMsgSendListener> composeSendlistener = do_QueryReferent(mWeakComposeObj);
-  if (composeSendlistener)
-    composeSendlistener->OnSendNotPerformed(aMsgID, aStatus);
-
-  return rv ;
+  return rv;
 }
 
-
-nsresult nsMsgComposeSendListener::OnStopSending(const char *aMsgID, nsresult aStatus, const PRUnichar *aMsg,
-                                     nsIFile *returnFile)
+nsresult nsMsgComposeSendListener::OnStopSending(const char *aMsgID, nsresult aStatus, 
+                                                 const PRUnichar *aMsg, nsIFile *returnFile)
 {
   nsresult rv = NS_OK;
 
-  nsCOMPtr<nsIMsgCompose>compose = do_QueryReferent(mWeakComposeObj);
-  if (compose)
+  nsCOMPtr<nsIMsgCompose> msgCompose = do_QueryReferent(mWeakComposeObj, &rv);
+  if (msgCompose)
   {
     nsCOMPtr<nsIMsgProgress> progress;
-    compose->GetProgress(getter_AddRefs(progress));
+    msgCompose->GetProgress(getter_AddRefs(progress));
 
     if (NS_SUCCEEDED(aStatus))
     {
@@ -3160,10 +3152,17 @@ nsresult nsMsgComposeSendListener::OnStopSending(const char *aMsgID, nsresult aS
       printf("nsMsgComposeSendListener: Success on the message send operation!\n");
 #endif
       nsCOMPtr<nsIMsgCompFields> compFields;
-      compose->GetCompFields(getter_AddRefs(compFields));
+      msgCompose->GetCompFields(getter_AddRefs(compFields));
 
       // only process the reply flags if we successfully sent the message
-      compose->ProcessReplyFlags();
+      msgCompose->ProcessReplyFlags();
+      
+      // See if there is a composer window
+      PRBool hasDomWindow = PR_TRUE;
+      nsCOMPtr<nsIDOMWindowInternal> domWindow;
+      rv = msgCompose->GetDomWindow(getter_AddRefs(domWindow));
+      if (NS_FAILED(rv) || !domWindow)
+        hasDomWindow = PR_FALSE;
 
       // Close the window ONLY if we are not going to do a save operation
       nsAutoString fieldsFCC;
@@ -3173,40 +3172,42 @@ nsresult nsMsgComposeSendListener::OnStopSending(const char *aMsgID, nsresult aS
         {
           if (fieldsFCC.LowerCaseEqualsLiteral("nocopy://"))
           {
-            compose->NotifyStateListeners(nsIMsgComposeNotificationType::ComposeProcessDone, NS_OK);
+            msgCompose->NotifyStateListeners(nsIMsgComposeNotificationType::ComposeProcessDone, NS_OK);
             if (progress)
             {
               progress->UnregisterListener(this);
               progress->CloseProgressDialog(PR_FALSE);
             }
-            compose->CloseWindow(PR_TRUE);
+            if (hasDomWindow)
+              msgCompose->CloseWindow(PR_TRUE);
           }
         }
       }
       else
       {
-        compose->NotifyStateListeners(nsIMsgComposeNotificationType::ComposeProcessDone, NS_OK);
+        msgCompose->NotifyStateListeners(nsIMsgComposeNotificationType::ComposeProcessDone, NS_OK);
         if (progress)
         {
           progress->UnregisterListener(this);
           progress->CloseProgressDialog(PR_FALSE);
         }
-        compose->CloseWindow(PR_TRUE);  // if we fail on the simple GetFcc call, close the window to be safe and avoid
-                                        // windows hanging around to prevent the app from exiting.
+        if (hasDomWindow)
+          msgCompose->CloseWindow(PR_TRUE);  // if we fail on the simple GetFcc call, close the window to be safe and avoid
+                                              // windows hanging around to prevent the app from exiting.
       }
 
       // Remove the current draft msg when sending draft is done.
       PRBool deleteDraft;
-      compose->GetDeleteDraft(&deleteDraft);
+      msgCompose->GetDeleteDraft(&deleteDraft);
       if (deleteDraft)
-        RemoveCurrentDraftMessage(compose, PR_FALSE);
+        RemoveCurrentDraftMessage(msgCompose, PR_FALSE);
     }
     else
     {
 #ifdef NS_DEBUG
       printf("nsMsgComposeSendListener: the message send operation failed!\n");
 #endif
-      compose->NotifyStateListeners(nsIMsgComposeNotificationType::ComposeProcessDone, aStatus);
+      msgCompose->NotifyStateListeners(nsIMsgComposeNotificationType::ComposeProcessDone, aStatus);
       if (progress)
       {
         progress->CloseProgressDialog(PR_TRUE);
@@ -3216,9 +3217,9 @@ nsresult nsMsgComposeSendListener::OnStopSending(const char *aMsgID, nsresult aS
 
   }
 
-  nsCOMPtr<nsIMsgSendListener> composeSendlistener = do_QueryReferent(mWeakComposeObj);
-  if (composeSendlistener)
-    composeSendlistener->OnStopSending(aMsgID, aStatus, aMsg, returnFile);
+  nsCOMPtr<nsIMsgSendListener> composeSendListener = do_QueryReferent(mWeakComposeObj, &rv);
+  if (NS_SUCCEEDED(rv) && composeSendListener)
+    composeSendListener->OnStopSending(aMsgID, aStatus, aMsg, returnFile);
 
   return rv;
 }
@@ -3226,9 +3227,10 @@ nsresult nsMsgComposeSendListener::OnStopSending(const char *aMsgID, nsresult aS
 nsresult
 nsMsgComposeSendListener::OnGetDraftFolderURI(const char *aFolderURI)
 {
-  nsCOMPtr<nsIMsgSendListener> composeSendlistener = do_QueryReferent(mWeakComposeObj);
-  if (composeSendlistener)
-    composeSendlistener->OnGetDraftFolderURI(aFolderURI);
+  nsresult rv;
+  nsCOMPtr<nsIMsgSendListener> composeSendListener = do_QueryReferent(mWeakComposeObj, &rv);
+  if (NS_SUCCEEDED(rv) && composeSendListener)
+    composeSendListener->OnGetDraftFolderURI(aFolderURI);
 
   return NS_OK;
 }
@@ -3257,28 +3259,29 @@ nsresult
 nsMsgComposeSendListener::OnStopCopy(nsresult aStatus)
 {
   nsresult rv = NS_OK;
-
-  nsCOMPtr<nsIMsgCompose>compose = do_QueryReferent(mWeakComposeObj);
-  if (compose)
+  nsCOMPtr<nsIMsgCompose> msgCompose = do_QueryReferent(mWeakComposeObj, &rv);
+  if (msgCompose)
   {
     if (mDeliverMode == nsIMsgSend::nsMsgQueueForLater ||
-          mDeliverMode == nsIMsgSend::nsMsgSaveAsDraft)
-      compose->RememberQueuedDisposition();
+        mDeliverMode == nsIMsgSend::nsMsgSaveAsDraft)
+    {
+      msgCompose->RememberQueuedDisposition();
+    }
 
     // Ok, if we are here, we are done with the send/copy operation so
     // we have to do something with the window....SHOW if failed, Close
     // if succeeded
 
     nsCOMPtr<nsIMsgProgress> progress;
-    compose->GetProgress(getter_AddRefs(progress));
+    msgCompose->GetProgress(getter_AddRefs(progress));
     if (progress)
     {
-    //Unregister ourself from msg compose progress
+      // Unregister ourself from msg compose progress
       progress->UnregisterListener(this);
       progress->CloseProgressDialog(NS_FAILED(aStatus));
     }
 
-    compose->NotifyStateListeners(nsIMsgComposeNotificationType::ComposeProcessDone, aStatus);
+    msgCompose->NotifyStateListeners(nsIMsgComposeNotificationType::ComposeProcessDone, aStatus);
 
     if (NS_SUCCEEDED(aStatus))
     {
@@ -3290,19 +3293,20 @@ nsMsgComposeSendListener::OnStopCopy(nsresult aStatus)
       if (mDeliverMode == nsIMsgSend::nsMsgSaveAsDraft ||
           mDeliverMode == nsIMsgSend::nsMsgSaveAsTemplate)
       {
-        compose->NotifyStateListeners(nsIMsgComposeNotificationType::SaveInFolderDone, aStatus);
+        msgCompose->NotifyStateListeners(nsIMsgComposeNotificationType::SaveInFolderDone, aStatus);
         // Remove the current draft msg when saving as draft/template is done.
-        compose->SetDeleteDraft(PR_TRUE);
-        RemoveCurrentDraftMessage(compose, PR_TRUE);
+        msgCompose->SetDeleteDraft(PR_TRUE);
+        RemoveCurrentDraftMessage(msgCompose, PR_TRUE);
       }
       else
       {
         // Remove (possible) draft if we're in send later mode
-        if(mDeliverMode == nsIMsgSend::nsMsgQueueForLater) {
-          compose->SetDeleteDraft(PR_TRUE);
-          RemoveCurrentDraftMessage(compose, PR_TRUE);
+        if (mDeliverMode == nsIMsgSend::nsMsgQueueForLater) 
+        {
+          msgCompose->SetDeleteDraft(PR_TRUE);
+          RemoveCurrentDraftMessage(msgCompose, PR_TRUE);
         }
-        compose->CloseWindow(PR_TRUE);
+        msgCompose->CloseWindow(PR_TRUE);
       }
     }
 #ifdef NS_DEBUG
@@ -3317,7 +3321,7 @@ nsMsgComposeSendListener::OnStopCopy(nsresult aStatus)
 nsresult
 nsMsgComposeSendListener::GetMsgFolder(nsIMsgCompose *compObj, nsIMsgFolder **msgFolder)
 {
-  nsresult    rv;
+  nsresult rv;
   nsCOMPtr<nsIMsgFolder> aMsgFolder;
   nsCString folderUri;
 
@@ -3340,7 +3344,7 @@ nsMsgComposeSendListener::GetMsgFolder(nsIMsgCompose *compObj, nsIMsgFolder **ms
 nsresult
 nsMsgComposeSendListener::RemoveCurrentDraftMessage(nsIMsgCompose *compObj, PRBool calledByCopy)
 {
-  nsresult    rv;
+  nsresult rv;
   nsCOMPtr <nsIMsgCompFields> compFields = nsnull;
 
   rv = compObj->GetCompFields(getter_AddRefs(compFields));
@@ -3488,19 +3492,19 @@ NS_IMETHODIMP nsMsgComposeSendListener::OnStateChange(nsIWebProgress *aWebProgre
 {
   if (aStateFlags == nsIWebProgressListener::STATE_STOP)
   {
-    nsCOMPtr<nsIMsgCompose>compose = do_QueryReferent(mWeakComposeObj);
-    if (compose)
+    nsCOMPtr<nsIMsgCompose> msgCompose = do_QueryReferent(mWeakComposeObj);
+    if (msgCompose)
     {
       nsCOMPtr<nsIMsgProgress> progress;
-      compose->GetProgress(getter_AddRefs(progress));
+      msgCompose->GetProgress(getter_AddRefs(progress));
 
-      //Time to stop any pending operation...
+      // Time to stop any pending operation...
       if (progress)
       {
-        //Unregister ourself from msg compose progress
+        // Unregister ourself from msg compose progress
         progress->UnregisterListener(this);
 
-        PRBool  bCanceled = PR_FALSE;
+        PRBool bCanceled = PR_FALSE;
         progress->GetProcessCanceledByUser(&bCanceled);
         if (bCanceled)
         {
@@ -3517,9 +3521,9 @@ NS_IMETHODIMP nsMsgComposeSendListener::OnStateChange(nsIWebProgress *aWebProgre
       }
 
       nsCOMPtr<nsIMsgSend> msgSend;
-      compose->GetMessageSend(getter_AddRefs(msgSend));
+      msgCompose->GetMessageSend(getter_AddRefs(msgSend));
       if (msgSend)
-          msgSend->Abort();
+        msgSend->Abort();
     }
   }
   return NS_OK;
