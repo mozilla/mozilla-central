@@ -411,6 +411,7 @@ var defaultController =
       //Edit Menu
       case "cmd_delete":
       case "cmd_selectAll":
+      case "cmd_openAttachment":
       case "cmd_account":
       case "cmd_preferences":
 
@@ -456,9 +457,11 @@ var defaultController =
 
       //Edit Menu
       case "cmd_delete":
-        return MessageHasSelectedAttachments();
+        return MessageGetNumSelectedAttachments() > 0;
       case "cmd_selectAll":
         return MessageHasAttachments();
+      case "cmd_openAttachment":
+        return MessageGetNumSelectedAttachments() == 1;
       case "cmd_account":
       case "cmd_preferences":
         return true;
@@ -514,8 +517,9 @@ var defaultController =
       case "cmd_print"              : DoCommandPrint(); break;
 
       //Edit Menu
-      case "cmd_delete"             : if (MessageHasSelectedAttachments()) RemoveSelectedAttachment();         break;
+      case "cmd_delete"             : if (MessageGetNumSelectedAttachments() > 0) RemoveSelectedAttachment();  break;
       case "cmd_selectAll"          : if (MessageHasAttachments()) SelectAllAttachments();                     break;
+      case "cmd_openAttachment"     : if (MessageGetNumSelectedAttachments() == 1) OpenSelectedAttachment();   break;
       case "cmd_account"            : MsgAccountManager(null); break;
       case "cmd_preferences"        : DoCommandPreferences(); break;
 
@@ -634,6 +638,7 @@ function updateEditItems()
   goUpdateCommand("cmd_pasteQuote");
   goUpdateCommand("cmd_delete");
   goUpdateCommand("cmd_selectAll");
+  goUpdateCommand("cmd_openAttachment");
   goUpdateCommand("cmd_find");
   goUpdateCommand("cmd_findNext");
   goUpdateCommand("cmd_findPrev");
@@ -2577,13 +2582,13 @@ function MessageHasAttachments()
   return false;
 }
 
-function MessageHasSelectedAttachments()
+function MessageGetNumSelectedAttachments()
 {
   var bucketList = document.getElementById("attachmentBucket");
 
   if (bucketList)
-    return (MessageHasAttachments() && bucketList.selectedItems && bucketList.selectedItems.length);
-  return false;
+    return bucketList.selectedItems.length;
+  return 0;
 }
 
 function AttachPage()
@@ -2667,6 +2672,39 @@ function AttachmentElementHasItems()
   var element = document.getElementById("attachmentBucket");
   return element ? element.childNodes.length : 0;
 }  
+
+function OpenSelectedAttachment()
+{
+  var bucket = document.getElementById("attachmentBucket");
+  if (bucket.selectedItems.length == 1) 
+  {
+    var attachmentUrl = bucket.getSelectedItem(0).attachment.url;
+
+    var messagePrefix = /^mailbox-message:|^imap-message:|^news-message:/i;
+    if (messagePrefix.test(attachmentUrl))
+    {
+      // we must be dealing with a forwarded attachment, treat this specially
+      var messenger = Components.classes["@mozilla.org/messenger;1"].createInstance(Components.interfaces.nsIMessenger);
+      var msgHdr = messenger.msgHdrFromURI(attachmentUrl);
+      if (msgHdr)
+      {
+        var folderUri = msgHdr.folder.folderURL;
+        window.openDialog("chrome://messenger/content/messageWindow.xul", "_blank", "all,chrome,dialog=no,status,toolbar", 
+                          attachmentUrl, folderUri, null);
+      }
+    }
+    else
+    {
+      var editorElement = GetCurrentEditorElement();
+      if (editorElement) {
+        const loadFlags = Components.interfaces.nsIWebNavigation.LOAD_FLAGS_IS_LINK;
+        try {
+          editorElement.webNavigation.loadURI(attachmentUrl, loadFlags, null, null, null);
+        } catch (e) {}
+      }
+    }
+  } // if one attachment selected
+}
 
 function DetermineHTMLAction(convertible)
 {
@@ -2939,6 +2977,8 @@ function AttachmentBucketClicked(event)
 
   if (event.originalTarget.localName == "listboxbody")
     goDoCommand('cmd_attachFile');
+  else if (event.originalTarget.localName == "listitem" && event.detail == 2)
+    OpenSelectedAttachment();
 }
 
 var attachmentBucketObserver = {
