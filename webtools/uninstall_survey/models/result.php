@@ -164,8 +164,8 @@ class Result extends AppModel {
             foreach ($comments as $var => $val) {
 
                 // Handle foo@bar.com
-                $_email_regex = '/\ ?(.+)?@(.+)?\.(.+)?\ ?/';
-                $comments[$var]['Result'] = preg_replace($_email_regex,'$1@****.$3',$comments[$var]['Result']);
+                $_email_regex = '/@([^.].+?)\./';
+                $comments[$var]['Result'] = preg_replace($_email_regex,'@****.',$comments[$var]['Result']);
 
                 //$comments[$var]['Result']['comments'] = preg_replace($_email_regex,'$1@****.$3',$comments[$var]['Result']['comments']);
                 //$comments[$var]['Result']['intention_text'] = preg_replace($_email_regex,'$1@****.$3',$comments[$var]['Result']['intention_text']);
@@ -277,8 +277,8 @@ class Result extends AppModel {
             foreach ($newdata as $var => $val) {
 
                 // Handle foo@bar.com
-                $_email_regex = '/\ ?(.+)?@(.+)?\.(.+)?\ ?/';
-                $newdata[$var] = preg_replace($_email_regex,'$1@****.$3',$newdata[$var]);
+                $_email_regex = '/@([^.].+?)\./';
+                $newdata[$var] = preg_replace($_email_regex,'@****.',$newdata[$var]);
 
                 //$newdata[$var]['comments'] = preg_replace($_email_regex,'$1@****.$3',$newdata[$var]['comments']);
                 //$newdata[$var]['intention_other'] = preg_replace($_email_regex,'$1@****.$3',$newdata[$var]['intention_other']);
