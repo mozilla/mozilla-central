@@ -622,7 +622,7 @@ nsContextMenu.prototype = {
     },
     // Open clicked-in frame in the same window
     showOnlyThisFrame : function () {
-        window.loadURI(this.target.ownerDocument.location.href);
+        openTopWin( this.target.ownerDocument.location.href, this.target.ownerDocument.defaultView );
     },
     // View Partial Source
     viewPartialSource : function ( context ) {
@@ -671,12 +671,12 @@ nsContextMenu.prototype = {
     // Change current window to the URL of the image.
     viewImage : function () {
         urlSecurityCheck( this.imageURL, document );
-        openTopWin( this.imageURL );
+        openTopWin( this.imageURL, this.target.ownerDocument.defaultView );
     },
     // Change current window to the URL of the background image.
     viewBGImage : function () {
         urlSecurityCheck( this.bgImageURL, document );
-        openTopWin( this.bgImageURL );
+        openTopWin( this.bgImageURL, this.target.ownerDocument.defaultView );
     },
     setWallpaper: function() {
       // Confirm since it's annoying if you hit this accidentally.

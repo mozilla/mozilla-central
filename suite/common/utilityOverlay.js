@@ -329,7 +329,20 @@ function getTopWin()
     return null;
 }
 
-function openTopWin( url )
+function isRestricted( url )
+{
+  try {
+    const nsIURIFixup = Components.interfaces.nsIURIFixup;
+    var uriFixup = Components.classes["@mozilla.org/docshell/urifixup;1"]
+                             .getService(nsIURIFixup);
+    var url = uriFixup.createFixupURI(url, nsIURIFixup.FIXUP_FLAG_NONE);
+    return url.schemeIs("javascript") || url.schemeIs("data");
+  } catch (e) {
+    return false;
+  }
+}
+
+function openTopWin( url, opener )
 {
     /* note that this chrome url should probably change to not have
        all of the navigator controls, but if we do this we need to have
@@ -347,8 +360,15 @@ function openTopWin( url )
     var topWindowOfType = getTopWin();
     if ( topWindowOfType )
     {
-        topWindowOfType.focus();
-        topWindowOfType.loadURI(url);
+        if (opener && topWindowOfType.content == opener.top)
+            opener.open(url, "_top");
+        else if (opener && isRestricted(url))
+            topWindowOfType.getBrowser().loadURIWithFlags(url,
+                Components.interfaces.nsIWebNavigation.LOAD_FLAGS_FROM_EXTERNAL);
+        else
+            topWindowOfType.loadURI(url);
+
+        topWindowOfType.content.focus();
         return topWindowOfType;
     }
     return window.openDialog( getBrowserURL(), "_blank", "chrome,all,dialog=no", url );
