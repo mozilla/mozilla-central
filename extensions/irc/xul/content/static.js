@@ -428,6 +428,9 @@ function initApplicationCompatibility()
             case "{a463f10c-3994-11da-9945-000d60ca027b}": // Flock
                 client.host = "Flock";
                 break;
+            case "{3db10fab-e461-4c80-8b97-957ad5f8ea47}": // Netscape
+                client.host = "Netscape";
+                break;
             default:
                 client.unknownUID = app.ID;
                 client.host = ""; // Unknown host, show an error later.
@@ -2125,10 +2128,10 @@ function initOfflineIcon()
                                      "nsIPrefBranch");
             // Let the app-specific hacks begin:
             try {
-                if ((client.host == "Firefox") || (client.host == "Flock"))
-                    isOffline = prefSvc.getBoolPref("browser.offline");
-                else if (client.host == "XULrunner")
+                if (client.host == "XULrunner")
                     isOffline = !prefSvc.getBoolPref("network.online");
+                else // Toolkit based, but not standalone
+                    isOffline = prefSvc.getBoolPref("browser.offline");
             }
             catch (ex) { /* Whatever. */ }
 
@@ -2146,10 +2149,10 @@ function initOfflineIcon()
                                      "nsIPrefBranch");
             // Let the app-specific hacks begin:
             try {
-                if ((client.host == "Firefox") || (client.host == "Flock"))
-                    prefSvc.setBoolPref("browser.offline", isOffline);
-                else if (client.host == "XULrunner")
+                if (client.host == "XULrunner")
                     prefSvc.setBoolPref("network.online", !isOffline);
+                else // Toolkit based, but not standalone
+                    prefSvc.setBoolPref("browser.offline", isOffline);
             }
             catch (ex)
             {
