@@ -278,6 +278,13 @@
         ]]></body>
       </method>
 
+      <method name="clearSelection">
+        <body>
+          this.view.selection.clearSelection();
+          this.mSearchBox.selectedIndex = -1;
+        </body>
+      </method>
+
       <method name="selectBy">
         <parameter name="aReverse"/>
         <parameter name="aPage"/>
@@ -345,22 +352,6 @@
         -1
       </field>
 
-      <field name="parentMouseoverListener">
-        // ensure that if a result menuitem is moused-over, any
-        // search selection is cleared
-        (function(aEvent) {
-          if (aEvent.target.nodeName == "menuitem")
-            this.mSearchBox.selectedIndex = -1;
-         })
-      </field>
-      
-      <field name="parentDestroyListener">
-        // ensure that if the popup closes, any search selection is cleared
-        (function(aEvent) {
-           this.mSearchBox.selectedIndex = -1;
-         })
-      </field>
-      
       <property name="activeChild" 
                 onget="return this.childNodes[this.mSelectedIndex]"/>
 
@@ -373,16 +364,8 @@
           
           this.mSelectedIndex = val;
 
-          if (val != -1) {
-            this.parentNode.mSelectedIndex = -1;
-            this.parentNode.addEventListener("mouseover", this.parentMouseoverListener, false);
-            this.parentNode.addEventListener("popuphiding", this.parentDestroyListener, false);
-            if (this.activeChild)
-              this.activeChild.setAttribute("menuactive", "true");
-          } else {
-            this.parentNode.removeEventListener("mouseover", this.parentMouseoverListener, false);
-            this.parentNode.removeEventListener("popuphiding", this.parentDestroyListener, false);
-          }
+          if (val != -1)
+            this.activeChild.setAttribute("menuactive", "true");
           return val;
         ]]></setter>
       
