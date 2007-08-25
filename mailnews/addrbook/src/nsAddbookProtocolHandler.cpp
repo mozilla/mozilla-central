@@ -57,7 +57,8 @@
 #include "nsIRDFService.h"
 #include "nsRDFCID.h"
 #include "prmem.h"
-
+#include "nsIAbView.h"
+#include "nsITreeView.h"
 #include "nsIStringBundle.h"
 #include "nsIServiceManager.h"
 
@@ -281,27 +282,32 @@ nsAddbookProtocolHandler::BuildDirectoryXML(nsIAbDirectory *aDirectory,
     }
   }
 
- 
-  rv = aDirectory->GetChildCards(getter_AddRefs(cardsEnumerator));
-  if (NS_SUCCEEDED(rv) && cardsEnumerator)
+ // create a view and init it with the generated name sort order. Then, iterate
+  // over the view, getting the card for each row, and printing them.
+  nsString sortColumn;
+  nsCOMPtr <nsIAbView> view = do_CreateInstance("@mozilla.org/addressbook/abview;1", &rv);
+  nsCString directoryUri;
+  aDirectory->GetURI(directoryUri);
+  
+  view->Init(directoryUri.get(), PR_FALSE, nsnull, NS_LITERAL_STRING("GeneratedName").get(),  NS_LITERAL_STRING("ascending").get(), getter_Copies(sortColumn));
+  
+  PRInt32 numRows;
+  nsCOMPtr <nsITreeView> treeView = do_QueryInterface(view, &rv);
+  NS_ENSURE_SUCCESS(rv, rv);
+  treeView->GetRowCount(&numRows);
+  
+  for (PRInt32 row = 0; row < numRows; row++)
   {
-    nsCOMPtr<nsISupports> item;
-    PRBool more;
-    while (NS_SUCCEEDED(cardsEnumerator->HasMoreElements(&more)) && more)
-    {
-      rv = cardsEnumerator->GetNext(getter_AddRefs(item));
-      if (NS_SUCCEEDED(rv))
-      {
-        nsCOMPtr <nsIAbCard> card = do_QueryInterface(item);
-        nsString xmlSubstr;
+    
+    nsCOMPtr <nsIAbCard> card;
+    view->GetCardFromRow(row, getter_AddRefs(card));
+    nsString xmlSubstr;
 
-        rv = card->ConvertToXMLPrintData(xmlSubstr);
-        NS_ENSURE_SUCCESS(rv,rv);
+    rv = card->ConvertToXMLPrintData(xmlSubstr);
+    NS_ENSURE_SUCCESS(rv,rv);
 
-        aOutput.AppendLiteral("<separator/>");
-        aOutput.Append(xmlSubstr);
-      }
-    }
+    aOutput.AppendLiteral("<separator/>");
+    aOutput.Append(xmlSubstr);
     aOutput.AppendLiteral("<separator/>");
   }
 
