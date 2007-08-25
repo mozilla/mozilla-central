@@ -20,6 +20,8 @@ classic.jar:
      skin/classic/messenger/virtualFolderListDialog.css
      skin/classic/messenger/searchDialog.css
      skin/classic/messenger/filterDialog.css
+*   skin/classic/messenger/tabmailBindings.xml
+    skin/classic/messenger/tabmail.css
      skin/classic/messenger/addressbook/addressbook.css             (addrbook/addressbook.css)
      skin/classic/messenger/addressbook/abContactsPanel.css         (addrbook/abContactsPanel.css)
      skin/classic/messenger/addressbook/cardDialog.css              (addrbook/cardDialog.css)
@@ -194,7 +196,28 @@ classic.jar:
      skin/classic/messenger/icons/online.png                        (icons/online.png)
      skin/classic/messenger/icons/offline.png                       (icons/offline.png)     
      skin/classic/messenger/icons/arrow-dn-7.png                    (icons/arrow-dn-7.png)
-     skin/classic/messenger/icons/top-toolbar-background.gif        (icons/top-toolbar-background.gif)	 
+     skin/classic/messenger/icons/top-toolbar-background.gif        (icons/top-toolbar-background.gif)
+    skin/classic/messenger/icons/alltabs-box-bkgnd.png                  (icons/alltabs-box-bkgnd.png)
+    skin/classic/messenger/icons/alltabs-box-overflow-bkgnd.png         (icons/alltabs-box-overflow-bkgnd.png)
+    skin/classic/messenger/icons/alltabs-box-overflow-bkgnd-animate.png (icons/alltabs-box-overflow-bkgnd-animate.png)
+    skin/classic/messenger/icons/tab-arrow-start.png                    (icons/tab-arrow-start.png)
+    skin/classic/messenger/icons/tab-arrow-start-bkgnd.png              (icons/tab-arrow-start-bkgnd.png)
+    skin/classic/messenger/icons/tab-arrow-start-bkgnd-animate.png      (icons/tab-arrow-start-bkgnd-animate.png)
+    skin/classic/messenger/icons/tab-arrow-end.png                      (icons/tab-arrow-end.png)
+    skin/classic/messenger/icons/tab-arrow-end-bkgnd.png                (icons/tab-arrow-end-bkgnd.png)
+    skin/classic/messenger/icons/tab-arrow-end-bkgnd-animate.png        (icons/tab-arrow-end-bkgnd-animate.png)
+    skin/classic/messenger/icons/tabmail-tabs-bkgnd.png                 (icons/tabmail-tabs-bkgnd.png)
+    skin/classic/messenger/icons/tabDragIndicator.png                   (icons/tabDragIndicator.png)
+    skin/classic/messenger/icons/tab-left.png                           (icons/tab-left.png)
+    skin/classic/messenger/icons/tab-left-bkgnd.png                     (icons/tab-left-bkgnd.png)
+    skin/classic/messenger/icons/tab-left-hover.png                     (icons/tab-left-hover.png)
+    skin/classic/messenger/icons/tab-middle.png                         (icons/tab-middle.png)
+    skin/classic/messenger/icons/tab-middle-bkgnd.png                   (icons/tab-middle-bkgnd.png)
+    skin/classic/messenger/icons/tab-middle-hover.png                   (icons/tab-middle-hover.png)
+    skin/classic/messenger/icons/tab-right.png                          (icons/tab-right.png)
+    skin/classic/messenger/icons/tab-right-bkgnd.png                    (icons/tab-right-bkgnd.png)
+    skin/classic/messenger/icons/tab-right-hover.png                    (icons/tab-right-hover.png)
+    skin/classic/messenger/icons/tabs-bottom-bg.png                     (icons/tabs-bottom-bg.png)
      skin/classic/messenger/accountcentral/accountsettings.png      (accountcentral/accountsettings.png)
      skin/classic/messenger/accountcentral/folder.png               (accountcentral/folder.png)
      skin/classic/messenger/accountcentral/getmail.png              (accountcentral/getmail.png)

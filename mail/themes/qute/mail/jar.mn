@@ -14,7 +14,7 @@ classic.jar:
     skin/classic/messenger/messenger.css
     skin/classic/messenger/fakeAccount.css
     skin/classic/messenger/mailWindow1.css
-    skin/classic/messenger/tagColors.css    
+    skin/classic/messenger/tagColors.css
     skin/classic/messenger/messageWindow.css
     skin/classic/messenger/searchBox.css
     skin/classic/messenger/junkMail.css
@@ -28,13 +28,15 @@ classic.jar:
     skin/classic/messenger/dialogs.css
     skin/classic/messenger/newmailalert.css
     skin/classic/messenger/newMailAlertUnix.css
+*   skin/classic/messenger/tabmailBindings.xml
+    skin/classic/messenger/tabmail.css
     skin/classic/messenger/addressbook/addressbook.css          (addrbook/addressbook.css)
     skin/classic/messenger/addressbook/abContactsPanel.css      (addrbook/abContactsPanel.css)
     skin/classic/messenger/addressbook/cardDialog.css           (addrbook/cardDialog.css)
     skin/classic/messenger/addressbook/abResultsPane.css        (addrbook/abResultsPane.css)
     skin/classic/messenger/addressbook/icons/abcard.png         (addrbook/abcard.png)
-    skin/classic/messenger/addressbook/icons/addrbook.png       (addrbook/addrbook.png) 
-    skin/classic/messenger/addressbook/icons/ablist.png         (addrbook/ablist.png) 
+    skin/classic/messenger/addressbook/icons/addrbook.png       (addrbook/addrbook.png)
+    skin/classic/messenger/addressbook/icons/ablist.png         (addrbook/ablist.png)
     skin/classic/messenger/addressbook/icons/addressbook-toolbar.png         (addrbook/addressbook-toolbar.png)
     skin/classic/messenger/addressbook/icons/addressbook-toolbar-small.png   (addrbook/addressbook-toolbar-small.png)
     skin/classic/messenger/addressbook/icons/abcard-large.png   (addrbook/abcard-large.png)
@@ -90,7 +92,7 @@ classic.jar:
     skin/classic/messenger/icons/thread-col.png                 (icons/thread-col.png)
     skin/classic/messenger/icons/thread-col-sorta.png           (icons/thread-col-sorta.png)
     skin/classic/messenger/icons/thread-col-sortd.png           (icons/thread-col-sortd.png)
-    skin/classic/messenger/icons/thread.png                     (icons/thread.png)  
+    skin/classic/messenger/icons/thread.png                     (icons/thread.png)
     skin/classic/messenger/icons/thread-ignored.png             (icons/thread-ignored.png)
     skin/classic/messenger/icons/thread-watched.png             (icons/thread-watched.png)
     skin/classic/messenger/icons/flag-col.png                   (icons/flag-col.png)
@@ -110,6 +112,31 @@ classic.jar:
     skin/classic/messenger/icons/online.png                     (icons/online.png)
     skin/classic/messenger/icons/offline.png                    (icons/offline.png)
     skin/classic/messenger/icons/row.png                        (icons/row.png)
+    skin/classic/messenger/icons/alltabs-box-overflow-end-bkgnd.png           (icons/alltabs-box-overflow-end-bkgnd.png)
+    skin/classic/messenger/icons/alltabs-box-overflow-end-bkgnd-animate.png   (icons/alltabs-box-overflow-end-bkgnd-animate.png)
+    skin/classic/messenger/icons/alltabs-box-overflow-end-bkgnd-hover.png     (icons/alltabs-box-overflow-end-bkgnd-hover.png)
+    skin/classic/messenger/icons/alltabs-box-overflow-start-bkgnd.png         (icons/alltabs-box-overflow-start-bkgnd.png)
+    skin/classic/messenger/icons/alltabs-box-overflow-start-bkgnd-animate.png (icons/alltabs-box-overflow-start-bkgnd-animate.png)
+    skin/classic/messenger/icons/alltabs-box-overflow-start-bkgnd-hover.png   (icons/alltabs-box-overflow-start-bkgnd-hover.png)
+    skin/classic/messenger/icons/tab-arrow-end.png                  (icons/tab-arrow-end.png)
+    skin/classic/messenger/icons/tab-arrow-end-bkgnd-animate.png    (icons/tab-arrow-end-bkgnd-animate.png)
+    skin/classic/messenger/icons/tab-arrow-end-bkgnd-disabled.png   (icons/tab-arrow-end-bkgnd-disabled.png)
+    skin/classic/messenger/icons/tab-arrow-end-bkgnd-enabled.png    (icons/tab-arrow-end-bkgnd-enabled.png)
+    skin/classic/messenger/icons/tab-arrow-end-bkgnd-hover.png      (icons/tab-arrow-end-bkgnd-hover.png)
+    skin/classic/messenger/icons/tab-arrow-start.png                (icons/tab-arrow-start.png)
+    skin/classic/messenger/icons/tab-arrow-start-bkgnd-animate.png  (icons/tab-arrow-start-bkgnd-animate.png)
+    skin/classic/messenger/icons/tab-arrow-start-bkgnd-disabled.png (icons/tab-arrow-start-bkgnd-disabled.png)
+    skin/classic/messenger/icons/tab-arrow-start-bkgnd-enabled.png  (icons/tab-arrow-start-bkgnd-enabled.png)
+    skin/classic/messenger/icons/tab-arrow-start-bkgnd-hover.png    (icons/tab-arrow-start-bkgnd-hover.png)
+    skin/classic/messenger/icons/tabmail-tabs-bkgnd.png             (icons/tabmail-tabs-bkgnd.png)
+    skin/classic/messenger/icons/tabDragIndicator.png               (icons/tabDragIndicator.png)
+    skin/classic/messenger/icons/tab-left.png                       (icons/tab-left.png)
+    skin/classic/messenger/icons/tab-left-bkgnd.png                 (icons/tab-left-bkgnd.png)
+    skin/classic/messenger/icons/tab-middle.png                     (icons/tab-middle.png)
+    skin/classic/messenger/icons/tab-middle-bkgnd.png               (icons/tab-middle-bkgnd.png)
+    skin/classic/messenger/icons/tab-right.png                      (icons/tab-right.png)
+    skin/classic/messenger/icons/tab-right-bkgnd.png                (icons/tab-right-bkgnd.png)
+    skin/classic/messenger/icons/tabstrip-bottom.png                (icons/tabstrip-bottom.png)
     skin/classic/communicator/icons/smileys/smiley-smile.png    (icons/smiley-smile.png)
     skin/classic/communicator/icons/smileys/smiley-frown.png    (icons/smiley-frown.png)
     skin/classic/communicator/icons/smileys/smiley-wink.png     (icons/smiley-wink.png)
@@ -124,16 +151,16 @@ classic.jar:
     skin/classic/communicator/icons/smileys/smiley-money-mouth.png (icons/smiley-money-mouth.png)
     skin/classic/communicator/icons/smileys/smiley-foot-in-mouth.png (icons/smiley-foot-in-mouth.png)
     skin/classic/communicator/icons/smileys/smiley-innocent.png (icons/smiley-innocent.png)
-    skin/classic/communicator/icons/smileys/smiley-cry.png      (icons/smiley-cry.png)                                                                  
+    skin/classic/communicator/icons/smileys/smiley-cry.png      (icons/smiley-cry.png)
     skin/classic/communicator/icons/smileys/smiley-sealed.png   (icons/smiley-sealed.png)
     skin/classic/messenger/accountcentral/read-messages.png     (accountcentral/read-messages.png)
     skin/classic/messenger/accountcentral/write-message.png     (accountcentral/write-message.png)
     skin/classic/messenger/accountcentral/create-account.png    (accountcentral/create-account.png)
     skin/classic/messenger/accountcentral/account-settings.png  (accountcentral/account-settings.png)
-    skin/classic/messenger/accountcentral/search-messages.png   (accountcentral/search-messages.png)     
-    skin/classic/messenger/accountcentral/manage-filters.png    (accountcentral/manage-filters.png)  
-    skin/classic/messenger/accountcentral/offline-settings.png  (accountcentral/offline-settings.png) 
-    skin/classic/messenger/accountcentral/manage-imap.png       (accountcentral/manage-imap.png) 
+    skin/classic/messenger/accountcentral/search-messages.png   (accountcentral/search-messages.png)
+    skin/classic/messenger/accountcentral/manage-filters.png    (accountcentral/manage-filters.png)
+    skin/classic/messenger/accountcentral/offline-settings.png  (accountcentral/offline-settings.png)
+    skin/classic/messenger/accountcentral/manage-imap.png       (accountcentral/manage-imap.png)
     skin/classic/messenger/accountcentral/manage-newsgroups.png (accountcentral/manage-newsgroups.png)
     skin/classic/messenger/accountcentral/manage-rss.png        (accountcentral/manage-rss.png)
     icon.png
