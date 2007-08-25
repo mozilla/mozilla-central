@@ -33,9 +33,6 @@ sub EmitHtmlTitleAndHeader {
     if (open(BANNER, "<", "$::data_dir/banner.html")) {
         while (<BANNER>) { print; }
         close BANNER;
-    } elsif (open(BANNER, "<", "$::bonsai_dir/data/banner.html")) {
-        while (<BANNER>) { print; }
-        close BANNER;
     }
 
     print "<TABLE BORDER=0 CELLPADDING=12 CELLSPACING=0 WIDTH=\"100%\">";

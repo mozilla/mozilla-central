@@ -54,10 +54,7 @@ $::CI_LOG=11;
 #
 
 # Variables set from Makefile
-$::bonsai_dir = "@BONSAI_DIR@";
-$::bonsai_url = "@BONSAI_URL@";
 $::default_cvsroot = "@CVSROOT@";
-$::registry_url = "@REGISTRY_URL@";
 $::data_dir='data';
 
 @::global_tree_list = ();
@@ -98,7 +95,7 @@ my $display_accurate_build_end_times = 1;
 # Format version of treedata.pl
 # Use Tie::IxHash to keep order of treedata variables
 tie %::default_treedata => 'Tie::IxHash',
-    treedata_version => 1,
+    treedata_version => 2,
     who_days => 14,
     use_bonsai => 1,
     use_viewvc => 0,
@@ -106,6 +103,9 @@ tie %::default_treedata => 'Tie::IxHash',
     cvs_branch => '',
     cvs_root => '',
     bonsai_tree => '',
+    bonsai_dir => '',
+    bonsai_url => '',
+    registry_url => '',
     viewvc_url => '',
     viewvc_repository => '',
     viewvc_dbdriver => '',

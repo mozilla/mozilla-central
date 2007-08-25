@@ -85,6 +85,9 @@ sub create_tree {
     $treedata{cvs_module} = $form{'modulename'};
     $treedata{cvs_branch}= $form{'branchname'};
     $treedata{bonsai_tree} = $form{'bonsaitreename'};
+    $treedata{bonsai_dir} = $form{'bonsaidir'};
+    $treedata{bonsai_url} = $form{'bonsaiurl'};
+    $treedata{registry_url} = $form{'registryurl'};
     $treedata{viewvc_url} = $form{'viewvc_url'};
     $treedata{viewvc_repository} = $form{'viewvc_repository'};
     $treedata{viewvc_dbdriver} = $form{'viewvc_dbdriver'};
@@ -98,15 +101,16 @@ sub create_tree {
 
     my $treename = $tree;
 
-    for my $var ( 'cvs_module', 'cvs_branch', 'bonsai_tree') {
-        $treedata{use_bonsai}++ if (defined($treedata{$var}) && 
-                                    "$treedata{$var}" ne "");
+    for my $var ( 'cvs_module', 'cvs_branch', 'bonsai_tree', 'bonsai_dir',
+                  'bonsai_url', 'registry_url') {
+        $treedata{use_bonsai} = 1 if (defined($treedata{$var}) && 
+                                      "$treedata{$var}" ne "");
     }
     for my $var ('viewvc_url','viewvc_repository',
                  '{viewvc_dbdriver', 'viewvc_dbhost', 'viewvc_dbport',
                  'viewvc_dbname', 'viewvc_user', 'viewvc_passwd') {
-        $treedata{use_viewvc}++ if (defined($treedata{$var}) && 
-                                    "$treedata{$var}" ne "");
+        $treedata{use_viewvc} = 1 if (defined($treedata{$var}) && 
+                                      "$treedata{$var}" ne "");
     }
     if ($treedata{use_bonsai} && $treedata{use_viewvc}) {
         my $errmsg = "Cannot configure tinderbox to use bonsai & viewvc at the same time.";

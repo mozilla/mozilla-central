@@ -104,9 +104,12 @@ my %form;
 $tree = &require_only_one_tree($tree);
 $form{tree} = $tree;
 &tb_load_treedata($tree);
+my $bonsai_dir;
+# Silence perl compile-time warnings by letting $bonsai_dir have a real default
+BEGIN { $bonsai_dir = $::global_treedata->{$tree}->{bonsai_dir} || '@TINDERBOX_DIR@'; }
+my $bonsai_url = $::global_treedata->{$tree}->{bonsai_url};
 my $cvs_module = $::global_treedata->{$tree}->{cvs_module};
 my $cvs_root = $::global_treedata->{$tree}->{cvs_root};
-
 
 my $source_root = 'mozilla';
 my ($exclude_pat, $tag, %bases, %fullpath, %modules, %module_files);
@@ -494,7 +497,7 @@ sub build_blame {
   my ($cvs_root, $tags) = @_;
   my ($file, $lines_hash);
 
-  use lib "@BONSAI_DIR@";
+  use lib "$bonsai_dir";
   require 'cvsblame.pl';
 
   while (($file, $lines_hash) = each %warnings) {
@@ -849,7 +852,7 @@ sub build_url {
 sub file_url {
   my ($file, $linenum) = @_;
 
-  return "$::bonsai_url/cvsblame.cgi"
+  return "$bonsai_url/cvsblame.cgi"
         ."?file=mozilla/$file&mark=$linenum#".($linenum-10);
 
 }

@@ -252,6 +252,21 @@ print "
 <TD>(SeaMonkey)</TD>
 </TR>
 <TR>
+<TD>bonsai dir:</TD>
+<TD><INPUT NAME=bonsaidir></TD>
+<TD>(/var/www/html/bonsai)</TD>
+</TR>
+<TR>
+<TD>bonsai url:</TD>
+<TD><INPUT NAME=bonsaiurl></TD>
+<TD>(http://bonsai.mozilla.org/)</TD>
+</TR>
+<TR>
+<TD>registry url:</TD>
+<TD><INPUT NAME=registryurl></TD>
+<TD>(http://bonsai.mozilla.org/registry/)</TD>
+</TR>
+<TR>
 <TD>
 <b>ViewVC query options:</b><br>
 </TD>

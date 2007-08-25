@@ -23,8 +23,6 @@
 # This Makefile helps you install Tinderbox.  
 # Set the variables below to their proper locations.
 # TINDERBOX_DIR is the full path to where you want to install tinderbox
-# BONSAI_DIR is the full path to your local bonsai installation
-# BONSAI_URL is the root URL to your bonsai install (e.g. ../bonsai)
 # The other variables contain full paths to the utitlies required to
 # use tinderbox.
 
@@ -34,10 +32,6 @@
 # Begin SERVER_CONFIGURATION
 
 #TINDERBOX_DIR = /var/www/html/tinderbox
-#USE_BONSAI = 1
-#BONSAI_DIR = /var/www/html/bonsai
-#BONSAI_URL = /bonsai
-#REGISTRY_URL = /registry
 
 # Set these to the user/group that will run the tinderbox processes
 #TINDERBOX_USER = tinderbox
@@ -107,21 +101,6 @@ ifeq (,$(strip $(TINDERBOX_GROUP)))
 $(error TINDERBOX_GROUP must be set to the group that the tinderbox processes run as)
 endif
 
-ifdef USE_BONSAI
-ifeq (,$(strip $(BONSAI_DIR)))
-$(error BONSAI_DIR must be set for bonsai support to work)
-endif
-ifeq (,$(strip $(BONSAI_URL)))
-$(error BONSAI_URL must be set for bonsai support to work)
-endif
-ifeq (,$(strip $(REGISTRY_URL)))
-$(error REGISTRY_URL must be set for bonsai support to work)
-endif
-endif
-
-# Avoid warnings in various scripts by setting BONSAI_DIR to a secure default
-BONSAI_DIR ?= $(TINDERBOX_DIR)
-
 install:
 	$(foreach u,$(ALL_UTILS),$(if $($u),,$(error $u must be set to the full path of the utility)))
 	mkdir -p $(TINDERBOX_DIR)/examples
@@ -130,9 +109,6 @@ install:
 	  echo Installing $$I && \
           sed -e s#/usr/bonsaitools/bin/perl#$(PERL)#g \
               -e s#@CVSROOT@#$(CVSROOT)#g \
-              -e s#@BONSAI_DIR@#$(BONSAI_DIR)#g \
-              -e s#@BONSAI_URL@#$(BONSAI_URL)#g \
-              -e s#@REGISTRY_URL@#$(REGISTRY_URL)#g \
               -e s#@TINDERBOX_DIR@#$(TINDERBOX_DIR)#g \
               -e s#@SETUID_PATH@#$(SETUID_PATH)#g \
               $$I > $(TINDERBOX_DIR)/$$I && \

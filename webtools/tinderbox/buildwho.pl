@@ -48,11 +48,15 @@ $tree = &trick_taint(shift);
 #   $cvs_module:  The checkout module
 #   $cvs_branch:  The current branch
 #   $cvs_root:    The path to the cvs root
-#   $bonsai_tree: The data directory for this tree in $::bonsai_dir
+#   $bonsai_dir:  The path to the bonsai installation used by $tree
+#   $bonsai_tree: The data directory for this tree in $bonsai_dir
 #   $viewvc_repository: Repository path used by viewvc for this tree
 &tb_load_treedata($tree);
 my $use_bonsai = $::global_treedata->{$tree}->{use_bonsai};
 my $use_viewvc = $::global_treedata->{$tree}->{use_viewvc};
+my $bonsai_dir; 
+# Silence perl compile-time warnings by letting $bonsai_dir have a real default
+BEGIN { $bonsai_dir = $::global_treedata->{$tree}->{bonsai_dir} || '@TINDERBOX_DIR@'; }
 my $bonsai_tree = $::global_treedata->{$tree}->{bonsai_tree};
 my $cvs_module = $::global_treedata->{$tree}->{cvs_module};
 my $cvs_branch = $::global_treedata->{$tree}->{cvs_branch};
@@ -81,10 +85,10 @@ if ($use_bonsai) {
     $::CVS_REPOS_SUFIX = $::CVS_ROOT;
     $::CVS_REPOS_SUFIX =~ s/\//_/g;
     
-    $::CHECKIN_DATA_FILE = "$::bonsai_dir/data/checkinlog$::CVS_REPOS_SUFIX";
-    $::CHECKIN_INDEX_FILE = "$::bonsai_dir/data/index$::CVS_REPOS_SUFIX";
+    $::CHECKIN_DATA_FILE = "$bonsai_dir/data/checkinlog$::CVS_REPOS_SUFIX";
+    $::CHECKIN_INDEX_FILE = "$bonsai_dir/data/index$::CVS_REPOS_SUFIX";
 
-    use lib "@BONSAI_DIR@";
+    use lib "$bonsai_dir";
     require 'cvsquery.pl';
 
     print "cvsroot='$::CVS_ROOT'\n" if $F_DEBUG;
@@ -129,7 +133,7 @@ sub build_who {
     open(WHOLOG, ">", "$temp_who_file");
 
     if ($use_bonsai) {
-        chdir $::bonsai_dir;
+        chdir $bonsai_dir;
         $::TreeID = $bonsai_tree;
         $result = &query_checkins(%::mod_map);
     } elsif ($use_viewvc) {

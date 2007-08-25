@@ -349,7 +349,7 @@ BEGIN {
       my $q = quotemeta($out{error_file});
       my $goto_line = $out{error_line} > 10 ? $out{error_line} - 10 : 1;
       my $cvsblame = $out{error_guess} ? "cvsguess.cgi" : "cvsblame.cgi"; 
-      $line =~ s@$q@<a href=$::bonsai_url/$cvsblame?file=$out{error_file_ref}&rev=$::cvs_branch&mark=$out{error_line}#$goto_line>$out{error_file}</a>@
+      $line =~ s@$q@<a href=$bonsai_url/$cvsblame?file=$out{error_file_ref}&rev=$cvs_branch&mark=$out{error_line}\#$goto_line>$out{error_file}</a>@;
     }
 
     if ($has_error) {

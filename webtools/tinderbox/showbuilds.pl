@@ -574,7 +574,9 @@ sub open_showbuilds_href_target {
             $output .= "&who=" . &url_encode($who) if (defined($who) && $who ne '');
             $output .= "\">";
         } elsif ($::global_treedata->{$td->{name}}->{use_bonsai}) {
-            $output = "<a href=$::bonsai_url/cvsquery.cgi";
+            $output = "<a href=" .
+                $::global_treedata->{$td->{name}}->{bonsai_url} .
+                "cvsquery.cgi"; 
             $output .= "?module=$td->{cvs_module}";
             $output .= "&branch=$td->{cvs_branch}"   if $td->{cvs_branch} ne 'HEAD';
             $output .= "&branchtype=regexp"
@@ -609,7 +611,8 @@ sub open_showbuilds_href_target {
                 (defined($maxdate));
             $ret = "<a href='$qr'>";
         } elsif ($::global_treedata->{$td->{name}}->{use_bonsai}) {
-            $qr = "$::registry_url/who.cgi?email=". &url_encode($who)
+            $qr = $::global_treedata->{$td->{name}}->{registry_url} .
+                "/who.cgi?email=". &url_encode($who)
                 . "&d=$td->{cvs_module}|$treeflag|$td->{cvs_root}|$mindate";
             $qr = $qr . "|$maxdate" if defined($maxdate);
             $ret = "<a href=\"$qr\" onclick=\"return who(event);\">";
@@ -656,17 +659,18 @@ sub open_showbuilds_href_target {
             $checked_state{$tree} = 1;
             &tb_load_treedata($tree);
             my $bonsai_tree = $::global_treedata->{$tree}->{bonsai_tree};
-            return unless defined $bonsai_tree and $bonsai_tree ne '';
+            my $bonsai_dir = $::global_treedata->{$tree}->{'bonsai_dir'};
+            return if ($bonsai_tree =~ m/^$/ || $bonsai_dir =~ m/^$/);
 
             local $_;
             $::BatchID='';
-            eval qq(do "$::bonsai_dir/data/$bonsai_tree/batchid.pl");
+            eval qq(do "$bonsai_dir/data/$bonsai_tree/batchid.pl");
             if ($::BatchID eq '') {
-                warn "No BatchID in $::bonsai_dir/data/$bonsai_tree/batchid.pl\n";
+                warn "No BatchID in $bonsai_dir/data/$bonsai_tree/batchid.pl\n";
                 return;
             }
-            open(BATCH, "<", "$::bonsai_dir/data/$bonsai_tree/batch-$::BatchID.pl")
-                or warn "Cannot open $::bonsai_dir/data/$bonsai_tree/batch-$::BatchID.pl";
+            open(BATCH, "<", "$bonsai_dir/data/$bonsai_tree/batch-$::BatchID.pl")
+                or warn "Cannot open $bonsai_dir/data/$bonsai_tree/batch-$::BatchID.pl";
             while (<BATCH>) { 
                 if (/^\$::TreeOpen = '(\d+)';/) {
                     $treestate{$tree} = $1;
