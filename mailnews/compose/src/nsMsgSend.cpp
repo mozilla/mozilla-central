@@ -241,7 +241,7 @@ private:
   PRBool               mIsNewsDelivery;
 };
 
-NS_IMPL_ISUPPORTS1(MsgDeliveryListener, nsIUrlListener);
+NS_IMPL_ISUPPORTS1(MsgDeliveryListener, nsIUrlListener)
 
 MsgDeliveryListener::MsgDeliveryListener(nsIMsgSend *aMsgSend, PRBool inIsNewsDelivery)
 {
