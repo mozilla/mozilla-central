@@ -224,8 +224,8 @@
       </xul:hbox>
 
       <xul:hbox class="headerValueBox" anonid="longEmailAddresses" flex="1"
-                onoverflow="this.parentNode.toggleIcon.collapsed = false;"
-                onunderflow="this.parentNode.toggleIcon.collapsed = true;">
+                onoverflow="if (event.detail != 1) this.parentNode.toggleIcon.collapsed = false;"
+                onunderflow="if (event.detail != 1) this.parentNode.toggleIcon.collapsed = true;">
         <xul:label class="headerValue" anonid="emailAddresses" flex="1"/>
       </xul:hbox>
     </content>
