@@ -507,6 +507,11 @@ toolbar[iconsize="small"] #button-goforward[disabled] {
   font-weight: bold;
 }
 
+.msgNotificaton-smallText {
+  padding-left: 10px;
+  font-size: 90%;
+}
+
 #junkBarImage {
   list-style-image: url("chrome://messenger/skin/icons/junk.png");
 }
@@ -517,10 +522,6 @@ toolbar[iconsize="small"] #button-goforward[disabled] {
 
 #remoteContentImage {
   list-style-image: url("chrome://messenger/skin/icons/remote-blocked.png"); 
-}
-
-#allowRemoteContentForAuthorDesc {
-  padding-left: 10px;
 }
 
 #phishingBarImage {

@@ -621,17 +621,18 @@
 <!ENTITY contextAddAllToAddressBook.accesskey "A">
 
 <!-- Junk Bar -->
-<!ENTITY junkBarMessage.label "&brandShortName; thinks this message is junk.">
-<!ENTITY junkBarButton.label "This is Not Junk">
+<!ENTITY junkBarMessage1.label "Junk Mail">
+<!ENTITY junkBarButton1.label "Not Junk">
 <!ENTITY junkInfoButton.label "?">
 
 <!-- Remote Content Bar -->
-<!ENTITY remoteContentMessage.label "To protect your privacy, &brandShortName; has blocked remote images in this message.">
+<!ENTITY remoteContentMessage1.label "To protect your privacy, remote images have been blocked.">
 <!ENTITY loadRemoteContentButton1.label "Load Images">
 
 <!-- Phishing Bar -->
-<!ENTITY phishingBarMessage.label "&brandShortName; thinks this message might be an email scam.">
-<!ENTITY removePhishingBarButton.label "Not a Scam">
+<!ENTITY phishingBarMessage1.label "Suspected Email Scam">
+<!ENTITY removePhishingBarButton1.label "Ignore Warning">
+<!ENTITY reportPhishingError.label "This isn't an email scam">
 
 <!-- Quick Search Bar -->
 <!ENTITY quickSearchCmd.key "k">
@@ -647,7 +648,7 @@
 <!ENTITY CreateFilter.accesskey "F">
 <!ENTITY BlockAddress.label "Block Address">
 <!ENTITY BlockAddress.accesskey "A">
-<!ENTITY reportPhishingURL.label "Report E-mail Scam">
+<!ENTITY reportPhishingURL.label "Report Email Scam">
 <!ENTITY reportPhishingURL.accesskey "o">
 
 <!-- Content Pane Context Menu -->

@@ -42,11 +42,11 @@
 @namespace url("http://www.mozilla.org/keymaster/gatekeeper/there.is.only.xul");
 
 #mail-bar2 {
-	background-image: url("chrome://messenger/skin/icons/top-toolbar-background.gif");
-	background-repeat: repeat-x;
-	background-position: top right;
-	background-color: #e1e1e1;
-	border-top: none;
+  background-image: url("chrome://messenger/skin/icons/top-toolbar-background.gif");
+  background-repeat: repeat-x;
+  background-position: top right;
+  background-color: #e1e1e1;
+  border-top: none;
     border-bottom: 1px solid #a0a0a0;
 }
 
@@ -63,13 +63,13 @@
 }
 
 toolbarbutton[type="menu-button"] {
-	-moz-box-orient: horizontal;
+  -moz-box-orient: horizontal;
 }
 
 toolbarbutton[type="menu-button"] > toolbarbutton {
-	-moz-box-orient: vertical !important;
-	padding: 0px;
-	margin: 0px;
+  -moz-box-orient: vertical !important;
+  padding: 0px;
+  margin: 0px;
 }
 
 #button-getmsg {
@@ -198,7 +198,7 @@ toolbarbutton[type="menu-button"] > toolbarbutton {
 }
 
 #button-file > dropmarker {
-	display: none;
+  display: none;
 }
 
 #button-file:hover:active,
@@ -510,6 +510,11 @@ toolbar[iconsize="small"] #button-goforward[disabled] {
   padding: 0px 4px;
 }
 
+.msgNotificaton-smallText {
+  padding-left: 10px;
+  font-size: 90%;
+}
+
 #junkBarImage {
   list-style-image: url("chrome://messenger/skin/icons/mail-toolbar.png");
   -moz-image-region: rect(0px 256px 32px 224px);
@@ -522,7 +527,6 @@ toolbar[iconsize="small"] #button-goforward[disabled] {
   padding: 3px 6px 4px 6px;
   margin: 6px 6px 0px 6px;
 }
-
 
 #junkIcon {
   list-style-image: url("chrome://messenger/skin/icons/folder-junk.png");
@@ -542,10 +546,6 @@ toolbar[iconsize="small"] #button-goforward[disabled] {
   padding: 3px 6px 4px 6px;
   margin: 6px 6px 0px 6px;
   color: black;
-}
-
-#allowRemoteContentForAuthorDesc {
-  padding-left: 10px;
 }
 
 #phishingBarImage {

@@ -2563,8 +2563,8 @@ var gMessageNotificationBar =
     // update the allow remote content for sender string
     var headerParser = Components.classes["@mozilla.org/messenger/headerparser;1"].getService(Components.interfaces.nsIMsgHeaderParser);
     var emailAddress = headerParser.extractHeaderAddressMailboxes(null, aMsgHdr.author);
-    document.getElementById('allowRemoteContentForAuthorDesc').textContent  = 
-      gMessengerBundle.getFormattedString('alwaysLoadRemoteContentForSender', [emailAddress ? emailAddress : aMsgHdr.author]);
+    document.getElementById('allowRemoteContentForAuthorDesc').value = 
+      gMessengerBundle.getFormattedString('alwaysLoadRemoteContentForSender1', [emailAddress ? emailAddress : aMsgHdr.author]);
     this.updateMsgNotificationBar(kMsgNotificationRemoteImages, true);
   },
 
@@ -2686,12 +2686,14 @@ function allowRemoteContentForSender()
     MsgReload();
 }
 
-function MsgIsNotAScam()
+/** 
+ *  IgnorePhishingWarning - set the msg hdr flag to ignore the phishing warning 
+ *  and reload the message.
+ */
+function IgnorePhishingWarning()
 {
-  // we want to get the msg hdr for the currently selected message
-  // change the "isPhishingMsg" property on it
-  // then reload the message
-
+  // this property should really be called skipPhishingWarning or something like that, but it's too late to change that now. This property is used to supress the phishing 
+  // bar for the message.
   setMsgHdrPropertyAndReload("notAPhishMessage", kNotAPhishMessage);
 }
 
@@ -2699,7 +2701,6 @@ function setMsgHdrPropertyAndReload(aProperty, aValue)
 {
   // we want to get the msg hdr for the currently selected message
   // change the appropiate property on it then reload the message
-
   var msgHdr = msgHdrForCurrentMessage();
   if (msgHdr)
   {
