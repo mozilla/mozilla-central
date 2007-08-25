@@ -2079,7 +2079,7 @@
               document.getAnonymousElementByAttribute(
                   this, "anonid", "horizontal-scrollbar");
           if (!scrollbar.hasAttribute("maxpos")) {
-              return;
+              return val;
           }
           var curpos = scrollbar.getAttribute("curpos");
           var maxpos = scrollbar.getAttribute("maxpos");
