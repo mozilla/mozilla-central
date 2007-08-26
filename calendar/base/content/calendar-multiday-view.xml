@@ -240,7 +240,7 @@
                          parentNode.parentNode.parentNode;
 
         // still select it (since we'll stopPropagation())
-        evbox.calendarView.setSelectedItems(1, 
+        evbox.calendarView.setSelectedItems(1,
             [event.ctrlKey ? evbox.mOccurrence.parentItem : evbox.mOccurrence]);
 
         // then start dragging it
@@ -414,7 +414,7 @@
           return val;
         ]]></setter>
       </property>
-        
+
       <field name="mDayOff">false</field>
       <property name="dayOff">
         <getter><![CDATA[
@@ -727,7 +727,7 @@
               xulColumn.setAttribute("orient", otherorient);
               xulColumn.setAttribute("flex", "1");
               xulColumn.setAttribute("style", "min-width: 1px; min-height: 1px;");
-              stack.appendChild(xulColumn); 
+              stack.appendChild(xulColumn);
 
               var numBlocksInserted = 0;
 
@@ -804,7 +804,7 @@
 
                           this.mEventBoxes.push(chunkBox);
 
-                          if (this.mEventToEdit && 
+                          if (this.mEventToEdit &&
                               chunkBox.occurrence.hashId == this.mEventToEdit.hashId) {
                               boxToEdit = chunkBox;
                           }
@@ -847,8 +847,8 @@
       <method name="computeEventMap">
         <body><![CDATA[
           /* We're going to create a series of 'blobs'.  A blob is a series of
-           * events that create a continuous block of busy time.  In other 
-           * words, a blob ends when there is some time such that no events 
+           * events that create a continuous block of busy time.  In other
+           * words, a blob ends when there is some time such that no events
            * occupy that time.
            *
            * Each blob will be an array of objects with the following properties:
@@ -885,13 +885,13 @@
 
           // This array keeps track of the last (latest ending) item in each of
           // the columns of the current blob. We could reconstruct this data at
-          // any time by looking at the items in the blob, but that would hurt 
+          // any time by looking at the items in the blob, but that would hurt
           // perf.
           var colEndArray = new Array();
 
           /* Go through a 3 step process to try and place each item.
            * Step 1: Look for an existing column with room for the item.
-           * Step 2: Look for a previously placed item that can be shrunk in 
+           * Step 2: Look for a previously placed item that can be shrunk in
            *         width to make room for the item.
            * Step 3: Give up and create a new column for the item.
            *
@@ -904,9 +904,9 @@
               if (!latestItemEnd) {
                   latestItemEnd = itemEnd;
               }
-              if (currentBlob.length && latestItemEnd && 
+              if (currentBlob.length && latestItemEnd &&
                   itemStart.compare(latestItemEnd) != -1) {
-                  // We're done with this current blob because item starts 
+                  // We're done with this current blob because item starts
                   // after the last event in the current blob ended.
                   blobs.push({blob: currentBlob, totalCols: colEndArray.length});
 
@@ -944,7 +944,7 @@
                       // jump into as well.
                       var lastCol = Number(ii) + 1;
                       while (lastCol < colEndArray.length) {
-                          var nextColEnd = colEndArray[lastCol].endDate || 
+                          var nextColEnd = colEndArray[lastCol].endDate ||
                                            colEndArray[lastCol].dueDate;
                           // If the next column's item ends after we start, we
                           // can't expand any further
@@ -956,11 +956,11 @@
                       }
                       // Now construct the info we need to push into the blob
                       currentBlob.push({item: item,
-                                        startCol: ii, 
+                                        startCol: ii,
                                         colSpan: lastCol - ii});
 
                       // Update latestItemEnd
-                      if (latestItemEnd && 
+                      if (latestItemEnd &&
                           itemEnd.compare(latestItemEnd) == 1) {
                           latestItemEnd = itemEnd;
                       }
@@ -975,7 +975,7 @@
               }
 
               // Step 2
-              // OK, all columns (if there are any) overlap us.  Look if the 
+              // OK, all columns (if there are any) overlap us.  Look if the
               // last item in any of the last items in those columns is taking
               // up 2 or more cols. If so, shrink it and stick the item in the
               // created space. For instance
@@ -986,8 +986,8 @@
               //       |      |      |______|
               //       |      |_____________|
               //       |      |ev2          |
-              //       |______|             |<--If our item's start time is 
-              //       |      |_____________|   here, we can shrink ev2 and jump 
+              //       |______|             |<--If our item's start time is
+              //       |      |_____________|   here, we can shrink ev2 and jump
               //       |      |      |      |   in column #3
               //
               for (var jj=1; jj<colEndArray.length; ++jj) {
@@ -998,7 +998,7 @@
                           if (currentBlob[kk].item.id == colEndArray[jj].id) {
                               // Take all but the first spot that the item spanned
                               var spanOfShrunkItem = currentBlob[kk].colSpan;
-                              currentBlob.push({item: item, 
+                              currentBlob.push({item: item,
                                                 startCol: Number(currentBlob[kk].startCol) + 1,
                                                 colSpan: spanOfShrunkItem - 1});
 
@@ -1012,7 +1012,7 @@
                                                  startCol: currentBlob[kk].startCol,
                                                  colSpan: 1};
                               // Update latestItemEnd
-                              if (latestItemEnd && 
+                              if (latestItemEnd &&
                                   itemEnd.compare(latestItemEnd) == 1) {
                                   latestItemEnd = itemEnd;
                               }
@@ -1051,7 +1051,7 @@
                   }
               }
               currentBlob.push({item: item,
-                                startCol: colEndArray.length, 
+                                startCol: colEndArray.length,
                                 colSpan: 1});
               colEndArray.push(item);
 
@@ -1077,7 +1077,7 @@
           //                should have equal width*
           // 2nd dimension: "columns", individual columns of non-conflicting
           //                items
-          // 3rd dimension: "chunks", individual items or placeholders for 
+          // 3rd dimension: "chunks", individual items or placeholders for
           //                the blank time in between them
           //
           // * Note that 'equal width' isn't strictly correct.  If we're
@@ -1221,7 +1221,7 @@
                   // kill our drag state
                   col.fgboxes.dragbox.removeAttribute("dragging");
                   col.fgboxes.box.removeAttribute("dragging");
-                  
+
                   // jump ship
                   newcol.acceptInProgressSweep(dragState);
 
@@ -1379,12 +1379,12 @@
               var minutes = dragState.startMin - dragState.origMin;
 
               // Since both boxDate and beginMove are dates (note datetimes),
-              // subtractDate will only give us a non-zero number of hours on 
+              // subtractDate will only give us a non-zero number of hours on
               // DST changes. While strictly speaking, subtractDate's behavior
               // is correct, we need to move the event a discrete number of
               // days here. There is no need for normalization here, since
               // addDuration does the job for us. Also note, the duration used
-              // here is only used to move over multiple days. Moving on the 
+              // here is only used to move over multiple days. Moving on the
               // same day uses the minutes from the dragState.
               if (duration.hours == 23) {
                   // entering DST
@@ -1424,7 +1424,7 @@
                      dragState.dragType == "modify-start" ||
                      dragState.dragType == "modify-end")
           {
-              col.calendarView.controller.modifyOccurrence(dragState.dragOccurrence, 
+              col.calendarView.controller.modifyOccurrence(dragState.dragOccurrence,
                                                            newStart, newEnd);
           }
           document.calendarEventColumnDragging = null;
@@ -1576,16 +1576,16 @@
 
           var formatter = Cc["@mozilla.org/intl/scriptabledateformat;1"].
                           getService(Ci.nsIScriptableDateFormat);
-          var startstr = formatter.FormatTime("", 
+          var startstr = formatter.FormatTime("",
                                               Ci.nsIScriptableDateFormat.timeFormatNoSeconds,
                                               starthr, startmin, 0);
-          var endstr = formatter.FormatTime("", 
+          var endstr = formatter.FormatTime("",
                                             Ci.nsIScriptableDateFormat.timeFormatNoSeconds,
                                             endhr, endmin, 0);
 
           this.fgboxes.startlabel.setAttribute("value", startstr);
           this.fgboxes.endlabel.setAttribute("value", endstr);
-   
+
         ]]></body>
       </method>
       <method name="setDayStartEndMinutes">
@@ -1667,7 +1667,7 @@
         window.addEventListener("mouseup", this.onEventSweepMouseUp, false);
       ]]></handler>
 
-      
+
     </handlers>
   </binding>
 
@@ -1756,9 +1756,9 @@
           for each (itemBox in this.mItemBoxes) {
             if (aItem && (itemBox.occurrence.hashId == aItem.hashId)) {
               itemBox.selected = true;
-            } 
+            }
 
-          } 
+          }
         ]]></body>
       </method>
       <method name="unselectOccurrence">
@@ -1880,7 +1880,7 @@
          }
 
          var self = this;
-         this.eventNameInput.onblur = 
+         this.eventNameInput.onblur =
              function onBlur() { self.stopEditing(true); };
          this.eventNameInput.onkeypress = function onKeyPress(event) {
              // save on enter
@@ -1933,7 +1933,7 @@
       <property name="startMinute">
         <getter><![CDATA[
             if (!this.mOccurrence)
-                return 0; 
+                return 0;
             var startDate = this.mOccurrence.startDate || this.mOccurrence.entryDate;
             return startDate.hour * 60 + startDate.minute;
         ]]></getter>
@@ -1942,7 +1942,7 @@
       <property name="endMinute">
         <getter><![CDATA[
             if (!this.mOccurrence)
-                return 0; 
+                return 0;
             var endDate = this.mOccurrence.endDate || this.mOccurrence.dueDate;
             return endDate.hour * 60 + endDate.minute;
         ]]></getter>
@@ -2109,7 +2109,7 @@
           <xul:box anonid="labelscrollbarspacer"/>
         </xul:box>
         <xul:box anonid="headerbox">
-          <xul:box anonid="headertimespacer" 
+          <xul:box anonid="headertimespacer"
                    class="calendar-header-time-spacer"/>
           <xul:box anonid="headerdaybox" class="calendar-header-day-box"
                    flex="1" equalsize="always" />
@@ -2358,7 +2358,7 @@
                 this.calView.refresh();
             },
 
-            onDefaultCalendarChanged: 
+            onDefaultCalendarChanged:
             function onDefaultCalendarChanged(aNewDefaultCalendar) {
                 // don't care, for now
             }
@@ -2369,8 +2369,8 @@
       ({
           calView: this,
 
-          onOperationComplete: 
-          function onOperationComplete(aCalendar, aStatus, aOperationType, 
+          onOperationComplete:
+          function onOperationComplete(aCalendar, aStatus, aOperationType,
                                        aId, aDetail) {
               // signal that the current operation finished.
               this.calView.mRefreshPending = false;
@@ -2378,7 +2378,7 @@
               // immediately start the next job on the queue.
               this.calView.popRefreshQueue();
           },
-          onGetResult: 
+          onGetResult:
           function onGetResult(aCalendar, aStatus, aItemType, aDetail,
                                aCount, aItems) {
               if (!Components.isSuccessCode(aStatus))
@@ -2504,7 +2504,7 @@
        <parameter name="aEventName"/>
        <parameter name="aEventDetail"/>
        <body><![CDATA[
-         var event = document.createEvent('Events'); 
+         var event = document.createEvent('Events');
          event.initEvent(aEventName, true, false);
          event.detail = aEventDetail;
          this.dispatchEvent(event);
@@ -2551,7 +2551,7 @@
           var endDate = aEndDate.getInTimezone(this.mTimezone);
           endDate.isDate = true;
           // make sure unnormalized version not used below
-          aStartDate = aEndDate = null; 
+          aStartDate = aEndDate = null;
 
           if (this.mDisplayDaysOff) {
             startDate.makeImmutable();
@@ -2795,7 +2795,7 @@
               this.setPixelsPerMin(1.5);
           else
               this.setPixelsPerMin(0.6);
-          
+
           var normalelems = ['mainbox', 'timebar'];
           var otherelems = ['labelbox', 'labeldaybox', 'headertimespacer',
                             'headerbox', 'headerdaybox', 'childbox', 'daybox'];
@@ -2880,7 +2880,7 @@
             filter |= this.mCalendar.ITEM_FILTER_COMPLETED_NO;
           }
 
-          if(this.mTasksInView) 
+          if(this.mTasksInView)
             filter |= this.mCalendar.ITEM_FILTER_TYPE_ALL;
           else
             filter |= this.mCalendar.ITEM_FILTER_TYPE_EVENT;
@@ -3025,7 +3025,7 @@
                   labelbox.shortWeekNames = false;
               }
               maxDayWidth = Math.max(maxDayWidth, labelbox.longWeekdayPixels);
-            
+
               // We don't want to actually mess with our original dates, plus
               // they're likely to be immutable.
               var d2 = d.clone();
@@ -3245,7 +3245,7 @@
           }
         ]]></body>
       </method>
-      
+
       <method name="adjustScrollBarSpacers">
         <body><![CDATA[
           // get the view's orientation
