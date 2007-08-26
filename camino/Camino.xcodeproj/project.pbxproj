@@ -320,7 +320,6 @@
 		3F44AC0605BDFB9E00CB4B08 /* BrowserContentViews.h in Headers */ = {isa = PBXBuildFile; fileRef = F53C1CD6032FF3B301A96654 /* BrowserContentViews.h */; };
 		3F44AC0705BDFB9E00CB4B08 /* KeychainService.h in Headers */ = {isa = PBXBuildFile; fileRef = F5F94B900332532801026D5D /* KeychainService.h */; };
 		3F44AC0805BDFB9E00CB4B08 /* NSPasteboard+Utils.h in Headers */ = {isa = PBXBuildFile; fileRef = F5B34B04034A50C901A80166 /* NSPasteboard+Utils.h */; };
-		3F44AC0905BDFB9E00CB4B08 /* CHClickListener.h in Headers */ = {isa = PBXBuildFile; fileRef = F529788A0371820B01026DCE /* CHClickListener.h */; };
 		3F44AC0A05BDFB9E00CB4B08 /* JSConsole.h in Headers */ = {isa = PBXBuildFile; fileRef = F58DB2D20381FD3301A9666E /* JSConsole.h */; };
 		3F44AC0B05BDFB9E00CB4B08 /* NetworkServices.h in Headers */ = {isa = PBXBuildFile; fileRef = F57BED9A03A1824801A9666E /* NetworkServices.h */; };
 		3F44AC0C05BDFB9E00CB4B08 /* DNSUtils.h in Headers */ = {isa = PBXBuildFile; fileRef = F57BED9E03A1825001A9666E /* DNSUtils.h */; };
@@ -451,7 +450,6 @@
 		3F44ACB005BDFB9E00CB4B08 /* BrowserContentViews.mm in Sources */ = {isa = PBXBuildFile; fileRef = F53C1CD7032FF3B301A96654 /* BrowserContentViews.mm */; };
 		3F44ACB105BDFB9E00CB4B08 /* KeychainService.mm in Sources */ = {isa = PBXBuildFile; fileRef = F5F94B910332532801026D5D /* KeychainService.mm */; settings = {COMPILER_FLAGS = "-DNO_NSPR_10_SUPPORT"; }; };
 		3F44ACB205BDFB9E00CB4B08 /* NSPasteboard+Utils.mm in Sources */ = {isa = PBXBuildFile; fileRef = F5B34B01034A505F01A80166 /* NSPasteboard+Utils.mm */; };
-		3F44ACB305BDFB9E00CB4B08 /* CHClickListener.mm in Sources */ = {isa = PBXBuildFile; fileRef = F529788B0371820B01026DCE /* CHClickListener.mm */; };
 		3F44ACB405BDFB9E00CB4B08 /* JSConsole.mm in Sources */ = {isa = PBXBuildFile; fileRef = F58DB2D30381FD3301A9666E /* JSConsole.mm */; };
 		3F44ACB505BDFB9E00CB4B08 /* NetworkServices.mm in Sources */ = {isa = PBXBuildFile; fileRef = F57BED9703A1824001A9666E /* NetworkServices.mm */; };
 		3F44ACB605BDFB9E00CB4B08 /* DNSUtils.c in Sources */ = {isa = PBXBuildFile; fileRef = F57BED9D03A1825001A9666E /* DNSUtils.c */; };
@@ -737,7 +735,6 @@
 		3F44AE3F05BDFBA000CB4B08 /* BrowserContentViews.h in Headers */ = {isa = PBXBuildFile; fileRef = F53C1CD6032FF3B301A96654 /* BrowserContentViews.h */; };
 		3F44AE4005BDFBA000CB4B08 /* KeychainService.h in Headers */ = {isa = PBXBuildFile; fileRef = F5F94B900332532801026D5D /* KeychainService.h */; };
 		3F44AE4105BDFBA000CB4B08 /* NSPasteboard+Utils.h in Headers */ = {isa = PBXBuildFile; fileRef = F5B34B04034A50C901A80166 /* NSPasteboard+Utils.h */; };
-		3F44AE4205BDFBA000CB4B08 /* CHClickListener.h in Headers */ = {isa = PBXBuildFile; fileRef = F529788A0371820B01026DCE /* CHClickListener.h */; };
 		3F44AE4305BDFBA000CB4B08 /* JSConsole.h in Headers */ = {isa = PBXBuildFile; fileRef = F58DB2D20381FD3301A9666E /* JSConsole.h */; };
 		3F44AE4405BDFBA000CB4B08 /* NetworkServices.h in Headers */ = {isa = PBXBuildFile; fileRef = F57BED9A03A1824801A9666E /* NetworkServices.h */; };
 		3F44AE4505BDFBA000CB4B08 /* DNSUtils.h in Headers */ = {isa = PBXBuildFile; fileRef = F57BED9E03A1825001A9666E /* DNSUtils.h */; };
@@ -868,7 +865,6 @@
 		3F44AEEA05BDFBA000CB4B08 /* BrowserContentViews.mm in Sources */ = {isa = PBXBuildFile; fileRef = F53C1CD7032FF3B301A96654 /* BrowserContentViews.mm */; };
 		3F44AEEB05BDFBA000CB4B08 /* KeychainService.mm in Sources */ = {isa = PBXBuildFile; fileRef = F5F94B910332532801026D5D /* KeychainService.mm */; settings = {COMPILER_FLAGS = "-DNO_NSPR_10_SUPPORT"; }; };
 		3F44AEEC05BDFBA000CB4B08 /* NSPasteboard+Utils.mm in Sources */ = {isa = PBXBuildFile; fileRef = F5B34B01034A505F01A80166 /* NSPasteboard+Utils.mm */; };
-		3F44AEED05BDFBA000CB4B08 /* CHClickListener.mm in Sources */ = {isa = PBXBuildFile; fileRef = F529788B0371820B01026DCE /* CHClickListener.mm */; };
 		3F44AEEE05BDFBA000CB4B08 /* JSConsole.mm in Sources */ = {isa = PBXBuildFile; fileRef = F58DB2D30381FD3301A9666E /* JSConsole.mm */; };
 		3F44AEEF05BDFBA000CB4B08 /* NetworkServices.mm in Sources */ = {isa = PBXBuildFile; fileRef = F57BED9703A1824001A9666E /* NetworkServices.mm */; };
 		3F44AEF005BDFBA000CB4B08 /* DNSUtils.c in Sources */ = {isa = PBXBuildFile; fileRef = F57BED9D03A1825001A9666E /* DNSUtils.c */; };
@@ -1196,6 +1192,10 @@
 		4DD0F00809918C2300B6BBFD /* mathfontPUA.properties in Copy Gecko Fonts */ = {isa = PBXBuildFile; fileRef = 0E6A9895097E0044007962C1 /* mathfontPUA.properties */; };
 		4DD0F00909918C2300B6BBFD /* mathfontSymbol.properties in Copy Gecko Fonts */ = {isa = PBXBuildFile; fileRef = 0E6A9896097E0044007962C1 /* mathfontSymbol.properties */; };
 		4DD988E708EB7D3700AD0788 /* dl_trash.tif in Resources */ = {isa = PBXBuildFile; fileRef = 34D112DD08E9B17400989FD5 /* dl_trash.tif */; };
+		506770F70C823B090050EF73 /* CHSelectHandler.mm in Sources */ = {isa = PBXBuildFile; fileRef = 506770F60C823B090050EF73 /* CHSelectHandler.mm */; };
+		506770F80C823B090050EF73 /* CHSelectHandler.mm in Sources */ = {isa = PBXBuildFile; fileRef = 506770F60C823B090050EF73 /* CHSelectHandler.mm */; };
+		506770FA0C823B1B0050EF73 /* CHSelectHandler.h in Headers */ = {isa = PBXBuildFile; fileRef = 506770F90C823B1B0050EF73 /* CHSelectHandler.h */; };
+		506770FB0C823B1B0050EF73 /* CHSelectHandler.h in Headers */ = {isa = PBXBuildFile; fileRef = 506770F90C823B1B0050EF73 /* CHSelectHandler.h */; };
 		7B9E1BFF09DD967E003256C9 /* libmozreg_s.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 7B9E1BFE09DD966F003256C9 /* libmozreg_s.a */; };
 		7BB332F40A7E99BC0075521C /* libspellchecker.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 7BB332F30A7E99BC0075521C /* libspellchecker.a */; };
 		82180AB107368AD7002EFA6D /* grabber.gif in Copy Gecko HTML Images */ = {isa = PBXBuildFile; fileRef = 82CE28710736615300B4DE07 /* grabber.gif */; };
@@ -2462,7 +2462,7 @@
 		3F42EFAC05EC13F90045A30C /* throbber-11.tif */ = {isa = PBXFileReference; lastKnownFileType = image.gif; name = "throbber-11.tif"; path = "resources/images/throbber/throbber-11.tif"; sourceTree = SOURCE_ROOT; };
 		3F42EFAD05EC13F90045A30C /* throbber-12.tif */ = {isa = PBXFileReference; lastKnownFileType = image.gif; name = "throbber-12.tif"; path = "resources/images/throbber/throbber-12.tif"; sourceTree = SOURCE_ROOT; };
 		3F44AD8705BDFB9F00CB4B08 /* Info-Camino.plist */ = {isa = PBXFileReference; lastKnownFileType = text.xml; path = "Info-Camino.plist"; sourceTree = "<group>"; };
-		3F44AD8805BDFB9F00CB4B08 /* Camino.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = Camino.app; sourceTree = BUILT_PRODUCTS_DIR; };
+		3F44AD8805BDFB9F00CB4B08 /* Camino.app */ = {isa = PBXFileReference; includeInIndex = 0; lastKnownFileType = wrapper.application; path = Camino.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		3F44AD9E05BDFB9F00CB4B08 /* Info-AppearancePrefPane.plist */ = {isa = PBXFileReference; lastKnownFileType = text.xml; path = "Info-AppearancePrefPane.plist"; sourceTree = "<group>"; };
 		3F44AD9F05BDFB9F00CB4B08 /* Appearance.prefPane */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = Appearance.prefPane; sourceTree = BUILT_PRODUCTS_DIR; };
 		3F44ADB205BDFBA000CB4B08 /* Info-NavigationPrefPane.plist */ = {isa = PBXFileReference; lastKnownFileType = text.xml; path = "Info-NavigationPrefPane.plist"; sourceTree = "<group>"; };
@@ -2571,6 +2571,8 @@
 		4DC41D3E0869D7A400947044 /* libmozpng.a */ = {isa = PBXFileReference; lastKnownFileType = archive.ar; name = libmozpng.a; path = ../modules/libimg/png/libmozpng.a; sourceTree = SOURCE_ROOT; };
 		4DC41D3E0869D7A400947045 /* libmozcairo.a */ = {isa = PBXFileReference; lastKnownFileType = archive.ar; name = libmozcairo.a; path = ../gfx/cairo/cairo/src/libmozcairo.a; sourceTree = SOURCE_ROOT; };
 		4DC41D3E0869D7A400947046 /* libmozlibpixman.a */ = {isa = PBXFileReference; lastKnownFileType = archive.ar; name = libmozlibpixman.a; path = ../gfx/cairo/libpixman/src/libmozlibpixman.a; sourceTree = SOURCE_ROOT; };
+		506770F60C823B090050EF73 /* CHSelectHandler.mm */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.cpp.objcpp; name = CHSelectHandler.mm; path = src/embedding/CHSelectHandler.mm; sourceTree = "<group>"; };
+		506770F90C823B1B0050EF73 /* CHSelectHandler.h */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.c.h; name = CHSelectHandler.h; path = src/embedding/CHSelectHandler.h; sourceTree = "<group>"; };
 		7919FCF0044631350000010E /* PrintPDE.plugin */ = {isa = PBXFileReference; lastKnownFileType = wrapper.cfbundle; name = PrintPDE.plugin; path = ../dist/package/PrintPDE.plugin; sourceTree = SOURCE_ROOT; };
 		7B9E1BFE09DD966F003256C9 /* libmozreg_s.a */ = {isa = PBXFileReference; lastKnownFileType = archive.ar; name = libmozreg_s.a; path = ../dist/lib/libmozreg_s.a; sourceTree = SOURCE_ROOT; };
 		7BB332F30A7E99BC0075521C /* libspellchecker.a */ = {isa = PBXFileReference; lastKnownFileType = archive.ar; name = libspellchecker.a; path = ../staticlib/components/libspellchecker.a; sourceTree = SOURCE_ROOT; };
@@ -2721,8 +2723,6 @@
 		F528E216020FD5D80168DE43 /* English */ = {isa = PBXFileReference; lastKnownFileType = wrapper.nib; name = English; path = resources/localized/English.lproj/FindDialog.nib; sourceTree = SOURCE_ROOT; };
 		F528E218020FD8400168DE43 /* FindDlgController.h */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.c.h; name = FindDlgController.h; path = src/find/FindDlgController.h; sourceTree = SOURCE_ROOT; };
 		F528E21A020FD9620168DE43 /* FindDlgController.mm */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.cpp.objcpp; name = FindDlgController.mm; path = src/find/FindDlgController.mm; sourceTree = SOURCE_ROOT; };
-		F529788A0371820B01026DCE /* CHClickListener.h */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.c.h; name = CHClickListener.h; path = src/embedding/CHClickListener.h; sourceTree = SOURCE_ROOT; };
-		F529788B0371820B01026DCE /* CHClickListener.mm */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.cpp.objcpp; name = CHClickListener.mm; path = src/embedding/CHClickListener.mm; sourceTree = SOURCE_ROOT; };
 		F52CE65902BFA88701026D5D /* English */ = {isa = PBXFileReference; fileEncoding = 10; lastKnownFileType = text.plist.strings; name = English; path = resources/localized/English.lproj/Localizable.strings; sourceTree = SOURCE_ROOT; };
 		F52D5CCF027A887001A80166 /* AutoCompleteTextField.h */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.c.h; name = AutoCompleteTextField.h; path = src/browser/AutoCompleteTextField.h; sourceTree = SOURCE_ROOT; };
 		F52D5CD0027A887001A80166 /* AutoCompleteTextField.mm */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.cpp.objcpp; name = AutoCompleteTextField.mm; path = src/browser/AutoCompleteTextField.mm; sourceTree = SOURCE_ROOT; };
@@ -3896,6 +3896,7 @@
 		F51842F30206168101A966FE /* Headers */ = {
 			isa = PBXGroup;
 			children = (
+				506770F90C823B1B0050EF73 /* CHSelectHandler.h */,
 				F59236C102C89AC90100012B /* AppDirServiceProvider.h */,
 				DE74F74A0AB25E9900FD1D5B /* AppListMenuFactory.h */,
 				F52D5CD3027A88C601A80166 /* AutoCompleteDataSource.h */,
@@ -3907,7 +3908,6 @@
 				F632AF8302B9AEBB01000103 /* BrowserWindow.h */,
 				F5AE04B20206A34801A967DF /* BrowserWindowController.h */,
 				F5125A110202064D01FAFD9F /* BrowserWrapper.h */,
-				F529788A0371820B01026DCE /* CHClickListener.h */,
 				F558B1F0030F6E470166970F /* CHBrowserListener.h */,
 				F558B1F1030F6E470166971B /* CmXULAppData.h */,
 				F558B1F1030F6E470166971F /* CmXULAppInfo.h */,
@@ -4087,7 +4087,7 @@
 		F558B1F603107E4A0166970F /* Gecko Embedding */ = {
 			isa = PBXGroup;
 			children = (
-				F529788B0371820B01026DCE /* CHClickListener.mm */,
+				506770F60C823B090050EF73 /* CHSelectHandler.mm */,
 				F5DE10EB0209DC0601A967DF /* CHBrowserService.mm */,
 				F558B1F1030F6E470166970F /* CHBrowserListener.mm */,
 				F558B1F1030F6E470166972F /* CmXULAppInfo.mm */,
@@ -4620,7 +4620,6 @@
 				3F44AC0605BDFB9E00CB4B08 /* BrowserContentViews.h in Headers */,
 				3F44AC0705BDFB9E00CB4B08 /* KeychainService.h in Headers */,
 				3F44AC0805BDFB9E00CB4B08 /* NSPasteboard+Utils.h in Headers */,
-				3F44AC0905BDFB9E00CB4B08 /* CHClickListener.h in Headers */,
 				3F44AC0A05BDFB9E00CB4B08 /* JSConsole.h in Headers */,
 				3F44AC0B05BDFB9E00CB4B08 /* NetworkServices.h in Headers */,
 				3F44AC0C05BDFB9E00CB4B08 /* DNSUtils.h in Headers */,
@@ -4677,6 +4676,7 @@
 				1F8407080C5705CC007B893D /* TabThumbnailGridView.h in Headers */,
 				1F8407090C5705CC007B893D /* ThumbnailView.h in Headers */,
 				00335B8D0C655ABC00A607F2 /* WebSearchField.h in Headers */,
+				506770FA0C823B1B0050EF73 /* CHSelectHandler.h in Headers */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -4775,7 +4775,6 @@
 				3F44AE3F05BDFBA000CB4B08 /* BrowserContentViews.h in Headers */,
 				3F44AE4005BDFBA000CB4B08 /* KeychainService.h in Headers */,
 				3F44AE4105BDFBA000CB4B08 /* NSPasteboard+Utils.h in Headers */,
-				3F44AE4205BDFBA000CB4B08 /* CHClickListener.h in Headers */,
 				3F44AE4305BDFBA000CB4B08 /* JSConsole.h in Headers */,
 				3F44AE4405BDFBA000CB4B08 /* NetworkServices.h in Headers */,
 				3F44AE4505BDFBA000CB4B08 /* DNSUtils.h in Headers */,
@@ -4832,6 +4831,7 @@
 				1F840B2B0C57D807007B893D /* TabThumbnailGridView.h in Headers */,
 				1F840B2D0C57D807007B893D /* ThumbnailView.h in Headers */,
 				00335B8F0C655ABC00A607F2 /* WebSearchField.h in Headers */,
+				506770FB0C823B1B0050EF73 /* CHSelectHandler.h in Headers */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -5591,7 +5591,6 @@
 				3F44ACB005BDFB9E00CB4B08 /* BrowserContentViews.mm in Sources */,
 				3F44ACB105BDFB9E00CB4B08 /* KeychainService.mm in Sources */,
 				3F44ACB205BDFB9E00CB4B08 /* NSPasteboard+Utils.mm in Sources */,
-				3F44ACB305BDFB9E00CB4B08 /* CHClickListener.mm in Sources */,
 				3F44ACB405BDFB9E00CB4B08 /* JSConsole.mm in Sources */,
 				3F44ACB505BDFB9E00CB4B08 /* NetworkServices.mm in Sources */,
 				3F44ACB605BDFB9E00CB4B08 /* DNSUtils.c in Sources */,
@@ -5659,6 +5658,7 @@
 				1F84070A0C5705CC007B893D /* ThumbnailView.m in Sources */,
 				33F3B70B0C63F5F7007DFBD0 /* ScriptingSupport.mm in Sources */,
 				00335B8E0C655ABC00A607F2 /* WebSearchField.mm in Sources */,
+				506770F70C823B090050EF73 /* CHSelectHandler.mm in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -5759,7 +5759,6 @@
 				3F44AEEA05BDFBA000CB4B08 /* BrowserContentViews.mm in Sources */,
 				3F44AEEB05BDFBA000CB4B08 /* KeychainService.mm in Sources */,
 				3F44AEEC05BDFBA000CB4B08 /* NSPasteboard+Utils.mm in Sources */,
-				3F44AEED05BDFBA000CB4B08 /* CHClickListener.mm in Sources */,
 				3F44AEEE05BDFBA000CB4B08 /* JSConsole.mm in Sources */,
 				3F44AEEF05BDFBA000CB4B08 /* NetworkServices.mm in Sources */,
 				3F44AEF005BDFBA000CB4B08 /* DNSUtils.c in Sources */,
@@ -5827,6 +5826,7 @@
 				1F840B2E0C57D807007B893D /* ThumbnailView.m in Sources */,
 				33F3B70C0C63F5F7007DFBD0 /* ScriptingSupport.mm in Sources */,
 				00335B900C655ABC00A607F2 /* WebSearchField.mm in Sources */,
+				506770F80C823B090050EF73 /* CHSelectHandler.mm in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

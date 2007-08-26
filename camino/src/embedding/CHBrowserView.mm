@@ -40,7 +40,7 @@
 #import "NSPasteboard+Utils.h"
 #import "NSDate+Utils.h"
 
-#import "CHClickListener.h"
+#import "CHSelectHandler.h"
 
 #include "nsCWebBrowser.h"
 #include "nsIBaseWindow.h"
@@ -199,61 +199,63 @@ const char kDirServiceContractID[] = "@mozilla.org/file/directory_service;1";
   {
     nsresult rv = CHBrowserService::InitEmbedding();
     if (NS_FAILED(rv)) {
-// XXX need to throw
+      // XXX need to throw
     }
 
     _listener = new CHBrowserListener(self);
     NS_ADDREF(_listener);
-    
-// Create the web browser instance
+
+    // Create the web browser instance
     nsCOMPtr<nsIWebBrowser> browser = do_CreateInstance(NS_WEBBROWSER_CONTRACTID, &rv);
     if (NS_FAILED(rv)) {
-// XXX need to throw
+      // XXX need to throw
     }
 
     _webBrowser = browser;
     NS_ADDREF(_webBrowser);
-    
-// Set the container nsIWebBrowserChrome
+
+    // Set the container nsIWebBrowserChrome
     _webBrowser->SetContainerWindow(static_cast<nsIWebBrowserChrome *>(_listener));
-    
-// Register as a listener for web progress
+
+    // Register as a listener for web progress
     nsCOMPtr<nsIWeakReference> weak = do_GetWeakReference(static_cast<nsIWebProgressListener*>(_listener));
     _webBrowser->AddWebBrowserListener(weak, NS_GET_IID(nsIWebProgressListener));
-    
-// Hook up the widget hierarchy with us as the parent
+
+    // Hook up the widget hierarchy with us as the parent
     nsCOMPtr<nsIBaseWindow> baseWin = do_QueryInterface(_webBrowser);
     baseWin->InitWindow((NSView*)self, nsnull, 0, 0, (int)frame.size.width, (int)frame.size.height);
     baseWin->Create();
-              
+
     // The value of mUseGlobalPrintSettings can't change during our lifetime. 
     nsCOMPtr<nsIPrefBranch> pref(do_GetService("@mozilla.org/preferences-service;1"));
     PRBool tempBool = PR_TRUE;
     pref->GetBoolPref("print.use_global_printsettings", &tempBool);
     mUseGlobalPrintSettings = tempBool;
-              
+
     // hookup the listener for creating our own native menus on <SELECTS>
-    CHClickListener* clickListener = new CHClickListener();
-    if (!clickListener)
+    CHSelectHandler* selectHandler = new CHSelectHandler();
+    if (!selectHandler)
       return nil;
-    
+
     nsCOMPtr<nsIDOMWindow> contentWindow = [self getContentWindow];
     nsCOMPtr<nsPIDOMWindow> piWindow(do_QueryInterface(contentWindow));
     nsPIDOMEventTarget *chromeHandler = piWindow->GetChromeEventHandler();
-    if (chromeHandler)
-      chromeHandler->AddEventListenerByIID(clickListener, NS_GET_IID(nsIDOMMouseListener));
-    
+    if (chromeHandler) {
+      chromeHandler->AddEventListenerByIID((nsIDOMMouseListener*)selectHandler, NS_GET_IID(nsIDOMMouseListener));
+      chromeHandler->AddEventListenerByIID((nsIDOMKeyListener*)selectHandler, NS_GET_IID(nsIDOMKeyListener));
+    }
+
     // register the CHBrowserListener as an event listener for popup-blocking events,
     // and link-added events.
     nsCOMPtr<nsIDOMEventTarget> eventTarget = do_QueryInterface(chromeHandler);
     if (eventTarget)
     {
-      rv = eventTarget->AddEventListener(NS_LITERAL_STRING("DOMPopupBlocked"), 
-                                          static_cast<nsIDOMEventListener*>(_listener), PR_FALSE);
+      rv = eventTarget->AddEventListener(NS_LITERAL_STRING("DOMPopupBlocked"),
+                                         static_cast<nsIDOMEventListener*>(_listener), PR_FALSE);
       NS_ASSERTION(NS_SUCCEEDED(rv), "AddEventListener failed");
 
-      rv = eventTarget->AddEventListener(NS_LITERAL_STRING("DOMLinkAdded"), 
-                                          static_cast<nsIDOMEventListener*>(_listener), PR_FALSE);
+      rv = eventTarget->AddEventListener(NS_LITERAL_STRING("DOMLinkAdded"),
+                                         static_cast<nsIDOMEventListener*>(_listener), PR_FALSE);
       NS_ASSERTION(NS_SUCCEEDED(rv), "AddEventListener failed");
     }
   }
