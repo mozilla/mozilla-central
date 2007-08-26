@@ -1247,8 +1247,8 @@ function serv_onRawData(e)
 
     if (l[0] == ":")
     {
-        // Must split only on a REAL space here, not just any old whitespace.
-        ary = l.match(/:([^ ]+) (.*)/);
+        // Must split only on REAL spaces here, not just any old whitespace.
+        ary = l.match(/:([^ ]+) +(.*)/);
         e.source = ary[1];
         l = ary[2];
         ary = e.source.match(/([^ ]+)!([^ ]+)@(.*)/);
@@ -1306,12 +1306,12 @@ function serv_onRawData(e)
     if (sep != -1) /* <trailing> param, if there is one */
     {
         var trail = l.substr (sep + 2, l.length);
-        e.params = l.substr(0, sep).split(" ");
+        e.params = l.substr(0, sep).split(/ +/);
         e.params[e.params.length] = trail;
     }
     else
     {
-        e.params = l.split(" ");
+        e.params = l.split(/ +/);
     }
 
     e.decodeParam = decodeParam;
