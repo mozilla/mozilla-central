@@ -151,14 +151,13 @@ function initCommands()
          ["notify",            cmdNotify,           CMD_NEED_SRV | CMD_CONSOLE],
          ["open-at-startup",   cmdOpenAtStartup,                   CMD_CONSOLE],
          ["oper",              cmdOper,             CMD_NEED_SRV | CMD_CONSOLE],
-         ["pass",              cmdPass,             CMD_NEED_NET | CMD_CONSOLE],
          ["ping",              cmdPing,             CMD_NEED_SRV | CMD_CONSOLE],
          ["plugin-pref",       cmdPref,                            CMD_CONSOLE],
          ["pref",              cmdPref,                            CMD_CONSOLE],
          ["print",             cmdPrint,                           CMD_CONSOLE],
          ["query",             cmdQuery,            CMD_NEED_SRV | CMD_CONSOLE],
          ["quit",              cmdQuit,                            CMD_CONSOLE],
-         ["quote",             cmdQuote,            CMD_NEED_SRV | CMD_CONSOLE],
+         ["quote",             cmdQuote,            CMD_NEED_NET | CMD_CONSOLE],
          ["reload-plugin",     cmdReload,                          CMD_CONSOLE],
          ["rlist",             cmdRlist,            CMD_NEED_SRV | CMD_CONSOLE],
          ["reconnect",         cmdReconnect,        CMD_NEED_NET | CMD_CONSOLE],
@@ -209,6 +208,7 @@ function initCommands()
          ["css",              "motif",                             CMD_CONSOLE],
          ["exit",             "quit",                              CMD_CONSOLE],
          ["j",                "join",                              CMD_CONSOLE],
+         ["pass",             "quote PASS",                        CMD_CONSOLE],
          ["part",             "leave",                             CMD_CONSOLE],
          ["raw",              "quote",                             CMD_CONSOLE],
          // Shortcuts to useful URLs:
@@ -2165,6 +2165,17 @@ function cmdNotice(e)
 
 function cmdQuote(e)
 {
+    /* Check we are connected, or at least pretending to be connected, so this
+     * can actually send something. The only thing that's allowed to send
+     * before the 001 is PASS, so if the command is not that and the net is not
+     * online, we stop too.
+     */
+    if ((e.network.state != NET_ONLINE) &&
+        (!e.server.isConnected || !e.ircCommand.match(/^\s*PASS/i)))
+    {
+        feedback(e, MSG_ERR_NOT_CONNECTED);
+        return;
+    }
     e.server.sendData(fromUnicode(e.ircCommand) + "\n", e.sourceObject);
 }
 
@@ -2890,20 +2901,6 @@ function cmdOper(e)
 
     e.server.sendData("OPER " + fromUnicode(e.opername, e.server) + " " + 
                       fromUnicode(e.password, e.server) + "\n");
-}
-
-function cmdPass(e)
-{
-    /* Check we are connected, or at least pretending to be connected, so this
-     * can actually send something.
-     */
-   if ((e.network.state != NET_ONLINE) && !e.server.isConnected)
-   {
-       feedback(e, MSG_ERR_NOT_CONNECTED);
-       return;
-   }
-
-   e.server.sendData("PASS " + fromUnicode(e.password, e.server) + "\n");
 }
 
 function cmdPing (e)

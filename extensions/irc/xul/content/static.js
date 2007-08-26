@@ -1805,6 +1805,7 @@ function gotoIRCURL (url)
     if (url.isserver)
     {
         var alreadyThere = false;
+        var gettingThere = false;
         for (var n in client.networks)
         {
             if ((client.networks[n].isConnected()) &&
@@ -1813,29 +1814,43 @@ function gotoIRCURL (url)
             {
                 /* already connected to this server/port */
                 network = client.networks[n];
-                alreadyThere = true;
+                gettingThere = true;
+                // Have we actually had the 001 reply yet?
+                alreadyThere = (client.networks[n].state == NET_ONLINE);
                 break;
             }
         }
 
         if (!alreadyThere)
         {
-            /*
-            dd ("gotoIRCURL: not already connected to " +
-                "server " + url.host + " trying to connect...");
-            */
-            var pass = "";
-            if (url.needpass)
+            if (!gettingThere)
             {
-                if (url.pass)
-                    pass = url.pass;
-                else
-                    pass = promptPassword(getMsg(MSG_HOST_PASSWORD, url.host));
-            }
+                /*
+                dd ("gotoIRCURL: not yet had connected to server" + url.host +
+                    " trying to connect...");
+                */
 
-            network = dispatch((url.scheme == "ircs" ? "sslserver" : "server"),
-                               {hostname: url.host, port: url.port,
-                                password: pass});
+                // Do we have a password, if needed?
+                var pass = "";
+                if (url.needpass)
+                {
+                    if (url.pass)
+                    {
+                        pass = url.pass;
+                    }
+                    else
+                    {
+                        pass = promptPassword(getMsg(MSG_HOST_PASSWORD,
+                                                     url.host));
+                    }
+                }
+
+                
+                var params = {hostname: url.host, port: url.port,
+                              password: pass};
+                var cmd = (url.scheme == "ircs" ? "sslserver" : "server");
+                network = dispatch(cmd, params);
+            }
 
             if (!url.target)
                 return;
@@ -1856,13 +1871,15 @@ function gotoIRCURL (url)
         }
 
         network = client.networks[url.host];
-        if (!network.isConnected())
+        if (network.state != NET_ONLINE)
         {
             /*
             dd ("gotoIRCURL: not already connected to " +
                 "network " + url.host + " trying to connect...");
             */
-            client.connectToNetwork(network, (url.scheme == "ircs" ? true : false));
+            var secure = (url.scheme == "ircs" ? true : false);
+            if (!network.isConnected())
+                client.connectToNetwork(network, secure);
 
             if (!url.target)
                 return;
