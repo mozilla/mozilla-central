@@ -6,6 +6,10 @@ if not defined MOZ_NO_RESET_PATH (
     set PATH=%SystemRoot%\System32;%SystemRoot%;%SystemRoot%\System32\Wbem
 )
 
+REM if DISPLAY is set, rxvt attempts to load libX11.dll and fails to start
+REM (see mozilla bug 376828)
+SET DISPLAY=
+
 SET INCLUDE=
 SET LIB=
 
