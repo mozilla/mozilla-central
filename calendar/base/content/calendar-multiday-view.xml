@@ -24,7 +24,7 @@
    -   Vladimir Vukicevic <vladimir.vukicevic@oracle.com>
    -   Thomas Benisch <thomas.benisch@sun.com>
    -   Dan Mosedale <dan.mosedale@oracle.com>
-   -   Michael Büttner <michael.buettner@sun.com>
+   -   Michael Buettner <michael.buettner@sun.com>
    -   Philipp Kewisch <mozilla@kewis.ch>
    -   Markus Adrario <MarkusAdrario@web.de>
    -
@@ -294,6 +294,9 @@
            timer helps ensure that we don't re-compute the event map too many
            times in a short interval, and therefore improves performance.-->
       <field name="mEventMapTimeout">null</field>
+      <!-- Sometimes we need to add resize handlers for columns with special
+           widths.  When we relayout, we need to cancel those handlers -->
+      <field name="mHandlersToRemove">new Array()</field>
 
       <!-- Set this true so that we know in our onAddItem listener to start
          - modifying an event when it comes back to us as created
@@ -431,12 +434,11 @@
         <body><![CDATA[
           if (aOccurrence) {
               var chunk = this.findChunkForOccurrence(aOccurrence);
-              if (!chunk || !chunk.eventbox) {
+              if (!chunk) {
                   dump("++ Couldn't find chunk to select!!!\n");
                   return;
               }
-
-              chunk.eventbox.selected = true;
+              chunk.selected = true;
               this.mSelectedChunks.push(chunk);
           }
         ]]></body>
@@ -447,12 +449,11 @@
         <body><![CDATA[
           if (aOccurrence) {
               var chunk = this.findChunkForOccurrence(aOccurrence);
-              if (!chunk || !chunk.eventbox) {
+              if (!chunk) {
                   dump ("++ Couldn't find chunk to unselect!!!\n");
                   return;
               }
-
-              chunk.eventbox.selected = false;
+              chunk.selected = false;
               var index = this.mSelectedChunks.indexOf(chunk);
               this.mSelectedChunks.splice(index, 1);
           }
@@ -462,8 +463,8 @@
       <method name="findChunkForOccurrence">
         <parameter name="aOccurrence"/>
         <body><![CDATA[
-          for each (var chunk in this.mEvents) {
-              if (chunk.event.hashId == aOccurrence.hashId) {
+          for each (var chunk in this.mEventBoxes) {
+              if (chunk.occurrence.hashId == aOccurrence.hashId) {
                   return chunk;
               }
           }
@@ -516,7 +517,7 @@
 
            if (itemIndex != -1) {
                function isNotItem(a) {
-                  return a.event.hashId != aOccurrence.hashId;
+                  return a.occurrence.hashId != aOccurrence.hashId;
                }
                this.mSelectedChunks = this.mSelectedChunks.filter(isNotItem);
 
@@ -625,6 +626,9 @@
               this.bgbox.removeChild(this.bgbox.lastChild);
           while (this.topbox && this.topbox.hasChildNodes())
               this.topbox.removeChild(this.topbox.lastChild);
+          for each (handler in this.mHandlersToRemove)
+              window.removeEventListener("resize", handler, true);
+          this.mHandlersToRemove = [];
         ]]></body>
       </method>
 
@@ -699,88 +703,126 @@
           this.topbox.setAttribute("orient", otherorient);
 
           this.mEventMap = this.computeEventMap();
+          this.mEventBoxes = new Array();
+
+          if (!this.mEventMap.length) {
+              return;
+          }
+
+          // First of all we create a xul:stack which
+          // will hold all events for this event column.
+          // The stack will be grouped below .../calendar-event-column/stack/topbox.
+          var stack = createXULElement("stack");
+          stack.setAttribute("flex", "1");
+          this.topbox.appendChild(stack);
 
           var boxToEdit;
 
-          for each (var column in this.mEventMap) {
+          for each (var layer in this.mEventMap) {
+
+              // The event-map (this.mEventMap) contains an array of layers.
+              // For each layer we create a box below the stack just created above.
+              // So each different layer lives in a box that's contained in the stack.
               var xulColumn = createXULElement("box");
-              xulColumn.setAttribute("orient", orient);
+              xulColumn.setAttribute("orient", otherorient);
               xulColumn.setAttribute("flex", "1");
               xulColumn.setAttribute("style", "min-width: 1px; min-height: 1px;");
-              this.topbox.appendChild(xulColumn);
+              stack.appendChild(xulColumn); 
 
-              var numBlocksInserted = 0
+              var numBlocksInserted = 0;
 
-              var curTime = 0;
-              for each (var chunk in column) {
-                  var duration = chunk.duration;
-                  //dump ("curTime: " + curTime + " duration: " + duration + " ev: " + chunk.event + "\n");
+              // Each layer contains a list of the columns that
+              // need to be created for a span.
+              for each (var column in layer) {
 
-                  // if this chunk isn't entirely visible, we skip it
-                  if (curTime < this.mStartMin) {
-                      if (curTime + duration <= this.mStartMin) {
-                          curTime += duration;
+                  var innerColumn = createXULElement("box");
+                  innerColumn.setAttribute("orient", orient);
+                  innerColumn.setAttribute("flex", 1);
+                  var style = "min-width: 1px; min-height: 1px;";
+
+                  if (column.specialSpan) {
+                      // Special case when we can't simply rely on flex.  Only
+                      // happens when we have columns in the layer that need to
+                      // be different sizes.  That is, when we have a colSpan
+                      // of 2, a total of 5 columns, and a startCol of 1.
+                      // Then, our columns need to be laid out as 1/5, 2/5, 2/5.
+                      var pixSpan = column.specialSpan * this.topbox.boxObject.width;
+                      if (orient == "vertical") {
+                          style += "max-width: " + pixSpan + "px;";
+                      } else {
+                          style += "max-height: " + pixSpan + "px;";
+                      }
+
+                      // Now we need to set up a resize listener, since without
+                      // it our box will look funny if the window resizes.  This
+                      // requires us to be *very* careful about closures, because
+                      // we don't want things like column.specialSpan to change
+                      function colResizeHandler(aInnerCol, aCalCol, aSpan) {
+                          this.handleEvent = function(aEvent) {
+                              var resizeStyle = "min-width: 1px; min-height: 1px;";
+                              var pixSpan = aSpan * aCalCol.topbox.boxObject.width;
+                              if (orient == "vertical") {
+                                  resizeStyle += "max-width: " + pixSpan + "px;";
+                              } else {
+                                  resizeStyle += "max-height: " + pixSpan + "px;";
+                              }
+                              aInnerCol.setAttribute("style", resizeStyle);
+                          };
+                      }
+                      var myResizeHandler = new colResizeHandler(innerColumn, this, column.specialSpan);
+                      this.mHandlersToRemove.push(myResizeHandler);
+                      window.addEventListener("resize", myResizeHandler, true);
+                  }
+                  innerColumn.setAttribute("style", style);
+
+                  xulColumn.appendChild(innerColumn);
+
+                  var curTime = 0;
+                  for each (var chunk in column) {
+                      var duration = chunk.duration;
+                      if (!duration) {
                           continue;
                       }
 
-                      // offset the duration so that stuff starts at
-                      // whatever our start time is set to, if this item
-                      // starts before our start time
-                      var delta = this.mStartMin - curTime;
-                      if (delta > 0) {
-                          duration -= delta;
-                          curTime += delta;
-                      }
-                  }
+                      if (chunk.event) {
+                          var chunkBox = createXULElement("calendar-event-box");
+                          chunkBox.setAttribute("context", this.getAttribute("item-context") || this.getAttribute("context"));
+                          chunkBox.setAttribute("style", "min-width: 1px; min-height: 1px;");
+                          chunkBox.setAttribute("orient", orient);
+                          var durMinutes = duration.inSeconds / 60;
+                          if (orient == "vertical") {
+                              chunkBox.setAttribute("height", durMinutes * this.mPixPerMin);
+                          } else {
+                              chunkBox.setAttribute("width", durMinutes * this.mPixPerMin);
+                          }
 
-                  // calculate duration pixel as the difference between
-                  // start pixel and end pixel to avoid rounding errors.
-                  var startPix = Math.round(curTime * this.mPixPerMin);
-                  var endPix   = Math.round((curTime + duration) * this.mPixPerMin);
-                  var durPix   = endPix - startPix;
-                  if (chunk.event) {
-                      var chunkBox = createXULElement("calendar-event-box");
-                      chunkBox.setAttribute("context", this.getAttribute("item-context") || this.getAttribute("context"));
-                      chunkBox.setAttribute("style", "min-width: 1px; min-height: 1px;");
-                      chunkBox.setAttribute("orient", orient);
+                          innerColumn.appendChild(chunkBox);
 
-                      if (orient == "vertical")
-                          chunkBox.setAttribute("height", durPix);
-                      else
-                          chunkBox.setAttribute("width", durPix);
+                          chunkBox.calendarView = this.calendarView;
+                          chunkBox.occurrence = chunk.event;
+                          chunkBox.parentColumn = this;
 
-                      xulColumn.appendChild(chunkBox);
+                          this.mEventBoxes.push(chunkBox);
 
-                      chunkBox.calendarView = this.calendarView;
-                      chunkBox.occurrence = chunk.event.event;
-                      chunkBox.parentColumn = this;
+                          if (this.mEventToEdit && 
+                              chunkBox.occurrence.hashId == this.mEventToEdit.hashId) {
+                              boxToEdit = chunkBox;
+                          }
+                      } else {
+                          var chunkBox = createXULElement("spacer");
+                          chunkBox.setAttribute("context", this.getAttribute("context"));
+                          chunkBox.setAttribute("style", "min-width: 1px; min-height: 1px;");
+                          chunkBox.setAttribute("orient", orient);
+                          chunkBox.setAttribute("class", "calendar-empty-space-box");
+                          innerColumn.appendChild(chunkBox);
 
-                      chunk.event.eventbox = chunkBox;
-
-                      // Because we're on a timeout here, it may have been that
-                      // someone selected us in that window.  Check for that.
-                      for each (var item in this.calendarView.mSelectedItems) {
-                          if (chunk.event.event.hashId == item.hashId) {
-                              chunkBox.selected = true;
+                          var durMinutes = duration.inSeconds / 60;
+                          if (orient == "vertical") {
+                              chunkBox.setAttribute("height", durMinutes * this.mPixPerMin);
+                          } else {
+                              chunkBox.setAttribute("width", durMinutes * this.mPixPerMin);
                           }
                       }
-
-                      if (this.mEventToEdit && 
-                          chunkBox.occurrence.hashId == this.mEventToEdit.hashId) {
-                          boxToEdit = chunkBox;
-                      }
-                  } else {
-                      var chunkBox = createXULElement("spacer");
-                      chunkBox.setAttribute("context", this.getAttribute("context"));
-                      chunkBox.setAttribute("style", "min-width: 1px; min-height: 1px;");
-                      chunkBox.setAttribute("orient", orient);
-                      chunkBox.setAttribute("class", "calendar-empty-space-box");
-                      xulColumn.appendChild(chunkBox);
-
-                      if (orient == "vertical")
-                          chunkBox.setAttribute("height", durPix);
-                      else
-                          chunkBox.setAttribute("width", durPix);
                   }
 
                   numBlocksInserted++;
@@ -796,7 +838,7 @@
               if (numBlocksInserted == 0) {
                   // if we didn't insert any blocks, then
                   // forget about this column
-                  this.topbox.removeChild(xulColumn);
+                  stack.removeChild(xulColumn);
               }
           }
         ]]></body>
@@ -804,155 +846,357 @@
 
       <method name="computeEventMap">
         <body><![CDATA[
-          //dump ("computeEventMap\n");
-          // we need to build a layout data structure
-          // that looks like this:
-          // [
-          //  [
-          //   { duration: 120 /* min */ },
-          //   { duration: 180, event: ev },
-          //   { duration: 240 }
-          //  ],
-          //  [
-          //   { duration: 180 },
-          //   { duration: 120, event: ev2 },
-          //   { duration: 240 }
-          //  ]
-          // ]
-          // Indicating two events that overlap, with each index in the main
-          // array indicating one vertical line of events.  If an event can't be placed
-          // in the first line, it should be placed in the next, and so on.
+          /* We're going to create a series of 'blobs'.  A blob is a series of
+           * events that create a continuous block of busy time.  In other 
+           * words, a blob ends when there is some time such that no events 
+           * occupy that time.
+           *
+           * Each blob will be an array of objects with the following properties:
+           *    item:     the event/task
+           *    startCol: the starting column to display the event in (0-indexed)
+           *    colSpan:  the number of columns the item spans
+           *
+           * An item with no conflicts will have startCol: 0 and colSpan: 1.
+           */
+          var blobs = new Array();
+          var currentBlob = new Array();
 
-          this.mEvents.sort(function eventComparator(a,b) {
-                                var comp = a.startMinute - b.startMinute;
-                                if (comp != 0) return comp;
-                                return b.endMinute - a.endMinute;
-                            });
-
-          var eventMap = []
-          eventMap.push(new Array());
-
-          for each (var event in this.mEvents) {
-
-              if (event.startMinute == null || event.endMinute == null || event.event == null)
-                  continue;
-
-              //dump ("=== event: " + event + " " + event.startMinute + "-" + event.endMinute + "\n");
-
-              var startAt = event.startMinute;
-              var endAt = event.endMinute;
-
-              var curCol = 0;
-              while (curCol < eventMap.length) {
-                  //dump ("+ curCol: " + curCol + "\n");
-                  var blockIndex = 0;
-                  var curOffset = 0;
-                  var finished = false;
-
-                  var prevblock = null;
-
-                  while (blockIndex < eventMap[curCol].length) {
-                      var block = eventMap[curCol][blockIndex];
-
-                      //dump ("  blockIndex: " + blockIndex + "  curOffset: " + curOffset + " block.duration: " + block.duration + " (startAt: " + startAt + ")\n");
-                      if (curOffset <= startAt && curOffset + block.duration > startAt) {
-
-                          // We want to insert the event here.  prevblock contains the
-                          // preceeding block, if any.  block contains the block that already
-                          // exists at this location, e.g.:
-                          //          .....v- startAt
-                          // ~~----------+----------~~
-                          //   prevblock | block
-                          // ~~----------+----------~~
-                          //             ^- curOffset
-                          //
-                          // The event we're trying to insert starts at startAt,
-                          // which can be anywhere from curOffset - prevblock.duration to
-                          // curOffset + block.duration.
-                          //
-                          // We need to look at block; if it's an event, then we evict ourselves
-                          // to the next eventMap index.  We also do this if it's free space
-                          // and we can't fit ourselves here.
-
-
-                          // If the previous block is an event, and we
-                          // need to start in the middle of it, we push
-                          // to the next column.
-                          if (prevblock && prevblock.event && startAt < curOffset) {
-                              //dump ("** break 1\n");
-                              break;
-                          }
-
-                          // If the next block is an event, we push to the
-                          // next column, since we can't break it.
-                          if (block.event) {
-                              //dump ("** break 2\n");
-                              break;
-                          }
-
-                          // If the next block is free space, but it isn't
-                          // large enough to hold our event, we push to the
-                          // next column.
-                          if (curOffset + block.duration < endAt) {
-                              //dump ("** break 3\n");
-                              break;
-                          }
-
-                          // Otherwise, we are ready to insert the event.
-                          // Figure out how much to shrink the previous/following
-                          // blocks.
-
-                          var startDelta = startAt - curOffset;
-                          if (startDelta < 0 || (prevblock && !prevblock.event)) {
-                              // we need to shrink or expand the previous free space
-                              eventMap[curCol][blockIndex-1].duration += startDelta;
-                              curOffset += startDelta;
-                          } else if (startDelta > 0) {
-                              eventMap[curCol].splice(blockIndex, 0, { duration: startDelta });
-                              curOffset += startDelta;
-                              blockIndex++;
-                          }
-
-                          var endDelta = endAt - curOffset;
-                          if (endDelta > 0) {
-                              eventMap[curCol][blockIndex].duration -= startDelta;
-                          }
-
-                          // insert our event block
-                          eventMap[curCol].splice(blockIndex, 0, { duration: endAt - startAt, event: event });
-
-                          finished = true;
-                          break;
-                      }
-
-                      prevblock = block;
-                      curOffset += block.duration;
-                          
-                      blockIndex++;
-                  }
-
-                  // we got to the end of the list, so just add to the end
-                  if (blockIndex == eventMap[curCol].length && curOffset <= startAt) {
-                      var delta = startAt - curOffset;
-                      if (delta)
-                          eventMap[curCol].push({ duration: delta });
-                      eventMap[curCol].push({ duration: endAt - startAt, event: event });
-                      finished = true;
-                  }
-
-                  if (finished) {
-                      //dump (eventMap.toSource() + "\n");
-                      break;
-                  }
-
-                  if (curCol+1 == eventMap.length) {
-                      eventMap.push(new Array());
-                  }
-                  curCol++;
+          function sortByStart(a, b) {
+              // If you pass in tasks without both entry and due dates, I will
+              // kill you
+              var aStart = a.event.startDate || a.event.entryDate;
+              var bStart = b.event.startDate || b.event.entryDate;
+              var startComparison = aStart.compare(bStart);
+              if (startComparison != 0) {
+                  return startComparison;
+              } else {
+                  var aEnd = a.event.endDate || a.event.dueDate;
+                  var bEnd = b.event.endDate || b.event.dueDate;
+                  // If the items start at the same time, return the longer one
+                  // first
+                  return bEnd.compare(aEnd);
               }
           }
 
-          return eventMap;
+          this.mEvents.sort(sortByStart);
+
+          // The end time of the last ending event in the entire blob
+          var latestItemEnd;
+
+          // This array keeps track of the last (latest ending) item in each of
+          // the columns of the current blob. We could reconstruct this data at
+          // any time by looking at the items in the blob, but that would hurt 
+          // perf.
+          var colEndArray = new Array();
+
+          /* Go through a 3 step process to try and place each item.
+           * Step 1: Look for an existing column with room for the item.
+           * Step 2: Look for a previously placed item that can be shrunk in 
+           *         width to make room for the item.
+           * Step 3: Give up and create a new column for the item.
+           *
+           * (The steps are explained in more detail as we come to them)
+           */
+          for (var i in this.mEvents) {
+              var item = this.mEvents[i].event;
+              var itemStart = item.startDate || item.entryDate;
+              var itemEnd = item.endDate || item.dueDate;
+              if (!latestItemEnd) {
+                  latestItemEnd = itemEnd;
+              }
+              if (currentBlob.length && latestItemEnd && 
+                  itemStart.compare(latestItemEnd) != -1) {
+                  // We're done with this current blob because item starts 
+                  // after the last event in the current blob ended.
+                  blobs.push({blob: currentBlob, totalCols: colEndArray.length});
+
+                  // Reset our variables
+                  currentBlob = new Array();
+                  colEndArray = new Array();
+              }
+
+              // Place the item in its correct place in the blob
+              var placedItem = false;
+
+              // Step 1
+              // Look for a possible column in the blob that has been left open. This
+              // would happen if we already have multiple columns but some of
+              // the cols have events before latestItemEnd.  For instance
+              //       |      |      |
+              //       |______|      |
+              //       |ev1   |______|
+              //       |      |ev2   |
+              //       |______|      |
+              //       |      |      |
+              //       |OPEN! |      |<--Our item's start time might be here
+              //       |      |______|
+              //       |      |      |
+              //
+              // Remember that any time we're starting a new blob, colEndArray
+              // will be empty, but that's ok.
+              for (var ii=0; ii<colEndArray.length; ++ii) {
+                  var colEnd = colEndArray[ii].endDate || colEndArray[ii].dueDate;
+                  if (colEnd.compare(itemStart) != 1) {
+                      // Yay, we can jump into this column
+                      colEndArray[ii] = item;
+
+                      // Check and see if there are any adjacent columns we can
+                      // jump into as well.
+                      var lastCol = Number(ii) + 1;
+                      while (lastCol < colEndArray.length) {
+                          var nextColEnd = colEndArray[lastCol].endDate || 
+                                           colEndArray[lastCol].dueDate;
+                          // If the next column's item ends after we start, we
+                          // can't expand any further
+                          if (nextColEnd.compare(itemStart) == 1) {
+                              break;
+                          }
+                          colEndArray[lastCol] = item;
+                          lastCol++;
+                      }
+                      // Now construct the info we need to push into the blob
+                      currentBlob.push({item: item,
+                                        startCol: ii, 
+                                        colSpan: lastCol - ii});
+
+                      // Update latestItemEnd
+                      if (latestItemEnd && 
+                          itemEnd.compare(latestItemEnd) == 1) {
+                          latestItemEnd = itemEnd;
+                      }
+                      placedItem = true;
+                      break; // Stop iterating through colEndArray
+                  }
+              }
+
+              if (placedItem) {
+                  // Go get the next item
+                  continue;
+              }
+
+              // Step 2
+              // OK, all columns (if there are any) overlap us.  Look if the 
+              // last item in any of the last items in those columns is taking
+              // up 2 or more cols. If so, shrink it and stick the item in the
+              // created space. For instance
+              //       |______|______|______|
+              //       |ev1   |ev3   |ev4   |
+              //       |      |      |      |
+              //       |      |______|      |
+              //       |      |      |______|
+              //       |      |_____________|
+              //       |      |ev2          |
+              //       |______|             |<--If our item's start time is 
+              //       |      |_____________|   here, we can shrink ev2 and jump 
+              //       |      |      |      |   in column #3
+              //
+              for (var jj=1; jj<colEndArray.length; ++jj) {
+                  if (colEndArray[jj].id == colEndArray[jj-1].id) {
+                      // Good we found a item that spanned multiple columns.
+                      // Find it in the blob so we can modify its properties
+                      for (var kk in currentBlob) {
+                          if (currentBlob[kk].item.id == colEndArray[jj].id) {
+                              // Take all but the first spot that the item spanned
+                              var spanOfShrunkItem = currentBlob[kk].colSpan;
+                              currentBlob.push({item: item, 
+                                                startCol: Number(currentBlob[kk].startCol) + 1,
+                                                colSpan: spanOfShrunkItem - 1});
+
+                              // Update colEndArray
+                              for (var ll = jj; ll < jj + spanOfShrunkItem - 1; ll++) {
+                                  colEndArray[ll] = item;
+                              }
+
+                              // Modify the data on the old item
+                              currentBlob[kk] = {item: currentBlob[kk].item,
+                                                 startCol: currentBlob[kk].startCol,
+                                                 colSpan: 1};
+                              // Update latestItemEnd
+                              if (latestItemEnd && 
+                                  itemEnd.compare(latestItemEnd) == 1) {
+                                  latestItemEnd = itemEnd;
+                              }
+                              break; // Stop iterating through currentBlob
+                          }
+                      }
+                      placedItem = true;
+                      break; // Stop iterating through colEndArray
+                  }
+              }
+
+              if (placedItem) {
+                  // Go get the next item
+                  continue;
+              }
+
+              // Step 3
+              // Guess what? We still haven't placed the item.  We need to
+              // create a new column for it.
+
+              // All the items in the last column, except for the one* that
+              // conflicts with the item we're trying to place, need to have
+              // their span extended by 1, since we're adding the new column
+              //
+              // * Note that there can only be one, because we sorted our
+              //   events by start time, so this event must start later than
+              //   the start of any possible conflicts.
+              var lastColNum = colEndArray.length;
+              for (var mm in currentBlob) {
+                  var mmEnd = currentBlob[mm].item.endDate || currentBlob[mm].item.dueDate
+                  if (currentBlob[mm].startCol + currentBlob[mm].colSpan == lastColNum &&
+                      mmEnd.compare(itemStart) != 1) {
+                      currentBlob[mm] = {item: currentBlob[mm].item,
+                                         startCol: currentBlob[mm].startCol,
+                                         colSpan: currentBlob[mm].colSpan + 1};
+                  }
+              }
+              currentBlob.push({item: item,
+                                startCol: colEndArray.length, 
+                                colSpan: 1});
+              colEndArray.push(item);
+
+              // Update latestItemEnd
+              if (latestItemEnd && itemEnd.compare(latestItemEnd) == 1) {
+                  latestItemEnd = itemEnd;
+              }
+              // Go get the next item
+          }
+          // Add the last blob
+          blobs.push({blob: currentBlob,
+                      totalCols: colEndArray.length});
+
+          return this.setupBoxStructure(blobs);
+        ]]></body>
+      </method>
+
+      <method name="setupBoxStructure">
+        <parameter name="aBlobs"/>
+        <body><![CDATA[
+          // This is actually going to end up being a 3-d array
+          // 1st dimension: "layers", sets of columns of events that all
+          //                should have equal width*
+          // 2nd dimension: "columns", individual columns of non-conflicting
+          //                items
+          // 3rd dimension: "chunks", individual items or placeholders for 
+          //                the blank time in between them
+          //
+          // * Note that 'equal width' isn't strictly correct.  If we're
+          //   oriented differently, it will be height (and we'll have rows
+          //   not columns).  What's more, in the 'specialSpan' case, the
+          //   columns won't actually have the same size, but will only all
+          //   be multiples of a common size.  See the note in the relayout
+          //   function for more info on this (fairly rare) case.
+          var layers = [];
+
+          // When we start a new blob, move to a new set of layers
+          var layerOffset = 0;
+          for each (var glob in aBlobs) {
+
+              var layerArray = [];
+              var layerCounter = 1;
+
+              for each (var data in glob.blob) {
+
+                  // from the item at hand we need to figure out on which
+                  // layer and on which column it should go.
+                  var layerIndex;
+                  var specialSpan = null;
+
+                  // each blob receives its own layer, that's the first part of the story. within
+                  // a given blob we need to distribute the items on different layers depending on
+                  // the number of columns each item spans. if each item just spans a single column
+                  // the blob will cover *one* layer. if the blob contains items that span more than
+                  // a single column, this blob will cover more than one layer. the algorithm places
+                  // the items on the first layer in the case an item covers a single column. new layers
+                  // are introduced based on the start column and number of spanning columns of an item.
+                  if (data.colSpan != 1) {
+                      var index = data.colSpan * (data.startCol + 1);
+                      layerIndex = layerArray[index];
+                      if (!layerIndex) {
+                          layerIndex = layerCounter++;
+                          layerArray[index] = layerIndex;
+                      }
+                      var offset = ((glob.totalCols - data.colSpan) % glob.totalCols)
+                      if (offset != 0) {
+                          specialSpan = data.colSpan / glob.totalCols;
+                      }
+                  } else {
+                      layerIndex = 0;
+                  }
+                  layerIndex += layerOffset;
+
+                  // Make sure there's room to insert stuff
+                  while (layerIndex >= layers.length) {
+                      layers.push([]);
+                  }
+
+                  while (data.startCol >= layers[layerIndex].length) {
+                      layers[layerIndex].push([]);
+                      if (specialSpan) {
+                          layers[layerIndex][layers[layerIndex].length - 1].specialSpan = 1 / glob.totalCols;
+                      }
+                  }
+
+                  // we now retrieve the column from 'layerIndex' and 'startCol'.
+                  var col = layers[layerIndex][data.startCol];
+                  if (specialSpan) {
+                      col.specialSpan = specialSpan;
+                  }
+
+                  // take into account that items can span several days.
+                  // that's why i'm clipping the start- and end-time to the
+                  // timespan of this column.
+                  var start = data.item.startDate || data.item.entryDate;
+                  if (start.timezone != this.mTimezone) {
+                      start = start.getInTimezone(this.mTimezone);
+                  }
+                  if (start.year  != this.date.year ||
+                      start.month != this.date.month ||
+                      start.day   != this.date.day) {
+                      start = start.clone();
+                      start.resetTo(this.date.year,
+                                    this.date.month,
+                                    this.date.day,
+                                    0,this.mStartMin,0,
+                                    start.timezone);
+                  }
+                  var end = data.item.endDate || data.item.dueDate;
+                  if (end.timezone != this.mTimezone) {
+                      end = end.getInTimezone(this.mTimezone);
+                  }
+                  if (end.year  != this.date.year ||
+                      end.month != this.date.month ||
+                      end.day   != this.date.day) {
+                      end = end.clone();
+                      end.resetTo(this.date.year,
+                                  this.date.month,
+                                  this.date.day,
+                                  0,this.mEndMin,0,
+                                  end.timezone);
+                  }
+                  var prevEnd;
+                  if (col.length > 0) {
+                      // Fill in time gaps with a placeholder
+                      prevEnd = col[col.length - 1].endDate;
+                  } else {
+                      // First event in the column, add a placeholder for the
+                      // blank time from this.mStartMin to the event's start
+                      prevEnd = start.clone();
+                      prevEnd.hour = 0;
+                      prevEnd.minute = this.mStartMin;
+                  }
+                  var dur = start.subtractDate(prevEnd);
+                  if (dur.inSeconds) {
+                      col.push({duration: dur});
+                  }
+
+                  col.push({event: data.item,
+                            endDate: end,
+                            duration: end.subtractDate(start)});
+              }
+              layerOffset = layers.length;
+          }
+          return layers;
         ]]></body>
       </method>
 
@@ -1573,11 +1817,9 @@
                          flex="1"
                          xbl:inherits="context,parentorient=orient">
                 <xul:vbox class="calendar-event-details">
-                  <xul:description anonid="event-name"
-                                   flex="1"
-                                   style="margin: 0;"/>
+                  <xul:description anonid="event-name" class="calendar-event-details-core" flex="1"/>
                   <xul:textbox anonid="event-name-textbox"
-                               class="plain"
+                               class="plain calendar-event-details-core"
                                flex="1"
                                hidden="true"
                                style="background: transparent !important;"

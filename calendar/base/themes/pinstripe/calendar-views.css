@@ -178,6 +178,11 @@ calendar-header-container[weekend="true"][selected="true"],
   padding-left: 2px;
 }
 
+.calendar-event-details-core {
+  width: 0px;
+  margin: 0px;
+}
+
 textbox.editable-label { 
   font-size: x-small;
   background: transparent !important;
