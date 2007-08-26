@@ -1782,7 +1782,7 @@ function serv_353 (e)
             }
         } while (found && ("namesx" in this.supports) && this.supports.namesx);
 
-        new CIRCChanUser(e.channel, null, nick, modes);
+        new CIRCChanUser(e.channel, null, nick, modes, true);
     }
 
     return true;
@@ -2223,7 +2223,9 @@ CIRCServer.prototype.onJoin =
 function serv_join(e)
 {
     e.channel = new CIRCChannel(this, null, e.params[1]);
-    e.user = new CIRCChanUser(e.channel, e.user.unicodeName);
+    // Passing undefined here because CIRCChanUser doesn't like "null"
+    e.user = new CIRCChanUser(e.channel, e.user.unicodeName, null,
+                              undefined, true);
 
     if (userIsMe(e.user))
     {
@@ -3244,7 +3246,7 @@ function usr_whois ()
 /*
  * channel user
  */
-function CIRCChanUser(parent, unicodeName, encodedName, modes)
+function CIRCChanUser(parent, unicodeName, encodedName, modes, userInChannel)
 {
     // Both unicodeName and encodedName are optional, but at least one must be
     // present.
@@ -3336,7 +3338,8 @@ function CIRCChanUser(parent, unicodeName, encodedName, modes)
     this.isHalfOp = (arrayContains(this.modes, "h")) ? true : false;
     this.isVoice = (arrayContains(this.modes, "v")) ? true : false;
 
-    parent.users[this.canonicalName] = this;
+    if (userInChannel)
+        parent.users[this.canonicalName] = this;
 
     return this;
 }
