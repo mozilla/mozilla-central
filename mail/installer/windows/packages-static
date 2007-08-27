@@ -337,6 +337,8 @@ bin\components\lwbrk.xpt
 bin\components\nsTryToClose.js
 bin\components\pluginGlue.js
 bin\components\txEXSLTRegExFunctions.js
+bin\components\feeds.xpt
+bin\components\saxparser.xpt
 
 bin\res\hiddenWindow.html
 bin\res\ua.css
