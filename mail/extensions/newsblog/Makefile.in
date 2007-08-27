@@ -53,7 +53,7 @@ libs:: rss.rdf
 	$(INSTALL) $^ $(EXPORT_DIR)
 
 install:: rss.rdf
-	$(SYSINSTALL) $(IFLAGS1) $^ $(DESTDIR)$(mozappdir)/defaults/isp
+	$(SYSINSTALL) $(IFLAGS1) $^ $(DESTDIR)$(mozappdir)/isp
 
 EXTRA_COMPONENTS = js/newsblog.js
 
