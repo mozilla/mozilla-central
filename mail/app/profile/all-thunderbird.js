@@ -191,7 +191,9 @@ pref("editor.singleLine.pasteNewlines", 4);  // substitute commas for new lines 
 // to avoid the height of the header area from changing when headers are present / not present
 pref("mailnews.headers.minNumHeaders", 0); // 0 means we ignore this pref
 
-pref("network.cookie.cookieBehavior", 3); // 0-Accept, 1-dontAcceptForeign, 2-dontUse, 3-p3p
+// only affects cookies from RSS articles
+// 0-Accept, 1-dontAcceptForeign, 2-dontUse
+pref("network.cookie.cookieBehavior", 0);
 
 /////////////////////////////////////////////////////////////////
 // End seamonkey suite mailnews.js pref overrides
