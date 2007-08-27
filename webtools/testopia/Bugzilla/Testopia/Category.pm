@@ -43,6 +43,9 @@ use Bugzilla::Error;
 use Bugzilla::Testopia::TestPlan;
 use Bugzilla::Testopia::TestCase;
 
+use base qw(Exporter Bugzilla::Object);
+@Bugzilla::Bug::EXPORT = qw(check_case_category);
+
 ###############################
 ####    Initialization     ####
 ###############################
@@ -55,13 +58,136 @@ use Bugzilla::Testopia::TestCase;
     description
 
 =cut
-
+use constant DB_TABLE   => "test_case_categories";
+use constant NAME_FIELD => "name";
+use constant ID_FIELD   => "category_id";
 use constant DB_COLUMNS => qw(
     category_id
     product_id
     name
     description
 );
+
+use constant REQUIRED_CREATE_FIELDS => qw(product_id name);
+use constant UPDATE_COLUMNS         => qw(name description);
+
+use constant VALIDATORS => {
+    product_id  => \&_check_product,
+};
+
+###############################
+####       Validators      ####
+###############################
+sub _check_product {
+    my ($invocant, $product_id) = @_;
+    $product_id = trim($product_id);
+    
+    ThrowUserError("testopia-create-denied", {'object' => 'build'}) unless Bugzilla->user->in_group('Testers');
+    
+    my $product = Bugzilla::Testopia::Product->new($product_id);
+    
+    if (ref $invocant){
+        $invocant->{'product'} = $product; 
+        return $product->id;
+    } 
+    return $product;
+}
+
+sub _check_name {
+    my ($invocant, $name, $product_id) = @_;
+    $name = clean_text($name) if $name;
+    trick_taint($name);
+    if (!defined $name || $name eq '') {
+        ThrowUserError('testopia-missing-required-field', {'field' => 'name'});
+    }
+
+    # Check that we don't already have a build with that name in this product.    
+    my $orig_id = check_case_category($name, $product_id);
+    my $notunique;
+
+    if (ref $invocant){
+        # If updating, we have matched ourself at least
+        $notunique = 1 if (($orig_id && $orig_id != $invocant->id))
+    }
+    else {
+        # In new build any match is one too many
+        $notunique = 1 if $orig_id;
+    }
+
+    ThrowUserError('testopia-name-not-unique', 
+                  {'object' => 'Case Category', 
+                   'name' => $name}) if $notunique;
+               
+    return $name;
+}
+##############################
+####       Mutators        ####
+###############################
+sub set_description { $_[0]->set('description', $_[1]); }
+sub set_name { 
+    my ($self, $value) = @_;
+    $value = $self->_check_name($value, $self->product_id);
+    $self->set('name', $value); 
+}
+
+sub new {
+    my $invocant = shift;
+    my $class = ref($invocant) || $invocant;
+    my $param = shift;
+    
+    # We want to be able to supply an empty object to the templates for numerous
+    # lists etc. This is much cleaner than exporting a bunch of subroutines and
+    # adding them to $vars one by one. Probably just Laziness shining through.
+    if (ref $param eq 'HASH'){
+        if (keys %$param){
+            bless($param, $class);
+            return $param;
+        }
+        bless($param, $class);
+        return $param;
+    }
+    
+    unshift @_, $param;
+    my $self = $class->SUPER::new(@_);
+    
+    return $self; 
+}
+
+sub run_create_validators {
+    my $class  = shift;
+    my $params = $class->SUPER::run_create_validators(@_);
+    my $product = $params->{product_id};
+    
+    $params->{name} = $class->_check_name($params->{name}, $product);
+    
+    return $params;
+}
+
+sub create {
+    my ($class, $params) = @_;
+
+    $class->SUPER::check_required_create_fields($params);
+    my $field_values = $class->run_create_validators($params);
+    
+    $field_values->{product_id} = $field_values->{product_id}->id;
+    my $self = $class->SUPER::insert_create_data($field_values);
+    
+    return $self;
+}
+
+###############################
+####      Functions        ####
+###############################
+sub check_case_category {
+    my ($name, $product_id) = @_;
+    my $dbh = Bugzilla->dbh;
+    my $is = $dbh->selectrow_array(
+        "SELECT category_id FROM test_case_categories 
+         WHERE name = ? AND product_id = ?",
+         undef, $name, $product_id);
+ 
+    return $is;
+}
 
 ###############################
 ####       Methods         ####
@@ -159,17 +285,7 @@ database for the product.
 
 =cut
 
-sub check_name {
-    my $self = shift;
-    my ($name) = @_;
-    my $dbh = Bugzilla->dbh;
-    my $is = $dbh->selectrow_array(
-        "SELECT category_id FROM test_case_categories 
-         WHERE name = ? AND product_id = ?",
-         undef, $name, $self->{'product_id'});
- 
-    return $is;
-}
+
 
 =head2 update
 
@@ -177,16 +293,6 @@ Updates an existing category object in the database.
 Takes the new name, and description.
 
 =cut
-
-sub update {
-    my $self = shift;    
-    my ($name, $desc) = @_;
-    my $dbh = Bugzilla->dbh;
-    $dbh->do("UPDATE test_case_categories
-                 SET name = ?, description = ?
-               WHERE category_id = ?", undef,
-              ($name, $desc, $self->{'category_id'}));
-}
 
 sub candelete {
   my $self = shift;

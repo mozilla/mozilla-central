@@ -41,8 +41,6 @@ my $cgi = Bugzilla->cgi;
 
 print $cgi->header;
 
-push @{$::vars->{'style_urls'}}, 'testopia/css/default.css';
-
 my $action =  $cgi->param('action') || '';
 my $product_id = $cgi->param('product_id');
 
@@ -63,27 +61,13 @@ if ($action eq 'add'){
 }
 
 elsif ($action eq 'do_add'){
-    my $cname = $cgi->param('name');
-    my $desc  = $cgi->param('desc');
-    my $tm    = $cgi->param('milestone');
-    
-    ThrowUserError('testopia-missing-required-field', {'field' => 'build name'}) unless $cname;
-    
-    trick_taint($cname);
-    trick_taint($desc);
-    trick_taint($tm);
-
-    my $build = Bugzilla::Testopia::Build->new({
+    my $build = Bugzilla::Testopia::Build->create({
                   product_id  => $product->id,
-                  name        => $cname,
-                  description => $desc,
-                  milestone   => $tm,
+                  name        => $cgi->param('name'),
+                  description => $cgi->param('desc'),
+                  milestone   => $cgi->param('milestone'),
                   isactive    => $cgi->param('isactive') ? 1 : 0,
     });
-    ThrowUserError('testopia-name-not-unique', 
-                    {'object' => 'Build', 
-                     'name' => $cname}) if $build->check_name($cname);
-    $build->store;
 
     $vars->{'tr_message'} = "Build successfully added";
     display();
@@ -102,27 +86,15 @@ elsif ($action eq 'edit'){
 
 }
 elsif ($action eq 'do_edit'){
-    my $cname = $cgi->param('name');
-    my $desc  = $cgi->param('desc');
-    my $milestone  = $cgi->param('milestone');
-    my $bid   = $cgi->param('build_id');
+    my $build = Bugzilla::Testopia::Build->new($cgi->param('build_id'));
     
-    ThrowUserError('testopia-missing-required-field', {'field' => 'build name'}) unless $cname;
+    $build->set_name($cgi->param('name'));
+    $build->set_description($cgi->param('desc'));
+    $build->set_milestone($cgi->param('milestone'));
+    $build->set_isactive($cgi->param('isactive') ? 1 : 0);
     
-    my $build = Bugzilla::Testopia::Build->new($bid);
+    $build->update();
     
-    trick_taint($cname);
-    trick_taint($desc);
-    trick_taint($milestone);
-    validate_selection($milestone, 'value', 'milestones');
-    
-    my $orig_id = $build->check_name($cname);
-    
-    ThrowUserError('testopia-name-not-unique', 
-                  {'object' => 'Build', 
-                   'name' => $cname}) if ($orig_id && $orig_id != $bid);
-    
-    $build->update($cname, $desc, $milestone, $cgi->param('isactive') ? 1 : 0);
     $vars->{'tr_message'} = "Build successfully updated";
     display();
 }

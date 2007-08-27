@@ -51,21 +51,12 @@ sub create
 
     $self->login;
 
-    my $build = new Bugzilla::Testopia::Build($new_values);
-    
-    my $name = $$new_values{name};
-    
-    if (defined($name) && $build->check_name($name))
-    {
-        die "Build name, " . $name . ", already exists"; 
-    }
-
-    my $result = $build->store(); 
+    my $build = Bugzilla::Testopia::Build->create($new_values);
     
     $self->logout;
     
     # Result is new build id
-    return $result;
+    return $build->id;
 }
 
 sub update
@@ -85,7 +76,7 @@ sub update
     
     my $name = $$new_values{name};
     
-    if (defined($name) && $build->check_name($name))
+    if (defined($name) && check_build($name, $build->product_id))
     {
         die "Build name, " . $name . ", already exists"; 
     }
@@ -97,14 +88,14 @@ sub update
     
     my $description = (defined($$new_values{description}) ? $$new_values{description} : $build->description()); 
 
-    my $milestone = (defined($$new_values{milestone}) ? $$new_values{milestone} : $build->milestone()); 
+    my $milestone = (defined($$new_values{milestone}) ? $$new_values{milestone} : $build->milestone());
     
-    my $result = $build->update($name,
-                                $description,
-                                $milestone);
+    $build->set_name($name);
+    $build->set_description($description);
+    $build->set_milestone($milestone); 
+    
+    $build->update;
 
-    $build = new Bugzilla::Testopia::Build($build_id);
-    
     $self->logout;
 
     # Result is modified build, otherwise an exception will be thrown

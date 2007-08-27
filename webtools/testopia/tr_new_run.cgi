@@ -109,19 +109,19 @@ if ($action eq 'Add'){
     if ($cgi->param('new_build')){
         my $new_build   = $cgi->param('new_build');
         trick_taint($new_build);
-        my $b = Bugzilla::Testopia::Build->new({
-                'name'        => $new_build,
-                'milestone'   => '---',
-                'product_id'  => $plan->product_id,
-                'description' => '',
-                'isactive'    => 1, 
-        });
-        my $bid = $b->check_name($new_build);
+        my $bid = check_build($new_build);
         if($bid){
             $build = $bid;
         }
         else{
-            $build = $b->store;
+            my $b = Bugzilla::Testopia::Build->create({
+                    'name'        => $cgi->param('new_build'),
+                    'milestone'   => '---',
+                    'product_id'  => $plan->product_id,
+                    'description' => '',
+                    'isactive'    => 1, 
+            });
+            $build = $b->id;
         } 
     }
 
@@ -220,6 +220,7 @@ else {
     my $run = Bugzilla::Testopia::TestRun->new(
                         {'run_id' => 0,
                          'plan'   => $plan,
+                         'build'  => {},
                          'plan_text_version' => $plan->version } );
     print $cgi->header;
     ThrowUserError('testopia-create-environment') unless (scalar @{$run->environments} > 0);

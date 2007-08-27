@@ -41,8 +41,6 @@ my $cgi = Bugzilla->cgi;
 
 print $cgi->header;
 
-push @{$::vars->{'style_urls'}}, 'testopia/css/default.css';
-
 my $action =  $cgi->param('action') || '';
 my $product_id = $cgi->param('product_id');
 
@@ -63,23 +61,11 @@ if ($action eq 'add'){
 }
 
 elsif ($action eq 'do_add'){
-    my $cname = $cgi->param('name');
-    my $desc  = $cgi->param('desc');
-    
-    ThrowUserError('testopia-missing-required-field', {'field' => 'category name'}) unless $cname;
-    
-    trick_taint($cname);
-    trick_taint($desc);
-
-    my $category = Bugzilla::Testopia::Category->new({
-                                      product_id  => $product->id,
-                                      name        => $cname,
-                                      description => $desc
+    my $category = Bugzilla::Testopia::Category->create({
+                          product_id  => $product->id,
+                          name        => $cgi->param('name'),
+                          description => $cgi->param('desc'),
                    });
-    ThrowUserError('testopia-name-not-unique', 
-                    {'object' => 'Category', 
-                     'name' => $cname}) if $category->check_name($cname);
-    $category->store;
 
     $vars->{'tr_message'} = "Category successfully added";
     display();                                        
@@ -89,31 +75,19 @@ elsif ($action eq 'do_add'){
 ### Edit a Category ###
 #######################
 elsif ($action eq 'edit'){
-    my $category = Bugzilla::Testopia::Category->new($cgi->param('category_id'));
-    $vars->{'category'} = $category;
+    $vars->{'category'} = Bugzilla::Testopia::Category->new($cgi->param('category_id'));
     $vars->{'action'} = 'do_edit';
     $template->process("testopia/category/form.html.tmpl", $vars) 
       || ThrowTemplateError($template->error());
 
 }
 elsif ($action eq 'do_edit'){
-    my $cname = $cgi->param('name');
-    my $desc  = $cgi->param('desc');
-    my $cid   = $cgi->param('category_id');
-    my $category = Bugzilla::Testopia::Category->new($cid);
+    my $category = Bugzilla::Testopia::Category->new($cgi->param('category_id'));
     
-    ThrowUserError('testopia-missing-required-field', {'field' => 'category name'}) unless $cname;
-    
-    trick_taint($cname);
-    trick_taint($desc);
-    
-    my $orig_id = $category->check_name($cname);
-    
-    ThrowUserError('testopia-name-not-unique', 
-                    {'object' => 'Category', 
-                     'name' => $cname}) if ($orig_id && $cid != $orig_id);
+    $category->set_name($cgi->param('name'));
+    $category->set_description($cgi->param('desc'));
 
-    $category->update($cname, $desc);
+    $category->update;
     $vars->{'tr_message'} = "Category successfully updated";
     display();
 

@@ -43,8 +43,6 @@ my $dbh = Bugzilla->dbh;
 local our $cgi = Bugzilla->cgi;
 local our $template = Bugzilla->template;
 
-push @{$::vars->{'style_urls'}}, 'testopia/css/default.css';
-
 Bugzilla->login(LOGIN_REQUIRED);
 
 sub get_searchable_objects{

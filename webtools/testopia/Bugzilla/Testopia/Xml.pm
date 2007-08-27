@@ -276,10 +276,10 @@ sub parse()
         });
         
         # Only create the category if it does not exist.
-        push @{$self->categories}, $category if ( ! $category->check_name($category_name) );
+        push @{$self->categories}, $category if ( ! check_case_category($category_name, $product->id) );
     }
     
-    my $testplan = Bugzilla::Testopia::TestPlan->new({ 'name' => 'dummy' });
+    my $testplan = Bugzilla::Testopia::TestPlan->new({});
     my %plantype_ids;
     my @temparray = @{$testplan->get_plan_types()};
     foreach my $arrayelement (@temparray)
@@ -316,7 +316,7 @@ sub parse()
         $self->error("Found empty Test Plan name.") if ( ! defined($name) );
         $self->error("Length of Test Plan name '" . $name . "' must be " . Bugzilla::Testopia::TestPlan->NAME_MAX_LENGTH . " characters or less.") if ( defined($name) && ( length($name) > Bugzilla::Testopia::TestPlan->NAME_MAX_LENGTH ) );
         
-        $testplan = Bugzilla::Testopia::TestPlan->new({
+        $testplan = Bugzilla::Testopia::TestPlan->create({
             'name'                        => $name,
             'product_id'                => $product_id,
             'default_product_version'    => entity_replace_xml($twig_testplan->field('productversion'),STRIP_BOTH),
@@ -609,7 +609,7 @@ sub parse()
         {
             # Make sure category still does not exist.  We don't check for uniqueness above so
             # the same category could be defined multiple times.
-            if ( ! $category->check_name($category->name()) )
+            if ( ! check_case_category($category->name(), $category->product_id) )
             {
                 $category->store();
                 my $product_name = Bugzilla::Testopia::Product->new($category->product_id())->name();
@@ -620,8 +620,6 @@ sub parse()
         # Store new testplans.
         foreach my $testplan ( @{$self->testplans} )
         {
-            my $plan_id = $testplan->store();
-            $testplan->{'plan_id'} = $plan_id;
             foreach my $asciitag ( @{$self->tags} )
             {
                 my $classtag = Bugzilla::Testopia::TestTag->new({'tag_name' => $asciitag});
@@ -631,10 +629,10 @@ sub parse()
             }
             foreach my $attachment ( @{$self->attachments} )
             {
-                $attachment->{'plan_id'} = $plan_id;
+                $attachment->{'plan_id'} = $testplan->id;
                 $attachment->store();
             }
-            print "Created Test Plan $plan_id: " . $testplan->name() . "\n";
+            print "Created Test Plan ". $testplan->id . ": " . $testplan->name() . "\n";
         }
         
         # Store new testcases.

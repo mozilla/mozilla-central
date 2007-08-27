@@ -78,9 +78,9 @@ use constant UPDATE_COLUMNS         => qw(product_id type_id default_product_ver
 
 use constant VALIDATORS => {
     product_id => \&_check_product,
-    author_id => \&_check_author,
-    type_id => \&_check_type,
-    isactive => \&_check_isactive,
+    author_id  => \&_check_author,
+    type_id    => \&_check_type,
+    isactive   => \&_check_isactive,
 };
 
 use constant NAME_MAX_LENGTH => 255;
