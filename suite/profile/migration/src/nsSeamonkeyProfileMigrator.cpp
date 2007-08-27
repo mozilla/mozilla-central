@@ -671,22 +671,23 @@ nsSeamonkeyProfileMigrator::TransformPreferences(const char* aSourcePrefFileName
   // Now that we have all the pref data in memory, load the target pref file,
   // and write it back out
   psvc->ResetPrefs();
+
+  nsCOMPtr<nsIFile> targetPrefsFile;
+  mTargetProfile->Clone(getter_AddRefs(targetPrefsFile));
+  targetPrefsFile->AppendNative(nsDependentCString(aTargetPrefFileName));
+
+  // Don't use nsnull here as we're too early in the cycle for the prefs
+  // service to get its default file (because the NS_GetDirectoryService items
+  // aren't fully set up yet).
+  psvc->ReadUserPrefs(targetPrefsFile);
+
   for (transform = gTransforms; transform < end; ++transform)
     transform->prefSetterFunc(transform, branch);
 
   for (i = 0; i < NS_ARRAY_LENGTH(branchNames); ++i)
     WriteBranch(branchNames[i], psvc, branches[i]);
 
-  nsCOMPtr<nsIFile> targetPrefsFile;
-  mTargetProfile->Clone(getter_AddRefs(targetPrefsFile));
-  targetPrefsFile->AppendNative(nsDependentCString(aTargetPrefFileName));
   psvc->SavePrefFile(targetPrefsFile);
-
-  psvc->ResetPrefs();
-  // Don't use nsnull here as we're too early in the cycle for the prefs
-  // service to get its default file (because the NS_GetDirectoryService items
-  // aren't fully set up yet).
-  psvc->ReadUserPrefs(targetPrefsFile);
 
   return NS_OK;
 }

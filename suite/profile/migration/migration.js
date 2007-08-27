@@ -276,19 +276,14 @@ var MigrationWizard = {
   // 4 - Home Page Selection
   onHomePageMigrationPageShow: function() {
     // only want this on the first run
-    if (!this._autoMigrate)
+    if (!this._autoMigrate) {
       this._wiz.advance();
+      return;
+    }
 
-    var numberOfChoices = 0;
-    try {
-      var bundle = document.getElementById("bundle");
-      var pageTitle = bundle.getString("homePageMigrationPageTitle");
-      var pageDesc = bundle.getString("homePageMigrationDescription");
-      var startPages = bundle.getString("homePageOptionCount");
-    } catch(ex) {}
-
-    if (!pageTitle || !pageDesc || !startPages || startPages < 1)
-      this._wiz.advance();
+    var bundle = document.getElementById("bundle");
+    var pageTitle = bundle.getString("homePageMigrationPageTitle");
+    var pageDesc = bundle.getString("homePageMigrationDescription");
 
     document.getElementById("homePageImport").setAttribute("label", pageTitle);
     document.getElementById("homePageImportDesc")
@@ -296,38 +291,14 @@ var MigrationWizard = {
 
     this._wiz._adjustWizardHeader();
 
-    var singleStart = document.getElementById("homePageSingleStart");
-    var i, mainStr, radioItem, radioItemId, radioItemLabel, radioItemValue;
+    var homePageStart = document.getElementById("homePageStart");
 
-    if (startPages > 1) {
-      numberOfChoices += startPages;
+    // Find out if the target profile already has a homepage or not
+    var mainStr = this.targetHasHomePageURL() ? 
+                  bundle.getString("homePageStartCurrent") :
+                  bundle.getString("homePageStartDefault");
 
-      this._multipleStartOptions = true;
-      mainStr = bundle.getString("homePageMultipleStartMain");
-      var multipleStart = document.getElementById("homePageMultipleStartMain");
-      multipleStart.setAttribute("label", mainStr);
-      multipleStart.hidden = false;
-      multipleStart.setAttribute("selected", true);
-      multipleStart.focus();
-      singleStart.hidden = true;
-
-      for (i = 1; i <= startPages; i++) {
-        radioItemId = "homePageMultipleStart" + i;
-        radioItemLabel = bundle.getString(radioItemId + "Label");
-        radioItemValue = bundle.getString(radioItemId + "URL");
-        radioItem = document.getElementById(radioItemId);
-        radioItem.hidden = false;
-        radioItem.setAttribute("label", radioItemLabel);
-        radioItem.setAttribute("value", radioItemValue);
-      }
-    }
-    else {
-      numberOfChoices++;
-      mainStr = bundle.getString("homePageSingleStartMain");
-      radioItemValue = bundle.getString("homePageSingleStartMainURL");
-      singleStart.setAttribute("label", mainStr);
-      singleStart.setAttribute("value", radioItemValue);
-    }
+    homePageStart.setAttribute("label", mainStr);
 
     var source = null;
     if (this._source != "") {
@@ -341,7 +312,6 @@ var MigrationWizard = {
     var oldHomePageURL = this._migrator.sourceHomePageURL;
 
     if (oldHomePageURL && source) {
-      numberOfChoices++;
       var appName = document.getElementById("bundle").getString(source);
       var oldHomePageLabel = bundle.getFormattedString("homePageImport",
                                                        [appName]);
@@ -349,23 +319,21 @@ var MigrationWizard = {
       oldHomePage.setAttribute("label", oldHomePageLabel);
       oldHomePage.setAttribute("value", oldHomePageURL);
       oldHomePage.removeAttribute("hidden");
-      oldHomePage.setAttribute("selected", true);
       oldHomePage.focus();
-    }
 
-    // if we don't have at least two options, just advance
-    if (numberOfChoices < 2)
+      document.getElementById("homePageRadioGroup").selectedItem = oldHomePage;
+    }
+    else {
+      // if we don't have at least two options, just advance
       this._wiz.advance();
+    }
   },
 
   onHomePageMigrationPageAdvanced: function() {
     // we might not have a selectedItem if we're in fallback mode
     try {
-      var radioGroup = document.getElementById("homePageRadioGroup");
-      if (radioGroup.selectedItem.id == "homePageMultipleStartMain")
-        radioGroup = document.getElementById("multipleStartRadioGroup");
-
-      this._newHomePage = radioGroup.selectedItem.value;
+      this._newHomePage = document.getElementById("homePageRadioGroup")
+                                  .value;
     } catch(ex) {}
   },
 
@@ -445,14 +413,19 @@ var MigrationWizard = {
       break;
     case "Migration:Ended":
       if (this._autoMigrate) {
+        // If _newHomePage is default, don't touch the current pref - 
+        // then if a new profile it won't be set, if not a new profile
+        // it'll be left as what the user wanted.
         if (this._newHomePage) {
           try {
             // set homepage properly - we must also ensure the pref branch
-            // saves the file in the correct place, because the migrating code
-            // sometimes changes it to be able to load old pref files.
+            // saves the file in the correct place, because the migrating
+            // code sometimes changes it to be able to load old pref files.
             var prefSvc = Components.classes["@mozilla.org/preferences-service;1"]
                                     .getService(Components.interfaces.nsIPrefService);
+
             var prefBranch = prefSvc.getBranch(null);
+
             var str = Components.classes["@mozilla.org/supports-string;1"]
                                 .createInstance(nsISupportsString);
 
@@ -462,6 +435,7 @@ var MigrationWizard = {
 
             var dirSvc = Components.classes["@mozilla.org/file/directory_service;1"]
                                    .getService(Components.interfaces.nsIProperties);
+
             var prefFile = dirSvc.get("ProfDS", Components.interfaces.nsIFile);
             prefFile.append("prefs.js");
             prefSvc.savePrefFile(prefFile);
@@ -488,5 +462,21 @@ var MigrationWizard = {
     this._wiz.getButton("cancel").disabled = true;
     this._wiz.canRewind = false;
     this._listItems("doneItems");
+  },
+
+  targetHasHomePageURL: function() {
+    var targetPrefsFile = this._autoMigrate.directory;
+
+    targetPrefsFile.append("prefs.js");
+
+    var prefSvc = Components.classes["@mozilla.org/preferences-service;1"]
+                            .getService(Components.interfaces.nsIPrefService);
+    prefSvc.resetPrefs();
+
+    prefSvc.readUserPrefs(targetPrefsFile);
+
+    var prefBranch = prefSvc.getBranch(null);
+
+    return prefBranch.prefHasUserValue("browser.startup.homepage");
   }
 };
