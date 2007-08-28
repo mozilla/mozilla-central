@@ -38,6 +38,7 @@
 
 #include "prprf.h"
 #include "cert.h"
+#include "certi.h"
 #include "xconst.h"
 #include "genname.h"
 #include "secitem.h"
@@ -248,6 +249,8 @@ scanVal(char **pbp, char *endptr, char *valBuf, int valBufSize)
 		*pbp = bp;
 		return SECFailure;
 	    }
+	} else if (c == '#' && bp == *pbp) {
+	    /* ignore leading #, quotation not required for it. */
 	} else if (!isQuoted && SPECIAL_CHAR(c)) {
 	    /* unescaped special and not within quoted value */
 	    break;
@@ -299,6 +302,54 @@ scanVal(char **pbp, char *endptr, char *valBuf, int valBufSize)
     return SECSuccess;
 }
 
+static const PRInt16 x2b[256] = 
+{
+/* #0x */ -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, 
+/* #1x */ -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, 
+/* #2x */ -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, 
+/* #3x */  0,  1,  2,  3,  4,  5,  6,  7,  8,  9, -1, -1, -1, -1, -1, -1, 
+/* #4x */ -1, 10, 11, 12, 13, 14, 15, -1, -1, -1, -1, -1, -1, -1, -1, -1, 
+/* #5x */ -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, 
+/* #6x */ -1, 10, 11, 12, 13, 14, 15, -1, -1, -1, -1, -1, -1, -1, -1, -1, 
+/* #7x */ -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, 
+/* #8x */ -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, 
+/* #9x */ -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, 
+/* #ax */ -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, 
+/* #bx */ -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, 
+/* #cx */ -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, 
+/* #dx */ -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, 
+/* #ex */ -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, 
+/* #fx */ -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1
+};
+
+/* Caller must set error code upon failure */
+static SECStatus
+hexToBin(PLArenaPool *pool, SECItem * destItem, const char * src, int len)
+{
+    PRUint8 * dest;
+
+    destItem->data = NULL; 
+    if (len <= 0 || (len & 1)) {
+	goto loser;
+    }
+    len >>= 1;
+    if (!SECITEM_AllocItem(pool, destItem, len))
+	goto loser;
+    dest = destItem->data;
+    for (; len > 0; len--, src += 2) {
+	PRInt16 bin = (x2b[(PRUint8)src[0]] << 4) | x2b[(PRUint8)src[1]]; 
+	if (bin < 0)
+	    goto loser;
+	*dest++ = (PRUint8)bin;
+    }
+    return SECSuccess;
+loser:
+    if (!pool)
+    	SECITEM_FreeItem(destItem, PR_FALSE);
+    return SECFailure;
+}
+
+
 CERTAVA *
 CERT_ParseRFC1485AVA(PRArenaPool *arena, char **pbp, char *endptr,
 		    PRBool singleAVA) 
@@ -306,55 +357,84 @@ CERT_ParseRFC1485AVA(PRArenaPool *arena, char **pbp, char *endptr,
     CERTAVA *a;
     const struct NameToKind *n2k;
     char *bp;
+    int       vt = -1;
+    int       valLen;
+    SECOidTag kind  = SEC_OID_UNKNOWN;
+    SECStatus rv    = SECFailure;
+    SECItem   derOid = { 0, NULL, 0 };
 
     char tagBuf[32];
     char valBuf[384];
 
+    PORT_Assert(arena);
     if (scanTag(pbp, endptr, tagBuf, sizeof(tagBuf)) == SECFailure ||
 	scanVal(pbp, endptr, valBuf, sizeof(valBuf)) == SECFailure) {
-	PORT_SetError(SEC_ERROR_INVALID_AVA);
-	return 0;
+	goto loser;
     }
 
     /* insist that if we haven't finished we've stopped on a separator */
     bp = *pbp;
     if (bp < endptr) {
 	if (singleAVA || (*bp != ',' && *bp != ';')) {
-	    PORT_SetError(SEC_ERROR_INVALID_AVA);
 	    *pbp = bp;
-	    return 0;
+	    goto loser;
 	}
 	/* ok, skip over separator */
 	bp++;
     }
     *pbp = bp;
 
-    for (n2k = name2kinds; n2k->name; n2k++) {
-	int vt,
-	    valLen;
-	if (PORT_Strcasecmp(n2k->name, tagBuf) == 0) {
-	    valLen = PORT_Strlen(valBuf);
-	    if (n2k->kind == SEC_OID_AVA_COUNTRY_NAME && valLen != 2) {
-		PORT_SetError(SEC_ERROR_INVALID_AVA);
-		return 0;
- 	    }
-	    vt = n2k->valueType;
-	    if (vt == SEC_ASN1_PRINTABLE_STRING &&
-		!IsPrintable((unsigned char*) valBuf, valLen)) {
-		PORT_SetError(SEC_ERROR_INVALID_AVA);
-		return 0;
- 	    }
-	    if (vt == SEC_ASN1_DS) {
-		/* RFC 4630: choose PrintableString or UTF8String */
-		if (IsPrintable((unsigned char*) valBuf, valLen))
-		    vt = SEC_ASN1_PRINTABLE_STRING;
-		else 
-		    vt = SEC_ASN1_UTF8_STRING;
+    /* is this a dotted decimal OID attribute type ? */
+    if (!PL_strncasecmp("oid.", tagBuf, 4)) {
+        rv = SEC_StringToOID(arena, &derOid, tagBuf, strlen(tagBuf));
+    } else {
+	for (n2k = name2kinds; n2k->name; n2k++) {
+	    SECOidData *oidrec;
+	    if (PORT_Strcasecmp(n2k->name, tagBuf) == 0) {
+		kind = n2k->kind;
+		vt   = n2k->valueType;
+		oidrec = SECOID_FindOIDByTag(kind);
+		if (oidrec == NULL)
+		    goto loser;
+		derOid = oidrec->oid;
+		break;
 	    }
-	    a = CERT_CreateAVA(arena, n2k->kind, vt, (char *) valBuf);
-	    return a;
 	}
     }
+    if (kind == SEC_OID_UNKNOWN && rv != SECSuccess) 
+	goto loser;
+
+    /* Is this a hex encoding of a DER attribute value ? */
+    if ('#' == valBuf[0]) {
+    	/* convert attribute value from hex to binary */
+	SECItem  derVal = { 0, NULL, 0};
+	valLen = PORT_Strlen(valBuf+1);
+	rv = hexToBin(arena, &derVal, valBuf + 1, valLen);
+	if (rv)
+	    goto loser;
+	a = CERT_CreateAVAFromRaw(arena, &derOid, &derVal);
+    } else {
+	if (kind == SEC_OID_UNKNOWN)
+	    goto loser;
+	valLen = PORT_Strlen(valBuf);
+	if (kind == SEC_OID_AVA_COUNTRY_NAME && valLen != 2)
+	    goto loser;
+	if (vt == SEC_ASN1_PRINTABLE_STRING &&
+	    !IsPrintable((unsigned char*) valBuf, valLen)) 
+	    goto loser;
+	if (vt == SEC_ASN1_DS) {
+	    /* RFC 4630: choose PrintableString or UTF8String */
+	    if (IsPrintable((unsigned char*) valBuf, valLen))
+		vt = SEC_ASN1_PRINTABLE_STRING;
+	    else 
+		vt = SEC_ASN1_UTF8_STRING;
+	}
+
+	a = CERT_CreateAVA(arena, kind, vt, (char *)valBuf);
+    }
+    return a;
+
+loser:
     /* matched no kind -- invalid tag */
     PORT_SetError(SEC_ERROR_INVALID_AVA);
     return 0;

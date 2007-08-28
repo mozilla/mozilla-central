@@ -36,7 +36,7 @@
 /*
  * certi.h - private data structures for the certificate library
  *
- * $Id: certi.h,v 1.18 2007-08-09 22:36:16 rrelyea%redhat.com Exp $
+ * $Id: certi.h,v 1.19 2007-08-28 06:41:55 nelson%bolyard.com Exp $
  */
 #ifndef _CERTI_H_
 #define _CERTI_H_
@@ -244,6 +244,10 @@ cert_FindDERCertBySubjectKeyID(SECItem *subjKeyID);
 
 /* return maximum length of AVA value based on its type OID tag. */
 extern int cert_AVAOidTagToMaxLen(SECOidTag tag);
+
+/* Make an AVA, allocated from pool, from OID and DER encoded value */
+extern CERTAVA * CERT_CreateAVAFromRaw(PRArenaPool *pool, 
+                               const SECItem * OID, const SECItem * value);
 
 /*
  * get a DPCache object for the given issuer subject and dp
