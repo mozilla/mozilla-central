@@ -161,22 +161,11 @@ use constant MP1 => ( exists $ENV{MOD_PERL} and
                         ! exists $ENV{MOD_PERL_API_VERSION});  
 
 our $dsn = "dbi:mysql(RootClass=AuditDBI):database=$Litmus::Config::db_name;host=$Litmus::Config::db_host;port=$Litmus::Config::db_port";
-
 Litmus::DBI->connection($dsn,
                         $Litmus::Config::db_user,
                         $Litmus::Config::db_pass);
 
-
 our $readonly_dbh;
-if (defined $Litmus::Config::db_host_ro and
-    $Litmus::Config::db_host_ro ne $Litmus::Config::db_host) {
-    my $readonly_dsn = "dbi:mysql:database=$Litmus::Config::db_name_ro;host=$Litmus::Config::db_host_ro;port=$Litmus::Config::db_port_ro";
-    $readonly_dbh = DBI->connect($readonly_dsn,
-                                 $Litmus::Config::db_user_ro,
-                                 $Litmus::Config::db_pass_ro,
-                                 {ReadOnly => 1}
-                                 );
-}
 
 our %column_aliases;
 
@@ -258,7 +247,22 @@ sub _auto_increment_value {
 sub db_ReadOnly() {
     my $class = shift;    
 
-    return $readonly_dbh if ($readonly_dbh);
+    if (defined $Litmus::Config::db_host_ro) {
+      if (!$readonly_dbh or
+          !$readonly_dbh->ping()) {
+        my $readonly_dsn = "dbi:mysql:database=$Litmus::Config::db_name_ro;host=$Litmus::Config::db_host_ro;port=$Litmus::Config::db_port_ro";
+        $readonly_dbh = DBI->connect($readonly_dsn,
+                                     $Litmus::Config::db_user_ro,
+                                     $Litmus::Config::db_pass_ro,
+                                     {ReadOnly => 1}
+                                    );
+      }
+    }
+#    return $readonly_dbh if ($readonly_dbh);
+    if ($readonly_dbh) {
+        print STDERR "Using readonly db...\n";
+        return $readonly_dbh;
+    }
 
     return $class->db_Main();
 }
