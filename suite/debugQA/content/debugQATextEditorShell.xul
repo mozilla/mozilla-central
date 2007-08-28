@@ -49,8 +49,14 @@
 <?xul-overlay href="chrome://communicator/content/tasksOverlay.xul"?>
 <?xul-overlay href="chrome://communicator/content/contentAreaContextOverlay.xul"?>
 <?xul-overlay href="chrome://communicator/content/sidebar/sidebarOverlay.xul"?>
+<?xul-overlay href="chrome://debugQA/content/debugQAEditorOverlay.xul"?>
 
-<!DOCTYPE window SYSTEM "chrome://editor/locale/editor.dtd"> 
+<!DOCTYPE window [
+<!ENTITY % debugQAEditorOverlayDTD SYSTEM "chrome://debugqa/locale/debugQAEditorOverlay.dtd">
+%debugQAEditorOverlayDTD;
+<!ENTITY % editorDTD SYSTEM "chrome://editor/locale/editor.dtd">
+%editorDTD;
+]>
 
 <!-- NOTE: If we don't have "title" set, text editor doesn't work! -->
 <window id="main-window"
@@ -71,7 +77,6 @@
 
   <script type="application/x-javascript" src="chrome://editor/content/editor.js"/>
   <script type="application/x-javascript" src="chrome://editor/content/ComposerCommands.js"/>
-  <script type="application/x-javascript" src="chrome://editor/content/EditorCommandsDebug.js"/>
   <script type="application/x-javascript" src="chrome://global/content/nsDragAndDrop.js"/>
   <script type="application/x-javascript" src="chrome://communicator/content/contentAreaDD.js"/>
 <!--
@@ -90,7 +95,7 @@ editor.xul has these - do we need them?
     <commandset id="composerMenuItems"/>
   </commands>
 
-  <broadcaster id="args" value="chrome://editor/content/EditorInitPagePlain.html"/>
+  <broadcaster id="args" value="chrome://debugqa/content/EditorInitPagePlain.html"/>
   <broadcaster id="canPrint"/>
   
 <!-- Interim hack to transition from nsIXULWindowCallbacks/ShowWindowWithArgs
@@ -124,10 +129,6 @@ editor.xul has these - do we need them?
 
       <!-- tasks menu filled from tasksOverlay -->
       <menu accesskey="t" id="tasksMenu"/>
-
-      <!-- DEBUG only -->
-      <menu id="debugMenu" />
-      <!-- end DEBUG only -->
 
       <!-- help menu filled from globalOverlay -->
       <menu accesskey="h" id="menu_Help"/>

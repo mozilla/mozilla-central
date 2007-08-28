@@ -2,6 +2,7 @@
 
 debugqa.jar:
 % locale debugQA @AB_CD@ %locale/@AB_CD@/debugQA/
+  locale/@AB_CD@/debugQA/debugQAEditorOverlay.dtd           (%debugQAEditorOverlay.dtd)
   locale/@AB_CD@/debugQA/debugQANavigatorOverlay.properties (%debugQANavigatorOverlay.properties)
   locale/@AB_CD@/debugQA/debugQAPrefsOverlay.dtd            (%debugQAPrefsOverlay.dtd)
   locale/@AB_CD@/debugQA/pref-debug.dtd                     (%pref-debug.dtd)

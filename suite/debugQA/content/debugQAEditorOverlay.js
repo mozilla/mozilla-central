@@ -567,3 +567,10 @@ function ExecuteJSTransactionViaEditor()
   }
 }
 
+function EditorNewPlaintext()
+{
+  window.openDialog( "chrome://debugqa/content/debugQATextEditorShell.xul",
+                     "_blank",
+                     "chrome,dialog=no,all",
+                     "about:blank");
+}
