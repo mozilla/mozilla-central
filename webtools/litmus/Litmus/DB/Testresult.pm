@@ -380,7 +380,7 @@ sub getTestResults($\@\@$) {
     }
     
     my $sql = "$select $from $where $group_by $order_by $limit";
-    my $dbh = Litmus::DBI->db_Main();
+    my $dbh = Litmus::DBI->db_ReadOnly();
     my $sth = $dbh->prepare($sql);
     $sth->execute();
     my @rows = $self->sth_to_objects($sth);

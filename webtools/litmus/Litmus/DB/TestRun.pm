@@ -65,7 +65,7 @@ Litmus::DB::TestRun->set_sql('daterange' => qq {
 sub getCriteria() {
   my $self = shift;
 
-  my $dbh = __PACKAGE__->db_Main();
+  my $dbh = __PACKAGE__->db_ReadOnly();
   my $sql = "SELECT trc.build_id, trc.platform_id, trc.opsys_id,
                     pl.name AS platform_name, o.name AS opsys_name
              FROM test_run_criteria trc
@@ -286,7 +286,7 @@ sub getTestRuns() {
     $sql .= " LIMIT $limit";
   }
 
-  my $dbh = __PACKAGE__->db_Main();
+  my $dbh = __PACKAGE__->db_ReadOnly();
   my $sth = $dbh->prepare($sql);
   $sth->execute();
   my @test_run_ids;
@@ -360,7 +360,7 @@ $sql .= " WHERE
 
   $sql .= $self->getCriteriaSql();
 
-  my $dbh = __PACKAGE__->db_Main();
+  my $dbh = __PACKAGE__->db_ReadOnly();
   my $sth = $dbh->prepare($sql);
   $sth->execute($self->test_run_id);
   my ($num_testcases_with_results) = $sth->fetchrow_array;
@@ -425,7 +425,7 @@ $sql .= " WHERE
 
   $sql .= $self->getCriteriaSql();
 
-  my $dbh = __PACKAGE__->db_Main();
+  my $dbh = __PACKAGE__->db_ReadOnly();
   my $sth = $dbh->prepare($sql);
   $sth->execute($self->test_run_id,$status_id);
   my ($num_results) = $sth->fetchrow_array;
@@ -482,7 +482,7 @@ $sql .= " WHERE
 
   $sql .= $self->getCriteriaSql();
 
-  my $dbh = __PACKAGE__->db_Main();
+  my $dbh = __PACKAGE__->db_ReadOnly();
   my $sth = $dbh->prepare($sql);
   $sth->execute($self->test_run_id);
   my ($num_results) = $sth->fetchrow_array;

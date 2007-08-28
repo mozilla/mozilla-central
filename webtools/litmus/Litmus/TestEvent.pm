@@ -55,7 +55,7 @@ sub _init {
     return 1;
   }
 
-  $self->{_dbh} = Litmus::DBI->db_Main;
+  $self->{_dbh} = Litmus::DBI->db_ReadOnly;
 
   if ($args{testday_id}) {
     my $testday = Litmus::DB::TestDay->retrieve($args{testday_id});

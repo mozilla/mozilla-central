@@ -83,7 +83,7 @@ sub search_full_text {
 	my $realname = shift;
 	my @groups = shift; 
 	
-	my $dbh = Litmus::DBI->db_Main();
+	my $dbh = Litmus::DBI->db_ReadOnly();
 	my @args;
 	
 	my $sql = q{

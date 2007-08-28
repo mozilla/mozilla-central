@@ -202,7 +202,7 @@ sub coverage() {
     my $user = shift;        # optional
     my $trusted = shift;        # optional
  
-    my $dbh = __PACKAGE__->db_Main();
+    my $dbh = __PACKAGE__->db_ReadOnly();
     my $select = "SELECT tr.testresult_id, trsl.class_name";
     my $from = " FROM test_results tr, users u, opsyses o, test_result_status_lookup trsl";
     my $where = " WHERE tr.testcase_id=" . quotemeta($self->{'testcase_id'}) . " AND tr.user_id=u.user_id AND tr.opsys_id=o.opsys_id AND tr.result_status_id=trsl.result_status_id";

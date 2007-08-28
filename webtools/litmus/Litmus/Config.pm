@@ -82,6 +82,19 @@ our %AUDIT_ACTIONS_TO_IGNORE = (
 		],
     );
 
+our $user_cookiename = "litmus_login";
+our $sysconfig_cookiename = "litmustestingconfiguration";
+
+our $sendmail_path = '/usr/sbin/sendmail';
+
+our @nightly_report_recipients = ();
+
+# We allow for a separate database that is optimized for read-only queries.
+# These vars can be set in localconfig, but will default to the same values
+# as for the regular database if not set.
+our ($db_host, $db_port, $db_name, $db_user, $db_pass);
+our ($db_host_ro, $db_port_ro, $db_name_ro, $db_user_ro, $db_pass_ro);
+
 our $localconfig = litmus_locations()->{'localconfig'};
 do $localconfig;
 
@@ -92,6 +105,5 @@ our $disabled = 0;
 
 # Set/unset this to display inline debugging value/code.
 our $DEBUG = 0;
-
 
 1;

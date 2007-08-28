@@ -68,7 +68,7 @@ if (
     die;
 }
 
-$dbh = Litmus::DBI->db_Main;
+$dbh = Litmus::DBI->db_ReadOnly;
 if (!$dbh) {
   die "Unable to connect to database!";
 }

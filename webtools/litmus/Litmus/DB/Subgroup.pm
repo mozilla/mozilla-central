@@ -123,7 +123,7 @@ sub coverage() {
   if ($community_only) {
     $sql .= " AND t.community_enabled=1";
   }
-  my $dbh = $self->db_Main();
+  my $dbh = $self->db_ReadOnly();
   my $sth = $dbh->prepare_cached($sql);
   $sth->execute(
                 $self->{'subgroup_id'},

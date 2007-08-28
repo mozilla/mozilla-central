@@ -46,7 +46,7 @@ END {
   }
 }
 
-$litmus_dbh = Litmus::DBI->db_Main() or die;
+$litmus_dbh = Litmus::DBI->db_ReadOnly() or die;
 
 my ($sql,$sth);
 
