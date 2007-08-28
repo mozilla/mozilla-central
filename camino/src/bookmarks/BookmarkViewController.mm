@@ -45,7 +45,6 @@
 #import "BookmarkViewController.h"
 
 #import "NSArray+Utils.h"
-#import "NSString+Utils.h"
 #import "NSPasteboard+Utils.h"
 #import "NSSplitView+Utils.h"
 #import "NSView+Utils.h"

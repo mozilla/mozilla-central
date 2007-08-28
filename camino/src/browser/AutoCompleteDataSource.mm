@@ -37,7 +37,7 @@
  *
  * ***** END LICENSE BLOCK ***** */
 
-#import "NSString+Utils.h"
+#import "NSString+Gecko.h"
 
 #import <AppKit/AppKit.h>
 #import "AutoCompleteDataSource.h"

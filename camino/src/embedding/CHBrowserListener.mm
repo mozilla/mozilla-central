@@ -39,7 +39,7 @@
 #import <Cocoa/Cocoa.h>
 #import <ApplicationServices/ApplicationServices.h>
 
-#import "NSString+Utils.h"
+#import "NSString+Gecko.h"
 
 #import "mozView.h"
 

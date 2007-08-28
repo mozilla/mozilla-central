@@ -37,7 +37,6 @@
  *
  * ***** END LICENSE BLOCK ***** */
 
-#import "NSString+Utils.h"
 #import "NSPasteboard+Utils.h"
 #import "PreferenceManager.h"
 

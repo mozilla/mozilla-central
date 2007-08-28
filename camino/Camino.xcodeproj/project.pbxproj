@@ -241,6 +241,12 @@
 		33B778820C55C59A00A6D67F /* libnssdbm3.dylib in Copy Security Libraries */ = {isa = PBXBuildFile; fileRef = 33B778800C55C57800A6D67F /* libnssdbm3.dylib */; };
 		33F3B70B0C63F5F7007DFBD0 /* ScriptingSupport.mm in Sources */ = {isa = PBXBuildFile; fileRef = 33F3B70A0C63F5F7007DFBD0 /* ScriptingSupport.mm */; };
 		33F3B70C0C63F5F7007DFBD0 /* ScriptingSupport.mm in Sources */ = {isa = PBXBuildFile; fileRef = 33F3B70A0C63F5F7007DFBD0 /* ScriptingSupport.mm */; };
+		33FBAAF80C84D0AB00DD459E /* NSString+Gecko.h in Headers */ = {isa = PBXBuildFile; fileRef = 33FBAAF30C84D0A500DD459E /* NSString+Gecko.h */; };
+		33FBAAF90C84D0AC00DD459E /* NSString+Gecko.h in Headers */ = {isa = PBXBuildFile; fileRef = 33FBAAF30C84D0A500DD459E /* NSString+Gecko.h */; };
+		33FBAAFC0C84D0CA00DD459E /* NSString+Gecko.mm in Sources */ = {isa = PBXBuildFile; fileRef = 33FBAAFA0C84D0CA00DD459E /* NSString+Gecko.mm */; };
+		33FBAAFD0C84D0CA00DD459E /* NSString+Utils.m in Sources */ = {isa = PBXBuildFile; fileRef = 33FBAAFB0C84D0CA00DD459E /* NSString+Utils.m */; };
+		33FBAAFE0C84D0CA00DD459E /* NSString+Gecko.mm in Sources */ = {isa = PBXBuildFile; fileRef = 33FBAAFA0C84D0CA00DD459E /* NSString+Gecko.mm */; };
+		33FBAAFF0C84D0CA00DD459E /* NSString+Utils.m in Sources */ = {isa = PBXBuildFile; fileRef = 33FBAAFB0C84D0CA00DD459E /* NSString+Utils.m */; };
 		34884A36074F7C5D000EA76B /* AddressBook.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 34884A35074F7C5D000EA76B /* AddressBook.framework */; };
 		34884A37074F7C5D000EA76B /* AddressBook.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 34884A35074F7C5D000EA76B /* AddressBook.framework */; };
 		3489ADCB0753B717005ADF6C /* ABAddressBook+Utils.h in Headers */ = {isa = PBXBuildFile; fileRef = 3489ADC90753B717005ADF6C /* ABAddressBook+Utils.h */; };
@@ -446,7 +452,6 @@
 		3F44ACA905BDFB9E00CB4B08 /* RemoteDataProvider.mm in Sources */ = {isa = PBXBuildFile; fileRef = F558137C030AEF9B0176F207 /* RemoteDataProvider.mm */; };
 		3F44ACAA05BDFB9E00CB4B08 /* SiteIconProvider.mm in Sources */ = {isa = PBXBuildFile; fileRef = F558137D030AEF9B0176F207 /* SiteIconProvider.mm */; };
 		3F44ACAB05BDFB9E00CB4B08 /* BrowserTabViewItem.mm in Sources */ = {isa = PBXBuildFile; fileRef = F5B950BD030C83B601A96654 /* BrowserTabViewItem.mm */; };
-		3F44ACAC05BDFB9E00CB4B08 /* NSString+Utils.mm in Sources */ = {isa = PBXBuildFile; fileRef = F558099E02F22168015DF512 /* NSString+Utils.mm */; };
 		3F44ACAD05BDFB9E00CB4B08 /* CHBrowserListener.mm in Sources */ = {isa = PBXBuildFile; fileRef = F558B1F1030F6E470166970F /* CHBrowserListener.mm */; };
 		3F44ACAD05BDFB9E00CB4B18 /* CmXULAppInfo.mm in Sources */ = {isa = PBXBuildFile; fileRef = F558B1F1030F6E470166972F /* CmXULAppInfo.mm */; };
 		3F44ACAE05BDFB9E00CB4B08 /* NSBezierPath+Utils.mm in Sources */ = {isa = PBXBuildFile; fileRef = F5D98EB9031AC37801A96654 /* NSBezierPath+Utils.mm */; };
@@ -856,7 +861,6 @@
 		3F44AEDE05BDFBA000CB4B08 /* AppComponents.mm in Sources */ = {isa = PBXBuildFile; fileRef = F5D33CBD02EF61A901A967F3 /* AppComponents.mm */; };
 		3F44AEDF05BDFBA000CB4B08 /* SecurityDialogs.mm in Sources */ = {isa = PBXBuildFile; fileRef = F5D33CBE02EF61A901A967F3 /* SecurityDialogs.mm */; };
 		3F44AEE005BDFBA000CB4B08 /* CocoaPromptService.mm in Sources */ = {isa = PBXBuildFile; fileRef = F566BD1302EFA9AD01A967F3 /* CocoaPromptService.mm */; };
-		3F44AEE105BDFBA000CB4B08 /* NSString+Utils.mm in Sources */ = {isa = PBXBuildFile; fileRef = F558099E02F22168015DF512 /* NSString+Utils.mm */; };
 		3F44AEE205BDFBA000CB4B08 /* ToolTip.mm in Sources */ = {isa = PBXBuildFile; fileRef = F549ACDE0302DE6001026D5D /* ToolTip.mm */; };
 		3F44AEE305BDFBA000CB4B08 /* NSScreen+Utils.m in Sources */ = {isa = PBXBuildFile; fileRef = F549ACDF0302DE6001026D5D /* NSScreen+Utils.m */; };
 		3F44AEE405BDFBA000CB4B08 /* SiteIconProvider.mm in Sources */ = {isa = PBXBuildFile; fileRef = F558137D030AEF9B0176F207 /* SiteIconProvider.mm */; };
@@ -2451,6 +2455,9 @@
 		33B777E10C5588E500A6D67F /* libmozlcms.a */ = {isa = PBXFileReference; lastKnownFileType = archive.ar; name = libmozlcms.a; path = ../dist/lib/libmozlcms.a; sourceTree = SOURCE_ROOT; };
 		33B778800C55C57800A6D67F /* libnssdbm3.dylib */ = {isa = PBXFileReference; lastKnownFileType = "compiled.mach-o.dylib"; name = libnssdbm3.dylib; path = ../dist/lib/libnssdbm3.dylib; sourceTree = SOURCE_ROOT; };
 		33F3B70A0C63F5F7007DFBD0 /* ScriptingSupport.mm */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.cpp.objcpp; name = ScriptingSupport.mm; path = src/appleevents/ScriptingSupport.mm; sourceTree = "<group>"; };
+		33FBAAF30C84D0A500DD459E /* NSString+Gecko.h */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.c.h; name = "NSString+Gecko.h"; path = "src/extensions/NSString+Gecko.h"; sourceTree = "<group>"; };
+		33FBAAFA0C84D0CA00DD459E /* NSString+Gecko.mm */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.cpp.objcpp; name = "NSString+Gecko.mm"; path = "src/extensions/NSString+Gecko.mm"; sourceTree = "<group>"; };
+		33FBAAFB0C84D0CA00DD459E /* NSString+Utils.m */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.c.objc; name = "NSString+Utils.m"; path = "src/extensions/NSString+Utils.m"; sourceTree = "<group>"; };
 		34884A35074F7C5D000EA76B /* AddressBook.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = AddressBook.framework; path = /System/Library/Frameworks/AddressBook.framework; sourceTree = "<absolute>"; };
 		3489ADC90753B717005ADF6C /* ABAddressBook+Utils.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = "ABAddressBook+Utils.h"; path = "src/extensions/ABAddressBook+Utils.h"; sourceTree = SOURCE_ROOT; };
 		3489ADCA0753B717005ADF6C /* ABAddressBook+Utils.mm */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.objcpp; name = "ABAddressBook+Utils.mm"; path = "src/extensions/ABAddressBook+Utils.mm"; sourceTree = SOURCE_ROOT; };
@@ -2472,7 +2479,7 @@
 		3F42EFAC05EC13F90045A30C /* throbber-11.tif */ = {isa = PBXFileReference; lastKnownFileType = image.gif; name = "throbber-11.tif"; path = "resources/images/throbber/throbber-11.tif"; sourceTree = SOURCE_ROOT; };
 		3F42EFAD05EC13F90045A30C /* throbber-12.tif */ = {isa = PBXFileReference; lastKnownFileType = image.gif; name = "throbber-12.tif"; path = "resources/images/throbber/throbber-12.tif"; sourceTree = SOURCE_ROOT; };
 		3F44AD8705BDFB9F00CB4B08 /* Info-Camino.plist */ = {isa = PBXFileReference; lastKnownFileType = text.xml; path = "Info-Camino.plist"; sourceTree = "<group>"; };
-		3F44AD8805BDFB9F00CB4B08 /* Camino.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = Camino.app; sourceTree = BUILT_PRODUCTS_DIR; };
+		3F44AD8805BDFB9F00CB4B08 /* Camino.app */ = {isa = PBXFileReference; includeInIndex = 0; lastKnownFileType = wrapper.application; path = Camino.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		3F44AD9E05BDFB9F00CB4B08 /* Info-AppearancePrefPane.plist */ = {isa = PBXFileReference; lastKnownFileType = text.xml; path = "Info-AppearancePrefPane.plist"; sourceTree = "<group>"; };
 		3F44AD9F05BDFB9F00CB4B08 /* Appearance.prefPane */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = Appearance.prefPane; sourceTree = BUILT_PRODUCTS_DIR; };
 		3F44ADB205BDFBA000CB4B08 /* Info-NavigationPrefPane.plist */ = {isa = PBXFileReference; lastKnownFileType = text.xml; path = "Info-NavigationPrefPane.plist"; sourceTree = "<group>"; };
@@ -2785,7 +2792,6 @@
 		F55714A1023B4898010001CA /* smallbookmark.tif */ = {isa = PBXFileReference; lastKnownFileType = image.tiff; name = smallbookmark.tif; path = resources/images/chrome/smallbookmark.tif; sourceTree = SOURCE_ROOT; };
 		F557193A022B4102010001CA /* PreferencePanes.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = PreferencePanes.framework; path = /System/Library/Frameworks/PreferencePanes.framework; sourceTree = "<absolute>"; };
 		F558099D02F22168015DF512 /* NSString+Utils.h */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.c.h; name = "NSString+Utils.h"; path = "src/extensions/NSString+Utils.h"; sourceTree = SOURCE_ROOT; };
-		F558099E02F22168015DF512 /* NSString+Utils.mm */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.cpp.objcpp; name = "NSString+Utils.mm"; path = "src/extensions/NSString+Utils.mm"; sourceTree = SOURCE_ROOT; };
 		F5581379030AEF9B0176F207 /* RemoteDataProvider.h */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.c.h; name = RemoteDataProvider.h; path = src/browser/RemoteDataProvider.h; sourceTree = SOURCE_ROOT; };
 		F558137A030AEF9B0176F207 /* SiteIconProvider.h */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.c.h; name = SiteIconProvider.h; path = src/browser/SiteIconProvider.h; sourceTree = SOURCE_ROOT; };
 		F558137C030AEF9B0176F207 /* RemoteDataProvider.mm */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.cpp.objcpp; name = RemoteDataProvider.mm; path = src/browser/RemoteDataProvider.mm; sourceTree = SOURCE_ROOT; };
@@ -4381,6 +4387,7 @@
 				0F5FD71B07F48CDC00E8EDBD /* NSResponder+Utils.h */,
 				F549ACE40302DEBB01026D5D /* NSScreen+Utils.h */,
 				3F27D94A05DB2600007B543D /* NSSplitView+Utils.h */,
+				33FBAAF30C84D0A500DD459E /* NSString+Gecko.h */,
 				F558099D02F22168015DF512 /* NSString+Utils.h */,
 				0F84BF1608862E4B00E23BC4 /* NSThread+Utils.h */,
 				F527C90203BCD43601A80166 /* NSView+Utils.h */,
@@ -4419,7 +4426,8 @@
 				0F5FD71E07F48CE500E8EDBD /* NSResponder+Utils.m */,
 				F549ACDF0302DE6001026D5D /* NSScreen+Utils.m */,
 				3F27D94B05DB2600007B543D /* NSSplitView+Utils.mm */,
-				F558099E02F22168015DF512 /* NSString+Utils.mm */,
+				33FBAAFA0C84D0CA00DD459E /* NSString+Gecko.mm */,
+				33FBAAFB0C84D0CA00DD459E /* NSString+Utils.m */,
 				0F84BF1208862E3E00E23BC4 /* NSThread+Utils.m */,
 				3FE4ECE9082C2D89003BF39E /* NSURL+Utils.m */,
 				F527C90303BCD43601A80166 /* NSView+Utils.m */,
@@ -4689,6 +4697,7 @@
 				1F8407090C5705CC007B893D /* ThumbnailView.h in Headers */,
 				00335B8D0C655ABC00A607F2 /* WebSearchField.h in Headers */,
 				506770FA0C823B1B0050EF73 /* CHSelectHandler.h in Headers */,
+				33FBAAF80C84D0AB00DD459E /* NSString+Gecko.h in Headers */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -4844,6 +4853,7 @@
 				1F840B2D0C57D807007B893D /* ThumbnailView.h in Headers */,
 				00335B8F0C655ABC00A607F2 /* WebSearchField.h in Headers */,
 				506770FB0C823B1B0050EF73 /* CHSelectHandler.h in Headers */,
+				33FBAAF90C84D0AC00DD459E /* NSString+Gecko.h in Headers */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -5595,7 +5605,6 @@
 				3F44ACA905BDFB9E00CB4B08 /* RemoteDataProvider.mm in Sources */,
 				3F44ACAA05BDFB9E00CB4B08 /* SiteIconProvider.mm in Sources */,
 				3F44ACAB05BDFB9E00CB4B08 /* BrowserTabViewItem.mm in Sources */,
-				3F44ACAC05BDFB9E00CB4B08 /* NSString+Utils.mm in Sources */,
 				3F44ACAD05BDFB9E00CB4B08 /* CHBrowserListener.mm in Sources */,
 				3F44ACAD05BDFB9E00CB4B18 /* CmXULAppInfo.mm in Sources */,
 				3F44ACAE05BDFB9E00CB4B08 /* NSBezierPath+Utils.mm in Sources */,
@@ -5671,6 +5680,8 @@
 				33F3B70B0C63F5F7007DFBD0 /* ScriptingSupport.mm in Sources */,
 				00335B8E0C655ABC00A607F2 /* WebSearchField.mm in Sources */,
 				506770F70C823B090050EF73 /* CHSelectHandler.mm in Sources */,
+				33FBAAFC0C84D0CA00DD459E /* NSString+Gecko.mm in Sources */,
+				33FBAAFD0C84D0CA00DD459E /* NSString+Utils.m in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -5758,7 +5769,6 @@
 				3F44AEDE05BDFBA000CB4B08 /* AppComponents.mm in Sources */,
 				3F44AEDF05BDFBA000CB4B08 /* SecurityDialogs.mm in Sources */,
 				3F44AEE005BDFBA000CB4B08 /* CocoaPromptService.mm in Sources */,
-				3F44AEE105BDFBA000CB4B08 /* NSString+Utils.mm in Sources */,
 				3F44AEE205BDFBA000CB4B08 /* ToolTip.mm in Sources */,
 				3F44AEE305BDFBA000CB4B08 /* NSScreen+Utils.m in Sources */,
 				3F44AEE405BDFBA000CB4B08 /* SiteIconProvider.mm in Sources */,
@@ -5839,6 +5849,8 @@
 				33F3B70C0C63F5F7007DFBD0 /* ScriptingSupport.mm in Sources */,
 				00335B900C655ABC00A607F2 /* WebSearchField.mm in Sources */,
 				506770F80C823B090050EF73 /* CHSelectHandler.mm in Sources */,
+				33FBAAFE0C84D0CA00DD459E /* NSString+Gecko.mm in Sources */,
+				33FBAAFF0C84D0CA00DD459E /* NSString+Utils.m in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

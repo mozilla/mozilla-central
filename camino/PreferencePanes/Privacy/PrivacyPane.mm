@@ -37,7 +37,7 @@
  
 #import "PrivacyPane.h"
 
-#import "NSString+Utils.h"
+#import "NSString+Gecko.h"
 #import "NSArray+Utils.h"
 #import "ExtendedTableView.h"
 

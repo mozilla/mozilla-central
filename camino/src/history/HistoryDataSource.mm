@@ -38,6 +38,7 @@
  * ***** END LICENSE BLOCK ***** */
 
 #import "NSString+Utils.h"
+#import "NSString+Gecko.h"
 #import "NSPasteboard+Utils.h"
 
 #import "BrowserWindowController.h"

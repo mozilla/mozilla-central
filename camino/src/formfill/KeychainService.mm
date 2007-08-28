@@ -40,7 +40,7 @@
 // Security must be imported first, because of uint32 declaration conflicts
 #import <Security/Security.h>
 
-#import "NSString+Utils.h"
+#import "NSString+Gecko.h"
 
 #import "KeychainItem.h"
 #import "KeychainService.h"

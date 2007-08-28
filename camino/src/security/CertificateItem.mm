@@ -37,6 +37,7 @@
  * ***** END LICENSE BLOCK ***** */
 
 #import "NSString+Utils.h"
+#import "NSString+Gecko.h"
 #import "NSDate+Utils.h"
 
 #import "nsCOMPtr.h"

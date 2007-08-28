@@ -36,10 +36,6 @@
  * ***** END LICENSE BLOCK ***** */
 
 #import <Foundation/Foundation.h>
-#import "nscore.h"
-
-class nsAString;
-class nsACString;
 
 typedef enum
 {
@@ -56,14 +52,6 @@ typedef enum
 + (NSString*)stringWithUUID;
 + (id)escapedURLString:(NSString *)unescapedString;
 + (NSString*)unescapedURLString:(NSString*)escapedString;
-+ (id)stringWithPRUnichars:(const PRUnichar*)inString;
-+ (id)stringWith_nsAString:(const nsAString&)inString;
-+ (id)stringWith_nsACString:(const nsACString&)inString;    // assumes nsACString is UTF-8
-- (void)assignTo_nsAString:(nsAString&)ioString;
-
-- (id)initWith_nsAString:(const nsAString&)inString;
-- (id)initWith_nsACString:(const nsACString&)inString;    // assumes nsACString is UTF-8
-- (id)initWithPRUnichars:(const PRUnichar*)inString;
 
 - (BOOL)isEqualToStringIgnoringCase:(NSString*)inString;
 - (NSString *)stringByRemovingCharactersInSet:(NSCharacterSet*)characterSet;
@@ -73,12 +61,7 @@ typedef enum
 - (NSString *)stringByTrimmingWhitespace;
 - (NSString *)stringByRemovingAmpEscapes;
 - (NSString *)stringByAddingAmpEscapes;
-- (NSString *)stringByRemovingWindowsShortcutAmpersand;
-- (NSString *)stripWWW;
 
-// allocate a new unicode buffer with the contents of the current string. Caller
-// is responsible for freeing the buffer.
-- (PRUnichar*)createNewUnicodeBuffer;
 @end
 
 @interface NSMutableString (ChimeraMutableStringUtils)

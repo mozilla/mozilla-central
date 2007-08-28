@@ -38,7 +38,7 @@
 
 #import <SystemConfiguration/SystemConfiguration.h>
 
-#import "NSString+Utils.h"
+#import "NSString+Gecko.h"
 
 #import "PreferenceManager.h"
 #import "AppDirServiceProvider.h"

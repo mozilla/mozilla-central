@@ -36,7 +36,7 @@
  * ***** END LICENSE BLOCK ***** */
 
 #import <Foundation/Foundation.h>
-
+#import "nscore.h"
 
 extern NSString* const RemoteDataLoadRequestNotificationName;
 extern NSString* const RemoteDataLoadRequestURIKey;

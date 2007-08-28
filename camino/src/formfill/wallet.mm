@@ -1072,8 +1072,6 @@ wallet_WriteToList(
   return PR_TRUE;
 }
 
-#import "NSString+Utils.h"
-
 /*
  * fetch an entry from the designated list
  */

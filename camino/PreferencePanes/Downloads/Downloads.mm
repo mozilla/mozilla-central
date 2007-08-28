@@ -42,7 +42,6 @@
 #import <Cocoa/Cocoa.h>
 
 #import "Downloads.h"
-#import "NSString+Utils.h"
 
 #include "nsCOMPtr.h"
 #include "nsILocalFileMac.h"

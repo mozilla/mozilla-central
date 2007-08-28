@@ -41,6 +41,7 @@
 #import "ABAddressBook+Utils.h"
 
 #import "NSString+Utils.h"
+#import "NSString+Gecko.h"
 #import "NSSplitView+Utils.h"
 #import "NSMenu+Utils.h"
 #import "NSPasteboard+Utils.h"
