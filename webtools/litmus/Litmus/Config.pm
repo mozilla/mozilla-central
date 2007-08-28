@@ -90,10 +90,11 @@ our $sendmail_path = '/usr/sbin/sendmail';
 our @nightly_report_recipients = ();
 
 # We allow for a separate database that is optimized for read-only queries.
-# These vars can be set in localconfig, but will default to the same values
-# as for the regular database if not set.
+# These vars can be set in localconfig.
 our ($db_host, $db_port, $db_name, $db_user, $db_pass);
 our ($db_host_ro, $db_port_ro, $db_name_ro, $db_user_ro, $db_pass_ro);
+our $bugzilla_auth_enabled = 0;
+our ($bugzilla_host, $bugzilla_port, $bugzilla_name, $bugzilla_user, $bugzilla_pass);
 
 our $localconfig = litmus_locations()->{'localconfig'};
 do $localconfig;
