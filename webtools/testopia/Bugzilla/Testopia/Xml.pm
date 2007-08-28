@@ -273,6 +273,7 @@ sub parse()
             name => $category_name,
             product_id => $product->id(),
             description => $description,
+            PREVALIDATED => 1,
         });
         
         # Only create the category if it does not exist.

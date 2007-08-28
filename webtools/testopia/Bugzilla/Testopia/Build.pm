@@ -18,22 +18,6 @@
 #
 # Contributor(s): Greg Hendricks <ghendricks@novell.com>
 
-=head1 NAME
-
-Bugzilla::Testopia::Build - An object representing a Testopia build number
-
-=head1 DESCRIPTION
-
-Builds are used to classify test runs. A build represents the results of 
-a period of work.
-
-=head1 SYNOPSIS
-
- $build = Bugzilla::Testopia::Build->new($build_id);
- $build = Bugzilla::Testopia::Build->new(\%build_hash);
-
-=cut
-
 package Bugzilla::Testopia::Build;
 
 use strict;
@@ -44,22 +28,11 @@ use Bugzilla::Testopia::TestPlan;
 use Bugzilla::Testopia::TestCase;
 
 use base qw(Exporter Bugzilla::Object);
-@Bugzilla::Bug::EXPORT = qw(check_build);
+@Bugzilla::Bug::EXPORT = qw(check_build check_build_by_name);
 
 ###############################
 ####    Initialization     ####
 ###############################
-
-=head1 FIELDS
-
-    build_id
-    product_id
-    name
-    description
-    milestone
-    isactive
-
-=cut
 use constant DB_TABLE   => "test_builds";
 use constant NAME_FIELD => "name";
 use constant ID_FIELD   => "build_id";
@@ -142,7 +115,7 @@ sub _check_isactive {
     return $isactive;
 }
 
-##############################
+###############################
 ####       Mutators        ####
 ###############################
 sub set_description { $_[0]->set('description', $_[1]); }
@@ -167,12 +140,10 @@ sub new {
     # lists etc. This is much cleaner than exporting a bunch of subroutines and
     # adding them to $vars one by one. Probably just Laziness shining through.
     if (ref $param eq 'HASH'){
-        if (keys %$param){
+        if (!keys %$param || $param->{PREVALIDATED}){
             bless($param, $class);
             return $param;
         }
-        bless($param, $class);
-        return $param;
     }
     
     unshift @_, $param;
@@ -218,23 +189,19 @@ sub check_build {
     return $is;
 }
 
+sub check_build_by_name {
+    my ($name) = @_;
+    my $dbh = Bugzilla->dbh;
+    my $id = $dbh->selectrow_array(
+        "SELECT build_id FROM test_builds 
+         WHERE name = ?", undef, $name);
+ 
+    return $id;
+}
+
 ###############################
 ####       Methods         ####
 ###############################
-
-=head1 METHODS
-
-=head2 new
-
-Instantiates a new Build object
-
-=cut
-=head2 store
-
-Serializes this build to the database
-
-=cut
-
 sub store {
     my $self = shift;
     my $dbh = Bugzilla->dbh;
@@ -248,37 +215,6 @@ sub store {
     return $key;
 }
 
-=head2 check_name
-
-Returns true if a build of the specified name exists in the database
-for a product.
-
-=cut
-
-
-=head2 check_build_by_name
-
-Returns id of a build of the specified name
-
-=cut
-
-sub check_build_by_name {
-    my $self = shift;
-    my ($name) = @_;
-    my $dbh = Bugzilla->dbh;
-    my $id = $dbh->selectrow_array(
-        "SELECT build_id FROM test_builds 
-         WHERE name = ?", undef, $name);
- 
-    return $id;
-}
-
-=head2 toggle_hidden
-
-Toggles the archive bit on the build.
-
-=cut
-
 sub toggle_hidden {
     my $self = shift;
     my $dbh = Bugzilla->dbh;
@@ -290,29 +226,6 @@ sub toggle_hidden {
 ###############################
 ####      Accessors        ####
 ###############################
-
-=head2 id
-
-Returns the ID of this object
-
-=head2 product_id
-
-Returns the product_id of this object
-
-=head2 name
-
-Returns the name of this object
-
-=head2 description
-
-Returns the description of this object
-
-=head2 milestone
-
-Returns the Bugzilla target milestone associated with this build
-
-=cut
-
 sub id              { return $_[0]->{'build_id'};   }
 sub product_id      { return $_[0]->{'product_id'}; }
 sub name            { return $_[0]->{'name'};       }
@@ -329,12 +242,6 @@ sub product {
     return $self->{'product'};
 }
 
-=head2 run_count
-
-Returns the number of test runs using this build
-
-=cut
-
 sub run_count {
     my ($self) = @_;
     my $dbh = Bugzilla->dbh;
@@ -346,12 +253,6 @@ sub run_count {
           
     return $self->{'run_count'};
 }
-
-=head2 case_run_count
-
-Returns the number of test case runs against this build
-
-=cut
 
 sub case_run_count {
     my ($self,$status_id) = @_;
@@ -372,14 +273,271 @@ sub case_run_count {
     return $count;
 }
 
+1;
+
+__END__
+
+=head1 NAME
+
+Bugzilla::Testopia::Build
+
+=head1 EXTENDS
+
+Bugzilla::Object
+
+=head1 DESCRIPTION
+
+Builds are used to classify test runs. They correspond to the results of 
+a period of work in software development. Builds are product level attributes
+and are associated with a milestone if targetmilestones are used in Bugzilla.
+
+=head1 SYNOPSIS
+
+=head2 Creating
+ 
+ $build = Bugzilla::Testopia::Build->new($build_id);
+ $build = Bugzilla::Testopia::Build->new({name => $name});
+  
+ $new_build = Bugzilla::Testopia::Build->create({name => $name, 
+                                                 description => $desc
+                                                 ... });
+
+=head3 Deprecated
+
+ $build = Bugzilla::Testopia::Build->new({name => $name,
+                                          description => $desc,
+                                          ...
+                                          PREVALIDATED => 1});
+ my $id = $build->store();
+ 
+=head2 Updating
+ 
+ $build->set_name($name);
+ $build->set_description($name);
+ $build->set_milestone($milestone);
+ $build->set_isactive($isactive);
+ 
+ $build->update();
+ 
+=head2 Accessors
+
+ my $id            = $build->id;
+ my $name          = $build->name;
+ my $desc          = $build->description;
+ my $pid           = $build->product_id;
+ my $milestone     = $build->milestone;
+ my $crc           = $build->case_run_count;
+ my $active        = $build->isactive;
+
+=head1 FIELDS
+
+=over
+
+=item C<build_id> 
+
+The unique id of this build in the database. 
+
+=item C<name>
+
+A unique name for this build.
+
+=item C<product_id>
+
+The id of the Bugzilla product this build is attached to.
+
+=item C<milestone>
+
+The value from the Bugzilla product milestone table this build is associated with.
+
+=item C<isactive>
+
+Boolean - determines whether to show this build in lists for selection.  
+
+=back
+
+=head1 FUNCTIONS
+
+=over
+
+=item C<check_build($name, $product_id)>
+
+ Description: Checks if a build of a given name exists for a given product.
+ 
+ Params:      name - string representing the name to check for.
+              product_id - the product to lookup the build in.
+                       
+ Returns:     The id of the build if one matches.
+              undef if it does not match any build.
+ 
+=item C<check_build_by_name($name)> DEPRECATED
+
+ Description: Checks if a build of a given name exists. DEPRECATED please use
+              check_build($name, $product_id) instead.
+ 
+ Params:      name - string representing the name to check for.
+                       
+ Returns:     The id of the build if one matches.
+              undef if it does not match any build.
+ 
+=back
+
+=head1 METHODS
+
+=over
+
+=item C<new($param)>
+
+ Description: Used to load an existing build from the database.
+ 
+ Params:      $param - An integer representing the ID in the database
+                       or a hash with the "name" key representing the named
+                       build in the database.
+                       
+ Returns:     A blessed Bugzilla::Testopia::Build object
+ 
+=back
+
+=over
+
+=item C<create()>
+ 
+ Description: Creates a new build object and stores it in the database
+              
+ Params:      A hash with keys and values matching the fields of the build to 
+              be created.
+ 
+ Returns:     The newly created object.
+ 
+=back
+
+=over
+
+=item C<set_description()>
+ 
+ Description: Replaces the current build's description. Must call update to 
+              store the change in the database.
+              
+ Params:      text - the new description.
+ 
+ Returns:     nothing.
+ 
+=back
+
+=over
+
+=item C<set_isactive()>
+ 
+ Description: Sets the isactive field. 
+              
+ Params:      boolean - 1 for active 0 for inactive.
+ 
+ Returns:     nothing.
+ 
+=back
+
+=over
+
+=item C<set_milestone()>
+ 
+ Description: Assigns this build to a different milestone
+              
+ Params:      string - the new milestone value
+ 
+ Returns:     nothing.
+ 
+=back
+
+=over
+
+=item C<set_name()>
+ 
+ Description: Renames the current build. If the new name is already in use
+              by another build in this product, an error will be thrown.
+              The update method must be called to make the change in the database.
+              
+ Params:      string - the new name
+ 
+ Returns:     nothing.
+ 
+=back
+
+=over
+
+=item C<store()> DEPRECATED
+ 
+ Description: Similar to create except validation is not performed during store. 
+              
+ Params:      none.
+ 
+ Returns:     The id of the newly stored build.
+ 
+=item C<toggle_hidden()>
+ 
+ Description: Flips the bit in the isactive field. If it is currently 0 it sets
+              it to 1 and vice versa. 
+              
+ Params:      none.
+ 
+ Returns:     nothing.
+
+=back
+
+=head1 ACCESSORS
+
+=over
+
+=item C<case_run_count()>
+  
+ Params:      case_run_status_id - optional; 
+ 
+ Returns:     The number of case-runs in this build. Optionally for a given status.
+ 
+=item C<description()>
+  
+ Returns the description of this build.
+ 
+=item C<id()>
+  
+ Returns the id of the build
+ 
+=item C<isactive()>
+  
+ Returns 1 if this build is visible in pick lists for runs and caserund and 0 if not.
+ 
+=item C<milestone()>
+  
+ Returns the milestone value that this build is associated with.
+ 
+=item C<name()>
+  
+ Returns the name of this build
+ 
+=item C<product()>
+  
+ Returns a Bugzilla::Testopia::Product object of the product this build is of.
+ 
+=item C<product_id()>
+  
+ Returns the product id of the build.
+ 
+=item C<run_count()>
+  
+ Returns an integer representing the number of runs this build is associated to.
+ 
+=back
+
 =head1 SEE ALSO
 
-TestPlan TestRun TestCaseRun
+=over
+
+L<Bugzilla::Testopia::Product>
+
+L<Bugzilla::Testopia::TestRun> 
+
+L<Bugzilla::Object> 
+
+=back
 
 =head1 AUTHOR
 
 Greg Hendricks <ghendricks@novell.com>
-
-=cut
-
-1;

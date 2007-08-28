@@ -260,17 +260,24 @@ elsif ($action eq 'History'){
 #######################
 elsif ($action eq 'Attach'){
     print $cgi->header;
+    
     my $plan = Bugzilla::Testopia::TestPlan->new($plan_id);
     ThrowUserError("testopia-read-only", {'object' => $plan}) unless $plan->canedit;
+    
     defined $cgi->upload('data')
         || ThrowUserError("file_not_specified");
+    
     my $filename = $cgi->upload('data');       
+    
     $cgi->param('description')
         || ThrowUserError("missing_attachment_description");
+    
     my $description = $cgi->param('description');
     my $contenttype = $cgi->uploadInfo($cgi->param('data'))->{'Content-Type'};
+    
     trick_taint($description);
     #trick_taint($contenttype);
+    
     my $fh = $cgi->upload('data');
     my $data;
     # enable 'slurp' mode
@@ -287,10 +294,13 @@ elsif ($action eq 'Attach'){
                         contents     => $data
     });
 
-    $attachment->store;    
+    $attachment->store;
+    
     $vars->{'tr_message'} = "Attachment added successfully";
     $vars->{'backlink'} = $plan;
+    
     do_update($plan);
+    
     display(Bugzilla::Testopia::TestPlan->new($plan_id));
 }
 elsif ($action eq 'Delete'){

@@ -122,6 +122,7 @@ sub lookup_name_by_id
   return $result;
 }
 
+# DEPRECATED use Build::check_build($name, $product_id) instead
 sub lookup_id_by_name
 {
   my $self = shift;
@@ -129,7 +130,7 @@ sub lookup_id_by_name
 
   $self->login;
 
-  my $result = Bugzilla::Testopia::Build->check_build_by_name($name);
+  my $result = check_build_by_name($name);
   
   $self->logout;
 

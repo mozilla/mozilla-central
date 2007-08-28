@@ -18,22 +18,6 @@
 #
 # Contributor(s): Greg Hendricks <ghendricks@novell.com>
 
-=head1 NAME
-
-Bugzilla::Testopia::Category - An object representing a test case category
-
-=head1 DESCRIPTION
-
-Categories are used to classify test cases. Each test case must
-belong to one category.
-
-=head1 SYNOPSIS
-
- $category = Bugzilla::Testopia::Category->new($category_id);
- $category = Bugzilla::Testopia::Category->new(\%category_hash);
-
-=cut
-
 package Bugzilla::Testopia::Category;
 
 use strict;
@@ -42,6 +26,7 @@ use Bugzilla::Util;
 use Bugzilla::Error;
 use Bugzilla::Testopia::TestPlan;
 use Bugzilla::Testopia::TestCase;
+use Bugzilla::Testopia::Product;
 
 use base qw(Exporter Bugzilla::Object);
 @Bugzilla::Bug::EXPORT = qw(check_case_category);
@@ -49,15 +34,6 @@ use base qw(Exporter Bugzilla::Object);
 ###############################
 ####    Initialization     ####
 ###############################
-
-=head1 FILEDS
-
-    category_id
-    product_id
-    name
-    description
-
-=cut
 use constant DB_TABLE   => "test_case_categories";
 use constant NAME_FIELD => "name";
 use constant ID_FIELD   => "category_id";
@@ -139,12 +115,10 @@ sub new {
     # lists etc. This is much cleaner than exporting a bunch of subroutines and
     # adding them to $vars one by one. Probably just Laziness shining through.
     if (ref $param eq 'HASH'){
-        if (keys %$param){
+        if (!keys %$param || $param->{PREVALIDATED}){
             bless($param, $class);
             return $param;
         }
-        bless($param, $class);
-        return $param;
     }
     
     unshift @_, $param;
@@ -192,66 +166,6 @@ sub check_case_category {
 ###############################
 ####       Methods         ####
 ###############################
-
-=head1 METHODS
-
-=head2 new
-
-Instantiates a new Category object
-
-=cut
-
-sub new {
-    my $invocant = shift;
-    my $class = ref($invocant) || $invocant;
-    my $self = {};
-    bless($self, $class);
-    return $self->_init(@_);
-}
-
-=head2 _init
-
-Private constructor for category class
-
-=cut
-
-sub _init {
-    my $self = shift;
-    my ($param) = (@_);
-    my $dbh = Bugzilla->dbh;
-    my $columns = join(", ", DB_COLUMNS);
-
-    my $id = $param unless (ref $param eq 'HASH');
-    my $obj;
-
-    if (defined $id && detaint_natural($id)) {
-
-        $obj = $dbh->selectrow_hashref(qq{
-            SELECT $columns FROM test_case_categories
-            WHERE category_id = ?}, undef, $id);
-    } elsif (ref $param eq 'HASH'){
-         $obj = $param;   
-
-    } else {
-        ThrowCodeError('bad_arg',
-            {argument => 'param',
-             function => 'Testopia::Category::_init'});
-    }
-
-    return undef unless (defined $obj);
-
-    foreach my $field (keys %$obj) {
-        $self->{$field} = $obj->{$field};
-    }
-    return $self;
-}
-
-=head2 store
-
-Serializes this category to the database
-
-=cut
-
 sub store {
     my $self = shift;
     my $dbh = Bugzilla->dbh;
@@ -264,12 +178,6 @@ sub store {
     return $key;
 }
 
-=head2 remove
-
-Removes this category from the specified product
-
-=cut
-
 sub remove {
     my $self = shift;
     my $dbh = Bugzilla->dbh;
@@ -277,22 +185,6 @@ sub remove {
               WHERE category_id = ?", undef,
               $self->{'category_id'});
 }
-
-=head2 check_name
-
-Returns the category id if the specified name exists in the 
-database for the product.
-
-=cut
-
-
-
-=head2 update
-
-Updates an existing category object in the database.
-Takes the new name, and description.
-
-=cut
 
 sub candelete {
   my $self = shift;
@@ -304,35 +196,10 @@ sub candelete {
 ###############################
 ####      Accessors        ####
 ###############################
-
-=head2 id
-
-Returns the ID of this object
-
-=head2 product_id
-
-Returns the product_id of this object
-
-=head2 name
-
-Returns the name of this object
-
-=head2 description
-
-Returns the description of this object
-
-=cut
-
 sub id              { return $_[0]->{'category_id'};  }
 sub product_id      { return $_[0]->{'product_id'};   }
 sub name            { return $_[0]->{'name'};         }
 sub description     { return $_[0]->{'description'};  }
-
-=head2 case_count
-
-Returns the number of test cases in this category
-
-=cut
 
 sub case_count {
     my ($self) = @_;
@@ -347,12 +214,6 @@ sub case_count {
     $self->{'case_count'} = $count;
     return $self->{'case_count'};
 }
-
-=head2 plan_case_ids
-
-Returns a reference to a list of case_ids in this category for a given plan.
-
-=cut
 
 sub plan_case_ids {
     my ($self, $plan_id) = @_;
@@ -369,14 +230,255 @@ sub plan_case_ids {
     return $self->{'case_ids'};
 }
 
+1;
+
+__END__
+
+=head1 NAME
+
+Bugzilla::Testopia::Category - An object representing a test case category
+
+=head1 EXTENDS
+
+Bugzilla::Object
+
+=head1 DESCRIPTION
+
+Categories are used to classify test cases. Each test case must
+belong to one category. Categories are product level attributes.
+Every plan in a product will have access to that product's categories.
+
+=head1 SYNOPSIS
+
+=head2 Creating
+ 
+ $category = Bugzilla::Testopia::Category->new($category_id);
+ $category = Bugzilla::Testopia::Category->new({name => $name});
+  
+ $new_category = Bugzilla::Testopia::Category->create({name => $name, 
+                                                       description => $desc});
+
+=head3 Deprecated
+
+ $category = Bugzilla::Testopia::Category->new({name => $name,
+                                                description => $desc,
+                                                PREVALIDATED => 1});
+ my $id = $category->store();
+ 
+=head2 Updating
+ 
+ $category->set_name($name);
+ $category->set_description($name);
+ 
+ $category->update();
+ 
+=head2 Accessors
+
+ my $id            = $category->id;
+ my $name          = $category->name;
+ my $desc          = $category->description;
+ my $c_cont        = $category->case_count;
+ my $pid           = $category->product_id;
+ my $case_ids      = $category->plan_case_ids;
+
+=head1 FIELDS
+
+=over
+
+=item C<category_id> 
+
+The unique id in the database. 
+
+=item C<product_id>
+
+The product id of the Bugzilla product this category belongs to.
+
+=item C<name>
+
+A unique name for this category
+
+=item C<description>
+
+A detailed description for this category.
+
+=back
+
+=head1 FUNCTIONS
+
+=over
+
+=item C<check_case_category($param)>
+
+ Description: Checks if a category of a given name exists for a given product.
+ 
+ Params:      name - string representing the name to check for.
+              product_id - the product to lookup the category in.
+                       
+ Returns:     The id of the category if one matches.
+              undef if it does not match any category.
+ 
+=back
+
+=head1 METHODS
+
+=over
+
+=item C<new($param)>
+
+ Description: Used to load an existing Category from the database.
+ 
+ Params:      $param - An integer representing the Category ID in the database
+                       or a hash with the "name" key representing the named
+                       category in the database.
+                       
+ Returns:     A blessed Bugzilla::Testopia::Category object
+ 
+=back
+
+=over
+
+=item C<candelete()>
+ 
+ Description: Tests to see if the current category can be safely deleted from 
+              the database. To be a candidate for removal, there can be no 
+              assigned test cases with this category. Also, the user must be in 
+              the Testers group.
+              
+ Params:      none.
+ 
+ Returns:     1 if this category can be safely removed.
+              0 if this category cannot be removed safely or if the logged in user
+                does not have sufficient rights to perform the operation.
+
+=back
+
+=over
+
+=item C<create()>
+ 
+ Description: Creates a new category object and stores it in the database
+              
+ Params:      A hash with keys and values matching the fields of the category to 
+              be created.
+ 
+ Returns:     The newly created object
+ 
+=back
+
+=over
+
+=item C<plan_case_ids()>
+ 
+ Description: Looks up the case ids assigned to this category in a given plan.
+              
+ Params:      The plan id to look up.
+ 
+ Returns:     Integer representing the count of cases found with this category.
+ 
+=back
+
+=over
+
+=item C<remove()>
+ 
+ Description: Completely removes this category from the database. This should not 
+              be called unless candelete has returned true. 
+              
+ Params:      none.
+ 
+ Returns:     nothing.
+ 
+=back
+
+=over
+
+=item C<set_description()>
+ 
+ Description: Replaces the current category's description. Must call update to 
+              store the change in the database.
+              
+ Params:      text - the new description.
+ 
+ Returns:     nothing.
+ 
+=back
+
+=over
+
+=item C<set_name()>
+ 
+ Description: Renames the current category. If the new name is already in use
+              by another category in this product, an error will be thrown.
+              The update method must be called to make the change in the database.
+              
+ Params:      string - the new name
+ 
+ Returns:     nothing.
+ 
+=back
+
+=over
+
+=item C<store()> DEPRECATED
+ 
+ Description: Similar to create except validation is not performed during store. 
+              
+ Params:      none.
+ 
+ Returns:     The id of the newly stored category.
+ 
+=back
+
+=head1 ACCESSORS
+
+=over
+
+=item C<case_count()>
+  
+ Returns an integer representing the number of cases found in this category.  
+ 
+=back
+
+=over
+
+=item C<description()>
+  
+ Returns the description of the category.
+ 
+=back
+
+=over
+
+=item C<id()>
+  
+ Returns the category id 
+ 
+=back
+
+=over
+
+=item C<name()>
+  
+ Returns the name of the category.
+ 
+=back
+
+=over
+
+=item C<product_id()>
+  
+ Returns the id of the product this category belongs to
+ 
+=back
+
 =head1 SEE ALSO
 
-TestCase
+L<Bugzilla::Testopia::TestCase> 
+
+L<Bugzilla::Testopia::Product>
+
+L<Bugzilla::Object> 
 
 =head1 AUTHOR
 
 Greg Hendricks <ghendricks@novell.com>
-
-=cut
-
-1;
