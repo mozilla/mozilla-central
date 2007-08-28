@@ -142,6 +142,7 @@ bin\components\signonviewer.xpt
 
 ; download progress
 bin\components\nsHelperAppDlg.js
+bin\components\nsDownloadManagerUI.js
 bin\components\nsProgressDialog.js
 bin\components\downloads.xpt
 

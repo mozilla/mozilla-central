@@ -213,6 +213,7 @@ bin\components\nsUnsetDefaultMail.js
 bin\components\nsUpdateService.js
 bin\components\nsURLFormatter.js
 bin\components\nsHelperAppDlg.js
+bin\components\nsDownloadManagerUI.js
 bin\components\nsProxyAutoConfig.js
 bin\components\nsExtensionManager.js
 #ifndef MOZILLA_1_8_BRANCH
