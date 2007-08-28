@@ -66,6 +66,12 @@
                 <os family="windows" />
             </and>
         </condition>
+        
+        <condition property="so.extension" value="dylib">
+            <and>
+                <os name="Mac OS X" />
+            </and>
+        </condition>
 
         <condition property="so.extension" value="so">
             <and>
@@ -79,15 +85,15 @@
             </and>
         </condition>
 
-        <condition property="platform" value="unix">
+        <condition property="platform" value="macosx">
             <and>
-                <os family="unix" />
+                <os name="Mac OS X" />
             </and>
         </condition>
         
-        <condition property="platform" value="mac">
+        <condition property="platform" value="unix">
             <and>
-                <os family="mac" />
+                <os family="unix" />
             </and>
         </condition>
         
@@ -108,7 +114,7 @@
         <condition property="build.mac.classes">
             <and>
                 <isset property="platform" />
-                <equals arg1="${platform}" arg2="mac" />
+                <equals arg1="${platform}" arg2="macosx" />
             </and>
         </condition>
         
@@ -135,13 +141,13 @@
                 <os family="unix" />
             </and>
         </condition>
-
         <property file="build.properties" />
 
         <condition property="preconditions.met">
-            <and>
+            <or>
                 <available file="${browser.bin.dir}/${so.prefix}xul.${so.extension}" />
-            </and>
+                <available file="${browser.bin.dir}/${so.prefix}xpcom.${so.extension}" />
+            </or>
         </condition>
 
         <uptodate property="do.copy.binaries">
