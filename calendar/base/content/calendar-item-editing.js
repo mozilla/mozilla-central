@@ -197,8 +197,20 @@ function openEventDialog(calendarItem, calendar, mode, callback, job)
     // the dialog will reset this to auto when it is done loading.
     window.setCursor("wait");
 
+    // ask the provide if this item is an invitation. if this is the case
+    // we'll open the summary dialog since the user is not allowed to change
+    // the details of the item.
+    var isInvitation = false;
+    try {
+        isInvitation = calendar.isInvitation(calendarItem);
+    }
+    catch(e) {}
+
     // open the dialog modeless
     var url = "chrome://calendar/content/sun-calendar-event-dialog.xul";
+    if (isInvitation || calendar.readOnly) {
+        url = "chrome://calendar/content/calendar-summary-dialog.xul";
+    }
     openDialog(url, "_blank", "chrome,titlebar,resizable", args);
 }
 
