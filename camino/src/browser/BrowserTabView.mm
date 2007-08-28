@@ -42,6 +42,7 @@
 #import "PreferenceManager.h"
 
 #import "BrowserTabView.h"
+#import "BrowserTabViewItem.h"
 #import "BrowserWrapper.h"
 #import "BookmarkFolder.h"
 #import "Bookmark.h"

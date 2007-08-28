@@ -40,6 +40,7 @@
  * ***** END LICENSE BLOCK ***** */
 
 #import "BrowserTabBarView.h"
+#import "BrowserTabView.h"
 #import "BrowserTabViewItem.h"
 #import "TabButtonCell.h"
 #import "ImageAdditions.h"

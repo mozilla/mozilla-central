@@ -51,10 +51,11 @@
 #include "GeckoUtils.h"
 
 #import "NSString+Utils.h"
-#import "PreferenceManager.h"
-#import "CHBrowserView.h"
 
 #import "ContentClickListener.h"
+#import "PreferenceManager.h"
+#import "CHBrowserView.h"
+#import "BrowserWindowController.h"
 
 NS_IMPL_ISUPPORTS2(ContentClickListener, nsIDOMMouseListener, nsIDOMEventListener)
 

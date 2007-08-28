@@ -38,8 +38,10 @@
  * ***** END LICENSE BLOCK ***** */
 
 #import <Cocoa/Cocoa.h>
-#import "BrowserTabView.h"
-#import "TabButtonCell.h"
+
+@class BrowserTabView;
+@class BrowserTabViewItem;
+@class TabButtonCell;
 
 @interface BrowserTabBarView : NSView 
 {

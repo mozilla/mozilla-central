@@ -42,7 +42,8 @@
 #include <Cocoa/Cocoa.h>
 
 #include "nsIDOMMouseListener.h"
-#import "BrowserWindowController.h"
+
+@class BrowserWindowController;
 
 class ContentClickListener :  public nsIDOMMouseListener
 {

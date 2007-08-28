@@ -38,7 +38,8 @@
 
 
 #import <AppKit/AppKit.h>
-#import "ProgressViewController.h"
+
+@class ProgressViewController;
 
 extern NSString* const kDownloadInstanceSelectedNotificationName;
 extern NSString* const kDownloadInstanceOpenedNotificationName;

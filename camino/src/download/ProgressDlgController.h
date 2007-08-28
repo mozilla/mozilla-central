@@ -68,8 +68,9 @@
 */
 
 #import "CHDownloadProgressDisplay.h"
-#import "ProgressViewController.h"
 #import "FileChangeWatcher.h"
+
+@class ProgressViewController;
 
 //
 // interface ProgressDlgController
