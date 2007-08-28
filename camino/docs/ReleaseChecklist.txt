@@ -1,12 +1,8 @@
 Checklist of things to do before releasing a new Camino version:
 
 - Make sure embed-replacements are all up to date
-- Update version number in project file (both Camino and CaminoStatic targets)
-- Update version number in all-camino.js
-- Update version number in Credits.rtf
-- Update version number in InfoPlist.strings
-- Update version number in WebsiteDefaults.strings
-- Update version number in Info-Camino.plist
+- Make sure copyright year is up to date in config/year.txt
+- Update version number in config/version.txt
 - Flip switch on Talkback server to enable wizard UI
 - Check in new release notes
 - Update mozilla/camino/installer/Makefile.in to pick up new release notes
@@ -16,5 +12,5 @@ Checklist of things to do before releasing a new Camino version:
 - Test Talkback
 - Move the build to releases/
 - Flip the wizard UI switch back to off on the Talkback server
-- Update version number in all-camino.js to (N.n+)
+- Update version number in config/version.txt to (N.npre)
 

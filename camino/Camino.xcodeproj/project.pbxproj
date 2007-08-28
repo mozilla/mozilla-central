@@ -2339,7 +2339,7 @@
 		03E2D85E0771F78500BD2443 /* Tabs.h */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.c.h; path = Tabs.h; sourceTree = "<group>"; };
 		03E2D85F0771F78500BD2443 /* Tabs.mm */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.cpp.objcpp; path = Tabs.mm; sourceTree = "<group>"; };
 		03E2D8600771F78500BD2443 /* Tabs.tiff */ = {isa = PBXFileReference; lastKnownFileType = image.tiff; path = Tabs.tiff; sourceTree = "<group>"; };
-		089C165DFE840E0CC02AAC07 /* English */ = {isa = PBXFileReference; fileEncoding = 10; lastKnownFileType = text.plist.strings; name = English; path = resources/localized/English.lproj/InfoPlist.strings; sourceTree = SOURCE_ROOT; };
+		089C165DFE840E0CC02AAC07 /* English */ = {isa = PBXFileReference; fileEncoding = 10; lastKnownFileType = text.plist.strings; name = English; path = generated/English.lproj/InfoPlist.strings; sourceTree = SOURCE_ROOT; };
 		0E6A9882097DFF9A007962C1 /* libucvmath.dylib */ = {isa = PBXFileReference; lastKnownFileType = "compiled.mach-o.bundle"; name = libucvmath.dylib; path = ../dist/Embed/components/libucvmath.dylib; sourceTree = SOURCE_ROOT; };
 		0E6A9886097DFFD4007962C1 /* mathml.css */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = text; name = mathml.css; path = ../dist/Embed/res/mathml.css; sourceTree = SOURCE_ROOT; };
 		0E6A9888097DFFF4007962C1 /* mathml.dtd */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = text.xml; path = mathml.dtd; sourceTree = "<group>"; };
@@ -2478,7 +2478,7 @@
 		3F42EFAB05EC13F90045A30C /* throbber-10.tif */ = {isa = PBXFileReference; lastKnownFileType = image.gif; name = "throbber-10.tif"; path = "resources/images/throbber/throbber-10.tif"; sourceTree = SOURCE_ROOT; };
 		3F42EFAC05EC13F90045A30C /* throbber-11.tif */ = {isa = PBXFileReference; lastKnownFileType = image.gif; name = "throbber-11.tif"; path = "resources/images/throbber/throbber-11.tif"; sourceTree = SOURCE_ROOT; };
 		3F42EFAD05EC13F90045A30C /* throbber-12.tif */ = {isa = PBXFileReference; lastKnownFileType = image.gif; name = "throbber-12.tif"; path = "resources/images/throbber/throbber-12.tif"; sourceTree = SOURCE_ROOT; };
-		3F44AD8705BDFB9F00CB4B08 /* Info-Camino.plist */ = {isa = PBXFileReference; lastKnownFileType = text.xml; path = "Info-Camino.plist"; sourceTree = "<group>"; };
+		3F44AD8705BDFB9F00CB4B08 /* Info-Camino.plist */ = {isa = PBXFileReference; lastKnownFileType = text.xml; path = "generated/Info-Camino.plist"; sourceTree = "<group>"; };
 		3F44AD8805BDFB9F00CB4B08 /* Camino.app */ = {isa = PBXFileReference; includeInIndex = 0; lastKnownFileType = wrapper.application; path = Camino.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		3F44AD9E05BDFB9F00CB4B08 /* Info-AppearancePrefPane.plist */ = {isa = PBXFileReference; lastKnownFileType = text.xml; path = "Info-AppearancePrefPane.plist"; sourceTree = "<group>"; };
 		3F44AD9F05BDFB9F00CB4B08 /* Appearance.prefPane */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = Appearance.prefPane; sourceTree = BUILT_PRODUCTS_DIR; };

@@ -68,7 +68,7 @@ pref("chimera.log_js_to_console", false);
 
 // Identify Camino in the UA string
 pref("general.useragent.vendor", "Camino");
-pref("general.useragent.vendorSub", "2.0a1pre");
+pref("general.useragent.vendorSub", "%CM_APP_VERSION%");
 
 // work around stupid sites sniffing for firefox instead of gecko
 pref("general.useragent.extra.notfox", "(like Firefox/%FOX_APP_VERSION%)");

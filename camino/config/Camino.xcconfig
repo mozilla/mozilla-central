@@ -3,7 +3,7 @@
 PRODUCT_NAME = Camino
 WRAPPER_EXTENSION = app
 INSTALL_PATH = $(HOME)/Applications
-INFOPLIST_FILE = Info-Camino.plist
+INFOPLIST_FILE = generated/Info-Camino.plist
 
 GCC_PREFIX_HEADER = src/includes/ChimeraPrefix.h
 GCC_ENABLE_OBJC_EXCEPTIONS = YES
