@@ -103,21 +103,27 @@ if ($c->param("testcase_id")) {
 
 my $defaults;
 if ($c->param("delete_testcase_button")) {
-  my $testcase = Litmus::DB::Testcase->retrieve($testcase_id);
-  if ($testcase) {
-    Litmus::Auth::requireProductAdmin("manage_testcases.cgi", $testcase->product());
-    $rv = $testcase->delete_with_refs();
-    if ($rv) {
-      $status = "success";
-      $message = "Testcase ID# $testcase_id deleted successfully.";
-    } else {
+  my $testcase;
+  if ($testcase_id) {
+    $testcase = Litmus::DB::Testcase->retrieve($testcase_id);
+    if ($testcase) {
+      Litmus::Auth::requireProductAdmin("manage_testcases.cgi", $testcase->product());
+      $rv = $testcase->delete_with_refs();
+      if ($rv) {
+        $status = "success";
+        $message = "Testcase ID# $testcase_id deleted successfully.";
+      } else {
+        $status = "failure";
+        $message = "Failed to delete Testcase ID# $testcase_id.";
+      }
+    } else { 
       $status = "failure";
-      $message = "Failed to delete Testcase ID# $testcase_id.";
+      $message = "Testcase ID# $testcase_id does not exist. (Already deleted?)";
     }
-  } else { 
-    $status = "failure";
-    $message = "Testcase ID# $testcase_id does not exist. (Already deleted?)";
-  }
+  } else {
+      $status = "failure";
+      $message = "No testcase ID provided.";
+  }   
 } elsif ($c->param("clone_testcase_button")) {
   my $testcase = Litmus::DB::Testcase->retrieve($testcase_id);
   Litmus::Auth::requireProductAdmin("manage_testcases.cgi", $testcase->product());
