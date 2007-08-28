@@ -205,7 +205,6 @@ function initCommands()
          ["wii",               cmdWhoIsIdle,        CMD_NEED_SRV | CMD_CONSOLE],
 
          /* aliases */
-         ["css",              "motif",                             CMD_CONSOLE],
          ["exit",             "quit",                              CMD_CONSOLE],
          ["j",                "join",                              CMD_CONSOLE],
          ["pass",             "quote PASS",                        CMD_CONSOLE],
