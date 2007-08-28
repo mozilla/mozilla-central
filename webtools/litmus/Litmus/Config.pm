@@ -97,15 +97,23 @@ our ($db_host_ro, $db_port_ro, $db_name_ro, $db_user_ro, $db_pass_ro);
 our $bugzilla_auth_enabled = 0;
 our ($bugzilla_host, $bugzilla_port, $bugzilla_name, $bugzilla_user, $bugzilla_pass);
 
-our $localconfig = litmus_locations()->{'localconfig'};
-do $localconfig;
+if (!$db_port) {
+    $db_port=3306;
+}
 
-our $version = "0.9";
+if ($db_host_ro and !$db_port_ro) {
+    $db_port_ro=3306;
+}
 
 # if true, then Litmus will not accept any requests
 our $disabled = 0;
 
 # Set/unset this to display inline debugging value/code.
 our $DEBUG = 0;
+
+our $localconfig = litmus_locations()->{'localconfig'};
+do $localconfig;
+
+our $version = "0.9";
 
 1;
