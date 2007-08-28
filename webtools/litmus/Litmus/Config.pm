@@ -90,7 +90,8 @@ our $sendmail_path = '/usr/sbin/sendmail';
 our @nightly_report_recipients = ();
 
 # We allow for a separate database that is optimized for read-only queries.
-# These vars can be set in localconfig.
+# These vars can be set in localconfig. If not set, only the main database
+# will be used.
 our ($db_host, $db_port, $db_name, $db_user, $db_pass);
 our ($db_host_ro, $db_port_ro, $db_name_ro, $db_user_ro, $db_pass_ro);
 our $bugzilla_auth_enabled = 0;
