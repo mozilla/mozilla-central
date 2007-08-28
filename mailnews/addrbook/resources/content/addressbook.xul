@@ -79,7 +79,7 @@
 <script type="application/x-javascript" src="chrome://messenger/content/addressbook/addressbook.js"/>
 <script type="application/x-javascript" src="chrome://messenger/content/addressbook/abCommon.js"/>
 <script type="application/x-javascript" src="chrome://communicator/content/contentAreaClick.js"/>
-<script type="application/x-javascript" src="chrome://communicator/content/printing.js"/>
+<script type="application/x-javascript" src="chrome://global/content/printUtils.js"/>
 <script type="application/x-javascript" src="chrome://messenger/content/msgPrintEngine.js"/>
 
   <commandset id="addressBook">
@@ -96,7 +96,7 @@
     <command id="cmd_newlist" oncommand="AbNewList();"/>
     <command id="cmd_newmessage" oncommand="AbNewMessage()"/>
     <command id="cmd_newim" oncommand="AbIMSelected()"/>
-    <command id="cmd_printSetup" oncommand="NSPrintSetup()"/>
+    <command id="cmd_printSetup" oncommand="PrintUtils.showPageSetup()"/>
     <command id="cmd_printCard" oncommand="AbPrintCard()"/>
     <command id="cmd_printPreviewCard" oncommand="AbPrintPreviewCard()"/>
     <command id="cmd_printAddressBook" oncommand="AbPrintAddressBook()"/>

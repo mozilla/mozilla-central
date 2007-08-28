@@ -43,7 +43,7 @@ interface nsIPrintSettings;
 interface nsIObserver;
 interface nsIWebBrowserPrint;
 
-[scriptable, uuid(91FD6B10-E0BC-11d3-8F97-000064657374)]
+[scriptable, uuid(e5f5e4a2-9d74-46b3-ade7-25e1a1ddf54e)]
 interface nsIMsgPrintEngine : nsISupports {
     /**
      * Print/PrintPreview Msg Type
@@ -68,7 +68,6 @@ interface nsIMsgPrintEngine : nsISupports {
     void setMsgType(in long aMsgType);
 
     attribute boolean doPrintPreview;
-    readonly attribute nsIWebBrowserPrint webBrowserPrint;
 
 };
 

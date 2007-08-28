@@ -155,12 +155,6 @@ function onExitPrintPreview()
   toggleAffectedChrome(false);
 }
 
-function getEngineWebBrowserPrint()
-{
-  return content.QueryInterface(Components.interfaces.nsIInterfaceRequestor)
-                .getInterface(Components.interfaces.nsIWebBrowserPrint);
-}
-
 function getNavToolbox()
 {
   return document.getElementById("navigator-toolbox");

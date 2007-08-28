@@ -61,11 +61,6 @@ function PrintEngineCreateGlobals()
   printEngine = printEngine.QueryInterface(Components.interfaces.nsIMsgPrintEngine);
 }
 
-function getEngineWebBrowserPrint()
-{
-  return printEngine.webBrowserPrint;
-}
-
 function getWebNavigation()
 {
   try {

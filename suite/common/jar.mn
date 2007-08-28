@@ -70,7 +70,6 @@ comm.jar:
    content/communicator/openLocation.js
    content/communicator/openLocation.xul
    content/communicator/printPreviewBindings.xml
-   content/communicator/printing.js
    content/communicator/tasksOverlay.js
    content/communicator/tasksOverlay.xul
    content/communicator/utilityOverlay.js

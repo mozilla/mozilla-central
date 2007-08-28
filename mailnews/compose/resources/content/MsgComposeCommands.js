@@ -1070,7 +1070,7 @@ function DoCommandClose()
 function DoCommandPrint()
 {
   try {
-    NSPrint();
+    PrintUtils.print();
   } catch(ex) {dump("#PRINT ERROR: " + ex + "\n");}
 }
 

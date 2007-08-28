@@ -144,8 +144,8 @@
     <command id="Browser:EditPage" oncommand="editPageOrFrame();" observes="isImage"/>
     <command id="Browser:UploadFile" oncommand="BrowserUploadFile();"/>
     <command id="Browser:Open" oncommand="BrowserOpenWindow();"/>
-    <command id="cmd_printSetup" oncommand="NSPrintSetup();"/>
-    <command id="Browser:Print" oncommand="NSPrint();"/>
+    <command id="cmd_printSetup" oncommand="PrintUtils.showPageSetup();"/>
+    <command id="Browser:Print" oncommand="PrintUtils.print();"/>
     <command id="Browser:PrintPreview" oncommand="BrowserPrintPreview();"/>
     <command id="cmd_quit"/>
     <command id="cmd_close" oncommand="BrowserCloseTabOrWindow()"/>

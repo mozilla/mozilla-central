@@ -772,23 +772,6 @@ NS_IMETHODIMP nsMsgPrintEngine::SetDoPrintPreview(PRBool aDoPrintPreview)
   return NS_OK;
 }
 
-/* readonly attribute nsIWebBrowserPrint webBrowserPrint; */
-NS_IMETHODIMP nsMsgPrintEngine::GetWebBrowserPrint(nsIWebBrowserPrint * *aWebBrowserPrint)
-{
-  NS_ENSURE_ARG_POINTER(aWebBrowserPrint);
-  *aWebBrowserPrint = nsnull;
-
-  NS_ENSURE_TRUE(mDocShell, NS_ERROR_FAILURE);
-  mDocShell->GetContentViewer(getter_AddRefs(mContentViewer));  
-  NS_ENSURE_TRUE(mContentViewer, NS_ERROR_FAILURE);
-  mWebBrowserPrint = do_QueryInterface(mContentViewer);
-  NS_ENSURE_TRUE(mWebBrowserPrint, NS_ERROR_FAILURE);
-
-  NS_ADDREF(*aWebBrowserPrint = mWebBrowserPrint);
-
-  return NS_OK;
-}
-
 /* void setMsgType (in long aMsgType); */
 NS_IMETHODIMP nsMsgPrintEngine::SetMsgType(PRInt32 aMsgType)
 {

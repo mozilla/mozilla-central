@@ -82,7 +82,7 @@
   <script type="application/x-javascript" src="chrome://communicator/content/contentAreaClick.js"/>
   <script type="application/x-javascript" src="chrome://communicator/content/contentAreaDD.js"/>
   <script type="application/x-javascript" src="chrome://communicator/content/findUtils.js"/>
-  <script type="application/x-javascript" src="chrome://communicator/content/printing.js"/>
+  <script type="application/x-javascript" src="chrome://global/content/printUtils.js"/>
 
   <!-- Shared Bookmarks Utility Library -->
   <script type="application/x-javascript" src="chrome://communicator/content/bookmarks/bookmarks.js"/>
@@ -227,11 +227,11 @@
 
       <toolbarbutton id="print-button" type="menu-button" class="toolbarbutton-1"
                      label="&printButton.label;"
-                     oncommand="if (event.target==this) NSPrint();"
+                     oncommand="if (event.target==this) PrintUtils.print();"
                      tooltiptext="&printButton.tooltip;">  
         <menupopup id="printMenu">
           <menuitem id="printMenuItemToolbar" label="&printCmd.label;" accesskey="&printCmd.accesskey;"
-                    default="true" oncommand="NSPrint()"/>
+                    default="true" oncommand="PrintUtils.print()"/>
           <menuitem id="printPreviewMenuItemToolbar" label="&printPreviewCmd.label;" accesskey="&printPreviewCmd.accesskey;"
                     oncommand="setTimeout(BrowserPrintPreview, 0);"/>
         </menupopup>
