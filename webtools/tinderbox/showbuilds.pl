@@ -334,6 +334,8 @@ BEGIN {
             
             my $logfile = $br->{logfile};
             my $buildtree = $br->{td}->{name};
+
+            my $logfileexists = ( -f $logfile ? 1 : 0 );
             
             print "<tt>\n";
             
@@ -390,14 +392,14 @@ BEGIN {
 
                 print qq|
                     <A HREF="$logurl"
-                    onclick="return log(event,$build_index,'$logfile','$time_info','$elapsed');"
+                    onclick="return log(event,$build_index,$logfileexists,'$logfile','$time_info','$elapsed');"
                     title="$titlemap{$br->{buildstatus}}">
                     $textmap{$br->{buildstatus}}</a>
                     |;
             } else {
                 print qq|
                     <A HREF="$logurl"
-                    onclick="return log(event,$build_index,'$logfile');"
+                    onclick="return log(event,$build_index,$logfileexists,'$logfile');"
                     title="$titlemap{$br->{buildstatus}}">
                     $textmap{$br->{buildstatus}}</a>
                     |;
@@ -846,7 +848,7 @@ if (typeof document.layers != 'undefined') {
 }
 return false;
 }
-function log(e,buildindex,logfile,time_info,elapsed) {
+function log(e,buildindex,logfileexists,logfile,time_info,elapsed) {
     var logurl = log_url(logfile);
 var commenturl = "${rel_path}addnote.cgi?log=" + buildtree + "/" + logfile;
 if (noDHTML) {
@@ -868,9 +870,11 @@ var blurb = "<B>" + builds[buildindex] + "</B><BR>";
         blurb = blurb + elapsed + " elapsed<BR>"
         }
 
-blurb = blurb + "<A HREF=" + logurl + ">View Brief Log</A><BR>"
-    + "<A HREF=" + logurl + "&fulltext=1"+">View Full Log</A><BR>"
-    + "<A HREF=" + commenturl + ">Add a Comment</A>";
+if (logfileexists) {
+    blurb = blurb + "<A HREF=" + logurl + ">View Brief Log</A><BR>"
+        + "<A HREF=" + logurl + "&fulltext=1"+">View Full Log</A><BR>"
+        + "<A HREF=" + commenturl + ">Add a Comment</A>";
+}
 
 if (typeof document.layers != 'undefined') {
     var q = document.layers["logpopup"];
