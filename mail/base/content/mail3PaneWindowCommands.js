@@ -572,7 +572,7 @@ var DefaultController =
         MsgOpenSelectedMessages();
 				return;
 			case "cmd_printSetup":
-			  NSPrintSetup();
+			  PrintUtils.showPageSetup();
 			  return;
 			case "cmd_print":
 				PrintEnginePrint();

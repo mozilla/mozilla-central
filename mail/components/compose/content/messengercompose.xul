@@ -73,7 +73,7 @@
   <stringbundle id="languageBundle"     src="chrome://global/locale/languageNames.properties"/>
 </stringbundleset>
 
-<script type="application/x-javascript" src="chrome://communicator/content/printing.js"/>
+<script type="application/x-javascript" src="chrome://global/content/printUtils.js"/>
 <script type="application/x-javascript" src="chrome://messenger/content/accountUtils.js"/>
 <script type="application/x-javascript" src="chrome://messenger/content/widgetglue.js"/>
 <script type="application/x-javascript" src="chrome://messenger/content/mailCore.js"/>

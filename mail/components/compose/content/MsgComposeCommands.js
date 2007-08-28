@@ -511,7 +511,7 @@ var defaultController =
       case "cmd_sendNow"            : if (defaultController.isCommandEnabled(command)) SendMessage();          break;
       case "cmd_sendWithCheck"   : if (defaultController.isCommandEnabled(command)) SendMessageWithCheck();          break;
       case "cmd_sendLater"          : if (defaultController.isCommandEnabled(command)) SendMessageLater();     break;
-      case "cmd_printSetup"         : NSPrintSetup(); break;
+      case "cmd_printSetup"         : PrintUtils.showPageSetup(); break;
       case "cmd_print"              : DoCommandPrint(); break;
 
       //Edit Menu
@@ -1081,7 +1081,7 @@ function DoCommandClose()
 function DoCommandPrint()
 {
   try {
-    NSPrint();
+    PrintUtils.print();
   } catch(ex) {dump("#PRINT ERROR: " + ex + "\n");}
 }
 

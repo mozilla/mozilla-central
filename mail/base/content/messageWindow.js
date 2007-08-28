@@ -1033,7 +1033,7 @@ var MessageWindowController =
 				MsgDeleteMessageFromMessageWindow(false, true);
 				break;
 		  case "cmd_printSetup":
-		    NSPrintSetup();
+		    PrintUtils.showPageSetup();
 		    break;
 			case "cmd_print":
 				PrintEnginePrint();

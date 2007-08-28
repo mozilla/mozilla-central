@@ -64,7 +64,7 @@
 <script type="application/x-javascript" src="chrome://messenger/content/mailWindowOverlay.js"/>
 <script type="application/x-javascript" src="chrome://messenger/content/mail-offline.js"/>
 <script type="application/x-javascript" src="chrome://messenger/content/mailCore.js"/>
-<script type="application/x-javascript" src="chrome://communicator/content/printing.js"/>
+<script type="application/x-javascript" src="chrome://global/content/printUtils.js"/>
 <script type="application/x-javascript" src="chrome://messenger/content/msgViewPickerOverlay.js"/>
 <script type="application/x-javascript" src="chrome://global/content/viewZoomOverlay.js"/>
 
