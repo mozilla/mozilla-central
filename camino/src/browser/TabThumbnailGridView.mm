@@ -110,6 +110,7 @@ CGColorSpaceRef getTheGreyColorSpace(void);
     if (curThumbView) {
       [curThumbView setThumbnail:thumb];
       [curThumbView setRepresentedObject:tabViewItem];
+      [curThumbView setTitle:[[tabViewItem labelCell] title]];
       [curThumbView setDelegate:self];
       [self addSubview:curThumbView];
     }

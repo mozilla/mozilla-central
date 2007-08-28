@@ -48,12 +48,14 @@
 @interface ThumbnailView : NSView {
   NSImage*  mThumbnail;
   NSObject* mRepresentedObject;
+  NSCell*   mTitleCell;
   id        mDelegate;
 }
 
 - (void)setThumbnail:(NSImage*)image;
 - (void)setRepresentedObject:(id)object;
 - (id)representedObject;
+- (void)setTitle:(NSString*)title;
 - (void)setDelegate:(id)delegate;
 - (id)delegate;
 

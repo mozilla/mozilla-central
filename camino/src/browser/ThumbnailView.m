@@ -38,16 +38,20 @@
 
 #import "ThumbnailView.h"
 
-const int kShadowX = 0;
-const int kShadowY = -3;
-const int kShadowRadius = 5;
-const int kShadowPadding = 5;
+static const int kShadowX = 0;
+static const int kShadowY = -3;
+static const int kShadowRadius = 5;
+static const int kShadowPadding = 5;
+static const int kThumbnailTitleHeight = 20;
 
 @implementation ThumbnailView
 
 - (id)initWithFrame:(NSRect)frame {
-  if ((self = [super initWithFrame:frame]))
+  if ((self = [super initWithFrame:frame])) {
     mThumbnail = nil;
+    mTitleCell = [[NSCell alloc] initTextCell:@""];
+    [mTitleCell setAlignment:NSCenterTextAlignment];
+  }
 
   return self;
 }
@@ -58,6 +62,11 @@ const int kShadowPadding = 5;
     [mThumbnail release];
     mThumbnail = [image retain];
   }
+}
+
+- (void)setTitle:(NSString*)title
+{
+  [mTitleCell setTitle:title];
 }
 
 - (void)setRepresentedObject:(id)object
@@ -90,15 +99,22 @@ const int kShadowPadding = 5;
   [shadow setShadowBlurRadius:kShadowRadius];
   [shadow set];
 
+  NSRect thumbnailImageRect;
+  NSRect thumbnailTitleRect;
+  NSDivideRect([self bounds], &thumbnailTitleRect, &thumbnailImageRect, kThumbnailTitleHeight, NSMinYEdge);
+
   if (mThumbnail) {
     [[NSGraphicsContext currentContext] setImageInterpolation:NSImageInterpolationHigh];
     [mThumbnail setScalesWhenResized:YES];
 
-    [mThumbnail drawInRect:NSInsetRect([self bounds], kShadowPadding, kShadowPadding)
+    [mThumbnail drawInRect:NSInsetRect(thumbnailImageRect, kShadowPadding, kShadowPadding)
                   fromRect:NSZeroRect
                  operation:NSCompositeSourceOver
                   fraction:1];
   }
+
+  if (mTitleCell)
+    [mTitleCell drawWithFrame:thumbnailTitleRect inView:self];
 }
 
 - (void)mouseUp:(NSEvent*)theEvent
@@ -110,6 +126,7 @@ const int kShadowPadding = 5;
 - (void)dealloc
 {
   [mThumbnail release];
+  [mTitleCell release];
   [mRepresentedObject release];
   [super dealloc];
 }
