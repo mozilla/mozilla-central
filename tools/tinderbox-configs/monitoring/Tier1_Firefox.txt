@@ -1,6 +1,6 @@
 fxnewref-linux-tbox|Depend
 bl-bldlnx03|perf test|fxnewref-linux-tbox
-bl-bldxp01|perf test|fxnewref-win32-tbox
+bl-bldxp01|perf test|fxnewref-win32-
 bm-xserve08|Depend
 fxdbug-linux-tbox|Depend
 fxnewref-win32-|Depend
