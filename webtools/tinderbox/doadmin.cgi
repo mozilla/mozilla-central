@@ -87,6 +87,12 @@ sub create_tree {
     $treedata{bonsai_tree} = $form{'bonsaitreename'};
     $treedata{bonsai_dir} = $form{'bonsaidir'};
     $treedata{bonsai_url} = $form{'bonsaiurl'};
+    $treedata{bonsai_dbdriver} = $form{'bonsai_dbdriver'};
+    $treedata{bonsai_dbhost} = $form{'bonsai_dbhost'};
+    $treedata{bonsai_dbport} = $form{'bonsai_dbport'};
+    $treedata{bonsai_dbname} = $form{'bonsai_dbname'};
+    $treedata{bonsai_dbuser} = $form{'bonsai_dbuser'};
+    $treedata{bonsai_dbpasswd} = $form{'bonsai_dbpasswd'};
     $treedata{registry_url} = $form{'registryurl'};
     $treedata{viewvc_url} = $form{'viewvc_url'};
     $treedata{viewvc_repository} = $form{'viewvc_repository'};
@@ -102,13 +108,15 @@ sub create_tree {
     my $treename = $tree;
 
     for my $var ( 'cvs_module', 'cvs_branch', 'bonsai_tree', 'bonsai_dir',
-                  'bonsai_url', 'registry_url') {
+                  'bonsai_url', 'bonsai_dbdriver', 'bonsai_dbhost',
+                  'bonsai_dbport', 'bonsai_dbname', 'bonsai_dbuser',
+                  'bonsai_dbpasswd', 'registry_url') {
         $treedata{use_bonsai} = 1 if (defined($treedata{$var}) && 
                                       "$treedata{$var}" ne "");
     }
     for my $var ('viewvc_url','viewvc_repository',
                  '{viewvc_dbdriver', 'viewvc_dbhost', 'viewvc_dbport',
-                 'viewvc_dbname', 'viewvc_user', 'viewvc_passwd') {
+                 'viewvc_dbname', 'viewvc_dbuser', 'viewvc_dbpasswd') {
         $treedata{use_viewvc} = 1 if (defined($treedata{$var}) && 
                                       "$treedata{$var}" ne "");
     }

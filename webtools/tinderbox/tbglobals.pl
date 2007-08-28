@@ -67,18 +67,6 @@ $::nowdate = time();
 # Show 12 hours by default
 $::default_hours = 12;
 
-# Globals used by bonsai
-# $::CVS_ROOT
-# $::CVS_REPOS_SUFFIX
-# $::CHECKIN_DATA_FILE
-# $::CHECKIN_INDEX_FILE
-# $::have_mod_map
-# $::begin_tag
-# $::end_tag
-# $::lines_added
-# $::lines_removed
-# $::versioninfo
-
 # Globals used by bonsai & viewvc
 # $::query_module
 # $::query_branch
@@ -95,7 +83,7 @@ my $display_accurate_build_end_times = 1;
 # Format version of treedata.pl
 # Use Tie::IxHash to keep order of treedata variables
 tie %::default_treedata => 'Tie::IxHash',
-    treedata_version => 2,
+    treedata_version => 3,
     who_days => 14,
     use_bonsai => 1,
     use_viewvc => 0,
@@ -105,6 +93,12 @@ tie %::default_treedata => 'Tie::IxHash',
     bonsai_tree => '',
     bonsai_dir => '',
     bonsai_url => '',
+    bonsai_dbdriver => '',
+    bonsai_dbhost => '',
+    bonsai_dbport => '',
+    bonsai_dbname => '',
+    bonsai_dbuser => '',
+    bonsai_dbpasswd => '',
     registry_url => '',
     viewvc_url => '',
     viewvc_repository => '',

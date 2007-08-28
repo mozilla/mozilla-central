@@ -104,9 +104,7 @@ my %form;
 $tree = &require_only_one_tree($tree);
 $form{tree} = $tree;
 &tb_load_treedata($tree);
-my $bonsai_dir;
-# Silence perl compile-time warnings by letting $bonsai_dir have a real default
-BEGIN { $bonsai_dir = $::global_treedata->{$tree}->{bonsai_dir} || '@TINDERBOX_DIR@'; }
+my $bonsai_dir = $::global_treedata->{$tree}->{bonsai_dir};
 my $bonsai_url = $::global_treedata->{$tree}->{bonsai_url};
 my $cvs_module = $::global_treedata->{$tree}->{cvs_module};
 my $cvs_root = $::global_treedata->{$tree}->{cvs_root};
@@ -497,8 +495,7 @@ sub build_blame {
   my ($cvs_root, $tags) = @_;
   my ($file, $lines_hash);
 
-  use lib "$bonsai_dir";
-  require 'cvsblame.pl';
+  do "${bonsai_dir}/cvsblame.pl";
 
   while (($file, $lines_hash) = each %warnings) {
 

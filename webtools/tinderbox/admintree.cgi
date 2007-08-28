@@ -262,6 +262,36 @@ print "
 <TD>(http://bonsai.mozilla.org/)</TD>
 </TR>
 <TR>
+<TR>
+<TD>Bonsai database driver:</TD>
+<TD><INPUT NAME=bonsai_dbdriver></TD>
+<TD>(mysql)</TD>
+</TR>
+<TR>
+<TD>Bonsai database host:</TD>
+<TD><INPUT NAME=bonsai_dbhost></TD>
+<TD>(localhost)</TD>
+</TR>
+<TR>
+<TD>Bonsai database port:</TD>
+<TD><INPUT NAME=bonsai_dbport></TD>
+<TD>(3306)</TD>
+</TR>
+<TR>
+<TD>Bonsai database name:</TD>
+<TD><INPUT NAME=bonsai_dbname></TD>
+<TD>(bonsai)</TD>
+</TR>
+<TR>
+<TD>Bonsai database username:</TD>
+<TD><INPUT NAME=bonsai_dbuser></TD>
+<TD>(bonsai)</TD>
+</TR>
+<TR>
+<TD>Bonsai database password:</TD>
+<TD><INPUT NAME=bonsai_dbpasswd TYPE=password></TD>
+<TD>(bonsai)</TD>
+</TR>
 <TD>registry url:</TD>
 <TD><INPUT NAME=registryurl></TD>
 <TD>(http://bonsai.mozilla.org/registry/)</TD>

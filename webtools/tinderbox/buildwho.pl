@@ -48,16 +48,10 @@ $tree = &trick_taint(shift);
 #   $cvs_module:  The checkout module
 #   $cvs_branch:  The current branch
 #   $cvs_root:    The path to the cvs root
-#   $bonsai_dir:  The path to the bonsai installation used by $tree
-#   $bonsai_tree: The data directory for this tree in $bonsai_dir
 #   $viewvc_repository: Repository path used by viewvc for this tree
 &tb_load_treedata($tree);
 my $use_bonsai = $::global_treedata->{$tree}->{use_bonsai};
 my $use_viewvc = $::global_treedata->{$tree}->{use_viewvc};
-my $bonsai_dir; 
-# Silence perl compile-time warnings by letting $bonsai_dir have a real default
-BEGIN { $bonsai_dir = $::global_treedata->{$tree}->{bonsai_dir} || '@TINDERBOX_DIR@'; }
-my $bonsai_tree = $::global_treedata->{$tree}->{bonsai_tree};
 my $cvs_module = $::global_treedata->{$tree}->{cvs_module};
 my $cvs_branch = $::global_treedata->{$tree}->{cvs_branch};
 my $cvs_root = $::global_treedata->{$tree}->{cvs_root};
@@ -73,29 +67,7 @@ exit 0 if (!$use_bonsai && !$use_viewvc);
 my $lockfile = "$tree/buildwho.sem";
 my $lock = lock_datafile($lockfile);
 
-if ($use_bonsai) {
-    # Setup global variables for bonsai query
-    #
-    if ($cvs_root eq '') {
-        $::CVS_ROOT = "$::default_cvsroot";
-    } else {
-        $::CVS_ROOT = $cvs_root;
-    }
-
-    $::CVS_REPOS_SUFIX = $::CVS_ROOT;
-    $::CVS_REPOS_SUFIX =~ s/\//_/g;
-    
-    $::CHECKIN_DATA_FILE = "$bonsai_dir/data/checkinlog$::CVS_REPOS_SUFIX";
-    $::CHECKIN_INDEX_FILE = "$bonsai_dir/data/index$::CVS_REPOS_SUFIX";
-
-    use lib "$bonsai_dir";
-    require 'cvsquery.pl';
-
-    print "cvsroot='$::CVS_ROOT'\n" if $F_DEBUG;
-} elsif ($use_viewvc) {
-    require 'viewvc.pl';
-}
-
+require 'viewvc.pl';
 
 build_who($tree);
 
@@ -132,13 +104,7 @@ sub build_who {
     my $temp_who_file = "$who_file.$$";
     open(WHOLOG, ">", "$temp_who_file");
 
-    if ($use_bonsai) {
-        chdir $bonsai_dir;
-        $::TreeID = $bonsai_tree;
-        $result = &query_checkins(%::mod_map);
-    } elsif ($use_viewvc) {
-        $result = &query_checkins($tree, %::mod_map);
-    }
+    $result = query_checkins($tree);
 
     my $last_who='';
     my $last_date=0;
@@ -150,8 +116,5 @@ sub build_who {
         $last_date=$ci->[$::CI_DATE];
     }
     close (WHOLOG);
-    if ($use_bonsai) {
-        chdir "@TINDERBOX_DIR@";
-    }
     move($temp_who_file, $who_file);
 }
