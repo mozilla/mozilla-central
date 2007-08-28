@@ -285,10 +285,11 @@ function blankTestRunForm(formid) {
 }
 
 function switchToAdd() {
+  document.getElementById('test_run_display_div').style.display = 'none';
   disableModeButtons();
   blankTestRunForm('edit_test_run_form');
   var autoText = '<em>Automatically generated for a new Test Run</em>';
-  document.getElementById('test_run_id_display').innerHTML = autoText;
+  document.getElementById('test_run_id_display_edit').innerHTML = autoText;
   setAuthor(current_user_id);
   document.getElementById('creation_date').innerHTML = autoText;
   document.getElementById('last_updated').innerHTML = autoText;
@@ -297,7 +298,6 @@ function switchToAdd() {
   document.getElementById('submit').value = 'Add Test Run';
   document.getElementById('mode').value = 'add';
   enableForm('edit_test_run_form');
-  document.getElementById('test_run_display_div').style.display = 'none';
   document.getElementById('editform_div').style.display = 'block';
 }
 

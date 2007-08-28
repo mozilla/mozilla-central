@@ -46,7 +46,7 @@
 <tr>
 	<td>type</td>
 	<td>steps</td>
-	<td><ol><br /><li>Step 1</li><br /><li>Step 2</li><br /></ol></td>
+	<td>&lt;ol&gt;<br />&lt;li&gt;Step 1&lt;/li&gt;<br />&lt;li&gt;Step 2&lt;/li&gt;<br />&lt;/ol&gt;</td>
 </tr>
 <tr>
 	<td>type</td>
@@ -84,24 +84,29 @@
 	<td></td>
 </tr>
 <tr>
+	<td>selectWindow</td>
+	<td>null</td>
+	<td></td>
+</tr>
+<tr>
 	<td>waitForVisible</td>
 	<td>testcase_display_div</td>
 	<td></td>
 </tr>
 <tr>
-	<td>verifyTextPresent</td>
+	<td>verifyText</td>
+	<td>summary_text</td>
 	<td>Coop's New Testcase</td>
-	<td></td>
 </tr>
 <tr>
-	<td>verifyTextPresent</td>
+	<td>verifyText</td>
+	<td>product_text</td>
 	<td>Thunderbird</td>
-	<td></td>
 </tr>
 <tr>
-	<td>verifyTextPresent</td>
+	<td>verifyText</td>
+	<td>branch_text</td>
 	<td>Trunk</td>
-	<td></td>
 </tr>
 <tr>
 	<td>verifyElementPresent</td>
@@ -109,19 +114,14 @@
 	<td></td>
 </tr>
 <tr>
-	<td>verifyTextPresent</td>
-	<td>Step 1</td>
-	<td></td>
+	<td>verifyTable</td>
+	<td>//table[2].0.0</td>
+	<td>Steps to Perform:<br /> Step 1 Step 2</td>
 </tr>
 <tr>
-	<td>verifyTextPresent</td>
-	<td>Step 2</td>
-	<td></td>
-</tr>
-<tr>
-	<td>verifyTextPresent</td>
-	<td>Everything should work.</td>
-	<td></td>
+	<td>verifyTable</td>
+	<td>//table[2].0.1</td>
+	<td>Expected Results:<br /> Everything should work.</td>
 </tr>
 
 </tbody></table>

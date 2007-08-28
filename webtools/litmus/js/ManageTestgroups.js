@@ -184,12 +184,12 @@ function blankTestgroupForm(formid) {
 
 function switchToAdd() {
   disableModeButtons();
+  document.getElementById('testgroup_display_div').style.display = 'none';
   blankTestgroupForm('edit_testgroup_form');
-  document.getElementById('testgroup_id_display').innerHTML = '<em>Automatically generated for a new testgroup</em>';
   document.getElementById('submit').value = 'Add Testgroup';
   document.getElementById('mode').value = 'add';
+  document.getElementById('testgroup_id_display_edit').innerHTML = '<em>Automatically generated for a new testgroup</em>';
   enableForm('edit_testgroup_form');
-  document.getElementById('testgroup_display_div').style.display = 'none';
   document.getElementById('editform_div').style.display = 'block';
 }
 
