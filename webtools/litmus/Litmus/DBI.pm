@@ -258,11 +258,7 @@ sub db_ReadOnly() {
                                     );
       }
     }
-#    return $readonly_dbh if ($readonly_dbh);
-    if ($readonly_dbh) {
-        print STDERR "Using readonly db...\n";
-        return $readonly_dbh;
-    }
+    return $readonly_dbh if ($readonly_dbh);
 
     return $class->db_Main();
 }
