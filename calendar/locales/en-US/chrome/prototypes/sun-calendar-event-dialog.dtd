@@ -213,5 +213,21 @@
 
 <!ENTITY timezone.title.label            "Please Specify the Timezone">
 
+<!-- Read-Only dialog -->
+
+<!ENTITY read.only.general.label         "General">
+<!ENTITY read.only.title.label           "Title:">
+<!ENTITY read.only.date.label            "Date:">
+<!ENTITY read.only.repeat.label          "Repeat:">
+<!ENTITY read.only.location.label        "Location:">
+<!ENTITY read.only.organizer.label       "Organizer:">
+<!ENTITY read.only.reply.label           "Reply:">
+<!ENTITY read.only.accept.label          "I will attend">
+<!ENTITY read.only.decline.label         "I will not attend">
+<!ENTITY read.only.needs.action.label    "I will confirm later">
+<!ENTITY read.only.reminder.label        "Reminder:">
+<!ENTITY read.only.attendees.label       "Attendees">
+<!ENTITY read.only.description.label     "Description">
+<!ENTITY read.only.documents.label       "Documents">
 
 
