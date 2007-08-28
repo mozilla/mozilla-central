@@ -349,6 +349,19 @@ function ltnOnLoad(event)
     }
     modeToolbox.addEventListener("DOMAttrModified", onModified, false);
 
+    // To make sure the folder pane doesn't disappear without any possibility
+    // to get it back, we need to reveal it when the mode box is collapsed.
+    function modeBoxAttrModified(event) {
+        if (event.attrName == "collapsed") {
+            document.getElementById("folderPaneBox")
+                    .removeAttribute("collapsed");
+        }
+    }
+
+    document.getElementById("ltnModeBox").addEventListener("DOMAttrModified",
+                                                           modeBoxAttrModified,
+                                                           true);
+
     ltnInitializeMode();
 
     gMiniMonthLoading = true;
