@@ -7987,7 +7987,6 @@ NS_IMETHODIMP nsImapMockChannel::Close()
       }
     }
   }
-  m_url = nsnull;
   mChannelClosed = PR_TRUE;
   return NS_OK;
 }
