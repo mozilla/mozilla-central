@@ -41,7 +41,6 @@
 
 #import "CHBrowserService.h"
 
-#include "nsXPIDLString.h"
 #include "nsString.h"
 #include "nsIServiceManager.h"
 #include "nsIConsoleService.h"
@@ -75,9 +74,9 @@ nsConsoleListener::~nsConsoleListener()
 NS_IMETHODIMP nsConsoleListener::Observe(nsIConsoleMessage* aMessage)
 {
   if (aMessage) {
-    nsXPIDLString msgString;
-    aMessage->GetMessage(getter_Copies(msgString));
-    [[JSConsole sharedJSConsole] logMessage:[NSString stringWith_nsAString:msgString]];
+    nsAutoString msgBuffer;
+    aMessage->GetMessage(getter_Copies(msgBuffer));
+    [[JSConsole sharedJSConsole] logMessage:[NSString stringWith_nsAString:msgBuffer]];
   }
   
   return NS_OK;

@@ -1025,21 +1025,30 @@ SecurityDialogs::AlertDialog(nsIInterfaceRequestor *ctx, const char *prefName,
   if (!prompt) return NS_ERROR_FAILURE;
 
   // Get messages strings from localization file
-  nsXPIDLString windowTitle, message, dontShowAgain;
+  nsAutoString windowTitle, message, dontShowAgain;
   mSecurityStringBundle->GetStringFromName(NS_LITERAL_STRING("Title").get(),
                                            getter_Copies(windowTitle));
   mSecurityStringBundle->GetStringFromName(dialogMessageName,
                                            getter_Copies(message));
-  if ( prefName )
-    mSecurityStringBundle->GetStringFromName(showAgainName,
-                                             getter_Copies(dontShowAgain));
-  if (!windowTitle.get() || !message.get()) return NS_ERROR_FAILURE;
+  if  (prefName)
+    mSecurityStringBundle->GetStringFromName(showAgainName,getter_Copies(dontShowAgain));
 
-  if ( prefName )
-    rv = prompt->AlertCheck(windowTitle, message, dontShowAgain, &prefValue);
-  else
-    rv = prompt->AlertCheck(windowTitle, message, nil, nil);
-  if (NS_FAILED(rv)) return rv;
+  if (!windowTitle.get() || !message.get()) 
+    return NS_ERROR_FAILURE;
+
+  if (prefName) {
+    rv = prompt->AlertCheck(PromiseFlatString(windowTitle).get(),
+                            PromiseFlatString(message).get(), 
+                            PromiseFlatString(dontShowAgain).get(), 
+                            &prefValue);
+  }
+  else {
+    rv = prompt->AlertCheck(PromiseFlatString(windowTitle).get(), 
+                            PromiseFlatString(message).get(), 
+                            nil, nil);
+  }
+  
+  NS_ENSURE_SUCCESS(rv, rv);
 
   if (prefName && !prefValue)
     pref->SetBoolPref(prefName, PR_FALSE);

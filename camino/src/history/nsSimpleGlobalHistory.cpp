@@ -127,7 +127,7 @@ public:
   nsDependentCSubstring   datasource;  // should always be "history" ?
   nsDependentCSubstring   property;    // AgeInDays, Hostname, etc
   nsDependentCSubstring   method;      // is, isgreater, isless
-  nsXPIDLString           text;        // text to match
+  nsString                text;
   rowMatchCallback        match;       // matching callback if needed
 };
 
@@ -1487,7 +1487,7 @@ nsSimpleGlobalHistory::RemoveObserver(nsIHistoryObserver* inObserver)
 nsresult
 nsSimpleGlobalHistory::SaveByteOrder(const char *aByteOrder)
 {
-  if (PL_strcmp(aByteOrder, "BE") != 0 && PL_strcmp(aByteOrder, "LE") != 0) {
+  if (strcmp(aByteOrder, "BE") != 0 && strcmp(aByteOrder, "LE") != 0) {
     NS_WARNING("Invalid byte order argument.");
     return NS_ERROR_INVALID_ARG;
   }
@@ -1501,20 +1501,16 @@ nsSimpleGlobalHistory::SaveByteOrder(const char *aByteOrder)
 
 // Get the file byte order.
 nsresult
-nsSimpleGlobalHistory::GetByteOrder(char **_retval)
+nsSimpleGlobalHistory::GetByteOrder(nsACString & aRetVal)
 { 
   NS_ENSURE_SUCCESS(OpenDB(), NS_ERROR_FAILURE);
-
-  NS_ENSURE_ARG_POINTER(_retval);
   NS_ENSURE_STATE(mMetaRow);
 
   nsCAutoString byteOrder;
   mdb_err err = GetRowValue(mMetaRow, kToken_ByteOrder, byteOrder);
   NS_ENSURE_TRUE(err == 0, NS_ERROR_FAILURE);
 
-  *_retval = ToNewCString(byteOrder);
-  NS_ENSURE_TRUE(*_retval, NS_ERROR_OUT_OF_MEMORY);
-
+  aRetVal.Assign(byteOrder);
   return NS_OK;
 }
 
@@ -1890,14 +1886,15 @@ nsSimpleGlobalHistory::InitByteOrder(PRBool aForce)
 #ifdef IS_BIG_ENDIAN
   NS_NAMED_LITERAL_CSTRING(machine_byte_order, "BE");
 #endif
-  nsXPIDLCString file_byte_order;
+  nsCAutoString fileByteOrder;
   nsresult rv = NS_OK;
 
   if (!aForce)
-    rv = GetByteOrder(getter_Copies(file_byte_order));
+    rv = GetByteOrder(fileByteOrder);
   if (aForce || NS_FAILED(rv) ||
-      !(file_byte_order.EqualsLiteral("BE") ||
-        file_byte_order.EqualsLiteral("LE"))) {
+      !(fileByteOrder.EqualsLiteral("BE") ||
+        fileByteOrder.EqualsLiteral("LE"))) 
+  {
     // Byte order is not yet set, or needs to be reset; initialize it.
     mReverseByteOrder = PR_FALSE;
     rv = SaveByteOrder(machine_byte_order.get());
@@ -1905,7 +1902,7 @@ nsSimpleGlobalHistory::InitByteOrder(PRBool aForce)
       return rv;
   }
   else
-    mReverseByteOrder = !file_byte_order.Equals(machine_byte_order);
+    mReverseByteOrder = !fileByteOrder.Equals(machine_byte_order);
 
   return NS_OK;
 }
@@ -1947,7 +1944,7 @@ nsSimpleGlobalHistory::CheckHostnameEntries()
   
   // cached variables used in the loop
   nsCAutoString url;
-  nsXPIDLCString hostname;
+  nsCAutoString hostname;
 
   nsCOMPtr<nsIIOService> ioService = do_GetService(NS_IOSERVICE_CONTRACTID);
   if (!ioService) return NS_ERROR_FAILURE;
@@ -2356,7 +2353,8 @@ nsSimpleGlobalHistory::RowMatches(nsIMdbRow *aRow, SearchQueryData *aQuery)
       rowVal.BeginReading(start);
       rowVal.EndReading(end);
   
-      NS_ConvertUTF16toUTF8 utf8Value(term->text);
+      nsCAutoString utf8Value;
+      CopyUTF16toUTF8(term->text, utf8Value);
       
       if (term->method.Equals("is")) {
         if (!utf8Value.Equals(rowVal, nsCaseInsensitiveCStringComparator()))
@@ -2631,7 +2629,7 @@ nsSimpleGlobalHistory::AutoCompleteSearch(const nsACString& aSearchString,
   PRBool searchPrevious = PR_FALSE;
   nsAutoString searchString = NS_ConvertUTF8toUTF16(aSearchString);
   if (aPrevResults) {
-    nsXPIDLString prevURL;
+    nsAutoString prevURL;
     aPrevResults->GetSearchString(getter_Copies(prevURL));
     // if search string begins with the previous search string, it's a go
     searchPrevious = StringBeginsWith(searchString, prevURL);

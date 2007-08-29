@@ -2145,7 +2145,7 @@ enum BWCOpenDest {
         if (entryURI)
           entryURI->GetSpec(uriSpec);
 
-        nsXPIDLString textStr;
+        nsAutoString textStr;
         entry->GetTitle(getter_Copies(textStr));
 
         curTitle = [NSString stringWith_nsAString:textStr];
@@ -3040,7 +3040,7 @@ enum BWCOpenDest {
     nsCOMPtr<nsIHistoryEntry> entry;
     inHistory->GetEntryAtIndex(i, PR_FALSE, getter_AddRefs(entry));
     if (entry) {
-      nsXPIDLString textStr;
+      nsAutoString textStr;
       entry->GetTitle(getter_Copies(textStr));
       NSString* title = [[NSString stringWith_nsAString: textStr] stringByTruncatingTo:kMaxTitleLength at:kTruncateAtMiddle];    
       NSMenuItem *newItem = [inPopup addItemWithTitle:title action:@selector(historyItemAction:) keyEquivalent:@""];

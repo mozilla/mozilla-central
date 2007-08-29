@@ -60,7 +60,6 @@
 #include "nsISimpleEnumerator.h"
 
 #include "nsNetUtil.h"
-#include "nsXPIDLString.h"
 #include "nsString.h"
 
 #include "nsComponentManagerUtils.h"

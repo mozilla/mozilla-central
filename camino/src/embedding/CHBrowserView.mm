@@ -848,9 +848,9 @@ const char kDirServiceContractID[] = "@mozilla.org/file/directory_service;1";
   if (!webFind)
     return nil;
 
-  nsXPIDLString searchString;
+  nsAutoString searchString;
   webFind->GetSearchString(getter_Copies(searchString));
-  return [NSString stringWithPRUnichars:searchString.get()];
+  return [NSString stringWith_nsAString:PromiseFlatString(searchString)];
 }
 
 - (void)saveURL: (NSView*)aFilterView url: (NSString*)aURLSpec suggestedFilename: (NSString*)aFilename
@@ -1497,7 +1497,7 @@ const char kDirServiceContractID[] = "@mozilla.org/file/directory_service;1";
   NSString* cipherNameString = @"";
   if (sslStatus)
   {
-    nsXPIDLCString cipherName;
+    nsCAutoString cipherName;
     sslStatus->GetCipherName(getter_Copies(cipherName));
     cipherNameString = [NSString stringWith_nsACString:cipherName];
   }

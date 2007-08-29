@@ -539,17 +539,16 @@ CocoaPromptService::GetCommonDialogLocaleString(const char *key)
       rv = service->CreateBundle(kCommonDialogsStrings, getter_AddRefs(mCommonDialogStringBundle));
     else
       rv = NS_ERROR_FAILURE;
-    if (NS_FAILED(rv)) return returnValue;
+    NS_ENSURE_SUCCESS(rv, returnValue);
   }
 
-  nsXPIDLString string;
+  nsAutoString string;
   rv = mCommonDialogStringBundle->GetStringFromName(NS_ConvertASCIItoUTF16(key).get(), getter_Copies(string));
-  if (NS_FAILED(rv)) return returnValue;
+  NS_ENSURE_SUCCESS(rv, returnValue);
 
-  returnValue = [NSString stringWithPRUnichars:string];
+  returnValue = [NSString stringWith_nsAString:string];
   // take care of the fact that it could have windows shortcut specified by ampersand
-  returnValue = [returnValue stringByRemovingWindowsShortcutAmpersand];
-  return returnValue;
+  return [returnValue stringByRemovingWindowsShortcutAmpersand];
 }
 
 NSString *

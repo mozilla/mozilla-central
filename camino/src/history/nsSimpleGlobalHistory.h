@@ -258,7 +258,7 @@ protected:
   // byte order
   //
   nsresult  SaveByteOrder(const char *aByteOrder);
-  nsresult  GetByteOrder(char **_retval);
+  nsresult  GetByteOrder(nsACString & aRetVal);
   nsresult  InitByteOrder(PRBool aForce);
   void      SwapBytes(const PRUnichar *source, PRUnichar *dest, PRInt32 aLen);
 

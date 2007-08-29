@@ -838,7 +838,7 @@ public:
 
     nsAutoString keyString;
     [inKey assignTo_nsAString:keyString];
-    nsXPIDLString nameString;
+    nsAutoString nameString;
     mPIPNSSBundle->GetStringFromName(keyString.get(), getter_Copies(nameString));
     return [NSString stringWith_nsAString:nameString];
   }

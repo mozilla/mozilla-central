@@ -146,7 +146,7 @@ NeckoCacheHelper::FaviconForURIIsMissing(const nsACString& inFaviconURI, PRBool*
   nsresult rv = mCacheSession->OpenCacheEntry(inFaviconURI, nsICache::ACCESS_READ, nsICache::NON_BLOCKING, getter_AddRefs(entryDesc));
   if (NS_SUCCEEDED(rv) && entryDesc)
   {
-    nsXPIDLCString metadataString;
+    nsCAutoString metadataString;
     entryDesc->GetMetaDataElement(kMissingFaviconMetadataKey, getter_Copies(metadataString));
     *outKnownMissing = metadataString.EqualsLiteral("1");
   }
@@ -223,7 +223,7 @@ NeckoCacheHelper::GetFaviconLocationForPageURI(const nsACString& inPageURI, nsAC
   if (NS_FAILED(rv)) return rv;
   if (!entryDesc) return NS_ERROR_FAILURE;
     
-  nsXPIDLCString faviconLocation;
+  nsCAutoString faviconLocation;
   rv = entryDesc->GetMetaDataElement(kFaviconURILocationMetadataKey, getter_Copies(faviconLocation));
   if (NS_FAILED(rv)) return rv;
 
