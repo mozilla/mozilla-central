@@ -114,11 +114,6 @@
 #include "nsIPermissionManager.h"
 #include "nsIWebPageDescriptor.h"
 #include "nsPIDOMWindow.h"
-#include "nsIDOMHTMLInputElement.h"
-#include "nsIDOMHTMLTextAreaElement.h"
-#include "nsIDOMHTMLEmbedElement.h"
-#include "nsIDOMHTMLObjectElement.h"
-#include "nsIDOMHTMLAppletElement.h"
 #include "nsIDOMHTMLImageElement.h"
 #include "nsIFocusController.h"
 #include "nsIX509Cert.h"
@@ -539,7 +534,6 @@ enum BWCOpenDest {
 - (void)transformFormatString:(NSMutableString*)inFormat domain:(NSString*)inDomain search:(NSString*)inSearch;
 - (void)openNewWindowWithDescriptor:(nsISupports*)aDesc displayType:(PRUint32)aDisplayType loadInBackground:(BOOL)aLoadInBG;
 - (void)openNewTabWithDescriptor:(nsISupports*)aDesc displayType:(PRUint32)aDisplayType loadInBackground:(BOOL)aLoadInBG;
-- (BOOL)isPageTextFieldFocused;
 - (void)performSearch:(WebSearchField*)inSearchField inView:(BWCOpenDest)inDest inBackground:(BOOL)inLoadInBG;
 - (int)historyIndexOfPageBeforeBookmarkManager;
 - (void)goToLocationFromToolbarURLField:(AutoCompleteTextField *)inURLField inView:(BWCOpenDest)inDest inBackground:(BOOL)inLoadInBG;
@@ -575,8 +569,6 @@ enum BWCOpenDest {
 
 - (void)currentEditor:(nsIEditor**)outEditor;
 - (void)getMisspelledWordRange:(nsIDOMRange**)outRange inlineSpellChecker:(nsIInlineSpellChecker**)outInlineChecker;
-- (void)focusedElement:(nsIDOMElement**)outElement;
-- (void)focusController:(nsIFocusController**)outController;
 
 - (void)setUpSearchFields;
 
@@ -3221,45 +3213,6 @@ enum BWCOpenDest {
   [self forward:sender];
 }
 
-- (void)focusController:(nsIFocusController**)outController
-{
-  #define ENSURE_TRUE(x) if (!x) return;
-  if (!outController)
-    return;
-  *outController = nsnull;
-
-  nsCOMPtr<nsIWebBrowser> webBrizzle = dont_AddRef([[[self getBrowserWrapper] getBrowserView] getWebBrowser]);
-  ENSURE_TRUE(webBrizzle);
-  nsCOMPtr<nsIDOMWindow> domWindow;
-  webBrizzle->GetContentDOMWindow(getter_AddRefs(domWindow));
-  nsCOMPtr<nsPIDOMWindow> privateWindow = do_QueryInterface(domWindow);
-  ENSURE_TRUE(privateWindow);
-  *outController = privateWindow->GetRootFocusController();
-  NS_IF_ADDREF(*outController);
-  #undef ENSURE_TRUE
-}
-
-//
-// -focusedElement
-//
-// Returns the currently focused DOM element in the currently visible tab
-//
-- (void)focusedElement:(nsIDOMElement**)outElement
-{
-  if (!outElement)
-    return;
-  *outElement = nsnull;
-
-  nsCOMPtr<nsIFocusController> controller;
-  [self focusController:getter_AddRefs(controller)];
-  if (!controller)
-    return;
-  nsCOMPtr<nsIDOMElement> focusedItem;
-  controller->GetFocusedElement(getter_AddRefs(focusedItem));
-  *outElement = focusedItem.get();
-  NS_IF_ADDREF(*outElement);
-}
-
 //
 // -currentEditor:
 //
@@ -3271,8 +3224,8 @@ enum BWCOpenDest {
     return;
   *outEditor = nsnull;
 
-  nsCOMPtr<nsIDOMElement> focusedElement;
-  [self focusedElement:getter_AddRefs(focusedElement)];
+  nsCOMPtr<nsIDOMElement> focusedElement =
+    dont_AddRef([[[self getBrowserWrapper] getBrowserView] getFocusedDOMElement]);
   nsCOMPtr<nsIDOMNSEditableElement> editElement = do_QueryInterface(focusedElement);
   if (editElement) {
     editElement->GetEditor(outEditor);
@@ -3280,8 +3233,8 @@ enum BWCOpenDest {
   // if there's no element focused, we're probably in a Midas editor
   else {
     #define ENSURE_TRUE(x) if (!x) return;
-    nsCOMPtr<nsIFocusController> controller;
-    [self focusController:getter_AddRefs(controller)];
+    nsCOMPtr<nsIFocusController> controller =
+      dont_AddRef([[[self getBrowserWrapper] getBrowserView] getFocusController]);
     ENSURE_TRUE(controller);
     nsCOMPtr<nsIDOMWindowInternal> winInternal;
     controller->GetFocusedWindow(getter_AddRefs(winInternal));
@@ -3304,78 +3257,6 @@ enum BWCOpenDest {
     }
     #undef ENSURE_TRUE
   }
-}
-
-//
-// -isPageTextFieldFocused
-//
-// Determine if a text field in the content area has focus. Returns YES if the
-// focus is in a <input type="text"> or <textarea>
-//
-- (BOOL)isPageTextFieldFocused
-{
-  BOOL isFocused = NO;
-  
-  nsCOMPtr<nsIDOMElement> focusedItem;
-  [self focusedElement:getter_AddRefs(focusedItem)];
-  
-  // we got it, now check if it's what we care about
-  nsCOMPtr<nsIDOMHTMLInputElement> input = do_QueryInterface(focusedItem);
-  nsCOMPtr<nsIDOMHTMLTextAreaElement> textArea = do_QueryInterface(focusedItem);
-  if (input) {
-    nsAutoString type;
-    input->GetType(type);
-    if (type == NS_LITERAL_STRING("text"))
-      isFocused = YES;
-  }
-  else if (textArea)
-    isFocused = YES;
-  
-  return isFocused;
-}
-
-//
-// -isPagePluginFocused
-//
-// Determine if a plugin/applet in the content area has focus. Returns YES if the
-// focus is in a <embed>, <object>, or <applet>
-//
-- (BOOL)isPagePluginFocused
-{
-  BOOL isFocused = NO;
-  
-  nsCOMPtr<nsIDOMElement> focusedItem;
-  [self focusedElement:getter_AddRefs(focusedItem)];
-  
-  // we got it, now check if it's what we care about
-  nsCOMPtr<nsIDOMHTMLEmbedElement> embed = do_QueryInterface(focusedItem);
-  nsCOMPtr<nsIDOMHTMLObjectElement> object = do_QueryInterface(focusedItem);
-  nsCOMPtr<nsIDOMHTMLAppletElement> applet = do_QueryInterface(focusedItem);
-  if (embed || object || applet)
-    isFocused = YES;
-  
-  return isFocused;
-}
-
-// map delete key to Back according to browser.backspace_action pref
-- (void)deleteBackward:(id)sender
-{
-  // there are times when backspaces can seep through from IME gone wrong. As a 
-  // workaround until we can get them all fixed, ignore backspace when the
-  // focused widget is a text field (<input type="text"> or <textarea>)
-  if ([self isPageTextFieldFocused] || [self isPagePluginFocused])
-    return;
-
-  int deleteKeyAction = [[PreferenceManager sharedInstance] getIntPref:"browser.backspace_action" withSuccess:NULL];  
-
-  if (deleteKeyAction == 0) { // map to back/forward
-    if ([[NSApp currentEvent] modifierFlags] & NSShiftKeyMask)
-      [self forward:sender];
-    else
-      [self back:sender];
-  }
-  // all other values for browser.backspace_action should give no mapping at all,
-  // including 1 (PgUp/PgDn mapping has no precedent on Mac OS, and we're not supporting it)
 }
 
 -(void)loadURL:(NSString*)aURLSpec referrer:(NSString*)aReferrer focusContent:(BOOL)focusContent allowPopups:(BOOL)inAllowPopups

@@ -91,6 +91,17 @@
 #include "SaveHeaderSniffer.h"
 #include "nsIWebPageDescriptor.h"
 
+// Focus accessors
+#include "nsIFocusController.h"
+#include "nsIDOMElement.h"
+
+// Focus tests
+#include "nsIDOMHTMLInputElement.h"
+#include "nsIDOMHTMLTextAreaElement.h"
+#include "nsIDOMHTMLEmbedElement.h"
+#include "nsIDOMHTMLObjectElement.h"
+#include "nsIDOMHTMLAppletElement.h"
+
 // security
 #include "nsISecureBrowserUI.h"
 #include "nsISSLStatusProvider.h"
@@ -637,6 +648,32 @@ const char kDirServiceContractID[] = "@mozilla.org/file/directory_service;1";
 
 }
 
+- (nsIFocusController*)getFocusController
+{
+  if (!_webBrowser)
+    return nsnull;
+  nsCOMPtr<nsIDOMWindow> domWindow;
+  _webBrowser->GetContentDOMWindow(getter_AddRefs(domWindow));
+  nsCOMPtr<nsPIDOMWindow> privateWindow = do_QueryInterface(domWindow);
+  if (!privateWindow)
+    return nsnull;
+  nsIFocusController* focusController = privateWindow->GetRootFocusController();
+  NS_IF_ADDREF(focusController);
+  return focusController;
+}
+
+- (nsIDOMElement*)getFocusedDOMElement
+{
+  nsCOMPtr<nsIFocusController> controller = dont_AddRef([self getFocusController]);
+  if (!controller)
+    return nsnull;
+  nsCOMPtr<nsIDOMElement> focusedItem;
+  controller->GetFocusedElement(getter_AddRefs(focusedItem));
+  nsIDOMElement* domElement = focusedItem.get();
+  NS_IF_ADDREF(domElement);
+  return domElement;
+}
+
 -(void) saveInternal: (nsIURI*)aURI
         withDocument: (nsIDOMDocument*)aDocument
         suggestedFilename: (NSString*)aFileName
@@ -1136,6 +1173,49 @@ const char kDirServiceContractID[] = "@mozilla.org/file/directory_service;1";
   PRBool canUnload;
   contentViewer->PermitUnload(&canUnload);
   return canUnload ? YES : NO;
+}
+
+// -isTextFieldFocused
+//
+// Determine if a text field in the content area has focus. Returns YES if the
+// focus is in a <input type="text"> or <textarea>
+//
+// XXX - should we be counting Midas here as well?
+- (BOOL)isTextFieldFocused
+{
+  BOOL isFocused = NO;
+  
+  nsCOMPtr<nsIDOMElement> focusedItem = dont_AddRef([self getFocusedDOMElement]);
+  
+  // we got it, now check if it's what we care about
+  nsCOMPtr<nsIDOMHTMLInputElement> input = do_QueryInterface(focusedItem);
+  nsCOMPtr<nsIDOMHTMLTextAreaElement> textArea = do_QueryInterface(focusedItem);
+  if (input) {
+    nsAutoString type;
+    input->GetType(type);
+    if (type == NS_LITERAL_STRING("text"))
+      isFocused = YES;
+  }
+  else if (textArea)
+    isFocused = YES;
+  
+  return isFocused;
+}
+
+// -isPluginFocused
+//
+// Determine if a plugin/applet in the content area has focus. Returns YES if the
+// focus is in a <embed>, <object>, or <applet>
+//
+- (BOOL)isPluginFocused
+{
+  nsCOMPtr<nsIDOMElement> focusedItem = dont_AddRef([self getFocusedDOMElement]);
+  
+  // we got it, now check if it's what we care about
+  nsCOMPtr<nsIDOMHTMLEmbedElement> embed = do_QueryInterface(focusedItem);
+  nsCOMPtr<nsIDOMHTMLObjectElement> object = do_QueryInterface(focusedItem);
+  nsCOMPtr<nsIDOMHTMLAppletElement> applet = do_QueryInterface(focusedItem);
+  return (embed || object || applet);
 }
 
 - (void)moveToBeginningOfDocument:(id)sender
