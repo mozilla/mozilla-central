@@ -128,7 +128,7 @@
 <!ENTITY calendar.exit.label                    "Exit">
 <!ENTITY calendar.exit.accesskey                "x">
 
-<!ENTITY calendar.about.label                   "About &brandShortName;">
+<!ENTITY calendar.about.label                   "About Calendar">
 <!ENTITY calendar.about.accesskey               "C">
 
 <!ENTITY calendar.undo.label                    "Undo">
