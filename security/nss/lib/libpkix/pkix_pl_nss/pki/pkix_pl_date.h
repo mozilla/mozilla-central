@@ -75,6 +75,12 @@ pkix_pl_Date_CreateFromPRTime(
         PKIX_PL_Date **pDate,
         void *plContext);
 
+PKIX_Error *
+PKIX_PL_Date_CreateFromPRTime(
+        PRTime prtime,
+        PKIX_PL_Date **pDate,
+        void *plContext);
+
 #ifdef __cplusplus
 }
 #endif

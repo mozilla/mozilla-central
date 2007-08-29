@@ -54,8 +54,10 @@ CSRCS = \
 	crlv2.c \
 	ocsp.c \
 	certhigh.c \
-    certvfy.c \
-    xcrldist.c \
+ 	certvfy.c \
+ 	certvfypkix.c \
+ 	certvfypkixprint.c \
+ 	xcrldist.c \
 	$(NULL)
 
 REQUIRES = dbm

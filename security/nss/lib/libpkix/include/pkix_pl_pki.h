@@ -168,6 +168,59 @@ PKIX_PL_Cert_Create(
         void *plContext);
 
 /*
+ * FUNCTION: PKIX_PL_Cert_CreateFromCERTCertificate
+ * DESCRIPTION:
+ *
+ * Creates a new certificate using passed in CERTCertificate object.
+ *
+ * PARAMETERS:
+ *  "nssCert"
+ *      The object that will be used to create new PKIX_PL_Cert.
+ *  "pCert"
+ *      Address where object pointer will be stored. Must be non-NULL.
+ *  "plContext"
+ *      Platform-specific context pointer.
+ * THREAD SAFETY:
+ *  Thread Safe (see Thread Safety Definitions in Programmer's Guide)
+ * RETURNS:
+ *  Returns NULL if the function succeeds.
+ *  Returns a Cert Error if the function fails in a non-fatal way.
+ *  Returns a Fatal Error if the function fails in an unrecoverable way.
+ */
+PKIX_Error *
+PKIX_PL_Cert_CreateFromCERTCertificate(
+        const CERTCertificate *nssCert,
+        PKIX_PL_Cert **pCert,
+        void *plContext);
+
+/*
+ * FUNCTION: PKIX_PL_Cert_GetCERTCertificate
+ * DESCRIPTION:
+ *
+ * Returns underlying CERTCertificate structure. Return CERTCertificate
+ * object is duplicated and should be destroyed by caller.
+ *
+ * PARAMETERS:
+ *  "cert"
+ *      Address of PKIX_PL_Cert. Must be non-NULL.
+ *  "pCert"
+ *      Address where object pointer will be stored. Must be non-NULL.
+ *  "plContext"
+ *      Platform-specific context pointer.
+ * THREAD SAFETY:
+ *  Thread Safe (see Thread Safety Definitions in Programmer's Guide)
+ * RETURNS:
+ *  Returns NULL if the function succeeds.
+ *  Returns a Cert Error if the function fails in a non-fatal way.
+ *  Returns a Fatal Error if the function fails in an unrecoverable way.
+ */
+PKIX_Error *
+PKIX_PL_Cert_GetCERTCertificate(
+        PKIX_PL_Cert *cert,
+        CERTCertificate **pnssCert, 
+        void *plContext);
+
+/*
  * FUNCTION: PKIX_PL_Cert_GetVersion
  * DESCRIPTION:
  *
@@ -2284,6 +2337,31 @@ PKIX_PL_X500Name_Match(
 PKIX_Error *
 PKIX_PL_Date_Create_UTCTime (
         PKIX_PL_String *stringRep,
+        PKIX_PL_Date **pDate,
+        void *plContext);
+
+/*
+ * FUNCTION: PKIX_PL_Date_Create_UTCTime
+ * DESCRIPTION:
+ *  Creates a new Date from PRTime data.
+ *
+ * PARAMETERS:
+ *  "time"
+ *      Represented time in PRTime type.
+ *  "pDate"
+ *      Address where object pointer will be stored. Must be non-NULL.
+ *  "plContext"
+ *      Platform-specific context pointer.
+ * THREAD SAFETY:
+ *  Thread Safe (see Thread Safety Definitions in Programmer's Guide)
+ * RETURNS:
+ *  Returns NULL if the function succeeds.
+ *  Returns a Date Error if the function fails in a non-fatal way.
+ *  Returns a Fatal Error if the function fails in an unrecoverable way.
+ */
+PKIX_Error *
+PKIX_PL_Date_CreateFromPRTime(
+        PRTime time,
         PKIX_PL_Date **pDate,
         void *plContext);
 

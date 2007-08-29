@@ -36,7 +36,7 @@
  * the terms of any one of the MPL, the GPL or the LGPL.
  *
  * ***** END LICENSE BLOCK ***** */
-/* $Id: nssinit.c,v 1.80 2007-05-25 07:28:37 alexei.volkov.bugs%sun.com Exp $ */
+/* $Id: nssinit.c,v 1.81 2007-08-29 00:12:08 alexei.volkov.bugs%sun.com Exp $ */
 
 #include <ctype.h>
 #include "seccomon.h"
@@ -55,6 +55,7 @@
 #include "nssbase.h"
 #include "pkixt.h"
 #include "pkix.h"
+#include "pkix_tools.h"
 
 #include "pki3hack.h"
 #include "certi.h"
@@ -518,12 +519,17 @@ loser:
 
     if (SECSuccess == rv) {
 	pkixError = PKIX_Initialize
-	    (PKIX_FALSE, PKIX_TRUE, PKIX_MAJOR_VERSION, PKIX_MINOR_VERSION,
+	    (PKIX_FALSE, PKIX_FALSE, PKIX_MAJOR_VERSION, PKIX_MINOR_VERSION,
 	    PKIX_MINOR_VERSION, &actualMinorVersion, &plContext);
 
 	if (pkixError != NULL) {
 	    rv = SECFailure;
-	}
+	} else {
+            char *ev = getenv("NSS_ENABLE_PKIX_VERIFY");
+            if (ev && ev[0]) {
+                cert_SetPKIXValidation(PR_TRUE);
+            }
+        }
     }
 
     return rv;
@@ -805,6 +811,7 @@ NSS_Shutdown(void)
     }
     ShutdownCRLCache();
     OCSP_ShutdownCache();
+    PKIX_Shutdown(plContext);
     SECOID_Shutdown();
     status = STAN_Shutdown();
     cert_DestroySubjectKeyIDHashTable();

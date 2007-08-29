@@ -94,6 +94,7 @@ PKIX_Initialize(
         void *plContext = NULL;
 
         PKIX_ENTER(LIFECYCLE, "PKIX_Initialize");
+        PKIX_NULLCHECK_ONE(pPlContext);
 
         /*
          * This function can only be called once, except for a special-situation

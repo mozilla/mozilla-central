@@ -43,6 +43,7 @@
 #include "keyhi.h"
 #include "cert.h"
 #include "certdb.h"
+#include "certi.h"
 #include "cryptohi.h"
 
 #ifndef NSS_3_4_CODE
@@ -411,8 +412,8 @@ loser:
 
 
 
-static void
-AddToVerifyLog(CERTVerifyLog *log, CERTCertificate *cert, unsigned long error,
+void
+cert_AddToVerifyLog(CERTVerifyLog *log, CERTCertificate *cert, unsigned long error,
 	       unsigned int depth, void *arg)
 {
     CERTVerifyLogNode *node, *tnode;
@@ -473,14 +474,14 @@ AddToVerifyLog(CERTVerifyLog *log, CERTCertificate *cert, unsigned long error,
 
 #define LOG_ERROR_OR_EXIT(log,cert,depth,arg) \
     if ( log != NULL ) { \
-	AddToVerifyLog(log, cert, PORT_GetError(), depth, (void *)arg); \
+	cert_AddToVerifyLog(log, cert, PORT_GetError(), depth, (void *)arg); \
     } else { \
 	goto loser; \
     }
 
 #define LOG_ERROR(log,cert,depth,arg) \
     if ( log != NULL ) { \
-	AddToVerifyLog(log, cert, PORT_GetError(), depth, (void *)arg); \
+	cert_AddToVerifyLog(log, cert, PORT_GetError(), depth, (void *)arg); \
     }
 
 
@@ -940,12 +941,8 @@ CERT_VerifyCertChain(CERTCertDBHandle *handle, CERTCertificate *cert,
 			 wincx, log, NULL);
 }
 
-/*
- * verify that a CA can sign a certificate with the requested usage.
- * XXX This function completely ignores cert path length constraints!
- */
 SECStatus
-CERT_VerifyCACertForUsage(CERTCertDBHandle *handle, CERTCertificate *cert,
+cert_VerifyCACertForUsage(CERTCertDBHandle *handle, CERTCertificate *cert,
 		PRBool checkSig, SECCertUsage certUsage, int64 t,
 		void *wincx, CERTVerifyLog *log)
 {
@@ -1117,6 +1114,23 @@ done:
     return rv;
 }
 
+/*
+ * verify that a CA can sign a certificate with the requested usage.
+ * XXX This function completely ignores cert path length constraints!
+ */
+SECStatus
+CERT_VerifyCACertForUsage(CERTCertDBHandle *handle, CERTCertificate *cert,
+		PRBool checkSig, SECCertUsage certUsage, int64 t,
+		void *wincx, CERTVerifyLog *log)
+{
+    if (cert_UsePKIXValidation()) {
+        return cert_VerifyCertPkix(cert, checkSig, certUsage,
+                                   t, PR_TRUE, wincx, log);
+    }
+    return cert_VerifyCACertForUsage(handle, cert, checkSig, certUsage, t,
+                                     wincx, log);
+}
+
 #define NEXT_USAGE() { \
     i*=2; \
     certUsage++; \
@@ -1137,20 +1151,8 @@ done:
     NEXT_USAGE(); \
 }
 
-/*
- * verify a certificate by checking if it's valid and that we
- * trust the issuer.
- *
- * certificateUsage contains a bitfield of all cert usages that are
- * required for verification to succeed
- *
- * a bitfield of cert usages is returned in *returnedUsages
- * if requiredUsages is non-zero, the returned bitmap is only
- * for those required usages, otherwise it is for all usages
- *
- */
 SECStatus
-CERT_VerifyCertificate(CERTCertDBHandle *handle, CERTCertificate *cert,
+cert_VerifyCertificate(CERTCertDBHandle *handle, CERTCertificate *cert,
 		PRBool checkSig, SECCertificateUsage requiredUsages, int64 t,
 		void *wincx, CERTVerifyLog *log, SECCertificateUsage* returnedUsages)
 {
@@ -1383,10 +1385,41 @@ CERT_VerifyCertificate(CERTCertDBHandle *handle, CERTCertificate *cert,
 loser:
     return(valid);
 }
-			
-/* obsolete, do not use for new code */
+
+/*
+ * verify a certificate by checking if it's valid and that we
+ * trust the issuer.
+ *
+ * certificateUsage contains a bitfield of all cert usages that are
+ * required for verification to succeed
+ *
+ * a bitfield of cert usages is returned in *returnedUsages
+ * if requiredUsages is non-zero, the returned bitmap is only
+ * for those required usages, otherwise it is for all usages
+ *
+ */
 SECStatus
-CERT_VerifyCert(CERTCertDBHandle *handle, CERTCertificate *cert,
+CERT_VerifyCertificate(CERTCertDBHandle *handle,
+                       CERTCertificate *cert,
+                       PRBool checkSig,
+                       SECCertificateUsage requiredUsages,
+                       int64 t,
+                       void *wincx,
+                       CERTVerifyLog *log,
+                       SECCertificateUsage* returnedUsages)
+{
+    if (cert_UsePKIXValidation()) {
+        return cert_VerifyCertificatePkix(cert, checkSig,
+                                          requiredUsages, t,
+                                          wincx, log, returnedUsages);
+    }
+    return cert_VerifyCertificate(handle, cert, checkSig,
+                                  requiredUsages, t,
+                                  wincx, log, returnedUsages);
+}
+
+static SECStatus
+cert_VerifyCert(CERTCertDBHandle *handle, CERTCertificate *cert,
 		PRBool checkSig, SECCertUsage certUsage, int64 t,
 		void *wincx, CERTVerifyLog *log)
 {
@@ -1567,6 +1600,19 @@ loser:
     rv = SECFailure;
     
     return(rv);
+}
+
+SECStatus
+CERT_VerifyCert(CERTCertDBHandle *handle, CERTCertificate *cert,
+		PRBool checkSig, SECCertUsage certUsage, int64 t,
+		void *wincx, CERTVerifyLog *log)
+{
+    if (cert_UsePKIXValidation()) {
+        return cert_VerifyCertPkix(cert, checkSig, certUsage,
+                                   t, PR_FALSE, wincx, log);
+    } 
+    return cert_VerifyCert(handle, cert, checkSig,
+                           certUsage, t, wincx, log);
 }
 
 /*

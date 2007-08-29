@@ -1628,6 +1628,58 @@ cleanup:
 
 
 /*
+ * FUNCTION: PKIX_PL_Cert_CreateFromCERTCertificate
+ *  (see comments in pkix_pl_pki.h)
+ */
+PKIX_Error *
+PKIX_PL_Cert_CreateFromCERTCertificate(
+        const CERTCertificate *nssCert,
+        PKIX_PL_Cert **pCert,
+        void *plContext)
+{
+        void *buf = NULL;
+        PKIX_UInt32 len;
+        PKIX_PL_ByteArray *byteArray = NULL;
+
+        PKIX_ENTER(CERT, "PKIX_PL_Cert_CreateWithNssCert");
+        PKIX_NULLCHECK_TWO(pCert, nssCert);
+
+        buf = (void*)nssCert->derCert.data;
+        len = nssCert->derCert.len;
+
+        PKIX_CHECK(
+            PKIX_PL_ByteArray_Create(buf, len, &byteArray, plContext),
+            PKIX_BYTEARRAYCREATEFAILED);
+
+        PKIX_CHECK(
+            PKIX_PL_Cert_Create(byteArray, pCert, plContext),
+            PKIX_CERTCREATEWITHNSSCERTFAILED);
+
+#ifdef PKIX_UNDEF
+        /* will be tested and used as a patch for bug 391612 */
+        nssCert = CERT_DupCertificate(nssInCert);
+
+        PKIX_CHECK(pkix_pl_Cert_CreateWithNSSCert
+                (nssCert, &cert, plContext),
+                PKIX_CERTCREATEWITHNSSCERTFAILED);
+#endif /* PKIX_UNDEF */
+
+cleanup:
+
+#ifdef PKIX_UNDEF
+        if (nssCert && PKIX_ERROR_RECEIVED){
+                PKIX_CERT_DEBUG("\t\tCalling CERT_DestroyCertificate).\n");
+                CERT_DestroyCertificate(nssCert);
+                nssCert = NULL;
+        }
+#endif /* PKIX_UNDEF */
+
+        PKIX_DECREF(byteArray);
+        PKIX_RETURN(CERT);
+}
+
+
+/*
  * FUNCTION: PKIX_PL_Cert_GetVersion (see comments in pkix_pl_pki.h)
  */
 PKIX_Error *
@@ -3458,4 +3510,22 @@ cleanup:
                 SECITEM_FreeItem(encodedSubjInfoAccess, PR_TRUE);
         }
         PKIX_RETURN(CERT);
+}
+
+/*
+ * FUNCTION: PKIX_PL_Cert_GetCERTCertificate
+ * (see comments in pkix_pl_pki.h)
+ */
+PKIX_Error *
+PKIX_PL_Cert_GetCERTCertificate(
+        PKIX_PL_Cert *cert,
+        CERTCertificate **pnssCert, 
+        void *plContext)
+{
+    PKIX_ENTER(CERT, "PKIX_PL_Cert_GetNssCert");
+    PKIX_NULLCHECK_TWO(cert, pnssCert);
+
+    *pnssCert = CERT_DupCertificate(cert->nssCert);
+
+    PKIX_RETURN(CERT);
 }

@@ -406,7 +406,7 @@ pkix_pl_Pk11CertStore_CrlQuery(
                             PKIX_ERROR(PKIX_FETCHINGCACHEDCRLFAILED);
                         }
 
-                        while (*crls != NULL) {
+                        while (crls != NULL && *crls != NULL) {
 
                             PKIX_CHECK_ONLY_FATAL
                                 (pkix_pl_CRL_CreateWithSignedCRL

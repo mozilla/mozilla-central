@@ -36,7 +36,7 @@
 /*
  * certt.h - public data structures for the certificate library
  *
- * $Id: certt.h,v 1.36 2007-05-25 07:28:31 alexei.volkov.bugs%sun.com Exp $
+ * $Id: certt.h,v 1.37 2007-08-29 00:12:01 alexei.volkov.bugs%sun.com Exp $
  */
 #ifndef _CERTT_H_
 #define _CERTT_H_
@@ -578,13 +578,15 @@ struct CERTIssuerAndSNStr {
 #define KU_KEY_AGREEMENT		(0x08)  /* bit 4 */
 #define KU_KEY_CERT_SIGN		(0x04)  /* bit 5 */
 #define KU_CRL_SIGN			(0x02)  /* bit 6 */
+#define KU_ENCIPHER_ONLY		(0x01)  /* bit 7 */
 #define KU_ALL				(KU_DIGITAL_SIGNATURE | \
 					 KU_NON_REPUDIATION | \
 					 KU_KEY_ENCIPHERMENT | \
 					 KU_DATA_ENCIPHERMENT | \
 					 KU_KEY_AGREEMENT | \
 					 KU_KEY_CERT_SIGN | \
-					 KU_CRL_SIGN)
+					 KU_CRL_SIGN | \
+					 KU_ENCIPHER_ONLY)
 
 /* This value will not occur in certs.  It is used internally for the case
  * when the key type is not know ahead of time and either key agreement or

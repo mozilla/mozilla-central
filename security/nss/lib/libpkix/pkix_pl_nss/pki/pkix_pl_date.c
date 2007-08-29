@@ -569,3 +569,18 @@ cleanup:
 
         PKIX_RETURN(DATE);
 }
+
+PKIX_Error *
+PKIX_PL_Date_CreateFromPRTime(
+        PRTime prtime,
+        PKIX_PL_Date **pDate,
+        void *plContext)
+{
+    PKIX_ENTER(DATE, "PKIX_PL_Date_CreateFromPRTime");
+    PKIX_CHECK(
+        pkix_pl_Date_CreateFromPRTime(prtime, pDate, plContext),
+        PKIX_DATECREATEFROMPRTIMEFAILED);
+
+cleanup:
+    PKIX_RETURN(DATE);
+}

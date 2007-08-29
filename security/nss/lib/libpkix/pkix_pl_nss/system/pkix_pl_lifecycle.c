@@ -240,11 +240,13 @@ PKIX_PL_Initialize(
         pkix_pl_HttpDefaultClient_RegisterSelf(plContext);
         pkix_VerifyNode_RegisterSelf(plContext);
 
-        PKIX_CHECK(PKIX_PL_NssContext_Create
-                (0x10, useArenas, NULL, &plContext),
-                PKIX_NSSCONTEXTCREATEFAILED);
-
-        *pPlContext = plContext;
+        if (pPlContext) {
+            PKIX_CHECK(PKIX_PL_NssContext_Create
+                       (0, useArenas, NULL, &plContext),
+                       PKIX_NSSCONTEXTCREATEFAILED);
+            
+            *pPlContext = plContext;
+        }
 
         pkix_pl_initialized = PKIX_TRUE;
 

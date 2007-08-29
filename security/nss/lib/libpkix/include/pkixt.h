@@ -347,7 +347,8 @@ typedef enum {     /* Now invoke all those TYPEMACROs to assign the numbers */
    ERRMACRO(OCSPREQUEST), \
    ERRMACRO(OCSPRESPONSE), \
    ERRMACRO(HTTPDEFAULTCLIENT), \
-   ERRMACRO(VERIFYNODE)
+   ERRMACRO(VERIFYNODE), \
+   ERRMACRO(CERTVFYPKIX)
 
 #define ERRMACRO(type) PKIX_ ## type ## _ERROR
 

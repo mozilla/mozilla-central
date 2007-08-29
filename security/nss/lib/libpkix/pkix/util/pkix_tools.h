@@ -1329,6 +1329,16 @@ extern const PKIX_StdVars zeroStdVars;
 #define PKIX_VERIFYNODE_DEBUG_ARG(expr, arg)
 #endif
 
+#if PKIX_CERTVFYPKIXDEBUG
+#define PKIX_CERTVFYPKIX_DEBUG(expr) \
+        PKIX_DEBUG(expr)
+#define PKIX_CERTVFYPKIX_DEBUG_ARG(expr, arg) \
+        PKIX_DEBUG_ARG(expr, arg)
+#else
+#define PKIX_CERTVFYPKIX_DEBUG(expr)
+#define PKIX_CERTVFYPKIX_DEBUG_ARG(expr, arg)
+#endif
+
 /*
  * All object types register themselves with the system using a
  * pkix_ClassTable_Entry, which consists of a set of functions for that

@@ -3999,7 +3999,7 @@ pkix_Build_InitiateBuildChain(
                                 PKIX_DECREF(state->checkedCritExtOIDs);
                                 PKIX_DECREF(state->checkerChain);
                                 PKIX_DECREF(state->revCheckers);
-                                if (state->verifyNode != NULL) {
+                                if (state->verifyNode != NULL && verifyNode) {
                                     PKIX_CHECK_FATAL(pkix_VerifyNode_AddToTree
                                         (state->verifyNode,
                                         verifyNode,
@@ -4012,6 +4012,7 @@ pkix_Build_InitiateBuildChain(
                                     /* The result from cache is still valid. */
                                     *pBuildResult = buildResult;
                                     if (pVerifyNode != NULL) {
+                                        PKIX_INCREF(state->verifyNode);
                                         *pVerifyNode = state->verifyNode;
                                     }
                                     goto cleanup;
