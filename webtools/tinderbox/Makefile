@@ -78,7 +78,6 @@ FILES = \
 	imagelog.pl \
 	showbuilds.pl \
 	tbglobals.pl \
-	viewvc.pl \
 	Empty.html \
 	faq.html \
 	index.html \
