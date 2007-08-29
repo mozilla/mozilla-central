@@ -67,7 +67,11 @@ exit 0 if (!$use_bonsai && !$use_viewvc);
 my $lockfile = "$tree/buildwho.sem";
 my $lock = lock_datafile($lockfile);
 
-require 'viewvc.pl';
+if ($use_bonsai) {
+    $::CVS_ROOT = $cvs_root;
+}
+
+require 'cvsquery.pl';
 
 build_who($tree);
 
@@ -87,27 +91,26 @@ sub build_who {
 
     print "Minimum date: $::query_date_min\n" if $F_DEBUG;
 
+    $::query_branchtype='regexp' if $::query_branch =~ /\*|\?|\+/;
+    $::query_branch_head=1 if $::query_branch eq 'HEAD';
+
     if ($use_viewvc) {
         $::query_module=$viewvc_repository;
+        $result = query_checkins_viewvc($tree);
     } elsif ($use_bonsai) {
         $::query_module=$cvs_module;
         $::query_branch=$cvs_branch;
+        $result = query_checkins_bonsai($tree);
     } else {
         # Should never reach this
         return;
     }
 
-    $::query_branchtype='regexp' if $::query_branch =~ /\*|\?|\+/;
-    $::query_branch_head=1 if $::query_branch eq 'HEAD';
-
+    my $last_who='';
+    my $last_date=0;
     my $who_file = "$tree/who.dat";
     my $temp_who_file = "$who_file.$$";
     open(WHOLOG, ">", "$temp_who_file");
-
-    $result = query_checkins($tree);
-
-    my $last_who='';
-    my $last_date=0;
     for my $ci (@$result) {
         if ($ci->[$::CI_DATE] != $last_date or $ci->[$::CI_WHO] ne $last_who) {
             print WHOLOG "$ci->[$::CI_DATE]|$ci->[$::CI_WHO]\n";

@@ -411,6 +411,20 @@ sub value_encode {
   return $s;
 }
 
+# Quotify a string, suitable for output as form values
+sub value_quote {
+    my ($var) = (@_);
+
+    return "" if (!defined($var));
+    $var =~ s/\&/\&amp;/g;
+    $var =~ s/</\&lt;/g;
+    $var =~ s/>/\&gt;/g;
+    $var =~ s/\"/\&quot;/g;
+    $var =~ s/\n/\&#010;/g;
+    $var =~ s/\r/\&#013;/g;
+    return $var;
+}
+
 # Only allow characters suitable for invoking a shell process
 sub shell_escape {
     my ($file) = @_;
