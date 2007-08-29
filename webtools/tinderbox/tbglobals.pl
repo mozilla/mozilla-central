@@ -76,6 +76,9 @@ $::default_hours = 12;
 # $::query_date_max
 # $::query_logexpr
 
+# Limit total data shown at once to 1 week (168 hours)
+my $max_hours = 168;
+
 # Set this to show real end times for builds instead of just using
 # the start of the next build as the end time.
 my $display_accurate_build_end_times = 1;
@@ -545,9 +548,19 @@ sub tb_load_data($) {
     $td->{scrape_builds} = &tb_load_scrapebuilds($tree);
     $td->{warning_builds} = &tb_load_warningbuilds($tree);
     $td->{cvs_root} = $::global_treedata->{$tree}->{cvs_root};
-    $td->{maxdate} = $form_ref->{maxdate} || $::nowdate;
     my $hours = $form_ref->{hours} || $::default_hours;
-    $td->{mindate} = $form_ref->{mindate} || $td->{maxdate} - $hours*60*60;
+    $td->{maxdate} = $form_ref->{maxdate};
+    if (!defined($td->{maxdate}) || $td->{maxdate} <= 0) {
+        $td->{maxdate} = $::nowdate;
+    }
+    # Mindate must be within $max_hours of maxdate
+    $td->{mindate} = $form_ref->{mindate};
+    if (!defined($td->{mindate})) {
+        $td->{mindate} = $td->{maxdate} - $hours*60*60;
+    } elsif ($td->{mindate} < $td->{maxdate} - $max_hours*60*60) {
+        $td->{mindate} = $td->{maxdate} - $max_hours*60*60;
+    }
+    $td->{mindate} = 0 if ($td->{mindate} < 0);
 
     my $build_list = &load_buildlog($td, $form_ref);
   
@@ -1175,7 +1188,18 @@ sub split_cgi_args {
         $value =~ s/%([a-fA-F0-9]{2})/pack("C", hex($1))/eg;
         $form{$key} = $value;
     }
-    
+
+    # Sanitize form values
+    # The hours field is passed from cgi to cgi so make sure that
+    # it contains a proper value if defined
+    if (defined($form{'hours'})) {
+        if ($form{'hours'} > $max_hours) {
+            $form{'hours'} = $max_hours;
+        } elsif ($form{'hours'} <= 0) {
+            $form{'hours'} = $::default_hours;
+        }
+    }
+
     return %form;
 }
 
