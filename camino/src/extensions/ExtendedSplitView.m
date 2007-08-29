@@ -242,6 +242,31 @@
       }
     }
   }
+  // NSSplitView is brain-dead, and leaves collapsed views in the tab chain,
+  // so we need to force collapsed views to be skipped.
+  NSEnumerator* subviewEnumerator = [[self subviews] objectEnumerator];
+  NSView* subview;
+  while ((subview = [subviewEnumerator nextObject])) {
+    if ([self isSubviewCollapsed:subview] && ![subview isHidden]) {
+      [subview setHidden:YES];
+      // Don't leave focus in the view we are collapsing.
+      NSResponder* firstResponder = [[self window] firstResponder];
+      if (firstResponder == subview ||
+          ([firstResponder isKindOfClass:[NSView class]] &&
+           [(NSView*)firstResponder isDescendantOf:subview])) {
+        if (![[subview nextValidKeyView] isDescendantOf:self] &&
+            [[subview previousValidKeyView] isDescendantOf:self]) {
+          [[self window] makeFirstResponder:[subview previousValidKeyView]];
+        }
+        else {
+          [[self window] makeFirstResponder:[subview nextValidKeyView]];
+        }
+      }
+    }
+    else if (![self isSubviewCollapsed:subview] && [subview isHidden]) {
+      [subview setHidden:NO];
+    }
+  }
   [super drawDividerInRect:inRect];
 }
 
