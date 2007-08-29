@@ -194,6 +194,7 @@
 <!ENTITY reminder.relation.end.label                    "the event ends">
 
 <!-- Attendees dialog -->
+<!ENTITY invite.title.label              "Invite Attendees">
 <!ENTITY event.organizer.label           "Organizer">
 <!ENTITY event.freebusy.suggest.slot     "Suggest time slot:">
 <!ENTITY event.freebusy.next.slot        "Next slot " >

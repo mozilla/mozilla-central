@@ -47,7 +47,7 @@
 ]>
 
 <dialog id="sun-calendar-event-dialog-recurrence"
-        title="&event.title.label;"
+        title="&invite.title.label;"
         onload="onLoad()"
         ondialogaccept="return onAccept();"
         ondialogcancel="return onCancel();"
