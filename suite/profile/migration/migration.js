@@ -305,19 +305,16 @@ var MigrationWizard = {
       source = "sourceName" + this._source;
     }
 
-    // semi-wallpaper for crash when multiple profiles exist,
-    // since we haven't initialized mSourceProfile in places
-    this._migrator.getMigrateData(this._selectedProfile, this._autoMigrate);
+    var availableItems = this._migrator.getMigrateData(this._selectedProfile,
+                                                       this._autoMigrate);
 
-    var oldHomePageURL = this._migrator.sourceHomePageURL;
-
-    if (oldHomePageURL && source) {
+    if (source && (availableItems & nsISuiteProfileMigrator.HOMEPAGEDATA)) {
       var appName = document.getElementById("bundle").getString(source);
       var oldHomePageLabel = bundle.getFormattedString("homePageImport",
                                                        [appName]);
       var oldHomePage = document.getElementById("oldHomePage");
       oldHomePage.setAttribute("label", oldHomePageLabel);
-      oldHomePage.setAttribute("value", oldHomePageURL);
+      oldHomePage.setAttribute("value", "source");
       oldHomePage.removeAttribute("hidden");
       oldHomePage.focus();
 
@@ -343,11 +340,15 @@ var MigrationWizard = {
     this._wiz.canRewind = false;
     this._wiz.canAdvance = false;
 
-    // When automigrating, show all of the data that can be received
-    // from this source.
-    if (this._autoMigrate)
+    // When migrating a profile on startup, show all of the data that can be
+    // received from this source, but exclude home pages if the user didn't
+    // want to migrate it.
+    if (this._autoMigrate) {
       this._itemsFlags = this._migrator.getMigrateData(this._selectedProfile,
                                                        this._autoMigrate);
+      if (!this._newHomePage)
+        this._itemsFlags &= ~nsISuiteProfileMigrator.HOMEPAGEDATA;
+    }
 
     this._listItems("migratingItems");
     setTimeout(this.onMigratingMigrate, 0, this);
@@ -412,48 +413,13 @@ var MigrationWizard = {
         label.setAttribute("class", "migration-finished");
       break;
     case "Migration:Ended":
-      if (this._autoMigrate) {
-        // If _newHomePage is default, don't touch the current pref - 
-        // then if a new profile it won't be set, if not a new profile
-        // it'll be left as what the user wanted.
-        if (this._newHomePage) {
-          try {
-            // set homepage properly - we must also ensure the pref branch
-            // saves the file in the correct place, because the migrating
-            // code sometimes changes it to be able to load old pref files.
-            var prefSvc = Components.classes["@mozilla.org/preferences-service;1"]
-                                    .getService(Components.interfaces.nsIPrefService);
+      // We're done now.
+      this._wiz.canAdvance = true;
+      this._wiz.advance();
 
-            var prefBranch = prefSvc.getBranch(null);
-
-            var str = Components.classes["@mozilla.org/supports-string;1"]
-                                .createInstance(nsISupportsString);
-
-            str.data = this._newHomePage;
-            prefBranch.setComplexValue("browser.startup.homepage",
-                                       nsISupportsString, str);
-
-            var dirSvc = Components.classes["@mozilla.org/file/directory_service;1"]
-                                   .getService(Components.interfaces.nsIProperties);
-
-            var prefFile = dirSvc.get("ProfDS", Components.interfaces.nsIFile);
-            prefFile.append("prefs.js");
-            prefSvc.savePrefFile(prefFile);
-          } catch(ex) {
-            dump(ex);
-          }
-        }
-
-        // We're done now.
-        this._wiz.canAdvance = true;
-        this._wiz.advance();
-
+      if (this._autoMigrate)
         setTimeout(function() {window.close();}, 5000);
-      }
-      else {
-        this._wiz.canAdvance = true;
-        this._wiz.advance();
-      }
+
       break;
     }
   },

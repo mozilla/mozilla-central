@@ -231,15 +231,15 @@ nsNetscapeProfileMigratorBase::GetSourceProfiles(nsISupportsArray** aResult)
   return NS_OK;
 }
 
-NS_IMETHODIMP
-nsNetscapeProfileMigratorBase::GetSourceHomePageURL(nsACString& aResult)
+PRBool
+nsNetscapeProfileMigratorBase::GetSourceHasHomePageURL()
 {
   // Load the source pref file
   nsCOMPtr<nsIPrefService> psvc(do_GetService(NS_PREFSERVICE_CONTRACTID));
   psvc->ResetPrefs();
 
   nsCOMPtr<nsIFile> sourcePrefsFile;
-  
+
   mSourceProfile->Clone(getter_AddRefs(sourcePrefsFile));
   sourcePrefsFile->AppendNative(NS_LITERAL_CSTRING(FILE_NAME_PREFS));
 
@@ -250,19 +250,41 @@ nsNetscapeProfileMigratorBase::GetSourceHomePageURL(nsACString& aResult)
   PRBool hasUserValue;
   nsresult rv = branch->PrefHasUserValue("browser.startup.homepage",
                                          &hasUserValue);
-  if (NS_SUCCEEDED(rv) && hasUserValue) {
-    nsCOMPtr<nsIPrefLocalizedString> prefValue;
-    rv = branch->GetComplexValue("browser.startup.homepage",
-                                 NS_GET_IID(nsIPrefLocalizedString),
-                                 getter_AddRefs(prefValue));
 
-    if (NS_SUCCEEDED(rv) && prefValue) {
-      nsString data;
-      prefValue->ToString(getter_Copies(data));
+  return NS_SUCCEEDED(rv) && hasUserValue;
+}
 
-      CopyUTF16toUTF8(data, aResult);
-    }
-  }
+nsresult
+nsNetscapeProfileMigratorBase::CopyHomePageData(PRBool aReplace)
+{
+  // Load the source pref file
+  nsCOMPtr<nsIPrefService> psvc(do_GetService(NS_PREFSERVICE_CONTRACTID));
+  psvc->ResetPrefs();
+
+  nsCOMPtr<nsIFile> sourcePrefsFile;
+  mSourceProfile->Clone(getter_AddRefs(sourcePrefsFile));
+  sourcePrefsFile->AppendNative(nsDependentCString(FILE_NAME_PREFS));
+  psvc->ReadUserPrefs(sourcePrefsFile);
+
+  PBStructArray homepageBranch;
+  ReadBranch("browser.startup.homepage", psvc, homepageBranch);
+
+  // Now that we have all the pref data in memory, load the target pref file,
+  // and write it back out
+  psvc->ResetPrefs();
+
+  nsCOMPtr<nsIFile> targetPrefsFile;
+  mTargetProfile->Clone(getter_AddRefs(targetPrefsFile));
+  targetPrefsFile->AppendNative(nsDependentCString(FILE_NAME_PREFS));
+
+  // Don't use nsnull here as we're too early in the cycle for the prefs
+  // service to get its default file (because the NS_GetDirectoryService items
+  // aren't fully set up yet).
+  psvc->ReadUserPrefs(targetPrefsFile);
+
+  WriteBranch("browser.startup.homepage", psvc, homepageBranch);
+
+  psvc->SavePrefFile(targetPrefsFile);
 
   return NS_OK;
 }

@@ -40,7 +40,7 @@
 interface nsISupportsArray;
 interface nsIProfileStartup;
 
-[scriptable, uuid(1c055ba1-2db5-46da-a04a-f668463a4ed0)]
+[scriptable, uuid(03d2094a-db39-4c4b-a44e-bbae49e577a5)]
 interface nsISuiteProfileMigrator : nsISupports 
 {
   /**
@@ -49,7 +49,7 @@ interface nsISuiteProfileMigrator : nsISupports
   const unsigned short SETTINGS         = 0x0001;
   const unsigned short COOKIES          = 0x0002;
   const unsigned short HISTORY          = 0x0004;
-  const unsigned short FORMDATA         = 0x0008;
+  const unsigned short HOMEPAGEDATA     = 0x0008;
   const unsigned short PASSWORDS        = 0x0010;
   const unsigned short BOOKMARKS        = 0x0020;
   const unsigned short OTHERDATA        = 0x0040;
@@ -67,7 +67,8 @@ interface nsISuiteProfileMigrator : nsISupports
    * @param aReplace replace or append current data where applicable. 
    * @param aProfile profile to migrate from, if there is more than one.
    */
-  void migrate(in unsigned short aItems, in nsIProfileStartup aStartup, in wstring aProfile);
+  void migrate(in unsigned short aItems, in nsIProfileStartup aStartup,
+               in wstring aProfile);
 
   /**
    * A bit field containing profile items that this migrator is able
@@ -105,9 +106,4 @@ interface nsISuiteProfileMigrator : nsISupports
    * not support profiles, this attribute is null.
    */
   readonly attribute nsISupportsArray sourceProfiles;
-  
-  /**
-   * The import source homepage.  Returns null if not present/available
-   */
-  readonly attribute AUTF8String      sourceHomePageURL;
 };

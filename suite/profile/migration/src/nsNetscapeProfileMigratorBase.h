@@ -115,7 +115,6 @@ public:
   NS_IMETHOD GetSourceExists(PRBool *aSourceExists);
   NS_IMETHOD GetSourceHasMultipleProfiles(PRBool *aSourceHasMultipleProfiles);
   NS_IMETHOD GetSourceProfiles(nsISupportsArray * *aSourceProfiles);
-  NS_IMETHOD GetSourceHomePageURL(nsACString & aSourceHomePageURL);
 
   // Pref Transform Methods
   static nsresult GetString(PrefTransform* aTransform, nsIPrefBranch* aBranch);
@@ -166,6 +165,8 @@ protected:
   nsresult CopyOtherData(PRBool aReplace);
   nsresult ImportNetscapeBookmarks(const char* aBookmarksFileName,
                                    const char* aImportSourceNameKey);
+  PRBool GetSourceHasHomePageURL();
+  nsresult CopyHomePageData(PRBool aReplace);
 
   // Mail Import Functions
   nsresult CopyAddressBookDirectories(PBStructArray &aLdapServers,

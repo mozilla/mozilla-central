@@ -95,6 +95,10 @@ nsSeamonkeyProfileMigrator::Migrate(PRUint16 aItems,
 
   NOTIFY_OBSERVERS(MIGRATION_STARTED, nsnull);
 
+  if (aItems & nsISuiteProfileMigrator::HOMEPAGEDATA)
+    COPY_DATA(CopyHomePageData, aReplace,
+              nsISuiteProfileMigrator::HOMEPAGEDATA);
+
   COPY_DATA(CopyPreferences,  aReplace, nsISuiteProfileMigrator::SETTINGS);
   COPY_DATA(CopyCookies,      aReplace, nsISuiteProfileMigrator::COOKIES);
   COPY_DATA(CopyHistory,      aReplace, nsISuiteProfileMigrator::HISTORY);
@@ -199,6 +203,10 @@ nsSeamonkeyProfileMigrator::GetMigrateData(const PRUnichar* aProfile,
       *aResult |= nsISuiteProfileMigrator::PASSWORDS;
   }
 
+  // Now see if the homepages have anything to migrate.
+  if (GetSourceHasHomePageURL())
+    *aResult |= nsISuiteProfileMigrator::HOMEPAGEDATA;
+
   return NS_OK;
 }
 
@@ -207,9 +215,7 @@ nsSeamonkeyProfileMigrator::GetSupportedItems(PRUint16 *aSupportedItems)
 {
   NS_ENSURE_ARG_POINTER(aSupportedItems);
 
-  // All except form data
-  *aSupportedItems = nsISuiteProfileMigrator::ALL &
-                     ~nsISuiteProfileMigrator::FORMDATA;
+  *aSupportedItems = nsISuiteProfileMigrator::ALL;
 
   return NS_OK;
 }
