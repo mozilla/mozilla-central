@@ -182,6 +182,13 @@
 			</array>
 		</dict>
 	</array>
+	<key>LSFileQuarantineEnabled</key>
+	<true/>
+	<key>LSFileQuarantineExcludedPathPatterns</key>
+	<array>
+		<string>~/Library/Caches/*</string>
+		<string>~/Library/Application Support/*</string>
+	</array>
 	<key>OSAScriptingDefinition</key>
 	<string>Camino.sdef</string>
 	<key>mozProfileDirName</key>
