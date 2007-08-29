@@ -335,7 +335,7 @@ BEGIN {
             my $logfile = $br->{logfile};
             my $buildtree = $br->{td}->{name};
 
-            my $logfileexists = ( -f $logfile ? 1 : 0 );
+            my $logfileexists = ( -f "$buildtree/$logfile" ? 1 : 0 );
             
             print "<tt>\n";
             
@@ -872,9 +872,10 @@ var blurb = "<B>" + builds[buildindex] + "</B><BR>";
 
 if (logfileexists) {
     blurb = blurb + "<A HREF=" + logurl + ">View Brief Log</A><BR>"
-        + "<A HREF=" + logurl + "&fulltext=1"+">View Full Log</A><BR>"
-        + "<A HREF=" + commenturl + ">Add a Comment</A>";
+        + "<A HREF=" + logurl + "&fulltext=1"+">View Full Log</A><BR>";
 }
+
+blurb = blurb + "<A HREF=" + commenturl + ">Add a Comment</A>";
 
 if (typeof document.layers != 'undefined') {
     var q = document.layers["logpopup"];
