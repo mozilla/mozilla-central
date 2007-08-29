@@ -55,6 +55,7 @@ sub query_checkins_bonsai {
     my ($ci,$result,$lastlog,$rev,$begin_tag,$end_tag);
     my $have_mod_map;
     my @bind_values;
+    my $currentquery;
 
     $::query_module = 'all' unless defined $::query_module;
     if( $::query_module ne 'all' && $::query_module ne 'allrepositories' && @::query_dirs == 0 ){
@@ -201,11 +202,11 @@ sub query_checkins_bonsai {
         print "</pre>\n";
     }
 
-    SendSQL($qstring, @bind_values);
+    SendSQL(\$currentquery, $qstring, @bind_values);
 
     $lastlog = 0;
     my @row;
-    while (@row = FetchSQLData()) {
+    while (@row = FetchSQLData(\$currentquery)) {
 #print "<pre>";
         $ci = [];
         for (my $i=0 ; $i<=$::CI_LOG ; $i++) {
