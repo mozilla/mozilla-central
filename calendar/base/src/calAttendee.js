@@ -197,12 +197,18 @@ calAttendee.prototype = {
             this.mProperties.deleteProperty(aName.toUpperCase());
         } catch (e) {
         }
+    },
+
+    get id() {
+        return this.mId;
+    },
+    set id(aId) {
+        return this.mId = aId.replace(/^mailto:/i, "MAILTO:");
     }
 };
 
 var makeMemberAttr;
 if (makeMemberAttr) {
-    makeMemberAttr(calAttendee, "mId", null, "id");
     makeMemberAttr(calAttendee, "mCommonName", null, "commonName");
     makeMemberAttr(calAttendee, "mRole", null, "role");
     makeMemberAttr(calAttendee, "mParticipationStatus", "NEEDS-ACTION",

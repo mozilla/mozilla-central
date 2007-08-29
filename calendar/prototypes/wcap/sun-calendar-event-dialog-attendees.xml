@@ -242,7 +242,9 @@
                   var provider = calendar.QueryInterface(Components.interfaces.calIWcapCalendar);
                   var props = provider.getCalendarProperties("X-S1CS-CALPROPS-COMMON-NAME", {});
                   if (props.length > 0) {
-                      organizer.commonName = props[0];
+                      if(organizer.commonName.length <= 0) {
+                         organizer.commonName = props[0];
+                      }
                   }
               }
               catch (e) {

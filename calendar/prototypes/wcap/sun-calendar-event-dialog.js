@@ -208,30 +208,26 @@ function onAccept() {
 }
 
 function onCommandCancel() {
-    // assume that new items need to be asked whether or
-    // not the newly created item wants to be saved.
-    var isNew = window.calendarItem.isMutable;
-    if (!isNew) {
-        var newItem = saveItem();
-        var oldItem = window.calendarItem.clone();
+    // find out if we should bring up the 'do you want to save?' question...
+    var newItem = saveItem();
+    var oldItem = window.calendarItem.clone();
 
-        newItem.deleteProperty("DTSTAMP");
-        oldItem.deleteProperty("DTSTAMP");
+    newItem.deleteProperty("DTSTAMP");
+    oldItem.deleteProperty("DTSTAMP");
 
-        // we need to guide the description text through the text-field since
-        // newlines are getting converted which would indicate changes to the
-        // text.
-        setElementValue("item-description", oldItem.getProperty("DESCRIPTION"));
-        setItemProperty(oldItem,
-                        "DESCRIPTION",
-                        getElementValue("item-description"));
+    // we need to guide the description text through the text-field since
+    // newlines are getting converted which would indicate changes to the
+    // text.
+    setElementValue("item-description", oldItem.getProperty("DESCRIPTION"));
+    setItemProperty(oldItem,
+                    "DESCRIPTION",
+                    getElementValue("item-description"));
 
-        var a = newItem.icalString;
-        var b = oldItem.icalString;
-
-        if (newItem.icalString == oldItem.icalString) {
-            return true;
-        }
+    // compare old and new version of this item. we ask the item for its
+    // representation as icalString in order to have some easily comparable
+    // form we can work with.
+    if (newItem.icalString == oldItem.icalString) {
+        return true;
     }
 
     var promptService = Cc["@mozilla.org/embedcomp/prompt-service;1"]
@@ -435,8 +431,13 @@ function loadDialog(item) {
     updateAttendees();
     updateReminderDetails();
 
-    gShowTimeAs = item.hasProperty("TRANSP") ?
-        item.getProperty("TRANSP") : null;
+    // How easy would it be to just call hasProperty(), but unfortunately
+    // this is currently flawed and doesn't give us the answer we're longing for.
+    // hasProperty() unconditionally forwards the request to the parent item
+    // if the property doesn't exist at the occurrence. That's why we need to
+    // use this somewhat awkward construct.
+    gShowTimeAs = (item.getUnproxiedProperty("TRANSP") != null) ?
+        item.getUnproxiedProperty("TRANSP") : null;
     updateShowTimeAs();
 }
 
@@ -1173,7 +1174,21 @@ function editAttendees() {
 
     var callback = function(attendees, organizer, startTime, endTime) {
         savedWindow.attendees = attendees;
-        savedWindow.organizer = organizer;
+        if (organizer) {
+            if (!savedWindow.organizer.id) {
+                organizer.id = null;
+            }
+            if (!savedWindow.organizer.role) {
+                organizer.role = null;
+            }
+            if (!savedWindow.organizer.participationStatus) {
+                organizer.participationStatus = null;
+            }
+            if (!savedWindow.organizer.commonName) {
+                organizer.commonName = null;
+            }
+            savedWindow.organizer = organizer;
+        }
         var duration = endTime.subtractDate(startTime);
         startTime = startTime.clone();
         endTime = endTime.clone();
@@ -1211,7 +1226,7 @@ function editAttendees() {
     args.endTime = endTime;
     args.displayTimezone = displayTimezone;
     args.attendees = window.attendees;
-    args.organizer = window.organizer;
+    args.organizer = window.organizer && window.organizer.clone();
     args.calendar = calendar;
     args.item = window.calendarItem;
     args.onOk = callback;
