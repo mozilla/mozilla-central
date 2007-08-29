@@ -91,15 +91,14 @@ sub build_who {
 
     print "Minimum date: $::query_date_min\n" if $F_DEBUG;
 
-    $::query_branchtype='regexp' if $::query_branch =~ /\*|\?|\+/;
-    $::query_branch_head=1 if $::query_branch eq 'HEAD';
-
     if ($use_viewvc) {
         $::query_module=$viewvc_repository;
         $result = query_checkins_viewvc($tree);
     } elsif ($use_bonsai) {
         $::query_module=$cvs_module;
         $::query_branch=$cvs_branch;
+        $::query_branchtype='regexp' if $::query_branch =~ /\*|\?|\+/;
+        $::query_branch_head=1 if $::query_branch eq 'HEAD';
         $result = query_checkins_bonsai($tree);
     } else {
         # Should never reach this

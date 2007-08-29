@@ -206,8 +206,8 @@ sub query_checkins_bonsai {
 
     $lastlog = 0;
     my @row;
-    while (@row = FetchSQLData(\$currentquery)) {
 #print "<pre>";
+    while (@row = FetchSQLData(\$currentquery)) {
         $ci = [];
         for (my $i=0 ; $i<=$::CI_LOG ; $i++) {
             $ci->[$i] = $row[$i];
@@ -258,6 +258,9 @@ sub query_checkins_bonsai {
         $::lines_removed += $ci->[$::CI_LINES_REMOVED];
         $::versioninfo .= "$ci->[$::CI_WHO]|$ci->[$::CI_DIR]|$ci->[$::CI_FILE]|$ci->[$::CI_REV],";
     }
+
+    DisconnectFromDatabase();
+
     return $result;
 }
 
@@ -291,36 +294,14 @@ sub query_checkins_viewvc($) {
         push(@bind_values, formatSqlTime($::query_date_max));
     }
 
-    if ($::query_branch_head) {
-        $qstring .= " AND branches.branch = ''";
-    } elsif ($::query_branch ne '') {
-        if ($::query_branchtype eq 'regexp') {
-            $qstring .= " AND branches.branch REGEXP ?";
-            push(@bind_values, $::query_branch);
-        } elsif ($::query_branchtype eq 'notregexp') {
-            if ($::query_branch eq 'HEAD') {
-                $qstring .= " AND branches.branch != ''";
-            } else {
-                $qstring .= " and not (branches.branch REGEXP ?)";
-                push(@bind_values, $::query_branch);
-            }
-        } else {
-            $qstring .=
-                " AND (branches.branch = ? OR branches.branch = ?)";
-            push(@bind_values, $::query_branch);
-            push(@bind_values, "T$::query_branch");
-        }
-    }    
-
-
 #    print "Query: $qstring\n";
 #    print "values: @bind_values\n";
     SendSQL(\$currentquery, $qstring, @bind_values);
 
     my $lastlog = 0;
     my (@row, $ci, $rev, $result);
-    while (@row = FetchSQLData(\$currentquery)) {
 #print "<pre>";
+    while (@row = FetchSQLData(\$currentquery)) {
         $ci = [];
         for (my $i=0 ; $i<=$::CI_LOG ; $i++) {
             if ($i == $::CI_DATE) {
