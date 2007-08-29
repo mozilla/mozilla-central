@@ -36,7 +36,7 @@
 /*
  * certt.h - public data structures for the certificate library
  *
- * $Id: certt.h,v 1.37 2007-08-29 00:12:01 alexei.volkov.bugs%sun.com Exp $
+ * $Id: certt.h,v 1.38 2007-08-29 21:59:05 nelson%bolyard.com Exp $
  */
 #ifndef _CERTT_H_
 #define _CERTT_H_
@@ -620,7 +620,10 @@ struct CERTBasicConstraintsStr {
 /* Maximum length of a certificate chain */
 #define CERT_MAX_CERT_CHAIN 20
 
-/* x.509 v3 Reason Falgs, used in CRLDistributionPoint Extension */
+#define CERT_MAX_SERIAL_NUMBER_BYTES  20    /* from RFC 3280 */
+#define CERT_MAX_DN_BYTES             4096  /* arbitrary */
+
+/* x.509 v3 Reason Flags, used in CRLDistributionPoint Extension */
 #define RF_UNUSED			(0x80)	/* bit 0 */
 #define RF_KEY_COMPROMISE		(0x40)  /* bit 1 */
 #define RF_CA_COMPROMISE		(0x20)  /* bit 2 */

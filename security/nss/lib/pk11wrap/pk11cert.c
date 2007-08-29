@@ -1187,6 +1187,14 @@ PK11_FindCertByIssuerAndSNOnToken(PK11SlotInfo *slot,
     SECItem *derSerial;
     PRStatus status;
 
+    if (!issuerSN || !issuerSN->derIssuer.data || !issuerSN->derIssuer.len ||
+        !issuerSN->serialNumber.data || !issuerSN->serialNumber.len || 
+	issuerSN->derIssuer.len    > CERT_MAX_DN_BYTES ||
+	issuerSN->serialNumber.len > CERT_MAX_SERIAL_NUMBER_BYTES ) {
+    	PORT_SetError(SEC_ERROR_INVALID_ARGS);
+	return NULL;
+    }
+
     /* Paranoia */
     if (token == NULL) {
 	PORT_SetError(SEC_ERROR_NO_TOKEN);
@@ -1521,6 +1529,14 @@ PK11_FindCertByIssuerAndSN(PK11SlotInfo **slotPtr, CERTIssuerAndSN *issuerSN,
     NSSDER issuer, serial;
     NSSCryptoContext *cc;
     SECItem *derSerial;
+
+    if (!issuerSN || !issuerSN->derIssuer.data || !issuerSN->derIssuer.len ||
+        !issuerSN->serialNumber.data || !issuerSN->serialNumber.len || 
+	issuerSN->derIssuer.len    > CERT_MAX_DN_BYTES ||
+	issuerSN->serialNumber.len > CERT_MAX_SERIAL_NUMBER_BYTES ) {
+    	PORT_SetError(SEC_ERROR_INVALID_ARGS);
+	return NULL;
+    }
 
     if (slotPtr) *slotPtr = NULL;
 
