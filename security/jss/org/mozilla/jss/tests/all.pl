@@ -37,7 +37,7 @@
 
 use Socket;
 
-
+                                                                                                  
 # dist <dist_dir>
 # release <java release dir> <nss release dir> <nspr release dir>
 # auto   (test the current build directory)
@@ -312,6 +312,7 @@ sub outputEnv {
    print "which perl=";
    system ("which perl");
    system ("$java -version");
+
 }
 sub createpkcs11_cfg {
    
@@ -327,43 +328,39 @@ sub createpkcs11_cfg {
     
     #On windows make sure the path starts with c:
     if ($osname =~ /_NT/i) {
-        if ($nsslibdir =~ /\/c\//i) {
-            substr($nsslibdir, 0, 2, 'c:');
-        }
-        if ($tdir =~ /\/c\//i) {
-            substr($tdir, 0, 2, 'c:');
-        } 
+       substr($nsslibdir, 0, 2) = 'c:';
+       substr($tdir, 0, 2) = 'c:';
     }
-    #the test for java 1.5 relies on the JAVA_HOME path to have the version
+    #the test for java 1.5 or 1.6 relies on the JAVA_HOME path to have the version
     #this is the case for all the build machines and tinderboxes.
-    if ( $java =~ /1.5/i) {
+    if ( $java =~ /1.6/i) {
+       # java 6
+       # http://java.sun.com/javase/6/docs/technotes/guides/security/p11guide.html
+       # note some OS can read the 1.5 configuration but not all can.
+       open (CONFIG, "> $configfile")  || die "couldn't open " . $configfile . " for write";
+       print CONFIG "name=NSS\n";
+       print CONFIG "nssLibraryDirectory=" . "$nsslibdir\n";
+       print CONFIG "nssSecmodDirectory=$tdir\n";
+       print CONFIG "nssDbMode=readWrite\n";
+       print CONFIG "nssModule=keystore\n";
+       close (CONFIG);
 
-    # java 5
-    #http://java.sun.com/j2se/1.5.0/docs/guide/security/p11guide.html
-    open (CONFIG, "> $configfile")  || die "couldn't open " . $configfile . " for write";
-    print CONFIG "name=NSS\n";
-    if ($lib_suffix eq ".jnilib") {
-        print CONFIG "library=" . $nsslibdir  . "/libsoftokn3.dylib\n";
-    } else {
-        print CONFIG "library=" . $nsslibdir  . "/libsoftokn3$lib_suffix\n";
-    }
-    print CONFIG "nssArgs=\"configdir=\'". $tdir . "\' ";
-    print CONFIG "certPrefix=\'\' keyPrefix=\'\' secmod=\'secmod.db\'\"\n";
-    print CONFIG "slot=2\n";
-    close (CONFIG);
+    } else { # default 
 
-    } else {
+       # java 5
+       #http://java.sun.com/j2se/1.5.0/docs/guide/security/p11guide.html
+       open (CONFIG, "> $configfile")  || die "couldn't open " . $configfile . " for write";
+       print CONFIG "name=NSS\n";
+       if ($lib_suffix eq ".jnilib") {
+           print CONFIG "library=" . $nsslibdir  . "/libsoftokn3.dylib\n";
+       } else {
+           print CONFIG "library=" . $nsslibdir  . "/libsoftokn3$lib_suffix\n";
+       }
+       print CONFIG "nssArgs=\"configdir=\'". $tdir . "\' ";
+       print CONFIG "certPrefix=\'\' keyPrefix=\'\' secmod=\'secmod.db\'\"\n";
+       print CONFIG "slot=2\n";
+       close (CONFIG);
 
-    # java 6
-    # http://java.sun.com/javase/6/docs/technotes/guides/security/p11guide.html
-    # note some OS can read the 1.5 configuration but not all can.
-    open (CONFIG, "> $configfile")  || die "couldn't open " . $configfile . " for write";
-    print CONFIG "name=NSS\n";
-    print CONFIG "nssLibraryDirectory=" . "$nsslibdir\n";
-    print CONFIG "nssSecmodDirectory=$tdir\n";
-    print CONFIG "nssDbMode=readWrite\n";
-    print CONFIG "nssModule=keystore\n";
-    close (CONFIG);
     }
     print "nsspkcs11=$configfile\n";
 }
@@ -380,7 +377,7 @@ sub run_ssl_test {
         print "launching server FAILED with return value $result\n";
         return;
     }
-    sleep 3;
+    sleep 5;                                    
     print "\nSSL Server is envoked using port $serverPort \n" ;
     print "$clientCommand \n";
     $result = system("$clientCommand");
@@ -568,8 +565,8 @@ $serverCommand = "./startJssSelfServ.$scriptext $jss_classpath $testdir $hostnam
 $command = "$java -cp $jss_classpath org.mozilla.jss.tests.JSSE_SSLClient $testdir $serverPort $hostname JSS";
 run_ssl_test($testname, $serverCommand, $command);
 
-if ($osname =~ /HP/) {
-    print "don't run the JSSE Server tests on HP.\n";
+if ($osname =~ /HP/ || ($cpu == "amd64" && $java =~ /1.5/i && ($ENV{USE_64}) )) {
+    print "don't run the JSSE Server tests on HP or amd64 with java5.\n";
     print "Java 5 on HP does not have SunPKCS11 class\n"; 
 } else {
 
