@@ -281,7 +281,9 @@ typedef enum {
 - (CHSecurityStrength)securityStrength;
 - (CertificateItem*)siteCertificate;
 
-- (already_AddRefed<nsISupports>)getPageDescriptor;
+// Gets the current page descriptor. If |byFocus| is true, the page descriptor
+// is for the currently focused frame; if not, it's for the top-level frame.
+- (already_AddRefed<nsISupports>)pageDescriptorByFocus:(BOOL)byFocus;
 - (void)setPageDescriptor:(nsISupports*)aDesc displayType:(PRUint32)aDisplayType;
 
 - (already_AddRefed<nsIDocShell>)findDocShellForURI:(nsIURI*)aURI;

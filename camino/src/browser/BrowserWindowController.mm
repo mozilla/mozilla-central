@@ -534,7 +534,7 @@ enum BWCOpenDest {
 - (void)setGeckoActive:(BOOL)inActive;
 - (BOOL)isResponderGeckoView:(NSResponder*) responder;
 - (NSString*)getContextMenuNodeDocumentURL;
-- (void)loadSourceOfURL:(NSString*)urlStr inBackground:(BOOL)loadInBackground;
+- (void)loadSourceForFrame:(BOOL)forFrame inBackground:(BOOL)loadInBackground;
 - (void)transformFormatString:(NSMutableString*)inFormat domain:(NSString*)inDomain search:(NSString*)inSearch;
 - (void)openNewWindowWithDescriptor:(nsISupports*)aDesc displayType:(PRUint32)aDisplayType loadInBackground:(BOOL)aLoadInBG;
 - (void)openNewTabWithDescriptor:(nsISupports*)aDesc displayType:(PRUint32)aDisplayType loadInBackground:(BOOL)aLoadInBG;
@@ -2413,30 +2413,20 @@ enum BWCOpenDest {
   [[mBrowserView getBrowserView] saveURL:aFilterView url:aURLSpec suggestedFilename:aFilename];
 }
 
-- (void)loadSourceOfURL:(NSString*)urlStr inBackground:(BOOL)loadInBackground
+- (void)loadSourceForFrame:(BOOL)forFrame inBackground:(BOOL)loadInBackground
 {
-  BOOL shouldUseTab = [[PreferenceManager sharedInstance] getBooleanPref:"camino.viewsource_in_tab" withSuccess:NULL];
-  NSString* viewSource = [kViewSourceProtocolString stringByAppendingString:urlStr];
-  
-  // first attempt to get the source that's already loaded
-  BOOL canUseCache = NO;
-  nsCOMPtr<nsISupports> desc = [[mBrowserView getBrowserView] getPageDescriptor];
-  if (desc) {
-    // make sure we're not trying to load a subframe by checking |urlStr| against the url in
-    // the desc (which is a history entry). We can only use the desc if it's the toplevel page.
-    nsCOMPtr<nsIHistoryEntry> entry(do_QueryInterface(desc));
-    if (entry) {
-      nsCOMPtr<nsIURI> uri;
-      entry->GetURI(getter_AddRefs(uri));
-      nsCAutoString spec;
-      uri->GetSpec(spec);
-      if ([urlStr isEqualToString:[NSString stringWithUTF8String:spec.get()]])
-        canUseCache = YES;
-    }
+  // First, to get a descriptor so we can load the source from cache
+  nsCOMPtr<nsISupports> desc = [[mBrowserView getBrowserView] pageDescriptorByFocus:forFrame];
+  // If that somehow fails, we'll do it by URL
+  NSString* viewSource = nil;
+  if (!desc) {
+    NSString* urlStr = forFrame ? [[mBrowserView getBrowserView] getFocusedURLString]
+                                : [mBrowserView currentURI];
+    viewSource = [kViewSourceProtocolString stringByAppendingString:urlStr];
   }
 
-  if (shouldUseTab) {
-    if (canUseCache)
+  if ([[PreferenceManager sharedInstance] getBooleanPref:"camino.viewsource_in_tab" withSuccess:NULL]) {
+    if (desc)
       [self openNewTabWithDescriptor:desc displayType:nsIWebPageDescriptor::DISPLAY_AS_SOURCE loadInBackground:loadInBackground];
     else
       [self openNewTabWithURL:viewSource referrer:nil loadInBackground:loadInBackground allowPopups:NO setJumpback:NO];
@@ -2452,7 +2442,7 @@ enum BWCOpenDest {
     else
       [controller showWindow:nil];
 
-    if (canUseCache)
+    if (desc)
       [[[controller getBrowserWrapper] getBrowserView] setPageDescriptor:desc displayType:nsIWebPageDescriptor::DISPLAY_AS_SOURCE];
     else
       [controller loadURL:viewSource];
@@ -2492,17 +2482,14 @@ enum BWCOpenDest {
 - (IBAction)viewSource:(id)aSender
 {
   BOOL loadInBackground = (([[NSApp currentEvent] modifierFlags] & NSShiftKeyMask) != 0);
-  NSString* urlStr = [[mBrowserView getBrowserView] getFocusedURLString];
-  [self loadSourceOfURL:urlStr inBackground:loadInBackground];
+  [self loadSourceForFrame:YES inBackground:loadInBackground];
 }
 
 - (IBAction)viewPageSource:(id)aSender
 {
   // If it's a capital V, shift is down
   BOOL loadInBackground = ([[aSender keyEquivalent] isEqualToString:@"V"]);
-
-  NSString* urlStr = [mBrowserView currentURI];
-  [self loadSourceOfURL:urlStr inBackground:loadInBackground];
+  [self loadSourceForFrame:NO inBackground:loadInBackground];
 }
 
 - (IBAction)printDocument:(id)aSender
