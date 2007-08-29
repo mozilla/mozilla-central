@@ -149,7 +149,7 @@ exit $ERRORS{$state};
 
 sub get_unix_time ($) {
     my $line = shift;
-    if ($line =~ m/.*\|(\d+)$/) {
+    if ($line =~ m/.*\|(\d+)\|/) {
         return "$1";
     } else {
         return undef;
