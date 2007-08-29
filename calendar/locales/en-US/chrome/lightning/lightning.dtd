@@ -68,11 +68,15 @@
 <!ENTITY lightning.calendar.label            "Calendar">
 <!ENTITY lightning.calendar.accesskey        "C">
 <!ENTITY lightning.sidebar.showCompletedTasks.label "Show completed tasks">
+<!ENTITY lightning.sidebar.showCompletedTasks.accesskey "k">
 
 <!-- Mode Toolbar -->
-<!ENTITY lightning.toolbar.mail.label      "Mail">
-<!ENTITY lightning.toolbar.calendar.label  "Calendar">
-<!ENTITY lightning.toolbar.task.label      "Task">
+<!ENTITY lightning.toolbar.mail.label         "Mail">
+<!ENTITY lightning.toolbar.mail.accesskey     "M">
+<!ENTITY lightning.toolbar.calendar.label     "Calendar">
+<!ENTITY lightning.toolbar.calendar.accesskey "C">
+<!ENTITY lightning.toolbar.task.label         "Task">
+<!ENTITY lightning.toolbar.task.accesskey     "T">
 
 <!-- Customize Toolbar Dialog -->
 <!ENTITY customize.toolbar.selector.label    "Toolbar:">

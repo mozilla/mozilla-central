@@ -23,6 +23,7 @@
    -                 Chris Charabaruk <coldacid@meldstar.com>
    -                 Matthew Willis <mattwillis@gmail.com>
    -                 Stefan Sitter <ssitter@googlemail.com>
+   -                 Berend Cornelius <berend.cornelius@sun.com>
    -
    - Alternatively, the contents of this file may be used under the terms of
    - either the GNU General Public License Version 2 or later (the "GPL"), or
@@ -39,8 +40,8 @@
    - ***** END LICENSE BLOCK ***** -->
 
 <!-- Event Menu -->
-<!ENTITY event.menu.title                       "Event">
-<!ENTITY eventMenuCmd.accesskey                 "v">
+<!ENTITY event.menu.label                       "Event">
+<!ENTITY event.menu.accesskey                   "E">
 
 <!ENTITY event.new.event                        "New Event…">
 <!ENTITY event.new.event.key                    "N">
@@ -127,7 +128,7 @@
 <!ENTITY calendar.exit.label                    "Exit">
 <!ENTITY calendar.exit.accesskey                "x">
 
-<!ENTITY calendar.about.label                   "About Calendar">
+<!ENTITY calendar.about.label                   "About &brandShortName;">
 <!ENTITY calendar.about.accesskey               "C">
 
 <!ENTITY calendar.undo.label                    "Undo">
@@ -158,6 +159,10 @@
 <!ENTITY toolbarsMenu.accesskey                 "T">
 
 <!ENTITY calendar.toolbar.label                 "Calendar Toolbar">
+<!ENTITY calendar.toolbar.accesskey             "C">
+
+<!ENTITY mode.toolbar.label                     "Mode Toolbar">
+<!ENTITY mode.toolbar.accesskey                 "M">
 
 <!ENTITY calendar.menu.customize.label          "Customize…">
 <!ENTITY calendar.menu.customize.accesskey      "C">
@@ -277,3 +282,57 @@
 <!ENTITY hideOtherAppsCmdMac.commandkey "H">
 <!ENTITY hideOtherAppsCmdMac.modifiers  "accel,alt">
 <!ENTITY showAllAppsCmdMac.label        "Show All">
+
+<!ENTITY calendar.importcalendar.label          "Import Calendar…">
+<!ENTITY calendar.importcalendar.accesskey      "I">
+
+<!ENTITY calendar.delete.label                  "Delete">
+<!ENTITY calendar.delete.accesskey              "D">
+
+<!ENTITY showCalendarlist.label                 "Calendar List">
+<!ENTITY showCalendarlist.accesskey             "C">
+
+<!ENTITY showCurrentView.label                  "Current View">
+<!ENTITY showCurrentView.accesskey              "V">
+
+<!ENTITY task.menu.label                        "Task">
+<!ENTITY task.menu.accesskey                    "T">
+
+<!ENTITY day.menu.label                         "Day">
+<!ENTITY day.menu.accesskey                     "D">
+
+<!ENTITY week.menu.label                        "Week">
+<!ENTITY week.menu.accesskey                    "W">
+
+<!ENTITY month.menu.label                       "Month">
+<!ENTITY month.menu.accesskey                   "M">
+
+<!ENTITY next.menu.label                        "Next">
+<!ENTITY next.menu.accesskey                    "N">
+
+<!ENTITY previous.menu.label                    "Previous">
+<!ENTITY previous.menu.accesskey                "P">
+
+<!ENTITY calendar.subscribeshort.label          "Subscribe…">
+<!ENTITY calendar.subscribeshort.accesskey      "S">
+
+<!ENTITY calendar.unsubscribeshort.label        "Unsubscribe…">
+<!ENTITY calendar.unsubscribeshort.accesskey    "U">
+
+<!ENTITY calendar.properties.label              "Calendar Properties…">
+<!ENTITY calendar.properties.accesskey          "C">
+
+<!ENTITY calendar.showtasks.label               "Show Tasks…">
+<!ENTITY calendar.showtasks.accesskey           "T">
+
+<!ENTITY series.selectpastevents.label          "Past Events of This Series">
+<!ENTITY series.selectpastevents.accesskey      "P">
+
+<!ENTITY series.selectfutureevents.label        "Future Events of This Series">
+<!ENTITY series.selectfutureevents.accesskey    "F">
+
+<!ENTITY series.selectallevents.label           "All Events of This Series">
+<!ENTITY series.selectallevents.accesskey       "S">
+
+<!ENTITY calendar.selectallevents.label         "All Events of This Calendar">
+<!ENTITY calendar.selectallevents.accesskey     "A">
