@@ -35,8 +35,8 @@
  *
  * ***** END LICENSE BLOCK ***** */
 
-#ifndef __nsCocoaBrowserListener_h__
-#define __nsCocoaBrowserListener_h__
+#ifndef nsCocoaBrowserListener_h__
+#define nsCocoaBrowserListener_h__
 
 #include "nsWeakReference.h"
 #include "nsIInterfaceRequestor.h"
@@ -61,15 +61,15 @@ typedef enum
 } ELinkAttributeType;
 
 class CHBrowserListener : public nsSupportsWeakReference,
-                               public nsIInterfaceRequestor,
-                               public nsIWebBrowserChrome,
-                               public nsIWindowCreator,
-                               public nsIWindowProvider,
-                               public nsIEmbeddingSiteWindow2,
-                               public nsIWebProgressListener2,
-                               public nsIContextMenuListener,
-                               public nsIDOMEventListener,
-                               public nsITooltipListener
+                          public nsIInterfaceRequestor,
+                          public nsIWebBrowserChrome,
+                          public nsIWindowCreator,
+                          public nsIWindowProvider,
+                          public nsIEmbeddingSiteWindow2,
+                          public nsIWebProgressListener2,
+                          public nsIContextMenuListener,
+                          public nsIDOMEventListener,
+                          public nsITooltipListener
 {
 public:
   CHBrowserListener(CHBrowserView* aView);
@@ -90,7 +90,6 @@ public:
     
   void AddListener(id <CHBrowserListener> aListener);
   void RemoveListener(id <CHBrowserListener> aListener);
-
   void SetContainer(NSView<CHBrowserListener, CHBrowserContainer>* aContainer);
 
 protected:
@@ -109,4 +108,4 @@ private:
 };
 
 
-#endif // __nsCocoaBrowserListener_h__
+#endif // nsCocoaBrowserListener_h__

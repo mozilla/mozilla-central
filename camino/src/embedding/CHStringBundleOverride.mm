@@ -35,7 +35,7 @@
 * ***** END LICENSE BLOCK ***** */
 
 #import "CHStringBundleOverride.h"
-#import "NSString+Utils.h"
+#import "NSString+Gecko.h"
 #import <Foundation/Foundation.h>
 
 NS_IMPL_ISUPPORTS1(CHStringBundleOverride, nsIStringBundleOverride);
