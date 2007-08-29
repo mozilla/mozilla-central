@@ -231,6 +231,28 @@
 		3312BF370C84C2D4000E6965 /* arrowd.gif in Copy Gecko Resources */ = {isa = PBXBuildFile; fileRef = 3312BF350C84C2B4000E6965 /* arrowd.gif */; };
 		3312BF450C84C35C000E6965 /* arrow.gif in Copy Gecko Resources */ = {isa = PBXBuildFile; fileRef = 3312BF340C84C2B4000E6965 /* arrow.gif */; };
 		3312BF460C84C35C000E6965 /* arrowd.gif in Copy Gecko Resources */ = {isa = PBXBuildFile; fileRef = 3312BF350C84C2B4000E6965 /* arrowd.gif */; };
+		335638FE0C84D82200DC4D06 /* HistoryOutlineViewDelegate.h in Headers */ = {isa = PBXBuildFile; fileRef = 335638FD0C84D82200DC4D06 /* HistoryOutlineViewDelegate.h */; };
+		335638FF0C84D82200DC4D06 /* HistoryOutlineViewDelegate.h in Headers */ = {isa = PBXBuildFile; fileRef = 335638FD0C84D82200DC4D06 /* HistoryOutlineViewDelegate.h */; };
+		335639020C84DA6F00DC4D06 /* PageInfoWindowController.h in Headers */ = {isa = PBXBuildFile; fileRef = 335639000C84DA6F00DC4D06 /* PageInfoWindowController.h */; };
+		335639030C84DA6F00DC4D06 /* SiteIconCache.h in Headers */ = {isa = PBXBuildFile; fileRef = 335639010C84DA6F00DC4D06 /* SiteIconCache.h */; };
+		335639040C84DA6F00DC4D06 /* PageInfoWindowController.h in Headers */ = {isa = PBXBuildFile; fileRef = 335639000C84DA6F00DC4D06 /* PageInfoWindowController.h */; };
+		335639050C84DA6F00DC4D06 /* SiteIconCache.h in Headers */ = {isa = PBXBuildFile; fileRef = 335639010C84DA6F00DC4D06 /* SiteIconCache.h */; };
+		335639070C84DAC100DC4D06 /* NSURL+Utils.h in Headers */ = {isa = PBXBuildFile; fileRef = 335639060C84DAC100DC4D06 /* NSURL+Utils.h */; };
+		335639080C84DAC100DC4D06 /* NSURL+Utils.h in Headers */ = {isa = PBXBuildFile; fileRef = 335639060C84DAC100DC4D06 /* NSURL+Utils.h */; };
+		3356390C0C84DBB900DC4D06 /* PhoneNumber.h in Headers */ = {isa = PBXBuildFile; fileRef = 3356390A0C84DBB900DC4D06 /* PhoneNumber.h */; };
+		3356390D0C84DBB900DC4D06 /* wallet.h in Headers */ = {isa = PBXBuildFile; fileRef = 3356390B0C84DBB900DC4D06 /* wallet.h */; };
+		3356390E0C84DBB900DC4D06 /* PhoneNumber.h in Headers */ = {isa = PBXBuildFile; fileRef = 3356390A0C84DBB900DC4D06 /* PhoneNumber.h */; };
+		3356390F0C84DBB900DC4D06 /* wallet.h in Headers */ = {isa = PBXBuildFile; fileRef = 3356390B0C84DBB900DC4D06 /* wallet.h */; };
+		335639150C84DBDA00DC4D06 /* BrowserSecurityDialogs.h in Headers */ = {isa = PBXBuildFile; fileRef = 335639100C84DBDA00DC4D06 /* BrowserSecurityDialogs.h */; };
+		335639160C84DBDA00DC4D06 /* CertificateItem.h in Headers */ = {isa = PBXBuildFile; fileRef = 335639110C84DBDA00DC4D06 /* CertificateItem.h */; };
+		335639170C84DBDA00DC4D06 /* CertificatesWindowController.h in Headers */ = {isa = PBXBuildFile; fileRef = 335639120C84DBDA00DC4D06 /* CertificatesWindowController.h */; };
+		335639180C84DBDA00DC4D06 /* CertificateView.h in Headers */ = {isa = PBXBuildFile; fileRef = 335639130C84DBDA00DC4D06 /* CertificateView.h */; };
+		335639190C84DBDA00DC4D06 /* ViewCertificateDialogController.h in Headers */ = {isa = PBXBuildFile; fileRef = 335639140C84DBDA00DC4D06 /* ViewCertificateDialogController.h */; };
+		3356391A0C84DBDA00DC4D06 /* BrowserSecurityDialogs.h in Headers */ = {isa = PBXBuildFile; fileRef = 335639100C84DBDA00DC4D06 /* BrowserSecurityDialogs.h */; };
+		3356391B0C84DBDA00DC4D06 /* CertificateItem.h in Headers */ = {isa = PBXBuildFile; fileRef = 335639110C84DBDA00DC4D06 /* CertificateItem.h */; };
+		3356391C0C84DBDA00DC4D06 /* CertificatesWindowController.h in Headers */ = {isa = PBXBuildFile; fileRef = 335639120C84DBDA00DC4D06 /* CertificatesWindowController.h */; };
+		3356391D0C84DBDA00DC4D06 /* CertificateView.h in Headers */ = {isa = PBXBuildFile; fileRef = 335639130C84DBDA00DC4D06 /* CertificateView.h */; };
+		3356391E0C84DBDA00DC4D06 /* ViewCertificateDialogController.h in Headers */ = {isa = PBXBuildFile; fileRef = 335639140C84DBDA00DC4D06 /* ViewCertificateDialogController.h */; };
 		33B775AA0C4EAC1E00A6D67F /* libsqlite3.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = 33B775A90C4EAC1E00A6D67F /* libsqlite3.dylib */; };
 		33B775AB0C4EAC1E00A6D67F /* libsqlite3.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = 33B775A90C4EAC1E00A6D67F /* libsqlite3.dylib */; };
 		33B7763C0C4EB32C00A6D67F /* libsqlite3.dylib in Copy Libraries */ = {isa = PBXBuildFile; fileRef = 33B775A90C4EAC1E00A6D67F /* libsqlite3.dylib */; };
@@ -296,7 +318,6 @@
 		3F44ABE505BDFB9E00CB4B08 /* GeckoUtils.h in Headers */ = {isa = PBXBuildFile; fileRef = F5607CB5023944AD01A967DF /* GeckoUtils.h */; };
 		3F44ABE605BDFB9E00CB4B08 /* IconTabViewItem.h in Headers */ = {isa = PBXBuildFile; fileRef = F5648739023C3857010001CA /* IconTabViewItem.h */; };
 		3F44ABE705BDFB9E00CB4B08 /* Find.h in Headers */ = {isa = PBXBuildFile; fileRef = F5137A1102676B9101026D05 /* Find.h */; };
-		3F44ABE805BDFB9E00CB4B08 /* LocationBar.h in Headers */ = {isa = PBXBuildFile; fileRef = F57074BD026D80DF01A80166 /* LocationBar.h */; };
 		3F44ABE905BDFB9E00CB4B08 /* GetURLCommand.h in Headers */ = {isa = PBXBuildFile; fileRef = F51B70B6026EC98B01A80166 /* GetURLCommand.h */; };
 		3F44ABEA05BDFB9E00CB4B08 /* ExtendedOutlineView.h in Headers */ = {isa = PBXBuildFile; fileRef = F5C3AB810270072A01A80166 /* ExtendedOutlineView.h */; };
 		3F44ABEB05BDFB9E00CB4B08 /* CHToolbarAdditions.h in Headers */ = {isa = PBXBuildFile; fileRef = F541495A02711A8301A80166 /* CHToolbarAdditions.h */; };
@@ -334,7 +355,6 @@
 		3F44AC0B05BDFB9E00CB4B08 /* NetworkServices.h in Headers */ = {isa = PBXBuildFile; fileRef = F57BED9A03A1824801A9666E /* NetworkServices.h */; };
 		3F44AC0C05BDFB9E00CB4B08 /* DNSUtils.h in Headers */ = {isa = PBXBuildFile; fileRef = F57BED9E03A1825001A9666E /* DNSUtils.h */; };
 		3F44AC0D05BDFB9E00CB4B08 /* ChimeraUIConstants.h in Headers */ = {isa = PBXBuildFile; fileRef = F5C8D55203A2A42401A8016F /* ChimeraUIConstants.h */; };
-		3F44AC0E05BDFB9E00CB4B08 /* ChimeraUIConstants.h in Headers */ = {isa = PBXBuildFile; fileRef = F5C8D55503A2A43301A8016F /* ChimeraUIConstants.h */; };
 		3F44AC0F05BDFB9E00CB4B08 /* CHStackView.h in Headers */ = {isa = PBXBuildFile; fileRef = F583E3C203B8228F01A80166 /* CHStackView.h */; };
 		3F44AC1005BDFB9E00CB4B08 /* ProgressViewController.h in Headers */ = {isa = PBXBuildFile; fileRef = F5F415C903B9223E01A80166 /* ProgressViewController.h */; };
 		3F44AC1105BDFB9E00CB4B08 /* NSView+Utils.h in Headers */ = {isa = PBXBuildFile; fileRef = F527C90203BCD43601A80166 /* NSView+Utils.h */; };
@@ -426,7 +446,6 @@
 		3F44AC8F05BDFB9E00CB4B08 /* BrowserTabView.mm in Sources */ = {isa = PBXBuildFile; fileRef = F5BF71460231B8BC010001CA /* BrowserTabView.mm */; };
 		3F44AC9005BDFB9E00CB4B08 /* ContentClickListener.mm in Sources */ = {isa = PBXBuildFile; fileRef = F59E9F3F0237E43401A967DF /* ContentClickListener.mm */; };
 		3F44AC9105BDFB9E00CB4B08 /* IconTabViewItem.mm in Sources */ = {isa = PBXBuildFile; fileRef = F564873A023C3857010001CA /* IconTabViewItem.mm */; };
-		3F44AC9205BDFB9E00CB4B08 /* LocationBar.mm in Sources */ = {isa = PBXBuildFile; fileRef = F57074BE026D80DF01A80166 /* LocationBar.mm */; };
 		3F44AC9305BDFB9E00CB4B08 /* GetURLCommand.mm in Sources */ = {isa = PBXBuildFile; fileRef = F51B70B7026EC98B01A80166 /* GetURLCommand.mm */; };
 		3F44AC9405BDFB9E00CB4B08 /* ExtendedOutlineView.mm in Sources */ = {isa = PBXBuildFile; fileRef = F5C3AB820270072A01A80166 /* ExtendedOutlineView.mm */; };
 		3F44AC9505BDFB9E00CB4B08 /* CHToolbarAdditions.m in Sources */ = {isa = PBXBuildFile; fileRef = F541495B02711A8301A80166 /* CHToolbarAdditions.m */; };
@@ -710,7 +729,6 @@
 		3F44AE1E05BDFBA000CB4B08 /* GeckoUtils.h in Headers */ = {isa = PBXBuildFile; fileRef = F5607CB5023944AD01A967DF /* GeckoUtils.h */; };
 		3F44AE1F05BDFBA000CB4B08 /* IconTabViewItem.h in Headers */ = {isa = PBXBuildFile; fileRef = F5648739023C3857010001CA /* IconTabViewItem.h */; };
 		3F44AE2005BDFBA000CB4B08 /* Find.h in Headers */ = {isa = PBXBuildFile; fileRef = F5137A1102676B9101026D05 /* Find.h */; };
-		3F44AE2105BDFBA000CB4B08 /* LocationBar.h in Headers */ = {isa = PBXBuildFile; fileRef = F57074BD026D80DF01A80166 /* LocationBar.h */; };
 		3F44AE2205BDFBA000CB4B08 /* GetURLCommand.h in Headers */ = {isa = PBXBuildFile; fileRef = F51B70B6026EC98B01A80166 /* GetURLCommand.h */; };
 		3F44AE2305BDFBA000CB4B08 /* ExtendedOutlineView.h in Headers */ = {isa = PBXBuildFile; fileRef = F5C3AB810270072A01A80166 /* ExtendedOutlineView.h */; };
 		3F44AE2405BDFBA000CB4B08 /* CHToolbarAdditions.h in Headers */ = {isa = PBXBuildFile; fileRef = F541495A02711A8301A80166 /* CHToolbarAdditions.h */; };
@@ -748,7 +766,6 @@
 		3F44AE4405BDFBA000CB4B08 /* NetworkServices.h in Headers */ = {isa = PBXBuildFile; fileRef = F57BED9A03A1824801A9666E /* NetworkServices.h */; };
 		3F44AE4505BDFBA000CB4B08 /* DNSUtils.h in Headers */ = {isa = PBXBuildFile; fileRef = F57BED9E03A1825001A9666E /* DNSUtils.h */; };
 		3F44AE4605BDFBA000CB4B08 /* ChimeraUIConstants.h in Headers */ = {isa = PBXBuildFile; fileRef = F5C8D55203A2A42401A8016F /* ChimeraUIConstants.h */; };
-		3F44AE4705BDFBA000CB4B08 /* ChimeraUIConstants.h in Headers */ = {isa = PBXBuildFile; fileRef = F5C8D55503A2A43301A8016F /* ChimeraUIConstants.h */; };
 		3F44AE4805BDFBA000CB4B08 /* CHStackView.h in Headers */ = {isa = PBXBuildFile; fileRef = F583E3C203B8228F01A80166 /* CHStackView.h */; };
 		3F44AE4905BDFBA000CB4B08 /* ProgressViewController.h in Headers */ = {isa = PBXBuildFile; fileRef = F5F415C903B9223E01A80166 /* ProgressViewController.h */; };
 		3F44AE4A05BDFBA000CB4B08 /* NSView+Utils.h in Headers */ = {isa = PBXBuildFile; fileRef = F527C90203BCD43601A80166 /* NSView+Utils.h */; };
@@ -840,7 +857,6 @@
 		3F44AEC805BDFBA000CB4B08 /* BrowserTabView.mm in Sources */ = {isa = PBXBuildFile; fileRef = F5BF71460231B8BC010001CA /* BrowserTabView.mm */; };
 		3F44AEC905BDFBA000CB4B08 /* ContentClickListener.mm in Sources */ = {isa = PBXBuildFile; fileRef = F59E9F3F0237E43401A967DF /* ContentClickListener.mm */; };
 		3F44AECA05BDFBA000CB4B08 /* IconTabViewItem.mm in Sources */ = {isa = PBXBuildFile; fileRef = F564873A023C3857010001CA /* IconTabViewItem.mm */; };
-		3F44AECB05BDFBA000CB4B08 /* LocationBar.mm in Sources */ = {isa = PBXBuildFile; fileRef = F57074BE026D80DF01A80166 /* LocationBar.mm */; };
 		3F44AECC05BDFBA000CB4B08 /* GetURLCommand.mm in Sources */ = {isa = PBXBuildFile; fileRef = F51B70B7026EC98B01A80166 /* GetURLCommand.mm */; };
 		3F44AECD05BDFBA000CB4B08 /* ExtendedOutlineView.mm in Sources */ = {isa = PBXBuildFile; fileRef = F5C3AB820270072A01A80166 /* ExtendedOutlineView.mm */; };
 		3F44AECE05BDFBA000CB4B08 /* CHToolbarAdditions.m in Sources */ = {isa = PBXBuildFile; fileRef = F541495B02711A8301A80166 /* CHToolbarAdditions.m */; };
@@ -2353,26 +2369,26 @@
 		0E6A9895097E0044007962C1 /* mathfontPUA.properties */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = text; path = mathfontPUA.properties; sourceTree = "<group>"; };
 		0E6A9896097E0044007962C1 /* mathfontSymbol.properties */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = text; path = mathfontSymbol.properties; sourceTree = "<group>"; };
 		0F01117308F2FE7C00423C02 /* bm_separator.tiff */ = {isa = PBXFileReference; lastKnownFileType = image.tiff; name = bm_separator.tiff; path = chrome/bm_separator.tiff; sourceTree = "<group>"; };
-		0F08FB1408D37DA90022DD45 /* NSWorkspace+Utils.h */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.c.h; name = "NSWorkspace+Utils.h"; path = "src/extensions/NSWorkspace+Utils.h"; sourceTree = SOURCE_ROOT; };
-		0F08FB1708D37DB30022DD45 /* NSWorkspace+Utils.m */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.c.objc; name = "NSWorkspace+Utils.m"; path = "src/extensions/NSWorkspace+Utils.m"; sourceTree = SOURCE_ROOT; };
+		0F08FB1408D37DA90022DD45 /* NSWorkspace+Utils.h */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.c.h; name = "NSWorkspace+Utils.h"; path = "src/extensions/NSWorkspace+Utils.h"; sourceTree = "<group>"; };
+		0F08FB1708D37DB30022DD45 /* NSWorkspace+Utils.m */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.c.objc; name = "NSWorkspace+Utils.m"; path = "src/extensions/NSWorkspace+Utils.m"; sourceTree = "<group>"; };
 		0F0AD72D08CA3682002782ED /* English */ = {isa = PBXFileReference; lastKnownFileType = wrapper.nib; name = English; path = resources/localized/English.lproj/CreatePasswordDialog.nib; sourceTree = "<group>"; };
-		0F0F5E3908FC65FB00B4EBCD /* CHISupportsOwner.mm */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.cpp.objcpp; name = CHISupportsOwner.mm; path = src/extensions/CHISupportsOwner.mm; sourceTree = SOURCE_ROOT; };
-		0F0F5E3C08FC660300B4EBCD /* CHISupportsOwner.h */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.c.h; name = CHISupportsOwner.h; path = src/extensions/CHISupportsOwner.h; sourceTree = SOURCE_ROOT; };
-		0F13A30D07D7F3930034B176 /* nsAboutBookmarks.h */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.c.h; name = nsAboutBookmarks.h; path = src/bookmarks/nsAboutBookmarks.h; sourceTree = SOURCE_ROOT; };
-		0F13A30E07D7F3930034B176 /* nsAboutBookmarks.mm */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.cpp.objcpp; name = nsAboutBookmarks.mm; path = src/bookmarks/nsAboutBookmarks.mm; sourceTree = SOURCE_ROOT; };
-		0F222C6008C6102B00B34F14 /* ExtendedSplitView.h */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.c.h; name = ExtendedSplitView.h; path = src/extensions/ExtendedSplitView.h; sourceTree = SOURCE_ROOT; };
-		0F222C6308C6103300B34F14 /* ExtendedSplitView.m */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.c.objc; name = ExtendedSplitView.m; path = src/extensions/ExtendedSplitView.m; sourceTree = SOURCE_ROOT; };
+		0F0F5E3908FC65FB00B4EBCD /* CHISupportsOwner.mm */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.cpp.objcpp; name = CHISupportsOwner.mm; path = src/extensions/CHISupportsOwner.mm; sourceTree = "<group>"; };
+		0F0F5E3C08FC660300B4EBCD /* CHISupportsOwner.h */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.c.h; name = CHISupportsOwner.h; path = src/extensions/CHISupportsOwner.h; sourceTree = "<group>"; };
+		0F13A30D07D7F3930034B176 /* nsAboutBookmarks.h */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.c.h; name = nsAboutBookmarks.h; path = src/bookmarks/nsAboutBookmarks.h; sourceTree = "<group>"; };
+		0F13A30E07D7F3930034B176 /* nsAboutBookmarks.mm */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.cpp.objcpp; name = nsAboutBookmarks.mm; path = src/bookmarks/nsAboutBookmarks.mm; sourceTree = "<group>"; };
+		0F222C6008C6102B00B34F14 /* ExtendedSplitView.h */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.c.h; name = ExtendedSplitView.h; path = src/extensions/ExtendedSplitView.h; sourceTree = "<group>"; };
+		0F222C6308C6103300B34F14 /* ExtendedSplitView.m */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.c.objc; name = ExtendedSplitView.m; path = src/extensions/ExtendedSplitView.m; sourceTree = "<group>"; };
 		0F2453D508C96478001C264F /* lock_badge.tif */ = {isa = PBXFileReference; lastKnownFileType = image.tiff; name = lock_badge.tif; path = resources/images/chrome/lock_badge.tif; sourceTree = SOURCE_ROOT; };
-		0F4752D207DC0F4D002AEE9F /* AddBookmarkDialogController.h */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.c.h; name = AddBookmarkDialogController.h; path = src/bookmarks/AddBookmarkDialogController.h; sourceTree = SOURCE_ROOT; };
-		0F4752D307DC0F4D002AEE9F /* AddBookmarkDialogController.mm */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.cpp.objcpp; name = AddBookmarkDialogController.mm; path = src/bookmarks/AddBookmarkDialogController.mm; sourceTree = SOURCE_ROOT; };
+		0F4752D207DC0F4D002AEE9F /* AddBookmarkDialogController.h */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.c.h; name = AddBookmarkDialogController.h; path = src/bookmarks/AddBookmarkDialogController.h; sourceTree = "<group>"; };
+		0F4752D307DC0F4D002AEE9F /* AddBookmarkDialogController.mm */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.cpp.objcpp; name = AddBookmarkDialogController.mm; path = src/bookmarks/AddBookmarkDialogController.mm; sourceTree = "<group>"; };
 		0F5187C308858E620091F3FB /* libpermissions.dylib */ = {isa = PBXFileReference; lastKnownFileType = "compiled.mach-o.bundle"; name = libpermissions.dylib; path = ../dist/bin/components/libpermissions.dylib; sourceTree = SOURCE_ROOT; };
 		0F518834088593F30091F3FB /* libpermissions.a */ = {isa = PBXFileReference; lastKnownFileType = archive.ar; name = libpermissions.a; path = ../staticlib/components/libpermissions.a; sourceTree = SOURCE_ROOT; };
 		0F5FD71B07F48CDC00E8EDBD /* NSResponder+Utils.h */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.c.h; name = "NSResponder+Utils.h"; path = "src/extensions/NSResponder+Utils.h"; sourceTree = "<group>"; };
 		0F5FD71E07F48CE500E8EDBD /* NSResponder+Utils.m */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.c.objc; name = "NSResponder+Utils.m"; path = "src/extensions/NSResponder+Utils.m"; sourceTree = "<group>"; };
-		0F7EAA9609326B770082C3EA /* AutoSizingTextField.m */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.c.objc; name = AutoSizingTextField.m; path = src/extensions/AutoSizingTextField.m; sourceTree = SOURCE_ROOT; };
-		0F7EAA9909326B860082C3EA /* AutoSizingTextField.h */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.c.h; name = AutoSizingTextField.h; path = src/extensions/AutoSizingTextField.h; sourceTree = SOURCE_ROOT; };
-		0F84BF1208862E3E00E23BC4 /* NSThread+Utils.m */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.c.objc; name = "NSThread+Utils.m"; path = "src/extensions/NSThread+Utils.m"; sourceTree = SOURCE_ROOT; };
-		0F84BF1608862E4B00E23BC4 /* NSThread+Utils.h */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.c.h; name = "NSThread+Utils.h"; path = "src/extensions/NSThread+Utils.h"; sourceTree = SOURCE_ROOT; };
+		0F7EAA9609326B770082C3EA /* AutoSizingTextField.m */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.c.objc; name = AutoSizingTextField.m; path = src/extensions/AutoSizingTextField.m; sourceTree = "<group>"; };
+		0F7EAA9909326B860082C3EA /* AutoSizingTextField.h */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.c.h; name = AutoSizingTextField.h; path = src/extensions/AutoSizingTextField.h; sourceTree = "<group>"; };
+		0F84BF1208862E3E00E23BC4 /* NSThread+Utils.m */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.c.objc; name = "NSThread+Utils.m"; path = "src/extensions/NSThread+Utils.m"; sourceTree = "<group>"; };
+		0F84BF1608862E4B00E23BC4 /* NSThread+Utils.h */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.c.h; name = "NSThread+Utils.h"; path = "src/extensions/NSThread+Utils.h"; sourceTree = "<group>"; };
 		0F8FC52D092ED71C0042429E /* English */ = {isa = PBXFileReference; lastKnownFileType = wrapper.nib; name = English; path = resources/localized/English.lproj/PageInfo.nib; sourceTree = "<group>"; };
 		0F8FC582092ED8C70042429E /* PageInfoWindowController.mm */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.cpp.objcpp; name = PageInfoWindowController.mm; path = src/browser/PageInfoWindowController.mm; sourceTree = "<group>"; };
 		0FA8EF970423B1A500A80166 /* libxpcom_compat.dylib */ = {isa = PBXFileReference; lastKnownFileType = "compiled.mach-o.dylib"; name = libxpcom_compat.dylib; path = ../dist/Embed/libxpcom_compat.dylib; sourceTree = SOURCE_ROOT; };
@@ -2391,7 +2407,7 @@
 		0FBC0EDC0798F9B400E8E0E2 /* HistoryOutlineViewDelegate.mm */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.cpp.objcpp; name = HistoryOutlineViewDelegate.mm; path = src/history/HistoryOutlineViewDelegate.mm; sourceTree = "<group>"; };
 		0FBC0EDF0798FA1900E8E0E2 /* PopupMenuButton.m */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.c.objc; name = PopupMenuButton.m; path = src/extensions/PopupMenuButton.m; sourceTree = "<group>"; };
 		0FBC0EE20798FA2700E8E0E2 /* PopupMenuButton.h */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.c.h; name = PopupMenuButton.h; path = src/extensions/PopupMenuButton.h; sourceTree = "<group>"; };
-		0FC4B33D08941B4F009C5F41 /* ChimeraUtils.h */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.c.h; name = ChimeraUtils.h; path = src/includes/ChimeraUtils.h; sourceTree = SOURCE_ROOT; };
+		0FC4B33D08941B4F009C5F41 /* ChimeraUtils.h */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.c.h; name = ChimeraUtils.h; path = src/includes/ChimeraUtils.h; sourceTree = "<group>"; };
 		0FCCE56707D6D7DA006DD3D1 /* intl.xpt */ = {isa = PBXFileReference; lastKnownFileType = file; name = intl.xpt; path = ../dist/Embed/components/intl.xpt; sourceTree = SOURCE_ROOT; };
 		0FCD858708C4D45400A1923B /* layout_xul_tree.xpt */ = {isa = PBXFileReference; lastKnownFileType = file; name = layout_xul_tree.xpt; path = ../dist/Embed/components/layout_xul_tree.xpt; sourceTree = SOURCE_ROOT; };
 		0FCD85CA08C4D6D900A1923B /* ViewCertificateDialogController.mm */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.cpp.objcpp; name = ViewCertificateDialogController.mm; path = src/security/ViewCertificateDialogController.mm; sourceTree = SOURCE_ROOT; };
@@ -2403,7 +2419,7 @@
 		0FCD888808C52A9900A1923B /* certificate.tif */ = {isa = PBXFileReference; lastKnownFileType = image.tiff; name = certificate.tif; path = resources/images/chrome/certificate.tif; sourceTree = SOURCE_ROOT; };
 		0FCD888908C52A9900A1923B /* mini_cert_invalid.tif */ = {isa = PBXFileReference; lastKnownFileType = image.tiff; name = mini_cert_invalid.tif; path = resources/images/chrome/mini_cert_invalid.tif; sourceTree = SOURCE_ROOT; };
 		0FCD888A08C52A9900A1923B /* mini_cert_valid.tif */ = {isa = PBXFileReference; lastKnownFileType = image.tiff; name = mini_cert_valid.tif; path = resources/images/chrome/mini_cert_valid.tif; sourceTree = SOURCE_ROOT; };
-		0FD75057093ABEBA00B6A3A4 /* TruncatingTextFieldCell.h */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.c.h; name = TruncatingTextFieldCell.h; path = src/extensions/TruncatingTextFieldCell.h; sourceTree = SOURCE_ROOT; };
+		0FD75057093ABEBA00B6A3A4 /* TruncatingTextFieldCell.h */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.c.h; name = TruncatingTextFieldCell.h; path = src/extensions/TruncatingTextFieldCell.h; sourceTree = "<group>"; };
 		0FD7505A093ABEC600B6A3A4 /* TruncatingTextFieldCell.mm */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.cpp.objcpp; name = TruncatingTextFieldCell.mm; path = src/extensions/TruncatingTextFieldCell.mm; sourceTree = "<group>"; };
 		0FD8181F08CB8E8900D8F88C /* English */ = {isa = PBXFileReference; lastKnownFileType = wrapper.nib; name = English; path = resources/localized/English.lproj/GenerateKeyPairDialog.nib; sourceTree = "<group>"; };
 		0FDEEA3A08CBD04200754D9B /* CertificateItem.mm */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.cpp.objcpp; name = CertificateItem.mm; path = src/security/CertificateItem.mm; sourceTree = SOURCE_ROOT; };
@@ -2419,8 +2435,8 @@
 		0FE7721D08C7E6B700AFB850 /* English */ = {isa = PBXFileReference; lastKnownFileType = wrapper.nib; name = English; path = resources/localized/English.lproj/UnknownCertIssuerDialog.nib; sourceTree = "<group>"; };
 		0FE7721F08C7E6B700AFB850 /* English */ = {isa = PBXFileReference; lastKnownFileType = wrapper.nib; name = English; path = resources/localized/English.lproj/ExpiredCertDialog.nib; sourceTree = "<group>"; };
 		0FE772B908C7FF4100AFB850 /* mini_cert_untrusted.tif */ = {isa = PBXFileReference; lastKnownFileType = image.tiff; name = mini_cert_untrusted.tif; path = resources/images/chrome/mini_cert_untrusted.tif; sourceTree = SOURCE_ROOT; };
-		0FEA7DDD0926BBEA00B06154 /* NSFileManager+Utils.h */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.c.h; name = "NSFileManager+Utils.h"; path = "src/extensions/NSFileManager+Utils.h"; sourceTree = SOURCE_ROOT; };
-		0FEA7DE00926BBF500B06154 /* NSFileManager+Utils.m */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.c.objc; name = "NSFileManager+Utils.m"; path = "src/extensions/NSFileManager+Utils.m"; sourceTree = SOURCE_ROOT; };
+		0FEA7DDD0926BBEA00B06154 /* NSFileManager+Utils.h */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.c.h; name = "NSFileManager+Utils.h"; path = "src/extensions/NSFileManager+Utils.h"; sourceTree = "<group>"; };
+		0FEA7DE00926BBF500B06154 /* NSFileManager+Utils.m */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.c.objc; name = "NSFileManager+Utils.m"; path = "src/extensions/NSFileManager+Utils.m"; sourceTree = "<group>"; };
 		0FEA7DE30926BC0C00B06154 /* SiteIconCache.mm */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.cpp.objcpp; name = SiteIconCache.mm; path = src/browser/SiteIconCache.mm; sourceTree = SOURCE_ROOT; };
 		0FEA7E640926BFC600B06154 /* unknown_file_icon.tif */ = {isa = PBXFileReference; lastKnownFileType = image.tiff; name = unknown_file_icon.tif; path = resources/images/chrome/unknown_file_icon.tif; sourceTree = SOURCE_ROOT; };
 		0FEBFCA1044F989900A96652 /* libucvutil_s.a */ = {isa = PBXFileReference; lastKnownFileType = archive.ar; name = libucvutil_s.a; path = ../intl/uconv/util/libucvutil_s.a; sourceTree = SOURCE_ROOT; };
@@ -2430,18 +2446,18 @@
 		0FFE0A80079B147F00966027 /* bm_action.tiff */ = {isa = PBXFileReference; lastKnownFileType = image.tiff; name = bm_action.tiff; path = chrome/bm_action.tiff; sourceTree = "<group>"; };
 		1058C7A1FEA54F0111CA2CBB /* Cocoa.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = Cocoa.framework; path = /System/Library/Frameworks/Cocoa.framework; sourceTree = "<absolute>"; };
 		1B825D020C5D268600CB4343 /* Camino.sdef */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = text.sdef; name = Camino.sdef; path = resources/application/Camino.sdef; sourceTree = "<group>"; };
-		1F8407030C5705CC007B893D /* TabThumbnailGridView.mm */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.cpp.objcpp; name = TabThumbnailGridView.mm; path = src/browser/TabThumbnailGridView.mm; sourceTree = SOURCE_ROOT; };
-		1F8407040C5705CC007B893D /* TabThumbnailGridView.h */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.c.h; name = TabThumbnailGridView.h; path = src/browser/TabThumbnailGridView.h; sourceTree = SOURCE_ROOT; };
-		1F8407050C5705CC007B893D /* ThumbnailView.h */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.c.h; name = ThumbnailView.h; path = src/browser/ThumbnailView.h; sourceTree = SOURCE_ROOT; };
-		1F8407060C5705CC007B893D /* ThumbnailView.m */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.c.objc; name = ThumbnailView.m; path = src/browser/ThumbnailView.m; sourceTree = SOURCE_ROOT; };
+		1F8407030C5705CC007B893D /* TabThumbnailGridView.mm */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.cpp.objcpp; name = TabThumbnailGridView.mm; path = src/browser/TabThumbnailGridView.mm; sourceTree = "<group>"; };
+		1F8407040C5705CC007B893D /* TabThumbnailGridView.h */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.c.h; name = TabThumbnailGridView.h; path = src/browser/TabThumbnailGridView.h; sourceTree = "<group>"; };
+		1F8407050C5705CC007B893D /* ThumbnailView.h */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.c.h; name = ThumbnailView.h; path = src/browser/ThumbnailView.h; sourceTree = "<group>"; };
+		1F8407060C5705CC007B893D /* ThumbnailView.m */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.c.objc; name = ThumbnailView.m; path = src/browser/ThumbnailView.m; sourceTree = "<group>"; };
 		29B97316FDCFA39411CA2CEA /* main.m */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.c.objc; name = main.m; path = src/application/main.m; sourceTree = SOURCE_ROOT; };
 		29B97319FDCFA39411CA2CEA /* English */ = {isa = PBXFileReference; lastKnownFileType = wrapper.nib; name = English; path = resources/localized/English.lproj/MainMenu.nib; sourceTree = SOURCE_ROOT; };
 		29B97324FDCFA39411CA2CEA /* AppKit.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = AppKit.framework; path = /System/Library/Frameworks/AppKit.framework; sourceTree = "<absolute>"; };
 		29B97325FDCFA39411CA2CEA /* Foundation.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = Foundation.framework; path = /System/Library/Frameworks/Foundation.framework; sourceTree = "<absolute>"; };
-		2E2939FF027F33604B000102 /* PageProxyIcon.mm */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.cpp.objcpp; name = PageProxyIcon.mm; path = src/browser/PageProxyIcon.mm; sourceTree = SOURCE_ROOT; };
-		2E293A00027F33604B000102 /* PageProxyIcon.h */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.c.h; name = PageProxyIcon.h; path = src/browser/PageProxyIcon.h; sourceTree = SOURCE_ROOT; };
-		2E748B72029A448D4B000102 /* GoMenu.h */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.c.h; name = GoMenu.h; path = src/browser/GoMenu.h; sourceTree = SOURCE_ROOT; };
-		2E748B73029A448D4B000102 /* GoMenu.mm */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.cpp.objcpp; name = GoMenu.mm; path = src/browser/GoMenu.mm; sourceTree = SOURCE_ROOT; };
+		2E2939FF027F33604B000102 /* PageProxyIcon.mm */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.cpp.objcpp; name = PageProxyIcon.mm; path = src/browser/PageProxyIcon.mm; sourceTree = "<group>"; };
+		2E293A00027F33604B000102 /* PageProxyIcon.h */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.c.h; name = PageProxyIcon.h; path = src/browser/PageProxyIcon.h; sourceTree = "<group>"; };
+		2E748B72029A448D4B000102 /* GoMenu.h */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.c.h; name = GoMenu.h; path = src/browser/GoMenu.h; sourceTree = "<group>"; };
+		2E748B73029A448D4B000102 /* GoMenu.mm */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.cpp.objcpp; name = GoMenu.mm; path = src/browser/GoMenu.mm; sourceTree = "<group>"; };
 		3003B8AC044514E300B85BF3 /* English */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = text.xml; name = English; path = resources/localized/English.lproj/SearchURLList.plist; sourceTree = "<group>"; };
 		3312BF340C84C2B4000E6965 /* arrow.gif */ = {isa = PBXFileReference; lastKnownFileType = image.gif; name = arrow.gif; path = ../dist/Embed/res/arrow.gif; sourceTree = SOURCE_ROOT; };
 		3312BF350C84C2B4000E6965 /* arrowd.gif */ = {isa = PBXFileReference; lastKnownFileType = image.gif; name = arrowd.gif; path = ../dist/Embed/res/arrowd.gif; sourceTree = SOURCE_ROOT; };
@@ -2449,6 +2465,18 @@
 		332377CF0C4D886800A34879 /* Debug.xcconfig */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.xcconfig; name = Debug.xcconfig; path = config/Debug.xcconfig; sourceTree = "<group>"; };
 		332377D00C4D887600A34879 /* Release.xcconfig */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.xcconfig; name = Release.xcconfig; path = config/Release.xcconfig; sourceTree = "<group>"; };
 		332377D10C4D88D300A34879 /* PrefPane.xcconfig */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.xcconfig; name = PrefPane.xcconfig; path = config/PrefPane.xcconfig; sourceTree = "<group>"; };
+		335638FD0C84D82200DC4D06 /* HistoryOutlineViewDelegate.h */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.c.h; name = HistoryOutlineViewDelegate.h; path = src/history/HistoryOutlineViewDelegate.h; sourceTree = "<group>"; };
+		335639000C84DA6F00DC4D06 /* PageInfoWindowController.h */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.c.h; name = PageInfoWindowController.h; path = src/browser/PageInfoWindowController.h; sourceTree = "<group>"; };
+		335639010C84DA6F00DC4D06 /* SiteIconCache.h */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.c.h; name = SiteIconCache.h; path = src/browser/SiteIconCache.h; sourceTree = "<group>"; };
+		335639060C84DAC100DC4D06 /* NSURL+Utils.h */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.c.h; name = "NSURL+Utils.h"; path = "src/extensions/NSURL+Utils.h"; sourceTree = "<group>"; };
+		335639090C84DAE700DC4D06 /* CmXULAppData.h.in */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = text; name = CmXULAppData.h.in; path = src/embedding/CmXULAppData.h.in; sourceTree = "<group>"; };
+		3356390A0C84DBB900DC4D06 /* PhoneNumber.h */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.c.h; name = PhoneNumber.h; path = src/formfill/PhoneNumber.h; sourceTree = "<group>"; };
+		3356390B0C84DBB900DC4D06 /* wallet.h */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.c.h; name = wallet.h; path = src/formfill/wallet.h; sourceTree = "<group>"; };
+		335639100C84DBDA00DC4D06 /* BrowserSecurityDialogs.h */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.c.h; name = BrowserSecurityDialogs.h; path = src/security/BrowserSecurityDialogs.h; sourceTree = "<group>"; };
+		335639110C84DBDA00DC4D06 /* CertificateItem.h */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.c.h; name = CertificateItem.h; path = src/security/CertificateItem.h; sourceTree = "<group>"; };
+		335639120C84DBDA00DC4D06 /* CertificatesWindowController.h */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.c.h; name = CertificatesWindowController.h; path = src/security/CertificatesWindowController.h; sourceTree = "<group>"; };
+		335639130C84DBDA00DC4D06 /* CertificateView.h */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.c.h; name = CertificateView.h; path = src/security/CertificateView.h; sourceTree = "<group>"; };
+		335639140C84DBDA00DC4D06 /* ViewCertificateDialogController.h */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.c.h; name = ViewCertificateDialogController.h; path = src/security/ViewCertificateDialogController.h; sourceTree = "<group>"; };
 		33B774780C4DE77000A6D67F /* ReleaseSymbols.xcconfig */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = text.xcconfig; name = ReleaseSymbols.xcconfig; path = config/ReleaseSymbols.xcconfig; sourceTree = "<group>"; };
 		33B775A90C4EAC1E00A6D67F /* libsqlite3.dylib */ = {isa = PBXFileReference; lastKnownFileType = "compiled.mach-o.dylib"; name = libsqlite3.dylib; path = ../dist/lib/libsqlite3.dylib; sourceTree = SOURCE_ROOT; };
 		33B777950C55851800A6D67F /* libmozlcms.dylib */ = {isa = PBXFileReference; lastKnownFileType = "compiled.mach-o.dylib"; name = libmozlcms.dylib; path = ../dist/bin/libmozlcms.dylib; sourceTree = SOURCE_ROOT; };
@@ -2459,15 +2487,15 @@
 		33FBAAFA0C84D0CA00DD459E /* NSString+Gecko.mm */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.cpp.objcpp; name = "NSString+Gecko.mm"; path = "src/extensions/NSString+Gecko.mm"; sourceTree = "<group>"; };
 		33FBAAFB0C84D0CA00DD459E /* NSString+Utils.m */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.c.objc; name = "NSString+Utils.m"; path = "src/extensions/NSString+Utils.m"; sourceTree = "<group>"; };
 		34884A35074F7C5D000EA76B /* AddressBook.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = AddressBook.framework; path = /System/Library/Frameworks/AddressBook.framework; sourceTree = "<absolute>"; };
-		3489ADC90753B717005ADF6C /* ABAddressBook+Utils.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = "ABAddressBook+Utils.h"; path = "src/extensions/ABAddressBook+Utils.h"; sourceTree = SOURCE_ROOT; };
-		3489ADCA0753B717005ADF6C /* ABAddressBook+Utils.mm */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.objcpp; name = "ABAddressBook+Utils.mm"; path = "src/extensions/ABAddressBook+Utils.mm"; sourceTree = SOURCE_ROOT; };
+		3489ADC90753B717005ADF6C /* ABAddressBook+Utils.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = "ABAddressBook+Utils.h"; path = "src/extensions/ABAddressBook+Utils.h"; sourceTree = "<group>"; };
+		3489ADCA0753B717005ADF6C /* ABAddressBook+Utils.mm */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.objcpp; name = "ABAddressBook+Utils.mm"; path = "src/extensions/ABAddressBook+Utils.mm"; sourceTree = "<group>"; };
 		34D112DD08E9B17400989FD5 /* dl_trash.tif */ = {isa = PBXFileReference; lastKnownFileType = image.tiff; name = dl_trash.tif; path = resources/images/toolbar/dl_trash.tif; sourceTree = SOURCE_ROOT; };
 		3F12FC56072E8ECB00995ED9 /* libxpcom_core.dylib */ = {isa = PBXFileReference; lastKnownFileType = "compiled.mach-o.dylib"; name = libxpcom_core.dylib; path = ../dist/Embed/libxpcom_core.dylib; sourceTree = SOURCE_ROOT; };
 		3F22CC1303DF42A200026DCE /* Charset.dict */ = {isa = PBXFileReference; lastKnownFileType = text.xml; name = Charset.dict; path = resources/application/Charset.dict; sourceTree = "<group>"; };
-		3F27D94A05DB2600007B543D /* NSSplitView+Utils.h */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.c.h; name = "NSSplitView+Utils.h"; path = "src/extensions/NSSplitView+Utils.h"; sourceTree = SOURCE_ROOT; };
-		3F27D94B05DB2600007B543D /* NSSplitView+Utils.mm */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.cpp.objcpp; name = "NSSplitView+Utils.mm"; path = "src/extensions/NSSplitView+Utils.mm"; sourceTree = SOURCE_ROOT; };
-		3F2CF8CB042A88B7005FD42F /* ImageAndTextCell.h */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.c.h; name = ImageAndTextCell.h; path = src/extensions/ImageAndTextCell.h; sourceTree = SOURCE_ROOT; };
-		3F2CF8CC042A88B7005FD42F /* ImageAndTextCell.m */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.c.objc; name = ImageAndTextCell.m; path = src/extensions/ImageAndTextCell.m; sourceTree = SOURCE_ROOT; };
+		3F27D94A05DB2600007B543D /* NSSplitView+Utils.h */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.c.h; name = "NSSplitView+Utils.h"; path = "src/extensions/NSSplitView+Utils.h"; sourceTree = "<group>"; };
+		3F27D94B05DB2600007B543D /* NSSplitView+Utils.mm */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.cpp.objcpp; name = "NSSplitView+Utils.mm"; path = "src/extensions/NSSplitView+Utils.mm"; sourceTree = "<group>"; };
+		3F2CF8CB042A88B7005FD42F /* ImageAndTextCell.h */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.c.h; name = ImageAndTextCell.h; path = src/extensions/ImageAndTextCell.h; sourceTree = "<group>"; };
+		3F2CF8CC042A88B7005FD42F /* ImageAndTextCell.m */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.c.objc; name = ImageAndTextCell.m; path = src/extensions/ImageAndTextCell.m; sourceTree = "<group>"; };
 		3F42E91905EAD4580045A30C /* bm_book.tif */ = {isa = PBXFileReference; lastKnownFileType = image.tiff; name = bm_book.tif; path = resources/images/toolbar/bm_book.tif; sourceTree = SOURCE_ROOT; };
 		3F42E91A05EAD4580045A30C /* bm_folder.tif */ = {isa = PBXFileReference; lastKnownFileType = image.tiff; name = bm_folder.tif; path = resources/images/toolbar/bm_folder.tif; sourceTree = SOURCE_ROOT; };
 		3F42E91B05EAD4580045A30C /* bm_reveal.tif */ = {isa = PBXFileReference; lastKnownFileType = image.tiff; name = bm_reveal.tif; path = resources/images/toolbar/bm_reveal.tif; sourceTree = SOURCE_ROOT; };
@@ -2478,8 +2506,8 @@
 		3F42EFAB05EC13F90045A30C /* throbber-10.tif */ = {isa = PBXFileReference; lastKnownFileType = image.gif; name = "throbber-10.tif"; path = "resources/images/throbber/throbber-10.tif"; sourceTree = SOURCE_ROOT; };
 		3F42EFAC05EC13F90045A30C /* throbber-11.tif */ = {isa = PBXFileReference; lastKnownFileType = image.gif; name = "throbber-11.tif"; path = "resources/images/throbber/throbber-11.tif"; sourceTree = SOURCE_ROOT; };
 		3F42EFAD05EC13F90045A30C /* throbber-12.tif */ = {isa = PBXFileReference; lastKnownFileType = image.gif; name = "throbber-12.tif"; path = "resources/images/throbber/throbber-12.tif"; sourceTree = SOURCE_ROOT; };
-		3F44AD8705BDFB9F00CB4B08 /* Info-Camino.plist */ = {isa = PBXFileReference; lastKnownFileType = text.xml; path = "generated/Info-Camino.plist"; sourceTree = "<group>"; };
-		3F44AD8805BDFB9F00CB4B08 /* Camino.app */ = {isa = PBXFileReference; includeInIndex = 0; lastKnownFileType = wrapper.application; path = Camino.app; sourceTree = BUILT_PRODUCTS_DIR; };
+		3F44AD8705BDFB9F00CB4B08 /* generated/Info-Camino.plist */ = {isa = PBXFileReference; lastKnownFileType = text.xml; path = "generated/Info-Camino.plist"; sourceTree = "<group>"; };
+		3F44AD8805BDFB9F00CB4B08 /* Camino.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = Camino.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		3F44AD9E05BDFB9F00CB4B08 /* Info-AppearancePrefPane.plist */ = {isa = PBXFileReference; lastKnownFileType = text.xml; path = "Info-AppearancePrefPane.plist"; sourceTree = "<group>"; };
 		3F44AD9F05BDFB9F00CB4B08 /* Appearance.prefPane */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = Appearance.prefPane; sourceTree = BUILT_PRODUCTS_DIR; };
 		3F44ADB205BDFBA000CB4B08 /* Info-NavigationPrefPane.plist */ = {isa = PBXFileReference; lastKnownFileType = text.xml; path = "Info-NavigationPrefPane.plist"; sourceTree = "<group>"; };
@@ -2494,41 +2522,41 @@
 		3F44AFC605BDFBA100CB4B08 /* Camino.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = Camino.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		3F558E950552122E006156FD /* IOKit.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = IOKit.framework; path = /System/Library/Frameworks/IOKit.framework; sourceTree = "<absolute>"; };
 		3F63719B057CE0DE00B62EE2 /* manager.tif */ = {isa = PBXFileReference; lastKnownFileType = image.tiff; name = manager.tif; path = resources/images/toolbar/manager.tif; sourceTree = SOURCE_ROOT; };
-		3F7C6CB905B4819E002FFFD3 /* HistoryItem.h */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.c.h; name = HistoryItem.h; path = src/history/HistoryItem.h; sourceTree = SOURCE_ROOT; };
-		3F7C6CBA05B4819E002FFFD3 /* HistoryItem.mm */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.cpp.objcpp; name = HistoryItem.mm; path = src/history/HistoryItem.mm; sourceTree = SOURCE_ROOT; };
+		3F7C6CB905B4819E002FFFD3 /* HistoryItem.h */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.c.h; name = HistoryItem.h; path = src/history/HistoryItem.h; sourceTree = "<group>"; };
+		3F7C6CBA05B4819E002FFFD3 /* HistoryItem.mm */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.cpp.objcpp; name = HistoryItem.mm; path = src/history/HistoryItem.mm; sourceTree = "<group>"; };
 		3F7C6CC505B5B42E002FFFD3 /* widget.xpt */ = {isa = PBXFileReference; lastKnownFileType = file; name = widget.xpt; path = ../dist/Embed/components/widget.xpt; sourceTree = SOURCE_ROOT; };
 		3F8C005006800D8D00658CBC /* English */ = {isa = PBXFileReference; fileEncoding = 10; lastKnownFileType = text.plist.strings; name = English; path = PreferencePanes/Security/English.lproj/Localizable.strings; sourceTree = SOURCE_ROOT; };
 		3F8C005606800E1300658CBC /* English */ = {isa = PBXFileReference; fileEncoding = 10; lastKnownFileType = text.plist.strings; name = English; path = PreferencePanes/WebFeatures/English.lproj/Localizable.strings; sourceTree = SOURCE_ROOT; };
 		3FAA54C70587778700BBF630 /* English */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = text.xml; name = English; path = resources/application/English.lproj/bookmarks.plist; sourceTree = "<group>"; };
-		3FB2BA7D0545EA80002B9691 /* Bookmark.h */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.c.h; name = Bookmark.h; path = src/bookmarks/Bookmark.h; sourceTree = SOURCE_ROOT; };
-		3FB2BA7E0545EA80002B9691 /* Bookmark.mm */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.cpp.objcpp; name = Bookmark.mm; path = src/bookmarks/Bookmark.mm; sourceTree = SOURCE_ROOT; };
-		3FB2BA7F0545EA80002B9691 /* BookmarkButton.h */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.c.h; name = BookmarkButton.h; path = src/bookmarks/BookmarkButton.h; sourceTree = SOURCE_ROOT; };
-		3FB2BA800545EA80002B9691 /* BookmarkButton.mm */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.cpp.objcpp; name = BookmarkButton.mm; path = src/bookmarks/BookmarkButton.mm; sourceTree = SOURCE_ROOT; };
-		3FB2BA810545EA80002B9691 /* BookmarkFolder.h */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.c.h; name = BookmarkFolder.h; path = src/bookmarks/BookmarkFolder.h; sourceTree = SOURCE_ROOT; };
-		3FB2BA820545EA80002B9691 /* BookmarkFolder.mm */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.cpp.objcpp; name = BookmarkFolder.mm; path = src/bookmarks/BookmarkFolder.mm; sourceTree = SOURCE_ROOT; };
-		3FB2BA830545EA80002B9691 /* BookmarkImportDlgController.h */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.c.h; name = BookmarkImportDlgController.h; path = src/bookmarks/BookmarkImportDlgController.h; sourceTree = SOURCE_ROOT; };
-		3FB2BA840545EA80002B9691 /* BookmarkImportDlgController.mm */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.cpp.objcpp; name = BookmarkImportDlgController.mm; path = src/bookmarks/BookmarkImportDlgController.mm; sourceTree = SOURCE_ROOT; };
-		3FB2BA850545EA80002B9691 /* BookmarkItem.h */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.c.h; name = BookmarkItem.h; path = src/bookmarks/BookmarkItem.h; sourceTree = SOURCE_ROOT; };
-		3FB2BA860545EA80002B9691 /* BookmarkItem.mm */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.cpp.objcpp; name = BookmarkItem.mm; path = src/bookmarks/BookmarkItem.mm; sourceTree = SOURCE_ROOT; };
-		3FB2BA870545EA80002B9691 /* BookmarkManager.h */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.c.h; name = BookmarkManager.h; path = src/bookmarks/BookmarkManager.h; sourceTree = SOURCE_ROOT; };
-		3FB2BA880545EA80002B9691 /* BookmarkManager.mm */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.cpp.objcpp; name = BookmarkManager.mm; path = src/bookmarks/BookmarkManager.mm; sourceTree = SOURCE_ROOT; };
-		3FB2BA890545EA80002B9691 /* BookmarkMenu.h */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.c.h; name = BookmarkMenu.h; path = src/bookmarks/BookmarkMenu.h; sourceTree = SOURCE_ROOT; };
-		3FB2BA8A0545EA80002B9691 /* BookmarkMenu.mm */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.cpp.objcpp; name = BookmarkMenu.mm; path = src/bookmarks/BookmarkMenu.mm; sourceTree = SOURCE_ROOT; };
-		3FB2BA8B0545EA80002B9691 /* BookmarkOutlineView.h */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.c.h; name = BookmarkOutlineView.h; path = src/bookmarks/BookmarkOutlineView.h; sourceTree = SOURCE_ROOT; };
-		3FB2BA8C0545EA80002B9691 /* BookmarkOutlineView.mm */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.cpp.objcpp; name = BookmarkOutlineView.mm; path = src/bookmarks/BookmarkOutlineView.mm; sourceTree = SOURCE_ROOT; };
-		3FB2BA8D0545EA80002B9691 /* BookmarksClient.h */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.c.h; name = BookmarksClient.h; path = src/bookmarks/BookmarksClient.h; sourceTree = SOURCE_ROOT; };
-		3FB2BA8E0545EA80002B9691 /* BookmarkToolbar.h */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.c.h; name = BookmarkToolbar.h; path = src/bookmarks/BookmarkToolbar.h; sourceTree = SOURCE_ROOT; };
-		3FB2BA8F0545EA80002B9691 /* BookmarkToolbar.mm */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.cpp.objcpp; name = BookmarkToolbar.mm; path = src/bookmarks/BookmarkToolbar.mm; sourceTree = SOURCE_ROOT; };
-		3FB2BA900545EA80002B9691 /* BookmarkViewController.h */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.c.h; name = BookmarkViewController.h; path = src/bookmarks/BookmarkViewController.h; sourceTree = SOURCE_ROOT; };
-		3FB2BA910545EA80002B9691 /* BookmarkViewController.mm */ = {isa = PBXFileReference; fileEncoding = 30; indentWidth = 2; lastKnownFileType = sourcecode.cpp.objcpp; name = BookmarkViewController.mm; path = src/bookmarks/BookmarkViewController.mm; sourceTree = SOURCE_ROOT; tabWidth = 2; usesTabs = 0; };
-		3FB2BA920545EA80002B9691 /* ExtendedTableView.h */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.c.h; name = ExtendedTableView.h; path = src/extensions/ExtendedTableView.h; sourceTree = SOURCE_ROOT; };
-		3FB2BA930545EA80002B9691 /* ExtendedTableView.mm */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.cpp.objcpp; name = ExtendedTableView.mm; path = src/extensions/ExtendedTableView.mm; sourceTree = SOURCE_ROOT; };
-		3FB2BA940545EA80002B9691 /* KindaSmartFolderManager.h */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.c.h; name = KindaSmartFolderManager.h; path = src/bookmarks/KindaSmartFolderManager.h; sourceTree = SOURCE_ROOT; };
-		3FB2BA950545EA80002B9691 /* KindaSmartFolderManager.mm */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.cpp.objcpp; name = KindaSmartFolderManager.mm; path = src/bookmarks/KindaSmartFolderManager.mm; sourceTree = SOURCE_ROOT; };
-		3FB2BA960545EA80002B9691 /* NSArray+Utils.h */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.c.h; name = "NSArray+Utils.h"; path = "src/extensions/NSArray+Utils.h"; sourceTree = SOURCE_ROOT; };
-		3FB2BA970545EA80002B9691 /* NSArray+Utils.mm */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.cpp.objcpp; name = "NSArray+Utils.mm"; path = "src/extensions/NSArray+Utils.mm"; sourceTree = SOURCE_ROOT; };
-		3FB2BADF0545EB30002B9691 /* AddressBookManager.h */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.c.h; name = AddressBookManager.h; path = src/bookmarks/AddressBookManager.h; sourceTree = SOURCE_ROOT; };
-		3FB2BAE00545EB30002B9691 /* AddressBookManager.m */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.c.objc; name = AddressBookManager.m; path = src/bookmarks/AddressBookManager.m; sourceTree = SOURCE_ROOT; };
+		3FB2BA7D0545EA80002B9691 /* Bookmark.h */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.c.h; name = Bookmark.h; path = src/bookmarks/Bookmark.h; sourceTree = "<group>"; };
+		3FB2BA7E0545EA80002B9691 /* Bookmark.mm */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.cpp.objcpp; name = Bookmark.mm; path = src/bookmarks/Bookmark.mm; sourceTree = "<group>"; };
+		3FB2BA7F0545EA80002B9691 /* BookmarkButton.h */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.c.h; name = BookmarkButton.h; path = src/bookmarks/BookmarkButton.h; sourceTree = "<group>"; };
+		3FB2BA800545EA80002B9691 /* BookmarkButton.mm */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.cpp.objcpp; name = BookmarkButton.mm; path = src/bookmarks/BookmarkButton.mm; sourceTree = "<group>"; };
+		3FB2BA810545EA80002B9691 /* BookmarkFolder.h */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.c.h; name = BookmarkFolder.h; path = src/bookmarks/BookmarkFolder.h; sourceTree = "<group>"; };
+		3FB2BA820545EA80002B9691 /* BookmarkFolder.mm */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.cpp.objcpp; name = BookmarkFolder.mm; path = src/bookmarks/BookmarkFolder.mm; sourceTree = "<group>"; };
+		3FB2BA830545EA80002B9691 /* BookmarkImportDlgController.h */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.c.h; name = BookmarkImportDlgController.h; path = src/bookmarks/BookmarkImportDlgController.h; sourceTree = "<group>"; };
+		3FB2BA840545EA80002B9691 /* BookmarkImportDlgController.mm */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.cpp.objcpp; name = BookmarkImportDlgController.mm; path = src/bookmarks/BookmarkImportDlgController.mm; sourceTree = "<group>"; };
+		3FB2BA850545EA80002B9691 /* BookmarkItem.h */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.c.h; name = BookmarkItem.h; path = src/bookmarks/BookmarkItem.h; sourceTree = "<group>"; };
+		3FB2BA860545EA80002B9691 /* BookmarkItem.mm */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.cpp.objcpp; name = BookmarkItem.mm; path = src/bookmarks/BookmarkItem.mm; sourceTree = "<group>"; };
+		3FB2BA870545EA80002B9691 /* BookmarkManager.h */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.c.h; name = BookmarkManager.h; path = src/bookmarks/BookmarkManager.h; sourceTree = "<group>"; };
+		3FB2BA880545EA80002B9691 /* BookmarkManager.mm */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.cpp.objcpp; name = BookmarkManager.mm; path = src/bookmarks/BookmarkManager.mm; sourceTree = "<group>"; };
+		3FB2BA890545EA80002B9691 /* BookmarkMenu.h */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.c.h; name = BookmarkMenu.h; path = src/bookmarks/BookmarkMenu.h; sourceTree = "<group>"; };
+		3FB2BA8A0545EA80002B9691 /* BookmarkMenu.mm */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.cpp.objcpp; name = BookmarkMenu.mm; path = src/bookmarks/BookmarkMenu.mm; sourceTree = "<group>"; };
+		3FB2BA8B0545EA80002B9691 /* BookmarkOutlineView.h */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.c.h; name = BookmarkOutlineView.h; path = src/bookmarks/BookmarkOutlineView.h; sourceTree = "<group>"; };
+		3FB2BA8C0545EA80002B9691 /* BookmarkOutlineView.mm */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.cpp.objcpp; name = BookmarkOutlineView.mm; path = src/bookmarks/BookmarkOutlineView.mm; sourceTree = "<group>"; };
+		3FB2BA8D0545EA80002B9691 /* BookmarksClient.h */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.c.h; name = BookmarksClient.h; path = src/bookmarks/BookmarksClient.h; sourceTree = "<group>"; };
+		3FB2BA8E0545EA80002B9691 /* BookmarkToolbar.h */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.c.h; name = BookmarkToolbar.h; path = src/bookmarks/BookmarkToolbar.h; sourceTree = "<group>"; };
+		3FB2BA8F0545EA80002B9691 /* BookmarkToolbar.mm */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.cpp.objcpp; name = BookmarkToolbar.mm; path = src/bookmarks/BookmarkToolbar.mm; sourceTree = "<group>"; };
+		3FB2BA900545EA80002B9691 /* BookmarkViewController.h */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.c.h; name = BookmarkViewController.h; path = src/bookmarks/BookmarkViewController.h; sourceTree = "<group>"; };
+		3FB2BA910545EA80002B9691 /* BookmarkViewController.mm */ = {isa = PBXFileReference; fileEncoding = 30; indentWidth = 2; lastKnownFileType = sourcecode.cpp.objcpp; name = BookmarkViewController.mm; path = src/bookmarks/BookmarkViewController.mm; sourceTree = "<group>"; tabWidth = 2; usesTabs = 0; };
+		3FB2BA920545EA80002B9691 /* ExtendedTableView.h */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.c.h; name = ExtendedTableView.h; path = src/extensions/ExtendedTableView.h; sourceTree = "<group>"; };
+		3FB2BA930545EA80002B9691 /* ExtendedTableView.mm */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.cpp.objcpp; name = ExtendedTableView.mm; path = src/extensions/ExtendedTableView.mm; sourceTree = "<group>"; };
+		3FB2BA940545EA80002B9691 /* KindaSmartFolderManager.h */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.c.h; name = KindaSmartFolderManager.h; path = src/bookmarks/KindaSmartFolderManager.h; sourceTree = "<group>"; };
+		3FB2BA950545EA80002B9691 /* KindaSmartFolderManager.mm */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.cpp.objcpp; name = KindaSmartFolderManager.mm; path = src/bookmarks/KindaSmartFolderManager.mm; sourceTree = "<group>"; };
+		3FB2BA960545EA80002B9691 /* NSArray+Utils.h */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.c.h; name = "NSArray+Utils.h"; path = "src/extensions/NSArray+Utils.h"; sourceTree = "<group>"; };
+		3FB2BA970545EA80002B9691 /* NSArray+Utils.mm */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.cpp.objcpp; name = "NSArray+Utils.mm"; path = "src/extensions/NSArray+Utils.mm"; sourceTree = "<group>"; };
+		3FB2BADF0545EB30002B9691 /* AddressBookManager.h */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.c.h; name = AddressBookManager.h; path = src/bookmarks/AddressBookManager.h; sourceTree = "<group>"; };
+		3FB2BAE00545EB30002B9691 /* AddressBookManager.m */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.c.objc; name = AddressBookManager.m; path = src/bookmarks/AddressBookManager.m; sourceTree = "<group>"; };
 		3FB2BAE60545EBAB002B9691 /* English */ = {isa = PBXFileReference; lastKnownFileType = wrapper.nib; name = English; path = resources/localized/English.lproj/BookmarkImportDlg.nib; sourceTree = "<group>"; };
 		3FB2BAE90545EBF2002B9691 /* addressbook_icon.tif */ = {isa = PBXFileReference; lastKnownFileType = image.tiff; name = addressbook_icon.tif; path = resources/images/toolbar/addressbook_icon.tif; sourceTree = SOURCE_ROOT; };
 		3FB2BAEA0545EBF2002B9691 /* bookmarkmenu_icon.tif */ = {isa = PBXFileReference; lastKnownFileType = image.tiff; name = bookmarkmenu_icon.tif; path = resources/images/toolbar/bookmarkmenu_icon.tif; sourceTree = SOURCE_ROOT; };
@@ -2536,8 +2564,8 @@
 		3FB2BAEC0545EBF2002B9691 /* brokenbookmark_icon.tif */ = {isa = PBXFileReference; lastKnownFileType = image.tiff; name = brokenbookmark_icon.tif; path = resources/images/toolbar/brokenbookmark_icon.tif; sourceTree = SOURCE_ROOT; };
 		3FB2BAEF0545EBF2002B9691 /* rendezvous_icon.tif */ = {isa = PBXFileReference; lastKnownFileType = image.tiff; name = rendezvous_icon.tif; path = resources/images/toolbar/rendezvous_icon.tif; sourceTree = SOURCE_ROOT; };
 		3FB2BAF10545EBF2002B9691 /* top10_icon.tif */ = {isa = PBXFileReference; lastKnownFileType = image.tiff; name = top10_icon.tif; path = resources/images/toolbar/top10_icon.tif; sourceTree = SOURCE_ROOT; };
-		3FBDC7D908252CF300D7F8E0 /* PhoneNumber.mm */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.cpp.objcpp; name = PhoneNumber.mm; path = src/formfill/PhoneNumber.mm; sourceTree = SOURCE_ROOT; };
-		3FBDC7DA08252CF300D7F8E0 /* wallet.mm */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.cpp.objcpp; name = wallet.mm; path = src/formfill/wallet.mm; sourceTree = SOURCE_ROOT; };
+		3FBDC7D908252CF300D7F8E0 /* PhoneNumber.mm */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.cpp.objcpp; name = PhoneNumber.mm; path = src/formfill/PhoneNumber.mm; sourceTree = "<group>"; };
+		3FBDC7DA08252CF300D7F8E0 /* wallet.mm */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.cpp.objcpp; name = wallet.mm; path = src/formfill/wallet.mm; sourceTree = "<group>"; };
 		3FBDC84E08253C8B00D7F8E0 /* DistinguishedSchema.tbl */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = text; name = DistinguishedSchema.tbl; path = wallet/tables/DistinguishedSchema.tbl; sourceTree = SOURCE_ROOT; };
 		3FBDC84F08253C8B00D7F8E0 /* FieldSchema.tbl */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = text; name = FieldSchema.tbl; path = wallet/tables/FieldSchema.tbl; sourceTree = SOURCE_ROOT; };
 		3FBDC85008253C8B00D7F8E0 /* PositionalSchema.tbl */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = text; name = PositionalSchema.tbl; path = wallet/tables/PositionalSchema.tbl; sourceTree = SOURCE_ROOT; };
@@ -2546,8 +2574,8 @@
 		3FBDC85308253C8B00D7F8E0 /* StateSchema.tbl */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = text; name = StateSchema.tbl; path = wallet/tables/StateSchema.tbl; sourceTree = SOURCE_ROOT; };
 		3FBDC85408253C8B00D7F8E0 /* VcardSchema.tbl */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = text; name = VcardSchema.tbl; path = wallet/tables/VcardSchema.tbl; sourceTree = SOURCE_ROOT; };
 		3FBDC8DF0827C44B00D7F8E0 /* autofill.tif */ = {isa = PBXFileReference; lastKnownFileType = image.tiff; name = autofill.tif; path = resources/images/toolbar/autofill.tif; sourceTree = SOURCE_ROOT; };
-		3FC0FB7F05A0D2DC002F47DE /* ProgressView.h */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.c.h; name = ProgressView.h; path = src/download/ProgressView.h; sourceTree = SOURCE_ROOT; };
-		3FC0FB8005A0D2DC002F47DE /* ProgressView.mm */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.cpp.objcpp; name = ProgressView.mm; path = src/download/ProgressView.mm; sourceTree = SOURCE_ROOT; };
+		3FC0FB7F05A0D2DC002F47DE /* ProgressView.h */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.c.h; name = ProgressView.h; path = src/download/ProgressView.h; sourceTree = "<group>"; };
+		3FC0FB8005A0D2DC002F47DE /* ProgressView.mm */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.cpp.objcpp; name = ProgressView.mm; path = src/download/ProgressView.mm; sourceTree = "<group>"; };
 		3FC0FB8305A0D2F4002F47DE /* dl_cancel.tif */ = {isa = PBXFileReference; lastKnownFileType = image.tiff; name = dl_cancel.tif; path = resources/images/toolbar/dl_cancel.tif; sourceTree = SOURCE_ROOT; };
 		3FC0FB8405A0D2F4002F47DE /* dl_clearall.tif */ = {isa = PBXFileReference; lastKnownFileType = image.tiff; name = dl_clearall.tif; path = resources/images/toolbar/dl_clearall.tif; sourceTree = SOURCE_ROOT; };
 		3FC0FB8505A0D2F4002F47DE /* dl_open.tif */ = {isa = PBXFileReference; lastKnownFileType = image.tiff; name = dl_open.tif; path = resources/images/toolbar/dl_open.tif; sourceTree = SOURCE_ROOT; };
@@ -2556,7 +2584,7 @@
 		3FC7EBFB05AA1D1C00C557AA /* AccessoryViews.nib */ = {isa = PBXFileReference; lastKnownFileType = wrapper.nib; name = AccessoryViews.nib; path = resources/localized/English.lproj/AccessoryViews.nib; sourceTree = "<group>"; };
 		3FC9495F0642ED39008E2E3D /* tab_close_pressed.tif */ = {isa = PBXFileReference; lastKnownFileType = image.tiff; name = tab_close_pressed.tif; path = resources/images/chrome/tab_close_pressed.tif; sourceTree = SOURCE_ROOT; };
 		3FC949600642ED39008E2E3D /* tab_close.tif */ = {isa = PBXFileReference; lastKnownFileType = image.tiff; name = tab_close.tif; path = resources/images/chrome/tab_close.tif; sourceTree = SOURCE_ROOT; };
-		3FE4ECE9082C2D89003BF39E /* NSURL+Utils.m */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.c.objc; name = "NSURL+Utils.m"; path = "src/extensions/NSURL+Utils.m"; sourceTree = SOURCE_ROOT; };
+		3FE4ECE9082C2D89003BF39E /* NSURL+Utils.m */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.c.objc; name = "NSURL+Utils.m"; path = "src/extensions/NSURL+Utils.m"; sourceTree = "<group>"; };
 		3FE5B9FC068A090F0001CECD /* libmozz.dylib */ = {isa = PBXFileReference; lastKnownFileType = "compiled.mach-o.dylib"; name = libmozz.dylib; path = ../dist/Embed/libmozz.dylib; sourceTree = SOURCE_ROOT; };
 		3FE5BA0B068A1A140001CECD /* libmozz.a */ = {isa = PBXFileReference; lastKnownFileType = archive.ar; name = libmozz.a; path = ../dist/lib/libmozz.a; sourceTree = SOURCE_ROOT; };
 		3FEBB08E0899C0F600BD8373 /* JavaEmbeddingPlugin.bundle */ = {isa = PBXFileReference; lastKnownFileType = "wrapper.plug-in"; name = JavaEmbeddingPlugin.bundle; path = ../dist/bin/plugins/JavaEmbeddingPlugin.bundle; sourceTree = SOURCE_ROOT; };
@@ -2565,14 +2593,14 @@
 		3FEBB4E708A02F2900BD8373 /* dl_pause.tif */ = {isa = PBXFileReference; lastKnownFileType = image.tiff; name = dl_pause.tif; path = resources/images/toolbar/dl_pause.tif; sourceTree = SOURCE_ROOT; };
 		3FEBB4E808A02F2900BD8373 /* dl_resume.tif */ = {isa = PBXFileReference; lastKnownFileType = image.tiff; name = dl_resume.tif; path = resources/images/toolbar/dl_resume.tif; sourceTree = SOURCE_ROOT; };
 		3FECC8E505D1FE800068E7ED /* libprofdirserviceprovider_s.a */ = {isa = PBXFileReference; lastKnownFileType = archive.ar; name = libprofdirserviceprovider_s.a; path = ../profile/dirserviceprovider/src/libprofdirserviceprovider_s.a; sourceTree = SOURCE_ROOT; };
-		3FF08EF706E7CF3F001C9B19 /* BrowserTabBarView.h */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.c.h; name = BrowserTabBarView.h; path = src/browser/BrowserTabBarView.h; sourceTree = SOURCE_ROOT; };
-		3FF08EF806E7CF3F001C9B19 /* BrowserTabBarView.mm */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.cpp.objcpp; name = BrowserTabBarView.mm; path = src/browser/BrowserTabBarView.mm; sourceTree = SOURCE_ROOT; };
-		3FF08EFD06E7CF86001C9B19 /* RolloverTrackingCell.mm */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.cpp.objcpp; name = RolloverTrackingCell.mm; path = src/extensions/RolloverTrackingCell.mm; sourceTree = SOURCE_ROOT; };
-		3FF08EFE06E7CF86001C9B19 /* TabButtonCell.mm */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.cpp.objcpp; name = TabButtonCell.mm; path = src/extensions/TabButtonCell.mm; sourceTree = SOURCE_ROOT; };
-		3FF08EFF06E7CF86001C9B19 /* TruncatingTextAndImageCell.mm */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.cpp.objcpp; name = TruncatingTextAndImageCell.mm; path = src/extensions/TruncatingTextAndImageCell.mm; sourceTree = SOURCE_ROOT; };
-		3FF08F0606E7CF9C001C9B19 /* RolloverTrackingCell.h */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.c.h; name = RolloverTrackingCell.h; path = src/extensions/RolloverTrackingCell.h; sourceTree = SOURCE_ROOT; };
-		3FF08F0706E7CF9C001C9B19 /* TabButtonCell.h */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.c.h; name = TabButtonCell.h; path = src/extensions/TabButtonCell.h; sourceTree = SOURCE_ROOT; };
-		3FF08F0806E7CF9C001C9B19 /* TruncatingTextAndImageCell.h */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.c.h; name = TruncatingTextAndImageCell.h; path = src/extensions/TruncatingTextAndImageCell.h; sourceTree = SOURCE_ROOT; };
+		3FF08EF706E7CF3F001C9B19 /* BrowserTabBarView.h */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.c.h; name = BrowserTabBarView.h; path = src/browser/BrowserTabBarView.h; sourceTree = "<group>"; };
+		3FF08EF806E7CF3F001C9B19 /* BrowserTabBarView.mm */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.cpp.objcpp; name = BrowserTabBarView.mm; path = src/browser/BrowserTabBarView.mm; sourceTree = "<group>"; };
+		3FF08EFD06E7CF86001C9B19 /* RolloverTrackingCell.mm */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.cpp.objcpp; name = RolloverTrackingCell.mm; path = src/extensions/RolloverTrackingCell.mm; sourceTree = "<group>"; };
+		3FF08EFE06E7CF86001C9B19 /* TabButtonCell.mm */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.cpp.objcpp; name = TabButtonCell.mm; path = src/extensions/TabButtonCell.mm; sourceTree = "<group>"; };
+		3FF08EFF06E7CF86001C9B19 /* TruncatingTextAndImageCell.mm */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.cpp.objcpp; name = TruncatingTextAndImageCell.mm; path = src/extensions/TruncatingTextAndImageCell.mm; sourceTree = "<group>"; };
+		3FF08F0606E7CF9C001C9B19 /* RolloverTrackingCell.h */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.c.h; name = RolloverTrackingCell.h; path = src/extensions/RolloverTrackingCell.h; sourceTree = "<group>"; };
+		3FF08F0706E7CF9C001C9B19 /* TabButtonCell.h */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.c.h; name = TabButtonCell.h; path = src/extensions/TabButtonCell.h; sourceTree = "<group>"; };
+		3FF08F0806E7CF9C001C9B19 /* TruncatingTextAndImageCell.h */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.c.h; name = TruncatingTextAndImageCell.h; path = src/extensions/TruncatingTextAndImageCell.h; sourceTree = "<group>"; };
 		3FF08F0F06E7D3C2001C9B19 /* tab_active_bg.tif */ = {isa = PBXFileReference; lastKnownFileType = image.tiff; name = tab_active_bg.tif; path = resources/images/chrome/tab_active_bg.tif; sourceTree = SOURCE_ROOT; };
 		3FF08F1006E7D3C2001C9B19 /* tab_bar_bg.tif */ = {isa = PBXFileReference; lastKnownFileType = image.tiff; name = tab_bar_bg.tif; path = resources/images/chrome/tab_bar_bg.tif; sourceTree = SOURCE_ROOT; };
 		3FF08F1106E7D3C2001C9B19 /* tab_button_divider.tif */ = {isa = PBXFileReference; lastKnownFileType = image.tiff; name = tab_button_divider.tif; path = resources/images/chrome/tab_button_divider.tif; sourceTree = SOURCE_ROOT; };
@@ -2580,8 +2608,8 @@
 		3FF08F1306E7D3C2001C9B19 /* tab_left_side.tif */ = {isa = PBXFileReference; lastKnownFileType = image.tiff; name = tab_left_side.tif; path = resources/images/chrome/tab_left_side.tif; sourceTree = SOURCE_ROOT; };
 		3FF08F1406E7D3C2001C9B19 /* tab_right_side.tif */ = {isa = PBXFileReference; lastKnownFileType = image.tiff; name = tab_right_side.tif; path = resources/images/chrome/tab_right_side.tif; sourceTree = SOURCE_ROOT; };
 		3FFE23520847CB0D00D6CAFC /* ad_blocking.css */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = text; name = ad_blocking.css; path = resources/application/ad_blocking.css; sourceTree = SOURCE_ROOT; };
-		3FFFEC1C081C3F0B00843C07 /* StatusBarView.h */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.c.h; name = StatusBarView.h; path = src/browser/StatusBarView.h; sourceTree = SOURCE_ROOT; };
-		3FFFEC1D081C3F0B00843C07 /* StatusBarView.mm */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.cpp.objcpp; name = StatusBarView.mm; path = src/browser/StatusBarView.mm; sourceTree = SOURCE_ROOT; };
+		3FFFEC1C081C3F0B00843C07 /* StatusBarView.h */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.c.h; name = StatusBarView.h; path = src/browser/StatusBarView.h; sourceTree = "<group>"; };
+		3FFFEC1D081C3F0B00843C07 /* StatusBarView.mm */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.cpp.objcpp; name = StatusBarView.mm; path = src/browser/StatusBarView.mm; sourceTree = "<group>"; };
 		4DC28F5D099184B80081939B /* libucvmath.a */ = {isa = PBXFileReference; lastKnownFileType = archive.ar; name = libucvmath.a; path = ../staticlib/components/libucvmath.a; sourceTree = SOURCE_ROOT; };
 		4DC41D3C0869D7A400947044 /* libjsj.a */ = {isa = PBXFileReference; lastKnownFileType = archive.ar; name = libjsj.a; path = ../dist/lib/libjsj.a; sourceTree = SOURCE_ROOT; };
 		4DC41D3D0869D7A400947044 /* libmozjpeg.a */ = {isa = PBXFileReference; lastKnownFileType = archive.ar; name = libmozjpeg.a; path = ../jpeg/libmozjpeg.a; sourceTree = SOURCE_ROOT; };
@@ -2636,12 +2664,12 @@
 		DE1E11BF0C28C92B00CD6DD4 /* effective_tld_names.dat */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; name = effective_tld_names.dat; path = ../dist/Embed/res/effective_tld_names.dat; sourceTree = SOURCE_ROOT; };
 		DE62E42F0B72B3D200142851 /* libauth.dylib */ = {isa = PBXFileReference; lastKnownFileType = "compiled.mach-o.bundle"; name = libauth.dylib; path = ../dist/bin/components/libauth.dylib; sourceTree = SOURCE_ROOT; };
 		DE62E4310B72B50C00142851 /* libauth.a */ = {isa = PBXFileReference; lastKnownFileType = archive.ar; name = libauth.a; path = ../staticlib/components/libauth.a; sourceTree = SOURCE_ROOT; };
-		DE6D27E30C1A013800292043 /* CHPermissionManager.h */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.c.h; name = CHPermissionManager.h; path = src/embedding/CHPermissionManager.h; sourceTree = SOURCE_ROOT; };
+		DE6D27E30C1A013800292043 /* CHPermissionManager.h */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.c.h; name = CHPermissionManager.h; path = src/embedding/CHPermissionManager.h; sourceTree = "<group>"; };
 		DE6D27E60C1A014D00292043 /* CHPermissionManager.mm */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.cpp.objcpp; name = CHPermissionManager.mm; path = src/embedding/CHPermissionManager.mm; sourceTree = SOURCE_ROOT; };
-		DE74F7470AB25E7D00FD1D5B /* AppListMenuFactory.mm */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.cpp.objcpp; name = AppListMenuFactory.mm; path = src/browser/AppListMenuFactory.mm; sourceTree = SOURCE_ROOT; };
-		DE74F74A0AB25E9900FD1D5B /* AppListMenuFactory.h */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.c.h; name = AppListMenuFactory.h; path = src/browser/AppListMenuFactory.h; sourceTree = SOURCE_ROOT; };
-		DE74F74D0AB25EBC00FD1D5B /* FeedServiceController.h */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.c.h; name = FeedServiceController.h; path = src/browser/FeedServiceController.h; sourceTree = SOURCE_ROOT; };
-		DE74F7540AB25EDA00FD1D5B /* FeedServiceController.mm */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.cpp.objcpp; name = FeedServiceController.mm; path = src/browser/FeedServiceController.mm; sourceTree = SOURCE_ROOT; };
+		DE74F7470AB25E7D00FD1D5B /* AppListMenuFactory.mm */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.cpp.objcpp; name = AppListMenuFactory.mm; path = src/browser/AppListMenuFactory.mm; sourceTree = "<group>"; };
+		DE74F74A0AB25E9900FD1D5B /* AppListMenuFactory.h */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.c.h; name = AppListMenuFactory.h; path = src/browser/AppListMenuFactory.h; sourceTree = "<group>"; };
+		DE74F74D0AB25EBC00FD1D5B /* FeedServiceController.h */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.c.h; name = FeedServiceController.h; path = src/browser/FeedServiceController.h; sourceTree = "<group>"; };
+		DE74F7540AB25EDA00FD1D5B /* FeedServiceController.mm */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.cpp.objcpp; name = FeedServiceController.mm; path = src/browser/FeedServiceController.mm; sourceTree = "<group>"; };
 		DE74F7610AB2612700FD1D5B /* English */ = {isa = PBXFileReference; lastKnownFileType = wrapper.nib; name = English; path = resources/localized/English.lproj/OpenFeed.nib; sourceTree = "<group>"; };
 		DE74F7640AB2618200FD1D5B /* feed.tif */ = {isa = PBXFileReference; lastKnownFileType = image.tiff; name = feed.tif; path = resources/images/chrome/feed.tif; sourceTree = SOURCE_ROOT; };
 		DE878FCB0C175ABB00153511 /* dom_offline.xpt */ = {isa = PBXFileReference; lastKnownFileType = file; name = dom_offline.xpt; path = ../dist/Embed/components/dom_offline.xpt; sourceTree = SOURCE_ROOT; };
@@ -2659,9 +2687,9 @@
 		DEC87B140C288403002EB106 /* libstoragecomps.a */ = {isa = PBXFileReference; lastKnownFileType = archive.ar; name = libstoragecomps.a; path = ../staticlib/components/libstoragecomps.a; sourceTree = SOURCE_ROOT; };
 		DEDDE22D0ABFB21A00D415F2 /* libchardet.dylib */ = {isa = PBXFileReference; lastKnownFileType = "compiled.mach-o.bundle"; name = libchardet.dylib; path = ../dist/Embed/components/libchardet.dylib; sourceTree = SOURCE_ROOT; };
 		DEDDE3310ABFB7E500D415F2 /* libchardet.a */ = {isa = PBXFileReference; lastKnownFileType = archive.ar; name = libchardet.a; path = ../intl/chardet/src/libchardet.a; sourceTree = SOURCE_ROOT; };
-		DEE34A530B84F5C600BCD687 /* FileChangeWatcher.h */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.c.h; name = FileChangeWatcher.h; path = src/download/FileChangeWatcher.h; sourceTree = SOURCE_ROOT; };
-		DEE34A560B84F5E100BCD687 /* FileChangeWatcher.m */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.c.objc; name = FileChangeWatcher.m; path = src/download/FileChangeWatcher.m; sourceTree = SOURCE_ROOT; };
-		DEE9EBA30AF5C379002BC511 /* SessionManager.h */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.c.h; name = SessionManager.h; path = src/application/SessionManager.h; sourceTree = SOURCE_ROOT; };
+		DEE34A530B84F5C600BCD687 /* FileChangeWatcher.h */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.c.h; name = FileChangeWatcher.h; path = src/download/FileChangeWatcher.h; sourceTree = "<group>"; };
+		DEE34A560B84F5E100BCD687 /* FileChangeWatcher.m */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.c.objc; name = FileChangeWatcher.m; path = src/download/FileChangeWatcher.m; sourceTree = "<group>"; };
+		DEE9EBA30AF5C379002BC511 /* SessionManager.h */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.c.h; name = SessionManager.h; path = src/application/SessionManager.h; sourceTree = "<group>"; };
 		DEE9EBA60AF5C390002BC511 /* SessionManager.mm */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.cpp.objcpp; name = SessionManager.mm; path = src/application/SessionManager.mm; sourceTree = SOURCE_ROOT; };
 		E010866206BCA2E500BD5DE0 /* colResize.tiff */ = {isa = PBXFileReference; lastKnownFileType = image.tiff; path = colResize.tiff; sourceTree = "<group>"; };
 		E010866506BCA2E500BD5DE0 /* rowResize.tiff */ = {isa = PBXFileReference; lastKnownFileType = image.tiff; path = rowResize.tiff; sourceTree = "<group>"; };
@@ -2687,20 +2715,20 @@
 		E4C7D99E0A32109D00B455AD /* spellchecker.xpt */ = {isa = PBXFileReference; lastKnownFileType = file; name = spellchecker.xpt; path = ../dist/bin/components/spellchecker.xpt; sourceTree = SOURCE_ROOT; };
 		F507423C02AD808201A967F3 /* libcrmf.a */ = {isa = PBXFileReference; lastKnownFileType = archive.ar; name = libcrmf.a; path = ../dist/lib/libcrmf.a; sourceTree = SOURCE_ROOT; };
 		F507A82C030BFB7901026D5D /* libuniversalchardet.dylib */ = {isa = PBXFileReference; lastKnownFileType = "compiled.mach-o.bundle"; name = libuniversalchardet.dylib; path = ../extensions/universalchardet/src/xpcom/libuniversalchardet.dylib; sourceTree = SOURCE_ROOT; };
-		F50D9DE202ECC2C601BB4219 /* nsDownloadListener.h */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.c.h; name = nsDownloadListener.h; path = src/download/nsDownloadListener.h; sourceTree = SOURCE_ROOT; };
-		F50D9DE302ECC2C601BB4219 /* nsDownloadListener.mm */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.cpp.objcpp; name = nsDownloadListener.mm; path = src/download/nsDownloadListener.mm; sourceTree = SOURCE_ROOT; };
-		F50D9DED02EE0AB101BB4219 /* CHDownloadProgressDisplay.h */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.c.h; name = CHDownloadProgressDisplay.h; path = src/embedding/CHDownloadProgressDisplay.h; sourceTree = SOURCE_ROOT; };
-		F50D9DEE02EE0AB101BB4219 /* CHDownloadProgressDisplay.mm */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.cpp.objcpp; name = CHDownloadProgressDisplay.mm; path = src/embedding/CHDownloadProgressDisplay.mm; sourceTree = SOURCE_ROOT; };
-		F50D9DF502EE2B9A01BB4219 /* SaveHeaderSniffer.h */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.c.h; name = SaveHeaderSniffer.h; path = src/download/SaveHeaderSniffer.h; sourceTree = SOURCE_ROOT; };
-		F50D9DF602EE2B9A01BB4219 /* SaveHeaderSniffer.mm */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.cpp.objcpp; name = SaveHeaderSniffer.mm; path = src/download/SaveHeaderSniffer.mm; sourceTree = SOURCE_ROOT; };
+		F50D9DE202ECC2C601BB4219 /* nsDownloadListener.h */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.c.h; name = nsDownloadListener.h; path = src/download/nsDownloadListener.h; sourceTree = "<group>"; };
+		F50D9DE302ECC2C601BB4219 /* nsDownloadListener.mm */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.cpp.objcpp; name = nsDownloadListener.mm; path = src/download/nsDownloadListener.mm; sourceTree = "<group>"; };
+		F50D9DED02EE0AB101BB4219 /* CHDownloadProgressDisplay.h */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.c.h; name = CHDownloadProgressDisplay.h; path = src/embedding/CHDownloadProgressDisplay.h; sourceTree = "<group>"; };
+		F50D9DEE02EE0AB101BB4219 /* CHDownloadProgressDisplay.mm */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.cpp.objcpp; name = CHDownloadProgressDisplay.mm; path = src/embedding/CHDownloadProgressDisplay.mm; sourceTree = "<group>"; };
+		F50D9DF502EE2B9A01BB4219 /* SaveHeaderSniffer.h */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.c.h; name = SaveHeaderSniffer.h; path = src/download/SaveHeaderSniffer.h; sourceTree = "<group>"; };
+		F50D9DF602EE2B9A01BB4219 /* SaveHeaderSniffer.mm */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.cpp.objcpp; name = SaveHeaderSniffer.mm; path = src/download/SaveHeaderSniffer.mm; sourceTree = "<group>"; };
 		F50DCB4302C2856001A967F3 /* libjsj.dylib */ = {isa = PBXFileReference; lastKnownFileType = "compiled.mach-o.dylib"; name = libjsj.dylib; path = ../dist/bin/libjsj.dylib; sourceTree = SOURCE_ROOT; };
 		F50EA33F02BAAAB701000103 /* throbber-02.tif */ = {isa = PBXFileReference; lastKnownFileType = image.gif; name = "throbber-02.tif"; path = "resources/images/throbber/throbber-02.tif"; sourceTree = SOURCE_ROOT; };
 		F50EA34002BAAAB701000103 /* throbber-03.tif */ = {isa = PBXFileReference; lastKnownFileType = image.gif; name = "throbber-03.tif"; path = "resources/images/throbber/throbber-03.tif"; sourceTree = SOURCE_ROOT; };
 		F50EA34102BAAAB701000103 /* throbber-04.tif */ = {isa = PBXFileReference; lastKnownFileType = image.gif; name = "throbber-04.tif"; path = "resources/images/throbber/throbber-04.tif"; sourceTree = SOURCE_ROOT; };
 		F50EA34202BAAAB701000103 /* throbber-05.tif */ = {isa = PBXFileReference; lastKnownFileType = image.gif; name = "throbber-05.tif"; path = "resources/images/throbber/throbber-05.tif"; sourceTree = SOURCE_ROOT; };
 		F50EA34302BAAAB701000103 /* throbber-06.tif */ = {isa = PBXFileReference; lastKnownFileType = image.gif; name = "throbber-06.tif"; path = "resources/images/throbber/throbber-06.tif"; sourceTree = SOURCE_ROOT; };
-		F5125A110202064D01FAFD9F /* BrowserWrapper.h */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.c.h; name = BrowserWrapper.h; path = src/browser/BrowserWrapper.h; sourceTree = SOURCE_ROOT; };
-		F5137A1102676B9101026D05 /* Find.h */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.c.h; name = Find.h; path = src/find/Find.h; sourceTree = SOURCE_ROOT; };
+		F5125A110202064D01FAFD9F /* BrowserWrapper.h */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.c.h; name = BrowserWrapper.h; path = src/browser/BrowserWrapper.h; sourceTree = "<group>"; };
+		F5137A1102676B9101026D05 /* Find.h */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.c.h; name = Find.h; path = src/find/Find.h; sourceTree = "<group>"; };
 		F51704E8034A30DF01026D5D /* Security.tiff */ = {isa = PBXFileReference; lastKnownFileType = image.tiff; name = Security.tiff; path = PreferencePanes/Security/Security.tiff; sourceTree = SOURCE_ROOT; };
 		F51704E9034A30DF01026D5D /* SecurityPane.h */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.c.h; name = SecurityPane.h; path = PreferencePanes/Security/SecurityPane.h; sourceTree = SOURCE_ROOT; };
 		F51704EA034A30DF01026D5D /* SecurityPane.mm */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.cpp.objcpp; name = SecurityPane.mm; path = PreferencePanes/Security/SecurityPane.mm; sourceTree = SOURCE_ROOT; };
@@ -2711,12 +2739,12 @@
 		F517051C034A399E01026D5D /* English */ = {isa = PBXFileReference; lastKnownFileType = wrapper.nib; name = English; path = PreferencePanes/WebFeatures/English.lproj/WebFeatures.nib; sourceTree = SOURCE_ROOT; };
 		F5170530034B5E9701026D5D /* English */ = {isa = PBXFileReference; fileEncoding = 10; lastKnownFileType = text.plist.strings; name = English; path = English.lproj/Localizable.strings; sourceTree = "<group>"; };
 		F5173958020CE1E50189DA0C /* English */ = {isa = PBXFileReference; lastKnownFileType = wrapper.nib; name = English; path = resources/localized/English.lproj/ProgressDialog.nib; sourceTree = SOURCE_ROOT; };
-		F517395A020CE3740189DA0C /* ProgressDlgController.h */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.c.h; name = ProgressDlgController.h; path = src/download/ProgressDlgController.h; sourceTree = SOURCE_ROOT; };
-		F517395B020CE3740189DA0C /* ProgressDlgController.mm */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.cpp.objcpp; name = ProgressDlgController.mm; path = src/download/ProgressDlgController.mm; sourceTree = SOURCE_ROOT; };
+		F517395A020CE3740189DA0C /* ProgressDlgController.h */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.c.h; name = ProgressDlgController.h; path = src/download/ProgressDlgController.h; sourceTree = "<group>"; };
+		F517395B020CE3740189DA0C /* ProgressDlgController.mm */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.cpp.objcpp; name = ProgressDlgController.mm; path = src/download/ProgressDlgController.mm; sourceTree = "<group>"; };
 		F517941F027F3F2901A967DF /* xuldoc.xpt */ = {isa = PBXFileReference; lastKnownFileType = file; name = xuldoc.xpt; path = ../content/xul/document/public/_xpidlgen/xuldoc.xpt; sourceTree = SOURCE_ROOT; };
 		F5179422028275B801A967DF /* globe_ico.tif */ = {isa = PBXFileReference; lastKnownFileType = image.tiff; name = globe_ico.tif; path = resources/images/chrome/globe_ico.tif; sourceTree = SOURCE_ROOT; };
 		F51842FC0206176901A966FE /* English */ = {isa = PBXFileReference; lastKnownFileType = wrapper.nib; name = English; path = resources/localized/English.lproj/BrowserWindow.nib; sourceTree = SOURCE_ROOT; };
-		F51B70B6026EC98B01A80166 /* GetURLCommand.h */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.c.h; name = GetURLCommand.h; path = src/appleevents/GetURLCommand.h; sourceTree = SOURCE_ROOT; };
+		F51B70B6026EC98B01A80166 /* GetURLCommand.h */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.c.h; name = GetURLCommand.h; path = src/appleevents/GetURLCommand.h; sourceTree = "<group>"; };
 		F51B70B7026EC98B01A80166 /* GetURLCommand.mm */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.cpp.objcpp; name = GetURLCommand.mm; path = src/appleevents/GetURLCommand.mm; sourceTree = SOURCE_ROOT; };
 		F51D9B2D0209573701A80166 /* libembed_base_s.a */ = {isa = PBXFileReference; lastKnownFileType = archive.ar; name = libembed_base_s.a; path = ../embedding/base/libembed_base_s.a; sourceTree = "<group>"; };
 		F520BEC7036041D501026D5D /* textBigger.tif */ = {isa = PBXFileReference; lastKnownFileType = image.tiff; name = textBigger.tif; path = resources/images/toolbar/textBigger.tif; sourceTree = SOURCE_ROOT; };
@@ -2738,45 +2766,45 @@
 		F527C90203BCD43601A80166 /* NSView+Utils.h */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.c.h; name = "NSView+Utils.h"; path = "src/extensions/NSView+Utils.h"; sourceTree = "<group>"; };
 		F527C90303BCD43601A80166 /* NSView+Utils.m */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.c.objc; name = "NSView+Utils.m"; path = "src/extensions/NSView+Utils.m"; sourceTree = "<group>"; };
 		F528E216020FD5D80168DE43 /* English */ = {isa = PBXFileReference; lastKnownFileType = wrapper.nib; name = English; path = resources/localized/English.lproj/FindDialog.nib; sourceTree = SOURCE_ROOT; };
-		F528E218020FD8400168DE43 /* FindDlgController.h */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.c.h; name = FindDlgController.h; path = src/find/FindDlgController.h; sourceTree = SOURCE_ROOT; };
+		F528E218020FD8400168DE43 /* FindDlgController.h */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.c.h; name = FindDlgController.h; path = src/find/FindDlgController.h; sourceTree = "<group>"; };
 		F528E21A020FD9620168DE43 /* FindDlgController.mm */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.cpp.objcpp; name = FindDlgController.mm; path = src/find/FindDlgController.mm; sourceTree = SOURCE_ROOT; };
 		F52CE65902BFA88701026D5D /* English */ = {isa = PBXFileReference; fileEncoding = 10; lastKnownFileType = text.plist.strings; name = English; path = resources/localized/English.lproj/Localizable.strings; sourceTree = SOURCE_ROOT; };
-		F52D5CCF027A887001A80166 /* AutoCompleteTextField.h */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.c.h; name = AutoCompleteTextField.h; path = src/browser/AutoCompleteTextField.h; sourceTree = SOURCE_ROOT; };
+		F52D5CCF027A887001A80166 /* AutoCompleteTextField.h */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.c.h; name = AutoCompleteTextField.h; path = src/browser/AutoCompleteTextField.h; sourceTree = "<group>"; };
 		F52D5CD0027A887001A80166 /* AutoCompleteTextField.mm */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.cpp.objcpp; name = AutoCompleteTextField.mm; path = src/browser/AutoCompleteTextField.mm; sourceTree = SOURCE_ROOT; };
-		F52D5CD3027A88C601A80166 /* AutoCompleteDataSource.h */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.c.h; name = AutoCompleteDataSource.h; path = src/browser/AutoCompleteDataSource.h; sourceTree = SOURCE_ROOT; };
+		F52D5CD3027A88C601A80166 /* AutoCompleteDataSource.h */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.c.h; name = AutoCompleteDataSource.h; path = src/browser/AutoCompleteDataSource.h; sourceTree = "<group>"; };
 		F52D5CD4027A88C601A80166 /* AutoCompleteDataSource.mm */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.cpp.objcpp; name = AutoCompleteDataSource.mm; path = src/browser/AutoCompleteDataSource.mm; sourceTree = SOURCE_ROOT; };
-		F52D5CD7027D3D5001A80166 /* PreferenceManager.h */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.c.h; name = PreferenceManager.h; path = src/preferences/PreferenceManager.h; sourceTree = SOURCE_ROOT; };
+		F52D5CD7027D3D5001A80166 /* PreferenceManager.h */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.c.h; name = PreferenceManager.h; path = src/preferences/PreferenceManager.h; sourceTree = "<group>"; };
 		F52D5CD8027D3D5001A80166 /* PreferenceManager.mm */ = {isa = PBXFileReference; fileEncoding = 30; indentWidth = 2; lastKnownFileType = sourcecode.cpp.objcpp; name = PreferenceManager.mm; path = src/preferences/PreferenceManager.mm; sourceTree = SOURCE_ROOT; };
 		F52D5CDB027D412A01A80166 /* Carbon.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = Carbon.framework; path = /System/Library/Frameworks/Carbon.framework; sourceTree = "<absolute>"; };
 		F52D5CDC027D412A01A80166 /* CoreFoundation.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = CoreFoundation.framework; path = /System/Library/Frameworks/CoreFoundation.framework; sourceTree = "<absolute>"; };
 		F52D5CDD027D412A01A80166 /* SystemConfiguration.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = SystemConfiguration.framework; path = /System/Library/Frameworks/SystemConfiguration.framework; sourceTree = "<absolute>"; };
-		F52F87CB027D75C301A80165 /* HistoryDataSource */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.c.h; name = HistoryDataSource; path = src/history/HistoryDataSource.h; sourceTree = SOURCE_ROOT; };
+		F52F87CB027D75C301A80165 /* HistoryDataSource */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.c.h; name = HistoryDataSource; path = src/history/HistoryDataSource.h; sourceTree = "<group>"; };
 		F52F87CD027D75C301A80165 /* HistoryDataSource.mm */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.cpp.objcpp; name = HistoryDataSource.mm; path = src/history/HistoryDataSource.mm; sourceTree = "<group>"; };
 		F53849040349779901A80166 /* Localizable.strings */ = {isa = PBXFileReference; fileEncoding = 10; lastKnownFileType = text.plist.strings; name = Localizable.strings; path = English.lproj/Localizable.strings; sourceTree = "<group>"; };
 		F538DFAF023B3739010001CA /* fileHtml.icns */ = {isa = PBXFileReference; lastKnownFileType = image.icns; name = fileHtml.icns; path = resources/images/app/fileHtml.icns; sourceTree = SOURCE_ROOT; };
 		F538DFB1023B3739010001CA /* appicon.icns */ = {isa = PBXFileReference; lastKnownFileType = image.icns; name = appicon.icns; path = resources/images/app/appicon.icns; sourceTree = SOURCE_ROOT; };
 		F538DFB2023B3739010001CA /* fileBookmark.icns */ = {isa = PBXFileReference; lastKnownFileType = image.icns; name = fileBookmark.icns; path = resources/images/app/fileBookmark.icns; sourceTree = SOURCE_ROOT; };
 		F53A902202C1127A01A967F3 /* liboji.dylib */ = {isa = PBXFileReference; lastKnownFileType = "compiled.mach-o.bundle"; name = liboji.dylib; path = ../modules/oji/src/liboji.dylib; sourceTree = SOURCE_ROOT; };
-		F53C1CD6032FF3B301A96654 /* BrowserContentViews.h */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.c.h; name = BrowserContentViews.h; path = src/browser/BrowserContentViews.h; sourceTree = SOURCE_ROOT; };
+		F53C1CD6032FF3B301A96654 /* BrowserContentViews.h */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.c.h; name = BrowserContentViews.h; path = src/browser/BrowserContentViews.h; sourceTree = "<group>"; };
 		F53C1CD7032FF3B301A96654 /* BrowserContentViews.mm */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.cpp.objcpp; name = BrowserContentViews.mm; path = src/browser/BrowserContentViews.mm; sourceTree = SOURCE_ROOT; };
-		F53E012902AEE91C01A967F3 /* BookmarkInfoController.h */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.c.h; name = BookmarkInfoController.h; path = src/bookmarks/BookmarkInfoController.h; sourceTree = SOURCE_ROOT; };
-		F53E012C02AEE93601A967F3 /* BookmarkInfoController.mm */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.cpp.objcpp; name = BookmarkInfoController.mm; path = src/bookmarks/BookmarkInfoController.mm; sourceTree = SOURCE_ROOT; };
+		F53E012902AEE91C01A967F3 /* BookmarkInfoController.h */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.c.h; name = BookmarkInfoController.h; path = src/bookmarks/BookmarkInfoController.h; sourceTree = "<group>"; };
+		F53E012C02AEE93601A967F3 /* BookmarkInfoController.mm */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.cpp.objcpp; name = BookmarkInfoController.mm; path = src/bookmarks/BookmarkInfoController.mm; sourceTree = "<group>"; };
 		F53E012F02AEE9BD01A967F3 /* English */ = {isa = PBXFileReference; lastKnownFileType = wrapper.nib; name = English; path = resources/localized/English.lproj/BookmarkInfoPanel.nib; sourceTree = SOURCE_ROOT; };
 		F53F21EC022B7C77010001CA /* MVPreferencePaneDefaults.plist */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = text.plist; name = MVPreferencePaneDefaults.plist; path = src/preferences/MVPreferencePaneDefaults.plist; sourceTree = SOURCE_ROOT; };
 		F53F21EF022B7C77010001CA /* MVPreferencesController.h */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.c.h; name = MVPreferencesController.h; path = src/preferences/MVPreferencesController.h; sourceTree = SOURCE_ROOT; };
 		F53F21F0022B7C77010001CA /* MVPreferencesController.mm */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.cpp.objcpp; name = MVPreferencesController.mm; path = src/preferences/MVPreferencesController.mm; sourceTree = SOURCE_ROOT; };
 		F540BD1A029ED15301026D5D /* security_lock.tif */ = {isa = PBXFileReference; lastKnownFileType = image.tiff; name = security_lock.tif; path = resources/images/chrome/security_lock.tif; sourceTree = SOURCE_ROOT; };
 		F540BD1C029ED17901026D5D /* security_broken.tif */ = {isa = PBXFileReference; lastKnownFileType = image.tiff; name = security_broken.tif; path = resources/images/chrome/security_broken.tif; sourceTree = SOURCE_ROOT; };
-		F541495A02711A8301A80166 /* CHToolbarAdditions.h */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.c.h; name = CHToolbarAdditions.h; path = src/extensions/ToolbarAdditions.h; sourceTree = SOURCE_ROOT; };
-		F541495B02711A8301A80166 /* CHToolbarAdditions.m */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.c.objc; name = CHToolbarAdditions.m; path = src/extensions/ToolbarAdditions.m; sourceTree = SOURCE_ROOT; };
-		F541495E02711B0001A80166 /* CHImageAdditions.h */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.c.h; name = CHImageAdditions.h; path = src/extensions/ImageAdditions.h; sourceTree = SOURCE_ROOT; };
-		F541495F02711B0001A80166 /* CHImageAdditions.m */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.c.objc; name = CHImageAdditions.m; path = src/extensions/ImageAdditions.m; sourceTree = SOURCE_ROOT; };
+		F541495A02711A8301A80166 /* CHToolbarAdditions.h */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.c.h; name = CHToolbarAdditions.h; path = src/extensions/ToolbarAdditions.h; sourceTree = "<group>"; };
+		F541495B02711A8301A80166 /* CHToolbarAdditions.m */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.c.objc; name = CHToolbarAdditions.m; path = src/extensions/ToolbarAdditions.m; sourceTree = "<group>"; };
+		F541495E02711B0001A80166 /* CHImageAdditions.h */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.c.h; name = CHImageAdditions.h; path = src/extensions/ImageAdditions.h; sourceTree = "<group>"; };
+		F541495F02711B0001A80166 /* CHImageAdditions.m */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.c.objc; name = CHImageAdditions.m; path = src/extensions/ImageAdditions.m; sourceTree = "<group>"; };
 		F541496202714F9A01A80166 /* groupbookmark.tif */ = {isa = PBXFileReference; lastKnownFileType = image.tiff; name = groupbookmark.tif; path = resources/images/chrome/groupbookmark.tif; sourceTree = SOURCE_ROOT; };
 		F5461CBB03AAC25C01A96660 /* nsProxyAutoConfig.js */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.javascript; name = nsProxyAutoConfig.js; path = ../dist/bin/components/nsProxyAutoConfig.js; sourceTree = SOURCE_ROOT; };
-		F549ACDE0302DE6001026D5D /* ToolTip.mm */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.cpp.objcpp; name = ToolTip.mm; path = src/browser/ToolTip.mm; sourceTree = SOURCE_ROOT; };
-		F549ACDF0302DE6001026D5D /* NSScreen+Utils.m */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.c.objc; name = "NSScreen+Utils.m"; path = "src/extensions/NSScreen+Utils.m"; sourceTree = SOURCE_ROOT; };
-		F549ACE40302DEBB01026D5D /* NSScreen+Utils.h */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.c.h; name = "NSScreen+Utils.h"; path = "src/extensions/NSScreen+Utils.h"; sourceTree = SOURCE_ROOT; };
-		F549ACE70302DEF001026D5D /* ToolTip.h */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.c.h; name = ToolTip.h; path = src/browser/ToolTip.h; sourceTree = SOURCE_ROOT; };
+		F549ACDE0302DE6001026D5D /* ToolTip.mm */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.cpp.objcpp; name = ToolTip.mm; path = src/browser/ToolTip.mm; sourceTree = "<group>"; };
+		F549ACDF0302DE6001026D5D /* NSScreen+Utils.m */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.c.objc; name = "NSScreen+Utils.m"; path = "src/extensions/NSScreen+Utils.m"; sourceTree = "<group>"; };
+		F549ACE40302DEBB01026D5D /* NSScreen+Utils.h */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.c.h; name = "NSScreen+Utils.h"; path = "src/extensions/NSScreen+Utils.h"; sourceTree = "<group>"; };
+		F549ACE70302DEF001026D5D /* ToolTip.h */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.c.h; name = ToolTip.h; path = src/browser/ToolTip.h; sourceTree = "<group>"; };
 		F54AD84402C115D901A967F3 /* liboji.a */ = {isa = PBXFileReference; lastKnownFileType = archive.ar; name = liboji.a; path = ../modules/oji/src/liboji.a; sourceTree = SOURCE_ROOT; };
 		F54EF7ED022A2F9C01A80165 /* pipnss.jar */ = {isa = PBXFileReference; lastKnownFileType = archive.jar; name = pipnss.jar; path = ../dist/Embed/chrome/pipnss.jar; sourceTree = SOURCE_ROOT; };
 		F5547D60020333DA01F448B0 /* home.tif */ = {isa = PBXFileReference; lastKnownFileType = image.tiff; name = home.tif; path = resources/images/toolbar/home.tif; sourceTree = SOURCE_ROOT; };
@@ -2791,31 +2819,31 @@
 		F5568A900217CA82010001CA /* folder.tiff */ = {isa = PBXFileReference; lastKnownFileType = image.tiff; name = folder.tiff; path = resources/images/chrome/folder.tiff; sourceTree = SOURCE_ROOT; };
 		F55714A1023B4898010001CA /* smallbookmark.tif */ = {isa = PBXFileReference; lastKnownFileType = image.tiff; name = smallbookmark.tif; path = resources/images/chrome/smallbookmark.tif; sourceTree = SOURCE_ROOT; };
 		F557193A022B4102010001CA /* PreferencePanes.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = PreferencePanes.framework; path = /System/Library/Frameworks/PreferencePanes.framework; sourceTree = "<absolute>"; };
-		F558099D02F22168015DF512 /* NSString+Utils.h */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.c.h; name = "NSString+Utils.h"; path = "src/extensions/NSString+Utils.h"; sourceTree = SOURCE_ROOT; };
-		F5581379030AEF9B0176F207 /* RemoteDataProvider.h */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.c.h; name = RemoteDataProvider.h; path = src/browser/RemoteDataProvider.h; sourceTree = SOURCE_ROOT; };
-		F558137A030AEF9B0176F207 /* SiteIconProvider.h */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.c.h; name = SiteIconProvider.h; path = src/browser/SiteIconProvider.h; sourceTree = SOURCE_ROOT; };
+		F558099D02F22168015DF512 /* NSString+Utils.h */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.c.h; name = "NSString+Utils.h"; path = "src/extensions/NSString+Utils.h"; sourceTree = "<group>"; };
+		F5581379030AEF9B0176F207 /* RemoteDataProvider.h */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.c.h; name = RemoteDataProvider.h; path = src/browser/RemoteDataProvider.h; sourceTree = "<group>"; };
+		F558137A030AEF9B0176F207 /* SiteIconProvider.h */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.c.h; name = SiteIconProvider.h; path = src/browser/SiteIconProvider.h; sourceTree = "<group>"; };
 		F558137C030AEF9B0176F207 /* RemoteDataProvider.mm */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.cpp.objcpp; name = RemoteDataProvider.mm; path = src/browser/RemoteDataProvider.mm; sourceTree = SOURCE_ROOT; };
 		F558137D030AEF9B0176F207 /* SiteIconProvider.mm */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.cpp.objcpp; name = SiteIconProvider.mm; path = src/browser/SiteIconProvider.mm; sourceTree = SOURCE_ROOT; };
-		F558B1F0030F6E470166970F /* CHBrowserListener.h */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.c.h; name = CHBrowserListener.h; path = src/embedding/CHBrowserListener.h; sourceTree = SOURCE_ROOT; };
-		F558B1F1030F6E470166970F /* CHBrowserListener.mm */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.cpp.objcpp; name = CHBrowserListener.mm; path = src/embedding/CHBrowserListener.mm; sourceTree = SOURCE_ROOT; };
-		F558B1F1030F6E470166971B /* CmXULAppData.h */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.c.h; name = CmXULAppData.h; path = generated/CmXULAppData.h; sourceTree = SOURCE_ROOT; };
-		F558B1F1030F6E470166971F /* CmXULAppInfo.h */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.c.h; name = CmXULAppInfo.h; path = src/embedding/CmXULAppInfo.h; sourceTree = SOURCE_ROOT; };
-		F558B1F1030F6E470166972F /* CmXULAppInfo.mm */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.cpp.objcpp; name = CmXULAppInfo.mm; path = src/embedding/CmXULAppInfo.mm; sourceTree = SOURCE_ROOT; };
+		F558B1F0030F6E470166970F /* CHBrowserListener.h */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.c.h; name = CHBrowserListener.h; path = src/embedding/CHBrowserListener.h; sourceTree = "<group>"; };
+		F558B1F1030F6E470166970F /* CHBrowserListener.mm */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.cpp.objcpp; name = CHBrowserListener.mm; path = src/embedding/CHBrowserListener.mm; sourceTree = "<group>"; };
+		F558B1F1030F6E470166971B /* CmXULAppData.h */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = file; name = CmXULAppData.h; path = generated/CmXULAppData.h; sourceTree = "<group>"; };
+		F558B1F1030F6E470166971F /* CmXULAppInfo.h */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.c.h; name = CmXULAppInfo.h; path = src/embedding/CmXULAppInfo.h; sourceTree = "<group>"; };
+		F558B1F1030F6E470166972F /* CmXULAppInfo.mm */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.cpp.objcpp; name = CmXULAppInfo.mm; path = src/embedding/CmXULAppInfo.mm; sourceTree = "<group>"; };
 		F55A4DED0380705A01A80166 /* SharedMenusCocoa.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = SharedMenusCocoa.framework; path = /Library/Frameworks/SharedMenusCocoa.framework; sourceTree = "<absolute>"; };
 		F55A9BC60228CCE101DAE4DB /* security-prefs.js */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.javascript; name = "security-prefs.js"; path = "../dist/Embed/greprefs/security-prefs.js"; sourceTree = SOURCE_ROOT; };
 		F55B6BF402EF1F7E01026D5D /* broken-image.gif */ = {isa = PBXFileReference; lastKnownFileType = image.gif; name = "broken-image.gif"; path = "resources/images/gecko/broken-image.gif"; sourceTree = SOURCE_ROOT; };
-		F55C4DD302D2864D0130B065 /* UserDefaults.h */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.c.h; name = UserDefaults.h; path = src/application/UserDefaults.h; sourceTree = SOURCE_ROOT; };
+		F55C4DD302D2864D0130B065 /* UserDefaults.h */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.c.h; name = UserDefaults.h; path = src/application/UserDefaults.h; sourceTree = "<group>"; };
 		F55CCFD2020E98EA010001CA /* print.tif */ = {isa = PBXFileReference; lastKnownFileType = image.tiff; name = print.tif; path = resources/images/toolbar/print.tif; sourceTree = SOURCE_ROOT; };
-		F5607CB5023944AD01A967DF /* GeckoUtils.h */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.c.h; name = GeckoUtils.h; path = src/extensions/GeckoUtils.h; sourceTree = SOURCE_ROOT; };
+		F5607CB5023944AD01A967DF /* GeckoUtils.h */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.c.h; name = GeckoUtils.h; path = src/extensions/GeckoUtils.h; sourceTree = "<group>"; };
 		F564872F023B957F010001CA /* historyicon.tif */ = {isa = PBXFileReference; lastKnownFileType = image.tiff; name = historyicon.tif; path = resources/images/toolbar/historyicon.tif; sourceTree = SOURCE_ROOT; };
-		F5648739023C3857010001CA /* IconTabViewItem.h */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.c.h; name = IconTabViewItem.h; path = src/extensions/IconTabViewItem.h; sourceTree = SOURCE_ROOT; };
-		F564873A023C3857010001CA /* IconTabViewItem.mm */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.cpp.objcpp; name = IconTabViewItem.mm; path = src/extensions/IconTabViewItem.mm; sourceTree = SOURCE_ROOT; };
+		F5648739023C3857010001CA /* IconTabViewItem.h */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.c.h; name = IconTabViewItem.h; path = src/extensions/IconTabViewItem.h; sourceTree = "<group>"; };
+		F564873A023C3857010001CA /* IconTabViewItem.mm */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.cpp.objcpp; name = IconTabViewItem.mm; path = src/extensions/IconTabViewItem.mm; sourceTree = "<group>"; };
 		F56610BC0394775201A9666E /* Default Plugin.plugin */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = wrapper.cfbundle; name = "Default Plugin.plugin"; path = "../dist/bin/plugins/Default Plugin.plugin"; sourceTree = SOURCE_ROOT; };
-		F566BD1202EFA9AD01A967F3 /* CocoaPromptService.h */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.c.h; name = CocoaPromptService.h; path = src/browser/CocoaPromptService.h; sourceTree = SOURCE_ROOT; };
+		F566BD1202EFA9AD01A967F3 /* CocoaPromptService.h */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.c.h; name = CocoaPromptService.h; path = src/browser/CocoaPromptService.h; sourceTree = "<group>"; };
 		F566BD1302EFA9AD01A967F3 /* CocoaPromptService.mm */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.cpp.objcpp; name = CocoaPromptService.mm; path = src/browser/CocoaPromptService.mm; sourceTree = SOURCE_ROOT; };
 		F56769FB0208F74A010001CA /* BrowserWindowController.mm */ = {isa = PBXFileReference; fileEncoding = 30; indentWidth = 2; lastKnownFileType = sourcecode.cpp.objcpp; name = BrowserWindowController.mm; path = src/browser/BrowserWindowController.mm; sourceTree = SOURCE_ROOT; tabWidth = 8; usesTabs = 0; };
 		F568C3D3023A4F71010001CA /* English */ = {isa = PBXFileReference; lastKnownFileType = text.rtf; name = English; path = resources/application/English.lproj/Credits.rtf; sourceTree = SOURCE_ROOT; };
-		F56F241F02AC6D0401A967F3 /* nsStaticComponents.cpp */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.cpp.cpp; name = nsStaticComponents.cpp; path = src/application/nsStaticComponents.cpp; sourceTree = SOURCE_ROOT; };
+		F56F241F02AC6D0401A967F3 /* nsStaticComponents.cpp */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.cpp.cpp; name = nsStaticComponents.cpp; path = src/application/nsStaticComponents.cpp; sourceTree = "<group>"; };
 		F56F242602AC706801A967F3 /* libnecko.a */ = {isa = PBXFileReference; lastKnownFileType = archive.ar; name = libnecko.a; path = ../netwerk/build/libnecko.a; sourceTree = SOURCE_ROOT; };
 		F56F242B02AC706801A967F3 /* libuconv.a */ = {isa = PBXFileReference; lastKnownFileType = archive.ar; name = libuconv.a; path = ../intl/uconv/src/libuconv.a; sourceTree = SOURCE_ROOT; };
 		F56F243302AC706801A967F3 /* libxpconnect.a */ = {isa = PBXFileReference; lastKnownFileType = archive.ar; name = libxpconnect.a; path = ../js/src/xpconnect/src/libxpconnect.a; sourceTree = SOURCE_ROOT; };
@@ -2840,8 +2868,6 @@
 		F56F249002AC729901A967F3 /* libpipnss.a */ = {isa = PBXFileReference; lastKnownFileType = archive.ar; name = libpipnss.a; path = ../security/manager/ssl/src/libpipnss.a; sourceTree = SOURCE_ROOT; };
 		F56F249402AC729901A967F3 /* libxmlextras.a */ = {isa = PBXFileReference; lastKnownFileType = archive.ar; name = libxmlextras.a; path = ../extensions/xmlextras/build/src/libxmlextras.a; sourceTree = SOURCE_ROOT; };
 		F56F837202E47CCD01EF35C9 /* RegionNames.strings */ = {isa = PBXFileReference; fileEncoding = 10; lastKnownFileType = text.plist.strings; name = RegionNames.strings; path = PreferencePanes/Appearance/English.lproj/RegionNames.strings; sourceTree = SOURCE_ROOT; };
-		F57074BD026D80DF01A80166 /* LocationBar.h */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.c.h; name = LocationBar.h; path = src/browser/LocationBar.h; sourceTree = SOURCE_ROOT; };
-		F57074BE026D80DF01A80166 /* LocationBar.mm */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.cpp.objcpp; name = LocationBar.mm; path = src/browser/LocationBar.mm; sourceTree = SOURCE_ROOT; };
 		F57BED9703A1824001A9666E /* NetworkServices.mm */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.cpp.objcpp; name = NetworkServices.mm; path = src/rendezvous/NetworkServices.mm; sourceTree = SOURCE_ROOT; };
 		F57BED9A03A1824801A9666E /* NetworkServices.h */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.c.h; name = NetworkServices.h; path = src/rendezvous/NetworkServices.h; sourceTree = SOURCE_ROOT; };
 		F57BED9D03A1825001A9666E /* DNSUtils.c */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.c.c; name = DNSUtils.c; path = src/rendezvous/DNSUtils.c; sourceTree = SOURCE_ROOT; };
@@ -2855,14 +2881,14 @@
 		F583E3BF03B8228701A80166 /* CHStackView.m */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.c.objc; name = CHStackView.m; path = src/extensions/CHStackView.m; sourceTree = "<group>"; };
 		F583E3C203B8228F01A80166 /* CHStackView.h */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.c.h; name = CHStackView.h; path = src/extensions/CHStackView.h; sourceTree = "<group>"; };
 		F585677D02382E97010001CA /* English */ = {isa = PBXFileReference; lastKnownFileType = wrapper.nib; name = English; path = resources/localized/English.lproj/MVPreferences.nib; sourceTree = SOURCE_ROOT; };
-		F58DB2D20381FD3301A9666E /* JSConsole.h */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.c.h; name = JSConsole.h; path = src/application/JSConsole.h; sourceTree = SOURCE_ROOT; };
+		F58DB2D20381FD3301A9666E /* JSConsole.h */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.c.h; name = JSConsole.h; path = src/application/JSConsole.h; sourceTree = "<group>"; };
 		F58DB2D30381FD3301A9666E /* JSConsole.mm */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.cpp.objcpp; name = JSConsole.mm; path = src/application/JSConsole.mm; sourceTree = SOURCE_ROOT; };
-		F59236C002C89AC90100012B /* AppDirServiceProvider.cpp */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.cpp.cpp; name = AppDirServiceProvider.cpp; path = src/application/AppDirServiceProvider.cpp; sourceTree = SOURCE_ROOT; };
-		F59236C102C89AC90100012B /* AppDirServiceProvider.h */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.c.h; name = AppDirServiceProvider.h; path = src/application/AppDirServiceProvider.h; sourceTree = SOURCE_ROOT; };
+		F59236C002C89AC90100012B /* AppDirServiceProvider.cpp */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.cpp.cpp; name = AppDirServiceProvider.cpp; path = src/application/AppDirServiceProvider.cpp; sourceTree = "<group>"; };
+		F59236C102C89AC90100012B /* AppDirServiceProvider.h */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.c.h; name = AppDirServiceProvider.h; path = src/application/AppDirServiceProvider.h; sourceTree = "<group>"; };
 		F5949A47030D58A1014E8430 /* xhtml11.dtd */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = text.xml; path = xhtml11.dtd; sourceTree = "<group>"; };
 		F59A0E320307635401A967F3 /* all-camino.js */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.javascript; name = "all-camino.js"; path = "generated/all-camino.js"; sourceTree = SOURCE_ROOT; };
-		F59E9F3D0237E28401A967DF /* ContentClickListener.h */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.c.h; name = ContentClickListener.h; path = src/browser/ContentClickListener.h; sourceTree = SOURCE_ROOT; };
-		F59E9F3F0237E43401A967DF /* ContentClickListener.mm */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.cpp.objcpp; name = ContentClickListener.mm; path = src/browser/ContentClickListener.mm; sourceTree = SOURCE_ROOT; };
+		F59E9F3D0237E28401A967DF /* ContentClickListener.h */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.c.h; name = ContentClickListener.h; path = src/browser/ContentClickListener.h; sourceTree = "<group>"; };
+		F59E9F3F0237E43401A967DF /* ContentClickListener.mm */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.cpp.objcpp; name = ContentClickListener.mm; path = src/browser/ContentClickListener.mm; sourceTree = "<group>"; };
 		F5A112C902DF270F01026D5D /* loading-image.gif */ = {isa = PBXFileReference; lastKnownFileType = image.gif; name = "loading-image.gif"; path = "resources/images/gecko/loading-image.gif"; sourceTree = SOURCE_ROOT; };
 		F5A70907036DB4B201202892 /* gopher-audio.gif */ = {isa = PBXFileReference; lastKnownFileType = image.gif; name = "gopher-audio.gif"; path = "../dist/bin/res/html/gopher-audio.gif"; sourceTree = SOURCE_ROOT; };
 		F5A70908036DB4B201202892 /* gopher-binary.gif */ = {isa = PBXFileReference; lastKnownFileType = image.gif; name = "gopher-binary.gif"; path = "../dist/bin/res/html/gopher-binary.gif"; sourceTree = SOURCE_ROOT; };
@@ -2880,33 +2906,32 @@
 		F5A8CE4F02DFF167013CA8EC /* Appearance.mm */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.cpp.objcpp; name = Appearance.mm; path = PreferencePanes/Appearance/Appearance.mm; sourceTree = SOURCE_ROOT; };
 		F5A8CE5002DFF167013CA8EC /* English */ = {isa = PBXFileReference; lastKnownFileType = wrapper.nib; name = English; path = PreferencePanes/Appearance/English.lproj/Appearance.nib; sourceTree = SOURCE_ROOT; };
 		F5A8CE5102DFF167013CA8EC /* Appearance.tiff */ = {isa = PBXFileReference; lastKnownFileType = image.tiff; name = Appearance.tiff; path = PreferencePanes/Appearance/Appearance.tiff; sourceTree = SOURCE_ROOT; };
-		F5AE04B20206A34801A967DF /* BrowserWindowController.h */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.c.h; name = BrowserWindowController.h; path = src/browser/BrowserWindowController.h; sourceTree = SOURCE_ROOT; };
-		F5AE04B60206A37C01A967DF /* MainController.h */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.c.h; name = MainController.h; path = src/application/MainController.h; sourceTree = SOURCE_ROOT; };
+		F5AE04B20206A34801A967DF /* BrowserWindowController.h */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.c.h; name = BrowserWindowController.h; path = src/browser/BrowserWindowController.h; sourceTree = "<group>"; };
+		F5AE04B60206A37C01A967DF /* MainController.h */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.c.h; name = MainController.h; path = src/application/MainController.h; sourceTree = "<group>"; };
 		F5AE04BA0206A4FE01A967DF /* MainController.mm */ = {isa = PBXFileReference; fileEncoding = 30; indentWidth = 2; lastKnownFileType = sourcecode.cpp.objcpp; name = MainController.mm; path = src/application/MainController.mm; sourceTree = SOURCE_ROOT; tabWidth = 8; usesTabs = 0; };
-		F5B34B01034A505F01A80166 /* NSPasteboard+Utils.mm */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.cpp.objcpp; name = "NSPasteboard+Utils.mm"; path = "src/extensions/NSPasteboard+Utils.mm"; sourceTree = SOURCE_ROOT; };
-		F5B34B04034A50C901A80166 /* NSPasteboard+Utils.h */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.c.h; name = "NSPasteboard+Utils.h"; path = "src/extensions/NSPasteboard+Utils.h"; sourceTree = SOURCE_ROOT; };
-		F5B950BC030C83B601A96654 /* BrowserTabViewItem.h */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.c.h; name = BrowserTabViewItem.h; path = src/browser/BrowserTabViewItem.h; sourceTree = SOURCE_ROOT; };
-		F5B950BD030C83B601A96654 /* BrowserTabViewItem.mm */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.cpp.objcpp; name = BrowserTabViewItem.mm; path = src/browser/BrowserTabViewItem.mm; sourceTree = SOURCE_ROOT; };
-		F5BF71450231B8BC010001CA /* BrowserTabView.h */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.c.h; name = BrowserTabView.h; path = src/browser/BrowserTabView.h; sourceTree = SOURCE_ROOT; };
-		F5BF71460231B8BC010001CA /* BrowserTabView.mm */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.cpp.objcpp; name = BrowserTabView.mm; path = src/browser/BrowserTabView.mm; sourceTree = SOURCE_ROOT; };
+		F5B34B01034A505F01A80166 /* NSPasteboard+Utils.mm */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.cpp.objcpp; name = "NSPasteboard+Utils.mm"; path = "src/extensions/NSPasteboard+Utils.mm"; sourceTree = "<group>"; };
+		F5B34B04034A50C901A80166 /* NSPasteboard+Utils.h */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.c.h; name = "NSPasteboard+Utils.h"; path = "src/extensions/NSPasteboard+Utils.h"; sourceTree = "<group>"; };
+		F5B950BC030C83B601A96654 /* BrowserTabViewItem.h */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.c.h; name = BrowserTabViewItem.h; path = src/browser/BrowserTabViewItem.h; sourceTree = "<group>"; };
+		F5B950BD030C83B601A96654 /* BrowserTabViewItem.mm */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.cpp.objcpp; name = BrowserTabViewItem.mm; path = src/browser/BrowserTabViewItem.mm; sourceTree = "<group>"; };
+		F5BF71450231B8BC010001CA /* BrowserTabView.h */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.c.h; name = BrowserTabView.h; path = src/browser/BrowserTabView.h; sourceTree = "<group>"; };
+		F5BF71460231B8BC010001CA /* BrowserTabView.mm */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.cpp.objcpp; name = BrowserTabView.mm; path = src/browser/BrowserTabView.mm; sourceTree = "<group>"; };
 		F5C2CDA702383CE601A967DF /* libunicharutil_s.a */ = {isa = PBXFileReference; lastKnownFileType = archive.ar; name = libunicharutil_s.a; path = ../dist/lib/libunicharutil_s.a; sourceTree = SOURCE_ROOT; };
-		F5C3AB810270072A01A80166 /* ExtendedOutlineView.h */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.c.h; name = ExtendedOutlineView.h; path = src/extensions/ExtendedOutlineView.h; sourceTree = SOURCE_ROOT; };
-		F5C3AB820270072A01A80166 /* ExtendedOutlineView.mm */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.cpp.objcpp; name = ExtendedOutlineView.mm; path = src/extensions/ExtendedOutlineView.mm; sourceTree = SOURCE_ROOT; };
+		F5C3AB810270072A01A80166 /* ExtendedOutlineView.h */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.c.h; name = ExtendedOutlineView.h; path = src/extensions/ExtendedOutlineView.h; sourceTree = "<group>"; };
+		F5C3AB820270072A01A80166 /* ExtendedOutlineView.mm */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.cpp.objcpp; name = ExtendedOutlineView.mm; path = src/extensions/ExtendedOutlineView.mm; sourceTree = "<group>"; };
 		F5C8D55203A2A42401A8016F /* ChimeraUIConstants.h */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.c.h; name = ChimeraUIConstants.h; path = src/includes/ChimeraUIConstants.h; sourceTree = "<group>"; };
-		F5C8D55503A2A43301A8016F /* ChimeraUIConstants.h */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.c.h; name = ChimeraUIConstants.h; path = src/includes/ChimeraUIConstants.h; sourceTree = "<group>"; };
-		F5D33CBC02EF61A901A967F3 /* SecurityDialogs.h */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.c.h; name = SecurityDialogs.h; path = src/browser/SecurityDialogs.h; sourceTree = SOURCE_ROOT; };
-		F5D33CBD02EF61A901A967F3 /* AppComponents.mm */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.cpp.objcpp; name = AppComponents.mm; path = src/application/AppComponents.mm; sourceTree = SOURCE_ROOT; };
+		F5D33CBC02EF61A901A967F3 /* SecurityDialogs.h */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.c.h; name = SecurityDialogs.h; path = src/browser/SecurityDialogs.h; sourceTree = "<group>"; };
+		F5D33CBD02EF61A901A967F3 /* AppComponents.mm */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.cpp.objcpp; name = AppComponents.mm; path = src/application/AppComponents.mm; sourceTree = "<group>"; };
 		F5D33CBE02EF61A901A967F3 /* SecurityDialogs.mm */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.cpp.objcpp; name = SecurityDialogs.mm; path = src/browser/SecurityDialogs.mm; sourceTree = "<group>"; };
 		F5D3F1CE0209235A014E447F /* libmork.dylib */ = {isa = PBXFileReference; lastKnownFileType = "compiled.mach-o.bundle"; name = libmork.dylib; path = ../db/mork/build/libmork.dylib; sourceTree = SOURCE_ROOT; };
 		F5D98EB9031AC37801A96654 /* NSBezierPath+Utils.mm */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.cpp.objcpp; name = "NSBezierPath+Utils.mm"; path = "src/extensions/NSBezierPath+Utils.mm"; sourceTree = "<group>"; };
 		F5D98EBC031AC38601A96654 /* NSBezierPath+Utils.h */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.c.h; name = "NSBezierPath+Utils.h"; path = "src/extensions/NSBezierPath+Utils.h"; sourceTree = "<group>"; };
 		F5DA444A027DD5AA01A80166 /* installed-chrome.txt */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = text; name = "installed-chrome.txt"; path = "../dist/Embed/chrome/installed-chrome.txt"; sourceTree = SOURCE_ROOT; };
-		F5DE10E60209DC0601A967DF /* nsAlertController.h */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.c.h; name = nsAlertController.h; path = src/browser/nsAlertController.h; sourceTree = SOURCE_ROOT; };
-		F5DE10E70209DC0601A967DF /* CHBrowserView.h */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.c.h; name = CHBrowserView.h; path = src/embedding/CHBrowserView.h; sourceTree = SOURCE_ROOT; };
-		F5DE10E80209DC0601A967DF /* CHBrowserService.h */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.c.h; name = CHBrowserService.h; path = src/embedding/CHBrowserService.h; sourceTree = SOURCE_ROOT; };
+		F5DE10E60209DC0601A967DF /* nsAlertController.h */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.c.h; name = nsAlertController.h; path = src/browser/nsAlertController.h; sourceTree = "<group>"; };
+		F5DE10E70209DC0601A967DF /* CHBrowserView.h */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.c.h; name = CHBrowserView.h; path = src/embedding/CHBrowserView.h; sourceTree = "<group>"; };
+		F5DE10E80209DC0601A967DF /* CHBrowserService.h */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.c.h; name = CHBrowserService.h; path = src/embedding/CHBrowserService.h; sourceTree = "<group>"; };
 		F5DE10E90209DC0601A967DF /* nsAlertController.mm */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.cpp.objcpp; name = nsAlertController.mm; path = src/browser/nsAlertController.mm; sourceTree = SOURCE_ROOT; };
-		F5DE10EA0209DC0601A967DF /* CHBrowserView.mm */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.cpp.objcpp; name = CHBrowserView.mm; path = src/embedding/CHBrowserView.mm; sourceTree = SOURCE_ROOT; };
-		F5DE10EB0209DC0601A967DF /* CHBrowserService.mm */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.cpp.objcpp; name = CHBrowserService.mm; path = src/embedding/CHBrowserService.mm; sourceTree = SOURCE_ROOT; };
+		F5DE10EA0209DC0601A967DF /* CHBrowserView.mm */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.cpp.objcpp; name = CHBrowserView.mm; path = src/embedding/CHBrowserView.mm; sourceTree = "<group>"; };
+		F5DE10EB0209DC0601A967DF /* CHBrowserService.mm */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.cpp.objcpp; name = CHBrowserService.mm; path = src/embedding/CHBrowserService.mm; sourceTree = "<group>"; };
 		F5E47654030C5FD501A967F3 /* libuniversalchardet.a */ = {isa = PBXFileReference; lastKnownFileType = archive.ar; name = libuniversalchardet.a; path = ../extensions/universalchardet/src/xpcom/libuniversalchardet.a; sourceTree = SOURCE_ROOT; };
 		F5EB9376030C92450100010C /* showsource.tif */ = {isa = PBXFileReference; lastKnownFileType = image.tiff; name = showsource.tif; path = resources/images/toolbar/showsource.tif; sourceTree = SOURCE_ROOT; };
 		F5F0BDC803C0A76F01202892 /* PrintPDE.plugin */ = {isa = PBXFileReference; lastKnownFileType = wrapper.cfbundle; name = PrintPDE.plugin; path = ../dist/package/PrintPDE.plugin; sourceTree = SOURCE_ROOT; };
@@ -2920,16 +2945,16 @@
 		F5F59320020F4CD201ACA690 /* libtxmgr.dylib */ = {isa = PBXFileReference; lastKnownFileType = "compiled.mach-o.bundle"; name = libtxmgr.dylib; path = ../editor/txmgr/src/libtxmgr.dylib; sourceTree = SOURCE_ROOT; };
 		F5F7EF0E03C1F29C01BDD337 /* English */ = {isa = PBXFileReference; lastKnownFileType = wrapper.nib; name = English; path = resources/localized/English.lproj/Keychain.nib; sourceTree = "<group>"; };
 		F5F94B900332532801026D5D /* KeychainService.h */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.c.h; name = KeychainService.h; path = src/formfill/KeychainService.h; sourceTree = "<group>"; };
-		F5F94B910332532801026D5D /* KeychainService.mm */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.cpp.objcpp; name = KeychainService.mm; path = src/formfill/KeychainService.mm; sourceTree = SOURCE_ROOT; };
+		F5F94B910332532801026D5D /* KeychainService.mm */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.cpp.objcpp; name = KeychainService.mm; path = src/formfill/KeychainService.mm; sourceTree = "<group>"; };
 		F5F94BEF0338E8C501026D5D /* add_to_bookmark.tif */ = {isa = PBXFileReference; lastKnownFileType = image.tiff; name = add_to_bookmark.tif; path = resources/images/toolbar/add_to_bookmark.tif; sourceTree = SOURCE_ROOT; };
 		F5F9FBD902E13767012B5DB7 /* RegionMapping.plist */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = text.plist; name = RegionMapping.plist; path = PreferencePanes/Appearance/RegionMapping.plist; sourceTree = SOURCE_ROOT; };
 		F5FCDD5D03A035E001A9666E /* Localizable.strings */ = {isa = PBXFileReference; fileEncoding = 10; lastKnownFileType = text.plist.strings; name = Localizable.strings; path = English.lproj/Localizable.strings; sourceTree = "<group>"; };
 		F5FDF166031AF47301DE816D /* DraggableImageAndTextCell.h */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.c.h; name = DraggableImageAndTextCell.h; path = src/extensions/DraggableImageAndTextCell.h; sourceTree = "<group>"; };
 		F5FDF167031AF47301DE816D /* DraggableImageAndTextCell.mm */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.cpp.objcpp; name = DraggableImageAndTextCell.mm; path = src/extensions/DraggableImageAndTextCell.mm; sourceTree = "<group>"; };
 		F5FEDBCB02AD8DD101A967F3 /* QuickTime.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = QuickTime.framework; path = /System/Library/Frameworks/QuickTime.framework; sourceTree = "<absolute>"; };
-		F632AF8302B9AEBB01000103 /* BrowserWindow.h */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.c.h; name = BrowserWindow.h; path = src/browser/BrowserWindow.h; sourceTree = SOURCE_ROOT; };
+		F632AF8302B9AEBB01000103 /* BrowserWindow.h */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.c.h; name = BrowserWindow.h; path = src/browser/BrowserWindow.h; sourceTree = "<group>"; };
 		F632AF8402B9AEBB01000103 /* BrowserWindow.mm */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.cpp.objcpp; name = BrowserWindow.mm; path = src/browser/BrowserWindow.mm; sourceTree = SOURCE_ROOT; };
-		F6BA6D4E01B2F8A601A962F7 /* BrowserWrapper.mm */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.cpp.objcpp; name = BrowserWrapper.mm; path = src/browser/BrowserWrapper.mm; sourceTree = SOURCE_ROOT; };
+		F6BA6D4E01B2F8A601A962F7 /* BrowserWrapper.mm */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.cpp.objcpp; name = BrowserWrapper.mm; path = src/browser/BrowserWrapper.mm; sourceTree = "<group>"; };
 		F6BD637F01B30EA301A962F7 /* libmozjs.dylib */ = {isa = PBXFileReference; lastKnownFileType = "compiled.mach-o.dylib"; name = libmozjs.dylib; path = ../dist/Embed/libmozjs.dylib; sourceTree = SOURCE_ROOT; };
 		F6BD638001B30EA301A962F7 /* libnspr4.dylib */ = {isa = PBXFileReference; lastKnownFileType = "compiled.mach-o.dylib"; name = libnspr4.dylib; path = ../dist/Embed/libnspr4.dylib; sourceTree = SOURCE_ROOT; };
 		F6BD638101B30EA301A962F7 /* libplc4.dylib */ = {isa = PBXFileReference; lastKnownFileType = "compiled.mach-o.dylib"; name = libplc4.dylib; path = ../dist/Embed/libplc4.dylib; sourceTree = SOURCE_ROOT; };
@@ -3313,18 +3338,17 @@
 			isa = PBXGroup;
 			children = (
 				F512F53302D17A2601072C9F /* Application */,
+				F512F52D02D1287F01072C9F /* Browser Window */,
+				F558B1F603107E4A0166970F /* Gecko Embedding */,
 				F512F52A02D1287F01072C9F /* Apple Events */,
 				F5A3669402CCFAF601DC3354 /* Bookmarks */,
+				F50D9DE602ECC32301BB4219 /* Downloads */,
 				F5A3669602CCFAF601DC3354 /* History */,
 				F512F52B02D1287F01072C9F /* Dialogs */,
-				F5A3669702CCFAF601DC3354 /* Autocomplete */,
-				F512F52C02D1287F01072C9F /* UI elements */,
-				F57BED9603A1822701A9666E /* Rendezvous */,
-				F50D9DE602ECC32301BB4219 /* Downloading */,
-				F558B1F603107E4A0166970F /* Gecko Embedding */,
-				F512F52D02D1287F01072C9F /* Browser window */,
 				3FBDC7D608252CD600D7F8E0 /* Form Fill */,
-				0FCD85C908C4D69100A1923B /* Security */,
+				335639250C84DF4F00DC4D06 /* UI Components */,
+				33563A6C0C84F44900DC4D06 /* Backend Components */,
+				F5571935022B401B010001CA /* Categories */,
 			);
 			name = Classes;
 			sourceTree = "<group>";
@@ -3470,12 +3494,18 @@
 		0FCD85C908C4D69100A1923B /* Security */ = {
 			isa = PBXGroup;
 			children = (
-				F5D33CBE02EF61A901A967F3 /* SecurityDialogs.mm */,
-				0FDEEA3A08CBD04200754D9B /* CertificateItem.mm */,
-				0FE7712A08C7C42F00AFB850 /* CertificateView.mm */,
-				0FCD85CA08C4D6D900A1923B /* ViewCertificateDialogController.mm */,
+				335639100C84DBDA00DC4D06 /* BrowserSecurityDialogs.h */,
 				0FCD85CB08C4D6D900A1923B /* BrowserSecurityDialogs.mm */,
+				F5D33CBC02EF61A901A967F3 /* SecurityDialogs.h */,
+				F5D33CBE02EF61A901A967F3 /* SecurityDialogs.mm */,
+				335639110C84DBDA00DC4D06 /* CertificateItem.h */,
+				0FDEEA3A08CBD04200754D9B /* CertificateItem.mm */,
+				335639130C84DBDA00DC4D06 /* CertificateView.h */,
+				0FE7712A08C7C42F00AFB850 /* CertificateView.mm */,
+				335639120C84DBDA00DC4D06 /* CertificatesWindowController.h */,
 				0FCD86DF08C4E8AA00A1923B /* CertificatesWindowController.mm */,
+				335639140C84DBDA00DC4D06 /* ViewCertificateDialogController.h */,
+				0FCD85CA08C4D6D900A1923B /* ViewCertificateDialogController.mm */,
 			);
 			name = Security;
 			sourceTree = "<group>";
@@ -3527,27 +3557,16 @@
 			isa = PBXGroup;
 			children = (
 				332377960C4D0FA200A34879 /* Xcode Configs */,
-				F51842F30206168101A966FE /* Headers */,
 				080E96DDFE201D6D7F000001 /* Classes */,
-				F5571935022B401B010001CA /* Categories and Extensions */,
 				F53F21EB022B7C77010001CA /* PreferencePanes */,
-				29B97315FDCFA39411CA2CEA /* Other Sources */,
 				29B97317FDCFA39411CA2CEA /* Resources */,
+				F6BD637A01B30E0F01A962F7 /* Gecko */,
 				F56610A40394767101A9666E /* Plugins */,
 				29B97323FDCFA39411CA2CEA /* Frameworks */,
 				19C28FACFE9D520D11CA2CBB /* Products */,
-				F6BD637A01B30E0F01A962F7 /* Gecko */,
 				3FECC78F05D1F68E0068E7ED /* Target Plists */,
 			);
 			name = Camino;
-			sourceTree = "<group>";
-		};
-		29B97315FDCFA39411CA2CEA /* Other Sources */ = {
-			isa = PBXGroup;
-			children = (
-				F56F241F02AC6D0401A967F3 /* nsStaticComponents.cpp */,
-			);
-			name = "Other Sources";
 			sourceTree = "<group>";
 		};
 		29B97317FDCFA39411CA2CEA /* Resources */ = {
@@ -3596,13 +3615,262 @@
 			name = "Xcode Configs";
 			sourceTree = "<group>";
 		};
+		335639230C84DC8200DC4D06 /* Tabs */ = {
+			isa = PBXGroup;
+			children = (
+				3FF08EF706E7CF3F001C9B19 /* BrowserTabBarView.h */,
+				3FF08EF806E7CF3F001C9B19 /* BrowserTabBarView.mm */,
+				F5BF71450231B8BC010001CA /* BrowserTabView.h */,
+				F5BF71460231B8BC010001CA /* BrowserTabView.mm */,
+				F5B950BC030C83B601A96654 /* BrowserTabViewItem.h */,
+				F5B950BD030C83B601A96654 /* BrowserTabViewItem.mm */,
+				3FF08F0706E7CF9C001C9B19 /* TabButtonCell.h */,
+				3FF08EFE06E7CF86001C9B19 /* TabButtonCell.mm */,
+				1F8407040C5705CC007B893D /* TabThumbnailGridView.h */,
+				1F8407030C5705CC007B893D /* TabThumbnailGridView.mm */,
+			);
+			name = Tabs;
+			sourceTree = "<group>";
+		};
+		335639250C84DF4F00DC4D06 /* UI Components */ = {
+			isa = PBXGroup;
+			children = (
+				DE74F74A0AB25E9900FD1D5B /* AppListMenuFactory.h */,
+				DE74F7470AB25E7D00FD1D5B /* AppListMenuFactory.mm */,
+				0F7EAA9909326B860082C3EA /* AutoSizingTextField.h */,
+				0F7EAA9609326B770082C3EA /* AutoSizingTextField.m */,
+				F583E3C203B8228F01A80166 /* CHStackView.h */,
+				F583E3BF03B8228701A80166 /* CHStackView.m */,
+				F5FDF166031AF47301DE816D /* DraggableImageAndTextCell.h */,
+				F5FDF167031AF47301DE816D /* DraggableImageAndTextCell.mm */,
+				F5C3AB810270072A01A80166 /* ExtendedOutlineView.h */,
+				F5C3AB820270072A01A80166 /* ExtendedOutlineView.mm */,
+				0F222C6008C6102B00B34F14 /* ExtendedSplitView.h */,
+				0F222C6308C6103300B34F14 /* ExtendedSplitView.m */,
+				3FB2BA920545EA80002B9691 /* ExtendedTableView.h */,
+				3FB2BA930545EA80002B9691 /* ExtendedTableView.mm */,
+				F5648739023C3857010001CA /* IconTabViewItem.h */,
+				F564873A023C3857010001CA /* IconTabViewItem.mm */,
+				3F2CF8CB042A88B7005FD42F /* ImageAndTextCell.h */,
+				3F2CF8CC042A88B7005FD42F /* ImageAndTextCell.m */,
+				0FBC0EE20798FA2700E8E0E2 /* PopupMenuButton.h */,
+				0FBC0EDF0798FA1900E8E0E2 /* PopupMenuButton.m */,
+				DEBC80140A14E547006AECD3 /* RolloverImageButton.h */,
+				DEBC801A0A14E5F5006AECD3 /* RolloverImageButton.m */,
+				3FF08F0606E7CF9C001C9B19 /* RolloverTrackingCell.h */,
+				3FF08EFD06E7CF86001C9B19 /* RolloverTrackingCell.mm */,
+				1F8407050C5705CC007B893D /* ThumbnailView.h */,
+				1F8407060C5705CC007B893D /* ThumbnailView.m */,
+				F549ACE70302DEF001026D5D /* ToolTip.h */,
+				F549ACDE0302DE6001026D5D /* ToolTip.mm */,
+				3FF08F0806E7CF9C001C9B19 /* TruncatingTextAndImageCell.h */,
+				3FF08EFF06E7CF86001C9B19 /* TruncatingTextAndImageCell.mm */,
+				0FD75057093ABEBA00B6A3A4 /* TruncatingTextFieldCell.h */,
+				0FD7505A093ABEC600B6A3A4 /* TruncatingTextFieldCell.mm */,
+			);
+			name = "UI Components";
+			sourceTree = "<group>";
+		};
+		335639AF0C84E59700DC4D06 /* Backend */ = {
+			isa = PBXGroup;
+			children = (
+				3FB2BA850545EA80002B9691 /* BookmarkItem.h */,
+				3FB2BA860545EA80002B9691 /* BookmarkItem.mm */,
+				3FB2BA7D0545EA80002B9691 /* Bookmark.h */,
+				3FB2BA7E0545EA80002B9691 /* Bookmark.mm */,
+				3FB2BA810545EA80002B9691 /* BookmarkFolder.h */,
+				3FB2BA820545EA80002B9691 /* BookmarkFolder.mm */,
+				3FB2BA870545EA80002B9691 /* BookmarkManager.h */,
+				3FB2BA880545EA80002B9691 /* BookmarkManager.mm */,
+				3FB2BADF0545EB30002B9691 /* AddressBookManager.h */,
+				3FB2BAE00545EB30002B9691 /* AddressBookManager.m */,
+				3FB2BA940545EA80002B9691 /* KindaSmartFolderManager.h */,
+				3FB2BA950545EA80002B9691 /* KindaSmartFolderManager.mm */,
+			);
+			name = Backend;
+			sourceTree = "<group>";
+		};
+		335639B00C84E5B500DC4D06 /* Bookmark Bar */ = {
+			isa = PBXGroup;
+			children = (
+				3FB2BA8E0545EA80002B9691 /* BookmarkToolbar.h */,
+				3FB2BA8F0545EA80002B9691 /* BookmarkToolbar.mm */,
+				3FB2BA7F0545EA80002B9691 /* BookmarkButton.h */,
+				3FB2BA800545EA80002B9691 /* BookmarkButton.mm */,
+			);
+			name = "Bookmark Bar";
+			sourceTree = "<group>";
+		};
+		335639B10C84E60D00DC4D06 /* UI */ = {
+			isa = PBXGroup;
+			children = (
+				335639B20C84E61A00DC4D06 /* Bookmark Manager */,
+				335639B00C84E5B500DC4D06 /* Bookmark Bar */,
+				335639B40C84E68300DC4D06 /* Bookmark Menu */,
+				335639B50C84E6F000DC4D06 /* Dialogs */,
+			);
+			name = UI;
+			sourceTree = "<group>";
+		};
+		335639B20C84E61A00DC4D06 /* Bookmark Manager */ = {
+			isa = PBXGroup;
+			children = (
+				0F13A30D07D7F3930034B176 /* nsAboutBookmarks.h */,
+				0F13A30E07D7F3930034B176 /* nsAboutBookmarks.mm */,
+				3FB2BA8B0545EA80002B9691 /* BookmarkOutlineView.h */,
+				3FB2BA8C0545EA80002B9691 /* BookmarkOutlineView.mm */,
+				3FB2BA900545EA80002B9691 /* BookmarkViewController.h */,
+				3FB2BA910545EA80002B9691 /* BookmarkViewController.mm */,
+			);
+			name = "Bookmark Manager";
+			sourceTree = "<group>";
+		};
+		335639B40C84E68300DC4D06 /* Bookmark Menu */ = {
+			isa = PBXGroup;
+			children = (
+				3FB2BA890545EA80002B9691 /* BookmarkMenu.h */,
+				3FB2BA8A0545EA80002B9691 /* BookmarkMenu.mm */,
+			);
+			name = "Bookmark Menu";
+			sourceTree = "<group>";
+		};
+		335639B50C84E6F000DC4D06 /* Dialogs */ = {
+			isa = PBXGroup;
+			children = (
+				F53E012902AEE91C01A967F3 /* BookmarkInfoController.h */,
+				F53E012C02AEE93601A967F3 /* BookmarkInfoController.mm */,
+				0F4752D207DC0F4D002AEE9F /* AddBookmarkDialogController.h */,
+				0F4752D307DC0F4D002AEE9F /* AddBookmarkDialogController.mm */,
+				3FB2BA830545EA80002B9691 /* BookmarkImportDlgController.h */,
+				3FB2BA840545EA80002B9691 /* BookmarkImportDlgController.mm */,
+			);
+			name = Dialogs;
+			sourceTree = "<group>";
+		};
+		335639B80C84E7EC00DC4D06 /* Content */ = {
+			isa = PBXGroup;
+			children = (
+				F5125A110202064D01FAFD9F /* BrowserWrapper.h */,
+				F6BA6D4E01B2F8A601A962F7 /* BrowserWrapper.mm */,
+				F59E9F3D0237E28401A967DF /* ContentClickListener.h */,
+				F59E9F3F0237E43401A967DF /* ContentClickListener.mm */,
+			);
+			name = Content;
+			sourceTree = "<group>";
+		};
+		335639BB0C84E81500DC4D06 /* Status Bar */ = {
+			isa = PBXGroup;
+			children = (
+				3FFFEC1C081C3F0B00843C07 /* StatusBarView.h */,
+				3FFFEC1D081C3F0B00843C07 /* StatusBarView.mm */,
+			);
+			name = "Status Bar";
+			sourceTree = "<group>";
+		};
+		335639BC0C84E85600DC4D06 /* Browser View */ = {
+			isa = PBXGroup;
+			children = (
+				F5DE10E70209DC0601A967DF /* CHBrowserView.h */,
+				F5DE10EA0209DC0601A967DF /* CHBrowserView.mm */,
+				F5DE10E80209DC0601A967DF /* CHBrowserService.h */,
+				F5DE10EB0209DC0601A967DF /* CHBrowserService.mm */,
+				F558B1F0030F6E470166970F /* CHBrowserListener.h */,
+				F558B1F1030F6E470166970F /* CHBrowserListener.mm */,
+				506770F90C823B1B0050EF73 /* CHSelectHandler.h */,
+				506770F60C823B090050EF73 /* CHSelectHandler.mm */,
+			);
+			name = "Browser View";
+			sourceTree = "<group>";
+		};
+		335639BD0C84E8B900DC4D06 /* Keychain */ = {
+			isa = PBXGroup;
+			children = (
+				DEB968170B0D8E0B0023F8B1 /* KeychainItem.h */,
+				DEB968140B0D8DF70023F8B1 /* KeychainItem.m */,
+				F5F94B900332532801026D5D /* KeychainService.h */,
+				F5F94B910332532801026D5D /* KeychainService.mm */,
+			);
+			name = Keychain;
+			sourceTree = "<group>";
+		};
+		335639BE0C84E8C500DC4D06 /* Address Book */ = {
+			isa = PBXGroup;
+			children = (
+				3356390A0C84DBB900DC4D06 /* PhoneNumber.h */,
+				3FBDC7D908252CF300D7F8E0 /* PhoneNumber.mm */,
+				3356390B0C84DBB900DC4D06 /* wallet.h */,
+				3FBDC7DA08252CF300D7F8E0 /* wallet.mm */,
+			);
+			name = "Address Book";
+			sourceTree = "<group>";
+		};
+		33563A4A0C84EB5500DC4D06 /* UI */ = {
+			isa = PBXGroup;
+			children = (
+				F517395A020CE3740189DA0C /* ProgressDlgController.h */,
+				F517395B020CE3740189DA0C /* ProgressDlgController.mm */,
+				3FC0FB7F05A0D2DC002F47DE /* ProgressView.h */,
+				3FC0FB8005A0D2DC002F47DE /* ProgressView.mm */,
+				F5F415C903B9223E01A80166 /* ProgressViewController.h */,
+				F5F415CA03B9223E01A80166 /* ProgressViewController.mm */,
+				DEE34A530B84F5C600BCD687 /* FileChangeWatcher.h */,
+				DEE34A560B84F5E100BCD687 /* FileChangeWatcher.m */,
+			);
+			name = UI;
+			sourceTree = "<group>";
+		};
+		33563A520C84ED2700DC4D06 /* Backend */ = {
+			isa = PBXGroup;
+			children = (
+				0FBC0ED90798F9A000E8E0E2 /* nsSimpleGlobalHistory.cpp */,
+				F52F87CB027D75C301A80165 /* HistoryDataSource */,
+				F52F87CD027D75C301A80165 /* HistoryDataSource.mm */,
+				3F7C6CB905B4819E002FFFD3 /* HistoryItem.h */,
+				3F7C6CBA05B4819E002FFFD3 /* HistoryItem.mm */,
+			);
+			name = Backend;
+			sourceTree = "<group>";
+		};
+		33563A540C84ED5800DC4D06 /* UI */ = {
+			isa = PBXGroup;
+			children = (
+				2E748B72029A448D4B000102 /* GoMenu.h */,
+				2E748B73029A448D4B000102 /* GoMenu.mm */,
+				335638FD0C84D82200DC4D06 /* HistoryOutlineViewDelegate.h */,
+				0FBC0EDC0798F9B400E8E0E2 /* HistoryOutlineViewDelegate.mm */,
+			);
+			name = UI;
+			sourceTree = "<group>";
+		};
+		33563A5A0C84EF3B00DC4D06 /* Gecko Support */ = {
+			isa = PBXGroup;
+			children = (
+				F59236C102C89AC90100012B /* AppDirServiceProvider.h */,
+				F59236C002C89AC90100012B /* AppDirServiceProvider.cpp */,
+				F5D33CBD02EF61A901A967F3 /* AppComponents.mm */,
+				F56F241F02AC6D0401A967F3 /* nsStaticComponents.cpp */,
+				F558B1F1030F6E470166971B /* CmXULAppData.h */,
+				335639090C84DAE700DC4D06 /* CmXULAppData.h.in */,
+				F558B1F1030F6E470166971F /* CmXULAppInfo.h */,
+				F558B1F1030F6E470166972F /* CmXULAppInfo.mm */,
+			);
+			name = "Gecko Support";
+			sourceTree = "<group>";
+		};
+		33563A6C0C84F44900DC4D06 /* Backend Components */ = {
+			isa = PBXGroup;
+			children = (
+				F57BED9603A1822701A9666E /* Rendezvous */,
+				F558137B030AEF9B0176F207 /* Site Icons */,
+			);
+			name = "Backend Components";
+			sourceTree = "<group>";
+		};
 		3FBDC7D608252CD600D7F8E0 /* Form Fill */ = {
 			isa = PBXGroup;
 			children = (
-				DEB968140B0D8DF70023F8B1 /* KeychainItem.m */,
-				F5F94B910332532801026D5D /* KeychainService.mm */,
-				3FBDC7D908252CF300D7F8E0 /* PhoneNumber.mm */,
-				3FBDC7DA08252CF300D7F8E0 /* wallet.mm */,
+				335639BE0C84E8C500DC4D06 /* Address Book */,
+				335639BD0C84E8B900DC4D06 /* Keychain */,
 			);
 			name = "Form Fill";
 			sourceTree = "<group>";
@@ -3624,7 +3892,7 @@
 		3FECC78F05D1F68E0068E7ED /* Target Plists */ = {
 			isa = PBXGroup;
 			children = (
-				3F44AD8705BDFB9F00CB4B08 /* Info-Camino.plist */,
+				3F44AD8705BDFB9F00CB4B08 /* generated/Info-Camino.plist */,
 				3F44AD9E05BDFB9F00CB4B08 /* Info-AppearancePrefPane.plist */,
 				3F44ADB205BDFBA000CB4B08 /* Info-NavigationPrefPane.plist */,
 				3F44ADC105BDFBA000CB4B08 /* Info-PersonalPrefPane.plist */,
@@ -3662,13 +3930,6 @@
 				82CE28830736615300B4DE07 /* table-remove-row.gif */,
 			);
 			name = Midas;
-			sourceTree = "<group>";
-		};
-		DEBFFAEC0A02D63A00A3331F /* New Prefs */ = {
-			isa = PBXGroup;
-			children = (
-			);
-			name = "New Prefs";
 			sourceTree = "<group>";
 		};
 		E091C0D006225EA3007D9E8F /* cursors */ = {
@@ -3758,38 +4019,16 @@
 			path = resources/images;
 			sourceTree = "<group>";
 		};
-		F50D9DE602ECC32301BB4219 /* Downloading */ = {
+		F50D9DE602ECC32301BB4219 /* Downloads */ = {
 			isa = PBXGroup;
 			children = (
-				F50D9DF902EE2C1D01BB4219 /* Generic */,
-				F50D9DFA02EE2C1D01BB4219 /* Camino */,
-			);
-			name = Downloading;
-			sourceTree = "<group>";
-		};
-		F50D9DF902EE2C1D01BB4219 /* Generic */ = {
-			isa = PBXGroup;
-			children = (
-				F50D9DED02EE0AB101BB4219 /* CHDownloadProgressDisplay.h */,
-				F50D9DEE02EE0AB101BB4219 /* CHDownloadProgressDisplay.mm */,
-			);
-			name = Generic;
-			sourceTree = "<group>";
-		};
-		F50D9DFA02EE2C1D01BB4219 /* Camino */ = {
-			isa = PBXGroup;
-			children = (
+				33563A4A0C84EB5500DC4D06 /* UI */,
 				F50D9DF502EE2B9A01BB4219 /* SaveHeaderSniffer.h */,
-				F5F415C903B9223E01A80166 /* ProgressViewController.h */,
 				F50D9DF602EE2B9A01BB4219 /* SaveHeaderSniffer.mm */,
+				F50D9DE202ECC2C601BB4219 /* nsDownloadListener.h */,
 				F50D9DE302ECC2C601BB4219 /* nsDownloadListener.mm */,
-				F5F415CA03B9223E01A80166 /* ProgressViewController.mm */,
-				F517395B020CE3740189DA0C /* ProgressDlgController.mm */,
-				3FC0FB7F05A0D2DC002F47DE /* ProgressView.h */,
-				3FC0FB8005A0D2DC002F47DE /* ProgressView.mm */,
-				DEE34A560B84F5E100BCD687 /* FileChangeWatcher.m */,
 			);
-			name = Camino;
+			name = Downloads;
 			sourceTree = "<group>";
 		};
 		F50EA33D02BAAAB701000103 /* throbber */ = {
@@ -3815,6 +4054,7 @@
 		F512F52A02D1287F01072C9F /* Apple Events */ = {
 			isa = PBXGroup;
 			children = (
+				F51B70B6026EC98B01A80166 /* GetURLCommand.h */,
 				F51B70B7026EC98B01A80166 /* GetURLCommand.mm */,
 				33F3B70A0C63F5F7007DFBD0 /* ScriptingSupport.mm */,
 			);
@@ -3824,62 +4064,55 @@
 		F512F52B02D1287F01072C9F /* Dialogs */ = {
 			isa = PBXGroup;
 			children = (
+				F5DE10E60209DC0601A967DF /* nsAlertController.h */,
 				F5DE10E90209DC0601A967DF /* nsAlertController.mm */,
-				F528E21A020FD9620168DE43 /* FindDlgController.mm */,
+				F566BD1202EFA9AD01A967F3 /* CocoaPromptService.h */,
 				F566BD1302EFA9AD01A967F3 /* CocoaPromptService.mm */,
+				DE74F74D0AB25EBC00FD1D5B /* FeedServiceController.h */,
+				DE74F7540AB25EDA00FD1D5B /* FeedServiceController.mm */,
+				F5137A1102676B9101026D05 /* Find.h */,
+				F528E218020FD8400168DE43 /* FindDlgController.h */,
+				F528E21A020FD9620168DE43 /* FindDlgController.mm */,
+				335639000C84DA6F00DC4D06 /* PageInfoWindowController.h */,
 				0F8FC582092ED8C70042429E /* PageInfoWindowController.mm */,
+				0FCD85C908C4D69100A1923B /* Security */,
 			);
 			name = Dialogs;
 			sourceTree = "<group>";
 		};
-		F512F52C02D1287F01072C9F /* UI elements */ = {
+		F512F52D02D1287F01072C9F /* Browser Window */ = {
 			isa = PBXGroup;
 			children = (
-				DE74F7470AB25E7D00FD1D5B /* AppListMenuFactory.mm */,
-				F57074BE026D80DF01A80166 /* LocationBar.mm */,
-				2E2939FF027F33604B000102 /* PageProxyIcon.mm */,
-				2E748B73029A448D4B000102 /* GoMenu.mm */,
-				F549ACDE0302DE6001026D5D /* ToolTip.mm */,
-				3FF08EF706E7CF3F001C9B19 /* BrowserTabBarView.h */,
-				3FF08EF806E7CF3F001C9B19 /* BrowserTabBarView.mm */,
-				F5BF71460231B8BC010001CA /* BrowserTabView.mm */,
-				F5B950BD030C83B601A96654 /* BrowserTabViewItem.mm */,
-				3FFFEC1C081C3F0B00843C07 /* StatusBarView.h */,
-				3FFFEC1D081C3F0B00843C07 /* StatusBarView.mm */,
-				1F8407040C5705CC007B893D /* TabThumbnailGridView.h */,
-				1F8407030C5705CC007B893D /* TabThumbnailGridView.mm */,
-				1F8407050C5705CC007B893D /* ThumbnailView.h */,
-				1F8407060C5705CC007B893D /* ThumbnailView.m */,
-				00335B8B0C655ABC00A607F2 /* WebSearchField.h */,
-				00335B8C0C655ABC00A607F2 /* WebSearchField.mm */,
-				F558137B030AEF9B0176F207 /* Site icons */,
-			);
-			name = "UI elements";
-			sourceTree = "<group>";
-		};
-		F512F52D02D1287F01072C9F /* Browser window */ = {
-			isa = PBXGroup;
-			children = (
-				F59E9F3F0237E43401A967DF /* ContentClickListener.mm */,
+				F53C1CD6032FF3B301A96654 /* BrowserContentViews.h */,
 				F53C1CD7032FF3B301A96654 /* BrowserContentViews.mm */,
-				F6BA6D4E01B2F8A601A962F7 /* BrowserWrapper.mm */,
+				F632AF8302B9AEBB01000103 /* BrowserWindow.h */,
 				F632AF8402B9AEBB01000103 /* BrowserWindow.mm */,
+				F5AE04B20206A34801A967DF /* BrowserWindowController.h */,
 				F56769FB0208F74A010001CA /* BrowserWindowController.mm */,
-				DE74F7540AB25EDA00FD1D5B /* FeedServiceController.mm */,
+				F5A3669702CCFAF601DC3354 /* Toolbar */,
+				335639230C84DC8200DC4D06 /* Tabs */,
+				335639B80C84E7EC00DC4D06 /* Content */,
+				335639BB0C84E81500DC4D06 /* Status Bar */,
 			);
-			name = "Browser window";
+			name = "Browser Window";
 			sourceTree = "<group>";
 		};
 		F512F53302D17A2601072C9F /* Application */ = {
 			isa = PBXGroup;
 			children = (
-				29B97316FDCFA39411CA2CEA /* main.m */,
-				F59236C002C89AC90100012B /* AppDirServiceProvider.cpp */,
+				F5AE04B60206A37C01A967DF /* MainController.h */,
 				F5AE04BA0206A4FE01A967DF /* MainController.mm */,
-				F52D5CD8027D3D5001A80166 /* PreferenceManager.mm */,
-				F5D33CBD02EF61A901A967F3 /* AppComponents.mm */,
+				F58DB2D20381FD3301A9666E /* JSConsole.h */,
 				F58DB2D30381FD3301A9666E /* JSConsole.mm */,
+				F52D5CD7027D3D5001A80166 /* PreferenceManager.h */,
+				F52D5CD8027D3D5001A80166 /* PreferenceManager.mm */,
+				DEE9EBA30AF5C379002BC511 /* SessionManager.h */,
 				DEE9EBA60AF5C390002BC511 /* SessionManager.mm */,
+				0FC4B33D08941B4F009C5F41 /* ChimeraUtils.h */,
+				F5C8D55203A2A42401A8016F /* ChimeraUIConstants.h */,
+				F55C4DD302D2864D0130B065 /* UserDefaults.h */,
+				29B97316FDCFA39411CA2CEA /* main.m */,
+				33563A5A0C84EF3B00DC4D06 /* Gecko Support */,
 			);
 			name = Application;
 			sourceTree = "<group>";
@@ -3907,60 +4140,6 @@
 				3F8C005506800E1300658CBC /* Localizable.strings */,
 			);
 			name = "Web Features";
-			sourceTree = "<group>";
-		};
-		F51842F30206168101A966FE /* Headers */ = {
-			isa = PBXGroup;
-			children = (
-				506770F90C823B1B0050EF73 /* CHSelectHandler.h */,
-				F59236C102C89AC90100012B /* AppDirServiceProvider.h */,
-				DE74F74A0AB25E9900FD1D5B /* AppListMenuFactory.h */,
-				F52D5CD3027A88C601A80166 /* AutoCompleteDataSource.h */,
-				F52D5CCF027A887001A80166 /* AutoCompleteTextField.h */,
-				F53E012902AEE91C01A967F3 /* BookmarkInfoController.h */,
-				F53C1CD6032FF3B301A96654 /* BrowserContentViews.h */,
-				F5BF71450231B8BC010001CA /* BrowserTabView.h */,
-				F5B950BC030C83B601A96654 /* BrowserTabViewItem.h */,
-				F632AF8302B9AEBB01000103 /* BrowserWindow.h */,
-				F5AE04B20206A34801A967DF /* BrowserWindowController.h */,
-				F5125A110202064D01FAFD9F /* BrowserWrapper.h */,
-				F558B1F0030F6E470166970F /* CHBrowserListener.h */,
-				F558B1F1030F6E470166971B /* CmXULAppData.h */,
-				F558B1F1030F6E470166971F /* CmXULAppInfo.h */,
-				F5DE10E80209DC0601A967DF /* CHBrowserService.h */,
-				F5DE10E70209DC0601A967DF /* CHBrowserView.h */,
-				DE6D27E30C1A013800292043 /* CHPermissionManager.h */,
-				0FC4B33D08941B4F009C5F41 /* ChimeraUtils.h */,
-				F5C8D55203A2A42401A8016F /* ChimeraUIConstants.h */,
-				F566BD1202EFA9AD01A967F3 /* CocoaPromptService.h */,
-				F59E9F3D0237E28401A967DF /* ContentClickListener.h */,
-				DE74F74D0AB25EBC00FD1D5B /* FeedServiceController.h */,
-				DEE34A530B84F5C600BCD687 /* FileChangeWatcher.h */,
-				F5137A1102676B9101026D05 /* Find.h */,
-				F528E218020FD8400168DE43 /* FindDlgController.h */,
-				F5607CB5023944AD01A967DF /* GeckoUtils.h */,
-				F51B70B6026EC98B01A80166 /* GetURLCommand.h */,
-				2E748B72029A448D4B000102 /* GoMenu.h */,
-				F52F87CB027D75C301A80165 /* HistoryDataSource */,
-				F58DB2D20381FD3301A9666E /* JSConsole.h */,
-				DEB968170B0D8E0B0023F8B1 /* KeychainItem.h */,
-				F5F94B900332532801026D5D /* KeychainService.h */,
-				F57074BD026D80DF01A80166 /* LocationBar.h */,
-				F5AE04B60206A37C01A967DF /* MainController.h */,
-				2E293A00027F33604B000102 /* PageProxyIcon.h */,
-				F52D5CD7027D3D5001A80166 /* PreferenceManager.h */,
-				F517395A020CE3740189DA0C /* ProgressDlgController.h */,
-				F5581379030AEF9B0176F207 /* RemoteDataProvider.h */,
-				F5D33CBC02EF61A901A967F3 /* SecurityDialogs.h */,
-				DEE9EBA30AF5C379002BC511 /* SessionManager.h */,
-				F558137A030AEF9B0176F207 /* SiteIconProvider.h */,
-				F549ACE70302DEF001026D5D /* ToolTip.h */,
-				F55C4DD302D2864D0130B065 /* UserDefaults.h */,
-				F5DE10E60209DC0601A967DF /* nsAlertController.h */,
-				F50D9DE202ECC2C601BB4219 /* nsDownloadListener.h */,
-				F5C8D55503A2A43301A8016F /* ChimeraUIConstants.h */,
-			);
-			name = Headers;
 			sourceTree = "<group>";
 		};
 		F51D9B1402094BB501A80166 /* Gecko Statics */ = {
@@ -4065,7 +4244,6 @@
 		F53F21EB022B7C77010001CA /* PreferencePanes */ = {
 			isa = PBXGroup;
 			children = (
-				DEBFFAEC0A02D63A00A3331F /* New Prefs */,
 				F5CA1A1D02D4ECDA01F34900 /* Prefs window */,
 				F52627CC027E96AE01000102 /* Navigation */,
 				F5A8CE4D02DFF167013CA8EC /* Appearance */,
@@ -4081,34 +4259,73 @@
 			path = src/preferences;
 			sourceTree = SOURCE_ROOT;
 		};
-		F5571935022B401B010001CA /* Categories and Extensions */ = {
+		F5571935022B401B010001CA /* Categories */ = {
 			isa = PBXGroup;
 			children = (
-				F5B950BA030C833301A96654 /* Headers */,
-				F5B950BB030C833301A96654 /* Source */,
+				3489ADC90753B717005ADF6C /* ABAddressBook+Utils.h */,
+				3489ADCA0753B717005ADF6C /* ABAddressBook+Utils.mm */,
+				3FB2BA960545EA80002B9691 /* NSArray+Utils.h */,
+				3FB2BA970545EA80002B9691 /* NSArray+Utils.mm */,
+				F5D98EBC031AC38601A96654 /* NSBezierPath+Utils.h */,
+				F5D98EB9031AC37801A96654 /* NSBezierPath+Utils.mm */,
+				0FBC0ED40798F96100E8E0E2 /* NSDate+Utils.h */,
+				0FBC0ECD0798F94900E8E0E2 /* NSDate+Utils.m */,
+				0FEA7DDD0926BBEA00B06154 /* NSFileManager+Utils.h */,
+				0FEA7DE00926BBF500B06154 /* NSFileManager+Utils.m */,
+				F541495E02711B0001A80166 /* CHImageAdditions.h */,
+				F541495F02711B0001A80166 /* CHImageAdditions.m */,
+				0FBC0ED30798F96100E8E0E2 /* NSMenu+Utils.h */,
+				0FBC0ED00798F95400E8E0E2 /* NSMenu+Utils.m */,
+				F5B34B04034A50C901A80166 /* NSPasteboard+Utils.h */,
+				F5B34B01034A505F01A80166 /* NSPasteboard+Utils.mm */,
+				0F5FD71B07F48CDC00E8EDBD /* NSResponder+Utils.h */,
+				0F5FD71E07F48CE500E8EDBD /* NSResponder+Utils.m */,
+				F549ACE40302DEBB01026D5D /* NSScreen+Utils.h */,
+				F549ACDF0302DE6001026D5D /* NSScreen+Utils.m */,
+				3F27D94A05DB2600007B543D /* NSSplitView+Utils.h */,
+				3F27D94B05DB2600007B543D /* NSSplitView+Utils.mm */,
+				33FBAAF30C84D0A500DD459E /* NSString+Gecko.h */,
+				33FBAAFA0C84D0CA00DD459E /* NSString+Gecko.mm */,
+				F558099D02F22168015DF512 /* NSString+Utils.h */,
+				33FBAAFB0C84D0CA00DD459E /* NSString+Utils.m */,
+				F541495A02711A8301A80166 /* CHToolbarAdditions.h */,
+				F541495B02711A8301A80166 /* CHToolbarAdditions.m */,
+				0F84BF1608862E4B00E23BC4 /* NSThread+Utils.h */,
+				0F84BF1208862E3E00E23BC4 /* NSThread+Utils.m */,
+				335639060C84DAC100DC4D06 /* NSURL+Utils.h */,
+				3FE4ECE9082C2D89003BF39E /* NSURL+Utils.m */,
+				F527C90203BCD43601A80166 /* NSView+Utils.h */,
+				F527C90303BCD43601A80166 /* NSView+Utils.m */,
+				0F08FB1408D37DA90022DD45 /* NSWorkspace+Utils.h */,
+				0F08FB1708D37DB30022DD45 /* NSWorkspace+Utils.m */,
 			);
-			name = "Categories and Extensions";
+			name = Categories;
 			sourceTree = "<group>";
 		};
-		F558137B030AEF9B0176F207 /* Site icons */ = {
+		F558137B030AEF9B0176F207 /* Site Icons */ = {
 			isa = PBXGroup;
 			children = (
+				F5581379030AEF9B0176F207 /* RemoteDataProvider.h */,
 				F558137C030AEF9B0176F207 /* RemoteDataProvider.mm */,
+				F558137A030AEF9B0176F207 /* SiteIconProvider.h */,
 				F558137D030AEF9B0176F207 /* SiteIconProvider.mm */,
+				335639010C84DA6F00DC4D06 /* SiteIconCache.h */,
 				0FEA7DE30926BC0C00B06154 /* SiteIconCache.mm */,
 			);
-			name = "Site icons";
+			name = "Site Icons";
 			sourceTree = "<group>";
 		};
 		F558B1F603107E4A0166970F /* Gecko Embedding */ = {
 			isa = PBXGroup;
 			children = (
-				506770F60C823B090050EF73 /* CHSelectHandler.mm */,
-				F5DE10EB0209DC0601A967DF /* CHBrowserService.mm */,
-				F558B1F1030F6E470166970F /* CHBrowserListener.mm */,
-				F558B1F1030F6E470166972F /* CmXULAppInfo.mm */,
-				F5DE10EA0209DC0601A967DF /* CHBrowserView.mm */,
+				335639BC0C84E85600DC4D06 /* Browser View */,
+				F50D9DED02EE0AB101BB4219 /* CHDownloadProgressDisplay.h */,
+				F50D9DEE02EE0AB101BB4219 /* CHDownloadProgressDisplay.mm */,
+				0F0F5E3C08FC660300B4EBCD /* CHISupportsOwner.h */,
+				0F0F5E3908FC65FB00B4EBCD /* CHISupportsOwner.mm */,
+				DE6D27E30C1A013800292043 /* CHPermissionManager.h */,
 				DE6D27E60C1A014D00292043 /* CHPermissionManager.mm */,
+				F5607CB5023944AD01A967DF /* GeckoUtils.h */,
 				DEA548490A251FA900186C93 /* GeckoUtils.cpp */,
 			);
 			name = "Gecko Embedding";
@@ -4203,8 +4420,8 @@
 			isa = PBXGroup;
 			children = (
 				F57BED9E03A1825001A9666E /* DNSUtils.h */,
-				F57BED9A03A1824801A9666E /* NetworkServices.h */,
 				F57BED9D03A1825001A9666E /* DNSUtils.c */,
+				F57BED9A03A1824801A9666E /* NetworkServices.h */,
 				F57BED9703A1824001A9666E /* NetworkServices.mm */,
 			);
 			name = Rendezvous;
@@ -4267,36 +4484,9 @@
 		F5A3669402CCFAF601DC3354 /* Bookmarks */ = {
 			isa = PBXGroup;
 			children = (
-				0F13A30D07D7F3930034B176 /* nsAboutBookmarks.h */,
-				0F13A30E07D7F3930034B176 /* nsAboutBookmarks.mm */,
-				3FB2BADF0545EB30002B9691 /* AddressBookManager.h */,
-				3FB2BAE00545EB30002B9691 /* AddressBookManager.m */,
-				3FB2BA940545EA80002B9691 /* KindaSmartFolderManager.h */,
-				3FB2BA950545EA80002B9691 /* KindaSmartFolderManager.mm */,
-				F53E012C02AEE93601A967F3 /* BookmarkInfoController.mm */,
-				3FB2BA7D0545EA80002B9691 /* Bookmark.h */,
-				3FB2BA7E0545EA80002B9691 /* Bookmark.mm */,
-				3FB2BA850545EA80002B9691 /* BookmarkItem.h */,
-				3FB2BA860545EA80002B9691 /* BookmarkItem.mm */,
-				3FB2BA810545EA80002B9691 /* BookmarkFolder.h */,
-				3FB2BA820545EA80002B9691 /* BookmarkFolder.mm */,
-				3FB2BA870545EA80002B9691 /* BookmarkManager.h */,
-				3FB2BA880545EA80002B9691 /* BookmarkManager.mm */,
-				3FB2BA890545EA80002B9691 /* BookmarkMenu.h */,
-				3FB2BA8A0545EA80002B9691 /* BookmarkMenu.mm */,
-				3FB2BA8B0545EA80002B9691 /* BookmarkOutlineView.h */,
-				3FB2BA8C0545EA80002B9691 /* BookmarkOutlineView.mm */,
 				3FB2BA8D0545EA80002B9691 /* BookmarksClient.h */,
-				3FB2BA8E0545EA80002B9691 /* BookmarkToolbar.h */,
-				3FB2BA8F0545EA80002B9691 /* BookmarkToolbar.mm */,
-				3FB2BA7F0545EA80002B9691 /* BookmarkButton.h */,
-				3FB2BA800545EA80002B9691 /* BookmarkButton.mm */,
-				3FB2BA900545EA80002B9691 /* BookmarkViewController.h */,
-				3FB2BA910545EA80002B9691 /* BookmarkViewController.mm */,
-				0F4752D207DC0F4D002AEE9F /* AddBookmarkDialogController.h */,
-				0F4752D307DC0F4D002AEE9F /* AddBookmarkDialogController.mm */,
-				3FB2BA830545EA80002B9691 /* BookmarkImportDlgController.h */,
-				3FB2BA840545EA80002B9691 /* BookmarkImportDlgController.mm */,
+				335639B10C84E60D00DC4D06 /* UI */,
+				335639AF0C84E59700DC4D06 /* Backend */,
 			);
 			name = Bookmarks;
 			sourceTree = "<group>";
@@ -4304,22 +4494,25 @@
 		F5A3669602CCFAF601DC3354 /* History */ = {
 			isa = PBXGroup;
 			children = (
-				0FBC0ED90798F9A000E8E0E2 /* nsSimpleGlobalHistory.cpp */,
-				F52F87CD027D75C301A80165 /* HistoryDataSource.mm */,
-				0FBC0EDC0798F9B400E8E0E2 /* HistoryOutlineViewDelegate.mm */,
-				3F7C6CB905B4819E002FFFD3 /* HistoryItem.h */,
-				3F7C6CBA05B4819E002FFFD3 /* HistoryItem.mm */,
+				33563A540C84ED5800DC4D06 /* UI */,
+				33563A520C84ED2700DC4D06 /* Backend */,
 			);
 			name = History;
 			sourceTree = "<group>";
 		};
-		F5A3669702CCFAF601DC3354 /* Autocomplete */ = {
+		F5A3669702CCFAF601DC3354 /* Toolbar */ = {
 			isa = PBXGroup;
 			children = (
-				F52D5CD0027A887001A80166 /* AutoCompleteTextField.mm */,
+				F52D5CD3027A88C601A80166 /* AutoCompleteDataSource.h */,
 				F52D5CD4027A88C601A80166 /* AutoCompleteDataSource.mm */,
+				F52D5CCF027A887001A80166 /* AutoCompleteTextField.h */,
+				F52D5CD0027A887001A80166 /* AutoCompleteTextField.mm */,
+				2E293A00027F33604B000102 /* PageProxyIcon.h */,
+				2E2939FF027F33604B000102 /* PageProxyIcon.mm */,
+				00335B8B0C655ABC00A607F2 /* WebSearchField.h */,
+				00335B8C0C655ABC00A607F2 /* WebSearchField.mm */,
 			);
-			name = Autocomplete;
+			name = Toolbar;
 			sourceTree = "<group>";
 		};
 		F5A70906036DB46201202892 /* html */ = {
@@ -4362,85 +4555,6 @@
 			name = Appearance;
 			path = PreferencePanes/Appearance;
 			sourceTree = SOURCE_ROOT;
-		};
-		F5B950BA030C833301A96654 /* Headers */ = {
-			isa = PBXGroup;
-			children = (
-				3489ADC90753B717005ADF6C /* ABAddressBook+Utils.h */,
-				0F7EAA9909326B860082C3EA /* AutoSizingTextField.h */,
-				F541495E02711B0001A80166 /* CHImageAdditions.h */,
-				0F0F5E3C08FC660300B4EBCD /* CHISupportsOwner.h */,
-				F583E3C203B8228F01A80166 /* CHStackView.h */,
-				F541495A02711A8301A80166 /* CHToolbarAdditions.h */,
-				F5FDF166031AF47301DE816D /* DraggableImageAndTextCell.h */,
-				F5C3AB810270072A01A80166 /* ExtendedOutlineView.h */,
-				0F222C6008C6102B00B34F14 /* ExtendedSplitView.h */,
-				3FB2BA920545EA80002B9691 /* ExtendedTableView.h */,
-				F5648739023C3857010001CA /* IconTabViewItem.h */,
-				3F2CF8CB042A88B7005FD42F /* ImageAndTextCell.h */,
-				3FB2BA960545EA80002B9691 /* NSArray+Utils.h */,
-				F5D98EBC031AC38601A96654 /* NSBezierPath+Utils.h */,
-				0FBC0ED40798F96100E8E0E2 /* NSDate+Utils.h */,
-				0FEA7DDD0926BBEA00B06154 /* NSFileManager+Utils.h */,
-				0FBC0ED30798F96100E8E0E2 /* NSMenu+Utils.h */,
-				F5B34B04034A50C901A80166 /* NSPasteboard+Utils.h */,
-				0F5FD71B07F48CDC00E8EDBD /* NSResponder+Utils.h */,
-				F549ACE40302DEBB01026D5D /* NSScreen+Utils.h */,
-				3F27D94A05DB2600007B543D /* NSSplitView+Utils.h */,
-				33FBAAF30C84D0A500DD459E /* NSString+Gecko.h */,
-				F558099D02F22168015DF512 /* NSString+Utils.h */,
-				0F84BF1608862E4B00E23BC4 /* NSThread+Utils.h */,
-				F527C90203BCD43601A80166 /* NSView+Utils.h */,
-				0F08FB1408D37DA90022DD45 /* NSWorkspace+Utils.h */,
-				DEBC80140A14E547006AECD3 /* RolloverImageButton.h */,
-				0FBC0EE20798FA2700E8E0E2 /* PopupMenuButton.h */,
-				3FF08F0606E7CF9C001C9B19 /* RolloverTrackingCell.h */,
-				3FF08F0706E7CF9C001C9B19 /* TabButtonCell.h */,
-				3FF08F0806E7CF9C001C9B19 /* TruncatingTextAndImageCell.h */,
-				0FD75057093ABEBA00B6A3A4 /* TruncatingTextFieldCell.h */,
-			);
-			name = Headers;
-			sourceTree = "<group>";
-		};
-		F5B950BB030C833301A96654 /* Source */ = {
-			isa = PBXGroup;
-			children = (
-				3489ADCA0753B717005ADF6C /* ABAddressBook+Utils.mm */,
-				0F7EAA9609326B770082C3EA /* AutoSizingTextField.m */,
-				F541495F02711B0001A80166 /* CHImageAdditions.m */,
-				0F0F5E3908FC65FB00B4EBCD /* CHISupportsOwner.mm */,
-				F583E3BF03B8228701A80166 /* CHStackView.m */,
-				F541495B02711A8301A80166 /* CHToolbarAdditions.m */,
-				F5FDF167031AF47301DE816D /* DraggableImageAndTextCell.mm */,
-				F5C3AB820270072A01A80166 /* ExtendedOutlineView.mm */,
-				0F222C6308C6103300B34F14 /* ExtendedSplitView.m */,
-				3FB2BA930545EA80002B9691 /* ExtendedTableView.mm */,
-				F564873A023C3857010001CA /* IconTabViewItem.mm */,
-				3F2CF8CC042A88B7005FD42F /* ImageAndTextCell.m */,
-				3FB2BA970545EA80002B9691 /* NSArray+Utils.mm */,
-				F5D98EB9031AC37801A96654 /* NSBezierPath+Utils.mm */,
-				0FBC0ECD0798F94900E8E0E2 /* NSDate+Utils.m */,
-				0FEA7DE00926BBF500B06154 /* NSFileManager+Utils.m */,
-				0FBC0ED00798F95400E8E0E2 /* NSMenu+Utils.m */,
-				F5B34B01034A505F01A80166 /* NSPasteboard+Utils.mm */,
-				0F5FD71E07F48CE500E8EDBD /* NSResponder+Utils.m */,
-				F549ACDF0302DE6001026D5D /* NSScreen+Utils.m */,
-				3F27D94B05DB2600007B543D /* NSSplitView+Utils.mm */,
-				33FBAAFA0C84D0CA00DD459E /* NSString+Gecko.mm */,
-				33FBAAFB0C84D0CA00DD459E /* NSString+Utils.m */,
-				0F84BF1208862E3E00E23BC4 /* NSThread+Utils.m */,
-				3FE4ECE9082C2D89003BF39E /* NSURL+Utils.m */,
-				F527C90303BCD43601A80166 /* NSView+Utils.m */,
-				0F08FB1708D37DB30022DD45 /* NSWorkspace+Utils.m */,
-				0FBC0EDF0798FA1900E8E0E2 /* PopupMenuButton.m */,
-				3FF08EFD06E7CF86001C9B19 /* RolloverTrackingCell.mm */,
-				DEBC801A0A14E5F5006AECD3 /* RolloverImageButton.m */,
-				3FF08EFE06E7CF86001C9B19 /* TabButtonCell.mm */,
-				3FF08EFF06E7CF86001C9B19 /* TruncatingTextAndImageCell.mm */,
-				0FD7505A093ABEC600B6A3A4 /* TruncatingTextFieldCell.mm */,
-			);
-			name = Source;
-			sourceTree = "<group>";
 		};
 		F5CA1A1D02D4ECDA01F34900 /* Prefs window */ = {
 			isa = PBXGroup;
@@ -4606,7 +4720,6 @@
 				3F44ABE505BDFB9E00CB4B08 /* GeckoUtils.h in Headers */,
 				3F44ABE605BDFB9E00CB4B08 /* IconTabViewItem.h in Headers */,
 				3F44ABE705BDFB9E00CB4B08 /* Find.h in Headers */,
-				3F44ABE805BDFB9E00CB4B08 /* LocationBar.h in Headers */,
 				3F44ABE905BDFB9E00CB4B08 /* GetURLCommand.h in Headers */,
 				3F44ABEA05BDFB9E00CB4B08 /* ExtendedOutlineView.h in Headers */,
 				3F44ABEB05BDFB9E00CB4B08 /* CHToolbarAdditions.h in Headers */,
@@ -4644,7 +4757,6 @@
 				3F44AC0B05BDFB9E00CB4B08 /* NetworkServices.h in Headers */,
 				3F44AC0C05BDFB9E00CB4B08 /* DNSUtils.h in Headers */,
 				3F44AC0D05BDFB9E00CB4B08 /* ChimeraUIConstants.h in Headers */,
-				3F44AC0E05BDFB9E00CB4B08 /* ChimeraUIConstants.h in Headers */,
 				3F44AC0F05BDFB9E00CB4B08 /* CHStackView.h in Headers */,
 				3F44AC1005BDFB9E00CB4B08 /* ProgressViewController.h in Headers */,
 				3F44AC1105BDFB9E00CB4B08 /* NSView+Utils.h in Headers */,
@@ -4698,6 +4810,17 @@
 				00335B8D0C655ABC00A607F2 /* WebSearchField.h in Headers */,
 				506770FA0C823B1B0050EF73 /* CHSelectHandler.h in Headers */,
 				33FBAAF80C84D0AB00DD459E /* NSString+Gecko.h in Headers */,
+				335638FE0C84D82200DC4D06 /* HistoryOutlineViewDelegate.h in Headers */,
+				335639020C84DA6F00DC4D06 /* PageInfoWindowController.h in Headers */,
+				335639030C84DA6F00DC4D06 /* SiteIconCache.h in Headers */,
+				335639070C84DAC100DC4D06 /* NSURL+Utils.h in Headers */,
+				3356390C0C84DBB900DC4D06 /* PhoneNumber.h in Headers */,
+				3356390D0C84DBB900DC4D06 /* wallet.h in Headers */,
+				335639150C84DBDA00DC4D06 /* BrowserSecurityDialogs.h in Headers */,
+				335639160C84DBDA00DC4D06 /* CertificateItem.h in Headers */,
+				335639170C84DBDA00DC4D06 /* CertificatesWindowController.h in Headers */,
+				335639180C84DBDA00DC4D06 /* CertificateView.h in Headers */,
+				335639190C84DBDA00DC4D06 /* ViewCertificateDialogController.h in Headers */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -4762,7 +4885,6 @@
 				3F44AE1E05BDFBA000CB4B08 /* GeckoUtils.h in Headers */,
 				3F44AE1F05BDFBA000CB4B08 /* IconTabViewItem.h in Headers */,
 				3F44AE2005BDFBA000CB4B08 /* Find.h in Headers */,
-				3F44AE2105BDFBA000CB4B08 /* LocationBar.h in Headers */,
 				3F44AE2205BDFBA000CB4B08 /* GetURLCommand.h in Headers */,
 				3F44AE2305BDFBA000CB4B08 /* ExtendedOutlineView.h in Headers */,
 				3F44AE2405BDFBA000CB4B08 /* CHToolbarAdditions.h in Headers */,
@@ -4800,7 +4922,6 @@
 				3F44AE4405BDFBA000CB4B08 /* NetworkServices.h in Headers */,
 				3F44AE4505BDFBA000CB4B08 /* DNSUtils.h in Headers */,
 				3F44AE4605BDFBA000CB4B08 /* ChimeraUIConstants.h in Headers */,
-				3F44AE4705BDFBA000CB4B08 /* ChimeraUIConstants.h in Headers */,
 				3F44AE4805BDFBA000CB4B08 /* CHStackView.h in Headers */,
 				3F44AE4905BDFBA000CB4B08 /* ProgressViewController.h in Headers */,
 				3F44AE4A05BDFBA000CB4B08 /* NSView+Utils.h in Headers */,
@@ -4854,6 +4975,17 @@
 				00335B8F0C655ABC00A607F2 /* WebSearchField.h in Headers */,
 				506770FB0C823B1B0050EF73 /* CHSelectHandler.h in Headers */,
 				33FBAAF90C84D0AC00DD459E /* NSString+Gecko.h in Headers */,
+				335638FF0C84D82200DC4D06 /* HistoryOutlineViewDelegate.h in Headers */,
+				335639040C84DA6F00DC4D06 /* PageInfoWindowController.h in Headers */,
+				335639050C84DA6F00DC4D06 /* SiteIconCache.h in Headers */,
+				335639080C84DAC100DC4D06 /* NSURL+Utils.h in Headers */,
+				3356390E0C84DBB900DC4D06 /* PhoneNumber.h in Headers */,
+				3356390F0C84DBB900DC4D06 /* wallet.h in Headers */,
+				3356391A0C84DBDA00DC4D06 /* BrowserSecurityDialogs.h in Headers */,
+				3356391B0C84DBDA00DC4D06 /* CertificateItem.h in Headers */,
+				3356391C0C84DBDA00DC4D06 /* CertificatesWindowController.h in Headers */,
+				3356391D0C84DBDA00DC4D06 /* CertificateView.h in Headers */,
+				3356391E0C84DBDA00DC4D06 /* ViewCertificateDialogController.h in Headers */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -5579,7 +5711,6 @@
 				3F44AC8F05BDFB9E00CB4B08 /* BrowserTabView.mm in Sources */,
 				3F44AC9005BDFB9E00CB4B08 /* ContentClickListener.mm in Sources */,
 				3F44AC9105BDFB9E00CB4B08 /* IconTabViewItem.mm in Sources */,
-				3F44AC9205BDFB9E00CB4B08 /* LocationBar.mm in Sources */,
 				3F44AC9305BDFB9E00CB4B08 /* GetURLCommand.mm in Sources */,
 				3F44AC9405BDFB9E00CB4B08 /* ExtendedOutlineView.mm in Sources */,
 				3F44AC9505BDFB9E00CB4B08 /* CHToolbarAdditions.m in Sources */,
@@ -5748,7 +5879,6 @@
 				3F44AEC805BDFBA000CB4B08 /* BrowserTabView.mm in Sources */,
 				3F44AEC905BDFBA000CB4B08 /* ContentClickListener.mm in Sources */,
 				3F44AECA05BDFBA000CB4B08 /* IconTabViewItem.mm in Sources */,
-				3F44AECB05BDFBA000CB4B08 /* LocationBar.mm in Sources */,
 				3F44AECC05BDFBA000CB4B08 /* GetURLCommand.mm in Sources */,
 				3F44AECD05BDFBA000CB4B08 /* ExtendedOutlineView.mm in Sources */,
 				3F44AECE05BDFBA000CB4B08 /* CHToolbarAdditions.m in Sources */,
