@@ -120,6 +120,7 @@ messenger.jar:
 #endif
 
 comm.jar:
+% content communicator %content/communicator/ xpcnativewrappers=yes
 *+  content/communicator/contentAreaClick.js        (content/contentAreaClick.js)
 *+  content/communicator/utilityOverlay.xul         (content/utilityOverlay.xul)
 *+  content/communicator/utilityOverlay.js          (content/utilityOverlay.js)
@@ -130,5 +131,3 @@ comm.jar:
 toolkit.jar:
 *+  content/global/customizeToolbar.xul             (content/customizeToolbar.xul)
 *+  content/global/customizeToolbar.js              (content/customizeToolbar.js)
-+   content/communicator/tasksOverlay.xul           (content/tasksOverlay.xul)
-*+  content/communicator/utilityOverlay.xul         (content/utilityOverlay.xul)
