@@ -217,7 +217,7 @@ sub query_checkins_bonsai {
 
 
         my $key = "$ci->[$::CI_DIR]/$ci->[$::CI_FILE]";
-        if (IsHidden("$ci->[$::CI_REPOSITORY]/$key")) {
+        if (IsHidden($tree, "$ci->[$::CI_REPOSITORY]/$key")) {
             next;
         }
 
@@ -495,7 +495,35 @@ print "<br>Added ($file,$version) for tag $tagname<br>\n";
     return $result;
 }
 
-# Common helper functions
+# Returns true if the given directory or filename is one of the hidden ones
+# that we don't want to show users.
+sub IsHidden {
+    my ($tree, $name) = (@_);
+    my $bonsai_dir = $::global_treedata->{$tree}->{bonsai_dir};
+
+    $name =~ s:///*:/:g;        # Remove any multiple slashes.
+    if (!defined @::HideList) {
+        if (open(HIDE, "<${bonsai_dir}/data/hidelist")) {
+            while (<HIDE>) {
+                chop;
+                $_ = trim($_);
+                s/\#.*//;
+                next if (/^$/);
+
+                push(@::HideList, $_);
+            }
+            close HIDE;
+        } else {
+            @::HideList = ();
+        }
+    }
+    foreach my $item (@::HideList) {
+        if ($name =~ m/$item/) {
+            return 1;
+        }
+    }
+    return 0;
+}
 
 sub rev_is_after {
     my $r1 = shift @_;
