@@ -49,6 +49,9 @@ endif
 
 ifeq ($(OS_TARGET),AIX)
 EXTRA_LIBS += -lpthreads
+ifdef BUILD_OPT
+OPTIMIZER=
+endif
 endif
 
 ifeq ($(OS_TARGET),SunOS)
