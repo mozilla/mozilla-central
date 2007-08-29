@@ -432,6 +432,14 @@ sub shell_escape {
     return $file;
 }
 
+# Trim whitespace from front and back.
+sub trim {
+    ($_) = (@_);
+    s/^\s+//g;
+    s/\s+$//g;
+    return $_;
+}
+
 sub tb_load_treedata($) {
     my ($tree) = @_;
 
