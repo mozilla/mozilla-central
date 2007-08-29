@@ -1220,6 +1220,10 @@
 		506770F80C823B090050EF73 /* CHSelectHandler.mm in Sources */ = {isa = PBXBuildFile; fileRef = 506770F60C823B090050EF73 /* CHSelectHandler.mm */; };
 		506770FA0C823B1B0050EF73 /* CHSelectHandler.h in Headers */ = {isa = PBXBuildFile; fileRef = 506770F90C823B1B0050EF73 /* CHSelectHandler.h */; };
 		506770FB0C823B1B0050EF73 /* CHSelectHandler.h in Headers */ = {isa = PBXBuildFile; fileRef = 506770F90C823B1B0050EF73 /* CHSelectHandler.h */; };
+		6021CDD90C84FDC4000E7754 /* CHStringBundleOverride.h in Headers */ = {isa = PBXBuildFile; fileRef = 6021CDD70C84FDC4000E7754 /* CHStringBundleOverride.h */; };
+		6021CDDA0C84FDC4000E7754 /* CHStringBundleOverride.mm in Sources */ = {isa = PBXBuildFile; fileRef = 6021CDD80C84FDC4000E7754 /* CHStringBundleOverride.mm */; };
+		6021CDDB0C84FDC4000E7754 /* CHStringBundleOverride.h in Headers */ = {isa = PBXBuildFile; fileRef = 6021CDD70C84FDC4000E7754 /* CHStringBundleOverride.h */; };
+		6021CDDC0C84FDC4000E7754 /* CHStringBundleOverride.mm in Sources */ = {isa = PBXBuildFile; fileRef = 6021CDD80C84FDC4000E7754 /* CHStringBundleOverride.mm */; };
 		7B9E1BFF09DD967E003256C9 /* libmozreg_s.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 7B9E1BFE09DD966F003256C9 /* libmozreg_s.a */; };
 		7BB332F40A7E99BC0075521C /* libspellchecker.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 7BB332F30A7E99BC0075521C /* libspellchecker.a */; };
 		82180AB107368AD7002EFA6D /* grabber.gif in Copy Gecko HTML Images */ = {isa = PBXBuildFile; fileRef = 82CE28710736615300B4DE07 /* grabber.gif */; };
@@ -2507,7 +2511,7 @@
 		3F42EFAC05EC13F90045A30C /* throbber-11.tif */ = {isa = PBXFileReference; lastKnownFileType = image.gif; name = "throbber-11.tif"; path = "resources/images/throbber/throbber-11.tif"; sourceTree = SOURCE_ROOT; };
 		3F42EFAD05EC13F90045A30C /* throbber-12.tif */ = {isa = PBXFileReference; lastKnownFileType = image.gif; name = "throbber-12.tif"; path = "resources/images/throbber/throbber-12.tif"; sourceTree = SOURCE_ROOT; };
 		3F44AD8705BDFB9F00CB4B08 /* generated/Info-Camino.plist */ = {isa = PBXFileReference; lastKnownFileType = text.xml; path = "generated/Info-Camino.plist"; sourceTree = "<group>"; };
-		3F44AD8805BDFB9F00CB4B08 /* Camino.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = Camino.app; sourceTree = BUILT_PRODUCTS_DIR; };
+		3F44AD8805BDFB9F00CB4B08 /* Camino.app */ = {isa = PBXFileReference; includeInIndex = 0; lastKnownFileType = wrapper.application; path = Camino.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		3F44AD9E05BDFB9F00CB4B08 /* Info-AppearancePrefPane.plist */ = {isa = PBXFileReference; lastKnownFileType = text.xml; path = "Info-AppearancePrefPane.plist"; sourceTree = "<group>"; };
 		3F44AD9F05BDFB9F00CB4B08 /* Appearance.prefPane */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = Appearance.prefPane; sourceTree = BUILT_PRODUCTS_DIR; };
 		3F44ADB205BDFBA000CB4B08 /* Info-NavigationPrefPane.plist */ = {isa = PBXFileReference; lastKnownFileType = text.xml; path = "Info-NavigationPrefPane.plist"; sourceTree = "<group>"; };
@@ -2618,6 +2622,8 @@
 		4DC41D3E0869D7A400947046 /* libmozlibpixman.a */ = {isa = PBXFileReference; lastKnownFileType = archive.ar; name = libmozlibpixman.a; path = ../gfx/cairo/libpixman/src/libmozlibpixman.a; sourceTree = SOURCE_ROOT; };
 		506770F60C823B090050EF73 /* CHSelectHandler.mm */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.cpp.objcpp; name = CHSelectHandler.mm; path = src/embedding/CHSelectHandler.mm; sourceTree = "<group>"; };
 		506770F90C823B1B0050EF73 /* CHSelectHandler.h */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.c.h; name = CHSelectHandler.h; path = src/embedding/CHSelectHandler.h; sourceTree = "<group>"; };
+		6021CDD70C84FDC4000E7754 /* CHStringBundleOverride.h */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.c.h; name = CHStringBundleOverride.h; path = src/embedding/CHStringBundleOverride.h; sourceTree = "<group>"; };
+		6021CDD80C84FDC4000E7754 /* CHStringBundleOverride.mm */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.cpp.objcpp; name = CHStringBundleOverride.mm; path = src/embedding/CHStringBundleOverride.mm; sourceTree = "<group>"; };
 		7919FCF0044631350000010E /* PrintPDE.plugin */ = {isa = PBXFileReference; lastKnownFileType = wrapper.cfbundle; name = PrintPDE.plugin; path = ../dist/package/PrintPDE.plugin; sourceTree = SOURCE_ROOT; };
 		7B9E1BFE09DD966F003256C9 /* libmozreg_s.a */ = {isa = PBXFileReference; lastKnownFileType = archive.ar; name = libmozreg_s.a; path = ../dist/lib/libmozreg_s.a; sourceTree = SOURCE_ROOT; };
 		7BB332F30A7E99BC0075521C /* libspellchecker.a */ = {isa = PBXFileReference; lastKnownFileType = archive.ar; name = libspellchecker.a; path = ../staticlib/components/libspellchecker.a; sourceTree = SOURCE_ROOT; };
@@ -4319,6 +4325,8 @@
 			isa = PBXGroup;
 			children = (
 				335639BC0C84E85600DC4D06 /* Browser View */,
+				6021CDD70C84FDC4000E7754 /* CHStringBundleOverride.h */,
+				6021CDD80C84FDC4000E7754 /* CHStringBundleOverride.mm */,
 				F50D9DED02EE0AB101BB4219 /* CHDownloadProgressDisplay.h */,
 				F50D9DEE02EE0AB101BB4219 /* CHDownloadProgressDisplay.mm */,
 				0F0F5E3C08FC660300B4EBCD /* CHISupportsOwner.h */,
@@ -4821,6 +4829,7 @@
 				335639170C84DBDA00DC4D06 /* CertificatesWindowController.h in Headers */,
 				335639180C84DBDA00DC4D06 /* CertificateView.h in Headers */,
 				335639190C84DBDA00DC4D06 /* ViewCertificateDialogController.h in Headers */,
+				6021CDD90C84FDC4000E7754 /* CHStringBundleOverride.h in Headers */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -4986,6 +4995,7 @@
 				3356391C0C84DBDA00DC4D06 /* CertificatesWindowController.h in Headers */,
 				3356391D0C84DBDA00DC4D06 /* CertificateView.h in Headers */,
 				3356391E0C84DBDA00DC4D06 /* ViewCertificateDialogController.h in Headers */,
+				6021CDDB0C84FDC4000E7754 /* CHStringBundleOverride.h in Headers */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -5813,6 +5823,7 @@
 				506770F70C823B090050EF73 /* CHSelectHandler.mm in Sources */,
 				33FBAAFC0C84D0CA00DD459E /* NSString+Gecko.mm in Sources */,
 				33FBAAFD0C84D0CA00DD459E /* NSString+Utils.m in Sources */,
+				6021CDDA0C84FDC4000E7754 /* CHStringBundleOverride.mm in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -5981,6 +5992,7 @@
 				506770F80C823B090050EF73 /* CHSelectHandler.mm in Sources */,
 				33FBAAFE0C84D0CA00DD459E /* NSString+Gecko.mm in Sources */,
 				33FBAAFF0C84D0CA00DD459E /* NSString+Utils.m in Sources */,
+				6021CDDC0C84FDC4000E7754 /* CHStringBundleOverride.mm in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

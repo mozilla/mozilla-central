@@ -44,6 +44,7 @@
 #import "nsDownloadListener.h"
 #import "ProgressDlgController.h"
 #import "nsAboutBookmarks.h"
+#import "CHStringBundleOverride.h"
 
 #include "nsIGenericFactory.h"
 
@@ -71,10 +72,18 @@
 #define NS_COOKIEPROMPTSERVICE_CID \
     {0xCE002B28, 0x92B7, 0x4701, {0x86, 0x21, 0xCC, 0x92, 0x58, 0x66, 0xFB, 0x87}}
 
+// {6316C6CE-12D3-479e-8F53-E289351412B8}
+#define NS_STRINGBUNDLETEXTOVERRIDE_CID \
+    { 0x6316c6ce, 0x12d3, 0x479e, { 0x8f, 0x53, 0xe2, 0x89, 0x35, 0x14, 0x12, 0xb8 }}
+
+#define NS_STRINGBUNDLETEXTOVERRIDE_CONTRACTID \
+    "@mozilla.org/intl/stringbundle/text-override;1"
+
 
 NS_GENERIC_FACTORY_CONSTRUCTOR(SecurityDialogs)
 NS_GENERIC_FACTORY_CONSTRUCTOR(CocoaPromptService)
 NS_GENERIC_FACTORY_CONSTRUCTOR(KeychainPrompt)
+NS_GENERIC_FACTORY_CONSTRUCTOR(CHStringBundleOverride)
 
 static nsresult
 nsDownloadListenerConstructor(nsISupports *aOuter, REFNSIID aIID, void **aResult)
@@ -243,8 +252,13 @@ static const nsModuleComponentInfo gAppComponents[] = {
     NS_ABOUT_BOOKMARKS_MODULE_CID,
     NS_ABOUT_MODULE_CONTRACTID_PREFIX "history",
     nsAboutBookmarks::CreateHistory,
-  }
- 
+  },
+  {
+    "String Bundle Override Service",
+    NS_STRINGBUNDLETEXTOVERRIDE_CID,
+    NS_STRINGBUNDLETEXTOVERRIDE_CONTRACTID,
+    CHStringBundleOverrideConstructor
+  },
 };
 
 
