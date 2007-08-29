@@ -3256,8 +3256,7 @@ PKIX_PL_Cert_IsCertTrusted(
         if (rv == SECSuccess) {
 
                 certFlags = SEC_GET_TRUST_FLAGS((&trust), trustType);
-                if ((certFlags & CERTDB_VALID_CA) &&
-                    ((certFlags & requiredFlags) == requiredFlags)) {
+                if ((certFlags & requiredFlags) == requiredFlags) {
                         trusted = PKIX_TRUE;
                 }
         }
