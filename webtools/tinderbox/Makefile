@@ -69,9 +69,11 @@ SETUID_SCRIPTS = \
 
 FILES = \
 	Backwards.pm \
+	cvsquery.pl \
 	ep_mac.pl \
 	ep_unix.pl \
 	ep_windows.pl \
+	get_line.pl \
 	header.pl \
 	imagelog.pl \
 	showbuilds.pl \
