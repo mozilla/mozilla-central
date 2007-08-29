@@ -1070,7 +1070,7 @@ cleanup:
 }
 
 /*
- * FUNCTION: cert_VerifyCertPkix
+ * FUNCTION: cert_VerifyCertChainPkix
  * DESCRIPTION:
  *
  * The main wrapper function that is called from CERT_VerifyCert and
@@ -1086,29 +1086,33 @@ cleanup:
  *      Required usage for certificate and chain.
  *  "time"
  *      Validity time.
- *  "asCA"
- *      Validate the cert as CA cert.
  *  "wincx"
  *      Nss database password token.
  *  "log"
  *      Address of already allocated CERTVerifyLog structure. Not
  *      used if NULL;
- *  "returnedUsages"
- *      Returned certificate usages.
+ *  "pSigerror"
+ *      Address of PRBool. If not NULL, returns true is cert chain
+ *      was invalidated because of bad certificate signature.
+ *  "pRevoked"
+ *      Address of PRBool. If not NULL, returns true is cert chain
+ *      was invalidated because a revoked certificate was found in
+ *      the chain.
  * THREAD SAFETY:
  *  Thread Safe (see Thread Safety Definitions in Programmer's Guide)
  * RETURNS:
  *  SECFailure is chain building process has failed. SECSuccess otherwise.
  */
 SECStatus
-cert_VerifyCertPkix(
+cert_VerifyCertChainPkix(
     CERTCertificate *cert,
-    PRBool checkSig,
+    PRBool           checkSig,
     SECCertUsage     requiredUsage,
     PRUint64         time,
-    PRBool           asCA,
     void            *wincx,
-    CERTVerifyLog   *log)
+    CERTVerifyLog   *log,
+    PRBool          *pSigerror,
+    PRBool          *pRevoked)
 {
     PKIX_ProcessingParams *procParams = NULL;
     PKIX_BuildResult      *result = NULL;
@@ -1131,8 +1135,8 @@ cert_VerifyCertPkix(
     }
 
     error =
-        cert_ProcessingParamsSetKuAndEku(procParams, cert, asCA, requiredUsage,
-                                         0, plContext);
+        cert_ProcessingParamsSetKuAndEku(procParams, cert, PR_TRUE,
+                                         requiredUsage, 0, plContext);
     if (error) {
         goto cleanup;
     }
@@ -1143,6 +1147,14 @@ cert_VerifyCertPkix(
         goto cleanup;
     }
     
+    if (pRevoked) {
+        /* Currently always PR_FALSE. Will be fixed as a part of 394077 */
+        *pRevoked = PR_FALSE;
+    }
+    if (pSigerror) {
+        /* Currently always PR_FALSE. Will be fixed as a part of 394077 */
+        *pSigerror = PR_FALSE;
+    }
     rv = SECSuccess;
 
 cleanup:
@@ -1169,137 +1181,6 @@ cleanup:
         CERT_DestroyCertList(validChain);
     }
 #endif /* DEBUG */
-    if (procParams) {
-        PKIX_PL_Object_DecRef((PKIX_PL_Object *)procParams, plContext);
-    }
-    if (plContext) {
-        PKIX_PL_NssContext_Destroy(plContext);
-    }
-    return rv;
-}
-
-/*
- * FUNCTION: cert_VerifyCertificatePkix
- * DESCRIPTION:
- *
- * The main wrapper function that is called from CERT_VerifyCertificate
- * function to validate cert with libpkix.
- *
- * PARAMETERS:
- *  "cert"
- *      Leaf certificate of a chain we want to build.
- *  "checkSig"
- *      Certificate signatures will not be verified if this
- *      flag is set to PR_FALSE.
- *  "requiredUsage"
- *      Required usage for certificate and chain.
- *  "time"
- *      Validity time.
- *  "wincx"
- *      Nss database password token.
- *  "log"
- *      Address of already allocated CERTVerifyLog structure. Not
- *      used if NULL;
- *  "returnedUsages"
- *      Returned certificate usages.
- * THREAD SAFETY:
- *  Thread Safe (see Thread Safety Definitions in Programmer's Guide)
- * RETURNS:
- *  SECFailure is chain building process has failed. SECSuccess otherwise.
- */
-SECStatus
-cert_VerifyCertificatePkix(
-    CERTCertificate     *cert,
-    PRBool               checkSig,
-    SECCertificateUsage  requiredUsages,
-    PRUint64             time,
-    void                *wincx,
-    CERTVerifyLog       *log,
-    SECCertificateUsage *returnedUsages)
-{
-    PKIX_Error            *error = NULL;
-    PKIX_ProcessingParams *procParams = NULL;
-    PKIX_BuildResult      *result = NULL;
-    PKIX_VerifyNode       *verifyNode = NULL;
-    void                  *plContext = NULL;
-
-    SECStatus              rv = SECSuccess;
-    SECCertUsage           certUsage = 0;
-    SECCertificateUsage    retUsages = 0;
-
-#ifdef DEBUG
-    CERTCertificate       *trustedRoot = NULL;
-    CERTCertList          *validChain = NULL;
-#endif /* DEBUG */
-
-    error =
-        cert_CreatePkixProcessingParams(cert, checkSig, time, wincx,
-                                        PR_FALSE/*use arena*/,
-                                        &procParams, &plContext);
-    if (error) {
-        rv = SECFailure;
-        goto cleanup;
-    }
-
-    while (requiredUsages) {
-
-        if ((requiredUsages & 1) == 0) {
-            requiredUsages = requiredUsages >> 1;
-            certUsage += 1;
-            continue;
-        }
-
-        error = 
-            cert_ProcessingParamsSetKuAndEku(procParams, cert, PR_FALSE,
-                                             certUsage,
-                                             0 /* don't require any other KU */,
-                                             plContext);
-        if (error) {
-            rv = SECFailure;
-            goto cleanup;
-        }
-        
-        error = 
-            cert_BuildAndValidateChain(procParams, &result, &verifyNode, plContext);
-
-        if (error) {
-            rv = SECFailure;
-        } else {
-            retUsages = retUsages | (1 << certUsage); 
-        }
-
-        error = cert_GetBuildResults(result, verifyNode, error, log,
-#ifdef DEBUG                                 
-                                     &trustedRoot, &validChain,
-#else
-                                     NULL, NULL,
-#endif /* DEBUG */
-                                     plContext);
-        if (error) {
-#ifdef DEBUG        
-            char *temp = pkix_Error2ASCII(error, plContext);
-            printf("GET BUILD RES ERRORS:\n%s\n", temp);
-            PKIX_PL_Free(temp, NULL);
-#endif /* DEBUG */
-            PKIX_PL_Object_DecRef((PKIX_PL_Object *)error, plContext);
-        }
-#ifdef DEBUG
-        if (trustedRoot) {
-            CERT_DestroyCertificate(trustedRoot);
-        }
-        if (validChain) {
-            CERT_DestroyCertList(validChain);
-        }
-#endif /* DEBUG */
-        requiredUsages = requiredUsages >> 1;
-        certUsage += 1;
-    }
-    
-    if (returnedUsages) {
-        *returnedUsages = retUsages;
-    }
-    
-cleanup:
     if (procParams) {
         PKIX_PL_Object_DecRef((PKIX_PL_Object *)procParams, plContext);
     }

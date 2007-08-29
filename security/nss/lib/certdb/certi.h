@@ -36,7 +36,7 @@
 /*
  * certi.h - private data structures for the certificate library
  *
- * $Id: certi.h,v 1.20 2007-08-29 00:12:01 alexei.volkov.bugs%sun.com Exp $
+ * $Id: certi.h,v 1.21 2007-08-29 17:53:19 alexei.volkov.bugs%sun.com Exp $
  */
 #ifndef _CERTI_H_
 #define _CERTI_H_
@@ -287,23 +287,13 @@ PRBool cert_UsePKIXValidation();
 /* Interface function for libpkix cert validation engine:
  * cert_verify wrapper. */
 SECStatus
-cert_VerifyCertPkix(CERTCertificate *cert,
-                    PRBool checkSig,
-                    SECCertUsage     requiredUsage,
-                    PRUint64         time,
-                    PRBool           asCA,
-                    void            *wincx,
-                    CERTVerifyLog   *log);
-
-/* Interface function for libpkix cert validation engine:
- * cert_verify wrapper. */
-SECStatus
-cert_VerifyCertificatePkix(CERTCertificate *cert,
-                           PRBool checkSig,
-                           SECCertificateUsage requiredUsage,
-                           PRUint64 time,
-                           void *wincx,
-                           CERTVerifyLog *log,
-                           SECCertificateUsage *returnedUsages);
+cert_VerifyCertChainPkix(CERTCertificate *cert,
+                         PRBool checkSig,
+                         SECCertUsage     requiredUsage,
+                         PRUint64         time,
+                         void            *wincx,
+                         CERTVerifyLog   *log,
+                         PRBool          *sigError,
+                         PRBool          *revoked);
 #endif /* _CERTI_H_ */
 
