@@ -77,6 +77,7 @@ extern NSString* const kTabBarBackgroundDoubleClickedNotification;
 - (BOOL)isVisible;
 // inform the view that it will be shown or hidden; e.g. prior to showing or hiding the bookmarks
 - (void)setVisible:(BOOL)show;
+- (BOOL)windowShouldClose;
 - (void)windowClosed;
 
 // get and set the "jumpback tab", the tab that is jumped to when the currently

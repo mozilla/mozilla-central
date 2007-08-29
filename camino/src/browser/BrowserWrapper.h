@@ -176,7 +176,8 @@ class nsIArray;
 // all BrowserWrappers have one of these, even if in the bg.
 - (void)setUICreationDelegate:(id<BrowserUICreationDelegate>)delegate;
 
-- (void)windowClosed;
+- (BOOL)browserShouldClose;
+- (void)browserClosed;
 
 - (void)setFrame:(NSRect)frameRect resizingBrowserViewIfHidden:(BOOL)inResizeBrowser;
 

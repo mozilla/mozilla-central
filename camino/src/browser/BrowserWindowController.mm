@@ -721,12 +721,12 @@ enum BWCOpenDest {
 
 - (BOOL)windowShouldClose:(id)sender 
 {
-  if (!mWindowClosesQuietly &&
-      [[PreferenceManager sharedInstance] getBooleanPref:"camino.warn_when_closing" withSuccess:NULL])
-  {
+  if (mWindowClosesQuietly)
+    return YES;
+
+  if ([[PreferenceManager sharedInstance] getBooleanPref:"camino.warn_when_closing" withSuccess:NULL]) {
     unsigned int numberOfTabs = [mTabBrowser numberOfTabViewItems];
-    if (numberOfTabs > 1)
-    {
+    if (numberOfTabs > 1) {
       NSString* closeMultipleTabWarning = NSLocalizedString(@"CloseWindowWithMultipleTabsExplFormat", @"");
 
       nsAlertController* controller = CHBrowserService::GetAlertController();
@@ -751,10 +751,13 @@ enum BWCOpenDest {
       if (dontShowAgain)
         [[PreferenceManager sharedInstance] setPref:"camino.warn_when_closing" toBoolean:NO];
       
-      return (result == NSAlertDefaultReturn);
+      if (result != NSAlertDefaultReturn)
+        return NO;
     }
   }
-  return YES;
+
+  // Check that all the tabs are closable
+  return [mTabBrowser windowShouldClose];
 }
 
 - (void)windowWillClose:(NSNotification *)notification
@@ -3520,25 +3523,24 @@ enum BWCOpenDest {
 - (IBAction)closeOtherTabs:(id)sender
 {
   if ([sender isMemberOfClass:[NSMenuItem class]]) {
-    BrowserTabViewItem* tabViewItem = [mTabBrowser itemWithTag:[sender tag]];
-    if (tabViewItem) {
-      while ([mTabBrowser numberOfTabViewItems] > 1) {
-        NSTabViewItem* doomedItem = nil;
-        if ([mTabBrowser indexOfTabViewItem:tabViewItem] == 0)
-          doomedItem = [mTabBrowser tabViewItemAtIndex:1];
-        else
-          doomedItem = [mTabBrowser tabViewItemAtIndex:0];
-
-        [self closeTab:doomedItem];
+    BrowserTabViewItem* savedTab = [mTabBrowser itemWithTag:[sender tag]];
+    if (savedTab) {
+      int tabCount = [mTabBrowser numberOfTabViewItems];
+      // Any tab may refuse to close, so we walk the tabs in reverse so that any
+      // that are left open don't throw off the count.
+      for (int i = (tabCount - 1); i >= 0; --i) {
+        BrowserTabViewItem* doomedTab = (BrowserTabViewItem*)[mTabBrowser tabViewItemAtIndex:i];
+        if (doomedTab != savedTab)
+          [doomedTab closeTab:self];
       }
     }
   }
+  [[NSApp delegate] delayedAdjustBookmarksMenuItemsEnabling];
 }
 
 - (void)closeTab:(NSTabViewItem *)tab
 {
-  [[tab view] windowClosed];
-  [mTabBrowser removeTabViewItem:tab];
+  [(BrowserTabViewItem*)tab closeTab:self];
   [[NSApp delegate] delayedAdjustBookmarksMenuItemsEnabling];
 }
 

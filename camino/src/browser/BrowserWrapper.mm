@@ -220,7 +220,12 @@ enum StatusPriority {
   return YES;
 }
 
--(void)windowClosed
+- (BOOL)browserShouldClose
+{
+  return [mBrowserView shouldUnload];
+}
+
+-(void)browserClosed
 {
   // Break the cycle, but don't clear ourselves as the container 
   // before we call |destroyWebBrowser| or onUnload handlers won't be

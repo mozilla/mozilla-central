@@ -1127,6 +1127,17 @@ const char kDirServiceContractID[] = "@mozilla.org/file/directory_service;1";
   return (fabsf([self getTextZoom] - DEFAULT_TEXT_ZOOM) < .001);
 }
 
+- (BOOL)shouldUnload
+{
+  nsCOMPtr<nsIContentViewer> contentViewer = dont_AddRef([self getContentViewer]);
+  if (!contentViewer)
+    return YES;
+
+  PRBool canUnload;
+  contentViewer->PermitUnload(&canUnload);
+  return canUnload ? YES : NO;
+}
+
 - (void)moveToBeginningOfDocument:(id)sender
 {
   [self doCommand: "cmd_moveTop"];

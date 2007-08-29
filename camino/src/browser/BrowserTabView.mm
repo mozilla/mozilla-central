@@ -318,6 +318,18 @@ NSString* const kTabBarBackgroundDoubleClickedNotification = @"kTabBarBackground
   }
 }
 
+// Checks each of the tabs to be sure that they are allowed to be closed.
+- (BOOL)windowShouldClose
+{
+  const int numTabs = [self numberOfTabViewItems];
+  for (int i = 0; i < numTabs; i++) {
+    NSTabViewItem* item = [self tabViewItemAtIndex:i];
+    if (![[item view] browserShouldClose])
+      return NO;
+  }
+  return YES;
+}
+
 - (void)windowClosed
 {
   // Loop over all tabs, and tell them that the window is closed. This
@@ -326,7 +338,7 @@ NSString* const kTabBarBackgroundDoubleClickedNotification = @"kTabBarBackground
   int numTabs = [self numberOfTabViewItems];
   for (int i = 0; i < numTabs; i++) {
     NSTabViewItem* item = [self tabViewItemAtIndex: i];
-    [[item view] windowClosed];
+    [[item view] browserClosed];
   }
 }
 

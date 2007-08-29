@@ -385,8 +385,10 @@ const int kMenuTruncationChars = 60;
 
 - (void)closeTab:(id)sender
 {
-	[[self view] windowClosed];
-	[[self tabView] removeTabViewItem:self];
+  if ([[self view] browserShouldClose]) {
+    [[self view] browserClosed];
+    [[self tabView] removeTabViewItem:self];
+  }
 }
 
 - (void)updateTabVisibility:(BOOL)nowVisible

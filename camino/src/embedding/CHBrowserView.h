@@ -251,6 +251,11 @@ typedef enum {
 - (BOOL)canMakeTextSmaller;
 - (BOOL)isTextDefaultSize;
 
+// Verifies that the browser view can be unloaded (e.g., validates
+// onbeforeunload handlers). Should be called before any action that would
+// destroy the browser view.
+- (BOOL)shouldUnload;
+
 // ideally these would not have to be called from outside the CHBrowerView, but currently
 // the cocoa impl of nsIPromptService is at the app level, so it needs to call down
 // here. We'll just turn around and call the CHBrowserContainer methods

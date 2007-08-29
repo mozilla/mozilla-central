@@ -66,6 +66,8 @@ extern NSString* const kTabWillChangeNotifcation;
 - (void)updateTabVisibility:(BOOL)nowVisible;
 - (NSView*)tabItemContentsView;
 - (int)tag;
+// Note that this method may confirm the tab close (e.g., in the case of an
+// onunload handler), and thus may not actually result in the tab being closed.
 - (void)closeTab:(id)sender;
 - (void)setTabIcon:(NSImage *)newIcon isDraggable:(BOOL)draggable;
 - (TruncatingTextAndImageCell *)labelCell;

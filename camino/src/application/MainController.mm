@@ -366,49 +366,62 @@ NSString* const kPreviousSessionTerminatedNormallyKey = @"PreviousSessionTermina
   if (!prefManager)
     return NSTerminateNow;    // we didn't fully launch
 
-  if (![prefManager getBooleanPref:"camino.warn_when_closing" withSuccess:NULL])
-    return NSTerminateNow;
+  if ([prefManager getBooleanPref:"camino.warn_when_closing" withSuccess:NULL]) {
+    NSString* quitAlertMsg = nil;
+    NSString* quitAlertExpl = nil;
 
-  NSString* quitAlertMsg = nil;
-  NSString* quitAlertExpl = nil;
+    NSArray* openBrowserWins = [self browserWindows];
+    if ([openBrowserWins count] == 1) {
+      BrowserWindowController* bwc = [[openBrowserWins firstObject] windowController];
+      unsigned int numTabs = [[bwc getTabBrowser] numberOfTabViewItems];
+      if (numTabs > 1) {
+        quitAlertMsg = NSLocalizedString(@"QuitWithMultipleTabsMsg", @"");
+        quitAlertExpl = [NSString stringWithFormat:NSLocalizedString(@"QuitWithMultipleTabsExpl", @""), numTabs];
+      }
+    }
+    else if ([openBrowserWins count] > 1) {
+      quitAlertMsg = NSLocalizedString(@"QuitWithMultipleWindowsMsg", @"");
+      quitAlertExpl = [NSString stringWithFormat:NSLocalizedString(@"QuitWithMultipleWindowsExpl", @""), [openBrowserWins count]];
+    }
 
-  NSArray* openBrowserWins = [self browserWindows];
-  if ([openBrowserWins count] == 1) {
-    BrowserWindowController* bwc = [[openBrowserWins firstObject] windowController];
-    unsigned int numTabs = [[bwc getTabBrowser] numberOfTabViewItems];
-    if (numTabs > 1) {
-      quitAlertMsg = NSLocalizedString(@"QuitWithMultipleTabsMsg", @"");
-      quitAlertExpl = [NSString stringWithFormat:NSLocalizedString(@"QuitWithMultipleTabsExpl", @""), numTabs];
+    if (quitAlertMsg) {
+      [NSApp activateIgnoringOtherApps:YES];
+      nsAlertController* controller = CHBrowserService::GetAlertController();
+      BOOL dontShowAgain = NO;
+      BOOL confirmed = NO;
+
+      @try {
+        confirmed = [controller confirmCheckEx:nil
+                                         title:quitAlertMsg
+                                           text:quitAlertExpl
+                                        button1:NSLocalizedString(@"QuitButtonText", @"")
+                                        button2:NSLocalizedString(@"CancelButtonText", @"")
+                                        button3:nil
+                                       checkMsg:NSLocalizedString(@"DontShowWarningAgainCheckboxLabel", @"")
+                                     checkValue:&dontShowAgain];
+      }
+      @catch (id exception) {
+      }
+
+      if (dontShowAgain)
+        [prefManager setPref:"camino.warn_when_closing" toBoolean:NO];
+
+      if (!confirmed)
+        return NSTerminateCancel;
     }
   }
-  else if ([openBrowserWins count] > 1) {
-    quitAlertMsg = NSLocalizedString(@"QuitWithMultipleWindowsMsg", @"");
-    quitAlertExpl = [NSString stringWithFormat:NSLocalizedString(@"QuitWithMultipleWindowsExpl", @""), [openBrowserWins count]];
-  }
 
-  if (quitAlertMsg) {
-    [NSApp activateIgnoringOtherApps:YES];
-    nsAlertController* controller = CHBrowserService::GetAlertController();
-    BOOL dontShowAgain = NO;
-    BOOL confirmed = NO;
+  // Check all the windows to see if any have tabs that shouldn't be closed.
+  NSArray* openWindows = [NSApp orderedWindows];
+  NSEnumerator* windowEnum = [openWindows objectEnumerator];
+  NSWindow* curWindow;
+  while ((curWindow = [windowEnum nextObject])) {
+    if (![[curWindow windowController] isMemberOfClass:[BrowserWindowController class]])
+      continue;
 
-    @try {
-      confirmed = [controller confirmCheckEx:nil
-                                       title:quitAlertMsg
-                                         text:quitAlertExpl
-                                      button1:NSLocalizedString(@"QuitButtonText", @"")
-                                      button2:NSLocalizedString(@"CancelButtonText", @"")
-                                      button3:nil
-                                     checkMsg:NSLocalizedString(@"DontShowWarningAgainCheckboxLabel", @"")
-                                   checkValue:&dontShowAgain];
-    }
-    @catch (id exception) {
-    }
-
-    if (dontShowAgain)
-      [prefManager setPref:"camino.warn_when_closing" toBoolean:NO];
-
-    return confirmed ? NSTerminateNow : NSTerminateCancel;
+    BrowserWindowController* bwc = [curWindow windowController];
+    if (![[bwc getTabBrowser] windowShouldClose])
+      return NSTerminateCancel;
   }
 
   return NSTerminateNow;
