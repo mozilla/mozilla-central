@@ -10,13 +10,19 @@
 		<string>679 653 370 64 0 0 1680 1028 </string>
 		<key>297</key>
 		<string>67 302 226 337 0 0 1680 1028 </string>
+		<key>336</key>
+		<string>67 302 226 206 0 0 1680 1028 </string>
+		<key>463</key>
+		<string>71 338 226 294 0 0 1680 1028 </string>
 	</dict>
 	<key>IBFramework Version</key>
 	<string>446.1</string>
 	<key>IBOpenObjects</key>
 	<array>
-		<integer>806</integer>
+		<integer>336</integer>
 		<integer>1066</integer>
+		<integer>463</integer>
+		<integer>806</integer>
 	</array>
 	<key>IBSystem Version</key>
 	<string>8P2137</string>

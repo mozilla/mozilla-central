@@ -178,6 +178,7 @@ const int kSelectionRelatedItemsTag = 102;
 const int kSpellingRelatedItemsTag = 103;
 const int kItemsNeedingOpenBehaviorAlternatesTag = 104;
 const int kItemsNeedingForceAlternateTag = 105;
+const int kLinkOpeningItemsTag = 106;
 
 // Cached toolbar defaults read in from a plist. If null, we'll use
 // hardcoded defaults.
@@ -4165,13 +4166,9 @@ enum BWCOpenDest {
   NSMenu* result = [[menuPrototype copy] autorelease];
 
   if (isUnsafeLink) {
-    // To avoid updating the BrowserWindow.nib close to release time, the
-    // menu items to remove will be removed from index 0 three times. After
-    // the 1.1 release, this needs to be changed (see bug 378081). The first
-    // two remove calls will pull out the "Open Link in *" menu items.
-    [result removeItemAtIndex:0];
-    [result removeItemAtIndex:0];
-    [result removeItemAtIndex:0];  // remove separator 
+    NSMenuItem* frameItem;
+    while ((frameItem = [result itemWithTag:kLinkOpeningItemsTag]) != nil)
+      [result removeItem:frameItem];
   }
 
   // validate View Page/Frame Source
