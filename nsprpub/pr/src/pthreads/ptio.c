@@ -1072,6 +1072,15 @@ static PRBool pt_solaris_sendfile_cont(pt_Continuation *op, PRInt16 revents)
             return PR_TRUE;
         }
         count = xferred;
+    } else if (count == 0) {
+        /* 
+         * We are now at EOF. The file was truncated. Solaris sendfile is
+         * supposed to return 0 and no error in this case, though some versions
+         * may return -1 and EINVAL .
+         */
+        op->result.code = -1;
+        op->syserrno = 0; /* will be treated as EOF */
+        return PR_TRUE;
     }
     PR_ASSERT(count <= op->nbytes_to_send);
     
@@ -2420,6 +2429,14 @@ static PRInt32 pt_SolarisSendFile(PRFileDesc *sd, PRSendFileData *sfd,
                 || syserrno == EAGAIN || syserrno == EWOULDBLOCK) {
             count = xferred;
         }
+    } else if (count == 0) {
+        /*
+         * We are now at EOF. The file was truncated. Solaris sendfile is
+         * supposed to return 0 and no error in this case, though some versions
+         * may return -1 and EINVAL .
+         */
+        count = -1;
+        syserrno = 0;  /* will be treated as EOF */
     }
 
     if (count != -1 && count < nbytes_to_send) {

@@ -851,7 +851,21 @@ void _MD_hpux_map_sendfile_error(int err)
 #ifdef SOLARIS
 void _MD_solaris_map_sendfile_error(int err)
 {
-    _MD_unix_map_default_error(err) ;
+    PRErrorCode prError;
+
+    switch (err) {
+        /*
+         * Solaris defines a 0 return value for sendfile to mean end-of-file.
+         */
+        case 0:
+            prError = PR_END_OF_FILE_ERROR;
+            break;
+
+        default:
+            _MD_unix_map_default_error(err) ;
+            return;
+    }
+    PR_SetError(prError, err);
 }
 #endif /* SOLARIS */
 
