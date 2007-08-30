@@ -113,6 +113,18 @@
                    label="&calendar.month.button.label;"
                    tooltiptext="&calendar.month.button.tooltip;"
                    observes="month-view-command"/>
+    <toolbarbutton id="calendar-delete-event-button"
+                   mode="calendar"
+                   class="cal-toolbarbutton-1"
+                   label="&calendar.delete.button.label;"
+                   tooltiptext="&calendar.delete.button.tooltip;"
+                   observes="calendar-delete-command"/>
+    <toolbarbutton id="calendar-print-button"
+                   mode="calendar"
+                   class="cal-toolbarbutton-1"
+                   label="&calendar.print.button.label;"
+                   tooltiptext="&calendar.print.button.tooltip;"
+                   observes="cmd_print"/>
     <toolbarbutton id="calendar-go-to-today-button"
                    mode="calendar"
                    class="cal-toolbarbutton-1"
@@ -168,7 +180,7 @@
              customizable="true"
              context="toolbar-context-menu"
              collapsed="true"
-             defaultset="calendar-new-event-button,calendar-new-task-button,separator,calendar-go-to-today-button,separator,calendar-day-view-button,calendar-week-view-button,calendar-multiweek-view-button,calendar-month-view-button,separator,button-delete,button-print,separator,calendar-remote-reload-button,spring"/>
+             defaultset="calendar-new-event-button,calendar-new-task-button,separator,calendar-go-to-today-button,separator,calendar-day-view-button,calendar-week-view-button,calendar-multiweek-view-button,calendar-month-view-button,separator,calendar-delete-event-button,calendar-print-button,separator,calendar-remote-reload-button,spring"/>
   </toolbox>
 
 </overlay>

@@ -183,7 +183,7 @@
     <command id="import_command" oncommand="loadEventsFromFile()"/>
     <command id="export_command" oncommand="exportEntireCalendar()" disabled="true" disabledwhennoeventsselected="true"/>
     <command id="calendar_reload_remote_calendars" oncommand="getCompositeCalendar().refresh();"/>
-    <command id="switch2mail" oncommand="ltnSwitch2Mail()"/>
+    <command id="switch2mail" checked="true" oncommand="ltnSwitch2Mail()"/>
     <command id="switch2calendar" oncommand="ltnSwitch2Calendar()"/>
     <command id="switch2task" oncommand="ltnSwitch2Task()"/>
     <command id="cmd_toggleTodayPane" oncommand="toggleTodayPaneinMailMode()"/>
@@ -191,6 +191,7 @@
     <command id="week-view-command" oncommand="showCalendarView('week')"/>
     <command id="multiweek-view-command" oncommand="showCalendarView('multiweek')"/>
     <command id="month-view-command" oncommand="showCalendarView('month')"/>
+    <command id="calendar-delete-command" oncommand="ltnDeleteSelectedItem()" disabledwhennoeventsselected="true"/>
   </commandset>
 
   <keyset>

@@ -362,8 +362,6 @@ function ltnOnLoad(event)
                                                            modeBoxAttrModified,
                                                            true);
 
-    ltnInitializeMode();
-
     gMiniMonthLoading = true;
 
     var today = new Date();

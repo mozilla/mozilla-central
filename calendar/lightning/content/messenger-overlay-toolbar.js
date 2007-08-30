@@ -48,44 +48,7 @@ var gCustomizeId;
  *  - 'calendar'
  *  - 'task'
  */
-var gCurrentMode;
-
-/**
- * ltnInitializeMode() is called from messenger-overlay-sidebar.js during
- * handling of the load event. the purpose of this function is to provide
- * a dedicated location for the initialization of the mode toolbar stuff.
- */
-
-function ltnInitializeMode() {
-  gCurrentMode = 'mail';
-
-  // per default we check the mail command.
-  // we don't need to do anything else since the
-  // mail view is also shown by default.
-  var command = document.getElementById("switch2mail");
-  if (!command) {
-    // this stuff isn't invoked from the main
-    // application document, so don't do anything...
-    return;
-  }
-  command.setAttribute("checked", "true");
-  
-  var printbutton = document.getElementById("button-print");
-  printbutton.setAttribute("mode", "calendar");
-  var deletebutton = document.getElementById("button-delete");
-  deletebutton.setAttribute("mode", "calendar");
-}
-
-/**
- * this function returns the mode the application is currently in
- */
-
-function ltnCurrentMode() {
-  if (!gCurrentMode) {
-    ltnInitializeMode();
-  }
-  return gCurrentMode;
-}
+var gCurrentMode = 'mail';
 
 /**
  * Helper function to get the view deck in a neutral way, regardless of whether
@@ -101,7 +64,7 @@ function getMailBar() {
  */
 
 function ltnSwitch2Mail() {
-  if (ltnCurrentMode() != 'mail') {
+  if (gCurrentMode != 'mail') {
 
     var switch2mail = document.getElementById("switch2mail");
     var switch2calendar = document.getElementById("switch2calendar");
@@ -138,7 +101,7 @@ function ltnSwitch2Mail() {
  */
 
 function ltnSwitch2Calendar() {
-  if (ltnCurrentMode() != 'calendar') {
+  if (gCurrentMode != 'calendar') {
 
     var switch2mail = document.getElementById("switch2mail");
     var switch2calendar = document.getElementById("switch2calendar");
@@ -175,7 +138,7 @@ function ltnSwitch2Calendar() {
  */
 
 function ltnSwitch2Task() {
-  if (ltnCurrentMode() != 'task') {
+  if (gCurrentMode != 'task') {
 
     document.commandDispatcher.updateCommands('mail-toolbar');
     document.commandDispatcher.updateCommands('calendar_commands');
@@ -197,7 +160,7 @@ function CustomizeApplicationToolbar(id) {
   // any other toolbar.
   gCustomizeId = id;
   var isModeToolbox = (id == 'mode-toolbox');
-  var modeName = isModeToolbox ? 'mode' : ltnCurrentMode();
+  var modeName = isModeToolbox ? 'mode' : gCurrentMode;
 
   // retrieve the toolbars from the tree
   var mailbar = getMailBar();
