@@ -2204,9 +2204,12 @@ function ChangeLanguage(event)
     str.data = event.target.value;
     sPrefs.setComplexValue("spellchecker.dictionary", nsISupportsString, str);
 
-    // now check the document over again with the new dictionary
+    // now check the document and the subject over again with the new dictionary
     if (InlineSpellCheckerUI.enabled)
+    {
       InlineSpellCheckerUI.mInlineSpellChecker.spellCheckRange(null);
+      document.getElementById('msgSubject').inputField.parentNode.spellCheckerUI.mInlineSpellChecker.spellCheckRange(null);
+    }
   }
   event.stopPropagation();
 }
