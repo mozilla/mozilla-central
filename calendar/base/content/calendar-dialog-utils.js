@@ -81,6 +81,59 @@ function disableElement(elementId)
     setElementValue(elementId, "true", "disabled");
 }
 
+/**
+ * This function unconditionally disables the element for
+ * which the id has been passed as argument. Furthermore, it
+ * remembers who was responsible for this action by using
+ * the given key (lockId). In case the control should be
+ * enabled again the lock gets removed, but the control only
+ * gets enabled if *all* possibly held locks have been removed.
+ */
+function disableElementWithLock(elementId,lockId) {
+
+    // unconditionally disable the element.
+    disableElement(elementId);
+
+    // remember that this element has been locked with
+    // the key passed as argument. we keep a primitive
+    // form of ref-count in the attribute 'lock'.
+    var element = document.getElementById(elementId);
+    if (element) {
+        if (!element.hasAttribute(lockId)) {
+            element.setAttribute(lockId, "true");
+            var n = parseInt(element.getAttribute("lock") || 0);
+            element.setAttribute("lock", n + 1);
+        }
+    }
+}
+
+/**
+ * This function is intended to be used in tandem with the
+ * above defined function 'disableElementWithLock()'.
+ * See the respective comment for further details.
+ */
+function enableElementWithLock(elementId, lockId) {
+
+    var element = document.getElementById(elementId);
+    if (!element) {
+        dump("unable to find " + elementId + "\n");
+        return;
+    }
+
+    if (element.hasAttribute(lockId)) {
+        element.removeAttribute(lockId);
+        var n = parseInt(element.getAttribute("lock") || 0) - 1;
+        if (n > 0) {
+            element.setAttribute("lock", n);
+        } else {
+            element.removeAttribute("lock");
+        }
+        if (n <= 0) {
+            enableElement(elementId);
+        }
+    }
+}
+
 /* use with textfields oninput to only allow integers */
 function validateIntegerRange(event, lowerBound, upperBound) {
     validateIntegers(event);
@@ -764,16 +817,17 @@ function saveReminder(item) {
 }
 
 function commonUpdateReminder() {
-    // find relevant elements in the document
-    var reminderPopup = document.getElementById("item-alarm");
-    var reminderDetails = document.getElementById("reminder-details");
-
-    // if a custom reminder was selected, we show the appropriate
+    // if a custom reminder has been selected, we show the appropriate
     // dialog in order to allow the user to specify the details.
     // the result will be placed in the 'reminder-custom-menuitem' tag.
+    var reminderPopup = document.getElementById("item-alarm");
     if (reminderPopup.value == 'custom') {
         // show the dialog.
-        editReminder();
+        // don't pop up the dialog if this happens during
+        // initialization of the dialog.
+        if (reminderPopup.hasAttribute("last-value")) {
+            editReminder();
+        }
 
         // Now check if the resulting custom reminder is valid.
         // possibly we receive an invalid reminder if the user cancels the
@@ -786,6 +840,70 @@ function commonUpdateReminder() {
 
     // remember the current reminder drop down selection index.
     gLastAlarmSelection = reminderPopup.selectedIndex;
+    reminderPopup.setAttribute("last-value", reminderPopup.value);
+
+    // possibly the selected reminder conflicts with the item.
+    // for example an end-relation combined with a task without duedate
+    // is an invalid state we need to take care of. we take the same
+    // approach as with recurring tasks. in case the reminder is related
+    // to the entry date we check the entry date automatically and disable
+    // the checkbox. the same goes for end related reminder and the due date.
+    if (isToDo(window.calendarItem)) {
+
+        // custom reminder entries carry their own reminder object
+        // with them, pre-defined entries specify the necessary information
+        // as attributes attached to the menuitem elements.
+        var menuitem = reminderPopup.selectedItem;
+        if (menuitem.value == 'none') {
+            enableElementWithLock("todo-has-entrydate", "reminder-lock");
+            enableElementWithLock("todo-has-duedate", "reminder-lock");
+        } else {
+            var reminder = menuitem.reminder;
+            if (!reminder) {
+                reminder = {};
+                reminder.length = menuitem.getAttribute('length');
+                reminder.unit = menuitem.getAttribute('unit');
+                reminder.relation = menuitem.getAttribute('relation');
+                reminder.origin = menuitem.getAttribute('origin');
+            }
+
+            // if this reminder is related to the entry date...
+            if (Number(reminder.origin) > 0) {
+
+                // ...automatically check 'has entrydate'.
+                if (!getElementValue("todo-has-entrydate", "checked")) {
+                    setElementValue("todo-has-entrydate", "true", "checked");
+
+                    // make sure gStartTime is properly initialized
+                    updateEntryDate();
+                }
+
+                // disable the checkbox to indicate that we need
+                // the entry-date. the 'disabled' state will be
+                // revoked if the user turns off the repeat pattern.
+                disableElementWithLock("todo-has-entrydate", "reminder-lock");
+                enableElementWithLock("todo-has-duedate", "reminder-lock");
+            }
+
+            // if this reminder is related to the due date...
+            if (Number(reminder.origin) < 0) {
+
+                // ...automatically check 'has duedate'.
+                if (!getElementValue("todo-has-duedate", "checked")) {
+                    setElementValue("todo-has-duedate", "true", "checked");
+
+                    // make sure gStartTime is properly initialized
+                    updateDueDate();
+                }
+
+                // disable the checkbox to indicate that we need
+                // the entry-date. the 'disabled' state will be
+                // revoked if the user turns off the repeat pattern.
+                disableElementWithLock("todo-has-duedate", "reminder-lock");
+                enableElementWithLock("todo-has-entrydate", "reminder-lock");
+            }
+        }
+    }
 
     updateReminderDetails();
 }

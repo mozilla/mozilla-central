@@ -481,22 +481,6 @@
 
     </toolbox>
 
-    <label id="read-only-item"
-           value="&newevent.readonly.item.warning;"
-           hidden="true"/>
-    <label id="read-only-cal"
-           value="&newevent.readonly.cal.warning;"
-           hidden="true"/>
-    <label id="end-time-warning"
-           value="&newevent.endtime.warning;"
-           hidden="true"/>
-    <label id="alarm-start-warning"
-           value="&alarm.start.warning;"
-           hidden="true"/>
-    <label id="alarm-end-warning"
-           value="&alarm.due.warning;"
-           hidden="true"/>
-
     <grid flex="1"
           style="padding: 8px 10px 10px 8px;">
         <columns>
@@ -714,7 +698,7 @@
             <separator class="groove"/>
 
             <!-- Reminder (Alarm) -->
-            <row align="center" class="event-only">
+            <row align="center">
                 <label value="&event.reminder.label;"
                        disable-on-readonly="true"/>
                 <hbox align="center">
@@ -803,7 +787,7 @@
                 </hbox>
             </row>
 
-            <separator class="groove event-only"/>
+            <separator class="groove"/>
 
             <!-- Description -->
             <row id="description-row" flex="1">

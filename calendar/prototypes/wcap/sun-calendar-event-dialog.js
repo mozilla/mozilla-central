@@ -429,7 +429,8 @@ function loadDialog(item) {
     updateTitle();
 
     updateAttendees();
-    updateReminderDetails();
+    updateRepeat();
+    updateReminder();
 
     // How easy would it be to just call hasProperty(), but unfortunately
     // this is currently flawed and doesn't give us the answer we're longing for.
@@ -1029,10 +1030,6 @@ function updateAccept() {
         enableAccept = false;
     }
 
-    if (!updateTaskAlarmWarnings()) {
-        enableAccept = false;
-    }
-
     var accept = document.getElementById("cmd_accept");
     if (enableAccept) {
         accept.removeAttribute('disabled');
@@ -1041,39 +1038,6 @@ function updateAccept() {
     }
 
     return enableAccept;
-}
-
-function updateTaskAlarmWarnings() {
-    var alarmType = getElementValue("item-alarm");
-    if (!isToDo(window.calendarItem) ||
-        alarmType == "none") {
-        return true;
-    }
-
-    var hasEntryDate =
-        getElementValue(
-            "todo-has-entrydate",
-            "checked");
-    var hasDueDate =
-        getElementValue(
-            "todo-has-duedate",
-            "checked");
-
-    var alarmRelated = document.getElementById("alarm-trigger-relation")
-                               .selectedItem.value;
-
-    if ((alarmType != "custom" ||
-         alarmRelated == "START") &&
-         !hasEntryDate) {
-        return false;
-    }
-
-    if (alarmRelated == "END" &&
-        !hasDueDate) {
-        return false;
-    }
-
-    return true;
 }
 
 // this function sets the enabled/disabled
@@ -1123,17 +1087,6 @@ function updateAllDay() {
     updateDateTime();
     updateRepeatDetails();
     updateAccept();
-}
-
-function setAlarmFields(alarmItem) {
-    var alarmLength = alarmItem.getAttribute("length");
-    if (alarmLength != "") {
-        var alarmUnits = alarmItem.getAttribute("unit");
-        var alarmRelation = alarmItem.getAttribute("relation");
-        setElementValue("alarm-length-field", alarmLength);
-        setElementValue("alarm-length-units", alarmUnits);
-        setElementValue("alarm-trigger-relation", alarmRelation);
-    }
 }
 
 function openNewEvent() {
@@ -1515,12 +1468,7 @@ function updateCalendar() {
             setElementValue("item-calendar", "true", "disabled");
 
             // don't allow to revoke the entrydate of recurring todo's.
-            disableElement("todo-has-entrydate");
-        }
-
-        // don't allow to revoke the entrydate of recurring todo's.
-        if (window.recurrenceInfo) {
-            disableElement("todo-has-entrydate");
+            disableElementWithLock("todo-has-entrydate", "permanent-lock");
         }
 
         // update datetime pickers
@@ -1554,10 +1502,12 @@ function editRepeat() {
         args);
 }
 
-// This function is called after the 'repeat pattern' selection has been
-// changed. As a consequence we need to create/modify recurrence rules or
-// bring up the custom 'repeat pattern'-dialog and modify states of several
-// elements of the document (i.e. task entrydate, etc.)
+/**
+ * This function is responsilble for propagating UI state to controls
+ * depending on the repeat setting of an item. This functionality is used
+ * after the dialog has been loaded as well as if the repeat pattern has
+ * been changed.
+ */
 function updateRepeat() {
     var repeatMenu = document.getElementById("item-repeat");
     var repeatItem = repeatMenu.selectedItem;
@@ -1567,7 +1517,7 @@ function updateRepeat() {
         window.recurrenceInfo = null;
         var item = window.calendarItem;
         if (isToDo(item)) {
-            enableElement("todo-has-entrydate");
+            enableElementWithLock("todo-has-entrydate", "repeat-lock");
         }
     } else if (repeatValue == 'custom') {
         // the user selected custom repeat pattern. we now need to bring
@@ -1590,7 +1540,7 @@ function updateRepeat() {
             // disable the checkbox to indicate that we need
             // the entry-date. the 'disabled' state will be
             // revoked if the user turns off the repeat pattern.
-            disableElement("todo-has-entrydate");
+            disableElementWithLock("todo-has-entrydate", "repeat-lock");
         }
 
         // retrieve the current recurrence info, we need this
@@ -1599,7 +1549,11 @@ function updateRepeat() {
         var recurrenceInfo = window.recurrenceInfo;
 
         // now bring up the recurrence dialog.
-        editRepeat();
+        // don't pop up the dialog if this happens during
+        // initialization of the dialog.
+        if (repeatMenu.hasAttribute("last-value")) {
+            editRepeat();
+        }
 
         // we need to address two separate cases here.
         // 1) we need to revoke the selection of the repeat
@@ -1611,7 +1565,7 @@ function updateRepeat() {
             repeatMenu.selectedIndex = gLastRepeatSelection;
             if (isToDo(item)) {
                 if (!window.recurrenceInfo) {
-                    enableElement("todo-has-entrydate");
+                    enableElementWithLock("todo-has-entrydate", "repeat-lock");
                 }
             }
         }
@@ -1677,13 +1631,16 @@ function updateRepeat() {
             if (!getElementValue("todo-has-entrydate", "checked")) {
                 setElementValue("todo-has-entrydate", "true", "checked");
             }
-            disableElement("todo-has-entrydate");
+            disableElementWithLock("todo-has-entrydate", "repeat-lock");
         }
     }
 
     gLastRepeatSelection = repeatMenu.selectedIndex;
+    repeatMenu.setAttribute("last-value", repeatValue);
 
     updateRepeatDetails();
+    updateEntryDate();
+    updateDueDate();
     updateAccept();
 }
 
@@ -2211,12 +2168,12 @@ function updateAttendees() {
 }
 
 function updateRepeatDetails() {
-    // Don't try to show the details text for anything but a custom recurrence
-    // rule. Also, we don't currently support tasks.
+    // Don't try to show the details text for
+    // anything but a custom recurrence rule.
     var item = window.calendarItem;
     var recurrenceInfo = window.recurrenceInfo;
     var itemRepeat = document.getElementById("item-repeat");
-    if (itemRepeat.value == "custom" && isEvent(item) && recurrenceInfo) {
+    if (itemRepeat.value == "custom" && recurrenceInfo) {
         var startDate = jsDateToDateTime(getElementValue("event-starttime"));
         var endDate = jsDateToDateTime(getElementValue("event-endtime"));
         var kDefaultTimezone = calendarDefaultTimezone();
