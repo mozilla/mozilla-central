@@ -2760,7 +2760,6 @@ nsresult nsImapMailFolder::NormalEndHeaderParseStream(nsIImapProtocol *aProtocol
   // If this is the inbox, try to apply filters.
   if (mFlags & MSG_FOLDER_FLAG_INBOX)
   {
-    //XXX Add the roaming service sniffing here....
     PRUint32 msgFlags;
     newMsgHdr->GetFlags(&msgFlags);
     if (!(msgFlags & (MSG_FLAG_READ | MSG_FLAG_IMAP_DELETED))) // only fire on unread msgs that haven't been deleted
