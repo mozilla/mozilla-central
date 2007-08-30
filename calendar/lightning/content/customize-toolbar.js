@@ -46,6 +46,7 @@
  */
 var gPreviousLocation = null;
 var gRepositionOnce = false;
+var gIsMainApplicationContext = (window.arguments[3] != null);
 
 /**
  * Since we want to 'inherit' several global functions
@@ -60,26 +61,33 @@ var gOnCancel = onCancel;
  * initDialog() gets called from the load handler and
  * is responsible for initializing global variables, etc.
  */
-initDialog = function()
-{
-  // remember initialo toolbar location and set the
-  // menulist accordingly. this applies to the mode toolbar only.
-  gPreviousLocation = gToolbox.getAttribute("location");
-  document.getElementById("loction-list").value = gPreviousLocation;
-  
-  // set the toolbar selection according to the current mode.
-  // this list allows to hop from one toolbar to another without
-  // leaving the customize dialog. if this feature is to be used outside
-  // of mail/news main application window, we detect this case and disable
-  // all relevant controls and stuff.
-  var selectorList = document.getElementById("selector-list");
-  selectorList.value = window.arguments[3];
-  if (selectorList.selectedItem.value != window.arguments[3]) {
-      document.getElementById("selector-container").collapsed = true;
-  }
-  
-  // now call the original initDialog() function
-  gInitDialog();
+initDialog = function() {
+
+    // Don't do any extra processing in case we're not
+    // customizing one of the main application toolbars.
+    // The customize toolbar dialog contains special features
+    // that don't apply in that case (location drop down, etc.).
+    if (gIsMainApplicationContext) {
+
+        // remember initial toolbar location and set the
+        // menulist accordingly. this applies to the mode toolbar only.
+        gPreviousLocation = gToolbox.getAttribute("location");
+        document.getElementById("location-list").value = gPreviousLocation;
+
+        // set the toolbar selection according to the current mode.
+        // this list allows to hop from one toolbar to another without
+        // leaving the customize dialog. if this feature is to be used outside
+        // of mail/news main application window, we detect this case and disable
+        // all relevant controls and stuff.
+        var selectorList = document.getElementById("selector-list");
+        selectorList.value = window.arguments[3];
+        if (selectorList.selectedItem.value != window.arguments[3]) {
+            document.getElementById("selector-container").collapsed = true;
+        }
+    }
+
+    // now call the original initDialog() function
+    gInitDialog();
 }
 
 /**
@@ -89,11 +97,17 @@ initDialog = function()
  * only. in case we've been switched from one to another, only the changes
  * made to the most recent toolbar will be discarded.
  */
-onCancel = function()
-{
-  updateToolbarLocation(gPreviousLocation);
+onCancel = function() {
 
-  gOnCancel();
+    // Don't do any extra processing in case we're not
+    // customizing one of the main application toolbars.
+    // The customize toolbar dialog contains special features
+    // that don't apply in that case (location drop down, etc.).
+    if (gIsMainApplicationContext) {
+        updateToolbarLocation(gPreviousLocation);
+    }
+
+    gOnCancel();
 }
 
 /**
@@ -104,8 +118,8 @@ onCancel = function()
  * the toolbar in question, since this is necessary for the mode toolbar
  * which is set at the lower left of the application window by default.
  */
-function repositionDialog()
-{
+_repositionDialog = function() {
+ 
   // Christian said it's better to not make the dialog jump...
   if (gRepositionOnce)
     return;
@@ -139,23 +153,33 @@ function repositionDialog()
  * onLoad() is called by the load event handler. we need to override
  * this function to initialize the newly introduced controls.
  */
-onLoad = function()
-{
-  // remove the box containing all the relevant controls from
-  // the dom tree, we bring a new one to the table. this is necessary
-  // since those controls don't specify id's, so we need to override
-  // all of them.
-  var mainbox = document.getElementById("main-box");
-  var controlbox = document.getElementById("control-box");
-  mainbox.removeChild(controlbox.nextSibling);
+onLoad = function() {
 
-  // show the location option (place toolbar at top or bottom)
-  // if this feature has been requested.
-  updateLocationVisibility(window.arguments[3] == 'mode');
+    // remove the box containing all the relevant controls from
+    // the dom tree, we bring a new one to the table. this is necessary
+    // since those controls don't specify id's, so we need to override
+    // all of them.
+    var mainbox = document.getElementById("main-box");
+    var controlbox = document.getElementById("control-box");
+    mainbox.removeChild(controlbox.nextSibling);
 
-  // now call the default implementation of the load handler, since
-  // this retrieves the toolbox element from the arguments.
-  gOnLoad();
+    // Don't do any extra processing in case we're not
+    // customizing one of the main application toolbars.
+    // The customize toolbar dialog contains special features
+    // that don't apply in that case (location drop down, etc.).
+    if (gIsMainApplicationContext) {
+
+        document.getElementById("selector-container")
+            .removeAttribute("collapsed");
+
+        // show the location option (place toolbar at top or bottom)
+        // if this feature has been requested.
+        updateLocationVisibility(window.arguments[3] == 'mode');
+    }
+
+    // now call the default implementation of the load handler, since
+    // this retrieves the toolbox element from the arguments.
+    gOnLoad();
 }
 
 /**
@@ -164,8 +188,8 @@ onLoad = function()
  * attribute on all customizable toolbars and rely on them intercepting
  * this modification and act accordingly.
  */
-function updateToolbarLocation(aLocation)
-{
+_updateToolbarLocation = function(aLocation) {
+
   // since the current toolbar will change its location in
   // the dom tree (most probably), we need to unwrap the toolbar items
   // and reset anything that could get in the way.
@@ -202,8 +226,8 @@ function updateToolbarLocation(aLocation)
 /**
  * Handler that takes care of a new toolbar being selected for customization.
  */
-function updateToolbarSelection(aSelection)
-{
+_updateToolbarSelection = function(aSelection) {
+
   var callback = window.arguments[2];
   if(callback) {
 
@@ -242,8 +266,8 @@ function updateToolbarSelection(aSelection)
 /**
  * Show or hide the location selection, this option shouldn't be always visible
  */
-function updateLocationVisibility(aShow)
-{
+_updateLocationVisibility = function(aShow) {
+
   var controls = document.getElementsByAttribute("location-option", "true");
   for (var i=0;i<controls.length;i++) {
     if (aShow) {
@@ -257,8 +281,8 @@ function updateLocationVisibility(aShow)
 /**
  * Builds the palette of draggable items that are not yet in a toolbar.
  */
-function buildPalette()
-{
+_buildPalette = function() {
+
   // Empty the palette first.
   var paletteBox = document.getElementById("palette-box");
   while (paletteBox.lastChild)
@@ -327,4 +351,12 @@ function buildPalette()
     fillRowWithFlex(currentRow);
     paletteBox.appendChild(currentRow);
   }
+}
+
+if (gIsMainApplicationContext) {
+    repositionDialog = _repositionDialog;
+    updateToolbarLocation = _updateToolbarLocation;
+    updateToolbarSelection = _updateToolbarSelection;
+    updateLocationVisibility = _updateLocationVisibility;
+    buildPalette = _buildPalette;
 }

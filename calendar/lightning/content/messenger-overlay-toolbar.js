@@ -56,14 +56,18 @@ var gCurrentMode;
  * a dedicated location for the initialization of the mode toolbar stuff.
  */
 
-function ltnInitializeMode()
-{
+function ltnInitializeMode() {
   gCurrentMode = 'mail';
 
   // per default we check the mail command.
   // we don't need to do anything else since the
   // mail view is also shown by default.
   var command = document.getElementById("switch2mail");
+  if (!command) {
+    // this stuff isn't invoked from the main
+    // application document, so don't do anything...
+    return;
+  }
   command.setAttribute("checked", "true");
   
   var printbutton = document.getElementById("button-print");
@@ -76,8 +80,7 @@ function ltnInitializeMode()
  * this function returns the mode the application is currently in
  */
 
-function ltnCurrentMode()
-{
+function ltnCurrentMode() {
   if (!gCurrentMode) {
     ltnInitializeMode();
   }
@@ -97,8 +100,7 @@ function getMailBar() {
  * ltnSwitch2Mail() switches to the mail mode
  */
 
-function ltnSwitch2Mail()
-{
+function ltnSwitch2Mail() {
   if (ltnCurrentMode() != 'mail') {
 
     var switch2mail = document.getElementById("switch2mail");
@@ -135,8 +137,7 @@ function ltnSwitch2Mail()
  * ltnSwitch2Calendar() switches to the calendar mode
  */
 
-function ltnSwitch2Calendar()
-{
+function ltnSwitch2Calendar() {
   if (ltnCurrentMode() != 'calendar') {
 
     var switch2mail = document.getElementById("switch2mail");
@@ -173,8 +174,7 @@ function ltnSwitch2Calendar()
  * ltnSwitch2Task() switches to the task mode
  */
 
-function ltnSwitch2Task()
-{
+function ltnSwitch2Task() {
   if (ltnCurrentMode() != 'task') {
 
     document.commandDispatcher.updateCommands('mail-toolbar');
@@ -191,9 +191,7 @@ function ltnSwitch2Task()
 
 // this shadows CustomizeMailToolbar from mail/base/content/mailCore.js
 // but adds the specific bits and pieces for lightning.
-function CustomizeApplicationToolbar(id)
-{
-debugger;
+function CustomizeApplicationToolbar(id) {
   // the following code operates different whether
   // or not we're actually customizing the mode toolbar or
   // any other toolbar.
@@ -211,16 +209,20 @@ debugger;
 
   // install the callback that handles what needs to be
   // done after a toolbar has been customized.
-  mailbox.customizeDone = ModeToolboxCustomizeDone;
-  modebox.customizeDone = ModeToolboxCustomizeDone;
+  if (modebox) {
+    mailbox.customizeDone = ModeToolboxCustomizeDone;
+    modebox.customizeDone = ModeToolboxCustomizeDone;
 
-  // disable elements on the toolbars
-  if (isModeToolbox) {
-    EnableDisableHierarchy(menubar,true);
-    EnableDisableHierarchy(mailbar,true);
-    EnableDisableHierarchy(calendarbar,true);
+    // disable elements on the toolbars
+    if (isModeToolbox) {
+      EnableDisableHierarchy(menubar, true);
+      EnableDisableHierarchy(mailbar, true);
+      EnableDisableHierarchy(calendarbar, true);
+    } else {
+      EnableDisableHierarchy(modebar, true);
+    }
   } else {
-    EnableDisableHierarchy(modebar,true);
+    modeName = null;
   }
 
   var customizePopup = document.getElementById("CustomizeMailToolbar"); 
@@ -251,10 +253,10 @@ debugger;
 
     // enable/disable all toolbar to reflect the new state
     var isMode = (aMode == 'mode');
-    EnableDisableHierarchy(modebar,!isMode);
-    EnableDisableHierarchy(menubar,isMode);
-    EnableDisableHierarchy(mailbar,isMode);
-    EnableDisableHierarchy(calendarbar,isMode);
+    EnableDisableHierarchy(modebar, !isMode);
+    EnableDisableHierarchy(menubar, isMode);
+    EnableDisableHierarchy(mailbar, isMode);
+    EnableDisableHierarchy(calendarbar, isMode);
     
     // remember the current toolbox
     gCustomizeId = toolbox;
@@ -279,8 +281,7 @@ debugger;
  * and commands of all customizable toolbars.
  */
 
-function ModeToolboxCustomizeDone(aToolboxChanged)
-{
+function ModeToolboxCustomizeDone(aToolboxChanged) {
   // the following code operates different whether
   // or not we're actually customizing the mode toolbar or
   // any other toolbar.
@@ -288,9 +289,9 @@ function ModeToolboxCustomizeDone(aToolboxChanged)
   
   // enable elements on the toolbars
   if (isModeToolbox) {
-    EnableDisableHierarchy(document.getElementById('mail-menubar'),false);
-    EnableDisableHierarchy(getMailBar(),false);
-    EnableDisableHierarchy(document.getElementById('calendar-toolbar'),false);
+    EnableDisableHierarchy(document.getElementById('mail-menubar'), false);
+    EnableDisableHierarchy(getMailBar(), false);
+    EnableDisableHierarchy(document.getElementById('calendar-toolbar'), false);
   }
 
   // Unconditionally enable the mode toolbar
@@ -311,8 +312,7 @@ function ModeToolboxCustomizeDone(aToolboxChanged)
 
 // step along the hierarchy where the top-node is to be passed
 // as argument and enable/disable all nodes depending on the given flag.
-function EnableDisableHierarchy(item,disable)
-{
+function EnableDisableHierarchy(item, disable) {
   // iterate all nodes on this particular level
   for (var i = 0; i < item.childNodes.length; ++i) {
   
@@ -345,7 +345,7 @@ function EnableDisableHierarchy(item,disable)
     // recursively step down the hierarchy if this node
     // exposes any further child nodes.
     if (child.childNodes.length > 0) {
-      EnableDisableHierarchy(child,disable);
+      EnableDisableHierarchy(child, disable);
     }
   }
 }
@@ -357,8 +357,7 @@ function EnableDisableHierarchy(item,disable)
 
 // step along the hierarchy where the top-node is to be passed
 // as argument and enable all nodes unconditionally.
-function EnableHierarchy(item)
-{
+function EnableHierarchy(item) {
   // iterate all nodes on this particular level
   for (var i = 0; i < item.childNodes.length; ++i) {
   
