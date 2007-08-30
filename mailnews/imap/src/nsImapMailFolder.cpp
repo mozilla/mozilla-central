@@ -676,8 +676,12 @@ nsresult nsImapMailFolder::GetDatabase(nsIMsgWindow *aMsgWindow)
   return folderOpen;
 }
 
-NS_IMETHODIMP
-nsImapMailFolder::UpdateFolder(nsIMsgWindow *msgWindow)
+NS_IMETHODIMP nsImapMailFolder::UpdateFolder(nsIMsgWindow * inMsgWindow)
+{
+  return UpdateFolder(inMsgWindow, nsnull);
+}
+
+NS_IMETHODIMP nsImapMailFolder::UpdateFolder(nsIMsgWindow *msgWindow, nsIUrlListener *aUrlListener)
 {
   nsresult rv;
   PRBool selectFolder = PR_FALSE;
@@ -783,7 +787,7 @@ nsImapMailFolder::UpdateFolder(nsIMsgWindow *msgWindow)
       nsCOMPtr <nsIMsgMailNewsUrl> mailnewsUrl = do_QueryInterface(url, &rv);
       NS_ENSURE_SUCCESS(rv, rv);
       mailnewsUrl->RegisterListener(this);
-      m_urlListener = nsnull;
+      m_urlListener = aUrlListener;
     }
     switch (rv)
     {
@@ -806,7 +810,6 @@ nsImapMailFolder::UpdateFolder(nsIMsgWindow *msgWindow)
   }
   return rv;
 }
-
 
 NS_IMETHODIMP nsImapMailFolder::GetMessages(nsIMsgWindow *aMsgWindow, nsISimpleEnumerator* *result)
 {
@@ -2757,6 +2760,7 @@ nsresult nsImapMailFolder::NormalEndHeaderParseStream(nsIImapProtocol *aProtocol
   // If this is the inbox, try to apply filters.
   if (mFlags & MSG_FOLDER_FLAG_INBOX)
   {
+    //XXX Add the roaming service sniffing here....
     PRUint32 msgFlags;
     newMsgHdr->GetFlags(&msgFlags);
     if (!(msgFlags & (MSG_FLAG_READ | MSG_FLAG_IMAP_DELETED))) // only fire on unread msgs that haven't been deleted

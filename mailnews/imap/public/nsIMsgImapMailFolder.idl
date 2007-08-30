@@ -45,7 +45,7 @@ interface nsIMsgParseMailMsgState;
 
 // this is a simple interface which allows the imap folder to update some values
 // that the folder props js code will use to update the sharing and quota tabs in the folder props.
-
+                 
 [scriptable, uuid(09D99F2C-3E23-4f8c-A536-5C277BAA9585)] 
 interface nsIMsgImapFolderProps : nsISupports {
 
@@ -75,7 +75,7 @@ interface nsIMsgImapFolderProps : nsISupports {
     void setQuotaData(in ACString quotaroot, in unsigned long usedKB, in unsigned long maxKB);
 };
 
-[scriptable, uuid(578B22E3-D9F8-4039-92D7-FF273F53D885)]
+[scriptable, uuid(D84129DF-02BA-4268-9927-BCE0008083D9)]
 interface nsIMsgImapMailFolder : nsISupports {
   void removeSubFolder(in nsIMsgFolder folder);
   void createClientSubfolderInfo(in ACString folderName, in wchar hierarchyDelimiter, in long flags, in boolean suppressNotification);
@@ -102,6 +102,7 @@ interface nsIMsgImapMailFolder : nsISupports {
   void refreshFolderRights();
 
   void updateStatus(in nsIUrlListener aListener, in nsIMsgWindow aMsgWindow);
+  void updateFolder(in nsIMsgWindow aWindow, in nsIUrlListener aListener);
   // this is used to issue an arbitrary imap command on the passed in msgs.
   // It assumes the command needs to be run in the selected state.
   nsIURI issueCommandOnMsgs(in ACString command, in string uids, in nsIMsgWindow aWindow);
