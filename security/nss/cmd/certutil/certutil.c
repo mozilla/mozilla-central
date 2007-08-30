@@ -1519,7 +1519,7 @@ enum {
 };
 
 /*  Certutil options */
-enum {
+enum certutilOpts {
     opt_SSOPass = 0,
     opt_AddKeyUsageExt,
     opt_AddBasicConstraintExt,
@@ -1561,42 +1561,8 @@ enum {
     opt_NewPasswordFile
 };
 
-static int 
-certutil_main(int argc, char **argv, PRBool initialize)
-{
-    CERTCertDBHandle *certHandle;
-    PK11SlotInfo *slot = NULL;
-    CERTName *  subject         = 0;
-    PRFileDesc *inFile          = PR_STDIN;
-    PRFileDesc *outFile         = NULL;
-    char *      certfile        = "tempcert";
-    char *      certreqfile     = "tempcertreq";
-    char *      slotname        = "internal";
-    char *      certPrefix      = "";
-    KeyType     keytype         = rsaKey;
-    char *      name            = NULL;
-    char *	keysource	= NULL;
-    SECOidTag   hashAlgTag      = SEC_OID_UNKNOWN;
-    int	        keysize	        = DEFAULT_KEY_BITS;
-    int         publicExponent  = 0x010001;
-    unsigned int serialNumber   = 0;
-    int         warpmonths      = 0;
-    int         validityMonths  = 3;
-    int         commandsEntered = 0;
-    char        commandToRun    = '\0';
-    secuPWData  pwdata          = { PW_NONE, 0 };
-    PRBool 	readOnly	= PR_FALSE;
-    PRBool      initialized     = PR_FALSE;
-
-    SECKEYPrivateKey *privkey = NULL;
-    SECKEYPublicKey *pubkey = NULL;
-
-    int i;
-    SECStatus rv;
-
-    secuCommand certutil;
-
-secuCommandFlag certutil_commands[] =
+static const
+secuCommandFlag commands_init[] =
 {
 	{ /* cmd_AddCert             */  'A', PR_FALSE, 0, PR_FALSE },
 	{ /* cmd_CreateNewCert       */  'C', PR_FALSE, 0, PR_FALSE },
@@ -1619,8 +1585,10 @@ secuCommandFlag certutil_commands[] =
 	{ /* cmd_Version             */  'Y', PR_FALSE, 0, PR_FALSE },
 	{ /* cmd_Batch               */  'B', PR_FALSE, 0, PR_FALSE }
 };
-
-secuCommandFlag certutil_options[] =
+#define NUM_COMMANDS ((sizeof commands_init) / (sizeof commands_init[0]))
+ 
+static const 
+secuCommandFlag options_init[] =
 {
 	{ /* opt_SSOPass             */  '0', PR_TRUE,  0, PR_FALSE },
 	{ /* opt_AddKeyUsageExt      */  '1', PR_FALSE, 0, PR_FALSE },
@@ -1662,15 +1630,55 @@ secuCommandFlag certutil_options[] =
 	{ /* opt_Hash                */  'Z', PR_TRUE,  0, PR_FALSE },
 	{ /* opt_NewPasswordFile     */  '@', PR_TRUE,  0, PR_FALSE }
 };
+#define NUM_OPTIONS ((sizeof options_init)  / (sizeof options_init[0]))
 
+static secuCommandFlag certutil_commands[NUM_COMMANDS];
+static secuCommandFlag certutil_options [NUM_OPTIONS ];
 
-    certutil.numCommands = sizeof(certutil_commands) / sizeof(secuCommandFlag);
-    certutil.numOptions = sizeof(certutil_options) / sizeof(secuCommandFlag);
-    certutil.commands = certutil_commands;
-    certutil.options = certutil_options;
+static const secuCommand certutil = {
+    NUM_COMMANDS, 
+    NUM_OPTIONS, 
+    certutil_commands, 
+    certutil_options
+};
+
+static int 
+certutil_main(int argc, char **argv, PRBool initialize)
+{
+    CERTCertDBHandle *certHandle;
+    PK11SlotInfo *slot = NULL;
+    CERTName *  subject         = 0;
+    PRFileDesc *inFile          = PR_STDIN;
+    PRFileDesc *outFile         = NULL;
+    char *      certfile        = "tempcert";
+    char *      certreqfile     = "tempcertreq";
+    char *      slotname        = "internal";
+    char *      certPrefix      = "";
+    KeyType     keytype         = rsaKey;
+    char *      name            = NULL;
+    char *      keysource       = NULL;
+    SECOidTag   hashAlgTag      = SEC_OID_UNKNOWN;
+    int	        keysize	        = DEFAULT_KEY_BITS;
+    int         publicExponent  = 0x010001;
+    unsigned int serialNumber   = 0;
+    int         warpmonths      = 0;
+    int         validityMonths  = 3;
+    int         commandsEntered = 0;
+    char        commandToRun    = '\0';
+    secuPWData  pwdata          = { PW_NONE, 0 };
+    PRBool      readOnly        = PR_FALSE;
+    PRBool      initialized     = PR_FALSE;
+
+    SECKEYPrivateKey *privkey = NULL;
+    SECKEYPublicKey *pubkey = NULL;
+
+    int i;
+    SECStatus rv;
 
     progName = PORT_Strrchr(argv[0], '/');
     progName = progName ? progName+1 : argv[0];
+    memcpy(certutil_commands, commands_init, sizeof commands_init);
+    memcpy(certutil_options,  options_init,  sizeof options_init);
 
     rv = SECU_ParseCommandLine(argc, argv, progName, &certutil);
 
@@ -1770,7 +1778,7 @@ secuCommandFlag certutil_options[] =
 	    PR_fprintf(PR_STDERR, "%s -q: specifies a PQG file for DSA keys" \
 		       " (-k dsa) or a named curve for EC keys (-k ec)\n)",
 	               progName);
-#else
+#else   /* } */
 	if (keytype != dsaKey) {
 	    PR_fprintf(PR_STDERR, "%s -q: PQG file is for DSA key (-k dsa).\n)",
 	               progName);
