@@ -79,11 +79,6 @@ datepicker-monthday {
     -moz-binding: url(chrome://calendar/content/sun-calendar-event-dialog-recurrence-datepicker.xml#datepicker-box);
 }
 
-recurrence-calendar {
-    -moz-binding: url(chrome://calendar/content/sun-calendar-event-dialog-recurrence-preview.xml#recurrence-calendar);
-    -moz-user-focus: normal;
-}
-
 recurrence-preview {
     -moz-binding: url(chrome://calendar/content/sun-calendar-event-dialog-recurrence-preview.xml#recurrence-preview);
     -moz-user-focus: normal;

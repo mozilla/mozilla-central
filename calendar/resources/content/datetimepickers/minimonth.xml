@@ -31,7 +31,7 @@
           xmlns:xbl="http://www.mozilla.org/xbl"
           xmlns:xul="http://www.mozilla.org/keymaster/gatekeeper/there.is.only.xul">
 
-  <binding id="minimonth" extends="xul:box" xbl:inherits="onchange,onmonthchange,onpopuplisthidden">
+  <binding id="minimonth" extends="xul:box" xbl:inherits="onchange,onmonthchange,onpopuplisthidden,readonly">
     <resources>
       <stylesheet src="chrome://calendar/skin/datetimepickers/minimonth.css"/>
     </resources>
@@ -207,6 +207,13 @@
           this.kMonthList = this.kMonthPopup.firstChild.childNodes;
           this.kYearPopup = popupSet.childNodes[1];
           this.kYearList  = this.kYearPopup.firstChild.childNodes;
+          if (this.getAttribute("readonly")) {
+            this.kLeftBtn.collapsed = true;
+            this.kRightBtn.collapsed = true;
+          } else {
+            this.kMonthCell.setAttribute("interactive", "true");
+            this.kYearCell.setAttribute("interactive", "true");
+          }
           this.refreshDisplay( );
         ]]>
       </constructor>
@@ -416,6 +423,8 @@
             var today = new Date();
 
             this.mDayMap = {};
+         
+            var isReadOnly = this.getAttribute("readonly");
 
             for (var k = 1; k < calbox.childNodes.length; k++) {
               var row = calbox.childNodes[k];
@@ -425,6 +434,10 @@
                           date.getMonth() + "-" +
                           date.getDate();
                 this.mDayMap[ymd] = day;
+
+                if (!isReadOnly) {
+                  day.setAttribute("interactive", "true");
+                }
 
                 if (aDate.getMonth() != date.getMonth()) {
                   day.setAttribute("othermonth", "true");
@@ -469,12 +482,14 @@
             if (event.button != 0)
                 return;
 
-            // Close open popups (if any), to prevent linux crashes
-            if (this.mPopup)
-              this.mPopup.hidePopup();
-            this.mPopup = (type == 'month'? this.kMonthPopup : this.kYearPopup);
             var base  = (type == 'month'? this.kMonthCell  : this.kYearCell);
-            this.mPopup.showPopup(base, -1, -1, "popup", "bottomleft", "topleft");
+            if (base.hasAttribute("interactive")) {
+              // Close open popups (if any), to prevent linux crashes
+              if (this.mPopup)
+                this.mPopup.hidePopup();
+              this.mPopup = (type == 'month'? this.kMonthPopup : this.kYearPopup);
+              this.mPopup.showPopup(base, -1, -1, "popup", "bottomleft", "topleft");
+            }
           ]]>
         </body>
       </method>
@@ -536,6 +551,7 @@
                   case "selected":
                   case "othermonth":
                   case "today":
+                  case "interactive":
                   case "value":
                   case "class":
                   case "flex":
@@ -580,6 +596,9 @@
         <parameter name="aDay"/>
         <body>
           <![CDATA[
+            if (this.getAttribute("readonly")) {
+              return;
+            }
             if (this.mSelected) {
               this.mSelected.removeAttribute("selected");
             }

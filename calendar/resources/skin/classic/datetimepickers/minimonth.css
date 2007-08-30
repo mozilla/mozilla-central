@@ -73,8 +73,8 @@
   border: 1px solid -moz-Dialog;
 }
 
-.minimonth-month-name:hover,
-.minimonth-year-name:hover {
+.minimonth-month-name:hover[interactive],
+.minimonth-year-name:hover[interactive] {
   border-top: 1px solid ThreeDHighlight;
   border-left: 1px solid ThreeDHighlight;
   border-right: 1px solid ThreeDShadow;
@@ -145,12 +145,12 @@
   font-weight: bold;
 }
 
-.minimonth-day:hover {
+.minimonth-day:hover[interactive] {
   cursor: pointer;
   border: 1px solid Highlight;
 }
 
-.minimonth-day:active {
+.minimonth-day:active[interactive] {
   background-color: Highlight;
   color: HighlightText;
 }

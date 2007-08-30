@@ -68,8 +68,8 @@
   border: 1px solid #EEEEEE;
 }
 
-.minimonth-month-name:hover,
-.minimonth-year-name:hover {
+.minimonth-month-name:hover[interactive],
+.minimonth-year-name:hover[interactive] {
   border: 1px solid #d2d2d2;
 }
 
@@ -136,13 +136,13 @@
   font-weight: bold;
 }
 
-.minimonth-day:hover {
+.minimonth-day:hover[interactive] {
   color: #ff0000;
   cursor: pointer;
   border: 1px solid #d2d2d2;
 }
 
-.minimonth-day:active {
+.minimonth-day:active[interactive] {
   background-color: #d2d2d2;
 }
 
