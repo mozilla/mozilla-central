@@ -48,7 +48,13 @@ EXPORT_RESOURCE_FILES =  \
 		$(NULL)
 
 ifdef MOZ_MOVEMAIL
+ifdef MOZ_THUNDERBIRD
+ifneq (cocoa,$(MOZ_WIDGET_TOOLKIT)))
 EXPORT_RESOURCE_FILES += movemail.rdf
+endif
+else
+EXPORT_RESOURCE_FILES += movemail.rdf
+endif
 endif
 
 ifeq (,$(filter-out mac cocoa,$(MOZ_WIDGET_TOOLKIT)))
