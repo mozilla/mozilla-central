@@ -505,7 +505,8 @@ sub parse()
                 'filename'     => entity_replace_xml($twig_attachments->field('filename'),STRIP_BOTH),
                 'submitter_id' => $submitter_id,
                 'mime_type'    => entity_replace_xml($twig_attachments->field('mimetype'),STRIP_BOTH),
-                'contents'      => entity_replace_xml($twig_attachments->field('data'),STRIP_BOTH)
+                'contents'     => entity_replace_xml($twig_attachments->field('data'),STRIP_BOTH),
+                'PREVALIDATED' => 1,
             });
             $xml_testcase->add_attachment($attachment);
         }

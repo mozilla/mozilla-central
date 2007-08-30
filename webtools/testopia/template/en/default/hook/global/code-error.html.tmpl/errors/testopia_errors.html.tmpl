@@ -18,10 +18,11 @@
   # Contributor(s): Greg Hendricks <ghendricks@novell.com>
   #%]
 
-  [% IF error == "non-empty-hash" %]
-    [% title = "Non-Empty Anonymous Hash Detected" %]
-    Creating non-empty anonymous Testopia objects is deprectated. Please see the documentation for the Testopia API.
-  [% ELSIF error == "testopia_undefined_field" %]
+  [% IF error == "testopia_undefined_field" %]
     [% title = "Missing Field in test_fielddefs" %]
     The [% fieldname %] field was not found for the [% table %] table while logging activity.
+  [% ELSIF error == "testopia-missing-attachment-key" %]
+    [% title = "Missing Key" %]
+    You have requested to save an attachment, but I didn't see which test plan 
+    or test case you had in mind to store it with.
   [% END %]

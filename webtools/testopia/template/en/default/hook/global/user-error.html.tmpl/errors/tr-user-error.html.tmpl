@@ -52,10 +52,6 @@
     [% title = "Build Has Case Runs" %]
     You have attempted to delete a build that still has test case runs 
     associated with it. This is historical data and should not be removed.
-  [% ELSIF error == "testopia-missing-attachment-key" %]
-    [% title = "Missing Key" %]
-    You have requested to save an attachment, but I didn't see which test plan 
-    or test case you had in mind to store it with.
   [% ELSIF error == "testopia-invalid-test-id-or-alias" %]
     [% title = "Invalid ID or Alias" %]
     The test case you entered does not exist.

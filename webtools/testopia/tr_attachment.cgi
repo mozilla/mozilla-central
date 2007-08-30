@@ -78,7 +78,7 @@ if ($action eq 'edit'){
     ThrowUserError('testopia-permission-denied', {'object' => $attachment}) unless $attachment->canedit;
     
     $vars->{'attachment'} = $attachment;
-    $vars->{'isviewable'} = $attachment->isViewable($cgi);
+    $vars->{'isviewable'} = $attachment->is_browser_safe($cgi);
     $vars->{'obj'} = $obj;
     $template->process("testopia/attachment/show.html.tmpl", $vars)
         || ThrowTemplateError($template->error());
@@ -87,18 +87,16 @@ elsif ($action eq 'do_edit') {
     print $cgi->header;
     ThrowUserError('testopia-permission-denied', {'object' => $attachment}) unless $attachment->canedit;
 
-    my %newvalues = ( 
-        'description' => $cgi->param('description') || '',
-        'filename'    => $cgi->param('filename'),
-        'mime_type'   => $cgi->param('mime_type'),
-    );
-    $attachment->update(\%newvalues);
+    $attachment->set_description($cgi->param('description'));
+    $attachment->set_filename($cgi->param('filename'));
+    $attachment->set_mime_type($cgi->param('mime_type'));
+    $attachment->update();
 
     $vars->{'attachment'} = $attachment;
     $vars->{'tr_message'} = "Attachment updated";
     $vars->{'backlink'} = $obj;
     $vars->{'obj'} = $obj;
-    $vars->{'isviewable'} = $attachment->isViewable($cgi);
+    $vars->{'isviewable'} = $attachment->is_browser_safe($cgi);
     $template->process("testopia/attachment/show.html.tmpl", $vars)
         || ThrowTemplateError($template->error());
 
