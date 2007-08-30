@@ -3,7 +3,8 @@ from buildbot.steps.transfer import FileDownload
 MozillaEnvironments = {}
 
 MozillaEnvironments['win32-buildbotref-v4'] = {
-   "'MOZ_TOOLS": 'd:\\moztools',
+    "MOZ_CO_PROJECT": 'browser',
+    "MOZ_TOOLS": 'd:\\moztools',
     "VSINSTALLDIR": 'C:\\Program Files\\Microsoft Visual Studio 8',
     "VS80COMMTOOLS": 'C:\\Program Files\\Microsoft Visual Studio 8\\Common7\\Tools\\',
     "VCINSTALLDIR": 'C:\\Program Files\\Microsoft Visual Studio 8\\VC',
@@ -19,16 +20,16 @@ MozillaEnvironments['win32-buildbotref-v4'] = {
             'C:\\Program Files\\Microsoft Visual Studio 8\\Common7\\Tools\\bin;' + \
             'd:\\moztools\\bin;' + \
             'd:\\cygwin\\bin;' + \
-            'd:\\buildtools\\7zip;' + \
+            'd:\\buildtools\\7-zip;' + \
             'd:\\buildtools\\upx;' + \
             'd:\\buildtools\\python24;' + \
             'd:\\buildtools\\nsis;',
     "INCLUDE": 'C:\\Program Files\\Microsoft Visual Studio 8\\VC\\ATLMFC\\INCLUDE;' + \
                'C:\\Program Files\\Microsoft Visual Studio 8\\VC\\INCLUDE;' + \
-               'C:\\Program Files\\Microsoft Platform SDK\\include',
+               'C:\\Program Files\\Microsoft Visual Studio 8\\VC\\PlatformSDK\\include',
     "LIB": 'C:\\Program Files\\Microsoft Visual Studio 8\\VC\\ATLMFC\\LIB;' + \
            'C:\\Program Files\\Microsoft Visual Studio 8\\VC\\LIB;' + \
-           'C:\\Program Files\\Microsoft Platform SDK\\lib'
+           'C:\\Program Files\\Microsoft Visual Studio 8\\VC\\PlatformSDK\\lib'
 }
 
 class MozillaPatchDownload(FileDownload):
@@ -119,3 +120,74 @@ class MozillaCustomPatch(ShellCommand):
 
         self.setCommand(["patch", "-f", "-p%d" % self.stripDirs, "-i", file])
         ShellCommand.start(self)
+
+from os import path, chmod
+
+class MozillaUploadTryBuild(ShellCommand):
+    warnOnFailure = True
+
+    def __init__(self, slavesrc, scpString, **kwargs):
+        """
+        @type  slavesrc:   string
+        @param slavesrc:   The path to the file on the Buildslave. This path
+                           should be relative to the workdir
+        @type  scpString:  string
+        @param scpString:  The scp user@host:/dir string to upload the file to.
+                           For example,
+                             foo@some.server.com:/var/www.
+                           This user should have passwordless access to the
+                           host.
+        """
+        self.slavesrc = slavesrc
+        self.scpString = scpString
+
+        ShellCommand.__init__(self, **kwargs)
+
+    def start(self):
+        # we need to append some additional information to the package name
+        # to make sure we don't overwrite any existing packages
+        changer = self.step_status.build.getChanges()[0].who
+        buildNum = self.step_status.build.getNumber()
+        filename = "%d-%s-%s" % (buildNum, changer,
+                                 path.basename(self.slavesrc))
+        self.scpString = path.join(self.scpString, filename)
+
+        self.setCommand(["scp", self.slavesrc, self.scpString])
+        ShellCommand.start(self)
+
+
+from buildbot.process.buildstep import BuildStep
+from buildbot.sourcestamp import SourceStamp
+from buildbot.buildset import BuildSet
+from buildbot.status.builder import SUCCESS, SKIPPED
+
+class MozillaChangePusher(BuildStep):
+    warnOnFailure = True
+    name = "resubmit extra changes"
+
+    def start(self):
+        changes = self.step_status.build.getChanges()
+        if len(changes) > 1:
+            builderName = self.step_status.build.builder.name
+            remainingChanges = changes[1:] # everything but the first
+            # get rid of the rest of the changes in the Build and BuildStatus
+            changes = changes[:1] # only the first one
+            self.step_status.build.changes = changes
+            bs = BuildSet([builderName], SourceStamp(changes=remainingChanges))
+            # submit the buildset back to the BuildMaster
+            self.build.builder.botmaster.parent.submitBuildSet(bs)
+            self.finished(SUCCESS)
+            return
+
+        # add a message to the log with the build number and the person who
+        # submitted the build
+        buildNum = self.step_status.build.getNumber()
+        who = changes[0].who
+        comments = changes[0].comments
+        msg = "BUILD NUMBER: %d\n" % buildNum
+        msg += "REQUESTED BY: %s\n" % who
+        msg += "REASON: %s\n\n" % comments
+        self.addCompleteLog("header", msg)
+
+        self.finished(SKIPPED)
+        return SKIPPED
