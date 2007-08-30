@@ -112,7 +112,7 @@ $pageload_server = "localhost";
 #
 # Timeouts, values are in seconds.
 #
-#$CVSCheckoutTimeout               = 3600;
+$CVSCheckoutTimeout               = 600;
 #$CreateProfileTimeout             = 45;
 #$RegxpcomTestTimeout              = 120;
 
