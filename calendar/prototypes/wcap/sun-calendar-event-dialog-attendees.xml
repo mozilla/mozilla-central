@@ -482,9 +482,7 @@
 
           var inputField;
           for (var i = 1; inputField = this.getInputElement(i); i++) {
-              var fieldValue = inputField.value ||
-                               inputField.getAttribute("value");
-
+              var fieldValue = inputField.value;
               if (fieldValue != "") {
                   // the inputfield already has a reference to the attendee
                   // object, we just need to fill in the name.
@@ -547,9 +545,7 @@
         <getter><![CDATA[
           var inputField;
           for (var i = 1; inputField = this.getInputElement(i); i++) {
-              var fieldValue = inputField.value ||
-                               inputField.getAttribute("value");
-
+              var fieldValue = inputField.value;
               if (fieldValue != "") {
                   // The inputfield already has a reference to the attendee
                   // object, we just need to fill in the name.
