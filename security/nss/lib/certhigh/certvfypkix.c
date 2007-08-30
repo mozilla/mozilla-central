@@ -201,7 +201,7 @@ enum {
     ekuIndexEmail,
     ekuIndexTimeStamp,
     ekuIndexStatusResponder,
-    ekuIndexUnknown,
+    ekuIndexUnknown
 } ekuIndex;
 
 typedef struct {
