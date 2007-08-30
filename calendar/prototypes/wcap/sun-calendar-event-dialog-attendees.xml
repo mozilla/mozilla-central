@@ -194,14 +194,13 @@
           // assume we're the organizer [in case that the calendar
           // does not support the concept of identities].
           this.mIsInvitation = false;
-
-          this.mOrganizerID = "";
+          this.mOrganizerID = ((organizer && organizer.id) ? organizer.id : "");
           try {
               var provider = calendar.QueryInterface(Components.interfaces.calIWcapCalendar);
               this.mIsInvitation = provider.isInvitation(args.item);
-              this.mOrganizerID = ((organizer == null || organizer.id == null)
-                  ? provider.ownerId // sensible default
-                  : organizer.id);
+              if (this.mOrganizerID.length == 0) {
+                  this.mOrganizerID = provider.ownerId; // sensible default
+              }
           }
           catch (e) {
           }
