@@ -800,6 +800,43 @@ function calGetEndDate(aItem)
 }
 
 /**
+ * Returns the item's start (or due) date if the item is in the specified Range;
+ * null otherwise.
+ */
+function checkIfInRange(item, rangeStart, rangeEnd)
+{
+    var dueDate = null;
+    var startDate = (item.getProperty("DTSTART") ||
+                     (dueDate = item.getProperty("DUE")));
+    if (!startDate) {
+        // DTSTART or DUE mandatory
+        return null;
+    }
+    var endDate = (item.getProperty("DTEND") ||
+                   (dueDate ? dueDate : item.getProperty("DUE")) ||
+                   startDate);
+
+    var start = ensureDateTime(startDate);
+    var end = ensureDateTime(endDate);
+
+    var queryStart = ensureDateTime(rangeStart);
+    var queryEnd = ensureDateTime(rangeEnd);
+
+    if (start.compare(end) == 0) {
+        if (!queryStart || start.compare(queryStart) >= 0 &&
+            (!queryEnd || start.compare(queryEnd) < 0)) {
+            return startDate;
+        }
+    } else {
+        if (!queryEnd || start.compare(queryEnd) < 0 &&
+            (!queryStart || end.compare(queryStart) > 0)) {
+            return startDate;
+        }
+    }
+    return null;
+}
+
+/**
  *  Delete the current selected items with focus from the unifinder list
  */
 function deleteEventCommand(doNotConfirm)

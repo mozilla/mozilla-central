@@ -248,32 +248,14 @@ calTodo.prototype = {
         if (this.recurrenceInfo) {
             return this.recurrenceInfo.getOccurrences(aStartDate, aEndDate, 0, aCount);
         }
-        if (!this.entryDate && !this.dueDate)
-            return null;
 
-        var entry = ensureDateTime(this.entryDate);
-        var due = ensureDateTime(this.dueDate);
-
-        var queryStart = ensureDateTime(aStartDate);
-        var queryEnd = ensureDateTime(aEndDate);
-
-        var isInterval = entry && due;
-        var isZeroLength = isInterval ? !entry.compare(due) : true;
-        var dateTime = entry ? entry : due;
-        
-        if ((isZeroLength &&
-             dateTime.compare(queryStart) >= 0 &&
-             dateTime.compare(queryEnd) < 0) ||
-            (!isZeroLength &&
-             entry.compare(queryEnd) < 0 &&
-             due.compare(queryStart) > 0)) {
-            
-          aCount.value = 1;
-          return ([ this ]);
+        if (checkIfInRange(this, aStartDate, aEndDate)) {
+            aCount.value = 1;
+            return [this];
         }
 
         aCount.value = 0;
-        return null;
+        return [];
     },
 
     set entryDate(value) {

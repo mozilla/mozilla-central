@@ -246,26 +246,13 @@ calEvent.prototype = {
             return this.recurrenceInfo.getOccurrences(aStartDate, aEndDate, 0, aCount);
         }
 
-        var start = ensureDateTime(this.startDate);
-        var end = ensureDateTime(this.endDate);
-        
-        var queryStart = ensureDateTime(aStartDate);
-        var queryEnd = ensureDateTime(aEndDate);
-
-        var isZeroLength = !start.compare(end);
-        if ((isZeroLength &&
-             start.compare(queryStart) >= 0 &&
-             start.compare(queryEnd) < 0) ||
-            (!isZeroLength &&
-             start.compare(queryEnd) < 0 &&
-             end.compare(queryStart) > 0)) {
-            
-          aCount.value = 1;
-          return ([ this ]);
+        if (checkIfInRange(this, aStartDate, aEndDate)) {        
+            aCount.value = 1;
+            return [this];
         }
 
         aCount.value = 0;
-        return null;
+        return [];
     },
 
     set startDate(value) {

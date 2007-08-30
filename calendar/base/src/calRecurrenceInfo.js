@@ -363,29 +363,11 @@ calRecurrenceInfo.prototype = {
         var startDate = this.mBaseItem.recurrenceStartDate;
         var dates = [];
 
-        function checkRange(item) {
-            var dueDate = null;
-            var occDate = (item.getProperty("DTSTART") ||
-                           (dueDate = item.getProperty("DUE")));
-            if (!occDate) // DTSTART or DUE mandatory
-                return null;
-            // tasks may have a due date set or no duration at all
-            var end = (item.getProperty("DTEND") ||
-                       (dueDate ? dueDate : item.getProperty("DUE")) ||
-                       occDate);
-            // is the item an intersection of the range?
-            if ((!aRangeStart || aRangeStart.compare(end) <= 0) &&
-                (!aRangeEnd || aRangeEnd.compare(occDate) > 0)) {
-                return occDate;
-            }
-            return null;
-        }
-
         // DTSTART/DUE is always part of the (positive) expanded set:
         // the base item cannot be replaced by an exception;
         // an exception can only be defined on an item resulting from an RDATE/RRULE;
         // DTSTART always equals RECURRENCE-ID for items expanded from RRULE
-        var baseOccDate = checkRange(this.mBaseItem);
+        var baseOccDate = checkIfInRange(this.mBaseItem, aRangeStart, aRangeEnd);
         if (baseOccDate) {
             dates.push(baseOccDate);
         }
@@ -394,7 +376,7 @@ calRecurrenceInfo.prototype = {
         if (this.mExceptions) {
             this.mExceptions.forEach(
                 function(ex) {
-                    var occDate = checkRange(ex.item);
+                    var occDate = checkIfInRange(ex.item, aRangeStart, aRangeEnd);
                     if (occDate) {
                         dates.push(aReturnRIDs ? ex.id : occDate);
                     }
