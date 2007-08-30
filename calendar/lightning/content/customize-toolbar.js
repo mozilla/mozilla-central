@@ -69,8 +69,14 @@ initDialog = function()
   
   // set the toolbar selection according to the current mode.
   // this list allows to hop from one toolbar to another without
-  // leaving the customize dialog.
-  document.getElementById("selector-list").value = window.arguments[3];
+  // leaving the customize dialog. if this feature is to be used outside
+  // of mail/news main application window, we detect this case and disable
+  // all relevant controls and stuff.
+  var selectorList = document.getElementById("selector-list");
+  selectorList.value = window.arguments[3];
+  if (selectorList.selectedItem.value != window.arguments[3]) {
+      document.getElementById("selector-container").collapsed = true;
+  }
   
   // now call the original initDialog() function
   gInitDialog();

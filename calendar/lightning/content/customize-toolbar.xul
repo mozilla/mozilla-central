@@ -54,7 +54,7 @@
           src="chrome://lightning/content/customize-toolbar.js"/>
 
   <vbox id="main-box" flex="1" collapsed="true">
-    <box orient="vertical" insertbefore="instructions">
+    <box id="selector-container" orient="vertical" insertbefore="instructions">
       <box align="center" orient="horizontal">
         <label value="&customize.toolbar.selector.label;"/>
         <menulist id="selector-list"

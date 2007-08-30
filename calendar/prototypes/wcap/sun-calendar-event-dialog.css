@@ -390,11 +390,6 @@ listbox {
     color: #E09EBD;
 }
 
-.toolbarbutton-1 {
-    -moz-box-orient: vertical;
-    min-width: 0px;
-}
-
 #content-frame {
     border-left: 1px solid ThreeDDarkShadow;
     border-right: 1px solid ThreeDLightShadow;

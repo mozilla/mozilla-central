@@ -54,7 +54,7 @@ calendar.jar:
     content/calendar/preferences/views.xul       (content/preferences/views.xul)
     content/calendar/sound.wav                   (/calendar/resources/content/sound.wav)
     content/calendar/sun-calendar-event-dialog.css  (/calendar/prototypes/wcap/sun-calendar-event-dialog.css)
-    content/calendar/sun-calendar-event-dialog.js  (/calendar/prototypes/wcap/sun-calendar-event-dialog.js)
+*   content/calendar/sun-calendar-event-dialog.js  (/calendar/prototypes/wcap/sun-calendar-event-dialog.js)
     content/calendar/sun-calendar-event-dialog.xul  (/calendar/prototypes/wcap/sun-calendar-event-dialog.xul)
     content/calendar/sun-calendar-event-dialog-attendees.xml  (/calendar/prototypes/wcap/sun-calendar-event-dialog-attendees.xml)
     content/calendar/sun-calendar-event-dialog-freebusy.xml  (/calendar/prototypes/wcap/sun-calendar-event-dialog-freebusy.xml)
@@ -69,8 +69,6 @@ calendar.jar:
     content/calendar/sun-calendar-event-dialog-timezone.xul  (/calendar/prototypes/wcap/sun-calendar-event-dialog-timezone.xul)
     content/calendar/sun-calendar-event-dialog-attendees.xul  (/calendar/prototypes/wcap/sun-calendar-event-dialog-attendees.xul)
     content/calendar/sun-calendar-event-dialog-attendees.js  (/calendar/prototypes/wcap/sun-calendar-event-dialog-attendees.js)
-    content/calendar/sun-calendar-customize-toolbar.xul  (/calendar/prototypes/wcap/sun-calendar-customize-toolbar.xul)
-    content/calendar/sun-calendar-customize-toolbar.js  (/calendar/prototypes/wcap/sun-calendar-customize-toolbar.js)
 % skin calendar classic/1.0 %skin/classic/calendar/
     skin/classic/calendar/abcard.png             (themes/common/abcard.png)
 #expand    skin/classic/calendar/cal-icon32.png         (themes/__THEME__/cal-icon32.png)

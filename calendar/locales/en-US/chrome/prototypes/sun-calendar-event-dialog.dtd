@@ -57,7 +57,7 @@
 <!ENTITY  event.menu.view.label                           "View">
 <!ENTITY  event.menu.view.toolbars.label                  "Toolbars">
 <!ENTITY  event.menu.view.toolbars.event.label            "Event Toolbar">
-<!ENTITY  event.menu.view.toolbars.customize.label        "Customize">
+<!ENTITY  event.menu.view.toolbars.customize.label        "Customize...">
 
 <!ENTITY  event.menu.options.label                        "Options">
 <!ENTITY  event.menu.options.spellcheck.label             "Check Spelling…">

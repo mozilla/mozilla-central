@@ -61,8 +61,8 @@
 
 <script type="application/x-javascript">
   <![CDATA[
-    toolbox = window.arguments[0];
-    toolboxDocument = toolbox.ownerDocument;
+    var toolbox = window.arguments[0];
+    var toolboxDocument = toolbox.ownerDocument;
 
     var sheetList = toolboxDocument.styleSheets;
     for (var i=0; i < sheetList.length; ++i) {

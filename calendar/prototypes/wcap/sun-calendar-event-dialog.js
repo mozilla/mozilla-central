@@ -1840,21 +1840,65 @@ function onCommandViewToolbar(aToolbarId, aMenuItemId) {
     document.persist(aMenuItemId, 'checked');
 }
 
-function onCommandCustomize() {
-    var id = "event-toolbox";
-    var aToolbarId = 'event-toolbar';
-    var aMenuItemId = 'menu-view-toolbar';
-    var toolbar = document.getElementById(aToolbarId);
-    var toolbarCollapsed = toolbar.collapsed;
-    if (toolbarCollapsed) {
-        onCommandViewToolbar(aToolbarId, aMenuItemId);
-    }
+/**
+ * DialogToolboxCustomizeDone() is called after the customize toolbar dialog
+ * has been closed by the user. We need to restore the state of all buttons
+ * and commands of all customizable toolbars.
+ */
 
-    window.openDialog(
-        "chrome://calendar/content/sun-calendar-customize-toolbar.xul",
-        "CustomizeToolbar",
-        "chrome,all,dependent",
-        document.getElementById(id));
+function DialogToolboxCustomizeDone(aToolboxChanged) {
+
+    var menubar = document.getElementById("event-menubar");
+    for (var i = 0; i < menubar.childNodes.length; ++i) {
+        menubar.childNodes[i].removeAttribute("disabled");
+    }
+  
+    // make sure our toolbar buttons have the correct enabled state restored to them...
+    document.commandDispatcher.updateCommands('itemCommands');
+
+    // Enable the toolbar context menu items
+    document.getElementById("cmd_customize").removeAttribute("disabled");
+}
+
+function onCommandCustomize() {
+    // install the callback that handles what needs to be
+    // done after a toolbar has been customized.
+    var toolbox = document.getElementById("event-toolbox");
+    toolbox.customizeDone = DialogToolboxCustomizeDone;
+
+    var menubar = document.getElementById("event-menubar");
+    for (var i = 0; i < menubar.childNodes.length; ++i) {
+        menubar.childNodes[i].setAttribute("disabled", true);
+    }
+      
+    // Disable the toolbar context menu items
+    document.getElementById("cmd_customize").setAttribute("disabled", "true");
+
+    var id = "event-toolbox";
+    if (gIsSunbird) {
+#ifdef MOZILLA_1_8_BRANCH
+        var newwindow = window.openDialog("chrome://calendar/content/customizeToolbar.xul",
+                                          "CustomizeToolbar",
+                                          "chrome,all,dependent",
+                                          document.getElementById(id));
+#else
+        window.openDialog("chrome://global/content/customizeToolbar.xul",
+                          "CustomizeToolbar",
+                          "chrome,all,dependent",
+                          document.getElementById(id));
+#endif
+    } else {
+        var wintype = document.documentElement.getAttribute("windowtype");
+        wintype = wintype.replace(/:/g, "");
+
+        window.openDialog("chrome://global/content/customizeToolbar.xul",
+                          "CustomizeToolbar" + wintype,
+                          "chrome,all,dependent",
+                          document.getElementById(id), // toolbar dom node
+                          false,                       // is mode toolbar yes/no?
+                          null,                        // callback function
+                          "dialog");                   // name of this mode
+    }
 }
 
 function editStartTimezone() {
