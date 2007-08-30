@@ -152,6 +152,9 @@ typedef enum
   
   BrowserWrapper*               mBrowserView;   // browser wrapper of frontmost tab
 
+  // The browser view that the user was on before a prompt forced a switch (weak)
+  BrowserWrapper*               mLastBrowserView;
+
   BOOL mMoveReentrant;
   BOOL mClosingWindow;
 

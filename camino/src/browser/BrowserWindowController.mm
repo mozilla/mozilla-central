@@ -3307,6 +3307,8 @@ enum BWCOpenDest {
 
 - (void)willShowPromptForBrowser:(BrowserWrapper*)inBrowser
 {
+  // Remember where the user was, so we can come back.
+  mLastBrowserView = mBrowserView;
   // bring the tab to the front (for security reasons)
   BrowserTabViewItem* tabItem = [self tabForBrowser:inBrowser];
   [mTabBrowser selectTabViewItem:tabItem];
@@ -3316,6 +3318,12 @@ enum BWCOpenDest {
 
 - (void)didDismissPromptForBrowser:(BrowserWrapper*)inBrowser
 {
+  // Return the user to the tab they were looking at.
+  if (mLastBrowserView) {
+    BrowserTabViewItem* lastTab = [self tabForBrowser:mLastBrowserView];
+    [mTabBrowser selectTabViewItem:lastTab];
+  }
+  mLastBrowserView = nil;
 }
 
 - (void)createNewTab:(ENewTabContents)contents
