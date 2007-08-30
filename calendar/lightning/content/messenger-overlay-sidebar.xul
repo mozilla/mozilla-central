@@ -268,7 +268,7 @@
                 oncommand="CustomizeApplicationToolbar('mode-toolbox');"/>
     </popup>
 
-    <toolbox id="mode-toolbox" location="bottom">
+    <toolbox id="mode-toolbox" location="bottom" mode="full">
       <toolbarpalette id="mode-toolbox-palette">
         <toolbarbutton class="toolbarbutton-2"
                        mode="mode" 

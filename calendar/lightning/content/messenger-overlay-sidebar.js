@@ -322,7 +322,7 @@ function ltnOnLoad(event)
         var palette = modeToolbox.palette;
         modeToolbox.removeEventListener("DOMAttrModified", onModified, false);
         var bag = retrieveToolbarProperties(modeToolbox);
-        if(aEvent.newValue == "top" && aEvent.prevValue == "bottom") {
+        if(aEvent.newValue == "top" && !aEvent.prevValue || aEvent.prevValue == "bottom") {
           // place the mode toolbox at the top of the left pane
           modeToolbox = contentPanel.parentNode.insertBefore(modeToolbox, contentPanel);
           modeToolbox.palette = palette;
