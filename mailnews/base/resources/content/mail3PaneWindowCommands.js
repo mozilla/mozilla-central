@@ -49,6 +49,7 @@ var FolderPaneController =
 		switch ( command )
 		{
 			case "cmd_delete":
+			case "cmd_shiftDelete":
 			case "button_delete":
 			//case "cmd_selectAll": the folder pane currently only handles single selection
 			case "cmd_cut":
@@ -73,6 +74,7 @@ var FolderPaneController =
 			case "cmd_paste":
 				return false;
 			case "cmd_delete":
+			case "cmd_shiftDelete":
 			case "button_delete":
 			if ( command == "cmd_delete" )
 				goSetMenuValue(command, 'valueFolder');
@@ -125,7 +127,7 @@ var FolderPaneController =
 		switch ( command )
 		{
 			case "cmd_delete":
-			case "button_delete":
+			case "cmd_shiftDelete":
 				MsgDeleteFolder();
 				break;
 		}
@@ -488,27 +490,12 @@ var DefaultController =
       case "cmd_createFilterFromPopup":
         CreateFilter(document.popupNode);
         break;
-			case "button_delete":
-			case "cmd_delete":
-        // if the user deletes a message before its mark as read timer goes off, we should mark it as read
-        // this ensures that we clear the biff indicator from the system tray when the user deletes the new message
-        if (gMarkViewedMessageAsReadTimer) 
-        {
-          MarkCurrentMessageAsRead();
-          ClearPendingReadTimer();
-        }
-        SetNextMessageAfterDelete();
-        gDBView.doCommand(nsMsgViewCommandType.deleteMsg);
-				break;
-			case "cmd_shiftDelete":
-        if (gMarkViewedMessageAsReadTimer) 
-        {
-          MarkCurrentMessageAsRead();
-          ClearPendingReadTimer();
-        }
-        SetNextMessageAfterDelete();
-        gDBView.doCommand(nsMsgViewCommandType.deleteNoTrash);
-				break;
+      case "cmd_delete":
+        MsgDeleteMessage(false);
+        break;
+      case "cmd_shiftDelete":
+        MsgDeleteMessage(true);
+        break;
       case "cmd_killThread":
         /* kill thread kills the thread and then does a next unread */
       	GoNextMessage(nsMsgNavigationType.toggleThreadKilled, true);

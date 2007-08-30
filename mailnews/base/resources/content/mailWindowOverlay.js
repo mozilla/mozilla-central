@@ -907,22 +907,17 @@ function MsgGetNextNMessages()
       if(folder) {
         GetNextNMessages(folder);
       }
-    }
-  }   
+  }
+}
 
-function MsgDeleteMessage(reallyDelete, fromToolbar)
+function MsgDeleteMessage(reallyDelete)
 {
-    // if from the toolbar, return right away if this is a news message
-    // only allow cancel from the menu:  "Edit | Cancel / Delete Message"
-    if (fromToolbar)
+    // if the user deletes a message before its mark as read timer goes off, we should mark it as read
+    // this ensures that we clear the biff indicator from the system tray when the user deletes the new message
+    if (gMarkViewedMessageAsReadTimer)
     {
-        var srcFolder = GetLoadedMsgFolder();
-        var folderResource = srcFolder.QueryInterface(Components.interfaces.nsIRDFResource);
-        var uri = folderResource.Value;
-        if (isNewsURI(uri)) {
-            // if news, don't delete
-            return;
-        }
+      MarkCurrentMessageAsRead();
+      ClearPendingReadTimer();
     }
 
     SetNextMessageAfterDelete();

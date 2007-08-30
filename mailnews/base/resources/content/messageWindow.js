@@ -583,28 +583,6 @@ function ReloadMessage()
   gDBView.reloadMessage();
 }
 
-function MsgDeleteMessageFromMessageWindow(reallyDelete, fromToolbar)
-{
-  // if from the toolbar, return right away if this is a news message
-  // only allow cancel from the menu:  "Edit | Cancel / Delete Message"
-  if (fromToolbar)
-  {
-    if (isNewsURI(gCurrentFolderUri)) 
-    {
-        // if news, don't delete
-        return;
-    }
-  }
-  
-  // before we delete 
-  SetNextMessageAfterDelete();
-
-  if (reallyDelete)
-      gDBView.doCommand(nsMsgViewCommandType.deleteNoTrash);
-  else
-      gDBView.doCommand(nsMsgViewCommandType.deleteMsg);
-}
-
 // MessageWindowController object (handles commands when one of the trees does not have focus)
 var MessageWindowController =
 {
@@ -851,19 +829,16 @@ var MessageWindowController =
         break;
       case "cmd_createFilterFromMenu":
         MsgCreateFilter();
-				break;        
-			case "cmd_delete":
-				MsgDeleteMessageFromMessageWindow(false, false);
-				break;
-			case "cmd_shiftDelete":
-				MsgDeleteMessageFromMessageWindow(true, false);
-				break;
+        break;        
+      case "cmd_delete":
+        MsgDeleteMessage(false);
+        break;
+      case "cmd_shiftDelete":
+        MsgDeleteMessage(true);
+        break;
       case "button_junk":
         MsgJunk();
         break;
-			case "button_delete":
-				MsgDeleteMessageFromMessageWindow(false, true);
-				break;
 		  case "cmd_printSetup":
 		    NSPrintSetup();
 		    break;
