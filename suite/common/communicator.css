@@ -51,10 +51,9 @@ toolbar[printpreview="true"] {
  */
 
 /******* toolkit access layer *******/
-/* These rules' content needs to be a verbatim copy of those in toolkit's xul.css! */
+/* These rules reintroduce the toolkit bindings overwritten later below */
 toolbox[xpfe="false"] { 
   -moz-binding: url("chrome://global/content/bindings/toolbar.xml#toolbox");
-  -moz-box-orient: vertical;
 }
 
 toolbar[xpfe="false"] {
@@ -63,6 +62,10 @@ toolbar[xpfe="false"] {
 
 menubar[xpfe="false"] {
   -moz-binding: url("chrome://global/content/bindings/toolbar.xml#menubar");
+}
+
+prefwindow[xpfe="false"] {
+  -moz-binding: url("chrome://global/content/bindings/preferences.xml#prefwindow");
 }
 
 /******* SeaMonkey XPFE *******/
@@ -81,4 +84,8 @@ toolbargrippy {
 
 menubar {
   -moz-binding: url("chrome://communicator/content/bindings/toolbar.xml#grippymenubar");
+}
+
+prefwindow {
+  -moz-binding: url("chrome://communicator/content/bindings/prefwindow.xml#prefwindow");
 }

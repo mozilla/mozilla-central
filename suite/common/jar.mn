@@ -98,6 +98,7 @@ comm.jar:
 #endif
 #endif
    content/communicator/bindings/toolbar.xml                        (bindings/toolbar.xml)
+*  content/communicator/bindings/prefwindow.xml                     (bindings/prefwindow.xml)
    content/communicator/bookmarks/addBookmark.js                    (bookmarks/addBookmark.js)
    content/communicator/bookmarks/addBookmark.xul                   (bookmarks/addBookmark.xul)
    content/communicator/bookmarks/bm-panel.js                       (bookmarks/bm-panel.js)
