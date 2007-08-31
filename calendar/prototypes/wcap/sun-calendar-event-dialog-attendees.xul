@@ -46,7 +46,7 @@
   <!ENTITY % calendar-event-dialogDTD SYSTEM "chrome://calendar/locale/calendar-event-dialog.dtd"> %calendar-event-dialogDTD;
 ]>
 
-<dialog id="sun-calendar-event-dialog-recurrence"
+<dialog id="sun-calendar-event-dialog-attendees"
         title="&invite.title.label;"
         onload="onLoad()"
         ondialogaccept="return onAccept();"

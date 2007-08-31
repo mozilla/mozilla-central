@@ -132,6 +132,9 @@
 <!ENTITY event.reminder.custom.label                      "Custom…" >
 
 <!-- Recurrence dialog -->
+
+<!ENTITY recurrence.title.label                         "Edit Recurrence">
+
 <!ENTITY event.repeat.does.not.repeat.label             "Does not repeat">
 <!ENTITY event.repeat.daily.label                       "Daily">
 <!ENTITY event.repeat.weekly.label                      "Weekly">

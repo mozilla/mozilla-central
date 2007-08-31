@@ -51,7 +51,8 @@
   %dialogDTD;
 ]>
 
-<dialog title="&event.title.label;"
+<dialog id="sun-calendar-event-dialog-recurrence"
+        title="&recurrence.title.label;"
         onload="onLoad()"
         ondialogaccept="return onAccept();"
         ondialogcancel="return true;"
