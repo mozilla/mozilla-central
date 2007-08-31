@@ -66,6 +66,7 @@ function calDavCalendar() {
     this.mPendingStartupRequests = [];
     this.mUriParams = null;
     this.mEtagCache = [];
+    this.mDisabled = false;
 }
 
 // some shorthand
@@ -179,6 +180,8 @@ calDavCalendar.prototype = {
     set readOnly(bool) {
         this.mReadOnly = bool;
     },
+
+    mDisabled: false,
 
     // attribute PRUInt8 mAuthenticationStatus;
     mAuthenticationStatus: 0,
@@ -1139,6 +1142,19 @@ calDavCalendar.prototype = {
             return;
         }
 
+        if (this.mDisabled) {
+            var errString = "calendar " + this.name + " is disabled";
+            aListener.onOperationComplete(this,
+                                          Components.results.NS_ERROR_FAILURE,
+                                          aListener.GET, null, errString);
+            while (this.mPendingStartupRequests.length > 0) {
+                this.popStartupRequest();
+            }
+            // check if maybe our calendar has become available
+            this.checkDavResourceType();
+            return;
+        }
+
         if (this.mAuthenticationStatus == kCaldavNoAuthentication) {
            this.mAuthenticationStatus = kCaldavFirstRequestSent;
            this.checkDavResourceType();
@@ -1290,8 +1306,30 @@ calDavCalendar.prototype = {
         }
         if (!errorIsOk) {
             this.mReadOnly = true;
+            this.mDisabled = true;
         }
-        this.mObservers.notify("onError", [aErrNo, aMessage]);
+
+        var paramBlock = Components.classes["@mozilla.org/embedcomp/dialogparam;1"]
+                                   .createInstance(Components.interfaces
+                                   .nsIDialogParamBlock);
+        paramBlock.SetNumberStrings(3);
+
+        var promptMessage = calGetString("calendar", "disabledMode", [this.name]);
+        paramBlock.SetString(0, promptMessage);
+        var errCode = "0x"+aErrNo.toString(16);
+        paramBlock.SetString(1, errCode);
+        paramBlock.SetString(2, aMessage);
+        var wWatcher = Components.classes["@mozilla.org/embedcomp/window-watcher;1"]
+                                 .getService(Components.interfaces.nsIWindowWatcher);
+        wWatcher.openWindow(null,
+                            "chrome://calendar/content/calErrorPrompt.xul",
+                            "_blank",
+                            "chrome,dialog=yes",
+                            paramBlock);
+
+        if (this.mDisabled && this.mPendingStartupRequests.length > 0) {
+            this.popStartupRequest();
+        }
     },
 
     popStartupRequest: function popStartupRequest() {
@@ -1312,14 +1350,23 @@ calDavCalendar.prototype = {
             function checkDavResourceType_oOC(aStatusCode, aResource,
                                               aOperation, aClosure) {
 
-            if (resourceType == null || resourceType == kDavResourceTypeNone) {
+            if ((resourceType == null || resourceType == kDavResourceTypeNone) &&
+                !thisCalendar.mDisabled) {
                 thisCalendar.reportDavError(Ci.calIErrors.DAV_NOT_DAV,
                                             "dav_notDav");
             }
 
-            if (resourceType == kDavResourceTypeCollection) {
+            if ((resourceType == kDavResourceTypeCollection) &&
+                !thisCalendar.mDisabled) {
                 thisCalendar.reportDavError(Ci.calIErrors.DAV_DAV_NOT_CALDAV,
                                             "dav_davNotCaldav");
+            }
+
+            // if this calendar was previously offline we want to recover
+            if ((resourceType == kDavResourceTypeCalendar) &&
+                thisCalendar.mDisabled) {
+                thisCalendar.mDisabled = false;
+                thisCalendar.mReadOnly = false;
             }
 
             // we've authenticated in the process of PROPFINDing and can flush
@@ -1367,12 +1414,7 @@ calDavCalendar.prototype = {
     },
 
     reportDavError: function caldav_rDE(aErrNo, aMessage) {
-        var sbs = Cc["@mozilla.org/intl/stringbundle;1"].
-                    getService(Ci.nsIStringBundleService);
-        var sb = sbs.createBundle
-                    ("chrome://calendar/locale/calendar.properties");
-        errMsg = sb.formatStringFromName(aMessage, [this.mUri.spec], 1);
-        this.onError(aErrNo, errMsg);
+        this.onError(aErrNo, calGetString("calendar", aMessage, [this.mUri.spec]));
     },
 
     // stubs to keep callbacks we don't support yet from throwing errors 
