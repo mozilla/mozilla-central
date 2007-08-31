@@ -318,6 +318,10 @@ var folderListener = {
        else if (eventType == "DeleteOrMoveMsgFailed") {
          HandleDeleteOrMoveMsgFailed(folder);
        }
+       else if (eventType == "AboutToCompact") {
+         if (gDBView)
+           gCurrentlyDisplayedMessage = gDBView.currentlyDisplayedMessage;
+       }
        else if (eventType == "CompactCompleted") {
          HandleCompactCompleted(folder);
        }
