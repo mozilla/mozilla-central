@@ -3009,6 +3009,8 @@ function my_dccfileprogress(e)
     var now = new Date();
     var pcent = Math.floor(100 * this.position / this.size);
 
+    var tab = getTabForObject(this);
+
     // If we've moved 100KiB or waited 10s, update the progress bar.
     if ((this.position > this._lastPosition + 102400) ||
         (now - this._lastUpdate > 10000))
@@ -3017,7 +3019,6 @@ function my_dccfileprogress(e)
         updateProgress();
         updateTitle();
 
-        var tab = getTabForObject(this);
         if (tab)
             tab.setAttribute("label", this.viewName + " (" + pcent + "%)");
 
@@ -3036,12 +3037,14 @@ function my_dccfileprogress(e)
     // If it's also been 10s or more since we last displayed a msg...
     if (now - this._lastUpdate > 10000)
     {
-        this.displayHere(getMsg(MSG_DCCFILE_PROGRESS,
-                                [pcent, getSISize(this.position),
-                                 getSISize(this.size), getSISpeed(this.speed)]),
-                         "DCC-FILE");
-
         this._lastUpdate = now;
+
+        var args = [pcent, getSISize(this.position), getSISize(this.size),
+                    getSISpeed(this.speed)];
+
+        // We supress this message if the view is hidden.
+        if (tab)
+            this.displayHere(getMsg(MSG_DCCFILE_PROGRESS, args), "DCC-FILE");
     }
 }
 
