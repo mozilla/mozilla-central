@@ -230,8 +230,7 @@ NS_IMETHODIMP nsAbBSDirectory::CreateNewDirectory(const nsAString &aDirName,
 }
 
 NS_IMETHODIMP nsAbBSDirectory::CreateDirectoryByURI(const nsAString &aDisplayName,
-                                                    const nsACString &aURI,
-                                                    PRBool migrating)
+                                                    const nsACString &aURI)
 {
   nsresult rv = NS_OK;
 

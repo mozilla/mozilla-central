@@ -60,8 +60,7 @@ public:
                                 PRUint32 aType,
                                 nsACString &aResult);
   NS_IMETHOD CreateDirectoryByURI(const nsAString &aDisplayName,
-                                  const nsACString &aURI,
-                                  PRBool migrating);
+                                  const nsACString &aURI);
   NS_IMETHOD DeleteDirectory(nsIAbDirectory *directory);
 	NS_IMETHOD HasDirectory(nsIAbDirectory *dir, PRBool *hasDir);
 
