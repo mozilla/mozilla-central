@@ -742,6 +742,10 @@ table.tcm td.content {
     background-color: #efefef; 
 }
 
+table.tcmf tr.even {
+    background-color: inherit;
+}
+
 table.tcmf td { 
     vertical-align:top;
     border-width:0px; 

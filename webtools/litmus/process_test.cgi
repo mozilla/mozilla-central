@@ -65,23 +65,33 @@ my $user || Litmus::Auth::getCurrentUser();
 
 print $c->header();
 
-my $test_run_id = $c->param("test_run_id");
+my $sysconfig;
+my $branch_id;
+my ($test_run_id, $test_run);
+if ($c->param("singleResult")) {
+  $sysconfig = &verifySysConfig();
+  $branch_id = $c->param("testcaseBranchId");
+} else {
+  $test_run_id = $c->param("test_run_id");
+  if (!$test_run_id) {
+    invalidInputError("No Test Run selected!");
+    exit 1;
+  }
 
-if (!$test_run_id) {
-  invalidInputError("No Test Run selected!");
-  exit 1;
+  $test_run = Litmus::DB::TestRun->getTestRunWithRefs($test_run_id);
+  $sysconfig = Litmus::SysConfig->getCookieByTestRunId($test_run_id);
+ 
+  if (!$sysconfig) {
+    invalidInputError("No system configuration information found!");
+    exit 1;
+  };
+
+  $c->storeCookie($sysconfig->setCookie());
+  $test_run->flagCriteriaInUse($sysconfig);
+
+  $branch_id = $test_run->branch_id;
 }
 
-my $test_run = Litmus::DB::TestRun->getTestRunWithRefs($test_run_id);
-my $sysconfig = Litmus::SysConfig->getCookieByTestRunId($test_run_id);
- 
-if (!$sysconfig) {
-  invalidInputError("No system configuration information found!");
-  exit 1;
-};
-
-$c->storeCookie($sysconfig->setCookie());
-$test_run->flagCriteriaInUse($sysconfig);
 my $locale = Litmus::DB::Locale->retrieve($sysconfig->{'locale'});
 
 my @names = $c->param();
@@ -101,6 +111,7 @@ if (scalar @tests < 1) {
 my $testcount;
 my %resultcounts;
 my $product;
+my $testcase_id;
 foreach my $curtestid (@tests) {
   unless ($c->param("testresult_".$curtestid)) {
     # user didn't submit a result for this test so just skip 
@@ -108,6 +119,7 @@ foreach my $curtestid (@tests) {
     next; 
   }
   
+  $testcase_id = $curtestid;
   my $curtest = Litmus::DB::Testcase->retrieve($curtestid);
   unless ($curtest) {
     # oddly enough, the test doesn't exist
@@ -136,7 +148,7 @@ foreach my $curtestid (@tests) {
                                            useragent     => $ua,
                                            result_status => $result_status,
                                            opsys_id      => $sysconfig->{'opsys_id'},
-                                           branch_id     => $test_run->branch_id,
+                                           branch_id     => $branch_id,
                                            build_id      => $sysconfig->{'build_id'},
                                            locale        => $locale,
                                           });
@@ -174,23 +186,29 @@ foreach my $curtestid (@tests) {
 if (! $testcount) {
   invalidInputError("No results submitted.");
 }
+
+my $vars;
+if ($c->param("singleResult")) {
+  $vars->{"singleResult"} = 1;
+  $vars->{"testcase_id"} = $testcase_id;
+} else {
+  $vars->{"test_runs"} = [$test_run];
+  $vars->{"sysconfig"} = $sysconfig;
+}
   
 my $testgroup;
 if ($c->param("testgroup")) {
   $testgroup = Litmus::DB::Testgroup->retrieve($c->param("testgroup"));
 } 
 
-my $vars;
 $vars->{'title'} = 'Run Tests';
 
 my $cookie =  Litmus::Auth::getCookie();
 $vars->{"defaultemail"} = $cookie;
 $vars->{"show_admin"} = Litmus::Auth::istrusted($cookie);
-$vars->{"test_runs"} = [$test_run];
 $vars->{'testcount'} = $testcount;
 $vars->{'resultcounts'} = \%resultcounts || undef;
 $vars->{'testgroup'} = $testgroup || undef;
-$vars->{'sysconfig'} = $sysconfig;
 $vars->{'return'} = $c->param("return") || undef;
 
 Litmus->template()->process("process/process.html.tmpl", $vars) ||
@@ -208,5 +226,42 @@ exit 0;
 #########################################################################
 sub redirectToRunTests() {
   my $c = Litmus->cgi();
-  print $c->redirect("http://127.0.0.1/run_tests.cgi");
+  print $c->redirect("/run_tests.cgi");
+}
+
+#########################################################################
+sub verifySysConfig() {
+  # Use the criterion value as the basis for our check, since disabled form
+  # controls don't submit their values anyway.
+  my ($row_num,$build_id,$platform_id,$opsys_id);
+  if ($c->param("criterion")) {
+    ($row_num,$build_id,$platform_id,$opsys_id) = split(/\|/,$c->param("criterion"),4);
+    if (!$build_id) {
+      $build_id = $c->param("build_id_${row_num}");
+    }
+    if (!$platform_id) {
+      $platform_id = $c->param("platform_${row_num}");
+    }
+    if (!$opsys_id) {
+      $opsys_id = $c->param("opsys_${row_num}");
+    }
+  }
+  my $locale = $c->param("locale");
+
+  # Make sure we have a complete set of criteria.
+  if (!$build_id or
+      !$platform_id or
+      !$opsys_id or
+      !$locale) {
+    return undef;
+  }
+  
+  my $sysconfig = Litmus::SysConfig::new(
+                                         0,
+                                         $build_id,
+                                         $platform_id,
+                                         $opsys_id,
+                                         $locale
+                                         );
+  return $sysconfig;
 }

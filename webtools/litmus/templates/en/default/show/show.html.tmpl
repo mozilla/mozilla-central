@@ -39,8 +39,13 @@
 [% title="Testcase disabled" %]
 [% END %]
 
-[% INCLUDE global/html_header.tmpl js_files=['js/prototype.lite.js','js/moo.fx.js','js/moo.fx.pack.js','js/FormValidation.js','js/SelectBoxes.js','js/ManageTestcases.js'] %] 
+[% INCLUDE global/html_header.tmpl js_files=['js/prototype.lite.js','js/moo.fx.js','js/moo.fx.pack.js','js/FormValidation.js','js/SelectBoxes.js','js/ManageTestcases.js','js/Help.js','js/RunTests.js'] %] 
 [% INCLUDE global/litmus_header.tmpl %]
+
+<script type="text/javascript">
+var platforms=[% IF platforms_js %][% platforms_js %][% ELSE %]{}[% END %];
+var opsyses=[% IF opsyses_js %][% opsyses_js %][% ELSE %]{}[% END %];
+</script>
 
 <div id="page">
 
@@ -67,7 +72,7 @@
 <input name="id" type="hidden" value="[% testcase.testcase_id | html %]">
 
     <div class="testcase-content">
-    [% INCLUDE test/test.html.tmpl testcase=testcase results=results show_config=1 sysconfig=sysconfig %]
+    [% INCLUDE test/test.html.tmpl testcase=testcase results=results show_config=1 single=1 sysconfig=sysconfig %]
     </div>
   </div>
 </div>

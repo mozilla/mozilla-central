@@ -37,7 +37,7 @@
   <tr>
     <td><b>Testcase ID #:</b></td>
     <td id="testcase_id_display[% IF ! show_edit %]_[% testcase.testcase_id | html %][% END %]">[% testcase.testcase_id | html %]</td>
-    [% IF ! show_edit %]<td align="right" valign="top" colspan="5"><a href="manage_testcases.cgi?testcase_id=[%testcase.testcase_id | html%]&edit=1"> Edit Testcase</a></td>[% END %]
+    [% IF ! show_edit && show_admin %]<td align="right" valign="top" colspan="5"><a href="manage_testcases.cgi?testcase_id=[%testcase.testcase_id | html%]&edit=1"> Edit Testcase</a></td>[% END %]
   </tr>
   <tr>
     <td><b>Summary:</b></td>
@@ -101,16 +101,17 @@
   <tr>
    <td class="content" colspan="2">
 
-    <div id="admin_text_[%testcase.testcase_id | html%]">
+[% IF single %]
+    <a class="test_run" title="Click here to toggle the single test result submission form for this testcase." onclick="runSingleTestHeight.toggle('height');" name="runSingleTestToggle">Submit single test result for this testcase&nbsp;&raquo;</a>
+    <br/><br/>
+    <div id="runSingleTest">
+[% END %]
 
     <table cellspacing="0" cellpadding="0" class="tcmf">
     <tr>
      <td width="210px">
       <div class="dh">Result:</div>
       [% INCLUDE form_widgets/radio_testresults.tmpl testcase_id=testcase.testcase_id %]
-      <br/>
-      <div><input class="button" type="submit" id="Submit[% testcase.testcase_id | html %]" name="Submit[% testcase.testcase_id | html %]" value="Submit This Result" onClick="return confirmPartialSubmission()"/>
-      </div>
      </td>
 
      <td>
@@ -122,14 +123,75 @@
       <div class="dv"><input type="text" name="bugs_[% testcase.testcase_id | html %]" 
         class="result_bug" /> (bug #,bug #,...)</div>
      </td>
-    
     </tr>
-
     </table>
+    
+[% IF single %]
+      <input id="singleResult" name="singleResult" type="HIDDEN" value="1" />
+      <input id="testcaseBranchId" name="testcaseBranchId" type="HIDDEN" value="[% testcase.branch.branch_id | html %]" />
+
+      <table id="tblCriteria" name="tblCriteria" class="tcmf" width="100%">
+        <tr>
+          <td colspan="4"><strong>Please provide your configuration details:</strong></td>
+        </tr>
+
+        <tr>
+          <th>Select</th>
+          <th>Build ID#&nbsp<a name="showBuildIDHelpText" onclick="toggleHelp(buildIDHelpTitle,buildIDHelpText);"><img class="inline" src="images/info.png" alt="How do I determine the build ID?" /></a></th>
+          <th>Platform</th>
+          <th>Operating System</th>
+        </tr>
+
+        <tr>
+          <td colspan="4"><hr /></td>
+        </tr>
+
+        <tr>
+          <td colspan="4"><strong>Extra configuration information:</strong></td>
+        </tr>
+
+        <tr>
+          <th>Locale</td>
+          <td colspan="3">[% INCLUDE form_widgets/select_locale.tmpl name="locale" defaults.locale=ua.locale %]</td>
+        </tr>
+
+        <tr>
+          <td colspan="4"><hr /></td>
+        </tr>
+
+      </table>
+
+      <div id="submit"><input class="button" type="submit" value="Submit This Result" onClick="return checkResultSubmission(this);"/>
+      </div>
 
     </div>
+[% ELSE %]  
+    <div id="submit_text_[%testcase.testcase_id | html%]"><input class="button" type="submit" id="Submit[% testcase.testcase_id | html %]" name="Submit[% testcase.testcase_id | html %]" value="Submit This Result" onClick="return confirmPartialSubmission()"/>
+    </div>
+[% END %]
 
-   </td>
+    </td>
   </tr>
+
+[% IF single %]
+<script type="text/javascript">
+[% IF defaultbuildid %] 
+appBuildID = "[% defaultbuildid | js | html %]"; 
+[% END %]
+getBuildId();
+addRowToTable(
+              'tblCriteria',
+              2
+             );
+runSingleTestHeight = new fx.Height('runSingleTest', {duration: 400});
+runSingleTestHeight.toggle();
+
+function checkResultSubmission(f) {
+    var result = document.getElementsByName('testresult_[% testcase.testcase_id %]');
+    return checkRadio(result,'Result',false) && checkFormContents(f);
+}
+</script>
+[% END %]
+
 [% END %]
 </table>

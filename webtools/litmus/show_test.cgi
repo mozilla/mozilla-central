@@ -68,6 +68,17 @@ $vars->{'branches_js'} = $branches_js;
 $vars->{'testgroups_js'} = $testgroups_js;
 $vars->{'subgroups_js'} = $subgroups_js;
 
+if ($show_admin) {
+  my $platforms = Litmus::FormWidget->getUniquePlatforms($show_admin);
+  my $opsyses = Litmus::FormWidget->getOpsyses($show_admin);
+  my $locales = Litmus::FormWidget->getLocales();
+  my $platforms_js = $json->objToJson($platforms);
+  my $opsyses_js = $json->objToJson($opsyses);
+  $vars->{'platforms_js'} = $platforms_js;
+  $vars->{'opsyses_js'} = $opsyses_js;
+  $vars->{'locales'} = $locales;
+}
+
 if (! $c->param) {
     Litmus->template()->process("show/search_for_testcases.tmpl", $vars) || 
         internalError(Litmus->template()->error());
@@ -156,6 +167,14 @@ if ($c->param("id")) {
   push @order_by, { field => 'created', direction => 'DESC' };
   my $test_results = Litmus::DB::Testresult->getTestResults(\@where,\@order_by);
 
+  my ($status, $message);
+  if ($c->param('resultSubmission')) {
+    if ($c->param('resultSubmission')) {
+      $status = 'success';
+      $message = 'Test result submitted successfully. See the list of test results below.';
+    }
+  }
+
   $vars->{'testcase'} = $testcase;
   $vars->{'sysconfig'} = Litmus::SysConfig->getCookie($testcase->product());
   $vars->{'testgroups'} = \@testgroups;
@@ -163,6 +182,10 @@ if ($c->param("id")) {
   $vars->{'result_statuses'} = \@result_statuses;
   $vars->{'showallresults'} = $showallresults;
   $vars->{'test_results'} = $test_results;
+
+  if ($status and $message) {
+    $vars->{'onload'} = "toggleMessage('$status','$message');";
+  }
 
   Litmus->template()->process("show/show.html.tmpl", $vars) || 
     internalError(Litmus->template()->error());    

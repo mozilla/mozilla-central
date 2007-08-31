@@ -405,14 +405,30 @@ function verifySelectNotEmpty(selectBox, message) {
 }
 
 // Make sure a radio box has a value checked.
-function checkRadio(theField, fieldName) {
+function checkRadio(theField, fieldName, allowZeroValue) {
+  if (checkRadio.arguments.length == 2) {
+    allowZeroValue = true;
+  }
+  
   for (i = 0; i < theField.length; i++) {
     if (theField[i].checked) {
-      return true;
+      if (allowZeroValue) {
+        return true;
+      } else {
+        if (theField[i].value != 0) {
+          return true;
+        }
+      }
     }
   } 
   if (theField[0]) {
-    return warnInvalid (theField[0], 'You must select an option for ' + fieldName + '. Please make a selection now.');
+    var message;
+    if (allowZeroValue) {
+      message = 'You must select an option for ' + fieldName + '. Please make a selection now.'
+    } else {
+      message = 'You must select a non-zero option for ' + fieldName + '. Please make a selection now.'
+    }
+    return warnInvalid (theField[0], message);
   }
 }
 
