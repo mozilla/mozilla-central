@@ -3201,7 +3201,6 @@ PKIX_PL_Cert_IsCertTrusted(
         PKIX_Boolean trusted = PKIX_FALSE;
         SECStatus rv = SECFailure;
         unsigned int requiredFlags;
-        unsigned int certFlags;
         SECTrustType trustType;
         CERTCertTrust trust;
         CERTCertificate *nssCert = NULL;
@@ -3235,15 +3234,13 @@ PKIX_PL_Cert_IsCertTrusted(
 
         certificateUsage = ((PKIX_PL_NssContext*)plContext)->certificateUsage;
 
+        /* ensure we obtained a single usage bit only */
+        PORT_Assert(!(certificateUsage & (certificateUsage - 1)));
+
         /* convert SECertificateUsage (bit mask) to SECCertUsage (enum) */
         while (0 != (certificateUsage = certificateUsage >> 1)) { certUsage++; }
 
-        PKIX_PL_NSSCALLRV
-                (CERT,
-                rv,
-                CERT_TrustFlagsForCACertUsage,
-                (certUsage, &requiredFlags, &trustType));
-
+        rv = CERT_TrustFlagsForCACertUsage(certUsage, &requiredFlags, &trustType);
         if (rv != SECSuccess) {
                 requiredFlags = 0;
                 trustType = trustSSL;
@@ -3251,10 +3248,9 @@ PKIX_PL_Cert_IsCertTrusted(
 
         nssCert = cert->nssCert;
 
-        PKIX_PL_NSSCALLRV(CERT, rv, CERT_GetCertTrust, (nssCert, &trust));
-
+        rv = CERT_GetCertTrust(nssCert, &trust);
         if (rv == SECSuccess) {
-
+                unsigned int certFlags;
                 certFlags = SEC_GET_TRUST_FLAGS((&trust), trustType);
                 if ((certFlags & requiredFlags) == requiredFlags) {
                         trusted = PKIX_TRUE;
