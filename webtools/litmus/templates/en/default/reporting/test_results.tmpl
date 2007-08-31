@@ -78,7 +78,7 @@
     [% result.testcase_id | html %]</a>: [% result.summary | html %]</td> 
   [% IF show_admin==1 %]<td align="center">[% result.email | html | uri | email %]</td>[% END %]
   <td align="center">[% result.product_name | html %]</td>
-  <td align="center">[% result.platform_name | html %]</td>
+  <td align="center">[% IF result.iconpath %]<img height="16" src="[% result.iconpath %]" alt="[% result.platform_name | html %]" title="[% result.platform_name | html %]" />[% ELSE %][% result.platform_name | html %][% END %]</td>
   <td align="center">[% result.branch_name | html %]</td>
   <td align="center">[% result.locale_abbrev | html %]</td>
 </tr>
