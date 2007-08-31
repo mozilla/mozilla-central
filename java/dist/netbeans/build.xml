@@ -216,6 +216,9 @@ ${so.prefix}xul.${so.extension}.
     <target name="run" depends="-init-check">
 
         <property name="debug.jvm.args" value="" />
+        <property name="http.proxyHost" value="" />
+        <property name="http.proxyPort" value="" />
+        <property name="http.nonProxyHosts" value="" />
         <property name="test.browser.url" 
                   value="${basedir}/../2_0_alpha_9.html" />
         
@@ -226,6 +229,9 @@ ${so.prefix}xul.${so.extension}.
             <env key="NSPR_LOG_FILE" file="${basedir}/${build.dir}/${nspr.log.filename}" />
             <jvmarg value="-Dbuild.test.results.dir=${basedir}${FILE_PATH_SEP}${build.test.results.dir}" />
             <jvmarg value="-DBROWSER_BIN_DIR=${browser.bin.dir}"/>
+            <jvmarg value="-Dhttp.proxyHost=${http.proxyHost}" />
+            <jvmarg value="-Dhttp.proxyPort=${http.proxyPort}" />
+            <jvmarg value="-Dhttp.nonProxyHosts=${http.nonProxyHosts}" />
             <jvmarg line="${debug.jvm.args}"/>
             <jvmarg line="-Djava.util.logging.config.file=${basedir}${FILE_PATH_SEP}logging.properties"/>
             <jvmarg line="-Djava.library.path=${browser.bin.dir}" />
@@ -276,6 +282,9 @@ ${so.prefix}xul.${so.extension}.
     
     <target name="-init-macrodef-junit">
         <property name="debug.jvm.args" value="" />
+        <property name="http.proxyHost" value="" />
+        <property name="http.proxyPort" value="" />
+        <property name="http.nonProxyHosts" value="" />
 
         <macrodef name="junit" uri="http://www.netbeans.org/ns/j2se-project/3">
             <attribute name="includes" default="**/*Test.java"/>
@@ -288,6 +297,9 @@ ${so.prefix}xul.${so.extension}.
                     <env key="NSPR_LOG_FILE" file="${basedir}/${build.dir}/${nspr.log.filename}" />
                     <jvmarg value="-Dbuild.test.results.dir=${basedir}${FILE_PATH_SEP}${build.test.results.dir}" />
                     <jvmarg value="-DBROWSER_BIN_DIR=${browser.bin.dir}"/>
+                    <jvmarg value="-Dhttp.proxyHost=${http.proxyHost}" />
+                    <jvmarg value="-Dhttp.proxyPort=${http.proxyPort}" />
+                    <jvmarg value="-Dhttp.nonProxyHosts=${http.nonProxyHosts}" />
                     <jvmarg line="${debug.jvm.args}"/>
                     <jvmarg line="-Djava.util.logging.config.file=${basedir}${FILE_PATH_SEP}logging.properties"/>
                     <jvmarg line="-Djava.library.path=${browser.bin.dir}" />
@@ -312,6 +324,10 @@ ${so.prefix}xul.${so.extension}.
     </target>
     
     <target name="-init-macrodef-debug">
+        <property name="http.proxyHost" value="" />
+        <property name="http.proxyPort" value="" />
+        <property name="http.nonProxyHosts" value="" />
+        
         <macrodef name="debug" uri="http://www.netbeans.org/ns/j2se-project/3">
             <attribute name="classname" default="${main.class}"/>
             <attribute name="classpath" default="${debug.classpath}"/>
@@ -327,6 +343,9 @@ ${so.prefix}xul.${so.extension}.
                     <jvmarg value="-DNSPR_LOG_FILE=${basedir}${FILE_PATH_SEP}${build.dir}${FILE_PATH_SEP}webclient.log"/>
                     <jvmarg value="-Dbuild.test.results.dir=${basedir}${FILE_PATH_SEP}${build.test.results.dir}" />
                     <jvmarg value="-DBROWSER_BIN_DIR=${browser.bin.dir}"/>
+                    <jvmarg value="-Dhttp.proxyHost=${http.proxyHost}" />
+                    <jvmarg value="-Dhttp.proxyPort=${http.proxyPort}" />
+                    <jvmarg value="-Dhttp.nonProxyHosts=${http.nonProxyHosts}" />
                     <jvmarg line="-Djava.util.logging.config.file=${basedir}${FILE_PATH_SEP}logging.properties"/>
                     <jvmarg line="-Djava.library.path=${browser.bin.dir}" />
                     <jvmarg line="${run.jvmargs}"/>

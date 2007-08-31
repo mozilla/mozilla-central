@@ -1,5 +1,5 @@
 /*
- * $Id: ImmoSearchTest.java,v 1.3 2007-06-26 12:39:01 edburns%acm.org Exp $
+ * $Id: ImmoSearchTest.java,v 1.4 2007-08-31 15:05:18 edburns%acm.org Exp $
  */
 
 /* 
@@ -93,32 +93,38 @@ public class ImmoSearchTest extends WebclientTestCase  {
 
                 String responseText = (String) eventMap.get("responseText");
                 
-                // Test the first autocomplete response:
-                if (-1 != responseText.indexOf("8400 Winterthur") &&
-                        -1 != responseText.indexOf("8200 Schaffhausen") &&
-                        -1 != responseText.indexOf("8500 Frauenfeld") &&
-                        -1 != responseText.indexOf("8610 Uster") &&
-                        -1 != responseText.indexOf("8280 Kreuzlingen") &&
-                        -1 != responseText.indexOf("8050 Z\u00fcrich") &&
-                        -1 != responseText.indexOf("8645 Jona") &&
-                        -1 != responseText.indexOf("8600 D\u00fcbendorf") &&
-                        -1 != responseText.indexOf("8810 Horgen") &&
-                        -1 != responseText.indexOf("8700 K\u00fcsnacht ZH")) {
+                // Test the first autocomplete response.
+                
+                // Score the response.  The response must have at least 5
+                // of the following ten Postleitzahls.
+                int plzScore = 0;
+                plzScore += (-1 != responseText.indexOf("8400 Winterthur")) ? 1 : 0;
+                plzScore += (-1 != responseText.indexOf("8200 Schaffhausen")) ? 1 : 0;
+                plzScore += (-1 != responseText.indexOf("8500 Frauenfeld")) ? 1 : 0;
+                plzScore += (-1 != responseText.indexOf("8610 Uster")) ? 1 : 0;
+                plzScore += (-1 != responseText.indexOf("8280 Kreuzlingen")) ? 1 : 0;
+                plzScore += (-1 != responseText.indexOf("8050 Z\\u00fcrich")) ? 1 : 0;
+                plzScore += (-1 != responseText.indexOf("8645 Jona")) ? 1 : 0;
+                plzScore += (-1 != responseText.indexOf("8600 D\\u00fcbendorf")) ? 1 : 0;
+                plzScore += (-1 != responseText.indexOf("8810 Horgen")) ? 1 : 0;
+                plzScore += (-1 != responseText.indexOf("8700 K\\u00fcsnacht ZH")) ? 1 : 0;
+                if (5 < plzScore) {
                     bitSet.flip(TestFeature.HAS_VALID_FIRST_AUTOCOMPLETE_RESPONSE.ordinal());
                 }
-                if (-1 != responseText.indexOf("8050 Z\u00fcrich") &&
-                        -1 != responseText.indexOf("8032 Z\u00fcrich") &&
-                        -1 != responseText.indexOf("8049 Z\u00fcrich") &&
-                        -1 != responseText.indexOf("8048 Z\u00fcrich") &&
-                        -1 != responseText.indexOf("8006 Z\u00fcrich") &&
-                        -1 != responseText.indexOf("8057 Z\u00fcrich") &&
-                        -1 != responseText.indexOf("8004 Z\u00fcrich") &&
-                        -1 != responseText.indexOf("8008 Z\u00fcrich") &&
-                        -1 != responseText.indexOf("8046 Z\u00fcrich") &&
-                        -1 != responseText.indexOf("8051 Z\u00fcrich")) {
+                plzScore = 0;
+                plzScore += (-1 != responseText.indexOf("8050 Z\\u00fcrich")) ? 1 : 0;
+                plzScore += (-1 != responseText.indexOf("8032 Z\\u00fcrich")) ? 1 : 0;
+                plzScore += (-1 != responseText.indexOf("8049 Z\\u00fcrich")) ? 1 : 0;
+                plzScore += (-1 != responseText.indexOf("8048 Z\\u00fcrich")) ? 1 : 0;
+                plzScore += (-1 != responseText.indexOf("8006 Z\\u00fcrich")) ? 1 : 0;
+                plzScore += (-1 != responseText.indexOf("8057 Z\\u00fcrich")) ? 1 : 0;
+                plzScore += (-1 != responseText.indexOf("8004 Z\\u00fcrich")) ? 1 : 0;
+                plzScore += (-1 != responseText.indexOf("8008 Z\\u00fcrich")) ? 1 : 0;
+                plzScore += (-1 != responseText.indexOf("8046 Z\\u00fcrich")) ? 1 : 0;
+                plzScore += (-1 != responseText.indexOf("8051 Z\\u00fcrich")) ? 1 : 0;
+                
+                if (5 < plzScore) {
                     bitSet.flip(TestFeature.HAS_VALID_SECOND_AUTOCOMPLETE_RESPONSE.ordinal());
-                    
-
                 }
                 if (bitSet.get(TestFeature.HAS_VALID_FIRST_AUTOCOMPLETE_RESPONSE.ordinal()) ||
                         bitSet.get(TestFeature.HAS_VALID_SECOND_AUTOCOMPLETE_RESPONSE.ordinal())) {
@@ -192,7 +198,7 @@ public class ImmoSearchTest extends WebclientTestCase  {
                             null != readyState && readyState.equals("4"));
 
                 String responseText = (String) eventMap.get("responseText");
-                if (-1 != responseText.indexOf("8050 Z\u00fcrich")) {
+                if (-1 != responseText.indexOf("8050 Z\\u00fcrich")) {
                     bitSet.set(TestFeature.STOP_WAITING.ordinal(), true);
                 }
                 

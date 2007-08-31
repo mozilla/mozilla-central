@@ -23,6 +23,9 @@ package org.mozilla.webclient.impl.wrapper_native;
 
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Properties;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import org.mozilla.util.Assert;
@@ -107,7 +110,6 @@ public class WrapperFactoryImpl extends Object implements WrapperFactory {
     protected boolean terminated = false;
     protected CountDownLatch oneCountLatch = null;
     
-    
     // Relationship Instance Variables
     
     private NativeEventThread eventThread = null; // OWNER
@@ -180,6 +182,9 @@ public class WrapperFactoryImpl extends Object implements WrapperFactory {
 	    });
 
 	browserControls.put(result, new Integer(nativeBrowserControl));
+        if (1 == browserControls.size()) {
+            copyProxySettingsIfNecessary();
+        }
 	return result;
     }
     
@@ -421,6 +426,104 @@ public class WrapperFactoryImpl extends Object implements WrapperFactory {
 
     }
     
+    private enum ProxyEnum {
+        httpProxyHost,
+        httpProxyPort,
+        httpNonProxyHosts,
+        ftpProxyHost,
+        ftpProxyPort,
+        ftpNonProxyHosts,
+        socksProxyHost,
+        socksProxyPort,
+        sslProxyHost,
+        sslProxyPort,        
+        gopherProxyHost,
+        gopherProxyPort        
+    }
+    
+    private static final List<String []> ProxyPropNames; 
+    
+    static { ProxyPropNames = new ArrayList<String []>();
+        ProxyPropNames.add(new String [] { "http.proxyHost", "network.proxy.http"});
+        ProxyPropNames.add(new String [] { "http.proxyPort", "network.proxy.http_port"});
+        ProxyPropNames.add(new String [] { "http.nonProxyHosts", "network.proxy.no_proxies_on"});
+        ProxyPropNames.add(new String [] { "ftp.proxyHost", "network.proxy.ftp"});
+        ProxyPropNames.add(new String [] { "ftp.proxyPort", "network.proxy.ftp_port"});
+        ProxyPropNames.add(new String [] { "ftp.nonProxyHosts", ""});
+        ProxyPropNames.add(new String [] { "socksProxyHost", "network.proxy.socks"});
+        ProxyPropNames.add(new String [] { "socksProxyPort", "network.proxy.socks_port"});
+        ProxyPropNames.add(new String [] { "ssl.proxyHost", "network.proxy.ssl" });
+        ProxyPropNames.add(new String [] { "ssl.proxyPort", "network.proxy.ssl_port" });
+        ProxyPropNames.add(new String [] { "gopher.proxyHost", "network.proxy.gopher" });
+        ProxyPropNames.add(new String [] { "gopher.proxyPort", "network.proxy.gopher_port" });
+    }
+    
+    private static final int Java = 0;
+    private static final int Mozilla = 1;
+    
+    private static final String [] JavaProxyPropertyValues = new String[ProxyPropNames.size()];
+        
+    public void copyProxySettingsIfNecessary() {
+        assert(ProxyEnum.values().length == ProxyPropNames.size());
+        
+        Properties props = System.getProperties();
+        int i = 0, len = ProxyPropNames.size();
+        // get proxy related property values from the System Properties
+        for (i = 0; i < len; i++) {
+            JavaProxyPropertyValues[i] = props.getProperty(ProxyPropNames.get(i)[Java]);
+        }
+        // If there are any network related properties in the System Properties...
+        if (null != JavaProxyPropertyValues[ProxyEnum.httpProxyHost.ordinal()] ||
+                null != JavaProxyPropertyValues[ProxyEnum.ftpProxyHost.ordinal()] ||
+                null != JavaProxyPropertyValues[ProxyEnum.socksProxyHost.ordinal()] ||
+                null != JavaProxyPropertyValues[ProxyEnum.sslProxyHost.ordinal()] ||
+                null != JavaProxyPropertyValues[ProxyEnum.gopherProxyHost.ordinal()]) {
+            // turn on manual property configuration.
+            prefs.setPref("network.proxy.type", "1");
+        }
+        
+        // If the only proxy related property that is set is the http proxy host... 
+        if (null != JavaProxyPropertyValues[ProxyEnum.httpProxyHost.ordinal()] &&
+                null == JavaProxyPropertyValues[ProxyEnum.ftpProxyHost.ordinal()] &&
+                null == JavaProxyPropertyValues[ProxyEnum.socksProxyHost.ordinal()] &&
+                null == JavaProxyPropertyValues[ProxyEnum.sslProxyHost.ordinal()] &&
+                null == JavaProxyPropertyValues[ProxyEnum.gopherProxyHost.ordinal()]) {
+            // make sure the rest of the protocols share the http proxy settings
+            prefs.setPref("network.proxy.share_proxy_settings", "true");
+        }
+        
+        String val = null;
+        ProxyEnum proxyType;
+        len = ProxyEnum.values().length;
+        for (i = 0; i < len; i++) {
+            proxyType = ProxyEnum.values()[i];
+            // If the current proxy property is a hostname property...
+            if (proxyType.toString().endsWith("Host")) {
+                // If there is a value for this hostname property, (ie http.proxyHost)
+                if (null != (val = JavaProxyPropertyValues[proxyType.ordinal()])) {
+                    prefs.setPref(ProxyPropNames.get(proxyType.ordinal())[Mozilla], val);
+                    // If there is no port specified for this host...
+                    if (null == (val = JavaProxyPropertyValues[proxyType.ordinal() + 1])) {
+                        // Use 80, per the Sun Documentation
+                        val = "80";
+                    }
+                    prefs.setPref(ProxyPropNames.get(proxyType.ordinal() + 1)[Mozilla], val);
+                }
+                // If this is the http proxy host...
+                if (proxyType.toString().equals("httpProxyHost")) {
+                    // and there is a "no proxy for these http hosts"
+                    if (null != 
+                        (val = JavaProxyPropertyValues[ProxyEnum.httpNonProxyHosts.ordinal()])) {
+                        val = val.replaceAll("[|]", ",");
+                        // Set the appropriate mozilla pref.
+                        prefs.setPref(ProxyPropNames.get(ProxyEnum.httpNonProxyHosts.ordinal())[Mozilla],
+                                val);
+                    }
+                }
+            }
+        }
+    }
+
     public void verifyInitialized() throws IllegalStateException
     {
 	if (!initialized) {
