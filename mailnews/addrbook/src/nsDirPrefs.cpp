@@ -289,8 +289,7 @@ nsresult DIR_ContainsServer(DIR_Server* pServer, PRBool *hasDir)
 }
 
 nsresult DIR_AddNewAddressBook(const nsAString &dirName,
-                               const nsACString &fileName,
-                               PRBool migrating, const nsACString &uri, 
+                               const nsACString &fileName, const nsACString &uri, 
                                DirectoryType dirType, DIR_Server** pServer)
 {
   DIR_Server * server = (DIR_Server *) PR_Malloc(sizeof(DIR_Server));
@@ -316,30 +315,9 @@ nsresult DIR_AddNewAddressBook(const nsAString &dirName,
     }
 
     dir_ServerList->AppendElement(server);
-    if (!migrating) {
-      DIR_SavePrefsForOneServer(server); 
-    }
-    else if (!server->prefName)
-    {
-      // Need to return pref names here so the caller will be able to get the
-      // right directory properties. For migration, pref names were already
-      // created so no need to get unique ones via dir_CreateServerPrefName().
-      if (!strcmp(server->fileName, kPersonalAddressbook))
-        server->prefName = strdup("ldap_2.servers.pab");
-      else if (!strcmp(server->fileName, kCollectedAddressbook))
-        server->prefName = strdup("ldap_2.servers.history");
-      else
-      {
-        char * leafName = dir_ConvertDescriptionToPrefName (server);
-        if (leafName)
-          server->prefName = PR_smprintf(PREF_LDAP_SERVER_TREE_NAME".%s", leafName);
-      }
-    }
-#ifdef DEBUG_sspitzer
-    else {
-      printf("don't set the prefs, they are already set since this ab was migrated\n");
-    }
-#endif
+
+    DIR_SavePrefsForOneServer(server); 
+
     *pServer = server;
     
     // save new address book into pref file 

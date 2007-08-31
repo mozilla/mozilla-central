@@ -56,7 +56,7 @@
 #define kABFileName_CurrentSuffix ".mab"  /* v3 address book extension */
 %}
 
-[scriptable, uuid(a49f2ed2-095d-4e54-98ac-b42f152e2588)]
+[scriptable, uuid(2c6bf966-88fb-4054-85ee-967ef4750e94)]
 interface nsIAbDirectory : nsISupports {
 
   // Types of operation
@@ -212,8 +212,7 @@ interface nsIAbDirectory : nsISupports {
                               in unsigned long aType);
 
   /* create a directory by passing the display name and address book uri */
-  void createDirectoryByURI(in AString displayName, in ACString aURI,
-                            in boolean migrating);
+  void createDirectoryByURI(in AString displayName, in ACString aURI);
 
   /**
    * The id of the directory used in prefs e.g. "ldap_2.servers.pab"

@@ -842,8 +842,7 @@ nsIAddrDatabase *GetAddressBook( const PRUnichar *name, PRBool makeNew)
 				}
 				else {
 				  URI.Append(leafName);
-				  rv = parentDir->CreateDirectoryByURI(nsDependentString(name), URI,
-                                               PR_FALSE);
+				  rv = parentDir->CreateDirectoryByURI(nsDependentString(name), URI);
 				  if (NS_FAILED(rv))
 				    IMPORT_LOG0( "*** Error: Unable to create address book directory\n");
 				}

@@ -212,8 +212,7 @@ NS_IMETHODIMP nsAbBSDirectory::CreateNewDirectory(const nsAString &aDirName,
    *
    */
   DIR_Server* server = nsnull;
-  nsresult rv = DIR_AddNewAddressBook(aDirName, EmptyCString(),
-                                      PR_FALSE /* is_migrating */, URI,
+  nsresult rv = DIR_AddNewAddressBook(aDirName, EmptyCString(), URI,
                                       (DirectoryType)aType, &server);
   NS_ENSURE_SUCCESS (rv, rv);
   
@@ -241,7 +240,7 @@ NS_IMETHODIMP nsAbBSDirectory::CreateDirectoryByURI(const nsAString &aDisplayNam
     fileName = StringTail(aURI, aURI.Length() - kMDBDirectoryRootLen);
 
   DIR_Server * server = nsnull;
-  rv = DIR_AddNewAddressBook(aDisplayName, fileName, migrating, aURI,
+  rv = DIR_AddNewAddressBook(aDisplayName, fileName, aURI,
                              PABDirectory, &server);
   NS_ENSURE_SUCCESS(rv,rv);
 

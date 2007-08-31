@@ -291,8 +291,7 @@ nsAbDirProperty::CreateNewDirectory(const nsAString &aDirName,
 
 NS_IMETHODIMP
 nsAbDirProperty::CreateDirectoryByURI(const nsAString &aDisplayName,
-                                      const nsACString &aURI,
-                                      PRBool migrating)
+                                      const nsACString &aURI)
 { return NS_ERROR_NOT_IMPLEMENTED; }
 
 NS_IMETHODIMP nsAbDirProperty::AddMailList(nsIAbDirectory *list)
