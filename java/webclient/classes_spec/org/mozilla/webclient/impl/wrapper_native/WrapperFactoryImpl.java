@@ -467,10 +467,13 @@ public class WrapperFactoryImpl extends Object implements WrapperFactory {
         assert(ProxyEnum.values().length == ProxyPropNames.size());
         
         Properties props = System.getProperties();
+        String val = null;
+        
         int i = 0, len = ProxyPropNames.size();
         // get proxy related property values from the System Properties
         for (i = 0; i < len; i++) {
-            JavaProxyPropertyValues[i] = props.getProperty(ProxyPropNames.get(i)[Java]);
+            val = props.getProperty(ProxyPropNames.get(i)[Java]);
+            JavaProxyPropertyValues[i] = ((null != val) && (0 < val.length())) ? val : null;
         }
         // If there are any network related properties in the System Properties...
         if (null != JavaProxyPropertyValues[ProxyEnum.httpProxyHost.ordinal()] ||
@@ -492,7 +495,6 @@ public class WrapperFactoryImpl extends Object implements WrapperFactory {
             prefs.setPref("network.proxy.share_proxy_settings", "true");
         }
         
-        String val = null;
         ProxyEnum proxyType;
         len = ProxyEnum.values().length;
         for (i = 0; i < len; i++) {
