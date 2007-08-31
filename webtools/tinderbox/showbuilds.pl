@@ -87,7 +87,8 @@ sub do_static($) {
 
     my ($key, $value);
     $rel_path = '../';
-    while (($key, $value) = each %images) {
+    foreach $key (keys %images) {
+        $value = $images{$key};
         $images{$key} = "$rel_path$value";
     }
 
