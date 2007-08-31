@@ -97,6 +97,7 @@ my $vars;
 $vars->{'form'} = $form;
 $vars->{'products'} = \@products_list;
 $vars->{'stylesheet'} = $skin;
+$vars->{'referer'} = $::ENV{'HTTP_REFERER'};
 
 my $template = Template->new({
     INCLUDE_PATH => ["template"],
