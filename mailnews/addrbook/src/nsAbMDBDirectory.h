@@ -51,7 +51,7 @@
 #include "nsCOMPtr.h"
 #include "nsDirPrefs.h"
 #include "nsIAbDirectorySearch.h"
-#include "nsAbDirSearchListener.h"
+#include "nsIAbDirSearchListener.h"
 #include "nsHashtable.h"
 #include "nsAbDirectoryRDFResource.h"
 #include "nsIAddrDBListener.h"
@@ -63,7 +63,7 @@
 class nsAbMDBDirectory:
   public nsAbDirectoryRDFResource, 
   public nsAbMDBDirProperty,	// nsIAbDirectory, nsIAbMDBDirectory
-  public nsAbDirSearchListenerContext,
+  public nsIAbDirSearchListener,
   public nsIAddrDBListener, 
   public nsIAbDirectorySearch
 {
@@ -103,9 +103,8 @@ public:
   // nsIAbDirectorySearch methods
   NS_DECL_NSIABDIRECTORYSEARCH
 
-  // nsAbDirSearchListenerContext methods
-  nsresult OnSearchFinished (PRInt32 result);
-  nsresult OnSearchFoundCard (nsIAbCard* card);
+  // nsIAbDirSearchListener methods
+  NS_DECL_NSIABDIRSEARCHLISTENER
 
   PRBool IsMailingList(){ return (mIsMailingList == 1); }
 

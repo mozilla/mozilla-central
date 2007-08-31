@@ -1,4 +1,4 @@
-/* -*- Mode: C++; tab-width: 4; indent-tabs-mode: nil; c-basic-offset: 4 -*- */
+/* -*- Mode: C++; tab-width: 2; indent-tabs-mode: nil; c-basic-offset: 2 -*- */
 /* ***** BEGIN LICENSE BLOCK *****
  * Version: MPL 1.1/GPL 2.0/LGPL 2.1
  *
@@ -47,7 +47,7 @@
 #include "nsString.h"
 #include "nsReadableUtils.h"
 #include "nsUnicharUtils.h"
-
+#include "nsIAbDirSearchListener.h"
 
 NS_IMPL_THREADSAFE_ISUPPORTS1(nsAbDirectoryQuerySimpleBooleanExpression, nsIAbBooleanExpression)
 
@@ -172,41 +172,6 @@ NS_IMETHODIMP nsAbDirectoryQueryArguments::SetQuerySubDirectories(PRBool aQueryS
     return NS_OK;
 }
 
-/* void setReturnProperties (in unsigned long returnPropertiesSize,
- *     [array, size_is (returnPropertiesSize)] in string returnPropertiesArray); */
-NS_IMETHODIMP nsAbDirectoryQueryArguments::SetReturnProperties(PRUint32 returnPropertiesSize,
-        const char** returnPropertiesArray)
-{
-    NS_ENSURE_ARG_POINTER(returnPropertiesArray);
-
-    mReturnProperties.Clear();
-
-    for (PRUint32 i = 0; i < returnPropertiesSize; i++)
-        mReturnProperties.AppendCString(nsDependentCString(returnPropertiesArray[i]));
-
-    return NS_OK;
-}
-
-/* void getReturnProperties (out unsigned long returnPropertiesSize,
- *     [array, size_is (returnPropertiesSize), retval] out string returnPropertiesArray); */
-NS_IMETHODIMP nsAbDirectoryQueryArguments::GetReturnProperties(PRUint32* returnPropertiesSize,
-        char*** returnPropertiesArray)
-{
-    NS_ENSURE_ARG_POINTER(returnPropertiesSize);
-    NS_ENSURE_ARG_POINTER(returnPropertiesArray);
-
-    PRUint32 size = mReturnProperties.Count();
-    *returnPropertiesSize = size;
-    *returnPropertiesArray = static_cast<char**>(nsMemory::Alloc (sizeof (char* ) * size));
-    if (!(*returnPropertiesArray))
-        return NS_ERROR_OUT_OF_MEMORY;
-
-    for (PRUint32 i = 0; i < size; i++)
-        (*returnPropertiesArray)[i] = ToNewCString(*mReturnProperties[i]);
-
-    return NS_OK;
-}
-
 NS_IMETHODIMP nsAbDirectoryQueryArguments::GetTypeSpecificArg(nsISupports** aArg)
 {
     NS_ENSURE_ARG_POINTER(aArg);
@@ -274,100 +239,31 @@ NS_IMETHODIMP nsAbDirectoryQueryPropertyValue::GetValueISupports(nsISupports*  *
     return NS_OK;
 }
 
-NS_IMPL_THREADSAFE_ISUPPORTS1(nsAbDirectoryQueryResult, nsIAbDirectoryQueryResult)
-
-nsAbDirectoryQueryResult::nsAbDirectoryQueryResult() :
-    mContextID (-1),
-    mType (queryResultError)
-{
-}
-
-nsAbDirectoryQueryResult::nsAbDirectoryQueryResult(PRInt32 aContextID,
-      nsIAbDirectoryQueryArguments* aContextArgs,
-      PRInt32 aType,
-      nsCOMPtr<nsISupportsArray> aResult)
-{
-    mContextID = aContextID;
-    mContextArgs = aContextArgs;
-    mType = aType;
-    mResult = aResult;
-}
-
-nsAbDirectoryQueryResult::~nsAbDirectoryQueryResult()
-{
-}
-
-/* readonly attribute long contextID; */
-NS_IMETHODIMP nsAbDirectoryQueryResult::GetContextID(PRInt32 *aContextID)
-{
-    *aContextID = mContextID;
-    
-    return NS_OK;
-}
-
-/* readonly attribute nsIAbDirectoryQueryArguments contextArgs; */
-NS_IMETHODIMP nsAbDirectoryQueryResult::GetContextArgs(nsIAbDirectoryQueryArguments*  *aContextArgs)
-{
-    if (!mContextArgs)
-        return NS_ERROR_NULL_POINTER;
-
-    NS_IF_ADDREF(*aContextArgs = mContextArgs);
-    return NS_OK;
-}
-
-/* readonly attribute long type; */
-NS_IMETHODIMP nsAbDirectoryQueryResult::GetType(PRInt32 *aType)
-{
-    *aType = mType;
-
-    return NS_OK;
-}
-
-/* readonly attribute nsISupportsArray result; */
-NS_IMETHODIMP nsAbDirectoryQueryResult::GetResult(nsISupportsArray*  *aResult)
-{
-    if (!mResult)
-        return NS_ERROR_NULL_POINTER;
-
-    NS_IF_ADDREF(*aResult = mResult);
-    return NS_OK;
-}
-
-/* void agetResult (out unsigned long aResultSize, [array, size_is (aResultSize), retval] out nsISupports aResultArray); */
-NS_IMETHODIMP nsAbDirectoryQueryResult::AgetResult(PRUint32 *aResultSize, nsISupports* **aResultArray)
-{
-    return NS_ERROR_NOT_IMPLEMENTED;
-}
-
-
-
-
-
-
 /* Implementation file */
 NS_IMPL_ISUPPORTS1(nsAbDirectoryQuery, nsIAbDirectoryQuery)
 
-nsAbDirectoryQuery::nsAbDirectoryQuery(nsIAbDirectory* aDirectory)
+nsAbDirectoryQuery::nsAbDirectoryQuery()
 {
-  mDirectory = aDirectory;
 }
 
 nsAbDirectoryQuery::~nsAbDirectoryQuery()
 {
 }
 
-/* long doQuery (in nsIAbDirectoryQueryArguments arguments, in nsIAbDirectoryQueryResultListener listener, in long resultLimit, in long timeOut); */
-NS_IMETHODIMP nsAbDirectoryQuery::DoQuery(nsIAbDirectoryQueryArguments* arguments, nsIAbDirectoryQueryResultListener* listener, PRInt32 resultLimit, PRInt32 timeOut, PRInt32* _retval)
+NS_IMETHODIMP nsAbDirectoryQuery::DoQuery(nsIAbDirectory *aDirectory,
+                                          nsIAbDirectoryQueryArguments* arguments,
+                                          nsIAbDirSearchListener* listener,
+                                          PRInt32 resultLimit, PRInt32 timeOut,
+                                          PRInt32* _retval)
 {
-    nsresult rv;
-    rv = query (mDirectory, arguments, listener, &resultLimit);
-    if (NS_FAILED(rv))
-        rv = queryError (arguments, listener);
-    else
-        rv = queryFinished (arguments, listener);
+  NS_ENSURE_ARG_POINTER(aDirectory);
 
-    *_retval = 0;
-    return rv;
+  nsresult rv = query(aDirectory, arguments, listener, &resultLimit);
+
+  rv = NS_FAILED(rv) ? queryError(listener) : queryFinished(listener);
+
+  *_retval = 0;
+  return rv;
 }
 
 /* void stopQuery (in long contextID); */
@@ -379,7 +275,7 @@ NS_IMETHODIMP nsAbDirectoryQuery::StopQuery(PRInt32 contextID)
 
 nsresult nsAbDirectoryQuery::query (nsIAbDirectory* directory,
     nsIAbDirectoryQueryArguments* arguments,
-    nsIAbDirectoryQueryResultListener* listener,
+    nsIAbDirSearchListener* listener,
     PRInt32* resultLimit)
 {
     if (*resultLimit == 0)
@@ -400,7 +296,7 @@ nsresult nsAbDirectoryQuery::query (nsIAbDirectory* directory,
 
 nsresult nsAbDirectoryQuery::queryChildren (nsIAbDirectory* directory,
     nsIAbDirectoryQueryArguments* arguments,
-    nsIAbDirectoryQueryResultListener* listener,
+    nsIAbDirSearchListener* listener,
     PRInt32* resultLimit)
 {
     nsresult rv = NS_OK;
@@ -428,7 +324,7 @@ nsresult nsAbDirectoryQuery::queryChildren (nsIAbDirectory* directory,
 
 nsresult nsAbDirectoryQuery::queryCards (nsIAbDirectory* directory,
     nsIAbDirectoryQueryArguments* arguments,
-    nsIAbDirectoryQueryResultListener* listener,
+    nsIAbDirSearchListener* listener,
     PRInt32* resultLimit)
 {
     nsresult rv = NS_OK;
@@ -468,7 +364,7 @@ nsresult nsAbDirectoryQuery::queryCards (nsIAbDirectory* directory,
 
 nsresult nsAbDirectoryQuery::matchCard (nsIAbCard* card,
     nsIAbDirectoryQueryArguments* arguments,
-    nsIAbDirectoryQueryResultListener* listener,
+    nsIAbDirSearchListener* listener,
     PRInt32* resultLimit)
 {
     nsCOMPtr<nsISupports> supportsExpression;
@@ -485,7 +381,7 @@ nsresult nsAbDirectoryQuery::matchCard (nsIAbCard* card,
     if (matchFound)
     {
         (*resultLimit)--;
-        rv = queryMatch (card, arguments, listener);
+        rv = queryMatch(card, listener);
         NS_ENSURE_SUCCESS(rv, rv);
     }
 
@@ -632,109 +528,18 @@ nsresult nsAbDirectoryQuery::matchCardCondition (nsIAbCard* card,
     return rv;
 }
 
-nsresult nsAbDirectoryQuery::queryMatch (nsIAbCard* card,
-    nsIAbDirectoryQueryArguments* arguments,
-    nsIAbDirectoryQueryResultListener* listener)
+nsresult nsAbDirectoryQuery::queryMatch(nsIAbCard* card,
+    nsIAbDirSearchListener* listener)
 {
-    nsresult rv;
-    nsCOMPtr<nsISupportsArray> propertyValues;
-
-    CharPtrArrayGuard properties;
-    rv = arguments->GetReturnProperties (properties.GetSizeAddr(), properties.GetArrayAddr());
-    NS_ENSURE_SUCCESS(rv, rv);
-
-    nsCAutoString n;
-    for (PRUint32 i = 0; i < properties.GetSize(); i++)
-    {
-        n.Assign (properties[i]);
-
-        nsAbDirectoryQueryPropertyValue* _propertyValue = 0;
-        if (n.Equals("card:nsIAbCard"))
-        {
-            nsCOMPtr<nsISupports> supports(do_QueryInterface(card, &rv));
-            NS_ENSURE_SUCCESS(rv, rv);
-
-            _propertyValue = new nsAbDirectoryQueryPropertyValue(n.get (), supports);
-            if (!_propertyValue)
-                return NS_ERROR_OUT_OF_MEMORY;
-        }
-        else
-        {
-            nsAutoString value;
-            rv = card->GetCardValue (n.get (), value);
-            NS_ENSURE_SUCCESS(rv, rv);
-
-            if (!value.get () || value.Length () == 0)
-                continue;
-
-            _propertyValue = new nsAbDirectoryQueryPropertyValue(n.get (), value.get ());
-            if (!_propertyValue)
-                return NS_ERROR_OUT_OF_MEMORY;
-        }
-
-        if (_propertyValue)
-        {
-            nsCOMPtr<nsIAbDirectoryQueryPropertyValue> propertyValue;
-            propertyValue = _propertyValue;
-
-            if (!propertyValues)
-            {
-                NS_NewISupportsArray(getter_AddRefs(propertyValues));
-            }
-
-            nsCOMPtr<nsISupports> supports(do_QueryInterface(propertyValue, &rv));
-            NS_ENSURE_SUCCESS(rv, rv);
-
-            propertyValues->AppendElement (supports);
-        }
-    }
-
-    
-    if (!propertyValues)
-        return NS_OK;
-
-    nsCOMPtr<nsIAbDirectoryQueryResult> queryResult;
-    nsAbDirectoryQueryResult* _queryResult = new nsAbDirectoryQueryResult (0,
-        arguments,
-        nsIAbDirectoryQueryResult::queryResultMatch,
-        propertyValues);
-    if (!_queryResult)
-        return NS_ERROR_OUT_OF_MEMORY;
-    queryResult = _queryResult;
-
-    return listener->OnQueryItem (queryResult);
+  return listener->OnSearchFoundCard(card);
 }
 
-nsresult nsAbDirectoryQuery::queryFinished (nsIAbDirectoryQueryArguments* arguments,
-    nsIAbDirectoryQueryResultListener* listener)
+nsresult nsAbDirectoryQuery::queryFinished(nsIAbDirSearchListener* listener)
 {
-    nsCOMPtr<nsIAbDirectoryQueryResult> queryResult;
-    nsAbDirectoryQueryResult* _queryResult = new nsAbDirectoryQueryResult (0,
-        arguments,
-        nsIAbDirectoryQueryResult::queryResultComplete,
-        0);
-    if (!_queryResult)
-        return NS_ERROR_OUT_OF_MEMORY;
-    queryResult = _queryResult;
-
-    return listener->OnQueryItem (queryResult);
+    return listener->OnSearchFinished(nsIAbDirectoryQueryResultListener::queryResultComplete, EmptyString());
 }
 
-nsresult nsAbDirectoryQuery::queryError (nsIAbDirectoryQueryArguments* arguments,
-    nsIAbDirectoryQueryResultListener* listener)
+nsresult nsAbDirectoryQuery::queryError(nsIAbDirSearchListener* listener)
 {
-    nsCOMPtr<nsIAbDirectoryQueryResult> queryResult;
-    nsAbDirectoryQueryResult* _queryResult = new nsAbDirectoryQueryResult (0,
-        arguments,
-        nsIAbDirectoryQueryResult::queryResultError,
-        0);
-    if (!_queryResult)
-        return NS_ERROR_OUT_OF_MEMORY;
-    queryResult = _queryResult;
-
-    return listener->OnQueryItem (queryResult);
+    return listener->OnSearchFinished(nsIAbDirectoryQueryResultListener::queryResultError, EmptyString());
 }
-
-
-
-

@@ -149,6 +149,7 @@
 
 #if defined(MOZ_LDAP_XPCOM)
 #include "nsAbLDAPDirectory.h"
+#include "nsAbLDAPDirectoryQuery.h"
 #include "nsAbLDAPCard.h"
 #include "nsAbLDAPDirFactory.h"
 #include "nsAbLDAPAutoCompFormatter.h"
@@ -392,6 +393,7 @@ NS_GENERIC_FACTORY_CONSTRUCTOR(nsAbBooleanExpression)
 
 #if defined(MOZ_LDAP_XPCOM)
 NS_GENERIC_FACTORY_CONSTRUCTOR(nsAbLDAPDirectory)
+NS_GENERIC_FACTORY_CONSTRUCTOR(nsAbLDAPDirectoryQuery)
 NS_GENERIC_FACTORY_CONSTRUCTOR(nsAbLDAPCard)
 NS_GENERIC_FACTORY_CONSTRUCTOR(nsAbLDAPDirFactory)
 NS_GENERIC_FACTORY_CONSTRUCTOR(nsAbLDAPAutoCompFormatter)
@@ -958,6 +960,8 @@ static const nsModuleComponentInfo gComponents[] = {
 #if defined(MOZ_LDAP_XPCOM)
     { "Address LDAP Book Directory", NS_ABLDAPDIRECTORY_CID,
       NS_ABLDAPDIRECTORY_CONTRACTID, nsAbLDAPDirectoryConstructor },
+    { "Address LDAP Book Directory Query", NS_ABLDAPDIRECTORYQUERY_CID,
+      NS_ABLDAPDIRECTORYQUERY_CONTRACTID, nsAbLDAPDirectoryQueryConstructor },
     { "Address LDAP Book Card", NS_ABLDAPCARD_CID,
       NS_ABLDAPCARD_CONTRACTID, nsAbLDAPCardConstructor },
     { "Address LDAP factory Interface", NS_ABLDAPDIRFACTORY_CID,

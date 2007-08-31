@@ -40,9 +40,9 @@
 #include "nsIAbDirectoryQuery.idl"
 #include "nsIAbDirectory.idl"
 
-[scriptable, uuid(CFA60E0C-94D5-4292-A675-28C737950B3B)]
+[scriptable, uuid(b8034849-1e98-4d39-819c-15ba61a7434f)]
 interface nsIAbDirectoryQueryProxy : nsIAbDirectoryQuery
 {
-    void initiate (in nsIAbDirectory directory);
+    void initiate();
 };
 

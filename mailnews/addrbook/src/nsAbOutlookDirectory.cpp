@@ -91,7 +91,7 @@ private:
 } ;
 
 nsAbOutlookDirectory::nsAbOutlookDirectory(void)
-: nsAbDirectoryRDFResource(), nsAbDirProperty(), nsAbDirSearchListenerContext(), 
+: nsAbDirectoryRDFResource(), nsAbDirProperty(),
 mQueryThreads(16, PR_TRUE), mCurrentQueryId(0), mSearchContext(-1), 
 mAbWinType(nsAbWinType_Unknown), mMapiData(nsnull)
 {
@@ -105,8 +105,9 @@ nsAbOutlookDirectory::~nsAbOutlookDirectory(void)
     if (mProtector) { PR_DestroyLock(mProtector) ; }
 }
 
-NS_IMPL_ISUPPORTS_INHERITED3(nsAbOutlookDirectory, nsAbDirectoryRDFResource, 
-                             nsIAbDirectory, nsIAbDirectoryQuery, nsIAbDirectorySearch)
+NS_IMPL_ISUPPORTS_INHERITED4(nsAbOutlookDirectory, nsAbDirectoryRDFResource, 
+                             nsIAbDirectory, nsIAbDirectoryQuery,
+                             nsIAbDirectorySearch, nsIAbDirSearchListener)
 
 // nsIRDFResource method
 NS_IMETHODIMP nsAbOutlookDirectory::Init(const char *aUri)
@@ -936,60 +937,11 @@ static void DestroyRestriction(SRestriction& aRestriction)
     }
 }
 
-nsresult FillPropertyValues(nsIAbCard *aCard, nsIAbDirectoryQueryArguments *aArguments, 
-                            nsISupportsArray **aValues)
-{
-    if (!aCard || !aArguments || !aValues ) { 
-        return NS_ERROR_NULL_POINTER ; 
-    }
-    *aValues = nsnull ;
-    CharPtrArrayGuard properties ;
-    nsCOMPtr<nsISupportsArray> values ;
-    nsresult retCode = NS_OK ;
-    
-    retCode = aArguments->GetReturnProperties(properties.GetSizeAddr(), properties.GetArrayAddr()) ;
-    NS_ENSURE_SUCCESS(retCode, retCode) ;
-    PRUint32 i = 0 ;
-    nsAbDirectoryQueryPropertyValue *newValue = nsnull ;
-	nsCOMPtr<nsIAbDirectoryQueryPropertyValue> propertyValue ;
-
-    for (i = 0 ; i < properties.GetSize() ; ++ i) {
-        const char* cPropName = properties[i] ;
-        newValue = nsnull ;
-		
-    if (!strcmp(cPropName, "card:nsIAbCard")) {
-			nsCOMPtr<nsISupports> bogusInterface (do_QueryInterface(aCard, &retCode)) ;
-
-			NS_ENSURE_SUCCESS(retCode, retCode) ;
-			newValue = new nsAbDirectoryQueryPropertyValue (cPropName, bogusInterface) ;
-		}
-    else {
-			nsString value;
-
-      retCode = aCard->GetCardValue(cPropName, value);
-			NS_ENSURE_SUCCESS(retCode, retCode) ;
-            if (!value.IsEmpty()) {
-                newValue = new nsAbDirectoryQueryPropertyValue(cPropName, value.get()) ;
-            }
-		}
-        if (newValue) {
-			if (!values) {
-				NS_NewISupportsArray(getter_AddRefs(values)) ;
-			}
-			propertyValue = newValue ;
-			values->AppendElement (propertyValue) ;
-        }
-    }
-    *aValues = values ;
-    NS_ADDREF(*aValues) ;
-    return retCode ;
-}
-
 struct QueryThreadArgs 
 {
     nsAbOutlookDirectory *mThis ;
     nsCOMPtr<nsIAbDirectoryQueryArguments> mArguments ;
-    nsCOMPtr<nsIAbDirectoryQueryResultListener> mListener ;
+    nsCOMPtr<nsIAbDirSearchListener> mListener ;
     PRInt32 mResultLimit ;
     PRInt32 mTimeout ;
     PRInt32 mThreadId ;
@@ -1006,46 +958,50 @@ static void QueryThreadFunc(void *aArguments)
     delete arguments ;
 }
 
-nsresult nsAbOutlookDirectory::DoQuery(nsIAbDirectoryQueryArguments *aArguments,
-                                       nsIAbDirectoryQueryResultListener *aListener,
+nsresult nsAbOutlookDirectory::DoQuery(nsIAbDirectory *aDirectory,
+                                       nsIAbDirectoryQueryArguments *aArguments,
+                                       nsIAbDirSearchListener *aListener,
                                        PRInt32 aResultLimit, PRInt32 aTimeout,
                                        PRInt32 *aReturnValue) 
 {
-    if (!aArguments || !aListener || !aReturnValue)  { 
-        return NS_ERROR_NULL_POINTER ; 
-    }
-    *aReturnValue = -1 ;
+  if (!aArguments || !aListener || !aReturnValue)  { 
+    return NS_ERROR_NULL_POINTER;
+  }
+  *aReturnValue = -1;
     
-    QueryThreadArgs *threadArgs = new QueryThreadArgs ;
-    PRThread *newThread = nsnull ;
+  QueryThreadArgs *threadArgs = new QueryThreadArgs;
+  PRThread *newThread = nsnull;
 
-    if (!threadArgs) { 
-        return NS_ERROR_OUT_OF_MEMORY ;
-    }
-    threadArgs->mThis = this ;
-    threadArgs->mArguments = aArguments ;
-    threadArgs->mListener = aListener ;
-    threadArgs->mResultLimit = aResultLimit ; 
-    threadArgs->mTimeout = aTimeout ;
-    PR_Lock(mProtector) ;
-    *aReturnValue = ++ mCurrentQueryId ;
-    PR_Unlock(mProtector) ;
-    threadArgs->mThreadId = *aReturnValue ;
-    newThread = PR_CreateThread(PR_USER_THREAD,
-                                QueryThreadFunc,
-                                threadArgs,
-                                PR_PRIORITY_NORMAL,
-                                PR_GLOBAL_THREAD,
-                                PR_UNJOINABLE_THREAD,
-                                0) ;
-    if (!newThread ) {
-        delete threadArgs ;
-        return NS_ERROR_OUT_OF_MEMORY ;
-    }
-    nsIntegerKey newKey(*aReturnValue) ;
-    
-    mQueryThreads.Put(&newKey, newThread) ;
-    return NS_OK ;
+  if (!threadArgs)
+    return NS_ERROR_OUT_OF_MEMORY;
+
+  threadArgs->mThis = this;
+  threadArgs->mArguments = aArguments;
+  threadArgs->mListener = aListener;
+  threadArgs->mResultLimit = aResultLimit;
+  threadArgs->mTimeout = aTimeout;
+
+  PR_Lock(mProtector);
+  *aReturnValue = ++mCurrentQueryId;
+  PR_Unlock(mProtector);
+
+  threadArgs->mThreadId = *aReturnValue;
+  newThread = PR_CreateThread(PR_USER_THREAD,
+                              QueryThreadFunc,
+                              threadArgs,
+                              PR_PRIORITY_NORMAL,
+                              PR_GLOBAL_THREAD,
+                              PR_UNJOINABLE_THREAD,
+                              0);
+
+  if (!newThread ) {
+    delete threadArgs;
+    return NS_ERROR_OUT_OF_MEMORY;
+  }
+
+  nsIntegerKey newKey(*aReturnValue);
+  mQueryThreads.Put(&newKey, newThread);
+  return NS_OK;
 }
 
 nsresult nsAbOutlookDirectory::StopQuery(PRInt32 aContext)
@@ -1079,22 +1035,19 @@ NS_IMETHODIMP nsAbOutlookDirectory::StartSearch(void)
     NS_ENSURE_SUCCESS(retCode, retCode) ;
     retCode = arguments->SetExpression(expression) ;
     NS_ENSURE_SUCCESS(retCode, retCode) ;
-    
-    const char *arr = "card:nsIAbCard";
-    retCode = arguments->SetReturnProperties(1, &arr);
-    NS_ENSURE_SUCCESS(retCode, retCode) ;
+
     retCode = arguments->SetQuerySubDirectories(PR_TRUE) ;
     NS_ENSURE_SUCCESS(retCode, retCode) ;
-    nsCOMPtr<nsIAbDirectoryQueryResultListener> proxyListener;
+    nsCOMPtr<nsIAbDirSearchListener> proxyListener;
 
     retCode = NS_GetProxyForObject(NS_PROXY_TO_MAIN_THREAD,
-                     NS_GET_IID(nsIAbDirectoryQueryResultListener),
-                     static_cast<nsIAbDirectoryQueryResultListener *>(new nsAbDirSearchListener(this)),
+                     NS_GET_IID(nsIAbDirSearchListener),
+                     static_cast<nsIAbDirSearchListener *>(this),
                      NS_PROXY_SYNC | NS_PROXY_ALWAYS,
                      getter_AddRefs(proxyListener));
-    NS_ENSURE_SUCCESS(retCode, retCode) ;
+    NS_ENSURE_SUCCESS(retCode, retCode);
 
-    return DoQuery(arguments, proxyListener, -1, 0, &mSearchContext) ;
+    return DoQuery(this, arguments, proxyListener, -1, 0, &mSearchContext);
 }
 
 NS_IMETHODIMP nsAbOutlookDirectory::StopSearch(void) 
@@ -1103,13 +1056,14 @@ NS_IMETHODIMP nsAbOutlookDirectory::StopSearch(void)
     return StopQuery(mSearchContext) ;
 }
 
-// nsAbDirSearchListenerContext
-nsresult nsAbOutlookDirectory::OnSearchFinished(PRInt32 aResult)
+// nsIAbDirSearchListener
+NS_IMETHODIMP nsAbOutlookDirectory::OnSearchFinished(PRInt32 aResult,
+                                                     const nsAString &aErrorMsg)
 {
-    return NS_OK ;
+  return NS_OK;
 }
 
-nsresult nsAbOutlookDirectory::OnSearchFoundCard(nsIAbCard *aCard) 
+NS_IMETHODIMP nsAbOutlookDirectory::OnSearchFoundCard(nsIAbCard *aCard) 
 {
     nsVoidKey newKey (static_cast<void *>(aCard)) ;
     nsresult retCode = NS_OK ;
@@ -1121,61 +1075,55 @@ nsresult nsAbOutlookDirectory::OnSearchFoundCard(nsIAbCard *aCard)
 }
 
 nsresult nsAbOutlookDirectory::ExecuteQuery(nsIAbDirectoryQueryArguments *aArguments,
-                                            nsIAbDirectoryQueryResultListener *aListener,
+                                            nsIAbDirSearchListener *aListener,
                                             PRInt32 aResultLimit, PRInt32 aTimeout,
                                             PRInt32 aThreadId) 
 
 {
-    if (!aArguments || !aListener) { 
-        return NS_ERROR_NULL_POINTER ; 
-    }
-    SRestriction arguments ;
-    nsresult retCode = NS_OK ;
-    
-    retCode = BuildRestriction(aArguments, arguments) ;
-    NS_ENSURE_SUCCESS(retCode, retCode) ;
-    nsCOMPtr<nsISupportsArray> resultsArray ;
-    PRUint32 nbResults = 0 ;
-    
-    retCode = GetChildCards(getter_AddRefs(resultsArray), 
-                            arguments.rt == RES_COMMENT ? nsnull : &arguments) ;
-    DestroyRestriction(arguments) ;
-    NS_ENSURE_SUCCESS(retCode, retCode) ;
-    retCode = resultsArray->Count(&nbResults) ;
-    NS_ENSURE_SUCCESS(retCode, retCode) ;
-    nsCOMPtr<nsIAbDirectoryQueryResult> result ;
-    nsAbDirectoryQueryResult *newResult = nsnull ;
+  if (!aArguments || !aListener)
+    return NS_ERROR_NULL_POINTER;
 
-    if (aResultLimit > 0 && nbResults > static_cast<PRUint32>(aResultLimit)) { 
-        nbResults = static_cast<PRUint32>(aResultLimit) ; 
-    }
-    PRUint32 i = 0 ;
-    nsCOMPtr<nsISupports> element ;
-    nsCOMPtr<nsISupportsArray> propertyValues ;
+  SRestriction arguments;
+  nsresult retCode = NS_OK;
     
-    for (i = 0 ; i < nbResults ; ++ i) {
-        retCode = resultsArray->GetElementAt(i, getter_AddRefs(element)) ;
-        NS_ENSURE_SUCCESS(retCode, retCode) ;
-        nsCOMPtr<nsIAbCard> card (do_QueryInterface(element, &retCode)) ;
-        
-        NS_ENSURE_SUCCESS(retCode, retCode) ;
-        FillPropertyValues(card, aArguments, getter_AddRefs(propertyValues)) ;
-        newResult = new nsAbDirectoryQueryResult(0, aArguments,
-                                                 nsIAbDirectoryQueryResult::queryResultMatch, 
-                                                 propertyValues) ;
-        if (!newResult) { return NS_ERROR_OUT_OF_MEMORY ; }
-        result = newResult ;
-        aListener->OnQueryItem(result) ;
-    }
-    nsIntegerKey hashKey(aThreadId) ;
+  retCode = BuildRestriction(aArguments, arguments);
+  NS_ENSURE_SUCCESS(retCode, retCode);
+
+  nsCOMPtr<nsISupportsArray> resultsArray;
+  PRUint32 nbResults = 0;
     
-    mQueryThreads.Remove(&hashKey) ;
-    newResult = new nsAbDirectoryQueryResult(0, aArguments,
-                                             nsIAbDirectoryQueryResult::queryResultComplete, 
-                                             0) ;
-    result = newResult ;
-    aListener->OnQueryItem(result) ;
-    return retCode ;
+  retCode = GetChildCards(getter_AddRefs(resultsArray), 
+                          arguments.rt == RES_COMMENT ? nsnull : &arguments);
+  DestroyRestriction(arguments);
+  NS_ENSURE_SUCCESS(retCode, retCode);
+
+  retCode = resultsArray->Count(&nbResults);
+  NS_ENSURE_SUCCESS(retCode, retCode);
+
+  if (aResultLimit > 0 && nbResults > static_cast<PRUint32>(aResultLimit)) { 
+    nbResults = static_cast<PRUint32>(aResultLimit) ; 
+  }
+
+  PRUint32 i = 0;
+  nsCOMPtr<nsISupports> element;
+    
+  for (i = 0 ; i < nbResults ; ++ i) {
+    retCode = resultsArray->GetElementAt(i, getter_AddRefs(element));
+    NS_ENSURE_SUCCESS(retCode, retCode);
+
+    nsCOMPtr<nsIAbCard> card(do_QueryInterface(element, &retCode));
+    NS_ENSURE_SUCCESS(retCode, retCode);
+
+    aListener->OnSearchFoundCard(card);
+  }
+
+  nsIntegerKey hashKey(aThreadId);
+    
+  mQueryThreads.Remove(&hashKey);
+
+  aListener->OnSearchFinished(nsIAbDirectoryQueryResultListener::queryResultComplete,
+                              EmptyString());
+  return retCode;
 }
 nsresult nsAbOutlookDirectory::GetChildCards(nsISupportsArray **aCards, 
                                              void *aRestriction)
@@ -1536,4 +1484,15 @@ NS_IMETHODIMP nsAbOutlookDirectory::ModifyCard(nsIAbCard *aModifiedCard)
   }
 
   return retCode;
+}
+
+NS_IMETHODIMP nsAbOutlookDirectory::OnQueryFoundCard(nsIAbCard *aCard)
+{
+  return OnSearchFoundCard(aCard);
+}
+
+NS_IMETHODIMP nsAbOutlookDirectory::OnQueryResult(PRInt32 aResult,
+                                                  PRInt32 aErrorCode)
+{
+  return OnSearchFinished(aResult, EmptyString());
 }

@@ -96,7 +96,6 @@ CPPSRCS		= \
 		nsAbMDBDirFactory.cpp	\
                 nsAbDirectoryQuery.cpp    \
                 nsAbDirectoryQueryProxy.cpp    \
-                nsAbDirSearchListener.cpp \
                 nsAbBooleanExpression.cpp \
                 nsAbDirectoryRDFResource.cpp \
                 nsAbQueryStringToExpression.cpp \

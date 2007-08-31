@@ -66,12 +66,14 @@ public:
   // Note that the directoryUrl is the details of the ldap directory
   // without any search params or return attributes specified. The searchUrl
   // therefore has the search params and return attributes specified.
-  nsAbQueryLDAPMessageListener(nsAbLDAPDirectoryQuery* directoryQuery,
+  //  nsAbQueryLDAPMessageListener(nsIAbDirectoryQuery* directoryQuery,
+  nsAbQueryLDAPMessageListener(nsIAbDirectoryQueryResultListener* resultListener,
                                nsILDAPURL* directoryUrl,
                                nsILDAPURL* searchUrl,
                                nsILDAPConnection* connection,
                                nsIAbDirectoryQueryArguments* queryArguments,
-                               nsIAbDirectoryQueryResultListener* queryListener,
+                               nsIMutableArray* serverSearchControls,
+                               nsIMutableArray* clientSearchControls,
                                const nsACString &login,
                                const PRInt32 resultLimit = -1,
                                const PRInt32 timeOut = 0);
@@ -81,24 +83,18 @@ public:
   NS_IMETHOD OnLDAPMessage(nsILDAPMessage *aMessage);
 
 protected:
-  nsresult OnLDAPMessageSearchEntry (nsILDAPMessage *aMessage,
-                                     nsIAbDirectoryQueryResult** result);
-  nsresult OnLDAPMessageSearchResult(nsILDAPMessage *aMessage,
-                                     nsIAbDirectoryQueryResult** result);
-
-  nsresult QueryResultStatus (nsISupportsArray* properties,
-                              nsIAbDirectoryQueryResult** result,
-                              PRUint32 resultStatus);
+  nsresult OnLDAPMessageSearchEntry(nsILDAPMessage *aMessage);
+  nsresult OnLDAPMessageSearchResult(nsILDAPMessage *aMessage);
 
   friend class nsAbLDAPDirectoryQuery;
+
   nsresult Cancel();
   nsresult DoTask();
 
   nsCOMPtr<nsILDAPURL> mSearchUrl;
-  nsAbLDAPDirectoryQuery* mDirectoryQuery;
+  nsIAbDirectoryQueryResultListener *mResultListener;
   PRInt32 mContextID;
   nsCOMPtr<nsIAbDirectoryQueryArguments> mQueryArguments;
-  nsCOMPtr<nsIAbDirectoryQueryResultListener> mQueryListener;
   PRInt32 mResultLimit;
 
   PRBool mFinished;
@@ -106,30 +102,34 @@ protected:
   PRBool mWaitingForPrevQueryToFinish;
 
   nsCOMPtr<nsILDAPOperation> mSearchOperation;
+  nsCOMPtr<nsIMutableArray> mServerSearchControls;
+  nsCOMPtr<nsIMutableArray> mClientSearchControls;
 };
 
 
 NS_IMPL_THREADSAFE_ISUPPORTS1(nsAbQueryLDAPMessageListener, nsILDAPMessageListener)
 
 nsAbQueryLDAPMessageListener::nsAbQueryLDAPMessageListener(
-        nsAbLDAPDirectoryQuery* directoryQuery,
+        nsIAbDirectoryQueryResultListener *resultListener,
         nsILDAPURL* directoryUrl,
         nsILDAPURL* searchUrl,
         nsILDAPConnection* connection,
         nsIAbDirectoryQueryArguments* queryArguments,
-        nsIAbDirectoryQueryResultListener* queryListener,
+        nsIMutableArray* serverSearchControls,
+        nsIMutableArray* clientSearchControls,
         const nsACString &login,
         const PRInt32 resultLimit,
         const PRInt32 timeOut) :
   nsAbLDAPListenerBase(directoryUrl, connection, login, timeOut),
   mSearchUrl(searchUrl),
-  mDirectoryQuery(directoryQuery),
+  mResultListener(resultListener),
   mQueryArguments(queryArguments),
-  mQueryListener(queryListener),
   mResultLimit(resultLimit),
   mFinished(PR_FALSE),
   mCanceled(PR_FALSE),
-  mWaitingForPrevQueryToFinish(PR_FALSE)
+  mWaitingForPrevQueryToFinish(PR_FALSE),
+  mServerSearchControls(serverSearchControls),
+  mClientSearchControls(clientSearchControls)
 {
 }
 
@@ -156,80 +156,75 @@ nsresult nsAbQueryLDAPMessageListener::Cancel ()
 
 NS_IMETHODIMP nsAbQueryLDAPMessageListener::OnLDAPMessage(nsILDAPMessage *aMessage)
 {
-    nsresult rv = Initiate();
-    NS_ENSURE_SUCCESS(rv, rv);
+  nsresult rv = Initiate();
+  NS_ENSURE_SUCCESS(rv, rv);
 
-    PRInt32 messageType;
-    rv = aMessage->GetType(&messageType);
-    NS_ENSURE_SUCCESS(rv, rv);
+  PRInt32 messageType;
+  rv = aMessage->GetType(&messageType);
+  NS_ENSURE_SUCCESS(rv, rv);
 
-    PRBool cancelOperation = PR_FALSE;
+  PRBool cancelOperation = PR_FALSE;
 
-    // Enter lock
+  // Enter lock
+  {
+    nsAutoLock lock (mLock);
+
+    if (mFinished)
+      return NS_OK;
+
+    if (messageType == nsILDAPMessage::RES_SEARCH_RESULT)
+      mFinished = PR_TRUE;
+    else if (mCanceled)
     {
-        nsAutoLock lock (mLock);
-
-        if (mFinished)
-            return NS_OK;
-
-        if (messageType == nsILDAPMessage::RES_SEARCH_RESULT)
-            mFinished = PR_TRUE;
-        else if (mCanceled)
-        {
-            mFinished = PR_TRUE;
-            cancelOperation = PR_TRUE;
-        }
+      mFinished = PR_TRUE;
+      cancelOperation = PR_TRUE;
     }
-    // Leave lock
+  }
+  // Leave lock
 
-    if (!mDirectoryQuery)
-      return NS_ERROR_NULL_POINTER;
+  if (!mResultListener)
+    return NS_ERROR_NULL_POINTER;
 
-    nsCOMPtr<nsIAbDirectoryQueryResult> queryResult;
-    if (!cancelOperation)
+  if (!cancelOperation)
+  {
+    switch (messageType)
     {
-        switch (messageType)
-        {
-        case nsILDAPMessage::RES_BIND:
-            rv = OnLDAPMessageBind(aMessage);
-            if (NS_FAILED(rv))
-              rv = QueryResultStatus(nsnull, getter_AddRefs(queryResult),
-                                     nsIAbDirectoryQueryResult::queryResultError);
-            break;
-        case nsILDAPMessage::RES_SEARCH_ENTRY:
-            if (!mFinished && !mWaitingForPrevQueryToFinish)
-            {
-                rv = OnLDAPMessageSearchEntry(aMessage, 
-                                              getter_AddRefs(queryResult));
-            }
-            break;
-        case nsILDAPMessage::RES_SEARCH_RESULT:
-            mWaitingForPrevQueryToFinish = PR_FALSE;
-            rv = OnLDAPMessageSearchResult(aMessage, getter_AddRefs(queryResult));
-            NS_ENSURE_SUCCESS(rv, rv);
-        default:
-            break;
-        }
+    case nsILDAPMessage::RES_BIND:
+      rv = OnLDAPMessageBind(aMessage);
+      if (NS_FAILED(rv)) 
+        // We know the bind failed and hence the message has an error, so we
+        // can just call SearchResult with the message and that'll sort it out
+        // for us.
+        rv = OnLDAPMessageSearchResult(aMessage);
+      break;
+    case nsILDAPMessage::RES_SEARCH_ENTRY:
+      if (!mFinished && !mWaitingForPrevQueryToFinish)
+        rv = OnLDAPMessageSearchEntry(aMessage);
+      break;
+    case nsILDAPMessage::RES_SEARCH_RESULT:
+      mWaitingForPrevQueryToFinish = PR_FALSE;
+      rv = OnLDAPMessageSearchResult(aMessage);
+      NS_ENSURE_SUCCESS(rv, rv);
+    default:
+      break;
     }
-    else
-    {
-        if (mSearchOperation)
-            rv = mSearchOperation->AbandonExt();
+  }
+  else
+  {
+    if (mSearchOperation)
+      rv = mSearchOperation->AbandonExt();
 
-        rv = QueryResultStatus(nsnull, getter_AddRefs(queryResult),
-                               nsIAbDirectoryQueryResult::queryResultStopped);
-        // reset because we might re-use this listener...except don't do this
-        // until the search is done, so we'll ignore results from a previous
-        // search.
-        if (messageType == nsILDAPMessage::RES_SEARCH_RESULT)
-          mCanceled = mFinished = PR_FALSE;
+    rv = mResultListener->OnQueryResult(
+      nsIAbDirectoryQueryResultListener::queryResultStopped, 0);
 
-    }
+    // reset because we might re-use this listener...except don't do this
+    // until the search is done, so we'll ignore results from a previous
+    // search.
+    if (messageType == nsILDAPMessage::RES_SEARCH_RESULT)
+      mCanceled = mFinished = PR_FALSE;
+  }
 
-    if (queryResult && mQueryListener)
-        rv = mQueryListener->OnQueryItem (queryResult);
-
-    return rv;
+  return rv;
 }
 
 nsresult nsAbQueryLDAPMessageListener::DoTask()
@@ -267,24 +262,10 @@ nsresult nsAbQueryLDAPMessageListener::DoTask()
                                  attributes.GetArrayAddr());
   NS_ENSURE_SUCCESS(rv, rv);
 
-  // I don't _think_ it's ever actually possible to get here without having
-  // an nsAbLDAPDirectory object, but, just in case, I'll do a QI instead
-  // of just static casts...
-  nsCOMPtr<nsIAbLDAPDirectory> abLDAPDir =
-    do_QueryInterface(mDirectoryQuery, &rv);
+  rv = mSearchOperation->SetServerControls(mServerSearchControls);
   NS_ENSURE_SUCCESS(rv, rv);
 
-  nsCOMPtr<nsIMutableArray> searchControls;
-  rv = abLDAPDir->GetSearchServerControls(getter_AddRefs(searchControls));
-  NS_ENSURE_SUCCESS(rv, rv);
-
-  rv = mSearchOperation->SetServerControls(searchControls);
-  NS_ENSURE_SUCCESS(rv, rv);
-
-  rv = abLDAPDir->GetSearchClientControls(getter_AddRefs(searchControls));
-  NS_ENSURE_SUCCESS(rv, rv);
-
-  rv = mSearchOperation->SetClientControls(searchControls);
+  rv = mSearchOperation->SetClientControls(mClientSearchControls);
   NS_ENSURE_SUCCESS(rv, rv);
 
   return mSearchOperation->SearchExt(dn, scope, filter, attributes.GetSize(),
@@ -292,124 +273,48 @@ nsresult nsAbQueryLDAPMessageListener::DoTask()
                                      mResultLimit);
 }
 
-nsresult nsAbQueryLDAPMessageListener::OnLDAPMessageSearchEntry (nsILDAPMessage *aMessage,
-        nsIAbDirectoryQueryResult** result)
+nsresult nsAbQueryLDAPMessageListener::OnLDAPMessageSearchEntry(nsILDAPMessage *aMessage)
 {
-    nsresult rv;
+  nsresult rv;
 
-    if (!mDirectoryQuery)
-      return NS_ERROR_NULL_POINTER;
+  if (!mResultListener)
+    return NS_ERROR_NULL_POINTER;
 
-    // the address book fields that we'll be asking for
-    CharPtrArrayGuard properties;
-    rv = mQueryArguments->GetReturnProperties(properties.GetSizeAddr(),
-                                              properties.GetArrayAddr());
-    NS_ENSURE_SUCCESS(rv, rv);
+  // the map for translating between LDAP attrs <-> addrbook fields
+  nsCOMPtr<nsISupports> iSupportsMap;
+  rv = mQueryArguments->GetTypeSpecificArg(getter_AddRefs(iSupportsMap));
+  NS_ENSURE_SUCCESS(rv, rv);
 
-    // the map for translating between LDAP attrs <-> addrbook fields
-    nsCOMPtr<nsISupports> iSupportsMap;
-    rv = mQueryArguments->GetTypeSpecificArg(getter_AddRefs(iSupportsMap));
-    NS_ENSURE_SUCCESS(rv, rv);
-    nsCOMPtr<nsIAbLDAPAttributeMap> map = do_QueryInterface(iSupportsMap, &rv);
-    NS_ENSURE_SUCCESS(rv, rv);
+  nsCOMPtr<nsIAbLDAPAttributeMap> map = do_QueryInterface(iSupportsMap, &rv);
+  NS_ENSURE_SUCCESS(rv, rv);
 
-    // set up variables for handling the property values to be returned
-    nsCOMPtr<nsISupportsArray> propertyValues;
-    nsCOMPtr<nsIAbDirectoryQueryPropertyValue> propertyValue;
-    rv = NS_NewISupportsArray(getter_AddRefs(propertyValues));
-    NS_ENSURE_SUCCESS(rv, rv);
-        
-    if (!strcmp(properties[0], "card:nsIAbCard")) {
-        // Meta property
-        nsCAutoString dn;
-        rv = aMessage->GetDn (dn);
-        NS_ENSURE_SUCCESS(rv, rv);
+  nsCOMPtr<nsIAbCard> card = do_CreateInstance(NS_ABLDAPCARD_CONTRACTID, &rv);
+  NS_ENSURE_SUCCESS(rv, rv);
 
-        nsCOMPtr<nsIAbCard> card = do_CreateInstance(NS_ABLDAPCARD_CONTRACTID, &rv);
-        NS_ENSURE_SUCCESS(rv, rv);
+  rv = map->SetCardPropertiesFromLDAPMessage(aMessage, card);
+  NS_ENSURE_SUCCESS(rv, rv);
 
-        rv = map->SetCardPropertiesFromLDAPMessage(aMessage, card);
-        NS_ENSURE_SUCCESS(rv, rv);
-
-        propertyValue = new nsAbDirectoryQueryPropertyValue(properties[0], card);
-        if (!propertyValue) 
-            return NS_ERROR_OUT_OF_MEMORY;
-
-        rv = propertyValues->AppendElement(propertyValue);
-        NS_ENSURE_SUCCESS(rv, rv);
-    } else {
-
-        for (PRUint32 i = 0; i < properties.GetSize(); i++)
-            {
-                // this is the precedence order list of attrs for this property
-                CharPtrArrayGuard attrs;
-                rv = map->GetAttributes(nsDependentCString(properties[i]),
-                                        attrs.GetSizeAddr(),
-                                        attrs.GetArrayAddr());
-
-                // if there are no attrs for this property, just move on
-                if (NS_FAILED(rv) || !strlen(attrs[0])) {
-                    continue;
-                }
-
-                // iterate through list, until first property found
-                for (PRUint32 j=0; j < attrs.GetSize(); j++) {
-
-                    // try and get the values for this ldap attribute
-                    PRUnicharPtrArrayGuard vals;
-                    rv = aMessage->GetValues(attrs[j], vals.GetSizeAddr(),
-                                             vals.GetArrayAddr());
-
-                    if (NS_SUCCEEDED(rv) && vals.GetSize()) {
-                        propertyValue = new nsAbDirectoryQueryPropertyValue(
-                            properties[i], vals[0]);
-                        if (!propertyValue) {
-                            return NS_ERROR_OUT_OF_MEMORY;
-                        }
-
-                        (void)propertyValues->AppendElement (propertyValue);
-                        break;
-                    }
-                }
-            }
-    }
-
-    return QueryResultStatus (propertyValues, result, nsIAbDirectoryQueryResult::queryResultMatch);
+  return mResultListener->OnQueryFoundCard(card);
 }
-nsresult nsAbQueryLDAPMessageListener::OnLDAPMessageSearchResult (nsILDAPMessage *aMessage,
-        nsIAbDirectoryQueryResult** result)
+
+nsresult nsAbQueryLDAPMessageListener::OnLDAPMessageSearchResult(nsILDAPMessage *aMessage)
 {
-    PRInt32 errorCode;
-    nsresult rv = aMessage->GetErrorCode(&errorCode);
-    NS_ENSURE_SUCCESS(rv, rv);
+  PRInt32 errorCode;
+  nsresult rv = aMessage->GetErrorCode(&errorCode);
+  NS_ENSURE_SUCCESS(rv, rv);
     
-    if (errorCode == nsILDAPErrors::SUCCESS || errorCode == nsILDAPErrors::SIZELIMIT_EXCEEDED)
-        rv = QueryResultStatus (nsnull, result,nsIAbDirectoryQueryResult::queryResultComplete);
-    else
-        rv = QueryResultStatus (nsnull, result, nsIAbDirectoryQueryResult::queryResultError);
+  if (errorCode == nsILDAPErrors::SUCCESS || errorCode == nsILDAPErrors::SIZELIMIT_EXCEEDED)
+    return mResultListener->OnQueryResult(
+      nsIAbDirectoryQueryResultListener::queryResultComplete, 0);
 
-    return rv;
+  return mResultListener->OnQueryResult(
+      nsIAbDirectoryQueryResultListener::queryResultError, errorCode);
 }
 
-nsresult nsAbQueryLDAPMessageListener::QueryResultStatus(nsISupportsArray* properties,
-        nsIAbDirectoryQueryResult** result, PRUint32 resultStatus)
-{
-    nsAbDirectoryQueryResult* _queryResult = new nsAbDirectoryQueryResult (
-        mContextID,
-        mQueryArguments,
-        resultStatus,
-        (resultStatus == nsIAbDirectoryQueryResult::queryResultMatch) ? properties : 0);
+// nsAbLDAPDirectoryQuery
 
-    if (!_queryResult)
-        return NS_ERROR_OUT_OF_MEMORY;
-
-    NS_IF_ADDREF(*result = _queryResult);
-    return NS_OK;
-}
-
-
-
-NS_IMPL_THREADSAFE_ISUPPORTS1(nsAbLDAPDirectoryQuery, nsIAbDirectoryQuery)
+NS_IMPL_THREADSAFE_ISUPPORTS2(nsAbLDAPDirectoryQuery, nsIAbDirectoryQuery,
+                              nsIAbDirectoryQueryResultListener)
 
 nsAbLDAPDirectoryQuery::nsAbLDAPDirectoryQuery() :
     mInitialized(PR_FALSE)
@@ -418,29 +323,28 @@ nsAbLDAPDirectoryQuery::nsAbLDAPDirectoryQuery() :
 
 nsAbLDAPDirectoryQuery::~nsAbLDAPDirectoryQuery()
 {
-     nsAbQueryLDAPMessageListener *msgListener = 
-        static_cast<nsAbQueryLDAPMessageListener *>(static_cast<nsILDAPMessageListener *>(mListener.get()));
-     if (msgListener)
-     {
-       msgListener->mDirectoryQuery = nsnull;
-       msgListener->mQueryListener = nsnull;
-     }
 }
 
-NS_IMETHODIMP nsAbLDAPDirectoryQuery::DoQuery(nsIAbDirectoryQueryArguments* arguments,
-  nsIAbDirectoryQueryResultListener* listener,
-  PRInt32 resultLimit,
-  PRInt32 timeOut,
+NS_IMETHODIMP nsAbLDAPDirectoryQuery::DoQuery(nsIAbDirectory *aDirectory,
+  nsIAbDirectoryQueryArguments* aArguments,
+  nsIAbDirSearchListener* aListener,
+  PRInt32 aResultLimit,
+  PRInt32 aTimeOut,
   PRInt32* _retval)
 {
+  NS_ENSURE_ARG_POINTER(aListener);
+  NS_ENSURE_ARG_POINTER(aArguments);
+
+  mListeners.AppendObject(aListener);
+
   // Ensure existing query is stopped. Context id doesn't matter here
   nsresult rv = StopQuery(0);
   NS_ENSURE_SUCCESS(rv, rv);
-  
+
   mInitialized = PR_TRUE;
-  
-  // Get the current directory as LDAP specific - we'll need this later
-  nsCOMPtr<nsIAbLDAPDirectory> directory(do_QueryInterface(this, &rv));
+
+  // Get the current directory as LDAP specific
+  nsCOMPtr<nsIAbLDAPDirectory> directory(do_QueryInterface(aDirectory, &rv));
   NS_ENSURE_SUCCESS(rv, rv);
   
   // We also need the current URL to check as well...
@@ -504,18 +408,26 @@ NS_IMETHODIMP nsAbLDAPDirectoryQuery::DoQuery(nsIAbDirectoryQueryArguments* argu
   // Get the scope
   nsCAutoString scope;
   PRBool doSubDirectories;
-  rv = arguments->GetQuerySubDirectories (&doSubDirectories);
+  rv = aArguments->GetQuerySubDirectories (&doSubDirectories);
   NS_ENSURE_SUCCESS(rv, rv);
   scope = (doSubDirectories) ? "sub" : "one";
-  
+
   // Get the return attributes
-  nsCAutoString returnAttributes;
-  rv = getLdapReturnAttributes (arguments, returnAttributes);
+  nsCOMPtr<nsISupports> iSupportsMap;
+  rv = aArguments->GetTypeSpecificArg(getter_AddRefs(iSupportsMap));
   NS_ENSURE_SUCCESS(rv, rv);
-  
+
+  nsCOMPtr<nsIAbLDAPAttributeMap> map = do_QueryInterface(iSupportsMap, &rv);
+  NS_ENSURE_SUCCESS(rv, rv);
+
+  // require all attributes
+  nsCAutoString returnAttributes;
+  rv = map->GetAllCardAttributes(returnAttributes);
+  NS_ASSERTION(NS_SUCCEEDED(rv), "GetAllSupportedAttributes failed");
+
   // Get the filter
   nsCOMPtr<nsISupports> supportsExpression;
-  rv = arguments->GetExpression (getter_AddRefs (supportsExpression));
+  rv = aArguments->GetExpression (getter_AddRefs (supportsExpression));
   NS_ENSURE_SUCCESS(rv, rv);
   
   nsCOMPtr<nsIAbBooleanExpression> expression (do_QueryInterface (supportsExpression, &rv));
@@ -523,13 +435,6 @@ NS_IMETHODIMP nsAbLDAPDirectoryQuery::DoQuery(nsIAbDirectoryQueryArguments* argu
   
   // figure out how we map attribute names to addressbook fields for this
   // query
-  nsCOMPtr<nsISupports> iSupportsMap;
-  rv = arguments->GetTypeSpecificArg(getter_AddRefs(iSupportsMap));
-  NS_ENSURE_SUCCESS(rv, rv);
-
-  nsCOMPtr<nsIAbLDAPAttributeMap> map = do_QueryInterface(iSupportsMap, &rv);
-  NS_ENSURE_SUCCESS(rv, rv);
-
   rv = nsAbBoolExprToLDAPFilter::Convert(map, expression, filter);
   NS_ENSURE_SUCCESS(rv, rv);
 
@@ -636,21 +541,36 @@ NS_IMETHODIMP nsAbLDAPDirectoryQuery::DoQuery(nsIAbDirectoryQueryArguments* argu
       msgListener->mDirectoryUrl = mDirectoryUrl;
       msgListener->mSearchUrl = url;
       // Also ensure we set the correct result limit
-      msgListener->mResultLimit = resultLimit;
+      msgListener->mResultLimit = aResultLimit;
       return msgListener->DoTask();
     }
   }
   
+  nsCOMPtr<nsIAbLDAPDirectory> abLDAPDir = do_QueryInterface(aDirectory, &rv);
+  NS_ENSURE_SUCCESS(rv, rv);
+
+  nsCOMPtr<nsIMutableArray> serverSearchControls;
+  rv = abLDAPDir->GetSearchServerControls(getter_AddRefs(serverSearchControls));
+  NS_ENSURE_SUCCESS(rv, rv);
+
+  nsCOMPtr<nsIMutableArray> clientSearchControls;
+  rv = abLDAPDir->GetSearchClientControls(getter_AddRefs(clientSearchControls));
+  NS_ENSURE_SUCCESS(rv, rv);
+
   // Create the new connection (which cause the old one to be dropped if necessary)
   mConnection = do_CreateInstance(NS_LDAPCONNECTION_CONTRACTID, &rv);
   NS_ENSURE_SUCCESS(rv, rv);
-  
+
+  nsCOMPtr<nsIAbDirectoryQueryResultListener> resultListener =
+    do_QueryInterface((nsIAbDirectoryQuery*)this, &rv);
+  NS_ENSURE_SUCCESS(rv, rv);
+
   // Initiate LDAP message listener
   nsAbQueryLDAPMessageListener* _messageListener =
-    new nsAbQueryLDAPMessageListener(this, mDirectoryUrl, url,
-                                     mConnection, arguments,
-                                     listener, mCurrentLogin,
-                                     resultLimit, timeOut);
+    new nsAbQueryLDAPMessageListener(resultListener, mDirectoryUrl, url,
+                                     mConnection, aArguments,
+                                     serverSearchControls, clientSearchControls,
+                                     mCurrentLogin, aResultLimit, aTimeOut);
   if (_messageListener == NULL)
     return NS_ERROR_OUT_OF_MEMORY;
   
@@ -682,58 +602,24 @@ NS_IMETHODIMP nsAbLDAPDirectoryQuery::StopQuery(PRInt32 contextID)
   return NS_OK;
 }
 
-
-nsresult nsAbLDAPDirectoryQuery::getLdapReturnAttributes (
-    nsIAbDirectoryQueryArguments* arguments,
-    nsCString& returnAttributes)
+NS_IMETHODIMP nsAbLDAPDirectoryQuery::OnQueryFoundCard(nsIAbCard *aCard)
 {
-    CharPtrArrayGuard properties;
-    nsresult rv = arguments->GetReturnProperties(properties.GetSizeAddr(),
-                                                 properties.GetArrayAddr());
-    NS_ENSURE_SUCCESS(rv, rv);
+  for (PRInt32 i = 0; i < mListeners.Count(); ++i)
+    mListeners[i]->OnSearchFoundCard(aCard);
 
-    // figure out how we map attribute names to addressbook fields for this
-    // query
-    nsCOMPtr<nsISupports> iSupportsMap;
-    rv = arguments->GetTypeSpecificArg(getter_AddRefs(iSupportsMap));
-    NS_ENSURE_SUCCESS(rv, rv);
+  return NS_OK;
+}
 
-    nsCOMPtr<nsIAbLDAPAttributeMap> map = do_QueryInterface(iSupportsMap, &rv);
-    NS_ENSURE_SUCCESS(rv, rv);
+NS_IMETHODIMP nsAbLDAPDirectoryQuery::OnQueryResult(PRInt32 aResult,
+                                                    PRInt32 aErrorCode)
+{
+  PRUint32 count = mListeners.Count();
 
-    if (!strcmp(properties[0], "card:nsIAbCard")) {
-        // Meta property
-        // require all attributes
-        //
-        rv = map->GetAllCardAttributes(returnAttributes);
-        NS_ASSERTION(NS_SUCCEEDED(rv), "GetAllSupportedAttributes failed");
-        return rv;
-    }
+  for (PRInt32 i = count - 1; i >= 0; --i)
+  {
+    mListeners[i]->OnSearchFinished(aResult, EmptyString());
+    mListeners.RemoveObjectAt(i);
+  }
 
-    PRBool needComma = PR_FALSE;
-    for (PRUint32 i = 0; i < properties.GetSize(); i++)
-    {
-        nsCAutoString attrs;
-
-        // get all the attributes for this property
-        rv = map->GetAttributeList(nsDependentCString(properties[i]), attrs);
-
-        // if there weren't any attrs, just keep going
-        if (NS_FAILED(rv) || attrs.IsEmpty()) {
-            continue;
-        }
-
-        // add a comma, if necessary
-        if (needComma) {
-            returnAttributes.Append(PRUnichar (','));
-        }
-
-        returnAttributes.Append(attrs);
-
-        // since we've added attrs, we definitely need a comma next time
-        // we're here
-        needComma = PR_TRUE;
-    }
-
-    return rv;
+  return NS_OK;
 }

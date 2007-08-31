@@ -41,9 +41,9 @@
 
 #include "nsAbDirectoryRDFResource.h"
 #include "nsAbDirProperty.h"
-#include "nsAbLDAPDirectoryQuery.h"
+#include "nsIAbDirectoryQuery.h"
 #include "nsIAbDirectorySearch.h"
-#include "nsAbDirSearchListener.h"
+#include "nsIAbDirSearchListener.h"
 #include "nsIAbLDAPDirectory.h"
 #include "nsIMutableArray.h"
 #include "nsHashtable.h"
@@ -51,10 +51,9 @@
 class nsAbLDAPDirectory :
   public nsAbDirectoryRDFResource,    // nsIRDFResource
   public nsAbDirProperty,             // nsIAbDirectory
-  public nsAbLDAPDirectoryQuery,      // nsIAbDirectoryQuery
   public nsIAbDirectorySearch,
-  public nsAbDirSearchListenerContext,
-  public nsIAbLDAPDirectory
+  public nsIAbLDAPDirectory,
+  public nsIAbDirSearchListener
 {
 public:
   NS_DECL_ISUPPORTS_INHERITED
@@ -77,12 +76,8 @@ public:
 
   // nsIAbDirectorySearch methods
   NS_DECL_NSIABDIRECTORYSEARCH
-
-  // nsAbDirSearchListenerContext methods
-  nsresult OnSearchFinished(PRInt32 result);
-  nsresult OnSearchFoundCard(nsIAbCard* card);
-
   NS_DECL_NSIABLDAPDIRECTORY
+  NS_DECL_NSIABDIRSEARCHLISTENER
 
 protected:
   nsresult Initiate();
@@ -94,7 +89,7 @@ protected:
   nsSupportsHashtable mCache;
 
   PRLock* mLock;
-
+  nsCOMPtr<nsIAbDirectoryQuery> mDirectoryQuery;
   nsCOMPtr<nsIMutableArray> mSearchServerControls;
   nsCOMPtr<nsIMutableArray> mSearchClientControls;
 };

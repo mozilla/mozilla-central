@@ -327,6 +327,17 @@
 	{0x9E, 0x4B, 0x8A, 0xB5, 0x8C, 0x22, 0x8A, 0x52}	\
 }
 
+// nsAbLDAPDirectoryQuery
+//
+#define NS_ABLDAPDIRECTORYQUERY_CONTRACTID \
+  "@mozilla.org/addressbook/ldap-directory-query;1"
+
+#define NS_ABLDAPDIRECTORYQUERY_CID             			\
+{ /* {783E2777-66D7-4826-9E4B-8AB58C228A53}*/			\
+	0x783E2777, 0x66D7, 0x4826,				\
+	{0x9E, 0x4B, 0x8A, 0xB5, 0x8C, 0x22, 0x8A, 0x53}	\
+}
+
 //
 // nsAbLDAPCard
 //

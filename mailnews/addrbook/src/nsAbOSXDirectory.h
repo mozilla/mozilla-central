@@ -45,7 +45,7 @@
 #include "nsAbDirProperty.h"
 #include "nsIAbDirectoryQuery.h"
 #include "nsIAbDirectorySearch.h"
-#include "nsAbDirSearchListener.h"
+#include "nsIAbDirSearchListener.h"
 #include "nsTHashtable.h"
 
 class nsIAddrBookSession;
@@ -123,13 +123,14 @@ NS_DEFINE_STATIC_IID_ACCESSOR(nsIAbOSXDirectory, NS_IABOSXDIRECTORY_IID)
 
 class nsAbOSXDirectory : public nsAbDirectoryRDFResource,
 public nsAbDirProperty,
-public nsAbDirSearchListenerContext,
+public nsIAbDirSearchListener,
 public nsIAbOSXDirectory
 {
 public:
   ~nsAbOSXDirectory();
   
   NS_DECL_ISUPPORTS_INHERITED
+  NS_DECL_NSIABDIRSEARCHLISTENER
     
     // nsAbDirectoryRDFResource method
     NS_IMETHOD Init(const char *aUri);
@@ -140,10 +141,6 @@ public:
   NS_IMETHOD GetChildNodes(nsISimpleEnumerator **aNodes);
   NS_IMETHOD HasCard(nsIAbCard *aCard, PRBool *aHasCard);
   NS_IMETHOD HasDirectory(nsIAbDirectory *aDirectory, PRBool *aHasDirectory);
-  
-  // nsAbDirSearchListenerContext methods
-  nsresult OnSearchFinished(PRInt32 aResult);
-  nsresult OnSearchFoundCard(nsIAbCard *aCard);
   
   // nsIAbOSXDirectory
   nsresult AssertChildNodes();

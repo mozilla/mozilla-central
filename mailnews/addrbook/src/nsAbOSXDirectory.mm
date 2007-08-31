@@ -446,10 +446,11 @@ nsAbOSXDirectory::~nsAbOSXDirectory()
   }
 }
 
-NS_IMPL_ISUPPORTS_INHERITED2(nsAbOSXDirectory,
+NS_IMPL_ISUPPORTS_INHERITED3(nsAbOSXDirectory,
                              nsAbDirectoryRDFResource,
                              nsIAbDirectory,
-                             nsIAbOSXDirectory)
+                             nsIAbOSXDirectory,
+                             nsIAbDirSearchListener)
 
 NS_IMETHODIMP
 nsAbOSXDirectory::Init(const char *aUri)
@@ -811,13 +812,13 @@ nsAbOSXDirectory::HasDirectory(nsIAbDirectory *aDirectory,
   return NS_OK;
 }
 
-nsresult
-nsAbOSXDirectory::OnSearchFinished(PRInt32 aResult)
+NS_IMETHODIMP
+nsAbOSXDirectory::OnSearchFinished(PRInt32 aResult, const nsAString &aErrorMsg)
 {
   return NS_OK;
 }
 
-nsresult
+NS_IMETHODIMP
 nsAbOSXDirectory::OnSearchFoundCard(nsIAbCard *aCard)
 {
   nsresult rv;
@@ -864,12 +865,6 @@ nsAbOSXDirectory::FallbackSearch(nsIAbBooleanExpression *aExpression,
   rv = arguments->SetExpression(aExpression);
   NS_ENSURE_SUCCESS(rv, rv);
   
-  // Set the return properties to
-  // return nsIAbCard interfaces
-  const char* property = "card:nsIAbCard";
-  rv = arguments->SetReturnProperties(1, &property);
-  NS_ENSURE_SUCCESS(rv, rv);
-  
   // Don't search the subdirectories. If the current directory is a mailing
   // list, it won't have any subdirectories. If the current directory is an
   // addressbook, searching both it and the subdirectories (the mailing
@@ -877,12 +872,6 @@ nsAbOSXDirectory::FallbackSearch(nsIAbBooleanExpression *aExpression,
   // list will be an entry in the parent addressbook.
   rv = arguments->SetQuerySubDirectories(PR_FALSE);
   NS_ENSURE_SUCCESS(rv, rv);
-  
-  // Set the the query listener
-  nsCOMPtr<nsIAbDirectoryQueryResultListener> queryListener =
-    new nsAbDirSearchListener(this);
-  if (!queryListener) 
-    return NS_ERROR_OUT_OF_MEMORY;
   
   // Get the directory without the query
   nsCOMPtr<nsIRDFResource> resource;
@@ -897,11 +886,11 @@ nsAbOSXDirectory::FallbackSearch(nsIAbBooleanExpression *aExpression,
     do_CreateInstance(NS_ABDIRECTORYQUERYPROXY_CONTRACTID, &rv);
   NS_ENSURE_SUCCESS(rv, rv);
   
-  rv = queryProxy->Initiate(directory);
+  rv = queryProxy->Initiate();
   NS_ENSURE_SUCCESS(rv, rv);
   
   PRInt32 context = 0;
-  rv = queryProxy->DoQuery(arguments, queryListener, -1, 0, &context);
+  rv = queryProxy->DoQuery(directory, arguments, this, -1, 0, &context);
   NS_ENSURE_SUCCESS(rv, rv);
   
   return NS_NewArrayEnumerator(aCards, m_AddressList);

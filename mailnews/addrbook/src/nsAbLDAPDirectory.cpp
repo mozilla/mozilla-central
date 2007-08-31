@@ -55,12 +55,13 @@
 #include "nsEnumeratorUtils.h"
 #include "nsIAbLDAPAttributeMap.h"
 #include "nsIAbMDBDirectory.h"
+#include "nsILDAPURL.h"
+#include "nsILDAPConnection.h"
 
 #define kDefaultMaxHits 100
 
 nsAbLDAPDirectory::nsAbLDAPDirectory() :
   nsAbDirectoryRDFResource(),
-  nsAbLDAPDirectoryQuery(),
   mPerformingQuery(PR_FALSE),
   mContext(0),
   mLock(0)
@@ -73,8 +74,9 @@ nsAbLDAPDirectory::~nsAbLDAPDirectory()
     PR_DestroyLock (mLock);
 }
 
-NS_IMPL_ISUPPORTS_INHERITED4(nsAbLDAPDirectory, nsAbDirectoryRDFResource, nsIAbDirectory,
-                             nsIAbDirectoryQuery, nsIAbDirectorySearch, nsIAbLDAPDirectory)
+NS_IMPL_ISUPPORTS_INHERITED3(nsAbLDAPDirectory, nsAbDirectoryRDFResource,
+                             nsIAbDirectory, nsIAbDirSearchListener,
+                             nsIAbLDAPDirectory)
 
 NS_IMETHODIMP nsAbLDAPDirectory::Init(const char* aURI)
 {
@@ -291,20 +293,8 @@ NS_IMETHODIMP nsAbLDAPDirectory::StartSearch ()
     rv = arguments->SetExpression(expression);
     NS_ENSURE_SUCCESS(rv, rv);
 
-    // Set the return properties to
-    // return nsIAbCard interfaces
-    const char *arr = "card:nsIAbCard";
-    rv = arguments->SetReturnProperties(1, &arr);
-    NS_ENSURE_SUCCESS(rv, rv);
-
     rv = arguments->SetQuerySubDirectories(PR_TRUE);
     NS_ENSURE_SUCCESS(rv, rv);
-
-    // Set the the query listener
-    nsCOMPtr<nsIAbDirectoryQueryResultListener> queryListener;
-    nsAbDirSearchListener* _queryListener =
-        new nsAbDirSearchListener (this);
-    queryListener = _queryListener;
 
     // Get the max hits to return
     PRInt32 maxHits;
@@ -324,14 +314,21 @@ NS_IMETHODIMP nsAbLDAPDirectory::StartSearch ()
     rv = arguments->SetTypeSpecificArg(attrMap);
     NS_ENSURE_SUCCESS(rv, rv);
 
+    if (!mDirectoryQuery)
+    {
+      mDirectoryQuery = do_CreateInstance(NS_ABLDAPDIRECTORYQUERY_CONTRACTID,
+                                          &rv);
+      NS_ENSURE_SUCCESS(rv, rv);
+    }
+
     // Perform the query
-    rv = DoQuery(arguments, queryListener, maxHits, 0, &mContext);
+    rv = mDirectoryQuery->DoQuery(this, arguments, this, maxHits, 0, &mContext);
     NS_ENSURE_SUCCESS(rv, rv);
 
     // Enter lock
-    nsAutoLock lock (mLock);
+    nsAutoLock lock(mLock);
     mPerformingQuery = PR_TRUE;
-    mCache.Reset ();
+    mCache.Reset();
 
     return rv;
 }  
@@ -350,7 +347,10 @@ NS_IMETHODIMP nsAbLDAPDirectory::StopSearch ()
   }
   // Exit lock
 
-  return StopQuery(mContext);
+  if (!mDirectoryQuery)
+    return NS_ERROR_NULL_POINTER;
+
+  return mDirectoryQuery->StopQuery(mContext);
 }
 
 /* 
@@ -358,7 +358,7 @@ NS_IMETHODIMP nsAbLDAPDirectory::StopSearch ()
  * nsAbDirSearchListenerContext methods
  *
  */
-nsresult nsAbLDAPDirectory::OnSearchFinished(PRInt32 result)
+NS_IMETHODIMP nsAbLDAPDirectory::OnSearchFinished(PRInt32 aResult, const nsAString &aErrorMessage)
 {
   nsresult rv = Initiate();
   NS_ENSURE_SUCCESS(rv, rv);
@@ -369,7 +369,7 @@ nsresult nsAbLDAPDirectory::OnSearchFinished(PRInt32 result)
   return NS_OK;
 }
 
-nsresult nsAbLDAPDirectory::OnSearchFoundCard(nsIAbCard* card)
+NS_IMETHODIMP nsAbLDAPDirectory::OnSearchFoundCard(nsIAbCard* card)
 {
   nsresult rv = Initiate();
   NS_ENSURE_SUCCESS(rv, rv);

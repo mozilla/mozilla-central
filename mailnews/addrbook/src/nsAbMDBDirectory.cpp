@@ -79,8 +79,8 @@ nsAbMDBDirectory::~nsAbMDBDirectory(void)
   }
 }
 
-NS_IMPL_ISUPPORTS_INHERITED4(nsAbMDBDirectory, nsAbDirectoryRDFResource,
-                             nsIAbDirectory,
+NS_IMPL_ISUPPORTS_INHERITED5(nsAbMDBDirectory, nsAbDirectoryRDFResource,
+                             nsIAbDirectory, nsIAbDirSearchListener,
                              nsIAbMDBDirectory,
                              nsIAbDirectorySearch,
                              nsIAddrDBListener)
@@ -957,12 +957,6 @@ NS_IMETHODIMP nsAbMDBDirectory::StartSearch()
   rv = arguments->SetExpression(expression);
   NS_ENSURE_SUCCESS(rv, rv);
 
-  // Set the return properties to
-  // return nsIAbCard interfaces
-  const char *arr = "card:nsIAbCard";
-  rv = arguments->SetReturnProperties(1, &arr);
-  NS_ENSURE_SUCCESS(rv, rv);
-
   // don't search the subdirectories 
   // if the current directory is a mailing list, it won't have any subdirectories
   // if the current directory is a addressbook, searching both it
@@ -971,15 +965,9 @@ NS_IMETHODIMP nsAbMDBDirectory::StartSearch()
   rv = arguments->SetQuerySubDirectories(PR_FALSE);
   NS_ENSURE_SUCCESS(rv, rv);
 
-  // Set the the query listener
-  nsCOMPtr<nsIAbDirectoryQueryResultListener> queryListener;
-  nsAbDirSearchListener* _queryListener =
-    new nsAbDirSearchListener (this);
-  queryListener = _queryListener;
-
   // Get the directory without the query
   nsCOMPtr<nsIRDFResource> resource;
-  rv = gRDFService->GetResource (mURINoQuery, getter_AddRefs(resource));
+  rv = gRDFService->GetResource(mURINoQuery, getter_AddRefs(resource));
   NS_ENSURE_SUCCESS(rv, rv);
 
   nsCOMPtr<nsIAbDirectory> directory(do_QueryInterface(resource, &rv));
@@ -990,10 +978,10 @@ NS_IMETHODIMP nsAbMDBDirectory::StartSearch()
       do_CreateInstance(NS_ABDIRECTORYQUERYPROXY_CONTRACTID, &rv);
   NS_ENSURE_SUCCESS(rv, rv);
 
-  rv = queryProxy->Initiate(directory);
+  rv = queryProxy->Initiate();
   NS_ENSURE_SUCCESS(rv, rv);
 
-  rv = queryProxy->DoQuery(arguments, queryListener, -1, 0, &mContext);
+  rv = queryProxy->DoQuery(directory, arguments, this, -1, 0, &mContext);
   return NS_OK;
 }
 
@@ -1008,13 +996,14 @@ NS_IMETHODIMP nsAbMDBDirectory::StopSearch()
 
 // nsAbDirSearchListenerContext methods
 
-nsresult nsAbMDBDirectory::OnSearchFinished (PRInt32 result)
+NS_IMETHODIMP nsAbMDBDirectory::OnSearchFinished(PRInt32 aResult,
+                                                 const nsAString &aErrorMsg)
 {
   mPerformingQuery = PR_FALSE;
   return NS_OK;
 }
 
-nsresult nsAbMDBDirectory::OnSearchFoundCard (nsIAbCard* card)
+NS_IMETHODIMP nsAbMDBDirectory::OnSearchFoundCard(nsIAbCard* card)
 {
   nsVoidKey key (static_cast<void*>(card));
   mSearchCache.Put (&key, card);

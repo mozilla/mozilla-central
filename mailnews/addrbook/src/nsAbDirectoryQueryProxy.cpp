@@ -51,12 +51,12 @@ nsAbDirectoryQueryProxy::~nsAbDirectoryQueryProxy()
 }
 
 /* void initiate (in nsIAbDirectory directory); */
-NS_IMETHODIMP nsAbDirectoryQueryProxy::Initiate(nsIAbDirectory *directory)
+NS_IMETHODIMP nsAbDirectoryQueryProxy::Initiate()
 {
     if (mInitiated)
         return NS_OK;
 
-    mDirectoryQuery = new nsAbDirectoryQuery(directory);
+    mDirectoryQuery = new nsAbDirectoryQuery();
 
     mInitiated = PR_TRUE;
 

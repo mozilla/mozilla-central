@@ -15,13 +15,11 @@
  * The Original Code is mozilla.org code.
  *
  * The Initial Developer of the Original Code is
- * Sun Microsystems, Inc.
- * Portions created by the Initial Developer are Copyright (C) 2001
+ * Mark Banner <bugzilla@standard8.plus.com>
+ * Portions created by the Initial Developer are Copyright (C) 2007
  * the Initial Developer. All Rights Reserved.
  *
  * Contributor(s):
- *   Paul Sandoz <paul.sandoz@sun.com>
- *   Dan Mosedale <dmose@mozilla.org>
  *
  * Alternatively, the contents of this file may be used under the terms of
  * either of the GNU General Public License Version 2 or later (the "GPL"),
@@ -36,42 +34,14 @@
  * the terms of any one of the MPL, the GPL or the LGPL.
  *
  * ***** END LICENSE BLOCK ***** */
+ 
+#include "nsISupports.idl"
 
-#ifndef nsAbLDAPDirectoryQuery_h__
-#define nsAbLDAPDirectoryQuery_h__
+interface nsIAbCard;
 
-#include "nsAbDirectoryQuery.h"
-#include "nsILDAPConnection.h"
-#include "nsILDAPMessageListener.h"
-#include "nsILDAPURL.h"
-#include "nsWeakReference.h"
+[scriptable, uuid(eafe2488-4efb-4ac8-a6b4-7756eb1650a3)]
+interface nsIAbDirSearchListener : nsISupports {
+  void onSearchFinished(in long aResult, in AString aErrorMsg);
 
-#include "nsString.h"
-#include "nsHashtable.h"
-#include "nsCOMArray.h"
-
-class nsAbLDAPDirectoryQuery : public nsIAbDirectoryQuery,
-                             public nsIAbDirectoryQueryResultListener
-{
-public:
-  NS_DECL_ISUPPORTS
-  NS_DECL_NSIABDIRECTORYQUERY
-  NS_DECL_NSIABDIRECTORYQUERYRESULTLISTENER
-
-  nsAbLDAPDirectoryQuery();
-  virtual ~nsAbLDAPDirectoryQuery();
-
-protected:
-  nsCOMPtr<nsILDAPMessageListener> mListener;
-
-private:
-  nsCOMPtr<nsILDAPConnection> mConnection;
-  nsCOMPtr<nsILDAPURL> mDirectoryUrl;
-  nsCOMArray<nsIAbDirSearchListener> mListeners;
-  nsCString mCurrentLogin;
-  PRUint32 mCurrentProtocolVersion;
-
-  PRBool mInitialized;
+  void onSearchFoundCard(in nsIAbCard aCard);
 };
-
-#endif // nsAbLDAPDirectoryQuery_h__

@@ -69,6 +69,7 @@ XPIDLSRCS	= \
 		nsIMsgVCardService.idl \
 		nsIAbLDIFService.idl \
 		nsIAbLDAPAttributeMap.idl \
+		nsIAbDirSearchListener.idl \
 		$(NULL)
 ifdef MOZ_LDAP_XPCOM
 XPIDLSRCS       += \

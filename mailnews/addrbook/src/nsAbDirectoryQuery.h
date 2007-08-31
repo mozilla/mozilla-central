@@ -41,6 +41,7 @@
 #define nsAbDirectoryQuery_h__
 
 #include "nsIAbDirectoryQuery.h"
+#include "nsIAbDirectory.h"
 #include "nsCOMPtr.h"
 #include "nsString.h"
 #include "nsVoidArray.h"
@@ -73,7 +74,6 @@ protected:
     nsCOMPtr<nsISupports> mExpression;
     nsCOMPtr<nsISupports> mTypeSpecificArg;
     PRBool mQuerySubDirectories;
-    nsCStringArray mReturnProperties;
 };
 
 
@@ -97,56 +97,31 @@ protected:
 };
 
 
-class nsAbDirectoryQueryResult : public nsIAbDirectoryQueryResult
-{
-public:
-    NS_DECL_ISUPPORTS
-    NS_DECL_NSIABDIRECTORYQUERYRESULT
-
-    nsAbDirectoryQueryResult();
-    nsAbDirectoryQueryResult(PRInt32 aContextID,
-          nsIAbDirectoryQueryArguments* aContextArgs,
-          PRInt32 aType,
-          nsCOMPtr<nsISupportsArray> aResult);
-    virtual ~nsAbDirectoryQueryResult();
-
-protected:
-    PRInt32 mContextID;
-    nsCOMPtr<nsIAbDirectoryQueryArguments> mContextArgs;
-    PRInt32 mType;
-    nsCOMPtr<nsISupportsArray> mResult;
-};
-
-
-
-
-#include "nsIAbDirectory.h"
-
 class nsAbDirectoryQuery : public nsIAbDirectoryQuery
 {
 public:
     NS_DECL_ISUPPORTS
     NS_DECL_NSIABDIRECTORYQUERY
 
-    nsAbDirectoryQuery(nsIAbDirectory* aDirectory);
+    nsAbDirectoryQuery();
     virtual ~nsAbDirectoryQuery();
 
 protected:
     nsresult query (nsIAbDirectory* directory,
         nsIAbDirectoryQueryArguments* arguments,
-        nsIAbDirectoryQueryResultListener* listener,
+        nsIAbDirSearchListener* listener,
         PRInt32* resultLimit);
     nsresult queryChildren (nsIAbDirectory* directory,
         nsIAbDirectoryQueryArguments* arguments,
-        nsIAbDirectoryQueryResultListener* listener,
+        nsIAbDirSearchListener* listener,
         PRInt32* resultLimit);
     nsresult queryCards (nsIAbDirectory* directory,
         nsIAbDirectoryQueryArguments* arguments,
-        nsIAbDirectoryQueryResultListener* listener,
+        nsIAbDirSearchListener* listener,
         PRInt32* resultLimit);
     nsresult matchCard (nsIAbCard* card,
         nsIAbDirectoryQueryArguments* arguments,
-        nsIAbDirectoryQueryResultListener* listener,
+        nsIAbDirSearchListener* listener,
         PRInt32* resultLimit);
     nsresult matchCardExpression (nsIAbCard* card,
         nsIAbBooleanExpression* expression,
@@ -156,15 +131,9 @@ protected:
         PRBool* matchFound);
 
     nsresult queryMatch (nsIAbCard* card,
-        nsIAbDirectoryQueryArguments* arguments,
-        nsIAbDirectoryQueryResultListener* listener);
-    nsresult queryFinished (nsIAbDirectoryQueryArguments* arguments,
-        nsIAbDirectoryQueryResultListener* listener);
-    nsresult queryError (nsIAbDirectoryQueryArguments* arguments,
-        nsIAbDirectoryQueryResultListener* listener);
-    
-protected:
-    nsCOMPtr<nsIAbDirectory> mDirectory;
+        nsIAbDirSearchListener* listener);
+    nsresult queryFinished(nsIAbDirSearchListener* listener);
+    nsresult queryError(nsIAbDirSearchListener* listener);
 };
 
 #endif

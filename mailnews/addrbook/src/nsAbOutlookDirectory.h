@@ -42,7 +42,7 @@
 #include "nsAbDirProperty.h"
 #include "nsIAbDirectoryQuery.h"
 #include "nsIAbDirectorySearch.h"
-#include "nsAbDirSearchListener.h"
+#include "nsIAbDirSearchListener.h"
 #include "nsHashtable.h"
 
 #include "nsISupportsArray.h"
@@ -53,10 +53,13 @@ class nsAbOutlookDirectory : public nsAbDirectoryRDFResource, // nsIRDFResource
                              public nsAbDirProperty, // nsIAbDirectory
                              public nsIAbDirectoryQuery,
                              public nsIAbDirectorySearch,
-                             public nsAbDirSearchListenerContext
+                             public nsIAbDirSearchListener,
+                             public nsIAbDirectoryQueryResultListener
 {
 public:
 	NS_DECL_ISUPPORTS_INHERITED
+  NS_DECL_NSIABDIRSEARCHLISTENER
+  NS_DECL_NSIABDIRECTORYQUERYRESULTLISTENER
 
   nsAbOutlookDirectory(void);
   virtual ~nsAbOutlookDirectory(void);
@@ -81,12 +84,9 @@ public:
   NS_DECL_NSIABDIRECTORYQUERY
   // nsIAbDirectorySearch methods
   NS_DECL_NSIABDIRECTORYSEARCH
-  // nsAbDirSearchListenerContext methods
-  nsresult OnSearchFinished(PRInt32 aResult);
-  nsresult OnSearchFoundCard(nsIAbCard *aCard);
   // Perform a MAPI query (function executed in a separate thread)
   nsresult ExecuteQuery(nsIAbDirectoryQueryArguments *aArguments,
-                        nsIAbDirectoryQueryResultListener *aListener,
+                        nsIAbDirSearchListener *aListener,
                         PRInt32 aResultLimit, PRInt32 aTimeout,
                         PRInt32 aThreadId);
 
