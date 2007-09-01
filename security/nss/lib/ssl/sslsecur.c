@@ -37,7 +37,7 @@
  * the terms of any one of the MPL, the GPL or the LGPL.
  *
  * ***** END LICENSE BLOCK ***** */
-/* $Id: sslsecur.c,v 1.38 2007-05-01 03:54:58 nelson%bolyard.com Exp $ */
+/* $Id: sslsecur.c,v 1.39 2007-09-01 00:53:52 nelson%bolyard.com Exp $ */
 #include "cert.h"
 #include "secitem.h"
 #include "keyhi.h"
@@ -184,6 +184,29 @@ ssl_SetAlwaysBlock(sslSocket *ss)
 	ss->handshake = AlwaysBlock;
 	ss->nextHandshake = 0;
     }
+}
+
+static SECStatus 
+ssl_SetTimeout(PRFileDesc *fd, PRIntervalTime timeout)
+{
+    sslSocket *ss;
+
+    ss = ssl_FindSocket(fd);
+    if (!ss) {
+	SSL_DBG(("%d: SSL[%d]: bad socket in SetTimeout", SSL_GETPID(), fd));
+	return SECFailure;
+    }
+    SSL_LOCK_READER(ss);
+    ss->rTimeout = timeout;
+    if (ss->opt.fdx) {
+        SSL_LOCK_WRITER(ss);
+    }
+    ss->wTimeout = timeout;
+    if (ss->opt.fdx) {
+        SSL_UNLOCK_WRITER(ss);
+    }
+    SSL_UNLOCK_READER(ss);
+    return SECSuccess;
 }
 
 /* Acquires and releases HandshakeLock.
