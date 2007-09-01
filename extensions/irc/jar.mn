@@ -1,6 +1,5 @@
 chatzilla.jar:
 *	content/chatzilla/contents.rdf               (xul/content/contents.rdf)
-*	locale/en-US/chatzilla/contents.rdf          (xul/locale/en-US/contents.rdf)
 	skin/modern/chatzilla/contents.rdf           (xul/skin/contents.rdf)
 	content/chatzilla/lib/js/utils.js            (js/lib/utils.js)
 	content/chatzilla/lib/js/events.js           (js/lib/events.js)
@@ -101,10 +100,3 @@ chatzilla.jar:
 	skin/modern/chatzilla/images/secure-broken.png      (xul/skin/images/secure-broken.png)
 	skin/modern/chatzilla/images/online.png             (xul/skin/images/online.png)
 	skin/modern/chatzilla/images/offline.png            (xul/skin/images/offline.png)
-	locale/en-US/chatzilla/chatzillaOverlay.dtd  (xul/locale/en-US/chatzillaOverlay.dtd) 
-	locale/en-US/chatzilla/browserOverlay.dtd    (xul/locale/en-US/browserOverlay.dtd) 
-	locale/en-US/chatzilla/pref-irc.dtd          (xul/locale/en-US/pref-irc.dtd)
-    locale/en-US/chatzilla/chatzilla.dtd         (xul/locale/en-US/chatzilla.dtd) 
-    locale/en-US/chatzilla/chatzilla.properties  (xul/locale/en-US/chatzilla.properties) 
-	locale/en-US/chatzilla/config.dtd            (xul/locale/en-US/config.dtd) 
-	locale/en-US/chatzilla/channels.dtd          (xul/locale/en-US/channels.dtd) 

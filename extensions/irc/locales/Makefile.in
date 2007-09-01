@@ -12,15 +12,14 @@
 # for the specific language governing rights and limitations under the
 # License.
 #
-# The Original Code is Mozilla IRC Extensions, including Basic Socket Library, and JSIRC Library.
+# The Original Code is mozilla.org code.
 #
 # The Initial Developer of the Original Code is
-# New Dimensions Consulting, Inc. Portions created by New Dimensions Consulting, Inc. Copyright (C) 1999 New Dimenstions Consulting, Inc. All Rights Reserved.
-# Portions created by the Initial Developer are Copyright (C) 2001
+# Robert Kaiser <kairo@kairo.at>.
+# Portions created by the Initial Developer are Copyright (C) 2007
 # the Initial Developer. All Rights Reserved.
 #
 # Contributor(s):
-#   Robert Ginda, rginda@ndcico.com, original author
 #
 # Alternatively, the contents of this file may be used under the terms of
 # either the GNU General Public License Version 2 or later (the "GPL"), or
@@ -36,23 +35,18 @@
 #
 # ***** END LICENSE BLOCK *****
 
-DEPTH		= ../..
-topsrcdir	= @top_srcdir@
-srcdir		= @srcdir@
-VPATH		= @srcdir@
 
-include $(DEPTH)/config/autoconf.mk
+DEPTH=../../..
+topsrcdir=@top_srcdir@
+srcdir=@srcdir@
+VPATH=@srcdir@
+relativesrcdir = extensions/irc/locales
 
-MODULE       = chatzilla
-PACKAGE_FILE = chatzilla.pkg
+# include config.mk before we override the AB_CD var it sets
+include $(topsrcdir)/config/config.mk
 
-EXTRA_COMPONENTS = js/lib/chatzilla-service.js
-
-ifdef MOZ_PHOENIX
-	DIRS += ff
-else
-	DIRS += sm
-endif
-DIRS += locales
+# override UI locale with en-US so that we don't need to provide L10n yet
+AB_CD = en-US
+DEFINES += -DAB_CD=$(AB_CD)
 
 include $(topsrcdir)/config/rules.mk

@@ -2,12 +2,14 @@
 
 # Set up paths for finding files.
 if [ -z "$FEDIR" ]; then FEDIR=$PWD/..; fi
+if [ -z "$LOCALEDIR" ]; then LOCALEDIR=$FEDIR/locales; fi
 if [ -z "$CONFIGDIR" ]; then CONFIGDIR=$FEDIR/../../config; fi
 if [ -z "$XPIFILES" ]; then XPIFILES=$PWD/resources; fi
 if [ -z "$XPIROOT" ]; then XPIROOT=$PWD/xpi-tree; fi
 if [ -z "$JARROOT" ]; then JARROOT=$PWD/jar-tree; fi
 if [ -z "$PERL" ]; then PERL=perl; fi
 if [ -z "$DEBUG" ]; then DEBUG=0; fi
+if [ -z "$AB_CD" ]; then AB_CD=en-US; fi
 
 
 function showParams()
@@ -103,6 +105,8 @@ if [ "$1" = "clean" ]; then
   exit
 fi
 
+# This is where the actual L10n files are found, below $LOCALEDIR for en-US, in l10n/ repository for other languages
+L10NDIR="$LOCALEDIR/$AB_CD"
 
 # Check setup.
 if ! [ -d "$FEDIR" ]; then
@@ -111,6 +115,10 @@ if ! [ -d "$FEDIR" ]; then
 fi
 if ! [ -d "$CONFIGDIR" ]; then
   echo "ERROR: mozilla/config directory (CONFIGDIR) not found."
+  exit 1
+fi
+if ! [ -d "$L10NDIR" ]; then
+  echo "ERROR: directory with localized files for requested language (L10NDIR) not found."
   exit 1
 fi
 
@@ -171,13 +179,9 @@ echo -n .
 safeCommand sed "s|@REVISION@|$VERSION|g" '<' "$XPIFILES/install.js" '>' "$XPIROOT/install.js"
 echo -n .
 safeCommand mv "$FEDIR/xul/content/contents.rdf" "$FEDIR/xul/content/contents.rdf.in"
-safeCommand sed "s|@MOZILLA_VERSION@|cz-$VERSION|g;s|\(chrome:displayName=\)\"[^\"]\{1,\}\"|\1\"ChatZilla $VERSION\"|g" '<' "$FEDIR/xul/content/contents.rdf.in" '>' "$FEDIR/xul/content/contents.rdf"
+safeCommand sed "s|\(chrome:displayName=\)\"[^\"]\{1,\}\"|\1\"ChatZilla $VERSION\"|g" '<' "$FEDIR/xul/content/contents.rdf.in" '>' "$FEDIR/xul/content/contents.rdf"
 safeCommand rm "$FEDIR/xul/content/contents.rdf.in"
-echo -n .
-safeCommand mv "$FEDIR/xul/locale/en-US/contents.rdf" "$FEDIR/xul/locale/en-US/contents.rdf.in"
-safeCommand sed "s|@MOZILLA_VERSION@|cz-$VERSION|g" '<' "$FEDIR/xul/locale/en-US/contents.rdf.in" '>' "$FEDIR/xul/locale/en-US/contents.rdf"
-safeCommand rm "$FEDIR/xul/locale/en-US/contents.rdf.in"
-echo   ".   done"
+echo   ".    done"
 
 
 # Create JAR.
@@ -193,8 +197,12 @@ safeCommand $PERL make-jars.pl -v -z zip -p preprocessor.pl -s "$FEDIR/sm" -d "$
 echo -n .
 safeCommand $PERL make-jars.pl -v -z zip -p preprocessor.pl -s "$FEDIR/ff" -d "$JARROOT" '<' "$FEDIR/ff/jar.mn"
 echo -n .
+safeCommand $PERL preprocessor.pl -DAB_CD="$AB_CD" "$LOCALEDIR/jar.mn" '>' "$LOCALEDIR/jar.mn.pp"
+safeCommand $PERL make-jars.pl -v -z zip -p preprocessor.pl -s "$LOCALEDIR" -d "$JARROOT" -c "$L10NDIR" -- "-DAB_CD=\"$AB_CD\" -DMOZILLA_LOCALE_VERSION=\"\"" '<' "$LOCALEDIR/jar.mn.pp"
+safeCommand rm "$LOCALEDIR/jar.mn.pp"
+echo -n .
 cd "$OLDPWD"
-echo   ".         done"
+echo   ".        done"
 
 
 # Make XPI.
