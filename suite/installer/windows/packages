@@ -103,6 +103,7 @@ bin\components\content_htmldoc.xpt
 bin\components\content_xmldoc.xpt
 bin\components\content_xslt.xpt
 bin\components\content_xtf.xpt
+bin\components\contentprefs.xpt
 bin\components\cookie.dll
 bin\components\cookie.xpt
 bin\components\crashreporter.xpt
@@ -263,12 +264,14 @@ bin\sqlite3.dll
 bin\components\FeedProcessor.js
 bin\components\jsconsole-clhandler.js
 bin\components\nsAxSecurityPolicy.js
+bin\components\nsBlocklistService.js
 bin\components\nsBrowserContentHandler.js
 bin\components\nsTryToClose.js
 bin\components\nsComposerCmdLineHandler.js
+bin\components\nsContentDispatchChooser.js
+bin\components\nsContentPrefService.js
 bin\components\nsDictionary.js
 bin\components\nsExtensionManager.js
-bin\components\nsBlocklistService.js
 bin\components\nsInterfaceInfoToIDL.js
 bin\components\nsLoginInfo.js
 bin\components\nsLoginManager.js
@@ -287,7 +290,6 @@ bin\components\storage-Legacy.js
 bin\components\txEXSLTRegExFunctions.js
 bin\components\nsAboutAbout.js
 bin\components\nsDefaultCLH.js
-bin\components\nsContentDispatchChooser.js
 bin\components\nsHandlerService.js
 bin\components\nsWebHandlerApp.js
 
@@ -478,13 +480,16 @@ bin\crashreporter.ini
 ; MOZ_XUL_APP=1 addition
 bin\components\mail.dll
 
+bin\isp\SpamAssassin.sfd
+bin\isp\SpamPal.sfd
+
 ; Original items (pre MOZ_XUL_APP=1)
 bin\msgbsutl.dll
 bin\components\addrbook.dll
 bin\components\addrbook.xpt
 bin\components\bayesflt.dll
 bin\components\emitter.dll
-bin\components\mailnewspublic.xpt
+bin\components\mailnews.xpt
 bin\components\mime.dll
 bin\components\mime.xpt
 bin\components\msgbase.dll
