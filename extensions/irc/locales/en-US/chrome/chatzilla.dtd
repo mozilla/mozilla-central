@@ -5,6 +5,7 @@
 <!ENTITY multiline-expand.tooltip   "Switch to multi-line input (Ctrl+Up)">
 <!ENTITY multiline-contract.tooltip "Switch to single-line input (Ctrl+Down)">
 <!ENTITY multiline-send.tooltip     "Send this text (Ctrl+Enter)">
+<!ENTITY server-nick.tooltip        "Change nickname or set away state. To focus the input box, press Escape.">
 
 <!ENTITY Underline.label             "Underline">
 <!ENTITY Bold.label                  "Bold">
