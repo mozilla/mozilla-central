@@ -40,7 +40,7 @@
  * the terms of any one of the MPL, the GPL or the LGPL.
  *
  * ***** END LICENSE BLOCK ***** */
-/* $Id: sslsock.c,v 1.52 2007-02-28 19:47:38 rrelyea%redhat.com Exp $ */
+/* $Id: sslsock.c,v 1.53 2007-09-01 00:49:47 nelson%bolyard.com Exp $ */
 #include "seccomon.h"
 #include "cert.h"
 #include "keyhi.h"
@@ -218,11 +218,22 @@ ssl_GetPrivate(PRFileDesc *fd)
     PORT_Assert(fd->methods->file_type == PR_DESC_LAYERED);
     PORT_Assert(fd->identity == ssl_layer_id);
 
+    if (fd->methods->file_type != PR_DESC_LAYERED ||
+        fd->identity != ssl_layer_id) {
+	PORT_SetError(PR_BAD_DESCRIPTOR_ERROR);
+	return NULL;
+    }
+
     ss = (sslSocket *)fd->secret;
     ss->fd = fd;
     return ss;
 }
 
+/* This function tries to find the SSL layer in the stack. 
+ * It searches for the first SSL layer at or below the argument fd,
+ * and failing that, it searches for the nearest SSL layer above the 
+ * argument fd.  It returns the private sslSocket from the found layer.
+ */
 sslSocket *
 ssl_FindSocket(PRFileDesc *fd)
 {
