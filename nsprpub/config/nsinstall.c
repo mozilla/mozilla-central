@@ -1,4 +1,4 @@
-/* -*- Mode: C++; tab-width: 4; indent-tabs-mode: nil; c-basic-offset: 2 -*- */
+/* -*- Mode: C++; tab-width: 8; indent-tabs-mode: nil; c-basic-offset: 4 -*- */
 /* ***** BEGIN LICENSE BLOCK *****
  * Version: MPL 1.1/GPL 2.0/LGPL 2.1
  *
@@ -135,8 +135,8 @@ mkdirs(char *path, mode_t mode)
     
     while (*path == '/' && path[1] == '/')
 	path++;
-    while ((cp = strrchr(path, '/')) && cp[1] == '\0')
-	*cp = '\0';
+    for (cp = strrchr(path, '/'); cp && cp != path && cp[-1] == '/'; cp--)
+	;
     if (cp && cp != path) {
 	*cp = '\0';
 	if ((stat(path, &sb) < 0 || !S_ISDIR(sb.st_mode)) &&
