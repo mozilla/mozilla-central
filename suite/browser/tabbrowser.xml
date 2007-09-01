@@ -120,7 +120,9 @@
           </xul:tabs>
         </xul:hbox>
         <xul:tabpanels flex="1" class="plain" selectedIndex="0" anonid="panelcontainer">
-          <xul:browser type="content-primary" xbl:inherits="tooltip=contenttooltip,contextmenu=contentcontextmenu,autocompletepopup"/>
+          <xul:notificationbox>
+            <xul:browser flex="1" type="content-primary" xbl:inherits="tooltip=contenttooltip,contextmenu=contentcontextmenu,autocompletepopup"/>
+          </xul:notificationbox>
         </xul:tabpanels>
       </xul:tabbox>
       <children/>
@@ -296,6 +298,15 @@
         </body>
       </method>
 
+      <method name="getNotificationBox">
+        <parameter name="aBrowser"/>
+        <body>
+          <![CDATA[
+            return aBrowser ? aBrowser.parentNode : this.mCurrentBrowser.parentNode;
+          ]]>
+        </body>
+      </method>
+
       <!-- A web progress listener object definition for a given tab. -->
       <method name="mTabProgressListener">
         <parameter name="aTab"/>
@@ -440,7 +451,13 @@
               if (this.mBrowser.userTypedClear > 0)
                 this.mBrowser.userTypedValue = null;
 
-              if (!this.mBlank && this.mTabBrowser.mCurrentTab == this.mTab) {
+              if (this.mBlank)
+                return;
+
+              if (aWebProgress.DOMWindow == this.mBrowser.contentWindow && aWebProgress.isLoadingDocument)
+                this.mBrowser.parentNode.removeAllNotifications(true);
+
+              if (this.mTabBrowser.mCurrentTab == this.mTab) {
                 for (var i = 0; i < this.mTabBrowser.mProgressListeners.length; i++) {
                   var p = this.mTabBrowser.mProgressListeners[i];
                   if (p)
@@ -694,7 +711,7 @@
             // tabs have been opened and the user hasn't switched tabs
             this.mPreviousTab = null;
 
-            var newBrowser = this.mPanelContainer.selectedPanel;
+            var newBrowser = this.mPanelContainer.selectedPanel.firstChild;
             if (this.mCurrentBrowser) {
               // Only save the focused element if it is in our content window
               // or in an ancestor window.
@@ -924,8 +941,8 @@
             if (evt.target != this.contentDocument)
               return;
 
-            var tabBrowser = this.parentNode.parentNode.parentNode;
-            var tab = document.getAnonymousElementByAttribute(tabBrowser, "linkedpanel", this.id);
+            var tabBrowser = this.parentNode.parentNode.parentNode.parentNode;
+            var tab = document.getAnonymousElementByAttribute(tabBrowser, "linkedpanel", this.parentNode.id);
 
             tabBrowser.setTabTitle(tab);
 
@@ -1018,8 +1035,13 @@
             b.setAttribute("contextmenu", this.getAttribute("contentcontextmenu"));
             b.setAttribute("tooltip", this.getAttribute("contenttooltip"));
             b.setAttribute("autocompletepopup", this.getAttribute("autocompletepopup"));
+            b.setAttribute("flex", "1");
 
-            this.mPanelContainer.appendChild(b);
+            // Add the Message and the Browser to the box
+            var n = document.createElementNS("http://www.mozilla.org/keymaster/gatekeeper/there.is.only.xul",
+                                             "notificationbox");
+            n.appendChild(b);
+            this.mPanelContainer.appendChild(n);
 
             b.addEventListener("DOMTitleChanged", this.onTitleChanged, true);
 
@@ -1038,7 +1060,7 @@
             this.mTabFilters[position] = filter;
 
             var uniqueId = "panel" + this.nextTabNumber++;
-            b.id = uniqueId;
+            n.id = uniqueId;
             t.linkedPanel = uniqueId;
             t.linkedBrowser = b;
             if (t.previousSibling.selected)
@@ -1172,7 +1194,7 @@
             // reattach the old history
             b.webNavigation.sessionHistory = hist;
 
-            var uniqueID = b.id;
+            var uniqueID = b.parentNode.id;
             t.linkedPanel = uniqueID;
             t.linkedBrowser = b;
 
@@ -1305,11 +1327,11 @@
               // destroyed until the document goes away.  So we force a
               // cleanup ourselves.
               oldBrowser.destroy();
-              this.mPanelContainer.removeChild(oldBrowser);
+              this.mPanelContainer.removeChild(oldBrowser.parentNode);
 
               // Fix up the selected panel in the case the removed
               // browser was to the left of the current browser
-              this.mTabBox.selectedPanel = this.selectedTab.linkedBrowser;
+              this.mTabBox.selectedPanel = this.selectedTab.linkedBrowser.parentNode;
               return;
             } 
 
@@ -1340,8 +1362,8 @@
 
               // The pagehide event that this removal triggers is safe
               // because the browser is no longer current at this point
-              this.mPanelContainer.removeChild(deadBrowser);
-              this.mTabBox.selectedPanel = this.selectedTab.linkedBrowser;
+              this.mPanelContainer.removeChild(deadBrowser.parentNode);
+              this.mTabBox.selectedPanel = this.selectedTab.linkedBrowser.parentNode;
             }
           ]]>
         </body>
@@ -2056,7 +2078,7 @@
 
       <constructor>
         <![CDATA[
-          this.mCurrentBrowser = this.mPanelContainer.firstChild;
+          this.mCurrentBrowser = this.mPanelContainer.firstChild.firstChild;
           this.mCurrentTab = this.mTabContainer.firstChild;
           document.addEventListener("keypress", this._keyEventHandler, false);
           this.mTabBox.handleCtrlTab = !/Mac/.test(navigator.platform);
@@ -2065,7 +2087,7 @@
           var uniqueId = "panel" + this.nextTabNumber++;
           this.mPanelContainer.childNodes[0].id = uniqueId;
           this.mTabs[0].linkedPanel = uniqueId;
-          this.mTabs[0].linkedBrowser = this.mPanelContainer.childNodes[0];
+          this.mTabs[0].linkedBrowser = this.mCurrentBrowser;
 
           // Wire up the first title change listener.
           this.mCurrentBrowser.addEventListener("DOMTitleChanged", this.onTitleChanged, true);
@@ -2115,7 +2137,8 @@
             this.mTabFilters[i].removeProgressListener(this.mTabListeners[i]);
             this.mTabFilters[i] = null;
             this.mTabListeners[i] = null;
-            this.mPanelContainer.childNodes[i].removeEventListener("DOMTitleChanged", this.onTitleChanged, true);
+            // eventListeners are removed from the browsers in display order of the browsers
+            this.browsers[i].removeEventListener("DOMTitleChanged", this.onTitleChanged, true);
           }
           document.removeEventListener("keypress", this._keyEventHandler, false);
         ]]>

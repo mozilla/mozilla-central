@@ -92,6 +92,7 @@ function toggleAffectedChrome(aHide)
   var navToolbox = document.getElementById("navigator-toolbox");
   navToolbox.hidden = aHide;
   var theTabbrowser = document.getElementById("content"); 
+  var notificationBox = gBrowser.getNotificationBox();
 
   // sidebar states map as follows:
   //   was-hidden    => hide/show nothing
@@ -120,6 +121,10 @@ function toggleAffectedChrome(aHide)
     // deal with the Status Bar
     gChromeState.statusbarWasHidden = statusbar.hidden;
     statusbar.hidden = true;
+
+    // deal with the notification box
+    gChromeState.notificationsWereHidden = notificationBox.notificationsHidden;
+    notificationBox.notificationsHidden = true;
   }
   else
   {
@@ -135,6 +140,9 @@ function toggleAffectedChrome(aHide)
 
     // restore the Status Bar
     statusbar.hidden = gChromeState.statusbarWasHidden;
+
+    // restore the notification box
+    notificationBox.notificationsHidden = gChromeState.notificationsWereHidden;
   }
 
   // if we are unhiding and sidebar used to be there rebuild it
