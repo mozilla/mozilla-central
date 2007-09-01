@@ -1613,12 +1613,15 @@ CERT_CompareNameSpace(CERTCertificate  *cert,
  		      PRArenaPool      *reqArena,
  		      CERTCertificate **pBadCert)
 {
-    SECStatus            rv;
+    SECStatus            rv = SECSuccess;
     CERTNameConstraints  *constraints;
     CERTGeneralName      *currentName;
     int                  count = 0;
     CERTCertificate      *badCert = NULL;
-    
+
+    /* If no names to check, then no names can be bad. */
+    if (!namesList)
+    	goto done;
     rv = CERT_FindNameConstraintsExten(reqArena, cert, &constraints);
     if (rv != SECSuccess) {
 	count = -1;

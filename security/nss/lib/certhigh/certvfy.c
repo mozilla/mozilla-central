@@ -679,7 +679,11 @@ cert_VerifyCertChainOld(CERTCertDBHandle *handle, CERTCertificate *cert,
 	    int subjectNameListLen;
 	    int i;
 	    subjectNameList    = CERT_GetCertificateNames(subjectCert, arena);
+	    if (!subjectNameList)
+		goto loser;
 	    subjectNameListLen = CERT_GetNamesLength(subjectNameList);
+	    if (!subjectNameListLen)
+		goto loser;
 	    if (certsListLen <= namesCount + subjectNameListLen) {
 		CERTCertificate **tmpCertsList;
 		certsListLen = (namesCount + subjectNameListLen) * 2;
