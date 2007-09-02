@@ -155,7 +155,7 @@ safeCommand $PERL $CONFIGDIR/preprocessor.pl -DVENKMAN_VERSION=$VERSION "$XPIFIL
 echo   ".       done"
 
 
-# Make Mozilla Suite / SeaMonkey 1.0/1,1 updates.
+# Make Mozilla Suite / SeaMonkey 1.0/1.1 updates.
 echo -n "  Updating XPFE Extension files"
 echo -n .
 safeCommand sed "s|@REVISION@|$VERSION|g" '<' "$XPIFILES/install.js" '>' "$XPIROOT/install.js"
