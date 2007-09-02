@@ -105,8 +105,19 @@ if [ "$1" = "clean" ]; then
   exit
 fi
 
-# This is where the actual L10n files are found, below $LOCALEDIR for en-US, in l10n/ repository for other languages
-L10NDIR="$LOCALEDIR/$AB_CD"
+# test if requested language is in all-locales, else fall back to en-US
+grep -sx "$AB_CD" $LOCALEDIR/all-locales > /dev/null
+if [ $? != 0 ] ; then
+  AB_CD=en-US
+fi
+
+# This is where the actual L10n files are found
+# below $LOCALEDIR for en-US, in l10n/ repository for other languages
+if [ "$AB_CD" = "en-US" ] ; then
+  L10NDIR="$LOCALEDIR/$AB_CD"
+else
+  L10NDIR="$FEDIR/../../../l10n/$AB_CD/extensions/irc"
+fi
 
 # Check setup.
 if ! [ -d "$FEDIR" ]; then
@@ -134,8 +145,15 @@ fi
 echo Beginning build of ChatZilla $VERSION...
 
 
+if [ "$AB_CD" = "en-US" ] ; then
+  XPINAME="chatzilla-$VERSION.xpi"
+else
+  XPINAME="chatzilla-$AB_CD-$VERSION.xpi"
+  echo "  (Building $AB_CD language version)"
+fi
+
 # Check for existing.
-if [ -r "chatzilla-$VERSION.xpi" ]; then
+if [ -r "$XPINAME" ]; then
   echo "  WARNING: output XPI will be overwritten."
 fi
 
@@ -218,7 +236,7 @@ safeCommand chmod 664 "$XPIROOT/components/chatzilla-service.js"
 echo -n .
 OLDPWD=`pwd`
 cd "$XPIROOT"
-safeCommand zip -vr ../chatzilla-$VERSION.xpi . -i "*" -x "log*"
+safeCommand zip -vr ../$XPINAME . -i "*" -x "log*"
 cd "$OLDPWD"
 echo   ".         done"
 
