@@ -1373,18 +1373,20 @@ PR_ParseTimeStringToExplodedTime(
                                   break;
                                 s++;
 
-                                if (*s < '0' || *s > '9')                /* third 1, 2, or 4 digits */
+                                if (*s < '0' || *s > '9')                /* third 1, 2, 4, or 5 digits */
                                   break;
                                 n3 = (*s++ - '0');
                                 if (*s >= '0' && *s <= '9')
                                   n3 = n3*10 + (*s++ - '0');
 
-                                if (*s >= '0' && *s <= '9')                /* optional digits 3 and 4 */
+                                if (*s >= '0' && *s <= '9')            /* optional digits 3, 4, and 5 */
                                   {
                                         n3 = n3*10 + (*s++ - '0');
                                         if (*s < '0' || *s > '9')
                                           break;
                                         n3 = n3*10 + (*s++ - '0');
+                                        if (*s >= '0' && *s <= '9')
+                                          n3 = n3*10 + (*s++ - '0');
                                   }
 
                                 if ((*s >= '0' && *s <= '9') ||        /* followed by non-alphanum */
@@ -1443,6 +1445,14 @@ PR_ParseTimeStringToExplodedTime(
                                          (*end >= 'a' && *end <= 'z'))
                           /* Digits followed by non-punctuation - what's that? */
                           ;
+                        else if ((end - rest) == 5)                /* five digits is a year */
+                          year = (year < 0
+                                          ? ((rest[0]-'0')*10000L +
+                                                 (rest[1]-'0')*1000L +
+                                                 (rest[2]-'0')*100L +
+                                                 (rest[3]-'0')*10L +
+                                                 (rest[4]-'0'))
+                                          : year);
                         else if ((end - rest) == 4)                /* four digits is a year */
                           year = (year < 0
                                           ? ((rest[0]-'0')*1000L +
@@ -1479,7 +1489,7 @@ PR_ParseTimeStringToExplodedTime(
                           }
                         else if ((end - rest) == 1)                /* one digit - date */
                           date = (date < 0 ? (rest[0]-'0') : date);
-                        /* else, three or more than four digits - what's that? */
+                        /* else, three or more than five digits - what's that? */
 
                         break;
                   }
@@ -1545,7 +1555,7 @@ PR_ParseTimeStringToExplodedTime(
          possibly parse this, and in fact, mktime() will do something random
          (I'm seeing it return "Tue Feb  5 06:28:16 2036", which is no doubt
          a numerologically significant date... */
-  if (month == TT_UNKNOWN || date == -1 || year == -1)
+  if (month == TT_UNKNOWN || date == -1 || year == -1 || year > PR_INT16_MAX)
       return PR_FAILURE;
 
   memset(result, 0, sizeof(*result));
