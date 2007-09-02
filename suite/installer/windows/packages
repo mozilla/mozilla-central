@@ -351,6 +351,8 @@ bin\chrome\icons\default\jpeg-file.ico
 bin\chrome\icons\default\script-file.ico
 bin\chrome\icons\default\xml-file.ico
 bin\chrome\icons\default\xul-file.ico
+; Although venkman-window is an extension, its icon is still suite-specific
+bin\chrome\icons\default\venkman-window.ico
 ;-bin\chrome\comm\content\editor\EditorInitPage.html
 ;-bin\chrome\comm\editor\content\EditorInitPagePlain.html
 ;Include this for "debug" testing - remove for actual beta release:
@@ -543,9 +545,9 @@ bin\chrome\chatzilla\*
 bin\chrome\icons\default\chatzilla-window.ico
 
 [venkman]
-bin\components\venkman-service.js
-bin\chrome\venkman.jar
-bin\chrome\icons\default\venkman-window.ico
+bin\extensions\{f13b157f-b174-47e7-a34d-4815ddfdfeb8}\components\venkman-service.js
+bin\extensions\{f13b157f-b174-47e7-a34d-4815ddfdfeb8}\chrome\venkman.jar
+bin\extensions\{f13b157f-b174-47e7-a34d-4815ddfdfeb8}\install.rdf
 
 [inspector]
 bin\extensions\inspector@mozilla.org\install.rdf

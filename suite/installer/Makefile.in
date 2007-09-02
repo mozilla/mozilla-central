@@ -59,8 +59,6 @@ MOZ_NONLOCALIZED_PKG_LIST = \
 	browser \
 	mail \
 	chatzilla \
-	venkman \
-	chatzilla \
 	reporter \
 	$(NULL)
 
@@ -72,6 +70,7 @@ MOZ_OPTIONAL_PKG_LIST = \
 	debugqa \
 	inspector \
 	palmsync \
+	venkman \
 	$(NULL)
 
 DEFINES += -DAB_CD=$(AB_CD)

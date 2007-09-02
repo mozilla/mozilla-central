@@ -281,6 +281,14 @@ Section "-Application" Section1
     ${AndIf} ${FileExists} "$EXEDIR\optional\extensions\p@m"
       RmDir /r "$INSTDIR\extensions\p@m"
     ${EndIf}
+
+    ; If Venkman is installed and this install includes Venkman remove it
+    ; from the installation directory. This will remove it if the user
+    ; deselected Venkman on the components page.
+    ${If} ${FileExists} "$INSTDIR\extensions\{f13b157f-b174-47e7-a34d-4815ddfdfeb8}"
+    ${AndIf} ${FileExists} "$EXEDIR\optional\extensions\{f13b157f-b174-47e7-a34d-4815ddfdfeb8}"
+      RmDir /r "$INSTDIR\extensions\{f13b157f-b174-47e7-a34d-4815ddfdfeb8}"
+    ${EndIf}
   ${EndIf}
 
   Call CleanupOldLogs
@@ -383,6 +391,7 @@ Section "-Application" Section1
 
   ${If} $InstallType != 4
     Call installInspector
+    Call installVenkman
   ${EndIf}
 
   ${LogHeader} "Adding Additional Files"
@@ -546,6 +555,10 @@ Section /o "Palm Address Book Synchronization Tool" Section4
   Call installPalmSync
 SectionEnd
 
+Section /o "JavaScript Debugger" Section5
+  Call installVenkman
+SectionEnd
+
 ################################################################################
 # Helper Functions
 
@@ -587,6 +600,20 @@ Function installPalmSync
     ${LogHeader} "Installing Palm Address Book Synchronization Tool"
     StrCpy $R0 "$EXEDIR\optional\extensions\p@m"
     StrCpy $R1 "$INSTDIR\extensions\p@m"
+    Call DoCopyFiles
+  ${EndIf}
+FunctionEnd
+
+Function installVenkman
+  ${If} ${FileExists} "$EXEDIR\optional\extensions\{f13b157f-b174-47e7-a34d-4815ddfdfeb8}"
+    SetDetailsPrint textonly
+    DetailPrint $(STATUS_INSTALL_OPTIONAL)
+    SetDetailsPrint none
+    ${RemoveDir} "$INSTDIR\extensions\{f13b157f-b174-47e7-a34d-4815ddfdfeb8}"
+    ClearErrors
+    ${LogHeader} "Installing JavaScript Debugger"
+    StrCpy $R0 "$EXEDIR\optional\extensions\{f13b157f-b174-47e7-a34d-4815ddfdfeb8}"
+    StrCpy $R1 "$INSTDIR\extensions\{f13b157f-b174-47e7-a34d-4815ddfdfeb8}"
     Call DoCopyFiles
   ${EndIf}
 FunctionEnd
@@ -910,6 +937,16 @@ Function leaveComponents
     IntOp $R1 $R1 + 1
   ${Else}
     SectionSetFlags 3 0 ; Disable install for palmsync
+  ${EndIf}
+
+  ${If} ${FileExists} "$EXEDIR\optional\extensions\{f13b157f-b174-47e7-a34d-4815ddfdfeb8}"
+    ${MUI_INSTALLOPTIONS_READ} $R0 "components.ini" "Field $R1" "State"
+    ; State will be 1 for checked and 0 for unchecked so we can use that to set
+    ; the section flags for installation.
+    SectionSetFlags 4 $R0
+    IntOp $R1 $R1 + 1
+  ${Else}
+    SectionSetFlags 4 0 ; Disable install for venkman
   ${EndIf}
 FunctionEnd
 

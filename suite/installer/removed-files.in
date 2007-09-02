@@ -1,5 +1,6 @@
 chrome/debugqa.jar
 chrome/debugqa.manifest
+chrome/venkman.jar
 extensions/talkback@mozilla.org/install.rdf
 extensions/talkback@mozilla.org/chrome.manifest
 extensions/talkback@mozilla.org/components/qfaservices.xpt
@@ -18,3 +19,4 @@ components/airbag.xpt
 components/nsCloseAllWindows.js
 components/nsKillAll.js
 components/urlwidgt.xpt
+components/venkman-service.js
