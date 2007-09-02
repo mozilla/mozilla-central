@@ -185,6 +185,9 @@
     return false;
   }
 
+  var gGlobalHistory = null;
+  var gURIFixup = null;
+
   function middleMousePaste( event )
   {
     var url = readFromClipboard();
@@ -245,10 +248,6 @@
     if (aUrlToAdd.search(/[\x00-\x1F]/) != -1) // don't store bad URLs
       return;
 
-    if (!gRDF)
-      gRDF = Components.classes["@mozilla.org/rdf/rdf-service;1"]
-                       .getService(Components.interfaces.nsIRDFService);
- 
     if (!gGlobalHistory)
       gGlobalHistory = Components.classes["@mozilla.org/browser/global-history;2"]
                                  .getService(Components.interfaces.nsIBrowserHistory);
@@ -256,44 +255,6 @@
     if (!gURIFixup)
       gURIFixup = Components.classes["@mozilla.org/docshell/urifixup;1"]
                             .getService(Components.interfaces.nsIURIFixup);
-    if (!gLocalStore)
-      gLocalStore = gRDF.GetDataSource("rdf:local-store");
-
-    if (!gRDFC)
-      gRDFC = Components.classes["@mozilla.org/rdf/container-utils;1"]
-                        .getService(Components.interfaces.nsIRDFContainerUtils);
-
-    var entries = gRDFC.MakeSeq(gLocalStore, gRDF.GetResource("nc:urlbar-history"));
-    if (!entries)
-      return;
-    var elements = entries.GetElements();
-    if (!elements)
-      return;
-    var index = 0;
-
-    var urlToCompare = aUrlToAdd.toUpperCase();
-    while(elements.hasMoreElements()) {
-      var entry = elements.getNext();
-      if (!entry) continue;
-
-      index ++;
-      try {
-        entry = entry.QueryInterface(Components.interfaces.nsIRDFLiteral);
-      } catch(ex) {
-        // XXXbar not an nsIRDFLiteral for some reason. see 90337.
-        continue;
-      }
-
-      if (urlToCompare == entry.Value.toUpperCase()) {
-        // URL already present in the database
-        // Remove it from its current position.
-        // It is inserted to the top after the while loop.
-        entries.RemoveElementAt(index, true);
-        break;
-      }
-    }   // while
-
-    // Otherwise, we've got a new URL in town. Add it!
 
     try {
       var url = getShortcutOrURI(aUrlToAdd);
@@ -304,16 +265,38 @@
     catch(ex) {
     }
 
-    // Put the value as it was typed by the user in to RDF
-    // Insert it to the beginning of the list.
-    var entryToAdd = gRDF.GetLiteral(aUrlToAdd);
-    entries.InsertElementAt(entryToAdd, 1, true);
+    // Open or create the urlbar history database.
+    var file = Components.classes["@mozilla.org/file/directory_service;1"]
+                         .getService(Components.interfaces.nsIProperties)
+                         .get("ProfD", Components.interfaces.nsIFile);
+    file.append("urlbarhistory.sqlite");
+    var connection = Components.classes["@mozilla.org/storage/service;1"]
+                               .getService(Components.interfaces.mozIStorageService)
+                               .openDatabase(file);
+    connection.beginTransaction();
+    if (!connection.tableExists("urlbarhistory"))
+      connection.createTable("urlbarhistory", "url TEXT");
+
+    // If the URL is already present in the database then remove it from
+    // its current position. It is then reinserted at the top of the list.
+    var statement = connection.createStatement(
+        "DELETE FROM urlbarhistory WHERE LOWER(url) = LOWER(?1)");
+    statement.bindStringParameter(0, aUrlToAdd);
+    statement.execute();
+
+    // Put the value as it was typed by the user in to urlbar history
+    statement = connection.createStatement(
+        "INSERT INTO urlbarhistory (url) VALUES (?1)");
+    statement.bindStringParameter(0, aUrlToAdd);
+    statement.execute();
 
     // Remove any expired history items so that we don't let
     // this grow without bound.
-    for (index = entries.GetCount(); index > MAX_URLBAR_HISTORY_ITEMS; --index) {
-        entries.RemoveElementAt(index, true);
-    }  // for
+    connection.executeSimpleSQL(
+        "DELETE FROM urlbarhistory WHERE ROWID NOT IN " +
+          "(SELECT ROWID FROM urlbarhistory ORDER BY ROWID DESC LIMIT 30)");
+    connection.commitTransaction();
+    connection.close();
   }
 
   function makeURLAbsolute(base, url)

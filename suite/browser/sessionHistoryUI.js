@@ -41,11 +41,6 @@
 const MAX_HISTORY_MENU_ITEMS = 15;
 const MAX_URLBAR_HISTORY_MENU_ITEMS = 30;
 const MAX_URLBAR_HISTORY_ITEMS = 100;
-var gRDF = null;
-var gRDFC = null;
-var gGlobalHistory = null;
-var gURIFixup = null;
-var gLocalStore = null;
 
 function FillHistoryMenu(aParent, aMenu)
   {
@@ -115,46 +110,35 @@ function executeUrlBarHistoryCommand( aTarget )
 
 function createUBHistoryMenu( aParent )
   {
-    if (!gRDF)
-      gRDF = Components.classes["@mozilla.org/rdf/rdf-service;1"]
-                       .getService(Components.interfaces.nsIRDFService);
+    while (aParent.hasChildNodes())
+      aParent.removeChild(aParent.lastChild);
 
-    if (!gLocalStore)
-      gLocalStore = gRDF.GetDataSource("rdf:local-store");
-
-    if (gLocalStore) {
-      if (!gRDFC)
-        gRDFC = Components.classes["@mozilla.org/rdf/container-utils;1"]
-                          .getService(Components.interfaces.nsIRDFContainerUtils);
-
-      var entries = gRDFC.MakeSeq(gLocalStore, gRDF.GetResource("nc:urlbar-history")).GetElements();
-      var i = MAX_URLBAR_HISTORY_MENU_ITEMS;
-
-      // Delete any old menu items only if there are legitimate
-      // urls to display, otherwise we want to display the
-      // '(Nothing Available)' item.
-      deleteHistoryItems(aParent);
-      if (!entries.hasMoreElements()) {
-        //Create the "Nothing Available" Menu item and disable it.
-        var na = gNavigatorBundle.getString("nothingAvailable");
-        createMenuItem(aParent, "nothing_available", na);
-        aParent.firstChild.setAttribute("disabled", "true");
-      }
-
-      while (entries.hasMoreElements() && (i-- > 0)) {
-        var entry = entries.getNext();
-        if (entry) {
-          try {
-            entry = entry.QueryInterface(Components.interfaces.nsIRDFLiteral);
-          } catch(ex) {
-            // XXXbar not an nsIRDFLiteral for some reason. see 90337.
-            continue;
-          }
-          var url = entry.Value;
-          createMenuItem(aParent, i, url);
+    var file = Components.classes["@mozilla.org/file/directory_service;1"]
+                         .getService(Components.interfaces.nsIProperties)
+                         .get("ProfD", Components.interfaces.nsIFile);
+    file.append("urlbarhistory.sqlite");
+    if (file.exists()) {
+      var connection = Components.classes["@mozilla.org/storage/service;1"]
+                                 .getService(Components.interfaces.mozIStorageService)
+                                 .openDatabase(file);
+      try {
+        if (connection.tableExists("urlbarhistory")) {
+          var statement = connection.createStatement(
+              "SELECT url FROM urlbarhistory ORDER BY ROWID DESC");
+          while (statement.executeStep())
+            aParent.appendChild(document.createElement("menuitem"))
+                   .setAttribute("label", statement.getString(0));
+          statement.reset();
+          return;
         }
+      } finally {
+        connection.close();
       }
     }
+    //Create the "Nothing Available" Menu item and disable it.
+    var na = aParent.appendChild(document.createElement("menuitem"));
+    na.setAttribute("label", gNavigatorBundle.getString("nothingAvailable"));
+    na.setAttribute("disabled", "true");
   }
 
 function createMenuItem( aParent, aIndex, aLabel)
