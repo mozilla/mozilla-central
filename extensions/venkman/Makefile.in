@@ -49,6 +49,19 @@ PACKAGE_FILE = venkman.pkg
 DIRS        = resources
 
 EXTRA_COMPONENTS = js/venkman-service.js
+DIST_FILES = xpi/resources/install.rdf
+
+VENKMAN_VERSION=$(shell cat $(srcdir)/version.txt)
+
+ifdef MOZ_XUL_APP
+XPI_NAME = venkman
+NO_JAR_AUTO_REG = 1
+INSTALL_EXTENSION_ID = {f13b157f-b174-47e7-a34d-4815ddfdfeb8}
+XPI_PKGNAME = venkman-$(VENKMAN_VERSION)
+endif
+
+XUL_APP_DEFINES += -DVENKMAN_VERSION=$(VENKMAN_VERSION)
+DEFINES += -DVENKMAN_VERSION=$(VENKMAN_VERSION)
 
 include $(topsrcdir)/config/rules.mk
 

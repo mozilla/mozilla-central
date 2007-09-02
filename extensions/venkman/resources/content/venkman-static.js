@@ -37,7 +37,9 @@
  *
  * ***** END LICENSE BLOCK ***** */
 
-const __vnk_version        = "0.9.87";
+#filter substitution
+
+const __vnk_version        = "@VENKMAN_VERSION@";
 const __vnk_requiredLocale = "0.9.86";
 var   __vnk_versionSuffix  = "";
 

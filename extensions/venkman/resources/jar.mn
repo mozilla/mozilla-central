@@ -1,4 +1,6 @@
 venkman.jar:
+  content/venkman/ff/contents.rdf       (content/ff/contents.rdf)
+  content/venkman/sm/contents.rdf       (content/sm/contents.rdf)
 * content/venkman/contents.rdf          (content/contents.rdf)
 * locale/en-US/venkman/contents.rdf     (locale/en-US/contents.rdf)
   skin/modern/venkman/contents.rdf      (skin/contents.rdf)
@@ -13,7 +15,7 @@ venkman.jar:
   content/venkman/venkman-utils.js      (content/venkman-utils.js)
   content/venkman/venkman-dev.js        (content/venkman-dev.js)
   content/venkman/venkman-handlers.js   (content/venkman-handlers.js)
-  content/venkman/venkman-static.js     (content/venkman-static.js)
+* content/venkman/venkman-static.js     (content/venkman-static.js)
   content/venkman/venkman-debugger.js   (content/venkman-debugger.js)
   content/venkman/venkman-profiler.js   (content/venkman-profiler.js)
   content/venkman/venkman-jsdurl.js     (content/venkman-jsdurl.js)

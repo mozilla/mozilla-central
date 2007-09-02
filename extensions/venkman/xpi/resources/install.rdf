@@ -1,9 +1,12 @@
 <?xml version="1.0"?>
+
+#filter substitution
+
 <RDF xmlns="http://www.w3.org/1999/02/22-rdf-syntax-ns#" xmlns:em="http://www.mozilla.org/2004/em-rdf#">
 	<Description about="urn:mozilla:install-manifest">
 		<!-- core data -->
 		<em:id>{f13b157f-b174-47e7-a34d-4815ddfdfeb8}</em:id>
-		<em:version>@REVISION@</em:version>
+		<em:version>@VENKMAN_VERSION@</em:version>
 		
 		<!-- target: Mozilla Firefox, version 0.9 to 3.0 -->
 		<em:targetApplication>
@@ -38,6 +41,15 @@
 				<em:id>{718e30fb-e89b-41dd-9da7-e25a45638b28}</em:id>
 				<em:minVersion>0.3a</em:minVersion>
 				<em:maxVersion>0.3</em:maxVersion>
+			</Description>
+		</em:targetApplication>
+
+		<!-- target: SeaMonkey version 2.0 -->
+		<em:targetApplication>
+			<Description>
+				<em:id>{92650c4d-4b8e-4d2a-b7eb-24ecf4f6b63a}</em:id>
+				<em:minVersion>2.0a1pre</em:minVersion>
+				<em:maxVersion>2.0</em:maxVersion>
 			</Description>
 		</em:targetApplication>
 

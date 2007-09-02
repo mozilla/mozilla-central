@@ -116,7 +116,7 @@ fi
 
 
 # Extract version number.
-VERSION=`grep "const __vnk_version" "$FEDIR/content/venkman-static.js" | sed "s|.*\"\([^\"]\{1,\}\)\".*|\1|"`
+VERSION=`cat $FEDIR/../version.txt`
 
 if [ -z "$VERSION" ]; then
   echo "ERROR: Unable to get version number."
@@ -148,15 +148,15 @@ if ! [ -d jar-tree ]; then mkdir jar-tree; fi
 echo   ".                 done"
 
 
-# Make Firefox updates.
-echo -n "  Updating Firefox Extension files"
+# Make Toolkit updates.
+echo -n "  Updating Toolkit Extension files"
 echo -n .
-safeCommand sed "s|@REVISION@|$VERSION|g" '<' "$XPIFILES/install.rdf" '>' "$XPIROOT/install.rdf"
+safeCommand $PERL $CONFIGDIR/preprocessor.pl -DVENKMAN_VERSION=$VERSION "$XPIFILES/install.rdf" '>' "$XPIROOT/install.rdf"
 echo   ".       done"
 
 
-# Make Mozilla Suite updates.
-echo -n "  Updating Mozilla Extension files"
+# Make Mozilla Suite / SeaMonkey 1.0/1,1 updates.
+echo -n "  Updating XPFE Extension files"
 echo -n .
 safeCommand sed "s|@REVISION@|$VERSION|g" '<' "$XPIFILES/install.js" '>' "$XPIROOT/install.js"
 echo -n .
@@ -171,7 +171,7 @@ echo -n .
 safeCommand sed "s|@MOZILLA_VERSION@|vnk-$VERSION|g" '<' "$FEDIR/locale/en-US/contents.rdf.in" '>' "$FEDIR/locale/en-US/contents.rdf"
 echo -n .
 safeCommand rm "$FEDIR/locale/en-US/contents.rdf.in"
-echo   ". done"
+echo   ".    done"
 
 
 # Create JAR.
@@ -180,11 +180,7 @@ echo -n .
 OLDPWD=`pwd`
 cd "$CONFIGDIR"
 echo -n .
-safeCommand $PERL make-jars.pl -v -z zip -p preprocessor.pl -s "$FEDIR" -d "$JARROOT" '<' "$FEDIR/jar.mn"
-echo -n .
-safeCommand $PERL make-jars.pl -v -z zip -p preprocessor.pl -s "$FEDIR/sm" -d "$JARROOT" '<' "$FEDIR/sm/jar.mn"
-echo -n .
-safeCommand $PERL make-jars.pl -v -z zip -p preprocessor.pl -s "$FEDIR/ff" -d "$JARROOT" '<' "$FEDIR/ff/jar.mn"
+safeCommand $PERL make-jars.pl -v -z zip -p preprocessor.pl -s "$FEDIR" -d "$JARROOT"  -- -DVENKMAN_VERSION=$VERSION '<' "$FEDIR/jar.mn"
 echo -n .
 cd "$OLDPWD"
 echo   ".           done"
