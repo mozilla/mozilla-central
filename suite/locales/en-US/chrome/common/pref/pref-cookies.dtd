@@ -10,9 +10,6 @@
 <!ENTITY accOrgCookiesRadio.label       "Allow cookies for the originating website only">
 <!ENTITY accOrgCookiesRadio.accesskey   "o">
 
-<!ENTITY accP3PCookiesRadio.label       "Allow cookies based on privacy settings">
-<!ENTITY accP3PCookiesRadio.accesskey   "p">
-
 <!ENTITY disableCookies.label           "Block cookies">
 <!ENTITY disableCookies.accesskey       "B">
 
@@ -38,6 +35,4 @@
 
 <!ENTITY viewCookies.label              "Cookie Manager">
 <!ENTITY viewCookies.accesskey          "M">
-<!ENTITY viewP3P.label                  "View Privacy Settings">
-<!ENTITY viewP3P.accesskey              "V">
 

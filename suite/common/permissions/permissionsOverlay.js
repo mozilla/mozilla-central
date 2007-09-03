@@ -88,11 +88,3 @@ function viewCookies() {
   openCookieViewer("cookieManager");
 }  
 
-function viewCookiesFromIcon() {
-  openCookieViewer("cookieManagerFromIcon");
-}  
-
-function viewP3P() {
-  window.openDialog
-    ("chrome://communicator/content/permissions/cookieP3P.xul","_blank","chrome,resizable=no");
-}  

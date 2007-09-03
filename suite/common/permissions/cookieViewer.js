@@ -62,7 +62,6 @@ function Startup() {
 
   // arguments passed to this routine:
   //   cookieManager 
-  //   cookieManagerFromIcon
  
   // xpconnect to cookiemanager/permissionmanager/promptservice interfaces
   cookiemanager = Components.classes["@mozilla.org/cookiemanager;1"].getService();
@@ -139,9 +138,6 @@ var cookiesTreeView = {
     case "nameCol":
       rv = cookies[row].name;
       break;
-    case "statusCol":
-      rv = cookies[row].status;
-      break;
     case "expiresCol":
       rv = cookies[row].expires;
       break;
@@ -158,8 +154,7 @@ var cookiesTreeView = {
  };
 var cookiesTree;
 
-function Cookie(id,name,value,isDomain,host,rawHost,path,isSecure,expires,
-                status,policy) {
+function Cookie(id,name,value,isDomain,host,rawHost,path,isSecure,expires) {
   this.id = id;
   this.name = name;
   this.value = value;
@@ -170,66 +165,34 @@ function Cookie(id,name,value,isDomain,host,rawHost,path,isSecure,expires,
   this.isSecure = isSecure;
   this.expires = GetExpiresString(expires);
   this.expiresSortValue = expires;
-  this.status = GetStatusString(status);
-  this.policy = policy;
 }
 
 function loadCookies() {
   // load cookies into a table
   var enumerator = cookiemanager.enumerator;
   var count = 0;
-  var showPolicyField = false;
   while (enumerator.hasMoreElements()) {
     var nextCookie = enumerator.getNext();
     if (!nextCookie) break;
     nextCookie = nextCookie.QueryInterface(Components.interfaces.nsICookie);
     var host = nextCookie.host;
-    if (nextCookie.policy != nsICookie.POLICY_UNKNOWN) {
-      showPolicyField = true;
-    }
     cookies[count] =
       new Cookie(count++, nextCookie.name, nextCookie.value, nextCookie.isDomain, host,
                  (host.charAt(0)==".") ? host.substring(1,host.length) : host,
-                 nextCookie.path, nextCookie.isSecure, nextCookie.expires,
-                 nextCookie.status, nextCookie.policy);
+                 nextCookie.path, nextCookie.isSecure, nextCookie.expires);
   }
   cookiesTreeView.rowCount = cookies.length;
 
   // sort and display the table
   cookiesTree.treeBoxObject.view = cookiesTreeView;
-  if (window.arguments[0] == "cookieManagerFromIcon") { // came here by clicking on cookie icon
-
-    // turn off the icon
-    var observerService = Components.classes["@mozilla.org/observer-service;1"].getService(Components.interfaces.nsIObserverService);
-    observerService.notifyObservers(null, "cookieIcon", "off");
-
-    // unhide the status column and sort by reverse order on that column
-    //    Note that the sort routine normally does an ascending sort.  The only
-    //    exception is if you sort on the same column more than once in a row.
-    //    In that case, the subsequent sorts will be the reverse of the previous ones.
-    //    So we are now going to force an initial reverse sort by fooling the sort routine
-    //    into thinking that it previously sorted on the status column and in ascending
-    //    order.
-    document.getElementById("statusCol").removeAttribute("hidden");
-    lastCookieSortAscending = true; // force order to have blanks last instead of vice versa
-    lastCookieSortColumn = 'status';
-    CookieColumnSort('status');
-
-  } else {
-    // sort by host column
-    CookieColumnSort('rawHost');
-  }
+  // sort by host column
+  CookieColumnSort('rawHost');
 
   // disable "remove all cookies" button if there are no cookies
   if (cookies.length == 0) {
     document.getElementById("removeAllCookies").setAttribute("disabled","true");
   } else {
     document.getElementById("removeAllCookies").removeAttribute("disabled");
-  }
-
-  // show policy field if at least one cookie has a policy
-  if (showPolicyField) {
-    document.getElementById("policyField").removeAttribute("hidden");
   }
 }
 
@@ -253,34 +216,6 @@ function GetExpiresString(expires) {
     return expiry;
   }
   return cookieBundle.getString("AtEndOfSession");
-}
-
-function GetStatusString(status) {
-  switch (status) {
-    case nsICookie.STATUS_ACCEPTED:
-      return cookieBundle.getString("accepted");
-    case nsICookie.STATUS_FLAGGED:
-      return cookieBundle.getString("flagged");
-    case nsICookie.STATUS_DOWNGRADED:
-      return cookieBundle.getString("downgraded");
-  }
-  return "";
-}
-
-function GetPolicyString(policy) {
-  switch (policy) {
-    case nsICookie.POLICY_NONE:
-      return cookieBundle.getString("policyUnstated");
-    case nsICookie.POLICY_NO_CONSENT:
-      return cookieBundle.getString("policyNoConsent");
-    case nsICookie.POLICY_IMPLICIT_CONSENT:
-      return cookieBundle.getString("policyImplicitConsent");
-    case nsICookie.POLICY_EXPLICIT_CONSENT:
-      return cookieBundle.getString("policyExplicitConsent");
-    case nsICookie.POLICY_NO_II:
-      return cookieBundle.getString("policyNoIICollected");
-  }
-  return "";
 }
 
 function CookieSelected() {
@@ -313,8 +248,7 @@ function CookieSelected() {
      value: cookies[idx].isSecure ?
             cookieBundle.getString("forSecureOnly") : 
             cookieBundle.getString("forAnyConnection")},
-    {id: "ifl_expires", value: cookies[idx].expires},
-    {id: "ifl_policy", value: GetPolicyString(cookies[idx].policy)}
+    {id: "ifl_expires", value: cookies[idx].expires}
   ];
 
   var value;
@@ -334,7 +268,7 @@ function CookieSelected() {
 
 function ClearCookieProperties() {
   var properties = 
-    ["ifl_name","ifl_value","ifl_host","ifl_path","ifl_isSecure","ifl_expires","ifl_policy"];
+    ["ifl_name","ifl_value","ifl_host","ifl_path","ifl_isSecure","ifl_expires"];
   for (var prop=0; prop<properties.length; prop++) {
     document.getElementById(properties[prop]).value = "";
   }
@@ -405,9 +339,6 @@ function CookieColumnSort(column) {
       break;
     case "expires":
       sortedCol = document.getElementById("expiresCol");
-      break;
-    case "status":
-      sortedCol = document.getElementById("statusCol");
       break;
   }
   if (lastCookieSortAscending)

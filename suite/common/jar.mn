@@ -2,7 +2,6 @@ comm.jar:
 % content communicator %content/communicator/ xpcnativewrappers=yes
 % overlay chrome://communicator/content/contentAreaContextOverlay.xul chrome://communicator/content/permissions/imageContextOverlay.xul
 % overlay chrome://navigator/content/navigatorOverlay.xul chrome://communicator/content/permissions/permissionsNavigatorOverlay.xul
-% overlay chrome://navigator/content/navigatorOverlay.xul chrome://communicator/content/permissions/cookieTasksOverlay.xul
 % overlay chrome://global/content/console.xul chrome://communicator/content/consoleOverlay.xul
 % overlay chrome://help/content/help.xul chrome://communicator/content/helpOverlay.xul
 % overlay chrome://communicator/content/tasksOverlay.xul chrome://communicator/content/emOverlay.xul
@@ -128,9 +127,6 @@ comm.jar:
    content/communicator/history/findHistory.js                      (history/findHistory.js)
    content/communicator/history/findHistory.xul                     (history/findHistory.xul)
    content/communicator/permissions/aboutPopups.xul                 (permissions/aboutPopups.xul)
-   content/communicator/permissions/cookieP3P.xul                   (permissions/cookieP3P.xul)
-   content/communicator/permissions/cookieP3PDialog.xul             (permissions/cookieP3PDialog.xul)
-   content/communicator/permissions/cookieTasksOverlay.xul          (permissions/cookieTasksOverlay.xul)
    content/communicator/permissions/cookieViewer.js                 (permissions/cookieViewer.js)
    content/communicator/permissions/cookieViewer.xul                (permissions/cookieViewer.xul)
    content/communicator/permissions/imageContextOverlay.xul         (permissions/imageContextOverlay.xul)
