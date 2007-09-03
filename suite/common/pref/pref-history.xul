@@ -97,18 +97,8 @@
                          .getService(Components.interfaces.nsIProperties)
                          .get("ProfD", Components.interfaces.nsIFile);
     file.append("urlbarhistory.sqlite");
-    if (file.exists()) {
-      try {
-        file.remove(false);
-      } catch (e) {
-        var connection = Components.classes["@mozilla.org/storage/service;1"]
-                                   .getService(Components.interfaces.mozIStorageService)
-                                   .openDatabase(file);
-        if (connection.tableExists("urlbarhistory"))
-          connection.executeSimpleSQL("DROP TABLE urlbarhistory");
-        connection.close();
-      }
-    }
+    if (file.exists())
+      file.remove(false);
   }
   ]]>
   </script>
