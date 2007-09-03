@@ -146,10 +146,8 @@ function syncTreeView (treeContent, treeView, cb)
             throw "tantrum";
         
         treeContent.treeBoxObject.view = treeView;
-        if (treeView.selection)
-        {
+        if (treeView && treeView.selection)
             treeView.selection.tree = treeContent.treeBoxObject;
-        }
     }
     catch (ex)
     {
