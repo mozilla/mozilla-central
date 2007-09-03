@@ -49,7 +49,7 @@ function(event)
 
   if (element.ownerDocument != getBrowser().contentDocument ||
       !linkToolbarUI.isLinkToolbarEnabled() ||
-      !element instanceof Components.interfaces.nsIDOMHTMLLinkElement ||
+      !(element instanceof Components.interfaces.nsIDOMHTMLLinkElement) ||
       !element.href || (!element.rel && !element.rev))
     return;
 
