@@ -614,10 +614,12 @@ pref("mailnews.use_received_date", false);
 pref("mail.ui.folderpane.version", 1);                                          
 
 // for manual upgrades of certain UI features.
-// 1 -> 2 is for the thread pane tree landing, to hide the
-// labels column, see msgMail3PaneWindow.js
-// 2 -> 3 is for the junk status column
+#ifdef MOZ_SUITE
+pref("mailnews.ui.threadpane.version", 5);
+#else
+// Thunderbird still needs version 1.
 pref("mailnews.ui.threadpane.version", 1);
+#endif
 // for manual upgrades of certain UI features.
 // 1 -> 2 is for the ab results pane tree landing
 // to hide the non default columns in the addressbook dialog

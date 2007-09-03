@@ -962,50 +962,9 @@ function OnLoadFolderPane()
     folderTree.addEventListener("mousedown",TreeOnMouseDown,true);
 }
 
-// builds prior to 12-08-2001 did not have the labels column
-// in the thread pane.  so if a user ran an old build, and then
-// upgraded, they get the new column, and this causes problems.
-// We're trying to avoid a similar problem to bug #96979.
-// To work around this, we hide the column once, using the
-// "mailnews.ui.threadpane.version" pref.
 function UpgradeThreadPaneUI()
 {
-  try {
-    var threadTree = document.getElementById("threadTree");
-    var junkCol = document.getElementById("junkStatusCol");
-    var subjectCol = document.getElementById("subjectCol");
-    var beforeCol;
-    switch (pref.getIntPref("mailnews.ui.threadpane.version")) {
-      case 1: // upgrade from 1 to 2
-      case 2: // upgrade from 2 to 3
-        beforeCol = subjectCol.boxObject.nextSibling.boxObject.nextSibling;
-        if (beforeCol)
-          threadTree._reorderColumn(junkCol, beforeCol, true);
-        else // subjectCol was the last column, put it after
-          threadTree._reorderColumn(junkCol, subjectCol, false);
-
-      case 3: // upgrade from 3 to 4
-        var senderCol = document.getElementById("senderCol");
-        var recipientCol = document.getElementById("recipientCol");
-        beforeCol = junkCol.boxObject.nextSibling.boxObject.nextSibling;
-        if (beforeCol)
-          threadTree._reorderColumn(recipientCol, beforeCol, true);
-        else // junkCol was the last column, put it after
-          threadTree._reorderColumn(recipientCol, junkCol, false);
-        threadTree._reorderColumn(senderCol, recipientCol, true);
-
-      case 4: // upgrade from 4 to 5
-        var attachmentCol = document.getElementById("attachmentCol");
-        threadTree._reorderColumn(attachmentCol, subjectCol, true);
-        pref.setIntPref("mailnews.ui.threadpane.version", 5);
-
-      default: // already upgraded
-        break;
-    }
-  }
-  catch (ex) {
-    dump("UpgradeThreadPane: ex = " + ex + "\n");
-  }
+  // placeholder in case any new columns get added to the thread pane
 }
 
 function OnLoadThreadPane()
