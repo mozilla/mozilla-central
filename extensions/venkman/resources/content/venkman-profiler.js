@@ -233,8 +233,7 @@ function pro_rptinst (profileReport, scriptInstance, sectionData)
         var summary = summaryList[i];
         var rangeData;
         
-        while (summary.key &&
-               rangeIndex < finalRangeIndex &&
+        while (rangeIndex <= finalRangeIndex &&
                summary.key < rangeList[rangeIndex])
         {
             ++rangeIndex;
@@ -250,8 +249,8 @@ function pro_rptinst (profileReport, scriptInstance, sectionData)
 
             var maxRange = (rangeIndex > 0 ?
                             rangeList[rangeIndex - 1] : summary.key);
-            var minRange = (rangeIndex < finalRangeIndex ? 
-                            rangeList[rangeIndex + 1] : summary.key);
+            var minRange = (rangeIndex <= finalRangeIndex ? 
+                            rangeList[rangeIndex] : summary.key);
             K = MAX_WIDTH / maxRange;
 
             rangeData = {
