@@ -150,6 +150,9 @@ cleanup:
  *      Address of PKIX_Boolean that returns the match result.
  *  "plContext"
  *      Platform-specific context pointer.
+ * OUTPUT PARAMETERS ON FAILURE:
+ *   If the function returns a failure,
+ *   the output parameters of this function are undefined.
  * THREAD SAFETY:
  *  Conditionally Thread Safe
  *      (see Thread Safety Definitions in Programmer's Guide)
@@ -172,6 +175,7 @@ pkix_CertSelector_Match_BasicConstraint(
 
         PKIX_ENTER(CERTSELECTOR, "pkix_CertSelector_Match_BasicConstraint");
         PKIX_NULLCHECK_THREE(params, cert, pResult);
+        *pResult = PKIX_TRUE;
 
         PKIX_CHECK(PKIX_ComCertSelParams_GetBasicConstraints
                 (params, &minPathLength, plContext),
