@@ -179,6 +179,7 @@ nsAbLDAPAttributeMap.prototype = {
             aCard.setCardValue(prop, values[0]);
 
             cardValueWasSet = true;
+            break;
           } catch (ex) {
             // ignore any errors getting message values or setting card values
           }
