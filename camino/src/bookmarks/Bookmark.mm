@@ -420,29 +420,6 @@ NSString* const URLLoadSuccessKey     = @"url_bool";
   return exportHTMLString;
 }
 
-//
-// Scripting methods
-//
-
-- (NSScriptObjectSpecifier *)objectSpecifier
-{
-  id parent = [self parent];
-  NSScriptObjectSpecifier *containerRef = [parent objectSpecifier];
-  unsigned index = [[parent childArray] indexOfObjectIdenticalTo:self];
-  if (index != NSNotFound) {
-    // Man, this took forever to figure out.
-    // DHBookmarks always contained in BookmarkFolder - so make
-    // sure we set that as the container class description.
-    NSScriptClassDescription *aRef = (NSScriptClassDescription*)[NSClassDescription classDescriptionForClass:[BookmarkFolder class]];
-    return [[[NSIndexSpecifier allocWithZone:[self zone]] initWithContainerClassDescription:aRef
-                                                                         containerSpecifier:containerRef
-                                                                                        key:@"childArray"
-                                                                                      index:index] autorelease];
-  }
-  else
-    return nil;
-}
-
 #pragma mark -
 
 // sorting

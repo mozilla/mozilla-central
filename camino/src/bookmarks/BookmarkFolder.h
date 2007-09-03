@@ -51,10 +51,9 @@ enum {
 };
 
 
-//root AE code: DB14
 @class Bookmark;
 
-@interface BookmarkFolder : BookmarkItem  //AE code: DBAE
+@interface BookmarkFolder : BookmarkItem
 {
   NSMutableArray* mChildArray;
   unsigned int    mSpecialFlag;
@@ -74,7 +73,7 @@ enum {
 - (void)setIdentifier:(NSString*)inIdentifier;
 - (NSString*)identifier;
 
-- (BOOL)isSpecial;
+- (BOOL)isSpecial;  // True for special (app-defined) collections. Different meaning than the "special" in "special flag".
 - (BOOL)isToolbar;
 - (BOOL)isRoot;
 - (BOOL)isGroup;
@@ -82,7 +81,7 @@ enum {
 - (BOOL)isDockMenu;
 
 - (void)setChildArray:(NSMutableArray *)aChildArray; //should be private?
-- (void)setIsGroup:(BOOL)aGroupFlag;    //AE code: DBAg
+- (void)setIsGroup:(BOOL)aGroupFlag;
 - (void)setIsRoot:(BOOL)aFlag;
 - (void)setIsToolbar:(BOOL)aFlag;
 - (void)setIsSmartFolder:(BOOL)aFlag;
@@ -141,11 +140,5 @@ enum {
 - (NSArray*)resolveShortcut:(NSString *)shortcut withArgs:(NSString *)args;
 - (NSArray*)bookmarksWithString:(NSString*)searchString inFieldWithTag:(int)tag;
 - (BOOL)containsChildItem:(BookmarkItem*)inItem;
-
-// Scripting - should be a protocol we could use for these
-// two, but i'm not sure which one, so we'll declare them here
-// and avoid the compiler warning
-- (NSArray *)indicesOfObjectsByEvaluatingRelativeSpecifier:(NSRelativeSpecifier *)relSpec;
-- (NSArray *)indicesOfObjectsByEvaluatingRangeSpecifier:(NSRangeSpecifier *)rangeSpec;
 
 @end
