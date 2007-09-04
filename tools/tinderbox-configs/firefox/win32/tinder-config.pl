@@ -1,6 +1,6 @@
 #
 ## hostname: fx-win32-tbox
-## uname: CYGWIN_NT-5.2 fx-win32-tbox 1.5.19(0.150/4/2) 2006-01-20 13:28 i686 Cygwin
+## uname: MINGW32_NT-5.2 FX-WIN32-TBOX 1.0.11(0.46/3/2) 2007-01-12 12:05 i686 Msys
 #
 
 #- tinder-config.pl - Tinderbox configuration file.
@@ -77,7 +77,7 @@ $NeckoUnitTest            = 0;
 $RenderPerformanceTest    = 0;  # Tgfx
 
 $TestsPhoneHome           = 0;  # Should test report back to server?
-$GraphNameOverride        = 'fxnewref-win32-tbox';
+$GraphNameOverride        = 'fx-win32-tbox';
 
 # $results_server
 #----------------------------------------------------------------------------

@@ -1,6 +1,6 @@
 #
 ## hostname: fx-win32-tbox
-## uname: CYGWIN_NT-5.2 fx-win32-tbox 1.5.19(0.150/4/2) 2006-01-20 13:28 i686 Cygwin
+## uname: MINGW32_NT-5.2 FX-WIN32-TBOX 1.0.11(0.46/3/2) 2007-01-12 12:05 i686 Msys
 #
 
 # . $topsrcdir/browser/config/mozconfig
@@ -14,7 +14,5 @@ ac_add_options --enable-application=browser
 ac_add_options --enable-update-channel=nightly
 ac_add_options --enable-optimize
 ac_add_options --disable-debug
-# ac_add_options --enable-codesighs
 ac_add_options --disable-tests
-# ac_add_options --enable-official-branding
 ac_add_options --enable-update-packaging
