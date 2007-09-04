@@ -524,7 +524,7 @@ NS_IMETHODIMP nsAbOutlookDirectory::AddMailList(nsIAbDirectory *aMailList)
     if (!didCopy) {
         retCode = newList->CopyMailList(aMailList) ;
         NS_ENSURE_SUCCESS(retCode, retCode) ;
-        retCode = newList->EditMailListToDatabase(mURINoQuery.get(), nsnull) ;
+        retCode = newList->EditMailListToDatabase(nsnull);
         NS_ENSURE_SUCCESS(retCode, retCode) ;
     }
     m_AddressList->AppendElement(newList) ;
