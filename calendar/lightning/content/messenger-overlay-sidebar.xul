@@ -81,6 +81,8 @@
 <script type="application/x-javascript" src="chrome://calendar/content/calendar-minimonth-busy.js"/>
 <script type="application/x-javascript" src="chrome://calendar/content/clipboard.js"/>
 <script type="application/x-javascript" src="chrome://lightning/content/messenger-overlay-toolbar.js"/>
+<script type="application/x-javascript" src="chrome://calendar/content/calendar-dnd-listener.js"/>
+<script type="application/x-javascript" src="chrome://global/content/nsDragAndDrop.js"/>
 
 <menupopup id="menu_NewPopup">
   <menuseparator />
@@ -243,7 +245,12 @@
 
     <deck id="contentPanel" flex="1" minwidth="100" width="200" persist="collapsed width">
 
-      <vbox id="ltnSidebar" height="350" persist="height">
+      <vbox id="ltnSidebar"
+            height="350"
+            persist="height"
+            ondraggesture="nsDragAndDrop.startDrag(event, calendarDNDObserver);"
+            ondragover="nsDragAndDrop.dragOver(event, calendarDNDObserver);"
+            ondragdrop="nsDragAndDrop.drop(event, calendarDNDObserver);">
         <hbox id="ltnMinimonthBox">
           <spacer flex="1"/>
           <minimonth id="ltnMinimonth" onchange="ltnMinimonthPick(this);" flex="2"/>
@@ -304,7 +311,11 @@
 
 <deck id="displayDeck">
   <vbox id="calendar-view-box">
-    <deck flex="1" id="view-deck">
+    <deck flex="1"
+          id="view-deck"
+          ondraggesture="nsDragAndDrop.startDrag(event, calendarDNDObserver);"
+          ondragover="nsDragAndDrop.dragOver(event, calendarDNDObserver);"
+          ondragdrop="nsDragAndDrop.drop(event, calendarDNDObserver);">
       <calendar-decorated-day-view id="day-view" flex="1"
                                          context="calendar-view-context-menu"
                                          item-context="calendar-item-context-menu"/>
