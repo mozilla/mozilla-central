@@ -85,6 +85,8 @@ public:
   NS_IMETHOD RemoveEmailAddressAt(PRUint32 aIndex);
   NS_IMETHOD AddDirectory(const char *uriName, nsIAbDirectory **childDir);
   NS_IMETHOD GetDirUri(char **uri);
+  NS_IMETHOD GetDatabaseFile(nsILocalFile **aResult);
+  NS_IMETHOD GetDatabase(nsIAddrDatabase **aResult);
   NS_IMETHOD CardForEmailAddress(const char * aEmailAddress, nsIAbCard ** aAbCard);
 
   // nsIAbDirectory methods:
@@ -98,7 +100,7 @@ public:
   NS_IMETHOD AddCard(nsIAbCard *card, nsIAbCard **addedCard);
   NS_IMETHOD ModifyCard(nsIAbCard *aModifiedCard);
   NS_IMETHOD DropCard(nsIAbCard *card, PRBool needToCopyCard);
-  NS_IMETHOD EditMailListToDatabase(const char *uri, nsIAbCard *listCard);
+  NS_IMETHOD EditMailListToDatabase(nsIAbCard *listCard);
 
   // nsIAbDirectorySearch methods
   NS_DECL_NSIABDIRECTORYSEARCH

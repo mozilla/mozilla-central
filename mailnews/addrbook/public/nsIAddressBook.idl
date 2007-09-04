@@ -36,15 +36,15 @@
  * ***** END LICENSE BLOCK ***** */
 
 #include "nsISupports.idl"
-#include "nsIRDFCompositeDataSource.idl"
-#include "nsIAddrDatabase.idl"
-#include "nsISupportsArray.idl"
 
 interface nsIDOMWindow;
 interface nsIAbDirectory;
 interface nsIAbCard;
+interface nsIAbDirectoryProperties;
+interface nsISupportsArray;
+interface nsIRDFDataSource;
 
-[scriptable, uuid(8b1bdc86-c6bd-4df0-8123-8b30c3e3ae43)]
+[scriptable, uuid(70ed1e50-4824-443f-aaea-c0efb7f2ec1a)]
 interface nsIAddressBook : nsISupports 
 {
   /**
@@ -63,7 +63,6 @@ interface nsIAddressBook : nsISupports
   void deleteAddressBooks(in nsIRDFDataSource aDS, in nsISupportsArray aParentDir, in nsISupportsArray aResourceArray);
 
   void exportAddressBook(in nsIDOMWindow aParentWin, in nsIAbDirectory aDirectory);
-  nsIAddrDatabase getAbDatabaseFromURI(in string URI);
   boolean mailListNameExists(in wstring name);
   nsIAbCard escapedVCardToAbCard(in string escapedVCardStr);
   string abCardToEscapedVCard(in nsIAbCard aCard);

@@ -54,7 +54,7 @@
 #include "nsIAddressBook.h"
 #include "nsIAddrBookSession.h"
 #include "nsIAddrDBListener.h"
-
+#include "nsIAddrDatabase.h"
 #include "nsEnumeratorUtils.h"
 
 #include "nsAbBaseCID.h"

@@ -57,6 +57,9 @@
 #include "nsIAbMDBDirectory.h"
 #include "nsILDAPURL.h"
 #include "nsILDAPConnection.h"
+#include "nsAppDirectoryServiceDefs.h"
+#include "nsDirectoryServiceUtils.h"
+#include "nsILocalFile.h"
 
 #define kDefaultMaxHits 100
 
@@ -538,4 +541,48 @@ NS_IMETHODIMP nsAbLDAPDirectory::GetAttributeMap(nsIAbLDAPAttributeMap **aAttrib
   NS_ENSURE_SUCCESS(rv, rv);
 
   return mapSvc->GetMapForPrefBranch(m_DirPrefId, aAttributeMap);
+}
+
+NS_IMETHODIMP nsAbLDAPDirectory::GetReplicationFile(nsILocalFile **aResult)
+{
+  NS_ENSURE_ARG_POINTER(aResult);
+
+  nsCString fileName;
+  nsresult rv = GetStringValue("filename", EmptyCString(), fileName);
+  NS_ENSURE_SUCCESS(rv, rv);
+
+ if (fileName.IsEmpty())
+    return NS_ERROR_NOT_INITIALIZED;
+
+  nsCOMPtr<nsIFile> profileDir;
+  rv = NS_GetSpecialDirectory(NS_APP_USER_PROFILE_50_DIR,
+                              getter_AddRefs(profileDir));
+  NS_ENSURE_SUCCESS(rv, rv);
+
+  rv = profileDir->AppendNative(fileName);
+  NS_ENSURE_SUCCESS(rv, rv);
+
+  nsCOMPtr<nsILocalFile> replFile(do_QueryInterface(profileDir, &rv));
+  NS_ENSURE_SUCCESS(rv, rv);
+
+  NS_ADDREF(*aResult = replFile);
+
+  return NS_OK;
+}
+
+NS_IMETHODIMP nsAbLDAPDirectory::GetReplicationDatabase(nsIAddrDatabase **aResult)
+{
+  NS_ENSURE_ARG_POINTER(aResult);
+
+  nsresult rv;
+  nsCOMPtr<nsILocalFile> databaseFile;
+ rv = GetReplicationFile(getter_AddRefs(databaseFile));
+  NS_ENSURE_SUCCESS(rv, rv);
+
+  nsCOMPtr<nsIAddrDatabase> addrDBFactory =
+    do_GetService(NS_ADDRDATABASE_CONTRACTID, &rv);
+  NS_ENSURE_SUCCESS(rv, rv);
+
+  return addrDBFactory->Open(databaseFile, PR_FALSE /* no create */, PR_TRUE,
+                           aResult);
 }

@@ -76,7 +76,7 @@ public:
   NS_IMETHOD ModifyCard(nsIAbCard *aModifiedCard);
   NS_IMETHOD DropCard(nsIAbCard *aData, PRBool needToCopyCard);
   NS_IMETHOD AddMailList(nsIAbDirectory *aMailList);
-  NS_IMETHOD EditMailListToDatabase(const char *aUri, nsIAbCard *listCard);
+  NS_IMETHOD EditMailListToDatabase(nsIAbCard *listCard);
   
   // nsAbDirectoryRDFResource method
   NS_IMETHOD Init(const char *aUri);
