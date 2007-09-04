@@ -145,14 +145,14 @@
 
   <binding id="grippytoolbar" extends="chrome://global/content/bindings/toolbar.xml#toolbar">
     <content>
-      <xul:toolbargrippy xbl:inherits="last-toolbar,hidden=grippyhidden"
-                         tbattr="toolbar-grippy"
-                         class="toolbar-grippy"/>
-      <xul:hbox class="toolbar-prefix"
-                xbl:inherits="onclick=prefixonclick,tooltiptext=prefixtooltip,hidden=prefixhidden,prefixopen"/>
-      <xul:hbox flex="1" class="toolbar-holder" align="center"
-                xbl:inherits="collapsed,last-toolbar,orient=tborient,align=tbalign,pack=tbpack">
-        <children/>
+      <xul:hbox flex="1" class="toolbar-box">
+        <xul:toolbargrippy xbl:inherits="last-toolbar,hidden=grippyhidden"
+                           tbattr="toolbar-grippy"
+                           class="toolbar-grippy"/>
+        <xul:hbox flex="1" class="toolbar-holder"
+                  xbl:inherits="collapsed,last-toolbar,orient,align,pack">
+          <children/>
+        </xul:hbox>
       </xul:hbox>
     </content>
 
@@ -223,11 +223,13 @@
   </binding>
 
   <binding id="grippymenubar" extends="chrome://global/content/bindings/toolbar.xml#menubar">
-    <content>
-      <xul:toolbargrippy xbl:inherits="last-toolbar,hidden=grippyhidden"
-                         tbattr="toolbar-grippy" class="toolbar-grippy"/>
-      <xul:hbox flex="1" class="toolbar-holder" xbl:inherits="collapsed,last-toolbar" align="center">
-        <children/>
+    <content height="0">
+      <xul:hbox flex="1" class="toolbar-box">
+        <xul:toolbargrippy xbl:inherits="last-toolbar,hidden=grippyhidden"
+                           tbattr="toolbar-grippy" class="toolbar-grippy"/>
+        <xul:hbox flex="1" class="toolbar-holder" xbl:inherits="collapsed,last-toolbar">
+          <children/>
+        </xul:hbox>
       </xul:hbox>
     </content>
     <implementation>
