@@ -127,7 +127,7 @@ pref("extensions.update.enabled", true);
 pref("extensions.update.url", "chrome://mozapps/locale/extensions/extensions.properties");
 
 pref("extensions.update.interval", 86400);  // Check for updates to Extensions and 
-                                            // Themes every week
+                                            // Themes every day
 // Non-symmetric (not shared by extensions) extension-specific [update] preferences
 pref("extensions.getMoreExtensionsURL", "https://%LOCALE%.add-ons.mozilla.com/%LOCALE%/%APP%/%VERSION%/extensions/");
 pref("extensions.getMoreThemesURL", "https://%LOCALE%.add-ons.mozilla.com/%LOCALE%/%APP%/%VERSION%/themes/");
@@ -228,7 +228,6 @@ pref("signon.SignonFileName",               "signons.txt");
 pref("signon.SignonFileName2",              "signons2.txt");
 
 pref("browser.hiddenWindowChromeURL", "chrome://messenger/content/hiddenWindow.xul");
-pref("network.search.url","http://cgi.netscape.com/cgi-bin/url_search.cgi?search=");
 
 pref("general.startup.browser",             false);
 pref("general.startup.mail",                false);
@@ -247,7 +246,6 @@ pref("offline.send.unsent_messages",            0);
 // 1 Always synchronize the offline store when going offline
 // 2 Never synchronize the offline store when going offline
 pref("offline.download.download_messages",  0);
-pref("offline.prompt_synch_on_exit",            true);
 
 #ifdef XP_WIN
 pref("offline.autoDetect", true); // automatically move the user offline or online based on the network connection
@@ -296,7 +294,6 @@ pref("xpinstall.dialog.progress.type.chrome", "Extension:Manager");
 // Generic browser related prefs. 
 // XXX: Need to scrub these to see which ones thunderbird really needs...
 /////////////////////////////////////////////////////////////////
-pref("browser.startup.homepage",	   "chrome://navigator-region/locale/region.properties");
 pref("browser.cache.memory.capacity",       4096);
 pref("browser.send_pings", false);
 pref("browser.chrome.site_icons", true);
@@ -348,27 +345,9 @@ pref("spellchecker.dictionaries.download.url", "https://%LOCALE%.add-ons.mozilla
 // dogbert (4.x), seamonkey (mozilla suite), eudora, oexpress, outlook. 
 pref("profile.force.migration", "");
 
-// Customizable toolbar stuff
-pref("custtoolbar.personal_toolbar_folder", "");
-
-// XXXbsmedberg why are changing the default value here?
-// ------------------
-//  Numeral Style
-// ------------------
-// 1 = regularcontextnumeralBidi *
-// 2 = hindicontextnumeralBidi
-// 3 = arabicnumeralBidi
-// 4 = hindinumeralBidi
-pref("bidi.numeral", 1);
-
 // prefs to control the mail alert notification
 pref("alerts.slideIncrementTime", 50);
 pref("alerts.totalOpenTime", 3000);
-
-// 0 opens the download manager
-// 1 opens a progress dialog
-// 2 and other values, no download manager, no progress dialog. 
-pref("browser.downloadmanager.behavior", 1);
 
 // analyze urls in mail messages for scams
 pref("mail.phishing.detection.enabled", true);
@@ -396,14 +375,6 @@ pref("browser.safebrowsing.provider.0.reportPhishURL", "http://{moz:locale}.phis
 
 // FAQ URL
 pref("browser.safebrowsing.warning.infoURL", "http://%LOCALE%.www.mozilla.com/%LOCALE%/firefox/phishing-protection/");
-
-#ifndef XP_MACOSX
-#ifdef XP_UNIX
-// For the download dialog
-pref("browser.download.progressDnldDialog.enable_launch_reveal_buttons", false);
-pref("browser.urlbar.clickSelectsAll", false);
-#endif
-#endif
 
 // prevent status-bar spoofing even if people are foolish enough to turn on JS
 pref("dom.disable_window_status_change",          true);
