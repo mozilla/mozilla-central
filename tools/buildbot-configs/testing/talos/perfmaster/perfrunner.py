@@ -438,10 +438,7 @@ class MozillaInstallDmg(ShellCommand):
         if 'filename' in kwargs:
             self.filename = kwargs['filename']
         if not 'command' in kwargs:
-            kwargs['command'] = "mkdir mnt; " \
-                              + "expect mountdmg.exp FILENAME;" \
-                              + "rsync -a ./mnt/* .;" \
-                              + "hdiutil detach mnt/"
+            kwargs['command'] = "bash mountdmg.sh FILENAME ."
         ShellCommand.__init__(self, **kwargs)
     
     def describe(self, done=False):
