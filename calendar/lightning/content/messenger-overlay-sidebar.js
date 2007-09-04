@@ -568,6 +568,9 @@ function LtnObserveDisplayDeckChange(event)
     // Now we're switching back to the mail view, so put everything back that
     // we collapsed in showCalendarView()
     if (id != "calendar-view-box") {
+        if (gCurrentMode != 'mail') {
+            ltnSwitch2Mail();
+        }
         collapseElement(document.getElementById("calendar-view-box"));
         uncollapseElement(GetMessagePane());
         uncollapseElement(document.getElementById("threadpane-splitter"));

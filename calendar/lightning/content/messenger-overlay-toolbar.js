@@ -71,6 +71,8 @@ function ltnSwitch2Mail() {
     switch2mail.setAttribute("checked", "true");
     switch2calendar.removeAttribute("checked");
 
+    gCurrentMode = 'mail';
+
     var mailToolbar = getMailBar();
     var calendarToolbar = document.getElementById("calendar-toolbar");
     mailToolbar.removeAttribute("collapsed");
@@ -91,8 +93,6 @@ function ltnSwitch2Mail() {
     
     document.commandDispatcher.updateCommands('mail-toolbar');
     document.commandDispatcher.updateCommands('calendar_commands');
-    
-    gCurrentMode = 'mail';
   }
 }
 
@@ -107,6 +107,8 @@ function ltnSwitch2Calendar() {
     var switch2calendar = document.getElementById("switch2calendar");
     switch2calendar.setAttribute("checked", "true");
     switch2mail.removeAttribute("checked");
+
+    gCurrentMode = 'calendar';
 
     var mailToolbar = getMailBar();
     var calendarToolbar = document.getElementById("calendar-toolbar");
@@ -128,8 +130,6 @@ function ltnSwitch2Calendar() {
 
     document.commandDispatcher.updateCommands('mail-toolbar');
     document.commandDispatcher.updateCommands('calendar_commands');
-    
-    gCurrentMode = 'calendar';
   }
 }
 
