@@ -133,8 +133,10 @@ function onLoad() {
                 .value = organizer.commonName;
         } else if (organizer.id && organizer.id.length) {
             var email = organizer.id;
-            if (email.indexOf("mailto:") == 0) {
-                email = email.split("mailto:")[1]
+            var re = new RegExp("^mailto:(.*)", "i");
+            var matches = re.exec(email);
+            if (matches) {
+                email = matches[1];
             }
             document.getElementById("organizer-row").removeAttribute("hidden");
             document.getElementById("item-organizer").value = email;
@@ -257,13 +259,17 @@ function updateAttendees() {
         var list = listbox.getElementsByTagName("listitem");
         var page = 0;
         var line = 0;
+        var re = new RegExp("^mailto:(.*)", "i");
         for each (var attendee in attendees) {
             var name = attendee.commonName;
             if (!(name && name.length)) {
                 if (attendee.id && attendee.id.length) {
-                    var email = organizer.id;
-                    if (email.indexOf("mailto:") == 0) {
-                        email = email.split("mailto:")[1];
+                    var email = attendee.id;
+                    if (email && email.length) {
+                        var matches = re.exec(email);
+                        if (matches) {
+                            email = matches[1];
+                        }
                     }
                     name = email;
                 }
@@ -306,10 +312,9 @@ function sendMailToOrganizer() {
             var email = organizer.id;
             var re = new RegExp("^mailto:(.*)", "i");
             if (email && email.length) {
-                if (re.test(email)) {
-                    email = RegExp.$1;
-                } else {
-                    email = email;
+                var matches = re.exec(email);
+                if (matches) {
+                    email = matches[1];
                 }
             }
 
