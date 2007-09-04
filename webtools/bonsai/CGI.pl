@@ -97,7 +97,7 @@ sub BatchIdPart {
 
 # Create a generic page header for bonsai pages
 sub PutsHeader {
-    my ($title, $h1, $h2) = (@_);
+    my ($title, $h1, $h2, $script, $onload) = (@_);
 
     if (!defined $h1) {
 	$h1 = $title;
@@ -105,12 +105,22 @@ sub PutsHeader {
     if (!defined $h2) {
 	$h2 = "";
     }
+    
+    if (!defined $script) {
+    $script = "";
+    }
+    
+    if (!defined $onload) {
+    $onload = "";
+    }
 
     print "<HTML><HEAD>\n<TITLE>" . &html_quote($title) . "</TITLE>\n";
     print '<link rel="icon" href="bonsai.ico" type="image/x-icon">';
     print $::Setup_String if (defined($::Setup_String) && $::Setup_String);
-    print Param("headerhtml") . "\n</HEAD>\n";
-    print "<BODY   BGCOLOR=\"#FFFFFF\" TEXT=\"#000000\"\n";
+    print Param("headerhtml") . "\n";
+    print $script;
+    print " </HEAD>\n";
+    print "<BODY ONLOAD = \"$onload\" BGCOLOR=\"#FFFFFF\" TEXT=\"#000000\"\n";
     print "LINK=\"#0000EE\" VLINK=\"#551A8B\" ALINK=\"#FF0000\">\n";
 
     print PerformSubsts(Param("bannerhtml"), undef);

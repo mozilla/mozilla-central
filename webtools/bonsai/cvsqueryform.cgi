@@ -253,6 +253,24 @@ Between <input type=text name=mindate value='" . &html_quote(&url_decode($::FORM
 </tr>
 ";
 
+#
+# Print output options
+#
+
+print "
+<tr>
+<th align=right valign=top><br>Output:</th>
+<td colspan='2'>
+<input type=checkbox name=graph /> Graph </td> 
+</tr>
+";
+
+
+#
+# Print submit
+#
+
+
 print "
 <tr>
 <th><BR></th>
