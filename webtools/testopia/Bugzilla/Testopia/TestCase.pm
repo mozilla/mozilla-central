@@ -209,7 +209,7 @@ sub _check_tester{
 sub _check_automated{
     my ($invocant, $isactive) = @_;
     $isactive = trim($isactive);
-    ThrowCodeError('bad_arg', {argument => 'isactive', function => 'set_isactive'}) unless ($isactive =~ /(1|0)/);
+    ThrowCodeError('bad_arg', {argument => 'isautomated', function => 'set_automated'}) unless ($isactive =~ /(1|0)/);
     return $isactive;
 }
 

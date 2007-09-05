@@ -18,6 +18,64 @@
 #
 # Contributor(s): David Koenig <dkoenig@novell.com>
 
+package Bugzilla::Testopia::XmlReferences;
+
+use constant IGNORECASE => "ignorecase";
+
+use strict;
+
+sub new {
+    my ($invocant,$ignorecase,$fields) = @_;
+
+    my $class = ref($invocant) || $invocant;
+    my $self = {};
+    bless($self, $class);
+    $self->{IGNORECASE} = $ignorecase;
+    for my $field ( split(/ /, $fields) ) {
+        $field = uc $field if ( $self->{IGNORECASE} );
+        $self->{$field} = [];
+    }
+    return $self;
+}
+
+sub add {
+    my ($self, $type, $object) = @_;
+    
+    $type = uc $type if ( $self->{IGNORECASE} );
+
+    return 0 if ( ! exists $self->{$type} );
+
+    push @{$self->{$type}}, $object;
+}
+
+sub display {
+    my ($self) = @_;
+    
+    print "display() self=" . $self . "\n";
+    foreach my $key (keys %$self) {
+        if ( defined $self->{$key} ) {
+            print "display()   key=$key value=" . $self->{$key} . "\n";
+        }
+        else {
+            print "display()   key=$key value=undefined\n";
+        }
+    }
+}
+
+sub get {
+        my ($self, $type) = @_;
+        
+        $type = uc $type if ( $self->{IGNORECASE} );
+        
+        return 0 if ( ! exists $self->{$type} );
+        
+        return $self->{$type};
+}
+
+1;
+
+__END__
+
 =head1 NAME
 
 Bugzilla::Testopia::XmlReferences - Testopia XmlReferences object
@@ -31,71 +89,56 @@ are stored here and processed as needed.
 
 =head1 SYNOPSIS
 
-use Bugzilla::Testopia::XmlReferences;
+ use Bugzilla::Testopia::XmlReferences;
+
+ $xml_testcase->blocks(Bugzilla::Testopia::XmlReferences->new(IGNORECASE, XMLREFERENCES_FIELDS));
+ $xml_testcase->dependson(Bugzilla::Testopia::XmlReferences->new(IGNORECASE, XMLREFERENCES_FIELDS));
+ $xml_testcase->testplan(Bugzilla::Testopia::XmlReferences->new(IGNORECASE, XMLREFERENCES_FIELDS));
+ 
+=head1 METHODS
+
+=over
+
+=item C<new(IGNORECASE, XMLREFERENCES_FIELDS)>
+ 
+ Description: Creates a new reference.
+              
+ Params:      Constants - IGNORECASE
+ 
+ Returns:     Blessed XmlReferences object.
+ 
+=item C<add($type, $object)>
+ 
+ Description: Add a new object reeference of the supplied type.
+              
+ Params:      type - dependson, blocks, plan
+              object - case or plan
+ 
+ Returns:     Nothing.
+ 
+=item C<display()>
+ 
+ Description: displays the cureent references on the screen.
+              
+ Params:      none.
+ 
+ Returns:     Nothing.
+ 
+=item C<get($type)>
+ 
+ Description: Returns the references of the specified type.
+              
+ Params:      type
+ 
+ Returns:     references.
+ 
+=back
 
 
-=cut
+=head1 SEE ALSO
 
-package Bugzilla::Testopia::XmlReferences;
+Testopia::(TestPlan, TestCase, XmlTestCase, Xml)
 
-use constant IGNORECASE => "ignorecase";
+=head1 AUTHOR
 
-use strict;
-
-sub new
-{
-    my ($invocant,$ignorecase,$fields) = @_;
-
-    my $class = ref($invocant) || $invocant;
-    my $self = {};
-    bless($self, $class);
-    $self->{IGNORECASE} = $ignorecase;
-    for my $field ( split(/ /, $fields) )
-    {
-        $field = uc $field if ( $self->{IGNORECASE} );
-        $self->{$field} = [];
-    }
-    return $self;
-}
-
-sub add
-{
-    my ($self, $type, $object) = @_;
-    
-    $type = uc $type if ( $self->{IGNORECASE} );
-
-    return 0 if ( ! exists $self->{$type} );
-
-    push @{$self->{$type}}, $object;
-}
-
-sub display
-{
-    my ($self) = @_;
-    
-    print "display() self=" . $self . "\n";
-    foreach my $key (keys %$self)
-    {
-        if ( defined $self->{$key} )
-        {
-            print "display()   key=$key value=" . $self->{$key} . "\n";
-        }
-        else
-        {
-            print "display()   key=$key value=undefined\n";
-        }
-    }
-}
-
-sub get 
-{
-        my ($self, $type) = @_;
-        
-        $type = uc $type if ( $self->{IGNORECASE} );
-        
-        return 0 if ( ! exists $self->{$type} );
-        
-        return $self->{$type};
-}
-
-1;
+David Koenig <dkoenig@novell.com>
