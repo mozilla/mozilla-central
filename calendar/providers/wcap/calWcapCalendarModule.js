@@ -141,8 +141,7 @@ var calWcapCalendarFactory = { // nsIFactory:
     createInstance: function calWcapCalendarFactory_createInstance(outer, iid) {
         if (outer)
             throw Components.results.NS_ERROR_NO_AGGREGATION;
-        var session = new calWcapSession();
-        return session.defaultCalendar.QueryInterface(iid);
+        return (new calWcapCalendar()).QueryInterface(iid);
     }
 };
 

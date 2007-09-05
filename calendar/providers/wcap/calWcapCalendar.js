@@ -36,26 +36,17 @@
  *
  * ***** END LICENSE BLOCK ***** */
 
-function calWcapCalendar(session, /*optional*/calProps) {
+var g_lastOnErrorTime = 0;
+var g_lastOnErrorNo = 0;
+var g_lastOnErrorMsg = null;
+
+function calWcapCalendar(/*optional*/session, /*optional*/calProps) {
     this.wrappedJSObject = this;
     this.m_session = session;
     this.m_calProps = calProps;
     this.m_observers = new calListenerBag(Components.interfaces.calIObserver);
     this.m_bSuppressAlarms = SUPPRESS_ALARMS;
-
-    if (this.m_calProps) {
-        var ar = this.getCalProps("X-NSCP-CALPROPS-RELATIVE-CALID");
-        if (ar.length > 0)
-            this.m_calId = ar[0];
-        else
-            this.notifyError("no X-NSCP-CALPROPS-RELATIVE-CALID!");
-    }
 }
-
-var g_lastOnErrorTime = 0;
-var g_lastOnErrorNo = 0;
-var g_lastOnErrorMsg = null;
-
 calWcapCalendar.prototype = {
     m_ifaces: [ calIWcapCalendar,
                 calICalendar,
@@ -66,12 +57,12 @@ calWcapCalendar.prototype = {
     
     // nsISupports:
     QueryInterface: function calWcapCalendar_QueryInterface(iid) {
-        qiface(this.m_ifaces, iid);
+        qiface(this.m_ifaces, iid); // throws
         return this;
     },
     
     // nsIClassInfo:
-    getInterfaces: function calWcapCalendar_getInterfaces( count ) {
+    getInterfaces: function calWcapCalendar_getInterfaces(count) {
         count.value = this.m_ifaces.length;
         return this.m_ifaces;
     },
@@ -84,10 +75,8 @@ calWcapCalendar.prototype = {
     get classID() {
         return calWcapCalendarModule.WcapCalendarInfo.classID;
     },
-    getHelperForLanguage:
-    function calWcapCalendar_getHelperForLanguage(language) { return null; },
-    implementationLanguage:
-    Components.interfaces.nsIProgrammingLanguage.JAVASCRIPT,
+    getHelperForLanguage: function calWcapCalendar_getHelperForLanguage(language) { return null; },
+    implementationLanguage: Components.interfaces.nsIProgrammingLanguage.JAVASCRIPT,
     flags: 0,
     
     // nsIInterfaceRequestor:
@@ -136,7 +125,7 @@ calWcapCalendar.prototype = {
     deleteCalendar: function calWcapCalendar_deleteCalendar(calendar, listener) {
         throw NS_ERROR_NOT_IMPLEMENTED;
     },
-    getCalendar: function calWcapCalendar_getCalendar( url ) {
+    getCalendar: function calWcapCalendar_getCalendar(url) {
         throw NS_ERROR_NOT_IMPLEMENTED;
     },
     
@@ -152,12 +141,14 @@ calWcapCalendar.prototype = {
     },
 
     get name() {
-        return getCalendarManager().getCalendarPref(
-            this.session.defaultCalendar, "NAME");
+        var name = getCalendarManager().getCalendarPref(this, "name");
+        if (!name) {
+            name = this.displayName;
+        }
+        return name;
     },
-    set name( name ) {
-        getCalendarManager().setCalendarPref(
-            this.session.defaultCalendar, "NAME", name);
+    set name(name) {
+        getCalendarManager().setCalendarPref(this, "name", name);
         return name;
     },
     
@@ -184,18 +175,25 @@ calWcapCalendar.prototype = {
     set readOnly(bReadOnly) {
         return (this.m_bReadOnly = bReadOnly);
     },
-    
+
+    m_uri: null,
     get uri() {
-        if (this.m_calId) {
-            var ret = this.session.uri.clone();
-            ret.path += ("?calid=" + encodeURIComponent(this.m_calId));
-            return ret;
-        }
-        else
-            return this.session.uri;
+        return this.m_uri;
     },
     set uri(thatUri) {
-        return (this.session.uri = thatUri);
+        this.m_uri = thatUri.clone();
+        var path = thatUri.path;
+        var qmPos = path.indexOf("?");
+        if (qmPos != -1) {
+            var pos = path.indexOf("?calid=", qmPos);
+            if (pos != -1) {
+                var start = (pos + "?calid=".length);
+                var end = path.indexOf("&", start);
+                this.m_calId = decodeURIComponent(
+                    path.substring(start, end == -1 ? path.length : end));
+            }
+        }
+        return this.uri;
     },
 
     m_observers: null,
@@ -294,9 +292,20 @@ calWcapCalendar.prototype = {
     
     m_session: null,
     get session() {
+        if (!this.m_session) {
+            var uri = this.uri;
+            ASSERT(uri, "no URI set!");
+            var path = uri.path;
+            var qmPos = path.indexOf("?");
+            if (qmPos != -1) {
+                uri = uri.clone();
+                uri.path = path.substring(0, qmPos); // get rid of params
+            }
+            this.m_session = getWcapSessionFor(this, uri);
+        }
         return this.m_session;
     },
-    
+
     m_calId: null,
     get calId() {
         if (this.m_calId)
@@ -308,7 +317,7 @@ calWcapCalendar.prototype = {
         var ar = this.getCalProps("X-NSCP-CALPROPS-PRIMARY-OWNER");
         if (ar.length == 0) {
             var calId = this.calId;
-            logError("cannot determine primary owner of calendar " + calId, this);
+            log("cannot determine primary owner of calendar " + calId, this);
             // fallback to calId prefix:
             var nColon = calId.indexOf(":");
             if (nColon >= 0)
@@ -333,10 +342,19 @@ calWcapCalendar.prototype = {
             // fallback to common name:
             ar = this.getCalProps("X-S1CS-CALPROPS-COMMON-NAME");
             if (ar.length == 0) {
-                return this.calId;
+                ar = [this.calId];
             }
         }
-        return ar[0];
+        var name = ar[0];
+        var defaultCal = this.session.defaultCalendar;
+        if (defaultCal) {
+            var defName = (getCalendarManager().getCalendarPref(defaultCal, "account_name") ||
+                           getCalendarManager().getCalendarPref(defaultCal, "name"));
+            if (defName) {
+                name += (" (" + defName + ")");
+            }
+        }
+        return name;
     },
     
     get isOwnedCalendar() {
@@ -349,13 +367,13 @@ calWcapCalendar.prototype = {
         return !this.m_calId;
     },
     
-    getCalendarProperties:
-    function(propName, out_count) {
+    getCalendarProperties: function calWcapCalendar_getCalendarProperties(propName, out_count) {
         var ret = this.getCalProps(propName);
         out_count.value = ret.length;
         return ret;
     },
-    
+
+    m_calProps: null,
     getCalProps: function calWcapCalendar_getCalProps(propName) {
         if (!this.m_calProps) {
             log("soft error: no calprops, most possibly not logged in.", this);

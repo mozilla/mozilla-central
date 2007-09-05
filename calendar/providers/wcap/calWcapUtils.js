@@ -125,11 +125,9 @@ function log(msg, context, bForce)
         var ret = "";
         if (context)
             ret += ("[" + context + "]");
-        if (msg) {
-            if (ret.length > 0)
-                ret += "\n";
-            ret += msg;
-        }
+        if (ret.length > 0)
+            ret += "\n";
+        ret += msg;
         var now = getTime();
         if (now && g_logTimezone)
             now = now.getInTimezone(g_logTimezone);
