@@ -1,4 +1,3 @@
-#
 # ***** BEGIN LICENSE BLOCK *****
 # Version: MPL 1.1/GPL 2.0/LGPL 2.1
 #
@@ -12,11 +11,11 @@
 # for the specific language governing rights and limitations under the
 # License.
 #
-# The Original Code is mozilla.org code.
+# The Original Code is Sunbird extension stub code. 
 #
 # The Initial Developer of the Original Code is
-# Netscape Communications Corporation.
-# Portions created by the Initial Developer are Copyright (C) 2001
+#   Philipp Kewisch <mozilla@kewis.ch>
+# Portions created by the Initial Developer are Copyright (C) 2006
 # the Initial Developer. All Rights Reserved.
 #
 # Contributor(s):
@@ -35,16 +34,23 @@
 #
 # ***** END LICENSE BLOCK *****
 
-DEPTH		= ../../../../..
+DEPTH		= ../../../../../..
 topsrcdir	= @top_srcdir@
 srcdir		= @srcdir@
 VPATH		= @srcdir@
 
 include $(DEPTH)/config/autoconf.mk
-
-DIRS = {972ce4c6-7e08-4474-a285-3208198ce6fd} \
-       {e2fda1a4-762b-4020-b5ad-a41df1933103} \
-       $(NULL)
-
 include $(topsrcdir)/config/rules.mk
 
+DEFINES += -DSUNBIRD_VERSION=$(SUNBIRD_VERSION)
+
+FILES := \
+	install.rdf \
+	$(NULL)
+
+libs::
+	$(PERL) $(MOZILLA_DIR)/config/preprocessor.pl $(DEFINES) $(ACDEFINES) $(srcdir)/install.rdf.in > install.rdf
+	$(INSTALL) $(FILES) $(DIST)/bin/extensions/{e2fda1a4-762b-4020-b5ad-a41df1933103}
+ 
+install::
+	$(SYSINSTALL) $(IFLAGS1) $(FILES) $(DESTDIR)$(mozappdir)/extensions/{e2fda1a4-762b-4020-b5ad-a41df1933103}
