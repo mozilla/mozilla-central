@@ -136,6 +136,7 @@ function ScrollToMessageAfterFolderLoad(folder)
       switch (gDBView.sortType) 
       {
         case nsMsgViewSortType.byDate: 
+        case nsMsgViewSortType.byReceived: 
         case nsMsgViewSortType.byId: 
         case nsMsgViewSortType.byThread: 
          scrolled = ScrollToMessage(nsMsgNavigationType.lastMessage, true, false /* selectMessage */);
@@ -964,7 +965,15 @@ function OnLoadFolderPane()
 
 function UpgradeThreadPaneUI()
 {
-  // placeholder in case any new columns get added to the thread pane
+  try
+  {
+    if (pref.getIntPref("mailnews.ui.threadpane.version") < 6)
+      pref.setIntPref("mailnews.ui.threadpane.version", 6);
+  }
+  catch (ex) 
+  {
+    dump("UpgradeThreadPane: ex = " + ex + "\n");
+  }
 }
 
 function OnLoadThreadPane()

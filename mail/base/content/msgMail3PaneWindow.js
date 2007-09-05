@@ -26,6 +26,7 @@
 #   Neil Rashbrook (neil@parkwaycc.co.uk)
 #   Seth Spitzer <sspitzer@netscape.com>
 #   David Bienvenu <bienvenu@nventure.com>
+#   Jeremy Morton <bugzilla@game-point.net>
 #
 # Alternatively, the contents of this file may be used under the terms of
 # either the GNU General Public License Version 2 or later (the "GPL"), or
@@ -145,6 +146,7 @@ function ScrollToMessageAfterFolderLoad (folder)
       switch (gDBView.sortType) 
       {
         case nsMsgViewSortType.byDate: 
+        case nsMsgViewSortType.byReceived: 
         case nsMsgViewSortType.byId: 
         case nsMsgViewSortType.byThread: 
          scrolled = ScrollToMessage(nsMsgNavigationType.lastMessage, true, false /* selectMessage */);
@@ -1144,38 +1146,51 @@ function UpgradeThreadPaneUI()
 
     threadPaneUIVersion = pref.getIntPref("mailnews.ui.threadpane.version");
 
-    if (threadPaneUIVersion < 5) {
-      var threadTree = document.getElementById("threadTree");        
+    // Note: threadTree._reorderColumn will throw an ERROR if the columns specified are already in the same order!
+
+    if (threadPaneUIVersion < 6)
+    {
+      var threadTree = document.getElementById("threadTree");
+      var dateCol = document.getElementById("dateCol");
+      var receivedCol = document.getElementById("receivedCol");
       var junkCol = document.getElementById("junkStatusCol");
-      var beforeCol;
 
-      if (threadPaneUIVersion < 4) {
+      if (threadPaneUIVersion < 5) 
+      {
+        if (threadPaneUIVersion < 4)
+        {
+          if (threadPaneUIVersion < 3) 
+          {
 
-        if (threadPaneUIVersion < 3) {
-          
-          // in thunderbird, we are inserting the junk column just before the 
-          // date column. 
-          var dateCol = document.getElementById("dateCol");
-          threadTree._reorderColumn(junkCol, dateCol, true);
-        }
+            // in thunderbird, we are inserting the junk column just before the 
+            // date column. 
+            threadTree._reorderColumn(junkCol, dateCol, true);
+          }
 
-        var senderCol = document.getElementById("senderCol");
-        var recipientCol = document.getElementById("recipientCol");    
-        threadTree._reorderColumn(recipientCol, junkCol, true);        
-        threadTree._reorderColumn(senderCol, recipientCol, true);
+          var senderCol = document.getElementById("senderCol");
+          var recipientCol = document.getElementById("recipientCol");    
+          threadTree._reorderColumn(recipientCol, junkCol, true);        
+          threadTree._reorderColumn(senderCol, recipientCol, true);
 
-      } // version 4 upgrades
+        } // version 4 upgrades
 
-      // version 5 adds a new column called attachments
-      var attachmentCol = document.getElementById("attachmentCol");
-      var subjectCol = document.getElementById("subjectCol");
-      
-      threadTree._reorderColumn(attachmentCol, subjectCol, true);
+        // version 5 adds a new column called attachments
+        var attachmentCol = document.getElementById("attachmentCol");
+        var subjectCol = document.getElementById("subjectCol");
+        
+        threadTree._reorderColumn(attachmentCol, subjectCol, true);
 
-      pref.setIntPref("mailnews.ui.threadpane.version", 5);
+      } // version 5 upgrades
 
-    } // version 5 upgrades
-	}
+      if (dateCol)
+        threadTree._reorderColumn(receivedCol, dateCol, true);
+      else
+        threadTree._reorderColumn(receivedCol, junkCol, false);
+
+      pref.setIntPref("mailnews.ui.threadpane.version", 6);
+
+    } // version 6 upgrades
+  }
   catch (ex) {
     dump("UpgradeThreadPane: ex = " + ex + "\n");
   }

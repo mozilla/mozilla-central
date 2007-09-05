@@ -347,7 +347,10 @@
                         class="treecol-image junkStatusHeader"
                         label="&junkStatusColumn.label;" tooltiptext="&junkStatusColumn.tooltip;"/>
                <splitter class="tree-splitter"/>
-               <treecol id="dateCol" persist="hidden ordinal width" flex="2"
+               <treecol id="receivedCol" persist="hidden ordinal width temphidden" flex="2" hidden="true"
+                        label="&receivedColumn.label;" tooltiptext="&receivedColumn.tooltip;"/>
+               <splitter class="tree-splitter"/>
+               <treecol id="dateCol" persist="hidden ordinal width" flex="2" 
                         label="&dateColumn.label;" tooltiptext="&dateColumn.tooltip;"/>
                <splitter class="tree-splitter"/>
                <treecol id="statusCol" persist="hidden ordinal width" flex="1" hidden="true"

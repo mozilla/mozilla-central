@@ -186,7 +186,7 @@ protected:
   nsresult FetchAuthor(nsIMsgDBHdr * aHdr, nsAString &aAuthorString);
   nsresult FetchRecipients(nsIMsgDBHdr * aHdr, nsAString &aRecipientsString);
   nsresult FetchSubject(nsIMsgDBHdr * aMsgHdr, PRUint32 aFlags, nsAString &aValue);
-  nsresult FetchDate(nsIMsgDBHdr * aHdr, nsAString & aDateString);
+  nsresult FetchDate(nsIMsgDBHdr * aHdr, nsAString & aDateString, PRBool rcvDate = PR_FALSE);
   nsresult FetchStatus(PRUint32 aFlags, nsAString &aStatusString);
   nsresult FetchSize(nsIMsgDBHdr * aHdr, nsAString & aSizeString);
   nsresult FetchPriority(nsIMsgDBHdr *aHdr, nsAString & aPriorityString);

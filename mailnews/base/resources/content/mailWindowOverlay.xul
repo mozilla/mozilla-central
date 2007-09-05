@@ -1217,6 +1217,7 @@
             accesskey="&sortMenu.accesskey;" observes="mailHideMenus">
         <menupopup onpopupshowing="InitViewSortByMenu()">
           <menuitem id="sortByDateMenuitem" type="radio" name="sortby" label="&sortByDateCmd.label;" accesskey="&sortByDateCmd.accesskey;" oncommand="MsgSortByDate()"/>
+          <menuitem id="sortByReceivedMenuitem" type="radio" name="sortby" label="&sortByReceivedCmd.label;" accesskey="&sortByReceivedCmd.accesskey;" oncommand="MsgSortByReceived()"/>
           <menuitem id="sortByFlagMenuitem" type="radio" name="sortby" label="&sortByFlagCmd.label;" accesskey="&sortByFlagCmd.accesskey;" oncommand="MsgSortByFlagged()"/>
           <menuitem id="sortByOrderReceivedMenuitem" type="radio" name="sortby" label="&sortByOrderReceivedCmd.label;"  accesskey="&sortByOrderReceivedCmd.accesskey;" oncommand="MsgSortByOrderReceived()"/>
           <menuitem id="sortByPriorityMenuitem" type="radio" name="sortby" label="&sortByPriorityCmd.label;" accesskey="&sortByPriorityCmd.accesskey;" oncommand="MsgSortByPriority()"/>

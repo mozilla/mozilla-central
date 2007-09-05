@@ -29,6 +29,7 @@
 #   David Bienvenu <bienvenu@nventure.com>
 #   Karsten Düsterloh <mnyromyr@tprac.de>
 #   Christopher Thomas <cst@yecc.com>
+#   Jeremy Morton <bugzilla@game-point.net>
 #
 # Alternatively, the contents of this file may be used under the terms of
 # either the GNU General Public License Version 2 or later (the "GPL"), or
@@ -249,6 +250,7 @@ function InitViewSortByMenu()
   var sortType = gDBView.sortType;
 
   setSortByMenuItemCheckState("sortByDateMenuitem", (sortType == nsMsgViewSortType.byDate));
+  setSortByMenuItemCheckState("sortByReceivedMenuitem", (sortType == nsMsgViewSortType.byReceived));
   setSortByMenuItemCheckState("sortByFlagMenuitem", (sortType == nsMsgViewSortType.byFlagged));
   setSortByMenuItemCheckState("sortByOrderReceivedMenuitem", (sortType == nsMsgViewSortType.byId));
   setSortByMenuItemCheckState("sortByPriorityMenuitem", (sortType == nsMsgViewSortType.byPriority));
@@ -264,7 +266,7 @@ function InitViewSortByMenu()
 
   var sortOrder = gDBView.sortOrder;
   var sortTypeSupportsGrouping = (sortType == nsMsgViewSortType.byAuthor 
-      || sortType == nsMsgViewSortType.byDate || sortType == nsMsgViewSortType.byPriority
+      || sortType == nsMsgViewSortType.byDate || sortType == nsMsgViewSortType.byReceived || sortType == nsMsgViewSortType.byPriority
       || sortType == nsMsgViewSortType.bySubject || sortType == nsMsgViewSortType.byTags
       || sortType == nsMsgViewSortType.byRecipient || sortType == nsMsgViewSortType.byAccount
       || sortType == nsMsgViewSortType.byStatus || sortType == nsMsgViewSortType.byFlagged

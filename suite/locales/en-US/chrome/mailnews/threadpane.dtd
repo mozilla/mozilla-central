@@ -51,6 +51,7 @@
 <!ENTITY unreadColumn.label "Unread in Thread">
 <!ENTITY totalColumn.label "Total in Thread">
 <!ENTITY readColumn.label "Read">
+<!ENTITY receivedColumn.label "Received">
 <!ENTITY flagColumn.label "Flag">
 <!ENTITY locationColumn.label "Location">
 <!ENTITY idColumn.label "Order Received">
@@ -72,6 +73,7 @@
 <!ENTITY unreadColumn.tooltip "Number of unread messages in thread">
 <!ENTITY totalColumn.tooltip "Total number of messages in thread">
 <!ENTITY readColumn.tooltip "Click to sort by read">
+<!ENTITY receivedColumn.tooltip "Click to sort by date received">
 <!ENTITY flagColumn.tooltip "Click to sort by flag">
 <!ENTITY locationColumn.tooltip "Click to sort by location">
 <!ENTITY idColumn.tooltip "Click to sort by order received">

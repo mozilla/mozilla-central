@@ -116,6 +116,7 @@ public:
   struct message_header m_message_id;
   struct message_header m_references;
   struct message_header m_date;
+  struct message_header m_delivery_date;
   struct message_header m_from;
   struct message_header m_sender;
   struct message_header m_newsgroups;
@@ -148,7 +149,6 @@ public:
   PRUint16              m_body_lines;
   
   PRBool                m_IgnoreXMozillaStatus;
-  PRBool      m_useReceivedDate;
 
   // this enables extensions to add the values of particular headers to 
   // the .msf file as properties of nsIMsgHdr. It is initialized from a

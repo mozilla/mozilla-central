@@ -147,6 +147,8 @@
 <!ENTITY sortMenu.accesskey "S">
 <!ENTITY sortByDateCmd.label "Date">
 <!ENTITY sortByDateCmd.accesskey "e">
+<!ENTITY sortByReceivedCmd.label "Received">
+<!ENTITY sortByReceivedCmd.accesskey "v">
 <!ENTITY sortByStarCmd.label "Star">
 <!ENTITY sortByStarCmd.accesskey "S">
 <!ENTITY sortByAttachmentsCmd.label "Attachments">
@@ -558,6 +560,7 @@
 <!ENTITY unreadColumn.label "Unread">
 <!ENTITY totalColumn.label "Total">
 <!ENTITY readColumn.label "Read">
+<!ENTITY receivedColumn.label "Received">
 <!ENTITY starredColumn.label "Starred">
 <!ENTITY locationColumn.label "Location">
 <!ENTITY idColumn.label "Order Received">
@@ -579,6 +582,7 @@
 <!ENTITY unreadColumn.tooltip "Number of unread messages in thread">
 <!ENTITY totalColumn.tooltip "Total number of messages in thread">
 <!ENTITY readColumn.tooltip "Click to sort by read">
+<!ENTITY receivedColumn.tooltip "Click to sort by date received">
 <!ENTITY starredColumn.tooltip "Click to sort by star">
 <!ENTITY locationColumn.tooltip "Click to sort by location">
 <!ENTITY idColumn.tooltip "Click to sort by order received">

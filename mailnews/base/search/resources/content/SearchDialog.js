@@ -68,7 +68,7 @@ var gViewSearchListener;
 var gSearchStopButton;
 var gMailSession;
 
-var MSG_FOLDER_FLAG_VIRTUAL = 0x0020;
+// var MSG_FOLDER_FLAG_VIRTUAL = 0x0020; is defined in commandglue.js
 
 // Controller object for search results thread pane
 var nsSearchResultsController =

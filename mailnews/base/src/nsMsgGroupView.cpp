@@ -20,6 +20,7 @@
  * the Initial Developer. All Rights Reserved.
  *
  * Contributor(s):
+ *   Jeremy Morton (bugzilla@game-point.net)
  *
  * Alternatively, the contents of this file may be used under the terms of
  * either of the GNU General Public License Version 2 or later (the "GPL"),
@@ -36,6 +37,7 @@
  * ***** END LICENSE BLOCK ***** */
 
 #include "msgCore.h"
+#include "nsMsgUtils.h"
 #include "nsMsgGroupView.h"
 #include "nsIMsgHdr.h"
 #include "nsIMsgThread.h"
@@ -77,7 +79,11 @@ NS_IMETHODIMP nsMsgGroupView::Open(nsIMsgFolder *aFolder, nsMsgViewSortTypeValue
 
 void nsMsgGroupView::InternalClose()
 {
-  if (m_db && m_sortType == nsMsgViewSortType::byDate)
+  PRBool rcvDate = PR_FALSE;
+
+  if (m_sortType == nsMsgViewSortType::byReceived)
+    rcvDate = PR_TRUE;
+  if (m_db && (m_sortType == nsMsgViewSortType::byDate) || (m_sortType == nsMsgViewSortType::byReceived))
   {
     nsCOMPtr <nsIDBFolderInfo> dbFolderInfo;
     nsresult rv = m_db->GetDBFolderInfo(getter_AddRefs(dbFolderInfo));
@@ -95,7 +101,7 @@ void nsMsgGroupView::InternalClose()
           if (msgHdr)
           {
             PRUint32 ageBucket;
-            rv = GetAgeBucketValue(msgHdr, &ageBucket);
+            rv = GetAgeBucketValue(msgHdr, &ageBucket, rcvDate);
             if (NS_SUCCEEDED(rv))
               expandFlags |=  1 << ageBucket;
           }
@@ -113,13 +119,22 @@ NS_IMETHODIMP nsMsgGroupView::Close()
   return nsMsgThreadedDBView::Close();
 }
 
-nsresult nsMsgGroupView::GetAgeBucketValue(nsIMsgDBHdr *aMsgHdr, PRUint32 * aAgeBucket)
+// Set rcvDate to PR_TRUE to get the Received: date instead of the Date: date.
+nsresult nsMsgGroupView::GetAgeBucketValue(nsIMsgDBHdr *aMsgHdr, PRUint32 * aAgeBucket, PRBool rcvDate)
 {
   NS_ENSURE_ARG_POINTER(aMsgHdr);
   NS_ENSURE_ARG_POINTER(aAgeBucket);
 
   PRTime dateOfMsg;
-  nsresult rv = aMsgHdr->GetDate(&dateOfMsg);
+  nsresult rv;
+  if (!rcvDate)
+    rv = aMsgHdr->GetDate(&dateOfMsg);
+  else
+  {
+    PRUint32 rcvDateSecs;
+    rv = aMsgHdr->GetUint32Property("dateReceived", &rcvDateSecs);
+    Seconds2PRTime(rcvDateSecs, &dateOfMsg);
+  }
   NS_ENSURE_SUCCESS(rv, rv);
 
   PRTime currentTime = PR_Now();
@@ -203,6 +218,7 @@ nsresult nsMsgGroupView::HashHdr(nsIMsgDBHdr *msgHdr, nsString& aHashKey)
   nsCString cStringKey;
   aHashKey.Truncate();
   nsresult rv = NS_OK;
+  PRBool rcvDate = PR_FALSE;
 
   switch (m_sortType)
   {
@@ -258,10 +274,12 @@ nsresult nsMsgGroupView::HashHdr(nsIMsgDBHdr *msgHdr, nsString& aHashKey)
         aHashKey.AppendInt(status);
       }
       break;
+    case nsMsgViewSortType::byReceived:
+      rcvDate = PR_TRUE;
     case nsMsgViewSortType::byDate:
     {
       PRUint32 ageBucket;
-      rv = GetAgeBucketValue(msgHdr, &ageBucket);
+      rv = GetAgeBucketValue(msgHdr, &ageBucket, rcvDate);
       if (NS_SUCCEEDED(rv))
         aHashKey.AppendInt(ageBucket);
       break;
@@ -625,14 +643,17 @@ NS_IMETHODIMP nsMsgGroupView::GetCellText(PRInt32 aRow, nsITreeColumn* aCol, nsA
     if (colID[0] == 's'  && colID[1] == 'u' )
     {
       PRUint32 flags;
+      PRBool rcvDate = PR_FALSE;
       msgHdr->GetFlags(&flags);
       aValue.SetCapacity(0);
       switch (m_sortType)
       {
+        case nsMsgViewSortType::byReceived:
+          rcvDate = PR_TRUE;
         case nsMsgViewSortType::byDate:
         {
           PRUint32 ageBucket = 0;
-          GetAgeBucketValue(msgHdr, &ageBucket);
+          GetAgeBucketValue(msgHdr, &ageBucket, rcvDate);
           switch (ageBucket)
           {
           case 1:

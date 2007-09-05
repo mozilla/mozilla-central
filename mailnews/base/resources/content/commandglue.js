@@ -23,6 +23,7 @@
  * Contributor(s):
  *   Jan Varga <varga@ku.sk>
  *   Håkan Waara (hwaara@chello.se)
+ *   Jeremy Morton (bugzilla@game-point.net)
  *
  * Alternatively, the contents of this file may be used under the terms of
  * either of the GNU General Public License Version 2 or later (the "GPL"),
@@ -57,7 +58,8 @@ var gPrevSelectedFolder;
 var gMsgFolderSelected;
 
 /* keep in sync with nsMsgFolderFlags.h */
-var MSG_FOLDER_FLAG_VIRTUAL = 0x0020;
+const MSG_FOLDER_FLAG_MAIL = 0x0004;
+const MSG_FOLDER_FLAG_VIRTUAL = 0x0020;
 const MSG_FOLDER_FLAG_TRASH = 0x0100;
 const MSG_FOLDER_FLAG_SENTMAIL = 0x0200;
 const MSG_FOLDER_FLAG_DRAFTS = 0x0400;
@@ -339,6 +341,9 @@ function RerootFolder(uri, newFolder, viewType, viewFlags, sortType, sortOrder)
   // we show "Recipient" instead of "Author"
   SetSentFolderColumns(IsSpecialFolder(newFolder, MSG_FOLDER_FLAG_SENTMAIL | MSG_FOLDER_FLAG_DRAFTS | MSG_FOLDER_FLAG_QUEUE, true));
   ShowLocationColumn(viewType == nsMsgViewType.eShowVirtualFolderResults);
+  // Only show 'Received' column for e-mails.  For newsgroup messages, the 'Date' header is as reliable as an e-mail's
+  // 'Received' header, as it is replaced with the news server's (more reliable) date.
+  UpdateReceivedColumn(newFolder);
 
   // now create the db view, which will sort it.
   CreateDBView(newFolder, viewType, viewFlags, sortType, sortOrder);
@@ -486,6 +491,40 @@ function ShowLocationColumn(show)
   }
 }
 
+function UpdateReceivedColumn(newFolder)
+{
+  // Only show 'Received' column for e-mails.  For newsgroup messages, the 'Date' header is as reliable as an e-mail's
+  // 'Received' header, as it is replaced with the news server's (more reliable) date.
+  var receivedColumn = document.getElementById("receivedCol");
+
+  var newFolderShowsRcvd = (newFolder.flags & MSG_FOLDER_FLAG_MAIL) &&
+    !(newFolder.flags & (MSG_FOLDER_FLAG_QUEUE | MSG_FOLDER_FLAG_DRAFTS |
+                         MSG_FOLDER_FLAG_SENTMAIL));
+
+  var tempHidden = receivedColumn.getAttribute("temphidden") == "true";
+  var isHidden = receivedColumn.getAttribute("hidden") == "true";
+
+  if (!newFolderShowsRcvd && !isHidden)
+  {
+    // Record state & hide
+    receivedColumn.setAttribute("temphidden", "true");
+    receivedColumn.setAttribute("hidden", "true");
+  }
+  else if (newFolderShowsRcvd && tempHidden && isHidden)
+  {
+    receivedColumn.removeAttribute("hidden");
+  }
+
+  if (newFolderShowsRcvd)
+  {
+    receivedColumn.removeAttribute("ignoreincolumnpicker");
+    receivedColumn.removeAttribute("temphidden");
+  }
+  else
+    receivedColumn.setAttribute("ignoreincolumnpicker", "true");
+}
+
+
 function SetNewsFolderColumns()
 {
   var sizeColumn = document.getElementById("sizeCol");
@@ -533,6 +572,9 @@ function ConvertColumnIDToSortType(columnID)
   switch (columnID) {
     case "dateCol":
       sortKey = nsMsgViewSortType.byDate;
+      break;
+    case "receivedCol":
+      sortKey = nsMsgViewSortType.byReceived;
       break;
     case "senderCol":
     	sortKey = nsMsgViewSortType.byAuthor;
@@ -588,7 +630,7 @@ function ConvertColumnIDToSortType(columnID)
         // it exists - save this column ID in the customSortCol property of dbFolderInfo
         // for later use (see nsIMsgDBView.cpp)
         gDBView.db.dBFolderInfo.setProperty("customSortCol", columnID);
-        
+
         sortKey = nsMsgViewSortType.byCustom;
       }
       catch (err) {
@@ -604,13 +646,16 @@ function ConvertSortTypeToColumnID(sortKey)
 {
   var columnID;
 
-  // hack to turn this into an integer, if it was a string
-  // it would be a string if it came from localStore.rdf
+  // Hack to turn this into an integer, if it was a string.
+  // It would be a string if it came from localStore.rdf
   sortKey = sortKey - 0;
 
   switch (sortKey) {
     case nsMsgViewSortType.byDate:
       columnID = "dateCol";
+      break;
+    case nsMsgViewSortType.byReceived:
+      columnID = "receivedCol";
       break;
     case nsMsgViewSortType.byAuthor:
       columnID = "senderCol";

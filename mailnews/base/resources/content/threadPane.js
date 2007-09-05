@@ -201,6 +201,11 @@ function MsgSortByDate()
     MsgSortThreadPane(nsMsgViewSortType.byDate);
 }
 
+function MsgSortByReceived()
+{
+    MsgSortThreadPane(nsMsgViewSortType.byReceived);
+}
+
 function MsgSortByFrom()
 {
     MsgSortThreadPane(nsMsgViewSortType.byAuthor);
@@ -358,7 +363,7 @@ function MsgGroupBySort()
   var msgFolder = dbview.msgFolder;
 
   var sortTypeSupportsGrouping = (sortType == nsMsgViewSortType.byAuthor 
-         || sortType == nsMsgViewSortType.byDate || sortType == nsMsgViewSortType.byPriority
+         || sortType == nsMsgViewSortType.byDate || sortType == nsMsgViewSortType.byReceived || sortType == nsMsgViewSortType.byPriority
          || sortType == nsMsgViewSortType.bySubject || sortType == nsMsgViewSortType.byTags
          || sortType == nsMsgViewSortType.byStatus  || sortType == nsMsgViewSortType.byRecipient
          || sortType == nsMsgViewSortType.byAccount || sortType == nsMsgViewSortType.byFlagged

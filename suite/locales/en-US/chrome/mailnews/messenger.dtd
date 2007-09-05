@@ -21,6 +21,7 @@
 
  Contributor(s):
     Karsten Düsterloh <mnyromyr@tprac.de>
+    Jeremy Morton <bugzilla@game-point.net>
 
  Alternatively, the contents of this file may be used under the terms of
  either of the GNU General Public License Version 2 or later (the "GPL"),
@@ -185,6 +186,8 @@
 
 <!ENTITY sortByDateCmd.label "Date">
 <!ENTITY sortByDateCmd.accesskey "e">
+<!ENTITY sortByReceivedCmd.label "Received">
+<!ENTITY sortByReceivedCmd.accesskey "v">
 <!ENTITY sortByFlagCmd.label "Flag">
 <!ENTITY sortByFlagCmd.accesskey "l">
 <!ENTITY sortByPriorityCmd.label "Priority">

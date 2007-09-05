@@ -107,6 +107,7 @@ interface nsMsgViewSortType
   const nsMsgViewSortTypeValue byAttachments = 0x20;
   const nsMsgViewSortTypeValue byAccount = 0x21;
   const nsMsgViewSortTypeValue byCustom = 0x22;
+  const nsMsgViewSortTypeValue byReceived = 0x23;
 };
 
 [scriptable, uuid(255d1c1e-fde7-11d4-a5be-0060b0fc04b7)]
