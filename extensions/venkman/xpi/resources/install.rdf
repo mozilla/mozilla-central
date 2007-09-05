@@ -53,6 +53,15 @@
 			</Description>
 		</em:targetApplication>
 
+		<!-- target: Gecko Toolkit version 1.9 -->
+		<em:targetApplication>
+			<Description>
+				<em:id>toolkit@mozilla.org</em:id>
+				<em:minVersion>1.9a7</em:minVersion>
+				<em:maxVersion>1.9</em:maxVersion>
+			</Description>
+		</em:targetApplication>
+
 		<!-- front-end metadata -->
 		<em:name>JavaScript Debugger</em:name>
 		<em:description>JavaScript debugger and profiler</em:description>
