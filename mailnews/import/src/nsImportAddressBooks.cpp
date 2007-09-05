@@ -68,7 +68,6 @@
 #include "nsProxiedService.h"
 #include "msgCore.h"
 #include "ImportDebug.h"
-#include "nsIAbMDBDirectory.h"
 
 static NS_DEFINE_CID(kRDFServiceCID, NS_RDFSERVICE_CID);
 PR_STATIC_CALLBACK( void) ImportAddressThread( void *stuff);
@@ -742,27 +741,17 @@ void AddressThreadData::DriverAbort()
 }
 
 
-nsIAddrDatabase *GetAddressBookFromUri(const char *pUri)
+nsIAddrDatabase *GetAddressBookFromUri( const char *pUri)
 {
-  nsIAddrDatabase *	pDatabase = nsnull;
-  if (pUri) {
-    nsresult rv;
-    NS_WITH_PROXIED_SERVICE(nsIRDFService, rdfService,
-                            "@mozilla.org/rdf/rdf-service;1",
-                            NS_PROXY_TO_MAIN_THREAD, &rv);
-    if (NS_SUCCEEDED(rv) && rdfService)
-    {
-      nsCOMPtr<nsIRDFResource> resource;
-      rv = rdfService->GetResource(nsDependentCString(pUri),
-                                   getter_AddRefs(resource));
-      if (NS_SUCCEEDED(rv))
-      {
-        nsCOMPtr<nsIAbMDBDirectory> directory = do_QueryInterface(resource, &rv);
-        if (NS_SUCCEEDED(rv))
-          directory->GetDatabase(&pDatabase);
-      }
+    nsIAddrDatabase *	pDatabase = nsnull;
+    if (pUri) {
+        nsresult rv = NS_OK;
+        NS_WITH_PROXIED_SERVICE(nsIAddressBook, addressBook,
+                                NS_ADDRESSBOOK_CONTRACTID,
+                                NS_PROXY_TO_MAIN_THREAD, &rv); 
+        if (addressBook)
+            rv = addressBook->GetAbDatabaseFromURI(pUri, &pDatabase);
     }
-  }
 
 	return pDatabase;
 }

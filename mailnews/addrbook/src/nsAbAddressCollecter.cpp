@@ -53,7 +53,7 @@
 #include "nsString.h"
 #include "nsReadableUtils.h"
 #include "prmem.h"
-#include "nsIAbMDBDirectory.h"
+#include "nsIAddressBook.h"
 
 NS_IMPL_ISUPPORTS2(nsAbAddressCollecter, nsIAbAddressCollecter, nsIObserver)
 
@@ -352,21 +352,22 @@ nsresult nsAbAddressCollecter::SetAbURI(const nsACString &aURI)
   m_abURI = aURI;
 
   nsresult rv;
+  nsCOMPtr<nsIAddrBookSession> abSession = do_GetService(NS_ADDRBOOKSESSION_CONTRACTID, &rv); 
+  NS_ENSURE_SUCCESS(rv, rv);
+
+  nsCOMPtr<nsIAddressBook> addressBook = do_GetService(NS_ADDRESSBOOK_CONTRACTID, &rv);
+  NS_ENSURE_SUCCESS(rv, rv);
+  rv = addressBook->GetAbDatabaseFromURI(m_abURI.get(), getter_AddRefs(m_database));
+  NS_ENSURE_SUCCESS(rv, rv);
+
   nsCOMPtr<nsIRDFService> rdfService = do_GetService("@mozilla.org/rdf/rdf-service;1", &rv);
   NS_ENSURE_SUCCESS(rv, rv);
 
-  nsCOMPtr<nsIRDFResource> resource;
+  nsCOMPtr <nsIRDFResource> resource;
   rv = rdfService->GetResource(m_abURI, getter_AddRefs(resource));
   NS_ENSURE_SUCCESS(rv, rv);
 
   m_directory = do_QueryInterface(resource, &rv);
   NS_ENSURE_SUCCESS(rv, rv);
-
-  nsCOMPtr<nsIAbMDBDirectory> mdbDir(do_QueryInterface(m_directory, &rv));
-  NS_ENSURE_SUCCESS(rv, rv);
-
-  rv = mdbDir->GetDatabase(getter_AddRefs(m_database));
-  NS_ENSURE_SUCCESS(rv, rv);
-
   return rv;
 }

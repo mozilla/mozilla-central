@@ -65,7 +65,6 @@
 #include "nsILocaleService.h"
 #include "nsCollationCID.h"
 #include "nsAbBaseCID.h"
-#include "nsIAbCard.h"
 #include "nsIAbMDBDirectory.h"
 #include "nsISpamSettings.h"
 #include "nsIMsgFilterPlugin.h"

@@ -68,7 +68,6 @@
 #include "nsNetCID.h"
 #include "nsIFileStreams.h"
 #include "nsUnicharUtils.h"
-#include "nsIAbCard.h"
 //---------------------------------------------------------------------------
 // nsMsgSearchTerm specifies one criterion, e.g. name contains phil
 //---------------------------------------------------------------------------

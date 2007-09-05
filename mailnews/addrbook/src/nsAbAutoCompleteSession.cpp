@@ -53,7 +53,7 @@
 #include "nsIIOService.h"
 #include "nsIPrefService.h"
 #include "nsIPrefBranch.h"
-#include "nsIAbMDBDirectory.h"
+#include "nsAbMDBDirectory.h"
 
 NS_IMPL_ISUPPORTS2(nsAbAutoCompleteSession, nsIAbAutoCompleteSession, nsIAutoCompleteSession)
 

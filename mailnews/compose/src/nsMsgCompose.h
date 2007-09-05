@@ -127,8 +127,7 @@ private:
   nsresult CreateMessage(const char * originalMsgURI, MSG_ComposeType type, nsIMsgCompFields* compFields);
   void CleanUpRecipients(nsString& recipients);
   nsresult GetABDirectories(const nsACString& dirUri, nsISupportsArray* directoriesArray, PRBool searchSubDirectory);
-  nsresult BuildMailListArray(nsIAbDirectory* parentDir,
-                              nsISupportsArray* array);
+  nsresult BuildMailListArray(nsIAddrDatabase* database, nsIAbDirectory* parentDir, nsISupportsArray* array);
   nsresult GetMailListAddresses(nsString& name, nsISupportsArray* mailListArray, nsISupportsArray** addresses);
   nsresult TagConvertible(nsIDOMNode *node,  PRInt32 *_retval);
   nsresult _BodyConvertible(nsIDOMNode *node, PRInt32 *_retval);

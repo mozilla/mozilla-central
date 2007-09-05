@@ -48,6 +48,7 @@
 #include "nsIAbMDBCard.h"
 #include "nsIAbListener.h"
 #include "nsIAddrBookSession.h"
+#include "nsIAddressBook.h"
 #include "nsIURL.h"
 #include "nsNetCID.h"
 #include "nsAbDirectoryQuery.h"
@@ -59,9 +60,6 @@
 #include "mdb.h"
 #include "prprf.h"
 #include "nsIPrefService.h"
-#include "nsAppDirectoryServiceDefs.h"
-#include "nsDirectoryServiceUtils.h"
-#include "nsILocalFile.h"
 
 // XXX todo
 // fix this -1,0,1 crap, use an enum or #define
@@ -229,20 +227,29 @@ NS_IMETHODIMP nsAbMDBDirectory::DeleteDirectory(nsIAbDirectory *directory)
   nsCOMPtr<nsIAbMDBDirectory> dbdirectory(do_QueryInterface(directory, &rv));
   NS_ENSURE_SUCCESS(rv, rv);
 
-  nsCOMPtr<nsIAddrDatabase> database;
-  rv = dbdirectory->GetDatabase(getter_AddRefs(database));
+  nsCString uri;
+  rv = dbdirectory->GetDirUri(getter_Copies(uri));
   NS_ENSURE_SUCCESS(rv, rv);
 
-  rv = database->DeleteMailList(directory, PR_TRUE);
-
+  nsCOMPtr<nsIAddrDatabase> database;
+  nsCOMPtr<nsIAddressBook> addressBook = do_GetService(NS_ADDRESSBOOK_CONTRACTID, &rv);
   if (NS_SUCCEEDED(rv))
-    database->Commit(nsAddrDBCommitType::kLargeCommit);
+  {
+    rv = addressBook->GetAbDatabaseFromURI(uri.get(), getter_AddRefs(database));        
 
-  if (m_AddressList)
-    m_AddressList->RemoveElement(directory);
-  rv = mSubDirectories.RemoveObject(directory);
+    if (NS_SUCCEEDED(rv))
+      rv = database->DeleteMailList(directory, PR_TRUE);
 
-  NotifyItemDeleted(directory);
+    if (NS_SUCCEEDED(rv))
+      database->Commit(nsAddrDBCommitType::kLargeCommit);
+
+    if (m_AddressList)
+      m_AddressList->RemoveElement(directory);
+    rv = mSubDirectories.RemoveObject(directory);
+
+    NotifyItemDeleted(directory);
+  }
+  
 
   return rv;
 }
@@ -365,7 +372,7 @@ NS_IMETHODIMP nsAbMDBDirectory::AddDirectory(const char *uriName, nsIAbDirectory
 
 NS_IMETHODIMP nsAbMDBDirectory::GetDirUri(char **uri)
 {
-  NS_ENSURE_ARG_POINTER(uri);
+  NS_ASSERTION(uri, "Null out param");
   NS_ASSERTION(!mURI.IsEmpty(), "Not initialized?");
 
   *uri = ToNewCString(mURI);
@@ -376,49 +383,7 @@ NS_IMETHODIMP nsAbMDBDirectory::GetDirUri(char **uri)
   return NS_OK;
 }
 
-NS_IMETHODIMP nsAbMDBDirectory::GetDatabaseFile(nsILocalFile **aResult)
-{
-  NS_ENSURE_ARG_POINTER(aResult);
 
-  nsCString fileName;
-  nsresult rv = GetStringValue("filename", EmptyCString(), fileName);
-  NS_ENSURE_SUCCESS(rv, rv);
-
-  if (fileName.IsEmpty())
-    return NS_ERROR_NOT_INITIALIZED;
-
-  nsCOMPtr<nsIFile> profileDir;
-  rv = NS_GetSpecialDirectory(NS_APP_USER_PROFILE_50_DIR,
-                              getter_AddRefs(profileDir));
-  NS_ENSURE_SUCCESS(rv, rv);
-
-  rv = profileDir->AppendNative(fileName);
-  NS_ENSURE_SUCCESS(rv, rv);
-
-  nsCOMPtr<nsILocalFile> dbFile = do_QueryInterface(profileDir, &rv);
-  NS_ENSURE_SUCCESS(rv, rv);
-
-  NS_ADDREF(*aResult = dbFile);
-
-  return NS_OK;
-}
-
-NS_IMETHODIMP nsAbMDBDirectory::GetDatabase(nsIAddrDatabase **aResult)
-{
-  NS_ENSURE_ARG_POINTER(aResult);
-
-  nsresult rv;
-  nsCOMPtr<nsILocalFile> databaseFile;
-  rv = GetDatabaseFile(getter_AddRefs(databaseFile));
-  NS_ENSURE_SUCCESS(rv, rv);
-
-  nsCOMPtr<nsIAddrDatabase> addrDBFactory =
-    do_GetService(NS_ADDRDATABASE_CONTRACTID, &rv);
-  NS_ENSURE_SUCCESS(rv, rv);
-
-  return addrDBFactory->Open(databaseFile, PR_FALSE /* no create */, PR_TRUE,
-                           aResult);
-}
 
 // nsIAbDirectory methods
 
@@ -512,8 +477,11 @@ NS_IMETHODIMP nsAbMDBDirectory::DeleteCards(nsISupportsArray *cards)
     // before we do the delete, make this directory (which represents the search)
     // a listener on the database, so that it will get notified when the cards are deleted
     // after delete, remove this query as a listener.
+    nsCOMPtr<nsIAddressBook> addressBook = do_GetService(NS_ADDRESSBOOK_CONTRACTID, &rv);
+    NS_ENSURE_SUCCESS(rv,rv);
+
     nsCOMPtr<nsIAddrDatabase> database;
-    rv = GetDatabase(getter_AddRefs(database));
+    rv = addressBook->GetAbDatabaseFromURI(mURINoQuery.get(), getter_AddRefs(database));
     NS_ENSURE_SUCCESS(rv,rv);
 
     rv = database->AddListener(this);
@@ -672,11 +640,20 @@ NS_IMETHODIMP nsAbMDBDirectory::HasDirectory(nsIAbDirectory *dir, PRBool *hasDir
   dir->GetIsMailList(&bIsMailingList);
   if (bIsMailingList)
   {
+    nsCString uri;
+    rv = dbdir->GetDirUri(getter_Copies(uri));
+        NS_ENSURE_SUCCESS(rv, rv);
     nsCOMPtr<nsIAddrDatabase> database;
-    rv = dbdir->GetDatabase(getter_AddRefs(database));
-
+      nsCOMPtr<nsIAddressBook> addressBook = do_GetService(NS_ADDRESSBOOK_CONTRACTID, &rv);
     if (NS_SUCCEEDED(rv))
-      rv = database->ContainsMailList(dir, hasDir);
+    {
+      rv = addressBook->GetAbDatabaseFromURI(uri.get(), getter_AddRefs(database));        
+    }
+    if(NS_SUCCEEDED(rv) && database)
+    {
+      if(NS_SUCCEEDED(rv))
+        rv = database->ContainsMailList(dir, hasDir);
+    }
   }
 
   return rv;
@@ -865,21 +842,30 @@ NS_IMETHODIMP nsAbMDBDirectory::DropCard(nsIAbCard* aCard, PRBool needToCopyCard
   return NS_OK;
 }
 
-NS_IMETHODIMP nsAbMDBDirectory::EditMailListToDatabase(nsIAbCard *listCard)
+NS_IMETHODIMP nsAbMDBDirectory::EditMailListToDatabase(const char *uri, nsIAbCard *listCard)
 {
   if (mIsQueryURI)
     return NS_ERROR_NOT_IMPLEMENTED;
 
-  if (!mIsMailingList)
-    return NS_ERROR_UNEXPECTED;
+  nsresult rv = NS_OK;
 
-  nsresult rv = GetAbDatabase();
-  NS_ENSURE_SUCCESS(rv, rv);
+  nsCOMPtr<nsIAddrDatabase>  listDatabase;  
 
-  mDatabase->EditMailList(this, listCard, PR_TRUE);
-  mDatabase->Commit(nsAddrDBCommitType::kLargeCommit);
+  nsCOMPtr<nsIAddressBook> addressBook = do_GetService(NS_ADDRESSBOOK_CONTRACTID, &rv);
+  if (NS_SUCCEEDED(rv))
+    rv = addressBook->GetAbDatabaseFromURI(uri, getter_AddRefs(listDatabase));
 
-  return NS_OK;
+  if (listDatabase)
+  {
+    listDatabase->EditMailList(this, listCard, PR_TRUE);
+    listDatabase->Commit(nsAddrDBCommitType::kLargeCommit);
+    listDatabase = nsnull;
+
+    return NS_OK;
+
+  }
+  else
+    return NS_ERROR_FAILURE;
 }
 
 // nsIAddrDBListener methods
@@ -911,7 +897,7 @@ NS_IMETHODIMP nsAbMDBDirectory::OnCardEntryChange
     break;
   }
     
-  NS_ENSURE_SUCCESS(rv, rv);
+          NS_ENSURE_SUCCESS(rv, rv);
   return rv;
 }
 
@@ -1034,43 +1020,16 @@ nsresult nsAbMDBDirectory::GetAbDatabase()
 {
   NS_ASSERTION(!mURI.IsEmpty(), "Not initialized?");
 
-  if (mDatabase)
-    return NS_OK;
+  nsresult rv = NS_OK;
 
-  nsresult rv;
+  if (!mDatabase) {
+    nsCOMPtr<nsIAddressBook> addressBook = do_GetService(NS_ADDRESSBOOK_CONTRACTID, &rv);
+    NS_ENSURE_SUCCESS(rv,rv);
 
-  if (mIsMailingList)
-  {
-    // Get the database of the parent directory.
-    nsCString parentURI(mURINoQuery);
-
-    PRInt32 pos = parentURI.RFindChar('/');
-
-    // If we didn't find a / something really bad has happened
-    if (pos == -1)
-      return NS_ERROR_FAILURE;
-
-    parentURI = StringHead(parentURI, pos);
-
-    nsCOMPtr<nsIRDFService> rdfService =
-      do_GetService("@mozilla.org/rdf/rdf-service;1", &rv);
-    NS_ENSURE_SUCCESS(rv, rv);
-
-    nsCOMPtr<nsIRDFResource> resource;
-    rv = rdfService->GetResource(parentURI, getter_AddRefs(resource));
-    NS_ENSURE_SUCCESS(rv, rv);
-
-    nsCOMPtr<nsIAbMDBDirectory> mdbDir(do_QueryInterface(resource, &rv));
-    NS_ENSURE_SUCCESS(rv, rv);
-
-    rv = mdbDir->GetDatabase(getter_AddRefs(mDatabase));
+    rv = addressBook->GetAbDatabaseFromURI(mURI.get(), getter_AddRefs(mDatabase));
+    if (NS_SUCCEEDED(rv))
+      rv = mDatabase->AddListener(this);
   }
-  else
-    rv = GetDatabase(getter_AddRefs(mDatabase));
-
-  if (NS_SUCCEEDED(rv))
-    rv = mDatabase->AddListener(this);
-
   return rv;
 }
 

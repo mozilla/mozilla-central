@@ -56,7 +56,7 @@
 #define kABFileName_CurrentSuffix ".mab"  /* v3 address book extension */
 %}
 
-[scriptable, uuid(0e4fe001-a62f-41fe-bddb-5ccd8b2911a0)]
+[scriptable, uuid(2c6bf966-88fb-4054-85ee-967ef4750e94)]
 interface nsIAbDirectory : nsISupports {
 
   // Types of operation
@@ -180,27 +180,20 @@ interface nsIAbDirectory : nsISupports {
 
   // Specific to a directory which stores mail lists
 
-  /**
-   * Creates a new mailing list in the directory. Currently only supported 
-   * for top-level directories.
-   *
-   * @param  list  The new mailing list to add.
-   */
-  void addMailList(in nsIAbDirectory list);
+  // Creates a new mailing list in the directory
+  // with the properties defined by list
+  void addMailList (in nsIAbDirectory list);
 
   // Specific to a directory which is a mail list
   attribute wstring listNickName;
   attribute wstring description;
 
   /**
-   * Edits an existing mailing list (specified as listCard) into its parent
-   * directory. You should call this function on the resource with the same
-   * uri as the listCard.
-   *
-   * @param  listCard  A nsIAbCard version of the mailing list with the new
-   *                   values.
+   * Edits an existing mailing list (specified as listCard)
+   * into the directory specified by the uri
+   * XXX javadoc me
    */
-  void editMailListToDatabase(in nsIAbCard listCard);
+  void editMailListToDatabase(in string uri, in nsIAbCard listCard);
 
   // Copies mail list properties from the srcList
   void copyMailList(in nsIAbDirectory srcList);
