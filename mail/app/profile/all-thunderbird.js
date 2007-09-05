@@ -206,9 +206,6 @@ pref("network.cookie.cookieBehavior", 0);
 // l12n and i18n
 pref("intl.charsetmenu.mailedit", "chrome://global/locale/intl.properties");
 pref("intl.accept_languages", "chrome://global/locale/intl.properties");
-// collationOption is only set on linux for japanese. see bug 18338 and 62015
-// we need to check if this pref is still useful.
-pref("intl.collationOption",  "chrome://global-platform/locale/intl.properties");
 pref("intl.charsetmenu.browser.static", "chrome://global/locale/intl.properties");
 pref("intl.charsetmenu.browser.more1",  "chrome://global/locale/intl.properties");
 pref("intl.charsetmenu.browser.more2",  "chrome://global/locale/intl.properties");
