@@ -56,6 +56,7 @@ struct pkix_DefaultCRLCheckerState {
         PKIX_List *certStores; /* list of CertStore */
         PKIX_PL_Date *testDate;
         PKIX_Boolean certHasValidCrl;
+        PKIX_Boolean nistCRLPolicyEnabled;
         PKIX_Boolean prevCertCrlSign;
         PKIX_PL_PublicKey *prevPublicKey; /* Subject PubKey of last cert */
         PKIX_List *prevPublicKeyList; /* of PKIX_PL_PublicKey */
@@ -76,6 +77,7 @@ pkix_DefaultCRLChecker_Initialize(
         PKIX_PL_Date *testDate,
         PKIX_PL_PublicKey *trustedPubKey,
         PKIX_UInt32 certsRemaining,
+        PKIX_Boolean nistCRLPolicyEnabled,
         PKIX_CertChainChecker **pChecker,
         void *plContext);
 

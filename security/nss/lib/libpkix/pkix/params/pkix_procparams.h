@@ -53,7 +53,7 @@ extern "C" {
 
 struct PKIX_ProcessingParamsStruct {
         PKIX_List *trustAnchors;        /* Never NULL */
-	PKIX_List *hintCerts;	/* user-supplied partial chain, may be NULL */
+        PKIX_List *hintCerts;	/* user-supplied partial chain, may be NULL */
         PKIX_CertSelector *constraints;
         PKIX_PL_Date *date;
         PKIX_List *initialPolicies;     /* list of PKIX_PL_OID */
@@ -65,6 +65,7 @@ struct PKIX_ProcessingParamsStruct {
         PKIX_List *revCheckers;
         PKIX_List *certStores;
         PKIX_Boolean isCrlRevocationCheckingEnabled;
+        PKIX_Boolean isCrlRevocationCheckingEnabledWithNISTPolicy;
         PKIX_ResourceLimits *resourceLimits;
 };
 
@@ -74,6 +75,12 @@ PKIX_Error *pkix_ProcessingParams_RegisterSelf(void *plContext);
 
 PKIX_Error *
 pkix_ProcessingParams_GetRevocationEnabled(
+        PKIX_ProcessingParams *params,
+        PKIX_Boolean *pEnabled,
+        void *plContext);
+
+PKIX_Error *
+pkix_ProcessingParams_GetNISTRevocationPolicyEnabled(
         PKIX_ProcessingParams *params,
         PKIX_Boolean *pEnabled,
         void *plContext);

@@ -403,7 +403,7 @@ static PKIX_Error *
 pkix_CRLSelector_DefaultMatch(
         PKIX_CRLSelector *selector,
         PKIX_PL_CRL *crl,
-	PKIX_Boolean *pMatch,
+        PKIX_Boolean *pMatch,
         void *plContext)
 {
         PKIX_ComCRLSelParams *params = NULL;
@@ -417,6 +417,7 @@ pkix_CRLSelector_DefaultMatch(
         PKIX_PL_BigInt *minCRLNumber = NULL;
         PKIX_PL_BigInt *maxCRLNumber = NULL;
         PKIX_PL_BigInt *crlNumber = NULL;
+        PKIX_Boolean nistPolicyEnabled = PKIX_FALSE;
 
         PKIX_ENTER(CRLSELECTOR, "pkix_CRLSelector_DefaultMatch");
         PKIX_NULLCHECK_TWO(selector, crl);
@@ -484,16 +485,22 @@ pkix_CRLSelector_DefaultMatch(
         /* Check for Date */
         if (selDate != NULL){
 
-                result = PKIX_FALSE;
+                PKIX_CHECK(PKIX_ComCRLSelParams_GetNISTPolicyEnabled
+                            (params, &nistPolicyEnabled, plContext),
+                           PKIX_COMCRLSELPARAMSGETNISTPOLICYENABLEDFAILED);
 
-                PKIX_CHECK(PKIX_PL_CRL_VerifyUpdateTime
-                            (crl, selDate, &result, plContext),
-                            PKIX_CRLVERIFYUPDATETIMEFAILED);
-
-                if (result == PKIX_FALSE) {
-                        PKIX_CRLSELECTOR_DEBUG("DateAndTime match Failed\n");
-                        *pMatch = PKIX_FALSE;
-                        goto cleanup;
+                /* check crl dates only for if NIST policies enforced */
+                if (nistPolicyEnabled) {
+                        result = PKIX_FALSE;
+                    
+                        PKIX_CHECK(PKIX_PL_CRL_VerifyUpdateTime
+                                   (crl, selDate, &result, plContext),
+                                   PKIX_CRLVERIFYUPDATETIMEFAILED);
+                    
+                        if (result == PKIX_FALSE) {
+                                *pMatch = PKIX_FALSE;
+                                goto cleanup;
+                        }
                 }
 
         }

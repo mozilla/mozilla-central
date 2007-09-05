@@ -260,11 +260,20 @@ pkix_DefaultRevChecker_Check(
          * create one now.
          */
         if (defaultRevChecker->certChainChecker == NULL) {
+                PKIX_Boolean nistCRLPolicyEnabled = PR_TRUE;
+                if (procParams) {
+                    PKIX_CHECK(
+                        pkix_ProcessingParams_GetNISTRevocationPolicyEnabled
+                        (procParams, &nistCRLPolicyEnabled, plContext),
+                        PKIX_PROCESSINGPARAMSGETNISTREVPOLICYENABLEDFAILED);
+                }
+
                 PKIX_CHECK(pkix_DefaultCRLChecker_Initialize
                         (defaultRevChecker->certStores,
                         defaultRevChecker->testDate,
                         defaultRevChecker->trustedPubKey,
                         defaultRevChecker->certsRemaining,
+                        nistCRLPolicyEnabled,
                         &crlChecker,
                         plContext),
                         PKIX_DEFAULTCRLCHECKERINITIALIZEFAILED);

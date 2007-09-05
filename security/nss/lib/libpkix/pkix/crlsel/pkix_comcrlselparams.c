@@ -487,6 +487,7 @@ PKIX_ComCRLSelParams_Create(
         params->issuerNames = NULL;
         params->cert = NULL;
         params->date = NULL;
+        params->nistPolicyEnabled = PKIX_TRUE;
         params->maxCRLNumber = NULL;
         params->minCRLNumber = NULL;
 
@@ -681,6 +682,47 @@ cleanup:
         PKIX_RETURN(COMCRLSELPARAMS);
 }
 
+/*
+ * FUNCTION: PKIX_ComCRLSelParams_GetDateAndTime (see comments in pkix_crlsel.h)
+ */
+PKIX_Error *
+PKIX_ComCRLSelParams_GetNISTPolicyEnabled(
+        PKIX_ComCRLSelParams *params,
+        PKIX_Boolean *pEnabled,
+        void *plContext)
+{
+        PKIX_ENTER(COMCRLSELPARAMS,
+                    "PKIX_ComCRLSelParams_GetNISTPolicyEnabled");
+        PKIX_NULLCHECK_TWO(params, pEnabled);
+
+        *pEnabled = params->nistPolicyEnabled;
+
+        PKIX_RETURN(COMCRLSELPARAMS);
+}
+
+/*
+ * FUNCTION: PKIX_ComCRLSelParams_SetDateAndTime (see comments in pkix_crlsel.h)
+ */
+PKIX_Error *
+PKIX_ComCRLSelParams_SetNISTPolicyEnabled(
+        PKIX_ComCRLSelParams *params,
+        PKIX_Boolean enabled,
+        void *plContext)
+{
+        PKIX_ENTER(COMCRLSELPARAMS,
+                    "PKIX_ComCRLSelParams_SetNISTPolicyEnabled");
+        PKIX_NULLCHECK_ONE(params); /* allows date to be NULL from spec */
+
+        params->nistPolicyEnabled = enabled;
+
+        PKIX_CHECK(PKIX_PL_Object_InvalidateCache
+                    ((PKIX_PL_Object *)params, plContext),
+                    PKIX_OBJECTINVALIDATECACHEFAILED);
+
+cleanup:
+
+        PKIX_RETURN(COMCRLSELPARAMS);
+}
 
 /*
  * FUNCTION: PKIX_ComCRLSelParams_GetMaxCRLNumber

@@ -1165,9 +1165,18 @@ pkix_CacheCert_Add(
         PKIX_Error *cachedCertError = NULL;
         PKIX_CertStore_CheckTrustCallback trustCallback = NULL;
         PKIX_UInt32 cachePeriod = CACHE_ITEM_PERIOD_SECONDS;
+        PKIX_UInt32 numCerts = 0;
 
         PKIX_ENTER(BUILD, "pkix_CacheCert_Add");
         PKIX_NULLCHECK_THREE(store, certSelParams, certs);
+
+        PKIX_CHECK(PKIX_List_GetLength(certs, &numCerts,
+                                       plContext),
+                   PKIX_LISTGETLENGTHFAILED);
+        if (numCerts == 0) {
+            /* Don't want to add an empty list. */
+            goto cleanup;
+        }
 
         PKIX_CHECK(PKIX_List_Create(&cachedKeys, plContext),
                 PKIX_LISTCREATEFAILED);

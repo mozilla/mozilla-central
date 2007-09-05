@@ -602,12 +602,19 @@ pkix_InitializeCheckers(
                     PKIX_LISTGETLENGTHFAILED);
 
                 if (numCertStores > 0) {
+                        PKIX_Boolean nistCRLPolicyEnabled = PR_TRUE;
+
+                        PKIX_CHECK(
+                        pkix_ProcessingParams_GetNISTRevocationPolicyEnabled
+                        (procParams, &nistCRLPolicyEnabled, plContext),
+                        PKIX_PROCESSINGPARAMSGETNISTREVPOLICYENABLEDFAILED);
 
                         PKIX_CHECK(pkix_DefaultCRLChecker_Initialize
                             (certStores,
                             testDate,
                             trustedPubKey,
                             numCerts,
+                            nistCRLPolicyEnabled,
                             &defaultCrlChecker,
                             plContext),
                             PKIX_DEFAULTCRLCHECKERINITIALIZEFAILED);

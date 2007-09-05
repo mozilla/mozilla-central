@@ -2027,7 +2027,7 @@ PKIX_PL_CRL_GetCRLNumber(
  *
  *  Checks whether the CRL pointed to by "crl" would be valid at the time
  *  represented by the Date pointed to by "date" and stores the Boolean result
- *  at "pResult".
+ *  at "pResult". This check is done only when NIST policy is enforced.
  *
  *  Time ::= CHOICE {
  *      utcTime         UTCTime,

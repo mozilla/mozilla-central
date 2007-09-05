@@ -154,6 +154,8 @@ pkix_DefaultCRLCheckerState_RegisterSelf(void *plContext)
  *      Must be non-NULL.
  *  "certsRemaining"
  *      Number of certificates remaining in the chain.
+ *  "nistCRLPolicyEnabled"
+ *      If enabled, enforce nist crl policy.
  *  "pCheckerState"
  *      Address of DefaultCRLCheckerState that is returned. Must be non-NULL.
  *  "plContext"
@@ -174,6 +176,7 @@ pkix_DefaultCRLCheckerState_Create(
     PKIX_PL_Date *testDate,
     PKIX_PL_PublicKey *trustedPubKey,
     PKIX_UInt32 certsRemaining,
+    PKIX_Boolean nistCRLPolicyEnabled,
     pkix_DefaultCRLCheckerState **pCheckerState,
     void *plContext)
 {
@@ -202,6 +205,7 @@ pkix_DefaultCRLCheckerState_Create(
         state->prevPublicKey = trustedPubKey;
 
         state->certHasValidCrl = PKIX_FALSE;
+        state->nistCRLPolicyEnabled = nistCRLPolicyEnabled;
         state->prevCertCrlSign = PKIX_TRUE;
         state->prevPublicKeyList = NULL;
         state->reasonCodeMask = 0;
@@ -565,6 +569,10 @@ pkix_DefaultCRLChecker_Check_SetSelector(
                 (comCrlSelParams, nowDate, plContext),
                 PKIX_COMCRLSELPARAMSSETDATEANDTIMEFAILED);
 
+        PKIX_CHECK(PKIX_ComCRLSelParams_SetNISTPolicyEnabled
+                (comCrlSelParams, state->nistCRLPolicyEnabled, plContext),
+                PKIX_COMCERTSELPARAMSSETNISTPOLICYENABLEDFAILED);
+
         PKIX_CHECK(PKIX_CRLSelector_Create
                 (NULL,
                 NULL, /* never used? (PKIX_PL_Object *)checker, */
@@ -864,7 +872,7 @@ pkix_DefaultCRLChecker_Check_Helper(
         void *nbioContext = NULL;
         PKIX_Boolean certStoreCanBeUsed = PKIX_FALSE;
         PKIX_CertStore *certStore = NULL;
-	PKIX_Error *storeError = NULL;
+        PKIX_Error *storeError = NULL;
 
         PKIX_ENTER(CERTCHAINCHECKER, "pkix_DefaultCRLChecker_Check_Helper");
         PKIX_NULLCHECK_THREE(checker, cert, state);
@@ -926,8 +934,9 @@ pkix_DefaultCRLChecker_Check_Helper(
                 state->crlStoreIndex++;
         } /* while ((state->crlStoreIndex) < (state->numCrlStores)) */
 
-        if (state->certHasValidCrl == PKIX_FALSE) {
-                PKIX_ERROR(PKIX_CERTIFICATEDOESNTHAVEVALIDCRL);
+        if (state->nistCRLPolicyEnabled != PKIX_FALSE &&
+            state->certHasValidCrl == PKIX_FALSE) {
+            PKIX_ERROR(PKIX_CERTIFICATEDOESNTHAVEVALIDCRL);
         }
 
 cleanup:
@@ -1127,6 +1136,8 @@ cleanup:
  *      Address of Public Key of Trust Anchor. Must be non-NULL.
  *  "certsRemaining"
  *      Number of certificates remaining in the chain.
+ *  "nistPolicyEnabled"
+ *      Enable NIST crl policy.
  *  "pChecker"
  *      Address where object pointer will be stored. Must be non-NULL.
  *      Must be non-NULL.
@@ -1147,6 +1158,7 @@ pkix_DefaultCRLChecker_Initialize(
         PKIX_PL_Date *testDate,
         PKIX_PL_PublicKey *trustedPubKey,
         PKIX_UInt32 certsRemaining,
+        PKIX_Boolean nistPolicyEnabled,
         PKIX_CertChainChecker **pChecker,
         void *plContext)
 {
@@ -1160,6 +1172,7 @@ pkix_DefaultCRLChecker_Initialize(
                     testDate,
                     trustedPubKey,
                     certsRemaining,
+                    nistPolicyEnabled, 
                     &state,
                     plContext),
                     PKIX_DEFAULTCRLCHECKERSTATECREATEFAILED);

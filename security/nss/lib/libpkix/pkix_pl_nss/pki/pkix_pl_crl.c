@@ -712,6 +712,8 @@ PKIX_PL_CRL_VerifyUpdateTime(
         PRTime lastUpdate;
         SECStatus status;
         CERTCrl *nssCrl = NULL;
+        SECItem *nextUpdateDer = NULL;
+        PKIX_Boolean haveNextUpdate = PR_FALSE;
 
         PKIX_ENTER(CRL, "PKIX_PL_CRL_VerifyUpdateTime");
         PKIX_NULLCHECK_FOUR(crl, crl->nssSignedCrl, date, pResult);
@@ -724,19 +726,27 @@ PKIX_PL_CRL_VerifyUpdateTime(
                 PKIX_ERROR(PKIX_DERDECODETIMECHOICEFAILED);
         }
 
-        PKIX_CRL_DEBUG("\t\tCalling DER_DecodeTimeChoice on nextUpdate\n");
-        status = DER_DecodeTimeChoice(&nextUpdate, &(nssCrl->nextUpdate));
-        if (status != SECSuccess) {
-                PKIX_ERROR(PKIX_DERDECODETIMECHOICEFORNEXTUPDATEFAILED);
+        /* nextUpdate can be NULL. Checking before using it */
+        nextUpdateDer = &nssCrl->nextUpdate;
+        if (nextUpdateDer->data && nextUpdateDer->len) {
+                haveNextUpdate = PR_TRUE;
+                status = DER_DecodeTimeChoice(&nextUpdate, nextUpdateDer);
+                if (status != SECSuccess) {
+                        PKIX_ERROR(PKIX_DERDECODETIMECHOICEFORNEXTUPDATEFAILED);
+                }
         }
 
-        PKIX_CRL_DEBUG("\t\tCalling DER_DecodeTimeChoice on lastUpdate\n");
         status = DER_DecodeTimeChoice(&lastUpdate, &(nssCrl->lastUpdate));
         if (status != SECSuccess) {
                 PKIX_ERROR(PKIX_DERDECODETIMECHOICEFORLASTUPDATEFAILED);
         }
 
-        if (lastUpdate <= timeToCheck && nextUpdate > timeToCheck) {
+        if (!haveNextUpdate || nextUpdate < timeToCheck) {
+                *pResult = PKIX_FALSE;
+                goto cleanup;
+        }
+
+        if (lastUpdate <= timeToCheck) {
                 *pResult = PKIX_TRUE;
         } else {
                 *pResult = PKIX_FALSE;

@@ -560,14 +560,11 @@ cert_CreatePkixProcessingParams(
         PKIX_ProcessingParams_SetDate(procParams, date, plContext),
         PKIX_PROCESSINGPARAMSSETDATEFAILED);
     
-#ifdef PKIX_NOTDEF
-    /* Code will be enabled with integration of a patch for bug 390502 */
     PKIX_CHECK(
         PKIX_ProcessingParams_SetNISTRevocationPolicyEnabled(procParams,
                                                              PKIX_FALSE,
                                                              plContext),
         PKIX_PROCESSINGPARAMSSETNISTREVOCATIONENABLEDFAILED);
-#endif /* PKIX_NOTDEF */
 
     PKIX_CHECK(
         PKIX_ProcessingParams_SetAnyPolicyInhibited(procParams, PR_FALSE,

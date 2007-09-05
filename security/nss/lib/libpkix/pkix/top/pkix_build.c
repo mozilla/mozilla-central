@@ -3601,6 +3601,7 @@ pkix_Build_InitiateBuildChain(
         PKIX_UInt32 i = 0;
         PKIX_Boolean dsaParamsNeeded = PKIX_FALSE;
         PKIX_Boolean isCrlEnabled = PKIX_FALSE;
+        PKIX_Boolean nistCRLPolicyEnabled = PKIX_TRUE;
         PKIX_Boolean cacheHit = PKIX_FALSE;
         PKIX_Boolean trusted = PKIX_FALSE;
         PKIX_Boolean isDuplicate = PKIX_FALSE;
@@ -3786,6 +3787,12 @@ pkix_Build_InitiateBuildChain(
                     (procParams, &isCrlEnabled, plContext),
                     PKIX_PROCESSINGPARAMSGETREVOCATIONENABLEDFAILED);
     
+            PKIX_CHECK(
+                pkix_ProcessingParams_GetNISTRevocationPolicyEnabled
+                (procParams, &nistCRLPolicyEnabled, plContext),
+                PKIX_PROCESSINGPARAMSGETNISTREVPOLICYENABLEDFAILED);
+
+
             PKIX_CHECK(PKIX_ProcessingParams_GetCertStores
                     (procParams, &certStores, plContext),
                     PKIX_PROCESSINGPARAMSGETCERTSTORESFAILED);
@@ -3836,6 +3843,7 @@ pkix_Build_InitiateBuildChain(
                                     testDate,
                                     NULL,
                                     0,
+                                    nistCRLPolicyEnabled,
                                     &crlChecker,
                                     plContext),
                                     PKIX_DEFAULTCRLCHECKERINITIALIZEFAILED);
