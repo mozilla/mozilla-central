@@ -362,7 +362,7 @@ NS_IMETHODIMP nsLDAPService::DeleteServer(const PRUnichar *aKey)
     // "deleted", so that we can add in a new one with the same ID.
     // This is bug #77669.
     //
-    entry = NS_STATIC_CAST(nsLDAPServiceEntry *, mServers->Get(&hashKey));
+    entry = static_cast<nsLDAPServiceEntry *>(mServers->Get(&hashKey));
     if (entry) {
         if (entry->GetLeases() > 0) {
             return NS_ERROR_FAILURE;
@@ -390,7 +390,7 @@ NS_IMETHODIMP nsLDAPService::GetServer(const PRUnichar *aKey,
         return NS_ERROR_NULL_POINTER;
     }
 
-    entry = NS_STATIC_CAST(nsLDAPServiceEntry *, mServers->Get(&hashKey));
+    entry = static_cast<nsLDAPServiceEntry *>(mServers->Get(&hashKey));
     if (!entry) {
         *_retval = 0;
         return NS_ERROR_FAILURE;
@@ -423,7 +423,7 @@ NS_IMETHODIMP nsLDAPService::RequestConnection(const PRUnichar *aKey,
     {
         nsAutoLock lock(mLock);
 
-        entry = NS_STATIC_CAST(nsLDAPServiceEntry *, mServers->Get(&hashKey));
+        entry = static_cast<nsLDAPServiceEntry *>(mServers->Get(&hashKey));
         if (!entry) {
             return NS_ERROR_FAILURE;
         }
@@ -456,10 +456,10 @@ NS_IMETHODIMP nsLDAPService::RequestConnection(const PRUnichar *aKey,
     {
         nsAutoLock lock(mLock);
             
-        entry = NS_STATIC_CAST(nsLDAPServiceEntry *, mServers->Get(&hashKey));
+        entry = static_cast<nsLDAPServiceEntry *>(mServers->Get(&hashKey));
         if (!entry ||
-            !entry->PushListener(NS_STATIC_CAST(nsILDAPMessageListener *,
-                                                aListener))) {
+            !entry->PushListener(static_cast<nsILDAPMessageListener *>
+                                            (aListener))) {
             return NS_ERROR_FAILURE;
         }
     }
@@ -480,7 +480,7 @@ NS_IMETHODIMP nsLDAPService::GetConnection(const PRUnichar *aKey,
         return NS_ERROR_NULL_POINTER;
     }
 
-    entry = NS_STATIC_CAST(nsLDAPServiceEntry *, mServers->Get(&hashKey));
+    entry = static_cast<nsLDAPServiceEntry *>(mServers->Get(&hashKey));
     if (!entry) {
         *_retval = 0;
         return NS_ERROR_FAILURE;
@@ -501,7 +501,7 @@ NS_IMETHODIMP nsLDAPService::ReleaseConnection(const PRUnichar *aKey)
     nsStringKey hashKey(aKey, -1, nsStringKey::NEVER_OWN);
     nsAutoLock lock(mLock);
 
-    entry = NS_STATIC_CAST(nsLDAPServiceEntry *, mServers->Get(&hashKey));
+    entry = static_cast<nsLDAPServiceEntry *>(mServers->Get(&hashKey));
     if (!entry) {
         return NS_ERROR_FAILURE;
     }
@@ -534,7 +534,7 @@ NS_IMETHODIMP nsLDAPService::ReconnectConnection(const PRUnichar *aKey,
     {
         nsAutoLock lock(mLock);
         
-        entry = NS_STATIC_CAST(nsLDAPServiceEntry *, mServers->Get(&hashKey));
+        entry = static_cast<nsLDAPServiceEntry *>(mServers->Get(&hashKey));
         if (!entry) {
             return NS_ERROR_FAILURE;
         }
@@ -569,8 +569,8 @@ NS_IMETHODIMP nsLDAPService::ReconnectConnection(const PRUnichar *aKey,
     {
         nsAutoLock lock(mLock);
         
-        if (!entry->PushListener(NS_STATIC_CAST(nsILDAPMessageListener *,
-                                                aListener))) {
+        if (!entry->PushListener(static_cast<nsILDAPMessageListener *>
+                                            (aListener))) {
             entry->SetRebinding(PR_FALSE);
             return NS_ERROR_FAILURE;
         }
@@ -632,12 +632,12 @@ nsLDAPService::OnLDAPMessage(nsILDAPMessage *aMessage)
             nsCOMPtr<nsILDAPMessageListener> listener;
             nsCOMPtr<nsILDAPMessage> message;
             nsLDAPServiceEntry *entry;
-            nsVoidKey connKey(NS_STATIC_CAST(nsILDAPConnection *,
-                                             connection));
+            nsVoidKey connKey(static_cast<nsILDAPConnection *>
+                                         (connection));
             nsAutoLock lock(mLock);
 
-            entry = NS_STATIC_CAST(nsLDAPServiceEntry *,
-                                   mConnections->Get(&connKey));
+            entry = static_cast<nsLDAPServiceEntry *>
+                               (mConnections->Get(&connKey));
             if (!entry) {
                 return NS_ERROR_FAILURE;
             }
@@ -808,8 +808,8 @@ nsLDAPService::EstablishConnection(nsLDAPServiceEntry *aEntry,
         {
             nsAutoLock lock(mLock);
 
-            if (!aEntry->PushListener(NS_STATIC_CAST(nsILDAPMessageListener *,
-                                                     aListener))) {
+            if (!aEntry->PushListener(static_cast<nsILDAPMessageListener *>
+                                                 (aListener))) {
                 return NS_ERROR_FAILURE;
             }
         }
@@ -822,7 +822,7 @@ nsLDAPService::EstablishConnection(nsLDAPServiceEntry *aEntry,
     // server entry related to a particular connection).
     //
     {
-        nsVoidKey connKey(NS_STATIC_CAST(nsILDAPConnection *, conn));
+        nsVoidKey connKey(static_cast<nsILDAPConnection *>(conn));
         nsAutoLock lock(mLock);
 
         aEntry->SetConnection(conn);
@@ -887,8 +887,7 @@ NS_IMETHODIMP nsLDAPService::CreateFilter(PRUint32 aMaxSize,
     //
     PRUint32 numTokens = CountTokens(iter, iterEnd); 
     char **valueWords;
-    valueWords = NS_STATIC_CAST(char **, 
-                                nsMemory::Alloc((numTokens + 1) *
+    valueWords = static_cast<char **>(nsMemory::Alloc((numTokens + 1) *
                                                 sizeof(char *)));
     if (!valueWords) {
         return NS_ERROR_OUT_OF_MEMORY;
@@ -909,8 +908,7 @@ NS_IMETHODIMP nsLDAPService::CreateFilter(PRUint32 aMaxSize,
 
     // make buffer to be used for construction 
     //
-    char *buffer = NS_STATIC_CAST(char *, 
-                                  nsMemory::Alloc(aMaxSize * sizeof(char)));
+    char *buffer = static_cast<char *>(nsMemory::Alloc(aMaxSize * sizeof(char)));
     if (!buffer) {
         NS_FREE_XPCOM_ALLOCATED_POINTER_ARRAY(numTokens, valueWords);
         return NS_ERROR_OUT_OF_MEMORY;
@@ -920,11 +918,11 @@ NS_IMETHODIMP nsLDAPService::CreateFilter(PRUint32 aMaxSize,
     //
     nsresult rv;
     int result = ldap_create_filter(buffer, aMaxSize, 
-                   NS_CONST_CAST(char *, PromiseFlatCString(aPattern).get()),
-                   NS_CONST_CAST(char *, PromiseFlatCString(aPrefix).get()),
-                   NS_CONST_CAST(char *, PromiseFlatCString(aSuffix).get()),
-                   NS_CONST_CAST(char *, PromiseFlatCString(aAttr).get()),
-                   NS_CONST_CAST(char *, PromiseFlatCString(aValue).get()),
+                   const_cast<char *>(PromiseFlatCString(aPattern).get()),
+                   const_cast<char *>(PromiseFlatCString(aPrefix).get()),
+                   const_cast<char *>(PromiseFlatCString(aSuffix).get()),
+                   const_cast<char *>(PromiseFlatCString(aAttr).get()),
+                   const_cast<char *>(PromiseFlatCString(aValue).get()),
                    valueWords);
     switch (result) {
     case LDAP_SUCCESS:
@@ -975,7 +973,7 @@ nsLDAPService::CountTokens(nsReadingIterator<char> aIter,
         // move past any leading spaces
         //
         while (aIter != aIterEnd &&
-               ldap_utf8isspace(NS_CONST_CAST(char *, aIter.get()))){
+               ldap_utf8isspace(const_cast<char *>(aIter.get()))){
             ++aIter;
         }
 
@@ -983,7 +981,7 @@ nsLDAPService::CountTokens(nsReadingIterator<char> aIter,
         //
         while (aIter != aIterEnd) {
 
-            if (ldap_utf8isspace(NS_CONST_CAST(char *, aIter.get()))) {
+            if (ldap_utf8isspace(const_cast<char *>(aIter.get()))) {
                 ++count;    // token finished; increment the count
                 ++aIter;    // move past the space
                 break;
@@ -1014,7 +1012,7 @@ nsLDAPService::NextToken(nsReadingIterator<char> & aIter,
     // move past any leading whitespace
     //
     while (aIter != aIterEnd &&
-           ldap_utf8isspace(NS_CONST_CAST(char *, aIter.get()))) {
+           ldap_utf8isspace(const_cast<char *>(aIter.get()))) {
         ++aIter;
     }
 
@@ -1023,7 +1021,7 @@ nsLDAPService::NextToken(nsReadingIterator<char> & aIter,
     // copy the token into our local variable
     //
     while (aIter != aIterEnd &&
-           !ldap_utf8isspace(NS_CONST_CAST(char *, aIter.get()))) {
+           !ldap_utf8isspace(const_cast<char *>(aIter.get()))) {
         ++aIter;
     }
 

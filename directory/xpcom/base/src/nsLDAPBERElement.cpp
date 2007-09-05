@@ -79,8 +79,7 @@ nsLDAPBERElement::PutString(const nsACString & aString, PRUint32 aTag,
   // XXX if the string translation feature of the C SDK is ever used,
   // this const_cast will break
   int i = ber_put_ostring(mElement, 
-                          NS_CONST_CAST(char *, 
-                                        PromiseFlatCString(aString).get()),
+                          const_cast<char *>(PromiseFlatCString(aString).get()),
                           aString.Length(), aTag);
 
   if (i < 0) {
@@ -135,7 +134,7 @@ NS_IMETHODIMP nsLDAPBERElement::GetAsValue(nsILDAPBERValue **_retval)
   }
 
   nsresult rv = berValue->Set(bv->bv_len, 
-                              NS_REINTERPRET_CAST(PRUint8 *, bv->bv_val));
+                              reinterpret_cast<PRUint8 *>(bv->bv_val));
 
   // whether or not we've succeeded, we're done with the ldap c sdk struct
   ber_bvfree(bv);

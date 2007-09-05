@@ -162,8 +162,7 @@ nsLDAPMessage::Init(nsILDAPConnection *aConnection, LDAPMessage *aMsgHandle)
     // here since we're a friend of the connection class and in the 
     // same module.
     //
-    mConnectionHandle = NS_STATIC_CAST(nsLDAPConnection *, 
-                                            aConnection)->mConnectionHandle;
+    mConnectionHandle = static_cast<nsLDAPConnection *>(aConnection)->mConnectionHandle;
 
     // do any useful message parsing
     //
@@ -353,8 +352,7 @@ nsLDAPMessage::IterateAttributes(PRUint32 *aAttrCount, char** *aAttributes,
 
         // create an array of the appropriate size
         //
-        *aAttributes = NS_STATIC_CAST(char **, 
-                                      nsMemory::Alloc(*aAttrCount *
+        *aAttributes = static_cast<char **>(nsMemory::Alloc(*aAttrCount *
                                                       sizeof(char *)));
         if (!*aAttributes) {
             return NS_ERROR_OUT_OF_MEMORY;
@@ -523,8 +521,7 @@ nsLDAPMessage::GetValues(const char *aAttr, PRUint32 *aCount,
 
     // create an array of the appropriate size
     //
-    *aValues = NS_STATIC_CAST(PRUnichar **, 
-                              nsMemory::Alloc(numVals * sizeof(PRUnichar *)));
+    *aValues = static_cast<PRUnichar **>(nsMemory::Alloc(numVals * sizeof(PRUnichar *)));
     if (!*aValues) {
         ldap_value_free(values);
         return NS_ERROR_OUT_OF_MEMORY;
@@ -603,8 +600,7 @@ nsLDAPMessage::GetBinaryValues(const char *aAttr, PRUint32 *aCount,
     // create the out array
     //
     *aValues = 
-        NS_STATIC_CAST(nsILDAPBERValue **, 
-                       nsMemory::Alloc(numVals * sizeof(nsILDAPBERValue)));
+        static_cast<nsILDAPBERValue **>(nsMemory::Alloc(numVals * sizeof(nsILDAPBERValue)));
     if (!aValues) {
         ldap_value_free_len(values);
         return NS_ERROR_OUT_OF_MEMORY;
@@ -632,7 +628,7 @@ nsLDAPMessage::GetBinaryValues(const char *aAttr, PRUint32 *aCount,
         // copy the value from the struct into the nsBERValue
         //
         rv = berValue->Set(values[i]->bv_len, 
-                           NS_REINTERPRET_CAST(PRUint8 *, values[i]->bv_val));
+                           reinterpret_cast<PRUint8 *>(values[i]->bv_val));
         if (NS_FAILED(rv)) {
             NS_ERROR("nsLDAPMessage::GetBinaryValues(): error setting"
                      " nsBERValue");

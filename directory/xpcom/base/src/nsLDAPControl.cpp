@@ -104,8 +104,7 @@ nsLDAPControl::ToLDAPControl(LDAPControl **control)
   // that the C SDK will be using the NSPR allocator under the hood, so our
   // callers will therefore be able to use ldap_control_free() and friends on
   // this control.
-  LDAPControl *ctl = NS_STATIC_CAST(LDAPControl *, 
-                                    PR_Calloc(1, sizeof(LDAPControl)));
+  LDAPControl *ctl = static_cast<LDAPControl *>(PR_Calloc(1, sizeof(LDAPControl)));
   if (!ctl) {
     return NS_ERROR_OUT_OF_MEMORY;
   }
@@ -127,8 +126,8 @@ nsLDAPControl::ToLDAPControl(LDAPControl **control)
 
     // just to make the code below a bit more readable
     nsLDAPBERValue *nsBerVal = 
-      NS_STATIC_CAST(nsLDAPBERValue *, NS_STATIC_CAST(nsILDAPBERValue *,
-                                                      mValue.get()));
+      static_cast<nsLDAPBERValue *>(static_cast<nsILDAPBERValue *>
+                             (mValue.get()));
     ctl->ldctl_value.bv_len = nsBerVal->mSize;
 
     if (!nsBerVal->mSize) {
@@ -138,8 +137,8 @@ nsLDAPControl::ToLDAPControl(LDAPControl **control)
 
       // same for the berval itself
       ctl->ldctl_value.bv_len = nsBerVal->mSize;
-      ctl->ldctl_value.bv_val = NS_STATIC_CAST(char *,
-                                               PR_Malloc(nsBerVal->mSize));
+      ctl->ldctl_value.bv_val = static_cast<char *>
+                                           (PR_Malloc(nsBerVal->mSize));
       if (!ctl->ldctl_value.bv_val) {
         ldap_control_free(ctl);
         return NS_ERROR_OUT_OF_MEMORY;

@@ -168,7 +168,7 @@ nsLDAPURL::SetSpec(const nsACString &aSpec)
         }
         if (count) {
             rv = SetAttributes(count,
-                               NS_CONST_CAST(const char **, desc->lud_attrs));
+                               const_cast<const char **>(desc->lud_attrs));
             // This error could only be out-of-memory, so pass it up
             //
             if (NS_FAILED(rv)) {
@@ -452,7 +452,7 @@ NS_IMETHODIMP nsLDAPURL::GetAttributes(PRUint32 *aCount, char ***_retval)
 
     count = mAttributes->Count();
     if (count > 0) {
-        cArray = NS_STATIC_CAST(char **, nsMemory::Alloc(count * sizeof(char *)));
+        cArray = static_cast<char **>(nsMemory::Alloc(count * sizeof(char *)));
         if (!cArray) {
             NS_ERROR("nsLDAPURL::GetAttributes: out of memory ");
             return NS_ERROR_OUT_OF_MEMORY;

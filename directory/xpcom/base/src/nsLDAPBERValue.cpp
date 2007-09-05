@@ -65,7 +65,7 @@ nsLDAPBERValue::Get(PRUint32 *aCount, PRUint8 **aRetVal)
     if (mSize) {
         // get a buffer to hold a copy of the data
         //
-        PRUint8 *array = NS_STATIC_CAST(PRUint8 *, nsMemory::Alloc(mSize));
+        PRUint8 *array = static_cast<PRUint8 *>(nsMemory::Alloc(mSize));
 
         if (!array) {
             return NS_ERROR_OUT_OF_MEMORY;
@@ -99,7 +99,7 @@ nsLDAPBERValue::Set(PRUint32 aCount, PRUint8 *aValue)
     if (aCount) { 
         // get a buffer to hold a copy of this data
         //
-        mValue = NS_STATIC_CAST(PRUint8 *, nsMemory::Alloc(aCount));
+        mValue = static_cast<PRUint8 *>(nsMemory::Alloc(aCount));
         if (!mValue) {
             return NS_ERROR_OUT_OF_MEMORY;
         }
@@ -132,7 +132,7 @@ nsLDAPBERValue::SetFromUTF8(const nsACString & aValue)
     //
     mSize = aValue.Length();
     if (mSize) {
-        mValue = NS_REINTERPRET_CAST(PRUint8 *, ToNewCString(aValue));
+        mValue = reinterpret_cast<PRUint8 *>(ToNewCString(aValue));
     } else {
         mValue = 0;
     }

@@ -123,7 +123,7 @@ nsLDAPProtocolHandler::NewChannel(nsIURI* uri,
     nsLDAPChannel *channel;
 
     rv = nsLDAPChannel::Create(0, NS_GET_IID(nsIChannel),
-                               NS_REINTERPRET_CAST(void **, &channel));
+                               reinterpret_cast<void **>(&channel));
     NS_ENSURE_SUCCESS(rv, rv);
   
     rv = channel->Init(uri);

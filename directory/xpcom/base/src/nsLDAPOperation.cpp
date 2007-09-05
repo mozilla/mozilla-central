@@ -138,7 +138,7 @@ nsLDAPOperation::Init(nsILDAPConnection *aConnection,
     // cache the connection handle
     //
     mConnectionHandle = 
-        NS_STATIC_CAST(nsLDAPConnection *, aConnection)->mConnectionHandle;
+        static_cast<nsLDAPConnection *>(aConnection)->mConnectionHandle;
 
     return NS_OK;
 }
@@ -225,9 +225,7 @@ nsLDAPOperation::SimpleBind(const nsACString& passwd)
     // If this is a second try at binding, remove the operation from pending ops
     // because msg id has changed...
     if (originalMsgID)
-      NS_STATIC_CAST(nsLDAPConnection *, 
-                        NS_STATIC_CAST(nsILDAPConnection *, 
-                        mConnection.get()))->RemovePendingOperation(this);
+      static_cast<nsLDAPConnection *>(static_cast<nsILDAPConnection *>(mConnection.get()))->RemovePendingOperation(this);
 
     mMsgID = ldap_simple_bind(mConnectionHandle, bindName.get(),
                               PromiseFlatCString(mSavePassword).get());
@@ -240,9 +238,7 @@ nsLDAPOperation::SimpleBind(const nsACString& passwd)
   
     // make sure the connection knows where to call back once the messages
     // for this operation start coming in
-    rv = NS_STATIC_CAST(nsLDAPConnection *, 
-                        NS_STATIC_CAST(nsILDAPConnection *, 
-                        mConnection.get()))->AddPendingOperation(this);
+    rv = static_cast<nsLDAPConnection *>(static_cast<nsILDAPConnection *>(mConnection.get()))->AddPendingOperation(this);
     switch (rv) {
     case NS_OK:
         break;
@@ -288,8 +284,8 @@ convertControlArray(nsIArray *aXpcomArray, LDAPControl ***aArray)
     // is used so that ldap_controls_free will work anywhere during the
     // iteration
     LDAPControl **controls = 
-        NS_STATIC_CAST(LDAPControl **,
-                       PR_Calloc(length+1, sizeof(LDAPControl)));
+        static_cast<LDAPControl **>
+                   (PR_Calloc(length+1, sizeof(LDAPControl)));
 
     // prepare to enumerate the array
     nsCOMPtr<nsISimpleEnumerator> enumerator;
@@ -315,9 +311,9 @@ convertControlArray(nsIArray *aXpcomArray, LDAPControl ***aArray)
             ldap_controls_free(controls);
             return NS_ERROR_INVALID_ARG; // bogus element in the array
         }
-        nsLDAPControl *ctl = NS_STATIC_CAST(nsLDAPControl *,
-                                            NS_STATIC_CAST(nsILDAPControl *,
-                                                           control.get()));
+        nsLDAPControl *ctl = static_cast<nsLDAPControl *>
+                                        (static_cast<nsILDAPControl *>
+                                                    (control.get()));
 
         // convert it to an LDAPControl structure placed in the new array
         rv = ctl->ToLDAPControl(&controls[i]);
@@ -364,8 +360,8 @@ nsLDAPOperation::SearchExt(const nsACString& aBaseDn, PRInt32 aScope,
     // add a last NULL element.
     //
     if (aAttrCount && aAttributes) {
-        attrs = NS_STATIC_CAST(char **,
-                    nsMemory::Alloc((aAttrCount + 1) * sizeof(char *)));
+        attrs = static_cast<char **>
+                           (nsMemory::Alloc((aAttrCount + 1) * sizeof(char *)));
         if (!attrs) {
             NS_ERROR("nsLDAPOperation::SearchExt: out of memory ");
             return NS_ERROR_OUT_OF_MEMORY;
@@ -426,8 +422,7 @@ nsLDAPOperation::SearchExt(const nsACString& aBaseDn, PRInt32 aScope,
     // make sure the connection knows where to call back once the messages
     // for this operation start coming in
     //
-    rv = NS_STATIC_CAST(nsLDAPConnection *, NS_STATIC_CAST(
-        nsILDAPConnection *, mConnection.get()))->AddPendingOperation(this);
+    rv = static_cast<nsLDAPConnection *>(static_cast<nsILDAPConnection *>(mConnection.get()))->AddPendingOperation(this);
     if (NS_FAILED(rv)) {
         switch (rv) {
         case NS_ERROR_OUT_OF_MEMORY: 
@@ -492,8 +487,7 @@ nsLDAPOperation::AbandonExt()
     // from another thread.
     if (mConnection)
     {
-      rv = NS_STATIC_CAST(nsLDAPConnection *, NS_STATIC_CAST(
-          nsILDAPConnection *, mConnection.get()))->RemovePendingOperation(this);
+      rv = static_cast<nsLDAPConnection *>(static_cast<nsILDAPConnection *>(mConnection.get()))->RemovePendingOperation(this);
 
       if (NS_FAILED(rv)) {
           // XXXdmose should we keep AbandonExt from happening on multiple 
@@ -555,7 +549,7 @@ nsLDAPOperation::AddExt(const char *base,
   NS_ENSURE_SUCCESS(rv, rv);
 
   if (mods && modCount) {
-    attrs = NS_STATIC_CAST(LDAPMod **, nsMemory::Alloc((modCount + 1) *
+    attrs = static_cast<LDAPMod **>(nsMemory::Alloc((modCount + 1) *
                                                        sizeof(LDAPMod *)));
     if (!attrs) {
       NS_ERROR("nsLDAPOperation::AddExt: out of memory ");
@@ -639,8 +633,8 @@ nsLDAPOperation::AddExt(const nsACString& aBaseDn,
 
   // make sure the connection knows where to call back once the messages
   // for this operation start coming in
-  rv = NS_STATIC_CAST(nsLDAPConnection *, NS_STATIC_CAST(nsILDAPConnection *,
-                      mConnection.get()))->AddPendingOperation(this);
+  rv = static_cast<nsLDAPConnection *>(static_cast<nsILDAPConnection *>
+                              (mConnection.get()))->AddPendingOperation(this);
 
   if (NS_FAILED(rv)) {
     (void)ldap_abandon_ext(mConnectionHandle, mMsgID, 0, 0);
@@ -690,9 +684,9 @@ nsLDAPOperation::DeleteExt(const nsACString& aBaseDn)
 
   // make sure the connection knows where to call back once the messages
   // for this operation start coming in
-  rv = NS_STATIC_CAST(nsLDAPConnection *,
-                      NS_STATIC_CAST(nsILDAPConnection *,
-                                     mConnection.get()))->AddPendingOperation(this);
+  rv = static_cast<nsLDAPConnection *>
+                  (static_cast<nsILDAPConnection *>
+                              (mConnection.get()))->AddPendingOperation(this);
 
   if (NS_FAILED(rv)) {
     (void)ldap_abandon_ext(mConnectionHandle, mMsgID, 0, 0);
@@ -722,7 +716,7 @@ nsLDAPOperation::ModifyExt(const char *base,
   nsresult rv = mods->GetLength(&modCount);
   NS_ENSURE_SUCCESS(rv, rv);
   if (modCount && mods) {
-    attrs = NS_STATIC_CAST(LDAPMod **, nsMemory::Alloc((modCount + 1) *
+    attrs = static_cast<LDAPMod **>(nsMemory::Alloc((modCount + 1) *
                                                        sizeof(LDAPMod *)));
     if (!attrs) {
       NS_ERROR("nsLDAPOperation::ModifyExt: out of memory ");
@@ -805,9 +799,9 @@ nsLDAPOperation::ModifyExt(const nsACString& aBaseDn,
 
   // make sure the connection knows where to call back once the messages
   // for this operation start coming in
-  rv = NS_STATIC_CAST(nsLDAPConnection *,
-                      NS_STATIC_CAST(nsILDAPConnection *,
-                                     mConnection.get()))->AddPendingOperation(this);
+  rv = static_cast<nsLDAPConnection *>
+                  (static_cast<nsILDAPConnection *>
+                              (mConnection.get()))->AddPendingOperation(this);
 
   if (NS_FAILED(rv)) {
     (void)ldap_abandon_ext(mConnectionHandle, mMsgID, 0, 0);
@@ -870,9 +864,9 @@ nsLDAPOperation::Rename(const nsACString& aBaseDn,
 
   // make sure the connection knows where to call back once the messages
   // for this operation start coming in
-  rv = NS_STATIC_CAST(nsLDAPConnection *,
-                      NS_STATIC_CAST(nsILDAPConnection *,
-                                     mConnection.get()))->AddPendingOperation(this);
+  rv = static_cast<nsLDAPConnection *>
+                  (static_cast<nsILDAPConnection *>
+                              (mConnection.get()))->AddPendingOperation(this);
 
   if (NS_FAILED(rv)) {
     (void)ldap_abandon_ext(mConnectionHandle, mMsgID, 0, 0);
@@ -898,8 +892,8 @@ nsLDAPOperation::CopyValues(nsILDAPModification* aMod, berval*** aBValues)
   rv = values->GetLength(&valuesCount);
   NS_ENSURE_SUCCESS(rv, rv);
 
-  *aBValues = NS_STATIC_CAST(berval **,
-                             nsMemory::Alloc((valuesCount + 1) *
+  *aBValues = static_cast<berval **>
+                         (nsMemory::Alloc((valuesCount + 1) *
                                              sizeof(berval *)));
   if (!*aBValues)
     return NS_ERROR_OUT_OF_MEMORY;

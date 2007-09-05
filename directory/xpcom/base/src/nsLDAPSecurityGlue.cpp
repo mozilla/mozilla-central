@@ -103,15 +103,15 @@ nsLDAPSSLClose(int s, struct lextiof_socket_private *socketarg)
     // save off the session closure data in an automatic, since we're going to
     // need to call through it
     //
-    socketClosure = NS_REINTERPRET_CAST(nsLDAPSSLSocketClosure *,
-					socketInfo.soinfo_appdata);
+    socketClosure = reinterpret_cast<nsLDAPSSLSocketClosure *>
+                                    (socketInfo.soinfo_appdata);
     sessionClosure = socketClosure->sessionClosure;
 
     // free the socket closure data
     //
     nsLDAPSSLFreeSocketClosure(
-	NS_REINTERPRET_CAST(nsLDAPSSLSocketClosure **,
-			    &socketInfo.soinfo_appdata));
+	reinterpret_cast<nsLDAPSSLSocketClosure **>
+                 (&socketInfo.soinfo_appdata));
 
     // call the real close function
     //
@@ -154,8 +154,8 @@ nsLDAPSSLConnect(const char *hostlist, int defport, int timeout,
 	NS_ERROR("nsLDAPSSLConnect(): unable to get session info");
         return -1;
     }
-    sessionClosure = NS_REINTERPRET_CAST(nsLDAPSSLSessionClosure *,
-					 sessionInfo.seinfo_appdata);
+    sessionClosure = reinterpret_cast<nsLDAPSSLSessionClosure *>
+                                     (sessionInfo.seinfo_appdata);
     
     // Call the real connect() callback to make the TCP connection.  If it
     // succeeds, *socketargp is set.
@@ -182,8 +182,7 @@ nsLDAPSSLConnect(const char *hostlist, int defport, int timeout,
 
     // Allocate a structure to hold our socket-specific data.
     //
-    socketClosure = NS_STATIC_CAST(nsLDAPSSLSocketClosure *, 
-				   nsMemory::Alloc(
+    socketClosure = static_cast<nsLDAPSSLSocketClosure *>(nsMemory::Alloc(
 				       sizeof(nsLDAPSSLSocketClosure)));
     if (!socketClosure) {
 	NS_WARNING("nsLDAPSSLConnect(): unable to allocate socket closure");
@@ -238,8 +237,8 @@ nsLDAPSSLConnect(const char *hostlist, int defport, int timeout,
 
     // Attach our closure to the socketInfo.
     //
-    socketInfo.soinfo_appdata = NS_REINTERPRET_CAST(prldap_socket_private *,
-						    socketClosure);
+    socketInfo.soinfo_appdata = reinterpret_cast<prldap_socket_private *>
+                                                (socketClosure);
     if (prldap_set_socket_info(intfd, *socketargp, &socketInfo)
 	!= LDAP_SUCCESS ) {
 	NS_ERROR("nsLDAPSSLConnect(): unable to set socket info");
@@ -294,8 +293,8 @@ nsLDAPSSLDisposeHandle(LDAP *ld, struct lextiof_session_private *sessionarg)
     memset(&sessionInfo, 0, sizeof(sessionInfo));
     sessionInfo.seinfo_size = PRLDAP_SESSIONINFO_SIZE;
     if (prldap_get_session_info(ld, nsnull, &sessionInfo) == LDAP_SUCCESS) {
-	sessionClosure = NS_REINTERPRET_CAST(nsLDAPSSLSessionClosure *,
-					     sessionInfo.seinfo_appdata);
+	sessionClosure = reinterpret_cast<nsLDAPSSLSessionClosure *>
+                                  (sessionInfo.seinfo_appdata);
 	disposehdl_fn = sessionClosure->realDisposeHandle;
 	nsLDAPSSLFreeSessionClosure(&sessionClosure);
 	(*disposehdl_fn)(ld, sessionarg);
@@ -315,8 +314,7 @@ nsLDAPInstallSSL( LDAP *ld, const char *aHostName)
 
     // Allocate our own session information.
     //
-    sessionClosure = NS_STATIC_CAST(nsLDAPSSLSessionClosure *, 
-				    nsMemory::Alloc(
+    sessionClosure = static_cast<nsLDAPSSLSessionClosure *>(nsMemory::Alloc(
 					sizeof(nsLDAPSSLSessionClosure)));
     if (!sessionClosure) {
 	return NS_ERROR_OUT_OF_MEMORY;
@@ -329,7 +327,7 @@ nsLDAPInstallSSL( LDAP *ld, const char *aHostName)
     memset(&iofns, 0, sizeof(iofns));
     iofns.lextiof_size = LDAP_X_EXTIO_FNS_SIZE;
     if (ldap_get_option(ld, LDAP_X_OPT_EXTIO_FN_PTRS, 
-			NS_STATIC_CAST(void *, &iofns)) != LDAP_SUCCESS) {
+			static_cast<void *>(&iofns)) != LDAP_SUCCESS) {
 	NS_ERROR("nsLDAPInstallSSL(): unexpected error getting"
 		 " LDAP_X_OPT_EXTIO_FN_PTRS");
 	nsLDAPSSLFreeSessionClosure(&sessionClosure);
@@ -355,7 +353,7 @@ nsLDAPInstallSSL( LDAP *ld, const char *aHostName)
     iofns.lextiof_disposehandle = nsLDAPSSLDisposeHandle;
 
     if (ldap_set_option(ld, LDAP_X_OPT_EXTIO_FN_PTRS, 
-			NS_STATIC_CAST(void *, &iofns)) != LDAP_SUCCESS) {
+			static_cast<void *>(&iofns)) != LDAP_SUCCESS) {
 	NS_ERROR("nsLDAPInstallSSL(): error setting LDAP_X_OPT_EXTIO_FN_PTRS");
 	nsLDAPSSLFreeSessionClosure(&sessionClosure);
         return NS_ERROR_FAILURE;
@@ -364,8 +362,8 @@ nsLDAPInstallSSL( LDAP *ld, const char *aHostName)
     // Store session info. for later retrieval.
     //
     sessionInfo.seinfo_size = PRLDAP_SESSIONINFO_SIZE;
-    sessionInfo.seinfo_appdata = NS_REINTERPRET_CAST(prldap_session_private *,
-						     sessionClosure);
+    sessionInfo.seinfo_appdata = reinterpret_cast<prldap_session_private *>
+                                                 (sessionClosure);
     if (prldap_set_session_info(ld, nsnull, &sessionInfo) != LDAP_SUCCESS) {
 	NS_ERROR("nsLDAPInstallSSL(): error setting prldap session info");
 	nsMemory::Free(sessionClosure);

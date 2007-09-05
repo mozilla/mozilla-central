@@ -109,7 +109,7 @@ nsLDAPChannel::Init(nsIURI *uri)
     //
     rv = NS_GetProxyForObject(NS_PROXY_TO_MAIN_THREAD,
                               kILDAPMessageListenerIID,
-                              NS_STATIC_CAST(nsILDAPMessageListener *, this),
+                              static_cast<nsILDAPMessageListener *>(this),
                               NS_PROXY_ASYNC|NS_PROXY_ALWAYS,
                               getter_AddRefs(mCallback));
     if (NS_FAILED(rv)) {
@@ -210,7 +210,7 @@ nsLDAPChannel::Cancel(nsresult aStatus)
     // remove self from loadgroup to stop the throbber
     //
     if (mLoadGroup) {
-        rv = mLoadGroup->RemoveRequest(NS_STATIC_CAST(nsIRequest *, this), 
+        rv = mLoadGroup->RemoveRequest(static_cast<nsIRequest *>(this), 
                                        mResponseContext, aStatus);
         if (NS_FAILED(rv)) 
             return rv;
@@ -843,7 +843,7 @@ nsLDAPChannel::OnLDAPSearchResult(nsILDAPMessage *aMessage)
     // remove self from loadgroup to stop the throbber
     //
     if (mLoadGroup) {
-        rv = mLoadGroup->RemoveRequest(NS_STATIC_CAST(nsIRequest *, this), 
+        rv = mLoadGroup->RemoveRequest(static_cast<nsIRequest *>(this), 
                                        mResponseContext, NS_OK);
         if (NS_FAILED(rv)) {
             NS_WARNING("nsLDAPChannel::OnSearchResult(): "

@@ -384,7 +384,7 @@ nsLDAPConnection::AddPendingOperation(nsILDAPOperation *aOperation)
     //
     // XXXdmose  should really create an nsPRInt32Key.
     //
-    nsVoidKey *key = new nsVoidKey(NS_REINTERPRET_CAST(void *, msgID));
+    nsVoidKey *key = new nsVoidKey(reinterpret_cast<void *>(msgID));
     if (!key) {
         return NS_ERROR_OUT_OF_MEMORY;
     }
@@ -438,7 +438,7 @@ nsLDAPConnection::RemovePendingOperation(nsILDAPOperation *aOperation)
     //
     // XXXdmose  should really create an nsPRInt32Key.
     //
-    nsVoidKey *key = new nsVoidKey(NS_REINTERPRET_CAST(void *, msgID));
+    nsVoidKey *key = new nsVoidKey(reinterpret_cast<void *>(msgID));
     if (!key) {
         return NS_ERROR_OUT_OF_MEMORY;
     }
@@ -489,12 +489,12 @@ nsLDAPConnection::InvokeMessageCallback(LDAPMessage *aMsgHandle,
     // get this in key form.  note that using nsVoidKey in this way assumes
     // that sizeof(void *) >= sizeof PRInt32
     //
-    nsVoidKey *key = new nsVoidKey(NS_REINTERPRET_CAST(void *, msgId));
+    nsVoidKey *key = new nsVoidKey(reinterpret_cast<void *>(msgId));
     if (!key)
         return NS_ERROR_OUT_OF_MEMORY;
 
     // find the operation in question
-    operation = getter_AddRefs(NS_STATIC_CAST(nsILDAPOperation *, mPendingOperations->Get(key)));
+    operation = getter_AddRefs(static_cast<nsILDAPOperation *>(mPendingOperations->Get(key)));
     if (!operation) {
 
         PR_LOG(gLDAPLogModule, PR_LOG_WARNING, 
@@ -512,7 +512,7 @@ nsLDAPConnection::InvokeMessageCallback(LDAPMessage *aMsgHandle,
     // Make sure the mOperation member is set to this operation before
     // we call the callback.
     //
-    NS_STATIC_CAST(nsLDAPMessage *, aMsg)->mOperation = operation;
+    static_cast<nsLDAPMessage *>(aMsg)->mOperation = operation;
 
     // get the message listener object (this may be a proxy for a
     // callback which should happen on another thread)
@@ -535,8 +535,8 @@ nsLDAPConnection::InvokeMessageCallback(LDAPMessage *aMsgHandle,
     //
     if (aRemoveOpFromConnQ) {
         nsCOMPtr <nsLDAPOperation> operation = 
-          getter_AddRefs(NS_STATIC_CAST(nsLDAPOperation *,
-                                        mPendingOperations->Get(key)));
+          getter_AddRefs(static_cast<nsLDAPOperation *>
+                                    (mPendingOperations->Get(key)));
         // try to break cycles
         if (operation)
           operation->Clear();
@@ -608,7 +608,7 @@ CheckLDAPOperationResult(nsHashKey *aKey, void *aData, void* aClosure)
     // we need to access some of the connection loop's objects
     //
     nsLDAPConnectionLoop *loop = 
-        NS_STATIC_CAST(nsLDAPConnectionLoop *, aClosure);
+        static_cast<nsLDAPConnectionLoop *>(aClosure);
 
     // get the console service so we can log messages
     //
@@ -735,8 +735,7 @@ CheckLDAPOperationResult(nsHashKey *aKey, void *aData, void* aClosure)
                     ldap_set_option(loop->mRawConn->mConnectionHandle,
                           LDAP_OPT_PROTOCOL_VERSION, &loop->mRawConn->mVersion);
                     nsCOMPtr <nsILDAPOperation> operation = 
-                      NS_STATIC_CAST(nsILDAPOperation *, 
-                          NS_STATIC_CAST(nsISupports *, aData));
+                      static_cast<nsILDAPOperation *>(static_cast<nsISupports *>(aData));
                     // we pass in an empty password to tell the operation that 
                     // it should use the cached password.
                     //
@@ -831,9 +830,7 @@ nsLDAPConnectionLoop::Run(void)
         }
         // we use a raw connection because we need to call non-interface
         // methods
-        mRawConn = NS_STATIC_CAST(nsLDAPConnection *, 
-                                  NS_STATIC_CAST(nsILDAPConnection *, 
-                                                 strongConn.get()));
+        mRawConn = static_cast<nsLDAPConnection *>(static_cast<nsILDAPConnection *>(strongConn.get()));
 
         // XXX deal with timeouts better
         //
@@ -1016,7 +1013,7 @@ nsLDAPConnection::OnLookupComplete(nsICancelable *aRequest,
             // object is gone, and we need to stop the thread running.
             //
             nsCOMPtr<nsILDAPConnection> conn =
-                NS_STATIC_CAST(nsILDAPConnection *, this);
+                static_cast<nsILDAPConnection *>(this);
 
             mRunnable->mWeakConn = do_GetWeakReference(conn);
 
