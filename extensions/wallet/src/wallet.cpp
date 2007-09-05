@@ -3773,8 +3773,8 @@ WLLT_OnSubmit(nsIDOMHTMLFormElement* currentFormNode, nsIDOMWindowInternal* wind
                             PRInt32 count = LIST_COUNT(wallet_DistinguishedSchema_list);
                             /* test for at least two distinguished schemas and no passwords */
                             for (PRInt32 i=0; i<count; i++) {
-                              mapElementPtr = NS_STATIC_CAST
-                                (wallet_MapElement*, wallet_DistinguishedSchema_list->ElementAt(i));
+                              mapElementPtr = static_cast<wallet_MapElement*>
+                                                         (wallet_DistinguishedSchema_list->ElementAt(i));
                                   if (schema.Equals(mapElementPtr->item1, nsCaseInsensitiveCStringComparator()) && !value.IsEmpty()) {
                                 hits++;
                                 if (hits > 1 && newValueFound) {
