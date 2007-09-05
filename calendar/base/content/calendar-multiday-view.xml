@@ -1110,7 +1110,7 @@
                   // the items on the first layer in the case an item covers a single column. new layers
                   // are introduced based on the start column and number of spanning columns of an item.
                   if (data.colSpan != 1) {
-                      var index = data.colSpan * (data.startCol + 1);
+                      var index = glob.totalCols * data.colSpan + data.startCol;
                       layerIndex = layerArray[index];
                       if (!layerIndex) {
                           layerIndex = layerCounter++;
