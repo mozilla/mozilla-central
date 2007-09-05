@@ -516,7 +516,7 @@ JNIEXPORT void JNICALL Java_org_mozilla_webclient_impl_wrapper_1native_CurrentPa
     loadCompleteListener->Init(nativeBrowserControl);
     
     nsCOMPtr<nsISupports> loadCompleteGuard = 
-        NS_STATIC_CAST(nsIWebProgressListener *, loadCompleteListener);
+        static_cast<nsIWebProgressListener *>(loadCompleteListener);
     nsCOMPtr<nsISupportsWeakReference> supportsWeak;
     supportsWeak = do_QueryInterface(loadCompleteGuard);
     nsCOMPtr<nsIWeakReference> weakRef;

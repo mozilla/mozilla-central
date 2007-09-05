@@ -312,7 +312,7 @@ nsresult InitializeWindowCreator(NativeBrowserControl * nativeBrowserControl)
     gCreatorCallback = new WindowCreator(nativeBrowserControl);
     if (gCreatorCallback)
     {
-        nsCOMPtr<nsIWindowCreator> windowCreator(NS_STATIC_CAST(nsIWindowCreator *, gCreatorCallback));
+        nsCOMPtr<nsIWindowCreator> windowCreator(static_cast<nsIWindowCreator *>(gCreatorCallback));
         if (windowCreator)
         {
             nsCOMPtr<nsIWindowWatcher> wwatch(do_GetService(NS_WINDOWWATCHER_CONTRACTID));

@@ -87,23 +87,23 @@ NativeBrowserControl::Init(NativeWrapperFactory *yourWrapperFactory)
     // initialize it.  It is assumed that this window will be destroyed
     // when we go out of scope.
     mWindow = new EmbedWindow();
-    mWindowGuard = NS_STATIC_CAST(nsIWebBrowserChrome *, mWindow);
+    mWindowGuard = static_cast<nsIWebBrowserChrome *>(mWindow);
     mWindow->Init(this);
 
     // Create our progress listener object, make an owning reference,
     // and initialize it.  It is assumed that this progress listener
     // will be destroyed when we go out of scope.
     mProgress = new EmbedProgress();
-    mProgressGuard = NS_STATIC_CAST(nsIWebProgressListener *,
-                                    mProgress);
+    mProgressGuard = static_cast<nsIWebProgressListener *>
+                                (mProgress);
     mProgress->Init(this);
 
     // Create our key listener object and initialize it.  It is assumed
     // that this will be destroyed before we go out of scope.
     mEventListener = new EmbedEventListener();
     mEventListenerGuard =
-        NS_STATIC_CAST(nsISupports *, NS_STATIC_CAST(nsIDOMKeyListener *,
-                                                     mEventListener));
+        static_cast<nsISupports *>(static_cast<nsIDOMKeyListener *>
+                               (mEventListener));
     mEventListener->Init(this);
     
     nsCOMPtr<nsIWebBrowser> webBrowser;
@@ -117,7 +117,7 @@ NativeBrowserControl::Init(NativeWrapperFactory *yourWrapperFactory)
     // create the WindowCreator: see
     WindowCreator *creator = new WindowCreator(this);
     nsCOMPtr<nsIWindowCreator> windowCreator;
-    windowCreator = NS_STATIC_CAST(nsIWindowCreator *, creator);
+    windowCreator = static_cast<nsIWindowCreator *>(creator);
 
     // Attach it via the watcher service
     nsCOMPtr<nsIWindowWatcher> watcher = do_GetService(NS_WINDOWWATCHER_CONTRACTID);
@@ -414,8 +414,8 @@ NativeBrowserControl::AttachListeners()
     }
     
     nsIDOMEventListener *eventListener =
-        NS_STATIC_CAST(nsIDOMEventListener *,
-                       NS_STATIC_CAST(nsIDOMKeyListener *, mEventListener));
+        static_cast<nsIDOMEventListener *>
+                   (static_cast<nsIDOMKeyListener *>(mEventListener));
     
     // add the key listener
     nsresult rv;
@@ -445,8 +445,8 @@ NativeBrowserControl::DetachListeners()
     }
     
     nsIDOMEventListener *eventListener =
-        NS_STATIC_CAST(nsIDOMEventListener *,
-                       NS_STATIC_CAST(nsIDOMKeyListener *, mEventListener));
+        static_cast<nsIDOMEventListener *>
+                   (static_cast<nsIDOMKeyListener *>(mEventListener));
     
     nsresult rv;
     rv = mEventReceiver->RemoveEventListenerByIID(eventListener,

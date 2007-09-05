@@ -99,7 +99,7 @@ EmbedWindow::Init(NativeBrowserControl *aOwner)
   if (!mWebBrowser)
     return NS_ERROR_FAILURE;
 
-  mWebBrowser->SetContainerWindow(NS_STATIC_CAST(nsIWebBrowserChrome *, this));
+  mWebBrowser->SetContainerWindow(static_cast<nsIWebBrowserChrome *>(this));
   
   nsCOMPtr<nsIDocShellTreeItem> item = do_QueryInterface(mWebBrowser);
   item->SetItemType(nsIDocShellTreeItem::typeContentWrapper);
@@ -724,7 +724,7 @@ EmbedWindow::GetSiteWindow(void **aSiteWindow)
     HWND ownerAsWidget = mOwner->parentHWnd;
 #endif
 
-    *aSiteWindow = NS_STATIC_CAST(void *, ownerAsWidget);
+    *aSiteWindow = static_cast<void *>(ownerAsWidget);
     return NS_OK;
 }
 
@@ -935,7 +935,7 @@ EmbedWindow::GetText(JNIEnv *env,
     // Someone is asking for text/plain; convert the unicode (assuming it's present)
     // to text with the correct platform encoding.
     char* plainTextData = nsnull;
-    PRUnichar* castedUnicode = NS_REINTERPRET_CAST(PRUnichar*, data);
+    PRUnichar* castedUnicode = reinterpret_cast<PRUnichar*>(data);
     PRInt32 plainTextLen = 0;
     nsPrimitiveHelpers_ConvertUnicodeToPlatformPlainText ( castedUnicode, len / 2, &plainTextData, &plainTextLen );
 
@@ -997,8 +997,8 @@ EmbedWindow::OnShowTooltip(PRInt32 aXCoords, PRInt32 aYCoords,
   nsCOMPtr<nsIWidget> mainWidget;
   mBaseWindow->GetMainWidget(getter_AddRefs(mainWidget));
   GdkWindow *window;
-  window = NS_STATIC_CAST(GdkWindow *,
-			  mainWidget->GetNativeData(NS_NATIVE_WINDOW));
+  window = static_cast<GdkWindow *>
+                      (mainWidget->GetNativeData(NS_NATIVE_WINDOW));
   gint root_x, root_y;
   gdk_window_get_origin(window, &root_x, &root_y);
 

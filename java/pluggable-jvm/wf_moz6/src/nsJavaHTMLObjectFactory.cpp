@@ -16,7 +16,7 @@
  * Portions created by Sun Microsystems Inc are Copyright (C) 2001
  * All Rights Reserved.
  *
- * $Id: nsJavaHTMLObjectFactory.cpp,v 1.3 2001-08-03 00:43:47 edburns%acm.org Exp $
+ * $Id: nsJavaHTMLObjectFactory.cpp,v 1.4 2007-09-05 07:25:16 jwalden%mit.edu Exp $
  *
  * 
  * Contributor(s): 
@@ -388,7 +388,7 @@ nsJavaHTMLObjectFactory::GetProxyForURL(const char *url, char **proxy)
   rv = proxyObjectManager->
     GetProxyForObject(NS_UI_THREAD_EVENTQ,
 		      NS_GET_IID(nsIJavaPluginProxy),
-		      NS_STATIC_CAST(nsISupports*, inst),
+		      static_cast<nsISupports*>(inst),
 		      PROXY_SYNC | PROXY_ALWAYS,
 		      getter_AddRefs(instProxy));
   if (NS_FAILED(rv)) return rv;
@@ -415,7 +415,7 @@ nsJavaHTMLObjectFactory::JSCall(jint jstid, struct JSObject_CallInfo** call)
   rv = proxyObjectManager->
     GetProxyForObject(NS_UI_THREAD_EVENTQ,
 		      NS_GET_IID(nsIJavaPluginProxy),
-		      NS_STATIC_CAST(nsISupports*, inst),
+		      static_cast<nsISupports*>(inst),
 		      PROXY_SYNC | PROXY_ALWAYS,
 		      getter_AddRefs(instProxy));
   if (NS_FAILED(rv)) return rv;
@@ -641,7 +641,7 @@ nsJavaHTMLObjectFactory::doJSCall(jint jstid, struct JSObject_CallInfo** call)
       
       // Store the exception in JSObject_CallInfo
       (*call)->jException = 
-	NS_STATIC_CAST(jthrowable, m_env->NewGlobalRef(jException));
+	static_cast<jthrowable>(m_env->NewGlobalRef(jException));
       // Release local ref
       m_env->DeleteLocalRef(jException);
     }

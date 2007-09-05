@@ -485,7 +485,7 @@ EmbedProgress::OnSecurityChange(nsIWebProgress *aWebProgress,
     /**************
   gtk_signal_emit(GTK_OBJECT(mOwner->mOwningWidget),
 		  moz_embed_signals[SECURITY_CHANGE],
-		  NS_STATIC_CAST(void *, aRequest),
+		  static_cast<void *>(aRequest),
 		  aState);
     **********/
   return NS_OK;

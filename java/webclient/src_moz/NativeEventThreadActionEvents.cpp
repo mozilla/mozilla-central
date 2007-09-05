@@ -123,7 +123,7 @@ wsRealizeBrowserEvent::handleEvent ()
     // set the docloaderobserver PENDING(edburns): how to we make our
     // presence as a nsIWebProgressListener know?n
     nsWeakPtr weakling(
-                       dont_AddRef(NS_GetWeakReference(NS_STATIC_CAST(nsIWebProgressListener*, browserContainer))));
+                       dont_AddRef(NS_GetWeakReference(static_cast<nsIWebProgressListener*>(browserContainer))));
     webBrowser->AddWebBrowserListener(weakling, NS_GET_IID(nsIWebProgressListener));
     
 

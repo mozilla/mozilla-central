@@ -16,7 +16,7 @@
  * Portions created by Sun Microsystems Inc are Copyright (C) 2001
  * All Rights Reserved.
  *
- * $Id: nsAppletHTMLObject.cpp,v 1.3 2001-08-03 00:43:47 edburns%acm.org Exp $
+ * $Id: nsAppletHTMLObject.cpp,v 1.4 2007-09-05 07:25:16 jwalden%mit.edu Exp $
  *
  * 
  * Contributor(s): 
@@ -353,7 +353,7 @@ nsAppletHTMLObject::ShowStatus(const char* status)
   rv = proxyObjectManager->
     GetProxyForObject(NS_UI_THREAD_EVENTQ,
 		      NS_GET_IID(nsIJavaPluginInstanceProxy),
-		      NS_STATIC_CAST(nsISupports*, inst),
+		      static_cast<nsISupports*>(inst),
 		      PROXY_ASYNC | PROXY_ALWAYS,
 		      getter_AddRefs(instProxy));
   if (NS_FAILED(rv)) return rv;
@@ -381,7 +381,7 @@ nsAppletHTMLObject::ShowDocument(const char* url,
   rv = proxyObjectManager->
     GetProxyForObject(NS_UI_THREAD_EVENTQ,
 		      NS_GET_IID(nsIJavaPluginInstanceProxy),
-		      NS_STATIC_CAST(nsISupports*, inst),
+		      static_cast<nsISupports*>(inst),
 		      PROXY_SYNC | PROXY_ALWAYS,
 		      getter_AddRefs(instProxy));
   if (NS_FAILED(rv)) return rv;
@@ -409,7 +409,7 @@ nsAppletHTMLObject::GetJSThread(jint* jstid)
   rv = proxyObjectManager->
     GetProxyForObject(NS_UI_THREAD_EVENTQ,
 		      NS_GET_IID(nsIJavaPluginInstanceProxy),
-		      NS_STATIC_CAST(nsISupports*, inst),
+		      static_cast<nsISupports*>(inst),
 		      PROXY_SYNC | PROXY_ALWAYS,
 		      getter_AddRefs(instProxy));
   if (NS_FAILED(rv)) return rv;
