@@ -62,6 +62,15 @@
       </Description>
     </em:targetApplication>
 
+    <em:requires>
+      <Description>
+        <!-- Lightning (also Sunbird via extension stub) -->
+        <em:id>{e2fda1a4-762b-4020-b5ad-a41df1933103}</em:id>
+        <em:minVersion>0.5</em:minVersion>
+        <em:maxVersion>0.7pre</em:maxVersion>
+      </Description>
+    </em:requires>
+
     <em:name>Provider for Google Calendar</em:name>
     <em:description>Allows bidirectional access to Google Calendar</em:description>
     <em:creator>Philipp Kewisch</em:creator>
