@@ -62,17 +62,10 @@ function onCalCalendarManagerLoad() {
 function calCalendarManager() {
     this.wrappedJSObject = this;
     this.initDB();
-    this.mCache = {};
+    this.mCache = null;
     this.mRefreshTimer = null;
     this.setUpPrefObservers();
-    this.setUpReadOnlyObservers();
     this.setUpRefreshTimer();
-}
-
-function makeURI(uriString)
-{
-    var ioservice = Components.classes["@mozilla.org/network/io-service;1"].getService(Components.interfaces.nsIIOService);
-    return ioservice.newURI(uriString, null, null);
 }
 
 var calCalendarManagerClassInfo = {
@@ -118,18 +111,6 @@ calCalendarManager.prototype = {
                                 .getService(Components.interfaces.nsIPrefBranch2);
         prefBranch.addObserver("calendar.autorefresh.enabled", this, false);
         prefBranch.addObserver("calendar.autorefresh.timeout", this, false);
-    },
-
-    // When a calendar fails, its onError doesn't point back to the calendar.
-    // Therefore, we add a new announcer for each calendar to tell the user that
-    // a specific calendar has failed.  The calendar itself is responsible for
-    // putting itself in readonly mode.
-    setUpReadOnlyObservers: function() {
-        var calendars = this.getCalendars({});
-        for each(calendar in calendars) {
-            var newObserver = new errorAnnouncer(calendar);
-            calendar.addObserver(newObserver.observer);
-        }
     },
 
     setUpRefreshTimer: function ccm_setUpRefreshTimer() {
@@ -454,6 +435,8 @@ calCalendarManager.prototype = {
             throw Components.results.NS_ERROR_FAILURE;
         }
 
+        this.assureCache();
+
         // Add an observer to track readonly-mode triggers
         var newObserver = new errorAnnouncer(calendar);
         calendar.addObserver(newObserver.observer);
@@ -490,13 +473,15 @@ calCalendarManager.prototype = {
         this.mDeletePrefs.step();
         this.mDeletePrefs.reset();
 
-        delete this.mCache[calendarID];
+        if (this.mCache) {
+            delete this.mCache[calendarID];
+        }
     },
 
     deleteCalendar: function(calendar) {
         /* check to see if calendar is unregistered first... */
         /* delete the calendar for good */
-        if (calendar.id in this.mCache) {
+        if (this.mCache && (calendar.id in this.mCache)) {
             throw "Can't delete a registered calendar";
         }
         this.notifyObservers("onCalendarDeleting", [calendar]);
@@ -518,39 +503,42 @@ calCalendarManager.prototype = {
         }
     },
 
-    getCalendars: function(count) {
+    getCalendars: function cmgr_getCalendars(count) {
+        this.assureCache();
         var calendars = [];
-
-        var stmt = this.mSelectCalendars;
-        stmt.reset();
-
-        var newCalendarData = [];
-
-        while (stmt.step()) {
-            var id = stmt.row.id;
-            if (!(id in this.mCache)) {
-                newCalendarData.push ({id: id, type: stmt.row.type, uri: stmt.row.uri });
-            }
+        for each (var cal in this.mCache) {
+            calendars.push(cal);
         }
-        stmt.reset();
-
-        for each (var caldata in newCalendarData) {
-            try {
-                var cal = this.createCalendar(caldata.type, makeURI(caldata.uri));
-                cal.id = caldata.id;
-                this.mCache[caldata.id] = cal;
-            } catch (e) {
-                dump("Can't create calendar for " + caldata.id + " (" + caldata.type + ", " + 
-                     caldata.uri + "): " + e + "\n");
-                continue;
-            }
-        }
-
-        for each (var cal in this.mCache)
-            calendars.push (cal);
-
         count.value = calendars.length;
         return calendars;
+    },
+
+    assureCache: function cmgr_assureCache() {
+        if (!this.mCache) {
+            this.mCache = {};
+
+            var stmt = this.mSelectCalendars;
+            stmt.reset();
+            var newCalendarData = [];
+            while (stmt.step()) {
+                newCalendarData.push( { id: stmt.row.id, type: stmt.row.type, uri: stmt.row.uri } );
+            }
+            stmt.reset();
+
+            for each (var caldata in newCalendarData) {
+                try {
+                    var cal = this.createCalendar(caldata.type, makeURL(caldata.uri));
+                    cal.id = caldata.id;
+                    var newObserver = new errorAnnouncer(cal);
+                    cal.addObserver(newObserver.observer);
+                    this.mCache[caldata.id] = cal;
+                } catch (exc) {
+                    Components.utils.reportError(
+                        "Can't create calendar for " + caldata.id +
+                        " (" + caldata.type + ", " + caldata.uri + "): " + exc);
+                }
+            }
+        }
     },
 
     getCalendarPref: function(calendar, name) {

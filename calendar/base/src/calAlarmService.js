@@ -556,7 +556,10 @@ calAlarmService.prototype = {
                      calICalendar.ITEM_FILTER_TYPE_ALL;
 
         for each(var calendar in calendars) {
-            calendar.getItems(filter, 0, start, until, getListener);
+            // assuming that suppressAlarms does not change anymore until refresh:
+            if (!calendar.suppressAlarms) {
+                calendar.getItems(filter, 0, start, until, getListener);
+            }
         }
     },
 
