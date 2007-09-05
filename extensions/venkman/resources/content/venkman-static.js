@@ -799,24 +799,25 @@ console.hooks = new Object();
 console.hooks["hook-script-instance-sealed"] =
 function hookScriptSealed (e)
 {
+    var url = e.scriptInstance.url;
     if (!("componentPath" in console))
     {
-        var ary = e.scriptInstance.url.match (/(.*)venkman-service\.js$/);
-        if (ary)
+        const VNK_SVC = "venkman-service.js";
+        if (url.substr(-VNK_SVC.length) == VNK_SVC)
         {
             if (!console.prefs["enableChromeFilter"])
             {
                 dispatch ("debug-instance-on",
                           { scriptInstance: e.scriptInstance });
             }
-            console.componentPath = ary[1];
+            console.componentPath = url.substr(0, url.length - VNK_SVC.length);
         }
     }
 
     for (var fbp in console.fbreaks)
     {
         if (console.fbreaks[fbp].enabled &&
-            e.scriptInstance.url.indexOf(console.fbreaks[fbp].url) != -1)
+            url.indexOf(console.fbreaks[fbp].url) != -1)
         {
             e.scriptInstance.setBreakpoint(console.fbreaks[fbp].lineNumber,
                                            console.fbreaks[fbp]);
