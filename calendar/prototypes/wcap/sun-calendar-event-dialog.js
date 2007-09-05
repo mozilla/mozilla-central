@@ -1128,6 +1128,17 @@ function editAttendees() {
     var callback = function(attendees, organizer, startTime, endTime) {
         savedWindow.attendees = attendees;
         if (organizer) {
+            // In case we didn't have an organizer object before we
+            // added attendees to our event we take the one created
+            // by the 'invite attendee'-dialog.
+            if (!savedWindow.organizer) {
+                savedWindow.organizer = organizer.clone();
+            }
+            // The other case is that we already had an organizer object
+            // before we went throught the 'invite attendee'-dialog. In that
+            // case make sure we don't carry over attributes that have been
+            // set to their default values by the dialog but don't actually
+            // exist in the original organizer object.
             if (!savedWindow.organizer.id) {
                 organizer.id = null;
             }
