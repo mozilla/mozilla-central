@@ -42,6 +42,7 @@
 #include "nsReadableUtils.h"
 #include "nsIServiceManager.h"
 #include "prsystem.h"
+#include "prprf.h"
 #include "nsEscape.h"
 #include "nsNetCID.h"
 
@@ -450,5 +451,12 @@ void ParseUidString(const char *uidString, nsMsgKeyArray &keys)
     if (isRange)
       saveStartToken = curToken + 1;
   }
+}
+
+void AppendUid(nsCString &msgIds, PRUint32 uid)
+{
+  char buf[20];
+  PR_snprintf(buf, sizeof(buf), "%u", uid);
+  msgIds.Append(buf);
 }
 
