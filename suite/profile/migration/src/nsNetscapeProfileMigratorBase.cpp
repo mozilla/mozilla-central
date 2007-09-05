@@ -1326,7 +1326,7 @@ nsNetscapeProfileMigratorBase::CopyNextFolder()
     mFileIOTimer = do_CreateInstance("@mozilla.org/timer;1");
 
     if (mFileIOTimer)
-      mFileIOTimer->InitWithCallback(NS_STATIC_CAST(nsITimerCallback *, this),
+      mFileIOTimer->InitWithCallback(static_cast<nsITimerCallback *>(this),
                                      1, nsITimer::TYPE_ONE_SHOT);
   }
   else
