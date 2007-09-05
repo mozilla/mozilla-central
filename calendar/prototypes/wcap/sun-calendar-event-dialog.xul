@@ -21,6 +21,7 @@
    - Contributor(s):
    -   Michael Buettner <michael.buettner@sun.com>
    -   Philipp Kewisch <mozilla@kewis.ch>
+   -   Stefan Sitter <ssitter@gmail.com>
    -
    - Alternatively, the contents of this file may be used under the terms of
    - either the GNU General Public License Version 2 or later (the "GPL"), or
@@ -259,43 +260,53 @@
         <menubar id="event-menubar">
 
             <!-- File menu -->
-            <menu label="&event.menu.file.label;">
+            <menu label="&event.menu.file.label;"
+                  accesskey="&event.menu.file.accesskey;">
                 <menupopup>
-                    <menu label="&event.menu.file.new.label;">
+                    <menu label="&event.menu.file.new.label;"
+                          accesskey="&event.menu.file.new.accesskey;">
                         <menupopup>
                             <menuitem label="&event.menu.file.new.event.label;"
+                                      accesskey="&event.menu.file.new.event.accesskey;"
                                       key="new-event-key"
                                       command="cmd_file_new_event"
                                       disable-on-readonly="true"/>
                             <menuitem label="&event.menu.file.new.message.label;"
+                                      accesskey="&event.menu.file.new.message.accesskey;"
                                       key="new-message-key"
                                       command="cmd_file_new_message"
                                       disable-on-readonly="true"
                                       class="lightning-only"/>
                             <menuseparator class="lightning-only"/>
                             <menuitem label="&event.menu.file.new.address.label;"
+                                      accesskey="&event.menu.file.new.address.accesskey;"
                                       command="cmd_file_new_card"
                                       disable-on-readonly="true"
                                       class="lightning-only"/>
                         </menupopup>
                     </menu>
                     <menuitem label="&event.menu.file.close.label;"
+                              accesskey="&event.menu.file.close.accesskey;"
                               key="close-key"
                               command="cmd_file_close"
                               disable-on-readonly="true"/>
                     <menuseparator/>
                     <menuitem label="&event.menu.file.save.label;"
+                              accesskey="&event.menu.file.save.accesskey;"
                               key="save-key"
                               command="cmd_save"/>
                     <menuitem label="&event.menu.file.page.setup.label;"
+                              accesskey="&event.menu.file.page.setup.accesskey;"
                               command="cmd_printSetup"
                               disable-on-readonly="true"/>
                     <menuitem label="&event.menu.file.print.label;"
+                              accesskey="&event.menu.file.print.accesskey;"
                               key="print-key"
                               command="cmd_print"
                               disable-on-readonly="true"/>
                     <menuseparator/>
                     <menuitem label="&event.menu.file.exit.label;"
+                              accesskey="&event.menu.file.exit.accesskey;"
                               key="exit-key"
                               command="cmd_file_exit"
                               disable-on-readonly="true"/>
@@ -304,26 +315,33 @@
 
             <!-- Edit menu -->
             <menu label="&event.menu.edit.label;"
+                  accesskey="&event.menu.edit.accesskey;"
                   collapse-on-readonly="true">
                 <menupopup>
                     <menuitem label="&event.menu.edit.undo.label;"
+                              accesskey="&event.menu.edit.undo.accesskey;"
                               key="undo-key"
                               command="cmd_undo"/>
                     <menuitem label="&event.menu.edit.redo.label;"
+                              accesskey="&event.menu.edit.redo.accesskey;"
                               key="redo-key"
                               command="cmd_redo"/>
                     <menuseparator/>
                     <menuitem label="&event.menu.edit.cut.label;"
+                              accesskey="&event.menu.edit.cut.accesskey;"
                               key="cut-key"
                               command="cmd_cut"/>
                     <menuitem label="&event.menu.edit.copy.label;"
+                              accesskey="&event.menu.edit.copy.accesskey;"
                               key="copy-key"
                               command="cmd_copy"/>
                     <menuitem label="&event.menu.edit.paste.label;"
+                              accesskey="&event.menu.edit.paste.accesskey;"
                               key="paste-key"
                               command="cmd_paste"/>
                     <menuseparator/>
                     <menuitem label="&event.menu.edit.select.all.label;"
+                              accesskey="&event.menu.edit.select.all.accesskey;"
                               key="select-all-key"
                               command="cmd_selectAll"/>
                 </menupopup>
@@ -331,17 +349,21 @@
 
             <!-- View menu -->
             <menu label="&event.menu.view.label;"
+                  accesskey="&event.menu.view.accesskey;"
                   collapse-on-readonly="true">
                 <menupopup>
-                    <menu label="&event.menu.view.toolbars.label;">
+                    <menu label="&event.menu.view.toolbars.label;"
+                          accesskey="&event.menu.view.toolbars.accesskey;">
                         <menupopup>
                             <menuitem id="menu-view-toolbar"
                                       label="&event.menu.view.toolbars.event.label;"
+                                      accesskey="&event.menu.view.toolbars.event.accesskey;"
                                       type="checkbox"
                                       checked="true"
                                       command="cmd_toolbar"/>
                             <menuseparator/>
                             <menuitem label="&event.menu.view.toolbars.customize.label;"
+                                      accesskey="&event.menu.view.toolbars.customize.accesskey;"
                                       command="cmd_customize"/>
                         </menupopup>
                     </menu>
@@ -349,14 +371,18 @@
             </menu>
 
             <!-- Options menu -->
-            <menu label="&event.menu.options.label;">
+            <menu label="&event.menu.options.label;"
+                  accesskey="&event.menu.options.accesskey;">
                 <menupopup>
-                  <menuitem label="&event.toolbar.attendees.label;"
+                  <menuitem label="&event.menu.options.attendees.label;"
+                            accesskey="&event.menu.options.attendees.accesskey;"
                             command="cmd_attendees"
                             disable-on-readonly="true"/>
                   <menuitem label="&event.menu.options.link.label;"
+                            accesskey="&event.menu.options.link.accesskey;"
                             command="cmd_url"/>
                   <menuitem label="&event.menu.options.timezone.label;"
+                            accesskey="&event.menu.options.timezone.accesskey;"
                             id="menu-options-timezone"
                             checked="false"
                             type="checkbox"
@@ -365,38 +391,47 @@
                             disable-on-readonly="true"/>
                   <menuseparator/>
                   <menu label="&event.menu.options.priority.label;"
+                            accesskey="&event.menu.options.priority.accesskey;"
                         disable-on-readonly="true">
                       <menupopup>
                           <menuitem label="&event.menu.options.priority.none.label;"
+                                    accesskey="&event.menu.options.priority.none.accesskey;"
                                     type="checkbox"
                                     command="cmd_priority_none"
                                     disable-on-readonly="true"/>
                           <menuitem label="&event.menu.options.priority.low.label;"
+                                    accesskey="&event.menu.options.priority.low.accesskey;"
                                     type="checkbox"
                                     command="cmd_priority_low"
                                     disable-on-readonly="true"/>
                           <menuitem label="&event.menu.options.priority.normal.label;"
+                                    accesskey="&event.menu.options.priority.normal.accesskey;"
                                     type="checkbox"
                                     command="cmd_priority_normal"
                                     disable-on-readonly="true"/>
                           <menuitem label="&event.menu.options.priority.high.label;"
+                                    accesskey="&event.menu.options.priority.high.accesskey;"
                                     type="checkbox"
                                     command="cmd_priority_high"
                                     disable-on-readonly="true"/>
                       </menupopup>
                   </menu>
                   <menu label="&event.menu.options.privacy.label;"
+                        accesskey="&event.menu.options.privacy.accesskey;"
                         disable-on-readonly="true">
                       <menupopup>
                           <menuitem label="&event.menu.options.privacy.public.label;"
+                                    accesskey="&event.menu.options.privacy.public.accesskey;"
                                     type="checkbox"
                                     command="cmd_privacy_public"
                                     disable-on-readonly="true"/>
                           <menuitem label="&event.menu.options.privacy.confidential.label;"
+                                    accesskey="&event.menu.options.privacy.confidential.accesskey;"
                                     type="checkbox"
                                     command="cmd_privacy_confidential"
                                     disable-on-readonly="true"/>
                           <menuitem label="&event.menu.options.privacy.private.label;"
+                                    accesskey="&event.menu.options.privacy.private.accesskey;"
                                     type="checkbox"
                                     command="cmd_privacy_private"
                                     disable-on-readonly="true"/>
@@ -404,13 +439,16 @@
                   </menu>
                   <menuseparator/>
                     <menu label="&event.menu.options.show.time.label;"
+                        accesskey="&event.menu.options.show.time.accesskey;"
                           disable-on-readonly="true">
                         <menupopup>
                             <menuitem label="&event.menu.options.show.time.busy.label;"
+                                      accesskey="&event.menu.options.show.time.busy.accesskey;"
                                       type="checkbox"
                                       command="cmd_showtimeas_busy"
                                       disable-on-readonly="true"/>
                             <menuitem label="&event.menu.options.show.time.free.label;"
+                                      accesskey="&event.menu.options.show.time.free.accesskey;"
                                       type="checkbox"
                                       command="cmd_showtimeas_free"
                                       disable-on-readonly="true"/>
@@ -418,15 +456,19 @@
                     </menu>
                 </menupopup>
             </menu>
-            <menu label="&event.help.label;">
+            <menu label="&event.help.label;"
+                  accesskey="&event.help.accesskey;">
                 <menupopup>
                     <menuitem label="&event.help.release.notes.label;"
+                              accesskey="&event.help.release.notes.accesskey;"
                               oncommand="openReleaseNotes()"/>
                     <menuitem label="&event.help.help.label;"
+                              accesskey="&event.help.help.accesskey;"
                               oncommand="openRegionURL('mailnews.hints_and_tips.url')"
                               class="lightning-only"/>
                     <menuseparator/>
                     <menuitem label="&event.help.about.label;"
+                              accesskey="&event.help.about.accesskey;"
                               oncommand="openAboutDialog()"/>
                 </menupopup>
             </menu>
@@ -491,6 +533,8 @@
         <rows>
             <row align="center">
                 <label value="&event.title.textbox.label;"
+                       accesskey="&event.title.textbox.accesskey;"
+                       control="item-title"
                        disable-on-readonly="true"/>
                 <textbox id="item-title"
                          disable-on-readonly="true"
@@ -500,6 +544,8 @@
 
             <row align="center">
                 <label value="&event.location.label;"
+                       accesskey="&event.location.accesskey;"
+                       control="item-location"
                        disable-on-readonly="true"/>
                 <textbox id="item-location"
                          disable-on-readonly="true"/>
@@ -508,12 +554,16 @@
             <!-- Category & Calendar -->
             <row align="center">
                 <label value="&event.categories.label;"
+                       accesskey="&event.categories.accesskey;"
+                       control="item-categories"
                        disable-on-readonly="true"/>
                 <hbox align="center">
                     <menulist id="item-categories"
                               disable-on-readonly="true"
                               flex="1"/>
                     <label value="&event.calendar.label;"
+                           accesskey="&event.calendar.accesskey;"
+                           control="item-calendar"
                            disable-on-readonly="true"/>
                     <menulist id="item-calendar"
                               disable-on-readonly="true"
@@ -525,6 +575,8 @@
             <!-- Attendees -->
             <row id="attendee-row" align="center">
                 <label value="&event.attendees.label;"
+                       accesskey="&event.attendees.accesskey;"
+                       control="attendee-list"
                        disable-on-readonly="true"/>
                 <label id="attendee-list"
                        class="text-link"
@@ -541,6 +593,7 @@
                           class="event-only"
                           disable-on-readonly="true"
                           label="&event.alldayevent.label;"
+                          accesskey="&event.alldayevent.accesskey;"
                           oncommand="updateAllDay();"/>
             </row>
 
@@ -548,9 +601,13 @@
             <row align ="center">
                 <hbox align="center">
                     <label value="&event.from.label;"
+                           accesskey="&event.from.accesskey;"
+                           control="event-starttime"
                            class="event-only"
                            disable-on-readonly="true"/>
                     <label value="&task.from.label;"
+                           accesskey="&task.from.accesskey;"
+                           control="todo-has-entrydate"
                            class="todo-only"
                            disable-on-readonly="true"/>
                 </hbox>
@@ -582,9 +639,13 @@
             <row>
                 <hbox align="center">
                     <label value="&event.to.label;"
+                           accesskey="&event.to.accesskey;"
+                           control="event-endtime"
                            class="event-only"
                            disable-on-readonly="true"/>
                     <label value="&task.to.label;"
+                           accesskey="&task.to.accesskey;"
+                           control="todo-has-duedate"
                            class="todo-only"
                            disable-on-readonly="true"/>
                 </hbox>
@@ -617,6 +678,8 @@
             <row class="todo-only" align="center">
                 <label id="todo-status-label"
                        value="&task.status.label;"
+                       accesskey="&task.status.accesskey;"
+                       control="todo-status"
                        disable-on-readonly="true"/>
                 <hbox align="center">
                     <menulist id="todo-status"
@@ -657,6 +720,8 @@
             <!-- Recurrence -->
             <row align="center">
                 <label value="&event.repeat.label;"
+                       accesskey="&event.repeat.accesskey;"
+                       control="item-repeat"
                        disable-on-readonly="true"/>
                 <hbox align="center" flex="1">
                     <menulist id="item-repeat"
@@ -700,6 +765,8 @@
             <!-- Reminder (Alarm) -->
             <row align="center">
                 <label value="&event.reminder.label;"
+                       accesskey="&event.reminder.accesskey;"
+                       control="item-alarm"
                        disable-on-readonly="true"/>
                 <hbox align="center">
                     <menulist id="item-alarm"
@@ -792,6 +859,8 @@
             <!-- Description -->
             <row id="description-row" flex="1">
                 <label value="&event.description.label;"
+                       accesskey="&event.description.accesskey;"
+                       control="item-description"
                        disable-on-readonly="true"/>
                 <textbox id="item-description"
                          disable-on-readonly="true"
@@ -802,7 +871,9 @@
 
             <!-- Document -->
             <row id="document-row" align="center">
-                <label value="&event.document.label;"
+                <label value="&event.link.label;"
+                       accesskey="&event.link.accesskey;"
+                       control="document-link"
                        disable-on-readonly="true"/>
                 <hbox align="center">
                     <label id="document-link"
@@ -810,7 +881,8 @@
                            crop="right"
                            flex="1"
                            onclick="browseDocument()"/>
-                    <button label="&event.document.change.label;"
+                    <button label="&event.link.change.label;"
+                            accesskey="&event.link.change.accesskey;"
                             command="cmd_url"
                             disable-on-readonly="true"/>
                 </hbox>
@@ -876,12 +948,15 @@
     <popupset id="event-dialog-popupset">
       <popup id="attendee-popup" position="after_start">
         <menuitem label="&event.invite.attendees.label;"
+                  accesskey="&event.invite.attendees.accesskey;"
                   command="cmd_attendees"
                   disable-on-readonly="true"/>
         <menuseparator/>
         <menuitem label="&event.email.attendees.label;"
+                  accesskey="&event.email.attendees.accesskey;"
                   command="cmd_email"/>
         <menuitem label="&event.email.tentative.attendees.label;"
+                  accesskey="&event.email.tentative.attendees.accesskey;"
                   command="cmd_email_undecided"/>
         <menuseparator id="attendee-popup-separator"/>
         <menuitem class="status-icon menuitem-iconic" oncommand="sendMailToAttendees([event.target.attendee])" crop="end"/>

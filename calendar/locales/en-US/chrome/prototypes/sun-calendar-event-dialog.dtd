@@ -17,8 +17,10 @@
    - Portions created by the Initial Developer are Copyright (C) 2006
    - the Initial Developer. All Rights Reserved.
    -
-   - Contributor(s): Michael Büttner <michael.buettner@sun.com>
+   - Contributor(s):
+   -   Michael Büttner <michael.buettner@sun.com>
    -   Philipp Kewisch <mozilla@kewis.ch>
+   -   Stefan Sitter <ssitter@gmail.com>
    -
    - Alternatively, the contents of this file may be used under the terms of
    - either the GNU General Public License Version 2 or later (the "GPL"), or
@@ -36,55 +38,102 @@
 
 <!-- Menubar -->
 <!ENTITY  event.menu.file.label                           "File">
+<!ENTITY  event.menu.file.accesskey                       "F">
 <!ENTITY  event.menu.file.new.label                       "New">
+<!ENTITY  event.menu.file.new.accesskey                   "N">
 <!ENTITY  event.menu.file.new.event.label                 "Event">
+<!ENTITY  event.menu.file.new.event.accesskey             "E">
 <!ENTITY  event.menu.file.new.message.label               "Message">
+<!ENTITY  event.menu.file.new.message.accesskey           "M">
 <!ENTITY  event.menu.file.new.address.label               "Address Book Card">
+<!ENTITY  event.menu.file.new.address.accesskey           "C">
 <!ENTITY  event.menu.file.close.label                     "Close">
+<!ENTITY  event.menu.file.close.accesskey                 "C">
 <!ENTITY  event.menu.file.save.label                      "Save">
+<!ENTITY  event.menu.file.save.accesskey                  "S">
 <!ENTITY  event.menu.file.page.setup.label                "Page Setup">
+<!ENTITY  event.menu.file.page.setup.accesskey            "u">
 <!ENTITY  event.menu.file.print.label                     "Print">
+<!ENTITY  event.menu.file.print.accesskey                 "P">
 <!ENTITY  event.menu.file.exit.label                      "Exit">
+<!ENTITY  event.menu.file.exit.accesskey                  "x">
 
 <!ENTITY  event.menu.edit.label                           "Edit">
+<!ENTITY  event.menu.edit.accesskey                       "E">
 <!ENTITY  event.menu.edit.undo.label                      "Undo">
+<!ENTITY  event.menu.edit.undo.accesskey                  "U">
 <!ENTITY  event.menu.edit.redo.label                      "Redo">
+<!ENTITY  event.menu.edit.redo.accesskey                  "R">
 <!ENTITY  event.menu.edit.cut.label                       "Cut">
+<!ENTITY  event.menu.edit.cut.accesskey                   "t">
 <!ENTITY  event.menu.edit.copy.label                      "Copy">
+<!ENTITY  event.menu.edit.copy.accesskey                  "C">
 <!ENTITY  event.menu.edit.paste.label                     "Paste">
+<!ENTITY  event.menu.edit.paste.accesskey                 "P">
 <!ENTITY  event.menu.edit.select.all.label                "Select All">
+<!ENTITY  event.menu.edit.select.all.accesskey            "A">
 
 <!ENTITY  event.menu.view.label                           "View">
+<!ENTITY  event.menu.view.accesskey                       "V">
 <!ENTITY  event.menu.view.toolbars.label                  "Toolbars">
+<!ENTITY  event.menu.view.toolbars.accesskey              "T">
 <!ENTITY  event.menu.view.toolbars.event.label            "Event Toolbar">
-<!ENTITY  event.menu.view.toolbars.customize.label        "Customize...">
+<!ENTITY  event.menu.view.toolbars.event.accesskey        "E">
+<!ENTITY  event.menu.view.toolbars.customize.label        "Customize…">
+<!ENTITY  event.menu.view.toolbars.customize.accesskey    "C">
 
 <!ENTITY  event.menu.options.label                        "Options">
+<!ENTITY  event.menu.options.accesskey                    "O">
+<!ENTITY  event.menu.options.attendees.label              "Invite Attendees…">
+<!ENTITY  event.menu.options.attendees.accesskey          "I">
 <!ENTITY  event.menu.options.spellcheck.label             "Check Spelling…">
+<!ENTITY  event.menu.options.spellcheck.accesskey         "h">
 <!ENTITY  event.menu.options.inline.spellcheck.label      "Spell Check As You Type">
+<!ENTITY  event.menu.options.inline.spellcheck.accesskey  "S">
 <!ENTITY  event.menu.options.link.label                   "Add Link…">
+<!ENTITY  event.menu.options.link.accesskey               "L">
 <!ENTITY  event.menu.options.timezone.label               "Timezone">
+<!ENTITY  event.menu.options.timezone.accesskey           "z">
 <!ENTITY  event.menu.options.priority.label               "Importance">
+<!ENTITY  event.menu.options.priority.accesskey           "m">
 <!ENTITY  event.menu.options.priority.none.label          "None">
+<!ENTITY  event.menu.options.priority.none.accesskey      "o">
 <!ENTITY  event.menu.options.priority.low.label           "Low">
+<!ENTITY  event.menu.options.priority.low.accesskey       "L">
 <!ENTITY  event.menu.options.priority.normal.label        "Normal">
+<!ENTITY  event.menu.options.priority.normal.accesskey    "N">
 <!ENTITY  event.menu.options.priority.high.label          "High">
+<!ENTITY  event.menu.options.priority.high.accesskey      "H">
 <!ENTITY  event.menu.options.privacy.label                "Privacy">
+<!ENTITY  event.menu.options.privacy.accesskey            "P">
 <!ENTITY  event.menu.options.privacy.public.label         "Public Event">
+<!ENTITY  event.menu.options.privacy.public.accesskey     "u">
 <!ENTITY  event.menu.options.privacy.confidential.label   "Show Time and Date Only">
+<!ENTITY  event.menu.options.privacy.confidential.accesskey "S">
 <!ENTITY  event.menu.options.privacy.private.label        "Private Event">
+<!ENTITY  event.menu.options.privacy.private.accesskey    "r">
 <!ENTITY  event.menu.options.show.time.label              "Show Time as">
+<!ENTITY  event.menu.options.show.time.accesskey          "T">
 <!ENTITY  event.menu.options.show.time.busy.label         "Busy">
+<!ENTITY  event.menu.options.show.time.busy.accesskey     "B">
 <!ENTITY  event.menu.options.show.time.free.label         "Free">
+<!ENTITY  event.menu.options.show.time.free.accesskey     "F">
 
 <!ENTITY event.help.label                                 "Help">
+<!ENTITY event.help.accesskey                             "H">
 <!ENTITY event.help.release.notes.label                   "Release Notes">
+<!ENTITY event.help.release.notes.accesskey               "R">
 <!ENTITY event.help.help.label                            "&brandShortName; Help">
+<!ENTITY event.help.help.accesskey                        "H">
 <!ENTITY event.help.about.label                           "About &brandShortName;">
+<!ENTITY event.help.about.accesskey                       "A">
 
 <!ENTITY event.invite.attendees.label                     "Invite Attendees…">
+<!ENTITY event.invite.attendees.accesskey                 "I">
 <!ENTITY event.email.attendees.label                      "Compose E-Mail to All Attendees…">
+<!ENTITY event.email.attendees.accesskey                  "A">
 <!ENTITY event.email.tentative.attendees.label            "Compose E-Mail to Undecided Attendees…">
+<!ENTITY event.email.tentative.attendees.accesskey        "U">
 
 <!-- Toolbar -->
 <!ENTITY  event.toolbar.save.label                        "Save and Close">
@@ -95,21 +144,37 @@
 
 <!-- Main page -->
 <!ENTITY event.title.textbox.label                        "Title:" >
+<!ENTITY event.title.textbox.accesskey                    "T">
 <!ENTITY event.location.label                             "Location:" >
+<!ENTITY event.location.accesskey                         "L">
 <!ENTITY event.categories.label                           "Category:">
+<!ENTITY event.categories.accesskey                       "y">
 <!ENTITY event.calendar.label                             "Calendar:" >
+<!ENTITY event.calendar.accesskey                         "C">
 <!ENTITY event.attendees.label                            "Attendees:" >
+<!ENTITY event.attendees.accesskey                        "I" >
 <!ENTITY event.alldayevent.label                          "All day Event" >
+<!ENTITY event.alldayevent.accesskey                      "d">
 <!ENTITY event.from.label                                 "Start:" >
+<!ENTITY event.from.accesskey                             "S">
 <!ENTITY task.from.label                                  "Start:" >
+<!ENTITY task.from.accesskey                              "B">
 <!ENTITY event.to.label                                   "End:" >
+<!ENTITY event.to.accesskey                               "n">
 <!ENTITY task.to.label                                    "Due Date:" >
+<!ENTITY task.to.accesskey                                "u">
 <!ENTITY task.status.label                                "Status:" >
+<!ENTITY task.status.accesskey                            "a">
 <!ENTITY event.repeat.label                               "Repeat:" >
+<!ENTITY event.repeat.accesskey                           "R">
 <!ENTITY event.reminder.label                             "Reminder:" >
+<!ENTITY event.reminder.accesskey                         "m">
 <!ENTITY event.description.label                          "Description:" >
-<!ENTITY event.document.label                             "Document:" >
-<!ENTITY event.document.change.label                      "Change…" >
+<!ENTITY event.description.accesskey                      "p">
+<!ENTITY event.link.label                                 "Link:" >
+<!ENTITY event.link.accesskey                             "k" >
+<!ENTITY event.link.change.label                          "Change…" >
+<!ENTITY event.link.change.accesskey                      "g" >
 
 <!ENTITY event.private.label                              "Private" >
 <!ENTITY event.public.label                               "Public" >
