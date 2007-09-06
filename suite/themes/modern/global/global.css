@@ -178,3 +178,47 @@ resizer[dir="bottomright"] {
 description.error {
   color: #FF0000;
 }
+/* :::::: autoscroll popup ::::: */
+
+#autoscroller {
+  height: 28px;
+  width: 28px;
+  border: none;
+  margin: -14px;
+  padding: 0;
+  background-image: url("chrome://global/skin/icons/autoscroll.png");
+  background-color: transparent;
+  -moz-appearance: none;
+}
+
+#autoscroller[scrolldir="NS"] {
+  background-position: left center;
+}
+
+#autoscroller[scrolldir="EW"] {
+  background-position: left bottom;
+}
+
+#autoscroller[transparent="true"] {
+  background-position: center top;
+}
+
+#autoscroller[transparent="true"][scrolldir="NS"] {
+  background-position: center center;
+}
+
+#autoscroller[transparent="true"][scrolldir="EW"] {
+  background-position: center bottom;
+}
+
+#autoscroller[translucent="true"] {
+  background-position: right top;
+}
+
+#autoscroller[translucent="true"][scrolldir="NS"] {
+  background-position: right center;
+}
+
+#autoscroller[translucent="true"][scrolldir="EW"] {
+  background-position: right bottom;
+}
