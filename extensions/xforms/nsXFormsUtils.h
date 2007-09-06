@@ -218,6 +218,7 @@ public:
    * @param aContextNode      The context node for the element
    * @param aContextPosition  The context position for the element
    * @param aContextSize      The context size for the element
+   * @param aUseBindAttr      Use @bind (if present) to determine context node?
    */
   static NS_HIDDEN_(nsresult)
     GetNodeContext(nsIDOMElement           *aElement,
@@ -228,7 +229,8 @@ public:
                    nsIXFormsControl       **aParentControl,
                    nsIDOMNode             **aContextNode,
                    PRInt32                 *aContextPosition = nsnull,
-                   PRInt32                 *aContextSize = nsnull);
+                   PRInt32                 *aContextSize = nsnull,
+                   PRBool                   aUseBindAttr = PR_TRUE);
 
   /**
    * Locate the model for an element.

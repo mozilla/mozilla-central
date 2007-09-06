@@ -351,7 +351,8 @@ nsXFormsUtils::GetNodeContext(nsIDOMElement           *aElement,
                               nsIXFormsControl       **aParentControl,
                               nsIDOMNode             **aContextNode,
                               PRInt32                 *aContextPosition,
-                              PRInt32                 *aContextSize)
+                              PRInt32                 *aContextSize,
+                              PRBool                   aUseBindAttr)
 {
   NS_ENSURE_ARG(aElement);
   NS_ENSURE_ARG(aOuterBind);
@@ -371,7 +372,7 @@ nsXFormsUtils::GetNodeContext(nsIDOMElement           *aElement,
   nsAutoString bindId;
   NS_NAMED_LITERAL_STRING(bindStr, "bind");
   aElement->GetAttribute(bindStr, bindId);
-  if (!bindId.IsEmpty()) {
+  if (!bindId.IsEmpty() && aUseBindAttr) {
     // CASE 1: Use @bind
     GetElementByContextId(aElement, bindId, aBindElement);
 

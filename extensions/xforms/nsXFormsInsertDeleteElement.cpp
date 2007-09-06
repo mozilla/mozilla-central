@@ -124,88 +124,73 @@ nsXFormsInsertDeleteElement::HandleAction(nsIDOMEvent            *aEvent,
     return NS_OK;
 
   nsresult rv;
-  nsCOMPtr<nsIModelElementPrivate> model;
-  PRBool usesModelBinding;
 
   //
   // Step 1 (Insert or Delete): Determine the insert/delete context.
   //
-  // If the bind attribute is present, it is evaluated to determine the
-  // in-scope evaluation context and the context attribute is ignored;
-  // otherwise, the context attribute is evaluated and overrides the
-  // in-scope evaluation context.
-  //
-  // A NodeSet binding attribute (@bind or @nodeset) is required unless
-  // the context attribute is present.
+  // If the bind attribute is present or if the context attribute is not given,
+  // the insert context is the in-scope evaluation context. Otherwise, the
+  // XPath expression provided by the context attribute is evaluated using the
+  // in-scope evaluation context, and the first node rule is applied to obtain
+  // the insert context.
   //
   nsCOMPtr<nsIDOMXPathResult> contextNodeset;
   nsCOMPtr<nsIDOMNode> contextNode;
   PRUint32 contextNodesetSize = 0;
 
+  // Get the in-scope evaluation context. The last parameter to GetNodeContext
+  // indicates whether it should try to get the context using @bind. We want to
+  // ignore @bind because it should not change the in-scope evaluation context
+  // for insert.
+  nsCOMPtr<nsIModelElementPrivate> model;
+  nsCOMPtr<nsIDOMElement> bindElement;
+  nsCOMPtr<nsIXFormsControl> parentControl;
+  PRBool outerBind;
+  rv = nsXFormsUtils::GetNodeContext(mElement,
+                                     nsXFormsUtils::ELEMENT_WITH_MODEL_ATTR,
+                                     getter_AddRefs(model),
+                                     getter_AddRefs(bindElement),
+                                     &outerBind,
+                                     getter_AddRefs(parentControl),
+                                     getter_AddRefs(contextNode),
+                                     nsnull, nsnull, PR_FALSE);
+
+  NS_ENSURE_SUCCESS(rv, rv);
+
+  // Determine if the context node is specified via @context.
+  // If @bind is present, @context is ignored.
   nsAutoString bindExpr;
   nsAutoString contextExpr;
-  nsAutoString contextStr;
-
-  // Determine if the context node is specified via @bind or @context.
-  // If @bind is present, @context is ignored.
   mElement->GetAttribute(NS_LITERAL_STRING("bind"), bindExpr);
-  if (!bindExpr.IsEmpty()) {
-    contextStr.AssignLiteral("bind");
-  } else {
-    mElement->GetAttribute(NS_LITERAL_STRING("context"), contextExpr);
-    if (!contextExpr.IsEmpty()) {
-      contextStr.AssignLiteral("context");
-    }
-  }
+  mElement->GetAttribute(NS_LITERAL_STRING("context"), contextExpr);
 
-  if (!contextStr.IsEmpty()) {
-    // Context node is specified via either @bind or @context.
-    rv = nsXFormsUtils::EvaluateNodeBinding(mElement,
-                                            nsXFormsUtils::ELEMENT_WITH_MODEL_ATTR,
-                                            contextStr,
-                                            EmptyString(),
-                                            nsIDOMXPathResult::ORDERED_NODE_SNAPSHOT_TYPE,
-                                            getter_AddRefs(model),
-                                            getter_AddRefs(contextNodeset),
-                                            &usesModelBinding);
+  if (bindExpr.IsEmpty() && !contextExpr.IsEmpty()) {
+    // @context is specified and overrides the in-scope evaluation context.
+    // The insert context is the result of evaluating @context in the current
+    // in-scope evaluation context.
+    rv = nsXFormsUtils::EvaluateXPath(contextExpr, contextNode, mElement,
+                                      nsIDOMXPathResult::ORDERED_NODE_SNAPSHOT_TYPE,
+                                      getter_AddRefs(contextNodeset));
     NS_ENSURE_SUCCESS(rv, rv);
 
-    if (!model)
-      return NS_OK;
-    
     // The insert/delete action is terminated with no effect if the context
     // is the empty node-set.
     if (contextNodeset) {
       rv = contextNodeset->GetSnapshotLength(&contextNodesetSize);
       NS_ENSURE_SUCCESS(rv, rv);
-
+  
       if (contextNodesetSize < 1)
         return NS_OK;
-
+  
       // Context node is the first node in the nodeset.
       contextNodeset->SnapshotItem(0, getter_AddRefs(contextNode));
     }
-
-  } else {
-    // Neither @bind nor @context. Get the in-scope evaluation context.
-    nsCOMPtr<nsIDOMElement> bindElement;
-    nsCOMPtr<nsIXFormsControl> parentControl;
-    PRBool outerBind;
-    rv = nsXFormsUtils::GetNodeContext(mElement,
-                                       nsXFormsUtils::ELEMENT_WITH_MODEL_ATTR,
-                                       getter_AddRefs(model),
-                                       getter_AddRefs(bindElement),
-                                       &outerBind,
-                                       getter_AddRefs(parentControl),
-                                       getter_AddRefs(contextNode));
-
-    NS_ENSURE_SUCCESS(rv, rv);
-
-    // The insert/delete action is terminated with no effect if the context
-    // is the empty node-set.
-    if (!model || !contextNode)
-      return NS_OK;
   }
+
+  // The insert/delete action is terminated with no effect if the context
+  // is the empty node-set.
+  if (!contextNode)
+    return NS_OK;
 
   // The insert action is terminated with no effect if the context attribute
   // is given and the insert context does not evaluate to an element node.
@@ -223,6 +208,9 @@ nsXFormsInsertDeleteElement::HandleAction(nsIDOMEvent            *aEvent,
   // Binding node-set. If a nodeset attribute is present, it is evaluated
   // within the context to determine the Node Set Binding node-set.
   //
+  // A NodeSet binding attribute (@bind or @nodeset) is required unless
+  // the context attribute is present.
+  //
   nsCOMPtr<nsIDOMXPathResult> nodeset;
   PRUint32 nodesetSize = 0;
 
@@ -230,29 +218,39 @@ nsXFormsInsertDeleteElement::HandleAction(nsIDOMEvent            *aEvent,
     nsAutoString nodesetExpr;
     mElement->GetAttribute(NS_LITERAL_STRING("nodeset"), nodesetExpr);
     if (!nodesetExpr.IsEmpty()) {
-      // Evaluate the nodeset attribute within the context.
+      // Evaluate the nodeset attribute within the insert context.
       rv = nsXFormsUtils::EvaluateXPath(nodesetExpr, contextNode, mElement,
                                         nsIDOMXPathResult::ORDERED_NODE_SNAPSHOT_TYPE,
                                         getter_AddRefs(nodeset));
       NS_ENSURE_SUCCESS(rv, rv);
-
-      rv = nodeset->GetSnapshotLength(&nodesetSize);
-      NS_ENSURE_SUCCESS(rv, rv);
-    }
-
-    // The insert action is terminated with no effect if the context attribute
-    // is not given and the Node Set Binding node-set is the empty node-set.
-    //
-    // The delete action is terminated with no effect if the Node Set Binding
-    // node-set is the empty node-set.
-    if (!nodeset || nodesetSize < 1) {
-      if (!mIsInsert || (mIsInsert && contextExpr.IsEmpty()))
-        return NS_OK;
     }
   } else {
-    // Nodeset was determined by @bind.
-    nodeset = contextNodeset;
-    nodesetSize = contextNodesetSize;
+    PRBool usesModelBinding;
+    rv = nsXFormsUtils::EvaluateNodeBinding(mElement,
+                                            nsXFormsUtils::ELEMENT_WITH_MODEL_ATTR,
+                                            EmptyString(),
+                                            EmptyString(),
+                                            nsIDOMXPathResult::ORDERED_NODE_SNAPSHOT_TYPE,
+                                            getter_AddRefs(model),
+                                            getter_AddRefs(nodeset),
+                                            &usesModelBinding);
+    NS_ENSURE_SUCCESS(rv, rv);
+
+    if (!model)
+      return NS_OK;
+  }
+
+  rv = nodeset->GetSnapshotLength(&nodesetSize);
+  NS_ENSURE_SUCCESS(rv, rv);
+
+  // The insert action is terminated with no effect if the context attribute
+  // is not given and the Node Set Binding node-set is the empty node-set.
+  //
+  // The delete action is terminated with no effect if the Node Set Binding
+  // node-set is the empty node-set.
+  if (!nodeset || nodesetSize < 1) {
+    if (!mIsInsert || (mIsInsert && contextExpr.IsEmpty()))
+      return NS_OK;
   }
 
   //
