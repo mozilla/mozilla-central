@@ -68,7 +68,7 @@ textbox[type="autocomplete"] {
 /* ::::: popups ::::: */
 
 .autocomplete-history-popup,
-.autocomplete-result-popup {
+panel[type="autocomplete"] {
   border: 1px solid;
   -moz-border-top-colors: #6B747E;
   -moz-border-right-colors: #6B747E;
