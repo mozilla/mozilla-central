@@ -28,7 +28,7 @@ VPATH		= @srcdir@
 include $(DEPTH)/config/autoconf.mk
 include $(THEME_ROOT_DEPTH)/theme.mk
 
-DIRS  = communicator editor global messenger navigator
+DIRS  = communicator editor global messenger navigator preview/win
 
 include $(topsrcdir)/config/rules.mk
 
