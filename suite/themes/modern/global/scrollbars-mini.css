@@ -31,66 +31,67 @@
 
 scrollbar {
   -moz-binding: url("chrome://global/content/bindings/scrollbar.xml#scrollbar");
-  cursor: default;
 }
 
 /* ::::: slider ::::: */
 
 slider {
-  height: 14px;
-  background: url("chrome://global/skin/scrollbar/slider-hrz-mid.gif") repeat-x;
+  height: 8px;
+  background: url("chrome://global/skin/scrollbar/mini-slider-hrz-mid.gif") repeat-x;
 }
 
 slider[align="vertical"] {
   border-top: 0px;
   border-bottom: 0px;
-  width: 14px;
-  background: url("chrome://global/skin/scrollbar/slider-vrt-mid.gif") repeat-y;
+  width: 8px;
+  background: url("chrome://global/skin/scrollbar/mini-slider-vrt-mid.gif") repeat-y;
 }
 
 /* ::::: thumb (horizontal) ::::: */
 
 thumb {
   -moz-binding: url("chrome://global/skin/globalBindings.xml#thumb-horizontal");
-  height: 14px;
 }
 
 .thumb-horz-spring-left {
   width: 3px;
-  background: url("chrome://global/skin/scrollbar/thumb-hrz-lft.gif") no-repeat;
+  height: 8px;
+  background: url("chrome://global/skin/scrollbar/mini-thumb-hrz-lft.gif") no-repeat;
 }
 
 .thumb-horz-box-middle {
-  background: url("chrome://global/skin/scrollbar/thumb-hrz-mid.gif") repeat-x;
+  height: 8px;
+  background: url("chrome://global/skin/scrollbar/mini-thumb-hrz-mid.gif") repeat-x;
 }
 
 .thumb-horz-spring-right {
   width: 3px;
-  background: url("chrome://global/skin/scrollbar/thumb-hrz-rit.gif") no-repeat;
+  height: 8px;
+  background: url("chrome://global/skin/scrollbar/mini-thumb-hrz-rit.gif") no-repeat;
 }
 
 .thumb-horz-grippy {
   margin-left: 1px;
   width: 10px;
-  background: url("chrome://global/skin/scrollbar/thumb-hrz-grip.gif") no-repeat;
+  background: url("chrome://global/skin/scrollbar/mini-thumb-hrz-grip.gif") repeat-x;
 }
 
 /* ..... active state ..... */
 
 thumb:active > .thumb-horz-spring-left {
-  background: url("chrome://global/skin/scrollbar/thumb-hrz-act-lft-act.gif") no-repeat;
+  background-image: url("chrome://global/skin/scrollbar/mini-thumb-hrz-lft-act.gif");
 }
 
 thumb:active > .thumb-horz-box-middle {
-  background: url("chrome://global/skin/scrollbar/thumb-hrz-mid-act.gif") repeat-x;
+  background-image: url("chrome://global/skin/scrollbar/mini-thumb-hrz-mid-act.gif");
 }
 
 thumb:active > .thumb-horz-spring-right {
-  background: url("chrome://global/skin/scrollbar/thumb-hrz-rit-act.gif") no-repeat;
+  background-image: url("chrome://global/skin/scrollbar/mini-thumb-hrz-rit-act.gif");
 }
 
 thumb:active > .thumb-horz-box-middle > .thumb-horz-grippy {
-  background-image: url("chrome://global/skin/scrollbar/thumb-hrz-grip-act.gif");
+  background-image: url("chrome://global/skin/scrollbar/mini-thumb-hrz-grip-act.gif");
 }
 
 /* ::::: thumb (vertical) ::::: */
@@ -100,44 +101,44 @@ thumb[align="vertical"] {
 }
 
 .thumb-vert-spring-top {
-  background: url("chrome://global/skin/scrollbar/thumb-vrt-top.gif") no-repeat;
+  background: url("chrome://global/skin/scrollbar/mini-thumb-vrt-top.gif") no-repeat;
   height: 3px;
-  width: 14px;
+  width: 8px;
 }
 
 .thumb-vert-box-middle {
-  background: url("chrome://global/skin/scrollbar/thumb-vrt-mid.gif") repeat-y;
-  width: 14px;
+  background: url("chrome://global/skin/scrollbar/mini-thumb-vrt-mid.gif") repeat-y;
+  width: 8px;
 }
 
 .thumb-vert-spring-bottom {
-  background: url("chrome://global/skin/scrollbar/thumb-vrt-btm.gif") no-repeat;
+  background: url("chrome://global/skin/scrollbar/mini-thumb-vrt-btm.gif") no-repeat;
   height: 3px;
-  width: 14px;
+  width: 8px;
 }
 
 .thumb-vert-grippy {
   margin-top: 1px;
   height: 10px;
-  background: url("chrome://global/skin/scrollbar/thumb-vrt-grip.gif") no-repeat;
+  background: url("chrome://global/skin/scrollbar/mini-thumb-vrt-grip.gif") repeat-y;
 }
 
 /* ..... active state ..... */
 
 thumb:active > .thumb-vert-spring-top {
-  background: url("chrome://global/skin/scrollbar/thumb-vrt-top-act.gif") no-repeat;
+  background-image: url("chrome://global/skin/scrollbar/mini-thumb-vrt-top-act.gif") no-repeat;
 }
 
 thumb:active > .thumb-vert-box-middle {
-  background: url("chrome://global/skin/scrollbar/thumb-vrt-mid-act.gif") repeat-y;
+  background-image: url("chrome://global/skin/scrollbar/mini-thumb-vrt-mid-act.gif") repeat-y;
 }
 
 thumb:active > .thumb-vert-spring-bottom {
-  background: url("chrome://global/skin/scrollbar/thumb-vrt-btm-act.gif") no-repeat;
+  background-image: url("chrome://global/skin/scrollbar/mini-thumb-vrt-btm-act.gif") no-repeat;
 }
 
 thumb:active > .thumb-vert-box-middle > .thumb-vert-grippy {
-  background-image: url("chrome://global/skin/scrollbar/thumb-vrt-grip-act.gif");
+  background-image: url("chrome://global/skin/scrollbar/mini-thumb-vrt-grip-act.gif");
 }
 
 /* ::::: scrollbar button ::::: */
@@ -151,35 +152,35 @@ scrollbarbutton {
 /* ..... increment .... */
 
 scrollbarbutton[type="increment"] {
-   list-style-image: url("chrome://global/skin/scrollbar/btn-rit.gif")
+   list-style-image: url("chrome://global/skin/scrollbar/mini-btn-rit.gif")
 }
 
 scrollbarbutton[type="increment"]:hover:active {
-   list-style-image: url("chrome://global/skin/scrollbar/btn-rit-act.gif")
+   list-style-image: url("chrome://global/skin/scrollbar/mini-btn-rit-act.gif")
 }
 
 scrollbar[align="vertical"] > scrollbarbutton[type="increment"] {
-   list-style-image: url("chrome://global/skin/scrollbar/btn-dn.gif")
+   list-style-image: url("chrome://global/skin/scrollbar/mini-btn-dn.gif")
 }
 
 scrollbar[align="vertical"] > scrollbarbutton[type="increment"]:hover:active {
-   list-style-image: url("chrome://global/skin/scrollbar/btn-dn-act.gif")
+   list-style-image: url("chrome://global/skin/scrollbar/mini-btn-dn-act.gif")
 }
 
 /* ..... decrement .... */
 
 scrollbarbutton[type="decrement"] {
-   list-style-image: url("chrome://global/skin/scrollbar/btn-lft.gif")
+   list-style-image: url("chrome://global/skin/scrollbar/mini-btn-lft.gif")
 }
 
 scrollbarbutton[type="decrement"]:hover:active {
-   list-style-image: url("chrome://global/skin/scrollbar/btn-lft-act.gif")
+   list-style-image: url("chrome://global/skin/scrollbar/mini-btn-lft-act.gif")
 }
 
 scrollbar[align="vertical"] > scrollbarbutton[type="decrement"] {
-   list-style-image: url("chrome://global/skin/scrollbar/btn-up.gif")
+   list-style-image: url("chrome://global/skin/scrollbar/mini-btn-up.gif")
 }
 
 scrollbar[align="vertical"] > scrollbarbutton[type="decrement"]:hover:active {
-   list-style-image: url("chrome://global/skin/scrollbar/btn-up-act.gif")
+   list-style-image: url("chrome://global/skin/scrollbar/mini-btn-up-act.gif")
 }
