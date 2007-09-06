@@ -175,10 +175,8 @@ treechildren::-moz-tree-line(selected, focus) {
 /* ::::: tree separator ::::: */
 
 treechildren::-moz-tree-separator {
-  margin-top: 1px;
   border-top: 1px solid #7A8490;
   border-bottom: 1px solid #FEFEFE;
-  height: 2px;
 }
 
 /* ::::: drop feedback ::::: */
