@@ -20,20 +20,6 @@ tabpanels {
   width: 3px;
 }
 
-.tabs-bottom {
-  -moz-appearance: tabpanels;
-  height: 4px;
-}
-
-.tabs-stack {
-  border-bottom: 1px solid;
-  -moz-border-bottom-colors: ThreeDShadow;
-}
-
-.tabs-bottom-spacer {
-  height: 2px;
-}
-
 .tab-icon {
   margin-top: 1px;
   margin-right: 3px;
@@ -41,11 +27,11 @@ tabpanels {
   height: 16px;
 }
 
-tab {
+.tabbrowser-tab {
   list-style-image: url("chrome://communicator/skin/bookmarks/bookmark-item.png"); 
 }
 
-tab[busy] {
+.tabbrowser-tab[busy] {
   list-style-image: url("chrome://communicator/skin/icons/loading.gif");
 }
 
