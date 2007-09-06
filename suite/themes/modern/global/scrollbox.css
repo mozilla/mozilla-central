@@ -21,40 +21,34 @@
  *   Joe Hewitt (hewitt@netscape.com)
  */
 
-/* ===== progressmeter.css ==============================================
-  == Styles used by the XUL progressmeter element.
+/* ===== arrowscrollbox.css =============================================
+  == Styles used by the XUL arrowscrollbox and related elements.
   ======================================================================= */
 
 @namespace url("http://www.mozilla.org/keymaster/gatekeeper/there.is.only.xul");
 
-/* ::::: progressmeter ::::: */
-
-progressmeter {
-  margin: 0px 4px;
-  padding: 2px 0px;
-  min-width: 128px;
+/* ::::: auto-repeat button ::::: */
+ 
+autorepeatbutton {
+  margin: 1px 2px 2px 1px;
+  border: 1px solid transparent;
+  padding: 3px;
+  height: 1em;  
+  text-align: center;
+  vertical-align: middle;
 }
 
-.progressmeter-progressbar {
-  border-top: 1px solid #606C8F;
-  border-right: 1px solid #D4DDF8;
-  border-bottom: 1px solid #D4DDF8;
-  border-left: 1px solid #606C8F;
-  height: 9px;
-  background: url("chrome://global/skin/progressmeter/progress-bg.gif") #8EA09F repeat-x top;
+autorepeatbutton:hover {
+  margin: 1px;
+  border: 1px inset #A5B2C2;
+  padding: 4px 3px 3px 4px;
+  background-color: #A5B2C2;
 }
 
-.progress-bar {
-  min-width: 0px;
-  background: url("chrome://global/skin/progressmeter/progress-filler.gif") repeat-x top;
+.autorepeatbutton-up {
+  list-style-image: url("chrome://global/skin/arrow/arrow-up.gif")
 }
 
-.progressmeter-progressbar[mode="undetermined"] {
-  background: url("chrome://global/skin/progressmeter/progress-busy.gif") repeat-x;
-  visibility: visible !important;
-}
-
-.progress-bar[mode="undetermined"],
-.progress-remainder[mode="undetermined"] {
-  visibility: hidden;
+.autorepeatbutton-down {
+  list-style-image: url("chrome://global/skin/arrow/arrow-dn.gif")
 }

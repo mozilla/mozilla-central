@@ -21,40 +21,53 @@
  *   Joe Hewitt (hewitt@netscape.com)
  */
 
-/* ===== progressmeter.css ==============================================
-  == Styles used by the XUL progressmeter element.
+/* ===== popup.css =====================================================
+  == Styles used by the XUL popup & menupopup elements.
   ======================================================================= */
 
 @namespace url("http://www.mozilla.org/keymaster/gatekeeper/there.is.only.xul");
 
-/* ::::: progressmeter ::::: */
+/* ::::: popup/menupopup ::::: */
 
-progressmeter {
-  margin: 0px 4px;
-  padding: 2px 0px;
-  min-width: 128px;
+menupopup,
+popup {
+  cursor: default;
+  border: 1px solid #7F8893;
+  background-color: #DDE3EB;
+  color: #22262F;
 }
 
-.progressmeter-progressbar {
-  border-top: 1px solid #606C8F;
-  border-right: 1px solid #D4DDF8;
-  border-bottom: 1px solid #D4DDF8;
-  border-left: 1px solid #606C8F;
-  height: 9px;
-  background: url("chrome://global/skin/progressmeter/progress-bg.gif") #8EA09F repeat-x top;
+.popup-internal-box {
+  border-top: 1px solid #EEF4FC;
+  border-right: 1px solid #B9BFC7;
+  border-bottom: 1px solid #B9BFC7;
+  border-left: 1px solid #EEF4FC;
 }
 
-.progress-bar {
+/* ::::: tooltip popup ::::: */
+
+.tooltip {
+  border: 1px solid #000000;
+  padding: 2px 3px 2px 3px;
+  background-color: #FFFFE7;
+  color: #000000;
+}
+
+.tooltip > .popup-internal-box {
+  border: none;
+}
+
+/* ::::: menulist popup :::::: */
+
+menulist > menupopup,
+.menulist-menupopup {
+  border: 1px solid black;
+  padding: 0px;
   min-width: 0px;
-  background: url("chrome://global/skin/progressmeter/progress-filler.gif") repeat-x top;
+  font: message-box;
 }
-
-.progressmeter-progressbar[mode="undetermined"] {
-  background: url("chrome://global/skin/progressmeter/progress-busy.gif") repeat-x;
-  visibility: visible !important;
-}
-
-.progress-bar[mode="undetermined"],
-.progress-remainder[mode="undetermined"] {
-  visibility: hidden;
+    
+.menulist-menupopup > .popup-internal-box,
+menulist > menupopup > .popup-internal-box {
+  border: none;
 }
