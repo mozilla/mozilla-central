@@ -26,7 +26,7 @@
    in order to share with all users of editor
 */
 
-iframe#content-frame { 
+#content-frame { 
   min-width: 10px; 
   min-height: 10px;
   height: 400px;
@@ -39,3 +39,32 @@ iframe#content-frame {
      so we can't use right and bottom padding! */
   padding: 5px 0px 0px 5px;
 }
+
+#appcontent
+  {
+    border-left           : 1px solid threedshadow;
+    border-top            : 1px solid threeddarkshadow;
+    border-right          : 1px solid threedhighlight;
+  }
+
+#ContentWindowDeck
+  {
+    border-left           : 1px solid threeddarkshadow;
+    border-right          : 1px solid threedface;
+  }
+
+#status-bar
+  {
+    border-left           : none;
+    border-right          : none;
+    height                : 20px;
+  }
+
+#EditModeToolbar 
+  {
+    border-left           : 1px solid threeddarkshadow;
+    border-right          : 1px solid threedface;
+    border-bottom         : 1px solid threedface !important;
+  }
+  
+  
