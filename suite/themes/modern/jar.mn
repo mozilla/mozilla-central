@@ -168,6 +168,7 @@ modern.jar:
   skin/modern/global/menulist.css                                  (global/menulist.css)
   skin/modern/global/numberbox.css                                 (global/numberbox.css)
   skin/modern/global/netError.css                                  (global/netError.css)
+  skin/modern/global/notification.css                              (global/notification.css)
   skin/modern/global/preferences.css                               (global/preferences.css)
   skin/modern/global/printPreview.css                              (global/printPreview.css)
   skin/modern/global/printPageSetup.css                            (global/printPageSetup.css)
