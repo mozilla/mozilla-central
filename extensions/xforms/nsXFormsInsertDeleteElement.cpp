@@ -468,7 +468,7 @@ nsXFormsInsertDeleteElement::HandleAction(nsIDOMEvent            *aEvent,
       // not an attribute, then the target location is before the first child
       // of the insert location node.
       if ((!nodeset || nodesetSize < 1) ||
-          (nodeset && nodesetSize > 1 && newNodeType != locationNodeType)) {
+          (nodeset && nodesetSize > 0 && newNodeType != locationNodeType)) {
         Location location = eLocation_Before;
         if (newNodeType != nsIDOMNode::ATTRIBUTE_NODE) {
           // Target location is before the first child of location node. If the
@@ -697,17 +697,17 @@ nsXFormsInsertDeleteElement::InsertNode(nsIDOMNode *aTargetNode,
     NS_ENSURE_STATE(ownerElement);
 
     // Check for a duplicate attribute.
-    nsCOMPtr<nsIDOMAttr> attrNode(do_QueryInterface(aNewNode));
-    nsAutoString attrName, attrValue;
-    attrNode->GetName(attrName);
-    attrNode->GetValue(attrValue);
+    nsAutoString attrNamespace, attrName, attrValue;
+    aNewNode->GetNamespaceURI(attrNamespace);
+    aNewNode->GetLocalName(attrName);
+    aNewNode->GetNodeValue(attrValue);
 
     PRBool hasAttribute = PR_FALSE;
-    ownerElement->HasAttribute(attrName, &hasAttribute);
+    ownerElement->HasAttributeNS(attrNamespace, attrName, &hasAttribute);
     if (hasAttribute) {
-      ownerElement->RemoveAttribute(attrName);
+      ownerElement->RemoveAttributeNS(attrNamespace, attrName);
     }
-    ownerElement->SetAttribute(attrName, attrValue);
+    ownerElement->SetAttributeNS(attrNamespace, attrName, attrValue);
     resNode = aTargetNode;
     resNode.swap(*aResNode);
 
