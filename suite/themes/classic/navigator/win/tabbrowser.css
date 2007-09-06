@@ -53,7 +53,7 @@ tab[busy] {
 
 .tabs-closebutton {
   margin: 3px;
-  list-style-image: url("chrome://navigator/skin/icons/close.gif");
+  list-style-image: url("chrome://communicator/skin/icons/close-button.gif");
 }
 
 .tabs-closebutton > .toolbarbutton-icon {

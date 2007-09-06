@@ -79,7 +79,7 @@
 #sidebar-close-button {
   -moz-binding: url("chrome://global/content/bindings/toolbarbutton.xml#toolbarbutton-image");
   padding: 1px 3px 1px 4px;
-  list-style-image: url("chrome://global/skin/icons/close-button.gif");
+  list-style-image: url("chrome://communicator/skin/icons/close-button.gif");
 }
 
 /* ::::: sidebar panel ::::: */
