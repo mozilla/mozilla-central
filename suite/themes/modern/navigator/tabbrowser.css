@@ -94,15 +94,15 @@ tab[busy] {
   margin: 0px;
   padding: 2px 0px 3px 2px;
   border: none;
-  list-style-image: url("chrome://global/skin/icons/tab-new.gif");
+  list-style-image: url("chrome://navigator/skin/icons/tab-new.gif");
 }
 
 .tabs-newbutton:hover {
-  list-style-image: url("chrome://global/skin/icons/tab-new-hov.gif");
+  list-style-image: url("chrome://navigator/skin/icons/tab-new-hov.gif");
 }
 
 .tabs-newbutton:hover:active {
-  list-style-image: url("chrome://global/skin/icons/tab-new-act.gif");
+  list-style-image: url("chrome://navigator/skin/icons/tab-new-act.gif");
 }
 
 .tab-drop-indicator-bar {
@@ -117,5 +117,5 @@ tab[busy] {
     width: 11px;
     margin-bottom: -5px;
     position: relative;
-    list-style-image: url('chrome://global/skin/icons/tab-drag-indicator.gif');
+    list-style-image: url('chrome://navigator/skin/icons/tab-drag-indicator.gif');
 }

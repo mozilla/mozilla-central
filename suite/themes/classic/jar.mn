@@ -148,7 +148,6 @@ classic.jar:
 #ifdef XP_MACOSX
   skin/classic/global/button.css                                (global/mac/button.css)
   skin/classic/global/console.css                               (global/mac/console.css)
-  skin/classic/global/browser.css                               (global/mac/browser.css)
   skin/classic/global/checkbox.css                              (global/mac/checkbox.css)
   skin/classic/global/colorpicker.css                           (global/mac/colorpicker.css)
   skin/classic/global/autocomplete.css                          (global/mac/autocomplete.css)
@@ -268,7 +267,6 @@ classic.jar:
   skin/classic/global/numberbox.css                           (global/win/numberbox.css)
   skin/classic/global/global.css                              (global/win/global.css)
 #endif
-  skin/classic/global/browser.css                             (global/win/browser.css)
   skin/classic/global/colorpicker.css                         (global/win/colorpicker.css)
   skin/classic/global/console.css                             (global/win/console.css)
   skin/classic/global/datetimepicker.css                      (global/win/datetimepicker.css)
@@ -378,8 +376,6 @@ classic.jar:
   skin/classic/global/icons/pg-landscape-small.gif                      (global/icons/pg-landscape-small.gif)
   skin/classic/global/icons/pg-portrait.gif                             (global/icons/pg-portrait.gif)
   skin/classic/global/icons/pg-portrait-small.gif                       (global/icons/pg-portrait-small.gif)
-  skin/classic/global/icons/tab-drag-indicator.gif                      (global/icons/tab-drag-indicator.gif)
-  skin/classic/global/icons/tab-new.gif                                 (global/icons/tab-new.gif)
   skin/classic/global/toolbar/tbgrip-arrow.gif                          (global/toolbar/tbgrip-arrow.gif)
   skin/classic/global/toolbar/tbgrip-arrow-clps.gif                     (global/toolbar/tbgrip-arrow-clps.gif)
   skin/classic/global/toolbar/tbgrip-texture.gif                        (global/toolbar/tbgrip-texture.gif)
@@ -544,6 +540,7 @@ classic.jar:
   skin/classic/navigator/navigator.css                                  (navigator/navigator.css)
   skin/classic/navigator/linkToolbar.css                                (navigator/linkToolbar.css)
   skin/classic/navigator/pageInfo.css                                   (navigator/pageInfo.css)
+  skin/classic/navigator/tabbrowser.css                                 (navigator/tabbrowser.css)
   skin/classic/navigator/btn1/first.gif                                 (navigator/btn1/first.gif)
   skin/classic/navigator/btn1/first-disabled.gif                        (navigator/btn1/first-disabled.gif)
   skin/classic/navigator/btn1/first-hover.gif                           (navigator/btn1/first-hover.gif)
@@ -568,3 +565,5 @@ classic.jar:
   skin/classic/navigator/icons/close.gif                                (navigator/icons/close.gif)
   skin/classic/navigator/icons/popup-blocked.png                        (navigator/icons/popup-blocked.png)
   skin/classic/navigator/icons/about-popups.gif                         (navigator/icons/about-popups.gif)
+  skin/classic/navigator/icons/tab-drag-indicator.gif                   (navigator/icons/tab-drag-indicator.gif)
+  skin/classic/navigator/icons/tab-new.gif                              (navigator/icons/tab-new.gif)
