@@ -372,11 +372,11 @@
   border-bottom: 1px solid ThreeDShadow;
 }
 
-toolbarbutton.chevron {
-  list-style-image: url("chrome://global/skin/toolbar/chevron.gif") !important;
+#bookmarks-chevron {
+  list-style-image: url("chrome://navigator/skin/icons/chevron.gif") !important;
 }
 
-toolbarbutton.chevron > .toolbarbutton-menu-dropmarker {
+#bookmarks-chevron > .toolbarbutton-menu-dropmarker {
   display: none;
 }
 
