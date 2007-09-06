@@ -1062,7 +1062,7 @@ void nsEudoraWin32::GetMimeTypeFromExtension( nsCString& ext, nsCString& mimeTyp
                 if (!pFile)
                   return;
 
-		pFile->InitWithFile( m_mailImportLocation);
+		pFile->InitWithFile(m_mailImportLocation);
 
 		pFile->AppendNative(NS_LITERAL_CSTRING("eudora.ini"));
 		PRBool exists = PR_FALSE;

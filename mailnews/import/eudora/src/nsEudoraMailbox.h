@@ -212,6 +212,9 @@ private:
 	static int			IsWeekDayStr( const char *pStr);
 	static int			IsMonthStr( const char *pStr);
 
+protected:
+  nsCOMPtr <nsILocalFile>    m_mailImportLocation;
+
 private:
 	PRInt64		m_mailSize;
 	PRInt32			m_fromLen;

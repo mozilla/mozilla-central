@@ -106,7 +106,6 @@ private:
 
 private:
 	PRUint32		m_depth;
-	nsCOMPtr <nsILocalFile>	m_mailImportLocation;
 	nsCOMPtr <nsIFile>	m_addressImportFolder;
 	char *			m_pMimeSection;
 };

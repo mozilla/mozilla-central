@@ -195,12 +195,12 @@ PRUint32 EudoraTOCEntry::GetMozillaStatus2Flags()
 
 nsEudoraMailbox::nsEudoraMailbox()
 {
-	m_fromLen = 0;
+  m_fromLen = 0;
 }
 
 nsEudoraMailbox::~nsEudoraMailbox()
 {
-	EmptyAttachments();
+  EmptyAttachments();
 }
 
 nsresult nsEudoraMailbox::CreateTempFile( nsIFile **ppFile)
@@ -317,7 +317,6 @@ nsresult nsEudoraMailbox::ImportMailbox( PRUint32 *pBytes, PRBool *pAbort, const
 
 		if (NS_SUCCEEDED( rv ))
                 {
-			nsEudoraCompose		compose;
 			nsCString defaultDate;
 			nsCAutoString bodyType;
 
@@ -563,7 +562,7 @@ nsresult nsEudoraMailbox::ImportMessage(
 	compose.SetDefaultDate(defaultDate);
 
         nsCOMPtr <nsIFile> compositionFile;
-	rv = compose.SendTheMessage(getter_AddRefs(compositionFile));
+	rv = compose.SendTheMessage(m_mailImportLocation, getter_AddRefs(compositionFile));
 	if (NS_SUCCEEDED( rv)) {
 		nsCString						fromLine(eudoraFromLine);
 		SimpleBufferTonyRCopiedOnce		copy;

@@ -58,6 +58,8 @@ REQUIRES	= xpcom \
 		  msgcompose \
 		  msgbase \
 		  dom \
+		  content \
+		  editor \
 		  uriloader \
 		  mailnews \
 		  msgdb \
@@ -73,6 +75,7 @@ CPPSRCS		= \
 		nsEudoraImport.cpp \
 		nsEudoraMailbox.cpp \
 		nsEudoraSettings.cpp \
+		nsEudoraEditor.cpp \
 		nsEudoraCompose.cpp \
 		nsEudoraAddress.cpp \
 		$(NULL)

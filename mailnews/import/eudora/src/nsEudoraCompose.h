@@ -133,7 +133,7 @@ public:
 	nsEudoraCompose();
 	~nsEudoraCompose();
 
-	nsresult	SendTheMessage( nsIFile **pMsg);
+	nsresult	SendTheMessage(nsIFile *pMailImportLocation, nsIFile **pMsg);
 
   void		SetBody( const char *pBody, PRInt32 len, nsCString &bodyType) { m_pBody = pBody; m_bodyLen = len; m_bodyType = bodyType;}
 	void		SetHeaders( const char *pHeaders, PRInt32 len) { m_pHeaders = pHeaders; m_headerLen = len;}

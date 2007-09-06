@@ -21,6 +21,7 @@
  * the Initial Developer. All Rights Reserved.
  *
  * Contributor(s):
+ *   Geoffrey C. Wenger (gwenger@qualcomm.com)
  *
  * Alternatively, the contents of this file may be used under the terms of
  * either of the GNU General Public License Version 2 or later (the "GPL"),
@@ -63,12 +64,14 @@
 #include "nsNetCID.h"
 
 #include "nsEudoraCompose.h"
+#include "nsEudoraEditor.h"
 
 #include "EudoraDebugLog.h"
 
 #include "nsMimeTypes.h"
 #include "nsMsgUtils.h"
 #include "nsNetUtil.h"
+#include "nsAutoPtr.h"
 
 static NS_DEFINE_CID( kMsgSendCID, NS_MSGSEND_CID);
 static NS_DEFINE_CID( kMsgCompFieldsCID, NS_MSGCOMPFIELDS_CID);
@@ -603,7 +606,7 @@ nsMsgAttachedFile * nsEudoraCompose::GetLocalAttachments( void)
 }
 
 // Test a message send????
-nsresult nsEudoraCompose::SendTheMessage( nsIFile **pMsg)
+nsresult nsEudoraCompose::SendTheMessage(nsIFile *pMailImportLocation, nsIFile **pMsg)
 {
   nsresult rv = CreateComponents();
   if (NS_SUCCEEDED( rv))
@@ -713,53 +716,63 @@ nsresult nsEudoraCompose::SendTheMessage( nsIFile **pMsg)
   if ( from.IsEmpty() || to.IsEmpty() && cc.IsEmpty() && bcc.IsEmpty() )
     mode = nsIMsgSend::nsMsgSaveAsDraft;
 
+  // We only get the editor interface when there's embedded content.
+  // Otherwise pEditor remains NULL. That way we only import with the pseudo
+  // editor when it helps.
+  nsRefPtr<nsEudoraEditor>  pEudoraEditor = new nsEudoraEditor(m_pBody, pMailImportLocation);
+  nsCOMPtr<nsIEditor>       pEditor;
+
+  if (pEudoraEditor->HasEmbeddedContent())
+    // There's embedded content that we need to import, so query for the editor interface
+    pEudoraEditor->QueryInterface( NS_GET_IID(nsIEditor), getter_AddRefs(pEditor) );
+
   if (NS_FAILED( rv)) {
 
     rv = m_pSendProxy->CreateAndSendMessage(
-                    nsnull,                       // no editor shell
-                    s_pIdentity,                  // dummy identity
-                                                                                nsnull,                         // account key
-                    m_pMsgFields,                 // message fields
-                    PR_FALSE,                     // digest = NO
-                    PR_TRUE,                      // dont_deliver = YES, make a file
-                    mode,                         // mode
-                    nsnull,                       // no message to replace
-                    pMimeType,                    // body type
-                    m_pBody,                      // body pointer
-                    m_bodyLen,                    // body length
-                    nsnull,                       // remote attachment data
-                    pAttach,                      // local attachments
-                    nsnull,                       // related part
-                    nsnull,                       // parent window
-                    nsnull,                       // progress listener
-                    m_pListener,                  // listener
-                    nsnull,                       // password
-                    EmptyCString(),               // originalMsgURI
-                    nsnull);                      // message compose type
+                          pEditor.get(),                // pseudo editor shell when there's embedded content
+                          s_pIdentity,                  // dummy identity
+                          nsnull,                       // account key
+                          m_pMsgFields,                 // message fields
+                          PR_FALSE,                     // digest = NO
+                          PR_TRUE,                      // dont_deliver = YES, make a file
+                          mode,                         // mode
+                          nsnull,                       // no message to replace
+                          pMimeType,                    // body type
+                          m_pBody,                      // body pointer
+                          m_bodyLen,                    // body length
+                          nsnull,                       // remote attachment data
+                          pAttach,                      // local attachments
+                          nsnull,                       // related part
+                          nsnull,                       // parent window
+                          nsnull,                       // progress listener
+                          m_pListener,                  // listener
+                          nsnull,                       // password
+                          EmptyCString(),               // originalMsgURI
+                          nsnull);                      // message compose type
 
   }
   else {
     rv = m_pSendProxy->CreateAndSendMessage(
-                    nsnull,                       // no editor shell
-                    s_pIdentity,                  // dummy identity
-                                                                                nsnull,                         // account key
-                    m_pMsgFields,                 // message fields
-                    PR_FALSE,                     // digest = NO
-                    PR_TRUE,                      // dont_deliver = YES, make a file
-                    mode,                         // mode
-                    nsnull,                       // no message to replace
-                    pMimeType,                    // body type
-                    body.get(),                   // body pointer
-                    body.Length(),                // body length
-                    nsnull,                       // remote attachment data
-                    pAttach,                      // local attachments
-                    nsnull,                       // related part
-                    nsnull,                       // parent window
-                    nsnull,                       // progress listener
-                    m_pListener,                  // listener
-                    nsnull,                       // password
-                    EmptyCString(),               // originalMsgURI
-                    nsnull);                      // message compose type
+                          pEditor.get(),                // pseudo editor shell when there's embedded content
+                          s_pIdentity,                  // dummy identity
+                          nsnull,                       // account key
+                          m_pMsgFields,                 // message fields
+                          PR_FALSE,                     // digest = NO
+                          PR_TRUE,                      // dont_deliver = YES, make a file
+                          mode,                         // mode
+                          nsnull,                       // no message to replace
+                          pMimeType,                    // body type
+                          body.get(),                   // body pointer
+                          body.Length(),                // body length
+                          nsnull,                       // remote attachment data
+                          pAttach,                      // local attachments
+                          nsnull,                       // related part
+                          nsnull,                       // parent window
+                          nsnull,                       // progress listener
+                          m_pListener,                  // listener
+                          nsnull,                       // password
+                          EmptyCString(),               // originalMsgURI
+                          nsnull);                      // message compose type
 
   }
 
