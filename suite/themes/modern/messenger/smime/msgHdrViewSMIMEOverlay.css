@@ -33,36 +33,36 @@
  * the terms of any one of the MPL, the GPL or the LGPL.
  *
  * ***** END LICENSE BLOCK ***** */
-
-/* ===== msgReadSecurityInfo.css ========================================
-  == Styles for the security info window when displaying received mail.
-  ======================================================================= */
-
 @import url("chrome://messenger/skin/");
 
 @namespace url("http://www.mozilla.org/keymaster/gatekeeper/there.is.only.xul");
 
-#msgReadSecurityInfo {
-  width: 40em;
-  max-width: 50em;
+#signedHdrIcon {
+  list-style-image: none;
+  visibility: visible;
 }
 
-#outer_vbox {
-  margin: 5px;
+#signedHdrIcon[signed="ok"] {
+  list-style-image: url("chrome://messenger/skin/smime/icons/hdrSignOk.gif");
+  visibility: visible;
 }
 
-#signatureLabel {
-  font-weight: bold;
+#signedHdrIcon[signed="notok"] {
+  list-style-image: url("chrome://messenger/skin/smime/icons/hdrSignNotOk.gif");
+  visibility: visible;
 }
 
-#signatureCert {
-  margin: 5px;
+#encryptedHdrIcon {
+  list-style-image: none;
+  visibility: visible;
 }
 
-#encryptionLabel {
-  font-weight: bold;
+#encryptedHdrIcon[encrypted="ok"] {
+  list-style-image: url("chrome://messenger/skin/smime/icons/hdrCryptoOk.gif");
+  visibility: visible;
 }
 
-#encryptionCert {
-  margin: 5px;
+#encryptedHdrIcon[encrypted="notok"] {
+  list-style-image: url("chrome://messenger/skin/smime/icons/hdrCryptoNotOk.gif");
+  visibility: visible;
 }

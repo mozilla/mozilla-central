@@ -34,35 +34,60 @@
  *
  * ***** END LICENSE BLOCK ***** */
 
-/* ===== msgReadSecurityInfo.css ========================================
-  == Styles for the security info window when displaying received mail.
+/* ===== msgCompSMIMEOverlay.css ========================================
+  == Styles for the S/Mime in composer window.
   ======================================================================= */
 
 @import url("chrome://messenger/skin/");
 
 @namespace url("http://www.mozilla.org/keymaster/gatekeeper/there.is.only.xul");
 
-#msgReadSecurityInfo {
-  width: 40em;
-  max-width: 50em;
+#button-security {
+  list-style-image: url("chrome://messenger/skin/smime/icons/smbtn1.gif");
+  -moz-image-region: rect(42px 23px 63px 0px);
 }
 
-#outer_vbox {
-  margin: 5px;
+#button-security[buttonover] {
+  -moz-image-region: rect(42px 46px 63px 23px);
+} 
+
+#button-security[buttondown] {
+  -moz-image-region: rect(42px 69px 63px 46px);
+} 
+
+#button-security[disabled] {
+  -moz-image-region: rect(42px 92px 63px 69px) !important;
+} 
+
+
+#msgcomposeWindow #signing-status {
+  list-style-image: none;
+  visibility: collapsed;
 }
 
-#signatureLabel {
-  font-weight: bold;
+#msgcomposeWindow[signing="ok"] #signing-status {
+  list-style-image: url("chrome://messenger/skin/smime/icons/sbSignOk.gif");
+  visibility: visible;
 }
 
-#signatureCert {
-  margin: 5px;
+#msgcomposeWindow[signing="notok"] #signing-status {
+  list-style-image: url("chrome://messenger/skin/smime/icons/sbSignNotOk.gif");
+  visibility: visible;
 }
 
-#encryptionLabel {
-  font-weight: bold;
+
+#msgcomposeWindow #encryption-status {
+  list-style-image: none;
+  visibility: collapsed;
 }
 
-#encryptionCert {
-  margin: 5px;
+#msgcomposeWindow[crypto="ok"] #encryption-status {
+  list-style-image: url("chrome://messenger/skin/smime/icons/sbCryptoOk.gif");
+  visibility: visible;
 }
+
+#msgcomposeWindow[crypto="notok"] #encryption-status {
+  list-style-image: url("chrome://messenger/skin/smime/icons/sbCryptoNotOk.gif");
+  visibility: visible;
+}
+

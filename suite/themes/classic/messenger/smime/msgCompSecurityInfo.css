@@ -41,28 +41,3 @@
 @import url("chrome://messenger/skin/");
 
 @namespace url("http://www.mozilla.org/keymaster/gatekeeper/there.is.only.xul");
-
-#msgReadSecurityInfo {
-  width: 40em;
-  max-width: 50em;
-}
-
-#outer_vbox {
-  margin: 5px;
-}
-
-#signatureLabel {
-  font-weight: bold;
-}
-
-#signatureCert {
-  margin: 5px;
-}
-
-#encryptionLabel {
-  font-weight: bold;
-}
-
-#encryptionCert {
-  margin: 5px;
-}
