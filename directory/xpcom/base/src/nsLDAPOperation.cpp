@@ -571,7 +571,7 @@ nsLDAPOperation::AddExt(const char *base,
 #ifdef NS_DEBUG
       PRInt32 operation;
       NS_ASSERTION(NS_SUCCEEDED(modif->GetOperation(&operation)) &&
-                   (operation | nsILDAPModification::MOD_ADD),
+                   ((operation & ~LDAP_MOD_BVALUES) == LDAP_MOD_ADD),
                    "AddExt can only add.");
 #endif
 
