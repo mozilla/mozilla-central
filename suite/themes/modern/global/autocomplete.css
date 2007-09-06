@@ -99,10 +99,10 @@ textbox[type="autocomplete"] {
   color: #000000;
 }
 
-.autocomplete-treebody::-moz-tree-row(menuactive) {
+.autocomplete-treebody::-moz-tree-row(selected) {
   background-color: #9499AC;
 }
 
-.autocomplete-treebody::-moz-tree-cell-text(menuactive) {
+.autocomplete-treebody::-moz-tree-cell-text(selected) {
   color: #FFFFFF !important;
 }
