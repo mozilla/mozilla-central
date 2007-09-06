@@ -61,7 +61,8 @@ toolbarbutton[type="menu-button"] {
 window, 
 page,
 dialog,
-wizard { 
+wizard,
+prefwindow { 
   background-color: #C7D0D9;
   color: #000000;
   font: message-box;
