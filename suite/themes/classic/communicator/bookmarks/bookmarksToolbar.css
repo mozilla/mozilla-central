@@ -68,7 +68,6 @@ toolbarbutton.bookmark-item:not([container="true"]):hover:active {
 toolbarbutton.bookmark-item[disabled="true"],
 toolbarbutton.bookmark-item:not([container="true"]):hover,
 toolbarbutton.bookmark-item:not([container="true"]):hover:active {
-  border: 2px solid transparent !important;
   -moz-border-top-colors: transparent !important;
   -moz-border-right-colors: transparent !important;
   -moz-border-bottom-colors: transparent !important;
@@ -103,19 +102,19 @@ toolbarbutton.bookmark-item[disabled="true"][container="true"] {
 /* ..... drag and drop styles ..... */
 
 toolbarbutton.bookmark-item[dragover-left="true"] {
-  -moz-border-left-colors: transparent ThreeDDarkShadow;
+  -moz-border-left-colors: ThreeDDarkShadow;
 }
 
 toolbarbutton.bookmark-item[dragover-right="true"] {
-  -moz-border-right-colors: transparent ThreeDDarkShadow;
+  -moz-border-right-colors: ThreeDDarkShadow;
 }
 
 toolbarbutton.bookmark-item[dragover-top="true"] {
   -moz-appearance: none;
-  -moz-border-top-colors: transparent ThreeDDarkShadow;
-  -moz-border-right-colors: transparent ThreeDDarkShadow;
-  -moz-border-bottom-colors: transparent ThreeDDarkShadow;
-  -moz-border-left-colors: transparent ThreeDDarkShadow;
+  -moz-border-top-colors: ThreeDDarkShadow;
+  -moz-border-right-colors: ThreeDDarkShadow;
+  -moz-border-bottom-colors: ThreeDDarkShadow;
+  -moz-border-left-colors: ThreeDDarkShadow;
 }
 
 /* ::::: bookmark menus ::::: */
