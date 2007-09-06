@@ -214,7 +214,7 @@
 <!ENTITY  manualTypeRadio.label         "Manual proxy configuration:">
 <!ENTITY  manualTypeRadio.accesskey     "m">
 <!ENTITY  autoTypeRadio.label           "Automatic proxy configuration URL:">
-<!ENTITY  autoTypeRadio.accesskey       "a">
+<!ENTITY  autoTypeRadio.accesskey       "A">
 <!ENTITY  autoCCKTypeRadio.label        "Store proxy configuration file in the CCK:">
 <!ENTITY  autoCCKTypeRadio.accesskey    "i">
 
