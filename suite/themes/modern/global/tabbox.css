@@ -1,0 +1,352 @@
+/*
+ * The contents of this file are subject to the Netscape Public
+ * License Version 1.1 (the "License"); you may not use this file
+ * except in compliance with the License. You may obtain a copy of
+ * the License at http://www.mozilla.org/NPL/
+ *
+ * Software distributed under the License is distributed on an "AS
+ * IS" basis, WITHOUT WARRANTY OF ANY KIND, either express or
+ * implied. See the License for the specific language governing
+ * rights and limitations under the License.
+ *
+ * The Original Code is Mozilla Communicator client code, released
+ * March 31, 1998.
+ *
+ * The Initial Developer of the Original Code is Netscape
+ * Communications Corporation. Portions created by Netscape are
+ * Copyright (C) 1998-2001 Netscape Communications Corporation. All
+ * Rights Reserved.
+ *
+ * Contributor(s):
+ *   Joe Hewitt (hewitt@netscape.com)
+ */
+
+/* ===== tabbox.css =================================================
+  == Styles used by XUL tab-related elements.
+  ======================================================================= */
+
+@namespace url("http://www.mozilla.org/keymaster/gatekeeper/there.is.only.xul");
+
+/* ::::: tabs ::::: */
+
+tabs {
+  padding: 0px;
+}
+
+.tabs-left,
+.tabs-right {
+  background: url("chrome://global/skin/tabcontrol/tabs-mid.gif") repeat-x bottom;
+}
+
+.tabs-left-cap {
+  background: url("chrome://global/skin/tabcontrol/tabs-lft.gif") no-repeat bottom;
+  width: 2px;
+}
+
+.tabs-right-cap {
+  background: url("chrome://global/skin/tabcontrol/tabs-rit.gif") no-repeat bottom;
+  width: 2px;
+}
+
+/* ::::: tabpanels ::::: */
+
+tabpanels {
+  border-top: 0px;
+  background-color: #BBBBBB;
+  border-left: 1px solid #313948;
+  border-right: 1px solid #313948;
+  border-bottom: 1px solid #313948;
+  padding: 5px;
+}
+
+/* ::::: tab ::::: */
+
+tab { 
+  margin: 0px;
+  padding: 0px;
+  color: #ffffff;
+  font: menu;
+}
+
+.tab-image-left {
+  width: 5px;
+}
+
+.tab-image-left-top {
+  background: url("chrome://global/skin/tabcontrol/tab-usel-lft-top.gif") no-repeat;
+  height: 15px;
+}
+
+.tab-image-left-mid {
+  background: url("chrome://global/skin/tabcontrol/tab-usel-lft-mid.gif") repeat-y;
+}
+
+.tab-image-left-btm {
+  background: url("chrome://global/skin/tabcontrol/tab-usel-lft-btm.gif") no-repeat;
+  height: 2px;
+}
+
+.tab-image-mid {
+  background: url("chrome://global/skin/tabcontrol/tab-usel-mid-top.gif") repeat-x top;
+  background-color: #5D5F65;
+}
+
+.tab-image-mid-mid {
+  padding: 1px 0px 1px 0px;
+}
+
+.tab-image-mid-btm {
+  background: url("chrome://global/skin/tabcontrol/tab-usel-mid-btm.gif") repeat-x;
+  height: 2px;
+}
+
+.tab-image-right {
+  width: 5px;
+}
+
+.tab-image-right-top {
+  background: url("chrome://global/skin/tabcontrol/tab-usel-rit-top.gif") no-repeat;
+  height: 14px;
+}
+
+.tab-image-right-mid {
+  background: url("chrome://global/skin/tabcontrol/tab-usel-rit-mid.gif") repeat-y;
+}
+
+.tab-image-right-btm {
+  background: url("chrome://global/skin/tabcontrol/tab-usel-rit-btm.gif") no-repeat;
+  height: 2px;
+}
+
+.tab-text {
+  padding: 3px 0px 3px 0px;
+}
+
+/* ..... active state ..... */
+
+tab:hover:active {
+  color: #EEEEEE;
+}
+
+tab:hover:active > .tab-image-left > .tab-image-left-top { 
+  background-image: url("chrome://global/skin/tabcontrol/tab-act-lft-top.gif");
+}
+
+tab:hover:active > .tab-image-left > .tab-image-left-mid { 
+  background-image: url("chrome://global/skin/tabcontrol/tab-act-lft-mid.gif");
+}
+
+tab:hover:active > .tab-image-mid { 
+  margin-top: 1px;
+  background-image: url("chrome://global/skin/tabcontrol/tab-act-mid-top.gif");
+  background-color: #3D3F45;
+}
+
+tab:hover:active > .tab-image-mid > .tab-image-mid-mid { 
+  padding: 1px 0px 0px 0px;
+}
+
+tab:hover:active > box > .tab-image-right-top { 
+  background-image: url("chrome://global/skin/tabcontrol/tab-act-rit-top.gif");
+}
+
+tab:hover:active > box > .tab-image-right-mid { 
+  background-image: url("chrome://global/skin/tabcontrol/tab-act-rit-mid.gif");
+}
+
+/* ..... selected state ..... */
+
+tab[selected="true"], tab:hover:active[selected="true"],
+tab[selected="1"], tab:hover:active[selected="1"] {
+  color: #1C1D1F;
+}
+
+.tab-image-left-top[selected="true"],
+tab:hover:active[selected="true"] > box > .tab-image-left-top { 
+  background-image: url("chrome://global/skin/tabcontrol/tab-sel-lft-top.gif");
+}
+
+.tab-image-left-mid[selected="true"],
+tab:hover:active[selected="true"] > box > .tab-image-left-mid { 
+  background-image: url("chrome://global/skin/tabcontrol/tab-sel-lft-mid.gif");
+}
+
+.tab-image-left-btm[selected="true"],
+tab:hover:active[selected="true"] > box > .tab-image-left-btm { 
+  background-image: url("chrome://global/skin/tabcontrol/tab-sel-lft-btm.gif");
+}
+
+.tab-image-mid[selected="true"],
+tab:hover:active[selected="true"] > .tab-image-mid { 
+  margin-top: 0px;
+  background-image: url("chrome://global/skin/tabcontrol/tab-sel-mid-top.gif");
+  background-color: #BBBBBB;
+}
+
+.tab-image-mid-mid[selected="true"],
+tab:hover:active[selected="true"] > box > .tab-image-mid-mid { 
+  padding: 1px 0px 1px 0px;
+}
+
+
+.tab-image-mid-btm[selected="true"],
+tab:hover:active[selected="true"] > box > .tab-image-mid-btm { 
+  background-image: none;
+  background-color: #BBBBBB;
+}
+
+.tab-image-right-top[selected="true"],
+tab:hover:active[selected="true"] > box > .tab-image-right-top { 
+  background-image: url("chrome://global/skin/tabcontrol/tab-sel-rit-top.gif");
+}
+
+.tab-image-right-mid[selected="true"],
+tab:hover:active[selected="true"] > box > .tab-image-right-mid { 
+  background-image: url("chrome://global/skin/tabcontrol/tab-sel-rit-mid.gif");
+}
+
+.tab-image-right-btm[selected="true"],
+tab:hover:active[selected="true"] > box >  .tab-image-right-btm { 
+  background-image: url("chrome://global/skin/tabcontrol/tab-sel-rit-btm.gif");
+}
+
+/* ::::: tab-bottom ::::::::::
+   :: Tabs that are attached to the bottom of a panel, but not necessarily
+   :: a tabpanels.
+   ::::: */
+
+.tab-bottom {
+  min-height: 21px;
+}
+ 
+.tab-bottom > .tab-image-left > .tab-image-left {
+  width: 5px;
+}
+
+.tab-bottom > .tab-image-left > .tab-image-left-top {
+  background-image: url("chrome://global/skin/tabcontrol/tab-bot-usel-lft-btm.gif");
+  height: 2px;
+}
+
+.tab-bottom > .tab-image-left > .tab-image-left-btm {
+  background-image: url("chrome://global/skin/tabcontrol/tab-bot-usel-lft-top.gif");
+  height: 15px;
+}
+
+.tab-bottom > .tab-image-mid {
+  background: url("chrome://global/skin/tabcontrol/tab-bot-usel-mid-top.gif") repeat-x bottom;
+  background-color: #5D5F65;
+}
+
+.tab-bottom > .tab-image-mid > .tab-image-mid-top {
+  background: url("chrome://global/skin/tabcontrol/tab-bot-usel-mid-btm.gif") repeat-x;
+  height: 2px;
+}
+
+.tab-bottom > .tab-image-mid > .tab-image-mid-mid {
+  padding: 1px 0px 1px 0px;
+}
+
+.tab-bottom > .tab-image-mid > .tab-image-mid-btm {
+  background: none;
+  height: none;
+}
+
+.tab-bottom > .tab-image-right {
+  width: 5px;
+}
+
+.tab-bottom > .tab-image-right > .tab-image-right-top {
+  background: url("chrome://global/skin/tabcontrol/tab-bot-usel-rit-btm.gif") no-repeat;
+  height: 2px;
+}
+
+.tab-bottom > .tab-image-right > .tab-image-right-btm {
+  background: url("chrome://global/skin/tabcontrol/tab-bot-usel-rit-top.gif") no-repeat;
+  height: 14px;
+}
+
+/* ..... active state ..... */
+
+.tab-bottom:hover:active > .tab-image-left > .tab-image-left-top { 
+  background-image: url("chrome://global/skin/tabcontrol/tab-bot-usel-lft-btm.gif");
+}
+
+.tab-bottom:hover:active > .tab-image-left > .tab-image-left-btm { 
+  background-image: url("chrome://global/skin/tabcontrol/tab-bot-act-lft-top.gif");
+}
+
+.tab-bottom:hover:active > .tab-image-mid { 
+  margin: 0px 0px 1px 0px;
+  background-image: url("chrome://global/skin/tabcontrol/tab-bot-act-mid-top.gif");
+}
+
+.tab-bottom:hover:active > .tab-image-mid > .tab-image-mid-mid { 
+  padding: 0px 0px 1px 0px;
+}
+
+.tab-bottom:hover:active > .tab-image-right > .tab-image-right-top { 
+  background-image: url("chrome://global/skin/tabcontrol/tab-bot-usel-rit-btm.gif");
+}
+
+.tab-bottom:hover:active > .tab-image-right > .tab-image-right-btm { 
+  background-image: url("chrome://global/skin/tabcontrol/tab-bot-act-rit-top.gif");
+}
+
+/* ..... selected state ..... */
+
+.tab-bottom[selected="true"] > .tab-image-left > .tab-image-left-top,
+.tab-bottom:hover:active[selected="true"] > .tab-image-left > .tab-image-left-top { 
+  background-image: url("chrome://global/skin/tabcontrol/tab-bot-sel-lft-btm.gif");
+}
+
+.tab-bottom[selected="true"] > .tab-image-left > .tab-image-left-btm,
+.tab-bottom:hover:active[selected="true"] > .tab-image-left > .tab-image-left-btm { 
+  background-image: url("chrome://global/skin/tabcontrol/tab-bot-sel-lft-top.gif");
+}
+
+.tab-bottom[selected="true"] > .tab-image-mid,
+.tab-bottom:hover:active[selected="true"] > .tab-image-mid { 
+  margin: 0px;
+  background-image: url("chrome://global/skin/tabcontrol/tab-bot-sel-mid-top.gif");
+  background-color: #BBBBBB;
+}
+
+.tab-bottom[selected="true"] > .tab-image-mid > .tab-image-mid-top,
+.tab-bottom:hover:active[selected="true"] > .tab-image-mid > .tab-image-mid-top { 
+  background-image: none;
+  background-color: #BBBBBB;
+}
+
+.tab-bottom[selected="true"] > .tab-image-mid > .tab-image-mid-mid,
+.tab-bottom:hover:active[selected="true"] > .tab-image-mid > .tab-image-mid-mid { 
+  padding: 1px 0px 1px 0px;
+}
+
+.tab-bottom[selected="true"] > .tab-image-mid > .tab-image-mid-btm,
+.tab-bottom:hover:active[selected="true"] > .tab-image-mid > .tab-image-mid-btm { 
+  background: none;
+}
+
+.tab-bottom[selected="true"] > .tab-image-right > .tab-image-right-top,
+.tab-bottom:hover:active[selected="true"] > .tab-image-right > .tab-image-right-top { 
+  background-image: url("chrome://global/skin/tabcontrol/tab-bot-sel-rit-btm.gif");
+}
+
+.tab-bottom[selected="true"] > .tab-image-right > .tab-image-right-btm,
+.tab-bottom:hover:active[selected="true"] > .tab-image-right > .tab-image-right-btm { 
+  background-image: url("chrome://global/skin/tabcontrol/tab-bot-sel-rit-top.gif");
+}
+
+/* ::::: tabs-bottom ::::: */
+
+.tabs-bottom > .tabs-left,
+.tabs-bottom > .tabs-right {
+  background: url("chrome://global/skin/tabcontrol/tabs-bot-mid.gif") repeat-x top;
+}
+
+.tabs-bottom > .tabs-right-cap,
+.tabs-bottom > .tabs-left-cap {
+  background: none;
+}
+
