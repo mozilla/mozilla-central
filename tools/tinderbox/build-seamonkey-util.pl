@@ -24,7 +24,7 @@ use Config;         # for $Config{sig_name} and $Config{sig_num}
 use File::Find ();
 use File::Copy;
 
-$::UtilsVersion = '$Revision: 1.370 $ ';
+$::UtilsVersion = '$Revision: 1.371 $ ';
 
 package TinderUtils;
 
@@ -2491,7 +2491,7 @@ sub run_all_tests {
         # Settle OS.
         run_system_cmd("sync; sleep 5", 35);
 
-        my @urlargs = (-chrome,"file:$build_dir/mozilla/xpfe/test/winopen.xul");
+        my @urlargs = (-chrome,"javascript:try{JProfStartProfiling();}catch(e){};window.location='file:$build_dir/mozilla/xpfe/test/winopen.xul'");
         if($test_result eq 'success') {
             if ($talkback_installed) {
                 setTestnameForTalkbackReport($talkback_ini_path,$test_name);
@@ -2684,6 +2684,11 @@ sub AliveTestReturnToken {
         }
     }
 
+    if ($Settings::TestWithJprof) {
+        print_log "Running jprof for $test_name..\n";
+        run_shell_command("cd $binary_dir && ./jprof firefox-bin jprof-log > ../$test_name-jprof.html");
+    }
+
     return $rv;
 }
 
@@ -2757,7 +2762,7 @@ sub LayoutPerformanceTest {
     my $layout_time;
     my $layout_time_details;
     my $binary_log = "$build_dir/$test_name.log";
-    my $url = "http://$Settings::pageload_server/page-loader/loader.pl?delay=1000&nocache=0&maxcyc=4&timeout=$Settings::LayoutPerformanceTestPageTimeout&auto=1";
+    my $url = "javascript:try{JProfStartProfiling();}catch(e){};window.location='http://$Settings::pageload_server/page-loader/loader.pl?delay=1000&nocache=0&maxcyc=4&timeout=$Settings::LayoutPerformanceTestPageTimeout&auto=1'";
     
     # Settle OS.
     run_system_cmd("sync; sleep 5", 35);
@@ -2833,7 +2838,7 @@ sub LayoutPerformanceLocalTest {
     my $layout_time;
     my $layout_time_details;
     my $binary_log = "$build_dir/$test_name.log";
-    my $url = "http://localhost/pageload/cycler.html";
+    my $url = "javascript:try{JProfStartProfiling();}catch(e){};window.location='http://localhost/pageload/cycler.html'";
     
     # Settle OS.
     run_system_cmd("sync; sleep 5", 35);
@@ -2889,7 +2894,7 @@ sub DHTMLPerformanceTest {
     my $dhtml_time;
     my $dhtml_time_details;
     my $binary_log = "$build_dir/$test_name.log";
-    my $url = "http://www.mozilla.org/performance/test-cases/dhtml/runTests.html";
+    my $url = "javascript:try{JProfStartProfiling();}catch(e){};window.location='http://www.mozilla.org/performance/test-cases/dhtml/runTests.html'";
     
     # Settle OS.
     run_system_cmd("sync; sleep 5", 35);
