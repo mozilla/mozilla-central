@@ -54,10 +54,16 @@ function getCompositeCalendar() {
 function getSelectedCalendar() {
     var tree = document.getElementById("calendar-list-tree");
     return (tree.currentIndex > -1) &&
-           calendarListTreeView.mCalendarList[tree.currentIndex];
+           calendarListTreeView.mCalendarList[tree.currentIndex] || null;
 }
 
 function promptDeleteCalendar(aCalendar) {
+    var calendars = getCalendarManager().getCalendars({});
+    if (calendars.length <= 1) {
+        // If this is the last calendar, don't delete it.
+        return;
+    }
+
     var promptService = Cc["@mozilla.org/embedcomp/prompt-service;1"]
                         .getService(Ci.nsIPromptService);
     var ok = promptService.confirm(
@@ -433,6 +439,7 @@ var calendarListTreeView = {
         var col = {};
         var row = {};
         var calendar;
+        var calendars = getCalendarManager().getCalendars({});
 
         if (document.popupNode.localName == "tree") {
             // Using VK_APPS to open the context menu will target the tree
@@ -464,16 +471,20 @@ var calendarListTreeView = {
         if (calendar) {
             document.getElementById("list-calendars-context-edit")
                     .removeAttribute("disabled");
-            document.getElementById("list-calendars-context-delete")
-                    .removeAttribute("disabled");
             document.getElementById("list-calendars-context-publish")
                     .removeAttribute("disabled");
+            // Only enable the delete calendars item if there is more than one
+            // calendar. We don't want to have the last calendar deleted.
+            if (calendars.length > 1) {
+                document.getElementById("list-calendars-context-delete")
+                        .removeAttribute("disabled");
+            }
         } else {
             document.getElementById("list-calendars-context-edit")
                     .setAttribute("disabled", "true");
-            document.getElementById("list-calendars-context-delete")
-                    .setAttribute("disabled", "true");
             document.getElementById("list-calendars-context-publish")
+                    .setAttribute("disabled", "true");
+            document.getElementById("list-calendars-context-delete")
                     .setAttribute("disabled", "true");
         }
         return true;
@@ -500,18 +511,18 @@ var calendarManagerObserver = {
      * @param aCalendar     The calendar to add.
      */
     initializeCalendar: function cMO_initializeCalendar(aCalendar) {
+        var calendars = getCalendarManager().getCalendars({});
         calendarListTreeView.addCalendar(aCalendar);
 
         // Watch the calendar for changes, to ensure its visibility when adding
         // or changing items.
         aCalendar.addObserver(this);
 
-        document.getElementById("calendar_new_event_command")
-                .removeAttribute("disabled");
-        document.getElementById("calendar_new_todo_command")
-                .removeAttribute("disabled");
-        document.getElementById("calendar_delete_calendar_command")
-                .removeAttribute("disabled");
+        // Make sure we can delete calendars when there is more than one.
+        if (calendars.length > 1) {
+            document.getElementById("calendar_delete_calendar_command")
+                    .removeAttribute("disabled");
+        }
 
         if (aCalendar.canRefresh) {
             document.getElementById("calendar_reload_remote_calendars")
@@ -531,14 +542,10 @@ var calendarManagerObserver = {
         calendarListTreeView.removeCalendar(aCalendar);
         aCalendar.removeObserver(this);
 
-        // Since the calendar hasn't been removed yet, <= 1 is correct.
-        if (calendars.length <= 1) {
-            // If there are no calendars, you can't create events/tasks or
-            // delete calendars
-            document.getElementById("calendar_new_event_command")
-                    .setAttribute("disabled", true);
-            document.getElementById("calendar_new_todo_command")
-                    .setAttribute("disabled", true);
+        // We want to make sure its not possible to delete the last calendar.
+        // Since at this point the current calendar hasn't been deleted yet,
+        // start disabling when there are two calendars.
+        if (calendars.length <= 2) {
             document.getElementById("calendar_delete_calendar_command")
                     .setAttribute("disabled", true);
         }

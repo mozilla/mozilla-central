@@ -71,7 +71,7 @@
   <command id="calendar_new_calendar_command" oncommand="openCalendarWizard();"/>
   <command id="open_local_calendar_command" oncommand="openLocalCalendar()"/>
   <command id="calendar_edit_calendar_command" oncommand="openCalendarProperties(getSelectedCalendar(), null);"/>
-  <command id="calendar_delete_calendar_command" oncommand="promptDeleteCalendar(getSelectedCalendar());"/>
+  <command id="calendar_delete_calendar_command" oncommand="promptDeleteCalendar(getSelectedCalendar());" disabled="true"/>
   <command id="find_new_calendar_command" oncommand="goFindNewCalendars()"/>
 
   <command id="next_command" oncommand="moveView(1)"/>
