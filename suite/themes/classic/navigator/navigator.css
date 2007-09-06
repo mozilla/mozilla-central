@@ -326,10 +326,6 @@
   list-style-image: url("chrome://communicator/skin/icons/lock-broken.png");
 }
 
-#privacy-button {
-  list-style-image: url("chrome://communicator/skin/permissions/taskbar-cookie.gif");
-}
-
 #popupIcon {
   list-style-image: url("chrome://navigator/skin/icons/popup-blocked.png");
 }
