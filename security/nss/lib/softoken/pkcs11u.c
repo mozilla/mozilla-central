@@ -361,6 +361,106 @@ sftk_Attribute2SSecItem(PLArenaPool *arena,SECItem *item,SFTKObject *object,
     return CKR_OK;
 }
 
+/* 
+ * fetch multiple attributes into  SECItems. Secitem data is allocated in
+ * the specified arena.
+ */
+CK_RV
+sftk_MultipleAttribute2SecItem(PLArenaPool *arena, SFTKObject *object,
+	 SFTKItemTemplate *itemTemplate, int itemTemplateCount)
+{
+
+    CK_RV crv = CKR_OK;
+    CK_ATTRIBUTE templateSpace[SFTK_MAX_ITEM_TEMPLATE];
+    CK_ATTRIBUTE *template;
+    SFTKTokenObject *tokObject;
+    SFTKDBHandle *dbHandle = NULL;
+    int i;
+
+    tokObject = sftk_narrowToTokenObject(object);
+
+    /* session objects, just loop through the list */
+    if (tokObject == NULL) {
+	for (i=0; i < itemTemplateCount; i++) {
+	    crv = sftk_Attribute2SecItem(arena,itemTemplate[i].item, object,
+					 itemTemplate[i].type);
+	    if (crv != CKR_OK) {
+		return crv;
+	    }
+	}
+	return CKR_OK;
+    }
+
+    /* don't do any work if none is required */
+    if (itemTemplateCount == 0) {
+	return CKR_OK;
+    }
+
+    /* don't allocate the template unless we need it */
+    if (itemTemplateCount > SFTK_MAX_ITEM_TEMPLATE) {
+	template = PORT_NewArray(CK_ATTRIBUTE, itemTemplateCount);
+    } else {
+	template = templateSpace;
+    }
+
+    if (template == NULL) {
+	crv = CKR_HOST_MEMORY;
+	goto loser;
+    }
+
+    dbHandle = sftk_getDBForTokenObject(object->slot, object->handle);
+    if (dbHandle == NULL) {
+	crv = CKR_OBJECT_HANDLE_INVALID;
+	goto loser;
+    }
+
+    /* set up the PKCS #11 template */
+    for (i=0; i < itemTemplateCount; i++) {
+	template[i].type = itemTemplate[i].type;
+	template[i].pValue = NULL;
+	template[i].ulValueLen = 0;
+    }
+
+    /* fetch the attribute lengths */
+    crv = sftkdb_GetAttributeValue(dbHandle, object->handle,
+				   template, itemTemplateCount);
+    if (crv != CKR_OK) {
+	goto loser;
+    }
+
+    /* allocate space for the attributes */
+    for (i=0; i < itemTemplateCount ; i++) {
+	template[i].pValue = PORT_ArenaAlloc(arena, template[i].ulValueLen);
+	if (template[i].pValue == NULL) {
+	    crv = CKR_HOST_MEMORY;
+	    goto loser;
+	}
+    }
+
+    /* fetch the attributes */
+    crv = sftkdb_GetAttributeValue(dbHandle, object->handle,
+				   template, itemTemplateCount);
+    if (crv != CKR_OK) {
+	goto loser;
+    }
+
+    /* Fill in the items */	
+    for (i=0; i < itemTemplateCount; i++) {
+	itemTemplate[i].item->data = template[i].pValue;
+	itemTemplate[i].item->len = template[i].ulValueLen;
+    }
+
+loser:
+    if (template != templateSpace) {
+	PORT_Free(template);
+    }
+    if (dbHandle) {
+	sftk_freeDB(dbHandle);
+    }
+	     
+    return crv;
+}
+
 
 /*
  * delete an attribute from an object

@@ -136,6 +136,7 @@ typedef struct SFTKSearchResultsStr SFTKSearchResults;
 typedef struct SFTKHashVerifyInfoStr SFTKHashVerifyInfo;
 typedef struct SFTKHashSignInfoStr SFTKHashSignInfo;
 typedef struct SFTKSSLMACInfoStr SFTKSSLMACInfo;
+typedef struct SFTKItemTemplateStr SFTKItemTemplate;
 
 /* define function pointer typdefs for pointer tables */
 typedef void (*SFTKDestroy)(void *, PRBool);
@@ -404,6 +405,21 @@ struct SFTKSSLMACInfoStr {
 };
 
 /*
+ * Template based on SECItems, suitable for passing as arrays
+ */
+struct SFTKItemTemplateStr {
+    CK_ATTRIBUTE_TYPE	type;
+    SECItem		*item;
+};
+
+/* macro for setting SFTKTemplates. */
+#define SFTK_SET_ITEM_TEMPLATE(templ, count, itemPtr, attr) \
+   templ[count].type = attr; \
+   templ[count].item = itemPtr
+
+#define SFTK_MAX_ITEM_TEMPLATE 10
+
+/*
  * session handle modifiers
  */
 #define SFTK_SESSION_SLOT_MASK	0xff000000L
@@ -581,6 +597,8 @@ extern CK_RV sftk_AddAttributeType(SFTKObject *object, CK_ATTRIBUTE_TYPE type,
 				  CK_ULONG length);
 extern CK_RV sftk_Attribute2SecItem(PLArenaPool *arena, SECItem *item,
 				    SFTKObject *object, CK_ATTRIBUTE_TYPE type);
+extern CK_RV sftk_MultipleAttribute2SecItem(PLArenaPool *arena, 
+		SFTKObject *object, SFTKItemTemplate *templ, int count);
 extern unsigned int sftk_GetLengthInBits(unsigned char *buf,
 							 unsigned int bufLen);
 extern CK_RV sftk_ConstrainAttribute(SFTKObject *object, 

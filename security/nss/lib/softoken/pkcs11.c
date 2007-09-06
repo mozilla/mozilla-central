@@ -1589,11 +1589,12 @@ static NSSLOWKEYPrivateKey *
 sftk_mkPrivKey(SFTKObject *object, CK_KEY_TYPE key_type, CK_RV *crvp)
 {
     NSSLOWKEYPrivateKey *privKey;
+    SFTKItemTemplate itemTemplate[SFTK_MAX_ITEM_TEMPLATE];
+    int itemTemplateCount = 0;
     PLArenaPool *arena;
     CK_RV crv = CKR_OK;
     SECStatus rv;
 
-    /*PORT_Assert(!sftk_isToken(object->handle)); */
     arena = PORT_NewArena(DER_DEFAULT_CHUNKSIZE);
     if (arena == NULL) {
 	*crvp = CKR_HOST_MEMORY;
@@ -1613,30 +1614,31 @@ sftk_mkPrivKey(SFTKObject *object, CK_KEY_TYPE key_type, CK_RV *crvp)
     switch (key_type) {
     case CKK_RSA:
 	privKey->keyType = NSSLOWKEYRSAKey;
-	crv=sftk_Attribute2SSecItem(arena,&privKey->u.rsa.modulus,
-							object,CKA_MODULUS);
-	if (crv != CKR_OK) break;
-	crv=sftk_Attribute2SSecItem(arena,&privKey->u.rsa.publicExponent,object,
-							CKA_PUBLIC_EXPONENT);
-	if (crv != CKR_OK) break;
-	crv=sftk_Attribute2SSecItem(arena,&privKey->u.rsa.privateExponent,object,
-							CKA_PRIVATE_EXPONENT);
-	if (crv != CKR_OK) break;
-	crv=sftk_Attribute2SSecItem(arena,&privKey->u.rsa.prime1,object,
-								CKA_PRIME_1);
-	if (crv != CKR_OK) break;
-	crv=sftk_Attribute2SSecItem(arena,&privKey->u.rsa.prime2,object,
-								CKA_PRIME_2);
-	if (crv != CKR_OK) break;
-	crv=sftk_Attribute2SSecItem(arena,&privKey->u.rsa.exponent1,
-						object, CKA_EXPONENT_1);
-	if (crv != CKR_OK) break;
-	crv=sftk_Attribute2SSecItem(arena,&privKey->u.rsa.exponent2,
-							object, CKA_EXPONENT_2);
-	if (crv != CKR_OK) break;
-	crv=sftk_Attribute2SSecItem(arena,&privKey->u.rsa.coefficient,object,
-							      CKA_COEFFICIENT);
-	if (crv != CKR_OK) break;
+
+	SFTK_SET_ITEM_TEMPLATE(itemTemplate, itemTemplateCount,
+		&privKey->u.rsa.modulus,CKA_MODULUS);
+	itemTemplateCount++;
+	SFTK_SET_ITEM_TEMPLATE(itemTemplate, itemTemplateCount,
+		&privKey->u.rsa.publicExponent, CKA_PUBLIC_EXPONENT);
+	itemTemplateCount++;
+	SFTK_SET_ITEM_TEMPLATE(itemTemplate, itemTemplateCount,
+		&privKey->u.rsa.privateExponent, CKA_PRIVATE_EXPONENT);
+	itemTemplateCount++;
+	SFTK_SET_ITEM_TEMPLATE(itemTemplate, itemTemplateCount,
+		&privKey->u.rsa.prime1, CKA_PRIME_1);
+	itemTemplateCount++;
+	SFTK_SET_ITEM_TEMPLATE(itemTemplate, itemTemplateCount,
+		&privKey->u.rsa.prime2, CKA_PRIME_2);
+	itemTemplateCount++;
+	SFTK_SET_ITEM_TEMPLATE(itemTemplate, itemTemplateCount,
+		&privKey->u.rsa.exponent1, CKA_EXPONENT_1);
+	itemTemplateCount++;
+	SFTK_SET_ITEM_TEMPLATE(itemTemplate, itemTemplateCount,
+		&privKey->u.rsa.exponent2, CKA_EXPONENT_2);
+	itemTemplateCount++;
+	SFTK_SET_ITEM_TEMPLATE(itemTemplate, itemTemplateCount,
+		&privKey->u.rsa.coefficient, CKA_COEFFICIENT);
+	itemTemplateCount++;
         rv = DER_SetUInteger(privKey->arena, &privKey->u.rsa.version,
                           NSSLOWKEY_PRIVATE_KEY_INFO_VERSION);
 	if (rv != SECSuccess) crv = CKR_HOST_MEMORY;
@@ -1644,51 +1646,43 @@ sftk_mkPrivKey(SFTKObject *object, CK_KEY_TYPE key_type, CK_RV *crvp)
 
     case CKK_DSA:
 	privKey->keyType = NSSLOWKEYDSAKey;
-	crv = sftk_Attribute2SSecItem(arena,&privKey->u.dsa.params.prime,
-							object,CKA_PRIME);
-    	if (crv != CKR_OK) break;
-	crv = sftk_Attribute2SSecItem(arena,&privKey->u.dsa.params.subPrime,
-							object,CKA_SUBPRIME);
-    	if (crv != CKR_OK) break;
-	crv = sftk_Attribute2SSecItem(arena,&privKey->u.dsa.params.base,
-							object,CKA_BASE);
-    	if (crv != CKR_OK) break;
-    	crv = sftk_Attribute2SSecItem(arena,&privKey->u.dsa.privateValue,
-							object,CKA_VALUE);
-    	if (crv != CKR_OK) break;
-	if (sftk_hasAttribute(object,CKA_NETSCAPE_DB)) {
-	    crv = sftk_Attribute2SSecItem(arena, &privKey->u.dsa.publicValue,
-				      object,CKA_NETSCAPE_DB);
-	    /* privKey was zero'd so public value is already set to NULL, 0
-	     * if we don't set it explicitly */
-	}
+	SFTK_SET_ITEM_TEMPLATE(itemTemplate, itemTemplateCount,
+		&privKey->u.dsa.params.prime, CKA_PRIME);
+	itemTemplateCount++;
+	SFTK_SET_ITEM_TEMPLATE(itemTemplate, itemTemplateCount,
+		&privKey->u.dsa.params.subPrime, CKA_SUBPRIME);
+	itemTemplateCount++;
+	SFTK_SET_ITEM_TEMPLATE(itemTemplate, itemTemplateCount,
+		&privKey->u.dsa.params.base, CKA_BASE);
+	itemTemplateCount++;
+	SFTK_SET_ITEM_TEMPLATE(itemTemplate, itemTemplateCount,
+		&privKey->u.dsa.privateValue, CKA_VALUE);
+	itemTemplateCount++;
+	/* privKey was zero'd so public value is already set to NULL, 0
+	 * if we don't set it explicitly */
 	break;
 
     case CKK_DH:
 	privKey->keyType = NSSLOWKEYDHKey;
-	crv = sftk_Attribute2SSecItem(arena,&privKey->u.dh.prime,
-							object,CKA_PRIME);
-    	if (crv != CKR_OK) break;
-	crv = sftk_Attribute2SSecItem(arena,&privKey->u.dh.base,
-							object,CKA_BASE);
-    	if (crv != CKR_OK) break;
-    	crv = sftk_Attribute2SSecItem(arena,&privKey->u.dh.privateValue,
-							object,CKA_VALUE);
-    	if (crv != CKR_OK) break;
-	if (sftk_hasAttribute(object,CKA_NETSCAPE_DB)) {
-	    crv = sftk_Attribute2SSecItem(arena, &privKey->u.dh.publicValue,
-				      object,CKA_NETSCAPE_DB);
-	    /* privKey was zero'd so public value is already set to NULL, 0
-	     * if we don't set it explicitly */
-	}
+	SFTK_SET_ITEM_TEMPLATE(itemTemplate, itemTemplateCount,
+		&privKey->u.dh.prime, CKA_PRIME);
+	itemTemplateCount++;
+	SFTK_SET_ITEM_TEMPLATE(itemTemplate, itemTemplateCount,
+		&privKey->u.dh.base, CKA_BASE);
+	itemTemplateCount++;
+	SFTK_SET_ITEM_TEMPLATE(itemTemplate, itemTemplateCount,
+		&privKey->u.dh.privateValue, CKA_VALUE);
+	itemTemplateCount++;
+	/* privKey was zero'd so public value is already set to NULL, 0
+	 * if we don't set it explicitly */
 	break;
 
 #ifdef NSS_ENABLE_ECC
     case CKK_EC:
 	privKey->keyType = NSSLOWKEYECKey;
 	crv = sftk_Attribute2SSecItem(arena, 
-	                              &privKey->u.ec.ecParams.DEREncoding,
-	                              object,CKA_EC_PARAMS);
+				      &privKey->u.ec.ecParams.DEREncoding,
+				      object,CKA_EC_PARAMS);
     	if (crv != CKR_OK) break;
 
 	/* Fill out the rest of the ecParams structure
@@ -1702,9 +1696,10 @@ sftk_mkPrivKey(SFTKObject *object, CK_KEY_TYPE key_type, CK_RV *crvp)
 	crv = sftk_Attribute2SSecItem(arena,&privKey->u.ec.privateValue,
 							object,CKA_VALUE);
 	if (crv != CKR_OK) break;
-	if (sftk_hasAttribute(object,CKA_NETSCAPE_DB)) {
+
+	if (sftk_hasAttribute(object, CKA_NETSCAPE_DB)) {
 	    crv = sftk_Attribute2SSecItem(arena, &privKey->u.ec.publicValue,
-				      object,CKA_NETSCAPE_DB);
+ 				object, CKA_NETSCAPE_DB);
 	    if (crv != CKR_OK) break;
 	    /* privKey was zero'd so public value is already set to NULL, 0
 	     * if we don't set it explicitly */
@@ -1718,6 +1713,12 @@ sftk_mkPrivKey(SFTKObject *object, CK_KEY_TYPE key_type, CK_RV *crvp)
     default:
 	crv = CKR_KEY_TYPE_INCONSISTENT;
 	break;
+    }
+    if (crv == CKR_OK && itemTemplateCount != 0) {
+	PORT_Assert(itemTemplateCount > 0);
+	PORT_Assert(itemTemplateCount <= SFTK_MAX_ITEM_TEMPLATE);
+	crv = sftk_MultipleAttribute2SecItem(arena, object, itemTemplate, 
+						itemTemplateCount);
     }
     *crvp = crv;
     if (crv != CKR_OK) {
@@ -1743,20 +1744,7 @@ sftk_GetPrivKey(SFTKObject *object,CK_KEY_TYPE key_type, CK_RV *crvp)
 	return (NSSLOWKEYPrivateKey *)object->objectInfo;
     }
 
-#ifdef notdef
-    if (sftk_isToken(object->handle)) {
-	/* grab it from the data base */
-	SFTKTokenObject *to = sftk_narrowToTokenObject(object);
-
-	PORT_Assert(to);
-	priv = sftk_FindKeyByPublicKey(object->slot, &to->dbKey);
-	*crvp = (priv == NULL) ? CKR_DEVICE_ERROR : CKR_OK;
-    } else {
-	priv = sftk_mkPrivKey(object, key_type, crvp);
-    }
-#else
     priv = sftk_mkPrivKey(object, key_type, crvp);
-#endif
     object->objectInfo = priv;
     object->infoFree = (SFTKFree) nsslowkey_DestroyPrivateKey;
     return priv;
