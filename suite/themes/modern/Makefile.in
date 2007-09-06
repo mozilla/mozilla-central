@@ -28,7 +28,8 @@ VPATH		= @srcdir@
 include $(DEPTH)/config/autoconf.mk
 include $(THEME_ROOT_DEPTH)/theme.mk
 
-DIRS		= communicator global navigator editor messenger
+DIRS  = communicator global navigator editor messenger 
+DIRS += chatzilla
 
 include $(topsrcdir)/config/rules.mk
 
