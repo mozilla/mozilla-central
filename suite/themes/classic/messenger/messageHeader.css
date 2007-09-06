@@ -114,6 +114,24 @@
   margin-left: 0;
 }
 
+/* ::::: msg header message ids ::::: */
+
+.messageIdDisplayButton {
+  cursor: pointer;
+  color: #0000FF;
+  text-decoration: underline;
+  margin: 0;
+}
+
+.messageIdDisplayButton:hover {
+  color: #FF0000;
+}
+
+.messageIdDisplayImage {
+  padding-left: 2px;
+  -moz-box-pack: end;
+}
+
 /* ::::: msg header email addresses ::::: */
 
 .emailDisplayButton {
