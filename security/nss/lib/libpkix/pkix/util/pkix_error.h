@@ -51,10 +51,10 @@ extern "C" {
 #endif
 
 struct PKIX_ErrorStruct {
-        PKIX_UInt32 code;
+        PKIX_ERRORNUM code;
         PKIX_Error *cause;
         PKIX_PL_Object *info;
-        PKIX_PL_String *desc;
+        PKIX_ERRSTRINGNUM descCode;
 };
 
 /* see source file for function documentation */

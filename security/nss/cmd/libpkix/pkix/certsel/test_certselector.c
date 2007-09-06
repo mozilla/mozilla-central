@@ -259,7 +259,6 @@ custom_CertSelector_MatchCallback(
         PKIX_List *certPolicies = NULL;
         PKIX_List *quals = NULL;
         PKIX_PL_CertPolicyInfo *policy = NULL;
-        PKIX_PL_String *errorDesc = NULL;
         PKIX_Error *error = NULL;
 
         PKIX_TEST_STD_VARS();
@@ -290,18 +289,11 @@ custom_CertSelector_MatchCallback(
                 PKIX_TEST_DECREF_BC(certPolicies);
                 *pResult = PKIX_FALSE;
 
-                /* Policies extension but no Policy Qualifiers */
-                PKIX_TEST_EXPECT_NO_ERROR(PKIX_PL_String_Create
-                        (PKIX_ESCASCII,
-                        "Policies extension but no Policy Qualifiers",
-                        0,
-                        &errorDesc,
-                        plContext));
                 PKIX_TEST_EXPECT_NO_ERROR(PKIX_Error_Create
                         (PKIX_CERTSELECTOR_ERROR,
                         NULL,
                         NULL,
-                        errorDesc,
+                        PKIX_TESTPOLICYEXTWITHNOPOLICYQUALIFIERS,
                         &error,
                         plContext));
 
@@ -312,7 +304,6 @@ cleanup:
         PKIX_TEST_DECREF_AC(certPolicies);
         PKIX_TEST_DECREF_AC(policy);
         PKIX_TEST_DECREF_AC(quals);
-        PKIX_TEST_DECREF_AC(errorDesc);
 
         return(error);
 }
@@ -387,18 +378,11 @@ custom_CertSelector_MatchOIDCallback(
         PKIX_TEST_DECREF_BC(certSelectorContext);
         PKIX_TEST_DECREF_BC(certPolicies);
 
-        /* No matching Policy */
-        PKIX_TEST_EXPECT_NO_ERROR(PKIX_PL_String_Create
-                        (PKIX_ESCASCII,
-                        "No matching Policy",
-                        0,
-                        &errorDesc,
-                        plContext));
-                PKIX_TEST_EXPECT_NO_ERROR(PKIX_Error_Create
+        PKIX_TEST_EXPECT_NO_ERROR(PKIX_Error_Create
                         (PKIX_CERTSELECTOR_ERROR,
                         NULL,
                         NULL,
-                        errorDesc,
+                        PKIX_TESTNOMATCHINGPOLICY,
                         &error,
                         plContext));
 

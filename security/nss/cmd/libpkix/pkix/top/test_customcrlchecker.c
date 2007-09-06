@@ -154,7 +154,6 @@ testCRLSelectorMatchCallback(
         PKIX_UInt32 i = 0;
         PKIX_Boolean result = PKIX_FALSE;
         PKIX_Error *error = NULL;
-        PKIX_PL_String *textString = NULL;
         char *errorText = "Not an error, CRL Select mismatch";
 
         PKIX_TEST_STD_VARS();
@@ -203,19 +202,11 @@ testCRLSelectorMatchCallback(
                         if (i == numIssuers-1) {
 
                                 PKIX_TEST_EXPECT_NO_ERROR
-                                        (PKIX_PL_String_Create
-                                        (PKIX_ESCASCII,
-                                        (void *) errorText,
-                                        0,
-                                        &textString,
-                                        plContext));
-
-                                PKIX_TEST_EXPECT_NO_ERROR
                                         (PKIX_Error_Create
                                         (0,
                                         NULL,
                                         NULL,
-                                        textString,
+                                        PKIX_TESTNOTANERRORCRLSELECTMISMATCH,
                                         &error,
                                         plContext));
 
@@ -235,7 +226,6 @@ cleanup:
         PKIX_TEST_DECREF_AC(crlIssuer);
         PKIX_TEST_DECREF_AC(issuer);
         PKIX_TEST_DECREF_AC(issuerList);
-        PKIX_TEST_DECREF_AC(textString);
 
         PKIX_TEST_RETURN();
 

@@ -161,17 +161,12 @@ PKIX_Error *
 pkix_Throw(
         PKIX_UInt32 errorCode,
         const char *funcName,
-        const char *errorText,
+        PKIX_ERRSTRINGNUM errorTextCode,
         PKIX_Error *cause,
         PKIX_Error **pError,
         void *plContext)
 {
-        PKIX_PL_String *formatString = NULL;
-        PKIX_PL_String *funcNameString = NULL;
-        PKIX_PL_String *textString = NULL;
-        PKIX_PL_String *errorString = NULL;
         PKIX_UInt32 causeCode;
-        char *format = NULL;
 
         PKIX_ENTER(ERROR, "pkix_Throw");
         PKIX_NULLCHECK_TWO(funcName, pError);
@@ -190,44 +185,11 @@ pkix_Throw(
                 }
         }
 
-        format = "%s: %s";
-
-        pkixTempResult = PKIX_PL_String_Create
-                (PKIX_ESCASCII, (void *)format, 0, &formatString, plContext);
-        if (pkixTempResult) goto cleanup;
-
-        pkixTempResult = PKIX_PL_String_Create
-                (PKIX_ESCASCII,
-                (void *)funcName,
-                0,
-                &funcNameString,
-                plContext);
-        if (pkixTempResult) goto cleanup;
-
-        pkixTempResult = PKIX_PL_String_Create
-                (PKIX_ESCASCII,
-                (void *)errorText,
-                0,
-                &textString,
-                plContext);
-        if (pkixTempResult) goto cleanup;
-
-        pkixTempResult = PKIX_PL_Sprintf
-                (&errorString,
-                plContext,
-                formatString,
-                funcNameString,
-                textString);
-
-        pkixTempResult = PKIX_Error_Create
-                (errorCode, cause, NULL, errorString, pError, plContext);
+       pkixTempResult = PKIX_Error_Create(errorCode, cause, NULL,
+                                           errorTextCode, pError, plContext);
 
 cleanup:
 
-        PKIX_DECREF(errorString);
-        PKIX_DECREF(formatString);
-        PKIX_DECREF(funcNameString);
-        PKIX_DECREF(textString);
         PKIX_DEBUG_EXIT(ERROR);
         pkixErrorCode = 0;
         return (pkixTempResult);

@@ -54,30 +54,12 @@ void createErrors(
         PKIX_Error **error5,
         PKIX_Error **error6,
         PKIX_Error **error7,
-        char *descChar,
-        char *descChar2,
         char *infoChar)
 
 {
-        PKIX_PL_String *descString = NULL;
-        PKIX_PL_String *desc2String = NULL;
         PKIX_PL_String *infoString = NULL;
 
         PKIX_TEST_STD_VARS();
-
-        PKIX_TEST_EXPECT_NO_ERROR(PKIX_PL_String_Create(
-                                        PKIX_ESCASCII,
-                                        descChar,
-                                        PL_strlen(descChar),
-                                        &descString,
-                                        plContext));
-
-        PKIX_TEST_EXPECT_NO_ERROR(PKIX_PL_String_Create(
-                                        PKIX_ESCASCII,
-                                        descChar2,
-                                        PL_strlen(descChar2),
-                                        &desc2String,
-                                        plContext));
 
         PKIX_TEST_EXPECT_NO_ERROR(PKIX_PL_String_Create(
                                         PKIX_ESCASCII,
@@ -86,15 +68,19 @@ void createErrors(
                                         &infoString,
                                         plContext));
 
-        PKIX_TEST_EXPECT_NO_ERROR
-                (PKIX_Error_Create
-                (PKIX_MEM_ERROR, NULL, NULL, desc2String, error2, plContext));
+        PKIX_TEST_EXPECT_NO_ERROR(PKIX_Error_Create
+                                  (PKIX_MEM_ERROR,
+                                   NULL,
+                                   NULL,
+                                   PKIX_TESTANOTHERERRORMESSAGE,
+                                   error2,
+                                   plContext));
 
         PKIX_TEST_EXPECT_NO_ERROR(PKIX_Error_Create
                                     (PKIX_OBJECT_ERROR,
                                     *error2,
                                     (PKIX_PL_Object*)infoString,
-                                    descString,
+                                     PKIX_TESTERRORMESSAGE,
                                     error,
                                     plContext));
 
@@ -102,7 +88,7 @@ void createErrors(
                                     (PKIX_OBJECT_ERROR,
                                     *error2,
                                     (PKIX_PL_Object*)infoString,
-                                    descString,
+                                     PKIX_TESTERRORMESSAGE,
                                     error3,
                                     plContext));
 
@@ -110,7 +96,7 @@ void createErrors(
                                     (PKIX_OBJECT_ERROR,
                                     NULL,
                                     (PKIX_PL_Object*)infoString,
-                                    NULL,
+                                    0,
                                     error5,
                                     plContext));
 
@@ -118,7 +104,7 @@ void createErrors(
                                     (PKIX_MEM_ERROR,
                                     *error5,
                                     (PKIX_PL_Object*)infoString,
-                                    NULL,
+                                    0,
                                     error6,
                                     plContext));
 
@@ -126,14 +112,12 @@ void createErrors(
                                     (PKIX_OBJECT_ERROR,
                                     *error6,
                                     (PKIX_PL_Object*)infoString,
-                                    NULL,
+                                    0,
                                     error7,
                                     plContext));
 
 cleanup:
 
-        PKIX_TEST_DECREF_AC(descString);
-        PKIX_TEST_DECREF_AC(desc2String);
         PKIX_TEST_DECREF_AC(infoString);
 
         PKIX_TEST_RETURN();
@@ -425,8 +409,6 @@ int test_error(int argc, char *argv[]) {
                 &error5,
                 &error6,
                 &error7,
-                descChar,
-                descChar2,
                 infoChar);
 
         PKIX_TEST_EQ_HASH_TOSTR_DUP

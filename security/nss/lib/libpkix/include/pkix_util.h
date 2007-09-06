@@ -497,10 +497,10 @@ PKIX_AddLogger(
  */
 PKIX_Error *
 PKIX_Error_Create(
-        PKIX_UInt32 errorCode,
+        PKIX_ERRORNUM errorCode,
         PKIX_Error *cause,
         PKIX_PL_Object *info,
-        PKIX_PL_String *desc,
+        PKIX_ERRSTRINGNUM descCode,
         PKIX_Error **pError,
         void *plContext);
 

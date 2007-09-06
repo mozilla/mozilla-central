@@ -2634,8 +2634,7 @@ subrErrorCleanup:
                         (subroutineErr, &pkixErrorCode, plContext);
                 if (pkixTempResult) return pkixTempResult;
                 if (pkixErrorCode == PKIX_FATAL_ERROR) {
-                    PKIX_THROW
-                        (FATAL, PKIX_ErrorText[PKIX_POLICYCHECKERERROR]);
+                    PKIX_THROW(FATAL, PKIX_POLICYCHECKERERROR);
                 }
                 /*
                  * Abort policy processing, and then determine whether

@@ -48,9 +48,9 @@ const PKIX_StdVars zeroStdVars;
 
 PKIX_Error *
 PKIX_DoThrow(PKIX_StdVars * stdVars, PKIX_ERRORNUM errorCode, 
-             const char * desc, void *plContext)
+             PKIX_ERRSTRINGNUM descNum, void *plContext)
 {
-    pkixTempResult = (PKIX_Error*)pkix_Throw(errorCode, myFuncName, desc,
+    pkixTempResult = (PKIX_Error*)pkix_Throw(errorCode, myFuncName, descNum,
 	                 pkixErrorResult, &pkixReturnResult, plContext);
     if (pkixErrorResult != PKIX_ALLOC_ERROR())
 	PKIX_DECREF(pkixErrorResult);
@@ -66,7 +66,7 @@ PKIX_DoReturn(PKIX_StdVars * stdVars, PKIX_ERRORNUM errorCode,
     PKIX_OBJECT_UNLOCK(lockedObject);
     PKIX_MUTEX_UNLOCK(lockedMutex);
     if ((pkixErrorReceived) || (pkixErrorResult))
-	return PKIX_DoThrow(stdVars, errorCode, pkixErrorMsg, plContext);
+	return PKIX_DoThrow(stdVars, errorCode, pkixErrMsgNum, plContext);
     /* PKIX_DEBUG_EXIT(type); */
     if (doLogger)
 	_PKIX_DEBUG_TRACE(pkixLoggersDebugTrace, "<<<", PKIX_LOGGER_LEVEL_TRACE);
@@ -74,7 +74,7 @@ PKIX_DoReturn(PKIX_StdVars * stdVars, PKIX_ERRORNUM errorCode,
 }
 
 PKIX_Error *
-PKIX_DoCheck(PKIX_StdVars * stdVars, int descNum, void *plContext)
+PKIX_DoCheck(PKIX_StdVars * stdVars, PKIX_ERRSTRINGNUM descNum, void *plContext)
 {
     pkixTempResult = 
 	PKIX_Error_GetErrorCode(pkixErrorResult, &pkixErrorCode, plContext);

@@ -47,6 +47,7 @@
 
 static PKIX_UInt32 refCountTotal = 0;
 
+                              
 /* --Class-Table-Initializers------------------------------------ */
 
 /*
@@ -765,9 +766,7 @@ PKIX_PL_Object_IncRef(
                     PKIX_ERRORUNLOCKINGOBJECT);
 
         if (refCountError) {
-                PKIX_THROW
-                    (FATAL,
-                    PKIX_ErrorText[PKIX_OBJECTWITHNONPOSITIVEREFERENCES]);
+                PKIX_THROW(FATAL, PKIX_OBJECTWITHNONPOSITIVEREFERENCES);
         }
 
 cleanup:
