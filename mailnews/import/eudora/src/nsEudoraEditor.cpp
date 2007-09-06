@@ -825,7 +825,7 @@ PRBool nsEudoraEditor::UpdateEmbeddedImageReference(PRUint32 aCIDHash, const nsA
       ++startSrcValue;
 
     // Get the quote char and verify that it's valid
-    char    quoteChar = NS_STATIC_CAST( char, m_body.CharAt(startSrcValue) );
+    char    quoteChar = static_cast <char> (m_body.CharAt(startSrcValue));
     if ( (quoteChar != '"') && (quoteChar != '\'') )
       continue;
 
@@ -1360,7 +1360,7 @@ NS_IMETHODIMP nsEudoraHTMLImageElement::GetSrc(nsAString & aSrc)
 
 NS_IMETHODIMP nsEudoraHTMLImageElement::SetSrc(const nsAString & aSrc)
 {
-  nsEudoraEditor *    pEditor = NS_STATIC_CAST( nsEudoraEditor *, NS_STATIC_CAST(nsIEditor *, m_pEditor.get()) );
+  nsEudoraEditor *    pEditor = static_cast <nsEudoraEditor *> (static_cast <nsIEditor *> (m_pEditor.get()));
   
   if ( pEditor->UpdateEmbeddedImageReference(m_cidHash, m_src, aSrc) )
     m_cidHash = 0;
