@@ -182,6 +182,11 @@ function modifyEventWithDialog(item, job)
 
 function openEventDialog(calendarItem, calendar, mode, callback, job)
 {
+    // Set up some defaults
+    calendar = calendar || getCompositeCalendar().defaultCalendar;
+    mode = mode || "new";
+
+    // Setup the window arguments
     var args = new Object();
     args.calendarEvent = calendarItem;
     args.calendar = calendar;
