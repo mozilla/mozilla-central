@@ -223,7 +223,9 @@
 <!ENTITY event.recurrence.repeat.second.label           "Second">
 <!ENTITY event.recurrence.repeat.third.label            "Third">
 <!ENTITY event.recurrence.repeat.fourth.label           "Fourth">
+<!ENTITY event.recurrence.repeat.fifth.label            "Fifth">
 <!ENTITY event.recurrence.repeat.last.label             "Last ">
+<!ENTITY event.recurrence.repeat.dayofmonth.label       "Day of the month">
 <!ENTITY event.recurrence.repeat.recur.label            "Recur on day(s)">
 <!ENTITY event.recurrence.every.label                   "Every:" >
 <!ENTITY event.recurrence.of.label                      "of" >
