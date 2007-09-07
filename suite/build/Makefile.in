@@ -60,8 +60,8 @@ REQUIRES	= \
 		rdf \
 		unicharutil \
 		windowwatcher \
-		suitemigration \
 		suitebrowser \
+		suitemigration \
 		appcomps \
 		$(NULL)
 
@@ -72,23 +72,14 @@ CPPSRCS 	= \
 LOCAL_INCLUDES += \
 		-I$(topsrcdir)/suite/profile \
 		-I$(topsrcdir)/suite/profile/migration/src \
+		-I$(topsrcdir)/suite/browser/src \
 		$(NULL)
 
 SHARED_LIBRARY_LIBS = \
 	../profile/$(LIB_PREFIX)suiteprofile_s.$(LIB_SUFFIX) \
 	../profile/migration/src/$(LIB_PREFIX)suitemigration_s.$(LIB_SUFFIX) \
-        $(NULL)
-
-# For now browser items are windows only
-ifeq ($(OS_ARCH),WINNT)
-LOCAL_INCLUDES += \
-	-I$(topsrcdir)/suite/browser/src \
-	$(NULL)
-
-SHARED_LIBRARY_LIBS += \
 	../browser/src/$(LIB_PREFIX)suitebrowser_s.$(LIB_SUFFIX) \
-	$(NULL)
-endif # WINNT
+        $(NULL)
 
 # Link to gkgfx for GNOME shell service
 ifeq ($(MOZ_WIDGET_TOOLKIT), gtk2)

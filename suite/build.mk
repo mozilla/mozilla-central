@@ -58,7 +58,6 @@ tier_app_dirs += editor/ui
 endif
 
 tier_app_dirs += \
-	xpfe/components/search \
 	xpfe/components/bookmarks \
 	themes \
 	suite \

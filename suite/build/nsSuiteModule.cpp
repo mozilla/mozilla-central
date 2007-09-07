@@ -41,6 +41,10 @@
 #include "nsProfileMigrator.h"
 #include "nsSeamonkeyProfileMigrator.h"
 #include "nsThunderbirdProfileMigrator.h"
+#include "nsInternetSearchService.h"
+#include "nsLocalSearchService.h"
+#include "nsIGenericFactory.h"
+#include "nsRDFCID.h"
 
 #if defined(XP_WIN)
 #include "nsUrlWidget.h"
@@ -55,6 +59,8 @@ NS_GENERIC_FACTORY_CONSTRUCTOR(nsSuiteDirectoryProvider)
 NS_GENERIC_FACTORY_CONSTRUCTOR(nsProfileMigrator)
 NS_GENERIC_FACTORY_CONSTRUCTOR(nsSeamonkeyProfileMigrator)
 NS_GENERIC_FACTORY_CONSTRUCTOR(nsThunderbirdProfileMigrator)
+NS_GENERIC_FACTORY_CONSTRUCTOR_INIT(LocalSearchDataSource, Init)
+NS_GENERIC_FACTORY_CONSTRUCTOR_INIT(InternetSearchDataSource, Init)
 
 /////////////////////////////////////////////////////////////////////////////
 
@@ -84,7 +90,27 @@ static const nsModuleComponentInfo components[] = {
   { "Thunderbird Profile Migrator",
     NS_THUNDERBIRDPROFILEMIGRATOR_CID,
     NS_SUITEPROFILEMIGRATOR_CONTRACTID_PREFIX "thunderbird",
-    nsThunderbirdProfileMigratorConstructor }
+    nsThunderbirdProfileMigratorConstructor },
+
+  { "Local Search",
+    NS_RDFFINDDATASOURCE_CID,
+    NS_LOCALSEARCH_SERVICE_CONTRACTID,
+    LocalSearchDataSourceConstructor },
+
+  { "Local Search",
+    NS_RDFFINDDATASOURCE_CID,
+    NS_LOCALSEARCH_DATASOURCE_CONTRACTID,
+    LocalSearchDataSourceConstructor },
+
+  { "Internet Search",
+    NS_RDFSEARCHDATASOURCE_CID,
+    NS_INTERNETSEARCH_SERVICE_CONTRACTID,
+    InternetSearchDataSourceConstructor },
+
+  { "Internet Search",
+    NS_RDFSEARCHDATASOURCE_CID,
+    NS_INTERNETSEARCH_DATASOURCE_CONTRACTID,
+    InternetSearchDataSourceConstructor }
 };
 
 NS_IMPL_NSGETMODULE(SuiteModule, components)
