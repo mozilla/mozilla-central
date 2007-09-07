@@ -61,10 +61,6 @@
   background-repeat: no-repeat;
 }
 
-.sidebarheader-main[prefixhidden="false"] {
-  background-image: url("chrome://communicator/skin/sidebar/sbar-top-tabopen.gif");
-}
-
 /* ..... picker button ..... */
 
 #sidebar-panel-picker {

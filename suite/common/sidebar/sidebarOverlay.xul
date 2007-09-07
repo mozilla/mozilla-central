@@ -82,7 +82,7 @@
       persist="collapsed">
       <sidebarheader id="sidebar-title-box" class="sidebarheader-main"
         label="&sidebar.panels.label;" persist="hidden" type="box"
-        collapse="after" onmouseup="PersistHeight();" prefixhidden="true"
+        collapse="after" onmouseup="PersistHeight();"
         tooltipopen="&sidebar.open.tooltip;" 
         tooltipclose="&sidebar.close.tooltip;">
         <toolbarbutton type="menu" id="sidebar-panel-picker" menubuttontype="sidebar-panels"

@@ -141,7 +141,7 @@
 
     <toolbar class="toolbar-primary chromeclass-toolbar" id="nav-bar" persist="collapsed" 
              grippytooltiptext="&navigationToolbar.tooltip;"
-             tbalign="stretch" fullscreentoolbar="true">
+             fullscreentoolbar="true">
       <hbox id="nav-bar-buttons">
         <toolbarbutton id="back-button" type="menu-button" class="toolbarbutton-1"
                        label="&backButton.label;"
@@ -258,7 +258,7 @@
     </toolbar>
   
     <toolbar id="PersonalToolbar" class="chromeclass-directories" persist="collapsed" 
-             grippytooltiptext="&personalToolbar.tooltip;" tbalign="stretch" prefixhidden="true"
+             grippytooltiptext="&personalToolbar.tooltip;"
              onmouseover="BookmarksToolbar.autoOpenMenu(event.target);"
              onpopupshowing="BookmarksToolbar.onMenuOpen(event.target);"
              onpopuphidden="BookmarksToolbar.onMenuClose(event.target);"

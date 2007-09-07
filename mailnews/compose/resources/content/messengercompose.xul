@@ -487,7 +487,6 @@
     </toolbar>
 
     <toolbar id="MsgHeadersToolbar" persist="collapsed" flex="1"
-             tborient="vertical" tbalign="stretch"
              grippytooltiptext="&addressBar.tooltip;">
       <hbox id="msgheaderstoolbar-box" flex="1">
         <vbox flex="1" id="addresses-box">
