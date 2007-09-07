@@ -4,15 +4,15 @@ ROOTURL="http://build-graphs.mozilla.org/db"
 OLDDIR=/path/to/utils/old
 IMPORTPY=/path/to/utils/import.py
 
-TESTS="dhtml pageload pageload2 render rendergfx startup xulwinopen refcnt_leaks trace_malloc_leaks"
+TESTS="dhtml pageload pageload2 render rendergfx startup xulwinopen refcnt_leaks trace_malloc_leaks codesize codesize_embed"
 
-MACHINEINFO="bl-bldlnx01_fx-linux-tbox-head linux 1.9
-linux_fx-linux-tbox_depend-fx-linux-trunk linux 1.9
+MACHINEINFO="bl-bldlnx03_fx-linux-tbox-head linux 1.9
 fxdbug-linux-tbox.build.mozilla.org linux 1.9
 xserve08.build.mozilla.org_fx-trunk macOSX 1.9
+bm-xserve11.build.mozilla.org macOSX 1.9
 bl-bldxp01 winnt 1.9
 balsa-1_8 linux 1.8
-bl-bldlnx01.office.mozilla.org_mozilla_1_8_branch linux 1.8
+bl-bldlnx03.office.mozilla.org_mozilla_1_8_branch linux 1.8
 bm-xserve02.mozilla.org_mozilla_1_8_branch macOSX 1.8
 bl-bldxp01_mozilla_1_8_branch winnt 1.8
 "
