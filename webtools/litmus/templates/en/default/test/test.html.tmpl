@@ -57,13 +57,15 @@
   <tr>
     <td><b>Test Group(s):</b></td>
     <td>
-      <div id="testgroups_display[% IF ! show_edit %]_[% testcase.testcase_id | html %][% END %]">[% IF testgroups.size==0 %]<span class="errorHeading">This testcase does not belong to any testgroups that are currently enabled.</span>[% ELSE %][% FOREACH testgroup=testgroups %][% testgroup.name | html %][% UNLESS loop.last %], [% END %][% END %][% END %]</div>
+      <div id="testgroups_display[% IF ! show_edit %]_[% testcase.testcase_id | html %][% END %]">[% IF testgroups.size==0 %]<span class="errorHeading">This testcase does not belong to any testgroups that are currently enabled.</span>[% ELSE %]
+      [% FOREACH testgroup=testgroups %][% IF show_admin %]<a href="manage_testgroups.cgi?testgroup_id=[% testgroup.testgroup_id %]">[% END %][% testgroup.name | html %][% IF show_admin %]</a>[% END %][% UNLESS loop.last %], [% END %][% END %][% END %]</div>
     </td>
   </tr>
   <tr>
     <td><b>Subgroup(s):</b></td>
     <td>
-      <div id="subgroups_display[% IF ! show_edit %]_[% testcase.testcase_id | html %][% END %]">[% IF subgroups.size==0 %]<span class="errorHeading">This testcase does not belong to any subgroups that are currently enabled.</span>[% ELSE %][% FOREACH subgroup=subgroups %][% subgroup.name | html %][% UNLESS loop.last %], [% END %][% END %][% END %]</div>
+      <div id="subgroups_display[% IF ! show_edit %]_[% testcase.testcase_id | html %][% END %]">[% IF subgroups.size==0 %]<span class="errorHeading">This testcase does not belong to any subgroups that are currently enabled.</span>[% ELSE %]
+      [% FOREACH subgroup=subgroups %][% IF show_admin %]<a href="manage_subgroups.cgi?subgroup_id=[% subgroup.subgroup_id %]">[% END %][% subgroup.name | html %][% IF show_admin %]</a>[% END %][% UNLESS loop.last %], [% END %][% END %][% END %]</div>
     </td>
   </tr>
   <tr>

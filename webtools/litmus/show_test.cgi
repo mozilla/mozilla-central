@@ -155,8 +155,8 @@ if ($c->param("id")) {
     invalidInputError("\"$testcase_id\" is not a valid testcase ID.");
   }
 
-  my @testgroups = Litmus::DB::Testgroup->search_EnabledByTestcase($testcase_id);
-  my @subgroups = Litmus::DB::Subgroup->search_EnabledByTestcase($testcase_id);
+  my @testgroups = Litmus::DB::Testgroup->search_UniqueEnabledByTestcase($testcase_id);
+  my @subgroups = Litmus::DB::Subgroup->search_UniqueEnabledByTestcase($testcase_id);
 
   my @result_statuses = Litmus::DB::ResultStatus->retrieve_all();
 

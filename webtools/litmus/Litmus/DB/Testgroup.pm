@@ -82,6 +82,13 @@ WHERE tcsg.testcase_id=? AND tcsg.subgroup_id=sgtg.subgroup_id AND sgtg.testgrou
 ORDER by tg.name ASC
 });
 
+__PACKAGE__->set_sql(UniqueEnabledByTestcase => qq{
+SELECT DISTINCT(tg.testgroup_id),tg.* 
+FROM testgroups tg, subgroup_testgroups sgtg, testcase_subgroups tcsg
+WHERE tcsg.testcase_id=? AND tcsg.subgroup_id=sgtg.subgroup_id AND sgtg.testgroup_id=tg.testgroup_id AND tg.enabled=1
+ORDER by tg.name ASC
+});
+
 __PACKAGE__->set_sql(ByTestcase => qq{
 SELECT tg.* 
 FROM testgroups tg, subgroup_testgroups sgtg, testcase_subgroups tcsg
