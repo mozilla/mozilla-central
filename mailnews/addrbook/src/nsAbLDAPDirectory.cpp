@@ -258,11 +258,41 @@ NS_IMETHODIMP nsAbLDAPDirectory::SetLDAPURL(nsILDAPURL *aUrl)
 {
   NS_ENSURE_ARG_POINTER(aUrl);
 
+  nsCAutoString oldUrl;
+  // Note, it doesn't matter if GetStringValue fails - we'll just send an
+  // update if its blank (i.e. old value not set).
+  GetStringValue("uri", EmptyCString(), oldUrl);
+
+  // Actually set the new value.
   nsCString tempLDAPURL;
   nsresult rv = aUrl->GetSpec(tempLDAPURL);
   NS_ENSURE_SUCCESS(rv, rv);
 
-  return SetStringValue("uri", tempLDAPURL);
+  rv = SetStringValue("uri", tempLDAPURL);
+  NS_ENSURE_SUCCESS(rv, rv);
+
+  // Now we need to send an update which will ensure our indicators and
+  // listeners get updated correctly.
+
+  // See if they both start with ldaps: or ldap:
+  PRBool newIsNotSecure = StringHead(tempLDAPURL, 5).Equals("ldap:");
+
+  if (oldUrl.IsEmpty() ||
+      StringHead(oldUrl, 5).Equals("ldap:") != newIsNotSecure)
+  {
+    // They don't so its time to send round an update.
+    nsCOMPtr<nsIAddrBookSession> abSession =
+      do_GetService(NS_ADDRBOOKSESSION_CONTRACTID, &rv);
+    NS_ENSURE_SUCCESS(rv, rv);
+
+    // We inherit from nsAbDirProperty, so this static cast should be safe.
+    abSession->NotifyItemPropertyChanged(static_cast<nsAbDirProperty*>(this),
+      "IsSecure",
+      (newIsNotSecure ? NS_LITERAL_STRING("true") : NS_LITERAL_STRING("false")).get(),
+      (newIsNotSecure ? NS_LITERAL_STRING("false") : NS_LITERAL_STRING("true")).get());
+  }
+
+  return NS_OK;
 }
 
 /* 

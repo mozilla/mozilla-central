@@ -441,11 +441,15 @@ NS_IMETHODIMP nsAbDirectoryDataSource::OnItemPropertyChanged(nsISupports *item, 
   nsresult rv;
   nsCOMPtr<nsIRDFResource> resource(do_QueryInterface(item, &rv));
 
-  if(NS_SUCCEEDED(rv))
+  if (NS_SUCCEEDED(rv))
   {
-    if(PL_strcmp("DirName", property) == 0)
+    if (PL_strcmp("DirName", property) == 0)
     {
       NotifyPropertyChanged(resource, kNC_DirName, oldValue, newValue);
+    }
+    else if (PL_strcmp("IsSecure", property) == 0)
+    {
+      NotifyPropertyChanged(resource, kNC_IsSecure, oldValue, newValue);
     }
   }
   return NS_OK;
