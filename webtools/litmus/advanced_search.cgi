@@ -59,13 +59,14 @@ my $MAX_SORT_FIELDS = 10;
 my $MAX_SEARCH_FIELDS = 10;
 
 my $criteria = "Custom<br/>";
-my $results;
+my ($results, $pager);
 my @where;
 my @order_by;
 my $limit;
 my $where_criteria = "";
 my $order_by_criteria = "";
 my $limit_criteria = "";
+my $page = 1;
 
 my $cookie =  Litmus::Auth::getCookie();
 my $is_admin = Litmus::Auth::istrusted($cookie);
@@ -74,6 +75,13 @@ if ($c->param) {
 
     foreach my $param ($c->param) {
         next if ($c->param($param) eq '');
+        if ($param eq 'page') {
+            $page = $c->param($param);
+            if ($page !~ /^\d+$/) {
+                $page = 1;
+            }
+            next;
+        }
         
         if ($param =~ /sort_field(\d+)/) {
             # We slot sort fields into the @order_by array based on their
@@ -192,7 +200,7 @@ if ($c->param) {
         } elsif ($param eq "limit") {
             $limit = $c->param($param);
             next if ($limit == $Litmus::DB::Testresult::_num_results_default);
-            $limit_criteria .= "Limit to $limit results<br/>";
+            $limit_criteria .= "Limit to $limit results per page<br/>";
         } elsif ($param eq 'locale') {
             my $value = $c->param($param);
             push @where, {field => 'locale',
@@ -350,9 +358,10 @@ if ($c->param) {
 
         $criteria .= $where_criteria . $order_by_criteria . $limit_criteria;
         $criteria =~ s/_/ /g;
-        $results = Litmus::DB::Testresult->getTestResults(\@where,
-                                                          \@order_by,
-                                                          $limit);
+        ($results,$pager) = Litmus::DB::Testresult->getTestResults(\@where,
+                                                                   \@order_by,
+                                                                   $limit,
+                                                                   $page);
     }
 }
 
@@ -415,6 +424,10 @@ if ($results and scalar @$results > 0) {
   $vars->{results} = $results;  
 }  elsif (!$c->param) {    
   $vars->{no_search} = 1;
+}
+
+if ($pager) {
+    $vars->{pager} = $pager;
 }
 
 $vars->{"defaultemail"} = $cookie;

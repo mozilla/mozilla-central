@@ -35,6 +35,7 @@ package Litmus::DB::Testresult;
 use strict;
 use base 'Litmus::DBI';
 
+use Class::DBI::Pager;
 use Date::Manip;
 use Litmus::DB::TestRun;
 use Time::Piece;
@@ -85,23 +86,6 @@ Litmus::DB::Testresult->has_many(comments => "Litmus::DB::Comment", {order_by =>
 Litmus::DB::Testresult->has_many(bugs => "Litmus::DB::Resultbug", {order_by => 'bug_id ASC, submission_time DESC'});
 
 Litmus::DB::Testresult->autoinflate(dates => 'Time::Piece');
-
-Litmus::DB::Testresult->set_sql(DefaultTestResults => qq{
-    SELECT DISTINCT(tr.testresult_id),tr.testcase_id,t.summary,tr.submission_time AS created,pl.name AS platform_name,pr.name as product_name,trsl.name AS result_status,trsl.class_name AS result_status_class,b.name AS branch_name, tr.locale_abbrev, u.email, pl.iconpath
-    FROM test_results tr, testcases t, platforms pl, opsyses o, branches b, products pr, test_result_status_lookup trsl, users u
-    WHERE tr.testcase_id=t.testcase_id AND tr.opsys_id=o.opsys_id AND o.platform_id=pl.platform_id AND tr.branch_id=b.branch_id AND b.product_id=pr.product_id AND tr.result_status_id=trsl.result_status_id AND tr.user_id=u.user_id AND tr.valid=1
-    ORDER BY tr.submission_time DESC, t.testcase_id DESC
-    LIMIT $_num_results_default 
-});
-
-Litmus::DB::Testresult->set_sql(CommonResults => qq{ 
-    SELECT COUNT(tr.testcase_id) AS num_results, tr.testcase_id, t.summary, MAX(tr.submission_time) AS most_recent, MAX(tr.testresult_id) AS max_id 
-    FROM test_results tr, testcases t, test_result_status_lookup trsl 
-    WHERE tr.testcase_id=t.testcase_id AND tr.result_status_id=trsl.result_status_id AND trsl.class_name=? 
-    GROUP BY tr.testcase_id 
-    ORDER BY num_results DESC, tr.testresult_id DESC 
-    LIMIT 15
-    });
 
 Litmus::DB::Testresult->set_sql(Completed => qq{
     SELECT tr.* 
@@ -182,11 +166,33 @@ sub istrusted {
 # &getDefaultTestResults($)
 #
 #########################################################################
-sub getDefaultTestResults($) {
+sub getDefaultTestResults($$) {
     my $self = shift;
-    my @rows = $self->search_DefaultTestResults();
-    my $criteria = "Default<br/>Ordered by Created<br/>Limit to $_num_results_default results";
-    return $criteria, \@rows;
+    my $page = shift || 1;
+
+    my $sql = qq{
+SELECT DISTINCT(tr.testresult_id),tr.testcase_id,t.summary,
+       tr.submission_time AS created,pl.name AS platform_name,
+       pr.name as product_name,trsl.name AS result_status,
+       trsl.class_name AS result_status_class,b.name AS branch_name,
+       tr.locale_abbrev, u.email, pl.iconpath
+FROM test_results tr, testcases t, platforms pl, opsyses o, branches b,
+     products pr, test_result_status_lookup trsl, users u
+WHERE tr.valid=1 AND tr.testcase_id=t.testcase_id AND tr.opsys_id=o.opsys_id AND
+    o.platform_id=pl.platform_id AND tr.branch_id=b.branch_id AND
+    b.product_id=pr.product_id AND tr.result_status_id=trsl.result_status_id AND
+    tr.user_id=u.user_id
+ORDER BY tr.submission_time DESC, t.testcase_id DESC
+    };
+
+    my $dbh = Litmus::DBI->db_ReadOnly();
+    my $sth = $dbh->prepare($sql);
+    $sth->execute();
+    my $pager = __PACKAGE__->pager($_num_results_default,$page);
+    my @rows = $pager->sth_to_objects($sth);
+    my $criteria = "Default<br/>Ordered by Created<br/>Limit to $_num_results_default results per page";
+
+    return $criteria, \@rows, $pager;
 }
 
 #########################################################################
@@ -194,7 +200,15 @@ sub getDefaultTestResults($) {
 # 
 ######################################################################### 
 sub getTestResults($\@\@$) {
-    my ($self,$where_criteria,$order_by_criteria,$limit_value) = @_;
+    my ($self,$where_criteria,$order_by_criteria,$limit_value,$page) = @_;
+
+    if (!$limit_value or $limit_value eq '') {
+        $limit_value = "$_num_results_default";
+    }
+
+    if (!$page) {
+        $page = 1;
+    }
     
     my $select = 'SELECT DISTINCT(tr.testresult_id),tr.testcase_id,t.summary,tr.submission_time AS created,pl.name AS platform_name,pr.name as product_name,trsl.name AS result_status,trsl.class_name AS result_status_class,b.name AS branch_name,tg.name AS test_group_name, tr.locale_abbrev, u.email, pl.iconpath';
     
@@ -202,8 +216,6 @@ sub getTestResults($\@\@$) {
     
     my $where = 'WHERE tr.testcase_id=t.testcase_id AND tr.opsys_id=o.opsys_id AND o.platform_id=pl.platform_id AND tr.branch_id=b.branch_id AND b.product_id=pr.product_id AND tr.result_status_id=trsl.result_status_id AND tcsg.testcase_id=tr.testcase_id AND tcsg.subgroup_id=sg.subgroup_id AND sg.subgroup_id=sgtg.subgroup_id AND sgtg.testgroup_id=tg.testgroup_id AND tr.user_id=u.user_id';
     
-    my $limit = 'LIMIT ';
-
     foreach my $criterion (@$where_criteria) {
         $criterion->{'value'} =~ s/'/\\\'/g;
         if ($criterion->{'field'} eq 'product') {
@@ -372,27 +384,22 @@ sub getTestResults($\@\@$) {
     } else {
         chop($order_by);
     }
-
-    if ($limit_value and $limit_value ne '') {
-        $limit .= "$limit_value";
-    } else {
-        $limit .= "$_num_results_default";
-    }
-    
-    my $sql = "$select $from $where $group_by $order_by $limit";
+  
+    my $sql = "$select $from $where $group_by $order_by";
     my $dbh = Litmus::DBI->db_ReadOnly();
     my $sth = $dbh->prepare($sql);
     $sth->execute();
-    my @rows = $self->sth_to_objects($sth);
+    my $pager = __PACKAGE__->pager($limit_value,$page);
+    my @rows = $pager->sth_to_objects($sth);
     
-    return \@rows;
+    return \@rows, $pager;
 }
 
 #########################################################################
 # &_processSearchField(\%\$\$)
 # 
 ######################################################################### 
-sub _processSearchField(\%) {
+sub _processSearchField(\%\$\$) {
     my ($search_field,$from,$where) = @_;
  
     my $table_field = "";
@@ -475,9 +482,10 @@ sub _processSearchField(\%) {
 }
 
 #########################################################################
+# &getCommonResults($$$$)
 #########################################################################
-sub getCommonResults($$) {
-    my ($self,$status,$limit_value) = @_;
+sub getCommonResults($$$$) {
+    my ($self,$status,$limit_value,$page) = @_;
     
     if (!$status) {
       return undef;
@@ -487,8 +495,29 @@ sub getCommonResults($$) {
         $limit_value = $_num_results_default;
     }
 
-    my @rows = $self->search_CommonResults($status);
-    return \@rows;    
+    if (!$page) {
+        $page = 1;
+    }
+
+    my $sql =  qq{
+SELECT COUNT(tr.testcase_id) AS num_results, tr.testresult_id, tr.testcase_id,
+       t.summary, MAX(tr.submission_time) AS most_recent,
+       MAX(tr.testresult_id) AS max_id 
+FROM test_results tr, testcases t, test_result_status_lookup trsl 
+WHERE trsl.class_name='fail' AND
+      tr.result_status_id=trsl.result_status_id AND
+      tr.testcase_id=t.testcase_id
+GROUP BY tr.testcase_id 
+ORDER BY num_results DESC, tr.testresult_id DESC
+};
+
+    my $dbh = Litmus::DBI->db_ReadOnly();
+    my $sth = $dbh->prepare($sql);
+    my $pager = __PACKAGE__->pager($limit_value,$page);
+    $sth->execute();
+    my @rows = $pager->sth_to_objects($sth);
+    
+    return \@rows, $pager;
 }
 
 1;

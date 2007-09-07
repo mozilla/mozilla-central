@@ -36,7 +36,6 @@ use Litmus::Error;
 use Litmus::DB::Testresult;
 use Litmus::FormWidget;
 
-
 use CGI;
 use Time::Piece::MySQL;
 
@@ -44,12 +43,24 @@ Litmus->init();
 my $c = Litmus->cgi();
 print $c->header();
 
-my $results;
+my $page = 1;
+if ($c->param('page')) {
+  $page = $c->param('page');
+  if ($page !~ /^\d+$/) {
+    $page = 1;
+  }
+}
+
+my ($results,$pager);
 if ($c->param and $c->param('status')) {
   if ($c->param('status') =~ /pass/i or
       $c->param('status') =~ /fail/i or
       $c->param('status') =~ /unclear/i) {
-    $results = Litmus::DB::Testresult->getCommonResults($c->param('status'));
+    ($results,$pager) = Litmus::DB::Testresult->getCommonResults(
+                                                                 $c->param('status'),
+                                                                 25,
+                                                                 $page
+                                                                 );
   } else {
     internalError("You must provide a valid status type: pass|fail|unclear");
     exit 1;
@@ -76,6 +87,10 @@ my $vars = {
 # Only include results if we have them.
 if ($results and scalar @$results > 0) {
     $vars->{results} = $results;
+}
+
+if ($pager) {
+    $vars->{pager} = $pager;
 }
 
 $vars->{"defaultemail"} = Litmus::Auth::getCookie();

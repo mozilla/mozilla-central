@@ -51,7 +51,7 @@ my $sql = "SELECT tg.name AS testgroup_name,pr.name AS product_name,b.name AS br
   FROM testgroups tg, products pr, branches b, subgroup_testgroups sgtg, testcase_subgroups tcsg, testcases tc, test_results tr 
   WHERE tg.branch_id=b.branch_id AND tg.product_id=pr.product_id AND tg.enabled=1 AND tg.testgroup_id=sgtg.testgroup_id AND sgtg.subgroup_id=tcsg.subgroup_id AND tcsg.testcase_id=tc.testcase_id AND tc.testcase_id=tr.testcase_id AND tc.enabled=1 AND tr.branch_id=tc.branch_id AND tc.product_id=tg.product_id 
   GROUP BY tg.name,pr.name,b.name 
-  ORDER BY pr.name, b.name";
+  ORDER BY pr.name, b.name, num_results DESC";
 my $sth = $dbh->prepare($sql);
 $sth->execute();
 while (my $data = $sth->fetchrow_hashref) {
@@ -59,10 +59,9 @@ while (my $data = $sth->fetchrow_hashref) {
 }
 $sth->finish();
 
-my $vars = {
-            title => $title,
-            status => $c->param('status'),
-           };
+my $vars;
+$vars->{title} = $title;
+$vars->{status} = $c->param('status');
 
 # Only include results if we have them.
 if ($results and scalar @$results > 0) {

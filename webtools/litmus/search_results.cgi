@@ -44,15 +44,23 @@ my $c = Litmus->cgi();
 print $c->header();
 
 my $criteria = "Custom<br/>";
-my $results;
+my ($results, $pager);
 my @where;
 my @order_by;
 my $limit = $Litmus::DB::Testresult::_num_results_default;
 my $where_criteria = "";
 my $order_by_criteria = "";
 my $limit_criteria = "";
+my $page = 1;
 if ($c->param) {    
     foreach my $param ($c->param) {
+        if ($param eq 'page') {
+            $page = $c->param($param);
+            if ($page !~ /^\d+$/) {
+                $page = 1;
+            }
+            next;
+        }
         next if ($c->param($param) eq '');
         if ($param =~ /^order_by_(.*)$/) {
             my $order_by_proto = quotemeta($1);
@@ -156,7 +164,7 @@ if ($c->param) {
         } elsif ($param eq "limit") {
             $limit = quotemeta($c->param($param));
             next if ($limit == $Litmus::DB::Testresult::_num_results_default);
-            $limit_criteria .= "Limit to $limit results";
+            $limit_criteria .= "Limit to $limit results per page";
         } elsif ($param eq "has_comments") {
           my $value = quotemeta($c->param($param));
           push @where, {field => $param,
@@ -169,18 +177,19 @@ if ($c->param) {
     if ($where_criteria eq '' and 
         $order_by_criteria eq '' and
         $limit_criteria eq '') {
-        ($criteria,$results) = 
-          Litmus::DB::Testresult->getDefaultTestResults;    
+        ($criteria,$results,$pager) = 
+          Litmus::DB::Testresult->getDefaultTestResults($page);    
     } else {
         $criteria .= $where_criteria . $order_by_criteria . $limit_criteria;
         $criteria =~ s/_/ /g;
-        $results = Litmus::DB::Testresult->getTestResults(\@where,
-                                                          \@order_by,
-                                                          $limit);
+        ($results,$pager) = Litmus::DB::Testresult->getTestResults(\@where,
+                                                                   \@order_by,
+                                                                   $limit,
+                                                                   $page);
     }
 } else {
-    ($criteria,$results) = 
-      Litmus::DB::Testresult->getDefaultTestResults;    
+    ($criteria,$results,$pager) = 
+      Litmus::DB::Testresult->getDefaultTestResults($page);    
 }
 
 # Populate each of our form widgets for select/input.
@@ -216,6 +225,10 @@ my $vars = {
 # Only include results if we have them.
 if ($results and scalar @$results > 0) {
     $vars->{results} = $results;
+}
+
+if ($pager) {
+    $vars->{pager} = $pager;
 }
 
 my $cookie =  Litmus::Auth::getCookie();
