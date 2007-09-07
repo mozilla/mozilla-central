@@ -60,7 +60,7 @@ function onDismissAlarm(event) {
 function onDismissAllAlarms(event) {
     // removes widgets on the fly:
     var alarmlist = document.getElementById("alarmlist");
-    for (var i = 0; i < alarmlist.childNodes.length; ++i) {
+    for (var i = alarmlist.childNodes.length-1; i >= 0; i--) {
         getAlarmService().dismissAlarm(alarmlist.childNodes[i].item);
     }
     return true; // close dialog
