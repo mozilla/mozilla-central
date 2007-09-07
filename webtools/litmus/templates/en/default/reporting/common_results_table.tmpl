@@ -25,7 +25,26 @@
   # ***** END LICENSE BLOCK *****
 #%]
 
+[% BLOCK pager_nav %]
+[% IF pager %]
+<tr>
+  <td align="right" colspan="4">[% IF pager.previous_page %]
+  <a class="pageFirst" href="">First</a> | 
+  <a class="pagePrevious" href="">
+  &laquo;&nbsp;prev&nbsp;[% pager.entries_per_page %]</a>[% IF pager.next_page %] | [% END %]
+  [% END %]
+  [% IF pager.next_page %]
+  <a class="pageNext" href="">
+  next&nbsp;[% pager.entries_per_page %]&nbsp;&raquo;</a> |
+  <a class="pageLast" href="">Last</a>
+  [% END %]
+    </td>
+</tr>
+[% END %]
+[% END %]
+
 <table class="test-results">
+[% INCLUDE pager_nav %]
   <tr>
     <td class="header"># of Results</td>
     <td class="header">Testcase ID#</td>
@@ -48,6 +67,7 @@
     [% result.most_recent | html %]</a></td>
 </tr>
   [% END %]
+[% INCLUDE pager_nav %]
 [% ELSE %]
   <tr>
     <td class="no-results" colspan="4">No test results match the search criteria.</td>
@@ -56,3 +76,30 @@
 
 </table>
 </form>
+
+[% IF pager %]
+<script type="text/javascript">
+var linkBase = document.location + ''; 
+// We may already have a page= in our search string.
+if (linkBase.indexOf('?') != -1) {
+    linkBase = linkBase.replace(/[\?\&]page=\d+/g,"");
+}
+if (linkBase.indexOf('?') != -1) {
+    linkBase = linkBase + '&';
+} else {
+    linkBase = linkBase + '?';
+}
+[% IF pager.current_page > 1 %]
+linkFirst = linkBase + 'page=1';
+linkPrevious = linkBase + 'page=[% pager.previous_page %]';
+rewriteLinksByClassName('pageFirst',linkFirst);
+rewriteLinksByClassName('pagePrevious',linkPrevious);
+[% END %]
+[% IF pager.current_page < pager.last_page %]
+linkNext = linkBase + 'page=[% pager.next_page %]';
+linkLast = linkBase + 'page=[% pager.last_page %]';
+rewriteLinksByClassName('pageNext',linkNext);
+rewriteLinksByClassName('pageLast',linkLast);
+[% END %]
+</script>
+[% END %]

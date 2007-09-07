@@ -45,7 +45,31 @@
 </script>
 [% END %]
 
+[% colspan=9 %]
+[% IF show_admin==1 %]
+  [% colspan=10 %]
+[% END %]
+
+[% BLOCK pager_nav %]
+[% IF pager AND pager.total_entries > pager.entries_on_this_page %]
+<tr>
+  <td align="right" colspan="[% colspan%]">[% IF pager.previous_page %]
+  <a class="pageFirst" href="">First</a> | 
+  <a class="pagePrevious" href="">
+  &laquo;&nbsp;prev&nbsp;[% pager.entries_per_page %]</a>[% IF pager.next_page %] | [% END %]
+  [% END %]
+  [% IF pager.next_page %]
+  <a class="pageNext" href="">
+  next&nbsp;[% pager.entries_per_page %]&nbsp;&raquo;</a> |
+  <a class="pageLast" href="">Last</a>
+  [% END %]
+    </td>
+</tr>
+[% END %]
+[% END %]
+
 <table class="test-results">
+[% INCLUDE pager_nav %]
   <tr>
     <td colspan="2" class="header">Submission Date</td>
     <td class="header">Result ID#</td>    
@@ -56,11 +80,6 @@
     <td class="header">Branch</td>
     <td class="header">Locale</td>
   </tr>
-
-[% colspan=9 %]
-[% IF show_admin==1 %]
-  [% colspan=10 %]
-[% END %]
 
 [% IF results AND results.size > 0 %]
   [% subscript=0 %]
@@ -84,6 +103,7 @@
 </tr>
   [% subscript=subscript+1 %]
   [% END %]
+[% INCLUDE pager_nav %]
 
 [% ELSE %]
   <tr>
@@ -96,3 +116,29 @@
 [% END %]
 </table>
 
+[% IF pager %]
+<script type="text/javascript">
+var linkBase = document.location + ''; 
+// We may already have a page= in our search string.
+if (linkBase.indexOf('?') != -1) {
+    linkBase = linkBase.replace(/[\?\&]page=\d+/g,"");
+}
+if (linkBase.indexOf('?') != -1) {
+    linkBase = linkBase + '&';
+} else {
+    linkBase = linkBase + '?';
+}
+[% IF pager.current_page > 1 %]
+linkFirst = linkBase + 'page=1';
+linkPrevious = linkBase + 'page=[% pager.previous_page %]';
+rewriteLinksByClassName('pageFirst',linkFirst);
+rewriteLinksByClassName('pagePrevious',linkPrevious);
+[% END %]
+[% IF pager.current_page < pager.last_page %]
+linkNext = linkBase + 'page=[% pager.next_page %]';
+linkLast = linkBase + 'page=[% pager.last_page %]';
+rewriteLinksByClassName('pageNext',linkNext);
+rewriteLinksByClassName('pageLast',linkLast);
+[% END %]
+</script>
+[% END %]

@@ -6,6 +6,7 @@ Apache::DBI - if mod_perl is being used
 CGI
 Class::DBI 
 Class::DBI::mysql 
+Class::DBI::Pager
 Data::Dumper
 Data::JavaScript
 Date::Manip

@@ -47,7 +47,8 @@ function checkSearchForm(f)
     if (f.summary.value=='-Summary-') {
         f.summary.value = '';
     }
-    if (f.email.value=='-Submitted By-') {
+    if (f.email &&
+        f.email.value=='-Submitted By-') {
         f.email.value = '';
     }
 }
