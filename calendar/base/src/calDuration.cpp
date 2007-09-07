@@ -221,7 +221,8 @@ NS_IMETHODIMP calDuration::SetInSeconds(PRInt32 aValue)
     if (mDuration.is_neg)
         aValue = -aValue;
 
-    mDuration.weeks = aValue / SECONDS_PER_WEEK;
+    // set weeks exOR days/hours/...
+    mDuration.weeks = ((aValue % SECONDS_PER_WEEK) == 0 ? aValue / SECONDS_PER_WEEK : 0);
     aValue -= (mDuration.weeks * SECONDS_PER_WEEK);
 
     mDuration.days = aValue / SECONDS_PER_DAY;
