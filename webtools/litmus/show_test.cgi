@@ -87,6 +87,7 @@ if (! $c->param) {
 
 if ($c->param("id")) {
   my $testcase_id = $c->param("id");
+  my $page = $c->param("page") || 1;
 
   # Process changes to testcases:
   # Only users with canedit can edit testcases.
@@ -165,7 +166,10 @@ if ($c->param("id")) {
   push @where, { field => 'testcase', value => $testcase_id };
   my @order_by;
   push @order_by, { field => 'created', direction => 'DESC' };
-  my $test_results = Litmus::DB::Testresult->getTestResults(\@where,\@order_by);
+  my ($test_results,$pager) = Litmus::DB::Testresult->getTestResults(\@where,
+                                                                     \@order_by,
+                                                                     undef,
+                                                                     $page);
 
   my ($status, $message);
   if ($c->param('resultSubmission')) {
@@ -182,6 +186,7 @@ if ($c->param("id")) {
   $vars->{'result_statuses'} = \@result_statuses;
   $vars->{'showallresults'} = $showallresults;
   $vars->{'test_results'} = $test_results;
+  $vars->{'pager'} = $pager;
 
   if ($status and $message) {
     $vars->{'onload'} = "toggleMessage('$status','$message');";
