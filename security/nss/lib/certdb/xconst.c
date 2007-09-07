@@ -293,7 +293,7 @@ CERT_DecodeAuthInfoAccessExtension(PRArenaPool *reqArena,
 }
 
 SECStatus
-cert_EncodeAuthInfoAccessExtension(PRArenaPool *arena,
+CERT_EncodeInfoAccessExtension(PRArenaPool *arena,
 				   CERTAuthInfoAccess **info,
 				   SECItem *dest)
 {

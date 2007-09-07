@@ -902,6 +902,13 @@ DER_TimeToGeneralizedTimeArena;
 ;+NSS_3.12 { 	# NSS 3.12 release
 ;+    global:
 CERT_CheckNameSpace;
+CERT_EncodeCertPoliciesExtension;
+CERT_EncodeInfoAccessExtension;
+CERT_EncodeInhibitAnyExtension;
+CERT_EncodeNoticeReference;
+CERT_EncodePolicyConstraintsExtension;
+CERT_EncodePolicyMappingExtension;
+CERT_EncodeUserNotice;
 CERT_FindCRLEntryReasonExten;
 CERT_FindCRLNumberExten;
 CERT_FindNameConstraintsExten;

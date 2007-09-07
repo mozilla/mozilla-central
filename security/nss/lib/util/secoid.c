@@ -358,6 +358,8 @@ CONST_OID x509InhibitAnyPolicy[]           	= { ID_CE_OID, 54 };
 CONST_OID x509AuthInfoAccess[]        		= { PKIX_CERT_EXTENSIONS,  1 };
 CONST_OID x509SubjectInfoAccess[]               = { PKIX_CERT_EXTENSIONS, 11 };
 
+CONST_OID x509SIATimeStamping[]                 = {PKIX_ACCESS_DESCRIPTION, 0x03};
+CONST_OID x509SIACaRepository[]                 = {PKIX_ACCESS_DESCRIPTION, 0x05};
 
 /* pkcs 12 additions */
 CONST_OID pkcs12[]                           = { PKCS12 };
@@ -1559,6 +1561,14 @@ const static SECOidData oids[] = {
 	CKM_SHA384_HMAC, INVALID_CERT_EXTENSION ),
     OD( hmac_sha512, SEC_OID_HMAC_SHA512, "HMAC SHA-512", 
 	CKM_SHA512_HMAC, INVALID_CERT_EXTENSION ),
+
+    /* SIA extension OIDs */
+    OD( x509SIATimeStamping,          SEC_OID_PKIX_TIMESTAMPING,
+        "SIA Time Stamping",          CKM_INVALID_MECHANISM,
+	INVALID_CERT_EXTENSION ),
+    OD( x509SIACaRepository,          SEC_OID_PKIX_CA_REPOSITORY,
+        "SIA CA Repository",          CKM_INVALID_MECHANISM,
+	INVALID_CERT_EXTENSION ),
 
 };
 

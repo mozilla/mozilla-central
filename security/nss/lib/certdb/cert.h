@@ -37,7 +37,7 @@
 /*
  * cert.h - public data structures and prototypes for the certificate library
  *
- * $Id: cert.h,v 1.59 2007-07-14 05:51:00 nelson%bolyard.com Exp $
+ * $Id: cert.h,v 1.60 2007-09-07 18:45:51 neil.williams%sun.com Exp $
  */
 
 #ifndef _CERT_H_
@@ -1557,6 +1557,44 @@ CERT_FindNameConstraintsExten(PRArenaPool      *arena,
  */
 extern CERTGeneralName *
 CERT_NewGeneralName(PLArenaPool *arena, CERTGeneralNameType type);
+
+/*
+ * PKIX extension encoding routines
+ */
+extern SECStatus
+CERT_EncodePolicyConstraintsExtension(PRArenaPool *arena,
+                                      CERTCertificatePolicyConstraints *constr,
+                                      SECItem *dest);
+extern SECStatus
+CERT_EncodeInhibitAnyExtension(PRArenaPool *arena,
+                               CERTCertificateInhibitAny *inhibitAny,
+                               SECItem *dest);
+extern SECStatus
+CERT_EncodePolicyMappingExtension(PRArenaPool *arena,
+                                  CERTCertificatePolicyMappings *maps,
+                                  SECItem *dest);
+
+extern SECStatus CERT_EncodeInfoAccessExtension(PRArenaPool *arena,
+                                                    CERTAuthInfoAccess **info,
+                                                    SECItem *dest);
+extern SECStatus
+CERT_EncodeUserNotice(PRArenaPool *arena,
+                      CERTUserNotice *notice,
+                      SECItem *dest);
+
+extern SECStatus
+CERT_EncodeDisplayText(PRArenaPool *arena,
+                       SECItem *text,
+                       SECItem *dest);
+
+extern SECStatus
+CERT_EncodeCertPoliciesExtension(PRArenaPool *arena,
+                                 CERTPolicyInfo **info,
+                                 SECItem *dest);
+extern SECStatus
+CERT_EncodeNoticeReference(PRArenaPool *arena,
+                           CERTNoticeReference *reference,
+                           SECItem *dest);
 
 SEC_END_PROTOS
 

@@ -68,6 +68,7 @@
 #include "secoid.h"
 #include "certdb.h"
 #include "nss.h"
+#include "certutil.h"
 
 #define MIN_KEY_BITS		512
 /* MAX_KEY_BITS should agree with MAX_RSA_MODULUS in freebl */
@@ -76,21 +77,7 @@
 
 #define GEN_BREAK(e) rv=e; break;
 
-
-extern SECKEYPrivateKey *CERTUTIL_GeneratePrivateKey(KeyType keytype,
-						     PK11SlotInfo *slot, 
-                                                     int rsasize,
-						     int publicExponent,
-						     char *noise,
-						     SECKEYPublicKey **pubkeyp,
-						     char *pqgFile,
-                                                     secuPWData *pwdata);
-
 char *progName;
-
-extern SECStatus
-AddExtensions(void *, const char *, const char *, PRBool, PRBool,
-              PRBool, PRBool, PRBool, PRBool);
 
 static CERTCertificateRequest *
 GetCertRequest(PRFileDesc *inFile, PRBool ascii)
@@ -239,12 +226,7 @@ static SECStatus
 CertReq(SECKEYPrivateKey *privk, SECKEYPublicKey *pubk, KeyType keyType,
         SECOidTag hashAlgTag, CERTName *subject, char *phone, int ascii, 
 	const char *emailAddrs, const char *dnsNames,
-        PRBool	keyUsage, 
-	PRBool  extKeyUsage,
-	PRBool  basicConstraint, 
-	PRBool  authKeyID,
-	PRBool  crlDistPoints, 
-	PRBool  nscpCertType,
+        certutilExtnList extnList,
         PRFileDesc *outFile)
 {
     CERTSubjectPublicKeyInfo *spki;
@@ -282,8 +264,7 @@ CertReq(SECKEYPrivateKey *privk, SECKEYPublicKey *pubk, KeyType keyType,
         PORT_FreeArena (arena, PR_FALSE);
 	return SECFailure;
     }
-    if (AddExtensions(extHandle, emailAddrs, dnsNames, keyUsage, extKeyUsage,
-                      basicConstraint, authKeyID, crlDistPoints, nscpCertType)
+    if (AddExtensions(extHandle, emailAddrs, dnsNames, extnList)
                   != SECSuccess) {
         PORT_FreeArena (arena, PR_FALSE);
         return SECFailure;
@@ -293,7 +274,7 @@ CertReq(SECKEYPrivateKey *privk, SECKEYPublicKey *pubk, KeyType keyType,
 
     /* Der encode the request */
     encoding = SEC_ASN1EncodeItem(arena, NULL, cr,
-		  SEC_ASN1_GET(CERT_CertificateRequestTemplate));
+                                  SEC_ASN1_GET(CERT_CertificateRequestTemplate));
     if (encoding == NULL) {
 	SECU_PrintError(progName, "der encoding of request failed");
 	return SECFailure;
@@ -1406,12 +1387,7 @@ CreateCert(
 	const char *dnsNames,
 	PRBool  ascii,
 	PRBool  selfsign,
-	PRBool	keyUsage, 
-	PRBool  extKeyUsage,
-	PRBool  basicConstraint, 
-	PRBool  authKeyID,
-	PRBool  crlDistPoints, 
-	PRBool  nscpCertType)
+	certutilExtnList extnList)
 {
     void *	extHandle;
     SECItem *	certDER;
@@ -1447,8 +1423,7 @@ CreateCert(
 	    GEN_BREAK (SECFailure)
 	}
         
-        rv = AddExtensions(extHandle, emailAddrs, dnsNames, keyUsage, extKeyUsage,
-                          basicConstraint, authKeyID, crlDistPoints, nscpCertType);
+        rv = AddExtensions(extHandle, emailAddrs, dnsNames, extnList);
         if (rv != SECSuccess) {
 	    GEN_BREAK (SECFailure)
 	}
@@ -1641,6 +1616,8 @@ static const secuCommand certutil = {
     certutil_commands, 
     certutil_options
 };
+
+static certutilExtnList certutil_extns;
 
 static int 
 certutil_main(int argc, char **argv, PRBool initialize)
@@ -2196,6 +2173,26 @@ certutil_main(int argc, char **argv, PRBool initialize)
 	}
     }
 
+    /* If we need a list of extensions convert the flags into list format */
+    if (certutil.commands[cmd_CertReq].activated ||
+        certutil.commands[cmd_CreateAndAddCert].activated ||
+        certutil.commands[cmd_CreateNewCert].activated) {
+        certutil_extns[ext_keyUsage] =
+				certutil.options[opt_AddKeyUsageExt].activated;
+        certutil_extns[ext_basicConstraint] =
+				certutil.options[opt_AddBasicConstraintExt].activated;
+        certutil_extns[ext_authorityKeyID] =
+				certutil.options[opt_AddAuthorityKeyIDExt].activated;
+        certutil_extns[ext_CRLDistPts] =
+				certutil.options[opt_AddCRLDistPtsExt].activated;
+        certutil_extns[ext_NSCertType] =
+				certutil.options[opt_AddNSCertTypeExt].activated;
+        certutil_extns[ext_extKeyUsage] =
+				certutil.options[opt_AddExtKeyUsageExt].activated;
+	/* We can't generate the rest of the extensions yet. When long form
+	 * options are available this code block will be extended
+	 */
+    }
     /*
      *  Certificate request
      */
@@ -2207,12 +2204,7 @@ certutil_main(int argc, char **argv, PRBool initialize)
 	             certutil.options[opt_ASCIIForIO].activated,
 		     certutil.options[opt_ExtendedEmailAddrs].arg,
 		     certutil.options[opt_ExtendedDNSNames].arg,
-                     certutil.options[opt_AddKeyUsageExt].activated,
-                     certutil.options[opt_AddExtKeyUsageExt].activated,
-                     certutil.options[opt_AddBasicConstraintExt].activated,
-                     certutil.options[opt_AddAuthorityKeyIDExt].activated,
-                     certutil.options[opt_AddCRLDistPtsExt].activated,
-                     certutil.options[opt_AddNSCertTypeExt].activated,
+                     certutil_extns,
                      outFile ? outFile : PR_STDOUT);
 	if (rv) 
 	    goto shutdown;
@@ -2228,17 +2220,13 @@ certutil_main(int argc, char **argv, PRBool initialize)
      *  and output the cert to another file.
      */
     if (certutil.commands[cmd_CreateAndAddCert].activated) {
+	static certutilExtnList nullextnlist = {PR_FALSE};
 	rv = CertReq(privkey, pubkey, keytype, hashAlgTag, subject,
 	             certutil.options[opt_PhoneNumber].arg,
 	             certutil.options[opt_ASCIIForIO].activated,
 		     NULL,
 		     NULL,
-                     PR_FALSE,
-                     PR_FALSE,
-                     PR_FALSE,
-                     PR_FALSE,
-                     PR_FALSE,
-                     PR_FALSE,
+                     nullextnlist,
                      outFile ? outFile : PR_STDOUT);
 	if (rv) 
 	    goto shutdown;
@@ -2271,12 +2259,7 @@ certutil_main(int argc, char **argv, PRBool initialize)
 		        certutil.options[opt_ExtendedDNSNames].arg,
 	                certutil.options[opt_ASCIIForIO].activated,
 	                certutil.options[opt_SelfSign].activated,
-	                certutil.options[opt_AddKeyUsageExt].activated,
-	                certutil.options[opt_AddExtKeyUsageExt].activated,
-	                certutil.options[opt_AddBasicConstraintExt].activated,
-	                certutil.options[opt_AddAuthorityKeyIDExt].activated,
-	                certutil.options[opt_AddCRLDistPtsExt].activated,
-	                certutil.options[opt_AddNSCertTypeExt].activated);
+	                certutil_extns);
 	if (rv) 
 	    goto shutdown;
     }
