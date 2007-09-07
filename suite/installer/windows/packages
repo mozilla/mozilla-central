@@ -196,11 +196,9 @@ bin\components\related.xpt
 bin\components\satchel.dll
 bin\components\satchel.xpt
 bin\components\saxparser.xpt
-bin\components\search.xpt
 bin\components\shistory.xpt
 bin\components\sidebar.xpt
 bin\components\signonviewer.xpt
-bin\components\srchsvc.dll
 bin\components\storage.xpt
 bin\components\strgcmps.dll
 bin\components\suite.dll

@@ -18,5 +18,7 @@ extensions/talkback@mozilla.org/InstallDisabled
 components/airbag.xpt
 components/nsCloseAllWindows.js
 components/nsKillAll.js
+components/search.xpt
+components/srchsvc.dll
 components/urlwidgt.xpt
 components/venkman-service.js
