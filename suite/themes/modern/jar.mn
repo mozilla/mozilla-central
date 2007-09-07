@@ -1,19 +1,10 @@
 modern.jar:
-#ifdef MOZ_XUL_APP
 % skin communicator modern/1.0 %skin/modern/communicator/
 % skin editor modern/1.0 %skin/modern/editor/
 % skin global modern/1.0 %skin/modern/global/
 % skin help modern/1.0 %skin/modern/help/
 % skin messenger modern/1.0 %skin/modern/messenger/
 % skin navigator modern/1.0 %skin/modern/navigator/
-#else
-* skin/modern/communicator/contents.rdf                            (communicator/contents.rdf)
-* skin/modern/editor/contents.rdf                                  (editor/contents.rdf)
-* skin/modern/global/contents.rdf                                  (global/contents.rdf)
-* skin/modern/messenger/contents.rdf                               (messenger/contents.rdf)
-* skin/modern/navigator/contents.rdf                               (navigator/contents.rdf)
-  skin/modern/global/preview.gif                                   (global/preview.gif)
-#endif
   skin/modern/communicator/brand.css                               (communicator/brand.css)
   skin/modern/communicator/prefpanels.css                          (communicator/prefpanels.css)
   skin/modern/communicator/tasksOverlay.css                        (communicator/tasksOverlay.css)

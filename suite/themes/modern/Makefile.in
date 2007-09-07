@@ -37,17 +37,10 @@
 #
 # ***** END LICENSE BLOCK *****
 
-DEPTH		= ../..
+DEPTH		= ../../..
 topsrcdir	= @top_srcdir@
 srcdir		= @srcdir@
 VPATH		= @srcdir@
-
-# XXX This include can be removed when the ifdef MOZ_XUL_APP is removed
-# below.
-include $(DEPTH)/config/autoconf.mk
-
-# XXX Remove this ifdef once SeaMonkey becomes a full XUL app.
-ifdef MOZ_XUL_APP
 
 USE_EXTENSION_MANIFEST = 1
 
@@ -58,18 +51,15 @@ FINAL_TARGET = $(DIST)/bin/extensions/modern@themes.mozilla.org
 DEFINES += -DSEAMONKEY_VERSION=$(SEAMONKEY_VERSION)
 
 DIST_FILES = \
-	../../suite/themes/modern/install.rdf \
+	install.rdf \
 	$(NULL)
 
 FILES = \
-	$(topsrcdir)/suite/themes/modern/preview.png \
-	$(topsrcdir)/suite/themes/modern/icon.png \
+	$(srcdir)/preview.png \
+	$(srcdir)/icon.png \
 	$(NULL)
 
 libs::
 	$(INSTALL) $(FILES) $(FINAL_TARGET)
 
-endif
-
 include $(topsrcdir)/config/rules.mk
-
