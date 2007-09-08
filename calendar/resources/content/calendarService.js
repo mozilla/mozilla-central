@@ -121,12 +121,14 @@ CLineService.prototype = {
     /* nsICommandLineHandler */
 
     handle : function service_handle(cmdLine) {
-        // just pass all arguments on to the Sunbird window
-        wwatch = Components.classes[WINDOWWATCHER_CONTRACTID]
-                           .getService(nsIWindowWatcher);
-        wwatch.openWindow(null, "chrome://calendar/content/",
-                              "_blank", "chrome,dialog=no,all", cmdLine);
-        cmdLine.preventDefault = true;
+        if (!cmdLine.preventDefault) {
+            // just pass all arguments on to the Sunbird window
+            wwatch = Components.classes[WINDOWWATCHER_CONTRACTID]
+                               .getService(nsIWindowWatcher);
+            wwatch.openWindow(null, "chrome://calendar/content/",
+                                  "_blank", "chrome,dialog=no,all", cmdLine);
+            cmdLine.preventDefault = true;
+        }
     },
 
     helpInfo : "  -subscribe or -url   Pass in a path pointing to a calendar\n" +
@@ -305,7 +307,7 @@ function (compMgr, fileSpec, location, type)
     catman.addCategoryEntry("command-line-argument-handlers",
                             "calendar command line handler",
                             CLINE_SERVICE_CONTRACTID, true, true);
-    catman.addCategoryEntry("command-line-handler", "m-calendar",
+    catman.addCategoryEntry("command-line-handler", "x-default",
                             CLINE_SERVICE_CONTRACTID, true, true);
 
     // dump("*** Registering text/calendar handler.\n");
@@ -330,7 +332,7 @@ function(compMgr, fileSpec, location)
     catman.deleteCategoryEntry("command-line-argument-handlers",
                                "calendar command line handler", true);
     catman.deleteCategoryEntry("command-line-handler",
-                               "m-calendar", true);
+                               "x-default", true);
 }
 
 CalendarModule.getClassObject =
