@@ -244,6 +244,9 @@ ifeq ($(MOZ_WIDGET_TOOLKIT),photon)
 LIBS += -lphexlib
 endif
 
+libs::
+	touch $(DIST)/bin/.autoreg
+
 ifneq (,$(filter mac cocoa,$(MOZ_WIDGET_TOOLKIT)))
 
 AB := $(firstword $(subst -, ,$(AB_CD)))
