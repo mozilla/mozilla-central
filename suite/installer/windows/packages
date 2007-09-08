@@ -322,8 +322,6 @@ bin\extensions\modern@themes.mozilla.org\install.rdf
 bin\extensions\modern@themes.mozilla.org\preview.png
 
 ; chrome stuff
-bin\chrome\help.jar
-bin\chrome\help.manifest
 bin\chrome\comm.jar
 bin\chrome\comm.manifest
 bin\chrome\toolkit.jar
