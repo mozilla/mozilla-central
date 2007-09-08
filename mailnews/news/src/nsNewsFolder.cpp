@@ -1049,9 +1049,8 @@ nsresult nsMsgNewsFolder::ForgetLine()
 
 NS_IMETHODIMP nsMsgNewsFolder::GetGroupUsername(nsACString& aGroupUsername)
 {
-  nsresult rv;
   aGroupUsername = mGroupUsername;
-  return rv;
+  return NS_OK;
 }
 
 NS_IMETHODIMP nsMsgNewsFolder::SetGroupUsername(const nsACString& aGroupUsername)
