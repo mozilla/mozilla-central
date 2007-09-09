@@ -36,7 +36,6 @@
 
 package org.mozilla.jss.tests;
 
-import com.sun.org.apache.bcel.internal.classfile.ConstantString;
 import org.mozilla.jss.CertDatabaseException;
 import org.mozilla.jss.KeyDatabaseException;
 import org.mozilla.jss.ssl.*;
@@ -62,7 +61,7 @@ import java.util.*;
  *
  * Start the server:
  *
- *  java -cp ./jss4.jar org.mozilla.jss.tests.JSS_SelfServServer . passwords 
+ *  java -cp ./jss4.jar org.mozilla.jss.tests.JSS_SelfServServer . passwords
  *             localhost false 2921 bypassoff verboseoff
  *
  * Start the client with 4 threads using ciphersuite 0x33.
@@ -582,6 +581,40 @@ public class JSS_SelfServClient implements ConstantsBase, Constants {
         }
     }
     
+    public boolean isServerAlive() {
+        boolean isServerAlive = false;
+        
+        try {
+            SSLSocket s = null;
+            if (bVerbose) System.out.println("Confirming Server is alive ");
+            
+            //TLS_RSA_WITH_AES_128_CBC_SHA works in FIPS and Non FIPS mode.
+            //and with JSS and JSSE SSL servers.
+            setCipher(SSLSocket.TLS_RSA_WITH_AES_128_CBC_SHA);
+            System.out.println("Testing Connection:" +
+                    serverHost + ":" + port);
+            for (int i = 0; i < 20; i++) {
+                s = createSSLSocket();
+                if (s != null) break;
+                
+                Thread.currentThread().sleep(1000);
+            }
+            if (s != null) {
+                s.close();
+                isServerAlive = true;
+            }
+            
+        } catch (InterruptedException ex) {
+            ex.printStackTrace();
+            System.exit(1);
+        } catch (IOException ex) {
+            ex.printStackTrace();
+            System.exit(1);
+        }
+        return isServerAlive;
+    }
+    
+    
     /**
      * sendServerShutdownMsg
      */
@@ -642,7 +675,7 @@ public class JSS_SelfServClient implements ConstantsBase, Constants {
                     System.out.println("It is taking too long for the " +
                             "threads to die. Exiting the program");
                     System.out.println("Time taken: " +
-                            (System.currentTimeMillis() - start) + 
+                            (System.currentTimeMillis() - start) +
                             " Millieseconds");
                     System.exit(1);
                 }
@@ -704,6 +737,10 @@ public class JSS_SelfServClient implements ConstantsBase, Constants {
             } else {
                 
                 sock.setClientCertNickname(clientCertNick);
+                if ( bVerbose ) {
+                    System.out.println("Client specified cert by nickname");
+                }
+                
             }
             
             //Ensure the ciphersuite is disable, then enabled only it.
@@ -714,10 +751,6 @@ public class JSS_SelfServClient implements ConstantsBase, Constants {
             } else {
                 sock.setCipherPreference(fCipher, true);
             }
-            if ( bVerbose ) {
-                System.out.println("Client specified cert by nickname");
-                System.out.println("client connected");
-            }
             
             sock.addHandshakeCompletedListener(
                     new HandshakeListener("client",this));
@@ -727,6 +760,10 @@ public class JSS_SelfServClient implements ConstantsBase, Constants {
             sockList.add(sock);
             sockID++;
             aWorkingCipher = fCipher;
+            if ( bVerbose ) {
+                System.out.println("client connected");
+            }
+            
         } catch (SocketException ex) {
             if (bTestCiphers) {
                 sock = null;
@@ -752,7 +789,7 @@ public class JSS_SelfServClient implements ConstantsBase, Constants {
         
         System.out.println(banner);
         System.out.println("JSS has " +
-            org.mozilla.jss.ssl.SSLSocket.getImplementedCipherSuites().length +
+                org.mozilla.jss.ssl.SSLSocket.getImplementedCipherSuites().length +
                 " ciphersuites and " +
                 ciphersToTest.size() + " were configured and tested.");
         
@@ -987,6 +1024,12 @@ public class JSS_SelfServClient implements ConstantsBase, Constants {
             
             if ( passwdFile != null )
                 jssTest.setPasswordFile(passwdFile);
+            
+            if (!jssTest.isServerAlive()) {
+                System.out.println("Unable to connect to " + testhost + ":" +
+                        testport + " exiting.");
+                System.exit(1);
+            }
             
             if (testCipher != TEST_CIPHERS) {
                 jssTest.setClientCertNick(certnick);
