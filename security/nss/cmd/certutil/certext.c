@@ -1068,7 +1068,7 @@ AddPolicyMappings(void *extHandle)
 
 enum PoliciQualifierEnum {
     cpsPointer = 1,
-    userNotice = 2,
+    userNotice = 2
 };
 
 
