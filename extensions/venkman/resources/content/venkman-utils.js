@@ -1031,7 +1031,7 @@ function makeExpression (items)
         if (item.match(/^[0-9]+$/i))
             return "[" + item + "]";
         // Words/other items that don't need quoting.
-        if (item.match(/^[a-z_][a-z0-9_]+$/i))
+        if (item.match(/^[a-z_][a-z0-9_]*$/i))
             return (!first ? "." : "") + item;
         // Quote everything else.
         return "[" + item.quote() + "]";

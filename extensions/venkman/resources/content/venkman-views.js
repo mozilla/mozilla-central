@@ -616,7 +616,8 @@ function lv_renit (jsdFrame)
     
     if (jsdFrame.scope)
     {
-        this.scopeRecord = new ValueRecord (jsdFrame.scope, MSG_VAL_SCOPE, "");
+        this.scopeRecord = new ValueRecord(jsdFrame.scope, MSG_VAL_SCOPE, "",
+                                           jsdFrame);
         this.scopeRecord.onPreRefresh = null;
         this.childData.appendChild(this.scopeRecord);
         if (!state && jsdFrame.scope.propertyCount <
@@ -638,7 +639,7 @@ function lv_renit (jsdFrame)
     if (jsdFrame.thisValue)
     {
         this.thisRecord = new ValueRecord (jsdFrame.thisValue, MSG_VAL_THIS,
-                                           "");
+                                           "", jsdFrame);
         this.thisRecord.onPreRefresh = null;
         this.childData.appendChild(this.thisRecord);
         if (!state && jsdFrame.thisValue.propertyCount < 
@@ -806,30 +807,7 @@ function lv_getcx(cx)
         if (i == 0)
         {
             cx.jsdValue = rec.value;
-            var items = new Array();
-            items.unshift(rec.displayName);
-            
-            if ("value" in rec.parentRecord)
-            {
-                cx.parentValue = rec.parentRecord.value;
-                var cur = rec.parentRecord;
-                while (cur != locals.childData &&
-                       cur != locals.scopeRecord)
-                {
-                    if ("isECMAProto" in cur)
-                        items.unshift("__proto__");
-                    else if ("isECMAParent" in cur)
-                        items.unshift("__parent__");
-                    else
-                        items.unshift(cur.displayName);
-                    cur = cur.parentRecord;
-                }
-            }
-            else
-            {
-                cx.parentValue = null;
-            }
-            cx.expression = makeExpression(items);
+            cx.expression = rec.expression;
             cx.propertyName = rec.displayName;
         }
         else
@@ -4387,9 +4365,19 @@ function cmdWatchExpr (e)
 
         refresher = function () {
                         if ("frames" in console)
+                        {
+                            this.jsdFrame = getCurrentFrame();
                             this.value = evalInTargetScope(e.expression, true);
+                        }
                         else
+                        {
+                            /* This is a security protection; leaving the
+                             * object open allows access to child items when
+                             * we have no frame to safely eval them on.
+                             */
+                            this.close();
                             throw MSG_VAL_NA;
+                        }
                     };
     }
     else

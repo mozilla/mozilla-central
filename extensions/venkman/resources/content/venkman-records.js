@@ -568,7 +568,7 @@ function cmdShowConstants (e)
         dispatch("pref valueRecord.showConstants", { isInteractive: true });
 }
 
-function ValueRecord (value, name, flags)
+function ValueRecord (value, name, flags, jsdFrame)
 {
     if (!(value instanceof jsdIValue))
         throw new BadMojo (ERR_INVALID_PARAM, "value", String(value));
@@ -582,6 +582,7 @@ function ValueRecord (value, name, flags)
     this.name = name;
     this.flags = flags;
     this.value = value;
+    this.jsdFrame = jsdFrame;
     this.jsType = null;
     this.onPreRefresh = false;
     this.refresh();
@@ -601,6 +602,49 @@ function vr_getshare()
  
     ASSERT (0, "ValueRecord cannot be the root of a visible tree.");
     return null;
+}
+
+ValueRecord.prototype.__defineGetter__("expression", vr_getexpressionl);
+function vr_getexpressionl()
+{
+    return this.getExpression();
+}
+
+ValueRecord.prototype.getExpression =
+function vr_getexpression(extra)
+{
+    var items = [this.displayName];
+
+    if ("value" in this.parentRecord)
+    {
+        var cur = this.parentRecord;
+        while (cur != console.views["locals"].childData &&
+               cur != console.views["locals"].scopeRecord)
+        {
+            if ("isECMAProto" in cur)
+                items.unshift("__proto__");
+            else if ("isECMAParent" in cur)
+                items.unshift("__parent__");
+            else
+                items.unshift(cur.displayName);
+            cur = cur.parentRecord;
+        }
+    }
+
+    if (typeof extra == "string")
+        items.push(extra);
+
+    return makeExpression(items);
+}
+
+ValueRecord.prototype.evalString =
+function vr_evalstring(string)
+{
+    //dd("ValueRecord(" + this.displayName + ").evalString(" + string + ")");
+    var rval = new Object();
+    if (this.jsdFrame.eval(string, JSD_URL_SCHEME + "value-record", 1, rval))
+        return rval.value;
+    return undefined;
 }
 
 ValueRecord.prototype.showFunctions = false;
@@ -653,8 +697,10 @@ function vr_prerefresh ()
         }
         else
         {
-            var jsval = value.getWrappedValue();
-            this.value = console.jsds.wrapValue(jsval[this.name]);
+            ASSERT(this.jsdFrame, "ValueRecord(" + this.displayName +
+                   ").onPreRefresh: no jsdIStackFrame to safely eval on!");
+
+            this.value = this.evalString(this.expression);
             this.flags = PROP_ENUMERATE | PROP_HINTED;
         }
     }
@@ -825,41 +871,97 @@ function vr_refresh ()
 ValueRecord.prototype.countProperties =
 function vr_countprops ()
 {
-    var c = 0;
-    var jsval = this.value.getWrappedValue();
-    try
-    {
-        for (var p in jsval)
-            ++c;
-    }
-    catch (ex)
-    {
-        dd ("caught exception counting properties\n" + ex);
-    }
-    
-    return c;
+    ASSERT(this.jsdFrame, "ValueRecord(" + this.displayName +
+           ").countProperties: no jsdIStackFrame to safely eval on!");
+
+    // Note: uses an inline function to avoid polluting the frame's scope.
+    var code = "(function(obj){" +
+               "    var count = 0;" +
+               "    for (var prop in obj)" +
+               "        ++count;" +
+               "    return count;" +
+               "})(" + this.expression + ")";
+
+    // rv is undefined if an exception occured.
+    var rv = this.evalString(code);
+    if (typeof rv == "undefined")
+        return 0;
+
+    return rv.intValue;
 }
 
 ValueRecord.prototype.listProperties =
 function vr_listprops ()
 {
+    function charEscapeReplace(s, c)
+    {
+        return String.fromCharCode(parseInt(c, 16));
+    };
+
     // the ":" prefix for keys in the propMap avoid collisions with "real"
     // pseudo-properties, such as __proto__.  If we were to actually assign
     // to those we would introduce bad side affects.
 
     //dd ("listProperties {");
-    var i;
-    var jsval = this.value.getWrappedValue();
+    var i, jsval;
     var propMap = new Object();
 
     /* get the enumerable properties */
-    
-    for (var p in jsval)
+
+    ASSERT(this.jsdFrame, "ValueRecord(" + this.displayName +
+           ").listProperties: no jsdIStackFrame to safely eval on!");
+
+    var propList = new Array();
+
+    // quote() puts double-quotes at either end of the string,
+    // backspash-escapes double-quotes in the string, and (quite
+    // importantly) uses \xXX and \uXXXX escapes for non-ASCII
+    // characters.
+
+    // Note: uses an inline function to avoid polluting the frame's scope.
+    var code = "(function(obj){" +
+               "    var string = '';" +
+               "    for (var prop in obj) {" +
+               "        if (string)" +
+               "            string += ',';" +
+               "        string += prop.quote();" +
+               "    }" +
+               "    return string;" +
+               "})(" + this.expression + ")";
+
+    // list is undefined if an exception occured.
+    var list = this.evalString(code);
+    if (typeof list != "undefined") {
+        list = list.stringValue;
+        //dd("ValueRecord(" + this.displayName +
+        //   ").listProperties: list: " + list);
+        if (list) {
+            list = ('",' + list + ',"').split('","');
+
+            for (i = 0; i < list.length; i++)
+            {
+                if (!list[i])
+                    continue;
+
+                var prop = list[i];
+                prop = prop.replace(/\\x([0-9a-f]{2})/i, charEscapeReplace);
+                prop = prop.replace(/\\u([0-9a-f]{4})/i, charEscapeReplace);
+                prop = prop.replace(/\\(.)/, "$1");
+                propList.push(prop);
+                //dd("ValueRecord(" + this.displayName +
+                //   ").listProperties: prop: " + prop);
+            }
+        }
+    }
+
+    for (i = 0; i < propList.length; i++)
     {
+        var p = propList[i];
         var value;
         try
         {
-            value = console.jsds.wrapValue(jsval[p]);
+            value = this.evalString(this.getExpression(p));
+
             if (this.showFunctions || value.jsType != TYPE_FUNCTION)
             {
                 propMap[":" + p] = { name: p, value: value,
@@ -995,7 +1097,7 @@ function vr_preopen()
             if (this.value.jsPrototype)
             {
                 rec = new ValueRecord(this.value.jsPrototype,
-                                      MSG_VAL_PROTO);
+                                      MSG_VAL_PROTO, "", this.jsdFrame);
                 rec.isECMAProto = true;
                 this.appendChild (rec);
             }
@@ -1003,7 +1105,7 @@ function vr_preopen()
             if (this.value.jsParent)
             {
                 rec = new ValueRecord(this.value.jsParent,
-                                      MSG_VAL_PARENT);
+                                      MSG_VAL_PARENT, "", this.jsdFrame);
                 rec.isECMAParent = true;
                 this.appendChild (rec);
             }
@@ -1022,7 +1124,8 @@ function vr_preopen()
             var prop = this.propertyList[i];
             this.appendChild(new ValueRecord(prop.value,
                                              prop.name,
-                                             prop.flags));
+                                             prop.flags,
+                                             this.jsdFrame));
         }
     }
     catch (ex)
