@@ -45,10 +45,12 @@ CPPSRCS =  \
 	org_mozilla_util_DebugPluglet.cpp \
 	$(NULL)
 
-INCLUDES += -I$(MOZILLA_FIVE_HOME)/../include/xpcom \
-	-I$(MOZILLA_FIVE_HOME)/../include/plugin \
-	-I$(MOZILLA_FIVE_HOME)/../include/string \
-	-I$(MOZILLA_FIVE_HOME)/../include/xpcom_obsolete \
+INCLUDES += \
+	-I$(DIST)/include/string \
+	-I$(DIST)/include/plugin \
+	-I$(DIST)/include/xpcom \
+	-I$(DIST)/include/xpcom_obsolete \
+	$(NULL)
 
 EXTRA_LIBS     += \
 		$(NSPR_LIBS) \

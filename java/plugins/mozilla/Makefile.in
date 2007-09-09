@@ -77,10 +77,16 @@ INCLUDES += \
 	-I$(MSVCDIR)/ATL/SRC \
 	-I$(DEPTH)/../java/plugins/src \
 	-I../src/_xpidlgen \
-	-I$(MOZILLA_FIVE_HOME)/../include/string \
-	-I$(MOZILLA_FIVE_HOME)/../include/xpcom_obsolete \
 	$(NULL)
 endif
+
+INCLUDES += \
+	-I$(DIST)/include/string \
+	-I$(DIST)/include/plugin \
+	-I$(DIST)/include/xpcom \
+	-I$(DIST)/include/xpcom_obsolete \
+	$(NULL)
+
 
 CXXFLAGS += -DFORCE_PR_LOG
 

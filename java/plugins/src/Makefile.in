@@ -93,10 +93,12 @@ ifeq ($(OS_ARCH),Darwin)
  DLL_SUFFIX = .jnilib
 endif #DARWIN
 
-INCLUDES += -I$(MOZILLA_FIVE_HOME)/../include/xpcom \
-	-I$(MOZILLA_FIVE_HOME)/../include/plugin \
-	-I$(MOZILLA_FIVE_HOME)/../include/string \
-	-I$(MOZILLA_FIVE_HOME)/../include/xpcom_obsolete \
+INCLUDES += \
+	-I$(DIST)/include/string \
+	-I$(DIST)/include/plugin \
+	-I$(DIST)/include/xpcom \
+	-I$(DIST)/include/xpcom_obsolete \
+	$(NULL)
 
 ifeq ($(OS_ARCH),Linux)
 DSO_LDOPTS	+= \
