@@ -1318,7 +1318,8 @@
             // really closing the tab.  The pref controls how far you can undo
             var maxUndoDepth = this.mPrefs.getIntPref("browser.tabs.undoclose.depth");
             var oldSH = oldBrowser.webNavigation.sessionHistory;
-            if (maxUndoDepth <= 0 || oldSH.count == 0 || aDisableUndo) {
+            var inOnLoad = oldBrowser.docShell.isExecutingOnLoadHandler;
+            if (maxUndoDepth <= 0 || oldSH.count == 0 || aDisableUndo || inOnLoad) {
               // Undo is disabled/tab is blank.  Kill the browser for real.
               // Because of the way XBL works (fields just set JS
               // properties on the element) and the code we have in place
