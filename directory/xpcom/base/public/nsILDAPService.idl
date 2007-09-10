@@ -23,6 +23,7 @@
  * Contributor(s):
  *   Leif Hedstrom <leif@netscape.com>
  *   Dan Mosedale <dmose@netscape.com>
+ *   Jeremy Laine <jeremy.laine@m4x.org>
  *
  * Alternatively, the contents of this file may be used under the terms of
  * either the GNU General Public License Version 2 or later (the "GPL"), or
@@ -51,7 +52,7 @@ interface nsILDAPMessageListener;
  */
 
 
-[scriptable, uuid(f73cc6c1-2301-484b-94a5-8885bca106d1)]
+[scriptable, uuid(69de6fbc-2e8c-4482-bf14-358d68b785d1)]
 interface nsILDAPService : nsISupports {
 
     /**
@@ -213,4 +214,19 @@ interface nsILDAPService : nsISupports {
     AUTF8String createFilter(in unsigned long aMaxSize, in AUTF8String aPattern, 
                              in AUTF8String aPrefix, in AUTF8String aSuffix,
                              in AUTF8String aAttr, in AUTF8String aValue);
+
+    /**
+     * Parses a distinguished name (DN) and returns the relative DN,
+     * base DN and the list of attributes that make up the relative DN.
+     *
+     * @param dn        DN to parse
+     * @param rdn       The relative DN for the given DN
+     * @param baseDn    The base DN for the given DN
+     * @param rdnCount  Number of values in the outbound attributes array.
+     * @param rdnAttrs  Array of attribute names
+     *
+     */
+    void parseDn(in string dn, out AUTF8String rdn, out AUTF8String baseDn,
+                 out unsigned long rdnCount,
+                 [retval, array, size_is(rdnCount)] out string rdnAttrs);
 };

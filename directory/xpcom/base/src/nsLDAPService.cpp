@@ -22,6 +22,7 @@
  *
  * Contributor(s):
  *   Leif Hedstrom <leif@netscape.com>
+ *   Jeremy Laine <jeremy.laine@m4x.org>
  *
  * Alternatively, the contents of this file may be used under the terms of
  * either the GNU General Public License Version 2 or later (the "GPL"), or
@@ -956,6 +957,100 @@ NS_IMETHODIMP nsLDAPService::CreateFilter(PRUint32 aMaxSize,
     nsMemory::Free(buffer);
 
     return rv;
+}
+
+// Parse a distinguished name (DN) and returns the relative DN,
+// base DN and the list of attributes that make up the relative DN.
+NS_IMETHODIMP nsLDAPService::ParseDn(const char *aDn,
+                                   nsACString &aRdn,
+                                   nsACString &aBaseDn,
+                                   PRUint32 *aRdnCount,
+                                   char ***aRdnAttrs)
+{
+    NS_ENSURE_ARG_POINTER(aRdnCount);
+    NS_ENSURE_ARG_POINTER(aRdnAttrs);
+
+    // explode the DN
+    char **dnComponents = ldap_explode_dn(aDn, 0);
+    if (!dnComponents) {
+        NS_ERROR("nsLDAPService::ParseDn: parsing DN failed");
+        return NS_ERROR_UNEXPECTED;
+    }
+
+    // count DN components
+    if (!*dnComponents || !*(dnComponents + 1)) {
+        NS_ERROR("nsLDAPService::ParseDn: DN has too few components");
+        ldap_value_free(dnComponents);
+        return NS_ERROR_UNEXPECTED;
+    }
+
+    // get the base DN
+    nsCAutoString baseDn(nsDependentCString(*(dnComponents + 1)));
+    for (char **component = dnComponents + 2; *component; ++component) {
+        baseDn.AppendLiteral(",");
+        baseDn.Append(nsDependentCString(*component));
+    }
+
+    // explode the RDN
+    char **rdnComponents = ldap_explode_rdn(*dnComponents, 0);
+    if (!rdnComponents) {
+        NS_ERROR("nsLDAPService::ParseDn: parsing RDN failed");
+        ldap_value_free(dnComponents);
+        return NS_ERROR_UNEXPECTED;
+    }
+
+    // count RDN attributes
+    PRUint32 rdnCount = 0;
+    for (char **component = rdnComponents; *component; ++component)
+        ++rdnCount;
+    if (rdnCount < 1) {
+        NS_ERROR("nsLDAPService::ParseDn: RDN has too few components");
+        ldap_value_free(dnComponents);
+        ldap_value_free(rdnComponents);
+        return NS_ERROR_UNEXPECTED;
+    }
+  
+    // get the RDN attribute names
+    char **attrNameArray = static_cast<char **>(
+        nsMemory::Alloc(rdnCount * sizeof(char *)));
+    if (!attrNameArray) {
+        NS_ERROR("nsLDAPService::ParseDn: out of memory ");
+        ldap_value_free(dnComponents);
+        ldap_value_free(rdnComponents);
+        return NS_ERROR_OUT_OF_MEMORY;
+    }
+    PRUint32 index = 0;
+    for (char **component = rdnComponents; *component; ++component) {
+        PRUint32 len = 0;
+        char *p;
+        for (p = *component; *p != '\0' && *p != '='; ++p)
+            ++len;
+        if (*p != '=') {
+            NS_ERROR("nsLDAPService::parseDn: "
+                "could not find '=' in RDN component");
+            ldap_value_free(dnComponents);
+            ldap_value_free(rdnComponents);
+            return NS_ERROR_UNEXPECTED;
+        }
+        if (!(attrNameArray[index] = nsCRT::strndup(*component, len))) {
+            NS_ERROR("nsLDAPService::ParseDn: out of memory ");
+            ldap_value_free(dnComponents);
+            ldap_value_free(rdnComponents);
+            NS_FREE_XPCOM_ALLOCATED_POINTER_ARRAY(index, attrNameArray);
+            return NS_ERROR_OUT_OF_MEMORY;
+        }
+        ++index;
+    }
+
+    // perform assignments
+    aRdn.Assign(*dnComponents);
+    aBaseDn.Assign(baseDn);
+    *aRdnCount = rdnCount;
+    *aRdnAttrs = attrNameArray;
+
+    ldap_value_free(dnComponents);
+    ldap_value_free(rdnComponents);
+    return NS_OK;
 }
 
 // Count the number of space-separated tokens between aIter and aIterEnd
