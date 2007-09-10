@@ -198,75 +198,74 @@ if ($c->param("id")) {
   exit;
 }
 
-if ($c->param('searchType') eq 'fulltext') {
-  if ($c->param("text_snippet")) {
-    my $text_snippet = $c->param("text_snippet");
-    my $match_limit = $c->param("match_limit");
-    my $relevance_threshold = $c->param("relevance_threshold");
-    my @testcases = Litmus::DB::Testcase->getFullTextMatches($text_snippet,
-                                                             $match_limit,
-                                                             $relevance_threshold);
-    $vars->{'testcases'} = \@testcases;
-    $vars->{'search_string_for_display'} = "Full-Text Search: \"$text_snippet\"";
-    $vars->{'fulltext'} = 1;
-  }
-} elsif ($c->param('searchType') eq 'recent') {
-  if ($c->param("recently")) {
-    my $recently = $c->param("recently");
-    my $match_limit = $c->param("match_limit");
-    my $num_days = $c->param("num_days") || Litmus::DB::Testcase->getDefaultNumDays();
+if ($c->param('searchType')) {
+  if ($c->param('searchType') eq 'fulltext') {
+    if ($c->param("text_snippet")) {
+      my $text_snippet = $c->param("text_snippet");
+      my $match_limit = $c->param("match_limit");
+      my $relevance_threshold = $c->param("relevance_threshold");
+      my @testcases = Litmus::DB::Testcase->getFullTextMatches($text_snippet,
+                                                               $match_limit,
+                                                               $relevance_threshold);
+      $vars->{'testcases'} = \@testcases;
+      $vars->{'search_string_for_display'} = "Full-Text Search: \"$text_snippet\"";
+      $vars->{'fulltext'} = 1;
+    }
+  } elsif ($c->param('searchType') eq 'recent') {
+    if ($c->param("recently")) {
+      my $recently = $c->param("recently");
+      my $match_limit = $c->param("match_limit");
+      my $num_days = $c->param("num_days") || Litmus::DB::Testcase->getDefaultNumDays();
+      my @testcases;
+      my $search_string_for_display;
+      if ($recently eq 'added') {
+        @testcases = Litmus::DB::Testcase->getNewTestcases(
+                                                           $num_days,
+                                                           $match_limit
+                                                          );
+        $search_string_for_display = "Testcases added in the last $num_days days";
+      } elsif ($recently eq 'changed') {
+        @testcases = Litmus::DB::Testcase->getRecentlyUpdated(
+                                                              $num_days,
+                                                              $match_limit
+                                                             );
+        $search_string_for_display = "Testcases changed in the last $num_days days";
+      }
+      $vars->{'testcases'} = \@testcases;
+      $vars->{'search_string_for_display'} = $search_string_for_display;
+    }
+  } elsif ($c->param('searchType') eq 'by_category') {
+    my $product_id = $c->param("product_id");
+    my $testgroup_id = $c->param("testgroup_id");
+    my $subgroup_id = $c->param("subgroup_id");
+    my ($product, $testgroup, $subgroup);
     my @testcases;
-    my $search_string_for_display;
-    if ($recently eq 'added') {
-      @testcases = Litmus::DB::Testcase->getNewTestcases(
-                                                         $num_days,
-                                                         $match_limit
-                                                        );
-      $search_string_for_display = "Testcases added in the last $num_days days";
-    } elsif ($recently eq 'changed') {
-      @testcases = Litmus::DB::Testcase->getRecentlyUpdated(
-                                                            $num_days,
-                                                            $match_limit
-                                                           );
-      $search_string_for_display = "Testcases changed in the last $num_days days";
+
+    if ($subgroup_id && $subgroup_id ne '-Subgroup-' && $subgroup_id ne '---') {
+      @testcases = Litmus::DB::Testcase->search_BySubgroup($subgroup_id);
+      $subgroup = Litmus::DB::Subgroup->retrieve($subgroup_id);
+      $testgroup = Litmus::DB::Testgroup->retrieve($testgroup_id);
+      $product = Litmus::DB::Product->retrieve($product_id);
+    } elsif ($testgroup_id && $testgroup_id ne '-Testgroup-' && $testgroup_id ne '---') {
+      @testcases = Litmus::DB::Testcase->search_ByTestgroup($testgroup_id);
+      $testgroup = Litmus::DB::Testgroup->retrieve($testgroup_id);
+      $product = Litmus::DB::Product->retrieve($product_id);
+    } elsif ($product_id && $product_id ne '-Product-' && $product_id ne '---') {
+      @testcases = Litmus::DB::Testcase->search(product => $product_id);
+      $product = Litmus::DB::Product->retrieve($product_id);
     }
     $vars->{'testcases'} = \@testcases;
-    $vars->{'search_string_for_display'} = $search_string_for_display;
+    $vars->{'search_string_for_display'} = 
+      ($product ? "product: ".$product->name() : '').
+        ($testgroup ? " | testgroup: ".$testgroup->name() : '').
+    	  ($subgroup ? " | subgroup: ".$subgroup->name() : ''); 
+
+  } elsif ($c->param('searchType') eq 'ungrouped') {
+      my @testcases = Litmus::DB::Testcase->search_Ungrouped();
+      my $search_string_for_display = "Testcases not associated with any subgroup.";
+      $vars->{'testcases'} = \@testcases;
+      $vars->{'search_string_for_display'} = $search_string_for_display;
   }
-} elsif ($c->param('searchType') eq 'by_category') {
-  my $product_id = $c->param("product_id");
-  my $testgroup_id = $c->param("testgroup_id");
-  my $subgroup_id = $c->param("subgroup_id");
-  my ($product, $testgroup, $subgroup);
-  my @testcases;
-
-  if ($subgroup_id && $subgroup_id ne '-Subgroup-' && $subgroup_id ne '---') {
-    @testcases = Litmus::DB::Testcase->search_BySubgroup($subgroup_id);
-    $subgroup = Litmus::DB::Subgroup->retrieve($subgroup_id);
-    $testgroup = Litmus::DB::Testgroup->retrieve($testgroup_id);
-    $product = Litmus::DB::Product->retrieve($product_id);
-  } elsif ($testgroup_id && $testgroup_id ne '-Testgroup-' && $testgroup_id ne '---') {
-    @testcases = Litmus::DB::Testcase->search_ByTestgroup($testgroup_id);
-    $testgroup = Litmus::DB::Testgroup->retrieve($testgroup_id);
-    $product = Litmus::DB::Product->retrieve($product_id);
-  } elsif ($product_id && $product_id ne '-Product-' && $product_id ne '---') {
-    @testcases = Litmus::DB::Testcase->search(product => $product_id);
-    $product = Litmus::DB::Product->retrieve($product_id);
-  }
-  $vars->{'testcases'} = \@testcases;
-  $vars->{'search_string_for_display'} = 
-    ($product ? "product: ".$product->name() : '').
-      ($testgroup ? " | testgroup: ".$testgroup->name() : '').
-    	($subgroup ? " | subgroup: ".$subgroup->name() : ''); 
-
-} elsif ($c->param('searchType') eq 'ungrouped') {
-    my @testcases = Litmus::DB::Testcase->search_Ungrouped();
-    my $search_string_for_display = "Testcases not associated with any subgroup.";
-    $vars->{'testcases'} = \@testcases;
-    $vars->{'search_string_for_display'} = $search_string_for_display;
-}
-
-if ($c->param('searchType')) {
   $vars->{'searchType'} = $c->param('searchType');
 }
 

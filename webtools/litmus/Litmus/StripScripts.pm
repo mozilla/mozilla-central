@@ -36,8 +36,10 @@ use base qw(HTML::StripScripts::Parser);
 # Override broken href validation code.
 sub validate_href_attribute {
   my ($self, $text) = @_;
-  
-  $self->SUPER::validate_href_attribute or $text =~ m<^((https?|ftp|mailto)://[\w\-\.]{1,100}(?:\:\d{1,5})?(?:/(?:[\w\-.!~*|;:/?=+\$\,%#]|&amp;){0,100})?)$>x ? $1 : undef;
+
+  if ($text) {  
+    $self->SUPER::validate_href_attribute or $text =~ m<^((https?|ftp|mailto)://[\w\-\.]{1,100}(?:\:\d{1,5})?(?:/(?:[\w\-.!~*|;:/?=+\$\,%#]|&amp;){0,100})?)$>x ? $1 : undef;
+  }
 } 
 
 1;
