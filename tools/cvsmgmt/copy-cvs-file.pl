@@ -6,6 +6,7 @@
 #
 # Contributor(s):
 #   Chase Phillips <chase@mozilla.org>
+#   Reed Loden <reed@mozilla.com>
 #
 # Use at your own risk.
 #
@@ -25,6 +26,8 @@
 
 use strict;
 use File::Basename;
+
+umask(0002); # umask must be 0002 to get g+w on new directories
 
 my $debug = 0;
 
