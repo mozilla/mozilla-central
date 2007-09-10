@@ -285,12 +285,15 @@ calICSCalendar.prototype = {
 
     writeICS: function () {
         this.lock();
-
-        if (!this.mUri)
-            throw Components.results.NS_ERROR_FAILURE;
-
-        // makeBackup will call doWriteICS
-        this.makeBackup(this.doWriteICS);
+        try {
+            if (!this.mUri)
+                throw Components.results.NS_ERROR_FAILURE;
+            // makeBackup will call doWriteICS
+            this.makeBackup(this.doWriteICS);
+        } catch (exc) {
+            this.unlock();
+            throw exc;
+        }
     },
 
     doWriteICS: function () {
@@ -344,9 +347,8 @@ calICSCalendar.prototype = {
                     savedthis.mObserver.onError(
                         ex.result, "The calendar could not be saved; there " +
                         "was a failure: 0x" + ex.result.toString(16));
+                    savedthis.unlock();
                 }
-
-                return;
             },
             onGetResult: function(aCalendar, aStatus, aItemType, aDetail, aCount, aItems)
             {
@@ -377,7 +379,7 @@ calICSCalendar.prototype = {
         var channel;
         try {
             channel = request.QueryInterface(Components.interfaces.nsIHttpChannel);
-            LOG(channel.requestSucceeded);
+            LOG("calICSCalendar channel.requestSucceeded: " + channel.requestSucceeded);
         } catch(e) {
         }
 
