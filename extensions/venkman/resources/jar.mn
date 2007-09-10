@@ -1,4 +1,16 @@
 venkman.jar:
+% content venkman            %content/venkman/
+% content venkman-ff         %content/venkman/ff/
+% content venkman-sm         %content/venkman/sm/
+% locale  venkman en-US      %locale/en-US/venkman/
+% skin    venkman modern/1.0 %skin/modern/venkman/
+% overlay chrome://communicator/content/tasksOverlay.xul  chrome://venkman/content/venkman-overlay.xul      application={92650c4d-4b8e-4d2a-b7eb-24ecf4f6b63a}
+% overlay chrome://venkman/content/venkman-menus.xul      chrome://communicator/content/tasksOverlay.xul    application={92650c4d-4b8e-4d2a-b7eb-24ecf4f6b63a}
+% overlay chrome://venkman/content/venkman.xul            chrome://communicator/content/utilityOverlay.xul  application={92650c4d-4b8e-4d2a-b7eb-24ecf4f6b63a}
+% overlay chrome://browser/content/browser.xul            chrome://venkman/content/venkman-overlay.xul      application={ec8030f7-c20a-464f-9b0e-13a3a9e97384} application={a463f10c-3994-11da-9945-000d60ca027b}
+% overlay chrome://messenger/content/messenger.xul        chrome://venkman/content/venkman-overlay.xul      application={3550f703-e582-4d05-9a08-453d09bdfdc6}
+% overlay chrome://calendar/content/calendar.xul          chrome://venkman/content/venkman-overlay.xul      application={718e30fb-e89b-41dd-9da7-e25a45638b28}
+% style   chrome://global/content/customizeToolbar.xul    chrome://venkman/skin/venkman-overlay.css
   content/venkman/ff/contents.rdf       (content/ff/contents.rdf)
   content/venkman/sm/contents.rdf       (content/sm/contents.rdf)
 * content/venkman/contents.rdf          (content/contents.rdf)
