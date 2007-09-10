@@ -172,6 +172,13 @@
                 <available file="${jdkhome.nospaces}/jre/bin/${so.prefix}java.${so.extension}" />
             </and>
         </condition>
+
+        <condition property="did.copy.firefox.dat.files">
+          <and>
+            <available file="tmp/firefox.dat/components/compreg.dat" />
+            <available file="tmp/firefox.dat/components/xpti.dat" />
+          </and>
+        </condition>
         
         <uptodate property="do.copy.binaries">
             <srcfiles dir="${basedir}/../bin/${platform}/bin" includes="**/*.*" />
@@ -199,6 +206,7 @@ ${jdkhome.nospaces}.
 
     <target name="-post-init">
         <antcall target="copy.binaries" />
+        <antcall target="save.firefox.dat.files" />
     </target>
 
     <target name="copy.binaries" if="do.copy.binaries">
@@ -207,11 +215,47 @@ ${jdkhome.nospaces}.
         </copy>
     </target>
 
+    <target name="save.firefox.dat.files" unless="did.copy.firefox.dat.files">
+        <mkdir dir="tmp/firefox.dat" />
+        <copy todir="tmp/firefox.dat">
+          <fileset dir="${browser.bin.dir}">
+            <include name="**/compreg.dat" />
+            <include name="**/xpti.dat" />
+          </fileset>
+        </copy>
+    </target>
+
+    <target name="restore.firefox.dat.files" if="did.copy.firefox.dat.files">
+        <copy todir="${browser.bin.dir}">
+          <fileset dir="tmp/firefox.dat">
+            <include name="**/compreg.dat" />
+            <include name="**/xpti.dat" />
+          </fileset>
+        </copy>
+    </target>
+
+
+
     <target name="-post-clean">
         <delete>
             <fileset dir="${browser.bin.dir}" 
                      includes="${bin.artifacts.pattern}"/>
         </delete>
+
+        <delete>
+            <fileset dir="${browser.bin.dir}">
+              <include name="**/compreg.dat" />
+              <include name="**/xpti.dat" />
+            </fileset>
+        </delete>
+
+        <delete>
+           <fileset dir="${user.home}/APPLIC~1">
+             <include name="**/pluginreg.dat" />
+           </fileset>
+        </delete>
+        
+        <antcall target="restore.firefox.dat.files" />
     </target>
 
     <target name="run" depends="-init-check,-pre-init,-post-init">
@@ -313,6 +357,5 @@ ${jdkhome.nospaces}.
             tofile="${basedir}/../lib/outofdate-pluglet_jar" />
 
     </target>
-
 
 </project>
