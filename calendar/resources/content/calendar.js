@@ -249,34 +249,6 @@ function calendarFinish()
    unloadCalendarManager();
 }
 
-/**
-*  Delete the current selected item with focus from the ToDo unifinder list
-*/
-function deleteToDoCommand(aDoNotConfirm)
-{
-   var selectedItems = new Array();
-   var tree = document.getElementById( ToDoUnifinderTreeName );
-   var start = new Object();
-   var end = new Object();
-   var numRanges = tree.view.selection.getRangeCount();
-   var t;
-   var v;
-   var toDoItem;
-   for (t = 0; t < numRanges; t++) {
-      tree.view.selection.getRangeAt(t, start, end);
-      for (v = start.value; v <= end.value; v++) {
-         toDoItem = tree.taskView.getCalendarTaskAtRow( v );
-         selectedItems.push( toDoItem );
-      }
-   }
-   calendarViewController.deleteOccurrences(selectedItems.length,
-                                            selectedItems,
-                                            false,
-                                            aDoNotConfirm);
-   tree.view.selection.clearSelection();
-}
-
-
 function goFindNewCalendars()
 {
    //launch the browser to http://www.apple.com/ical/library/

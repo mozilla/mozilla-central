@@ -414,10 +414,10 @@ agendaTreeView.refreshCalendarQuery =
 function refreshCalendarQuery()
 {
     var filter = this.calendar.ITEM_FILTER_CLASS_OCCURRENCES;
-    if (document.getElementById("completed-tasks-checkbox").checked) {
-        filter |= this.calendar.ITEM_FILTER_COMPLETED_ALL;
-    } else {
+    if (document.getElementById("hide-completed-checkbox").checked) {
         filter |= this.calendar.ITEM_FILTER_COMPLETED_NO;
+    } else {
+        filter |= this.calendar.ITEM_FILTER_COMPLETED_ALL;
     }
 
     if (!this.filterType)
@@ -507,8 +507,8 @@ function observer_onAddItem(item)
     }
 
     if (isToDo(item)) {
-        var showCompleted = document.getElementById("completed-tasks-checkbox").checked;
-        if (item.isCompleted && !showCompleted) {
+        var hideCompleted = document.getElementById("hide-completed-checkbox").checked;
+        if (item.isCompleted && hideCompleted) {
             return;
         }
     }
@@ -541,8 +541,8 @@ function observer_onModifyItem(newItem, oldItem)
     this.onDeleteItem(oldItem, "no-rebuild");
 
     if (isToDo(newItem)) {
-        var showCompleted = document.getElementById("completed-tasks-checkbox").checked;
-        if (newItem.isCompleted && !showCompleted) {
+        var hideCompleted = document.getElementById("hide-completed-checkbox").checked;
+        if (newItem.isCompleted && hideCompleted) {
             return;
         }
     }

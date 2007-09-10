@@ -392,6 +392,8 @@ function ltnOnLoad(event)
     document.getElementById("displayDeck")
             .addEventListener("dayselect", observeViewDaySelect, false);
 
+    prepareCalendarToDoUnifinder();
+
     // Make sure we update ourselves if the program stays open over midnight
     scheduleMidnightUpdate(refreshUIBits);
 
@@ -479,7 +481,7 @@ function showCalendarView(type)
 
         var tasksMenu = document.getElementById("ltn-tasks-in-view")
         view.tasksInView = (tasksMenu.getAttribute("checked") == 'true');
-        view.showCompleted = document.getElementById("completed-tasks-checkbox").checked;
+        view.showCompleted = !document.getElementById("hide-completed-checkbox").checked;
 
         view.rotated = (rotated.getAttribute("checked") == 'true');
     }
@@ -587,6 +589,8 @@ function LtnObserveDisplayDeckChange(event)
 
 function ltnFinish() {
     getCompositeCalendar().removeObserver(agendaTreeView.calendarObserver);
+
+    finishCalendarToDoUnifinder();
 
     unloadCalendarManager();
 }

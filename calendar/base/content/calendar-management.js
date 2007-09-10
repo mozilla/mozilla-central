@@ -639,8 +639,8 @@ var calendarManagerObserver = {
 
                 if (isSunbird()) {
                     refreshEventTree();
-                    toDoUnifinderRefresh();
                 }
+                toDoUnifinderRefresh();
                 break;
             case "calendar.timezone.local":
                 var subject = aSubject.QueryInterface(Ci.nsIPrefBranch2);
@@ -656,8 +656,8 @@ var calendarManagerObserver = {
 
                 if (isSunbird()) {
                     refreshEventTree();
-                    toDoUnifinderRefresh();
                 }
+                toDoUnifinderRefresh();
                 break;
             default :
                 break;
