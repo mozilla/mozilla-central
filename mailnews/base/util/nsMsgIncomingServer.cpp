@@ -1827,11 +1827,14 @@ nsMsgIncomingServer::ConfigureTemporaryReturnReceiptsFilter(nsIMsgFilterList *fi
           }
         }
         nsCOMPtr<nsIMsgRuleAction> filterAction;
-        newFilter->CreateAction(getter_AddRefs(filterAction));
-        filterAction->SetType(nsMsgFilterAction::MoveToFolder);
-        filterAction->SetTargetFolderUri(actionTargetFolderUri);
-        newFilter->AppendAction(filterAction);
-        filterList->InsertFilterAt(0, newFilter);
+        rv = newFilter->CreateAction(getter_AddRefs(filterAction));
+        if (NS_SUCCEEDED(rv))
+        {
+          filterAction->SetType(nsMsgFilterAction::MoveToFolder);
+          filterAction->SetTargetFolderUri(actionTargetFolderUri);
+          newFilter->AppendAction(filterAction);
+          filterList->InsertFilterAt(0, newFilter);
+        }
       }
     }
   }
