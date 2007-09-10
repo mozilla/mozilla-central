@@ -7,9 +7,8 @@
             <minimum-ant-version>1.6.5</minimum-ant-version>
             <explicit-platform explicit-source-supported="true"/>
             <source-roots>
-                <root id="src.EmptyMainClass.dir" name="EmptyMainClass"/>
-                <root id="src.java.dir" name="SimplePluglet"/>
-                <root id="src.java2.dir" name="jmfplayer"/>
+                <root id="src.java.dir" name="jmfplayer sample"/>
+                <root id="src.java2.dir" name="Core Sources"/>
             </source-roots>
             <test-roots/>
         </data>

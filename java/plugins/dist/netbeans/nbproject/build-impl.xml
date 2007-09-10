@@ -95,7 +95,6 @@ is divided into following sections:
         </condition>
         <condition property="have.sources">
             <or>
-                <available file="${src.EmptyMainClass.dir}"/>
                 <available file="${src.java.dir}"/>
                 <available file="${src.java2.dir}"/>
             </or>
@@ -125,7 +124,6 @@ is divided into following sections:
         <!-- You can override this target in the ../build.xml file. -->
     </target>
     <target name="-init-check" depends="-pre-init,-init-private,-init-user,-init-project,-do-init">
-        <fail unless="src.EmptyMainClass.dir">Must set src.EmptyMainClass.dir</fail>
         <fail unless="src.java.dir">Must set src.java.dir</fail>
         <fail unless="src.java2.dir">Must set src.java2.dir</fail>
         <fail unless="build.dir">Must set build.dir</fail>
@@ -148,7 +146,7 @@ is divided into following sections:
     </target>
     <target name="-init-macrodef-javac">
         <macrodef name="javac" uri="http://www.netbeans.org/ns/j2se-project/3">
-            <attribute name="srcdir" default="${src.EmptyMainClass.dir}:${src.java.dir}:${src.java2.dir}"/>
+            <attribute name="srcdir" default="${src.java.dir}:${src.java2.dir}"/>
             <attribute name="destdir" default="${build.classes.dir}"/>
             <attribute name="classpath" default="${javac.classpath}"/>
             <attribute name="debug" default="${javac.debug}"/>
@@ -276,7 +274,6 @@ is divided into following sections:
     <target name="-do-compile" depends="init,deps-jar,-pre-pre-compile,-pre-compile" if="have.sources">
         <j2seproject3:javac/>
         <copy todir="${build.classes.dir}">
-            <fileset dir="${src.EmptyMainClass.dir}" excludes="${build.classes.excludes}"/>
             <fileset dir="${src.java.dir}" excludes="${build.classes.excludes}"/>
             <fileset dir="${src.java2.dir}" excludes="${build.classes.excludes}"/>
         </copy>
@@ -428,14 +425,11 @@ is divided into following sections:
                 <path path="${javac.classpath}"/>
             </classpath>
             <sourcepath>
-                <pathelement location="${src.EmptyMainClass.dir}"/>
                 <pathelement location="${src.java.dir}"/>
                 <pathelement location="${src.java2.dir}"/>
             </sourcepath>
-            <packageset dir="${src.EmptyMainClass.dir}" includes="*/**"/>
             <packageset dir="${src.java.dir}" includes="*/**"/>
             <packageset dir="${src.java2.dir}" includes="*/**"/>
-            <fileset dir="${src.EmptyMainClass.dir}" includes="*.java"/>
             <fileset dir="${src.java.dir}" includes="*.java"/>
             <fileset dir="${src.java2.dir}" includes="*.java"/>
         </javadoc>
