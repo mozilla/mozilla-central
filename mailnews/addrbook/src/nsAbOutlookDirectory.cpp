@@ -524,7 +524,7 @@ NS_IMETHODIMP nsAbOutlookDirectory::AddMailList(nsIAbDirectory *aMailList)
     if (!didCopy) {
         retCode = newList->CopyMailList(aMailList) ;
         NS_ENSURE_SUCCESS(retCode, retCode) ;
-        retCode = newList->EditMailListToDatabase(mURINoQuery.get(), nsnull) ;
+        retCode = newList->EditMailListToDatabase(nsnull);
         NS_ENSURE_SUCCESS(retCode, retCode) ;
     }
     m_AddressList->AppendElement(newList) ;
@@ -532,21 +532,26 @@ NS_IMETHODIMP nsAbOutlookDirectory::AddMailList(nsIAbDirectory *aMailList)
     return retCode ;
 }
 
-NS_IMETHODIMP nsAbOutlookDirectory::EditMailListToDatabase(const char *aUri, nsIAbCard *listCard)
+NS_IMETHODIMP nsAbOutlookDirectory::EditMailListToDatabase(nsIAbCard *listCard)
 {
-    if (mIsQueryURI) { return NS_ERROR_NOT_IMPLEMENTED ; }
-    nsresult retCode = NS_OK ;
-    nsString name;
-    nsAbWinHelperGuard mapiAddBook (mAbWinType) ;
+  if (mIsQueryURI)
+    return NS_ERROR_NOT_IMPLEMENTED;
 
-    if (!mapiAddBook->IsOK()) { return NS_ERROR_FAILURE ; }
-    retCode = GetDirName(name);
-    NS_ENSURE_SUCCESS(retCode, retCode) ;
-    if (!mapiAddBook->SetPropertyUString(*mMapiData, PR_DISPLAY_NAME_W, name.get())) {
-        return NS_ERROR_FAILURE ;
-    }
-    retCode = CommitAddressList() ;
-    return retCode ;
+  nsresult rv;
+  nsString name;
+  nsAbWinHelperGuard mapiAddBook(mAbWinType);
+
+  if (!mapiAddBook->IsOK())
+    return NS_ERROR_FAILURE;
+
+  rv = GetDirName(name);
+  NS_ENSURE_SUCCESS(rv, rv);
+
+  if (!mapiAddBook->SetPropertyUString(*mMapiData, PR_DISPLAY_NAME_W,
+                                       name.get()))
+    return NS_ERROR_FAILURE;
+
+  return CommitAddressList();
 }
 
 struct OutlookTableAttr

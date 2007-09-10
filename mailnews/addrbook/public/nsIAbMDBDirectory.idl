@@ -38,15 +38,17 @@
  
 #include "nsISupports.idl"
 
-#include "nsIAbCard.idl"
-#include "nsIAbDirectory.idl"
+interface nsILocalFile;
+interface nsIAbDirectory;
+interface nsIAbCard;
+interface nsIAddrDatabase;
 
 %{C++
 #define kMDBDirectoryRoot          "moz-abmdbdirectory://"
 #define kMDBDirectoryRootLen       21
 %}
 
-[scriptable, uuid(db732ce9-a030-4aba-b4e5-96314ba5ec36)]
+[scriptable, uuid(6f25d820-f708-49b8-8a41-7332b856a197)]
 interface nsIAbMDBDirectory : nsISupports {
 
 	// Creates an RDF directory component from the
@@ -57,6 +59,19 @@ interface nsIAbMDBDirectory : nsISupports {
 	// This just returns the uri on the RDF resource
 	string getDirUri();
 
+  /**
+   * Supplies a nsILocalFile point to the database file for this directory
+   *
+   * @exception NS_ERROR_NOT_INITIALIZED If there is no filename preference
+   *                                     present or it is empty
+   */
+  readonly attribute nsILocalFile databaseFile;
+
+  /**
+   * Supplies a nsIAddrDatabase that uses the databaseFile. See also
+  * databaseFile for possible exceptions.
+   */
+  readonly attribute nsIAddrDatabase database;
 
 	// Mail list specific
 	//

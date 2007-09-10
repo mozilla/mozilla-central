@@ -38,7 +38,6 @@
 top.MAX_RECIPIENTS = 1;
 var inputElementType = "";
 
-var gParentURI;
 var gListCard;
 var gEditList;
 var gOkCallback = null;
@@ -263,7 +262,7 @@ function EditListOKButton()
       gListCard.notes = gEditList.description;
     }
 
-    gEditList.editMailListToDatabase(gParentURI, gListCard);
+    gEditList.editMailListToDatabase(gListCard);
 
     if (gOkCallback)
       gOkCallback();
@@ -277,7 +276,6 @@ function OnLoadEditList()
 {
   InitCommonJS();
 
-  gParentURI  = window.arguments[0].abURI;
   gListCard = window.arguments[0].abCard;
   var listUri  = window.arguments[0].listURI;
   gOkCallback = window.arguments[0].okCallback;

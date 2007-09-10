@@ -283,8 +283,7 @@ function AbEditSelectedDirectory()
     var selecteduri = GetSelectedDirectory();
     var directory = GetDirectoryFromURI(selecteduri);
     if (directory.isMailList) {
-      var dirUri = GetParentDirectoryFromMailingListURI(selecteduri);
-      goEditListDialog(dirUri, null, selecteduri, UpdateCardView);
+      goEditListDialog(null, selecteduri, UpdateCardView);
     }
     else {
       if (directory instanceof Components.interfaces.nsIAbLDAPDirectory) {
@@ -414,7 +413,7 @@ function AbEditCard(card)
     return;
 
   if (card.isMailList) {
-    goEditListDialog(GetSelectedDirectory(), card, card.mailListURI, UpdateCardView);
+    goEditListDialog(card, card.mailListURI, UpdateCardView);
   }
   else {
     goEditCardDialog(GetSelectedDirectory(), card, UpdateCardView);
@@ -826,12 +825,12 @@ function goNewListDialog(selectedAB)
                     {selectedAB:selectedAB});
 }
 
-function goEditListDialog(abURI, abCard, listURI, okCallback)
+function goEditListDialog(abCard, listURI, okCallback)
 {
   window.openDialog("chrome://messenger/content/addressbook/abEditListDialog.xul",
                     "",
                     "chrome,resizable=no,titlebar,modal,centerscreen",
-                    {abURI:abURI, abCard:abCard, listURI:listURI, okCallback:okCallback});
+                    {abCard:abCard, listURI:listURI, okCallback:okCallback});
 }
 
 function goNewCardDialog(selectedAB)

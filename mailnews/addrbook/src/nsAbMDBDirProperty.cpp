@@ -182,3 +182,13 @@ NS_IMETHODIMP nsAbMDBDirProperty::CardForEmailAddress(const char * aEmailAddress
 {
   return NS_ERROR_NOT_IMPLEMENTED;
 }
+
+NS_IMETHODIMP nsAbMDBDirProperty::GetDatabaseFile(nsILocalFile **aResult)
+{
+  return NS_ERROR_NOT_IMPLEMENTED;
+}
+
+NS_IMETHODIMP nsAbMDBDirProperty::GetDatabase(nsIAddrDatabase **aResult)
+{
+  return NS_ERROR_NOT_IMPLEMENTED;
+}

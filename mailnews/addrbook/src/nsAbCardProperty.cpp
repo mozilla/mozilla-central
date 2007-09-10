@@ -48,6 +48,7 @@
 #include "nsIPrefService.h"
 #include "nsIPrefBranch.h"
 #include "nsIAbDirectory.h"
+#include "nsIAddrDatabase.h"
 #include "plbase64.h"
 #include "nsIAddrBookSession.h"
 #include "nsIStringBundle.h"

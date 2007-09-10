@@ -46,6 +46,7 @@
 #include "nsIRDFService.h"
 #include "nsIRDFResource.h"
 #include "nsIMsgHeaderParser.h"
+#include "nsIAbDirectory.h"
 #include "nsIAbMDBDirectory.h"
 #include "nsIAbMDBCard.h"
 #include "nsIAbCard.h"

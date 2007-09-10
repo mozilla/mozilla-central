@@ -39,6 +39,8 @@
 #include "nsISupports.idl"
 
 interface nsIMutableArray;
+interface nsILocalFile;
+interface nsIAddrDatabase;
 interface nsIAbLDAPAttributeMap;
 interface nsILDAPURL;
 
@@ -51,7 +53,7 @@ interface nsILDAPURL;
  * XXX This should really inherit from nsIAbDirectory, and some day it will.
  * But for now, doing that complicates implementation.
  */
-[scriptable, uuid(fb4adf7f-a299-49d1-ac47-9ce181e8e80d)]
+[scriptable, uuid(684c8f3e-dcd1-4f16-9cfc-f0f77080a249)]
 interface nsIAbLDAPDirectory : nsISupports
 {
   /**
@@ -103,5 +105,15 @@ interface nsIAbLDAPDirectory : nsISupports
    * directories rdf uri, e.g. moz-abldapdirectory://<pref base name>/.
    */
   attribute nsILDAPURL lDAPURL;
+
+  /**
+   * The replication (offline) file that this database uses.
+   */
+  readonly attribute nsILocalFile replicationFile;
+
+  /**
+   * A database that is set up for the replication file.
+   */
+  readonly attribute nsIAddrDatabase replicationDatabase;
 };
 

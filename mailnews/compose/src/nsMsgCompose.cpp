@@ -4066,19 +4066,6 @@ nsresult nsMsgCompose::AttachmentPrettyName(const char* scheme, const char* char
   return NS_OK;
 }
 
-static nsresult OpenAddressBook(const char * dbUri, nsIAddrDatabase** aDatabase)
-{
-  NS_ENSURE_ARG_POINTER(aDatabase);
-
-  nsresult rv;
-  nsCOMPtr<nsIAddressBook> addressBook = do_GetService(NS_ADDRESSBOOK_CONTRACTID, &rv);
-  NS_ENSURE_SUCCESS(rv,rv);
-
-  rv = addressBook->GetAbDatabaseFromURI(dbUri, aDatabase);
-  NS_ENSURE_SUCCESS(rv,rv);
-  return rv;
-}
-
 nsresult nsMsgCompose::GetABDirectories(const nsACString& dirUri, nsISupportsArray* directoriesArray, PRBool searchSubDirectory)
 {
   static PRBool collectedAddressbookFound;
@@ -4155,7 +4142,8 @@ nsresult nsMsgCompose::GetABDirectories(const nsACString& dirUri, nsISupportsArr
   return rv;
 }
 
-nsresult nsMsgCompose::BuildMailListArray(nsIAddrDatabase* database, nsIAbDirectory* parentDir, nsISupportsArray* array)
+nsresult nsMsgCompose::BuildMailListArray(nsIAbDirectory* parentDir,
+                                          nsISupportsArray* array)
 {
   nsresult rv;
 
@@ -4305,6 +4293,7 @@ NS_IMETHODIMP nsMsgCompose::CheckAndPopulateRecipients(PRBool populateMailList, 
   PRBool stillNeedToSearch = PR_TRUE;
   nsCOMPtr<nsIAddrDatabase> abDataBase;
   nsCOMPtr<nsIAbDirectory> abDirectory;
+  nsCOMPtr<nsIAbMDBDirectory> mdbDirectory;
   nsCOMPtr <nsIAbCard> existingCard;
   nsCOMPtr <nsISupportsArray> mailListAddresses;
   nsCOMPtr<nsIMsgHeaderParser> parser (do_GetService(NS_MAILNEWS_MIME_HEADER_PARSER_CONTRACTID));
@@ -4319,7 +4308,7 @@ NS_IMETHODIMP nsMsgCompose::CheckAndPopulateRecipients(PRBool populateMailList, 
     GetABDirectories(NS_LITERAL_CSTRING(kAllDirectoryRoot), addrbookDirArray, PR_TRUE);
     PRInt32 nbrRecipients;
 
-    PRBool dirtyABDatabase;
+    PRBool dirtyABDatabase = PR_FALSE;
     PRUint32 nbrAddressbook;
     addrbookDirArray->Count(&nbrAddressbook);
     for (k = 0; k < (PRInt32)nbrAddressbook && stillNeedToSearch; k ++)
@@ -4340,22 +4329,21 @@ NS_IMETHODIMP nsMsgCompose::CheckAndPopulateRecipients(PRBool populateMailList, 
 
       nsCOMPtr<nsIRDFResource> source(do_QueryInterface(abDirectory));
 
-      nsCString uri;
-      rv = source->GetValue(getter_Copies(uri));
-      NS_ENSURE_SUCCESS(rv, rv);
+      mdbDirectory = do_QueryInterface(abDirectory, &rv);
+      if (NS_FAILED(rv))
+        continue;
 
       PRBool supportsMailingLists;
       rv = abDirectory->GetSupportsMailingLists(&supportsMailingLists);
       if (NS_FAILED(rv) || !supportsMailingLists)
         continue;
 
-      dirtyABDatabase = PR_FALSE;
-      rv = OpenAddressBook(uri.get(), getter_AddRefs(abDataBase));
-      if (NS_FAILED(rv) || !abDataBase)
+      rv = mdbDirectory->GetDatabase(getter_AddRefs(abDataBase));
+      if (NS_FAILED(rv))
         continue;
 
       /* Collect all mailing list defined in this address book */
-      rv = BuildMailListArray(abDataBase, abDirectory, mailListArray);
+      rv = BuildMailListArray(abDirectory, mailListArray);
       if (NS_FAILED(rv))
         return rv;
 
