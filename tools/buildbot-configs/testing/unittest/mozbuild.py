@@ -209,7 +209,7 @@ class MozillaClobberWin(ShellCommand):
     def __init__(self, **kwargs):
         if not 'command' in kwargs:
             self.command = 'python C:\\Utilities\\killAndClobberWin.py'
-            ShellCommand.__init__(self, **kwargs)
+        ShellCommand.__init__(self, **kwargs)
     
 
 class MozillaCheck(ShellCommand):
