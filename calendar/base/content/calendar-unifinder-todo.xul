@@ -142,6 +142,7 @@
     </box>
     <tree id="unifinder-todo-tree" flex="1" enableColumnDrag="false" 
            ondblclick="modifyToDoCommand( event )"
+           onkeypress="onKeyPress(event);"
            context="taskitem-context-menu">
       <treecols id="unifinder-todo-tree-cols">
         <treecol id="unifinder-todo-tree-col-completed"

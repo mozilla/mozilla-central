@@ -748,3 +748,14 @@ function toggleCompletedTasks() {
     }
     toDoUnifinderRefresh();
 }
+
+function onKeyPress(event) {
+    const kKE = Ci.nsIDOMKeyEvent;
+    switch (event.keyCode || event.which) {
+        case kKE.DOM_VK_DELETE:
+            document.getElementById('delete_todo_command').doCommand();
+            event.preventDefault();
+            event.stopPropagation();
+            break;
+    }
+}
