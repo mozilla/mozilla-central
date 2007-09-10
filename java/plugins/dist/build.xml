@@ -267,11 +267,13 @@
   </target>
 
   <target name="copy.binaries" depends="prepare">
-    <copy todir="${dist.home}/bin/${platform}/bin" 
+    <copy todir="${dist.home}/bin/${platform}/bin/components" 
           file="${objdir}/java/plugins/src/${so.prefix}pluglet.${so.extension}" />
+    <copy todir="${dist.home}/bin/${platform}/bin/components" 
+          file="${objdir}/java/plugins/src/_xpidlgen/pluglet.xpt" />
     <copy todir="${dist.home}/bin/${platform}/bin" 
           file="${objdir}/java/plugins/jni/${so.prefix}plugletjni.${so.extension}" />
-    <copy todir="${dist.home}/bin/${platform}/bin" 
+    <copy todir="${dist.home}/bin/${platform}/bin/plugins" 
           file="${objdir}/java/plugins/mozilla/${so.prefix}nppluglet.${so.extension}" />
 
   </target>
@@ -280,8 +282,20 @@
 
     <!-- Populate the netbeans Source Packages -->
 
+    <copy todir="${dist.home}/test/manual/src/main/java">
+      <fileset dir="${basedir}/dummy-main/src/main/java">
+        <include name="**/*.java" />
+      </fileset>
+    </copy>
+
     <copy todir="${dist.home}/samples/jmfplayer">
       <fileset dir="${source.home}/examples/jmfplayer">
+      </fileset>
+    </copy>
+
+    <copy todir="${dist.home}/samples/">
+      <fileset dir="${source.home}/examples">
+         <include name="index.html" />
       </fileset>
     </copy>
 
@@ -290,7 +304,7 @@
   <target name="copy.core.src" depends="prepare">
 
     <!-- Populate the netbeans Source Package with the core 
-         webclient sources -->
+         pluglet sources -->
 
     <copy todir="${dist.home}/src/main/java" includeEmptyDirs="false">
       <fileset dir="${source.home}/classes">

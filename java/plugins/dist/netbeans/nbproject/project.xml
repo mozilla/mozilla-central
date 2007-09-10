@@ -5,10 +5,10 @@
         <data xmlns="http://www.netbeans.org/ns/j2se-project/3">
             <name>pluglet</name>
             <minimum-ant-version>1.6.5</minimum-ant-version>
-            <explicit-platform explicit-source-supported="true"/>
             <source-roots>
-                <root id="src.java.dir" name="jmfplayer sample"/>
-                <root id="src.java2.dir" name="Core Sources"/>
+                <root id="src.java3.dir" name="dummy-main"/>
+                <root id="src.java2.dir" name="jmfplayer sample"/>
+                <root id="src.java.dir" name="Core Sources"/>
             </source-roots>
             <test-roots/>
         </data>

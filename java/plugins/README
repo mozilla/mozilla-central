@@ -139,3 +139,7 @@ the prefs.js, and try again?
 Ed
 
 also remove pluginreg.dat
+
+in C:\Projects\chaff\pluglet-1-1-a1\
+
+find netbeans -name private -prune -o -type f -exec cp {} "/cygdrive/c/Projects/mozilla/MOZILLA_NIH/FIREFOX_2_0_0_3_RELEASE/mozilla/java/plugins/dist/{}" ;

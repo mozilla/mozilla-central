@@ -70,7 +70,7 @@
     <property environment="myenv" />
 
     <target name="-pre-init">
-        
+
         <condition property="so.prefix" value="">
             <and>
                 <os family="windows" />
@@ -88,6 +88,12 @@
                 <os family="windows" />
             </and>
         </condition>
+        
+        <condition property="so.extension" value="dylib">
+            <and>
+                <os name="Mac OS X" />
+            </and>
+        </condition>
 
         <condition property="so.extension" value="so">
             <and>
@@ -101,15 +107,36 @@
             </and>
         </condition>
 
+        <condition property="platform" value="macosx">
+            <and>
+                <os name="Mac OS X" />
+            </and>
+        </condition>
+        
         <condition property="platform" value="unix">
             <and>
                 <os family="unix" />
             </and>
         </condition>
         
-        <condition property="platform" value="mac">
+        <condition property="build.unix.classes">
             <and>
-                <os family="mac" />
+                <isset property="platform" />
+                <equals arg1="${platform}" arg2="unix" />
+            </and>
+        </condition>
+
+        <condition property="build.win32.classes">
+            <and>
+                <isset property="platform" />
+                <equals arg1="${platform}" arg2="win32" />
+            </and>
+        </condition>
+        
+        <condition property="build.mac.classes">
+            <and>
+                <isset property="platform" />
+                <equals arg1="${platform}" arg2="macosx" />
             </and>
         </condition>
         
@@ -136,7 +163,7 @@
                 <os family="unix" />
             </and>
         </condition>
-
+        
         <property file="pluglet.properties" />
         
         <condition property="preconditions.met">
@@ -147,7 +174,7 @@
         </condition>
         
         <uptodate property="do.copy.binaries">
-            <srcfiles dir="${basedir}/../bin" includes="**/*.*" />
+            <srcfiles dir="${basedir}/../bin/${platform}/bin" includes="**/*.*" />
             <mapper type="identity" to="${browser.bin.dir}/**/*.*" />
         </uptodate>
         
@@ -176,7 +203,7 @@ ${jdkhome.nospaces}.
 
     <target name="copy.binaries" if="do.copy.binaries">
         <copy todir="${browser.bin.dir}">
-            <fileset dir="${basedir}/../bin" />
+            <fileset dir="${basedir}/../bin/${platform}/bin" />
         </copy>
     </target>
 
@@ -191,15 +218,15 @@ ${jdkhome.nospaces}.
 
       <exec os="SunOS" dir="${browser.bin.dir}" executable="firefox" 
 		       failonerror="yes">
-        <arg value="file://${basedir}/../examples/index.html" />
+        <arg value="file://${basedir}/../samples/index.html" />
       </exec>
       <exec os="Linux" dir="${browser.bin.dir}" executable="firefox" 
 		       failonerror="yes">
-        <arg value="file://${basedir}/../examples/index.html" />
+        <arg value="file://${basedir}/../samples/index.html" />
       </exec>
       <exec os="Mac OS X" dir="${browser.bin.dir}" executable="firefox" 
 		       failonerror="yes">
-        <arg value="file://${basedir}/../examples/index.html" />
+        <arg value="file://${basedir}/../samples/index.html" />
       </exec>
       <exec os="Windows 2000" dir="${browser.bin.dir}" 
                        executable="${browser.bin.dir}/firefox.exe" 
@@ -222,18 +249,19 @@ ${jdkhome.nospaces}.
         <env key="NSPR_LOG_FILE"
              value="${basedir}/${build.dir}/logfile.txt"
         />
-        <arg value="file://${basedir}/../examples/index.html" />
+        <arg value="file://${basedir}/../samples/index.html" />
       </exec>
 
       <exec os="Windows XP" dir="${browser.bin.dir}" executable="firefox" 
 		       failonerror="yes">
-        <arg value="file://${basedir}/../examples/index.html" />
+        <arg value="file://${basedir}/../samples/index.html" />
       </exec>
 
     </target>
 
     <target name="-post-compile">
         <!-- SimplePluglet -->
+<!--
         <jar jarfile="${build.dir}/SimplePluglet.jar">
             <manifest>
                 <attribute name="MIMEDescription" value="application/x-simple-pluglet"/>
@@ -250,6 +278,8 @@ ${jdkhome.nospaces}.
         </delete>
         <copy todir="${browser.bin.dir}/plugins" 
                         file="${build.dir}/SimplePluglet.jar" />
+
+-->
                         
         <!-- JMFPlayer -->
         <jar jarfile="${build.dir}/jmfplayer.jar">
@@ -273,5 +303,16 @@ ${jdkhome.nospaces}.
 
     <target name="-do-jar-with-manifest" />
     <target name="-do-jar-without-manifest" />
+
+    <target name="compile.core.src" depends="-init-check">
+      <antcall target="compile">
+        <param name="src.dir" value="${basedir}/../src/main/java" />
+      </antcall>
+
+      <move failonerror="false" file="${file.reference.pluglet-1_1_a1.jar}"
+            tofile="${basedir}/../lib/outofdate-pluglet_jar" />
+
+    </target>
+
 
 </project>
