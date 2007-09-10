@@ -313,7 +313,6 @@ sub outputEnv {
    system ("which perl");
    system ("perl -version");
    system ("$java -version");
-
 }
 sub createpkcs11_cfg {
    
@@ -566,8 +565,8 @@ $serverCommand = "./startJssSelfServ.$scriptext $jss_classpath $testdir $hostnam
 $command = "$java -cp $jss_classpath org.mozilla.jss.tests.JSSE_SSLClient $testdir $serverPort $hostname JSS";
 run_ssl_test($testname, $serverCommand, $command);
 
-if ($osname =~ /HP/ || ( ($osname eq "Linux")  && $java =~ /1.5/i && ($ENV{USE_64}) )) {
-    print "don't run the JSSE Server tests on HP or Linux with java5.\n";
+if ($osname =~ /HP/ || ( ($osname =~ /Linux/)  && $java =~ /1.5/i && ($ENV{USE_64}) )) {
+    print "don't run the JSSE Server tests on HP or Linux  64 bit with java5.\n";
     print "Java 5 on HP does not have SunPKCS11 class\n"; 
 } else {
 
