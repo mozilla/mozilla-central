@@ -116,6 +116,8 @@ calWcapRequest.prototype = {
                 ret += ("\n#" + req.id + "\t" + req);
             }
         }
+        ret += (", isPending=" + this.isPending);
+        ret += (", status=" + errorToString(this.status));
         return ret;
     },
     
@@ -144,7 +146,7 @@ calWcapRequest.prototype = {
         this.m_attachedRequests = this.m_attachedRequests.filter(
             function(req_) { return req.id != req_.id; } );
         if (err) {
-            // first failing sub request stops whole request:
+            // first failing sub request stops parent request:
             this.execRespFunc(err);
         }
         // assures that respFunc is executed after every sub request has been completed:
@@ -156,7 +158,7 @@ calWcapRequest.prototype = {
     cancelAllSubRequests: function calWcapRequest_cancelAllSubRequests(status) {
         var attachedRequests = this.m_attachedRequests;
         this.m_attachedRequests = [];
-        attachedRequests.forEach( function(req) { req.cancel(status); } );
+        attachedRequests.forEach( function(req) { req.cancel(); } );
     },
     
     detachFromParent: function calWcapRequest_detachFromParent(err) {
@@ -185,7 +187,8 @@ calWcapRequest.prototype = {
                 }
                 catch (exc) {
                     this.m_status = exc;
-                    logError(exc, this);
+                    // don't pump into error console, may be handled:
+                    log("error: " + errorToString(exc), this);
                 }
             }
             this.detachFromParent(this.m_status);
@@ -206,18 +209,11 @@ calWcapRequest.prototype = {
         return (this.m_status === null ? NS_OK : this.m_status);
     },
     
-    cancel: function calWcapRequest_cancel(status)
-    {
-        if (this.isPending) {
-            this.m_isPending = false;
-            log("cancel.", this);
-            this.m_respFunc = null;
-            if (!status)
-                status = Components.results.NS_ERROR_FAILURE;
-            this.m_status = status;
-            this.cancelAllSubRequests();
-            this.detachFromParent(); // detach without error
-        }
+    cancel: function calWcapRequest_cancel(status) {
+        log("cancel.", this);
+        if (!status)
+            status = calIErrors.OPERATION_CANCELLED;
+        this.execRespFunc(status);
     }
 };
 
@@ -241,6 +237,8 @@ calWcapNetworkRequest.prototype = {
                    (this.parentRequest ? this.parentRequest.id : "<none>"));
         if (this.m_bLogging)
             ret += (" (" + this.m_channel.URI.spec + ")");
+        ret += (", isPending=" + this.isPending);
+        ret += (", status=" + errorToString(this.status));
         return ret;
     },
     
@@ -277,16 +275,14 @@ calWcapNetworkRequest.prototype = {
     },
     
     cancel: function calWcapNetworkRequest_cancel(status) {
-        if (this.isPending) {
-            this.m_isPending = false;
-            log("cancel.", this);
-            this.m_respFunc = null;
-            this.detachFromParent(); // detach without error
-            // xxx todo: check whether this works on redirected channels!
-            if (this.m_channel.isPending()) {
-                log("canceling netwerk request...", this);
-                this.m_channel.cancel(NS_BINDING_FAILED);
-            }
+        log("cancel.", this);
+        if (!status)
+            status = calIErrors.OPERATION_CANCELLED;
+        this.execRespFunc(status);
+        // xxx todo: check whether this works on redirected channels!
+        if (this.m_channel.isPending()) {
+            log("canceling netwerk request...", this);
+            this.m_channel.cancel(NS_BINDING_FAILED);
         }
     },
     
@@ -305,7 +301,8 @@ calWcapNetworkRequest.prototype = {
                     err = null; // may have been handled
                 }
                 catch (exc) {
-                    logError(exc, this);
+                    // don't pump into error console, may be handled:
+                    log("error: " + errorToString(exc), this);
                     err = exc;
                 }
             }

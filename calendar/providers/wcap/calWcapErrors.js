@@ -403,6 +403,12 @@ function errorToString(err)
                 return netErrorToString(err);
             }
             catch (exc) {
+                if (err & calIErrors.ERROR_BASE) {
+                    for (var err_ in calIErrors) {
+                        if (calIErrors[err_] == err)
+                            return err_;
+                    }
+                }
                 return ("[0x" + err.toString(0x10) + "] unknown error.");
             }
         }

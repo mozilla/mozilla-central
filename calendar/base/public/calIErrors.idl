@@ -78,6 +78,10 @@ interface calIErrors : nsISupports
    */
   const unsigned long DUPLICATE_ID = ERROR_BASE + 4;
 
+  /**
+   * Operation has been cancelled.
+   */
+  const unsigned long OPERATION_CANCELLED = ERROR_BASE + 5;
 
   /* ICS specific errors */
   const unsigned long ICS_ERROR_BASE = ERROR_BASE + 0x100;

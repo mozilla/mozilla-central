@@ -1113,6 +1113,7 @@ function calWcapCalendar_getItems(itemFilter, maxResults, rangeStart, rangeEnd, 
     var this_ = this;
     var request = new calWcapRequest(
         function getItems_resp(request, err, data) {
+            log("getItems() complete: " + errorToString(err), this_);
             var rc = getResultCode(err);
             if (err) {
                 if (listener) {
@@ -1124,7 +1125,6 @@ function calWcapCalendar_getItems(itemFilter, maxResults, rangeStart, rangeEnd, 
                 this_.notifyError(err, request.suppressOnError);
             }
             else {
-                log("getItems(): success.", this_);
                 if (listener) {
                     listener.onOperationComplete(
                         this_.superCalendar, rc,
@@ -1186,9 +1186,7 @@ function calWcapCalendar_getItems(itemFilter, maxResults, rangeStart, rangeEnd, 
             request,
             function netResp(err, icalRootComp) {
                 if (err) {
-                    if (getResultCode(err) ==
-                        calIWcapErrors.WCAP_ACCESS_DENIED_TO_CALENDAR)
-                    {
+                    if (getResultCode(err) == calIWcapErrors.WCAP_ACCESS_DENIED_TO_CALENDAR) {
                         // try free-busy times:
                         if (listener &&
                             (itemFilter & calICalendar.ITEM_FILTER_TYPE_EVENT) &&

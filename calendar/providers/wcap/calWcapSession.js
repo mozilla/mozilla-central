@@ -191,11 +191,7 @@ calWcapSession.prototype = {
             ", length: " + this.m_loginQueue.length, this);
         
         if (this.m_loginLock) {
-            var entry = {
-                request: request,
-                respFunc: respFunc
-            };
-            this.m_loginQueue.push(entry);
+            this.m_loginQueue.push(respFunc);
             log("login queue: " + this.m_loginQueue.length);
         }
         else {
@@ -227,17 +223,19 @@ calWcapSession.prototype = {
                     this_.m_loginLock = false;
                     this_.m_loginQueue = [];
                     log("unlocked login queue.", this_);
-                    
-                    if (request.isPending) {
-                        // answere first request:
-                        respFunc(err, sessionId);
+
+                    function exec(func) {
+                        try {
+                            func(err, sessionId);
+                        }
+                        catch (exc) {
+                            this_.notifyError(exc);
+                        }
                     }
+                    // answer first request:
+                    exec(respFunc);
                     // and any remaining:
-                    while (queue.length > 0) {
-                        var entry = queue.shift();
-                        if (entry.request.isPending)
-                            entry.respFunc(err, sessionId);
-                    }
+                    queue.forEach(exec);
                 });
         }
     },
@@ -920,7 +918,7 @@ calWcapSession.prototype = {
         var this_ = this;
         var request = new calWcapRequest(
             function searchForCalendars_resp(request, err, data) {
-                if (err)
+                if (err && getResultCode(err) != calIErrors.OPERATION_CANCELLED)
                     this_.notifyError(err);
                 if (listener)
                     listener.onResult(request, data);
@@ -1019,6 +1017,7 @@ calWcapSession.prototype = {
             function getFreeBusyTimes_resp(request, err, data) {
                 var rc = getResultCode(err);
                 switch (rc) {
+                case calIErrors.OPERATION_CANCELLED:
                 case calIWcapErrors.WCAP_NO_ERRNO: // workaround
                 case calIWcapErrors.WCAP_ACCESS_DENIED_TO_CALENDAR:
                 case calIWcapErrors.WCAP_CALENDAR_DOES_NOT_EXIST:

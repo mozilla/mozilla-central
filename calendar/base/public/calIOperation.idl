@@ -64,6 +64,8 @@ interface calIOperation : nsISupports
 
     /**
      * Cancels a pending request and changes status.
+     * @param aStatus operation status to be set;
+     *                defaults to calIErrors.OPERATION_CANCELLED if null
      */
     void cancel(in nsIVariant aStatus);
 };
