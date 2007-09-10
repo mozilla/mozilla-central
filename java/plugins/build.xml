@@ -81,7 +81,7 @@
   </target>
 
   <target name="main" 
-          depends="prepare,compile.classes,compile.src,compile.jni,compile.mozilla,compile.examples"/>
+          depends="prepare,compile.classes,compile.src,compile.jni,compile.mozilla"/>
 
   <target name="compile.classes">
 
