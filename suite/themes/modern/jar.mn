@@ -141,6 +141,7 @@ modern.jar:
   skin/modern/editor/icons/progress-failed.gif                     (editor/icons/progress-failed.gif)
   skin/modern/global/globalBindings.xml                            (global/globalBindings.xml)
   skin/modern/global/plugins.css                                   (global/plugins.css)
+  skin/modern/global/about.css                                     (global/about.css)
   skin/modern/global/button.css                                    (global/button.css)
   skin/modern/global/checkbox.css                                  (global/checkbox.css)
   skin/modern/global/colorpicker.css                               (global/colorpicker.css)
