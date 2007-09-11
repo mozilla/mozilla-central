@@ -37,18 +37,6 @@
 
 MOZ_WIDGET_TOOLKIT = os2
 
-# Specify toolset.  Default to EMX.
-ifeq ($(MOZ_OS2_TOOLS),VACPP)
-XP_OS2_VACPP = 1
-else
-ifeq ($(MOZ_OS2_TOOLS),PGCC)
-XP_OS2_EMX   = 1
-else
-MOZ_OS2_TOOLS = EMX
-XP_OS2_EMX   = 1
-endif
-endif
-
 # XP_PC is for Window and OS2 on Intel X86
 # XP_OS2 is strictly for OS2 only
 XP_DEFINE  += -DXP_PC=1  -DXP_OS2=1
@@ -63,8 +51,6 @@ DLL_SUFFIX  = DLL
 PROG_SUFFIX = .exe
 
 
-ifdef XP_OS2_EMX
-
 CCC			= gcc
 LINK			= gcc
 AR                      = emxomfar r $@
@@ -78,7 +64,7 @@ FILTER			= emxexp -o
 # GCC for OS/2 currently predefines these, but we don't want them
 DEFINES 		+= -Uunix -U__unix -U__unix__
 
-DEFINES			+= -DXP_OS2_EMX -DTCPV40HDRS
+DEFINES			+= -DTCPV40HDRS
 
 ifeq ($(MOZ_OS2_HIGH_MEMORY),1)
 HIGHMEM_LDFLAG          = -Zhigh-mem
@@ -127,78 +113,6 @@ EXEFLAGS    		= -DEBUG -PMTYPE:VIO -OUT:$@ -MAP:$(@:.exe=.map) -nologo -NOE $(HI
 OBJDIR_TAG 		= _DBG
 LDFLAGS 		= -DEBUG $(HIGHMEM_LDFLAG)
 endif   # BUILD_OPT
-
-else    # XP_OS2_VACPP
-
-# Override suffix in suffix.mk
-OBJ_SUFFIX  = .obj
-ASM_SUFFIX  = .asm
-
-AS = alp.exe
-ifdef BUILD_OPT
-ASFLAGS = -Od
-else
-ASFLAGS = +Od
-endif
-CCC			= icc -q -DXP_OS2 -DOS2=4 -N10
-LINK			= -ilink
-AR		= -ilib /NOL /NOI /O:$(subst /,\\,$@)
-# Keep AR_FLAGS blank so that we do not have to change rules.mk
-AR_FLAGS                = 
-RANLIB 			= @echo OS2 RANLIB
-BSDECHO 		= @echo OS2 BSDECHO
-IMPLIB    = implib /NOL /NOI
-FILTER    = cppfilt -b -p -q
-
-ifndef NO_SHARED_LIB
-WRAP_MALLOC_LIB         = 
-WRAP_MALLOC_CFLAGS      = 
-DSO_CFLAGS              = 
-DSO_PIC_CFLAGS          = 
-MKSHLIB                 = $(LD) $(DSO_LDOPTS)
-MKCSHLIB                = $(LD) $(DSO_LDOPTS)
-MKSHLIB_FORCE_ALL       = 
-MKSHLIB_UNFORCE_ALL     = 
-DSO_LDOPTS              = 
-# DLL_SUFFIX              = .dll
-SHLIB_LDSTARTFILE	= 
-SHLIB_LDENDFILE		= 
-ifdef MAPFILE
-MKSHLIB += $(MAPFILE)
-endif
-PROCESS_MAP_FILE = \
-	echo LIBRARY $(LIBRARY_NAME)$(LIBRARY_VERSION) INITINSTANCE TERMINSTANCE > $@; \
-	echo PROTMODE >> $@; \
-	echo CODE    LOADONCALL MOVEABLE DISCARDABLE >> $@; \
-	echo DATA    PRELOAD MOVEABLE MULTIPLE NONSHARED >> $@; \
-	echo EXPORTS >> $@; \
-	grep -v ';+' $< | grep -v ';-' | \
-	sed -e 's; DATA ;;' -e 's,;;,,' -e 's,;.*,,' >> $@
-endif   #NO_SHARED_LIB
-
-OS_CFLAGS          = /Q /qlibansi /Gd /Gm /Su4 /Mp /Tl-
-INCLUDES        += -I$(CORE_DEPTH)/../dist/include
-DEFINES         += -DXP_OS2_VACPP -DTCPV40HDRS
-
-DLLFLAGS    = /DLL /O:$@ /INC:_dllentry /MAP:$(@:.dll=.map)
-EXEFLAGS    = -PMTYPE:VIO -OUT:$@ -MAP:$(@:.exe=.map) -nologo -NOE
-LDFLAGS     = /FREE /NOE /LINENUMBERS /nologo
-
-ifdef BUILD_OPT
-OPTIMIZER		= /O+ /Gl+ /G5 /qarch=pentium
-DEFINES 		+= -UDEBUG -U_DEBUG -DNDEBUG
-OBJDIR_TAG 		= _OPT
-LDFLAGS     += /NODEBUG /OPTFUNC /EXEPACK:2 /PACKCODE /PACKDATA
-else
-OS_CFLAGS   += /Ti+
-DEFINES 		+= -DDEBUG -D_DEBUG -DDEBUGPRINTS     #HCT Need += to avoid overidding manifest.mn 
-DLLFLAGS    += /DE
-EXEFLAGS    += /DE
-OBJDIR_TAG 		= _DBG
-LDFLAGS     += /DE
-endif   # BUILD_OPT
-
-endif   # XP_OS2_VACPP
 
 # OS/2 use nsinstall that is included in the toolkit.
 # since we do not wish to support and maintain 3 version of nsinstall in mozilla, nspr and nss

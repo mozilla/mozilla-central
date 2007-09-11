@@ -58,10 +58,6 @@ include $(CORE_DEPTH)/coreconf/config.mk
 
 include ../platlibs.mk
 
-ifdef XP_OS2_VACPP
-CFLAGS += -I../modutil
-endif
-
 #######################################################################
 # (5) Execute "global" rules. (OPTIONAL)                              #
 #######################################################################

@@ -39,7 +39,7 @@
  * the terms of any one of the MPL, the GPL or the LGPL.
  *
  * ***** END LICENSE BLOCK ***** */
-/* $Id: sslimpl.h,v 1.60 2007-09-01 00:53:52 nelson%bolyard.com Exp $ */
+/* $Id: sslimpl.h,v 1.61 2007-09-11 22:40:40 julien.pierre.boogz%sun.com Exp $ */
 
 #ifndef __sslimpl_h_
 #define __sslimpl_h_
@@ -1473,10 +1473,6 @@ PRBool    SSL_IsExportCipherSuite(PRUint16 cipherSuite);
 void ssl_Trace(const char *format, ...);
 
 SEC_END_PROTOS
-
-#ifdef XP_OS2_VACPP
-#include <process.h>
-#endif
 
 #if defined(XP_UNIX) || defined(XP_OS2) || defined(XP_BEOS)
 #define SSL_GETPID getpid

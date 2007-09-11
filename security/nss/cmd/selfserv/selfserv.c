@@ -54,10 +54,6 @@
 #include <process.h>	/* for getpid() */
 #endif
 
-#ifdef XP_OS2_VACPP
-#include <Process.h>	/* for getpid() */
-#endif
-
 #include <signal.h>
 #include <stdlib.h>
 #include <errno.h>

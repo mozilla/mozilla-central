@@ -194,13 +194,6 @@ endif
 
 # $(PROGRAM) has NO explicit dependencies on $(EXTRA_SHARED_LIBS)
 # $(EXTRA_SHARED_LIBS) come before $(OS_LIBS), except on AIX.
-ifdef XP_OS2_VACPP
-EXTRA_SHARED_LIBS += \
-	$(NSPR_LIB_DIR)/plc4.lib \
-	$(NSPR_LIB_DIR)/plds4.lib \
-	$(NSPR_LIB_DIR)/nspr4.lib \
-	$(NULL)
-else
 EXTRA_SHARED_LIBS += \
 	-L$(DIST)/lib \
 	$(SQLITE) \
@@ -213,7 +206,6 @@ endif
 
 ifeq ($(OS_TARGET), SunOS)
 OS_LIBS += -lbsm
-endif
 endif
 
 else # USE_STATIC_LIBS

@@ -36,7 +36,7 @@
  * the terms of any one of the MPL, the GPL or the LGPL.
  *
  * ***** END LICENSE BLOCK ***** */
-/* $Id: sslsnce.c,v 1.40 2007-05-03 21:16:35 glen.beasley%sun.com Exp $ */
+/* $Id: sslsnce.c,v 1.41 2007-09-11 22:40:40 julien.pierre.boogz%sun.com Exp $ */
 
 /* Note: ssl_FreeSID() in sslnonce.c gets used for both client and server 
  * cache sids!
@@ -107,10 +107,6 @@
 #include "nspr.h"
 #include "nsslocks.h"
 #include "sslmutex.h"
-
-#ifdef XP_OS2_VACPP
-#pragma pack(1)
-#endif
 
 /*
 ** Format of a cache entry in the shared memory.

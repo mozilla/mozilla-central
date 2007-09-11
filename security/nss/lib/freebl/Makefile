@@ -566,14 +566,6 @@ endif
 endif  # FREEBL_CHILD_BUILD
 
 
-# Bugzilla Bug 209827: disable optimization to work around what appears
-# to be a VACPP optimizer bug.
-ifdef XP_OS2_VACPP
-$(OBJDIR)/alg2268.obj: alg2268.c
-	@$(MAKE_OBJDIR)
-	$(CC) -Fo$@ -c $(filter-out /O+, $(CFLAGS)) $(call core_abspath,$<)
-endif
-
 # Bugzilla Bug 333917: the non-x86 code in desblapi.c seems to violate
 # ANSI C's strict aliasing rules.
 ifeq ($(OS_TARGET),Linux)
