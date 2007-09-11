@@ -41,6 +41,7 @@ interface calIIcalProperty;
 interface calIIcalComponent;
 interface calIItemBase;
 interface nsIOutputStream;
+interface nsIInputStream;
 
 /**
  * An interface for serializing calendar items into an ICS string.
@@ -93,6 +94,15 @@ interface calIIcsSerializer : nsISupports
    *
    * @returns
    *    A stream containing the serialized items, properties and components.
+   */
+  nsIInputStream serializeToInputStream();
+
+  /**
+   * Serialize the added items, properties and components into an ICS stream
+   *
+   * @param aStream
+   *    A stream into which the serialized items, properties and components
+   *    will be written.
    */
   void serializeToStream(in nsIOutputStream aStream);
 };

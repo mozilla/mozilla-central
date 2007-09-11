@@ -323,18 +323,11 @@ calICSCalendar.prototype = {
                     var uploadChannel = channel.QueryInterface(
                         Components.interfaces.nsIUploadChannel);
 
-                    // Create a pipe to convert the output stream from the
-                    // serializer into an input stream for the upload channel
-                    var pipe = Components.classes["@mozilla.org/pipe;1"].
-                                  createInstance(Components.interfaces.nsIPipe);
-                    const PR_UINT32_MAX = 4294967295; // signals "infinite-length"
-                    pipe.init(true, true, 0, PR_UINT32_MAX, null);
-
                     // Serialize
-                    var icsStream = this.serializer.serializeToStream(pipe.outputStream);
+                    var icsStream = this.serializer.serializeToInputStream();
 
                     // Upload
-                    uploadChannel.setUploadStream(pipe.inputStream,
+                    uploadChannel.setUploadStream(icsStream,
                                                   "text/calendar", -1);
 
                     appStartup.enterLastWindowClosingSurvivalArea();
@@ -372,7 +365,15 @@ calICSCalendar.prototype = {
     // nsIStreamListener impl
     // For after publishing. Do error checks here
     onStartRequest: function(request, ctxt) {},
-    onDataAvailable: function(request, ctxt, inStream, sourceOffset, count) {},
+    onDataAvailable: function(request, ctxt, inStream, sourceOffset, count) {
+         // All data must be consumed. For an upload channel, there is
+         // no meaningfull data. So it gets read and then ignored
+         var scriptableInputStream = 
+             Components.classes["@mozilla.org/scriptableinputstream;1"]
+                       .createInstance(Components.interfaces.nsIScriptableInputStream);
+         scriptableInputStream.init(inStream);
+         scriptableInputStream.read(-1);
+    },
     onStopRequest: function(request, ctxt, status, errorMsg)
     {
         ctxt = ctxt.wrappedJSObject;

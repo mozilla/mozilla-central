@@ -73,6 +73,32 @@ function is_addComponent(aComponent) {
 
 calIcsSerializer.prototype.serializeToString =
 function is_serializeToString() {
+    var calComp = this.getIcalComponent();
+    return calComp.serializeToICS();
+}
+
+calIcsSerializer.prototype.serializeToInputStream =
+function is_serializeToStream(aStream) {
+    var calComp = this.getIcalComponent();
+    return calComp.serializeToICSStream();
+};
+
+calIcsSerializer.prototype.serializeToStream =
+function is_serializeToStream(aStream) {
+    var str = this.serializeToString();
+
+    // Convert the javascript string to an array of bytes, using the
+    // UTF8 encoder
+    var convStream = Components.classes["@mozilla.org/intl/converter-output-stream;1"]
+                               .getService(Components.interfaces.nsIConverterOutputStream);
+    convStream.init(aStream, 'UTF-8', 0, 0x0000);
+
+    convStream.writeString(str);
+    convStream.close();
+};
+
+calIcsSerializer.prototype.getIcalComponent =
+function is_getIcalComponent() {
     icsSvc = Components.classes["@mozilla.org/calendar/ics-service;1"]
                        .getService(Components.interfaces.calIICSService);
     var calComp = icsSvc.createIcalComponent("VCALENDAR");
@@ -99,23 +125,5 @@ function is_serializeToString() {
             }
         }
     }
-
-    // do the actual serialization
-    return calComp.serializeToICS();
+    return calComp;
 }
-
-calIcsSerializer.prototype.serializeToStream =
-function is_serializeToStream(aStream) {
-    var str = this.serializeToString();
-
-    // Convert the javascript string to an array of bytes, using the
-    // UTF8 encoder
-    var convStream = Components.classes["@mozilla.org/intl/converter-output-stream;1"]
-                               .getService(Components.interfaces.nsIConverterOutputStream);
-    convStream.init(aStream, 'UTF-8', 0, 0x0000);
-
-    convStream.writeString(str);
-    convStream.close();
-
-    return;
-};
