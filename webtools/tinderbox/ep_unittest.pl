@@ -38,6 +38,7 @@ BEGIN {
       or /REFTEST UNEXPECTED/ # . . . . . . . . . . . . reftest
       or /^\*\*\* \d+ ERROR (?:FAIL|TODO WORKED)/ # . . mochitest
       or /^\s+FAIL -/ # . . . . . . . . . . . . . . . . browser chrome test
+      or /: FAIL$/  # . . . . . . . . . . . . . . . . . xpcshell unit test
       or /buildbot\.slave\.commands\.TimeoutError:/ # . buildbot error
       ;
   }
@@ -66,6 +67,14 @@ sub has_errorline {
   if (/^\*\*\* \d+ ERROR (?:FAIL|TODO WORKED).*\| \/tests(.+)$/
       or m/^\*\*\* \d+ ERROR (?:FAIL|TODO WORKED).*\| chrome:\/\/mochikit\/content\/chrome(.+)$/
       or m|^\s+FAIL -.*- chrome://mochikit/content/browser(.+)$|) {
+    $out->{error_file}     = $1;
+    $out->{error_file_ref} = "mozilla$1";
+    $out->{error_line}     = 1; # don't actually have a line number
+    $out->{error_guess}    = 0;
+    return 1;
+  }
+  # xpcshell unit tests
+  if (m|_tests/xpcshell-simple(.+): FAIL$|) {
     $out->{error_file}     = $1;
     $out->{error_file_ref} = "mozilla$1";
     $out->{error_line}     = 1; # don't actually have a line number
