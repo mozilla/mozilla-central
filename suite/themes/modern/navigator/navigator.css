@@ -518,20 +518,15 @@ panel[nomatch="true"] > .autocomplete-search-box {
   background: url("chrome://global/skin/toolbar/tb-mid.gif") #C7D0D9 repeat-x top;
 }
 
-#PersonalToolbar > .toolbar-prefix {
-  border-top: 1px solid #CED6DD;
-  border-left: 1px solid #DAE3ED;
-}
-
-#PersonalToolbar > toolbargrippy,
-#PersonalToolbar > .toolbar-holder {
+#PersonalToolbar > .toolbar-box > toolbargrippy,
+#PersonalToolbar > .toolbar-box > .toolbar-holder {
   border-top: 1px solid #CED6DD;
   border-right: 1px solid #95A0AD;
   border-bottom: 1px solid #95A0AD;
   border-left: 1px solid #DAE3ED;
 }
 
-#PersonalToolbar > toolbargrippy:hover:active {
+#PersonalToolbar > .toolbar-box > toolbargrippy:hover:active {
   border-color: #67737E;
 }
 

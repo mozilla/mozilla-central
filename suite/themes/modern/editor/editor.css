@@ -62,6 +62,24 @@
   font-size: -moz-initial;
 }
 
+/* ::::: formatting toolbar ::::: */
+
+#FormatToolbar {
+  background: url("chrome://global/skin/toolbar/tb-mid.gif") #C7D0D9 repeat-x top;
+}
+
+#FormatToolbar > .toolbar-box > toolbargrippy,
+#FormatToolbar > .toolbar-box > .toolbar-holder {
+  border-top: 1px solid #CED6DD;
+  border-right: 1px solid #95A0AD;
+  border-bottom: 1px solid #95A0AD;
+  border-left: 1px solid #DAE3ED;
+}
+
+#FormatToolbar > .toolbar-box > toolbargrippy:hover:active {
+  border-color: #67737E;
+}
+
 /* ::::: struct toolbar ::::: */
 
 #structToolbar {

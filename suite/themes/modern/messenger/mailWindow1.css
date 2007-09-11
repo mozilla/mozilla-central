@@ -102,6 +102,24 @@
   -moz-border-bottom-colors: #5D616E #BEC3D3;
 }
 
+/* ::::: location toolbar ::::: */
+
+#msgLocationToolbar {
+  background: url("chrome://global/skin/toolbar/tb-mid.gif") #C7D0D9 repeat-x top;
+}
+
+#msgLocationToolbar > .toolbar-box > toolbargrippy,
+#msgLocationToolbar > .toolbar-box > .toolbar-holder {
+  border-top: 1px solid #CED6DD;
+  border-right: 1px solid #95A0AD;
+  border-bottom: 1px solid #95A0AD;
+  border-left: 1px solid #DAE3ED;
+}
+
+#msgLocationToolbar > .toolbar-box > toolbargrippy:hover:active {
+  border-color: #67737E;
+}
+
 /* XXX bug 313731 buttons are taller than menulists */
 #msgLocationToolbar > #searchBox[collapsed="true"] {
   visibility: hidden;

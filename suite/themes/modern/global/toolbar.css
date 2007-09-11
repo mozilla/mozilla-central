@@ -56,7 +56,7 @@ toolbar {
   color: #000000;
 }
 
-toolbar > .toolbar-holder {
+toolbar > .toolbar-box > .toolbar-holder {
   border-top: 1px solid #EEF0F3;
   border-right: 1px solid #86929E;
   border-bottom: 1px solid #86929E;
@@ -72,7 +72,7 @@ menubar {
   color: #000000;
 }
   
-menubar > .toolbar-holder {
+menubar > .toolbar-box > .toolbar-holder {
   border-top: 1px solid #EBF4FF;
   border-right: 1px solid #86929E;
   border-bottom: 1px solid #B9BFC7;
@@ -107,7 +107,7 @@ toolbargrippy:hover:active {
 
 /* ::::: menubar grippy ::::: */
 
-menubar > toolbargrippy { 
+menubar > .toolbar-box > toolbargrippy { 
   border-top: 1px solid #EBF4FF;
   border-right: 1px solid #B9BFC7;
   border-bottom: 1px solid #B9BFC7;
