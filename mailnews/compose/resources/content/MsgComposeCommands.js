@@ -122,6 +122,8 @@ var gAttachVCardOptionChanged;
 var gMailSession;
 var gAutoSaveInterval;
 var gAutoSaveTimeout;
+var gAutoSaveKickedIn;
+var gEditingDraft;
 
 const kComposeAttachDirPrefName = "mail.compose.attach.dir";
 
@@ -1401,6 +1403,24 @@ function ComposeStartup(recycled, aParams)
       }
     }
   }
+
+  // create URI of the folder from draftId 
+  var draftId = msgCompFields.draftId;
+  var folderURI = draftId.substring(0, draftId.indexOf("#")).replace("-message", "");
+  
+  try {
+    const MSG_FOLDER_FLAG_DRAFTS = 0x0400;
+    var folder = sRDF.GetResource(folderURI);
+  
+    gEditingDraft = (folder instanceof Components.interfaces.nsIMsgFolder) &&
+                    (folder.flags & MSG_FOLDER_FLAG_DRAFTS);
+  }
+  catch (ex) {
+    gEditingDraft = false;
+  }
+
+  gAutoSaveKickedIn = false;
+
   gAutoSaveInterval = sPrefs.getBoolPref("mail.compose.autosave")
     ? sPrefs.getIntPref("mail.compose.autosaveinterval") * 60000
     : 0;
@@ -1965,6 +1985,9 @@ function SaveAsDraft()
 
   GenericSendMessage(nsIMsgCompDeliverMode.SaveAsDraft);
   defaultSaveOperation = "draft";
+  
+  gAutoSaveKickedIn = false;
+  gEditingDraft = true;
 }
 
 function SaveAsTemplate()
@@ -1973,6 +1996,9 @@ function SaveAsTemplate()
 
   GenericSendMessage(nsIMsgCompDeliverMode.SaveAsTemplate);
   defaultSaveOperation = "template";
+  
+  gAutoSaveKickedIn = false;
+  gEditingDraft = false;
 }
 
 function MessageFcc(menuItem)
@@ -2396,7 +2422,7 @@ function ComposeCanClose()
   }
 
   // Returns FALSE only if user cancels save action
-  if (gContentChanged || gMsgCompose.bodyModified)
+  if (gContentChanged || gMsgCompose.bodyModified || (gAutoSaveKickedIn && !gEditingDraft))
   {
     // call window.focus, since we need to pop up a dialog
     // and therefore need to be visible (to prevent user confusion)
@@ -2414,12 +2440,18 @@ function ComposeCanClose()
       switch (result)
       {
         case 0: //Save
+          // we can close immediately if we already autosaved the draft
+          if (!gContentChanged && !gMsgCompose.bodyModified)
+            break;
           gCloseWindowAfterSave = true;
           SaveAsDraft();
           return false;
         case 1: //Cancel
           return false;
         case 2: //Don't Save
+          // only delete the draft if we didn't start off editing a draft
+          if (!gEditingDraft && gAutoSaveKickedIn)
+            RemoveDraft();            
           break;
       }
     }
@@ -2428,6 +2460,33 @@ function ComposeCanClose()
   }
 
   return true;
+}
+
+function RemoveDraft()
+{
+  try
+  {
+    var draftId = gMsgCompose.compFields.draftId;
+    var msgKey = draftId.substr(draftId.indexOf('#') + 1);
+    var folder = sRDF.GetResource(gMsgCompose.savedFolderURI);
+    try {
+      if (folder instanceof Components.interfaces.nsIMsgFolder) 
+      {
+        var msgs = Components.classes["@mozilla.org/supports-array;1"]
+                             .createInstance(Components.interfaces.nsISupportsArray);
+        msgs.AppendElement(folder.GetMessageHeader(msgKey));    
+        folder.deleteMessages(msgs, null, true, false, null, false);
+      }
+    }
+    catch (ex) // couldn't find header - perhaps an imap folder.
+    {
+      if (folder instanceof Components.interfaces.nsIMsgImapMailFolder)
+      {
+        const kImapMsgDeletedFlag = 0x0008;
+        folder.storeImapFlags(kImapMsgDeletedFlag, true, [msgKey], 1, null);
+      }
+    }
+  } catch (ex) {}
 }
 
 function SetContentAndBodyAsUnmodified()
@@ -3328,8 +3387,10 @@ function AutoSave()
 {
   dump("in autosave\n");
   if (gMsgCompose.editor && (gContentChanged || gMsgCompose.bodyModified))
+  {
     GenericSendMessage(nsIMsgCompDeliverMode.AutoSaveAsDraft);
-
+    gAutoSaveKickedIn = true;
+  }
   gAutoSaveTimeout = setTimeout(AutoSave, gAutoSaveInterval);
 }
 
