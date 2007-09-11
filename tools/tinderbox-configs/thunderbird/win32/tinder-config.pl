@@ -1,6 +1,6 @@
 #
-## hostname: tb-win32-tbox
-## CYGWIN_NT-5.2 win2k3-ref-img 1.5.19(0.150/4/2) 2006-01-20 13:28 i686 Cygwin
+## hostname: tbnewref-win32-tbox
+## MINGW32_NT-5.2 TBNEWREF-WIN32- 1.0.11(0.46/3/2) 2007-01-12 12:05 i686 Msys
 #
 
 #- tinder-config.pl - Tinderbox configuration file.
@@ -98,8 +98,8 @@ $Make          = 'make';       # Must be GNU make
 #$CVSCO         = 'checkout -P';
 
 # win32 usually doesn't have /bin/mail
-$blat           = 'd:/moztools/bin/blat';
-$use_blat       = 1;
+$blat           = '/d/mozilla-build/blat261/full/blat';
+$use_blat       = 0;
 
 # Set moz_cvsroot to something like:
 # :pserver:$ENV{USER}%netscape.com\@cvs.mozilla.org:/cvsroot
