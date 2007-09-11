@@ -133,11 +133,7 @@ elsif ($action eq 'do_clone'){
     my $newplan = Bugzilla::Testopia::TestPlan->new($newplanid);
     if($cgi->param('copy_tags')){
         foreach my $tag (@{$plan->tags}){
-            my $newtag = Bugzilla::Testopia::TestTag->new({
-                           tag_name  => $tag->name
-                         });
-            my $newtagid = $newtag->store;
-            $newplan->add_tag($newtagid);
+            $newplan->add_tag($tag->name);
         }
     }
     if($cgi->param('copy_attachments')){
@@ -188,12 +184,7 @@ elsif ($action eq 'do_clone'){
                 $case->link_plan($newplan->id, $caseid);
 
                 foreach my $tag (@{$case->tags}){
-                    # Doing it this way avoids collisions
-                    my $newtag = Bugzilla::Testopia::TestTag->new({
-                                   tag_name  => $tag->name
-                                 });
-                    my $newtagid = $newtag->store;
-                    $newcase->add_tag($newtagid);
+                    $newcase->add_tag($tag->name);
                 }
 
                 foreach my $comp (@{$case->components}){

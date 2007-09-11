@@ -100,14 +100,11 @@ sub create
 
     $self->login;
 
-    my $test_run = new Bugzilla::Testopia::TestRun($new_values);
-    
-    my $result = $test_run->store();
+    my $test_run = Bugzilla::Testopia::TestRun->create($new_values);
     
     $self->logout;
     
-    # Result is new test run id
-    return $result
+    return $test_run->id;
 }
 
 sub update
@@ -286,17 +283,7 @@ sub add_tag
         die "User Not Authorized";
     }
     
-    #Create new tag or retrieve id of existing tag
-    my $test_tag = new Bugzilla::Testopia::TestTag({tag_name=>$tag_name});
-    my $tag_id = $test_tag->store;
-
-    my $result = $test_run->add_tag($tag_id);
-    
-    if ($result == 1)
-    {
-        $self->logout;
-        die "Tag, " . $tag_name . ", already exists for Testrun, " . $test_run_id;
-    }
+    $test_run->add_tag($tag_name);
 
     $self->logout;
     

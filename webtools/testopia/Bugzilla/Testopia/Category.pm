@@ -258,13 +258,6 @@ Every plan in a product will have access to that product's categories.
  $new_category = Bugzilla::Testopia::Category->create({name => $name, 
                                                        description => $desc});
 
-=head3 Deprecated
-
- $category = Bugzilla::Testopia::Category->new({name => $name,
-                                                description => $desc,
-                                                PREVALIDATED => 1});
- my $id = $category->store();
- 
 =head2 Updating
  
  $category->set_name($name);
@@ -419,14 +412,6 @@ A detailed description for this category.
 
 =over
 
-=item C<store()> DEPRECATED
- 
- Description: Similar to create except validation is not performed during store. 
-              
- Params:      none.
- 
- Returns:     The id of the newly stored category.
- 
 =back
 
 =head1 ACCESSORS

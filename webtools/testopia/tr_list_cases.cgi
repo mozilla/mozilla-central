@@ -165,14 +165,11 @@ if ($action eq 'Commit'){
         $case->add_component($_) foreach (@components);
         if ($cgi->param('addtags')){
             foreach my $name (split(/[,]+/, $cgi->param('addtags'))){
-                trick_taint($name);
-                my $tag = Bugzilla::Testopia::TestTag->new({'tag_name' => $name});
-                my $tag_id = $tag->store;
                 if ($cgi->param('tag_action') eq 'add'){
-                    $case->add_tag($tag_id);
+                    $case->add_tag($name);
                 }
                 else {
-                    $case->remove_tag($tag_id);
+                    $case->remove_tag($name);
                 }
             }
         }
@@ -200,12 +197,7 @@ if ($action eq 'Commit'){
                 $case->link_plan($planid, $newcaseid);
                 my $newcase = Bugzilla::Testopia::TestCase->new($newcaseid);
                 foreach my $tag (@{$case->tags}){
-                    # Doing it this way avoids collisions
-                    my $newtag = Bugzilla::Testopia::TestTag->new({
-                                   tag_name  => $tag->name
-                                 });
-                    my $newtagid = $newtag->store;
-                    $newcase->add_tag($newtagid);
+                    $newcase->add_tag($tag);
                 }
                 foreach my $comp (@{$case->components}){
                     $newcase->add_component($comp->{'id'});

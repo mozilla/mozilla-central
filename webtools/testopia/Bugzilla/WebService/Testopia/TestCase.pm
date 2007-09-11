@@ -108,16 +108,13 @@ sub create
 
     $self->login;
 
-    my $test_case = new Bugzilla::Testopia::TestCase($new_values);
+    my $test_case = Bugzilla::Testopia::TestCase->create($new_values);
     
-    # Result is test plan id
-    my $result = $test_case->store();
-
-    $test_case->link_plan($plan_id, $result);
+    $test_case->link_plan($plan_id, $test_case->id);
     
     $self->logout;
 
-    return $result
+    return $test_case->id
 }
 
 sub update

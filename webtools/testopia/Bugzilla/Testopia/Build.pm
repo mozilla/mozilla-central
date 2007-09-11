@@ -302,14 +302,6 @@ and are associated with a milestone if targetmilestones are used in Bugzilla.
                                                  description => $desc
                                                  ... });
 
-=head3 Deprecated
-
- $build = Bugzilla::Testopia::Build->new({name => $name,
-                                          description => $desc,
-                                          ...
-                                          PREVALIDATED => 1});
- my $id = $build->store();
- 
 =head2 Updating
  
  $build->set_name($name);
@@ -463,14 +455,6 @@ Boolean - determines whether to show this build in lists for selection.
 
 =over
 
-=item C<store()> DEPRECATED
- 
- Description: Similar to create except validation is not performed during store. 
-              
- Params:      none.
- 
- Returns:     The id of the newly stored build.
- 
 =item C<toggle_hidden()>
  
  Description: Flips the bit in the isactive field. If it is currently 0 it sets

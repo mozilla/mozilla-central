@@ -103,12 +103,9 @@ sub create
 
     my $test_plan = Bugzilla::Testopia::TestPlan->create($new_values);
     
-    my $result = $test_plan->store(); 
-    
     $self->logout;
     
-    # Result is new test plan id
-    return $result;
+    return $test_plan->id;
 }
 
 sub update
@@ -351,11 +348,7 @@ sub add_tag
         die "User Not Authorized";
     }
     
-    #Create new tag or retrieve id of existing tag
-    my $test_tag = new Bugzilla::Testopia::TestTag({tag_name=>$tag_name});
-    my $tag_id = $test_tag->store;
-
-    my $result = $test_plan->add_tag($tag_id);
+    my $result = $test_plan->add_tag($tag_name);
     
     if ($result == 1)
     {

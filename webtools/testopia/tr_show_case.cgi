@@ -127,12 +127,7 @@ elsif ($action eq 'do_clone'){
             }
             if ($cgi->param('copy_tags')){
                 foreach my $tag (@{$case->tags}){
-                    # Doing it this way avoids collisions
-                    my $newtag = Bugzilla::Testopia::TestTag->new({
-                                   tag_name  => $tag->name
-                                 });
-                    my $newtagid = $newtag->store;
-                    $newcase->add_tag($newtagid);
+                    $newcase->add_tag($tag->name);
                 }
             }
             if ($cgi->param('copy_comps')){

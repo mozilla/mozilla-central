@@ -128,14 +128,11 @@ if ($action eq 'Commit'){
         $run->update(\%newvalues);
         if ($cgi->param('addtags')){
             foreach my $name (split(/[,]+/, $cgi->param('addtags'))){
-                trick_taint($name);
-                my $tag = Bugzilla::Testopia::TestTag->new({'tag_name' => $name});
-                my $tag_id = $tag->store;
                 if ($cgi->param('tag_action') eq 'add'){
-                    $run->add_tag($tag_id);
+                    $run->add_tag($name);
                 }
                 else {
-                    $run->remove_tag($tag_id);
+                    $run->remove_tag($name);
                 }
             }
         }     

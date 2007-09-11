@@ -235,11 +235,10 @@ sub create {
     
     # Create default category
     unless (scalar @{$self->product->categories}){
-        my $category = Bugzilla::Testopia::Category->new(
+        my $category = Bugzilla::Testopia::Category->create(
             {'name' => '--default--',
              'description' => 'Default product category for test cases',
              'product_id' => $self->product->id });
-        $category->store;
     }
     
     return $self;
@@ -263,47 +262,6 @@ sub update {
 ###############################
 ####       Methods         ####
 ###############################
-
-=head2 store
-
-Stores a test plan object in the database. This method is used to store a 
-newly created test plan. It returns the new ID.
-
-=cut
-
-sub store {
-    my $self = shift;
-    my $dbh = Bugzilla->dbh;
-    # Exclude the auto-incremented field from the column list.
-    my $columns = join(", ", grep {$_ ne 'plan_id'} DB_COLUMNS);
-    my $timestamp = Bugzilla::Testopia::Util::get_time_stamp();
-
-    $dbh->do("INSERT INTO test_plans ($columns) VALUES (?,?,?,?,?,?,?)",
-              undef, ($self->{'product_id'}, $self->{'author_id'},
-              $self->{'type_id'}, $self->{'default_product_version'}, $self->{'name'},
-              $timestamp, 1));
-    my $key = $dbh->bz_last_key( 'test_plans', 'plan_id' );
-    $self->store_text($key, $self->{'author_id'}, $self->text, $timestamp);
-    $self->{'plan_id'} = $key;
-    
-    # Add permissions for the plan
-    $self->add_tester($self->{'author_id'},15);
-    if (Bugzilla->params->{'testopia-default-plan-testers-regexp'}) {
-        $self->set_tester_regexp( Bugzilla->params->{"testopia-default-plan-testers-regexp"}, 3);
-        $self->derive_regexp_testers(Bugzilla->params->{'testopia-default-plan-testers-regexp'});
-    }
-    
-    # Create default category
-    unless (scalar @{$self->product->categories}){
-        my $category = Bugzilla::Testopia::Category->new(
-            {'name' => '--default--',
-             'description' => 'Default product category for test cases',
-             'product_id' => $self->product->id });
-        $category->store;
-    }
-             
-    return $key;
-}
 
 =head2 store_text
 

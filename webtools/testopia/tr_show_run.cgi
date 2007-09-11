@@ -142,13 +142,7 @@ elsif ($action eq 'do_clone'){
 
     if($cgi->param('copy_tags')){
         foreach my $tag (@{$run->tags}){
-            my $newtag = Bugzilla::Testopia::TestTag->new({
-                           tag_name  => $tag->name
-                         });
-# Store will return the id of the existing tag if it exists 
-# or create it if it does not
-            my $newtagid = $newtag->store;
-            $newrun->add_tag($newtagid);
+            $newrun->add_tag($tag->name);
         }
     }
     my $progress_interval = 250;

@@ -214,7 +214,9 @@ associated with this product.
 
 sub canedit {
     my $self = shift;
-    return 1 if Bugzilla->user->in_group('Testers') && Bugzilla->user->can_see_product($self->name);
+    my ($user) = @_;
+    $user ||= Bugzilla->user;
+    return 1 if $user->in_group('Testers') && $user->can_see_product($self->name);
     return 0;
 }
 

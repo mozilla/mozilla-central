@@ -112,14 +112,11 @@ if ($action eq 'Commit'){
         $plan->toggle_archive if $cgi->param('togglearch');
         if ($cgi->param('addtags')){
             foreach my $name (split(/[,]+/, $cgi->param('addtags'))){
-                trick_taint($name);
-                my $tag = Bugzilla::Testopia::TestTag->new({'tag_name' => $name});
-                my $tag_id = $tag->store;
                 if ($cgi->param('tag_action') eq 'add'){
-                    $plan->add_tag($tag_id);
+                    $plan->add_tag($name);
                 }
                 else {
-                    $plan->remove_tag($tag_id);
+                    $plan->remove_tag($name);
                 }
             }
         }     
