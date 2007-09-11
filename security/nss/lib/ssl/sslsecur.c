@@ -37,7 +37,7 @@
  * the terms of any one of the MPL, the GPL or the LGPL.
  *
  * ***** END LICENSE BLOCK ***** */
-/* $Id: sslsecur.c,v 1.40 2007-09-11 00:21:09 nelson%bolyard.com Exp $ */
+/* $Id: sslsecur.c,v 1.41 2007-09-11 00:48:09 nelson%bolyard.com Exp $ */
 #include "cert.h"
 #include "secitem.h"
 #include "keyhi.h"
@@ -47,6 +47,7 @@
 #include "secoid.h"	/* for SECOID_GetALgorithmTag */
 #include "pk11func.h"	/* for PK11_GenerateRandom */
 #include "nss.h"        /* for NSS_RegisterShutdown */
+#include "prinit.h"     /* for PR_CallOnceWithArg */
 
 #define MAX_BLOCK_CYPHER_SIZE	32
 
