@@ -141,7 +141,7 @@ EnumSystemFiles(void (*func)(const char *))
     {
       do {
         // pass the full pathname to the callback
-        sprintf( filename, "%s\\%s", sysDir, fileBuf.achName );
+        sprintf( filename, "%s%s", sysDir, fileBuf.achName );
         (*func)(filename);
 
         numFiles = 1;
