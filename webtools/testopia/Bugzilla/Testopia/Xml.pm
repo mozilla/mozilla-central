@@ -227,9 +227,10 @@ sub parse() {
             'type_id'                   => $plantype_ids{$twig_testplan->att('type')},
             'text'                      => entity_replace_testopia($twig_testplan->field('document')),
             'author_id'                 => $author_id,
-            'isactive'                  => entity_replace_xml($twig_testplan->field('archive'),STRIP_BOTH),
+            'isactive'                  => entity_replace_xml($twig_testplan->att('archive'),STRIP_BOTH) || '1',
             'creation_date'             => entity_replace_xml($twig_testplan->field('created'),STRIP_BOTH)
         };
+        
         push @{$self->testplans}, $testplan;
         
         my @tags = $twig_testplan->children('tag');
@@ -305,13 +306,15 @@ sub parse() {
             'default_tester_id'  => $tester_id,
             'dependson'          => undef,
             'effect'             => entity_replace_testopia($twig_testcase->field('expectedresults')),
-            'isautomated'        => ( uc $twig_testcase->att('automated') ) eq AUTOMATIC,
-            'plans'              => undef,
+            'isautomated'        => ( uc $twig_testcase->att('automated') ) eq AUTOMATIC ? 1 : 0,
+            'plans'              => [],
             'priority_id'        => $priority_ids{$twig_testcase->att('priority')},
             'requirement'        => $requirement,
             'setup'              => entity_replace_testopia($twig_testcase->field('setup')),
             'script'             => entity_replace_xml($twig_testcase->field('script'),STRIP_NONE),
             'summary'            => $summary,
+            'tags'               => [],        
+            'bugs'               => ''
         });
         foreach my $twig_testplan_reference ( $twig_testcase->children(TESTPLAN_REFERENCE) ) {
             my $testplan_reference = $twig_testplan_reference->children_text(PCDATA);
@@ -469,7 +472,7 @@ sub parse() {
                 $self->error($result);
             }
             else {
-                print "Created Test Case " . $testcase->testcase->id() . ": " . $testcase->testcase->summary() . "\n";
+                print "Created Test Case " . $testcase->testcase->{'case_id'} . ": " . $testcase->testcase->{'summary'} . "\n";
             }
         }
         

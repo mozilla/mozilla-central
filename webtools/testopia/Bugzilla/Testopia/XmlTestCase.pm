@@ -230,12 +230,12 @@ sub store {
     #TODO Testplans using Database_Description
     foreach my $testplan_name ( @{$self->testplan->get(uc $Bugzilla::Testopia::Xml::DATABASE_DESCRIPTION)} ) {
             $error_message .= "\n" if  ( $error_message ne "" );
-            $error_message .= "Have not implemented code for $Bugzilla::Testopia::Xml::DATABASE_DESCRIPTION lookup of test plan " . $testplan_name . "' for Test Case '". $self->testcase->summary . "'.";
+            $error_message .= "Have not implemented code for $Bugzilla::Testopia::Xml::DATABASE_DESCRIPTION lookup of test plan " . $testplan_name . "' for Test Case '". $self->testcase->{'summary'} . "'.";
     }
     return $error_message if ( $error_message ne "" );
     
     # Have to have a testplan to determine valid categories for testcase.
-    return "Test Case '" . $self->testcase->summary . "' needs a Test Plan." if ( $#testplan_id == -1 );
+    return "Test Case '" . $self->testcase->{'summary'} . "' needs a Test Plan." if ( $#testplan_id == -1 );
     
     # Verify that each testplan exists.
     my @testplan;
@@ -267,7 +267,8 @@ sub store {
         }
         $self->testcase->{'category_id'} = $categoryid if ( ! defined($self->testcase->{'category_id'}) );
     }
-    my $case = Bugzilla::Testopia::TestCase($self->testcase); 
+    $self->testcase->{plans} = \@testplan;
+    my $case = Bugzilla::Testopia::TestCase->create($self->testcase); 
     $self->testcase->{'case_id'} = $case->id;
     foreach my $attachment ( @{$self->attachments} ) {
         $attachment->{'case_id'} = $case->id;
