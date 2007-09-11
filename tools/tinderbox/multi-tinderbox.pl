@@ -17,6 +17,7 @@ my $TBOX_CLIENT_CVS_TIMEOUT = 300;
 # Globals that are here for no good reason...
 my $MSYS_HAS_HARDLINKS = 0;
 my $MSYS_RELEASE_MODE_ENABLED = 1;
+my $MSYS_THUNDERBIRD = 0;
 
 sub PrintUsage() {
     die <<END_USAGE
@@ -175,11 +176,20 @@ sub Run() {
                         # handled by build-seamonkey-util.pl...
                         next if ($file eq 'mozconfig');
                         next if ($file eq 'tinder-config.pl');
-                        my $sourceFile = catfile($tboxSourceDir, $file);
+                        my $sourceFile;
+                        my $targetFile = '.';
+                        if ($file eq 'build-seamonkey.pl' and
+                            $MSYS_THUNDERBIRD) {
+                            $sourceFile = catfile($tboxSourceDir,
+                                                  'build-thunderbird.pl');
+                            $targetFile = 'build-seamonkey.pl';
+                        } else {
+                            $sourceFile = catfile($tboxSourceDir, $file);
+                        }
                         if (-e $sourceFile) {
                             print STDERR "   Copying $sourceFile to " .
                              "$treeentry->{tree}\n";
-                            copy($sourceFile, '.') or die 
+                            copy($sourceFile, $targetFile) or die 
                              "copy() of $sourceFile failed\n";
                         }
                     }
