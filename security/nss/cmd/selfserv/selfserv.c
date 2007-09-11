@@ -92,11 +92,10 @@
 
 int NumSidCacheEntries = 1024;
 
-static int handleConnection( PRFileDesc *, PRFileDesc *, int );
+static int handle_connection( PRFileDesc *, PRFileDesc *, int );
 
 static const char envVarName[] = { SSL_ENV_VAR_NAME };
-static const char inheritableIPv4SockName[] = { "SELFSERV_LISTEN_INET_SOCKET" };
-static const char inheritableIPv6SockName[] = { "SELFSERV_LISTEN_INET6_SOCKET" };
+static const char inheritableSockName[] = { "SELFSERV_LISTEN_SOCKET" };
 
 static PRBool logStats = PR_FALSE;
 static int logPeriod = 30;
@@ -150,8 +149,7 @@ static int     requestCert;
 static int	verbose;
 static SECItem	bigBuf;
 
-static PRThread * ipv4AcceptorThread;
-static PRThread * ipv6AcceptorThread;
+static PRThread * acceptorThread;
 
 static PRLogModuleInfo *lm;
 
@@ -482,7 +480,7 @@ typedef struct perThreadStr {
 static perThread *threads;
 
 void
-threadWrapper(void * arg)
+thread_wrapper(void * arg)
 {
     perThread * slot = (perThread *)arg;
 
@@ -517,7 +515,7 @@ jobLoop(PRFileDesc *a, PRFileDesc *b, int c)
 	/* myJob will be null when stopping is true and jobQ is empty */
 	if (!myJob) 
 	    break;
-	handleConnection( myJob->tcp_sock, myJob->model_sock, 
+	handle_connection( myJob->tcp_sock, myJob->model_sock, 
 			   myJob->requestCert);
 	PZ_Lock(qLock);
 	PR_APPEND_LINK(myLink, &freeJobs);
@@ -528,7 +526,7 @@ jobLoop(PRFileDesc *a, PRFileDesc *b, int c)
 
 
 SECStatus
-launchThreads(
+launch_threads(
     startFn    *startFunc,
     PRFileDesc *a,
     PRFileDesc *b,
@@ -571,8 +569,8 @@ launchThreads(
 	slot->c = c;
 	slot->startFunc = startFunc;
 	slot->prThread = PR_CreateThread(PR_USER_THREAD, 
-			threadWrapper, slot, PR_PRIORITY_NORMAL, 
-                        (PR_TRUE==local)?PR_LOCAL_THREAD : PR_GLOBAL_THREAD,
+			thread_wrapper, slot, PR_PRIORITY_NORMAL, 
+                        (PR_TRUE==local)?PR_LOCAL_THREAD:PR_GLOBAL_THREAD,
                         PR_UNJOINABLE_THREAD, 0);
 	if (slot->prThread == NULL) {
 	    printf("selfserv: Failed to launch thread!\n");
@@ -653,7 +651,6 @@ logger(void *arg)
 **************************************************************************/
 
 PRBool useModelSocket  = PR_FALSE;
-PRBool useLocalThreads = PR_FALSE;
 PRBool disableSSL2     = PR_FALSE;
 PRBool disableSSL3     = PR_FALSE;
 PRBool disableTLS      = PR_FALSE;
@@ -743,7 +740,7 @@ lockedVars_AddToCount(lockedVars * lv, int addend)
 }
 
 int
-doWrites(
+do_writes(
     PRFileDesc *	ssl_sock,
     PRFileDesc *	model_sock,
     int         	requestCert
@@ -753,7 +750,7 @@ doWrites(
     int 		count = 0;
     lockedVars *	lv = (lockedVars *)model_sock;
 
-    VLOG(("selfserv: doWrites: starting"));
+    VLOG(("selfserv: do_writes: starting"));
     while (sent < bigBuf.len) {
 
 	count = PR_Write(ssl_sock, bigBuf.data + sent, bigBuf.len - sent);
@@ -771,12 +768,12 @@ doWrites(
     /* notify the reader that we're done. */
     lockedVars_AddToCount(lv, -1);
     FLUSH;
-    VLOG(("selfserv: doWrites: exiting"));
+    VLOG(("selfserv: do_writes: exiting"));
     return (sent < bigBuf.len) ? SECFailure : SECSuccess;
 }
 
 static int 
-handleFDXConnection(
+handle_fdx_connection(
     PRFileDesc *       tcp_sock,
     PRFileDesc *       model_sock,
     int                requestCert
@@ -790,7 +787,7 @@ handleFDXConnection(
     char               buf[10240];
 
 
-    VLOG(("selfserv: handleFDXConnection: starting"));
+    VLOG(("selfserv: handle_fdx_connection: starting"));
     opt.option             = PR_SockOpt_Nonblocking;
     opt.value.non_blocking = PR_FALSE;
     PR_SetSocketOption(tcp_sock, &opt);
@@ -815,7 +812,7 @@ handleFDXConnection(
     lockedVars_AddToCount(&lv, 1);
 
     /* Attempt to launch the writer thread. */
-    result = launch_thread(doWrites, ssl_sock, (PRFileDesc *)&lv, 
+    result = launch_thread(do_writes, ssl_sock, (PRFileDesc *)&lv, 
                            requestCert);
 
     if (result == SECSuccess) 
@@ -846,7 +843,7 @@ cleanup:
 	PR_Close(tcp_sock);
     }
 
-    VLOG(("selfserv: handleFDXConnection: exiting"));
+    VLOG(("selfserv: handle_fdx_connection: exiting"));
     return SECSuccess;
 }
 
@@ -855,7 +852,7 @@ cleanup:
 static SECItem *lastLoadedCrl = NULL;
 
 static SECStatus
-reloadCRL(PRFileDesc *crlFile)
+reload_crl(PRFileDesc *crlFile)
 {
     SECItem *crlDer;
     CERTCertDBHandle *certHandle = CERT_GetDefaultCertDB();
@@ -898,18 +895,15 @@ reloadCRL(PRFileDesc *crlFile)
     return rv;
 }
 
-void stopServer()
+void stop_server()
 {
     stopping = 1;
-    if (ipv4AcceptorThread)
-	PR_Interrupt(ipv4AcceptorThread);
-    if (ipv6AcceptorThread)
-	PR_Interrupt(ipv6AcceptorThread);
+    PR_Interrupt(acceptorThread);
     PZ_TraceFlush();
 }
 
 int
-handleConnection( 
+handle_connection( 
     PRFileDesc *tcp_sock,
     PRFileDesc *model_sock,
     int         requestCert
@@ -938,12 +932,12 @@ handleConnection(
     pBuf   = buf;
     bufRem = sizeof buf;
 
-    VLOG(("selfserv: handleConnection: starting"));
+    VLOG(("selfserv: handle_connection: starting"));
     opt.option             = PR_SockOpt_Nonblocking;
     opt.value.non_blocking = PR_FALSE;
     PR_SetSocketOption(tcp_sock, &opt);
 
-    VLOG(("selfserv: handleConnection: starting\n"));
+    VLOG(("selfserv: handle_connection: starting\n"));
     if (useModelSocket && model_sock) {
 	SECStatus rv;
 	ssl_sock = SSL_ImportFD(model_sock, tcp_sock);
@@ -1137,7 +1131,7 @@ handleConnection(
                 numIOVs++;
             }
             if (!PL_strcmp(proto, "crl")) {
-                if (reloadCRL(local_file_fd) == SECFailure) {
+                if (reload_crl(local_file_fd) == SECFailure) {
                     errString = errWarn("CERT_CacheCRL");
                     if (!errString)
                         errString = "Unknow error";
@@ -1200,19 +1194,29 @@ cleanup:
     }
     if (local_file_fd)
 	PR_Close(local_file_fd);
-    VLOG(("selfserv: handleConnection: exiting\n"));
+    VLOG(("selfserv: handle_connection: exiting\n"));
 
     /* do a nice shutdown if asked. */
     if (!strncmp(buf, stopCmd, sizeof stopCmd - 1)) {
-        VLOG(("selfserv: handleConnection: stop command"));
-        stopServer();
+        VLOG(("selfserv: handle_connection: stop command"));
+        stop_server();
     }
-    VLOG(("selfserv: handleConnection: exiting"));
+    VLOG(("selfserv: handle_connection: exiting"));
     return SECSuccess;	/* success */
 }
 
+#ifdef XP_UNIX
+
+void sigusr1_handler(int sig)
+{
+    VLOG(("selfserv: sigusr1_handler: stop server"));
+    stop_server();
+}
+
+#endif
+
 SECStatus
-doAccepts(
+do_accepts(
     PRFileDesc *listen_sock,
     PRFileDesc *model_sock,
     int         requestCert
@@ -1220,10 +1224,24 @@ doAccepts(
 {
     PRNetAddr   addr;
     PRErrorCode  perr;
+#ifdef XP_UNIX
+    struct sigaction act;
+#endif
 
-    VLOG(("selfserv: doAccepts: starting"));
+    VLOG(("selfserv: do_accepts: starting"));
     PR_SetThreadPriority( PR_GetCurrentThread(), PR_PRIORITY_HIGH);
 
+    acceptorThread = PR_GetCurrentThread();
+#ifdef XP_UNIX
+    /* set up the signal handler */
+    act.sa_handler = sigusr1_handler;
+    sigemptyset(&act.sa_mask);
+    act.sa_flags = 0;
+    if (sigaction(SIGUSR1, &act, NULL)) {
+        fprintf(stderr, "Error installing signal handler.\n");
+        exit(1);
+    }
+#endif
     while (!stopping) {
 	PRFileDesc *tcp_sock;
 	PRCList    *myLink;
@@ -1279,25 +1297,16 @@ doAccepts(
 	PZ_Unlock(qLock);
     }
 
-    VLOG(("selfserv: doAccepts: exiting"));
+    FPRINTF(stderr, "selfserv: Closing listen socket.\n");
+    VLOG(("selfserv: do_accepts: exiting"));
+    if (listen_sock) {
+        PR_Close(listen_sock);
+    }
     return SECSuccess;
 }
 
-typedef struct AcceptorThreadArgsStr {
-    PRFileDesc *listen_sock;
-    PRFileDesc *model_sock;
-    int         requestCert;
-} AcceptorThreadArgs;
-
-void
-acceptWrapper(void * arg)
-{
-    AcceptorThreadArgs * args = (AcceptorThreadArgs *)arg;
-    doAccepts(args->listen_sock, args->model_sock, args->requestCert);
-}
-
 PRFileDesc *
-getBoundListenSocket(unsigned short port, PRUint16 af)
+getBoundListenSocket(unsigned short port)
 {
     PRFileDesc *       listen_sock;
     int                listenQueueDepth = 5 + (2 * maxThreads);
@@ -1305,15 +1314,13 @@ getBoundListenSocket(unsigned short port, PRUint16 af)
     PRNetAddr          addr;
     PRSocketOptionData opt;
 
-    PR_SetNetAddr(PR_IpAddrAny, af, port, &addr);
+    addr.inet.family = PR_AF_INET;
+    addr.inet.ip     = PR_INADDR_ANY;
+    addr.inet.port   = PR_htons(port);
 
-    listen_sock = PR_OpenTCPSocket(af);
+    listen_sock = PR_NewTCPSocket();
     if (listen_sock == NULL) {
-	if (af == PR_AF_INET)
-	    errWarn("PR_OpenTCPSocket(PR_AF_INET)");
-	else
-	    errWarn("PR_OpenTCPSocket(PR_AF_INET6)");
-    	return NULL;
+	errExit("PR_NewTCPSocket");
     }
 
     opt.option = PR_SockOpt_Nonblocking;
@@ -1346,13 +1353,8 @@ getBoundListenSocket(unsigned short port, PRUint16 af)
 #endif
 
     prStatus = PR_Bind(listen_sock, &addr);
-    if (prStatus != PR_SUCCESS) {
-	if (af == PR_AF_INET)
-	    errWarn("PR_Bind(PR_AF_INET)");
-	else
-	    errWarn("PR_BIND(PR_AF_INET6)");
-	PR_Close(listen_sock);
-	return NULL;
+    if (prStatus < 0) {
+	errExit("PR_Bind");
     }
 
     prStatus = PR_Listen(listen_sock, listenQueueDepth);
@@ -1362,20 +1364,9 @@ getBoundListenSocket(unsigned short port, PRUint16 af)
     return listen_sock;
 }
 
-#ifdef XP_UNIX
-
-void sigusr1Handler(int sig)
-{
-    VLOG(("selfserv: sigusr1Handler: stop server"));
-    stopServer();
-}
-
-#endif
-
 void
-serverMain(
-    PRFileDesc *        ipv4ListenSock,
-    PRFileDesc *        ipv6ListenSock,
+server_main(
+    PRFileDesc *        listen_sock,
     int                 requestCert, 
     SECKEYPrivateKey ** privKey,
     CERTCertificate **  cert)
@@ -1384,39 +1375,36 @@ serverMain(
     int         rv;
     SSLKEAType  kea;
     SECStatus	secStatus;
-#ifdef XP_UNIX
-    struct sigaction act;
-#endif
 
-    if (ipv4ListenSock && ipv6ListenSock)
-    	useModelSocket = PR_TRUE;
     if (useModelSocket) {
-	/* We should really use some sort of "dummy" socket here. */
-	model_sock = PR_OpenTCPSocket(PR_AF_INET6);
-	if (!model_sock) {
-	    errWarn("PR_OpenTCPSocket for IPv6 model socket");
-	    model_sock = PR_OpenTCPSocket(PR_AF_INET);
-	    if (!model_sock) 
-		errExit("PR_OpenTCPSocket for IPv4 model socket");
+    	model_sock = PR_NewTCPSocket();
+	if (model_sock == NULL) {
+	    errExit("PR_NewTCPSocket on model socket");
 	}
 	model_sock = SSL_ImportFD(NULL, model_sock);
 	if (model_sock == NULL) {
 	    errExit("SSL_ImportFD");
 	}
-    } else if (ipv4ListenSock) {
-	model_sock = ipv4ListenSock = SSL_ImportFD(NULL, ipv4ListenSock);
-	if (ipv4ListenSock == NULL) {
-	    errExit("SSL_ImportFD");
-	}
     } else {
-	model_sock = ipv6ListenSock = SSL_ImportFD(NULL, ipv6ListenSock);
-	if (ipv6ListenSock == NULL) {
+	model_sock = listen_sock = SSL_ImportFD(NULL, listen_sock);
+	if (listen_sock == NULL) {
 	    errExit("SSL_ImportFD");
 	}
     }
 
     /* do SSL configuration. */
     /* all suites except RSA_NULL_MD5 are enabled by default */
+
+#if 0
+    /* This is supposed to be true by default.
+    ** Setting it explicitly should not be necessary.
+    ** Let's test and make sure that's true.
+    */
+    rv = SSL_OptionSet(model_sock, SSL_SECURITY, 1);
+    if (rv < 0) {
+	errExit("SSL_OptionSet SSL_SECURITY");
+    }
+#endif
 
     rv = SSL_OptionSet(model_sock, SSL_ENABLE_SSL3, !disableSSL3);
     if (rv != SECSuccess) {
@@ -1510,53 +1498,9 @@ serverMain(
 
     /* end of ssl configuration. */
 
-#ifdef XP_UNIX
-    /* set up the signal handler */
-    act.sa_handler = sigusr1Handler;
-    sigemptyset(&act.sa_mask);
-    act.sa_flags = 0;
-    if (sigaction(SIGUSR1, &act, NULL)) {
-        fprintf(stderr, "Error installing signal handler.\n");
-        exit(1);
-    }
-#endif
 
-    if (ipv4ListenSock && ipv6ListenSock) {
-    	/* start two acceptor threads, and wait for them. */
-	AcceptorThreadArgs ipv4Args;
-	AcceptorThreadArgs ipv6Args;
-
-	ipv4Args.listen_sock = ipv4ListenSock;
-    	ipv4Args.model_sock  = model_sock;
-	ipv4Args.requestCert = requestCert;
-
-	ipv6Args.listen_sock = ipv6ListenSock;
-    	ipv6Args.model_sock  = model_sock;
-	ipv6Args.requestCert = requestCert;
-
-	ipv4AcceptorThread = PR_CreateThread(PR_USER_THREAD, 
-			acceptWrapper, &ipv4Args, PR_PRIORITY_NORMAL, 
-                        useLocalThreads ? PR_LOCAL_THREAD : PR_GLOBAL_THREAD,
-                        PR_JOINABLE_THREAD, 0);
-
-	ipv6AcceptorThread = PR_CreateThread(PR_USER_THREAD, 
-			acceptWrapper, &ipv6Args, PR_PRIORITY_NORMAL, 
-                        useLocalThreads ? PR_LOCAL_THREAD : PR_GLOBAL_THREAD,
-                        PR_JOINABLE_THREAD, 0);
-	if (ipv4AcceptorThread)
-	    PR_JoinThread(ipv4AcceptorThread);
-	if (ipv6AcceptorThread)
-	    PR_JoinThread(ipv6AcceptorThread);
-
-    } else if (ipv4ListenSock) {
-	/* do the accepting, here in the main thread. */
-	ipv4AcceptorThread = PR_GetCurrentThread();
-	rv = doAccepts(ipv4ListenSock, model_sock, requestCert);
-    } else {
-	/* do the accepting, here in the main thread. */
-	ipv6AcceptorThread = PR_GetCurrentThread();
-	rv = doAccepts(ipv6ListenSock, model_sock, requestCert);
-    }
+    /* Now, do the accepting, here in the main thread. */
+    rv = do_accepts(listen_sock, model_sock, requestCert);
 
     terminateWorkerThreads();
 
@@ -1627,8 +1571,7 @@ haveAChild(int argc, char **argv, PRProcessAttr * attr)
 }
 
 void
-beAGoodParent(int argc, char **argv, int maxProcs, 
-              PRFileDesc * ipv4ListenSock, PRFileDesc * ipv6ListenSock)
+beAGoodParent(int argc, char **argv, int maxProcs, PRFileDesc * listen_sock)
 {
     PRProcess *     newProcess;
     PRProcessAttr * attr;
@@ -1636,31 +1579,17 @@ beAGoodParent(int argc, char **argv, int maxProcs,
     PRInt32         exitCode;
     PRStatus        rv;
 
+    rv = PR_SetFDInheritable(listen_sock, PR_TRUE);
+    if (rv != PR_SUCCESS)
+	errExit("PR_SetFDInheritable");
+
     attr = PR_NewProcessAttr();
     if (!attr)
 	errExit("PR_NewProcessAttr");
 
-    if (ipv4ListenSock) {
-	rv = PR_SetFDInheritable(ipv4ListenSock, PR_TRUE);
-	if (rv != PR_SUCCESS)
-	    errExit("PR_SetFDInheritable(IPv4)");
-
-	rv = PR_ProcessAttrSetInheritableFD(attr, ipv4ListenSock, 
-					    inheritableIPv4SockName);
-	if (rv != PR_SUCCESS)
-	    errExit("PR_ProcessAttrSetInheritableFD(IPv4)");
-    }
-
-    if (ipv6ListenSock) {
-	rv = PR_SetFDInheritable(ipv6ListenSock, PR_TRUE);
-	if (rv != PR_SUCCESS)
-	    errExit("PR_SetFDInheritable(IPv6)");
-
-	rv = PR_ProcessAttrSetInheritableFD(attr, ipv6ListenSock, 
-					    inheritableIPv6SockName);
+    rv = PR_ProcessAttrSetInheritableFD(attr, listen_sock, inheritableSockName);
     if (rv != PR_SUCCESS)
-	    errExit("PR_ProcessAttrSetInheritableFD(IPv6)");
-    }
+	errExit("PR_ProcessAttrSetInheritableFD");
 
     for (i = 0; i < maxProcs; ++i) {
 	newProcess = haveAChild(argc, argv, attr);
@@ -1668,17 +1597,9 @@ beAGoodParent(int argc, char **argv, int maxProcs,
 	    break;
     }
 
-    if (ipv4ListenSock) {
-	rv = PR_SetFDInheritable(ipv4ListenSock, PR_FALSE);
-	if (rv != PR_SUCCESS)
-	    errExit("PR_SetFDInheritable(IPv4)");
-    }
-
-    if (ipv6ListenSock) {
-	rv = PR_SetFDInheritable(ipv6ListenSock, PR_FALSE);
+    rv = PR_SetFDInheritable(listen_sock, PR_FALSE);
     if (rv != PR_SUCCESS)
-	    errExit("PR_SetFDInheritable(IPv6)");
-    }
+	errExit("PR_SetFDInheritable");
 
     while (numChildren > 0) {
 	newProcess = child[numChildren - 1];
@@ -1687,7 +1608,6 @@ beAGoodParent(int argc, char **argv, int maxProcs,
 		numChildren, exitCode);
 	numChildren--;
     }
-    PR_DestroyProcessAttr(attr);
     exit(0);
 }
 
@@ -1751,8 +1671,7 @@ main(int argc, char **argv)
     const char *         pidFile     = NULL;
     char *               tmp;
     char *               envString;
-    PRFileDesc *         ipv4ListenSock = NULL;
-    PRFileDesc *         ipv6ListenSock = NULL;
+    PRFileDesc *         listen_sock;
     CERTCertificate *    cert   [kt_kea_size] = { NULL };
     SECKEYPrivateKey *   privKey[kt_kea_size] = { NULL };
     int                  optionsFound = 0;
@@ -1762,6 +1681,7 @@ main(int argc, char **argv)
     PRStatus             prStatus;
     PRBool               bindOnly = PR_FALSE;
     PRBool               useExportPolicy = PR_FALSE;
+    PRBool               useLocalThreads = PR_FALSE;
     PLOptState		*optstate;
     PLOptStatus          status;
     PRThread             *loggerThread;
@@ -1791,9 +1711,7 @@ main(int argc, char **argv)
 
 	case 'B': bypassPKCS11 = PR_TRUE; break;
 
-        case 'C': if (optstate->value) 
-		      NumSidCacheEntries = PORT_Atoi(optstate->value); 
-		  break;
+        case 'C': if (optstate->value) NumSidCacheEntries = PORT_Atoi(optstate->value); break;
 
 	case 'D': noDelay = PR_TRUE; break;
 	case 'E': disableStepDown = PR_TRUE; break;
@@ -1889,25 +1807,19 @@ main(int argc, char **argv)
 	exit(51);
     } 
 
-    if (port == 0) {
-	fprintf(stderr, "Required argument 'port' must be non-zero value\n");
-	exit(7);
-    }
-
     /* The -b (bindOnly) option is only used by the ssl.sh test
      * script on Linux to determine whether a previous selfserv
      * process has fully died and freed the port.  (Bug 129701)
      */
     if (bindOnly) {
-	ipv4ListenSock = getBoundListenSocket(port, PR_AF_INET);
-	ipv6ListenSock = getBoundListenSocket(port, PR_AF_INET6);
-        if (ipv4ListenSock) {
-            PR_Close(ipv4ListenSock);
+	listen_sock = getBoundListenSocket(port);
+	if (!listen_sock) {
+	    exit(1);
 	}
-        if (ipv6ListenSock) {
-            PR_Close(ipv6ListenSock);
+        if (listen_sock) {
+            PR_Close(listen_sock);
         }
-	exit(!ipv4ListenSock && !ipv6ListenSock);
+	exit(0);
     }
 
     if ((nickName == NULL) && (fNickName == NULL) 
@@ -1919,6 +1831,11 @@ main(int argc, char **argv)
 	fprintf(stderr, "Required arg '-n' (rsa nickname) not supplied.\n");
 	fprintf(stderr, "Run '%s -h' for usage information.\n", progName);
         exit(6);
+    }
+
+    if (port == 0) {
+	fprintf(stderr, "Required argument 'port' must be non-zero value\n");
+	exit(7);
     }
 
     if (NoReuse && maxProcs > 1) {
@@ -1943,27 +1860,21 @@ main(int argc, char **argv)
 	tmp = getenv("TEMP");
     if (envString) {
 	/* we're one of the children in a multi-process server. */
-	ipv4ListenSock = PR_GetInheritedFD(inheritableIPv4SockName);
-	ipv6ListenSock = PR_GetInheritedFD(inheritableIPv6SockName);
-	if (!ipv4ListenSock && !ipv6ListenSock)
+	listen_sock = PR_GetInheritedFD(inheritableSockName);
+	if (!listen_sock)
 	    errExit("PR_GetInheritedFD");
 #ifndef WINNT
-	/* On NT, PR_Accept will fail on the socket in the child process 
-	 * if the socket state has been changed to non-inheritable.
-	 * It is a security issue to leave it inheritable,
-	 * but it is OK for a test server such as selfserv.
-	 * NSPR should fix it eventually. See bugzilla 101617 and 102077.
+	/* we can't do this on NT because it breaks NSPR and
+	PR_Accept will fail on the socket in the child process if
+	the socket state is change to non inheritable
+	It is however a security issue to leave it accessible,
+	but it is OK for a test server such as selfserv.
+	NSPR should fix it eventually . see bugzilla 101617
+	and 102077
 	*/
-	if (ipv4ListenSock) {
-	    prStatus = PR_SetFDInheritable(ipv4ListenSock, PR_FALSE);
-	    if (prStatus != PR_SUCCESS)
-		errExit("PR_SetFDInheritable(IPv4)");
-	}
-	if (ipv6ListenSock) {
-	    prStatus = PR_SetFDInheritable(ipv6ListenSock, PR_FALSE);
+	prStatus = PR_SetFDInheritable(listen_sock, PR_FALSE);
 	if (prStatus != PR_SUCCESS)
-		errExit("PR_SetFDInheritable(IPv6)");
-	}
+	    errExit("PR_SetFDInheritable");
 #endif
 #ifdef DEBUG_nelsonb
 	WaitForDebugger();
@@ -1974,36 +1885,19 @@ main(int argc, char **argv)
     	hasSidCache = PR_TRUE;
     } else if (maxProcs > 1) {
 	/* we're going to be the parent in a multi-process server.  */
-	ipv4ListenSock = getBoundListenSocket(port, PR_AF_INET);
-	ipv6ListenSock = getBoundListenSocket(port, PR_AF_INET6);
-	if (!ipv4ListenSock && !ipv6ListenSock) {
-	    /* Must have at least one good listen socket */
-	    errExit("Got no listen sockets");
-	}
+	listen_sock = getBoundListenSocket(port);
 	rv = SSL_ConfigMPServerSIDCache(NumSidCacheEntries, 0, 0, tmp);
 	if (rv != SECSuccess)
 	    errExit("SSL_ConfigMPServerSIDCache");
     	hasSidCache = PR_TRUE;
-	beAGoodParent(argc, argv, maxProcs, ipv4ListenSock, ipv6ListenSock);
+	beAGoodParent(argc, argv, maxProcs, listen_sock);
 	exit(99); /* should never get here */
     } else {
 	/* we're an ordinary single process server. */
-	ipv4ListenSock = getBoundListenSocket(port, PR_AF_INET);
-	ipv6ListenSock = getBoundListenSocket(port, PR_AF_INET6);
-	if (!ipv4ListenSock && !ipv6ListenSock) {
-	    /* Must have at least one good listen socket */
-	    errExit("Got no listen sockets");
-	}
-	if (ipv4ListenSock) {
-	    prStatus = PR_SetFDInheritable(ipv4ListenSock, PR_FALSE);
+	listen_sock = getBoundListenSocket(port);
+	prStatus = PR_SetFDInheritable(listen_sock, PR_FALSE);
 	if (prStatus != PR_SUCCESS)
-		errExit("PR_SetFDInheritable(IPv4)");
-	}
-	if (ipv6ListenSock) {
-	    prStatus = PR_SetFDInheritable(ipv6ListenSock, PR_FALSE);
-	    if (prStatus != PR_SUCCESS)
-		errExit("PR_SetFDInheritable(IPv6)");
-	}
+	    errExit("PR_SetFDInheritable");
 	if (!NoReuse) {
 	    rv = SSL_ConfigServerSessionIDCache(NumSidCacheEntries, 
 	                                        0, 0, tmp);
@@ -2175,12 +2069,12 @@ main(int argc, char **argv)
 	goto cleanup;
 
 /* allocate the array of thread slots, and launch the worker threads. */
-    rv = launchThreads(&jobLoop, 0, 0, requestCert, useLocalThreads);
+    rv = launch_threads(&jobLoop, 0, 0, requestCert, useLocalThreads);
 
     if (rv == SECSuccess && logStats) {
 	loggerThread = PR_CreateThread(PR_SYSTEM_THREAD, 
 			logger, NULL, PR_PRIORITY_NORMAL, 
-                        useLocalThreads ? PR_LOCAL_THREAD : PR_GLOBAL_THREAD,
+                        useLocalThreads ? PR_LOCAL_THREAD:PR_GLOBAL_THREAD,
                         PR_UNJOINABLE_THREAD, 0);
 	if (loggerThread == NULL) {
 	    fprintf(stderr, "selfserv: Failed to launch logger thread!\n");
@@ -2189,8 +2083,7 @@ main(int argc, char **argv)
     }
 
     if (rv == SECSuccess) {
-	serverMain(ipv4ListenSock, ipv6ListenSock, requestCert, 
-	            privKey, cert);
+	server_main(listen_sock, requestCert, privKey, cert);
     }
 
     VLOG(("selfserv: server_thread: exiting"));
@@ -2207,12 +2100,6 @@ cleanup:
 	    }
 	}
     }
-
-    FPRINTF(stderr, "selfserv: Closing listen sockets.\n");
-    if (ipv4ListenSock)
-    	PR_Close(ipv4ListenSock);
-    if (ipv6ListenSock)
-    	PR_Close(ipv6ListenSock);
 
     if (debugCache) {
 	nss_DumpCertificateCacheInfo();
