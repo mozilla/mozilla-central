@@ -2516,6 +2516,9 @@ PKIX_PL_Cert_GetBasicConstraints(
         PKIX_PL_CertBasicConstraints *basic;
         PKIX_Int32 pathLen = 0;
         PKIX_Boolean isCA = PKIX_FALSE;
+        enum {
+          realBC, synthBC, absentBC
+        } constraintSource = absentBC;
 
         PKIX_ENTER(CERT, "PKIX_PL_Cert_GetBasicConstraints");
         PKIX_NULLCHECK_THREE(cert, cert->nssCert, pBasicConstraints);
@@ -2535,24 +2538,48 @@ PKIX_PL_Cert_GetBasicConstraints(
                             "\t\tCalling Cert_FindBasicConstraintExten\n");
                         rv = CERT_FindBasicConstraintExten
                                 (nssCert, &nssBasicConstraint);
-                        if (rv != SECSuccess) {
+                        if (rv == SECSuccess) {
+                            constraintSource = realBC;
+                        }
+
+                        if (constraintSource == absentBC) {
+                            /* can we deduce it's a CA and create a 
+                               synthetic constraint?
+                            */
+                            CERTCertTrust trust;
+                            rv = CERT_GetCertTrust(nssCert, &trust);
+                            if (rv == SECSuccess) {
+                                int anyWantedFlag = CERTDB_TRUSTED_CA | CERTDB_VALID_CA;
+                                if ((trust.sslFlags & anyWantedFlag) 
+                                    || (trust.emailFlags & anyWantedFlag) 
+                                    || (trust.objectSigningFlags & anyWantedFlag)) {
+
+                                    constraintSource = synthBC;
+                                }
+                            }
+                        }
+
+                        if (constraintSource == absentBC) {
                             cert->basicConstraintsAbsent = PKIX_TRUE;
                             *pBasicConstraints = NULL;
                             goto cleanup;
                         }
                 }
 
-                PKIX_OBJECT_UNLOCK(cert);
-
-                isCA = (nssBasicConstraint.isCA)?PKIX_TRUE:PKIX_FALSE;
-
-                /* The pathLen has meaning only for CAs */
-                if (isCA) {
-                    if (CERT_UNLIMITED_PATH_CONSTRAINT ==
-                        nssBasicConstraint.pathLenConstraint) {
-                        pathLen = PKIX_UNLIMITED_PATH_CONSTRAINT;
-                    } else {
-                        pathLen = nssBasicConstraint.pathLenConstraint;
+                if (constraintSource == synthBC) {
+                    isCA = PKIX_TRUE;
+                    pathLen = PKIX_UNLIMITED_PATH_CONSTRAINT;
+                } else {
+                    isCA = (nssBasicConstraint.isCA)?PKIX_TRUE:PKIX_FALSE;
+    
+                    /* The pathLen has meaning only for CAs */
+                    if (isCA) {
+                        if (CERT_UNLIMITED_PATH_CONSTRAINT ==
+                            nssBasicConstraint.pathLenConstraint) {
+                            pathLen = PKIX_UNLIMITED_PATH_CONSTRAINT;
+                        } else {
+                            pathLen = nssBasicConstraint.pathLenConstraint;
+                        }
                     }
                 }
 
