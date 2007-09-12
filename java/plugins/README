@@ -143,3 +143,62 @@ also remove pluginreg.dat
 in C:\Projects\chaff\pluglet-1-1-a1\
 
 find netbeans -name private -prune -o -type f -exec cp {} "/cygdrive/c/Projects/mozilla/MOZILLA_NIH/FIREFOX_2_0_0_3_RELEASE/mozilla/java/plugins/dist/{}" ;
+
+
+Compiled from "Concat.java"
+public class org.apache.tools.ant.taskdefs.Concat extends org.apache.tools.ant.Task{
+public org.apache.tools.ant.taskdefs.Concat();
+  Signature: ()V
+public void setDestfile(java.io.File);
+  Signature: (Ljava/io/File;)V
+public void setAppend(boolean);
+  Signature: (Z)V
+public void setEncoding(java.lang.String);
+  Signature: (Ljava/lang/String;)V
+public void setOutputEncoding(java.lang.String);
+  Signature: (Ljava/lang/String;)V
+public void setForce(boolean);
+  Signature: (Z)V
+public org.apache.tools.ant.types.Path createPath();
+  Signature: ()Lorg/apache/tools/ant/types/Path;
+public void addFileset(org.apache.tools.ant.types.FileSet);
+  Signature: (Lorg/apache/tools/ant/types/FileSet;)V
+public void addFilelist(org.apache.tools.ant.types.FileList);
+  Signature: (Lorg/apache/tools/ant/types/FileList;)V
+public void addFilterChain(org.apache.tools.ant.types.FilterChain);
+  Signature: (Lorg/apache/tools/ant/types/FilterChain;)V
+public void addText(java.lang.String);
+  Signature: (Ljava/lang/String;)V
+public void addHeader(org.apache.tools.ant.taskdefs.Concat$TextElement);
+  Signature: (Lorg/apache/tools/ant/taskdefs/Concat$TextElement;)V
+public void addFooter(org.apache.tools.ant.taskdefs.Concat$TextElement);
+  Signature: (Lorg/apache/tools/ant/taskdefs/Concat$TextElement;)V
+public void setFixLastLine(boolean);
+  Signature: (Z)V
+public void setEol(org.apache.tools.ant.taskdefs.FixCRLF$CrLf);
+  Signature: (Lorg/apache/tools/ant/taskdefs/FixCRLF$CrLf;)V
+public void setWriter(java.io.Writer);
+  Signature: (Ljava/io/Writer;)V
+public void setBinary(boolean);
+  Signature: (Z)V
+public void execute();
+  Signature: ()V
+public void reset();
+  Signature: ()V
+static org.apache.tools.ant.util.FileUtils access$200();
+  Signature: ()Lorg/apache/tools/ant/util/FileUtils;
+static java.lang.String access$300(org.apache.tools.ant.taskdefs.Concat);
+  Signature: (Lorg/apache/tools/ant/taskdefs/Concat;)Ljava/lang/String;
+static java.util.Vector access$400(org.apache.tools.ant.taskdefs.Concat);
+  Signature: (Lorg/apache/tools/ant/taskdefs/Concat;)Ljava/util/Vector;
+static java.lang.String access$500(org.apache.tools.ant.taskdefs.Concat);
+  Signature: (Lorg/apache/tools/ant/taskdefs/Concat;)Ljava/lang/String;
+static boolean access$600(org.apache.tools.ant.taskdefs.Concat);
+  Signature: (Lorg/apache/tools/ant/taskdefs/Concat;)Z
+static {};
+  Signature: ()V
+}
+
+javap
+C:\PROGRA~1\netbeans-5.5.1>
+

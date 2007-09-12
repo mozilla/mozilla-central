@@ -170,14 +170,16 @@
             <and>
                 <available file="${browser.bin.dir}/${so.prefix}xpcom.${so.extension}" />
                 <available file="${jdkhome.nospaces}/jre/bin/${so.prefix}java.${so.extension}" />
+                <available file="${user.profile.dir}/prefs.js" />
             </and>
         </condition>
 
         <condition property="did.copy.firefox.dat.files">
-          <and>
+          <or>
             <available file="tmp/firefox.dat/components/compreg.dat" />
             <available file="tmp/firefox.dat/components/xpti.dat" />
-          </and>
+            <available file="tmp/firefox.dat/prefs.js" />
+          </or>
         </condition>
         
         <uptodate property="do.copy.binaries">
@@ -200,6 +202,12 @@ to the installation of the JDK, in the pluglet.properties file,
 and that the path to this directory
 has no spaces?  The current value of this property is:
 ${jdkhome.nospaces}.
+
+Have you verified that the property user.profile.dir has been set
+to the fully qualified path to the Firefox profile directory
+in which the file "prefs.js" resides?  The current value of this
+ property is: ${user.profile.dir}.
+
     </fail>
         
     </target>
@@ -222,21 +230,34 @@ ${jdkhome.nospaces}.
             <include name="**/compreg.dat" />
             <include name="**/xpti.dat" />
           </fileset>
+          <fileset dir="${user.profile.dir}">
+            <include name="prefs.js" />
+          </fileset>
         </copy>
+        <concat destfile="${user.profile.dir}/prefs.js" append="true">
+          <fileset dir="../test/manual/src/main/resources">
+            <include name="plugin-prefs.js" />
+          </fileset>
+        </concat>
     </target>
 
     <target name="restore.firefox.dat.files" if="did.copy.firefox.dat.files">
-        <copy todir="${browser.bin.dir}">
+        <copy overwrite="true" todir="${browser.bin.dir}">
           <fileset dir="tmp/firefox.dat">
             <include name="**/compreg.dat" />
             <include name="**/xpti.dat" />
+          </fileset>
+        </copy>
+        <copy overwrite="true" todir="${user.profile.dir}">
+          <fileset dir="tmp/firefox.dat">
+            <include name="prefs.js" />
           </fileset>
         </copy>
     </target>
 
 
 
-    <target name="-post-clean">
+    <target name="-post-clean" depends="-pre-init">
         <delete>
             <fileset dir="${browser.bin.dir}" 
                      includes="${bin.artifacts.pattern}"/>
@@ -256,6 +277,7 @@ ${jdkhome.nospaces}.
         </delete>
         
         <antcall target="restore.firefox.dat.files" />
+        <delete dir="tmp/firefox.dat" />
     </target>
 
     <target name="run" depends="-init-check,-pre-init,-post-init">
@@ -298,6 +320,24 @@ ${jdkhome.nospaces}.
 
       <exec os="Windows XP" dir="${browser.bin.dir}" executable="firefox" 
 		       failonerror="yes">
+        <env key="PATH" 
+             path="${jdkhome.nospaces}/jre/bin/client"
+        />
+        <env key="Path" 
+             path="${jdkhome.nospaces}/jre/bin/client"
+        />
+        <env key="path" 
+             path="${jdkhome.nospaces}/jre/bin/client"
+        />
+        <env key="CLASSPATH" 
+             path="${run.classpath}" 
+        />
+        <env key="NSPR_LOG_MODULES"
+             value="sync,nppluglet:5,pluglets:5"
+        />
+        <env key="NSPR_LOG_FILE"
+             value="${basedir}/${build.dir}/logfile.txt"
+        />
         <arg value="file://${basedir}/../samples/index.html" />
       </exec>
 
@@ -305,7 +345,6 @@ ${jdkhome.nospaces}.
 
     <target name="-post-compile">
         <!-- SimplePluglet -->
-<!--
         <jar jarfile="${build.dir}/SimplePluglet.jar">
             <manifest>
                 <attribute name="MIMEDescription" value="application/x-simple-pluglet"/>
@@ -323,7 +362,6 @@ ${jdkhome.nospaces}.
         <copy todir="${browser.bin.dir}/plugins" 
                         file="${build.dir}/SimplePluglet.jar" />
 
--->
                         
         <!-- JMFPlayer -->
         <jar jarfile="${build.dir}/jmfplayer.jar">
@@ -357,5 +395,25 @@ ${jdkhome.nospaces}.
             tofile="${basedir}/../lib/outofdate-pluglet_jar" />
 
     </target>
+
+    <target name="-init-macrodef-javac">
+        <macrodef name="javac" uri="http://www.netbeans.org/ns/j2se-project/3">
+            <attribute name="srcdir" default="${src.java2.dir}:${src.java4.dir}"/>
+            <attribute name="destdir" default="${build.classes.dir}"/>
+            <attribute name="classpath" default="${javac.classpath}"/>
+            <attribute name="debug" default="${javac.debug}"/>
+            <element name="customize" optional="true"/>
+            <sequential>
+                <javac srcdir="@{srcdir}" destdir="@{destdir}" debug="@{debug}" deprecation="${javac.deprecation}" source="${javac.source}" target="${javac.target}" includeantruntime="false">
+                    <classpath>
+                        <path path="@{classpath}"/>
+                    </classpath>
+                    <compilerarg line="${javac.compilerargs}"/>
+                    <customize/>
+                </javac>
+            </sequential>
+        </macrodef>
+    </target>
+
 
 </project>

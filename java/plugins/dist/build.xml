@@ -282,14 +282,19 @@
 
     <!-- Populate the netbeans Source Packages -->
 
-    <copy todir="${dist.home}/test/manual/src/main/java">
-      <fileset dir="${basedir}/dummy-main/src/main/java">
-        <include name="**/*.java" />
+    <copy todir="${dist.home}/test/manual/src/main">
+      <fileset dir="${basedir}/dummy-main/src/main/">
+        <include name="**/*.*" />
       </fileset>
     </copy>
 
     <copy todir="${dist.home}/samples/jmfplayer">
       <fileset dir="${source.home}/examples/jmfplayer">
+      </fileset>
+    </copy>
+
+    <copy todir="${dist.home}/samples/simple">
+      <fileset dir="${source.home}/examples/simple">
       </fileset>
     </copy>
 

@@ -6,9 +6,10 @@
             <name>pluglet</name>
             <minimum-ant-version>1.6.5</minimum-ant-version>
             <source-roots>
-                <root id="src.java3.dir" name="dummy-main"/>
+                <root id="src.java3.dir" name="Core Sources"/>
+                <root id="src.java4.dir" name="simple-sample"/>
                 <root id="src.java2.dir" name="jmfplayer sample"/>
-                <root id="src.java.dir" name="Core Sources"/>
+                <root id="src.java.dir" name="dummy-main"/>
             </source-roots>
             <test-roots/>
         </data>
