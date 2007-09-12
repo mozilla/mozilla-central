@@ -43,13 +43,13 @@ var gPrivacyPane = {
   init: function ()
   {
     this.mPane = document.getElementById("panePrivacy");
-    
+
     this.updateManualMarkMode(document.getElementById('manualMark').checked);
     this.updateJunkLogButton(document.getElementById('enableJunkLogging').checked);
-    
+
     // Update the MP buttons
     this.updateMasterPasswordButton();
-    
+
     // update the checkbox for downloading phishing url tables
     // this.updateDownloadedPhishingListState();
 
@@ -70,18 +70,18 @@ var gPrivacyPane = {
   {
     document.getElementById('manualMarkMode').disabled = !aEnableRadioGroup;
   },
-  
+
   updateJunkLogButton: function(aEnableButton)
   {
     document.getElementById('openJunkLogButton').disabled = !aEnableButton;
   },
-   
+
   openJunkLog: function()
   {
     document.documentElement.openWindow("mailnews:junklog", "chrome://messenger/content/preferences/junkLog.xul",
-                                        "", null);  
+                                        "", null);
   },
-  
+
   resetTrainingData: function()
   {
     // make sure the user really wants to do this
@@ -97,10 +97,10 @@ var gPrivacyPane = {
 
     // otherwise go ahead and remove the training data
     var junkmailPlugin = Components.classes["@mozilla.org/messenger/filter-plugin;1?name=bayesianfilter"]
-	                      .getService(Components.interfaces.nsIJunkMailPlugin);
+                        .getService(Components.interfaces.nsIJunkMailPlugin);
 
     if (junkmailPlugin)
-      junkmailPlugin.resetTrainingData();      
+      junkmailPlugin.resetTrainingData();
   },
 
   initReencryptCallback: function()
@@ -122,7 +122,7 @@ var gPrivacyPane = {
                                            "", null);
     this.updateMasterPasswordButton();
   },
-    
+
   updateMasterPasswordButton: function ()
   {
     // See if there's a master password and set the button label accordingly
@@ -132,13 +132,13 @@ var gPrivacyPane = {
     if (slot) {
       const nsIPKCS11Slot = Components.interfaces.nsIPKCS11Slot;
       var status = slot.status;
-      var noMP = status == nsIPKCS11Slot.SLOT_UNINITIALIZED || 
+      var noMP = status == nsIPKCS11Slot.SLOT_UNINITIALIZED ||
                  status == nsIPKCS11Slot.SLOT_READY;
 
       var bundle = document.getElementById("bundlePreferences");
       document.getElementById("setMasterPassword").label =
         bundle.getString(noMP ? "setMasterPassword" : "changeMasterPassword");
-      
+
       document.getElementById("removeMasterPassword").disabled = noMP;
     }
   },
@@ -146,15 +146,15 @@ var gPrivacyPane = {
   removeMasterPassword: function ()
   {
     var secmodDB = Components.classes["@mozilla.org/security/pkcs11moduledb;1"]
-                              .getService(Components.interfaces.nsIPKCS11ModuleDB); 
-    if (secmodDB.isFIPSEnabled) 
+                              .getService(Components.interfaces.nsIPKCS11ModuleDB);
+    if (secmodDB.isFIPSEnabled)
     {
       var bundle = document.getElementById("bundlePreferences");
       promptService.alert(window,
                           bundle.getString("pw_change_failed_title"),
                           bundle.getString("pw_change2empty_in_fips_mode"));
     }
-    else 
+    else
     {
       document.documentElement.openSubDialog("chrome://mozapps/content/preferences/removemp.xul",
                                              "", null);

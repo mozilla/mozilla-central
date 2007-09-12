@@ -43,7 +43,7 @@
  * widget/menu item, which gets some context (like the current selection)
  * and then calls a function/command in commandglue
  */
- 
+
 //The eventual goal is for this file to go away and its contents to be brought into
 //mailWindowOverlay.js.  This is currently being done.
 
@@ -76,20 +76,20 @@ function GetSelectedFolderURI()
     return null;
 }
 
-function MsgRenameFolder() 
+function MsgRenameFolder()
 {
-	var preselectedURI = GetSelectedFolderURI();
-	var folderTree = GetFolderTree();
+  var preselectedURI = GetSelectedFolderURI();
+  var folderTree = GetFolderTree();
 
-	var name = GetFolderNameFromUri(preselectedURI, folderTree);
+  var name = GetFolderNameFromUri(preselectedURI, folderTree);
 
-	dump("preselectedURI = " + preselectedURI + "\n");
-	var dialog = window.openDialog(
-	             "chrome://messenger/content/renameFolderDialog.xul",
-	             "newFolder",
-	             "chrome,titlebar,modal",
-	             {preselectedURI: preselectedURI, 
-	              okCallback: RenameFolder, name: name});
+  dump("preselectedURI = " + preselectedURI + "\n");
+  var dialog = window.openDialog(
+               "chrome://messenger/content/renameFolderDialog.xul",
+               "newFolder",
+               "chrome,titlebar,modal",
+               {preselectedURI: preselectedURI,
+                okCallback: RenameFolder, name: name});
 }
 
 function RenameFolder(name,uri)
@@ -98,7 +98,7 @@ function RenameFolder(name,uri)
   var folderTree = GetFolderTree();
   if (folderTree)
   {
-    if (uri && (uri != "") && name && (name != "")) 
+    if (uri && (uri != "") && name && (name != ""))
     {
       var selectedFolder = GetResourceFromUri(uri);
       if (gDBView)
@@ -119,18 +119,18 @@ function RenameFolder(name,uri)
         dump ("Exception : RenameFolder \n");
       }
     }
-    else 
+    else
     {
       dump("no name or nothing selected\n");
-    }   
+    }
   }
-  else 
+  else
   {
-	  dump("no folder tree\n");
+    dump("no folder tree\n");
   }
 }
 
-function MsgEmptyTrash() 
+function MsgEmptyTrash()
 {
     var folderTree = GetFolderTree();
     var startIndex = {};
@@ -143,13 +143,13 @@ function MsgEmptyTrash()
             messenger.emptyTrash(GetFolderDatasource(), folderResource);
         }
             catch(e)
-        {  
+        {
             dump ("Exception : messenger.emptyTrash \n");
         }
     }
 }
 
-function MsgCompactFolder(isAll) 
+function MsgCompactFolder(isAll)
 {
   // Get the selected folders.
   var selectedFolders = GetSelectedMsgFolders();
@@ -165,7 +165,7 @@ function MsgCompactFolder(isAll)
       var expungedBytes = msgfolder.expungedBytes;
 
       if (expungedBytes > 0)
-      { 
+      {
         if (gDBView)
           gCurrentlyDisplayedMessage = gDBView.currentlyDisplayedMessage;
 
@@ -178,7 +178,7 @@ function MsgCompactFolder(isAll)
         if (!isAll)  //you have one local folder with no room to compact
           return;
       }
-    } 
+    }
     try
     {
       messenger.compactFolder(GetFolderDatasource(), resource, isAll);
@@ -248,7 +248,7 @@ function MsgFolderProperties(tabID)
   }
 
   if (msgFolder.flags & MSG_FOLDER_FLAG_VIRTUAL)
-  { 
+  {
     // virtual folders get there own property dialog that contains all of the
     // search information related to the virtual folder.
     MsgVirtualFolderProperties(true);
@@ -265,7 +265,7 @@ function MsgFolderProperties(tabID)
               "chrome,centerscreen,titlebar,modal",
               {preselectedURI:preselectedURI, serverType:serverType,
               msgWindow:msgWindow, title:windowTitle,
-              okCallback:FolderProperties, 
+              okCallback:FolderProperties,
               tabID:tabID, name:name,
               rebuildSummaryCallback:RebuildSummaryFile});
 }
@@ -305,15 +305,15 @@ function MsgToggleMessagePane()
    ChangeMessagePaneVisibility(IsMessagePaneCollapsed());
 }
 
-function MsgSetFolderCharset() 
+function MsgSetFolderCharset()
 {
   MsgFolderProperties();
 }
 
 // Given a URI we would like to return corresponding message folder here.
-// An additonal input param which specifies whether or not to check folder 
+// An additonal input param which specifies whether or not to check folder
 // attributes (like if there exists a parent or is it a server) is also passed
-// to this routine. Qualifying against those checks would return an existing 
+// to this routine. Qualifying against those checks would return an existing
 // folder. Callers who don't want to check those attributes will specify the
 // same and then this routine will simply return a msgfolder. This scenario
 // applies to a new imap account creation where special folders are created
@@ -344,5 +344,5 @@ function GetResourceFromUri(uri)
     var resource = RDF.GetResource(uri);
 
     return resource;
-}  
+}
 

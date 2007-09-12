@@ -103,7 +103,7 @@ function awGetSelectItemIndex(itemData)
       selectElementIndexTable[aData] = i;
     }
   }
-  
+
   return selectElementIndexTable[itemData];
 }
 
@@ -161,7 +161,7 @@ function Recipients2CompFields(msgCompFields)
           case "addr_to"          : addrTo += to_Sep + recipient; to_Sep = ",";               break;
           case "addr_cc"          : addrCc += cc_Sep + recipient; cc_Sep = ",";               break;
           case "addr_bcc"         : addrBcc += bcc_Sep + recipient; bcc_Sep = ",";            break;
-          case "addr_reply"       : addrReply += reply_Sep + recipient; reply_Sep = ",";      break; 
+          case "addr_reply"       : addrReply += reply_Sep + recipient; reply_Sep = ",";      break;
           case "addr_newsgroups"  : addrNg += ng_Sep + fieldValue; ng_Sep = ",";              break;
           case "addr_followup"    : addrFollow += follow_Sep + fieldValue; follow_Sep = ",";  break;
           // do CRLF, same as PUSH_NEWLINE() in nsMsgSend.h / nsMsgCompUtils.cpp
@@ -198,7 +198,7 @@ function CompFields2Recipients(msgCompFields)
     var templateNode = listbox.getElementsByTagName("listitem")[0];
     // dump("replacing child in comp fields 2 recips \n");
     listbox.parentNode.replaceChild(newListBoxNode, listbox);
-    
+
     top.MAX_RECIPIENTS = 0;
     var msgReplyTo = msgCompFields.replyTo;
     var msgTo = msgCompFields.to;
@@ -208,10 +208,10 @@ function CompFields2Recipients(msgCompFields)
     var msgNewsgroups = msgCompFields.newsgroups;
     var msgFollowupTo = msgCompFields.followupTo;
     if(msgReplyTo)
-      awSetInputAndPopupFromArray(msgCompFields.SplitRecipients(msgReplyTo, false), 
+      awSetInputAndPopupFromArray(msgCompFields.SplitRecipients(msgReplyTo, false),
                                   "addr_reply", newListBoxNode, templateNode);
     if(msgTo)
-      awSetInputAndPopupFromArray(msgCompFields.SplitRecipients(msgTo, false), 
+      awSetInputAndPopupFromArray(msgCompFields.SplitRecipients(msgTo, false),
                                   "addr_to", newListBoxNode, templateNode);
     if(msgCC)
       awSetInputAndPopupFromArray(msgCompFields.SplitRecipients(msgCC, false),
@@ -232,7 +232,7 @@ function CompFields2Recipients(msgCompFields)
     awFitDummyRows(2);
 
     // CompFields2Recipients is called whenever a user replies or edits an existing message. We want to
-    // add all of the recipients for this message to the ignore list for spell check 
+    // add all of the recipients for this message to the ignore list for spell check
     addRecipientsToIgnoreList((gCurrentIdentity ? gCurrentIdentity.identityName + ', ' : '') + msgTo + ', ' + msgCC + ', ' + msgBCC);
 
     gMimeHeaderParser = null; //Release the mime parser
@@ -344,25 +344,25 @@ function awAddRecipients(msgCompFields, recipientType, recipientsList)
 // this was broken out of awAddRecipients so it can be re-used...adds a new row matching recipientType and
 // drops in the single address.
 function awAddRecipient(recipientType, address)
-{ 
+{
   for (var row = 1; row <= top.MAX_RECIPIENTS; row ++)
   {
     if (awGetInputElement(row).value == "")
       break;
   }
-  
+
   if (row > top.MAX_RECIPIENTS)
     awAppendNewRow(false);
 
   awSetInputAndPopupValue(awGetInputElement(row), address, awGetPopupElement(row), recipientType, row);
- 
+
   /* be sure we still have an empty row left at the end */
   if (row == top.MAX_RECIPIENTS)
   {
     awAppendNewRow(true);
     awSetInputAndPopupValue(awGetInputElement(top.MAX_RECIPIENTS), "", awGetPopupElement(top.MAX_RECIPIENTS), "addr_to", top.MAX_RECIPIENTS);
   }
-  
+
   // add the recipient to our spell check ignore list
   addRecipientsToIgnoreList(address);
 }
@@ -410,7 +410,7 @@ function awTestRowSequence()
 function awResetAllRows()
 {
   var maxRecipients = top.MAX_RECIPIENTS;
-  
+
   for (var row = 1; row <= maxRecipients ; row ++)
   {
     awGetInputElement(row).value = "";
@@ -552,14 +552,14 @@ function awAppendNewRow(setFocus)
     {
       input[0].setAttribute("value", "");
       input[0].setAttribute("id", "addressCol2#" + top.MAX_RECIPIENTS);
-    
-      //this copies the autocomplete sessions list from recipient#1 
+
+      //this copies the autocomplete sessions list from recipient#1
       input[0].syncSessions(document.getElementById('addressCol2#1'));
 
-  	  // also clone the showCommentColumn setting
-  	  //
-  	  input[0].showCommentColumn = 
-	      document.getElementById("addressCol2#1").showCommentColumn;
+      // also clone the showCommentColumn setting
+      //
+      input[0].showCommentColumn =
+        document.getElementById("addressCol2#1").showCommentColumn;
 
       // We always clone the first row.  The problem is that the first row
       // could be focused.  When we clone that row, we end up with a cloned
@@ -576,7 +576,7 @@ function awAppendNewRow(setFocus)
     var select = newNode.getElementsByTagName(awSelectElementName());
     if ( select && select.length == 1 )
     {
-      // It only makes sense to clone some field types; others 
+      // It only makes sense to clone some field types; others
       // should not be cloned, since it just makes the user have
       // to go to the trouble of selecting something else. In such
       // cases let's default to 'To' (a reasonable default since
@@ -587,7 +587,7 @@ function awAppendNewRow(setFocus)
         case  "addr_reply":
         case  "addr_other":
           select[0].selectedIndex = awGetSelectItemIndex("addr_to");
-          break;       
+          break;
         case "addr_followup":
           select[0].selectedIndex = awGetSelectItemIndex("addr_newsgroups");
           break;
@@ -595,7 +595,7 @@ function awAppendNewRow(setFocus)
         // e.g. "addr_to","addr_cc","addr_bcc","addr_newsgroups":
           select[0].selectedIndex = awGetSelectItemIndex(lastRecipientType);
       }
-    
+
       select[0].setAttribute("id", "addressCol1#" + top.MAX_RECIPIENTS);
       if (input)
         _awSetAutoComplete(select[0], input[0]);
@@ -762,7 +762,7 @@ function DragOverAddressingWidget(event)
   var validFlavor = false;
   var dragSession = dragSession = gDragService.getCurrentSession();
 
-  if (dragSession.isDataFlavorSupported("text/x-moz-address")) 
+  if (dragSession.isDataFlavorSupported("text/x-moz-address"))
     validFlavor = true;
 
   if (validFlavor)
@@ -772,7 +772,7 @@ function DragOverAddressingWidget(event)
 function DropOnAddressingWidget(event)
 {
   var dragSession = gDragService.getCurrentSession();
-  
+
   var trans = Components.classes["@mozilla.org/widget/transferable;1"].createInstance(Components.interfaces.nsITransferable);
   trans.addDataFlavor("text/x-moz-address");
 
@@ -783,9 +783,9 @@ function DropOnAddressingWidget(event)
     var bestFlavor = new Object();
     var len = new Object();
     trans.getAnyTransferData ( bestFlavor, dataObj, len );
-    if ( dataObj )  
+    if ( dataObj )
       dataObj = dataObj.value.QueryInterface(Components.interfaces.nsISupportsString);
-    if ( !dataObj ) 
+    if ( !dataObj )
       continue;
 
     // pull the address out of the data object
@@ -824,7 +824,7 @@ function awRecipientTextCommand(userAction, element)
 // Called when an autocomplete session item is selected and the status of
 // the session it was selected from is nsIAutoCompleteStatus::failureItems.
 //
-// As of this writing, the only way that can happen is when an LDAP 
+// As of this writing, the only way that can happen is when an LDAP
 // autocomplete session returns an error to be displayed to the user.
 //
 // There are hardcoded messages in here, but these are just fallbacks for
@@ -832,37 +832,37 @@ function awRecipientTextCommand(userAction, element)
 //
 function awRecipientErrorCommand(errItem, element)
 {
-  // remove the angle brackets from the general error message to construct 
+  // remove the angle brackets from the general error message to construct
   // the title for the alert.  someday we'll pass this info using a real
   // exception object, and then this code can go away.
   //
   var generalErrString;
-  if (errItem.value != "") 
+  if (errItem.value != "")
     generalErrString = errItem.value.slice(1, errItem.value.length-1);
-  else 
-    generalErrString = "Unknown LDAP server problem encountered";	
+  else
+    generalErrString = "Unknown LDAP server problem encountered";
 
   // try and get the string of the specific error to contruct the complete
   // err msg, otherwise fall back to something generic.  This message is
-  // handed to us as an nsISupportsString in the param slot of the 
-  // autocomplete error item, by agreement documented in 
+  // handed to us as an nsISupportsString in the param slot of the
+  // autocomplete error item, by agreement documented in
   // nsILDAPAutoCompFormatter.idl
   //
   var specificErrString = "";
-  try 
+  try
   {
     var specificError = errItem.param.QueryInterface(Components.interfaces.nsISupportsString);
-	  specificErrString = specificError.data;
-  } catch (ex) 
+    specificErrString = specificError.data;
+  } catch (ex)
   {}
-  
-  if (specificErrString == "") 
-	  specificErrString = "Internal error";
 
-  if (gPromptService) 
+  if (specificErrString == "")
+    specificErrString = "Internal error";
+
+  if (gPromptService)
     gPromptService.alert(window, generalErrString, specificErrString);
-  else 
-	  window.alert(generalErrString + ": " + specificErrString);
+  else
+    window.alert(generalErrString + ": " + specificErrString);
 }
 
 function awRecipientKeyPress(event, element)
@@ -876,7 +876,7 @@ function awRecipientKeyPress(event, element)
     break;
   case KeyEvent.DOM_VK_RETURN:
   case KeyEvent.DOM_VK_TAB:
-    // if the user text contains a comma or a line return, ignore 
+    // if the user text contains a comma or a line return, ignore
     if (element.value.search(',') != -1)
     {
       var addresses = element.value;
@@ -885,7 +885,7 @@ function awRecipientKeyPress(event, element)
     }
     else if (event.keyCode == KeyEvent.DOM_VK_TAB)
       awTabFromRecipient(element, event);
-    
+
     break;
   }
 }
@@ -1066,8 +1066,8 @@ function awDocumentKeyPress(event)
 
 function awRecipientInputCommand(event, inputElement)
 {
-  gContentChanged=true; 
-  setupAutocomplete(); 
+  gContentChanged=true;
+  setupAutocomplete();
 }
 
 // Given an arbitrary block of text like a comma delimited list of names or a names separated by spaces,
@@ -1103,8 +1103,8 @@ function AutomatedAutoCompleteHandler()
 {
 }
 
-// state driven self contained object which will autocomplete a block of addresses without any UI. 
-// force picks the first match and adds it to the addressing widget, then goes on to the next 
+// state driven self contained object which will autocomplete a block of addresses without any UI.
+// force picks the first match and adds it to the addressing widget, then goes on to the next
 // name to complete.
 
 AutomatedAutoCompleteHandler.prototype =
@@ -1144,7 +1144,7 @@ AutomatedAutoCompleteHandler.prototype =
       if (this.namesToComplete[this.indexIntoNames].search('@') == -1) // don't autocomplete if address has an @ sign in it
       {
         // make sure total session count is updated before we kick off ANY actual searches
-        if (gAutocompleteSession) 
+        if (gAutocompleteSession)
           this.numSessionsToSearch++;
 
         if (gLDAPSession && gCurrentAutocompleteDirectory)
@@ -1174,17 +1174,17 @@ AutomatedAutoCompleteHandler.prototype =
     }
   },
 
-  onStatus:function(aStatus) 
+  onStatus:function(aStatus)
   {
     return;
   },
-  
-  onAutoComplete: function(aResults, aStatus) 
+
+  onAutoComplete: function(aResults, aStatus)
   {
     // store the results until all sessions are done and have reported in
     if (aResults)
       this.searchResults[this.numSessionsSearched] = aResults;
-    
+
     this.numSessionsSearched++; // bump our counter
 
     if (this.numSessionsToSearch <= this.numSessionsSearched)
@@ -1197,7 +1197,7 @@ AutomatedAutoCompleteHandler.prototype =
     var addressToAdd;
 
     // loop through the results looking for the non default case (default case is the address book with only one match, the default domain)
-    var sessionIndex; 
+    var sessionIndex;
 
     var searchResultsForSession;
 
@@ -1230,8 +1230,8 @@ AutomatedAutoCompleteHandler.prototype =
       addressToAdd = this.namesToComplete[this.indexIntoNames];
 
     // that will automatically set the focus on a new available row, and make sure it is visible
-    awAddRecipient(this.recipientType ? this.recipientType : "addr_to", addressToAdd);  
-    
+    awAddRecipient(this.recipientType ? this.recipientType : "addr_to", addressToAdd);
+
     this.indexIntoNames++;
     this.autoCompleteNextAddress();
   },

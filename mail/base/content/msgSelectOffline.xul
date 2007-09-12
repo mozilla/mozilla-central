@@ -41,10 +41,10 @@
 
 <!DOCTYPE dialog SYSTEM "chrome://messenger/locale/msgSynchronize.dtd" >
 
-<dialog	xmlns:nc="http://home.netscape.com/NC-rdf#"
+<dialog  xmlns:nc="http://home.netscape.com/NC-rdf#"
         xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#"
         xmlns="http://www.mozilla.org/keymaster/gatekeeper/there.is.only.xul"
-        id="select-offline" 
+        id="select-offline"
         title="&MsgSelect.label;"
         width="450" height="400"
         persist="width height"
@@ -54,7 +54,7 @@
 
   <stringbundle id="bundle_messenger" src="chrome://messenger/locale/messenger.properties"/>
   <stringbundle id="bundle_brand" src="chrome://branding/locale/brand.properties"/>
-		
+
   <script type="application/x-javascript" src="chrome://global/content/strres.js"/>
   <script type="application/x-javascript" src="chrome://messenger/content/mailWindowOverlay.js"/>
   <script type="application/x-javascript" src="chrome://messenger/content/commandglue.js"/>
@@ -62,7 +62,7 @@
   <script type="application/x-javascript" src="chrome://messenger/content/mailWindow.js"/>
   <script type="application/x-javascript" src="chrome://messenger/content/msgMail3PaneWindow.js"/>
   <script type="application/x-javascript" src="chrome://messenger/content/msgSynchronize.js"/>
-	
+
   <description class="desc">&MsgSelectDesc.label;</description>
 
   <tree id="synchronizeTree" flex="1" hidecolumnpicker="true"
@@ -100,7 +100,7 @@
                    predicate="http://home.netscape.com/NC-rdf#Synchronize"
                    object="?synchronize"/>
         </bindings>
-             
+
         <action>
           <treechildren>
             <treeitem uri="?member">
@@ -116,7 +116,7 @@
     </template>
     <treecols>
       <treecol id="folderNameCol" flex="5" persist="hidden width" label="&MsgSelectItems.label;" primary="true"/>
-      <splitter class="tree-splitter"/>		  
+      <splitter class="tree-splitter"/>
       <treecol id="syncCol" flex="1" persist="hidden width" label="&MsgSelectInd.label;" cycler="true"/>
     </treecols>
   </tree>

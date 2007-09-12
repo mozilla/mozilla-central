@@ -71,11 +71,11 @@ var folderListener = {
   },
 
   OnItemPropertyChanged: function(item, property, oldValue, newValue) {},
-  OnItemIntPropertyChanged: function(item, property, oldValue, newValue) { 
+  OnItemIntPropertyChanged: function(item, property, oldValue, newValue) {
     if (item.Value == gCurrentFolderUri) {
       if (property.toString() == "TotalMessages" || property.toString() == "TotalUnreadMessages") {
         UpdateStandAloneMessageCounts();
-      }      
+      }
     }
   },
   OnItemBoolPropertyChanged: function(item, property, oldValue, newValue) {},
@@ -100,14 +100,14 @@ var folderListener = {
             if (gRerootOnFolderLoadForStandAlone) {
               RerootFolderForStandAlone(uri);
             }
-          }   
+          }
         }
       }
     }
     else if (eventType == "JunkStatusChanged") {
       HandleJunkStatusChanged(folder);
     }
-  }   
+  }
 }
 
 var messagepaneObserver = {
@@ -116,20 +116,20 @@ var messagepaneObserver = {
 
   onDrop: function (aEvent, aData, aDragSession)
   {
-    var sourceUri = aData.data; 
+    var sourceUri = aData.data;
     if (sourceUri != gCurrentMessageUri)
     {
       SelectFolder(GetMsgHdrFromUri(sourceUri).folder.URI);
       SelectMessage(sourceUri);
     }
   },
- 
+
   onDragOver: function (aEvent, aFlavour, aDragSession)
   {
     var messagepanebox = document.getElementById("messagepanebox");
     messagepanebox.setAttribute("dragover", "true");
   },
- 
+
   onDragExit: function (aEvent, aDragSession)
   {
     var messagepanebox = document.getElementById("messagepanebox");
@@ -142,7 +142,7 @@ var messagepaneObserver = {
     var elem = doc.getElementById("messengerWindow");
     return (elem && (elem.getAttribute("windowtype") == "mail:3pane"));
   },
-  
+
   getSupportedFlavours: function ()
   {
     var flavourSet = new FlavourSet();
@@ -161,7 +161,7 @@ function UpdateStandAloneMessageCounts()
   observerService.notifyObservers(window, "mail:updateStandAloneMessageCounts", "");
 }
 
-nsMsgDBViewCommandUpdater.prototype = 
+nsMsgDBViewCommandUpdater.prototype =
 {
   updateCommandStatus : function()
     {
@@ -191,22 +191,22 @@ nsMsgDBViewCommandUpdater.prototype =
     if (iid.equals(Components.interfaces.nsIMsgDBViewCommandUpdater) ||
         iid.equals(Components.interfaces.nsISupports))
       return this;
-	  
+
     throw Components.results.NS_NOINTERFACE;
   }
 }
 
 function HandleDeleteOrMoveMsgCompleted(folder)
 {
-	var folderResource = folder.QueryInterface(Components.interfaces.nsIRDFResource);
-	if (!folderResource)
-		return;
+  var folderResource = folder.QueryInterface(Components.interfaces.nsIRDFResource);
+  if (!folderResource)
+    return;
 
-	if ((folderResource.Value == gCurrentFolderUri) && gCurrentMessageIsDeleted)
-	{
+  if ((folderResource.Value == gCurrentFolderUri) && gCurrentMessageIsDeleted)
+  {
     gDBView.onDeleteCompleted(true);
     gCurrentMessageIsDeleted = false;
-    if (gNextMessageViewIndexAfterDelete != nsMsgViewIndex_None) 
+    if (gNextMessageViewIndexAfterDelete != nsMsgViewIndex_None)
     {
       var nextMstKey = gDBView.getKeyAt(gNextMessageViewIndexAfterDelete);
       if (nextMstKey != nsMsgKey_None) {
@@ -221,7 +221,7 @@ function HandleDeleteOrMoveMsgCompleted(folder)
       // close the stand alone window because there are no more messages in the folder
       window.close();
     }
-	}
+  }
 }
 
 function HandleDeleteOrMoveMsgFailed(folder)
@@ -295,8 +295,8 @@ function delayedOnLoadMessageWindow()
           if (messageUri instanceof Components.interfaces.nsIMsgMailNewsUrl)
             folder = messageUri.folder;
         }
-      } 
-      catch(ex) 
+      }
+      catch(ex)
       {
         folder = null;
         dump("## ex=" + ex + "\n");
@@ -314,12 +314,12 @@ function delayedOnLoadMessageWindow()
       gCurrentFolderUri = folder ? folder.URI : null;
 
     if (window.arguments[2])
-      originalView = window.arguments[2];      
+      originalView = window.arguments[2];
 
-  }	
+  }
 
   CreateView(originalView);
-  
+
   gPhishingDetector.init();
 
   // initialize the customizeDone method on the customizeable toolbar
@@ -330,7 +330,7 @@ function delayedOnLoadMessageWindow()
   toolbox.toolbarset = toolbarset;
 
   setTimeout(OnLoadMessageWindowDelayed, 0, loadCustomMessage);
-  
+
   SetupCommandUpdateHandlers();
 }
 
@@ -343,12 +343,12 @@ function OnLoadMessageWindowDelayed(loadCustomMessage)
   }
   else
   {
-    var msgKey = extractMsgKeyFromURI(gCurrentMessageUri); 
+    var msgKey = extractMsgKeyFromURI(gCurrentMessageUri);
     LoadMessageByViewIndex(gDBView.findIndexFromKey(msgKey, true));
   }
-  gNextMessageViewIndexAfterDelete = gDBView.msgToSelectAfterDelete; 
+  gNextMessageViewIndexAfterDelete = gDBView.msgToSelectAfterDelete;
   UpdateStandAloneMessageCounts();
-   
+
   // set focus to the message pane
   window.content.focus();
 
@@ -363,7 +363,7 @@ function CreateView(originalView)
 {
   var msgFolder = GetLoadedMsgFolder();
 
-  // extract the sort type, the sort order, 
+  // extract the sort type, the sort order,
   var sortType;
   var sortOrder;
   var viewFlags;
@@ -392,14 +392,14 @@ function CreateView(originalView)
   }
   else
   {
-    // this is a hack to make opening a stand-alone msg window on a 
+    // this is a hack to make opening a stand-alone msg window on a
     // .eml file work. We use a search view since its much more tolerant
     // of not having a folder.
     viewType = nsMsgViewType.eShowSearch;
   }
 
   // create a db view
-  CreateBareDBView(originalView, msgFolder, viewType, viewFlags, sortType, sortOrder); 
+  CreateBareDBView(originalView, msgFolder, viewType, viewFlags, sortType, sortOrder);
 
   var uri;
   if (gCurrentMessageUri)
@@ -444,38 +444,38 @@ function HideToolbarButtons()
     var defaultSet = mailToolbar.getAttribute("defaultset");
     defaultSet = defaultSet.replace(/search-container/i, "");
     mailToolbar.setAttribute('defaultset', defaultSet);
-    
+
     var searchContainer = document.getElementById('search-container');
     if (searchContainer)
       searchContainer.parentNode.removeChild(searchContainer);
-    
+
     // now hack the toolbar palette to remove all of the toolbar items which don't
-    // make sense for the stand alone message window. This prevents them from showing up in the 
+    // make sense for the stand alone message window. This prevents them from showing up in the
     // customize dialog.
     var toolbarPalette = document.getElementById('mail-toolbox').palette;
     toolbarPalette.removeChild(toolbarPalette.getElementsByAttribute('id', 'search-container')[0]);
     toolbarPalette.removeChild(toolbarPalette.getElementsByAttribute('id', 'mailviews-container')[0]);
-    toolbarPalette.removeChild(toolbarPalette.getElementsByAttribute('id', 'folder-location-container')[0]);    
+    toolbarPalette.removeChild(toolbarPalette.getElementsByAttribute('id', 'folder-location-container')[0]);
   }
 }
 
 function HideMenus()
 {
-	var message_menuitem=document.getElementById('menu_showMessage');
-	if (message_menuitem)
-		message_menuitem.setAttribute("hidden", "true");
+  var message_menuitem=document.getElementById('menu_showMessage');
+  if (message_menuitem)
+    message_menuitem.setAttribute("hidden", "true");
 
-	var showSearch_showMessage_Separator = document.getElementById('menu_showSearch_showMessage_Separator');
-	if (showSearch_showMessage_Separator)
-		showSearch_showMessage_Separator.setAttribute("hidden", "true");
+  var showSearch_showMessage_Separator = document.getElementById('menu_showSearch_showMessage_Separator');
+  if (showSearch_showMessage_Separator)
+    showSearch_showMessage_Separator.setAttribute("hidden", "true");
 
-	var expandOrCollapseMenu = document.getElementById('menu_expandOrCollapse');
-	if (expandOrCollapseMenu)
-		expandOrCollapseMenu.setAttribute("hidden", "true");
+  var expandOrCollapseMenu = document.getElementById('menu_expandOrCollapse');
+  if (expandOrCollapseMenu)
+    expandOrCollapseMenu.setAttribute("hidden", "true");
 
-	var renameFolderMenu = document.getElementById('menu_renameFolder');
-	if (renameFolderMenu)
-		renameFolderMenu.setAttribute("hidden", "true");
+  var renameFolderMenu = document.getElementById('menu_renameFolder');
+  if (renameFolderMenu)
+    renameFolderMenu.setAttribute("hidden", "true");
 
   var viewLayoutMenu = document.getElementById("menu_MessagePaneLayout");
   if (viewLayoutMenu)
@@ -485,41 +485,41 @@ function HideMenus()
   if (viewFolderMenu)
     viewFolderMenu.setAttribute("hidden", "true");
 
-	var viewMessagesMenu = document.getElementById('viewMessagesMenu');
-	if (viewMessagesMenu)
-		viewMessagesMenu.setAttribute("hidden", "true");
+  var viewMessagesMenu = document.getElementById('viewMessagesMenu');
+  if (viewMessagesMenu)
+    viewMessagesMenu.setAttribute("hidden", "true");
 
-	var viewMessageViewMenu = document.getElementById('viewMessageViewMenu');
-	if (viewMessageViewMenu)
-		viewMessageViewMenu.setAttribute("hidden", "true");
+  var viewMessageViewMenu = document.getElementById('viewMessageViewMenu');
+  if (viewMessageViewMenu)
+    viewMessageViewMenu.setAttribute("hidden", "true");
 
-	var viewMessagesMenuSeparator = document.getElementById('viewMessagesMenuSeparator');
-	if (viewMessagesMenuSeparator)
-		viewMessagesMenuSeparator.setAttribute("hidden", "true");
+  var viewMessagesMenuSeparator = document.getElementById('viewMessagesMenuSeparator');
+  if (viewMessagesMenuSeparator)
+    viewMessagesMenuSeparator.setAttribute("hidden", "true");
 
-	var openMessageMenu = document.getElementById('openMessageWindowMenuitem');
-	if (openMessageMenu)
-		openMessageMenu.setAttribute("hidden", "true");
+  var openMessageMenu = document.getElementById('openMessageWindowMenuitem');
+  if (openMessageMenu)
+    openMessageMenu.setAttribute("hidden", "true");
 
   var viewSortMenuSeparator = document.getElementById('viewSortMenuSeparator');
   if (viewSortMenuSeparator)
     viewSortMenuSeparator.setAttribute("hidden", "true");
 
-	var viewSortMenu = document.getElementById('viewSortMenu');
-	if (viewSortMenu)
-		viewSortMenu.setAttribute("hidden", "true");
+  var viewSortMenu = document.getElementById('viewSortMenu');
+  if (viewSortMenu)
+    viewSortMenu.setAttribute("hidden", "true");
 
-	var emptryTrashMenu = document.getElementById('menu_emptyTrash');
-	if (emptryTrashMenu)
-		emptryTrashMenu.setAttribute("hidden", "true");
+  var emptryTrashMenu = document.getElementById('menu_emptyTrash');
+  if (emptryTrashMenu)
+    emptryTrashMenu.setAttribute("hidden", "true");
 
   var menuPropertiesSeparator = document.getElementById("editPropertiesSeparator");
   if (menuPropertiesSeparator)
     menuPropertiesSeparator.setAttribute("hidden", "true");
 
-	var menuProperties = document.getElementById('menu_properties');
-	if (menuProperties)
-		menuProperties.setAttribute("hidden", "true");
+  var menuProperties = document.getElementById('menu_properties');
+  if (menuProperties)
+    menuProperties.setAttribute("hidden", "true");
 
   var favoriteFolder = document.getElementById('menu_favoriteFolder');
   if (favoriteFolder)
@@ -528,35 +528,35 @@ function HideMenus()
     favoriteFolder.setAttribute("hidden", "true");
   }
 
-	var compactFolderMenu = document.getElementById('menu_compactFolder');
-	if (compactFolderMenu)
-		compactFolderMenu.setAttribute("hidden", "true");
+  var compactFolderMenu = document.getElementById('menu_compactFolder');
+  if (compactFolderMenu)
+    compactFolderMenu.setAttribute("hidden", "true");
 
-	var trashSeparator = document.getElementById('trashMenuSeparator');
-	if (trashSeparator)
-		trashSeparator.setAttribute("hidden", "true");
+  var trashSeparator = document.getElementById('trashMenuSeparator');
+  if (trashSeparator)
+    trashSeparator.setAttribute("hidden", "true");
 
-	var goStartPageSeparator = document.getElementById('goNextSeparator');
-	if (goStartPageSeparator)
-		goStartPageSeparator.hidden = true;
+  var goStartPageSeparator = document.getElementById('goNextSeparator');
+  if (goStartPageSeparator)
+    goStartPageSeparator.hidden = true;
 
   var goStartPage = document.getElementById('goStartPage');
-	if (goStartPage)
+  if (goStartPage)
    goStartPage.hidden = true;
 }
 
 function OnUnloadMessageWindow()
 {
-	// FIX ME - later we will be able to use onunload from the overlay
-	OnUnloadMsgHeaderPane();
+  // FIX ME - later we will be able to use onunload from the overlay
+  OnUnloadMsgHeaderPane();
   gPhishingDetector.shutdown();
-	OnMailWindowUnload();
+  OnMailWindowUnload();
 }
 
 function CreateMessageWindowGlobals()
 {
-	gCompositeDataSource = Components.classes[compositeDataSourceContractID].createInstance();
-	gCompositeDataSource = gCompositeDataSource.QueryInterface(Components.interfaces.nsIRDFCompositeDataSource);
+  gCompositeDataSource = Components.classes[compositeDataSourceContractID].createInstance();
+  gCompositeDataSource = gCompositeDataSource.QueryInterface(Components.interfaces.nsIRDFCompositeDataSource);
 }
 
 function InitializeDataSources()
@@ -572,38 +572,38 @@ function GetSelectedMsgFolders()
   var folderArray = new Array(1);
   var msgFolder = GetLoadedMsgFolder();
   if (msgFolder)
-    folderArray[0] = msgFolder;	
+    folderArray[0] = msgFolder;
 
   return folderArray;
 }
 
 function GetFirstSelectedMessage()
 {
-	return GetLoadedMessage();
+  return GetLoadedMessage();
 }
 
 function GetNumSelectedMessages()
 {
-	if (gCurrentMessageUri)
-		return 1;
-	else
-		return 0;
+  if (gCurrentMessageUri)
+    return 1;
+  else
+    return 0;
 }
 
 function GetSelectedMessages()
 {
-	var messageArray = new Array(1);
-	var message = GetLoadedMessage();
-	if (message)
-		messageArray[0] = message;	
+  var messageArray = new Array(1);
+  var message = GetLoadedMessage();
+  if (message)
+    messageArray[0] = message;
 
-	return messageArray;
+  return messageArray;
 }
 
 function GetSelectedIndices(dbView)
 {
   try {
-    var indicesArray = {}; 
+    var indicesArray = {};
     var length = {};
     dbView.getIndicesForSelection(indicesArray,length);
     return indicesArray.value;
@@ -641,7 +641,7 @@ function ClearMessageSelection()
 
 function GetCompositeDataSource(command)
 {
-  return gCompositeDataSource;	
+  return gCompositeDataSource;
 }
 
 function SetNextMessageAfterDelete()
@@ -659,13 +659,13 @@ function SelectFolder(folderUri)
     return;
 
   // close old folder view
-  var dbview = GetDBView();  
+  var dbview = GetDBView();
   if (dbview)
-    dbview.close(); 
+    dbview.close();
 
   gCurrentFolderToRerootForStandAlone = folderUri;
   msgWindow.openFolder = msgfolder;
-  
+
   if (msgfolder.manyHeadersToDownload)
   {
     gRerootOnFolderLoadForStandAlone = true;
@@ -691,7 +691,7 @@ function SelectFolder(folderUri)
     //Need to do this after rerooting folder.  Otherwise possibility of receiving folder loaded
     //notification before folder has actually changed.
     msgfolder.updateFolder(msgWindow);
-  }    
+  }
 }
 
 function RerootFolderForStandAlone(uri)
@@ -700,7 +700,7 @@ function RerootFolderForStandAlone(uri)
 
   // create new folder view
   CreateView(null);
-  
+
   if (gMessageToLoad != nsMsgKey_None)
   {
     LoadMessageByMsgKey(gMessageToLoad);
@@ -712,15 +712,15 @@ function RerootFolderForStandAlone(uri)
     gNextMessageAfterLoad = null;
     LoadMessageByNavigationType(type);
   }
-  
+
   SetUpToolbarButtons(gCurrentFolderUri);
-  
+
   UpdateMailToolbar("reroot folder in stand alone window");
-  
+
   // hook for extra toolbar items
   var observerService = Components.classes["@mozilla.org/observer-service;1"].getService(Components.interfaces.nsIObserverService);
   observerService.notifyObservers(window, "mail:setupToolbarItems", uri);
-} 
+}
 
 function GetMsgHdrFromUri(messageUri)
 {
@@ -732,7 +732,7 @@ function SelectMessage(messageUri)
   var msgHdr = GetMsgHdrFromUri(messageUri);
   LoadMessageByMsgKey(msgHdr.messageKey);
 }
- 
+
 function ReloadMessage()
 {
   gDBView.reloadMessage();
@@ -744,14 +744,14 @@ function MsgDeleteMessageFromMessageWindow(reallyDelete, fromToolbar)
   // only allow cancel from the menu:  "Edit | Cancel / Delete Message"
   if (fromToolbar)
   {
-    if (isNewsURI(gCurrentFolderUri)) 
+    if (isNewsURI(gCurrentFolderUri))
     {
         // if news, don't delete
         return;
     }
   }
-  
-  // before we delete 
+
+  // before we delete
   SetNextMessageAfterDelete();
 
   if (reallyDelete)
@@ -837,111 +837,111 @@ var MessageWindowController =
       case "cmd_createFilterFromPopup":
       case "cmd_createFilterFromMenu":
       case "cmd_moveToFolderAgain":
-				return true;
+        return true;
       case "cmd_synchronizeOffline":
-			case "cmd_downloadFlagged":
-			case "cmd_downloadSelected":
+      case "cmd_downloadFlagged":
+      case "cmd_downloadSelected":
         return MailOfflineMgr.isOnline();
-			default:
-				return false;
-		}
-	},
+      default:
+        return false;
+    }
+  },
 
-	isCommandEnabled: function(command)
-	{
-		switch ( command )
-		{
+  isCommandEnabled: function(command)
+  {
+    switch ( command )
+    {
       case "cmd_createFilterFromPopup":
       case "cmd_createFilterFromMenu":
         var loadedFolder = GetLoadedMsgFolder();
         if (!(loadedFolder && loadedFolder.server.canHaveFilters))
           return false;
-			case "cmd_delete":
+      case "cmd_delete":
         UpdateDeleteCommand();
         // fall through
-			case "button_delete":
-			case "cmd_shiftDelete":
+      case "button_delete":
+      case "cmd_shiftDelete":
         var loadedFolder = GetLoadedMsgFolder();
         return gCurrentMessageUri && loadedFolder && (loadedFolder.canDeleteMessages || isNewsURI(gCurrentFolderUri));
       case "button_junk":
         UpdateJunkToolbarButton();
         // fall through
       case "cmd_markAsJunk":
-			case "cmd_markAsNotJunk":
+      case "cmd_markAsNotJunk":
       case "cmd_recalculateJunkScore":
         // can't do junk on news yet
         return (!isNewsURI(gCurrentFolderUri));
-			case "cmd_reply":
-			case "button_reply":
-			case "cmd_replySender":
-			case "cmd_replyGroup":
-			case "cmd_replyall":
-			case "button_replyall":
-			case "cmd_forward":
-			case "button_forward":
-			case "cmd_forwardInline":
-			case "cmd_forwardAttachment":
-			case "cmd_editAsNew":
-			case "cmd_print":
-			case "cmd_printpreview":
+      case "cmd_reply":
+      case "button_reply":
+      case "cmd_replySender":
+      case "cmd_replyGroup":
+      case "cmd_replyall":
+      case "button_replyall":
+      case "cmd_forward":
+      case "button_forward":
+      case "cmd_forwardInline":
+      case "cmd_forwardAttachment":
+      case "cmd_editAsNew":
+      case "cmd_print":
+      case "cmd_printpreview":
       case "button_print":
-			case "cmd_saveAsFile":
-			case "cmd_saveAsTemplate":
-			case "cmd_viewPageSource":
-			case "cmd_reload":
-			case "cmd_find":
-			case "cmd_tag":
+      case "cmd_saveAsFile":
+      case "cmd_saveAsTemplate":
+      case "cmd_viewPageSource":
+      case "cmd_reload":
+      case "cmd_find":
+      case "cmd_tag":
       case "button_mark":
-			case "cmd_markAsRead":
-			case "cmd_markAllRead":
-			case "cmd_markThreadAsRead":
+      case "cmd_markAsRead":
+      case "cmd_markAllRead":
+      case "cmd_markThreadAsRead":
       case "cmd_markReadByDate":
         return(true);
-			case "cmd_markAsFlagged":
+      case "cmd_markAsFlagged":
       case "button_file":
-			case "cmd_file":
-				return ( gCurrentMessageUri != null);
-			case "cmd_printSetup":
-			  return true;
-			case "cmd_getNewMessages":
+      case "cmd_file":
+        return ( gCurrentMessageUri != null);
+      case "cmd_printSetup":
+        return true;
+      case "cmd_getNewMessages":
       case "button_getNewMessages":
       case "cmd_getMsgsForAuthAccounts":
-				return IsGetNewMessagesEnabled();
-			case "cmd_getNextNMessages":
-				return IsGetNextNMessagesEnabled();		
-			case "cmd_downloadFlagged":
-			case "cmd_downloadSelected":
+        return IsGetNewMessagesEnabled();
+      case "cmd_getNextNMessages":
+        return IsGetNextNMessagesEnabled();
+      case "cmd_downloadFlagged":
+      case "cmd_downloadSelected":
       case "cmd_synchronizeOffline":
         return MailOfflineMgr.isOnline();
-			case "cmd_settingsOffline":
+      case "cmd_settingsOffline":
         return IsAccountOfflineEnabled();
-			case "cmd_close":
-			case "cmd_nextMsg":
+      case "cmd_close":
+      case "cmd_nextMsg":
       case "button_next":
-			case "cmd_nextUnreadMsg":
-			case "cmd_nextUnreadThread":
+      case "cmd_nextUnreadMsg":
+      case "cmd_nextUnreadThread":
       case "button_previous":
-			case "cmd_previousMsg":
-			case "cmd_previousUnreadMsg":
-				return true;
-			case "cmd_findAgain":
-			case "cmd_findPrevious":
+      case "cmd_previousMsg":
+      case "cmd_previousUnreadMsg":
+        return true;
+      case "cmd_findAgain":
+      case "cmd_findPrevious":
                         case "cmd_goForward":
                         case "cmd_goBack":
-				return true;
+        return true;
       case "button_goForward":
       case "button_goBack":
       case "cmd_goForward":
       case "cmd_goBack":
-        return gDBView && 
-            gDBView.navigateStatus((command == "cmd_goBack" || 
-                                    command == "button_goBack") 
+        return gDBView &&
+            gDBView.navigateStatus((command == "cmd_goBack" ||
+                                    command == "button_goBack")
                                     ? nsMsgNavigationType.back : nsMsgNavigationType.forward);
       case "cmd_search":
         var loadedFolder = GetLoadedMsgFolder();
         if (!loadedFolder)
           return false;
-        return loadedFolder.server.canSearchMessages; 
+        return loadedFolder.server.canSearchMessages;
       case "cmd_undo":
       case "cmd_redo":
         return SetupUndoRedoCommand(command);
@@ -951,27 +951,27 @@ var MessageWindowController =
       case "cmd_runJunkControls":
       case "cmd_deleteJunk":
         return false;
-			default:
-				return false;
-		}
-	},
+      default:
+        return false;
+    }
+  },
 
-	doCommand: function(command)
-	{
+  doCommand: function(command)
+  {
     // if the user invoked a key short cut then it is possible that we got here for a command which is
     // really disabled. kick out if the command should be disabled.
     if (!this.isCommandEnabled(command)) return;
 
     var navigationType = nsMsgNavigationType.nextUnreadMessage;
 
-	switch ( command )
-	{
-		case "cmd_close":
-			CloseMailWindow();
-			break;
-		case "cmd_getNewMessages":
-			MsgGetMessage();
-			break;
+  switch ( command )
+  {
+    case "cmd_close":
+      CloseMailWindow();
+      break;
+    case "cmd_getNewMessages":
+      MsgGetMessage();
+      break;
         case "cmd_undo":
             messenger.undo(msgWindow);
             break;
@@ -982,111 +982,111 @@ var MessageWindowController =
           MsgGetMessagesForAllAuthenticatedAccounts();
           break;
         case "cmd_getNextNMessages":
-				MsgGetNextNMessages();
-				break;
-			case "cmd_reply":
-				MsgReplyMessage(null);
-				break;
-			case "cmd_replySender":
-				MsgReplySender(null);
-				break;
-			case "cmd_replyGroup":
-				MsgReplyGroup(null);
-				break;
-			case "cmd_replyall":
-				MsgReplyToAllMessage(null);
-				break;
-			case "cmd_forward":
-				MsgForwardMessage(null);
-				break;
-			case "cmd_forwardInline":
-				MsgForwardAsInline(null);
-				break;
-			case "cmd_forwardAttachment":
-				MsgForwardAsAttachment(null);
-				break;
-			case "cmd_editAsNew":
-				MsgEditMessageAsNew();
-				break;
+        MsgGetNextNMessages();
+        break;
+      case "cmd_reply":
+        MsgReplyMessage(null);
+        break;
+      case "cmd_replySender":
+        MsgReplySender(null);
+        break;
+      case "cmd_replyGroup":
+        MsgReplyGroup(null);
+        break;
+      case "cmd_replyall":
+        MsgReplyToAllMessage(null);
+        break;
+      case "cmd_forward":
+        MsgForwardMessage(null);
+        break;
+      case "cmd_forwardInline":
+        MsgForwardAsInline(null);
+        break;
+      case "cmd_forwardAttachment":
+        MsgForwardAsAttachment(null);
+        break;
+      case "cmd_editAsNew":
+        MsgEditMessageAsNew();
+        break;
       case "cmd_moveToFolderAgain":
         var folderId = pref.getCharPref("mail.last_msg_movecopy_target_uri");
         if (pref.getBoolPref("mail.last_msg_movecopy_was_move"))
           MsgMoveMessage(folderId);
         else
           MsgCopyMessage(folderId);
-        break;				
+        break;
       case "cmd_createFilterFromPopup":
-				break;// This does nothing because the createfilter is invoked from the popupnode oncommand.        
+        break;// This does nothing because the createfilter is invoked from the popupnode oncommand.
       case "cmd_createFilterFromMenu":
         MsgCreateFilter();
-				break;        
-			case "cmd_delete":
-				MsgDeleteMessageFromMessageWindow(false, false);
-				break;
-			case "cmd_shiftDelete":
-				MsgDeleteMessageFromMessageWindow(true, false);
-				break;
+        break;
+      case "cmd_delete":
+        MsgDeleteMessageFromMessageWindow(false, false);
+        break;
+      case "cmd_shiftDelete":
+        MsgDeleteMessageFromMessageWindow(true, false);
+        break;
       case "button_junk":
         MsgJunk();
         break;
-			case "button_delete":
-				MsgDeleteMessageFromMessageWindow(false, true);
-				break;
-		  case "cmd_printSetup":
-		    PrintUtils.showPageSetup();
-		    break;
-			case "cmd_print":
-				PrintEnginePrint();
-				break;
-			case "cmd_printpreview":
-				PrintEnginePrintPreview();
-				break;
-			case "cmd_saveAsFile":
-				MsgSaveAsFile();
-				break;
-			case "cmd_saveAsTemplate":
-				MsgSaveAsTemplate();
-				break;
-			case "cmd_viewPageSource":
-				MsgViewPageSource();
-				break;
-			case "cmd_reload":
-				MsgReload();
-				break;
-			case "cmd_find":
-				MsgFind();
-				break;
-			case "cmd_findAgain":
-				MsgFindAgain(false);
-				break;
-			case "cmd_findPrevious":
-				MsgFindAgain(true);
-				break;
+      case "button_delete":
+        MsgDeleteMessageFromMessageWindow(false, true);
+        break;
+      case "cmd_printSetup":
+        PrintUtils.showPageSetup();
+        break;
+      case "cmd_print":
+        PrintEnginePrint();
+        break;
+      case "cmd_printpreview":
+        PrintEnginePrintPreview();
+        break;
+      case "cmd_saveAsFile":
+        MsgSaveAsFile();
+        break;
+      case "cmd_saveAsTemplate":
+        MsgSaveAsTemplate();
+        break;
+      case "cmd_viewPageSource":
+        MsgViewPageSource();
+        break;
+      case "cmd_reload":
+        MsgReload();
+        break;
+      case "cmd_find":
+        MsgFind();
+        break;
+      case "cmd_findAgain":
+        MsgFindAgain(false);
+        break;
+      case "cmd_findPrevious":
+        MsgFindAgain(true);
+        break;
       case "cmd_search":
         MsgSearchMessages();
         break;
       case "button_mark":
-			case "cmd_markAsRead":
-				MsgMarkMsgAsRead(null);
-				return;
-			case "cmd_markThreadAsRead":
-				MsgMarkThreadAsRead();
-				return;
-			case "cmd_markAllRead":
-				MsgMarkAllRead();
-				return;
+      case "cmd_markAsRead":
+        MsgMarkMsgAsRead(null);
+        return;
+      case "cmd_markThreadAsRead":
+        MsgMarkThreadAsRead();
+        return;
+      case "cmd_markAllRead":
+        MsgMarkAllRead();
+        return;
       case "cmd_markReadByDate":
         MsgMarkReadByDate();
         return;
-			case "cmd_markAsFlagged":
-				MsgMarkAsFlagged(null);
-				return;
-			case "cmd_markAsJunk":
+      case "cmd_markAsFlagged":
+        MsgMarkAsFlagged(null);
+        return;
+      case "cmd_markAsJunk":
         JunkSelectedMessages(true);
-				return;
-			case "cmd_markAsNotJunk":
+        return;
+      case "cmd_markAsNotJunk":
         JunkSelectedMessages(false);
-				return;
+        return;
       case "cmd_recalculateJunkScore":
         analyzeMessagesForJunk();
         return;
@@ -1106,22 +1106,22 @@ var MessageWindowController =
       case "button_next":
         performNavigation(nsMsgNavigationType.nextUnreadMessage);
         break;
-      case "cmd_nextUnreadThread":      
+      case "cmd_nextUnreadThread":
         performNavigation(nsMsgNavigationType.nextUnreadThread);
-				break;
-			case "cmd_nextMsg":
+        break;
+      case "cmd_nextMsg":
         performNavigation(nsMsgNavigationType.nextMessage);
-				break;
-			case "cmd_nextFlaggedMsg":
+        break;
+      case "cmd_nextFlaggedMsg":
         performNavigation(nsMsgNavigationType.nextFlagged);
-				break;
-			case "cmd_previousMsg":
+        break;
+      case "cmd_previousMsg":
         performNavigation(nsMsgNavigationType.previousMessage);
-				break;
+        break;
       case "button_previous":
       case "cmd_previousUnreadMsg":
         performNavigation(nsMsgNavigationType.previousUnreadMessage);
-		break;
+    break;
       case "cmd_previousFlaggedMsg":
         performNavigation(nsMsgNavigationType.previousFlagged);
         break;
@@ -1132,11 +1132,11 @@ var MessageWindowController =
         performNavigation(nsMsgNavigationType.back);
         break;
       }
-	},
-	
-	onEvent: function(event)
-	{
-	}
+  },
+
+  onEvent: function(event)
+  {
+  }
 };
 
 function LoadMessageByNavigationType(type)
@@ -1148,7 +1148,7 @@ function LoadMessageByNavigationType(type)
   gDBView.viewNavigate(type, resultId, resultIndex, threadIndex, true /* wrap */);
 
   // if we found something....display it.
-  if ((resultId.value != nsMsgKey_None) && (resultIndex.value != nsMsgKey_None)) 
+  if ((resultId.value != nsMsgKey_None) && (resultIndex.value != nsMsgKey_None))
   {
     // load the message key
     LoadMessageByMsgKey(resultId.value);
@@ -1162,20 +1162,20 @@ function LoadMessageByNavigationType(type)
   // no message found to load
   return false;
 }
-   
+
 function performNavigation(type)
 {
   // Try to load a message by navigation type if we can find
   // the message in the same folder.
   if (LoadMessageByNavigationType(type))
     return;
-   
+
   CrossFolderNavigation(type);
 }
 
 function SetupCommandUpdateHandlers()
 {
-	top.controllers.insertControllerAt(0, MessageWindowController);
+  top.controllers.insertControllerAt(0, MessageWindowController);
 }
 
 function GetDBView()

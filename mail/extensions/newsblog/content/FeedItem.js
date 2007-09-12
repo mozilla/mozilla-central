@@ -98,14 +98,14 @@ const LOCAL_CONTENT_TEMPLATE = "\n\
 // no local style overrides at this time
 const LOCAL_STYLE = "\n";
 
-function FeedItem() 
+function FeedItem()
 {
   this.mDate = new Date().toString();
   this.mUnicodeConverter = Components.classes["@mozilla.org/intl/scriptableunicodeconverter"]
                           .createInstance(Components.interfaces.nsIScriptableUnicodeConverter);
 }
 
-FeedItem.prototype = 
+FeedItem.prototype =
 {
   isStoredWithId: false, // we currently only do this for IETF Atom. RSS2 with GUIDs should do this as well.
   xmlContentBase: null, // only for IETF Atom
@@ -177,26 +177,26 @@ FeedItem.prototype =
       return this.mURL;
   },
 
-  store: function() 
+  store: function()
   {
     this.mUnicodeConverter.charset = this.characterSet;
 
-    if (this.isStored()) 
+    if (this.isStored())
       debug(this.identity + " already stored; ignoring");
-    else if (this.content) 
+    else if (this.content)
     {
       debug(this.identity + " has content; storing");
       var content = MESSAGE_TEMPLATE;
       content = content.replace(/%CONTENT_TEMPLATE%/, LOCAL_CONTENT_TEMPLATE);
       content = content.replace(/%STYLE%/, LOCAL_STYLE);
       content = content.replace(/%TITLE%/, this.title);
-      content = content.replace(/%BASE%/, this.contentBase); 
+      content = content.replace(/%BASE%/, this.contentBase);
       content = content.replace(/%URL%/g, this.mURL);
       content = content.replace(/%CONTENT%/, this.content);
       this.content = content; // XXX store it elsewhere, f.e. this.page
       this.writeToFolder();
     }
-    else if (this.feed.quickMode) 
+    else if (this.feed.quickMode)
     {
       debug(this.identity + " in quick mode; storing");
 
@@ -205,14 +205,14 @@ FeedItem.prototype =
       var content = MESSAGE_TEMPLATE;
       content = content.replace(/%CONTENT_TEMPLATE%/, LOCAL_CONTENT_TEMPLATE);
       content = content.replace(/%STYLE%/, LOCAL_STYLE);
-      content = content.replace(/%BASE%/, this.contentBase); 
+      content = content.replace(/%BASE%/, this.contentBase);
       content = content.replace(/%TITLE%/, this.title);
       content = content.replace(/%URL%/g, this.mURL);
       content = content.replace(/%CONTENT%/, this.content);
       this.content = content; // XXX store it elsewhere, f.e. this.page
       this.writeToFolder();
-    } 
-    else 
+    }
+    else
     {
       //debug(this.identity + " needs content; downloading");
       debug(this.identity + " needs content; creating and storing");
@@ -220,7 +220,7 @@ FeedItem.prototype =
       content = content.replace(/%CONTENT_TEMPLATE%/, REMOTE_CONTENT_TEMPLATE);
       content = content.replace(/%STYLE%/, REMOTE_STYLE);
       content = content.replace(/%TITLE%/, this.title);
-      content = content.replace(/%BASE%/, this.contentBase); 
+      content = content.replace(/%BASE%/, this.contentBase);
       content = content.replace(/%URL%/g, this.mURL);
       content = content.replace(/%DESCRIPTION%/, this.description || this.title);
       this.content = content; // XXX store it elsewhere, f.e. this.page
@@ -237,10 +237,10 @@ FeedItem.prototype =
     var server = this.feed.server;
     var folder = this.feed.folder;
 
-    if (!folder) 
+    if (!folder)
     {
       debug(this.feed.name + " folder doesn't exist; creating");
-		  debug("creating " + this.feed.name + "as child of " + server.rootMsgFolder + "\n");
+      debug("creating " + this.feed.name + "as child of " + server.rootMsgFolder + "\n");
       server.rootMsgFolder.createSubfolder(this.feed.name, null /* supposed to be a msg window */);
       folder = server.rootMsgFolder.FindSubFolder(this.feed.name);
       debug(this.identity + " not stored (folder didn't exist)");
@@ -262,21 +262,21 @@ FeedItem.prototype =
       downloaded = ds.GetTarget(itemResource, FZ_STORED, true);
     }
 
-    if (!downloaded || downloaded.QueryInterface(Components.interfaces.nsIRDFLiteral).Value == "false") 
+    if (!downloaded || downloaded.QueryInterface(Components.interfaces.nsIRDFLiteral).Value == "false")
     {
       // HACK ALERT: before we give up, try to work around an entity escaping bug in RDF
       // See Bug #258465 for more details
       itemURI = itemURI.replace(/&lt;/g, '<');
       itemURI = itemURI.replace(/&gt;/g, '>');
       itemURI = itemURI.replace(/&quot;/g, '"');
-      itemURI = itemURI.replace(/&amp;/g, '&');     
+      itemURI = itemURI.replace(/&amp;/g, '&');
 
       debug('Failed to find item, trying entity replacement version: '  + itemURI);
       itemResource = rdf.GetResource(itemURI);
       downloaded = ds.GetTarget(itemResource, FZ_STORED, true);
 
       if (downloaded)
-      { 
+      {
         debug(this.identity + " not stored");
         return true;
       }
@@ -284,21 +284,21 @@ FeedItem.prototype =
       debug(this.identity + " not stored");
       return false;
     }
-    else 
+    else
     {
       debug(this.identity + " stored");
       return true;
     }
   },
 
-  markValid: function() 
+  markValid: function()
   {
     debug("validating " + this.mURL);
     var ds = getItemsDS(this.feed.server);
 
     var itemURI = this.itemUniqueURI;
     var resource = rdf.GetResource(itemURI);
-    
+
     // Backward compatibility: we might have stored this item before isStoredWithId
     // has been turned on for RSS 2.0 (bug 354345). Check whether this item has been
     // stored with its URL.
@@ -307,59 +307,59 @@ FeedItem.prototype =
 
     if (!ds.HasAssertion(resource, FZ_FEED, rdf.GetResource(this.feed.url), true))
       ds.Assert(resource, FZ_FEED, rdf.GetResource(this.feed.url), true);
-    
-    if (ds.hasArcOut(resource, FZ_VALID)) 
+
+    if (ds.hasArcOut(resource, FZ_VALID))
     {
       var currentValue = ds.GetTarget(resource, FZ_VALID, true);
       ds.Change(resource, FZ_VALID, currentValue, RDF_LITERAL_TRUE);
     }
-    else 
+    else
       ds.Assert(resource, FZ_VALID, RDF_LITERAL_TRUE, true);
   },
 
-  markStored: function() 
+  markStored: function()
   {
     var ds = getItemsDS(this.feed.server);
     var itemURI = this.itemUniqueURI;
     var resource = rdf.GetResource(itemURI);
-   
+
     if (!ds.HasAssertion(resource, FZ_FEED, rdf.GetResource(this.feed.url), true))
       ds.Assert(resource, FZ_FEED, rdf.GetResource(this.feed.url), true);
-    
+
     var currentValue;
-    if (ds.hasArcOut(resource, FZ_STORED)) 
+    if (ds.hasArcOut(resource, FZ_STORED))
     {
       currentValue = ds.GetTarget(resource, FZ_STORED, true);
       ds.Change(resource, FZ_STORED, currentValue, RDF_LITERAL_TRUE);
     }
-    else 
+    else
       ds.Assert(resource, FZ_STORED, RDF_LITERAL_TRUE, true);
   },
 
   mimeEncodeSubject: function(aSubject, aCharset)
-  {  
+  {
     // get the mime header encoder service
     var mimeEncoder = Components.classes["@mozilla.org/messenger/mimeconverter;1"].getService(Components.interfaces.nsIMimeConverter);
 
-    // this routine sometimes throws exceptions for mis-encoded data so wrap it 
+    // this routine sometimes throws exceptions for mis-encoded data so wrap it
     // with a try catch for now..
     var newSubject;
-    try 
+    try
     {
       newSubject = mimeEncoder.encodeMimePartIIStr(this.mUnicodeConverter.ConvertFromUnicode(aSubject), false, aCharset, 9, 72);
     }
-    catch (ex) 
-    { 
-      newSubject = aSubject; 
+    catch (ex)
+    {
+      newSubject = aSubject;
     }
 
     return newSubject;
-  }, 
+  },
 
-  writeToFolder: function() 
+  writeToFolder: function()
   {
     debug(this.identity + " writing to message folder" + this.feed.name + "\n");
-  
+
     var server = this.feed.server;
     this.mUnicodeConverter.charset = this.characterSet;
 
@@ -369,7 +369,7 @@ FeedItem.prototype =
 
     // Convert the title to UTF-16 before performing our HTML entity replacement
     // reg expressions.
-    var title = this.title; 
+    var title = this.title;
 
     // the subject may contain HTML entities.
     // Convert these to their unencoded state. i.e. &amp; becomes '&'
@@ -377,7 +377,7 @@ FeedItem.prototype =
     title = title.replace(/&gt;/g, '>');
     title = title.replace(/&quot;/g, '"');
     title = title.replace(/&amp;/g, '&');
-  
+
     // Compress white space in the subject to make it look better.
     title = title.replace(/[\t\r\n]+/g, " ");
 
@@ -420,7 +420,7 @@ FeedItem.prototype =
       source += 'Content-Type: multipart/mixed;\n boundary="' + ENCLOSURE_HEADER_BOUNDARY_PREFIX + boundaryID + '"' + '\n\n' +
                 'This is a multi-part message in MIME format.\n' + ENCLOSURE_BOUNDARY_PREFIX + boundaryID + '\n' +
                 'Content-Type: text/html; charset=' + this.characterSet + '\n' +
-                'Content-Transfer-Encoding: 8bit\n' + 
+                'Content-Transfer-Encoding: 8bit\n' +
                 this.content;
       source += this.enclosure.convertToAttachment(boundaryID);
     }
@@ -428,7 +428,7 @@ FeedItem.prototype =
     {
       source += 'Content-Type: text/html; charset=' + this.characterSet + '\n' +
                 '\n' + this.content;
-               
+
     }
 
     debug(this.identity + " is " + source.length + " characters long");
@@ -448,7 +448,7 @@ FeedItem.prototype =
 // A feed enclosure is to RSS what an attachment is for e-mail. We make enclosures look
 // like attachments in the UI.
 
-function FeedEnclosure(aURL, aContentType, aLength) 
+function FeedEnclosure(aURL, aContentType, aLength)
 {
   this.mURL = aURL;
   this.mContentType = aContentType;
@@ -464,7 +464,7 @@ function FeedEnclosure(aURL, aContentType, aLength)
   }
 }
 
-FeedEnclosure.prototype = 
+FeedEnclosure.prototype =
 {
   mURL: "",
   mContentType: "",
@@ -477,9 +477,9 @@ FeedEnclosure.prototype =
   {
     return '\n' +
                   ENCLOSURE_BOUNDARY_PREFIX + aBoundaryID + '\n' +
-                  'Content-Type: ' + this.mContentType + '; name="' + this.mFileName + '"\n' + 
+                  'Content-Type: ' + this.mContentType + '; name="' + this.mFileName + '"\n' +
                   'X-Mozilla-External-Attachment-URL: ' + this.mURL + '\n' +
-                  'Content-Disposition: attachment; filename="' + this.mFileName + '"\n\n' + 
+                  'Content-Disposition: attachment; filename="' + this.mFileName + '"\n\n' +
                   'This MIME attachment is stored separately from the message.\n' +
                   ENCLOSURE_BOUNDARY_PREFIX + aBoundaryID + '--' + '\n';
 

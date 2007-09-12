@@ -79,16 +79,16 @@
     <menuitem label="&addtoCcFieldMenu.label;" oncommand="addSelectedAddresses('addr_cc');"/>
     <menuitem label="&addtoBccFieldMenu.label;" oncommand="addSelectedAddresses('addr_bcc');"/>
   </popup>
-      
-  <vbox id="results_box" flex="1">   
-    <separator class="thin"/>  
-    <label value="&addressbookPicker.label;" accesskey="&addressbookPicker.accesskey;" control="addressbookList"/> 
+
+  <vbox id="results_box" flex="1">
+    <separator class="thin"/>
+    <label value="&addressbookPicker.label;" accesskey="&addressbookPicker.accesskey;" control="addressbookList"/>
     <hbox id="panel-bar" class="toolbar" align="center">
-      <menulist id="addressbookList" 
+      <menulist id="addressbookList"
                 oncommand="AddressBookMenuListChange();" flex="1"
                 persist="value">
-        <menupopup id="addressbookList-menupopup" 
-                   datasources="rdf:addressdirectory" 
+        <menupopup id="addressbookList-menupopup"
+                   datasources="rdf:addressdirectory"
                    ref="moz-abdirectory://"
                    sortActive="true"
                    sortDirection="ascending"
@@ -104,11 +104,11 @@
       </menulist>
     </hbox>
 
-    <separator class="thin"/> 
+    <separator class="thin"/>
 
-    <vbox>      
+    <vbox>
       <label value="&searchInput.label;" accesskey="&searchInput.accesskey;" control="searchInput"/>
-      <textbox id="searchInput" flex="1" onfocus="onSearchInputFocus(event);" onblur="onSearchInputBlur(event);" 
+      <textbox id="searchInput" flex="1" onfocus="onSearchInputFocus(event);" onblur="onSearchInputBlur(event);"
                onclick="this.select();" oninput="onAbSearchInput(false);"
                onkeypress="onAbSearchKeyPress(event);">
         <button id="quick-search-button" type="menu">
@@ -117,39 +117,39 @@
           </menupopup>
         </button>
       </textbox>
-	  </vbox>
+    </vbox>
 
-    <separator class="thin"/> 
+    <separator class="thin"/>
 
     <tree id="abResultsTree" flex="1" context="cardProperties" class="plain" sortCol="GeneratedName" persist="sortCol" ondblclick="contactsListDoubleClick(event);">
       <treecols>
         <!-- these column ids must match up to the mork column names, see nsIAddrDatabase.idl -->
-        <treecol id="GeneratedName" class="sortDirectionIndicator" 
+        <treecol id="GeneratedName" class="sortDirectionIndicator"
                  persist="hidden ordinal width sortDirection" flex="1" label="&GeneratedName.label;" primary="true"/>
         <splitter class="tree-splitter"/>
-        <treecol id="PrimaryEmail" class="sortDirectionIndicator" 
+        <treecol id="PrimaryEmail" class="sortDirectionIndicator"
                  persist="hidden ordinal width sortDirection" hidden="true"
                  flex="1" label="&PrimaryEmail.label;"/>
       </treecols>
       <treechildren ondraggesture="nsDragAndDrop.startDrag(event, abResultsPaneObserver);"/>
     </tree>
-    
-    <separator class="thin"/> 
+
+    <separator class="thin"/>
 
     <hbox>
       <spring flex="1"/>
-      <button id="toButton" label="&toButton.label;" accesskey="&toButton.accesskey;" oncommand="addSelectedAddresses('addr_to')"/> 
+      <button id="toButton" label="&toButton.label;" accesskey="&toButton.accesskey;" oncommand="addSelectedAddresses('addr_to')"/>
       <spring flex="1"/>
     </hbox>
     <hbox>
       <spring flex="1"/>
       <button id="ccButton" label="&ccButton.label;" accesskey="&ccButton.accesskey;" oncommand="addSelectedAddresses('addr_cc')"/>
       <spacer class="thin"/>
-      <button id="bccButton" label="&bccButton.label;" accesskey="&bccButton.accesskey;" oncommand="addSelectedAddresses('addr_bcc')"/> 
+      <button id="bccButton" label="&bccButton.label;" accesskey="&bccButton.accesskey;" oncommand="addSelectedAddresses('addr_bcc')"/>
       <spring flex="1"/>
     </hbox>
-    
-    <separator class="thin"/> 
+
+    <separator class="thin"/>
 
   </vbox>
 </page>

@@ -37,7 +37,7 @@
 # the provisions above, a recipient may use your version of this file under
 # the terms of any one of the MPL, the GPL or the LGPL.
 #
-# ***** END LICENSE BLOCK ***** 
+# ***** END LICENSE BLOCK *****
 
 var cvPrefs = 0;
 var addressbook = 0;
@@ -116,7 +116,7 @@ var gAddressBookAbListener = {
 };
 
 function OnUnloadAddressBook()
-{  
+{
   var addrbookSession =
         Components.classes["@mozilla.org/addressbook/services/session;1"]
                   .getService(Components.interfaces.nsIAddrBookSession);
@@ -177,7 +177,7 @@ function delayedOnLoadAddressBook()
 {
   gSearchInput = document.getElementById("searchInput");
 
-  verifyAccounts(null); 	// this will do migration, if we need to.
+  verifyAccounts(null);   // this will do migration, if we need to.
 
   top.addressbook = Components.classes["@mozilla.org/addressbook;1"].createInstance(Components.interfaces.nsIAddressBook);
 
@@ -238,35 +238,35 @@ function OnLoadDirTree() {
 
 function GetCurrentPrefs()
 {
-	// prefs
-	if ( cvPrefs == 0 )
-		cvPrefs = new Object;
+  // prefs
+  if ( cvPrefs == 0 )
+    cvPrefs = new Object;
 
-	cvPrefs.prefs = gPrefs;
-	
-	// check "Show Name As" menu item based on pref
-	var menuitemID;
-	switch (gPrefs.getIntPref("mail.addr_book.lastnamefirst"))
-	{
-		case kFirstNameFirst:
-			menuitemID = 'firstLastCmd';
-			break;
-		case kLastNameFirst:
-			menuitemID = 'lastFirstCmd';
-			break;
-		case kDisplayName:
-		default:
-			menuitemID = 'displayNameCmd';
-			break;
-	}
+  cvPrefs.prefs = gPrefs;
 
-	var menuitem = top.document.getElementById(menuitemID);
-	if ( menuitem )
-		menuitem.setAttribute('checked', 'true');
+  // check "Show Name As" menu item based on pref
+  var menuitemID;
+  switch (gPrefs.getIntPref("mail.addr_book.lastnamefirst"))
+  {
+    case kFirstNameFirst:
+      menuitemID = 'firstLastCmd';
+      break;
+    case kLastNameFirst:
+      menuitemID = 'lastFirstCmd';
+      break;
+    case kDisplayName:
+    default:
+      menuitemID = 'displayNameCmd';
+      break;
+  }
 
-  // initialize phonetic 
+  var menuitem = top.document.getElementById(menuitemID);
+  if ( menuitem )
+    menuitem.setAttribute('checked', 'true');
+
+  // initialize phonetic
   var showPhoneticFields =
-        gPrefs.getComplexValue("mail.addr_book.show_phonetic_fields", 
+        gPrefs.getComplexValue("mail.addr_book.show_phonetic_fields",
                                Components.interfaces.nsIPrefLocalizedString).data;
   // show phonetic fields if indicated by the pref
   if (showPhoneticFields == "true")
@@ -278,27 +278,27 @@ function GetCurrentPrefs()
 
 function SetNameColumn(cmd)
 {
-	var prefValue;
-	
-	switch ( cmd )
-	{
-		case 'firstLastCmd':
-			prefValue = kFirstNameFirst;
-			break;
-		case 'lastFirstCmd':
-			prefValue = kLastNameFirst;
-			break;
-		case 'displayNameCmd':
-			prefValue = kDisplayName;
-			break;
-	}
-	
-	cvPrefs.prefs.setIntPref("mail.addr_book.lastnamefirst", prefValue);
+  var prefValue;
+
+  switch ( cmd )
+  {
+    case 'firstLastCmd':
+      prefValue = kFirstNameFirst;
+      break;
+    case 'lastFirstCmd':
+      prefValue = kLastNameFirst;
+      break;
+    case 'displayNameCmd':
+      prefValue = kDisplayName;
+      break;
+  }
+
+  cvPrefs.prefs.setIntPref("mail.addr_book.lastnamefirst", prefValue);
 }
 
 function onFileMenuInit()
 {
-  goUpdateCommand('cmd_printcard'); 
+  goUpdateCommand('cmd_printcard');
   goUpdateCommand('cmd_printcardpreview');
 }
 
@@ -322,13 +322,13 @@ function UpdateCardView()
   // either no cards, or more than one card is selected, clear the pane.
   if (cards.length == 1)
     OnClickedCard(cards[0])
-  else 
+  else
     ClearCardViewPane();
 }
 
 function OnClickedCard(card)
-{ 
-  if (card) 
+{
+  if (card)
     DisplayCardViewPane(card);
   else
     ClearCardViewPane();
@@ -341,9 +341,9 @@ function AbClose()
 
 function AbNewLDAPDirectory()
 {
-  window.openDialog("chrome://messenger/content/addressbook/pref-directory-add.xul", 
-                    "", 
-                    "chrome,modal=yes,resizable=no,centerscreen", 
+  window.openDialog("chrome://messenger/content/addressbook/pref-directory-add.xul",
+                    "",
+                    "chrome,modal=yes,resizable=no,centerscreen",
                     null);
 }
 
@@ -355,14 +355,14 @@ function AbNewAddressBook()
   var dialogTitle = bundle.GetStringFromName('newAddressBookTitle');
 
   var dialog = window.openDialog(
-    "chrome://messenger/content/addressbook/abAddressBookNameDialog.xul", 
+    "chrome://messenger/content/addressbook/abAddressBookNameDialog.xul",
      "", "chrome,modal=yes,resizable=no,centerscreen", {title: dialogTitle, okCallback:AbOnCreateNewAddressBook});
 }
 
 function AbRenameAddressBook()
 {
   var selectedABURI = GetSelectedDirectory();
- 
+
   // the rdf service
   var RDF = Components.classes["@mozilla.org/rdf/rdf-service;1"].getService(Components.interfaces.nsIRDFService);
 
@@ -378,7 +378,7 @@ function AbRenameAddressBook()
   var canRename = (selectedABURI != kCollectedAddressbookURI && selectedABURI != kPersonalAddressbookURI);
 
   var dialog = window.openDialog(
-    "chrome://messenger/content/addressbook/abAddressBookNameDialog.xul", 
+    "chrome://messenger/content/addressbook/abAddressBookNameDialog.xul",
      "", "chrome,modal=yes,resizable=no,centerscreen", {title: dialogTitle, canRename: canRename, name: selectedABDirectory.dirName,
       okCallback:AbOnRenameAddressBook});
 }
@@ -445,7 +445,7 @@ function AbPrintCardInternal(doPrintPreview, msgType)
   printEngineWindow = window.openDialog("chrome://messenger/content/msgPrintEngine.xul",
                                          "",
                                          "chrome,dialog=no,all",
-                                          totalCard, selectionArray, statusFeedback, 
+                                          totalCard, selectionArray, statusFeedback,
                                           gPrintSettings, doPrintPreview, msgType);
 
   return;
@@ -475,8 +475,8 @@ function AbPrintAddressBookInternal(doPrintPreview, msgType)
     return;
 
   var statusFeedback;
-	statusFeedback = Components.classes["@mozilla.org/messenger/statusfeedback;1"].createInstance();
-	statusFeedback = statusFeedback.QueryInterface(Components.interfaces.nsIMsgStatusFeedback);
+  statusFeedback = Components.classes["@mozilla.org/messenger/statusfeedback;1"].createInstance();
+  statusFeedback = statusFeedback.QueryInterface(Components.interfaces.nsIMsgStatusFeedback);
 
   /*
     turn "moz-abmdbdirectory://abook.mab" into
@@ -490,12 +490,12 @@ function AbPrintAddressBookInternal(doPrintPreview, msgType)
     gPrintSettings = PrintUtils.getPrintSettings();
   }
 
-	printEngineWindow = window.openDialog("chrome://messenger/content/msgPrintEngine.xul",
-										"",
-										"chrome,dialog=no,all",
-										1, [printUrl], statusFeedback, gPrintSettings, doPrintPreview, msgType);
+  printEngineWindow = window.openDialog("chrome://messenger/content/msgPrintEngine.xul",
+                    "",
+                    "chrome,dialog=no,all",
+                    1, [printUrl], statusFeedback, gPrintSettings, doPrintPreview, msgType);
 
-	return;
+  return;
 }
 
 function AbPrintAddressBook()
@@ -513,7 +513,7 @@ function AbExport()
   try {
     var selectedABURI = GetSelectedDirectory();
     if (!selectedABURI) return;
-    
+
     var directory = GetDirectoryFromURI(selectedABURI);
     addressbook.exportAddressBook(window, directory);
   }
@@ -535,7 +535,7 @@ function AbExport()
       }
 
       promptService.alert(window,
-        gAddressBookBundle.getString("failedToExportTitle"), 
+        gAddressBookBundle.getString("failedToExportTitle"),
         message);
     }
   }
@@ -548,16 +548,16 @@ function AbDeleteDirectory()
     return;
 
   var parentArray = Components.classes["@mozilla.org/supports-array;1"].createInstance(Components.interfaces.nsISupportsArray);
-  if (!parentArray) 
-    return; 
+  if (!parentArray)
+    return;
 
   var promptService = Components.classes["@mozilla.org/embedcomp/prompt-service;1"].getService(Components.interfaces.nsIPromptService);
- 
+
   var parentRow = GetParentRow(dirTree, dirTree.currentIndex);
   var parentId = (parentRow == -1) ? "moz-abdirectory://" : dirTree.builderView.getResourceAtIndex(parentRow).Value;
   var parentDir = GetDirectoryFromURI(parentId);
   parentArray.AppendElement(parentDir);
-    
+
   var directory = GetDirectoryFromURI(selectedABURI);
   var confirmDeleteMessage;
   var clearPrefsRequired = false;
@@ -619,12 +619,12 @@ function SetStatusText(total)
       {
         if (total == 1)
           statusText = gAddressBookBundle.getString("matchFound");
-        else  
+        else
           statusText = gAddressBookBundle.getFormattedString("matchesFound", [total]);
       }
     }
     else
-      statusText = gAddressBookBundle.getFormattedString("totalCardStatus", [gAbView.directory.dirName, total]);   
+      statusText = gAddressBookBundle.getFormattedString("totalCardStatus", [gAbView.directory.dirName, total]);
 
     gStatusText.setAttribute("label", statusText);
   }
@@ -655,17 +655,17 @@ function onAdvancedAbSearch()
   if (existingSearchWindow)
     existingSearchWindow.focus();
   else
-    window.openDialog("chrome://messenger/content/ABSearchDialog.xul", "", 
-                      "chrome,resizable,status,centerscreen,dialog=no", 
+    window.openDialog("chrome://messenger/content/ABSearchDialog.xul", "",
+                      "chrome,resizable,status,centerscreen,dialog=no",
                       {directory: selectedABURI});
 }
 
 function onEnterInSearchBar()
 {
-  ClearCardViewPane();  
+  ClearCardViewPane();
 
   if (!gQueryURIFormat)
-    gQueryURIFormat = gPrefs.getComplexValue("mail.addr_book.quicksearchquery.format", 
+    gQueryURIFormat = gPrefs.getComplexValue("mail.addr_book.quicksearchquery.format",
                                               Components.interfaces.nsIPrefLocalizedString).data;
 
   var searchURI = GetSelectedDirectory();
@@ -676,7 +676,7 @@ function onEnterInSearchBar()
 
   /*
    XXX todo, handle the case where the LDAP url
-   already has a query, like 
+   already has a query, like
    moz-abldapdirectory://nsdirectory.netscape.com:389/ou=People,dc=netscape,dc=com?(or(Department,=,Applications))
   */
   if (gSearchInput.value != "") {
@@ -686,9 +686,9 @@ function onEnterInSearchBar()
   }
 
   SetAbView(searchURI, gSearchInput.value != "", sortColumn, sortDirection);
-  
-  // XXX todo 
-  // this works for synchronous searches of local addressbooks, 
+
+  // XXX todo
+  // this works for synchronous searches of local addressbooks,
   // but not for LDAP searches
   SelectFirstCard();
 }
@@ -713,9 +713,9 @@ function SwitchPaneFocus(event)
       if(cardViewBoxEmail1)
         cardViewBoxEmail1.focus();
       else
-        cardViewBox.focus();    
+        cardViewBox.focus();
     }
-    else 
+    else
       gAbResultsTree.focus();
   }
   else
@@ -727,7 +727,7 @@ function SwitchPaneFocus(event)
       if(cardViewBoxEmail1)
         cardViewBoxEmail1.focus();
       else
-        cardViewBox.focus();    
+        cardViewBox.focus();
     }
     else if (focusedElement != dirTree && !IsDirPaneCollapsed())
       dirTree.focus();
@@ -743,7 +743,7 @@ function WhichPaneHasFocus()
   var cardViewBox       = GetCardViewBox();
   var searchBox         = document.getElementById('search-container');
   var dirTree           = GetDirTree();
-    
+
   var currentNode = top.document.commandDispatcher.focusedElement;
   while (currentNode)
   {

@@ -89,10 +89,10 @@ function OnMailWindowUnload()
     if (gPreQuickSearchView)     //close the cached pre quick search view
       gPreQuickSearchView.close();
   }
-  
+
   var dbview = GetDBView();
   if (dbview) {
-    dbview.close(); 
+    dbview.close();
   }
 
   var mailSession = Components.classes[mailSessionContractID].getService();
@@ -107,10 +107,10 @@ function OnMailWindowUnload()
   messenger.setWindow(null, null);
 
   var msgDS;
-  var viewDataSources = [accountManagerDataSource, folderDataSource, 
+  var viewDataSources = [accountManagerDataSource, folderDataSource,
                         unreadFolderDataSource, favoriteFoldersDataSource,
                         recentFoldersDataSource];
-                        
+
   for (index in viewDataSources)
   {
     msgDS = viewDataSources[index].QueryInterface(Components.interfaces.nsIMsgRDFDataSource);
@@ -181,12 +181,12 @@ function InitMsgWindow()
 {
   msgWindow.windowCommands = new nsMsgWindowCommands();
   // set the domWindow before setting the status feedback and header sink objects
-  msgWindow.domWindow = window; 
+  msgWindow.domWindow = window;
   msgWindow.statusFeedback = statusFeedback;
   msgWindow.msgHeaderSink = messageHeaderSink;
   mailSession.AddMsgWindow(msgWindow);
   getBrowser().docShell.allowAuth = false;
-  msgWindow.rootDocShell.allowAuth = true; 
+  msgWindow.rootDocShell.allowAuth = true;
   msgWindow.rootDocShell.appType = Components.interfaces.nsIDocShell.APP_TYPE_MAIL;
 }
 
@@ -211,7 +211,7 @@ function AddDataSources()
   //Add statusFeedback
 
   var msgDS;
-  var viewDataSources = [accountManagerDataSource, folderDataSource, 
+  var viewDataSources = [accountManagerDataSource, folderDataSource,
                         unreadFolderDataSource, favoriteFoldersDataSource,
                         recentFoldersDataSource];
   for (index in viewDataSources)
@@ -286,7 +286,7 @@ nsMsgStatusFeedback.prototype =
     {
       if (iid.equals(Components.interfaces.nsIMsgStatusFeedback) ||
           iid.equals(Components.interfaces.nsIXULBrowserWindow) ||
-          iid.equals(Components.interfaces.nsISupportsWeakReference) || 
+          iid.equals(Components.interfaces.nsISupportsWeakReference) ||
           iid.equals(Components.interfaces.nsISupports))
         return this;
       throw Components.results.NS_NOINTERFACE;
@@ -311,7 +311,7 @@ nsMsgStatusFeedback.prototype =
 
       if (!this.progressMeterVisible)
       {
-        this.progressMeterContainer.removeAttribute('collapsed'); 
+        this.progressMeterContainer.removeAttribute('collapsed');
         this.progressMeterVisible = true;
       }
 
@@ -352,7 +352,7 @@ nsMsgStatusFeedback.prototype =
 
       this.ensureStatusFields();
       this.showStatusString(defaultStatus);
-      
+
       // stop the throbber
       if (this.throbber)
         this.throbber.setAttribute("busy", false);
@@ -420,17 +420,17 @@ nsMsgWindowCommands.prototype =
       return this;
     throw Components.results.NS_NOINTERFACE;
   },
-  
+
   selectFolder: function(folderUri)
   {
     SelectFolder(folderUri);
   },
-  
+
   selectMessage: function(messageUri)
   {
     SelectMessage(messageUri);
   },
-  
+
   clearMsgPane: function()
   {
     if (gDBView)
@@ -438,7 +438,7 @@ nsMsgWindowCommands.prototype =
     else
       setTitleFromFolder(null,null);
     ClearMessagePane();
-  }  
+  }
 }
 
 function StopUrls()
@@ -446,9 +446,9 @@ function StopUrls()
   msgWindow.StopUrls();
 }
 
-/** 
- * @returns the pref name to use for fetching the start page url. Every time the application version changes, 
- * return "mailnews.start_page.override_url". If this is the first time the application has been 
+/**
+ * @returns the pref name to use for fetching the start page url. Every time the application version changes,
+ * return "mailnews.start_page.override_url". If this is the first time the application has been
  * launched, return "mailnews.start_page.welcome_url". Otherwise return "mailnews.start_page.url".
  */
 function startPageUrlPref()
@@ -458,7 +458,7 @@ function startPageUrlPref()
   try {
     savedVersion = pref.getCharPref("mailnews.start_page_override.mstone");
   } catch (ex) {}
-  
+
   if (savedVersion != "ignore")
   {
     var currentPlatformVersion = Components.classes["@mozilla.org/xre/app-info;1"].
@@ -470,11 +470,11 @@ function startPageUrlPref()
     else if (currentPlatformVersion != savedVersion)
       prefForStartPageUrl = "mailnews.start_page.override_url";
   }
-  
+
   return prefForStartPageUrl;
 }
 
-function loadStartPage() 
+function loadStartPage()
 {
   try
   {
@@ -528,7 +528,7 @@ function HidingAccountCentral()
 
 function ShowThreadPane()
 {
-  document.getElementById("displayDeck").selectedPanel = 
+  document.getElementById("displayDeck").selectedPanel =
     document.getElementById("threadPaneBox");
 }
 
@@ -539,7 +539,7 @@ function ShowingThreadPane()
   GetMessagePane().collapsed = (threadPaneSplitter.getAttribute("state") == "collapsed");
   // XXX We need to force the tree to refresh its new height
   // so that it will correctly scroll to the newest message
-  GetThreadTree().boxObject.height;  
+  GetThreadTree().boxObject.height;
   document.getElementById("key_toggleMessagePane").removeAttribute("disabled");
 }
 
@@ -554,7 +554,7 @@ function HidingThreadPane()
 }
 
 // the find toolbar needs a method called getBrowser
-function getBrowser() 
+function getBrowser()
 {
   return getMessageBrowser();
 }
@@ -572,7 +572,7 @@ function ObserveDisplayDeckChange(event)
       ShowingThreadPane();
     else
       HidingThreadPane();
-    
+
     if (nowSelected == "accountCentralBox")
       ShowingAccountCentral();
     else
@@ -582,7 +582,7 @@ function ObserveDisplayDeckChange(event)
 }
 
 // Given the server, open the twisty and the set the selection
-// on inbox of that server. 
+// on inbox of that server.
 // prompt if offline.
 function OpenInboxForServer(server)
 {
@@ -591,7 +591,7 @@ function OpenInboxForServer(server)
     var inboxFolder = GetInboxFolder(server);
     SelectFolder(inboxFolder.URI);
 
-    if (MailOfflineMgr.isOnline() || MailOfflineMgr.getNewMail())	{
+    if (MailOfflineMgr.isOnline() || MailOfflineMgr.getNewMail())  {
       if (server.type != "imap")
         GetMessagesForInboxOnServer(server);
     }

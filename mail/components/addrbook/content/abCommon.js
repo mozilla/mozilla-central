@@ -93,11 +93,11 @@ var ResultsPaneController =
         var numSelected;
         var enabled = false;
         if (gAbView && gAbView.selection) {
-          if (gAbView.directory)         
+          if (gAbView.directory)
             enabled = gAbView.directory.operations & gAbView.directory.opWrite;
           numSelected = gAbView.selection.count;
         }
-        else 
+        else
           numSelected = 0;
 
         // fix me, don't update on isCommandEnabled
@@ -196,9 +196,9 @@ var DirPaneController =
       case "button_delete":
         if (command == "cmd_delete")
           goSetMenuValue(command, "valueAddressBook");
-        
+
         selectedDir = GetSelectedDirectory();
-        
+
         if (selectedDir == kPersonalAddressbookURI || selectedDir == kCollectedAddressbookURI)
           return false;
 
@@ -317,7 +317,7 @@ function GetParentRow(aTree, aRow)
   }
   return row;
 }
-        
+
 function InitCommonJS()
 {
   dirTree = document.getElementById("dirTree");
@@ -349,7 +349,7 @@ function GetSelectedCardTypes()
 
   var mailingListCnt = 0;
   var cardCnt = 0;
-  for (var i = 0; i < count; i++) { 
+  for (var i = 0; i < count; i++) {
     if (cards[i].isMailList)
       mailingListCnt++;
     else
@@ -503,11 +503,11 @@ function goToggleSplitter( id, elementID )
   }
 }
 
-// Generate a list of cards from the selected mailing list 
+// Generate a list of cards from the selected mailing list
 // and get a comma separated list of card addresses. If the
 // item selected in the directory pane is not a mailing list,
-// an empty string is returned. 
-function GetSelectedAddressesFromDirTree() 
+// an empty string is returned.
+function GetSelectedAddressesFromDirTree()
 {
   var addresses = "";
 
@@ -544,7 +544,7 @@ function GetAddressesForCards(cards)
   if (count > 0)
     addresses += GenerateAddressFromCard(cards[0]);
 
-  for (var i = 1; i < count; i++) { 
+  for (var i = 1; i < count; i++) {
     var generatedAddress = GenerateAddressFromCard(cards[i]);
 
     if (generatedAddress)
@@ -566,7 +566,7 @@ function GetNumSelectedCards()
 }
 
 // XXX todo
-// an optimization might be to make this return 
+// an optimization might be to make this return
 // the selected ranges, which would be faster
 // when the user does large selections, but for now, let's keep it simple.
 function GetSelectedRows()
@@ -601,9 +601,9 @@ function GetSelectedAbCards()
   // then use the ab view from sidebar (gCurFrame is from sidebarOverlay.js)
   const abPanelUrl = "chrome://messenger/content/addressbook/addressbook-panel.xul";
   if (document.getElementById("sidebar-box")) {
-    if (gCurFrame && 
+    if (gCurFrame &&
         gCurFrame.getAttribute("src") == abPanelUrl &&
-        document.commandDispatcher.focusedWindow == gCurFrame.contentDocument.defaultView) 
+        document.commandDispatcher.focusedWindow == gCurFrame.contentDocument.defaultView)
     {
       abView = gCurFrame.contentDocument.defaultView.gAbView;
     }
@@ -705,7 +705,7 @@ function CloseAbView()
 function SetAbView(uri, searchView, sortColumn, sortDirection)
 {
   var actualSortColumn;
-  
+
   // make sure sortColumn and sortDirection have non null values before calling gAbView.init
   if (!sortColumn)
     sortColumn = kDefaultSortColumn;
@@ -732,7 +732,7 @@ function SetAbView(uri, searchView, sortColumn, sortDirection)
   boxObject.view = gAbView.QueryInterface(Components.interfaces.nsITreeView);
 
   UpdateSortIndicators(sortColumn, sortDirection);
-  
+
   return actualSortColumn;
 }
 
@@ -748,14 +748,14 @@ function ChangeDirectoryByURI(uri)
 
   if (gAbView && gAbView.URI == uri)
     return;
-  
+
   var sortColumn = gAbResultsTree.getAttribute("sortCol");
   var sortDirection = document.getElementById(sortColumn).getAttribute("sortDirection");
-  
+
   var actualSortColumn = SetAbView(uri, false, sortColumn, sortDirection);
 
   UpdateSortIndicators(actualSortColumn, sortDirection);
-  
+
   // only select the first card if there is a first card
   if (gAbView && gAbView.getCardFromRow(0)) {
     SelectFirstCard();
@@ -795,7 +795,7 @@ function SortAndUpdateIndicators(sortColumn, sortDirection)
   // XXX todo remove once #116341 is fixed
   if (!sortColumn)
     return;
-    
+
   UpdateSortIndicators(sortColumn, sortDirection);
 
   if (gAbView)
@@ -862,9 +862,9 @@ function goNewCardDialog(selectedAB)
 function goEditCardDialog(abURI, card, okCallback)
 {
   window.openDialog("chrome://messenger/content/addressbook/abEditCardDialog.xul",
-					  "",
-					  "chrome,resizable=no,modal,titlebar,centerscreen",
-					  {abURI:abURI, card:card, okCallback:okCallback});
+            "",
+            "chrome,resizable=no,modal,titlebar,centerscreen",
+            {abURI:abURI, card:card, okCallback:okCallback});
 }
 
 
@@ -905,12 +905,12 @@ function GenerateAddressFromCard(card)
 
   var email;
 
-  if (card.isMailList) 
+  if (card.isMailList)
   {
     var directory = GetDirectoryFromURI(card.mailListURI);
     email = directory.description || card.displayName;
   }
-  else 
+  else
     email = card.primaryEmail;
 
   return gHeaderParser.makeFullAddressWString(card.displayName, email);
@@ -936,7 +936,7 @@ function GetParentDirectoryFromMailingListURI(abURI)
   }
 
   return null;
-} 
+}
 
 function DirPaneHasFocus()
 {
@@ -959,10 +959,10 @@ function GetSelectedDirectory()
 function onAbSearchKeyPress(event)
 {
   // 13 == return
-  if (event && event.keyCode == 13) 
+  if (event && event.keyCode == 13)
     onAbSearchInput(true);
 }
-    
+
 function onAbSearchInput(returnKeyHit)
 {
   if (gSearchInput.showingSearchCriteria && !(returnKeyHit && gSearchInput.value == ""))
@@ -984,7 +984,7 @@ function onAbSearchInput(returnKeyHit)
   }
 }
 
-function SearchInputChanged() 
+function SearchInputChanged()
 {
   var clearButton = document.getElementById("clear");
   if (clearButton) {
@@ -995,9 +995,9 @@ function SearchInputChanged()
   }
 }
 
-function onAbClearSearch() 
+function onAbClearSearch()
 {
-  if (gSearchInput) 
+  if (gSearchInput)
     gSearchInput.value ="";  //on input does not get fired for some reason
   onAbSearchInput(true);
 }
@@ -1028,18 +1028,18 @@ function QuickSearchFocus()
 }
 
 function onSearchInputBlur(event)
-{ 
+{
 //  if (gQuickSearchFocusEl && gQuickSearchFocusEl.id == 'searchInput') // ignore the blur if we are in the middle of processing the clear button
 //    return;
 
   if (!gSearchInput.value)
     gSearchInput.showingSearchCriteria = true;
-    
+
   if (gSearchInput.showingSearchCriteria)
     gSearchInput.setSearchCriteriaText();
 }
 
-var gQuickSearchFocusEl = null; 
+var gQuickSearchFocusEl = null;
 
 function onClearSearch()
 {
@@ -1047,7 +1047,7 @@ function onClearSearch()
   {
      onAbClearSearch();
      // this needs to be on a timer otherwise we end up messing up the focus while the Search("") is still happening
-     setTimeout("restoreSearchFocusAfterClear();", 0); 
+     setTimeout("restoreSearchFocusAfterClear();", 0);
   }
 }
 
@@ -1091,12 +1091,12 @@ function setupLdapAutocompleteSession()
             "@mozilla.org/autocompleteSession;1?type=ldap"].createInstance()
             .QueryInterface(Components.interfaces.nsILDAPAutoCompleteSession);
     }
-            
-    if (autocompleteDirectory && !gIsOffline) { 
+
+    if (autocompleteDirectory && !gIsOffline) {
         // the compose window code adds an observer on the directory server
         // prefs, but I don't think we need this here.
         gCurrentAutocompleteDirectory = autocompleteDirectory;
-        
+
         // fill in the session params if there is a session
         //
         if (LDAPSession) {
@@ -1133,9 +1133,9 @@ function setupLdapAutocompleteSession()
                 var windowWatcherSvc = Components.classes[
                     "@mozilla.org/embedcomp/window-watcher;1"]
                     .getService(Components.interfaces.nsIWindowWatcher);
-                var domWin = 
+                var domWin =
                     window.QueryInterface(Components.interfaces.nsIDOMWindow);
-                var authPrompter = 
+                var authPrompter =
                     windowWatcherSvc.getNewAuthPrompter(domWin);
 
                 LDAPSession.authPrompter = authPrompter;
@@ -1143,7 +1143,7 @@ function setupLdapAutocompleteSession()
 
             // don't search on non-CJK strings shorter than this
             //
-            try { 
+            try {
                 LDAPSession.minStringLength = gPrefs.getIntPref(
                     autocompleteDirectory + ".autoComplete.minStringLength");
             } catch (ex) {
@@ -1153,7 +1153,7 @@ function setupLdapAutocompleteSession()
 
             // don't search on CJK strings shorter than this
             //
-            try { 
+            try {
                 LDAPSession.cjkMinStringLength = gPrefs.getIntPref(
                   autocompleteDirectory + ".autoComplete.cjkMinStringLength");
             } catch (ex) {
@@ -1171,8 +1171,8 @@ function setupLdapAutocompleteSession()
             // override autocomplete name format?
             //
             try {
-                ldapFormatter.nameFormat = 
-                    gPrefs.getComplexValue(autocompleteDirectory + 
+                ldapFormatter.nameFormat =
+                    gPrefs.getComplexValue(autocompleteDirectory +
                                       ".autoComplete.nameFormat",
                                       Components.interfaces.nsISupportsString).data;
             } catch (ex) {
@@ -1183,8 +1183,8 @@ function setupLdapAutocompleteSession()
             // override autocomplete mail address format?
             //
             try {
-                ldapFormatter.addressFormat = 
-                    gPrefs.getComplexValue(autocompleteDirectory + 
+                ldapFormatter.addressFormat =
+                    gPrefs.getComplexValue(autocompleteDirectory +
                                       ".autoComplete.addressFormat",
                                       Components.interfaces.nsISupportsString).data;
             } catch (ex) {
@@ -1217,8 +1217,8 @@ function setupLdapAutocompleteSession()
                     // override ldap-specific autocomplete entry?
                     //
                     try {
-                        ldapFormatter.commentFormat = 
-                            gPrefs.getComplexValue(autocompleteDirectory + 
+                        ldapFormatter.commentFormat =
+                            gPrefs.getComplexValue(autocompleteDirectory +
                                         ".autoComplete.commentFormat",
                                         Components.interfaces.nsISupportsString).data;
                     } catch (innerException) {
@@ -1247,8 +1247,8 @@ function setupLdapAutocompleteSession()
             // override autocomplete entry formatting?
             //
             try {
-                LDAPSession.outputFormat = 
-                    gPrefs.getComplexValue(autocompleteDirectory + 
+                LDAPSession.outputFormat =
+                    gPrefs.getComplexValue(autocompleteDirectory +
                                       ".autoComplete.outputFormat",
                                       Components.interfaces.nsISupportsString).data;
 
@@ -1259,7 +1259,7 @@ function setupLdapAutocompleteSession()
 
             // override default search filter template?
             //
-            try { 
+            try {
                 LDAPSession.filterTemplate = gPrefs.getComplexValue(
                     autocompleteDirectory + ".autoComplete.filterTemplate",
                     Components.interfaces.nsISupportsString).data;
@@ -1271,20 +1271,20 @@ function setupLdapAutocompleteSession()
 
             // override default maxHits (currently 100)
             //
-            try { 
+            try {
                 // XXXdmose should really use .autocomplete.maxHits,
                 // but there's no UI for that yet
-                // 
-                LDAPSession.maxHits = 
+                //
+                LDAPSession.maxHits =
                     gPrefs.getIntPref(autocompleteDirectory + ".maxHits");
             } catch (ex) {
-                // if this pref isn't there, or is out of range, no big deal. 
+                // if this pref isn't there, or is out of range, no big deal.
                 // just let nsLDAPAutoCompleteSession use its default.
             }
 
             if (!gSessionAdded) {
                 // if we make it here, we know that session initialization has
-                // succeeded; add the session for all recipients, and 
+                // succeeded; add the session for all recipients, and
                 // remember that we've done so
                 var autoCompleteWidget;
                 for (i=1; i <= awGetMaxRecipients(); i++)
@@ -1294,7 +1294,7 @@ function setupLdapAutocompleteSession()
                     {
                       autoCompleteWidget.addSession(LDAPSession);
                       // ldap searches don't insert a default entry with the default domain appended to it
-                      // so reduce the minimum results for a popup to 2 in this case. 
+                      // so reduce the minimum results for a popup to 2 in this case.
                       autoCompleteWidget.minResultsForPopup = 2;
 
                     }
@@ -1307,7 +1307,7 @@ function setupLdapAutocompleteSession()
         gCurrentAutocompleteDirectory = null;
       }
       if (gLDAPSession && gSessionAdded) {
-        for (i=1; i <= awGetMaxRecipients(); i++) 
+        for (i=1; i <= awGetMaxRecipients(); i++)
           document.getElementById("addressCol1#" + i).
               removeSession(gLDAPSession);
         gSessionAdded = false;

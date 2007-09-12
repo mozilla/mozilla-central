@@ -59,11 +59,11 @@ var gCurrentServerURI = null;
 var gStatusFeedback = {
   progressMeterVisible : false,
 
-	showStatusString: function(status)
+  showStatusString: function(status)
   {
     gStatusText.setAttribute("value", status);
   },
-	startMeteors: function()
+  startMeteors: function()
   {
     // change run button to be a stop button
     gRunFiltersButton.setAttribute("label", gRunFiltersButton.getAttribute("stoplabel"));
@@ -71,13 +71,13 @@ var gStatusFeedback = {
 
     if (!this.progressMeterVisible)
     {
-      document.getElementById('statusbar-progresspanel').removeAttribute('collapsed'); 
+      document.getElementById('statusbar-progresspanel').removeAttribute('collapsed');
       this.progressMeterVisible = true;
     }
 
     gStatusBar.setAttribute("mode", "undetermined");
   },
-	stopMeteors: function() 
+  stopMeteors: function()
   {
     try {
       // change run button to be a stop button
@@ -86,7 +86,7 @@ var gStatusFeedback = {
       gStatusBar.setAttribute("mode", "normal");
 
       if (this.progressMeterVisible)
-      { 
+      {
         document.getElementById('statusbar-progresspanel').collapsed = true;
         this.progressMeterVisible = true;
       }
@@ -150,7 +150,7 @@ function onCancel()
     var firstItem = getSelectedServerForFilters();
     if (!firstItem)
         firstItem = getServerThatCanHaveFilters();
-    
+
     if (firstItem) {
         var resource = gRDF.GetResource(firstItem);
         var msgFolder = resource.QueryInterface(Components.interfaces.nsIMsgFolder);
@@ -185,7 +185,7 @@ function onFilterServerClick(selection)
     // Save the current filters to disk before switching because
     // the dialog may be closed and we'll lose current filters.
     var filterList = currentFilterList();
-    if (filterList) 
+    if (filterList)
       filterList.saveToDefaultFile();
 
     selectServer(itemURI);
@@ -212,8 +212,8 @@ function setServer(uri)
    var msgFolder = resource.QueryInterface(Components.interfaces.nsIMsgFolder);
 
    //Calling getFilterList will detect any errors in rules.dat, backup the file, and alert the user
-   //we need to do this because gFilterTree.setAttribute will cause rdf to call getFilterList and there is 
-   //no way to pass msgWindow in that case. 
+   //we need to do this because gFilterTree.setAttribute will cause rdf to call getFilterList and there is
+   //no way to pass msgWindow in that case.
 
    if (msgFolder)
      msgFolder.getFilterList(gFilterListMsgWindow);
@@ -222,10 +222,10 @@ function setServer(uri)
    msgFolder = msgFolder.server.rootMsgFolder;
    var rootFolderUri = msgFolder.URI;
    rebuildFilterTree(uri);
-   
+
    // root the folder picker to this server
    gRunFiltersFolderPicker.setAttribute("ref", rootFolderUri);
- 
+
    // run filters after the fact not supported by news
    if (CanRunFiltersAfterTheFact(msgFolder.server)) {
      gRunFiltersFolderPicker.removeAttribute("hidden");
@@ -270,7 +270,7 @@ function selectServer(uri)
 {
     // update the server menu
     var serverMenu = document.getElementById("serverMenu");
-    
+
     var resource = gRDF.GetResource(uri);
     var msgFolder = resource.QueryInterface(Components.interfaces.nsIMsgFolder);
 
@@ -303,7 +303,7 @@ function currentFilter()
     var currentIndex = gFilterTree.currentIndex;
     if (currentIndex == -1)
       return null;
-    
+
     var filter;
 
     try {
@@ -327,7 +327,7 @@ function onFilterSelect(event)
     updateButtons();
 }
 
-function onEditFilter() 
+function onEditFilter()
 {
   var selectedFilter = currentFilter();
   var curFilterList = currentFilterList();
@@ -343,7 +343,7 @@ function onNewFilter(emailAddress)
 {
   var curFilterList = currentFilterList();
   var args = {filterList: curFilterList};
-  
+
   window.openDialog("chrome://messenger/content/FilterEditor.xul", "FilterEditor", "chrome,modal,titlebar,resizable,centerscreen", args);
 
   if ("refresh" in args && args.refresh)
@@ -357,8 +357,8 @@ function onDeleteFilter()
     return;
 
   var sel = gFilterTree.view.selection, selCount = sel.getRangeCount();
-  if (!selCount || 
-      gPromptService.confirmEx(window, null, 
+  if (!selCount ||
+      gPromptService.confirmEx(window, null,
                         gFilterBundle.getString("deleteFilterConfirmation"),
                         gPromptService.STD_YES_NO_BUTTONS,
                         '', '', '', '', {}))
@@ -401,7 +401,7 @@ function onFilterClose()
 {
   // make sure to save the filter to disk
   var filterList = currentFilterList();
-  if (filterList) 
+  if (filterList)
     filterList.saveToDefaultFile();
 
   if (gRunFiltersButton.getAttribute("label") == gRunFiltersButton.getAttribute("stoplabel")) {
@@ -434,7 +434,7 @@ function runSelectedFilters()
     gFilterListMsgWindow.StopUrls();
     return;
   }
-  
+
   var folderURI = gRunFiltersFolderPicker.getAttribute("uri");
   var resource = gRDF.GetResource(folderURI);
   var msgFolder = resource.QueryInterface(Components.interfaces.nsIMsgFolder);
@@ -464,7 +464,7 @@ function moveCurrentFilter(motion)
 {
     var filterList = currentFilterList();
     var filter = currentFilter();
-    if (!filterList || !filter) 
+    if (!filterList || !filter)
       return;
 
     filterList.moveFilter(filter, motion);
@@ -478,9 +478,9 @@ function rebuildFilterTree(uri)
   gFilterTree.setAttribute("ref", uri);
 }
 
-function refresh() 
+function refresh()
 {
-    if (!gFilterTree) 
+    if (!gFilterTree)
       return;
 
     var selectedRes;
@@ -515,7 +515,7 @@ function updateButtons()
     var filter = currentFilter();
     // "edit" only enabled when one filter selected or if we couldn't parse the filter
     gEditButton.disabled = !oneFilterSelected || filter.unparseable;
-    
+
     // "delete" only disabled when no filters are selected
     gDeleteButton.disabled = !numFiltersSelected;
 
@@ -539,7 +539,7 @@ function getSelectedServerForFilters()
     var firstItem = null;
     var args = window.arguments;
     var selectedFolder = args[0].folder;
-  
+
     if (args && args[0] && selectedFolder)
     {
         var msgFolder = selectedFolder.QueryInterface(Components.interfaces.nsIMsgFolder);
@@ -613,18 +613,18 @@ function onFilterClick(event)
     // we only care about button 0 (left click) events
     if (event.button != 0)
       return;
-    
+
     var row = {}, col = {}, childElt = {};
     var filterTree = document.getElementById("filterTree");
     filterTree.treeBoxObject.getCellAt(event.clientX, event.clientY, row, col, childElt);
     if (row.value == -1 || row.value > filterTree.view.rowCount-1 || event.originalTarget.localName != "treechildren") {
-      if (event.originalTarget.localName == "treecol") { 
+      if (event.originalTarget.localName == "treecol") {
         // clicking on the name column in the filter list should not sort
         event.stopPropagation();
       }
       return;
     }
-        
+
     if (col.value.id == "activeColumn") {
       toggleFilter(filterTree.builderView.getResourceAtIndex(row.value));
     }

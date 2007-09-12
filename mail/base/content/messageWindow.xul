@@ -1,4 +1,4 @@
-<?xml version="1.0"?> 
+<?xml version="1.0"?>
 
 # ***** BEGIN LICENSE BLOCK *****
 # Version: MPL 1.1/GPL 2.0/LGPL 2.1
@@ -37,7 +37,7 @@
 #
 # ***** END LICENSE BLOCK *****
 
-<?xml-stylesheet href="chrome://messenger/skin/messageWindow.css" type="text/css"?> 
+<?xml-stylesheet href="chrome://messenger/skin/messageWindow.css" type="text/css"?>
 
 <?xul-overlay href="chrome://global/content/globalOverlay.xul"?>
 <?xul-overlay href="chrome://communicator/content/utilityOverlay.xul"?>
@@ -51,7 +51,7 @@
 <!ENTITY % messengerDTD SYSTEM "chrome://messenger/locale/messenger.dtd" >
 %messengerDTD;
 ]>
-                    
+
 <window id="messengerWindow"
         xmlns="http://www.mozilla.org/keymaster/gatekeeper/there.is.only.xul"
         xmlns:nc="http://home.netscape.com/NC-rdf#"
@@ -98,7 +98,7 @@
     <commandset id="mailMarkMenuItems"/>
     <commandset id="mailToolsMenuItems"/>
     <commandset id="mailEditContextMenuItems"/>
-	<commandset id="tasksCommands"/>
+  <commandset id="tasksCommands"/>
     <commandset id="commandKeys"/>
 #ifdef XP_MACOSX
   <commandset id="macWindowMenuItems"/>
@@ -126,11 +126,11 @@
                   oncommand="SendMailToNode(document.popupNode)"/>
         <menuitem label="&CopyEmailAddress.label;"
                   accesskey="&CopyEmailAddress.accesskey;"
-                  oncommand="CopyEmailAddress(document.popupNode)"/>  
+                  oncommand="CopyEmailAddress(document.popupNode)"/>
         <menuitem label="&CreateFilter.label;"
                   accesskey="&CreateFilter.accesskey;"
                   oncommand="CreateFilter(document.popupNode)"
-                  observes="cmd_createFilterFromPopup"/>  
+                  observes="cmd_createFilterFromPopup"/>
     </popup>
 
     <popup id="messageIdContext"/>
@@ -148,7 +148,7 @@
 
   <toolbox id="mail-toolbox" class="toolbox-top">
   </toolbox>
-  
+
  <!-- msg header view -->
   <vbox id="messagepanebox" flex="3" persist="collapsed"
         ondragover="nsDragAndDrop.dragOver(event, messagepaneObserver);"
@@ -159,15 +159,15 @@
     <hbox id="msgHeaderView"/>
 
     <!-- message view -->
-    <browser id="messagepane" context="messagePaneContext" 
-             style="height: 0px; min-height: 1px" flex="1" name="messagepane" 
-             disablesecurity="true" disablehistory="true" type="content-primary" 
+    <browser id="messagepane" context="messagePaneContext"
+             style="height: 0px; min-height: 1px" flex="1" name="messagepane"
+             disablesecurity="true" disablehistory="true" type="content-primary"
              onresize="return messagePaneOnResize(event);" autofind="false"
              src="about:blank" onclick="return contentAreaClick(event);" />
     <splitter id="attachment-splitter" collapse="after" resizebefore="closest" resizeafter="closest" collapsed="true"/>
     <hbox id="attachmentView"/>
     <findbar id="FindToolbar" browserid="messagepane"/>
-  </vbox>  
+  </vbox>
 
   <statusbar class="chromeclass-status" id="status-bar"/>
 </window>

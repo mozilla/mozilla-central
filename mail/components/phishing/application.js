@@ -70,3 +70,10 @@ function PROT_Application() {
 PROT_Application.prototype.getReportPhishingURL = function() {
   return gDataProvider.getReportPhishURL();
 }
+
+/**
+ * @return String the report error URL (localized).
+ */
+PROT_Application.prototype.getReportErrorURL = function() {
+  return gDataProvider.getReportErrorURL();
+}

@@ -92,7 +92,7 @@ var containerUtils = Components.classes["@mozilla.org/rdf/container-utils;1"]
 var fileHandler = Components.classes["@mozilla.org/network/io-service;1"].getService(Components.interfaces.nsIIOService)
                             .getProtocolHandler("file").QueryInterface(Components.interfaces.nsIFileProtocolHandler);
 
-// helper routine that checks our subscriptions list array and returns true if the url 
+// helper routine that checks our subscriptions list array and returns true if the url
 // is already in our list. This is used to prevent the user from subscribing to the same
 // feed multiple times for the same server...
 function feedAlreadyExists(aUrl, aServer)
@@ -101,7 +101,7 @@ function feedAlreadyExists(aUrl, aServer)
   return feeds.IndexOf(rdf.GetResource(aUrl)) != -1;
 }
 
-function addFeed(url, title, destFolder) 
+function addFeed(url, title, destFolder)
 {
   var ds = getSubscriptionsDS(destFolder.server);
   var feeds = getSubscriptionsList(destFolder.server);
@@ -121,7 +121,7 @@ function addFeed(url, title, destFolder)
   ds.Assert(id, DC_IDENTIFIER, rdf.GetLiteral(url), true);
   if (title)
     ds.Assert(id, DC_TITLE, rdf.GetLiteral(title), true);
-	ds.Assert(id, FZ_DESTFOLDER, destFolder, true);
+  ds.Assert(id, FZ_DESTFOLDER, destFolder, true);
   ds = ds.QueryInterface(Components.interfaces.nsIRDFRemoteDataSource);
   ds.Flush();
 }
@@ -137,26 +137,26 @@ function updateFolderFeedUrl(aFolder, aFeedUrl, aRemoveUrl)
   var oldFeedUrl = folderInfo.getCharPtrProperty("feedUrl");
 
   if (aRemoveUrl)
-  { 
+  {
     // remove our feed url string from the list of feed urls
     var newFeedUrl = oldFeedUrl.replace(kFeedUrlDelimiter + aFeedUrl, "");
     folderInfo.setCharPtrProperty("feedUrl", newFeedUrl);
-  }  
-  else 
-    folderInfo.setCharPtrProperty("feedUrl", oldFeedUrl + kFeedUrlDelimiter + aFeedUrl);  
+  }
+  else
+    folderInfo.setCharPtrProperty("feedUrl", oldFeedUrl + kFeedUrlDelimiter + aFeedUrl);
 
   // commit the db to preserve our changes
   msgdb.Close(true);
 }
 
-function getNodeValue(node) 
+function getNodeValue(node)
 {
   if (node && node.textContent)
     return node.textContent;
-  else if (node && node.firstChild) 
+  else if (node && node.firstChild)
   {
     var ret = "";
-    for (var child = node.firstChild; child; child = child.nextSibling) 
+    for (var child = node.firstChild; child; child = child.nextSibling)
     {
       var value = getNodeValue(child);
       if (value)
@@ -170,10 +170,10 @@ function getNodeValue(node)
   return null;
 }
 
-function getRDFTargetValue(ds, source, property) 
+function getRDFTargetValue(ds, source, property)
 {
   var node = ds.GetTarget(source, property, true);
-  if (node) 
+  if (node)
   {
     try{
       node = node.QueryInterface(Components.interfaces.nsIRDFLiteral);
@@ -181,16 +181,16 @@ function getRDFTargetValue(ds, source, property)
         return node.Value;
     }catch(e){
       // if the RDF was bogus, do nothing. rethrow if it's some other problem
-      if(!((e instanceof Components.interfaces.nsIXPCException) 
-	    && (e.result==Components.results.NS_ERROR_NO_INTERFACE)))
+      if(!((e instanceof Components.interfaces.nsIXPCException)
+      && (e.result==Components.results.NS_ERROR_NO_INTERFACE)))
         throw e;
-    }	    
-    
+    }
+
   }
   return null;
 }
 
-function getSubscriptionsDS(server) 
+function getSubscriptionsDS(server)
 {
   var file = getSubscriptionsFile(server);
   var url = fileHandler.getURLSpecFromFile(file);
@@ -205,7 +205,7 @@ function getSubscriptionsDS(server)
   return ds;
 }
 
-function getSubscriptionsList(server) 
+function getSubscriptionsList(server)
 {
   var ds = getSubscriptionsDS(server);
   var list = ds.GetTarget(FZ_ROOT, FZ_FEEDS, true);
@@ -215,7 +215,7 @@ function getSubscriptionsList(server)
   return list;
 }
 
-function getSubscriptionsFile(server) 
+function getSubscriptionsFile(server)
 {
   server.QueryInterface(Components.interfaces.nsIRssIncomingServer);
   var file = server.subscriptionsDataSourcePath;
@@ -227,7 +227,7 @@ function getSubscriptionsFile(server)
   return file;
 }
 
-function createSubscriptionsFile(file) 
+function createSubscriptionsFile(file)
 {
   file = new LocalFile(file, MODE_WRONLY | MODE_CREATE);
   file.write('\
@@ -246,7 +246,7 @@ function createSubscriptionsFile(file)
   file.close();
 }
 
-function getItemsDS(server) 
+function getItemsDS(server)
 {
   var file = getItemsFile(server);
   var url = fileHandler.getURLSpecFromFile(file);
@@ -264,13 +264,13 @@ function getItemsDS(server)
   return ds;
 }
 
-function getItemsFile(server) 
+function getItemsFile(server)
 {
   server.QueryInterface(Components.interfaces.nsIRssIncomingServer);
   var file = server.feedItemsDataSourcePath;
 
   // If the file doesn't exist, create it.
-  if (!file.exists()) 
+  if (!file.exists())
   {
     var newfile = new LocalFile(file, MODE_WRONLY | MODE_CREATE);
     newfile.write('\
@@ -285,16 +285,16 @@ function getItemsFile(server)
   return file;
 }
 
-function removeAssertions(ds, resource) 
+function removeAssertions(ds, resource)
 {
   var properties = ds.ArcLabelsOut(resource);
   var property;
-  while (properties.hasMoreElements()) 
+  while (properties.hasMoreElements())
   {
     property = properties.getNext();
     var values = ds.GetTargets(resource, property, true);
     var value;
-    while (values.hasMoreElements()) 
+    while (values.hasMoreElements())
     {
       value = values.getNext();
       ds.Unassert(resource, property, value, true);
@@ -317,7 +317,7 @@ function isValidRFC822Date(pubDate)
 function dateRescue(dateString)
 {
   // Deal with various kinds of invalid dates
-  if(!isNaN(parseInt(dateString))) 
+  if(!isNaN(parseInt(dateString)))
   { // It's an integer, so maybe it's a timestamp
     var d = new Date(parseInt(dateString)*1000);
     var now = new Date();
@@ -331,10 +331,10 @@ function dateRescue(dateString)
   }
   if(dateString.search(/^\d\d\d\d/) != -1) //Could be a ISO8601/W3C date
     return W3CToIETFDate(dateString);
- 
+
   // Can't help. Set to current time.
   return (new Date()).toString();
-} 
+}
 
 // Could be a prototype on String, but I don't know the policy on that
 function trimString(s)

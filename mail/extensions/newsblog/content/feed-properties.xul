@@ -36,7 +36,7 @@
 # the terms of any one of the MPL, the GPL or the LGPL.
 #
 # ***** END LICENSE BLOCK ******
-   
+
 <?xml-stylesheet href="chrome://messenger/skin/" type="text/css"?>
 
 <!DOCTYPE dialog SYSTEM "chrome://messenger-newsblog/locale/feed-properties.dtd">
@@ -75,7 +75,7 @@
       <column  flex="1"/>
     </columns>
 
-    <rows>   
+    <rows>
       <row>
         <label value="&feedLocation.label;" accesskey="&feedLocation.accesskey;" control="feedLocation"/>
         <textbox id="feedLocation"/>
@@ -97,8 +97,8 @@
               <menuitem  id="rssAccountMenuItem"/>
               <menuseparator/>
             </menupopup>
-               
-            <template>              
+
+            <template>
               <!-- cheat and use the CanRename property to make sure we don't list the Trash folder as a possible feed folder -->
               <rule nc:CanFileMessages="true" iscontainer="true" isempty="false" nc:CanRename="true">
                 <menupopup>
@@ -110,7 +110,7 @@
                         IsSecure="rdf:http://home.netscape.com/NC-rdf#IsSecure"
                         ServerType="rdf:http://home.netscape.com/NC-rdf#ServerType"
                         label="rdf:http://home.netscape.com/NC-rdf#Name">
-			              <menupopup class="menulist-menupopup">
+                    <menupopup class="menulist-menupopup">
                       <menuitem label="&choosethisfolder.label;"
                                 oncommand="PickedMsgFolder(event.target.parentNode.parentNode,'selectFolder')"/>
                       <menuseparator/>
@@ -120,7 +120,7 @@
               </rule>
               <rule nc:CanFileMessages="true" nc:CanRename="true">
                 <menupopup>
-                     <menuitem uri="..." value="..."  
+                     <menuitem uri="..." value="..."
                       class="folderMenuItem menuitem-iconic"
                       oncommand="PickedMsgFolder(event.target,'selectFolder')"
                       SpecialFolder="rdf:http://home.netscape.com/NC-rdf#SpecialFolder"
@@ -139,6 +139,6 @@
 
   <separator class="thin"/>
 
-  <checkbox id="quickMode" accesskey="&quickMode.accesskey;" label="&quickMode.label;"/> 
+  <checkbox id="quickMode" accesskey="&quickMode.accesskey;" label="&quickMode.label;"/>
 
 </dialog>

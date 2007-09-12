@@ -46,7 +46,7 @@
 
 <overlay id="AdvancedPaneOverlay"
          xmlns="http://www.mozilla.org/keymaster/gatekeeper/there.is.only.xul">
-           
+
   <prefpane id="paneAdvanced" onpaneload="gAdvancedPane.init();"
             xmlns:xhtml2="http://www.w3.org/TR/xhtml2"
             xmlns:wairole="http://www.w3.org/2005/01/wai-rdf/GUIRoleTaxonomy#"
@@ -64,7 +64,7 @@
       <preference id="mailnews.reuse_message_window" name="mailnews.reuse_message_window" type="bool"/>
       <preference id="mailnews.tcptimeout" name="mailnews.tcptimeout" type="int"/>
       <preference id="mail.prompt_purge_threshhold"          name="mail.prompt_purge_threshhold"    type="bool"/>
-      <preference id="mail.purge_threshhold"                 name="mail.purge_threshhold"    type="int"/> 
+      <preference id="mail.purge_threshhold"                 name="mail.purge_threshhold"    type="int"/>
       <preference id="app.update.enabled" name="app.update.enabled" type="bool"
                   onchange="gAdvancedPane.updateAppUpdateItems();
                             gAdvancedPane.updateAutoItems();
@@ -86,7 +86,7 @@
                   type="bool"/>
       <preference id="security.disable_button.openDeviceManager"
                   name="security.disable_button.openDeviceManager"
-                  type="bool"/>      
+                  type="bool"/>
     </preferences>
 
     <tabbox id="advancedPrefs" flex="1" onselect="gAdvancedPane.tabSelectionChanged();">
@@ -96,15 +96,15 @@
         <tab label="&itemUpdate.label;"/>
         <tab label="&itemCertificates.label;"/>
       </tabs>
-      
+
       <tabpanels flex="1">
-        <!-- General --> 
+        <!-- General -->
         <tabpanel orient="vertical">
           <hbox align="center" pack="start">
-            <checkbox id="showCondensedAddresses" label="&showCondensedAddresses.label;" 
+            <checkbox id="showCondensedAddresses" label="&showCondensedAddresses.label;"
                       accesskey="&showCondensedAddresses.accesskey;"  preference="mail.showCondensedAddresses"/>
-          </hbox> 
-          
+          </hbox>
+
           <hbox align="center" pack="start">
             <checkbox id="markAsRead" label="&markAsRead.label;" accesskey="&markAsRead.accesskey;"
                       preference="mailnews.mark_message_read.delay"
@@ -120,25 +120,25 @@
           </hbox>
 
           <hbox align="center" pack="start">
-            <checkbox id="showFolderPaneColumns" label="&showFolderColumns.label;" 
+            <checkbox id="showFolderPaneColumns" label="&showFolderColumns.label;"
                       accesskey="&showFolderColumns.accesskey;" preference="mail.showFolderPaneColumns"/>
           </hbox>
- 
+
           <separator class="thin"/>
 
           <vbox>
             <hbox align="center" pack="start">
               <label value="&openMsgIn.label;"/>
             </hbox>
-          
-            <hbox class="indent">  
+
+            <hbox class="indent">
               <radiogroup id="mailnewsDoubleClick2NewWindow" preference="mailnews.reuse_message_window" orient="horizontal">
                 <radio value="false" label="&reuseExpRadio0.label;" accesskey="&reuseExpRadio0.accesskey;" id="new"/>
                 <radio value="true" label="&reuseExpRadio1.label;" accesskey="&reuseExpRadio1.accesskey;" id="existing"/>
               </radiogroup>
             </hbox>
           </vbox>
-          
+
           <separator class="thin"/>
 
           <hbox align="center">
@@ -150,10 +150,10 @@
 
           <hbox align="center" pack="start">
             <description flex="1">&configEditDesc.label;</description>
-            <button id="configEditor" label="&configEdit.label;" 
+            <button id="configEditor" label="&configEdit.label;"
                     accesskey="&configEdit.accesskey;" oncommand="gAdvancedPane.showConfigEdit();"/>
           </hbox>
-          
+
         </tabpanel>
 
         <tabpanel orient="vertical">
@@ -162,8 +162,8 @@
             <caption label="&connectionsInfo.caption;"/>
             <hbox align="center">
               <description flex="1" control="catProxiesButton">&proxiesInfo.label;</description>
-              <button id="catProxiesButton" label="&showConnections.label;" 
-                      accesskey="&showConnections.accesskey;" 
+              <button id="catProxiesButton" label="&showConnections.label;"
+                      accesskey="&showConnections.accesskey;"
                       oncommand="gAdvancedPane.showConnections();"/>
             </hbox>
 
@@ -171,31 +171,31 @@
               <label value="&connectionTimeout.label;" accesskey="&connectionTimeout.accesskey;" control="connectionTimeoutBox" />
               <textbox  id="connectionTimeoutBox" size="3" preference="mailnews.tcptimeout"/>
               <label value="&connectionSeconds.label;"/>
-            </hbox>            
+            </hbox>
           </groupbox>
-          
+
           <groupbox>
             <caption label="&offlineInfo.caption;"/>
             <hbox align="center">
               <description flex="1" control="offlineSettingsButton">&offlineInfo.label;</description>
-              <button id="offlineSettingsButton" label="&showOffline.label;" 
-                      accesskey="&showOffline.accesskey;" 
+              <button id="offlineSettingsButton" label="&showOffline.label;"
+                      accesskey="&showOffline.accesskey;"
                       oncommand="gAdvancedPane.showOffline();"/>
             </hbox>
           </groupbox>
-          
+
           <groupbox>
-            <caption label="&Diskspace;"/>	    
+            <caption label="&Diskspace;"/>
             <hbox align="center">
                 <checkbox id="offlineCompactFolder" label="&offlineCompact.label;" accesskey="&offlineCompact.accesskey;"
-                          preference="mail.prompt_purge_threshhold"/> 
+                          preference="mail.prompt_purge_threshhold"/>
                 <textbox id="offlineCompactFolderMin" size="5" value="100" preference="mail.purge_threshhold"/>
                 <label value="&kb.label;"/>
             </hbox>
           </groupbox>
         </tabpanel>
-        
-        <!-- Update --> 
+
+        <!-- Update -->
 
         <tabpanel orient="vertical" align="start">
           <label>&autoCheck.label;</label>
@@ -222,7 +222,7 @@
                    label="&modeAutomatic.label;"
                    accesskey="&modeAutomatic.accesskey;"/>
             <hbox class="indent">
-              <checkbox id="warnIncompatible" 
+              <checkbox id="warnIncompatible"
                         label="&modeAutoAddonWarn.label;" accesskey="&modeAutoAddonWarn.accesskey;"
                         preference="app.update.mode"
                         onsyncfrompreference="return gAdvancedPane.addonWarnSyncFrom();"
@@ -231,31 +231,31 @@
           </radiogroup>
           <separator/>
           <hbox>
-            <button id="showUpdateHistory" 
+            <button id="showUpdateHistory"
                     label="&showUpdates.label;" accesskey="&showUpdates.accesskey;"
                     preference="app.update.disable_button.showUpdateHistory"
                     oncommand="gAdvancedPane.showUpdates();"/>
           </hbox>
         </tabpanel>
-        
+
         <!-- Certificates -->
         <tabpanel orient="vertical">
           <description>&certificatesInfo.label;</description>
           <separator class="thin"/>
           <description class="indent">
-            <button label="&viewCertificates.label;" accesskey="&viewCertificates.accesskey;" 
+            <button label="&viewCertificates.label;" accesskey="&viewCertificates.accesskey;"
                     oncommand="gAdvancedPane.showCertificates();"
                     preference="security.disable_button.openCertManager"/>
-            <button label="&viewCRLs.label;" accesskey="&viewCRLs.accesskey;" 
+            <button label="&viewCRLs.label;" accesskey="&viewCRLs.accesskey;"
                     oncommand="gAdvancedPane.showCRLs();"
                     preference="security.OCSP.disable_button.managecrl"/>
-            <button label="&viewOCSP.label;" accesskey="&viewOCSP.accesskey;" 
+            <button label="&viewOCSP.label;" accesskey="&viewOCSP.accesskey;"
                     oncommand="gAdvancedPane.showOCSP();"/>
-            <button label="&viewSecurityDevices.label;" accesskey="&viewSecurityDevices.accesskey;" 
+            <button label="&viewSecurityDevices.label;" accesskey="&viewSecurityDevices.accesskey;"
                     oncommand="gAdvancedPane.showSecurityDevices();"
                     preference="security.disable_button.openDeviceManager"/>
           </description>
-        </tabpanel>        
+        </tabpanel>
       </tabpanels>
     </tabbox>
     <separator/>
