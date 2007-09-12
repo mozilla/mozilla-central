@@ -36,6 +36,6 @@
  ***** END LICENSE BLOCK ***** -->
 
 <!ENTITY fieldMapExport.title "Export Address Book">
-<!ENTITY fieldMapExport.add		"Add Field ->">
-<!ENTITY fieldMapExport.addAll	"Add All ->">
-<!ENTITY fieldList.label   "Address Fields"> 
+<!ENTITY fieldMapExport.add    "Add Field ->">
+<!ENTITY fieldMapExport.addAll  "Add All ->">
+<!ENTITY fieldList.label   "Address Fields">

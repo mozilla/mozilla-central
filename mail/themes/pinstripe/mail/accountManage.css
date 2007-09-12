@@ -54,23 +54,23 @@
 }
 
 #am-main-title, dialogheader {
-	display: none;
+  display: none;
 }
 
 #addAccountButton, #setDefaultButton, #removeButton {
-	min-height: 19px; /* aqua size for small buttons */
+  min-height: 19px; /* aqua size for small buttons */
 }
 
 .dialog-button[dlgtype="help"] {
-	display: none;
+  display: none;
 }
 
 #accounttree {
-	margin-right: 8px;
+  margin-right: 8px;
 }
 
 page button {
-	min-height: 19px; /* aqua size for small buttons */
+  min-height: 19px; /* aqua size for small buttons */
 }
 
 page > description {

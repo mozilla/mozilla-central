@@ -47,7 +47,7 @@
 @namespace html url("http://www.w3.org/1999/xhtml");
 
 #ab-toolbox {
-	 margin-bottom: -1px;
+   margin-bottom: -1px;
 }
 
 /* ::::: tools menu icon ::::: */
@@ -64,9 +64,9 @@
 }
 
 toolbarbutton[type="menu-button"] > toolbarbutton {
-	-moz-box-orient: vertical !important;
-	padding: 0px;
-	margin: 0px;
+  -moz-box-orient: vertical !important;
+  padding: 0px;
+  margin: 0px;
 }
 
 
@@ -83,7 +83,7 @@ toolbarbutton[type="menu-button"] > toolbarbutton {
 
 #button-newcard[disabled="true"] {
   -moz-image-region: rect(64px 32px 96px 0px) !important;
-} 
+}
 
 /* ::::: new list card icon ::::: */
 
@@ -98,7 +98,7 @@ toolbarbutton[type="menu-button"] > toolbarbutton {
 
 #button-newlist[disabled="true"] {
   -moz-image-region: rect(64px 64px 96px 32px) !important;
-} 
+}
 
 /* ::::: edit card icon ::::: */
 
@@ -109,11 +109,11 @@ toolbarbutton[type="menu-button"] > toolbarbutton {
 
 #button-editcard:active {
   -moz-image-region: rect(32px 96px 64px 64px);
-} 
+}
 
 #button-editcard[disabled="true"] {
   -moz-image-region: rect(64px 96px 96px 64px) !important;
-} 
+}
 
 /* ::::: new message icon ::::: */
 
@@ -124,7 +124,7 @@ toolbarbutton[type="menu-button"] > toolbarbutton {
 
 #button-newmessage:active {
   -moz-image-region: rect(32px 128px 64px 96px);
-} 
+}
 
 #button-newmessage[disabled="true"] {
   -moz-image-region: rect(64px 128px 96px 96px) !important;
@@ -136,14 +136,14 @@ toolbarbutton[type="menu-button"] > toolbarbutton {
   list-style-image: url("chrome://messenger/skin/addressbook/icons/addressbook-toolbar.png");
   -moz-image-region: rect(0px 160px 32px 128px);
 }
- 
+
 #button-newim:active {
   -moz-image-region: rect(32px 160px 64px 128px);
-} 
- 
+}
+
 #button-newim[disabled="true"] {
   -moz-image-region: rect(64px 160px 96px 128px) !important;
-} 
+}
 
 /* ::::: delete icon ::::: */
 
@@ -154,7 +154,7 @@ toolbarbutton[type="menu-button"] > toolbarbutton {
 
 #button-abdelete:active {
   -moz-image-region: rect(32px 192px 64px 160px);
-} 
+}
 
 #button-abdelete[disabled="true"] {
   -moz-image-region: rect(64px 192px 96px 160px) !important;
@@ -172,11 +172,11 @@ toolbar[iconsize="small"] #button-newcard {
 
 toolbar[iconsize="small"] #button-newcard:hover:active {
   -moz-image-region: rect(24px 24px 48px 0px);
-} 
+}
 
 toolbar[iconsize="small"] #button-newcard[disabled] {
   -moz-image-region: rect(48px 24px 72px 0px) !important;
-} 
+}
 
 toolbar[iconsize="small"] #button-newlist {
   list-style-image: url("chrome://messenger/skin/addressbook/icons/addressbook-toolbar-small.png");
@@ -185,11 +185,11 @@ toolbar[iconsize="small"] #button-newlist {
 
 toolbar[iconsize="small"] #button-newlist:hover:active {
   -moz-image-region: rect(24px 48px 48px 24px);
-} 
+}
 
 toolbar[iconsize="small"] #button-newlist[disabled] {
    -moz-image-region: rect(48px 48px 72px 24px) !important;
-} 
+}
 
 toolbar[iconsize="small"] #button-editcard {
   list-style-image: url("chrome://messenger/skin/addressbook/icons/addressbook-toolbar-small.png");
@@ -198,11 +198,11 @@ toolbar[iconsize="small"] #button-editcard {
 
 toolbar[iconsize="small"] #button-editcard:hover:active {
   -moz-image-region: rect(24px 72px 48px 48px);
-} 
+}
 
 toolbar[iconsize="small"] #button-editcard[disabled="true"] {
   -moz-image-region: rect(48px 72px 72px 48px) !important;
-} 
+}
 
 toolbar[iconsize="small"] #button-newmessage {
   list-style-image: url("chrome://messenger/skin/addressbook/icons/addressbook-toolbar-small.png");
@@ -211,11 +211,11 @@ toolbar[iconsize="small"] #button-newmessage {
 
 toolbar[iconsize="small"] #button-newmessage:hover:active {
   -moz-image-region: rect(24px 96px 48px 72px);
-} 
+}
 
 toolbar[iconsize="small"] #button-newmessage[disabled] {
   -moz-image-region: rect(48px 96px 72px 72px) !important;
-} 
+}
 
 toolbar[iconsize="small"] #button-newim {
   list-style-image: url("chrome://messenger/skin/addressbook/icons/addressbook-toolbar-small.png");
@@ -224,11 +224,11 @@ toolbar[iconsize="small"] #button-newim {
 
 toolbar[iconsize="small"] #button-newim:hover:active {
   -moz-image-region: rect(24px 120px 48px 96px);
-} 
+}
 
 toolbar[iconsize="small"] #button-newim[disabled] {
   -moz-image-region: rect(48px 120px 72px 96px) !important;
-} 
+}
 
 toolbar[iconsize="small"] #button-abdelete {
    list-style-image: url("chrome://messenger/skin/addressbook/icons/addressbook-toolbar-small.png");
@@ -237,11 +237,11 @@ toolbar[iconsize="small"] #button-abdelete {
 
 toolbar[iconsize="small"] #button-abdelete:hover:active {
   -moz-image-region: rect(24px 144px 48px 120px);
-} 
+}
 
 toolbar[iconsize="small"] #button-abdelete[disabled] {
   -moz-image-region: rect(48px 144px 72px 120px) !important;
-} 
+}
 
 
 /* ::::: directory pane icons ::::: */
@@ -249,11 +249,11 @@ toolbar[iconsize="small"] #button-abdelete[disabled] {
 
 
 #abDirTreeHeader {
-	-moz-appearance: treeheadercell;
+  -moz-appearance: treeheadercell;
 }
 
 #dirTree {
-	border-right: 1px solid #bebebe;
+  border-right: 1px solid #bebebe;
   border-bottom: 1px solid #bEbEbE;
 }
 
@@ -320,14 +320,14 @@ splitter {
 }
 
 #status-bar {
-	border-top: none !important;
+  border-top: none !important;
 }
 
 /* ::::: results pane ::::: */
 
 #abResultsTree {
-	border-left: 1px solid #bebebe;
-	border-bottom: 1px solid #bebebe;
+  border-left: 1px solid #bebebe;
+  border-bottom: 1px solid #bebebe;
 }
 
 treechildren::-moz-tree-image(GeneratedName) {
@@ -354,8 +354,8 @@ treechildren::-moz-tree-image(GeneratedName, MailList) {
   margin: 0px;
   padding: 0px;
   border-top: 1px solid #8E8E8E;
-  border-left: 1px solid #BEBEBE;  
-  border-bottom: 1px solid #BEBEBE;  
+  border-left: 1px solid #BEBEBE;
+  border-bottom: 1px solid #BEBEBE;
 }
 
 #CardViewInnerBox {
@@ -372,9 +372,9 @@ treechildren::-moz-tree-image(GeneratedName, MailList) {
   -moz-box-pack: center;
   font-size: 150%;
   font-weight: bold;
-  
+
 }
- 
+
 .cardViewGroup {
   margin: 0px;
   padding: 6px;

@@ -53,11 +53,11 @@ window {
 }
 
 window > vbox {
-	padding: 0px 8px;
+  padding: 0px 8px;
 }
 
 window > vbox > vbox {
-	font: menu;
+  font: menu;
 }
 /* ::::: box sizes ::::: */
 
@@ -111,7 +111,7 @@ treechildren::-moz-tree-cell-text(unread) {
 }
 
 /* on a collapsed thread, if the top level message is read, but the thread has
- * unread children, underline the text.  4.x mac did this, very slick 
+ * unread children, underline the text.  4.x mac did this, very slick
  */
 treechildren::-moz-tree-cell-text(container, closed, hasUnread, read) {
   text-decoration: underline;
@@ -282,6 +282,6 @@ treechildren::-moz-tree-image(news, threadCol, container, ignore, open) {
 }
 
 #status-bar {
-	font: message-box;
-	margin-top: 8px;
+  font: message-box;
+  margin-top: 8px;
 }

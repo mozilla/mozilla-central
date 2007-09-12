@@ -66,11 +66,11 @@
 <!ENTITY expungeOnExit.accesskey "E">
 <!ENTITY emptyTrashOnExit.label "Empty Trash on Exit">
 <!ENTITY emptyTrashOnExit.accesskey "x">
-<!ENTITY loginAtStartup.label "Check for new messages at startup"> 
+<!ENTITY loginAtStartup.label "Check for new messages at startup">
 <!ENTITY loginAtStartup.accesskey "C">
-<!-- LOCALIZATION NOTE (maxMessagesStart.label) : translate below 2 lines with grammar dependency 
+<!-- LOCALIZATION NOTE (maxMessagesStart.label) : translate below 2 lines with grammar dependency
     maxMessengerStart.label will be followed by maxMessagesEnd.label with the number
-	 of messages between them
+   of messages between them
 -->
 <!ENTITY maxMessagesStart.label "Ask me before downloading more than">
 <!ENTITY maxMessagesStart.accesskey "m">

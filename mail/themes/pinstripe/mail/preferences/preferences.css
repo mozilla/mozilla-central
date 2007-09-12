@@ -72,27 +72,27 @@ radio[pane][selected="true"] {
 }
 
 radio[pane=paneGeneral] {
-	-moz-image-region: rect(0px, 32px, 32px, 0px)
+  -moz-image-region: rect(0px, 32px, 32px, 0px)
 }
 
 radio[pane=paneGeneral]:active {
-	-moz-image-region: rect(32px, 32px, 64px, 0px)
+  -moz-image-region: rect(32px, 32px, 64px, 0px)
 }
 
 radio[pane=paneDisplay] {
-	-moz-image-region: rect(0px, 64px, 32px, 32px)
+  -moz-image-region: rect(0px, 64px, 32px, 32px)
 }
 
 radio[pane=paneDisplay]:active {
-	-moz-image-region: rect(32px, 64px, 64px, 32px)
+  -moz-image-region: rect(32px, 64px, 64px, 32px)
 }
 
 radio[pane=paneCompose] {
-	-moz-image-region: rect(0px, 96px, 32px, 64px)
+  -moz-image-region: rect(0px, 96px, 32px, 64px)
 }
 
 radio[pane=paneCompose]:active {
-	-moz-image-region: rect(32px, 96px, 64px, 64px)
+  -moz-image-region: rect(32px, 96px, 64px, 64px)
 }
 
 radio[pane=panePrivacy] {
@@ -104,19 +104,19 @@ radio[pane=panePrivacy]:active {
 }
 
 radio[pane=paneDownloads] {
-	-moz-image-region: rect(0px 160px 32px 128px);
+  -moz-image-region: rect(0px 160px 32px 128px);
 }
 
 radio[pane=paneDownloads]:active {
-	-moz-image-region: rect(32px 160px 64px 128px);
+  -moz-image-region: rect(32px 160px 64px 128px);
 }
 
 radio[pane=paneAdvanced] {
-	-moz-image-region: rect(0px, 256px, 32px, 224px)
+  -moz-image-region: rect(0px, 256px, 32px, 224px)
 }
 
 radio[pane=paneAdvanced]:active {
-	-moz-image-region: rect(32px, 256px, 64px, 224px)
+  -moz-image-region: rect(32px, 256px, 64px, 224px)
 }
 
 #browserStartupHomepage {
@@ -152,7 +152,7 @@ prefpane .groupbox-body {
   -moz-border-radius: 0px !important;
   background-image: none !important;
   padding: 8px 4px 4px 4px;
-  
+
 }
 
 #paneTabs > groupbox {
@@ -194,7 +194,7 @@ tabpanels {
   margin: 0 6px 6px 6px;
 }
 
-/* override the color style for tag items when they 
+/* override the color style for tag items when they
    have selection */
 #tagList listitem[selected="true"] {
   color: -moz-DialogText !important;

@@ -75,13 +75,13 @@ treechildren::-moz-tree-twisty {
 
 #folderTree {
   background-image: none !important;
-	-moz-appearance: none !important;
+  -moz-appearance: none !important;
 
   background-color: #e6edf7 !important;
 }
 
 .focusring > .tree-rows > .tree-bodybox {
-  border: none !important;  
+  border: none !important;
 }
 
 
@@ -139,7 +139,7 @@ treechildren::-moz-tree-cell-text(unread) {
 }
 
 /* on a collapsed thread, if the top level message is read, but the thread has
- * unread children, underline the text.  4.x mac did this, very slick 
+ * unread children, underline the text.  4.x mac did this, very slick
  */
 treechildren::-moz-tree-cell-text(container, closed, hasUnread, read) {
   text-decoration: underline;
@@ -190,7 +190,7 @@ treechildren::-moz-tree-image(unreadButtonColHeader) {
   list-style-image: url("chrome://messenger/skin/icons/readmail.png");
 }
 
-treechildren::-moz-tree-image(unreadButtonColHeader, dummy) { 
+treechildren::-moz-tree-image(unreadButtonColHeader, dummy) {
   list-style-image: none;
 }
 
@@ -223,7 +223,7 @@ treechildren::-moz-tree-image(subjectCol, forwarded, selected) {
 treecol.attachmentColumnHeader {
   list-style-image: url("chrome://messenger/skin/icons/attachment-col.png");
 
-  padding-right: 5px; 
+  padding-right: 5px;
 }
 
 treechildren::-moz-tree-image(attachmentCol, attach) {
@@ -244,8 +244,8 @@ treechildren::-moz-tree-image(flaggedCol) {
   list-style-image: url("chrome://messenger/skin/icons/readmail.png");
 }
 
-treechildren::-moz-tree-image(flaggedCol, dummy) { 
-  list-style-image: none; 
+treechildren::-moz-tree-image(flaggedCol, dummy) {
+  list-style-image: none;
 }
 
 treechildren::-moz-tree-image(flaggedCol, flagged) {
@@ -256,7 +256,7 @@ treechildren::-moz-tree-image(flaggedCol, flagged) {
 
 treecol.junkStatusHeader {
   list-style-image: url("chrome://messenger/skin/icons/junk-column-header.png");
-  padding-right: 3px; 
+  padding-right: 3px;
   padding-left: 2px;
   padding-top: 1px;
 }
@@ -289,7 +289,7 @@ treechildren::-moz-tree-image(subjectCol) {
   padding: 0;
 }
 
-treechildren::-moz-tree-image(subjectCol, dummy) { 
+treechildren::-moz-tree-image(subjectCol, dummy) {
   list-style-image: none;
 }
 
@@ -343,24 +343,24 @@ treechildren::-moz-tree-image(news, threadCol, ignore) {
   border-bottom: 1px solid #919191;
 }
 
-/* ::::: group rows ::::: */ 
+/* ::::: group rows ::::: */
 
 treechildren::-moz-tree-row(dummy)  {
-	background-image: url("chrome://messenger/skin/icons/group-background.gif");
-	background-repeat: repeat-x;
-	background-color: rgb(246, 246, 246);
-	border: 1px solid rgb(197, 199, 202);
-	margin-right: 1px;
-	margin-left: 1px;
+  background-image: url("chrome://messenger/skin/icons/group-background.gif");
+  background-repeat: repeat-x;
+  background-color: rgb(246, 246, 246);
+  border: 1px solid rgb(197, 199, 202);
+  margin-right: 1px;
+  margin-left: 1px;
 }
 
 treechildren::-moz-tree-row(dummy, focus, selected)  {
-	background-color: #3874d1;
-	border-color: #3874d1;
-	background-image: none !important;
-	margin: 0px;
-	padding-right: 1px;
-	padding-left: 1px;
+  background-color: #3874d1;
+  border-color: #3874d1;
+  background-image: none !important;
+  margin: 0px;
+  padding-right: 1px;
+  padding-left: 1px;
 }
 
 /* ..... message pane adjustments ..... */
@@ -378,7 +378,7 @@ treechildren::-moz-tree-row(dummy, focus, selected)  {
   border-bottom: 1px solid #a3a3a3;
 }
 
-/* ::::: border adjustments for focus ring and joined splitters ::::: 
+/* ::::: border adjustments for focus ring and joined splitters :::::
 
   min-width: 7px !important;
   min-height: 7px !important;
@@ -442,14 +442,14 @@ splitter {
 
 /* ..... tree adjustments ..... */
 
-#accountCentralBox { 
-  border: 1px solid transparent; 
+#accountCentralBox {
+  border: 1px solid transparent;
 }
 
 /* ..... status bar adjustments ..... */
 
 #status-bar {
-	border-top: none !important;
+  border-top: none !important;
 }
 
 #quotaMeter {

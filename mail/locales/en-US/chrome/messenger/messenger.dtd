@@ -40,11 +40,11 @@
 <!ENTITY subscribeCmd.accesskey "b">
 <!ENTITY renameFolder.label "Rename Folder...">
 <!ENTITY renameFolder.accesskey "R">
-<!ENTITY renameFolder.key "VK_F2"> 
+<!ENTITY renameFolder.key "VK_F2">
 <!ENTITY compactFolders.label "Compact Folders">
-<!ENTITY compactFolder.accesskey		"F">
+<!ENTITY compactFolder.accesskey    "F">
 <!ENTITY emptyTrashCmd.label "Empty Trash">
-<!ENTITY emptyTrashCmd.accesskey		"y">
+<!ENTITY emptyTrashCmd.accesskey    "y">
 <!ENTITY importCmd.label "Import...">
 <!ENTITY importCmd.accesskey "I">
 <!ENTITY offlineMenu.label "Offline">
@@ -205,7 +205,7 @@
 <!ENTITY watchedThreadsWithUnreadCmd.label "Watched Threads with Unread">
 <!ENTITY watchedThreadsWithUnreadCmd.accesskey "W">
 <!ENTITY ignoredThreadsCmd.label "Ignored Threads">
-<!ENTITY ignoredThreadsCmd.accesskey "i">  
+<!ENTITY ignoredThreadsCmd.accesskey "i">
 <!ENTITY headersMenu.label "Headers">
 <!ENTITY headersMenu.accesskey "H">
 <!ENTITY headersAllCmd.label "All">
@@ -235,7 +235,7 @@
 <!ENTITY textZoomReduceCmd.commandkey "-">
 <!ENTITY textZoomResetCmd.commandkey "0">
 <!ENTITY textZoomResetCmd.label     "Normal">
-<!ENTITY textZoomResetCmd.accesskey "N"> 
+<!ENTITY textZoomResetCmd.accesskey "N">
 <!ENTITY textSize.label             "Text Size">
 <!ENTITY textSize.accesskey             "x">
 
@@ -308,17 +308,17 @@
 <!ENTITY newNewMsgCmd.accesskey "M">
 <!ENTITY replyMsgCmd.label "Reply">
 <!ENTITY replyMsgCmd.accesskey "R">
-<!ENTITY replyMsgCmd.key	"r">
+<!ENTITY replyMsgCmd.key  "r">
 <!ENTITY replySenderCmd.label "Reply to Sender Only">
 <!ENTITY replySenderCmd.accesskey "R">
 <!ENTITY replyNewsgroupCmd.label "Reply to Newsgroup">
-<!ENTITY replyNewsgroupCmd.accesskey	"y">
+<!ENTITY replyNewsgroupCmd.accesskey  "y">
 <!ENTITY replyToAllMsgCmd.label "Reply to All">
-<!ENTITY replyToAllMsgCmd.accesskey	"p">
-<!ENTITY replyToAllMsgCmd.key	"r">
+<!ENTITY replyToAllMsgCmd.accesskey  "p">
+<!ENTITY replyToAllMsgCmd.key  "r">
 <!ENTITY forwardMsgCmd.label "Forward">
 <!ENTITY forwardMsgCmd.accesskey "F">
-<!ENTITY forwardMsgCmd.key	"l">
+<!ENTITY forwardMsgCmd.key  "l">
 <!ENTITY forwardAsMenu.label "Forward As">
 <!ENTITY forwardAsMenu.accesskey "w">
 <!ENTITY forwardAsInline.label "Inline">
@@ -388,7 +388,7 @@
 <!ENTITY markAsNotJunkCmd.label "As Not Junk">
 <!ENTITY markAsNotJunkCmd.accesskey "N">
 <!ENTITY markAsNotJunkCmd.key "j">
-<!ENTITY recalculateJunkScoreCmd.label "Run Junk Mail Controls"> 
+<!ENTITY recalculateJunkScoreCmd.label "Run Junk Mail Controls">
 <!ENTITY recalculateJunkScoreCmd.accesskey "C">
 <!ENTITY openMessageWindowCmd.label "Open Message">
 <!ENTITY openMessageWindowCmd.accesskey "O">
@@ -406,7 +406,7 @@
 <!ENTITY messengerCmd.label "Mail &amp; Newsgroups">
 <!ENTITY messengerCmd.accesskey "m">
 <!ENTITY messengerCmd.commandkey "1">
-<!ENTITY addressBookCmd.label "Address Book">  
+<!ENTITY addressBookCmd.label "Address Book">
 <!ENTITY addressBookCmd.accesskey "a">
 <!ENTITY addressBookCmd.commandkey "2">
 <!ENTITY junkMailCmd.label "Junk Mail Controls...">
@@ -427,10 +427,10 @@
 <!ENTITY helpMenu.accesskey "H">
 <!-- LOCALIZATION NOTE some localizations of Windows use "?"
                        for the help button in the menubar but Gnome does not.   -->
-<!ENTITY helpMenuWin.label        "Help"> 
+<!ENTITY helpMenuWin.label        "Help">
 <!ENTITY helpMenuWin.accesskey    "H">
 <!ENTITY releaseCmd.label "Release Notes">
-<!ENTITY releaseCmd.accesskey "R"> 
+<!ENTITY releaseCmd.accesskey "R">
 <!ENTITY hintsAndTips.label "&brandFullName; Help">
 <!ENTITY hintsAndTipsMac.commandkey "?">
 <!ENTITY hintsAndTips.accesskey "h">
@@ -568,7 +568,7 @@
 
 <!-- Thread Pane Tooltips -->
 <!ENTITY columnChooser.tooltip "Click to select columns to display">
-<!ENTITY threadColumn.tooltip "Click to display message threads"> 
+<!ENTITY threadColumn.tooltip "Click to display message threads">
 <!ENTITY fromColumn.tooltip "Click to sort by from">
 <!ENTITY recipientColumn.tooltip "Click to sort by recipient">
 <!ENTITY subjectColumn.tooltip "Click to sort by subject">

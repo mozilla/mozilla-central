@@ -17,9 +17,9 @@
 <!ENTITY color.label                      "Color:">
 <!ENTITY color.accesskey                  "c">
 <!ENTITY displayWidth.label               "Plain Text Messages">
-<!ENTITY plainText.label				          "Use the following font:">
-<!ENTITY displayText.label				        "When displaying quoted plain text messages:">
-<!ENTITY viewingPlainText.label			      "When displaying plain text messages:">
+<!ENTITY plainText.label                  "Use the following font:">
+<!ENTITY displayText.label                "When displaying quoted plain text messages:">
+<!ENTITY viewingPlainText.label            "When displaying plain text messages:">
 <!ENTITY fixedWidth.label                 "Fixed width font">
 <!ENTITY fixedWidth.accesskey             "x">
 <!ENTITY variableWidth.label              "Variable width font">

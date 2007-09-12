@@ -68,11 +68,11 @@
 <!-- Language settings -->
 <!ENTITY sendDefaultCharset.label         "Outgoing Mail:">
 <!ENTITY sendDefaultCharset.accesskey     "u">
-<!ENTITY languagesTitle1.label				    "Character Encodings">
+<!ENTITY languagesTitle1.label            "Character Encodings">
 <!ENTITY composingDescription.label       "Set the default character encodings for sending and receiving mail">
 
 <!ENTITY viewDefaultCharsetList.label     "Incoming Mail:">
-<!ENTITY viewDefaultCharsetList.accesskey	"I">
+<!ENTITY viewDefaultCharsetList.accesskey  "I">
 <!ENTITY forceCharsetOverride.label       "Apply the default character encoding to all incoming messages">
 <!ENTITY forceCharsetOverride.accesskey   "A">
 <!ENTITY replyInDefaultCharset.label      "Use the default character encoding in replies">

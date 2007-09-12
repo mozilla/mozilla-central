@@ -161,7 +161,7 @@
   height: 4px !important;
   margin: 0px !important;
   background: -moz-dialog url("chrome://messenger/skin/icons/tabstrip-bottom.png") repeat !important;
-  border-top: 1px solid threedshadow; 
+  border-top: 1px solid threedshadow;
   border-bottom: 1px solid threedshadow;
 }
 
@@ -322,9 +322,9 @@ tabpanels {
   -moz-image-region: rect(0, 44px, 14px, 33px);
 }
 
-.tabmail-arrowscrollbox > .scrollbutton-up > .toolbarbutton-icon {    
+.tabmail-arrowscrollbox > .scrollbutton-up > .toolbarbutton-icon {
   margin: 6px 0px 0px 0px;
-}                                                                            
+}
 
 .tabmail-arrowscrollbox > .scrollbutton-down-stack {
   margin-top: 2px;
@@ -337,7 +337,7 @@ tabpanels {
   border: none !important;
   width: 18px;
   background-image: url("chrome://messenger/skin/icons/tab-arrow-end-bkgnd-enabled.png");
-  background-repeat: no-repeat;	
+  background-repeat: no-repeat;
   background-color: -moz-dialog;
   -moz-border-radius-topleft: 4px;
 }
@@ -414,7 +414,7 @@ tabpanels {
   height: 23px !important;
   background-image: url("chrome://messenger/skin/icons/tab-arrow-end-bkgnd-enabled.png");
   background-repeat: no-repeat;
-  background-color: -moz-dialog; 
+  background-color: -moz-dialog;
   -moz-border-radius-topleft: 4px;
 }
 
@@ -491,7 +491,7 @@ stack[chromedir="rtl"] > hbox > .tabs-alltabs-box-animate {
 }
 
 /**
- * All Tabs Menupopup 
+ * All Tabs Menupopup
  */
 
 .alltabs-item > .menu-iconic-left > .menu-iconic-icon {

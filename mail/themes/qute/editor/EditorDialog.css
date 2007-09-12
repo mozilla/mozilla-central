@@ -90,7 +90,7 @@ groupbox {
   font-weight : bold;
 }
 
-/* Use this with groove-thin in dialogs 
+/* Use this with groove-thin in dialogs
    to add margins to top and bottom
 */
 .tb-margin {
@@ -100,7 +100,7 @@ groupbox {
 
 .color-well {
   width: 20px;
-  height: 12px; 
+  height: 12px;
   border: 1px inset #CCCCCC;
 }
 
@@ -140,7 +140,7 @@ groupbox {
 
 #LastPickedColor {
   width: 17px;
-  height: 13px; 
+  height: 13px;
   border: 1px inset #CCCCCC;
     margin-top: 1px;
   margin-bottom: 2px;
@@ -250,7 +250,7 @@ tree.list {
 }
 
 /* These should be the width of the checkbox and radio button images + margin + padding
-   Used to indent below those to the level of the text label next to image 
+   Used to indent below those to the level of the text label next to image
 */
 .checkbox-spacer {
   width: 2em;
@@ -286,9 +286,9 @@ tree.list {
   list-style-image:url("chrome://editor/skin/icons/img-align-left.gif");
 }
 
-/* Don't change width/height of these without changing values in 
+/* Don't change width/height of these without changing values in
   GetOriginalWidth(), EdImageProps.js
-*/    
+*/
 #preview-image-box {
   border: 1px inset #CCCCCC;
   width      : 82px;
@@ -306,11 +306,11 @@ tree.list {
   margin  : 0px;
 }
 
-/* Rest are from Ben Goodger for Advanced Edit dialog 
+/* Rest are from Ben Goodger for Advanced Edit dialog
    These need reviewing and eliminate all but essential attributes */
-/* Have made some mods and eliminated some unnecessary portions. 
-   hope to merge most of the treecell formatting into global as some of 
-   this "property list" style treecell formatting is used by cookie/signon 
+/* Have made some mods and eliminated some unnecessary portions.
+   hope to merge most of the treecell formatting into global as some of
+   this "property list" style treecell formatting is used by cookie/signon
    viewers. */
 
 
@@ -337,13 +337,13 @@ tree.AttributesTree {
 /* ::::: Publishing Progress ::::: */
 
 .progressitem[progress="busy"] {
-	list-style-image: url("chrome://editor/skin/icons/progress-busy.gif");
+  list-style-image: url("chrome://editor/skin/icons/progress-busy.gif");
 }
 
 .progressitem[progress="done"] {
-	list-style-image: url("chrome://editor/skin/icons/progress-done.gif");
+  list-style-image: url("chrome://editor/skin/icons/progress-done.gif");
 }
 
 .progressitem[progress="failed"] {
-	list-style-image: url("chrome://editor/skin/icons/progress-failed.gif");
+  list-style-image: url("chrome://editor/skin/icons/progress-failed.gif");
 }
