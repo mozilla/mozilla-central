@@ -612,6 +612,7 @@ PKIX_PL_AIAMgr_GetAIACerts(
         for (aiaIndex = aiaMgr->aiaIndex;
                 aiaIndex < aiaMgr->numAias;
                 aiaIndex ++) {
+                PKIX_UInt32 method = 0;
 
                 PKIX_CHECK(PKIX_List_GetItem
                         (aiaMgr->aia,
@@ -620,6 +621,16 @@ PKIX_PL_AIAMgr_GetAIACerts(
                         plContext),
                         PKIX_LISTGETITEMFAILED);
 
+                PKIX_CHECK(PKIX_PL_InfoAccess_GetMethod
+                        (ia, &method, plContext),
+                        PKIX_INFOACCESSGETMETHODFAILED);
+
+                if (method != PKIX_INFOACCESS_CA_ISSUERS &&
+                    method != PKIX_INFOACCESS_CA_REPOSITORY) {
+                    PKIX_DECREF(ia);
+                    continue;
+                }
+                
                 PKIX_CHECK(PKIX_PL_InfoAccess_GetLocationType
                         (ia, &iaType, plContext),
                         PKIX_INFOACCESSGETLOCATIONTYPEFAILED);
