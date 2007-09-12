@@ -1370,11 +1370,7 @@ struct pkix_ClassTable_EntryStruct {
  * descriptive name for an error code. This is used by the default
  * PKIX_PL_Error_ToString function.
  */
-#ifdef _WIN32
-extern __declspec(dllimport) const char *PKIX_ERRORNAMES[PKIX_NUMERRORS];
-#else
 extern const char *PKIX_ERRORNAMES[PKIX_NUMERRORS];
-#endif
 
 #define PKIX_MAGIC_HEADER       (PKIX_UInt32) 0xBEEFC0DE
 
