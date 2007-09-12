@@ -65,18 +65,18 @@ label.label {
 
 /****************************************************************************************/
 
-datepicker-weekday {
-    -moz-binding: url(chrome://calendar/content/sun-calendar-event-dialog-recurrence-datepicker.xml#datepicker-weekday);
+daypicker-weekday {
+    -moz-binding: url(chrome://calendar/content/sun-calendar-event-dialog-recurrence-daypicker.xml#daypicker-weekday);
     -moz-user-focus: normal;
 }
 
-datepicker-monthday {
-    -moz-binding: url(chrome://calendar/content/sun-calendar-event-dialog-recurrence-datepicker.xml#datepicker-monthday);
+daypicker-monthday {
+    -moz-binding: url(chrome://calendar/content/sun-calendar-event-dialog-recurrence-daypicker.xml#daypicker-monthday);
     -moz-user-focus: normal;
 }
 
-.datepicker-box {
-    -moz-binding: url(chrome://calendar/content/sun-calendar-event-dialog-recurrence-datepicker.xml#datepicker-box);
+.daypicker-box {
+    -moz-binding: url(chrome://calendar/content/sun-calendar-event-dialog-recurrence-daypicker.xml#daypicker-box);
 }
 
 recurrence-preview {
@@ -85,11 +85,6 @@ recurrence-preview {
 }
 
 /****************************************************************************************/
-
-attendees-page {
-    -moz-binding: url(chrome://calendar/content/sun-calendar-event-dialog-attendees.xml#attendees-page);
-    -moz-user-focus: normal;
-}
 
 attendees-list {
     -moz-binding: url(chrome://calendar/content/sun-calendar-event-dialog-attendees.xml#attendees-list);

@@ -85,15 +85,6 @@ function goUpdatePasteMenuItems() {
     goUpdateCommand('cmd_paste');
 }
 
-function getString(aBundleName, aStringName) {
-    var sbs = Cc["@mozilla.org/intl/stringbundle;1"]
-              .getService(Ci.nsIStringBundleService);
-    var props =
-        sbs.createBundle(
-            "chrome://calendar/locale/" + aBundleName + ".properties");
-    return props.GetStringFromName(aStringName);
-}
-
 function onLoad() {
     // first of all retrieve the array of
     // arguments this window has been called with.
@@ -131,8 +122,8 @@ function onLoad() {
 
     // new items should have a non-empty title.
     if (item.isMutable && (!item.title || item.title.length <= 0)) {
-        item.title = getString("sun-calendar-event-dialog",
-                               isEvent(item) ? "newEvent" : "newTask");
+        item.title = calGetString("sun-calendar-event-dialog",
+                                  isEvent(item) ? "newEvent" : "newTask");
     }
 
     window.onAcceptCallback = args.onOk;
@@ -500,101 +491,8 @@ function loadDateTime(item) {
     }
 }
 
-function updateStartTime() {
-    if (gIgnoreUpdate) {
-        return;
-    }
 
-    var startWidgetId;
-    var endWidgetId;
-    if (isEvent(window.calendarItem)) {
-        startWidgetId = "event-starttime";
-        endWidgetId = "event-endtime";
-    } else {
-        if (!getElementValue("todo-has-entrydate", "checked")) {
-            gItemDuration = null;
-        }
-        if (!getElementValue("todo-has-duedate", "checked")) {
-            gItemDuration = null;
-        }
-        startWidgetId = "todo-entrydate";
-        endWidgetId = "todo-duedate";
-    }
-
-    // jsDate is always in OS timezone, thus we create a calIDateTime
-    // object from the jsDate representation and simply set the new
-    // timezone instead of converting.
-    var kDefaultTimezone = calendarDefaultTimezone();
-    var start = jsDateToDateTime(getElementValue(startWidgetId));
-    start = start.getInTimezone(kDefaultTimezone);
-    var menuItem = document.getElementById('menu-options-timezone');
-    if (menuItem.getAttribute('checked') == 'true') {
-        start.timezone = gStartTimezone;
-    }
-    gStartTime = start.clone();
-    if (gItemDuration) {
-        start.addDuration(gItemDuration);
-        start = start.getInTimezone(gEndTimezone);
-    }
-    if (gEndTime) {
-        var menuItem = document.getElementById('menu-options-timezone');
-        if (menuItem.getAttribute('checked') == 'true') {
-            start.timezone = gEndTimezone
-        }
-        gEndTime = start;
-    }
-
-    var isAllDay = getElementValue("event-all-day", "checked");
-    if (isAllDay) {
-        gStartTime.isDate = true;
-    }
-
-    updateDateTime();
-    updateTimezone();
-}
-
-function updateEntryDate() {
-    if (gIgnoreUpdate) {
-        return;
-    }
-
-    if (!isToDo(window.calendarItem)) {
-        return;
-    }
-
-    // force something to get set if there was nothing there before
-    setElementValue("todo-entrydate", getElementValue("todo-entrydate"));
-
-    // first of all disable the datetime picker if we don't have an entrydate
-    var hasEntryDate = getElementValue("todo-has-entrydate", "checked");
-    var hasDueDate = getElementValue("todo-has-duedate", "checked");
-    setElementValue("todo-entrydate", !hasEntryDate, "disabled");
-
-    // create a new datetime object if entrydate is now checked for the first
-    // time
-    if (hasEntryDate && !gStartTime) {
-        var kDefaultTimezone = calendarDefaultTimezone();
-        var entryDate = jsDateToDateTime(getElementValue("todo-entrydate"));
-        entryDate = entryDate.getInTimezone(kDefaultTimezone);
-        gStartTime = entryDate;
-    } else if (!hasEntryDate && gStartTime) {
-        gStartTime = null;
-    }
-
-    // calculate the duration if possible
-    if (hasEntryDate && hasDueDate) {
-        var start = jsDateToDateTime(getElementValue("todo-entrydate"));
-        var end = jsDateToDateTime(getElementValue("todo-duedate"));
-        gItemDuration = end.subtractDate(start);
-    } else {
-        gItemDuration = null;
-    }
-
-    updateDateTime();
-    updateTimezone();
-}
-
-function updateEndTime() {
+function dateTimeControls2State(aKeepDuration) {
     if (gIgnoreUpdate) {
         return;
     }
@@ -620,41 +518,53 @@ function updateEndTime() {
     var kDefaultTimezone = calendarDefaultTimezone();
 
     if (gStartTime) {
+
+        // jsDate is always in OS timezone, thus we create a calIDateTime
+        // object from the jsDate representation and simply set the new
+        // timezone instead of converting.
         var start = jsDateToDateTime(getElementValue(startWidgetId));
         start = start.getInTimezone(kDefaultTimezone);
         var menuItem = document.getElementById('menu-options-timezone');
         if (menuItem.getAttribute('checked') == 'true') {
             start.timezone = gStartTimezone;
         }
-        gStartTime = start;
+        gStartTime = start.clone();
     }
+    
+    if (gItemDuration) {
+        start.addDuration(gItemDuration);
+        start = start.getInTimezone(gEndTimezone);
+    }
+    
     if (gEndTime) {
-        var end = jsDateToDateTime(getElementValue(endWidgetId));
-        end = end.getInTimezone(kDefaultTimezone);
-        var timezone = gEndTimezone;
-        if (timezone == "UTC") {
-            if (gStartTime && gStartTimezone != gEndTimezone) {
-                timezone = gStartTimezone;
-            }
-        }
-        var menuItem = document.getElementById('menu-options-timezone');
-        if (menuItem.getAttribute('checked') == 'true') {
-            end.timezone = timezone;
+        var end = start;
+        if (!aKeepDuration) {
+          end = jsDateToDateTime(getElementValue(endWidgetId));
+          end = end.getInTimezone(kDefaultTimezone);
+          var timezone = gEndTimezone;
+          if (timezone == "UTC") {
+              if (gStartTime && gStartTimezone != gEndTimezone) {
+                  timezone = gStartTimezone;
+              }
+          }
+          var menuItem = document.getElementById('menu-options-timezone');
+          if (menuItem.getAttribute('checked') == 'true') {
+              end.timezone = timezone;
+          }
         }
         gEndTime = end;
     }
 
-    var isAllDay = getElementValue("event-all-day", "checked");
-    if (isAllDay) {
+    if (getElementValue("event-all-day", "checked")) {
         gStartTime.isDate = true;
     }
 
     // calculate the new duration of start/end-time.
     // don't allow for negative durations.
     var warning = false;
-    if (gStartTime && gEndTime) {
+    if (!aKeepDuration && gStartTime && gEndTime) {
         if (gEndTime.compare(gStartTime) >= 0) {
-            gItemDuration = end.subtractDate(start);
+            gItemDuration = gEndTime.subtractDate(gStartTime);
         } else {
             gStartTime = saveStartTime;
             gEndTime = saveEndTime;
@@ -678,7 +588,35 @@ function updateEndTime() {
     }
 }
 
+function updateEntryDate() {
+    updateDateCheckboxes(
+        "todo-entrydate",
+        "todo-has-entrydate",
+        {
+            isValid: function() {
+                return gStartTime != null;
+            },
+            setDateTime: function(dt) {
+                gStartTime = dt;
+            }
+        });
+}
+
 function updateDueDate() {
+    updateDateCheckboxes(
+        "todo-duedate",
+        "todo-has-duedate",
+        {
+            isValid: function() {
+                return gEndTime != null;
+            },
+            setDateTime: function(dt) {
+                gEndTime = dt;
+            }
+        });
+}
+
+function updateDateCheckboxes(aDatePickerId, aCheckboxId, aDateTime) {
     if (gIgnoreUpdate) {
         return;
     }
@@ -688,24 +626,25 @@ function updateDueDate() {
     }
 
     // force something to get set if there was nothing there before
-    setElementValue("todo-duedate", getElementValue("todo-duedate"));
+    setElementValue(aDatePickerId, getElementValue(aDatePickerId));
 
-    // first of all disable the datetime picker if we don't have a duedate
-    var hasEntryDate = getElementValue("todo-has-entrydate", "checked");
-    var hasDueDate = getElementValue("todo-has-duedate", "checked");
-    setElementValue("todo-duedate", !hasDueDate, "disabled");
+    // first of all disable the datetime picker if we don't have a date
+    var hasDate = getElementValue(aCheckboxId, "checked");
+    setElementValue(aDatePickerId, !hasDate, "disabled");
 
-    // create a new datetime object if duedate is now checked for the first time
-    if (hasDueDate && !gEndTime) {
+    // create a new datetime object if date is now checked for the first time
+    if (hasDate && !aDateTime.isValid()) {
         var kDefaultTimezone = calendarDefaultTimezone();
-        var dueDate = jsDateToDateTime(getElementValue("todo-duedate"));
-        dueDate = dueDate.getInTimezone(kDefaultTimezone);
-        gEndTime = dueDate;
-    } else if (!hasDueDate && gEndTime) {
-        gEndTime = null;
+        var date = jsDateToDateTime(getElementValue(aDatePickerId));
+        date = date.getInTimezone(kDefaultTimezone);
+        aDateTime.setDateTime(date);
+    } else if (!hasDate && aDateTime.isValid()) {
+        aDateTime.setDateTime(null);
     }
 
     // calculate the duration if possible
+    var hasEntryDate = getElementValue("todo-has-entrydate", "checked");
+    var hasDueDate = getElementValue("todo-has-duedate", "checked");
     if (hasEntryDate && hasDueDate) {
         var start = jsDateToDateTime(getElementValue("todo-entrydate"));
         var end = jsDateToDateTime(getElementValue("todo-duedate"));
@@ -1320,6 +1259,10 @@ function editURL() {
     var promptService = Cc["@mozilla.org/embedcomp/prompt-service;1"]
                        .getService(Ci.nsIPromptService);
     if (promptService) {
+        // ghost in an example...
+        if (!gURL) {
+            gURL = "http://www.example.com";
+        }
         var result = { value: gURL };
         if (promptService.prompt(
             window,
@@ -1870,56 +1813,53 @@ function onCommandCustomize() {
 }
 
 function editStartTimezone() {
-    var tzStart = document.getElementById("timezone-starttime");
-    if (tzStart.hasAttribute("disabled")) {
-        return;
-    }
-
-    var args = new Object();
-    args.time = gStartTime.getInTimezone(gStartTimezone);
-    args.onOk = function(datetime) {
-        var equalTimezones = false;
-        if (gStartTimezone && gEndTimezone) {
-            if (gStartTimezone == gEndTimezone) {
-                equalTimezones = true;
+    editTimezone(
+        "timezone-starttime",
+        gStartTime.getInTimezone(gStartTimezone),
+        function(datetime) {
+            var equalTimezones = false;
+            if (gStartTimezone && gEndTimezone) {
+                if (gStartTimezone == gEndTimezone) {
+                    equalTimezones = true;
+                }
             }
-        }
-        gStartTimezone = datetime.timezone;
-        if (equalTimezones) {
-          gEndTimezone = datetime.timezone;
-        }
-        updateDateTime();
-    };
-
-    // open the dialog modally
-    openDialog(
-        "chrome://calendar/content/sun-calendar-event-dialog-timezone.xul",
-        "_blank",
-        "chrome,titlebar,modal,resizable",
-        args);
+            gStartTimezone = datetime.timezone;
+            if (equalTimezones) {
+              gEndTimezone = datetime.timezone;
+            }
+            updateDateTime();
+        });
 }
 
 function editEndTimezone() {
-    var tzStart = document.getElementById("timezone-endtime");
-    if (tzStart.hasAttribute("disabled")) {
+    editTimezone(
+        "timezone-endtime",
+        gEndTime.getInTimezone(gEndTimezone),
+        function(datetime) {
+            var equalTimezones = false;
+            if (gStartTimezone && gEndTimezone) {
+                if (gStartTimezone == gEndTimezone) {
+                    equalTimezones = true;
+                }
+            }
+            if (equalTimezones) {
+                gStartTimezone = datetime.timezone;
+            }
+            gEndTimezone = datetime.timezone;
+            updateDateTime();
+        });
+}
+
+function editTimezone(aElementId,aDateTime,aCallback) {
+    if (document.getElementById(aElementId)
+        .hasAttribute("disabled")) {
         return;
     }
 
+    // prepare the arguments that will be passed to the dialog
     var args = new Object();
     args.time = gEndTime.getInTimezone(gEndTimezone);
-    args.onOk = function(datetime) {
-        var equalTimezones = false;
-        if (gStartTimezone && gEndTimezone) {
-            if (gStartTimezone == gEndTimezone) {
-                equalTimezones = true;
-            }
-        }
-        if (equalTimezones) {
-            gStartTimezone = datetime.timezone;
-        }
-        gEndTimezone = datetime.timezone;
-        updateDateTime();
-    };
+    args.onOk = aCallback;
 
     // open the dialog modally
     openDialog(

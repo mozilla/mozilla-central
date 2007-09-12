@@ -615,7 +615,7 @@
                     <datetimepicker id="event-starttime"
                                     class="event-only"
                                     disable-on-readonly="true"
-                                    onchange="updateStartTime();"/>
+                                    onchange="dateTimeControls2State(true);"/>
                     <checkbox id="todo-has-entrydate"
                               class="todo-only"
                               disable-on-readonly="true"
@@ -623,7 +623,7 @@
                     <datetimepicker id="todo-entrydate"
                                     class="todo-only"
                                     disable-on-readonly="true"
-                                    onchange="updateStartTime();"/>
+                                    onchange="dateTimeControls2State(true);"/>
                     <label id="timezone-starttime"
                            class="text-link"
                            collapsed="true"
@@ -654,7 +654,7 @@
                         <datetimepicker id="event-endtime"
                                         class="event-only"
                                         disable-on-readonly="true"
-                                        onchange="updateEndTime();"/>
+                                        onchange="dateTimeControls2State(false);"/>
                         <checkbox id="todo-has-duedate"
                                   class="todo-only"
                                   disable-on-readonly="true"
@@ -662,7 +662,7 @@
                         <datetimepicker id="todo-duedate"
                                         class="todo-only"
                                         disable-on-readonly="true"
-                                        onchange="updateEndTime();"/>
+                                        onchange="dateTimeControls2State(false);"/>
                         <label id="timezone-endtime"
                                class="text-link"
                                collapsed="true"

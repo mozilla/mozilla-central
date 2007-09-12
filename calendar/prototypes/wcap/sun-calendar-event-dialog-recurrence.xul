@@ -141,11 +141,11 @@
                 <label value="&event.recurrence.on.label;"
                        disable-on-readonly="true"
                        disable-on-occurrence="true"/>
-                <datepicker-weekday id="datepicker-weekday"
-                                    flex="1"
-                                    disable-on-readonly="true"
-                                    disable-on-occurrence="true"
-                                    onselect="updateRecurrenceControls();"/>
+                <daypicker-weekday id="daypicker-weekday"
+                                   flex="1"
+                                   disable-on-readonly="true"
+                                   disable-on-occurrence="true"
+                                   onselect="updateRecurrenceControls();"/>
               </hbox>
             </vbox>
 
@@ -213,10 +213,10 @@
                   <radio label="&event.recurrence.repeat.recur.label;"
                          disable-on-readonly="true"
                          disable-on-occurrence="true"/>
-                  <datepicker-monthday id="monthly-days"
-                                       onselect="updateRecurrenceControls();"
-                                       disable-on-readonly="true"
-                                       disable-on-occurrence="true"/>
+                  <daypicker-monthday id="monthly-days"
+                                      onselect="updateRecurrenceControls();"
+                                      disable-on-readonly="true"
+                                      disable-on-occurrence="true"/>
                 </box>
               </radiogroup>
             </vbox>

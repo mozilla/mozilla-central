@@ -44,11 +44,6 @@
 <bindings xmlns="http://www.mozilla.org/xbl"
           xmlns:xbl="http://www.mozilla.org/xbl"
           xmlns:xul="http://www.mozilla.org/keymaster/gatekeeper/there.is.only.xul">
-  <binding id="freebusy-box" extends="xul:text">
-    <handlers>
-      <handler event="click" action="alert('mickey');"/>
-    </handlers>
-  </binding>
 
   <!--
   ########################################################################
@@ -115,11 +110,8 @@
       <field name="mDateFormatter">null</field>
       <field name="mStartDate">null</field>
       <field name="mEndDate">null</field>
-      <field name="mStartHour">8</field>
-      <field name="mEndHour">19</field>
-      <field name="mStartHourDefault">8</field>
-      <field name="mEndHourDefault">19</field>
-
+      <field name="mStartHour">0</field>
+      <field name="mEndHour">24</field>
       <field name="mForce24Hours">false</field>
       <field name="mZoomFactor">100</field>
 
@@ -164,29 +156,12 @@
 
       <method name="initTimeRange">
         <body><![CDATA[
-          this.mStartHour = this.mStartHourDefault;
-          this.mEndHour = this.mEndHourDefault;
-
-          var pb2 = Components.classes[
-              "@mozilla.org/preferences-service;1"]
-                  .getService(
-                      Components.interfaces.nsIPrefBranch2);
-
-          // Get default start/end times from prefs and set on the
-          // view.  If we hit an error (eg because sunbird's pref
-          // infrastructure hasn't created the pref yet), the
-          // defaults will do.
-          try {
-              this.mStartHour =
-                  pb2.getIntPref("calendar.view.defaultstarthour");
-              this.mEndHour =
-                  pb2.getIntPref("calendar.view.defaultendhour");
-          } catch (ex) {
-          }
-
           if (this.force24Hours) {
               this.mStartHour = 0;
               this.mEndHour = 24;
+          } else {
+              this.mStartHour = getPrefSafe("calendar.view.daystarthour", 8);
+              this.mEndHour = getPrefSafe("calendar.view.dayendhour", 19);
           }
         ]]></body>
       </method>
@@ -303,11 +278,8 @@
       <field name="mEndDate">null</field>
       <field name="mDayOffset">0</field>
       <field name="mScrollOffset">0</field>
-      <field name="mStartHour">8</field>
-      <field name="mEndHour">19</field>
-      <field name="mStartHourDefault">8</field>
-      <field name="mEndHourDefault">19</field>
-
+      <field name="mStartHour">0</field>
+      <field name="mEndHour">24</field>
       <field name="mForce24Hours">false</field>
       <field name="mZoomFactor">100</field>
 
@@ -576,29 +548,12 @@
 
       <method name="initTimeRange">
         <body><![CDATA[
-          this.mStartHour = this.mStartHourDefault;
-          this.mEndHour = this.mEndHourDefault;
-
-          var pb2 = Components.classes[
-              "@mozilla.org/preferences-service;1"]
-                  .getService(
-                      Components.interfaces.nsIPrefBranch2);
-
-          // Get default start/end times from prefs and set on the
-          // view.  if we hit an error (eg because sunbird's pref
-          // infrastructure hasn't created the pref yet), the
-          // defaults will do
-          try {
-              this.mStartHour =
-                  pb2.getIntPref("calendar.view.defaultstarthour");
-              this.mEndHour =
-                  pb2.getIntPref("calendar.view.defaultendhour");
-          } catch (ex) {
-          }
-
           if (this.force24Hours) {
               this.mStartHour = 0;
               this.mEndHour = 24;
+          } else {
+              this.mStartHour = getPrefSafe("calendar.view.daystarthour", 8);
+              this.mEndHour = getPrefSafe("calendar.view.dayendhour", 19);
           }
         ]]></body>
       </method>
@@ -626,11 +581,8 @@
       <field name="mStartDate">null</field>
       <field name="mEndDate">null</field>
       <field name="mRange">0</field>
-      <field name="mStartHour">8</field>
-      <field name="mEndHour">19</field>
-      <field name="mStartHourDefault">8</field>
-      <field name="mEndHourDefault">19</field>
-
+      <field name="mStartHour">0</field>
+      <field name="mEndHour">24</field>
       <field name="mForce24Hours">false</field>
       <field name="mZoomFactor">100</field>
 
@@ -1028,27 +980,12 @@
 
       <method name="initTimeRange">
         <body><![CDATA[
-          this.mStartHour = this.mStartHourDefault;
-          this.mEndHour = this.mEndHourDefault;
-
-          var pb2 = Components.classes[
-              "@mozilla.org/preferences-service;1"]
-                  .getService(
-                      Components.interfaces.nsIPrefBranch2);
-
-          // Get default start/end times from prefs and set on the
-          // view.  if we hit an error (eg because sunbird's pref
-          // infrastructure hasn't created the pref yet), the
-          // defaults will do
-          try {
-              this.mStartHour = pb2.getIntPref("calendar.view.defaultstarthour");
-              this.mEndHour = pb2.getIntPref("calendar.view.defaultendhour");
-          } catch (ex) {
-          }
-
           if (this.force24Hours) {
               this.mStartHour = 0;
               this.mEndHour = 24;
+          } else {
+              this.mStartHour = getPrefSafe("calendar.view.daystarthour", 8);
+              this.mEndHour = getPrefSafe("calendar.view.dayendhour", 19);
           }
         ]]></body>
       </method>
@@ -1097,11 +1034,8 @@
       <field name="mEndDate">null</field>
       <field name="mScrollOffset">0</field>
       <field name="mRange">0</field>
-      <field name="mStartHour">8</field>
-      <field name="mEndHour">19</field>
-      <field name="mStartHourDefault">8</field>
-      <field name="mEndHourDefault">19</field>
-
+      <field name="mStartHour">0</field>
+      <field name="mEndHour">24</field>
       <field name="mForce24Hours">false</field>
       <field name="mZoomFactor">100</field>
 
@@ -1781,29 +1715,12 @@
 
       <method name="initTimeRange">
         <body><![CDATA[
-          this.mStartHour = this.mStartHourDefault;
-          this.mEndHour = this.mEndHourDefault;
-
-          var pb2 = Components.classes[
-              "@mozilla.org/preferences-service;1"]
-                  .getService(
-                      Components.interfaces.nsIPrefBranch2);
-
-          // Get default start/end times from prefs and set on the
-          // view.  if we hit an error (eg because sunbird's pref
-          // infrastructure hasn't created the pref yet), the
-          // defaults will do
-          try {
-              this.mStartHour =
-                  pb2.getIntPref("calendar.view.defaultstarthour");
-              this.mEndHour =
-                  pb2.getIntPref("calendar.view.defaultendhour");
-          } catch (ex) {
-          }
-
           if (this.force24Hours) {
               this.mStartHour = 0;
               this.mEndHour = 24;
+          } else {
+              this.mStartHour = getPrefSafe("calendar.view.daystarthour", 8);
+              this.mEndHour = getPrefSafe("calendar.view.dayendhour", 19);
           }
         ]]></body>
       </method>

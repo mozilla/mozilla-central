@@ -88,7 +88,7 @@ function onLoad() {
                         document.getElementById("period-list").selectedIndex = 1;
                         setElementValue("weekly-weeks", rule.interval);
                         var days = rule.getComponent("BYDAY", {});
-                        document.getElementById("datepicker-weekday").days = days;
+                        document.getElementById("daypicker-weekday").days = days;
                         break;
                     case "MONTHLY":
                         document.getElementById("period-list").selectedIndex = 2;
@@ -168,7 +168,7 @@ function onLoad() {
 
 function onSave(item) {
     // Always return 'null' if this item is an occurrence.
-    if (item.parentItem != item) {
+    if (!item || item.parentItem != item) {
         return null;
     }
 
@@ -191,8 +191,8 @@ function onSave(item) {
         }
     } else {
         recurrenceInfo = createRecurrenceInfo();
-        recurrenceInfo.item = item;
     }
+    recurrenceInfo.item = item;
 
     var recRule = createRecurrenceRule();
     switch (deckNumber) {
@@ -212,7 +212,7 @@ function onSave(item) {
         recRule.type = "WEEKLY";
         var ndays = Number(getElementValue("weekly-weeks"));
         recRule.interval = ndays;
-        var onDays = document.getElementById("datepicker-weekday").days;
+        var onDays = document.getElementById("daypicker-weekday").days;
         if (onDays.length > 0) {
             recRule.setComponent("BYDAY", onDays.length, onDays);
         }
