@@ -991,11 +991,11 @@
               //       |      |      |      |   in column #3
               //
               for (var jj=1; jj<colEndArray.length; ++jj) {
-                  if (colEndArray[jj].id == colEndArray[jj-1].id) {
+                  if (colEndArray[jj].hashId == colEndArray[jj-1].hashId) {
                       // Good we found a item that spanned multiple columns.
                       // Find it in the blob so we can modify its properties
                       for (var kk in currentBlob) {
-                          if (currentBlob[kk].item.id == colEndArray[jj].id) {
+                          if (currentBlob[kk].item.hashId == colEndArray[jj].hashId) {
                               // Take all but the first spot that the item spanned
                               var spanOfShrunkItem = currentBlob[kk].colSpan;
                               currentBlob.push({item: item,
