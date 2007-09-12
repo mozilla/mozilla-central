@@ -1307,31 +1307,6 @@ EOF_CRLINI
   CRL_GRP_END=`expr ${CRL_GRP_3_BEGIN} + ${CRL_GRP_3_RANGE} - 1`
   CRL_FILE_GRP_3=${R_SERVERDIR}/root.crl_${CRL_GRP_3_BEGIN}-${CRL_GRP_END}
 
-#################
-# Verify the we can successfully change the password on the database
-#
-cert_test_password()
-{
-  CERTFAILED=0
-  echo "$SCRIPTNAME: Create A Password Test Cert  =============="
-  cert_init_cert "${DBPASSDIR}" "Password Test Cert" 1000 "${D_DBPASSDIR}"
-
-  echo "$SCRIPTNAME: Create A Password Test Ca  --------"
-  ALL_CU_SUBJECT="CN=NSS Password Test CA, O=BOGUS NSS, L=Mountain View, ST=California, C=US"
-  cert_CA ${DBPASSDIR} PasswordCA -x "CTu,CTu,CTu" ${D_DBPASS} "1"
-
-  # now change the password
-  CU_ACTION="Changing password on ${CERTNAME}'s Cert DB"
-  certu -W -d "${PROFILEDIR}" -f "${R_PWFILE}" -@ "${R_FIPSPWFILE}" 2>&1
-
-  # finally make sure we can use the old key with the new password
-  CU_ACTION="Generate Certificate for ${CERTNAME} with new password"
-  CU_SUBJECT="CN=${CERTNAME}, E=password@bogus.com, O=BOGUS NSS, L=Mountain View, ST=California, C=US"
-  certu -S -n PasswordCert -x -t "Cu,Cu,Cu" -d "${PROFILEDIR}" -f "${R_FIPSPWFILE}" -z "${R_NOISE_FILE}" 2>&1
-  if [ "$RET" -eq 0 ]; then
-    cert_log "SUCCESS: PASSORD passed"
-  fi
-}
 
 
   echo "$SCRIPTNAME: Creating CA CRL for groups 1, 2 and 3  ==============="
@@ -1369,7 +1344,6 @@ EOF_CRLINI
   crlu -I -i ${CRL_FILE} -n "TestCA" -f "${R_PWFILE}" -d "${R_SERVERDIR}"
   CRL_GEN_RES=`expr $? + $CRL_GEN_RES`
   if [ -n "$NSS_ENABLE_ECC" ] ; then
-cert_test_password
       CU_ACTION="Importing CRL (ECC) for groups 1"
       crlu -D -n TestCA-ec  -f "${R_PWFILE}" -d "${R_SERVERDIR}"
       crlu -I -i ${CRL_FILE}-ec -n "TestCA-ec" -f "${R_PWFILE}" \
@@ -1382,6 +1356,34 @@ cert_test_password
   else
       cert_log "SUCCESS: SSL CRL prep passed"
   fi
+}
+
+#################
+# Verify the we can successfully change the password on the database
+#
+cert_test_password()
+{
+  CERTFAILED=0
+  echo "$SCRIPTNAME: Create A Password Test Cert  =============="
+  cert_init_cert "${DBPASSDIR}" "Password Test Cert" 1000 "${D_DBPASSDIR}"
+
+  echo "$SCRIPTNAME: Create A Password Test Ca  --------"
+  ALL_CU_SUBJECT="CN=NSS Password Test CA, O=BOGUS NSS, L=Mountain View, ST=California, C=US"
+  cert_CA ${DBPASSDIR} PasswordCA -x "CTu,CTu,CTu" ${D_DBPASS} "1"
+
+  # now change the password
+  CU_ACTION="Changing password on ${CERTNAME}'s Cert DB"
+  certu -W -d "${PROFILEDIR}" -f "${R_PWFILE}" -@ "${R_FIPSPWFILE}" 2>&1
+
+  # finally make sure we can use the old key with the new password
+  CU_ACTION="Generate Certificate for ${CERTNAME} with new password"
+  CU_SUBJECT="CN=${CERTNAME}, E=password@bogus.com, O=BOGUS NSS, L=Mountain View, ST=California, C=US"
+  certu -S -n PasswordCert -c PasswordCA -t "u,u,u" -d "${PROFILEDIR}" -f "${R_FIPSPWFILE}" -z "${R_NOISE_FILE}" 2>&1
+  if [ "$RET" -eq 0 ]; then
+    cert_log "SUCCESS: PASSORD passed"
+  fi
+  CU_ACTION="Verify Certificate for ${CERTNAME} with new password"
+  certu -V -n PasswordCert -u S -d "${PROFILEDIR}" -f "${R_FIPSPWFILE}" 2>&1
 }
 
 ############################## cert_cleanup ############################
@@ -1406,6 +1408,7 @@ cert_smime_client
 cert_fips
 cert_eccurves
 cert_extensions
+cert_test_password
 
 if [ -z "$NSS_TEST_DISABLE_CRL" ] ; then
     cert_crl_ssl
