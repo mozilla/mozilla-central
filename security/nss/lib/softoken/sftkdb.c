@@ -272,8 +272,8 @@ sftkdb_getAttributeSignature(SFTKDBHandle *handle, SFTKDBHandle *keyHandle,
  *
  * This function stores that pkcs5 signature.
  */
-static CK_RV
-sftkdb_putAttributeSignature(SFTKDBHandle *handle, SDB *keyTarget, 
+CK_RV
+sftkdb_PutAttributeSignature(SFTKDBHandle *handle, SDB *keyTarget, 
 		CK_OBJECT_HANDLE objectID, CK_ATTRIBUTE_TYPE type,
 		SECItem *signText)
 {
@@ -524,7 +524,7 @@ sftk_signTemplate(PLArenaPool *arena, SFTKDBHandle *handle,
 	    if (rv != SECSuccess) {
 		return CKR_GENERAL_ERROR; /* better error code here? */
 	    }
-	    rv = sftkdb_putAttributeSignature(handle, keyTarget, 
+	    rv = sftkdb_PutAttributeSignature(handle, keyTarget, 
 				objectID, template[i].type, signText);
 	    if (rv != SECSuccess) {
 		return CKR_GENERAL_ERROR; /* better error code here? */

@@ -79,5 +79,10 @@ SECStatus sftkdb_VerifyAttribute(SECItem *passKey,
 
 void sftk_ULong2SDBULong(unsigned char *data, CK_ULONG value);
 CK_RV sftkdb_Update(SFTKDBHandle *handle, SECItem *key);
+CK_RV sftkdb_PutAttributeSignature(SFTKDBHandle *handle, 
+		SDB *keyTarget, CK_OBJECT_HANDLE objectID, 
+		CK_ATTRIBUTE_TYPE type, SECItem *signText);
+
+
 
 #endif

@@ -288,8 +288,6 @@ loser:
     return rv;
 }
 
-#define SALT_LENGTH 20
-
 /*
  * encrypt a block. This function returned the encrypted ciphertext which
  * the caller must free. If the caller provides an arena, cipherText will
@@ -304,12 +302,12 @@ sftkdb_EncryptAttribute(PLArenaPool *arena, SECItem *passKey,
     sftkCipherValue cipherValue;
     SECItem *cipher = NULL;
     NSSPKCS5PBEParameter *param = NULL;
-    unsigned char saltData[SALT_LENGTH];
+    unsigned char saltData[HASH_LENGTH_MAX];
 
     cipherValue.alg = SEC_OID_PKCS12_PBE_WITH_SHA1_AND_TRIPLE_DES_CBC;
-    cipherValue.salt.len = SALT_LENGTH;
+    cipherValue.salt.len = SHA1_LENGTH;
     cipherValue.salt.data = saltData;
-    RNG_GenerateGlobalRandomBytes(saltData,SALT_LENGTH);
+    RNG_GenerateGlobalRandomBytes(saltData,cipherValue.salt.len);
 
     param = nsspkcs5_NewParam(cipherValue.alg, &cipherValue.salt, 1);
     if (param == NULL) {
@@ -354,7 +352,7 @@ sftkdb_pbehash(SECOidTag sigOid, SECItem *passKey,
     SECStatus rv = SECFailure;
     SECItem *key = NULL;
     HMACContext *hashCx = NULL;
-    HASH_HashType hashType	= HASH_AlgNULL;
+    HASH_HashType hashType = HASH_AlgNULL;
     const SECHashObject *hashObj;
     unsigned char addressData[SDB_ULONG_SIZE];
 
@@ -673,9 +671,103 @@ sftkdb_PWCached(SFTKDBHandle *keydb)
     return keydb->passwordKey.data ? SECSuccess : SECFailure;
 }
 
-static SECStatus
-sftk_convertPrivateAttributes(SFTKDBHandle *keydb, CK_OBJECT_HANDLE id, 
-	                      SECItem *newKey)
+
+static CK_RV
+sftk_updateMacs(PLArenaPool *arena, SFTKDBHandle *handle,
+		       CK_OBJECT_HANDLE id, SECItem *newKey)
+{
+    CK_RV crv = CKR_OK;
+    CK_RV crv2;
+    CK_ATTRIBUTE authAttrs[] = {
+	{CKA_MODULUS, NULL, 0},
+	{CKA_PUBLIC_EXPONENT, NULL, 0},
+	{CKA_CERT_SHA1_HASH, NULL, 0},
+	{CKA_CERT_MD5_HASH, NULL, 0},
+	{CKA_TRUST_SERVER_AUTH, NULL, 0},
+	{CKA_TRUST_CLIENT_AUTH, NULL, 0},
+	{CKA_TRUST_EMAIL_PROTECTION, NULL, 0},
+	{CKA_TRUST_CODE_SIGNING, NULL, 0},
+	{CKA_TRUST_STEP_UP_APPROVED, NULL, 0},
+	{CKA_NSS_OVERRIDE_EXTENSIONS, NULL, 0},
+    };
+    CK_ULONG authAttrCount = sizeof(authAttrs)/sizeof(CK_ATTRIBUTE);
+    int i, count;
+    SFTKDBHandle *keyHandle = handle;
+    SDB *keyTarget = NULL;
+
+    id &= SFTK_OBJ_ID_MASK;
+
+    if (handle->type != SFTK_KEYDB_TYPE) {
+	keyHandle = handle->peerDB;
+    }
+
+    if (keyHandle == NULL) {
+	return CKR_OK;
+    }
+
+    /* old DB's don't have meta data, finished with MACs */
+    keyTarget = SFTK_GET_SDB(keyHandle);
+    if ((keyTarget->sdb_flags &SDB_HAS_META) == 0) {
+	return CKR_OK;
+    }
+
+    /*
+     * STEP 1: find the MACed attributes of this object 
+     */
+    crv2 = sftkdb_GetAttributeValue(handle, id, authAttrs, authAttrCount);
+    count = 0;
+    /* allocate space for the attributes */
+    for (i=0; i < authAttrCount; i++) {
+	if ((authAttrs[i].ulValueLen == -1) || (authAttrs[i].ulValueLen == 0)){
+	    continue;
+	}
+	count++;
+        authAttrs[i].pValue = PORT_ArenaAlloc(arena,authAttrs[i].ulValueLen);
+	if (authAttrs[i].pValue == NULL) {
+	    crv = CKR_HOST_MEMORY;
+	    break;
+	}
+    }
+
+    /* if count was zero, none were found, finished with MACs */
+    if (count == 0) {
+	return CKR_OK;
+    }
+
+    crv = sftkdb_GetAttributeValue(handle, id, authAttrs, authAttrCount);
+    /* ignore error code, we expect some possible errors */
+
+    /* GetAttributeValue just verified the old macs, safe to write
+     * them out then... */
+    for (i=0; i < authAttrCount; i++) {
+	SECItem *signText;
+	SECItem plainText;
+	SECStatus rv;
+
+	if ((authAttrs[i].ulValueLen == -1) || (authAttrs[i].ulValueLen == 0)){
+	    continue;
+	}
+
+	plainText.data = authAttrs[i].pValue;
+	plainText.len = authAttrs[i].ulValueLen;
+	rv = sftkdb_SignAttribute(arena, newKey, id, 
+			authAttrs[i].type, &plainText, &signText);
+	if (rv != SECSuccess) {
+	    return CKR_GENERAL_ERROR;
+	}
+	rv = sftkdb_PutAttributeSignature(handle, keyTarget, id, 
+				authAttrs[i].type, signText);
+	if (rv != SECSuccess) {
+	    return CKR_GENERAL_ERROR;
+	}
+    }
+
+    return CKR_OK;
+}
+	
+static CK_RV
+sftk_updateEncrypted(PLArenaPool *arena, SFTKDBHandle *keydb,
+		       CK_OBJECT_HANDLE id, SECItem *newKey)
 {
     CK_RV crv = CKR_OK;
     CK_RV crv2;
@@ -689,15 +781,7 @@ sftk_convertPrivateAttributes(SFTKDBHandle *keydb, CK_OBJECT_HANDLE id,
 	{CKA_EXPONENT_2, NULL, 0},
 	{CKA_COEFFICIENT, NULL, 0} };
     CK_ULONG privAttrCount = sizeof(privAttrs)/sizeof(CK_ATTRIBUTE);
-    PLArenaPool *arena = NULL;
     int i, count;
-
-
-    /* get a new arena to simplify cleanup */
-    arena = PORT_NewArena(1024);
-    if (!arena) {
-	return SECFailure;
-    }
 
     /*
      * STEP 1. Read the old attributes in the clear.
@@ -743,24 +827,20 @@ sftk_convertPrivateAttributes(SFTKDBHandle *keydb, CK_OBJECT_HANDLE id,
     }
     if (first == NULL) {
 	/* no valid entries found, return error based on crv2 */
-	/* set error */
-	goto loser;
+	return crv2;
     }
     if (last == NULL) {
 	last = &privAttrs[privAttrCount-1];
     }
     if (crv != CKR_OK) {
-        /* set error */
-	goto loser;
+	return crv;
     }
     /* read the attributes */
     count = (last-first)+1;
     crv = sftkdb_GetAttributeValue(keydb, id, first, count);
     if (crv != CKR_OK) {
-        /* set error */
-	goto loser;
+	return crv;
     }
-
 
     /*
      * STEP 2: read the encrypt the attributes with the new key.
@@ -774,7 +854,7 @@ sftk_convertPrivateAttributes(SFTKDBHandle *keydb, CK_OBJECT_HANDLE id,
 	plainText.len = first[i].ulValueLen;
     	rv = sftkdb_EncryptAttribute(arena, newKey, &plainText, &result);
 	if (rv != SECSuccess) {
-	   goto loser;
+	   return CKR_GENERAL_ERROR;
 	}
 	first[i].pValue = result->data;
 	first[i].ulValueLen = result->len;
@@ -790,28 +870,56 @@ sftk_convertPrivateAttributes(SFTKDBHandle *keydb, CK_OBJECT_HANDLE id,
     keydb->newKey = newKey;
     crv = (*keydb->db->sdb_SetAttributeValue)(keydb->db, id, first, count);
     keydb->newKey = NULL;
+
+    return crv;
+}
+	
+static CK_RV
+sftk_convertAttributes(SFTKDBHandle *handle, 
+			CK_OBJECT_HANDLE id, SECItem *newKey)
+{
+    CK_RV crv = CKR_OK;
+    PLArenaPool *arena = NULL;
+
+    /* get a new arena to simplify cleanup */
+    arena = PORT_NewArena(1024);
+    if (!arena) {
+	return CKR_HOST_MEMORY;
+    }
+
+    /*
+     * first handle the MACS
+     */
+    crv = sftk_updateMacs(arena, handle, id, newKey);
     if (crv != CKR_OK) {
-        /* set error */
 	goto loser;
+    }
+
+    if (handle->type == SFTK_KEYDB_TYPE) {
+	crv = sftk_updateEncrypted(arena, handle, id, newKey);
+	if (crv != CKR_OK) {
+	    goto loser;
+	}
     }
 
     /* free up our mess */
     /* NOTE: at this point we know we've cleared out any unencrypted data */
     PORT_FreeArena(arena, PR_FALSE);
-    return SECSuccess;
+    return CKR_OK;
 
 loser:
     /* there may be unencrypted data, clear it out down */
     PORT_FreeArena(arena, PR_TRUE);
-    return SECFailure;
+    return crv;
 }
 
 
 /*
  * must be called with the old key active.
  */
-SECStatus 
-sftkdb_convertPrivateObjects(SFTKDBHandle *keydb, SECItem *newKey)
+CK_RV
+sftkdb_convertObjects(SFTKDBHandle *handle, CK_ATTRIBUTE *template, 
+			CK_ULONG count, SECItem *newKey)
 {
     SDBFind *find = NULL;
     CK_ULONG idCount = SFTK_MAX_IDS;
@@ -819,31 +927,21 @@ sftkdb_convertPrivateObjects(SFTKDBHandle *keydb, SECItem *newKey)
     CK_RV crv, crv2;
     int i;
 
-    /* find all the private objects */
-    crv = sftkdb_FindObjectsInit(keydb, NULL, 0, &find);
+    crv = sftkdb_FindObjectsInit(handle, template, count, &find);
 
     if (crv != CKR_OK) {
-	/* set error */
-	return SECFailure;
+	return crv;
     }
     while ((crv == CKR_OK) && (idCount == SFTK_MAX_IDS)) {
-	crv = sftkdb_FindObjects(keydb, find, ids, SFTK_MAX_IDS, &idCount);
+	crv = sftkdb_FindObjects(handle, find, ids, SFTK_MAX_IDS, &idCount);
 	for (i=0; (crv == CKR_OK) && (i < idCount); i++) {
-	    SECStatus rv;
-	    rv = sftk_convertPrivateAttributes(keydb, ids[i], newKey);
-	    if (rv != SECSuccess) {
-		crv = CKR_GENERAL_ERROR;
-		/* error should be already set here */
-	    }
+	    crv = sftk_convertAttributes(handle, ids[i], newKey);
 	}
     }
-    crv2 = sftkdb_FindObjectsFinal(keydb, find);
+    crv2 = sftkdb_FindObjectsFinal(handle, find);
     if (crv == CKR_OK) crv = crv2;
-    if (crv != CKR_OK) {
-	/* set error */
-	return SECFailure;
-    }
-    return SECSuccess;
+
+    return crv;
 }
 
 
@@ -858,6 +956,7 @@ sftkdb_ChangePassword(SFTKDBHandle *keydb, char *oldPin, char *newPin)
     SECItem newKey;
     SECItem *result = NULL;
     SECItem salt, value;
+    SFTKDBHandle *certdb;
     unsigned char saltData[SDB_MAX_META_DATA_LEN];
     unsigned char valueData[SDB_MAX_META_DATA_LEN];
     CK_RV crv;
@@ -904,10 +1003,32 @@ sftkdb_ChangePassword(SFTKDBHandle *keydb, char *oldPin, char *newPin)
     /*
      * convert encrypted entries here.
      */
-    rv = sftkdb_convertPrivateObjects(keydb, &newKey);
-    if (rv != SECSuccess) {
+    crv = sftkdb_convertObjects(keydb, NULL, 0, &newKey);
+    if (crv != CKR_OK) {
+	rv = SECFailure;
 	goto loser;
     }
+    /* fix up certdb macs */
+    certdb = keydb->peerDB;
+    if (certdb) {
+	CK_ATTRIBUTE objectType = { CKA_CLASS, 0, sizeof(CK_OBJECT_CLASS) };
+	CK_OBJECT_CLASS myClass = CKO_NETSCAPE_TRUST;
+
+	objectType.pValue = &myClass;
+	crv = sftkdb_convertObjects(certdb, &objectType, 1, &newKey);
+	if (crv != CKR_OK) {
+	    rv = SECFailure;
+	    goto loser;
+	}
+	myClass = CKO_PUBLIC_KEY;
+	crv = sftkdb_convertObjects(certdb, &objectType, 1, &newKey);
+	if (crv != CKR_OK) {
+	    rv = SECFailure;
+	    goto loser;
+	}
+    }
+
+
     plainText.data = (unsigned char *)SFTK_PW_CHECK_STRING;
     plainText.len = SFTK_PW_CHECK_LEN;
 
