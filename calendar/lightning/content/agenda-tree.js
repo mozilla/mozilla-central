@@ -335,7 +335,7 @@ function agendaDoubleClick(event)
     var calEvent = this.events[row];
 
     if (!calEvent) { // Clicked in empty space, just create a new event
-        createEventWithDialog(calendar, today(), today());
+        createEventWithDialog(calendar, today());
         return;
     }
     if (!this.isContainer(row)) { // Clicked on a task/event, edit it
@@ -343,12 +343,12 @@ function agendaDoubleClick(event)
         modifyEventWithDialog(eventToEdit);
     } else { // Clicked on a container, create an event that day
         if (calEvent == this.today) {
-            createEventWithDialog(calendar, today(), today());
+            createEventWithDialog(calendar, today());
         } else {
             var tom = today().clone();
             var offset = (calEvent == this.tomorrow) ? 1 : 2;
             tom.day += offset;
-            createEventWithDialog(calendar, tom, tom);
+            createEventWithDialog(calendar, tom);
         }
     }
 }
