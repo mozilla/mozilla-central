@@ -1350,13 +1350,19 @@ sdb_init(char *dbname, char *table, sdbDataType type, int *inUpdate,
             error = sdb_mapSQLError(type, sqlerr); 
 	    goto loser;
 	}
-    } else {
-	/* if the nssInit table exists, then someone else is initing the
-	 * nss database. We don't want to complete the open until the init 
-	 * is completed. */
-	if (tableExists(sqlDB,"nssInUpdate")) {
-	   *inUpdate = 1;
-	}
+    }
+    /*
+     * detect the case where we have created the database, but have
+     * not yet updated it.
+     *
+     * We only check the Key database because only the key database has
+     * a metaData table. The metaData table is created when a password
+     * is set, or in the case of update, when a password is supplied.
+     * If no key database exists, then the update would have happened immediately
+     * on noticing that the cert database didn't exist (see newInit set above).
+     */
+    if (type == SDB_KEY && !tableExists(sqlDB, "metaData")) {
+	*newInit = 1;
     }
     sdb = (SDB *) malloc(sizeof(SDB));
     sdb_p = (SDBPrivate *) malloc(sizeof(SDBPrivate));
@@ -1392,11 +1398,6 @@ sdb_init(char *dbname, char *table, sdbDataType type, int *inUpdate,
 	    goto loser;
 	}
 	inTransaction = 0;
-    }
-    if (*inUpdate) {
-	while (tableExists(sqlDB,"nssInit")) {
-	    PR_Sleep(5);
-	}
     }
 #ifdef SQLITE_THREAD_SHARE_DB
     sdb_p->sqlXactDB = sqlDB;
