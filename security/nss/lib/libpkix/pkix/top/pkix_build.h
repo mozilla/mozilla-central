@@ -124,6 +124,7 @@ struct PKIX_ForwardBuilderStateStruct{
         PKIX_Boolean alreadyTriedAIA;
         PKIX_Boolean revChecking;
         PKIX_Boolean usingHintCerts;
+        PKIX_Boolean certLoopingDetected;
         PKIX_PL_Date *validityDate;
         PKIX_PL_Cert *prevCert;
         PKIX_PL_Cert *candidateCert;

@@ -103,6 +103,7 @@ pkix_ForwardBuilderState_Destroy(
         state->alreadyTriedAIA = PKIX_FALSE;
         state->revChecking = PKIX_FALSE;
         state->usingHintCerts = PKIX_FALSE;
+        state->certLoopingDetected = PKIX_FALSE;
         PKIX_DECREF(state->validityDate);
         PKIX_DECREF(state->prevCert);
         PKIX_DECREF(state->candidateCert);
@@ -239,6 +240,7 @@ pkix_ForwardBuilderState_Create(
         state->alreadyTriedAIA = PKIX_FALSE;
         state->revChecking = PKIX_FALSE;
         state->usingHintCerts = PKIX_FALSE;
+        state->certLoopingDetected = PKIX_FALSE;
 
         PKIX_INCREF(validityDate);
         state->validityDate = validityDate;
@@ -1075,7 +1077,6 @@ pkix_Build_VerifyCertificate(
         *pTrusted = trusted;
 
         /* check for loops */
-
         PKIX_CHECK(pkix_List_Contains
                 (state->trustChain,
                 (PKIX_PL_Object *)candidateCert,
@@ -1094,9 +1095,12 @@ pkix_Build_VerifyCertificate(
                                 PKIX_VERIFYNODESETERRORFAILED);
                         PKIX_DECREF(verifyError);
                 }
-                /* Even if error logged, still need to abort */
-                PKIX_ERROR
-                    (PKIX_LOOPDISCOVEREDDUPCERTSNOTALLOWED);
+                /* Even if error logged, still need to abort
+                 * if cert is not trusted. */
+                if (!trusted) {
+                        PKIX_ERROR(PKIX_LOOPDISCOVEREDDUPCERTSNOTALLOWED);
+                }
+                state->certLoopingDetected = PKIX_TRUE;
         }
 
         if (userCheckers != NULL) {
@@ -2746,6 +2750,10 @@ pkix_BuildForwardDepthFirstSearch(
                                         PKIX_VERIFYNODEADDTOTREEFAILED);
                                 PKIX_DECREF(verifyNode);
                             }
+                            if (state->certLoopingDetected) {
+                                PKIX_ERROR
+                                    (PKIX_LOOPDISCOVEREDDUPCERTSNOTALLOWED);
+                            }
                             state->status = BUILD_GETNEXTCERT;
                     } else if (needsCRLChecking) {
                             state->status = BUILD_CRLPREP;
@@ -2823,6 +2831,10 @@ pkix_BuildForwardDepthFirstSearch(
                             PKIX_DECREF(verifyNode);
                     }
                     PKIX_DECREF(verifyError);
+                    if (state->certLoopingDetected) {
+                            PKIX_ERROR
+                                (PKIX_LOOPDISCOVEREDDUPCERTSNOTALLOWED);
+                    }
                     state->status = BUILD_GETNEXTCERT;
                 } else {
                     state->status = BUILD_DATEPREP;
@@ -2905,6 +2917,10 @@ pkix_BuildForwardDepthFirstSearch(
                      * If chain doesn't validate with a trusted Cert,
                      * adding more Certs to it can't help.
                      */
+                    if (state->certLoopingDetected) {
+                            PKIX_ERROR
+                                (PKIX_LOOPDISCOVEREDDUPCERTSNOTALLOWED);
+                    }
                     state->status = BUILD_GETNEXTCERT;
             }
 
