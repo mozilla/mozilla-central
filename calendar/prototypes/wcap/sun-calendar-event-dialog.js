@@ -1702,20 +1702,11 @@ function saveItem() {
 }
 
 function onCommandSave() {
-    var progress = document.getElementById("statusbar-progress");
-    progress.setAttribute("mode", "undetermined");
-
     var originalItem = window.calendarItem;
     var item = saveItem();
     var calendar = document.getElementById("item-calendar")
                            .selectedItem.calendar;
     window.onAcceptCallback(item, calendar, originalItem);
-
-    var callback = function onCommandSave_callback() {
-        progress.setAttribute("mode", "normal");
-    }
-    setTimeout(callback, 1000);
-
     item.makeImmutable();
     window.calendarItem = item;
 }

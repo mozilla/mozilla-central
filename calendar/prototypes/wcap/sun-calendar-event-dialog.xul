@@ -937,12 +937,6 @@
                    collapsed="true"
                    value="high"/>
         </statusbarpanel>
-        <statusbarpanel class="statusbarpanel-progress">
-            <progressmeter id="statusbar-progress"
-                           class="progressmeter-statusbar"
-                           mode="normal"
-                           value="0"/>
-        </statusbarpanel>
     </statusbar>
 
     <popupset id="event-dialog-popupset">
