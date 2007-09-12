@@ -23,6 +23,7 @@
  *   ArentJan Banck <ajbanck@planet.nl>
  *   Matthew Willis <mattwillis@gmail.com>
  *   Stefan Sitter <ssitter@googlemail.com>
+ *   Martin Schroeder <mschroeder@mozilla.x-home.org>
  *
  * Alternatively, the contents of this file may be used under the terms of
  * either the GNU General Public License Version 2 or later (the "GPL"), or
@@ -67,6 +68,14 @@ var gCategoriesPane = {
 
         var categories = document.getElementById("calendar.categories.names").value;
         gCategoryList = categories.split(",");
+        
+        // When categories is empty, split returns an array containing one empty
+        // string, rather than an empty array. This results in an empty listbox
+        // child with no corresponding category.
+        if (gCategoryList.length == 1 && !gCategoryList[0].length) {
+            gCategoryList.pop();
+        }
+
         this.updateCategoryList();
     },
 

@@ -20,6 +20,7 @@
  * Contributor(s):
  *   Michael Buettner <michael.buettner@sun.com>
  *   Philipp Kewisch <mozilla@kewis.ch>
+ *   Martin Schroeder <mschroeder@mozilla.x-home.org>
  *
  * Alternatively, the contents of this file may be used under the terms of
  * either the GNU General Public License Version 2 or later (the "GPL"), or
@@ -317,19 +318,15 @@ function loadDialog(item) {
     }
 
     // Categories
-    var categoriesString = "Anniversary,Birthday,Business,Calls,Clients," +
-                           "Competition,Customer,Favorites,Follow up,Gifts," +
-                           "Holidays,Ideas,Issues,Miscellaneous,Personal," +
-                           "Projects,Public Holiday,Status,Suppliers,Travel," +
-                           "Vacation";
-    try {
-        var categories = getLocalizedPref("calendar.categories.names");
-        if (categories && categories != "") {
-            categoriesString = categories;
-        }
-    } catch (ex) {
-    }
+    var categoriesString = getLocalizedPref("calendar.categories.names", "");
     var categoriesList = categoriesString.split(",");
+    
+    // When categoriesString is empty, split returns an array containing one
+    // empty string, rather than an empty array. This results in an empty
+    // menulist item with no corresponding category.
+    if (categoriesList.length == 1 && !categoriesList[0].length) {
+        categoriesList.pop();
+    }
 
     // insert the category already in the menulist so it doesn't get lost
     var itemCategory = item.getProperty("CATEGORIES");
@@ -357,7 +354,7 @@ function loadDialog(item) {
                                                   categoriesList[i]);
         catItem.value = categoriesList[i];
         if (itemCategory && categoriesList[i] == itemCategory) {
-            indexToSelect = parseInt(i)+1;  // Add 1 because of 'None'
+            indexToSelect = parseInt(i) + 1;  // Add 1 because of 'None'
         }
     }
 
