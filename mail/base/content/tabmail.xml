@@ -387,19 +387,19 @@
               getService(Components.interfaces.nsIPrefBranch2);
 
           try {
-            this.mTabMinWidth = pb2.getIntPref("browser.tabs.tabMinWidth");
+            this.mTabMinWidth = pb2.getIntPref("mail.tabs.tabMinWidth");
           } catch (e) {
           }
           try {
-            this.mTabMaxWidth = pb2.getIntPref("browser.tabs.tabMaxWidth");
+            this.mTabMaxWidth = pb2.getIntPref("mail.tabs.tabMaxWidth");
           } catch (e) {
           }
           try {
-            this.mTabClipWidth = pb2.getIntPref("browser.tabs.tabClipWidth");
+            this.mTabClipWidth = pb2.getIntPref("mail.tabs.tabClipWidth");
           } catch (e) {
           }
           try {
-            this.mCloseButtons = pb2.getIntPref("browser.tabs.closeButtons");
+            this.mCloseButtons = pb2.getIntPref("mail.tabs.closeButtons");
           } catch (e) {
           }
 
@@ -407,7 +407,7 @@
           this.firstChild.maxWidth = this.mTabMaxWidth;
           this.adjustTabstrip();
 
-          pb2.addObserver("browser.tabs.closeButtons", 
+          pb2.addObserver("mail.tabs.closeButtons", 
                           this._prefObserver, false);
 
           window.addEventListener("resize", this, false);
@@ -427,7 +427,7 @@
           var pb2 =
               Components.classes['@mozilla.org/preferences-service;1'].
               getService(Components.interfaces.nsIPrefBranch2);
-          pb2.removeObserver("browser.tabs.closeButtons", this._prefObserver);
+          pb2.removeObserver("mail.tabs.closeButtons", this._prefObserver);
 
           // Release timer to avoid reference cycles.
           if (this._animateTimer) {
@@ -457,9 +457,9 @@
         {
           if (topic == "nsPref:changed") {
             switch (data) {
-            case "browser.tabs.closeButtons":
+            case "mail.tabs.closeButtons":
               subject.QueryInterface(Components.interfaces.nsIPrefBranch);
-              this.tabbox.mCloseButtons = subject.getIntPref("browser.tabs.closeButtons");
+              this.tabbox.mCloseButtons = subject.getIntPref("mail.tabs.closeButtons");
               this.tabbox.adjustTabstrip();
               break;
             }

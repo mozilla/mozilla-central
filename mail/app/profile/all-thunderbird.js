@@ -378,3 +378,15 @@ pref("dom.disable_window_status_change",          true);
 
 // For the Empty Junk confirmation dialog
 pref("mail.emptyJunk.dontAskAgain", false);
+
+// Tabs
+pref("mail.tabs.tabMinWidth", 100);
+pref("mail.tabs.tabMaxWidth", 250);
+pref("mail.tabs.tabClipWidth", 140);
+
+// Where to show tab close buttons:
+// 0 - active tab only
+// 1 - all tabs until tabClipWidth is reached, then active tab only
+// 2 - no close buttons
+// 3 - at the end of the tabstrip
+pref("mail.tabs.closeButtons", 1);
