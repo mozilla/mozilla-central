@@ -104,6 +104,11 @@ calWcapCalendar.prototype = {
     },
     notifyError: function calWcapCalendar_notifyError(err, suppressOnError)
     {
+        if (getResultCode(err) == calIErrors.OPERATION_CANCELLED) {
+            // be mild, and state a warning for cancelled operations:
+            logWarning(err, this);
+            return;
+        }
         debugger;
         var msg = logError(err, this);
         if (!suppressOnError) {
@@ -162,15 +167,17 @@ calWcapCalendar.prototype = {
         return (this.m_superCalendar = cal);
     },
     
-    m_bReadOnly: false,
+    m_bReadOnly: undefined,
     get readOnly() {
+        // xxx todo:
+        // read-only if not logged in, this flag is tested quite
+        // early, so don't log in here if not logged in already...
         return (this.m_bReadOnly ||
-                // xxx todo:
-                // read-only if not logged in, this flag is tested quite
-                // early, so don't log in here if not logged in already...
                 !this.session.isLoggedIn ||
                 // limit to write permission on components:
-                !this.checkAccess(calIWcapCalendar.AC_COMP_WRITE));
+                !this.checkAccess(calIWcapCalendar.AC_COMP_WRITE) ||
+                ((this.m_bReadOnly === undefined) && // has not been explicitly set
+                 !this.isOwnedCalendar));
     },
     set readOnly(bReadOnly) {
         return (this.m_bReadOnly = bReadOnly);
