@@ -56,7 +56,7 @@ $xml = new Xml();
 // Check to see if the user is explicitly requesting an update.  If they are,
 // skip throttling.  If they aren't, and throttling is enabled, randomly serve
 // updates based on the configured random seed.
-if ( $_GET['force']!=1 &&
+if ( (empty($_GET['force']) || $_GET['force']!=1) &&
      defined('THROTTLE') && 
      THROTTLE && 
      defined('THROTTLE_LEVEL') &&
