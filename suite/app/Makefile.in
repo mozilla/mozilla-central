@@ -245,6 +245,7 @@ LIBS += -lphexlib
 endif
 
 libs::
+	$(INSTALL) $(topsrcdir)/LICENSE $(DIST)/bin
 	touch $(DIST)/bin/.autoreg
 
 ifneq (,$(filter mac cocoa,$(MOZ_WIDGET_TOOLKIT)))
@@ -279,5 +280,5 @@ clean clobber::
 	rm -rf $(DIST)/$(APP_NAME).app
 endif
 
-libs::
-	$(INSTALL) $(topsrcdir)/LICENSE $(DIST)/bin
+# Anything below the above ifdef won't be included in mac builds. So be very
+# careful what you add here.
