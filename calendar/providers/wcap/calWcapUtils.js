@@ -154,6 +154,19 @@ function log(msg, context, bForce)
         return msg;
 }
 
+function logWarning(err, context)
+{
+    var msg = errorToString(err);
+    var scriptError = Components.classes["@mozilla.org/scripterror;1"]
+                                .createInstance(Components.interfaces.nsIScriptError);
+    scriptError.init(log("warning: " + msg, context, true),
+                     null, null, 0, 0,
+                     Components.interfaces.nsIScriptError.warningFlag,
+                     "component javascript");
+    getConsoleService().logMessage(scriptError);
+    return msg;
+}
+
 function logError(err, context)
 {
     var msg = errorToString(err);
