@@ -1398,9 +1398,7 @@ function cmdNetwork(e)
 
 function cmdNetworks(e)
 {
-    const ns = "http://www.w3.org/1999/xhtml";
-
-    var span = document.createElementNS(ns, "html:span");
+    var span = document.createElementNS(XHTML_NS, "html:span");
 
     span.appendChild(newInlineText(MSG_NETWORKS_HEADA));
 
@@ -1410,7 +1408,7 @@ function cmdNetworks(e)
     for (n in netnames)
     {
         var net = client.networks[netnames[n]];
-        var a = document.createElementNS(ns, "html:a");
+        var a = document.createElementNS(XHTML_NS, "html:a");
         /* Test for an all-SSL network */
         var isSecure = true;
         for (var s in client.networks[netnames[n]].serverList)

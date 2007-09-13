@@ -109,6 +109,8 @@ client.DEFAULT_RESPONSE_CODE = "===";
  */
 client.CONFERENCE_LOW_PASS = 10;
 
+// Namespaces we happen to need:
+const XHTML_NS = "http://www.w3.org/1999/xhtml";
 
 client.viewsArray = new Array();
 client.activityList = new Object();
@@ -964,7 +966,6 @@ function getDefaultFontSize()
     const PREF_CTRID = "@mozilla.org/preferences-service;1";
     const nsIPrefService = Components.interfaces.nsIPrefService;
     const nsIPrefBranch = Components.interfaces.nsIPrefBranch;
-    const XHTML_NS = "http://www.w3.org/1999/xhtml";
 
     var prefSvc = Components.classes[PREF_CTRID].getService(nsIPrefService);
     var prefBranch = prefSvc.getBranch(null);
@@ -2483,8 +2484,7 @@ function newInlineText (data, className, tagName)
     if (typeof tagName == "undefined")
         tagName = "html:span";
 
-    var a = document.createElementNS ("http://www.w3.org/1999/xhtml",
-                                      tagName);
+    var a = document.createElementNS(XHTML_NS, tagName);
     if (className)
         a.setAttribute ("class", className);
 
@@ -2519,8 +2519,7 @@ function newInlineText (data, className, tagName)
 function stringToMsg (message, obj)
 {
     var ary = message.split ("\n");
-    var span = document.createElementNS ("http://www.w3.org/1999/xhtml",
-                                         "html:span");
+    var span = document.createElementNS(XHTML_NS, "html:span");
     var data = getObjectDetails(obj);
 
     if (ary.length == 1)
@@ -2530,9 +2529,7 @@ function stringToMsg (message, obj)
         for (var l = 0; l < ary.length - 1; ++l)
         {
             client.munger.munge(ary[l], span, data);
-            span.appendChild
-                (document.createElementNS ("http://www.w3.org/1999/xhtml",
-                                           "html:br"));
+            span.appendChild(document.createElementNS(XHTML_NS, "html:br"));
         }
         client.munger.munge(ary[l], span, data);
     }
@@ -3075,15 +3072,11 @@ function createMessages(source)
 {
     playEventSounds(source.TYPE, "start");
 
-    source.messages =
-    document.createElementNS ("http://www.w3.org/1999/xhtml",
-                              "html:table");
+    source.messages = document.createElementNS(XHTML_NS, "html:table");
 
     source.messages.setAttribute ("class", "msg-table");
     source.messages.setAttribute ("view-type", source.TYPE);
-    var tbody =
-        document.createElementNS ("http://www.w3.org/1999/xhtml",
-                                  "html:tbody");
+    var tbody = document.createElementNS(XHTML_NS, "html:tbody");
     source.messages.appendChild (tbody);
     source.messageCount = 0;
 }
@@ -3828,8 +3821,7 @@ function __display(message, msgtype, sourceObj, destObj)
     }
 
     // The table row, and it's attributes.
-    var msgRow = document.createElementNS("http://www.w3.org/1999/xhtml",
-                                          "html:tr");
+    var msgRow = document.createElementNS(XHTML_NS, "html:tr");
     msgRow.setAttribute("class", "msg");
     msgRow.setAttribute("msg-type", msgtype);
     msgRow.setAttribute("msg-dest", toAttr);
@@ -3848,8 +3840,7 @@ function __display(message, msgtype, sourceObj, destObj)
         msgTimestamp.setAttribute ("important", "true");
 
     // Timestamp cell.
-    var msgRowTimestamp = document.createElementNS("http://www.w3.org/1999/xhtml",
-                                                   "html:td");
+    var msgRowTimestamp = document.createElementNS(XHTML_NS, "html:td");
     msgRowTimestamp.setAttribute("class", "msg-timestamp");
 
     var canMergeData;
@@ -3931,8 +3922,7 @@ function __display(message, msgtype, sourceObj, destObj)
             this.mark = (("mark" in this) && this.mark == "even") ? "odd" : "even";
         }
 
-        msgRowSource = document.createElementNS("http://www.w3.org/1999/xhtml",
-                                             "html:td");
+        msgRowSource = document.createElementNS(XHTML_NS, "html:td");
         msgRowSource.setAttribute("class", "msg-user");
 
         // Make excessive nicks get shunted.
@@ -3943,9 +3933,7 @@ function __display(message, msgtype, sourceObj, destObj)
             msgRowSource.appendChild(newInlineText(decorSt, "chatzilla-decor"));
         if (nickURL)
         {
-            var nick_anchor =
-                document.createElementNS("http://www.w3.org/1999/xhtml",
-                                         "html:a");
+            var nick_anchor = document.createElementNS(XHTML_NS, "html:a");
             nick_anchor.setAttribute("class", "chatzilla-link");
             nick_anchor.setAttribute("href", nickURL);
             nick_anchor.appendChild(newInlineText(nick));
@@ -3975,8 +3963,7 @@ function __display(message, msgtype, sourceObj, destObj)
         }
 
         /* Display the message code */
-        msgRowType = document.createElementNS("http://www.w3.org/1999/xhtml",
-                                           "html:td");
+        msgRowType = document.createElementNS(XHTML_NS, "html:td");
         msgRowType.setAttribute("class", "msg-type");
 
         msgRowType.appendChild(newInlineText(code));
@@ -3985,8 +3972,7 @@ function __display(message, msgtype, sourceObj, destObj)
 
     if (message)
     {
-        msgRowData = document.createElementNS("http://www.w3.org/1999/xhtml",
-                                           "html:td");
+        msgRowData = document.createElementNS(XHTML_NS, "html:td");
         msgRowData.setAttribute("class", "msg-data");
 
         var tmpMsgs = message;
@@ -4025,22 +4011,18 @@ function __display(message, msgtype, sourceObj, destObj)
     {
         /* putting a div here crashes mozilla, so fake it with nested tables
          * for now */
-        var tr = document.createElementNS ("http://www.w3.org/1999/xhtml",
-                                           "html:tr");
+        var tr = document.createElementNS(XHTML_NS, "html:tr");
         tr.setAttribute ("class", "msg-nested-tr");
-        var td = document.createElementNS ("http://www.w3.org/1999/xhtml",
-                                           "html:td");
+        var td = document.createElementNS(XHTML_NS, "html:td");
         td.setAttribute ("class", "msg-nested-td");
         td.setAttribute ("colspan", "3");
 
         tr.appendChild(td);
-        var table = document.createElementNS ("http://www.w3.org/1999/xhtml",
-                                              "html:table");
+        var table = document.createElementNS(XHTML_NS, "html:table");
         table.setAttribute ("class", "msg-nested-table");
 
         td.appendChild (table);
-        var tbody =  document.createElementNS ("http://www.w3.org/1999/xhtml",
-                                               "html:tbody");
+        var tbody =  document.createElementNS(XHTML_NS, "html:tbody");
 
         tbody.appendChild(msgRow);
         table.appendChild(tbody);
