@@ -47,24 +47,24 @@ LIBRARY_NAME	= suitebrowser_s
 META_COMPONENT  = suite
 
 REQUIRES = \
-	xpcom \
-	string \
+	chardet \
+	content \
 	docshell \
 	dom \
-	content \
 	js \
 	widget \
 	gfx \
+	intl \
 	layout \
+	locale \
 	necko \
 	nkcache \
 	pref \
 	rdf \
+	string \
 	uconv \
-	intl \
 	txmgr \
-	chardet \
-	locale \
+	xpcom \
 	$(NULL)
 
 CPPSRCS = \

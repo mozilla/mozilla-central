@@ -49,22 +49,22 @@ IS_COMPONENT	= 1
 MODULE_NAME	= nsSuiteModule
 
 REQUIRES	= \
-		xpcom \
-		string \
-		xulapp \
-		intl \
-		necko \
+		chardet \
 		dom \
+		intl \
 		libreg \
+		necko \
+		nkcache \
 		pref \
 		rdf \
-		unicharutil \
-		windowwatcher \
+		string \
 		suitebrowser \
 		suitemigration \
-		nkcache \
 		txmgr \
-		chardet \
+		unicharutil \
+		windowwatcher \
+		xpcom \
+		xulapp \
 		$(NULL)
 
 CPPSRCS 	= \
