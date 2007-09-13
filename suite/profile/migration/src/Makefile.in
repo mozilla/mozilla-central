@@ -56,9 +56,9 @@ REQUIRES	= \
 		rdf \
 		unicharutil \
 		windowwatcher \
+		suitebrowser \
 		suiteprofile \
 		xulapp \
-		appcomps \
 		profile \
 		$(NULL)
 
