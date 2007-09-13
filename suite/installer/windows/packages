@@ -519,6 +519,7 @@ bin\chrome\icons\default\chatzilla-window.ico
 [venkman]
 bin\extensions\{f13b157f-b174-47e7-a34d-4815ddfdfeb8}\components\venkman-service.js
 bin\extensions\{f13b157f-b174-47e7-a34d-4815ddfdfeb8}\chrome\venkman.jar
+bin\extensions\{f13b157f-b174-47e7-a34d-4815ddfdfeb8}\chrome.manifest
 bin\extensions\{f13b157f-b174-47e7-a34d-4815ddfdfeb8}\install.rdf
 
 [inspector]
