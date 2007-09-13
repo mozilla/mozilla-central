@@ -235,7 +235,7 @@ void _PR_InitMW(void)
      * We use NT 4's InterlockedCompareExchange() to operate
      * on PRMWStatus variables.
      */
-    PR_ASSERT(sizeof(PVOID) == sizeof(PRMWStatus));
+    PR_ASSERT(sizeof(LONG) == sizeof(PRMWStatus));
     TimerInit();
 #endif
     mw_lock = PR_NewLock();
@@ -668,8 +668,8 @@ static void NT_TimeProc(void *arg)
     PRRecvWait *desc =  overlapped->data.mw.desc;
     PRFileDesc *bottom;
     
-    if (InterlockedCompareExchange((PVOID *)&desc->outcome,
-        (PVOID)PR_MW_TIMEOUT, (PVOID)PR_MW_PENDING) != (PVOID)PR_MW_PENDING)
+    if (InterlockedCompareExchange((LONG *)&desc->outcome,
+        (LONG)PR_MW_TIMEOUT, (LONG)PR_MW_PENDING) != (LONG)PR_MW_PENDING)
     {
         /* This wait recv descriptor has already completed. */
         return;
@@ -849,9 +849,9 @@ PR_IMPLEMENT(PRStatus) PR_AddWaitFileDesc(
     {
         if (desc->timeout != PR_INTERVAL_NO_TIMEOUT)
         {
-            if (InterlockedCompareExchange((PVOID *)&desc->outcome,
-                (PVOID)PR_MW_FAILURE, (PVOID)PR_MW_PENDING)
-                == (PVOID)PR_MW_PENDING)
+            if (InterlockedCompareExchange((LONG *)&desc->outcome,
+                (LONG)PR_MW_FAILURE, (LONG)PR_MW_PENDING)
+                == (LONG)PR_MW_PENDING)
             {
                 CancelTimer(overlapped->data.mw.timer);
             }
@@ -1094,8 +1094,8 @@ PR_IMPLEMENT(PRStatus) PR_CancelWaitFileDesc(PRWaitGroup *group, PRRecvWait *des
     }
 
 #ifdef WINNT
-    if (InterlockedCompareExchange((PVOID *)&desc->outcome,
-        (PVOID)PR_MW_INTERRUPT, (PVOID)PR_MW_PENDING) == (PVOID)PR_MW_PENDING)
+    if (InterlockedCompareExchange((LONG *)&desc->outcome,
+        (LONG)PR_MW_INTERRUPT, (LONG)PR_MW_PENDING) == (LONG)PR_MW_PENDING)
     {
         PRFileDesc *bottom = PR_GetIdentitiesLayer(desc->fd, PR_NSPR_IO_LAYER);
         PR_ASSERT(NULL != bottom);
@@ -1185,9 +1185,9 @@ PR_IMPLEMENT(PRRecvWait*) PR_CancelWaitGroup(PRWaitGroup *group)
     {
         if (NULL != *desc)
         {
-            if (InterlockedCompareExchange((PVOID *)&(*desc)->outcome,
-                (PVOID)PR_MW_INTERRUPT, (PVOID)PR_MW_PENDING)
-                == (PVOID)PR_MW_PENDING)
+            if (InterlockedCompareExchange((LONG *)&(*desc)->outcome,
+                (LONG)PR_MW_INTERRUPT, (LONG)PR_MW_PENDING)
+                == (LONG)PR_MW_PENDING)
             {
                 PRFileDesc *bottom = PR_GetIdentitiesLayer(
                     (*desc)->fd, PR_NSPR_IO_LAYER);
