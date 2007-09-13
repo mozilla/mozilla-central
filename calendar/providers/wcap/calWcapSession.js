@@ -135,6 +135,11 @@ calWcapSession.prototype = {
     },
     notifyError: function calWcapSession_notifyError(err, suppressOnError)
     {
+        if (getResultCode(err) == calIErrors.OPERATION_CANCELLED) {
+            // be mild, and state a warning for cancelled operations:
+            logWarning(err, this);
+            return;
+        }
         debugger;
         var msg = logError(err, this);
         if (!suppressOnError && this.defaultCalendar) {
@@ -529,47 +534,49 @@ calWcapSession.prototype = {
                     // get calprops for all registered calendars:                        
                     var cals = this_.getRegisteredCalendars();
 
+                    var calManager = getCalendarManager();
                     var calprops_resp = null;
                     var defaultCal = this_.defaultCalendar;
-                    if (defaultCal && cals[defaultCal.calId]) { // default calendar is registered
+                    if (defaultCal && cals[defaultCal.calId] && // default calendar is registered
+                        getPref("calendar.wcap.subscriptions", false) &&
+                        !calManager.getCalendarPref(defaultCal, "subscriptions_registered")) {
                         
-                        var calManager = getCalendarManager();
-                        if (!calManager.getCalendarPref(defaultCal, "subscriptions_registered")) {
-                            
-                            var hasSubscriptions = false;
-                            // post register subscribed calendars:
-                            var list = this_.getUserPreferences("X-NSCP-WCAP-PREF-icsSubscribed");
-                            for each (var item in list) {
-                                var ar = item.split(',');
-                                // ',', '$' are not encoded. ',' can be handled here. WTF.
-                                for each (var a in ar) {
-                                    var dollar = a.indexOf('$');
-                                    if (dollar >= 0) {
-                                        var calId = a.substring(0, dollar);
-                                        if (calId != this_.defaultCalId) {
-                                            cals[calId] = null;
-                                            hasSubscriptions = true;
-                                        }
+                        var hasSubscriptions = false;
+                        // post register subscribed calendars:
+                        var list = this_.getUserPreferences("X-NSCP-WCAP-PREF-icsSubscribed");
+                        for each (var item in list) {
+                            var ar = item.split(',');
+                            // ',', '$' are not encoded. ',' can be handled here. WTF.
+                            for each (var a in ar) {
+                                var dollar = a.indexOf('$');
+                                if (dollar >= 0) {
+                                    var calId = a.substring(0, dollar);
+                                    if (calId != this_.defaultCalId) {
+                                        cals[calId] = null;
+                                        hasSubscriptions = true;
                                     }
                                 }
                             }
-
-                            if (hasSubscriptions) {
-                                calprops_resp = function(cal) {
-                                    if (cal.isDefaultCalendar) {
-                                        // tweak name:
-                                        calManager.setCalendarPref(cal, "name", cal.displayName);
-                                    }
-                                    else {
-                                        log("registering subscribed calendar: " + cal.calId, this_);
-                                        calManager.registerCalendar(cal);
-                                    }
+                        }
+                        
+                        if (hasSubscriptions) {
+                            calprops_resp = function(cal) {
+                                if (cal.isDefaultCalendar) {
+                                    // tweak name:
+                                    calManager.setCalendarPref(cal, "name", cal.displayName);
                                 }
-                                // do only once:
-                                calManager.setCalendarPref(defaultCal, "shared_context", this_.m_contextId);
-                                calManager.setCalendarPref(defaultCal, "account_name", defaultCal.name);
-                                calManager.setCalendarPref(defaultCal, "subscriptions_registered", "1");
+                                else {
+                                    log("registering subscribed calendar: " + cal.calId, this_);
+                                    calManager.registerCalendar(cal);
+                                }
                             }
+                            // do only once:
+                            calManager.setCalendarPref(defaultCal,
+                                                       "shared_context", this_.m_contextId);
+                            calManager.setCalendarPref(defaultCal,
+                                                       "account_name", defaultCal.name);
+                            calManager.setCalendarPref(defaultCal,
+                                                       "subscriptions_registered", "1");
                         }
                     }
                     
