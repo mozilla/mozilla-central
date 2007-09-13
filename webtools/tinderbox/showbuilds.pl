@@ -502,43 +502,40 @@ sub print_table_footer($$) {
     my $tree = $form_ref->{tree};
     print "</table>\n";
 
-    # Do not show 'previous hours' links for static pages
-    if (not defined($form_ref->{static})) {
-        # Copy form data into separate hash so that we can modify it
-        # but retain the original url values
-        my %footer_form = %{$form_ref};
-        $footer_form{norules} = 1;
-        $footer_form{legend} = 0;
+    # Copy form data into separate hash so that we can modify it
+    # but retain the original url values
+    my %footer_form = %{$form_ref};
+    $footer_form{norules} = 1;
+    $footer_form{legend} = 0;
+    undef $footer_form{static};
 
-        my $hours = $footer_form{hours} || $::default_hours;
+    my $hours = $footer_form{hours} || $::default_hours;
 
-        $footer_form{maxdate} = $td->{maxdate} - $hours*60*60;
+    $footer_form{maxdate} = $td->{maxdate} - $hours*60*60;
+    print open_showbuilds_href(%footer_form) .
+        "Show previous $hours hours</a><br>";
+
+    if ($hours != 24) {
+        my $save_hours = $footer_form{hours};
+        $footer_form{hours} = 24;
         print open_showbuilds_href(%footer_form) .
-            "Show previous $hours hours</a><br>";
-
-        if ($hours != 24) {
-            my $save_hours = $footer_form{hours};
-            $footer_form{hours} = 24;
-            print open_showbuilds_href(%footer_form) .
-                "Show previous 24 hours</a><br>";
-            $footer_form{hours} = $save_hours;
-        }
-
-        print "Show $hours hours from the previous ";
-        $footer_form{maxdate} = $td->{maxdate} - 24*60*60*7;
-        print open_showbuilds_href(%footer_form) . "1</a>, ";
- 
-        $footer_form{maxdate} = $td->{maxdate} - 24*60*60*7*4;
-        print open_showbuilds_href(%footer_form) . "4</a>, ";
-
-        $footer_form{maxdate} = $td->{maxdate} - 24*60*60*7*12;
-        print open_showbuilds_href(%footer_form) . "12</a>, or ";
-
-        $footer_form{maxdate} = $td->{maxdate} - 24*60*60*7*52;
-        print open_showbuilds_href(%footer_form) . "52</a> weeks.<br>";
-
+            "Show previous 24 hours</a><br>";
+        $footer_form{hours} = $save_hours;
     }
-       
+
+    print "Show $hours hours from the previous ";
+    $footer_form{maxdate} = $td->{maxdate} - 24*60*60*7;
+    print open_showbuilds_href(%footer_form) . "1</a>, ";
+
+    $footer_form{maxdate} = $td->{maxdate} - 24*60*60*7*4;
+    print open_showbuilds_href(%footer_form) . "4</a>, ";
+
+    $footer_form{maxdate} = $td->{maxdate} - 24*60*60*7*12;
+    print open_showbuilds_href(%footer_form) . "12</a>, or ";
+
+    $footer_form{maxdate} = $td->{maxdate} - 24*60*60*7*52;
+    print open_showbuilds_href(%footer_form) . "52</a> weeks.<br>";
+
     print "<p><a href='${rel_path}admintree.cgi?tree=$tree'>" . 
         "Administrate Tinderbox Trees</a><br>\n";
 }
