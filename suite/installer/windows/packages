@@ -32,10 +32,6 @@ bin\defaults\profile\search.rdf
 bin\defaults\profile\mimeTypes.rdf
 bin\defaults\profile\chrome\*
 bin\defaults\messenger\mailViews.dat
-bin\defaults\messenger\Habeas.sfd
-bin\defaults\messenger\SpamAssassin.sfd
-bin\defaults\messenger\SpamCatcher.sfd
-bin\defaults\messenger\SpamPal.sfd
 
 [xpcom]
 bin\js3250.dll
@@ -84,8 +80,6 @@ bin\components\appstartup.xpt
 bin\components\autocomplete.xpt
 bin\components\autoconfig.dll
 bin\components\autoconfig.xpt
-bin\components\bookmark.dll
-bin\components\bookmarks.xpt
 bin\components\caps.dll
 bin\components\caps.xpt
 bin\components\chrome.dll
@@ -165,7 +159,6 @@ bin\components\lwbrk.xpt
 bin\components\mimetype.xpt
 bin\components\mork.dll
 bin\components\mozbrwsr.xpt
-bin\components\mozcomps.xpt
 bin\components\mozfind.dll
 bin\components\mozfind.xpt
 bin\components\necko.dll
@@ -237,10 +230,10 @@ bin\components\xpautoc.dll
 bin\components\xpautocomplete.xpt
 bin\components\xpc3250.dll
 bin\components\xpcom_base.xpt
-bin\components\xpcom_system.xpt
 bin\components\xpcom_components.xpt
 bin\components\xpcom_ds.xpt
 bin\components\xpcom_io.xpt
+bin\components\xpcom_system.xpt
 bin\components\xpcom_thread.xpt
 bin\components\xpcom_xpti.xpt
 bin\components\xpconnect.xpt
@@ -313,8 +306,6 @@ bin\extensions\{972ce4c6-7e08-4474-a285-3208198ce6fd}\preview.png
 bin\chrome\classic\*
 
 ; modern theme
-bin\chrome\modern.jar
-bin\chrome\modern\*
 bin\extensions\modern@themes.mozilla.org\chrome\modern.jar
 bin\extensions\modern@themes.mozilla.org\chrome.manifest
 bin\extensions\modern@themes.mozilla.org\icon.png
@@ -483,29 +474,17 @@ bin\isp\SpamPal.sfd
 
 ; Original items (pre MOZ_XUL_APP=1)
 bin\msgbsutl.dll
-bin\components\addrbook.dll
 bin\components\addrbook.xpt
-bin\components\bayesflt.dll
-bin\components\emitter.dll
 bin\components\mailnews.xpt
-bin\components\mime.dll
 bin\components\mime.xpt
-bin\components\msgbase.dll
 bin\components\msgbase.xpt
-bin\components\msgcompo.dll
 bin\components\msgcompo.xpt
-bin\components\msgdb.dll
 bin\components\msgdb.xpt
-bin\components\msgimap.dll
 bin\components\msgimap.xpt
-bin\components\msglocal.dll
 bin\components\msglocal.xpt
-bin\components\msgnews.dll
 bin\components\msgnews.xpt
 bin\components\msgsearch.xpt
-bin\components\vcard.dll
 ;bin\components\signed.dll
-bin\components\smimestb.dll
 bin\components\import.dll
 bin\components\import.xpt
 bin\components\impComm4xMail.xpt
@@ -518,7 +497,6 @@ bin\chrome\icons\default\abcardWindow.ico
 bin\chrome\icons\default\addressbookWindow.ico
 bin\chrome\icons\default\messengerWindow.ico
 bin\chrome\icons\default\msgcomposeWindow.ico
-bin\components\mailview.dll
 bin\components\mailview.xpt
 bin\components\msgsmime.dll
 bin\components\msgsmime.xpt
@@ -527,8 +505,6 @@ bin\MapiProxy.dll
 bin\mozMapi32.dll
 bin\components\msgMapi.dll
 bin\components\mapihook.xpt
-bin\components\msgmdn.dll
-bin\components\msgmdn.xpt
 bin\components\mdn-service.js
 bin\components\nsSetDefaultMail.js
 bin\components\nsUnsetDefaultMail.js
