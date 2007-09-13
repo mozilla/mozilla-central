@@ -8,6 +8,8 @@
 !define platform {platform}
 !define locale {locale}
 !define osVersion {osVersion}
+!define dist {dist}
+!define distVersion {distVersion}
 
 !1 Patches 
  1 only a complete
@@ -65,7 +67,6 @@
  1 should serve update if build version in uri is newer than build version in *.txt
  2 should serve update if build version in uri is newer than build version in *.txt, fallback channel
  3 should serve update if build version in uri is older than build version in *.txt if using release datasource
-
 |aus.Verify|${host}|${updateVersion}|${product}|${version}|${platform}|${locale}|${osVersion}|
 |build|channel|complete|partial|hasUpdate?|hasComplete?|hasPartial?|isValidXml?|
 |7000000001|channel|complete|partial|true|true|true|true|
@@ -76,6 +77,7 @@
  2 should serve update, regardless of build ID in url or *.txt, if using the release datasource
  3 should serve update if build version in uri is older than build version in *.txt if using release datasource and channel is nightly
 |aus.Verify|${host}|1|${product}|${version}|${platform}|${locale}|NULL|
+|build|channel|complete|partial|hasUpdate?|hasComplete?|hasPartial?|isValidXml?|
 |7000000001|nightly|complete|partial|false|false|false|true|
 |7000000002|nightly|complete|partial|true|true|true|true|
 |7000000003|nightly|complete|partial|true|true|true|true|
@@ -110,3 +112,10 @@
 |1.5.0.5|1100000003|nightly|complete|partial|false|false|false|true|
 |6.0|1100000001|nightly|complete|partial|false|false|false|true|
 
+!1 Dist URLs 
+ 1 complete update works with schema 3
+ 2 complete and partial update works with schema 3
+|aus.Verify|${host}|3|${product}|${version}|${platform}|${locale}|${osVersion}|
+|build|channel|complete|partial|hasUpdate?|hasComplete?|hasPartial?|isValidXml?|
+|1000000001|channel|complete001|partial001|true|true|false|true|
+|1000000002|channel|complete002|partial002|true|true|true|true|

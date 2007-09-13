@@ -27,6 +27,8 @@ class Verify(ColumnFixture):
                "partial": "String",
                "updateType": "String",
                "osVersion": "String",
+               "dist": "String",
+               "distVersion": "String",
                "licenseUrl": "String",
                "lastURI": "String",
                "newURI": "String",
@@ -49,6 +51,8 @@ class Verify(ColumnFixture):
         self.platform = ""
         self.locale = ""
         self.osVersion = ""
+        self.dist = ""
+        self.distVersion = ""
 
         # For storign the last retrieved AUS XML and its URI.
         self.lastURI = ""
@@ -131,7 +135,8 @@ class Verify(ColumnFixture):
         if (self.osVersion != "NULL"):
             return '/'.join((self.host, self.updateVersion, self.product, self.version,     \
                             self.build, self.platform, self.locale,     \
-                            self.channel, self.osVersion, "update.xml"))
+                            self.channel, self.osVersion, self.dist,    \
+                            self.distVersion, "update.xml"))
         else:
              return '/'.join((self.host, self.updateVersion, self.product, self.version,     \
                             self.build, self.platform, self.locale,     \

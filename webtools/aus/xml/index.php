@@ -104,6 +104,17 @@ $clean['locale'] = isset($path[5]) ? trim($path[5]) : null;
 switch ($clean['updateVersion']) {
     
     /*
+     * This is for the fourth revision, adding %DISTRIBUTION% and
+     * %DISTRIBUTION_VERSION%.
+     * /update/3/%PRODUCT%/%VERSION%/%BUILD_ID%/%BUILD_TARGET%/%LOCALE%/%CHANNEL%/%OS_VERSION%/%DISTRIBUTION%/%DISTRIBUTION_VERSION%/update.xml
+     */
+    case 3:
+        // Parse out dist information.  For now, though, we aren't doing
+        // anything with it.
+        $clean['dist'] = isset($path[8]) ? trim($path[8]) : null;
+        $clean['distVersion'] = isset($path[9]) ? trim($path[9]) : null;
+    
+    /*
      * This is for the third revision of the URI schema, with %OS_VERSION%.
      * /update2/2/%PRODUCT%/%VERSION%/%BUILD_ID%/%BUILD_TARGET%/%LOCALE%/%CHANNEL%/%OS_VERSION%/update.xml
      */
