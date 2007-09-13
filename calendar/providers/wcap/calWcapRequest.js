@@ -158,7 +158,7 @@ calWcapRequest.prototype = {
     cancelAllSubRequests: function calWcapRequest_cancelAllSubRequests(status) {
         var attachedRequests = this.m_attachedRequests;
         this.m_attachedRequests = [];
-        attachedRequests.forEach( function(req) { req.cancel(); } );
+        attachedRequests.forEach( function(req) { req.cancel(null); } );
     },
     
     detachFromParent: function calWcapRequest_detachFromParent(err) {
