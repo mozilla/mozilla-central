@@ -97,8 +97,8 @@ class TinderboxMailNotifier(mail.MailNotifier):
                                    builders=builders, relayhost=relayhost,
                                    subject=subject,
                                    extraRecipients=extraRecipients,
-        self.errorparser = errorparser
                                    sendToInterestedUsers=False)
+        self.errorparser = errorparser
         self.tree = tree
         self.binaryURL = binaryURL
         self.logCompression = logCompression
