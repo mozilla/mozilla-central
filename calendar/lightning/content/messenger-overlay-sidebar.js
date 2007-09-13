@@ -458,6 +458,12 @@ function showCalendarView(type)
 {
     gLastShownCalendarView = type;
 
+    if (gCurrentMode != 'calendar') {
+        // This function in turn calls showCalendarView(), so return afterwards.
+        ltnSwitch2Calendar();
+        return;
+    }
+
     // If we got this call while a mail-view is being shown, we need to
     // hide all of the mail stuff so we have room to display the calendar
     var calendarViewBox = document.getElementById("calendar-view-box");

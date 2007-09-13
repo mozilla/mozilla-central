@@ -1,4 +1,3 @@
-/* -*- Mode: javascript; tab-width: 20; indent-tabs-mode: nil; c-basic-offset: 4 -*- */
 /* ***** BEGIN LICENSE BLOCK *****
  * Version: MPL 1.1/GPL 2.0/LGPL 2.1
  *
@@ -20,6 +19,7 @@
  *
  * Contributor(s):
  *   Michael Buettner <michael.buettner@sun.com>
+ *   Philipp Kewisch <mozilla@kewis.ch>
  *
  * Alternatively, the contents of this file may be used under the terms of
  * either the GNU General Public License Version 2 or later (the "GPL"), or
@@ -52,12 +52,35 @@ var gCurrentMode = 'mail';
 
 /**
  * Helper function to get the view deck in a neutral way, regardless of whether
- * we're in Tunderbird 1.x or 2.x
+ * we're in Thunderbird 1.x or 2.x
  */
 function getMailBar() {
   return document.getElementById("mail-bar2") ||
          document.getElementById("mail-bar");
 }
+
+/**
+ * Ensure that switching to the messenger window also switches to mail mode.
+ * We probably should also catch this from other windows (compose, addressbook),
+ * but for now we'll keep it here. This function overrides the toMessengerWindow
+ * function in /mail/base/content/mailCore.js.
+ */
+toMessengerWindow = function ltnToMessengerWindow() {
+    var wm = Components.classes['@mozilla.org/appshell/window-mediator;1']
+             .getService(Components.interfaces.nsIWindowMediator);
+
+    var topWindow = wm.getMostRecentWindow("mail:3pane");
+
+    if (topWindow) {
+        var tomail = topWindow.document.getElementById("switch2mail");
+        tomail.doCommand();
+        topWindow.focus();
+    } else {
+        window.open("chrome://messenger/content/messenger.xul",
+                    "_blank",
+                    "chrome,extrachrome,menubar,resizable,scrollbars,status,toolbar");
+    }
+};
 
 /**
  * ltnSwitch2Mail() switches to the mail mode

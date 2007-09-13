@@ -202,9 +202,8 @@
     <command id="delete_todo_command" oncommand="deleteToDoCommand()" disabled="true"/>
   </commandset>
 
-  <keyset>
-    <key id="openLightningKey" key="3" modifiers="accel"
-         oncommand="ltnMinimonthPick(document.getElementById('ltnMinimonth'))"/>
+  <keyset id="ltnKeys">
+    <key id="openLightningKey" modifiers="accel" key="3" observes="switch2calendar"/>
     <key id="todaypanekey" modifiers="accel" key="D" command="cmd_toggleTodayPane"/>         
   </keyset>
 
