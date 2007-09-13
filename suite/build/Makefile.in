@@ -62,7 +62,9 @@ REQUIRES	= \
 		windowwatcher \
 		suitebrowser \
 		suitemigration \
-		appcomps \
+		nkcache \
+		txmgr \
+		chardet \
 		$(NULL)
 
 CPPSRCS 	= \

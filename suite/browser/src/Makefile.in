@@ -57,14 +57,18 @@ REQUIRES = \
 	gfx \
 	layout \
 	necko \
+	nkcache \
 	pref \
 	rdf \
 	uconv \
 	intl \
-	appcomps \
+	txmgr \
+	chardet \
+	locale \
 	$(NULL)
 
 CPPSRCS = \
+	nsBookmarksService.cpp \
 	nsInternetSearchService.cpp \
 	nsLocalSearchService.cpp \
 	$(NULL)

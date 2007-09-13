@@ -45,6 +45,7 @@
 #include "nsLocalSearchService.h"
 #include "nsIGenericFactory.h"
 #include "nsRDFCID.h"
+#include "nsBookmarksService.h"
 
 #if defined(XP_WIN)
 #include "nsUrlWidget.h"
@@ -61,6 +62,7 @@ NS_GENERIC_FACTORY_CONSTRUCTOR(nsSeamonkeyProfileMigrator)
 NS_GENERIC_FACTORY_CONSTRUCTOR(nsThunderbirdProfileMigrator)
 NS_GENERIC_FACTORY_CONSTRUCTOR_INIT(LocalSearchDataSource, Init)
 NS_GENERIC_FACTORY_CONSTRUCTOR_INIT(InternetSearchDataSource, Init)
+NS_GENERIC_FACTORY_CONSTRUCTOR_INIT(nsBookmarksService, Init)
 
 /////////////////////////////////////////////////////////////////////////////
 
@@ -110,7 +112,22 @@ static const nsModuleComponentInfo components[] = {
   { "Internet Search",
     NS_RDFSEARCHDATASOURCE_CID,
     NS_INTERNETSEARCH_DATASOURCE_CONTRACTID,
-    InternetSearchDataSourceConstructor }
+    InternetSearchDataSourceConstructor },
+
+  { "Bookmarks",
+    NS_BOOKMARKS_SERVICE_CID,
+    NS_BOOKMARKS_SERVICE_CONTRACTID,
+    nsBookmarksServiceConstructor },
+
+  { "Bookmarks",
+    NS_BOOKMARKS_SERVICE_CID,
+    "@mozilla.org/embeddor.implemented/bookmark-charset-resolver;1",
+    nsBookmarksServiceConstructor },
+
+  { "Bookmarks",
+    NS_BOOKMARKS_SERVICE_CID,
+    NS_BOOKMARKS_DATASOURCE_CONTRACTID,
+    nsBookmarksServiceConstructor }
 };
 
 NS_IMPL_NSGETMODULE(SuiteModule, components)
