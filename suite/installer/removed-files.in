@@ -16,9 +16,11 @@ extensions/talkback@mozilla.org/components/talkback.hlp
 extensions/talkback@mozilla.org/InstallDisabled
 #endif
 components/airbag.xpt
+components/@DLL_PREFIX@bookmark@DLL_SUFFIX@
+components/bookmarks.xpt
 components/nsCloseAllWindows.js
 components/nsKillAll.js
 components/search.xpt
-components/srchsvc.dll
+components/@DLL_PREFIX@srchsvc@DLL_SUFFIX@
 components/urlwidgt.xpt
 components/venkman-service.js
