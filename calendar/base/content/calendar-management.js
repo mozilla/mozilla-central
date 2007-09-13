@@ -99,17 +99,6 @@ function loadCalendarManager() {
                       .getService(Ci.nsIPrefService);
     var branch = prefService.getBranch("").QueryInterface(Ci.nsIPrefBranch2);
 
-    calendarListInitColors();
-
-    // Set up the tree view
-    var tree = document.getElementById("calendar-list-tree");
-    calendarListTreeView.tree = tree;
-    tree.view = calendarListTreeView;
-
-    calMgr.addObserver(calendarManagerObserver);
-    composite.addObserver(calendarManagerObserver);
-    branch.addObserver("calendar.", calendarManagerObserver, false);
-
     if (calendars.length == 0) {
         var url = makeURL("moz-profile-calendar://");
         var homeCalendar = calMgr.createCalendar("storage", url);
@@ -127,7 +116,20 @@ function loadCalendarManager() {
         } catch (e) {
             Components.utils.reportError("Migrator error: " + e);
         }
+
+        calendars = [homeCalendar];
     }
+
+    calendarListInitCategoryColors();
+
+    // Set up the tree view
+    var tree = document.getElementById("calendar-list-tree");
+    calendarListTreeView.tree = tree;
+    tree.view = calendarListTreeView;
+
+    calMgr.addObserver(calendarManagerObserver);
+    composite.addObserver(calendarManagerObserver);
+    branch.addObserver("calendar.", calendarManagerObserver, false);
 
     // The calendar manager will not notify for existing calendars. Go through
     // them all and set up manually.
@@ -152,17 +154,11 @@ function unloadCalendarManager() {
  * Color specific functions
  */
 var gCachedStyleSheet;
-function calendarListInitColors() {
+function calendarListInitCategoryColors() {
     var calendars = getCalendarManager().getCalendars({});
     if (!gCachedStyleSheet) {
         var cssUri = "chrome://calendar/content/calendar-view-bindings.css";
         gCachedStyleSheet = getStyleSheet(cssUri);
-    }
-
-    // Update All Calendars
-    for each (var calendar in calendars) {
-        updateStyleSheetForObject(calendar, gCachedStyleSheet);
-        calendarListUpdateColor(calendar);
     }
 
     var prefService = Cc["@mozilla.org/preferences-service;1"]
@@ -513,6 +509,9 @@ var calendarManagerObserver = {
     initializeCalendar: function cMO_initializeCalendar(aCalendar) {
         var calendars = getCalendarManager().getCalendars({});
         calendarListTreeView.addCalendar(aCalendar);
+
+        updateStyleSheetForObject(aCalendar, gCachedStyleSheet);
+        calendarListUpdateColor(aCalendar);
 
         // Watch the calendar for changes, to ensure its visibility when adding
         // or changing items.
