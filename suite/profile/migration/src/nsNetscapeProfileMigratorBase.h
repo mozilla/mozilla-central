@@ -68,10 +68,10 @@ struct fileTransactionEntry {
 #define F(a) nsNetscapeProfileMigratorBase::a
 
 #define MAKEPREFTRANSFORM(pref, newpref, getmethod, setmethod) \
-  { pref, newpref, F(Get##getmethod), F(Set##setmethod), PR_FALSE, -1 }
+  { pref, newpref, F(Get##getmethod), F(Set##setmethod), PR_FALSE, { -1 } }
 
 #define MAKESAMETYPEPREFTRANSFORM(pref, method) \
-  { pref, 0, F(Get##method), F(Set##method), PR_FALSE, -1 }
+  { pref, 0, F(Get##method), F(Set##method), PR_FALSE, { -1 } }
 
 class nsNetscapeProfileMigratorBase : public nsISuiteProfileMigrator,
                                       public nsITimerCallback
@@ -87,8 +87,8 @@ public:
   typedef nsresult(*prefConverter)(PrefTransform*, nsIPrefBranch*);
 
   struct PrefTransform {
-    char*         sourcePrefName;
-    char*         targetPrefName;
+    const char*   sourcePrefName;
+    const char*   targetPrefName;
     prefConverter prefGetterFunc;
     prefConverter prefSetterFunc;
     PRBool        prefHasValue;
