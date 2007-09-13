@@ -34,23 +34,12 @@
  *
  * ***** END LICENSE BLOCK ***** */
 
-treechildren::-moz-tree-cell(calendar-list-tree-checkbox) {
-    -moz-appearance: checkbox;
-    -moz-box-align: center;
-    border: 2px solid;
-    -moz-border-top-colors: ThreeDShadow ThreeDDarkShadow;
-    -moz-border-right-colors: ThreeDHighlight ThreeDLightShadow;
-    -moz-border-bottom-colors: ThreeDHighlight ThreeDLightShadow;
-    -moz-border-left-colors: ThreeDShadow ThreeDDarkShadow;
-    min-width: 13px;
-    min-height: 13px;
-    background: -moz-Field no-repeat 50% 50%;
-    margin: 1px 1px 2px 1px;
-    padding: 0;
+treechildren::-moz-tree-image(calendar-list-tree-checkbox) {
+    list-style-image: url(chrome://calendar/skin/unifinder/checkbox_unchecked.png);
 }
 
 treechildren::-moz-tree-image(calendar-list-tree-checkbox, checked) {
-    list-style-image: url(chrome://global/skin/checkbox/cbox-check.gif);
+    list-style-image: url(chrome://calendar/skin/unifinder/checkbox_checked.png);
 }
 
 treechildren::-moz-tree-cell(color-default) {

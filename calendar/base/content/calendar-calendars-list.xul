@@ -86,7 +86,7 @@
       <treecol id="calendar-list-tree-checkbox"
                cycler="true"
                type="checkbox"
-               width="16"/>
+               width="17"/>
       <treecol id="calendar-list-tree-color" width="16"/>
       <treecol id="calendar-list-tree-calendar"
                label="&calendar.unifinder.tree.calendarname.label;"
