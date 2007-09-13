@@ -550,6 +550,8 @@ nsSeamonkeyProfileMigrator::PrefTransform gTransforms[] = {
   MAKESAMETYPEPREFTRANSFORM("offline.startup_state",                   Int),
 
   MAKESAMETYPEPREFTRANSFORM("permissions.default.image",               Int),
+  MAKESAMETYPEPREFTRANSFORM("plugin.override_internal_types",          Bool),
+  MAKESAMETYPEPREFTRANSFORM("plugin.expose_full_path",                 Bool),
 
   MAKESAMETYPEPREFTRANSFORM("security.default_personal_cert",          String),
   MAKESAMETYPEPREFTRANSFORM("security.enable_ssl2",                    Bool),
