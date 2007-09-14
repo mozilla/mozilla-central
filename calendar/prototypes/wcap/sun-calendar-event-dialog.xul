@@ -609,14 +609,21 @@
 
             <!-- Attendees -->
             <row id="attendee-row" align="center">
-                <label value="&event.attendees.label;"
-                       accesskey="&event.attendees.accesskey;"
-                       control="attendee-list"
-                       disable-on-readonly="true"/>
-                <label id="attendee-list"
-                       class="text-link"
-                       crop="right"
-                       onclick="showAttendeePopup(event)"/>
+              <label value="&event.attendees.label;"
+                     accesskey="&event.attendees.accesskey;"
+                     control="attendee-list"
+                     disable-on-readonly="true"/>
+              <label id="attendee-list"
+                     class="text-link"
+                     crop="right"
+                     onclick="showAttendeePopup(event)"/>
+            </row>
+            <row id="attendee-row-2" align="center">
+              <spacer/>
+              <checkbox id="send-invitations-checkbox"
+                        class="lightning-only"
+                        label="&newevent.attendees.sendEmail.label;"
+                        pack="start"/>
             </row>
 
             <separator class="groove"/>

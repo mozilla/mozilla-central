@@ -424,6 +424,13 @@ function loadDialog(item) {
     // figure out what the title of the dialog should be and set it
     updateTitle();
 
+    var sendInvitesCheckbox = document.getElementById("send-invitations-checkbox");
+    if (item.getProperty("X-MOZ-SEND-INVITATIONS") != null) {
+        sendInvitesCheckbox.checked = (item.getProperty("X-MOZ-SEND-INVITATIONS") == "TRUE");
+    } else {
+        sendInvitesCheckbox.checked = false;
+    }
+
     updateAttendees();
     updateRepeat();
     updateReminder();
@@ -1401,6 +1408,12 @@ function updateCalendar() {
         gIsReadOnly = calendar.readOnly;
     }
 
+    if (calendar.sendItipInvitations) {
+        enableElement("send-invitations-checkbox");
+    } else {
+        disableElement("send-invitations-checkbox");
+    }
+
     // update the accept button
     updateAccept();
 
@@ -1737,13 +1750,17 @@ function saveItem() {
         item.organizer = window.organizer;
     }
 
-    // TODO: we set the array of attendees for the new item
-    // regardless of it being an occurrence or not. probably
-    // this is not correct.
     if (window.attendees) {
         item.removeAllAttendees();
         for each (var attendee in window.attendees) {
            item.addAttendee(attendee);
+        }
+
+        var sendInvitesCheckbox = document.getElementById("send-invitations-checkbox");
+        if (sendInvitesCheckbox.checked) {
+            setItemProperty(item, "X-MOZ-SEND-INVITATIONS", "TRUE");
+        } else {
+            item.deleteProperty("X-MOZ-SEND-INVITATIONS");
         }
     }
 
@@ -2126,10 +2143,13 @@ function browseDocument() {
 function updateAttendees() {
     var regexp = new RegExp("^mailto:(.*)", "i");
     var attendeeRow = document.getElementById("attendee-row");
+    var attendeeRow2 = document.getElementById("attendee-row-2");
     if (!window.attendees || !window.attendees.length) {
         attendeeRow.setAttribute('collapsed', 'true');
+        attendeeRow2.setAttribute('collapsed', 'true');
     } else {
         attendeeRow.removeAttribute('collapsed');
+        attendeeRow2.removeAttribute('collapsed');
         var attendeeNames = "";
         var numAttendees = window.attendees.length;
         for (var i = 0; i < numAttendees; i++) {
