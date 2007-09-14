@@ -98,13 +98,8 @@
 #define POSTHEADER_PREFIX "Content-type: application/x-www-form-urlencoded\r\nContent-Length: "
 #define POSTHEADER_SUFFIX "\r\n\r\n"
 #define SEARCH_PROPERTIES "chrome://communicator/locale/search/search-panel.properties"
-#ifdef MOZ_XUL_APP
 #define SEARCHCONFIG_PROPERTIES "chrome://branding/content/searchconfig.properties"
 #define INTL_PROPERTIES "chrome://global/locale/intl.properties"
-#else
-#define SEARCHCONFIG_PROPERTIES "chrome://navigator/content/searchconfig.properties"
-#define INTL_PROPERTIES "chrome://navigator/locale/navigator.properties"
-#endif
 
 static NS_DEFINE_CID(kTextToSubURICID, NS_TEXTTOSUBURI_CID);
 
@@ -384,9 +379,6 @@ searchModePrefCallback(const char *pref, void *aClosure)
 InternetSearchDataSource::InternetSearchDataSource(void) :
   mBrowserSearchMode(0),
   mEngineListBuilt(PR_FALSE),
-#ifdef MOZ_PHOENIX
-  mReorderedEngineList(PR_FALSE),
-#endif
   mRDFService(do_GetService(NS_RDF_CONTRACTID "/rdf-service;1")),
   mRDFC(do_GetService(NS_RDF_CONTRACTID "/container-utils;1")),
   busySchedule(PR_FALSE)
@@ -877,10 +869,6 @@ InternetSearchDataSource::DeferredInit()
         GetSearchEngineList(dir, PR_FALSE);
       }
     }
-#ifdef MOZ_PHOENIX
-    if (!mReorderedEngineList)
-      ReorderEngineList();
-#endif
   }
 
   // read in category list
@@ -1052,95 +1040,6 @@ InternetSearchDataSource::GetTarget(nsIRDFResource *source,
 
   return(rv);
 }
-
-#ifdef MOZ_PHOENIX
-void
-InternetSearchDataSource::ReorderEngineList()
-{
-  // XXXben - a temporary, inelegant solution to search list ordering until 
-  //          after 1.0 when we replace all of this with something better 
-  //          suited to our needs. 
-  nsresult rv;
-  nsCOMArray<nsIRDFResource> engineList;
-
-  // Load all data for sherlock files...
-  nsCOMPtr<nsISimpleEnumerator> engines;
-  rv = GetTargets(mNC_SearchEngineRoot, mNC_Child, PR_TRUE, getter_AddRefs(engines));
-  if (NS_FAILED(rv)) return; // Not Fatal. 
-
-  do {
-    PRBool hasMore;
-    engines->HasMoreElements(&hasMore);
-    if (!hasMore)
-      break;
-
-    nsCOMPtr<nsISupports> supp;
-    engines->GetNext(getter_AddRefs(supp));
-    nsCOMPtr<nsIRDFResource> engineResource(do_QueryInterface(supp));
-
-    nsCOMPtr<nsIRDFLiteral> data;
-    FindData(engineResource, getter_AddRefs(data));
-  }
-  while (PR_TRUE);
-
-  // Build the ordered items first...
-  nsCOMPtr<nsIPrefBranch> pserv(do_GetService(NS_PREFSERVICE_CONTRACTID));
-  char prefNameBuf[1096];
-  PRInt32 i = 0; 
-  do {
-    ++i;
-    sprintf(prefNameBuf, "browser.search.order.%d", i);
-
-    nsCOMPtr<nsIPrefLocalizedString> engineName;
-    rv = pserv->GetComplexValue(prefNameBuf, 
-                                NS_GET_IID(nsIPrefLocalizedString),
-                                getter_AddRefs(engineName));
-    if (NS_FAILED(rv)) break;
-
-    nsString data;
-    engineName->GetData(getter_Copies(data));
-
-    nsCOMPtr<nsIRDFLiteral> engineNameLiteral;
-    mRDFService->GetLiteral(data, getter_AddRefs(engineNameLiteral));
-
-    nsCOMPtr<nsIRDFResource> engineResource;
-    rv = mInner->GetSource(mNC_Name, engineNameLiteral, PR_TRUE, getter_AddRefs(engineResource));
-    if (NS_FAILED(rv)) continue;
-
-    engineList.AppendObject(engineResource);
-  }
-  while (PR_TRUE);
-
-  // Now add the rest...
-  rv = GetTargets(mNC_SearchEngineRoot, mNC_Child, PR_TRUE, getter_AddRefs(engines));
-  if (NS_FAILED(rv)) return; // Not Fatal. 
-
-  do {
-    PRBool hasMore;
-    engines->HasMoreElements(&hasMore);
-    if (!hasMore)
-      break;
-
-    nsCOMPtr<nsISupports> supp;
-    engines->GetNext(getter_AddRefs(supp));
-    nsCOMPtr<nsIRDFResource> engineResource(do_QueryInterface(supp));
-
-    if (engineList.IndexOfObject(engineResource) == -1) 
-      engineList.AppendObject(engineResource);
-
-    // Unhook the item from the list, so we can rebuild it in the right
-    // order. Failures are benign.
-    Unassert(mNC_SearchEngineRoot, mNC_Child, engineResource);
-  }
-  while (PR_TRUE);
-
-  PRInt32 engineCount = engineList.Count();
-  for (i = 0; i < engineCount; ++i)
-    Assert(mNC_SearchEngineRoot, mNC_Child, engineList[i], PR_TRUE);
-
-  mReorderedEngineList = PR_TRUE;
-}
-#endif
 
 NS_IMETHODIMP
 InternetSearchDataSource::GetTargets(nsIRDFResource *source,

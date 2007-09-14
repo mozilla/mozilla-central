@@ -49,7 +49,7 @@
 #include "nsITimer.h"
 #include "nsIRDFNode.h"
 #include "nsIBookmarksService.h"
-#include "nsStringGlue.h"
+#include "nsStringAPI.h"
 #include "nsIFile.h"
 #include "nsIObserver.h"
 #include "nsWeakReference.h"

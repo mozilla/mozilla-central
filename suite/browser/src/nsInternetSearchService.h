@@ -63,10 +63,6 @@ private:
   PRInt32 mBrowserSearchMode;
   PRBool  mEngineListBuilt;
 
-#ifdef MOZ_PHOENIX
-  PRBool mReorderedEngineList;
-#endif
-
   // pseudo-constants
   nsCOMPtr<nsIRDFResource> mNC_SearchResult;
   nsCOMPtr<nsIRDFResource> mNC_SearchEngineRoot;
@@ -179,9 +175,6 @@ protected:
   nsresult  filterSite(nsIRDFResource *src);
   nsresult  clearFilters(void);
   PRBool    isSearchResultFiltered(const nsString &href);
-#ifdef MOZ_PHOENIX
-  void      ReorderEngineList();
-#endif
 
 static  void    FireTimer(nsITimer* aTimer, void* aClosure);
 
