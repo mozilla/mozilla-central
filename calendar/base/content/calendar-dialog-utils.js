@@ -21,6 +21,7 @@
  * Contributor(s):
  *   Stuart Parmenter <stuart.parmenter@oracle.com>
  *   Michael Buettner <michael.buettner@sun.com>
+ *   Stefan Sitter <ssitter@gmail.com>
  *
  * Alternatively, the contents of this file may be used under the terms of
  * either the GNU General Public License Version 2 or later (the "GPL"), or
@@ -692,41 +693,37 @@ function loadReminder(item) {
     }
 
     // try to match the reminder setting with the available popup items
+    var origin = "1";
+    if (item.alarmRelated == Ci.calIItemBase.ALARM_RELATED_END) {
+        origin = "-1";
+    }
+    var duration = item.alarmOffset.clone();
+    var relation = "END";
+    if (duration.isNegative) {
+        duration.isNegative = false;
+        duration.normalize();
+        relation = "START";
+    }
     var matchingItem = null;
     var menuItems = reminderPopup.getElementsByTagName("menuitem");
     var numItems = menuItems.length;
     for (var i=0; i<numItems; i++) {
         var menuitem = menuItems[i];
         if (menuitem.hasAttribute("length")) {
-            var origin = "1";
-            if (item.alarmRelated == Ci.calIItemBase.ALARM_RELATED_END) {
-                origin = "-1";
-            }
-            var duration = item.alarmOffset.clone();
-            var relation = "END";
-            if (duration.isNegative) {
-                duration.isNegative = false;
-                duration.normalize();
-                relation = "START";
-            }
             if (menuitem.getAttribute("origin") == origin &&
                 menuitem.getAttribute("relation") == relation) {
                 var unit = menuitem.getAttribute("unit");
                 var length = menuitem.getAttribute("length");
-                if (unit == "days" &&
-                    item.alarmOffset.weeks * 7 == length) {
-                    matchingItem = menuitem;
-                    break;
-                } else if (unit == "days" &&
-                           item.alarmOffset.days == length) {
-                    matchingItem = menuitem;
-                    break;
-                } else if (unit == "hours" &&
-                           item.alarmOffset.hours == length) {
-                    matchingItem = menuitem;
-                    break;
-                } else if (unit == "minutes" &&
-                           item.alarmOffset.minutes == length) {
+                if (unit == "days") {
+                    length = length * 60 * 60 * 24;
+                } else if (unit == "hours") {
+                    length = length * 60 * 60;
+                } else if (unit == "minutes") {
+                    length = length * 60;
+                } else {
+                    continue;
+                }
+                if (duration.inSeconds == length) {
                     matchingItem = menuitem;
                     break;
                 }
