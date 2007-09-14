@@ -336,7 +336,11 @@ function isRestricted( url )
     var uriFixup = Components.classes["@mozilla.org/docshell/urifixup;1"]
                              .getService(nsIURIFixup);
     var url = uriFixup.createFixupURI(url, nsIURIFixup.FIXUP_FLAG_NONE);
-    return url.schemeIs("javascript") || url.schemeIs("data");
+    const URI_INHERITS_SECURITY_CONTEXT =
+        Components.interfaces.nsIProtocolHandler.URI_INHERITS_SECURITY_CONTEXT;
+    return Components.classes["@mozilla.org/network/util;1"]
+                     .getService(Components.interfaces.nsINetUtil)
+                     .URIChainHasFlags(url, URI_INHERITS_SECURITY_CONTEXT);
   } catch (e) {
     return false;
   }
@@ -360,13 +364,13 @@ function openTopWin( url, opener )
     var topWindowOfType = getTopWin();
     if ( topWindowOfType )
     {
-        if (opener && topWindowOfType.content == opener.top)
+        if (!opener || !isRestricted(url))
+            topWindowOfType.loadURI(url);
+        else if (topWindowOfType.content == opener.top)
             opener.open(url, "_top");
-        else if (opener && isRestricted(url))
+        else
             topWindowOfType.getBrowser().loadURIWithFlags(url,
                 Components.interfaces.nsIWebNavigation.LOAD_FLAGS_FROM_EXTERNAL);
-        else
-            topWindowOfType.loadURI(url);
 
         topWindowOfType.content.focus();
         return topWindowOfType;

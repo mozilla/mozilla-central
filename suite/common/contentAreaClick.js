@@ -171,7 +171,7 @@
           
         if (saveModifier) {                                           // if saveModifier is down
           saveURL(href, gatherTextUnder(linkNode), "SaveLinkTitle",
-                  false, getReferrer(linkNode.ownerDocument));
+                  false, linkNode.ownerDocument.documentURIObject);
           return true;
         }
         if (event.altKey)                                             // if alt is down

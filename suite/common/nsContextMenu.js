@@ -664,18 +664,21 @@ nsContextMenu.prototype = {
     },
     // Reload image
     reloadImage : function () {
-        urlSecurityCheck( this.imageURL, document );
+        urlSecurityCheck( this.target.nodePrincipal, this.imageURL,
+                          Components.interfaces.nsIScriptSecurityManager.ALLOW_CHROME );
         if (this.target instanceof Components.interfaces.nsIImageLoadingContent)
           this.target.forceReload();
     },
     // Change current window to the URL of the image.
     viewImage : function () {
-        urlSecurityCheck( this.imageURL, document );
+        urlSecurityCheck( this.target.nodePrincipal, this.imageURL,
+                          Components.interfaces.nsIScriptSecurityManager.ALLOW_CHROME );
         openTopWin( this.imageURL, this.target.ownerDocument.defaultView );
     },
     // Change current window to the URL of the background image.
     viewBGImage : function () {
-        urlSecurityCheck( this.bgImageURL, document );
+        urlSecurityCheck( this.target.nodePrincipal, this.bgImageURL,
+                          Components.interfaces.nsIScriptSecurityManager.ALLOW_CHROME );
         openTopWin( this.bgImageURL, this.target.ownerDocument.defaultView );
     },
     setWallpaper: function() {
@@ -706,12 +709,12 @@ nsContextMenu.prototype = {
     // Save URL of clicked-on link.
     saveLink : function () {
         saveURL( this.linkURL(), this.linkText(), null, true,
-                 getReferrer(this.target.ownerDocument) );
+                 this.target.ownerDocument.documentURIObject );
     },
     // Save URL of clicked-on image.
     saveImage : function () {
         saveImageURL( this.imageURL, null, "SaveImageTitle", false,
-                      getReferrer(this.target.ownerDocument) );
+                      this.target.ownerDocument.documentURIObject );
     },
     // Generate email address.
     getEmail : function () {

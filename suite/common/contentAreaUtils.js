@@ -52,16 +52,14 @@ function isContentFrame(aFocusedWindow)
   return (aFocusedWindow.top == window.content);
 }
 
-function urlSecurityCheck(url, doc)
+function urlSecurityCheck(aPrincipal, aURI, aFlags)
 {
   // URL Loading Security Check
-  var focusedWindow = doc.commandDispatcher.focusedWindow;
-  var sourceURL = getContentFrameURI(focusedWindow);
   const nsIScriptSecurityManager = Components.interfaces.nsIScriptSecurityManager;
   var secMan = Components.classes["@mozilla.org/scriptsecuritymanager;1"]
                          .getService(nsIScriptSecurityManager);
   try {
-    secMan.checkLoadURIStr(sourceURL, url, nsIScriptSecurityManager.STANDARD);
+    secMan.checkLoadURIStrWithPrincipal(aPrincipal, aURI, aFlags);
   } catch (e) {
     throw "Load of " + url + " denied.";
   }
@@ -78,21 +76,6 @@ function getContentFrameDocument(aFocusedWindow)
   var contentFrame = isContentFrame(aFocusedWindow) ?
                        aFocusedWindow : window.content;
   return contentFrame.document;
-}
-
-function getReferrer(doc)
-{
-  if (!doc)
-    return null;
-
-  if (doc == document) // compatibility
-    doc = getContentFrameDocument(document.commandDispatcher.focusedWindow);
-
-  try {
-    return makeURI(doc.location.href, doc.characterSet);
-  } catch (e) {
-    return null;
-  }
 }
 
 function openAsExternal(aURL)
@@ -121,10 +104,12 @@ function openNewTabWith(aURL, aDoc, aReverseBackgroundPref)
 function openNewTabWindowOrExistingWith(aType, aURL, aDoc, aLoadInBackground)
 {
   // Make sure we are allowed to open this url
-  urlSecurityCheck(aURL, document);
+  if (aDoc)
+    urlSecurityCheck(aDoc.nodePrincipal, aURL,
+                     Components.interfaces.nsIScriptSecurityManager.STANDARD);
 
   // get referrer, if as external should be null
-  var referrer = getReferrer(aDoc);
+  var referrer = aDoc ? aDoc.documentURIObject : null;
 
   var browserWin;
   // if we're not opening a new window, try and find existing window
