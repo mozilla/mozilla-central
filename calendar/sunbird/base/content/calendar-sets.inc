@@ -107,7 +107,7 @@
   <command id="cmd_CustomizeToolbars"   oncommand="CalendarCustomizeToolbar()"/>
   <command id="cmd_showSearchToolbar"   oncommand="goToggleToolbar('searchBox', 'menu_showSearchToolbar');"/>
   <command id="cmd_showStatusBar"       oncommand="goToggleToolbar('status-bar', 'menu_showStatusBar');"/>
-  <command id="cmd_showTaskBox"         oncommand="goToggleToolbar('taskBox', 'menu_showTaskBox'); goToggleToolbar('calendar-todo-splitter');"/>
+  <command id="cmd_showTaskBox"         oncommand="goToggleToolbar('todo-tab-panel', 'menu_showTaskBox'); goToggleToolbar('calendar-todo-splitter');"/>
 
   <command id="Tools:Addons" oncommand="goOpenAddons();"/>
 
