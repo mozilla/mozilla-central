@@ -96,7 +96,7 @@ nsresult nsImapMoveCoalescer::AddMove(nsIMsgFolder *folder, nsMsgKey key)
         
         m_sourceKeyArrays.AppendElement(keysToAdd);
       }
-      if (keysToAdd)
+      if (keysToAdd && keysToAdd->IndexOf(key) == kNotFound)
         keysToAdd->Add(key);
       return NS_OK;
     }
