@@ -1091,17 +1091,24 @@
         <parameter name="aEndDate"/>
         <body><![CDATA[
           if (this.mTimezone != aStartDate.timezone) {
-            aStartDate = aStartDate.getInTimezone(this.mTimezone);
-            aEndDate = aEndDate.getInTimezone(this.mTimezone);
+              aStartDate = aStartDate.getInTimezone(this.mTimezone);
+              aEndDate = aEndDate.getInTimezone(this.mTimezone);
           }
+          var startDate = aStartDate.startOfWeek.clone();
+          var endDate = aEndDate.endOfWeek.clone();
+          startDate.day += this.mWeekStartOffset;
+          endDate.day += this.mWeekStartOffset;
 
-          this.mStartDate = aStartDate.startOfWeek;
-          this.mEndDate = aEndDate.endOfWeek;
-
-          this.mStartDate.day += this.mWeekStartOffset;
-          this.mEndDate.day += this.mWeekStartOffset;
-
-          this.refresh();
+          function compareDatetimes(one, two) {
+              return ((!one && !two) ||
+                      (one && two && (one.compare(two) == 0)));
+          }
+          if (!compareDatetimes(this.mStartDate, startDate) ||
+              !compareDatetimes(this.mEndDate, endDate)) {
+              this.mStartDate = startDate;
+              this.mEndDate = endDate;
+              this.refresh();
+          }
         ]]></body>
       </method>
 
@@ -1159,15 +1166,21 @@
 	onget="return document.getAnonymousElementByAttribute(this, 'anonid', 'monthgridrows');"/>
 
       <field name="mRefreshQueue">[]</field>
-      <field name="mRefreshPending">false</field>
+      <field name="mRefreshPending">null</field>
 
       <method name="popRefreshQueue">
         <body><![CDATA[
-          if (this.mRefreshPending) {
-            if(this.mRefreshQueue.length > 0) {
-              this.relayout();
-            }
-            return;
+          var pendingRefresh = this.mRefreshPending;
+          if (pendingRefresh) {
+              if (pendingRefresh instanceof Components.interfaces.calIOperation) {
+                  this.mRefreshPending = null;
+                  pendingRefresh.cancel(null);
+              } else {
+                  if(this.mRefreshQueue.length > 0) {
+                      this.relayout();
+                  }
+                  return;
+              }
           }
 
           var refreshJob = this.mRefreshQueue.pop();
@@ -1195,13 +1208,14 @@
           else
             filter |= this.mCalendar.ITEM_FILTER_TYPE_EVENT;
 
-          this.mRefreshPending = true;
-
-          this.mCalendar.getItems(filter,
-                                  0,
-                                  this.startDate,
-                                  this.queryEndDate,
-                                  this.mOperationListener);
+          this.mRefreshPending = this.mCalendar.getItems(filter,
+                                                         0,
+                                                         this.startDate,
+                                                         this.queryEndDate,
+                                                         this.mOperationListener);
+          if (!this.mRefreshPending) { // no support for calIOperation, fallback to bool
+              this.mRefreshPending = true;
+          }
         ]]></body>
       </method>
 
@@ -1498,7 +1512,7 @@
   
           onOperationComplete: function(aCalendar, aStatus, aOperationType, aId, aDetail) {
             // signal that the current operation finished.
-            this.calView.mRefreshPending = false;
+            this.calView.mRefreshPending = null;
 
             // immediately start the next job on the queue.
             this.calView.popRefreshQueue();

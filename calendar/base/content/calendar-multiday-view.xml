@@ -2373,7 +2373,7 @@
           function onOperationComplete(aCalendar, aStatus, aOperationType,
                                        aId, aDetail) {
               // signal that the current operation finished.
-              this.calView.mRefreshPending = false;
+              this.calView.mRefreshPending = null;
 
               // immediately start the next job on the queue.
               this.calView.popRefreshQueue();
@@ -2554,29 +2554,36 @@
           aStartDate = aEndDate = null;
 
           if (this.mDisplayDaysOff) {
-            startDate.makeImmutable();
-            endDate.makeImmutable();
-            this.mDateList = null;
-            this.mStartDate = startDate;
-            this.mEndDate = endDate;
-            //
-            // For a true multiday view (e.g, 3 days advanced by one day
-            // at a time), a smarter refresh could reuse boxes, comparing
-            // the current date range and add/remove, instead of just
-            // replacing.
-            //
-            this.refresh();
-          } else { // workdays only
-            var dateList = new Array();
-            for (var d = startDate.clone(); d.compare(endDate) <= 0;) {
-              if (this.mDaysOffArray.indexOf(d.weekday) == -1) {
-                var workday = d.clone();
-                workday.makeImmutable();
-                dateList.push(workday);
+              function compareDatetimes(one, two) {
+                  return ((!one && !two) ||
+                          (one && two && (one.compare(two) == 0)));
               }
-              d.day += 1;
-            }
-            this.setDateList(dateList.length, dateList);
+              if (!compareDatetimes(this.mStartDate, startDate) ||
+                  !compareDatetimes(this.mEndDate, endDate)) {
+                  startDate.makeImmutable();
+                  endDate.makeImmutable();
+                  this.mDateList = null;
+                  this.mStartDate = startDate;
+                  this.mEndDate = endDate;
+                  //
+                  // For a true multiday view (e.g, 3 days advanced by one day
+                  // at a time), a smarter refresh could reuse boxes, comparing
+                  // the current date range and add/remove, instead of just
+                  // replacing.
+                  //
+                  this.refresh();
+              }
+          } else { // workdays only
+              var dateList = new Array();
+              for (var d = startDate.clone(); d.compare(endDate) <= 0;) {
+                  if (this.mDaysOffArray.indexOf(d.weekday) == -1) {
+                      var workday = d.clone();
+                      workday.makeImmutable();
+                      dateList.push(workday);
+                  }
+                  d.day += 1;
+              }
+              this.setDateList(dateList.length, dateList);
           }
         ]]></body>
       </method>
@@ -2588,11 +2595,10 @@
           this.mStartDate = null;
           this.mEndDate = null;
 
-          if (aCount == 0) {
-              this.mDateList = null;
-          } else {
+          var dateList = null;
+          if (aCount > 0) {
               aDates.sort (function(a, b) { return a.compare(b); });
-              this.mDateList = aDates.map(
+              dateList = aDates.map(
                   function dateMapper(d) {
                       if (d.isDate && !d.isMutable)
                           return d;
@@ -2604,8 +2610,14 @@
                   }
               );
           }
-
-          this.refresh();
+          function compareDatetimes(one, two) {
+              return ((!one && !two) ||
+                      (one && two && (one.compare(two) == 0)));
+          }
+          if (!compareArrays(this.mDateList, dateList, compareDatetimes)) {
+              this.mDateList = dateList;
+              this.refresh();
+          }
         ]]></body>
       </method>
 
@@ -2844,15 +2856,21 @@
       </method>
 
       <field name="mRefreshQueue">[]</field>
-      <field name="mRefreshPending">false</field>
+      <field name="mRefreshPending">null</field>
 
       <method name="popRefreshQueue">
         <body><![CDATA[
-          if (this.mRefreshPending) {
-            if(this.mRefreshQueue.length > 0) {
-              this.relayout();
-            }
-            return;
+          var pendingRefresh = this.mRefreshPending;
+          if (pendingRefresh) {
+              if (pendingRefresh instanceof Components.interfaces.calIOperation) {
+                  this.mRefreshPending = null;
+                  pendingRefresh.cancel(null);
+              } else {
+                  if(this.mRefreshQueue.length > 0) {
+                      this.relayout();
+                  }
+                  return;
+              }
           }
 
           var refreshJob = this.mRefreshQueue.pop();
@@ -2885,13 +2903,14 @@
           else
             filter |= this.mCalendar.ITEM_FILTER_TYPE_EVENT;
 
-          this.mRefreshPending = true;
-
-          this.mCalendar.getItems(filter,
-                                  0,
-                                  this.startDate,
-                                  this.queryEndDate,
-                                  this.mOperationListener);
+          this.mRefreshPending = this.mCalendar.getItems(filter,
+                                                         0,
+                                                         this.startDate,
+                                                         this.queryEndDate,
+                                                         this.mOperationListener);
+          if (!this.mRefreshPending) { // no support for calIOperation, fallback to bool
+              this.mRefreshPending = true;
+          }
         ]]></body>
       </method>
 

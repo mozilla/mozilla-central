@@ -544,6 +544,24 @@ function compareObjects(aObject, aOtherObject, aIID) {
 }
 
 /**
+ * Compare two arrays using the passed function.
+ */
+function compareArrays(aOne, aTwo, compareFunc) {
+    if (!aOne && !aTwo)
+        return true;
+    if (!aOne || !aTwo)
+        return false;
+    var len = aOne.length;
+    if (len != aTwo.length)
+        return false;
+    for (var i = 0; i < len; ++i) {
+        if (!compareFunc(aOne[i], aTwo[i]))
+            return false;
+    }
+    return true;
+}
+
+/**
  * Many computations want to work only with date-times, not with dates.  This
  * method will return a proper datetime (set to midnight) for a date object.  If
  * the object is already a datetime, it will simply be returned.
@@ -1170,3 +1188,96 @@ function sendMailTo(aRecipient, aSubject, aBody) {
         protoSvc.loadUrl(ioService.newURI(uriString, null, null));
     }
 }
+
+var gOpGroupPrefix;
+var gOpGroupId = 0;
+
+/**
+ * This object implements calIOperation and could group multiple sub
+ * operations into one. You can pass a cancel function which is called once
+ * the operation group is cancelled.
+ * Users must call notifyCompleted() once all sub operations have been
+ * successful, else the operation group will stay pending.
+ * The reason for the latter is that providers currently should (but need
+ * not) implement (and return) calIOperation handles, thus there may be pending
+ * calendar operations (without handle).
+ */
+function calOperationGroup(cancelFunc) {
+    if (!gOpGroupPrefix) {
+        gOpGroupPrefix = (getUUID() + "-");
+    }
+    this.mCancelFunc = cancelFunc;
+    this.mId = (gOpGroupPrefix + gOpGroupId);
+    ++gOpGroupId;
+    this.mSubOperations = [];
+}
+calOperationGroup.prototype = {
+    mCancelFunc: null,
+    mId: null,
+    mIsPending: true,
+    mStatus: Components.results.NS_OK,
+    mSubOperations: null,
+
+    add: function calOperationGroup_add(op) {
+        if (op) {
+            this.mSubOperations.push(op);
+        }
+    },
+
+    remove: function calOperationGroup_remove(op) {
+        if (op) {
+            function filterFunc(op_) {
+                return (op.id != op_.id);
+            }
+            this.mSubOperations = this.mSubOperations.filter(filterFunc);
+        }
+    },
+
+    get isEmpty() {
+        return (this.mSubOperations.length == 0);
+    },
+
+    notifyCompleted: function calOperationGroup_notifyCompleted(status) {
+        this.mIsPending = false;
+        if (status) {
+            this.mStatus = status;
+        }
+    },
+
+    // calIOperation:
+    get id() {
+        return this.mId;
+    },
+
+    get isPending() {
+        return this.mIsPending;
+    },
+
+    get status() {
+        return this.mStatus;
+    },
+
+    get success() {
+        return (!this.isPending && Components.results.isSuccessCode(this.status));
+    },
+
+    cancel: function calOperationGroup_cancel(status) {
+        if (this.isPending) {
+            if (!status) {
+                status = Components.interfaces.calIErrors.OPERATION_CANCELLED;
+            }
+            this.notifyCompleted(status);
+            var subOperations = this.mSubOperations;
+            this.mSubOperations = [];
+            function forEachFunc(op) {
+                op.cancel(null);
+            }
+            subOperations.forEach(forEachFunc);
+            if (this.mCancelFunc) {
+                var cancelFunc = this.mCancelFunc;
+                this.mCancelFunc = null;
+                cancelFunc();
+            }
+        }
+    }
+};

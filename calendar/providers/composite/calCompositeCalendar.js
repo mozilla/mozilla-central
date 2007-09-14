@@ -317,7 +317,9 @@ calCompositeCalendar.prototype = {
                     if (cal.canRefresh) {
                         cal.refresh();
                     }
-                } catch (e) { }
+                } catch (e) {
+                    ASSERT(false, e);
+                }
             }
         } finally {
             this.mObserverHelper.suppressOnLoad = false;
@@ -336,7 +338,7 @@ calCompositeCalendar.prototype = {
             throw Components.results.NS_ERROR_FAILURE;
         }
 
-        aNewItem.calendar.modifyItem (aNewItem, aOldItem, aListener);
+        return aNewItem.calendar.modifyItem(aNewItem, aOldItem, aListener);
     },
 
     // void deleteItem( in string id, in calIOperationListener aListener );
@@ -346,20 +348,25 @@ calCompositeCalendar.prototype = {
             throw Components.results.NS_ERROR_FAILURE;
         }
 
-        aItem.calendar.deleteItem (aItem, aListener);
+        return aItem.calendar.deleteItem(aItem, aListener);
     },
 
     // void addItem( in calIItemBase aItem, in calIOperationListener aListener );
     addItem: function (aItem, aListener) {
-        this.mDefaultCalendar.addItem (aItem, aListener);
+        return this.mDefaultCalendar.addItem(aItem, aListener);
     },
 
     // void getItem( in string aId, in calIOperationListener aListener );
     getItem: function (aId, aListener) {
         var cmpListener = new calCompositeGetListenerHelper(this.mCalendars.length, aListener);
         for each (cal in this.mCalendars) {
-            cal.getItem (aId, cmpListener);
+            try {
+                cmpListener.opGroup.add(cal.getItem(aId, cmpListener));
+            } catch (exc) {
+                ASSERT(false, exc);
+            }
         }
+        return cmpListener.opGroup;
     },
 
     // void getItems( in unsigned long aItemFilter, in unsigned long aCount, 
@@ -378,8 +385,15 @@ calCompositeCalendar.prototype = {
 
         var cmpListener = new calCompositeGetListenerHelper(this.mCalendars.length, aListener, aCount);
         for (cal in this.mCalendars) {
-            this.mCalendars[cal].getItems (aItemFilter, aCount, aRangeStart, aRangeEnd, cmpListener);
+            try {
+                cmpListener.opGroup.add(
+                    this.mCalendars[cal].getItems(
+                        aItemFilter, aCount, aRangeStart, aRangeEnd, cmpListener));
+            } catch (exc) {
+                ASSERT(false, exc);
+            }
         }
+        return cmpListener.opGroup;
     },
 
     startBatch: function ()
@@ -403,10 +417,28 @@ function calCompositeGetListenerHelper(aNumQueries, aRealListener, aMaxItems) {
 calCompositeGetListenerHelper.prototype = {
     mNumQueries: 0,
     mRealListener: null,
+    mOpGroup: null,
     mReceivedCompletes: 0,
     mFinished: false,
     mMaxItems: 0,
     mItemsReceived: 0,
+
+    get opGroup() {
+        if (!this.mOpGroup) {
+            var this_ = this;
+            function cancelFunc() { // operation group has been cancelled
+                var listener = this_.mRealListener;
+                this_.mRealListener = null;
+                if (listener) {
+                    listener.onOperationComplete(
+                        this_, Components.interfaces.calIErrors.OPERATION_CANCELLED,
+                        calIOperationListener.GET, null, null);
+                }
+            }
+            this.mOpGroup = new calOperationGroup(cancelFunc);
+        }
+        return this.mOpGroup;
+    },
 
     QueryInterface: function (aIID) {
         if (!aIID.equals(Components.interfaces.nsISupports) &&
@@ -419,6 +451,10 @@ calCompositeGetListenerHelper.prototype = {
     },
 
     onOperationComplete: function (aCalendar, aStatus, aOperationType, aId, aDetail) {
+        if (!this.mRealListener) {
+            // has been cancelled, ignore any providers firing on this...
+            return;
+        }
         if (this.mFinished) {
             dump ("+++ calCompositeGetListenerHelper.onOperationComplete: called with mFinished == true!");
             return;
@@ -438,15 +474,20 @@ calCompositeGetListenerHelper.prototype = {
         if (this.mReceivedCompletes == this.mNumQueries) {
             // we're done here.
             this.mRealListener.onOperationComplete (this,
-                                                    aOperationType,
+                                                    aStatus,
                                                     calIOperationListener.GET,
                                                     null,
                                                     null);
             this.mFinished = true;
+            this.opGroup.notifyCompleted();
         }
     },
 
     onGetResult: function (aCalendar, aStatus, aItemType, aDetail, aCount, aItems) {
+        if (!this.mRealListener) {
+            // has been cancelled, ignore any providers firing on this...
+            return;
+        }
         if (this.mFinished) {
             dump ("+++ calCompositeGetListenerHelper.onGetResult: called with mFinished == true!");
             return;
