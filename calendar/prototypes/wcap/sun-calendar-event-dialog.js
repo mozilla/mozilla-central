@@ -50,6 +50,7 @@ var gOrganizerID = null;
 var gPrivacy = null;
 var gURL = null;
 var gPriority = 0;
+var gStatus = "NONE";
 var gDictCount = 0;
 var gPrefs = null;
 var gLastRepeatSelection = 0;
@@ -299,6 +300,7 @@ function loadDialog(item) {
                     calendarList.selectedIndex = selectIndex;
                 }
             }
+            selectIndex++;
         } else if (calendar && !calendar.readOnly) {
             var menuitem = calendarList.appendItem(calendar.name, i);
             menuitem.calendar = calendar;
@@ -307,8 +309,8 @@ function loadDialog(item) {
                     calendarList.selectedIndex = selectIndex;
                 }
             }
+            selectIndex++;
         }
-        selectIndex++;
     }
 
     // no calendar attached to item
@@ -364,9 +366,15 @@ function loadDialog(item) {
     gURL = item.getProperty("URL");
     updateDocument();
 
-    // Status
+    // Description
     setElementValue("item-description", item.getProperty("DESCRIPTION"));
-    if (!isEvent(item)) {
+
+    // Status
+    if (isEvent(item)) {
+        gStatus = item.hasProperty("STATUS") ?
+            item.getProperty("STATUS") : "NONE";
+        updateStatus();
+    } else {
         setElementValue("todo-status", item.getProperty("STATUS"));
     }
 
@@ -802,7 +810,13 @@ function saveDialog(item) {
 
     setItemProperty(item, "DESCRIPTION", getElementValue("item-description"));
 
-    if (!isEvent(item)) {
+    if (isEvent(item)) {
+        if(gStatus && gStatus != "NONE") {
+            item.setProperty("STATUS", gStatus);
+        } else {
+            item.deleteProperty("STATUS");
+        }
+    } else {
         var status = getElementValue("todo-status");
         if (status != "COMPLETED") {
             item.completedDate = null;
@@ -903,6 +917,23 @@ function updateStyle() {
                 stylesheet.insertRule(".event-only { display: none; }", 0);
             }
             return;
+        }
+    }
+}
+
+function onPopupShowing(menuPopup) {
+    if (isToDo(window.calendarItem)) {
+        var nodes = menuPopup.childNodes;
+        for (var i = nodes.length - 1; i >= 0; --i) {
+            var node = nodes[i];
+            if (node.hasAttribute('class')) {
+                if (node.getAttribute('class').split(' ').some(
+                    function (element) {
+                        return element.toLowerCase() == 'event-only';
+                    })) {
+                    menuPopup.removeChild(node);
+                }
+            }
         }
     }
 }
@@ -1235,6 +1266,25 @@ function updatePriority() {
             collapse = true;
         }
     }
+}
+
+function editStatus(target) {
+    gStatus = target.getAttribute("value");
+    updateStatus();
+}
+
+function updateStatus() {
+    [ "cmd_status_none",
+      "cmd_status_tentative",
+      "cmd_status_confirmed",
+      "cmd_status_cancelled" ].forEach(
+          function(element, index, array) {
+              var node = document.getElementById(element);
+              node.setAttribute("checked",
+                  node.getAttribute("value") == gStatus ?
+                      "true" : "false");
+          }
+      );
 }
 
 function editShowTimeAs(target) {

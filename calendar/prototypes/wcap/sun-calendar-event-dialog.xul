@@ -167,10 +167,22 @@
                  value="PUBLIC"/>
         <command id="cmd_privacy_confidential"
                  oncommand="editPrivacy(event.target)"
-                 value="CONFIDENTIAL" />
+                 value="CONFIDENTIAL"/>
         <command id="cmd_privacy_private"
                  oncommand="editPrivacy(event.target)"
-                 value="PRIVATE" />
+                 value="PRIVATE"/>
+        <command id="cmd_status_none"
+                 oncommand="editStatus(event.target)"
+                 value="NONE"/>
+        <command id="cmd_status_tentative"
+                 oncommand="editStatus(event.target)"
+                 value="TENTATIVE"/>
+        <command id="cmd_status_confirmed"
+                 oncommand="editStatus(event.target)"
+                 value="CONFIRMED"/>
+        <command id="cmd_status_cancelled"
+                 oncommand="editStatus(event.target)"
+                 value="CANCELLED"/>
         <command id="cmd_priority_none"
                  oncommand="editPriority(event.target)"
                  value="0"/>
@@ -373,7 +385,7 @@
             <!-- Options menu -->
             <menu label="&event.menu.options.label;"
                   accesskey="&event.menu.options.accesskey;">
-                <menupopup>
+                <menupopup onpopupshowing="onPopupShowing(this)">
                   <menuitem label="&event.menu.options.attendees.label;"
                             accesskey="&event.menu.options.attendees.accesskey;"
                             command="cmd_attendees"
@@ -436,6 +448,29 @@
                                     command="cmd_privacy_private"
                                     disable-on-readonly="true"/>
                       </menupopup>
+                  </menu>
+                  <menu label="&newevent.status.label;"
+                        accesskey="&newevent.status.accesskey;"
+                        class="event-only"
+                        disable-on-readonly="true">
+                    <menupopup>
+                      <menuitem label="&newevent.status.none.label;"
+                                type="checkbox"
+                                command="cmd_status_none"
+                                disable-on-readonly="true"/>
+                      <menuitem label="&newevent.status.tentative.label;"
+                                type="checkbox"
+                                command="cmd_status_tentative"
+                                disable-on-readonly="true"/>
+                      <menuitem label="&newevent.status.confirmed.label;"
+                                type="checkbox"
+                                command="cmd_status_confirmed"
+                                disable-on-readonly="true"/>
+                      <menuitem label="&newevent.status.cancelled.label;"
+                                type="checkbox"
+                                command="cmd_status_cancelled"
+                                disable-on-readonly="true"/>
+                    </menupopup>
                   </menu>
                   <menuseparator/>
                     <menu label="&event.menu.options.show.time.label;"

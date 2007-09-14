@@ -45,10 +45,12 @@
   <!ENTITY % globalDTD SYSTEM "chrome://calendar/locale/global.dtd" >
   <!ENTITY % calendarDTD SYSTEM "chrome://calendar/locale/calendar.dtd" >
   <!ENTITY % sunDialogDTD SYSTEM "chrome://calendar/locale/sun-calendar-event-dialog.dtd" >
+  <!ENTITY % dialogDTD SYSTEM "chrome://calendar/locale/calendar-event-dialog.dtd" >
   <!ENTITY % brandDTD SYSTEM "chrome://branding/locale/brand.dtd" >
   %globalDTD;
   %calendarDTD;
   %sunDialogDTD;
+  %dialogDTD;
   %brandDTD;
 ]>     
 
@@ -107,6 +109,15 @@
                    class="text-link"
                    crop="right"
                    onclick="sendMailToOrganizer()"/>
+          </row>
+          <row id="status-row" align="top" hidden="true">
+            <label value="&task.status.label;" class="headline"/>
+            <label value="&newevent.status.tentative.label;" hidden="true" status="TENTATIVE"/>
+            <label value="&newevent.status.confirmed.label;" hidden="true" status="CONFIRMED"/>
+            <label value="&newevent.status.cancelled.label;" hidden="true" status="CANCELLED"/>
+            <label value="&newevent.status.needsaction.label;" hidden="true" status="NEEDS-ACTION"/>
+            <label value="&newevent.status.inprogress.label;" hidden="true" status="IN-PROCESS"/>
+            <label value="&newevent.status.completed.label;" hidden="true" status="COMPLETED"/>
           </row>
           <separator id="item-main-separator" flex="1" class="groove" hidden="true"/>
           <row id="invitation-row" hidden="true" align="center">

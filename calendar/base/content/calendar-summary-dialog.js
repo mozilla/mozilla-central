@@ -143,6 +143,18 @@ function onLoad() {
         }
     }
 
+    var status = item.getProperty("STATUS");
+    if (status && status.length) {
+        var statusRow = document.getElementById("status-row");
+        for (var i = 0; i < statusRow.childNodes.length; i++) {
+            if (statusRow.childNodes[i].getAttribute("status") == status) {
+                statusRow.removeAttribute("hidden");
+                statusRow.childNodes[i].removeAttribute("hidden");
+                break;
+            }
+        }
+    }
+
     if (item.hasProperty("DESCRIPTION")) {
         var description = item.getProperty("DESCRIPTION");
         if (description && description.length) {
