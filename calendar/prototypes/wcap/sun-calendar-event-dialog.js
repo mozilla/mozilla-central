@@ -1301,10 +1301,11 @@ function setItemProperty(item, propertyName, value) {
             if (value == item.entryDate) {
                 break;
             }
-            if ((value && !item.entryDate) ||
-                (!value && item.entryDate) ||
-                (value.timezone != item.entryDate.timezone) ||
-                (value.compare(item.entryDate) != 0)) {
+            if (value && !item.entryDate ||
+                !value && item.entryDate ||
+                value.isDate != item.entryDate.isDate ||
+                value.timezone != item.entryDate.timezone ||
+                value.compare(item.entryDate) != 0) {
                 item.entryDate = value;
             }
             break;
@@ -1312,10 +1313,11 @@ function setItemProperty(item, propertyName, value) {
             if (value == item.dueDate) {
                 break;
             }
-            if ((value && !item.dueDate) ||
-                (!value && item.dueDate) ||
-                (value.timezone != item.dueDate.timezone) ||
-                (value.compare(item.dueDate) != 0)) {
+            if (value && !item.dueDate ||
+                !value && item.dueDate ||
+                value.isDate != item.dueDate.isDate ||
+                value.timezone != item.dueDate.timezone ||
+                value.compare(item.dueDate) != 0) {
                 item.dueDate = value;
             }
             break;
