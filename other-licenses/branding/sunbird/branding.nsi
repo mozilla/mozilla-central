@@ -45,6 +45,3 @@
 !define URLInfoAbout          "http://www.mozilla.org/"
 !define URLUpdateInfo         "http://www.mozilla.org/projects/calendar/sunbird/"
 !define SurveyURL             "https://survey.mozilla.com/1/Mozilla%20Sunbird/${AppVersion}/${AB_CD}/exit.html"
-
-# Percentage of new "Standard" installs to enable talkback for
-!define RandomPercent         "100"

@@ -210,6 +210,10 @@ endif
 
 include $(topsrcdir)/config/rules.mk
 
+ifdef MOZILLA_OFFICIAL
+DEFINES += -DMOZILLA_OFFICIAL
+endif
+
 DEFINES += -DSUNBIRD_ICO=\"$(DIST)/branding/sunbird.ico\"
 
 ifdef BUILD_STATIC_LIBS

@@ -79,6 +79,9 @@ bin\components\content_xmldoc.xpt
 bin\components\content_xslt.xpt
 bin\components\content_xtf.xpt
 bin\components\cookie.xpt
+#ifndef MOZILLA_1_8_BRANCH
+bin\components\crashreporter.xpt
+#endif
 bin\components\docshell_base.xpt
 bin\components\dom.xpt
 bin\components\dom_base.xpt
@@ -338,6 +341,13 @@ bin\chrome\pippki.manifest
 ;
 bin\updater.exe
 
+#ifndef MOZILLA_1_8_BRANCH
+; [Crash Reporter]
+bin\crashreporter.exe
+bin\crashreporter.ini
+#endif
+
+#ifdef MOZILLA_1_8_BRANCH
 [talkback]
 bin\extensions\talkback@mozilla.org\install.rdf
 bin\extensions\talkback@mozilla.org\chrome.manifest
@@ -350,3 +360,4 @@ bin\extensions\talkback@mozilla.org\components\talkback-l10n.ini
 bin\extensions\talkback@mozilla.org\components\talkback.cnt
 bin\extensions\talkback@mozilla.org\components\talkback.exe
 bin\extensions\talkback@mozilla.org\components\talkback.hlp
+#endif
