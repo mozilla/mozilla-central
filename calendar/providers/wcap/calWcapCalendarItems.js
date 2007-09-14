@@ -269,12 +269,15 @@ function calWcapCalendar_getInvitedAttendee(item)
 
 function equalDatetimes(one, two) {
     return ((!one && !two) ||
-            (one && two && (one.compare(two) == 0)));
+            (one && two &&
+             (one.isDate == two.isDate) &&
+             (one.compare(two) == 0)));
 }
 
 function identicalDatetimes(one, two) {
     return ((!one && !two) ||
-            (one && two && (one.compare(two) == 0) && (one.timezone == two.timezone)));
+            (equalDatetimes(one, two) &&
+             (one.timezone == two.timezone)));
 }
 
 // @return null if nothing has changed else value to be written

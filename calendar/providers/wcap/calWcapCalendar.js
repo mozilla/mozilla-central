@@ -105,8 +105,6 @@ calWcapCalendar.prototype = {
     notifyError: function calWcapCalendar_notifyError(err, suppressOnError)
     {
         if (getResultCode(err) == calIErrors.OPERATION_CANCELLED) {
-            // be mild, and state a warning for cancelled operations:
-            logWarning(err, this);
             return;
         }
         debugger;
