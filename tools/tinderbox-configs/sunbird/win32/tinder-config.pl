@@ -164,7 +164,7 @@ $moz_cvsroot   = ":ext:calbld\@cvs.mozilla.org:/cvsroot";
 #$moz_client_mk = 'client.mk';
 
 #- Set if you want to build in a separate object tree
-#$ObjDir = 'sunbird-obj';
+$ObjDir = 'sunbird-obj';
 
 # Extra build name, if needed.
 $BuildNameExtra = 'Sb-Nightly';
@@ -218,8 +218,7 @@ $BinaryName = 'sunbird.exe';
 $ReleaseBuild  = 1;
 $ReleaseGroup = 'calendar';
 $LocaleProduct = "calendar";
-$shiptalkback  = 1;
-$UsePrebuiltTalkback = "/cygdrive/d/builds/tinderbox/Sunbird-Trunk/talkback-sunbird-trunk-win32.tar.bz2";
+$shiptalkback  = 0;
 $ReleaseToLatest = 1; # Push the release to latest-<milestone>?
 $ReleaseToDated = 1; # Push the release to YYYY-MM-DD-HH-<milestone>?
 $build_hour    = "3";
