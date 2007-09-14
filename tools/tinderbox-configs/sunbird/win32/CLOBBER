@@ -10,3 +10,4 @@ Edit this file and include an explanation of why you're respinning. - #build
 2007-03-02 16:56 UTC - Respin to pick up fix for bug 372366
 2007-03-08 16:10 UTC - Respinning to pick up fix for bad checkin
 2007-05-21 18:30 UTC - Respinning to rebuild components because of bug 377437
+2007-09-14 17:50 UTC - Respinning to make distclean before enabling objdir (bug 374235)
