@@ -184,6 +184,8 @@
                                 value="3"/>
                       <menuitem label="&event.recurrence.repeat.fourth.label;"
                                 value="4"/>
+                      <menuitem label="&event.recurrence.repeat.fifth.label;"
+                                value="5"/>
                       <menuitem label="&event.recurrence.repeat.last.label;"
                                 value="-1"/>
                     </menupopup>
@@ -206,6 +208,8 @@
                                 value="6"/>
                       <menuitem label="&day.7.name;"
                                 value="7"/>
+                      <menuitem label="&event.recurrence.repeat.dayofmonth.label;"
+                                value="-1"/>
                     </menupopup>
                   </menulist>
                 </box>
@@ -304,6 +308,8 @@
                                       value="3"/>
                             <menuitem label="&event.recurrence.repeat.fourth.label;"
                                       value="4"/>
+                            <menuitem label="&event.recurrence.repeat.fifth.label;"
+                                      value="5"/>
                             <menuitem label="&event.recurrence.repeat.last.label;"
                                       value="-1"/>
                           </menupopup>

@@ -333,6 +333,13 @@ function commonUpdateRepeatDetails(recurrenceInfo, startDate, endDate, allDay) {
 
                     var day_string = "";
                     for (var i = 0; i < component.length; i++) {
+                        // TODO: we also need to handle BYMONTHDAY rules with
+                        // negative array elements, but we're currently in string
+                        // freeze for 0.7 so I can't add the necessary bits and
+                        // pieces.
+                        if (component[i] < 0) {
+                            return;
+                        }
                         day_string += component[i];
                         if (component.length > 1 &&
                             i == (component.length - 2)) {

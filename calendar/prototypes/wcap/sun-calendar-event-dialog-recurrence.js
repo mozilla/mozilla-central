@@ -100,12 +100,18 @@ function onLoad() {
                             var occurrence = (byday - (byday % 8)) / 8;
                             var weekday = byday % 8;
                             setElementValue("monthly-ordinal", occurrence);
-                            setElementValue("monthly-weekday", weekday);
+                            setElementValue("monthly-weekday", Math.abs(weekday));
                         } else {
                             var ruleComp = rule.getComponent("BYMONTHDAY", {});
                             if (ruleComp.length > 0) {
-                                document.getElementById("monthly-group").selectedIndex = 1;
-                                document.getElementById("monthly-days").days = ruleComp;
+                                if (ruleComp.length == 1 && ruleComp[0] == -1) {
+                                    document.getElementById("monthly-group").selectedIndex = 0;
+                                    setElementValue("monthly-ordinal", ruleComp[0]);
+                                    setElementValue("monthly-weekday", ruleComp[0]);
+                                } else {
+                                    document.getElementById("monthly-group").selectedIndex = 1;
+                                    document.getElementById("monthly-days").days = ruleComp;
+                                }
                             }
                         }
                         break;
@@ -225,9 +231,13 @@ function onSave(item) {
         if (monthlyGroup.selectedIndex==0) {
             var ordinal = Number(getElementValue("monthly-ordinal"));
             var day_of_week = Number(getElementValue("monthly-weekday"));
-            var sign = ordinal < 0 ? -1 : 1;
-            var onDays = [ (Math.abs(ordinal) * 8 + day_of_week) * sign ];
-            recRule.setComponent("BYDAY", onDays.length, onDays);
+            if (day_of_week < 0) {
+                recRule.setComponent("BYMONTHDAY", 1, [ ordinal ]);
+            } else {
+                var sign = ordinal < 0 ? -1 : 1;
+                var onDays = [ (Math.abs(ordinal) * 8 + day_of_week) * sign ];
+                recRule.setComponent("BYDAY", onDays.length, onDays);
+            }
         } else {
             var monthlyDays = document.getElementById("monthly-days").days;
             if (monthlyDays.length > 0) {
