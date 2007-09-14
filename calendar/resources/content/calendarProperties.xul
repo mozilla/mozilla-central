@@ -69,7 +69,7 @@
            <column/>
            <column flex="1"/>
        </columns>
-       <rows>
+       <rows id="calendar-properties-rows">
            <row align="center">
                <label value="&calendar.server.dialog.name.label;"/>
                <textbox flex="1" id="calendar-name"/>
