@@ -9,6 +9,9 @@
 
 $ENV{CVS_RSH} = "ssh";
 
+# disable sending of crash reports locally until bug 379290 (autoreporting) gets fixed
+$ENV{MOZ_CRASHREPORTER_NO_REPORT} = '1';
+
 # $ENV{MOZ_PACKAGE_MSI}
 #-----------------------------------------------------------------------------
 #  Default: 0

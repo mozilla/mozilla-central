@@ -7,6 +7,9 @@
 #-    Uncomment the variables you need to set.
 #-    The default values are the same as the commented variables.
 
+# disable sending of crash reports locally until bug 379290 (autoreporting) gets fixed
+$ENV{MOZ_CRASHREPORTER_NO_REPORT} = '1';
+
 # $ENV{MOZ_INSTALLER_USE_7ZIP}
 #-----------------------------------------------------------------------------
 #  Purpose: Controls whether a 7-Zip Self Extracting Full Installer is made.
