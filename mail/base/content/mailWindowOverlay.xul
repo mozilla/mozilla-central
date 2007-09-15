@@ -447,7 +447,7 @@
         oncommand="MsgOpenNewWindowForMessage();"/>
     <menuitem id="threadPaneContet-openNewTab"
         label="&contextOpenNewTab.label;"
-        accesskey="contextOpenNewTab.accesskey;"
+        accesskey="&contextOpenNewTab.accesskey;"
         oncommand="MsgOpenNewTabForMessage();"/>
     <menuseparator id="threadPaneContext-sep-open"/>
     <menuitem id="threadPaneContext-replySender"
