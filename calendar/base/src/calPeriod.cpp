@@ -58,7 +58,7 @@ calPeriod::calPeriod(const calPeriod& cpt)
         cpt.mEnd->Clone(getter_AddRefs(mEnd));
 }
 
-calPeriod::calPeriod(struct icalperiodtype *aPeriodPtr)
+calPeriod::calPeriod(struct icalperiodtype const* aPeriodPtr)
     : mImmutable(PR_FALSE)
 {
     FromIcalPeriod(aPeriodPtr);
@@ -76,9 +76,6 @@ calPeriod::GetIsMutable(PRBool *aResult)
 NS_IMETHODIMP
 calPeriod::MakeImmutable()
 {
-    if (mImmutable)
-        return NS_ERROR_OBJECT_IS_IMMUTABLE;
-
     mImmutable = PR_TRUE;
     return NS_OK;
 }
@@ -86,6 +83,7 @@ calPeriod::MakeImmutable()
 NS_IMETHODIMP
 calPeriod::Clone(calIPeriod **aResult)
 {
+    NS_ENSURE_ARG_POINTER(aResult);
     calPeriod *cpt = new calPeriod(*this);
     if (!cpt)
         return NS_ERROR_OUT_OF_MEMORY;
@@ -97,6 +95,7 @@ calPeriod::Clone(calIPeriod **aResult)
 
 NS_IMETHODIMP calPeriod::GetStart(calIDateTime **_retval)
 {
+    NS_ENSURE_ARG_POINTER(_retval);
     *_retval = mStart;
     NS_IF_ADDREF(*_retval);
     return NS_OK;
@@ -105,16 +104,18 @@ NS_IMETHODIMP calPeriod::SetStart(calIDateTime *aValue)
 {
     NS_ENSURE_ARG_POINTER(aValue);
     if (mImmutable)
-        return NS_ERROR_CALENDAR_IMMUTABLE;
+        return NS_ERROR_OBJECT_IS_IMMUTABLE;
     // rfc2445 says that periods are always in utc. libical ignore that,
     // so we need the conversion here.
-    aValue->GetInTimezone(NS_LITERAL_CSTRING("UTC"), getter_AddRefs(mStart));
+    nsresult const rv = aValue->GetInTimezone(
+        NS_LITERAL_CSTRING("UTC"), getter_AddRefs(mStart));
+    NS_ENSURE_SUCCESS(rv, rv);
     return mStart->MakeImmutable();
 }
 
 NS_IMETHODIMP calPeriod::GetEnd(calIDateTime **_retval)
 {
-    //XXX clone?
+    NS_ENSURE_ARG_POINTER(_retval);
     *_retval = mEnd;
     NS_IF_ADDREF(*_retval);
     return NS_OK;
@@ -123,21 +124,19 @@ NS_IMETHODIMP calPeriod::SetEnd(calIDateTime *aValue)
 {
     NS_ENSURE_ARG_POINTER(aValue);
     if (mImmutable)
-        return NS_ERROR_CALENDAR_IMMUTABLE;
-    aValue->GetInTimezone(NS_LITERAL_CSTRING("UTC"), getter_AddRefs(mEnd));
+        return NS_ERROR_OBJECT_IS_IMMUTABLE;
+    nsresult const rv = aValue->GetInTimezone(
+        NS_LITERAL_CSTRING("UTC"), getter_AddRefs(mEnd));
+    NS_ENSURE_SUCCESS(rv, rv);
     return mEnd->MakeImmutable();
 }
 
 NS_IMETHODIMP calPeriod::GetDuration(calIDuration **_retval)
 {
+    NS_ENSURE_ARG_POINTER(_retval);
     if (!mStart || !mEnd)
-        return NS_ERROR_FAILURE;
-        
-    nsCOMPtr<calIDuration> duration;
-    mEnd->SubtractDate(mStart, getter_AddRefs(duration));
-    *_retval = duration;
-    NS_IF_ADDREF(*_retval);
-    return NS_OK;
+        return NS_ERROR_UNEXPECTED;
+    return mEnd->SubtractDate(mStart, _retval);
 }
 
 NS_IMETHODIMP
@@ -160,7 +159,7 @@ calPeriod::ToIcalPeriod(struct icalperiodtype *icalp)
 }
 
 void
-calPeriod::FromIcalPeriod(struct icalperiodtype *icalp)
+calPeriod::FromIcalPeriod(struct icalperiodtype const* icalp)
 {
     mStart = new calDateTime(&(icalp->start));
     mStart->MakeImmutable();
@@ -189,6 +188,8 @@ calPeriod::GetIcalString(nsACString& aResult)
 NS_IMETHODIMP
 calPeriod::SetIcalString(const nsACString& aIcalString)
 {
+    if (mImmutable)
+        return NS_ERROR_OBJECT_IS_IMMUTABLE;
     struct icalperiodtype ip;
     ip = icalperiodtype_from_string(nsPromiseFlatCString(aIcalString).get());
     //XXX Shortcut. Assumes nobody tried to overrule our impl. of calIDateTime

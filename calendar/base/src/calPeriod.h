@@ -54,7 +54,7 @@ class calPeriod : public calIPeriod
 public:
     calPeriod ();
     explicit calPeriod (const calPeriod& cpt);
-    explicit calPeriod (struct icalperiodtype *aPeriodPtr);
+    explicit calPeriod (struct icalperiodtype const* aPeriodPtr);
 
     // nsISupports interface
     NS_DECL_ISUPPORTS
@@ -63,13 +63,15 @@ public:
     NS_DECL_CALIPERIOD
 
 protected:
+    calPeriod const& operator=(calPeriod const&);
+
     PRBool mImmutable;
 
     //struct icaldurationtype mPeriod;
     nsCOMPtr<calIDateTime> mStart;
     nsCOMPtr<calIDateTime> mEnd;
     
-    void FromIcalPeriod(struct icalperiodtype *icalp);
+    void FromIcalPeriod(struct icalperiodtype const* icalp);
 };
 
 #endif /* CALPERIOD_H_ */

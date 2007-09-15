@@ -48,7 +48,7 @@ interface calIPeriod : nsISupports
   /**
    * isMutable is true if this instance is modifiable.
    * If isMutable is false, any attempts to modify
-   * the object will throw CAL_ERROR_ITEM_IS_MUTABLE.
+   * the object will throw NS_ERROR_OBJECT_IS_IMMUTABLE.
    */
   readonly attribute boolean isMutable;
 
