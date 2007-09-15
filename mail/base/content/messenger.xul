@@ -50,6 +50,10 @@
 %brandDTD;
 <!ENTITY % messengerDTD SYSTEM "chrome://messenger/locale/messenger.dtd" >
 %messengerDTD;
+#ifdef TOOLBAR_CUSTOMIZATION_SHEET
+<!ENTITY % customizeToolbarDTD SYSTEM "chrome://global/locale/customizeToolbar.dtd">
+%customizeToolbarDTD;
+#endif
 ]>
 
 <window id="messengerWindow"
@@ -409,6 +413,14 @@
   </box> <!-- end of mailContent -->
 
     </tabmail>
+#ifdef TOOLBAR_CUSTOMIZATION_SHEET
+  <panel id="customizeToolbarSheetPopup" noautohide="true">
+    <iframe id="customizeToolbarSheetIFrame"
+            style="&dialog.style;"
+            src="chrome://global/content/customizeToolbar.xul"
+            hidden="true"/>
+  </panel>
+#endif
 
   <statusbar id="status-bar" class="chromeclass-status">
     <statusbarpanel id="unreadMessageCount"/>

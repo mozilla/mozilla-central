@@ -3600,3 +3600,8 @@ function enableInlineSpellCheck(aEnableInlineSpellCheck)
   InlineSpellCheckerUI.enabled = aEnableInlineSpellCheck;
   document.getElementById('msgSubject').setAttribute('spellcheck', aEnableInlineSpellCheck);
 }
+
+function getMailToolbox()
+{
+  return document.getElementById("compose-toolbox");
+}

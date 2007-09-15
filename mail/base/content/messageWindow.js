@@ -1209,3 +1209,7 @@ function LoadNavigatedToMessage(msgHdr, folder, folderUri)
   }
 }
 
+function getMailToolbox ()
+{
+  return document.getElementById("mail-toolbox");
+}

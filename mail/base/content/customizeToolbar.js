@@ -54,19 +54,24 @@ var gPreviousIconSize = null;
 
 function onLoad()
 {
-  gToolbox = window.arguments[0];
+  InitWithToolbox(window.arguments[0]);
+  repositionDialog();
+}
+
+function InitWithToolbox(aToolbox)
+{
+  gToolbox = aToolbox;
   gToolboxDocument = gToolbox.ownerDocument;
   
   gToolbox.addEventListener("draggesture", onToolbarDragGesture, false);
   gToolbox.addEventListener("dragover", onToolbarDragOver, false);
   gToolbox.addEventListener("dragexit", onToolbarDragExit, false);
   gToolbox.addEventListener("dragdrop", onToolbarDragDrop, false);
-  repositionDialog();
 
   initDialog();
 }
 
-function onUnload(aEvent)
+function finishToolbarCustomization()
 {
   removeToolboxListeners();
   unwrapToolbarItems(true);

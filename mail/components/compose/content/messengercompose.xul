@@ -53,6 +53,10 @@
 %brandDTD;
 <!ENTITY % charsetDTD SYSTEM "chrome://global/locale/charsetOverlay.dtd" >
 %charsetDTD;
+#ifdef TOOLBAR_CUSTOMIZATION_SHEET
+<!ENTITY % customizeToolbarDTD SYSTEM "chrome://global/locale/customizeToolbar.dtd">
+%customizeToolbarDTD;
+#endif
 ]>
 
 <window id="msgcomposeWindow"
@@ -823,6 +827,14 @@
   
   </vbox>
   </hbox>
+#ifdef TOOLBAR_CUSTOMIZATION_SHEET
+  <panel id="customizeToolbarSheetPopup" noautohide="true">
+    <iframe id="customizeToolbarSheetIFrame"
+            style="&dialog.style;"
+            src="chrome://global/content/customizeToolbar.xul"
+            hidden="true"/>
+  </panel>
+#endif
 
   <statusbar id="status-bar" class="chromeclass-status">
     <statusbarpanel id="statusText" flex="1"/>

@@ -1,4 +1,3 @@
-#
 # ***** BEGIN LICENSE BLOCK *****
 # Version: MPL 1.1/GPL 2.0/LGPL 2.1
 #
@@ -12,14 +11,15 @@
 # for the specific language governing rights and limitations under the
 # License.
 #
-# The Original Code is mozilla.org code.
+# The Original Code is mozilla.org Code.
 #
 # The Initial Developer of the Original Code is
-# Netscape Communications Corporation.
-# Portions created by the Initial Developer are Copyright (C) 2001
+# Mozilla Corporation
+# Portions created by the Initial Developer are Copyright (C) 2005-2006
 # the Initial Developer. All Rights Reserved.
 #
 # Contributor(s):
+#   Asaf Romano <mozilla.mano@sent.com>
 #
 # Alternatively, the contents of this file may be used under the terms of
 # either the GNU General Public License Version 2 or later (the "GPL"), or
@@ -35,15 +35,8 @@
 #
 # ***** END LICENSE BLOCK *****
 
-DEPTH		= ../../..
-topsrcdir	= @top_srcdir@
-srcdir		= @srcdir@
-VPATH		= @srcdir@
-
-include $(DEPTH)/config/autoconf.mk
-
-include $(topsrcdir)/config/rules.mk
-
-ifeq (cocoa, $(MOZ_WIDGET_TOOLKIT))
-DEFINES += -DTOOLBAR_CUSTOMIZATION_SHEET
-endif
+var gCustomizeToolbarSheet = {
+  init: function() {
+    InitWithToolbox(window.parent.getMailToolbox());
+  }
+};

@@ -857,3 +857,7 @@ function AbIMSelected()
   LaunchUrl(url);
 }
 
+function getMailToolbox()
+{
+  return document.getElementById("ab-toolbox");
+}

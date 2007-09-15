@@ -1274,6 +1274,11 @@ function GetMessagePaneFrame()
   return window.content;
 }
 
+function getMailToolbox()
+{
+  return document.getElementById("mail-toolbox");
+}
+
 function FindInSidebar(currentWindow, id)
 {
   var item = currentWindow.document.getElementById(id);

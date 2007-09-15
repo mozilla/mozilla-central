@@ -60,7 +60,7 @@
 
         title="&dialog.title;"
         onload="onLoad();"
-        onunload="onUnload();"
+        onunload="finishToolbarCustomization();"
         buttons="accept,cancel"
         ondialogaccept="return onAccept();"
         ondialogcancel="return onCancel();"

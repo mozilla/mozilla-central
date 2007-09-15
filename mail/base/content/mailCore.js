@@ -52,16 +52,32 @@ function CustomizeMailToolbar(id)
   var customizePopup = document.getElementById("CustomizeMailToolbar"); 
   customizePopup.setAttribute("disabled", "true");
 
+  var toolbox = document.getElementById(id);
+
+#ifdef TOOLBAR_CUSTOMIZATION_SHEET
+  var sheetFrame = document.getElementById("customizeToolbarSheetIFrame");
+  sheetFrame.hidden = false;
+  var sheetWidth = sheetFrame.style.width.match(/([0-9]+)px/)[1];
+  document.getElementById("customizeToolbarSheetPopup")
+          .openPopup(toolbox, "after_start",
+                     (window.innerWidth - sheetWidth) / 2, 0);
+#else
   var wintype = document.documentElement.getAttribute("windowtype");
   wintype = wintype.replace(/:/g, "");
 
   window.openDialog("chrome://global/content/customizeToolbar.xul",
                     "CustomizeToolbar"+wintype,
-                    "chrome,all,dependent", document.getElementById(id));
+                    "chrome,all,dependent", toolbox);
+#endif
 }
 
 function MailToolboxCustomizeDone(aToolboxChanged)
 {
+#ifdef TOOLBAR_CUSTOMIZATION_SHEET
+  document.getElementById("customizeToolbarSheetIFrame").hidden = true;
+  document.getElementById("customizeToolbarSheetPopup").hidePopup();
+#endif
+
   // Update global UI elements that may have been added or removed
 
   // Re-enable parts of the UI we disabled during the dialog
