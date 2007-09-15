@@ -906,7 +906,9 @@ mime_create (const char *content_type, MimeHeaders *hdrs,
   }
 
   /* If the option `Show Attachments Inline' is off, now would be the time to change our mind... */
-  if (opts && !opts->show_attachment_inline_p)
+  /* Also, if we're doing a reply (i.e. quoting the body), then treat that as no inline attachments. */
+  if (opts && (!opts->show_attachment_inline_p || opts->format_out == nsMimeOutput::nsMimeMessageQuoting ||
+                opts->format_out == nsMimeOutput::nsMimeMessageBodyQuoting))
   {
     if (mime_subclass_p(clazz, (MimeObjectClass *)&mimeInlineTextClass))
     {
