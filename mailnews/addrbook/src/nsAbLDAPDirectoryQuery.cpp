@@ -628,11 +628,18 @@ NS_IMETHODIMP nsAbLDAPDirectoryQuery::OnQueryResult(PRInt32 aResult,
 {
   PRUint32 count = mListeners.Count();
 
+  // XXX: Temporary fix for crasher needs reviewing as part of bug 135231.
+  // Temporarily add a reference to ourselves, in case the only thing
+  // keeping us alive is the link with the listener.
+  NS_ADDREF_THIS();
+
   for (PRInt32 i = count - 1; i >= 0; --i)
   {
     mListeners[i]->OnSearchFinished(aResult, EmptyString());
     mListeners.RemoveObjectAt(i);
   }
+
+  NS_RELEASE_THIS();
 
   return NS_OK;
 }
