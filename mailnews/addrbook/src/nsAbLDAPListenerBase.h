@@ -65,6 +65,11 @@ protected:
   nsresult OnLDAPMessageBind(nsILDAPMessage *aMessage);
 
   nsresult Initiate();
+
+  // Called if an LDAP initialization fails.
+  virtual void InitFailed(PRBool aCancelled = PR_FALSE) = 0;
+
+  // Called to start off the required task after a bind.
   virtual nsresult DoTask() = 0;
 
   nsCOMPtr<nsILDAPURL> mDirectoryUrl;

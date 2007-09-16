@@ -89,7 +89,8 @@ protected:
   friend class nsAbLDAPDirectoryQuery;
 
   nsresult Cancel();
-  nsresult DoTask();
+  virtual nsresult DoTask();
+  virtual void InitFailed(PRBool aCancelled = PR_FALSE);
 
   nsCOMPtr<nsILDAPURL> mSearchUrl;
   nsIAbDirectoryQueryResultListener *mResultListener;
@@ -271,6 +272,18 @@ nsresult nsAbQueryLDAPMessageListener::DoTask()
   return mSearchOperation->SearchExt(dn, scope, filter, attributes.GetSize(),
                                      attributes.GetArray(), mTimeOut,
                                      mResultLimit);
+}
+
+void nsAbQueryLDAPMessageListener::InitFailed(PRBool aCancelled)
+{
+  if (!mResultListener)
+    return;
+
+  // In the !aCancelled case we know there was an error, but we won't be
+  // able to translate it, so just return an error code of zero.
+  mResultListener->OnQueryResult(
+      aCancelled ? nsIAbDirectoryQueryResultListener::queryResultStopped :
+                   nsIAbDirectoryQueryResultListener::queryResultError, 0);
 }
 
 nsresult nsAbQueryLDAPMessageListener::OnLDAPMessageSearchEntry(nsILDAPMessage *aMessage)

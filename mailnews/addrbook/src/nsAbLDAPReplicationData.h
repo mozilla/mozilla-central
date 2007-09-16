@@ -64,8 +64,9 @@ public:
   // nsILDAPMessageListener
   NS_IMETHOD OnLDAPMessage(nsILDAPMessage *aMessage);
 
-protected :
+protected:
   virtual nsresult DoTask();
+  virtual void InitFailed(PRBool aCancelled = PR_FALSE);
 
   // pointer to the interfaces used by this object
   nsCOMPtr<nsIWebProgressListener> mListener;

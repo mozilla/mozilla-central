@@ -255,6 +255,12 @@ nsresult nsAbLDAPProcessReplicationData::DoTask()
                                0, 0);
 }
 
+void nsAbLDAPProcessReplicationData::InitFailed(PRBool aCancelled)
+{
+  // Just call Done() which will ensure everything is tidied up nicely.
+  Done(PR_FALSE);
+}
+
 nsresult nsAbLDAPProcessReplicationData::OnLDAPSearchEntry(nsILDAPMessage *aMessage)
 {
     NS_ENSURE_ARG_POINTER(aMessage);

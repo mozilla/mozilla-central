@@ -82,23 +82,31 @@ nsresult nsAbLDAPListenerBase::Initiate()
   return NS_OK;
 }
 
+// If something fails in this function, we must call InitFailed() so that the
+// derived class (and listener) knows to cancel what its doing as there is
+// a problem.
 NS_IMETHODIMP nsAbLDAPListenerBase::OnLDAPInit(nsILDAPConnection *aConn, nsresult aStatus)
 {
   if (!mConnection || !mDirectoryUrl)
+  {
+    InitFailed();
     return NS_ERROR_NULL_POINTER;
+  }
 
   nsresult rv;
   nsString passwd;
 
   // Make sure that the Init() worked properly
-  NS_ENSURE_SUCCESS(aStatus, aStatus);
+  if (NS_FAILED(aStatus))
+  {
+    InitFailed();
+    return NS_OK;
+  }
 
   // If mLogin is set, we're expected to use it to get a password.
   //
   if (!mLogin.IsEmpty())
   {
-    PRBool status;
-
     // get the string bundle service
     //
     nsCOMPtr<nsIStringBundleService> stringBundleSvc = 
@@ -107,6 +115,7 @@ NS_IMETHODIMP nsAbLDAPListenerBase::OnLDAPInit(nsILDAPConnection *aConn, nsresul
     {
       NS_ERROR("nsAbLDAPListenerBase::OnLDAPInit():"
                " error getting string bundle service");
+      InitFailed();
       return rv;
     }
 
@@ -119,6 +128,7 @@ NS_IMETHODIMP nsAbLDAPListenerBase::OnLDAPInit(nsILDAPConnection *aConn, nsresul
     {
       NS_ERROR("nsAbLDAPListenerBase::OnLDAPInit(): error creating string"
                "bundle chrome://mozldap/locale/ldap.properties");
+      InitFailed();
       return rv;
     }
 
@@ -132,6 +142,7 @@ NS_IMETHODIMP nsAbLDAPListenerBase::OnLDAPInit(nsILDAPConnection *aConn, nsresul
       NS_ERROR("nsAbLDAPListenerBase::OnLDAPInit(): error getting"
                "'authPromptTitle' string from bundle "
                "chrome://mozldap/locale/ldap.properties");
+      InitFailed();
       return rv;
     }
 
@@ -139,7 +150,13 @@ NS_IMETHODIMP nsAbLDAPListenerBase::OnLDAPInit(nsILDAPConnection *aConn, nsresul
     //
     nsCAutoString host;
     rv = mDirectoryUrl->GetAsciiHost(host);
-    NS_ENSURE_SUCCESS(rv, rv);
+    if (NS_FAILED(rv))
+    {
+      NS_ERROR("nsAbLDAPListenerBase::OnLDAPInit(): error getting ascii host"
+               "name from directory url");
+      InitFailed();
+      return rv;
+    }
 
     // hostTemp is only necessary to work around a code-generation 
     // bug in egcs 1.1.2 (the version of gcc that comes with Red Hat 6.2),
@@ -160,6 +177,7 @@ NS_IMETHODIMP nsAbLDAPListenerBase::OnLDAPInit(nsILDAPConnection *aConn, nsresul
       NS_ERROR("nsAbLDAPListenerBase::OnLDAPInit():"
                "error getting 'authPromptText' string from bundle "
                "chrome://mozldap/locale/ldap.properties");
+      InitFailed();
       return rv;
     }
 
@@ -171,6 +189,7 @@ NS_IMETHODIMP nsAbLDAPListenerBase::OnLDAPInit(nsILDAPConnection *aConn, nsresul
     {
       NS_ERROR("nsAbLDAPListenerBase::OnLDAPInit():"
                " couldn't get window watcher service.");
+      InitFailed();
       return rv;
     }
 
@@ -185,6 +204,7 @@ NS_IMETHODIMP nsAbLDAPListenerBase::OnLDAPInit(nsILDAPConnection *aConn, nsresul
     {
       NS_ERROR("nsAbLDAPListenerBase::OnLDAPInit():"
                " error getting addressbook Window");
+      InitFailed();
       return rv;
     }
 
@@ -197,6 +217,7 @@ NS_IMETHODIMP nsAbLDAPListenerBase::OnLDAPInit(nsILDAPConnection *aConn, nsresul
     {
       NS_ERROR("nsAbLDAPMessageBase::OnLDAPInit():"
                " error getting auth prompter");
+      InitFailed();
       return rv;
     }
 
@@ -208,22 +229,44 @@ NS_IMETHODIMP nsAbLDAPListenerBase::OnLDAPInit(nsILDAPConnection *aConn, nsresul
     // Get the specification
     nsCString spec;
     rv = mDirectoryUrl->GetSpec(spec);
-    NS_ENSURE_SUCCESS(rv, rv);
+    if (NS_FAILED(rv))
+    {
+      NS_ERROR("nsAbLDAPMessageBase::OnLDAPInit():"
+               " error getting directory url spec");
+      InitFailed();
+      return rv;
+    }
 
+    PRBool status;
     rv = authPrompter->PromptPassword(authPromptTitle.get(),
                                       authPromptText.get(),
                                       NS_ConvertUTF8toUTF16(spec).get(),
                                       nsIAuthPrompt::SAVE_PASSWORD_PERMANENTLY,
                                       getter_Copies(passwd),
                                       &status);
-    if (NS_FAILED(rv) || !status)
-      return NS_ERROR_FAILURE;
+    if (NS_FAILED(rv))
+    {
+      NS_ERROR("nsAbLDAPMessageBase::OnLDAPInit(): failed to prompt for"
+               " password");
+      InitFailed();
+      return rv;
+    }
+    else if (!status)
+    {
+      InitFailed(PR_TRUE);
+      return NS_OK;
+    }
   }
 
   // Initiate the LDAP operation
   nsCOMPtr<nsILDAPOperation> ldapOperation =
     do_CreateInstance(NS_LDAPOPERATION_CONTRACTID, &rv);
-  NS_ENSURE_SUCCESS(rv, rv);
+  if (NS_FAILED(rv))
+  {
+    NS_ERROR("nsAbLDAPMessageBase::OnLDAPInit(): failed to create ldap operation");
+    InitFailed();
+    return rv;
+  }
 
   nsCOMPtr<nsILDAPMessageListener> proxyListener;
   rv = NS_GetProxyForObject(NS_PROXY_TO_MAIN_THREAD,
@@ -231,13 +274,30 @@ NS_IMETHODIMP nsAbLDAPListenerBase::OnLDAPInit(nsILDAPConnection *aConn, nsresul
                             static_cast<nsILDAPMessageListener *>(this),
                             NS_PROXY_SYNC | NS_PROXY_ALWAYS,
                             getter_AddRefs(proxyListener));
-  NS_ENSURE_SUCCESS(rv, rv);
+  if (NS_FAILED(rv))
+  {
+    NS_ERROR("nsAbLDAPMessageBase::OnLDAPInit(): failed to create proxy for"
+             " listener");
+    InitFailed();
+    return rv;
+  }
 
   rv = ldapOperation->Init(mConnection, proxyListener, nsnull);
-  NS_ENSURE_SUCCESS(rv, rv);
+  if (NS_FAILED(rv))
+  {
+    NS_ERROR("nsAbLDAPMessageBase::OnLDAPInit(): failed to Initialise operation");
+    InitFailed();
+    return rv;
+  }
 
   // Bind
-  return ldapOperation->SimpleBind(NS_ConvertUTF16toUTF8(passwd));
+  rv = ldapOperation->SimpleBind(NS_ConvertUTF16toUTF8(passwd));
+  if (NS_FAILED(rv))
+  {
+    NS_ERROR("nsAbLDAPMessageBase::OnLDAPInit(): failed to perform bind operation");
+    InitFailed();
+  }
+  return rv;
 }
 
 nsresult nsAbLDAPListenerBase::OnLDAPMessageBind(nsILDAPMessage *aMessage)
