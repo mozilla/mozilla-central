@@ -1,1 +1,1 @@
-CLOBBER for missing nightly build
+CLOBBERing to disable zipwriter from bug 379633
