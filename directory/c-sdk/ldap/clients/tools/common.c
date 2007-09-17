@@ -59,6 +59,9 @@
 #include <sys/termios.h>  /* for tcgetattr and tcsetattr */
 #endif /* HPUX */
 
+#if !defined(macintosh) && !defined(DOS) && !defined( _WINDOWS )
+#include <sys/socket.h>
+#endif
 
 static LDAP_REBINDPROC_CALLBACK get_rebind_credentials;
 static void print_library_info( const LDAPAPIInfo *aip, FILE *fp );
@@ -900,6 +903,125 @@ static int PinArgRegistration( void )
 }
 #endif /* LDAP_TOOL_ARGPIN */
 
+#if !defined(macintosh) && !defined(DOS) && !defined( _WINDOWS )
+/* If numaddr is IPv6 numeric address and if possible, get FQDN from it.
+ * This conversion is needed to fulfill the spec of sasl_client_init.
+ * If successful, FQDN is stored in buf and return LDAP_SUCCESS
+ * If numaddr is not IPv6 numeric address, it returns non LDAP_SUCCESS (-1)
+ * If any step of the conversion fails, it returns non LDAP_SUCCESS (-1)
+ * Note: any conversion failure does not print out an error message. 
+ */
+static int
+getFQDNbyIPv6NumericAddr ( char *numaddr, char *buf, size_t blen )
+{
+    char *hostp = NULL;
+    int  isIPv6Numeric = 0;
+    int  rc, return_value = -1;
+
+    /* IPv6 numeric address includes 2 or more colons */
+    /* example: [3ffe:1111:2222:3333::1] */
+    hostp = strchr( numaddr, ':' );
+    if ( hostp ) {         /* found one colon */
+	hostp = strchr( hostp+1, ':' );
+	if ( hostp ) {     /* found two colons */
+	    hostp = strchr( numaddr, '[' );
+	    if ( hostp ) { /* numaddr starts with '[' */
+		/* example: [fe80::250:ffff:ffff:e53a%eth0]
+		 * if interface is given, it's link-local.
+		 * we don't do lookup */
+		char *workp = strchr( ++hostp, '%' );
+		if ( !workp ) { /* address does not include % */
+		    size_t mylen = 0;
+		    isIPv6Numeric = 1;
+		    workp = strchr( hostp, ']' );
+		    if ( workp ) {
+			mylen = workp - hostp;
+		    } else {
+			mylen = strlen( hostp );
+		    }
+		    if ( mylen >= blen ) { /* address too long */
+			return return_value;
+		    }
+		    strncpy( buf, hostp, mylen );
+		    buf[mylen] = '\0';
+		}
+	    } else {
+		isIPv6Numeric = 1;
+		if ( strlen(numaddr) >= blen ) { /* address too long */
+		    return return_value;
+		}
+		strcpy( buf, numaddr );
+	    }
+	}
+    }
+    if ( !isIPv6Numeric ) {
+	return return_value;	/* it's not IPv6 numeric address */
+    }
+    {
+	struct sockaddr *saddr = NULL;
+	socklen_t  slen = 0;
+#ifdef HAVE_GETADDRINFO
+	struct addrinfo hints = {0};
+	struct addrinfo *ainfo = NULL;
+
+	hints.ai_flags = AI_ADDRCONFIG;
+	hints.ai_family = AF_UNSPEC;
+	hints.ai_socktype = SOCK_STREAM;
+
+	rc = getaddrinfo( buf, NULL, &hints, &ainfo );
+	if ( 0 == rc ) {
+	    saddr = ainfo->ai_addr;
+	    slen = ainfo->ai_addrlen;
+	}
+	/* if saddr is NULL here, getaddrinfo failed */
+#endif
+	if ( saddr && slen > 0 ) {
+#ifdef HAVE_GETNAMEINFO
+	    rc = getnameinfo( saddr, slen, buf, (socklen_t)blen, NULL, 0, NI_NAMEREQD );
+	    if (0 == rc) {
+		return_value = LDAP_SUCCESS;
+	    }
+#endif
+#ifdef HAVE_GETADDRINFO
+	    if ( ainfo ) {
+		freeaddrinfo( ainfo );
+	    }
+#endif
+	    if ( LDAP_SUCCESS == return_value ) {
+		return return_value;
+	    }
+	}
+    }
+    /* getaddrinfo and getnameinfo are not available; let's use nspr apis */
+    {
+	PRNetAddr praddr;
+	PRIntn idx = 0;
+	PRHostEnt prhent, prrevhent;
+	char tmpbuf[PR_NETDB_BUF_SIZE];
+	if ( PR_GetIPNodeByName(buf, PR_AF_INET6, PR_AI_DEFAULT,
+			tmpbuf, sizeof(tmpbuf), &prhent) != PR_SUCCESS ) {
+	    return return_value;
+	}
+	while (1) {
+	    idx = PR_EnumerateHostEnt(idx, &prhent, 0, &praddr);
+	    if (idx == -1) {
+	    	return return_value;
+	    }
+	    if (idx == 0) break;  /* normal loop termination */
+	    if (PR_GetHostByAddr(&praddr, tmpbuf, sizeof(tmpbuf),
+					&prrevhent) == PR_FAILURE) {
+	    	return return_value;
+	    }
+	    if ( prrevhent.h_name ) {
+		PR_snprintf( buf, blen, "%s", prrevhent.h_name );
+		return_value = LDAP_SUCCESS;
+		break;
+	    }
+	}
+	return return_value;
+    }
+}
+#endif
 
 /*
  * initialize and return an LDAP session handle.
@@ -911,6 +1033,15 @@ ldaptool_ldap_init( int second_host )
     LDAP	*ld = NULL;
     char	*host;
     int		port, rc, user_port;
+#if !defined(macintosh) && !defined(DOS) && !defined( _WINDOWS )
+#if defined(MAXHOSTNAMELEN)
+    char	hname[MAXHOSTNAMELEN];
+    size_t	hlen = MAXHOSTNAMELEN;
+#else
+    char	hname[256];
+    size_t	hlen = 256;
+#endif
+#endif
 
     if ( ldaptool_not ) {
 	return( NULL );
@@ -925,7 +1056,12 @@ ldaptool_ldap_init( int second_host )
 	port = ldaptool_port;
 	user_port = user_specified_port;
     }
-
+#if !defined(macintosh) && !defined(DOS) && !defined( _WINDOWS )
+    /* If numaddr is IPv6 numeric address and if possible, get FQDN from it. */
+    if ( getFQDNbyIPv6NumericAddr ( host, hname, hlen ) == LDAP_SUCCESS ) {
+	host = hname;
+    }
+#endif
 
     if ( ldaptool_verbose ) {
 	printf( "ldap_init( %s, %d )\n", host, port );

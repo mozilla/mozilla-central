@@ -2172,7 +2172,7 @@ dnl ========================================================
 dnl Checks for library functions.
 dnl ========================================================
 AC_PROG_GCC_TRADITIONAL
-AC_CHECK_FUNCS(lchown strerror)
+AC_CHECK_FUNCS(lchown strerror getaddrinfo getnameinfo)
 
 dnl AC_FUNC_MEMCMP
 dnl AC_FUNC_MMAP
