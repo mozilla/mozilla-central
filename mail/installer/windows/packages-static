@@ -340,6 +340,7 @@ bin\components\pluginGlue.js
 bin\components\txEXSLTRegExFunctions.js
 bin\components\feeds.xpt
 bin\components\saxparser.xpt
+bin\components\zipwriter.xpt
 
 bin\res\hiddenWindow.html
 bin\res\ua.css

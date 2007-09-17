@@ -200,6 +200,7 @@ bin\components\xulapp.xpt
 bin\components\xuldoc.xpt
 bin\components\xultmpl.xpt
 bin\components\wcap.xpt
+bin\components\zipwriter.xpt
 ; JavaScript components
 bin\components\nsDefaultCLH.js
 bin\components\nsSetDefaultBrowser.js
