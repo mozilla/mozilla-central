@@ -302,8 +302,19 @@
             this.value = new Date();
           }
           this.kMinimonth.addEventListener("select", this.clickDate, false);
-          this.kMinimonth.addEventListener("monthchange", this.reshowPopup, false);
-          this.kMinimonth.addEventListener("popuplisthidden", this.reshowPopup, false);
+
+          this.mUseReshowHack = true;
+#ifdef XP_MACOSX
+          // doesn't work on Mac: Sunbird works around in widget code, Lightning could not:
+          const kSUNBIRD_UID = "{718e30fb-e89b-41dd-9da7-e25a45638b28}";
+          var appInfo = Components.classes["@mozilla.org/xre/app-info;1"]
+                                  .getService(Components.interfaces.nsIXULAppInfo);
+          this.mUseReshowHack = (appInfo.ID == kSUNBIRD_UID);
+#endif
+          if (this.mUseReshowHack) {
+              this.kMinimonth.addEventListener("monthchange", this.reshowPopup, false);
+              this.kMinimonth.addEventListener("popuplisthidden", this.reshowPopup, false);
+          }
           this.mIsReshowing = false;
         ]]>
       </constructor>
@@ -311,8 +322,10 @@
       <destructor>
         <![CDATA[
           this.kMinimonth.removeEventListener("select", this.clickDate, false);
-          this.kMinimonth.removeEventListener("monthchange", this.reshowPopup, false);
-          this.kMinimonth.removeEventListener("popuplisthidden", this.reshowPopup, false);
+          if (this.mUseReshowHack) {
+              this.kMinimonth.removeEventListener("monthchange", this.reshowPopup, false);
+              this.kMinimonth.removeEventListener("popuplisthidden", this.reshowPopup, false);
+          }
         ]]>
       </destructor>
 

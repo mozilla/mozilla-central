@@ -30,7 +30,7 @@ calendar.jar:
     content/calendar/converters/xcs2rdf.xsl (content/converters/xcs2rdf.xsl)
     content/calendar/converters/xml2xcs.xsl (content/converters/xml2xcs.xsl)
     content/calendar/datetimepickers/datetimepickers.css (content/datetimepickers/datetimepickers.css)
-    content/calendar/datetimepickers/datetimepickers.xml (content/datetimepickers/datetimepickers.xml)
+*   content/calendar/datetimepickers/datetimepickers.xml (content/datetimepickers/datetimepickers.xml)
     content/calendar/datetimepickers/minimonth.css (content/datetimepickers/minimonth.css)
     content/calendar/datetimepickers/minimonth.xml (content/datetimepickers/minimonth.xml)
     content/calendar/preferences/advanced.js      (/calendar/base/content/preferences/advanced.js)
