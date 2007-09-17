@@ -114,8 +114,10 @@ var gSearchNotificationListener =
           vFolder.updateSummaryTotals(true); // force update from db.
           var msgdb = vFolder.getMsgDatabase(msgWindow);
           msgdb.Commit(MSG_DB_LARGE_COMMIT);
-          // now that we have finished loading a virtual folder, scroll to the correct message
-          ScrollToMessageAfterFolderLoad(vFolder);
+          // now that we have finished loading a virtual folder,
+          // scroll to the correct message if there is at least one.
+          if (vFolder.getTotalMessages(false) > 0)
+            ScrollToMessageAfterFolderLoad(vFolder);
         }
     },
 

@@ -246,9 +246,10 @@ var folderListener = {
            if (uri == gCurrentLoadingFolderURI) {
              viewDebug("uri == current loading folder uri\n");
              gCurrentLoadingFolderURI = "";
-
-             scrolled = ScrollToMessageAfterFolderLoad(msgFolder);
-
+             // scroll to message for virtual folders is done in 
+             // gSearchNotificationListener.OnSearchDone (see searchBar.js)
+             if (!scrolled && !(gMsgFolderSelected.flags & MSG_FOLDER_FLAG_VIRTUAL))
+               scrolled = ScrollToMessageAfterFolderLoad(msgFolder);   
              SetBusyCursor(window, false);
            }
            if (gNotifyDefaultInboxLoadedOnStartup && (folder.flags & 0x1000))
