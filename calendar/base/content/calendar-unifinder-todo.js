@@ -200,11 +200,13 @@ function toDoUnifinderRefresh()
 
    ccalendar.getItems(filter, 0, null, null, refreshListener);
    var deck = document.getElementById("view-deck");
+   var selectedShowCompleted =  deck.selectedPanel.showCompleted;
    for each (view in deck.childNodes) {
        view.showCompleted = !hideCompleted;
    }
    var selectedDay = deck.selectedPanel.selectedDay;
-   if (selectedDay) {
+   // only update view if hide completed has actually changed:
+   if ((deck.selectedPanel.showCompleted != selectedShowCompleted) && selectedDay) {
       deck.selectedPanel.goToDay(selectedDay);
    }
 }

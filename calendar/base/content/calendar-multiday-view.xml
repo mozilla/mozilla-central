@@ -2554,36 +2554,29 @@
           aStartDate = aEndDate = null;
 
           if (this.mDisplayDaysOff) {
-              function compareDatetimes(one, two) {
-                  return ((!one && !two) ||
-                          (one && two && (one.compare(two) == 0)));
-              }
-              if (!compareDatetimes(this.mStartDate, startDate) ||
-                  !compareDatetimes(this.mEndDate, endDate)) {
-                  startDate.makeImmutable();
-                  endDate.makeImmutable();
-                  this.mDateList = null;
-                  this.mStartDate = startDate;
-                  this.mEndDate = endDate;
-                  //
-                  // For a true multiday view (e.g, 3 days advanced by one day
-                  // at a time), a smarter refresh could reuse boxes, comparing
-                  // the current date range and add/remove, instead of just
-                  // replacing.
-                  //
-                  this.refresh();
-              }
+            startDate.makeImmutable();
+            endDate.makeImmutable();
+            this.mDateList = null;
+            this.mStartDate = startDate;
+            this.mEndDate = endDate;
+            //
+            // For a true multiday view (e.g, 3 days advanced by one day
+            // at a time), a smarter refresh could reuse boxes, comparing
+            // the current date range and add/remove, instead of just
+            // replacing.
+            //
+            this.refresh();
           } else { // workdays only
-              var dateList = new Array();
-              for (var d = startDate.clone(); d.compare(endDate) <= 0;) {
-                  if (this.mDaysOffArray.indexOf(d.weekday) == -1) {
-                      var workday = d.clone();
-                      workday.makeImmutable();
-                      dateList.push(workday);
-                  }
-                  d.day += 1;
+            var dateList = new Array();
+            for (var d = startDate.clone(); d.compare(endDate) <= 0;) {
+              if (this.mDaysOffArray.indexOf(d.weekday) == -1) {
+                var workday = d.clone();
+                workday.makeImmutable();
+                dateList.push(workday);
               }
-              this.setDateList(dateList.length, dateList);
+              d.day += 1;
+            }
+            this.setDateList(dateList.length, dateList);
           }
         ]]></body>
       </method>
@@ -2595,10 +2588,11 @@
           this.mStartDate = null;
           this.mEndDate = null;
 
-          var dateList = null;
-          if (aCount > 0) {
+          if (aCount == 0) {
+              this.mDateList = null;
+          } else {
               aDates.sort (function(a, b) { return a.compare(b); });
-              dateList = aDates.map(
+              this.mDateList = aDates.map(
                   function dateMapper(d) {
                       if (d.isDate && !d.isMutable)
                           return d;
@@ -2610,14 +2604,8 @@
                   }
               );
           }
-          function compareDatetimes(one, two) {
-              return ((!one && !two) ||
-                      (one && two && (one.compare(two) == 0)));
-          }
-          if (!compareArrays(this.mDateList, dateList, compareDatetimes)) {
-              this.mDateList = dateList;
-              this.refresh();
-          }
+
+          this.refresh();
         ]]></body>
       </method>
 
@@ -2903,13 +2891,14 @@
           else
             filter |= this.mCalendar.ITEM_FILTER_TYPE_EVENT;
 
-          this.mRefreshPending = this.mCalendar.getItems(filter,
-                                                         0,
-                                                         this.startDate,
-                                                         this.queryEndDate,
-                                                         this.mOperationListener);
-          if (!this.mRefreshPending) { // no support for calIOperation, fallback to bool
-              this.mRefreshPending = true;
+          this.mRefreshPending = true;
+          pendingRefresh = this.mCalendar.getItems(filter,
+                                                   0,
+                                                   this.startDate,
+                                                   this.queryEndDate,
+                                                   this.mOperationListener);
+          if (pendingRefresh && pendingRefresh.isPending) { // support for calIOperation
+              this.mRefreshPending = pendingRefresh;
           }
         ]]></body>
       </method>

@@ -1091,24 +1091,17 @@
         <parameter name="aEndDate"/>
         <body><![CDATA[
           if (this.mTimezone != aStartDate.timezone) {
-              aStartDate = aStartDate.getInTimezone(this.mTimezone);
-              aEndDate = aEndDate.getInTimezone(this.mTimezone);
+            aStartDate = aStartDate.getInTimezone(this.mTimezone);
+            aEndDate = aEndDate.getInTimezone(this.mTimezone);
           }
-          var startDate = aStartDate.startOfWeek.clone();
-          var endDate = aEndDate.endOfWeek.clone();
-          startDate.day += this.mWeekStartOffset;
-          endDate.day += this.mWeekStartOffset;
 
-          function compareDatetimes(one, two) {
-              return ((!one && !two) ||
-                      (one && two && (one.compare(two) == 0)));
-          }
-          if (!compareDatetimes(this.mStartDate, startDate) ||
-              !compareDatetimes(this.mEndDate, endDate)) {
-              this.mStartDate = startDate;
-              this.mEndDate = endDate;
-              this.refresh();
-          }
+          this.mStartDate = aStartDate.startOfWeek;
+          this.mEndDate = aEndDate.endOfWeek;
+
+          this.mStartDate.day += this.mWeekStartOffset;
+          this.mEndDate.day += this.mWeekStartOffset;
+
+          this.refresh();
         ]]></body>
       </method>
 
@@ -1208,13 +1201,14 @@
           else
             filter |= this.mCalendar.ITEM_FILTER_TYPE_EVENT;
 
-          this.mRefreshPending = this.mCalendar.getItems(filter,
-                                                         0,
-                                                         this.startDate,
-                                                         this.queryEndDate,
-                                                         this.mOperationListener);
-          if (!this.mRefreshPending) { // no support for calIOperation, fallback to bool
-              this.mRefreshPending = true;
+          this.mRefreshPending = true;
+          pendingRefresh = this.mCalendar.getItems(filter,
+                                                   0,
+                                                   this.startDate,
+                                                   this.queryEndDate,
+                                                   this.mOperationListener);
+          if (pendingRefresh && pendingRefresh.isPending) { // support for calIOperation
+              this.mRefreshPending = pendingRefresh;
           }
         ]]></body>
       </method>

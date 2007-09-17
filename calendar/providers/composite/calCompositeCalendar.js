@@ -44,10 +44,11 @@ const calIOperationListener = Components.interfaces.calIOperationListener;
 
 function calCompositeCalendarObserverHelper (compCalendar) {
     this.compCalendar = compCalendar;
+    this.pendingLoads = {};
 }
 
 calCompositeCalendarObserverHelper.prototype = {
-    suppressOnLoad: false,
+    pendingLoads: null,
 
     onStartBatch: function() {
         this.compCalendar.mObservers.notify("onStartBatch");
@@ -58,7 +59,11 @@ calCompositeCalendarObserverHelper.prototype = {
     },
 
     onLoad: function(calendar) {
-        if (!this.suppressOnLoad) {
+        // avoid unnecessary onLoad events:
+        if (this.pendingLoads[calendar.id]) {
+            // don't forward if caused by composite:
+            delete this.pendingLoads[calendar.id];
+        } else {
             // any refreshed dependent calendar logically refreshes
             // this composite calendar, thus we send out an onLoad
             // for this composite calendar:
@@ -310,25 +315,22 @@ calCompositeCalendar.prototype = {
     },
 
     refresh: function() {
-        this.mObserverHelper.suppressOnLoad = true;
-        try {
-            for each (cal in this.mCalendars) {
-                try {
-                    if (cal.canRefresh) {
-                        cal.refresh();
-                    }
-                } catch (e) {
-                    ASSERT(false, e);
+        for each (cal in this.mCalendars) {
+            try {
+                if (cal.canRefresh) {
+                    this.mObserverHelper.pendingLoads[cal.id] = true;
+                    cal.refresh();
                 }
+            } catch (e) {
+                ASSERT(false, e);
+                delete this.mObserverHelper.pendingLoads[cal.id];
             }
-        } finally {
-            this.mObserverHelper.suppressOnLoad = false;
-            // send out a single onLoad for this composite calendar,
-            // although e.g. the ics provider will trigger another
-            // onLoad asynchronously; we cannot rely on every calendar
-            // sending an onLoad:
-            this.mObservers.notify("onLoad", [this]);
         }
+        // send out a single onLoad for this composite calendar,
+        // although e.g. the ics provider will trigger another
+        // onLoad asynchronously; we cannot rely on every calendar
+        // sending an onLoad:
+        this.mObservers.notify("onLoad", [this]);
     },
 
     // void modifyItem( in calIItemBase aNewItem, in calIItemBase aOldItem, in calIOperationListener aListener );

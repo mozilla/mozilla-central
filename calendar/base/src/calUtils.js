@@ -1203,6 +1203,7 @@ var gOpGroupId = 0;
  * calendar operations (without handle).
  */
 function calOperationGroup(cancelFunc) {
+    this.wrappedJSObject = this;
     if (!gOpGroupPrefix) {
         gOpGroupPrefix = (getUUID() + "-");
     }
@@ -1244,6 +1245,10 @@ calOperationGroup.prototype = {
         }
     },
 
+    toString: function calOperationGroup_toString() {
+        return ("[calOperationGroup] id=" + this.id);
+    },
+
     // calIOperation:
     get id() {
         return this.mId;
@@ -1258,7 +1263,7 @@ calOperationGroup.prototype = {
     },
 
     get success() {
-        return (!this.isPending && Components.results.isSuccessCode(this.status));
+        return (!this.isPending && Components.isSuccessCode(this.status));
     },
 
     cancel: function calOperationGroup_cancel(status) {
