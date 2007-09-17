@@ -595,7 +595,7 @@ char * apply_rfc2047_encoding(const char *_src, PRBool structured, const char *c
   //<TAB>=?<charset>?<B/Q>?...?=<CRLF>
   PRInt32 perLineOverhead = strlen(charset) + 10;
 
-  if (perLineOverhead > foldlen || (src = src_head = strdup(_src)) == nsnull)
+  if (perLineOverhead >= foldlen || (src = src_head = strdup(_src)) == nsnull)
     return nsnull;
 
   /* allocate enough buffer for conversion, this way it can avoid
