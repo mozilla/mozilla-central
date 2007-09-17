@@ -25,6 +25,7 @@
  *   gekacheka@yahoo.com
  *   Matthew Willis <lilmatt@mozilla.com>
  *   Philipp Kewisch <mozilla@kewis.ch>
+ *   Martin Schroeder <mschroeder@mozilla.x-home.org>
  *
  * Alternatively, the contents of this file may be used under the terms of
  * either the GNU General Public License Version 2 or later (the "GPL"), or
@@ -296,6 +297,8 @@ function getSelectedDay() {
     return currentView().selectedDay;
 }
 
+var gMidnightTimer;
+
 /** Creates a timer that will fire after midnight.  Pass in a function as 
  * aRefreshCallback that should be called at that time.
  */
@@ -313,9 +316,33 @@ function scheduleMidnightUpdate(aRefreshCallback) {
         }
     };
 
-    var timer = Components.classes["@mozilla.org/timer;1"]
-                          .createInstance(Components.interfaces.nsITimer);
-    timer.initWithCallback(udCallback, msUntilTomorrow, timer.TYPE_ONE_SHOT);
+    if (!gMidnightTimer) {
+        // Observer for wake after sleep/hibernate/standby to create new timers and refresh UI
+        var wakeObserver = {
+           observe: function(aSubject, aTopic, aData) {
+               if (aTopic == "wake_notification") {
+                   aRefreshCallback();
+               }
+           }
+        };
+
+        // Add observer
+        var observerService = Components.classes["@mozilla.org/observer-service;1"]
+                                        .getService(Components.interfaces.nsIObserverService);
+        observerService.addObserver(wakeObserver, "wake_notification", false);
+
+        // Remove observer on unload
+        window.addEventListener("unload",
+                                function() {
+                                    observerService.removeObserver(wakeObserver, "wake_notification");
+                                }, false);
+
+        gMidnightTimer = Components.classes["@mozilla.org/timer;1"]
+                                   .createInstance(Components.interfaces.nsITimer);
+    } else {
+        gMidnightTimer.cancel();
+    }
+    gMidnightTimer.initWithCallback(udCallback, msUntilTomorrow, gMidnightTimer.TYPE_ONE_SHOT);
 }
 
 // Returns the actual style sheet object with the specified path.  Callers are

@@ -29,6 +29,7 @@
  *   Matthew Willis <mattwillis@gmail.com>
  *   Markus Adrario <MarkusAdrario@web.de>
  *   Philipp Kewisch <mozilla@kewis.ch>
+ *   Martin Schroeder <mschroeder@mozilla.x-home.org>
  *
  * Alternatively, the contents of this file may be used under the terms of
  * either the GNU General Public License Version 2 or later (the "GPL"), or 
@@ -89,7 +90,9 @@ var agendaTreeView = {
     todayCount: 0,
     tomorrowCount: 0,
     soonCount: 0,
-    prevRowCount: 0
+    prevRowCount: 0,
+    refreshQueue: [],
+    refreshPending: false
 };
 
 agendaTreeView.init =
@@ -398,7 +401,13 @@ agendaTreeView.calendarOpListener.onOperationComplete =
 function listener_onOperationComplete(calendar, status, optype, id,
                                       detail)
 {
-    this.agendaTreeView.calendarUpdateComplete();  
+    this.agendaTreeView.calendarUpdateComplete();
+
+    // signal that the current operation finished.
+    this.agendaTreeView.refreshPending = false;
+
+    // immediately start the next job on the queue.
+    this.agendaTreeView.popRefreshQueue();
 };
 
 agendaTreeView.calendarOpListener.onGetResult =
@@ -410,9 +419,18 @@ function listener_onGetResult(calendar, status, itemtype, detail, count, items)
     items.forEach(this.agendaTreeView.addItem, this.agendaTreeView);
 };
 
-agendaTreeView.refreshCalendarQuery =
-function refreshCalendarQuery()
+agendaTreeView.popRefreshQueue =
+function popRefreshQueue()
 {
+    if (this.refreshPending) {
+        return;
+    }
+
+    var refreshJob = this.refreshQueue.pop();
+    if (!refreshJob) {
+        return;
+    }
+
     var filter = this.calendar.ITEM_FILTER_CLASS_OCCURRENCES;
     if (document.getElementById("hide-completed-checkbox").checked) {
         filter |= this.calendar.ITEM_FILTER_COMPLETED_NO;
@@ -435,9 +453,18 @@ function refreshCalendarQuery()
             break;
     }
 
+    this.refreshPending = true;
     this.periods.forEach(function (p) { p.events = []; });
     this.calendar.getItems(filter, 0, this.today.start, this.soon.end,
                            this.calendarOpListener);
+};
+
+agendaTreeView.refreshCalendarQuery =
+function refreshCalendarQuery()
+{
+    var refreshJob = {};
+    this.refreshQueue.push(refreshJob);
+    this.popRefreshQueue();
 };
 
 agendaTreeView.updateFilter =
