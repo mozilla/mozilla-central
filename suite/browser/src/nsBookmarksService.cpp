@@ -95,7 +95,7 @@
 #include "nsICollation.h"
 #include "nsVoidArray.h"
 #include "nsUnicharUtils.h"
-#include "nsAutoBuffer.h"
+#include "nsTArray.h"
 #include "nsINetUtil.h"
 
 #if defined(XP_WIN) || defined(XP_OS2)
@@ -742,17 +742,17 @@ BookmarkParser::DecodeBuffer(nsString &line, char *buf, PRUint32 aLength)
         PRInt32     unicharBufLen = 0;
         mUnicodeDecoder->GetMaxLength(aBuffer, aLength, &unicharBufLen);
         
-        nsAutoBuffer<PRUnichar, 256> stackBuffer;
-        if (!stackBuffer.EnsureElemCapacity(unicharBufLen + 1))
+        nsAutoTArray<PRUnichar, 256> stackBuffer;
+        if (!stackBuffer.SetLength(unicharBufLen + 1))
           return NS_ERROR_OUT_OF_MEMORY;
         
         do
         {
             PRInt32     srcLength = aLength;
             PRInt32     unicharLength = unicharBufLen;
-            PRUnichar *unichars = stackBuffer.get();
+            PRUnichar *unichars = stackBuffer.Elements();
             
-            rv = mUnicodeDecoder->Convert(aBuffer, &srcLength, stackBuffer.get(), &unicharLength);
+            rv = mUnicodeDecoder->Convert(aBuffer, &srcLength, stackBuffer.Elements(), &unicharLength);
             unichars[unicharLength]=0;  //add this since the unicode converters can't be trusted to do so.
 
             // Move the nsParser.cpp 00 -> space hack to here so it won't break UCS2 file

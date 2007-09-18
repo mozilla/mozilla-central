@@ -52,7 +52,7 @@
 #include "nsIDOMWindowInternal.h"
 #include "nsIAttribute.h"
 #include "nsIStringBundle.h"
-#include "nsAutoBuffer.h"
+#include "nsTArray.h"
 #include "nsIEventStateManager.h"
 #include "prmem.h"
 #include "nsISchema.h"
@@ -442,7 +442,7 @@ nsXFormsUploadElement::HandleChildElements(nsILocalFile *aFile,
   return rv;
 }
 
-typedef nsAutoBuffer<char, 256> nsAutoCharBuffer;
+typedef nsAutoTArray<char, 256> nsAutoCharBuffer;
 
 static void
 ReportEncodingMemoryError(nsIDOMElement* aElement, nsIFile *aFile,
@@ -478,13 +478,13 @@ nsXFormsUploadElement::EncodeFileContents(nsIFile *aFile, PRUint16 aType,
   NS_ENSURE_SUCCESS(rv, rv);
 
   nsAutoCharBuffer fileData;
-  if (!fileData.EnsureElemCapacity(size + 1)) {
+  if (!fileData.SetLength(size + 1)) {
     ReportEncodingMemoryError(mElement, aFile, size + 1);
     return NS_ERROR_OUT_OF_MEMORY;
   }
 
   PRUint32 bytesRead;
-  rv = fileStream->Read(fileData.get(), size, &bytesRead);
+  rv = fileStream->Read(fileData.Elements(), size, &bytesRead);
   NS_ASSERTION(NS_SUCCEEDED(rv) && bytesRead == size,
                "fileStream->Read failed");
 
@@ -492,7 +492,7 @@ nsXFormsUploadElement::EncodeFileContents(nsIFile *aFile, PRUint16 aType,
     if (aType == nsISchemaBuiltinType::BUILTIN_TYPE_BASE64BINARY) {
       // encode file contents
       *aResult = nsnull;
-      char *buffer = PL_Base64Encode(fileData.get(), bytesRead, nsnull);
+      char *buffer = PL_Base64Encode(fileData.Elements(), bytesRead, nsnull);
       if (buffer) {
         *aResult = ToNewUnicode(nsDependentCString(buffer));
         PR_Free(buffer);
@@ -513,7 +513,7 @@ nsXFormsUploadElement::EncodeFileContents(nsIFile *aFile, PRUint16 aType,
         rv = NS_ERROR_OUT_OF_MEMORY;
       } else {
         // encode file contents
-        BinaryToHex(fileData.get(), bytesRead, &fileDataHex);
+        BinaryToHex(fileData.Elements(), bytesRead, &fileDataHex);
         fileDataHex[bytesRead * 2] = 0;
         *aResult = fileDataHex;
       }
