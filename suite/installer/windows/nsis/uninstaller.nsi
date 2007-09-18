@@ -163,14 +163,16 @@ Section "Uninstall"
   SetDetailsPrint textonly
   DetailPrint $(STATUS_UNINSTALL_MAIN)
   SetDetailsPrint none
+
   ; Remove registry entries for non-existent apps and for apps that point to our
-  ; install location in the Software\Mozilla key.
+  ; install location in the Software\Mozilla key and uninstall registry entries
+  ; that point to our install location for both HKCU and HKLM.
   SetShellVarContext current  ; Sets SHCTX to HKCU
   ${un.RegCleanMain} "Software\Mozilla"
+  ${un.RegCleanUninstall}
+
   SetShellVarContext all  ; Sets SHCTX to HKLM
   ${un.RegCleanMain} "Software\Mozilla"
-
-  ; Remove uninstall entries that point to our install location
   ${un.RegCleanUninstall}
 
   SetShellVarContext all  ; Set SHCTX to HKLM

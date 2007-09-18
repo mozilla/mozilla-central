@@ -99,7 +99,6 @@ Var fhUninstallLog
 
 VIAddVersionKey "FileDescription" "${BrandShortName} Installer"
 
-!insertmacro GetLongPath
 !insertmacro RegCleanMain
 !insertmacro RegCleanUninstall
 !insertmacro CloseApp
@@ -113,6 +112,9 @@ VIAddVersionKey "FileDescription" "${BrandShortName} Installer"
 !insertmacro GetSingleInstallPath
 
 !include shared.nsh
+
+; Helper macros for ui callbacks. Insert these after shared.nsh
+!insertmacro PreDirectoryCommon
 
 Name "${BrandFullName}"
 OutFile "setup.exe"
@@ -392,13 +394,14 @@ Section "-Application" Section1
   ${EndIf}
 
   ; Remove registry entries for non-existent apps and for apps that point to our
-  ; install location in the Software\Mozilla key.
+  ; install location in the Software\Mozilla key and uninstall registry entries
+  ; that point to our install location for both HKCU and HKLM.
   SetShellVarContext current  ; Set SHCTX to HKCU
   ${RegCleanMain} "Software\Mozilla"
+  ${RegCleanUninstall}
+
   SetShellVarContext all  ; Set SHCTX to HKLM
   ${RegCleanMain} "Software\Mozilla"
-
-  ; Remove uninstall entries that point to our install location
   ${RegCleanUninstall}
 
   ${LogHeader} "Adding Registry Entries"
@@ -803,26 +806,7 @@ Function leaveComponents
 FunctionEnd
 
 Function preDirectory
-  SetShellVarContext all  ; Set SHCTX to HKLM
-  ${GetSingleInstallPath} "Software\Mozilla\${BrandFullNameInternal}" $R9
-  ${If} $R9 == "false"
-    SetShellVarContext current  ; Set SHCTX to HKCU
-    ${GetSingleInstallPath} "Software\Mozilla\${BrandFullNameInternal}" $R9
-  ${EndIf}
-
-  ${Unless} $R9 == "false"
-    StrCpy $INSTDIR "$R9"
-  ${EndUnless}
-
-  ${If} $InstallType != 4
-    ${CheckDiskSpace} $R9
-    ${If} $R9 != "false"
-      ${CanWriteToInstallDir} $R9
-      ${If} $R9 != "false"
-        Abort
-      ${EndIf}
-    ${EndIf}
-  ${EndIf}
+  ${PreDirectoryCommon}
 FunctionEnd
 
 Function leaveDirectory
