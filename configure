@@ -17382,7 +17382,7 @@ if test "${enable_static+set}" = set; then
 fi
 
 
-if test -n "$MOZ_DEBUG"; then
+if test -n "$MOZ_DEBUG" -a "$MOZ_BUILD_APP" != "xulrunner"; then
    MOZ_ENABLE_LIBXUL=
 fi
 
