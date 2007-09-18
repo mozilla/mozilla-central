@@ -49,6 +49,7 @@ const nsIDOMWindow           = Components.interfaces.nsIDOMWindow;
 const nsIFactory             = Components.interfaces.nsIFactory;
 const nsIFileURL             = Components.interfaces.nsIFileURL;
 const nsIHttpProtocolHandler = Components.interfaces.nsIHttpProtocolHandler;
+const nsINetUtil             = Components.interfaces.nsINetUtil;
 const nsIPrefService         = Components.interfaces.nsIPrefService;
 const nsIPrefBranch          = Components.interfaces.nsIPrefBranch;
 const nsIPrefLocalizedString = Components.interfaces.nsIPrefLocalizedString;
@@ -60,6 +61,9 @@ const nsIWebNavigationInfo   = Components.interfaces.nsIWebNavigationInfo;
 
 const NS_BINDING_ABORTED = 0x804b0002;
 const NS_ERROR_WONT_HANDLE_CONTENT = 0x805d0001;
+
+const URI_INHERITS_SECURITY_CONTEXT = nsIHttpProtocolHandler
+                                        .URI_INHERITS_SECURITY_CONTEXT;
 
 const NS_GENERAL_STARTUP_PREFIX = "@mozilla.org/commandlinehandler/general-startup;1?type=";
 
@@ -339,8 +343,14 @@ var nsBrowserContentHandler = {
     try {
       var chromeParam = cmdLine.handleFlagWithParam("chrome", false);
       if (chromeParam) {
-        openWindow(null, chromeParam, features);
-        cmdLine.preventDefault = true;
+        // only load URIs which do not inherit chrome privs
+        var uri = resolveURIInternal(cmdLine, chromeParam);
+        var netutil = Components.classes["@mozilla.org/network/util;1"]
+                                .getService(nsINetUtil);
+        if (!netutil.URIChainHasFlags(uri, URI_INHERITS_SECURITY_CONTEXT)) {
+          openWindow(null, uri.spec, features);
+          cmdLine.preventDefault = true;
+        }
       }
     } catch (e) {
     }

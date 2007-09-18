@@ -43,12 +43,16 @@ const nsICommandLineHandler    = Components.interfaces.nsICommandLineHandler;
 const nsICommandLineValidator  = Components.interfaces.nsICommandLineValidator;
 const nsIDOMWindowInternal     = Components.interfaces.nsIDOMWindowInternal;
 const nsIFactory               = Components.interfaces.nsIFactory;
+const nsINetUtil               = Components.interfaces.nsINetUtil;
 const nsISupportsString        = Components.interfaces.nsISupportsString;
 const nsIURILoader             = Components.interfaces.nsIURILoader;
 const nsIWindowMediator        = Components.interfaces.nsIWindowMediator;
 const nsIWindowWatcher         = Components.interfaces.nsIWindowWatcher;
 
 const NS_ERROR_ABORT = Components.results.NS_ERROR_ABORT;
+
+const URI_INHERITS_SECURITY_CONTEXT = Components.interfaces.nsIProtocolHandler
+                                        .URI_INHERITS_SECURITY_CONTEXT;
 
 function mayOpenURI(uri)
 {
@@ -219,16 +223,27 @@ var nsMailDefaultHandler = {
 
     var chromeParam = cmdLine.handleFlagWithParam("chrome", false);
     if (chromeParam) {
-      var features = "chrome,dialog=no,all";
-      var wwatch = Components.classes["@mozilla.org/embedcomp/window-watcher;1"]
-                             .getService(nsIWindowWatcher);
-      var argstring = Components.classes["@mozilla.org/supports-string;1"]
-                                .createInstance(nsISupportsString);
-      wwatch.openWindow(null, chromeParam, "_blank",
-                        "chrome,dialog=no,all", argstring);
-      cmdLine.preventDefault = true;
+      try {
+        var features = "chrome,dialog=no,all";
+        var wwatch = Components.classes["@mozilla.org/embedcomp/window-watcher;1"]
+                               .getService(nsIWindowWatcher);
+        var argstring = Components.classes["@mozilla.org/supports-string;1"]
+                                  .createInstance(nsISupportsString);
+        var uri = resolveURIInternal(cmdLine, chromeParam);
+        var netutil = Components.classes["@mozilla.org/network/util;1"]
+                                .getService(nsINetUtil);
+        // only load URIs which do not inherit chrome privs
+        if (!netutil.URIChainHasFlags(uri, URI_INHERITS_SECURITY_CONTEXT)) {
+          wwatch.openWindow(null, uri.spec, "_blank",
+                            "chrome,dialog=no,all", argstring);
+          cmdLine.preventDefault = true;
+        }
+      }
+      catch (e) {
+        dump(e);
+      }
     }
-    
+
     var count = cmdLine.length;
     if (count) {
       var i = 0;
