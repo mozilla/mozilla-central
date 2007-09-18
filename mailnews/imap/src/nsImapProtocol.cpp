@@ -1,4 +1,4 @@
-/* -*- Mode: C++; tab-width: 4; indent-tabs-mode: nil; c-basic-offset: 4 -*- */
+/* -*- Mode: C++; tab-width: 4; indent-tabs-mode: nil; c-basic-offset: 2 -*- */
 /* ***** BEGIN LICENSE BLOCK *****
  * Version: MPL 1.1/GPL 2.0/LGPL 2.1
  *
@@ -845,25 +845,37 @@ nsresult nsImapProtocol::SetupWithUrl(nsIURI * aURL, nsISupports* aConsumer)
 void nsImapProtocol::ReleaseUrlState(PRBool rerunning)
 {
   // clear out the socket's reference to the notification callbacks for this transaction
-  if (m_transport)
   {
-    nsAutoCMonitor mon (this);
-    m_transport->SetSecurityCallbacks(nsnull);
-    m_transport->SetEventSink(nsnull, nsnull);
+    nsAutoCMonitor mon(this);
+    if (m_transport)
+    {
+      m_transport->SetSecurityCallbacks(nsnull);
+      m_transport->SetEventSink(nsnull, nsnull);
+    }
   }
 
   if (m_mockChannel && !rerunning)
   {
+    // Proxy the close of the channel to the ui thread.
     if (m_imapMailFolderSink)
       m_imapMailFolderSink->CloseMockChannel(m_mockChannel);
     else
       m_mockChannel->Close();
-    // Proxy the release of the channel to the main thread.  This is something
-    // that the xpcom proxy system should do for us!
-    nsCOMPtr<nsIThread> thread = do_GetMainThread();
-    nsIImapMockChannel *doomed = nsnull;
-    m_mockChannel.swap(doomed);
-    NS_ProxyRelease(thread, doomed);
+
+    {
+      // grab a monitor so m_mockChannel doesn't get cleared out
+      // from under us.
+      nsAutoCMonitor mon(this);
+      if (m_mockChannel)
+      {
+        // Proxy the release of the channel to the main thread.  This is something
+        // that the xpcom proxy system should do for us!
+        nsCOMPtr<nsIThread> thread = do_GetMainThread();
+        nsIImapMockChannel *doomed = nsnull;
+        m_mockChannel.swap(doomed);
+        NS_ProxyRelease(thread, doomed);
+      }
+    }
   }
 
   m_channelContext = nsnull; // this might be the url - null it out before the final release of the url
@@ -871,50 +883,46 @@ void nsImapProtocol::ReleaseUrlState(PRBool rerunning)
 
   // Proxy the release of the listener to the main thread.  This is something
   // that the xpcom proxy system should do for us!
-  if (m_channelListener)
   {
-    nsCOMPtr<nsIThread> thread = do_GetMainThread();
-    nsIStreamListener *doomed = nsnull;
-    m_channelListener.swap(doomed);
-    NS_ProxyRelease(thread, doomed);
-  }
-
-  m_channelInputStream = nsnull;
-  m_channelOutputStream = nsnull;
-  if (m_runningUrl)
-  {
-    nsCOMPtr<nsIMsgMailNewsUrl>  mailnewsurl = do_QueryInterface(m_runningUrl);
+    // grab a monitor so the m_channelListener doesn't get cleared.
+    nsAutoCMonitor mon(this);
+    if (m_channelListener)
     {
-      nsCOMPtr <nsIImapMailFolderSink> saveFolderSink = m_imapMailFolderSink;
-      {
-        nsAutoCMonitor mon (this);
-        m_runningUrl = nsnull; // force us to release our last reference on the url
-        m_imapMailFolderSink = nsnull;
-        m_urlInProgress = PR_FALSE;
-      }
-
-      // we want to make sure the imap protocol's last reference to the url gets released
-      // back on the UI thread. This ensures that the objects the imap url hangs on to
-      // properly get released back on the UI thread. In order to do this, we need a
-      // a fancy texas two step where we first give the ui thread the url we want to
-      // release, then we forget about our copy. Then we tell it to release the url
-      // for real.
-      if (saveFolderSink)
-      {
-        nsCOMPtr <nsISupports> supports = do_QueryInterface(mailnewsurl);
-        saveFolderSink->PrepareToReleaseObject(supports);
-        supports = nsnull;
-        mailnewsurl = nsnull;
-        // at this point in time, we MUST have released all of our references to
-        // the url from the imap protocol. otherwise this whole exercise is moot.
-        saveFolderSink->ReleaseObject();
-        saveFolderSink = nsnull;
-      }
+      nsCOMPtr<nsIThread> thread = do_GetMainThread();
+      nsIStreamListener *doomed = nsnull;
+      m_channelListener.swap(doomed);
+      NS_ProxyRelease(thread, doomed);
     }
   }
-  else
-    m_imapMailFolderSink = nsnull;
+  m_channelInputStream = nsnull;
+  m_channelOutputStream = nsnull;
+  
+  nsCOMPtr<nsIMsgMailNewsUrl> mailnewsurl;
+  nsCOMPtr<nsIImapMailFolderSink> saveFolderSink;
 
+  if (m_runningUrl)
+  {
+    mailnewsurl = do_QueryInterface(m_runningUrl);
+    saveFolderSink = m_imapMailFolderSink;
+
+    m_runningUrl = nsnull; // force us to release our last reference on the url
+    m_urlInProgress = PR_FALSE;
+  }
+
+  // Need to null this out whether we have an m_runningUrl or not
+  m_imapMailFolderSink = nsnull;
+
+  // we want to make sure the imap protocol's last reference to the url gets released
+  // back on the UI thread. This ensures that the objects the imap url hangs on to
+  // properly get released back on the UI thread. 
+  if (saveFolderSink)
+  {
+    nsCOMPtr<nsIThread> thread = do_GetMainThread();
+    nsIMsgMailNewsUrl *doomed = nsnull;
+    mailnewsurl.swap(doomed);
+    NS_ProxyRelease(thread, doomed);
+    saveFolderSink = nsnull;
+  }
 }
 
 
@@ -967,6 +975,8 @@ NS_IMETHODIMP nsImapProtocol::Run()
 }
 
 // called from UI thread.
+// XXXbz except this is called from TellThreadToDie, which can get called on
+// either the UI thread or the IMAP protocol thread, per comments.
 void nsImapProtocol::CloseStreams()
 {
   PR_CEnterMonitor(this);
@@ -979,11 +989,15 @@ void nsImapProtocol::CloseStreams()
   }
   m_inputStream = nsnull;
   m_outputStream = nsnull;
+  // XXXbz given that this can get called from off the UI thread, does the
+  // release of m_channelListener need to be proxied?
   m_channelListener = nsnull;
   m_channelContext = nsnull;
   if (m_mockChannel)
   {
       m_mockChannel->Close();
+      // XXXbz given that this can get called from off the UI thread, does the
+      // release of m_mockChannel need to be proxied?
       m_mockChannel = nsnull;
   }
   m_channelInputStream = nsnull;
@@ -1517,14 +1531,18 @@ PRBool nsImapProtocol::ProcessCurrentURL()
 
   if (imapMailFolderSink)
   {
-      imapMailFolderSink->PrepareToReleaseObject(copyState);
-      imapMailFolderSink->CopyNextStreamMessage(GetServerStateParser().LastCommandSuccessful()
+    imapMailFolderSink->CopyNextStreamMessage(GetServerStateParser().LastCommandSuccessful()
                                                 && GetConnectionStatus() >= 0, copyState);
-      copyState = nsnull;
-      imapMailFolderSink->ReleaseObject();
-      // we might need this to stick around for IDLE support
-      m_imapMailFolderSink = imapMailFolderSink;
-      imapMailFolderSink = nsnull;
+    if (copyState)
+    {
+      nsCOMPtr<nsIThread> thread = do_GetMainThread();
+      nsISupports *doomed = nsnull;
+      copyState.swap(doomed);
+      NS_ProxyRelease(thread, doomed);
+    }
+    // we might need this to stick around for IDLE support
+    m_imapMailFolderSink = imapMailFolderSink;
+    imapMailFolderSink = nsnull;
   }
 
   // now try queued urls, now that we've released this connection.

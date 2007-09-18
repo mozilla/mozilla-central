@@ -4008,21 +4008,6 @@ nsImapMailFolder::OnlineCopyCompleted(nsIImapProtocol *aProtocol, ImapOnlineCopy
 }
 
 NS_IMETHODIMP
-nsImapMailFolder::PrepareToReleaseObject(nsISupports * aSupports)
-{
-  NS_ASSERTION(!mSupportsToRelease, "can't prepare to release w/o releasing prev object");
-  mSupportsToRelease = aSupports;
-  return NS_OK;
-}
-
-NS_IMETHODIMP
-nsImapMailFolder::ReleaseObject()
-{
-  mSupportsToRelease = nsnull;
-  return NS_OK;
-}
-
-NS_IMETHODIMP
 nsImapMailFolder::CloseMockChannel(nsIImapMockChannel * aChannel)
 {
   aChannel->Close();

@@ -459,8 +459,6 @@ protected:
   PRUint32     m_aclFlags;
   PRUint32     m_supportedUserFlags;
 
-  nsCOMPtr<nsISupports> mSupportsToRelease;
-
   static nsIAtom* mImapHdrDownloadedAtom;
 
   // offline imap support
