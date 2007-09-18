@@ -20,6 +20,7 @@
  * the Initial Developer. All Rights Reserved.
  *
  * Contributor(s):
+ *   Olivier Parniere BT Global Services / Etat francais Ministere de la Defense
  *
  * Alternatively, the contents of this file may be used under the terms of
  * either of the GNU General Public License Version 2 or later (the "GPL"),
@@ -157,6 +158,7 @@ public:
   const char* GetDraftId() {return GetAsciiHeader(MSG_DRAFT_ID_HEADER_ID);}
 
   PRBool GetReturnReceipt() {return m_returnReceipt;}
+  PRBool GetDSN() {return m_DSN;}
   PRBool GetAttachVCard() {return m_attachVCard;}
   PRBool GetForcePlainText() {return m_forcePlainText;}
   PRBool GetUseMultipartAlternative() {return m_useMultipartAlternative;}
@@ -178,6 +180,7 @@ protected:
   PRBool      m_useMultipartAlternative;
   PRBool      m_uuEncodeAttachments;
   PRBool      m_returnReceipt;
+  PRBool      m_DSN;
   PRBool      m_bodyIsAsciiOnly;
   PRBool      m_forceMsgEncoding;
   PRInt32     m_receiptHeaderType;        /* receipt header type */

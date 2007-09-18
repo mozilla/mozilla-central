@@ -21,6 +21,8 @@
  *
  * Contributor(s):
  *   Christian Eyrich <ch.ey@gmx.net>
+ *   Olivier Parniere BT Global Services / Etat francais Ministere de la Defense
+ *   Eric Ballet Baz BT Global Services / Etat francais Ministere de la Defense
  *
  * Alternatively, the contents of this file may be used under the terms of
  * either of the GNU General Public License Version 2 or later (the "GPL"),
@@ -76,6 +78,7 @@
 #include "nsISSLSocketControl.h"
 #include "nsComposeStrings.h"
 #include "nsIStringBundle.h"
+#include "nsMsgCompUtils.h"
 
 
 #ifndef XP_UNIX
@@ -622,44 +625,45 @@ PRInt32 nsSmtpProtocol::SendHeloResponse(nsIInputStream * inputStream, PRUint32 
       // when that's the out parameter
       parser->MakeFullAddress(nsnull, nsnull /* name */, emailAddress.get() /* address */, &fullAddress);
     }
-#ifdef UNREADY_CODE
-    if (CE_URL_S->msg_pane)
+
+    buffer = "MAIL FROM:<";
+    buffer += fullAddress;
+    buffer += ">";
+
+    if (TestFlag(SMTP_EHLO_DSN_ENABLED))
     {
-      if (MSG_RequestForReturnReceipt(CE_URL_S->msg_pane))
+      PRBool requestDSN = PR_FALSE;
+      rv = m_runningURL->GetRequestDSN(&requestDSN);
+
+      if (requestDSN)
       {
-        if (TestFlag(SMTP_EHLO_DSN_ENABLED))
-        {
-          PR_snprintf(buffer, sizeof(buffer),
-            "MAIL FROM:<%.256s> RET=FULL ENVID=NS40112696JT" CRLF, fullAddress);
-        }
-        else
-        {
-          FE_Alert (CE_WINDOW_ID, XP_GetString(XP_RETURN_RECEIPT_NOT_SUPPORT));
-          PR_snprintf(buffer, sizeof(buffer), "MAIL FROM:<%.256s>" CRLF, fullAddress);
-        }
-      }
-      else if (MSG_SendingMDNInProgress(CE_URL_S->msg_pane))
-      {
-        PR_snprintf(buffer, sizeof(buffer), "MAIL FROM:<%.256s>" CRLF, "");
-      }
-      else
-      {
-        PR_snprintf(buffer, sizeof(buffer), "MAIL FROM:<%.256s>" CRLF, fullAddress);
+        nsCOMPtr <nsIPrefService> prefs = do_GetService(NS_PREFSERVICE_CONTRACTID, &rv);
+        NS_ENSURE_SUCCESS(rv,rv);
+
+        nsCOMPtr<nsIPrefBranch> prefBranch;
+        rv = prefs->GetBranch(nsnull, getter_AddRefs(prefBranch));
+        NS_ENSURE_SUCCESS(rv,rv);
+
+        PRBool requestRetFull = PR_FALSE;
+        rv = prefBranch->GetBoolPref("mail.dsn.ret_full_on", &requestRetFull);
+
+        buffer += requestRetFull ? " RET=FULL" : " RET=HDRS";
+
+        char* msgID = msg_generate_message_id(senderIdentity);
+        buffer += " ENVID=";
+        buffer += msgID;
+
+        PR_Free(msgID);
       }
     }
-    else
-#endif
+
+    if(TestFlag(SMTP_EHLO_SIZE_ENABLED))
     {
-      buffer = "MAIL FROM:<";
-      buffer += fullAddress;
-      buffer += ">";
-      if(TestFlag(SMTP_EHLO_SIZE_ENABLED))
-      {
-        buffer.Append(" SIZE=");
-        buffer.AppendInt(m_totalMessageSize);
-      }
-      buffer += CRLF;
+      buffer.Append(" SIZE=");
+      buffer.AppendInt(m_totalMessageSize);
     }
+    buffer += CRLF;
+
     PR_Free (fullAddress);
   }
 
@@ -1354,21 +1358,55 @@ PRInt32 nsSmtpProtocol::SendMailResponse()
   }
 
   /* Send the RCPT TO: command */
-#ifdef UNREADY_CODE
-  if (TestFlag(SMTP_EHLO_DSN_ENABLED) &&
-    (CE_URL_S->msg_pane &&
-    MSG_RequestForReturnReceipt(CE_URL_S->msg_pane)))
-#else
-    if (TestFlag(SMTP_EHLO_DSN_ENABLED) && PR_FALSE)
-#endif
+  PRBool requestDSN = PR_FALSE;
+  rv = m_runningURL->GetRequestDSN(&requestDSN);
+
+  nsCOMPtr <nsIPrefService> prefs = do_GetService(NS_PREFSERVICE_CONTRACTID, &rv);
+  NS_ENSURE_SUCCESS(rv,rv);
+
+  nsCOMPtr<nsIPrefBranch> prefBranch;
+  rv = prefs->GetBranch(nsnull, getter_AddRefs(prefBranch));
+  NS_ENSURE_SUCCESS(rv,rv);
+
+  PRBool requestOnSuccess = PR_FALSE;
+  rv = prefBranch->GetBoolPref("mail.dsn.request_on_success_on", &requestOnSuccess);
+
+  PRBool requestOnFailure = PR_FALSE;
+  rv = prefBranch->GetBoolPref("mail.dsn.request_on_failure_on", &requestOnFailure);
+
+  PRBool requestOnDelay = PR_FALSE;
+  rv = prefBranch->GetBoolPref("mail.dsn.request_on_delay_on", &requestOnDelay);
+
+  PRBool requestOnNever = PR_FALSE;
+  rv = prefBranch->GetBoolPref("mail.dsn.request_never_on", &requestOnNever);
+
+  if (TestFlag(SMTP_EHLO_DSN_ENABLED) && requestDSN && (requestOnSuccess || requestOnFailure || requestOnDelay || requestOnNever))
     {
       char *encodedAddress = esmtp_value_encode(m_addresses);
+      nsCAutoString dsnBuffer;
 
       if (encodedAddress)
       {
         buffer = "RCPT TO:<";
         buffer += m_addresses;
-        buffer += "> NOTIFY=SUCCESS,FAILURE ORCPT=rfc822;";
+        buffer += "> NOTIFY=";
+
+        if (requestOnNever)
+          dsnBuffer += "NEVER";
+        else
+        {
+          if (requestOnSuccess)
+            dsnBuffer += "SUCCESS";
+
+          if (requestOnFailure)
+            dsnBuffer += dsnBuffer.IsEmpty() ? "FAILURE" : ",FAILURE";
+
+          if (requestOnDelay)
+            dsnBuffer += dsnBuffer.IsEmpty() ? "DELAY" : ",DELAY";
+        }
+
+        buffer += dsnBuffer;
+        buffer += " ORCPT=rfc822;";
         buffer += encodedAddress;
         buffer += CRLF;
         PR_FREEIF(encodedAddress);

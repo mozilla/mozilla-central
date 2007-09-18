@@ -20,6 +20,7 @@
  * the Initial Developer. All Rights Reserved.
  *
  * Contributor(s):
+ *   Olivier Parniere BT Global Services / Etat francais Ministere de la Defense
  *
  * Alternatively, the contents of this file may be used under the terms of
  * either of the GNU General Public License Version 2 or later (the "GPL"),
@@ -40,7 +41,7 @@
 #include "nsIMsgAttachment.idl"
 #include "nsISupportsArray.idl"
 
-[scriptable, uuid(f5a85828-e9ef-4821-a045-6dc7a09351d6)]
+[scriptable, uuid(afe5fedc-7ef9-44dd-8f19-b59286357675)]
 interface nsIMsgCompFields : nsISupports {
 
   attribute AString from;
@@ -78,6 +79,7 @@ interface nsIMsgCompFields : nsISupports {
 
   attribute boolean returnReceipt;
   attribute long receiptHeaderType;
+  attribute boolean DSN;
   attribute boolean attachVCard;
   attribute boolean forcePlainText;
   attribute boolean useMultipartAlternative;

@@ -20,6 +20,7 @@
  * the Initial Developer. All Rights Reserved.
  *
  * Contributor(s):
+ *   Olivier Parniere BT Global Services / Etat francais Ministere de la Defense
  *
  * Alternatively, the contents of this file may be used under the terms of
  * either of the GNU General Public License Version 2 or later (the "GPL"),
@@ -47,7 +48,7 @@ interface nsIFile;
 interface nsIMsgStatusFeedback;
 interface nsIRequest;
 
-[scriptable, uuid(b9e6e1ea-8f9a-42d4-a426-084d71694c36)]
+[scriptable, uuid(2B7FA4A1-A73E-4B7A-A789-7D0CFBE5AC97)]
 interface nsISmtpService : nsISupports {
   
   ///////////////////////////////////////////////////////////////////////////
@@ -76,6 +77,7 @@ interface nsISmtpService : nsISupports {
                        in nsIUrlListener aUrlListener, 
 					             in nsIMsgStatusFeedback aStatusListener, 
                        in nsIInterfaceRequestor aNotificationCallbacks,
+                       in boolean requestDSN,
                        out nsIURI aURL,
 					             out nsIRequest aRequest);
 

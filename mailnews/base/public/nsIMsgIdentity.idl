@@ -20,6 +20,7 @@
  * the Initial Developer. All Rights Reserved.
  *
  * Contributor(s):
+ *   Eric Ballet Baz BT Global Services / Etat francais Ministere de la Defense
  *
  * Alternatively, the contents of this file may be used under the terms of
  * either of the GNU General Public License Version 2 or later (the "GPL"),
@@ -48,7 +49,7 @@
  */
 
 
-[scriptable, uuid(21959CED-8C60-4e22-8D90-4FB100AF4189)]
+[scriptable, uuid(3038bec6-2a5f-4eba-977d-4e037ae5aba3)]
 interface nsIMsgIdentity : nsISupports {
   /* internal preferences ID */
   attribute ACString key;
@@ -151,6 +152,13 @@ interface nsIMsgIdentity : nsISupports {
   readonly attribute boolean requestReturnReceipt;
   readonly attribute long receiptHeaderType;
   
+  /**
+   * default request for DSN option for this identity
+   * if this is set, the DSN menu item on the compose
+   * window will be checked
+   */
+  readonly attribute boolean requestDSN;
+
   /* copy the attributes of the identity we pass in */
   void copy(in nsIMsgIdentity identity);
 

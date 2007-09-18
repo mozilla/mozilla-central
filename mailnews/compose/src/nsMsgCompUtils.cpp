@@ -20,6 +20,7 @@
  * the Initial Developer. All Rights Reserved.
  *
  * Contributor(s):
+ *   Eric Ballet Baz BT Global Services / Etat francais Ministere de la Defense
  *
  * Alternatively, the contents of this file may be used under the terms of
  * either of the GNU General Public License Version 2 or later (the "GPL"),
@@ -467,6 +468,11 @@ mime_generate_headers (nsMsgCompFields *fields,
     }
     else
       PUSH_STRING("receipt=0");
+    PUSH_STRING("; ");
+    if (fields->GetDSN())
+      PUSH_STRING("DSN=1");
+    else
+      PUSH_STRING("DSN=0");
     PUSH_STRING("; ");
     if (fields->GetUuEncodeAttachments())
       PUSH_STRING("uuencode=1");

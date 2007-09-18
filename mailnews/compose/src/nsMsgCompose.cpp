@@ -25,6 +25,7 @@
  *   Håkan Waara <hwaara@chello.se>
  *   Pierre Phaneuf <pp@ludusdesign.com>
  *   Masayuki Nakano <masayuki@d-toybox.com>
+ *   Olivier Parniere BT Global Services / Etat francais Ministere de la Defense
  *
  * Alternatively, the contents of this file may be used under the terms of
  * either of the GNU General Public License Version 2 or later (the "GPL"),
@@ -824,6 +825,12 @@ nsMsgCompose::Initialize(nsIDOMWindowInternal *aWindow, nsIMsgComposeParams *par
     rv = m_identity->GetReceiptHeaderType(&receiptType);
     NS_ENSURE_SUCCESS(rv, rv);
     rv = composeFields->SetReceiptHeaderType(receiptType);
+    NS_ENSURE_SUCCESS(rv, rv);
+
+    PRBool requestDSN = PR_FALSE;
+    rv = m_identity->GetRequestDSN(&requestDSN);
+    NS_ENSURE_SUCCESS(rv, rv);
+    rv = composeFields->SetDSN(requestDSN);
     NS_ENSURE_SUCCESS(rv, rv);
 
     PRBool attachVCard;

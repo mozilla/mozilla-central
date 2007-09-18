@@ -21,6 +21,7 @@
  *
  * Contributor(s):
  *   Dan Mosedale <dan.mosedale@oracle.com>
+ *   Olivier Parniere BT Global Services / Etat francais Ministere de la Defense
  *
  * Alternatively, the contents of this file may be used under the terms of
  * either of the GNU General Public License Version 2 or later (the "GPL"),
@@ -238,6 +239,13 @@ pref("mail.request.return_receipt", 2);                // 1: DSN 2: MDN 3: Both
 pref("mail.receipt.request_header_type", 0);           // 0: MDN-DNT header  1: RRT header 2: Both (MC)
 pref("mail.receipt.request_return_receipt_on", false);
 pref("mail.mdn.report.enabled", true);                 // false: Never send true: Send sometimes
+
+pref("mail.dsn.always_request_on", false);
+pref("mail.dsn.request_on_success_on", true);          // DSN request is sent with SUCCESS option
+pref("mail.dsn.request_on_failure_on", true);          // DSN request is sent with FAILURE option
+pref("mail.dsn.request_on_delay_on", true);            // DSN request is sent with DELAY option
+pref("mail.dsn.request_never_on", false);              // DSN request is not sent with NEVER option
+pref("mail.dsn.ret_full_on", true);                    // DSN request is sent with RET FULL option
 
 pref("mail.showPreviewText", false);
 

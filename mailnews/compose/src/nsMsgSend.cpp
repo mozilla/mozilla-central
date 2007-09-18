@@ -22,6 +22,7 @@
  * Contributor(s):
  *   Jean-Francois Ducarroz <ducarroz@netscape.com>
  *   Pierre Phaneuf <pp@ludusdesign.com>
+ *   Olivier Parniere BT Global Services / Etat francais Ministere de la Defense
  *
  * Alternatively, the contents of this file may be used under the terms of
  * either of the GNU General Public License Version 2 or later (the "GPL"),
@@ -3132,6 +3133,8 @@ nsMsgComposeAndSend::InitCompositionFields(nsMsgCompFields *fields,
   mCompFields->SetReturnReceipt(fields->GetReturnReceipt());
   mCompFields->SetReceiptHeaderType(receiptType);
 
+  mCompFields->SetDSN(fields->GetDSN());
+
   mCompFields->SetUuEncodeAttachments(fields->GetUuEncodeAttachments());
 
   mCompFields->SetBodyIsAsciiOnly(fields->GetBodyIsAsciiOnly());
@@ -3674,7 +3677,7 @@ nsMsgComposeAndSend::DeliverFileAsMail()
 
     rv = smtpService->SendMailMessage(mTempFile, buf, mUserIdentity,
                                       mSmtpPassword.get(), deliveryListener, msgStatus,
-                                      callbacks, nsnull, getter_AddRefs(mRunningRequest));
+                                      callbacks, mCompFields->GetDSN(), nsnull, getter_AddRefs(mRunningRequest));
   }
 
   PR_FREEIF(buf); // free the buf because we are done with it....

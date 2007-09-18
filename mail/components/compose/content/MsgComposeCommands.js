@@ -22,6 +22,7 @@
 #
 # Contributor(s):
 #   David Bienvenu <bienvenu@nventure.com>
+#   Olivier Parniere BT Global Services / Etat francais Ministere de la Defense
 #
 # Alternatively, the contents of this file may be used under the terms of
 # either the GNU General Public License Version 2 or later (the "GPL"), or
@@ -117,6 +118,7 @@ var gCharsetConvertManager;
 
 var gLastWindowToHaveFocus;
 var gReceiptOptionChanged;
+var gDSNOptionChanged;
 var gAttachVCardOptionChanged;
 
 var gMailSession;
@@ -161,6 +163,7 @@ function InitializeGlobalVariables()
 
   gLastWindowToHaveFocus = null;
   gReceiptOptionChanged = false;
+  gDSNOptionChanged = false;
   gAttachVCardOptionChanged = false;
 }
 InitializeGlobalVariables();
@@ -1306,6 +1309,7 @@ function ComposeStartup(recycled, aParams)
 
       document.getElementById("returnReceiptMenu").setAttribute('checked', 
                                          gMsgCompose.compFields.returnReceipt);
+      document.getElementById("dsnMenu").setAttribute('checked', gMsgCompose.compFields.DSN);
       document.getElementById("cmd_attachVCard").setAttribute('checked', 
                                          gMsgCompose.compFields.attachVCard);
       document.getElementById("menu_inlineSpellCheck").setAttribute('checked', sPrefs.getBoolPref("mail.spellcheck.inline"));
@@ -2293,6 +2297,17 @@ function ToggleReturnReceipt(target)
     }
 }
 
+function ToggleDSN(target)
+{
+    var msgCompFields = gMsgCompose.compFields;
+    if (msgCompFields)
+    {
+        msgCompFields.DSN = ! msgCompFields.DSN;
+        target.setAttribute('checked', msgCompFields.DSN);
+        gDSNOptionChanged = true;
+    }
+}
+
 function ToggleAttachVCard(target)
 {
   var msgCompFields = gMsgCompose.compFields;
@@ -3015,6 +3030,7 @@ function LoadIdentity(startup)
           var prevReplyTo = prevIdentity.replyTo;
           var prevBcc = "";
           var prevReceipt = prevIdentity.requestReturnReceipt;
+          var prevDSN = prevIdentity.DSN;
           var prevAttachVCard = prevIdentity.attachVCard;
 
           if (prevIdentity.doBcc)
@@ -3023,6 +3039,7 @@ function LoadIdentity(startup)
           var newReplyTo = gCurrentIdentity.replyTo;
           var newBcc = "";
           var newReceipt = gCurrentIdentity.requestReturnReceipt;
+          var newDSN = gCurrentIdentity.DSN;
           var newAttachVCard = gCurrentIdentity.attachVCard;
 
           if (gCurrentIdentity.doBcc)
@@ -3037,6 +3054,14 @@ function LoadIdentity(startup)
           {
             msgCompFields.returnReceipt = newReceipt;
             document.getElementById("returnReceiptMenu").setAttribute('checked',msgCompFields.returnReceipt);
+          }
+
+          if (!gDSNOptionChanged &&
+              prevDSN == msgCompFields.DSN &&
+              prevDSN != newDSN)
+          {
+            msgCompFields.DSN = newDSN;
+            document.getElementById("dsnMenu").setAttribute('checked',msgCompFields.DSN);
           }
 
           if (!gAttachVCardOptionChanged &&

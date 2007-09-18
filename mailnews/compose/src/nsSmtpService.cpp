@@ -21,6 +21,7 @@
  *
  * Contributor(s):
  *   Pierre Phaneuf <pp@ludusdesign.com>
+ *   Olivier Parniere BT Global Services / Etat francais Ministere de la Defense
  *
  * Alternatively, the contents of this file may be used under the terms of
  * either of the GNU General Public License Version 2 or later (the "GPL"),
@@ -95,7 +96,8 @@ NS_MsgBuildSmtpUrl(nsIFile * aFilePath,
                    nsIUrlListener * aUrlListener,
                    nsIMsgStatusFeedback *aStatusFeedback,
                    nsIInterfaceRequestor* aNotificationCallbacks,
-                   nsIURI ** aUrl);
+                   nsIURI ** aUrl,
+                   PRBool aRequestDSN);
 
 nsresult NS_MsgLoadSmtpUrl(nsIURI * aUrl, nsISupports * aConsumer, nsIRequest ** aRequest);
 
@@ -121,6 +123,7 @@ nsresult nsSmtpService::SendMailMessage(nsIFile * aFilePath,
                                         nsIUrlListener * aUrlListener, 
                                         nsIMsgStatusFeedback *aStatusFeedback,
                                         nsIInterfaceRequestor* aNotificationCallbacks,
+                                        PRBool aRequestDSN,
                                         nsIURI ** aURL,
                                         nsIRequest ** aRequest)
 {
@@ -157,7 +160,7 @@ nsresult nsSmtpService::SendMailMessage(nsIFile * aFilePath,
     {
       rv = NS_MsgBuildSmtpUrl(aFilePath, smtpHostName.get(), smtpPort, smtpUserName.get(),
                               aRecipients, aSenderIdentity, aUrlListener, aStatusFeedback, 
-                              aNotificationCallbacks, &urlToRun); // this ref counts urlToRun
+                              aNotificationCallbacks, &urlToRun, aRequestDSN); // this ref counts urlToRun
       if (NS_SUCCEEDED(rv) && urlToRun)	
       {
         nsCOMPtr<nsISmtpUrl> smtpUrl = do_QueryInterface(urlToRun, &rv);
@@ -191,7 +194,8 @@ nsresult NS_MsgBuildSmtpUrl(nsIFile * aFilePath,
                             nsIUrlListener * aUrlListener, 
                             nsIMsgStatusFeedback *aStatusFeedback,
                             nsIInterfaceRequestor* aNotificationCallbacks,
-                            nsIURI ** aUrl)
+                            nsIURI ** aUrl,
+                            PRBool aRequestDSN)
 {
     // mscott: this function is a convience hack until netlib actually dispatches smtp urls.
     // in addition until we have a session to get a password, host and other stuff from, we need to use default values....
@@ -223,6 +227,7 @@ nsresult NS_MsgBuildSmtpUrl(nsIFile * aFilePath,
             nsCOMPtr<nsIMsgMailNewsUrl> url = do_QueryInterface(smtpUrl);
             url->SetSpec(urlSpec);
             smtpUrl->SetRecipients(aRecipients);
+            smtpUrl->SetRequestDSN(aRequestDSN);
             smtpUrl->SetPostMessageFile(aFilePath);
             smtpUrl->SetSenderIdentity(aSenderIdentity);
             smtpUrl->SetNotificationCallbacks(aNotificationCallbacks);

@@ -20,6 +20,7 @@
  * the Initial Developer. All Rights Reserved.
  *
  * Contributor(s):
+ *   Eric Ballet Baz BT Global Services / Etat francais Ministere de la Defense
  *
  * Alternatively, the contents of this file may be used under the terms of
  * either of the GNU General Public License Version 2 or later (the "GPL"),
@@ -110,6 +111,7 @@ protected:
   nsCString   m_toPart;
 
 	PRBool		m_isPostMessage;
+    PRBool      m_requestDSN;
 
 	/* Smtp specific event sinks */
 	nsCString	m_userName;

@@ -24,6 +24,7 @@
 #   Ben Goodger <ben@netscape.com> (ass'td polish fixes)
 #   Hkan Waara <hwaara@chello.se>
 #   Neil Rashbrook <neil@parkwaycc.co.uk> (ass'td polish fix)
+#   Olivier Parniere BT Global Services / Etat francais Ministere de la Defense
 #
 # Alternatively, the contents of this file may be used under the terms of
 # either the GNU General Public License Version 2 or later (the "GPL"), or
@@ -430,6 +431,7 @@
           <menuitem label="&quoteCmd.label;" accesskey="&quoteCmd.accesskey;" command="cmd_quoteMessage"/>
           <menuseparator/>
           <menuitem id="returnReceiptMenu" type="checkbox" label="&returnReceiptMenu.label;" accesskey="&returnReceiptMenu.accesskey;" checked="false" oncommand="ToggleReturnReceipt(event.target)"/>
+          <menuitem id="dsnMenu" type="checkbox" label="&dsnMenu.label;" accesskey="&dsnMenu.accesskey;" oncommand="ToggleDSN(event.target)"/>
           <menuseparator/>
           <menu id="maileditCharsetMenu" label="&charsetMenu.label;" accesskey="&charsetMenu.accesskey;" datasources="rdf:charset-menu" ref="NC:MaileditCharsetMenuRoot" oncommand="SetDocumentCharacterSet(event.target.getAttribute('id'));" onpopupshowing="CreateMenu('mailedit');InitCharsetMenuCheckMark();" onpopupshown="CreateMenu('more-menu');">
             <template>

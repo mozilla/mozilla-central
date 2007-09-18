@@ -22,6 +22,7 @@
  * Contributor(s):
  *   Pierre Phaneuf <pp@ludusdesign.com>
  *   Seth Spitzer <sspitzer@netscape.com>
+ *   Eric Ballet Baz BT Global Services / Etat francais Ministere de la Defense
  *
  * Alternatively, the contents of this file may be used under the terms of
  * either of the GNU General Public License Version 2 or later (the "GPL"),
@@ -549,4 +550,20 @@ nsMsgIdentity::GetReceiptHeaderType(PRInt32 *aType)
   nsCOMPtr<nsIPrefBranch> prefs(do_GetService(NS_PREFSERVICE_CONTRACTID, &rv));
   NS_ENSURE_SUCCESS(rv, rv);
   return prefs->GetIntPref("mail.receipt.request_header_type", aType);
+}
+
+NS_IMETHODIMP
+nsMsgIdentity::GetRequestDSN(PRBool *aVal)
+{
+  NS_ENSURE_ARG_POINTER(aVal);
+
+  PRBool useCustomPrefs = PR_FALSE;
+  nsresult rv = GetBoolAttribute("dsn_use_custom_prefs", &useCustomPrefs);
+  NS_ENSURE_SUCCESS(rv, rv);
+  if (useCustomPrefs)
+    return GetBoolAttribute("dsn_always_request_on", aVal);
+
+  nsCOMPtr<nsIPrefBranch> prefs(do_GetService(NS_PREFSERVICE_CONTRACTID, &rv));
+  NS_ENSURE_SUCCESS(rv, rv);
+  return prefs->GetBoolPref("mail.dsn.always_request_on", aVal);
 }

@@ -21,6 +21,7 @@
  * the Initial Developer. All Rights Reserved.
  *
  * Contributor(s):
+ *   Eric Ballet Baz BT Global Services / Etat francais Ministere de la Defense
  *
  * Alternatively, the contents of this file may be used under the terms of
  * either of the GNU General Public License Version 2 or later (the "GPL"),
@@ -1378,6 +1379,9 @@ mime_parse_stream_complete (nsMIMESession *stream)
         fields->SetReceiptHeaderType(((PRInt32)receiptType) - 1);
       }
       PR_FREEIF(parm);
+      parm = MimeHeaders_get_parameter(draftInfo, "DSN", NULL, NULL);
+      fields->SetDSN(parm && !strcmp(parm, "1"));
+      PR_Free(parm);
       parm = MimeHeaders_get_parameter(draftInfo, "uuencode", NULL, NULL);
       fields->SetUuEncodeAttachments(parm && !strcmp(parm, "1"));
       PR_FREEIF(parm);
