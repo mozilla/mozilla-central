@@ -51,7 +51,7 @@
 
   <stringbundleset id="stringbundleset"/>
 
-  <hbox align="center" valign="center">
+  <hbox align="center">
 
     <label id="abPopupLabel" control="abPopup" value="&chooseAddressBook.label;" accesskey="&chooseAddressBook.accesskey;"/>
 
@@ -74,9 +74,9 @@
     </menulist>
 
   </hbox>
-  
+
   <spacer style="height:1em"/>
-    
+
   <vbox id="editcard"/>
 
 </dialog>
