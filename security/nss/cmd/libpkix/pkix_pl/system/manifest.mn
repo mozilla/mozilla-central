@@ -66,8 +66,6 @@ CSRCS = test_bigint.c \
 
 LIBRARY_NAME=pkixtoolsys
 
-TARGETS = $(LIBRARY)
-
 SOURCE_LIB_DIR=$(PKIX_DEPTH)/$(OBJDIR)
  
 NO_MD_RELEASE = 1

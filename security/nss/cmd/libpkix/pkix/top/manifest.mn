@@ -61,8 +61,6 @@ CSRCS = test_basicchecker.c \
 
 LIBRARY_NAME=pkixtooltop
 
-TARGETS = $(LIBRARY)
-
 SOURCE_LIB_DIR=$(PKIX_DEPTH)/$(OBJDIR)
 
 NO_MD_RELEASE = 1

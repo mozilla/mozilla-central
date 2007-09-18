@@ -54,8 +54,6 @@ CSRCS = \
 
 LIBRARY_NAME = pkixtooltestutil
 
-TARGETS = $(LIBRARY)
-
 SOURCE_LIB_DIR = $(PKIX_DEPTH)/$(OBJDIR)
 
 NO_MD_RELEASE = 1

@@ -36,19 +36,7 @@
 #
 # ***** END LICENSE BLOCK *****
 
-PKIX_DEPTH = ../..
-PLAT_DEPTH = $(PKIX_DEPTH)/..
-CORE_DEPTH = $(PKIX_DEPTH)/../../..
-
-# MODULE public and private header directories are implicitly REQUIRED.
-MODULE = nss
-
-CSRCS = test_crlselector.c \
-	test_comcrlselparams.c \
-	$(NULL)
-
-LIBRARY_NAME=pkixtoolcrlsel
-
-SOURCE_LIB_DIR=$(PKIX_DEPTH)/$(OBJDIR)
-
-NO_MD_RELEASE = 1
+TARGETS = $(LIBRARY)
+SHARED_LIBRARY =
+IMPORT_LIBRARY =
+PROGRAM        =

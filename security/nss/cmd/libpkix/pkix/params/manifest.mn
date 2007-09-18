@@ -51,8 +51,6 @@ CSRCS = test_procparams.c \
 
 LIBRARY_NAME=pkixtoolparams
 
-TARGETS = $(LIBRARY)
-
 SOURCE_LIB_DIR=$(PKIX_DEPTH)/$(OBJDIR)
 
 NO_MD_RELEASE = 1
