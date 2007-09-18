@@ -567,7 +567,6 @@ PRBool nsOEScanBoxes::Scan50MailboxDir( nsIFile * srcDir)
   MailboxEntry *	pEntry;	
   PRInt32			index = 1;
   char *			pLeaf;
-  PRUint32		sLen;
 
   PRBool hasMore;
   nsCOMPtr<nsISimpleEnumerator> directoryEnumerator;
@@ -602,7 +601,7 @@ PRBool nsOEScanBoxes::Scan50MailboxDir( nsIFile * srcDir)
             pEntry->child = 0;
             pEntry->sibling = index;
             pEntry->type = -1;
-            fName.SetLength(sLen - 4);
+            fName.SetLength(fName.Length() - 4);
             pEntry->fileName = fName.get();
             NS_CopyNativeToUnicode(fName, pEntry->mailName);
             m_entryArray.AppendElement( pEntry);				
