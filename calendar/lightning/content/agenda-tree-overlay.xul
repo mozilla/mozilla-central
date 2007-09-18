@@ -63,6 +63,7 @@
   </hbox>
   <deck id="agenda-viewcustomize-deck" selectedIndex="0" flex="1">
     <tree id="agenda-tree" hidecolumnpicker="true" flex="1"
+          onkeypress="agendaTreeView.onKeyPress(event);"
           ondblclick="agendaTreeView.onDoubleClick(event);">
       <treecols>
         <treecol id="col-agenda-item" primary="true"

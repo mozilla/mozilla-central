@@ -178,6 +178,7 @@
     <broadcaster id="is_editable" hidden="false"/>
   </broadcasterset>
   <commandset id="calendar_commands">
+    <command id="agenda_new_event_command" oncommand="agendaTreeView.deleteEvent()"/>
     <command id="calendar_new_event_command" oncommand="createEventWithDialog(getSelectedCalendar());"/>
     <command id="calendar_new_todo_command" oncommand="createTodoWithDialog(getSelectedCalendar());"/>
     <command id="calendar_new_calendar_command" oncommand="openCalendarWizard();"/>

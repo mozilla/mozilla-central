@@ -356,6 +356,44 @@ function agendaDoubleClick(event)
     }
 }
 
+agendaTreeView.onKeyPress =
+function onKeyPress(event)
+{
+  const kKE = Ci.nsIDOMKeyEvent;
+  switch(event.keyCode) {
+    case kKE.DOM_VK_DELETE:
+      document.getElementById('agenda_new_event_command').doCommand();
+      event.stopPropagation();
+      event.preventDefault();
+      break;
+  }
+};
+
+/**
+ *  Delete the current selected item with focus from the Agenda- list
+ */
+agendaTreeView.deleteEvent = 
+function deleteAgendaEvent(aDoNotConfirm)
+{
+   var selectedItems = new Array();
+   var tree = document.getElementById("agenda-tree");
+   var start = new Object();
+   var end = new Object();
+   var numRanges = tree.view.selection.getRangeCount();
+   var agendaItem;
+   for (var t = 0; t < numRanges; t++) {
+      tree.view.selection.getRangeAt(t, start, end);
+      for (var v = start.value; v <= end.value; v++) {
+        selectedItems.push(this.events[v]);
+      }
+   }
+   calendarViewController.deleteOccurrences(selectedItems.length,
+                                            selectedItems,
+                                            false,
+                                            aDoNotConfirm);
+};
+
+
 agendaTreeView.deleteItem =
 function deleteItem(item)
 {
