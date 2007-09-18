@@ -67,26 +67,20 @@ y
 # ################################################################
 ! TEST_7 CRL Distribution Points Extension
 1
-1
-InstanceOfOtherName
 2
-rfc822Name
+rfc822@name.tld
 3
 test.com
-4
-test@test.com
-6
-ediPArtyName
 8
-ipAddress
+1.2.3.4
 9
-123451235
+OID.0.2.213
 10
 0
 10
 n
 n
-= 4 Name:_CRL_Distribution_Points|InstanceOfOtherName|rfc822Name|test.com|test@test.com|ediPArtyName
+= 4 Name:_CRL_Distribution_Points|rfc822@name.tld
 # #################################################################
 ! TEST_8 CRL Distribution Points Extension
 2

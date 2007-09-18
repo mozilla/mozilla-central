@@ -877,7 +877,8 @@ Usage(char *progName)
         "\t\t [-m serial-number] [-w warp-months] [-v months-valid]\n"
 	"\t\t [-f pwfile] [-d certdir] [-P dbprefix]\n"
         "\t\t [-p phone] [-1] [-2] [-3] [-4] [-5] [-6] [-7 emailAddrs]\n"
-        "\t\t [-8 dns-names]\n",
+        "\t\t [-8 DNS-names]\n"
+        "\t\t [--extAIA] [--extSIA] [--extCP] [--extPM] [--extPC] [--extIA]\n",
 	progName);
     FPS "\t%s -U [-X] [-d certdir] [-P dbprefix]\n", progName);
     exit(1);
@@ -1233,8 +1234,20 @@ static void LongUsage(char *progName)
 	"   -6 ");
     FPS "%-20s Create an email subject alt name extension\n",
 	"   -7 ");
-    FPS "%-20s Create an dns subject alt name extension\n",
+    FPS "%-20s Create a DNS subject alt name extension\n",
 	"   -8 ");
+    FPS "%-20s Create an Authority Information Access extension\n",
+	"   --extAIA ");
+    FPS "%-20s Create a Subject Information Access extension\n",
+	"   --extSIA ");
+    FPS "%-20s Create a Certificate Policies extension\n",
+	"   --extCP ");
+    FPS "%-20s Create a Policy Mappings extension\n",
+	"   --extPM ");
+    FPS "%-20s Create a Policy Constraints extension\n",
+	"   --extPC ");
+    FPS "%-20s Create an Inhibit Any Policy extension\n",
+	"   --extIA ");
     FPS "\n");
 
     exit(1);
@@ -1533,7 +1546,13 @@ enum certutilOpts {
     opt_Exponent,
     opt_NoiseFile,
     opt_Hash,
-    opt_NewPasswordFile
+    opt_NewPasswordFile,
+    opt_AddAuthInfoAccExt,
+    opt_AddSubjInfoAccExt,
+    opt_AddCertPoliciesExt,
+    opt_AddPolicyMapExt,
+    opt_AddPolicyConstrExt,
+    opt_AddInhibAnyExt
 };
 
 static const
@@ -1603,7 +1622,13 @@ secuCommandFlag options_init[] =
 	{ /* opt_Exponent            */  'y', PR_TRUE,  0, PR_FALSE },
 	{ /* opt_NoiseFile           */  'z', PR_TRUE,  0, PR_FALSE },
 	{ /* opt_Hash                */  'Z', PR_TRUE,  0, PR_FALSE },
-	{ /* opt_NewPasswordFile     */  '@', PR_TRUE,  0, PR_FALSE }
+	{ /* opt_NewPasswordFile     */  '@', PR_TRUE,  0, PR_FALSE },
+	{ /* opt_AddAuthInfoAccExt   */  0,   PR_FALSE, 0, PR_FALSE, "extAIA" },
+	{ /* opt_AddSubjInfoAccExt   */  0,   PR_FALSE, 0, PR_FALSE, "extSIA" },
+	{ /* opt_AddCertPoliciesExt  */  0,   PR_FALSE, 0, PR_FALSE, "extCP" },
+	{ /* opt_AddPolicyMapExt     */  0,   PR_FALSE, 0, PR_FALSE, "extPM" },
+	{ /* opt_AddPolicyConstrExt  */  0,   PR_FALSE, 0, PR_FALSE, "extPC" },
+	{ /* opt_AddInhibAnyExt      */  0,   PR_FALSE, 0, PR_FALSE, "extIA" }
 };
 #define NUM_OPTIONS ((sizeof options_init)  / (sizeof options_init[0]))
 
@@ -2189,9 +2214,18 @@ certutil_main(int argc, char **argv, PRBool initialize)
 				certutil.options[opt_AddNSCertTypeExt].activated;
         certutil_extns[ext_extKeyUsage] =
 				certutil.options[opt_AddExtKeyUsageExt].activated;
-	/* We can't generate the rest of the extensions yet. When long form
-	 * options are available this code block will be extended
-	 */
+        certutil_extns[ext_authInfoAcc] =
+				certutil.options[opt_AddAuthInfoAccExt].activated;
+        certutil_extns[ext_subjInfoAcc] =
+				certutil.options[opt_AddSubjInfoAccExt].activated;
+        certutil_extns[ext_certPolicies] =
+				certutil.options[opt_AddCertPoliciesExt].activated;
+        certutil_extns[ext_policyMappings] =
+				certutil.options[opt_AddPolicyMapExt].activated;
+        certutil_extns[ext_policyConstr] =
+				certutil.options[opt_AddPolicyConstrExt].activated;
+        certutil_extns[ext_inhibitAnyPolicy] =
+				certutil.options[opt_AddInhibAnyExt].activated;
     }
     /*
      *  Certificate request

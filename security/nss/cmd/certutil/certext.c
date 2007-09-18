@@ -125,12 +125,9 @@ GetGeneralName (PRArenaPool *arena)
     do {
         if (PrintChoicesAndGetAnswer(
 		"\nSelect one of the following general name type: \n"
-		"\t1 - instance of other name\n"
 		"\t2 - rfc822Name\n"
 		"\t3 - dnsName\n"
-		"\t4 - x400Address\n"
 		"\t5 - directoryName\n"
-		"\t6 - ediPartyName\n"
 		"\t7 - uniformResourceidentifier\n"
 		"\t8 - ipAddress\n"
 		"\t9 - registerID\n"
@@ -143,19 +140,31 @@ GetGeneralName (PRArenaPool *arena)
          * Should use ZAlloc instead of Alloc to avoid problem with garbage
          * initialized pointers in CERT_CopyName
          */
-        if (intValue >= certOtherName && intValue <= certRegisterID) {
-            if (namesList == NULL) {
-                namesList = current = tail =
-                    PORT_ArenaZNew(arena, CERTGeneralName);
-            } else {
-                current = PORT_ArenaZNew(arena, CERTGeneralName);
-            }
-            if (current == NULL) {
-                GEN_BREAK (SECFailure);
-            }
-        } else {
-            break;
-        }
+        switch (intValue) {
+        case certRFC822Name:
+        case certDNSName:
+        case certDirectoryName:
+        case certURI:
+        case certIPAddress:
+        case certRegisterID:
+	    break;
+	default:
+	    intValue = 0;   /* force a break for anything else */
+	}
+
+        if (intValue == 0)
+	    break;
+	
+	if (namesList == NULL) {
+	    namesList = current = tail =
+		PORT_ArenaZNew(arena, CERTGeneralName);
+	} else {
+	    current = PORT_ArenaZNew(arena, CERTGeneralName);
+	}
+	if (current == NULL) {
+	    GEN_BREAK (SECFailure);
+	}
+
         current->type = intValue;
         puts ("\nEnter data:");
         fflush (stdout);
@@ -279,7 +288,7 @@ AddKeyUsage (void *extHandle)
 
     while (1) {
 	if (PrintChoicesAndGetAnswer(
-                "\t\t0 - Dcigital Signature\n"
+                "\t\t0 - Digital Signature\n"
                 "\t\t1 - Non-repudiation\n"
                 "\t\t2 - Key encipherment\n"
                 "\t\t3 - Data encipherment\n"   
@@ -829,8 +838,8 @@ AddCrlDistPoint(void *extHandle)
 
         crlDistPoints->distPoints[count] = current;
         ++count;
-        if (GetYesNo ("Enter more value for the CRL distribution "
-                      "point extension [y/N]") == 0) {
+        if (GetYesNo("Enter another value for the CRLDistributionPoint "
+                      "extension [y/N]?") == 0) {
             /* Add null to the end to mark end of data */
             crlDistPoints->distPoints =
                 PORT_ArenaGrow(arena, crlDistPoints->distPoints,
@@ -881,31 +890,38 @@ AddPolicyConstraints(void *extHandle)
         goto loser;
     }
 
-    if (PrintChoicesAndGetAnswer("Enter explicit policy value or "
-                                 "Enter to omit",
-                                 buffer, sizeof(buffer)) == SECFailure) {
+    if (PrintChoicesAndGetAnswer("for requireExplicitPolicy enter the number "
+               "of certs in path\nbefore explicit policy is required\n"
+               "(press Enter to omit)", buffer, sizeof(buffer)) == SECFailure) {
         goto loser;
     }
 
     if (PORT_Strlen(buffer)) {
-        item = &policyConstr->explicitPolicySkipCerts;
         value = PORT_Atoi(buffer);
+	if (value < 0) {
+            goto loser;
+        }
+        item = &policyConstr->explicitPolicySkipCerts;
         dummy = SEC_ASN1EncodeInteger(arena, item, value);
         if (!dummy) {
             goto loser;
         }
         skipExt = PR_FALSE;
     }
-    
-    if (PrintChoicesAndGetAnswer("Enter inhibit mapping value or "
-                                 "Enter to omit",
-                                 buffer, sizeof(buffer)) == SECFailure) {
+
+    if (PrintChoicesAndGetAnswer("for inihibitPolicyMapping enter "
+               "the number of certs in path\n"
+	       "after which policy mapping is not allowed\n"
+               "(press Enter to omit)", buffer, sizeof(buffer)) == SECFailure) {
         goto loser;
     }
 
     if (PORT_Strlen(buffer)) {
-        item = &policyConstr->inhibitMappingSkipCerts;
         value = PORT_Atoi(buffer);
+	if (value < 0) {
+            goto loser;
+        }
+        item = &policyConstr->inhibitMappingSkipCerts;
         dummy = SEC_ASN1EncodeInteger(arena, item, value);
         if (!dummy) {
             goto loser;
@@ -915,14 +931,17 @@ AddPolicyConstraints(void *extHandle)
  
     
     if (!skipExt) {
-
         yesNoAns = GetYesNo("Is this a critical extension [y/N]?");
 
         rv = SECU_EncodeAndAddExtensionValue(arena, extHandle, policyConstr,
 	     yesNoAns, SEC_OID_X509_POLICY_CONSTRAINTS,
 	     (EXTEN_EXT_VALUE_ENCODER)CERT_EncodePolicyConstraintsExtension);
+    } else {
+	fprintf(stdout, "Policy Constraint extensions must contain "
+                        "at least one policy field\n");
+	rv = SECFailure;
     }
-    
+   
 loser:
     if (arena) {
         PORT_FreeArena (arena, PR_FALSE);
@@ -950,14 +969,17 @@ AddInhibitAnyPolicy(void *extHandle)
     }
 
     if (PrintChoicesAndGetAnswer("Enter the number of certs in the path "
-                                 "permited to use anyPolicy.\n"
-                                 "Enter for 0",
+                                 "permitted to use anyPolicy.\n"
+                                 "(press Enter for 0)",
                                  buffer, sizeof(buffer)) == SECFailure) {
         goto loser;
     }
 
     item = &certInhibitAny.inhibitAnySkipCerts;
     value = PORT_Atoi(buffer);
+    if (value < 0) {
+        goto loser;
+    }
     dummy = SEC_ASN1EncodeInteger(arena, item, value);
     if (!dummy) {
         goto loser;
@@ -993,8 +1015,8 @@ AddPolicyMappings(void *extHandle)
     }
 
     do {
-        if (PrintChoicesAndGetAnswer("Enter an Object Identifier for Issuer "
-                                     "Domain Policy",
+        if (PrintChoicesAndGetAnswer("Enter an Object Identifier (dotted "
+                                     "decimal format) for Issuer Domain Policy",
                                      buffer, sizeof(buffer)) == SECFailure) {
             GEN_BREAK (SECFailure);
         }
@@ -1037,7 +1059,7 @@ AddPolicyMappings(void *extHandle)
         policyMapArr[count] = current;
         ++count;
         
-        if (!GetYesNo("Enter more set to Policy Mappings extension [y/N]")) {
+        if (!GetYesNo("Enter another Policy Mapping [y/N]")) {
             /* Add null to the end to mark end of data */
             policyMapArr = PORT_ArenaGrow (arena, policyMapArr,
                                            sizeof (current) * count,
@@ -1110,7 +1132,7 @@ RequestPolicyQualifiers(PRArenaPool *arena, SECItem *policyID)
             SECItem input;
 
             oid = SECOID_FindOIDByTag(SEC_OID_PKIX_CPS_POINTER_QUALIFIER);
-            if (PrintChoicesAndGetAnswer("Enter CPS Pointer uri: ",
+            if (PrintChoicesAndGetAnswer("Enter CPS pointer URI: ",
 				     buffer, sizeof(buffer)) == SECFailure) {
                 GEN_BREAK (SECFailure);
             }
@@ -1132,9 +1154,9 @@ RequestPolicyQualifiers(PRArenaPool *arena, SECItem *policyID)
             
             oid = SECOID_FindOIDByTag(SEC_OID_PKIX_USER_NOTICE_QUALIFIER);
 
-            if (GetYesNo("\t Enter user notice reference? [y/N]")) {
+            if (GetYesNo("\t add a User Notice reference? [y/N]")) {
 
-                if (PrintChoicesAndGetAnswer("Enter user organization: ",
+                if (PrintChoicesAndGetAnswer("Enter user organization string: ",
 				 buffer, sizeof(buffer)) == SECFailure) {
                     GEN_BREAK (SECFailure);
                 }
@@ -1156,31 +1178,38 @@ RequestPolicyQualifiers(PRArenaPool *arena, SECItem *policyID)
                     
                     noticeNum = PORT_ArenaZNew(arena, SECItem);
                     
-                    if (noticeNum == NULL ||
-		        PrintChoicesAndGetAnswer(
-				"Enter notice number of any key"
-				" to continue:", buffer, sizeof(buffer))
-			== SECFailure) {
+                    if (PrintChoicesAndGetAnswer(
+				      "Enter User Notice reference number "
+				      "(or -1 to quit): ",
+                                      buffer, sizeof(buffer)) == SECFailure) {
                         GEN_BREAK (SECFailure);
                     }
                     
                     intValue = PORT_Atoi(buffer);
+		    if (noticeNum == NULL) {
+			if (intValue < 0) {
+			    fprintf(stdout, "a noticeReference must have at "
+                                    "least one reference number\n");
+                            GEN_BREAK (SECFailure);
+			}
+		    } else {
+			if (intValue >= 0) {
+                            noticeNumArr = PORT_ArenaGrow(arena, noticeNumArr,
+					      sizeof (current) * inCount,
+					      sizeof (current) *(inCount + 1));
+                            if (noticeNumArr == NULL) {
+                                GEN_BREAK (SECFailure);
+                            }
+			} else {
+			    break;
+			}
+                    }
                     if (!SEC_ASN1EncodeInteger(arena, noticeNum, intValue)) {
                         GEN_BREAK (SECFailure);
 		    }
                     noticeNumArr[inCount++] = noticeNum;
                     noticeNumArr[inCount] = NULL;
                     
-                    if (GetYesNo("Enter one more user notice number[y/N]")) {
-                        noticeNumArr = PORT_ArenaGrow(arena, noticeNumArr,
-					      sizeof (current) * inCount,
-					      sizeof (current) *(inCount + 1));
-                        if (noticeNumArr == NULL) {
-                            GEN_BREAK (SECFailure);
-                        }
-                    } else {
-			break;
-		    }
                 } while (1);
                 if (rv == SECFailure) {
                     GEN_BREAK(SECFailure);
@@ -1192,7 +1221,7 @@ RequestPolicyQualifiers(PRArenaPool *arena, SECItem *policyID)
                     GEN_BREAK(SECFailure);
                 }
             }
-            if (GetYesNo("\t Enter user notice text? [y/N]")) {
+            if (GetYesNo("\t EnterUser Notice explicit text? [y/N]")) {
                 /* Getting only 200 bytes - RFC limitation */
                 if (PrintChoicesAndGetAnswer(
                         "\t", buffer, 200) == SECFailure) {
@@ -1235,7 +1264,7 @@ RequestPolicyQualifiers(PRArenaPool *arena, SECItem *policyID)
         policyQualifArr[count] = current;
         ++count;
 
-        if (!GetYesNo ("Enter more policy qualifiers for the policy [y/N]")) {
+        if (!GetYesNo ("Enter another policy qualifier [y/N]")) {
             /* Add null to the end to mark end of data */
             policyQualifArr = PORT_ArenaGrow(arena, policyQualifArr,
                                               sizeof (current) * count,
@@ -1257,7 +1286,7 @@ RequestPolicyQualifiers(PRArenaPool *arena, SECItem *policyID)
 }
 
 static SECStatus 
-AddCertPolices(void *extHandle)
+AddCertPolicies(void *extHandle)
 {
     CERTPolicyInfo **certPoliciesArr = NULL;
     CERTPolicyInfo *current;
@@ -1277,13 +1306,20 @@ AddCertPolices(void *extHandle)
         if (current == NULL) {
             GEN_BREAK(SECFailure);
         }
-        
-        if (PrintChoicesAndGetAnswer("Enter policy ID object identifier"
-                                     " or any for AnyPolicy:",
+
+        if (PrintChoicesAndGetAnswer("Enter a CertPolicy Object Identifier "
+                                     "(dotted decimal format)\n"
+				     "or \"any\" for AnyPolicy:",
                                      buffer, sizeof(buffer)) == SECFailure) {
             GEN_BREAK (SECFailure);
         }
+	
+	if (strncmp(buffer, "any", 3) == 0) {
+	    /* use string version of X509_CERTIFICATE_POLICIES.anyPolicy */
+	    strcpy(buffer, "OID.2.5.29.32.0");
+	}
         rv = SEC_StringToOID(arena, &current->policyID, buffer, 0);
+
         if (rv == SECFailure) {
             GEN_BREAK(SECFailure);
         }
@@ -1305,8 +1341,7 @@ AddCertPolices(void *extHandle)
         certPoliciesArr[count] = current;
         ++count;
         
-        if (!GetYesNo ("Enter more policy information to the"
-                       " Cert Policy extension [y/N]")) {
+        if (!GetYesNo ("Enter another PolicyInformation field [y/N]?")) {
             /* Add null to the end to mark end of data */
             certPoliciesArr = PORT_ArenaGrow(arena, certPoliciesArr,
                                               sizeof (current) * count,
@@ -1437,7 +1472,7 @@ AddInfoAccess(void *extHandle, PRBool addSIAExt, PRBool isCACert)
         infoAccArr[count] = current;
         ++count;
         
-        PR_snprintf(buffer, sizeof(buffer), "Enter more location to the %s"
+        PR_snprintf(buffer, sizeof(buffer), "Add another location to the %s"
                     " Information Access extension [y/N]",
                     (addSIAExt) ? "Subject" : "Authority");
 
@@ -1532,7 +1567,7 @@ AddExtensions(void *extHandle, const char *emailAddrs, const char *dnsNames,
         }
 
         if (extList[ext_authInfoAcc] || extList[ext_subjInfoAcc]) {
-            rv = AddInfoAccess(extHandle, extList[ext_authInfoAcc],
+            rv = AddInfoAccess(extHandle, extList[ext_subjInfoAcc],
 	                       extList[ext_basicConstraint]);
             if (rv) {
 		errstring = "InformationAccess";
@@ -1541,7 +1576,7 @@ AddExtensions(void *extHandle, const char *emailAddrs, const char *dnsNames,
         }
 
         if (extList[ext_certPolicies]) {
-            rv = AddCertPolices(extHandle);
+            rv = AddCertPolicies(extHandle);
             if (rv) {
 		errstring = "Policies";
                 break;
