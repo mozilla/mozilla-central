@@ -746,11 +746,14 @@
                       // be different sizes.  That is, when we have a colSpan
                       // of 2, a total of 5 columns, and a startCol of 1.
                       // Then, our columns need to be laid out as 1/5, 2/5, 2/5.
-                      var pixSpan = column.specialSpan * this.topbox.boxObject.width;
                       if (orient == "vertical") {
-                          style += "max-width: " + pixSpan + "px;";
+                          style += "max-width: " +
+                                   column.specialSpan * this.topbox.boxObject.width +
+                                   "px;";
                       } else {
-                          style += "max-height: " + pixSpan + "px;";
+                          style += "max-height: " +
+                                   column.specialSpan * this.topbox.boxObject.height +
+                                   "px;";
                       }
 
                       // Now we need to set up a resize listener, since without
@@ -760,11 +763,14 @@
                       function colResizeHandler(aInnerCol, aCalCol, aSpan) {
                           this.handleEvent = function(aEvent) {
                               var resizeStyle = "min-width: 1px; min-height: 1px;";
-                              var pixSpan = aSpan * aCalCol.topbox.boxObject.width;
                               if (orient == "vertical") {
-                                  resizeStyle += "max-width: " + pixSpan + "px;";
+                                  resizeStyle += "max-width: " +
+                                                 aSpan * aCalCol.topbox.boxObject.width +
+                                                 "px;";
                               } else {
-                                  resizeStyle += "max-height: " + pixSpan + "px;";
+                                  resizeStyle += "max-height: " +
+                                                 aSpan * aCalCol.topbox.boxObject.height +
+                                                 "px;";
                               }
                               aInnerCol.setAttribute("style", resizeStyle);
                           };
