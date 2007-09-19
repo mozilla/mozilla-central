@@ -63,7 +63,7 @@ static int ldap_abandoned( LDAP *ld, int msgid );
 static int ldap_mark_abandoned( LDAP *ld, int msgid );
 static int wait4msg( LDAP *ld, int msgid, int all, int unlock_permitted,
 	struct timeval *timeout, LDAPMessage **result );
-static int read1msg( LDAP *ld, int msgid, int all, Sockbuf *sb, LDAPConn *lc,
+static int read1msg( LDAP *ld, int msgid, int all, Sockbuf *sb, LDAPConn **lcp,
 	LDAPMessage **result );
 static void check_for_refs( LDAP *ld, LDAPRequest *lr, BerElement *ber,
 	int ldapversion, int *totalcountp, int *chasingcountp );
@@ -289,7 +289,7 @@ static int
 wait4msg( LDAP *ld, int msgid, int all, int unlock_permitted,
 	struct timeval *timeout, LDAPMessage **result )
 {
-	int		err, rc = NSLDAPI_RESULT_NOT_FOUND;
+	int		err, rc = NSLDAPI_RESULT_NOT_FOUND, msgfound;
 	struct timeval	tv, *tvp;
 	long		start_time = 0, tmp_time;
 	LDAPConn	*lc, *nextlc;
@@ -355,6 +355,7 @@ wait4msg( LDAP *ld, int msgid, int all, int unlock_permitted,
 
 	rc = NSLDAPI_RESULT_NOT_FOUND;
 	while ( rc == NSLDAPI_RESULT_NOT_FOUND ) {
+		msgfound = 0;
 #ifdef LDAP_DEBUG
 		if ( ldap_debug & LDAP_DEBUG_TRACE ) {
 			nsldapi_dump_connection( ld, ld->ld_conns, 1 );
@@ -371,15 +372,19 @@ wait4msg( LDAP *ld, int msgid, int all, int unlock_permitted,
 		for ( lc = ld->ld_conns; lc != NULL; lc = lc->lconn_next ) {
 			if ( lc->lconn_sb->sb_ber.ber_ptr <
 			    lc->lconn_sb->sb_ber.ber_end ) {
+				/* read1msg() might free the connection. */
 				rc = read1msg( ld, msgid, all, lc->lconn_sb,
-				    lc, result );
+				    &lc, result );
+				/* Indicate to next segment that we've processed a message
+				   (or several, via chased refs) this time around. */
+				msgfound = 1;
 				break;
 			}
 		}
 		LDAP_MUTEX_UNLOCK( ld, LDAP_REQ_LOCK );
 		LDAP_MUTEX_UNLOCK( ld, LDAP_CONN_LOCK );
 
-		if ( lc == NULL ) {
+		if ( !msgfound ) {
 			/*
 			 * There was no buffered data. Poll to check connection
 			 * status (read/write readiness).
@@ -467,14 +472,16 @@ wait4msg( LDAP *ld, int msgid, int all, int unlock_permitted,
 				*/
 				if ( nsldapi_iostatus_is_read_ready( ld,
 				    lc->lconn_sb )) {
+				/* read1msg() might free the connection. */
 					rc = read1msg( ld, msgid, all,
-					    lc->lconn_sb, lc, result );
+					    lc->lconn_sb, &lc, result );
 				}
 
 				/*
-				 * Send pending requests if possible.
+				 * Send pending requests if possible.  If there is no lc then
+				 * it was a child connection closed by read1msg().
 				 */
-				if ( lc->lconn_pending_requests > 0
+				if ( lc && lc->lconn_pending_requests > 0
 				    && nsldapi_iostatus_is_write_ready( ld,
 				    lc->lconn_sb )) {
 					err = nsldapi_send_pending_requests_nolock(
@@ -540,9 +547,12 @@ wait4msg( LDAP *ld, int msgid, int all, int unlock_permitted,
  *  NSLDAPI_RESULT_TIMEOUT    timeout exceeded.
  *  NSLDAPI_RESULT_ERROR      fatal error occurred such as connection closed.
  *  NSLDAPI_RESULT_NOT_FOUND  message not yet complete; keep waiting.
+ *
+ *  The LDAPConn passed in my be freed by read1msg() if the reference count
+ *  shows that it's no longer needed.
  */
 static int
-read1msg( LDAP *ld, int msgid, int all, Sockbuf *sb, LDAPConn *lc,
+read1msg( LDAP *ld, int msgid, int all, Sockbuf *sb, LDAPConn **lcp,
     LDAPMessage **result )
 {
 	BerElement	*ber;
@@ -554,6 +564,7 @@ read1msg( LDAP *ld, int msgid, int all, Sockbuf *sb, LDAPConn *lc,
 	LDAPRequest	*lr;
 	int		rc, has_parent, message_can_be_returned;
 	int		manufactured_result = 0;
+	LDAPConn	*lc = *lcp;
 
 	LDAPDebug( LDAP_DEBUG_TRACE, "read1msg\n", 0, 0, 0 );
 
@@ -760,6 +771,9 @@ lr->lr_res_matched ? lr->lr_res_matched : "" );
 				}
 
 				nsldapi_free_request( ld, lr, 1 );
+				/* Since we asked nsldapi_free_request() to free the
+				   connection, lets make sure our callers know it's gone. */
+				*lcp = NULL;
 			} else {
 				message_can_be_returned = 0;
 			}
