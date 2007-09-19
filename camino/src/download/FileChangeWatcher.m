@@ -42,13 +42,20 @@
 #import "unistd.h"
 #import "fcntl.h"
 
-const int kSecondPollingInterval = 60;
+static const int kSecondPollingInterval = 60;
+
+static const unsigned int kMaxWatchedDirectories = 25;
+
+// Watched directory dictionary keys
+static NSString* const kDelegatesKey = @"delegates";
+static NSString* const kFileDescriptorKey = @"fdes";
 
 @interface FileChangeWatcher(Private)
 
 -(void)startPolling;
 -(void)stopPolling;
 -(void)pollWatchedDirectories;
+-(void)directoryChanged:(NSString*)directory;
 
 @end
 
@@ -57,8 +64,7 @@ const int kSecondPollingInterval = 60;
 -(id)init
 {
   if ((self = [super init])) {
-    mWatchedFileDelegates = [[NSMutableArray alloc] init];
-    mWatchedFileDescriptors = [[NSMutableArray alloc] init];
+    mWatchedDirectories = [[NSMutableDictionary alloc] init];
     mQueueFileDesc = kqueue();
   }
   
@@ -68,45 +74,66 @@ const int kSecondPollingInterval = 60;
 -(void)dealloc
 {
   close(mQueueFileDesc);
-  [mWatchedFileDelegates release];
-  [mWatchedFileDescriptors release];
+  [mWatchedDirectories release];
   [super dealloc];
 }
 
 -(void)addWatchedFileDelegate:(id<WatchedFileDelegate>)aWatchedFileDelegate
-{  
-  if ([mWatchedFileDelegates containsObject:aWatchedFileDelegate])
-    return;
-  
-  int fileDesc = open([aWatchedFileDelegate representedFilePath], O_EVTONLY, 0);
-  if (fileDesc >= 0) {
-    struct timespec nullts = { 0, 0 };
-    struct kevent ev;
-    u_int fflags = NOTE_RENAME | NOTE_WRITE | NOTE_DELETE;
-    
-    EV_SET(&ev, fileDesc, EVFILT_VNODE, EV_ADD | EV_ENABLE | EV_CLEAR, fflags, 0, (void*)aWatchedFileDelegate);
-    
-    [mWatchedFileDelegates addObject:aWatchedFileDelegate];
-    [mWatchedFileDescriptors addObject:[NSNumber numberWithInt:fileDesc]];
-    kevent(mQueueFileDesc, &ev, 1, NULL, 0, &nullts);
-    if (!mShouldRunThread && [mWatchedFileDescriptors count] > 0)
-      [self startPolling];
+{
+  NSString* parentDirectory =
+    [[aWatchedFileDelegate representedFilePath] stringByDeletingLastPathComponent];
+  NSMutableDictionary* directoryInfo = [mWatchedDirectories objectForKey:parentDirectory];
+  if (directoryInfo) {
+    NSMutableArray* directoryDelegates = [directoryInfo objectForKey:kDelegatesKey];
+    if (![directoryDelegates containsObject:aWatchedFileDelegate])
+      [directoryDelegates addObject:aWatchedFileDelegate];
+  }
+  else {
+    // We cap the number of kqueues so we don't end up sucking down all the
+    // available file descriptors.
+    if ([mWatchedDirectories count] >= kMaxWatchedDirectories)
+      return;
+
+    int fileDesc = open([parentDirectory fileSystemRepresentation], O_EVTONLY, 0);
+    if (fileDesc >= 0) {
+      struct timespec nullts = { 0, 0 };
+      struct kevent ev;
+      u_int fflags = NOTE_RENAME | NOTE_WRITE | NOTE_DELETE;
+
+      EV_SET(&ev, fileDesc, EVFILT_VNODE, EV_ADD | EV_ENABLE | EV_CLEAR, fflags,
+             0, (void*)parentDirectory);
+
+      kevent(mQueueFileDesc, &ev, 1, NULL, 0, &nullts);
+      if (!mShouldRunThread)
+        [self startPolling];
+
+      directoryInfo = [NSMutableDictionary dictionaryWithObjectsAndKeys:
+        [NSMutableArray arrayWithObject:aWatchedFileDelegate], kDelegatesKey,
+                            [NSNumber numberWithInt:fileDesc], kFileDescriptorKey,
+                                                               nil];
+      [mWatchedDirectories setObject:directoryInfo forKey:parentDirectory];
+    }
   }
 }
 
 -(void)removeWatchedFileDelegate:(id<WatchedFileDelegate>)aWatchedFileDelegate
 {
-  int index = [mWatchedFileDelegates indexOfObject:aWatchedFileDelegate];
-  if (index == NSNotFound)
+  NSString* parentDirectory =
+    [[aWatchedFileDelegate representedFilePath] stringByDeletingLastPathComponent];
+  NSMutableDictionary* directoryInfo = [mWatchedDirectories objectForKey:parentDirectory];
+  NSMutableArray* directoryDelegates = [directoryInfo objectForKey:kDelegatesKey];
+  if (![directoryDelegates containsObject:aWatchedFileDelegate])
     return;
-  
-  int fileDesc = [[mWatchedFileDescriptors objectAtIndex:index] intValue];
-  [mWatchedFileDelegates removeObjectAtIndex:index];
-  [mWatchedFileDescriptors removeObjectAtIndex:index];
-  close(fileDesc);
-  
-  if (mShouldRunThread && [mWatchedFileDelegates count] == 0)
-    [self stopPolling];
+
+  int fileDesc = [[directoryInfo objectForKey:kFileDescriptorKey] intValue];
+  [directoryDelegates removeObject:aWatchedFileDelegate];
+
+  if ([directoryDelegates count] == 0) {
+    close(fileDesc);
+    [mWatchedDirectories removeObjectForKey:parentDirectory];
+    if (mShouldRunThread && [mWatchedDirectories count] == 0)
+      [self stopPolling];
+  }
 }
 
 -(void)startPolling
@@ -149,7 +176,7 @@ const int kSecondPollingInterval = 60;
       struct kevent event;
       int n = kevent(mQueueFileDesc, NULL, 0, &event, 1, &timeInterval);
       if (n > 0 && event.filter == EVFILT_VNODE && event.fflags) {
-        [(id<WatchedFileDelegate>)event.udata fileDidChange];
+        [self directoryChanged:(NSString*)event.udata];
       }
     }
     @catch (id exception) {
@@ -157,6 +184,22 @@ const int kSecondPollingInterval = 60;
     }
     
     [pool release];
+  }
+}
+
+-(void)directoryChanged:(NSString*)directory
+{
+  NSSet* existingFiles =
+    [NSSet setWithArray:[[NSFileManager defaultManager] directoryContentsAtPath:directory]];
+
+  NSMutableDictionary* directoryInfo = [mWatchedDirectories objectForKey:directory];
+  NSMutableArray* directoryDelegates = [directoryInfo objectForKey:kDelegatesKey];
+  NSEnumerator* delegateEnumerator = [directoryDelegates objectEnumerator];
+  id fileDelegate;
+  while ((fileDelegate = [delegateEnumerator nextObject])) {
+    NSString* filename = [[fileDelegate representedFilePath] lastPathComponent];
+    if (![existingFiles member:filename])
+      [fileDelegate fileRemoved];
   }
 }
 

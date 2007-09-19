@@ -64,6 +64,7 @@ enum {
 -(void)viewDidLoad;
 -(void)setupFileSystemNotification;
 -(void)unsubscribeFileSystemNotification;
+-(void)checkFileExists;
 -(void)refreshDownloadInfo;
 -(void)launchFileIfAppropriate;
 -(void)setProgressViewFromDictionary:(NSDictionary*)aDict;
@@ -293,15 +294,21 @@ enum {
 
 -(IBAction)reveal:(id)sender
 {
-  if (![[NSWorkspace sharedWorkspace] selectFile:mDestPath
-      inFileViewerRootedAtPath:[mDestPath stringByDeletingLastPathComponent]]) {
+  [self checkFileExists];
+  if (!mFileExists ||
+      ![[NSWorkspace sharedWorkspace] selectFile:mDestPath
+      inFileViewerRootedAtPath:[mDestPath stringByDeletingLastPathComponent]])
+  {
     NSBeep();
   }
 }
 
 -(IBAction)open:(id)sender
 {
-  if (![[NSWorkspace sharedWorkspace] openFile:mDestPath]) {
+  [self checkFileExists];
+  if (!mFileExists ||
+      ![[NSWorkspace sharedWorkspace] openFile:mDestPath])
+  {
     NSBeep();
   }
   return;
@@ -339,9 +346,14 @@ enum {
   [self refreshDownloadInfo];
 }
 
-// Delete the file we downloaded and remove this item from the list
--(IBAction)deleteFile:(id)sender
+// Move the downloaded file to the trash.
+-(BOOL)deleteFile
 {
+  [self checkFileExists];
+  if (!mFileExists) {
+    NSBeep();
+    return NO;
+  }
   NSString* fileName = [mDestPath lastPathComponent];
   NSString* path = [mDestPath stringByDeletingLastPathComponent];
 
@@ -350,6 +362,7 @@ enum {
                                           destination:@""
                                                 files:[NSArray arrayWithObject:fileName]
                                                   tag:nil];
+  return YES;
 }
 
 -(void)downloadDidEnd
@@ -590,12 +603,12 @@ enum {
   return dict;
 }
 
--(const char*)representedFilePath
+-(NSString*)representedFilePath
 {
-  return [mDestPath fileSystemRepresentation];
+  return mDestPath;
 }
 
--(void)fileDidChange
+-(void)fileRemoved
 {
   // This method gets called on a background thread, so switch the |checkFileExists| call to the main thread.
   NSAutoreleasePool *pool = [[NSAutoreleasePool alloc] init];

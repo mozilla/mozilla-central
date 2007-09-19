@@ -115,9 +115,10 @@ const int kRemoveUponSuccessfulDownloadPrefValue = 2;
 -(IBAction)remove:(id)sender;
 -(IBAction)reveal:(id)sender;
 -(IBAction)open:(id)sender;
--(IBAction)deleteFile:(id)sender;
 -(IBAction)pause:(id)sender;
 -(IBAction)resume:(id)sender;
+
+-(BOOL)deleteFile;
 
 -(BOOL)isActive;
 -(BOOL)isCanceled;
@@ -127,7 +128,6 @@ const int kRemoveUponSuccessfulDownloadPrefValue = 2;
 
 -(BOOL)hasSucceeded;
 
--(void)checkFileExists;
 -(void)setSelected:(BOOL)inSelected;
 
 -(NSDictionary*)downloadInfoDictionary;

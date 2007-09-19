@@ -240,8 +240,13 @@ static id gSharedProgressController = nil;
   
   // now remove stuff, don't need to check if active, the toolbar/menu validates
   for (unsigned int i = 0; i < selectedCount; i++) {
-    [[selected objectAtIndex:i] deleteFile:sender];
-    [self removeDownload:[selected objectAtIndex:i] suppressRedraw:YES];
+    ProgressViewController* progressController = [selected objectAtIndex:i];
+    // if the file was moved without the controller noticing, the move to trash
+    // will fail, but cause it to notice that the file is missing. Leave it in
+    // the list (now showing missing) so the user doesn't think it was
+    // successfully trashed.
+    if ([progressController deleteFile])
+      [self removeDownload:progressController suppressRedraw:YES];
   }
   
   [self rebuildViews];
@@ -558,7 +563,7 @@ static id gSharedProgressController = nil;
   [self scrollIntoView:progressDisplay];
 }
 
--(void)didEndDownload:(id <CHDownloadProgressDisplay>)progressDisplay withSuccess:(BOOL)completedOK statusCode:(nsresult)status
+-(void)didEndDownload:(ProgressViewController*)progressDisplay withSuccess:(BOOL)completedOK statusCode:(nsresult)status
 {
   [self rebuildViews]; // to swap in the completed view
   [[[self window] toolbar] validateVisibleItems]; // force update which doesn't always happen
@@ -649,7 +654,7 @@ static id gSharedProgressController = nil;
 {
 }
 
--(void)removeDownload:(id <CHDownloadProgressDisplay>)progressDisplay suppressRedraw:(BOOL)suppressRedraw
+-(void)removeDownload:(ProgressViewController*)progressDisplay suppressRedraw:(BOOL)suppressRedraw
 {
   [progressDisplay displayWillBeRemoved];
   // This is sometimes called by code that thinks it can continue

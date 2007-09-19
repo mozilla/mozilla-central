@@ -48,14 +48,14 @@
 // This method will need to return the full path of the file/folder 
 // that is being watched.
 //
--(const char*)representedFilePath;
+-(NSString*)representedFilePath;
 
 //
-// This method gets called when the watcher recieves news that the
-// watched path has changed.
+// This method gets called when the watcher recieves news that a file has
+// been removed at the watched path.
 // Note: This method will be called on a background thread.
 //
--(void)fileDidChange;
+-(void)fileRemoved;
 
 @end
 
@@ -66,9 +66,8 @@
 //
 @interface FileChangeWatcher : NSObject
 {
-@private
-  NSMutableArray* mWatchedFileDelegates;     // strong ref
-  NSMutableArray* mWatchedFileDescriptors;   // strong ref
+ @private
+  NSMutableDictionary* mWatchedDirectories;  // strong ref
   
   int          mQueueFileDesc;
   BOOL         mShouldRunThread;
