@@ -44,9 +44,7 @@
 #include "pkix_lifecycle.h"
 
 static PKIX_Boolean pkixIsInitialized = PKIX_FALSE;
-static PKIX_Boolean pkixPlatformInit = PKIX_FALSE;
 static PKIX_Boolean pkixInitInProgress = PKIX_FALSE;
-char *pkix_PK11ConfigDir = NULL;
 
 /* Lock used by Logger - is reentrant by the same thread */
 extern PKIX_PL_MonitorLock *pkixLoggerLock;
@@ -122,7 +120,6 @@ PKIX_Initialize(
         }
 
         pkixInitInProgress = PKIX_TRUE;
-        pkixPlatformInit = platformInitNeeded; /* remember this for shutdown */
 
         PKIX_CHECK(PKIX_PL_Initialize
                 (platformInitNeeded, useArenas, &plContext),
@@ -143,7 +140,6 @@ PKIX_Initialize(
 
         pkixInitInProgress = PKIX_FALSE;
         pkixIsInitialized = PKIX_TRUE;
-        pkix_PK11ConfigDir = NULL;
 
         /* Create Cache Tables */
         PKIX_CHECK(PKIX_PL_HashTable_Create
@@ -178,35 +174,6 @@ PKIX_Initialize(
                 PKIX_CHECK(PKIX_PL_MonitorLock_Create
                         (&pkixLoggerLock, plContext),
                         PKIX_MONITORLOCKCREATEFAILED);
-        }
-
-cleanup:
-
-        PKIX_RETURN(LIFECYCLE);
-}
-
-/*
- * FUNCTION: PKIX_Initialize_SetConfigDir (see comments in pkix.h)
- */
-PKIX_Error *
-PKIX_Initialize_SetConfigDir(
-        PKIX_UInt32 storeType,
-        char *configDir,
-        void *plContext)
-{
-        PKIX_ENTER(LIFECYCLE, "PKIX_Initialize_SetConfigDir");
-        PKIX_NULLCHECK_ONE(configDir);
-
-        switch(storeType) {
-
-            case PKIX_STORE_TYPE_PK11:
-
-                    pkix_PK11ConfigDir = configDir;
-                break;
-
-            default:
-                PKIX_ERROR(PKIX_INVALIDSTORETYPEFORSETTINGCONFIGDIR);
-                break;
         }
 
 cleanup:
@@ -252,7 +219,7 @@ PKIX_Shutdown(void *plContext)
         PKIX_DECREF(aiaConnectionCache);
         PKIX_DECREF(httpSocketCache);
 
-        PKIX_CHECK(PKIX_PL_Shutdown(pkixPlatformInit, plContext),
+        PKIX_CHECK(PKIX_PL_Shutdown(plContext),
                 PKIX_SHUTDOWNFAILED);
 
         pkixIsInitialized = PKIX_FALSE;

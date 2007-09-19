@@ -153,9 +153,7 @@ PKIX_PL_Initialize(
  *  Returns a Fatal Error if the function fails in an unrecoverable way.
  */
 PKIX_Error *
-PKIX_PL_Shutdown(
-        PKIX_Boolean platformInitNeeded,
-        void *plContext);
+PKIX_PL_Shutdown(void *plContext);
 
 /* standard memory management operations (not reference-counted) */
 

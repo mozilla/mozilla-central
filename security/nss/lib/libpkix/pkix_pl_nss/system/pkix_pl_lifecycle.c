@@ -43,7 +43,6 @@
 
 #include "pkix_pl_lifecycle.h"
 
-extern char *pkix_PK11ConfigDir;
 PKIX_Boolean pkix_pl_initialized = PKIX_FALSE;
 pkix_ClassTable_Entry systemClasses[PKIX_NUMTYPES];
 PRLock *classTableLock;
@@ -112,24 +111,6 @@ PKIX_PL_Initialize(
 
         if (pkix_pl_initialized) return (PKIX_ALLOC_ERROR());
 
-        if (platformInitNeeded) {
-
-                /*  Initialize NSPR and NSS.  */
-                PR_Init(PR_SYSTEM_THREAD, PR_PRIORITY_NORMAL, 1);
-
-                /* if using databases, use NSS_Init and not NSS_NoDB_Init */
-                if (pkix_PK11ConfigDir) {
-                        if (NSS_Init(pkix_PK11ConfigDir) != SECSuccess) {
-                                return (PKIX_ALLOC_ERROR());
-                        }
-                } else {
-                        if (NSS_NoDB_Init(NULL) != 0){
-                                return (PKIX_ALLOC_ERROR());
-                        }
-                }
-        }
-
-        PKIX_OBJECT_DEBUG("\tCalling PR_NewLock).\n");
         classTableLock = PR_NewLock();
         if (classTableLock == NULL) return (PKIX_ALLOC_ERROR());
 
@@ -235,9 +216,7 @@ cleanup:
  * PKIX_PL_Shutdown (see comments in pkix_pl_system.h)
  */
 PKIX_Error *
-PKIX_PL_Shutdown(
-        PKIX_Boolean platformInitNeeded,
-        void *plContext)
+PKIX_PL_Shutdown(void *plContext)
 {
         PKIX_ENTER(OBJECT, "PKIX_PL_Shutdown");
 
@@ -245,11 +224,6 @@ PKIX_PL_Shutdown(
 
         if (plContext != NULL) {
                 PKIX_PL_NssContext_Destroy(plContext);
-        }
-
-        /* Shut down NSS only if we initialized it */
-        if (platformInitNeeded) {
-                NSS_Shutdown();
         }
 
         pkix_pl_initialized = PKIX_FALSE;

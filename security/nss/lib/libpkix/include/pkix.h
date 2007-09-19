@@ -171,34 +171,6 @@ PKIX_Error *
 PKIX_Shutdown(void *plContext);
 
 /*
- * FUNCTION: PKIX_Initialize_SetConfigDir
- * DESCRIPTION:
- *
- * This function initializes the configuration directory for "storeType" to
- * the ascii value of "configDirString".
- *
- * PARAMETERS:
- *  "storeType"
- *      Type of the Cert Store location for initialization.
- *  "configDir"
- *      Address of char where the Cert Store location is retrieved.
- *      Must be non-NULL.
- *  "plContext"
- *      Platform-specific context pointer.
- * THREAD SAFETY:
- *  Not Thread Safe
- * RETURNS:
- *  Returns NULL if the function succeeds.
- *  Returns an Initialize Error if the function fails in a non-fatal way.
- *  Returns a Fatal Error if the function fails in an unrecoverable way.
- */
-PKIX_Error *
-PKIX_Initialize_SetConfigDir(
-        PKIX_UInt32 storeType,
-        char *configDir,
-        void *plContext);
-
-/*
  * FUNCTION: PKIX_ValidateChain
  * DESCRIPTION:
  *

@@ -36,7 +36,7 @@
  * the terms of any one of the MPL, the GPL or the LGPL.
  *
  * ***** END LICENSE BLOCK ***** */
-/* $Id: nssinit.c,v 1.81 2007-08-29 00:12:08 alexei.volkov.bugs%sun.com Exp $ */
+/* $Id: nssinit.c,v 1.82 2007-09-19 19:29:47 alexei.volkov.bugs%sun.com Exp $ */
 
 #include <ctype.h>
 #include "seccomon.h"
@@ -811,7 +811,13 @@ NSS_Shutdown(void)
     }
     ShutdownCRLCache();
     OCSP_ShutdownCache();
+
+/* ifdef PKIX_Shutdown until bug 391815(undetected leaks by NSS leak testing)
+ * is fixed */
+#ifdef BUILD_LIBPKIX_TESTS
     PKIX_Shutdown(plContext);
+#endif /* BUILD_LIBPKIX_TESTS */
+
     SECOID_Shutdown();
     status = STAN_Shutdown();
     cert_DestroySubjectKeyIDHashTable();
@@ -892,5 +898,3 @@ NSS_VersionCheck(const char *importedVersion)
     }
     return PR_TRUE;
 }
-
-
