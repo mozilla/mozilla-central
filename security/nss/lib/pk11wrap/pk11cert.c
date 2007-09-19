@@ -777,7 +777,8 @@ PK11_FindCertsFromNickname(const char *nickname, void *wincx)
  * pkcs11 to extract the public key (we currently do not), this will break.
  */
 SECItem *
-PK11_GetPubIndexKeyID(CERTCertificate *cert) {
+PK11_GetPubIndexKeyID(CERTCertificate *cert) 
+{
     SECKEYPublicKey *pubk;
     SECItem *newItem = NULL;
 
@@ -810,7 +811,8 @@ PK11_GetPubIndexKeyID(CERTCertificate *cert) {
  * generate a CKA_ID from a certificate.
  */
 SECItem *
-pk11_mkcertKeyID(CERTCertificate *cert) {
+pk11_mkcertKeyID(CERTCertificate *cert) 
+{
     SECItem *pubKeyData = PK11_GetPubIndexKeyID(cert) ;
     SECItem *certCKA_ID;
 
@@ -927,7 +929,8 @@ loser:
 
 SECStatus
 PK11_ImportDERCert(PK11SlotInfo *slot, SECItem *derCert,
-		CK_OBJECT_HANDLE key, char *nickname, PRBool includeTrust) {
+		CK_OBJECT_HANDLE key, char *nickname, PRBool includeTrust) 
+{
     CERTCertificate *cert;
     SECStatus rv;
 
@@ -968,7 +971,8 @@ pk11_getcerthandle(PK11SlotInfo *slot, CERTCertificate *cert,
  */
 SECKEYPrivateKey *
 PK11_FindPrivateKeyFromCert(PK11SlotInfo *slot, CERTCertificate *cert,
-								 void *wincx) {
+								 void *wincx) 
+{
     int err;
     CK_OBJECT_CLASS certClass = CKO_CERTIFICATE;
     CK_ATTRIBUTE theTemplate[] = {
@@ -1030,7 +1034,8 @@ PK11_FindPrivateKeyFromCert(PK11SlotInfo *slot, CERTCertificate *cert,
  */
 PK11SlotInfo *
 PK11_KeyForCertExists(CERTCertificate *cert, CK_OBJECT_HANDLE *keyPtr, 
-								void *wincx) {
+								void *wincx) 
+{
     PK11SlotList *list;
     PK11SlotListElement *le;
     SECItem *keyID;
@@ -1085,7 +1090,8 @@ PK11_KeyForCertExists(CERTCertificate *cert, CK_OBJECT_HANDLE *keyPtr,
  */
 PK11SlotInfo *
 PK11_KeyForDERCertExists(SECItem *derCert, CK_OBJECT_HANDLE *keyPtr, 
-								void *wincx) {
+								void *wincx) 
+{
     CERTCertificate *cert;
     PK11SlotInfo *slot = NULL;
 
@@ -1101,7 +1107,8 @@ PK11_KeyForDERCertExists(SECItem *derCert, CK_OBJECT_HANDLE *keyPtr,
 }
 
 PK11SlotInfo *
-PK11_ImportCertForKey(CERTCertificate *cert, char *nickname,void *wincx) {
+PK11_ImportCertForKey(CERTCertificate *cert, char *nickname,void *wincx) 
+{
     PK11SlotInfo *slot = NULL;
     CK_OBJECT_HANDLE key;
 
@@ -1120,7 +1127,8 @@ PK11_ImportCertForKey(CERTCertificate *cert, char *nickname,void *wincx) {
 }
 
 PK11SlotInfo *
-PK11_ImportDERCertForKey(SECItem *derCert, char *nickname,void *wincx) {
+PK11_ImportDERCertForKey(SECItem *derCert, char *nickname,void *wincx) 
+{
     CERTCertificate *cert;
     PK11SlotInfo *slot = NULL;
 
@@ -1135,7 +1143,8 @@ PK11_ImportDERCertForKey(SECItem *derCert, char *nickname,void *wincx) {
 
 static CK_OBJECT_HANDLE
 pk11_FindCertObjectByTemplate(PK11SlotInfo **slotPtr, 
-		CK_ATTRIBUTE *searchTemplate, int count, void *wincx) {
+		CK_ATTRIBUTE *searchTemplate, int count, void *wincx) 
+{
     PK11SlotList *list;
     PK11SlotListElement *le;
     CK_OBJECT_HANDLE certHandle = CK_INVALID_HANDLE;
@@ -1376,7 +1385,8 @@ pk11_FindCertObjectByRecipient(PK11SlotInfo *slot,
 static CERTCertificate *
 pk11_AllFindCertObjectByRecipient(PK11SlotInfo **slotPtr, 
 	SEC_PKCS7RecipientInfo **recipientArray,SEC_PKCS7RecipientInfo **rip,
-							void *wincx) {
+							void *wincx) 
+{
     PK11SlotList *list;
     PK11SlotListElement *le;
     CERTCertificate * cert = NULL;
@@ -2128,7 +2138,8 @@ KEAPQGCompare(CERTCertificate *server,CERTCertificate *cert) {
 }
 
 PRBool
-PK11_FortezzaHasKEA(CERTCertificate *cert) {
+PK11_FortezzaHasKEA(CERTCertificate *cert) 
+{
    /* look at the subject and see if it is a KEA for MISSI key */
    SECOidData *oid;
 
