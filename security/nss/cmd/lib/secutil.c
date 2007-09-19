@@ -1819,6 +1819,17 @@ secu_PrintGeneralName(FILE *out, CERTGeneralName *gname, char *msg, int level)
 }
 
 static void
+secu_PrintGeneralNames(FILE *out, CERTGeneralName *gname, char *msg, int level) 
+{
+    CERTGeneralName *name = gname;
+    do { 
+    	secu_PrintGeneralName(out, name, msg, level);
+	name = CERT_GetNextGeneralName(name);
+    } while (name && name != gname);
+}
+
+
+static void
 secu_PrintAuthKeyIDExtension(FILE *out, SECItem *value, char *msg, int level) 
 {
     CERTAuthKeyID *kid  = NULL;
@@ -1903,8 +1914,8 @@ secu_PrintCRLDistPtsExtension(FILE *out, SECItem *value, char *msg, int level)
 	while (NULL != (pPoint = *pPoints++)) {
 	    if (pPoint->distPointType == generalName && 
 	        pPoint->distPoint.fullName != NULL) {
-		secu_PrintGeneralName(out, pPoint->distPoint.fullName, NULL,
-		                      level);
+		secu_PrintGeneralNames(out, pPoint->distPoint.fullName, NULL,
+		                       level);
 #if defined(LATER)
 	    } else if (pPoint->distPointType == relativeDistinguishedName) {
 	    	/* print the relative name */
