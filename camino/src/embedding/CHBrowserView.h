@@ -284,6 +284,9 @@ typedef enum {
 
 - (NSString*)getFocusedURLString;
 
+// Gets an NSImage representation of the currently visible section of the page.
+- (NSImage*)snapshot;
+
 // charset
 - (IBAction)reloadWithNewCharset:(NSString*)charset;
 - (NSString*)currentCharset;

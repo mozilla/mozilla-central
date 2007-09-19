@@ -128,6 +128,11 @@
 #include "nsICommandManager.h"
 #include "nsICommandParams.h"
 
+// Thumbnailing
+#include "gfxContext.h"
+#include "gfxImageSurface.h"
+#include "nsPresContext.h"
+
 #include "GeckoUtils.h"
 
 
@@ -672,6 +677,97 @@ const char kDirServiceContractID[] = "@mozilla.org/file/directory_service;1";
   nsIDOMElement* domElement = focusedItem.get();
   NS_IF_ADDREF(domElement);
   return domElement;
+}
+
+- (NSImage*)snapshot
+{
+  NSSize viewportSize = [self bounds].size;
+  // We don't draw scrollbars, so set the snapshot width to be the smaller of
+  // the view width and the dom width to prevent a blank strip in the snapshot.
+  nsCOMPtr<nsIDOMWindow> domWindow = [self getContentWindow];
+  if (!domWindow)
+    return nil;
+  int pageWidth;
+  int pageHeight;
+  GeckoUtils::GetIntrisicSize(domWindow, &pageWidth, &pageHeight);
+  NSSize snapshotSize = NSMakeSize(MIN(pageWidth, viewportSize.width),
+                                   viewportSize.height);
+
+  // Create a context to draw into.
+  // TODO: use a quartz-based surface, so that widgets will draw onto it.
+  nsRefPtr<gfxImageSurface> surface = new gfxImageSurface(gfxIntSize(snapshotSize.width,
+                                                                     snapshotSize.height),
+                                                          gfxImageSurface::ImageFormatARGB32);
+  if (!surface)
+    return nil;
+  nsRefPtr<gfxContext> context = new gfxContext(surface);
+  if (!context)
+    return nil;
+
+  // Get the page presentation.
+  nsCOMPtr<nsIDocShell> docShell = [self getDocShell];
+  if (!docShell)
+    return nil;
+  nsCOMPtr<nsPresContext> presContext;
+  docShell->GetPresContext(getter_AddRefs(presContext));
+  if (!presContext)
+    return nil;
+  nsIPresShell* presShell = presContext->PresShell();
+  if (!presShell)
+    return nil;
+
+  // Draw the desired section of the page into our context.
+  PRInt32 scrollX, scrollY;
+  domWindow->GetScrollX(&scrollX);
+  domWindow->GetScrollY(&scrollY);
+  PRInt32 appUnitsPerPixel = presContext->AppUnitsPerDevPixel();
+  nsRect viewRect(NSIntPixelsToAppUnits(scrollX, appUnitsPerPixel),
+                  NSIntPixelsToAppUnits(scrollY, appUnitsPerPixel),
+                  NSIntPixelsToAppUnits(viewportSize.width, appUnitsPerPixel),
+                  NSIntPixelsToAppUnits(viewportSize.height, appUnitsPerPixel));
+  presShell->RenderDocument(viewRect, PR_FALSE, PR_TRUE, NS_RGB(255, 255, 255), context);
+
+  // The data is ARGB, in host endianness, which doesn't convert nicely to an
+  // NSImage, so pass it through CGImage to extract the data.
+  size_t bitsPerComponent = 8;
+  size_t componentsPerPixel = 4;
+  size_t imageBytes = componentsPerPixel * snapshotSize.width * snapshotSize.height;
+  CGDataProviderRef dataProvider = CGDataProviderCreateWithData(NULL,
+                                                                surface->Data(),
+                                                                imageBytes,
+                                                                NULL);
+  if (!dataProvider)
+    return nil;
+  CGColorSpaceRef colorSpace = CGColorSpaceCreateWithName(kCGColorSpaceGenericRGB);
+  if (!colorSpace) {
+    CGDataProviderRelease(dataProvider);
+    return nil;
+  }
+  CGImageRef cgImage = CGImageCreate(snapshotSize.width, snapshotSize.height,
+                                     bitsPerComponent,
+                                     bitsPerComponent * componentsPerPixel,
+                                     surface->Stride(),
+                                     colorSpace,
+                                     kCGImageAlphaFirst | kCGBitmapByteOrder32Host,
+                                     dataProvider,
+                                     NULL, // no decode
+                                     true, // enable interpolation
+                                     kCGRenderingIntentDefault);
+  CGDataProviderRelease(dataProvider);
+  CGColorSpaceRelease(colorSpace);
+  if (!cgImage)
+    return nil;
+
+  // Finally, get it into an NSImage.
+  NSImage* snapshot = [[[NSImage alloc] initWithSize:snapshotSize] autorelease];
+  NSRect imageRect = NSMakeRect(0, 0, snapshotSize.width, snapshotSize.height);
+  [snapshot lockFocus];
+  CGContextDrawImage((CGContextRef)[[NSGraphicsContext currentContext] graphicsPort],
+                     *(CGRect*)&imageRect, cgImage);
+  [snapshot unlockFocus];
+  CGImageRelease(cgImage);
+  
+  return snapshot;
 }
 
 -(void) saveInternal: (nsIURI*)aURI

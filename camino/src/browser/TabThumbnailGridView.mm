@@ -60,7 +60,6 @@ CGColorSpaceRef getTheGreyColorSpace(void);
 - (void)updateGridSizeFor:(int)num;
 - (void)layoutThumbnails;
 - (void)createThumbnailViews;
-- (NSImage*)imageWithScreenShotInTabViewItem:(BrowserTabViewItem*)tabViewItem;
 @end
 
 @implementation TabThumbnailGridView
@@ -104,7 +103,9 @@ CGColorSpaceRef getTheGreyColorSpace(void);
   BrowserTabViewItem* tabViewItem;
 
   while ((tabViewItem = [tabEnum nextObject])) {
-    NSImage* thumb = [self imageWithScreenShotInTabViewItem:tabViewItem];
+    NSImage* thumb = [[[tabViewItem view] getBrowserView] snapshot];
+    if (!thumb)
+      continue;
     ThumbnailView* curThumbView = [[[ThumbnailView alloc] init] autorelease];
 
     if (curThumbView) {
@@ -193,47 +194,6 @@ CGColorSpaceRef getTheGreyColorSpace(void);
     newY += kVerticalPadding + subviewHeight;
     rowCount++;
   }
-}
-
-//
-// Draws the given view on a window placed offscreen and takes a screenshot
-//
-- (NSImage*)imageWithScreenShotInTabViewItem:(BrowserTabViewItem*)tabViewItem
-{
-  BrowserWrapper* browserWrapper = [[[tabViewItem view] retain] autorelease];
-  NSRect bounds = [browserWrapper bounds];
-  NSSize windowSize = bounds.size;
-
-  NSRect offscreenRect = NSMakeRect(0, 0, windowSize.width, windowSize.height);
-
-  NSWindow* offscreenWindow = [[NSWindow alloc] initWithContentRect:offscreenRect
-                                                          styleMask:NSBorderlessWindowMask
-                                                            backing:NSBackingStoreRetained
-                                                              defer:NO];
-
-  NSView* placeholderView = [[[NSView alloc] initWithFrame:[browserWrapper frame]] autorelease];
-  [tabViewItem setView:placeholderView];
-
-  [offscreenWindow setContentView:browserWrapper];
-  [[offscreenWindow contentView] display];
-
-  // Create the NSBitmapImageRep
-  [[offscreenWindow contentView] lockFocus];
-  NSBitmapImageRep* rep = [[NSBitmapImageRep alloc] initWithFocusedViewRect:offscreenRect];
-
-  // Puts the tab's view back where it came from
-  [tabViewItem setView:browserWrapper];
-
-  // Clean up and delete the window, which is no longer needed.
-  [[offscreenWindow contentView] unlockFocus];
-  [offscreenWindow release];
-
-  // Create an image with the representation
-  NSImage* image = [[[NSImage alloc] initWithSize:[rep size]] autorelease];
-  [image addRepresentation:rep];
-  [rep release];
-
-  return image;
 }
 
 #pragma mark Core Graphics
