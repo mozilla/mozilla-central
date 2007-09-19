@@ -53,11 +53,11 @@ calWcapCalendar.prototype = {
                 Components.interfaces.calICalendarProvider,
                 Components.interfaces.nsIInterfaceRequestor,
                 Components.interfaces.nsIClassInfo,
-                Components.interfaces.nsISupports ],
+                nsISupports ],
     
     // nsISupports:
     QueryInterface: function calWcapCalendar_QueryInterface(iid) {
-        qiface(this.m_ifaces, iid); // throws
+        ensureIID(this.m_ifaces, iid); // throws
         return this;
     },
     

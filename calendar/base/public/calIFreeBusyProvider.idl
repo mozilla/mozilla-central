@@ -115,3 +115,22 @@ interface calIFreeBusyInterval : nsISupports
      */
     readonly attribute unsigned long freeBusyType;
 };
+
+/**
+ * This service acts as a central access point for free-busy lookup.
+ * A free-busy request will be multiplexed to all added free-busy providers.
+ * Adding a free-busy provider is transient.
+ */
+[scriptable, uuid(BE1796CF-CB53-482e-8942-D6CAA0A11BAA)]
+interface calIFreeBusyService : calIFreeBusyProvider
+{
+    /**
+     * Adds a new free-busy provider.
+     */
+    void addProvider(in calIFreeBusyProvider aProvider);
+
+    /**
+     * Removes a free-busy provider.
+     */
+    void removeProvider(in calIFreeBusyProvider aProvider);
+};

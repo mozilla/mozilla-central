@@ -96,6 +96,7 @@ EXTRA_SCRIPTS = \
     calUtils.js \
     calWeekTitleService.js \
     calTransactionManager.js \
+    calFreeBusyService.js \
     $(NULL)
 
 # Use NSINSTALL to make the directory, as there's no mtime to preserve.

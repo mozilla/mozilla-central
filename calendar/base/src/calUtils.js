@@ -562,6 +562,18 @@ function compareArrays(aOne, aTwo, compareFunc) {
 }
 
 /**
+ * Ensures the passed IID is in the list, else throws Components.results.NS_ERROR_NO_INTERFACE.
+ */
+function ensureIID(aList, aIID) {
+    function checkIID(iid) {
+        return iid.equals(aIID);
+    }
+    if (!aList.some(checkIID)) {
+        throw Components.results.NS_ERROR_NO_INTERFACE;
+    }
+}
+
+/**
  * Many computations want to work only with date-times, not with dates.  This
  * method will return a proper datetime (set to midnight) for a date object.  If
  * the object is already a datetime, it will simply be returned.
@@ -1100,42 +1112,67 @@ function getAtomFromService(aStr) {
     return atomService.getAtom(aStr);
 }
 
+function calInterfaceBag(iid) {
+    this.init(iid);
+}
+calInterfaceBag.prototype = {
+    mIid: null,
+    mInterfaces: null,
+
+    /// internal:
+    init: function calInterfaceBag_init(iid) {
+        this.mIid = iid;
+        this.mInterfaces = [];
+    },
+
+    /// external:
+    get size() {
+        return this.mInterfaces.length;
+    },
+
+    add: function calInterfaceBag_add(iface) {
+        if (iface) {
+            var iid = this.mIid;
+            function eq(obj) {
+                return compareObjects(obj, iface, iid);
+            }
+            if (!this.mInterfaces.some(eq)) {
+                this.mInterfaces.push(iface);
+            }
+        }
+    },
+
+    remove: function calInterfaceBag_remove(iface) {
+        if (iface) {
+            var iid = this.mIid;
+            function neq(obj) {
+                return !compareObjects(obj, iface, iid);
+            }
+            this.mInterfaces = this.mInterfaces.filter(neq);
+        }
+    },
+
+    forEach: function calInterfaceBag_forEach(func) {
+        this.mInterfaces.forEach(func);
+    }
+};
+
 function calListenerBag(iid) {
-    this.mIid = iid;
-    this.mListeners = [];
+    this.init(iid);
 }
 calListenerBag.prototype = {
-    mIid: null,
-    mListeners: null,
-
-    add: function calListenerBag_add(listener) {
-        var iid = this.mIid;
-        function eq(obj) {
-            return compareObjects(obj, listener, iid);
-        }
-        if (!this.mListeners.some(eq)) {
-            this.mListeners.push(listener);
-        }
-    },
-
-    remove: function calListenerBag_remove(listener) {
-        var iid = this.mIid;
-        function neq(obj) {
-            return !compareObjects(obj, listener, iid);
-        }
-        this.mListeners = this.mListeners.filter(neq);
-    },
+    __proto__: calInterfaceBag.prototype,
 
     notify: function calListenerBag_notify(func, args) {
-        function notifyFunc(obj) {
+        function notifyFunc(iface) {
             try {
-                obj[func].apply(obj, args ? args : []);
+                iface[func].apply(iface, args ? args : []);
             }
             catch (exc) {
                 Components.utils.reportError(exc);
             }
         }
-        this.mListeners.forEach(notifyFunc);
+        this.mInterfaces.forEach(notifyFunc);
     }
 };
 
@@ -1239,9 +1276,12 @@ calOperationGroup.prototype = {
     },
 
     notifyCompleted: function calOperationGroup_notifyCompleted(status) {
-        this.mIsPending = false;
-        if (status) {
-            this.mStatus = status;
+        ASSERT(this.isPending, "[calOperationGroup_notifyCompleted] this.isPending");
+        if (this.isPending) {
+            this.mIsPending = false;
+            if (status) {
+                this.mStatus = status;
+            }
         }
     },
 
@@ -1278,8 +1318,8 @@ calOperationGroup.prototype = {
                 op.cancel(null);
             }
             subOperations.forEach(forEachFunc);
-            if (this.mCancelFunc) {
-                var cancelFunc = this.mCancelFunc;
+            var cancelFunc = this.mCancelFunc;
+            if (cancelFunc) {
                 this.mCancelFunc = null;
                 cancelFunc();
             }

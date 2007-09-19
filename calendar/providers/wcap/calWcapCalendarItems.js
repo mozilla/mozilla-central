@@ -1200,14 +1200,14 @@ function calWcapCalendar_getItems(itemFilter, maxResults, rangeStart, rangeEnd, 
                                     if (!request.success)
                                         throw request.status;
                                     var items = [];
-                                    for each (var period in result) {
+                                    for each (var entry in result) {
                                         var item = new CalEvent();
                                         item.id = (g_busyPhantomItemUuidPrefix +
-                                                   getIcalUTC(period.start));
+                                                   getIcalUTC(entry.interval.start));
                                         item.calendar = this_.superCalendar;
                                         item.title = g_busyItemTitle;
-                                        item.startDate = period.start;
-                                        item.endDate = period.end;
+                                        item.startDate = entry.interval.start;
+                                        item.endDate = entry.interval.end;
                                         item.makeImmutable();
                                         items.push(item);
                                     }
@@ -1217,8 +1217,8 @@ function calWcapCalendar_getItems(itemFilter, maxResults, rangeStart, rangeEnd, 
                                 }
                             };
                             request.attachSubRequest(
-                                this_.session.getFreeBusyTimes(
-                                    this_.calId, rangeStart, rangeEnd, true /*bBusy*/,
+                                this_.session.getFreeBusyIntervals(
+                                    this_.calId, rangeStart, rangeEnd, calIFreeBusyInterval.BUSY_ALL,
                                     freeBusyListener));
                         }
                     }

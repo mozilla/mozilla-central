@@ -106,6 +106,12 @@ const componentData =
      constructor: "calAlarmService",
      service: true},
 
+    {cid: Components.ID("{29C56CD5-D36E-453a-ACDE-0083BD4FE6D3}"),
+     contractid: "@mozilla.org/calendar/freebusy-service;1",
+     script: "calFreeBusyService.js",
+     constructor: "calFreeBusyService",
+     service: true},
+
     {cid: Components.ID("{4b7ae030-ed79-11d9-8cd6-0800200c9a66}"),
      contractid: "@mozilla.org/calendar/alarm-monitor;1",
      script: "calAlarmMonitor.js",

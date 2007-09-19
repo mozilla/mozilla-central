@@ -76,14 +76,15 @@ function calWcapSession(contextId, thatUri) {
 }
 calWcapSession.prototype = {
     m_ifaces: [ calIWcapSession,
+                calIFreeBusyProvider,
                 Components.interfaces.calICalendarManagerObserver,
                 Components.interfaces.nsIInterfaceRequestor,
                 Components.interfaces.nsIClassInfo,
-                Components.interfaces.nsISupports ],
+                nsISupports ],
     
     // nsISupports:
     QueryInterface: function calWcapSession_QueryInterface(iid) {
-        qiface(this.m_ifaces, iid); // throws
+        ensureIID(this.m_ifaces, iid); // throws
         return this;
     },
     
@@ -207,8 +208,10 @@ calWcapSession.prototype = {
             log("locked login queue.", this);
             this.m_sessionId = null; // invalidate for relogin
             
-            if (timedOutSessionId)
+            if (timedOutSessionId) {
                 log("reconnecting due to session timeout...", this);
+                getFreeBusyService().removeProvider(this);
+            }
             
             var this_ = this;
             this.getSessionId_(
@@ -220,6 +223,7 @@ calWcapSession.prototype = {
                     }
                     else {
                         this_.m_sessionId = sessionId;
+                        getFreeBusyService().addProvider(this_);
                     }
                     
                     var queue = this_.m_loginQueue;
@@ -429,6 +433,7 @@ calWcapSession.prototype = {
             // WTF.
             url = (this.sessionUri.spec + "logout.wcap?fmt-out=text%2Fxml&id=" + this.m_sessionId);
             this.m_sessionId = null;
+            getFreeBusyService().removeProvider(this);
         }
         this.m_credentials = null;
         
@@ -1001,9 +1006,10 @@ calWcapSession.prototype = {
         }
         return request;
     },
-    
-    getFreeBusyTimes: function calWcapCalendar_getFreeBusyTimes(
-        calId, rangeStart, rangeEnd, bBusy, listener)
+
+    // calIFreeBusyProvider:
+    getFreeBusyIntervals: function calWcapCalendar_getFreeBusyIntervals(
+        calId, rangeStart, rangeEnd, busyTypes, listener)
     {
         // assure DATETIMEs:
         if (rangeStart && rangeStart.isDate) {
@@ -1019,14 +1025,14 @@ calWcapSession.prototype = {
         
         var this_ = this;
         var request = new calWcapRequest(
-            function getFreeBusyTimes_resp(request, err, data) {
+            function _resp(request, err, data) {
                 var rc = getResultCode(err);
                 switch (rc) {
                 case calIErrors.OPERATION_CANCELLED:
                 case calIWcapErrors.WCAP_NO_ERRNO: // workaround
                 case calIWcapErrors.WCAP_ACCESS_DENIED_TO_CALENDAR:
                 case calIWcapErrors.WCAP_CALENDAR_DOES_NOT_EXIST:
-                    log("getFreeBusyTimes_resp() error: " + errorToString(err), this_);
+                    log("getFreeBusyIntervals_resp() error: " + errorToString(err), this_);
                     break;
                 default:
                     if (!Components.isSuccessCode(rc))
@@ -1036,12 +1042,12 @@ calWcapSession.prototype = {
                 if (listener)
                     listener.onResult(request, data);
             },
-            log("getFreeBusyTimes():\n\tcalId=" + calId +
+            log("getFreeBusyIntervals():\n\tcalId=" + calId +
                 "\n\trangeStart=" + zRangeStart + ",\n\trangeEnd=" + zRangeEnd, this));
         
         try {
             var params = ("&calid=" + encodeURIComponent(calId));
-            params += ("&busyonly=" + (bBusy ? "1" : "0"));
+            params += ("&busyonly=" + ((busyTypes & calIFreeBusyInterval.FREE) ? "0" : "1"));
             params += ("&dtstart=" + zRangeStart);
             params += ("&dtend=" + zRangeEnd);
             params += "&fmt-out=text%2Fxml";
@@ -1062,25 +1068,40 @@ calWcapSession.prototype = {
                     if (err)
                         throw err;
                     if (LOG_LEVEL > 0) {
-                        log("getFreeBusyTimes net_resp(): " +
+                        log("getFreeBusyIntervals net_resp(): " +
                             getWcapRequestStatusString(xml), this_);
                     }
                     if (listener) {
                         var ret = [];
                         var nodeList = xml.getElementsByTagName("FB");
+                        
+                        var fbTypeMap = {};
+                        fbTypeMap["FREE"] = calIFreeBusyInterval.FREE;
+                        fbTypeMap["BUSY"] = calIFreeBusyInterval.BUSY;
+                        fbTypeMap["BUSY-UNAVAILABLE"] = calIFreeBusyInterval.BUSY_UNAVAILABLE;
+                        fbTypeMap["BUSY-TENTATIVE"] = calIFreeBusyInterval.BUSY_TENTATIVE;
+                        
                         for (var i = 0; i < nodeList.length; ++i) {
                             var node = nodeList.item(i);
-                            var fbType = node.attributes.getNamedItem("FBTYPE").nodeValue;
-                            if ((fbType == "BUSY") != bBusy) {
-                                continue;
+                            var fbType = fbTypeMap[node.attributes.getNamedItem("FBTYPE").nodeValue];
+                            if (fbType & busyTypes) {
+                                var str = node.textContent;
+                                var slash = str.indexOf('/');
+                                var period = new CalPeriod();
+                                period.start = getDatetimeFromIcalString(str.substr(0, slash));
+                                period.end = getDatetimeFromIcalString(str.substr(slash + 1));
+                                period.makeImmutable();
+                                var fbInterval = {
+                                    QueryInterface: function fbInterval_QueryInterface(iid) {
+                                        ensureIID([calIFreeBusyInterval, nsISupports], iid);
+                                        return this;
+                                    },
+                                    calId: calId,
+                                    interval: period,
+                                    freeBusyType: fbType
+                                };
+                                ret.push(fbInterval);
                             }
-                            var str = node.textContent;
-                            var slash = str.indexOf('/');
-                            var period = new CalPeriod();
-                            period.start = getDatetimeFromIcalString(str.substr(0, slash));
-                            period.end = getDatetimeFromIcalString(str.substr(slash + 1));
-                            period.makeImmutable();
-                            ret.push(period);
                         }
                         request.execRespFunc(null, ret);
                     }
@@ -1156,6 +1177,7 @@ calWcapSession.prototype = {
             // then remove all subscribed calendars:
             cal = this.belongsTo(cal);
             if (cal && cal.isDefaultCalendar) {
+                getFreeBusyService().removeProvider(this);
                 var registeredCalendars = this.getRegisteredCalendars();
                 for each (var regCal in registeredCalendars) {
                     try {

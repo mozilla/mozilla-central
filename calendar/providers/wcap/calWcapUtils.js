@@ -206,6 +206,16 @@ function getIcsService() {
     return g_icsService;
 }
 
+var g_fbService = null;
+function getFreeBusyService() {
+    if (!g_fbService) {
+        g_fbService =
+            Components.classes["@mozilla.org/calendar/freebusy-service;1"]
+                      .getService(Components.interfaces.calIFreeBusyService);
+    }
+    return g_fbService;
+}
+
 var g_domParser = null;
 function getDomParser() {
     if (!g_domParser) {
@@ -220,11 +230,6 @@ function subClass(subCtor, baseCtor) {
     subCtor.prototype = new baseCtor();
     subCtor.prototype.constructor = subCtor;
     subCtor.prototype.superClass = baseCtor;
-}
-
-function qiface(list, iid) {
-    if (!list.some( function(i) { return i.equals(iid); } ))
-        throw Components.results.NS_ERROR_NO_INTERFACE;
 }
 
 function isParent(item) {

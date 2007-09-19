@@ -100,23 +100,5 @@ interface calIWcapSession : nsISupports
                                      in unsigned long searchOptions,
                                      in unsigned long maxResults,
                                      in calIGenericOperationListener listener);
-    
-    /* xxx todo freebusy: separate into own interface? */
-    /**
-     * Gets free-busy entries for calendar.
-     * Results are notified to the passed listener instance.
-     *
-     * @param calId calid or rfc822addr
-     * @param rangeStart start time of free-busy search
-     * @param rangeEnd end time of free-busy search
-     * @param bBusy whether to return busy entries or free entries
-     * @param listener called with an array of calIPeriod objects
-     * @return optional object to track operation
-     */
-    calIOperation getFreeBusyTimes(in string calId,
-                                   in calIDateTime rangeStart,
-                                   in calIDateTime rangeEnd,
-                                   in boolean bBusy,
-                                   in calIGenericOperationListener listener);
 };
 

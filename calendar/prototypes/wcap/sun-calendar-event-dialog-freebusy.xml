@@ -774,9 +774,8 @@
       <method name="onFreeBusy">
         <parameter name="aEntries"/>
         <body><![CDATA[
-          // This method gets called from onGetFreeBusyTimes() as a result
-          // from the wcap connector. The argument denotes the requested
-          // freebusy times. We need to set our state array according to this
+          // The argument denotes the requested freebusy intervals.
+          // We need to set our state array according to this
           // result. After the state has been updated we call showState()
           // which will map the entries to attributes on the xul elements.
           if (aEntries) {
@@ -806,8 +805,8 @@
 
               // Iterate all incoming freebusy entries
               for each (var entry in aEntries) {
-                  var rangeStart = entry.start.getInTimezone(kDefaultTimezone);
-                  var rangeEnd = entry.end.getInTimezone(kDefaultTimezone);
+                  var rangeStart = entry.interval.start.getInTimezone(kDefaultTimezone);
+                  var rangeEnd = entry.interval.end.getInTimezone(kDefaultTimezone);
 
                   if (rangeStart.compare(start) >= 0 &&
                       rangeEnd.compare(end) < 0) {
@@ -941,9 +940,9 @@
           if (this.mEntries) {
               for each (var entry in this.mEntries) {
                 var rangeStart =
-                    entry.start.getInTimezone(kDefaultTimezone);
+                    entry.interval.start.getInTimezone(kDefaultTimezone);
                 var rangeEnd =
-                    entry.end.getInTimezone(kDefaultTimezone);
+                    entry.interval.end.getInTimezone(kDefaultTimezone);
 
                 var isZeroLength = !newTime.compare(newEndTime);
                 if ((isZeroLength &&
@@ -1026,9 +1025,7 @@
       <field name="mRowHeight">0</field>
       <field name="mNumColumns">0</field>
       <field name="mMaxFreeBusy">0</field>
-      <field name="mCalendar">null</field>
       <field name="mConsoleService">null</field>
-      <field name="mFreeBusy">null</field>
       <field name="mPendingRequests">null</field>
       <field name="mStartDate">null</field>
       <field name="mEndDate">null</field>
@@ -1096,25 +1093,6 @@
         ]]></setter>
       </property>
 
-      <field name="mFreeBusyListener"><![CDATA[
-        ({
-            binding: this,
-
-            QueryInterface: function mFBL_QueryInterface(aIID) {
-                if (!aIID.equals(Components.interfaces.calIFreeBusyListener) &&
-                    !aIID.equals(Components.interfaces.nsISupports)) {
-                    throw Components.results.NS_ERROR_NO_INTERFACE;
-                }
-                return this;
-            },
-
-            onResult: function mFBL_onResult(request, entries) {
-                // Delegate to the binding
-                this.binding.onFreeBusy(request, entries);
-            }
-        })
-      ]]></field>
-
       <constructor><![CDATA[
         var args = window.arguments[0];
 
@@ -1123,7 +1101,6 @@
         this.mRange = Number(this.getAttribute("range"));
 
         this.mMaxFreeBusy = 0;
-        this.mFreeBusy = [];
         this.mPendingRequests = [];
 
         var self = this;
@@ -1190,7 +1167,6 @@
               request.cancel(null);
           }
 
-          this.mFreeBusy = [];
           this.mPendingRequests = [];
         ]]></body>
       </method>
@@ -1205,16 +1181,6 @@
           var kDefaultTimezone = calendarDefaultTimezone();
           this.startDate = startTime.getInTimezone(kDefaultTimezone);
           this.endDate = endTime.getInTimezone(kDefaultTimezone);
-
-          // Query for the wcap interface, the appropriate functionality of this interface
-          // should be migrated to some other generic one instead of relying on the wcap provider.
-          try {
-              this.mCalendar =
-                  calendar.QueryInterface(
-                      Components.interfaces.calIWcapCalendar);
-          }
-          catch (ex) {
-          }
 
           var listbox =
               document.getAnonymousElementByAttribute(
@@ -1232,23 +1198,6 @@
       <method name="onChangeCalendar">
         <parameter name="calendar"/>
         <body><![CDATA[
-          // Query for the wcap interface, the appropriate functionality of this interface
-          // should be migrated to some other generic one instead of relying on the wcap provider.
-          this.mCalendar = null;
-          try {
-              this.mCalendar =
-                  calendar.QueryInterface(
-                      Components.interfaces.calIWcapCalendar);
-          }
-          catch (ex) {}
-
-          if (this.mMaxFreeBusy != 0) {
-              for (var i = 1; i <= this.mMaxFreeBusy; i++) {
-                  var freebusy = this.getFreeBusyElement(i);
-                  freebusy.setAttribute("dirty", "true");
-              }
-              this.updateFreeBusy();
-          }
         ]]></body>
       </method>
 
@@ -1367,60 +1316,44 @@
                       // Update with 'no data available' until response will be received
                       freebusy.onFreeBusy(null);
                       try {
-                          if (this.mCalendar) {
-                            var msg = "request for <" + calid + "> on row <" + i + ">";
-                            var str = ("\n### freebusy log " +
-                                      start.toString() +
-                                      " " +
-                                      end.toString() +
-                                      "### " + (msg ? msg : ""));
-                            this.mConsoleService.logStringMessage(str);
-                            var request =
-                                this.mCalendar.session.getFreeBusyTimes(
-                                    calid,
-                                    start,
-                                    end,
-                                    true,
-                                    this.mFreeBusyListener);
-                            this.mFreeBusy[request.id] = i;
-                            this.mPendingRequests.push(request);
+                          var msg = "request for <" + calid + "> on row <" + i + ">";
+                          var str = ("\n### freebusy log " +
+                                     start.toString() +
+                                     " " +
+                                     end.toString() +
+                                     "### " + (msg ? msg : ""));
+                          this.mConsoleService.logStringMessage(str);
+                          var fbService = Components.classes["@mozilla.org/calendar/freebusy-service;1"]
+                                                    .getService(Components.interfaces.calIFreeBusyService);
+                          var fbListener = {
+                              row: i,
+                              binding: this,
+                              // calIGenericOperationListener:
+                              onResult: function mFBL_onResult(request, entries) {
+                                  // Find request in list of pending requests and remove from queue:
+                                  function neq(op) {
+                                      return (request.id != op.id);
+                                  }
+                                  this.binding.mPendingRequests = this.binding.mPendingRequests.filter(neq);
+                                  
+                                  if (request.success) {
+                                      var freebusy = this.binding.getFreeBusyElement(this.row);
+                                      freebusy.onFreeBusy(entries);
+                                  }
+                              }
+                          };
+                          var request = fbService.getFreeBusyIntervals(
+                              calid, start, end, Components.interfaces.calIFreeBusyInterval.BUSY_ALL,
+                              fbListener);
+                          if (request.isPending) {
+                              this.mPendingRequests.push(request);
                           }
                       }
                       catch (ex) {
+                          Components.utils.reportError(ex);
                       }
                   }
               }
-          }
-        ]]></body>
-      </method>
-
-      <!-- onFreeBusy(), called with the result set from getFreeBusyTimes() -->
-      <method name="onFreeBusy">
-        <parameter name="request"/>
-        <parameter name="entries"/>
-        <body><![CDATA[
-          // Find request in list of pending requests and remove from queue
-          var queue = this.mPendingRequests;
-          for (var i = 0; i < queue.length; i++) {
-              if (queue[i] == request) {
-                  queue.splice(i, 1);
-                  break;
-              }
-          }
-
-          if (request.status == Components.results.NS_OK) {
-              var row = this.mFreeBusy[request.id];
-              if (row) {
-                  var freebusy = this.getFreeBusyElement(row);
-                  freebusy.onFreeBusy(entries);
-              }
-          }
-
-          // Reset map<row-id, request-id> if currently no further
-          // requests are pending. This basically shrinks the array
-          // in order to get rid of all previously remembered relationships.
-          if (!queue.length) {
-              this.mFreeBusy = [];
           }
         ]]></body>
       </method>
