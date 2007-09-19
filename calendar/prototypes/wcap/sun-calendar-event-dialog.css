@@ -42,19 +42,6 @@ label.label {
     text-align: right;
 }
 
-.text-link:focus {
-    color: blue;
-    border: 1px solid transparent;
-}
-
-.text-link:hover:active {
-    color: blue;
-}
-
-.text-link[visited="true"] {
-    color: blue;
-}
-
 #item-calendar,
 #item-categories,
 #item-repeat,
