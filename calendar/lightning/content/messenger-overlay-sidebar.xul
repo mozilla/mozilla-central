@@ -187,7 +187,7 @@
     <command id="modify_command" oncommand="modifyEventWithDialog(currentView().getSelectedItems({})[0])" disabled="true" disabledwhennoeventsselected="true"/>
     <command id="calendar_publish_calendar" oncommand="publishEntireCalendar(getSelectedCalendar());" disabled="true" disabledwhennoeventsselected="true"/>
     <command id="import_command" oncommand="loadEventsFromFile()"/>
-    <command id="export_command" oncommand="exportEntireCalendar()" disabled="true" disabledwhennoeventsselected="true"/>
+    <command id="export_command" oncommand="exportEntireCalendar()"/>
     <command id="calendar_reload_remote_calendars" oncommand="getCompositeCalendar().refresh();"/>
     <command id="switch2mail" checked="true" oncommand="ltnSwitch2Mail()"/>
     <command id="switch2calendar" oncommand="ltnSwitch2Calendar()"/>
