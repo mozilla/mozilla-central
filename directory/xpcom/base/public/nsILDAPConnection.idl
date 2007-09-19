@@ -41,12 +41,13 @@
 
 interface nsILDAPOperation;
 interface nsILDAPMessageListener;
+interface nsILDAPURL;
 
 %{C++
 #define NS_LDAPCONNECTION_CONTRACTID "@mozilla.org/network/ldap-connection;1" 
 %}
 
-[scriptable, uuid(337ad2fe-1dd2-11b2-89f8-aae1221ec86c)]
+[scriptable, uuid(360c1ff7-15e3-4ffe-b4b8-0eda72ebc096)]
 interface nsILDAPConnection : nsISupports
 {
     /**
@@ -70,10 +71,8 @@ interface nsILDAPConnection : nsISupports
      * Set up the connection.  Note that init() must be called on a thread
      * that already has an nsIEventQueue.
      *
-     * @param aHost             server name for ldap_init()
-     * @param aPort             server port number for ldap_init()
-     *                          -1 == default port (389)
-     * @param aSSL              use SSL on this connection?
+     * @param aUrl              A URL for the ldap server. The host, port and
+     *                          ssl connection type will be extracted from this
      * @param aBindName         DN to bind as
      * @param aMessageListener  Callback for DNS resolution completion
      * @param aClosure          private parameter (anything caller desires)
@@ -86,8 +85,8 @@ interface nsILDAPConnection : nsISupports
      * @exception NS_ERROR_FAILURE              
      * @exception NS_ERROR_UNEXPECTED           internal error
      */
-    void init(in string aHost, in long aPort, in boolean aSSL,
-              in AUTF8String aBindName, 
+    void init(in nsILDAPURL aUrl,
+              in AUTF8String aBindName,
               in nsILDAPMessageListener aMessageListener,
               in nsISupports aClosure, in unsigned long aVersion);
 

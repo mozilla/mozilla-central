@@ -116,25 +116,7 @@ nsresult nsAbLDAPReplicationQuery::ConnectToLDAPServer()
     if (!mInitialized || !mURL)
         return NS_ERROR_NOT_INITIALIZED;
 
-    nsCAutoString host;
-    nsresult rv = mURL->GetHost(host);
-    if (NS_FAILED(rv)) 
-        return rv;
-    if (host.IsEmpty())
-        return NS_ERROR_UNEXPECTED;
-
-    PRInt32 port;
-    rv = mURL->GetPort(&port);
-    if (NS_FAILED(rv)) 
-        return rv;
-    if (!port)
-        return NS_ERROR_UNEXPECTED;
-
-    PRUint32 options;
-    rv = mURL->GetOptions(&options);
-    if (NS_FAILED(rv))
-      return NS_ERROR_UNEXPECTED;
-
+    nsresult rv;
     nsCOMPtr<nsILDAPMessageListener> mDp = do_QueryInterface(mDataProcessor,
                                                              &rv);
     if (NS_FAILED(rv))
@@ -162,9 +144,7 @@ nsresult nsAbLDAPReplicationQuery::ConnectToLDAPServer()
     NS_ENSURE_SUCCESS(rv, rv);
 
     // initialize the LDAP connection
-    return mConnection->Init(host.get(), port, 
-                             (options & nsILDAPURL::OPT_SECURE) ? PR_TRUE : PR_FALSE,
-                             mLogin, listener, nsnull, protocolVersion);
+    return mConnection->Init(mURL, mLogin, listener, nsnull, protocolVersion);
 }
 
 NS_IMETHODIMP nsAbLDAPReplicationQuery::Init(nsIAbLDAPDirectory *aDirectory,

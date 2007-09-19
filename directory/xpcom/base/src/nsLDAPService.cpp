@@ -710,11 +710,8 @@ nsLDAPService::EstablishConnection(nsLDAPServiceEntry *aEntry,
     nsCOMPtr<nsILDAPURL> url;
     nsCOMPtr<nsILDAPConnection> conn, conn2;
     nsCOMPtr<nsILDAPMessage> message;
-    nsCAutoString host;
     nsCAutoString binddn;
     nsCAutoString password;
-    PRInt32 port;
-    PRUint32 options;
     PRUint32 protocolVersion;
     nsresult rv;
 
@@ -744,19 +741,6 @@ nsLDAPService::EstablishConnection(nsLDAPServiceEntry *aEntry,
     if (NS_FAILED(rv)) {
         return NS_ERROR_FAILURE;
     }
-    rv = url->GetAsciiHost(host);
-    if (NS_FAILED(rv)) {
-        return NS_ERROR_FAILURE;
-    }
-    rv = url->GetPort(&port);
-    if (NS_FAILED(rv)) {
-        return NS_ERROR_FAILURE;
-    }
-
-    rv = url->GetOptions(&options);
-    if (NS_FAILED(rv)) {
-      return NS_ERROR_FAILURE;
-    }
     // Create a new connection for this server.
     //
     conn = do_CreateInstance(kLDAPConnectionCID, &rv);
@@ -766,9 +750,7 @@ nsLDAPService::EstablishConnection(nsLDAPServiceEntry *aEntry,
         return NS_ERROR_FAILURE;
     }
 
-    rv = conn->Init(host.get(), port, 
-                    (options & nsILDAPURL::OPT_SECURE) ? PR_TRUE : PR_FALSE, 
-                    binddn, this, nsnull, protocolVersion);
+    rv = conn->Init(url, binddn, this, nsnull, protocolVersion);
     if (NS_FAILED(rv)) {
         switch (rv) {
         // Only pass along errors we are aware of

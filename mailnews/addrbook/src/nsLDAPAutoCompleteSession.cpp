@@ -1139,36 +1139,6 @@ nsLDAPAutoCompleteSession::InitConnection()
         return NS_ERROR_NOT_INITIALIZED;
     }
 
-    // host to connect to
-    //
-    nsCAutoString host;
-    rv = mServerURL->GetAsciiHost(host);
-    if (NS_FAILED(rv)) {
-        FinishAutoCompleteLookup(nsIAutoCompleteStatus::failureItems, rv, 
-                                 UNBOUND);
-        return NS_ERROR_FAILURE;
-    }
-
-    // on which port
-    //
-    PRInt32 port;
-    rv = mServerURL->GetPort(&port);
-    if (NS_FAILED(rv)) {
-        FinishAutoCompleteLookup(nsIAutoCompleteStatus::failureItems, rv,
-                                 UNBOUND);
-        return NS_ERROR_FAILURE;
-    }
-        
-    // which options
-    //
-    PRUint32 options;
-    rv = mServerURL->GetOptions(&options);
-    if (NS_FAILED(rv)) {
-        FinishAutoCompleteLookup(nsIAutoCompleteStatus::failureItems, rv,
-                                 UNBOUND);
-        return NS_ERROR_FAILURE;
-    }
-        
     // get a proxy object so the callback happens on the main thread
     //
     rv = NS_GetProxyForObject(NS_PROXY_TO_MAIN_THREAD,
@@ -1188,9 +1158,7 @@ nsLDAPAutoCompleteSession::InitConnection()
     // lookup to occur, and we'll finish the binding of the connection
     // in the OnLDAPInit() listener function.
     //
-    rv = mConnection->Init(host.get(), port,
-                           (options & nsILDAPURL::OPT_SECURE) ? PR_TRUE 
-                           : PR_FALSE, mLogin, selfProxy, nsnull, mVersion);
+    rv = mConnection->Init(mServerURL, mLogin, selfProxy, nsnull, mVersion);
     if (NS_FAILED(rv)) {
         switch (rv) {
 

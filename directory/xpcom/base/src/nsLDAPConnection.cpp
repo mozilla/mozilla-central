@@ -1,4 +1,4 @@
-/* -*- Mode: C++; tab-width: 4; indent-tabs-mode: nil; c-basic-offset: 4 -*-
+/* -*- Mode: C++; tab-width: 2; indent-tabs-mode: nil; c-basic-offset: 2 -*-
  *
  * ***** BEGIN LICENSE BLOCK *****
  * Version: MPL 1.1/GPL 2.0/LGPL 2.1
@@ -59,6 +59,7 @@
 #include "nsLDAPOperation.h"
 #include "nsILDAPErrors.h"
 #include "nsIClassInfoImpl.h"
+#include "nsILDAPURL.h"
 
 const char kConsoleServiceContractId[] = "@mozilla.org/consoleservice;1";
 const char kDNSServiceContractId[] = "@mozilla.org/network/dns-service;1";
@@ -142,109 +143,106 @@ nsLDAPConnection::Release(void)
     return count;
 }
 
-
 NS_IMETHODIMP
-nsLDAPConnection::Init(const char *aHost, PRInt32 aPort, PRBool aSSL,
-                       const nsACString& aBindName, 
+nsLDAPConnection::Init(nsILDAPURL *aUrl, const nsACString &aBindName,
                        nsILDAPMessageListener *aMessageListener,
                        nsISupports *aClosure, PRUint32 aVersion)
 {
-    nsCOMPtr<nsIDNSListener> selfProxy;
-    nsresult rv;
+  NS_ENSURE_ARG_POINTER(aUrl);
+  NS_ENSURE_ARG_POINTER(aMessageListener);
 
-    if ( !aHost || !aMessageListener) {
-        return NS_ERROR_ILLEGAL_VALUE;
+  // Save various items that we'll use later
+  mBindName.Assign(aBindName);
+  mClosure = aClosure;
+  mInitListener = aMessageListener;
+
+  // Make sure we haven't called Init earlier, i.e. there's a DNS
+  // request pending.
+  NS_ASSERTION(!mDNSRequest, "nsLDAPConnection::Init() "
+               "Connection was already initialized\n");
+
+  // Check and save the version number
+  if (aVersion != nsILDAPConnection::VERSION2 && 
+      aVersion != nsILDAPConnection::VERSION3) {
+    NS_ERROR("nsLDAPConnection::Init(): illegal version");
+    return NS_ERROR_ILLEGAL_VALUE;
+  }
+  mVersion = aVersion;
+
+  nsresult rv;
+
+  // Get the port number, SSL flag for use later, once the DNS server(s)
+  // has resolved the host part.
+  rv = aUrl->GetPort(&mPort);
+  NS_ENSURE_SUCCESS(rv, rv);
+
+  PRUint32 options;
+  rv = aUrl->GetOptions(&options);
+  NS_ENSURE_SUCCESS(rv, rv);
+
+  mSSL = options & nsILDAPURL::OPT_SECURE;
+
+  // allocate a hashtable to keep track of pending operations.
+  // 10 buckets seems like a reasonable size, and we do want it to 
+  // be threadsafe
+  mPendingOperations = new nsSupportsHashtable(10, PR_TRUE);
+  if (!mPendingOperations) {
+    NS_ERROR("failure initializing mPendingOperations hashtable");
+    return NS_ERROR_OUT_OF_MEMORY;
+  }
+
+  nsCOMPtr<nsIThread> curThread = do_GetCurrentThread();
+  if (!curThread) {
+    NS_ERROR("nsLDAPConnection::Init(): couldn't get current thread");
+    return NS_ERROR_FAILURE;
+  }
+
+  // Do the pre-resolve of the hostname, using the DNS service. This
+  // will also initialize the LDAP connection properly, once we have
+  // the IPs resolved for the hostname. This includes creating the
+  // new thread for this connection.
+  //
+  // XXX - What return codes can we expect from the DNS service?
+  //
+  nsCOMPtr<nsIDNSService> 
+    pDNSService(do_GetService(kDNSServiceContractId, &rv));
+
+  if (NS_FAILED(rv)) {
+    NS_ERROR("nsLDAPConnection::Init(): couldn't create the DNS Service object");
+    return NS_ERROR_FAILURE;
+  }
+
+  rv = aUrl->GetAsciiHost(mDNSHost);
+  NS_ENSURE_SUCCESS(rv, rv);
+
+  // if the caller has passed in a space-delimited set of hosts, as the 
+  // ldap c-sdk allows, strip off the trailing hosts for now.
+  // Soon, we'd like to make multiple hosts work, but now make
+  // at least the first one work.
+  mDNSHost.CompressWhitespace(PR_TRUE, PR_TRUE);
+
+  PRInt32 spacePos = mDNSHost.FindChar(' ');
+  // trim off trailing host(s)
+  if (spacePos != kNotFound)
+    mDNSHost.Truncate(spacePos);
+
+  rv = pDNSService->AsyncResolve(mDNSHost, 0, this, curThread, 
+                                 getter_AddRefs(mDNSRequest));
+
+  if (NS_FAILED(rv)) {
+    switch (rv) {
+    case NS_ERROR_OUT_OF_MEMORY:
+    case NS_ERROR_UNKNOWN_HOST:
+    case NS_ERROR_FAILURE:
+    case NS_ERROR_OFFLINE:
+      break;
+
+    default:
+      rv = NS_ERROR_UNEXPECTED;
     }
-
-    // Make sure we haven't called Init earlier, i.e. there's a DNS
-    // request pending.
-    //
-    NS_ASSERTION(!mDNSRequest, "nsLDAPConnection::Init() "
-                 "Connection was already initialized\n");
-
-    mBindName.Assign(aBindName);
-
-    mClosure = aClosure;
-
-    // Save the port number, SSL flag, and protocol version for later
-    // use, once the DNS server(s) has resolved the host part.
-    //
-    mPort = aPort;
-    mSSL = aSSL;
-    if (aVersion != nsILDAPConnection::VERSION2 && 
-        aVersion != nsILDAPConnection::VERSION3) {
-        NS_ERROR("nsLDAPConnection::Init(): illegal version");
-        return NS_ERROR_ILLEGAL_VALUE;
-    }
-    mVersion = aVersion;
-
-    // Save the Init listener reference, we need it when the async
-    // DNS resolver has finished.
-    //
-    mInitListener = aMessageListener;
-
-    // allocate a hashtable to keep track of pending operations.
-    // 10 buckets seems like a reasonable size, and we do want it to 
-    // be threadsafe
-    //
-    mPendingOperations = new nsSupportsHashtable(10, PR_TRUE);
-    if ( !mPendingOperations) {
-        NS_ERROR("failure initializing mPendingOperations hashtable");
-        return NS_ERROR_FAILURE;
-    }
-
-    nsCOMPtr<nsIThread> curThread = do_GetCurrentThread();
-    if (!curThread) {
-        NS_ERROR("nsLDAPConnection::Init(): couldn't "
-                 "get current thread");
-        return NS_ERROR_FAILURE;
-    }
-    // Do the pre-resolve of the hostname, using the DNS service. This
-    // will also initialize the LDAP connection properly, once we have
-    // the IPs resolved for the hostname. This includes creating the
-    // new thread for this connection.
-    //
-    // XXX - What return codes can we expect from the DNS service?
-    //
-    nsCOMPtr<nsIDNSService>
-        pDNSService(do_GetService(kDNSServiceContractId, &rv));
-
-    if (NS_FAILED(rv)) {
-        NS_ERROR("nsLDAPConnection::Init(): couldn't "
-                 "create the DNS Service object");
-
-        return NS_ERROR_FAILURE;
-    }
-    mDNSHost = aHost;
-
-    // if the caller has passed in a space-delimited set of hosts, as the 
-    // ldap c-sdk allows, strip off the trailing hosts for now.
-    // Soon, we'd like to make multiple hosts work, but now make
-    // at least the first one work.
-    mDNSHost.CompressWhitespace(PR_TRUE, PR_TRUE);
-
-    PRInt32 spacePos = mDNSHost.FindChar(' ');
-    // trim off trailing host(s)
-    if (spacePos != kNotFound)
-      mDNSHost.Truncate(spacePos);
-
-    rv = pDNSService->AsyncResolve(mDNSHost, 0, this, curThread, 
-                                   getter_AddRefs(mDNSRequest));
-
-    if (NS_FAILED(rv)) {
-        switch (rv) {
-        case NS_ERROR_OUT_OF_MEMORY:
-        case NS_ERROR_UNKNOWN_HOST:
-        case NS_ERROR_FAILURE:
-        case NS_ERROR_OFFLINE:
-            break;
-
-        default:
-            rv = NS_ERROR_UNEXPECTED;
-        }
-        mDNSHost.Truncate();
-    }
-    return rv;
+    mDNSHost.Truncate();
+  }
+  return rv;
 }
 
 // this might get exposed to clients, so we've broken it

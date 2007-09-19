@@ -592,7 +592,7 @@ NS_IMETHODIMP nsAbLDAPDirectoryQuery::DoQuery(nsIAbDirectory *aDirectory,
 
   // Now lets initialize the LDAP connection properly. We'll kick
   // off the bind operation in the callback function, |OnLDAPInit()|.
-  rv = mConnection->Init(host.get(), port, options, mCurrentLogin,
+  rv = mConnection->Init(mDirectoryUrl, mCurrentLogin,
                          mListener, nsnull, mCurrentProtocolVersion);
   NS_ENSURE_SUCCESS(rv, rv);
 

@@ -95,13 +95,9 @@ function search()
     gLdapConnection = Components.classes["@mozilla.org/network/ldap-connection;1"]
       .createInstance().QueryInterface(Components.interfaces.nsILDAPConnection);
 
-    gLdapConnection.init(
-      gLdapServerURL.asciiHost,
-      gLdapServerURL.port,
-      gLdapServerURL.options & gLdapServerURL.OPT_SECURE,
-      gLogin,
+    gLdapConnection.init(gLdapServerURL, gLogin,
       getProxyOnUIThread(new boundListener(),
-                            Components.interfaces.nsILDAPMessageListener),
+                         Components.interfaces.nsILDAPMessageListener),
       null, Components.interfaces.nsILDAPConnection.VERSION3);
 
   } catch (ex) {
