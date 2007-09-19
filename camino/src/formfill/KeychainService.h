@@ -58,8 +58,6 @@ enum KeychainPromptResult { kSave, kDontRemember, kNeverRemember } ;
 
 @interface KeychainService : NSObject
 {
-  IBOutlet id mConfirmStorePasswordPanel;
-  IBOutlet id mConfirmChangePasswordPanel;
   IBOutlet id mConfirmFillPasswordPanel;
 
   BOOL mFormPasswordFillIsEnabled;
@@ -79,8 +77,11 @@ enum KeychainPromptResult { kSave, kDontRemember, kNeverRemember } ;
 - (IBAction)hitButtonCancel:(id)sender;
 - (IBAction)hitButtonOther:(id)sender;
 
-- (KeychainPromptResult)confirmStorePassword:(NSWindow*)parent;
-- (BOOL)confirmChangePassword:(NSWindow*)parent;
+- (void)promptToStoreLogin:(NSDictionary*)loginInfo inWindow:(NSWindow*)window;
+- (void)promptToUpdateKeychainItem:(KeychainItem*)keychainItem
+                      withUsername:(NSString*)username
+                          password:(NSString*)password
+                          inWindow:(NSWindow*)window;
 - (BOOL)confirmFillPassword:(NSWindow*)parent;
 
 - (KeychainItem*)findKeychainEntryForHost:(NSString*)host

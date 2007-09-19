@@ -83,6 +83,15 @@ static const OSType kCaminoKeychainCreatorCode = 'CMOZ';
 
 static const int kDefaultHTTPSPort = 443;
 
+// Keys for dictionaries holding login information during user prompts
+static NSString* const kLoginUsernameKey = @"username";             // NSString
+static NSString* const kLoginPasswordKey = @"password";             // NSString
+static NSString* const kLoginHostKey = @"host";                     // NSString
+static NSString* const kLoginSecurityDomainKey = @"securityDomain"; // NSString
+static NSString* const kLoginPortKey = @"port";                     // NSNumber
+static NSString* const kLoginSchemeKey = @"scheme";                 // NSString
+static NSString* const kLoginKeychainEntry = @"kechainEntry";       // KeychainItem
+
 // Number of seconds to keep a keychain item cached
 static const int kCacheTimeout = 120;
 
@@ -438,26 +447,54 @@ int KeychainPrefChangedCallback(const char* inPref, void* unused)
 }
 
 //
-// confirmStorePassword:
+// promptToStoreLogin:inWindow:
 //
 // Puts up a dialog when the keychain doesn't yet have an entry from
 // this site asking to store it, forget it this once, or mark the site
 // on a deny list so we never ask again.
 //
-- (KeychainPromptResult)confirmStorePassword:(NSWindow*)parent
+- (void)promptToStoreLogin:(NSDictionary*)loginInfo inWindow:(NSWindow*)window
 {
-  int result = [NSApp runModalForWindow:mConfirmStorePasswordPanel relativeToWindow:parent];
-  [mConfirmStorePasswordPanel close];
-  
-  KeychainPromptResult keychainAction = kDontRemember;
-  switch (result) {
-    case NSAlertDefaultReturn:    keychainAction = kSave;          break;
-    default:
-    case NSAlertAlternateReturn:  keychainAction = kDontRemember;  break;
-    case NSAlertOtherReturn:      keychainAction = kNeverRemember; break;
-  }
+  // Retain the context info across to the sheet callback (where it is released)
+  [loginInfo retain];
 
-  return keychainAction;
+  NSAlert* alert = [[[NSAlert alloc] init] autorelease];
+  [alert setMessageText:NSLocalizedString(@"KeychainStoreAlertTitle", nil)];
+  [alert setInformativeText:NSLocalizedString(@"KeychainStoreAlertText", nil)];
+  [alert addButtonWithTitle:NSLocalizedString(@"KeychainStoreAlertStoreButton", nil)];
+  [alert addButtonWithTitle:NSLocalizedString(@"KeychainStoreAlertDontStoreButton", nil)];
+  [alert addButtonWithTitle:NSLocalizedString(@"KeychainStoreAlertNeverStoreButton", nil)];
+  [alert beginSheetModalForWindow:window
+                    modalDelegate:self
+                   didEndSelector:@selector(storeSheetDidEnd:returnCode:contextInfo:)
+                      contextInfo:(void*)loginInfo];
+}
+
+- (void)storeSheetDidEnd:(NSAlert*)sheet
+              returnCode:(int)returnCode
+             contextInfo:(void*)contextInfo
+{
+  NSDictionary* loginInfo = (NSDictionary*)contextInfo;
+  switch (returnCode) {
+    case NSAlertFirstButtonReturn:  // Save
+      [self storeUsername:[loginInfo objectForKey:kLoginUsernameKey]
+                 password:[loginInfo objectForKey:kLoginPasswordKey]
+                  forHost:[loginInfo objectForKey:kLoginHostKey]
+           securityDomain:[loginInfo objectForKey:kLoginSecurityDomainKey]
+                     port:[[loginInfo objectForKey:kLoginPortKey] intValue]
+                   scheme:[loginInfo objectForKey:kLoginSchemeKey]
+                   isForm:YES];
+      break;
+      
+    case NSAlertSecondButtonReturn: // Don't remember
+      // do nothing at all
+      break;
+      
+    case NSAlertThirdButtonReturn:  // Never remember
+      [self addHostToDenyList:[loginInfo objectForKey:kLoginHostKey]];
+      break;
+  }
+  [loginInfo release]; // balance the retain in the alert creation
 }
 
 //
@@ -466,11 +503,41 @@ int KeychainPrefChangedCallback(const char* inPref, void* unused)
 // The password stored in the keychain differs from what the user typed
 // in. Ask what they want to do to resolve the issue.
 //
-- (BOOL)confirmChangePassword:(NSWindow*)parent
+- (void)promptToUpdateKeychainItem:(KeychainItem*)keychainItem
+                      withUsername:(NSString*)username
+                          password:(NSString*)password
+                          inWindow:(NSWindow*)window
 {
-  int result = [NSApp runModalForWindow:mConfirmChangePasswordPanel relativeToWindow:parent];
-  [mConfirmChangePasswordPanel close];
-  return (result == NSAlertDefaultReturn);
+  // Retain the context info across to the sheet callback (where it is released)
+  NSDictionary* contextInfo = [NSDictionary dictionaryWithObjectsAndKeys:
+        username, kLoginUsernameKey,
+        password, kLoginPasswordKey,
+    keychainItem, kLoginKeychainEntry,
+                  nil];
+  [contextInfo retain];
+  
+  NSAlert* alert = [[[NSAlert alloc] init] autorelease];
+  [alert setMessageText:NSLocalizedString(@"KeychainUpdateAlertTitle", nil)];
+  [alert setInformativeText:NSLocalizedString(@"KeychainUpdateAlertText", nil)];
+  [alert addButtonWithTitle:NSLocalizedString(@"KeychainUpdateAlertUpdateButton", nil)];
+  [alert addButtonWithTitle:NSLocalizedString(@"KeychainUpdateAlertDontUpdateButton", nil)];
+  [alert beginSheetModalForWindow:window
+                    modalDelegate:self
+                   didEndSelector:@selector(updateSheetDidEnd:returnCode:contextInfo:)
+                      contextInfo:(void*)contextInfo];
+}
+
+- (void)updateSheetDidEnd:(NSAlert*)sheet
+               returnCode:(int)returnCode
+              contextInfo:(void*)contextInfo
+{
+  NSDictionary* loginInfo = (NSDictionary*)contextInfo;
+  if (returnCode == NSAlertFirstButtonReturn) {
+    [self updateKeychainEntry:[loginInfo objectForKey:kLoginKeychainEntry]
+                 withUsername:[loginInfo objectForKey:kLoginUsernameKey]
+                     password:[loginInfo objectForKey:kLoginPasswordKey]];
+  }
+  [loginInfo release]; // balance the retain in the alert creation
 }
 
 //
@@ -1018,15 +1085,7 @@ KeychainFormSubmitObserver::Notify(nsIDOMHTMLFormElement* formNode, nsIDOMWindow
       if ([keychainEntry authenticationType] == kSecAuthenticationTypeHTTPDigest)
         [keychain upgradeLegacyKeychainEntry:keychainEntry withScheme:scheme isForm:YES];
 
-      if ((![[keychainEntry username] isEqualToString:username] ||
-           ![[keychainEntry password] isEqualToString:password]) &&
-          [keychain confirmChangePassword:GetNSWindow(window)])
-      {
-        keychainEntry = [keychain updateKeychainEntry:keychainEntry
-                                         withUsername:username
-                                             password:password];
-      }
-      // This is just to fix items touched in the pre-1.1 nightlies, before we
+      // This is just to fix items touched in the pre-1.5 nightlies, before we
       // discovered that using securityDomain for the action hosts broke Safari.
       // At some point in the future remove from here...
       if (![[keychainEntry securityDomain] isEqualToString:@""]) {
@@ -1035,32 +1094,33 @@ KeychainFormSubmitObserver::Notify(nsIDOMHTMLFormElement* formNode, nsIDOMWindow
         [keychainEntry setSecurityDomain:@""];
       }
       // ... to here.
+
+      if (![[keychainEntry username] isEqualToString:username] ||
+          ![[keychainEntry password] isEqualToString:password])
+      {
+        // Note: this can create a new entry rather than updating the entry
+        // passed in, so |keychainEntry| shouldn't be used after this point.
+        [keychain promptToUpdateKeychainItem:keychainEntry
+                                withUsername:username
+                                    password:password
+                                    inWindow:GetNSWindow(window)];
+      }
+
       if ([[keychain allowedActionHostsForHost:host] count] == 0)
         [keychain setAllowedActionHosts:[NSArray arrayWithObject:actionHost] forHost:host];
-      // We are done with the entry, so remove it from the cache.
+      // We don't need to look up the entry again, so remove it from the cache.
       [keychain cacheKeychainEntry:nil forKey:uri];
     }
     else {
-      switch ([keychain confirmStorePassword:GetNSWindow(window)]) {
-        case kSave:
-          [keychain storeUsername:username
-                         password:password
-                          forHost:asciiHost
-                   securityDomain:actionHost
-                             port:port
-                           scheme:scheme
-                           isForm:YES];
-          break;
-
-        case kNeverRemember:
-          // tell the keychain we never want to be prompted about this host again
-          [keychain addHostToDenyList:host];
-          break;
-
-        case kDontRemember:
-          // do nothing at all
-          break;
-      }
+      NSDictionary* loginInfo = [NSDictionary dictionaryWithObjectsAndKeys:
+                             username, kLoginUsernameKey,
+                             password, kLoginPasswordKey,
+                            asciiHost, kLoginHostKey,
+                           actionHost, kLoginSecurityDomainKey,
+        [NSNumber numberWithInt:port], kLoginPortKey,
+                               scheme, kLoginSchemeKey,
+                                       nil];
+      [keychain promptToStoreLogin:loginInfo inWindow:GetNSWindow(window)];
     }
   }
 
