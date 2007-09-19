@@ -215,12 +215,19 @@ function CompFields2Recipients(msgCompFields)
     var msgRandomHeaders = msgCompFields.otherRandomHeaders;
     var msgNewsgroups = msgCompFields.newsgroups;
     var msgFollowupTo = msgCompFields.followupTo;
+    var havePrimaryRecipient = false;
     if(msgReplyTo)
       awSetInputAndPopupFromArray(msgCompFields.SplitRecipients(msgReplyTo, false), 
                                   "addr_reply", newListBoxNode, templateNode);
     if(msgTo)
-      awSetInputAndPopupFromArray(msgCompFields.SplitRecipients(msgTo, false), 
-                                  "addr_to", newListBoxNode, templateNode);
+    {
+      var rcp = msgCompFields.SplitRecipients(msgTo, false)
+      if (rcp.count)
+      {
+        awSetInputAndPopupFromArray(rcp, "addr_to", newListBoxNode, templateNode);
+        havePrimaryRecipient = true;
+      }
+    }
     if(msgCC)
       awSetInputAndPopupFromArray(msgCompFields.SplitRecipients(msgCC, false),
                                   "addr_cc", newListBoxNode, templateNode);
@@ -230,12 +237,15 @@ function CompFields2Recipients(msgCompFields)
     if(msgRandomHeaders)
       awSetInputAndPopup(msgRandomHeaders, "addr_other", newListBoxNode, templateNode);
     if(msgNewsgroups)
+    {
       awSetInputAndPopup(msgNewsgroups, "addr_newsgroups", newListBoxNode, templateNode);
+      havePrimaryRecipient = true;
+    }
     if(msgFollowupTo)
       awSetInputAndPopup(msgFollowupTo, "addr_followup", newListBoxNode, templateNode);
 
-    //If it's a new message, we need to add an extrat empty recipient.
-    if (!msgTo && !msgNewsgroups)
+    // If it's a new message, we need to add an extra empty recipient.
+    if (!havePrimaryRecipient)
       _awSetInputAndPopup("", "addr_to", newListBoxNode, templateNode);
     awFitDummyRows(2);
 
