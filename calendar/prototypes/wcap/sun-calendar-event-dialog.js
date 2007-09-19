@@ -1915,7 +1915,7 @@ function editTimezone(aElementId,aDateTime,aCallback) {
 
     // prepare the arguments that will be passed to the dialog
     var args = new Object();
-    args.time = gEndTime.getInTimezone(gEndTimezone);
+    args.time = aDateTime;
     args.onOk = aCallback;
 
     // open the dialog modally
@@ -2087,33 +2087,51 @@ function updateTimezone() {
             }
         }
 
-        var tzStart = document.getElementById('timezone-starttime');
-        var tzEnd = document.getElementById('timezone-endtime');
-
-        if (startTimezone != null) {
-            tzStart.removeAttribute('collapsed');
-            tzStart.value = timezoneString(startTimezone);
-            if (gIsReadOnly) {
-                tzStart.removeAttribute('class');
-                tzStart.removeAttribute('onclick');
-                tzStart.setAttribute('disabled', 'true');
+        function updateTimezoneElement(aTimezone,aId,aDateTime,aCollapse) {
+            var element = document.getElementById(aId);
+            if (element) {
+                if (aTimezone != null && !aCollapse) {
+                    element.removeAttribute('collapsed');
+                    element.value = timezoneString(aTimezone);
+                    if (!aDateTime || !aDateTime.isValid || gIsReadOnly) {
+                        if (element.hasAttribute('class')) {
+                            element.setAttribute('class-on-enabled',
+                                element.getAttribute('class'));
+                            element.removeAttribute('class');
+                        }
+                        if (element.hasAttribute('onclick')) {
+                            element.setAttribute('onclick-on-enabled',
+                                element.getAttribute('onclick'));
+                            element.removeAttribute('onclick');
+                        }
+                        element.setAttribute('disabled', 'true');
+                    } else {
+                        if (element.hasAttribute('class-on-enabled')) {
+                            element.setAttribute('class',
+                                element.getAttribute('class-on-enabled'));
+                            element.removeAttribute('class-on-enabled');
+                        }
+                        if (element.hasAttribute('onclick-on-enabled')) {
+                            element.setAttribute('onclick',
+                                element.getAttribute('onclick-on-enabled'));
+                            element.removeAttribute('onclick-on-enabled');
+                        }
+                        element.removeAttribute('disabled');
+                    }
+                } else {
+                    element.setAttribute('collapsed', 'true');
+                }
             }
-        } else {
-            tzStart.setAttribute('collapsed', 'true');
         }
-
-        // we never display the second timezone if both are equal
-        if (endTimezone != null && !equalTimezones) {
-            tzEnd.removeAttribute('collapsed');
-            tzEnd.value = timezoneString(endTimezone);
-            if (gIsReadOnly) {
-                tzEnd.removeAttribute('class');
-                tzEnd.removeAttribute('onclick');
-                tzEnd.setAttribute('disabled', 'true');
-            }
-        } else {
-            tzEnd.setAttribute('collapsed', 'true');
-        }
+        
+        updateTimezoneElement(startTimezone,
+                              'timezone-starttime',
+                              gStartTime,
+                              false);
+        updateTimezoneElement(endTimezone,
+                              'timezone-endtime',
+                              gEndTime,
+                              equalTimezones);
     } else {
         document.getElementById('timezone-starttime')
                 .setAttribute('collapsed', 'true');
