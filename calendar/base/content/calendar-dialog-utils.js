@@ -369,6 +369,24 @@ function commonUpdateRepeatDetails(recurrenceInfo, startDate, endDate, allDay) {
                           [ day_string, rule.interval ],
                           2);
                     }
+                } else {
+                    if (rule.interval == 1) {
+                        ruleString = calGetString(
+                          "sun-calendar-event-dialog",
+                          "repeatDetailsRuleMonthly4",
+                          [ startDate.day ], 1);
+                    } else if (rule.interval == 2) {
+                        ruleString = calGetString(
+                          "sun-calendar-event-dialog",
+                          "repeatDetailsRuleMonthly5",
+                          [ startDate.day ], 1);
+                    } else {
+                        ruleString = calGetString(
+                          "sun-calendar-event-dialog",
+                          "repeatDetailsRuleMonthly6",
+                          [ startDate.day, rule.interval ],
+                          2);
+                    }
                 }
             } else if (rule.type == 'YEARLY') {
                 if (checkRecurrenceRule(rule, ['BYMONTH']) &&
@@ -446,6 +464,32 @@ function commonUpdateRepeatDetails(recurrenceInfo, startDate, endDate, allDay) {
                                 rule.interval ],
                               4);
                         }
+                    }
+                } else {
+                    var month_string =
+                        calGetString(
+                            "sun-calendar-event-dialog",
+                            "repeatDetailsMonth" + (startDate.month+1));
+                    if (rule.interval == 1) {
+                        ruleString = calGetString(
+                          "sun-calendar-event-dialog",
+                          "repeatDetailsRuleYearly1",
+                          [ month_string, startDate.day ],
+                          2);
+                    } else if (rule.interval == 2) {
+                        ruleString = calGetString(
+                          "sun-calendar-event-dialog",
+                          "repeatDetailsRuleYearly2",
+                          [ month_string, startDate.day ],
+                          2);
+                    } else {
+                        ruleString = calGetString(
+                          "sun-calendar-event-dialog",
+                          "repeatDetailsRuleYearly3",
+                          [ month_string,
+                            startDate.day,
+                            rule.interval ],
+                          3);
                     }
                 }
             }
