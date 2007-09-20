@@ -81,14 +81,14 @@
       <preference id="msgcompose.background_color" name="msgcompose.background_color" type="string"/>      
     </preferences>
 
-    <tabbox id="composePrefs" onselect="gComposePane.tabSelectionChanged();">
+    <tabbox id="composePrefs" flex="1" onselect="gComposePane.tabSelectionChanged();">
       <tabs>
         <tab label="&itemGeneral.label;"/>
         <tab label="&itemAutoComplete.label;"/>
         <tab label="&itemSpellCheck.label;"/>
       </tabs>
 
-      <tabpanels>
+      <tabpanels flex="1">
         <tabpanel orient="vertical">
           <groupbox>
             <hbox align="center">

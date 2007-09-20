@@ -146,6 +146,5 @@
           </hbox>          
         </radiogroup>
     </groupbox>
-    <separator/>
   </prefpane>
 </overlay>

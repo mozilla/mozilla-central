@@ -70,7 +70,7 @@
 #endif
             xmlns="http://www.mozilla.org/keymaster/gatekeeper/there.is.only.xul"
 #ifdef USE_WIN_TITLE_STYLE
-            style="&prefWindow.styleWin;">
+            style="&prefWindow.styleWindows;">
 #else
 #ifdef XP_MACOSX
             style="&prefWindow.styleMac;">
