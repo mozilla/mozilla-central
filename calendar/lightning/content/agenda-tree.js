@@ -590,7 +590,11 @@ function observer_onDeleteItem(item, rebuildFlag)
     if (this.mBatchCount) {
         return;
     }
-    var occs = item.getOccurrencesBetween(this.agendaTreeView.today.start,
+    var queryStart = this.agendaTreeView.today.start.clone();
+    queryStart.hour = 0;
+    queryStart.minute = 0;
+    queryStart.second = 0;
+    var occs = item.getOccurrencesBetween(queryStart,
                                           this.agendaTreeView.soon.end, {});
     occs.forEach(this.agendaTreeView.deleteItem, this.agendaTreeView);
     if (rebuildFlag != "no-rebuild")
