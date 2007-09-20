@@ -47,6 +47,7 @@
 #include "nsCRT.h"
 #include "plstr.h"
 
+#include "nsAbBaseCID.h"
 #include "nsAbDirFactoryService.h"
 #include "nsIAbDirFactory.h"
 

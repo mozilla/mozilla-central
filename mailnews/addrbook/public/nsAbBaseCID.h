@@ -43,6 +43,12 @@
 #include "nsIComponentManager.h"
 
 //
+// The start of the contract ID for address book directory factories.
+//
+#define NS_AB_DIRECTORY_FACTORY_CONTRACTID_PREFIX \
+  "@mozilla.org/addressbook/directory-factory;1?name="
+
+//
 // nsAddressBook
 //
 #define NS_ADDRESSBOOK_CONTRACTID \

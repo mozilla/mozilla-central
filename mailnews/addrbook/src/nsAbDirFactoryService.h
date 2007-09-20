@@ -41,8 +41,6 @@
 
 #include "nsIAbDirFactoryService.h"
 
-#define NS_AB_DIRECTORY_FACTORY_CONTRACTID_PREFIX "@mozilla.org/addressbook/directory-factory;1?name="
-
 class nsAbDirFactoryService : public nsIAbDirFactoryService
 {
 public:

@@ -49,7 +49,6 @@
 #include "nsILocalFile.h"
 
 #include "nsIAbMDBDirectory.h"
-#include "nsAbDirFactoryService.h"
 #include "nsAbMDBDirFactory.h"
 #include "nsIAddressBook.h"
 #include "nsIAddrBookSession.h"
