@@ -57,6 +57,7 @@ static char *buildCheckedCritExtOIDs[] = {
         PKIX_BASICCONSTRAINTS_OID,
         PKIX_NAMECONSTRAINTS_OID,
         PKIX_EXTENDEDKEYUSAGE_OID,
+        PKIX_NSCERTTYPE_OID,
         NULL
 };
 
