@@ -28,6 +28,7 @@
  *   Thomas Benisch <thomas.benisch@sun.com>
  *   Michael Buettner <michael.buettner@sun.com>
  *   Philipp Kewisch <mozilla@kewis.ch>
+ *   Berend Cornelius <berend.cornelius@sun.com>
  *
  * Alternatively, the contents of this file may be used under the terms of
  * either the GNU General Public License Version 2 or later (the "GPL"), or 
@@ -441,7 +442,6 @@ function onSelectionChanged(aEvent) {
  * this for normal refresh, since it also calls scheduleMidnightRefresh.
  */
 function refreshUIBits() {
-    agendaTreeView.refreshPeriodDates();
     document.getElementById("ltnMinimonth").refreshDisplay();
 
     // refresh the current view, if it has ever been shown
@@ -452,6 +452,9 @@ function refreshUIBits() {
 
     // schedule our next update...
     scheduleMidnightUpdate(refreshUIBits);
+    if (TodayPane.showsToday()) {
+      TodayPane.setDay(today());
+    }
 }
 
 function showCalendarView(type)
@@ -532,7 +535,7 @@ function goToToday()
 
 function toggleTodayPaneinMailMode()
 {
-  var oTodayPane = document.getElementById("today-pane-box");
+  var oTodayPane = document.getElementById("today-pane-panel");
   var todayPaneCommand = document.getElementById('cmd_toggleTodayPane');
   if (oTodayPane.hasAttribute("collapsed")) {
     oTodayPane.removeAttribute("collapsed");

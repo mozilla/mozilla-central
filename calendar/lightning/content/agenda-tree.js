@@ -91,6 +91,8 @@ var agendaTreeView = {
     tomorrowCount: 0,
     soonCount: 0,
     prevRowCount: 0,
+    mListener: null,
+    initialized: false,
     refreshQueue: [],
     refreshPending: false
 };
@@ -102,6 +104,7 @@ function initAgendaTree()
     this.tomorrow = new Synthetic(ltnGetString("lightning", "agendaTomorrow"), false);
     this.soon = new Synthetic(ltnGetString("lightning", "agendaSoon"), false);
     this.periods = [this.today, this.tomorrow, this.soon];
+    this.initialized = true;
 }
 
 agendaTreeView.addEvents =
@@ -169,36 +172,57 @@ function setTree(tree)
     this.tree = tree;
 };
 
+agendaTreeView.showsToday =
+function showsToday()
+{
+  return (sameDay(today(), this.today.start));
+};
+
 agendaTreeView.getCellText =
 function getCellText(row, column)
 {
+    var dateFormatter = Components.classes["@mozilla.org/calendar/datetime-formatter;1"]
+                                  .getService(Components.interfaces.calIDateTimeFormatter);
     // title column
     var event = this.events[row];
     if (column.id == "col-agenda-item") {
-        if (event instanceof Synthetic)
+        if (event instanceof Synthetic) {
+            if (this.showsToday()) {
+                return event.title;
+            }
+            else {
+                if (event == this.today) {
+                    return dateFormatter.formatDate(this.today.start);
+                }
+                else if (event == this.tomorrow) {
+                    return dateFormatter.formatDate(this.tomorrow.start);
+                }
+                else {
+                    var startString = new Object();
+                    var endString = new Object();
+                    dateFormatter.formatInterval(
+                        this.soon.start, this.soon.end, startString, endString);
+                    var dateString = startString.value + " - " + endString.value;
+                    return dateString;
+                }
+            }
+        }
+        else {
             return event.title;
-        return event.title;
-    }
-    // date/time column
-    var dateFormatter = Components.classes["@mozilla.org/calendar/datetime-formatter;1"]
-                                  .getService(Components.interfaces.calIDateTimeFormatter);
-    if (event instanceof Synthetic) {
-        if (event == this.today) {
-            return dateFormatter.formatDate(this.today.start);
         }
-        else if (event == this.tomorrow) {
-            return dateFormatter.formatDate(this.tomorrow.start);
-        }
-        return "";
-    }
-    var start = event.startDate || event.dueDate || event.entryDate;
-    start = start.getInTimezone(calendarDefaultTimezone());
-    if (start.compare(this.tomorrow.end) == -1) {
-        // time only for events on today and tomorrow
-        return  dateFormatter.formatTime(start);
     }
     else {
-        return dateFormatter.formatDateTime(start);
+        if (!(event instanceof Synthetic)) {
+            var start = event.startDate || event.dueDate || event.entryDate;
+            start = start.getInTimezone(calendarDefaultTimezone());
+            if (start.compare(this.tomorrow.end) == -1) {
+                // time only for events on today and tomorrow
+                return  dateFormatter.formatTime(start);
+            }
+            else {
+                return dateFormatter.formatDateTime(start);
+            }
+        }
     }
 };
 
@@ -338,7 +362,7 @@ function agendaDoubleClick(event)
     var calEvent = this.events[row];
 
     if (!calEvent) { // Clicked in empty space, just create a new event
-        createEventWithDialog(calendar, today());
+        createEventWithDialog(calendar, this.today.start);
         return;
     }
     if (!this.isContainer(row)) { // Clicked on a task/event, edit it
@@ -346,9 +370,9 @@ function agendaDoubleClick(event)
         modifyEventWithDialog(eventToEdit);
     } else { // Clicked on a container, create an event that day
         if (calEvent == this.today) {
-            createEventWithDialog(calendar, today());
+            createEventWithDialog(calendar, this.today.start);
         } else {
-            var tom = today().clone();
+            var tom = this.today.start.clone();
             var offset = (calEvent == this.tomorrow) ? 1 : 2;
             tom.day += offset;
             createEventWithDialog(calendar, tom);
@@ -513,10 +537,8 @@ function updateAgendaFilter(menulist) {
 };
 
 agendaTreeView.refreshPeriodDates =
-function refreshPeriodDates()
+function refreshPeriodDates(d)
 {
-    var d = now();
-
     // Today: now until midnight of tonight
     this.today.start = d.clone();
     d.hour = d.minute = d.second = 0;
@@ -640,17 +662,33 @@ function setCalendar(calendar)
         this.calendar.removeObserver(this.calendarObserver);
     this.calendar = calendar;
     calendar.addObserver(this.calendarObserver);
-
     this.init();
-
-    // Update everything
-    this.refreshPeriodDates();
 };
+
+
+agendaTreeView.addListener = 
+function addListener(aListener) {
+    this.mListener = aListener;
+}
 
 function setAgendaTreeView()
 {
     agendaTreeView.setCalendar(getCompositeCalendar());
     document.getElementById("agenda-tree").view = agendaTreeView;
+    if (agendaTreeView.mListener){
+      agendaTreeView.mListener.updatePeriod();
+    }    
 }
+
+function sameDay(date1, date2) {
+   if (date1 && date2) {
+       if ((date1.day == date2.day) &&
+          (date1.month == date2.month) &&
+          (date1.year == date2.year)) {
+          return true;
+       }
+   }
+   return false;
+ }
 
 window.addEventListener("load", setAgendaTreeView, false);

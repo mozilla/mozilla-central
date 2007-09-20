@@ -40,10 +40,13 @@ var TodayPane = {
   CurrentPaneView: 0,
   paneViews: null,
   stodaypaneButton: "calendar-show-todaypane-button",
+  start: null,
+  cwlabel: null,
+  dateFormatter: null,
 
   onLoad: function () {
     var addToolbarbutton = false;
-    var todaypanebox = document.getElementById("today-pane-box");
+    var todaypanebox = document.getElementById("today-pane-panel");
     this.paneViews = [ calGetString("calendar", "eventsandtasks"), calGetString("calendar", "tasksonly"), calGetString("calendar", "eventsonly") ];
     var mailToolbar = getMailBar();
     var defaultSetString = mailToolbar.getAttribute("defaultset");
@@ -51,8 +54,7 @@ var TodayPane = {
       defaultSetString = this.addButtonToDefaultset(defaultSetString);
       mailToolbar.setAttribute("defaultset", defaultSetString);
     }
-    
-    
+
     // add the toolbarbutton to the mailtoolbarpalette on first startup
     if (todaypanebox.hasAttribute("addtoolbarbutton")) {
       addToolbarbutton = (todaypanebox.getAttribute("addtoolbarbutton") == "true");
@@ -63,12 +65,12 @@ var TodayPane = {
         this.addButtonToToolbarset();
       }
       todaypanebox.setAttribute("addtoolbarbutton", "false");
-    }    
+    }
 
-    var agendaPanel = document.getElementById("agenda-tab-panel");
-    var todoPanel = document.getElementById("todo-tab-panel");
-    if (agendaPanel.hasAttribute("collapsed")) {
-      if (!todoPanel.hasAttribute("collapsed")) {
+    var agendapanel = document.getElementById("agenda-tab-panel");
+    var todopanel = document.getElementById("todo-tab-panel");
+    if (agendapanel.hasAttribute("collapsed")) {
+      if (!todopanel.hasAttribute("collapsed")) {
         this.CurrentPaneView = 1;
       }
       else{
@@ -76,7 +78,7 @@ var TodayPane = {
       }
     }
     else {
-      if (todoPanel.hasAttribute("collapsed")) {
+      if (todopanel.hasAttribute("collapsed")) {
         this.CurrentPaneView = 2
       }
     }
@@ -93,18 +95,61 @@ var TodayPane = {
     todayMenuItem.setAttribute("key", "todaypanekey");
     todayMenuItem.setAttribute("persist", "checked");
     todayMenuItem.setAttribute("label", todaylabel);
-    todayMenuItem.setAttribute("checked", false);
     var messagePaneMenu = document.getElementById("menu_MessagePaneLayout");
     var messagePanePopupMenu = messagePaneMenu.firstChild;
     messagePanePopupMenu.appendChild(todayMenuItem);
-    updateTodayPaneDisplay();
-    var todayPaneCommand = document.getElementById('cmd_toggleTodayPane')
-    var bchecked = !todaypanebox.hasAttribute("collapsedinMailMode");
-    todayMenuItem.setAttribute("checked", bchecked);
-    var toolbar = document.getElementById(this.stodaypaneButton);
-    if (toolbar != null) {
-      toolbar.setAttribute("checked", bchecked);
+    var checked = !todaypanebox.hasAttribute("collapsedinMailMode");
+    updateTodayPaneDisplay(checked);
+    this.checkMenuItem(checked);
+    this.initializeMiniday();
+    document.getElementById("today-splitter").addEventListener("DOMAttrModified", this.onModified, false);
+    this.setShortWeekdays();
+  },
+
+  checkMenuItem: function(checked)
+  {
+    document.getElementById('cmd_toggleTodayPane').setAttribute("checked", checked);
+    var todayMenuItem = document.getElementById("menu_showTodayPane");
+    todayMenuItem.setAttribute("checked", checked);
+    var toolbarbutton = document.getElementById(this.stodaypaneButton);
+    if (toolbarbutton != null) {
+      toolbarbutton.setAttribute("checked", checked);
     }
+    var todayCloser = document.getElementById("today-closer");
+    todayCloser.setAttribute("checked", false);
+  },
+
+  initializeMiniday: function()
+  {
+    // initialize the label denoting the current month, year and calendarweek
+    // with numbers that are supposed to consume the largest width 
+    // in order to guarantee that the text will not be cropped when modified
+    // during runtime
+    const kYEARINIT= "5555";
+    const kCALWEEKINIT= "55";
+    var monthdisplaydeck = document.getElementById("monthNameContainer");
+    var childNodes = monthdisplaydeck.childNodes;
+
+    for (var i = 0; i < childNodes.length; i++) {
+      var monthlabel = childNodes[i];
+      this.setMonthDescription(monthlabel, i,  kYEARINIT, kCALWEEKINIT);
+    }
+    agendaTreeView.addListener(this);
+    this.setDay(now());
+  },
+
+  setMonthDescription: function(aMonthLabel, aIndex, aYear, aCalWeek)
+  {
+    if (this.cwlabel == null) {
+      this.cwlabel = calGetString("calendar", "shortcalendarweek");
+    }
+    if (this.dateFormatter == null) {
+      this.dateFormatter =
+            Components.classes["@mozilla.org/calendar/datetime-formatter;1"]
+                      .getService(Components.interfaces.calIDateTimeFormatter);
+    }
+    return aMonthLabel.value = this.dateFormatter.shortMonthName(aIndex)
+            + " " + aYear +  ", " + this.cwlabel + " " +  aCalWeek;
   },
 
   addButtonToDefaultset: function(toolbarSetString)
@@ -134,7 +179,7 @@ var TodayPane = {
     }
     return toolbarSetString;
   },
-  
+
   addButtonToToolbarset: function()
   {
     var mailToolbar = getMailBar();
@@ -169,14 +214,14 @@ var TodayPane = {
         oPanel.removeAttribute("collapsed")
       }
     }
-    
+
     this.CurrentPaneView = this.CurrentPaneView + aCycleForward;
     var nViewLen = this.paneViews.length;
     if (this.CurrentPaneView >= nViewLen) {
-        this.CurrentPaneView = 0;
+      this.CurrentPaneView = 0;
     }
     else if (this.CurrentPaneView == -1) {
-        this.CurrentPaneView = nViewLen -1;
+      this.CurrentPaneView = nViewLen -1;
     }
     var agendapanel = document.getElementById("agenda-tab-panel");
     var todopanel = document.getElementById("todo-tab-panel");
@@ -199,8 +244,81 @@ var TodayPane = {
         document.getElementById("today-pane-splitter").setAttribute("hidden", "true");
         break;
     }
+  },
+
+  setShortWeekdays: function()
+  {
+    var weekdisplaydeck = document.getElementById("weekdayNameContainer");
+    var childNodes = weekdisplaydeck.childNodes;
+    for (var i = 0; i < childNodes.length; i++) {
+      childNodes[i].setAttribute("value", calGetString("dateFormat","day." + (i+1) + ".Mmm"));
+    }
+ },
+
+
+setDaywithjsDate: function(aNewDate)
+{
+  var newdatetime = jsDateToDateTime(aNewDate);
+  newdatetime = newdatetime.getInTimezone(calendarDefaultTimezone());
+  document.getElementById("aMinimonthPopupset").hidePopup();
+  return this.setDay(newdatetime);
+ },
+
+  setDay: function(aNewDate)
+  {
+    this.start = aNewDate.clone();
+
+    var daylabel = document.getElementById("datevalue-label");
+    daylabel.value = this.start.day;
+    var weekdaylabel = document.getElementById("weekdayNameContainer");
+    weekdaylabel.selectedIndex = this.start.weekday;
+
+    var monthnamedeck = document.getElementById("monthNameContainer");
+    monthnamedeck.selectedIndex = this.start.month;
+
+    var selMonthPanel = monthnamedeck.selectedPanel;
+    if (agendaTreeView.initialized) {
+      this.updatePeriod();
+    }
+    return this.setMonthDescription(selMonthPanel, this.start.month
+                                   , this.start.year
+                                   , Math.ceil(this.start.yearday/7));
+  },
+
+  advance: function(dir)
+  {
+    this.start.day += dir;
+    this.setDay(this.start);
+  },
+
+  showsToday: function()
+  {
+    return (sameDay(today(), this.start));
+  },
+
+  updatePeriod: function()
+  {
+    var date = this.start.clone();
+    return agendaTreeView.refreshPeriodDates(date);
+  },
+
+  // DOMAttrModified handler that listens to the todaypane-splitter
+  onModified: function(aEvent) {
+    if (aEvent.attrName == "state") {
+      var checked = aEvent.newValue != "collapsed";
+      TodayPane.checkMenuItem(checked);
+      var todaypanebox = document.getElementById("today-pane-panel");
+      if (checked) {
+        todaypanebox.removeAttribute("collapsedinMailMode");
+      }
+      else {
+        todaypanebox.setAttribute("collapsedinMailMode", true);
+      }
+    }
   }
+	
 };
+
 
 function loadTodayPane() {
   TodayPane.onLoad();
@@ -217,14 +335,14 @@ function updateTodayPaneDisplay() {
     // we collapse the todaypane but don't not affect the 
     // attribute "collapsedinMailMode". Therefor this function is only to be used
     // when switching to calendar mode
-    var oTodayPane = document.getElementById("today-pane-box");
+    var oTodayPane = document.getElementById("today-pane-panel");
     oTodayPane.setAttribute("collapsed", true);
     document.getElementById('cmd_toggleTodayPane').setAttribute("disabled","true");
   }
   else {
     // only show the today-pane if was not collapsed during the last 
     // "mail-mode session"
-    var oTodayPane = document.getElementById("today-pane-box");
+    var oTodayPane = document.getElementById("today-pane-panel");
     if (!oTodayPane.hasAttribute("collapsedinMailMode")) {
       if (oTodayPane.hasAttribute("collapsed")) {
         oTodayPane.removeAttribute("collapsed");
@@ -234,7 +352,5 @@ function updateTodayPaneDisplay() {
   }
 }
 
-
 document.getElementById("displayDeck").
     addEventListener("select", updateTodayPaneDisplay, true);
-

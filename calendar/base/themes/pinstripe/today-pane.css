@@ -34,7 +34,96 @@
  *
  * ***** END LICENSE BLOCK ***** */
 
-#today-pane-box {
+.today-subpane {
+  padding: 0px;
+  border: 1px solid ThreeDShadow;
+  margin: 5px;
+}
+
+#buttonspacer {
+  width: 5px;
+}
+
+#today-pane-panel {
   background-color: -moz-Dialog;
   border-left: 1px solid ThreeDShadow;
 }
+
+#mini-day-image {
+  list-style-image: url("chrome://calendar/skin/mini-day-background.png");
+}
+
+#mini-day-box {
+  background-color: white;
+}
+
+#weekdayNameContainer {
+  font-family: Trebuchet MS, Lucida Grande, Arial, Helvetica;
+  padding-top: 4px;
+  font-weight: bold;
+  font-size: 18px;
+}
+
+#miniday-dropdown-button {
+  margin: 2px;
+  padding-left: 1px;
+  padding-right: 1px;
+  max-width: 15px;
+}
+
+.monthlabel {
+  margin-right: 0px;
+}
+
+.dateValue {
+  font-family: Arial, Helvetica, Trebuchet MS, Lucida Grande, sans-serif;
+  margin-top: 0px;
+  padding-top: 0px;
+  font-size: 36px;
+  font-weight: bold;
+}
+
+.miniday-nav-buttons {
+  padding: 0 !important;
+  margin: 0 !important;
+  margin-top: 2px;
+  list-style-image: url("chrome://calendar/skin/mini-day-nav-buttons.png");
+}
+
+#previous-day-button {
+  -moz-image-region: rect(0px 5px 13px 0px);
+}
+
+#previous-day-button:hover,
+#previous-day-button:hover:active {
+  -moz-image-region: rect(13px 5px 26px 0px);
+}
+
+#previous-day-button[disabled] {
+  -moz-image-region: rect(26px 5px 39px 0px);
+}
+
+#today-button {
+  -moz-image-region: rect(0px 16px 13px 5px);
+}
+
+#today-button:hover,
+#today-button:hover:active {
+  -moz-image-region: rect(13px 16px 26px 5px);
+}
+
+#today-button[disabled] {
+  -moz-image-region: rect(26px 16px 39px 5px);
+}
+
+#next-day-button {
+  -moz-image-region: rect(0px 21px 13px 16px);
+}
+#next-day-button:hover,
+#next-day-button:hover:active {
+  -moz-image-region: rect(13px 21px 26px 16px);
+}
+
+#next-day-button[disabled] {
+  -moz-image-region: rect(26px 21px 39px 16px);
+} 

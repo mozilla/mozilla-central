@@ -52,6 +52,7 @@
 <overlay xmlns="http://www.mozilla.org/keymaster/gatekeeper/there.is.only.xul">
 
 <script type="application/x-javascript" src="chrome://calendar/content/today-pane.js"/>
+<script type="application/x-javascript" src="chrome://lightning/content/agenda-tree.js"/>
 
 <script type="application/x-javascript">
   var todaylabel = "&calendar.context.button.label;";
@@ -62,10 +63,10 @@
 #else
 <box id="messengerBox">
 #endif
-    <splitter id="gray_vertical_splitter" collapse="true" persist="state" resizebefore="closest">
+    <splitter id="today-splitter" collapse="after" persist="state" resizebefore="closest">
         <grippy/>
     </splitter>
-    <vbox id="today-pane-box" minwidth="100" width="200" addtoolbarbutton="true" persist="collapsed collapsedinMailMode addtoolbarbutton width">
+    <vbox id="today-pane-panel" addtoolbarbutton="true" persist="collapsed collapsedinMailMode addtoolbarbutton width">
       <sidebarheader align="center">
         <label id ="today-header"/>
         <spacer flex="1"/>
@@ -73,14 +74,73 @@
                        onclick="TodayPane.cyclePaneView(-1);"/>
         <toolbarbutton id="folderview-cycler-right" class="folderview-cycler" 
                        onclick="TodayPane.cyclePaneView(1);"/>
-        <spacer style="width: 5px;"/>
+        <spacer id="buttonspacer"/>
         <toolbarbutton id="today-closer" class="ab-closebutton" command="cmd_toggleTodayPane"/>
       </sidebarheader>
       <vbox flex="1">
-        <vbox id="agenda-tab-panel" flex="1" persist="height collapsed" minheight="200"/>
-        <splitter id="today-pane-splitter" persist="hidden"/>
-        <vbox id="todo-tab-panel" flex="1" persist="collapsed height" minheight="200"/>
+         <box id="mini-day-box" class="today-subpane">
+           <stack flex="1">
+             <image id="mini-day-image" flex="1"/>
+             <hbox flex="1">
+               <deck id="dateContainer" selectedIndex="0">
+                 <hbox pack="center">
+                   <label id="datevalue-label" class="dateValue"/>
+                 </hbox>
+                 <label class="dateValue" value="55"/>
+               </deck>
+               <vbox flex="1">
+                 <hbox pack="center">
+                   <deck id="weekdayNameContainer" 
+                      pack="center">
+                     <label/>
+                     <label/>
+                     <label/>
+                     <label/>
+                     <label/>
+                     <label/>
+                     <label/>
+                   </deck>
+                   <spacer id="weekspacer" flex="1"/>
+                   <hbox pack="end">
+                     <toolbarbutton id="previous-day-button" class="miniday-nav-buttons" onclick="TodayPane.advance(parseInt(this.getAttribute('dir')));" dir="-1"/>
+                     <toolbarbutton id="today-button" class="miniday-nav-buttons" onclick="TodayPane.setDay(now());"/>
+                     <toolbarbutton id="next-day-button" class="miniday-nav-buttons" onclick="TodayPane.advance(parseInt(this.getAttribute('dir')));" dir="1"/>
+                   </hbox>
+                 </hbox>
+                 <hbox pack="start">
+                   <deck id ="monthNameContainer">
+                     <label class="monthlabel"/>
+                     <label class="monthlabel"/>
+                     <label class="monthlabel"/>
+                     <label class="monthlabel"/>
+                     <label class="monthlabel"/>
+                     <label class="monthlabel"/>
+                     <label class="monthlabel"/>
+                     <label class="monthlabel"/>
+                     <label class="monthlabel"/>
+                     <label class="monthlabel"/>
+                     <label class="monthlabel"/>
+                     <label class="monthlabel"/>
+                   </deck>
+                   <spacer flex="1"/>
+                 </hbox>
+               </vbox>
+               <toolbarbutton id="miniday-dropdown-button" popup="aMinimonthPopupset" class="toolbarbutton-menubutton-dropmarker"/>
+               <popupset>
+                 <popup id="aMinimonthPopupset" position="after_start">
+                   <minimonth id="todayMinimonth" flex="1"
+                              onchange="TodayPane.setDaywithjsDate(this.value);"/>
+                 </popup>
+               </popupset>
+             </hbox>
+           </stack>
+         </box>
+         <vbox flex="1">
+           <vbox id="agenda-tab-panel" flex="1" persist="height collapsed"/>
+           <splitter id="today-pane-splitter" persist="hidden"/>
+           <vbox id="todo-tab-panel" flex="1" persist="collapsed height"/>
+         </vbox>
+       </vbox>
     </vbox>
-  </vbox>
 </box>
 </overlay>
