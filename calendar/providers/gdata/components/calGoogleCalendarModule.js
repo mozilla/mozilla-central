@@ -102,7 +102,7 @@ var calGoogleCalendarModule = {
         try {
             loader.loadSubScript("chrome://calendar/content/calUtils.js", null);
         } catch (e) {
-            dump("Error while loading " + scriptUri.spec + "\n");
+            dump("Error while loading calUtils.js\n");
             throw e;
         }
 
