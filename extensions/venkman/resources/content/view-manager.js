@@ -996,18 +996,27 @@ function vmgr_grouttab (viewManager, container)
 {
     function onTabClick(event)
     {
-        var target = event.target;
-        while (target && target.localName != "little-tab")
-            target = target.parentNode;
-            
-        var index = target.getAttribute("index");
-        container.deck.selectedIndex = index;
+        // the <tabpanels> deck disowns its <floatingview> children
+        var deck  = container.deck;
+        var index = event.currentTarget.getAttribute("index");
+        var panel = deck.boxObject.firstChild;
+        for (var j = 1; (j <= index) && panel.nextSibling; ++j)
+            panel = panel.nextSibling;
+        if (deck._selectedPanel != panel)
+        {
+            // mimic tabpanels.selectedIndex.setter
+            deck._selectedPanel = panel;
+            deck.setAttribute("selectedIndex", index);
+            var e = document.createEvent("Events");
+            e.initEvent("select", true, true);
+            deck.dispatchEvent(e);
+        }
+        
         for (var i = 0; i < container.tabs.childNodes.length; ++i)
             container.tabs.childNodes[i].removeAttribute("selected");
-
         container.tabs.childNodes[index].setAttribute("selected", "true");
     };
-    
+
     function closeWindow (window)
     {
         window.close();
