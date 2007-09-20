@@ -365,6 +365,12 @@ function calWcapCalendar_storeItem(bAddItem, item, oldItem, request, netRespFunc
             //           undefined, assume an allDay todo???
             var dtstart = item.entryDate;
             var dtend = item.dueDate;
+
+            // cs bug: enforce DUE (set to DTSTART) if alarm is set
+            if (!dtend && item.alarmOffset) {
+                dtend = dtstart;
+            }
+            
             bIsAllDay = (dtstart && dtstart.isDate);
             if (!oldItem || !identicalDatetimes(dtstart, oldItem.entryDate)
                          || !identicalDatetimes(dtend, oldItem.dueDate)) {
