@@ -1,0 +1,5 @@
+[xpfe-mailnews]
+dist/bin/components/dsn-service.js
+
+[xpfe-browser]
+dist/bin/defaults/pref/dsn.js
