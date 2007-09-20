@@ -477,7 +477,7 @@ function UpdateReceivedColumn(newFolder)
   }
   else if (newFolderShowsRcvd && tempHidden && isHidden)
   {
-    receivedColumn.removeAttribute("hidden");
+    receivedColumn.setAttribute("hidden", "false");
   }
   
   if (newFolderShowsRcvd)
