@@ -1066,8 +1066,6 @@ function serv_disconnect(e)
     this.isConnected = false;
 
     delete this.quitting;
-
-    return true;
 }
 
 CIRCServer.prototype.onSendData =
