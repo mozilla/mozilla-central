@@ -55,7 +55,7 @@
 ////////////////////////////////////////////////////////////////////////////////
 #include "nsTextImport.h"
 
-static NS_DEFINE_CID(kTextImportCID,    	NS_TEXTIMPORT_CID);
+static NS_DEFINE_CID(kTextImportCID,      NS_TEXTIMPORT_CID);
 
 ////////////////////////////////////////////////////////////////////////////////
 // nsComm4x import Include Files
@@ -73,7 +73,7 @@ static NS_DEFINE_CID(kComm4xMailImportCID,      NS_COMM4XMAILIMPORT_CID);
 #include "nsEudoraImport.h"
 #include "nsEudoraStringBundle.h"
 
-static NS_DEFINE_CID(kEudoraImportCID,    	NS_EUDORAIMPORT_CID);
+static NS_DEFINE_CID(kEudoraImportCID,      NS_EUDORAIMPORT_CID);
 #endif
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -86,8 +86,8 @@ static NS_DEFINE_CID(kEudoraImportCID,    	NS_EUDORAIMPORT_CID);
 #include "nsOutlookImport.h"
 #include "nsOutlookStringBundle.h"
 
-static NS_DEFINE_CID(kOEImportCID,       	NS_OEIMPORT_CID);
-static NS_DEFINE_CID(kOutlookImportCID,    	NS_OUTLOOKIMPORT_CID);
+static NS_DEFINE_CID(kOEImportCID,         NS_OEIMPORT_CID);
+static NS_DEFINE_CID(kOutlookImportCID,      NS_OUTLOOKIMPORT_CID);
 #endif
 
 #endif // XP_WIN
@@ -260,7 +260,7 @@ static const nsModuleComponentInfo components[] = {
     // oexpress import components
     ////////////////////////////////////////////////////////////////////////////////
     ,{ "Outlook Express Import Component", NS_OEIMPORT_CID,
-    "@mozilla.org/import/import-oe;1", nsOEImportConstructor,	OERegister,	nsnull },
+    "@mozilla.org/import/import-oe;1", nsOEImportConstructor,  OERegister,  nsnull },
     { "Outlook Import Component", NS_OUTLOOKIMPORT_CID,
     "@mozilla.org/import/import-outlook;1", nsOutlookImportConstructor, OutlookRegister, nsnull }
 #endif

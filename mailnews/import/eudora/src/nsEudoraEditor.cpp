@@ -530,7 +530,7 @@ NS_IMETHODIMP nsEudoraEditor::SwitchTextDirection()
 NS_IMETHODIMP nsEudoraEditor::OutputToString(const nsAString & formatType, PRUint32 flags, nsAString & _retval)
 {
   _retval = m_body;
-  
+
   return NS_OK;
 }
 
@@ -688,7 +688,7 @@ NS_IMETHODIMP nsEudoraEditor::GetEmbeddedObjects(nsISupportsArray ** aNodeList)
   rv = m_pMailImportLocation->Clone(getter_AddRefs(embeddedFolderSpec));
   NS_ENSURE_SUCCESS(rv, rv);
   embeddedFolderSpec->AppendNative(NS_LITERAL_CSTRING("Embedded"));
-  
+
   // Look for the start of the last closing tag so that we only search for
   // valid "Embedded Content" lines. (In practice this is not super important,
   // but there were some proof of concept exploits at one point where "Embedded
@@ -718,14 +718,14 @@ NS_IMETHODIMP nsEudoraEditor::GetEmbeddedObjects(nsISupportsArray ** aNodeList)
       PRInt32   endFileName = m_body.Find(":", PR_FALSE, startFileName);
       nsString  fileName;
       m_body.Mid(fileName, startFileName, endFileName - startFileName);
-      
+
       // Create the file spec for the embedded image
       embeddedFolderSpec->Clone(getter_AddRefs(embeddedImageSpec));
       embeddedImageSpec->Append(fileName);
 
       // Verify that the embedded image spec exists and is a file
-      PRBool		isFile = PR_FALSE;
-      PRBool		exists = PR_FALSE;
+      PRBool    isFile = PR_FALSE;
+      PRBool    exists = PR_FALSE;
       if ( NS_FAILED(embeddedImageSpec->Exists( &exists)) || NS_FAILED(embeddedImageSpec->IsFile(&isFile)) )
         continue;
       if (!exists || !isFile)
@@ -789,7 +789,7 @@ NS_IMETHODIMP nsEudoraEditor::GetEmbeddedObjects(nsISupportsArray ** aNodeList)
 
 PRBool nsEudoraEditor::UpdateEmbeddedImageReference(PRUint32 aCIDHash, const nsAString & aOldRef, const nsAString & aUpdatedRef)
 {
-  PRBool    foundMatch = PR_FALSE; 
+  PRBool    foundMatch = PR_FALSE;
   PRInt32   startImageTag = 0;
   PRInt32   closeImageTag = 0;
 
@@ -1353,7 +1353,7 @@ NS_IMETHODIMP nsEudoraHTMLImageElement::SetLongDesc(const nsAString & aLongDesc)
 NS_IMETHODIMP nsEudoraHTMLImageElement::GetSrc(nsAString & aSrc)
 {
   aSrc = m_src;
-  
+
   return NS_OK;
 }
 
@@ -1361,7 +1361,7 @@ NS_IMETHODIMP nsEudoraHTMLImageElement::GetSrc(nsAString & aSrc)
 NS_IMETHODIMP nsEudoraHTMLImageElement::SetSrc(const nsAString & aSrc)
 {
   nsEudoraEditor *    pEditor = static_cast <nsEudoraEditor *> (static_cast <nsIEditor *> (m_pEditor.get()));
-  
+
   if ( pEditor->UpdateEmbeddedImageReference(m_cidHash, m_src, aSrc) )
     m_cidHash = 0;
   m_src = aSrc;

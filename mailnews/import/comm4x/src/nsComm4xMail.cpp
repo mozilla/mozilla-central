@@ -50,8 +50,8 @@
 #include "prmem.h"
 #include "nsNativeCharsetUtils.h"
 
-#define	kCopyBufferSize		8192
-#define	kMailReadBufferSize	16384
+#define  kCopyBufferSize    8192
+#define  kMailReadBufferSize  16384
 
 
 static PRBool

@@ -43,12 +43,12 @@
 
 class ImportTranslate {
 public:
-	static PRBool ConvertString( const nsCString& inStr, nsCString& outStr, PRBool mimeHeader);
-	static nsImportTranslator *GetTranslator( void);
-	static nsImportTranslator *GetMatchingTranslator( const char *pCharSet);
+  static PRBool ConvertString( const nsCString& inStr, nsCString& outStr, PRBool mimeHeader);
+  static nsImportTranslator *GetTranslator( void);
+  static nsImportTranslator *GetMatchingTranslator( const char *pCharSet);
 
 protected:
-	static int m_useTranslator;
+  static int m_useTranslator;
 };
 
 

@@ -44,26 +44,26 @@
 
 class nsImportEncodeScan : public nsImportScanFile {
 public:
-	nsImportEncodeScan();
-	~nsImportEncodeScan();
+  nsImportEncodeScan();
+  ~nsImportEncodeScan();
 
-	PRBool	InitEncodeScan( PRBool appleSingleEncode, nsIFile *pFile, const char *pName, PRUint8 * pBuf, PRUint32 sz);
-	void	CleanUpEncodeScan( void);
+  PRBool  InitEncodeScan( PRBool appleSingleEncode, nsIFile *pFile, const char *pName, PRUint8 * pBuf, PRUint32 sz);
+  void  CleanUpEncodeScan( void);
 
-	virtual PRBool	Scan( PRBool *pDone);
-
-protected:
-	void 	FillInEntries( int numEntries);
-	PRBool 	AddEntries( void);
+  virtual PRBool  Scan( PRBool *pDone);
 
 protected:
-	PRBool			m_isAppleSingle;
-	nsCOMPtr<nsILocalFile> 	m_pInputFile;
+  void   FillInEntries( int numEntries);
+  PRBool   AddEntries( void);
+
+protected:
+  PRBool      m_isAppleSingle;
+  nsCOMPtr<nsILocalFile>   m_pInputFile;
         nsCOMPtr<nsIInputStream> m_inputStream;
-	int			m_encodeScanState;
-	long			m_resourceForkSize;
-	long			m_dataForkSize;
-	nsCString		m_useFileName;
+  int      m_encodeScanState;
+  long      m_resourceForkSize;
+  long      m_dataForkSize;
+  nsCString    m_useFileName;
 };
 
 #endif /* nsImportEncodeScan_h__ */

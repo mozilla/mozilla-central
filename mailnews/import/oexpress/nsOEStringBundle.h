@@ -43,26 +43,26 @@ class nsIStringBundle;
 
 class nsOEStringBundle {
 public:
-	static PRUnichar     *		GetStringByID(PRInt32 stringID, nsIStringBundle *pBundle = nsnull);
-	static void					GetStringByID(PRInt32 stringID, nsString& result, nsIStringBundle *pBundle = nsnull);
-	static nsIStringBundle *	GetStringBundle( void); // don't release
-	static void					FreeString( PRUnichar *pStr) { NS_Free( pStr);}
-	static void					Cleanup( void);
-	static nsIStringBundle *	GetStringBundleProxy( void); // release
+  static PRUnichar     *    GetStringByID(PRInt32 stringID, nsIStringBundle *pBundle = nsnull);
+  static void          GetStringByID(PRInt32 stringID, nsString& result, nsIStringBundle *pBundle = nsnull);
+  static nsIStringBundle *  GetStringBundle( void); // don't release
+  static void          FreeString( PRUnichar *pStr) { NS_Free( pStr);}
+  static void          Cleanup( void);
+  static nsIStringBundle *  GetStringBundleProxy( void); // release
 
 private:
-	static nsIStringBundle *	m_pBundle;
+  static nsIStringBundle *  m_pBundle;
 };
 
 
 
-#define	OEIMPORT_NAME				                        2000
-#define	OEIMPORT_DESCRIPTION								2001
-#define OEIMPORT_MAILBOX_SUCCESS							2002
-#define OEIMPORT_MAILBOX_BADPARAM							2003
-#define OEIMPORT_MAILBOX_BADSOURCEFILE						2004
-#define OEIMPORT_MAILBOX_CONVERTERROR						2005
-#define OEIMPORT_DEFAULT_NAME						2006
+#define  OEIMPORT_NAME                                2000
+#define  OEIMPORT_DESCRIPTION                2001
+#define OEIMPORT_MAILBOX_SUCCESS              2002
+#define OEIMPORT_MAILBOX_BADPARAM              2003
+#define OEIMPORT_MAILBOX_BADSOURCEFILE            2004
+#define OEIMPORT_MAILBOX_CONVERTERROR            2005
+#define OEIMPORT_DEFAULT_NAME            2006
 #define OEIMPORT_AUTOFIND               2007
 #define OEIMPORT_ADDRESS_SUCCESS        2008
 #define OEIMPORT_ADDRESS_CONVERTERROR   2009

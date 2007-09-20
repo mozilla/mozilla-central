@@ -36,9 +36,9 @@
  * ***** END LICENSE BLOCK ***** */
 
 /*
-  	Interface for importing anything.  You are responsible for opening
-  	up UI and doing all of the work to make it happen.
-  
+    Interface for importing anything.  You are responsible for opening
+    up UI and doing all of the work to make it happen.
+
 */
 
 #include "nsISupports.idl"
@@ -48,72 +48,72 @@ interface nsISupportsString;
 
 [scriptable, uuid(9b5c20c0-2348-11d3-a206-00a0cc26da63)]
 interface nsIImportGeneric : nsISupports
-{	
-	/* Use these to prepare for the import */
-		/*
-			"mailInterface" - nsIImportMail interface
-			"mailBoxes" - nsISupportsArray of nsIImportMailboxDescriptors
-			"mailLocation" - nsIFile, source location for mail
+{
+  /* Use these to prepare for the import */
+    /*
+      "mailInterface" - nsIImportMail interface
+      "mailBoxes" - nsISupportsArray of nsIImportMailboxDescriptors
+      "mailLocation" - nsIFile, source location for mail
 
-			"addressInterface" - nsIImportAddressBooks interface
-			"addressBooks" - nsISupportsArray of nsIImportABDescriptors
-			"addressLocation" - src location of address books (if needed!)
-			"addressDestination" - uri of destination address book or null if
-								new address books will be created.
-		*/
-	nsISupports	GetData( in string dataId);
+      "addressInterface" - nsIImportAddressBooks interface
+      "addressBooks" - nsISupportsArray of nsIImportABDescriptors
+      "addressLocation" - src location of address books (if needed!)
+      "addressDestination" - uri of destination address book or null if
+                new address books will be created.
+    */
+  nsISupports  GetData( in string dataId);
 
-	void		SetData( in string dataId, in nsISupports pData);
-	
-		/*
-			"isInstalled" - if true then mail can be automatically located.
-			"canUserSetLocation" - if true then the user can specify the location
-				to look for mail.  If both are false, then there is no way
-				to import mail from this format!  
-				TBD: How to specify whether or not a file or a directory
-				should be specified?
-			"autoFind" - for address books, is the address book located without
-				using the file system - i.e. addressLocation is irrelevant.
-			"supportsMultiple" - 1 or 1..n address books are imported by this format?
+  void    SetData( in string dataId, in nsISupports pData);
 
-		*/
-	long		GetStatus( in string statusKind);
+    /*
+      "isInstalled" - if true then mail can be automatically located.
+      "canUserSetLocation" - if true then the user can specify the location
+        to look for mail.  If both are false, then there is no way
+        to import mail from this format!
+        TBD: How to specify whether or not a file or a directory
+        should be specified?
+      "autoFind" - for address books, is the address book located without
+        using the file system - i.e. addressLocation is irrelevant.
+      "supportsMultiple" - 1 or 1..n address books are imported by this format?
 
-	/*
-		When you are ready to import call this.  If it returns TRUE then
-		you must call BeginImport and then repeatedly call GetProgress until
-		it returns 100 % done or until ContinueImport returns FALSE.
-		If this returns FALSE then BeginImport will begin and finish the import
-		before it returns.
-	*/
-	boolean		WantsProgress();
+    */
+  long    GetStatus( in string statusKind);
 
-	/* Use these for the actual import */
-		/* Begin import is expected to start a new thread UNLESS WantsProgress returned
-			FALSE.  It is REQUIRED to call WantsProgress before calling BeginImport.
-			If WantsProgress was false then this will return the success or
-			failure of the import.  Failure can be reported even if WantsProgress
-			returned TRUE. 
-		 */
-	boolean         BeginImport( in nsISupportsString successLog, in nsISupportsString errorLog, in boolean isAddrLocHome);	
-		/*
-			If WantsProgress returned TRUE then this will indicate if the import should
-			continue.  If this returns FALSE then no other methods should be called
-			and the error log should be shown to the user.
-		*/
-	boolean		ContinueImport();
-		/*
-			Returns the percentage done.  When this returns 100 then the import is done.
-			(only valid if WantsProgress returned true)
-		*/
-	long		GetProgress();
-		/*
-			Cancel an import in progress.  Again, this is only valid if WantsProgress
-			returned true.
-		*/
-	void		CancelImport();
+  /*
+    When you are ready to import call this.  If it returns TRUE then
+    you must call BeginImport and then repeatedly call GetProgress until
+    it returns 100 % done or until ContinueImport returns FALSE.
+    If this returns FALSE then BeginImport will begin and finish the import
+    before it returns.
+  */
+  boolean    WantsProgress();
+
+  /* Use these for the actual import */
+    /* Begin import is expected to start a new thread UNLESS WantsProgress returned
+      FALSE.  It is REQUIRED to call WantsProgress before calling BeginImport.
+      If WantsProgress was false then this will return the success or
+      failure of the import.  Failure can be reported even if WantsProgress
+      returned TRUE.
+     */
+  boolean         BeginImport( in nsISupportsString successLog, in nsISupportsString errorLog, in boolean isAddrLocHome);
+    /*
+      If WantsProgress returned TRUE then this will indicate if the import should
+      continue.  If this returns FALSE then no other methods should be called
+      and the error log should be shown to the user.
+    */
+  boolean    ContinueImport();
+    /*
+      Returns the percentage done.  When this returns 100 then the import is done.
+      (only valid if WantsProgress returned true)
+    */
+  long    GetProgress();
+    /*
+      Cancel an import in progress.  Again, this is only valid if WantsProgress
+      returned true.
+    */
+  void    CancelImport();
 };
-	
+
 
 
 %{ C++

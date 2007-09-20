@@ -43,10 +43,10 @@
 #include "nsCOMPtr.h"
 
 
-#define NS_EUDORAIMPORT_CID					\
+#define NS_EUDORAIMPORT_CID          \
 { /* c8448da0-8f83-11d3-a206-00a0cc26da63 */      \
-	0xc8448da0, 0x8f83, 0x11d3,						\
-	{0xa2, 0x6, 0x0, 0xa0, 0xcc, 0x26, 0xda, 0x63 }}
+  0xc8448da0, 0x8f83, 0x11d3,            \
+  {0xa2, 0x6, 0x0, 0xa0, 0xcc, 0x26, 0xda, 0x63 }}
 
 
 
@@ -57,19 +57,19 @@ class nsEudoraImport : public nsIImportModule
 {
 public:
 
-	nsEudoraImport();
-	virtual ~nsEudoraImport();
-	
-	NS_DECL_ISUPPORTS
+  nsEudoraImport();
+  virtual ~nsEudoraImport();
 
-	////////////////////////////////////////////////////////////////////////////////////////
-	// we suppport the nsIImportModule interface 
-	////////////////////////////////////////////////////////////////////////////////////////
+  NS_DECL_ISUPPORTS
 
-	NS_DECL_NSIIMPORTMODULE
+  ////////////////////////////////////////////////////////////////////////////////////////
+  // we suppport the nsIImportModule interface
+  ////////////////////////////////////////////////////////////////////////////////////////
 
-		
-protected:		
+  NS_DECL_NSIIMPORTMODULE
+
+
+protected:
 };
 
 

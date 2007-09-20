@@ -358,7 +358,7 @@ NS_IMETHODIMP ImportAddressImpl::FindAddressBooks(nsIFile *pLoc, nsISupportsArra
     name = t;
   }
 
-  nsCOMPtr<nsIImportABDescriptor>	desc;
+  nsCOMPtr<nsIImportABDescriptor>  desc;
   nsISupports * pInterface;
 
   nsCOMPtr<nsIImportService> impSvc(do_GetService(NS_IMPORTSERVICE_CONTRACTID, &rv));
@@ -550,7 +550,7 @@ NS_IMETHODIMP ImportAddressImpl::GetNeedsFieldMap(nsIFile *aLocation, PRBool *_r
   if (!exists || !isFile)
     return( NS_ERROR_FAILURE);
 
-  PRBool	isLDIF = PR_FALSE;
+  PRBool  isLDIF = PR_FALSE;
   nsCOMPtr<nsIAbLDIFService> ldifService = do_GetService(NS_ABLDIFSERVICE_CONTRACTID, &rv);
 
   if (NS_SUCCEEDED(rv))

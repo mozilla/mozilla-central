@@ -36,13 +36,13 @@
  * ***** END LICENSE BLOCK ***** */
 
 /*
-  	Field map interface for importing address books
-  
-	A field map is an arbitrary sized list of mozilla address book fields.
-	The field map is used by import to map fields from the import format
-	to mozilla fields.
-	For export, the map contains the ordered list of mozilla fields to
-	export!
+    Field map interface for importing address books
+
+  A field map is an arbitrary sized list of mozilla address book fields.
+  The field map is used by import to map fields from the import format
+  to mozilla fields.
+  For export, the map contains the ordered list of mozilla fields to
+  export!
 */
 
 #include "nsISupports.idl"
@@ -62,69 +62,69 @@ interface nsIImportFieldMap : nsISupports
   */
   attribute boolean skipFirstRecord;
 
-	readonly attribute long	numMozFields;
-	readonly attribute long	mapSize;
-	
-	wstring GetFieldDescription( in long index);
-	
-	/*
-		Set the size of the field map, all unpopulated entries
-		will default to -1
-	*/
-	void	SetFieldMapSize( in long size);
-		
-	/*
-		Initialize the field map to a given size with default values
-	*/
-	void	DefaultFieldMap( in long size);
+  readonly attribute long  numMozFields;
+  readonly attribute long  mapSize;
 
-	/*
-		Return the field number that this index maps to, -1 for no field
-	*/
-	long	GetFieldMap( in long index);
+  wstring GetFieldDescription( in long index);
 
-	/*
-		Set the field that this index maps to, -1 for no field
-	*/
-	void	SetFieldMap( in long index, in long fieldNum);	
-	
-	/*
-		Set the field that this index maps to, -1 for no field
-	*/
-	void	SetFieldMapByDescription( in long index, in wstring fieldDesc);	
-	
-	/*
-		Return if this field is "active" in the map.
-	*/
-	boolean	GetFieldActive( in long index);
+  /*
+    Set the size of the field map, all unpopulated entries
+    will default to -1
+  */
+  void  SetFieldMapSize( in long size);
 
-	/*
-		Set the active state of this field
-	*/
-	void	SetFieldActive( in long index, in boolean active);
+  /*
+    Initialize the field map to a given size with default values
+  */
+  void  DefaultFieldMap( in long size);
 
-	/*
-		Set the value of the given field in the database row 
-	*/
-	void	SetFieldValue( in nsIAddrDatabase database, in nsIMdbRow row, in long fieldNum, in wstring value);
+  /*
+    Return the field number that this index maps to, -1 for no field
+  */
+  long  GetFieldMap( in long index);
 
-	/*
-		Set the value of the given field in the database row 
-	*/
-	void	SetFieldValueByDescription( in nsIAddrDatabase database, in nsIMdbRow row, in wstring fieldDesc, in wstring value);
-	
-	/*
-		Get the value of the given field from the address card
-	*/
-	wstring GetFieldValue( in nsIAbCard card, in long fieldNum);
+  /*
+    Set the field that this index maps to, -1 for no field
+  */
+  void  SetFieldMap( in long index, in long fieldNum);
 
-	/*
-		Get the value of the given field from the address card
-	*/
-	wstring GetFieldValueByDescription( in nsIAbCard card, in wstring fieldDesc);
+  /*
+    Set the field that this index maps to, -1 for no field
+  */
+  void  SetFieldMapByDescription( in long index, in wstring fieldDesc);
+
+  /*
+    Return if this field is "active" in the map.
+  */
+  boolean  GetFieldActive( in long index);
+
+  /*
+    Set the active state of this field
+  */
+  void  SetFieldActive( in long index, in boolean active);
+
+  /*
+    Set the value of the given field in the database row
+  */
+  void  SetFieldValue( in nsIAddrDatabase database, in nsIMdbRow row, in long fieldNum, in wstring value);
+
+  /*
+    Set the value of the given field in the database row
+  */
+  void  SetFieldValueByDescription( in nsIAddrDatabase database, in nsIMdbRow row, in wstring fieldDesc, in wstring value);
+
+  /*
+    Get the value of the given field from the address card
+  */
+  wstring GetFieldValue( in nsIAbCard card, in long fieldNum);
+
+  /*
+    Get the value of the given field from the address card
+  */
+  wstring GetFieldValueByDescription( in nsIAbCard card, in wstring fieldDesc);
 
 };
-	
+
 
 
 %{ C++

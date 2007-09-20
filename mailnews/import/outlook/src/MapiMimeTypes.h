@@ -40,22 +40,22 @@
 
 #include <windows.h>
 
-#define kMaxMimeTypeSize	256
+#define kMaxMimeTypeSize  256
 
 class CMimeTypes {
 public:
 
-static PRUint8 *	GetMimeType( nsCString& theExt);
-	
+static PRUint8 *  GetMimeType( nsCString& theExt);
+
 protected:
-	// Registry stuff
-static BOOL	GetKey( HKEY root, LPCTSTR pName, PHKEY pKey);
-static BOOL	GetValueBytes( HKEY rootKey, LPCTSTR pValName, LPBYTE *ppBytes);
-static void	ReleaseValueBytes( LPBYTE pBytes);
-static BOOL	GetMimeTypeFromReg( const nsCString& ext, LPBYTE *ppBytes);
+  // Registry stuff
+static BOOL  GetKey( HKEY root, LPCTSTR pName, PHKEY pKey);
+static BOOL  GetValueBytes( HKEY rootKey, LPCTSTR pValName, LPBYTE *ppBytes);
+static void  ReleaseValueBytes( LPBYTE pBytes);
+static BOOL  GetMimeTypeFromReg( const nsCString& ext, LPBYTE *ppBytes);
 
 
-static PRUint8					m_mimeBuffer[kMaxMimeTypeSize];
+static PRUint8          m_mimeBuffer[kMaxMimeTypeSize];
 };
 
 #endif /* MapiMimeTypes_h__ */

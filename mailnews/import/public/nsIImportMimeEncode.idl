@@ -36,8 +36,8 @@
  * ***** END LICENSE BLOCK ***** */
 
 /*
-	Encodes a file from disk into an output stream including properly
-	encoded mime headers.
+  Encodes a file from disk into an output stream including properly
+  encoded mime headers.
 */
 
 #include "nsISupports.idl"
@@ -46,19 +46,19 @@ interface nsIFile;
 
 [noscript, uuid(1d63892f-f660-465c-a550-95d4cb089de4)]
 interface nsIImportMimeEncode : nsISupports
-{	
-	
-	void	EncodeFile( in nsIFile inFile, in nsIFile outFile, [const] in string fileName, [const] in string mimeType);
+{
 
-	boolean	DoWork( out boolean done);
-	
-	long	NumBytesProcessed();
+  void  EncodeFile( in nsIFile inFile, in nsIFile outFile, [const] in string fileName, [const] in string mimeType);
 
-	boolean	DoEncoding();
-	void	Initialize( in nsIFile inFile, in nsIFile outFile, [const] in string fileName, [const] in string mimeType);
+  boolean  DoWork( out boolean done);
+
+  long  NumBytesProcessed();
+
+  boolean  DoEncoding();
+  void  Initialize( in nsIFile inFile, in nsIFile outFile, [const] in string fileName, [const] in string mimeType);
 
 };
-	
+
 
 
 %{ C++

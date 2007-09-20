@@ -43,8 +43,8 @@
 class nsOutlookRegUtil
 {
 public:
-	static BYTE *	GetValueBytes( HKEY hKey, const char *pValueName);
-	static void		FreeValueBytes( BYTE *pBytes);
+  static BYTE *  GetValueBytes( HKEY hKey, const char *pValueName);
+  static void    FreeValueBytes( BYTE *pBytes);
 };
 
 

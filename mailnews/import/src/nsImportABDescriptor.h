@@ -49,7 +49,7 @@
 
 class nsImportABDescriptor : public nsIImportABDescriptor
 {
-public: 
+public:
   NS_DECL_ISUPPORTS
 
   NS_IMETHOD GetIdentifier(PRUint32 *pIdentifier) {
@@ -69,8 +69,8 @@ public:
     mRef = ref;
     return NS_OK;
   }
-	
-	/* attribute unsigned long size; */
+
+  /* attribute unsigned long size; */
   NS_IMETHOD GetSize(PRUint32 *pSize) {
     *pSize = mSize;
     return NS_OK;
@@ -79,8 +79,8 @@ public:
     mSize = theSize;
     return NS_OK;
   }
-	
-	/* attribute AString displayName; */
+
+  /* attribute AString displayName; */
   NS_IMETHOD GetPreferredName(nsAString &aName) {
     aName = mDisplayName;
     return NS_OK;
@@ -91,7 +91,7 @@ public:
   }
 
   /* readonly attribute nsIFile fileSpec; */
-	NS_IMETHOD GetAbFile(nsIFile **aFile) {
+  NS_IMETHOD GetAbFile(nsIFile **aFile) {
     if (!mFile)
       return NS_ERROR_NULL_POINTER;
 
@@ -103,7 +103,7 @@ public:
       mFile = nsnull;
       return NS_OK;
     }
-    
+
     return aFile->Clone(getter_AddRefs(mFile));
   }
 
@@ -117,8 +117,8 @@ public:
     return NS_OK;
   }
 
-	nsImportABDescriptor();
-	virtual ~nsImportABDescriptor() {}
+  nsImportABDescriptor();
+  virtual ~nsImportABDescriptor() {}
 
   static NS_METHOD Create( nsISupports *aOuter, REFNSIID aIID, void **aResult);
 
@@ -128,7 +128,7 @@ private:
   nsString mDisplayName; // name of this mailbox
   nsCOMPtr<nsIFile> mFile; // source file (if applicable)
   PRUint32 mSize; // size
-  PRBool mImport; // import it or not?	
+  PRBool mImport; // import it or not?
 };
 
 

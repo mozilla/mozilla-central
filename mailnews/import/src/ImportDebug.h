@@ -39,7 +39,7 @@
 #define ImportDebug_h___
 
 #ifdef NS_DEBUG
-#define IMPORT_DEBUG	1
+#define IMPORT_DEBUG  1
 #endif
 
 // Use PR_LOG for logging.

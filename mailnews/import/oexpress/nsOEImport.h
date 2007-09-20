@@ -41,10 +41,10 @@
 #include "nsIImportModule.h"
 #include "nsCOMPtr.h"
 
-#define NS_OEIMPORT_CID						  \
+#define NS_OEIMPORT_CID              \
 { /* be0bc880-1742-11d3-a206-00a0cc26da63 */      \
- 	0xbe0bc880, 0x1742, 0x11d3,                   \
- 	{0xa2, 0x06, 0x0, 0xa0, 0xcc, 0x26, 0xda, 0x63}}
+   0xbe0bc880, 0x1742, 0x11d3,                   \
+   {0xa2, 0x06, 0x0, 0xa0, 0xcc, 0x26, 0xda, 0x63}}
 
 
 
@@ -54,19 +54,19 @@ class nsOEImport : public nsIImportModule
 {
 public:
 
-	nsOEImport();
-	virtual ~nsOEImport();
-	
-	NS_DECL_ISUPPORTS
+  nsOEImport();
+  virtual ~nsOEImport();
 
-	////////////////////////////////////////////////////////////////////////////////////////
-	// we suppport the nsIImportModule interface 
-	////////////////////////////////////////////////////////////////////////////////////////
+  NS_DECL_ISUPPORTS
+
+  ////////////////////////////////////////////////////////////////////////////////////////
+  // we suppport the nsIImportModule interface
+  ////////////////////////////////////////////////////////////////////////////////////////
 
 
-	NS_DECL_NSIIMPORTMODULE
-		
-protected:		
+  NS_DECL_NSIIMPORTMODULE
+
+protected:
 };
 
 

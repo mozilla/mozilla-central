@@ -44,32 +44,29 @@
 #include "nsCOMPtr.h"
 #include "nsIStringBundle.h"
 
-#define NS_TEXTIMPORT_CID					\
+#define NS_TEXTIMPORT_CID          \
 { /* A5991D01-ADA7-11d3-A9C2-00A0CC26DA63 */      \
-	0xa5991d01, 0xada7, 0x11d3,						\
-	{0xa9, 0xc2, 0x0, 0xa0, 0xcc, 0x26, 0xda, 0x63 }}
+  0xa5991d01, 0xada7, 0x11d3,            \
+  {0xa9, 0xc2, 0x0, 0xa0, 0xcc, 0x26, 0xda, 0x63 }}
 
 #define kTextSupportsString NS_IMPORT_ADDRESS_STR
 
 class nsTextImport : public nsIImportModule
 {
 public:
-	nsTextImport();
-	virtual ~nsTextImport();
-	
-	NS_DECL_ISUPPORTS
+  nsTextImport();
+  virtual ~nsTextImport();
 
-	////////////////////////////////////////////////////////////////////////////////////////
-	// we suppport the nsIImportModule interface 
-	////////////////////////////////////////////////////////////////////////////////////////
+  NS_DECL_ISUPPORTS
 
-	NS_DECL_NSIIMPORTMODULE
+  ////////////////////////////////////////////////////////////////////////////////////////
+  // we suppport the nsIImportModule interface
+  ////////////////////////////////////////////////////////////////////////////////////////
 
-		
+  NS_DECL_NSIIMPORTMODULE
+
 protected:
   nsCOMPtr<nsIStringBundle>   m_stringBundle;
 };
-
-
 
 #endif /* nsTextImport_h___ */

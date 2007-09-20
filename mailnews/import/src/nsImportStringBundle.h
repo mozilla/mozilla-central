@@ -58,20 +58,20 @@ public:
 #define IMPORT_MSGS_URL       "chrome://messenger/locale/importMsgs.properties"
 
 
-#define	IMPORT_NO_ADDRBOOKS				                    2000
-#define	IMPORT_ERROR_AB_NOTINITIALIZED						2001
-#define IMPORT_ERROR_AB_NOTHREAD							2002
-#define IMPORT_ERROR_GETABOOK								2003
-#define	IMPORT_NO_MAILBOXES				                    2004
-#define	IMPORT_ERROR_MB_NOTINITIALIZED						2005
-#define IMPORT_ERROR_MB_NOTHREAD							2006
-#define IMPORT_ERROR_MB_NOPROXY								2007
-#define IMPORT_ERROR_MB_FINDCHILD							2008
-#define IMPORT_ERROR_MB_CREATE								2009
-#define IMPORT_ERROR_MB_NODESTFOLDER						2010
+#define  IMPORT_NO_ADDRBOOKS                            2000
+#define  IMPORT_ERROR_AB_NOTINITIALIZED            2001
+#define IMPORT_ERROR_AB_NOTHREAD              2002
+#define IMPORT_ERROR_GETABOOK                2003
+#define  IMPORT_NO_MAILBOXES                            2004
+#define  IMPORT_ERROR_MB_NOTINITIALIZED            2005
+#define IMPORT_ERROR_MB_NOTHREAD              2006
+#define IMPORT_ERROR_MB_NOPROXY                2007
+#define IMPORT_ERROR_MB_FINDCHILD              2008
+#define IMPORT_ERROR_MB_CREATE                2009
+#define IMPORT_ERROR_MB_NODESTFOLDER            2010
 
-#define IMPORT_FIELD_DESC_START								2100
-#define IMPORT_FIELD_DESC_END								2135
+#define IMPORT_FIELD_DESC_START                2100
+#define IMPORT_FIELD_DESC_END                2135
 
 
 #endif /* _nsImportStringBundle_H__ */

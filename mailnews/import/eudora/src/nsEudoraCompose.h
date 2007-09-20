@@ -60,133 +60,133 @@ class nsIIOService;
 
 typedef class {
 public:
-	nsCOMPtr <nsIFile>	pAttachment;
-	char *			mimeType;
-	char *			description;
+  nsCOMPtr <nsIFile>  pAttachment;
+  char *      mimeType;
+  char *      description;
 } ImportAttachment;
 
 typedef class {
 public:
-	PRUint32		offset;
-	PRInt64		size;
-	nsCOMPtr <nsIFile>	pFile;
+  PRUint32    offset;
+  PRInt64    size;
+  nsCOMPtr <nsIFile>  pFile;
         nsCOMPtr <nsIInputStream> pInputStream;
 } ReadFileState;
 
 class SimpleBufferTonyRCopiedOnce {
 public:
-	SimpleBufferTonyRCopiedOnce() {m_pBuffer = nsnull; m_size = 0; m_growBy = 4096; m_writeOffset = 0;
-					m_bytesInBuf = 0; m_convertCRs = PR_FALSE;}
-	~SimpleBufferTonyRCopiedOnce() { if (m_pBuffer) delete [] m_pBuffer;}
-	
-	PRBool Allocate( PRInt32 sz) { 
-		if (m_pBuffer) delete [] m_pBuffer; 
-		m_pBuffer = new char[sz]; 
-		if (m_pBuffer) { m_size = sz; return( PR_TRUE); }
-		else { m_size = 0; return( PR_FALSE);}
-	}
+  SimpleBufferTonyRCopiedOnce() {m_pBuffer = nsnull; m_size = 0; m_growBy = 4096; m_writeOffset = 0;
+          m_bytesInBuf = 0; m_convertCRs = PR_FALSE;}
+  ~SimpleBufferTonyRCopiedOnce() { if (m_pBuffer) delete [] m_pBuffer;}
 
-	PRBool Grow( PRInt32 newSize) { if (newSize > m_size) return( ReAllocate( newSize)); else return( PR_TRUE);}
-	PRBool ReAllocate( PRInt32 newSize) {
-		if (newSize <= m_size) return( PR_TRUE);
-		char *pOldBuffer = m_pBuffer;
-		PRInt32	oldSize = m_size;
-		m_pBuffer = nsnull;
-		while (m_size < newSize) m_size += m_growBy;
-		if (Allocate( m_size)) {
-			if (pOldBuffer) { memcpy( m_pBuffer, pOldBuffer, oldSize); delete [] pOldBuffer;}
-			return( PR_TRUE);
-		}
-		else { m_pBuffer = pOldBuffer; m_size = oldSize; return( PR_FALSE);}
-	}
-	
-	PRBool Write( PRInt32 offset, const char *pData, PRInt32 len, PRInt32 *pWritten) {
-		*pWritten = len;
-		if (!len) return( PR_TRUE);
-		if (!Grow( offset + len)) return( PR_FALSE);
-		if (m_convertCRs)
-			return( SpecialMemCpy( offset, pData, len, pWritten));
-		memcpy( m_pBuffer + offset, pData, len);
-		return( PR_TRUE);
-	}
-	
-	PRBool Write( const char *pData, PRInt32 len) { 
-		PRInt32 written;
-		if (Write( m_writeOffset, pData, len, &written)) { m_writeOffset += written; return( PR_TRUE);}
-		else return( PR_FALSE);
-	}
+  PRBool Allocate( PRInt32 sz) {
+    if (m_pBuffer) delete [] m_pBuffer;
+    m_pBuffer = new char[sz];
+    if (m_pBuffer) { m_size = sz; return( PR_TRUE); }
+    else { m_size = 0; return( PR_FALSE);}
+  }
 
-	PRBool	SpecialMemCpy( PRInt32 offset, const char *pData, PRInt32 len, PRInt32 *pWritten);
-	
-	PRBool	m_convertCRs;
-	char *	m_pBuffer;
-	PRInt32	m_bytesInBuf;	// used when reading into this buffer
-	PRInt32	m_size;			// allocated size of buffer
-	PRInt32	m_growBy;		// duh
-	PRInt32	m_writeOffset;	// used when writing into and reading from the buffer
+  PRBool Grow( PRInt32 newSize) { if (newSize > m_size) return( ReAllocate( newSize)); else return( PR_TRUE);}
+  PRBool ReAllocate( PRInt32 newSize) {
+    if (newSize <= m_size) return( PR_TRUE);
+    char *pOldBuffer = m_pBuffer;
+    PRInt32  oldSize = m_size;
+    m_pBuffer = nsnull;
+    while (m_size < newSize) m_size += m_growBy;
+    if (Allocate( m_size)) {
+      if (pOldBuffer) { memcpy( m_pBuffer, pOldBuffer, oldSize); delete [] pOldBuffer;}
+      return( PR_TRUE);
+    }
+    else { m_pBuffer = pOldBuffer; m_size = oldSize; return( PR_FALSE);}
+  }
+
+  PRBool Write( PRInt32 offset, const char *pData, PRInt32 len, PRInt32 *pWritten) {
+    *pWritten = len;
+    if (!len) return( PR_TRUE);
+    if (!Grow( offset + len)) return( PR_FALSE);
+    if (m_convertCRs)
+      return( SpecialMemCpy( offset, pData, len, pWritten));
+    memcpy( m_pBuffer + offset, pData, len);
+    return( PR_TRUE);
+  }
+
+  PRBool Write( const char *pData, PRInt32 len) {
+    PRInt32 written;
+    if (Write( m_writeOffset, pData, len, &written)) { m_writeOffset += written; return( PR_TRUE);}
+    else return( PR_FALSE);
+  }
+
+  PRBool  SpecialMemCpy( PRInt32 offset, const char *pData, PRInt32 len, PRInt32 *pWritten);
+
+  PRBool  m_convertCRs;
+  char *  m_pBuffer;
+  PRInt32  m_bytesInBuf;  // used when reading into this buffer
+  PRInt32  m_size;      // allocated size of buffer
+  PRInt32  m_growBy;    // duh
+  PRInt32  m_writeOffset;  // used when writing into and reading from the buffer
 };
 
 
 
 class nsEudoraCompose {
 public:
-	nsEudoraCompose();
-	~nsEudoraCompose();
+  nsEudoraCompose();
+  ~nsEudoraCompose();
 
-	nsresult	SendTheMessage(nsIFile *pMailImportLocation, nsIFile **pMsg);
+  nsresult  SendTheMessage(nsIFile *pMailImportLocation, nsIFile **pMsg);
 
-  void		SetBody( const char *pBody, PRInt32 len, nsCString &bodyType) { m_pBody = pBody; m_bodyLen = len; m_bodyType = bodyType;}
-	void		SetHeaders( const char *pHeaders, PRInt32 len) { m_pHeaders = pHeaders; m_headerLen = len;}
-	void		SetAttachments( nsVoidArray *pAttachments) { m_pAttachments = pAttachments;}
-  void		SetDefaultDate( nsCString date) { m_defaultDate = date;}
+  void    SetBody( const char *pBody, PRInt32 len, nsCString &bodyType) { m_pBody = pBody; m_bodyLen = len; m_bodyType = bodyType;}
+  void    SetHeaders( const char *pHeaders, PRInt32 len) { m_pHeaders = pHeaders; m_headerLen = len;}
+  void    SetAttachments( nsVoidArray *pAttachments) { m_pAttachments = pAttachments;}
+  void    SetDefaultDate( nsCString date) { m_defaultDate = date;}
 
-	nsresult	CopyComposedMessage( nsCString& fromLine, nsIFile *pSrc, nsIOutputStream *pDst, SimpleBufferTonyRCopiedOnce& copy);
+  nsresult  CopyComposedMessage( nsCString& fromLine, nsIFile *pSrc, nsIOutputStream *pDst, SimpleBufferTonyRCopiedOnce& copy);
 
-	static nsresult	FillMailBuffer( ReadFileState *pState, SimpleBufferTonyRCopiedOnce& read);
-	static void		ReleaseIdentity( void);
-
-private:
-	nsresult	CreateComponents( void);
-	static nsresult		CreateIdentity( void);
-	
-	void		GetNthHeader( const char *pData, PRInt32 dataLen, PRInt32 n, nsCString& header, nsCString& val, PRBool unwrap);
-	void		GetHeaderValue( const char *pData, PRInt32 dataLen, const char *pHeader, nsCString& val, PRBool unwrap = PR_TRUE);
-	void		GetHeaderValue( const char *pData, PRInt32 dataLen, const char *pHeader, nsString& val) {
-		val.Truncate();
-		nsCString	hVal;
-		GetHeaderValue( pData, dataLen, pHeader, hVal, PR_TRUE);
-		NS_CopyNativeToUnicode( hVal, val);
-	}
-	void		ExtractCharset( nsString& str);
-	void		ExtractType( nsString& str);
-
-	nsMsgAttachedFile * GetLocalAttachments( void);
-	void				CleanUpAttach( nsMsgAttachedFile *a, PRInt32 count);
-
-	nsresult	ReadHeaders( ReadFileState *pState, SimpleBufferTonyRCopiedOnce& copy, SimpleBufferTonyRCopiedOnce& header);
-	PRInt32		FindNextEndLine( SimpleBufferTonyRCopiedOnce& data);
-	PRInt32		IsEndHeaders( SimpleBufferTonyRCopiedOnce& data);
-	PRInt32		IsSpecialHeader( const char *pHeader);
-	nsresult	WriteHeaders( nsIOutputStream *pDst, SimpleBufferTonyRCopiedOnce& newHeaders);
-	PRBool		IsReplaceHeader( const char *pHeader);
+  static nsresult  FillMailBuffer( ReadFileState *pState, SimpleBufferTonyRCopiedOnce& read);
+  static void    ReleaseIdentity( void);
 
 private:
-	static nsIMsgIdentity *		s_pIdentity;
+  nsresult  CreateComponents( void);
+  static nsresult    CreateIdentity( void);
 
-	nsVoidArray *			m_pAttachments;
-	nsIMsgSendListener *	m_pListener;
-	nsIMsgSend *			m_pMsgSend;
-	nsIMsgSend *			m_pSendProxy;
-	nsIMsgCompFields *		m_pMsgFields;
-	nsIIOService *			m_pIOService;
-	PRInt32					m_headerLen;
-	const char *			m_pHeaders;
-	PRInt32					m_bodyLen;
-	const char *			m_pBody;
-  nsCString				m_bodyType;
-	nsString				m_defCharset;
-	SimpleBufferTonyRCopiedOnce			m_readHeaders;
-	nsCOMPtr<nsIImportService>	m_pImportService;
+  void    GetNthHeader( const char *pData, PRInt32 dataLen, PRInt32 n, nsCString& header, nsCString& val, PRBool unwrap);
+  void    GetHeaderValue( const char *pData, PRInt32 dataLen, const char *pHeader, nsCString& val, PRBool unwrap = PR_TRUE);
+  void    GetHeaderValue( const char *pData, PRInt32 dataLen, const char *pHeader, nsString& val) {
+    val.Truncate();
+    nsCString  hVal;
+    GetHeaderValue( pData, dataLen, pHeader, hVal, PR_TRUE);
+    NS_CopyNativeToUnicode( hVal, val);
+  }
+  void    ExtractCharset( nsString& str);
+  void    ExtractType( nsString& str);
+
+  nsMsgAttachedFile * GetLocalAttachments( void);
+  void        CleanUpAttach( nsMsgAttachedFile *a, PRInt32 count);
+
+  nsresult  ReadHeaders( ReadFileState *pState, SimpleBufferTonyRCopiedOnce& copy, SimpleBufferTonyRCopiedOnce& header);
+  PRInt32    FindNextEndLine( SimpleBufferTonyRCopiedOnce& data);
+  PRInt32    IsEndHeaders( SimpleBufferTonyRCopiedOnce& data);
+  PRInt32    IsSpecialHeader( const char *pHeader);
+  nsresult  WriteHeaders( nsIOutputStream *pDst, SimpleBufferTonyRCopiedOnce& newHeaders);
+  PRBool    IsReplaceHeader( const char *pHeader);
+
+private:
+  static nsIMsgIdentity *    s_pIdentity;
+
+  nsVoidArray *      m_pAttachments;
+  nsIMsgSendListener *  m_pListener;
+  nsIMsgSend *      m_pMsgSend;
+  nsIMsgSend *      m_pSendProxy;
+  nsIMsgCompFields *    m_pMsgFields;
+  nsIIOService *      m_pIOService;
+  PRInt32          m_headerLen;
+  const char *      m_pHeaders;
+  PRInt32          m_bodyLen;
+  const char *      m_pBody;
+  nsCString        m_bodyType;
+  nsString        m_defCharset;
+  SimpleBufferTonyRCopiedOnce      m_readHeaders;
+  nsCOMPtr<nsIImportService>  m_pImportService;
   nsCString       m_defaultDate;  // Use this if no Date: header in msgs
 };
 

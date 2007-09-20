@@ -48,16 +48,16 @@ public:
     nsEudoraSettings();
     virtual ~nsEudoraSettings();
 
-	static nsresult Create(nsIImportSettings** aImport);
+  static nsresult Create(nsIImportSettings** aImport);
 
     // nsISupports interface
     NS_DECL_ISUPPORTS
 
-	// nsIImportSettings interface
-	NS_DECL_NSIIMPORTSETTINGS	  
+  // nsIImportSettings interface
+  NS_DECL_NSIIMPORTSETTINGS
 
 private:
-	nsCOMPtr<nsIFile> m_pLocation;
+  nsCOMPtr<nsIFile> m_pLocation;
 };
 
 #endif /* nsEudoraSettings_h___ */

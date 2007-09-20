@@ -45,51 +45,51 @@ class ImportOutFile;
 
 class UMimeEncode {
 public:
-	static PRUint32	GetBufferSize( PRUint32 inByes);
-	static PRUint32	ConvertBuffer( const PRUint8 * pIn, PRUint32 inLen, PRUint8 *pOut, PRUint32 maxLen = 72, PRUint32 firstLineLen = 72, const char * pEolStr = nsnull);
+  static PRUint32  GetBufferSize( PRUint32 inByes);
+  static PRUint32  ConvertBuffer( const PRUint8 * pIn, PRUint32 inLen, PRUint8 *pOut, PRUint32 maxLen = 72, PRUint32 firstLineLen = 72, const char * pEolStr = nsnull);
 };
 
 
 class nsImportTranslator {
 public:
-	virtual ~nsImportTranslator() {}
-	virtual PRBool		Supports8bitEncoding( void) { return( PR_FALSE);}
-	virtual PRUint32	GetMaxBufferSize( PRUint32 inLen) { return( inLen + 1);}
-	virtual void		ConvertBuffer( const PRUint8 * pIn, PRUint32 inLen, PRUint8 * pOut) { memcpy( pOut, pIn, inLen); pOut[inLen] = 0;}
-	virtual PRBool		ConvertToFile( const PRUint8 * pIn, PRUint32 inLen, ImportOutFile *pOutFile, PRUint32 *pProcessed = nsnull);
-	virtual PRBool		FinishConvertToFile( ImportOutFile * /* pOutFile */) { return( PR_TRUE);}
+  virtual ~nsImportTranslator() {}
+  virtual PRBool    Supports8bitEncoding( void) { return( PR_FALSE);}
+  virtual PRUint32  GetMaxBufferSize( PRUint32 inLen) { return( inLen + 1);}
+  virtual void    ConvertBuffer( const PRUint8 * pIn, PRUint32 inLen, PRUint8 * pOut) { memcpy( pOut, pIn, inLen); pOut[inLen] = 0;}
+  virtual PRBool    ConvertToFile( const PRUint8 * pIn, PRUint32 inLen, ImportOutFile *pOutFile, PRUint32 *pProcessed = nsnull);
+  virtual PRBool    FinishConvertToFile( ImportOutFile * /* pOutFile */) { return( PR_TRUE);}
 
-	virtual void	GetCharset( nsCString& charSet) { charSet = "us-ascii";}
-	virtual void	GetLanguage( nsCString& lang) { lang = "en";}
-	virtual void	GetEncoding( nsCString& encoding) { encoding.Truncate();}
+  virtual void  GetCharset( nsCString& charSet) { charSet = "us-ascii";}
+  virtual void  GetLanguage( nsCString& lang) { lang = "en";}
+  virtual void  GetEncoding( nsCString& encoding) { encoding.Truncate();}
 };
 
 // Specialized encoder, not a vaild language translator, used for Mime headers.
 // rfc2231
 class CMHTranslator : public nsImportTranslator {
 public:
-	virtual PRUint32	GetMaxBufferSize( PRUint32 inLen) { return( (inLen * 3) + 1);}
-	virtual void		ConvertBuffer( const PRUint8 * pIn, PRUint32 inLen, PRUint8 * pOut);
-	virtual PRBool		ConvertToFile( const PRUint8 * pIn, PRUint32 inLen, ImportOutFile *pOutFile, PRUint32 *pProcessed = nsnull);
+  virtual PRUint32  GetMaxBufferSize( PRUint32 inLen) { return( (inLen * 3) + 1);}
+  virtual void    ConvertBuffer( const PRUint8 * pIn, PRUint32 inLen, PRUint8 * pOut);
+  virtual PRBool    ConvertToFile( const PRUint8 * pIn, PRUint32 inLen, ImportOutFile *pOutFile, PRUint32 *pProcessed = nsnull);
 };
 
 // Specialized encoder, not a vaild language translator, used for mail headers
 // rfc2047
 class C2047Translator : public nsImportTranslator {
 public:
-	virtual ~C2047Translator() {}
+  virtual ~C2047Translator() {}
 
-	C2047Translator( const char *pCharset, PRUint32 headerLen) { m_charset = pCharset; m_startLen = headerLen; m_useQuotedPrintable = PR_FALSE;}
+  C2047Translator( const char *pCharset, PRUint32 headerLen) { m_charset = pCharset; m_startLen = headerLen; m_useQuotedPrintable = PR_FALSE;}
 
-	void	SetUseQuotedPrintable( void) { m_useQuotedPrintable = PR_TRUE;}
+  void  SetUseQuotedPrintable( void) { m_useQuotedPrintable = PR_TRUE;}
 
-	virtual PRBool	ConvertToFile( const PRUint8 * pIn, PRUint32 inLen, ImportOutFile *pOutFile, PRUint32 *pProcessed = nsnull);
-	PRBool	ConvertToFileQ( const PRUint8 * pIn, PRUint32 inLen, ImportOutFile *pOutFile, PRUint32 *pProcessed);
+  virtual PRBool  ConvertToFile( const PRUint8 * pIn, PRUint32 inLen, ImportOutFile *pOutFile, PRUint32 *pProcessed = nsnull);
+  PRBool  ConvertToFileQ( const PRUint8 * pIn, PRUint32 inLen, ImportOutFile *pOutFile, PRUint32 *pProcessed);
 
 protected:
-	PRBool			m_useQuotedPrintable;
-	nsCString		m_charset;
-	PRUint32		m_startLen;
+  PRBool      m_useQuotedPrintable;
+  nsCString    m_charset;
+  PRUint32    m_startLen;
 };
 
 #endif /* nsImportTranslator_h__ */

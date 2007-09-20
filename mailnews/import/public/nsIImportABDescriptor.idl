@@ -43,7 +43,7 @@
   interface.
 
   Can I get an attribute set method to take a const value???
-  
+
  */
 
 #include "nsISupports.idl"
@@ -63,7 +63,7 @@ interface nsIFile;
  */
 [scriptable, uuid(2d8983b2-cea6-4ae2-9145-eb772481fa18)]
 interface nsIImportABDescriptor : nsISupports
-{	
+{
   /**
    *  use the following 2 attributes however you'd like to
    * refer to a specific address book
@@ -71,23 +71,23 @@ interface nsIImportABDescriptor : nsISupports
   attribute unsigned long identifier;
   attribute unsigned long ref;
 
-	/**
+  /**
    * Doesn't have to be accurate, this is merely used to report progress.
    * If you're importing a file, using file size and reporting progress
    * as the number of bytes processed so far makes sense.  For other formats
-   * returning the number of records may make more sense.  
+   * returning the number of records may make more sense.
    */
   attribute unsigned long size;
-	
+
   /**
-   * The preferred name for this address book.  Depending upon how the 
+   * The preferred name for this address book.  Depending upon how the
    * user selected import, the caller of the nsIImportAddressBooks interface
    * may use this name to create the destination address book or it may
    * ignore it.  However, this must be provided in all cases as it is
    * also displayed in the UI to the user.
    */
   attribute AString preferredName;
-	
+
   /**
    * For address books that want a file descriptor to locate the address book.
    * For formats that do not, use identifier & ref to refer to the address book

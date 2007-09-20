@@ -40,27 +40,27 @@
 
 /*
 #ifdef NS_DEBUG
-#define MAPI_DEBUG	1
+#define MAPI_DEBUG  1
 #endif
 */
 
 #ifdef MAPI_DEBUG
 #include <stdio.h>
 
-#define MAPI_DUMP_STRING( x)		printf( "%s", (const char *)x)
-#define MAPI_TRACE0( x)				printf( x)
-#define MAPI_TRACE1( x, y)			printf( x, y)
-#define MAPI_TRACE2( x, y, z)		printf( x, y, z)
-#define MAPI_TRACE3( x, y, z, a)	printf( x, y, z, a)
+#define MAPI_DUMP_STRING( x)    printf( "%s", (const char *)x)
+#define MAPI_TRACE0( x)        printf( x)
+#define MAPI_TRACE1( x, y)      printf( x, y)
+#define MAPI_TRACE2( x, y, z)    printf( x, y, z)
+#define MAPI_TRACE3( x, y, z, a)  printf( x, y, z, a)
 #define MAPI_TRACE4( x, y, z, a, b) printf( x, y, z, a, b)
 
 
 #else
 
 #define MAPI_DUMP_STRING( x)
-#define	MAPI_TRACE0( x)
-#define	MAPI_TRACE1( x, y)
-#define	MAPI_TRACE2( x, y, z)
+#define  MAPI_TRACE0( x)
+#define  MAPI_TRACE1( x, y)
+#define  MAPI_TRACE2( x, y, z)
 #define MAPI_TRACE3( x, y, z, a)
 #define MAPI_TRACE4( x, y, z, a, b)
 

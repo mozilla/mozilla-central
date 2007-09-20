@@ -49,19 +49,19 @@ nsresult nsImportStringBundle::GetStringBundle(const char *aPropertyURL,
 {
   nsresult rv;
 
-	nsCOMPtr<nsIStringBundleService> sBundleService = 
-	         do_GetService(NS_STRINGBUNDLE_CONTRACTID, &rv); 
-	if (NS_SUCCEEDED(rv) && (nsnull != sBundleService)) {
+  nsCOMPtr<nsIStringBundleService> sBundleService =
+           do_GetService(NS_STRINGBUNDLE_CONTRACTID, &rv);
+  if (NS_SUCCEEDED(rv) && (nsnull != sBundleService)) {
     rv = sBundleService->CreateBundle(aPropertyURL, aBundle);
-	}
-	
+  }
+
   return rv;
 }
 
 nsresult nsImportStringBundle::GetStringBundleProxy(nsIStringBundle *aOriginalBundle,
                                                     nsIStringBundle **aProxy)
 {
-	// create a proxy object if we aren't on the same thread?
+  // create a proxy object if we aren't on the same thread?
   return NS_GetProxyForObject( NS_PROXY_TO_MAIN_THREAD,
                                NS_GET_IID(nsIStringBundle),
                                aOriginalBundle,

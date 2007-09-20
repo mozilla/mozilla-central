@@ -49,45 +49,45 @@
 
 class nsImportMailboxDescriptor : public nsIImportMailboxDescriptor
 {
-public: 
-	NS_DECL_ISUPPORTS
+public:
+  NS_DECL_ISUPPORTS
 
-	NS_IMETHOD	GetIdentifier( PRUint32 *pIdentifier) { *pIdentifier = m_id; return( NS_OK);}
-	NS_IMETHOD	SetIdentifier( PRUint32 ident) { m_id = ident; return( NS_OK);}
-	
-	/* attribute unsigned long depth; */
-	NS_IMETHOD	GetDepth( PRUint32 *pDepth) { *pDepth = m_depth; return( NS_OK);}
-	NS_IMETHOD	SetDepth( PRUint32 theDepth) { m_depth = theDepth; return( NS_OK);}
-	
-	/* attribute unsigned long size; */
-	NS_IMETHOD	GetSize( PRUint32 *pSize) { *pSize = m_size; return( NS_OK);}
-	NS_IMETHOD	SetSize( PRUint32 theSize) { m_size = theSize; return( NS_OK);}
-	
-	/* attribute wstring displayName; */
-	NS_IMETHOD	GetDisplayName( PRUnichar **pName) { *pName = ToNewUnicode(m_displayName); return( NS_OK);}
-	NS_IMETHOD	SetDisplayName( const PRUnichar * pName) { m_displayName = pName; return( NS_OK);}
-	
-	/* attribute boolean import; */
-	NS_IMETHOD	GetImport( PRBool *pImport) { *pImport = m_import; return( NS_OK);}
-	NS_IMETHOD	SetImport( PRBool doImport) { m_import = doImport; return( NS_OK);}
-	
-	/* readonly attribute nsILocalFile file; */
-	NS_IMETHOD GetFile(nsILocalFile * *aFile) { if (m_pFile) { NS_ADDREF(*aFile = m_pFile); return( NS_OK);} else return( NS_ERROR_FAILURE); }
+  NS_IMETHOD  GetIdentifier( PRUint32 *pIdentifier) { *pIdentifier = m_id; return( NS_OK);}
+  NS_IMETHOD  SetIdentifier( PRUint32 ident) { m_id = ident; return( NS_OK);}
+
+  /* attribute unsigned long depth; */
+  NS_IMETHOD  GetDepth( PRUint32 *pDepth) { *pDepth = m_depth; return( NS_OK);}
+  NS_IMETHOD  SetDepth( PRUint32 theDepth) { m_depth = theDepth; return( NS_OK);}
+
+  /* attribute unsigned long size; */
+  NS_IMETHOD  GetSize( PRUint32 *pSize) { *pSize = m_size; return( NS_OK);}
+  NS_IMETHOD  SetSize( PRUint32 theSize) { m_size = theSize; return( NS_OK);}
+
+  /* attribute wstring displayName; */
+  NS_IMETHOD  GetDisplayName( PRUnichar **pName) { *pName = ToNewUnicode(m_displayName); return( NS_OK);}
+  NS_IMETHOD  SetDisplayName( const PRUnichar * pName) { m_displayName = pName; return( NS_OK);}
+
+  /* attribute boolean import; */
+  NS_IMETHOD  GetImport( PRBool *pImport) { *pImport = m_import; return( NS_OK);}
+  NS_IMETHOD  SetImport( PRBool doImport) { m_import = doImport; return( NS_OK);}
+
+  /* readonly attribute nsILocalFile file; */
+  NS_IMETHOD GetFile(nsILocalFile * *aFile) { if (m_pFile) { NS_ADDREF(*aFile = m_pFile); return( NS_OK);} else return( NS_ERROR_FAILURE); }
 
 
 
-	nsImportMailboxDescriptor();
-	virtual ~nsImportMailboxDescriptor() {}
+  nsImportMailboxDescriptor();
+  virtual ~nsImportMailboxDescriptor() {}
 
- 	static NS_METHOD Create( nsISupports *aOuter, REFNSIID aIID, void **aResult);
-			
+   static NS_METHOD Create( nsISupports *aOuter, REFNSIID aIID, void **aResult);
+
 private:
-	PRUint32		m_id;			// used by creator of the structure
-	PRUint32		m_depth;		// depth in the heirarchy
-	nsString		m_displayName;// name of this mailbox
-	nsCOMPtr <nsILocalFile> m_pFile;	// source file (if applicable)
-	PRUint32		m_size;
-	PRBool			m_import;		// import it or not?	
+  PRUint32    m_id;      // used by creator of the structure
+  PRUint32    m_depth;    // depth in the heirarchy
+  nsString    m_displayName;// name of this mailbox
+  nsCOMPtr <nsILocalFile> m_pFile;  // source file (if applicable)
+  PRUint32    m_size;
+  PRBool      m_import;    // import it or not?
 };
 
 

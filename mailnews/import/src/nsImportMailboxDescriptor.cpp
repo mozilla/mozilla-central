@@ -60,11 +60,11 @@ NS_METHOD nsImportMailboxDescriptor::Create( nsISupports *aOuter, REFNSIID aIID,
 
 NS_IMPL_THREADSAFE_ISUPPORTS1(nsImportMailboxDescriptor, nsIImportMailboxDescriptor)
 
-nsImportMailboxDescriptor::nsImportMailboxDescriptor() 
-{ 
-	m_import = PR_TRUE;
-	m_size = 0;
-	m_depth = 0;
-	m_id = 0;
+nsImportMailboxDescriptor::nsImportMailboxDescriptor()
+{
+  m_import = PR_TRUE;
+  m_size = 0;
+  m_depth = 0;
+  m_id = 0;
         m_pFile = do_CreateInstance(NS_LOCAL_FILE_CONTRACTID);
 }

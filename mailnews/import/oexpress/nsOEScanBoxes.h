@@ -50,58 +50,58 @@ class nsIInputStream;
 
 class nsOEScanBoxes {
 public:
-	nsOEScanBoxes();
-	~nsOEScanBoxes();
+  nsOEScanBoxes();
+  ~nsOEScanBoxes();
 
-	static PRBool	FindMail( nsIFile *pWhere);
-	
-	PRBool	GetMailboxes( nsIFile *pWhere, nsISupportsArray **pArray);
-		
+  static PRBool  FindMail( nsIFile *pWhere);
+
+  PRBool  GetMailboxes( nsIFile *pWhere, nsISupportsArray **pArray);
+
 
 private:
-	typedef struct {
-		PRUint32	index;
-		PRUint32	parent;
-		PRInt32		child;
-		PRInt32		sibling;
-		PRInt32		type;
-		nsString	mailName;
-		nsCString	fileName;
+  typedef struct {
+    PRUint32  index;
+    PRUint32  parent;
+    PRInt32    child;
+    PRInt32    sibling;
+    PRInt32    type;
+    nsString  mailName;
+    nsCString  fileName;
     PRBool    processed; // used by entries on m_pendingChildArray list
-	} MailboxEntry;
+  } MailboxEntry;
 
-	static PRBool	Find50Mail( nsIFile *pWhere);
+  static PRBool  Find50Mail( nsIFile *pWhere);
 
-	void	Reset( void);
-	PRBool	FindMailBoxes( nsIFile * descFile);
-	PRBool	Find50MailBoxes( nsIFile * descFile);
+  void  Reset( void);
+  PRBool  FindMailBoxes( nsIFile * descFile);
+  PRBool  Find50MailBoxes( nsIFile * descFile);
 
-	// If find mailboxes fails you can use this routine to get the raw mailbox file names
-	void	ScanMailboxDir( nsIFile * srcDir);
-	PRBool	Scan50MailboxDir( nsIFile * srcDir);
+  // If find mailboxes fails you can use this routine to get the raw mailbox file names
+  void  ScanMailboxDir( nsIFile * srcDir);
+  PRBool  Scan50MailboxDir( nsIFile * srcDir);
 
-	MailboxEntry *	GetIndexEntry( PRUint32 index);
-	void			AddChildEntry( MailboxEntry *pEntry, PRUint32 rootIndex);
+  MailboxEntry *  GetIndexEntry( PRUint32 index);
+  void      AddChildEntry( MailboxEntry *pEntry, PRUint32 rootIndex);
   MailboxEntry *  NewMailboxEntry(PRUint32 id, PRUint32 parent, const char *prettyName, char *pFileName);
   void        ProcessPendingChildEntries(PRUint32 parent, PRUint32 rootIndex, nsVoidArray &childArray);
   void        RemoveProcessedChildEntries();
 
 
-	PRBool			ReadLong( nsIInputStream * stream, PRInt32& val, PRUint32 offset);
-	PRBool			ReadLong( nsIInputStream * stream, PRUint32& val, PRUint32 offset);
-	PRBool			ReadString( nsIInputStream * stream, nsString& str, PRUint32 offset);
-	PRBool			ReadString( nsIInputStream * stream, nsCString& str, PRUint32 offset);
-	PRUint32 		CountMailboxes( MailboxEntry *pBox);
+  PRBool      ReadLong( nsIInputStream * stream, PRInt32& val, PRUint32 offset);
+  PRBool      ReadLong( nsIInputStream * stream, PRUint32& val, PRUint32 offset);
+  PRBool      ReadString( nsIInputStream * stream, nsString& str, PRUint32 offset);
+  PRBool      ReadString( nsIInputStream * stream, nsCString& str, PRUint32 offset);
+  PRUint32     CountMailboxes( MailboxEntry *pBox);
 
-	void 			BuildMailboxList( MailboxEntry *pBox, nsIFile * root, PRInt32 depth, nsISupportsArray *pArray);
-	PRBool 			GetMailboxList( nsIFile * root, nsISupportsArray **pArray);
-	
+  void       BuildMailboxList( MailboxEntry *pBox, nsIFile * root, PRInt32 depth, nsISupportsArray *pArray);
+  PRBool       GetMailboxList( nsIFile * root, nsISupportsArray **pArray);
+
 private:
-	MailboxEntry *				m_pFirst;
-	nsVoidArray					m_entryArray;
-  nsVoidArray					m_pendingChildArray; // contains child folders whose parent folders have not showed up.
+  MailboxEntry *        m_pFirst;
+  nsVoidArray          m_entryArray;
+  nsVoidArray          m_pendingChildArray; // contains child folders whose parent folders have not showed up.
 
-	nsCOMPtr<nsIImportService>	mService;
+  nsCOMPtr<nsIImportService>  mService;
 };
 
 #endif // nsOEScanBoxes_h__

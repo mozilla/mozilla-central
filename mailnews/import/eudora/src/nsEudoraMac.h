@@ -53,54 +53,54 @@ class nsIMsgAccount;
 
 class nsEudoraMac : public nsEudoraMailbox, public nsEudoraAddress {
 public:
-	nsEudoraMac();
-	~nsEudoraMac();
+  nsEudoraMac();
+  ~nsEudoraMac();
 
-		// retrieve the mail folder
-	virtual PRBool		FindMailFolder( nsIFile **pFolder);
-		// get the list of mailboxes
-	virtual nsresult	FindMailboxes( nsIFile *pRoot, nsISupportsArray **ppArray);
-		// get a TOC file from a mailbox file
-	virtual nsresult	FindTOCFile( nsIFile *pMailFile, nsIFile **pTOCFile, PRBool *pDeleteToc);
+    // retrieve the mail folder
+  virtual PRBool    FindMailFolder( nsIFile **pFolder);
+    // get the list of mailboxes
+  virtual nsresult  FindMailboxes( nsIFile *pRoot, nsISupportsArray **ppArray);
+    // get a TOC file from a mailbox file
+  virtual nsresult  FindTOCFile( nsIFile *pMailFile, nsIFile **pTOCFile, PRBool *pDeleteToc);
 
-	virtual nsresult	GetAttachmentInfo( const char *pFileName, nsIFile *pFile, nsCString& mimeType, nsCString& aAttachment);
+  virtual nsresult  GetAttachmentInfo( const char *pFileName, nsIFile *pFile, nsCString& mimeType, nsCString& aAttachment);
 
-		// Address book stuff
-	virtual PRBool		FindAddressFolder( nsIFile **pFolder);
-		// get the list of mailboxes
-	virtual nsresult	FindAddressBooks( nsIFile *pRoot, nsISupportsArray **ppArray);
+    // Address book stuff
+  virtual PRBool    FindAddressFolder( nsIFile **pFolder);
+    // get the list of mailboxes
+  virtual nsresult  FindAddressBooks( nsIFile *pRoot, nsISupportsArray **ppArray);
 
-		// import settings
-	static PRBool	ImportSettings( nsIFile *pIniFile, nsIMsgAccount **localMailAccount);
-	static PRBool	FindSettingsFile( nsIFile **pIniFile) { return( FindEudoraLocation( pIniFile, PR_TRUE));}
-
-private:
-	static PRBool		FindEudoraLocation( nsIFile **pFolder, PRBool findIni = PR_FALSE, nsIFile *pLookIn = nsnull);
-
-
-	nsresult	ScanMailDir( nsIFile *pFolder, nsISupportsArray *pArray, nsIImportService *pImport);
-	nsresult	IterateMailDir( nsIFile *pFolder, nsISupportsArray *pArray, nsIImportService *pImport);
-	nsresult	FoundMailFolder( nsILocalFile *mailFolder, const char *pName, nsISupportsArray *pArray, nsIImportService *pImport);
-	nsresult	FoundMailbox( nsIFile *mailFile, const char *pName, nsISupportsArray *pArray, nsIImportService *pImport);
-
-	PRBool 		IsValidMailFolderName( nsCString& name);
-	PRBool 		IsValidMailboxName( nsCString& fName);
-	PRBool 		IsValidMailboxFile( nsIFile *pFile);
-
-	PRBool		CreateTocFromResource( nsIFile *pMail, nsIFile **pToc);
-
-	
-
-		// Settings support
-	static PRBool	BuildPOPAccount( nsIMsgAccountManager *accMgr, nsCString **pStrs, nsIMsgAccount **ppAccount, nsString& accName);
-	static PRBool	BuildIMAPAccount( nsIMsgAccountManager *accMgr, nsCString **pStrs, nsIMsgAccount **ppAccount, nsString& accName);
-	static void		SetIdentities( nsIMsgAccountManager *accMgr, nsIMsgAccount *acc, const char *userName, const char *serverName, nsCString **pStrs);
-	static void		SetSmtpServer( nsIMsgAccountManager *pMgr, nsIMsgAccount *pAcc, const char *pServer, const char *pUser);
-	static PRBool 	GetSettingsFromResource( nsIFile *pSettings, short resId, nsCString **pStrs, PRBool *pIMAP);
-
+    // import settings
+  static PRBool  ImportSettings( nsIFile *pIniFile, nsIMsgAccount **localMailAccount);
+  static PRBool  FindSettingsFile( nsIFile **pIniFile) { return( FindEudoraLocation( pIniFile, PR_TRUE));}
 
 private:
-	PRUint32                m_depth;
+  static PRBool    FindEudoraLocation( nsIFile **pFolder, PRBool findIni = PR_FALSE, nsIFile *pLookIn = nsnull);
+
+
+  nsresult  ScanMailDir( nsIFile *pFolder, nsISupportsArray *pArray, nsIImportService *pImport);
+  nsresult  IterateMailDir( nsIFile *pFolder, nsISupportsArray *pArray, nsIImportService *pImport);
+  nsresult  FoundMailFolder( nsILocalFile *mailFolder, const char *pName, nsISupportsArray *pArray, nsIImportService *pImport);
+  nsresult  FoundMailbox( nsIFile *mailFile, const char *pName, nsISupportsArray *pArray, nsIImportService *pImport);
+
+  PRBool     IsValidMailFolderName( nsCString& name);
+  PRBool     IsValidMailboxName( nsCString& fName);
+  PRBool     IsValidMailboxFile( nsIFile *pFile);
+
+  PRBool    CreateTocFromResource( nsIFile *pMail, nsIFile **pToc);
+
+
+
+    // Settings support
+  static PRBool  BuildPOPAccount( nsIMsgAccountManager *accMgr, nsCString **pStrs, nsIMsgAccount **ppAccount, nsString& accName);
+  static PRBool  BuildIMAPAccount( nsIMsgAccountManager *accMgr, nsCString **pStrs, nsIMsgAccount **ppAccount, nsString& accName);
+  static void    SetIdentities( nsIMsgAccountManager *accMgr, nsIMsgAccount *acc, const char *userName, const char *serverName, nsCString **pStrs);
+  static void    SetSmtpServer( nsIMsgAccountManager *pMgr, nsIMsgAccount *pAcc, const char *pServer, const char *pUser);
+  static PRBool   GetSettingsFromResource( nsIFile *pSettings, short resId, nsCString **pStrs, PRBool *pIMAP);
+
+
+private:
+  PRUint32                m_depth;
         nsCOMPtr <nsILocalFile>      m_mailImportLocation;
         PRBool HasResourceFork(FSSpec *fsSpec);
 };

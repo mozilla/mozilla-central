@@ -49,8 +49,8 @@
 
 class CWabIterator {
 public:
-	virtual nsresult  EnumUser( const PRUnichar *pName, LPENTRYID pEid, ULONG cbEid) = 0;
-	virtual nsresult  EnumList( const PRUnichar *pName, LPENTRYID pEid, ULONG cbEid, LPMAPITABLE lpTable) = 0;
+  virtual nsresult  EnumUser( const PRUnichar *pName, LPENTRYID pEid, ULONG cbEid) = 0;
+  virtual nsresult  EnumList( const PRUnichar *pName, LPENTRYID pEid, ULONG cbEid, LPMAPITABLE lpTable) = 0;
 };
 
 
@@ -59,34 +59,34 @@ class CWAB
 public:
     CWAB( nsILocalFile *fileName);
     ~CWAB();
-    
-	PRBool		Loaded( void) { return( m_bInitialized);}
 
-	HRESULT		IterateWABContents(CWabIterator *pIter, int *pDone);
-	
-	// Methods for User entries
-	LPDISTLIST		GetDistList( ULONG cbEid, LPENTRYID pEid);
-	void			ReleaseDistList( LPDISTLIST pList) { if (pList) pList->Release();}
-	LPMAILUSER		GetUser( ULONG cbEid, LPENTRYID pEid);
-	void			ReleaseUser( LPMAILUSER pUser) { if (pUser) pUser->Release();}
-	LPSPropValue	GetUserProperty( LPMAILUSER pUser, ULONG tag);
-	LPSPropValue	GetListProperty( LPDISTLIST pList, ULONG tag);
-	void			FreeProperty( LPSPropValue pVal) { if (pVal) m_lpWABObject->FreeBuffer( pVal);}
-	void			GetValueString( LPSPropValue pVal, nsString& val);
+  PRBool    Loaded( void) { return( m_bInitialized);}
 
-	void			CStrToUnicode( const char *pStr, nsString& result);
+  HRESULT    IterateWABContents(CWabIterator *pIter, int *pDone);
 
-	// Utility stuff used by iterate
-	void			FreeProws(LPSRowSet prows);
+  // Methods for User entries
+  LPDISTLIST    GetDistList( ULONG cbEid, LPENTRYID pEid);
+  void      ReleaseDistList( LPDISTLIST pList) { if (pList) pList->Release();}
+  LPMAILUSER    GetUser( ULONG cbEid, LPENTRYID pEid);
+  void      ReleaseUser( LPMAILUSER pUser) { if (pUser) pUser->Release();}
+  LPSPropValue  GetUserProperty( LPMAILUSER pUser, ULONG tag);
+  LPSPropValue  GetListProperty( LPDISTLIST pList, ULONG tag);
+  void      FreeProperty( LPSPropValue pVal) { if (pVal) m_lpWABObject->FreeBuffer( pVal);}
+  void      GetValueString( LPSPropValue pVal, nsString& val);
+
+  void      CStrToUnicode( const char *pStr, nsString& result);
+
+  // Utility stuff used by iterate
+  void      FreeProws(LPSRowSet prows);
 
 
 private:
-	PRUnichar *	m_pUniBuff;
-	int			m_uniBuffLen;
-	PRBool      m_bInitialized;
+  PRUnichar *  m_pUniBuff;
+  int      m_uniBuffLen;
+  PRBool      m_bInitialized;
     HINSTANCE   m_hinstWAB;
     LPWABOPEN   m_lpfnWABOpen;
-    LPADRBOOK   m_lpAdrBook; 
+    LPADRBOOK   m_lpAdrBook;
     LPWABOBJECT m_lpWABObject;
 };
 

@@ -56,21 +56,21 @@ class nsImportModuleList;
 class nsImportService : public nsIImportService
 {
 public:
-  
+
   nsImportService();
   virtual ~nsImportService();
-  
+
   NS_DECL_ISUPPORTS
-    
+
     NS_DECL_NSIIMPORTSERVICE
-    
+
 private:
     nsresult LoadModuleInfo( const char*pClsId, const char *pSupports);
   nsresult DoDiscover( void);
-  
+
 private:
     nsImportModuleList * m_pModules;
-  PRBool m_didDiscovery;	
+  PRBool m_didDiscovery;
   nsCString m_sysCharset;
   nsIUnicodeDecoder * m_pDecoder;
   nsIUnicodeEncoder * m_pEncoder;
@@ -80,23 +80,23 @@ private:
 class ImportModuleDesc {
 public:
   ImportModuleDesc() { m_pModule = nsnull;}
-  ~ImportModuleDesc() { ReleaseModule();	}
-  
-  void	SetCID( const nsCID& cid) { m_cid = cid;}
-  void	SetName( const PRUnichar *pName) { m_name = pName;}
-  void	SetDescription( const PRUnichar *pDesc) { m_description = pDesc;}
-  void	SetSupports( const char *pSupports) { m_supports = pSupports;}
-  
-  nsCID			GetCID( void) { return( m_cid);}
+  ~ImportModuleDesc() { ReleaseModule();  }
+
+  void  SetCID( const nsCID& cid) { m_cid = cid;}
+  void  SetName( const PRUnichar *pName) { m_name = pName;}
+  void  SetDescription( const PRUnichar *pDesc) { m_description = pDesc;}
+  void  SetSupports( const char *pSupports) { m_supports = pSupports;}
+
+  nsCID      GetCID( void) { return( m_cid);}
   const PRUnichar *GetName( void) { return( m_name.get());}
   const PRUnichar *GetDescription( void) { return( m_description.get());}
-  const char *	GetSupports( void) { return( m_supports.get());}
-  
-  nsIImportModule *	GetModule( PRBool keepLoaded = PR_FALSE); // Adds ref
-  void				ReleaseModule( void);
-  
-  PRBool			SupportsThings( const char *pThings);
-  
+  const char *  GetSupports( void) { return( m_supports.get());}
+
+  nsIImportModule *  GetModule( PRBool keepLoaded = PR_FALSE); // Adds ref
+  void        ReleaseModule( void);
+
+  PRBool      SupportsThings( const char *pThings);
+
 private:
     nsCID m_cid;
   nsString m_name;
@@ -109,22 +109,22 @@ class nsImportModuleList {
 public:
   nsImportModuleList() { m_pList = nsnull; m_alloc = 0; m_count = 0;}
   ~nsImportModuleList() { ClearList(); }
-  
-  void	AddModule( const nsCID& cid, const char *pSupports, const PRUnichar *pName, const PRUnichar *pDesc);
-  
-  void	ClearList( void);
-  
-  PRInt32	GetCount( void) { return( m_count);}
-  
-  ImportModuleDesc *	GetModuleDesc( PRInt32 idx) 
-		{ if ((idx < 0) || (idx >= m_count)) return( nsnull); else return( m_pList[idx]);}
-  
+
+  void  AddModule( const nsCID& cid, const char *pSupports, const PRUnichar *pName, const PRUnichar *pDesc);
+
+  void  ClearList( void);
+
+  PRInt32  GetCount( void) { return( m_count);}
+
+  ImportModuleDesc *  GetModuleDesc( PRInt32 idx)
+    { if ((idx < 0) || (idx >= m_count)) return( nsnull); else return( m_pList[idx]);}
+
 private:
-    
+
 private:
-    ImportModuleDesc **	m_pList;
-  PRInt32				m_alloc;
-  PRInt32				m_count;
+    ImportModuleDesc **  m_pList;
+  PRInt32        m_alloc;
+  PRInt32        m_count;
 };
 
 #endif // nsImportService_h__

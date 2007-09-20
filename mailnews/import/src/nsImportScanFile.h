@@ -42,42 +42,42 @@
 
 class nsImportScanFile {
 public:
-	nsImportScanFile();
-	virtual ~nsImportScanFile();
+  nsImportScanFile();
+  virtual ~nsImportScanFile();
 
-	void	InitScan( nsIInputStream *pInputStream, PRUint8 * pBuf, PRUint32 sz);
+  void  InitScan( nsIInputStream *pInputStream, PRUint8 * pBuf, PRUint32 sz);
 
-	void	CleanUpScan( void);
+  void  CleanUpScan( void);
 
-	virtual	PRBool	Scan( PRBool *pDone);
-
-protected:
-	void			ShiftBuffer( void);
-	PRBool			FillBufferFromFile( void);
-	virtual PRBool	ScanBuffer( PRBool *pDone);
+  virtual  PRBool  Scan( PRBool *pDone);
 
 protected:
-	nsCOMPtr <nsIInputStream> m_pInputStream;
-	PRUint8 *		m_pBuf;
-	PRUint32		m_bufSz;
-	PRUint32		m_bytesInBuf;
-	PRUint32		m_pos;
-	PRBool			m_eof;
-	PRBool			m_allocated;
+  void      ShiftBuffer( void);
+  PRBool      FillBufferFromFile( void);
+  virtual PRBool  ScanBuffer( PRBool *pDone);
+
+protected:
+  nsCOMPtr <nsIInputStream> m_pInputStream;
+  PRUint8 *    m_pBuf;
+  PRUint32    m_bufSz;
+  PRUint32    m_bytesInBuf;
+  PRUint32    m_pos;
+  PRBool      m_eof;
+  PRBool      m_allocated;
 };
 
 class nsImportScanFileLines : public nsImportScanFile {
 public:
-	nsImportScanFileLines() {m_needEol = PR_FALSE;}
+  nsImportScanFileLines() {m_needEol = PR_FALSE;}
 
-	void	ResetLineScan( void) { m_needEol = PR_FALSE;}
+  void  ResetLineScan( void) { m_needEol = PR_FALSE;}
 
-	virtual PRBool ProcessLine( PRUint8 * /* pLine */, PRUint32 /* len */, PRBool * /* pDone */ ) {return( PR_TRUE);}
+  virtual PRBool ProcessLine( PRUint8 * /* pLine */, PRUint32 /* len */, PRBool * /* pDone */ ) {return( PR_TRUE);}
 
 protected:
-	virtual PRBool	ScanBuffer( PRBool *pDone);
+  virtual PRBool  ScanBuffer( PRBool *pDone);
 
-	PRBool	m_needEol;
+  PRBool  m_needEol;
 
 };
 

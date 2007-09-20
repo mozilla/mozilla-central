@@ -43,32 +43,32 @@ class nsIStringBundle;
 
 class nsEudoraStringBundle {
 public:
-	static PRUnichar     *		GetStringByID(PRInt32 stringID, nsIStringBundle *pBundle = nsnull);
-	static void					GetStringByID(PRInt32 stringID, nsString& result, nsIStringBundle *pBundle = nsnull);
-	static nsIStringBundle *	GetStringBundle( void); // don't release
-	static nsIStringBundle *	GetStringBundleProxy( void); // release
-	static void					FreeString( PRUnichar *pStr) { NS_Free( pStr);}
-	static void					Cleanup( void);
+  static PRUnichar     *    GetStringByID(PRInt32 stringID, nsIStringBundle *pBundle = nsnull);
+  static void          GetStringByID(PRInt32 stringID, nsString& result, nsIStringBundle *pBundle = nsnull);
+  static nsIStringBundle *  GetStringBundle( void); // don't release
+  static nsIStringBundle *  GetStringBundleProxy( void); // release
+  static void          FreeString( PRUnichar *pStr) { NS_Free( pStr);}
+  static void          Cleanup( void);
 
 private:
-	static nsIStringBundle *	m_pBundle;
+  static nsIStringBundle *  m_pBundle;
 };
 
 
 
-#define	EUDORAIMPORT_NAME                               2000
-#define	EUDORAIMPORT_DESCRIPTION                        2001
+#define  EUDORAIMPORT_NAME                               2000
+#define  EUDORAIMPORT_DESCRIPTION                        2001
 #define EUDORAIMPORT_MAILBOX_SUCCESS                    2002
 #define EUDORAIMPORT_MAILBOX_BADPARAM                   2003
 #define EUDORAIMPORT_MAILBOX_BADSOURCEFILE              2004
 #define EUDORAIMPORT_MAILBOX_CONVERTERROR               2005
 #define EUDORAIMPORT_ACCOUNTNAME                        2006
 
-#define	EUDORAIMPORT_NICKNAMES_NAME                     2007
-#define	EUDORAIMPORT_ADDRESS_SUCCESS                    2008
-#define	EUDORAIMPORT_ADDRESS_BADPARAM                   2009
-#define	EUDORAIMPORT_ADDRESS_BADSOURCEFILE              2010
-#define	EUDORAIMPORT_ADDRESS_CONVERTERROR               2011
+#define  EUDORAIMPORT_NICKNAMES_NAME                     2007
+#define  EUDORAIMPORT_ADDRESS_SUCCESS                    2008
+#define  EUDORAIMPORT_ADDRESS_BADPARAM                   2009
+#define  EUDORAIMPORT_ADDRESS_BADSOURCEFILE              2010
+#define  EUDORAIMPORT_ADDRESS_CONVERTERROR               2011
 #define EUDORAIMPORT_ADDRESS_LABEL_HOMEMOBILE           2012
 #define EUDORAIMPORT_ADDRESS_LABEL_WORKMOBILE           2013
 #define EUDORAIMPORT_ADDRESS_LABEL_HOMEFAX              2014

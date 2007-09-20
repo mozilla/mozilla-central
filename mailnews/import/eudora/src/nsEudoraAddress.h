@@ -59,47 +59,47 @@ class nsIStringBundle;
 
 class nsEudoraAddress {
 public:
-	nsEudoraAddress();
-	virtual ~nsEudoraAddress();
+  nsEudoraAddress();
+  virtual ~nsEudoraAddress();
 
-	// Things that must be overridden because they are platform specific.
-		// retrieve the mail folder
-	virtual PRBool		FindAddressFolder( nsIFile **pFolder) { return( PR_FALSE);}
-		// get the list of mailboxes
-	virtual nsresult	FindAddressBooks( nsIFile *pRoot, nsISupportsArray **ppArray) { return( NS_ERROR_FAILURE);}
-		
-	// Non-platform specific common stuff
-		// import a mailbox
-	nsresult ImportAddresses( PRUint32 *pBytes, PRBool *pAbort, const PRUnichar *pName, nsIFile *pSrc, nsIAddrDatabase *pDb, nsString& errors);
+  // Things that must be overridden because they are platform specific.
+    // retrieve the mail folder
+  virtual PRBool    FindAddressFolder( nsIFile **pFolder) { return( PR_FALSE);}
+    // get the list of mailboxes
+  virtual nsresult  FindAddressBooks( nsIFile *pRoot, nsISupportsArray **ppArray) { return( NS_ERROR_FAILURE);}
+
+  // Non-platform specific common stuff
+    // import a mailbox
+  nsresult ImportAddresses( PRUint32 *pBytes, PRBool *pAbort, const PRUnichar *pName, nsIFile *pSrc, nsIAddrDatabase *pDb, nsString& errors);
 
 
 private:
-	void 			EmptyAliases( void);
-	void			ProcessLine( const char *pLine, PRInt32 len, nsString& errors);
-	PRInt32 		CountWhiteSpace( const char *pLine, PRInt32 len);
-	CAliasEntry	*	ProcessAlias( const char *pLine, PRInt32 len, nsString& errors);
-	void			ProcessNote( const char *pLine, PRInt32 len, nsString& errors);
-	PRInt32			GetAliasName( const char *pLine, PRInt32 len, nsCString& name);
-	CAliasEntry *	ResolveAlias( nsCString& name);
-	void 			ResolveEntries( nsCString& name, nsVoidArray& list, nsVoidArray& result, PRBool addResolvedEntries, PRBool wasResolved, PRInt32& numResolved);
-	void			BuildABCards( PRUint32 *pBytes, nsIAddrDatabase *pDb);
-	void			AddSingleCard( CAliasEntry *pEntry, nsVoidArray &emailList, nsIAddrDatabase *pDb);
+  void       EmptyAliases( void);
+  void      ProcessLine( const char *pLine, PRInt32 len, nsString& errors);
+  PRInt32     CountWhiteSpace( const char *pLine, PRInt32 len);
+  CAliasEntry  *  ProcessAlias( const char *pLine, PRInt32 len, nsString& errors);
+  void      ProcessNote( const char *pLine, PRInt32 len, nsString& errors);
+  PRInt32      GetAliasName( const char *pLine, PRInt32 len, nsCString& name);
+  CAliasEntry *  ResolveAlias( nsCString& name);
+  void       ResolveEntries( nsCString& name, nsVoidArray& list, nsVoidArray& result, PRBool addResolvedEntries, PRBool wasResolved, PRInt32& numResolved);
+  void      BuildABCards( PRUint32 *pBytes, nsIAddrDatabase *pDb);
+  void      AddSingleCard( CAliasEntry *pEntry, nsVoidArray &emailList, nsIAddrDatabase *pDb);
   nsresult  AddSingleList( CAliasEntry *pEntry, nsVoidArray &emailList, nsIAddrDatabase *pDb);
   nsresult  AddGroupMembersAsCards(nsVoidArray &membersArray, nsIAddrDatabase *pDb);
   void      RememberGroupMembers(nsVoidArray &membersArray, nsVoidArray &emailList);
-	PRInt32			FindAlias( nsCString& name);
-	void			ExtractNoteField( nsCString& note, nsCString& field, const char *pFieldName);
+  PRInt32      FindAlias( nsCString& name);
+  void      ExtractNoteField( nsCString& note, nsCString& field, const char *pFieldName);
   void FormatExtraDataInNoteField(PRInt32 labelStringID, nsIStringBundle* bundle, nsCString& extraData, nsString& noteUTF16);
-	void			SanitizeValue( nsCString& val);
-	void			SplitString( nsCString& val1, nsCString& val2);
+  void      SanitizeValue( nsCString& val);
+  void      SplitString( nsCString& val1, nsCString& val2);
 
 public:
-	static PRInt32 		CountQuote( const char *pLine, PRInt32 len);
-	static PRInt32 		CountComment( const char *pLine, PRInt32 len);
-	static PRInt32 		CountAngle( const char *pLine, PRInt32 len);
+  static PRInt32     CountQuote( const char *pLine, PRInt32 len);
+  static PRInt32     CountComment( const char *pLine, PRInt32 len);
+  static PRInt32     CountAngle( const char *pLine, PRInt32 len);
 
 private:
-	nsVoidArray		m_alias;
+  nsVoidArray    m_alias;
 };
 
 

@@ -42,163 +42,163 @@
 
 nsImportScanFile::nsImportScanFile()
 {
-	m_allocated = PR_FALSE;
-	m_eof = PR_FALSE;
-	m_pBuf = nsnull;
+  m_allocated = PR_FALSE;
+  m_eof = PR_FALSE;
+  m_pBuf = nsnull;
 }
 
 nsImportScanFile::~nsImportScanFile()
 {
-	if (m_allocated)
-		CleanUpScan();
+  if (m_allocated)
+    CleanUpScan();
 }
 
 void nsImportScanFile::InitScan( nsIInputStream *pInputStream, PRUint8 * pBuf, PRUint32 sz)
 {
-	m_pInputStream = pInputStream;
-	m_pBuf = pBuf;
-	m_bufSz = sz;
-	m_bytesInBuf = 0;
-	m_pos = 0;
+  m_pInputStream = pInputStream;
+  m_pBuf = pBuf;
+  m_bufSz = sz;
+  m_bytesInBuf = 0;
+  m_pos = 0;
 }
 
 void nsImportScanFile::CleanUpScan( void)
 {
-	m_pInputStream = nsnull;
-	if (m_allocated) {
-		delete [] m_pBuf;
-		m_pBuf = NULL;
-	}
+  m_pInputStream = nsnull;
+  if (m_allocated) {
+    delete [] m_pBuf;
+    m_pBuf = NULL;
+  }
 }
 
 void nsImportScanFile::ShiftBuffer( void)
 {
-	PRUint8 *	pTop;
-	PRUint8 *	pCurrent;
+  PRUint8 *  pTop;
+  PRUint8 *  pCurrent;
 
-	if (m_pos < m_bytesInBuf) {
-		pTop = m_pBuf;
-		pCurrent = pTop + m_pos;
-		PRUint32		cnt = m_bytesInBuf - m_pos;
-		while (cnt) {
-			*pTop = *pCurrent;
-			pTop++; pCurrent++;
-			cnt--;
-		}
-	}
+  if (m_pos < m_bytesInBuf) {
+    pTop = m_pBuf;
+    pCurrent = pTop + m_pos;
+    PRUint32    cnt = m_bytesInBuf - m_pos;
+    while (cnt) {
+      *pTop = *pCurrent;
+      pTop++; pCurrent++;
+      cnt--;
+    }
+  }
 
-	m_bytesInBuf -= m_pos;
-	m_pos = 0;
+  m_bytesInBuf -= m_pos;
+  m_pos = 0;
 }
 
 PRBool nsImportScanFile::FillBufferFromFile( void)
 {
-	PRUint32 available;
-	nsresult rv = m_pInputStream->Available( &available);
-	if (NS_FAILED(rv))
-		return( PR_FALSE);
+  PRUint32 available;
+  nsresult rv = m_pInputStream->Available( &available);
+  if (NS_FAILED(rv))
+    return( PR_FALSE);
 
-	// Fill up a buffer and scan it
-	ShiftBuffer();
+  // Fill up a buffer and scan it
+  ShiftBuffer();
 
-	// Read in some more bytes
-	PRUint32	cnt = m_bufSz - m_bytesInBuf;
-	// To distinguish from disk errors
-	// Check first for end of file?
-	// Set a done flag if true...
-	PRUint32 read;
-	char *pBuf = (char *)m_pBuf;
-	pBuf += m_bytesInBuf;
-	rv = m_pInputStream->Read(pBuf, (PRInt32) cnt, &read);
+  // Read in some more bytes
+  PRUint32  cnt = m_bufSz - m_bytesInBuf;
+  // To distinguish from disk errors
+  // Check first for end of file?
+  // Set a done flag if true...
+  PRUint32 read;
+  char *pBuf = (char *)m_pBuf;
+  pBuf += m_bytesInBuf;
+  rv = m_pInputStream->Read(pBuf, (PRInt32) cnt, &read);
 
-	if (NS_FAILED( rv))
-		return( PR_FALSE);
-	rv = m_pInputStream->Available( &available);
-	if (NS_FAILED(rv))
+  if (NS_FAILED( rv))
+    return( PR_FALSE);
+  rv = m_pInputStream->Available( &available);
+  if (NS_FAILED(rv))
           m_eof = PR_TRUE;
 
-	m_bytesInBuf += cnt;
-	return( PR_TRUE);
+  m_bytesInBuf += cnt;
+  return( PR_TRUE);
 }
 
 PRBool nsImportScanFile::Scan( PRBool *pDone)
 {
-	PRUint32 available;
-	nsresult rv = m_pInputStream->Available( &available);
-	if (NS_FAILED(rv))
+  PRUint32 available;
+  nsresult rv = m_pInputStream->Available( &available);
+  if (NS_FAILED(rv))
         {
-		if (m_pos < m_bytesInBuf) 
-			ScanBuffer( pDone);
-		*pDone = PR_TRUE;
-		return( PR_TRUE);
-	}
+    if (m_pos < m_bytesInBuf)
+      ScanBuffer( pDone);
+    *pDone = PR_TRUE;
+    return( PR_TRUE);
+  }
 
-	// Fill up a buffer and scan it
-	if (!FillBufferFromFile())
-		return( PR_FALSE);
+  // Fill up a buffer and scan it
+  if (!FillBufferFromFile())
+    return( PR_FALSE);
 
-	return( ScanBuffer( pDone));
+  return( ScanBuffer( pDone));
 }
 
 PRBool nsImportScanFile::ScanBuffer( PRBool *)
 {
-	return( PR_TRUE);
+  return( PR_TRUE);
 }
 
 
 PRBool nsImportScanFileLines::ScanBuffer( PRBool *pDone)
 {
-	// m_pos, m_bytesInBuf, m_eof, m_pBuf are relevant
+  // m_pos, m_bytesInBuf, m_eof, m_pBuf are relevant
 
-	PRUint32		pos = m_pos;
-	PRUint32		max = m_bytesInBuf;
-	PRUint8 *		pChar = m_pBuf + pos;
-	PRUint32		startPos;
-	
-	while (pos < max) {
-		if (m_needEol) {
-			// Find the next eol...
-			while ((pos < max) && (*pChar != ImportCharSet::cCRChar) && (*pChar != ImportCharSet::cLinefeedChar)) {
-				pos++;
-				pChar++;
-			}
-			m_pos = pos;
-			if (pos < max)
-				m_needEol = PR_FALSE;
-			if (pos == max) // need more buffer for an end of line
-				break;
-		}
-		// Skip past any eol characters
-		while ((pos < max) && ((*pChar == ImportCharSet::cCRChar) || (*pChar == ImportCharSet::cLinefeedChar))) {
-			pos++;
-			pChar++;
-		}
-		m_pos = pos;
-		if (pos == max)
-			break;
-		// Make sure we can find either the eof or the 
-		// next end of line
-		startPos = pos;
-		while ((pos < max) && (*pChar != ImportCharSet::cCRChar) && (*pChar != ImportCharSet::cLinefeedChar)) {
-			pos++;
-			pChar++;
-		}
-		
-		// Is line too big for our buffer?
-		if ((pos == max) && !m_eof) {
-			if (!m_pos) { // line too big for our buffer
-				m_pos = pos;
-				m_needEol = PR_TRUE;
-			}
-			break;
-		}
-		
-		if (!ProcessLine( m_pBuf + startPos, pos - startPos, pDone)) {
-			return( PR_FALSE);
-		}
-		m_pos = pos;
-	}
+  PRUint32    pos = m_pos;
+  PRUint32    max = m_bytesInBuf;
+  PRUint8 *    pChar = m_pBuf + pos;
+  PRUint32    startPos;
 
-	return( PR_TRUE);
+  while (pos < max) {
+    if (m_needEol) {
+      // Find the next eol...
+      while ((pos < max) && (*pChar != ImportCharSet::cCRChar) && (*pChar != ImportCharSet::cLinefeedChar)) {
+        pos++;
+        pChar++;
+      }
+      m_pos = pos;
+      if (pos < max)
+        m_needEol = PR_FALSE;
+      if (pos == max) // need more buffer for an end of line
+        break;
+    }
+    // Skip past any eol characters
+    while ((pos < max) && ((*pChar == ImportCharSet::cCRChar) || (*pChar == ImportCharSet::cLinefeedChar))) {
+      pos++;
+      pChar++;
+    }
+    m_pos = pos;
+    if (pos == max)
+      break;
+    // Make sure we can find either the eof or the
+    // next end of line
+    startPos = pos;
+    while ((pos < max) && (*pChar != ImportCharSet::cCRChar) && (*pChar != ImportCharSet::cLinefeedChar)) {
+      pos++;
+      pChar++;
+    }
+
+    // Is line too big for our buffer?
+    if ((pos == max) && !m_eof) {
+      if (!m_pos) { // line too big for our buffer
+        m_pos = pos;
+        m_needEol = PR_TRUE;
+      }
+      break;
+    }
+
+    if (!ProcessLine( m_pBuf + startPos, pos - startPos, pDone)) {
+      return( PR_FALSE);
+    }
+    m_pos = pos;
+  }
+
+  return( PR_TRUE);
 }
 

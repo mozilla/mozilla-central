@@ -51,28 +51,28 @@ class nsIStringBundle;
 
 class nsImportFieldMap : public nsIImportFieldMap
 {
-public: 
-	NS_DECL_ISUPPORTS
+public:
+  NS_DECL_ISUPPORTS
 
-	NS_DECL_NSIIMPORTFIELDMAP
+  NS_DECL_NSIIMPORTFIELDMAP
 
   nsImportFieldMap(nsIStringBundle *aBundle);
-	virtual ~nsImportFieldMap();
+  virtual ~nsImportFieldMap();
 
- 	static NS_METHOD Create(nsIStringBundle *aBundle, nsISupports *aOuter, REFNSIID aIID, void **aResult);
-
-private:
-	nsresult	Allocate( PRInt32 newSize);
-	PRInt32		FindFieldNum( const PRUnichar *pDesc);
-
+   static NS_METHOD Create(nsIStringBundle *aBundle, nsISupports *aOuter, REFNSIID aIID, void **aResult);
 
 private:
-	PRInt32		m_numFields;
-	PRInt32	*	m_pFields;
-	PRBool *	m_pActive;
-	PRInt32		m_allocated;
-	nsVoidArray	m_descriptions;
-	PRInt32		m_mozFieldCount;
+  nsresult  Allocate( PRInt32 newSize);
+  PRInt32    FindFieldNum( const PRUnichar *pDesc);
+
+
+private:
+  PRInt32    m_numFields;
+  PRInt32  *  m_pFields;
+  PRBool *  m_pActive;
+  PRInt32    m_allocated;
+  nsVoidArray  m_descriptions;
+  PRInt32    m_mozFieldCount;
   PRBool      m_skipFirstRecord;
 };
 

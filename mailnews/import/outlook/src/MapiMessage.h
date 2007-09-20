@@ -45,113 +45,113 @@
 
 class nsSimpleUInt32Array {
 public:
-	nsSimpleUInt32Array( int growBy = 20) 
-		{ m_growBy = growBy; m_pData = nsnull; m_used = 0; m_allocated = 0;}
-	~nsSimpleUInt32Array() { if (m_pData) delete [] m_pData;}
+  nsSimpleUInt32Array( int growBy = 20)
+    { m_growBy = growBy; m_pData = nsnull; m_used = 0; m_allocated = 0;}
+  ~nsSimpleUInt32Array() { if (m_pData) delete [] m_pData;}
 
-	void Add( PRUint32 data) { Allocate(); if (m_used < m_allocated) { m_pData[m_used] = data; m_used++;}}
-	PRUint32 GetAt( PRInt32 index) { if ((index >= 0) && (index < m_used)) return( m_pData[index]); else return( 0);}
-	PRInt32	GetSize( void) { return( m_used);}
-	void RemoveAll( void) { m_used = 0;}
+  void Add( PRUint32 data) { Allocate(); if (m_used < m_allocated) { m_pData[m_used] = data; m_used++;}}
+  PRUint32 GetAt( PRInt32 index) { if ((index >= 0) && (index < m_used)) return( m_pData[index]); else return( 0);}
+  PRInt32  GetSize( void) { return( m_used);}
+  void RemoveAll( void) { m_used = 0;}
 
 private:
-	void Allocate( void);
-	
-	PRInt32		m_allocated;
-	PRInt32		m_used;
-	PRUint32 *	m_pData;
-	int			m_growBy;
+  void Allocate( void);
+
+  PRInt32    m_allocated;
+  PRInt32    m_used;
+  PRUint32 *  m_pData;
+  int      m_growBy;
 };
 
 
 
 class CMapiMessage {
 public:
-	CMapiMessage( LPMESSAGE	lpMsg);
-	~CMapiMessage();
+  CMapiMessage( LPMESSAGE  lpMsg);
+  ~CMapiMessage();
 
-	// Headers - fetch will get PR_TRANSPORT_MESSAGE_HEADERS
-	// or if they do not exist will build a header from
-	//	PR_DISPLAY_TO, _CC, _BCC
-	//	PR_SUBJECT
-	//  PR_MESSAGE_RECIPIENTS
-	// and PR_CREATION_TIME if needed?
-	BOOL		FetchHeaders( void);
-	
-	// Do the headers need a From separator line.
-	// TRUE if a From line needs to precede the headers, FALSE
-	// if the headers already include a from line	
-	BOOL		NeedsFromLine( void);
-	
-	// Fetch the 
-	BOOL		FetchBody( void);
+  // Headers - fetch will get PR_TRANSPORT_MESSAGE_HEADERS
+  // or if they do not exist will build a header from
+  //  PR_DISPLAY_TO, _CC, _BCC
+  //  PR_SUBJECT
+  //  PR_MESSAGE_RECIPIENTS
+  // and PR_CREATION_TIME if needed?
+  BOOL    FetchHeaders( void);
 
-	// Attachments
-	int			CountAttachments( void);
-	BOOL		GetAttachmentInfo( int idx);
+  // Do the headers need a From separator line.
+  // TRUE if a From line needs to precede the headers, FALSE
+  // if the headers already include a from line
+  BOOL    NeedsFromLine( void);
 
-	// Retrieve info for message
-	BOOL		BodyIsHtml( void) { return( m_bodyIsHtml);}
-	const char *GetFromLine( int& len) { if (m_fromLine.IsEmpty()) return( NULL); else { len = m_fromLine.Length(); return( m_fromLine.get());}}
-	const char *GetHeaders( int& len) { if (m_headers.IsEmpty()) return( NULL); else { len = m_headers.Length(); return( m_headers.get());}}
-	const char *GetBody( int& len) { if (m_body.IsEmpty()) return( NULL); else { len = m_body.Length(); return( m_body.get());}}
-	const char *GetBody( void) { return( m_body.get());}
-	const char *GetHeaders( void) { return( m_headers.get());}
-	PRInt32		GetBodyLen( void) { return( m_body.Length());}
-	PRInt32		GetHeaderLen( void) { return( m_headers.Length());}
+  // Fetch the
+  BOOL    FetchBody( void);
+
+  // Attachments
+  int      CountAttachments( void);
+  BOOL    GetAttachmentInfo( int idx);
+
+  // Retrieve info for message
+  BOOL    BodyIsHtml( void) { return( m_bodyIsHtml);}
+  const char *GetFromLine( int& len) { if (m_fromLine.IsEmpty()) return( NULL); else { len = m_fromLine.Length(); return( m_fromLine.get());}}
+  const char *GetHeaders( int& len) { if (m_headers.IsEmpty()) return( NULL); else { len = m_headers.Length(); return( m_headers.get());}}
+  const char *GetBody( int& len) { if (m_body.IsEmpty()) return( NULL); else { len = m_body.Length(); return( m_body.get());}}
+  const char *GetBody( void) { return( m_body.get());}
+  const char *GetHeaders( void) { return( m_headers.get());}
+  PRInt32    GetBodyLen( void) { return( m_body.Length());}
+  PRInt32    GetHeaderLen( void) { return( m_headers.Length());}
 
 
-	BOOL		IsMultipart( void);
-	BOOL		HasContentHeader( void) { return( !m_mimeContentType.IsEmpty());}
-	BOOL		HasMimeVersion( void) { return( m_bMimeVersion);}
-	const char *GetMimeContent( void) { return( m_mimeContentType.get());}
+  BOOL    IsMultipart( void);
+  BOOL    HasContentHeader( void) { return( !m_mimeContentType.IsEmpty());}
+  BOOL    HasMimeVersion( void) { return( m_bMimeVersion);}
+  const char *GetMimeContent( void) { return( m_mimeContentType.get());}
   PRInt32     GetMimeContentLen( void) { return( m_mimeContentType.Length());}
-	const char *GetMimeBoundary( void) { return( m_mimeBoundary.get());}
-	void		GenerateBoundary( void);
+  const char *GetMimeBoundary( void) { return( m_mimeBoundary.get());}
+  void    GenerateBoundary( void);
 
-	BOOL		GetAttachFileLoc( nsIFile *pLoc);
+  BOOL    GetAttachFileLoc( nsIFile *pLoc);
 
-	const char *GetMimeType( void) { return( m_attachMimeType.get());}
-	const char *GetFileName( void) { return( m_attachFileName.get());}
+  const char *GetMimeType( void) { return( m_attachMimeType.get());}
+  const char *GetFileName( void) { return( m_attachFileName.get());}
 
 protected:
-	BOOL		IterateAttachTable( void);
-	void		ClearTempAttachFile( void);
-	BOOL		CopyBinAttachToFile( LPATTACH lpAttach);
+  BOOL    IterateAttachTable( void);
+  void    ClearTempAttachFile( void);
+  BOOL    CopyBinAttachToFile( LPATTACH lpAttach);
 
-	void		ProcessHeaderLine( nsCString& line);
-	void		ProcessHeaders( void);
-	void		FormatDateTime( SYSTEMTIME & tm, nsCString& s, BOOL includeTZ = TRUE);
-	void		BuildHeaders( void);
-	void		BuildFromLine( void);
-	void		AddSubject( nsCString& str);
-	void		AddFrom( nsCString& str);
-	BOOL		AddHeader( nsCString& str, ULONG tag, const char *pPrefix);
-	void		AddDate( nsCString& str);
-	
-	BOOL		IsSpace( char c) { return( m_whitespace.FindChar( c) != -1);}
+  void    ProcessHeaderLine( nsCString& line);
+  void    ProcessHeaders( void);
+  void    FormatDateTime( SYSTEMTIME & tm, nsCString& s, BOOL includeTZ = TRUE);
+  void    BuildHeaders( void);
+  void    BuildFromLine( void);
+  void    AddSubject( nsCString& str);
+  void    AddFrom( nsCString& str);
+  BOOL    AddHeader( nsCString& str, ULONG tag, const char *pPrefix);
+  void    AddDate( nsCString& str);
+
+  BOOL    IsSpace( char c) { return( m_whitespace.FindChar( c) != -1);}
 
 private:
-	LPMESSAGE		m_lpMsg;
-	LPMAPITABLE		m_pAttachTable;
-	nsCString		m_headers;
-	nsCString		m_fromLine;
-	nsCString		m_body;
-	nsCString		m_mimeContentType;
-	nsCString		m_mimeBoundary;
-	nsCString		m_mimeCharset;
-	BOOL			m_bMimeVersion;
-	BOOL			m_bMimeEncoding;
-	nsSimpleUInt32Array	m_attachNums;
-	nsCString		m_attachMimeType;
-	nsCString		m_attachPath;
-	nsCString		m_attachFileName;
-	BOOL			m_ownsAttachFile;
-	BOOL			m_bodyIsHtml;
-	BOOL			m_bHasSubject;
-	BOOL			m_bHasFrom;
-	BOOL			m_bHasDate;
-	nsCString		m_whitespace;
+  LPMESSAGE    m_lpMsg;
+  LPMAPITABLE    m_pAttachTable;
+  nsCString    m_headers;
+  nsCString    m_fromLine;
+  nsCString    m_body;
+  nsCString    m_mimeContentType;
+  nsCString    m_mimeBoundary;
+  nsCString    m_mimeCharset;
+  BOOL      m_bMimeVersion;
+  BOOL      m_bMimeEncoding;
+  nsSimpleUInt32Array  m_attachNums;
+  nsCString    m_attachMimeType;
+  nsCString    m_attachPath;
+  nsCString    m_attachFileName;
+  BOOL      m_ownsAttachFile;
+  BOOL      m_bodyIsHtml;
+  BOOL      m_bHasSubject;
+  BOOL      m_bHasFrom;
+  BOOL      m_bHasDate;
+  nsCString    m_whitespace;
 };
 
 

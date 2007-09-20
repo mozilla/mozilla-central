@@ -46,13 +46,13 @@ public:
     nsOutlookSettings();
     virtual ~nsOutlookSettings();
 
-	static nsresult Create(nsIImportSettings** aImport);
+  static nsresult Create(nsIImportSettings** aImport);
 
     // nsISupports interface
     NS_DECL_ISUPPORTS
 
-	// nsIImportSettings interface
-	NS_DECL_NSIIMPORTSETTINGS	  
+  // nsIImportSettings interface
+  NS_DECL_NSIIMPORTSETTINGS
 
 private:
 

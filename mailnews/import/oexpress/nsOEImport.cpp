@@ -154,13 +154,13 @@ public:
     { return( NS_ERROR_FAILURE); }
 
   /* void ImportAddressBook (in nsIImportABDescriptor source, in nsIAddrDatabase destination, in nsIImportFieldMap fieldMap, in boolean isAddrLocHome, out wstring errorLog, out wstring successLog, out boolean fatalError); */
-  NS_IMETHOD ImportAddressBook(	nsIImportABDescriptor *source,
-                  nsIAddrDatabase *	destination,
-                  nsIImportFieldMap *	fieldMap,
+  NS_IMETHOD ImportAddressBook(  nsIImportABDescriptor *source,
+                  nsIAddrDatabase *  destination,
+                  nsIImportFieldMap *  fieldMap,
                   PRBool isAddrLocHome,
-                  PRUnichar **		errorLog,
-                  PRUnichar **		successLog,
-                  PRBool *			fatalError);
+                  PRUnichar **    errorLog,
+                  PRUnichar **    successLog,
+                  PRBool *      fatalError);
 
   /* unsigned long GetImportProgress (); */
   NS_IMETHOD GetImportProgress(PRUint32 *_retval);
@@ -203,7 +203,7 @@ NS_IMPL_ISUPPORTS1(nsOEImport, nsIImportModule)
 NS_IMETHODIMP nsOEImport::GetName( PRUnichar **name)
 {
   NS_ENSURE_ARG_POINTER(name);
-  // nsString	title = "Outlook Express";
+  // nsString  title = "Outlook Express";
   // *name = ToNewUnicode(title);
   *name = nsOEStringBundle::GetStringByID( OEIMPORT_NAME);
 
@@ -214,7 +214,7 @@ NS_IMETHODIMP nsOEImport::GetDescription( PRUnichar **name)
 {
   NS_ENSURE_ARG_POINTER(name);
 
-  // nsString	desc = "Outlook Express mail and address books";
+  // nsString  desc = "Outlook Express mail and address books";
   // *name = ToNewUnicode(desc);
   *name = nsOEStringBundle::GetStringByID( OEIMPORT_DESCRIPTION);
   return NS_OK;
@@ -250,7 +250,7 @@ NS_IMETHODIMP nsOEImport::GetImportInterface( const char *pImportType, nsISuppor
   nsresult rv;
   if (!strcmp( pImportType, "mail")) {
     // create the nsIImportMail interface and return it!
-    nsIImportMail *	pMail = nsnull;
+    nsIImportMail *  pMail = nsnull;
     nsIImportGeneric *pGeneric = nsnull;
     rv = ImportOEMailImpl::Create( &pMail);
     if (NS_SUCCEEDED( rv)) {
@@ -382,7 +382,7 @@ NS_IMETHODIMP ImportOEMailImpl::FindMailboxes( nsIFile *pLoc, nsISupportsArray *
   if (NS_FAILED( rv) || !exists)
     return( NS_ERROR_FAILURE);
 
-  nsOEScanBoxes	scan;
+  nsOEScanBoxes  scan;
 
   if (!scan.GetMailboxes( pLoc, ppArray))
     *ppArray = nsnull;
@@ -627,7 +627,7 @@ NS_IMETHODIMP ImportOEAddressImpl::ImportAddressBook(nsIImportABDescriptor *sour
 
   IMPORT_LOG0( "IMPORTING OUTLOOK EXPRESS ADDRESS BOOK\n");
 
-  nsCOMPtr<nsIStringBundle>	bundle( dont_AddRef( nsOEStringBundle::GetStringBundleProxy()));
+  nsCOMPtr<nsIStringBundle>  bundle( dont_AddRef( nsOEStringBundle::GetStringBundleProxy()));
   nsString success;
   nsString error;
   if (!source || !destination || !fatalError)

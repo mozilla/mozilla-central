@@ -272,7 +272,7 @@ void nsEudoraCompose::ReleaseIdentity( void)
 
 nsresult nsEudoraCompose::CreateComponents( void)
 {
-  nsresult	rv = NS_OK;
+  nsresult  rv = NS_OK;
 
   if (!m_pIOService) {
     IMPORT_LOG0( "Creating nsIOService\n");
@@ -420,7 +420,7 @@ void nsEudoraCompose::GetHeaderValue( const char *pData, PRInt32 dataLen, const 
   if (!pData)
     return;
 
-  PRInt32	start = 0;
+  PRInt32  start = 0;
   PRInt32 len = strlen( pHeader);
   const char *pChar = pData;
   if (!PL_strncasecmp( pHeader, pData, len)) {
@@ -833,7 +833,7 @@ PRBool SimpleBufferTonyRCopiedOnce::SpecialMemCpy( PRInt32 offset, const char *p
   // Arg!!!!!  Mozilla can't handle plain CRs in any mail messages.  Particularly a
   // problem with Eudora since it doesn't give a rats a**
   *pWritten = len;
-  PRInt32	sz = offset + len;
+  PRInt32  sz = offset + len;
   if (offset) {
     if ((m_pBuffer[offset - 1] == 0x0D) && (*pData != 0x0A)) {
       sz++;
@@ -921,7 +921,7 @@ PRInt32 nsEudoraCompose::FindNextEndLine( SimpleBufferTonyRCopiedOnce& data)
   PRInt32 len = data.m_bytesInBuf - data.m_writeOffset;
   if (!len)
     return( -1);
-  PRInt32	count = 0;
+  PRInt32  count = 0;
   const char *pData = data.m_pBuffer + data.m_writeOffset;
   while (((*pData == 0x0D) || (*pData == 0x0A)) && (count < len)) {
     pData++;
@@ -960,7 +960,7 @@ nsresult nsEudoraCompose::CopyComposedMessage( nsCString& fromLine, nsIFile *pSr
 {
   copy.m_bytesInBuf = 0;
   copy.m_writeOffset = 0;
-  ReadFileState	state;
+  ReadFileState  state;
   state.pFile = pSrc;
   state.offset = 0;
   state.size = 0;

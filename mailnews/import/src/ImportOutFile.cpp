@@ -47,42 +47,42 @@
 
 /*
 #ifdef _MAC
-#define	kMacNoCreator		'????'
-#define kMacTextFile		'TEXT'
+#define  kMacNoCreator    '????'
+#define kMacTextFile    'TEXT'
 #else
-#define	kMacNoCreator		0
-#define kMacTextFile		0
+#define  kMacNoCreator    0
+#define kMacTextFile    0
 #endif
 */
 
 ImportOutFile::ImportOutFile()
 {
-	m_ownsFileAndBuffer = PR_FALSE;
-	m_pos = 0;
-	m_pBuf = nsnull;
-	m_bufSz = 0;
-	m_pTrans = nsnull;
-	m_pTransOut = nsnull;
-	m_pTransBuf = nsnull;
+  m_ownsFileAndBuffer = PR_FALSE;
+  m_pos = 0;
+  m_pBuf = nsnull;
+  m_bufSz = 0;
+  m_pTrans = nsnull;
+  m_pTransOut = nsnull;
+  m_pTransBuf = nsnull;
 }
 
 ImportOutFile::ImportOutFile( nsIFile *pFile, PRUint8 * pBuf, PRUint32 sz)
 {
-	m_pTransBuf = nsnull;
-	m_pTransOut = nsnull;
-	m_pTrans = nsnull;
-	m_ownsFileAndBuffer = PR_FALSE;
-	InitOutFile( pFile, pBuf, sz);
+  m_pTransBuf = nsnull;
+  m_pTransOut = nsnull;
+  m_pTrans = nsnull;
+  m_ownsFileAndBuffer = PR_FALSE;
+  InitOutFile( pFile, pBuf, sz);
 }
 
 ImportOutFile::~ImportOutFile()
 {
-  if (m_ownsFileAndBuffer) 
+  if (m_ownsFileAndBuffer)
   {
     Flush();
     delete [] m_pBuf;
   }
-	
+
   delete m_pTrans;
   delete m_pTransOut;
   delete m_pTransBuf;
@@ -90,58 +90,58 @@ ImportOutFile::~ImportOutFile()
 
 PRBool ImportOutFile::Set8bitTranslator( nsImportTranslator *pTrans)
 {
-	if (!Flush())
-		return( PR_FALSE);
+  if (!Flush())
+    return( PR_FALSE);
 
-	m_engaged = PR_FALSE;
-	m_pTrans = pTrans;
-	m_supports8to7 = pTrans->Supports8bitEncoding();
+  m_engaged = PR_FALSE;
+  m_pTrans = pTrans;
+  m_supports8to7 = pTrans->Supports8bitEncoding();
 
 
-	return( PR_TRUE);
+  return( PR_TRUE);
 }
 
 PRBool ImportOutFile::End8bitTranslation( PRBool *pEngaged, nsCString& useCharset, nsCString& encoding)
 {
-	if (!m_pTrans)
-		return( PR_FALSE);
+  if (!m_pTrans)
+    return( PR_FALSE);
 
 
-	PRBool bResult = Flush();
-	if (m_supports8to7 && m_pTransOut) {
-		if (bResult)
-			bResult = m_pTrans->FinishConvertToFile( m_pTransOut);
-		if (bResult)
-			bResult = Flush();
-	}
+  PRBool bResult = Flush();
+  if (m_supports8to7 && m_pTransOut) {
+    if (bResult)
+      bResult = m_pTrans->FinishConvertToFile( m_pTransOut);
+    if (bResult)
+      bResult = Flush();
+  }
 
-	if (m_supports8to7) {
-		m_pTrans->GetCharset( useCharset);
-		m_pTrans->GetEncoding( encoding);
-	}
-	else
-		useCharset.Truncate();
-	*pEngaged = m_engaged;
-	delete m_pTrans;
-	m_pTrans = nsnull;
-	delete m_pTransOut;
-	m_pTransOut = nsnull;
-	delete m_pTransBuf;
-	m_pTransBuf = nsnull;
+  if (m_supports8to7) {
+    m_pTrans->GetCharset( useCharset);
+    m_pTrans->GetEncoding( encoding);
+  }
+  else
+    useCharset.Truncate();
+  *pEngaged = m_engaged;
+  delete m_pTrans;
+  m_pTrans = nsnull;
+  delete m_pTransOut;
+  m_pTransOut = nsnull;
+  delete m_pTransBuf;
+  m_pTransBuf = nsnull;
 
-	return( bResult);
+  return( bResult);
 }
 
 PRBool ImportOutFile::InitOutFile( nsIFile *pFile, PRUint32 bufSz)
 {
-	if (!bufSz)
-		bufSz = 32 * 1024;	
-	if (!m_pBuf) {
-		m_pBuf = new PRUint8[ bufSz];
-	}
-	
-	// m_fH = UFile::CreateFile( oFile, kMacNoCreator, kMacTextFile);
-	PRBool	open = PR_FALSE;
+  if (!bufSz)
+    bufSz = 32 * 1024;
+  if (!m_pBuf) {
+    m_pBuf = new PRUint8[ bufSz];
+  }
+
+  // m_fH = UFile::CreateFile( oFile, kMacNoCreator, kMacTextFile);
+  PRBool  open = PR_FALSE;
         if (!m_outputStream)
         {
           nsresult rv = NS_NewLocalFileOutputStream(getter_AddRefs(m_outputStream),
@@ -149,184 +149,184 @@ PRBool ImportOutFile::InitOutFile( nsIFile *pFile, PRUint32 bufSz)
                                    PR_CREATE_FILE | PR_WRONLY | PR_TRUNCATE,
                                    0644);
 
-		if (NS_FAILED( rv)) 
+    if (NS_FAILED( rv))
                 {
-			IMPORT_LOG0( "Couldn't create outfile\n");
-			delete [] m_pBuf;
-			m_pBuf = nsnull;
-			return( PR_FALSE);
-		}
-	}
-	m_pFile = pFile;
-	m_ownsFileAndBuffer = PR_TRUE;
-	m_pos = 0;
-	m_bufSz = bufSz;
-	return( PR_TRUE);
+      IMPORT_LOG0( "Couldn't create outfile\n");
+      delete [] m_pBuf;
+      m_pBuf = nsnull;
+      return( PR_FALSE);
+    }
+  }
+  m_pFile = pFile;
+  m_ownsFileAndBuffer = PR_TRUE;
+  m_pos = 0;
+  m_bufSz = bufSz;
+  return( PR_TRUE);
 }
 
 void ImportOutFile::InitOutFile( nsIFile *pFile, PRUint8 * pBuf, PRUint32 sz)
 {
-	m_ownsFileAndBuffer = PR_FALSE;
-	m_pFile = pFile;
-	m_pBuf = pBuf;
-	m_bufSz = sz;
-	m_pos = 0;
+  m_ownsFileAndBuffer = PR_FALSE;
+  m_pFile = pFile;
+  m_pBuf = pBuf;
+  m_bufSz = sz;
+  m_pos = 0;
 }
 
 
 
 PRBool ImportOutFile::Flush( void)
 {
-	if (!m_pos)
-		return( PR_TRUE);
+  if (!m_pos)
+    return( PR_TRUE);
 
-	PRUint32	transLen;
-	PRBool		duddleyDoWrite = PR_FALSE;
+  PRUint32  transLen;
+  PRBool    duddleyDoWrite = PR_FALSE;
 
-	// handle translations if appropriate
-	if (m_pTrans) {
-		if (m_engaged && m_supports8to7) {
-			// Markers can get confused by this crap!!!
-			// TLR: FIXME: Need to update the markers based on
-			// the difference between the translated len and untranslated len
+  // handle translations if appropriate
+  if (m_pTrans) {
+    if (m_engaged && m_supports8to7) {
+      // Markers can get confused by this crap!!!
+      // TLR: FIXME: Need to update the markers based on
+      // the difference between the translated len and untranslated len
 
-			if (!m_pTrans->ConvertToFile(  m_pBuf, m_pos, m_pTransOut, &transLen))
-				return( PR_FALSE);
-			if (!m_pTransOut->Flush())
-				return( PR_FALSE);
-			// now update our buffer...
-			if (transLen < m_pos) {
-				memcpy( m_pBuf, m_pBuf + transLen, m_pos - transLen);
-			}
-			m_pos -= transLen;
-		}
-		else if (m_engaged) {
-			// does not actually support translation!
-			duddleyDoWrite = PR_TRUE;
-		}
-		else {
-			// should we engage?
-			PRUint8 *	pChar = m_pBuf;
-			PRUint32	len = m_pos;
-			while (len) {
-				if (!ImportCharSet::IsUSAscii( *pChar))
-					break;
-				pChar++;
-				len--;
-			}
-			if (len) {
-				m_engaged = PR_TRUE;
-				if (m_supports8to7) {
-					// allocate our translation output buffer and file...
-					m_pTransBuf = new PRUint8[m_bufSz];
-					m_pTransOut = new ImportOutFile( m_pFile, m_pTransBuf, m_bufSz);
-					return( Flush());
-				}
-				else
-					duddleyDoWrite = PR_TRUE;
-			}
-			else {
-				duddleyDoWrite = PR_TRUE;
-			}
-		}
-	}
-	else
-		duddleyDoWrite = PR_TRUE;
+      if (!m_pTrans->ConvertToFile(  m_pBuf, m_pos, m_pTransOut, &transLen))
+        return( PR_FALSE);
+      if (!m_pTransOut->Flush())
+        return( PR_FALSE);
+      // now update our buffer...
+      if (transLen < m_pos) {
+        memcpy( m_pBuf, m_pBuf + transLen, m_pos - transLen);
+      }
+      m_pos -= transLen;
+    }
+    else if (m_engaged) {
+      // does not actually support translation!
+      duddleyDoWrite = PR_TRUE;
+    }
+    else {
+      // should we engage?
+      PRUint8 *  pChar = m_pBuf;
+      PRUint32  len = m_pos;
+      while (len) {
+        if (!ImportCharSet::IsUSAscii( *pChar))
+          break;
+        pChar++;
+        len--;
+      }
+      if (len) {
+        m_engaged = PR_TRUE;
+        if (m_supports8to7) {
+          // allocate our translation output buffer and file...
+          m_pTransBuf = new PRUint8[m_bufSz];
+          m_pTransOut = new ImportOutFile( m_pFile, m_pTransBuf, m_bufSz);
+          return( Flush());
+        }
+        else
+          duddleyDoWrite = PR_TRUE;
+      }
+      else {
+        duddleyDoWrite = PR_TRUE;
+      }
+    }
+  }
+  else
+    duddleyDoWrite = PR_TRUE;
 
-	if (duddleyDoWrite) {
-		PRUint32 written = 0;
-		nsresult rv = m_outputStream->Write( (const char *)m_pBuf, (PRInt32)m_pos, &written);
-		if (NS_FAILED( rv) || ((PRUint32)written != m_pos))
-			return( PR_FALSE);
-		m_pos = 0;
-	}
-	
-	return( PR_TRUE);
+  if (duddleyDoWrite) {
+    PRUint32 written = 0;
+    nsresult rv = m_outputStream->Write( (const char *)m_pBuf, (PRInt32)m_pos, &written);
+    if (NS_FAILED( rv) || ((PRUint32)written != m_pos))
+      return( PR_FALSE);
+    m_pos = 0;
+  }
+
+  return( PR_TRUE);
 }
 
-PRBool ImportOutFile::WriteU8NullTerm( const PRUint8 * pSrc, PRBool includeNull) 
+PRBool ImportOutFile::WriteU8NullTerm( const PRUint8 * pSrc, PRBool includeNull)
 {
-	while (*pSrc) {
-		if (m_pos >= m_bufSz) {
-			if (!Flush())
-				return( PR_FALSE);
-		}
-		*(m_pBuf + m_pos) = *pSrc;
-		m_pos++;
-		pSrc++;
-	}
-	if (includeNull) {
-		if (m_pos >= m_bufSz) {
-			if (!Flush())
-				return( PR_FALSE);
-		}
-		*(m_pBuf + m_pos) = 0;
-		m_pos++;
-	}
+  while (*pSrc) {
+    if (m_pos >= m_bufSz) {
+      if (!Flush())
+        return( PR_FALSE);
+    }
+    *(m_pBuf + m_pos) = *pSrc;
+    m_pos++;
+    pSrc++;
+  }
+  if (includeNull) {
+    if (m_pos >= m_bufSz) {
+      if (!Flush())
+        return( PR_FALSE);
+    }
+    *(m_pBuf + m_pos) = 0;
+    m_pos++;
+  }
 
-	return( PR_TRUE);
+  return( PR_TRUE);
 }
 
 PRBool ImportOutFile::SetMarker( int markerID)
 {
-	if (!Flush()) {
-		return( PR_FALSE);
-	}
+  if (!Flush()) {
+    return( PR_FALSE);
+  }
 
-	if (markerID < kMaxMarkers) {
-		PRInt64 pos = 0;
-		if (m_outputStream) 
+  if (markerID < kMaxMarkers) {
+    PRInt64 pos = 0;
+    if (m_outputStream)
                 {
                   // do we need to flush for the seek to give us the right pos?
                   m_outputStream->Flush();
                   nsresult rv;
                   nsCOMPtr <nsISeekableStream> seekStream = do_QueryInterface(m_outputStream, &rv);
                   NS_ENSURE_SUCCESS(rv, PR_FALSE);
-			rv = seekStream->Tell( &pos);
-			if (NS_FAILED( rv)) {
-				IMPORT_LOG0( "*** Error, Tell failed on output stream\n");
-				return( PR_FALSE);
-			}
-		}
-		m_markers[markerID] = (PRUint32)pos + m_pos;
-	}
+      rv = seekStream->Tell( &pos);
+      if (NS_FAILED( rv)) {
+        IMPORT_LOG0( "*** Error, Tell failed on output stream\n");
+        return( PR_FALSE);
+      }
+    }
+    m_markers[markerID] = (PRUint32)pos + m_pos;
+  }
 
-	return( PR_TRUE);
+  return( PR_TRUE);
 }
 
 void ImportOutFile::ClearMarker( int markerID)
 {
-	if (markerID < kMaxMarkers)
-		m_markers[markerID] = 0;
+  if (markerID < kMaxMarkers)
+    m_markers[markerID] = 0;
 }
 
 PRBool ImportOutFile::WriteStrAtMarker( int markerID, const char *pStr)
 {
-	if (markerID >= kMaxMarkers)
-		return( PR_FALSE);
+  if (markerID >= kMaxMarkers)
+    return( PR_FALSE);
 
-	if (!Flush())
-		return( PR_FALSE);
-	PRInt64		pos;
+  if (!Flush())
+    return( PR_FALSE);
+  PRInt64    pos;
         m_outputStream->Flush();
         nsresult rv;
         nsCOMPtr <nsISeekableStream> seekStream = do_QueryInterface(m_outputStream, &rv);
         NS_ENSURE_SUCCESS(rv, PR_FALSE);
-	rv = seekStream->Tell( &pos);
-	if (NS_FAILED( rv))
-		return( PR_FALSE);
-	rv = seekStream->Seek(nsISeekableStream::NS_SEEK_SET, (PRInt32) m_markers[markerID]);
-	if (NS_FAILED( rv))
-		return( PR_FALSE);
-	PRUint32 written;
-	rv = m_outputStream->Write( pStr, strlen( pStr), &written);
-	if (NS_FAILED( rv))
-		return( PR_FALSE);
+  rv = seekStream->Tell( &pos);
+  if (NS_FAILED( rv))
+    return( PR_FALSE);
+  rv = seekStream->Seek(nsISeekableStream::NS_SEEK_SET, (PRInt32) m_markers[markerID]);
+  if (NS_FAILED( rv))
+    return( PR_FALSE);
+  PRUint32 written;
+  rv = m_outputStream->Write( pStr, strlen( pStr), &written);
+  if (NS_FAILED( rv))
+    return( PR_FALSE);
 
-	rv = seekStream->Seek(nsISeekableStream::NS_SEEK_SET, pos);
-	if (NS_FAILED( rv))
-		return( PR_FALSE);
+  rv = seekStream->Seek(nsISeekableStream::NS_SEEK_SET, pos);
+  if (NS_FAILED( rv))
+    return( PR_FALSE);
 
-	return( PR_TRUE);
+  return( PR_TRUE);
 }
 

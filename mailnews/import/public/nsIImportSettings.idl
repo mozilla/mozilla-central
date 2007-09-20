@@ -36,10 +36,10 @@
  * ***** END LICENSE BLOCK ***** */
 
 /*
-  	Interface for importing settings.  Settings can be auto-located or
-	specified by a specific file.  Depends upon the app that the settings
-	are coming from.
-  
+    Interface for importing settings.  Settings can be auto-located or
+  specified by a specific file.  Depends upon the app that the settings
+  are coming from.
+
 */
 
 #include "nsISupports.idl"
@@ -49,21 +49,21 @@ interface nsIFile;
 
 [scriptable, uuid(1c0e3012-bc4d-4fb2-be6a-0335c7bab9ac)]
 interface nsIImportSettings : nsISupports
-{		
-	boolean		AutoLocate( out wstring description, out nsIFile location);
-	
-	void		SetLocation( in nsIFile location);
+{
+  boolean    AutoLocate( out wstring description, out nsIFile location);
 
-	/*
-		Create all of the accounts, identities, and servers.  Return an
-		account where any local mail from this app should be imported.
-		The returned account can be null which indicates that no suitable
-		account for local mail was created and a new account specifically for
-		the imported mail should be created.
-	*/
-	boolean		Import( out nsIMsgAccount localMailAccount);
+  void    SetLocation( in nsIFile location);
+
+  /*
+    Create all of the accounts, identities, and servers.  Return an
+    account where any local mail from this app should be imported.
+    The returned account can be null which indicates that no suitable
+    account for local mail was created and a new account specifically for
+    the imported mail should be created.
+  */
+  boolean    Import( out nsIMsgAccount localMailAccount);
 };
-	
+
 
 
 %{ C++

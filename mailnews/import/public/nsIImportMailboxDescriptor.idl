@@ -40,7 +40,7 @@
   Interface for importing mail - ui provided by the import module.  If
   you wish to provide your own UI then implement the nsIImportGeneric
   interface.
-  
+
  */
 
 #include "nsISupports.idl"
@@ -49,30 +49,30 @@ interface nsILocalFile;
 
 [scriptable, uuid(d92056c0-184d-11d3-a206-00a0cc26da63)]
 interface nsIImportMailboxDescriptor : nsISupports
-{	
-	attribute unsigned long identifier;
-	attribute unsigned long	depth;
-	attribute unsigned long	size;
-	
-	wstring	GetDisplayName();
-	void	SetDisplayName( [const] in wstring name);
-	
-	attribute boolean import;
-	readonly attribute nsILocalFile file;
+{
+  attribute unsigned long identifier;
+  attribute unsigned long  depth;
+  attribute unsigned long  size;
+
+  wstring  GetDisplayName();
+  void  SetDisplayName( [const] in wstring name);
+
+  attribute boolean import;
+  readonly attribute nsILocalFile file;
 };
-	
+
 
 
 %{ C++
 
 /*
-	The default implementation can be obtained from
-	nsIImportService::CreateNewMailboxDescriptor();
-	
-	You should only be interested in using this class if you implement
-	the nsIImportMail interface in which case, just using the service to
-	create new ones should work fine for you.  If not, implement your
-	own.
+  The default implementation can be obtained from
+  nsIImportService::CreateNewMailboxDescriptor();
+
+  You should only be interested in using this class if you implement
+  the nsIImportMail interface in which case, just using the service to
+  create new ones should work fine for you.  If not, implement your
+  own.
 */
 
 %}
