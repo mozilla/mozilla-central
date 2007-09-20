@@ -270,7 +270,7 @@ nsresult nsMsgProtocol::OpenFileSocket(nsIURI * aURL, PRUint32 aStartPosition, P
                                  getter_AddRefs(m_transport));
 
   m_socketIsOpen = PR_FALSE;
-	return rv;
+  return rv;
 }
 
 nsresult nsMsgProtocol::SetupTransportState()
@@ -329,7 +329,7 @@ PRInt32 nsMsgProtocol::SendData(nsIURI * aURL, const char * dataBuffer, PRBool a
   PRUint32 writeCount = 0;
   PRInt32 status = 0;
 
-  //	NS_PRECONDITION(m_outputStream, "oops....we don't have an output stream...how did that happen?");
+  //  NS_PRECONDITION(m_outputStream, "oops....we don't have an output stream...how did that happen?");
   if (dataBuffer && m_outputStream)
     status = m_outputStream->Write(dataBuffer, PL_strlen(dataBuffer), &writeCount);
 
@@ -1386,9 +1386,9 @@ nsresult nsMsgAsyncWriteProtocol::SetupTransportState()
 
     // wait for the output stream to become writable
     rv = mAsyncOutStream->AsyncWait(mProvider, 0, 0, mProviderThread);
-	} // if m_transport
+  } // if m_transport
 
-	return rv;
+  return rv;
 }
 
 nsresult nsMsgAsyncWriteProtocol::CloseSocket()
@@ -1408,7 +1408,7 @@ nsresult nsMsgAsyncWriteProtocol::CloseSocket()
   mAsyncOutStream = 0;
   mProvider = 0;
   mProviderThread = 0;
-	return rv;
+  return rv;
 }
 
 void nsMsgAsyncWriteProtocol::UpdateProgress(PRUint32 aNewBytes)

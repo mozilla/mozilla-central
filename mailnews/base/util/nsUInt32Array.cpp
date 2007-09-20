@@ -177,8 +177,8 @@ PRUint32 nsUInt32Array::Add(PRUint32 newElement)
   
 #ifdef MAX_ARR_ELEMS
   if (nIndex >= MAX_ARR_ELEMS) 
-    return -1;	     
-#endif			
+    return -1;       
+#endif      
   
   SetAtGrow(nIndex, newElement);
   return nIndex;

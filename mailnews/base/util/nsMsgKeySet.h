@@ -68,7 +68,7 @@ public:
 
   // Output() converts to a string representation suitable for writing to a
   // .newsrc file.  
-  nsresult Output(char **outputStr);		
+  nsresult Output(char **outputStr);    
 
   // IsMember() returns whether the given article is a member of this set.
   PRBool IsMember(PRInt32 art);
@@ -127,14 +127,14 @@ protected:
   static void test_member(PRBool with_cache);
 #endif
   
-  PRInt32 *m_data;					/* the numbers composing the `chunks' */
-  PRInt32 m_data_size;				/* size of that malloc'ed block */
-  PRInt32 m_length;				/* active area */
+  PRInt32 *m_data;          /* the numbers composing the `chunks' */
+  PRInt32 m_data_size;        /* size of that malloc'ed block */
+  PRInt32 m_length;        /* active area */
   
-  PRInt32 m_cached_value;			/* a potential set member, or -1 if unset*/
-  PRInt32 m_cached_value_index;		/* the index into `data' at which a search
-									   to determine whether `cached_value' was
-									   a member of the set ended. */
+  PRInt32 m_cached_value;      /* a potential set member, or -1 if unset*/
+  PRInt32 m_cached_value_index;    /* the index into `data' at which a search
+                     to determine whether `cached_value' was
+                     a member of the set ended. */
 #ifdef NEWSRC_DOES_HOST_STUFF
   MSG_NewsHost* m_host;
 #endif

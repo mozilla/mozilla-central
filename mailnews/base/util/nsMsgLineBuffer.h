@@ -48,17 +48,17 @@ class NS_MSG_BASE nsByteArray
 public:
   nsByteArray();
   virtual ~nsByteArray();
-  PRUint32	GetSize() {return m_bufferSize;}
-  PRUint32	GetBufferPos() {return m_bufferPos;}
-  nsresult	GrowBuffer(PRUint32 desired_size, PRUint32 quantum = 1024);
-  nsresult	AppendString(const char *string);
-  nsresult	AppendBuffer(const char *buffer, PRUint32 length);
-  void		ResetWritePos() {m_bufferPos = 0;}
-  char		*GetBuffer() {return m_buffer;}
+  PRUint32  GetSize() {return m_bufferSize;}
+  PRUint32  GetBufferPos() {return m_bufferPos;}
+  nsresult  GrowBuffer(PRUint32 desired_size, PRUint32 quantum = 1024);
+  nsresult  AppendString(const char *string);
+  nsresult  AppendBuffer(const char *buffer, PRUint32 length);
+  void    ResetWritePos() {m_bufferPos = 0;}
+  char    *GetBuffer() {return m_buffer;}
 protected:
-  char		*m_buffer;
-  PRUint32	m_bufferSize;
-  PRUint32	m_bufferPos;	// write Pos in m_buffer - where the next byte should go.
+  char    *m_buffer;
+  PRUint32  m_bufferSize;
+  PRUint32  m_bufferPos;  // write Pos in m_buffer - where the next byte should go.
 };
 
 
@@ -104,13 +104,13 @@ class NS_MSG_BASE nsMsgLineStreamBuffer
 public:
   // aBufferSize -- size of the buffer you want us to use for buffering stream data
   // aEndOfLinetoken -- The delimiter string to be used for determining the end of line. This 
-  //				      allows us to parse platform specific end of line endings by making it
-  //					  a parameter.
+  //              allows us to parse platform specific end of line endings by making it
+  //            a parameter.
   // aAllocateNewLines -- PR_TRUE if you want calls to ReadNextLine to allocate new memory for the line. 
-  //						if false, the char * returned is just a ptr into the buffer. Subsequent calls to
-  //						ReadNextLine will alter the data so your ptr only has a life time of a per call.
+  //            if false, the char * returned is just a ptr into the buffer. Subsequent calls to
+  //            ReadNextLine will alter the data so your ptr only has a life time of a per call.
   // aEatCRLFs  -- PR_TRUE if you don't want to see the CRLFs on the lines returned by ReadNextLine. 
-  //				 PR_FALSE if you do want to see them.
+  //         PR_FALSE if you do want to see them.
   // aLineToken -- Specify the line token to look for, by default is LF ('\n') which cover as well CRLF. If
   //            lines are terminated with a CR only, you need to set aLineToken to CR ('\r')
   nsMsgLineStreamBuffer(PRUint32 aBufferSize, PRBool aAllocateNewLines, 

@@ -344,16 +344,16 @@ nsresult NS_MsgHashIfNecessary(nsCAutoString &name)
   // Need to check the first ('.') and last ('.', '~' and ' ') char
   if (illegalCharacterIndex == kNotFound)
   {
-	NS_NAMED_LITERAL_CSTRING (illegalFirstChars, ILLEGAL_FOLDER_CHARS_AS_FIRST_LETTER);
-	NS_NAMED_LITERAL_CSTRING (illegalLastChars, ILLEGAL_FOLDER_CHARS_AS_LAST_LETTER);
+  NS_NAMED_LITERAL_CSTRING (illegalFirstChars, ILLEGAL_FOLDER_CHARS_AS_FIRST_LETTER);
+  NS_NAMED_LITERAL_CSTRING (illegalLastChars, ILLEGAL_FOLDER_CHARS_AS_LAST_LETTER);
 
     PRInt32 lastIndex = str.Length() - 1;
     if(str.FindCharInSet(illegalFirstChars) == 0)
-	  illegalCharacterIndex = 0;
-	else if(str.RFindCharInSet(illegalLastChars) == lastIndex)
-	  illegalCharacterIndex = lastIndex;
-	else
-	  illegalCharacterIndex = -1;
+    illegalCharacterIndex = 0;
+  else if(str.RFindCharInSet(illegalLastChars) == lastIndex)
+    illegalCharacterIndex = lastIndex;
+  else
+    illegalCharacterIndex = -1;
   }
 
   char hashedname[MAX_LEN + 1];
@@ -398,16 +398,16 @@ nsresult NS_MsgHashIfNecessary(nsAutoString &name)
   // Need to check the first ('.') and last ('.', '~' and ' ') char
   if (illegalCharacterIndex == kNotFound)
   {
-	NS_NAMED_LITERAL_STRING (illegalFirstChars, ILLEGAL_FOLDER_CHARS_AS_FIRST_LETTER);
-	NS_NAMED_LITERAL_STRING (illegalLastChars, ILLEGAL_FOLDER_CHARS_AS_LAST_LETTER);
+  NS_NAMED_LITERAL_STRING (illegalFirstChars, ILLEGAL_FOLDER_CHARS_AS_FIRST_LETTER);
+  NS_NAMED_LITERAL_STRING (illegalLastChars, ILLEGAL_FOLDER_CHARS_AS_LAST_LETTER);
 
     PRInt32 lastIndex = name.Length() - 1;
     if(name.FindCharInSet(illegalFirstChars) == 0)
-	  illegalCharacterIndex = 0;
-	else if(name.RFindCharInSet(illegalLastChars) == lastIndex)
-	  illegalCharacterIndex = lastIndex;
-	else
-	  illegalCharacterIndex = -1;
+    illegalCharacterIndex = 0;
+  else if(name.RFindCharInSet(illegalLastChars) == lastIndex)
+    illegalCharacterIndex = lastIndex;
+  else
+    illegalCharacterIndex = -1;
   }
 
   char hashedname[9];
@@ -542,7 +542,7 @@ PRBool NS_MsgStripRE(const char **stringP, PRUint32 *lengthP, char **modifiedSub
  AGAIN:
 
   while (s < s_end && IS_SPACE(*s))
-	s++;
+  s++;
 
   const char *tokPtr = checkString.get();
   while (*tokPtr)
@@ -614,15 +614,15 @@ PRBool NS_MsgStripRE(const char **stringP, PRUint32 *lengthP, char **modifiedSub
 
 
   /* Decrease length by difference between current ptr and original ptr.
-	 Then store the current ptr back into the caller. */
+   Then store the current ptr back into the caller. */
   if (lengthP)
-	  *lengthP -= (s - (*stringP));
+    *lengthP -= (s - (*stringP));
   *stringP = s;
 
   return result;
 }
 
-/*	Very similar to strdup except it free's too
+/*  Very similar to strdup except it free's too
  */
 char * NS_MsgSACopy (char **destination, const char *source)
 {

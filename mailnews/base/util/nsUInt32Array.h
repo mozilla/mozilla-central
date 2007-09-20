@@ -78,7 +78,7 @@ public:
   // Insertion/deletion member functions
   PRUint32  Add(PRUint32 newElement);
   PRUint32          Add(PRUint32 *elementPtr, PRUint32 numElements); 
-  void	           InsertAt(PRUint32 nIndex, PRUint32 newElement, PRUint32 nCount = 1);
+  void             InsertAt(PRUint32 nIndex, PRUint32 newElement, PRUint32 nCount = 1);
   void               InsertAt(PRUint32 nStartIndex, const nsUInt32Array *pNewArray);
   void               RemoveAll();
   void               RemoveAt(PRUint32 nIndex, PRUint32 nCount = 1);

@@ -113,7 +113,7 @@ nsresult nsImapMoveCoalescer::PlaybackMoves(PRBool doNewMailNotification /* = PR
   PRUint32 numFolders;
   nsresult rv = NS_OK;
   if (!m_destFolders)
-    return NS_OK;	// nothing to do.
+    return NS_OK;  // nothing to do.
   m_hasPendingMoves = PR_FALSE;
   m_doNewMailNotification = doNewMailNotification;
   m_destFolders->Count(&numFolders);

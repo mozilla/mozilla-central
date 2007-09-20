@@ -448,52 +448,52 @@ NS_IMETHODIMP nsMsgIdentity::GetIntAttribute(const char *aName, PRInt32 *val)
   return NS_OK;
 }
 
-#define COPY_IDENTITY_FILE_VALUE(SRC_ID,MACRO_GETTER,MACRO_SETTER) 	\
-	{	\
-		nsresult macro_rv;	\
-		nsCOMPtr <nsILocalFile>macro_spec;   \
-        	macro_rv = SRC_ID->MACRO_GETTER(getter_AddRefs(macro_spec)); \
-        	if (NS_SUCCEEDED(macro_rv)) \
-        	  this->MACRO_SETTER(macro_spec);     \
-	}
+#define COPY_IDENTITY_FILE_VALUE(SRC_ID,MACRO_GETTER,MACRO_SETTER)   \
+  {  \
+    nsresult macro_rv;  \
+    nsCOMPtr <nsILocalFile>macro_spec;   \
+          macro_rv = SRC_ID->MACRO_GETTER(getter_AddRefs(macro_spec)); \
+          if (NS_SUCCEEDED(macro_rv)) \
+            this->MACRO_SETTER(macro_spec);     \
+  }
 
-#define COPY_IDENTITY_INT_VALUE(SRC_ID,MACRO_GETTER,MACRO_SETTER) 	\
-	{	\
-		    nsresult macro_rv;	\
-        	PRInt32 macro_oldInt;	\
-        	macro_rv = SRC_ID->MACRO_GETTER(&macro_oldInt);	\
-        	if (NS_SUCCEEDED(macro_rv)) \
-        	  this->MACRO_SETTER(macro_oldInt);     \
-	}
+#define COPY_IDENTITY_INT_VALUE(SRC_ID,MACRO_GETTER,MACRO_SETTER)   \
+  {  \
+        nsresult macro_rv;  \
+          PRInt32 macro_oldInt;  \
+          macro_rv = SRC_ID->MACRO_GETTER(&macro_oldInt);  \
+          if (NS_SUCCEEDED(macro_rv)) \
+            this->MACRO_SETTER(macro_oldInt);     \
+  }
 
-#define COPY_IDENTITY_BOOL_VALUE(SRC_ID,MACRO_GETTER,MACRO_SETTER) 	\
-	{	\
-		    nsresult macro_rv;	\
-        	PRBool macro_oldBool;	\
-        	macro_rv = SRC_ID->MACRO_GETTER(&macro_oldBool);	\
-        	if (NS_SUCCEEDED(macro_rv)) \
-        	  this->MACRO_SETTER(macro_oldBool);     \
-	}
+#define COPY_IDENTITY_BOOL_VALUE(SRC_ID,MACRO_GETTER,MACRO_SETTER)   \
+  {  \
+        nsresult macro_rv;  \
+          PRBool macro_oldBool;  \
+          macro_rv = SRC_ID->MACRO_GETTER(&macro_oldBool);  \
+          if (NS_SUCCEEDED(macro_rv)) \
+            this->MACRO_SETTER(macro_oldBool);     \
+  }
 
-#define COPY_IDENTITY_STR_VALUE(SRC_ID,MACRO_GETTER,MACRO_SETTER) 	\
-	{	\
-        	nsCString macro_oldStr;	\
-		    nsresult macro_rv;	\
-        	macro_rv = SRC_ID->MACRO_GETTER(macro_oldStr);	\
+#define COPY_IDENTITY_STR_VALUE(SRC_ID,MACRO_GETTER,MACRO_SETTER)   \
+  {  \
+          nsCString macro_oldStr;  \
+        nsresult macro_rv;  \
+          macro_rv = SRC_ID->MACRO_GETTER(macro_oldStr);  \
             if (NS_SUCCEEDED(macro_rv)) { \
-                  	this->MACRO_SETTER(macro_oldStr);	\
+                    this->MACRO_SETTER(macro_oldStr);  \
             } \
-	}
+  }
 
-#define COPY_IDENTITY_WSTR_VALUE(SRC_ID,MACRO_GETTER,MACRO_SETTER) 	\
-	{	\
-        	nsString macro_oldStr;	\
-		    nsresult macro_rv;	\
-        	macro_rv = SRC_ID->MACRO_GETTER(macro_oldStr); \
-        	if (NS_SUCCEEDED(macro_rv)) { \
-                	this->MACRO_SETTER(macro_oldStr);	\
-              }	\
-	}
+#define COPY_IDENTITY_WSTR_VALUE(SRC_ID,MACRO_GETTER,MACRO_SETTER)   \
+  {  \
+          nsString macro_oldStr;  \
+        nsresult macro_rv;  \
+          macro_rv = SRC_ID->MACRO_GETTER(macro_oldStr); \
+          if (NS_SUCCEEDED(macro_rv)) { \
+                  this->MACRO_SETTER(macro_oldStr);  \
+              }  \
+  }
 
 NS_IMETHODIMP
 nsMsgIdentity::Copy(nsIMsgIdentity *identity)

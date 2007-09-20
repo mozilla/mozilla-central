@@ -59,7 +59,7 @@ NS_IMETHODIMP nsMsgTxn::GetIsTransient(PRBool *aIsTransient)
   if (nsnull!=aIsTransient)
     *aIsTransient = PR_FALSE;
   else
-	  return NS_ERROR_NULL_POINTER;
+    return NS_ERROR_NULL_POINTER;
   return NS_OK;
 }
 

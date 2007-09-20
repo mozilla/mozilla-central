@@ -198,22 +198,22 @@ nsresult nsMsgI18NConvertToUnicode(const char* aCharset,
 // Charset used by the file system.
 const char * nsMsgI18NFileSystemCharset()
 {
-	/* Get a charset used for the file. */
-	static nsCAutoString fileSystemCharset;
+  /* Get a charset used for the file. */
+  static nsCAutoString fileSystemCharset;
 
-	if (fileSystemCharset.IsEmpty()) 
-	{
-		nsresult rv;
-		nsCOMPtr <nsIPlatformCharset> platformCharset = do_GetService(NS_PLATFORMCHARSET_CONTRACTID, &rv);
+  if (fileSystemCharset.IsEmpty()) 
+  {
+    nsresult rv;
+    nsCOMPtr <nsIPlatformCharset> platformCharset = do_GetService(NS_PLATFORMCHARSET_CONTRACTID, &rv);
         if (NS_SUCCEEDED(rv)) {
           rv = platformCharset->GetCharset(kPlatformCharsetSel_FileName,
                                            fileSystemCharset);
         }
 
-		if (NS_FAILED(rv)) 
-			fileSystemCharset.Assign("ISO-8859-1");
-	}
-	return fileSystemCharset.get();
+    if (NS_FAILED(rv)) 
+      fileSystemCharset.Assign("ISO-8859-1");
+  }
+  return fileSystemCharset.get();
 }
 
 // Charset used by the text file.

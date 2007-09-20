@@ -116,7 +116,7 @@ nsMsgLineBuffer::SetLookingForCRLF(PRBool b)
   m_lookingForCRLF = b;
 }
 
-PRInt32	nsMsgLineBuffer::BufferInput(const char *net_buffer, PRInt32 net_buffer_size)
+PRInt32  nsMsgLineBuffer::BufferInput(const char *net_buffer, PRInt32 net_buffer_size)
 {
     int status = 0;
     if (m_bufferPos > 0 && m_buffer && m_buffer[m_bufferPos - 1] == '\r' &&
@@ -210,8 +210,8 @@ PRInt32	nsMsgLineBuffer::BufferInput(const char *net_buffer, PRInt32 net_buffer_
 
 PRInt32 nsMsgLineBuffer::HandleLine(char *line, PRUint32 line_length)
 {
-	NS_ASSERTION(PR_FALSE, "must override this method if you don't provide a handler");
-	return 0;
+  NS_ASSERTION(PR_FALSE, "must override this method if you don't provide a handler");
+  return 0;
 }
 
 PRInt32 nsMsgLineBuffer::ConvertAndSendBuffer()
@@ -267,12 +267,12 @@ PRInt32 nsMsgLineBuffer::ConvertAndSendBuffer()
 // If there's still some data (non CRLF terminated) flush it out
 PRInt32 nsMsgLineBuffer::FlushLastLine()
 {
-	char *buf = m_buffer + m_bufferPos;
-	PRInt32 length = m_bufferPos - 1;
-	if (length > 0)
-		return (m_handler) ? m_handler->HandleLine(buf, length) : HandleLine(buf, length);
-	else
-		return 0;
+  char *buf = m_buffer + m_bufferPos;
+  PRInt32 length = m_bufferPos - 1;
+  if (length > 0)
+    return (m_handler) ? m_handler->HandleLine(buf, length) : HandleLine(buf, length);
+  else
+    return 0;
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////
@@ -281,20 +281,20 @@ PRInt32 nsMsgLineBuffer::FlushLastLine()
 ///////////////////////////////////////////////////////////////////////////////////////////////////
 
 nsMsgLineStreamBuffer::nsMsgLineStreamBuffer(PRUint32 aBufferSize, PRBool aAllocateNewLines, PRBool aEatCRLFs, char aLineToken) 
-	         : m_eatCRLFs(aEatCRLFs), m_allocateNewLines(aAllocateNewLines), m_lineToken(aLineToken)
+           : m_eatCRLFs(aEatCRLFs), m_allocateNewLines(aAllocateNewLines), m_lineToken(aLineToken)
 {
-	NS_PRECONDITION(aBufferSize > 0, "invalid buffer size!!!");
-	m_dataBuffer = nsnull;
-	m_startPos = 0;
+  NS_PRECONDITION(aBufferSize > 0, "invalid buffer size!!!");
+  m_dataBuffer = nsnull;
+  m_startPos = 0;
     m_numBytesInBuffer = 0;
 
-	// used to buffer incoming data by ReadNextLineFromInput
-	if (aBufferSize > 0)
-	{
-		m_dataBuffer = (char *) PR_CALLOC(sizeof(char) * aBufferSize);
-	}
+  // used to buffer incoming data by ReadNextLineFromInput
+  if (aBufferSize > 0)
+  {
+    m_dataBuffer = (char *) PR_CALLOC(sizeof(char) * aBufferSize);
+  }
 
-	m_dataBufferSize = aBufferSize;
+  m_dataBufferSize = aBufferSize;
 }
 
 nsMsgLineStreamBuffer::~nsMsgLineStreamBuffer()

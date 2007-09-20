@@ -133,7 +133,7 @@ protected:
   // As data arrives on the socket, OnDataAvailable calls ProcessProtocolState.
   
   virtual nsresult ProcessProtocolState(nsIURI * url, nsIInputStream * inputStream, 
-									PRUint32 sourceOffset, PRUint32 length) = 0;
+                  PRUint32 sourceOffset, PRUint32 length) = 0;
 
   // SendData -- Writes the data contained in dataBuffer into the current output stream. 
   // It also informs the transport layer that this data is now available for transmission.
@@ -151,7 +151,7 @@ protected:
 
   nsresult DoGSSAPIStep1(const char *service, const char *username, nsCString &response);
   nsresult DoGSSAPIStep2(nsCString &commandResponse, nsCString &response);
-  // Ouput stream for writing commands to the socket	
+  // Ouput stream for writing commands to the socket  
   nsCOMPtr<nsIOutputStream>   m_outputStream;   // this will be obtained from the transport interface
   nsCOMPtr<nsIInputStream>    m_inputStream;
 
@@ -162,7 +162,7 @@ protected:
   PRBool        m_socketIsOpen; // mscott: we should look into keeping this state in the nsSocketTransport...
                                   // I'm using it to make sure I open the socket the first time a URL is loaded into the connection
   PRUint32      m_flags; // used to store flag information
-  //PRUint32	m_startPosition;
+  //PRUint32  m_startPosition;
   PRInt32       m_readCount;
 
   nsCOMPtr<nsIFile> m_tempMsgFile;  // we currently have a hack where displaying a msg involves writing it to a temp file first
@@ -174,7 +174,7 @@ protected:
   nsCOMPtr<nsIURI>            m_originalUrl;  // the original url
   nsCOMPtr<nsIURI>            m_url;          // the running url
   nsCOMPtr<nsIStreamListener> m_channelListener;
-  nsCOMPtr<nsISupports>	      m_channelContext;
+  nsCOMPtr<nsISupports>        m_channelContext;
   nsCOMPtr<nsILoadGroup>      m_loadGroup;
   nsLoadFlags                 mLoadFlags;
   nsCOMPtr<nsIProgressEventSink> mProgressEventSink;
