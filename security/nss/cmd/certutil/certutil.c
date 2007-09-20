@@ -1977,7 +1977,8 @@ certutil_main(int argc, char **argv, PRBool initialize)
 
     /*  -S  open outFile, temporary file for cert request.  */
     if (certutil.commands[cmd_CreateAndAddCert].activated) {
-	outFile = PR_Open(certreqfile, PR_RDWR | PR_CREATE_FILE, 00660);
+	outFile = PR_Open(certreqfile,
+                          PR_RDWR | PR_CREATE_FILE | PR_TRUNCATE, 00660);
 	if (!outFile) {
 	    PR_fprintf(PR_STDERR, 
 		       "%s -o: unable to open \"%s\" for writing (%ld, %ld)\n",
@@ -2002,7 +2003,7 @@ certutil_main(int argc, char **argv, PRBool initialize)
     /*  Open the output file.  */
     if (certutil.options[opt_OutputFile].activated && !outFile) {
 	outFile = PR_Open(certutil.options[opt_OutputFile].arg, 
-                          PR_CREATE_FILE | PR_RDWR, 00660);
+                          PR_CREATE_FILE | PR_RDWR | PR_TRUNCATE, 00660);
 	if (!outFile) {
 	    PR_fprintf(PR_STDERR,
 	               "%s:  unable to open \"%s\" for writing (%ld, %ld).\n",
@@ -2273,7 +2274,8 @@ certutil_main(int argc, char **argv, PRBool initialize)
 	    rv = SECFailure;
 	    goto shutdown;
 	}
-	outFile = PR_Open(certfile, PR_RDWR | PR_CREATE_FILE, 00660);
+	outFile = PR_Open(certfile,
+                          PR_RDWR | PR_CREATE_FILE | PR_TRUNCATE, 00660);
 	if (!outFile) {
 	    PR_fprintf(PR_STDERR, "Failed to open file \"%s\" (%ld, %ld).\n",
                        certfile, PR_GetError(), PR_GetOSError());
