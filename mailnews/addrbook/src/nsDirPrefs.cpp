@@ -42,24 +42,20 @@
 
 #include "nsIPrefService.h"
 #include "nsIPrefBranch2.h"
+#include "nsDirPrefs.h"
 #include "nsIPrefLocalizedString.h"
 #include "nsIObserver.h"
 #include "nsVoidArray.h"
 #include "nsIServiceManager.h"
-#include "nsDirPrefs.h"
 #include "nsIAddrDatabase.h"
 #include "nsAbBaseCID.h"
 #include "nsIAddrBookSession.h"
-#include "nsCRTGlue.h"
 #include "nsILocalFile.h"
 #include "nsWeakReference.h"
 #include "nsIAbMDBDirectory.h"
 #if defined(MOZ_LDAP_XPCOM)
 #include "nsIAbLDAPDirectory.h"
 #endif
-
-#include "ctype.h"
-#include "prlog.h"
 #include "prmem.h"
 #include "prprf.h"
 #include "plstr.h"
@@ -87,8 +83,7 @@ static void DIR_DeleteServerList(nsVoidArray *wholeList);
 static char *dir_CreateServerPrefName(DIR_Server *server);
 static void DIR_GetPrefsForOneServer(DIR_Server *server);
 
-static nsresult DIR_InitServerWithType(DIR_Server * server, DirectoryType dirType);
-static nsresult DIR_InitServer(DIR_Server *);
+static void DIR_InitServer(DIR_Server *server, DirectoryType dirType = (DirectoryType)0);
 static DIR_PrefId  DIR_AtomizePrefName(const char *prefname);
 
 #define DIR_POS_APPEND                     0x80000000
@@ -99,7 +94,7 @@ static PRBool DIR_SetServerPosition(nsVoidArray *wholeList, DIR_Server *server, 
  * directory preferences from the XP Java Script preferences
  */
 static nsresult DIR_GetServerPreferences(nsVoidArray** list);
-static nsresult DIR_SaveServerPreferences(nsVoidArray *wholeList);
+static void DIR_SaveServerPreferences(nsVoidArray *wholeList);
 
 static PRInt32 dir_UserId = 0;
 nsVoidArray *dir_ServerList = nsnull;
@@ -296,7 +291,7 @@ nsresult DIR_AddNewAddressBook(const nsAString &dirName,
   if (!server)
     return NS_ERROR_OUT_OF_MEMORY;
 
-  DIR_InitServerWithType (server, dirType);
+  DIR_InitServer(server, dirType);
   if (!dir_ServerList)
     DIR_GetDirServers();
   if (dir_ServerList)
@@ -329,27 +324,18 @@ nsresult DIR_AddNewAddressBook(const nsAString &dirName,
 /*****************************************************************************
  * Functions for creating DIR_Servers
  */
-
-/* use this when you want to create a server of a particular type */
-static nsresult DIR_InitServerWithType(DIR_Server * server, DirectoryType dirType)
+static void DIR_InitServer(DIR_Server *server, DirectoryType dirType)
 {
-  NS_ENSURE_ARG_POINTER(server);
-  nsresult rv = DIR_InitServer(server);
-
-  server->dirType = dirType;
-
-  return rv;
-}
-
-static nsresult DIR_InitServer(DIR_Server *server)
-{
-  NS_ENSURE_ARG_POINTER(server);
+  if (!server) {
+    NS_WARNING("DIR_InitServer: server parameter not initialized");
+    return;
+  }
 
   memset(server, 0, sizeof(DIR_Server));
   server->position = kDefaultPosition;
   server->uri = nsnull;
   server->savingServer = PR_FALSE;
-  return NS_OK;
+  server->dirType = dirType;
 }
 
 /* Function for setting the position of a server.  Can be used to append,
@@ -541,7 +527,7 @@ static PRBool dir_ValidateAndAddNewServer(nsVoidArray *wholeList, const char *fu
           DIR_Server *server = (DIR_Server *)PR_Malloc(sizeof(DIR_Server));
           if (server)
           {
-            DIR_InitServerWithType(server, (DirectoryType)dirType);
+            DIR_InitServer(server, (DirectoryType)dirType);
             server->prefName = prefname;
             DIR_GetPrefsForOneServer(server);
             DIR_SetServerPosition(wholeList, server, server->position);
@@ -626,7 +612,7 @@ static PRBool dir_IsServerDeleted(DIR_Server * server)
 
 /* when the back end manages the server list, deleting a server just decrements its ref count,
    in the old world, we actually delete the server */
-static void dir_DeleteServerContents (DIR_Server *server)
+static void DIR_DeleteServer(DIR_Server *server)
 {
   if (server)
   {
@@ -638,19 +624,10 @@ static void dir_DeleteServerContents (DIR_Server *server)
         XP_FileRemove (server->fileName, xpAddrBookNew);
     }
 #endif /* XP_FileRemove */
-
-    PR_FREEIF (server->prefName);
-    PR_FREEIF (server->description);
-    PR_FREEIF (server->fileName);
-    PR_FREEIF (server->uri);
-  }
-}
-
-static void DIR_DeleteServer(DIR_Server *server)
-{
-  if (server)
-  {
-    dir_DeleteServerContents(server);
+    PR_Free(server->prefName);
+    PR_Free(server->description);
+    PR_Free(server->fileName);
+    PR_Free(server->uri);
     PR_Free(server);
   }
 }
@@ -1372,14 +1349,16 @@ void DIR_SavePrefsForOneServer(DIR_Server *server)
   server->savingServer = PR_FALSE;
 }
 
-static nsresult DIR_SaveServerPreferences (nsVoidArray *wholeList)
+static void DIR_SaveServerPreferences(nsVoidArray *wholeList)
 {
   if (wholeList)
   {
     nsresult rv;
     nsCOMPtr<nsIPrefBranch> pPref(do_GetService(NS_PREFSERVICE_CONTRACTID, &rv)); 
-    if (NS_FAILED(rv))
-      return rv;
+    if (NS_FAILED(rv)) {
+      NS_WARNING("DIR_SaveServerPreferences: Failed to get the pref service\n");
+      return;
+    }
 
     PRInt32  i;
     PRInt32  count = wholeList->Count();
@@ -1393,6 +1372,4 @@ static nsresult DIR_SaveServerPreferences (nsVoidArray *wholeList)
     }
     pPref->SetIntPref(PREF_LDAP_GLOBAL_TREE_NAME".user_id", dir_UserId);
   }
-
-  return NS_OK;
 }
