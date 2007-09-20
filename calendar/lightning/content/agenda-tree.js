@@ -386,7 +386,7 @@ function onKeyPress(event)
   const kKE = Ci.nsIDOMKeyEvent;
   switch(event.keyCode) {
     case kKE.DOM_VK_DELETE:
-      document.getElementById('agenda_new_event_command').doCommand();
+      document.getElementById('agenda_delete_event_command').doCommand();
       event.stopPropagation();
       event.preventDefault();
       break;
