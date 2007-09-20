@@ -1210,6 +1210,9 @@ NS_IMETHODIMP nsMsgCompose::SendMsg(MSG_DeliverMode deliverMode, nsIMsgIdentity 
                   attachment->SetName(NS_LITERAL_STRING("vcard.vcf"));
               else
               {
+                  // Replace any dot with underscore to stop vCards
+                  // generating false positives with some heuristic scanners
+                  userid.ReplaceChar('.', '_');
                   userid.AppendLiteral(".vcf");
                   attachment->SetName(NS_ConvertASCIItoUTF16(userid));
               }
