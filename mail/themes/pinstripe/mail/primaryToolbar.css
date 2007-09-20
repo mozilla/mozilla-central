@@ -235,27 +235,27 @@ toolbarbutton[type="menu-button"] > toolbarbutton {
 } 
 
 #button-goforward {
-  -moz-image-region: rect(0px 384px 32px 352px);
+  -moz-image-region: rect(0px 512px 32px 480px);
 }
 
 #button-goforward:hover:active {
-  -moz-image-region: rect(32px 384px 64px 352px);
+  -moz-image-region: rect(32px 512px 64px 480px);
 } 
 
 #button-goforward[disabled] {
-  -moz-image-region: rect(64px 384px 96px 352px) !important;
+  -moz-image-region: rect(64px 512px 96px 480px) !important;
 } 
 
 #button-goback {
-  -moz-image-region: rect(0px 416px 32px 384px);
+  -moz-image-region: rect(0px 544px 32px 512px);
 }
 
 #button-goback:hover:active {
-  -moz-image-region: rect(32px 416px 64px 384px);
+  -moz-image-region: rect(32px 544px 64px 512px);
 } 
 
 #button-goback[disabled] {
-  -moz-image-region: rect(64px 416px 96px 384px) !important;
+  -moz-image-region: rect(64px 544px 96px 512px) !important;
 } 
 
 #button-mark {
@@ -270,8 +270,6 @@ toolbarbutton[type="menu-button"] > toolbarbutton {
 #button-mark[disabled] {
   -moz-image-region: rect(64px 448px 96px 416px) !important;
 }
-
-/* temporarily re-use the mark button for tags */
 
 #button-tag {
   -moz-image-region: rect(0px 480px 32px 448px);
@@ -439,19 +437,17 @@ toolbar[iconsize="small"] #button-mark[disabled] {
   -moz-image-region: rect(48px 288px 72px 264px) !important;
 } 
 
-/* temporarily re-use the mark button for tags */
-
 toolbar[iconsize="small"] #button-tag {
-  -moz-image-region: rect(0px 288px 24px 264px);
+  -moz-image-region: rect(0px 364px 24px 340px);
 }
 
 toolbar[iconsize="small"] #button-tag:hover:active,
 toolbar[iconsize="small"] #button-tag[open] {
-  -moz-image-region: rect(24px 288px 48px 264px);
+  -moz-image-region: rect(24px 364px 48px 340px);
 } 
 
 toolbar[iconsize="small"] #button-tag[disabled] {
-  -moz-image-region: rect(48px 288px 72px 264px) !important;
+  -moz-image-region: rect(48px 364px 72px 340px) !important;
 } 
 
 toolbar[iconsize="small"] #button-previous {
@@ -479,27 +475,27 @@ toolbar[iconsize="small"] #button-next[disabled] {
 } 
 
 toolbar[iconsize="small"] #button-goback {
-  -moz-image-region: rect(0px 314px 24px 288px);
+  -moz-image-region: rect(0px 390px 24px 364px);
 }
 
 toolbar[iconsize="small"] #button-goback:hover:active {
-  -moz-image-region: rect(24px 314px 48px 288px);
+  -moz-image-region: rect(24px 390px 48px 364px);
 }
 
 toolbar[iconsize="small"] #button-goback[disabled] {
-  -moz-image-region: rect(48px 314px 72px 288px) !important;
+  -moz-image-region: rect(48px 390px 72px 364px) !important;
 }
 
 toolbar[iconsize="small"] #button-goforward {
-  -moz-image-region: rect(0px 340px 24px 314px);
+  -moz-image-region: rect(0px 416px 24px 390px);
 }
 
 toolbar[iconsize="small"] #button-goforward:hover:active {
-  -moz-image-region: rect(24px 340px 48px 314px);
+  -moz-image-region: rect(24px 416px 48px 390px);
 } 
 
 toolbar[iconsize="small"] #button-goforward[disabled] {
-  -moz-image-region: rect(48px 340px 72px 314px) !important;
+  -moz-image-region: rect(48px 416px 72px 390px) !important;
 }
 
 /* ::::: end small primary toolbar buttons ::::: */
@@ -507,10 +503,10 @@ toolbar[iconsize="small"] #button-goforward[disabled] {
 .msgNotificationBarText {
   font: icon;
   font-weight: bold;
-  padding: 0px 4px;
+  padding: 0;
 }
 
-.msgNotificaton-smallText {
+.msgNotification-smallText {
   padding-left: 10px;
   font-size: 90%;
 }
@@ -521,11 +517,9 @@ toolbar[iconsize="small"] #button-goforward[disabled] {
 }
 
 #junkBar {
-  border: 1px solid #9AC790;
-  -moz-border-radius: 7px;
   background-color: #CAE2C5;
-  padding: 3px 6px 4px 6px;
-  margin: 6px 6px 0px 6px;
+  padding: 6px 8px;
+  color: black;
 }
 
 #junkIcon {
@@ -535,31 +529,23 @@ toolbar[iconsize="small"] #button-goforward[disabled] {
 /* ::::: remote content bar status rules ::::: */
 
 #remoteContentImage {
-  list-style-image: url("chrome://global/skin/console/console-toolbar.png");
-  -moz-image-region: rect(0px, 24px, 24px, 0px);
+  list-style-image: url("chrome://messenger/skin/icons/warning.png");
 }
 
 #remoteContentBar {
-  border: 1px solid #bfc790;
-  -moz-border-radius: 7px;
   background-color: #EFF3D4;
-  padding: 3px 6px 4px 6px;
-  margin: 6px 6px 0px 6px;
+  padding: 6px 8px;
   color: black;
 }
 
 #phishingBarImage {
 /* for now, temporarily copy the remote image icon until we can get a new one */
-  list-style-image: url("chrome://global/skin/console/console-toolbar.png");
-  -moz-image-region: rect(0px, 24px, 24px, 0px);
+  list-style-image: url("chrome://messenger/skin/icons/warning.png");
 }
 
 #phishingBar {
-  border: 1px solid #bfc790;
-  -moz-border-radius: 7px;
   background-color: #EFF3D4;
-  padding: 3px 6px 4px 6px;
-  margin: 6px 6px 0px 6px;
+  padding: 6px 8px;
   color: black;
 }
 

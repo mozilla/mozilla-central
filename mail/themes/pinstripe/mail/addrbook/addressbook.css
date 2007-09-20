@@ -47,7 +47,19 @@
 @namespace html url("http://www.w3.org/1999/xhtml");
 
 #ab-toolbox {
-   margin-bottom: -1px;
+  -moz-appearance: none !important;
+  background-image: url("chrome://messenger/skin/icons/top-toolbar-background.gif");
+  background-repeat: repeat-x;
+  background-position: top right;
+  background-color: #e1e1e1;
+  margin-top: -1px;
+}
+
+toolbox,
+toolbar {
+  -moz-appearance: none !important;
+  background-color: transparent;
+  background-image: none;
 }
 
 /* ::::: tools menu icon ::::: */

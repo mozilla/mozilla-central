@@ -51,7 +51,10 @@ prefpane {
   list-style-image: url("chrome://messenger/skin/preferences/mail-options.png");
   padding: 0 5px;
   border-bottom: 1px solid #a3a3a3;
-  background: url("chrome://global/skin/toolbar/toolbar-pinstripe-overlay.png") repeat;
+  background-image: url("chrome://messenger/skin/icons/top-toolbar-background.gif");
+  background-repeat: repeat-x;
+  background-position: top right;
+  background-color: #e1e1e1;
   margin: 0;
 }
 

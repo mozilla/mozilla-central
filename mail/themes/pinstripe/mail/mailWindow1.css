@@ -432,6 +432,8 @@ splitter {
 #threadpane-splitter {
   height: 7px !important;
   min-height: 7px;
+  background-image: url("chrome://messenger/skin/icons/threadpane-splitter-bg.gif");
+  background-repeat: repeat-x;
 }
 
 #folderpane_splitter {

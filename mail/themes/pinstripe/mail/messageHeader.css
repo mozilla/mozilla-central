@@ -63,9 +63,8 @@
 
 /* XXX: Move all of the description attributes to the toolkit */
 
-description[selectable="true"]
-{
-  margin              : 1px 5px 4px 5px;
+description {
+  margin: 0;
 }
 
 descriptionitem
@@ -130,6 +129,7 @@ description[selectable="true"]:focus > descriptionitem[selected="true"]
 #attachment-splitter {
   min-height: 7px;
   border-top: 1px solid #C8C8C8;
+  background-color: #E6E6E6;
 }
 
 /* ::::: msg header captions ::::: */
@@ -142,9 +142,13 @@ description[selectable="true"]:focus > descriptionitem[selected="true"]
 }
 
 #msgHeaderView > deck {
-  border-bottom: 1px solid #dedede;
-  margin: 6px;
-  padding: 6px 6px 10px 4px;
+  margin: 0 8px 0 8px;
+  padding: 8px 0 4px 0;
+  border-bottom: 1px solid #ccc;
+}
+
+#msgHeaderView textbox {
+  background-color: transparent;
 }
 
 .headerNameBox {
@@ -184,6 +188,13 @@ description[selectable="true"]:focus > descriptionitem[selected="true"]
 
 .headerValueBox[singleline="true"] {
   overflow: hidden;
+}
+
+#collapsedsubjectBox .collapsedHeaderDisplayName {
+  font-weight: bold;
+  color: #8f8f8f;
+  margin-top: 0;
+  -moz-margin-start: 8px;
 }
 
 .subjectvalue {
