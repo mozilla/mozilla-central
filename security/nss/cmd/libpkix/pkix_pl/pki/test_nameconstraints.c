@@ -122,7 +122,6 @@ int test_nameconstraints(int argc, char *argv[]) {
         char *platformDir = NULL;
         char *dataDir = NULL;
         char *combinedDir = NULL;
-        PKIX_Boolean useArenas = PKIX_FALSE;
 
         /* Note XXX serialnumber and reasoncode need debug */
 
@@ -130,16 +129,8 @@ int test_nameconstraints(int argc, char *argv[]) {
 
         startTests("NameConstraints");
 
-        useArenas = PKIX_TEST_ARENAS_ARG(argv[1]);
-
-        PKIX_TEST_EXPECT_NO_ERROR(PKIX_Initialize
-                (PKIX_TRUE, /* nssInitNeeded */
-                useArenas,
-                PKIX_MAJOR_VERSION,
-                PKIX_MINOR_VERSION,
-                PKIX_MINOR_VERSION,
-                &actualMinorVersion,
-                &plContext));
+        PKIX_TEST_EXPECT_NO_ERROR(
+            PKIX_PL_NssContext_Create(0, PKIX_FALSE, NULL, &plContext));
 
         if (argc < 3 + j) {
                 printUsage();

@@ -700,7 +700,6 @@ int test_buildchain_partialchain(int argc, char *argv[])
         PKIX_UInt32 actualMinorVersion = 0;
         PKIX_UInt32 j = 0;
         PKIX_UInt32 k = 0;
-        PKIX_Boolean useArenas = PKIX_FALSE;
         PKIX_Boolean ene = PKIX_TRUE; /* expect no error */
         PKIX_List *listOfCerts = NULL;
         PKIX_List *certStores = NULL;
@@ -724,16 +723,8 @@ int test_buildchain_partialchain(int argc, char *argv[])
 
         startTests("BuildChain");
 
-        useArenas = PKIX_TEST_ARENAS_ARG(argv[1]);
-
-        PKIX_TEST_EXPECT_NO_ERROR(PKIX_Initialize
-                                    (PKIX_TRUE, /* nssInitNeeded */
-                                    useArenas,
-                                    PKIX_MAJOR_VERSION,
-                                    PKIX_MINOR_VERSION,
-                                    PKIX_MINOR_VERSION,
-                                    &actualMinorVersion,
-                                    &plContext));
+        PKIX_TEST_EXPECT_NO_ERROR(
+            PKIX_PL_NssContext_Create(0, PKIX_FALSE, NULL, &plContext));
 
         /*
          * arguments:

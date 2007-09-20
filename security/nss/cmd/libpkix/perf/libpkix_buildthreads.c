@@ -312,8 +312,8 @@ static void finish(char* message, int code)
 
 static void usage(char* progname)
 {
-        (void) printf("Usage : %s <duration> <threads> <anchorNickname> "
-                "<eecertNickname>\n\n", progname);
+        (void) printf("Usage : %s <-d certStoreDirectory> <duration> <threads> "
+                      "<anchorNickname> <eecertNickname>\n\n", progname);
         finish("", 0);
 }
 
@@ -343,15 +343,8 @@ libpkix_buildthreads(int argc, char** argv)
                         threads = atoi(argv[2]);
                 }
 
-        PKIX_Initialize_SetConfigDir(PKIX_STORE_TYPE_PK11, ".", plContext);
-
-        PKIX_Initialize(PKIX_TRUE, /* nssInitNeeded */
-                        PKIX_FALSE, /* useArenas */
-                        PKIX_MAJOR_VERSION,
-                        PKIX_MINOR_VERSION,
-                        PKIX_MINOR_VERSION,
-                        &actualMinorVersion,
-                        &plContext);
+        PKIX_PL_NssContext_Create(certificateUsageEmailSigner, PKIX_FALSE,
+                                  NULL, &plContext);
 
         handle = CERT_GetDefaultCertDB();
         PR_ASSERT(handle);

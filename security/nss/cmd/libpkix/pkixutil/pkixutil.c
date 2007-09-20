@@ -43,6 +43,10 @@
 
 #include <stdio.h>
 
+#include "nspr.h"
+#include "plgetopt.h"
+
+#include "nss.h"
 #include "secport.h"
 
 typedef int (*mainTestFn)(int argc, char* argv[]);
@@ -198,7 +202,7 @@ testFunctionRef testFnRefTable[] = {
 
 static
 void printUsage(char *cmdName) {
-    int fnCounter = 0, totalCharLen = 0;
+    int fnCounter = 0;
 
     fprintf(stderr, "Usage: %s [test name] [arg1]...[argN]\n\n", cmdName);
     fprintf(stderr, "List of possible names for the tests:");
@@ -212,27 +216,120 @@ void printUsage(char *cmdName) {
     fprintf(stderr, "\n");
 }
 
+static SECStatus
+getTestArguments(int         argc,
+                 char      **argv,
+                 mainTestFn *ptestFn,
+                 char      **pdbPath,
+                 int        *pargc,
+                 char     ***pargv)
+{
+    PLOptState *optstate = NULL;
+    PLOptStatus status;
+    mainTestFn testFunction = NULL;
+    char **wArgv = NULL;
+    char  *dbPath = NULL;
+    char  *fnName = NULL;
+    int    wArgc = 0;
+    int    fnCounter = 0;
+    
+    if (argc < 2) {
+        printf("ERROR: insufficient number of arguments: %s.\n", fnName);
+        return SECFailure;
+    }
+
+    fnName = argv[1];
+    while (testFnRefTable[fnCounter].fnName != NULL) {
+        if (!PORT_Strcmp(fnName, testFnRefTable[fnCounter].fnName)) {
+            testFunction = testFnRefTable[fnCounter].fnPointer;
+            break;
+        }
+        fnCounter += 1;
+    }
+    if (!testFunction) {
+        printf("ERROR: unknown name of the test: %s.\n", fnName);
+        return SECFailure;
+    }
+
+    wArgv = PORT_ZNewArray(char*, argc);
+    if (!wArgv) {
+        return SECFailure;
+    }
+
+    /* set name of the function as a first arg and increment arg count. */
+    wArgv[0] = fnName;
+    wArgc += 1;
+
+    optstate = PL_CreateOptState(argc - 1, argv + 1, "d:");
+    while ((status = PL_GetNextOpt(optstate)) == PL_OPT_OK) {
+        switch (optstate->option) {
+        case 'd':
+            dbPath = (char*)optstate->value;
+            break;
+
+        default:
+            wArgv[wArgc] = (char*)optstate->value;
+            wArgc += 1;
+            break;
+        }
+    }
+    PL_DestroyOptState(optstate);
+
+    *ptestFn = testFunction;
+    *pdbPath = dbPath;
+    *pargc = wArgc;
+    *pargv = wArgv;
+    
+    return SECSuccess;
+}
+
+
+static
+int runCmd(mainTestFn fnPointer,
+           int argc,
+           char **argv,
+           char *dbPath)
+{
+    int retStat = 0;
+    
+    /*  Initialize NSPR and NSS.  */
+    PR_Init(PR_SYSTEM_THREAD, PR_PRIORITY_NORMAL, 1);
+    
+    /* if using databases, use NSS_Init and not NSS_NoDB_Init */
+    if (dbPath && PORT_Strlen(dbPath) != 0) {
+        if (NSS_Init(dbPath) != SECSuccess)
+            return SECFailure;
+    } else {
+        if (NSS_NoDB_Init(NULL) != 0)
+            return SECFailure;
+    }
+    retStat = fnPointer(argc, argv);
+
+    if (NSS_Shutdown() != SECSuccess) {
+        exit(1);
+    }
+    PR_Cleanup();
+    return retStat;
+}
 
 int main(int argc, char **argv) {
-    char *fnName = NULL;
-    int fnCounter = 0;
+    mainTestFn testFunction = NULL;
+    char *dbPath = NULL;
+    char **testArgv = NULL;
+    int testArgc = 0;
+    int rv = 0;
 
-    if (argc < 2) {
+    rv = getTestArguments(argc, argv, &testFunction, &dbPath,
+                          &testArgc, &testArgv);
+    if (rv != SECSuccess) {
         printUsage(argv[0]);
         return 1;
     }
     
-    fnName = argv[1];
-    while (testFnRefTable[fnCounter].fnName != NULL) {
-        int fnNameLen = PORT_Strlen(testFnRefTable[fnCounter].fnName);
-        if (!PORT_Strncmp(fnName, testFnRefTable[fnCounter].fnName,
-                          fnNameLen)) {
-            return testFnRefTable[fnCounter].fnPointer(argc - 1, argv + 1);
-        }
-        fnCounter += 1;
-    }
-    printf("ERROR: unknown name of the test: %s.\n", fnName);
-    printUsage(argv[0]);
-    return -1;
+    rv = runCmd(testFunction, testArgc, testArgv, dbPath);
+
+    PORT_Free(testArgv);
+
+    return rv;
 }
 

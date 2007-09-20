@@ -66,7 +66,6 @@ int test_verifynode(int argc, char *argv[]) {
 
         PKIX_UInt32 actualMinorVersion;
         PKIX_UInt32 j = 0;
-        PKIX_Boolean useArenas = PKIX_FALSE;
         char *dirName = NULL;
 	char *twoNodeAscii = "CERT[Issuer:CN=Trust Anchor,O=Test Cert"
 		"ificates,C=US, Subject:CN=Trust Anchor,O=Test Certif"
@@ -91,16 +90,8 @@ int test_verifynode(int argc, char *argv[]) {
 
         startTests("VerifyNode");
 
-        useArenas = PKIX_TEST_ARENAS_ARG(argv[1]);
-
-        PKIX_TEST_EXPECT_NO_ERROR(PKIX_Initialize
-                (PKIX_TRUE, /* nssInitNeeded */
-                useArenas,
-                PKIX_MAJOR_VERSION,
-                PKIX_MINOR_VERSION,
-                PKIX_MINOR_VERSION,
-                &actualMinorVersion,
-                &plContext));
+        PKIX_TEST_EXPECT_NO_ERROR(
+            PKIX_PL_NssContext_Create(0, PKIX_FALSE, NULL, &plContext));
 
         dirName = argv[++j];
 

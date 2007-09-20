@@ -185,7 +185,6 @@ int test_crlentry(int argc, char *argv[]) {
         PKIX_PL_CRLEntry *diffObject = NULL;
         PKIX_UInt32 actualMinorVersion;
         PKIX_UInt32 j = 0;
-        PKIX_Boolean useArenas = PKIX_FALSE;
 
         char *dataDir = NULL;
         char *goodInput = "crlgood.crl";
@@ -203,16 +202,8 @@ int test_crlentry(int argc, char *argv[]) {
 
         startTests("CRLEntry");
 
-        useArenas = PKIX_TEST_ARENAS_ARG(argv[1]);
-
-        PKIX_TEST_EXPECT_NO_ERROR(PKIX_Initialize
-                                    (PKIX_TRUE, /* nssInitNeeded */
-                                    useArenas,
-                                    PKIX_MAJOR_VERSION,
-                                    PKIX_MINOR_VERSION,
-                                    PKIX_MINOR_VERSION,
-                                    &actualMinorVersion,
-                                    &plContext));
+        PKIX_TEST_EXPECT_NO_ERROR(
+            PKIX_PL_NssContext_Create(0, PKIX_FALSE, NULL, &plContext));
 
         if (argc < 1+j) {
                 printUsage();

@@ -437,20 +437,18 @@ cleanup:
 
 static 
 void printUsage(char *pName){
-        printf("\nUSAGE: %s <data-dir> <database-dir>\n\n", pName);
+        printf("\nUSAGE: %s <-d data-dir> <database-dir>\n\n", pName);
 }
 
 /* Functional tests for Pk11CertStore public functions */
 
 int test_pk11certstore(int argc, char *argv[]) {
 
-        PKIX_Boolean useArenas = PKIX_FALSE;
         PKIX_UInt32 j = 0;
         PKIX_UInt32 actualMinorVersion;
         PKIX_PL_Date *validityDate = NULL;
         PKIX_PL_Date *betweenDate = NULL;
         char *crlDir = NULL;
-        char *databaseDir = NULL;
         char *expectedProfAscii = "([\n"
                 "\tVersion:         v3\n"
                 "\tSerialNumber:    00ca\n"
@@ -607,27 +605,8 @@ int test_pk11certstore(int argc, char *argv[]) {
                 return (0);
         }
 
-        /* too bad we cannot do this after the macro NSSCONTEXT_SETUP */
-        databaseDir = argv[1];
-        if (databaseDir[0] == '-') {
-                /* with -arenas at front */
-                databaseDir = argv[2];
-        }
-
-        /* This must precede the call to PKIX_Initialize! */
-        PKIX_TEST_EXPECT_NO_ERROR(PKIX_Initialize_SetConfigDir
-            (PKIX_STORE_TYPE_PK11, databaseDir, plContext));
-
-        useArenas = PKIX_TEST_ARENAS_ARG(argv[1]);
-
-        PKIX_TEST_EXPECT_NO_ERROR(PKIX_Initialize
-                (PKIX_TRUE, /* nssInitNeeded */
-                useArenas,
-                PKIX_MAJOR_VERSION,
-                PKIX_MINOR_VERSION,
-                PKIX_MINOR_VERSION,
-                &actualMinorVersion,
-                &plContext));
+        PKIX_TEST_EXPECT_NO_ERROR(
+            PKIX_PL_NssContext_Create(0, PKIX_FALSE, NULL, &plContext));
 
         crlDir = argv[j+2];
 

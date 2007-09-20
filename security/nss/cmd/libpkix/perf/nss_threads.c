@@ -182,12 +182,7 @@ int nss_threads(int argc, char** argv)
                 {
                         threads = atoi(argv[2]);
                 }
-        rv = NSS_Initialize(".", "", "",
-                            "secmod.db", NSS_INIT_READONLY);
-        if (SECSuccess != rv)
-                {
-                        finish("Unable to initialize NSS.\n", 1);
-                }
+
         handle = CERT_GetDefaultCertDB();
         PR_ASSERT(handle);
         cert = CERT_FindCertByNicknameOrEmailAddr(handle, argv[3]);

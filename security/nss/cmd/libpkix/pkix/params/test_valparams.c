@@ -140,7 +140,6 @@ int test_valparams(int argc, char *argv[]) {
         PKIX_UInt32 actualMinorVersion;
         PKIX_UInt32 j = 0;
         char *dirName = NULL;
-        PKIX_Boolean useArenas = PKIX_FALSE;
 
         char *goodInput = "yassir2yassir";
         char *diffInput = "yassir2bcn";
@@ -226,16 +225,8 @@ int test_valparams(int argc, char *argv[]) {
 
         startTests("ValidateParams");
 
-        useArenas = PKIX_TEST_ARENAS_ARG(argv[1]);
-
-        PKIX_TEST_EXPECT_NO_ERROR(PKIX_Initialize
-                                    (PKIX_TRUE, /* nssInitNeeded */
-                                    useArenas,
-                                    PKIX_MAJOR_VERSION,
-                                    PKIX_MINOR_VERSION,
-                                    PKIX_MINOR_VERSION,
-                                    &actualMinorVersion,
-                                    &plContext));
+        PKIX_TEST_EXPECT_NO_ERROR(
+            PKIX_PL_NssContext_Create(0, PKIX_FALSE, NULL, &plContext));
 
         if (argc < 2){
                 printUsage(argv[0]);

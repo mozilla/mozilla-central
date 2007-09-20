@@ -106,10 +106,15 @@ export LOGGING SOCKETTRACE
 
 RunTests <<EOF
 pkixutil test_validatechain_NB NIST-Test.4.1.1 ENE $NIST TrustAnchorRootCertificate.crt GoodCACert.crt ValidCertificatePathTest1EE.crt
+pkixutil_or test_validatechain_NB NIST-Test.4.1.1 ENE $NIST TrustAnchorRootCertificate.crt GoodCACert.crt ValidCertificatePathTest1EE.crt
 pkixutil test_validatechain_NB NIST-Test.4.1.2 EE $NIST TrustAnchorRootCertificate.crt BadSignedCACert.crt InvalidCASignatureTest2EE.crt
+pkixutil_or test_validatechain_NB NIST-Test.4.1.2 EE $NIST TrustAnchorRootCertificate.crt BadSignedCACert.crt InvalidCASignatureTest2EE.crt
 pkixutil test_validatechain_NB NIST-Test.4.1.3 EE $NIST TrustAnchorRootCertificate.crt GoodCACert.crt  InvalidEESignatureTest3EE.crt
+pkixutil_or test_validatechain_NB NIST-Test.4.1.3 EE $NIST TrustAnchorRootCertificate.crt GoodCACert.crt  InvalidEESignatureTest3EE.crt
 pkixutil test_validatechain_NB NIST-Test.4.1.4 ENE $NIST TrustAnchorRootCertificate.crt DSACACert.crt ValidDSASignaturesTest4EE.crt
+pkixutil_or test_validatechain_NB NIST-Test.4.1.4 ENE $NIST TrustAnchorRootCertificate.crt DSACACert.crt ValidDSASignaturesTest4EE.crt
 pkixutil test_validatechain_NB NIST-Test.4.1.5 ENE $NIST TrustAnchorRootCertificate.crt DSACACert.crt DSAParametersInheritedCACert.crt ValidDSAParameterInheritanceTest5EE.crt
+pkixutil_or test_validatechain_NB NIST-Test.4.1.5 ENE $NIST TrustAnchorRootCertificate.crt DSACACert.crt DSAParametersInheritedCACert.crt ValidDSAParameterInheritanceTest5EE.crt
 EOF
 
 tracedErrors=$?
@@ -499,8 +504,8 @@ pkixutil test_buildchain_partialchain ${LDAP}  NIST-Test.4.6.14 ENE $NIST Validp
 pkixutil test_buildchain_partialchain ${LDAP}  NIST-Test.4.13.13 EE $NIST InvalidDNnameConstraintsTest13EE.crt nameConstraintsDN1subCA2Cert.crt nameConstraintsDN1subCA2Cert.crt nameConstraintsDN1CACert.crt TrustAnchorRootCertificate.crt
 pkixutil test_buildchain_partialchain ${LDAP}  NIST-Test.4.13.27 ENE $NIST ValidDNandRFC822nameConstraintsTest27EE.crt nameConstraintsDN1subCA3Cert.crt nameConstraintsDN1subCA2Cert.crt TrustAnchorRootCertificate.crt 
 pkixutil test_buildchain ${LDAP} NIST-PDTest ENE ${NIST_PDTEST} certs/BasicHTTPURIPathDiscoveryTest2EE.crt certs/BasicHTTPURITrustAnchorRootCert.crt
-pkixutil test_ocsp OCSP-Test ENE ${HOSTDIR}/ocsp anchorcert.crt goodcert.crt
-pkixutil test_ocsp OCSP-Test EE ${HOSTDIR}/ocsp anchorcert.crt revokedcert.crt
+pkixutil test_ocsp -d ${HOSTDIR}/ocsp OCSP-Test ENE ${HOSTDIR}/ocsp anchorcert.crt goodcert.crt
+pkixutil test_ocsp -d ${HOSTDIR}/ocsp OCSP-Test EE ${HOSTDIR}/ocsp anchorcert.crt revokedcert.crt
 EOF
 
 totalErrors=$?

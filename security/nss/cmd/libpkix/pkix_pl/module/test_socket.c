@@ -444,7 +444,6 @@ void dispatcher()
 
 int test_socket(int argc, char *argv[]) {
 
-        PKIX_Boolean useArenas = PKIX_FALSE;
         int j = 0;
         PKIX_UInt32 actualMinorVersion;
         char buf[PR_NETDB_BUF_SIZE];
@@ -462,16 +461,8 @@ int test_socket(int argc, char *argv[]) {
 
         startTests("Socket");
 
-        useArenas = PKIX_TEST_ARENAS_ARG(argv[1]);
-
-        PKIX_TEST_EXPECT_NO_ERROR(PKIX_Initialize
-                (PKIX_TRUE, /* nssInitNeeded */
-                useArenas,
-                PKIX_MAJOR_VERSION,
-                PKIX_MINOR_VERSION,
-                PKIX_MINOR_VERSION,
-                &actualMinorVersion,
-                &plContext));
+        PKIX_TEST_EXPECT_NO_ERROR(
+            PKIX_PL_NssContext_Create(0, PKIX_FALSE, NULL, &plContext));
 
         if (argc != (j + 2)) {
                 printUsage(argv[0]);

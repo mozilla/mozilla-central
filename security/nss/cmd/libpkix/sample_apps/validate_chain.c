@@ -156,7 +156,6 @@ int validate_chain(int argc, char *argv[])
         PKIX_UInt32 i = 0;
         PKIX_UInt32 j = 0;
         PKIX_UInt32 actualMinorVersion;
-        PKIX_Boolean useArenas = PKIX_FALSE;
 
         PKIX_TEST_STD_VARS();
 
@@ -165,16 +164,8 @@ int validate_chain(int argc, char *argv[])
                 return (0);
         }
 
-        useArenas = PKIX_TEST_ARENAS_ARG(argv[1]);
-
-        PKIX_TEST_EXPECT_NO_ERROR(PKIX_Initialize
-                                    (PKIX_TRUE, /* nssInitNeeded */
-                                    useArenas,
-                                    PKIX_MAJOR_VERSION,
-                                    PKIX_MINOR_VERSION,
-                                    PKIX_MINOR_VERSION,
-                                    &actualMinorVersion,
-                                    &plContext));
+        PKIX_TEST_EXPECT_NO_ERROR(
+            PKIX_PL_NssContext_Create(0, PKIX_FALSE, NULL, &plContext));
 
         chainLength = (argc - j) - 2;
 

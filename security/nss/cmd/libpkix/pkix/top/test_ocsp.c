@@ -48,12 +48,14 @@ static void *plContext = NULL;
 
 static
 void printUsage(void){
-        (void) printf("\nUSAGE:\nOcspChecker TestName [ENE|EE] "
-                    "<certStoreDirectory> <trustedCert> <targetCert>\n\n");
+        (void) printf("\nUSAGE:\nOcspChecker -d <certStoreDirectory> TestName "
+                      "[ENE|EE] <certLocationDirectory> <trustedCert> "
+                      "<targetCert>\n\n");
         (void) printf
                 ("Validates a chain of certificates between "
                 "<trustedCert> and <targetCert>\n"
-                "using the certs and CRLs in <certStoreDirectory>. "
+                "using the certs and CRLs in <certLocationDirectory> and "
+                "pkcs11 db from <certStoreDirectory>. "
                 "If ENE is specified,\n"
                 "then an Error is Not Expected. "
                 "If EE is specified, an Error is Expected.\n");
@@ -190,7 +192,6 @@ int test_ocsp(int argc, char *argv[]){
         PKIX_UInt32 k = 0;
         PKIX_UInt32 chainLength = 0;
         PKIX_Boolean testValid = PKIX_TRUE;
-        PKIX_Boolean useArenas = PKIX_FALSE;
         PKIX_List *chainCerts = NULL;
 	PKIX_VerifyNode *verifyTree = NULL;
 	PKIX_PL_String *verifyString = NULL;
@@ -213,22 +214,8 @@ int test_ocsp(int argc, char *argv[]){
 
         startTests("OcspChecker");
 
-        useArenas = PKIX_TEST_ARENAS_ARG(argv[1]);
-
-        databaseDir = argv[3+j];
-
-        /* This must precede the call to PKIX_Initialize! */
-        PKIX_TEST_EXPECT_NO_ERROR(PKIX_Initialize_SetConfigDir
-            (PKIX_STORE_TYPE_PK11, databaseDir, plContext));
-
-        PKIX_TEST_EXPECT_NO_ERROR(PKIX_Initialize
-                (PKIX_TRUE, /* nssInitNeeded */
-                useArenas,
-                PKIX_MAJOR_VERSION,
-                PKIX_MINOR_VERSION,
-                PKIX_MINOR_VERSION,
-                &actualMinorVersion,
-                &plContext));
+        PKIX_TEST_EXPECT_NO_ERROR(
+            PKIX_PL_NssContext_Create(0, PKIX_FALSE, NULL, &plContext));
 
         /* ENE = expect no error; EE = expect error */
         if (PORT_Strcmp(argv[2+j], "ENE") == 0) {
@@ -242,7 +229,7 @@ int test_ocsp(int argc, char *argv[]){
 
         subTest(argv[1+j]);
 
-        dirName = databaseDir;
+        dirName = argv[3+j];
 
         chainLength = argc - j - 5;
 

@@ -284,7 +284,6 @@ int test_buildchain_resourcelimits(int argc, char *argv[])
         PKIX_CertStore *certStore = NULL;
         PKIX_List *certStores = NULL;
         PKIX_List *expectedCerts = NULL;
-        PKIX_Boolean useArenas = PKIX_FALSE;
         PKIX_Boolean testValid = PKIX_FALSE;
         PKIX_Boolean usebind = PKIX_FALSE;
         PKIX_Boolean useLDAP = PKIX_FALSE;
@@ -298,16 +297,8 @@ int test_buildchain_resourcelimits(int argc, char *argv[])
 
         startTests("BuildChain_ResourceLimits");
 
-        useArenas = PKIX_TEST_ARENAS_ARG(argv[1]);
-
-        PKIX_TEST_EXPECT_NO_ERROR(PKIX_Initialize
-                                    (PKIX_TRUE, /* nssInitNeeded */
-                                    useArenas,
-                                    PKIX_MAJOR_VERSION,
-                                    PKIX_MINOR_VERSION,
-                                    PKIX_MINOR_VERSION,
-                                    &actualMinorVersion,
-                                    &plContext));
+        PKIX_TEST_EXPECT_NO_ERROR(
+            PKIX_PL_NssContext_Create(0, PKIX_FALSE, NULL, &plContext));
 
         /*
          * arguments:

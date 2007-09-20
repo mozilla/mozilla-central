@@ -153,7 +153,6 @@ int test_bigint(int argc, char *argv[]) {
         PKIX_Int32 cmpResult;
         PKIX_UInt32 actualMinorVersion;
         PKIX_UInt32 j = 0;
-        PKIX_Boolean useArenas = PKIX_FALSE;
 
         char *bigIntValue[4] =
         {
@@ -169,16 +168,8 @@ int test_bigint(int argc, char *argv[]) {
 
         startTests("BigInts");
 
-        useArenas = PKIX_TEST_ARENAS_ARG(argv[1]);
-
-        PKIX_TEST_EXPECT_NO_ERROR(PKIX_Initialize
-                                    (PKIX_TRUE, /* nssInitNeeded */
-                                    useArenas,
-                                    PKIX_MAJOR_VERSION,
-                                    PKIX_MINOR_VERSION,
-                                    PKIX_MINOR_VERSION,
-                                    &actualMinorVersion,
-                                    &plContext));
+        PKIX_TEST_EXPECT_NO_ERROR(
+            PKIX_PL_NssContext_Create(0, PKIX_FALSE, NULL, &plContext));
 
         for (i = 0; i < badSize; i++) {
                 subTest("PKIX_PL_BigInt_Create <error_handling>");

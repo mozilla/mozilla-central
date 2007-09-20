@@ -106,22 +106,13 @@ int test_monitorlock(int argc, char *argv[]) {
         PKIX_PL_MonitorLock *monitorLock, *monitorLock2, *monitorLock3;
         PKIX_UInt32 actualMinorVersion;
         PKIX_UInt32 j = 0;
-        PKIX_Boolean useArenas = PKIX_FALSE;
 
         PKIX_TEST_STD_VARS();
 
         startTests("MonitorLocks");
 
-        useArenas = PKIX_TEST_ARENAS_ARG(argv[1]);
-
-        PKIX_TEST_EXPECT_NO_ERROR(PKIX_Initialize
-                                    (PKIX_TRUE, /* nssInitNeeded */
-                                    useArenas,
-                                    PKIX_MAJOR_VERSION,
-                                    PKIX_MINOR_VERSION,
-                                    PKIX_MINOR_VERSION,
-                                    &actualMinorVersion,
-                                    &plContext));
+        PKIX_TEST_EXPECT_NO_ERROR(
+            PKIX_PL_NssContext_Create(0, PKIX_FALSE, NULL, &plContext));
 
         subTest("PKIX_PL_MonitorLock_Create");
         createMonitorLockes(&monitorLock, &monitorLock2, &monitorLock3);

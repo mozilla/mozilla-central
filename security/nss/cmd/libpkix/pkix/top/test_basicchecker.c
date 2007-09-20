@@ -232,23 +232,14 @@ int test_basicchecker(int argc, char *argv[]) {
         char *dateAscii = "991201000000Z";
         char *dirName = NULL;
         PKIX_UInt32 j = 0;
-        PKIX_Boolean useArenas = PKIX_FALSE;
         PKIX_UInt32 actualMinorVersion;
 
         PKIX_TEST_STD_VARS();
 
         startTests("SignatureChecker");
 
-        useArenas = PKIX_TEST_ARENAS_ARG(argv[1]);
-
-        PKIX_TEST_EXPECT_NO_ERROR(PKIX_Initialize
-                                    (PKIX_TRUE, /* nssInitNeeded */
-                                    useArenas,
-                                    PKIX_MAJOR_VERSION,
-                                    PKIX_MINOR_VERSION,
-                                    PKIX_MINOR_VERSION,
-                                    &actualMinorVersion,
-                                    &plContext));
+        PKIX_TEST_EXPECT_NO_ERROR(
+            PKIX_PL_NssContext_Create(0, PKIX_FALSE, NULL, &plContext));
 
         if (argc < 2){
                 printUsage(argv[0]);

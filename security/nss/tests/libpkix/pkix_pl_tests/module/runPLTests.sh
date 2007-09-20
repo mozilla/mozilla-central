@@ -106,7 +106,7 @@ export SOCKETTRACE
 
 RunTests <<EOF
 pkixutil test_colcertstore NIST-Test-Files-Used rev_data/local ${HOSTDIR}
-pkixutil test_pk11certstore ../../pkix_pl_tests/module ../../pkix_tests/top/rev_data/crlchecker
+pkixutil test_pk11certstore -d ../../pkix_pl_tests/module ../../pkix_tests/top/rev_data/crlchecker
 pkixutil test_ekuchecker "Test-EKU-without-OID" ENE "" rev_data test_eku_codesigning_clientauth.crt test_eku_clientauth.crt test_eku_clientauthEE.crt
 pkixutil test_ekuchecker "Test-EKU-with-good-OID" ENE "1.3.6.1.5.5.7.3.3" rev_data test_eku_codesigning_clientauth.crt test_eku_clientauth.crt test_eku_clientauthEE.crt 
 pkixutil test_ekuchecker "Test-EKU-with-bad-OID" EE "1.3.6.1.5.5.7.3.4" rev_data test_eku_codesigning_clientauth.crt test_eku_clientauth.crt test_eku_clientauthEE.crt 

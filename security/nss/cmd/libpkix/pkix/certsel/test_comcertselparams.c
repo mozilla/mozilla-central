@@ -750,7 +750,6 @@ int test_comcertselparams(int argc, char *argv[]) {
         PKIX_PL_String *stringRep = NULL;
         char *asciiRep = NULL;
         char *dirName = NULL;
-        PKIX_Boolean useArenas = PKIX_FALSE;
 
         PKIX_TEST_STD_VARS();
 
@@ -761,16 +760,8 @@ int test_comcertselparams(int argc, char *argv[]) {
 
         startTests("ComCertSelParams");
 
-        useArenas = PKIX_TEST_ARENAS_ARG(argv[1]);
-
-        PKIX_TEST_EXPECT_NO_ERROR(PKIX_Initialize
-                (PKIX_TRUE, /* nssInitNeeded */
-                useArenas,
-                PKIX_MAJOR_VERSION,
-                PKIX_MINOR_VERSION,
-                PKIX_MINOR_VERSION,
-                &actualMinorVersion,
-                &plContext));
+        PKIX_TEST_EXPECT_NO_ERROR(
+            PKIX_PL_NssContext_Create(0, PKIX_FALSE, NULL, &plContext));
 
         dirName = argv[j+1];
 

@@ -416,7 +416,6 @@ int test_policychecker(int argc, char *argv[])
         PKIX_Boolean initialAnyPolicyInhibit = PKIX_FALSE;
         PKIX_Boolean initialExplicitPolicy = PKIX_FALSE;
         PKIX_Boolean expectedResult = PKIX_FALSE;
-        PKIX_Boolean useArenas = PKIX_FALSE;
         PKIX_UInt32 chainLength = 0;
         PKIX_UInt32 initArgs = 0;
         PKIX_UInt32 firstCert = 0;
@@ -442,16 +441,8 @@ int test_policychecker(int argc, char *argv[])
 
         PKIX_TEST_STD_VARS();
 
-        useArenas = PKIX_TEST_ARENAS_ARG(argv[1]);
-
-        PKIX_TEST_EXPECT_NO_ERROR(PKIX_Initialize
-                                    (PKIX_TRUE, /* nssInitNeeded */
-                                    useArenas,
-                                    PKIX_MAJOR_VERSION,
-                                    PKIX_MINOR_VERSION,
-                                    PKIX_MINOR_VERSION,
-                                    &actualMinorVersion,
-                                    &plContext));
+        PKIX_TEST_EXPECT_NO_ERROR(
+            PKIX_PL_NssContext_Create(0, PKIX_FALSE, NULL, &plContext));
 
         /*
          * Perform hard-coded tests if no command line args.

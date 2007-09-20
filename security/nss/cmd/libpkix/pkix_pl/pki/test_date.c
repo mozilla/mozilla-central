@@ -115,7 +115,6 @@ int test_date(int argc, char *argv[]) {
 
         char *goodInput = NULL;
         char *diffInput = NULL;
-        PKIX_Boolean useArenas = PKIX_FALSE;
         PKIX_UInt32 actualMinorVersion;
         PKIX_UInt32 j = 0;
 
@@ -123,16 +122,8 @@ int test_date(int argc, char *argv[]) {
 
         startTests("Date");
 
-        useArenas = PKIX_TEST_ARENAS_ARG(argv[1]);
-
-        PKIX_TEST_EXPECT_NO_ERROR(PKIX_Initialize
-                                    (PKIX_TRUE, /* nssInitNeeded */
-                                    useArenas,
-                                    PKIX_MAJOR_VERSION,
-                                    PKIX_MINOR_VERSION,
-                                    PKIX_MINOR_VERSION,
-                                    &actualMinorVersion,
-                                    &plContext));
+        PKIX_TEST_EXPECT_NO_ERROR(
+            PKIX_PL_NssContext_Create(0, PKIX_FALSE, NULL, &plContext));
 
         goodInput = "040329134847Z";
         diffInput = "050329135847Z";

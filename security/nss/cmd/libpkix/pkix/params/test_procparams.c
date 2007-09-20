@@ -433,7 +433,6 @@ int test_procparams(int argc, char *argv[]) {
         PKIX_UInt32 actualMinorVersion;
         char *dataCentralDir = NULL;
         PKIX_UInt32 j = 0;
-        PKIX_Boolean useArenas = PKIX_FALSE;
 
         char *oidAnyPolicy = PKIX_CERTIFICATEPOLICIES_ANYPOLICY_OID;
         char *oidNist1Policy = "2.16.840.1.101.3.2.1.48.2";
@@ -476,16 +475,8 @@ int test_procparams(int argc, char *argv[]) {
 
         startTests("ProcessingParams");
 
-        useArenas = PKIX_TEST_ARENAS_ARG(argv[1]);
-
-        PKIX_TEST_EXPECT_NO_ERROR(PKIX_Initialize
-                                    (PKIX_TRUE, /* nssInitNeeded */
-                                    useArenas,
-                                    PKIX_MAJOR_VERSION,
-                                    PKIX_MINOR_VERSION,
-                                    PKIX_MINOR_VERSION,
-                                    &actualMinorVersion,
-                                    &plContext));
+        PKIX_TEST_EXPECT_NO_ERROR(
+            PKIX_PL_NssContext_Create(0, PKIX_FALSE, NULL, &plContext));
 
         if (argc < 2){
                 printUsage(argv[0]);

@@ -151,7 +151,6 @@ int test_validatechain_bc(int argc, char *argv[])
         PKIX_UInt32 i = 0;
         PKIX_UInt32 j = 0;
         PKIX_UInt32 actualMinorVersion;
-        PKIX_Boolean useArenas = PKIX_FALSE;
 	PKIX_VerifyNode *verifyTree = NULL;
 	PKIX_PL_String *verifyString = NULL;
 
@@ -164,16 +163,8 @@ int test_validatechain_bc(int argc, char *argv[])
 
         startTests("ValidateChainBasicConstraints");
 
-        useArenas = PKIX_TEST_ARENAS_ARG(argv[1]);
-
-        PKIX_TEST_EXPECT_NO_ERROR(PKIX_Initialize
-                                    (PKIX_TRUE, /* nssInitNeeded */
-                                    useArenas,
-                                    PKIX_MAJOR_VERSION,
-                                    PKIX_MINOR_VERSION,
-                                    PKIX_MINOR_VERSION,
-                                    &actualMinorVersion,
-                                    &plContext));
+        PKIX_TEST_EXPECT_NO_ERROR(
+            PKIX_PL_NssContext_Create(0, PKIX_FALSE, NULL, &plContext));
 
         chainLength = (argc - j) - 2;
 

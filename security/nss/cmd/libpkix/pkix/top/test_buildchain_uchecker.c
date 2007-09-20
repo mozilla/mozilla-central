@@ -115,7 +115,6 @@ int test_buildchain_uchecker(int argc, char *argv[])
         char *oidString = NULL;
         void *buildState = NULL; /* needed by pkix_build for non-blocking I/O */
         void *nbioContext = NULL; /* needed by pkix_build for non-blocking I/O */
-        PKIX_Boolean useArenas = PKIX_FALSE;
 
         PKIX_TEST_STD_VARS();
 
@@ -126,16 +125,8 @@ int test_buildchain_uchecker(int argc, char *argv[])
 
         startTests("BuildChain_UserChecker");
 
-        useArenas = PKIX_TEST_ARENAS_ARG(argv[1]);
-
-        PKIX_TEST_EXPECT_NO_ERROR(PKIX_Initialize
-                                    (PKIX_TRUE, /* nssInitNeeded */
-                                    useArenas,
-                                    PKIX_MAJOR_VERSION,
-                                    PKIX_MINOR_VERSION,
-                                    PKIX_MINOR_VERSION,
-                                    &actualMinorVersion,
-                                    &plContext));
+        PKIX_TEST_EXPECT_NO_ERROR(
+            PKIX_PL_NssContext_Create(0, PKIX_FALSE, NULL, &plContext));
 
         /* ENE = expect no error; EE = expect error */
         if (PORT_Strcmp(argv[2+j], "ENE") == 0) {

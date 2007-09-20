@@ -127,7 +127,6 @@ int test_httpcertstore(int argc, char *argv[]) {
         PKIX_UInt32 numCerts = 0;
         PKIX_UInt32 numCrls = 0;
         int j = 0;
-        PKIX_Boolean useArenas = PKIX_FALSE;
         PKIX_UInt32 actualMinorVersion;
         PKIX_UInt32 length = 0;
 
@@ -156,16 +155,8 @@ int test_httpcertstore(int argc, char *argv[]) {
 
         startTests("HttpCertStore");
 
-        useArenas = PKIX_TEST_ARENAS_ARG(argv[1]);
-
-        PKIX_TEST_EXPECT_NO_ERROR(PKIX_Initialize
-                (PKIX_TRUE, /* nssInitNeeded */
-                useArenas,
-                PKIX_MAJOR_VERSION,
-                PKIX_MINOR_VERSION,
-                PKIX_MINOR_VERSION,
-                &actualMinorVersion,
-                &plContext));
+        PKIX_TEST_EXPECT_NO_ERROR(
+            PKIX_PL_NssContext_Create(0, PKIX_FALSE, NULL, &plContext));
 
         if (argc != (j + 3)) {
                 printUsage(argv[0]);

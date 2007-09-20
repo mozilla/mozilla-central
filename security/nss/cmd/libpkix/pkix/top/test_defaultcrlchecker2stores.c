@@ -172,7 +172,6 @@ int test_defaultcrlchecker2stores(int argc, char *argv[]){
         PKIX_UInt32 i = 0;
         PKIX_UInt32 j = 0;
         PKIX_Boolean testValid = PKIX_TRUE;
-        PKIX_Boolean useArenas = PKIX_FALSE;
         char *dirName = NULL;
         char *anchorName = NULL;
 
@@ -185,16 +184,8 @@ int test_defaultcrlchecker2stores(int argc, char *argv[]){
 
         startTests("CRL Checker");
 
-        useArenas = PKIX_TEST_ARENAS_ARG(argv[1]);
-
-        PKIX_TEST_EXPECT_NO_ERROR(PKIX_Initialize
-                                    (PKIX_TRUE, /* nssInitNeeded */
-                                    useArenas,
-                                    PKIX_MAJOR_VERSION,
-                                    PKIX_MINOR_VERSION,
-                                    PKIX_MINOR_VERSION,
-                                    &actualMinorVersion,
-                                    &plContext));
+        PKIX_TEST_EXPECT_NO_ERROR(
+            PKIX_PL_NssContext_Create(0, PKIX_FALSE, NULL, &plContext));
 
         /* ENE = expect no error; EE = expect error */
         if (PORT_Strcmp(argv[2+j], "ENE") == 0) {
