@@ -215,6 +215,7 @@ function onCommandCancel() {
     setItemProperty(oldItem,
                     "DESCRIPTION",
                     getElementValue("item-description"));
+    setElementValue("item-description", newItem.getProperty("DESCRIPTION"));
 
     // compare old and new version of this item. we ask the item for its
     // representation as icalString in order to have some easily comparable
