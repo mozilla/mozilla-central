@@ -2744,22 +2744,19 @@ nsImapProtocol::AdjustChunkSize()
 }
 
 // authenticated state commands
+
 // escape any backslashes or quotes.  Backslashes are used a lot with our NT server
-char *nsImapProtocol::CreateEscapedMailboxName(const char *rawName)
+void nsImapProtocol::CreateEscapedMailboxName(const char *rawName, nsCString &escapedName)
 {
-  nsCString escapedName(rawName);
+  escapedName.Assign(rawName);
 
   for (PRInt32 strIndex = 0; *rawName; strIndex++)
   {
     char currentChar = *rawName++;
     if ((currentChar == '\\') || (currentChar == '\"'))
-    {
       escapedName.Insert('\\', strIndex++);
-    }
   }
-  return ToNewCString(escapedName);
 }
-
 void nsImapProtocol::SelectMailbox(const char *mailboxName)
 {
   ProgressEventFunctionUsingIdWithString (IMAP_STATUS_SELECTING_MAILBOX, mailboxName);
@@ -2767,13 +2764,13 @@ void nsImapProtocol::SelectMailbox(const char *mailboxName)
 
   m_closeNeededBeforeSelect = PR_FALSE;   // initial value
   GetServerStateParser().ResetFlagInfo(0);
-  char *escapedName = CreateEscapedMailboxName(mailboxName);
+  nsCString escapedName;
+  CreateEscapedMailboxName(mailboxName, escapedName);
   nsCString commandBuffer(GetServerCommandTag());
   commandBuffer.Append(" select \"");
-  commandBuffer.Append(escapedName);
+  commandBuffer.Append(escapedName.get());
   commandBuffer.Append("\"" CRLF);
 
-  nsMemory::Free(escapedName);
   nsresult res;
   res = SendData(commandBuffer.get());
   if (NS_FAILED(res)) return;
@@ -5335,7 +5332,8 @@ void nsImapProtocol::UploadMessageFromFile (nsIFile* file,
   PRUint32 readCount;
   char *dataBuffer = nsnull;
   nsCString command(GetServerCommandTag());
-  char* escapedName = CreateEscapedMailboxName(mailboxName);
+  nsCString escapedName;
+  CreateEscapedMailboxName(mailboxName, escapedName);
   nsresult rv;
   PRBool eof = PR_FALSE;
   nsCString flagString;
@@ -5344,7 +5342,7 @@ void nsImapProtocol::UploadMessageFromFile (nsIFile* file,
 
   nsCOMPtr <nsIInputStream> fileInputStream;
 
-  if (escapedName)
+  if (!escapedName.IsEmpty())
   {
     command.Append(" append \"");
     command.Append(escapedName);
@@ -5511,7 +5509,6 @@ void nsImapProtocol::UploadMessageFromFile (nsIFile* file,
 done:
   PR_Free(dataBuffer);
   fileInputStream->Close();
-  nsMemory::Free(escapedName);
 }
 
 //caller must free using PR_Free
@@ -5741,12 +5738,11 @@ void nsImapProtocol::GetACLForFolder(const char *mailboxName)
   IncrementCommandTagNumber();
 
   nsCString command(GetServerCommandTag());
-  char *escapedName = CreateEscapedMailboxName(mailboxName);
+  nsCString escapedName;
+  CreateEscapedMailboxName(mailboxName, escapedName);
   command.Append(" getacl \"");
   command.Append(escapedName);
   command.Append("\"" CRLF);
-
-  nsMemory::Free(escapedName);
 
   nsresult rv = SendData(command.get());
   if (NS_SUCCEEDED(rv))
@@ -5911,16 +5907,15 @@ void nsImapProtocol::GetMyRightsForFolder(const char *mailboxName)
   IncrementCommandTagNumber();
 
   nsCString command(GetServerCommandTag());
-  char *escapedName = CreateEscapedMailboxName(mailboxName);
+  nsCString escapedName;
+  CreateEscapedMailboxName(mailboxName, escapedName);
 
-  if (MailboxIsNoSelectMailbox(escapedName))
+  if (MailboxIsNoSelectMailbox(escapedName.get()))
     return; // Don't issue myrights on Noselect folder
 
   command.Append(" myrights \"");
   command.Append(escapedName);
   command.Append("\"" CRLF);
-
-  nsMemory::Free(escapedName);
 
   nsresult rv = SendData(command.get());
   if (NS_SUCCEEDED(rv))
@@ -5952,13 +5947,12 @@ void nsImapProtocol::OnStatusForFolder(const char *mailboxName)
   IncrementCommandTagNumber();
 
   nsCAutoString command(GetServerCommandTag());
-  char *escapedName = CreateEscapedMailboxName(mailboxName);
+  nsCString escapedName;
+  CreateEscapedMailboxName(mailboxName, escapedName);
 
   command.Append(" STATUS \"");
   command.Append(escapedName);
   command.Append("\" (UIDNEXT MESSAGES UNSEEN RECENT)" CRLF);
-
-  nsMemory::Free(escapedName);
 
   nsresult rv = SendData(command.get());
   if (NS_SUCCEEDED(rv))
@@ -6868,13 +6862,12 @@ void nsImapProtocol::CreateMailbox(const char *mailboxName)
 
   IncrementCommandTagNumber();
 
-  char *escapedName = CreateEscapedMailboxName(mailboxName);
+  nsCString escapedName;
+  CreateEscapedMailboxName(mailboxName, escapedName);
   nsCString command(GetServerCommandTag());
   command += " create \"";
   command += escapedName;
   command += "\""CRLF;
-
-  nsMemory::Free(escapedName);
 
   nsresult rv = SendData(command.get());
   if(NS_SUCCEEDED(rv))
@@ -6895,12 +6888,12 @@ void nsImapProtocol::DeleteMailbox(const char *mailboxName)
 
     IncrementCommandTagNumber();
 
-    char *escapedName = CreateEscapedMailboxName(mailboxName);
+    nsCString escapedName;
+    CreateEscapedMailboxName(mailboxName, escapedName);
     nsCString command(GetServerCommandTag());
     command += " delete \"";
     command += escapedName;
     command += "\"" CRLF;
-    nsMemory::Free(escapedName);
 
     nsresult rv = SendData(command.get());
     if (NS_SUCCEEDED(rv))
@@ -6918,16 +6911,16 @@ void nsImapProtocol::RenameMailbox(const char *existingName,
 
   IncrementCommandTagNumber();
 
-  char *escapedExistingName = CreateEscapedMailboxName(existingName);
-  char *escapedNewName = CreateEscapedMailboxName(newName);
+  nsCString escapedExistingName;
+  nsCString escapedNewName;
+  CreateEscapedMailboxName(existingName, escapedExistingName);
+  CreateEscapedMailboxName(newName, escapedNewName);
   nsCString command(GetServerCommandTag());
   command += " rename \"";
   command += escapedExistingName;
   command += "\" \"";
   command += escapedNewName;
   command += "\"" CRLF;
-  nsMemory::Free(escapedExistingName);
-  nsMemory::Free(escapedNewName);
 
   nsresult rv = SendData(command.get());
   if (NS_SUCCEEDED(rv))
@@ -6968,16 +6961,16 @@ void nsImapProtocol::Lsub(const char *mailboxPattern, PRBool addDirectoryIfNeces
   if (addDirectoryIfNecessary)
     m_runningUrl->AddOnlineDirectoryIfNecessary(mailboxPattern, &boxnameWithOnlineDirectory);
 
-  char *escapedPattern = CreateEscapedMailboxName(boxnameWithOnlineDirectory ?
+  nsCString escapedPattern;
+  CreateEscapedMailboxName(boxnameWithOnlineDirectory ?
                         boxnameWithOnlineDirectory :
-                        mailboxPattern);
+                        mailboxPattern, escapedPattern);
 
   nsCString command (GetServerCommandTag());
   command += " lsub \"\" \"";
   command += escapedPattern;
   command += "\""CRLF;
 
-  nsMemory::Free(escapedPattern);
   PR_Free(boxnameWithOnlineDirectory);
 
   nsresult rv = SendData(command.get());
@@ -6995,16 +6988,16 @@ void nsImapProtocol::List(const char *mailboxPattern, PRBool addDirectoryIfNeces
   if (addDirectoryIfNecessary)
     m_runningUrl->AddOnlineDirectoryIfNecessary(mailboxPattern, &boxnameWithOnlineDirectory);
 
-  char *escapedPattern = CreateEscapedMailboxName(boxnameWithOnlineDirectory ?
+  nsCString escapedPattern;
+  CreateEscapedMailboxName(boxnameWithOnlineDirectory ?
                         boxnameWithOnlineDirectory :
-                        mailboxPattern);
+                        mailboxPattern, escapedPattern);
 
   nsCString command (GetServerCommandTag());
   command += " list \"\" \"";
   command += escapedPattern;
   command += "\""CRLF;
 
-  nsMemory::Free(escapedPattern);
   PR_Free(boxnameWithOnlineDirectory);
 
   nsresult rv = SendData(command.get());
@@ -7018,13 +7011,13 @@ void nsImapProtocol::Subscribe(const char *mailboxName)
 
   IncrementCommandTagNumber();
 
-  char *escapedName = CreateEscapedMailboxName(mailboxName);
+  nsCString escapedName;
+  CreateEscapedMailboxName(mailboxName, escapedName);
 
   nsCString command (GetServerCommandTag());
   command += " subscribe \"";
   command += escapedName;
   command += "\""CRLF;
-  nsMemory::Free(escapedName);
 
   nsresult rv = SendData(command.get());
   if (NS_SUCCEEDED(rv))
@@ -7036,13 +7029,13 @@ void nsImapProtocol::Unsubscribe(const char *mailboxName)
   ProgressEventFunctionUsingIdWithString (IMAP_STATUS_UNSUBSCRIBE_MAILBOX, mailboxName);
   IncrementCommandTagNumber();
 
-  char *escapedName = CreateEscapedMailboxName(mailboxName);
+  nsCString escapedName;
+  CreateEscapedMailboxName(mailboxName, escapedName);
 
   nsCString command (GetServerCommandTag());
   command += " unsubscribe \"";
   command += escapedName;
   command += "\""CRLF;
-  nsMemory::Free(escapedName);
 
   nsresult rv = SendData(command.get());
   if (NS_SUCCEEDED(rv))
@@ -7138,7 +7131,8 @@ void nsImapProtocol::Copy(const char * messageList,
 {
   IncrementCommandTagNumber();
 
-  char *escapedDestination = CreateEscapedMailboxName(destinationMailbox);
+  nsCString escapedDestination;
+  CreateEscapedMailboxName(destinationMailbox, escapedDestination);
 
   // turn messageList back into key array and then back into a message id list,
   // but use the flag state to handle ranges correctly.
@@ -7189,9 +7183,6 @@ void nsImapProtocol::Copy(const char * messageList,
        ParseIMAPandCheckForNewMail(protocolString.get());
   }
   while (msgCountLeft > 0 && !DeathSignalReceived());
-
-
-  nsMemory::Free(escapedDestination);
 }
 
 void nsImapProtocol::NthLevelChildList(const char* onlineMailboxPrefix,
@@ -7764,12 +7755,15 @@ void nsImapProtocol::GetQuotaDataIfSupported(const char *aBoxName)
   if (redirectorType.EqualsLiteral("aol") && PL_strcasecmp("Inbox", aBoxName))
     return;
 
+  nsCString escapedName;
+  CreateEscapedMailboxName(aBoxName, escapedName);
+
   IncrementCommandTagNumber();
 
   nsCAutoString quotacommand;
   quotacommand = nsDependentCString(GetServerCommandTag())
                + NS_LITERAL_CSTRING(" getquotaroot \"")
-               + nsDependentCString(aBoxName)
+               + escapedName
                + NS_LITERAL_CSTRING("\"" CRLF);
 
   NS_ASSERTION(m_imapMailFolderSink, "m_imapMailFolderSink is null!");

@@ -406,7 +406,7 @@ private:
     imapMessageFlagsType flags, nsCString &keywords);
 
   // mailbox name utilities.
-  char *CreateEscapedMailboxName(const char *rawName);
+  void CreateEscapedMailboxName(const char *rawName, nsCString &escapedName);
   void SetupMessageFlagsString(nsCString & flagString,
     imapMessageFlagsType flags,
     PRUint16 userFlags);
