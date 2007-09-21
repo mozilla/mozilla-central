@@ -31,6 +31,7 @@
 #                 Kevin Gerich <webmail@kmgerich.com>
 #                 Matthew Willis <mattwillis@gmail.com>
 #                 Simon Paquet <bugzilla@babylonsounds.com>
+#                 Martin Schroeder <mschroeder@mozilla.x-home.org>
 #
 # Alternatively, the contents of this file may be used under the terms of
 # either the GNU General Public License Version 2 or later (the "GPL"), or
@@ -303,7 +304,6 @@ toolbar[iconsize="small"] #calendar-choose-date-button:hover:active {
 #calendar-multiweek-view-button[checked="true"]:hover {
     -moz-image-region: rect(72px 144px 96px 120px);
     border-color: ThreeDShadow ThreeDHighlight ThreeDHighlight ThreeDShadow;
-    padding: 5px 3px 3px 5px;
     color: ButtonText;
 }
 
@@ -337,7 +337,6 @@ toolbar[iconsize="small"] #calendar-multiweek-view-button[checked="true"]:hover 
 #calendar-month-view-button[checked="true"]:hover {
     -moz-image-region: rect(72px 168px 96px 144px);
     border-color: ThreeDShadow ThreeDHighlight ThreeDHighlight ThreeDShadow;
-    padding: 5px 3px 3px 5px;
     color: ButtonText;
 }
 
@@ -372,7 +371,6 @@ toolbar[iconsize="small"] #calendar-month-view-button[checked="true"]:hover {
 #calendar-week-view-button[checked="true"]:hover {
     -moz-image-region: rect(72px 120px 96px 96px);
     border-color: ThreeDShadow ThreeDHighlight ThreeDHighlight ThreeDShadow;
-    padding: 5px 3px 3px 5px;
     color: ButtonText;
 }
 
@@ -407,7 +405,6 @@ toolbar[iconsize="small"] #calendar-week-view-button[checked="true"]:hover {
 #calendar-day-view-button[checked="true"]:hover {
     -moz-image-region: rect(72px 96px 96px 72px);
     border-color: ThreeDShadow ThreeDHighlight ThreeDHighlight ThreeDShadow;
-    padding: 5px 3px 3px 5px;
     color: ButtonText;
 }
 
