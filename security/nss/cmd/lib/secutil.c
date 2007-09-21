@@ -3069,7 +3069,7 @@ SECU_ParseCommandLine(int argc, char **argv, char *progName,
     
     j = 0;
     for (i=0; i<cmd->numCommands; i++) {
-	if (cmd->options[i].flag) /* single character option ? */
+	if (cmd->commands[i].flag) /* single character option ? */
 	    optstring[j++] = cmd->commands[i].flag;
 	if (cmd->commands[i].longform)
 	    lcmd++;
@@ -3132,7 +3132,7 @@ SECU_ParseCommandLine(int argc, char **argv, char *progName,
 	} else {
 	    /* long opt */
             if (option == '\0')
-		option = '\0377';       /* force unequal with all flags */
+		option = '\377';        /* force unequal with all flags */
 	    optstatelong = longopts[optstate->longOptIndex].longOptName;
 	}
 
