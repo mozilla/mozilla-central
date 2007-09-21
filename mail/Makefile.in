@@ -46,9 +46,6 @@ DIRS		= base locales components extensions themes app
 
 include $(topsrcdir)/config/rules.mk
 
-# this will get cleaned up once OSX comes on board. We won't need platform specific ifdefs for
-# entering mail\config
-
 ifeq ($(OS_ARCH),WINNT)
 ifdef MOZ_INSTALLER
 DIRS += installer/windows
