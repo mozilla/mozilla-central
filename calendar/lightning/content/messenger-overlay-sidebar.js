@@ -215,24 +215,7 @@ function ltnMinimonthPick(minimonth)
 
     if (document.getElementById("displayDeck").selectedPanel != 
         document.getElementById("calendar-view-box")) {
-        var view = currentView();
-
-        // If we've never shown the view before, we need to do some special
-        // things here.
-        if (!view.initialized) {
-            showCalendarView('month');
-            view = currentView();
-            cdt = cdt.getInTimezone(view.timezone);
-            cdt.isDate = true;
-            view.goToDay(cdt);
-            return;
-        }
-
-        // showCalendarView is going to use the value passed in to switch to
-        // foo-view, so strip off the -view part of the current view.
-        var viewID = view.getAttribute("id");
-        viewID = viewID.substring(0, viewID.indexOf('-'));
-        showCalendarView(viewID);
+        showCalendarView(gLastShownCalendarView);
     }
 
     cdt = cdt.getInTimezone(currentView().timezone);
@@ -362,6 +345,21 @@ function ltnOnLoad(event)
     document.getElementById("ltnModeBox").addEventListener("DOMAttrModified",
                                                            modeBoxAttrModified,
                                                            true);
+
+    // find last shown calendar view (persist="checked")
+    var availableViews = getViewDeck();
+    var numChilds = availableViews.childNodes.length;
+    for (var i = 0; i < numChilds; i++) {
+        var view = availableViews.childNodes[i];
+        var command = document.getElementById(view.id+"-command");
+        if (command && command.getAttribute("checked") == "true") {
+            gLastShownCalendarView = view.id.substring(0, view.id.indexOf('-'));
+            break;
+        }
+    }
+    if (!gLastShownCalendarView) {
+        gLastShownCalendarView = 'month';
+    }
 
     gMiniMonthLoading = true;
 

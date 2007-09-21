@@ -147,8 +147,6 @@ function ltnSwitch2Calendar() {
     deck.selectedPanel = document.getElementById("calendar-view-box");
 
     // show the last displayed type of calendar view
-    if(gLastShownCalendarView == null)
-      gLastShownCalendarView = 'week';
     showCalendarView(gLastShownCalendarView);
 
     document.commandDispatcher.updateCommands('mail-toolbar');

@@ -193,10 +193,10 @@
     <command id="switch2calendar" oncommand="ltnSwitch2Calendar()"/>
     <command id="switch2task" oncommand="ltnSwitch2Task()"/>
     <command id="cmd_toggleTodayPane" oncommand="toggleTodayPaneinMailMode()"/>
-    <command id="day-view-command" oncommand="showCalendarView('day')"/>
-    <command id="week-view-command" oncommand="showCalendarView('week')"/>
-    <command id="multiweek-view-command" oncommand="showCalendarView('multiweek')"/>
-    <command id="month-view-command" oncommand="showCalendarView('month')"/>
+    <command id="day-view-command" oncommand="showCalendarView('day')" persist="checked"/>
+    <command id="week-view-command" oncommand="showCalendarView('week')" persist="checked"/>
+    <command id="multiweek-view-command" oncommand="showCalendarView('multiweek')" persist="checked"/>
+    <command id="month-view-command" oncommand="showCalendarView('month')" persist="checked"/>
     <command id="calendar-delete-command" oncommand="ltnDeleteSelectedItem()" disabledwhennoeventsselected="true"/>
     <command id="calendar_new_todo_command" oncommand="createTodoWithDialog(getSelectedCalendar());"/>
     <command id="modify_todo_command" oncommand="editToDo()"/>
