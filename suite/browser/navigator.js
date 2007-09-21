@@ -1741,7 +1741,7 @@ function BrowserViewSourceOfURL(url, charset, pageCookie)
 // doc=null for regular page info, doc=owner document for frame info.
 function BrowserPageInfo(doc, initialTab)
 {
-  window.openDialog("chrome://navigator/content/pageInfo.xul",
+  window.openDialog("chrome://navigator/content/pageinfo/pageInfo.xul",
                     "_blank",
                     "chrome,dialog=no",
                     {doc: doc, initialTab: initialTab});

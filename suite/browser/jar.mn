@@ -1,6 +1,5 @@
 comm.jar:
 % content navigator %content/navigator/ xpcnativewrappers=yes
-% overlay chrome://navigator/content/pageInfo.xul chrome://pippki/content/PageInfoOverlay.xul
 % content navigator-platform %content/navigator-platform/ platform xpcnativewrappers=yes
 % content navigator-region %content/navigator-region/ xpcnativewrappers=yes
    content/navigator/aboutAbout.html
@@ -22,8 +21,6 @@ comm.jar:
    content/navigator/navigatorOverlay.xul
    content/navigator/nsBrowserContentListener.js
    content/navigator/nsBrowserStatusHandler.js
-   content/navigator/pageInfo.js
-   content/navigator/pageInfo.xul
    content/navigator/searchconfig.properties
    content/navigator/sessionHistoryUI.js
    content/navigator/tabbrowser.xml
@@ -51,3 +48,10 @@ comm.jar:
 #endif
 #endif
 #endif
+   content/navigator/pageinfo/feeds.js                              (pageinfo/feeds.js)
+   content/navigator/pageinfo/feeds.xml                             (pageinfo/feeds.xml)
+   content/navigator/pageinfo/pageInfo.css                          (pageinfo/pageInfo.css)
+   content/navigator/pageinfo/pageInfo.js                           (pageinfo/pageInfo.js)
+*  content/navigator/pageinfo/pageInfo.xul                          (pageinfo/pageInfo.xul)
+   content/navigator/pageinfo/permissions.js                        (pageinfo/permissions.js)
+*  content/navigator/pageinfo/security.js                           (pageinfo/security.js)

@@ -11,13 +11,16 @@
  * for the specific language governing rights and limitations under the
  * License.
  *
- * The Original Code is Mozilla Communicator client code.
+ * The Original Code is mozilla.org code.
  *
  * The Initial Developer of the Original Code is Daniel Brooks.
- * Portions created by the Initial Developer are Copyright (C) 2001-2004
+ * Portions created by the Initial Developer are Copyright (C) 2001-2007
  * the Initial Developer. All Rights Reserved.
  *
  * Contributor(s):
+ *   Kevin Gerich  <webmail@kmgerich.com>
+ *   Daniel Brooks <db48x@yahoo.com>
+ *   Florian QUEZE <f.qu@queze.net>
  *
  * Alternatively, the contents of this file may be used under the terms of
  * either the GNU General Public License Version 2 or later (the "GPL"), or
@@ -27,30 +30,32 @@
  * under the terms of either the GPL or the LGPL, and not to allow others to
  * use your version of this file under the terms of the MPL, indicate your
  * decision by deleting the provisions above and replace them with the notice
- * and other provisions required by the LGPL or the GPL. If you do not delete
+ * and other provisions required by the GPL or the LGPL. If you do not delete
  * the provisions above, a recipient may use your version of this file under
  * the terms of any one of the MPL, the GPL or the LGPL.
  *
- * ***** END LICENSE BLOCK *****
-*/
+ * ***** END LICENSE BLOCK ***** */
 
 @import "chrome://global/skin/";
 
+/* Misc */
 tree {
   margin: .5em;
 }
 
-textbox,
-textbox > .textbox-internal-box,
-textbox > .textarea-internal-box {
+.gridSeparator {
+  width: .5em;
+}
+
+textbox {
   background: transparent !important;
   border: none;
   padding: 0px;
+  -moz-user-focus: none;
 }
 
-label.header,
 textbox.header {
-  margin-left: 0;
+  -moz-margin-start: 0;
 }
 
 .iframe {
@@ -59,15 +64,86 @@ textbox.header {
   overflow: auto;
 }
 
-#thepreviewimage {
-  margin: 1em;
-}
-
 .fixedsize {
   height: 8.5em;
 }
 
-textbox[disabled]
-{
+textbox[disabled] {
   font-style: italic;
+}
+
+/* General Tab */
+groupbox tree { 
+  margin: 0;
+  border: none;
+}
+
+groupbox.treebox .groupbox-body { 
+  padding-top: 0;
+}
+
+#general-security-identity {
+  white-space: -moz-pre-wrap;
+  line-height: 2em;
+}
+
+/* Media Tab */
+#imagetree {
+  min-height: 10em;
+}
+
+#thepreviewimage {
+  margin: 1em;
+}
+
+treechildren::-moz-tree-cell-text(broken) {
+  font-style: italic;
+  color: #999999;
+}
+
+/* Feeds Tab */
+#feedListbox > richlistitem {
+  padding-top: 6px;
+  padding-bottom: 6px;
+  padding-left: 7px;
+  padding-right: 7px;
+  min-height: 25px;
+  border-bottom: 1px dotted #C7D0D9;
+}
+
+.feedTitle { 
+  font-weight: bold;
+}
+
+/* Permissions Tab */
+#permList {
+  margin-top: .5em;
+  overflow: auto;
+}
+
+#permList > richlistitem {
+  padding-top: 6px;
+  padding-bottom: 6px;
+  -moz-padding-start: 7px;
+  -moz-padding-end: 7px;
+  min-height: 25px;
+  border-bottom: 1px dotted #C7D0D9;
+}
+
+#permList > richlistitem > label {
+  font-weight: bold;
+}
+
+/* Security Tab */
+#securityPanel > .header {
+  font-size: 120%;
+}
+ 
+#securityPanel > .fieldLabel {
+  margin: 2px 10px 3px 10px;
+}
+
+#securityPanel > .fieldValue {
+  font-weight: bold;
+  margin: 2px 10px 0px 10px;
 }
