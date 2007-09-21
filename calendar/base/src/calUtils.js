@@ -238,15 +238,19 @@ function guessSystemTimezone() {
     var tzIDs = icsSvc.timezoneIds;
     while (tzIDs.hasMore()) {
         var theTZ = tzIDs.getNext();
-        switch (checkTZ(theTZ)) {
-            case 0: break;
-            case 1: 
-                if (!probableTZ) {
-                    probableTZ = theTZ;
-                }
-                break;
-            case 2:
-                return theTZ;
+        try {
+            switch (checkTZ(theTZ)) {
+                case 0: break;
+                case 1: 
+                    if (!probableTZ) {
+                        probableTZ = theTZ;
+                    }
+                    break;
+                case 2:
+                    return theTZ;
+            }
+        }
+        catch (ex) {
         }
     }
 
