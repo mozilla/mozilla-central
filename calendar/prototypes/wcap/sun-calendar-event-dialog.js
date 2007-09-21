@@ -1044,21 +1044,6 @@ function updateAllDay() {
     gStartTime.isDate = allDay;
     gEndTime.isDate = allDay;
 
-    // disable the timezone links if 'allday' is checked OR the
-    // calendar of this item is read-only. in any other case we
-    // enable the links.
-    if (allDay || gIsReadOnly) {
-        tzStart.setAttribute("disabled", "true");
-        tzEnd.setAttribute("disabled", "true");
-        tzStart.removeAttribute("class");
-        tzEnd.removeAttribute("class");
-    } else {
-        tzStart.removeAttribute("disabled");
-        tzEnd.removeAttribute("disabled");
-        tzStart.setAttribute("class", "text-link");
-        tzEnd.setAttribute("class", "text-link");
-    }
-
     updateDateTime();
     updateRepeatDetails();
     updateAccept();
