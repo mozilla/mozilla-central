@@ -63,9 +63,10 @@
           <xul:label xbl:inherits="value=time"/>
           <xul:label xbl:inherits="value=location"/>
           <xul:hbox flex="1" align="center">
-            <xul:button label="&calendar.alarm.snooze.label;" oncommand="snoozeAlarm();"/>
+            <xul:button anonid="alarm-widget-snooze-button"
+                        label="&calendar.alarm.snooze.label;" oncommand="snoozeAlarm();"/>
             <xul:label value="&calendar.alarm.for.label;"/>
-            <xul:textbox anonid="alarm-widget-snooze-value" size="1"/>
+            <xul:textbox anonid="alarm-widget-snooze-value" size="1" oninput="checkSnoozeValue();"/>
             <xul:menulist anonid="alarm-widget-snooze-unit">
               <xul:menupopup>
                 <xul:menuitem label="&alarm.units.minutes;" value="minutes" selected="true"/>
@@ -106,6 +107,15 @@
           var dismissEvent = document.createEvent('Events');
           dismissEvent.initEvent('dismiss', true, false); 
           this.dispatchEvent(dismissEvent);
+        ]]></body>
+      </method>
+      <method name="checkSnoozeValue">
+        <body><![CDATA[
+          var snoozeValue = parseInt(document.getAnonymousElementByAttribute(
+                                         this, "anonid", "alarm-widget-snooze-value").value);
+          // snoozeValue may be NaN, don't check snoozeValue <= 0:
+          document.getAnonymousElementByAttribute(
+              this, "anonid", "alarm-widget-snooze-button").disabled = !(snoozeValue > 0);
         ]]></body>
       </method>
     </implementation>

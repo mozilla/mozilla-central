@@ -80,18 +80,17 @@ function addWidgetFor(item) {
     document.getElementById("alarmlist").appendChild(widget);
 
     var snoozePref = getPrefSafe("calendar.alarms.defaultsnoozelength", 0);
-    if (snoozePref > 0) {
-        if ((snoozePref % 60) == 0) {
-            snoozePref = snoozePref / 60;
-            if ((snoozePref % 24) == 0) {
-                snoozePref = snoozePref / 24;
-                document.getAnonymousElementByAttribute(widget, "anonid", "alarm-widget-snooze-unit").selectedIndex = 2;
-            } else {
-                document.getAnonymousElementByAttribute(widget, "anonid", "alarm-widget-snooze-unit").selectedIndex = 1;
-            }
+    if (snoozePref <= 0) {
+        snoozePref = 5;
+    }
+    if ((snoozePref % 60) == 0) {
+        snoozePref = snoozePref / 60;
+        if ((snoozePref % 24) == 0) {
+            snoozePref = snoozePref / 24;
+            document.getAnonymousElementByAttribute(widget, "anonid", "alarm-widget-snooze-unit").selectedIndex = 2;
+        } else {
+            document.getAnonymousElementByAttribute(widget, "anonid", "alarm-widget-snooze-unit").selectedIndex = 1;
         }
-    } else {
-        snoozePref = 0;
     }
     document.getAnonymousElementByAttribute(widget, "anonid", "alarm-widget-snooze-value").value = snoozePref;
 
