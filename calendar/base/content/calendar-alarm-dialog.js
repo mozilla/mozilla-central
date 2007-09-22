@@ -78,6 +78,23 @@ function addWidgetFor(item) {
     widget.addEventListener("dismiss", onDismissAlarm, false);
     widget.item = item;
     document.getElementById("alarmlist").appendChild(widget);
+
+    var snoozePref = getPrefSafe("calendar.alarms.defaultsnoozelength", 0);
+    if (snoozePref > 0) {
+        if ((snoozePref % 60) == 0) {
+            snoozePref = snoozePref / 60;
+            if ((snoozePref % 24) == 0) {
+                snoozePref = snoozePref / 24;
+                document.getAnonymousElementByAttribute(widget, "anonid", "alarm-widget-snooze-unit").selectedIndex = 2;
+            } else {
+                document.getAnonymousElementByAttribute(widget, "anonid", "alarm-widget-snooze-unit").selectedIndex = 1;
+            }
+        }
+    } else {
+        snoozePref = 0;
+    }
+    document.getAnonymousElementByAttribute(widget, "anonid", "alarm-widget-snooze-value").value = snoozePref;
+
     window.getAttention();
 }
 

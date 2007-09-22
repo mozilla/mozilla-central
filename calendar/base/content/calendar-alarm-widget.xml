@@ -39,7 +39,11 @@
    -
    - ***** END LICENSE BLOCK ***** -->
 
-<!DOCTYPE overlay SYSTEM "chrome://calendar/locale/calendar.dtd">
+<!DOCTYPE overlay
+[
+  <!ENTITY % dtd1 SYSTEM "chrome://calendar/locale/calendar.dtd" > %dtd1;
+  <!ENTITY % dtd2 SYSTEM "chrome://calendar/locale/calendar-event-dialog.dtd" > %dtd2;
+]>
 
 <bindings id="calendar-alarms"
    xmlns="http://www.mozilla.org/xbl"
@@ -61,13 +65,12 @@
           <xul:hbox flex="1" align="center">
             <xul:button label="&calendar.alarm.snooze.label;" oncommand="snoozeAlarm();"/>
             <xul:label value="&calendar.alarm.for.label;"/>
-            <xul:menulist anonid="alarm-widget-snooze-value">
+            <xul:textbox anonid="alarm-widget-snooze-value" size="1"/>
+            <xul:menulist anonid="alarm-widget-snooze-unit">
               <xul:menupopup>
-                <xul:menuitem label="&calendar.alarm.5minutes;" value="5"/>
-                <xul:menuitem label="&calendar.alarm.15minutes;" value="15"/>
-                <xul:menuitem label="&calendar.alarm.30minutes;" value="30"/>
-                <xul:menuitem label="&calendar.alarm.1hour;" value="60"/>
-                <xul:menuitem label="&calendar.alarm.1day;" value="1440"/>
+                <xul:menuitem label="&alarm.units.minutes;" value="minutes" selected="true"/>
+                <xul:menuitem label="&alarm.units.hours;" value="hours"/>
+                <xul:menuitem label="&alarm.units.days;" value="days"/>
               </xul:menupopup>
             </xul:menulist>
             <xul:spacer flex="1"/>
@@ -82,7 +85,17 @@
         <body><![CDATA[
           var snoozeValue = document.getAnonymousElementByAttribute(this, 
                                 "anonid", "alarm-widget-snooze-value").value;
+          var snoozeUnit  = document.getAnonymousElementByAttribute(this, 
+                                "anonid", "alarm-widget-snooze-unit").selectedItem.value;
           var snoozeEvent = document.createEvent('Events');
+          switch (snoozeUnit) {
+            case 'days':
+                snoozeValue = snoozeValue * 24;
+                // fallback intended
+            case 'hours':
+                snoozeValue = snoozeValue * 60;
+                break;
+          }
           snoozeEvent.initEvent('snooze', true, false);
           snoozeEvent.detail = snoozeValue;
           this.dispatchEvent(snoozeEvent);
