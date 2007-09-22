@@ -318,8 +318,9 @@ in which the file "prefs.js" resides?  The current value of this
         <arg value="file://${basedir}/../samples/index.html" />
       </exec>
 
-      <exec os="Windows XP" dir="${browser.bin.dir}" executable="firefox" 
-		       failonerror="yes">
+      <exec os="Windows XP" dir="${browser.bin.dir}" 
+                       executable="${browser.bin.dir}/firefox.exe" 
+                       failonerror="yes">
         <env key="PATH" 
              path="${jdkhome.nospaces}/jre/bin/client"
         />
@@ -340,6 +341,7 @@ in which the file "prefs.js" resides?  The current value of this
         />
         <arg value="file://${basedir}/../samples/index.html" />
       </exec>
+      
 
     </target>
 
