@@ -166,26 +166,31 @@ function guessSystemTimezone() {
         var subComp = comp.getFirstSubcomponent("VTIMEZONE");
         var standard = subComp.getFirstSubcomponent("STANDARD");
         var standardTZOffset = standard.getFirstProperty("TZOFFSETTO").valueAsIcalString;
-        var standardName = standard.getFirstProperty("TZNAME");
+        var standardNameProp = standard.getFirstProperty("TZNAME");
+        var standardName = standardNameProp &&
+                           standardNameProp.valueAsIcalString;
         var daylight = subComp.getFirstSubcomponent("DAYLIGHT");
         var daylightTZOffset = null;
+        var daylightNameProp = null;
         var daylightName = null;
         if (daylight) {
             daylightTZOffset = daylight.getFirstProperty("TZOFFSETTO").valueAsIcalString;
-            daylightName = daylight.getFirstProperty("TZNAME");
+            daylightNameProp = daylight.getFirstProperty("TZNAME");
+            daylightName = daylightNameProp &&
+                           daylightNameProp.valueAsIcalString;
         }
 
         if (TZoffset2 == standardTZOffset && TZoffset2 == TZoffset1 &&
            !daylight) {
-            if (!standardName || standardName.valueAsIcalString == TZname1) {
+            if (!standardName || standardName == TZname1) {
                 return 2;
             }
             return 1;
         }
 
         if (TZoffset2 == standardTZOffset && TZoffset1 == daylightTZOffset) {
-            if ((!standardName || standardName.valueAsIcalString == TZname1) &&
-                (!daylightName || daylightName.valueAsIcalString == TZname2)) {
+            if ((!standardName || standardName == TZname1) &&
+                (!daylightName || daylightName == TZname2)) {
                 return 2;
             }
             return 1;
@@ -194,15 +199,15 @@ function guessSystemTimezone() {
         // Now flip them and check again, to cover the southern hemisphere case
         if (TZoffset1 == standardTZOffset && TZoffset2 == TZoffset1 &&
            !daylight) {
-            if (!standardName || standardName.valueAsIcalString == TZname2) {
+            if (!standardName || standardName == TZname2) {
                 return 2;
             }
             return 1;
         }
 
         if (TZoffset1 == standardTZOffset && TZoffset2 == daylightTZOffset) {
-            if ((!standardName || standardName.valueAsIcalString == TZname2) &&
-                (!daylightName || daylightName.valueAsIcalString == TZname1)) {
+            if ((!standardName || standardName == TZname2) &&
+                (!daylightName || daylightName == TZname1)) {
                 return 2;
             }
             return 1;
