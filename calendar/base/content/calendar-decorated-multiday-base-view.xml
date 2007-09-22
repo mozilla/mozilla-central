@@ -64,8 +64,8 @@
                 viewElement.setVisibleMinutes(visibleMinutes);
 
                 // add a preference observer to monitor changes
-                var pb2 = Cc["@mozilla.org/preferences-service;1"].
-                          getService(Ci.nsIPrefBranch2);
+                var pb2 = Components.classes["@mozilla.org/preferences-service;1"].
+                          getService(Components.interfaces.nsIPrefBranch2);
                 pb2.addObserver("calendar.", this.mPrefObserver, false);
 
                 this.updateDaysOffPrefs();
@@ -74,8 +74,8 @@
             ]]></constructor>
 
             <destructor><![CDATA[
-                var pb2 = Cc["@mozilla.org/preferences-service;1"].
-                          getService(Ci.nsIPrefBranch2);
+                var pb2 = Components.classes["@mozilla.org/preferences-service;1"].
+                          getService(Components.interfaces.nsIPrefBranch2);
                 pb2.removeObserver("calendar.", this.mPrefObserver);
                 return;
             ]]></destructor>

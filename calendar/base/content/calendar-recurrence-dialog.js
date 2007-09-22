@@ -131,7 +131,7 @@ function loadDialog()
     if (rules.length > 0) {
         // we only handle 1 rule currently
         var rule = rules[0];
-        if (rule instanceof Ci.calIRecurrenceRule) {
+        if (rule instanceof Components.interfaces.calIRecurrenceRule) {
 
             switch(rule.type) {
             case "DAILY":

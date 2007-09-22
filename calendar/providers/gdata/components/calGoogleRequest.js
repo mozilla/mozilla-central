@@ -69,15 +69,15 @@ calGoogleRequest.prototype = {
     DELETE: 5,
 
     QueryInterface: function cGR_QueryInterface(aIID) {
-        if (!aIID.equals(Ci.nsISupports) &&
-            !aIID.equals(Ci.nsIStreamLoaderObserver) &&
-            !aIID.equals(Ci.nsIDocShellTreeItem) &&
-            !aIID.equals(Ci.nsIInterfaceRequestor) &&
-            !aIID.equals(Ci.nsIChannelEventSink) &&
-            !aIID.equals(Ci.nsIProgressEventSink) &&
-            !aIID.equals(Ci.nsIHttpEventSink) &&
-            !aIID.equals(Ci.nsIStreamListener)) {
-                throw Cr.NS_ERROR_NO_INTERFACE;
+        if (!aIID.equals(Components.interfaces.nsISupports) &&
+            !aIID.equals(Components.interfaces.nsIStreamLoaderObserver) &&
+            !aIID.equals(Components.interfaces.nsIDocShellTreeItem) &&
+            !aIID.equals(Components.interfaces.nsIInterfaceRequestor) &&
+            !aIID.equals(Components.interfaces.nsIChannelEventSink) &&
+            !aIID.equals(Components.interfaces.nsIProgressEventSink) &&
+            !aIID.equals(Components.interfaces.nsIHttpEventSink) &&
+            !aIID.equals(Components.interfaces.nsIStreamListener)) {
+                throw Components.results.NS_ERROR_NO_INTERFACE;
         }
         return this;
     },
@@ -111,7 +111,7 @@ calGoogleRequest.prototype = {
                 this.mMethod = "DELETE";
                 break;
             default:
-                throw new Components.Exception("", Cr.NS_ERROR_ILLEGAL_VALUE);
+                throw new Components.Exception("", Components.results.NS_ERROR_ILLEGAL_VALUE);
                 break;
         }
         this.mType = v;
@@ -233,8 +233,8 @@ calGoogleRequest.prototype = {
             }
 
             // create the channel
-            var ioService = Cc["@mozilla.org/network/io-service;1"].
-                            getService(Ci.nsIIOService);
+            var ioService = Components.classes["@mozilla.org/network/io-service;1"].
+                            getService(Components.interfaces.nsIIOService);
 
             var uristring = this.mUriString;
             if (this.mQueryParameters.length > 0) {
@@ -245,11 +245,11 @@ calGoogleRequest.prototype = {
 
             this.prepareChannel(channel);
 
-            channel = channel.QueryInterface(Ci.nsIHttpChannel);
+            channel = channel.QueryInterface(Components.interfaces.nsIHttpChannel);
             channel.redirectionLimit = 3;
 
-            var streamLoader = Cc["@mozilla.org/network/stream-loader;1"].
-                               createInstance(Ci.nsIStreamLoader);
+            var streamLoader = Components.classes["@mozilla.org/network/stream-loader;1"].
+                               createInstance(Components.interfaces.nsIStreamLoader);
 
             LOG("calGoogleRequest: Requesting " + this.mMethod + " " +
                 channel.URI.spec);
@@ -257,10 +257,10 @@ calGoogleRequest.prototype = {
             channel.notificationCallbacks = this;
 
             // Required to be trunk and branch compatible.
-            if (Ci.nsIStreamLoader.number ==
+            if (Components.interfaces.nsIStreamLoader.number ==
                 "{31d37360-8e5a-11d3-93ad-00104ba0fd40}") {
                 streamLoader.init(channel, this, this);
-            } else if (Ci.nsIStreamLoader.number ==
+            } else if (Components.interfaces.nsIStreamLoader.number ==
                       "{8ea7e890-8211-11d9-8bde-f66bad1e3f3a}") {
                 streamLoader.init(this);
                 channel.asyncOpen(streamLoader, this);
@@ -295,7 +295,7 @@ calGoogleRequest.prototype = {
     succeed: function cGR_succeed(aResult) {
         // Succeeding is nothing more than failing with the result code set to
         // NS_OK.
-        this.fail(Cr.NS_OK, aResult);
+        this.fail(Components.results.NS_OK, aResult);
     },
 
     /**
@@ -307,20 +307,20 @@ calGoogleRequest.prototype = {
     prepareChannel: function cGR_prepareChannel(aChannel) {
 
         // No caching
-        aChannel.loadFlags |= Ci.nsIRequest.LOAD_BYPASS_CACHE;
+        aChannel.loadFlags |= Components.interfaces.nsIRequest.LOAD_BYPASS_CACHE;
 
         // Set upload Data
         if (this.mUploadData) {
-            var converter = Cc["@mozilla.org/intl/scriptableunicodeconverter"].
-                            createInstance(Ci.nsIScriptableUnicodeConverter);
+            var converter = Components.classes["@mozilla.org/intl/scriptableunicodeconverter"].
+                            createInstance(Components.interfaces.nsIScriptableUnicodeConverter);
             converter.charset = "UTF-8";
 
             var stream = converter.convertToInputStream(this.mUploadData);
-            aChannel = aChannel.QueryInterface(Ci.nsIUploadChannel);
+            aChannel = aChannel.QueryInterface(Components.interfaces.nsIUploadChannel);
             aChannel.setUploadStream(stream, this.mUploadContent, -1);
         }
 
-        aChannel  = aChannel.QueryInterface(Ci.nsIHttpChannel);
+        aChannel  = aChannel.QueryInterface(Components.interfaces.nsIHttpChannel);
 
         // Depending on the preference, we will use X-HTTP-Method-Override to
         // get around some proxies. This will default to true.
@@ -359,7 +359,7 @@ calGoogleRequest.prototype = {
         try {
             return this.QueryInterface(aIID);
         } catch (e) {
-            throw Cr.NS_NOINTERFACE;
+            throw Components.results.NS_NOINTERFACE;
         }
     },
 
@@ -401,23 +401,23 @@ calGoogleRequest.prototype = {
                                                     aStatus,
                                                     aResultLength,
                                                     aResult) {
-        if (!aResult || aStatus != Cr.NS_OK) {
+        if (!aResult || aStatus != Components.results.NS_OK) {
             this.fail(aStatus, aResult);
             return;
         }
 
-        var httpChannel = aLoader.request.QueryInterface(Ci.nsIHttpChannel);
-        var uploadChannel = aLoader.request.QueryInterface(Ci.nsIUploadChannel);
+        var httpChannel = aLoader.request.QueryInterface(Components.interfaces.nsIHttpChannel);
+        var uploadChannel = aLoader.request.QueryInterface(Components.interfaces.nsIUploadChannel);
 
         // Convert the stream, falling back to utf-8 in case its not given.
-        var converter = Cc["@mozilla.org/intl/scriptableunicodeconverter"].
-                        createInstance(Ci.nsIScriptableUnicodeConverter);
+        var converter = Components.classes["@mozilla.org/intl/scriptableunicodeconverter"].
+                        createInstance(Components.interfaces.nsIScriptableUnicodeConverter);
         converter.charset = httpChannel.contentCharset || "UTF-8";
         var result;
         try {
             result = converter.convertFromByteArray(aResult, aResultLength);
         } catch (e) {
-            this.fail(Cr.NS_ERROR_FAILURE,
+            this.fail(Components.results.NS_ERROR_FAILURE,
                       "Could not convert bytestream to Unicode: " + e);
             return;
         }
@@ -443,7 +443,7 @@ calGoogleRequest.prototype = {
                     this.type == this.ADD) {
                     // Encountering this error on a write request means the
                     // calendar is readonly
-                    this.fail(Ci.calIErrors.CAL_IS_READONLY, result);
+                    this.fail(Components.interfaces.calIErrors.CAL_IS_READONLY, result);
                 } else if (this.type == this.LOGIN) {
                     // If this was a login request itself, then fail it.
                     // That will take care of logging in again
@@ -483,7 +483,7 @@ calGoogleRequest.prototype = {
                             httpChannel.responseStatusText + " Body: " +
                             result;
 
-                this.fail(Cr.NS_ERROR_FAILURE, error);
+                this.fail(Components.results.NS_ERROR_FAILURE, error);
                 break;
         }
     }

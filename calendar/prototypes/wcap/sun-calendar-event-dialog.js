@@ -167,8 +167,8 @@ function onLoad() {
     window.recurrenceInfo = parentItem.recurrenceInfo;
 
     const kSUNBIRD_ID = "{718e30fb-e89b-41dd-9da7-e25a45638b28}";
-    var appInfo = Cc["@mozilla.org/xre/app-info;1"]
-                  .getService(Ci.nsIXULAppInfo);
+    var appInfo = Components.classes["@mozilla.org/xre/app-info;1"]
+                  .getService(Components.interfaces.nsIXULAppInfo);
 
     if (appInfo.ID == kSUNBIRD_ID) {
         gIsSunbird = true;
@@ -181,8 +181,8 @@ function onLoad() {
     document.getElementById("sun-calendar-event-dialog").getButton("cancel")
             .parentNode.setAttribute("collapsed", "true");
 
-    var prefService = Cc["@mozilla.org/preferences-service;1"]
-                      .getService(Ci.nsIPrefService);
+    var prefService = Components.classes["@mozilla.org/preferences-service;1"]
+                      .getService(Components.interfaces.nsIPrefService);
 
     gPrefs = prefService.getBranch(null);
 
@@ -224,8 +224,8 @@ function onCommandCancel() {
         return true;
     }
 
-    var promptService = Cc["@mozilla.org/embedcomp/prompt-service;1"]
-                        .getService(Ci.nsIPromptService);
+    var promptService = Components.classes["@mozilla.org/embedcomp/prompt-service;1"]
+                        .getService(Components.interfaces.nsIPromptService);
 
     var promptTitle = calGetString("calendar",
                                    isEvent(window.calendarItem) ?
@@ -590,8 +590,8 @@ function dateTimeControls2State(aKeepDuration) {
 
     if (warning) {
         var callback = function func() {
-            var promptService = Cc["@mozilla.org/embedcomp/prompt-service;1"]
-                                .getService(Ci.nsIPromptService);
+            var promptService = Components.classes["@mozilla.org/embedcomp/prompt-service;1"]
+                                .getService(Components.interfaces.nsIPromptService);
             promptService.alert(
                 null,
                 document.title,
@@ -687,7 +687,7 @@ function loadRepeat(item) {
         }
         if (rules.length == 1) {
             var rule = rules[0];
-            if (rule instanceof Ci.calIRecurrenceRule) {
+            if (rule instanceof Components.interfaces.calIRecurrenceRule) {
                 switch (rule.type) {
                     case 'DAILY':
                         if (rule.interval == 1 && !rule.isFinite) {
@@ -1056,12 +1056,12 @@ function openNewEvent() {
 }
 
 function openNewMessage() {
-    var msgComposeService = Cc["@mozilla.org/messengercompose;1"]
-                            .getService(Ci.nsIMsgComposeService);
+    var msgComposeService = Components.classes["@mozilla.org/messengercompose;1"]
+                            .getService(Components.interfaces.nsIMsgComposeService);
     msgComposeService.OpenComposeWindow(null,
                                         null,
-                                        Ci.nsIMsgCompType.New,
-                                        Ci.nsIMsgCompFormat.Default,
+                                        Components.interfaces.nsIMsgCompType.New,
+                                        Components.interfaces.nsIMsgCompFormat.Default,
                                         null,
                                         null);
 }
@@ -1296,8 +1296,8 @@ function updateShowTimeAs() {
 }
 
 function editURL() {
-    var promptService = Cc["@mozilla.org/embedcomp/prompt-service;1"]
-                       .getService(Ci.nsIPromptService);
+    var promptService = Components.classes["@mozilla.org/embedcomp/prompt-service;1"]
+                       .getService(Components.interfaces.nsIPromptService);
     if (promptService) {
         // ghost in an example...
         if (!gURL) {

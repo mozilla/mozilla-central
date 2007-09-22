@@ -93,8 +93,8 @@ function updateTimezone() {
     time.timezone = "floating";
     datetime.value = time.jsDate;
 
-    var icssrv = Cc["@mozilla.org/calendar/ics-service;1"]
-                 .getService(Ci.calIICSService);
+    var icssrv = Components.classes["@mozilla.org/calendar/ics-service;1"]
+                 .getService(Components.interfaces.calIICSService);
 
     var comp = icssrv.getTimezone(someTZ);
     var subComp = comp.getFirstSubcomponent("VTIMEZONE");

@@ -752,7 +752,7 @@ function toggleCompletedTasks() {
 }
 
 function onKeyPress(event) {
-    const kKE = Ci.nsIDOMKeyEvent;
+    const kKE = Components.interfaces.nsIDOMKeyEvent;
     switch (event.keyCode || event.which) {
         case kKE.DOM_VK_DELETE:
             document.getElementById('delete_todo_command').doCommand();

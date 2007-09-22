@@ -46,8 +46,8 @@ var calendarDNDObserver = {
     },
 
     onDrop: function calDNDDrop(aEvent, aTransferData, aDragSession) {
-        var transferable = Cc["@mozilla.org/widget/transferable;1"]
-                           .createInstance(Ci.nsITransferable);
+        var transferable = Components.classes["@mozilla.org/widget/transferable;1"]
+                           .createInstance(Components.interfaces.nsITransferable);
         transferable.addDataFlavor("text/x-moz-url");
         transferable.addDataFlavor("application/x-moz-file");
         transferable.addDataFlavor("text/calendar");
@@ -59,7 +59,7 @@ var calendarDNDObserver = {
         var bestFlavor = new Object();
         var length = new Object();
         transferable.getAnyTransferData(bestFlavor, data, length);
-        data = data.value.QueryInterface(Ci.nsISupportsString);
+        data = data.value.QueryInterface(Components.interfaces.nsISupportsString);
 
         // Treat unicode data with VEVENT in it as text/calendar
         if (bestFlavor.value == "text/unicode" && data.toString().indexOf("VEVENT") != -1) {
@@ -69,8 +69,8 @@ var calendarDNDObserver = {
         var destCal = getSelectedCalendar();
         switch (bestFlavor.value) {
             case "text/calendar":
-                var parser = Cc["@mozilla.org/calendar/ics-parser;1"]
-                             .createInstance(Ci.calIIcsParser);
+                var parser = Components.classes["@mozilla.org/calendar/ics-parser;1"]
+                             .createInstance(Components.interfaces.calIIcsParser);
                 parser.parseString(data);
                 startBatchTransaction();
                 try {
@@ -89,18 +89,18 @@ var calendarDNDObserver = {
 
                 var url = makeURL(droppedUrl);
 
-                var localFileInstance = Cc["@mozilla.org/file/local;1"]
-                                        .createInstance(Ci.nsILocalFile);
+                var localFileInstance = Components.classes["@mozilla.org/file/local;1"]
+                                        .createInstance(Components.interfaces.nsILocalFile);
                 localFileInstance.initWithPath(url.path);
 
-                var inputStream = Cc["@mozilla.org/network/file-input-stream;1"]
-                                  .createInstance(Ci.nsIFileInputStream);
+                var inputStream = Components.classes["@mozilla.org/network/file-input-stream;1"]
+                                  .createInstance(Components.interfaces.nsIFileInputStream);
                 inputStream.init(localFileInstance, MODE_RDONLY, 0444, {});
 
                 try {
                     //XXX support csv
-                    var importer = Cc["@mozilla.org/calendar/import;1?type=ics"]
-                                   .getService(Ci.calIImporter);
+                    var importer = Components.classes["@mozilla.org/calendar/import;1?type=ics"]
+                                   .getService(Components.interfaces.calIImporter);
                     var items = importer.importFromStream(inputStream, {});
                     startBatchTransaction();
                     try {
@@ -119,10 +119,10 @@ var calendarDNDObserver = {
                 break;
             case "application/x-moz-file-promise":
             case "text/x-moz-url":
-                var ioService = Cc["@mozilla.org/network/io-service;1"]
+                var ioService = Components.classes["@mozilla.org/network/io-service;1"]
                                 .getService(Components.interfaces.nsIIOService);
                 var uri = ioService.newURI(data.toString(), null, null);
-                var loader = Cc["@mozilla.org/network/unichar-stream-loader;1"]
+                var loader = Components.classes["@mozilla.org/network/unichar-stream-loader;1"]
                              .createInstance(Components.interfaces.nsIUnicharStreamLoader);
                 channel = ioService.newChannelFromURI(uri);
                 channel.loadFlags |= Components.interfaces.nsIRequest.LOAD_BYPASS_CACHE;
@@ -148,8 +148,8 @@ var calendarDNDObserver = {
                             while (unicharData.readString(-1, str_)) {
                                 str += str_.value;
                             }
-                            var parser = Cc["@mozilla.org/calendar/ics-parser;1"]
-                                         .createInstance(Ci.calIIcsParser);
+                            var parser = Components.classes["@mozilla.org/calendar/ics-parser;1"]
+                                         .createInstance(Components.interfaces.calIIcsParser);
                             parser.parseString(str);
                             startBatchTransaction();
                             try {

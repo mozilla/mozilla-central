@@ -133,8 +133,8 @@
               icon.setAttribute("type", "all-day");
             } else {
               var label = document.getAnonymousElementByAttribute(this,"anonid","item-label");
-              var df = Cc["@mozilla.org/calendar/datetime-formatter;1"].
-                       getService(Ci.calIDateTimeFormatter);
+              var df = Components.classes["@mozilla.org/calendar/datetime-formatter;1"].
+                       getService(Components.interfaces.calIDateTimeFormatter);
               label.value = df.formatTime(
                 val.startDate.getInTimezone(
                   this.calendarView.mTimezone));
@@ -159,21 +159,21 @@
 
     <handlers>
       <handler event="draggesture"><![CDATA[
-        var dragService = Cc["@mozilla.org/widget/dragservice;1"].
-                          getService(Ci.nsIDragService);
-        var transfer = Cc["@mozilla.org/widget/transferable;1"].
-                       createInstance(Ci.nsITransferable);
+        var dragService = Components.classes["@mozilla.org/widget/dragservice;1"].
+                          getService(Components.interfaces.nsIDragService);
+        var transfer = Components.classes["@mozilla.org/widget/transferable;1"].
+                       createInstance(Components.interfaces.nsITransferable);
 
         var item = this.occurrence;
         transfer.addDataFlavor("text/calendar");
 
         var flavourProvider = {
             QueryInterface: function(aIID) {
-                if (aIID.equals(Ci.nsIFlavorDataProvider) ||
-                    aIID.equals(Ci.nsISupports)) {
+                if (aIID.equals(Components.interfaces.nsIFlavorDataProvider) ||
+                    aIID.equals(Components.interfaces.nsISupports)) {
                     return this;
                 }
-                throw Cr.NS_NOINTERFACE;
+                throw Components.results.NS_NOINTERFACE;
             },
             item: item,
 
@@ -197,15 +197,15 @@
         }
 
         // Also set some normal data-types, in case we drag into another app
-        var supportsString = Cc["@mozilla.org/supports-string;1"].
-                             createInstance(Ci.nsISupportsString);
+        var supportsString = Components.classes["@mozilla.org/supports-string;1"].
+                             createInstance(Components.interfaces.nsISupportsString);
         supportsString.data = item.icalComponent.serializeToICS();
         transfer.setTransferData("text/calendar", supportsString, supportsString.data.length*2);
         transfer.setTransferData("text/unicode", supportsString, supportsString.data.length*2);
 
         var action = dragService.DRAGDROP_ACTION_MOVE;
-        var supArray = Cc["@mozilla.org/supports-array;1"].
-                       createInstance(Ci.nsISupportsArray);
+        var supArray = Components.classes["@mozilla.org/supports-array;1"].
+                       createInstance(Components.interfaces.nsISupportsArray);
         supArray.AppendElement(transfer);
 
         // OK, now that the data is all set up, start playing with the shadows
@@ -228,8 +228,8 @@
         // for that case.
         var monthbox = this.parentBox;
         monthbox.monthView.dropListener = function checkStillDragging() {
-            var dragService = Cc["@mozilla.org/widget/dragservice;1"].
-                              getService(Ci.nsIDragService);
+            var dragService = Components.classes["@mozilla.org/widget/dragservice;1"].
+                              getService(Components.interfaces.nsIDragService);
             var session;
             try {
                 session = dragService.getCurrentSession();
@@ -331,7 +331,7 @@
         <parameter name="aDate"/>
         <body><![CDATA[
           if (!aDate)
-            throw Cr.NS_ERROR_NULL_POINTER;
+            throw Components.results.NS_ERROR_NULL_POINTER;
 
           // Remove all the old events
           this.mItemData = new Array();
@@ -575,8 +575,8 @@
         this.monthView.controller.createNewEvent();
       ]]></handler>
       <handler event="dragenter"><![CDATA[
-        var dragService = Cc["@mozilla.org/widget/dragservice;1"].
-                          getService(Ci.nsIDragService);
+        var dragService = Components.classes["@mozilla.org/widget/dragservice;1"].
+                          getService(Components.interfaces.nsIDragService);
         var session = dragService.getCurrentSession();
         session.canDrop = true;
         this.removeDropShadows();
@@ -584,8 +584,8 @@
       ]]></handler>
 
       <handler event="dragover"><![CDATA[
-        var dragService = Cc["@mozilla.org/widget/dragservice;1"].
-                          getService(Ci.nsIDragService);
+        var dragService = Components.classes["@mozilla.org/widget/dragservice;1"].
+                          getService(Components.interfaces.nsIDragService);
         var session = dragService.getCurrentSession();
         session.canDrop = true;
       ]]></handler>
@@ -594,19 +594,19 @@
             return;
         }
         this.removeDropShadows();
-        var dragService = Cc["@mozilla.org/widget/dragservice;1"].
-                          getService(Ci.nsIDragService);
+        var dragService = Components.classes["@mozilla.org/widget/dragservice;1"].
+                          getService(Components.interfaces.nsIDragService);
         var session = dragService.getCurrentSession();
         session.canDrop = false;
       ]]></handler>
 
       <handler event="dragdrop"><![CDATA[
-         var dragService = Cc["@mozilla.org/widget/dragservice;1"].
-                           getService(Ci.nsIDragService);
+         var dragService = Components.classes["@mozilla.org/widget/dragservice;1"].
+                           getService(Components.interfaces.nsIDragService);
          var session = dragService.getCurrentSession();
 
-         var transfer = Cc["@mozilla.org/widget/transferable;1"].
-                        createInstance(Ci.nsITransferable);
+         var transfer = Components.classes["@mozilla.org/widget/transferable;1"].
+                        createInstance(Components.interfaces.nsITransferable);
          transfer.addDataFlavor("application/x-moz-cal-event");
          session.getData(transfer, 0);
          var flavor = {};
@@ -1109,7 +1109,7 @@
         <parameter name="aCount"/>
         <parameter name="aDates"/>
         <body><![CDATA[
-           throw Cr.NS_ERROR_NOT_IMPLEMENTED;
+           throw Components.results.NS_ERROR_NOT_IMPLEMENTED;
         ]]></body>
       </method>
 
@@ -1496,9 +1496,9 @@
           calView: this,
 
           QueryInterface: function (aIID) {
-            if (!aIID.equals(Ci.calIOperationListener) &&
-                !aIID.equals(Ci.nsISupports)) {
-              throw Cr.NS_ERROR_NO_INTERFACE;
+            if (!aIID.equals(Components.interfaces.calIOperationListener) &&
+                !aIID.equals(Components.interfaces.nsISupports)) {
+              throw Components.results.NS_ERROR_NO_INTERFACE;
             }
 
             return this;
@@ -1529,10 +1529,10 @@
           mBatchCount: 0,
 
           QueryInterface: function (aIID) {
-            if (!aIID.equals(Ci.calIObserver) &&
-                !aIID.equals(Ci.calICompositeObserver) &&
-                !aIID.equals(Ci.nsISupports)) {
-              throw Cr.NS_ERROR_NO_INTERFACE;
+            if (!aIID.equals(Components.interfaces.calIObserver) &&
+                !aIID.equals(Components.interfaces.calICompositeObserver) &&
+                !aIID.equals(Components.interfaces.nsISupports)) {
+              throw Components.results.NS_ERROR_NO_INTERFACE;
             }
 
             return this;
@@ -1646,7 +1646,7 @@
 
     <handlers>
       <handler event="keypress"><![CDATA[
-        const kKE = Ci.nsIDOMKeyEvent;
+        const kKE = Components.interfaces.nsIDOMKeyEvent;
         if (event.keyCode == kKE.DOM_VK_BACK_SPACE ||
             event.keyCode == kKE.DOM_VK_DELETE)
         {

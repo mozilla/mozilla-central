@@ -41,11 +41,11 @@
 
 var minimonthBusyListener = {
     QueryInterface: function mBL_QueryInterface(aIID) {
-        if (!aIID.equals(Ci.calIOperationListener) &&
-            !aIID.equals(Ci.calICompositeObserver) &&
-            !aIID.equals(Ci.calIObserver) &&
-            !aIID.equals(Ci.nsISupports)) {
-            throw Cr.NS_ERROR_NO_INTERFACE;
+        if (!aIID.equals(Components.interfaces.calIOperationListener) &&
+            !aIID.equals(Components.interfaces.calICompositeObserver) &&
+            !aIID.equals(Components.interfaces.calIObserver) &&
+            !aIID.equals(Components.interfaces.nsISupports)) {
+            throw Components.results.NS_ERROR_NO_INTERFACE;
         }
         return this;
     },

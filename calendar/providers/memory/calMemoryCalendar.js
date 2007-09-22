@@ -75,7 +75,7 @@ calMemoryCalendar.prototype = {
     },
 
     initMemoryCalendar: function() {
-        this.mObservers = new calListenerBag(Ci.calIObserver);
+        this.mObservers = new calListenerBag(Components.interfaces.calIObserver);
         this.mItems = { };
     },
 
@@ -359,10 +359,10 @@ calMemoryCalendar.prototype = {
         var item = this.mItems[aId];
         var iid = null;
 
-        if (item instanceof Ci.calIEvent) {
-            iid = Ci.calIEvent;
-        } else if (item instanceof Ci.calITodo) {
-            iid = Ci.calITodo;
+        if (item instanceof Components.interfaces.calIEvent) {
+            iid = Components.interfaces.calIEvent;
+        } else if (item instanceof Components.interfaces.calITodo) {
+            iid = Components.interfaces.calITodo;
         } else {
             aListener.onOperationComplete (this.calendarToReturn,
                                            Components.results.NS_ERROR_FAILURE,
@@ -432,14 +432,14 @@ calMemoryCalendar.prototype = {
         // figure out the return interface type
         var typeIID = null;
         if (itemReturnOccurrences) {
-            typeIID = Ci.calIItemBase;
+            typeIID = Components.interfaces.calIItemBase;
         } else {
             if (wantEvents && wantTodos) {
-                typeIID = Ci.calIItemBase;
+                typeIID = Components.interfaces.calIItemBase;
             } else if (wantEvents) {
-                typeIID = Ci.calIEvent;
+                typeIID = Components.interfaces.calIEvent;
             } else if (wantTodos) {
-                typeIID = Ci.calITodo;
+                typeIID = Components.interfaces.calITodo;
             }
         }
 
@@ -454,15 +454,15 @@ calMemoryCalendar.prototype = {
             var itemEndTime = 0;
 
             var tmpitem = item;
-            if (wantEvents && (item instanceof Ci.calIEvent)) {
-                tmpitem = item.QueryInterface(Ci.calIEvent);
+            if (wantEvents && (item instanceof Components.interfaces.calIEvent)) {
+                tmpitem = item.QueryInterface(Components.interfaces.calIEvent);
                 itemStartTime = (item.startDate
                                  ? item.startDate.nativeTime
                                  : START_OF_TIME);
                 itemEndTime = (item.endDate
                                ? item.endDate.nativeTime
                                : END_OF_TIME);
-            } else if (wantTodos && (item instanceof Ci.calITodo)) {
+            } else if (wantTodos && (item instanceof Components.interfaces.calITodo)) {
                 // if it's a todo, also filter based on completeness
                 if (item.isCompleted && !itemCompletedFilter)
                     continue;

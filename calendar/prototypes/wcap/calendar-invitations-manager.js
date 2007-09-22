@@ -142,8 +142,8 @@ InvitationsManager.prototype = {
         if (this.mTimer) {
             this.mTimer.cancel();
         } else {
-            this.mTimer = Cc["@mozilla.org/timer;1"]
-                          .createInstance(Ci.nsITimer);
+            this.mTimer = Components.classes["@mozilla.org/timer;1"]
+                          .createInstance(Components.interfaces.nsITimer);
         }
         var callback = {
             mInvitationsManager: this,
@@ -181,7 +181,7 @@ InvitationsManager.prototype = {
         var calendars = getCalendarManager().getCalendars({});
         for each (var calendar in calendars) {
             try {
-                var wcapCalendar = calendar.QueryInterface(Ci.calIWcapCalendar);
+                var wcapCalendar = calendar.QueryInterface(Components.interfaces.calIWcapCalendar);
                 if (!wcapCalendar.isOwnedCalendar) {
                     continue;
                 }
@@ -190,10 +190,10 @@ InvitationsManager.prototype = {
                     mInvitationsManager: this,
 
                     QueryInterface: function(aIID) {
-                        if (!aIID.equals(Ci.nsISupports) &&
-                            !aIID.equals(Ci.calIOperationListener) &&
-                            !aIID.equals(Ci.calIObserver)) {
-                            throw Cr.NS_ERROR_NO_INTERFACE;
+                        if (!aIID.equals(Components.interfaces.nsISupports) &&
+                            !aIID.equals(Components.interfaces.calIOperationListener) &&
+                            !aIID.equals(Components.interfaces.calIObserver)) {
+                            throw Components.results.NS_ERROR_NO_INTERFACE;
                         }
                         return this;
                     },
@@ -205,8 +205,8 @@ InvitationsManager.prototype = {
                                                   aId,
                                                   aDetail) {
 
-                        if (aOperationType != Ci.calIOperationListener.GET &&
-                            aOperationType != Ci.calIWcapCalendar.SYNC) {
+                        if (aOperationType != Components.interfaces.calIOperationListener.GET &&
+                            aOperationType != Components.interfaces.calIWcapCalendar.SYNC) {
                             return;
                         }
                         var requestStatus =
@@ -233,15 +233,15 @@ InvitationsManager.prototype = {
                             while ((listener = this.mInvitationsManager.mOperationListeners.shift())) {
                                 listener.onGetResult(
                                     null,
-                                    Cr.NS_OK,
-                                    Ci.calIItemBase,
+                                    Components.results.NS_OK,
+                                    Components.interfaces.calIItemBase,
                                     null,
                                     this.mInvitationsManager.mItemList.length,
                                     this.mInvitationsManager.mItemList);
                                 listener.onOperationComplete(
                                     null,
-                                    Cr.NS_OK,
-                                    Ci.calIOperationListener.GET,
+                                    Components.results.NS_OK,
+                                    Components.interfaces.calIOperationListener.GET,
                                     null,
                                     null);
                             }
@@ -328,8 +328,8 @@ InvitationsManager.prototype = {
             while ((listener = this.mOperationListeners.shift())) {
                 listener.onOperationComplete(
                     null,
-                    Cr.NS_ERROR_FAILURE,
-                    Ci.calIOperationListener.GET,
+                    Components.results.NS_ERROR_FAILURE,
+                    Components.interfaces.calIOperationListener.GET,
                     null,
                     null );
             }
@@ -367,7 +367,7 @@ InvitationsManager.prototype = {
                                            aId,
                                            aDetail) {
                 if (Components.isSuccessCode(aStatus) &&
-                    aOperationType == Ci.calIOperationListener.MODIFY) {
+                    aOperationType == Components.interfaces.calIOperationListener.MODIFY) {
                     this.mInvitationsManager.deleteItem(aDetail);
                     this.mInvitationsManager.addItem(aDetail);
                 }
@@ -456,15 +456,15 @@ InvitationsManager.prototype = {
     },
 
     getDate: function IM_getDate() {
-        var date = Cc["@mozilla.org/calendar/datetime;1"]
-                   .createInstance(Ci.calIDateTime);
+        var date = Components.classes["@mozilla.org/calendar/datetime;1"]
+                   .createInstance(Components.interfaces.calIDateTime);
         date.jsDate = new Date();
         return date;
     },
 
     getStartDate: function IM_getStartDate() {
-        var date = Cc["@mozilla.org/calendar/datetime;1"]
-                   .createInstance(Ci.calIDateTime);
+        var date = Components.classes["@mozilla.org/calendar/datetime;1"]
+                   .createInstance(Components.interfaces.calIDateTime);
         date.jsDate = new Date();
         date = date.getInTimezone(calendarDefaultTimezone());
         date.hour = 0;
@@ -512,7 +512,7 @@ InvitationsManager.prototype = {
     getParticipationStatus: function IM_getParticipationStatus(item) {
         try {
             var wcapCalendar = item.calendar.QueryInterface(
-                Ci.calIWcapCalendar);
+                Components.interfaces.calIWcapCalendar);
             var attendee = wcapCalendar.getInvitedAttendee(item);
             if (attendee)
                 return attendee.participationStatus;
@@ -523,7 +523,7 @@ InvitationsManager.prototype = {
     unregisterCalendar: function IM_unregisterCalendar(calendar) {
         try {
             var wcapCalendar = calendar.QueryInterface(
-                Ci.calIWcapCalendar);
+                Components.interfaces.calIWcapCalendar);
             this.mUnregisteredCalendars.push(wcapCalendar);
         } catch (e) {}
     },

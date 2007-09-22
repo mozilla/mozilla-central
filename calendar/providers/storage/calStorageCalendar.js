@@ -197,7 +197,7 @@ function newDateTime(aNativeTime, aTimezone) {
 
 function calStorageCalendar() {
     this.wrappedJSObject = this;
-    this.mObservers = new calListenerBag(Ci.calIObserver);
+    this.mObservers = new calListenerBag(Components.interfaces.calIObserver);
     this.mItemCache = new Array();
 }
 
@@ -537,10 +537,10 @@ calStorageCalendar.prototype = {
         }
 
         var item_iid = null;
-        if (item instanceof Ci.calIEvent)
-            item_iid = Ci.calIEvent;
-        else if (item instanceof Ci.calITodo)
-            item_iid = Ci.calITodo;
+        if (item instanceof Components.interfaces.calIEvent)
+            item_iid = Components.interfaces.calIEvent;
+        else if (item instanceof Components.interfaces.calITodo)
+            item_iid = Components.interfaces.calITodo;
         else {
             aListener.onOperationComplete (this,
                                            Components.results.NS_ERROR_FAILURE,
@@ -726,7 +726,7 @@ calStorageCalendar.prototype = {
 
             // process the events
             for each (var evitem in resultItems) {
-                count += handleResultItem(evitem.item, evitem.flags, Ci.calIEvent);
+                count += handleResultItem(evitem.item, evitem.flags, Components.interfaces.calIEvent);
                 if (checkCount())
                     return;
             }
@@ -786,7 +786,7 @@ calStorageCalendar.prototype = {
                     var itemIsCompleted = false;
                     if (item.todo_complete == 100 ||
                         item.todo_completed != null ||
-                        item.ical_status == Ci.calITodo.CAL_TODO_STATUS_COMPLETED)
+                        item.ical_status == Components.interfaces.calITodo.CAL_TODO_STATUS_COMPLETED)
                         itemIsCompleted = true;
 
                     if (!itemIsCompleted && !wantNotCompletedItems)
@@ -801,7 +801,7 @@ calStorageCalendar.prototype = {
 
             // process the todos
             for each (var todoitem in resultItems) {
-                count += handleResultItem(todoitem.item, todoitem.flags, Ci.calITodo);
+                count += handleResultItem(todoitem.item, todoitem.flags, Components.interfaces.calITodo);
                 if (checkCount())
                     return;
             }
@@ -1704,7 +1704,7 @@ calStorageCalendar.prototype = {
 
             var exceptions = [];
 
-            if (item instanceof Ci.calIEvent) {
+            if (item instanceof Components.interfaces.calIEvent) {
                 this.mSelectEventExceptions.params.id = item.id;
                 while (this.mSelectEventExceptions.step()) {
                     var row = this.mSelectEventExceptions.row;
@@ -1713,7 +1713,7 @@ calStorageCalendar.prototype = {
                     exceptions.push({item: exc, flags: flags.value});
                 }
                 this.mSelectEventExceptions.reset();
-            } else if (item instanceof Ci.calITodo) {
+            } else if (item instanceof Components.interfaces.calITodo) {
                 this.mSelectTodoExceptions.params.id = item.id;
                 while (this.mSelectTodoExceptions.step()) {
                     var row = this.mSelectTodoExceptions.row;
@@ -1830,9 +1830,9 @@ calStorageCalendar.prototype = {
     deleteOldItem: function (item, olditem) {
         if (olditem) {
             var oldItemDeleteStmt;
-            if (olditem instanceof Ci.calIEvent)
+            if (olditem instanceof Components.interfaces.calIEvent)
                 oldItemDeleteStmt = this.mDeleteEvent;
-            else if (olditem instanceof Ci.calITodo)
+            else if (olditem instanceof Components.interfaces.calITodo)
                 oldItemDeleteStmt = this.mDeleteTodo;
 
             oldItemDeleteStmt.params.id = olditem.id;
@@ -1864,9 +1864,9 @@ calStorageCalendar.prototype = {
         flags |= this.writeProperties(item, olditem);
         flags |= this.writeAttachments(item, olditem);
 
-        if (item instanceof Ci.calIEvent)
+        if (item instanceof Components.interfaces.calIEvent)
             this.writeEvent(item, olditem, flags);
-        else if (item instanceof Ci.calITodo)
+        else if (item instanceof Components.interfaces.calITodo)
             this.writeTodo(item, olditem, flags);
         else
             throw Components.results.NS_ERROR_UNEXPECTED;
@@ -1879,10 +1879,10 @@ calStorageCalendar.prototype = {
         var tmp;
 
         tmp = item.getUnproxiedProperty("DTSTART");
-        //if (tmp instanceof Ci.calIDateTime) {}
+        //if (tmp instanceof Components.interfaces.calIDateTime) {}
         this.setDateParamHelper(ip, "event_start", tmp);
         tmp = item.getUnproxiedProperty("DTEND");
-        //if (tmp instanceof Ci.calIDateTime) {}
+        //if (tmp instanceof Components.interfaces.calIDateTime) {}
         this.setDateParamHelper(ip, "event_end", tmp);
 
         if (item.startDate.isDate)
@@ -1979,7 +1979,7 @@ calStorageCalendar.prototype = {
 
             pp.key = prop.name;
             var pval = prop.value;
-            if (pval instanceof Ci.calIDateTime) {
+            if (pval instanceof Components.interfaces.calIDateTime) {
                 pp.value = pval.nativeTime;
             } else {
                 pp.value = pval;

@@ -762,7 +762,7 @@ calICSCalendar.prototype = {
 
 function calICSObserver(aCalendar) {
     this.mCalendar = aCalendar;
-    this.mObservers = new calListenerBag(Ci.calIObserver);
+    this.mObservers = new calListenerBag(Components.interfaces.calIObserver);
 }
 
 calICSObserver.prototype = {

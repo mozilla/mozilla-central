@@ -93,8 +93,8 @@ function calCompositeCalendar () {
     this.wrappedJSObject = this;
 
     this.mCalendars = new Array();
-    this.mCompositeObservers = new calListenerBag(Ci.calICompositeObserver);
-    this.mObservers = new calListenerBag(Ci.calIObserver);
+    this.mCompositeObservers = new calListenerBag(Components.interfaces.calICompositeObserver);
+    this.mObservers = new calListenerBag(Components.interfaces.calIObserver);
     this.mDefaultCalendar = null;
 }
 
@@ -300,7 +300,7 @@ calCompositeCalendar.prototype = {
     mCompositeObservers: null,
     mObservers: null,
     addObserver: function (aObserver) {
-        if (aObserver instanceof Ci.calICompositeObserver) {
+        if (aObserver instanceof Components.interfaces.calICompositeObserver) {
             this.mCompositeObservers.add(aObserver);
         }
         this.mObservers.add(aObserver);
@@ -308,7 +308,7 @@ calCompositeCalendar.prototype = {
 
     // void removeObserver( in calIObserver observer );
     removeObserver: function (aObserver) {
-        if (aObserver instanceof Ci.calICompositeObserver) {
+        if (aObserver instanceof Components.interfaces.calICompositeObserver) {
             this.mCompositeObservers.remove(aObserver);
         }
         this.mObservers.remove(aObserver);

@@ -48,9 +48,9 @@ function calItipItem() {
 calItipItem.prototype = {
     getInterfaces: function ciiGI(count) {
         var ifaces = [
-            Ci.nsIClassInfo,
-            Ci.nsISupports,
-            Ci.calIItipItem
+            Components.interfaces.nsIClassInfo,
+            Components.interfaces.nsISupports,
+            Components.interfaces.calIItipItem
         ];
         count.value = ifaces.length;
         return ifaces;
@@ -63,11 +63,12 @@ calItipItem.prototype = {
     contractID: "@mozilla.org/calendar/itip-item;1",
     classDescription: "Calendar iTIP item",
     classID: Components.ID("{f41392ab-dcad-4bad-818f-b3d1631c4d93}"),
-    implementationLanguage: Ci.nsIProgrammingLanguage.JAVASCRIPT,
+    implementationLanguage: Components.interfaces.nsIProgrammingLanguage.JAVASCRIPT,
     flags: 0,
 
     QueryInterface: function ciiQI(aIid) {
-        if (!aIid.equals(Ci.nsISupports) && !aIid.equals(Ci.calIItipItem)) {
+        if (!aIid.equals(Components.interfaces.nsISupports) &&
+            !aIid.equals(Components.interfaces.calIItipItem)) {
             throw Components.results.NS_ERROR_NO_INTERFACE;
         }
 
@@ -162,8 +163,8 @@ calItipItem.prototype = {
     mPropertiesList: null,
 
     init: function ciiI(aIcalString) {
-        var parser = Cc["@mozilla.org/calendar/ics-parser;1"].
-                     createInstance(Ci.calIIcsParser);
+        var parser = Components.classes["@mozilla.org/calendar/ics-parser;1"].
+                     createInstance(Components.interfaces.calIIcsParser);
         parser.parseString(aIcalString);
         this.mItemList = parser.getItems({});
         this.mPropertiesList = parser.getProperties({});
@@ -197,8 +198,8 @@ calItipItem.prototype = {
 
         // Create a new calItipItem and initialize it using the icalString
         // from above.
-        var newItem = Cc["@mozilla.org/calendar/itip-item;1"].
-                      createInstance(Ci.calIItipItem);
+        var newItem = Components.classes["@mozilla.org/calendar/itip-item;1"].
+                      createInstance(Components.interfaces.calIItipItem);
         newItem.init(icalString);
 
         // Copy over the exposed attributes.
@@ -266,8 +267,8 @@ calItipItem.prototype = {
                 // create a new attendee from scratch WITHOUT the RSVP
                 // property and copy in the other relevant data.
                 // XXX use deleteProperty after bug 358498 is fixed.
-                newAttendee = Cc["@mozilla.org/calendar/attendee;1"].
-                              createInstance(Ci.calIAttendee);
+                newAttendee = Components.classes["@mozilla.org/calendar/attendee;1"].
+                              createInstance(Components.interfaces.calIAttendee);
                 if (attendee.commonName) {
                     newAttendee.commonName = attendee.commonName;
                 }

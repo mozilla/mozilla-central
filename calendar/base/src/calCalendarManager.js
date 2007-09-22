@@ -288,7 +288,7 @@ calCalendarManager.prototype = {
                 // If we're Lightning, we want to include the extension name
                 // in the error message rather than blaming Thunderbird.
                 var appInfo = Components.classes["@mozilla.org/xre/app-info;1"]
-                                        .getService(Ci.nsIXULAppInfo);
+                                        .getService(Components.interfaces.nsIXULAppInfo);
                 var errorBoxTitle;
                 var errorBoxText;
                 var errorBoxButtonLabel;

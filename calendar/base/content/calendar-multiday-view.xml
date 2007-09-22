@@ -133,8 +133,8 @@
           while (topbox.lastChild)
               topbox.removeChild(topbox.lastChild);
 
-          var formatter = Cc["@mozilla.org/intl/scriptabledateformat;1"].
-                          getService(Ci.nsIScriptableDateFormat);
+          var formatter = Components.classes["@mozilla.org/intl/scriptabledateformat;1"].
+                          getService(Components.interfaces.nsIScriptableDateFormat);
           var timeString;
           var theMin = this.mStartMin;
           var theHour = Math.floor(theMin / 60);
@@ -160,7 +160,7 @@
                   box = makeTimeBox("", durPix);
               } else {
                   timeString = formatter.FormatTime("",
-                                                    Ci.nsIScriptableDateFormat.timeFormatNoSeconds,
+                                                    Components.interfaces.nsIScriptableDateFormat.timeFormatNoSeconds,
                                                     theHour, 0, 0);
                   box = makeTimeBox(timeString, durPix);
               }
@@ -1580,13 +1580,13 @@
           var endhr = Math.floor(realendmin / 60);
           var endmin = realendmin % 60;
 
-          var formatter = Cc["@mozilla.org/intl/scriptabledateformat;1"].
-                          getService(Ci.nsIScriptableDateFormat);
+          var formatter = Components.classes["@mozilla.org/intl/scriptabledateformat;1"].
+                          getService(Components.interfaces.nsIScriptableDateFormat);
           var startstr = formatter.FormatTime("",
-                                              Ci.nsIScriptableDateFormat.timeFormatNoSeconds,
+                                              Components.interfaces.nsIScriptableDateFormat.timeFormatNoSeconds,
                                               starthr, startmin, 0);
           var endstr = formatter.FormatTime("",
-                                            Ci.nsIScriptableDateFormat.timeFormatNoSeconds,
+                                            Components.interfaces.nsIScriptableDateFormat.timeFormatNoSeconds,
                                             endhr, endmin, 0);
 
           this.fgboxes.startlabel.setAttribute("value", startstr);
@@ -2049,8 +2049,8 @@
         ]]></getter>
         <setter><![CDATA[
           this.mDate = val;
-          var df = Cc["@mozilla.org/calendar/datetime-formatter;1"].
-                     getService(Ci.calIDateTimeFormatter);
+          var df = Components.classes["@mozilla.org/calendar/datetime-formatter;1"].
+                     getService(Components.interfaces.calIDateTimeFormatter);
 
           var shortName = document.getAnonymousElementByAttribute(this, "anonid", "shortWeekdayName");
           var longName = document.getAnonymousElementByAttribute(this, "anonid", "longWeekdayName");
@@ -2238,9 +2238,9 @@
         // the calIObserver, and calICompositeObserver
         ({
             QueryInterface: function QueryInterface(aIID) {
-                if (!aIID.equals(Ci.calIObserver) &&
-                    !aIID.equals(Ci.calICompositeObserver) &&
-                    !aIID.equals(Ci.nsISupports)) {
+                if (!aIID.equals(Components.interfaces.calIObserver) &&
+                    !aIID.equals(Components.interfaces.calICompositeObserver) &&
+                    !aIID.equals(Components.interfaces.nsISupports)) {
                     throw Components.results.NS_ERROR_NO_INTERFACE;
                 }
 
@@ -3024,8 +3024,8 @@
 
               var labelbox;
 
-              var df = Cc["@mozilla.org/calendar/datetime-formatter;1"].
-                       getService(Ci.calIDateTimeFormatter);
+              var df = Components.classes["@mozilla.org/calendar/datetime-formatter;1"].
+                       getService(Components.interfaces.calIDateTimeFormatter);
               if (counter < labelboxkids.length) {
                   labelbox = labelboxkids[counter];
                   labelbox.date = d;
@@ -3291,7 +3291,7 @@
         <body><![CDATA[
           var minute = 0;
           var childbox = document.getAnonymousElementByAttribute(this, "anonid", "childbox");
-          var scrollBoxObject = childbox.boxObject.QueryInterface(Ci.nsIScrollBoxObject);
+          var scrollBoxObject = childbox.boxObject.QueryInterface(Components.interfaces.nsIScrollBoxObject);
           if (scrollBoxObject != null) {
             var x = {};
             var y = {};
@@ -3318,7 +3318,7 @@
         <parameter name="aMinute"/>
         <body><![CDATA[
           var childbox = document.getAnonymousElementByAttribute(this, "anonid", "childbox");
-          var scrollBoxObject = childbox.boxObject.QueryInterface(Ci.nsIScrollBoxObject);
+          var scrollBoxObject = childbox.boxObject.QueryInterface(Components.interfaces.nsIScrollBoxObject);
           if (scrollBoxObject != null) {
             var x = {};
             var y = {};
@@ -3380,7 +3380,7 @@
         event.preventDefault();
       ]]></handler>
       <handler event="keypress"><![CDATA[
-        const kKE = Ci.nsIDOMKeyEvent;
+        const kKE = Components.interfaces.nsIDOMKeyEvent;
         if (event.keyCode == kKE.DOM_VK_BACK_SPACE ||
             event.keyCode == kKE.DOM_VK_DELETE)
         {

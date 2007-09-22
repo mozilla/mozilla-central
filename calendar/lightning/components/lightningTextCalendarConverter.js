@@ -37,17 +37,14 @@
  *
  * ***** END LICENSE BLOCK ***** */
 
-const Cc = Components.classes;
-const Ci = Components.interfaces;
-
 function makeTableRow(val) {
     return "<tr><td>" + val[0] + "</td><td>" + val[1] + "</td></tr>\n";
 }
 
 function getLightningStringBundle()
 {
-    var svc = Cc["@mozilla.org/intl/stringbundle;1"].
-              getService(Ci.nsIStringBundleService);
+    var svc = Components.classes["@mozilla.org/intl/stringbundle;1"].
+              getService(Components.interfaces.nsIStringBundleService);
     return svc.createBundle("chrome://lightning/locale/lightning.properties");
 }
 
@@ -135,8 +132,8 @@ function ltnMimeConverter() { }
 
 ltnMimeConverter.prototype = {
     QueryInterface: function QI(aIID) {
-        if (!aIID.equals(Ci.nsISupports) &&
-            !aIID.equals(Ci.nsISimpleMimeConverter))
+        if (!aIID.equals(Components.interfaces.nsISupports) &&
+            !aIID.equals(Components.interfaces.nsISimpleMimeConverter))
         {
             throw Components.results.NS_ERROR_NO_INTERFACE;
         }
@@ -153,32 +150,32 @@ ltnMimeConverter.prototype = {
     },
 
     convertToHTML: function lmcCTH(contentType, data) {
-        var event = Cc["@mozilla.org/calendar/event;1"].
-                    createInstance(Ci.calIEvent);
+        var event = Components.classes["@mozilla.org/calendar/event;1"].
+                    createInstance(Components.interfaces.calIEvent);
         event.icalString = data;
         var html = createHtml(event);
 
         try {
-            var itipItem = Cc["@mozilla.org/calendar/itip-item;1"].
-                           createInstance(Ci.calIItipItem);
+            var itipItem = Components.classes["@mozilla.org/calendar/itip-item;1"].
+                           createInstance(Components.interfaces.calIItipItem);
             itipItem.init(data);
 
             // this.mUri is the message URL that we are processing.
             // We use it to get the nsMsgHeaderSink to store the calItipItem.
             if (this.mUri) {
-                var msgUrl = this.mUri.QueryInterface(Ci.nsIMsgMailNewsUrl);
+                var msgUrl = this.mUri.QueryInterface(Components.interfaces.nsIMsgMailNewsUrl);
                 var sinkProps = msgUrl.msgWindow.msgHeaderSink.properties;
                 sinkProps.setPropertyAsInterface("itipItem", itipItem);
             
                 // Notify the observer that the itipItem is available
-                var observer = Cc["@mozilla.org/observer-service;1"].
-                               getService(Ci.nsIObserverService);
+                var observer = Components.classes["@mozilla.org/observer-service;1"].
+                               getService(Components.interfaces.nsIObserverService);
                 observer.notifyObservers(null, "onItipItemCreation", 0);
             } else {
                 // Thunderbird 1.5.x case: We have no choice but to try
                 // sending the iTIP item directly with the notification
-                var observer = Cc["@mozilla.org/observer-service;1"].
-                               getService(Ci.nsIObserverService);
+                var observer = Components.classes["@mozilla.org/observer-service;1"].
+                               getService(Components.interfaces.nsIObserverService);
                 observer.notifyObservers(itipItem, "onItipItemCreation", 0);
             }
 
@@ -194,7 +191,7 @@ ltnMimeConverter.prototype = {
 var myModule = {
     registerSelf: function RS(aCompMgr, aFileSpec, aLocation, aType) {
         debug("*** Registering Lightning text/calendar handler\n");
-        var compMgr = aCompMgr.QueryInterface(Ci.nsIComponentRegistrar);
+        var compMgr = aCompMgr.QueryInterface(Components.interfaces.nsIComponentRegistrar);
         compMgr.registerFactoryLocation(this.myCID,
                                         "Lightning text/calendar handler",
                                         this.myContractID,
@@ -203,7 +200,7 @@ var myModule = {
                                         aType);
 
         var catman = Components.classes["@mozilla.org/categorymanager;1"]
-                               .getService(Ci.nsICategoryManager);
+                               .getService(Components.interfaces.nsICategoryManager);
 
         catman.addCategoryEntry("simple-mime-converters", "text/calendar",
                                 this.myContractID, true, true);

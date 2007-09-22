@@ -88,8 +88,8 @@ function getCalendarPref(aCalendar, aPrefName) {
  * @return              The formatted string
  */
 function getFormattedString(aBundleName, aStringName, aFormatArgs, aComponent) {
-    var bundlesvc = Cc["@mozilla.org/intl/stringbundle;1"].
-                    getService(Ci.nsIStringBundleService);
+    var bundlesvc = Components.classes["@mozilla.org/intl/stringbundle;1"].
+                    getService(Components.interfaces.nsIStringBundleService);
 
     var component = aComponent || "gdata-provider";
     var bundle = bundlesvc.createBundle("chrome://" + component + "/locale/" +
@@ -155,11 +155,11 @@ function getCalendarCredentials(aCalendarName,
     if (typeof aUsername != "object" ||
         typeof aPassword != "object" ||
         typeof aSavePassword != "object") {
-        throw new Components.Exception("", Cr.NS_ERROR_XPC_NEED_OUT_OBJECT);
+        throw new Components.Exception("", Components.results.NS_ERROR_XPC_NEED_OUT_OBJECT);
     }
 
-    var watcher = Cc["@mozilla.org/embedcomp/window-watcher;1"].
-                  getService(Ci.nsIWindowWatcher);
+    var watcher = Components.classes["@mozilla.org/embedcomp/window-watcher;1"].
+                  getService(Components.interfaces.nsIWindowWatcher);
     var prompter = watcher.getNewPrompter(null);
 
     // Retrieve strings from properties file
@@ -215,8 +215,8 @@ function getMozillaTimezone(aICALTimezone) {
     // For now we need to go through all timezones and see which timezone
     // ends with aICALTimezone.
 
-    var icsSvc = Cc["@mozilla.org/calendar/ics-service;1"].
-                 getService(Ci.calIICSService);
+    var icsSvc = Components.classes["@mozilla.org/calendar/ics-service;1"].
+                 getService(Components.interfaces.calIICSService);
 
     // Enumerate timezones, set them, check their offset
     var enumerator = icsSvc.timezoneIds;
@@ -297,8 +297,8 @@ function fromRFC3339(aStr, aTimezone) {
         if (dateTime.timezoneOffset != offset_in_s) {
             // TODO A patch to Bug 363191 should make this more efficient.
 
-            var icsSvc = Cc["@mozilla.org/calendar/ics-service;1"].
-                         getService(Ci.calIICSService);
+            var icsSvc = Components.classes["@mozilla.org/calendar/ics-service;1"].
+                         getService(Components.interfaces.calIICSService);
 
             // Enumerate timezones, set them, check their offset
             var enumerator = icsSvc.timezoneIds;
@@ -376,17 +376,17 @@ function passwordManagerSave(aUsername, aPassword) {
     ASSERT(aUsername);
     ASSERT(aPassword);
 
-    if (Cc["@mozilla.org/passwordmanager;1"]) {
-        var passwordManager = Cc["@mozilla.org/passwordmanager;1"].
-                              getService(Ci.nsIPasswordManager);
+    if (Components.classes["@mozilla.org/passwordmanager;1"]) {
+        var passwordManager = Components.classes["@mozilla.org/passwordmanager;1"].
+                              getService(Components.interfaces.nsIPasswordManager);
 
         // The realm and the username are the same, since we only save
         // credentials per session, which only needs a user and a password
         passwordManager.addUser(aUsername, aUsername, aPassword);
-    } else if (Cc["@mozilla.org/login-manager;1"]) {
+    } else if (Components.classes["@mozilla.org/login-manager;1"]) {
         // Trunk uses LoginManager
-        var loginManager = Cc["@mozilla.org/login-manager;1"].
-                           getService(Ci.nsILoginManager);
+        var loginManager = Components.classes["@mozilla.org/login-manager;1"].
+                           getService(Components.interfaces.nsILoginManager);
         var hostname = "chrome://gdata-provider/" +
                        encodeURIComponent(aUsername);
         var logins = loginManager.findLogins({},
@@ -398,8 +398,8 @@ function passwordManagerSave(aUsername, aPassword) {
             loginInfo.password = aPassword;
             loginManager.modifyLogin(logins[0], loginInfo);
         } else {
-            var loginInfo = Cc["@mozilla.org/login-manager/loginInfo;1"].
-                            createInstance(Ci.nsILoginInfo);
+            var loginInfo = Components.classes["@mozilla.org/login-manager/loginInfo;1"].
+                            createInstance(Components.interfaces.nsILoginInfo);
             loginInfo.init(hostname,
                            null,
                            "Google Calendar",
@@ -425,18 +425,18 @@ function passwordManagerGet(aUsername, aPassword) {
     ASSERT(aUsername);
 
     if (typeof aPassword != "object") {
-        throw new Components.Exception("", Cr.NS_ERROR_XPC_NEED_OUT_OBJECT);
+        throw new Components.Exception("", Components.results.NS_ERROR_XPC_NEED_OUT_OBJECT);
     }
 
-    if (Cc["@mozilla.org/passwordmanager;1"]) {
+    if (Components.classes["@mozilla.org/passwordmanager;1"]) {
         // Branch uses PasswordManager
-        var passwordManager = Cc["@mozilla.org/passwordmanager;1"].
-                              getService(Ci.nsIPasswordManager);
+        var passwordManager = Components.classes["@mozilla.org/passwordmanager;1"].
+                              getService(Components.interfaces.nsIPasswordManager);
 
         var enumerator = passwordManager.enumerator;
 
         while (enumerator.hasMoreElements()) {
-            var entry = enumerator.getNext().QueryInterface(Ci.nsIPassword);
+            var entry = enumerator.getNext().QueryInterface(Components.interfaces.nsIPassword);
 
             // We only care about the "host" field, since the username field is the
             // same for our purposes.
@@ -445,10 +445,10 @@ function passwordManagerGet(aUsername, aPassword) {
                 return true;
             }
         }
-    } else if (Cc["@mozilla.org/login-manager;1"]) {
+    } else if (Components.classes["@mozilla.org/login-manager;1"]) {
         // Trunk uses LoginManager
-        var loginManager = Cc["@mozilla.org/login-manager;1"].
-                           getService(Ci.nsILoginManager);
+        var loginManager = Components.classes["@mozilla.org/login-manager;1"].
+                           getService(Components.interfaces.nsILoginManager);
         if (!loginManager.getLoginSavingEnabled(aUsername)) {
             return false;
         }
@@ -481,10 +481,10 @@ function passwordManagerGet(aUsername, aPassword) {
  */
 function passwordManagerRemove(aUsername) {
 
-    if (Cc["@mozilla.org/passwordmanager;1"]) {
+    if (Components.classes["@mozilla.org/passwordmanager;1"]) {
         // Branch uses PasswordManager
-        var passwordManager = Cc["@mozilla.org/passwordmanager;1"].
-                              getService(Ci.nsIPasswordManager);
+        var passwordManager = Components.classes["@mozilla.org/passwordmanager;1"].
+                              getService(Components.interfaces.nsIPasswordManager);
 
         // Remove from Password Manager. Again, the host and username is always the
         // same for our purposes.
@@ -493,10 +493,10 @@ function passwordManagerRemove(aUsername) {
         } catch (e) {
             return false;
         }
-    } else if (Cc["@mozilla.org/login-manager;1"]) {
+    } else if (Components.classes["@mozilla.org/login-manager;1"]) {
         // Trunk uses LoginManager
-        var loginManager = Cc["@mozilla.org/login-manager;1"].
-                           getService(Ci.nsILoginManager);
+        var loginManager = Components.classes["@mozilla.org/login-manager;1"].
+                           getService(Components.interfaces.nsILoginManager);
         var hostname = "chrome://gdata-provider/" +
                        encodeURIComponent(aUsername);
         var logins = loginManager.findLogins({},
@@ -526,7 +526,7 @@ function passwordManagerRemove(aUsername) {
 function ItemToXMLEntry(aItem, aAuthorEmail, aAuthorName) {
 
     if (!aItem) {
-        throw new Components.Exception("", Cr.NS_ERROR_INVALID_ARG);
+        throw new Components.Exception("", Components.results.NS_ERROR_INVALID_ARG);
     }
 
     const kEVENT_SCHEMA = "http://schemas.google.com/g/2005#event.";
@@ -567,7 +567,7 @@ function ItemToXMLEntry(aItem, aAuthorEmail, aAuthorName) {
         // user didn't choose to delete the event, we will protect him and not
         // allow this status to be set
         throw new Components.Exception("",
-                                       Cr.NS_ERROR_LOSS_OF_SIGNIFICANT_DATA);
+                                       Components.results.NS_ERROR_LOSS_OF_SIGNIFICANT_DATA);
     } else if (status == "NONE") {
         status = "CONFIRMED";
     }
@@ -651,7 +651,7 @@ function ItemToXMLEntry(aItem, aAuthorEmail, aAuthorName) {
         var gdReminder = <gd:reminder xmlns:gd={gd}/>;
         var alarmOffset = aItem.alarmOffset.clone();
 
-        if (aItem.alarmRelated == Ci.calIItemBase.ALARM_RELATED_END) {
+        if (aItem.alarmRelated == Components.interfaces.calIItemBase.ALARM_RELATED_END) {
             // Google always uses an alarm offset related to the start time
             alarmOffset.addDuration(duration);
         }
@@ -812,7 +812,7 @@ function getItemEditURI(aItem) {
     var edituri = aItem.getProperty("X-GOOGLE-EDITURL");
     if (!edituri) {
         // If the item has no edit uri, it is read-only
-        throw new Components.Exception("", Ci.calIErrors.CAL_IS_READONLY);
+        throw new Components.Exception("", Components.interfaces.calIErrors.CAL_IS_READONLY);
     }
     return edituri;
 }
@@ -829,7 +829,7 @@ function getItemEditURI(aItem) {
 function XMLEntryToItem(aXMLEntry, aTimezone, aCalendar) {
 
     if (aXMLEntry == null) {
-        throw new Components.Exception("", Cr.NS_ERROR_DOM_SYNTAX_ERR);
+        throw new Components.Exception("", Components.results.NS_ERROR_DOM_SYNTAX_ERR);
     }
 
     var gCal = new Namespace("gCal", "http://schemas.google.com/gCal/2005");
@@ -837,8 +837,8 @@ function XMLEntryToItem(aXMLEntry, aTimezone, aCalendar) {
     var atom = new Namespace("", "http://www.w3.org/2005/Atom");
     default xml namespace = atom;
 
-    var item = Cc["@mozilla.org/calendar/event;1"].
-               createInstance(Ci.calIEvent);
+    var item = Components.classes["@mozilla.org/calendar/event;1"].
+               createInstance(Components.interfaces.calIEvent);
 
     try {
         // id
@@ -908,7 +908,7 @@ function XMLEntryToItem(aXMLEntry, aTimezone, aCalendar) {
             }
 
             // Google's alarms are always related to the start
-            item.alarmRelated = Ci.calIItemBase.ALARM_RELATED_START;
+            item.alarmRelated = Components.interfaces.calIItemBase.ALARM_RELATED_START;
 
             var lastAlarm;
             var otherAlarms = [];
@@ -916,8 +916,8 @@ function XMLEntryToItem(aXMLEntry, aTimezone, aCalendar) {
                 // We are only intrested in "alert" reminders. Other types
                 // include sms and email alerts, but thats not the point here.
                 if (reminder.@method == "alert") {
-                    var alarmOffset = Cc["@mozilla.org/calendar/duration;1"]
-                                        .createInstance(Ci.calIDuration);
+                    var alarmOffset = Components.classes["@mozilla.org/calendar/duration;1"]
+                                        .createInstance(Components.interfaces.calIDuration);
 
                     if (reminder.@absoluteTime.toString()) {
                         var absolute = fromRFC3339(reminder.@absoluteTime,
@@ -997,8 +997,8 @@ function XMLEntryToItem(aXMLEntry, aTimezone, aCalendar) {
 
         // Iterate all attendee tags.
         for each (var who in aXMLEntry.gd::who) {
-            var attendee = Cc["@mozilla.org/calendar/attendee;1"]
-                           .createInstance(Ci.calIAttendee);
+            var attendee = Components.classes["@mozilla.org/calendar/attendee;1"]
+                           .createInstance(Components.interfaces.calIAttendee);
 
             var rel = who.@rel.substring(33);
             var type = who.gd::attendeeType.@value.substring(33);
@@ -1049,8 +1049,8 @@ function XMLEntryToItem(aXMLEntry, aTimezone, aCalendar) {
             re = new RegExp("^DURATION:(.*)$");
             matches = re.exec(line);
             if (matches) {
-                var offset = Cc["@mozilla.org/calendar/duration;1"].
-                             createInstance(Ci.calIDuration);
+                var offset = Components.classes["@mozilla.org/calendar/duration;1"].
+                             createInstance(Components.interfaces.calIDuration);
 
                 offset.icalString = matches[1];
                 endDate.addDuration(offset);

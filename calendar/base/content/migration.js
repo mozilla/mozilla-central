@@ -52,8 +52,8 @@ var gMigrateWizard = {
         var listbox = document.getElementById("datasource-list");
 
         //XXX Once we have branding for lightning, this hack can go away
-        var sbs = Cc["@mozilla.org/intl/stringbundle;1"]
-                  .getService(Ci.nsIStringBundleService);
+        var sbs = Components.classes["@mozilla.org/intl/stringbundle;1"]
+                  .getService(Components.interfaces.nsIStringBundleService);
 
         var props = sbs.createBundle("chrome://calendar/locale/migration.properties");
 
@@ -111,8 +111,8 @@ var gMigrateWizard = {
         wizard.canRewind = false;
 
         // We're going to need this for the progress meter's description
-        var sbs = Cc["@mozilla.org/intl/stringbundle;1"]
-                  .getService(Ci.nsIStringBundleService);
+        var sbs = Components.classes["@mozilla.org/intl/stringbundle;1"]
+                  .getService(Components.interfaces.nsIStringBundleService);
         var props = sbs.createBundle("chrome://calendar/locale/migration.properties");
         var label = document.getElementById("progress-label");
         var meter = document.getElementById("migrate-progressmeter");
@@ -179,16 +179,16 @@ var gDataMigrator = {
      */
     get dirService() {
         if (!this.mDirService) {
-            this.mDirService = Cc["@mozilla.org/file/directory_service;1"]
-                               .getService(Ci.nsIProperties);
+            this.mDirService = Components.classes["@mozilla.org/file/directory_service;1"]
+                               .getService(Components.interfaces.nsIProperties);
         }
         return this.mDirService;
     },
     
     get ioService() {
         if (!this.mIoService) {
-            this.mIoService = Cc["@mozilla.org/network/io-service;1"]
-                              .getService(Ci.nsIIOService);
+            this.mIoService = Components.classes["@mozilla.org/network/io-service;1"]
+                              .getService(Components.interfaces.nsIIOService);
         }
         return this.mIoService;
     },
@@ -200,8 +200,8 @@ var gDataMigrator = {
      */
     isLightning: function is_ltn() {
         if (this.mIsLightning == null) {
-            var appInfo = Cc["@mozilla.org/xre/app-info;1"]
-                          .getService(Ci.nsIXULAppInfo);
+            var appInfo = Components.classes["@mozilla.org/xre/app-info;1"]
+                          .getService(Components.interfaces.nsIXULAppInfo);
             this.mIsLightning = !(appInfo.ID == SUNBIRD_UID);
             return this.mIsLightning;
         }
@@ -217,8 +217,8 @@ var gDataMigrator = {
      * wizard, otherwise, we'll return silently.
      */
     checkAndMigrate: function gdm_migrate() {
-        var appInfo = Cc["@mozilla.org/xre/app-info;1"]
-                      .getService(Ci.nsIXULAppInfo);
+        var appInfo = Components.classes["@mozilla.org/xre/app-info;1"]
+                      .getService(Components.interfaces.nsIXULAppInfo);
         this.mIsLightning = !(appInfo.ID == SUNBIRD_UID)
         LOG("mIsLightning is: " + this.mIsLightning);
         if (appInfo.ID == FIREFOX_UID) {
@@ -228,8 +228,8 @@ var gDataMigrator = {
             return;
         }
 
-        var xulRuntime = Cc["@mozilla.org/xre/app-info;1"]
-                         .getService(Ci.nsIXULRuntime);
+        var xulRuntime = Components.classes["@mozilla.org/xre/app-info;1"]
+                         .getService(Components.interfaces.nsIXULRuntime);
         this.mPlatform = xulRuntime.OS.toLowerCase();
 
         LOG("mPlatform is: " + this.mPlatform);
@@ -286,29 +286,29 @@ var gDataMigrator = {
 
             // We can't use our normal helper-functions, because those might
             // conflict too.
-            var sbs = Cc["@mozilla.org/intl/stringbundle;1"]
-                      .getService(Ci.nsIStringBundleService);
+            var sbs = Components.classes["@mozilla.org/intl/stringbundle;1"]
+                      .getService(Components.interfaces.nsIStringBundleService);
             var props = sbs.createBundle("chrome://calendar/locale/migration.properties");
             var brand = sbs.createBundle("chrome://branding/locale/brand.properties");
             var appName = brand.GetStringFromName("brandShortName");
             // Tell the user we're going to disable and restart
-            var promptService = Cc["@mozilla.org/embedcomp/prompt-service;1"]
-                                .getService(Ci.nsIPromptService); 
+            var promptService = Components.classes["@mozilla.org/embedcomp/prompt-service;1"]
+                                .getService(Components.interfaces.nsIPromptService); 
             promptService.alert(window,
                                 props.GetStringFromName("disableExtTitle"),
                                 props.formatStringFromName("disableExtText",
                                                            [brand],1));
 
             // Kiiillllll...
-            var em = Cc["@mozilla.org/extensions/manager;1"]
-                     .getService(Ci.nsIExtensionManager);
+            var em = Components.classes["@mozilla.org/extensions/manager;1"]
+                     .getService(Components.interfaces.nsIExtensionManager);
             em.disableItem("{8e117890-a33f-424b-a2ea-deb272731365}");
             promptService.alert(window, getString("disableDoneTitle"),
                                 getString("disableExtDone"));
-            var startup = Cc["@mozilla.org/toolkit/app-startup;1"]
-                          .getService(Ci.nsIAppStartup);
-            startup.quit(Ci.nsIAppStartup.eRestart | 
-                         Ci.nsIAppStartup.eAttemptQuit);
+            var startup = Components.classes["@mozilla.org/toolkit/app-startup;1"]
+                          .getService(Components.interfaces.nsIAppStartup);
+            startup.quit(Components.interfaces.nsIAppStartup.eRestart | 
+                         Components.interfaces.nsIAppStartup.eAttemptQuit);
         }
 
         // This is the function that the migration wizard will call to actually
@@ -326,8 +326,8 @@ var gDataMigrator = {
             // Let this be a lesson to anyone designing APIs. The RDF API is so
             // impossibly confusing that it's actually simpler/cleaner/shorter
             // to simply parse as XML and use the better DOM APIs.
-            var req = Cc["@mozilla.org/xmlextras/xmlhttprequest;1"]
-                      .createInstance(Ci.nsIXMLHttpRequest);
+            var req = Components.classes["@mozilla.org/xmlextras/xmlhttprequest;1"]
+                      .createInstance(Components.interfaces.nsIXMLHttpRequest);
             req.open('GET', "file://" + dataSource.path, true);
             req.onreadystatechange = function calext_onreadychange() {
                 if (req.readyState == 4) {
@@ -362,8 +362,8 @@ var gDataMigrator = {
                 var node = nodes[i];
                 if (getRDFAttr(node, "remote") == "false") {
                     LOG("not remote");
-                    var localFile = Cc["@mozilla.org/file/local;1"]
-                                    .createInstance(Ci.nsILocalFile);
+                    var localFile = Components.classes["@mozilla.org/file/local;1"]
+                                    .createInstance(Components.interfaces.nsILocalFile);
                     localFile.initWithPath(getRDFAttr(node, "path"));
                     cal = gDataMigrator.importICSToStorage(localFile);
                 } else {
@@ -384,7 +384,7 @@ var gDataMigrator = {
 
         // Look in our current profile directory, in case we're upgrading in
         // place
-        var profileDir = this.dirService.get("ProfD", Ci.nsILocalFile);
+        var profileDir = this.dirService.get("ProfD", Components.interfaces.nsILocalFile);
         profileDir.append("Calendar");
         if (profileDir.exists()) {
             LOG("Found old extension directory in current app");
@@ -422,7 +422,7 @@ var gDataMigrator = {
         for each (var prof in profiles) {
             var dirEnum = prof.directoryEntries;
             while (dirEnum.hasMoreElements()) {
-                var profile = dirEnum.getNext().QueryInterface(Ci.nsIFile);
+                var profile = dirEnum.getNext().QueryInterface(Components.interfaces.nsIFile);
                 if (profile.isFile()) {
                     continue;
                 } else {
@@ -453,7 +453,7 @@ var gDataMigrator = {
 
             var i = 1;
             while(dirs.hasMoreElements()) {
-                var dataDir = dirs.getNext().QueryInterface(Ci.nsIFile);
+                var dataDir = dirs.getNext().QueryInterface(Components.interfaces.nsIFile);
                 var dataStore = dataDir.clone();
                 dataStore.append("corestorage.ics");
                 if (!dataStore.exists()) {
@@ -461,12 +461,12 @@ var gDataMigrator = {
                 }
 
                 var chars = [];
-                var fileStream = Cc["@mozilla.org/network/file-input-stream;1"]
-                                 .createInstance(Ci.nsIFileInputStream);
+                var fileStream = Components.classes["@mozilla.org/network/file-input-stream;1"]
+                                 .createInstance(Components.interfaces.nsIFileInputStream);
 
                 fileStream.init(dataStore, 0x01, 0444, {});
-                var convStream = Cc["@mozilla.org/intl/converter-input-stream;1"]
-                                 .getService(Ci.nsIConverterInputStream);
+                var convStream = Components.classes["@mozilla.org/intl/converter-input-stream;1"]
+                                 .getService(Components.interfaces.nsIConverterInputStream);
                                  convStream.init(fileStream, 'UTF-8', 0, 0x0000);
                 var tmpStr = {};
                 var str = "";
@@ -487,16 +487,16 @@ var gDataMigrator = {
                     str = str.replace(sub, "", "g");
                     index = str.indexOf(";TZID=");
                 }
-                var tempFile = gDataMigrator.dirService.get("TmpD", Ci.nsIFile);
+                var tempFile = gDataMigrator.dirService.get("TmpD", Components.interfaces.nsIFile);
                 tempFile.append("icalTemp.ics");
-                tempFile.createUnique(Ci.nsIFile.NORMAL_FILE_TYPE, 0600);
+                tempFile.createUnique(Components.interfaces.nsIFile.NORMAL_FILE_TYPE, 0600);
                 var tempUri = gDataMigrator.ioService.newFileURI(tempFile); 
 
-                var stream = Cc["@mozilla.org/network/file-output-stream;1"]
-                             .createInstance(Ci.nsIFileOutputStream);
+                var stream = Components.classes["@mozilla.org/network/file-output-stream;1"]
+                             .createInstance(Components.interfaces.nsIFileOutputStream);
                 stream.init(tempFile, 0x2A, 0600, 0);
-                var convStream = Cc["@mozilla.org/intl/converter-output-stream;1"]
-                                .getService(Ci.nsIConverterOutputStream);
+                var convStream = Components.classes["@mozilla.org/intl/converter-output-stream;1"]
+                                .getService(Components.interfaces.nsIConverterOutputStream);
                 convStream.init(stream, 'UTF-8', 0, 0x0000);
                 convStream.writeString(str);
 
@@ -507,7 +507,7 @@ var gDataMigrator = {
             LOG("icalMig making callback");
             aCallback();
         }
-        var profileDir = this.dirService.get("ProfD", Ci.nsILocalFile);
+        var profileDir = this.dirService.get("ProfD", Components.interfaces.nsILocalFile);
         var icalSpec = profileDir.path;
         var icalFile;
         if (!this.isLightning()) {
@@ -516,8 +516,8 @@ var gDataMigrator = {
                 return [];
             }
             icalSpec = icalSpec.substr(0, diverge);
-            icalFile = Cc["@mozilla.org/file/local;1"]
-                       .createInstance(Ci.nsILocalFile);
+            icalFile = Components.classes["@mozilla.org/file/local;1"]
+                       .createInstance(Components.interfaces.nsILocalFile);
             icalFile.initWithPath(icalSpec);
         } else {
             var diverge = icalSpec.indexOf("Thunderbird");
@@ -525,8 +525,8 @@ var gDataMigrator = {
                 return [];
             }
             icalSpec = icalSpec.substr(0, diverge);
-            icalFile = Cc["@mozilla.org/file/local;1"]
-                       .createInstance(Ci.nsILocalFile);
+            icalFile = Components.classes["@mozilla.org/file/local;1"]
+                       .createInstance(Components.interfaces.nsILocalFile);
             icalFile.initWithPath(icalSpec);
             icalFile.append("Application Support");
         }
@@ -553,7 +553,7 @@ var gDataMigrator = {
 
             var i = 1;
             while(dirs.hasMoreElements()) {
-                var dataDir = dirs.getNext().QueryInterface(Ci.nsIFile);
+                var dataDir = dirs.getNext().QueryInterface(Components.interfaces.nsIFile);
                 var dataStore = dataDir.clone();
                 dataStore.append("calendar.ics");
                 if (!dataStore.exists()) {
@@ -568,7 +568,7 @@ var gDataMigrator = {
             aCallback();
         }
 
-        var profileDir = this.dirService.get("ProfD", Ci.nsILocalFile);
+        var profileDir = this.dirService.get("ProfD", Components.interfaces.nsILocalFile);
         var evoSpec = profileDir.path;
         var evoFile;
         if (!this.mIsLightning) {
@@ -577,8 +577,8 @@ var gDataMigrator = {
                 return [];
             }
             evoSpec = evoSpec.substr(0, diverge);
-            evoFile = Cc["@mozilla.org/file/local;1"]
-                       .createInstance(Ci.nsILocalFile);
+            evoFile = Components.classes["@mozilla.org/file/local;1"]
+                       .createInstance(Components.interfaces.nsILocalFile);
             evoFile.initWithPath(evoSpec);
         } else {
             var diverge = evoSpec.indexOf(".thunderbird");
@@ -586,8 +586,8 @@ var gDataMigrator = {
                 return [];
             }
             evoSpec = evoSpec.substr(0, diverge);
-            evoFile = Cc["@mozilla.org/file/local;1"]
-                       .createInstance(Ci.nsILocalFile);
+            evoFile = Components.classes["@mozilla.org/file/local;1"]
+                       .createInstance(Components.interfaces.nsILocalFile);
             evoFile.initWithPath(evoSpec);
         }
         evoFile.append(".evolution");
@@ -613,11 +613,11 @@ var gDataMigrator = {
         }
 
         var cal = calManager.createCalendar("storage", makeURL(uri+i));
-        var icsImporter = Cc["@mozilla.org/calendar/import;1?type=ics"]
-                          .getService(Ci.calIImporter);
+        var icsImporter = Components.classes["@mozilla.org/calendar/import;1?type=ics"]
+                          .getService(Components.interfaces.calIImporter);
 
-        var inputStream = Cc["@mozilla.org/network/file-input-stream;1"]
-                          .createInstance(Ci.nsIFileInputStream);
+        var inputStream = Components.classes["@mozilla.org/network/file-input-stream;1"]
+                          .createInstance(Components.interfaces.nsIFileInputStream);
         inputStream.init(icsFile, MODE_RDONLY, 0444, {} );
         var items = icsImporter.importFromStream(inputStream, {});
         // Defined in import-export.js
@@ -656,7 +656,7 @@ var gDataMigrator = {
 
     getThunderbirdProfile: function gdm_getTB() {
         var localFile;
-        var profileRoot = this.dirService.get("DefProfRt", Ci.nsILocalFile);
+        var profileRoot = this.dirService.get("DefProfRt", Components.interfaces.nsILocalFile);
         LOG("profileRoot = " + profileRoot.path);
         if (this.mIsLightning) {
             localFile = profileRoot;
@@ -684,7 +684,7 @@ var gDataMigrator = {
 
     getNormalProfile: function gdm_getNorm(aAppName) {
         var localFile;
-        var profileRoot = this.dirService.get("DefProfRt", Ci.nsILocalFile);
+        var profileRoot = this.dirService.get("DefProfRt", Components.interfaces.nsILocalFile);
         LOG("profileRoot = " + profileRoot.path);
 
         if (this.isLightning()) {  // We're in Thunderbird
@@ -732,8 +732,8 @@ function LOG(aString) {
     if (!getPrefSafe("calendar.migration.log", false)) {
         return;
     }
-    var consoleService = Cc["@mozilla.org/consoleservice;1"]
-                         .getService(Ci.nsIConsoleService);
+    var consoleService = Components.classes["@mozilla.org/consoleservice;1"]
+                         .getService(Components.interfaces.nsIConsoleService);
     consoleService.logStringMessage(aString);
     dump(aString+"\n");
 }

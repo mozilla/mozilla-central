@@ -107,8 +107,8 @@
                     if (!aDate) {
                         docTitle = aNameArray[2];
                     } else {
-                        var df = Cc["@mozilla.org/calendar/datetime-formatter;1"].
-                                 getService(Ci.calIDateTimeFormatter);
+                        var df = Components.classes["@mozilla.org/calendar/datetime-formatter;1"].
+                                 getService(Components.interfaces.calIDateTimeFormatter);
                         docTitle = df.formatDate(aDate);
                     }
                     document.title = docTitle + " - " + brand.GetStringFromName("brandShortName");

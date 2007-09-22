@@ -193,7 +193,7 @@ function commonUpdateRepeatDetails(recurrenceInfo, startDate, endDate, allDay) {
     if (rrules[0].length == 1) {
         var rule = rrules[0][0];
         // currently we don't allow for any BYxxx-rules.
-        if (rule instanceof Ci.calIRecurrenceRule &&
+        if (rule instanceof Components.interfaces.calIRecurrenceRule &&
             !checkRecurrenceRule(rule, ['BYSECOND',
                                         'BYMINUTE',
                                         //'BYDAY',
@@ -497,8 +497,8 @@ function commonUpdateRepeatDetails(recurrenceInfo, startDate, endDate, allDay) {
             var kDefaultTimezone = calendarDefaultTimezone();
 
             var dateFormatter =
-                Cc["@mozilla.org/calendar/datetime-formatter;1"]
-                .getService(Ci.calIDateTimeFormatter);
+                Components.classes["@mozilla.org/calendar/datetime-formatter;1"]
+                .getService(Components.interfaces.calIDateTimeFormatter);
 
             var detailsString;
             if (allDay) {
@@ -738,7 +738,7 @@ function loadReminder(item) {
 
     // try to match the reminder setting with the available popup items
     var origin = "1";
-    if (item.alarmRelated == Ci.calIItemBase.ALARM_RELATED_END) {
+    if (item.alarmRelated == Components.interfaces.calIItemBase.ALARM_RELATED_END) {
         origin = "-1";
     }
     var duration = item.alarmOffset.clone();
@@ -789,7 +789,7 @@ function loadReminder(item) {
         var customReminder =
             document.getElementById("reminder-custom-menuitem");
         var reminder = {};
-        if (item.alarmRelated == Ci.calIItemBase.ALARM_RELATED_START) {
+        if (item.alarmRelated == Components.interfaces.calIItemBase.ALARM_RELATED_START) {
             reminder.origin = "1";
         } else {
             reminder.origin = "-1";
@@ -846,8 +846,8 @@ function saveReminder(item) {
             reminder.origin = menuitem.getAttribute('origin');
         }
 
-        var duration = Cc["@mozilla.org/calendar/duration;1"]
-                       .createInstance(Ci.calIDuration);
+        var duration = Components.classes["@mozilla.org/calendar/duration;1"]
+                       .createInstance(Components.interfaces.calIDuration);
 
         duration[reminder.unit] = Number(reminder.length);
         if (reminder.relation != "END") {
@@ -857,9 +857,9 @@ function saveReminder(item) {
         item.alarmOffset = duration;
 
         if (Number(reminder.origin) >= 0) {
-            item.alarmRelated = Ci.calIItemBase.ALARM_RELATED_START;
+            item.alarmRelated = Components.interfaces.calIItemBase.ALARM_RELATED_START;
         } else {
-            item.alarmRelated = Ci.calIItemBase.ALARM_RELATED_END;
+            item.alarmRelated = Components.interfaces.calIItemBase.ALARM_RELATED_END;
         }
     }
 }

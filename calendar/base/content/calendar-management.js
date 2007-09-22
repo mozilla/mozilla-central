@@ -43,8 +43,8 @@ var gCompositeCalendar = null;
 function getCompositeCalendar() {
     if (!gCompositeCalendar) {
         gCompositeCalendar =
-            Cc["@mozilla.org/calendar/calendar;1?type=composite"]
-            .createInstance(Ci.calICompositeCalendar);
+            Components.classes["@mozilla.org/calendar/calendar;1?type=composite"]
+            .createInstance(Components.interfaces.calICompositeCalendar);
 
         gCompositeCalendar.prefPrefix = 'calendar-main';
     }
@@ -64,8 +64,8 @@ function promptDeleteCalendar(aCalendar) {
         return;
     }
 
-    var promptService = Cc["@mozilla.org/embedcomp/prompt-service;1"]
-                        .getService(Ci.nsIPromptService);
+    var promptService = Components.classes["@mozilla.org/embedcomp/prompt-service;1"]
+                        .getService(Components.interfaces.nsIPromptService);
     var ok = promptService.confirm(
         window,
         calGetString("calendar", "unsubscribeCalendarTitle"),
@@ -95,9 +95,9 @@ function loadCalendarManager() {
     var calMgr = getCalendarManager();
     var composite = getCompositeCalendar();
     var calendars = calMgr.getCalendars({});
-    var prefService = Cc["@mozilla.org/preferences-service;1"]
-                      .getService(Ci.nsIPrefService);
-    var branch = prefService.getBranch("").QueryInterface(Ci.nsIPrefBranch2);
+    var prefService = Components.classes["@mozilla.org/preferences-service;1"]
+                      .getService(Components.interfaces.nsIPrefService);
+    var branch = prefService.getBranch("").QueryInterface(Components.interfaces.nsIPrefBranch2);
 
     if (calendars.length == 0) {
         var url = makeURL("moz-profile-calendar://");
@@ -141,9 +141,9 @@ function loadCalendarManager() {
 function unloadCalendarManager() {
     var calMgr = getCalendarManager();
     var composite = getCompositeCalendar();
-    var prefService = Cc["@mozilla.org/preferences-service;1"]
-                      .getService(Ci.nsIPrefService);
-    var branch = prefService.getBranch("").QueryInterface(Ci.nsIPrefBranch2);
+    var prefService = Components.classes["@mozilla.org/preferences-service;1"]
+                      .getService(Components.interfaces.nsIPrefService);
+    var branch = prefService.getBranch("").QueryInterface(Components.interfaces.nsIPrefBranch2);
 
     branch.removeObserver("calendar.", calendarManagerObserver);
     composite.removeObserver(calendarManagerObserver);
@@ -161,8 +161,8 @@ function calendarListInitCategoryColors() {
         gCachedStyleSheet = getStyleSheet(cssUri);
     }
 
-    var prefService = Cc["@mozilla.org/preferences-service;1"]
-                      .getService(Ci.nsIPrefService);
+    var prefService = Components.classes["@mozilla.org/preferences-service;1"]
+                      .getService(Components.interfaces.nsIPrefService);
     var categoryPrefBranch = prefService.getBranch("calendar.category.color.");
     var categories = categoryPrefBranch.getChildList("", {});
 
@@ -392,7 +392,7 @@ var calendarListTreeView = {
      * Calendar Tree Events
      */
     onKeyPress: function cLTV_onKeyPress(event) {
-        const kKE = Ci.nsIDOMKeyEvent;
+        const kKE = Components.interfaces.nsIDOMKeyEvent;
         switch (event.keyCode || event.which) {
             case kKE.DOM_VK_DELETE:
                 promptDeleteCalendar(getSelectedCalendar());
@@ -491,12 +491,12 @@ var calendarManagerObserver = {
     mDefaultCalendarItem: null,
 
     QueryInterface: function cMO_QueryInterface(aIID) {
-        if (!aIID.equals(Ci.calICalendarManagerObserver) &&
-            !aIID.equals(Ci.calICompositeObserver) &&
-            !aIID.equals(Ci.calIObserver) &&
-            !aIID.equals(Ci.nsIObserver) &&
-            !aIID.equals(Ci.nsISupports)) {
-            throw Cr.NS_ERROR_NO_INTERFACE;
+        if (!aIID.equals(Components.interfaces.calICalendarManagerObserver) &&
+            !aIID.equals(Components.interfaces.calICompositeObserver) &&
+            !aIID.equals(Components.interfaces.calIObserver) &&
+            !aIID.equals(Components.interfaces.nsIObserver) &&
+            !aIID.equals(Components.interfaces.nsISupports)) {
+            throw Components.results.NS_ERROR_NO_INTERFACE;
         }
         return this;
     },
@@ -642,7 +642,7 @@ var calendarManagerObserver = {
                 toDoUnifinderRefresh();
                 break;
             case "calendar.timezone.local":
-                var subject = aSubject.QueryInterface(Ci.nsIPrefBranch2);
+                var subject = aSubject.QueryInterface(Components.interfaces.nsIPrefBranch2);
                 gDefaultTimezone = subject.getCharPref(aPrefName);
 
                 var view = currentView();

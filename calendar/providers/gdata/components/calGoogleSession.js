@@ -64,9 +64,9 @@ function calGoogleSession(aUsername) {
 calGoogleSession.prototype = {
 
     QueryInterface: function cGS_QueryInterface(aIID) {
-        if (!aIID.equals(Ci.nsIInterfaceRequestor) &&
-            !aIID.equals(Ci.nsISupports)) {
-            throw Cr.NS_ERROR_NO_INTERFACE;
+        if (!aIID.equals(Components.interfaces.nsIInterfaceRequestor) &&
+            !aIID.equals(Components.interfaces.nsISupports)) {
+            throw Components.results.NS_ERROR_NO_INTERFACE;
         }
         return this;
     },
@@ -264,7 +264,7 @@ calGoogleSession.prototype = {
                     // that belong to that calendar and are in the queue. This
                     // will also include the request that initiated the login
                     // request, so that dosent need to be handled extra.
-                    this.failQueue(Cr.NS_ERROR_NOT_AVAILABLE,
+                    this.failQueue(Components.results.NS_ERROR_NOT_AVAILABLE,
                                    aRequest.calendar);
 
                     // Unset the session in the requesting calendar, if the user
@@ -285,8 +285,8 @@ calGoogleSession.prototype = {
             this.mLoggingIn = true;
 
             // Get Version info
-            var appInfo = Cc["@mozilla.org/xre/app-info;1"].
-                          getService(Ci.nsIXULAppInfo);
+            var appInfo = Components.classes["@mozilla.org/xre/app-info;1"].
+                          getService(Components.interfaces.nsIXULAppInfo);
             var source = appInfo.vendor + "-" +
                          appInfo.name + "-" +
                          appInfo.version;
@@ -339,7 +339,7 @@ calGoogleSession.prototype = {
         // logins to Google. Hence mLoggingIn is set three times in the course
         // of this function
 
-        if (!aResult || aStatus != Cr.NS_OK) {
+        if (!aResult || aStatus != Components.results.NS_OK) {
             this.mLoggingIn = false;
             LOG("Login failed. Status: " + aStatus);
 
