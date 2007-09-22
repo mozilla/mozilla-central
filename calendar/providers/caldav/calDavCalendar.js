@@ -1235,6 +1235,18 @@ calDavCalendar.prototype = {
             typeQueryXml[0].C::filter.C::["comp-filter"]
                            .C::["comp-filter"] =
                            <comp-filter name={queryFilters[queryFilter]}/>;
+            //see http://tools.ietf.org/html/rfc4791#section-7.8.9
+            if(queryFilters[queryFilter] == "VTODO" ){
+                if((aItemFilter &  calICalendar.ITEM_FILTER_COMPLETED_YES) != 1 ) {
+                    var filter_todo = 
+                        <prop-filter name="COMPLETED">
+                            <is-not-defined/>
+                        </prop-filter>;
+                    // append the prop-filter as a child of our innermost comp-filter
+                    typeQueryXml[0].C::filter.C::["comp-filter"]
+                        .C::["comp-filter"].appendChild(filter_todo);
+                }
+             } 
 
             // append the time-range as a child of our innermost comp-filter
             if (hasRange) {
