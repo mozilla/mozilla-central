@@ -212,7 +212,9 @@ function getCellText(row, column)
         }
     }
     else {
-        if (!(event instanceof Synthetic)) {
+        if (event instanceof Synthetic) {
+            return "";
+        } else {
             var start = event.startDate || event.dueDate || event.entryDate;
             start = start.getInTimezone(calendarDefaultTimezone());
             if (start.compare(this.tomorrow.end) == -1) {

@@ -65,7 +65,7 @@ function getMailBar() {
  * but for now we'll keep it here. This function overrides the toMessengerWindow
  * function in /mail/base/content/mailCore.js.
  */
-toMessengerWindow = function ltnToMessengerWindow() {
+var toMessengerWindow = function ltnToMessengerWindow() {
     var wm = Components.classes['@mozilla.org/appshell/window-mediator;1']
              .getService(Components.interfaces.nsIWindowMediator);
 

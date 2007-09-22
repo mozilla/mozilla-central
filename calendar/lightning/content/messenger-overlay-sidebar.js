@@ -664,8 +664,8 @@ function toggleTasksInView() {
     currentView().goToDay(currentView().selectedDay);
 }
 
-gSelectFolder = SelectFolder;
-gSelectMessage = SelectMessage;
+var gSelectFolder = SelectFolder;
+var gSelectMessage = SelectMessage;
 
 SelectFolder = function(folderUri) {
     document.getElementById("switch2mail").doCommand();
