@@ -78,7 +78,7 @@ nsMsgFilterService::~nsMsgFilterService()
 
 NS_IMETHODIMP nsMsgFilterService::OpenFilterList(nsILocalFile *aFilterFile, nsIMsgFolder *rootFolder, nsIMsgWindow *aMsgWindow, nsIMsgFilterList **resultFilterList)
 {
-	nsresult rv = NS_OK;
+  nsresult rv = NS_OK;
         PRBool exists;
         aFilterFile->Exists(&exists);
         if (!exists)
@@ -87,17 +87,17 @@ NS_IMETHODIMP nsMsgFilterService::OpenFilterList(nsILocalFile *aFilterFile, nsIM
           NS_ENSURE_SUCCESS(rv, rv);
         }
 
-	nsCOMPtr <nsIInputStream> fileStream;
+  nsCOMPtr <nsIInputStream> fileStream;
         rv = NS_NewLocalFileInputStream(getter_AddRefs(fileStream), aFilterFile);
         NS_ENSURE_SUCCESS(rv, rv);
 
-	if (!fileStream)
-		return NS_ERROR_OUT_OF_MEMORY;
+  if (!fileStream)
+    return NS_ERROR_OUT_OF_MEMORY;
 
-	nsMsgFilterList *filterList = new nsMsgFilterList();
-	if (!filterList)
-		return NS_ERROR_OUT_OF_MEMORY;
-	NS_ADDREF(filterList);
+  nsMsgFilterList *filterList = new nsMsgFilterList();
+  if (!filterList)
+    return NS_ERROR_OUT_OF_MEMORY;
+  NS_ADDREF(filterList);
     filterList->SetFolder(rootFolder);
 
     // temporarily tell the filter where it's file path is
@@ -105,13 +105,13 @@ NS_IMETHODIMP nsMsgFilterService::OpenFilterList(nsILocalFile *aFilterFile, nsIM
 
     PRInt64 size;
     rv = aFilterFile->GetFileSize(&size);
-	if (NS_SUCCEEDED(rv) && size > 0)
-		rv = filterList->LoadTextFilters(fileStream);
+  if (NS_SUCCEEDED(rv) && size > 0)
+    rv = filterList->LoadTextFilters(fileStream);
   fileStream->Close();
   fileStream =nsnull;
-	if (NS_SUCCEEDED(rv))
+  if (NS_SUCCEEDED(rv))
   {
-		*resultFilterList = filterList;
+    *resultFilterList = filterList;
         PRInt16 version;
         filterList->GetVersion(&version);
     if (version != kFileVersion)
@@ -120,7 +120,7 @@ NS_IMETHODIMP nsMsgFilterService::OpenFilterList(nsILocalFile *aFilterFile, nsIM
       SaveFilterList(filterList, aFilterFile);
     }
   }
-	else
+  else
   {
     NS_RELEASE(filterList);
     if (rv == NS_MSG_FILTER_PARSE_ERROR && aMsgWindow)
@@ -136,17 +136,17 @@ NS_IMETHODIMP nsMsgFilterService::OpenFilterList(nsILocalFile *aFilterFile, nsIM
     else if(rv == NS_MSG_INVALID_CUSTOM_HEADER && aMsgWindow)
       ThrowAlertMsg("invalidCustomHeader", aMsgWindow);
   }
-	return rv;
+  return rv;
 }
 
 NS_IMETHODIMP nsMsgFilterService::CloseFilterList(nsIMsgFilterList *filterList)
 {
-	//NS_ASSERTION(PR_FALSE,"CloseFilterList doesn't do anything yet");
-	return NS_OK;
+  //NS_ASSERTION(PR_FALSE,"CloseFilterList doesn't do anything yet");
+  return NS_OK;
 }
 
 /* save without deleting */
-NS_IMETHODIMP	nsMsgFilterService::SaveFilterList(nsIMsgFilterList *filterList, nsILocalFile *filterFile)
+NS_IMETHODIMP  nsMsgFilterService::SaveFilterList(nsIMsgFilterList *filterList, nsILocalFile *filterFile)
 {
   NS_ENSURE_ARG_POINTER(filterFile);
   NS_ENSURE_ARG_POINTER(filterList);

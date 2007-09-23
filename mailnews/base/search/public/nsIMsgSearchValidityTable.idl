@@ -42,14 +42,14 @@ interface nsISupportsArray;
 
 [scriptable, uuid(b07f1cb6-fae9-4d92-9edb-03f9ad249c66)]
 interface nsIMsgSearchValidityTable : nsISupports {
-    
+
     void setAvailable(in nsMsgSearchAttribValue attrib,
                       in nsMsgSearchOpValue op, in boolean active);
     void setEnabled(in nsMsgSearchAttribValue attrib,
                     in nsMsgSearchOpValue op, in boolean enabled);
     void setValidButNotShown(in nsMsgSearchAttribValue attrib,
                              in nsMsgSearchOpValue op, in boolean valid);
-    
+
     boolean getAvailable(in nsMsgSearchAttribValue attrib,
                          in nsMsgSearchOpValue op);
     boolean getEnabled(in nsMsgSearchAttribValue attrib,
@@ -70,5 +70,5 @@ interface nsIMsgSearchValidityTable : nsISupports {
                                [retval, array, size_is(length)]
                                out nsMsgSearchOpValue operators);
 
-	void setDefaultAttrib(in nsMsgSearchAttribValue defaultAttrib);
+  void setDefaultAttrib(in nsMsgSearchAttribValue defaultAttrib);
 };

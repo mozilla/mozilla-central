@@ -84,11 +84,11 @@ nsMsgSearchBoolExpression * nsMsgSearchBoolExpression::AddExpressionTree(nsMsgSe
       return aExpression;
   }
 
-  nsMsgSearchBoolExpression * newExpr = new nsMsgSearchBoolExpression (aOrigExpr, aExpression, aBoolOp);  
+  nsMsgSearchBoolExpression * newExpr = new nsMsgSearchBoolExpression (aOrigExpr, aExpression, aBoolOp);
   return (newExpr) ? newExpr : aOrigExpr;
 }
 
-nsMsgSearchBoolExpression::nsMsgSearchBoolExpression() 
+nsMsgSearchBoolExpression::nsMsgSearchBoolExpression()
 {
     m_term = nsnull;
     m_boolOp = nsMsgSearchBooleanOp::BooleanAND;
@@ -96,8 +96,8 @@ nsMsgSearchBoolExpression::nsMsgSearchBoolExpression()
     m_rightChild = nsnull;
 }
 
-nsMsgSearchBoolExpression::nsMsgSearchBoolExpression (nsIMsgSearchTerm * newTerm, char * encodingStr) 
-// we are creating an expression which contains a single search term (newTerm) 
+nsMsgSearchBoolExpression::nsMsgSearchBoolExpression (nsIMsgSearchTerm * newTerm, char * encodingStr)
+// we are creating an expression which contains a single search term (newTerm)
 // and the search term's IMAP or NNTP encoding value for online search expressions AND
 // a boolean evaluation value which is used for offline search expressions.
 {
@@ -145,7 +145,7 @@ nsMsgSearchBoolExpression::leftToRightAddTerm(nsIMsgSearchTerm * newTerm, char *
     {
       PRBool booleanAnd;
       newTerm->GetBooleanAnd(&booleanAnd);
-      nsMsgSearchBoolExpression * newExpr = new nsMsgSearchBoolExpression (this, tempExpr, booleanAnd);  
+      nsMsgSearchBoolExpression * newExpr = new nsMsgSearchBoolExpression (this, tempExpr, booleanAnd);
       if (newExpr)
          return newExpr;
       else
@@ -155,7 +155,7 @@ nsMsgSearchBoolExpression::leftToRightAddTerm(nsIMsgSearchTerm * newTerm, char *
 }
 
 
-// returns PR_TRUE or PR_FALSE depending on what the current expression evaluates to. 
+// returns PR_TRUE or PR_FALSE depending on what the current expression evaluates to.
 PRBool nsMsgSearchBoolExpression::OfflineEvaluate(nsIMsgDBHdr *msgToMatch, const char *defaultCharset,
   nsIMsgSearchScopeTerm *scope, nsIMsgDatabase *db, const char *headers,
   PRUint32 headerSize, PRBool Filtering)
@@ -169,7 +169,7 @@ PRBool nsMsgSearchBoolExpression::OfflineEvaluate(nsIMsgDBHdr *msgToMatch, const
         defaultCharset, scope, db, headers, headerSize, Filtering, &result);
       return result;
     }
-    
+
     // otherwise we must recursively determine the value of our sub expressions
 
     isAnd = (m_boolOp == nsMsgSearchBooleanOp::BooleanAND);
@@ -200,10 +200,10 @@ const int sizeOfORTerm = 6+1;  // 6 bytes if we are combining two sub expression
 const int sizeOfANDTerm = 1+1; // 1 byte if we are combining two sub expressions with an AND term
 
 PRInt32 nsMsgSearchBoolExpression::CalcEncodeStrSize()
-// recursively examine each sub expression and calculate a final size for the entire IMAP/NNTP encoding 
+// recursively examine each sub expression and calculate a final size for the entire IMAP/NNTP encoding
 {
     if (!m_term && (!m_leftChild || !m_rightChild))   // is the expression empty?
-        return 0;    
+        return 0;
     if (m_term)  // are we a leaf node?
         return m_encodingStr.Length();
     if (m_boolOp == nsMsgSearchBooleanOp::BooleanOR)
@@ -215,25 +215,25 @@ PRInt32 nsMsgSearchBoolExpression::CalcEncodeStrSize()
 
 
 void nsMsgSearchBoolExpression::GenerateEncodeStr(nsCString * buffer)
-// recurively combine sub expressions to form a single IMAP/NNTP encoded string 
+// recurively combine sub expressions to form a single IMAP/NNTP encoded string
 {
     if ((!m_term && (!m_leftChild || !m_rightChild))) // is expression empty?
         return;
-    
+
     if (m_term) // are we a leaf expression?
     {
         *buffer += m_encodingStr;
         return;
     }
-    
+
     // add encode strings of each sub expression
-    if (m_boolOp == nsMsgSearchBooleanOp::BooleanOR) 
+    if (m_boolOp == nsMsgSearchBooleanOp::BooleanOR)
     {
         *buffer += " (OR";
 
         m_leftChild->GenerateEncodeStr(buffer);  // insert left expression into the buffer
         m_rightChild->GenerateEncodeStr(buffer);  // insert right expression into the buffer
-        
+
         // HACK ALERT!!! if last returned character in the buffer is now a ' ' then we need to remove it because we don't want
         // a ' ' to preceded the closing paren in the OR encoding.
         PRUint32 lastCharPos = buffer->Length() - 1;
@@ -241,7 +241,7 @@ void nsMsgSearchBoolExpression::GenerateEncodeStr(nsCString * buffer)
         {
             buffer->Truncate(lastCharPos);
         }
-        
+
         *buffer += ')';
     }
     else if (m_boolOp == nsMsgSearchBooleanOp::BooleanAND)
@@ -266,7 +266,7 @@ nsMsgSearchOfflineMail::nsMsgSearchOfflineMail (nsIMsgSearchScopeTerm *scope, ns
 
 nsMsgSearchOfflineMail::~nsMsgSearchOfflineMail ()
 {
-  // Database should have been closed when the scope term finished. 
+  // Database should have been closed when the scope term finished.
   CleanUpScope();
   NS_ASSERTION(!m_db, "db not closed");
 }
@@ -339,7 +339,7 @@ nsMsgSearchOfflineMail::MatchTermsForFilter(nsIMsgDBHdr *msgToMatch,
                                             nsISupportsArray *termList,
                                             const char *defaultCharset,
                                             nsIMsgSearchScopeTerm * scope,
-                                            nsIMsgDatabase * db, 
+                                            nsIMsgDatabase * db,
                                             const char * headers,
                                             PRUint32 headerSize,
                                             nsMsgSearchBoolExpression ** aExpressionTree,
@@ -350,7 +350,7 @@ nsMsgSearchOfflineMail::MatchTermsForFilter(nsIMsgDBHdr *msgToMatch,
 
 // static method which matches a header against a list of search terms.
 nsresult
-nsMsgSearchOfflineMail::MatchTermsForSearch(nsIMsgDBHdr *msgToMatch, 
+nsMsgSearchOfflineMail::MatchTermsForSearch(nsIMsgDBHdr *msgToMatch,
                                             nsISupportsArray* termList,
                                             const char *defaultCharset,
                                             nsIMsgSearchScopeTerm *scope,
@@ -370,7 +370,7 @@ nsresult nsMsgSearchOfflineMail::ConstructExpressionTree(nsISupportsArray * term
   nsMsgSearchBoolExpression * finalExpression = *aExpressionTree;
 
   if (!finalExpression)
-    finalExpression = new nsMsgSearchBoolExpression(); 
+    finalExpression = new nsMsgSearchBoolExpression();
 
   while (aStartPosInList < termCount)
   {
@@ -386,11 +386,11 @@ nsresult nsMsgSearchOfflineMail::ConstructExpressionTree(nsISupportsArray * term
       if (beginsGrouping)
       {
           //temporarily turn off the grouping for our recursive call
-          pTerm->SetBeginsGrouping(PR_FALSE); 
-          nsMsgSearchBoolExpression * innerExpression = new nsMsgSearchBoolExpression(); 
+          pTerm->SetBeginsGrouping(PR_FALSE);
+          nsMsgSearchBoolExpression * innerExpression = new nsMsgSearchBoolExpression();
 
           // the first search term in the grouping is the one that holds the operator for how this search term
-          // should be joined with the expressions to it's left. 
+          // should be joined with the expressions to it's left.
           PRBool booleanAnd;
           pTerm->GetBooleanAnd(&booleanAnd);
 
@@ -398,11 +398,11 @@ nsresult nsMsgSearchOfflineMail::ConstructExpressionTree(nsISupportsArray * term
           finalExpression = nsMsgSearchBoolExpression::AddExpressionTree(finalExpression, innerExpression, booleanAnd);
 
           // recursively process this inner expression
-          ConstructExpressionTree(termList, termCount, aStartPosInList, 
+          ConstructExpressionTree(termList, termCount, aStartPosInList,
             &finalExpression->m_rightChild);
 
           // undo our damage
-          pTerm->SetBeginsGrouping(PR_TRUE); 
+          pTerm->SetBeginsGrouping(PR_TRUE);
 
       }
       else
@@ -418,18 +418,18 @@ nsresult nsMsgSearchOfflineMail::ConstructExpressionTree(nsISupportsArray * term
 
   *aExpressionTree = finalExpression;
 
-  return NS_OK; 
+  return NS_OK;
 }
 
 nsresult nsMsgSearchOfflineMail::ProcessSearchTerm(nsIMsgDBHdr *msgToMatch,
                                             nsIMsgSearchTerm * aTerm,
                                             const char *defaultCharset,
                                             nsIMsgSearchScopeTerm * scope,
-                                            nsIMsgDatabase * db, 
+                                            nsIMsgDatabase * db,
                                             const char * headers,
                                             PRUint32 headerSize,
                                             PRBool Filtering,
-											PRBool *pResult) 
+                      PRBool *pResult)
 {
     nsresult err = NS_OK;
     nsCString  recipients;
@@ -470,7 +470,7 @@ nsresult nsMsgSearchOfflineMail::ProcessSearchTerm(nsIMsgDBHdr *msgToMatch,
       {
         msgToMatch->GetSubject(getter_Copies(matchString) /* , PR_TRUE */);
         if (msgFlags & MSG_FLAG_HAS_RE)
-        { 
+        {
           // Make sure we pass along the "Re: " part of the subject if this is a reply.
           nsCString reString;
           reString.Assign("Re: ");
@@ -521,7 +521,7 @@ nsresult nsMsgSearchOfflineMail::ProcessSearchTerm(nsIMsgDBHdr *msgToMatch,
         msgToMatch->GetPriority(&msgPriority);
         err = aTerm->MatchPriority (msgPriority, &result);
         break;
-      }      
+      }
       case nsMsgSearchAttrib::Size:
       {
         PRUint32 messageSize;
@@ -550,7 +550,7 @@ nsresult nsMsgSearchOfflineMail::ProcessSearchTerm(nsIMsgDBHdr *msgToMatch,
          msgToMatch->GetLabel(&label);
          err = aTerm->MatchLabel(label, &result);
          break;
-      }    
+      }
       case nsMsgSearchAttrib::Keywords:
       {
           nsCString keywords;
@@ -572,7 +572,7 @@ nsresult nsMsgSearchOfflineMail::ProcessSearchTerm(nsIMsgDBHdr *msgToMatch,
          nsCString junkScoreStr;
          msgToMatch->GetStringProperty("junkscore", getter_Copies(junkScoreStr));
          err = aTerm->MatchJunkStatus(junkScoreStr.get(), &result);
-         break; 
+         break;
       }
       default:
           // XXX todo
@@ -605,19 +605,19 @@ nsresult nsMsgSearchOfflineMail::MatchTerms(nsIMsgDBHdr *msgToMatch,
                                             nsISupportsArray * termList,
                                             const char *defaultCharset,
                                             nsIMsgSearchScopeTerm * scope,
-                                            nsIMsgDatabase * db, 
+                                            nsIMsgDatabase * db,
                                             const char * headers,
                                             PRUint32 headerSize,
                                             PRBool Filtering,
                                             nsMsgSearchBoolExpression ** aExpressionTree,
-                                            PRBool *pResult) 
+                                            PRBool *pResult)
 {
   NS_ENSURE_ARG(aExpressionTree);
   nsresult err;
 
   if (!*aExpressionTree)
   {
-    PRUint32 initialPos = 0; 
+    PRUint32 initialPos = 0;
     PRUint32 count;
     termList->Count(&count);
     err = ConstructExpressionTree(termList, count, initialPos, aExpressionTree);
@@ -626,10 +626,10 @@ nsresult nsMsgSearchOfflineMail::MatchTerms(nsIMsgDBHdr *msgToMatch,
   }
 
   // evaluate the expression tree and return the result
-  *pResult = (*aExpressionTree) 
+  *pResult = (*aExpressionTree)
     ?  (*aExpressionTree)->OfflineEvaluate(msgToMatch,
                  defaultCharset, scope, db, headers, headerSize, Filtering)
-    :PR_TRUE;	// vacuously true...
+    :PR_TRUE;  // vacuously true...
 
   return NS_OK;
 }
@@ -638,12 +638,12 @@ nsresult nsMsgSearchOfflineMail::MatchTerms(nsIMsgDBHdr *msgToMatch,
 nsresult nsMsgSearchOfflineMail::Search (PRBool *aDone)
 {
   nsresult err = NS_OK;
-  
+
   NS_ENSURE_ARG(aDone);
   nsresult dbErr = NS_OK;
   nsCOMPtr<nsIMsgDBHdr> msgDBHdr;
   nsMsgSearchBoolExpression *expressionTree = nsnull;
-  
+
   const PRUint32 kTimeSliceInMS = 200;
 
   *aDone = PR_FALSE;
@@ -652,7 +652,7 @@ nsresult nsMsgSearchOfflineMail::Search (PRBool *aDone)
     err = OpenSummaryFile ();
   if (!m_db)  // must be reparsing.
     return err;
-  
+
   // Reparsing is unnecessary or completed
   if (NS_SUCCEEDED(err))
   {
@@ -664,13 +664,13 @@ nsresult nsMsgSearchOfflineMail::Search (PRBool *aDone)
       while (!*aDone)  // we'll break out of the loop after kTimeSliceInMS milliseconds
       {
         nsCOMPtr<nsISupports> currentItem;
-      
+
         dbErr = m_listContext->GetNext(getter_AddRefs(currentItem));
         if(NS_SUCCEEDED(dbErr))
         {
           msgDBHdr = do_QueryInterface(currentItem, &dbErr);
         }
-        if (NS_FAILED(dbErr))      
+        if (NS_FAILED(dbErr))
           *aDone = PR_TRUE; //###phil dbErr is dropped on the floor. just note that we did have an error so we'll clean up later
         else
         {
@@ -692,11 +692,11 @@ nsresult nsMsgSearchOfflineMail::Search (PRBool *aDone)
             break;
         }
       }
-    }    
+    }
   }
   else
     *aDone = PR_TRUE; // we couldn't open up the DB. This is an unrecoverable error so mark the scope as done.
-  
+
   delete expressionTree;
 
   // in the past an error here would cause an "infinite" search because the url would continue to run...
@@ -712,10 +712,10 @@ void nsMsgSearchOfflineMail::CleanUpScope()
   // Let go of the DB when we're done with it so we don't kill the db cache
   if (m_db)
   {
-    m_listContext = nsnull; 
+    m_listContext = nsnull;
     m_db->Close(PR_FALSE);
   }
-  
+
   m_db = nsnull;
   m_scope->SetInputStream(nsnull);
 }
@@ -796,7 +796,7 @@ nsresult nsMsgSearchValidityManager::InitLocalNewsTable()
 {
   NS_ASSERTION (nsnull == m_localNewsTable, "already have local news validty table");
   nsresult err = NewTable (getter_AddRefs(m_localNewsTable));
-  
+
   if (NS_SUCCEEDED(err))
   {
     m_localNewsTable->SetAvailable (nsMsgSearchAttrib::Sender, nsMsgSearchOp::Contains, 1);
@@ -807,7 +807,7 @@ nsresult nsMsgSearchValidityManager::InitLocalNewsTable()
     m_localNewsTable->SetEnabled   (nsMsgSearchAttrib::Sender, nsMsgSearchOp::BeginsWith, 1);
     m_localNewsTable->SetAvailable (nsMsgSearchAttrib::Sender, nsMsgSearchOp::EndsWith, 1);
     m_localNewsTable->SetEnabled   (nsMsgSearchAttrib::Sender, nsMsgSearchOp::EndsWith, 1);
-    
+
     m_localNewsTable->SetAvailable (nsMsgSearchAttrib::Subject, nsMsgSearchOp::Contains, 1);
     m_localNewsTable->SetEnabled   (nsMsgSearchAttrib::Subject, nsMsgSearchOp::Contains, 1);
     m_localNewsTable->SetAvailable (nsMsgSearchAttrib::Subject, nsMsgSearchOp::Is, 1);
@@ -816,7 +816,7 @@ nsresult nsMsgSearchValidityManager::InitLocalNewsTable()
     m_localNewsTable->SetEnabled   (nsMsgSearchAttrib::Subject, nsMsgSearchOp::BeginsWith, 1);
     m_localNewsTable->SetAvailable (nsMsgSearchAttrib::Subject, nsMsgSearchOp::EndsWith, 1);
     m_localNewsTable->SetEnabled   (nsMsgSearchAttrib::Subject, nsMsgSearchOp::EndsWith, 1);
-    
+
     m_localNewsTable->SetAvailable (nsMsgSearchAttrib::Body, nsMsgSearchOp::Contains, 1);
     m_localNewsTable->SetEnabled   (nsMsgSearchAttrib::Body, nsMsgSearchOp::Contains, 1);
     m_localNewsTable->SetAvailable (nsMsgSearchAttrib::Body, nsMsgSearchOp::DoesntContain, 1);
@@ -825,8 +825,8 @@ nsresult nsMsgSearchValidityManager::InitLocalNewsTable()
     m_localNewsTable->SetEnabled   (nsMsgSearchAttrib::Body, nsMsgSearchOp::Is, 1);
     m_localNewsTable->SetAvailable (nsMsgSearchAttrib::Body, nsMsgSearchOp::Isnt, 1);
     m_localNewsTable->SetEnabled   (nsMsgSearchAttrib::Body, nsMsgSearchOp::Isnt, 1);
-    
-    
+
+
     m_localNewsTable->SetEnabled   (nsMsgSearchAttrib::Date, nsMsgSearchOp::IsBefore, 1);
     m_localNewsTable->SetAvailable (nsMsgSearchAttrib::Date, nsMsgSearchOp::IsAfter, 1);
     m_localNewsTable->SetEnabled   (nsMsgSearchAttrib::Date, nsMsgSearchOp::IsAfter, 1);
@@ -834,19 +834,19 @@ nsresult nsMsgSearchValidityManager::InitLocalNewsTable()
     m_localNewsTable->SetEnabled   (nsMsgSearchAttrib::Date, nsMsgSearchOp::Is, 1);
     m_localNewsTable->SetAvailable (nsMsgSearchAttrib::Date, nsMsgSearchOp::Isnt, 1);
     m_localNewsTable->SetEnabled   (nsMsgSearchAttrib::Date, nsMsgSearchOp::Isnt, 1);
-    
+
     m_localNewsTable->SetAvailable (nsMsgSearchAttrib::AgeInDays, nsMsgSearchOp::IsGreaterThan, 1);
     m_localNewsTable->SetEnabled   (nsMsgSearchAttrib::AgeInDays, nsMsgSearchOp::IsGreaterThan, 1);
     m_localNewsTable->SetAvailable (nsMsgSearchAttrib::AgeInDays, nsMsgSearchOp::IsLessThan,  1);
     m_localNewsTable->SetEnabled   (nsMsgSearchAttrib::AgeInDays, nsMsgSearchOp::IsLessThan, 1);
     m_localNewsTable->SetAvailable (nsMsgSearchAttrib::AgeInDays, nsMsgSearchOp::Is,  1);
     m_localNewsTable->SetEnabled   (nsMsgSearchAttrib::AgeInDays, nsMsgSearchOp::Is, 1);
-    
+
     m_localNewsTable->SetAvailable (nsMsgSearchAttrib::MsgStatus, nsMsgSearchOp::Is, 1);
     m_localNewsTable->SetEnabled   (nsMsgSearchAttrib::MsgStatus, nsMsgSearchOp::Is, 1);
     m_localNewsTable->SetAvailable (nsMsgSearchAttrib::MsgStatus, nsMsgSearchOp::Isnt, 1);
     m_localNewsTable->SetEnabled   (nsMsgSearchAttrib::MsgStatus, nsMsgSearchOp::Isnt, 1);
-    
+
     m_localNewsTable->SetAvailable (nsMsgSearchAttrib::OtherHeader, nsMsgSearchOp::Contains, 1);
     m_localNewsTable->SetEnabled   (nsMsgSearchAttrib::OtherHeader, nsMsgSearchOp::Contains, 1);
     m_localNewsTable->SetAvailable (nsMsgSearchAttrib::OtherHeader, nsMsgSearchOp::Is, 1);
@@ -855,10 +855,10 @@ nsresult nsMsgSearchValidityManager::InitLocalNewsTable()
     m_localNewsTable->SetEnabled   (nsMsgSearchAttrib::OtherHeader, nsMsgSearchOp::BeginsWith, 1);
     m_localNewsTable->SetAvailable (nsMsgSearchAttrib::OtherHeader, nsMsgSearchOp::EndsWith, 1);
     m_localNewsTable->SetEnabled   (nsMsgSearchAttrib::OtherHeader, nsMsgSearchOp::EndsWith, 1);
-    
-    
+
+
   }
-  
+
   return err;
 }
 

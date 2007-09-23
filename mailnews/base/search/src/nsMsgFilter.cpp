@@ -39,7 +39,7 @@
  *
  * ***** END LICENSE BLOCK ***** */
 
-// this file implements the nsMsgFilter interface 
+// this file implements the nsMsgFilter interface
 
 #include "msgCore.h"
 #include "nsMsgBaseCID.h"
@@ -76,7 +76,7 @@ NS_IMPL_GETSET(nsMsgRuleAction, Type, nsMsgRuleActionType, m_type)
 
 NS_IMETHODIMP nsMsgRuleAction::SetPriority(nsMsgPriorityValue aPriority)
 {
-  NS_ENSURE_TRUE(m_type == nsMsgFilterAction::ChangePriority, 
+  NS_ENSURE_TRUE(m_type == nsMsgFilterAction::ChangePriority,
                 NS_ERROR_ILLEGAL_VALUE);
   m_priority = aPriority;
   return NS_OK;
@@ -92,7 +92,7 @@ nsMsgRuleAction::GetPriority(nsMsgPriorityValue *aResult)
   return NS_OK;
 }
 
-NS_IMETHODIMP 
+NS_IMETHODIMP
 nsMsgRuleAction::SetLabel(nsMsgLabelValue aLabel)
 {
   NS_ENSURE_TRUE(m_type == nsMsgFilterAction::Label,
@@ -130,7 +130,7 @@ nsMsgRuleAction::GetTargetFolderUri(nsACString &aResult)
   return NS_OK;
 }
 
-NS_IMETHODIMP 
+NS_IMETHODIMP
 nsMsgRuleAction::SetJunkScore(PRInt32 aJunkScore)
 {
   NS_ENSURE_TRUE(m_type == nsMsgFilterAction::JunkScore && aJunkScore >= 0 && aJunkScore <= 100,
@@ -222,11 +222,11 @@ NS_IMETHODIMP nsMsgFilter::SetUnparsedBuffer(const nsACString &unparsedBuffer)
   return NS_OK;
 }
 
-NS_IMETHODIMP nsMsgFilter::AddTerm(     
+NS_IMETHODIMP nsMsgFilter::AddTerm(
                                    nsMsgSearchAttribValue attrib,    /* attribute for this term          */
                                    nsMsgSearchOpValue op,         /* operator e.g. opContains           */
                                    nsIMsgSearchValue *value,        /* value e.g. "Dogbert"               */
-                                  PRBool BooleanAND, 	    /* PR_TRUE if AND is the boolean operator.
+                                  PRBool BooleanAND,       /* PR_TRUE if AND is the boolean operator.
                                                             PR_FALSE if OR is the boolean operators */
                                   const nsACString & arbitraryHeader)  /* arbitrary header specified by user.
                                   ignored unless attrib = attribOtherHeader */
@@ -283,7 +283,7 @@ nsMsgFilter::CreateAction(nsIMsgRuleAction **aAction)
 //  n+1..m    CopyToFolder
 //    m+1     MoveToFolder or Delete
 //    m+2     StopExecution
-NS_IMETHODIMP 
+NS_IMETHODIMP
 nsMsgFilter::GetSortedActionList(nsISupportsArray *actionList)
 {
   NS_ENSURE_ARG_POINTER(actionList);
@@ -299,7 +299,7 @@ nsMsgFilter::GetSortedActionList(nsISupportsArray *actionList)
     rv = m_actionList->QueryElementAt(index, NS_GET_IID(nsIMsgRuleAction), (void **)getter_AddRefs(action));
     if (!action)
       continue;
- 
+
     nsMsgRuleActionType actionType;
     action->GetType(&actionType);
     switch (actionType)
@@ -368,7 +368,7 @@ NS_IMETHODIMP
 nsMsgFilter::GetActionAt(PRInt32 aIndex, nsIMsgRuleAction **aAction)
 {
   NS_ENSURE_ARG_POINTER(aAction);
-  return m_actionList->QueryElementAt(aIndex, NS_GET_IID(nsIMsgRuleAction), 
+  return m_actionList->QueryElementAt(aIndex, NS_GET_IID(nsIMsgRuleAction),
                                        (void **) aAction);
 }
 
@@ -385,7 +385,7 @@ nsMsgFilter::ClearActionList()
   return m_actionList->Clear();
 }
 
-NS_IMETHODIMP nsMsgFilter::GetTerm(PRInt32 termIndex, 
+NS_IMETHODIMP nsMsgFilter::GetTerm(PRInt32 termIndex,
                                    nsMsgSearchAttribValue *attrib,    /* attribute for this term          */
                                    nsMsgSearchOpValue *op,         /* operator e.g. opContains           */
                                    nsIMsgSearchValue **value,         /* value e.g. "Dogbert"               */
@@ -406,7 +406,7 @@ NS_IMETHODIMP nsMsgFilter::GetTerm(PRInt32 termIndex,
       term->GetValue(value);
     if(booleanAnd)
       term->GetBooleanAnd(booleanAnd);
-    if (attrib && *attrib > nsMsgSearchAttrib::OtherHeader 
+    if (attrib && *attrib > nsMsgSearchAttrib::OtherHeader
         && *attrib < nsMsgSearchAttrib::kNumMsgSearchAttributes)
       term->GetArbitraryHeader(arbitraryHeader);
   }
@@ -455,10 +455,10 @@ NS_IMETHODIMP nsMsgFilter::LogRuleHit(nsIMsgRuleAction *aFilterAction, nsIMsgDBH
     nsCOMPtr <nsIOutputStream> logStream;
     nsresult rv = m_filterList->GetLogStream(getter_AddRefs(logStream));
     NS_ENSURE_SUCCESS(rv,rv);
-  
+
     PRTime date;
     nsMsgRuleActionType actionType;
-    
+
     nsString authorValue;
     nsString subjectValue;
     nsString filterName;
@@ -480,26 +480,26 @@ NS_IMETHODIMP nsMsgFilter::LogRuleHit(nsIMsgRuleAction *aFilterAction, nsIMsgDBH
       }
     }
     mDateFormatter->FormatPRExplodedTime(nsnull, kDateFormatShort,
-                                         kTimeFormatSeconds, &exploded, 
+                                         kTimeFormatSeconds, &exploded,
                                          dateValue);
-  
+
     (void)aMsgHdr->GetMime2DecodedAuthor(getter_Copies(authorValue));
     (void)aMsgHdr->GetMime2DecodedSubject(getter_Copies(subjectValue));
 
     nsCString buffer;
-    // this is big enough to hold a log entry.  
+    // this is big enough to hold a log entry.
     // do this so we avoid growing and copying as we append to the log.
-    buffer.SetCapacity(512);  
-    
+    buffer.SetCapacity(512);
+
     nsCOMPtr<nsIStringBundleService> bundleService =
       do_GetService(NS_STRINGBUNDLE_CONTRACTID, &rv);
     NS_ENSURE_SUCCESS(rv, rv);
-    
+
     nsCOMPtr<nsIStringBundle> bundle;
     rv = bundleService->CreateBundle("chrome://messenger/locale/filter.properties",
       getter_AddRefs(bundle));
     NS_ENSURE_SUCCESS(rv, rv);
-    
+
     const PRUnichar *filterLogDetectFormatStrings[4] = { filterName.get(), authorValue.get(), subjectValue.get(), dateValue.get() };
     nsString filterLogDetectStr;
     rv = bundle->FormatStringFromName(
@@ -507,17 +507,17 @@ NS_IMETHODIMP nsMsgFilter::LogRuleHit(nsIMsgRuleAction *aFilterAction, nsIMsgDBH
       filterLogDetectFormatStrings, 4,
       getter_Copies(filterLogDetectStr));
     NS_ENSURE_SUCCESS(rv, rv);
-    
+
     buffer += NS_ConvertUTF16toUTF8(filterLogDetectStr);
     buffer +=  "\n";
-        
+
     if (actionType == nsMsgFilterAction::MoveToFolder ||
         actionType == nsMsgFilterAction::CopyToFolder)
     {
       nsCString actionFolderUri;
       aFilterAction->GetTargetFolderUri(actionFolderUri);
       NS_ConvertASCIItoUTF16 actionFolderUriValue(actionFolderUri);
-         
+
       nsCString msgId;
       aMsgHdr->GetMessageId(getter_Copies(msgId));
       NS_ConvertASCIItoUTF16 msgIdValue(msgId);
@@ -531,10 +531,10 @@ NS_IMETHODIMP nsMsgFilter::LogRuleHit(nsIMsgRuleAction *aFilterAction, nsIMsgDBH
         logMoveFormatStrings, 2,
         getter_Copies(logMoveStr));
       NS_ENSURE_SUCCESS(rv, rv);
-      
+
       buffer += NS_ConvertUTF16toUTF8(logMoveStr);
     }
-    else 
+    else
     {
       nsString actionValue;
       nsAutoString filterActionID;
@@ -546,7 +546,7 @@ NS_IMETHODIMP nsMsgFilter::LogRuleHit(nsIMsgRuleAction *aFilterAction, nsIMsgDBH
       buffer += NS_ConvertUTF16toUTF8(actionValue);
     }
     buffer += "\n";
-    
+
     PRUint32 writeCount;
 
     rv = logStream->Write(LOG_ENTRY_START_TAG, LOG_ENTRY_START_TAG_LEN, &writeCount);
@@ -565,16 +565,16 @@ NS_IMETHODIMP nsMsgFilter::LogRuleHit(nsIMsgRuleAction *aFilterAction, nsIMsgDBH
     PR_Free(escapedBuffer);
     NS_ENSURE_SUCCESS(rv,rv);
     NS_ASSERTION(writeCount == escapedBufferLen, "failed to write out log hit");
- 
+
     rv = logStream->Write(LOG_ENTRY_END_TAG, LOG_ENTRY_END_TAG_LEN, &writeCount);
     NS_ENSURE_SUCCESS(rv,rv);
     NS_ASSERTION(writeCount == LOG_ENTRY_END_TAG_LEN, "failed to write out end log tag");
     return NS_OK;
 }
 
-NS_IMETHODIMP 
-nsMsgFilter::MatchHdr(nsIMsgDBHdr *msgHdr, nsIMsgFolder *folder, 
-                      nsIMsgDatabase *db, const char *headers, 
+NS_IMETHODIMP
+nsMsgFilter::MatchHdr(nsIMsgDBHdr *msgHdr, nsIMsgFolder *folder,
+                      nsIMsgDatabase *db, const char *headers,
                       PRUint32 headersSize, PRBool *pResult)
 {
   NS_ENSURE_ARG_POINTER(folder);
@@ -601,7 +601,7 @@ nsMsgFilter::GetFilterList(nsIMsgFilterList **aResult)
     return NS_OK;
 }
 
-void nsMsgFilter::SetFilterScript(nsCString *fileName) 
+void nsMsgFilter::SetFilterScript(nsCString *fileName)
 {
   m_scriptFileName = *fileName;
 }
@@ -633,7 +633,7 @@ nsresult nsMsgFilter::ConvertMoveOrCopyToFolderValue(nsIMsgRuleAction *filterAct
         NS_ENSURE_SUCCESS(rv, rv);
 
         rv = CopyUTF16toMUTF7(unicodeStr, originalServerPath);
-        NS_ENSURE_SUCCESS(rv, rv); 
+        NS_ENSURE_SUCCESS(rv, rv);
       }
 
       nsCOMPtr <nsIMsgFolder> destIFolder;
@@ -661,11 +661,11 @@ nsresult nsMsgFilter::ConvertMoveOrCopyToFolderValue(nsIMsgRuleAction *filterAct
         localMailRoot = rootFolder;
       else
       {
-        nsCOMPtr<nsIMsgAccountManager> accountManager = 
+        nsCOMPtr<nsIMsgAccountManager> accountManager =
                  do_GetService(NS_MSGACCOUNTMANAGER_CONTRACTID, &rv);
         NS_ENSURE_SUCCESS(rv, rv);
-        nsCOMPtr <nsIMsgIncomingServer> server; 
-        rv = accountManager->GetLocalFoldersServer(getter_AddRefs(server)); 
+        nsCOMPtr <nsIMsgIncomingServer> server;
+        rv = accountManager->GetLocalFoldersServer(getter_AddRefs(server));
         if (NS_SUCCEEDED(rv) && server)
           rv = server->GetRootFolder(getter_AddRefs(localMailRoot));
       }
@@ -708,7 +708,7 @@ nsresult nsMsgFilter::ConvertMoveOrCopyToFolderValue(nsIMsgRuleAction *filterAct
   }
   else
     filterAction->SetTargetFolderUri(moveValue);
-    
+
   return NS_OK;
   // set m_action.m_value.m_folderUri
 }
@@ -739,8 +739,8 @@ nsresult nsMsgFilter::SaveRule(nsIOutputStream *aStream)
   nsresult err = NS_OK;
   nsCOMPtr<nsIMsgFilterList> filterList;
   GetFilterList(getter_AddRefs(filterList));
-  nsCAutoString	actionFilingStr;
-   
+  nsCAutoString  actionFilingStr;
+
   PRUint32 numActions;
   err = m_actionList->Count(&numActions);
   NS_ENSURE_SUCCESS(err, err);
@@ -751,14 +751,14 @@ nsresult nsMsgFilter::SaveRule(nsIOutputStream *aStream)
     err = m_actionList->QueryElementAt(index, NS_GET_IID(nsIMsgRuleAction), (void **)getter_AddRefs(action));
     if (!action)
       continue;
- 
+
     nsMsgRuleActionType actionType;
     action->GetType(&actionType);
     GetActionFilingStr(actionType, actionFilingStr);
-  
+
     err = filterList->WriteStrAttr(nsIMsgFilterList::attribAction, actionFilingStr.get(), aStream);
     NS_ENSURE_SUCCESS(err, err);
-  
+
     switch(actionType)
     {
       case nsMsgFilterAction::MoveToFolder:
@@ -815,17 +815,17 @@ nsresult nsMsgFilter::SaveRule(nsIOutputStream *aStream)
   for (searchIndex = 0; searchIndex < count && NS_SUCCEEDED(err);
         searchIndex++)
   {
-    nsCAutoString	stream;
-  
+    nsCAutoString  stream;
+
     nsCOMPtr<nsIMsgSearchTerm> term;
     m_termList->QueryElementAt(searchIndex, NS_GET_IID(nsIMsgSearchTerm),
       (void **)getter_AddRefs(term));
     if (!term)
       continue;
-  
+
     if (condition.Length() > 1)
       condition += ' ';
-  
+
     PRBool booleanAnd;
     PRBool matchAll;
     term->GetBooleanAnd(&booleanAnd);
@@ -839,14 +839,14 @@ nsresult nsMsgFilter::SaveRule(nsIOutputStream *aStream)
       condition += "AND (";
     else
       condition += "OR (";
-  
+
     nsresult searchError = term->GetTermAsString(stream);
     if (NS_FAILED(searchError))
     {
       err = searchError;
       break;
     }
-  
+
     condition += stream;
     condition += ')';
   }
@@ -858,10 +858,10 @@ nsresult nsMsgFilter::SaveRule(nsIOutputStream *aStream)
 // for each action, this table encodes the filterTypes that support the action.
 struct RuleActionsTableEntry
 {
-	nsMsgRuleActionType	action;
-	nsMsgFilterTypeType		supportedTypes;
-	PRInt32				xp_strIndex;
-	const char			*actionFilingStr;	/* used for filing out filters, don't translate! */
+  nsMsgRuleActionType  action;
+  nsMsgFilterTypeType    supportedTypes;
+  PRInt32        xp_strIndex;
+  const char      *actionFilingStr;  /* used for filing out filters, don't translate! */
 };
 
 static struct RuleActionsTableEntry ruleActionsTable[] =
@@ -887,19 +887,19 @@ static struct RuleActionsTableEntry ruleActionsTable[] =
 
 const char *nsMsgFilter::GetActionStr(nsMsgRuleActionType action)
 {
-  int	numActions = sizeof(ruleActionsTable) / sizeof(ruleActionsTable[0]);
-  
+  int  numActions = sizeof(ruleActionsTable) / sizeof(ruleActionsTable[0]);
+
   for (int i = 0; i < numActions; i++)
   {
     if (action == ruleActionsTable[i].action)
-      return ruleActionsTable[i].actionFilingStr; 
+      return ruleActionsTable[i].actionFilingStr;
   }
   return "";
 }
 /*static */nsresult nsMsgFilter::GetActionFilingStr(nsMsgRuleActionType action, nsCString &actionStr)
 {
-  int	numActions = sizeof(ruleActionsTable) / sizeof(ruleActionsTable[0]);
-  
+  int  numActions = sizeof(ruleActionsTable) / sizeof(ruleActionsTable[0]);
+
   for (int i = 0; i < numActions; i++)
   {
     if (action == ruleActionsTable[i].action)
@@ -914,8 +914,8 @@ const char *nsMsgFilter::GetActionStr(nsMsgRuleActionType action)
 
 nsMsgRuleActionType nsMsgFilter::GetActionForFilingStr(nsCString &actionStr)
 {
-  int	numActions = sizeof(ruleActionsTable) / sizeof(ruleActionsTable[0]);
-  
+  int  numActions = sizeof(ruleActionsTable) / sizeof(ruleActionsTable[0]);
+
   for (int i = 0; i < numActions; i++)
   {
     if (actionStr.Equals(ruleActionsTable[i].actionFilingStr))

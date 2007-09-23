@@ -45,8 +45,8 @@
 class nsMsgSearchNews : public nsMsgSearchAdapter
 {
 public:
-	nsMsgSearchNews (nsMsgSearchScopeTerm *scope, nsISupportsArray *termList);
-	virtual ~nsMsgSearchNews ();
+  nsMsgSearchNews (nsMsgSearchScopeTerm *scope, nsISupportsArray *termList);
+  virtual ~nsMsgSearchNews ();
 
   NS_IMETHOD ValidateTerms ();
   NS_IMETHOD Search (PRBool *aDone);
@@ -54,10 +54,10 @@ public:
   NS_IMETHOD AddHit(nsMsgKey key);
   NS_IMETHOD CurrentUrlDone(PRInt32 exitCode);
 
-	virtual nsresult Encode (nsCString *outEncoding);
-	virtual char *EncodeTerm (nsIMsgSearchTerm *);
-	PRUnichar *EncodeToWildmat (const PRUnichar *);
-	
+  virtual nsresult Encode (nsCString *outEncoding);
+  virtual char *EncodeTerm (nsIMsgSearchTerm *);
+  PRUnichar *EncodeToWildmat (const PRUnichar *);
+
   void ReportHits ();
     PRBool DuplicateHit(PRUint32 artNum) ;
     void CollateHits ();
@@ -65,16 +65,16 @@ public:
     static int PR_CALLBACK CompareArticleNumbers (const void *v1, const void *v2, void *data);
 
 protected:
-	nsCString m_encoding;
-	PRBool m_ORSearch; // set to true if any of the search terms contains an OR for a boolean operator. 
+  nsCString m_encoding;
+  PRBool m_ORSearch; // set to true if any of the search terms contains an OR for a boolean operator.
 
-	nsMsgKeyArray m_candidateHits;
-	nsMsgKeyArray m_hits;
+  nsMsgKeyArray m_candidateHits;
+  nsMsgKeyArray m_hits;
 
-	static const char *m_kNntpFrom;
-	static const char *m_kNntpSubject;
-	static const char *m_kTermSeparator;
-	static const char *m_kUrlPrefix;
+  static const char *m_kNntpFrom;
+  static const char *m_kNntpSubject;
+  static const char *m_kTermSeparator;
+  static const char *m_kUrlPrefix;
 };
 
 #endif

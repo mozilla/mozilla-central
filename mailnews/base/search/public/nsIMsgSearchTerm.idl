@@ -65,7 +65,7 @@ interface nsIMsgSearchTerm : nsISupports {
     boolean matchSize(in unsigned long size);
     boolean matchLabel(in nsMsgLabelValue aLabelValue);
     boolean matchJunkStatus(in string aJunkScore);
-	
+
     boolean matchBody(in nsIMsgSearchScopeTerm scopeTerm,
                       in unsigned long offset,
                       in unsigned long length,
@@ -87,11 +87,11 @@ interface nsIMsgSearchTerm : nsISupports {
                                  in string headers,
                                  in unsigned long headerLength,
                                  in boolean forFilters);
-                      
+
     readonly attribute boolean matchAllBeforeDeciding;
 
     readonly attribute ACString termAsString;
-    boolean matchKeyword(in string keyword); // used for tag searches 
+    boolean matchKeyword(in string keyword); // used for tag searches
     attribute boolean matchAll;
 };
 

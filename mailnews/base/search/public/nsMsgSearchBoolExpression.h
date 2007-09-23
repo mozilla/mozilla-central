@@ -42,8 +42,8 @@
 #define __nsMsgSearchBoolExpression_h
 
 //-----------------------------------------------------------------------------
-// nsMsgSearchBoolExpression is a class added to provide AND/OR terms in search queries. 
-//	A nsMsgSearchBoolExpression contains either a search term or two nsMsgSearchBoolExpressions and
+// nsMsgSearchBoolExpression is a class added to provide AND/OR terms in search queries.
+//  A nsMsgSearchBoolExpression contains either a search term or two nsMsgSearchBoolExpressions and
 //    a boolean operator.
 // I (mscott) am placing it here for now....
 //-----------------------------------------------------------------------------
@@ -51,90 +51,90 @@
 /* CBoolExpression --> encapsulates one or more search terms by internally
    representing the search terms and their boolean operators as a binary
    expression tree. Each node in the tree consists of either
-     (1) a boolean operator and two nsMsgSearchBoolExpressions or 
+     (1) a boolean operator and two nsMsgSearchBoolExpressions or
      (2) if the node is a leaf node then it contains a search term.
    With each search term that is part of the expression we may also keep
-   a character string. The character 
+   a character string. The character
    string is used to store the IMAP/NNTP encoding of the search term. This
    makes generating a search encoding (for online) easier.
 
    For IMAP/NNTP: nsMsgSearchBoolExpression has/assumes knowledge about how
    AND and OR search terms are combined according to IMAP4 and NNTP protocol.
-   That is the only piece of IMAP/NNTP knowledge it is aware of. 
+   That is the only piece of IMAP/NNTP knowledge it is aware of.
 
    Order of Evaluation: Okay, the way in which the boolean expression tree
    is put together directly effects the order of evaluation. We currently
-   support left to right evaluation. 
+   support left to right evaluation.
    Supporting other order of evaluations involves adding new internal add
-   term methods. 
+   term methods.
  */
 
-class nsMsgSearchBoolExpression 
+class nsMsgSearchBoolExpression
 {
 public:
 
-	// create a leaf node expression
-	nsMsgSearchBoolExpression(nsIMsgSearchTerm * aNewTerm,
-                              char * aEncodingString = NULL);         
+  // create a leaf node expression
+  nsMsgSearchBoolExpression(nsIMsgSearchTerm * aNewTerm,
+                              char * aEncodingString = NULL);
 
-	// create a non-leaf node expression containing 2 expressions
+  // create a non-leaf node expression containing 2 expressions
     // and a boolean operator
-	nsMsgSearchBoolExpression(nsMsgSearchBoolExpression *,
+  nsMsgSearchBoolExpression(nsMsgSearchBoolExpression *,
                               nsMsgSearchBoolExpression *,
-                              nsMsgSearchBooleanOperator boolOp); 
-	
-	nsMsgSearchBoolExpression();
-	~nsMsgSearchBoolExpression();  // recursively destroys all sub
+                              nsMsgSearchBooleanOperator boolOp);
+
+  nsMsgSearchBoolExpression();
+  ~nsMsgSearchBoolExpression();  // recursively destroys all sub
                                    // expressions as well
 
-	// accessors
-    
+  // accessors
+
     // Offline
-	static nsMsgSearchBoolExpression * AddSearchTerm (nsMsgSearchBoolExpression * aOrigExpr, nsIMsgSearchTerm * aNewTerm, char * aEncodingStr); // IMAP/NNTP
+  static nsMsgSearchBoolExpression * AddSearchTerm (nsMsgSearchBoolExpression * aOrigExpr, nsIMsgSearchTerm * aNewTerm, char * aEncodingStr); // IMAP/NNTP
     static nsMsgSearchBoolExpression * AddExpressionTree(nsMsgSearchBoolExpression * aOrigExpr, nsMsgSearchBoolExpression * aExpression, PRBool aBoolOp);
 
     // parses the expression tree and all
     // expressions underneath this node to
     // determine if the end result is PR_TRUE or PR_FALSE.
-	PRBool OfflineEvaluate(nsIMsgDBHdr *msgToMatch,
+  PRBool OfflineEvaluate(nsIMsgDBHdr *msgToMatch,
           const char *defaultCharset, nsIMsgSearchScopeTerm *scope,
           nsIMsgDatabase *db, const char *headers, PRUint32 headerSize,
           PRBool Filtering);
-    
+
     // assuming the expression is for online
     // searches, determine the length of the
     // resulting IMAP/NNTP encoding string
-	PRInt32 CalcEncodeStrSize();
-    
-    // fills pre-allocated
-    // memory in buffer with 
-    // the IMAP/NNTP encoding for the expression
-	void GenerateEncodeStr(nsCString * buffer); 
+  PRInt32 CalcEncodeStrSize();
 
-	// if we are not a leaf node, then we have two other expressions
+    // fills pre-allocated
+    // memory in buffer with
+    // the IMAP/NNTP encoding for the expression
+  void GenerateEncodeStr(nsCString * buffer);
+
+  // if we are not a leaf node, then we have two other expressions
     // and a boolean operator
-	nsMsgSearchBoolExpression * m_leftChild;
-	nsMsgSearchBoolExpression * m_rightChild;
-	nsMsgSearchBooleanOperator m_boolOp;
+  nsMsgSearchBoolExpression * m_leftChild;
+  nsMsgSearchBoolExpression * m_rightChild;
+  nsMsgSearchBooleanOperator m_boolOp;
 
 protected:
-	// if we are a leaf node, all we have is a search term
-    
+  // if we are a leaf node, all we have is a search term
+
     nsIMsgSearchTerm * m_term;
-    
+
     // store IMAP/NNTP encoding for the search term if applicable
-	nsCString m_encodingStr;     
+  nsCString m_encodingStr;
 
-	// internal methods
+  // internal methods
 
-	// the idea is to separate the public interface for adding terms to
+  // the idea is to separate the public interface for adding terms to
     // the expression tree from the order of evaluation which influences
     // how we internally construct the tree. Right now, we are supporting
     // left to right evaluation so the tree is constructed to represent
     // that by calling leftToRightAddTerm. If future forms of evaluation
     // need to be supported, add new methods here for proper tree construction.
-	nsMsgSearchBoolExpression * leftToRightAddTerm(nsIMsgSearchTerm * newTerm,
-                                                   char * encodingStr); 
+  nsMsgSearchBoolExpression * leftToRightAddTerm(nsIMsgSearchTerm * newTerm,
+                                                   char * encodingStr);
 };
 
 #endif

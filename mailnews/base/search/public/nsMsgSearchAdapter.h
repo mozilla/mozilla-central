@@ -50,9 +50,9 @@
 class nsIMsgSearchScopeTerm;
 
 //-----------------------------------------------------------------------------
-// These Adapter classes contain the smarts to convert search criteria from 
+// These Adapter classes contain the smarts to convert search criteria from
 // the canonical structures in msg_srch.h into whatever format is required
-// by their protocol. 
+// by their protocol.
 //
 // There is a separate Adapter class for area (pop, imap, nntp, ldap) to contain
 // the special smarts for that protocol.
@@ -60,9 +60,9 @@ class nsIMsgSearchScopeTerm;
 
 inline PRBool IsStringAttribute (nsMsgSearchAttribValue a)
 {
-	return ! (a == nsMsgSearchAttrib::Priority || a == nsMsgSearchAttrib::Date || 
-		a == nsMsgSearchAttrib::MsgStatus || a == nsMsgSearchAttrib::MessageKey ||
-		a == nsMsgSearchAttrib::Size || a == nsMsgSearchAttrib::AgeInDays ||
+  return ! (a == nsMsgSearchAttrib::Priority || a == nsMsgSearchAttrib::Date ||
+    a == nsMsgSearchAttrib::MsgStatus || a == nsMsgSearchAttrib::MessageKey ||
+    a == nsMsgSearchAttrib::Size || a == nsMsgSearchAttrib::AgeInDays ||
     a == nsMsgSearchAttrib::FolderInfo || a == nsMsgSearchAttrib::JunkStatus);
 }
 
@@ -75,19 +75,19 @@ public:
   NS_DECL_ISUPPORTS
   NS_DECL_NSIMSGSEARCHADAPTER
 
-  nsIMsgSearchScopeTerm	      *m_scope;
+  nsIMsgSearchScopeTerm        *m_scope;
   nsCOMPtr<nsISupportsArray>  m_searchTerms;       /* linked list of criteria terms */
 
   PRBool m_abortCalled;
   nsString  m_defaultCharset;
   PRBool m_forceAsciiSearch;
 
-  static nsresult EncodeImap (char **ppEncoding, 
-			     nsISupportsArray *searchTerms,  
-			     const PRUnichar *srcCharset, 
-			     const PRUnichar *destCharset,
-			     PRBool reallyDredd = PR_FALSE);
-	
+  static nsresult EncodeImap (char **ppEncoding,
+           nsISupportsArray *searchTerms,
+           const PRUnichar *srcCharset,
+           const PRUnichar *destCharset,
+           PRBool reallyDredd = PR_FALSE);
+
   static nsresult EncodeImapValue(char *encoding, const char *value, PRBool useQuotes, PRBool reallyDredd);
 
   static char *GetImapCharsetParam(const PRUnichar *destCharset);
@@ -95,7 +95,7 @@ public:
   static PRUnichar *EscapeImapSearchProtocol(const PRUnichar *imapCommand);
   static PRUnichar *EscapeQuoteImapSearchProtocol(const PRUnichar *imapCommand);
   static char *UnEscapeSearchUrl (const char *commandSpecificData);
-  // This stuff lives in the base class because the IMAP search syntax 
+  // This stuff lives in the base class because the IMAP search syntax
   // is used by the Dredd SEARCH command as well as IMAP itself
   static const char *m_kImapBefore;
   static const char *m_kImapBody;
@@ -126,9 +126,9 @@ public:
 protected:
   typedef enum _msg_TransformType
   {
-	  kOverwrite,    /* "John Doe" -> "John*Doe",   simple contains   */
-	  kInsert,       /* "John Doe" -> "John* Doe",  name completion   */
-	  kSurround      /* "John Doe" -> "John* *Doe", advanced contains */
+    kOverwrite,    /* "John Doe" -> "John*Doe",   simple contains   */
+    kInsert,       /* "John Doe" -> "John* Doe",  name completion   */
+    kSurround      /* "John Doe" -> "John* *Doe", advanced contains */
   } msg_TransformType;
 
   char *TransformSpacesToStars (const char *, msg_TransformType transformType);
@@ -144,7 +144,7 @@ protected:
 //      the menus and enable their items
 //   2. when the FE fires off a search, we need to check their lists for
 //      correctness
-//   3. for on-the-fly capability negotion e.g. with XSEARCH-capable news 
+//   3. for on-the-fly capability negotion e.g. with XSEARCH-capable news
 //      servers
 //-----------------------------------------------------------------------------
 
@@ -154,17 +154,17 @@ public:
   nsMsgSearchValidityTable ();
   NS_DECL_NSIMSGSEARCHVALIDITYTABLE
   NS_DECL_ISUPPORTS
-								  
+
 protected:
   int m_numAvailAttribs;        // number of rows with at least one available operator
   typedef struct vtBits
   {
-	  PRUint16 bitEnabled : 1;
-	  PRUint16 bitAvailable : 1;
-	  PRUint16 bitValidButNotShown : 1;
+    PRUint16 bitEnabled : 1;
+    PRUint16 bitAvailable : 1;
+    PRUint16 bitValidButNotShown : 1;
   } vtBits;
   vtBits m_table [nsMsgSearchAttrib::kNumMsgSearchAttributes][nsMsgSearchOp::kNumMsgSearchOperators];
-private:    
+private:
   nsMsgSearchAttribValue m_defaultAttrib;
 };
 
@@ -188,19 +188,19 @@ class nsMsgSearchValidityManager : public nsIMsgSearchValidityManager
 {
 public:
   nsMsgSearchValidityManager ();
-  
+
 protected:
   virtual ~nsMsgSearchValidityManager ();
 
 public:
   NS_DECL_NSIMSGSEARCHVALIDITYMANAGER
   NS_DECL_ISUPPORTS
-  
+
   nsresult GetTable (int, nsMsgSearchValidityTable**);
-  
+
 protected:
 
-  // There's one global validity manager that everyone uses. You *could* do 
+  // There's one global validity manager that everyone uses. You *could* do
   // this with static members of the adapter classes, but having a dedicated
   // object makes cleanup of these tables (at shutdown-time) automagic.
 
@@ -224,11 +224,11 @@ protected:
   nsresult InitOnlineMailTable();
   nsresult InitOnlineMailFilterTable();
   nsresult InitNewsTable();
-  nsresult InitLocalNewsTable(); 
+  nsresult InitLocalNewsTable();
   nsresult InitNewsFilterTable();
 
   //set the custom headers in the table, changes whenever "mailnews.customHeaders" pref changes.
-  nsresult SetOtherHeadersInTable(nsIMsgSearchValidityTable *table, const char *customHeaders); 
+  nsresult SetOtherHeadersInTable(nsIMsgSearchValidityTable *table, const char *customHeaders);
 
   nsresult InitLdapTable();
   nsresult InitLdapAndTable();

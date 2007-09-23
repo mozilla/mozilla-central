@@ -117,9 +117,9 @@ NS_IMETHODIMP nsMsgFilterList::SetFolder(nsIMsgFolder *aFolder)
 
 NS_IMETHODIMP nsMsgFilterList::SaveToFile(nsIOutputStream *stream)
 {
-	if (!stream)
-		return NS_ERROR_NULL_POINTER;
-	return SaveTextFilters(stream);
+  if (!stream)
+    return NS_ERROR_NULL_POINTER;
+  return SaveTextFilters(stream);
 }
 
 NS_IMETHODIMP nsMsgFilterList::EnsureLogFile()
@@ -320,9 +320,9 @@ nsMsgFilterList::ApplyFiltersToHdr(nsMsgFilterTypeType filterType,
                                    nsIMsgWindow *msgWindow,
                                    nsILocalFile *aMessageFile)
 {
-  nsCOMPtr <nsIMsgFilter>	filter;
-  PRUint32		filterCount = 0;
-  nsresult		rv = GetFilterCount(&filterCount);
+  nsCOMPtr <nsIMsgFilter>  filter;
+  PRUint32    filterCount = 0;
+  nsresult    rv = GetFilterCount(&filterCount);
   NS_ENSURE_SUCCESS(rv,rv);
 
   nsMsgSearchScopeTerm* scope = new nsMsgSearchScopeTerm(nsnull, nsMsgSearchScope::offlineMail, folder);
@@ -394,29 +394,29 @@ nsMsgFilterList::SaveToDefaultFile()
 
 typedef struct
 {
-  nsMsgFilterFileAttribValue	attrib;
-  const char			*attribName;
+  nsMsgFilterFileAttribValue  attrib;
+  const char      *attribName;
 } FilterFileAttribEntry;
 
 static FilterFileAttribEntry FilterFileAttribTable[] =
 {
-	{nsIMsgFilterList::attribNone,			""},
-	{nsIMsgFilterList::attribVersion,		"version"},
-	{nsIMsgFilterList::attribLogging,		"logging"},
-	{nsIMsgFilterList::attribName,			"name"},
-	{nsIMsgFilterList::attribEnabled,		"enabled"},
-	{nsIMsgFilterList::attribDescription,	"description"},
-	{nsIMsgFilterList::attribType,			"type"},
-	{nsIMsgFilterList::attribScriptFile,	"scriptName"},
-	{nsIMsgFilterList::attribAction,		"action"},
-	{nsIMsgFilterList::attribActionValue,	"actionValue"},
-	{nsIMsgFilterList::attribCondition,		"condition"}
+  {nsIMsgFilterList::attribNone,      ""},
+  {nsIMsgFilterList::attribVersion,    "version"},
+  {nsIMsgFilterList::attribLogging,    "logging"},
+  {nsIMsgFilterList::attribName,      "name"},
+  {nsIMsgFilterList::attribEnabled,    "enabled"},
+  {nsIMsgFilterList::attribDescription,  "description"},
+  {nsIMsgFilterList::attribType,      "type"},
+  {nsIMsgFilterList::attribScriptFile,  "scriptName"},
+  {nsIMsgFilterList::attribAction,    "action"},
+  {nsIMsgFilterList::attribActionValue,  "actionValue"},
+  {nsIMsgFilterList::attribCondition,    "condition"}
 };
 
 // If we want to buffer file IO, wrap it in here.
 char nsMsgFilterList::ReadChar(nsIInputStream *aStream)
 {
-  char	newChar;
+  char  newChar;
   PRUint32 bytesRead;
   nsresult rv = aStream->Read(&newChar, 1, &bytesRead);
   if (NS_FAILED(rv) || !bytesRead)
@@ -450,8 +450,8 @@ PRBool nsMsgFilterList::StrToBool(nsCString &str)
 
 char nsMsgFilterList::LoadAttrib(nsMsgFilterFileAttribValue &attrib, nsIInputStream *aStream)
 {
-  char	attribStr[100];
-  char	curChar;
+  char  attribStr[100];
+  char  curChar;
   attrib = nsIMsgFilterList::attribNone;
 
   curChar = SkipWhitespace(aStream);
@@ -487,8 +487,8 @@ const char *nsMsgFilterList::GetStringForAttrib(nsMsgFilterFileAttribValue attri
 
 nsresult nsMsgFilterList::LoadValue(nsCString &value, nsIInputStream *aStream)
 {
-  nsCAutoString	valueStr;
-  char	curChar;
+  nsCAutoString  valueStr;
+  char  curChar;
   value = "";
   curChar = SkipWhitespace(aStream);
   if (curChar != '"')
@@ -504,7 +504,7 @@ nsresult nsMsgFilterList::LoadValue(nsCString &value, nsIInputStream *aStream)
       char nextChar = ReadChar(aStream);
       if (nextChar == '"')
         curChar = '"';
-      else if (nextChar == '\\')	// replace "\\" with "\"
+      else if (nextChar == '\\')  // replace "\\" with "\"
       {
         valueStr += curChar;
         curChar = ReadChar(aStream);
@@ -532,7 +532,7 @@ nsresult nsMsgFilterList::LoadValue(nsCString &value, nsIInputStream *aStream)
 
 nsresult nsMsgFilterList::LoadTextFilters(nsIInputStream *aStream)
 {
-  nsresult	err = NS_OK;
+  nsresult  err = NS_OK;
   PRUint32 bytesAvailable;
   nsMsgFilterFileAttribValue attrib;
   nsCOMPtr<nsIMsgRuleAction> currentFilterAction;
@@ -735,8 +735,8 @@ nsresult nsMsgFilterList::LoadTextFilters(nsIInputStream *aStream)
 // ALL means match all messages.
 NS_IMETHODIMP nsMsgFilterList::ParseCondition(nsIMsgFilter *aFilter, const char *aCondition)
 {
-  PRBool	done = PR_FALSE;
-  nsresult	err = NS_OK;
+  PRBool  done = PR_FALSE;
+  nsresult  err = NS_OK;
   const char *curPtr = aCondition;
   if (!strcmp(aCondition, "ALL"))
   {
@@ -754,7 +754,7 @@ NS_IMETHODIMP nsMsgFilterList::ParseCondition(nsIMsgFilter *aFilter, const char 
   {
     // insert code to save the boolean operator if there is one for this search term....
     const char *openParen = PL_strchr(curPtr, '(');
-    const char *orTermPos = PL_strchr(curPtr, 'O');		// determine if an "OR" appears b4 the openParen...
+    const char *orTermPos = PL_strchr(curPtr, 'O');    // determine if an "OR" appears b4 the openParen...
     PRBool ANDTerm = PR_TRUE;
     if (orTermPos && orTermPos < openParen) // make sure OR term falls before the '('
       ANDTerm = PR_FALSE;
@@ -796,7 +796,7 @@ NS_IMETHODIMP nsMsgFilterList::ParseCondition(nsIMsgFilter *aFilter, const char 
       break;
     if (termDup)
     {
-      nsMsgSearchTerm	*newTerm = new nsMsgSearchTerm;
+      nsMsgSearchTerm  *newTerm = new nsMsgSearchTerm;
 
       if (newTerm)
       {
@@ -878,84 +878,84 @@ nsMsgFilterList::WriteWstrAttr(nsMsgFilterFileAttribValue attrib,
 
 nsresult nsMsgFilterList::SaveTextFilters(nsIOutputStream *aStream)
 {
-	nsresult	err = NS_OK;
-	const char *attribStr;
-	PRUint32			filterCount;
-	m_filters->Count(&filterCount);
+  nsresult  err = NS_OK;
+  const char *attribStr;
+  PRUint32      filterCount;
+  m_filters->Count(&filterCount);
 
-	attribStr = GetStringForAttrib(nsIMsgFilterList::attribVersion);
-	err = WriteIntAttr(nsIMsgFilterList::attribVersion, kFileVersion, aStream);
-	err = WriteBoolAttr(nsIMsgFilterList::attribLogging, m_loggingEnabled, aStream);
-	for (PRUint32 i = 0; i < filterCount; i ++)
-	{
-		nsMsgFilter *filter;
-		if (GetMsgFilterAt(i, &filter) == NS_OK && filter != nsnull)
-		{
-			filter->SetFilterList(this);
+  attribStr = GetStringForAttrib(nsIMsgFilterList::attribVersion);
+  err = WriteIntAttr(nsIMsgFilterList::attribVersion, kFileVersion, aStream);
+  err = WriteBoolAttr(nsIMsgFilterList::attribLogging, m_loggingEnabled, aStream);
+  for (PRUint32 i = 0; i < filterCount; i ++)
+  {
+    nsMsgFilter *filter;
+    if (GetMsgFilterAt(i, &filter) == NS_OK && filter != nsnull)
+    {
+      filter->SetFilterList(this);
 
       // if the filter is temporary, don't write it to disk
       PRBool isTemporary;
       err = filter->GetTemporary(&isTemporary);
       if (NS_SUCCEEDED(err) && !isTemporary) {
         if ((err = filter->SaveToTextFile(aStream)) != NS_OK)
-				  break;
+          break;
       }
 
-			NS_RELEASE(filter);
-		}
-		else
-			break;
-	}
+      NS_RELEASE(filter);
+    }
+    else
+      break;
+  }
   if (NS_SUCCEEDED(err))
     m_arbitraryHeaders.SetLength(0);
-	return err;
+  return err;
 }
 
 nsMsgFilterList::~nsMsgFilterList()
 {
-	// filters should be released for free, because only isupports array
-	// is holding onto them, right?
-//	PRUint32			filterCount;
-//	m_filters->Count(&filterCount);
-//	for (PRUint32 i = 0; i < filterCount; i++)
-//	{
-//		nsIMsgFilter *filter;
-//		if (GetFilterAt(i, &filter) == NS_OK)
-//			NS_RELEASE(filter);
-//	}
+  // filters should be released for free, because only isupports array
+  // is holding onto them, right?
+//  PRUint32      filterCount;
+//  m_filters->Count(&filterCount);
+//  for (PRUint32 i = 0; i < filterCount; i++)
+//  {
+//    nsIMsgFilter *filter;
+//    if (GetFilterAt(i, &filter) == NS_OK)
+//      NS_RELEASE(filter);
+//  }
 }
 
 nsresult nsMsgFilterList::Close()
 {
-	return NS_ERROR_NOT_IMPLEMENTED;
+  return NS_ERROR_NOT_IMPLEMENTED;
 }
 
 nsresult nsMsgFilterList::GetFilterCount(PRUint32 *pCount)
 {
-	return m_filters->Count(pCount);
+  return m_filters->Count(pCount);
 }
 
 nsresult nsMsgFilterList::GetMsgFilterAt(PRUint32 filterIndex, nsMsgFilter **filter)
 {
-	PRUint32			filterCount;
-	m_filters->Count(&filterCount);
-	if (! (filterCount >= filterIndex))
-		return NS_ERROR_INVALID_ARG;
-	if (filter == nsnull)
-		return NS_ERROR_NULL_POINTER;
-	*filter = (nsMsgFilter *) m_filters->ElementAt(filterIndex);
-	return NS_OK;
+  PRUint32      filterCount;
+  m_filters->Count(&filterCount);
+  if (! (filterCount >= filterIndex))
+    return NS_ERROR_INVALID_ARG;
+  if (filter == nsnull)
+    return NS_ERROR_NULL_POINTER;
+  *filter = (nsMsgFilter *) m_filters->ElementAt(filterIndex);
+  return NS_OK;
 }
 
 nsresult nsMsgFilterList::GetFilterAt(PRUint32 filterIndex, nsIMsgFilter **filter)
 {
     NS_ENSURE_ARG_POINTER(filter);
 
-	PRUint32			filterCount;
-	m_filters->Count(&filterCount);
+  PRUint32      filterCount;
+  m_filters->Count(&filterCount);
     NS_ENSURE_ARG(filterCount >= filterIndex);
 
-	return m_filters->QueryElementAt(filterIndex, NS_GET_IID(nsIMsgFilter),
+  return m_filters->QueryElementAt(filterIndex, NS_GET_IID(nsIMsgFilter),
                                      (void **)filter);
 }
 
@@ -1026,29 +1026,29 @@ nsresult nsMsgFilterList::MoveFilterAt(PRUint32 filterIndex,
     NS_ENSURE_ARG((motion == nsMsgFilterMotion::up) ||
                   (motion == nsMsgFilterMotion::down));
 
-	PRUint32			filterCount;
-	m_filters->Count(&filterCount);
+  PRUint32      filterCount;
+  m_filters->Count(&filterCount);
 
     NS_ENSURE_ARG(filterCount >= filterIndex);
 
     PRUint32 newIndex = filterIndex;
 
-	if (motion == nsMsgFilterMotion::up)
-	{
+  if (motion == nsMsgFilterMotion::up)
+  {
         newIndex = filterIndex - 1;
 
         // are we already at the top?
-		if (filterIndex == 0) return NS_OK;
-	}
-	else if (motion == nsMsgFilterMotion::down)
-	{
+    if (filterIndex == 0) return NS_OK;
+  }
+  else if (motion == nsMsgFilterMotion::down)
+  {
         newIndex = filterIndex + 1;
 
         // are we already at the bottom?
-		if (newIndex > filterCount - 1) return NS_OK;
-	}
+    if (newIndex > filterCount - 1) return NS_OK;
+  }
     m_filters->MoveElement(filterIndex,newIndex);
-	return NS_OK;
+  return NS_OK;
 }
 
 nsresult nsMsgFilterList::MoveFilter(nsIMsgFilter *aFilter,
@@ -1213,19 +1213,19 @@ NS_IMETHODIMP nsMsgFilterList::FlushLogIfNecessary()
 #ifdef DEBUG
 void nsMsgFilterList::Dump()
 {
-	PRUint32			filterCount;
-	m_filters->Count(&filterCount);
-	printf("%d filters\n", filterCount);
+  PRUint32      filterCount;
+  m_filters->Count(&filterCount);
+  printf("%d filters\n", filterCount);
 
-	for (PRUint32 i = 0; i < filterCount; i++)
-	{
-		nsMsgFilter *filter;
-		if (GetMsgFilterAt(i, &filter) == NS_OK)
-		{
-			filter->Dump();
-			NS_RELEASE(filter);
-		}
-	}
+  for (PRUint32 i = 0; i < filterCount; i++)
+  {
+    nsMsgFilter *filter;
+    if (GetMsgFilterAt(i, &filter) == NS_OK)
+    {
+      filter->Dump();
+      NS_RELEASE(filter);
+    }
+  }
 
 }
 #endif

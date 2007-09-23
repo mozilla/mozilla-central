@@ -53,21 +53,21 @@
 class nsMsgSearchTerm : public nsIMsgSearchTerm
 {
 public:
-	nsMsgSearchTerm();
-	nsMsgSearchTerm (nsMsgSearchAttribValue, nsMsgSearchOpValue, nsIMsgSearchValue *, nsMsgSearchBooleanOperator, const char * arbitraryHeader);
+  nsMsgSearchTerm();
+  nsMsgSearchTerm (nsMsgSearchAttribValue, nsMsgSearchOpValue, nsIMsgSearchValue *, nsMsgSearchBooleanOperator, const char * arbitraryHeader);
 
-	virtual ~nsMsgSearchTerm ();
+  virtual ~nsMsgSearchTerm ();
 
     NS_DECL_ISUPPORTS
     NS_DECL_NSIMSGSEARCHTERM
 
-    
-	PRInt32 GetNextIMAPOfflineMsgLine (char * buf, int bufferSize, int msgOffset, nsIMsgDBHdr * msg, nsIMsgDatabase * db);
+
+  PRInt32 GetNextIMAPOfflineMsgLine (char * buf, int bufferSize, int msgOffset, nsIMsgDBHdr * msg, nsIMsgDatabase * db);
 
 
-    //	nsresult MatchBody (nsIMsgSearchScopeTerm*, PRUint32 offset, PRUint32 length, const char *charset, 
-    //						nsIMsgDBHdr * msg, nsIMsgDatabase * db, PRBool *pResult);
-    //	nsresult MatchArbitraryHeader (nsIMsgSearchScopeTerm *,
+    //  nsresult MatchBody (nsIMsgSearchScopeTerm*, PRUint32 offset, PRUint32 length, const char *charset,
+    //            nsIMsgDBHdr * msg, nsIMsgDatabase * db, PRBool *pResult);
+    //  nsresult MatchArbitraryHeader (nsIMsgSearchScopeTerm *,
     //                                   PRUint32 offset,
     //                                   PRUint32 length,
     //                                   const char *charset,
@@ -76,51 +76,51 @@ public:
     //                                   const char * headers, /* NULL terminated header list for msgs being filtered. Ignored unless ForFilters */
     //                                   PRUint32 headersSize, /* size of the NULL terminated list of headers */
     //                                   PRBool ForFilters /* true if we are filtering */,
-    //								   PRBool *pResult);
-	// nsresult MatchDate (PRTime, PRBool *result);
-	// nsresult MatchStatus (PRUint32, PRBool *result);
-	// nsresult MatchPriority (nsMsgPriorityValue, PRBool *result);
-	// nsresult MatchSize (PRUint32, PRBool *result);
-    //	nsresult MatchRfc822String(const char *, const char *charset, PRBool *pResult);
-	// nsresult MatchAge (PRTime, PRBool *result);
-    
-	nsresult DeStream (char *, PRInt16 length);
-	nsresult DeStreamNew (char *, PRInt16 length);
+    //                   PRBool *pResult);
+  // nsresult MatchDate (PRTime, PRBool *result);
+  // nsresult MatchStatus (PRUint32, PRBool *result);
+  // nsresult MatchPriority (nsMsgPriorityValue, PRBool *result);
+  // nsresult MatchSize (PRUint32, PRBool *result);
+    //  nsresult MatchRfc822String(const char *, const char *charset, PRBool *pResult);
+  // nsresult MatchAge (PRTime, PRBool *result);
 
-	nsresult GetLocalTimes (PRTime, PRTime, PRExplodedTime &, PRExplodedTime &);
+  nsresult DeStream (char *, PRInt16 length);
+  nsresult DeStreamNew (char *, PRInt16 length);
 
-	PRBool IsBooleanOpAND() { return m_booleanOp == nsMsgSearchBooleanOp::BooleanAND ? PR_TRUE : PR_FALSE;}
-	nsMsgSearchBooleanOperator GetBooleanOp() {return m_booleanOp;}
-	// maybe should return nsString &   ??
-	const char * GetArbitraryHeader() {return m_arbitraryHeader.get();}
+  nsresult GetLocalTimes (PRTime, PRTime, PRExplodedTime &, PRExplodedTime &);
 
-	static char *	EscapeQuotesInStr(const char *str);
+  PRBool IsBooleanOpAND() { return m_booleanOp == nsMsgSearchBooleanOp::BooleanAND ? PR_TRUE : PR_FALSE;}
+  nsMsgSearchBooleanOperator GetBooleanOp() {return m_booleanOp;}
+  // maybe should return nsString &   ??
+  const char * GetArbitraryHeader() {return m_arbitraryHeader.get();}
 
-	nsCOMPtr<nsIMsgHeaderParser> m_headerAddressParser;
+  static char *  EscapeQuotesInStr(const char *str);
 
-	nsMsgSearchAttribValue m_attribute;
-	nsMsgSearchOpValue m_operator;
-	nsMsgSearchValue m_value;
-	nsMsgSearchBooleanOperator m_booleanOp;  // boolean operator to be applied to this search term and the search term which precedes it.
-	nsCString m_arbitraryHeader;         // user specified string for the name of the arbitrary header to be used in the search
-									  // only has a value when m_attribute = attribOtherHeader!!!!
+  nsCOMPtr<nsIMsgHeaderParser> m_headerAddressParser;
+
+  nsMsgSearchAttribValue m_attribute;
+  nsMsgSearchOpValue m_operator;
+  nsMsgSearchValue m_value;
+  nsMsgSearchBooleanOperator m_booleanOp;  // boolean operator to be applied to this search term and the search term which precedes it.
+  nsCString m_arbitraryHeader;         // user specified string for the name of the arbitrary header to be used in the search
+                    // only has a value when m_attribute = attribOtherHeader!!!!
         PRBool m_matchAll; // does this term match all headers?
 
 protected:
-	nsresult MatchString (const char *stringToMatch, const char *charset,
+  nsresult MatchString (const char *stringToMatch, const char *charset,
                           PRBool *pResult);
-	nsresult OutputValue(nsCString &outputStr);
-	nsresult ParseAttribute(char *inStream, nsMsgSearchAttribValue *attrib);
-	nsresult ParseOperator(char *inStream, nsMsgSearchOpValue *value);
-	nsresult ParseValue(char *inStream);
-	nsresult InitHeaderAddressParser();
+  nsresult OutputValue(nsCString &outputStr);
+  nsresult ParseAttribute(char *inStream, nsMsgSearchAttribValue *attrib);
+  nsresult ParseOperator(char *inStream, nsMsgSearchOpValue *value);
+  nsresult ParseValue(char *inStream);
+  nsresult InitHeaderAddressParser();
     nsresult InitializeAddressBook();
     nsresult MatchInAddressBook(const char * aAddress, PRBool *pResult);
     // fields used by search in address book
-    nsCOMPtr <nsIAbMDBDirectory> mDirectory;  
+    nsCOMPtr <nsIAbMDBDirectory> mDirectory;
 
     PRPackedBool mBeginsGrouping;
-    PRPackedBool mEndsGrouping; 
+    PRPackedBool mEndsGrouping;
 };
 
 #endif

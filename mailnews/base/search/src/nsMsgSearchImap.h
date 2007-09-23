@@ -45,21 +45,21 @@
 class nsMsgSearchOnlineMail : public nsMsgSearchAdapter
 {
 public:
-	nsMsgSearchOnlineMail (nsMsgSearchScopeTerm *scope, nsISupportsArray *termList);
-	virtual ~nsMsgSearchOnlineMail ();
+  nsMsgSearchOnlineMail (nsMsgSearchScopeTerm *scope, nsISupportsArray *termList);
+  virtual ~nsMsgSearchOnlineMail ();
 
-	NS_IMETHOD ValidateTerms ();
-	NS_IMETHOD Search (PRBool *aDone);
-	NS_IMETHOD GetEncoding (char **result);
-	NS_IMETHOD AddResultElement (nsIMsgDBHdr *);
+  NS_IMETHOD ValidateTerms ();
+  NS_IMETHOD Search (PRBool *aDone);
+  NS_IMETHOD GetEncoding (char **result);
+  NS_IMETHOD AddResultElement (nsIMsgDBHdr *);
 
-	static nsresult Encode (nsCString& ppEncoding,
+  static nsresult Encode (nsCString& ppEncoding,
                             nsISupportsArray *searchTerms,
                             const PRUnichar *destCharset);
-	
+
 
 protected:
-	nsCString m_encoding;
+  nsCString m_encoding;
 };
 
 

@@ -56,14 +56,14 @@ public:
     NS_DECLARE_STATIC_IID_ACCESSOR(NS_IMSGFILTERSERVICE_IID)
 
 /* clients call OpenFilterList to get a handle to a FilterList, of existing nsMsgFilter *.
-	These are manipulated by the front end as a result of user interaction
+  These are manipulated by the front end as a result of user interaction
    with dialog boxes. To apply the new list call MSG_CloseFilterList.
 
 */
-	NS_IMETHOD OpenFilterList(nsILocalFile *filterFile, nsIMsgFilterList **filterList) = 0;
-	NS_IMETHOD CloseFilterList(nsIMsgFilterList *filterList) = 0;
-	NS_IMETHOD SaveFilterList(nsIMsgFilterList *filterList, nsILocalFile *filterFile) = 0;	/* save without deleting */
-	NS_IMETHOD CancelFilterList(nsIMsgFilterList *filterList) = 0;
+  NS_IMETHOD OpenFilterList(nsILocalFile *filterFile, nsIMsgFilterList **filterList) = 0;
+  NS_IMETHOD CloseFilterList(nsIMsgFilterList *filterList) = 0;
+  NS_IMETHOD SaveFilterList(nsIMsgFilterList *filterList, nsILocalFile *filterFile) = 0;  /* save without deleting */
+  NS_IMETHOD CancelFilterList(nsIMsgFilterList *filterList) = 0;
 
 };
 

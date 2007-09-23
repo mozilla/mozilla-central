@@ -52,19 +52,19 @@
 class nsMsgResultElement
 {
 public:
-	nsMsgResultElement (nsIMsgSearchAdapter *);
-	virtual ~nsMsgResultElement ();
+  nsMsgResultElement (nsIMsgSearchAdapter *);
+  virtual ~nsMsgResultElement ();
 
-	static nsresult AssignValues (nsIMsgSearchValue *src, nsMsgSearchValue *dst);
-	nsresult GetValue (nsMsgSearchAttribValue, nsMsgSearchValue **) const;
-	nsresult AddValue (nsIMsgSearchValue*);
+  static nsresult AssignValues (nsIMsgSearchValue *src, nsMsgSearchValue *dst);
+  nsresult GetValue (nsMsgSearchAttribValue, nsMsgSearchValue **) const;
+  nsresult AddValue (nsIMsgSearchValue*);
     nsresult AddValue (nsMsgSearchValue*);
 
-	nsresult GetPrettyName (nsMsgSearchValue**);
-	nsresult Open (void *window);
+  nsresult GetPrettyName (nsMsgSearchValue**);
+  nsresult Open (void *window);
 
     nsCOMPtr<nsISupportsArray> m_valueList;
-	nsIMsgSearchAdapter *m_adapter;
+  nsIMsgSearchAdapter *m_adapter;
 
 protected:
 };

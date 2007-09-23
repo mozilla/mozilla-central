@@ -60,13 +60,13 @@ public:
 
 private:
     nsMsgRuleActionType      m_type;
-		// this used to be a union - why bother?
-    nsMsgPriorityValue	m_priority;  /* priority to set rule to */
+    // this used to be a union - why bother?
+    nsMsgPriorityValue  m_priority;  /* priority to set rule to */
     nsMsgLabelValue         m_label;  /* label to set rule to */
-    nsCString		m_folderUri; 
+    nsCString    m_folderUri;
     PRInt32             m_junkScore;  /* junk score (or arbitrary int value?) */
     // arbitrary string value. Currently, email address to forward to
-    nsCString           m_strValue; 
+    nsCString           m_strValue;
 } ;
 
 
@@ -80,8 +80,8 @@ public:
 
   NS_DECL_NSIMSGFILTER
 
-  nsMsgFilterTypeType	GetType() {return m_type;}
-  void	  SetType(nsMsgFilterTypeType	type) {m_type = type;}
+  nsMsgFilterTypeType  GetType() {return m_type;}
+  void    SetType(nsMsgFilterTypeType  type) {m_type = type;}
   PRBool  GetEnabled() {return m_enabled;}
   void    SetFilterScript(nsCString *filterName) ;
   void    SetFilterList(nsIMsgFilterList* filterList);
@@ -98,7 +98,7 @@ public:
 
   PRInt16   GetVersion();
 #ifdef DEBUG
-  void	    Dump();
+  void      Dump();
 #endif
 
   nsresult  ConvertMoveOrCopyToFolderValue(nsIMsgRuleAction *filterAction, nsCString &relativePath);
@@ -109,14 +109,14 @@ public:
 protected:
   nsMsgFilterTypeType m_type;
   nsString    m_filterName;
-  nsCString   m_scriptFileName;	// iff this filter is a script.
+  nsCString   m_scriptFileName;  // iff this filter is a script.
   nsCString   m_description;
   nsCString   m_unparsedBuffer;
 
   PRPackedBool m_enabled;
   PRPackedBool m_temporary;
   PRPackedBool m_unparseable;
-  nsIMsgFilterList *m_filterList;	/* owning filter list */
+  nsIMsgFilterList *m_filterList;  /* owning filter list */
   nsCOMPtr<nsISupportsArray> m_termList;       /* linked list of criteria terms */
   nsCOMPtr<nsIMsgSearchScopeTerm> m_scope;         /* default for mail rules is inbox, but news rules could
                                                   have a newsgroup - LDAP would be invalid */

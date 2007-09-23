@@ -57,6 +57,6 @@ interface nsIMsgSearchValue : nsISupports {
     attribute nsIMsgFolder folder;
     attribute nsMsgLabelValue label;
     attribute nsMsgJunkStatus junkStatus;
-	
+
     AString toString();
 };

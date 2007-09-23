@@ -53,8 +53,8 @@ class nsMsgSearchBoolExpression;
 class nsMsgSearchOfflineMail : public nsMsgSearchAdapter, public nsIUrlListener
 {
 public:
-	nsMsgSearchOfflineMail (nsIMsgSearchScopeTerm*, nsISupportsArray *);
-	virtual ~nsMsgSearchOfflineMail ();
+  nsMsgSearchOfflineMail (nsIMsgSearchScopeTerm*, nsISupportsArray *);
+  virtual ~nsMsgSearchOfflineMail ();
 
   NS_DECL_ISUPPORTS_INHERITED
 
@@ -65,15 +65,15 @@ public:
   NS_IMETHOD Abort ();
   NS_IMETHOD AddResultElement (nsIMsgDBHdr *);
 
-	static nsresult  MatchTermsForFilter(nsIMsgDBHdr * msgToMatch,
+  static nsresult  MatchTermsForFilter(nsIMsgDBHdr * msgToMatch,
                                          nsISupportsArray *termList,
                                          const char *defaultCharset,
-                                         nsIMsgSearchScopeTerm *scope, 
-                                         nsIMsgDatabase * db, 
+                                         nsIMsgSearchScopeTerm *scope,
+                                         nsIMsgDatabase * db,
                                          const char * headers,
                                          PRUint32 headerSize,
                                          nsMsgSearchBoolExpression ** aExpressionTree,
-										 PRBool *pResult);
+                     PRBool *pResult);
 
   static nsresult MatchTermsForSearch(nsIMsgDBHdr * msgTomatch,
                                       nsISupportsArray * termList,
@@ -83,48 +83,48 @@ public:
                                       nsMsgSearchBoolExpression ** aExpressionTree,
  PRBool *pResult);
 
-	virtual nsresult OpenSummaryFile ();
+  virtual nsresult OpenSummaryFile ();
 
      static nsresult ProcessSearchTerm(nsIMsgDBHdr *msgToMatch,
                                nsIMsgSearchTerm * aTerm,
                                const char *defaultCharset,
                                nsIMsgSearchScopeTerm * scope,
-                               nsIMsgDatabase * db, 
+                               nsIMsgDatabase * db,
                                const char * headers,
                                PRUint32 headerSize,
                                PRBool Filtering,
-							   PRBool *pResult); 
+                 PRBool *pResult);
 protected:
-	static nsresult MatchTerms(nsIMsgDBHdr *msgToMatch,
+  static nsresult MatchTerms(nsIMsgDBHdr *msgToMatch,
                                 nsISupportsArray *termList,
                                 const char *defaultCharset,
-                                nsIMsgSearchScopeTerm *scope, 
-                                nsIMsgDatabase * db, 
+                                nsIMsgSearchScopeTerm *scope,
+                                nsIMsgDatabase * db,
                                 const char * headers,
                                 PRUint32 headerSize,
                                 PRBool ForFilters,
                                 nsMsgSearchBoolExpression ** aExpressionTree,
-								PRBool *pResult);
+                PRBool *pResult);
 
     static nsresult ConstructExpressionTree(nsISupportsArray * termList,
                                       PRUint32 termCount,
                                       PRUint32 &aStartPosInList,
                                       nsMsgSearchBoolExpression ** aExpressionTree);
-    
-	nsCOMPtr <nsIMsgDatabase> m_db;
-	nsCOMPtr<nsISimpleEnumerator> m_listContext;
-	void CleanUpScope();
+
+  nsCOMPtr <nsIMsgDatabase> m_db;
+  nsCOMPtr<nsISimpleEnumerator> m_listContext;
+  void CleanUpScope();
 };
 
 
 class nsMsgSearchOfflineNews : public nsMsgSearchOfflineMail
 {
 public:
-	nsMsgSearchOfflineNews (nsIMsgSearchScopeTerm*, nsISupportsArray *);
-	virtual ~nsMsgSearchOfflineNews ();
-	NS_IMETHOD ValidateTerms ();
+  nsMsgSearchOfflineNews (nsIMsgSearchScopeTerm*, nsISupportsArray *);
+  virtual ~nsMsgSearchOfflineNews ();
+  NS_IMETHOD ValidateTerms ();
 
-	virtual nsresult OpenSummaryFile ();
+  virtual nsresult OpenSummaryFile ();
 };
 
 

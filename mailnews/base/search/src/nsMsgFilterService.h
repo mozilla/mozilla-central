@@ -51,15 +51,14 @@ class nsMsgFilterService : public nsIMsgFilterService
 {
 
 public:
-	nsMsgFilterService();
-	virtual ~nsMsgFilterService();
+  nsMsgFilterService();
+  virtual ~nsMsgFilterService();
 
   NS_DECL_ISUPPORTS
   NS_DECL_NSIMSGFILTERSERVICE
 /* clients call OpenFilterList to get a handle to a FilterList, of existing nsMsgFilter *.
-	These are manipulated by the front end as a result of user interaction
+  These are manipulated by the front end as a result of user interaction
    with dialog boxes. To apply the new list call MSG_CloseFilterList.
-
 */
   nsresult BackUpFilterFile(nsILocalFile *aFilterFile, nsIMsgWindow *aMsgWindow);
   nsresult AlertBackingUpFilterFile(nsIMsgWindow *aMsgWindow);
