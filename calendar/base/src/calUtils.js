@@ -40,49 +40,46 @@
  * that loading this file twice in the same scope will throw errors.
  */
 
-const Cc = Components.classes;
-const Ci = Components.interfaces;
-const Cr = Components.results;
-const kSUNBIRD_UID = "{718e30fb-e89b-41dd-9da7-e25a45638b28}";
-
 /* Returns a clean new calIEvent */
 function createEvent() {
-    return Cc["@mozilla.org/calendar/event;1"].createInstance(Ci.calIEvent);
+    return Components.classes["@mozilla.org/calendar/event;1"].
+           createInstance(Components.interfaces.calIEvent);
 }
 
 /* Returns a clean new calITodo */
 function createTodo() {
-    return Cc["@mozilla.org/calendar/todo;1"].createInstance(Ci.calITodo);
+    return Components.classes["@mozilla.org/calendar/todo;1"].
+           createInstance(Components.interfaces.calITodo);
 }
 
 /* Returns a clean new calIDateTime */
 function createDateTime() {
-    return Cc["@mozilla.org/calendar/datetime;1"].
-           createInstance(Ci.calIDateTime);
+    return Components.classes["@mozilla.org/calendar/datetime;1"].
+           createInstance(Components.interfaces.calIDateTime);
 }
 
 /* Returns a clean new calIRecurrenceInfo */
 function createRecurrenceInfo() {
-    return Cc["@mozilla.org/calendar/recurrence-info;1"].
-           createInstance(Ci.calIRecurrenceInfo);
+    return Components.classes["@mozilla.org/calendar/recurrence-info;1"].
+           createInstance(Components.interfaces.calIRecurrenceInfo);
 }
 
 /* Returns a clean new calIRecurrenceRule */
 function createRecurrenceRule() {
-    return Cc["@mozilla.org/calendar/recurrence-rule;1"].
-           createInstance(Ci.calIRecurrenceRule);
+    return Components.classes["@mozilla.org/calendar/recurrence-rule;1"].
+           createInstance(Components.interfaces.calIRecurrenceRule);
 }
 
 /* Returns a clean new calIAttendee */
 function createAttendee() {
-    return Cc["@mozilla.org/calendar/attendee;1"].
-           createInstance(Ci.calIAttendee);
+    return Components.classes["@mozilla.org/calendar/attendee;1"].
+           createInstance(Components.interfaces.calIAttendee);
 }
 
 /* Shortcut to the calendar-manager service */
 function getCalendarManager() {
     return Components.classes["@mozilla.org/calendar/manager;1"].
-           getService(Ci.calICalendarManager);
+           getService(Components.interfaces.calICalendarManager);
 }
 
 /**
@@ -99,8 +96,8 @@ function calendarDefaultTimezone() {
         if (!gDefaultTimezone) {
             gDefaultTimezone = guessSystemTimezone();
         } else {
-            var icsSvc = Cc["@mozilla.org/calendar/ics-service;1"]
-                         .getService(Ci.calIICSService);
+            var icsSvc = Components.classes["@mozilla.org/calendar/ics-service;1"].
+                         getService(Components.interfaces.calIICSService);
 
             // Update this tzid if necessary.
             if (icsSvc.latestTzId(gDefaultTimezone).length) {
@@ -145,8 +142,9 @@ function guessSystemTimezone() {
     // the offset is always 5 characters long
     var TZoffset1 = Date1.substr(index, 5);
     index = Date2.indexOf('+');
-    if (index < 0)
+    if (index < 0) {
         index = Date2.indexOf('-');
+    }
     // the offset is always 5 characters long
     var TZoffset2 = Date2.substr(index, 5);
 
@@ -156,8 +154,8 @@ function guessSystemTimezone() {
         dump("TZname1: " + TZname1 + "\nTZname2: " + TZname2 + "\n");
     }
 
-    var icsSvc = Cc["@mozilla.org/calendar/ics-service;1"].
-                 getService(Ci.calIICSService);
+    var icsSvc = Components.classes["@mozilla.org/calendar/ics-service;1"].
+                 getService(Components.interfaces.calIICSService);
 
     // returns 0=definitely not, 1=maybe, 2=likely
     function checkTZ(someTZ)
@@ -314,8 +312,8 @@ function calPrint() {
  * @returns  an nsIURI whose spec is aUriString
  */
 function makeURL(aUriString) {
-    var ioSvc = Cc["@mozilla.org/network/io-service;1"].
-                getService(Ci.nsIIOService);
+    var ioSvc = Components.classes["@mozilla.org/network/io-service;1"].
+                getService(Components.interfaces.nsIIOService);
     return ioSvc.newURI(aUriString, null, null);
 }
 
@@ -371,7 +369,7 @@ function calRadioGroupSelectItem(aRadioGroupId, aItemId) {
  * @returns        true if the object is a calIEvent, false otherwise
  */
 function isEvent(aObject) {
-    return aObject instanceof Ci.calIEvent;
+    return aObject instanceof Components.interfaces.calIEvent;
 }
 
 /**
@@ -381,7 +379,7 @@ function isEvent(aObject) {
  * @returns        true if the object is a calITodo, false otherwise
  */
 function isToDo(aObject) {
-    return aObject instanceof Ci.calITodo;
+    return aObject instanceof Components.interfaces.calITodo;
 }
 
 /**
@@ -447,12 +445,12 @@ function setPref(aPrefName, aPrefType, aPrefValue) {
  * @param aString     the string to which the preference value should be set
  */
 function setLocalizedPref(aPrefName, aString) {
-    const prefB = Cc["@mozilla.org/preferences-service;1"].
-                  getService(Ci.nsIPrefBranch);
-    var str = Cc["@mozilla.org/supports-string;1"].
-              createInstance(Ci.nsISupportsString);
+    const prefB = Components.classes["@mozilla.org/preferences-service;1"].
+                  getService(Components.interfaces.nsIPrefBranch);
+    var str = Components.classes["@mozilla.org/supports-string;1"].
+              createInstance(Components.interfaces.nsISupportsString);
     str.data = aString;
-    prefB.setComplexValue(aPrefName, Ci.nsISupportsString, str);
+    prefB.setComplexValue(aPrefName, Components.interfaces.nsISupportsString, str);
 }
 
 /**
@@ -462,11 +460,11 @@ function setLocalizedPref(aPrefName, aString) {
  * @param aDefault    (optional) the value to return if the pref is undefined
  */
 function getLocalizedPref(aPrefName, aDefault) {
-    const pb2 = Cc["@mozilla.org/preferences-service;1"].
-                getService(Ci.nsIPrefBranch2);
+    const pb2 = Components.classes["@mozilla.org/preferences-service;1"].
+                getService(Components.interfaces.nsIPrefBranch2);
     var result;
     try {
-        result = pb2.getComplexValue(aPrefName, Ci.nsISupportsString).data;
+        result = pb2.getComplexValue(aPrefName, Components.interfaces.nsISupportsString).data;
     } catch(ex) {
         return aDefault;
     }
@@ -499,8 +497,8 @@ function calGetString(aBundleName, aStringName, aParams) {
  */
 function getUUID() {
     if ("@mozilla.org/uuid-generator;1" in Components.classes) {
-        var uuidGen = Cc["@mozilla.org/uuid-generator;1"].
-                      getService(Ci.nsIUUIDGenerator);
+        var uuidGen = Components.classes["@mozilla.org/uuid-generator;1"].
+                      getService(Components.interfaces.nsIUUIDGenerator);
         // generate uuids without braces to avoid problems with 
         // CalDAV servers that don't support filenames with {}
         return uuidGen.generateUUID().toString().replace(/[{}]/g, '');
@@ -518,15 +516,15 @@ function getUUID() {
  * calIItemBase comparer
  */
 function compareItems(aItem, aOtherItem) {
-    var sip1 = Cc["@mozilla.org/supports-interface-pointer;1"].
-               createInstance(Ci.nsISupportsInterfacePointer);
+    var sip1 = Components.classes["@mozilla.org/supports-interface-pointer;1"].
+               createInstance(Components.interfaces.nsISupportsInterfacePointer);
     sip1.data = aItem;
-    sip1.dataIID = Ci.calIItemBase;
+    sip1.dataIID = Components.interfaces.calIItemBase;
 
-    var sip2 = Cc["@mozilla.org/supports-interface-pointer;1"].
-               createInstance(Ci.nsISupportsInterfacePointer);
+    var sip2 = Components.classes["@mozilla.org/supports-interface-pointer;1"].
+               createInstance(Components.interfaces.nsISupportsInterfacePointer);
     sip2.data = aOtherItem;
-    sip2.dataIID = Ci.calIItemBase;
+    sip2.dataIID = Components.interfaces.calIItemBase;
     return sip1.data == sip2.data;
 }
 
@@ -540,13 +538,13 @@ function compareItems(aItem, aOtherItem) {
  * @param aIID           IID to use in comparison
  */
 function compareObjects(aObject, aOtherObject, aIID) {
-    var sip1 = Cc["@mozilla.org/supports-interface-pointer;1"].
-               createInstance(Ci.nsISupportsInterfacePointer);
+    var sip1 = Components.classes["@mozilla.org/supports-interface-pointer;1"].
+               createInstance(Components.interfaces.nsISupportsInterfacePointer);
     sip1.data = aObject;
     sip1.dataIID = aIID;
 
-    var sip2 = Cc["@mozilla.org/supports-interface-pointer;1"].
-               createInstance(Ci.nsISupportsInterfacePointer);
+    var sip2 = Components.classes["@mozilla.org/supports-interface-pointer;1"].
+               createInstance(Components.interfaces.nsISupportsInterfacePointer);
     sip2.data = aOtherObject;
     sip2.dataIID = aIID;
     return sip1.data == sip2.data;
@@ -616,8 +614,8 @@ function ensureDateTime(aDate) {
  *              properties should be logged.
  */
 function LOG(aArg) {
-    var prefB = Cc["@mozilla.org/preferences-service;1"].
-                getService(Ci.nsIPrefBranch);
+    var prefB = Components.classes["@mozilla.org/preferences-service;1"].
+                getService(Components.interfaces.nsIPrefBranch);
     var shouldLog = false;
     try {
         shouldLog = prefB.getBoolPref("calendar.debug.log");
@@ -640,8 +638,8 @@ function LOG(aArg) {
     }
  
     dump(string + '\n');
-    var consoleSvc = Cc["@mozilla.org/consoleservice;1"].
-                     getService(Ci.nsIConsoleService);
+    var consoleSvc = Components.classes["@mozilla.org/consoleservice;1"].
+                     getService(Components.interfaces.nsIConsoleService);
     consoleSvc.logStringMessage(string);
 }
 
@@ -892,8 +890,9 @@ function deleteEventCommand(doNotConfirm)
  */
 function isSunbird()
 {
-    var appInfo = Cc["@mozilla.org/xre/app-info;1"].
-                  getService(Ci.nsIXULAppInfo);
+    const kSUNBIRD_UID = "{718e30fb-e89b-41dd-9da7-e25a45638b28}";
+    var appInfo = Components.classes["@mozilla.org/xre/app-info;1"].
+                  getService(Components.interfaces.nsIXULAppInfo);
 
     return appInfo.ID == kSUNBIRD_UID;
 }
@@ -1116,8 +1115,8 @@ function hasPositiveIntegerValue(elementId)
 }
 
 function getAtomFromService(aStr) {
-    var atomService = Cc["@mozilla.org/atom-service;1"]
-                      .getService(Ci.nsIAtomService);
+    var atomService = Components.classes["@mozilla.org/atom-service;1"]
+                      .getService(Components.interfaces.nsIAtomService);
     return atomService.getAtom(aStr);
 }
 
@@ -1190,31 +1189,31 @@ function sendMailTo(aRecipient, aSubject, aBody) {
         return;
     }
 
-    if (Cc["@mozilla.org/messengercompose;1"]) {
+    if (Components.classes["@mozilla.org/messengercompose;1"]) {
         // We are in Thunderbird, we can use the compose interface directly
-        var msgComposeService = Cc["@mozilla.org/messengercompose;1"]
-                                .getService(Ci.nsIMsgComposeService);
-        var msgParams = Cc["@mozilla.org/messengercompose/composeparams;1"]
-                        .createInstance(Ci.nsIMsgComposeParams);
-        var composeFields = Cc["@mozilla.org/messengercompose/composefields;1"]
-                            .createInstance(Ci.nsIMsgCompFields);
+        var msgComposeService = Components.classes["@mozilla.org/messengercompose;1"]
+                                .getService(Components.interfaces.nsIMsgComposeService);
+        var msgParams = Components.classes["@mozilla.org/messengercompose/composeparams;1"]
+                        .createInstance(Components.interfaces.nsIMsgComposeParams);
+        var composeFields = Components.classes["@mozilla.org/messengercompose/composefields;1"]
+                            .createInstance(Components.interfaces.nsIMsgCompFields);
 
         composeFields.to = aRecipient;
         composeFields.subject = aSubject;
         composeFields.body = aBody;
 
-        msgParams.type = Ci.nsIMsgCompType.New;
-        msgParams.format = Ci.nsIMsgCompFormat.Default;
+        msgParams.type = Components.interfaces.nsIMsgCompType.New;
+        msgParams.format = Components.interfaces.nsIMsgCompFormat.Default;
         msgParams.composeFields = composeFields;
 
         msgComposeService.OpenComposeWindowWithParams(null, msgParams);
     } else {
         // We are in a place without a composer. Use the external protocol
         // service.
-        var protoSvc = Cc["@mozilla.org/uriloader/external-protocol-service;1"]
-                       .getService(Ci.nsIExternalProtocolService);
-        var ioService = Cc["@mozilla.org/network/io-service;1"]
-                        .getService(Ci.nsIIOService);
+        var protoSvc = Components.classes["@mozilla.org/uriloader/external-protocol-service;1"]
+                       .getService(Components.interfaces.nsIExternalProtocolService);
+        var ioService = Components.classes["@mozilla.org/network/io-service;1"]
+                        .getService(Components.interfaces.nsIIOService);
 
         var uriString = "mailto:" + aRecipient;
         var uriParams = [];

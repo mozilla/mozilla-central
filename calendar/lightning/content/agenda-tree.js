@@ -385,7 +385,7 @@ function agendaDoubleClick(event)
 agendaTreeView.onKeyPress =
 function onKeyPress(event)
 {
-  const kKE = Ci.nsIDOMKeyEvent;
+  const kKE = Components.interfaces.nsIDOMKeyEvent;
   switch(event.keyCode) {
     case kKE.DOM_VK_DELETE:
       document.getElementById('agenda_delete_event_command').doCommand();
