@@ -2234,7 +2234,8 @@ function ss_init ()
 {
     var prefs =
         [
-         ["source2View.maxTabs", 5],
+         ["source2View.maxTabs", 10],
+         ["source2View.alertMaxTabs", true],
          ["source2View.showCloseButton", true],
          ["source2View.middleClickClose", false]
         ];
@@ -3088,10 +3089,21 @@ function s2v_addsource (sourceText)
         return this.sourceTabList[index];
     }
     
-    if (this.sourceTabList.length < console.prefs["source2View.maxTabs"])
+    var maxSourceTabs = console.prefs["source2View.maxTabs"];
+    if (!maxSourceTabs || (this.sourceTabList.length < maxSourceTabs))
+    {
         index = this.sourceTabList.length;
+    }
     else
+    {
         index = 0;
+        if (console.prefs["source2View.alertMaxTabs"])
+        {
+            var rv = alertCheck(getMsg(MSN_MAXTABS_REACHED, maxSourceTabs),
+                                MSG_MAXTABS_ALERT, true);
+            console.prefs["source2View.alertMaxTabs"] = rv;
+        }
+    }
 
     return this.loadSourceTextAtIndex (sourceText, index);
 }

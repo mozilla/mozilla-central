@@ -300,6 +300,22 @@ function prompt(msg, initial, parent, title)
     return rv.value;
 }
 
+function alertCheck(msg, checkMsg, checkVal, parent, title)
+{
+    const PROMPT_CTRID = "@mozilla.org/embedcomp/prompt-service;1";
+    const nsIPromptService = Components.interfaces.nsIPromptService;
+    var ps = Components.classes[PROMPT_CTRID].getService(nsIPromptService);
+    if (!parent)
+        parent = window;
+    if (!title)
+        title = MSG_ALERT;
+    
+    var checkBoxWrapper = {value: !!checkVal};
+    ps.alertCheck(parent, title, msg, checkMsg, checkBoxWrapper);
+    return checkBoxWrapper.value;
+}
+
+
 function getChildById (element, id)
 {
     var nl = element.getElementsByAttribute("id", id);
