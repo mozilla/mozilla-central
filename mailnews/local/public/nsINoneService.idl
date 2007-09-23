@@ -40,5 +40,5 @@
 
 [scriptable, uuid(14714890-1dd2-11b2-87de-d265839520d6)]
 interface nsINoneService : nsISupports {
-	/* nothing yet, but soon. */
+  /* nothing yet, but soon. */
 };

@@ -49,13 +49,13 @@
 nsPop3URL::nsPop3URL(): nsMsgMailNewsUrl()
 {
 }
- 
+
 nsPop3URL::~nsPop3URL()
 {
 }
 
-NS_IMPL_ISUPPORTS_INHERITED1(nsPop3URL, nsMsgMailNewsUrl, nsIPop3URL)  
-  
+NS_IMPL_ISUPPORTS_INHERITED1(nsPop3URL, nsMsgMailNewsUrl, nsIPop3URL)
+
 
 ////////////////////////////////////////////////////////////////////////////////////
 // Begin nsIPop3URL specific support
@@ -97,9 +97,9 @@ nsPop3URL::SetMessageUri(const char *aMessageUri)
 
 nsresult nsPop3URL::ParseUrl(const nsString& aSpec)
 {
-	// mscott - i don't believe I'm going to need this
-	// method anymore..
-	NS_ASSERTION(0, "we shouldn't need to call this method anymore");
+  // mscott - i don't believe I'm going to need this
+  // method anymore..
+  NS_ASSERTION(0, "we shouldn't need to call this method anymore");
     return NS_OK;
 }
 

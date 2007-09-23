@@ -63,7 +63,7 @@ public:
     void CheckPartialMessages(nsIPop3Protocol *protocol);
 
     static char*  GetDummyEnvelope(void);
-    
+
 protected:
 
     nsresult WriteLineToMailbox(const char *buffer);
@@ -82,7 +82,7 @@ protected:
     nsIPop3IncomingServer *m_popServer;
     //Currently the folder we want to update about biff info
     nsIMsgFolder *m_folder;
-    nsParseNewMailState	*m_newMailParser;
+    nsParseNewMailState  *m_newMailParser;
 #ifdef DEBUG
     PRInt32 m_fileCounter;
 #endif

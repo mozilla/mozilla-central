@@ -67,12 +67,12 @@ interface nsIPop3Service : nsISupports {
    * we'll eventually pass in an identity to this call so you can get
    * mail on different pop3 accounts....
    */
-  
+
   nsIURI GetNewMail(in nsIMsgWindow aMsgWindow, in nsIUrlListener aUrlListener,
-					in nsIMsgFolder aInbox,
+          in nsIMsgFolder aInbox,
                     in nsIPop3IncomingServer popServer);
 
   nsIURI CheckForNewMail(in nsIMsgWindow aMsgWindow, in nsIUrlListener aUrlListener,
-						 in nsIMsgFolder inbox,
+             in nsIMsgFolder inbox,
                          in nsIPop3IncomingServer popServer);
 };

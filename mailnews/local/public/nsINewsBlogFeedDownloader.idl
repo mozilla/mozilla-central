@@ -44,13 +44,13 @@ interface nsIMsgWindow;
 interface nsINewsBlogFeedDownloader : nsISupports
 {
   void downloadFeed(in string aUrl, in nsIMsgFolder aFolder,
-                     in boolean aQuickMode, in wstring aTitle,  
-					in nsIUrlListener aUrlListener, in nsIMsgWindow aMsgWindow);
+                     in boolean aQuickMode, in wstring aTitle,
+          in nsIUrlListener aUrlListener, in nsIMsgWindow aMsgWindow);
 
   /* A convient method to subscribe to feeds without going through the subscribe UI
      used by drag and drop */
   void subscribeToFeed(in string aUrl, in nsIMsgFolder aFolder, in nsIMsgWindow aMsgWindow);
-  
+
   /* called when the RSS Incoming Server detects a change to an RSS folder. For instance, the user just
      deleted an RSS folder and we need to update the subscriptions data source. Or the user renamed an RSS folder...
   */

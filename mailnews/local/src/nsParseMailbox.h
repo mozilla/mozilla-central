@@ -83,10 +83,10 @@ class nsParseMailMessageState : public nsIMsgParseMailMsgState
 public:
   NS_DECL_ISUPPORTS
   NS_DECL_NSIMSGPARSEMAILMSGSTATE
-	
+
   nsParseMailMessageState();
   virtual               ~nsParseMailMessageState();
-  
+
   void                  Init(PRUint32 fileposition);
   virtual PRInt32       ParseFolderLine(const char *line, PRUint32 lineLength);
   virtual int           StartNewEnvelope(const char *line, PRUint32 lineLength);
@@ -95,24 +95,24 @@ public:
   int                   ParseEnvelope (const char *line, PRUint32 line_size);
   int                   InternSubject (struct message_header *header);
   nsresult  InternRfc822 (struct message_header *header, char **ret_name);
-  
-  static PRBool	IsEnvelopeLine(const char *buf, PRInt32 buf_size);
-  static int  msg_UnHex(char C); 
-  
+
+  static PRBool  IsEnvelopeLine(const char *buf, PRInt32 buf_size);
+  static int  msg_UnHex(char C);
+
   nsCOMPtr<nsIMsgHeaderParser> m_HeaderAddressParser;
-  
+
   nsCOMPtr<nsIMsgDBHdr> m_newMsgHdr; /* current message header we're building */
   nsCOMPtr<nsIMsgDatabase>  m_mailDB;
-  
+
   nsMailboxParseState   m_state;
   PRUint32              m_position;
   PRUint32              m_envelope_pos;
   PRUint32              m_headerstartpos;
-  
+
   nsByteArray           m_headers;
-  
+
   nsByteArray           m_envelope;
-  
+
   struct message_header m_message_id;
   struct message_header m_references;
   struct message_header m_date;
@@ -127,14 +127,14 @@ public:
   struct message_header m_in_reply_to;
   struct message_header m_replyTo;
   struct message_header m_content_type;
-  
+
   // Support for having multiple To or Cc header lines in a message
   nsVoidArray m_toList;
   nsVoidArray m_ccList;
   struct message_header *GetNextHeaderInAggregate (nsVoidArray &list);
   void GetAggregateHeader (nsVoidArray &list, struct message_header *);
   void ClearAggregateHeader (nsVoidArray &list);
-  
+
   struct message_header m_envelope_from;
   struct message_header m_envelope_date;
   struct message_header m_priority;
@@ -147,10 +147,10 @@ public:
 
   PRTime m_receivedTime;
   PRUint16              m_body_lines;
-  
+
   PRBool                m_IgnoreXMozillaStatus;
 
-  // this enables extensions to add the values of particular headers to 
+  // this enables extensions to add the values of particular headers to
   // the .msf file as properties of nsIMsgHdr. It is initialized from a
   // pref, mailnews.customDBHeaders
   nsCStringArray        m_customDBHeaders;
@@ -166,7 +166,7 @@ inline int nsParseMailMessageState::msg_UnHex(char C)
      ((C >= 'a' && C <= 'f') ? C - 'a' + 10 : 0)));
 }
 
-// This class is part of the mailbox parsing state machine 
+// This class is part of the mailbox parsing state machine
 class nsMsgMailboxParser : public nsIStreamListener, public nsParseMailMessageState, public nsMsgLineBuffer, public nsIDBChangeListener
 {
 public:
@@ -178,7 +178,7 @@ public:
   NS_DECL_ISUPPORTS_INHERITED
 
   ////////////////////////////////////////////////////////////////////////////////////////
-  // we suppport the nsIStreamListener interface 
+  // we suppport the nsIStreamListener interface
   ////////////////////////////////////////////////////////////////////////////////////////
   NS_DECL_NSIREQUESTOBSERVER
   NS_DECL_NSISTREAMLISTENER
@@ -189,8 +189,8 @@ public:
   // message socket libnet callbacks, which come through folder pane
   virtual int ProcessMailboxInputStream(nsIURI* aURL, nsIInputStream *aIStream, PRUint32 aLength);
 
-  virtual void	DoneParsingFolder(nsresult status);
-  virtual void	AbortNewHeader();
+  virtual void  DoneParsingFolder(nsresult status);
+  virtual void  AbortNewHeader();
 
   // for nsMsgLineBuffer
   virtual PRInt32 HandleLine(char *line, PRUint32 line_length);
@@ -222,38 +222,38 @@ private:
   // the following flag is used to determine when a url is currently being run. It is cleared on calls
   // to ::StopBinding and it is set whenever we call Load on a url
   PRBool    m_urlInProgress;
-  nsWeakPtr m_folder; 
+  nsWeakPtr m_folder;
   void Init();
   void ReleaseFolderLock();
 
 };
 
-class nsParseNewMailState : public nsMsgMailboxParser 
+class nsParseNewMailState : public nsMsgMailboxParser
 , public nsIMsgFilterHitNotify
 {
 public:
   nsParseNewMailState();
   virtual ~nsParseNewMailState();
   NS_DECL_ISUPPORTS_INHERITED
-  nsresult Init(nsIMsgFolder *rootFolder, nsIMsgFolder *downloadFolder, nsILocalFile *folder, 
+  nsresult Init(nsIMsgFolder *rootFolder, nsIMsgFolder *downloadFolder, nsILocalFile *folder,
                 nsIInputStream *inboxFileStream, nsIMsgWindow *aMsgWindow,
                 PRBool downloadingToTempFile);
-  
-  virtual void	DoneParsingFolder(nsresult status);
-  
+
+  virtual void  DoneParsingFolder(nsresult status);
+
   void DisableFilters() {m_disableFilters = PR_TRUE;}
-  
+
   NS_DECL_NSIMSGFILTERHITNOTIFY
-    
+
   nsOutputFileStream *GetLogFile();
   virtual PRInt32 PublishMsgHeader(nsIMsgWindow *msgWindow);
   void            GetMsgWindow(nsIMsgWindow **aMsgWindow);
   nsresult EndMsgDownload();
 
-  nsresult AppendMsgFromFile(nsIInputStream *fileStream, PRInt32 offset, 
+  nsresult AppendMsgFromFile(nsIInputStream *fileStream, PRInt32 offset,
                              PRUint32 length, nsILocalFile *destFile);
 
-  virtual void ApplyFilters(PRBool *pMoved, nsIMsgWindow *msgWindow, 
+  virtual void ApplyFilters(PRBool *pMoved, nsIMsgWindow *msgWindow,
                              PRUint32 msgOffset);
   nsresult    ApplyForwardAndReplyFilter(nsIMsgWindow *msgWindow);
   void        NotifyGlobalListeners(nsIMsgDBHdr *newHdr);
@@ -263,8 +263,8 @@ public:
   PRInt32     m_numNotNewMessages;
 protected:
   virtual nsresult GetTrashFolder(nsIMsgFolder **pTrashFolder);
-  virtual nsresult  MoveIncorporatedMessage(nsIMsgDBHdr *mailHdr, 
-                                          nsIMsgDatabase *sourceDB, 
+  virtual nsresult  MoveIncorporatedMessage(nsIMsgDBHdr *mailHdr,
+                                          nsIMsgDatabase *sourceDB,
                                           nsIMsgFolder *destIFolder,
                                           nsIMsgFilter *filter,
                                           nsIMsgWindow *msgWindow);
@@ -291,10 +291,10 @@ protected:
   PRUint32      m_ibuffer_size;
   // used for applying move filters, because in the case of using a temporary
   // download file, the offset/key in the msg hdr is not right.
-  PRUint32      m_curHdrOffset; 
+  PRUint32      m_curHdrOffset;
 
-  // we have to apply the reply/forward filters in a second pass, after 
-  // msg quarantining and moving to other local folders, so we remember the 
+  // we have to apply the reply/forward filters in a second pass, after
+  // msg quarantining and moving to other local folders, so we remember the
   // info we'll need to apply them with these vars.
   // these need to be arrays in case we have multiple reply/forward filters.
   nsCStringArray     m_forwardTo;

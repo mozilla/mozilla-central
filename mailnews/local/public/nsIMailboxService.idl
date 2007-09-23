@@ -53,7 +53,7 @@ interface nsIMailboxService : nsISupports {
    * the url you are given back. Remember to release aURL when you are done
    * with it. Pass nsnull in for aURL if you don't care about the returned URL.
    */
-	
+
   /*
    * Pass in a file path for the mailbox you wish to parse. You also need to
    * pass in a mailbox  parser (the consumer). The url listener can be null

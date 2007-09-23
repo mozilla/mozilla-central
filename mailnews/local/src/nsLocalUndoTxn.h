@@ -49,8 +49,8 @@
 
 #define NS_LOCALMOVECOPYMSGTXN_IID \
 { /* 874363b4-242e-11d3-afad-001083002da8 */ \
-	0x874363b4, 0x242e, 0x11d3, \
-	{ 0xaf, 0xad, 0x00, 0x10, 0x83, 0x00, 0x2d, 0xa8 } }
+  0x874363b4, 0x242e, 0x11d3, \
+  { 0xaf, 0xad, 0x00, 0x10, 0x83, 0x00, 0x2d, 0xa8 } }
 
 class nsLocalUndoFolderListener;
 
@@ -70,20 +70,20 @@ public:
 
     // helper
     nsresult AddSrcKey(nsMsgKey aKey);
-		nsresult AddSrcStatusOffset(PRUint32 statusOffset);
+    nsresult AddSrcStatusOffset(PRUint32 statusOffset);
     nsresult AddDstKey(nsMsgKey aKey);
     nsresult AddDstMsgSize(PRUint32 msgSize);
     nsresult SetSrcFolder(nsIMsgFolder* srcFolder);
     nsresult GetSrcIsImap(PRBool *isImap);
     nsresult SetDstFolder(nsIMsgFolder* dstFolder);
     nsresult Init(nsIMsgFolder* srcFolder,
-				  nsIMsgFolder* dstFolder,
-				  PRBool isMove);
-    nsresult UndoImapDeleteFlag(nsIMsgFolder* aFolder, 
+          nsIMsgFolder* dstFolder,
+          PRBool isMove);
+    nsresult UndoImapDeleteFlag(nsIMsgFolder* aFolder,
                                 nsMsgKeyArray& aKeyArray,
                                 PRBool deleteFlag);
     nsresult UndoTransactionInternal();
-  
+
 private:
     nsWeakPtr m_srcFolder;
     nsMsgKeyArray m_srcKeyArray; // used when src is local or imap
@@ -107,7 +107,7 @@ public:
 
   nsLocalUndoFolderListener(nsLocalMoveCopyMsgTxn *aTxn, nsIMsgFolder *aFolder);
   virtual ~nsLocalUndoFolderListener();
- 
+
 private:
   nsLocalMoveCopyMsgTxn *mTxn;
   nsIMsgFolder *mFolder;

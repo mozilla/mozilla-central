@@ -62,7 +62,7 @@ interface nsIMsgParseMailMsgState : nsISupports {
 
     long GetAllHeaders(out string headers);
     readonly attribute string headers;
-	attribute nsMailboxParseState state;
+  attribute nsMailboxParseState state;
     /* these are nsMailboxParseState */
     const long ParseEnvelopeState=0;
     const long ParseHeadersState=1;

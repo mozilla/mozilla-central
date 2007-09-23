@@ -55,29 +55,29 @@ class nsMailboxService : public nsIMailboxService, public nsIMsgMessageService, 
 {
 public:
 
-	nsMailboxService();
-	virtual ~nsMailboxService();
-	
-	NS_DECL_ISUPPORTS
+  nsMailboxService();
+  virtual ~nsMailboxService();
+
+  NS_DECL_ISUPPORTS
   NS_DECL_NSIMAILBOXSERVICE
   NS_DECL_NSIMSGMESSAGESERVICE
   NS_DECL_NSIMSGMESSAGEFETCHPARTSERVICE
   NS_DECL_NSIPROTOCOLHANDLER
 
 protected:
-  PRBool        mPrintingOperation; 
+  PRBool        mPrintingOperation;
 
-	// helper functions used by the service
-	nsresult PrepareMessageUrl(const char * aSrcMsgMailboxURI, nsIUrlListener * aUrlListener,
-							   nsMailboxAction aMailboxAction, nsIMailboxUrl ** aMailboxUrl,
-							   nsIMsgWindow *msgWindow);
+  // helper functions used by the service
+  nsresult PrepareMessageUrl(const char * aSrcMsgMailboxURI, nsIUrlListener * aUrlListener,
+                 nsMailboxAction aMailboxAction, nsIMailboxUrl ** aMailboxUrl,
+                 nsIMsgWindow *msgWindow);
 
-	nsresult RunMailboxUrl(nsIURI * aMailboxUrl, nsISupports * aDisplayConsumer = nsnull);
+  nsresult RunMailboxUrl(nsIURI * aMailboxUrl, nsISupports * aDisplayConsumer = nsnull);
 
   nsresult FetchMessage(const char* aMessageURI,
-                        nsISupports * aDisplayConsumer, 
+                        nsISupports * aDisplayConsumer,
                         nsIMsgWindow * aMsgWindow,
-										    nsIUrlListener * aUrlListener,
+                        nsIUrlListener * aUrlListener,
                         const char * aFileName, /* only used by open attachment */
                         nsMailboxAction mailboxAction,
                         const char * aCharsetOverride,

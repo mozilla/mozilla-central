@@ -293,25 +293,25 @@ void nsMsgMailboxParser::UpdateProgressPercent ()
 
 int nsMsgMailboxParser::ProcessMailboxInputStream(nsIURI* aURL, nsIInputStream *aIStream, PRUint32 aLength)
 {
-	nsresult ret = NS_OK;
+  nsresult ret = NS_OK;
 
-	PRUint32 bytesRead = 0;
+  PRUint32 bytesRead = 0;
 
-	if (NS_SUCCEEDED(m_inputStream.GrowBuffer(aLength)))
-	{
-		// OK, this sucks, but we're going to have to copy into our
-		// own byte buffer, and then pass that to the line buffering code,
-		// which means a couple buffer copies.
-		ret = aIStream->Read(m_inputStream.GetBuffer(), aLength, &bytesRead);
-		if (NS_SUCCEEDED(ret))
-			ret = BufferInput(m_inputStream.GetBuffer(), bytesRead);
-	}
-	if (m_graph_progress_total > 0)
-	{
-		if (NS_SUCCEEDED(ret))
-		  m_graph_progress_received += bytesRead;
-	}
-	return (ret);
+  if (NS_SUCCEEDED(m_inputStream.GrowBuffer(aLength)))
+  {
+    // OK, this sucks, but we're going to have to copy into our
+    // own byte buffer, and then pass that to the line buffering code,
+    // which means a couple buffer copies.
+    ret = aIStream->Read(m_inputStream.GetBuffer(), aLength, &bytesRead);
+    if (NS_SUCCEEDED(ret))
+      ret = BufferInput(m_inputStream.GetBuffer(), bytesRead);
+  }
+  if (m_graph_progress_total > 0)
+  {
+    if (NS_SUCCEEDED(ret))
+      m_graph_progress_received += bytesRead;
+  }
+  return (ret);
 }
 
 void nsMsgMailboxParser::DoneParsingFolder(nsresult status)
@@ -321,27 +321,27 @@ void nsMsgMailboxParser::DoneParsingFolder(nsresult status)
   PublishMsgHeader(nsnull);
 
   // only mark the db valid if we've succeeded.
-  if (NS_SUCCEEDED(status) && m_mailDB)	// finished parsing, so flush db folder info
+  if (NS_SUCCEEDED(status) && m_mailDB)  // finished parsing, so flush db folder info
     UpdateDBFolderInfo();
   else if (m_mailDB)
     m_mailDB->SetSummaryValid(PR_FALSE);
 
-  //	if (m_folder != nsnull)
-  //		m_folder->SummaryChanged();
+  //  if (m_folder != nsnull)
+  //    m_folder->SummaryChanged();
   FreeBuffers();
 }
 
 void nsMsgMailboxParser::FreeBuffers()
 {
-	/* We're done reading the folder - we don't need these things
-	 any more. */
-	PR_FREEIF (m_obuffer);
-	m_obuffer_size = 0;
+  /* We're done reading the folder - we don't need these things
+   any more. */
+  PR_FREEIF (m_obuffer);
+  m_obuffer_size = 0;
 }
 
 void nsMsgMailboxParser::UpdateDBFolderInfo()
 {
-	UpdateDBFolderInfo(m_mailDB);
+  UpdateDBFolderInfo(m_mailDB);
 }
 
 // update folder info in db so we know not to reparse.
@@ -375,7 +375,7 @@ PRInt32 nsMsgMailboxParser::PublishMsgHeader(nsIMsgWindow *msgWindow)
       m_newMsgHdr = nsnull;
     }
     else
-      NS_ASSERTION(PR_FALSE, "no database while parsing local folder");	// should have a DB, no?
+      NS_ASSERTION(PR_FALSE, "no database while parsing local folder");  // should have a DB, no?
   }
   else if (m_mailDB)
   {
@@ -395,59 +395,59 @@ void nsMsgMailboxParser::AbortNewHeader()
 
 PRInt32 nsMsgMailboxParser::HandleLine(char *line, PRUint32 lineLength)
 {
-	int status = 0;
+  int status = 0;
 
-	/* If this is the very first line of a non-empty folder, make sure it's an envelope */
-	if (m_graph_progress_received == 0)
-	{
-		/* This is the first block from the file.  Check to see if this
-		   looks like a mail file. */
-		const char *s = line;
-		const char *end = s + lineLength;
-		while (s < end && IS_SPACE(*s))
-			s++;
-		if ((end - s) < 20 || !IsEnvelopeLine(s, end - s))
-		{
-//			char buf[500];
-//			PR_snprintf (buf, sizeof(buf),
-//						 XP_GetString(MK_MSG_NON_MAIL_FILE_READ_QUESTION),
-//						 folder_name);
-//			else if (!FE_Confirm (m_context, buf))
-//				return NS_MSG_NOT_A_MAIL_FOLDER; /* #### NOT_A_MAIL_FILE */
-		}
-	}
-//	m_graph_progress_received += lineLength;
+  /* If this is the very first line of a non-empty folder, make sure it's an envelope */
+  if (m_graph_progress_received == 0)
+  {
+    /* This is the first block from the file.  Check to see if this
+       looks like a mail file. */
+    const char *s = line;
+    const char *end = s + lineLength;
+    while (s < end && IS_SPACE(*s))
+      s++;
+    if ((end - s) < 20 || !IsEnvelopeLine(s, end - s))
+    {
+//      char buf[500];
+//      PR_snprintf (buf, sizeof(buf),
+//             XP_GetString(MK_MSG_NON_MAIL_FILE_READ_QUESTION),
+//             folder_name);
+//      else if (!FE_Confirm (m_context, buf))
+//        return NS_MSG_NOT_A_MAIL_FOLDER; /* #### NOT_A_MAIL_FILE */
+    }
+  }
+//  m_graph_progress_received += lineLength;
 
-	// mailbox parser needs to do special stuff when it finds an envelope
-	// after parsing a message body. So do that.
-	if (line[0] == 'F' && IsEnvelopeLine(line, lineLength))
-	{
-		// **** This used to be
-		// PR_ASSERT (m_parseMsgState->m_state == nsMailboxParseBodyState);
-		// **** I am not sure this is a right thing to do. This happens when
-		// going online, downloading a message while playing back append
-		// draft/template offline operation. We are mixing
+  // mailbox parser needs to do special stuff when it finds an envelope
+  // after parsing a message body. So do that.
+  if (line[0] == 'F' && IsEnvelopeLine(line, lineLength))
+  {
+    // **** This used to be
+    // PR_ASSERT (m_parseMsgState->m_state == nsMailboxParseBodyState);
+    // **** I am not sure this is a right thing to do. This happens when
+    // going online, downloading a message while playing back append
+    // draft/template offline operation. We are mixing
         // nsMailboxParseBodyState &&
-		// nsMailboxParseHeadersState. David I need your help here too. **** jt
+    // nsMailboxParseHeadersState. David I need your help here too. **** jt
 
-		NS_ASSERTION (m_state == nsIMsgParseMailMsgState::ParseBodyState ||
-				   m_state == nsIMsgParseMailMsgState::ParseHeadersState, "invalid parse state"); /* else folder corrupted */
-		PublishMsgHeader(nsnull);
-		Clear();
-		status = StartNewEnvelope(line, lineLength);
-		NS_ASSERTION(status >= 0, " error starting envelope parsing mailbox");
-		// at the start of each new message, update the progress bar
-		UpdateProgressPercent();
-		if (status < 0)
-			return status;
-	}
-	// otherwise, the message parser can handle it completely.
-	else if (m_mailDB != nsnull)	// if no DB, do we need to parse at all?
-		return ParseFolderLine(line, lineLength);
+    NS_ASSERTION (m_state == nsIMsgParseMailMsgState::ParseBodyState ||
+           m_state == nsIMsgParseMailMsgState::ParseHeadersState, "invalid parse state"); /* else folder corrupted */
+    PublishMsgHeader(nsnull);
+    Clear();
+    status = StartNewEnvelope(line, lineLength);
+    NS_ASSERTION(status >= 0, " error starting envelope parsing mailbox");
+    // at the start of each new message, update the progress bar
+    UpdateProgressPercent();
+    if (status < 0)
+      return status;
+  }
+  // otherwise, the message parser can handle it completely.
+  else if (m_mailDB != nsnull)  // if no DB, do we need to parse at all?
+    return ParseFolderLine(line, lineLength);
         else
           return NS_ERROR_NULL_POINTER; // need to error out if we don't have a db.
 
-	return 0;
+  return 0;
 
 }
 
@@ -656,19 +656,19 @@ nsParseMailMessageState::IsEnvelopeLine(const char *buf, PRInt32 buf_size)
 {
 #ifdef STRICT_ENVELOPE
   /* The required format is
-	   From jwz  Fri Jul  1 09:13:09 1994
-	 But we should also allow at least:
-	   From jwz  Fri, Jul 01 09:13:09 1994
-	   From jwz  Fri Jul  1 09:13:09 1994 PST
-	   From jwz  Fri Jul  1 09:13:09 1994 (+0700)
+     From jwz  Fri Jul  1 09:13:09 1994
+   But we should also allow at least:
+     From jwz  Fri, Jul 01 09:13:09 1994
+     From jwz  Fri Jul  1 09:13:09 1994 PST
+     From jwz  Fri Jul  1 09:13:09 1994 (+0700)
 
-	 We can't easily call XP_ParseTimeString() because the string is not
-	 null terminated (ok, we could copy it after a quick check...) but
-	 XP_ParseTimeString() may be too lenient for our purposes.
+   We can't easily call XP_ParseTimeString() because the string is not
+   null terminated (ok, we could copy it after a quick check...) but
+   XP_ParseTimeString() may be too lenient for our purposes.
 
-	 DANGER!!  The released version of 2.0b1 was (on some systems,
-	 some Unix, some NT, possibly others) writing out envelope lines
-	 like "From - 10/13/95 11:22:33" which STRICT_ENVELOPE will reject!
+   DANGER!!  The released version of 2.0b1 was (on some systems,
+   some Unix, some NT, possibly others) writing out envelope lines
+   like "From - 10/13/95 11:22:33" which STRICT_ENVELOPE will reject!
    */
   const char *date, *end;
 
@@ -681,55 +681,55 @@ nsParseMailMessageState::IsEnvelopeLine(const char *buf, PRInt32 buf_size)
 
   /* Skip horizontal whitespace between "From " and user name. */
   while ((*date == ' ' || *date == '\t') && date < end)
-	date++;
+  date++;
 
   /* If at the end, it doesn't match. */
   if (IS_SPACE(*date) || date == end)
-	return PR_FALSE;
+  return PR_FALSE;
 
   /* Skip over user name. */
   while (!IS_SPACE(*date) && date < end)
-	date++;
+  date++;
 
   /* Skip horizontal whitespace between user name and date. */
   while ((*date == ' ' || *date == '\t') && date < end)
-	date++;
+  date++;
 
   /* Don't want this to be localized. */
 # define TMP_ISALPHA(x) (((x) >= 'A' && (x) <= 'Z') || \
-						 ((x) >= 'a' && (x) <= 'z'))
+             ((x) >= 'a' && (x) <= 'z'))
 
   /* take off day-of-the-week. */
   if (date >= end - 3)
-	return PR_FALSE;
+  return PR_FALSE;
   if (!TMP_ISALPHA(date[0]) || !TMP_ISALPHA(date[1]) || !TMP_ISALPHA(date[2]))
-	return PR_FALSE;
+  return PR_FALSE;
   date += 3;
   /* Skip horizontal whitespace (and commas) between dotw and month. */
   if (*date != ' ' && *date != '\t' && *date != ',')
-	return PR_FALSE;
+  return PR_FALSE;
   while ((*date == ' ' || *date == '\t' || *date == ',') && date < end)
-	date++;
+  date++;
 
   /* take off month. */
   if (date >= end - 3)
-	return PR_FALSE;
+  return PR_FALSE;
   if (!TMP_ISALPHA(date[0]) || !TMP_ISALPHA(date[1]) || !TMP_ISALPHA(date[2]))
-	return PR_FALSE;
+  return PR_FALSE;
   date += 3;
   /* Skip horizontal whitespace between month and dotm. */
   if (date == end || (*date != ' ' && *date != '\t'))
-	return PR_FALSE;
+  return PR_FALSE;
   while ((*date == ' ' || *date == '\t') && date < end)
-	date++;
+  date++;
 
   /* Skip over digits and whitespace. */
   while (((*date >= '0' && *date <= '9') || *date == ' ' || *date == '\t') &&
-		 date < end)
-	date++;
+     date < end)
+  date++;
   /* Next character should be a colon. */
   if (date >= end || *date != ':')
-	return PR_FALSE;
+  return PR_FALSE;
 
   /* Ok, that ought to be enough... */
 
@@ -753,7 +753,7 @@ NS_IMETHODIMP nsParseMailMessageState::FinishHeader()
   if (m_newMsgHdr)
   {
     m_newMsgHdr->SetMessageKey(m_envelope_pos);
-    m_newMsgHdr->SetMessageSize(m_position - m_envelope_pos);	// dmb - no longer number of lines.
+    m_newMsgHdr->SetMessageSize(m_position - m_envelope_pos);  // dmb - no longer number of lines.
     m_newMsgHdr->SetLineCount(m_body_lines);
   }
 
@@ -1001,7 +1001,7 @@ SEARCH_NEWLINE:
       ;
     /* If "\r\n " or "\r\n\t" is next, that doesn't terminate the header. */
     else if (buf+2 < buf_end &&
-			   (buf[0] == '\r'  && buf[1] == '\n') &&
+         (buf[0] == '\r'  && buf[1] == '\n') &&
                            (buf[2] == ' ' || buf[2] == '\t'))
     {
       buf += 3;
@@ -1010,7 +1010,7 @@ SEARCH_NEWLINE:
     /* If "\r " or "\r\t" or "\n " or "\n\t" is next, that doesn't terminate
     the header either. */
     else if ((buf[0] == '\r'  || buf[0] == '\n') &&
-			   (buf[1] == ' ' || buf[1] == '\t'))
+         (buf[1] == ' ' || buf[1] == '\t'))
     {
       buf += 2;
       goto SEARCH_NEWLINE;
@@ -1025,7 +1025,7 @@ SEARCH_NEWLINE:
       if (*buf == '\r' && buf[1] == '\n')
         buf++;
       buf++;
-      *last = 0;	/* short-circuit const, and null-terminate header. */
+      *last = 0;  /* short-circuit const, and null-terminate header. */
     }
 
     if (header)
@@ -1160,7 +1160,7 @@ the rest. */
 nsresult nsParseMailMessageState::InternRfc822 (struct message_header *header,
                                                 char **ret_name)
 {
-  char	*s;
+  char  *s;
   nsresult ret=NS_OK;
 
   if (!header || header->length == 0)
@@ -1212,7 +1212,7 @@ int nsParseMailMessageState::FinalizeHeaders()
   nsMsgPriorityValue priorityFlags = nsMsgPriority::notSet;
   PRUint32 labelFlags = 0;
 
-  if (!m_mailDB)		// if we don't have a valid db, skip the header.
+  if (!m_mailDB)    // if we don't have a valid db, skip the header.
     return 0;
 
   struct message_header to;
@@ -1228,7 +1228,7 @@ int nsParseMailMessageState::FinalizeHeaders()
   cc.length         ? &cc :
   m_newsgroups.length ? &m_newsgroups :
   sender);
-  ccList	   = (cc.length ? &cc : 0);
+  ccList     = (cc.length ? &cc : 0);
   subject    = (m_subject.length    ? &m_subject    : 0);
   id         = (m_message_id.length ? &m_message_id : 0);
   references = (m_references.length ? &m_references : 0);
@@ -1241,7 +1241,7 @@ int nsParseMailMessageState::FinalizeHeaders()
   deliveryDate = (m_delivery_date.length ? &m_delivery_date : 0);
   priority   = (m_priority.length   ? &m_priority   : 0);
   keywords   =  (m_keywords.length   ? &m_keywords  : 0);
-  mdn_dnt	   = (m_mdn_dnt.length	  ? &m_mdn_dnt	  : 0);
+  mdn_dnt     = (m_mdn_dnt.length    ? &m_mdn_dnt    : 0);
   inReplyTo = (m_in_reply_to.length ? &m_in_reply_to : 0);
   replyTo = (m_replyTo.length ? &m_replyTo : 0);
   content_type = (m_content_type.length ? &m_content_type : 0);
@@ -1263,7 +1263,7 @@ int nsParseMailMessageState::FinalizeHeaders()
     }
     delta = (m_headerstartpos +
       (mozstatus->value - m_headers.GetBuffer()) -
-      (2 + X_MOZILLA_STATUS_LEN)		/* 2 extra bytes for ": ". */
+      (2 + X_MOZILLA_STATUS_LEN)    /* 2 extra bytes for ": ". */
       ) - m_envelope_pos;
   }
 
@@ -1274,7 +1274,7 @@ int nsParseMailMessageState::FinalizeHeaders()
     flags |= flags2;
   }
 
-  if (!(flags & MSG_FLAG_EXPUNGED))	// message was deleted, don't bother creating a hdr.
+  if (!(flags & MSG_FLAG_EXPUNGED))  // message was deleted, don't bother creating a hdr.
   {
     nsresult ret = m_mailDB->CreateNewHdr(m_envelope_pos, getter_AddRefs(m_newMsgHdr));
     if (NS_SUCCEEDED(ret) && m_newMsgHdr)
@@ -1307,9 +1307,9 @@ int nsParseMailMessageState::FinalizeHeaders()
         m_newMsgHdr->SetLabel(labelFlags);
       }
       if (delta < 0xffff)
-      {		/* Only use if fits in 16 bits. */
+      {    /* Only use if fits in 16 bits. */
         m_newMsgHdr->SetStatusOffset((PRUint16) delta);
-        if (!m_IgnoreXMozillaStatus) {	// imap doesn't care about X-MozillaStatus
+        if (!m_IgnoreXMozillaStatus) {  // imap doesn't care about X-MozillaStatus
           PRUint32 offset;
           (void)m_newMsgHdr->GetStatusOffset(&offset);
           NS_ASSERTION(offset < 10000, "invalid status offset"); /* ### Debugging hack */
@@ -1343,8 +1343,8 @@ int nsParseMailMessageState::FinalizeHeaders()
         // note that we're now setting the whole recipient list,
         // not just the pretty name of the first recipient.
         PRUint32 numAddresses;
-        char	*names;
-        char	*addresses;
+        char  *names;
+        char  *addresses;
 
         ret = m_HeaderAddressParser->ParseHeaderAddresses (nsnull, recipient->value, &names, &addresses, &numAddresses);
         if (ret == NS_OK)
@@ -1353,15 +1353,15 @@ int nsParseMailMessageState::FinalizeHeaders()
           PR_Free(addresses);
           PR_Free(names);
         }
-        else {	// hmm, should we just use the original string?
+        else {  // hmm, should we just use the original string?
           m_newMsgHdr->SetRecipients(recipient->value);
         }
       }
       if (ccList)
       {
         PRUint32 numAddresses;
-        char	*names;
-        char	*addresses;
+        char  *names;
+        char  *addresses;
 
         ret = m_HeaderAddressParser->ParseHeaderAddresses (nsnull, ccList->value, &names, &addresses, &numAddresses);
         if (ret == NS_OK)
@@ -1370,7 +1370,7 @@ int nsParseMailMessageState::FinalizeHeaders()
           PR_Free(addresses);
           PR_Free(names);
         }
-        else	// hmm, should we just use the original string?
+        else  // hmm, should we just use the original string?
           m_newMsgHdr->SetCcList(ccList->value);
       }
       status = InternSubject (subject);
@@ -1454,7 +1454,7 @@ int nsParseMailMessageState::FinalizeHeaders()
         // Received: -> Delivery-date: -> date
         // 'Date' uses:
         // date -> PR_Now()
-        // 
+        //
         // date is:
         // Date: -> m_envelope_date
 
@@ -1654,11 +1654,11 @@ void nsParseNewMailState::DoneParsingFolder(nsresult status)
     m_ibuffer_fp = 0;
   }
   PublishMsgHeader(nsnull);
-  if (!moved && m_mailDB)	// finished parsing, so flush db folder info
+  if (!moved && m_mailDB)  // finished parsing, so flush db folder info
     UpdateDBFolderInfo();
 
     /* We're done reading the folder - we don't need these things
-	 any more. */
+   any more. */
   PR_FREEIF (m_ibuffer);
   m_ibuffer_size = 0;
   PR_FREEIF (m_obuffer);
@@ -2055,7 +2055,7 @@ NS_IMETHODIMP nsParseNewMailState::ApplyFilterHit(nsIMsgFilter *filter, nsIMsgWi
         break;
       case nsMsgFilterAction::FetchBodyFromPop3Server:
         {
-      	  PRUint32 flags = 0;
+          PRUint32 flags = 0;
           nsCOMPtr <nsIMsgFolder> downloadFolder;
           msgHdr->GetFolder(getter_AddRefs(downloadFolder));
           nsCOMPtr <nsIMsgLocalMailFolder> localFolder = do_QueryInterface(downloadFolder);
@@ -2300,7 +2300,7 @@ nsresult nsParseNewMailState::MoveIncorporatedMessage(nsIMsgDBHdr *mailHdr,
 
   nsCOMPtr <nsISupports> myISupports = do_QueryInterface(static_cast<nsIMsgParseMailMsgState*>(this));
 
-  //	NS_RELEASE(myThis);
+  //  NS_RELEASE(myThis);
   // Make sure no one else is writing into this folder
   if (destIFolder && (err = destIFolder->AcquireSemaphore (myISupports)) != 0)
   {
@@ -2317,7 +2317,7 @@ nsresult nsParseNewMailState::MoveIncorporatedMessage(nsIMsgDBHdr *mailHdr,
     if (destIFolder)
       destIFolder->ReleaseSemaphore (myISupports);
 
-    return NS_MSG_FOLDER_UNREADABLE;	// ### dmb
+    return NS_MSG_FOLDER_UNREADABLE;  // ### dmb
   }
   nsCOMPtr <nsISeekableStream> seekableStream = do_QueryInterface(m_inboxFileStream);
   seekableStream->Seek(nsISeekableStream::NS_SEEK_SET, m_curHdrOffset);

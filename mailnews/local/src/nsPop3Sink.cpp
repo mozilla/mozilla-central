@@ -252,7 +252,7 @@ nsPop3Sink::CheckPartialMessages(nsIPop3Protocol *protocol)
     PRBool found = PR_TRUE;
     partialMsg = static_cast<partialRecord *>(m_partialMsgsArray.ElementAt(i));
     protocol->CheckMessage(partialMsg->m_uidl.get(), &found);
-    if (!found) 
+    if (!found)
     {
       m_newMailParser->m_mailDB->DeleteHeader(partialMsg->m_msgDBHdr, nsnull, PR_FALSE, PR_TRUE);
       deleted = PR_TRUE;
@@ -260,7 +260,7 @@ nsPop3Sink::CheckPartialMessages(nsIPop3Protocol *protocol)
     delete partialMsg;
   }
   m_partialMsgsArray.Clear();
-  if (deleted) 
+  if (deleted)
   {
     nsCOMPtr<nsIMsgLocalMailFolder> localFolder = do_QueryInterface(m_folder);
     if (localFolder)
@@ -352,8 +352,8 @@ nsPop3Sink::BeginMailDelivery(PRBool uidlDownload, nsIMsgWindow *aMsgWindow, PRB
     nsCOMPtr <nsIInputStream> inboxInputStream = do_QueryInterface(m_outFileStream);
     rv = m_newMailParser->Init(serverFolder, m_folder, (m_downloadingToTempFile) ? m_tmpDownloadFile : path,
                               inboxInputStream, aMsgWindow, m_downloadingToTempFile);
-	// if we failed to initialize the parser, then just don't use it!!!
-	// we can still continue without one...
+  // if we failed to initialize the parser, then just don't use it!!!
+  // we can still continue without one...
 
     if (NS_FAILED(rv))
     {
@@ -399,7 +399,7 @@ nsPop3Sink::EndMailDelivery(nsIPop3Protocol *protocol)
   if (m_newMailParser)
   {
     if (m_outFileStream)
-      m_outFileStream->Flush();	// try this.
+      m_outFileStream->Flush();  // try this.
     m_newMailParser->OnStopRequest(nsnull, nsnull, NS_OK);
     m_newMailParser->SetDBFolderStream(nsnull); // stream is going away
     m_newMailParser->EndMsgDownload();
@@ -662,13 +662,13 @@ nsPop3Sink::GetDummyEnvelope(void)
   time_t now = time ((time_t *) 0);
 #if defined (XP_WIN)
   if (now < 0 || now > 0x7FFFFFFF)
-	  now = 0x7FFFFFFF;
+    now = 0x7FFFFFFF;
 #endif
   ct = ctime(&now);
   PR_ASSERT(ct[24] == '\r' || ct[24] == '\n');
   ct[24] = 0;
   /* This value must be in ctime() format, with English abbreviations.
-	 strftime("... %c ...") is no good, because it is localized. */
+   strftime("... %c ...") is no good, because it is localized. */
   PL_strcpy(result, "From - ");
   PL_strcpy(result + 7, ct);
   PL_strcpy(result + 7 + 24, MSG_LINEBREAK);
@@ -897,7 +897,7 @@ nsPop3Sink::IncorporateComplete(nsIMsgWindow *aMsgWindow, PRInt32 aSize)
       rv = MsgReopenFileStream(m_tmpDownloadFile, inboxInputStream);
       NS_ENSURE_SUCCESS(rv, rv);
     } else
-    	m_newMailParser->PublishMsgHeader(aMsgWindow);
+      m_newMailParser->PublishMsgHeader(aMsgWindow);
     // run any reply/forward filter after we've finished with the
     // temp quarantine file, and/or moved the message to another folder.
     m_newMailParser->ApplyForwardAndReplyFilter(aMsgWindow);

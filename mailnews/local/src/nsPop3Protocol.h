@@ -66,7 +66,7 @@ things need to happen: #define POP_ALWAYS_USE_UIDL_FOR_DUPLICATES, verify that
 the uidl's are correctly getting added when the delete response is received,
 and change the POP3_QUIT_RESPONSE state to flush the newly committed deletes. */
 
-/* 
+/*
  * Cannot have the following line uncommented. It is defined.
  * #ifdef POP_ALWAYS_USE_UIDL_FOR_DUPLICATES will always be evaluated
  * as PR_TRUE.
@@ -119,7 +119,7 @@ enum Pop3CapabilityEnum {
 
 enum Pop3StatesEnum {
     POP3_READ_PASSWORD,                         // 0
-                                                // 
+                                                //
     POP3_START_CONNECT,                         // 1
     POP3_FINISH_CONNECT,                        // 2
     POP3_WAIT_FOR_RESPONSE,                     // 3
@@ -208,22 +208,22 @@ typedef struct _Pop3ConData {
                                    server and only download a partial
                                    message. */
     PRUint32 capability_flags; /* What capability this server has? */
-    
+
     Pop3StatesEnum next_state;  /* the next state or action to be taken */
-    Pop3StatesEnum next_state_after_response;  
-    PRBool pause_for_read;   		/* Pause now for next read? */
-    
+    Pop3StatesEnum next_state_after_response;
+    PRBool pause_for_read;       /* Pause now for next read? */
+
     PRBool command_succeeded;   /* did the last command succeed? */
-    PRBool list_done;		/* did we get the complete list of msgIDs? */
+    PRBool list_done;    /* did we get the complete list of msgIDs? */
     PRInt32 first_msg;
 
     PRUint32 obuffer_size;
     PRUint32 obuffer_fp;
-    
-    PRInt32	really_new_messages;
-    PRInt32	real_new_counter;
+
+    PRInt32  really_new_messages;
+    PRInt32  real_new_counter;
     PRInt32 number_of_messages;
-    Pop3MsgInfo	*msg_info;      /* Message sizes and uidls (used only if we
+    Pop3MsgInfo  *msg_info;      /* Message sizes and uidls (used only if we
                                    are playing games that involve leaving
                                    messages on the server). */
     PRInt32 last_accessed_msg;
@@ -234,14 +234,14 @@ typedef struct _Pop3ConData {
                                  */
     PRBool only_check_for_new_mail;
     nsMsgBiffState biffstate;     /* If just checking for, what the answer is. */
-    
+
     void *msg_closure;
-    
+
     PRBool graph_progress_bytes_p; /* whether we should display info about
                                       the bytes transferred (usually we
                                       display info about the number of
                                       messages instead.) */
-    
+
     Pop3UidlHost *uidlinfo;
     PLHashTable *newuidl;
     char *only_uidl;              /* If non-NULL, then load only this UIDL. */
@@ -255,11 +255,11 @@ typedef struct _Pop3ConData {
     PRInt32 logonFailureCount;
 } Pop3ConData;
 
-// State Flags (Note, I use the word state in terms of storing 
+// State Flags (Note, I use the word state in terms of storing
 // state information about the connection (authentication, have we sent
 // commands, etc. I do not intend it to refer to protocol state)
-#define POP3_PAUSE_FOR_READ			0x00000001  /* should we pause for the next read */
-#define POP3_PASSWORD_FAILED		0x00000002
+#define POP3_PAUSE_FOR_READ      0x00000001  /* should we pause for the next read */
+#define POP3_PASSWORD_FAILED    0x00000002
 #define POP3_STOPLOGIN              0x00000004  /* error loging in, so stop here */
 #define POP3_AUTH_FAILURE           0x00000008  /* extended code said authentication failed */
 
@@ -267,9 +267,9 @@ typedef struct _Pop3ConData {
 class nsPop3Protocol : public nsMsgProtocol, public nsIPop3Protocol
 {
 public:
-  nsPop3Protocol(nsIURI* aURL);  
+  nsPop3Protocol(nsIURI* aURL);
   virtual ~nsPop3Protocol();
-  
+
   NS_DECL_ISUPPORTS_INHERITED
   NS_DECL_NSIPOP3PROTOCOL
 
@@ -285,11 +285,11 @@ public:
   NS_IMETHOD OnStopRequest(nsIRequest *request, nsISupports * aContext, nsresult aStatus);
   NS_IMETHOD Cancel(nsresult status);
 
-  static void MarkMsgInHashTable(PLHashTable *hashTable, const Pop3UidlEntry *uidl, 
+  static void MarkMsgInHashTable(PLHashTable *hashTable, const Pop3UidlEntry *uidl,
                                   PRBool *changed);
 
   static nsresult MarkMsgForHost(const char *hostName, const char *userName,
-                                      nsILocalFile *mailDirectory, 
+                                      nsILocalFile *mailDirectory,
                                       nsVoidArray  &UIDLArray);
 private:
   nsCString m_ApopTimestamp;
@@ -306,14 +306,14 @@ private:
   void UpdateStatus(PRInt32 aStatusID);
   void UpdateStatusWithString(const PRUnichar * aString);
 
-  PRInt32	m_bytesInMsgReceived; 
-  PRInt32	m_totalFolderSize;    
-  PRInt32	m_totalDownloadSize; /* Number of bytes we're going to
+  PRInt32  m_bytesInMsgReceived;
+  PRInt32  m_totalFolderSize;
+  PRInt32  m_totalDownloadSize; /* Number of bytes we're going to
                                     download.  Might be much less
                                     than the total_folder_size. */
   PRInt32 m_totalBytesReceived; // total # bytes received for the connection
 
-  virtual nsresult ProcessProtocolState(nsIURI * url, nsIInputStream * inputStream, 
+  virtual nsresult ProcessProtocolState(nsIURI * url, nsIInputStream * inputStream,
                                         PRUint32 sourceOffset, PRUint32 length);
   virtual nsresult CloseSocket();
   virtual PRInt32 SendData(nsIURI * aURL, const char * dataBuffer, PRBool aSuppressLogging = PR_FALSE);
@@ -348,9 +348,9 @@ private:
   //////////////////////////////////////////////////////////////////////////////////////////
       // Begin Pop3 protocol state handlers
       //////////////////////////////////////////////////////////////////////////////////////////
-  PRInt32 WaitForStartOfConnectionResponse(nsIInputStream* inputStream, 
+  PRInt32 WaitForStartOfConnectionResponse(nsIInputStream* inputStream,
                                            PRUint32 length);
-  PRInt32 WaitForResponse(nsIInputStream* inputStream, 
+  PRInt32 WaitForResponse(nsIInputStream* inputStream,
                           PRUint32 length);
   PRInt32 Error(PRInt32 err_code);
   PRInt32 SendAuth();

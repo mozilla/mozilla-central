@@ -1974,7 +1974,7 @@ nsPop3Protocol::GetStat()
       nsCOMPtr<nsIMsgMailNewsUrl> mailnewsUrl = do_QueryInterface(m_url);
       if (mailnewsUrl)
         rv = mailnewsUrl->GetMsgWindow(getter_AddRefs(msgWindow));
-//	    NS_ASSERTION(NS_SUCCEEDED(rv) && msgWindow, "no msg window");
+//      NS_ASSERTION(NS_SUCCEEDED(rv) && msgWindow, "no msg window");
 
       rv = m_nsIPop3Sink->BeginMailDelivery(m_pop3ConData->only_uidl != nsnull, msgWindow,
                                                     &m_pop3ConData->msg_del_started);
@@ -2529,7 +2529,7 @@ PRInt32 nsPop3Protocol::GetMsg()
            * no longer want to keep it there */
           if (!m_pop3ConData->newuidl)
           {
-            m_pop3ConData->newuidl = PL_NewHashTable(20, PL_HashString, PL_CompareStrings, 
+            m_pop3ConData->newuidl = PL_NewHashTable(20, PL_HashString, PL_CompareStrings,
                                               PL_CompareValues, &gHashAllocOps, nsnull);
             if (!m_pop3ConData->newuidl)
               return MK_OUT_OF_MEMORY;
@@ -3109,7 +3109,7 @@ nsPop3Protocol::TopResponse(nsIInputStream* inputStream, PRUint32 length)
   }
 
   if(m_pop3ConData->cur_msg_size == -1 &&  /* first line after TOP command sent */
-    !m_pop3ConData->command_succeeded)	/* and TOP command failed */
+    !m_pop3ConData->command_succeeded)  /* and TOP command failed */
   {
   /* TOP doesn't work so we can't retrieve the first part of this msg.
   So just go download the whole thing, and warn the user.
@@ -3170,7 +3170,7 @@ nsPop3Protocol::HandleLine(char *line, PRUint32 line_length)
     // line contains only a single dot and linebreak -> message end
     if (line_length == 1 + MSG_LINEBREAK_LEN && line[0] == '.')
     {
-        m_pop3ConData->assumed_end = PR_TRUE;	/* in case byte count from server is */
+        m_pop3ConData->assumed_end = PR_TRUE;  /* in case byte count from server is */
                                     /* wrong, mark we may have had the end */
         if (!m_pop3ConData->dot_fix || m_pop3ConData->truncating_cur_msg ||
             (m_pop3ConData->parsed_bytes >= (m_pop3ConData->pop3_size -3)))

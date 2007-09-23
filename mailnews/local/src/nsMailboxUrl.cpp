@@ -85,7 +85,7 @@ nsMailboxUrl::nsMailboxUrl()
   m_canonicalLineEnding = PR_FALSE;
   m_curMsgIndex = 0;
 }
- 
+
 nsMailboxUrl::~nsMailboxUrl()
 {
     PR_Free(m_messageID);
@@ -114,7 +114,7 @@ nsresult nsMailboxUrl::SetMailboxParser(nsIStreamListener * aMailboxParser)
 nsresult nsMailboxUrl::GetMailboxParser(nsIStreamListener ** aConsumer)
 {
   NS_ENSURE_ARG_POINTER(aConsumer);
-  
+
   NS_IF_ADDREF(*aConsumer = m_mailboxParser);
   return  NS_OK;
 }
@@ -129,13 +129,13 @@ nsresult nsMailboxUrl::SetMailboxCopyHandler(nsIStreamListener * aMailboxCopyHan
 nsresult nsMailboxUrl::GetMailboxCopyHandler(nsIStreamListener ** aMailboxCopyHandler)
 {
   NS_ENSURE_ARG_POINTER(aMailboxCopyHandler);
-  
+
   if (aMailboxCopyHandler)
   {
     *aMailboxCopyHandler = m_mailboxCopyHandler;
     NS_IF_ADDREF(*aMailboxCopyHandler);
   }
-  
+
   return  NS_OK;
 }
 
@@ -184,7 +184,7 @@ NS_IMETHODIMP nsMailboxUrl::GetUri(char ** aURI)
 {
   // if we have been given a uri to associate with this url, then use it
   // otherwise try to reconstruct a URI on the fly....
-  
+
   if (!mURI.IsEmpty())
     *aURI = ToNewCString(mURI);
   else
@@ -208,7 +208,7 @@ NS_IMETHODIMP nsMailboxUrl::GetUri(char ** aURI)
     else
       *aURI = nsnull;
   }
-  
+
   return NS_OK;
 }
 
@@ -219,9 +219,9 @@ nsresult nsMailboxUrl::GetMsgHdrForKey(nsMsgKey  msgKey, nsIMsgDBHdr ** aMsgHdr)
   {
     nsCOMPtr<nsIMsgDatabase> mailDBFactory;
     nsCOMPtr<nsIMsgDatabase> mailDB;
-    
+
     nsCOMPtr<nsIMsgDBService> msgDBService = do_GetService(NS_MSGDB_SERVICE_CONTRACTID, &rv);
-    
+
     if (msgDBService)
       rv = msgDBService->OpenMailDBFromFile(m_filePath, PR_FALSE, PR_FALSE, (nsIMsgDatabase **) getter_AddRefs(mailDB));
     if (NS_SUCCEEDED(rv) && mailDB) // did we get a db back?
@@ -249,7 +249,7 @@ nsresult nsMailboxUrl::GetMsgHdrForKey(nsMsgKey  msgKey, nsIMsgDBHdr ** aMsgHdr)
   }
   else
     rv = NS_ERROR_NULL_POINTER;
-  
+
   return rv;
 }
 
@@ -264,7 +264,7 @@ NS_IMPL_GETSET(nsMailboxUrl, CanonicalLineEnding, PRBool, m_canonicalLineEnding)
 NS_IMETHODIMP
 nsMailboxUrl::GetOriginalSpec(char **aSpec)
 {
-  if (!aSpec || m_originalSpec.IsEmpty()) 
+  if (!aSpec || m_originalSpec.IsEmpty())
     return NS_ERROR_NULL_POINTER;
   *aSpec = ToNewCString(m_originalSpec);
   return NS_OK;
@@ -294,7 +294,7 @@ NS_IMETHODIMP nsMailboxUrl::GetMessageFile(nsIFile ** aFile)
 NS_IMETHODIMP nsMailboxUrl::IsUrlType(PRUint32 type, PRBool *isType)
 {
   NS_ENSURE_ARG(isType);
-  
+
   switch(type)
   {
     case nsIMsgMailNewsUrl::eCopy:
@@ -308,10 +308,10 @@ NS_IMETHODIMP nsMailboxUrl::IsUrlType(PRUint32 type, PRBool *isType)
       break;
     default:
       *isType = PR_FALSE;
-  };				
-  
+  };
+
   return NS_OK;
-  
+
 }
 
 ////////////////////////////////////////////////////////////////////////////////////
@@ -334,18 +334,18 @@ nsresult nsMailboxUrl::ParseSearchPart()
       m_mailboxAction = nsIMailboxUrl::ActionFetchPart;
     else
       m_mailboxAction = nsIMailboxUrl::ActionFetchMessage;
-    
+
     char * messageKey = extractAttributeValue(searchPart.get(), "number=");
     m_messageID = extractAttributeValue(searchPart.get(),"messageid=");
     if (messageKey)
       m_messageKey = atol(messageKey); // convert to a long...
-    
+
     PR_Free(msgPart);
     PR_Free(messageKey);
   }
   else
     m_mailboxAction = nsIMailboxUrl::ActionParseMailbox;
-  
+
   return rv;
 }
 
@@ -375,7 +375,7 @@ nsresult nsMailboxUrl::ParseUrl()
     nsCOMPtr <nsIFile> fileURLFile;
     fileURL->GetFile(getter_AddRefs(fileURLFile));
     m_filePath = do_QueryInterface(fileURLFile, &rv);
-    NS_ENSURE_SUCCESS(rv, rv);    
+    NS_ENSURE_SUCCESS(rv, rv);
   }
 
   GetPath(m_file);
@@ -398,7 +398,7 @@ NS_IMETHODIMP nsMailboxUrl::SetQuery(const nsACString &aQuery)
   return rv;
 }
 
-// takes a string like ?messageID=fooo&number=MsgKey and returns a new string 
+// takes a string like ?messageID=fooo&number=MsgKey and returns a new string
 // containing just the attribute value. i.e you could pass in this string with
 // an attribute name of messageID and I'll return fooo. Use PR_Free to delete
 // this string...
@@ -407,7 +407,7 @@ NS_IMETHODIMP nsMailboxUrl::SetQuery(const nsACString &aQuery)
 char * extractAttributeValue(const char * searchString, const char * attributeName)
 {
   char * attributeValue = nsnull;
-  
+
   if (searchString && attributeName)
   {
     // search the string for attributeName
@@ -423,15 +423,15 @@ char * extractAttributeValue(const char * searchString, const char * attributeNa
           attributeValue = PL_strndup(startOfAttribute, endofAttribute - startOfAttribute);
         else // there is nothing left so eat up rest of line.
           attributeValue = PL_strdup(startOfAttribute);
-        
+
         // now unescape the string...
         if (attributeValue)
           attributeValue = nsUnescape(attributeValue); // unescape the string...
       } // if we have a attribute value
-      
+
     } // if we have a attribute name
   } // if we got non-null search string and attribute name values
-  
+
   return attributeValue;
 }
 
@@ -444,7 +444,7 @@ nsresult nsMailboxUrl::GetFolder(nsIMsgFolder **msgFolder)
   nsCString uri;
   GetUri(getter_Copies(uri));
   NS_ENSURE_TRUE(!uri.IsEmpty(), NS_ERROR_FAILURE);
-  nsCOMPtr<nsIMsgDBHdr> msg; 
+  nsCOMPtr<nsIMsgDBHdr> msg;
   GetMsgDBHdrFromURI(uri.get(), getter_AddRefs(msg));
   NS_ENSURE_TRUE(msg, NS_ERROR_FAILURE);
   return msg->GetFolder(msgFolder);
@@ -475,7 +475,7 @@ NS_IMETHODIMP nsMailboxUrl::GetFolderCharsetOverride(PRBool * aCharacterSetOverr
 NS_IMETHODIMP nsMailboxUrl::GetCharsetOverRide(char ** aCharacterSet)
 {
   if (!mCharsetOverride.IsEmpty())
-    *aCharacterSet = ToNewCString(mCharsetOverride); 
+    *aCharacterSet = ToNewCString(mCharsetOverride);
   else
     *aCharacterSet = nsnull;
   return NS_OK;
