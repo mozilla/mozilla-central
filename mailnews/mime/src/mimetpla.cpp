@@ -54,7 +54,7 @@
 
 #define MIME_SUPERCLASS mimeInlineTextClass
 MimeDefClass(MimeInlineTextPlain, MimeInlineTextPlainClass,
-			 mimeInlineTextPlainClass, &MIME_SUPERCLASS);
+       mimeInlineTextPlainClass, &MIME_SUPERCLASS);
 
 static int MimeInlineTextPlain_parse_begin (MimeObject *);
 static int MimeInlineTextPlain_parse_line (const char *, PRInt32, MimeObject *);
@@ -72,11 +72,11 @@ MimeInlineTextPlainClassInitialize(MimeInlineTextPlainClass *clazz)
 }
 
 extern "C"
-void 
+void
 MimeTextBuildPrefixCSS(PRInt32    quotedSizeSetting,   // mail.quoted_size
                        PRInt32    quotedStyleSetting,  // mail.quoted_style
                        char       *citationColor,      // mail.citation_color
-                       nsACString &style)               
+                       nsACString &style)
 {
   switch (quotedStyleSetting)
   {
@@ -92,7 +92,7 @@ MimeTextBuildPrefixCSS(PRInt32    quotedSizeSetting,   // mail.quoted_size
     style.Append("font-weight: bold; font-style: italic; ");
     break;
   }
-  
+
   switch (quotedSizeSetting)
   {
   case 0:     // regular
@@ -104,7 +104,7 @@ MimeTextBuildPrefixCSS(PRInt32    quotedSizeSetting,   // mail.quoted_size
     style.Append("font-size: small; ");
     break;
   }
-  
+
   if (citationColor && *citationColor)
   {
     style += "color: ";
@@ -134,9 +134,9 @@ MimeInlineTextPlain_parse_begin (MimeObject *obj)
   if (!obj->output_p) return 0;
 
   if (obj->options &&
-	  obj->options->write_html_p &&
-	  obj->options->output_fn)
-	{
+    obj->options->write_html_p &&
+    obj->options->output_fn)
+  {
       MimeInlineTextPlain *text = (MimeInlineTextPlain *) obj;
       text->mCiteLevel = 0;
 
@@ -229,15 +229,15 @@ MimeInlineTextPlain_parse_begin (MimeObject *obj)
         }
         else
           openingDiv = "<pre wrap>";
-	    status = MimeObject_write(obj, openingDiv.get(), openingDiv.Length(), PR_FALSE);
-	    if (status < 0) return status;
+      status = MimeObject_write(obj, openingDiv.get(), openingDiv.Length(), PR_FALSE);
+      if (status < 0) return status;
 
-	    /* text/plain objects always have separators before and after them.
-		   Note that this is not the case for text/enriched objects. */
-	    status = MimeObject_write_separator(obj);
-	    if (status < 0) return status;
+      /* text/plain objects always have separators before and after them.
+       Note that this is not the case for text/enriched objects. */
+      status = MimeObject_write_separator(obj);
+      if (status < 0) return status;
     }
-	}
+  }
 
   return 0;
 }
@@ -260,7 +260,7 @@ MimeInlineTextPlain_parse_eof (MimeObject *obj, PRBool abort_p)
     && ( obj->options->format_out == nsMimeOutput::nsMimeMessageQuoting ||
          obj->options->format_out == nsMimeOutput::nsMimeMessageBodyQuoting
        )           );  // see above
-  
+
   PRBool rawPlainText = obj->options &&
        (obj->options->format_out == nsMimeOutput::nsMimeMessageFilterSniffer
         || obj->options->format_out == nsMimeOutput::nsMimeMessageAttach);
@@ -272,10 +272,10 @@ MimeInlineTextPlain_parse_eof (MimeObject *obj, PRBool abort_p)
   if (!obj->output_p) return 0;
 
   if (obj->options &&
-	  obj->options->write_html_p &&
-	  obj->options->output_fn &&
-	  !abort_p && !rawPlainText)
-	{
+    obj->options->write_html_p &&
+    obj->options->output_fn &&
+    !abort_p && !rawPlainText)
+  {
       MimeInlineTextPlain *text = (MimeInlineTextPlain *) obj;
       if (text->mIsSig && !quoting)
       {
@@ -292,11 +292,11 @@ MimeInlineTextPlain_parse_eof (MimeObject *obj, PRBool abort_p)
       }
 
       /* text/plain objects always have separators before and after them.
-		 Note that this is not the case for text/enriched objects.
-	   */
-	  status = MimeObject_write_separator(obj);
-	  if (status < 0) return status;
-	}
+     Note that this is not the case for text/enriched objects.
+     */
+    status = MimeObject_write_separator(obj);
+    if (status < 0) return status;
+  }
 
   return 0;
 }
@@ -319,7 +319,7 @@ MimeInlineTextPlain_parse_line (const char *line, PRInt32 length, MimeObject *ob
        || obj->options->format_out == nsMimeOutput::nsMimeMessageAttach);
 
   // this routine gets called for every line of data that comes through the
-  // mime converter. It's important to make sure we are efficient with 
+  // mime converter. It's important to make sure we are efficient with
   // how we allocate memory in this routine. be careful if you go to add
   // more to this routine.
 
@@ -463,8 +463,8 @@ MimeInlineTextPlain_parse_line (const char *line, PRInt32 length, MimeObject *ob
           !mailCharset || !*mailCharset)
         CopyUTF16toUTF8(lineResultUnichar, outString);
       else
-      { // convert back to mailCharset before writing.       
-        rv = nsMsgI18NConvertFromUnicode(mailCharset, 
+      { // convert back to mailCharset before writing.
+        rv = nsMsgI18NConvertFromUnicode(mailCharset,
                                          lineResultUnichar, outString);
         NS_ENSURE_SUCCESS(rv, -1);
       }

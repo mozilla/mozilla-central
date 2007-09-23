@@ -45,7 +45,7 @@
 
 #define MIME_SUPERCLASS mimeInlineTextClass
 MimeDefClass(MimeInlineTextHTML, MimeInlineTextHTMLClass,
-			 mimeInlineTextHTMLClass, &MIME_SUPERCLASS);
+       mimeInlineTextHTMLClass, &MIME_SUPERCLASS);
 
 static int MimeInlineTextHTML_parse_line (const char *, PRInt32, MimeObject *);
 static int MimeInlineTextHTML_parse_eof (MimeObject *, PRBool);
@@ -68,7 +68,7 @@ MimeInlineTextHTML_parse_begin (MimeObject *obj)
 {
   int status = ((MimeObjectClass*)&mimeLeafClass)->parse_begin(obj);
   if (status < 0) return status;
-  
+
   if (!obj->output_p) return 0;
 
   // Set a default font (otherwise unicode font will be used since the data is UTF-8).
@@ -78,10 +78,10 @@ MimeInlineTextHTML_parse_begin (MimeObject *obj)
     char buf[256];            // local buffer for html tag
     PRInt32 fontSize;         // default font size
     PRInt32 fontSizePercentage;   // size percentage
-    nsCAutoString fontLang;       // langgroup of the font. 
+    nsCAutoString fontLang;       // langgroup of the font.
     if (NS_SUCCEEDED(GetMailNewsFont(obj, PR_FALSE, &fontSize, &fontSizePercentage,fontLang)))
     {
-      PR_snprintf(buf, 256, "<div class=\"moz-text-html\"  lang=\"%s\">", 
+      PR_snprintf(buf, 256, "<div class=\"moz-text-html\"  lang=\"%s\">",
                   fontLang.get());
       status = MimeObject_write(obj, buf, strlen(buf), PR_FALSE);
     }
@@ -93,11 +93,11 @@ MimeInlineTextHTML_parse_begin (MimeObject *obj)
   }
 
   MimeInlineTextHTML  *textHTML = (MimeInlineTextHTML *) obj;
-  
+
   textHTML->charset = nsnull;
-  
+
   /* If this HTML part has a Content-Base header, and if we're displaying
-	 to the screen (that is, not writing this part "raw") then translate
+   to the screen (that is, not writing this part "raw") then translate
    that Content-Base header into a <BASE> tag in the HTML.
   */
   if (obj->options &&
@@ -106,14 +106,14 @@ MimeInlineTextHTML_parse_begin (MimeObject *obj)
   {
     char *base_hdr = MimeHeaders_get (obj->headers, HEADER_CONTENT_BASE,
       PR_FALSE, PR_FALSE);
-    
+
     /* rhp - for MHTML Spec changes!!! */
     if (!base_hdr)
     {
       base_hdr = MimeHeaders_get (obj->headers, HEADER_CONTENT_LOCATION, PR_FALSE, PR_FALSE);
     }
     /* rhp - for MHTML Spec changes!!! */
-    
+
     if (base_hdr)
     {
       char *buf = (char *) PR_MALLOC(strlen(base_hdr) + 20);
@@ -121,7 +121,7 @@ MimeInlineTextHTML_parse_begin (MimeObject *obj)
       char *out;
       if (!buf)
         return MIME_OUT_OF_MEMORY;
-      
+
         /* The value of the Content-Base header is a number of "words".
         Whitespace in this header is not significant -- it is assumed
         that any real whitespace in the URL has already been encoded,
@@ -131,30 +131,30 @@ MimeInlineTextHTML_parse_begin (MimeObject *obj)
       */
       PL_strcpy(buf, "<BASE HREF=\"");
       out = buf + strlen(buf);
-      
+
       for (in = base_hdr; *in; in++)
         /* ignore whitespace and quotes */
         if (!IS_SPACE(*in) && *in != '"')
           *out++ = *in;
-        
+
         /* Close the tag and argument. */
         *out++ = '"';
         *out++ = '>';
         *out++ = 0;
-        
+
         PR_Free(base_hdr);
-        
+
         status = MimeObject_write(obj, buf, strlen(buf), PR_FALSE);
         PR_Free(buf);
         if (status < 0) return status;
     }
   }
-  
+
   // rhp: For a change, we will write out a separator after formatted text
   //      bodies.
   status = MimeObject_write_separator(obj);
   if (status < 0) return status;
-  
+
   return 0;
 }
 
@@ -164,7 +164,7 @@ MimeInlineTextHTML_parse_line (const char *line, PRInt32 length, MimeObject *obj
 {
   MimeInlineTextHTML  *textHTML = (MimeInlineTextHTML *) obj;
 
-  if (!obj->output_p) 
+  if (!obj->output_p)
     return 0;
 
   if (!obj->options || !obj->options->output_fn)
@@ -174,20 +174,20 @@ MimeInlineTextHTML_parse_line (const char *line, PRInt32 length, MimeObject *obj
   {
     char * cp;
     // First, try to detect a charset via a META tag!
-    if ((cp = PL_strncasestr(line, "META", length)) && 
-        (cp = PL_strncasestr(cp, "HTTP-EQUIV=", length - (int)(cp - line))) && 
-        (cp = PL_strncasestr(cp, "CONTENT=", length - (int)(cp - line))) && 
-        (cp = PL_strncasestr(cp, "CHARSET=", length - (int)(cp - line))) 
-        ) 
+    if ((cp = PL_strncasestr(line, "META", length)) &&
+        (cp = PL_strncasestr(cp, "HTTP-EQUIV=", length - (int)(cp - line))) &&
+        (cp = PL_strncasestr(cp, "CONTENT=", length - (int)(cp - line))) &&
+        (cp = PL_strncasestr(cp, "CHARSET=", length - (int)(cp - line)))
+        )
     {
       char* cp1 = cp + 8;  //8 for the length of "CHARSET="
       char* cp2 = PL_strnpbrk(cp1, " \"\'", length - (int)(cp1 - line));
       if (cp2)
       {
         char* charset = PL_strndup(cp1, (int)(cp2 - cp1));
- 
-        // Fix bug 101434, in this case since this parsing is a char* 
-        // operation, a real UTF-16 or UTF-32 document won't be parse 
+
+        // Fix bug 101434, in this case since this parsing is a char*
+        // operation, a real UTF-16 or UTF-32 document won't be parse
         // correctly, if it got parse, it cannot be UTF-16 nor UTF-32
         // there fore, we ignore them if somehow we got that value
         // 6 == strlen("UTF-16") or strlen("UTF-32"), this will cover
@@ -196,7 +196,7 @@ MimeInlineTextHTML_parse_line (const char *line, PRInt32 length, MimeObject *obj
             PL_strncasecmp(charset, "UTF-16", 6) &&
             PL_strncasecmp(charset, "UTF-32", 6))
         {
-          textHTML->charset = charset; 
+          textHTML->charset = charset;
 
           // write out the data without the charset part...
           if (textHTML->charset)

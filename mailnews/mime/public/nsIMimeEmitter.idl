@@ -43,13 +43,13 @@ interface nsIURI;
 interface nsIStreamListener;
 interface nsIChannel;
 
-[scriptable, uuid(39E329E2-357F-11d3-8EFD-00A024A7D144)] 
-interface nsMimeHeaderDisplayTypes 
-{ 
-    const long MicroHeaders = 0; 
-    const long NormalHeaders = 1; 
-    const long AllHeaders = 2; 
-}; 
+[scriptable, uuid(39E329E2-357F-11d3-8EFD-00A024A7D144)]
+interface nsMimeHeaderDisplayTypes
+{
+    const long MicroHeaders = 0;
+    const long NormalHeaders = 1;
+    const long AllHeaders = 2;
+};
 
 %{C++
 //#define NS_IMIME_MISC_STATUS_KEY       "@mozilla.org/messenger/mimestatus;1?"
@@ -66,21 +66,21 @@ interface nsIMimeEmitter : nsISupports{
     // Set the output stream/listener for processed data.
     void    SetPipe(in nsIInputStream inputStream, in nsIOutputStream outStream);
     void    SetOutputListener(in nsIStreamListener listener);
-    
+
     //Get the output listener to allow access to it from mime
     nsIStreamListener    GetOutputListener();
 
     // Header handling routines.
-    void    StartHeader(in PRBool rootMailHeader, in PRBool headerOnly, 
+    void    StartHeader(in PRBool rootMailHeader, in PRBool headerOnly,
                         [const] in string msgID, [const] in string outCharset);
     void    AddHeaderField([const] in string field, [const] in string value);
     void    addAllHeaders([const] in string allheaders, [const] in long allheadersize);
-	void    WriteHTMLHeaders(); // book case this with a EndHeader call.
+  void    WriteHTMLHeaders(); // book case this with a EndHeader call.
     void    EndHeader();
     void    UpdateCharacterSet([const] in string aCharset);
 
     // Attachment handling routines
-    void    StartAttachment([const] in string name, [const] in string contentType, 
+    void    StartAttachment([const] in string name, [const] in string contentType,
                             [const] in string url, in PRBool aNotDownloaded);
     void    AddAttachmentField([const] in string field, [const] in string value);
     void    EndAttachment();

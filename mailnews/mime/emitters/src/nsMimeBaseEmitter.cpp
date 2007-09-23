@@ -932,7 +932,7 @@ nsMimeBaseEmitter::Complete()
   {
     PRUint32 bytesInStream = 0;
     nsresult rv2 = mInputStream->Available(&bytesInStream);
-	  NS_ASSERTION(NS_SUCCEEDED(rv2), "Available failed");
+    NS_ASSERTION(NS_SUCCEEDED(rv2), "Available failed");
     if (bytesInStream)
     {
       nsCOMPtr<nsIRequest> request = do_QueryInterface(mChannel);

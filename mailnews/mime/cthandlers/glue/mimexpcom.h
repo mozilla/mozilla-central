@@ -35,15 +35,15 @@
  *
  * ***** END LICENSE BLOCK ***** */
 
-/* 
- * This is the definitions for the Content Type Handler plugins to 
+/*
+ * This is the definitions for the Content Type Handler plugins to
  * access internals of libmime via XP-COM calls
- */ 
+ */
 #ifndef _MIMEXPCOM_H_
 #define _MIMEXPCOM_H_
 
 /*
-  This header exposes functions that are necessary to access the 
+  This header exposes functions that are necessary to access the
   object heirarchy for the mime chart. The class hierarchy is:
 
      MimeObject (abstract)
@@ -89,8 +89,8 @@
       |     |     |--- MimeInlineTextRichtext
       |     |     |     |
       |     |     |     |--- MimeInlineTextEnriched
-      |     |	    |
-      |     |	    |--- MimeInlineTextVCard
+      |     |      |
+      |     |      |--- MimeInlineTextVCard
       |     |
       |     |--- MimeInlineImage
       |     |
@@ -101,18 +101,18 @@
 
 /*
  * These functions are exposed by libmime to be used by content type
- * handler plugins for processing stream data. 
+ * handler plugins for processing stream data.
  */
 /*
  * This is the write call for outputting processed stream data.
- */ 
-extern "C" int  COM_MimeObject_write(void *mimeObject, const char *data, 
-                                      PRInt32 length, 
+ */
+extern "C" int  COM_MimeObject_write(void *mimeObject, const char *data,
+                                      PRInt32 length,
                                       PRBool user_visible_p);
 /*
  * The following group of calls expose the pointers for the object
- * system within libmime. 
- */                                                        
+ * system within libmime.
+ */
 extern "C" void *COM_GetmimeInlineTextClass(void);
 extern "C" void *COM_GetmimeLeafClass(void);
 extern "C" void *COM_GetmimeObjectClass(void);

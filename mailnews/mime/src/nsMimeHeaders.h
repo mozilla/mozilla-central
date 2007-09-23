@@ -45,17 +45,17 @@
 
 class nsMimeHeaders : public nsIMimeHeaders
 {
- public: 
- 	nsMimeHeaders();
- 	virtual ~nsMimeHeaders();
- 
-	 /* this macro defines QueryInterface, AddRef and Release for this class */
-	 NS_DECL_ISUPPORTS
-	 
-	 NS_DECL_NSIMIMEHEADERS
+ public:
+   nsMimeHeaders();
+   virtual ~nsMimeHeaders();
+
+   /* this macro defines QueryInterface, AddRef and Release for this class */
+   NS_DECL_ISUPPORTS
+
+   NS_DECL_NSIMIMEHEADERS
 
 private:
-	MimeHeaders	*	mHeaders;
+  MimeHeaders  *  mHeaders;
 };
 
 #endif

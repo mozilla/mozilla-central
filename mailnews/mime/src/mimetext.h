@@ -47,9 +47,9 @@
    It provides two services:
 
      =  if ROT13 decoding is desired, the text will be rotated before
-	    the `parse_line' method it called;
+      the `parse_line' method it called;
 
-	 =  text will be converted from the message's charset to the "target"
+   =  text will be converted from the message's charset to the "target"
         charset before the `parse_line' method is called.
 
    The contract with charset-conversion is that the converted data will
@@ -65,11 +65,11 @@
 
    #### NOTE: if it turns out that we use JIS (ISO-2022-JP) as the target
         encoding, then this is not quite true; it is safe to search for the
-		low ASCII values (under hex 0x40, octal 0100, which is '@') but it
-		is NOT safe to search for values higher than that -- they may be
-		being used as the subsequent bytes in a multi-byte escape sequence.
-		It's a nice coincidence that HTML's critical characters ("<", ">",
-		and "&") have values under 0x40...
+    low ASCII values (under hex 0x40, octal 0100, which is '@') but it
+    is NOT safe to search for values higher than that -- they may be
+    being used as the subsequent bytes in a multi-byte escape sequence.
+    It's a nice coincidence that HTML's critical characters ("<", ">",
+    and "&") have values under 0x40...
  */
 
 typedef struct MimeInlineTextClass MimeInlineTextClass;
@@ -84,19 +84,19 @@ struct MimeInlineTextClass {
 
 extern MimeInlineTextClass mimeInlineTextClass;
 
-#define DAM_MAX_BUFFER_SIZE 8*1024      
+#define DAM_MAX_BUFFER_SIZE 8*1024
 #define DAM_MAX_LINES  1024
 
 struct MimeInlineText {
-  MimeLeaf leaf;			/* superclass variables */
-  char *charset;			/* The charset from the content-type of this
-							           object, or the caller-specified overrides
-							           or defaults. */
-  PRBool charsetOverridable; 
-  PRBool needUpdateMsgWinCharset; 
-  char *cbuffer;			/* Buffer used for charset conversion. */
+  MimeLeaf leaf;      /* superclass variables */
+  char *charset;      /* The charset from the content-type of this
+                         object, or the caller-specified overrides
+                         or defaults. */
+  PRBool charsetOverridable;
+  PRBool needUpdateMsgWinCharset;
+  char *cbuffer;      /* Buffer used for charset conversion. */
   PRInt32 cbuffer_size;
-  
+
   nsCOMPtr<nsIUnicodeDecoder> inputDecoder;
   nsCOMPtr<nsIUnicodeEncoder> utf8Encoder;
 

@@ -52,7 +52,7 @@
 
 #define MIME_SUPERCLASS mimeInlineTextHTMLClass
 MimeDefClass(MimeInlineTextHTMLSanitized, MimeInlineTextHTMLSanitizedClass,
-			 mimeInlineTextHTMLSanitizedClass, &MIME_SUPERCLASS);
+       mimeInlineTextHTMLSanitizedClass, &MIME_SUPERCLASS);
 
 static int MimeInlineTextHTMLSanitized_parse_line (const char *, PRInt32,
                                                    MimeObject *);
@@ -140,7 +140,7 @@ printf("parse_eof\n");
   if (obj->closed_p)
     return 0;
   int status = ((MimeObjectClass*)&MIME_SUPERCLASS)->parse_eof(obj, abort_p);
-  if (status < 0) 
+  if (status < 0)
     return status;
   MimeInlineTextHTMLSanitized *textHTMLSan =
                                        (MimeInlineTextHTMLSanitized *) obj;

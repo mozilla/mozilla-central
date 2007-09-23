@@ -40,7 +40,7 @@
 
 #define MIME_SUPERCLASS mimeMultipartClass
 MimeDefClass(MimeMultipartParallel, MimeMultipartParallelClass,
-			 mimeMultipartParallelClass, &MIME_SUPERCLASS);
+       mimeMultipartParallelClass, &MIME_SUPERCLASS);
 
 static int
 MimeMultipartParallelClassInitialize(MimeMultipartParallelClass *clazz)

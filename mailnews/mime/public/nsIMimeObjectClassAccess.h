@@ -34,11 +34,11 @@
  * the terms of any one of the MPL, the GPL or the LGPL.
  *
  * ***** END LICENSE BLOCK ***** */
- 
+
 /*
- * This interface is implemented by libmime. This interface is used by 
- * a Content-Type handler "Plug In" (i.e. vCard) for accessing various 
- * internal information about the object class system of libmime. When 
+ * This interface is implemented by libmime. This interface is used by
+ * a Content-Type handler "Plug In" (i.e. vCard) for accessing various
+ * internal information about the object class system of libmime. When
  * libmime progresses to a C++ object class, this would probably change.
  */
 #ifndef nsIMimeObjectClassAccess_h_
@@ -48,20 +48,20 @@
 
 // {C09EDB23-B7AF-11d2-B35E-525400E2D63A}
 #define NS_IMIME_OBJECT_CLASS_ACCESS_IID \
-      { 0xc09edb23, 0xb7af, 0x11d2,	 \
+      { 0xc09edb23, 0xb7af, 0x11d2,   \
       { 0xb3, 0x5e, 0x52, 0x54, 0x0, 0xe2, 0xd6, 0x3a } }
 
 class nsIMimeObjectClassAccess : public nsISupports {
-public: 
+public:
   NS_DECLARE_STATIC_IID_ACCESSOR(NS_IMIME_OBJECT_CLASS_ACCESS_IID)
 
-  // These methods are all implemented by libmime to be used by 
-  // content type handler plugins for processing stream data. 
+  // These methods are all implemented by libmime to be used by
+  // content type handler plugins for processing stream data.
 
   // This is the write call for outputting processed stream data.
-  NS_IMETHOD    MimeObjectWrite(void *mimeObject, 
-                                char *data, 
-                                PRInt32 length, 
+  NS_IMETHOD    MimeObjectWrite(void *mimeObject,
+                                char *data,
+                                PRInt32 length,
                                 PRBool user_visible_p) = 0;
 
   // The following group of calls expose the pointers for the object
@@ -72,7 +72,7 @@ public:
   NS_IMETHOD    GetmimeContainerClass(void **ptr) = 0;
   NS_IMETHOD    GetmimeMultipartClass(void **ptr) = 0;
   NS_IMETHOD    GetmimeMultipartSignedClass(void **ptr) = 0;
-}; 
+};
 
 NS_DEFINE_STATIC_IID_ACCESSOR(nsIMimeObjectClassAccess,
                               NS_IMIME_OBJECT_CLASS_ACCESS_IID)

@@ -35,37 +35,37 @@
  * the terms of any one of the MPL, the GPL or the LGPL.
  *
  * ***** END LICENSE BLOCK *****
- * This Original Code has been modified by IBM Corporation. Modifications made by IBM 
+ * This Original Code has been modified by IBM Corporation. Modifications made by IBM
  * described herein are Copyright (c) International Business Machines Corporation, 2000.
  * Modifications to Mozilla code or documentation identified per MPL Section 3.3
  *
  * Date             Modified by     Description of modification
  * 04/20/2000       IBM Corp.      OS/2 VisualAge build.
  */
- 
+
 #ifndef _MIMEBUF_H_
 #define _MIMEBUF_H_
 
 extern "C" int mime_GrowBuffer (PRUint32 desired_size,
-						   PRUint32 element_size, PRUint32 quantum,
-						   char **buffer, PRInt32 *size);
+               PRUint32 element_size, PRUint32 quantum,
+               char **buffer, PRInt32 *size);
 
 extern "C" int mime_LineBuffer (const char *net_buffer, PRInt32 net_buffer_size,
-						   char **bufferP, PRInt32 *buffer_sizeP,
-						   PRInt32 *buffer_fpP,
-						   PRBool convert_newlines_p,
-						   PRInt32 (*PR_CALLBACK per_line_fn) (char *line, PRInt32
-												 line_length, void *closure),
-						   void *closure);
-						   
+               char **bufferP, PRInt32 *buffer_sizeP,
+               PRInt32 *buffer_fpP,
+               PRBool convert_newlines_p,
+               PRInt32 (*PR_CALLBACK per_line_fn) (char *line, PRInt32
+                         line_length, void *closure),
+               void *closure);
+
 extern "C" int mime_ReBuffer (const char *net_buffer, PRInt32 net_buffer_size,
-						 PRUint32 desired_buffer_size,
-						 char **bufferP, PRUint32 *buffer_sizeP,
-						 PRUint32 *buffer_fpP,
-						 PRInt32 (*per_buffer_fn) (char *buffer,
-												 PRUint32 buffer_size,
-												 void *closure),
-						 void *closure);
+             PRUint32 desired_buffer_size,
+             char **bufferP, PRUint32 *buffer_sizeP,
+             PRUint32 *buffer_fpP,
+             PRInt32 (*per_buffer_fn) (char *buffer,
+                         PRUint32 buffer_size,
+                         void *closure),
+             void *closure);
 
 
 #endif /* _MIMEBUF_H_ */

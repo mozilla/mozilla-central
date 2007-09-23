@@ -46,7 +46,7 @@
 #include "prtypes.h"
 #include "nsError.h"
 
-/* This file defines interfaces to generic implementations of Base64, 
+/* This file defines interfaces to generic implementations of Base64,
    Quoted-Printable, and UU decoders; and of Base64 and Quoted-Printable
    encoders.
  */
@@ -62,33 +62,33 @@ struct MimeObject;
 /* functions for creating that opaque data.
  */
 MimeDecoderData *MimeB64DecoderInit(nsresult (*output_fn) (const char *buf,PRInt32 size, void *closure),
-									void *closure);
+                  void *closure);
 
 MimeDecoderData *MimeQPDecoderInit (nsresult (*output_fn) (const char *buf, PRInt32 size, void *closure),
-									void *closure, MimeObject *object = nsnull);
+                  void *closure, MimeObject *object = nsnull);
 
 MimeDecoderData *MimeUUDecoderInit (nsresult (*output_fn) (const char *buf,
-													  PRInt32 size,
-													  void *closure),
-									void *closure);
+                            PRInt32 size,
+                            void *closure),
+                  void *closure);
 MimeDecoderData *MimeYDecoderInit (nsresult (*output_fn) (const char *buf,
-													  PRInt32 size,
-													  void *closure),
-									void *closure);
+                            PRInt32 size,
+                            void *closure),
+                  void *closure);
 
 MimeEncoderData *MimeB64EncoderInit(nsresult (*output_fn) (const char *buf,
-													  PRInt32 size,
-													  void *closure),
-									void *closure);
+                            PRInt32 size,
+                            void *closure),
+                  void *closure);
 MimeEncoderData *MimeQPEncoderInit (nsresult (*output_fn) (const char *buf,
-													  PRInt32 size,
-													  void *closure),
-									void *closure);
+                            PRInt32 size,
+                            void *closure),
+                  void *closure);
 MimeEncoderData *MimeUUEncoderInit (char *filename,
-									nsresult (*output_fn) (const char *buf,
-													  PRInt32 size,
-													  void *closure),
-									void *closure);
+                  nsresult (*output_fn) (const char *buf,
+                            PRInt32 size,
+                            void *closure),
+                  void *closure);
 
 /* Push data through the encoder/decoder, causing the above-provided write_fn
    to be called with encoded/decoded data. */

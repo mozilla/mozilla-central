@@ -58,20 +58,20 @@ extern MimeHeaders *MimeHeaders_new (void);
    you're done.  Returns negative on allocation-related failure.
  */
 extern int MimeHeaders_parse_line (const char *buffer, PRInt32 size,
-								   MimeHeaders *hdrs);
+                   MimeHeaders *hdrs);
 
 
 /* Converts a MimeHeaders object into HTML, by writing to the provided
    output function.
  */
 extern int MimeHeaders_write_headers_html (MimeHeaders *hdrs,
-										   MimeDisplayOptions *opt, 
+                       MimeDisplayOptions *opt,
                        PRBool             attachment);
 
 /*
  * Writes all headers to the mime emitter.
  */
-extern int 
+extern int
 MimeHeaders_write_all_headers (MimeHeaders *, MimeDisplayOptions *, PRBool);
 
 /* Writes the headers as text/plain.
@@ -80,12 +80,12 @@ MimeHeaders_write_all_headers (MimeHeaders *, MimeDisplayOptions *, PRBool);
    is not closed off, and none of the Content- headers are written.
  */
 extern int MimeHeaders_write_raw_headers (MimeHeaders *hdrs,
-										  MimeDisplayOptions *opt,
-										  PRBool dont_write_content_type);
+                      MimeDisplayOptions *opt,
+                      PRBool dont_write_content_type);
 
 
 /* Some crypto-related HTML-generated utility routines.
- * XXX This may not be needed. XXX 
+ * XXX This may not be needed. XXX
  */
 extern char *MimeHeaders_open_crypto_stamp(void);
 extern char *MimeHeaders_finish_open_crypto_stamp(void);

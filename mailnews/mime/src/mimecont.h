@@ -40,8 +40,8 @@
 
 #include "mimeobj.h"
 
-/* MimeContainer is the class for the objects representing all MIME 
-   types which can contain other MIME objects within them.  In addition 
+/* MimeContainer is the class for the objects representing all MIME
+   types which can contain other MIME objects within them.  In addition
    to the methods inherited from MimeObject, it provides one method:
 
    int add_child (MimeObject *parent, MimeObject *child)
@@ -63,10 +63,10 @@ struct MimeContainerClass {
 extern MimeContainerClass mimeContainerClass;
 
 struct MimeContainer {
-  MimeObject object;		/* superclass variables */
+  MimeObject object;    /* superclass variables */
 
-  MimeObject **children;	/* list of contained objects */
-  PRInt32 nchildren;			/* how many */
+  MimeObject **children;  /* list of contained objects */
+  PRInt32 nchildren;      /* how many */
 };
 
 #endif /* _MIMECONT_H_ */

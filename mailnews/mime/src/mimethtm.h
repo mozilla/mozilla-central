@@ -54,7 +54,7 @@ extern MimeInlineTextHTMLClass mimeInlineTextHTMLClass;
 
 struct MimeInlineTextHTML {
   MimeInlineText  text;
-  char            *charset;	/* If we sniffed a charset, do some converting! */
+  char            *charset;  /* If we sniffed a charset, do some converting! */
 };
 
 #endif /* _MIMETHTM_H_ */

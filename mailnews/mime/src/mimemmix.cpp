@@ -40,7 +40,7 @@
 
 #define MIME_SUPERCLASS mimeMultipartClass
 MimeDefClass(MimeMultipartMixed, MimeMultipartMixedClass,
-			 mimeMultipartMixedClass, &MIME_SUPERCLASS);
+       mimeMultipartMixedClass, &MIME_SUPERCLASS);
 
 static int
 MimeMultipartMixedClassInitialize(MimeMultipartMixedClass *clazz)

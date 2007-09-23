@@ -43,7 +43,7 @@
 #include "prio.h"
 #include "nsNetUtil.h"
 
-/* The MimeMultipartRelated class implements the multipart/related MIME 
+/* The MimeMultipartRelated class implements the multipart/related MIME
    container, which allows `sibling' sub-parts to refer to each other.
  */
 
@@ -51,41 +51,41 @@ typedef struct MimeMultipartRelatedClass MimeMultipartRelatedClass;
 typedef struct MimeMultipartRelated      MimeMultipartRelated;
 
 struct MimeMultipartRelatedClass {
-	MimeMultipartClass multipart;
+  MimeMultipartClass multipart;
 };
 
 extern "C" MimeMultipartRelatedClass mimeMultipartRelatedClass;
 
 struct MimeMultipartRelated {
-	MimeMultipart multipart;	/* superclass variables */
+  MimeMultipart multipart;  /* superclass variables */
 
-	char* base_url;				/* Base URL (if any) for the whole
-								   multipart/related. */
+  char* base_url;        /* Base URL (if any) for the whole
+                   multipart/related. */
 
-	char* head_buffer;			/* Buffer used to remember the text/html 'head'
-								   part. */
-	PRInt32 head_buffer_fp;		/* Active length. */
-	PRInt32 head_buffer_size;		/* How big it is. */
-	
-	nsCOMPtr <nsILocalFile>          file_buffer;		/* The nsILocalFile of a temp file used when we
-								                               run out of room in the head_buffer. */
-	nsCOMPtr <nsIInputStream>   input_file_stream;		/* A stream to it. */
-	nsCOMPtr <nsIOutputStream>  output_file_stream;	/* A stream to it. */
+  char* head_buffer;      /* Buffer used to remember the text/html 'head'
+                   part. */
+  PRInt32 head_buffer_fp;    /* Active length. */
+  PRInt32 head_buffer_size;    /* How big it is. */
 
-	MimeHeaders* buffered_hdrs;	/* The headers of the 'head' part. */
+  nsCOMPtr <nsILocalFile>          file_buffer;    /* The nsILocalFile of a temp file used when we
+                                               run out of room in the head_buffer. */
+  nsCOMPtr <nsIInputStream>   input_file_stream;    /* A stream to it. */
+  nsCOMPtr <nsIOutputStream>  output_file_stream;  /* A stream to it. */
 
-	PRBool head_loaded;		/* Whether we've already passed the 'head'
-								   part. */
-	MimeObject* headobj;		/* The actual text/html head object. */
+  MimeHeaders* buffered_hdrs;  /* The headers of the 'head' part. */
 
-	PLHashTable		*hash;
+  PRBool head_loaded;    /* Whether we've already passed the 'head'
+                   part. */
+  MimeObject* headobj;    /* The actual text/html head object. */
 
-	int (*real_output_fn) (const char *buf, PRInt32 size, void *stream_closure);
-	void* real_output_closure;
+  PLHashTable    *hash;
 
-	char* curtag;
-	PRInt32 curtag_max;
-	PRInt32 curtag_length;
+  int (*real_output_fn) (const char *buf, PRInt32 size, void *stream_closure);
+  void* real_output_closure;
+
+  char* curtag;
+  PRInt32 curtag_max;
+  PRInt32 curtag_length;
 
 
 

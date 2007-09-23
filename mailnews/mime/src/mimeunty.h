@@ -40,7 +40,7 @@
 
 #include "mimecont.h"
 
-/* The MimeUntypedText class is used for untyped message contents, that is, 
+/* The MimeUntypedText class is used for untyped message contents, that is,
    it is the class used for the body of a message/rfc822 object which had
    *no* Content-Type header, as opposed to an unrecognized content-type.
    Such a message, technically, does not contain MIME data (it follows only
@@ -57,19 +57,19 @@
 
      if line is "begin 644 foo.gif"
        if there is an open sub-part, close it
-	   add a sub-part with type: image/gif; encoding: x-uue
-	   hand this line to it
-	   and hand subsequent lines to that subpart
-	 else if there is an open uuencoded sub-part, and line is "end"
-	   hand this line to it
-	   close off the uuencoded sub-part
+     add a sub-part with type: image/gif; encoding: x-uue
+     hand this line to it
+     and hand subsequent lines to that subpart
+   else if there is an open uuencoded sub-part, and line is "end"
+     hand this line to it
+     close off the uuencoded sub-part
      else if there is an open sub-part
-	   hand this line to it
+     hand this line to it
      else
        open a text/plain subpart
-	   hand this line to it
+     hand this line to it
 
-   Adding other types than uuencode to this (for example, PGP) would be 
+   Adding other types than uuencode to this (for example, PGP) would be
    pretty straightforward.
  */
 
@@ -83,17 +83,17 @@ struct MimeUntypedTextClass {
 extern MimeUntypedTextClass mimeUntypedTextClass;
 
 typedef enum {
-  MimeUntypedTextSubpartTypeText,	/* text/plain */
-  MimeUntypedTextSubpartTypeUUE,	/* uuencoded data */
-  MimeUntypedTextSubpartTypeYEnc,	/* yencoded data */
-  MimeUntypedTextSubpartTypeBinhex	/* Mac BinHex data */
+  MimeUntypedTextSubpartTypeText,  /* text/plain */
+  MimeUntypedTextSubpartTypeUUE,  /* uuencoded data */
+  MimeUntypedTextSubpartTypeYEnc,  /* yencoded data */
+  MimeUntypedTextSubpartTypeBinhex  /* Mac BinHex data */
 } MimeUntypedTextSubpartType;
 
 struct MimeUntypedText {
-  MimeContainer container;			/* superclass variables */
-  MimeObject *open_subpart;			/* The part still-being-parsed */
-  MimeUntypedTextSubpartType type;	/* What kind of type it is */
-  MimeHeaders *open_hdrs;			/* The faked-up headers describing it */
+  MimeContainer container;      /* superclass variables */
+  MimeObject *open_subpart;      /* The part still-being-parsed */
+  MimeUntypedTextSubpartType type;  /* What kind of type it is */
+  MimeHeaders *open_hdrs;      /* The faked-up headers describing it */
 };
 
 #endif /* _MIMEUNTY_H_ */

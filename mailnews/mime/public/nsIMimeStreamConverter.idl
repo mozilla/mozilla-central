@@ -36,9 +36,9 @@
  * ***** END LICENSE BLOCK ***** */
 
 /*
-	I've created this interface to contain mailnews mime specific information
-	for stream converters. Most of this code is just stuff that has been moved out
-	of nsIStreamConverter.idl to make it more generic.
+  I've created this interface to contain mailnews mime specific information
+  for stream converters. Most of this code is just stuff that has been moved out
+  of nsIStreamConverter.idl to make it more generic.
 */
 
 #include "nsISupports.idl"
@@ -50,27 +50,27 @@ interface nsIURI;
 
 typedef long nsMimeOutputType;
 
-[scriptable, uuid(fdc2956e-d558-43fb-bfdd-fb9511229aa5)] 
+[scriptable, uuid(fdc2956e-d558-43fb-bfdd-fb9511229aa5)]
 interface nsMimeOutput
-{ 
+{
   const long nsMimeMessageSplitDisplay = 0;
   const long nsMimeMessageHeaderDisplay = 1;
   const long nsMimeMessageBodyDisplay = 2;
-	const long nsMimeMessageQuoting = 3;
-	const long nsMimeMessageBodyQuoting = 4;
-	const long nsMimeMessageRaw = 5;
-	const long nsMimeMessageDraftOrTemplate = 6;
-	const long nsMimeMessageEditorTemplate = 7;
-	const long nsMimeMessagePrintOutput = 9;
+  const long nsMimeMessageQuoting = 3;
+  const long nsMimeMessageBodyQuoting = 4;
+  const long nsMimeMessageRaw = 5;
+  const long nsMimeMessageDraftOrTemplate = 6;
+  const long nsMimeMessageEditorTemplate = 7;
+  const long nsMimeMessagePrintOutput = 9;
   const long nsMimeMessageSaveAs = 10;
   const long nsMimeMessageSource = 11;
   const long nsMimeMessageFilterSniffer = 12;
   const long nsMimeMessageDecrypt = 13;
   const long nsMimeMessageAttach = 14;
   const long nsMimeUnknown = 15;
-}; 
+};
 
-[scriptable, uuid(FA81CAA0-6261-11d3-8311-00805F2A0107)] 
+[scriptable, uuid(FA81CAA0-6261-11d3-8311-00805F2A0107)]
 interface nsIMimeStreamConverterListener : nsISupports{
       void onHeadersReady(in nsIMimeHeaders headers);
 };
@@ -78,19 +78,19 @@ interface nsIMimeStreamConverterListener : nsISupports{
 [scriptable, uuid(E4ED8892-3F9E-11d3-9896-001083010E9B)]
 interface nsIMimeStreamConverter : nsISupports {
 
-    /* 
-	 * This is used to set the desired mime output type on the converer. 
+    /*
+   * This is used to set the desired mime output type on the converer.
      */
 
-	void SetMimeOutputType(in nsMimeOutputType aType);
+  void SetMimeOutputType(in nsMimeOutputType aType);
 
-	void GetMimeOutputType(out nsMimeOutputType aOutFormat);
-    
-  /* 
+  void GetMimeOutputType(out nsMimeOutputType aOutFormat);
+
+  /*
   * This is needed by libmime for MHTML link processing...the url is the URL string associated
   * with this input stream
-  */ 
-  void SetStreamURI(in nsIURI aURI); 
+  */
+  void SetStreamURI(in nsIURI aURI);
 
   /*
   * This is used to extract headers while parsing a message

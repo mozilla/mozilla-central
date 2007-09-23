@@ -83,10 +83,10 @@ typedef struct {
   char      *value;
 } headerInfoType;
 
-class nsMimeBaseEmitter : public nsIMimeEmitter, 
+class nsMimeBaseEmitter : public nsIMimeEmitter,
                           public nsIInterfaceRequestor
 {
-public: 
+public:
   nsMimeBaseEmitter ();
   virtual             ~nsMimeBaseEmitter (void);
 
@@ -125,20 +125,20 @@ protected:
   nsresult            WriteHelper(const char *buf, PRUint32 count, PRUint32 *countWritten);
 
   // For string bundle usage...
-  nsCOMPtr<nsIStringBundle>	m_stringBundle;        // for translated strings
-  nsCOMPtr<nsIStringBundle>	m_headerStringBundle;  // for non-translated header strings
+  nsCOMPtr<nsIStringBundle>  m_stringBundle;        // for translated strings
+  nsCOMPtr<nsIStringBundle>  m_headerStringBundle;  // for non-translated header strings
 
   // For buffer management on output
   MimeRebuffer        *mBufferMgr;
 
-	// mscott
+  // mscott
   // don't ref count the streams....the emitter is owned by the converter
-	// which owns these streams...
+  // which owns these streams...
   //
   nsIOutputStream     *mOutStream;
-	nsIInputStream	    *mInputStream;
+  nsIInputStream      *mInputStream;
   nsIStreamListener   *mOutListener;
-  nsIChannel			    *mChannel;
+  nsIChannel          *mChannel;
 
   // For gathering statistics on processing...
   PRUint32            mTotalWritten;

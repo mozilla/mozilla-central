@@ -58,7 +58,7 @@
    into separate lines again. So, I just throw the whole message at once
    at the TextPlain_parse_line function - it happens to work *g*. */
 MimeDefClass(MimeInlineTextHTMLAsPlaintext, MimeInlineTextHTMLAsPlaintextClass,
-			 mimeInlineTextHTMLAsPlaintextClass, &MIME_SUPERCLASS);
+       mimeInlineTextHTMLAsPlaintextClass, &MIME_SUPERCLASS);
 
 static int MimeInlineTextHTMLAsPlaintext_parse_line (const char *, PRInt32,
                                                      MimeObject *);
@@ -96,12 +96,12 @@ MimeInlineTextHTMLAsPlaintext_parse_eof (MimeObject *obj, PRBool abort_p)
     return 0;
 
   // This is a hack. We need to call parse_eof() of the super class to flush out any buffered data.
-  // We can't call it yet for our direct super class, because it would "close" the output 
+  // We can't call it yet for our direct super class, because it would "close" the output
   // (write tags such as </pre> and </div>). We'll do that after parsing the buffer.
   int status = ((MimeObjectClass*)&MIME_SUPERCLASS)->superclass->parse_eof(obj, abort_p);
   if (status < 0)
     return status;
-  
+
   MimeInlineTextHTMLAsPlaintext *textHTMLPlain =
                                        (MimeInlineTextHTMLAsPlaintext *) obj;
 
@@ -132,7 +132,7 @@ MimeInlineTextHTMLAsPlaintext_parse_eof (MimeObject *obj, PRBool abort_p)
   if (status < 0)
     return status;
 
-  // Second part of the flush hack. Pretend obj wasn't closed yet, so that our super class 
+  // Second part of the flush hack. Pretend obj wasn't closed yet, so that our super class
   // gets a chance to write the closing.
   PRBool save_closed_p = obj->closed_p;
   obj->closed_p = PR_FALSE;

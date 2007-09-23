@@ -43,8 +43,8 @@
 
 /* MimeLeaf is the class for the objects representing all MIME types which
    are not containers for other MIME objects.  The implication of this is
-   that they are MIME types which can have Content-Transfer-Encodings 
-   applied to their data.  This class provides that service in its 
+   that they are MIME types which can have Content-Transfer-Encodings
+   applied to their data.  This class provides that service in its
    parse_buffer() method:
 
      int (*parse_decoded_buffer) (const char *buf, PRInt32 size, MimeObject *obj)
@@ -73,10 +73,10 @@ struct MimeLeafClass {
 extern MimeLeafClass mimeLeafClass;
 
 struct MimeLeaf {
-  MimeObject object;		/* superclass variables */
+  MimeObject object;    /* superclass variables */
 
   /* If we're doing Base64, Quoted-Printable, or UU decoding, this is the
-	 state object for the decoder. */
+   state object for the decoder. */
   MimeDecoderData *decoder_data;
 };
 

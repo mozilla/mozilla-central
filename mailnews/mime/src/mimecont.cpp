@@ -43,7 +43,7 @@
 
 #define MIME_SUPERCLASS mimeObjectClass
 MimeDefClass(MimeContainer, MimeContainerClass,
-			 mimeContainerClass, &MIME_SUPERCLASS);
+       mimeContainerClass, &MIME_SUPERCLASS);
 
 static int MimeContainer_initialize (MimeObject *);
 static void MimeContainer_finalize (MimeObject *);
@@ -51,7 +51,7 @@ static int MimeContainer_add_child (MimeObject *, MimeObject *);
 static int MimeContainer_parse_eof (MimeObject *, PRBool);
 static int MimeContainer_parse_end (MimeObject *, PRBool);
 static PRBool MimeContainer_displayable_inline_p (MimeObjectClass *clazz,
-												   MimeHeaders *hdrs);
+                           MimeHeaders *hdrs);
 
 #if defined(DEBUG) && defined(XP_UNIX)
 static int MimeContainer_debug_print (MimeObject *, PRFileDesc *, PRInt32 depth);
@@ -92,26 +92,26 @@ MimeContainer_finalize (MimeObject *object)
   MimeContainer *cont = (MimeContainer *) object;
 
   /* Do this first so that children have their parse_eof methods called
-	 in forward order (0-N) but are destroyed in backward order (N-0)
+   in forward order (0-N) but are destroyed in backward order (N-0)
    */
   if (!object->closed_p)
-	object->clazz->parse_eof (object, PR_FALSE);
+  object->clazz->parse_eof (object, PR_FALSE);
   if (!object->parsed_p)
-	object->clazz->parse_end (object, PR_FALSE);
+  object->clazz->parse_end (object, PR_FALSE);
 
   if (cont->children)
-	{
-	  int i;
-	  for (i = cont->nchildren-1; i >= 0; i--)
-		{
-		  MimeObject *kid = cont->children[i];
-		  if (kid)
-			mime_free(kid);
-		  cont->children[i] = 0;
-		}
-	  PR_FREEIF(cont->children);
-	  cont->nchildren = 0;
-	}
+  {
+    int i;
+    for (i = cont->nchildren-1; i >= 0; i--)
+    {
+      MimeObject *kid = cont->children[i];
+      if (kid)
+      mime_free(kid);
+      cont->children[i] = 0;
+    }
+    PR_FREEIF(cont->children);
+    cont->nchildren = 0;
+  }
   ((MimeObjectClass*)&MIME_SUPERCLASS)->finalize(object);
 }
 
@@ -122,26 +122,26 @@ MimeContainer_parse_eof (MimeObject *object, PRBool abort_p)
   int status;
 
   /* We must run all of this object's parent methods first, to get all the
-	 data flushed down its stream, so that the children's parse_eof methods
-	 can access it.  We do not access *this* object again after doing this,
-	 only its children.
+   data flushed down its stream, so that the children's parse_eof methods
+   can access it.  We do not access *this* object again after doing this,
+   only its children.
    */
   status = ((MimeObjectClass*)&MIME_SUPERCLASS)->parse_eof(object, abort_p);
   if (status < 0) return status;
 
   if (cont->children)
-	{
-	  int i;
-	  for (i = 0; i < cont->nchildren; i++)
-		{
-		  MimeObject *kid = cont->children[i];
-		  if (kid && !kid->closed_p)
-			{
-			  int lstatus = kid->clazz->parse_eof(kid, abort_p);
-			  if (lstatus < 0) return lstatus;
-			}
-		}
-	}
+  {
+    int i;
+    for (i = 0; i < cont->nchildren; i++)
+    {
+      MimeObject *kid = cont->children[i];
+      if (kid && !kid->closed_p)
+      {
+        int lstatus = kid->clazz->parse_eof(kid, abort_p);
+        if (lstatus < 0) return lstatus;
+      }
+    }
+  }
   return 0;
 }
 
@@ -152,26 +152,26 @@ MimeContainer_parse_end (MimeObject *object, PRBool abort_p)
   int status;
 
   /* We must run all of this object's parent methods first, to get all the
-	 data flushed down its stream, so that the children's parse_eof methods
-	 can access it.  We do not access *this* object again after doing this,
-	 only its children.
+   data flushed down its stream, so that the children's parse_eof methods
+   can access it.  We do not access *this* object again after doing this,
+   only its children.
    */
   status = ((MimeObjectClass*)&MIME_SUPERCLASS)->parse_end(object, abort_p);
   if (status < 0) return status;
 
   if (cont->children)
-	{
-	  int i;
-	  for (i = 0; i < cont->nchildren; i++)
-		{
-		  MimeObject *kid = cont->children[i];
-		  if (kid && !kid->parsed_p)
-			{
-			  int lstatus = kid->clazz->parse_end(kid, abort_p);
-			  if (lstatus < 0) return lstatus;
-			}
-		}
-	}
+  {
+    int i;
+    for (i = 0; i < cont->nchildren; i++)
+    {
+      MimeObject *kid = cont->children[i];
+      if (kid && !kid->parsed_p)
+      {
+        int lstatus = kid->clazz->parse_end(kid, abort_p);
+        if (lstatus < 0) return lstatus;
+      }
+    }
+  }
   return 0;
 }
 
@@ -187,7 +187,7 @@ MimeContainer_add_child (MimeObject *parent, MimeObject *child)
   old_kids = cont->children;
   new_kids = (MimeObject **)PR_MALLOC(sizeof(MimeObject *) * (cont->nchildren + 1));
   if (!new_kids) return MIME_OUT_OF_MEMORY;
-  
+
   if (cont->nchildren > 0)
     memcpy(new_kids, old_kids, sizeof(MimeObject *) * cont->nchildren);
   new_kids[cont->nchildren] = child;
@@ -221,28 +221,28 @@ MimeContainer_debug_print (MimeObject *obj, PRFileDesc *stream, PRInt32 depth)
   PR_Write(stream, "  ", 2);
   /*
   PR_Write(stream, "<%s %s (%d kid%s) 0x%08X>\n",
-		  obj->clazz->class_name,
-		  addr ? addr : "???",
-		  cont->nchildren, (cont->nchildren == 1 ? "" : "s"),
-		  (PRUint32) cont);
+      obj->clazz->class_name,
+      addr ? addr : "???",
+      cont->nchildren, (cont->nchildren == 1 ? "" : "s"),
+      (PRUint32) cont);
   */
   PR_FREEIF(addr);
 
 /*
   if (cont->nchildren > 0)
-	fprintf(stream, "\n");
+  fprintf(stream, "\n");
  */
 
   for (i = 0; i < cont->nchildren; i++)
-	{
-	  MimeObject *kid = cont->children[i];
-	  int status = kid->clazz->debug_print (kid, stream, depth+1);
-	  if (status < 0) return status;
-	}
+  {
+    MimeObject *kid = cont->children[i];
+    int status = kid->clazz->debug_print (kid, stream, depth+1);
+    if (status < 0) return status;
+  }
 
 /*
   if (cont->nchildren > 0)
-	fprintf(stream, "\n");
+  fprintf(stream, "\n");
  */
 
   return 0;

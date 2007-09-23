@@ -45,7 +45,7 @@
 
 #define MIME_SUPERCLASS mimeInlineTextRichtextClass
 MimeDefClass(MimeInlineTextEnriched, MimeInlineTextEnrichedClass,
-			 mimeInlineTextEnrichedClass, &MIME_SUPERCLASS);
+       mimeInlineTextEnrichedClass, &MIME_SUPERCLASS);
 
 static int
 MimeInlineTextEnrichedClassInitialize(MimeInlineTextEnrichedClass *clazz)

@@ -35,15 +35,15 @@
  *
  * ***** END LICENSE BLOCK ***** */
 #include "mimei.h"
-#include "mimeobj.h"	/*  MimeObject (abstract)							*/
-#include "mimecont.h"	/*   |--- MimeContainer (abstract)					*/
-#include "mimemult.h"	/*   |     |--- MimeMultipart (abstract)			*/
-#include "mimemsig.h"	/*   |     |     |--- MimeMultipartSigned (abstract)*/
-#include "mimetext.h"	/*   |     |--- MimeInlineText (abstract)			*/
+#include "mimeobj.h"  /*  MimeObject (abstract)              */
+#include "mimecont.h"  /*   |--- MimeContainer (abstract)          */
+#include "mimemult.h"  /*   |     |--- MimeMultipart (abstract)      */
+#include "mimemsig.h"  /*   |     |     |--- MimeMultipartSigned (abstract)*/
+#include "mimetext.h"  /*   |     |--- MimeInlineText (abstract)      */
 #include "mimecth.h"
 
 /*
- * These calls are necessary to expose the object class heirarchy 
+ * These calls are necessary to expose the object class heirarchy
  * to externally developed content type handlers.
  */
 extern "C" void *
@@ -82,12 +82,12 @@ XPCOM_GetmimeMultipartSignedClass(void)
   return (void *) &mimeMultipartSignedClass;
 }
 
-extern "C" int  
-XPCOM_MimeObject_write(void *mimeObject, 
-                       char *data, 
-                       PRInt32 length, 
+extern "C" int
+XPCOM_MimeObject_write(void *mimeObject,
+                       char *data,
+                       PRInt32 length,
                        PRBool user_visible_p)
 {
-  return MIME_MimeObject_write((MimeObject *)mimeObject, data, 
+  return MIME_MimeObject_write((MimeObject *)mimeObject, data,
                                 length, user_visible_p);
 }

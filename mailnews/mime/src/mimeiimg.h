@@ -57,7 +57,7 @@ struct MimeInlineImage {
   MimeLeaf leaf;
 
   /* Opaque data object for the backend-specific inline-image-display code
-	 (internal-external-reconnect nastiness.) */
+   (internal-external-reconnect nastiness.) */
   void *image_data;
 };
 

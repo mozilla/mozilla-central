@@ -39,13 +39,13 @@
 #define nsMessageMimeCID_h__
 
 #define NS_MAILNEWS_MIME_STREAM_CONVERTER_CONTRACTID \
-	NS_ISTREAMCONVERTER_KEY "?from=message/rfc822&to=application/vnd.mozilla.xul+xml"
+  NS_ISTREAMCONVERTER_KEY "?from=message/rfc822&to=application/vnd.mozilla.xul+xml"
 
 #define NS_MAILNEWS_MIME_STREAM_CONVERTER_CONTRACTID1 \
-	NS_ISTREAMCONVERTER_KEY "?from=message/rfc822&to=text/html"
+  NS_ISTREAMCONVERTER_KEY "?from=message/rfc822&to=text/html"
 
 #define NS_MAILNEWS_MIME_STREAM_CONVERTER_CONTRACTID2 \
-	NS_ISTREAMCONVERTER_KEY "?from=message/rfc822&to=*/*"
+  NS_ISTREAMCONVERTER_KEY "?from=message/rfc822&to=*/*"
 
 #define NS_MAILNEWS_MIME_STREAM_CONVERTER_CID                    \
 { /* FAF4F9A6-60AD-11d3-989A-001083010E9B */         \
@@ -68,5 +68,5 @@
 #define NS_MSGHEADERPARSER_CID \
         { 0x932c53a5, 0xf398, 0x11d2, \
         { 0x82, 0xb7, 0x44, 0x45, 0x53, 0x54, 0x0, 0x2 } }
-	
+
 #endif // nsMessageMimeCID_h__

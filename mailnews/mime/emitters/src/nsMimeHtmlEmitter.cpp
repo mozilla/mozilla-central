@@ -261,7 +261,7 @@ NS_IMETHODIMP nsMimeHtmlDisplayEmitter::WriteHTMLHeaders()
     if (!PL_strcasecmp("Newsgroups", headerInfo->name))
     {
       bFromNewsgroups = PR_TRUE;
-	  break;
+    break;
     }
   }
 
@@ -320,9 +320,9 @@ nsresult nsMimeHtmlDisplayEmitter::GenerateDateString(const char * dateString, n
   else if (LL_CMP(currentTime, >, dateOfMsg))
   {
     PRInt64 microSecondsPerSecond, secondsInDays, microSecondsInDays;
-	  LL_I2L(microSecondsPerSecond, PR_USEC_PER_SEC);
+    LL_I2L(microSecondsPerSecond, PR_USEC_PER_SEC);
     LL_UI2L(secondsInDays, 60 * 60 * 24 * 7); // how many seconds in 7 days.....
-	  LL_MUL(microSecondsInDays, secondsInDays, microSecondsPerSecond); // turn that into microseconds
+    LL_MUL(microSecondsInDays, secondsInDays, microSecondsPerSecond); // turn that into microseconds
 
     PRInt64 diff;
     LL_SUB(diff, currentTime, dateOfMsg);
@@ -557,7 +557,7 @@ nsMimeHtmlDisplayEmitter::EndAllAttachments()
   nsCOMPtr<nsIMsgHeaderSink> headerSink;
   rv = GetHeaderSink(getter_AddRefs(headerSink));
   if (headerSink)
-	  headerSink->OnEndAllAttachments();
+    headerSink->OnEndAllAttachments();
   return rv;
 }
 

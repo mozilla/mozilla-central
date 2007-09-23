@@ -48,28 +48,28 @@
    The format is this:
 
     = Content-Type is X-Sun-Attachment
-	= parts are separated by lines of exactly ten dashes
-	= just after the dashes comes a block of headers, including:
+  = parts are separated by lines of exactly ten dashes
+  = just after the dashes comes a block of headers, including:
 
       X-Sun-Data-Type: (manditory)
-			Values are Text, Postscript, Scribe, SGML, TeX, Troff, DVI,
-			and Message.
+      Values are Text, Postscript, Scribe, SGML, TeX, Troff, DVI,
+      and Message.
 
       X-Sun-Encoding-Info: (optional)
-	  		Ordered, comma-separated values, including Compress and Uuencode.
+        Ordered, comma-separated values, including Compress and Uuencode.
 
       X-Sun-Data-Name: (optional)
-	  		File name, maybe.
+        File name, maybe.
 
       X-Sun-Data-Description: (optional)
-			Longer text.
+      Longer text.
 
       X-Sun-Content-Lines: (manditory, unless Length is present)
-			Number of lines in the body, not counting headers and the blank
-			line that follows them.
+      Number of lines in the body, not counting headers and the blank
+      line that follows them.
 
       X-Sun-Content-Length: (manditory, unless Lines is present)
-	  		Bytes, presumably using Unix line terminators.
+        Bytes, presumably using Unix line terminators.
  */
 
 typedef struct MimeSunAttachmentClass MimeSunAttachmentClass;

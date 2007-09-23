@@ -1396,7 +1396,7 @@ mime_parse_stream_complete (nsMIMESession *stream)
 
     }
 
-	// identity to prefer when opening the message in the compose window?
+  // identity to prefer when opening the message in the compose window?
     identityKey = MimeHeaders_get(mdd->headers, HEADER_X_MOZILLA_IDENTITY_KEY, PR_FALSE, PR_FALSE);
     if ( identityKey && *identityKey )
     {

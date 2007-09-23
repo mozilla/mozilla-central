@@ -50,7 +50,7 @@ typedef struct MimeInlineTextRichtext      MimeInlineTextRichtext;
 
 struct MimeInlineTextRichtextClass {
   MimeInlineTextClass text;
-  PRBool enriched_p;	/* Whether we should act like text/enriched instead. */
+  PRBool enriched_p;  /* Whether we should act like text/enriched instead. */
 };
 
 extern MimeInlineTextRichtextClass mimeInlineTextRichtextClass;
@@ -62,10 +62,10 @@ struct MimeInlineTextRichtext {
 
 extern int
 MimeRichtextConvert (char *line, PRInt32 length,
-					 int (*output_fn) (const char *buf, PRInt32 size, void *closure),
-					 void *closure,
-					 char **obufferP,
-					 PRInt32 *obuffer_sizeP,
-					 PRBool enriched_p);
+           int (*output_fn) (const char *buf, PRInt32 size, void *closure),
+           void *closure,
+           char **obufferP,
+           PRInt32 *obuffer_sizeP,
+           PRBool enriched_p);
 
 #endif /* _MIMETRIC_H_ */

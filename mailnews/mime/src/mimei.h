@@ -45,7 +45,7 @@
 
   All Mozilla-specific code is (and should remain) isolated in the
   file mimemoz.c.  Generally, if the code involves images, netlib
-  streams it should be in mimemoz.c instead of in the main body of 
+  streams it should be in mimemoz.c instead of in the main body of
   the MIME parser.
 
   The parser is object-oriented and fully buzzword-compliant.
@@ -108,8 +108,8 @@
       |     |     +--- MimeInlineTextRichtext
       |     |     |     |
       |     |     |     \--- MimeInlineTextEnriched
-      |     |	  |
-      |     |	  +--- MimeInlineTextVCard
+      |     |    |
+      |     |    +--- MimeInlineTextVCard
       |     |
       |     +--- MimeInlineImage
       |     |
@@ -248,15 +248,15 @@ class nsICMSMessage;
 #define MimeDefClass(ITYPE,CTYPE,CVAR,CSUPER) \
  static int CTYPE##Initialize(CTYPE *); \
  CTYPE CVAR = { cpp_stringify(ITYPE), sizeof(ITYPE), \
-				(MimeObjectClass *) CSUPER, \
-				(int (*) (MimeObjectClass *)) CTYPE##Initialize, 0, }
+        (MimeObjectClass *) CSUPER, \
+        (int (*) (MimeObjectClass *)) CTYPE##Initialize, 0, }
 
 
 /* Creates a new (subclass of) MimeObject of the given class, with the
    given headers (which are copied.)
  */
 extern MimeObject *mime_new (MimeObjectClass *clazz, MimeHeaders *hdrs,
-							 const char *override_content_type);
+               const char *override_content_type);
 
 
 /* Destroys a MimeObject (or subclass) and all data associated with it.
@@ -270,21 +270,21 @@ extern "C" void mime_free (MimeObject *object);
    false, it will return NULL.
  */
 extern MimeObjectClass *mime_find_class (const char *content_type,
-										 MimeHeaders *hdrs,
-										 MimeDisplayOptions *opts,
-										 PRBool exact_match_p);
+                     MimeHeaders *hdrs,
+                     MimeDisplayOptions *opts,
+                     PRBool exact_match_p);
 
 /* Given a content-type string, creates and returns an appropriate subclass
    of MimeObject.  The headers (from which the content-type was presumably
    extracted) are copied.
  */
 extern MimeObject *mime_create (const char *content_type, MimeHeaders *hdrs,
-								MimeDisplayOptions *opts);
+                MimeDisplayOptions *opts);
 
 
 /* Querying the type hierarchy */
 extern PRBool mime_subclass_p(MimeObjectClass *child,
-							   MimeObjectClass *parent);
+                 MimeObjectClass *parent);
 extern PRBool mime_typep(MimeObject *obj, MimeObjectClass *clazz);
 
 /* Returns a string describing the location of the part (like "2.5.3").
@@ -329,7 +329,7 @@ extern MimeObject *mime_address_to_part(const char *part, MimeObject *obj);
    Else returns NULL.  (part is not a URL -- it's of the form "1.3.5".)
  */
 extern char *mime_find_suggested_name_of_part(const char *part,
-											  MimeObject *obj);
+                        MimeObject *obj);
 
 /* Given a part ID, looks through the MimeObject tree for a sub-part whose ID
    number matches; if one is found, returns the Content-Name of that part.
@@ -350,11 +350,11 @@ extern int mime_parse_url_options(const char *url, MimeDisplayOptions *);
 extern PRBool mime_crypto_object_p(MimeHeaders *, PRBool clearsigned_counts);
 
 /* Tells whether the given MimeObject is a message which has been encrypted
-   or signed.  (Helper for MIME_GetMessageCryptoState()). 
+   or signed.  (Helper for MIME_GetMessageCryptoState()).
  */
 extern void mime_get_crypto_state (MimeObject *obj,
-								   PRBool *signed_p, PRBool *encrypted_p,
-								   PRBool *signed_ok, PRBool *encrypted_ok);
+                   PRBool *signed_p, PRBool *encrypted_p,
+                   PRBool *signed_ok, PRBool *encrypted_ok);
 
 
 /* Whether the given object has written out the HTML version of its headers
@@ -367,38 +367,38 @@ extern PRBool mime_crypto_stamped_p(MimeObject *obj);
 /* How the crypto code tells the MimeMessage object what the crypto stamp
    on it says. */
 extern void mime_set_crypto_stamp(MimeObject *obj,
-								  PRBool signed_p, PRBool encrypted_p);
+                  PRBool signed_p, PRBool encrypted_p);
 #endif // ENABLE_SMIME
 
 class MimeParseStateObject {
 public:
 
-  MimeParseStateObject() 
+  MimeParseStateObject()
       {root = 0; separator_queued_p = PR_FALSE; separator_suppressed_p = PR_FALSE;
-        first_part_written_p = PR_FALSE; post_header_html_run_p = PR_FALSE; first_data_written_p = PR_FALSE; 
+        first_part_written_p = PR_FALSE; post_header_html_run_p = PR_FALSE; first_data_written_p = PR_FALSE;
         decrypted_p = PR_FALSE; strippingPart = PR_FALSE;
       }
-  MimeObject *root;				/* The outermost parser object. */
+  MimeObject *root;        /* The outermost parser object. */
 
-  PRBool separator_queued_p;	/* Whether a separator should be written out
-								   before the next text is written (this lets
-								   us write separators lazily, so that one
-								   doesn't appear at the end, and so that more
-								   than one don't appear in a row.) */
+  PRBool separator_queued_p;  /* Whether a separator should be written out
+                   before the next text is written (this lets
+                   us write separators lazily, so that one
+                   doesn't appear at the end, and so that more
+                   than one don't appear in a row.) */
 
   PRBool separator_suppressed_p; /* Whether the currently-queued separator
-								   should not be printed; this is a kludge to
-								   prevent seps from being printed just after
-								   a header block... */
+                   should not be printed; this is a kludge to
+                   prevent seps from being printed just after
+                   a header block... */
 
-  PRBool first_part_written_p;	/* State used for the `Show Attachments As
-								   Links' kludge. */
+  PRBool first_part_written_p;  /* State used for the `Show Attachments As
+                   Links' kludge. */
 
   PRBool post_header_html_run_p; /* Whether we've run the
-									 options->generate_post_header_html_fn */
+                   options->generate_post_header_html_fn */
 
-  PRBool first_data_written_p;	/* State used for Mozilla lazy-stream-
-								   creation evilness. */
+  PRBool first_data_written_p;  /* State used for Mozilla lazy-stream-
+                   creation evilness. */
 
   PRBool decrypted_p; /* If options->dexlate_p is true, then this
                         will be set to indicate whether any
@@ -423,16 +423,16 @@ extern int MimeObject_output_init(MimeObject *obj, const char *content_type);
    when making the decision of whether a separating <HR> is needed.
  */
 extern int MimeObject_write(MimeObject *, const char *data, PRInt32 length,
-							PRBool user_visible_p);
+              PRBool user_visible_p);
 extern int MimeOptions_write(MimeDisplayOptions *,
-							 const char *data, PRInt32 length,
-							 PRBool user_visible_p);
+               const char *data, PRInt32 length,
+               PRBool user_visible_p);
 
 /* Writes out the right kind of HR (or rather, queues it for writing.) */
 extern int MimeObject_write_separator(MimeObject *);
 
 extern PRBool MimeObjectChildIsMessageBody(MimeObject *obj,
-											PRBool *isAlterOrRelated);
+                      PRBool *isAlterOrRelated);
 
 /* This is the data tagged to contexts and the declaration needs to be
    in a header file since more than mimemoz.c needs to see it now...

@@ -57,25 +57,25 @@
      Whether this child should be output.  Default method always says `yes'.
 
    int parse_child_line (MimeObject *obj, const char *line, PRInt32 length,
-						 PRBool first_line_p)
+             PRBool first_line_p)
 
      When we have a line which should be handed off to the currently-active
      child object, this method is called to do that.  The `first_line_p'
      variable will be true only for the very first line handed off to this
      sub-part.  The default method simply passes the line to the most-
-	 recently-added child object.
+   recently-added child object.
 
    int close_child (MimeObject *self)
 
      When we reach the end of a sub-part (a separator line) this method is
-	 called to shut down the currently-active child.  The default method
-	 simply calls `parse_eof' on the most-recently-added child object.
+   called to shut down the currently-active child.  The default method
+   simply calls `parse_eof' on the most-recently-added child object.
 
-   MimeMultipartBoundaryType check_boundary (MimeObject *obj, 
-											const char *line, PRInt32 length)
+   MimeMultipartBoundaryType check_boundary (MimeObject *obj,
+                      const char *line, PRInt32 length)
 
      This method is used to examine a line and determine whether it is a
-     part boundary, and if so, what kind.  It should return a member of 
+     part boundary, and if so, what kind.  It should return a member of
      the MimeMultipartBoundaryType describing the line.
 
    const char *default_part_type
@@ -112,19 +112,19 @@ struct MimeMultipartClass {
   PRBool (*output_child_p) (MimeObject *self, MimeObject *child);
   int (*close_child) (MimeObject *);
   int (*parse_child_line) (MimeObject *, const char *line, PRInt32 length,
-						   PRBool first_line_p);
+               PRBool first_line_p);
   MimeMultipartBoundaryType (*check_boundary) (MimeObject *, const char *line,
-											   PRInt32 length);
+                         PRInt32 length);
 };
 
 extern MimeMultipartClass mimeMultipartClass;
 
 struct MimeMultipart {
-  MimeContainer container;			/* superclass variables */
-  char *boundary;					/* Inter-part delimiter string */
-  MimeHeaders *hdrs;				/* headers of the part currently
-									   being parsed, if any */
-  MimeMultipartParseState state;	/* State of parser */
+  MimeContainer container;      /* superclass variables */
+  char *boundary;          /* Inter-part delimiter string */
+  MimeHeaders *hdrs;        /* headers of the part currently
+                     being parsed, if any */
+  MimeMultipartParseState state;  /* State of parser */
 };
 
 #endif /* _MIMEMULT_H_ */

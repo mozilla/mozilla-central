@@ -55,7 +55,7 @@ static const PRUint32 kInitialBufferSize = 100;
 
 #define MIME_SUPERCLASS mimeInlineTextClass
 MimeDefClass(MimeInlineTextPlainFlowed, MimeInlineTextPlainFlowedClass,
-			 mimeInlineTextPlainFlowedClass, &MIME_SUPERCLASS);
+       mimeInlineTextPlainFlowedClass, &MIME_SUPERCLASS);
 
 static int MimeInlineTextPlainFlowed_parse_begin (MimeObject *);
 static int MimeInlineTextPlainFlowed_parse_line (const char *, PRInt32, MimeObject *);
@@ -83,7 +83,7 @@ MimeInlineTextPlainFlowedClassInitialize(MimeInlineTextPlainFlowedClass *clazz)
   oclass->parse_begin = MimeInlineTextPlainFlowed_parse_begin;
   oclass->parse_line  = MimeInlineTextPlainFlowed_parse_line;
   oclass->parse_eof   = MimeInlineTextPlainFlowed_parse_eof;
-  
+
   return 0;
 }
 
@@ -230,7 +230,7 @@ MimeInlineTextPlainFlowed_parse_eof (MimeObject *obj, PRBool abort_p)
   // Has this method already been called for this object?
   // In that case return.
   if (obj->closed_p) return 0;
-  
+
   /* Run parent method first, to flush out any buffered data. */
   status = ((MimeObjectClass*)&MIME_SUPERCLASS)->parse_eof(obj, abort_p);
   if (status < 0) goto EarlyOut;
@@ -255,12 +255,12 @@ MimeInlineTextPlainFlowed_parse_eof (MimeObject *obj, PRBool abort_p)
     status = 0;
     goto EarlyOut;
   }
-    
+
   for(; exdata->quotelevel > 0; exdata->quotelevel--) {
     status = MimeObject_write(obj, "</blockquote>", 13, PR_FALSE);
     if(status<0) goto EarlyOut;
   }
-    
+
   if (exdata->isSig && !quoting) {
     status = MimeObject_write(obj, "</div>", 6, PR_FALSE); // .moz-txt-sig
     if (status<0) goto EarlyOut;
@@ -270,17 +270,17 @@ MimeInlineTextPlainFlowed_parse_eof (MimeObject *obj, PRBool abort_p)
     status = MimeObject_write(obj, "</div>", 6, PR_FALSE); // .moz-text-flowed
     if (status<0) goto EarlyOut;
   }
-    
+
   status = 0;
 
-EarlyOut:  
+EarlyOut:
   PR_Free(exdata);
 
   // Free mCitationColor
   MimeInlineTextPlainFlowed *text = (MimeInlineTextPlainFlowed *) obj;
   PR_FREEIF(text->mCitationColor);
   text->mCitationColor = nsnull;
-  
+
   return status;
 }
 
@@ -363,7 +363,7 @@ MimeInlineTextPlainFlowed_parse_line (const char *aLine, PRInt32 length, MimeObj
 
   nsAutoString lineSource;
   nsString lineResult;
-    
+
   char *mailCharset = NULL;
   nsresult rv;
 
@@ -383,7 +383,7 @@ MimeInlineTextPlainFlowed_parse_line (const char *aLine, PRInt32 length, MimeObj
                         Mozilla, but not GlyphSubstitution, because other UAs
                         might not be able to display the glyphs. */
       }
-      
+
       const nsDependentCSubstring& inputStr = Substring(linep, linep + (length - (linep - line)));
 
       // For 'SaveAs', |line| is in |mailCharset|.
@@ -493,7 +493,7 @@ MimeInlineTextPlainFlowed_parse_line (const char *aLine, PRInt32 length, MimeObj
         !mailCharset || !*mailCharset)
       CopyUTF16toUTF8(lineResult2, outString);
     else
-    { // convert back to mailCharset before writing.       
+    { // convert back to mailCharset before writing.
       rv = nsMsgI18NConvertFromUnicode(mailCharset, lineResult2, outString);
       NS_ENSURE_SUCCESS(rv, -1);
     }
@@ -541,7 +541,7 @@ static void Update_in_tag_info(PRBool *a_in_tag, /* IN/OUT */
       case '\'':
         *a_in_quote_in_tag = PR_TRUE;
         *a_quote_char = a_current_char;
-        break;       
+        break;
       case '>':
         // Tag is ended
         *a_in_tag = PR_FALSE;
@@ -554,7 +554,7 @@ static void Update_in_tag_info(PRBool *a_in_tag, /* IN/OUT */
     return;
   }
 
-  // Not in a tag. 
+  // Not in a tag.
   // Check if we are entering a tag by looking for '<'.
   // All normal occurrences of '<' should have been replaced
   // by &lt;
@@ -587,7 +587,7 @@ static void Convert_whitespace(const PRUnichar a_current_char,
   PRUint32 number_of_space = 1; // Assume we're going to output one space.
 
   /* Output the spaces for a tab. All but the last are made into &nbsp;.
-     The last is treated like a normal space. 
+     The last is treated like a normal space.
   */
   if('\t' == a_current_char) {
     number_of_nbsp = kSpacesForATab - 1;
@@ -644,7 +644,7 @@ nsresult Line_convert_whitespace(const nsString& a_line,
         // strip CRs
       } else {
         a_out_line += ic;
-      } 
+      }
     } else {
       // In tag. Don't change anything
       a_out_line += ic;

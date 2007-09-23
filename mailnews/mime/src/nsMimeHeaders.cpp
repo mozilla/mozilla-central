@@ -41,51 +41,51 @@
 #include "prmem.h"
 
 nsMimeHeaders::nsMimeHeaders() :
-	mHeaders(nsnull)
+  mHeaders(nsnull)
 {
 }
 
 nsMimeHeaders::~nsMimeHeaders()
 {
-	if (mHeaders)
-		MimeHeaders_free(mHeaders);
+  if (mHeaders)
+    MimeHeaders_free(mHeaders);
 }
 
 NS_IMPL_ISUPPORTS1(nsMimeHeaders, nsIMimeHeaders)
 
 nsresult nsMimeHeaders::Initialize(const char * aAllHeaders, PRInt32 allHeadersSize)
 {
-	/* just in case we want to reuse the object, cleanup...*/
-	if (mHeaders)
-		MimeHeaders_free(mHeaders);
+  /* just in case we want to reuse the object, cleanup...*/
+  if (mHeaders)
+    MimeHeaders_free(mHeaders);
 
-	mHeaders = MimeHeaders_new();
-	if (mHeaders)
-		return MimeHeaders_parse_line(aAllHeaders, allHeadersSize, mHeaders);
-	
-	return NS_ERROR_OUT_OF_MEMORY;
+  mHeaders = MimeHeaders_new();
+  if (mHeaders)
+    return MimeHeaders_parse_line(aAllHeaders, allHeadersSize, mHeaders);
+
+  return NS_ERROR_OUT_OF_MEMORY;
 }
 
 nsresult nsMimeHeaders::ExtractHeader(const char *headerName, PRBool getAllOfThem, char **_retval)
 {
-	if (! mHeaders)
-		return NS_ERROR_NOT_INITIALIZED;
-	
-	*_retval = MimeHeaders_get(mHeaders, headerName, PR_FALSE, getAllOfThem);
-	return NS_OK;
+  if (! mHeaders)
+    return NS_ERROR_NOT_INITIALIZED;
+
+  *_retval = MimeHeaders_get(mHeaders, headerName, PR_FALSE, getAllOfThem);
+  return NS_OK;
 }
 
 NS_IMETHODIMP nsMimeHeaders::GetAllHeaders(char **_retval)
 {
-    if (!mHeaders) 
+    if (!mHeaders)
         return NS_ERROR_NOT_INITIALIZED;
 
-    if (!mHeaders->all_headers) 
+    if (!mHeaders->all_headers)
         return NS_ERROR_NULL_POINTER;
 
     char *allHeaders = (char *) PR_MALLOC(mHeaders->all_headers_fp + 1);
     NS_ASSERTION (allHeaders, "nsMimeHeaders - out of memory");
-    if (!allHeaders) 
+    if (!allHeaders)
         return NS_ERROR_OUT_OF_MEMORY;
 
     memcpy(allHeaders, mHeaders->all_headers, mHeaders->all_headers_fp);

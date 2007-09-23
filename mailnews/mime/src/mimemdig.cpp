@@ -41,12 +41,12 @@
 
 #define MIME_SUPERCLASS mimeMultipartClass
 MimeDefClass(MimeMultipartDigest, MimeMultipartDigestClass,
-			 mimeMultipartDigestClass, &MIME_SUPERCLASS);
+       mimeMultipartDigestClass, &MIME_SUPERCLASS);
 
 static int
 MimeMultipartDigestClassInitialize(MimeMultipartDigestClass *clazz)
 {
-#ifdef DEBUG  
+#ifdef DEBUG
   MimeObjectClass    *oclass = (MimeObjectClass *)    clazz;
   PR_ASSERT(!oclass->class_initialized);
 #endif
