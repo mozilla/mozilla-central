@@ -19,6 +19,7 @@
  *
  * Contributor(s):
  *   Thomas Benisch <thomas.benisch@sun.com>
+ *   Philipp Kewisch <mozilla@kewis.ch>
  *
  * Alternatively, the contents of this file may be used under the terms of
  * either the GNU General Public License Version 2 or later (the "GPL"), or
@@ -84,7 +85,7 @@ var calendarManagerObserver = {
     onCalendarDeleting: function cMO_onCalendarDeleting(aCalendar) {
     },
 
-    onCalendarPrefSet: function cMO_onCalendarPrefSet(aCalendar,
+    onCalendarPrefChanged: function cMO_onCalendarPrefSet(aCalendar,
                                                       aName,
                                                       aValue) {
     },

@@ -1,4 +1,3 @@
-/* -*- Mode: javascript; tab-width: 20; indent-tabs-mode: nil; c-basic-offset: 4 -*- */
 /* ***** BEGIN LICENSE BLOCK *****
  * Version: MPL 1.1/GPL 2.0/LGPL 2.1
  *
@@ -22,6 +21,7 @@
  *   Stuart Parmenter <stuart.parmenter@oracle.com>
  *   Joey Minta <jminta@gmail.com>
  *   Daniel Boelzle <daniel.boelzle@sun.com>
+ *   Philipp Kewisch <mozilla@kewis.ch>
  *
  * Alternatively, the contents of this file may be used under the terms of
  * either the GNU General Public License Version 2 or later (the "GPL"), or
@@ -123,7 +123,7 @@ function calAlarmService() {
             this.alarmService.unobserveCalendar(aCalendar);
         },
         onCalendarDeleting: function(aCalendar) {},
-        onCalendarPrefSet: function(aCalendar, aName, aValue) {},
+        onCalendarPrefChanged: function(aCalendar, aName, aValue, aOldValue) {},
         onCalendarPrefDeleting: function(aCalendar, aName) {}
     };
 }

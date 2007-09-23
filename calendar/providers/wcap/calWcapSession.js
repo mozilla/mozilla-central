@@ -21,6 +21,7 @@
  *
  * Contributor(s):
  *   Daniel Boelzle <daniel.boelzle@sun.com>
+ *   Philipp Kewisch <mozilla@kewis.ch>
  *
  * Alternatively, the contents of this file may be used under the terms of
  * either the GNU General Public License Version 2 or later (the "GPL"), or
@@ -1202,7 +1203,7 @@ calWcapSession.prototype = {
     },
     
     // called after the pref is set
-    onCalendarPrefSet: function calWcapSession_onCalendarPrefSet(cal, name, value)
+    onCalendarPrefChanged: function calWcapSession_onCalendarPrefChanged(cal, name, value, oldvalue)
     {
     },
     

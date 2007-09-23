@@ -19,6 +19,7 @@
  *
  * Contributor(s):
  *   Thomas Benisch <thomas.benisch@sun.com>
+ *   Philipp Kewisch <mozilla@kewis.ch>
  *
  * Alternatively, the contents of this file may be used under the terms of
  * either the GNU General Public License Version 2 or later (the "GPL"), or
@@ -120,7 +121,7 @@ function InvitationsManager() {
         },
         onCalendarDeleting: function(aCalendar) {
         },
-        onCalendarPrefSet: function(aCalendar, aName, aValue) {
+        onCalendarPrefChanged: function(aCalendar, aName, aValue) {
         },
         onCalendarPrefDeleting: function(aCalendar, aName) {
         }

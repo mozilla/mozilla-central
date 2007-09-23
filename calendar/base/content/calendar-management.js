@@ -567,9 +567,10 @@ var calendarManagerObserver = {
         getCompositeCalendar().removeCalendar(aCalendar.uri);
     },
 
-    onCalendarPrefSet: function cMO_onCalendarPrefSet(aCalendar,
-                                                      aName,
-                                                      aValue) {
+    onCalendarPrefChanged: function cMO_onCalendarPrefChanged(aCalendar,
+                                                              aName,
+                                                              aValue,
+                                                              aOldValue) {
         switch (aName) {
             case "color":
                 updateStyleSheetForObject(aCalendar, gCachedStyleSheet);
@@ -583,7 +584,10 @@ var calendarManagerObserver = {
 
     onCalendarPrefDeleting: function cMO_onCalendarPrefDeleting(aCalendar,
                                                                 aName) {
-        this.onCalendarPrefSet(aCalendar, aName, null);
+        // Since the old value is not used directly in onCalendarPrefChanged,
+        // but should not be the same as the value, set it to a different
+        // value.
+        this.onCalendarPrefChanged(aCalendar, aName, null, true);
     },
 
     // calICompositeObserver

@@ -1,4 +1,3 @@
-/* -*- Mode: javascript; tab-width: 20; indent-tabs-mode: nil; c-basic-offset: 4 -*- */
 /* ***** BEGIN LICENSE BLOCK *****
  * Version: MPL 1.1/GPL 2.0/LGPL 2.1
  *
@@ -23,6 +22,7 @@
  *   Matthew Willis <lilmatt@mozilla.com>
  *   Michiel van Leeuwen <mvl@exedo.nl>
  *   Martin Schroeder <mschroeder@mozilla.x-home.org>
+ *   Philipp Kewisch <mozilla@kewis.ch>
  *
  * Alternatively, the contents of this file may be used under the terms of
  * either the GNU General Public License Version 2 or later (the "GPL"), or
@@ -560,6 +560,12 @@ calCalendarManager.prototype = {
     },
 
     setCalendarPref: function(calendar, name, value) {
+        var oldvalue = this.getCalendarPref(calendar, name);
+        if (oldvalue == value) {
+            // Only modify the preference if it changed.
+            return;
+        }
+
         // pref names must be lower case
         name = name.toLowerCase();
 
@@ -582,7 +588,8 @@ calCalendarManager.prototype = {
 
         this.mDB.commitTransaction();
 
-        this.notifyObservers("onCalendarPrefSet", [calendar, name, value])
+        this.notifyObservers("onCalendarPrefChanged",
+                             [calendar, name, value, oldvalue]);
     },
 
     deleteCalendarPref: function(calendar, name) {
