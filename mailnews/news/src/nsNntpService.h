@@ -88,7 +88,7 @@ protected:
   nsresult SetUpNntpUrlForPosting(const char *aAccountKey, char **newsUrlSpec);
   nsresult FindHostFromGroup(nsCString &host, nsCString &groupName);
   nsresult FindServerWithNewsgroup(nsCString &host, nsCString &groupName);
-  
+
   nsresult CreateMessageIDURL(nsIMsgFolder *folder, nsMsgKey key, char **url);
   // a convience routine used to put together news urls
   nsresult ConstructNntpUrl(const char * urlString, nsIUrlListener *aUrlListener,  nsIMsgWindow * aMsgWindow, const char *originalMessageUri, PRInt32 action, nsIURI ** aUrl);
@@ -102,7 +102,7 @@ protected:
   nsresult DecomposeNewsMessageURI(const char * aMessageURI, nsIMsgFolder ** aFolder, nsMsgKey *aMsgKey);
 
   PRBool            mPrintingOperation; // Flag for printing operations
-  PRBool			mOpenAttachmentOperation; // Flag for opening attachments
+  PRBool      mOpenAttachmentOperation; // Flag for opening attachments
 
   nsCOMPtr<nsICacheSession> mCacheSession; // the cache session used by news
 };

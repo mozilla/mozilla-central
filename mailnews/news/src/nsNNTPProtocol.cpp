@@ -120,10 +120,10 @@
 #undef GetPort  // XXX Windows!
 #undef SetPort  // XXX Windows!
 
-#define PREF_NEWS_CANCEL_CONFIRM	"news.cancel.confirm"
+#define PREF_NEWS_CANCEL_CONFIRM  "news.cancel.confirm"
 #define PREF_NEWS_CANCEL_ALERT_ON_SUCCESS "news.cancel.alert_on_success"
 #define READ_NEWS_LIST_COUNT_MAX 500 /* number of groups to process at a time when reading the list from the server */
-#define READ_NEWS_LIST_TIMEOUT 50	/* uSec to wait until doing more */
+#define READ_NEWS_LIST_TIMEOUT 50  /* uSec to wait until doing more */
 #define RATE_STR_BUF_LEN 32
 #define UPDATE_THRESHHOLD 25600 /* only update every 25 KB */
 
@@ -255,8 +255,8 @@ const char *const stateLabels[] = {
 #define NEW_GROUPS      6
 #define SEARCH_WANTED   7
 #define PRETTY_NAMES_WANTED 8
-#define PROFILE_WANTED	9
-#define IDS_WANTED		10
+#define PROFILE_WANTED  9
+#define IDS_WANTED    10
 
 /* the output_buffer_size must be larger than the largest possible line
  * 2000 seems good for news
@@ -456,11 +456,11 @@ NS_IMETHODIMP nsNNTPProtocol::Initialize(nsIURI * aURL, nsIMsgWindow *aMsgWindow
   nsCString group;
   nsCString commandSpecificData;
   PR_FREEIF(m_messageID);
-  
-  // parse url to get the msg folder and check if the message is in the folder's 
+
+  // parse url to get the msg folder and check if the message is in the folder's
   // local cache before opening a new socket and trying to download the message
   rv = ParseURL(m_url, getter_Copies(group), &m_messageID, getter_Copies(commandSpecificData));
-  
+
   if (NS_SUCCEEDED(rv) && m_runningURL)
   {
     nsCOMPtr<nsIMsgMailNewsUrl> mailnewsUrl = do_QueryInterface(m_runningURL);
@@ -1043,7 +1043,7 @@ nsresult nsNNTPProtocol::LoadUrl(nsIURI * aURL, nsISupports * aConsumer)
       /* news://HOST/?newsgroups
       news:/GROUP/?newsgroups (useless)
       news:?newsgroups (default host)
-	     */
+       */
              m_typeWanted = NEW_GROUPS;
       else
       {
@@ -1246,9 +1246,9 @@ NS_IMETHODIMP nsNNTPProtocol::OnStopRequest(nsIRequest *request, nsISupports * a
         m_channelListener = nsnull;
     }
 
-	// okay, we've been told that the send is done and the connection is going away. So
-	// we need to release all of our state
-	return CloseSocket();
+  // okay, we've been told that the send is done and the connection is going away. So
+  // we need to release all of our state
+  return CloseSocket();
 }
 
 NS_IMETHODIMP nsNNTPProtocol::Cancel(nsresult status)  // handle stop button
@@ -1263,58 +1263,58 @@ NS_IMETHODIMP nsNNTPProtocol::Cancel(nsresult status)  // handle stop button
    The main news load init routine, and URL parser.
    The syntax of news URLs is:
 
-	 To list all hosts:
-	   news:
+   To list all hosts:
+     news:
 
-	 To list all groups on a host, or to post a new message:
-	   news://HOST
+   To list all groups on a host, or to post a new message:
+     news://HOST
 
-	 To list some articles in a group:
-	   news:GROUP
-	   news:/GROUP
-	   news://HOST/GROUP
+   To list some articles in a group:
+     news:GROUP
+     news:/GROUP
+     news://HOST/GROUP
 
-	 To list a particular range of articles in a group:
-	   news:GROUP/N1-N2
-	   news:/GROUP/N1-N2
-	   news://HOST/GROUP/N1-N2
+   To list a particular range of articles in a group:
+     news:GROUP/N1-N2
+     news:/GROUP/N1-N2
+     news://HOST/GROUP/N1-N2
 
-	 To retrieve an article:
-	   news:MESSAGE-ID                (message-id must contain "@")
+   To retrieve an article:
+     news:MESSAGE-ID                (message-id must contain "@")
 
     To cancel an article:
-	   news:MESSAGE-ID?cancel
+     news:MESSAGE-ID?cancel
 
-	 (Note that message IDs may contain / before the @:)
+   (Note that message IDs may contain / before the @:)
 
-	   news:SOME/ID@HOST?headers=all
-	   news:/SOME/ID@HOST?headers=all
-	   news:/SOME?ID@HOST?headers=all
+     news:SOME/ID@HOST?headers=all
+     news:/SOME/ID@HOST?headers=all
+     news:/SOME?ID@HOST?headers=all
         are the same as
-	   news://HOST/SOME/ID@HOST?headers=all
-	   news://HOST//SOME/ID@HOST?headers=all
-	   news://HOST//SOME?ID@HOST?headers=all
+     news://HOST/SOME/ID@HOST?headers=all
+     news://HOST//SOME/ID@HOST?headers=all
+     news://HOST//SOME?ID@HOST?headers=all
         bug: if the ID is <//xxx@host> we will parse this correctly:
           news://non-default-host///xxx@host
         but will mis-parse it if it's on the default host:
           news://xxx@host
         whoever had the idea to leave the <> off the IDs should be flogged.
-		So, we'll make sure we quote / in message IDs as %2F.
+    So, we'll make sure we quote / in message IDs as %2F.
  */
 nsresult
 nsNNTPProtocol::ParseURL(nsIURI * aURL, char ** aGroup, char ** aMessageID,
-								  char ** aCommandSpecificData)
+                  char ** aCommandSpecificData)
 {
     NS_ENSURE_ARG_POINTER(aURL);
     NS_ENSURE_ARG_POINTER(aGroup);
     NS_ENSURE_ARG_POINTER(aMessageID);
     NS_ENSURE_ARG_POINTER(aCommandSpecificData);
 
-	PRInt32 status = 0;
-	char *group = 0;
+  PRInt32 status = 0;
+  char *group = 0;
     char *message_id = 0;
     char *command_specific_data = 0;
-	char *s = 0;
+  char *s = 0;
 
     PR_LOG(NNTP,PR_LOG_ALWAYS,("(%p) ParseURL",this));
 
@@ -1466,7 +1466,7 @@ nsNNTPProtocol::ParseURL(nsIURI * aURL, char ** aGroup, char ** aMessageID,
     // (but not news://host/message-id?cancel)
     // for authentication, we set m_newsFolder to be the server's folder.
     // while we are here, we set m_nntpServer.
-   
+
     if (*aMessageID)
     { // for news://host/message-id decompose complete url
       nsCAutoString urlSpec;
@@ -1478,9 +1478,9 @@ nsNNTPProtocol::ParseURL(nsIURI * aURL, char ** aGroup, char ** aMessageID,
     else
     { // for news://host/* decompose only server uri
       rv = nntpService->DecomposeNewsURI(serverURI.get(), getter_AddRefs(folder), &m_key);
-      NS_ENSURE_SUCCESS(rv,rv); 
+      NS_ENSURE_SUCCESS(rv,rv);
     }
-    
+
 
     if (m_key != nsMsgKey_None)
     {
@@ -1508,9 +1508,9 @@ nsNNTPProtocol::ParseURL(nsIURI * aURL, char ** aGroup, char ** aMessageID,
   // mscott - this function might need to be re-written to use nsresults
   // so we don't lose the nature of the error in this return code I'm adding.
   if (status < 0)
-	  return NS_ERROR_FAILURE;
+    return NS_ERROR_FAILURE;
   else
-	  return NS_OK;
+    return NS_OK;
 }
 /*
  * Writes the data contained in dataBuffer into the current output stream. It also informs
@@ -1528,7 +1528,7 @@ PRInt32 nsNNTPProtocol::SendData(nsIURI * aURL, const char * dataBuffer, PRBool 
         PR_LOG(NNTP, out, ("(%p) Logging suppressed for this command (it probably contained authentication information)", this));
     }
 
-	return nsMsgProtocol::SendData(aURL, dataBuffer); // base class actually transmits the data
+  return nsMsgProtocol::SendData(aURL, dataBuffer); // base class actually transmits the data
 }
 
 /* gets the response code from the nntp server and the
@@ -1624,11 +1624,11 @@ PRInt32 nsNNTPProtocol::LoginResponse()
 
 PRInt32 nsNNTPProtocol::SendModeReader()
 {
-	nsresult rv = NS_OK;
-	nsCOMPtr<nsIMsgMailNewsUrl> mailnewsurl = do_QueryInterface(m_runningURL,&rv);
+  nsresult rv = NS_OK;
+  nsCOMPtr<nsIMsgMailNewsUrl> mailnewsurl = do_QueryInterface(m_runningURL,&rv);
     NS_ENSURE_SUCCESS(rv,rv);
 
-	rv = SendData(mailnewsurl, NNTP_CMD_MODE_READER);
+  rv = SendData(mailnewsurl, NNTP_CMD_MODE_READER);
     m_nextState = NNTP_RESPONSE;
     m_nextStateAfterResponse = NNTP_SEND_MODE_READER_RESPONSE;
     SetFlag(NNTP_PAUSE_FOR_READ);
@@ -1642,7 +1642,7 @@ PRInt32 nsNNTPProtocol::SendModeReaderResponse()
   SetFlag(NNTP_READER_PERFORMED);
 
   /* ignore the response code and continue
-	 */
+   */
   PRBool pushAuth = PR_FALSE;
   nsresult rv = NS_OK;
 
@@ -1651,7 +1651,7 @@ PRInt32 nsNNTPProtocol::SendModeReaderResponse()
     rv = m_nntpServer->GetPushAuth(&pushAuth);
   }
   if (NS_SUCCEEDED(rv) && pushAuth) {
-		/* if the news host is set up to require volunteered (pushed) authentication,
+    /* if the news host is set up to require volunteered (pushed) authentication,
     * do that before we do anything else
     */
     m_nextState = NNTP_BEGIN_AUTHORIZE;
@@ -1660,7 +1660,7 @@ PRInt32 nsNNTPProtocol::SendModeReaderResponse()
 #ifdef HAVE_NNTP_EXTENSIONS
     m_nextState = SEND_LIST_EXTENSIONS;
 #else
-		m_nextState = SEND_FIRST_NNTP_COMMAND;
+    m_nextState = SEND_FIRST_NNTP_COMMAND;
 #endif  /* HAVE_NNTP_EXTENSIONS */
   }
 
@@ -1669,107 +1669,107 @@ PRInt32 nsNNTPProtocol::SendModeReaderResponse()
 
 PRInt32 nsNNTPProtocol::SendListExtensions()
 {
-	PRInt32 status = 0;
-	nsCOMPtr<nsIURI> url = do_QueryInterface(m_runningURL);
-	if (url)
-		status = SendData(url, NNTP_CMD_LIST_EXTENSIONS);
+  PRInt32 status = 0;
+  nsCOMPtr<nsIURI> url = do_QueryInterface(m_runningURL);
+  if (url)
+    status = SendData(url, NNTP_CMD_LIST_EXTENSIONS);
 
-	m_nextState = NNTP_RESPONSE;
-	m_nextStateAfterResponse = SEND_LIST_EXTENSIONS_RESPONSE;
-	ClearFlag(NNTP_PAUSE_FOR_READ);
-	return status;
+  m_nextState = NNTP_RESPONSE;
+  m_nextStateAfterResponse = SEND_LIST_EXTENSIONS_RESPONSE;
+  ClearFlag(NNTP_PAUSE_FOR_READ);
+  return status;
 }
 
 PRInt32 nsNNTPProtocol::SendListExtensionsResponse(nsIInputStream * inputStream, PRUint32 length)
 {
-	PRUint32 status = 0;
+  PRUint32 status = 0;
 
-	if (MK_NNTP_RESPONSE_TYPE(m_responseCode) == MK_NNTP_RESPONSE_TYPE_OK)
-	{
-		PRBool pauseForMoreData = PR_FALSE;
-		char *line = m_lineStreamBuffer->ReadNextLine(inputStream, status, pauseForMoreData);
+  if (MK_NNTP_RESPONSE_TYPE(m_responseCode) == MK_NNTP_RESPONSE_TYPE_OK)
+  {
+    PRBool pauseForMoreData = PR_FALSE;
+    char *line = m_lineStreamBuffer->ReadNextLine(inputStream, status, pauseForMoreData);
 
-		if(pauseForMoreData)
-		{
-			SetFlag(NNTP_PAUSE_FOR_READ);
-			return 0;
-		}
-		if (!line)
-			return status;  /* no line yet */
+    if(pauseForMoreData)
+    {
+      SetFlag(NNTP_PAUSE_FOR_READ);
+      return 0;
+    }
+    if (!line)
+      return status;  /* no line yet */
 
         if ('.' != line[0]) {
             m_nntpServer->AddExtension(line);
         }
-		else
-		{
-			/* tell libmsg that it's ok to ask this news host for extensions */
-			m_nntpServer->SetSupportsExtensions(PR_TRUE);
-			/* all extensions received */
-			m_nextState = SEND_LIST_SEARCHES;
-			ClearFlag(NNTP_PAUSE_FOR_READ);
-		}
-	}
-	else
-	{
-		/* LIST EXTENSIONS not recognized
-		 * tell libmsg not to ask for any more extensions and move on to
-		 * the real NNTP command we were trying to do. */
+    else
+    {
+      /* tell libmsg that it's ok to ask this news host for extensions */
+      m_nntpServer->SetSupportsExtensions(PR_TRUE);
+      /* all extensions received */
+      m_nextState = SEND_LIST_SEARCHES;
+      ClearFlag(NNTP_PAUSE_FOR_READ);
+    }
+  }
+  else
+  {
+    /* LIST EXTENSIONS not recognized
+     * tell libmsg not to ask for any more extensions and move on to
+     * the real NNTP command we were trying to do. */
 
-		 m_nntpServer->SetSupportsExtensions(PR_FALSE);
-		 m_nextState = SEND_FIRST_NNTP_COMMAND;
-	}
+     m_nntpServer->SetSupportsExtensions(PR_FALSE);
+     m_nextState = SEND_FIRST_NNTP_COMMAND;
+  }
 
-	return status;
+  return status;
 }
 
 PRInt32 nsNNTPProtocol::SendListSearches()
 {
     nsresult rv;
     PRBool searchable=PR_FALSE;
-	PRInt32 status = 0;
+  PRInt32 status = 0;
 
     rv = m_nntpServer->QueryExtension("SEARCH",&searchable);
     if (NS_SUCCEEDED(rv) && searchable)
-	{
-		nsCOMPtr<nsIMsgMailNewsUrl> mailnewsurl = do_QueryInterface(m_runningURL);
-		if (mailnewsurl)
-			status = SendData(mailnewsurl, NNTP_CMD_LIST_SEARCHES);
+  {
+    nsCOMPtr<nsIMsgMailNewsUrl> mailnewsurl = do_QueryInterface(m_runningURL);
+    if (mailnewsurl)
+      status = SendData(mailnewsurl, NNTP_CMD_LIST_SEARCHES);
 
-		m_nextState = NNTP_RESPONSE;
-		m_nextStateAfterResponse = SEND_LIST_SEARCHES_RESPONSE;
-		SetFlag(NNTP_PAUSE_FOR_READ);
-	}
-	else
-	{
-		/* since SEARCH isn't supported, move on to GET */
-		m_nextState = NNTP_GET_PROPERTIES;
-		ClearFlag(NNTP_PAUSE_FOR_READ);
-	}
+    m_nextState = NNTP_RESPONSE;
+    m_nextStateAfterResponse = SEND_LIST_SEARCHES_RESPONSE;
+    SetFlag(NNTP_PAUSE_FOR_READ);
+  }
+  else
+  {
+    /* since SEARCH isn't supported, move on to GET */
+    m_nextState = NNTP_GET_PROPERTIES;
+    ClearFlag(NNTP_PAUSE_FOR_READ);
+  }
 
-	return status;
+  return status;
 }
 
 PRInt32 nsNNTPProtocol::SendListSearchesResponse(nsIInputStream * inputStream, PRUint32 length)
 {
-	PRUint32 status = 0;
+  PRUint32 status = 0;
 
-	NS_PRECONDITION(inputStream, "invalid input stream");
+  NS_PRECONDITION(inputStream, "invalid input stream");
 
-	PRBool pauseForMoreData = PR_FALSE;
-	char *line = m_lineStreamBuffer->ReadNextLine(inputStream, status, pauseForMoreData);
+  PRBool pauseForMoreData = PR_FALSE;
+  char *line = m_lineStreamBuffer->ReadNextLine(inputStream, status, pauseForMoreData);
 
-	NNTP_LOG_READ(line);
+  NNTP_LOG_READ(line);
 
-	if(pauseForMoreData)
-	{
-		SetFlag(NNTP_PAUSE_FOR_READ);
-		return 0;
-	}
-	if (!line)
-		return status;  /* no line yet */
+  if(pauseForMoreData)
+  {
+    SetFlag(NNTP_PAUSE_FOR_READ);
+    return 0;
+  }
+  if (!line)
+    return status;  /* no line yet */
 
-	if ('.' != line[0])
-	{
+  if ('.' != line[0])
+  {
         nsCAutoString charset;
         nsAutoString lineUtf16;
         if (NS_FAILED(m_nntpServer->GetCharset(charset)) ||
@@ -1778,126 +1778,126 @@ PRInt32 nsNNTPProtocol::SendListSearchesResponse(nsIInputStream * inputStream, P
                                                 lineUtf16, PR_TRUE)))
             CopyUTF8toUTF16(nsDependentCString(line), lineUtf16);
 
-		m_nntpServer->AddSearchableGroup(lineUtf16);
-	}
-	else
-	{
-		/* all searchable groups received */
-		/* LIST SRCHFIELDS is legal if the server supports the SEARCH extension, which */
-		/* we already know it does */
-		m_nextState = NNTP_LIST_SEARCH_HEADERS;
-		ClearFlag(NNTP_PAUSE_FOR_READ);
-	}
+    m_nntpServer->AddSearchableGroup(lineUtf16);
+  }
+  else
+  {
+    /* all searchable groups received */
+    /* LIST SRCHFIELDS is legal if the server supports the SEARCH extension, which */
+    /* we already know it does */
+    m_nextState = NNTP_LIST_SEARCH_HEADERS;
+    ClearFlag(NNTP_PAUSE_FOR_READ);
+  }
 
-	PR_FREEIF(line);
-	return status;
+  PR_FREEIF(line);
+  return status;
 }
 
 PRInt32 nsNNTPProtocol::SendListSearchHeaders()
 {
-	PRInt32 status = 0;
-	nsCOMPtr<nsIMsgMailNewsUrl> mailnewsurl = do_QueryInterface(m_runningURL);
-	if (mailnewsurl)
-		status = SendData(mailnewsurl, NNTP_CMD_LIST_SEARCH_FIELDS);
+  PRInt32 status = 0;
+  nsCOMPtr<nsIMsgMailNewsUrl> mailnewsurl = do_QueryInterface(m_runningURL);
+  if (mailnewsurl)
+    status = SendData(mailnewsurl, NNTP_CMD_LIST_SEARCH_FIELDS);
 
-	m_nextState = NNTP_RESPONSE;
-	m_nextStateAfterResponse = NNTP_LIST_SEARCH_HEADERS_RESPONSE;
-	SetFlag(NNTP_PAUSE_FOR_READ);
+  m_nextState = NNTP_RESPONSE;
+  m_nextStateAfterResponse = NNTP_LIST_SEARCH_HEADERS_RESPONSE;
+  SetFlag(NNTP_PAUSE_FOR_READ);
 
-	return status;
+  return status;
 }
 
 PRInt32 nsNNTPProtocol::SendListSearchHeadersResponse(nsIInputStream * inputStream, PRUint32 length)
 {
-	PRUint32 status = 0;
+  PRUint32 status = 0;
 
-	PRBool pauseForMoreData = PR_FALSE;
-	char *line = m_lineStreamBuffer->ReadNextLine(inputStream, status, pauseForMoreData);
+  PRBool pauseForMoreData = PR_FALSE;
+  char *line = m_lineStreamBuffer->ReadNextLine(inputStream, status, pauseForMoreData);
 
-	if(pauseForMoreData)
-	{
-		SetFlag(NNTP_PAUSE_FOR_READ);
-		return 0;
-	}
-	if (!line)
-		return status;  /* no line yet */
+  if(pauseForMoreData)
+  {
+    SetFlag(NNTP_PAUSE_FOR_READ);
+    return 0;
+  }
+  if (!line)
+    return status;  /* no line yet */
 
-	if ('.' != line[0])
+  if ('.' != line[0])
         m_nntpServer->AddSearchableHeader(line);
-	else
-	{
-		m_nextState = NNTP_GET_PROPERTIES;
-		ClearFlag(NNTP_PAUSE_FOR_READ);
-	}
+  else
+  {
+    m_nextState = NNTP_GET_PROPERTIES;
+    ClearFlag(NNTP_PAUSE_FOR_READ);
+  }
 
-	PR_FREEIF(line);
-	return status;
+  PR_FREEIF(line);
+  return status;
 }
 
 PRInt32 nsNNTPProtocol::GetProperties()
 {
     nsresult rv;
     PRBool setget=PR_FALSE;
-	PRInt32 status = 0;
+  PRInt32 status = 0;
 
     rv = m_nntpServer->QueryExtension("SETGET",&setget);
     if (NS_SUCCEEDED(rv) && setget)
-	{
-		nsCOMPtr<nsIMsgMailNewsUrl> mailnewsurl = do_QueryInterface(m_runningURL);
-		if (mailnewsurl)
-			status = SendData(mailnewsurl, NNTP_CMD_GET_PROPERTIES);
-		m_nextState = NNTP_RESPONSE;
-		m_nextStateAfterResponse = NNTP_GET_PROPERTIES_RESPONSE;
-		SetFlag(NNTP_PAUSE_FOR_READ);
-	}
-	else
-	{
-		/* since GET isn't supported, move on LIST SUBSCRIPTIONS */
-		m_nextState = SEND_LIST_SUBSCRIPTIONS;
-		ClearFlag(NNTP_PAUSE_FOR_READ);
-	}
-	return status;
+  {
+    nsCOMPtr<nsIMsgMailNewsUrl> mailnewsurl = do_QueryInterface(m_runningURL);
+    if (mailnewsurl)
+      status = SendData(mailnewsurl, NNTP_CMD_GET_PROPERTIES);
+    m_nextState = NNTP_RESPONSE;
+    m_nextStateAfterResponse = NNTP_GET_PROPERTIES_RESPONSE;
+    SetFlag(NNTP_PAUSE_FOR_READ);
+  }
+  else
+  {
+    /* since GET isn't supported, move on LIST SUBSCRIPTIONS */
+    m_nextState = SEND_LIST_SUBSCRIPTIONS;
+    ClearFlag(NNTP_PAUSE_FOR_READ);
+  }
+  return status;
 }
 
 PRInt32 nsNNTPProtocol::GetPropertiesResponse(nsIInputStream * inputStream, PRUint32 length)
 {
-	PRUint32 status = 0;
+  PRUint32 status = 0;
 
-	PRBool pauseForMoreData = PR_FALSE;
-	char *line = m_lineStreamBuffer->ReadNextLine(inputStream, status, pauseForMoreData);
+  PRBool pauseForMoreData = PR_FALSE;
+  char *line = m_lineStreamBuffer->ReadNextLine(inputStream, status, pauseForMoreData);
 
-	if(pauseForMoreData)
-	{
-		SetFlag(NNTP_PAUSE_FOR_READ);
-		return 0;
-	}
-	if (!line)
-		return status;  /* no line yet */
+  if(pauseForMoreData)
+  {
+    SetFlag(NNTP_PAUSE_FOR_READ);
+    return 0;
+  }
+  if (!line)
+    return status;  /* no line yet */
 
-	if ('.' != line[0])
-	{
-		char *propertyName = NS_strdup(line);
-		if (propertyName)
-		{
-			char *space = PL_strchr(propertyName, ' ');
-			if (space)
-			{
-				char *propertyValue = space + 1;
-				*space = '\0';
+  if ('.' != line[0])
+  {
+    char *propertyName = NS_strdup(line);
+    if (propertyName)
+    {
+      char *space = PL_strchr(propertyName, ' ');
+      if (space)
+      {
+        char *propertyValue = space + 1;
+        *space = '\0';
                 m_nntpServer->AddPropertyForGet(propertyName, propertyValue);
-			}
-			PR_Free(propertyName);
-		}
-	}
-	else
-	{
-		/* all GET properties received, move on to LIST SUBSCRIPTIONS */
-		m_nextState = SEND_LIST_SUBSCRIPTIONS;
-		ClearFlag(NNTP_PAUSE_FOR_READ);
-	}
+      }
+      PR_Free(propertyName);
+    }
+  }
+  else
+  {
+    /* all GET properties received, move on to LIST SUBSCRIPTIONS */
+    m_nextState = SEND_LIST_SUBSCRIPTIONS;
+    ClearFlag(NNTP_PAUSE_FOR_READ);
+  }
 
-	PR_FREEIF(line);
-	return status;
+  PR_FREEIF(line);
+  return status;
 }
 
 PRInt32 nsNNTPProtocol::SendListSubscriptions()
@@ -1909,59 +1909,59 @@ PRInt32 nsNNTPProtocol::SendListSubscriptions()
     rv = m_nntpServer->QueryExtension("LISTSUBSCR",&listsubscr);
     if (NS_SUCCEEDED(rv) && listsubscr)
 #else
-	if (0)
+  if (0)
 #endif
-	{
-		nsCOMPtr<nsIMsgMailNewsUrl> mailnewsurl = do_QueryInterface(m_runningURL);
-		if (mailnewsurl)
-			status = SendData(mailnewsurl, NNTP_CMD_LIST_SUBSCRIPTIONS);
-		m_nextState = NNTP_RESPONSE;
-		m_nextStateAfterResponse = SEND_LIST_SUBSCRIPTIONS_RESPONSE;
-		SetFlag(NNTP_PAUSE_FOR_READ);
-	}
-	else
-	{
-		/* since LIST SUBSCRIPTIONS isn't supported, move on to real work */
-		m_nextState = SEND_FIRST_NNTP_COMMAND;
-		ClearFlag(NNTP_PAUSE_FOR_READ);
-	}
+  {
+    nsCOMPtr<nsIMsgMailNewsUrl> mailnewsurl = do_QueryInterface(m_runningURL);
+    if (mailnewsurl)
+      status = SendData(mailnewsurl, NNTP_CMD_LIST_SUBSCRIPTIONS);
+    m_nextState = NNTP_RESPONSE;
+    m_nextStateAfterResponse = SEND_LIST_SUBSCRIPTIONS_RESPONSE;
+    SetFlag(NNTP_PAUSE_FOR_READ);
+  }
+  else
+  {
+    /* since LIST SUBSCRIPTIONS isn't supported, move on to real work */
+    m_nextState = SEND_FIRST_NNTP_COMMAND;
+    ClearFlag(NNTP_PAUSE_FOR_READ);
+  }
 
-	return status;
+  return status;
 }
 
 PRInt32 nsNNTPProtocol::SendListSubscriptionsResponse(nsIInputStream * inputStream, PRUint32 length)
 {
-	PRUint32 status = 0;
+  PRUint32 status = 0;
 
-	PRBool pauseForMoreData = PR_FALSE;
-	char *line = m_lineStreamBuffer->ReadNextLine(inputStream, status, pauseForMoreData);
+  PRBool pauseForMoreData = PR_FALSE;
+  char *line = m_lineStreamBuffer->ReadNextLine(inputStream, status, pauseForMoreData);
 
-	if(pauseForMoreData)
-	{
-		SetFlag(NNTP_PAUSE_FOR_READ);
-		return 0;
-	}
-	if (!line)
-		return status;  /* no line yet */
+  if(pauseForMoreData)
+  {
+    SetFlag(NNTP_PAUSE_FOR_READ);
+    return 0;
+  }
+  if (!line)
+    return status;  /* no line yet */
 
-	if ('.' != line[0])
-	{
+  if ('.' != line[0])
+  {
         NS_ASSERTION(0,"fix me");
 #if 0
-		char *url = PR_smprintf ("%s//%s/%s", NEWS_SCHEME, m_hostName, line);
-		if (url)
-			MSG_AddSubscribedNewsgroup (cd->pane, url);
+    char *url = PR_smprintf ("%s//%s/%s", NEWS_SCHEME, m_hostName, line);
+    if (url)
+      MSG_AddSubscribedNewsgroup (cd->pane, url);
 #endif
-	}
-	else
-	{
-		/* all default subscriptions received */
-		m_nextState = SEND_FIRST_NNTP_COMMAND;
-		ClearFlag(NNTP_PAUSE_FOR_READ);
-	}
+  }
+  else
+  {
+    /* all default subscriptions received */
+    m_nextState = SEND_FIRST_NNTP_COMMAND;
+    ClearFlag(NNTP_PAUSE_FOR_READ);
+  }
 
-	PR_FREEIF(line);
-	return status;
+  PR_FREEIF(line);
+  return status;
 }
 
 /* figure out what the first command is and send it
@@ -2002,18 +2002,18 @@ PRInt32 nsNNTPProtocol::SendFirstNNTPCommand(nsIURI * url)
     }
     else if(m_typeWanted == READ_NEWS_RC)
     {
-		/* extract post method from the url when we have it... */
+    /* extract post method from the url when we have it... */
 #ifdef HAVE_NEWS_URL
-		if(ce->URL_s->method == URL_POST_METHOD ||
-								PL_strchr(ce->URL_s->address, '?'))
-        	m_nextState = NEWS_NEWS_RC_POST;
-		else
+    if(ce->URL_s->method == URL_POST_METHOD ||
+                PL_strchr(ce->URL_s->address, '?'))
+          m_nextState = NEWS_NEWS_RC_POST;
+    else
 #endif
-        	m_nextState = NEWS_DISPLAY_NEWS_RC;
-		return(0);
+          m_nextState = NEWS_DISPLAY_NEWS_RC;
+    return(0);
     }
-	else if (m_typeWanted == NEW_GROUPS)
-	{
+  else if (m_typeWanted == NEW_GROUPS)
+  {
       PRUint32 last_update;
       nsresult rv;
 
@@ -2025,34 +2025,34 @@ PRInt32 nsNNTPProtocol::SendFirstNNTPCommand(nsIURI * url)
       rv = m_nntpServer->GetLastUpdatedTime(&last_update);
 
       if (!last_update)
-	  {
+    {
         NS_MsgSACopy(&command, "LIST");
       }
-	  else
+    else
       {
         char small_buf[64];
-        PRExplodedTime  expandedTime;    
+        PRExplodedTime  expandedTime;
         PRTime t_usec, usec_per_sec;
         LL_I2L(t_usec, last_update);
         LL_I2L(usec_per_sec, PR_USEC_PER_SEC);
         LL_MUL(t_usec, t_usec, usec_per_sec);
         PR_ExplodeTime(t_usec, PR_LocalTimeParameters, &expandedTime);
         PR_FormatTimeUSEnglish(small_buf, sizeof(small_buf),
-                               "NEWGROUPS %y%m%d %H%M%S", &expandedTime);                        
+                               "NEWGROUPS %y%m%d %H%M%S", &expandedTime);
         NS_MsgSACopy(&command, small_buf);
       }
-	}
+  }
     else if(m_typeWanted == LIST_WANTED)
     {
-	    nsresult rv;
+      nsresult rv;
 
-		ClearFlag(NNTP_USE_FANCY_NEWSGROUP);
-		
+    ClearFlag(NNTP_USE_FANCY_NEWSGROUP);
+
         NS_ASSERTION(m_nntpServer, "no m_nntpServer");
-		if (!m_nntpServer) {
+    if (!m_nntpServer) {
           NNTP_LOG_NOTE("m_nntpServer is null, panic!");
           return -1;
-		}
+    }
 
       PRBool xactive=PR_FALSE;
       rv = m_nntpServer->QueryExtension("XACTIVE",&xactive);
@@ -2065,8 +2065,8 @@ PRInt32 nsNNTPProtocol::SendFirstNNTPCommand(nsIURI * url)
       {
         NS_MsgSACopy(&command, "LIST");
       }
-	}
-	else if(m_typeWanted == GROUP_WANTED)
+  }
+  else if(m_typeWanted == GROUP_WANTED)
     {
         nsresult rv = NS_ERROR_NULL_POINTER;
 
@@ -2398,13 +2398,13 @@ PRInt32 nsNNTPProtocol::SendGroupForArticleResponse()
 
 PRInt32 nsNNTPProtocol::SendArticleNumber()
 {
-	char outputBuffer[OUTPUT_BUFFER_SIZE];
-	PRInt32 status = 0;
-	PR_snprintf(outputBuffer, OUTPUT_BUFFER_SIZE, "ARTICLE %lu" CRLF, m_key);
+  char outputBuffer[OUTPUT_BUFFER_SIZE];
+  PRInt32 status = 0;
+  PR_snprintf(outputBuffer, OUTPUT_BUFFER_SIZE, "ARTICLE %lu" CRLF, m_key);
 
-	nsCOMPtr<nsIMsgMailNewsUrl> mailnewsurl = do_QueryInterface(m_runningURL);
-	if (mailnewsurl)
-		status = SendData(mailnewsurl, outputBuffer);
+  nsCOMPtr<nsIMsgMailNewsUrl> mailnewsurl = do_QueryInterface(m_runningURL);
+  if (mailnewsurl)
+    status = SendData(mailnewsurl, outputBuffer);
 
     m_nextState = NNTP_RESPONSE;
     m_nextStateAfterResponse = SEND_FIRST_NNTP_COMMAND_RESPONSE;
@@ -2416,8 +2416,8 @@ PRInt32 nsNNTPProtocol::SendArticleNumber()
 PRInt32 nsNNTPProtocol::BeginArticle()
 {
   if (m_typeWanted != ARTICLE_WANTED &&
-	  m_typeWanted != CANCEL_WANTED)
-	return 0;
+    m_typeWanted != CANCEL_WANTED)
+  return 0;
 
   /*  Set up the HTML stream
    */
@@ -2576,7 +2576,7 @@ PRInt32 nsNNTPProtocol::ReadArticle(nsIInputStream * inputStream, PRUint32 lengt
 
       /* Don't send content-type to mime parser if we're doing a cancel
       because it confuses mime parser into not parsing.
-		  */
+      */
     if (m_typeWanted != CANCEL_WANTED || strncmp(outputBuffer, "Content-Type:", 13))
     {
       // if we are attempting to cancel, we want to snarf the headers and save the aside, which is what
@@ -2598,7 +2598,7 @@ void nsNNTPProtocol::ParseHeaderForCancel(char *buf)
     nsCAutoString header(buf);
     PRInt32 colon = header.FindChar(':');
     if (!colon)
-		return;
+    return;
 
     nsCAutoString value;
     header.Right(value, header.Length() - colon -1);
@@ -2608,25 +2608,25 @@ void nsNNTPProtocol::ParseHeaderForCancel(char *buf)
     case 'F': case 'f':
         if (header.Find("From",PR_TRUE) == 0) {
             PR_FREEIF(m_cancelFromHdr);
-			m_cancelFromHdr = ToNewCString(value);
+      m_cancelFromHdr = ToNewCString(value);
         }
         break;
     case 'M': case 'm':
         if (header.Find("Message-ID",PR_TRUE) == 0) {
             PR_FREEIF(m_cancelID);
-			m_cancelID = ToNewCString(value);
+      m_cancelID = ToNewCString(value);
         }
         break;
     case 'N': case 'n':
         if (header.Find("Newsgroups",PR_TRUE) == 0) {
             PR_FREEIF(m_cancelNewsgroups);
-			m_cancelNewsgroups = ToNewCString(value);
+      m_cancelNewsgroups = ToNewCString(value);
         }
         break;
      case 'D': case 'd':
         if (header.Find("Distributions",PR_TRUE) == 0) {
             PR_FREEIF(m_cancelDistribution);
-			m_cancelDistribution = ToNewCString(value);
+      m_cancelDistribution = ToNewCString(value);
         }
         break;
     }
@@ -2882,12 +2882,12 @@ PRInt32 nsNNTPProtocol::DisplayNewsgroups()
 
 PRInt32 nsNNTPProtocol::BeginNewsgroups()
 {
-	PRInt32 status = 0;
-	m_nextState = NNTP_NEWGROUPS;
-	mBytesReceived = 0;
+  PRInt32 status = 0;
+  m_nextState = NNTP_NEWGROUPS;
+  mBytesReceived = 0;
     mBytesReceivedSinceLastStatusUpdate = 0;
     m_startTime = PR_Now();
-	return(status);
+  return(status);
 }
 
 PRInt32 nsNNTPProtocol::ProcessNewsgroups(nsIInputStream * inputStream, PRUint32 length)
@@ -2910,7 +2910,7 @@ PRInt32 nsNNTPProtocol::ProcessNewsgroups(nsIInputStream * inputStream, PRUint32
     return(status);  /* no line yet */
 
                      /* End of list?
-	 */
+   */
   if (line[0]=='.' && line[1]=='\0')
   {
     ClearFlag(NNTP_PAUSE_FOR_READ);
@@ -2963,7 +2963,7 @@ PRInt32 nsNNTPProtocol::ProcessNewsgroups(nsIInputStream * inputStream, PRUint32
   }
 
   /* format is "rec.arts.movies.past-films 7302 7119 y"
-	 */
+   */
   s = PL_strchr (line, ' ');
   if (s)
   {
@@ -3025,7 +3025,7 @@ PRInt32 nsNNTPProtocol::ProcessNewsgroups(nsIInputStream * inputStream, PRUint32
 
 PRInt32 nsNNTPProtocol::BeginReadNewsList()
 {
-	m_readNewsListCount = 0;
+  m_readNewsListCount = 0;
     mNumGroupsListed = 0;
     m_nextState = NNTP_READ_LIST;
 
@@ -3033,7 +3033,7 @@ PRInt32 nsNNTPProtocol::BeginReadNewsList()
     mBytesReceivedSinceLastStatusUpdate = 0;
     m_startTime = PR_Now();
 
-	PRInt32 status = 0;
+  PRInt32 status = 0;
 
     return(status);
 }
@@ -3311,7 +3311,7 @@ PRInt32 nsNNTPProtocol::BeginReadXover()
   /* We have just issued a GROUP command and read the response.
   Now parse that response to help decide which articles to request
   xover data for.
-	 */
+   */
   PR_sscanf(m_responseText,
     "%d %d %d",
     &count,
@@ -3340,11 +3340,11 @@ PRInt32 nsNNTPProtocol::BeginReadXover()
 PRInt32 nsNNTPProtocol::FigureNextChunk()
 {
     nsresult rv = NS_OK;
-	PRInt32 status = 0;
+  PRInt32 status = 0;
 
-	nsCOMPtr<nsIMsgMailNewsUrl> mailnewsurl = do_QueryInterface(m_runningURL);
-	if (m_firstArticle > 0)
-	{
+  nsCOMPtr<nsIMsgMailNewsUrl> mailnewsurl = do_QueryInterface(m_runningURL);
+  if (m_firstArticle > 0)
+  {
       PR_LOG(NNTP,PR_LOG_ALWAYS,("(%p) add to known articles:  %d - %d", this, m_firstArticle, m_lastArticle));
 
       if (NS_SUCCEEDED(rv) && m_newsgroupList) {
@@ -3352,15 +3352,15 @@ PRInt32 nsNNTPProtocol::FigureNextChunk()
                                                  m_lastArticle);
       }
 
-	  if (NS_FAILED(rv)) return status;
-	}
+    if (NS_FAILED(rv)) return status;
+  }
 
-	if (m_numArticlesLoaded >= m_numArticlesWanted)
-	{
-	  m_nextState = NEWS_PROCESS_XOVER;
-	  ClearFlag(NNTP_PAUSE_FOR_READ);
-	  return 0;
-	}
+  if (m_numArticlesLoaded >= m_numArticlesWanted)
+  {
+    m_nextState = NEWS_PROCESS_XOVER;
+    ClearFlag(NNTP_PAUSE_FOR_READ);
+    return 0;
+  }
 
     NS_ASSERTION(m_newsgroupList, "no newsgroupList");
     if (!m_newsgroupList) return -1;
@@ -3383,61 +3383,61 @@ PRInt32 nsNNTPProtocol::FigureNextChunk()
       &(m_lastArticle),
       &status);
 
-	if (NS_FAILED(rv)) return status;
+  if (NS_FAILED(rv)) return status;
 
-	if (m_firstArticle <= 0 || m_firstArticle > m_lastArticle)
-	{
-	  /* Nothing more to get. */
-	  m_nextState = NEWS_PROCESS_XOVER;
-	  ClearFlag(NNTP_PAUSE_FOR_READ);
-	  return 0;
-	}
+  if (m_firstArticle <= 0 || m_firstArticle > m_lastArticle)
+  {
+    /* Nothing more to get. */
+    m_nextState = NEWS_PROCESS_XOVER;
+    ClearFlag(NNTP_PAUSE_FOR_READ);
+    return 0;
+  }
 
-	PR_LOG(NNTP,PR_LOG_ALWAYS,("(%p) Chunk will be (%d-%d)", this, m_firstArticle, m_lastArticle));
+  PR_LOG(NNTP,PR_LOG_ALWAYS,("(%p) Chunk will be (%d-%d)", this, m_firstArticle, m_lastArticle));
 
-	m_articleNumber = m_firstArticle;
+  m_articleNumber = m_firstArticle;
 
     /* was MSG_InitXOVER() */
     if (m_newsgroupList) {
         rv = m_newsgroupList->InitXOVER(m_firstArticle, m_lastArticle);
-	}
+  }
 
     /* convert nsresult->status */
     status = NS_FAILED(rv);
 
-	if (status < 0)
-	  return status;
+  if (status < 0)
+    return status;
 
-	ClearFlag(NNTP_PAUSE_FOR_READ);
-	if (TestFlag(NNTP_NO_XOVER_SUPPORT))
-		m_nextState = NNTP_READ_GROUP;
-	else
-		m_nextState = NNTP_XOVER_SEND;
+  ClearFlag(NNTP_PAUSE_FOR_READ);
+  if (TestFlag(NNTP_NO_XOVER_SUPPORT))
+    m_nextState = NNTP_READ_GROUP;
+  else
+    m_nextState = NNTP_XOVER_SEND;
 
-	return 0;
+  return 0;
 }
 
 PRInt32 nsNNTPProtocol::XoverSend()
 {
-	char outputBuffer[OUTPUT_BUFFER_SIZE];
-	PRInt32 status = 0;
+  char outputBuffer[OUTPUT_BUFFER_SIZE];
+  PRInt32 status = 0;
 
     PR_snprintf(outputBuffer,
-				OUTPUT_BUFFER_SIZE,
-				"XOVER %d-%d" CRLF,
-				m_firstArticle,
-				m_lastArticle);
+        OUTPUT_BUFFER_SIZE,
+        "XOVER %d-%d" CRLF,
+        m_firstArticle,
+        m_lastArticle);
 
-	NNTP_LOG_WRITE(outputBuffer);
+  NNTP_LOG_WRITE(outputBuffer);
 
     m_nextState = NNTP_RESPONSE;
     m_nextStateAfterResponse = NNTP_XOVER_RESPONSE;
     SetFlag(NNTP_PAUSE_FOR_READ);
 
-	nsCOMPtr<nsIMsgMailNewsUrl> mailnewsurl = do_QueryInterface(m_runningURL);
-	if (mailnewsurl)
-		status = SendData(mailnewsurl, outputBuffer);
-	return status;
+  nsCOMPtr<nsIMsgMailNewsUrl> mailnewsurl = do_QueryInterface(m_runningURL);
+  if (mailnewsurl)
+    status = SendData(mailnewsurl, outputBuffer);
+  return status;
 }
 
 /* see if the xover response is going to return us data
@@ -3449,23 +3449,23 @@ PRInt32 nsNNTPProtocol::XoverSend()
 PRInt32 nsNNTPProtocol::ReadXoverResponse()
 {
 #ifdef TEST_NO_XOVER_SUPPORT
-	m_responseCode = MK_NNTP_RESPONSE_CHECK_ERROR; /* pretend XOVER generated an error */
+  m_responseCode = MK_NNTP_RESPONSE_CHECK_ERROR; /* pretend XOVER generated an error */
 #endif
 
     if(m_responseCode != MK_NNTP_RESPONSE_XOVER_OK)
     {
         /* If we didn't get back "224 data follows" from the XOVER request,
-		   then that must mean that this server doesn't support XOVER.  Or
-		   maybe the server's XOVER support is busted or something.  So,
-		   in that case, fall back to the very slow HEAD method.
+       then that must mean that this server doesn't support XOVER.  Or
+       maybe the server's XOVER support is busted or something.  So,
+       in that case, fall back to the very slow HEAD method.
 
-		   But, while debugging here at HQ, getting into this state means
-		   something went very wrong, since our servers do XOVER.  Thus
-		   the assert.
+       But, while debugging here at HQ, getting into this state means
+       something went very wrong, since our servers do XOVER.  Thus
+       the assert.
          */
-		/*NS_ASSERTION (0,"something went very wrong");*/
-		m_nextState = NNTP_READ_GROUP;
-		SetFlag(NNTP_NO_XOVER_SUPPORT);
+    /*NS_ASSERTION (0,"something went very wrong");*/
+    m_nextState = NNTP_READ_GROUP;
+    SetFlag(NNTP_NO_XOVER_SUPPORT);
     }
     else
     {
@@ -3774,14 +3774,14 @@ PRInt32 nsNNTPProtocol::PostData()
  */
 PRInt32 nsNNTPProtocol::PostDataResponse()
 {
-	if (m_responseCode != MK_NNTP_RESPONSE_POST_OK)
-	{
-	  AlertError(MK_NNTP_ERROR_MESSAGE,m_responseText);
-	  m_nextState = NEWS_ERROR;
-	  return(MK_NNTP_ERROR_MESSAGE);
-	}
+  if (m_responseCode != MK_NNTP_RESPONSE_POST_OK)
+  {
+    AlertError(MK_NNTP_ERROR_MESSAGE,m_responseText);
+    m_nextState = NEWS_ERROR;
+    return(MK_NNTP_ERROR_MESSAGE);
+  }
     m_nextState = NEWS_POST_DONE;
-	ClearFlag(NNTP_PAUSE_FOR_READ);
+  ClearFlag(NNTP_PAUSE_FOR_READ);
     return(MK_DATA_LOADED);
 }
 
@@ -3789,15 +3789,15 @@ PRInt32 nsNNTPProtocol::CheckForArticle()
 {
   m_nextState = NEWS_ERROR;
   if (m_responseCode >= 220 && m_responseCode <= 223) {
-	/* Yes, this article is already there, we're all done. */
-	return MK_DATA_LOADED;
+  /* Yes, this article is already there, we're all done. */
+  return MK_DATA_LOADED;
   }
   else
   {
-	/* The article isn't there, so the failure we had earlier wasn't due to
-	   a duplicate message-id.  Return the error from that previous
-	   posting attempt (which is already in ce->URL_s->error_msg). */
-	return MK_NNTP_ERROR_MESSAGE;
+  /* The article isn't there, so the failure we had earlier wasn't due to
+     a duplicate message-id.  Return the error from that previous
+     posting attempt (which is already in ce->URL_s->error_msg). */
+  return MK_NNTP_ERROR_MESSAGE;
   }
 }
 
@@ -3978,9 +3978,9 @@ PRInt32 nsNNTPProtocol::DisplayNewsRCResponse()
     {
       *group++ = '\0';
       /* the group name may be contaminated by "group selected" at
-			   the end.  This will be space separated from the group name.
+         the end.  This will be space separated from the group name.
                            If a space is found in the group name terminate at that
-			   point. */
+         point. */
       strtok(group, " ");
       last_art = atol(high);
     }
@@ -4449,7 +4449,7 @@ PRInt32 nsNNTPProtocol::ListPrettyNamesResponse(nsIInputStream * inputStream, PR
   if (m_responseCode != MK_NNTP_RESPONSE_LIST_OK)
   {
     m_nextState = DISPLAY_NEWSGROUPS;
-    /*		m_nextState = NEWS_DONE; */
+    /*    m_nextState = NEWS_DONE; */
     ClearFlag(NNTP_PAUSE_FOR_READ);
     return 0;
   }
@@ -4500,8 +4500,8 @@ PRInt32 nsNNTPProtocol::ListPrettyNamesResponse(nsIInputStream * inputStream, PR
     }
     else
     {
-      m_nextState = DISPLAY_NEWSGROUPS;	/* this assumes we were doing a list */
-      /*			m_nextState = NEWS_DONE;	 */ /* ### dmb - don't really know */
+      m_nextState = DISPLAY_NEWSGROUPS;  /* this assumes we were doing a list */
+      /*      m_nextState = NEWS_DONE;   */ /* ### dmb - don't really know */
       ClearFlag(NNTP_PAUSE_FOR_READ);
       PR_FREEIF(line);
       return 0;
@@ -4545,7 +4545,7 @@ PRInt32 nsNNTPProtocol::ListXActiveResponse(nsIInputStream * inputStream, PRUint
   if (m_responseCode != MK_NNTP_RESPONSE_LIST_OK)
   {
     m_nextState = DISPLAY_NEWSGROUPS;
-    /*		m_nextState = NEWS_DONE; */
+    /*    m_nextState = NEWS_DONE; */
     ClearFlag(NNTP_PAUSE_FOR_READ);
     return MK_DATA_LOADED;
   }
@@ -4561,7 +4561,7 @@ PRInt32 nsNNTPProtocol::ListXActiveResponse(nsIInputStream * inputStream, PRUint
     return 0;
   }
 
-	 /* almost correct */
+   /* almost correct */
   if(status > 1)
   {
 #ifdef UNREADY_CODE
@@ -4584,7 +4584,7 @@ PRInt32 nsNNTPProtocol::ListXActiveResponse(nsIInputStream * inputStream, PRUint
         s++;
       if (*s)
       {
-        char flags[32];	/* ought to be big enough */
+        char flags[32];  /* ought to be big enough */
         *s = 0;
         PR_sscanf(s + 1,
           "%d %d %31s",
@@ -4603,7 +4603,7 @@ PRInt32 nsNNTPProtocol::ListXActiveResponse(nsIInputStream * inputStream, PRUint
         all prettynames every time, so we won't care so much
         if it gets interrupted. */
         PR_LOG(NNTP,PR_LOG_ALWAYS,("(%p) got xactive for %s of %s", this, line, flags));
-        /*	This isn't required, because the extra info is
+        /*  This isn't required, because the extra info is
         initialized to false for new groups. And it's
         an expensive call.
         */
@@ -4648,8 +4648,8 @@ PRInt32 nsNNTPProtocol::ListXActiveResponse(nsIInputStream * inputStream, PRUint
       if (NS_SUCCEEDED(rv) && listpname)
         m_nextState = NNTP_LIST_PRETTY_NAMES;
       else
-        m_nextState = DISPLAY_NEWSGROUPS;	/* this assumes we were doing a list - who knows? */
-      /*			m_nextState = NEWS_DONE;	 */ /* ### dmb - don't really know */
+        m_nextState = DISPLAY_NEWSGROUPS;  /* this assumes we were doing a list - who knows? */
+      /*      m_nextState = NEWS_DONE;   */ /* ### dmb - don't really know */
       ClearFlag(NNTP_PAUSE_FOR_READ);
       PR_FREEIF(line);
       return 0;
@@ -4730,7 +4730,7 @@ PRInt32 nsNNTPProtocol::SendListGroupResponse(nsIInputStream * inputStream, PRUi
       rv = m_articleList->FinishAddingArticleKeys();
       NS_ASSERTION(NS_SUCCEEDED(rv), "finish adding article key failed");
       m_articleList = nsnull;
-      m_nextState = NEWS_DONE;	 /* ### dmb - don't really know */
+      m_nextState = NEWS_DONE;   /* ### dmb - don't really know */
       ClearFlag(NNTP_PAUSE_FOR_READ);
       PR_FREEIF(line);
       return 0;
@@ -5219,7 +5219,7 @@ nsresult nsNNTPProtocol::CleanupNewsgroupList()
 {
     nsresult rv;
     if (!m_newsgroupList) return NS_OK;
-	PRInt32 status = 0;
+  PRInt32 status = 0;
     rv = m_newsgroupList->FinishXOVERLINE(0,&status);
     m_newsgroupList = nsnull;
     NS_ASSERTION(NS_SUCCEEDED(rv), "FinishXOVERLINE failed");

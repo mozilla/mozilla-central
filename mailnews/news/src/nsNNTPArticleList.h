@@ -47,9 +47,9 @@
 class nsNNTPArticleList : public nsINNTPArticleList
 {
 public:
-	nsNNTPArticleList();
-	virtual ~nsNNTPArticleList();
-	
+  nsNNTPArticleList();
+  virtual ~nsNNTPArticleList();
+
     NS_DECL_ISUPPORTS
     NS_DECL_NSINNTPARTICLELIST
 
@@ -60,10 +60,10 @@ protected:
     nsMsgKeyArray m_idsOnServer;
     nsMsgKeyArray m_idsDeleted;
 #endif
-    
+
     nsCOMPtr <nsIMsgNewsFolder> m_newsFolder;
     nsCOMPtr <nsIMsgDatabase> m_newsDB;
-    
+
     PRUint32  m_dbIndex;
 };
 

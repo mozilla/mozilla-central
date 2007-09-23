@@ -61,14 +61,14 @@ nsresult nsNewsDownloader::DownloadArticles(nsIMsgWindow *window, nsIMsgFolder *
 {
   if (pIds != nsnull)
     m_keysToDownload.InsertAt(0, pIds);
-  
+
   if (m_keysToDownload.GetSize() > 0)
     m_downloadFromKeys = PR_TRUE;
-  
+
   m_folder = folder;
   m_window = window;
   m_numwrote = 0;
-  
+
   PRBool headersToDownload = GetNextHdrToRetrieve();
   // should we have a special error code for failure here?
   return (headersToDownload) ? DownloadNext(PR_TRUE) : NS_ERROR_FAILURE;
@@ -158,7 +158,7 @@ PRBool DownloadNewsArticlesToOfflineStore::GetNextHdrToRetrieve()
 
   PRBool hasMore = PR_FALSE;
 
-  while (NS_SUCCEEDED(rv = m_headerEnumerator->HasMoreElements(&hasMore)) && hasMore) 
+  while (NS_SUCCEEDED(rv = m_headerEnumerator->HasMoreElements(&hasMore)) && hasMore)
   {
     nsCOMPtr <nsISupports> supports;
     rv = m_headerEnumerator->GetNext(getter_AddRefs(supports));
@@ -215,16 +215,16 @@ PRBool nsNewsDownloader::GetNextHdrToRetrieve()
     nsCOMPtr<nsIStringBundle> bundle;
     rv = bundleService->CreateBundle(NEWS_MSGS_URL, getter_AddRefs(bundle));
     NS_ENSURE_SUCCESS(rv, rv);
-    
+
     nsAutoString firstStr;
     firstStr.AppendInt(m_numwrote);
     nsAutoString totalStr;
     totalStr.AppendInt(m_keysToDownload.GetSize());
     nsString prettiestName;
     nsString statusString;
-    
+
     m_folder->GetPrettiestName(prettiestName);
-    
+
     const PRUnichar *formatStrings[3] = { firstStr.get(), totalStr.get(), prettiestName.get() };
     rv = bundle->FormatStringFromName(NS_LITERAL_STRING("downloadingArticlesForOffline").get(),
                                       formatStrings, 3, getter_Copies(statusString));
@@ -267,7 +267,7 @@ NS_IMETHODIMP DownloadNewsArticlesToOfflineStore::OnStopRunningUrl(nsIURI* url, 
   if (m_newsHeader != nsnull)
   {
 #ifdef DEBUG_bienvenu
-    //		XP_Trace("finished retrieving %ld\n", m_newsHeader->GetMessageKey());
+    //    XP_Trace("finished retrieving %ld\n", m_newsHeader->GetMessageKey());
 #endif
     if (m_newsDB)
     {
@@ -275,7 +275,7 @@ NS_IMETHODIMP DownloadNewsArticlesToOfflineStore::OnStopRunningUrl(nsIURI* url, 
       m_newsHeader->GetMessageKey(&msgKey);
       m_newsDB->MarkMarked(msgKey, PR_FALSE, nsnull);
     }
-  }	
+  }
   m_newsHeader = nsnull;
   return nsNewsDownloader::OnStopRunningUrl(url, exitCode);
 }
@@ -289,8 +289,8 @@ int DownloadNewsArticlesToOfflineStore::FinishDownload()
 NS_IMETHODIMP nsNewsDownloader::OnSearchHit(nsIMsgDBHdr *header, nsIMsgFolder *folder)
 {
   NS_ENSURE_ARG(header);
-  
-  
+
+
   PRUint32 msgFlags;
   header->GetFlags(&msgFlags);
   // only need to download articles we don't already have...
@@ -310,7 +310,7 @@ NS_IMETHODIMP nsNewsDownloader::OnSearchDone(nsresult status)
     if (m_listener)
       return m_listener->OnStopRunningUrl(nsnull, NS_OK);
   }
-  nsresult rv = DownloadArticles(m_window, m_folder, 
+  nsresult rv = DownloadArticles(m_window, m_folder,
                   /* we've already set m_keysToDownload, so don't pass it in */ nsnull);
   if (NS_FAILED(rv))
     if (m_listener)
@@ -330,7 +330,7 @@ int DownloadNewsArticlesToOfflineStore::StartDownload()
 }
 
 DownloadNewsArticlesToOfflineStore::DownloadNewsArticlesToOfflineStore(nsIMsgWindow *window, nsIMsgDatabase *db, nsIUrlListener *listener)
-	: nsNewsDownloader(window, db, listener)
+  : nsNewsDownloader(window, db, listener)
 {
   m_newsDB = db;
 }
@@ -340,14 +340,14 @@ DownloadNewsArticlesToOfflineStore::~DownloadNewsArticlesToOfflineStore()
 }
 
 DownloadMatchingNewsArticlesToNewsDB::DownloadMatchingNewsArticlesToNewsDB
-	(nsIMsgWindow *window, nsIMsgFolder *folder, nsIMsgDatabase *newsDB,
-	 nsIUrlListener *listener) :
-	 DownloadNewsArticlesToOfflineStore(window, newsDB, listener)
+  (nsIMsgWindow *window, nsIMsgFolder *folder, nsIMsgDatabase *newsDB,
+   nsIUrlListener *listener) :
+   DownloadNewsArticlesToOfflineStore(window, newsDB, listener)
 {
   m_window = window;
   m_folder = folder;
   m_newsDB = newsDB;
-  m_downloadFromKeys = PR_TRUE;	// search term matching means downloadFromKeys.
+  m_downloadFromKeys = PR_TRUE;  // search term matching means downloadFromKeys.
 }
 
 DownloadMatchingNewsArticlesToNewsDB::~DownloadMatchingNewsArticlesToNewsDB()
@@ -403,7 +403,7 @@ nsMsgDownloadAllNewsgroups::OnStopRunningUrl(nsIURI* url, nsresult exitCode)
   }
   else if (m_listener)  // notify main observer.
     m_listener->OnStopRunningUrl(url, exitCode);
-   
+
   return rv;
 }
 
@@ -421,7 +421,7 @@ nsresult nsMsgDownloadAllNewsgroups::AdvanceToNextServer(PRBool *done)
   *done = PR_TRUE;
   if (!m_allServers)
   {
-    nsCOMPtr<nsIMsgAccountManager> accountManager = 
+    nsCOMPtr<nsIMsgAccountManager> accountManager =
              do_GetService(NS_MSGACCOUNTMANAGER_CONTRACTID, &rv);
     NS_ASSERTION(accountManager && NS_SUCCEEDED(rv), "couldn't get account mgr");
     if (!accountManager || NS_FAILED(rv)) return rv;
@@ -431,7 +431,7 @@ nsresult nsMsgDownloadAllNewsgroups::AdvanceToNextServer(PRBool *done)
   }
   PRUint32 serverIndex = (m_currentServer) ? m_allServers->IndexOf(m_currentServer) + 1 : 0;
   m_currentServer = nsnull;
-  PRUint32 numServers; 
+  PRUint32 numServers;
   m_allServers->Count(&numServers);
   nsCOMPtr <nsIMsgFolder> rootFolder;
 
@@ -479,10 +479,10 @@ nsresult nsMsgDownloadAllNewsgroups::AdvanceToNextGroup(PRBool *done)
     nsCOMPtr <nsIMsgNewsFolder> newsFolder = do_QueryInterface(m_currentFolder);
     if (newsFolder)
       newsFolder->SetSaveArticleOffline(PR_FALSE);
-  
-    nsCOMPtr<nsIMsgMailSession> session = 
-             do_GetService(NS_MSGMAILSESSION_CONTRACTID, &rv); 
-    if (NS_SUCCEEDED(rv) && session) 
+
+    nsCOMPtr<nsIMsgMailSession> session =
+             do_GetService(NS_MSGMAILSESSION_CONTRACTID, &rv);
+    if (NS_SUCCEEDED(rv) && session)
     {
       PRBool folderOpen;
       PRUint32 folderFlags;
@@ -536,7 +536,7 @@ nsresult nsMsgDownloadAllNewsgroups::ProcessNextGroup()
 
   while (NS_SUCCEEDED(rv) && !done)
   {
-    rv = AdvanceToNextGroup(&done); 
+    rv = AdvanceToNextGroup(&done);
     if (m_currentFolder)
     {
       PRUint32 folderFlags;

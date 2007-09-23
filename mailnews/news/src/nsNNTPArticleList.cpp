@@ -54,7 +54,7 @@ nsNNTPArticleList::~nsNNTPArticleList()
     m_newsDB->Close(PR_TRUE);
     m_newsDB = nsnull;
   }
-  
+
   m_newsFolder = nsnull;
 }
 
@@ -63,7 +63,7 @@ nsNNTPArticleList::Initialize(nsIMsgNewsFolder *newsFolder)
 {
     nsresult rv;
     NS_ENSURE_ARG_POINTER(newsFolder);
-    
+
     m_dbIndex = 0;
 
     m_newsFolder = newsFolder;
@@ -87,7 +87,7 @@ nsNNTPArticleList::AddArticleKey(PRInt32 key)
 #ifdef DEBUG
   m_idsOnServer.Add(key);
 #endif
-  
+
   if (m_dbIndex < m_idsInDB.GetSize())
   {
     PRInt32 idInDBToCheck = m_idsInDB.GetAt(m_dbIndex);
@@ -126,10 +126,10 @@ nsNNTPArticleList::FinishAddingArticleKeys()
   }
 
 #ifdef DEBUG
-	// make sure none of the deleted turned up on the idsOnServer list
-	for (i = 0; i < m_idsDeleted.GetSize(); i++) {
-		NS_ASSERTION(m_idsOnServer.FindIndex((nsMsgKey)(m_idsDeleted.GetAt(i)), 0) == nsMsgViewIndex_None, "a deleted turned up on the idsOnServer list");
+  // make sure none of the deleted turned up on the idsOnServer list
+  for (i = 0; i < m_idsDeleted.GetSize(); i++) {
+    NS_ASSERTION(m_idsOnServer.FindIndex((nsMsgKey)(m_idsDeleted.GetAt(i)), 0) == nsMsgViewIndex_None, "a deleted turned up on the idsOnServer list");
   }
 #endif
-	return NS_OK;
+  return NS_OK;
 }

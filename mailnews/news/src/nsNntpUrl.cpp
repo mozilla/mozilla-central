@@ -63,7 +63,7 @@
 #include "nsINntpService.h"
 #include "nsIMsgMessageService.h"
 
-    
+
 nsNntpUrl::nsNntpUrl()
 {
   m_newsgroupPost = nsnull;
@@ -73,12 +73,12 @@ nsNntpUrl::nsNntpUrl()
   m_filePath = nsnull;
   m_getOldMessages = PR_FALSE;
 }
-         
+
 nsNntpUrl::~nsNntpUrl()
 {
   NS_IF_RELEASE(m_newsgroupPost);
 }
-  
+
 NS_IMPL_ADDREF_INHERITED(nsNntpUrl, nsMsgMailNewsUrl)
 NS_IMPL_RELEASE_INHERITED(nsNntpUrl, nsMsgMailNewsUrl)
 
@@ -94,12 +94,12 @@ NS_INTERFACE_MAP_END_INHERITING(nsMsgMailNewsUrl)
 ////////////////////////////////////////////////////////////////////////////////////
 NS_IMETHODIMP nsNntpUrl::SetSpec(const nsACString &aSpec)
 {
-	nsresult rv = nsMsgMailNewsUrl::SetSpec(aSpec);
+  nsresult rv = nsMsgMailNewsUrl::SetSpec(aSpec);
   NS_ENSURE_SUCCESS(rv,rv);
 
-	rv = DetermineNewsAction();
+  rv = DetermineNewsAction();
   NS_ENSURE_SUCCESS(rv,rv);
-	return rv;
+  return rv;
 }
 
 nsresult nsNntpUrl::DetermineNewsAction()
@@ -109,7 +109,7 @@ nsresult nsNntpUrl::DetermineNewsAction()
   NS_ENSURE_SUCCESS(rv,rv);
 
   if (!strcmp(path.get(),"/*")) {
-    // news://news.mozilla.org/* 
+    // news://news.mozilla.org/*
     // get all newsgroups on the server, for subscribe
     m_newsAction = nsINntpUrl::ActionListGroups;
     return NS_OK;
@@ -131,7 +131,7 @@ nsresult nsNntpUrl::DetermineNewsAction()
     m_newsAction = nsINntpUrl::ActionUnknown;
     return NS_OK;
   }
-    
+
   if (PL_strcasestr(path.get(), "?part=") || PL_strcasestr(path.get(), "&part=")) {
     // news://news.mozilla.org:119/3B98D201.3020100%40cs.com?part=1
     // news://news.mozilla.org:119/b58dme%24aia2%40ripley.netscape.com?header=print&part=1.2&type=image/jpeg&filename=Pole.jpg
@@ -151,7 +151,7 @@ nsresult nsNntpUrl::DetermineNewsAction()
     m_newsAction = nsINntpUrl::ActionListIds;
     return NS_OK;
   }
-   
+
   if (strchr(path.get(), '@') || strstr(path.get(),"%40")) {
     // news://news.mozilla.org/3B98D201.3020100@cs.com
     // news://news.mozilla.org/3B98D201.3020100%40cs.com
@@ -159,7 +159,7 @@ nsresult nsNntpUrl::DetermineNewsAction()
     return NS_OK;
   }
 
-  // news://news.mozilla.org/netscape.test could be 
+  // news://news.mozilla.org/netscape.test could be
   // get new news for netscape.test (nsINntpUrl::ActionGetNewNews)
   // or subscribe to netscape.test (nsINntpUrl::AutoSubscribe)
   // set it as unknown (so we won't try to check the cache for it
@@ -170,29 +170,29 @@ nsresult nsNntpUrl::DetermineNewsAction()
 
 NS_IMETHODIMP nsNntpUrl::SetGetOldMessages(PRBool aGetOldMessages)
 {
-	m_getOldMessages = aGetOldMessages;
-	return NS_OK;
+  m_getOldMessages = aGetOldMessages;
+  return NS_OK;
 }
 
 NS_IMETHODIMP nsNntpUrl::GetGetOldMessages(PRBool * aGetOldMessages)
 {
-	NS_ENSURE_ARG(aGetOldMessages);
-	*aGetOldMessages = m_getOldMessages;
-	return NS_OK;
+  NS_ENSURE_ARG(aGetOldMessages);
+  *aGetOldMessages = m_getOldMessages;
+  return NS_OK;
 }
 
 NS_IMETHODIMP nsNntpUrl::GetNewsAction(nsNewsAction *aNewsAction)
 {
-	if (aNewsAction)
-		*aNewsAction = m_newsAction;
-	return NS_OK;
+  if (aNewsAction)
+    *aNewsAction = m_newsAction;
+  return NS_OK;
 }
 
 
 NS_IMETHODIMP nsNntpUrl::SetNewsAction(nsNewsAction aNewsAction)
 {
-	m_newsAction = aNewsAction;
-	return NS_OK;
+  m_newsAction = aNewsAction;
+  return NS_OK;
 }
 
 NS_IMETHODIMP nsNntpUrl::SetUri(const char * aURI)
@@ -214,9 +214,9 @@ NS_IMETHODIMP nsNntpUrl::GetUri(char ** aURI)
     NS_ENSURE_SUCCESS(rv,rv);
     mURI = spec;
   }
-  
+
   *aURI = ToNewCString(mURI);
-  if (!*aURI) return NS_ERROR_OUT_OF_MEMORY; 
+  if (!*aURI) return NS_ERROR_OUT_OF_MEMORY;
   return rv;
 }
 
@@ -226,15 +226,15 @@ NS_IMPL_GETSET(nsNntpUrl, CanonicalLineEnding, PRBool, m_canonicalLineEnding)
 
 NS_IMETHODIMP nsNntpUrl::SetMessageFile(nsIFile * aFile)
 {
-	m_messageFile = aFile;
-	return NS_OK;
+  m_messageFile = aFile;
+  return NS_OK;
 }
 
 NS_IMETHODIMP nsNntpUrl::GetMessageFile(nsIFile ** aFile)
 {
-	if (aFile)
-		NS_IF_ADDREF(*aFile = m_messageFile);
-	return NS_OK;
+  if (aFile)
+    NS_IF_ADDREF(*aFile = m_messageFile);
+  return NS_OK;
 }
 
 ////////////////////////////////////////////////////////////////////////////////////
@@ -264,7 +264,7 @@ nsresult nsNntpUrl::GetMessageToPost(nsINNTPNewsgroupPost **aPost)
 NS_IMETHODIMP nsNntpUrl::GetMessageHeader(nsIMsgDBHdr ** aMsgHdr)
 {
   nsresult rv;
-  
+
   nsCOMPtr <nsINntpService> nntpService = do_GetService(NS_NNTPSERVICE_CONTRACTID, &rv);
   NS_ENSURE_SUCCESS(rv,rv);
 
@@ -278,24 +278,24 @@ NS_IMETHODIMP nsNntpUrl::GetMessageHeader(nsIMsgDBHdr ** aMsgHdr)
 
   rv = msgService->MessageURIToMsgHdr(mOriginalSpec.get(), aMsgHdr);
   NS_ENSURE_SUCCESS(rv,rv);
-  
+
   return NS_OK;
 }
 
 NS_IMETHODIMP nsNntpUrl::IsUrlType(PRUint32 type, PRBool *isType)
 {
-	NS_ENSURE_ARG(isType);
+  NS_ENSURE_ARG(isType);
 
-	switch(type)
-	{
-		case nsIMsgMailNewsUrl::eDisplay:
-			*isType = (m_newsAction == nsINntpUrl::ActionFetchArticle);
-			break;
-		default:
-			*isType = PR_FALSE;
-	};				
+  switch(type)
+  {
+    case nsIMsgMailNewsUrl::eDisplay:
+      *isType = (m_newsAction == nsINntpUrl::ActionFetchArticle);
+      break;
+    default:
+      *isType = PR_FALSE;
+  };
 
-	return NS_OK;
+  return NS_OK;
 
 }
 
@@ -336,7 +336,7 @@ NS_IMETHODIMP nsNntpUrl::GetFolder(nsIMsgFolder **msgFolder)
    return NS_OK;
 }
 
-NS_IMETHODIMP 
+NS_IMETHODIMP
 nsNntpUrl::GetFolderCharset(char **aCharacterSet)
 {
   nsCOMPtr<nsIMsgFolder> folder;
@@ -365,7 +365,7 @@ NS_IMETHODIMP nsNntpUrl::GetFolderCharsetOverride(PRBool * aCharacterSetOverride
 NS_IMETHODIMP nsNntpUrl::GetCharsetOverRide(char ** aCharacterSet)
 {
   if (!mCharsetOverride.IsEmpty())
-    *aCharacterSet = ToNewCString(mCharsetOverride); 
+    *aCharacterSet = ToNewCString(mCharsetOverride);
   else
     *aCharacterSet = nsnull;
   return NS_OK;

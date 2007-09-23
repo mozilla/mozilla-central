@@ -51,9 +51,9 @@ public:
   NS_DECL_NSIMSGI18NURL
 
   // nsIURI over-ride...
-	NS_IMETHOD SetSpec(const nsACString &aSpec);
+  NS_IMETHOD SetSpec(const nsACString &aSpec);
 
-	NS_IMETHOD IsUrlType(PRUint32 type, PRBool *isType);
+  NS_IMETHOD IsUrlType(PRUint32 type, PRBool *isType);
 
   // nsIMsgFolder override
   NS_IMETHOD GetFolder(nsIMsgFolder **msgFolder);
@@ -66,24 +66,24 @@ public:
   NS_DECL_ISUPPORTS_INHERITED
 
 private:
-	virtual const char * GetUserName() { return nsnull; }
+  virtual const char * GetUserName() { return nsnull; }
   nsresult DetermineNewsAction();
 
   nsINNTPNewsgroupPost *m_newsgroupPost;
-	nsNewsAction m_newsAction; // the action this url represents...parse mailbox, display messages, etc.
- 
+  nsNewsAction m_newsAction; // the action this url represents...parse mailbox, display messages, etc.
+
   nsCString mURI; // the RDF URI associated with this url.
   nsCString mCharsetOverride; // used by nsIMsgI18NUrl...
 
   nsCString mOriginalSpec;
-  nsCOMPtr <nsILocalFile>  m_filePath; 
-    
+  nsCOMPtr <nsILocalFile>  m_filePath;
+
   // used by save message to disk
-	nsCOMPtr<nsIFile> m_messageFile;
+  nsCOMPtr<nsIFile> m_messageFile;
 
   PRPackedBool  m_addDummyEnvelope;
   PRPackedBool  m_canonicalLineEnding;
-	PRPackedBool	m_getOldMessages;
+  PRPackedBool  m_getOldMessages;
 };
 
 #endif // nsNntpUrl_h__

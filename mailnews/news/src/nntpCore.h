@@ -41,15 +41,15 @@
 #define NEWS_MSGS_URL       "chrome://messenger/locale/news.properties"
 
 // The following string constants are protocol strings. I'm defining them as macros here
-// so I don't have to sprinkle all of the strings throughout the protocol. 
-#define NNTP_CMD_LIST_EXTENSIONS		"LIST EXTENSIONS" CRLF
-#define NNTP_CMD_MODE_READER			"MODE READER" CRLF
-#define NNTP_CMD_LIST_SEARCHES			"LIST SEARCHES" CRLF
-#define NNTP_CMD_LIST_SEARCH_FIELDS 		"LIST SRCHFIELDS" CRLF
-#define NNTP_CMD_GET_PROPERTIES     		"GET" CRLF
-#define NNTP_CMD_LIST_SUBSCRIPTIONS 		"LIST SUBSCRIPTIONS" CRLF
-#define NNTP_CMD_POST				"POST" CRLF
-#define NNTP_CMD_QUIT				"QUIT" CRLF
+// so I don't have to sprinkle all of the strings throughout the protocol.
+#define NNTP_CMD_LIST_EXTENSIONS    "LIST EXTENSIONS" CRLF
+#define NNTP_CMD_MODE_READER      "MODE READER" CRLF
+#define NNTP_CMD_LIST_SEARCHES      "LIST SEARCHES" CRLF
+#define NNTP_CMD_LIST_SEARCH_FIELDS     "LIST SRCHFIELDS" CRLF
+#define NNTP_CMD_GET_PROPERTIES         "GET" CRLF
+#define NNTP_CMD_LIST_SUBSCRIPTIONS     "LIST SUBSCRIPTIONS" CRLF
+#define NNTP_CMD_POST        "POST" CRLF
+#define NNTP_CMD_QUIT        "QUIT" CRLF
 
 // end of protocol strings
 
@@ -151,46 +151,46 @@
 
 #define MK_NNTP_RESPONSE_TYPE(x) (x/100)
 
-// the following used to be defined in allxpstr.h. Until we find a new values for these, 
+// the following used to be defined in allxpstr.h. Until we find a new values for these,
 // I'm defining them here because I don't want to link against xplib.lib...(mscott)
 
-#define MK_DATA_LOADED		1
-#define MK_EMPTY_NEWS_LIST	-227
-#define MK_INTERRUPTED		-201
-#define MK_MALFORMED_URL_ERROR	-209
-#define MK_NEWS_ERROR_FMT		-430
-#define MK_NNTP_CANCEL_CONFIRM	-426
+#define MK_DATA_LOADED    1
+#define MK_EMPTY_NEWS_LIST  -227
+#define MK_INTERRUPTED    -201
+#define MK_MALFORMED_URL_ERROR  -209
+#define MK_NEWS_ERROR_FMT    -430
+#define MK_NNTP_CANCEL_CONFIRM  -426
 #define MK_NNTP_CANCEL_DISALLOWED -427
 #define MK_NNTP_NOT_CANCELLED    -429
-#define MK_OUT_OF_MEMORY		 -207
-#define XP_CONFIRM_SAVE_NEWSGROUPS			-1
-#define XP_HTML_ARTICLE_EXPIRED				-1
-#define XP_HTML_NEWS_ERROR					-1
-#define XP_PROGRESS_READ_NEWSGROUPINFO		 1
-#define XP_PROGRESS_RECEIVE_ARTICLE			 1
-#define XP_PROGRESS_RECEIVE_LISTARTICLES	 1
-#define XP_PROGRESS_RECEIVE_NEWSGROUP		 1
-#define XP_PROGRESS_SORT_ARTICLES		     1
-#define XP_PROGRESS_READ_NEWSGROUP_COUNTS	 1
-#define XP_THERMO_PERCENT_FORM				 1
-#define XP_PROMPT_ENTER_USERNAME			 1
-#define MK_BAD_NNTP_CONNECTION			  -216
-#define MK_NNTP_AUTH_FAILED			      -260
-#define MK_NNTP_ERROR_MESSAGE		      -304
-#define MK_NNTP_NEWSGROUP_SCAN_ERROR	  -305
-#define MK_NNTP_SERVER_ERROR		      -217
+#define MK_OUT_OF_MEMORY     -207
+#define XP_CONFIRM_SAVE_NEWSGROUPS      -1
+#define XP_HTML_ARTICLE_EXPIRED        -1
+#define XP_HTML_NEWS_ERROR          -1
+#define XP_PROGRESS_READ_NEWSGROUPINFO     1
+#define XP_PROGRESS_RECEIVE_ARTICLE       1
+#define XP_PROGRESS_RECEIVE_LISTARTICLES   1
+#define XP_PROGRESS_RECEIVE_NEWSGROUP     1
+#define XP_PROGRESS_SORT_ARTICLES         1
+#define XP_PROGRESS_READ_NEWSGROUP_COUNTS   1
+#define XP_THERMO_PERCENT_FORM         1
+#define XP_PROMPT_ENTER_USERNAME       1
+#define MK_BAD_NNTP_CONNECTION        -216
+#define MK_NNTP_AUTH_FAILED            -260
+#define MK_NNTP_ERROR_MESSAGE          -304
+#define MK_NNTP_NEWSGROUP_SCAN_ERROR    -305
+#define MK_NNTP_SERVER_ERROR          -217
 #define MK_NNTP_SERVER_NOT_CONFIGURED     -307
-#define MK_TCP_READ_ERROR				  -252
-#define MK_TCP_WRITE_ERROR				  -236
-#define MK_NNTP_CANCEL_ERROR			  -428
+#define MK_TCP_READ_ERROR          -252
+#define MK_TCP_WRITE_ERROR          -236
+#define MK_NNTP_CANCEL_ERROR        -428
 #define XP_CONNECT_NEWS_HOST_CONTACTED_WAITING_FOR_REPLY  1
 #define XP_PLEASE_ENTER_A_PASSWORD_FOR_NEWS_SERVER_ACCESS 1
-#define XP_GARBAGE_COLLECTING							  1
-#define XP_MESSAGE_SENT_WAITING_NEWS_REPLY				  1
-#define MK_MSG_DELIV_NEWS								  1
-#define MK_MSG_COLLABRA_DISABLED						  1
-#define MK_MSG_EXPIRE_NEWS_ARTICLES					      1
-#define MK_MSG_HTML_IMAP_NO_CACHED_BODY					  1
-#define MK_MSG_CANT_MOVE_FOLDER							  1
+#define XP_GARBAGE_COLLECTING                1
+#define XP_MESSAGE_SENT_WAITING_NEWS_REPLY          1
+#define MK_MSG_DELIV_NEWS                  1
+#define MK_MSG_COLLABRA_DISABLED              1
+#define MK_MSG_EXPIRE_NEWS_ARTICLES                1
+#define MK_MSG_HTML_IMAP_NO_CACHED_BODY            1
+#define MK_MSG_CANT_MOVE_FOLDER                1
 
 #endif /* NNTPCore_H__ */

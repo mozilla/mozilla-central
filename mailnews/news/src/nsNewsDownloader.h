@@ -60,9 +60,9 @@ public:
   NS_DECL_NSIMSGSEARCHNOTIFY
 
   virtual nsresult DownloadArticles(nsIMsgWindow *window, nsIMsgFolder *folder, nsMsgKeyArray *pKeyArray);
-  
+
   PRBool ShouldAbort() const { return m_abort; }
-	
+
 protected:
   virtual PRInt32 Write(const char * /*block*/, PRInt32 length) {return length;}
   virtual void Abort();
@@ -70,11 +70,11 @@ protected:
   virtual PRBool GetNextHdrToRetrieve();
   virtual nsresult DownloadNext(PRBool firstTimeP);
   virtual PRInt32 FinishDownload() {return 0;}
-  virtual PRInt32	StartDownload() {return 0;}
+  virtual PRInt32  StartDownload() {return 0;}
   virtual nsresult ShowProgress(const PRUnichar *progressString, PRInt32 percent);
 
-  nsMsgKeyArray			m_keysToDownload;
-  nsCOMPtr <nsIMsgFolder>	m_folder;
+  nsMsgKeyArray      m_keysToDownload;
+  nsCOMPtr <nsIMsgFolder>  m_folder;
   nsCOMPtr <nsIMsgDatabase> m_newsDB;
   nsCOMPtr <nsIUrlListener> m_listener;
   PRPackedBool m_downloadFromKeys;
@@ -88,7 +88,7 @@ protected:
   nsCOMPtr <nsIMsgStatusFeedback> m_statusFeedback;
   nsCOMPtr <nsIMsgSearchSession> m_searchSession;
   PRInt32 m_lastPercent;
-  PRInt64 m_lastProgressTime;				
+  PRInt64 m_lastProgressTime;
   nsresult  m_status;
 };
 
@@ -103,12 +103,12 @@ public:
   NS_IMETHOD OnStartRunningUrl(nsIURI* url);
   NS_IMETHOD OnStopRunningUrl(nsIURI* url, nsresult exitCode);
 protected:
-  virtual PRInt32	StartDownload();
+  virtual PRInt32  StartDownload();
   virtual PRInt32 FinishDownload();
   virtual PRBool GetNextHdrToRetrieve();
 
-  nsCOMPtr <nsISimpleEnumerator>	m_headerEnumerator;
-  nsCOMPtr <nsIMsgDBHdr>	m_newsHeader;
+  nsCOMPtr <nsISimpleEnumerator>  m_headerEnumerator;
+  nsCOMPtr <nsIMsgDBHdr>  m_newsHeader;
 };
 
 // class for downloading all the articles that match the passed in search criteria

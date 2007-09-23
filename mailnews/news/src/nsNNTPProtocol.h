@@ -62,17 +62,17 @@
 // this is only needed as long as our libmime hack is in place
 #include "prio.h"
 
-// State Flags (Note, I use the word state in terms of storing 
+// State Flags (Note, I use the word state in terms of storing
 // state information about the connection (authentication, have we sent
 // commands, etc. I do not intend it to refer to protocol state)
 
-#define NNTP_PAUSE_FOR_READ			0x00000001  /* should we pause for the next read */
+#define NNTP_PAUSE_FOR_READ      0x00000001  /* should we pause for the next read */
 #define NNTP_PROXY_AUTH_REQUIRED    0x00000002  /* is auth required */
 #define NNTP_SENT_PROXY_AUTH        0x00000004  /* have we sent a proxy auth? */
 #define NNTP_NEWSRC_PERFORMED       0x00000008  /* have we done a newsrc update? */
 #define NNTP_READER_PERFORMED       0x00000010  /* have we sent any cmds to the server yet? */
-#define NNTP_USE_FANCY_NEWSGROUP    0x00000020	/* use LIST XACTIVE or LIST */
-#define NNTP_DESTROY_PROGRESS_GRAPH 0x00000040  /* do we need to destroy graph progress */  
+#define NNTP_USE_FANCY_NEWSGROUP    0x00000020  /* use LIST XACTIVE or LIST */
+#define NNTP_DESTROY_PROGRESS_GRAPH 0x00000040  /* do we need to destroy graph progress */
 #define NNTP_SOME_PROTOCOL_SUCCEEDED 0x0000080  /* some protocol has suceeded so don't kill the connection */
 #define NNTP_NO_XOVER_SUPPORT       0x00000100  /* xover command is not supported here */
 
@@ -169,15 +169,15 @@ public:
     // nsITimerCallback interfaces
     NS_DECL_NSITIMERCALLBACK
 
-    // Creating a protocol instance requires the URL 
+    // Creating a protocol instance requires the URL
     // need to call Initialize after we do a new of nsNNTPProtocol
-    nsNNTPProtocol(nsIURI * aURL, nsIMsgWindow *aMsgWindow);	
+    nsNNTPProtocol(nsIURI * aURL, nsIMsgWindow *aMsgWindow);
   virtual ~nsNNTPProtocol();
 
-  // stop binding is a "notification" informing us that the stream associated with aURL is going away. 
+  // stop binding is a "notification" informing us that the stream associated with aURL is going away.
   NS_IMETHOD OnStopRequest(nsIRequest *request, nsISupports * aCtxt, nsresult aStatus);
 
-  char * m_ProxyServer;		/* proxy server hostname */
+  char * m_ProxyServer;    /* proxy server hostname */
 
   NS_IMETHOD Cancel(nsresult status);  // handle stop button
   NS_IMETHOD GetContentType(nsACString &aContentType);
@@ -189,7 +189,7 @@ public:
 
 private:
   // over-rides from nsMsgProtocol
-  virtual nsresult ProcessProtocolState(nsIURI * url, nsIInputStream * inputStream, 
+  virtual nsresult ProcessProtocolState(nsIURI * url, nsIInputStream * inputStream,
     PRUint32 sourceOffset, PRUint32 length);
   virtual nsresult CloseSocket();
 
@@ -221,19 +221,19 @@ private:
   nsNewsAction m_newsAction;
 
   // Generic state information -- What state are we in? What state do we want to go to
-  // after the next response? What was the last response code? etc. 
+  // after the next response? What was the last response code? etc.
   StatesEnum  m_nextState;
   StatesEnum  m_nextStateAfterResponse;
   PRInt32     m_typeWanted;     /* Article, List, or Group */
   PRInt32     m_responseCode;    /* code returned from NNTP server */
-  PRInt32 	m_previousResponseCode; 
+  PRInt32   m_previousResponseCode;
   char       *m_responseText;   /* text returned from NNTP server */
 
-  char		*m_dataBuf;
-  PRUint32	 m_dataBufSize;
+  char    *m_dataBuf;
+  PRUint32   m_dataBufSize;
 
   /* for group command */
-  char     *m_path;			  /* message id */
+  char     *m_path;        /* message id */
   nsCString m_currentGroup;     /* current group */
 
   PRInt32   m_firstArticle;
@@ -241,18 +241,18 @@ private:
   PRInt32   m_firstPossibleArticle;
   PRInt32   m_lastPossibleArticle;
 
-  PRInt32	  m_numArticlesLoaded;	/* How many articles we got XOVER lines for. */
-  PRInt32	  m_numArticlesWanted; /* How many articles we wanted to get XOVER lines for. */
+  PRInt32    m_numArticlesLoaded;  /* How many articles we got XOVER lines for. */
+  PRInt32    m_numArticlesWanted; /* How many articles we wanted to get XOVER lines for. */
   PRInt32   m_maxArticles;        /* max articles to get during an XOVER */
 
-  // Cancelation specific state. In particular, the headers that should be 
-  // used for the cancelation message. 
+  // Cancelation specific state. In particular, the headers that should be
+  // used for the cancelation message.
   // mscott: we can probably replace this stuff with nsString
-  char	 *m_cancelFromHdr;
+  char   *m_cancelFromHdr;
   char     *m_cancelNewsgroups;
   char     *m_cancelDistribution;
   char     *m_cancelID;
-  PRInt32	  m_cancelStatus;
+  PRInt32    m_cancelStatus;
 
   // variables for ReadNewsRC
   PRInt32   m_newsRCListIndex;
@@ -263,10 +263,10 @@ private:
   PRInt32   m_readNewsListCount;
 
   // Per news article state information. (article number, author, subject, id, etc
-  char	 *m_messageID;
+  char   *m_messageID;
   PRInt32   m_articleNumber;   /* current article number */
-  char	 *m_commandSpecificData;
-  char	 *m_searchData;
+  char   *m_commandSpecificData;
+  char   *m_searchData;
 
   PRInt32   m_originalContentLength; /* the content length at the time of calling graph progress */
 
@@ -287,18 +287,18 @@ private:
   PRInt32 ReadLine(nsIInputStream * inputStream, PRUint32 length, char ** line);
 
   ////////////////////////////////////////////////////////////////////////////////////////
-  // Protocol Methods --> This protocol is state driven so each protocol method is 
-  //						designed to re-act to the current "state". I've attempted to 
-  //						group them together based on functionality. 
+  // Protocol Methods --> This protocol is state driven so each protocol method is
+  //            designed to re-act to the current "state". I've attempted to
+  //            group them together based on functionality.
   ////////////////////////////////////////////////////////////////////////////////////////
 
-  // gets the response code from the nntp server and the response line. Returns the TCP return code 
+  // gets the response code from the nntp server and the response line. Returns the TCP return code
   // from the read.
-  PRInt32 NewsResponse(nsIInputStream * inputStream, PRUint32 length); 
+  PRInt32 NewsResponse(nsIInputStream * inputStream, PRUint32 length);
 
-  // Interpret the server response after the connect. 
+  // Interpret the server response after the connect.
   // Returns negative if the server responds unexpectedly
-  PRInt32 LoginResponse(); 
+  PRInt32 LoginResponse();
   PRInt32 SendModeReader();
   PRInt32 SendModeReaderResponse();
 
@@ -317,7 +317,7 @@ private:
   PRInt32 SendListSubscriptions();
   PRInt32 SendListSubscriptionsResponse(nsIInputStream * inputStream, PRUint32 length);
 
-  // Figure out what the first command is and send it. 
+  // Figure out what the first command is and send it.
   // Returns the status from the NETWrite.
   PRInt32 SendFirstNNTPCommand(nsIURI * url);
 
@@ -353,7 +353,7 @@ private:
 
   PRInt32 ReadNewsgroupBody(nsIInputStream * inputStream, PRUint32 length);
 
-  // Protocol handlers used for posting data 
+  // Protocol handlers used for posting data
   PRInt32 PostData();
   PRInt32 PostDataResponse();
 
@@ -363,12 +363,12 @@ private:
   PRInt32 DisplayNewsRC();
   PRInt32 DisplayNewsRCResponse();
 
-  // start off the xover command 
+  // start off the xover command
   PRInt32 BeginReadXover();
 
-  // process the xover list as it comes from the server and load it into the sort list.  
+  // process the xover list as it comes from the server and load it into the sort list.
   PRInt32 ReadXover(nsIInputStream * inputStream, PRUint32 length);
-  // See if the xover response is going to return us data. If the proper code isn't returned then 
+  // See if the xover response is going to return us data. If the proper code isn't returned then
   // assume xover isn't supported and use normal read_group.
   PRInt32 ReadXoverResponse();
 
@@ -381,7 +381,7 @@ private:
   PRInt32 StartCancel();
   PRInt32 DoCancel();
 
-  // XPAT 
+  // XPAT
   PRInt32 XPATSend();
   PRInt32 XPATResponse(nsIInputStream * inputStream, PRUint32 length);
   PRInt32 ListPrettyNames();
@@ -413,7 +413,7 @@ private:
 
   void HandleAuthenticationFailure();
   nsCOMPtr <nsIInputStream> mInputStream;
-  nsCOMPtr <nsITimer> mUpdateTimer; 
+  nsCOMPtr <nsITimer> mUpdateTimer;
   nsresult AlertError(PRInt32 errorCode, const char *text);
   PRInt32 mBytesReceived;
   PRInt32 mBytesReceivedSinceLastStatusUpdate;
@@ -431,7 +431,7 @@ private:
   void FinishMemCacheEntry(PRBool valid); // either mark it valid, or doom it
   nsresult OpenCacheEntry(); // makes a request to the cache service for a cache entry for a url
   PRBool ReadFromLocalCache(); // attempts to read the url out of our local (offline) cache....
-  nsresult ReadFromNewsConnection(); // creates a new news connection to read the url 
+  nsresult ReadFromNewsConnection(); // creates a new news connection to read the url
   nsresult ReadFromMemCache(nsICacheEntryDescriptor *entry); // attempts to read the url out of our memory cache
   nsresult SetupPartExtractorListener(nsIStreamListener * aConsumer);
 };

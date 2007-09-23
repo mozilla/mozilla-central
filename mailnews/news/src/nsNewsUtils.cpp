@@ -43,34 +43,34 @@
 
 
 /* parses NewsMessageURI */
-nsresult 
+nsresult
 nsParseNewsMessageURI(const char* uri, nsCString& folderURI, PRUint32 *key)
 {
     NS_ENSURE_ARG_POINTER(uri);
     NS_ENSURE_ARG_POINTER(key);
 
-	nsCAutoString uriStr(uri);
-	PRInt32 keySeparator = uriStr.FindChar('#');
-	if(keySeparator != -1)
-	{
-    PRInt32 keyEndSeparator = uriStr.FindCharInSet("?&", 
-                                                   keySeparator); 
+  nsCAutoString uriStr(uri);
+  PRInt32 keySeparator = uriStr.FindChar('#');
+  if(keySeparator != -1)
+  {
+    PRInt32 keyEndSeparator = uriStr.FindCharInSet("?&",
+                                                   keySeparator);
 
-		uriStr.Left(folderURI, keySeparator);
+    uriStr.Left(folderURI, keySeparator);
         folderURI.Cut(4, 8);    // cut out the -message part of news-message:
 
-		nsCAutoString keyStr;
+    nsCAutoString keyStr;
     if (keyEndSeparator != -1)
-        uriStr.Mid(keyStr, keySeparator+1, 
+        uriStr.Mid(keyStr, keySeparator+1,
                    keyEndSeparator-(keySeparator+1));
     else
         uriStr.Right(keyStr, uriStr.Length() - (keySeparator + 1));
-		PRInt32 errorCode;
-		*key = keyStr.ToInteger(&errorCode);
+    PRInt32 errorCode;
+    *key = keyStr.ToInteger(&errorCode);
 
-		return errorCode;
-	}
-	return NS_ERROR_FAILURE;
+    return errorCode;
+  }
+  return NS_ERROR_FAILURE;
 }
 
 nsresult nsCreateNewsBaseMessageURI(const char *baseURI, nsCString &baseMessageURI)

@@ -47,10 +47,10 @@
 // nsMsgNewsFolder
 #define NS_NEWSFOLDERRESOURCE_CONTRACTID \
   NS_RDF_RESOURCE_FACTORY_CONTRACTID_PREFIX "news"
-#define NS_NEWSFOLDERRESOURCE_CID                    	\
-{ /* 4ace448a-f6d4-11d2-880d-004005263078 */         	\
- 0x4ace448a, 0xf6d4, 0x11d2, 				\
- {0x88, 0x0d, 0x00, 0x40, 0x05, 0x26, 0x30, 0x78} 	\
+#define NS_NEWSFOLDERRESOURCE_CID                      \
+{ /* 4ace448a-f6d4-11d2-880d-004005263078 */           \
+ 0x4ace448a, 0xf6d4, 0x11d2,         \
+ {0x88, 0x0d, 0x00, 0x40, 0x05, 0x26, 0x30, 0x78}   \
 }
 
 //
@@ -59,17 +59,17 @@
 #define NS_NNTPINCOMINGSERVER_CONTRACTID \
   NS_MSGINCOMINGSERVER_CONTRACTID_PREFIX "nntp"
 
-#define NS_NNTPINCOMINGSERVER_CID 			\
-{ /* 6ff28d0a-f776-11d2-87ca-004005263078 */ 		\
- 0x6ff28d0a, 0xf776, 0x11d2, 				\
- {0x87, 0xca, 0x00, 0x40, 0x05, 0x26, 0x30, 0x78} 	\
+#define NS_NNTPINCOMINGSERVER_CID       \
+{ /* 6ff28d0a-f776-11d2-87ca-004005263078 */     \
+ 0x6ff28d0a, 0xf776, 0x11d2,         \
+ {0x87, 0xca, 0x00, 0x40, 0x05, 0x26, 0x30, 0x78}   \
 }
 
 //
 // nsNntpService
 //
 
-#define NS_NNTPPROTOCOLINFO_CONTRACTID		\
+#define NS_NNTPPROTOCOLINFO_CONTRACTID    \
   NS_MSGPROTOCOLINFO_CONTRACTID_PREFIX "nntp"
 
 #define NS_NEWSPROTOCOLHANDLER_CONTRACTID \
@@ -81,17 +81,17 @@
 #define NS_NEWSMESSAGESERVICE_CONTRACTID \
   "@mozilla.org/messenger/messageservice;1?type=news-message"
 #define NS_NNTPMESSAGESERVICE_CONTRACTID \
-  "@mozilla.org/messenger/messageservice;1?type=news" 
+  "@mozilla.org/messenger/messageservice;1?type=news"
 #define NS_NNTPSERVICE_CONTRACTID \
   "@mozilla.org/messenger/nntpservice;1"
 #define NS_NEWSSTARTUPHANDLER_CONTRACTID \
   "@mozilla.org/commandlinehandler/general-startup;1?type=news"
 
 #define NS_NNTPSERVICE_CID                              \
-{ /* 4C9F90E1-E19B-11d2-806E-006008128C4E */  		\
+{ /* 4C9F90E1-E19B-11d2-806E-006008128C4E */      \
  0x4c9f90e1, 0xe19b, 0x11d2,                            \
- {0x80, 0x6e, 0x0, 0x60, 0x8, 0x12, 0x8c, 0x4e} 	\
-}              
+ {0x80, 0x6e, 0x0, 0x60, 0x8, 0x12, 0x8c, 0x4e}   \
+}
 
 //
 // nsNNTPNewsgroupPost
@@ -131,13 +131,13 @@
 //
 #define NS_NNTPURL_CONTRACTID \
   "@mozilla.org/messenger/nntpurl;1"
-#define NS_NNTPURL_CID									\
-{ /* 196B4B30-E18C-11d2-806E-006008128C4E */			\
-  0x196b4b30, 0xe18c, 0x11d2,							\
+#define NS_NNTPURL_CID                  \
+{ /* 196B4B30-E18C-11d2-806E-006008128C4E */      \
+  0x196b4b30, 0xe18c, 0x11d2,              \
     { 0x80, 0x6e, 0x0, 0x60, 0x8, 0x12, 0x8c, 0x4e } }
 
 //
-// nsNewsDownloadDialogArgs 
+// nsNewsDownloadDialogArgs
 //
 #define NS_NEWSDOWNLOADDIALOGARGS_CONTRACTID \
    "@mozilla.org/messenger/newsdownloaddialogargs;1"

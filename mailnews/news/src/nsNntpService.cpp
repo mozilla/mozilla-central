@@ -91,9 +91,9 @@
 #undef GetPort  // XXX Windows!
 #undef SetPort  // XXX Windows!
 
-#define PREF_NETWORK_HOSTS_NNTP_SERVER	"network.hosts.nntp_server"
-#define PREF_MAIL_ROOT_NNTP 	"mail.root.nntp"        // old - for backward compatibility only
-#define PREF_MAIL_ROOT_NNTP_REL 	"mail.root.nntp-rel"
+#define PREF_NETWORK_HOSTS_NNTP_SERVER  "network.hosts.nntp_server"
+#define PREF_MAIL_ROOT_NNTP   "mail.root.nntp"        // old - for backward compatibility only
+#define PREF_MAIL_ROOT_NNTP_REL   "mail.root.nntp-rel"
 
 nsNntpService::nsNntpService()
 {
@@ -453,16 +453,16 @@ NS_IMETHODIMP nsNntpService::OpenAttachment(const char *aContentType,
 //    if (msgMessageUrl)
 //      msgMessageUrl->SetOriginalSpec(newsUrl.get());
     // set up the url listener
-	  if (aUrlListener)
-	  	msgUrl->RegisterListener(aUrlListener);
+    if (aUrlListener)
+      msgUrl->RegisterListener(aUrlListener);
 
-	  nsCOMPtr<nsIDocShell> docShell(do_QueryInterface(aDisplayConsumer, &rv));
-	  if (NS_SUCCEEDED(rv) && docShell)
+    nsCOMPtr<nsIDocShell> docShell(do_QueryInterface(aDisplayConsumer, &rv));
+    if (NS_SUCCEEDED(rv) && docShell)
     {
-		  nsCOMPtr<nsIDocShellLoadInfo> loadInfo;
-			docShell->CreateLoadInfo(getter_AddRefs(loadInfo));
-			loadInfo->SetLoadType(nsIDocShellLoadInfo::loadLink);
-	    return docShell->LoadURI(url, loadInfo, nsIWebNavigation::LOAD_FLAGS_NONE, PR_FALSE);
+      nsCOMPtr<nsIDocShellLoadInfo> loadInfo;
+      docShell->CreateLoadInfo(getter_AddRefs(loadInfo));
+      loadInfo->SetLoadType(nsIDocShellLoadInfo::loadLink);
+      return docShell->LoadURI(url, loadInfo, nsIWebNavigation::LOAD_FLAGS_NONE, PR_FALSE);
     }
     else
       return RunNewsUrl(url, aMsgWindow, aDisplayConsumer);
@@ -527,7 +527,7 @@ nsNntpService::DecomposeNewsMessageURI(const char * aMessageURI, nsIMsgFolder **
   NS_ENSURE_ARG_POINTER(aMsgKey);
 
   nsresult rv = NS_OK;
-  
+
   if (!PL_strncmp(aMessageURI, kNewsMessageRootURI, kNewsMessageRootURILen))
   { // uri starts with news-message:/
     nsCAutoString folderURI;
@@ -536,11 +536,11 @@ nsNntpService::DecomposeNewsMessageURI(const char * aMessageURI, nsIMsgFolder **
 
     rv = GetFolderFromUri(folderURI.get(), aFolder);
     NS_ENSURE_SUCCESS(rv,rv);
-  } 
+  }
   else if (!PL_strncmp(aMessageURI, kNewsRootURI, kNewsRootURILen))
   { // uri starts with news:/
     nsCAutoString newsUrl(aMessageURI + kNewsRootURILen + 1);
-    
+
     PRInt32 groupPos = newsUrl.Find(kNewsURIGroupQuery); // find ?group=
     PRInt32 keyPos   = newsUrl.Find(kNewsURIKeyQuery); // find &key=
     if (groupPos != kNotFound && keyPos != kNotFound)
@@ -551,29 +551,29 @@ nsNntpService::DecomposeNewsMessageURI(const char * aMessageURI, nsIMsgFolder **
       // setting up url
       nsCOMPtr <nsIMsgMailNewsUrl> mailnewsurl = do_CreateInstance(NS_NNTPURL_CONTRACTID,&rv);
       NS_ENSURE_SUCCESS(rv,rv);
-      
+
       nsCOMPtr <nsIMsgMessageUrl> msgUrl = do_QueryInterface(mailnewsurl, &rv);
       NS_ENSURE_SUCCESS(rv,rv);
-      
+
       msgUrl->SetUri(aMessageURI);
       mailnewsurl->SetSpec(nsDependentCString(aMessageURI));
-    
+
       // get group name and message key
       newsUrl.Mid(groupName, groupPos + kNewsURIGroupQueryLen,
                   keyPos - groupPos - kNewsURIGroupQueryLen);
       newsUrl.Mid(keyStr, keyPos + kNewsURIKeyQueryLen,
-                  newsUrl.Length() - keyPos - kNewsURIKeyQueryLen);      
-     
+                  newsUrl.Length() - keyPos - kNewsURIKeyQueryLen);
+
       // get message key
       nsMsgKey key = nsMsgKey_None;
       PRInt32 errorCode;
       key = keyStr.ToInteger(&errorCode);
-      
+
       // get userPass
       nsCAutoString userPass;
       rv = mailnewsurl->GetUserPass(userPass);
       NS_ENSURE_SUCCESS(rv,rv);
-      
+
       // get hostName
       nsCAutoString hostName;
       rv = mailnewsurl->GetAsciiHost(hostName);
@@ -593,23 +593,23 @@ nsNntpService::DecomposeNewsMessageURI(const char * aMessageURI, nsIMsgFolder **
                                       NS_LITERAL_CSTRING("nntp"), getter_AddRefs(server));
       NS_ENSURE_SUCCESS(rv,rv);
       PR_FREEIF(unescapedUserPass);
-  
-      // get root folder  
+
+      // get root folder
       nsCOMPtr <nsIMsgFolder> rootFolder;
       rv = server->GetRootFolder(getter_AddRefs(rootFolder));
       NS_ENSURE_SUCCESS(rv,rv);
-    
+
       // get msg folder for group name
       nsCOMPtr<nsISupports> child;
       rv = rootFolder->GetChildNamed(NS_ConvertUTF8toUTF16(groupName),
-                                     getter_AddRefs(child));                                       
+                                     getter_AddRefs(child));
       NS_ENSURE_SUCCESS(rv,rv);
-          
+
       if (!errorCode && child)
-      {     
+      {
         nsCOMPtr <nsIMsgFolder> folder = do_QueryInterface(child, &rv);
         NS_ENSURE_SUCCESS(rv,rv);
-        
+
         NS_IF_ADDREF(*aFolder = folder);
         *aMsgKey = key;
       }
@@ -621,7 +621,7 @@ nsNntpService::DecomposeNewsMessageURI(const char * aMessageURI, nsIMsgFolder **
       *aMsgKey = nsMsgKey_None;
     }
   }
-  
+
   return NS_OK;
 }
 
@@ -693,7 +693,7 @@ nsNntpService::CopyMessage(const char * aSrcMessageURI, nsIStreamListener * aMai
 
 NS_IMETHODIMP
 nsNntpService::CopyMessages(nsMsgKeyArray *keys, nsIMsgFolder *srcFolder, nsIStreamListener * aMailboxCopyHandler, PRBool moveMessage,
-						   nsIUrlListener * aUrlListener, nsIMsgWindow *aMsgWindow, nsIURI **aURL)
+               nsIUrlListener * aUrlListener, nsIMsgWindow *aMsgWindow, nsIURI **aURL)
 {
   return NS_ERROR_NOT_IMPLEMENTED;
 }
