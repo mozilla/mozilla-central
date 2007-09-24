@@ -499,7 +499,7 @@ function UpdateReceivedColumn(newFolder)
 
   var newFolderShowsRcvd = (newFolder.flags & MSG_FOLDER_FLAG_MAIL) &&
     !(newFolder.flags & (MSG_FOLDER_FLAG_QUEUE | MSG_FOLDER_FLAG_DRAFTS |
-                         MSG_FOLDER_FLAG_SENTMAIL));
+                         MSG_FOLDER_FLAG_TEMPLATES | MSG_FOLDER_FLAG_SENTMAIL));
 
   var tempHidden = receivedColumn.getAttribute("temphidden") == "true";
   var isHidden = receivedColumn.getAttribute("hidden") == "true";
