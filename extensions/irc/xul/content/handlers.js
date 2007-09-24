@@ -1561,9 +1561,15 @@ function my_401 (e)
     else
     {
         if (this.whoisList && (target in this.whoisList))
+        {
+            // if this is from a whois, send a whowas and don't display anything
+            this.primServ.whowas(target, 1);
             this.whoisList[target] = false;
+        }
         else
+        {
             display(toUnicode(e.params[3], this));
+        }
     }
 }
 
@@ -1718,12 +1724,12 @@ function my_whoisreply (e)
             break;
 
         case 318:
-            // If this user isn't here, don't display anything and do a whowas
+            // If the user isn't here, then we sent a whowas in on401.
+            // Don't display the "end of whois" message.
             if (this.whoisList && (lowerNick in this.whoisList) &&
                 !this.whoisList[lowerNick])
             {
                 delete this.whoisList[lowerNick];
-                this.primServ.whowas(nick, 1);
                 return;
             }
             if (this.whoisList)
