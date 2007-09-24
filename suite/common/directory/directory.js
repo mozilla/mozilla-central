@@ -302,22 +302,21 @@ function scrollDown()
   window.frames[0].scrollTo(0, window.frames[0].document.height);
 }
 
-function OnFTPControlLog( server, msg )
+function OnFTPControlLog(server, msg)
 {
-	var logdoc = frames[0].document;
-	var logdocDiv = logdoc.getElementById("logboxDiv");
-	var div = document.createElementNS("http://www.w3.org/1999/xhtml", 
-                                       "html:div");
+  var logdoc = frames[0].document;
+  var logdocDiv = logdoc.getElementById("logboxDiv");
+  var div = logdoc.createElementNS("http://www.w3.org/1999/xhtml", "div");
 
-	if (server)
-		div.setAttribute("class", "server");
-	else
-		div.setAttribute("class", "client");
+  if (server)
+    div.setAttribute("class", "server");
+  else
+    div.setAttribute("class", "client");
 
-	div.appendChild (document.createTextNode(msg));
-	
-	logdocDiv.appendChild(div);
+  div.appendChild(logdoc.createTextNode(msg));
+  
+  logdocDiv.appendChild(div);
 
-	scrollDown();
+  scrollDown();
 }
 
