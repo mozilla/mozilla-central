@@ -92,7 +92,7 @@
         ondragdrop="nsDragAndDrop.drop(event, paletteDNDObserver);"/>
 
   <box align="center">
-    <label value="&show.label;"/>
+    <label value="&show.label;" control="modelist"/>
     <menulist id="modelist" value="full" oncommand="updateToolbarMode(this.value);">
       <menupopup>
         <menuitem value="full" label="&iconsAndText.label;"/>

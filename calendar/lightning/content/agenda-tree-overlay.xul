@@ -47,8 +47,8 @@
 <vbox id="agenda-tab-panel">
   <hbox>
     <spacer flex="1"/>
-    <label value="&agenda.treeview.label;"/>
-    <menulist label="&agenda.treeview.menu.label;" oncommand="agendaTreeView.updateFilter(this);">
+    <label value="&agenda.treeview.label;" control="agenda.treeview.menu"/>
+    <menulist id="agenda.treeview.menu" oncommand="agendaTreeView.updateFilter(this);">
       <menupopup>
         <menuitem label="&agenda.treeview.all.label;" value="all"/>
         <menuitem label="&agenda.treeview.events.label;" value="events"/>

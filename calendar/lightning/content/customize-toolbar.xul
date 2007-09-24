@@ -56,7 +56,7 @@
   <vbox id="main-box" flex="1" collapsed="true">
     <box id="selector-container" orient="vertical" insertbefore="instructions" collapsed="true">
       <box align="center" orient="horizontal">
-        <label value="&customize.toolbar.selector.label;"/>
+        <label value="&customize.toolbar.selector.label;" control="selector-list"/>
         <menulist id="selector-list"
                   value="mode"
                   oncommand="updateToolbarSelection(this.value);">
@@ -70,7 +70,7 @@
       <separator class="groove"/>
     </box>
     <box id="control-box" align="center" insertafter="palette-box">
-      <label value="&customize.toolbar.location.label;"
+      <label value="&customize.toolbar.location.label;" control="location-list"
              location-option="true"
              collapsed="true"/>
       <menulist id="location-list"
@@ -83,7 +83,7 @@
           <menuitem value="bottom" label="&customize.toolbar.location.bottom;"/>
         </menupopup>
       </menulist>
-      <label value="&show.label;"/>
+      <label value="&show.label;" control="modelist"/>
       <menulist id="modelist" value="icons" oncommand="updateToolbarMode(this.value);">
         <menupopup>
           <menuitem value="full" label="&iconsAndText.label;"/>

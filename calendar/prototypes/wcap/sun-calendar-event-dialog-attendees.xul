@@ -75,7 +75,7 @@
               id="next-slot"
               oncommand="onNextSlot();"/>
       <spacer style="width: 10em"/>
-      <label value="&event.freebusy.zoom;"/>
+      <label value="&event.freebusy.zoom;" control="zoom-menulist"/>
       <image class="zoom-out-icon"/>
       <menulist id="zoom-menulist"
                 oncommand="onZoomFactor(this.value);">
@@ -144,7 +144,7 @@
                   oncommand="onPlus();"/>
         </box>
         <box orient="horizontal" collapsed="true">
-          <label value="&event.organizer.label;" disabled="true"/>
+          <label value="&event.organizer.label;" disabled="true" control="event-organizer"/>
           <textbox id="event-organizer"
                    disabled="true"
                    flex="true"/>
@@ -163,7 +163,7 @@
                       label="&event.alldayevent.label;"/>
           </row>
           <row align="center">
-            <label value="&newevent.from.label;"/>
+            <label value="&newevent.from.label;" control="event-starttime"/>
             <datetimepicker id="event-starttime"
                             onchange="updateStartTime();"/>
             <label id="timezone-starttime"
@@ -175,7 +175,7 @@
                    onclick="editStartTimezone()"/>
           </row>
           <row align="center">
-            <label value="&newevent.to.label;"/>
+            <label value="&newevent.to.label;" control="event-endtime"/>
             <datetimepicker id="event-endtime"
                             onchange="updateEndTime();"/>
             <label id="timezone-endtime"

@@ -83,7 +83,7 @@
             </columns>
             <rows>
                 <row>
-                    <label value="&calendarproperties.format.label;"/>
+                    <label value="&calendarproperties.format.label;" control="calendar-format"/>
                     <radiogroup id="calendar-format">
                         <radio value="ics" label="&calendarproperties.webdav.label;" selected="true" />
                         <radio value="caldav" label="&calendarproperties.caldav.label;"/>
@@ -91,18 +91,18 @@
                     </radiogroup>
                 </row>
                 <row align="center">
-                    <label value="&calendarproperties.location.label;"/>
+                    <label value="&calendarproperties.location.label;" control="calendar-uri"/>
                     <textbox id="calendar-uri"
                              required="true" oninput="checkRequired();" />
                 </row>
                 <!--
                 <description>&locationpage.login.description;</description>
                 <row align="center">
-                    <label value="&locationpage.username.label;"/>
+                    <label value="&locationpage.username.label;" control="calendar-username"/>
                     <textbox id="calendar-username"/>
                 </row>
                 <row align="center">
-                    <label value="&locationpage.password.label;"/>
+                    <label value="&locationpage.password.label;" control="calendar-password"/>
                     <textbox id="calendar-password"/>
                 </row>
                 -->
@@ -124,12 +124,12 @@
             </columns>
             <rows>
                 <row align="center">
-                    <label value="&calendarproperties.name.label;"/>
+                    <label value="&calendarproperties.name.label;" control="calendar-name"/>
                     <textbox id="calendar-name"
                              required="true" oninput="checkRequired();"/>
                 </row>
                 <row align="center">
-                    <label value="&calendarproperties.color.label;"/>
+                    <label value="&calendarproperties.color.label;" control="calendar-color"/>
                     <hbox align="center">
                         <colorpicker id="calendar-color"
                                      class="small-margin"

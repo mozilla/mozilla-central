@@ -77,7 +77,7 @@
   <!-- dialog-box: from dialogOverlay.xul -->
 
   <hbox align="center">
-    <description>&calendar.flat.topbar.choosedate;</description>
+    <label value="&calendar.flat.topbar.choosedate;" control="datepicker"/>
     <datepicker id="datepicker"/>
   </hbox>
 </dialog>

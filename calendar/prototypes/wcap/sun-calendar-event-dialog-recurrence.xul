@@ -76,7 +76,8 @@
         <row align="center">
           <label value="&event.recurrence.occurs.label;"
                  disable-on-readonly="true"
-                 disable-on-occurrence="true"/>
+                 disable-on-occurrence="true"
+                 control="period-list"/>
           <menulist id="period-list"
                     oncommand="updateRecurrenceDeck();"
                     disable-on-readonly="true"
@@ -126,7 +127,8 @@
               <hbox align="center">
                 <label value="&event.recurrence.pattern.every.label;"
                        disable-on-readonly="true"
-                       disable-on-occurrence="true"/>
+                       disable-on-occurrence="true"
+                       control="weekly-weeks"/>
                 <textbox id="weekly-weeks"
                          value="1"
                          size="3"
@@ -140,7 +142,8 @@
               <hbox>
                 <label value="&event.recurrence.on.label;"
                        disable-on-readonly="true"
-                       disable-on-occurrence="true"/>
+                       disable-on-occurrence="true"
+                       control="daypicker-weekday"/>
                 <daypicker-weekday id="daypicker-weekday"
                                    flex="1"
                                    disable-on-readonly="true"
@@ -154,7 +157,8 @@
               <hbox align="center">
                 <label value="&event.recurrence.pattern.every.label;"
                        disable-on-readonly="true"
-                       disable-on-occurrence="true"/>
+                       disable-on-occurrence="true"
+                       control="monthly-interval"/>
                 <textbox id="monthly-interval"
                          value="1"
                          size="3"
@@ -228,7 +232,7 @@
             <!-- Yearly -->
             <box orient="vertical" align="top">
               <hbox align="center">
-                <label value="&event.recurrence.every.label;"/>
+                <label value="&event.recurrence.every.label;" control="yearly-interval"/>
                 <textbox id="yearly-interval"
                          value="1"
                          size="3"
@@ -338,7 +342,7 @@
                     </row>
                     <row align="center">
                       <label value="&event.recurrence.of.label;"
-                             style="text-align: right"/>
+                             style="text-align: right" control="yearly-month-rule"/>
                       <menulist id="yearly-month-rule"
                                 disable-on-readonly="true"
                                 disable-on-occurrence="true">
@@ -414,7 +418,8 @@
                  label="&event.repeat.until.label;"
                  value="until"
                  disable-on-readonly="true"
-                 disable-on-occurrence="true"/>
+                 disable-on-occurrence="true"
+                 control="repeat-until-date"/>
           <datepicker id="repeat-until-date"
                       onchange="updateRecurrenceControls();"
                       disable-on-readonly="true"
@@ -425,7 +430,7 @@
   </groupbox>
 
   <!-- preview -->
-  <label value="&event.recurrence.preview.label;"/>
+  <label value="&event.recurrence.preview.label;" control="recurrence-preview"/>
   <recurrence-preview id="recurrence-preview" flex="1"/>
 
 </dialog>

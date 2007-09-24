@@ -73,7 +73,7 @@
 
       <rows>
         <row align="center">
-          <label value="&newevent.recurrence.occurs.label;"/>
+          <label value="&newevent.recurrence.occurs.label;" control="period-list"/>
           <menulist id="period-list" oncommand="updateDeck();">
             <menupopup>
               <menuitem label="&newevent.recurrence.day.label;" value="0"/>
@@ -99,7 +99,7 @@
             <!-- Daily -->
             <vbox>
               <hbox align="center">
-                <label value="&newevent.recurrence.every.label;"/>
+                <label value="&newevent.recurrence.every.label;" control="daily-days"/>
                 <textbox id="daily-days" value="1" size="3" oninput="validateIntegerRange(event, 1, 0x7FFF); updateAccept();"/>
                 <label value="&repeat.units.days;"/>
                 <spacer flex="1"/>
@@ -110,7 +110,7 @@
             <!-- Weekly -->
             <vbox>
               <hbox align="center">
-                <label value="&newevent.recurrence.every.label;"/>
+                <label value="&newevent.recurrence.every.label;" control="weekly-weeks"/>
                 <textbox id="weekly-weeks" value="1" size="3" 
                          oninput="validateIntegerRange(event, 1, 0x7FFF); updateAccept();"/>
                 <label value="&newevent.recurrence.weeks.label;"/>
@@ -133,7 +133,7 @@
             <!-- Monthly -->
             <vbox>
               <hbox align="center">
-                <label value="&newevent.recurrence.every.label;"/>
+                <label value="&newevent.recurrence.every.label;" control="monthly-months"/>
                 <textbox id="monthly-months" value="1" size="3"
                          oninput="validateIntegerRange(event, 1, 0x7FFF); updateAccept();"/>
                 <label value="&newevent.recurrence.months.label;"/>
@@ -149,7 +149,7 @@
             <!-- Yearly -->
             <vbox>
               <hbox align="center">
-                <label value="&newevent.recurrence.every.label;"/>
+                <label value="&newevent.recurrence.every.label;" control="yearly-years"/>
                 <textbox id="yearly-years" value="1" size="3" 
                          oninput="validateIntegerRange(event, 1, 0x7FFF); updateAccept();"/>
                 <label value="&repeat.units.years;"/>

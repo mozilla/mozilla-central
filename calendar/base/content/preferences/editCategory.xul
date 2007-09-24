@@ -84,7 +84,7 @@
 <!-- dialog-box: from dialogOverlay.xul -->
   <vbox id="dialog-box">
      <hbox>
-        <label value="&pref.categories.name.label;"/>
+        <label value="&pref.categories.name.label;" control="categoryName"/>
         <textbox id="categoryName"/>
      </hbox>
      <hbox id="row2" pack="center">

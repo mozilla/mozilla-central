@@ -342,7 +342,7 @@
         </row>
 
         <row align="center" class="todo-only" details="true">
-          <label id="todo-status-label" value="&newevent.status.label;"/>
+          <label id="todo-status-label" value="&newevent.status.label;" control="todo-status"/>
           <hbox align="center">
             <menulist id="todo-status" class="todo-only"
                       oncommand="updateToDoStatus(this.value);">

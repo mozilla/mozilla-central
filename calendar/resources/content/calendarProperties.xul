@@ -71,12 +71,12 @@
        </columns>
        <rows id="calendar-properties-rows">
            <row align="center">
-               <label value="&calendar.server.dialog.name.label;"/>
+               <label value="&calendar.server.dialog.name.label;" control="calendar-name"/>
                <textbox flex="1" id="calendar-name"/>
            </row>
                     
            <row align="center">
-               <label value="&calendarproperties.color.label;"/>
+               <label value="&calendarproperties.color.label;" control="calendar-color"/>
                 <hbox align="center">
                     <colorpicker id="calendar-color"
                                  class="small-margin"
@@ -86,7 +86,7 @@
            </row>
 
             <row align="center">
-                <label value="&calendarproperties.location.label;"/>
+                <label value="&calendarproperties.location.label;" control="calendar-uri"/>
                 <!-- XXX Make location field readonly until Bug 315307 is fixed -->
                 <textbox id="calendar-uri" readonly="true" oninput="checkURL()"/>
             </row>

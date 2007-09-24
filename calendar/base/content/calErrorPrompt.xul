@@ -87,7 +87,7 @@
                     <label id="error-number" value=""/>
                 </row>
                 <row flex="1">
-                    <label value="&calendar.error.description;"/>
+                    <label value="&calendar.error.description;" control="error-description"/>
                     <textbox id="error-description" class="plain" 
                              readonly="true" multiline="true" rows="5"/>
                 </row>

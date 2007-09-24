@@ -121,7 +121,7 @@
           </row>
           <separator id="item-main-separator" flex="1" class="groove" hidden="true"/>
           <row id="invitation-row" hidden="true" align="center">
-            <label value="&read.only.reply.label;"/>
+            <label value="&read.only.reply.label;" control="item-participation"/>
             <menulist id="item-participation" oncommand="updateInvitation()">
               <menupopup>
                 <menuitem label="&read.only.accept.label;" value="ACCEPTED"/>
@@ -131,7 +131,7 @@
             </menulist>
           </row>
           <row id="reminder-row" hidden="true" align="center">
-            <label value="&read.only.reminder.label;"/>
+            <label value="&read.only.reminder.label;" control="item-alarm"/>
             <box orient="vertical">
               <menulist id="item-alarm" oncommand="updateReminder()">
                 <menupopup>
@@ -223,7 +223,7 @@
   <box id="item-attendees" hidden="true" orient="vertical">
     <spacer class="default-spacer"/>
     <box orient="horizontal" align="center">
-      <label value="&read.only.attendees.label;" class="headline"/>
+      <label value="&read.only.attendees.label;" class="headline" control="item-attendee-listbox"/>
       <separator class="groove" flex="1"/>
     </box>
     <box orient="horizontal">
@@ -251,7 +251,7 @@
   <box id="item-description-box" hidden="true" orient="vertical" flex="1">
     <spacer class="default-spacer"/>
     <box orient="horizontal" align="center">
-      <label value="&read.only.description.label;" class="headline"/>
+      <label value="&read.only.description.label;" class="headline" control="item-description"/>
       <separator class="groove" flex="1"/>
     </box>
     <box orient="horizontal" flex="1">
