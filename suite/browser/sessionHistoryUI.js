@@ -129,7 +129,7 @@ function createUBHistoryMenu( aParent )
             aParent.appendChild(document.createElement("menuitem"))
                    .setAttribute("label", statement.getString(0));
           statement.reset();
-          statement.initialize(connection, null);
+          statement.finalize();
           return;
         }
       } finally {
