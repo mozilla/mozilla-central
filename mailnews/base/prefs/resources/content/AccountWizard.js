@@ -231,12 +231,10 @@ function FinishAccount()
         EnableCheckMailAtStartUpIfNeeded(gCurrentAccount);
 
     if (!document.getElementById("downloadMsgs").hidden) {
+      // skip the default biff, we will load messages manually if needed
+      window.opener.gLoadStartFolder = false;
       if (document.getElementById("downloadMsgs").checked) {
         window.opener.gNewAccountToLoad = gCurrentAccount; // load messages for new POP account
-      }
-      else if (gCurrentAccount == am.defaultAccount) {
-        // stop check for msgs when this is first account created from new profile
-        window.opener.gLoadStartFolder = false;
       }
     }
 
