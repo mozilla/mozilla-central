@@ -316,7 +316,6 @@ setDaywithjsDate: function(aNewDate)
       }
     }
   }
-	
 };
 
 
@@ -331,6 +330,7 @@ function updateTodayPaneDisplay() {
   var id = null;
   try { id = deck.selectedPanel.id } catch (e) { }
 
+  var todaysplitter = document.getElementById("today-splitter");
   if (id == "calendar-view-box") {
     // we collapse the todaypane but don't not affect the 
     // attribute "collapsedinMailMode". Therefor this function is only to be used
@@ -338,6 +338,7 @@ function updateTodayPaneDisplay() {
     var oTodayPane = document.getElementById("today-pane-panel");
     oTodayPane.setAttribute("collapsed", true);
     document.getElementById('cmd_toggleTodayPane').setAttribute("disabled","true");
+    todaysplitter.setAttribute("collapsed", "true");
   }
   else {
     // only show the today-pane if was not collapsed during the last 
@@ -349,6 +350,7 @@ function updateTodayPaneDisplay() {
       }
     }
     document.getElementById('cmd_toggleTodayPane').removeAttribute("disabled");
+    todaysplitter.removeAttribute("collapsed");
   }
 }
 
