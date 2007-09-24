@@ -92,7 +92,7 @@
                     <!-- Remote Path -->    
                     <row align="center">
                         <hbox class="field-label-box-class" pack="end">
-                            <label value="&calendar.publish.url.label;" control="publish-remotePath-textbox"/>
+                            <label control="publish-remotePath-textbox">&calendar.publish.url.label;</label>
                         </hbox>
                         <textbox flex="1" id="publish-remotePath-textbox" oninput="checkURLField()"/>
                     </row>

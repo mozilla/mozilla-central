@@ -62,7 +62,7 @@
                 pageid="initialPage"
                 next="progressPage"
                 label="&migration.welcome;">
-        <label id="wizard-desc" value="&migration.list.description;" control="datasource-list"/>
+        <label id="wizard-desc" control="datasource-list">&migration.list.description;</label>
         <listbox id="datasource-list" flex="1">
         </listbox>
     </wizardpage>
@@ -71,7 +71,7 @@
                 pageid="progressPage"
                 label="&migration.importing;"
                 onpageshow="gMigrateWizard.migrateChecked()">
-        <label value="&migration.progress.description;" control="migrate-progressmeter"/>
+        <label control="migrate-progressmeter">&migration.progress.description;</label>
         <vbox flex="1">
             <progressmeter id="migrate-progressmeter" mode="determined"
                            value="0" flex="1"/>
