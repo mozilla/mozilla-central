@@ -2195,6 +2195,11 @@
       <field name="mScrollHandler">null</field>
       <method name="onScroll">
         <body><![CDATA[
+          // workaround: deck changes shouldn't provoke onScroll events...
+          var displayDeck = document.getElementById("displayDeck");
+          if (displayDeck && displayDeck.selectedPanel.id != "calendar-view-box") {
+            return;
+          }
           var panel = this.parentNode.parentNode.parentNode;
           var deck = panel.parentNode;
           if (panel.id != deck.selectedPanel.id) {
