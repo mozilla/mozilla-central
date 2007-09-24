@@ -58,7 +58,7 @@
     <content>
       <xul:stringbundle anonid="tbstringbundle" src="chrome://navigator/locale/tabbrowser.properties"/>
       <xul:tabbox anonid="tabbox" flex="1" eventnode="document" xbl:inherits="handleCtrlPageUpDown">
-        <xul:hbox class="tab-drop-indicator-bar" hidden="true">
+        <xul:hbox class="tab-drop-indicator-bar" collapsed="true">
           <xul:image class="tab-drop-indicator" mousethrough="always"/>
         </xul:hbox>
         <xul:hbox class="tabbrowser-strip" collapsed="true" tooltip="_child" context="_child"
@@ -1529,7 +1529,7 @@
             var ib = document.getAnonymousElementByAttribute(this, "class", "tab-drop-indicator-bar");
 
             if (!aDragSession.canDrop) {
-              ib.hidden = true;
+              ib.collapsed = true;
               return;
             }
 
@@ -1566,7 +1566,7 @@
             else
               ind.style.marginRight = (this.boxObject.x + this.boxObject.width - arrowX) + "px";
 
-            ib.hidden = false;
+            ib.collapsed = false;
           ]]>
         </body>
       </method>
@@ -1642,7 +1642,7 @@
 
             document.getAnonymousElementByAttribute(this, "class",
                                                     "tab-drop-indicator-bar")
-                    .hidden = true;
+                    .collapsed = true;
           ]]>
         </body>
       </method>
