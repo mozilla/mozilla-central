@@ -35,7 +35,7 @@
 
   <groupbox align="start">
     <caption label="&generalMessageDisplay.caption;"/>
-    <label value="&openingMessages.label;"/>
+    <label value="&openingMessages.label;" control="reuseMessageWindow"/>
     <hbox class="indent" align="center">
       <radiogroup id="reuseMessageWindow" orient="horizontal"
                   preftype="bool" prefstring="mailnews.reuse_message_window">
@@ -69,7 +69,7 @@
 
   <groupbox>
     <caption label="&displayPlainText.caption;"/>
-    <label value="&plainTextFont.label;"/>
+    <label value="&plainTextFont.label;" control="mailFixedWidthMessages"/>
     <hbox class="indent" align="center">
       <radiogroup id="mailFixedWidthMessages" orient="horizontal"
                   preftype="bool" prefstring="mail.fixed_width_messages">

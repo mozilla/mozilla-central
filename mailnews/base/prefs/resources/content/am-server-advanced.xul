@@ -132,7 +132,7 @@
 
     <!-- POP3 Panel -->
     <vbox id="pop3Panel">
-      <description flex="1">&pop3Desc.label;</description>
+      <label flex="1" control="folderStorage">&pop3Desc.label;</label>
       <hbox align="center">
         <radiogroup id="folderStorage" orient="horizontal" amsa_persist="true">
           <rows>

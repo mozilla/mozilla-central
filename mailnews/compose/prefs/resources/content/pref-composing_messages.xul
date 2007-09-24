@@ -31,7 +31,7 @@
 
     <radiogroup id="forwardMessageMode" orient="horizontal" align="center"
                 prefstring="mail.forward_message_mode">
-      <label value="&forwardMsg.label;"/>
+      <label value="&forwardMsg.label;" control="forwardMessageMode"/>
       <radio value="2" label="&inline.label;" accesskey="&inline.accesskey;"/>
       <radio value="0" label="&asAttachment.label;"
              accesskey="&asAttachment.accesskey;"/>

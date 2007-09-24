@@ -108,7 +108,7 @@
 
     <separator class="thin"/>
 
-    <label value="&encryptionChoiceLabel.label;"/>
+    <label value="&encryptionChoiceLabel.label;" control="encryptionChoices"/>
 
     <radiogroup id="encryptionChoices">
       <radio id="encrypt_mail_never" wsm_persist="true" value="0"

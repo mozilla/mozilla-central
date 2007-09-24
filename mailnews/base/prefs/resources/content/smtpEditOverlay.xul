@@ -114,7 +114,7 @@
         <separator class="thin"/>
 
         <hbox align="center">
-           <label value="&isSecure.label;"/>
+           <label value="&isSecure.label;" control="smtp.trySSL"/>
         </hbox>
 
         <radiogroup id="smtp.trySSL"

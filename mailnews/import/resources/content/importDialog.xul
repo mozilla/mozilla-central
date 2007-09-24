@@ -72,7 +72,7 @@
       <description>&importDescription.label;</description>
       <description>&importDescription2.label;</description>
       <separator/>
-      <description>&select.label;</description>
+      <label control="importFields">&select.label;</label>
       <separator class="thin"/>
       <radiogroup id="importFields" class="indent">
         <radio value="addressbook" id="addressbookRadio" label="&importDialog.addressbookTitle;"/>

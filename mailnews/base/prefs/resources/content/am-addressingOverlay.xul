@@ -118,7 +118,7 @@
       <separator class="thin"/>
 #endif
 
-      <description>&addressingText.label;</description>
+      <label control="ldapAutocomplete">&addressingText.label;</label>
       <radiogroup class="indent" id="ldapAutocomplete" wsm_persist="true" oncommand="enabling();">
         <observes element="identity.overrideGlobalPref" attribute="disabled"/>
         <radio id="useGlobalPref" value="0" label="&useGlobal.label;"

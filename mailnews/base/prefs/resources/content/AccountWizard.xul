@@ -68,7 +68,7 @@
     <vbox flex="1">
       <description>&accountSetupInfo.label;</description>
       <description>&accountTypeDesc.label;</description>
-      <description>&accountTypeDirections.label;</description>
+      <label control="acctyperadio">&accountTypeDirections.label;</label>
       <separator/>
       <radiogroup id="acctyperadio" >
         <radio id="mailaccount" value="mailaccount"
@@ -104,7 +104,7 @@
       <description>&fullnameDesc.label; &fullnameExample.label;</description>
       <separator class="thin"/>
       <hbox align="center">
-        <label class="awIdentityLabel" for="fullName" value="&fullnameLabel.label;"
+        <label class="awIdentityLabel" value="&fullnameLabel.label;"
                accesskey="&fullnameLabel.accesskey;" control="fullName"/>
         <textbox mailtype="identity" wsm_persist="true" name="fullName" id="fullName" flex="1"/>
       </hbox>
@@ -139,7 +139,7 @@
               onpageadvanced="return serverPageValidate();">
     <vbox flex="1">
         <vbox id="serverTypeBox">
-        <description>&incomingServerTypeDesc.label;</description>
+        <label control="servertype">&incomingServerTypeDesc.label;</label>
           <separator class="thin"/>
           <hbox align="center" class="serverDataBox">
             <!-- The initial value for the servertype radiogroup is set in onInit() -->
@@ -156,7 +156,7 @@
         <vbox id="incomingServerbox">
           <description>&incomingServerNameDesc.label;</description>
           <hbox align="center" class="serverDataBox">
-            <label class="label, serverLabel" value="&incomingServerLabel.label;" for="incomingServer"
+            <label class="label, serverLabel" value="&incomingServerLabel.label;"
                    accesskey="&incomingServerLabel.accesskey;" control="incomingServer"/>
             <textbox wsm_persist="true" id="incomingServer" flex="1" class="uri-element"/>
           </hbox>
@@ -174,7 +174,7 @@
         <vbox id="noSmtp">
           <description>&smtpServerDesc.label;</description>
           <hbox align="center" class="serverDataBox">
-            <label class="label, serverLabel" value="&smtpServerLabel.label;" for="smtphostname"
+            <label class="label, serverLabel" value="&smtpServerLabel.label;"
                    accesskey="&smtpServerLabel.accesskey;" control="smtphostname"/>
             <textbox id="smtphostname" wsm_persist="true" flex="1" class="uri-element"/>
           </hbox>
@@ -197,7 +197,7 @@
       <description>&usernameDesc.label; &usernameExample.label;</description>
       <separator class="thin"/>
       <hbox align="center">
-        <label class="label" value="&usernameLabel.label;" for="username" style="width: 8em;"
+        <label class="label" value="&usernameLabel.label;" style="width: 8em;"
                accesskey="&usernameLabel.accesskey;" control="username"/>
         <textbox id="username" wsm_persist="true" flex="1"/>
       </hbox>
@@ -208,7 +208,7 @@
         <description>&usernameSmtpDesc.label;</description>
         <separator class="thin"/>
         <hbox align="center">
-          <label class="label" value="&usernameSmtpLabel.label;" for="smtpusername" style="width: 8em;"
+          <label class="label" value="&usernameSmtpLabel.label;" style="width: 8em;"
                  accesskey="&usernameSmtpLabel.accesskey;" control="smtpusername"/>
           <textbox id="smtpusername" wsm_persist="true" flex="1"/>
         </hbox>
@@ -252,7 +252,7 @@
       <description>&accnameDesc.label;</description>
       <separator class="thin"/>
       <hbox align="center">
-        <label class="label" value="&accnameLabel.label;" for="prettyName" style="width: 8em;"
+        <label class="label" value="&accnameLabel.label;" style="width: 8em;"
                accesskey="&accnameLabel.accesskey;" control="prettyName"/>
         <textbox id="prettyName" size="40" wsm_persist="true" flex="1"/>
       </hbox>

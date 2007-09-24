@@ -116,7 +116,7 @@
 
     <vbox align="start">  
     <separator hidefor="none"/>
-    <description id="retentionDescription" hidefor="" class="desc">&retentionCleanup.label;</description>
+    <label id="retentionDescription" hidefor="" class="desc" control="retention.keepMsg">&retentionCleanup.label;</label>
 
     <radiogroup wsm_persist="true" hidefor="" id="retention.keepMsg" class="indent">
         <radio wsm_persist="true" id="retention.keepAllMsg" value="1" accesskey="&retentionKeepAll.accesskey;"

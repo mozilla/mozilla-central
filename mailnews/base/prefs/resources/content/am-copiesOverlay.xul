@@ -143,7 +143,7 @@
       <caption label="&specialFoldersTitle.label;"/>
 
       <hbox align="center">
-        <label value="&keepDrafts.label;"/>
+        <label value="&keepDrafts.label;" control="messageDrafts"/>
       </hbox>
     
       <radiogroup id="messageDrafts">
@@ -173,7 +173,7 @@
         </grid>
       </radiogroup>
       <hbox align="center">
-        <label value="&keepTempltes.label;"/>
+        <label value="&keepTempltes.label;" control="messageTemplates"/>
       </hbox>
 	  
       <radiogroup id="messageTemplates">

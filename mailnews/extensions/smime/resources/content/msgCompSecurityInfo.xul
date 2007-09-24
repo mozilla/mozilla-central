@@ -72,7 +72,7 @@
   </grid>
 
   <separator class="thin"/>
-  <label value="&status.certificates;"/>
+  <label value="&status.certificates;" control="infolist"/>
 
   <listbox id="infolist" flex="1"
         onselect="onSelectionChange(event);">

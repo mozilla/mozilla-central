@@ -113,7 +113,7 @@
   <groupbox hidefor="movemail">
     <caption label="&securitySettings.label;"/>
     <vbox align="start" hidefor="nntp,movemail">
-      <label value="&socketType.label;"/>
+      <label value="&socketType.label;" control="server.socketType"/>
       <radiogroup wsm_persist="true" id="server.socketType"
                   prefattribute="value"
                   prefstring="mail.server.%serverkey%.socketType"
@@ -222,7 +222,7 @@
 
   <hbox align="center" hidefor="pop3,nntp,movemail">
     <label value="&deleteMessagePrefix.label;" align="left"
-           control="imap.deleteModel.box"/>
+           control="imap.deleteModel"/>
   </hbox>
   <hbox align="center" id="imap.deleteModel.box" hidefor="pop3,nntp,movemail">
     <radiogroup wsm_persist="true" id="imap.deleteModel"

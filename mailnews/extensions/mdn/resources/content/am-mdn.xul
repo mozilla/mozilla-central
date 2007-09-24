@@ -73,7 +73,7 @@
                 preftype="bool" prefstring="mail.identity.%identitykey%.request_return_receipt_on"/>
 
       <vbox id="receiptArrive">
-        <description id="receiptArriveLabel">&receiptArrive.label;</description>
+        <label id="receiptArriveLabel" control="server.incorporate_return_receipt">&receiptArrive.label;</label>
         <radiogroup id="server.incorporate_return_receipt" wsm_persist="true" genericattr="true" 
                     preftype="int" prefstring="mail.server.%serverkey%.incorporate_return_receipt">
           <radio id="leave_in_inbox" value="0" label="&leaveIt.label;"
@@ -84,7 +84,7 @@
       </vbox>
 
       <vbox id="receiptRequest">
-        <description id="receiptRequestLabel">&requestMDN.label;</description>
+        <label id="receiptRequestLabel" control="server.mdn_report_enabled">&requestMDN.label;</label>
         <radiogroup id="server.mdn_report_enabled" wsm_persist="true" genericattr="true" 
                     preftype="bool" prefstring="mail.server.%serverkey%.mdn_report_enabled" 
                     oncommand="EnableDisableAllowedReceipts();">

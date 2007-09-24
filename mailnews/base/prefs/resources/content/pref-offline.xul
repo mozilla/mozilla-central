@@ -74,7 +74,7 @@
   <caption label="&pref.offline.caption;"/>
 
   <hbox align="center">
-    <label value="&textStartUp;"/>
+    <label value="&textStartUp;" control="whenStartingUp"/>
     <menulist id="whenStartingUp" prefstring="offline.startup_state">
       <menupopup>
         <menuitem value="0" label="&menuitemRememberPrevState;"/>
@@ -88,7 +88,7 @@
 
   <separator/>
 
-  <label value="&textGoingOnline;"/>
+  <label value="&textGoingOnline;" control="whengoingOnlinestate"/>
     <radiogroup id="whengoingOnlinestate"
                 orient="horizontal" class="indent"
                 prefstring="offline.send.unsent_messages">
@@ -102,7 +102,7 @@
 
   <separator/>
 
-  <label value="&textGoingOffline;"/>
+  <label value="&textGoingOffline;" control="whengoingOfflinestate"/>
     <radiogroup id="whengoingOfflinestate"
                 orient="horizontal" class="indent"
                 prefstring="offline.download.download_messages">
