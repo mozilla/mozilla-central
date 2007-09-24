@@ -7,6 +7,7 @@
 # Contributor(s):
 #   Chase Phillips <chase@mozilla.org>
 #   Reed Loden <reed@mozilla.com>
+#   Dave Miller <justdave@mozilla.com>
 #
 # Use at your own risk.
 #
@@ -215,7 +216,7 @@ sub process_rev_info {
 
   if ( $line =~ /^date[\s\t]+/ ) {
     my $date = get_next_cvs_formatted_date();
-    $line =~ s/^(date[\s\t]+)\d{4}\.\d{2}\.\d{2}\.\d{2}\.\d{2}\.\d{2}/$1$date/;
+    $line =~ s/^(date[\s\t]+)\d{2,4}\.\d{2}\.\d{2}\.\d{2}\.\d{2}\.\d{2}/$1$date/;
   }
 
   return $line;
