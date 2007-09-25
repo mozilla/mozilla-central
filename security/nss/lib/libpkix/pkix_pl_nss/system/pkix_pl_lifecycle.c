@@ -72,10 +72,10 @@ static PKIX_Alloc_Error_Object pkix_Alloc_Error_Data = {
         (PKIX_UInt32)0,                 /* PKIX_UInt32 hashcode */
         (PKIX_Boolean)PKIX_FALSE,       /* PKIX_Boolean hashcodeCached */
     }, {
-        (PKIX_ERRORNUM)PKIX_FATAL_ERROR,/* PKIX_UInt32 code */
+        (PKIX_ERRORCODE)0,              /* PKIX_ERRORCODE errCode; */
+        (PKIX_ERRORCLASS)PKIX_FATAL_ERROR,/* PKIX_ERRORCLASS errClass */
         (PKIX_Error *)0,                /* PKIX_Error *cause */
         (PKIX_PL_Object *)0,            /* PKIX_PL_Object *info */
-        (PKIX_ERRSTRINGNUM)0,           /* PKIX_ERRSTRINGNUM descCode; */
    }
 };
 

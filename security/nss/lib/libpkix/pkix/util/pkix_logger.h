@@ -58,7 +58,7 @@ struct PKIX_LoggerStruct {
         PKIX_Logger_LogCallback callback;
         PKIX_PL_Object *context;
         PKIX_UInt32 maxLevel;
-        PKIX_ERRORNUM logComponent;
+        PKIX_ERRORCLASS logComponent;
 };
 
 PKIX_Error *
@@ -66,7 +66,7 @@ pkix_Logger_Check(
         PKIX_List *pkixLoggersList,
         const char *message,
         const char *message2,
-        PKIX_ERRORNUM logComponent,
+        PKIX_ERRORCLASS logComponent,
         PKIX_UInt32 maxLevel,
         void *plContext);
 

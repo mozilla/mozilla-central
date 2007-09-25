@@ -984,26 +984,26 @@ pkix_CheckChain(
                             pkixErrorReceived = PKIX_TRUE;
                             if (reasonCode ==
                                 SEC_ERROR_OCSP_INVALID_SIGNING_CERT) {
-                                    pkixErrMsgNum =
+                                    pkixErrorCode =
                                         PKIX_INVALIDSIGNINGCERTINOCSPRESPONSE;
                             } else if (reasonCode ==
                                 SEC_ERROR_OCSP_UNKNOWN_RESPONSE_STATUS) {
-                                    pkixErrMsgNum =
+                                    pkixErrorCode =
                                         PKIX_UNABLETOFINDSTATUSINOCSPRESPONSE;
                             } else if (reasonCode ==
                                 SEC_ERROR_OCSP_MALFORMED_RESPONSE) {
-                                    pkixErrMsgNum =
+                                    pkixErrorCode =
                                         PKIX_UNABLETOPARSEOCSPRESPONSE;
                             } else if (reasonCode ==
                                 SEC_ERROR_REVOKED_CERTIFICATE_OCSP) {
-                                    pkixErrMsgNum =
+                                    pkixErrorCode =
                                         PKIX_OCSPRESPONSESAYSCERTREVOKED;
                             } else {
-                                    pkixErrMsgNum =
+                                    pkixErrorCode =
                                         PKIX_CERTREJECTEDBYREVOCATIONCHECKER;
                             }
                             PKIX_ERROR_CREATE
-                                (VALIDATE, pkixErrMsgNum, pkixErrorResult);
+                                (VALIDATE, pkixErrorCode, pkixErrorResult);
                             goto cleanup;
                         }
 

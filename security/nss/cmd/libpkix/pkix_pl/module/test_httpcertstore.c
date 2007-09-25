@@ -42,7 +42,8 @@
 static void *plContext = NULL;
 
 static
-void printUsage(char *testname) {
+void printUsage(char *testname) 
+{
         char *fmt =
 		"USAGE: %s [-arenas] certDir certName\n";
         printf(fmt, "test_httpcertstore");
@@ -121,7 +122,8 @@ cleanup:
         return (NULL);
 }
 
-int test_httpcertstore(int argc, char *argv[]) {
+int test_httpcertstore(int argc, char *argv[]) 
+{
 
         PKIX_UInt32 i = 0;
         PKIX_UInt32 numCerts = 0;

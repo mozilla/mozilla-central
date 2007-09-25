@@ -124,37 +124,34 @@ cleanup:
 }
 
 static
-void testGetErrorCode(PKIX_Error *error, PKIX_Error *error2){
-
-        PKIX_UInt32 code;
+void testGetErrorClass(PKIX_Error *error, PKIX_Error *error2)
+{
+        PKIX_ERRORCLASS errClass;
 
         PKIX_TEST_STD_VARS();
 
         PKIX_TEST_EXPECT_NO_ERROR
-                (PKIX_Error_GetErrorCode(error, &code, plContext));
+                (PKIX_Error_GetErrorClass(error, &errClass, plContext));
 
-        if (code != PKIX_OBJECT_ERROR) {
-                testError("Incorrect Code Returned");
+        if (errClass != PKIX_OBJECT_ERROR) {
+                testError("Incorrect Class Returned");
         }
 
         PKIX_TEST_EXPECT_NO_ERROR
-                (PKIX_Error_GetErrorCode(error2, &code, plContext));
+                (PKIX_Error_GetErrorClass(error2, &errClass, plContext));
 
-        if (code != PKIX_MEM_ERROR) {
-                testError("Incorrect Code Returned");
+        if (errClass != PKIX_MEM_ERROR) {
+                testError("Incorrect Class Returned");
         }
 
-        PKIX_TEST_EXPECT_NO_ERROR(PKIX_Error_GetErrorCode(PKIX_ALLOC_ERROR(),
-                                            &code, plContext));
-        if (code != PKIX_FATAL_ERROR) {
-                testError("Incorrect Code Returned");
+        PKIX_TEST_EXPECT_NO_ERROR(PKIX_Error_GetErrorClass(PKIX_ALLOC_ERROR(),
+                                            &errClass, plContext));
+        if (errClass != PKIX_FATAL_ERROR) {
+                testError("Incorrect Class Returned");
         }
 
 cleanup:
-
         PKIX_TEST_RETURN();
-
-
 }
 
 static
@@ -163,7 +160,8 @@ void testGetDescription(
         PKIX_Error *error2,
         PKIX_Error *error3,
         char *descChar,
-        char *descChar2){
+        char *descChar2)
+{
 
         PKIX_PL_String *targetString = NULL;
         char *temp = NULL;
@@ -214,7 +212,8 @@ cleanup:
 }
 
 static
-void testGetCause(PKIX_Error *error, PKIX_Error *error2, PKIX_Error *error3){
+void testGetCause(PKIX_Error *error, PKIX_Error *error2, PKIX_Error *error3)
+{
 
         PKIX_Error *error4 = NULL;
         PKIX_PL_String *targetString = NULL;
@@ -264,7 +263,8 @@ cleanup:
 }
 
 static
-void testGetSupplementaryInfo(PKIX_Error *error, char *infoChar){
+void testGetSupplementaryInfo(PKIX_Error *error, char *infoChar)
+{
 
         PKIX_PL_Object *targetString = NULL;
         char *temp = NULL;
@@ -376,7 +376,8 @@ cleanup:
         PKIX_TEST_RETURN();
 }
 
-int test_error(int argc, char *argv[]) {
+int test_error(int argc, char *argv[]) 
+{
 
         PKIX_Error *error, *error2, *error3, *error5, *error6, *error7;
         char *descChar = "Error Message";
@@ -410,8 +411,8 @@ int test_error(int argc, char *argv[]) {
                 Error,
                 PKIX_TRUE);
 
-        subTest("PKIX_Error_GetErrorCode");
-        testGetErrorCode(error, error2);
+        subTest("PKIX_Error_GetErrorClass");
+        testGetErrorClass(error, error2);
 
         subTest("PKIX_Error_GetDescription");
         testGetDescription(error, error2, error3, descChar, descChar2);

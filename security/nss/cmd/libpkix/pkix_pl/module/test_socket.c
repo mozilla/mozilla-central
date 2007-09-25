@@ -91,14 +91,16 @@ char rcvBuf1[100];
 char rcvBuf2[100];
 
 static 
-void printUsage(char *testname) {
+void printUsage(char *testname) 
+{
         char *fmt = "USAGE: %s [-arenas] server:port\n";
         printf(fmt, testname);
 }
 
 /* Functional tests for Socket public functions */
 static 
-void do_other_work(void) { /* while waiting for nonblocking I/O to complete */
+void do_other_work(void) 
+{ /* while waiting for nonblocking I/O to complete */
         (void) PR_Sleep(2*60);
 }
 
@@ -253,7 +255,8 @@ cleanup:
 }
 
 static 
-PKIX_Boolean client() {
+PKIX_Boolean client() 
+{
         PKIX_Boolean keepGoing = PKIX_FALSE;
         PKIX_Int32 bytesRead = 0;
         PKIX_Int32 bytesWritten = 0;
@@ -442,7 +445,8 @@ void dispatcher()
         PKIX_TEST_RETURN();
 }
 
-int test_socket(int argc, char *argv[]) {
+int test_socket(int argc, char *argv[]) 
+{
 
         int j = 0;
         PKIX_UInt32 actualMinorVersion;

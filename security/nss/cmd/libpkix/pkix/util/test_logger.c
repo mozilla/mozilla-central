@@ -60,7 +60,7 @@ PKIX_Error *testLoggerCallback(
         PKIX_Logger *logger,
         PKIX_PL_String *message,
         PKIX_UInt32 logLevel,
-        PKIX_ERRORNUM logComponent,
+        PKIX_ERRORCLASS logComponent,
         void *plContext)
 {
         char *comp = NULL;
@@ -72,7 +72,7 @@ PKIX_Error *testLoggerCallback(
 
         msg = PKIX_String2ASCII(message, plContext);
         PR_snprintf(result, 100, "Logging %s (%s): %s",
-                levels[logLevel], PKIX_ERRORNAMES[logComponent], msg);
+                levels[logLevel], PKIX_ERRORCLASSNAMES[logComponent], msg);
         subTest(result);
 
         callCount++;
@@ -91,7 +91,7 @@ PKIX_Error *testLoggerCallback2(
         PKIX_Logger *logger,
         PKIX_PL_String *message,
         PKIX_UInt32 logLevel,
-        PKIX_ERRORNUM logComponent,
+        PKIX_ERRORCLASS logComponent,
         void *plContext)
 {
         char *comp = NULL;
@@ -102,7 +102,7 @@ PKIX_Error *testLoggerCallback2(
 
         msg = PKIX_String2ASCII(message, plContext);
         PR_snprintf(result, 100, "Logging %s (%s): %s",
-                levels[logLevel], PKIX_ERRORNAMES[logComponent], msg);
+                levels[logLevel], PKIX_ERRORCLASSNAMES[logComponent], msg);
         subTest(result);
 
 cleanup:
@@ -159,8 +159,8 @@ cleanup:
 static void
 testComponent(PKIX_Logger *logger)
 {
-        PKIX_ERRORNUM compName = (PKIX_ERRORNUM)NULL;
-        PKIX_ERRORNUM compNameReturn = (PKIX_ERRORNUM)NULL;
+        PKIX_ERRORCLASS compName = (PKIX_ERRORCLASS)NULL;
+        PKIX_ERRORCLASS compNameReturn = (PKIX_ERRORCLASS)NULL;
         PKIX_Boolean cmpResult = PKIX_FALSE;
         PKIX_TEST_STD_VARS();
 
@@ -168,7 +168,7 @@ testComponent(PKIX_Logger *logger)
         PKIX_TEST_EXPECT_NO_ERROR(PKIX_Logger_GetLoggingComponent
                 (logger, &compName, plContext));
 
-        if (compName != (PKIX_ERRORNUM)NULL) {
+        if (compName != (PKIX_ERRORCLASS)NULL) {
                 testError("Incorrect Logger Component returned. expect <NULL>");
         }
 

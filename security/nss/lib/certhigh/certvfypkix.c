@@ -270,7 +270,6 @@ cert_NssCertificateUsageToPkixKUAndEKU(
     PKIX_List           *ekuOidsList = NULL;
     PKIX_PL_OID         *ekuOid = NULL;
     PKIX_UInt32          keyUsage = 0;
-    PRUint32             certType;
     int                  i = 0;
     int                  ekuIndex = ekuIndexUnknown;
 
@@ -372,8 +371,9 @@ cert_ProcessingParamsSetKuAndEku(
     PKIX_NULLCHECK_TWO(procParams, nssContext);
     
     PKIX_CHECK(
-        pkix_pl_NssContext_SetCertUsage(1 << requiredCertUsage, nssContext),
-        PKIX_NSSCONTEXTSETCERTUSAGEFAILED);
+        pkix_pl_NssContext_SetCertUsage(
+	    ((SECCertificateUsage)1) << requiredCertUsage, nssContext),
+	    PKIX_NSSCONTEXTSETCERTUSAGEFAILED);
 
     PKIX_CHECK(
         cert_NssCertificateUsageToPkixKUAndEKU(cert, requiredCertUsage,
@@ -798,7 +798,7 @@ cert_PkixErrorToNssCode(
     unsigned long *nssCode,
     void *plContext)
 {
-    PKIX_ERRSTRINGNUM errorCode = 0; /* unknown pkix error code */
+    PKIX_ERRORCODE errorCode = 0; /* unknown pkix error code */
     PKIX_ENTER(CERTVFYPKIX, "cert_PkixErrorToNssCode");
     PKIX_NULLCHECK_ONE(nssCode);
     
@@ -851,8 +851,8 @@ cert_GetLogFromVerifyNode(
     children = node->children;
 
     if (children == NULL) {
-        PKIX_UInt32 code = PKIX_ANCHORDIDNOTCHAINTOCERT;
-        if (node->error && node->error->code != code) {
+        PKIX_ERRORCODE errCode = PKIX_ANCHORDIDNOTCHAINTOCERT;
+        if (node->error && node->error->errCode != errCode) {
 #ifdef DEBUG
             char *string = pkix_Error2ASCII(node->error, plContext);
             printf("Branch search finished with error: \t%s\n", string);
@@ -878,7 +878,7 @@ cert_GetLogFromVerifyNode(
         }
         PKIX_RETURN(CERTVFYPKIX);
     } else {
-        int i = 0;
+        PRUint32 i = 0;
 
         PKIX_CHECK(
             PKIX_List_GetLength(children, &length, plContext),

@@ -2630,10 +2630,10 @@ pkix_PolicyChecker_Check(
 
 subrErrorCleanup:
                 /* We had an error. Was it a fatal error? */
-                pkixTempResult = PKIX_Error_GetErrorCode
-                        (subroutineErr, &pkixErrorCode, plContext);
+                pkixTempResult = PKIX_Error_GetErrorClass
+                        (subroutineErr, &pkixErrorClass, plContext);
                 if (pkixTempResult) return pkixTempResult;
-                if (pkixErrorCode == PKIX_FATAL_ERROR) {
+                if (pkixErrorClass == PKIX_FATAL_ERROR) {
                     PKIX_THROW(FATAL, PKIX_POLICYCHECKERERROR);
                 }
                 /*

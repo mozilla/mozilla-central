@@ -159,39 +159,39 @@ cleanup:
  */
 PKIX_Error *
 pkix_Throw(
-        PKIX_UInt32 errorCode,
+        PKIX_ERRORCLASS errorClass,
         const char *funcName,
-        PKIX_ERRSTRINGNUM errorTextCode,
+        PKIX_ERRORCODE errorCode,
         PKIX_Error *cause,
         PKIX_Error **pError,
         void *plContext)
 {
-        PKIX_UInt32 causeCode;
+        PKIX_ERRORCLASS causeClass;
 
         PKIX_ENTER(ERROR, "pkix_Throw");
         PKIX_NULLCHECK_TWO(funcName, pError);
 
         *pError = NULL;
 
-        /* if cause has error code of PKIX_FATAL_ERROR, return immediately */
+        /* if cause has error class of PKIX_FATAL_ERROR, return immediately */
         if (cause) {
-                pkixTempResult = PKIX_Error_GetErrorCode
-                        (cause, &causeCode, plContext);
+                pkixTempResult = PKIX_Error_GetErrorClass
+                        (cause, &causeClass, plContext);
                 if (pkixTempResult) goto cleanup;
 
-                if (causeCode == PKIX_FATAL_ERROR){
+                if (causeClass == PKIX_FATAL_ERROR){
                         *pError = cause;
                         goto cleanup;
                 }
         }
 
-       pkixTempResult = PKIX_Error_Create(errorCode, cause, NULL,
-                                           errorTextCode, pError, plContext);
+       pkixTempResult = PKIX_Error_Create(errorClass, cause, NULL,
+                                           errorCode, pError, plContext);
 
 cleanup:
 
         PKIX_DEBUG_EXIT(ERROR);
-        pkixErrorCode = 0;
+        pkixErrorClass = 0;
         return (pkixTempResult);
 }
 

@@ -47,10 +47,10 @@
 const PKIX_StdVars zeroStdVars;
 
 PKIX_Error *
-PKIX_DoThrow(PKIX_StdVars * stdVars, PKIX_ERRORNUM errorCode, 
-             PKIX_ERRSTRINGNUM descNum, void *plContext)
+PKIX_DoThrow(PKIX_StdVars * stdVars, PKIX_ERRORCLASS errClass, 
+             PKIX_ERRORCODE errCode, void *plContext)
 {
-    pkixTempResult = (PKIX_Error*)pkix_Throw(errorCode, myFuncName, descNum,
+    pkixTempResult = (PKIX_Error*)pkix_Throw(errClass, myFuncName, errCode,
 	                 pkixErrorResult, &pkixReturnResult, plContext);
     if (pkixErrorResult != PKIX_ALLOC_ERROR())
 	PKIX_DECREF(pkixErrorResult);
@@ -60,13 +60,13 @@ PKIX_DoThrow(PKIX_StdVars * stdVars, PKIX_ERRORNUM errorCode,
 }
 
 PKIX_Error *
-PKIX_DoReturn(PKIX_StdVars * stdVars, PKIX_ERRORNUM errorCode,
+PKIX_DoReturn(PKIX_StdVars * stdVars, PKIX_ERRORCLASS errClass,
               PKIX_Boolean doLogger, void *plContext)
 {
     PKIX_OBJECT_UNLOCK(lockedObject);
     PKIX_MUTEX_UNLOCK(lockedMutex);
     if ((pkixErrorReceived) || (pkixErrorResult))
-	return PKIX_DoThrow(stdVars, errorCode, pkixErrMsgNum, plContext);
+	return PKIX_DoThrow(stdVars, errClass, pkixErrorCode, plContext);
     /* PKIX_DEBUG_EXIT(type); */
     if (doLogger)
 	_PKIX_DEBUG_TRACE(pkixLoggersDebugTrace, "<<<", PKIX_LOGGER_LEVEL_TRACE);
@@ -74,14 +74,14 @@ PKIX_DoReturn(PKIX_StdVars * stdVars, PKIX_ERRORNUM errorCode,
 }
 
 PKIX_Error *
-PKIX_DoCheck(PKIX_StdVars * stdVars, PKIX_ERRSTRINGNUM descNum, void *plContext)
+PKIX_DoCheck(PKIX_StdVars * stdVars, PKIX_ERRORCODE errCode, void *plContext)
 {
     pkixTempResult = 
-	PKIX_Error_GetErrorCode(pkixErrorResult, &pkixErrorCode, plContext);
+	PKIX_Error_GetErrorClass(pkixErrorResult, &pkixErrorClass, plContext);
     if (pkixTempResult)
 	return pkixTempResult;
-    pkixErrorMsg = PKIX_ErrorText[descNum];
-    if (pkixErrorCode == PKIX_FATAL_ERROR)
-	return PKIX_DoReturn(stdVars, pkixErrorCode, PKIX_TRUE, plContext);
+    pkixErrorMsg = PKIX_ErrorText[errCode];
+    if (pkixErrorClass == PKIX_FATAL_ERROR)
+	return PKIX_DoReturn(stdVars, pkixErrorClass, PKIX_TRUE, plContext);
     return NULL;
 }

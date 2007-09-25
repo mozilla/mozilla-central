@@ -108,7 +108,7 @@ static PKIX_Error *loggerCallback(
         PKIX_Logger *logger,
         PKIX_PL_String *message,
         PKIX_UInt32 logLevel,
-        PKIX_ERRORNUM logComponent,
+        PKIX_ERRORCLASS logComponent,
         void *plContext)
 {
         char *msg = NULL;
@@ -117,7 +117,7 @@ static PKIX_Error *loggerCallback(
         msg = PKIX_String2ASCII(message, plContext);
         printf("Logging %s (%s): %s\n",
                 logLevels[logLevel],
-                PKIX_ERRORNAMES[logComponent],
+                PKIX_ERRORCLASSNAMES[logComponent],
                 msg);
         PR_Free((void *)msg);
 

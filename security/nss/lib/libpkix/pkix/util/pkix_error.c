@@ -71,7 +71,8 @@ pkix_Error_Equals(
         PKIX_Error *secondCause = NULL;
         PKIX_PL_Object *firstInfo = NULL;
         PKIX_PL_Object *secondInfo = NULL;
-        PKIX_UInt32 firstCode, secondCode, secondType;
+        PKIX_ERRORCLASS firstClass, secondClass;
+        PKIX_UInt32 secondType;
         PKIX_Boolean boolResult, unequalFlag;
 
         PKIX_ENTER(ERROR, "pkix_Error_Equals");
@@ -103,11 +104,11 @@ pkix_Error_Equals(
         secondError = (PKIX_Error *) secondObject;
 
         /* Compare error codes */
-        firstCode = firstError->code;
-        secondCode = secondError->code;
+        firstClass = firstError->errClass;
+        secondClass = secondError->errClass;
 
         /* If codes differ, return false. Result is already set */
-        if (firstCode != secondCode) goto cleanup;
+        if (firstClass != secondClass) goto cleanup;
 
         /* Compare causes */
         firstCause = firstError->cause;
@@ -162,7 +163,7 @@ pkix_Error_Equals(
 
 
         /* Compare descs */
-        if (firstError->descCode != secondError->descCode) {
+        if (firstError->errCode != secondError->errCode) {
                 unequalFlag = PKIX_TRUE;
         }
 
@@ -227,7 +228,7 @@ pkix_Error_ToString(
         PKIX_PL_String *optCauseString = NULL;
         PKIX_PL_String *errorNameString = NULL;
         char *format = NULL;
-        PKIX_UInt32 code;
+        PKIX_ERRORCLASS errClass;
 
         PKIX_ENTER(ERROR, "pkix_Error_ToString");
         PKIX_NULLCHECK_TWO(object, pString);
@@ -237,8 +238,8 @@ pkix_Error_ToString(
 
         error = (PKIX_Error *)object;
 
-        /* Get this error's code, description and the string of its cause */
-        code = error->code;
+        /* Get this error's errClass, description and the string of its cause */
+        errClass = error->errClass;
 
         /* Get the description string */
         PKIX_Error_GetDescription(error, &desc, plContext);
@@ -286,14 +287,14 @@ pkix_Error_ToString(
                 format = "*** %s Error- %s";
         }
 
-        /* Ensure that error code is known, otherwise default to Object */
-        if (code >= PKIX_NUMERRORS) {
-                code = 0;
+        /* Ensure that error errClass is known, otherwise default to Object */
+        if (errClass >= PKIX_NUMERRORCLASSES) {
+                errClass = 0;
         }
 
         PKIX_CHECK(PKIX_PL_String_Create
                     (PKIX_ESCASCII,
-                    (void *)PKIX_ERRORNAMES[code],
+                    (void *)PKIX_ERRORCLASSNAMES[errClass],
                     0,
                     &errorNameString,
                     plContext),
@@ -350,24 +351,24 @@ pkix_Error_Hashcode(
 /* --Initializers------------------------------------------------- */
 
 /*
- * PKIX_ERRORNAMES is an array of strings, with each string holding a
- * descriptive name for an error code. This is used by the default
+ * PKIX_ERRORCLASSNAMES is an array of strings, with each string holding a
+ * descriptive name for an error errClass. This is used by the default
  * PKIX_PL_Error_ToString function.
  *
- * Note: PKIX_ERRORS is defined in pkixt.h as a list of error types.
+ * Note: PKIX_ERRORCLASSES is defined in pkixt.h as a list of error types.
  * (More precisely, as a list of invocations of ERRMACRO(type).) The
  * macro is expanded in pkixt.h to define error numbers, and here to
  * provide corresponding strings. For example, since the fifth ERRMACRO
  * entry is MUTEX, then PKIX_MUTEX_ERROR is defined in pkixt.h as 4, and
- * PKIX_ERRORNAMES[4] is initialized here with the value "MUTEX".
+ * PKIX_ERRORCLASSNAMES[4] is initialized here with the value "MUTEX".
  */
 #undef ERRMACRO
 #define ERRMACRO(type) #type
 
 const char *
-PKIX_ERRORNAMES[PKIX_NUMERRORS] =
+PKIX_ERRORCLASSNAMES[PKIX_NUMERRORCLASSES] =
 {
-    PKIX_ERRORS
+    PKIX_ERRORCLASSES
 };
 
 /*
@@ -409,10 +410,10 @@ pkix_Error_RegisterSelf(void *plContext)
  */
 PKIX_Error *
 PKIX_Error_Create(
-        PKIX_ERRORNUM errorCode,
+        PKIX_ERRORCLASS errClass,
         PKIX_Error *cause,
         PKIX_PL_Object *info,
-        PKIX_ERRSTRINGNUM descCode,
+        PKIX_ERRORCODE errCode,
         PKIX_Error **pError,
         void *plContext)
 {
@@ -435,7 +436,7 @@ PKIX_Error_Create(
 
         if (pkixErrorResult) return (pkixErrorResult);
 
-        error->code = errorCode;
+        error->errClass = errClass;
 
         /* Ensure we don't have a loop. Follow causes until NULL */
         for (tempCause = cause;
@@ -453,9 +454,26 @@ PKIX_Error_Create(
         PKIX_INCREF(info);
         error->info = info;
 
-        error->descCode = descCode;
+        error->errCode = errCode;
 
         *pError = error;
+
+        PKIX_RETURN(ERROR);
+}
+
+/*
+ * FUNCTION: PKIX_Error_GetErrorClass (see comments in pkix_util.h)
+ */
+PKIX_Error *
+PKIX_Error_GetErrorClass(
+        PKIX_Error *error,
+        PKIX_ERRORCLASS *pClass,
+        void *plContext)
+{
+        PKIX_ENTER(ERROR, "PKIX_Error_GetErrorClass");
+        PKIX_NULLCHECK_TWO(error, pClass);
+
+        *pClass = error->errClass;
 
         PKIX_RETURN(ERROR);
 }
@@ -466,30 +484,13 @@ PKIX_Error_Create(
 PKIX_Error *
 PKIX_Error_GetErrorCode(
         PKIX_Error *error,
-        PKIX_UInt32 *pCode,
+        PKIX_ERRORCODE *pCode,
         void *plContext)
 {
         PKIX_ENTER(ERROR, "PKIX_Error_GetErrorCode");
         PKIX_NULLCHECK_TWO(error, pCode);
 
-        *pCode = error->code;
-
-        PKIX_RETURN(ERROR);
-}
-
-/*
- * FUNCTION: PKIX_Error_GetErrorCode (see comments in pkix_util.h)
- */
-PKIX_Error *
-PKIX_Error_GetErrorMsgCode(
-        PKIX_Error *error,
-        PKIX_UInt32 *pCode,
-        void *plContext)
-{
-        PKIX_ENTER(ERROR, "PKIX_Error_GetDescErrorCode");
-        PKIX_NULLCHECK_TWO(error, pCode);
-
-        *pCode = error->descCode;
+        *pCode = error->errCode;
 
         PKIX_RETURN(ERROR);
 }
@@ -549,7 +550,7 @@ PKIX_Error_GetDescription(
         PKIX_NULLCHECK_TWO(error, pDesc);
 
         PKIX_PL_String_Create(PKIX_ESCASCII,
-                              (void *)PKIX_ErrorText[error->descCode],
+                              (void *)PKIX_ErrorText[error->errCode],
                               0,
                               &descString,
                               plContext);

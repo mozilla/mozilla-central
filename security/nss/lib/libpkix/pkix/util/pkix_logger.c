@@ -119,7 +119,7 @@ pkix_Logger_Check(
         PKIX_List *pkixLoggersList,
         const char *message,
         const char *message2,
-        PKIX_ERRORNUM logComponent,
+        PKIX_ERRORCLASS logComponent,
         PKIX_UInt32 currentLevel,
         void *plContext)
 {
@@ -317,7 +317,7 @@ pkix_Logger_Destroy(
 
         logger->callback = NULL;
         PKIX_DECREF(logger->context);
-        logger->logComponent = (PKIX_ERRORNUM)NULL;
+        logger->logComponent = (PKIX_ERRORCLASS)NULL;
 
 cleanup:
 
@@ -371,7 +371,7 @@ pkix_Logger_ToString(
 
         PKIX_CHECK(PKIX_PL_String_Create
                 (PKIX_ESCASCII,
-                (void *)PKIX_ERRORNAMES[logger->logComponent],
+                (void *)PKIX_ERRORCLASSNAMES[logger->logComponent],
                 0,
                 &componentString,
                 plContext),
@@ -617,7 +617,7 @@ PKIX_Logger_Create(
 
         logger->callback = callback;
         logger->maxLevel = 0;
-        logger->logComponent = (PKIX_ERRORNUM)NULL;
+        logger->logComponent = (PKIX_ERRORCLASS)NULL;
 
         PKIX_INCREF(loggerContext);
         logger->context = loggerContext;
@@ -710,7 +710,7 @@ cleanup:
 PKIX_Error *
 PKIX_Logger_GetLoggingComponent(
         PKIX_Logger *logger,
-        PKIX_ERRORNUM *pComponent,
+        PKIX_ERRORCLASS *pComponent,
         void *plContext)
 {
         PKIX_ENTER(LOGGER, "PKIX_Logger_GetLoggingComponent");
@@ -727,7 +727,7 @@ PKIX_Logger_GetLoggingComponent(
 PKIX_Error *
 PKIX_Logger_SetLoggingComponent(
         PKIX_Logger *logger,
-        PKIX_ERRORNUM component,
+        PKIX_ERRORCLASS component,
         void *plContext)
 {
         PKIX_ENTER(LOGGER, "PKIX_Logger_SetLoggingComponent");

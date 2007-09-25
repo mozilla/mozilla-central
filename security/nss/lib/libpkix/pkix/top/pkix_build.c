@@ -851,10 +851,10 @@ pkix_Build_CheckCertAgainstAnchor(
                 (candidateCert, trustedPubKey, plContext);
 
         if (pkixErrorResult) {
-                pkixTempResult = PKIX_Error_GetErrorCode
-                        (pkixErrorResult, &pkixErrorCode, plContext);
+                pkixTempResult = PKIX_Error_GetErrorClass
+                        (pkixErrorResult, &pkixErrorClass, plContext);
                 if (pkixTempResult) return pkixTempResult;
-                if (pkixErrorCode == PKIX_FATAL_ERROR) {
+                if (pkixErrorClass == PKIX_FATAL_ERROR) {
                         pkixErrorMsg = PKIX_ErrorText[
                                 PKIX_CERTVERIFYSIGNATUREFAILED];
                         PKIX_RETURN(FATAL);
@@ -1138,12 +1138,12 @@ pkix_Build_VerifyCertificate(
                             plContext);
 
                         if (pkixErrorResult) {
-                            pkixTempResult = PKIX_Error_GetErrorCode
+                            pkixTempResult = PKIX_Error_GetErrorClass
                                     (pkixErrorResult,
-                                    &pkixErrorCode,
+                                    &pkixErrorClass,
                                     plContext);
                             if (pkixTempResult) return pkixTempResult;
-                            if (pkixErrorCode == PKIX_FATAL_ERROR) {
+                            if (pkixErrorClass == PKIX_FATAL_ERROR) {
                                     pkixErrorMsg = PKIX_ErrorText[
                                             PKIX_USERCHECKERCHECKFAILED];
                                     PKIX_RETURN(FATAL);
@@ -1190,10 +1190,10 @@ pkix_Build_VerifyCertificate(
                         (candidateCert, PKIX_KEY_CERT_SIGN, plContext);
 
                 if (pkixErrorResult) {
-                        pkixTempResult = PKIX_Error_GetErrorCode
-                                (pkixErrorResult, &pkixErrorCode, plContext);
+                        pkixTempResult = PKIX_Error_GetErrorClass
+                                (pkixErrorResult, &pkixErrorClass, plContext);
                         if (pkixTempResult) return pkixTempResult;
-                        if (pkixErrorCode == PKIX_FATAL_ERROR) {
+                        if (pkixErrorClass == PKIX_FATAL_ERROR) {
                                 pkixErrorMsg = PKIX_ErrorText[
                                         PKIX_CERTVERIFYKEYUSAGEFAILED];
                                 PKIX_RETURN(FATAL);
@@ -1212,10 +1212,10 @@ pkix_Build_VerifyCertificate(
                         (state->prevCert, candidatePubKey, plContext);
 
                 if (pkixErrorResult) {
-                        pkixTempResult = PKIX_Error_GetErrorCode
-                                (pkixErrorResult, &pkixErrorCode, plContext);
+                        pkixTempResult = PKIX_Error_GetErrorClass
+                                (pkixErrorResult, &pkixErrorClass, plContext);
                         if (pkixTempResult) return pkixTempResult;
-                        if (pkixErrorCode == PKIX_FATAL_ERROR) {
+                        if (pkixErrorClass == PKIX_FATAL_ERROR) {
                                 pkixErrorMsg = PKIX_ErrorText[
                                         PKIX_CERTVERIFYSIGNATUREFAILED];
                                 PKIX_RETURN(FATAL);
@@ -1256,12 +1256,12 @@ pkix_Build_VerifyCertificate(
                                 (candidateCert, PKIX_KEY_CERT_SIGN, plContext);
 
                         if (pkixErrorResult) {
-                                pkixTempResult = PKIX_Error_GetErrorCode
+                                pkixTempResult = PKIX_Error_GetErrorClass
                                     (pkixErrorResult,
-                                    &pkixErrorCode,
+                                    &pkixErrorClass,
                                     plContext);
                                 if (pkixTempResult) return pkixTempResult;
-                                if (pkixErrorCode == PKIX_FATAL_ERROR) {
+                                if (pkixErrorClass == PKIX_FATAL_ERROR) {
                                     pkixErrorMsg = PKIX_ErrorText[
                                         PKIX_CERTVERIFYKEYUSAGEFAILED];
                                     PKIX_RETURN(FATAL);
@@ -1669,10 +1669,10 @@ pkix_Build_ValidateEntireChain(
 
         if (certCheckError) {
                 pkixTempErrorReceived = PKIX_TRUE;
-                pkixTempResult = PKIX_Error_GetErrorCode
-                        (certCheckError, &pkixErrorCode, plContext);
+                pkixTempResult = PKIX_Error_GetErrorClass
+                        (certCheckError, &pkixErrorClass, plContext);
                 if (pkixTempResult) return pkixTempResult;
-                if (pkixErrorCode == PKIX_FATAL_ERROR){
+                if (pkixErrorClass == PKIX_FATAL_ERROR){
                         pkixErrorMsg = PKIX_ErrorText[PKIX_CHECKCHAINFAILED];
                         PKIX_RETURN(FATAL);
                 }
@@ -2732,10 +2732,10 @@ pkix_BuildForwardDepthFirstSearch(
 
                     if (verifyError) {
                             pkixTempErrorReceived = PKIX_TRUE;
-                            pkixTempResult = PKIX_Error_GetErrorCode
-                                (verifyError, &pkixErrorCode, plContext);
+                            pkixTempResult = PKIX_Error_GetErrorClass
+                                (verifyError, &pkixErrorClass, plContext);
                             if (pkixTempResult) return pkixTempResult;
-                            if (pkixErrorCode == PKIX_FATAL_ERROR) {
+                            if (pkixErrorClass == PKIX_FATAL_ERROR) {
                                 pkixErrorMsg = PKIX_ErrorText[
                                   PKIX_BUILDVERIFYCERTIFICATEFAILED];
                                 PKIX_RETURN(FATAL);
@@ -2803,10 +2803,10 @@ pkix_BuildForwardDepthFirstSearch(
                         plContext);
                 if (verifyError) {
                     pkixTempErrorReceived = PKIX_TRUE;
-                    pkixTempResult = PKIX_Error_GetErrorCode
-                            (verifyError, &pkixErrorCode, plContext);
+                    pkixTempResult = PKIX_Error_GetErrorClass
+                            (verifyError, &pkixErrorClass, plContext);
                     if (pkixTempResult) return pkixTempResult;
-                    if (pkixErrorCode == PKIX_FATAL_ERROR) {
+                    if (pkixErrorClass == PKIX_FATAL_ERROR) {
                             pkixErrorMsg = PKIX_ErrorText[
                               PKIX_DEFAULTCRLCHECKERCHECKHELPERFAILED];
                             PKIX_RETURN(FATAL);
@@ -3024,12 +3024,12 @@ pkix_BuildForwardDepthFirstSearch(
                           plContext);
                       if (verifyError) {
                           pkixTempErrorReceived = PKIX_TRUE;
-                          pkixTempResult = PKIX_Error_GetErrorCode
+                          pkixTempResult = PKIX_Error_GetErrorClass
                                   (verifyError,
-                                  &pkixErrorCode,
+                                  &pkixErrorClass,
                                   plContext);
                           if (pkixTempResult) return pkixTempResult;
-                          if (pkixErrorCode == PKIX_FATAL_ERROR) {
+                          if (pkixErrorClass == PKIX_FATAL_ERROR) {
                               pkixErrorMsg = PKIX_ErrorText[
                                   PKIX_DEFAULTCRLCHECKERCHECKHELPERFAILED];
                               PKIX_RETURN(FATAL);
@@ -3502,12 +3502,12 @@ pkix_Build_TryShortcut(
 
                         if (crlCheckerError) {
                                 pkixTempErrorReceived = PKIX_TRUE;
-                                pkixTempResult = PKIX_Error_GetErrorCode
+                                pkixTempResult = PKIX_Error_GetErrorClass
                                     (crlCheckerError,
-                                    &pkixErrorCode,
+                                    &pkixErrorClass,
                                     plContext);
                                 if (pkixTempResult) return pkixTempResult;
-                                if (pkixErrorCode == PKIX_FATAL_ERROR) {
+                                if (pkixErrorClass == PKIX_FATAL_ERROR) {
                                     pkixErrorMsg = PKIX_ErrorText[
                                       PKIX_DEFAULTCRLCHECKERCHECKHELPERFAILED];
                                     PKIX_RETURN(FATAL);
@@ -3779,10 +3779,10 @@ pkix_Build_InitiateBuildChain(
             pkixErrorResult = PKIX_PL_Cert_CheckValidity
                     (targetCert, testDate, plContext);
             if (pkixErrorResult) {
-                    pkixTempResult = PKIX_Error_GetErrorCode
-                            (pkixErrorResult, &pkixErrorCode, plContext);
+                    pkixTempResult = PKIX_Error_GetErrorClass
+                            (pkixErrorResult, &pkixErrorClass, plContext);
                     if (pkixTempResult) return pkixTempResult;
-                    if (pkixErrorCode == PKIX_FATAL_ERROR) {
+                    if (pkixErrorClass == PKIX_FATAL_ERROR) {
                             pkixErrorMsg = PKIX_ErrorText[
                                     PKIX_CERTCHECKVALIDITYFAILED];
                             PKIX_RETURN(FATAL);

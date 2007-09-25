@@ -147,7 +147,7 @@ static PKIX_Error *loggerCallback(
         PKIX_Logger *logger,
         PKIX_PL_String *message,
         PKIX_UInt32 logLevel,
-        PKIX_ERRORNUM logComponent,
+        PKIX_ERRORCLASS logComponent,
         void *plContext)
 {
 #define resultSize 150
@@ -160,7 +160,7 @@ static PKIX_Error *loggerCallback(
         PR_snprintf(result, resultSize,
             "Logging %s (%s): %s",
 	    levels[logLevel],
-	    PKIX_ERRORNAMES[logComponent],
+	    PKIX_ERRORCLASSNAMES[logComponent],
 	    msg);
         subTest(result);
 
@@ -171,7 +171,7 @@ cleanup:
 
 static
 void testLogErrors(
-	PKIX_ERRORNUM module,
+	PKIX_ERRORCLASS module,
 	PKIX_UInt32 loggingLevel,
         PKIX_List *loggers,
 	void *plContext)

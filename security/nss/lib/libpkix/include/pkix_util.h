@@ -146,7 +146,7 @@ typedef PKIX_Error *
         PKIX_Logger *logger,
         PKIX_PL_String *message,
         PKIX_UInt32 logLevel,
-        PKIX_ERRORNUM logComponent,
+        PKIX_ERRORCLASS logComponent,
         void *plContext);
 
 /*
@@ -325,7 +325,7 @@ PKIX_Logger_SetMaxLoggingLevel(
 PKIX_Error *
 PKIX_Logger_GetLoggingComponent(
         PKIX_Logger *logger,
-        PKIX_ERRORNUM *pComponent,
+        PKIX_ERRORCLASS *pComponent,
         void *plContext);
 
 /*
@@ -355,7 +355,7 @@ PKIX_Logger_GetLoggingComponent(
 PKIX_Error *
 PKIX_Logger_SetLoggingComponent(
         PKIX_Logger *logger,
-        PKIX_ERRORNUM component,
+        PKIX_ERRORCLASS component,
         void *plContext);
 
 /*
@@ -497,19 +497,19 @@ PKIX_AddLogger(
  */
 PKIX_Error *
 PKIX_Error_Create(
-        PKIX_ERRORNUM errorCode,
+        PKIX_ERRORCLASS errClass,
         PKIX_Error *cause,
         PKIX_PL_Object *info,
-        PKIX_ERRSTRINGNUM descCode,
+        PKIX_ERRORCODE errCode,
         PKIX_Error **pError,
         void *plContext);
 
 /*
- * FUNCTION: PKIX_Error_GetErrorCode
+ * FUNCTION: PKIX_Error_GetErrorClass
  * DESCRIPTION:
  *
- *  Retrieves the error code of the Error pointed to by "error" and stores it
- *  at "pCode". Supported error codes are defined in pkixt.h.
+ *  Retrieves the error class of the Error pointed to by "error" and 
+ *  stores it at "pClass". Supported error codes are defined in pkixt.h.
  *
  * PARAMETERS:
  *  "error"
@@ -526,9 +526,9 @@ PKIX_Error_Create(
  *  Returns a Fatal Error if the function fails in an unrecoverable way.
  */
 PKIX_Error *
-PKIX_Error_GetErrorCode(
+PKIX_Error_GetErrorClass(
         PKIX_Error *error,
-        PKIX_UInt32 *pCode,
+        PKIX_ERRORCLASS *pClass,
         void *plContext);
 
 /*

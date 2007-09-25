@@ -271,15 +271,15 @@ typedef enum {     /* Now invoke all those TYPEMACROs to assign the numbers */
 
 /* Error Codes
  *
- * This list is used to define a set of PKIX_Errors, each associated with an
- * integer error code. ERRMACRO is redefined to produce a corresponding set of
- * strings in the table "const char *PKIX_ERRORNAMES[PKIX_NUMERRORS]" in
+ * This list is used to define a set of PKIX_Error exception class numbers.
+ * ERRMACRO is redefined to produce a corresponding set of
+ * strings in the table "const char *PKIX_ERRORCLASSNAMES[PKIX_NUMERRORCLASSES]" in
  * pkix_error.c. For example, since the fifth ERRMACRO entry is MUTEX, then
- * PKIX_MUTEX_ERROR is defined in pkixt.h as 4, and PKIX_ERRORNAMES[4] is
+ * PKIX_MUTEX_ERROR is defined in pkixt.h as 4, and PKIX_ERRORCLASSNAMES[4] is
  * initialized in pkix_error.c with the value "MUTEX".
  */
 
-#define PKIX_ERRORS \
+#define PKIX_ERRORCLASSES \
    ERRMACRO(OBJECT), \
    ERRMACRO(FATAL), \
    ERRMACRO(MEM), \
@@ -353,9 +353,9 @@ typedef enum {     /* Now invoke all those TYPEMACROs to assign the numbers */
 #define ERRMACRO(type) PKIX_ ## type ## _ERROR
 
 typedef enum {     /* Now invoke all those ERRMACROs to assign the numbers */
-   PKIX_ERRORS,
-   PKIX_NUMERRORS   /* This gets PKIX_NUMERRORS defined as the total number */
-} PKIX_ERRORNUM;
+   PKIX_ERRORCLASSES,
+   PKIX_NUMERRORCLASSES   /* This gets PKIX_NUMERRORCLASSES defined as the total number */
+} PKIX_ERRORCLASS;
 
 /* Now define error strings (for internationalization) */
 
@@ -364,7 +364,7 @@ typedef enum {     /* Now invoke all those ERRMACROs to assign the numbers */
 /* Define all the error numbers */
 typedef enum    {
 #include "pkix_errorstrings.h"
-} PKIX_ERRSTRINGNUM;
+} PKIX_ERRORCODE;
 
 extern const char * const PKIX_ErrorText[];
 
