@@ -1,1 +1,1 @@
-CLOBBERing to disable zipwriter from bug 379633
+Clobbering to pick up mozconfig changes that will use a new compiler.
