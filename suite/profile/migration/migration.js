@@ -181,9 +181,9 @@ var MigrationWizard = {
         this._wiz.currentPage.next = "importItems";
 
       var sourceProfiles = this._migrator.sourceProfiles;
-      if (sourceProfiles && sourceProfiles.Count() == 1) {
+      if (sourceProfiles && sourceProfiles.length == 1) {
         this._selectedProfile = sourceProfiles
-            .QueryElementAt(0, nsISupportsString).data;
+            .queryElementAt(0, nsISupportsString).data;
       }
       else
         this._selectedProfile = "";
@@ -198,10 +198,10 @@ var MigrationWizard = {
       profiles.removeChild(profiles.lastChild);
 
     var sourceProfiles = this._migrator.sourceProfiles;
-    var count = sourceProfiles.Count();
+    var count = sourceProfiles.length;
     for (var i = 0; i < count; ++i) {
       var item = document.createElement("radio");
-      item.id = sourceProfiles.QueryElementAt(i, nsISupportsString).data;
+      item.id = sourceProfiles.queryElementAt(i, nsISupportsString).data;
       item.setAttribute("label", item.id);
       profiles.appendChild(item);
     }

@@ -55,6 +55,7 @@
 #include "prprf.h"
 #include "nsIPasswordManagerInternal.h"
 #include "nsINIParser.h"
+#include "nsArrayUtils.h"
 
 #define MAIL_DIR_50_NAME             NS_LITERAL_STRING("Mail")
 #define IMAP_MAIL_DIR_50_NAME        NS_LITERAL_STRING("ImapMail")
@@ -180,12 +181,12 @@ nsNetscapeProfileMigratorBase::nsNetscapeProfileMigratorBase()
 NS_IMETHODIMP
 nsNetscapeProfileMigratorBase::GetSourceExists(PRBool* aResult)
 {
-  nsCOMPtr<nsISupportsArray> profiles;
+  nsCOMPtr<nsIArray> profiles;
   GetSourceProfiles(getter_AddRefs(profiles));
 
   if (profiles) {
     PRUint32 count;
-    profiles->Count(&count);
+    profiles->GetLength(&count);
     *aResult = count > 0;
   }
   else
@@ -197,12 +198,12 @@ nsNetscapeProfileMigratorBase::GetSourceExists(PRBool* aResult)
 NS_IMETHODIMP
 nsNetscapeProfileMigratorBase::GetSourceHasMultipleProfiles(PRBool* aResult)
 {
-  nsCOMPtr<nsISupportsArray> profiles;
+  nsCOMPtr<nsIArray> profiles;
   GetSourceProfiles(getter_AddRefs(profiles));
 
   if (profiles) {
     PRUint32 count;
-    profiles->Count(&count);
+    profiles->GetLength(&count);
     *aResult = count > 1;
   }
   else
@@ -212,14 +213,15 @@ nsNetscapeProfileMigratorBase::GetSourceHasMultipleProfiles(PRBool* aResult)
 }
 
 NS_IMETHODIMP
-nsNetscapeProfileMigratorBase::GetSourceProfiles(nsISupportsArray** aResult)
+nsNetscapeProfileMigratorBase::GetSourceProfiles(nsIArray** aResult)
 {
   if (!mProfileNames && !mProfileLocations) {
-    nsresult rv = NS_NewISupportsArray(getter_AddRefs(mProfileNames));
+    nsresult rv;
+    mProfileNames = do_CreateInstance(NS_ARRAY_CONTRACTID, &rv);
     if (NS_FAILED(rv))
       return rv;
 
-    rv = NS_NewISupportsArray(getter_AddRefs(mProfileLocations));
+    mProfileLocations = do_CreateInstance(NS_ARRAY_CONTRACTID, &rv);
     if (NS_FAILED(rv))
       return rv;
 
@@ -410,7 +412,7 @@ nsresult
 nsNetscapeProfileMigratorBase::GetSourceProfile(const PRUnichar* aProfile)
 {
   PRUint32 count;
-  mProfileNames->Count(&count);
+  mProfileNames->GetLength(&count);
   for (PRUint32 i = 0; i < count; ++i) {
     nsCOMPtr<nsISupportsString> str(do_QueryElementAt(mProfileNames, i));
     nsString profileName;
@@ -427,8 +429,8 @@ nsNetscapeProfileMigratorBase::GetSourceProfile(const PRUnichar* aProfile)
 
 nsresult
 nsNetscapeProfileMigratorBase::GetProfileDataFromProfilesIni(nsILocalFile* aDataDir,
-                                                             nsISupportsArray* aProfileNames,
-                                                             nsISupportsArray* aProfileLocations)
+                                                             nsIMutableArray* aProfileNames,
+                                                             nsIMutableArray* aProfileLocations)
 {
   nsresult rv;
   nsCOMPtr<nsIFile> dataDir;
@@ -493,13 +495,13 @@ nsNetscapeProfileMigratorBase::GetProfileDataFromProfilesIni(nsILocalFile* aData
     rootDir->Exists(&exists);
 
     if (exists) {
-      aProfileLocations->AppendElement(rootDir);
+      aProfileLocations->AppendElement(rootDir, PR_FALSE);
 
       nsCOMPtr<nsISupportsString> profileNameString(
         do_CreateInstance("@mozilla.org/supports-string;1"));
 
       profileNameString->SetData(NS_ConvertUTF8toUTF16(buffer));
-      aProfileNames->AppendElement(profileNameString);
+      aProfileNames->AppendElement(profileNameString, PR_FALSE);
     }
   }
   return NS_OK;
@@ -507,8 +509,8 @@ nsNetscapeProfileMigratorBase::GetProfileDataFromProfilesIni(nsILocalFile* aData
 
 nsresult
 nsNetscapeProfileMigratorBase::GetProfileDataFromRegistry(nsILocalFile* aRegistryFile,
-                                                          nsISupportsArray* aProfileNames,
-                                                          nsISupportsArray* aProfileLocations)
+                                                          nsIMutableArray* aProfileNames,
+                                                          nsIMutableArray* aProfileLocations)
 {
   REGERR errCode;
 
@@ -594,14 +596,14 @@ nsNetscapeProfileMigratorBase::GetProfileDataFromRegistry(nsILocalFile* aRegistr
     dir->Exists(&exists);
 
     if (exists) {
-      aProfileLocations->AppendElement(dir);
+      aProfileLocations->AppendElement(dir, PR_FALSE);
 
       // Add the profile name to the names array
       nsCOMPtr<nsISupportsString> profileNameString(
         do_CreateInstance("@mozilla.org/supports-string;1"));
 
       profileNameString->SetData(NS_ConvertUTF8toUTF16(profileStr));
-      aProfileNames->AppendElement(profileNameString);
+      aProfileNames->AppendElement(profileNameString, PR_FALSE);
     }
   }
   NR_RegClose(reg);

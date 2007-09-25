@@ -39,7 +39,7 @@
 #define netscapeprofilemigratorbase___h___
 
 #include "nsILocalFile.h"
-#include "nsISupportsArray.h"
+#include "nsIMutableArray.h"
 #include "nsStringAPI.h"
 #include "nsTArray.h"
 #include "nsITimer.h"
@@ -112,9 +112,9 @@ public:
   typedef nsTArray<PrefBranchStruct*> PBStructArray;
 
   // nsISuiteProfileMigrator methods
-  NS_IMETHOD GetSourceExists(PRBool *aSourceExists);
-  NS_IMETHOD GetSourceHasMultipleProfiles(PRBool *aSourceHasMultipleProfiles);
-  NS_IMETHOD GetSourceProfiles(nsISupportsArray * *aSourceProfiles);
+  NS_IMETHOD GetSourceExists(PRBool* aSourceExists);
+  NS_IMETHOD GetSourceHasMultipleProfiles(PRBool* aSourceHasMultipleProfiles);
+  NS_IMETHOD GetSourceProfiles(nsIArray** aResult);
 
   // Pref Transform Methods
   static nsresult GetString(PrefTransform* aTransform, nsIPrefBranch* aBranch);
@@ -140,11 +140,11 @@ protected:
   // General Utility Methods
   nsresult GetSourceProfile(const PRUnichar* aProfile);
   nsresult GetProfileDataFromProfilesIni(nsILocalFile* aDataDir,
-                                         nsISupportsArray* aProfileNames,
-                                         nsISupportsArray* aProfileLocations);
+                                         nsIMutableArray* aProfileNames,
+                                         nsIMutableArray* aProfileLocations);
   nsresult GetProfileDataFromRegistry(nsILocalFile* aRegistryFile,
-                                      nsISupportsArray* aProfileNames,
-                                      nsISupportsArray* aProfileLocations);
+                                      nsIMutableArray* aProfileNames,
+                                      nsIMutableArray* aProfileLocations);
   nsresult CopyFile(const char* aSourceFileName,
                     const char* aTargetFileName);
   nsresult RecursiveCopy(nsIFile* srcDir, nsIFile* destDir);
@@ -193,8 +193,8 @@ protected:
   PRInt64 mMaxProgress;
   PRInt64 mCurrentProgress;
 
-  nsCOMPtr<nsISupportsArray> mProfileNames;
-  nsCOMPtr<nsISupportsArray> mProfileLocations;
+  nsCOMPtr<nsIMutableArray> mProfileNames;
+  nsCOMPtr<nsIMutableArray> mProfileLocations;
 
   nsCOMPtr<nsITimer> mFileIOTimer;
 };
