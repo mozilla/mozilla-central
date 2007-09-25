@@ -2070,7 +2070,16 @@ function cmdListPlugins(e)
 
 function cmdRlist(e)
 {
-    e.network.list(new RegExp(e.regexp, "i"));
+    try
+    {
+        var re = new RegExp(e.regexp, "i");
+    }
+    catch (ex)
+    {
+        display(MSG_ERR_INVALID_REGEX, MT_ERROR);
+        return;
+    }
+    e.network.list(re);
 }
 
 function cmdReloadUI(e)
