@@ -258,10 +258,14 @@ extern int SECU_PrintCertificateRequest(FILE *out, SECItem *der, char *m,
 extern int SECU_PrintCertificate(FILE *out, SECItem *der, char *m, int level);
 
 /* print trust flags on a cert */
-extern void SECU_PrintTrustFlags(FILE *out, CERTCertTrust *trust, char *m, int level);
+extern void SECU_PrintTrustFlags(FILE *out, CERTCertTrust *trust, char *m, 
+                                 int level);
 
-/* Dump contents of public key */
-extern int SECU_PrintPublicKey(FILE *out, SECItem *der, char *m, int level);
+/* Dump contents of an RSA public key */
+extern int SECU_PrintRSAPublicKey(FILE *out, SECItem *der, char *m, int level);
+
+extern int SECU_PrintSubjectPublicKeyInfo(FILE *out, SECItem *der, char *m, 
+                                          int level);
 
 #ifdef HAVE_EPV_TEMPLATE
 /* Dump contents of private key */
@@ -383,6 +387,9 @@ SECU_EncodeAndAddExtensionValue(PRArenaPool *arena, void *extHandle,
                                 void *value, PRBool criticality, int extenType, 
                                 EXTEN_EXT_VALUE_ENCODER EncodeValueFn);
 
+/* Caller ensures that dst is at least item->len*2+1 bytes long */
+void
+SECU_SECItemToHex(const SECItem * item, char * dst);
 
 /*
  *

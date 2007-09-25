@@ -617,6 +617,7 @@ SECU_FileToItem(SECItem *dst, PRFileDesc *src)
     return SECSuccess;
 loser:
     SECITEM_FreeItem(dst, PR_FALSE);
+    dst->data = NULL;
     return SECFailure;
 }
 
@@ -2394,7 +2395,7 @@ loser:
 }
 
 int
-SECU_PrintPublicKey(FILE *out, SECItem *der, char *m, int level)
+SECU_PrintRSAPublicKey(FILE *out, SECItem *der, char *m, int level)
 {
     PRArenaPool *arena = PORT_NewArena(DER_DEFAULT_CHUNKSIZE);
     SECKEYPublicKey key;
@@ -2409,6 +2410,32 @@ SECU_PrintPublicKey(FILE *out, SECItem *der, char *m, int level)
     if (!rv) {
 	/* Pretty print it out */
 	secu_PrintRSAPublicKey(out, &key, m, level);
+    }
+
+    PORT_FreeArena(arena, PR_FALSE);
+    return rv;
+}
+
+int
+SECU_PrintSubjectPublicKeyInfo(FILE *out, SECItem *der, char *m, int level)
+{
+    PRArenaPool *arena = PORT_NewArena(DER_DEFAULT_CHUNKSIZE);
+    int          rv    = SEC_ERROR_NO_MEMORY;
+    CERTSubjectPublicKeyInfo spki;
+
+    if (!arena)
+	return rv;
+
+    PORT_Memset(&spki, 0, sizeof spki);
+    rv = SEC_ASN1DecodeItem(arena, &spki, 
+                            SEC_ASN1_GET(CERT_SubjectPublicKeyInfoTemplate), 
+			    der);
+    if (!rv) {
+	if (m && *m) {
+	    SECU_Indent(out, level);  fprintf(out, "%s:\n", m);
+	}
+	secu_PrintSubjectPublicKeyInfo(out, arena, &spki,
+				       "Subject Public Key Info", level+1);
     }
 
     PORT_FreeArena(arena, PR_FALSE);
@@ -3768,4 +3795,18 @@ SECU_EncodeAndAddExtensionValue(PRArenaPool *arena, void *extHandle,
     } while (0);
 
     return (rv);
+}
+
+/* Caller ensures that dst is at least item->len*2+1 bytes long */
+void
+SECU_SECItemToHex(const SECItem * item, char * dst)
+{
+    if (dst && item && item->data) {
+	unsigned char * src = item->data;
+	unsigned int    len = item->len;
+	for (; len > 0; --len, dst += 2) {
+	    sprintf(dst, "%02x", *src++);
+	}
+	*dst = '\0';
+    }
 }

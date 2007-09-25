@@ -49,22 +49,23 @@
 #include "plstr.h"
 #include "sechash.h"	/* for HASH_GetHashObject() */
 
-static int debugInfo = 0;
+static PRBool debugInfo;
+static PRBool verbose;
+static PRBool doVerify;
+static PRBool displayAll;
 
-static char *usageInfo[] = {
-	"Options:",
-	" -a                           signature file is ASCII",
-	" -d certdir                   directory containing cert database",
-	" -i dataFileName              input file name containing data,",
-	"                              use - for stdin",
-	" -s signatureFileName         input file name containing signature,",
-	"                              use - for stdin",
-	" -o outputFileName            output file name, default stdout",
-	" -A                           display all information from pkcs #7",
-	" -V                           verify the signed object and display result",
-	" -V -v                        verify the signed object and display",
-	"                              result and reason for failure",
-	"Version 2.0"
+static const char * const usageInfo[] = {
+    "signver - verify a detached PKCS7 signature - Version " NSS_VERSION,
+    "Commands:",
+    " -A		    display all information from pkcs #7",
+    " -V		    verify the signed object and display result",
+    "Options:",
+    " -a		    signature file is ASCII",
+    " -d certdir	    directory containing cert database",
+    " -i dataFileName	    input file containing signed data (default stdin)",
+    " -o outputFileName     output file name, default stdout",
+    " -s signatureFileName  input file for signature (default stdin)",
+    " -v		    display verbose reason for failure"
 };
 static int nUsageInfo = sizeof(usageInfo)/sizeof(char *);
 
@@ -72,351 +73,275 @@ extern int SV_PrintPKCS7ContentInfo(FILE *, SECItem *);
 
 static void Usage(char *progName, FILE *outFile)
 {
-	int i;
-	fprintf(outFile, "Usage:  %s  options\n", progName);
-	for (i = 0; i < nUsageInfo; i++)
-		fprintf(outFile, "%s\n", usageInfo[i]);
-	exit(-1);
+    int i;
+    fprintf(outFile, "Usage:  %s [ commands ] options\n", progName);
+    for (i = 0; i < nUsageInfo; i++)
+	fprintf(outFile, "%s\n", usageInfo[i]);
+    exit(-1);
 }
 
 static HASH_HashType
 AlgorithmToHashType(SECAlgorithmID *digestAlgorithms)
 {
-	SECOidTag tag;
-
-	tag = SECOID_GetAlgorithmTag(digestAlgorithms);
-
-	switch (tag) {
-		case SEC_OID_MD2:
-			if (debugInfo) PR_fprintf(PR_STDERR, "Hash algorithm: HASH_AlgMD2 SEC_OID_MD2\n");
-			return HASH_AlgMD2;
-		case SEC_OID_MD5:
-			if (debugInfo) PR_fprintf(PR_STDERR, "Hash algorithm: HASH_AlgMD5 SEC_OID_MD5\n");
-			return HASH_AlgMD5;
-		case SEC_OID_SHA1:
-			if (debugInfo) PR_fprintf(PR_STDERR, "Hash algorithm: HASH_AlgSHA1 SEC_OID_SHA1\n");
-			return HASH_AlgSHA1;
-		default:
-			if (debugInfo) PR_fprintf(PR_STDERR, "should never get here\n");
-			return HASH_AlgNULL;
-	}
+    SECOidTag	  tag  = SECOID_GetAlgorithmTag(digestAlgorithms);
+    HASH_HashType hash = HASH_GetHashTypeByOidTag(tag);
+    return hash;
 }
 
 
-static int
-DigestData (unsigned char *digest, unsigned char *data,
-			unsigned int *len, unsigned int maxLen,
-			HASH_HashType hashType)
+static SECStatus
+DigestContent (SECItem * digest, SECItem * content, HASH_HashType hashType)
 {
-	const SECHashObject *hashObj;
-	void *hashcx;
+    unsigned int maxLen = digest->len;
+    unsigned int len	= HASH_ResultLen(hashType);
+    SECStatus	 rv;
 
-	hashObj = HASH_GetHashObject(hashType);
-	hashcx = (* hashObj->create)();
-	if (hashcx == NULL)
-	return -1;
+    if (len > maxLen) {
+	PORT_SetError(SEC_ERROR_OUTPUT_LEN);
+	return SECFailure;
+    }
 
-	(* hashObj->begin)(hashcx);
-	(* hashObj->update)(hashcx, data, PORT_Strlen((char *)data));
-	(* hashObj->end)(hashcx, digest, len, maxLen);
-	(* hashObj->destroy)(hashcx, PR_TRUE);
-
-	return 0;
+    rv = HASH_HashBuf(hashType, digest->data, content->data, content->len);
+    if (rv == SECSuccess)
+	digest->len = len;
+    return rv;
 }
 
 enum {
-	cmd_DisplayAllPCKS7Info = 0,
-	cmd_DisplayCertInfo,
-	cmd_DisplaySignerInfo,
-	cmd_VerifySignedObj
+    cmd_DisplayAllPCKS7Info = 0,
+    cmd_VerifySignedObj
 };
 
 enum {
-	opt_ASCII,
-	opt_CertDir,
-	opt_InputDataFile,
-	opt_ItemNumber,
-	opt_OutputFile,
-	opt_InputSigFile,
-	opt_TypeTag,
-	opt_PrintWhyFailure
+    opt_ASCII,
+    opt_CertDir,
+    opt_InputDataFile,
+    opt_ItemNumber,
+    opt_OutputFile,
+    opt_InputSigFile,
+    opt_PrintWhyFailure,
+    opt_DebugInfo
 };
 
 static secuCommandFlag signver_commands[] =
 {
-	{ /* cmd_DisplayAllPCKS7Info*/  'A', PR_FALSE, 0, PR_FALSE },
-	{ /* cmd_VerifySignedObj    */  'V', PR_FALSE, 0, PR_FALSE }
+    { /* cmd_DisplayAllPCKS7Info*/  'A', PR_FALSE, 0, PR_FALSE },
+    { /* cmd_VerifySignedObj	*/  'V', PR_FALSE, 0, PR_FALSE }
 };
 
 static secuCommandFlag signver_options[] =
 {
-	{ /* opt_ASCII              */  'a', PR_FALSE, 0, PR_FALSE },
-	{ /* opt_CertDir            */  'd', PR_TRUE,  0, PR_FALSE },
-	{ /* opt_InputDataFile      */  'i', PR_TRUE,  0, PR_FALSE },
-	{ /* opt_OutputFile         */  'o', PR_TRUE,  0, PR_FALSE },
-	{ /* opt_InputSigFile       */  's', PR_TRUE,  0, PR_FALSE },
-	{ /* opt_TypeTag            */  't', PR_TRUE,  0, PR_FALSE },
-	{ /* opt_PrintWhyFailure    */  'v', PR_FALSE, 0, PR_FALSE }
+    { /* opt_ASCII		*/  'a', PR_FALSE, 0, PR_FALSE },
+    { /* opt_CertDir		*/  'd', PR_TRUE,  0, PR_FALSE },
+    { /* opt_InputDataFile	*/  'i', PR_TRUE,  0, PR_FALSE },
+    { /* opt_OutputFile 	*/  'o', PR_TRUE,  0, PR_FALSE },
+    { /* opt_InputSigFile	*/  's', PR_TRUE,  0, PR_FALSE },
+    { /* opt_PrintWhyFailure	*/  'v', PR_FALSE, 0, PR_FALSE },
+    { /* opt_DebugInfo		*/    0, PR_FALSE, 0, PR_FALSE, "debug" }
 };
 
 int main(int argc, char **argv)
 {
-	PRExplodedTime explodedCurrent;
-	SECItem der, data;
-	char *progName;
-	int rv;
-	PRFileDesc *dataFile = 0;
-	PRFileDesc *signFile = 0;
-	FILE *outFile = stdout;
-	char *typeTag = 0;
-	SECStatus secstatus;
+    PRFileDesc *contentFile = NULL;
+    PRFileDesc *signFile = PR_STDIN;
+    FILE *	outFile  = stdout;
+    char *	progName;
+    SECStatus	rv;
+    int 	result	 = 1;
+    SECItem	pkcs7der, content;
+    secuCommand signver;
 
-	secuCommand signver;
-	signver.numCommands = sizeof(signver_commands) /sizeof(secuCommandFlag);
-	signver.numOptions = sizeof(signver_options) / sizeof(secuCommandFlag);
-	signver.commands = signver_commands;
-	signver.options = signver_options;
+    pkcs7der.data  = NULL;
+    content.data = NULL;
+
+    signver.numCommands = sizeof(signver_commands) /sizeof(secuCommandFlag);
+    signver.numOptions = sizeof(signver_options) / sizeof(secuCommandFlag);
+    signver.commands = signver_commands;
+    signver.options = signver_options;
 
 #ifdef XP_PC
-	progName = strrchr(argv[0], '\\');
+    progName = strrchr(argv[0], '\\');
 #else
-	progName = strrchr(argv[0], '/');
+    progName = strrchr(argv[0], '/');
 #endif
-	progName = progName ? progName+1 : argv[0];
+    progName = progName ? progName+1 : argv[0];
 
-	/*_asm int 3*/
+    rv = SECU_ParseCommandLine(argc, argv, progName, &signver);
+    if (SECSuccess != rv) {
+	Usage(progName, outFile);
+    }
+    debugInfo = signver.options[opt_DebugInfo	    ].activated;
+    verbose   = signver.options[opt_PrintWhyFailure ].activated;
+    doVerify  = signver.commands[cmd_VerifySignedObj].activated;
+    displayAll= signver.commands[cmd_DisplayAllPCKS7Info].activated;
+    if (!doVerify && !displayAll)
+	doVerify = PR_TRUE;
 
-	PR_ExplodeTime(PR_Now(), PR_LocalTimeParameters, &explodedCurrent);
-#if 0
-	if (explodedCurrent.tm_year >= 1998
-		&& explodedCurrent.tm_month >= 5 /* months past tm_year (0-11, Jan = 0) */
-		&& explodedCurrent.tm_mday >= 1) {
-		PR_fprintf(PR_STDERR, "%s: expired\n", progName);
-		return -1;
+    /*	Set the certdb directory (default is ~/.netscape) */
+    rv = NSS_Init(SECU_ConfigDirectory(signver.options[opt_CertDir].arg));
+    if (rv != SECSuccess) {
+	SECU_PrintPRandOSError(progName);
+	return result;
+    }
+    /* below here, goto cleanup */
+    SECU_RegisterDynamicOids();
+
+    /*	Open the input content file. */
+    if (signver.options[opt_InputDataFile].activated &&
+	signver.options[opt_InputDataFile].arg) {
+	if (PL_strcmp("-", signver.options[opt_InputDataFile].arg)) {
+	    contentFile = PR_Open(signver.options[opt_InputDataFile].arg,
+			       PR_RDONLY, 0);
+	    if (!contentFile) {
+		PR_fprintf(PR_STDERR,
+			   "%s: unable to open \"%s\" for reading.\n",
+			   progName, signver.options[opt_InputDataFile].arg);
+		goto cleanup;
+	    }
+	} else
+	    contentFile = PR_STDIN;
+    }
+
+    /*	Open the input signature file.	*/
+    if (signver.options[opt_InputSigFile].activated &&
+	signver.options[opt_InputSigFile].arg) {
+	if (PL_strcmp("-", signver.options[opt_InputSigFile].arg)) {
+	    signFile = PR_Open(signver.options[opt_InputSigFile].arg,
+			       PR_RDONLY, 0);
+	    if (!signFile) {
+		PR_fprintf(PR_STDERR,
+			   "%s: unable to open \"%s\" for reading.\n",
+			   progName, signver.options[opt_InputSigFile].arg);
+		goto cleanup;
+	    }
 	}
-#endif
+    }
 
-	rv = SECU_ParseCommandLine(argc, argv, progName, &signver);
+    if (contentFile == PR_STDIN && signFile == PR_STDIN && doVerify) {
+	PR_fprintf(PR_STDERR,
+	    "%s: cannot read both content and signature from standard input\n",
+		   progName);
+	goto cleanup;
+    }
 
-        if (SECSuccess != rv) {
-            Usage(progName, outFile);
-        }
+    /*	Open|Create the output file.  */
+    if (signver.options[opt_OutputFile].activated) {
+	outFile = fopen(signver.options[opt_OutputFile].arg, "w");
+	if (!outFile) {
+	    PR_fprintf(PR_STDERR, "%s: unable to open \"%s\" for writing.\n",
+		       progName, signver.options[opt_OutputFile].arg);
+	    goto cleanup;
+	}
+    }
 
-	/*  Set the certdb directory (default is ~/.{browser}) */
-	SECU_ConfigDirectory(signver.options[opt_CertDir].arg);
+    /* read in the input files' contents */
+    rv = SECU_ReadDERFromFile(&pkcs7der, signFile,
+			      signver.options[opt_ASCII].activated);
+    if (signFile != PR_STDIN)
+	PR_Close(signFile);
+    if (rv != SECSuccess) {
+	SECU_PrintError(progName, "problem reading PKCS7 input");
+	goto cleanup;
+    }
+    if (contentFile) {
+	rv = SECU_FileToItem(&content, contentFile);
+	if (contentFile != PR_STDIN)
+	    PR_Close(contentFile);
+	if (rv != SECSuccess)
+	    content.data = NULL;
+    }
 
-	/*  Set the certificate type.  */
-	typeTag = SECU_GetOptionArg(&signver, opt_TypeTag);
+    /* Signature Verification */
+    if (doVerify) {
+	SEC_PKCS7ContentInfo *cinfo;
+	SEC_PKCS7SignedData *signedData;
+	HASH_HashType digestType;
+	PRBool contentIsSigned;
 
-	/*  -i and -s without filenames  */
-	if (signver.options[opt_InputDataFile].activated &&
-	    signver.options[opt_InputSigFile].activated &&
-    	    !PL_strcmp("-", signver.options[opt_InputDataFile].arg) &&
-	    !PL_strcmp("-", signver.options[opt_InputSigFile].arg))
-		PR_fprintf(PR_STDERR, 
-	              "%s: Only data or signature file can use stdin (not both).\n",
-	              progName);
+	cinfo = SEC_PKCS7DecodeItem(&pkcs7der, NULL, NULL, NULL, NULL,
+				    NULL, NULL, NULL);
+	if (cinfo == NULL) {
+	    PR_fprintf(PR_STDERR, "Unable to decode PKCS7 data\n");
+	    goto cleanup;
+	}
+	/* below here, goto done */
 
-	/*  Open the input data file (no arg == use stdin). */
-	if (signver.options[opt_InputDataFile].activated) {
-		if (PL_strcmp("-", signver.options[opt_InputDataFile].arg))
-			dataFile = PR_Open(signver.options[opt_InputDataFile].arg, 
-			                   PR_RDONLY, 0);
-		else
-			dataFile = PR_STDIN;
-		if (!dataFile) {
-			PR_fprintf(PR_STDERR, "%s: unable to open \"%s\" for reading.\n",
-			           progName, signver.options[opt_InputDataFile].arg);
-			return -1;
+	contentIsSigned = SEC_PKCS7ContentIsSigned(cinfo);
+	if (debugInfo) {
+	    PR_fprintf(PR_STDERR, "Content is%s encrypted.\n",
+		       SEC_PKCS7ContentIsEncrypted(cinfo) ? "" : " not");
+	}
+	if (debugInfo || !contentIsSigned) {
+	    PR_fprintf(PR_STDERR, "Content is%s signed.\n",
+		       contentIsSigned ? "" : " not");
+	}
+
+	if (!contentIsSigned)
+	    goto done;
+
+	signedData = cinfo->content.signedData;
+
+	/* assume that there is only one digest algorithm for now */
+	digestType = AlgorithmToHashType(signedData->digestAlgorithms[0]);
+	if (digestType == HASH_AlgNULL) {
+	    PR_fprintf(PR_STDERR, "Invalid hash algorithmID\n");
+	    goto done;
+	}
+	if (content.data) {
+	    SECCertUsage   usage = certUsageEmailSigner;
+	    SECItem	   digest;
+	    unsigned char  digestBuffer[HASH_LENGTH_MAX];
+
+	    if (debugInfo)
+		PR_fprintf(PR_STDERR, "contentToVerify=%s\n", content.data);
+
+	    digest.data = digestBuffer;
+	    digest.len	= sizeof digestBuffer;
+
+	    if (DigestContent(&digest, &content, digestType)) {
+		SECU_PrintError(progName, "Message digest computation failure");
+		goto done;
+	    }
+
+	    if (debugInfo) {
+		unsigned int i;
+		PR_fprintf(PR_STDERR, "Data Digest=:");
+		for (i = 0; i < digest.len; i++)
+		    PR_fprintf(PR_STDERR, "%02x:", digest.data[i]);
+		PR_fprintf(PR_STDERR, "\n");
+	    }
+
+	    fprintf(outFile, "signatureValid=");
+	    PORT_SetError(0);
+	    if (SEC_PKCS7VerifyDetachedSignature (cinfo, usage,
+				   &digest, digestType, PR_FALSE)) {
+		fprintf(outFile, "yes");
+	    } else {
+		fprintf(outFile, "no");
+		if (verbose) {
+		    fprintf(outFile, ":%s",
+			    SECU_ErrorString((int16)PORT_GetError()));
 		}
+	    }
+	    fprintf(outFile, "\n");
+	    result = 0;
 	}
+done:
+	SEC_PKCS7DestroyContentInfo(cinfo);
+    }
 
-	/*  Open the input signature file (no arg == use stdin).  */
-	if (signver.options[opt_InputSigFile].activated) {
-		if (PL_strcmp("-", signver.options[opt_InputSigFile].arg))
-			signFile = PR_Open(signver.options[opt_InputSigFile].arg, 
-			                   PR_RDONLY, 0);
-		else
-			signFile = PR_STDIN;
-		if (!signFile) {
-			PR_fprintf(PR_STDERR, "%s: unable to open \"%s\" for reading.\n",
-			           progName, signver.options[opt_InputSigFile].arg);
-			return -1;
-		}
-	}
+    if (displayAll) {
+	if (SV_PrintPKCS7ContentInfo(outFile, &pkcs7der))
+	    result = 1;
+    }
 
-#if 0
-				if (!typeTag) ascii = 1;
-#endif
+cleanup:
+    SECITEM_FreeItem(&pkcs7der, PR_FALSE);
+    SECITEM_FreeItem(&content, PR_FALSE);
 
-	/*  Open|Create the output file.  */
-	if (signver.options[opt_OutputFile].activated) {
-		outFile = fopen(signver.options[opt_OutputFile].arg, "w");
-			/*
-		outFile = PR_Open(signver.options[opt_OutputFile].arg,
-		                  PR_WRONLY|PR_CREATE_FILE|PR_TRUNCATE, 00660);
-						  */
-		if (!outFile) {
-			PR_fprintf(PR_STDERR, "%s: unable to open \"%s\" for writing.\n",
-			           progName, signver.options[opt_OutputFile].arg);
-			return -1;
-		}
-	}
+    if (NSS_Shutdown() != SECSuccess) {
+	result = 1;
+    }
 
-	if (!signFile && !dataFile && !typeTag) 
-		Usage(progName, outFile);
-
-	if (!signFile && !dataFile && 
-	     signver.commands[cmd_VerifySignedObj].activated) {
-		PR_fprintf(PR_STDERR, 
-		           "%s: unable to read all data from standard input\n", 
-		           progName);
-		return -1;
-	} 
-
-	PR_SetError(0, 0); /* PR_Init("pp", 1, 1, 0);*/
-	secstatus = NSS_Init(SECU_ConfigDirectory(NULL));
-    	if (secstatus != SECSuccess) {
-	    SECU_PrintPRandOSError(progName);
-	    return -1;
-	}
-	SECU_RegisterDynamicOids();
-
-	rv = SECU_ReadDERFromFile(&der, signFile, 
-	                          signver.options[opt_ASCII].activated);
-
-	/* Data is untyped, using the specified type */
-	data.data = der.data;
-	data.len = der.len;
-
-
-	/* Signature Verification */
-	if (!signver.options[opt_TypeTag].activated) {
-		if (signver.commands[cmd_VerifySignedObj].activated) {
-			SEC_PKCS7ContentInfo *cinfo;
-
-			cinfo = SEC_PKCS7DecodeItem(&data, NULL, NULL, NULL, NULL,
-			                            NULL, NULL, NULL);
-			if (cinfo != NULL) {
-#if 0
-				if (debugInfo) {
-					PR_fprintf(PR_STDERR, "Content %s encrypted.\n",
-							   SEC_PKCS7ContentIsEncrypted(cinfo) ? "was" : "was not");
-
-					PR_fprintf(PR_STDERR, "Content %s signed.\n",
-							   SEC_PKCS7ContentIsSigned(cinfo) ? "was" : "was not");
-				}
-#endif
-
-				if (SEC_PKCS7ContentIsSigned(cinfo)) {
-					SEC_PKCS7SignedData *signedData;
-					HASH_HashType digestType;
-					SECItem digest, data;
-					unsigned char *dataToVerify, digestBuffer[32];
-
-					signedData = cinfo->content.signedData;
-
-					/* assume that there is only one digest algorithm for now */
-					digestType = 
-					  AlgorithmToHashType(signedData->digestAlgorithms[0]);
-					if (digestType == HASH_AlgNULL) {
-						PR_fprintf(PR_STDERR, "Invalid hash algorithmID\n");
-						return (-1);
-					}
-					rv = SECU_FileToItem(&data, dataFile);
-					dataToVerify = data.data;
-					if (dataToVerify) {
-						                   /*certUsageObjectSigner;*/
-						SECCertUsage usage = certUsageEmailSigner; 
-						
-
-#if 0
-						if (debugInfo) 
-							PR_fprintf(PR_STDERR, "dataToVerify=%s\n", 
-							           dataToVerify);
-#endif
-						digest.data = digestBuffer;
-						if (DigestData (digest.data, dataToVerify, 
-						                &digest.len, 32, digestType)) {
-							PR_fprintf(PR_STDERR, "Fail to compute message digest for verification. Reason: %s\n",
-									  SECU_ErrorString((int16)PORT_GetError()));
-							return (-1);
-						}
-#if 0
-						if (debugInfo) {
-							PR_fprintf(PR_STDERR, "Data Digest=:");
-							for (i = 0; i < digest.len; i++)
-								PR_fprintf(PR_STDERR, "%02x:", digest.data[i]);
-							PR_fprintf(PR_STDERR, "\n");
-						}
-#endif
-
-
-						if (signver.commands[cmd_VerifySignedObj].activated)
-							fprintf(outFile, "signatureValid=");
-						PORT_SetError(0);
-						if (SEC_PKCS7VerifyDetachedSignature (cinfo, usage, 
-						                       &digest, digestType, PR_FALSE)) {
-							if (signver.commands[cmd_VerifySignedObj].activated)
-								fprintf(outFile, "yes");
-						} else {
-							if (signver.commands[cmd_VerifySignedObj].activated){
-								fprintf(outFile, "no");
-							if (signver.options[opt_PrintWhyFailure].activated)
-							fprintf(outFile, ":%s", SECU_ErrorString((int16)PORT_GetError()));
-							}
-						}
-						if (signver.commands[cmd_VerifySignedObj].activated)
-							fprintf(outFile, "\n");
-
-						SECITEM_FreeItem(&data, PR_FALSE);
-					} else {
-						PR_fprintf(PR_STDERR, "Cannot read data\n");
-						return (-1);
-					}
-				}
-
-				SEC_PKCS7DestroyContentInfo(cinfo);
-			} else
-				PR_fprintf(PR_STDERR, "Unable to decode PKCS7 data\n");
-		}
-
-		if (signver.commands[cmd_DisplayAllPCKS7Info].activated)
-			SV_PrintPKCS7ContentInfo(outFile, &data);
-
-	/* Pretty print it */
-	} else if (PL_strcmp(typeTag, SEC_CT_CERTIFICATE) == 0) {
-		rv = SECU_PrintSignedData(outFile, &data, "Certificate", 0,
-								  SECU_PrintCertificate);
-	} else if (PL_strcmp(typeTag, SEC_CT_CERTIFICATE_REQUEST) == 0) {
-		rv = SECU_PrintSignedData(outFile, &data, "Certificate Request", 0,
-								  SECU_PrintCertificateRequest);
-	} else if (PL_strcmp (typeTag, SEC_CT_CRL) == 0) {
-		rv = SECU_PrintSignedData (outFile, &data, "CRL", 0, SECU_PrintCrl);
-#ifdef HAVE_EPK_TEMPLATE
-	} else if (PL_strcmp(typeTag, SEC_CT_PRIVATE_KEY) == 0) {
-		rv = SECU_PrintPrivateKey(outFile, &data, "Private Key", 0);
-#endif
-	} else if (PL_strcmp(typeTag, SEC_CT_PUBLIC_KEY) == 0) {
-		rv = SECU_PrintPublicKey(outFile, &data, "Public Key", 0);
-	} else if (PL_strcmp(typeTag, SEC_CT_PKCS7) == 0) {
-		rv = SECU_PrintPKCS7ContentInfo(outFile, &data,
-										"PKCS #7 Content Info", 0);
-	} else {
-		PR_fprintf(PR_STDERR, "%s: don't know how to print out '%s' files\n",
-				   progName, typeTag);
-		return -1;
-	}
-
-	if (rv) {
-		PR_fprintf(PR_STDERR, "%s: problem converting data (%s)\n",
-				   progName, SECU_ErrorString((int16)PORT_GetError()));
-		return -1;
-	}
-
-       if (NSS_Shutdown() != SECSuccess) {
-           exit(1);
-       }
-
-	return 0;
+    return result;
 }
