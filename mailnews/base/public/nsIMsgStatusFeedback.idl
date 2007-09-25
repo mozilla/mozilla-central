@@ -39,11 +39,11 @@
 
 [scriptable, uuid(AACBFA34-8D29-4A08-9283-A8E5B3AB067F)]
 interface nsIMsgStatusFeedback : nsISupports {
-	void showStatusString(in AString aStatus);
-	void startMeteors();
-	void stopMeteors();
-	void showProgress(in long aPercent);
-	void setStatusString(in AString aStatus); // will be displayed until next user action
+  void showStatusString(in AString aStatus);
+  void startMeteors();
+  void stopMeteors();
+  void showProgress(in long aPercent);
+  void setStatusString(in AString aStatus); // will be displayed until next user action
 
   /* aStatusFeedback: a wrapped JS status feedback object */
   void setWrappedStatusFeedback(in nsIMsgStatusFeedback aStatusFeedback);

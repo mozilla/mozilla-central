@@ -101,16 +101,16 @@ interface nsIMsgProtocolInfo : nsISupports
     /**
      * An attribute that tell us whether on not we can 
      * get messages for the given server type 
-	 * this is poorly named right now.
-	 * it's really is there an inbox for this type?
-	 * XXX todo, rename this.
+   * this is poorly named right now.
+   * it's really is there an inbox for this type?
+   * XXX todo, rename this.
      */
     readonly attribute boolean canGetMessages;
 
     /** 
-	 * do messages arrive for this server
-	 * if they do, we can use our junk controls on it.
-	 */
+   * do messages arrive for this server
+   * if they do, we can use our junk controls on it.
+   */
     readonly attribute boolean canGetIncomingMessages;
 
     /**

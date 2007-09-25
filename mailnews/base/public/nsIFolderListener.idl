@@ -89,6 +89,6 @@ interface nsIFolderListener : nsISupports {
   
   const folderListenerNotifyFlagValue all = 0xFFFFFFFF; 
 
-  //	void OnFolderLoaded(in nsIMsgFolder aFolder);
-  //	void OnDeleteOrMoveMessagesCompleted(in nsIMsgFolder aFolder);
+  //  void OnFolderLoaded(in nsIMsgFolder aFolder);
+  //  void OnDeleteOrMoveMessagesCompleted(in nsIMsgFolder aFolder);
 };

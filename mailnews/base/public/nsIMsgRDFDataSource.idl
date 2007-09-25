@@ -44,5 +44,5 @@
 
 interface nsIMsgRDFDataSource :  nsISupports
 {
-	attribute nsIMsgWindow window;
+  attribute nsIMsgWindow window;
 };

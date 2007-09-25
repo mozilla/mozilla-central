@@ -45,8 +45,8 @@ interface nsIMsgMailNewsUrl;
 
 /*
  * The url listener manager is a helper class used by all of our
- * subclassed urls to implement	registration and broadcasting of changes
- * to all of their registered url listeners. I envision	every url
+ * subclassed urls to implement  registration and broadcasting of changes
+ * to all of their registered url listeners. I envision  every url
  * implementation to have a has a relationship with a nsIUrlListenerManager.
  * All url listener register/unregister calls are forwarded to the
  * listener manager. In addition, the url listener manager handles

@@ -113,22 +113,22 @@ interface nsMsgViewSortType
 [scriptable, uuid(255d1c1e-fde7-11d4-a5be-0060b0fc04b7)]
 interface nsMsgViewNotificationCode
 {
-  const nsMsgViewNotificationCodeValue none = 0;				
+  const nsMsgViewNotificationCodeValue none = 0;        
   /* No change; this call is just being used to potentially nest other sets of calls
      inside it.  The "where" and "num" parameters are unused. 
    */
-  const nsMsgViewNotificationCodeValue insertOrDelete = 1;		
+  const nsMsgViewNotificationCodeValue insertOrDelete = 1;    
   /* Some lines have been inserted or deleted.
      The "where" parameter will indicate the first line that has been added or
      removed; the "num" parameter will indicate how many lines, and will be positive on
      an insertion and negative on a deletion. 
    */
-  const nsMsgViewNotificationCodeValue changed = 2;			
+  const nsMsgViewNotificationCodeValue changed = 2;      
   /* Some lines have had their contents changed (e.g., messages have been marked read
     or something.)  "where" indicates the first line with a change; "num" indicates
     how many chaged. 
    */
- const nsMsgViewNotificationCodeValue  scramble = 3;	
+ const nsMsgViewNotificationCodeValue  scramble = 3;  
  /* Everything changed.  Probably means we resorted the folder.  We are still working
     with the same set of items, or at least have some overlap, but all the indices are
     invalid.  The "where" and "num" parameters are unused. 
@@ -167,7 +167,7 @@ interface nsMsgViewCommandType
   const nsMsgViewCommandTypeValue markMessagesRead = 0;
   const nsMsgViewCommandTypeValue markMessagesUnread = 1;
   const nsMsgViewCommandTypeValue toggleMessageRead = 2;
-								   
+                   
   const nsMsgViewCommandTypeValue flagMessages = 3;
   const nsMsgViewCommandTypeValue unflagMessages = 4;
 

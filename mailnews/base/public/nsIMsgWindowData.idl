@@ -49,7 +49,7 @@ interface nsITransactionManager;
 [scriptable, uuid(BD85A416-5433-11d3-8AC5-0060B0FC04D2)]
 interface nsIMsgWindowData : nsISupports {
 
-	attribute nsIMsgStatusFeedback statusFeedback;
+  attribute nsIMsgStatusFeedback statusFeedback;
     attribute nsITransactionManager transactionManager;
-	attribute nsIMessageView messageView;
+  attribute nsIMessageView messageView;
 };

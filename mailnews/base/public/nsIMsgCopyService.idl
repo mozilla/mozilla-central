@@ -92,7 +92,7 @@ interface nsIMsgCopyService : nsISupports {
      * dstFolder -- the destination folder which performs the copy operation
      * result -- the result of the copy operation
      */
-	void NotifyCompletion(in nsISupports aSupport,
+  void NotifyCompletion(in nsISupports aSupport,
                               in nsIMsgFolder dstFolder,
                               in nsresult result);
 

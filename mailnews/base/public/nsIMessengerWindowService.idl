@@ -42,8 +42,8 @@
 interface nsIMessengerWindowService : nsISupports {
     /* aWindowType --> the type of window you want to create. i.e. "mail:3pane"
        aFolderURI --> the folder resource you want pre-selected (if any)
-	   aMsgKey --> a particular message you may want selected in that folder (if any)
-	*/ 
-	void openMessengerWindowWithUri(in string aWindowType, in string aFolderURI, in nsMsgKey aMsgKey);
+     aMsgKey --> a particular message you may want selected in that folder (if any)
+  */ 
+  void openMessengerWindowWithUri(in string aWindowType, in string aFolderURI, in nsMsgKey aMsgKey);
 };
 

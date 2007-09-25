@@ -42,10 +42,10 @@
 interface nsIMsgBiffManager : nsISupports {
 
   void init();
-	void addServerBiff(in nsIMsgIncomingServer server);
-	void removeServerBiff(in nsIMsgIncomingServer server);
-	void forceBiff(in nsIMsgIncomingServer server);
-	void forceBiffAll();
-	void shutdown();
+  void addServerBiff(in nsIMsgIncomingServer server);
+  void removeServerBiff(in nsIMsgIncomingServer server);
+  void forceBiff(in nsIMsgIncomingServer server);
+  void forceBiffAll();
+  void shutdown();
 };
 

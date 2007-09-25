@@ -74,56 +74,56 @@ interface nsIMsgMessageService : nsISupports {
      // PR_FALSE leaves it as just a copy.
      ///////////////////////////////////////////////////////////////
   
-	void CopyMessage(in string aSrcURI, in nsIStreamListener aCopyListener, in boolean aMoveMessage,
-						   in nsIUrlListener aUrlListener, in nsIMsgWindow aMsgWindow, out nsIURI aURL);
+  void CopyMessage(in string aSrcURI, in nsIStreamListener aCopyListener, in boolean aMoveMessage,
+               in nsIUrlListener aUrlListener, in nsIMsgWindow aMsgWindow, out nsIURI aURL);
 
     /* copy multiple messages at a time */
-	[noscript] void CopyMessages(in nsMsgKeyArrayPtr keys, in nsIMsgFolder srcFolder, in nsIStreamListener aCopyListener, in boolean aMoveMessage,
-						   in nsIUrlListener aUrlListener, in nsIMsgWindow aMsgWindow, out nsIURI aURL);
+  [noscript] void CopyMessages(in nsMsgKeyArrayPtr keys, in nsIMsgFolder srcFolder, in nsIStreamListener aCopyListener, in boolean aMoveMessage,
+               in nsIUrlListener aUrlListener, in nsIMsgWindow aMsgWindow, out nsIURI aURL);
 
     /////////////////////////////////////////////////////////////////////
     //  DisplayMessage: When you want a message displayed....
-    //  aMessageURI	  is a uri representing the message to display.
+    //  aMessageURI    is a uri representing the message to display.
     //  aDisplayConsumer is (for now) an nsIDocShell which we'll use to load 
     //  the message into.
     //  XXXbz Should it be an nsIWebNavigation or something?
-	  //	aCharsetOverride  (optional) character set over ride to force the message to
-	  //  use.
-	  //
+    //  aCharsetOverride  (optional) character set over ride to force the message to
+    //  use.
+    //
     ///////////////////////////////////////////////////////////////////
 
-	void DisplayMessage(in string aMessageURI, 
-						in nsISupports aDisplayConsumer, 
-						in nsIMsgWindow aMsgWindow,
-						in nsIUrlListener aUrlListener, 
-						in string aCharsetOverride, 
-						out nsIURI aURL);
+  void DisplayMessage(in string aMessageURI, 
+            in nsISupports aDisplayConsumer, 
+            in nsIMsgWindow aMsgWindow,
+            in nsIUrlListener aUrlListener, 
+            in string aCharsetOverride, 
+            out nsIURI aURL);
 
      /////////////////////////////////////////////////////////////////////
      //  OpenAttachment: When you want an attachment downloaded
      //  aContentType --> we need to know the content type of the attachment
-	 //	 aFileName --> the name of the attachment.
-	 //	 aUrl --> string representation of the original url associated with the msg.
-	 //  aMessageUri --> RDF resource that describes the message
-	 //	 aMsgWindow --> message window
+   //   aFileName --> the name of the attachment.
+   //   aUrl --> string representation of the original url associated with the msg.
+   //  aMessageUri --> RDF resource that describes the message
+   //   aMsgWindow --> message window
      ///////////////////////////////////////////////////////////////////
 
-	void openAttachment(in string aContentType, 
-						in string aFileName, 
-						in string aUrl,
-						in string aMessageUri, 
-						in nsISupports aDisplayConsumer, 
-						in nsIMsgWindow aMsgWindow,
-						in nsIUrlListener aUrlListener);
+  void openAttachment(in string aContentType, 
+            in string aFileName, 
+            in string aUrl,
+            in string aMessageUri, 
+            in nsISupports aDisplayConsumer, 
+            in nsIMsgWindow aMsgWindow,
+            in nsIUrlListener aUrlListener);
 
      /////////////////////////////////////////////////////////////////////
      // SaveMessageToDisk: When you want to spool a message out to a file
-	 // on disk. This is an asynch operation of course. You must pass in a
-	 // url listener in order to figure out when the operation is done.
-	 // aMessageURI--> uri representing the message to spool out to disk.
-	 // aFile - the file you want the message saved to
-	 // aGenerateDummyEnvelope --> usually FALSE. Set to TRUE if you want the msg
-	 //					  appended at the end of the file. 
+   // on disk. This is an asynch operation of course. You must pass in a
+   // url listener in order to figure out when the operation is done.
+   // aMessageURI--> uri representing the message to spool out to disk.
+   // aFile - the file you want the message saved to
+   // aGenerateDummyEnvelope --> usually FALSE. Set to TRUE if you want the msg
+   //            appended at the end of the file. 
      ///////////////////////////////////////////////////////////////////
 
   void SaveMessageToDisk(in string aMessageURI, in nsIFile aFile,
@@ -132,12 +132,12 @@ interface nsIMsgMessageService : nsISupports {
                          in boolean canonicalLineEnding, in nsIMsgWindow aMsgWindow);
 
     /////////////////////////////////////////////////////////////////////
-	// GetUrlForUri: when you have a uri and you would like to convert that
-	// to a url which can be run through necko, you can use this method.
-	// the Uri MUST refer to a message and not a folder! 
+  // GetUrlForUri: when you have a uri and you would like to convert that
+  // to a url which can be run through necko, you can use this method.
+  // the Uri MUST refer to a message and not a folder! 
     /////////////////////////////////////////////////////////////////////
     
-	void GetUrlForUri(in string aMessageURI, out nsIURI aURL, in nsIMsgWindow aMsgWindow);
+  void GetUrlForUri(in string aMessageURI, out nsIURI aURL, in nsIMsgWindow aMsgWindow);
 
      /////////////////////////////////////////////////////////////////////
      //  DisplayMessageForPrinting: When you want a message displayed in a
@@ -148,12 +148,12 @@ interface nsIMsgMessageService : nsISupports {
      //  XXXbz should it be an nsIWebNavigation?
      ///////////////////////////////////////////////////////////////////
 
-	void DisplayMessageForPrinting(in string aMessageURI, in nsISupports aDisplayConsumer, 
-						in nsIMsgWindow aMsgWindow,
-						in nsIUrlListener aUrlListener, 
-						out nsIURI aURL);
+  void DisplayMessageForPrinting(in string aMessageURI, in nsISupports aDisplayConsumer, 
+            in nsIMsgWindow aMsgWindow,
+            in nsIUrlListener aUrlListener, 
+            out nsIURI aURL);
 
-	void Search(in nsIMsgSearchSession aSearchSession, in nsIMsgWindow aMsgWindow, in nsIMsgFolder aMsgFolder, in string aSearchUri);
+  void Search(in nsIMsgSearchSession aSearchSession, in nsIMsgWindow aMsgWindow, in nsIMsgFolder aMsgFolder, in string aSearchUri);
 
   // this method streams a message to the passed in consumer. If aConvertData is true, it
   // will create a stream converter from message rfc822 to star/star. It will also tack
@@ -183,10 +183,10 @@ interface nsIMsgMessageService : nsISupports {
 [scriptable, uuid(3728C255-480C-11d4-98D0-001083010E9B)]
 interface nsIMsgMessageFetchPartService : nsISupports 
 {
-	// FetchMimePart --> used to fetch an individual mime part
-	// aURI --> url representing the message
-	// aMessageURI --> RDF URI including the part to fetch
-	nsIURI fetchMimePart(in nsIURI aURI, in string aMessageUri, in nsISupports aDisplayConsumer, 
-						in nsIMsgWindow aMsgWindow,
-						in nsIUrlListener aUrlListener);	
+  // FetchMimePart --> used to fetch an individual mime part
+  // aURI --> url representing the message
+  // aMessageURI --> RDF URI including the part to fetch
+  nsIURI fetchMimePart(in nsIURI aURI, in string aMessageUri, in nsISupports aDisplayConsumer, 
+            in nsIMsgWindow aMsgWindow,
+            in nsIUrlListener aUrlListener);  
 };
