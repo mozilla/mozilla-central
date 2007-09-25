@@ -39,10 +39,10 @@
 #define nsImportMailboxDescriptor_h___
 
 #include "nscore.h"
-#include "nsString.h"
-#include "nsReadableUtils.h"
+#include "nsStringGlue.h"
 #include "nsIImportMailboxDescriptor.h"
 #include "nsILocalFile.h"
+#include "nsCOMPtr.h"
 
 ////////////////////////////////////////////////////////////////////////
 

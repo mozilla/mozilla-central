@@ -40,10 +40,10 @@
 #define nsImportABDescriptor_h___
 
 #include "nscore.h"
-#include "nsString.h"
-#include "nsReadableUtils.h"
+#include "nsStringGlue.h"
 #include "nsIImportABDescriptor.h"
 #include "nsIFile.h"
+#include "nsCOMPtr.h"
 
 ////////////////////////////////////////////////////////////////////////
 

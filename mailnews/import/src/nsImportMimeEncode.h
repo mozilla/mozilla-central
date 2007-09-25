@@ -40,7 +40,7 @@
 #include "nsImportScanFile.h"
 #include "ImportOutFile.h"
 #include "nsImportEncodeScan.h"
-#include "nsString.h"
+#include "nsStringGlue.h"
 #include "nsIImportMimeEncode.h"
 
 

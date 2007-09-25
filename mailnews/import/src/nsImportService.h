@@ -41,7 +41,7 @@
 
 #include "nsICharsetConverterManager.h"
 
-#include "nsString.h"
+#include "nsStringGlue.h"
 #include "nsIComponentManager.h"
 #include "nsIServiceManager.h"
 #include "nsMemory.h"

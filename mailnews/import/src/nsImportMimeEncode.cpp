@@ -37,7 +37,6 @@
  * ***** END LICENSE BLOCK ***** */
 
 #include "nscore.h"
-#include "nsString.h"
 #include "nsImportMimeEncode.h"
 
 #include "ImportCharSet.h"

@@ -36,7 +36,7 @@
  * ***** END LICENSE BLOCK ***** */
 
 #include "nscore.h"
-#include "nsString.h"
+#include "nsStringGlue.h"
 #include "prio.h"
 #include "nsNetUtil.h"
 #include "nsISeekableStream.h"

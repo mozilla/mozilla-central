@@ -39,6 +39,8 @@
 
 #include "nscore.h"
 #include "nsImportMailboxDescriptor.h"
+#include "nsComponentManagerUtils.h"
+
 ////////////////////////////////////////////////////////////////////////
 
 

@@ -48,7 +48,7 @@
 #include "nsISupportsPrimitives.h"
 #include "nsIImportABDescriptor.h"
 #include "nsIImportFieldMap.h"
-#include "nsString.h"
+#include "nsStringGlue.h"
 #include "nsIURL.h"
 #include "nsNetCID.h"
 
@@ -65,10 +65,13 @@
 #include "nsImportStringBundle.h"
 #include "nsTextFormatter.h"
 #include "nsIProxyObjectManager.h"
+#include "nsServiceManagerUtils.h"
 #include "nsProxiedService.h"
 #include "msgCore.h"
 #include "ImportDebug.h"
 #include "nsIAbMDBDirectory.h"
+#include "nsComponentManagerUtils.h"
+#include "nsXPCOMCIDInternal.h"
 
 static NS_DEFINE_CID(kRDFServiceCID, NS_RDFSERVICE_CID);
 PR_STATIC_CALLBACK( void) ImportAddressThread( void *stuff);

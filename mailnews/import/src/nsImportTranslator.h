@@ -39,7 +39,8 @@
 #define nsImportTranslator_h___
 
 #include "nscore.h"
-#include "nsString.h"
+#include "nsStringGlue.h"
+#include "nsCOMPtr.h"
 
 class ImportOutFile;
 

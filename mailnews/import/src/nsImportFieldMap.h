@@ -39,7 +39,6 @@
 #define nsImportFieldMap_h___
 
 #include "nscore.h"
-#include "nsString.h"
 #include "nsIImportFieldMap.h"
 #include "nsIAddrDatabase.h"
 #include "nsVoidArray.h"

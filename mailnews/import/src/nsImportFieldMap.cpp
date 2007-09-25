@@ -41,7 +41,6 @@
 #include "nsIStringBundle.h"
 #include "nsImportFieldMap.h"
 #include "nsImportStringBundle.h"
-#include "nsReadableUtils.h"
 #include "nsISupportsObsolete.h"
 #include "nsCRTGlue.h"
 #include "ImportDebug.h"

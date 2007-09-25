@@ -46,7 +46,7 @@
 #include "nsIPlatformCharset.h"
 #include "nsICharsetConverterManager.h"
 
-#include "nsString.h"
+#include "nsStringGlue.h"
 #include "nsIComponentManager.h"
 #include "nsIServiceManager.h"
 #include "nsMemory.h"
@@ -66,6 +66,8 @@
 #include "nsImportService.h"
 #include "nsImportStringBundle.h"
 #include "nsCRTGlue.h"
+#include "nsServiceManagerUtils.h"
+#include "nsComponentManagerUtils.h"
 
 PRLogModuleInfo *IMPORTLOGMODULE = nsnull;
 
@@ -465,19 +467,18 @@ PRBool ImportModuleDesc::SupportsThings( const char *pThings)
   nsCString item;
   PRInt32 idx;
 
-  while ((idx = thing.FindChar( ',')) != kNotFound)
+  while ((idx = thing.FindChar( ',')) != -1)
   {
-    thing.Left( item, idx);
+    item = StringHead(thing, idx);
     item.Trim( kWhitespace);
     ToLowerCase(item);
-    if (item.Length() && (m_supports.Find( item) == kNotFound))
+    if (item.Length() && (m_supports.Find( item) == -1))
       return PR_FALSE;
-    thing.Right( item, thing.Length() - idx - 1);
-    thing = item;
+    thing = Substring(thing, idx + 1);
   }
   thing.Trim( kWhitespace);
   ToLowerCase(thing);
-  return thing.IsEmpty() || (m_supports.Find(thing) != kNotFound);
+  return thing.IsEmpty() || (m_supports.Find(thing) != -1);
 }
 
 void nsImportModuleList::ClearList( void)
