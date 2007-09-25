@@ -1,6 +1,7 @@
 #
 ## hostname: tb-linux-tbox
-## uname: Linux tb-linux-tbox.build.mozilla.org 2.6.9-42.ELsmp #1 SMP Sat Aug 12 09:39:11 CDT 2006 i686 i686 i386 GNU/Linux
+## uname: Linux tb-linux-tbox.build.mozilla.org 2.6.18-8.el5 #1 SMP Thu Mar 15 19:57:35 EDT 2007 i686 athlon i386 GNU/Linux
+ 
 #
 
 mk_add_options MOZ_CO_PROJECT=mail
@@ -14,10 +15,9 @@ ac_add_options --enable-update-packaging
 ac_add_options --enable-optimize="-O2 -gstabs+"
 ac_add_options --enable-official-branding
 ac_add_options --disable-tests
-# You really don't want this in a depend build.  --dbaron (2005-04-05)
-# ac_add_options --disable-auto-deps
-# ac_add_options --disable-md
 ac_add_options --disable-shared
 ac_add_options --enable-static
 ac_add_options --enable-pango
-ac_add_options --enable-default-toolkit=cairo-gtk2
+
+CC=/tools/gcc-4.1.1/bin/gcc
+CXX=/tools/gcc-4.1.1/bin/g++

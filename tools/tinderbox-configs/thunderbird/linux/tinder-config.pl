@@ -1,6 +1,6 @@
 #
 ## hostname: tb-linux-tbox
-## uname: Linux tb-linux-tbox.build.mozilla.org 2.6.9-42.ELsmp #1 SMP Sat Aug 12 09:39:11 CDT 2006 i686 i686 i386 GNU/Linux
+## uname: Linux tbnewref-linux-tbox.build.mozilla.org 2.6.18-8.el5 #1 SMP Thu Mar 15 19:57:35 EDT 2007 i686 athlon i386 GNU/Linux
 #
 
 #- tinder-config.pl - Tinderbox configuration file.
@@ -101,7 +101,7 @@ $RunMozillaTests          = 1;  # Allow turning off of all tests if needed.
 # Note that win32 may not need \@, depends on ' or ".
 # :pserver:$ENV{USER}%netscape.com@cvs.mozilla.org:/cvsroot
 
-$moz_cvsroot   = ":ext:tbirdbld\@cvs.mozilla.org:/cvsroot";
+$moz_cvsroot   = ':ext:cltbld@cvs.mozilla.org:/cvsroot';
 
 # $MofoRoot   = ":ext:cltbld\@cvs.mozilla.org:/mofo";
 
@@ -115,7 +115,7 @@ $moz_cvsroot   = ":ext:tbirdbld\@cvs.mozilla.org:/cvsroot";
 $ObjDir = 'obj-tb-trunk';
 
 # Extra build name, if needed.
-$BuildNameExtra = 'release';
+$BuildNameExtra = 'Nightly';
 
 # User comment, eg. ip address for dhcp builds.
 # ex: $UserComment = "ip = 208.12.36.108";
@@ -157,11 +157,13 @@ $BinaryName = 'thunderbird-bin';
 
 # Release build options
 $ReleaseBuild  = 1;
+$ReleaseToLatest = 1; # Push the release to latest-<milestone>?
+$ReleaseToDated = 1; # Push the release to YYYY-MM-DD-HH-<milestone>?
 $shiptalkback  = 0;
 $build_hour    = "3";
 $package_creation_path = "/mail/installer";
 $ssh_version   = "2";
-$ssh_user      = "tbirdbld";
+$ssh_user      = "cltbld";
 $ssh_server    = "stage.mozilla.org";
 $ftp_path      = "/home/ftp/pub/thunderbird/nightly";
 $url_path      = "http://ftp.mozilla.org/pub/mozilla.org/thunderbird/nightly";
