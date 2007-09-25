@@ -42,7 +42,6 @@ interface nsIURI;
 interface nsIImapUrl;
 interface nsIEventTarget;
 interface nsIImapProtocol;
-interface nsISupportsArray;
 interface nsIMsgFolder;
 interface nsIMsgWindow;
 

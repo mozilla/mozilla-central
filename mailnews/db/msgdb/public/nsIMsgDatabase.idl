@@ -53,7 +53,6 @@ interface nsIMsgOfflineImapOperation;
 interface nsIMsgFolder;
 interface nsIOutputStream;
 interface nsIUrlListener;
-interface nsISupportsArray;
 interface nsILocalFile;
 
 [ptr] native octetPtr(PRUint8);

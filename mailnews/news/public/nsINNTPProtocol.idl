@@ -40,7 +40,6 @@
 interface nsIUrlListener;
 interface nsIURI;
 interface nsINntpUrl;
-interface nsISupportsArray;
 interface nsIMsgFolder;
 interface nsIMsgWindow;
 

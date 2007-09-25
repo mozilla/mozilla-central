@@ -44,7 +44,6 @@
  * to confusion. This is something that very well may change as time allows). 
  */
 #include "nsISupports.idl"
-#include "nsISupportsArray.idl"
 #include "nsrootidl.idl"
 #include "nsIMsgIdentity.idl"
 #include "nsIMsgCompFields.idl"

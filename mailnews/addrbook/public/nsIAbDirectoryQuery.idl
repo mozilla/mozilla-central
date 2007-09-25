@@ -39,7 +39,6 @@
 
 
 #include "nsISupports.idl"
-#include "nsISupportsArray.idl"
 #include "nsIAbBooleanExpression.idl"
 
 interface nsIAbDirSearchListener;

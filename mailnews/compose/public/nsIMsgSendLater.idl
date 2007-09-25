@@ -36,7 +36,6 @@
  * ***** END LICENSE BLOCK ***** */
 
 #include "nsISupports.idl"
-#include "nsISupportsArray.idl"
 #include "nsrootidl.idl"
 #include "nsIMsgIdentity.idl"
 #include "nsIMsgCompFields.idl"

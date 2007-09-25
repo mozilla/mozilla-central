@@ -44,7 +44,6 @@
 
 interface nsIURI;
 interface nsIStreamListener;  
-interface nsISupportsArray;
 interface nsIFile;
 interface nsIMsgWindow;
 interface nsIMsgFolder;
