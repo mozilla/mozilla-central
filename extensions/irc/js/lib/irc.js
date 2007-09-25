@@ -2762,7 +2762,7 @@ function chan_geturl ()
         target = ecmaEscape(target);
     }
 
-    target = target.replace("/", "%2f");
+    target = target.replace(/\//g, "%2f");
 
     return this.parent.parent.getURL(target);
 }
