@@ -300,7 +300,8 @@ run_selfserv_dbx()
 	cat << EOF_DBX > ${DBX_CMD}
 dbxenv follow_fork_mode parent
 dbxenv rtc_mel_at_exit verbose
-check -leaks -match 16 -frames 16
+dbxenv rtc_biu_at_exit verbose
+check -memuse -match 16 -frames 16
 run ${SERVER_OPTION} ${SELFSERV_ATTR}
 EOF_DBX
 	
@@ -323,8 +324,8 @@ run_selfserv_valgrind()
 	echo "PATH=${PATH}"
 	echo "LD_LIBRARY_PATH=${LD_LIBRARY_PATH}"
 	echo "${SCRIPTNAME}: -------- Running selfserv under Valgrind:"
-	echo "${VALGRIND} --tool=memcheck --leak-check=yes --show-reachable=yes --num-callers=50 selfserv ${SELFSERV_ATTR}"
-	${VALGRIND} --tool=memcheck --leak-check=yes --show-reachable=yes --num-callers=50 selfserv ${SELFSERV_ATTR}
+	echo "${VALGRIND} --tool=memcheck --leak-check=yes --show-reachable=yes --partial-loads-ok=yes --leak-resolution=high --num-callers=50 selfserv ${SELFSERV_ATTR}"
+	${VALGRIND} --tool=memcheck --leak-check=yes --show-reachable=yes --partial-loads-ok=yes --leak-resolution=high --num-callers=50 selfserv ${SELFSERV_ATTR}
 }
 
 ############################ strsclnt_attr #############################
@@ -369,7 +370,8 @@ run_strsclnt_dbx()
 		cat << EOF_DBX > ${DBX_CMD}
 dbxenv follow_fork_mode parent
 dbxenv rtc_mel_at_exit verbose
-check -leaks -match 16 -frames 16
+dbxenv rtc_biu_at_exit verbose
+check -memuse -match 16 -frames 16
 run ${CLIENT_OPTION} ${STRSCLNT_ATTR}
 EOF_DBX
 
@@ -399,8 +401,8 @@ run_strsclnt_valgrind()
 	for cipher in ${cipher_list}; do
 		strsclnt_attr ${cipher}
 		echo "${SCRIPTNAME}: -------- Trying cipher ${cipher} under Valgrind:"
-		echo "${VALGRIND} --tool=memcheck --leak-check=yes --show-reachable=yes --num-callers=50 strsclnt ${STRSCLNT_ATTR}"
-		${VALGRIND} --tool=memcheck --leak-check=yes --show-reachable=yes --num-callers=50 strsclnt ${STRSCLNT_ATTR}
+		echo "${VALGRIND} --tool=memcheck --leak-check=yes --show-reachable=yes --partial-loads-ok=yes --leak-resolution=high --num-callers=50 strsclnt ${STRSCLNT_ATTR}"
+		${VALGRIND} --tool=memcheck --leak-check=yes --show-reachable=yes --partial-loads-ok=yes --leak-resolution=high --num-callers=50 strsclnt ${STRSCLNT_ATTR}
 	done
 
 	echo "PATH=${PATH}"
@@ -499,7 +501,8 @@ parse_logfile_dbx()
 	
 	while read line
 	do
-		if [ "${line}" = "Memory Leak (mel):" -o "${line}" = "Possible memory leak -- address in block (aib):" ] ; then
+		if [ "${line}" = "Memory Leak (mel):" -o "${line}" = "Possible memory leak -- address in block (aib):" \
+			-o "${line}" = "Block in use (biu):" ] ; then
 			in_mel=1
 			mel_line=0
 			stack_string=""
@@ -550,7 +553,7 @@ parse_logfile_valgrind()
 		if [ -z "${gline}" ] ; then
 			gline=`echo "${line}" | grep "^${VALGRIND} "`
 			if [ -n "${gline}" ] ; then
-				bin_name=`echo "${line}" | cut -d" " -f6`
+				bin_name=`echo "${line}" | cut -d" " -f8`
 			fi
 			continue
 		fi
