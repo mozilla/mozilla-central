@@ -25,6 +25,7 @@ MozillaEnvironments['vc8perf'] = {
             'C:\\Python24\\Scripts;' + \
             'C:\\cygwin\\bin;' + \
             'C:\\WINDOWS\\System32;' + \
+            'C:\\program files\\gnuwin32\\bin;' + \
             'C:\\WINDOWS;'
 }
 
