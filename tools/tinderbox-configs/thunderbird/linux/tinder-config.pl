@@ -7,6 +7,9 @@
 #-    Uncomment the variables you need to set.
 #-    The default values are the same as the commented variables.
 
+$ENV{CVS_RSH} = "ssh";
+$ENV{MOZ_CRASHREPORTER_NO_REPORT} = '1';
+
 #- PLEASE FILL THIS IN WITH YOUR PROPER EMAIL ADDRESS
 #$BuildAdministrator = "$ENV{USER}\@$ENV{HOST}";
 #$BuildAdministrator = ($ENV{USER} || "cltbld") . "\@" . ($ENV{HOST} || "dhcp");
@@ -210,4 +213,4 @@ $ENV{SYMBOL_SERVER_SSH_KEY}   = "$ENV{HOME}/.ssh/tbirdbld_dsa";
 # binary data is transferred properly.
 #$LogEncoding = 'base64';
 
-$ENV{CVS_RSH} = "ssh";
+

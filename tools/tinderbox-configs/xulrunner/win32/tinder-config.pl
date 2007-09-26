@@ -10,6 +10,7 @@
 $ENV{NO_EM_RESTART} = "1";
 $ENV{MOZ_INSTALLER_USE_7ZIP} = "1";
 $ENV{CVS_RSH} = "ssh";
+$ENV{MOZ_CRASHREPORTER_NO_REPORT} = '1';
 
 # $ENV{MOZ_PACKAGE_MSI}
 #-----------------------------------------------------------------------------

@@ -10,6 +10,7 @@
 $ENV{CVSROOT}=":ext:cltbld\@cvs.mozilla.org:/cvsroot";
 $ENV{MOZ_INSTALLER_USE_7ZIP}="1";
 $ENV{MOZ_PACKAGE_MSI} = 0;
+$ENV{MOZ_CRASHREPORTER_NO_REPORT} = '1';
 
 #- PLEASE FILL THIS IN WITH YOUR PROPER EMAIL ADDRESS
 #$BuildAdministrator = "$ENV{USER}\@$ENV{HOST}";

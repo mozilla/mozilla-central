@@ -12,6 +12,7 @@ $MacUniversalBinary = 1;
 $ENV{CHOWN_ROOT} = "/builds/tinderbox/bin/chown_root";
 $ENV{REVERT_ROOT} = "/builds/tinderbox/bin/revert_root";
 $ENV{CHOWN_REVERT} = $ENV{REVERT_ROOT};
+$ENV{MOZ_CRASHREPORTER_NO_REPORT} = '1';
 
 # $ENV{MOZ_PACKAGE_MSI}
 #-----------------------------------------------------------------------------

@@ -11,6 +11,7 @@ $ENV{MOZILLA_OFFICIAL} = 1;
 $ENV{CVS_RSH} = "ssh";
 #$ENV{PATH} = "/usr/gcc-3.3.2rh/bin:$ENV{PATH}";
 # $ENV{PAGELOAD_URL} = "http://spider/page-loader";
+$ENV{MOZ_CRASHREPORTER_NO_REPORT} = '1';
 
 # To ensure Talkback client builds properly on some Linux boxen where LANG
 # is set to "en_US.UTF-8" by default, override that setting here by setting

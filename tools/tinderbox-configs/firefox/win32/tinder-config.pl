@@ -10,6 +10,7 @@
 $ENV{MOZ_INSTALLER_USE_7ZIP} = '1';
 $ENV{NO_EM_RESTART} = '1';
 $ENV{MOZ_PACKAGE_NSIS} = '1';
+$ENV{MOZ_CRASHREPORTER_NO_REPORT} = '1';
 
 # $ENV{MOZ_PACKAGE_MSI}
 #-----------------------------------------------------------------------------
