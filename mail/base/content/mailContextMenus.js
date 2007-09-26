@@ -548,7 +548,6 @@ function fillFolderPaneContextMenu()
   SetupCompactMenuItem(folderResource, numSelected);
   SetupFavoritesMenuItem(folderResource, numSelected, isServer, 'folderPaneContext-favoriteFolder');
 
-  ShowMenuItem("folderPaneContext-copy-location", !isServer && !isVirtualFolder);
   ShowMenuItem("folderPaneContext-emptyTrash", (numSelected <= 1) && (specialFolder == 'Trash'));
   EnableMenuItem("folderPaneContext-emptyTrash", true);
   ShowMenuItem("folderPaneContext-emptyJunk", (numSelected <= 1) && (specialFolder == 'Junk'));
