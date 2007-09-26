@@ -295,6 +295,11 @@ setDaywithjsDate: function(aNewDate)
   {
     return (sameDay(today(), this.start));
   },
+  
+  showsYesterday: function()
+  {
+    return (sameDay(yesterday(), this.start));
+  },
 
   updatePeriod: function()
   {

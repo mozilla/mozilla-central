@@ -187,6 +187,13 @@ function today()
     return d.getInTimezone(calendarDefaultTimezone());
 }
 
+function yesterday()
+{
+    var d = today();
+    d.day--;
+    return d;
+}
+
 function nextMonth(dt)
 {
     var d = new Date(dt);
@@ -448,11 +455,11 @@ function refreshUIBits() {
         cView.goToDay(cView.selectedDay);
     }
 
-    // schedule our next update...
-    scheduleMidnightUpdate(refreshUIBits);
-    if (TodayPane.showsToday()) {
+    if (TodayPane.showsYesterday()) {
       TodayPane.setDay(today());
     }
+    // schedule our next update...
+    scheduleMidnightUpdate(refreshUIBits);
 }
 
 function showCalendarView(type)
