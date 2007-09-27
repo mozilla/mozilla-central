@@ -183,8 +183,25 @@ function modifyEventWithDialog(item, job)
 function openEventDialog(calendarItem, calendar, mode, callback, job)
 {
     // Set up some defaults
-    calendar = calendar || getCompositeCalendar().defaultCalendar;
     mode = mode || "new";
+    calendar = calendar || getSelectedCalendar();
+    var calendars = getCalendarManager().getCalendars({});
+    calendars = calendars.filter(function(el) { return !el.readOnly; });
+
+    if (calendar.readOnly && mode == "new" && calendars.length < 1) {
+        // All calendars are marked readonly, don't show the dialog
+        return;
+    } else if (calendar.readOnly && mode == "new") {
+        // If the default calendar is marked readOnly, pick the first
+        // non-readOnly calendar
+        calendar = calendars[0];
+        if (calendarItem) {
+            // XXX The dialog currently uses the items calendar as a first
+            // choice. Since we are shortly before a release to keep regression
+            // risk low, explicitly set the item's calendar here.
+            calendarItem.calendar = calendars[0];
+        }
+    }
 
     // Setup the window arguments
     var args = new Object();
