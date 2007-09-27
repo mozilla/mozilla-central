@@ -900,15 +900,17 @@ void nsImapProtocol::ReleaseUrlState(PRBool rerunning)
   nsCOMPtr<nsIMsgMailNewsUrl> mailnewsurl;
   nsCOMPtr<nsIImapMailFolderSink> saveFolderSink;
 
-  if (m_runningUrl)
   {
-    mailnewsurl = do_QueryInterface(m_runningUrl);
-    saveFolderSink = m_imapMailFolderSink;
+    nsAutoCMonitor mon(this);
+    if (m_runningUrl)
+    {
+      mailnewsurl = do_QueryInterface(m_runningUrl);
+      saveFolderSink = m_imapMailFolderSink;
 
-    m_runningUrl = nsnull; // force us to release our last reference on the url
-    m_urlInProgress = PR_FALSE;
+      m_runningUrl = nsnull; // force us to release our last reference on the url
+      m_urlInProgress = PR_FALSE;
+    }
   }
-
   // Need to null this out whether we have an m_runningUrl or not
   m_imapMailFolderSink = nsnull;
 
