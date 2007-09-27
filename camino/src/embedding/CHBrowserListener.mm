@@ -504,7 +504,8 @@ CHBrowserListener::SetFocus()
   // if we're already the keyWindow, we certainly don't need to do it again. This
   // ends up fixing a problem where we try to bring ourselves to the front while we're
   // in the process of miniaturizing or showing the window
-  if ([window isVisible] && (window != [NSApp keyWindow]))
+  if (([window isVisible] || [window isMiniaturized]) &&
+      (window != [NSApp keyWindow]))
   {
     BOOL suppressed = NO;
     if ([window respondsToSelector:@selector(suppressMakeKeyFront)])
@@ -530,7 +531,8 @@ CHBrowserListener::GetVisibility(PRBool *aVisibility)
   // Only return PR_TRUE if the view is the current tab
   // (so its -window is non-nil). See bug 306245.
   // XXX should we bother testing [window isVisible]?
-  *aVisibility = [mView window] && [[mView window] isVisible];
+  NSWindow* window = [mView window];
+  *aVisibility = window && ([window isVisible] || [window isMiniaturized]);
   return NS_OK;
 }
 
