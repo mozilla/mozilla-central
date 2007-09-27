@@ -82,10 +82,13 @@ function SetServerTypeSpecificTextValues()
     var serverType = GetMsgFolderFromUri(gServerURI, true).server.type;
 
     // set the server specific ui elements
-    var currentListTabLabel = gSubscribeBundle.getString("currentListTabLabel-" + serverType);
     var nameColumnLabel = gSubscribeBundle.getString("columnHeader-" + serverType);
+    var currentListTab  = "currentListTab-" + serverType;
+    var currentListTabLabel     = gSubscribeBundle.getString(currentListTab + ".label");
+    var currentListTabAccesskey = gSubscribeBundle.getString(currentListTab + ".accesskey");
 
     document.getElementById("currentListTab").setAttribute('label', currentListTabLabel);
+    document.getElementById("currentListTab").setAttribute('accesskey', currentListTabAccesskey);
     document.getElementById("newGroupsTab").collapsed = (serverType != "nntp"); // show newGroupsTab only for nntp servers
     document.getElementById("nameColumn").setAttribute('label', nameColumnLabel);
     document.getElementById("nameColumn2").setAttribute('label',nameColumnLabel);

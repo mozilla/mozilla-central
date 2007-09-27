@@ -109,7 +109,6 @@
           <tabs id="subscribeTabs">
             <tab id="currentListTab"
                  selected="true"
-                 accesskey="&currentListTab.accesskey;"
                  oncommand="ShowCurrentList()"/>
             <tab id="newGroupsTab"
                  label="&newGroupsTab.label;"
