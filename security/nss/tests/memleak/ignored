@@ -37,7 +37,9 @@ strsclnt/main/client_main/launch_thread/PR_CreateThread/_PR_CreateThread/pthread
 */main/NSS_Initialize/*/SECMOD_LoadModule/SECMOD_LoadPKCS11Module/PR_CallOnce/softoken_LoadDSO/loader_LoadLibrary/loader_LoadLibInReferenceDir/PR_LoadLibraryWithFlags/pr_LoadLibraryByPathname/**
 */main/NSS_Initialize/*/SECMOD_LoadModule/SECMOD_LoadModule/SECMOD_LoadPKCS11Module/PR_LoadLibrary/PR_LoadLibraryWithFlags/pr_LoadLibraryByPathname/**
 */main/NSS_Initialize/*/SECMOD_LoadModule/SECMOD_LoadModule/SECMOD_LoadPKCS11Module/secmod_ModuleInit/NSC_Initialize/nsc_CommonInitialize/RNG_RNGInit/freebl_RunLoaderOnce/PR_CallOnce/freebl_LoadDSO/loader_LoadLibrary/loader_LoadLibInReferenceDir/PR_LoadLibraryWithFlags/pr_LoadLibraryByPathname/**
+*/*/SECMOD_LoadModule/SECMOD_LoadModule/SECMOD_LoadPKCS11Module/secmod_ModuleInit/NSC_Initialize/nsc_CommonInitialize/RNG_RNGInit/freebl_RunLoaderOnce/PR_CallOnce/freebl_LoadDSO/loader_LoadLibrary/loader_LoadLibInReferenceDir/PR_LoadLibraryWithFlags/pr_LoadLibraryByPathname/**
 */main/NSS_Initialize/*/SECMOD_LoadModule/SECMOD_LoadModule/SECMOD_LoadPKCS11Module/secmod_ModuleInit/FC_Initialize/nsc_CommonInitialize/RNG_RNGInit/freebl_RunLoaderOnce/PR_CallOnce/freebl_LoadDSO/loader_LoadLibrary/loader_LoadLibInReferenceDir/PR_LoadLibraryWithFlags/pr_LoadLibraryByPathname/**
+*/*/SECMOD_LoadModule/SECMOD_LoadModule/SECMOD_LoadPKCS11Module/secmod_ModuleInit/FC_Initialize/nsc_CommonInitialize/RNG_RNGInit/freebl_RunLoaderOnce/PR_CallOnce/freebl_LoadDSO/loader_LoadLibrary/loader_LoadLibInReferenceDir/PR_LoadLibraryWithFlags/pr_LoadLibraryByPathname/**
 */main/NSS_Initialize/*/SECMOD_LoadModule/SECMOD_LoadModule/SECMOD_LoadPKCS11Module/secmod_ModuleInit/*/*/*/*/PR_CallOnce/*/*/*/PR_LoadLibraryWithFlags/pr_LoadLibraryByPathname/**
 */main/NSS_Initialize/*/SECMOD_LoadModule/SECMOD_LoadModule/SECMOD_LoadPKCS11Module/*/*/*/PR_CallOnce/*/PR_LoadLibraryWithFlags/pr_LoadLibraryByPathname/**
 
