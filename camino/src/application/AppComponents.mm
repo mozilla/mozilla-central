@@ -45,6 +45,7 @@
 #import "ProgressDlgController.h"
 #import "nsAboutBookmarks.h"
 #import "CHStringBundleOverride.h"
+#import "ContentDispatchChooser.h"
 
 #include "nsIGenericFactory.h"
 
@@ -79,11 +80,19 @@
 #define NS_STRINGBUNDLETEXTOVERRIDE_CONTRACTID \
     "@mozilla.org/intl/stringbundle/text-override;1"
 
+// {B3C61CFF-9FBC-4153-86FF-BE05D247DD1E}
+#define NS_CONTENTDISPATCHCHOOSER_CID \
+    {0xB3C61CFF, 0x9FBC, 0x4153, {0x86, 0xFF, 0xBE, 0x05, 0xD2, 0x47, 0xDD, 0x1E}}
+
+#define NS_CONTENTDISPATCHCHOOSER_CONTRACTID \
+    "@mozilla.org/content-dispatch-chooser;1"
+
 
 NS_GENERIC_FACTORY_CONSTRUCTOR(SecurityDialogs)
 NS_GENERIC_FACTORY_CONSTRUCTOR(CocoaPromptService)
 NS_GENERIC_FACTORY_CONSTRUCTOR(KeychainPrompt)
 NS_GENERIC_FACTORY_CONSTRUCTOR(CHStringBundleOverride)
+NS_GENERIC_FACTORY_CONSTRUCTOR(ContentDispatchChooser)
 
 static nsresult
 nsDownloadListenerConstructor(nsISupports *aOuter, REFNSIID aIID, void **aResult)
@@ -258,6 +267,12 @@ static const nsModuleComponentInfo gAppComponents[] = {
     NS_STRINGBUNDLETEXTOVERRIDE_CID,
     NS_STRINGBUNDLETEXTOVERRIDE_CONTRACTID,
     CHStringBundleOverrideConstructor
+  },
+  {
+    "Content Dispatcher Service",
+    NS_CONTENTDISPATCHCHOOSER_CID,
+    NS_CONTENTDISPATCHCHOOSER_CONTRACTID,
+    ContentDispatchChooserConstructor
   },
 };
 
