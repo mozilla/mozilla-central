@@ -260,7 +260,7 @@ calWcapCalendar.prototype = {
         return false;
     },
 
-    get canRefresh() { return (this.m_cachedResults != null); },
+    get canRefresh() { return true; },
     refresh: function calWcapCalendar_refresh() {
         log("refresh.", this);
         // invalidate cached results:
