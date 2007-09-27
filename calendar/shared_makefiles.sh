@@ -1,5 +1,4 @@
-#! /bin/sh
-# ***** BEGIN LICENSE BLOCK *****
+ # ***** BEGIN LICENSE BLOCK *****
 # Version: MPL 1.1/GPL 2.0/LGPL 2.1
 #
 # The contents of this file are subject to the Mozilla Public License Version
@@ -12,16 +11,14 @@
 # for the specific language governing rights and limitations under the
 # License.
 #
-# The Original Code is the the Mozilla build system
+# The Original Code is Mozilla Calendar code.
 #
-# The Initial Developer of the Original Code is
-# Ben Turner <mozilla@songbirdnest.com>
-#
-# Portions created by the Initial Developer are Copyright (C) 2007
-# the Initial Developer. All Rights Reserved.
+# The Initial Developer of the Original Code is 
+# Simon Paquet <bugzilla@babylonsounds.com>.
+# Portions created by the Initial Developer are Copyright (C) 2007 the 
+# Initial Developer. All Rights Reserved.
 #
 # Contributor(s):
-#   - Simon Paquet <bugzilla@babylonsounds.com>
 #
 # Alternatively, the contents of this file may be used under the terms of
 # either the GNU General Public License Version 2 or later (the "GPL"), or
@@ -38,9 +35,21 @@
 # ***** END LICENSE BLOCK *****
 
 add_makefiles "
-calendar/sunbird/Makefile
-calendar/sunbird/app/Makefile
-calendar/sunbird/base/Makefile
+calendar/Makefile
+calendar/resources/Makefile
+calendar/libical/Makefile
+calendar/libical/src/Makefile
+calendar/libical/src/libical/Makefile
+calendar/libical/src/libicalss/Makefile
+calendar/base/Makefile
+calendar/base/public/Makefile
+calendar/base/src/Makefile
+calendar/base/build/Makefile
+calendar/providers/Makefile
+calendar/providers/memory/Makefile
+calendar/providers/storage/Makefile
+calendar/providers/composite/Makefile
+calendar/installer/Makefile
+calendar/installer/windows/Makefile
+calendar/locales/Makefile
 "
-
- . ${srcdir}/calendar/shared_makefiles.sh
