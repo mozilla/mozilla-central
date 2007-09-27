@@ -14,9 +14,9 @@
  * The Original Code is the Mozilla Penelope project.
  *
  * The Initial Developer of the Original Code is
- * QUALCOMM incorporated.
- * Portions created by the Initial Developer are Copyright (C) 2006
- * the Initial Developer. All Rights Reserved.
+ * QUALCOMM Incorporated.
+ * Portions created by QUALCOMM Incorporated are
+ * Copyright (C) 2007 QUALCOMM Incorporated. All Rights Reserved.
  *
  * Contributor(s):
  *     Mark Charlebois <mcharleb@qualcomm.com> original author
@@ -252,10 +252,20 @@ function setKey(key, value)
         if(properties[1]) 
         {
             key.setAttribute("key", properties[1]);
+            try
+            {
+                key.attributes.removeNamedItem("keycode");
+            }
+            catch (e) {}
         }
         else if(properties[2]) 
         {
             key.setAttribute("keycode", properties[2]);
+            try
+            {
+                key.attributes.removeNamedItem("key");
+            }
+            catch (e) {}
         }
         else
         {

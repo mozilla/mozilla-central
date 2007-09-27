@@ -14,9 +14,9 @@
  * The Original Code is the Mozilla Penelope project.
  *
  * The Initial Developer of the Original Code is
- * QUALCOMM incorporated.
- * Portions created by the Initial Developer are Copyright (C) 2006
- * the Initial Developer. All Rights Reserved.
+ * QUALCOMM Incorporated.
+ * Portions created by QUALCOMM Incorporated are
+ * Copyright (C) 2007 QUALCOMM Incorporated. All Rights Reserved.
  *
  * Contributor(s):
  *     Mark Charlebois <mcharleb@qualcomm.com> original author
@@ -632,8 +632,6 @@ function ThreadTreeOnKeyPress(event)
         
         if (charCode >= 32)
         {
-            event.stopPropagation();
-            
             var now = Date.now();
             var findAgain = false;
             
@@ -649,8 +647,17 @@ function ThreadTreeOnKeyPress(event)
                 if (charCode == 46 || (event.shiftKey && charCode == 62 && ttsBuffer))
                     findAgain = true;
                 else
+                {
+                    // If this is a leading space then don't process it as we want it
+			        // go through the standard space bar paging handler.
+                    if (charCode == 32)
+                        return;
+
                     ttsBuffer = "";
+                }
             }
+
+            event.stopPropagation();
             
             if (!findAgain)
             {
@@ -1124,14 +1131,6 @@ function delayedOnLoadPenelopeColumns()
         flaggedCol.setAttribute("hidden","true");
         unreadCol.setAttribute("hidden","true");
 
-        // Get the localized "Who" string
-        //var strbundle=document.getElementById("penelopeStrings");
-        //var who=strbundle.getString("who");
-
-        // Update the sender and recipient columns to display "Who" 
-        //senderCol.setAttribute("label", who);
-        //recipientCol.setAttribute("label", who);
-
         // FIXME Somehow the junk column gets remapped after this
         threadTree._reorderColumn(subjectCol, idCol, true);
         threadTree._reorderColumn(junkCol, subjectCol, true);
@@ -1204,6 +1203,6 @@ function penelopeFolderPaneSelectionChange()
     var topwin = document.getElementById("messengerWindow");
     if (topwin.getAttribute("folderwin") == "true")
     {
-        document.title = "Penelope";
+        document.title = "Mailboxes";
     }
 }

@@ -14,9 +14,9 @@
  * The Original Code is the Mozilla Penelope project.
  *
  * The Initial Developer of the Original Code is
- * QUALCOMM incorporated.
- * Portions created by the Initial Developer are Copyright (C) 2006
- * the Initial Developer. All Rights Reserved.
+ * QUALCOMM Incorporated.
+ * Portions created by QUALCOMM Incorporated are
+ * Copyright (C) 2007 QUALCOMM Incorporated. All Rights Reserved.
  *
  * Contributor(s):
  *     Mark Charlebois <mcharleb@qualcomm.com> original author
@@ -130,14 +130,14 @@ function decreaseMsgPriority()
 function removeFormatting()
 {
     var currentEditor = GetCurrentEditor();
-    if (GetCurrentEditorType() != "textmail" && currentEditor.canCopy())
+    var selcon = currentEditor.selectionController;
+
+    var nsel = selcon.getSelection(selcon.SELECTION_NORMAL);
+    
+    if (nsel != "")
     {
-        currentEditor.beginTransaction();
-        // copy the selection to the clipboard 
-        currentEditor.copy();
-        // paste without formatting
-        currentEditor.pasteNoFormatting(nsISelectionController.SELECTION_NORMAL);
-        currentEditor.endTransaction();
+        goDoCommand('cmd_copy');
+        goDoCommand('cmd_pasteNoFormatting');
     }
 }
 

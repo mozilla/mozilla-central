@@ -1,3 +1,39 @@
+/* ====== This section is required for Mac OSX === */
+
+treecol {
+  -moz-appearance: none !important; /* grrrr! */ 
+  text-align: left;
+  border: 2px solid;
+}
+
+/*  This makes the sort arrows render incorrectly  */
+/*  on Linux, but is required for Mac or no sort   */
+/*  arrows appear. It may also affect Windows.     */
+/*  Perhaps platform specific CSS files are needed.*/
+
+.treecol-sortdirection
+{
+  -moz-appearance: none !important; /* grrrr! */ 
+  background-image: none !important;
+  list-style-image: none !important;
+}
+
+.treecol-sortdirection[sortDirection="ascending"]
+{
+  -moz-appearance: none !important; /* grrrr! */ 
+  background-image: none !important;
+  list-style-image: url("chrome://global/skin/tree/sort-asc.gif") !important;
+}
+  
+.treecol-sortdirection[sortDirection="descending"]
+{
+  -moz-appearance: none !important; /* grrrr! */ 
+  background-image: none !important;
+  list-style-image: url("chrome://global/skin/tree/sort-dsc.gif") !important;
+}
+  
+/* === This section is common to all platforms === */
+
 treechildren::-moz-tree-cell-text(statusCol) {
   text-align: right;
   padding-right: 1000em;
@@ -40,7 +76,7 @@ treechildren::-moz-tree-image(statusCol, new) {
 treecol.statusColumnHeader {
   -moz-appearance: none !important; /* grrrr! */ 
   list-style-image: url("chrome://penelope/skin/icons/SortByStatus.png");
-  width: 30px
+  width: 30px;
 }
 
 treechildren::-moz-tree-cell-text(priorityCol) {
@@ -80,19 +116,22 @@ treechildren::-moz-tree-image(priorityCol, priority-lowest) {
 treecol.priorityColumnHeader {
   -moz-appearance: none !important; /* grrrr! */ 
   list-style-image: url("chrome://penelope/skin/icons/SortByPriority.png");
-  width: 30px
+  width: 30px;
+  border: 2px solid;
 }
 
 treecol.junkStatusHeader {
   -moz-appearance: none !important; /* grrrr! */ 
   list-style-image: url("chrome://penelope/skin/icons/SortByJunk.png");
-  width: 30px
+  width: 30px;
+  border: 2px solid;
 }
 
 treecol.attachmentColumnHeader {
   -moz-appearance: none !important; /* grrrr! */ 
   list-style-image: url("chrome://penelope/skin/icons/SortByAttachment.png");
-  width: 30px
+  width: 30px;
+  border: 2px solid;
 }
 
 treechildren::-moz-tree-image(attachmentCol, attach) {
@@ -108,6 +147,7 @@ treecol.tagsColumnHeader {
   background-position: left center;
   padding-left: 20px; 
   text-align: left;
+  border: 2px solid;
 }
 
 treecol.subjectColumnHeader {
@@ -117,6 +157,7 @@ treecol.subjectColumnHeader {
   background-position: left center;
   padding-left: 20px; 
   text-align: left;
+  border: 2px solid;
 }
 
 treecol.dateColumnHeader {
@@ -126,6 +167,7 @@ treecol.dateColumnHeader {
   background-position: left center;
   padding-left: 20px; 
   text-align: left;
+  border: 2px solid;
 }
 
 treecol.recipientColumnHeader {
@@ -135,6 +177,7 @@ treecol.recipientColumnHeader {
   background-position: left center;
   padding-left: 20px; 
   text-align: left;
+  border: 2px solid;
 }
 
 treecol.senderColumnHeader {
@@ -144,6 +187,7 @@ treecol.senderColumnHeader {
   background-position: left center;
   padding-left: 20px; 
   text-align: left;
+  border: 2px solid;
 }
 
 treecol.sizeColumnHeader {
@@ -153,5 +197,6 @@ treecol.sizeColumnHeader {
   background-position: center center;
   padding-left: 20px; 
   text-align: left;
+  border: 2px solid;
 }
 

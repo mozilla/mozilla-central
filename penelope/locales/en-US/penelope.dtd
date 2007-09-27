@@ -37,7 +37,12 @@
 <!ENTITY penelope.status.label "Status">
 <!ENTITY penelope.labelMenu.label "Label">
 <!ENTITY penelope.labelMenu.accesskey "l">
+<!ENTITY penelope.junk.label "Junk">
+<!ENTITY penelope.junk.accesskey "J">
+<!ENTITY penelope.notJunk.label "Not Junk">
+<!ENTITY penelope.notJunk.accesskey "k">
 <!ENTITY penelope.delete.label "Delete">
+<!ENTITY penelope.delete.accesskey "D">
 <!ENTITY penelope.redirect.label "Redirect">
 <!ENTITY penelope.sendAgain.label "Send Again">
 <!ENTITY penelope.sendAgain.accesskey "s">
