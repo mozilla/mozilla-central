@@ -69,7 +69,7 @@ var sideBarOperationListener = {
     }
 };
 
-var calendarManagerObserver = {
+var sideBarCalendarManagerObserver = {
     mSideBar: this,
 
     onCalendarRegistered: function cMO_onCalendarRegistered(aCalendar) {
@@ -96,13 +96,13 @@ var calendarManagerObserver = {
 
 function onLoad() {
     scheduleInvitationsUpdate(FIRST_DELAY_STARTUP, REPEAT_DELAY);
-    getCalendarManager().addObserver(calendarManagerObserver);
+    getCalendarManager().addObserver(sideBarCalendarManagerObserver);
     document.addEventListener("unload", onUnload, true);
 }
 
 function onUnload() {
     document.removeEventListener("unload", onUnload, true);
-    getCalendarManager().removeObserver(calendarManagerObserver);
+    getCalendarManager().removeObserver(sideBarCalendarManagerObserver);
 }
 
 function scheduleInvitationsUpdate(firstDelay, repeatDelay) {
