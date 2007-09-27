@@ -612,8 +612,6 @@ pkix_CacheCertChain_Lookup(
                     (PKIX_PL_Object *) cachedKeys,
                     plContext),
                     PKIX_HASHTABLEREMOVEFAILED);
-                cachedKeys = NULL; /* object destroy by hash remove */
-                cachedValues = NULL; /* object destroy by hash remove */
             }
         }
 
@@ -1012,8 +1010,6 @@ pkix_CacheCert_Lookup(
                                     (PKIX_PL_Object *) cachedKeys,
                                     plContext),
                                     PKIX_HASHTABLEREMOVEFAILED);
-                           cachedKeys = NULL; /* object destroy by remove */
-                           cachedValues = NULL; /* object destroy by remove */
                             goto cleanup;
                         }
 
@@ -1055,8 +1051,6 @@ pkix_CacheCert_Lookup(
                                 (PKIX_PL_Object *) cachedKeys,
                                 plContext),
                                 PKIX_HASHTABLEREMOVEFAILED);
-                    cachedKeys = NULL; /* object destroy by hash remove */
-                    cachedValues = NULL; /* object destroy by hash remove */
                 }
 
         } 

@@ -1057,7 +1057,6 @@ pkix_Build_VerifyCertificate(
         PKIX_PL_PublicKey *candidatePubKey = NULL;
         PKIX_CertChainChecker *userChecker = NULL;
         PKIX_CertChainChecker_CheckCallback checkerCheck = NULL;
-        PKIX_PL_Cert *cert = NULL;
         PKIX_Error *verifyError = NULL;
         void *nbioContext = NULL;
 
@@ -1682,6 +1681,9 @@ pkix_Build_ValidateEntireChain(
                                 PKIX_VERIFYNODESETERRORFAILED);
                 }
                 pkixErrorResult = certCheckError;
+                /* getting SEGV if pkixErrorMsg is not set. Will be fixed
+                 * with 390527 */
+                pkixErrorMsg = PKIX_ErrorText[PKIX_CHECKCHAINFAILED];
                 goto cleanup;
         }
                 
@@ -2437,7 +2439,6 @@ pkix_BuildForwardDepthFirstSearch(
         PKIX_ComCertSelParams *certSelParams = NULL;
         PKIX_TrustAnchor *trustAnchor = NULL;
         PKIX_PL_Cert *trustedCert = NULL;
-        PKIX_PL_Cert *cert = NULL;
         PKIX_VerifyNode *verifyNode = NULL;
         PKIX_Error *verifyError = NULL;
         void *nbio = NULL;
@@ -3558,6 +3559,168 @@ cleanup:
 }
 
 /*
+ * FUNCTION: pkix_Build_CheckInCache
+ * DESCRIPTION:
+ *
+ * The function tries to locate a chain for a cert in the cert chain cache.
+ * If found, the chain goes through revocation chacking and returned back to
+ * caller. Chains that fail revocation check get removed from cache.
+ * 
+ * PARAMETERS:
+ *  "state"
+ *      Address of ForwardBuilderState to be used. Must be non-NULL.
+ *  "pBuildResult"
+ *      Address at which the BuildResult is stored, after a successful build.
+ *      Must be non-NULL.
+ *  "pNBIOContext"
+ *      Address at which the NBIOContext is stored indicating whether the
+ *      validation is complete. Must be non-NULL.
+ *  "plContext"
+ *      Platform-specific context pointer.
+ * THREAD SAFETY:
+ *  Thread Safe (see Thread Safety Definitions in Programmer's Guide)
+ * RETURNS:
+ *  Returns NULL if the function succeeds.
+ *  Returns a Build Error if the function fails in a non-fatal way
+ *  Returns a Fatal Error if the function fails in an unrecoverable way.
+ */
+static PKIX_Error*
+pkix_Build_CheckInCache(
+        PKIX_ForwardBuilderState *state,
+        PKIX_BuildResult **pBuildResult,
+        void **pNBIOContext,
+        void *plContext)
+{
+        PKIX_PL_Cert *targetCert = NULL;
+        PKIX_List *anchors = NULL;
+        PKIX_PL_Date *testDate = NULL;
+        PKIX_BuildResult *buildResult = NULL;
+        PKIX_ValidateResult *valResult = NULL;
+        PKIX_TrustAnchor *matchingAnchor = NULL;
+        PKIX_PL_Cert *trustedCert = NULL;
+        PKIX_List *certList = NULL;
+        PKIX_Boolean cacheHit = PKIX_FALSE;
+        PKIX_Boolean trusted = PKIX_FALSE;
+        PKIX_Boolean stillValid = PKIX_FALSE;
+        void *nbioContext = NULL;
+
+        PKIX_ENTER(BUILD, "pkix_Build_CheckInCache");
+
+        nbioContext = *pNBIOContext;
+        *pNBIOContext = NULL;
+
+        targetCert = state->buildConstants.targetCert;
+        anchors = state->buildConstants.anchors;
+        testDate = state->buildConstants.testDate;
+
+        /* Check whether this cert verification has been cached. */
+        PKIX_CHECK(pkix_CacheCertChain_Lookup
+                   (targetCert,
+                    anchors,
+                    testDate,
+                    &cacheHit,
+                    &buildResult,
+                    plContext),
+                   PKIX_CACHECERTCHAINLOOKUPFAILED);
+        
+        if (!cacheHit) {
+            goto cleanup;
+        }
+        
+        /*
+         * We found something in cache. Verify that the anchor
+         * cert is still trusted,
+         */
+        PKIX_CHECK(PKIX_BuildResult_GetValidateResult
+                   (buildResult, &valResult, plContext),
+                   PKIX_BUILDRESULTGETVALIDATERESULTFAILED);
+        
+        PKIX_CHECK(PKIX_ValidateResult_GetTrustAnchor
+                       (valResult, &matchingAnchor, plContext),
+                   PKIX_VALIDATERESULTGETTRUSTANCHORFAILED);
+        
+        PKIX_DECREF(valResult);
+        
+        PKIX_CHECK(PKIX_TrustAnchor_GetTrustedCert
+                   (matchingAnchor, &trustedCert, plContext),
+                   PKIX_TRUSTANCHORGETTRUSTEDCERTFAILED);
+        
+        PKIX_CHECK(PKIX_PL_Cert_IsCertTrusted
+                   (trustedCert, &trusted, plContext),
+                   PKIX_CERTISCERTTRUSTEDFAILED);
+        
+        if (!trusted) {
+            goto cleanup;
+        }
+        /*
+         * Since the key usage may vary for different
+         * applications, we need to verify the chain again.
+         * Reverification will be improved with a fix for 397805.
+         */
+        PKIX_CHECK(PKIX_BuildResult_GetCertChain
+                   (buildResult, &certList, plContext),
+                   PKIX_BUILDRESULTGETCERTCHAINFAILED);
+        
+        /* setting this variable will trigger addition rev
+         * checker into cert chain checker list */
+        state->revCheckDelayed = PKIX_TRUE;
+        
+        PKIX_CHECK(pkix_Build_ValidationCheckers
+                   (state,
+                    certList,
+                    matchingAnchor,
+                    plContext),
+                   PKIX_BUILDVALIDATIONCHECKERSFAILED);
+        
+        state->revCheckDelayed = PKIX_FALSE;
+
+        PKIX_CHECK_ONLY_FATAL(
+            pkix_Build_ValidateEntireChain(state, matchingAnchor,
+                                           &nbioContext, &valResult,
+                                           state->verifyNode, plContext),
+            PKIX_BUILDVALIDATEENTIRECHAINFAILED);
+
+        if (nbioContext != NULL) {
+            /* IO still pending, resume later */
+            *pNBIOContext = nbioContext;
+            goto cleanup;
+        }
+        PKIX_DECREF(state->reversedCertChain);
+        PKIX_DECREF(state->checkedCritExtOIDs);
+        PKIX_DECREF(state->checkerChain);
+        PKIX_DECREF(state->revCheckers);
+        
+        if (!PKIX_ERROR_RECEIVED) {
+            /* The result from cache is still valid. */
+            *pBuildResult = buildResult;
+            buildResult = NULL;
+            stillValid = PKIX_TRUE;
+        }
+
+cleanup:
+
+        if (!nbioContext && cacheHit && !(trusted && stillValid)) {
+            /* The anchor of this chain is no longer trusted or
+             * chain cert(s) has been revoked.
+             * Invalidate this result in the cache */
+            PKIX_CHECK(pkix_CacheCertChain_Remove
+                       (targetCert,
+                        anchors,
+                        plContext),
+                       PKIX_CACHECERTCHAINREMOVEFAILED);
+        }
+
+       PKIX_DECREF(buildResult);
+       PKIX_DECREF(valResult);
+       PKIX_DECREF(certList);
+       PKIX_DECREF(matchingAnchor);
+       PKIX_DECREF(trustedCert);
+
+       
+       PKIX_RETURN(BUILD);
+}
+
+/*
  * FUNCTION: pkix_Build_InitiateBuildChain
  * DESCRIPTION:
  *
@@ -3619,8 +3782,6 @@ pkix_Build_InitiateBuildChain(
         PKIX_Boolean dsaParamsNeeded = PKIX_FALSE;
         PKIX_Boolean isCrlEnabled = PKIX_FALSE;
         PKIX_Boolean nistCRLPolicyEnabled = PKIX_TRUE;
-        PKIX_Boolean cacheHit = PKIX_FALSE;
-        PKIX_Boolean trusted = PKIX_FALSE;
         PKIX_Boolean isDuplicate = PKIX_FALSE;
         PKIX_PL_Cert *trustedCert = NULL;
         PKIX_CertSelector *targetConstraints = NULL;
@@ -3647,7 +3808,6 @@ pkix_Build_InitiateBuildChain(
         PKIX_ForwardBuilderState *state = NULL;
         PKIX_CertStore_CheckTrustCallback trustCallback = NULL;
         PKIX_PL_AIAMgr *aiaMgr = NULL;
-        PKIX_VerifyNode *verifyNode = NULL;
 
         PKIX_ENTER(BUILD, "pkix_Build_InitiateBuildChain");
         PKIX_NULLCHECK_FOUR(procParams, pNBIOContext, pState, pBuildResult);
@@ -3957,106 +4117,23 @@ pkix_Build_InitiateBuildChain(
                             PKIX_VERIFYNODECREATEFAILED);
             }
 
-            /* Check whether this cert verification has been cached. */
-            PKIX_CHECK(pkix_CacheCertChain_Lookup
-                    (targetCert,
-                    anchors,
-                    testDate,
-                    &cacheHit,
-                    &buildResult,
-                    plContext),
-                    PKIX_CACHECERTCHAINLOOKUPFAILED);
-    
-            if (cacheHit) {
-                    /*
-                     * We found something in cache. Verify that the anchor
-                     * cert is still trusted,
-                     */
-                    PKIX_CHECK(PKIX_BuildResult_GetValidateResult
-                            (buildResult, &valResult, plContext),
-                            PKIX_BUILDRESULTGETVALIDATERESULTFAILED);
-    
-                    PKIX_CHECK(PKIX_ValidateResult_GetTrustAnchor
-                            (valResult, &matchingAnchor, plContext),
-                            PKIX_VALIDATERESULTGETTRUSTANCHORFAILED);
-    
-                    PKIX_DECREF(valResult);
-    
-                    PKIX_CHECK(PKIX_TrustAnchor_GetTrustedCert
-                            (matchingAnchor, &trustedCert, plContext),
-                            PKIX_TRUSTANCHORGETTRUSTEDCERTFAILED);
-    
-                    PKIX_CHECK(PKIX_PL_Cert_IsCertTrusted
-                            (trustedCert, &trusted, plContext),
-                            PKIX_CERTISCERTTRUSTEDFAILED);
-    
-                    if (trusted == PKIX_TRUE) {
-                            /*
-                             * Since the key usage may vary for different
-                             * applications, we need to verify the chain again.
-                             */
-                            PKIX_CHECK(PKIX_BuildResult_GetCertChain
-                                    (buildResult, &certList, plContext),
-                                    PKIX_BUILDRESULTGETCERTCHAINFAILED);
-    
-                            PKIX_CHECK(pkix_Build_ValidationCheckers
-                                    (state,
-                                    certList,
-                                    matchingAnchor,
-                                    plContext),
-                                    PKIX_BUILDVALIDATIONCHECKERSFAILED);
-    
-                            PKIX_CHECK_ONLY_FATAL(pkix_Build_ValidateEntireChain
-                                    (state,
-                                    matchingAnchor,
-                                    &nbioContext,
-                                    &valResult,
-                                    verifyNode,
-                                    plContext),
-                                    PKIX_BUILDVALIDATEENTIRECHAINFAILED);
-
-                        if (nbioContext != NULL) {
-                                /* IO still pending, resume later */
-                                *pNBIOContext = nbioContext;
-                                goto cleanup;
-                            } else {
-                                PKIX_DECREF(state->reversedCertChain);
-                                PKIX_DECREF(state->checkedCritExtOIDs);
-                                PKIX_DECREF(state->checkerChain);
-                                PKIX_DECREF(state->revCheckers);
-                                if (state->verifyNode != NULL && verifyNode) {
-                                    PKIX_CHECK_FATAL(pkix_VerifyNode_AddToTree
-                                        (state->verifyNode,
-                                        verifyNode,
-                                        plContext),
-                                        PKIX_VERIFYNODEADDTOTREEFAILED);
-                                    PKIX_DECREF(verifyNode);
-                                }
-
-                                if (!PKIX_ERROR_RECEIVED) {
-                                    /* The result from cache is still valid. */
-                                    *pBuildResult = buildResult;
-                                    if (pVerifyNode != NULL) {
-                                        PKIX_INCREF(state->verifyNode);
-                                        *pVerifyNode = state->verifyNode;
-                                    }
-                                    goto cleanup;
-                                }
-                            }
-    
-                    } else {
-                            /* The anchor of this chain is no longer trusted. */
-                            /* Invalidate this result in the cache */
-                            PKIX_CHECK(pkix_CacheCertChain_Remove
-                                    (targetCert,
-                                    anchors,
-                                    plContext),
-                                    PKIX_CACHECERTCHAINREMOVEFAILED);
-                    }
-                    PKIX_DECREF(certList);
-                    PKIX_DECREF(matchingAnchor);
-                    PKIX_DECREF(trustedCert);
-                    PKIX_DECREF(buildResult);
+            PKIX_CHECK(
+                pkix_Build_CheckInCache(state, &buildResult,
+                                        &nbioContext, plContext),
+                PKIX_UNABLETOBUILDCHAIN);
+            if (nbioContext) {
+                *pNBIOContext = nbioContext;
+                *pState = state;
+                state = NULL;
+                goto cleanup;
+            }
+            if (buildResult) {
+                *pBuildResult = buildResult;
+                if (pVerifyNode != NULL) {
+                    *pVerifyNode = state->verifyNode;
+                    state->verifyNode = NULL;
+                }
+                goto cleanup;
             }
         }
 

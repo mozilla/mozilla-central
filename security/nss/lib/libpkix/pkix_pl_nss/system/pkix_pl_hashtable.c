@@ -294,7 +294,6 @@ PKIX_PL_HashTable_Remove(
         tableLocked = PKIX_FALSE;
 
         if (result != NULL) {
-                PKIX_DECREF(key);
                 PKIX_DECREF(result);
         } else {
                 PKIX_ERROR(PKIX_ATTEMPTTOREMOVENONEXISTANTITEM);

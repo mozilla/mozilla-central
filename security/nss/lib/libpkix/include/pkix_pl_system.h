@@ -1310,6 +1310,9 @@ PKIX_PL_HashTable_Create(
  *  Adds a key/value mapping using the Objects pointed to by "key" and "value"
  *  to the Hashtable pointed to by "ht".
  *
+ *  Function increments key/value reference counts. Caller is responsible to
+ *  to decrement(destroy) key/value ref counts(objects). 
+ *
  * PARAMETERS:
  *  "ht"
  *      Address of Hashtable to be added to. Must be non-NULL.
@@ -1341,6 +1344,9 @@ PKIX_PL_HashTable_Add(
  *  Removes the Object value whose key is equal to the Object pointed to by
  *  "key" from the Hashtable pointed to by "ht". If no such object exists,
  *  this function throws an Error.
+ *
+ *  Function frees "value" object. Caller is responsible to free "key"
+ *  object.
  *
  * PARAMETERS:
  *  "ht"
@@ -1565,4 +1571,4 @@ PKIX_PL_BigInt_Create(
 }
 #endif
 
-#endif /* _LIBPKIX_SYSTEM_CALLBACKS_H */
+#endif /* _LIBPKIX_SYSTEM_H */
