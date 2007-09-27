@@ -61,9 +61,6 @@ NS_IMETHODIMP CHStringBundleOverride::GetStringFromName(const nsACString& url, c
    * defined in the bundled chrome resource.
    */
   NSString* keyStr = [NSString stringWith_nsACString:key];
-#if DEBUG
-  NSLog(@"string override for key: %@, url: %@", keyStr, [NSString stringWith_nsACString:url]);
-#endif
   NSString* overrideStr = NSLocalizedString(keyStr, nil);  
   if (!overrideStr || [overrideStr isEqualToString:keyStr])
     return NS_ERROR_FAILURE;
