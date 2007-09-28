@@ -89,7 +89,8 @@ function openDebuggerWindow(args)
     var ass = Components.classes[ASS_CONTRACTID].getService(nsIAppShellService);
     var window = ass.hiddenDOMWindow;
     window.openDialog("chrome://venkman/content/venkman.xul", "_blank",
-                      "chrome,menubar,toolbar,resizable,dialog=no", args);
+                      "chrome,menubar,toolbar,status,resizable,dialog=no",
+                      args);
 }
 
 function safeHTML(str)

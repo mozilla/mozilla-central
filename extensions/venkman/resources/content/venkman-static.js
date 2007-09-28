@@ -660,8 +660,7 @@ function initApplicationCompatibility()
     if (console.host == "Firefox") {
         tasksMenu.parentNode.removeChild(tasksMenu);
         winMenu.parentNode.removeChild(winMenu);
-    } else {
-        comBar.collapsed = false;
+        comBar.collapsed = true;
     }
 
     //if ((console.host != "Firefox") || (console.platform == "Linux")) {
