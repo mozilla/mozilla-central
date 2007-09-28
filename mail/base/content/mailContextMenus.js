@@ -835,13 +835,11 @@ function getEmail (url)
   else 
      addresses = url.substr( mailtolength );
   // Let's try to unescape it using a character set
-  // in case the address is not ASCII.
   try {
-    var characterSet = Components.lookupMethod(this.target.ownerDocument, "characterSet")
-                                 .call(this.target.ownerDocument);
+    var characterSet = gContextMenu.target.ownerDocument.characterSet;
     const textToSubURI = Components.classes["@mozilla.org/intl/texttosuburi;1"]
                                  .getService(Components.interfaces.nsITextToSubURI);
-    addresses = textToSubURI.unEscapeNonAsciiURI(characterSet, addresses);
+    addresses = textToSubURI.unEscapeURIForUI(characterSet, addresses);
   }
   catch(ex) {
     // Do nothing.

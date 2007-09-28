@@ -584,8 +584,7 @@ nsContextMenu.prototype = {
 
         // Let's try to unescape it using a character set
         try {
-          var ownerDocument = new XPCNativeWrapper(this.target, "ownerDocument").ownerDocument;
-          var characterSet = new XPCNativeWrapper(ownerDocument, "characterSet").characterSet;
+          var characterSet = this.target.ownerDocument.characterSet;
           const textToSubURI = Components.classes["@mozilla.org/intl/texttosuburi;1"]
                                          .getService(Components.interfaces.nsITextToSubURI);
           addresses = textToSubURI.unEscapeURIForUI(characterSet, addresses);
