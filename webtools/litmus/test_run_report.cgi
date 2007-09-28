@@ -43,91 +43,88 @@ my $c = Litmus->cgi();
 
 print $c->header();
 
-my $test_run_id = $c->param("test_run_id");
+my $vars;
+if ($c->param) {
+  my $test_run_id = $c->param("test_run_id");
 
-if (!$test_run_id) {
-  invalidInputError("No Test Run selected!");
-  exit 1;
-}
+  if (!$test_run_id) {
+   invalidInputError("No Test Run selected!");
+   exit 1;
+  }
+  my $test_run = Litmus::DB::TestRun->getTestRunWithRefs($test_run_id);
 
-my $test_run = Litmus::DB::TestRun->getTestRunWithRefs($test_run_id);
-my @sysconfigs;
-foreach my $criterion (@{$test_run->{'criteria'}}) {
-  my $sysconfig = Litmus::SysConfig::new(
-                                         $test_run_id,
-                                         $criterion->{'build_id'} || undef,
-                                         $criterion->{'platform_id'} || undef,
-                                         $criterion->{'opsys_id'} || undef,
-                                         undef
-                                        );
-  push @sysconfigs, $sysconfig;
-}
+  my @sysconfigs;
+  foreach my $criterion (@{$test_run->{'criteria'}}) {
+    my $sysconfig = Litmus::SysConfig::new(
+                                           $test_run_id,
+                                           $criterion->{'build_id'} || undef,
+                                           $criterion->{'platform_id'} || undef,
+                                           $criterion->{'opsys_id'} || undef,
+                                           undef
+                                          );
+    push @sysconfigs, $sysconfig;
+  }
+  
+  my $user =  Litmus::Auth::getCookie();
+  my @testgroups = Litmus::DB::Testgroup->search_EnabledByTestRun($test_run_id);
 
-my $user =  Litmus::Auth::getCookie();
-my @testgroups;
-if (Litmus::Auth::istrusted($user)) {
-  @testgroups = Litmus::DB::Testgroup->search_ByTestRun($test_run_id);
-} else {
-  @testgroups = Litmus::DB::Testgroup->search_EnabledByTestRun($test_run_id);
-}
-
-# All possible subgroups per group:
-my %subgroups; 
-my %testcases;
-my %testcase_coverage;
-foreach my $testgroup (@testgroups) {
-    my @component_subgroups;
-    if (Litmus::Auth::istrusted($user)) {
-        @component_subgroups = Litmus::DB::Subgroup->search_ByTestgroup($testgroup->testgroup_id());
-    } else {
-        @component_subgroups = Litmus::DB::Subgroup->search_EnabledByTestgroup($testgroup->testgroup_id());
-    }
+  # All possible subgroups per group:
+  my %subgroups; 
+  my %testcases;
+  my %testcase_coverage;
+  foreach my $testgroup (@testgroups) {
+    my @component_subgroups = Litmus::DB::Subgroup->search_EnabledByTestgroup($testgroup->testgroup_id());
     $subgroups{$testgroup->testgroup_id()} = \@component_subgroups;
+
     foreach my $subgroup (@component_subgroups) {
-    my @component_testcases;
-    if (Litmus::Auth::istrusted($user)) {
-        @component_testcases= Litmus::DB::Testcase->search_BySubgroup($subgroup->subgroup_id());
-    } else {
-        @component_testcases = Litmus::DB::Testcase->search_EnabledBySubgroup($subgroup->subgroup_id(),$testgroup->testgroup_id());
-    }
-    $testcases{$subgroup->subgroup_id()} = \@component_testcases;
-    foreach my $testcase (@component_testcases) {
+      my @component_testcases = Litmus::DB::Testcase->search_EnabledBySubgroup($subgroup->subgroup_id(),$testgroup->testgroup_id());
+      $testcases{$subgroup->subgroup_id()} = \@component_testcases;
+
+      foreach my $testcase (@component_testcases) {
         if (scalar @sysconfigs > 0) {
-            foreach my $sysconfig (@sysconfigs) {
-                my $coverage = $testcase->coverage(
-                                                   $test_run_id,
-                                                   $sysconfig->{'build_id'} || 0,
-                                                   $sysconfig->{'platform_id'} || 0,
-                                                   $sysconfig->{'opsys_id'} || 0,
-                                                   $sysconfig->{'locale'} || 0
-                                                  );
-                $testcase_coverage{$testcase->{'testcase_id'}}{$sysconfig->{'id'}} = $coverage || 0;
-            }
-        } else {
+
+          foreach my $sysconfig (@sysconfigs) {
             my $coverage = $testcase->coverage(
                                                $test_run_id,
-                                               0,
-                                               0,
-                                               0,
-                                               0
+                                               $sysconfig->{'build_id'} || 0,
+                                               $sysconfig->{'platform_id'} || 0,
+                                               $sysconfig->{'opsys_id'} || 0,
+                                               $sysconfig->{'locale'} || 0
                                               );
-            $testcase_coverage{$testcase->{'testcase_id'}}{'catchall'} = $coverage || 0;          
+            $testcase_coverage{$testcase->{'testcase_id'}}{$sysconfig->{'id'}} = $coverage || 0;
+          }
+
+        } else {
+          my $coverage = $testcase->coverage(
+                                             $test_run_id,
+                                             0,
+                                             0,
+                                             0,
+                                             0
+                                            );
+          $testcase_coverage{$testcase->{'testcase_id'}}{'catchall'} = $coverage || 0;          
         }
+      }
     }
   }
+  
+  $vars = {
+           test_runs => [$test_run],
+           testcase_coverage => \%testcase_coverage,
+           testgroups => \@testgroups,
+           subgroups => \%subgroups,
+           testcases => \%testcases,
+           sysconfigs => \@sysconfigs,
+          };
+  
+} else {
+  $vars = {
+           show_search_form => 1,
+          };
 }
 
-my $title = 'Test Run Report';
-
-my $vars = {
-    title => $title,
-    test_runs => [$test_run],
-    testcase_coverage => \%testcase_coverage,
-    testgroups => \@testgroups,
-    subgroups => \%subgroups,
-    testcases => \%testcases,
-    sysconfigs => \@sysconfigs,
-};
+my $test_runs = Litmus::FormWidget->getTestRuns(1);  
+$vars->{"all_test_runs"} = $test_runs;
 
 my $cookie =  Litmus::Auth::getCookie();
 $vars->{"defaultemail"} = $cookie;

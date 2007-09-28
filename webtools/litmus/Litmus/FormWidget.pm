@@ -308,7 +308,7 @@ sub getAuthors()
 #########################################################################
 sub getTestRuns() {
   my ($self, $enabled) = @_;
-  my $sql = "SELECT test_run_id, name, product_id FROM test_runs";
+  my $sql = "SELECT test_run_id, name, product_id, start_timestamp, finish_timestamp FROM test_runs";
   if ($enabled) {
     $sql .= " WHERE enabled=1";
   }

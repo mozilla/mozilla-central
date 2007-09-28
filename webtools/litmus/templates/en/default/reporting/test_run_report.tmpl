@@ -46,7 +46,21 @@
 
   <div id="content">
 
-<h1 class="firstHeading"><a title="Click to display details of your chosen Test Run." onclick="testConfigHeight.toggle('height');" name="test_run_details">Test Run Report - Test Run ID# [% test_run.test_run_id %]&nbsp;&raquo;</a></h1>
+[% IF show_search_form %]
+<h1 class="firstHeading">Select Test Run</h1>
+[% ELSE %]
+<h1 class="firstHeading"><a title="Click to display the Test Run search form." onclick="testRunSearch.toggle('height');" name="testRunSearch">Select Test Run&nbsp;&raquo;</a></h1>
+[% END %]
+
+<div id="test_run_search">
+[% INCLUDE reporting/test_run_search.tmpl test_runs=all_test_runs %]
+</div>
+
+<hr/>
+
+[% IF test_run %]
+
+<h1 class="firstHeading"><a title="Click to display the Test Run summary details." onclick="testConfigHeight.toggle('height');" name="test_run_summary">Test Run Report - ID# [% test_run.test_run_id %]&nbsp;&raquo;</a></h1>
 
 <div id="test_run_summary">
 [% INCLUDE reporting/test_run_summary.tmpl active_test_runs=test_runs display_title_link=0 %]
@@ -162,13 +176,17 @@ Any OS
 [% END %]
 </table>
 
-  </div> <!--END content-->
+<script type="text/javascript">
+showAll=0;
+testConfigHeight = new fx.Height('test_run_summary', {duration: 400});
+testRunSearch = new fx.Height('test_run_search', {duration: 400});
+testRunSearch.toggle();
+beginCoverageLookup();
+</script>
 
-  <script type="text/javascript">
-    showAll=0;
-    testConfigHeight = new fx.Height('test_run_summary', {duration: 400});
-    beginCoverageLookup();
-  </script>
+[% END %]
+
+  </div> <!--END content-->
 
 </div> <!--END page-->
 

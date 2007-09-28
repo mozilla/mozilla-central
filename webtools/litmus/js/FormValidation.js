@@ -382,7 +382,9 @@ function isPositiveInteger (s)
 }
 
 function verifySelected(theField, fieldName) {
-  if (theField.selectedIndex >= 0 && 
+  if (theField &&
+      theField.selectedIndex &&
+      theField.selectedIndex >= 0 && 
       theField.options[theField.selectedIndex].value != '' && 
       theField.options[theField.selectedIndex].value != '---') {
     return true;

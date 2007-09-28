@@ -69,7 +69,7 @@ my $sysconfig;
 my $branch_id;
 my ($test_run_id, $test_run);
 if ($c->param("singleResult")) {
-  $sysconfig = &verifySysConfig();
+  $sysconfig = &verifySysConfig($c);
   $branch_id = $c->param("testcaseBranchId");
 } else {
   $test_run_id = $c->param("test_run_id");
@@ -230,7 +230,8 @@ sub redirectToRunTests() {
 }
 
 #########################################################################
-sub verifySysConfig() {
+sub verifySysConfig($) {
+  my $c = shift; 
   # Use the criterion value as the basis for our check, since disabled form
   # controls don't submit their values anyway.
   my ($row_num,$build_id,$platform_id,$opsys_id);
