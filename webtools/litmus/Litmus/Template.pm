@@ -190,7 +190,7 @@ sub create {
                 $var =~ s/\@.*$//g;
                 return $var;
             },
-            
+
             # dummy filter when we don't actually need to filter anything
             none => sub {
             	my ($var) = @_;
@@ -211,6 +211,5 @@ sub process {
 	
 	$vars{show_admin} = Litmus->getCurrentUser() ? 
 	  Litmus->getCurrentUser()->is_admin() : 0;
-	
 	$self->SUPER::process($template, \%vars, $outstream, @opts);
 }

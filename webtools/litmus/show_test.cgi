@@ -34,6 +34,7 @@ use Litmus::DB::Resultbug;
 
 use CGI;
 use Date::Manip;
+use Encode qw( encode_utf8 );
 use JSON;
 use Time::Piece::MySQL;
 
