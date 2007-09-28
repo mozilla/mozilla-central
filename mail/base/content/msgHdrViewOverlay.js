@@ -837,7 +837,8 @@ function UpdateMessageHeaders()
     if (headerEntry)
     {
       if (headerName == "references" &&
-          !(gViewAllHeaders || gShowReferences || gDBView.msgFolder.server.type == "nntp"))
+          !(gViewAllHeaders || gShowReferences ||
+            (gDBView.msgFolder && gDBView.msgFolder.server.type == "nntp")))
       {
         // hide references header if view all headers mode isn't selected, the pref show references is
         // deactivated and the currently displayed message isn't a newsgroup posting
