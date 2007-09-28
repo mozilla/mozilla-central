@@ -1196,7 +1196,7 @@ nsresult nsDogbertProfileMigrator::CreateNewUser5Tree(nsILocalFile * oldProfileP
   if (NS_FAILED(rv)) return rv;
 
   /* the new prefs file */
-  nsCOMPtr<nsILocalFile> newPrefsFile  = do_CreateInstance(NS_LOCAL_FILE_CONTRACTID, &rv);;
+  nsCOMPtr<nsILocalFile> newPrefsFile  = do_CreateInstance(NS_LOCAL_FILE_CONTRACTID, &rv);
   if (NS_FAILED(rv)) return rv;
 
   rv = newPrefsFile->InitWithFile(newProfilePath);

@@ -406,7 +406,7 @@ function onFilterClose()
 
   if (gRunFiltersButton.getAttribute("label") == gRunFiltersButton.getAttribute("stoplabel")) {
     var promptTitle = gFilterBundle.getString("promptTitle");
-    var promptMsg = gFilterBundle.getString("promptMsg");;
+    var promptMsg = gFilterBundle.getString("promptMsg");
     var stopButtonLabel = gFilterBundle.getString("stopButtonLabel");
     var continueButtonLabel = gFilterBundle.getString("continueButtonLabel");
     var result = false;

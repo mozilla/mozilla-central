@@ -726,7 +726,7 @@ var gFeedSubscriptionsWindow = {
     
     currentItem.level = newParentItem.level + 1;
     newParentItem.children.push(currentItem);
-    var indexOfNewItem = aNewParentIndex + newParentItem.children.length;;
+    var indexOfNewItem = aNewParentIndex + newParentItem.children.length;
 
     if (!newParentItem.open) // force open the container
       this.mView.toggleOpenState(aNewParentIndex);
