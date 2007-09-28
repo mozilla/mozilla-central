@@ -61,7 +61,7 @@ function urlSecurityCheck(aPrincipal, aURI, aFlags)
   try {
     secMan.checkLoadURIStrWithPrincipal(aPrincipal, aURI, aFlags);
   } catch (e) {
-    throw "Load of " + url + " denied.";
+    throw "Load of " + aURI + " denied.";
   }
 }
 
