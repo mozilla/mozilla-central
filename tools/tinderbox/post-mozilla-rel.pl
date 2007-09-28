@@ -1078,12 +1078,13 @@ sub pushit {
     if ($Settings::ReleaseGroup ne '') {
       push(@cmds,"ssh $ssh_opts -l $Settings::ssh_user $ssh_server chgrp -R $Settings::ReleaseGroup $complete_remote_path");
     }
-    if ( $cachebuild ) {
-      push(@cmds,"ssh $ssh_opts -l $Settings::ssh_user $ssh_server 'cd $remote_path && ln -s $datedir/$short_ud/ .'");
-    }
 
     if ( $cachebuild and $Settings::ReleaseToLatest ) {
       push(@cmds,"ssh $ssh_opts -l $Settings::ssh_user $ssh_server  rsync -avz $complete_remote_path/ $remote_path/latest-$Settings::milestone/");
+    }
+
+    if ( $cachebuild ) {
+      push(@cmds,"ssh $ssh_opts -l $Settings::ssh_user $ssh_server 'cd $remote_path && ln -s $datedir/$short_ud/ .'");
     }
   } elsif ( $Settings::ReleaseToLatest ) {
     push(@cmds,"ssh $ssh_opts -l $Settings::ssh_user $ssh_server mkdir -p $remote_path/latest-$Settings::milestone");
