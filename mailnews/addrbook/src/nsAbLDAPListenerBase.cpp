@@ -259,8 +259,7 @@ NS_IMETHODIMP nsAbLDAPListenerBase::OnLDAPInit(nsILDAPConnection *aConn, nsresul
   }
 
   // Initiate the LDAP operation
-  nsCOMPtr<nsILDAPOperation> ldapOperation =
-    do_CreateInstance(NS_LDAPOPERATION_CONTRACTID, &rv);
+  mOperation = do_CreateInstance(NS_LDAPOPERATION_CONTRACTID, &rv);
   if (NS_FAILED(rv))
   {
     NS_ERROR("nsAbLDAPMessageBase::OnLDAPInit(): failed to create ldap operation");
@@ -282,7 +281,7 @@ NS_IMETHODIMP nsAbLDAPListenerBase::OnLDAPInit(nsILDAPConnection *aConn, nsresul
     return rv;
   }
 
-  rv = ldapOperation->Init(mConnection, proxyListener, nsnull);
+  rv = mOperation->Init(mConnection, proxyListener, nsnull);
   if (NS_FAILED(rv))
   {
     NS_ERROR("nsAbLDAPMessageBase::OnLDAPInit(): failed to Initialise operation");
@@ -291,7 +290,7 @@ NS_IMETHODIMP nsAbLDAPListenerBase::OnLDAPInit(nsILDAPConnection *aConn, nsresul
   }
 
   // Bind
-  rv = ldapOperation->SimpleBind(NS_ConvertUTF16toUTF8(passwd));
+  rv = mOperation->SimpleBind(NS_ConvertUTF16toUTF8(passwd));
   if (NS_FAILED(rv))
   {
     NS_ERROR("nsAbLDAPMessageBase::OnLDAPInit(): failed to perform bind operation");
@@ -335,11 +334,19 @@ nsresult nsAbLDAPListenerBase::OnLDAPMessageBind(nsILDAPMessage *aMessage)
         // not much to do at this point, though conceivably we could 
         // pop up a dialog telling the user to go manually delete
         // this password in the password manager.
+        return rv;
       }
+      // Login failed, so try again
+      // XXX We should probably pop up an error dialog telling
+      // the user that the login failed here, rather than just bringing 
+      // up the password dialog again, which is what calling OnLDAPInit()
+      // does.
+      return OnLDAPInit(nsnull, NS_OK);
     }
 
-    // XXX this error should be propagated back to the UI somehow
-    return NS_ERROR_FAILURE;
+    // Don't know how to handle this, so use the message error code in
+    // the failure return value so we hopefully get it back to the UI.
+    return NS_ERROR_GENERATE_FAILURE(NS_ERROR_MODULE_LDAP, errCode);
   }
 
   mBound = PR_TRUE;

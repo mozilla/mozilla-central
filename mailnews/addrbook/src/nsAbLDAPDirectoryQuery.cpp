@@ -102,7 +102,6 @@ protected:
   PRBool mCanceled;
   PRBool mWaitingForPrevQueryToFinish;
 
-  nsCOMPtr<nsILDAPOperation> mSearchOperation;
   nsCOMPtr<nsIMutableArray> mServerSearchControls;
   nsCOMPtr<nsIMutableArray> mClientSearchControls;
 };
@@ -212,8 +211,8 @@ NS_IMETHODIMP nsAbQueryLDAPMessageListener::OnLDAPMessage(nsILDAPMessage *aMessa
   }
   else
   {
-    if (mSearchOperation)
-      rv = mSearchOperation->AbandonExt();
+    if (mOperation)
+      rv = mOperation->AbandonExt();
 
     rv = mResultListener->OnQueryResult(
       nsIAbDirectoryQueryResultListener::queryResultStopped, 0);
@@ -233,7 +232,7 @@ nsresult nsAbQueryLDAPMessageListener::DoTask()
   nsresult rv;
   mCanceled = mFinished = PR_FALSE;
 
-  mSearchOperation = do_CreateInstance(NS_LDAPOPERATION_CONTRACTID, &rv);
+  mOperation = do_CreateInstance(NS_LDAPOPERATION_CONTRACTID, &rv);
   NS_ENSURE_SUCCESS(rv, rv);
 
   nsCOMPtr<nsILDAPMessageListener> proxyListener;
@@ -243,7 +242,7 @@ nsresult nsAbQueryLDAPMessageListener::DoTask()
                             getter_AddRefs(proxyListener));
   NS_ENSURE_SUCCESS(rv, rv);
 
-  rv = mSearchOperation->Init (mConnection, proxyListener, nsnull);
+  rv = mOperation->Init(mConnection, proxyListener, nsnull);
   NS_ENSURE_SUCCESS(rv, rv);
 
   nsCAutoString dn;
@@ -263,15 +262,15 @@ nsresult nsAbQueryLDAPMessageListener::DoTask()
                                  attributes.GetArrayAddr());
   NS_ENSURE_SUCCESS(rv, rv);
 
-  rv = mSearchOperation->SetServerControls(mServerSearchControls);
+  rv = mOperation->SetServerControls(mServerSearchControls);
   NS_ENSURE_SUCCESS(rv, rv);
 
-  rv = mSearchOperation->SetClientControls(mClientSearchControls);
+  rv = mOperation->SetClientControls(mClientSearchControls);
   NS_ENSURE_SUCCESS(rv, rv);
 
-  return mSearchOperation->SearchExt(dn, scope, filter, attributes.GetSize(),
-                                     attributes.GetArray(), mTimeOut,
-                                     mResultLimit);
+  return mOperation->SearchExt(dn, scope, filter, attributes.GetSize(),
+                               attributes.GetArray(), mTimeOut,
+                               mResultLimit);
 }
 
 void nsAbQueryLDAPMessageListener::InitFailed(PRBool aCancelled)

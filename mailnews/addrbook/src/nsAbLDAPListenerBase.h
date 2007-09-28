@@ -73,8 +73,9 @@ protected:
   virtual nsresult DoTask() = 0;
 
   nsCOMPtr<nsILDAPURL> mDirectoryUrl;
+  nsCOMPtr<nsILDAPOperation> mOperation;        // current ldap op
   nsILDAPConnection* mConnection;
-  nsCAutoString mLogin;
+  nsCString mLogin;
   PRInt32 mTimeOut;
   PRBool mBound;
   PRBool mInitialized;
