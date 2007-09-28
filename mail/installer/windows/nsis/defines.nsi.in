@@ -11,3 +11,5 @@
 
 !define AppRegNameMail        "Thunderbird"
 !define AppRegNameNews        "Thunderbird (News)"
+
+!define MinUnsupportedVer     "Microsoft Windows 2000"
