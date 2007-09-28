@@ -1029,7 +1029,7 @@ sub pushit {
     $ssh_opts = "-".$Settings::ssh_version;
     $scp_opts = "-oProtocol=".$Settings::ssh_version;
   }
-  if (defined($Settings::ssh_key) && $Settings::ssh_key ne '') {
+  if (defined($Settings::ssh_key) && $Settings::ssh_key !~ /^\s*$/) {
     $ssh_opts .= " -i ".$Settings::ssh_key;
     $scp_opts .= " -i ".$Settings::ssh_key;
   }
