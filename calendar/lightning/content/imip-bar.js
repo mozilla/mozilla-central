@@ -192,6 +192,19 @@ function setupBar(imipMethod)
             description.firstChild.data = ltnGetString("lightning",
                                                        "imipBarReplyText");
         }
+    } else if (imipMethod.toUpperCase() == "PUBLISH") {
+        if (description.firstChild.data) {
+            description.firstChild.data = ltnGetString("lightning",
+                                                       "imipBarRequestText");
+        }
+
+        var button = document.getElementById("imip-button1");
+        button.removeAttribute("hidden");
+        button.setAttribute("label", ltnGetString("lightning",
+                                                  "imipAddToCalendar.label"));
+        
+        button.setAttribute("oncommand",
+                            "setAttendeeResponse('PUBLISH', '');");
     } else {
         // Bug xxxx TBD: Something went wrong or we found a message we don't
         // support yet. We can show a "This method is not supported in this

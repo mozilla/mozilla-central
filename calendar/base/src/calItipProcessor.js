@@ -148,19 +148,20 @@ calItipProcessor.prototype = {
                     // Only add to calendar if we accepted invite
                     var replyStat = this._getReplyStatus(calItem,
                                                          transport.defaultIdentity);
-                    if (replyStat != "DECLINED") {
-                        if (!this._processCalendarAction(calItem,
-                                                         CAL_ITIP_PROC_ADD_OP,
-                                                         targetCalendar,
-                                                         aListener))
-                        {
-                            throw new Error ("processItipItem: " +
-                                             "_processCalendarAction failed!");
-                        }
+                    if (replyStat == "DECLINED") {
+                        break;
+                    }
+                    // else fall through
+                case "PUBLISH":
+                    if (!this._processCalendarAction(calItem,
+                                                     CAL_ITIP_PROC_ADD_OP,
+                                                     targetCalendar,
+                                                     aListener))
+                    {
+                        throw new Error ("processItipItem: " +
+                                         "_processCalendarAction failed!");
                     }
                     break;
-
-                case "PUBLISH":
                 case "REPLY":
                 case "REFRESH":
                 case "ADD":
@@ -212,7 +213,10 @@ calItipProcessor.prototype = {
         }
 
         // Send the appropriate response
-        transport.simpleSendResponse(respItipItem);
+        // figure out a good way to determine when a response is needed!
+        if (recvMethod != respMethod) {
+            transport.simpleSendResponse(respItipItem);
+        }
 
         // Yay it worked!
         // XXX TODO: Actually tie this to success/failure of the transport
