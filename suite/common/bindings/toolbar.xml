@@ -223,7 +223,7 @@
   </binding>
 
   <binding id="grippymenubar" extends="chrome://global/content/bindings/toolbar.xml#menubar">
-    <content height="0">
+    <content>
       <xul:hbox flex="1" class="toolbar-box">
         <xul:toolbargrippy xbl:inherits="last-toolbar,hidden=grippyhidden"
                            tbattr="toolbar-grippy" class="toolbar-grippy"/>
