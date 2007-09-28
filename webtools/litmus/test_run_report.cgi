@@ -109,6 +109,7 @@ if ($c->param) {
   }
   
   $vars = {
+           title => "Test Run Report - " . $test_run->{'name'},
            test_runs => [$test_run],
            testcase_coverage => \%testcase_coverage,
            testgroups => \@testgroups,
@@ -119,6 +120,7 @@ if ($c->param) {
   
 } else {
   $vars = {
+           title => "Select Test Run",
            show_search_form => 1,
           };
 }
