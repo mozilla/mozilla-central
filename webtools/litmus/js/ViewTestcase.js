@@ -1,5 +1,5 @@
 function checkCategoryForm(f) {
-  return verifySelected(f.product, 'Product');
+  return verifySelected(f.product_id, 'Product');
 }
 
 function checkIDForm(f) {
