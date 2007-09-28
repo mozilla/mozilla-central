@@ -57,7 +57,7 @@ $DisplayServer = ':0.0';
 $CleanProfile             = 1;
 #$ResetHomeDirForTests     = 1;
 $ProductName              = "SeaMonkey";
-$VendorName               = 'mozilla.org';
+$VendorName               = 'Mozilla';
 
 $RunMozillaTests          = 1;  # Allow turning off of all tests if needed.
 #$RegxpcomTest             = 1;
