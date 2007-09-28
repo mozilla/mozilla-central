@@ -1029,12 +1029,16 @@ sub pushit {
     $ssh_opts = "-".$Settings::ssh_version;
     $scp_opts = "-oProtocol=".$Settings::ssh_version;
   }
+  if (defined($Settings::ssh_key) && $Settings::ssh_key ne '') {
+    $ssh_opts .= " -i ".$Settings::ssh_key;
+    $scp_opts .= " -i ".$Settings::ssh_key;
+  }
 
   # The ReleaseToDated and ReleaseToLatest configuration settings give us the
   # ability to fine-tune where release files are stored.  ReleaseToDated
   # will store the release files in a directory of the form
   #
-  #   nightly/YYYY-MM-DD-HH-<milestone>
+  #   nightly/YYYY/MM/YYYY-MM-DD-HH-<milestone>
   #
   # while ReleaseToLatest stores the release files in a directory of the form
   #
@@ -1045,29 +1049,41 @@ sub pushit {
   # variables defined yet, we want to set them to default values here.
   # Hopefully, though, we'll have also updated tinder-defaults.pl if we've
   # updated post-mozilla-rel.pl from CVS.
+  #
+  # Note that we traverse this code for "hourlies" as well as nightlies/clobbers
+  # $package_name, and hence $short_ud,  will be (eg) "fx-linux-tbox-trunk" and 
+  # "2007-09-27-04-trunk" respectively.
 
   $Settings::ReleaseToDated = 1 if !defined($Settings::ReleaseToDated);
   $Settings::ReleaseToLatest = 1 if !defined($Settings::ReleaseToLatest);
 
   if ( $Settings::ReleaseToDated ) {
-    my $makedirs = "$remote_path/$short_ud";
+    my $datedir = '';
+    if( $cachebuild && ($short_ud =~ /^(\d{4})-(\d{2}).*/) ) {
+      $datedir = "$1/$2/";
+    }
+    my $complete_remote_path = "$remote_path/" . $datedir . "$short_ud";
+    my $makedirs = $complete_remote_path;
     if ($cachebuild && $Settings::ReleaseToLatest) {
       $makedirs .= " $remote_path/latest-$Settings::milestone";
     }
     push(@cmds,"ssh $ssh_opts -l $Settings::ssh_user $ssh_server mkdir -p $makedirs");
     # this is a workaround for pacifica-vm, which doesn't support the <dir>/. notation for scp (bug 383775)
     if ($^O eq "cygwin") {
-      push(@cmds,"rsync -av -e \"ssh $ssh_opts\" $upload_directory/ $Settings::ssh_user\@$ssh_server:$remote_path/$short_ud/");
+      push(@cmds,"rsync -av -e \"ssh $ssh_opts\" $upload_directory/ $Settings::ssh_user\@$ssh_server:$complete_remote_path/");
     } else {
-      push(@cmds,"scp -r -p $scp_opts $upload_directory/. $Settings::ssh_user\@$ssh_server:$remote_path/$short_ud/");
+      push(@cmds,"scp -r -p $scp_opts $upload_directory/. $Settings::ssh_user\@$ssh_server:$complete_remote_path/");
     }
-    push(@cmds,"ssh $ssh_opts -l $Settings::ssh_user $ssh_server chmod -R 775 $remote_path/$short_ud");
+    push(@cmds,"ssh $ssh_opts -l $Settings::ssh_user $ssh_server chmod -R 775 $complete_remote_path");
     if ($Settings::ReleaseGroup ne '') {
-      push(@cmds,"ssh $ssh_opts -l $Settings::ssh_user $ssh_server chgrp -R $Settings::ReleaseGroup $remote_path/$short_ud");
+      push(@cmds,"ssh $ssh_opts -l $Settings::ssh_user $ssh_server chgrp -R $Settings::ReleaseGroup $complete_remote_path");
+    }
+    if ( $cachebuild ) {
+      push(@cmds,"ssh $ssh_opts -l $Settings::ssh_user $ssh_server 'cd $remote_path && ln -s $datedir/$short_ud/ .'");
     }
 
     if ( $cachebuild and $Settings::ReleaseToLatest ) {
-      push(@cmds,"ssh $ssh_opts -l $Settings::ssh_user $ssh_server  rsync -avz $remote_path/$short_ud/ $remote_path/latest-$Settings::milestone/");
+      push(@cmds,"ssh $ssh_opts -l $Settings::ssh_user $ssh_server  rsync -avz $complete_remote_path/ $remote_path/latest-$Settings::milestone/");
     }
   } elsif ( $Settings::ReleaseToLatest ) {
     push(@cmds,"ssh $ssh_opts -l $Settings::ssh_user $ssh_server mkdir -p $remote_path/latest-$Settings::milestone");
