@@ -45,6 +45,7 @@
 <dialog xmlns="http://www.mozilla.org/keymaster/gatekeeper/there.is.only.xul"
     xmlns:nc="http://home.netscape.com/NC-rdf#"
     xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#"
+    id="ablistWindow"
     title="&mailListWindow.title;"
     ondialogaccept="return MailListOKButton();"
     onload="OnLoadNewMailList()"
