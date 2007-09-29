@@ -3980,6 +3980,35 @@ nsMsgCompose::BuildBodyMessageAndSignature()
   if (m_composeHTML && (mType == nsIMsgCompType::New || mType == nsIMsgCompType::MailToUrl))
     body.ReplaceSubstring(NS_LITERAL_STRING("\n").get(), NS_LITERAL_STRING("<br>").get());
 
+  // Restore flowed text wrapping for Drafts/Templates.
+  // Look for unquoted lines - if we have an unquoted line
+  // that ends in a space, join this line with the next one
+  // by removing the end of line char(s).
+  PRInt32 wrapping_enabled = 0;
+  GetWrapLength(&wrapping_enabled);
+  if (!m_composeHTML && !addSignature && wrapping_enabled)
+  {
+    PRBool quote = PR_FALSE;
+    for (PRUint32 i = 0; i < body.Length(); i ++)
+    {
+      if (body[i] == '>' && (i == 0 || body[i - 1] == '\n'))
+        quote = PR_TRUE;
+      if (body[i] == '\n' && i > 1)
+      {
+        if (quote)
+        {
+          quote = PR_FALSE;
+          continue;   // skip quoted lines
+        }
+        PRUint32 j = i - 1;  // look backward for space
+        if (body[j] == '\r')
+          j --;
+        if (body[j] == ' ')  // join this line with next one
+          body.Cut(j + 1, i - j);  // remove CRLF
+      }
+    }
+  }
+
   nsString empty;
   rv = ConvertAndLoadComposeWindow(empty, body, tSignature,
                                    PR_FALSE, m_composeHTML);
