@@ -1131,7 +1131,7 @@ nsMessenger::SaveAs(const nsACString& aURI, PRBool aAsFile, nsIMsgIdentity *aIde
     {
       rv = messageService->SaveMessageToDisk(PromiseFlatCString(aURI).get(), localFile, PR_FALSE,
         urlListener, nsnull,
-        PR_FALSE, mMsgWindow);
+        PR_TRUE, mMsgWindow);
     }
     else
     {
