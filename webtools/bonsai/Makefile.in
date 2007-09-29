@@ -40,8 +40,10 @@ FILES =		CGI.pl			\
 		addcheckin.pl		\
 		adminfuncs.pl		\
 		adminmail.pl		\
+		bargraph.css		\
 		bonsai.gif		\
 		bonsai.ico		\
+		checkinsbargraph.js	\
 		closemessage		\
 		contacthelp.html	\
 		createlegaldirs.pl	\
