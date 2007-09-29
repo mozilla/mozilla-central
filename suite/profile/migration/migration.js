@@ -435,6 +435,11 @@ var MigrationWizard = {
 
     targetPrefsFile.append("prefs.js");
 
+    // If the target prefs file doesn't exist, then we can't have a
+    // homepage set in the target profile.
+    if (!targetPrefsFile.exists())
+      return false;
+
     var prefSvc = Components.classes["@mozilla.org/preferences-service;1"]
                             .getService(Components.interfaces.nsIPrefService);
     prefSvc.resetPrefs();
