@@ -74,8 +74,15 @@ sub mail_locale_started_message {
 
     my $platform = $Settings::OS =~ /^WIN/ ? 'windows' : 'unix';
 
+    my $BuildTreeLocale;
+    if ( defined($Settings::BuildTreeLocale) ) {
+        $BuildTreeLocale = $Settings::BuildTreeLocale;
+    } else {
+        $BuildTreeLocale = "$Settings::BuildTree-%s";
+    }
+
     print_locale_log "\n";
-    print_locale_log "tinderbox: tree: $Settings::BuildTree-$locale\n";
+    print_locale_log "tinderbox: tree: " . sprintf($BuildTreeLocale, $locale) . "\n";
     print_locale_log "tinderbox: builddate: $start_time\n";
     print_locale_log "tinderbox: status: building\n";
     print_locale_log "tinderbox: build: $Settings::BuildName $locale\n";
@@ -104,10 +111,17 @@ sub mail_locale_finished_message {
 
     my $platform = $Settings::OS =~ /^WIN/ ? 'windows' : 'unix';
 
+    my $BuildTreeLocale;
+    if ( defined($Settings::BuildTreeLocale) ) {
+        $BuildTreeLocale = $Settings::BuildTreeLocale;
+    } else {
+        $BuildTreeLocale = "$Settings::BuildTree-%s";
+    }
+
     # Put the status at the top of the log, so the server will not
     # have to search through the entire log to find it.
     print OUTLOG "\n";
-    print OUTLOG "tinderbox: tree: $Settings::BuildTree-$locale\n";
+    print OUTLOG "tinderbox: tree: " . sprintf($BuildTreeLocale, $locale) . "\n";
     print OUTLOG "tinderbox: builddate: $start_time\n";
     print OUTLOG "tinderbox: status: $build_status\n";
     print OUTLOG "tinderbox: build: $Settings::BuildName $locale\n";
@@ -978,8 +992,10 @@ sub packit_l10n {
 
   } # foreach
 
-  # remove en-US files since we're building that on a different system
-  TinderUtils::run_shell_command("rm -f $stagedir/*en-US* $stagedir/*-xpi");
+  # remove en-US files if we're building that on a different system
+  if ($Settings::ConfigureOnly) {
+    TinderUtils::run_shell_command("rm -f $stagedir/*en-US* $stagedir/*-xpi");
+  }
 
   TinderUtils::print_log("locales completed.\n");
 
