@@ -133,8 +133,6 @@ NS_IMETHODIMP nsAbLDAPDirectory::GetURI(nsACString &aURI)
   return NS_OK;
 }
 
-#define MOZ_EXPERIMENTAL_WRITEABLE_LDAP 1
-
 NS_IMETHODIMP nsAbLDAPDirectory::GetOperations(PRInt32 *aOperations)
 {
   *aOperations = nsIAbDirectory::opSearch;
