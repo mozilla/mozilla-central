@@ -7,9 +7,8 @@
 	 appear
 -->
 <!ENTITY onStartLegend.label                    "When &brandShortName; starts up, open">
-<!--LOCALIZATION NOTE (navCheck.label): DONT_TRANSLATE -->
-<!ENTITY navCheck.label                         "Navigator">
-<!ENTITY navCheck.accesskey                     "N">
+<!ENTITY navCheck.label                         "Browser">
+<!ENTITY navCheck.accesskey                     "B">
 <!--LOCALIZATION NOTE (compCheck.label): DONT_TRANSLATE -->
 <!ENTITY compCheck.label                        "Composer">
 <!ENTITY compCheck.accesskey                    "C">

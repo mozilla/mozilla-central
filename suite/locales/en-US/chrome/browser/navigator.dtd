@@ -12,9 +12,9 @@
 
 <!ENTITY nothingAvailable.label "(Nothing Available)">
 
-<!ENTITY browserCmd.label	"New Navigator Window">
+<!ENTITY browserCmd.label	"New Browser Window">
 <!ENTITY browserCmd.accesskey	"N">
-<!ENTITY tabCmd.label "Navigator Tab">
+<!ENTITY tabCmd.label "Browser Tab">
 <!ENTITY tabCmd.accesskey "T">
 <!ENTITY tabCmd.commandkey "t">
 <!ENTITY openCmd.label "Open Web Location...">

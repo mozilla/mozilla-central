@@ -1,8 +1,7 @@
 <!-- extracted from tasksOverlay.xul -->
-<!-- LOCALIZATION NOTE (navigatorCmd.label): DONT_TRANSLATE -->  
-<!ENTITY navigatorCmd.label					"Navigator">  
-<!ENTITY navigatorCmd.accesskey             "n">
-<!ENTITY navigatorCmd.commandkey            "1">
+<!ENTITY navigatorCmd.label "Browser">
+<!ENTITY navigatorCmd.accesskey "B">
+<!ENTITY navigatorCmd.commandkey "1">
 <!-- LOCALIZATION NOTE (editorCmd.label): DONT_TRANSLATE -->
 <!ENTITY editorCmd.label					"Composer">
 <!ENTITY editorCmd.accesskey				"c">
@@ -20,7 +19,7 @@
 <!ENTITY privacyMenu.label "Privacy &amp; Security">
 <!ENTITY privacyMenu.accesskey "p">
 
-<!ENTITY taskNavigator.tooltip  "Navigator">
+<!ENTITY taskNavigator.tooltip  "Browser">
 <!ENTITY taskComposer.tooltip  "Composer">
 <!ENTITY taskBar.tooltip  "Status Bar">
 

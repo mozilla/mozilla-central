@@ -2,7 +2,7 @@
 
 <!ENTITY pref.popups.caption            "Popup Windows">
 
-<!ENTITY popupDesc.label                "Specify how to handle popup windows that appear on top of or under the current Navigator window:">
+<!ENTITY popupDesc.label                "Specify how to handle popup windows that appear on top of or under the current browser window:">
 
 <!ENTITY popupBlock.label               "Block unrequested popup windows">
 <!ENTITY popupBlock.accesskey           "B">
@@ -20,7 +20,7 @@
 <!ENTITY previewSound.accesskey         "P">
 <!ENTITY selectSound.title              "Select Popup Block Sound">
 
-<!ENTITY displayIcon.label              "Display an icon in the Navigator status bar">
+<!ENTITY displayIcon.label              "Display an icon in the browser status bar">
 <!ENTITY displayIcon.accesskey          "D">
 
 <!ENTITY popupNote.description          "Note: Blocking all popups may prevent important features of some websites from working, such as login windows for banks and shopping sites. For details of how to allow specific sites to use popups while blocking all others, click Help. Even if blocked, sites may use other methods to show popups.">

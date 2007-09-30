@@ -48,7 +48,7 @@
 <!-- LOCALIZATION NOTE (newListCmd.accesskey) : DONT_TRANSLATE -->  
 <!ENTITY newListCmd.accesskey                           "L">  
 <!ENTITY newAddressBookCmd.label                        "Address Book..."> 
-<!ENTITY newAddressBookCmd.accesskey                    "B">  
+<!ENTITY newAddressBookCmd.accesskey                    "o">  
 <!ENTITY renameAddressBookCmd.label                     "Rename Address Book..."> 
 <!ENTITY renameAddressBookCmd.accesskey                 "R">  
 <!ENTITY newLDAPDirectoryCmd.label                      "LDAP Directory...">

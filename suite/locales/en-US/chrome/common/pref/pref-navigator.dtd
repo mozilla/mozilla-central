@@ -1,7 +1,7 @@
-<!ENTITY  pref.navigator.title      "Navigator">
+<!ENTITY  pref.navigator.title      "Browser">
 
 <!ENTITY  navRadio                  "Display on">
-<!ENTITY  navStartPageMenu.label    "Navigator Startup">
+<!ENTITY  navStartPageMenu.label    "Browser Startup">
 <!ENTITY  newWinPageMenu.label      "New Window">
 <!ENTITY  newTabPageMenu.label      "New Tab">
 

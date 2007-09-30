@@ -3,8 +3,8 @@
 <!--LOCALIZATION NOTE : FILE The 'Scripts & Plug-ins' preferences dialog -->
 <!ENTITY pref.scripts.title              "Scripts &amp; Plug-ins">
 
-<!ENTITY navigator.label                 "Navigator">
-<!ENTITY navigator.accesskey             "N">
+<!ENTITY navigator.label                 "Browser">
+<!ENTITY navigator.accesskey             "B">
 
 <!--LOCALIZATION NOTE (enableJavaScript.label): 'JavaScript' should never be translated -->
 <!ENTITY enableJavaScript.label          "Enable JavaScript for">

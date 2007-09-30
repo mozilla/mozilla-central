@@ -15,10 +15,9 @@
 <!ENTITY newPageFromTemplateCmd.accesskey "t">
 <!ENTITY newPageFromDraftCmd.label "Page Using Draft">
 <!ENTITY newPageFromDraftCmd.accesskey "d">
-<!-- LOCALIZATION NOTE  (newNavigatorCmd.label): Do NOT translate "Navigator" -->
-<!ENTITY newNavigatorCmd.label				"Navigator Window">
-<!ENTITY newNavigatorCmd.key				"N">
-<!ENTITY newNavigatorCmd.accesskey			"N">
+<!ENTITY newNavigatorCmd.label "Browser Window">
+<!ENTITY newNavigatorCmd.key "N">
+<!ENTITY newNavigatorCmd.accesskey "B">
 
 <!ENTITY editMenu.label					"Edit"> 
 <!ENTITY editMenu.accesskey				"e"> 
