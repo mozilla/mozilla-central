@@ -1,17 +1,30 @@
 #!/bin/sh
 
-# Set up paths for finding files.
-if [ -z "$FEDIR" ]; then FEDIR=$PWD/..; fi
-if [ -z "$LOCALEDIR" ]; then LOCALEDIR=$FEDIR/locales; fi
+# Set up settings and paths for finding files.
+if [ -z "$DEBUG" ]; then DEBUG=0; fi
+if [ -z "$PERL" ]; then PERL=perl; fi
 if [ -z "$CONFIGDIR" ]; then CONFIGDIR=$FEDIR/../../config; fi
 if [ -z "$XPIFILES" ]; then XPIFILES=$PWD/resources; fi
 if [ -z "$XPIROOT" ]; then XPIROOT=$PWD/xpi-tree; fi
 if [ -z "$JARROOT" ]; then JARROOT=$PWD/jar-tree; fi
-if [ -z "$PERL" ]; then PERL=perl; fi
-if [ -z "$DEBUG" ]; then DEBUG=0; fi
+if [ -z "$FEDIR" ]; then FEDIR=$PWD/..; fi
+if [ -z "$LOCALEDIR" ]; then LOCALEDIR=$FEDIR/locales; fi
 if [ -z "$AB_CD" ]; then AB_CD=en-US; fi
 
+# Display all the settings and paths if we're in debug mode.
+if [ $DEBUG -ge 1 ]; then
+	echo "\$DEBUG     = $DEBUG"
+	echo "\$PERL      = $PERL"
+	echo "\$CONFIGDIR = $CONFIGDIR"
+	echo "\$XPIFILES  = $XPIFILES"
+	echo "\$XPIROOT   = $XPIROOT"
+	echo "\$JARROOT   = $JARROOT"
+	echo "\$FEDIR     = $FEDIR"
+	echo "\$LOCALEDIR = $LOCALEDIR"
+	echo "\$AB_CD     = $AB_CD"
+fi
 
+## Simple function to display all the parameters/arguments to itself.
 function showParams()
 {
   I=0
@@ -57,7 +70,7 @@ function safeCommand()
     LASTP="$P"
   done
   
-  if [ $DEBUG -gt 0 ]; then
+  if [ $DEBUG -ge 2 ]; then
     echo
     showParams "${CMD[@]}"
     echo 'INPUT  :' "$INF"
@@ -76,7 +89,7 @@ function safeCommand()
   fi
   
   EC=$?
-  if [ $DEBUG -gt 0 ]; then
+  if [ $DEBUG -ge 2 ]; then
     echo 'RESULT :' $EC
   fi
   if [ "$EC" != "0" ]; then
@@ -94,6 +107,7 @@ function safeCommand()
 ## Begin real program ##
 
 
+# Clean up XPI and JAR build directories.
 if [ "$1" = "clean" ]; then
   echo -n "Cleaning up files"
   echo -n .
@@ -105,54 +119,63 @@ if [ "$1" = "clean" ]; then
   exit
 fi
 
-# test if requested language is in all-locales, else fall back to en-US
-grep -sx "$AB_CD" $LOCALEDIR/all-locales > /dev/null
-if [ $? != 0 ] ; then
+
+# Check that requested language is in all-locales file (i.e. exists and it
+# allowed to be used). Fall back to en-US if not.
+# FIXME: THIS DOES NOT WORK WITH CYGWIN.
+grep -sx "$AB_CD" "$LOCALEDIR/all-locales" > /dev/null
+if [ $? != 0 ]; then
   AB_CD=en-US
 fi
+if [ $DEBUG -ge 1 ]; then echo "Language   = $AB_CD"; fi
 
-# This is where the actual L10n files are found
-# below $LOCALEDIR for en-US, in l10n/ repository for other languages
-if [ "$AB_CD" = "en-US" ] ; then
+
+# Set up where the actual localisation files are to be found; below $LOCALEDIR
+# for en-US, in l10n/ repository for other languages.
+if [ "$AB_CD" = "en-US" ]; then
   L10NDIR="$LOCALEDIR/$AB_CD"
 else
   L10NDIR="$FEDIR/../../../l10n/$AB_CD/extensions/irc"
 fi
+if [ $DEBUG -ge 1 ]; then echo "L10n dir   = $L10NDIR"; fi
 
-# Check setup.
-if ! [ -d "$FEDIR" ]; then
-  echo "ERROR: Base ChatZilla directory (FEDIR) not found."
-  exit 1
-fi
+
+# Check directory setup.
 if ! [ -d "$CONFIGDIR" ]; then
   echo "ERROR: mozilla/config directory (CONFIGDIR) not found."
   exit 1
 fi
+if ! [ -d "$FEDIR" ]; then
+  echo "ERROR: Base ChatZilla directory (FEDIR) not found."
+  exit 1
+fi
 if ! [ -d "$L10NDIR" ]; then
-  echo "ERROR: directory with localized files for requested language (L10NDIR) not found."
+  echo "ERROR: Directory with localized files for $AB_CD language (L10NDIR) not found."
   exit 1
 fi
 
 
 # Extract version number.
 VERSION=`grep "const __cz_version" "$FEDIR/xul/content/static.js" | sed "s|.*\"\([^\"]\{1,\}\)\".*|\1|"`
-
 if [ -z "$VERSION" ]; then
   echo "ERROR: Unable to get version number."
   exit 1
 fi
 
+
 echo Beginning build of ChatZilla $VERSION...
 
 
-if [ "$AB_CD" = "en-US" ] ; then
+# Set up XPI name using version and language.
+if [ "$AB_CD" = "en-US" ]; then
   XPINAME="chatzilla-$VERSION.xpi"
 else
   XPINAME="chatzilla-$AB_CD-$VERSION.xpi"
-  echo "  (Building $AB_CD language version)"
+  echo "  NOTE: Building $AB_CD language."
 fi
 
-# Check for existing.
+
+# Check for an existing XPI file and print a warning.
 if [ -r "$XPINAME" ]; then
   echo "  WARNING: output XPI will be overwritten."
 fi
