@@ -1124,23 +1124,6 @@ function setupLdapAutocompleteSession()
                 // if we don't have this pref, no big deal
             }
 
-            // find out if we need to authenticate, and if so, tell the LDAP
-            // autocomplete session how to prompt for a password.  This window
-            // (the compose window) is being used to parent the authprompter.
-            //
-            LDAPSession.login = login;
-            if (login != "") {
-                var windowWatcherSvc = Components.classes[
-                    "@mozilla.org/embedcomp/window-watcher;1"]
-                    .getService(Components.interfaces.nsIWindowWatcher);
-                var domWin =
-                    window.QueryInterface(Components.interfaces.nsIDOMWindow);
-                var authPrompter =
-                    windowWatcherSvc.getNewAuthPrompter(domWin);
-
-                LDAPSession.authPrompter = authPrompter;
-            }
-
             // don't search on non-CJK strings shorter than this
             //
             try {

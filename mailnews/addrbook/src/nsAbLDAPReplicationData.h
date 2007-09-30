@@ -85,7 +85,6 @@ protected:
   PRBool          mInitialized;
   
   nsCOMPtr<nsIAbLDAPDirectory> mDirectory;
-  nsCOMPtr<nsILDAPOperation> mOperation;
   nsCOMPtr<nsIAbLDAPAttributeMap> mAttrMap; // maps ab properties to ldap attrs
   
   virtual nsresult OnLDAPSearchEntry(nsILDAPMessage *aMessage);

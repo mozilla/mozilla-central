@@ -50,7 +50,7 @@ interface nsIMutableArray;
  * Extends nsIAutoCompleteSession to have various LDAP-specific parameters.
  * and output format.
  */
-[scriptable, uuid(e7f26534-f96c-4c87-803c-30cdf0bc2973)]
+[scriptable, uuid(aced5f6f-013d-4e21-97a6-9da3779c8663)]
 interface nsILDAPAutoCompleteSession : nsIAutoCompleteSession {
 
     /**
@@ -125,11 +125,6 @@ interface nsILDAPAutoCompleteSession : nsIAutoCompleteSession {
      * If unset, bind anonymously.
      */
     attribute AUTF8String login;
-
-    /**
-     * If set, use this object to get a password for logging in to the server.
-     */
-    attribute nsIAuthPrompt authPrompter;
 
     /**
      * What version of the LDAP protocol should be used?  Allowed version

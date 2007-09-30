@@ -1,4 +1,4 @@
-/* -*- Mode: C++; tab-width: 4; indent-tabs-mode: nil; c-basic-offset: 4 -*-
+/* -*- Mode: C++; tab-width: 2; indent-tabs-mode: nil; c-basic-offset: 2 -*-
  * 
  * ***** BEGIN LICENSE BLOCK *****
  * Version: MPL 1.1/GPL 2.0/LGPL 2.1
@@ -41,7 +41,6 @@
 #include "nsIAutoCompleteSession.h"
 #include "nsILDAPConnection.h"
 #include "nsILDAPOperation.h"
-#include "nsILDAPMessageListener.h"
 #include "nsILDAPAutoCompleteSession.h"
 #include "nsILDAPAutoCompFormatter.h"
 #include "nsILDAPURL.h"
@@ -50,6 +49,7 @@
 #include "nsIConsoleService.h"
 #include "nsIAuthPrompt.h"
 #include "nsIMutableArray.h"
+#include "nsAbLDAPListenerBase.h"
 
 // 964665d0-1dd1-11b2-aeae-897834fb00b9
 //
@@ -57,19 +57,27 @@
 { 0x964665d0, 0x1dd1, 0x11b2, \
  { 0xae, 0xae, 0x89, 0x78, 0x34, 0xfb, 0x00, 0xb9 }}
 
-class nsLDAPAutoCompleteSession : public nsILDAPMessageListener, 
+class nsLDAPAutoCompleteSession : public nsAbLDAPListenerBase,
                                   public nsILDAPAutoCompleteSession
 {
-  public:
-    NS_DECL_ISUPPORTS
-    NS_DECL_NSIAUTOCOMPLETESESSION
-    NS_DECL_NSILDAPMESSAGELISTENER
-    NS_DECL_NSILDAPAUTOCOMPLETESESSION
+public:
+  NS_DECL_ISUPPORTS
+  NS_DECL_NSIAUTOCOMPLETESESSION
+  NS_DECL_NSILDAPAUTOCOMPLETESESSION
 
-    nsLDAPAutoCompleteSession();
-    virtual ~nsLDAPAutoCompleteSession();
+  nsLDAPAutoCompleteSession();
+  virtual ~nsLDAPAutoCompleteSession();
 
-  protected:
+  NS_IMETHOD OnLDAPMessage(nsILDAPMessage *aMessage);
+  NS_IMETHOD OnLDAPInit(nsILDAPConnection *aConn, nsresult aStatus);
+
+protected:
+  // Called if an LDAP initialization fails.
+  virtual void InitFailed(PRBool aCancelled = PR_FALSE);
+
+  // Called to start off the required task after a bind.
+  virtual nsresult DoTask();
+
     enum SessionState { 
         UNBOUND = nsILDAPAutoCompFormatter::STATE_UNBOUND,
         INITIALIZING = nsILDAPAutoCompFormatter::STATE_INITIALIZING, 
@@ -78,25 +86,17 @@ class nsLDAPAutoCompleteSession : public nsILDAPMessageListener,
         SEARCHING = nsILDAPAutoCompFormatter::STATE_SEARCHING 
     } mState;
     PRUint32 mEntriesReturned;                    // # of entries returned?
-    nsCOMPtr<nsILDAPConnection> mConnection;      // connection used for search
-    nsCOMPtr<nsILDAPOperation> mOperation;        // current ldap op
     nsCOMPtr<nsIAutoCompleteListener> mListener;  // callback 
     nsCOMPtr<nsIAutoCompleteResults> mResults;    // being built up
     nsCOMPtr<nsISupportsArray> mResultsArray;     // cached, to avoid re-gets
     nsString mSearchString;                       // autocomplete this string
     nsCString mFilterTemplate;                    // search filter template
-    nsCOMPtr<nsILDAPURL> mServerURL;        // URL for the directory to search
     PRInt32 mMaxHits;                       // return at most this many entries
     PRUint32 mMinStringLength;              // strings < this size are ignored
     PRUint32 mCjkMinStringLength;           // ignore CJK strings < this size
     char **mSearchAttrs;        // outputFormat search attrs for SearchExt call
     PRUint32 mSearchAttrsSize;              // size of above array
-    nsCOMPtr<nsIAuthPrompt> mAuthPrompter;  // used to prompt for the password
     PRUint32 mVersion;                      // version of LDAP to use
-
-// XXX hack until nsUTF8String exists
-#define nsUTF8String nsCString
-    nsUTF8String mLogin;                       // authenticate as this user
 
     // used to format the ldap message into an nsIAutoCompleteItem
     //
@@ -113,9 +113,6 @@ class nsLDAPAutoCompleteSession : public nsILDAPMessageListener,
 
     // all done; call OnAutoComplete
     nsresult OnLDAPSearchResult(nsILDAPMessage *aMessage); 
-
-    // kick off a search
-    nsresult StartLDAPSearch();
 
     // check if the LDAP message received is current
     nsresult IsMessageCurrent(nsILDAPMessage *aMessage, PRBool *aIsCurrent);
