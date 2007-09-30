@@ -24,7 +24,6 @@ comm.jar:
    content/navigator/searchconfig.properties
    content/navigator/sessionHistoryUI.js
    content/navigator/tabbrowser.xml
-   content/navigator/turboDialog.xul
    content/navigator/urlbarBindings.xml
    content/navigator/viewsource.js
    content/navigator/viewSource.xul

@@ -42,10 +42,3 @@
 @import url("chrome://communicator/skin/");
 
 @namespace url("http://www.mozilla.org/keymaster/gatekeeper/there.is.only.xul");
-
-/* ::::: turbo confirmation dialog ::::: */
-
-#turboTrayImage {
-  list-style-image: url("chrome://communicator/skin/icons/turbo-systray.gif");
-  border: 2px inset ThreeDFace !important;
-}

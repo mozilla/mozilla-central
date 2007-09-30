@@ -55,92 +55,9 @@
     var _elementIDs = ["advancedJavaAllow", "systemPrefCheck"];
 
     function Startup() {
-      turboCheck();
       sysPrefCheck();
       initJVMConfigList();
     }
-
-    /* 
-     * Name: turboCheck()
-     * 
-     * Arguments: none
-     *
-     * Description: This function is called when the root advanced prefs panel
-     * is loaded. The turbo mode setting is not exactly a preference -- setting
-     * the checkbox should (on leaving the prefs with an "Ok") result in a call
-     * to the backend to do the necessary win32 registry twiddling needed for
-     * turbo mode to go into effect. Clearing it should undo this work. We need
-     * to call the backend to determine if turbo mode is enabled (since we are 
-     * required to check for it in a non-trivial way) and then explicitly set the
-     * checkbox here based on what we find. Finally, we have to hide the checkbox
-     * (and the group box that frames it) if we are not executing on a Win32 
-     * platform.
-     *
-     * Return Value: void
-     *
-     * Original Code: syd@netscape.com 6/8/2001
-     *
-    */
-
-    function turboCheck()
-    {
-      var frame = document.getElementById("perfSettings");
-      if (navigator.platform != "Win32") {
-        frame.hidden = true;
-        return;
-      }
-      if (!("isTurboEnabled" in parent))
-        parent.isTurboEnabled = -1;
-      else {
-        document.getElementById("enableTurbo").checked = parent.isTurboEnabled;
-        return;
-      }
-      var winhooksService = Components.classes["@mozilla.org/winhooks;1"].getService(Components.interfaces.nsIWindowsHooks);
-      if (winhooksService) {
-        parent.isTurboEnabled = winhooksService.isOptionEnabled("-turbo");
-        document.getElementById("enableTurbo").checked = parent.isTurboEnabled;
-      }
-
-      parent.hPrefWindow.registerOKCallbackFunc( saveTurboSetting );
-    }
-
-    /* 
-     * Name: saveTurboSetting()
-     * 
-     * Arguments: none
-     *
-     * Description: This function is called when the user hits the OK button in
-     * the preferences panel. The function determines what the turbo "preference" 
-     * setting is and performs the appropriate action to enable or disable turbo mode.
-     *
-     * Return Value: void
-     *
-     * Original Code: syd@netscape.com 6/9/2001
-     *
-    */
-
-    function saveTurboSetting() {
-      if (navigator.platform != "Win32")
-        return;   
-
-      var winhooksService = Components.classes["@mozilla.org/winhooks;1"].getService(Components.interfaces.nsIWindowsHooks);
-      if (winhooksService && parent.isTurboEnabled != -1) {
-        if (parent.isTurboEnabled)
-          winhooksService.startupAddOption("-turbo");
-        else 
-          winhooksService.startupRemoveOption("-turbo");
-        var appStartup = Components.classes["@mozilla.org/toolkit/app-startup;1"].
-                           getService(Components.interfaces.nsIAppStartup);
-        var nativeAppSupport = null;
-        try {
-          nativeAppSupport = appStartup.nativeAppSupport;
-        }
-        catch ( ex ) {
-        }
-        if (nativeAppSupport)
-          nativeAppSupport.isServerMode = parent.isTurboEnabled;
-        }
-      }
 
     function sysPrefCheck() {
       var frame = document.getElementById("systemPrefs");
@@ -352,17 +269,6 @@
     </tree>
   </groupbox>
 
-  <groupbox id="perfSettings">
-    <caption id="perfLabel" label="&prefTurbo.caption;"/>
-    <vbox id="perfBox" align="start">
-      <checkbox id="enableTurbo" label="&enableTurbo.label;"
-                accesskey="&enableTurboCheck.accesskey;"
-                oncommand="parent.isTurboEnabled = this.checked;"/>
-      <vbox class="indent" flex="1">
-        <description>&prefTurbo.desc;</description>
-      </vbox>
-    </vbox>
-  </groupbox>
   <groupbox id="systemPrefs">
     <caption id="systemPrefCaption" label="&systemPref.caption;"/>
     <vbox id="systemPrefBox" align="start">

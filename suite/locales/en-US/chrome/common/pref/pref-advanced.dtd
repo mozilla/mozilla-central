@@ -7,12 +7,6 @@
 <!ENTITY enbJavaCheck.label         "Enable Java">
 <!ENTITY enbJavaCheck.accesskey     "J">
 
-<!ENTITY prefTurbo.caption          "Quick Launch">
-<!ENTITY enableTurbo.label          "Keep &brandShortName; in memory to improve startup performance">
-<!ENTITY enableTurboCheck.accesskey "K">
-
-<!ENTITY prefTurbo.desc             "If you check this item, part of &brandShortName; will stay in memory when not in use, allowing it to start up more quickly.">
-
 <!ENTITY prefJvmConf.caption        "Select Java version (change requires restart)">
 <!ENTITY jvm.name                   "Version">
 <!ENTITY jvm.home                   "Path">
