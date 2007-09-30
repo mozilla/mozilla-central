@@ -875,7 +875,7 @@ nsresult nsAbLDAPDirectory::SplitStringList(
   {
     if (!(cArray[i] = ToNewCString(*strarr.CStringAt(i))))
     {
-      NS_FREE_XPCOM_ALLOCATED_POINTER_ARRAY(index, cArray);
+      NS_FREE_XPCOM_ALLOCATED_POINTER_ARRAY(strarr.Count(), cArray);
       return NS_ERROR_OUT_OF_MEMORY;
     }
   }
