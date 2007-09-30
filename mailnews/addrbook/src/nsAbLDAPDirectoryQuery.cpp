@@ -23,7 +23,8 @@
  *   Seth Spitzer <sspitzer@netscape.com>
  *   Dan Mosedale <dmose@netscape.com>
  *   Paul Sandoz <paul.sandoz@sun.com>
- *   Mark Banner <mark@standard8.demon.co.uk>
+ *   Mark Banner <bugzilla@standard8.plus.com>
+ *   Jeremy Laine <jeremy.laine@m4x.org>
  *
  * Alternatively, the contents of this file may be used under the terms of
  * either of the GNU General Public License Version 2 or later (the "GPL"),
@@ -45,6 +46,7 @@
 #include "nsILDAPErrors.h"
 #include "nsILDAPOperation.h"
 #include "nsIAbLDAPAttributeMap.h"
+#include "nsIAbLDAPCard.h"
 #include "nsAbUtils.h"
 #include "nsAbBaseCID.h"
 #include "nsString.h"
@@ -304,6 +306,12 @@ nsresult nsAbQueryLDAPMessageListener::OnLDAPMessageSearchEntry(nsILDAPMessage *
   NS_ENSURE_SUCCESS(rv, rv);
 
   rv = map->SetCardPropertiesFromLDAPMessage(aMessage, card);
+  NS_ENSURE_SUCCESS(rv, rv);
+  
+  nsCOMPtr<nsIAbLDAPCard> ldapCard = do_QueryInterface(card, &rv);
+  NS_ENSURE_SUCCESS(rv, rv);
+
+  rv = ldapCard->SetMetaProperties(aMessage);
   NS_ENSURE_SUCCESS(rv, rv);
 
   return mResultListener->OnQueryFoundCard(card);

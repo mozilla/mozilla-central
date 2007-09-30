@@ -15,13 +15,11 @@
  * The Original Code is mozilla.org code.
  *
  * The Initial Developer of the Original Code is
- * Sun Microsystems, Inc.
- * Portions created by the Initial Developer are Copyright (C) 2001
+ *   Mark Banner <bugzilla@standard8.plus.com>
+ * Portions created by the Initial Developer are Copyright (C) 2007
  * the Initial Developer. All Rights Reserved.
  *
  * Contributor(s):
- *   Created by: Paul Sandoz   <paul.sandoz@sun.com>
- *   Mark Banner <bugzilla@standard8.plus.com>
  *   Jeremy Laine <jeremy.laine@m4x.org>
  *
  * Alternatively, the contents of this file may be used under the terms of
@@ -38,29 +36,29 @@
  *
  * ***** END LICENSE BLOCK ***** */
 
-#ifndef nsAbLDAPCard_h__
-#define nsAbLDAPCard_h__
+#ifndef nsAbLDAPDirectoryModify_h__
+#define nsAbLDAPDirectoryModify_h__
 
-#include "nsAbCardProperty.h"
-#include "nsIAbLDAPCard.h"
-#include "nsVoidArray.h"
+#include "nsAbLDAPListenerBase.h"
+#include "nsIAbLDAPDirectory.h"
+#include "nsILDAPOperation.h"
+#include "nsIArray.h"
 
-class nsIMutableArray;
+class nsILDAPURL;
 
-class nsAbLDAPCard : public nsAbCardProperty,
-                     public nsIAbLDAPCard
+class nsAbLDAPDirectoryModify
 {
 public:
-  NS_DECL_ISUPPORTS_INHERITED
-  NS_DECL_NSIABLDAPCARD
-
-  nsAbLDAPCard();
-  virtual ~nsAbLDAPCard();
+  nsAbLDAPDirectoryModify();
+  virtual ~nsAbLDAPDirectoryModify();
 
 protected:
-  nsCString m_dn;
-  nsCStringArray m_attributes;
-  nsCStringArray m_objectClass;
+  nsresult DoModify(nsIAbLDAPDirectory *directory,
+                    const PRInt32 &aUpdateType,
+                    const nsACString &aCardDN,
+                    nsIArray* modArray,
+                    const nsACString &aNewRDN,
+                    const nsACString &aNewBaseDN);
 };
 
-#endif
+#endif // nsAbLDAPDirectoryModify_h__

@@ -21,6 +21,7 @@
  *
  * Contributor(s):
  *   Dan Mosedale <dan.mosedale@oracle.com>
+ *   Jeremy Laine <jeremy.laine@m4x.org>
  *
  * Alternatively, the contents of this file may be used under the terms of
  * either of the GNU General Public License Version 2 or later (the "GPL"),
@@ -115,5 +116,23 @@ interface nsIAbLDAPDirectory : nsISupports
    * A database that is set up for the replication file.
    */
   readonly attribute nsIAddrDatabase replicationDatabase;
+
+  /**
+   * The LDAP attributes used to build the Relative Distinguished Name
+   * of new cards, in the form of a comma separated list.
+   *
+   * The default is to use the common name (cn) attribute.
+   */
+  attribute ACString rdnAttributes;
+
+  /**
+   * The LDAP objectClass values added to cards when they are created/added,
+   * in the form of a comma separated list.
+   *
+   * The default is to use the following classes:
+   * top,person,organizationalPerson,inetOrgPerson,mozillaAbPersonAlpha
+   */
+  attribute ACString objectClasses;
+
 };
 

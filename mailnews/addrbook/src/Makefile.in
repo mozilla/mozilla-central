@@ -139,6 +139,7 @@ CPPSRCS		+= \
 		nsAbLDAPCard.cpp \
 		nsAbLDAPListenerBase.cpp \
 		nsAbLDAPDirectoryQuery.cpp \
+		nsAbLDAPDirectoryModify.cpp \
 		nsAbBoolExprToLDAPFilter.cpp \
 		nsAbLDAPAutoCompFormatter.cpp \
 		nsAbLDAPReplicationService.cpp \

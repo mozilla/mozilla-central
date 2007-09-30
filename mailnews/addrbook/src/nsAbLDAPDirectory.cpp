@@ -23,7 +23,8 @@
  *   Seth Spitzer <sspitzer@netscape.com>
  *   Dan Mosedale <dmose@netscape.com>
  *   Paul Sandoz <paul.sandoz@sun.com>
- *   Mark Banner <mark@standard8.demon.co.uk>
+ *   Mark Banner <bugzilla@standard8.plus.com>
+ *   Jeremy Laine <jeremy.laine@m4x.org>
  *
  * Alternatively, the contents of this file may be used under the terms of
  * either of the GNU General Public License Version 2 or later (the "GPL"),
@@ -60,6 +61,10 @@
 #include "nsAppDirectoryServiceDefs.h"
 #include "nsDirectoryServiceUtils.h"
 #include "nsILocalFile.h"
+#include "nsILDAPModification.h"
+#include "nsILDAPService.h"
+#include "nsIAbLDAPCard.h"
+#include "nsAbUtils.h"
 
 #define kDefaultMaxHits 100
 
@@ -128,9 +133,33 @@ NS_IMETHODIMP nsAbLDAPDirectory::GetURI(nsACString &aURI)
   return NS_OK;
 }
 
+#define MOZ_EXPERIMENTAL_WRITEABLE_LDAP 1
+
 NS_IMETHODIMP nsAbLDAPDirectory::GetOperations(PRInt32 *aOperations)
 {
   *aOperations = nsIAbDirectory::opSearch;
+
+#ifdef MOZ_EXPERIMENTAL_WRITEABLE_LDAP
+  PRBool readOnly;
+  nsresult rv = GetBoolValue("readonly", PR_FALSE, &readOnly);
+  NS_ENSURE_SUCCESS(rv, rv);
+
+  if (readOnly)
+    return NS_OK;
+
+  // when online, we'll allow writing as well
+  PRBool offline;
+  nsCOMPtr <nsIIOService> ioService =
+    do_GetService(NS_IOSERVICE_CONTRACTID, &rv);
+  NS_ENSURE_SUCCESS(rv,rv);
+
+  rv = ioService->GetOffline(&offline);
+  NS_ENSURE_SUCCESS(rv,rv);
+
+  if (!offline)
+    *aOperations |= nsIAbDirectory::opWrite;
+#endif
+
   return NS_OK;
 }
 
@@ -460,29 +489,25 @@ NS_IMETHODIMP nsAbLDAPDirectory::GetSearchDuringLocalAutocomplete(PRBool *aSearc
   return NS_OK;
 }
 
-NS_IMETHODIMP
-nsAbLDAPDirectory::GetSearchClientControls(nsIMutableArray **aControls)
+NS_IMETHODIMP nsAbLDAPDirectory::GetSearchClientControls(nsIMutableArray **aControls)
 {
   NS_IF_ADDREF(*aControls = mSearchClientControls);
   return NS_OK;
 }
 
-NS_IMETHODIMP
-nsAbLDAPDirectory::SetSearchClientControls(nsIMutableArray *aControls)
+NS_IMETHODIMP nsAbLDAPDirectory::SetSearchClientControls(nsIMutableArray *aControls)
 {
   mSearchClientControls = aControls;
   return NS_OK;
 }
 
-NS_IMETHODIMP
-nsAbLDAPDirectory::GetSearchServerControls(nsIMutableArray **aControls)
+NS_IMETHODIMP nsAbLDAPDirectory::GetSearchServerControls(nsIMutableArray **aControls)
 {
   NS_IF_ADDREF(*aControls = mSearchServerControls);
   return NS_OK;
 }
 
-NS_IMETHODIMP
-nsAbLDAPDirectory::SetSearchServerControls(nsIMutableArray *aControls)
+NS_IMETHODIMP nsAbLDAPDirectory::SetSearchServerControls(nsIMutableArray *aControls)
 {
   mSearchServerControls = aControls;
   return NS_OK;
@@ -565,6 +590,8 @@ NS_IMETHODIMP nsAbLDAPDirectory::SetDataVersion(const nsACString &aDataVersion)
 
 NS_IMETHODIMP nsAbLDAPDirectory::GetAttributeMap(nsIAbLDAPAttributeMap **aAttributeMap)
 {
+  NS_ENSURE_ARG_POINTER(aAttributeMap);
+  
   nsresult rv;
   nsCOMPtr<nsIAbLDAPAttributeMapService> mapSvc = 
     do_GetService("@mozilla.org/addressbook/ldap-attribute-map-service;1", &rv);
@@ -616,3 +643,247 @@ NS_IMETHODIMP nsAbLDAPDirectory::GetReplicationDatabase(nsIAddrDatabase **aResul
   return addrDBFactory->Open(databaseFile, PR_FALSE /* no create */, PR_TRUE,
                            aResult);
 }
+
+NS_IMETHODIMP nsAbLDAPDirectory::AddCard(nsIAbCard *aUpdatedCard,
+                                         nsIAbCard **aAddedCard)
+{
+  NS_ENSURE_ARG_POINTER(aUpdatedCard);
+  NS_ENSURE_ARG_POINTER(aAddedCard);
+  
+  nsCOMPtr<nsIAbLDAPAttributeMap> attrMap;
+  nsresult rv = GetAttributeMap(getter_AddRefs(attrMap));
+  NS_ENSURE_SUCCESS(rv, rv);
+
+  // Create a new LDAP card
+  nsCOMPtr<nsIAbLDAPCard> card =
+    do_CreateInstance(NS_ABLDAPCARD_CONTRACTID, &rv);
+  NS_ENSURE_SUCCESS(rv, rv);
+
+  rv = Initiate();
+  NS_ENSURE_SUCCESS(rv, rv);
+
+  // Copy over the card data
+  nsCOMPtr<nsIAbCard> copyToCard = do_QueryInterface(card, &rv);
+  NS_ENSURE_SUCCESS(rv, rv);
+
+  rv = copyToCard->Copy(aUpdatedCard);
+  NS_ENSURE_SUCCESS(rv, rv);
+  
+  // Retrieve preferences
+  nsCAutoString prefString;
+  rv = GetRdnAttributes(prefString);
+  NS_ENSURE_SUCCESS(rv, rv);
+
+  CharPtrArrayGuard rdnAttrs;
+  rv = SplitStringList(prefString.get(), rdnAttrs.GetSizeAddr(),
+    rdnAttrs.GetArrayAddr());
+  NS_ENSURE_SUCCESS(rv, rv);
+  
+  rv = GetObjectClasses(prefString);
+  NS_ENSURE_SUCCESS(rv, rv);
+  
+  CharPtrArrayGuard objClass;
+  rv = SplitStringList(prefString.get(), objClass.GetSizeAddr(),
+    objClass.GetArrayAddr());
+  NS_ENSURE_SUCCESS(rv, rv);
+
+  // Process updates
+  nsCOMPtr<nsIArray> modArray;
+  rv = card->GetLDAPMessageInfo(attrMap, objClass.GetSize(), objClass.GetArray(),
+    nsILDAPModification::MOD_ADD, getter_AddRefs(modArray));
+  NS_ENSURE_SUCCESS(rv, rv);
+  
+  // For new cards, the base DN is the search base DN
+  nsCOMPtr<nsILDAPURL> currentUrl;
+  rv = GetLDAPURL(getter_AddRefs(currentUrl));
+  NS_ENSURE_SUCCESS(rv, rv);
+
+  nsCAutoString baseDN;
+  rv = currentUrl->GetDn(baseDN);
+  NS_ENSURE_SUCCESS(rv, rv);
+ 
+  // Calculate DN
+  nsCAutoString cardDN;
+  rv = card->BuildRdn(attrMap, rdnAttrs.GetSize(), rdnAttrs.GetArray(),
+    cardDN);
+  NS_ENSURE_SUCCESS(rv, rv);
+  cardDN.AppendLiteral(",");
+  cardDN.Append(baseDN);
+
+  rv = card->SetDn(cardDN);
+  NS_ENSURE_SUCCESS(rv, rv);
+
+  // Launch query
+  rv = DoModify(this, nsILDAPModification::MOD_ADD, cardDN, modArray,
+                EmptyCString(), EmptyCString());
+  NS_ENSURE_SUCCESS(rv, rv);
+
+  NS_ADDREF(*aAddedCard = copyToCard);
+  return NS_OK;
+}
+
+NS_IMETHODIMP nsAbLDAPDirectory::DeleteCards(nsISupportsArray *aCards)
+{
+  PRUint32 cardCount;
+  PRUint32 i;
+  nsCAutoString cardDN;
+
+  nsresult rv = aCards->Count(&cardCount);
+  NS_ENSURE_SUCCESS(rv, rv);
+ 
+  for (i = 0; i < cardCount; ++i)
+  {
+    nsCOMPtr<nsIAbLDAPCard> card(do_QueryElementAt(aCards, i, &rv));
+    if (NS_FAILED(rv))
+    {
+      NS_WARNING("Wrong type of card passed to nsAbLDAPDirectory::DeleteCards");
+      break;
+    }
+
+    // Set up the search ldap url - this is mURL
+    rv = Initiate();
+    NS_ENSURE_SUCCESS(rv, rv);
+    
+    rv = card->GetDn(cardDN);
+    NS_ENSURE_SUCCESS(rv, rv);
+   
+    // Launch query
+    rv = DoModify(this, nsILDAPModification::MOD_DELETE, cardDN, nsnull,
+                  EmptyCString(), EmptyCString());
+    NS_ENSURE_SUCCESS(rv, rv);
+  }
+
+  return NS_OK;
+}
+
+NS_IMETHODIMP nsAbLDAPDirectory::ModifyCard(nsIAbCard *aUpdatedCard)
+{
+  NS_ENSURE_ARG_POINTER(aUpdatedCard);
+  
+  nsCOMPtr<nsIAbLDAPAttributeMap> attrMap;
+  nsresult rv = GetAttributeMap(getter_AddRefs(attrMap));
+  NS_ENSURE_SUCCESS(rv, rv);
+
+  // Get the LDAP card
+  nsCOMPtr<nsIAbLDAPCard> card = do_QueryInterface(aUpdatedCard, &rv);
+  NS_ENSURE_SUCCESS(rv, rv);
+
+  rv = Initiate();
+  NS_ENSURE_SUCCESS(rv, rv);
+  
+  // Retrieve preferences
+  nsCAutoString prefString;
+  rv = GetObjectClasses(prefString);
+  NS_ENSURE_SUCCESS(rv, rv);
+  
+  CharPtrArrayGuard objClass;
+  rv = SplitStringList(prefString.get(), objClass.GetSizeAddr(),
+    objClass.GetArrayAddr());
+  NS_ENSURE_SUCCESS(rv, rv);
+
+  // Process updates
+  nsCOMPtr<nsIArray> modArray;
+  rv = card->GetLDAPMessageInfo(attrMap, objClass.GetSize(), objClass.GetArray(),
+    nsILDAPModification::MOD_REPLACE, getter_AddRefs(modArray));
+  NS_ENSURE_SUCCESS(rv, rv);
+  
+  // Get current DN
+  nsCAutoString oldDN;
+  rv = card->GetDn(oldDN);
+  NS_ENSURE_SUCCESS(rv, rv);
+
+  nsCOMPtr<nsILDAPService> ldapSvc = do_GetService(
+    "@mozilla.org/network/ldap-service;1", &rv);
+  NS_ENSURE_SUCCESS(rv, rv);
+
+  // Retrieve base DN and RDN attributes
+  nsCAutoString baseDN;
+  nsCAutoString oldRDN;
+  CharPtrArrayGuard rdnAttrs;
+  rv = ldapSvc->ParseDn(oldDN.get(), oldRDN, baseDN,
+                        rdnAttrs.GetSizeAddr(), rdnAttrs.GetArrayAddr());
+  NS_ENSURE_SUCCESS(rv, rv);
+
+  // Calculate new RDN and check whether it has changed
+  nsCAutoString newRDN;
+  rv = card->BuildRdn(attrMap, rdnAttrs.GetSize(), rdnAttrs.GetArray(),
+    newRDN);
+  NS_ENSURE_SUCCESS(rv, rv);
+      
+  if (newRDN.Equals(oldRDN))
+  {
+    // Launch query
+    rv = DoModify(this, nsILDAPModification::MOD_REPLACE, oldDN, modArray,
+                  EmptyCString(), EmptyCString());
+  }
+  else
+  {
+    // Build and store the new DN
+    nsCAutoString newDN(newRDN);
+    newDN.AppendLiteral(",");
+    newDN.Append(baseDN);
+    
+    rv = card->SetDn(newDN);
+    NS_ENSURE_SUCCESS(rv, rv);
+    
+    // Launch query
+    rv = DoModify(this, nsILDAPModification::MOD_REPLACE, oldDN, modArray,
+                  newRDN, baseDN);
+  }
+  return rv;
+}
+
+NS_IMETHODIMP nsAbLDAPDirectory::GetRdnAttributes(nsACString &aRdnAttributes)
+{
+  return GetStringValue("rdnAttributes", NS_LITERAL_CSTRING("cn"),
+    aRdnAttributes);
+}
+
+NS_IMETHODIMP nsAbLDAPDirectory::SetRdnAttributes(const nsACString &aRdnAttributes)
+{
+  return SetStringValue("rdnAttributes", aRdnAttributes);
+}
+
+NS_IMETHODIMP nsAbLDAPDirectory::GetObjectClasses(nsACString &aObjectClasses)
+{
+  return GetStringValue("objectClasses", NS_LITERAL_CSTRING(
+    "top,person,organizationalPerson,inetOrgPerson,mozillaAbPersonAlpha"),
+    aObjectClasses);
+}
+
+NS_IMETHODIMP nsAbLDAPDirectory::SetObjectClasses(const nsACString &aObjectClasses)
+{
+  return SetStringValue("objectClasses", aObjectClasses);
+}
+
+nsresult nsAbLDAPDirectory::SplitStringList(
+  const char *aString,
+  PRUint32 *aCount,
+  char ***aValues)
+{
+  NS_ENSURE_ARG_POINTER(aString);
+  NS_ENSURE_ARG_POINTER(aCount);
+  NS_ENSURE_ARG_POINTER(aValues);
+
+  nsCStringArray strarr;
+  strarr.ParseString(aString, ",");
+
+  char **cArray = nsnull;
+  if (!(cArray = static_cast<char **>(nsMemory::Alloc(
+      strarr.Count() * sizeof(char *)))))
+    return NS_ERROR_OUT_OF_MEMORY;
+
+  for (PRInt32 i = 0; i < strarr.Count(); ++i)
+  {
+    if (!(cArray[i] = ToNewCString(*strarr.CStringAt(i))))
+    {
+      NS_FREE_XPCOM_ALLOCATED_POINTER_ARRAY(index, cArray);
+      return NS_ERROR_OUT_OF_MEMORY;
+    }
+  }
+
+  *aCount = strarr.Count();
+  *aValues = cArray;
+  return NS_OK;
+}
+

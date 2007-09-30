@@ -22,6 +22,7 @@
  *
  * Contributor(s):
  *   Dan Mosedale <dan.mosedale@oracle.com>
+ *   Jeremy Laine <jeremy.laine@m4x.org>
  *
  * Alternatively, the contents of this file may be used under the terms of
  * either of the GNU General Public License Version 2 or later (the "GPL"),
@@ -129,6 +130,17 @@ nsAbLDAPAttributeMap.prototype = {
     }
 
     return attrs.join(",");
+  },
+  
+  getAllCardProperties: function getAllCardProperties(aCount) {
+    
+    var props = [];
+    for (var prop in this.mPropertyMap) {
+      props.push(prop);
+    }
+
+    aCount.value = props.length;
+    return props;
   },
 
   setFromPrefs: function setFromPrefs(aPrefBranchName) {

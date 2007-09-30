@@ -21,6 +21,7 @@
  *
  * Contributor(s):
  *   Seth Spitzer <sspitzer@netscape.com>
+ *   Jeremy Laine <jeremy.laine@m4x.org>
  *
  * Alternatively, the contents of this file may be used under the terms of
  * either of the GNU General Public License Version 2 or later (the "GPL"),
@@ -41,6 +42,7 @@
 
 #include "nsAbDirectoryRDFResource.h"
 #include "nsAbDirProperty.h"
+#include "nsAbLDAPDirectoryModify.h"
 #include "nsIAbDirectoryQuery.h"
 #include "nsIAbDirectorySearch.h"
 #include "nsIAbDirSearchListener.h"
@@ -51,6 +53,7 @@
 class nsAbLDAPDirectory :
   public nsAbDirectoryRDFResource,    // nsIRDFResource
   public nsAbDirProperty,             // nsIAbDirectory
+  public nsAbLDAPDirectoryModify,
   public nsIAbDirectorySearch,
   public nsIAbLDAPDirectory,
   public nsIAbDirSearchListener
@@ -73,6 +76,9 @@ public:
   NS_IMETHOD GetIsRemote(PRBool *aIsRemote);
   NS_IMETHOD GetIsSecure(PRBool *aIsRemote);
   NS_IMETHOD GetSearchDuringLocalAutocomplete(PRBool *aSearchDuringLocalAutocomplete);
+  NS_IMETHOD AddCard(nsIAbCard *aChildCard, nsIAbCard **aAddedCard);
+  NS_IMETHOD ModifyCard(nsIAbCard *aModifiedCard);
+  NS_IMETHOD DeleteCards(nsISupportsArray *aCards);
 
   // nsIAbDirectorySearch methods
   NS_DECL_NSIABDIRECTORYSEARCH
@@ -81,6 +87,10 @@ public:
 
 protected:
   nsresult Initiate();
+
+  nsresult SplitStringList(const char *aString,
+                           PRUint32 *aCount,
+                           char ***aValues);
 
   PRPackedBool mPerformingQuery;
   PRInt32 mContext;

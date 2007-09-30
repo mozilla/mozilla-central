@@ -21,6 +21,7 @@
  *
  * Contributor(s):
  *   Dan Mosedale <dan.mosedale@oracle.com>
+ *   Jeremy Laine <jeremy.laine@m4x.org>
  *
  * Alternatively, the contents of this file may be used under the terms of
  * either the GNU General Public License Version 2 or later (the "GPL"), or
@@ -66,7 +67,7 @@ interface nsIAbCard;
  * draft-joslin-config-schema-11.txt), we can simplify this and other
  * code and only allow a property to map to a single attribute.
  */
-[scriptable, uuid(2ba46eae-9141-4d79-af90-3c7ecf2dc357)]
+[scriptable, uuid(bc543118-db5d-4616-b2d4-9a8667609a7c)]
 interface nsIAbLDAPAttributeMap : nsISupports
 {
   /**
@@ -143,6 +144,17 @@ interface nsIAbLDAPAttributeMap : nsISupports
    * @exception NS_ERROR_FAILURE  there are no attributes in this property map
    */
   ACString getAllCardAttributes();
+  
+  /**
+   * Get all properties that may be used in an addressbook card via this
+   * property map.
+   *
+   * @return                      an array of properties
+   *
+   * @exception NS_ERROR_FAILURE  there are no attributes in this property map
+   */
+  void getAllCardProperties(out unsigned long aCount,
+                            [retval, array, size_is(aCount)] out string aProps);
 
   /**
    * Check that no LDAP attributes are listed in more than one property.
