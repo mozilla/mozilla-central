@@ -8,16 +8,17 @@ SeaMonkey is subject to the terms detailed in the license agreement
 accompanying it.
 
 This Read Me file contains information about system requirements and
-installation instructions for the OS/2 builds of SeaMonkey. 
+installation instructions for the OS/2 builds of SeaMonkey.
 
-For more info on SeaMonkey, see http://www.mozilla.org/projects/seamonkey/
-For more info on the OS/2 port see http://www.mozilla.org/ports/os2. To
-submit bugs or other feedback, see the Navigator QA menu and check out
-Bugzilla at https://bugzilla.mozilla.org/ for links to known bugs,
-bug-writing guidelines, and more. You can also get help with Bugzilla by
-pointing your IRC client to #mozillazine at irc.mozilla.org, OS/2 specific
-problems are discussed in #warpzilla and in the newsgroup
-mozilla.dev.ports.os2 on news.mozilla.org.
+For more info on SeaMonkey, see http://www.seamonkey-project.org/
+For more info on the OS/2 port see http://www.mozilla.org/ports/os2.
+To submit bugs or other feedback, see
+http://www.seamonkey-project.org/dev/get-involved and check out Bugzilla
+at https://bugzilla.mozilla.org/ for links to known bugs, bug-writing
+guidelines, and more. You can also get help with Bugzilla by pointing your
+IRC client to #mozillazine at irc.mozilla.org, OS/2 specific problems are
+discussed in #warpzilla and in the newsgroup mozilla.dev.ports.os2 on
+news.mozilla.org.
 
 
 ==========================================================================
@@ -40,16 +41,11 @@ for testing, may be buggy. If you are looking for a more polished version
 of SeaMonkey, the SeaMonkey project releases builds of SeaMonkey regularly
 that you can download from
 
-  http://www.mozilla.org/projects/seamonkey/
- 
+  http://www.seamonkey-project.org/releases/
+
 Be sure to read the SeaMonkey release notes for information on known
 problems and installation issues with SeaMonkey.  The release notes can be
 found at the preceding URL along with the releases themselves.
-
-Note: Please use Talkback builds whenever possible. These builds allow
-transmission of crash data back to SeaMonkey and Mozilla developers,
-improved crash analysis, and posting of crash information to our
-crash-data newsgroup.
 
 OS/2 releases are not created by SeaMonkey project or mozilla.org
 themselves and may appear on the page http://www.mozilla.org/ports/os2
@@ -63,17 +59,6 @@ installation issues with SeaMonkey.
                          System Requirements
 
 ==========================================================================
-
-* General
-
-   If you want to view and use the "Modern" theme, your display monitor
-   should be set to display thousands of colors. For users who cannot set
-   their displays to use more than 256 colors, the SeaMonkey project
-   recommends using the "Classic" theme for SeaMonkey.
-
-   To select the Modern theme after you have installed SeaMonkey, from the
-   browser, open the View menu, then open the Apply Theme submenu and
-   choose Modern.
 
 * OS/2
    - This release requires the C runtime DLLs (libc-0.6.1) from
@@ -129,7 +114,7 @@ released builds may cause problems.
 Note: These instructions do not tell you how to build SeaMonkey.
 For info on building SeaMonkey from the mozilla.org source code, see
 
-  http://www.mozilla.org/build/
+  http://developer.mozilla.org/en/docs/Build_Documentation
 
 
 OS/2 Installation Instructions
