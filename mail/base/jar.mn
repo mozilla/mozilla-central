@@ -53,9 +53,6 @@ messenger.jar:
     content/branding/about.png                      (content/about-thunderbird.png)
     content/branding/thunderbird-watermark.png      (content/thunderbird-watermark.png)
     content/branding/icon64.png                     (content/icon64.png)
-#ifdef XP_WIN
-    content/branding/uninstall.properties           (content/uninstall.properties)
-#endif
 #endif
     content/messenger/msgSynchronize.xul            (/mailnews/base/resources/content/msgSynchronize.xul)
     content/messenger/msgSynchronize.js             (/mailnews/base/resources/content/msgSynchronize.js)
