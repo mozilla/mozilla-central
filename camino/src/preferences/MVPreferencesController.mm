@@ -51,6 +51,8 @@ static MVPreferencesController *gSharedInstance = nil;
 NSString* const MVPreferencesWindowNotification = @"MVPreferencesWindowNotification";
 
 static NSString* const kPrefsWindowLocationDefaultsKey  = @"CaminoWindow TopLeftLocation PreferencesWindow";
+static NSString* const kLastUsedPaneKey = @"Last Selected Preference Pane";
+static NSString* const kDefaultPaneIdentifier = @"org.mozilla.camino.preference.navigation";
 
 static NSString* const CacheInfoPaneImageKey  = @"MVPreferencePaneImage";
 static NSString* const CacheInfoPaneLabelKey  = @"MVPreferencePaneLabel";
@@ -192,9 +194,9 @@ static NSString* const CacheInfoPaneSeenKey   = @"MVPreferencePaneSeen";    // N
     CHBrowserService::InitEmbedding();
   }
 
-  // If a pref pane is not showing, then show the general pane
+  // If a pref pane is not already showing, then show the last-used pane
   if (!mCurrentPaneIdentifier && (![[mWindow contentView] isEqual:mMainView]))
-    [self selectPreferencePaneByIdentifier:@"org.mozilla.camino.preference.navigation"];
+    [self selectPreferencePaneByIdentifier:[[NSUserDefaults standardUserDefaults] objectForKey:kLastUsedPaneKey]];
 
   [mWindow makeKeyAndOrderFront:nil];
 }
@@ -202,8 +204,14 @@ static NSString* const CacheInfoPaneSeenKey   = @"MVPreferencePaneSeen";    // N
 - (void)selectPreferencePaneByIdentifier:(NSString *)identifier
 {
   NSBundle *bundle = [NSBundle bundleWithIdentifier:identifier];
+
+  // If we can't find the identifier, select the default pane
+  if (!bundle) {
+    identifier = kDefaultPaneIdentifier;
+    bundle = [NSBundle bundleWithIdentifier:identifier];
+  }
   
-  if (bundle && ![mCurrentPaneIdentifier isEqualToString:identifier])
+  if (![mCurrentPaneIdentifier isEqualToString:identifier])
   {
     if ( mCurrentPaneIdentifier &&
         [[self currentPane] shouldUnselect] != NSUnselectNow ) {
@@ -310,14 +318,20 @@ static NSString* const CacheInfoPaneSeenKey   = @"MVPreferencePaneSeen";    // N
   NSRect windowFrame = [[self window] frame];
   NSPoint topLeftPoint = windowFrame.origin;  // bottom left
   topLeftPoint.y += NSHeight(windowFrame);    // top left
-  [[NSUserDefaults standardUserDefaults] setObject:[[self class] dictionaryWithPoint:topLeftPoint] forKey:kPrefsWindowLocationDefaultsKey];
+  NSUserDefaults* userDefaults = [NSUserDefaults standardUserDefaults];
+  [userDefaults setObject:[[self class] dictionaryWithPoint:topLeftPoint] forKey:kPrefsWindowLocationDefaultsKey];
+  
+  // Save the current pref pane for future launches
+  [userDefaults setObject:mCurrentPaneIdentifier forKey:kLastUsedPaneKey];
 
-  // write out prefs and user defaults
+  // write out user defaults
+  [userDefaults synchronize];
+
+  // write out prefs
   nsCOMPtr<nsIPref> prefService ( do_GetService(NS_PREF_CONTRACTID) );
   NS_ASSERTION(prefService, "Could not get pref service, prefs unsaved");
   if ( prefService )
     prefService->SavePrefFile(nsnull);      // nsnull means write to prefs.js
-  [[NSUserDefaults standardUserDefaults] synchronize];
 
   // tell gecko that this window no longer needs it around.
   CHBrowserService::BrowserClosed();
