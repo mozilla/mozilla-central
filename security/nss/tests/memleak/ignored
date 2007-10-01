@@ -28,8 +28,6 @@ selfserv/main/server_main/SSL_ConfigSecureServer/PR_CallOnceWithArg/serverCAList
 selfserv/PK11_TraverseSlotCerts/NSSTrustDomain_TraverseCertificates/nssPKIObjectCollection_Traverse/convert_cert/STAN_GetCERTCertificate/fill_CERTCertificateFields/nssTrust_GetCERTCertTrustForCert/nssTrustDomain_FindTrustForCertificate/nssToken_FindTrustForCertificate/*/*/*/*/*/PR_NewLock/calloc
 selfserv/NSSTrustDomain_TraverseCertificates/nssPKIObjectCollection_Traverse/convert_cert/STAN_GetCERTCertificate/fill_CERTCertificateFields/nssTrustDomain_FindTrustForCertificate/nssToken_FindTrustForCertificate/*/*/*/*/*/*/PR_NewLock/PR_Calloc/calloc
 
-
-
 #367374
 */main/PR_Init/_PR_ImplicitInitialization/**
 */main/PR_Init/_PR_InitCMon/ExpandMonitorCache/PR_Calloc/calloc
@@ -82,6 +80,7 @@ strsclnt/main/client_main/launch_thread/_PR_CreateThread/pthread_create@@GLIBC_2
 #370536
 */main/NSS_Shutdown/STAN_Shutdown/NSSTrustDomain_Destroy/nssListIterator_Destroy/nssList_Destroy/NSSArena_Destroy/nssArena_Destroy/arena_remove_pointer/nssPointerTracker_remove/PL_HashTableRemove/PL_HashTableRawRemove/DefaultAllocTable/**
 */main/NSS_Shutdown/STAN_Shutdown/NSSTrustDomain_Destroy/nssList_Clear/token_destructor/nssToken_Destroy/nssArena_Destroy/arena_remove_pointer/nssPointerTracker_remove/PL_HashTableRemove/PL_HashTableRawRemove/DefaultAllocTable/**
+*/main/NSS_Initialize/*/STAN_LoadDefaultNSS3TrustDomain/NSSTrustDomain_Create/NSSArena_Create/nssArena_Create/arena_add_pointer/nssPointerTracker_initialize/call_once/**
 
 #391770
 */main/NSS_Initialize/*/OCSP_InitGlobal/PR_NewMonitor/**
@@ -98,9 +97,6 @@ strsclnt/main/client_main/launch_thread/_PR_CreateThread/pthread_create@@GLIBC_2
 */main/NSS_Initialize/*/PKIX_Initialize/PKIX_PL_MonitorLock_Create/PKIX_PL_Object_Alloc/PKIX_PL_Malloc/**
 */main/NSS_Initialize/*/PKIX_Initialize/PKIX_PL_MonitorLock_Create/PKIX_PL_Object_Alloc/PR_NewLock/**
 */main/NSS_Initialize/*/PKIX_Initialize/PKIX_PL_MonitorLock_Create/PR_NewMonitor/**
-
-#397476
-*/main/NSS_Initialize/*/STAN_LoadDefaultNSS3TrustDomain/NSSTrustDomain_Create/NSSArena_Create/nssArena_Create/arena_add_pointer/nssPointerTracker_initialize/call_once/**
 
 #397478
 selfserv/main/SSL_ConfigServerSessionIDCache/ssl_InitClientSessionCacheLock/__nss_InitLock/PR_NewLock/PR_Calloc/calloc
