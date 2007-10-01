@@ -337,6 +337,10 @@ sub packit {
       $push_raw_xpis = $Settings::push_raw_xpis;
     }
 
+    if ($Settings::TestWithJprof) {
+        TinderUtils::run_shell_command("cp $package_location/../*-jprof.html $stagedir/");
+    }
+
     if (TinderUtils::is_windows() || TinderUtils::is_os2()) {
       if ($Settings::stub_installer) {
         TinderUtils::run_shell_command("cp $package_location/stub/*.exe $stagedir/");

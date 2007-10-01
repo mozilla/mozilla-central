@@ -82,6 +82,7 @@ $RunUnitTests             = 0;  # TUnit
 # ("network","dom","toolkit","security/manager");
 $CompareLocalesAviary     = 0;  # Should the compare-locales commands use the
                                 # aviary directory structure?
+$TestWithJprof            = 0;  # Use jprof profiler during tests
 
 $TestsPhoneHome           = 0;  # Should test report back to server?
 $GraphNameOverride        = ''; # Override name built from ::hostname() and $BuildTag
