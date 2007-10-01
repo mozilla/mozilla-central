@@ -8,16 +8,16 @@
   <tr>
 
    <td>
-    <div class="dh">Product:</div><div class="dv">[% sysconfig.product.name FILTER html %]</div>
-    <div class="dh">Locale:</div><div class="dv">[% sysconfig.locale.name FILTER html %] ([% sysconfig.locale.locale_abbrev FILTER html %])</div>
+    <div class="dh">Product:</div><div class="dv">[% sysconfig.product.name | html %]</div>
+    <div class="dh">Locale:</div><div class="dv">[% sysconfig.locale.name | html %] ([% sysconfig.locale.locale_abbrev | html %])</div>
    </td>
    <td>
-    <div class="dh">Platform:</div><div class="dv">[% sysconfig.platform.name FILTER html %]</div>
-    <div class="dh">Opsys:</div><div class="dv">[% sysconfig.opsys.name FILTER html %]</div>
+    <div class="dh">Platform:</div><div class="dv">[% sysconfig.platform.name | html %]</div>
+    <div class="dh">Opsys:</div><div class="dv">[% sysconfig.opsys.name | html %]</div>
    </td>
    <td>
-    <div class="dh">Branch:</div><div class="dv">[% sysconfig.branch.name FILTER html %]</div>
-    <div class="dh">Build ID:</div><div class="dv">[% sysconfig.build_id FILTER html %]</div>
+    <div class="dh">Branch:</div><div class="dv">[% sysconfig.branch.name | html %]</div>
+    <div class="dh">Build ID:</div><div class="dv">[% sysconfig.build_id | html %]</div>
    </td>
   </tr>
   <tr>

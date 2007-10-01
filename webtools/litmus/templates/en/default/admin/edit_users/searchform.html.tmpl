@@ -34,7 +34,7 @@ And belonging to group(s):
   [% id = group.group_id %]
        <tr>
          <td><input name="group_[%group.id | html %]" type="checkbox" value="1" [% IF checked.$id %] checked [%END%]></td>
-         <td>[% group.name FILTER html %]</td>
+         <td>[% group.name | html %]</td>
        </tr>
 [% END %]
 </table>

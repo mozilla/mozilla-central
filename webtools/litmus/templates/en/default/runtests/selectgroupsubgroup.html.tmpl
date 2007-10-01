@@ -132,11 +132,11 @@ Select Testing Group
       [% selected = "" %]
     [% END %]
 
-    <td><input [% IF personal_completed == 'N/A' %]disabled [% END %] type="radio" id="testgroup" name="testgroup" value="[% testgroup.testgroup_id FILTER html %]"
+    <td><input [% IF personal_completed == 'N/A' %]disabled [% END %] type="radio" id="testgroup" name="testgroup" value="[% testgroup.testgroup_id | html %]"
         onClick="showsubgroup()" [% selected | none %]>
-         [% testgroup.name FILTER html %]</td>
-    <td align="center">[% personal_completed FILTER html %][% IF personal_completed != 'N/A' %]%[% END %]</td>
-    <td align="center">[% community_completed FILTER html %][% IF community_completed != 'N/A' %]%[% END %]</td>
+         [% testgroup.name | html %]</td>
+    <td align="center">[% personal_completed | html %][% IF personal_completed != 'N/A' %]%[% END %]</td>
+    <td align="center">[% community_completed | html %][% IF community_completed != 'N/A' %]%[% END %]</td>
 </tr>
 [% END %]
 
@@ -180,7 +180,7 @@ Please select a testing group with testcases, or that has not yet been tested in
 
 [% FOREACH testgroup = subgroups.keys %]
     [% cursubgrouplist = subgroups.$testgroup %]
-    <div id="divsubgroup_[% testgroup FILTER html %]" style="display: none;">
+    <div id="divsubgroup_[% testgroup | html %]" style="display: none;">
 	<table border="0" cellspacing="0" cellpadding="0">
 	<tr>
 	<td>
@@ -224,12 +224,12 @@ Please select a testing group with testcases, or that has not yet been tested in
             [% END %]
             
             <tr class="[% groupstyle | none %]">
-                <td align="left"><table class="none"><tr><td><input [% IF ! counttests %]disabled [% ELSE %][% IF select_first_avail_subgroup==1 && personal_completed != 'N/A' && personal_completed < 100 %][% select_first_avail_subgroup=0 %]checked [% ELSE %][% IF loop.first %]checked [% END %][% END %][% END %]type="radio" id="subgroup_[% testgroup FILTER html %]" name="subgroup_[% testgroup FILTER html %]" 
-                    value="[% cursubgroup.id FILTER html %]" /></td>
-                    <td>[% cursubgroup.name FILTER html %]</td></tr></table></td>
+                <td align="left"><table class="none"><tr><td><input [% IF ! counttests %]disabled [% ELSE %][% IF select_first_avail_subgroup==1 && personal_completed != 'N/A' && personal_completed < 100 %][% select_first_avail_subgroup=0 %]checked [% ELSE %][% IF loop.first %]checked [% END %][% END %][% END %]type="radio" id="subgroup_[% testgroup | html %]" name="subgroup_[% testgroup | html %]" 
+                    value="[% cursubgroup.id | html %]" /></td>
+                    <td>[% cursubgroup.name | html %]</td></tr></table></td>
                 <td align="center">[% IF ! counttests %] 0 [% ELSE %] [% counttests %] [% END %]</td>
-                <td align="center">[% personal_completed FILTER html %][% IF personal_completed != 'N/A' %]%[% END %]</td>
-                <td align="center">[% community_completed FILTER html %][% IF community_completed != 'N/A' %]%[% END %]</td>
+                <td align="center">[% personal_completed | html %][% IF personal_completed != 'N/A' %]%[% END %]</td>
+                <td align="center">[% community_completed | html %][% IF community_completed != 'N/A' %]%[% END %]</td>
             </tr>
             [% END %]
         </table>

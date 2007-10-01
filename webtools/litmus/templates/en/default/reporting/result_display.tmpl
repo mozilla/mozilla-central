@@ -93,7 +93,7 @@ Summary Information
 <tr class="odd">
 [% display_name = result.user.getDisplayName %]
 <td>Submitted by:</td><td>[% IF display_name != "" %]
-[% IF show_admin %]<a href="mailto:[% result.user.email | html | uri | email %]?subject='Litmus test result submission #[% result.testresult_id | html | uri %]'">[% END %][% display_name.replace('\@.*','') %][% IF show_admin %]</a>[% END %]
+[% IF show_admin %]<a href="mailto:[% result.user.email | html | email | js %]?subject='Litmus test result submission #[% result.testresult_id | html | uri %]'">[% END %][% display_name.replace('\@.*','') %][% IF show_admin %]</a>[% END %]
 [% ELSE %]
 Not provided
 [% END %]</td>
@@ -105,7 +105,7 @@ Not provided
 </tr>
 <tr class="odd">
 <td>Vetted By:</td>
-<td>[% IF result.vetted_by_user.email %][% result.vetted_by_user.email | html | uri | email %][% ELSE %]Not yet vetted[% END %]</td>
+<td>[% IF result.vetted_by_user.email %][% result.vetted_by_user.email | html | email | js %][% ELSE %]Not yet vetted[% END %]</td>
 </tr>
 <tr class="even">
 <td>Vetted on:</td><td>[% IF result.vetted_timestamp %][% result.vetted_timestamp | html %][% ELSE %]Not yet vetted[% END %]</td>
@@ -229,14 +229,14 @@ You must log in before you can leave comments.
 <p><em>------- Comment <a name="c[% comment_num | uri | html %]" 
   href="#c[% comment_num | uri | html%]">#[% comment_num | html %]</a> From 
     [% IF comment.user.email %]
-<a href="mailto:[% comment.user.email FILTER html | uri | email %]">
-  [% comment.user.email FILTER html | email %]</a>
+<a href="mailto:[% comment.user.email | html | email | js %]">
+  [% comment.user.email | html | email | js %]</a>
     [% ELSE %]
 Anonymous
     [% END %]
  [% comment.submission_time.strftime("%Y-%m-%d %T %Z") | html %] -------</em></p>
 
-<p>[% comment.comment FILTER html %]</p>
+<p>[% comment.comment | html %]</p>
 
 [% comment_num=comment_num+1 %]
   [% END %]

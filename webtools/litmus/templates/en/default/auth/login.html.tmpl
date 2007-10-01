@@ -45,8 +45,8 @@
     [% FOREACH curdata = params.param() %]
       [% IF ! params.param(curdata) %] [% NEXT %] [% END %]
       [% FOREACH p = params.param(curdata) %]
-          <input name="[% curdata FILTER html %]" type="hidden" 
-                 value="[% p FILTER html %]">
+          <input name="[% curdata | html %]" type="hidden" 
+                 value="[% p | html %]">
       [% END %]
     [% END %]
   [% END %]

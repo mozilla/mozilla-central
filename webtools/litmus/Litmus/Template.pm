@@ -137,7 +137,6 @@ sub create {
     return $class->new({
         INCLUDE_PATH => &getTemplateIncludePath,
         CONSTANTS => \%constants,
-        PRE_PROCESS => "variables.none.tmpl",
         POST_CHOMP => 1,
         EVAL_PERL => 1,
         

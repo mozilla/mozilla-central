@@ -42,8 +42,8 @@
 	[% IF params %]
     	[% FOREACH curdata = params.param() %]
     		[% IF ! params.param(curdata) %] [% NEXT %] [% END %]
-        	<input name="[%curdata FILTER html %]" type="hidden" 
-            	value="[% params.param(curdata) FILTER html %]">
+        	<input name="[%curdata | html %]" type="hidden" 
+            	value="[% params.param(curdata) | html %]">
     	[% END %]
 	[% END %]
 [% END %]
@@ -63,11 +63,11 @@
       <div class="section-content">
     
    	<p>Thank you,[% IF realname != "" %] [% realname | html %],[% END %] your account has been created<p>
-        <p>For future testing sessions, you can login using your email address ([% email FILTER html %]) and your chosen password.</p>  		
+        <p>For future testing sessions, you can login using your email address ([% email | html %]) and your chosen password.</p>  		
 
 <p>Thank you for your contribution to Mozilla QA.</p>
    	
-   	<form name="form" action="[% return_to FILTER html %]" method="post">
+   	<form name="form" action="[% return_to | html %]" method="post">
    	  [% INCLUDE create_hidden_fields %]
    	  <input type="hidden" name="accountCreated" value="true" />
    	  [% IF ! login_extension %]

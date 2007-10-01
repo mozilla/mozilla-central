@@ -57,7 +57,7 @@
 <form action="process_test.cgi" method="post" name="form" id="form">
 <input type="hidden" id="test_run_id" name="test_run_id" value="[% test_run.test_run_id %]"/>
 <input id="isTestResult" name="isTestResult" type="hidden" value="true" />
-<input id="testgroup" name="testgroup" type="hidden" value="[% testgroup.testgroup_id FILTER html %]" />
+<input id="testgroup" name="testgroup" type="hidden" value="[% testgroup.testgroup_id | html %]" />
 
 <div class="section-full">
 <div class="sec_head">

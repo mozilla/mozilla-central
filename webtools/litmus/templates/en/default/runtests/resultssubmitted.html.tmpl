@@ -58,7 +58,7 @@ Results submitted
 
 [% IF testcount %]
     [% IF testcount > 1 %] [% plural = 's' %] [% END %]
-    <p class="pageinstruction"> You have submitted [% testcount FILTER html %] test
+    <p class="pageinstruction"> You have submitted [% testcount | html %] test
         result[% plural | html %]. 
     </p>
 [% END %]
@@ -73,8 +73,8 @@ Results submitted
             [% count = 0 %]
         [% END %]
         <tr>
-        <td><strong>[% curresult FILTER html %]:</strong></td>
-        <td>[% count FILTER html %]</td>
+        <td><strong>[% curresult | html %]:</strong></td>
+        <td>[% count | html %]</td>
         </tr>
     [% END %]
     </table>
@@ -84,7 +84,7 @@ Results submitted
     <table border="1">
     [% FOREACH curchange=changedlist %]
         <tr><td>
-            <strong>Changes recorded for Test [% curchange FILTER html %]</strong>
+            <strong>Changes recorded for Test [% curchange | html %]</strong>
         </td></tr>
     [% END %]
     </table>

@@ -1,6 +1,6 @@
 <input type="text" size="10" name="testcase_id" 
     value="[% IF defaults.testcase_id != '' %]
-        [% defaults.testcase_id FILTER html %]
+        [% defaults.testcase_id | html %]
     [% ELSE %]-Testcase ID#-
     [% END %]" 
   onFocus="if(this.value=='-Test #-'){this.value = '';}">

@@ -112,7 +112,7 @@ function checkFormContents(f) {
        [% FOREACH group=groups %]
        <tr>
          <td><input name="group_[%group.id | html %]" type="checkbox" value="1" [% IF user.inGroup(group) %] checked [%END%]></td>
-         <td>[% group.name FILTER html %]</td>
+         <td>[% group.name | html %]</td>
        </tr>
        [% END %]
      </table>

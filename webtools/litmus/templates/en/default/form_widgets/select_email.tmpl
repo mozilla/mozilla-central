@@ -3,7 +3,7 @@
 [% IF users %]
 [% FOREACH user=users %]
     <option[% IF defaults.email==user.email %] selected[% END %] 
-        value="[% user.email | html | uri | email %]">[% user.email | html | uri | email%]</option>
+        value="[% user.email | html | email | js %]">[% user.email | html | email | js %]</option>
 [% END %]
 [% END %]
 </select>
