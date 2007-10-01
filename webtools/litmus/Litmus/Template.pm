@@ -148,15 +148,11 @@ sub create {
             # also sneak target="blank" into hrefs so that links open in new 
             # tabs or windows (based on the user's browser prefs)
             testdata => sub {
-                my ($data) = @_;
-                
-                $strip->parse($data);
-                $strip->eof();
-                my $filtered = $strip->filtered_document;
-                
-                $filtered =~ s/<a /<a target="external_link" /;
-                
-                return $filtered;
+                my ($data) = @_;                
+                $data =~  s/^\s+//g;
+                $data =~  s/\s+$//g;
+                $data =~ s/<a /<a target="external_link" /;
+                return $data;
             }, 
             
             # process the text with the markdown text processor
