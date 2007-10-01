@@ -8,6 +8,8 @@ selfserv/main/NSS_Initialize/*/SECMOD_LoadModule/SECMOD_LoadModule/SECMOD_LoadPK
 strsclnt/main/NSS_Initialize/*/SECMOD_LoadModule/SECMOD_LoadModule/SECMOD_LoadPKCS11Module/PK11_InitSlot/pk11_isRootSlot/pk11_FindObjectByTemplate/builtinsC_FindObjects/NSSCKFWC_FindObjects/nssCKFWFindObjects_Next/nssCKFWObject_Create/nssCKFWInstance_CreateMutex/nssCKFWMutex_Create/PR_NewLock/PR_Calloc/calloc
 selfserv/main/NSS_Initialize/*/SECMOD_LoadModule/SECMOD_LoadModule/SECMOD_LoadPKCS11Module/PK11_InitSlot/pk11_isRootSlot/pk11_FindObjectByTemplate/*/*/*/*/*/PR_NewLock/calloc
 strsclnt/main/NSS_Initialize/*/SECMOD_LoadModule/SECMOD_LoadModule/SECMOD_LoadPKCS11Module/PK11_InitSlot/pk11_isRootSlot/pk11_FindObjectByTemplate/*/*/*/*/*/PR_NewLock/calloc
+selfserv/main/NSS_Initialize/*/SECMOD_LoadModule/SECMOD_LoadModule/SECMOD_LoadPKCS11Module/PK11_InitSlot/pk11_isRootSlot/pk11_FindObjectByTemplate/*/*/*/*/*/*/PR_NewLock/PR_Calloc/calloc
+strsclnt/main/NSS_Initialize/*/SECMOD_LoadModule/SECMOD_LoadModule/SECMOD_LoadPKCS11Module/PK11_InitSlot/pk11_isRootSlot/pk11_FindObjectByTemplate/*/*/*/*/*/*/PR_NewLock/PR_Calloc/calloc
 selfserv/*/SECMOD_LoadModule/SECMOD_LoadModule/SECMOD_LoadPKCS11Module/PK11_InitSlot/pk11_isRootSlot/pk11_FindObjectByTemplate/builtinsC_FindObjects/NSSCKFWC_FindObjects/nssCKFWFindObjects_Next/nssCKFWObject_Create/nssCKFWInstance_CreateMutex/nssCKFWMutex_Create/PR_NewLock/PR_Calloc/calloc
 strsclnt/*/SECMOD_LoadModule/SECMOD_LoadModule/SECMOD_LoadPKCS11Module/PK11_InitSlot/pk11_isRootSlot/pk11_FindObjectByTemplate/builtinsC_FindObjects/NSSCKFWC_FindObjects/nssCKFWFindObjects_Next/nssCKFWObject_Create/nssCKFWInstance_CreateMutex/nssCKFWMutex_Create/PR_NewLock/PR_Calloc/calloc
 selfserv/main/NSS_Initialize/*/SECMOD_LoadModule/SECMOD_LoadModule/SECMOD_LoadPKCS11Module/PK11_InitSlot/pk11_FindObjectByTemplate/*/*/*/*/*/*/PR_NewLock/PR_Calloc/calloc
@@ -15,6 +17,7 @@ strsclnt/main/NSS_Initialize/*/SECMOD_LoadModule/SECMOD_LoadModule/SECMOD_LoadPK
 selfserv/NSS_Initialize/*/SECMOD_LoadModule/SECMOD_LoadModule/SECMOD_LoadPKCS11Module/PK11_InitSlot/pk11_FindObjectByTemplate/*/*/*/*/*/*/PR_NewLock/PR_Calloc/calloc
 strsclnt/NSS_Initialize/*/SECMOD_LoadModule/SECMOD_LoadModule/SECMOD_LoadPKCS11Module/PK11_InitSlot/pk11_FindObjectByTemplate/*/*/*/*/*/*/PR_NewLock/PR_Calloc/calloc
 selfserv/main/server_main/SSL_ConfigSecureServer/PR_CallOnceWithArg/serverCAListSetup/CERT_GetSSLCACerts/PK11_TraverseSlotCerts/NSSTrustDomain_TraverseCertificates/nssPKIObjectCollection_Traverse/convert_cert/STAN_GetCERTCertificate/stan_GetCERTCertificate/fill_CERTCertificateFields/nssTrust_GetCERTCertTrustForCert/nssTrustDomain_FindTrustForCertificate/nssToken_FindTrustForCertificate/find_objects_by_template/find_objects/builtinsC_FindObjects/NSSCKFWC_FindObjects/nssCKFWFindObjects_Next/nssCKFWObject_Create/nssCKFWInstance_CreateMutex/nssCKFWMutex_Create/PR_NewLock/PR_Calloc/calloc
+selfserv/main/server_main/SSL_ConfigSecureServer/PR_CallOnceWithArg/serverCAListSetup/CERT_GetSSLCACerts/PK11_TraverseSlotCerts/NSSTrustDomain_TraverseCertificates/nssPKIObjectCollection_Traverse/convert_cert/STAN_GetCERTCertificate/stan_GetCERTCertificate/fill_CERTCertificateFields/nssTrust_GetCERTCertTrustForCert/nssTrustDomain_FindTrustForCertificate/nssToken_FindTrustForCertificate/find_objects_by_template/find_objects/*/*/*/*/*/*/PR_NewLock/PR_Calloc/calloc
 selfserv/main/server_main/SSL_ConfigSecureServer/PR_CallOnceWithArg/serverCAListSetup/CERT_GetSSLCACerts/PK11_TraverseSlotCerts/NSSTrustDomain_TraverseCertificates/nssToken_TraverseCertificates/builtinsC_FindObjects/NSSCKFWC_FindObjects/nssCKFWFindObjects_Next/nssCKFWObject_Create/nssCKFWInstance_CreateMutex/nssCKFWMutex_Create/PR_NewLock/PR_Calloc/calloc
 selfserv/stan_GetCERTCertificate/fill_CERTCertificateFields/nssTrust_GetCERTCertTrustForCert/nssTrustDomain_FindTrustForCertificate/nssToken_FindTrustForCertificate/find_objects_by_template/find_objects/builtinsC_FindObjects/NSSCKFWC_FindObjects/nssCKFWFindObjects_Next/nssCKFWObject_Create/nssCKFWInstance_CreateMutex/nssCKFWMutex_Create/PR_NewLock/PR_Calloc/calloc
 selfserv/main/server_main/SSL_ConfigSecureServer/PR_CallOnceWithArg/serverCAListSetup/CERT_GetSSLCACerts/PK11_TraverseSlotCerts/NSSTrustDomain_TraverseCertificates/nssToken_TraverseCertificates/*/*/*/*/*/PR_NewLock/calloc
@@ -24,6 +27,8 @@ selfserv/SSL_ConfigSecureServer/PR_CallOnceWithArg/serverCAListSetup/CERT_GetSSL
 selfserv/main/server_main/SSL_ConfigSecureServer/PR_CallOnceWithArg/serverCAListSetup/CERT_GetSSLCACerts/PK11_TraverseSlotCerts/NSSTrustDomain_TraverseCertificates/nssPKIObjectCollection_Traverse/convert_cert/stan_GetCERTCertificate/nssTrust_GetCERTCertTrustForCert/nssTrustDomain_FindTrustForCertificate/nssToken_FindTrustForCertificate/find_objects_by_template/find_objects/*/*/*/*/*/*/PR_NewLock/PR_Calloc/calloc
 selfserv/PK11_TraverseSlotCerts/NSSTrustDomain_TraverseCertificates/nssPKIObjectCollection_Traverse/convert_cert/STAN_GetCERTCertificate/fill_CERTCertificateFields/nssTrust_GetCERTCertTrustForCert/nssTrustDomain_FindTrustForCertificate/nssToken_FindTrustForCertificate/*/*/*/*/*/PR_NewLock/calloc
 selfserv/NSSTrustDomain_TraverseCertificates/nssPKIObjectCollection_Traverse/convert_cert/STAN_GetCERTCertificate/fill_CERTCertificateFields/nssTrustDomain_FindTrustForCertificate/nssToken_FindTrustForCertificate/*/*/*/*/*/*/PR_NewLock/PR_Calloc/calloc
+
+
 
 #367374
 */main/PR_Init/_PR_ImplicitInitialization/**
@@ -43,6 +48,16 @@ selfserv/NSSTrustDomain_TraverseCertificates/nssPKIObjectCollection_Traverse/con
 */main/_PR_InitStuff/_PR_InitTPD/calloc
 */main/_PR_UnixInit/PR_NewLock/calloc
 */main/_PR_UnixInit/PR_NewMonitor/calloc
+*/main/PR_Init/_PR_InitStuff/_PR_InitCMon/ExpandMonitorCache/PR_Calloc/calloc
+*/main/PR_Init/_PR_InitStuff/_PR_InitCMon/ExpandMonitorCache/PR_NewMonitor/PR_Calloc/calloc
+*/main/PR_Init/_PR_InitStuff/_PR_InitCMon/PR_NewLock/PR_Calloc/calloc
+*/main/PR_Init/_PR_InitStuff/_PR_InitLinker/PR_Calloc/calloc
+*/main/PR_Init/_PR_InitStuff/_PR_InitLinker/malloc
+*/main/PR_Init/_PR_InitStuff/_PR_InitTPD/PR_Calloc/calloc
+*/main/PR_Init/_PR_InitStuff/_PR_InitZones/pr_FindSymbolInProg/dlopen@@GLIBC_2.1/**
+*/main/PR_Init/_PR_InitStuff/_PR_UnixInit/PR_NewLock/PR_Calloc/calloc
+*/main/PR_Init/_PR_InitStuff/_PR_UnixInit/PR_NewMonitor/PR_Calloc/calloc
+*/main/PR_Init/_PR_InitStuff/nspr_InitializePRErrorTable/PR_ErrorInstallTable/PR_Malloc/malloc
 
 #367376
 selfserv/main/launch_threads/PR_CreateThread/_PR_CreateThread/pthread_create@@GLIBC_2.1/**
@@ -59,6 +74,8 @@ strsclnt/main/client_main/launch_thread/_PR_CreateThread/pthread_create@@GLIBC_2
 */main/NSS_Initialize/*/SECMOD_LoadModule/SECMOD_LoadModule/SECMOD_LoadPKCS11Module/secmod_ModuleInit/FC_Initialize/nsc_CommonInitialize/RNG_RNGInit/freebl_RunLoaderOnce/PR_CallOnce/freebl_LoadDSO/loader_LoadLibrary/loader_LoadLibInReferenceDir/PR_LoadLibraryWithFlags/pr_LoadLibraryByPathname/**
 */*/SECMOD_LoadModule/SECMOD_LoadModule/SECMOD_LoadPKCS11Module/secmod_ModuleInit/FC_Initialize/nsc_CommonInitialize/RNG_RNGInit/freebl_RunLoaderOnce/PR_CallOnce/freebl_LoadDSO/loader_LoadLibrary/loader_LoadLibInReferenceDir/PR_LoadLibraryWithFlags/pr_LoadLibraryByPathname/**
 */main/NSS_Initialize/*/SECMOD_LoadModule/SECMOD_LoadModule/SECMOD_LoadPKCS11Module/secmod_ModuleInit/*/*/*/*/PR_CallOnce/*/*/*/PR_LoadLibraryWithFlags/**
+*/main/NSS_Initialize/*/SECMOD_LoadModule/SECMOD_LoadModule/SECMOD_LoadPKCS11Module/*/*/PR_CallOnce/*/pr_LoadLibraryByPathname/**
+*/main/NSS_Initialize/*/SECMOD_LoadModule/SECMOD_LoadModule/SECMOD_LoadPKCS11Module/*/*/*/PR_CallOnce/*/pr_LoadLibraryByPathname/**
 */main/NSS_Initialize/*/SECMOD_LoadModule/SECMOD_LoadModule/SECMOD_LoadPKCS11Module/*/*/*/PR_CallOnce/*/*/pr_LoadLibraryByPathname/**
 */main/NSS_Initialize/*/SECMOD_LoadModule/SECMOD_LoadModule/SECMOD_LoadPKCS11Module/*/*/*/PR_CallOnce/*/*/*/pr_LoadLibraryByPathname/**
 
@@ -103,5 +120,6 @@ strsclnt/_lwp_start/_pt_root/thread_wrapper/do_connects/ssl_Send/ssl_SecureSend/
 
 #397487
 strsclnt/main/client_main/PR_GetAddrInfoByName/getaddrinfo/get_addr/getipnodebyname/__rpc_getconfip/setnetconfig/**
-
+strsclnt/main/client_main/PR_GetAddrInfoByName/_getaddrinfo/get_addr/getipnodebyname/__rpc_getconfip/setnetconfig/**
+strsclnt/main/client_main/PR_GetAddrInfoByName/getaddrinfo/_getaddrinfo/get_addr/getipnodebyname/__rpc_getconfip/setnetconfig/**
 
