@@ -38,15 +38,12 @@ use JSON;
 
 use CGI;
 use Date::Manip;
-use Encode;
 
 my $json = JSON->new(skipinvalid => 1, convblessed => 1);
 
 Litmus->init();
 my $c = Litmus->cgi(); 
-print $c->header(
-                 -type=>'text/plain',
-                );
+print $c->header('text/plain');
 
 my $js;
 

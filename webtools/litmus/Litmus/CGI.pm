@@ -61,19 +61,11 @@ sub storeCookie {
 sub header {
 	my $self = shift;
 	my @args = @_;
-
-        # Default to UTF-8
-        push @args, (-charset => 'utf-8');
-
-	# Add cookies
-        push @args, (-cookie=>[@{$self->{'litmusCookieStore'}}]);
-
-#        foreach my $cur ($self->{'litmusCookieStore'}) {
-#		push(@args, {-cookie => $cur});
-#	}
-#
-#        use Data::Dumper;
-#	print STDERR Dumper(\@args);
+	
+	foreach my $cur ($self->{'litmusCookieStore'}) {
+		push(@args, {-cookie => $cur});
+	}
+	
 	$self->SUPER::header(@args);
 }
 

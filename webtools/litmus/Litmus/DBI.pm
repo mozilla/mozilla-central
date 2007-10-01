@@ -155,8 +155,6 @@ use DBI;
 
 use base 'Class::DBI::mysql';
 
-use Class::DBI::utf8;
-
 use constant MP2 => ( exists $ENV{MOD_PERL_API_VERSION} and 
                         $ENV{MOD_PERL_API_VERSION} >= 2 ); 
 use constant MP1 => ( exists $ENV{MOD_PERL} and 
@@ -165,9 +163,7 @@ use constant MP1 => ( exists $ENV{MOD_PERL} and
 our $dsn = "dbi:mysql(RootClass=AuditDBI):database=$Litmus::Config::db_name;host=$Litmus::Config::db_host;port=$Litmus::Config::db_port";
 Litmus::DBI->connection($dsn,
                         $Litmus::Config::db_user,
-                        $Litmus::Config::db_pass,
-                        {mysql_enable_utf8 => 1}
-);
+                        $Litmus::Config::db_pass);
 
 our $readonly_dbh;
 

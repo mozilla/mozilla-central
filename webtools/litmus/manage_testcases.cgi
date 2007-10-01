@@ -37,7 +37,6 @@ use Litmus::Utils;
 
 use CGI;
 use Date::Manip;
-use Encode qw( decode encode );
 use JSON;
 
 Litmus->init();

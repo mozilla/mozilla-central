@@ -7,9 +7,11 @@ CGI
 Class::DBI 
 Class::DBI::mysql 
 Class::DBI::Pager
+Class::DBI::utf8
 Data::Dumper
 Data::JavaScript
 Date::Manip
+Encode
 File::Find
 Getopt::Long;
 HTML::StripScripts
