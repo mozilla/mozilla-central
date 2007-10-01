@@ -503,8 +503,14 @@ nsXFormsSubmissionElement::LoadReplaceInstance(nsIChannel *channel)
   nsresult rv = channel->GetURI(getter_AddRefs(uri));
   NS_ENSURE_SUCCESS(rv, rv);
 
+  NS_ENSURE_STATE(mElement);
+  nsCOMPtr<nsIDOMDocument> domDoc;
+  mElement->GetOwnerDocument(getter_AddRefs(domDoc));
+  nsCOMPtr<nsIDocument> doc = do_QueryInterface(domDoc);
+  NS_ENSURE_STATE(doc);
   // XXXbz is this the right principal?
-  rv = parser->Init(nsnull, uri, nsnull);
+  NS_ENSURE_STATE(doc->GetScriptGlobalObject());
+  rv = parser->Init(nsnull, uri, nsnull, doc->GetScriptGlobalObject());
   NS_ENSURE_SUCCESS(rv, rv);
 
   nsCOMPtr<nsIDOMDocument> newDoc;
