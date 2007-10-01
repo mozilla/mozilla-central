@@ -20,6 +20,16 @@
 		008115430B180F35001CB3F0 /* libthebes.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = 008115420B180F35001CB3F0 /* libthebes.dylib */; };
 		008115440B181032001CB3F0 /* libthebes.dylib in Copy Libraries */ = {isa = PBXBuildFile; fileRef = 008115420B180F35001CB3F0 /* libthebes.dylib */; };
 		008115480B1811F0001CB3F0 /* libgkgfxthebes.dylib in Copy Component Libraries */ = {isa = PBXBuildFile; fileRef = 008115470B1811F0001CB3F0 /* libgkgfxthebes.dylib */; };
+		0098B1230CAEA77500DA0F2F /* nsHandlerService.js in Copy Component Libraries */ = {isa = PBXBuildFile; fileRef = 0098B11D0CAEA75700DA0F2F /* nsHandlerService.js */; };
+		0098B12A0CAEA81700DA0F2F /* nsHandlerService.js in Copy Component Libraries */ = {isa = PBXBuildFile; fileRef = 0098B11D0CAEA75700DA0F2F /* nsHandlerService.js */; };
+		0098B1800CAEA9DC00DA0F2F /* XPCOMUtils.jsm in Copy Gecko Modules */ = {isa = PBXBuildFile; fileRef = 0098B17F0CAEA9CF00DA0F2F /* XPCOMUtils.jsm */; };
+		0098B1830CAEAA0200DA0F2F /* XPCOMUtils.jsm in Copy Gecko Modules */ = {isa = PBXBuildFile; fileRef = 0098B17F0CAEA9CF00DA0F2F /* XPCOMUtils.jsm */; };
+		0098B19F0CAEAB0100DA0F2F /* exthandler.xpt in Copy Component XPTs */ = {isa = PBXBuildFile; fileRef = 0098B19E0CAEAAE800DA0F2F /* exthandler.xpt */; };
+		0098B1A00CAEAB1500DA0F2F /* exthandler.xpt in Copy Component XPTs */ = {isa = PBXBuildFile; fileRef = 0098B19E0CAEAAE800DA0F2F /* exthandler.xpt */; };
+		0098B20D0CAEC6D500DA0F2F /* mimeTypes.rdf in Copy Profile Defaults */ = {isa = PBXBuildFile; fileRef = 0098B20C0CAEC6C600DA0F2F /* mimeTypes.rdf */; };
+		0098B20E0CAEC6D900DA0F2F /* mimeTypes.rdf in Copy Profile Defaults */ = {isa = PBXBuildFile; fileRef = 0098B20C0CAEC6C600DA0F2F /* mimeTypes.rdf */; };
+		0098B2990CAECEC000DA0F2F /* necko_file.xpt in Copy Component XPTs */ = {isa = PBXBuildFile; fileRef = 0098B2980CAECEBA00DA0F2F /* necko_file.xpt */; };
+		0098B29A0CAECEF500DA0F2F /* necko_file.xpt in Copy Component XPTs */ = {isa = PBXBuildFile; fileRef = 0098B2980CAECEBA00DA0F2F /* necko_file.xpt */; };
 		00A29E870BC9AA5B00BF313F /* tab_menu_button.tif in Resources */ = {isa = PBXBuildFile; fileRef = 00A29E860BC9AA5B00BF313F /* tab_menu_button.tif */; };
 		00A29E880BC9AA5B00BF313F /* tab_menu_button.tif in Resources */ = {isa = PBXBuildFile; fileRef = 00A29E860BC9AA5B00BF313F /* tab_menu_button.tif */; };
 		032FFDD4077351D700440548 /* Downloads.h in Headers */ = {isa = PBXBuildFile; fileRef = 032FFDCD077351A800440548 /* Downloads.h */; };
@@ -581,7 +591,7 @@
 		3F44AD2305BDFB9F00CB4B08 /* libgkplugin.dylib in Copy Component Libraries */ = {isa = PBXBuildFile; fileRef = F6BD644F01B315FA01A962F7 /* libgkplugin.dylib */; };
 		3F44AD2405BDFB9F00CB4B08 /* xuldoc.xpt in Copy Component XPTs */ = {isa = PBXBuildFile; fileRef = F517941F027F3F2901A967DF /* xuldoc.xpt */; };
 		3F44AD2605BDFB9F00CB4B08 /* liboji.dylib in Copy Component Libraries */ = {isa = PBXBuildFile; fileRef = F53A902202C1127A01A967F3 /* liboji.dylib */; };
-		3F44AD2705BDFB9F00CB4B08 /* nsProxyAutoConfig.js in Copy Component XPTs */ = {isa = PBXBuildFile; fileRef = F5461CBB03AAC25C01A96660 /* nsProxyAutoConfig.js */; };
+		3F44AD2705BDFB9F00CB4B08 /* nsProxyAutoConfig.js in Copy Component Libraries */ = {isa = PBXBuildFile; fileRef = F5461CBB03AAC25C01A96660 /* nsProxyAutoConfig.js */; };
 		3F44AD2905BDFB9F00CB4B08 /* libi18n.dylib in Copy Component Libraries */ = {isa = PBXBuildFile; fileRef = A708E74103FB9041003C038B /* libi18n.dylib */; };
 		3F44AD2A05BDFB9F00CB4B08 /* libxmlextras.dylib in Copy Component Libraries */ = {isa = PBXBuildFile; fileRef = A708E74303FB90AB003C038B /* libxmlextras.dylib */; };
 		3F44AD2B05BDFB9F00CB4B08 /* libsuitetypeaheadfind.dylib in Copy Component Libraries */ = {isa = PBXBuildFile; fileRef = A7D88E680465D94000A80196 /* libsuitetypeaheadfind.dylib */; };
@@ -967,7 +977,7 @@
 		3F44AF4105BDFBA000CB4B08 /* embed_base.xpt in Copy Component XPTs */ = {isa = PBXBuildFile; fileRef = F6BD644D01B315FA01A962F7 /* embed_base.xpt */; };
 		3F44AF4205BDFBA000CB4B08 /* imglib2.xpt in Copy Component XPTs */ = {isa = PBXBuildFile; fileRef = F6BD644E01B315FA01A962F7 /* imglib2.xpt */; };
 		3F44AF4305BDFBA000CB4B08 /* xuldoc.xpt in Copy Component XPTs */ = {isa = PBXBuildFile; fileRef = F517941F027F3F2901A967DF /* xuldoc.xpt */; };
-		3F44AF4405BDFBA000CB4B08 /* nsProxyAutoConfig.js in Copy Component XPTs */ = {isa = PBXBuildFile; fileRef = F5461CBB03AAC25C01A96660 /* nsProxyAutoConfig.js */; };
+		3F44AF4405BDFBA000CB4B08 /* nsProxyAutoConfig.js in Copy Component Libraries */ = {isa = PBXBuildFile; fileRef = F5461CBB03AAC25C01A96660 /* nsProxyAutoConfig.js */; };
 		3F44AF4605BDFBA000CB4B08 /* xpcom_obsolete.xpt in Copy Component XPTs */ = {isa = PBXBuildFile; fileRef = 0FA8EF9C0423B21100A80166 /* xpcom_obsolete.xpt */; };
 		3F44AF4705BDFBA000CB4B08 /* suitetypeaheadfind.xpt in Copy Component XPTs */ = {isa = PBXBuildFile; fileRef = A7D88E6A0465D9F800A80196 /* suitetypeaheadfind.xpt */; };
 		3F44AF4905BDFBA000CB4B08 /* charsetalias.properties in Copy Gecko Resources */ = {isa = PBXBuildFile; fileRef = F6BD64B801B316DA01A962F7 /* charsetalias.properties */; };
@@ -1509,6 +1519,50 @@
 /* End PBXContainerItemProxy section */
 
 /* Begin PBXCopyFilesBuildPhase section */
+		0098B17D0CAEA96800DA0F2F /* Copy Gecko Modules */ = {
+			isa = PBXCopyFilesBuildPhase;
+			buildActionMask = 2147483647;
+			dstPath = modules;
+			dstSubfolderSpec = 6;
+			files = (
+				0098B1800CAEA9DC00DA0F2F /* XPCOMUtils.jsm in Copy Gecko Modules */,
+			);
+			name = "Copy Gecko Modules";
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		0098B1810CAEA9EA00DA0F2F /* Copy Gecko Modules */ = {
+			isa = PBXCopyFilesBuildPhase;
+			buildActionMask = 2147483647;
+			dstPath = modules;
+			dstSubfolderSpec = 6;
+			files = (
+				0098B1830CAEAA0200DA0F2F /* XPCOMUtils.jsm in Copy Gecko Modules */,
+			);
+			name = "Copy Gecko Modules";
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		0098B1F60CAEC4FD00DA0F2F /* Copy Profile Defaults */ = {
+			isa = PBXCopyFilesBuildPhase;
+			buildActionMask = 2147483647;
+			dstPath = defaults/profile;
+			dstSubfolderSpec = 6;
+			files = (
+				0098B20D0CAEC6D500DA0F2F /* mimeTypes.rdf in Copy Profile Defaults */,
+			);
+			name = "Copy Profile Defaults";
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		0098B1FE0CAEC52500DA0F2F /* Copy Profile Defaults */ = {
+			isa = PBXCopyFilesBuildPhase;
+			buildActionMask = 2147483647;
+			dstPath = defaults/profile;
+			dstSubfolderSpec = 6;
+			files = (
+				0098B20E0CAEC6D900DA0F2F /* mimeTypes.rdf in Copy Profile Defaults */,
+			);
+			name = "Copy Profile Defaults";
+			runOnlyForDeploymentPostprocessing = 0;
+		};
 		0E6A98A6097E00CD007962C1 /* Copy Gecko Fonts */ = {
 			isa = PBXCopyFilesBuildPhase;
 			buildActionMask = 2147483647;
@@ -1569,6 +1623,20 @@
 				3F44AD2B05BDFB9F00CB4B08 /* libsuitetypeaheadfind.dylib in Copy Component Libraries */,
 				0F518833088592020091F3FB /* libpermissions.dylib in Copy Component Libraries */,
 				DEC87B100C2882DC002EB106 /* libstoragecomps.dylib in Copy Component Libraries */,
+				3F44AD2705BDFB9F00CB4B08 /* nsProxyAutoConfig.js in Copy Component Libraries */,
+				0098B1230CAEA77500DA0F2F /* nsHandlerService.js in Copy Component Libraries */,
+			);
+			name = "Copy Component Libraries";
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		3386CD380CB18D6A00B8E89D /* Copy Component Libraries */ = {
+			isa = PBXCopyFilesBuildPhase;
+			buildActionMask = 2147483647;
+			dstPath = components;
+			dstSubfolderSpec = 6;
+			files = (
+				3F44AF4405BDFBA000CB4B08 /* nsProxyAutoConfig.js in Copy Component Libraries */,
+				0098B12A0CAEA81700DA0F2F /* nsHandlerService.js in Copy Component Libraries */,
 			);
 			name = "Copy Component Libraries";
 			runOnlyForDeploymentPostprocessing = 0;
@@ -1603,6 +1671,7 @@
 				3F44ACE405BDFB9F00CB4B08 /* dom_xul.xpt in Copy Component XPTs */,
 				3F44ACE505BDFB9F00CB4B08 /* dom.xpt in Copy Component XPTs */,
 				DE878FCD0C175ABB00153511 /* dom_offline.xpt in Copy Component XPTs */,
+				0098B19F0CAEAB0100DA0F2F /* exthandler.xpt in Copy Component XPTs */,
 				3F44ACE605BDFB9F00CB4B08 /* gfx.xpt in Copy Component XPTs */,
 				3F44ACF005BDFB9F00CB4B08 /* mimetype.xpt in Copy Component XPTs */,
 				3F44ACF105BDFB9F00CB4B08 /* txtsvc.xpt in Copy Component XPTs */,
@@ -1617,6 +1686,7 @@
 				3F44ACFF05BDFB9F00CB4B08 /* necko_about.xpt in Copy Component XPTs */,
 				3F44AD0005BDFB9F00CB4B08 /* necko_cache.xpt in Copy Component XPTs */,
 				3F44AD0205BDFB9F00CB4B08 /* necko_dns.xpt in Copy Component XPTs */,
+				0098B29A0CAECEF500DA0F2F /* necko_file.xpt in Copy Component XPTs */,
 				3F44AD0305BDFB9F00CB4B08 /* necko_ftp.xpt in Copy Component XPTs */,
 				3F44AD0405BDFB9F00CB4B08 /* necko_http.xpt in Copy Component XPTs */,
 				3F44AD0605BDFB9F00CB4B08 /* necko_res.xpt in Copy Component XPTs */,
@@ -1643,7 +1713,6 @@
 				3F44AD2405BDFB9F00CB4B08 /* xuldoc.xpt in Copy Component XPTs */,
 				3F44AD2C05BDFB9F00CB4B08 /* suitetypeaheadfind.xpt in Copy Component XPTs */,
 				3F44ADB105BDFB9F00CB4B08 /* layout_printing.xpt in Copy Component XPTs */,
-				3F44AD2705BDFB9F00CB4B08 /* nsProxyAutoConfig.js in Copy Component XPTs */,
 			);
 			name = "Copy Component XPTs";
 			runOnlyForDeploymentPostprocessing = 0;
@@ -1914,6 +1983,7 @@
 				3F44AF1A05BDFBA000CB4B08 /* dom_xul.xpt in Copy Component XPTs */,
 				3F44AF1B05BDFBA000CB4B08 /* dom.xpt in Copy Component XPTs */,
 				DE878FCC0C175ABB00153511 /* dom_offline.xpt in Copy Component XPTs */,
+				0098B1A00CAEAB1500DA0F2F /* exthandler.xpt in Copy Component XPTs */,
 				3F44AF1C05BDFBA000CB4B08 /* gfx.xpt in Copy Component XPTs */,
 				3F44AF1D05BDFBA000CB4B08 /* mimetype.xpt in Copy Component XPTs */,
 				3F44AF1E05BDFBA000CB4B08 /* txtsvc.xpt in Copy Component XPTs */,
@@ -1927,6 +1997,7 @@
 				3F44AF2605BDFBA000CB4B08 /* necko_about.xpt in Copy Component XPTs */,
 				3F44AF2705BDFBA000CB4B08 /* necko_cache.xpt in Copy Component XPTs */,
 				3F44AF2905BDFBA000CB4B08 /* necko_dns.xpt in Copy Component XPTs */,
+				0098B2990CAECEC000DA0F2F /* necko_file.xpt in Copy Component XPTs */,
 				3F44AF2A05BDFBA000CB4B08 /* necko_ftp.xpt in Copy Component XPTs */,
 				3F44AF2B05BDFBA000CB4B08 /* necko_http.xpt in Copy Component XPTs */,
 				3F44AF2D05BDFBA000CB4B08 /* necko_res.xpt in Copy Component XPTs */,
@@ -1952,7 +2023,6 @@
 				3F44AF4105BDFBA000CB4B08 /* embed_base.xpt in Copy Component XPTs */,
 				3F44AF4205BDFBA000CB4B08 /* imglib2.xpt in Copy Component XPTs */,
 				3F44AF4305BDFBA000CB4B08 /* xuldoc.xpt in Copy Component XPTs */,
-				3F44AF4405BDFBA000CB4B08 /* nsProxyAutoConfig.js in Copy Component XPTs */,
 				3F44AF4605BDFBA000CB4B08 /* xpcom_obsolete.xpt in Copy Component XPTs */,
 				3F44AF4705BDFBA000CB4B08 /* suitetypeaheadfind.xpt in Copy Component XPTs */,
 				3F44AFF905BDFBA000CB4B08 /* layout_printing.xpt in Copy Component XPTs */,
@@ -2340,6 +2410,11 @@
 		0081150C0B180DFA001CB3F0 /* libgkgfxthebes.a */ = {isa = PBXFileReference; lastKnownFileType = archive.ar; name = libgkgfxthebes.a; path = ../gfx/src/thebes/libgkgfxthebes.a; sourceTree = SOURCE_ROOT; };
 		008115420B180F35001CB3F0 /* libthebes.dylib */ = {isa = PBXFileReference; lastKnownFileType = "compiled.mach-o.dylib"; name = libthebes.dylib; path = ../dist/Embed/libthebes.dylib; sourceTree = SOURCE_ROOT; };
 		008115470B1811F0001CB3F0 /* libgkgfxthebes.dylib */ = {isa = PBXFileReference; lastKnownFileType = "compiled.mach-o.bundle"; name = libgkgfxthebes.dylib; path = ../dist/Embed/components/libgkgfxthebes.dylib; sourceTree = SOURCE_ROOT; };
+		0098B11D0CAEA75700DA0F2F /* nsHandlerService.js */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.javascript; name = nsHandlerService.js; path = ../dist/bin/components/nsHandlerService.js; sourceTree = SOURCE_ROOT; };
+		0098B17F0CAEA9CF00DA0F2F /* XPCOMUtils.jsm */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = text; name = XPCOMUtils.jsm; path = ../dist/bin/modules/XPCOMUtils.jsm; sourceTree = SOURCE_ROOT; };
+		0098B19E0CAEAAE800DA0F2F /* exthandler.xpt */ = {isa = PBXFileReference; lastKnownFileType = file; name = exthandler.xpt; path = ../dist/bin/components/exthandler.xpt; sourceTree = SOURCE_ROOT; };
+		0098B20C0CAEC6C600DA0F2F /* mimeTypes.rdf */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = text.xml; name = mimeTypes.rdf; path = resources/application/mimeTypes.rdf; sourceTree = "<group>"; };
+		0098B2980CAECEBA00DA0F2F /* necko_file.xpt */ = {isa = PBXFileReference; lastKnownFileType = file; name = necko_file.xpt; path = ../dist/bin/components/necko_file.xpt; sourceTree = SOURCE_ROOT; };
 		00A29E860BC9AA5B00BF313F /* tab_menu_button.tif */ = {isa = PBXFileReference; lastKnownFileType = image.tiff; name = tab_menu_button.tif; path = resources/images/chrome/tab_menu_button.tif; sourceTree = SOURCE_ROOT; };
 		032FFDCD077351A800440548 /* Downloads.h */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.c.h; path = Downloads.h; sourceTree = "<group>"; };
 		032FFDCE077351A800440548 /* Downloads.mm */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.cpp.objcpp; path = Downloads.mm; sourceTree = "<group>"; };
@@ -3448,6 +3523,7 @@
 				F6BD63A101B3131201A962F7 /* dom_xul.xpt */,
 				DE878FCB0C175ABB00153511 /* dom_offline.xpt */,
 				F6BD644D01B315FA01A962F7 /* embed_base.xpt */,
+				0098B19E0CAEAAE800DA0F2F /* exthandler.xpt */,
 				F6BD63A401B3131201A962F7 /* gfx.xpt */,
 				F6BD644E01B315FA01A962F7 /* imglib2.xpt */,
 				0FCCE56707D6D7DA006DD3D1 /* intl.xpt */,
@@ -3461,6 +3537,7 @@
 				F6BD63E601B313EE01A962F7 /* necko_about.xpt */,
 				F6BD63E701B313EE01A962F7 /* necko_cache.xpt */,
 				F6BD63E901B313EE01A962F7 /* necko_dns.xpt */,
+				0098B2980CAECEBA00DA0F2F /* necko_file.xpt */,
 				F6BD63EA01B313EE01A962F7 /* necko_ftp.xpt */,
 				F6BD63EB01B313EE01A962F7 /* necko_http.xpt */,
 				F6BD63ED01B313EE01A962F7 /* necko_res.xpt */,
@@ -3974,6 +4051,7 @@
 		F507BA530213C26501D93544 /* Gecko Profile Defaults */ = {
 			isa = PBXGroup;
 			children = (
+				0098B20C0CAEC6C600DA0F2F /* mimeTypes.rdf */,
 			);
 			name = "Gecko Profile Defaults";
 			sourceTree = "<group>";
@@ -4601,8 +4679,10 @@
 				0E6A9882097DFF9A007962C1 /* libucvmath.dylib */,
 				3FE5B9FC068A090F0001CECD /* libmozz.dylib */,
 				33B777950C55851800A6D67F /* libmozlcms.dylib */,
-				F5F14E9602A5A43A01A967F3 /* libwidget.rsrc */,
 				F5461CBB03AAC25C01A96660 /* nsProxyAutoConfig.js */,
+				0098B11D0CAEA75700DA0F2F /* nsHandlerService.js */,
+				0098B17F0CAEA9CF00DA0F2F /* XPCOMUtils.jsm */,
+				F5F14E9602A5A43A01A967F3 /* libwidget.rsrc */,
 				F5247C2F0228B5E7013DD99A /* Gecko Security */,
 				F6BD645501B3167601A962F7 /* Gecko Res */,
 				F6BD64FB01B3184301A962F7 /* Gecko Pref Defaults */,
@@ -5075,6 +5155,7 @@
 				3F44AC8205BDFB9E00CB4B08 /* Sources */,
 				3F44ACCF05BDFB9E00CB4B08 /* Copy Component XPTs */,
 				0F66E4AC07D6D9B000444E2A /* Copy Component Libraries */,
+				0098B17D0CAEA96800DA0F2F /* Copy Gecko Modules */,
 				3F44AD2D05BDFB9F00CB4B08 /* Copy Gecko Resources */,
 				DEF798F40BC703A40015970A /* Copy Gecko Cursors */,
 				3F44AD3E05BDFB9F00CB4B08 /* Copy Gecko DTDs */,
@@ -5084,6 +5165,7 @@
 				3F44AD5105BDFB9F00CB4B08 /* Copy Camino Prefs */,
 				3FBDC88908253CCC00D7F8E0 /* Copy Wallet Resources */,
 				3F44AD5305BDFB9F00CB4B08 /* Copy Base Prefs */,
+				0098B1F60CAEC4FD00DA0F2F /* Copy Profile Defaults */,
 				3F44AD5705BDFB9F00CB4B08 /* Copy Chrome */,
 				3F44AD5A05BDFB9F00CB4B08 /* Copy Security Libraries */,
 				3F44AD6005BDFB9F00CB4B08 /* Copy Libraries */,
@@ -5221,6 +5303,8 @@
 				3F44AE6105BDFBA000CB4B08 /* Resources */,
 				3F44AEBB05BDFBA000CB4B08 /* Sources */,
 				3F44AF0905BDFBA000CB4B08 /* Copy Component XPTs */,
+				3386CD380CB18D6A00B8E89D /* Copy Component Libraries */,
+				0098B1810CAEA9EA00DA0F2F /* Copy Gecko Modules */,
 				3F44AF4805BDFBA000CB4B08 /* Copy Gecko Resources */,
 				DEF798F80BC704890015970A /* Copy Gecko Cursors */,
 				3F44AF5905BDFBA000CB4B08 /* Copy Gecko DTDs */,
@@ -5230,6 +5314,7 @@
 				3F44AF6C05BDFBA000CB4B08 /* Copy Camino Prefs */,
 				3FBDC8C908254DF000D7F8E0 /* Copy Wallet Resources */,
 				3F44AF6E05BDFBA000CB4B08 /* Copy Base Prefs */,
+				0098B1FE0CAEC52500DA0F2F /* Copy Profile Defaults */,
 				3F44AF7205BDFBA000CB4B08 /* Copy Chrome */,
 				3F44AF7505BDFBA000CB4B08 /* Copy Security Libraries */,
 				3F44AF7B05BDFBA000CB4B08 /* Copy Security Components */,
