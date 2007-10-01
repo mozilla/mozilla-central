@@ -200,7 +200,7 @@ int main (int argc, char* argv[])
                                              &rv );
 
               if (NS_SUCCEEDED( rv )) {
-                pDOMParser->Init(nsnull, pURI, nsnull);
+                pDOMParser->Init(nsnull, pURI, nsnull, nsnull);
 
                 rv = pDOMParser->ParseFromStream( pInputStream,
                                                   "UTF-8",
