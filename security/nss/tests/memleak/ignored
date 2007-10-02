@@ -1,21 +1,15 @@
 #169313
-*/main/NSS_Initialize/*/SECMOD_LoadModule/SECMOD_LoadModule/SECMOD_LoadPKCS11Module/secmod_ModuleInit/builtinsC_Initialize/NSSCKFWC_Initialize/nssCKFWInstance_Create/NSSArena_Create/nssArena_Create/arena_add_pointer/nssPointerTracker_initialize/call_once/**
+*/main/*/*/SECMOD_LoadModule/SECMOD_LoadModule/SECMOD_LoadPKCS11Module/secmod_ModuleInit/builtinsC_Initialize/NSSCKFWC_Initialize/nssCKFWInstance_Create/NSSArena_Create/nssArena_Create/arena_add_pointer/nssPointerTracker_initialize/call_once/**
 */SECMOD_LoadModule/SECMOD_LoadModule/SECMOD_LoadPKCS11Module/secmod_ModuleInit/builtinsC_Initialize/NSSCKFWC_Initialize/nssCKFWInstance_Create/NSSArena_Create/nssArena_Create/arena_add_pointer/nssPointerTracker_initialize/call_once/**
 */SECMOD_LoadModule/SECMOD_LoadPKCS11Module/secmod_ModuleInit/builtinsC_Initialize/NSSCKFWC_Initialize/nssCKFWInstance_Create/NSSArena_Create/nssArena_Create/arena_add_pointer/nssPointerTracker_initialize/call_once/PR_CallOnce/myOnceFunction/PR_NewLock/PR_Calloc/calloc
 
 #308275
-selfserv/main/NSS_Initialize/*/SECMOD_LoadModule/SECMOD_LoadModule/SECMOD_LoadPKCS11Module/PK11_InitSlot/pk11_isRootSlot/pk11_FindObjectByTemplate/builtinsC_FindObjects/NSSCKFWC_FindObjects/nssCKFWFindObjects_Next/nssCKFWObject_Create/nssCKFWInstance_CreateMutex/nssCKFWMutex_Create/PR_NewLock/PR_Calloc/calloc
-strsclnt/main/NSS_Initialize/*/SECMOD_LoadModule/SECMOD_LoadModule/SECMOD_LoadPKCS11Module/PK11_InitSlot/pk11_isRootSlot/pk11_FindObjectByTemplate/builtinsC_FindObjects/NSSCKFWC_FindObjects/nssCKFWFindObjects_Next/nssCKFWObject_Create/nssCKFWInstance_CreateMutex/nssCKFWMutex_Create/PR_NewLock/PR_Calloc/calloc
-selfserv/main/NSS_Initialize/*/SECMOD_LoadModule/SECMOD_LoadModule/SECMOD_LoadPKCS11Module/PK11_InitSlot/pk11_isRootSlot/pk11_FindObjectByTemplate/*/*/*/*/*/PR_NewLock/calloc
-strsclnt/main/NSS_Initialize/*/SECMOD_LoadModule/SECMOD_LoadModule/SECMOD_LoadPKCS11Module/PK11_InitSlot/pk11_isRootSlot/pk11_FindObjectByTemplate/*/*/*/*/*/PR_NewLock/calloc
-selfserv/main/NSS_Initialize/*/SECMOD_LoadModule/SECMOD_LoadModule/SECMOD_LoadPKCS11Module/PK11_InitSlot/pk11_isRootSlot/pk11_FindObjectByTemplate/*/*/*/*/*/*/PR_NewLock/PR_Calloc/calloc
-strsclnt/main/NSS_Initialize/*/SECMOD_LoadModule/SECMOD_LoadModule/SECMOD_LoadPKCS11Module/PK11_InitSlot/pk11_isRootSlot/pk11_FindObjectByTemplate/*/*/*/*/*/*/PR_NewLock/PR_Calloc/calloc
-selfserv/*/SECMOD_LoadModule/SECMOD_LoadModule/SECMOD_LoadPKCS11Module/PK11_InitSlot/pk11_isRootSlot/pk11_FindObjectByTemplate/builtinsC_FindObjects/NSSCKFWC_FindObjects/nssCKFWFindObjects_Next/nssCKFWObject_Create/nssCKFWInstance_CreateMutex/nssCKFWMutex_Create/PR_NewLock/PR_Calloc/calloc
-strsclnt/*/SECMOD_LoadModule/SECMOD_LoadModule/SECMOD_LoadPKCS11Module/PK11_InitSlot/pk11_isRootSlot/pk11_FindObjectByTemplate/builtinsC_FindObjects/NSSCKFWC_FindObjects/nssCKFWFindObjects_Next/nssCKFWObject_Create/nssCKFWInstance_CreateMutex/nssCKFWMutex_Create/PR_NewLock/PR_Calloc/calloc
-selfserv/main/NSS_Initialize/*/SECMOD_LoadModule/SECMOD_LoadModule/SECMOD_LoadPKCS11Module/PK11_InitSlot/pk11_FindObjectByTemplate/*/*/*/*/*/*/PR_NewLock/PR_Calloc/calloc
-strsclnt/main/NSS_Initialize/*/SECMOD_LoadModule/SECMOD_LoadModule/SECMOD_LoadPKCS11Module/PK11_InitSlot/pk11_FindObjectByTemplate/*/*/*/*/*/*/PR_NewLock/PR_Calloc/calloc
-selfserv/NSS_Initialize/*/SECMOD_LoadModule/SECMOD_LoadModule/SECMOD_LoadPKCS11Module/PK11_InitSlot/pk11_FindObjectByTemplate/*/*/*/*/*/*/PR_NewLock/PR_Calloc/calloc
-strsclnt/NSS_Initialize/*/SECMOD_LoadModule/SECMOD_LoadModule/SECMOD_LoadPKCS11Module/PK11_InitSlot/pk11_FindObjectByTemplate/*/*/*/*/*/*/PR_NewLock/PR_Calloc/calloc
+*/main/*/*/SECMOD_LoadModule/SECMOD_LoadModule/SECMOD_LoadPKCS11Module/PK11_InitSlot/pk11_isRootSlot/pk11_FindObjectByTemplate/builtinsC_FindObjects/NSSCKFWC_FindObjects/nssCKFWFindObjects_Next/nssCKFWObject_Create/nssCKFWInstance_CreateMutex/nssCKFWMutex_Create/PR_NewLock/PR_Calloc/calloc
+*/main/*/*/SECMOD_LoadModule/SECMOD_LoadModule/SECMOD_LoadPKCS11Module/PK11_InitSlot/pk11_isRootSlot/pk11_FindObjectByTemplate/*/*/*/*/*/PR_NewLock/calloc
+*/main/*/*/SECMOD_LoadModule/SECMOD_LoadModule/SECMOD_LoadPKCS11Module/PK11_InitSlot/pk11_isRootSlot/pk11_FindObjectByTemplate/*/*/*/*/*/*/PR_NewLock/PR_Calloc/calloc
+*/*/SECMOD_LoadModule/SECMOD_LoadModule/SECMOD_LoadPKCS11Module/PK11_InitSlot/pk11_isRootSlot/pk11_FindObjectByTemplate/builtinsC_FindObjects/NSSCKFWC_FindObjects/nssCKFWFindObjects_Next/nssCKFWObject_Create/nssCKFWInstance_CreateMutex/nssCKFWMutex_Create/PR_NewLock/PR_Calloc/calloc
+*/main/*/*/SECMOD_LoadModule/SECMOD_LoadModule/SECMOD_LoadPKCS11Module/PK11_InitSlot/pk11_FindObjectByTemplate/*/*/*/*/*/*/PR_NewLock/PR_Calloc/calloc
+*/*/*/SECMOD_LoadModule/SECMOD_LoadModule/SECMOD_LoadPKCS11Module/PK11_InitSlot/pk11_FindObjectByTemplate/*/*/*/*/*/*/PR_NewLock/PR_Calloc/calloc
 selfserv/main/server_main/SSL_ConfigSecureServer/PR_CallOnceWithArg/serverCAListSetup/CERT_GetSSLCACerts/PK11_TraverseSlotCerts/NSSTrustDomain_TraverseCertificates/nssPKIObjectCollection_Traverse/convert_cert/STAN_GetCERTCertificate/stan_GetCERTCertificate/fill_CERTCertificateFields/nssTrust_GetCERTCertTrustForCert/nssTrustDomain_FindTrustForCertificate/nssToken_FindTrustForCertificate/find_objects_by_template/find_objects/builtinsC_FindObjects/NSSCKFWC_FindObjects/nssCKFWFindObjects_Next/nssCKFWObject_Create/nssCKFWInstance_CreateMutex/nssCKFWMutex_Create/PR_NewLock/PR_Calloc/calloc
 selfserv/main/server_main/SSL_ConfigSecureServer/PR_CallOnceWithArg/serverCAListSetup/CERT_GetSSLCACerts/PK11_TraverseSlotCerts/NSSTrustDomain_TraverseCertificates/nssPKIObjectCollection_Traverse/convert_cert/STAN_GetCERTCertificate/stan_GetCERTCertificate/fill_CERTCertificateFields/nssTrust_GetCERTCertTrustForCert/nssTrustDomain_FindTrustForCertificate/nssToken_FindTrustForCertificate/find_objects_by_template/find_objects/*/*/*/*/*/*/PR_NewLock/PR_Calloc/calloc
 selfserv/main/server_main/SSL_ConfigSecureServer/PR_CallOnceWithArg/serverCAListSetup/CERT_GetSSLCACerts/PK11_TraverseSlotCerts/NSSTrustDomain_TraverseCertificates/nssToken_TraverseCertificates/builtinsC_FindObjects/NSSCKFWC_FindObjects/nssCKFWFindObjects_Next/nssCKFWObject_Create/nssCKFWInstance_CreateMutex/nssCKFWMutex_Create/PR_NewLock/PR_Calloc/calloc
@@ -56,6 +50,16 @@ selfserv/NSSTrustDomain_TraverseCertificates/nssPKIObjectCollection_Traverse/con
 */main/PR_Init/_PR_InitStuff/_PR_UnixInit/PR_NewLock/PR_Calloc/calloc
 */main/PR_Init/_PR_InitStuff/_PR_UnixInit/PR_NewMonitor/PR_Calloc/calloc
 */main/PR_Init/_PR_InitStuff/nspr_InitializePRErrorTable/PR_ErrorInstallTable/PR_Malloc/malloc
+ocspclnt/main/PR_GetSpecialFD/_PR_ImplicitInitialization/_PR_InitStuff/nspr_InitializePRErrorTable/PR_ErrorInstallTable/PR_Malloc/malloc
+ocspclnt/main/PR_GetSpecialFD/_PR_ImplicitInitialization/_PR_InitStuff/_PR_InitCMon/ExpandMonitorCache/PR_Calloc/calloc
+ocspclnt/main/PR_GetSpecialFD/_PR_ImplicitInitialization/_PR_InitStuff/_PR_InitCMon/ExpandMonitorCache/PR_NewMonitor/PR_Calloc/calloc
+ocspclnt/main/PR_GetSpecialFD/_PR_ImplicitInitialization/_PR_InitStuff/_PR_InitCMon/PR_NewLock/PR_Calloc/calloc
+ocspclnt/main/PR_GetSpecialFD/_PR_ImplicitInitialization/_PR_InitStuff/_PR_InitLinker/PR_Calloc/calloc
+ocspclnt/main/PR_GetSpecialFD/_PR_ImplicitInitialization/_PR_InitStuff/_PR_InitLinker/strdup/malloc
+ocspclnt/main/PR_GetSpecialFD/_PR_ImplicitInitialization/_PR_InitStuff/_PR_InitTPD/PR_Calloc/calloc
+ocspclnt/main/PR_GetSpecialFD/_PR_ImplicitInitialization/_PR_InitStuff/_PR_InitZones/pr_FindSymbolInProg/**
+ocspclnt/main/PR_GetSpecialFD/_PR_ImplicitInitialization/_PR_InitStuff/_PR_UnixInit/PR_NewLock/PR_Calloc/calloc
+ocspclnt/main/PR_GetSpecialFD/_PR_ImplicitInitialization/_PR_InitStuff/_PR_UnixInit/PR_NewMonitor/PR_Calloc/calloc
 
 #367376
 selfserv/main/launch_threads/PR_CreateThread/_PR_CreateThread/pthread_create@@GLIBC_2.1/**
@@ -64,39 +68,58 @@ strsclnt/main/client_main/launch_thread/PR_CreateThread/_PR_CreateThread/pthread
 strsclnt/main/client_main/launch_thread/_PR_CreateThread/pthread_create@@GLIBC_2.1/**
 
 #367384
-*/main/NSS_Initialize/*/SECMOD_LoadModule/SECMOD_GetModuleSpecList/NSC_ModuleDBFunc/sftkdb_ReadSecmodDB/sftkdbCall_ReadSecmodDB/sftkdbLoad_Legacy/sftkdb_LoadLibrary/sftkdb_LoadFromPath/PR_LoadLibraryWithFlags/pr_LoadLibraryByPathname/**
-*/main/NSS_Initialize/*/SECMOD_LoadModule/SECMOD_LoadPKCS11Module/PR_CallOnce/softoken_LoadDSO/loader_LoadLibrary/loader_LoadLibInReferenceDir/PR_LoadLibraryWithFlags/pr_LoadLibraryByPathname/**
-*/main/NSS_Initialize/*/SECMOD_LoadModule/SECMOD_LoadModule/SECMOD_LoadPKCS11Module/PR_LoadLibrary/PR_LoadLibraryWithFlags/pr_LoadLibraryByPathname/**
-*/main/NSS_Initialize/*/SECMOD_LoadModule/SECMOD_LoadModule/SECMOD_LoadPKCS11Module/secmod_ModuleInit/NSC_Initialize/nsc_CommonInitialize/RNG_RNGInit/freebl_RunLoaderOnce/PR_CallOnce/freebl_LoadDSO/loader_LoadLibrary/loader_LoadLibInReferenceDir/PR_LoadLibraryWithFlags/pr_LoadLibraryByPathname/**
+*/main/*/*/SECMOD_LoadModule/SECMOD_GetModuleSpecList/NSC_ModuleDBFunc/sftkdb_ReadSecmodDB/sftkdbCall_ReadSecmodDB/sftkdbLoad_Legacy/sftkdb_LoadLibrary/sftkdb_LoadFromPath/PR_LoadLibraryWithFlags/pr_LoadLibraryByPathname/**
+*/main/*/*/SECMOD_LoadModule/SECMOD_LoadPKCS11Module/PR_CallOnce/softoken_LoadDSO/loader_LoadLibrary/loader_LoadLibInReferenceDir/PR_LoadLibraryWithFlags/pr_LoadLibraryByPathname/**
+*/main/*/*/SECMOD_LoadModule/SECMOD_LoadPKCS11Module/PR_CallOnce/softoken_LoadDSO/loader_LoadLibrary/PR_LoadLibraryWithFlags/pr_LoadLibraryByPathname/**
+*/main/*/*/SECMOD_LoadModule/SECMOD_LoadModule/SECMOD_LoadPKCS11Module/PR_LoadLibrary/PR_LoadLibraryWithFlags/pr_LoadLibraryByPathname/**
+*/main/*/*/SECMOD_LoadModule/SECMOD_LoadModule/SECMOD_LoadPKCS11Module/secmod_ModuleInit/NSC_Initialize/nsc_CommonInitialize/RNG_RNGInit/freebl_RunLoaderOnce/PR_CallOnce/freebl_LoadDSO/loader_LoadLibrary/loader_LoadLibInReferenceDir/PR_LoadLibraryWithFlags/pr_LoadLibraryByPathname/**
+*/main/*/*/SECMOD_LoadModule/SECMOD_LoadModule/SECMOD_LoadPKCS11Module/secmod_ModuleInit/FC_Initialize/nsc_CommonInitialize/RNG_RNGInit/freebl_RunLoaderOnce/PR_CallOnce/freebl_LoadDSO/loader_LoadLibrary/loader_LoadLibInReferenceDir/PR_LoadLibraryWithFlags/pr_LoadLibraryByPathname/**
+*/main/*/*/SECMOD_LoadModule/SECMOD_LoadModule/SECMOD_LoadPKCS11Module/secmod_ModuleInit/*/*/*/*/PR_CallOnce/*/*/*/PR_LoadLibraryWithFlags/**
 */*/SECMOD_LoadModule/SECMOD_LoadModule/SECMOD_LoadPKCS11Module/secmod_ModuleInit/NSC_Initialize/nsc_CommonInitialize/RNG_RNGInit/freebl_RunLoaderOnce/PR_CallOnce/freebl_LoadDSO/loader_LoadLibrary/loader_LoadLibInReferenceDir/PR_LoadLibraryWithFlags/pr_LoadLibraryByPathname/**
-*/main/NSS_Initialize/*/SECMOD_LoadModule/SECMOD_LoadModule/SECMOD_LoadPKCS11Module/secmod_ModuleInit/FC_Initialize/nsc_CommonInitialize/RNG_RNGInit/freebl_RunLoaderOnce/PR_CallOnce/freebl_LoadDSO/loader_LoadLibrary/loader_LoadLibInReferenceDir/PR_LoadLibraryWithFlags/pr_LoadLibraryByPathname/**
 */*/SECMOD_LoadModule/SECMOD_LoadModule/SECMOD_LoadPKCS11Module/secmod_ModuleInit/FC_Initialize/nsc_CommonInitialize/RNG_RNGInit/freebl_RunLoaderOnce/PR_CallOnce/freebl_LoadDSO/loader_LoadLibrary/loader_LoadLibInReferenceDir/PR_LoadLibraryWithFlags/pr_LoadLibraryByPathname/**
-*/main/NSS_Initialize/*/SECMOD_LoadModule/SECMOD_LoadModule/SECMOD_LoadPKCS11Module/secmod_ModuleInit/*/*/*/*/PR_CallOnce/*/*/*/PR_LoadLibraryWithFlags/**
-*/main/NSS_Initialize/*/SECMOD_LoadModule/SECMOD_LoadModule/SECMOD_LoadPKCS11Module/*/*/PR_CallOnce/*/pr_LoadLibraryByPathname/**
-*/main/NSS_Initialize/*/SECMOD_LoadModule/SECMOD_LoadModule/SECMOD_LoadPKCS11Module/*/*/*/PR_CallOnce/*/pr_LoadLibraryByPathname/**
-*/main/NSS_Initialize/*/SECMOD_LoadModule/SECMOD_LoadModule/SECMOD_LoadPKCS11Module/*/*/*/PR_CallOnce/*/*/pr_LoadLibraryByPathname/**
-*/main/NSS_Initialize/*/SECMOD_LoadModule/SECMOD_LoadModule/SECMOD_LoadPKCS11Module/*/*/*/PR_CallOnce/*/*/*/pr_LoadLibraryByPathname/**
+*/main/*/*/SECMOD_LoadModule/SECMOD_LoadModule/SECMOD_LoadPKCS11Module/*/*/PR_CallOnce/*/pr_LoadLibraryByPathname/**
+*/main/*/*/SECMOD_LoadModule/SECMOD_LoadModule/SECMOD_LoadPKCS11Module/*/*/*/PR_CallOnce/*/pr_LoadLibraryByPathname/**
+*/main/*/*/SECMOD_LoadModule/SECMOD_LoadModule/SECMOD_LoadPKCS11Module/*/*/*/PR_CallOnce/*/*/pr_LoadLibraryByPathname/**
+*/main/*/*/SECMOD_LoadModule/SECMOD_LoadModule/SECMOD_LoadPKCS11Module/*/*/*/PR_CallOnce/*/*/*/pr_LoadLibraryByPathname/**
 
 #370536
 */main/NSS_Shutdown/STAN_Shutdown/NSSTrustDomain_Destroy/nssListIterator_Destroy/nssList_Destroy/NSSArena_Destroy/nssArena_Destroy/arena_remove_pointer/nssPointerTracker_remove/PL_HashTableRemove/PL_HashTableRawRemove/DefaultAllocTable/**
 */main/NSS_Shutdown/STAN_Shutdown/NSSTrustDomain_Destroy/nssList_Clear/token_destructor/nssToken_Destroy/nssArena_Destroy/arena_remove_pointer/nssPointerTracker_remove/PL_HashTableRemove/PL_HashTableRawRemove/DefaultAllocTable/**
-*/main/NSS_Initialize/*/STAN_LoadDefaultNSS3TrustDomain/NSSTrustDomain_Create/NSSArena_Create/nssArena_Create/arena_add_pointer/nssPointerTracker_initialize/call_once/**
+*/main/*/*/STAN_LoadDefaultNSS3TrustDomain/NSSTrustDomain_Create/NSSArena_Create/nssArena_Create/arena_add_pointer/nssPointerTracker_initialize/call_once/**
 
 #391770
-*/main/NSS_Initialize/*/OCSP_InitGlobal/PR_NewMonitor/**
+*/main/*/*/OCSP_InitGlobal/PR_NewMonitor/**
 
 #391774
-*/main/NSS_Initialize/*/PKIX_Initialize/PKIX_PL_HashTable_Create/PKIX_PL_Mutex_Create/PKIX_PL_Object_Alloc/PKIX_PL_Malloc/**
-*/main/NSS_Initialize/*/PKIX_Initialize/PKIX_PL_HashTable_Create/PKIX_PL_Mutex_Create/PKIX_PL_Object_Alloc/PR_NewLock/**
-*/main/NSS_Initialize/*/PKIX_Initialize/PKIX_PL_HashTable_Create/PKIX_PL_Mutex_Create/PR_NewLock/**
-*/main/NSS_Initialize/*/PKIX_Initialize/PKIX_PL_HashTable_Create/PKIX_PL_Object_Alloc/PKIX_PL_Malloc/**
-*/main/NSS_Initialize/*/PKIX_Initialize/PKIX_PL_HashTable_Create/PKIX_PL_Object_Alloc/PR_NewLock/**
-*/main/NSS_Initialize/*/PKIX_Initialize/PKIX_PL_HashTable_Create/pkix_pl_PrimHashTable_Create/PKIX_PL_Malloc/**
-*/main/NSS_Initialize/*/PKIX_Initialize/PKIX_PL_Initialize/PKIX_PL_NssContext_Create/PKIX_PL_Malloc/**
-*/main/NSS_Initialize/*/PKIX_Initialize/PKIX_PL_Initialize/PR_NewLock/**
-*/main/NSS_Initialize/*/PKIX_Initialize/PKIX_PL_MonitorLock_Create/PKIX_PL_Object_Alloc/PKIX_PL_Malloc/**
-*/main/NSS_Initialize/*/PKIX_Initialize/PKIX_PL_MonitorLock_Create/PKIX_PL_Object_Alloc/PR_NewLock/**
-*/main/NSS_Initialize/*/PKIX_Initialize/PKIX_PL_MonitorLock_Create/PR_NewMonitor/**
+*/main/*/*/PKIX_Initialize/PKIX_PL_HashTable_Create/PKIX_PL_Mutex_Create/PKIX_PL_Object_Alloc/PKIX_PL_Malloc/**
+*/main/*/*/PKIX_Initialize/PKIX_PL_HashTable_Create/PKIX_PL_Mutex_Create/PKIX_PL_Object_Alloc/PR_NewLock/**
+*/main/*/*/PKIX_Initialize/PKIX_PL_HashTable_Create/PKIX_PL_Mutex_Create/PR_NewLock/**
+*/main/*/*/PKIX_Initialize/PKIX_PL_HashTable_Create/PKIX_PL_Object_Alloc/PKIX_PL_Malloc/**
+*/main/*/*/PKIX_Initialize/PKIX_PL_HashTable_Create/PKIX_PL_Object_Alloc/PR_NewLock/**
+*/main/*/*/PKIX_Initialize/PKIX_PL_HashTable_Create/pkix_pl_PrimHashTable_Create/PKIX_PL_Malloc/**
+*/main/*/*/PKIX_Initialize/PKIX_PL_Initialize/PKIX_PL_NssContext_Create/PKIX_PL_Malloc/**
+*/main/*/*/PKIX_Initialize/PKIX_PL_Initialize/PR_NewLock/**
+*/main/*/*/PKIX_Initialize/PKIX_PL_MonitorLock_Create/PKIX_PL_Object_Alloc/PKIX_PL_Malloc/**
+*/main/*/*/PKIX_Initialize/PKIX_PL_MonitorLock_Create/PKIX_PL_Object_Alloc/PR_NewLock/**
+*/main/*/*/PKIX_Initialize/PKIX_PL_MonitorLock_Create/PR_NewMonitor/**
+
+#393174
+ocspclnt/main/get_cert_status/CERT_CheckOCSPStatus/ocsp_GetOCSPStatusFromNetwork/ocsp_GetEncodedOCSPResponseForSingleCert/ocsp_GetEncodedOCSPResponseFromRequest/fetchOcspHttpClientV1/pkix_pl_HttpDefaultClient_RequestCreateFcn/pkix_pl_HttpDefaultClient_RequestCreate/pkix_HttpCertStore_FindSocketConnection/PKIX_PL_HashTable_Add/pkix_pl_PrimHashTable_Add/PKIX_PL_Malloc/**
+ocspclnt/main/get_cert_status/CERT_CheckOCSPStatus/ocsp_GetOCSPStatusFromNetwork/ocsp_GetEncodedOCSPResponseForSingleCert/ocsp_GetEncodedOCSPResponseFromRequest/fetchOcspHttpClientV1/pkix_pl_HttpDefaultClient_RequestCreateFcn/pkix_pl_HttpDefaultClient_RequestCreate/pkix_HttpCertStore_FindSocketConnection/PKIX_PL_Sprintf/PKIX_PL_String_Create/PKIX_PL_Malloc/**
+ocspclnt/main/get_cert_status/CERT_CheckOCSPStatus/ocsp_GetOCSPStatusFromNetwork/ocsp_GetEncodedOCSPResponseForSingleCert/ocsp_GetEncodedOCSPResponseFromRequest/fetchOcspHttpClientV1/pkix_pl_HttpDefaultClient_RequestCreateFcn/pkix_pl_HttpDefaultClient_RequestCreate/pkix_HttpCertStore_FindSocketConnection/PKIX_PL_Sprintf/PKIX_PL_String_Create/PKIX_PL_Object_Alloc/PKIX_PL_Malloc/**
+ocspclnt/main/get_cert_status/CERT_CheckOCSPStatus/ocsp_GetOCSPStatusFromNetwork/ocsp_GetEncodedOCSPResponseForSingleCert/ocsp_GetEncodedOCSPResponseFromRequest/fetchOcspHttpClientV1/pkix_pl_HttpDefaultClient_RequestCreateFcn/pkix_pl_HttpDefaultClient_RequestCreate/pkix_HttpCertStore_FindSocketConnection/PKIX_PL_Sprintf/PKIX_PL_String_Create/PKIX_PL_Object_Alloc/PR_NewLock/**
+ocspclnt/main/get_cert_status/CERT_CheckOCSPStatus/ocsp_GetOCSPStatusFromNetwork/ocsp_GetEncodedOCSPResponseForSingleCert/ocsp_GetEncodedOCSPResponseFromRequest/fetchOcspHttpClientV1/pkix_pl_HttpDefaultClient_RequestCreateFcn/pkix_pl_HttpDefaultClient_RequestCreate/pkix_HttpCertStore_FindSocketConnection/PKIX_PL_Sprintf/PKIX_PL_String_Create/pkix_EscASCII_to_UTF16/PKIX_PL_Malloc/**
+ocspclnt/main/get_cert_status/CERT_CheckOCSPStatus/ocsp_GetOCSPStatusFromNetwork/ocsp_GetEncodedOCSPResponseForSingleCert/ocsp_GetEncodedOCSPResponseFromRequest/fetchOcspHttpClientV1/pkix_pl_HttpDefaultClient_RequestCreateFcn/pkix_pl_HttpDefaultClient_RequestCreate/pkix_HttpCertStore_FindSocketConnection/pkix_pl_Socket_CreateByHostAndPort/PKIX_PL_Object_Alloc/PKIX_PL_Malloc/**
+ocspclnt/main/get_cert_status/CERT_CheckOCSPStatus/ocsp_GetOCSPStatusFromNetwork/ocsp_GetEncodedOCSPResponseForSingleCert/ocsp_GetEncodedOCSPResponseFromRequest/fetchOcspHttpClientV1/pkix_pl_HttpDefaultClient_RequestCreateFcn/pkix_pl_HttpDefaultClient_RequestCreate/pkix_HttpCertStore_FindSocketConnection/pkix_pl_Socket_CreateByHostAndPort/PKIX_PL_Object_Alloc/PR_NewLock/**
+ocspclnt/main/get_cert_status/CERT_CheckOCSPStatus/ocsp_GetOCSPStatusFromNetwork/ocsp_GetEncodedOCSPResponseForSingleCert/ocsp_GetEncodedOCSPResponseFromRequest/fetchOcspHttpClientV1/pkix_pl_HttpDefaultClient_RequestCreateFcn/pkix_pl_HttpDefaultClient_RequestCreate/pkix_HttpCertStore_FindSocketConnection/pkix_pl_Socket_CreateByHostAndPort/pkix_pl_Socket_CreateClient/PR_NewTCPSocket/PR_Socket/pt_SetMethods/_PR_Getfd/**
+ocspclnt/get_cert_status/CERT_CheckOCSPStatus/ocsp_GetOCSPStatusFromNetwork/ocsp_GetEncodedOCSPResponseForSingleCert/ocsp_GetEncodedOCSPResponseFromRequest/fetchOcspHttpClientV1/pkix_pl_HttpDefaultClient_RequestCreateFcn/pkix_pl_HttpDefaultClient_RequestCreate/pkix_HttpCertStore_FindSocketConnection/pkix_pl_Socket_CreateByHostAndPort/pkix_pl_Socket_CreateClient/PR_NewTCPSocket/PR_Socket/pt_SetMethods/_PR_Getfd/**
+
+#393181
+ocspclnt/main/CERT_SetOCSPDefaultResponder/PORT_Strdup/PORT_Alloc/**
+ocspclnt/main/CERT_SetOCSPDefaultResponder/ocsp_InitStatusChecking/PORT_ZAlloc/**
+
+#393183
+ocspclnt/main/PL_CreateOptState/PL_CreateLongOptState/**
 
 #397478
 selfserv/main/SSL_ConfigServerSessionIDCache/ssl_InitClientSessionCacheLock/__nss_InitLock/PR_NewLock/PR_Calloc/calloc
@@ -104,9 +127,9 @@ selfserv/main/SSL_ConfigServerSessionIDCache/ssl_InitSymWrapKeysLock/__nss_InitL
 selfserv/main/SSL_ConfigServerSessionIDCache/__nss_InitLock/PR_NewLock/calloc
 
 #397483
-*/main/NSS_Initialize/*/SECMOD_LoadModule/SECMOD_CreateModule/secmod_NewModule/PORT_ArenaAlloc/PL_ArenaAllocate/LockArena/PR_CallOnce/InitializeArenas/PR_NewLock/**
-*/main/NSS_Initialize/*/SECMOD_LoadModule/SECMOD_CreateModule/secmod_NewModule/PORT_ArenaAlloc/PL_ArenaAllocate/PR_CallOnce/InitializeArenas/PR_NewLock/**
-*/main/NSS_Initialize/*/SECMOD_LoadModule/SECMOD_CreateModule/PORT_ArenaAlloc/PL_ArenaAllocate/LockArena/PR_CallOnce/InitializeArenas/PR_NewLock/**
+*/main/*/*/SECMOD_LoadModule/SECMOD_CreateModule/secmod_NewModule/PORT_ArenaAlloc/PL_ArenaAllocate/LockArena/PR_CallOnce/InitializeArenas/PR_NewLock/**
+*/main/*/*/SECMOD_LoadModule/SECMOD_CreateModule/secmod_NewModule/PORT_ArenaAlloc/PL_ArenaAllocate/PR_CallOnce/InitializeArenas/PR_NewLock/**
+*/main/*/*/SECMOD_LoadModule/SECMOD_CreateModule/PORT_ArenaAlloc/PL_ArenaAllocate/LockArena/PR_CallOnce/InitializeArenas/PR_NewLock/**
 
 #397486
 strsclnt/_pt_root/thread_wrapper/do_connects/handle_connection/PR_Send/ssl_Send/ssl_SecureSend/ssl_Do1stHandshake/ssl2_BeginClientHandshake/ssl_LookupSID/lock_cache/ssl_InitClientSessionCacheLock/__nss_InitLock/PR_NewLock/PR_Calloc/calloc
@@ -118,4 +141,8 @@ strsclnt/_lwp_start/_pt_root/thread_wrapper/do_connects/ssl_Send/ssl_SecureSend/
 strsclnt/main/client_main/PR_GetAddrInfoByName/getaddrinfo/get_addr/getipnodebyname/__rpc_getconfip/setnetconfig/**
 strsclnt/main/client_main/PR_GetAddrInfoByName/_getaddrinfo/get_addr/getipnodebyname/__rpc_getconfip/setnetconfig/**
 strsclnt/main/client_main/PR_GetAddrInfoByName/getaddrinfo/_getaddrinfo/get_addr/getipnodebyname/__rpc_getconfip/setnetconfig/**
+
+#398267
+ocspclnt/CERT_CheckOCSPStatus/ocsp_GetOCSPStatusFromNetwork/ocsp_GetEncodedOCSPResponseForSingleCert/ocsp_GetEncodedOCSPResponseFromRequest/fetchOcspHttpClientV1/pkix_pl_HttpDefaultClient_RequestCreateFcn/pkix_pl_HttpDefaultClient_RequestCreate/pkix_HttpCertStore_FindSocketConnection/pkix_pl_Socket_CreateByHostAndPort/PR_GetHostByName/gethostbyname_r/__rpc_getconfip/setnetconfig/**
+ocspclnt/ocsp_GetOCSPStatusFromNetwork/ocsp_GetEncodedOCSPResponseForSingleCert/ocsp_GetEncodedOCSPResponseFromRequest/fetchOcspHttpClientV1/pkix_pl_HttpDefaultClient_RequestCreateFcn/pkix_pl_HttpDefaultClient_RequestCreate/pkix_HttpCertStore_FindSocketConnection/pkix_pl_Socket_CreateByHostAndPort/PR_GetHostByName/gethostbyname_r/__rpc_getconfip/setnetconfig/**
 
