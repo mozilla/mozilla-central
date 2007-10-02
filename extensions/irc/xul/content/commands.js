@@ -1628,6 +1628,13 @@ function cmdHideView(e)
         return;
     }
 
+    if ("messages" in e.view)
+    {
+        // Detach messages from output window content.
+        if (e.view.messages.parentNode)
+            e.view.messages.parentNode.removeChild(e.view.messages);
+    }
+
     var tb = getTabForObject(e.view);
 
     if (tb)
