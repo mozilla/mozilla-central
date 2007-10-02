@@ -96,16 +96,21 @@ ocsp_get_cert_status() {
         clntParam="-l $respUrl -t $defRespCert"
     fi
 
-    outFile=$dbDir/ocsptest.out.$$
-    echo "ocspclnt -d $dbDir -S $cert $clntParam"
-    ocspclnt -d $dbDir -S $cert $clntParam >$outFile 2>&1
-    ret=$?
-    echo "ocspclnt output:"
-    cat $outFile
-    [ -z "`grep succeeded $outFile`" ] && ret=1
+    if [ -z "${MEMLEAK_DBG}" ]; then
+        outFile=$dbDir/ocsptest.out.$$
+        echo "ocspclnt -d $dbDir -S $cert $clntParam"
+        ocspclnt -d $dbDir -S $cert $clntParam >$outFile 2>&1
+        ret=$?
+        echo "ocspclnt output:"
+        cat $outFile
+        [ -z "`grep succeeded $outFile`" ] && ret=1
     
-    rm -f $outFile
-    return $ret
+        rm -f $outFile
+        return $ret
+    fi
+
+    OCSP_ATTR="-d $dbDir -S $cert $clntParam"
+    ${RUN_COMMAND_DBG} ocspclnt ${OCSP_ATTR}
 }
 
 ########################################################################
@@ -129,8 +134,10 @@ ocsp_iopr() {
         return 0
     fi
     
-    html_head "OCSP testing with responder at $IOPR_HOSTADDR. <br>" \
-        "Test Type: $testDescription"
+    if [ -z "${MEMLEAK_DBG}" ]; then
+        html_head "OCSP testing with responder at $IOPR_HOSTADDR. <br>" \
+            "Test Type: $testDescription"
+    fi
 
     if [ -n "$testResponder" ]; then
         responderUrl="$testProto://$servName:$testPort"
@@ -138,25 +145,35 @@ ocsp_iopr() {
         responderUrl=""
     fi
 
-    for certName in $testValidCertNames; do
-        ocsp_get_cert_status $dbDir $certName "$responderUrl" "$testResponder"
-        html_msg $? 0 "Getting status of a valid cert ($certName)" \
-            "produced a returncode of $ret, expected is 0."
-    done
+    if [ -z "${MEMLEAK_DBG}" ]; then
+        for certName in $testValidCertNames; do
+            ocsp_get_cert_status $dbDir $certName "$responderUrl" \
+                "$testResponder"
+            html_msg $? 0 "Getting status of a valid cert ($certName)" \
+                "produced a returncode of $ret, expected is 0."
+        done
 
-    for certName in $testRevokedCertNames; do
-        ocsp_get_cert_status $dbDir $certName "$responderUrl" "$testResponder"
-        html_msg $? 1 "Getting status of a unvalid cert ($certName)" \
-            "produced a returncode of $ret, expected is 1." 
-    done
+        for certName in $testRevokedCertNames; do
+            ocsp_get_cert_status $dbDir $certName "$responderUrl" \
+                "$testResponder"
+            html_msg $? 1 "Getting status of a unvalid cert ($certName)" \
+                "produced a returncode of $ret, expected is 1." 
+        done
 
-    for certName in $testStatUnknownCertNames; do
-        ocsp_get_cert_status $dbDir $certName "$responderUrl" "$testResponder"
-        html_msg $? 1 "Getting status of a cert with unknown status " \
-                    "($certName) produced a returncode of $ret, expected is 1."
-    done
+        for certName in $testStatUnknownCertNames; do
+            ocsp_get_cert_status $dbDir $certName "$responderUrl" \
+                "$testResponder"
+            html_msg $? 1 "Getting status of a cert with unknown status " \
+                        "($certName) produced a returncode of $ret, expected is 1."
+        done
+    else
+        for certName in $testValidCertNames $testRevokedCertNames \
+            $testStatUnknownCertName; do
+            ocsp_get_cert_status $dbDir $certName "$responderUrl" \
+                "$testResponder" 2>&1
+        done
+    fi
 }
-
   
 #####################################################################
 # Initial point for running ocsp test againt multiple hosts involved in
@@ -174,6 +191,10 @@ ocsp_iopr_run() {
         return 1
     fi
     cd ${CLIENTDIR}
+
+    if [ -n "${MEMLEAK_DBG}" ]; then
+        html_head "Memory leak checking - IOPR"
+    fi
 
     num=1
     IOPR_HOST_PARAM=`echo "${IOPR_HOSTADDR_LIST} " | cut -f $num -d' '`
@@ -198,20 +219,45 @@ ocsp_iopr_run() {
         [ -z "`echo ${supportedTests_new} | grep -i ocsp`" ] && continue;
 
         # Testing directories defined by webserver.
+        if [ -n "${MEMLEAK_DBG}" ]; then
+            LOGNAME=iopr-${IOPR_HOSTADDR}
+            LOGFILE=${LOGDIR}/${LOGNAME}.log
+        fi
+       
+        # Testing directories defined by webserver.
         echo "Testing ocsp interoperability.
                 Client: local(tstclnt).
                 Responder: remote($IOPR_HOSTADDR)"
-        
+
         for ocspTestType in ${supportedTests_new}; do
             if [ -z "`echo $ocspTestType | grep -i ocsp`" ]; then
                 continue
             fi
-            ocsp_iopr $ocspTestType ${IOPR_HOSTADDR} \
-                ${IOPR_OCSP_CLIENTDIR}_${IOPR_HOSTADDR}
+            if [ -n "${MEMLEAK_DBG}" ]; then
+                ocsp_iopr $ocspTestType ${IOPR_HOSTADDR} \
+                    ${IOPR_OCSP_CLIENTDIR}_${IOPR_HOSTADDR} 2>&1 | 
+                    tee -a ${LOGFILE}
+            else
+                ocsp_iopr $ocspTestType ${IOPR_HOSTADDR} \
+                    ${IOPR_OCSP_CLIENTDIR}_${IOPR_HOSTADDR}
+            fi
         done
+
+        if [ -n "${MEMLEAK_DBG}" ]; then
+            log_parse >> ${FOUNDLEAKS}
+            ret=$?
+            html_msg ${ret} 0 "${LOGNAME}" \
+                "produced a returncode of $ret, expected is 0"
+        fi
+
         echo "================================================"
         echo "Done testing ocsp interoperability with $IOPR_HOSTADDR"
     done
+
+    if [ -n "${MEMLEAK_DBG}" ]; then
+        html "</TABLE><BR>"
+    fi
+
     NO_ECC_CERTS=0
     return 0
 }
