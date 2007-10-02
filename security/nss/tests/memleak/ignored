@@ -64,7 +64,7 @@ ocspclnt/main/PR_GetSpecialFD/_PR_ImplicitInitialization/_PR_InitStuff/_PR_InitL
 ocspclnt/main/PR_GetSpecialFD/_PR_ImplicitInitialization/_PR_InitStuff/_PR_InitLinker/strdup/**
 ocspclnt/main/PR_GetSpecialFD/_PR_ImplicitInitialization/_PR_InitStuff/_PR_InitTPD/**
 ocspclnt/main/PR_GetSpecialFD/_PR_ImplicitInitialization/_PR_InitStuff/_PR_InitZones/pr_FindSymbolInProg/**
-ocspclnt/main/PR_GetSpecialFD/_PR_ImplicitInitialization/_PR_InitStuff/_PR_UnixInit/PR_NewLock/***
+ocspclnt/main/PR_GetSpecialFD/_PR_ImplicitInitialization/_PR_InitStuff/_PR_UnixInit/PR_NewLock/**
 ocspclnt/main/PR_GetSpecialFD/_PR_ImplicitInitialization/_PR_InitStuff/_PR_UnixInit/PR_NewMonitor/**
 ocspclnt/main/PR_GetSpecialFD/_PR_ImplicitInitialization/_PR_InitTPD/**
 ocspclnt/main/PR_GetSpecialFD/_PR_ImplicitInitialization/_PR_InitZones/dlopen@@GLIBC_2.1/**
