@@ -48,9 +48,7 @@
          xmlns="http://www.mozilla.org/keymaster/gatekeeper/there.is.only.xul">
 
   <prefpane id="paneAdvanced" onpaneload="gAdvancedPane.init();"
-            xmlns:xhtml2="http://www.w3.org/TR/xhtml2"
-            xmlns:wairole="http://www.w3.org/2005/01/wai-rdf/GUIRoleTaxonomy#"
-            xmlns:aaa="http://www.w3.org/2005/07/aaa">
+            xmlns:xhtml="http://www.w3.org/1999/xhtml">
     <script type="application/x-javascript" src="chrome://messenger/content/preferences/advanced.js"/>
 
     <preferences>
@@ -198,18 +196,16 @@
         <!-- Update -->
 
         <tabpanel orient="vertical" align="start">
-          <label>&autoCheck.label;</label>
-          <vbox class="indent">
+          <label control="autoUpdateGroup">&autoCheck.label;</label>
+          <vbox class="indent" id="autoUpdateGroup" xhtml:role="group">
             <checkbox id="enableAppUpdate"
                       label="&enableAppUpdate.label;"
                       accesskey="&enableAppUpdate.accesskey;"
-                      preference="app.update.enabled"
-                      xhtml2:role="wairole:checkbox" aaa:describedby="updateInfo"/>
+                      preference="app.update.enabled"/>
             <checkbox id="enableAddonUpdate"
                       label="&enableAddonsUpdate.label;"
                       accesskey="&enableAddonsUpdate.accesskey;"
-                      preference="extensions.update.enabled"
-                      xhtml2:role="wairole:checkbox" aaa:describedby="updateInfo"/>
+                      preference="extensions.update.enabled"/>
           </vbox>
           <separator/>
           <label id="updateModeLabel">&whenUpdatesFound.label;</label>

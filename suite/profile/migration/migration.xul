@@ -47,8 +47,7 @@
         onunload="MigrationWizard.uninit()"
         style="width: 40em; height: 32em;"
         buttons="accept,cancel"
-        xmlns:xhtml2="http://www.w3.org/TR/xhtml2"
-        xmlns:wairole="http://www.w3.org/2005/01/wai-rdf/GUIRoleTaxonomy#">
+        xmlns:xhtml="http://www.w3.org/1999/xhtml">
 
   <script type="application/x-javascript"
           src="chrome://communicator/content/migration/migration.js"/>
@@ -95,7 +94,7 @@
     <description control="dataSources">&importItems.label;</description>
 
     <vbox id="dataSources" style="overflow-y: auto;"
-          align="left" flex="1" xhtml2:role="wairole:groupbox"/>
+          align="left" flex="1" xhtml:role="group"/>
   </wizardpage>
 
   <wizardpage id="homePageImport" pageid="homePageImport"
@@ -115,7 +114,7 @@
     <description control="migratingItems">&migrating.label;</description>
 
     <vbox id="migratingItems" style="overflow-y: auto;" align="left"
-          xhtml2:role="wairole:groupbox"/>
+          xhtml:role="group"/>
 
     <hbox>
       <progressmeter class="progressmeter-statusbar" id="progressBar"
@@ -128,6 +127,6 @@
     <description control="doneItems">&done.label;</description>
 
     <vbox id="doneItems" style="overflow-y: auto;" align="left"
-          xhtml2:role="wairole:groupbox"/>
+          xhtml:role="group"/>
   </wizardpage>
 </wizard>
