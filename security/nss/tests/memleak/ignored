@@ -112,14 +112,12 @@ ocspclnt/main/NSS_Init/OCSP_InitGlobal/PR_NewMonitor/*
 */main/*/*/PKIX_Initialize/PKIX_PL_HashTable_Create/PKIX_PL_Object_Alloc/PR_NewLock/**
 */main/*/*/PKIX_Initialize/PKIX_PL_HashTable_Create/pkix_pl_PrimHashTable_Create/PKIX_PL_Malloc/**
 */main/*/*/PKIX_Initialize/PKIX_PL_Initialize/PKIX_PL_NssContext_Create/PKIX_PL_Malloc/**
-*/main/*/*/PKIX_Initialize/PKIX_PL_Initialize/PR_NewLock/**
 */main/*/*/PKIX_Initialize/PKIX_PL_MonitorLock_Create/PKIX_PL_Object_Alloc/PKIX_PL_Malloc/**
 */main/*/*/PKIX_Initialize/PKIX_PL_MonitorLock_Create/PKIX_PL_Object_Alloc/PR_NewLock/**
 */main/*/*/PKIX_Initialize/PKIX_PL_MonitorLock_Create/PR_NewMonitor/**
 ocspclnt/main/NSS_Init/PKIX_Initialize/PKIX_PL_HashTable_Create/PKIX_PL_Mutex_Create/PKIX_PL_Object_Alloc/PKIX_PL_Malloc
 ocspclnt/main/NSS_Init/PKIX_Initialize/PKIX_PL_HashTable_Create/PKIX_PL_Object_Alloc/PKIX_PL_Malloc
 ocspclnt/main/NSS_Init/PKIX_Initialize/PKIX_PL_HashTable_Create/pkix_pl_PrimHashTable_Create/PKIX_PL_Malloc
-ocspclnt/main/NSS_Init/PKIX_Initialize/PKIX_PL_Initialize/PR_NewLock/calloc
 ocspclnt/main/NSS_Init/PKIX_Initialize/PKIX_PL_MonitorLock_Create/PKIX_PL_Object_Alloc/PKIX_PL_Malloc
 
 #393174
@@ -182,4 +180,8 @@ ocspclnt/CERT_CheckOCSPStatus/ocsp_GetOCSPStatusFromNetwork/ocsp_GetEncodedOCSPR
 ocspclnt/ocsp_GetOCSPStatusFromNetwork/ocsp_GetEncodedOCSPResponseForSingleCert/ocsp_GetEncodedOCSPResponseFromRequest/fetchOcspHttpClientV1/pkix_pl_HttpDefaultClient_RequestCreateFcn/pkix_pl_HttpDefaultClient_RequestCreate/pkix_HttpCertStore_FindSocketConnection/pkix_pl_Socket_CreateByHostAndPort/PR_GetHostByName/gethostbyname_r/__rpc_getconfip/setnetconfig/**
 ocspclnt/main/CERT_CheckOCSPStatus/ocsp_GetOCSPStatusFromNetwork/ocsp_GetEncodedOCSPResponseFromRequest/pkix_pl_HttpDefaultClient_RequestCreateFcn/pkix_HttpCertStore_FindSocketConnection/pkix_pl_Socket_CreateByHostAndPort/PR_GetHostByName/gethostbyname_r/__rpc_getconfip/setnetconfig/**
 ocspclnt/main/CERT_CheckOCSPStatus/ocsp_GetEncodedOCSPResponseForSingleCert/ocsp_GetEncodedOCSPResponseFromRequest/fetchOcspHttpClientV1/pkix_pl_HttpDefaultClient_RequestCreateFcn/pkix_HttpCertStore_FindSocketConnection/pkix_pl_Socket_CreateByHostAndPort/PR_GetHostByName/gethostbyname_r/__rpc_getconfip/setnetconfig/**
+
+#391774
+*/main/*/*/PKIX_Initialize/PKIX_PL_Initialize/PR_NewLock/**
+ocspclnt/main/NSS_Init/PKIX_Initialize/PKIX_PL_Initialize/PR_NewLock/calloc
 
