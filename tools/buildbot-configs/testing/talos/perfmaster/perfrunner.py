@@ -439,7 +439,7 @@ class MozillaInstallDmg(ShellCommand):
         if 'filename' in kwargs:
             self.filename = kwargs['filename']
         if not 'command' in kwargs:
-            kwargs['command'] = "bash mountdmg.sh FILENAME ."
+            kwargs['command'] = ["bash", "installdmg.sh", "$FILENAME"]
         ShellCommand.__init__(self, **kwargs)
     
     def describe(self, done=False):
@@ -452,7 +452,9 @@ class MozillaInstallDmg(ShellCommand):
             else:
                 return FAILURE
 
-        self.command = self.command.replace("FILENAME", self.filename)
+        for i in range(len(self.command)):
+            if self.command[i] == "$FILENAME":
+                self.command[i] = self.filename
         ShellCommand.start(self)
     
     def evaluateCommand(self, cmd):
@@ -460,6 +462,7 @@ class MozillaInstallDmg(ShellCommand):
         if SUCCESS != superResult:
             return FAILURE
         return SUCCESS
+
 
 from buildbot.process.buildstep import BuildStep
 
