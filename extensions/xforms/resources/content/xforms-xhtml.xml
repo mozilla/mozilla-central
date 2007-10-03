@@ -173,6 +173,36 @@
   </binding>
 
 
+  <!-- OUTPUT: <MEDIATYPE="text/html", TYPE="application/xhtml+xml"> -->
+  <binding id="xformswidget-output-mediatype-texthtml"
+           extends="chrome://xforms/content/xforms.xml#xformswidget-output-base">
+    <content>
+      <children includes="label"/>
+      <span xmlns="http://www.w3.org/1999/xhtml"
+            class="xf-value" anonid="control"
+            xbl:inherits="tabindex"/>
+      <children/>
+    </content>
+
+    <implementation>
+      <method name="getControlElement">
+        <body>
+        <![CDATA[
+          return {
+            __proto__: this.ownerDocument.
+              getAnonymousElementByAttribute(this, "anonid", "control"),
+
+            set value(val) {
+              this.innerHTML = val;
+            }
+          };
+        ]]>
+        </body>
+      </method>
+    </implementation>
+  </binding>
+
+
   <!-- LABEL: <DEFAULT>
     @note - xf:label can support tab navigation
   -->

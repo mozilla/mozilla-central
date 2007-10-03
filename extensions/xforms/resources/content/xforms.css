@@ -241,6 +241,12 @@ xul|*:root output[mozType|typelist~="http://www.w3.org/2001/XMLSchema#base64Bina
   -moz-binding: url('chrome://xforms/content/xforms-xhtml.xml#xformswidget-output-mediatype-base64Binary');
 }
 
+  /* output mediatype="text/html", mediatype="application/xhtml+xml" */
+html|*:root output[mozType|mediatype="text/html"],
+html|*:root output[mozType|mediatype="application/xhtml+xml"] {
+  -moz-binding: url('chrome://xforms/content/xforms-xhtml.xml#xformswidget-output-mediatype-texthtml');
+}
+
 /* range widgets */
 html|*:root range[mozType|typelist~="http://www.w3.org/2001/XMLSchema#decimal"],
 html|*:root range[mozType|typelist~="http://www.w3.org/2001/XMLSchema#float"],
