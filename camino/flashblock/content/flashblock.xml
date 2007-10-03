@@ -40,8 +40,10 @@ function flashblockShowPlaceholder() {
 	parent.insertBefore(placeholder, current);
 	if(placeholder.isStandalone) {
 		placeholder.flashblock = "frame";
-		current.StopPlay();
-		current.LoadMovie(0, "");
+		if ("StopPlay" in current)
+			current.StopPlay();
+		if ("LoadMovie" in current)
+			current.LoadMovie(0, "");
 		current.prevWidth = current.width;
 		current.prevHeight = current.height;
 		current.width = current.height = 0;
@@ -57,7 +59,8 @@ function flashblockShowFlash() {
 		current.height = current.prevHeight;
 		current.width = current.prevWidth;
 		current.src = placeholder.title;
-		current.LoadMovie(0, current.src);
+		if ("LoadMovie" in current)
+			current.LoadMovie(0, current.src);
 	} else {
 		parent.insertBefore(current, placeholder);
 		if (placeholder.hasAttribute("srcAttribute")) {
@@ -166,9 +169,11 @@ function flashblockStylePlaceholder(flash, placeholder, isStandalone) {
 }
 
 function flashblockSetTitle(current, placeholder, isStandalone) {
+	// non-null "about:blank" value to prevent OS/2 crashing
+	var fakeURI = "about:blank";
 	if (isStandalone) {
 		placeholder.title = current.src;
-		current.src = "";
+		current.src = fakeURI;
 	}
 	else if (current.hasAttribute("src") ||
 			current.hasAttribute("data") ||
@@ -179,15 +184,15 @@ function flashblockSetTitle(current, placeholder, isStandalone) {
 		placeholder.title = srcURI;
 		if (current.hasAttribute("src")) {
 			placeholder.setAttribute("srcAttribute", current.getAttribute("src"));
-			current.setAttribute("src", "");
+			current.setAttribute("src", fakeURI);
 		}
 		if (current.hasAttribute("data")) {
 			placeholder.setAttribute("dataAttribute", current.getAttribute("data"));
-			current.setAttribute("data", "");
+			current.setAttribute("data", fakeURI);
 		}
 		if (current.hasAttribute("movie")) {
 			placeholder.setAttribute("movieAttribute", current.getAttribute("movie"));
-			current.setAttribute("movie", "");
+			current.setAttribute("movie", fakeURI);
 		}
 	}
 	else {
@@ -197,14 +202,15 @@ function flashblockSetTitle(current, placeholder, isStandalone) {
 				params[ii].hasAttribute("value")) {
 				placeholder.title = params[ii].value;
 				placeholder.movieParam = [ params[ii], placeholder.title ];
-				params[ii].value = "";
+				params[ii].value = fakeURI;
 				break;
 			}
 		}
 		var embeds = current.getElementsByTagName("embed");
 		if (embeds && embeds.length > 0 && embeds[0].hasAttribute("src")) {
+			placeholder.title = embeds[0].getAttribute("src");
 			placeholder.setAttribute("embedsrc", embeds[0].getAttribute("src"));
-			embeds[0].setAttribute("src","");
+			embeds[0].setAttribute("src",fakeURI);
 		}
 	}
 }
@@ -216,7 +222,7 @@ var current = this;
 var parent = current.parentNode;
 
 // Check parent too (case of working EMBED inside broken OBJECT)
-if (current.overrideCTV || parent.overrideCTV) {
+if (current.overrideCTV || parentNode.overrideCTV) {
 	return;
 }
 current.overrideCTV = true;

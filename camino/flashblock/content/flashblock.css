@@ -43,15 +43,8 @@ object[src*=".aam"]
 { -moz-binding: url("chrome://flashblock/content/flashblock.xml#authorware") !important; }
 
 /*
- * Broken Objects.
-*/
-object
-{ -moz-binding: url("chrome://flashblock/content/flashblock.xml#brokenobject") !important; }
-
-/*
 * Java identifiers.
 */
-/*
 applet,
 object[classid*=":8AD9C840-044E-11D1-B3E9-00805F499D93"],
 object[classid^="clsid:CAFEEFAC-"],
@@ -64,7 +57,25 @@ embed[type="application/x-java-applet"]
 {
  -moz-binding: none !important;
 }
+
+/*
+* Silverlight identifiers.
 */
+object[classid*="32C73088-76AE-40F7-AC40-81F62CB2C1DA"],
+object[type="application/ag-plugin"],
+object[source*=".xaml"],
+object[sourceelement*="xaml"],
+embed[type="application/ag-plugin"],
+embed[source*=".xaml"]
+{
+ -moz-binding: none !important;
+}
+
+/*
+ * Broken Objects.
+*/
+object
+{ -moz-binding: url("chrome://flashblock/content/flashblock.xml#brokenobject") !important; }
 
 /* sIFR styles */
 .sIFR-flash, .sIFR-flash object, .sIFR-flash embed,
