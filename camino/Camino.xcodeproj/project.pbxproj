@@ -1332,6 +1332,8 @@
 		DE8C62000AB67CDA00078871 /* hidemanager.tif in Resources */ = {isa = PBXBuildFile; fileRef = DE8C61FE0AB67CDA00078871 /* hidemanager.tif */; };
 		DEA5484A0A251FA900186C93 /* GeckoUtils.cpp in Sources */ = {isa = PBXBuildFile; fileRef = DEA548490A251FA900186C93 /* GeckoUtils.cpp */; };
 		DEA5484B0A251FA900186C93 /* GeckoUtils.cpp in Sources */ = {isa = PBXBuildFile; fileRef = DEA548490A251FA900186C93 /* GeckoUtils.cpp */; };
+		DEB608CA0CAF0964006C34F1 /* throbber-00.tif in Resources */ = {isa = PBXBuildFile; fileRef = DEB608C90CAF0964006C34F1 /* throbber-00.tif */; };
+		DEB608CB0CAF0964006C34F1 /* throbber-00.tif in Resources */ = {isa = PBXBuildFile; fileRef = DEB608C90CAF0964006C34F1 /* throbber-00.tif */; };
 		DEB968150B0D8DF70023F8B1 /* KeychainItem.m in Sources */ = {isa = PBXBuildFile; fileRef = DEB968140B0D8DF70023F8B1 /* KeychainItem.m */; };
 		DEB968160B0D8DF70023F8B1 /* KeychainItem.m in Sources */ = {isa = PBXBuildFile; fileRef = DEB968140B0D8DF70023F8B1 /* KeychainItem.m */; };
 		DEB968180B0D8E0B0023F8B1 /* KeychainItem.h in Headers */ = {isa = PBXBuildFile; fileRef = DEB968170B0D8E0B0023F8B1 /* KeychainItem.h */; };
@@ -2763,6 +2765,7 @@
 		DE8AD69F0ADB4E38009D44F6 /* bm_horizontal_separator.tif */ = {isa = PBXFileReference; lastKnownFileType = image.tiff; name = bm_horizontal_separator.tif; path = resources/images/chrome/bm_horizontal_separator.tif; sourceTree = SOURCE_ROOT; };
 		DE8C61FE0AB67CDA00078871 /* hidemanager.tif */ = {isa = PBXFileReference; lastKnownFileType = image.tiff; name = hidemanager.tif; path = resources/images/toolbar/hidemanager.tif; sourceTree = SOURCE_ROOT; };
 		DEA548490A251FA900186C93 /* GeckoUtils.cpp */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.cpp.cpp; name = GeckoUtils.cpp; path = src/extensions/GeckoUtils.cpp; sourceTree = SOURCE_ROOT; };
+		DEB608C90CAF0964006C34F1 /* throbber-00.tif */ = {isa = PBXFileReference; lastKnownFileType = image.tiff; name = "throbber-00.tif"; path = "resources/images/throbber/throbber-00.tif"; sourceTree = SOURCE_ROOT; };
 		DEB968140B0D8DF70023F8B1 /* KeychainItem.m */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.c.objc; name = KeychainItem.m; path = src/formfill/KeychainItem.m; sourceTree = "<group>"; };
 		DEB968170B0D8E0B0023F8B1 /* KeychainItem.h */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.c.h; name = KeychainItem.h; path = src/formfill/KeychainItem.h; sourceTree = "<group>"; };
 		DEB968300B0D8E9F0023F8B1 /* Security.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = Security.framework; path = /System/Library/Frameworks/Security.framework; sourceTree = "<absolute>"; };
@@ -4124,6 +4127,7 @@
 		F50EA33D02BAAAB701000103 /* throbber */ = {
 			isa = PBXGroup;
 			children = (
+				DEB608C90CAF0964006C34F1 /* throbber-00.tif */,
 				3F42EFA705EC13F90045A30C /* throbber-01.tif */,
 				F50EA33F02BAAAB701000103 /* throbber-02.tif */,
 				F50EA34002BAAAB701000103 /* throbber-03.tif */,
@@ -5540,6 +5544,7 @@
 				DE8AD6A10ADB4E38009D44F6 /* bm_horizontal_separator.tif in Resources */,
 				00A29E870BC9AA5B00BF313F /* tab_menu_button.tif in Resources */,
 				1B825D030C5D268600CB4343 /* Camino.sdef in Resources */,
+				DEB608CA0CAF0964006C34F1 /* throbber-00.tif in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -5728,6 +5733,7 @@
 				DE8AD6A00ADB4E38009D44F6 /* bm_horizontal_separator.tif in Resources */,
 				00A29E880BC9AA5B00BF313F /* tab_menu_button.tif in Resources */,
 				1B825D040C5D268600CB4343 /* Camino.sdef in Resources */,
+				DEB608CB0CAF0964006C34F1 /* throbber-00.tif in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
