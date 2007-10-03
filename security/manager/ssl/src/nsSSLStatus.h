@@ -16,12 +16,12 @@
  * The Original Code is mozilla.org code.
  *
  * The Initial Developer of the Original Code is
- * Netscape Communications Corporation.
- * Portions created by the Initial Developer are Copyright (C) 2001
+ * Red Hat, Inc.
+ * Portions created by the Initial Developer are Copyright (C) 2006
  * the Initial Developer. All Rights Reserved.
  *
  * Contributor(s):
- *   Terry Hayes <thayes@netscape.com>
+ *   Kai Engert <kengert@redhat.com>
  *
  * Alternatively, the contents of this file may be used under the terms of
  * either the GNU General Public License Version 2 or later (the "GPL"), or
@@ -37,29 +37,33 @@
  *
  * ***** END LICENSE BLOCK ***** */
 
-#include "nsISupports.idl"
+#include "nsISSLStatus.h"
 
-interface nsIX509Cert;
+#include "nsAutoPtr.h"
+#include "nsXPIDLString.h"
+#include "nsIX509Cert.h"
 
-[scriptable, uuid(cfede939-def1-49be-81ed-d401b3a07d1c)]
-interface nsISSLStatus : nsISupports {
-  readonly attribute nsIX509Cert serverCert;
+class nsSSLStatus
+  : public nsISSLStatus
+{
+public:
+  NS_DECL_ISUPPORTS
+  NS_DECL_NSISSLSTATUS
 
-  readonly attribute string cipherName;
-  readonly attribute unsigned long keyLength;
-  readonly attribute unsigned long secretKeyLength;
+  nsSSLStatus();
+  virtual ~nsSSLStatus();
 
-  readonly attribute boolean isDomainMismatch;
-  readonly attribute boolean isNotValidAtThisTime;
+  /* public for initilization in this file */
+  nsCOMPtr<nsIX509Cert> mServerCert;
 
-  /* Note: To distinguish between 
-   *         "unstrusted because missing or untrusted issuer"
-   *       and 
-   *         "untrusted because self signed"
-   *       compare for equality of 
-   *         nsIX509Cert::subjectName
-   *       and
-   *         nsIX509Cert::issuerName
-   */
-  readonly attribute boolean isUntrusted;
+  PRUint32 mKeyLength;
+  PRUint32 mSecretKeyLength;
+  nsXPIDLCString mCipherName;
+
+  PRBool mIsDomainMismatch;
+  PRBool mIsNotValidAtThisTime;
+  PRBool mIsUntrusted;
+
+  PRBool mHaveKeyLengthAndCipher;
+  PRBool mHaveCertStatus;
 };

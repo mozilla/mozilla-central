@@ -16,12 +16,12 @@
  * The Original Code is mozilla.org code.
  *
  * The Initial Developer of the Original Code is
- * Netscape Communications Corporation.
- * Portions created by the Initial Developer are Copyright (C) 2001
+ * Red Hat, Inc.
+ * Portions created by the Initial Developer are Copyright (C) 2007
  * the Initial Developer. All Rights Reserved.
  *
  * Contributor(s):
- *   Terry Hayes <thayes@netscape.com>
+ *   Kai Engert <kengert@redhat.com>
  *
  * Alternatively, the contents of this file may be used under the terms of
  * either the GNU General Public License Version 2 or later (the "GPL"), or
@@ -39,27 +39,27 @@
 
 #include "nsISupports.idl"
 
-interface nsIX509Cert;
+interface nsISSLStatus;
+interface nsIInterfaceRequestor;
 
-[scriptable, uuid(cfede939-def1-49be-81ed-d401b3a07d1c)]
-interface nsISSLStatus : nsISupports {
-  readonly attribute nsIX509Cert serverCert;
+/**
+ * A mechanism to report a broken SSL status. The recipient should NOT block.
+ * Can be used to obtain the SSL handshake status of a connection
+ * that will be canceled because of improper cert status.
+ */
+[scriptable, uuid(2c3d268c-ad82-49f3-99aa-e9ffddd7a0dc)]
+interface nsIBadCertListener2 : nsISupports {
 
-  readonly attribute string cipherName;
-  readonly attribute unsigned long keyLength;
-  readonly attribute unsigned long secretKeyLength;
-
-  readonly attribute boolean isDomainMismatch;
-  readonly attribute boolean isNotValidAtThisTime;
-
-  /* Note: To distinguish between 
-   *         "unstrusted because missing or untrusted issuer"
-   *       and 
-   *         "untrusted because self signed"
-   *       compare for equality of 
-   *         nsIX509Cert::subjectName
-   *       and
-   *         nsIX509Cert::issuerName
+  /**
+   *  @param socketInfo A network communication context that can be used to obtain more information
+   *                    about the active connection.
+   *  @param cert The certificate that is not trusted and that is having the problem.
+   *  @param targetSite The Site name that was used to open the current connection.
+   *
+   *  @return The consumer shall return true if it wants to suppress the error message
+   *          related to the bad cert (the connection will still get canceled).
    */
-  readonly attribute boolean isUntrusted;
+  boolean notifyCertProblem(in nsIInterfaceRequestor socketInfo, 
+                            in nsISSLStatus status,
+                            in AUTF8String targetSite);
 };

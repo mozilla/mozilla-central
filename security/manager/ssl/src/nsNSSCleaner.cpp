@@ -1,6 +1,4 @@
-/* -*- Mode: C++; tab-width: 2; indent-tabs-mode: nil; c-basic-offset: 2 -*-
- *
- * ***** BEGIN LICENSE BLOCK *****
+/* ***** BEGIN LICENSE BLOCK *****
  * Version: MPL 1.1/GPL 2.0/LGPL 2.1
  *
  * The contents of this file are subject to the Mozilla Public License Version
@@ -13,15 +11,15 @@
  * for the specific language governing rights and limitations under the
  * License.
  *
- * The Original Code is mozilla.org code.
+ * The Original Code is Mozilla Communicator.
  *
  * The Initial Developer of the Original Code is
- * Netscape Communications Corporation.
- * Portions created by the Initial Developer are Copyright (C) 2001
+ * Red Hat, Inc.
+ * Portions created by the Initial Developer are Copyright (C) 2006
  * the Initial Developer. All Rights Reserved.
  *
  * Contributor(s):
- *   Terry Hayes <thayes@netscape.com>
+ *   Kai Engert <kengert@redhat.com>
  *
  * Alternatively, the contents of this file may be used under the terms of
  * either the GNU General Public License Version 2 or later (the "GPL"), or
@@ -37,29 +35,24 @@
  *
  * ***** END LICENSE BLOCK ***** */
 
-#include "nsISupports.idl"
+#include "nsNSSCleaner.h"
+#include "cert.h"
 
-interface nsIX509Cert;
+CERTVerifyLogContentsCleaner::CERTVerifyLogContentsCleaner(CERTVerifyLog *&cvl)
+:m_cvl(cvl)
+{
+}
 
-[scriptable, uuid(cfede939-def1-49be-81ed-d401b3a07d1c)]
-interface nsISSLStatus : nsISupports {
-  readonly attribute nsIX509Cert serverCert;
+CERTVerifyLogContentsCleaner::~CERTVerifyLogContentsCleaner()
+{
+  if (!m_cvl)
+    return;
 
-  readonly attribute string cipherName;
-  readonly attribute unsigned long keyLength;
-  readonly attribute unsigned long secretKeyLength;
+  CERTVerifyLogNode *i_node;
+  for (i_node = m_cvl->head; i_node; i_node = i_node->next)
+  {
+    if (i_node->cert)
+      CERT_DestroyCertificate(i_node->cert);
+  }
+}
 
-  readonly attribute boolean isDomainMismatch;
-  readonly attribute boolean isNotValidAtThisTime;
-
-  /* Note: To distinguish between 
-   *         "unstrusted because missing or untrusted issuer"
-   *       and 
-   *         "untrusted because self signed"
-   *       compare for equality of 
-   *         nsIX509Cert::subjectName
-   *       and
-   *         nsIX509Cert::issuerName
-   */
-  readonly attribute boolean isUntrusted;
-};
