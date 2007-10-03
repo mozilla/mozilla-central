@@ -197,12 +197,6 @@ static const nsModuleComponentInfo gAppComponents[] = {
     SecurityDialogsConstructor
   },
   {
-    "Bad Cert Handler",
-    NS_SECURITYDIALOGS_CID,
-    NS_BADCERTLISTENER_CONTRACTID,
-    SecurityDialogsConstructor
-  },
-  {
     "Prompt Service",
     NS_PROMPTSERVICE_CID,
     "@mozilla.org/embedcomp/prompt-service;1",
