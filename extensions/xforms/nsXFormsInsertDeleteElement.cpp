@@ -240,8 +240,10 @@ nsXFormsInsertDeleteElement::HandleAction(nsIDOMEvent            *aEvent,
       return NS_OK;
   }
 
-  rv = nodeset->GetSnapshotLength(&nodesetSize);
-  NS_ENSURE_SUCCESS(rv, rv);
+  if (nodeset) {
+    rv = nodeset->GetSnapshotLength(&nodesetSize);
+    NS_ENSURE_SUCCESS(rv, rv);
+  }
 
   // The insert action is terminated with no effect if the context attribute
   // is not given and the Node Set Binding node-set is the empty node-set.
