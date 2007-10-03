@@ -170,6 +170,8 @@
   locale/@AB_CD@/communicator-platform/mac/pref/platformPrefOverlay.dtd     (%chrome/common/pref/mac/platformPrefOverlay.dtd)
   locale/@AB_CD@/communicator-platform/unix/pref/platformPrefOverlay.dtd    (%chrome/common/pref/unix/platformPrefOverlay.dtd)
   locale/@AB_CD@/communicator-platform/win/pref/platformPrefOverlay.dtd     (%chrome/common/pref/win/platformPrefOverlay.dtd)
+  locale/@AB_CD@/communicator/profile/profileSelection.dtd                  (%chrome/common/profile/profileSelection.dtd)
+  locale/@AB_CD@/communicator/profile/profileSelection.properties           (%chrome/common/profile/profileSelection.properties)
   locale/@AB_CD@/communicator/search/default.htm                            (%chrome/common/search/default.htm)
   locale/@AB_CD@/communicator/search/internetresults.dtd                    (%chrome/common/search/internetresults.dtd)
   locale/@AB_CD@/communicator/search/search-editor.dtd                      (%chrome/common/search/search-editor.dtd)
