@@ -101,22 +101,6 @@ ocspclnt/main/NSS_Init/SECMOD_LoadModule/SECMOD_LoadModule/SECMOD_LoadPKCS11Modu
 */main/NSS_Shutdown/STAN_Shutdown/NSSTrustDomain_Destroy/nssList_Clear/token_destructor/nssToken_Destroy/nssArena_Destroy/arena_remove_pointer/nssPointerTracker_remove/PL_HashTableRemove/PL_HashTableRawRemove/DefaultAllocTable/**
 */main/*/*/STAN_LoadDefaultNSS3TrustDomain/NSSTrustDomain_Create/NSSArena_Create/nssArena_Create/arena_add_pointer/nssPointerTracker_initialize/call_once/**
 
-#391774
-*/main/*/*/PKIX_Initialize/PKIX_PL_HashTable_Create/PKIX_PL_Mutex_Create/PKIX_PL_Object_Alloc/PKIX_PL_Malloc/**
-*/main/*/*/PKIX_Initialize/PKIX_PL_HashTable_Create/PKIX_PL_Mutex_Create/PKIX_PL_Object_Alloc/PR_NewLock/**
-*/main/*/*/PKIX_Initialize/PKIX_PL_HashTable_Create/PKIX_PL_Mutex_Create/PR_NewLock/**
-*/main/*/*/PKIX_Initialize/PKIX_PL_HashTable_Create/PKIX_PL_Object_Alloc/PKIX_PL_Malloc/**
-*/main/*/*/PKIX_Initialize/PKIX_PL_HashTable_Create/PKIX_PL_Object_Alloc/PR_NewLock/**
-*/main/*/*/PKIX_Initialize/PKIX_PL_HashTable_Create/pkix_pl_PrimHashTable_Create/PKIX_PL_Malloc/**
-*/main/*/*/PKIX_Initialize/PKIX_PL_Initialize/PKIX_PL_NssContext_Create/PKIX_PL_Malloc/**
-*/main/*/*/PKIX_Initialize/PKIX_PL_MonitorLock_Create/PKIX_PL_Object_Alloc/PKIX_PL_Malloc/**
-*/main/*/*/PKIX_Initialize/PKIX_PL_MonitorLock_Create/PKIX_PL_Object_Alloc/PR_NewLock/**
-*/main/*/*/PKIX_Initialize/PKIX_PL_MonitorLock_Create/PR_NewMonitor/**
-ocspclnt/main/NSS_Init/PKIX_Initialize/PKIX_PL_HashTable_Create/PKIX_PL_Mutex_Create/PKIX_PL_Object_Alloc/PKIX_PL_Malloc
-ocspclnt/main/NSS_Init/PKIX_Initialize/PKIX_PL_HashTable_Create/PKIX_PL_Object_Alloc/PKIX_PL_Malloc
-ocspclnt/main/NSS_Init/PKIX_Initialize/PKIX_PL_HashTable_Create/pkix_pl_PrimHashTable_Create/PKIX_PL_Malloc
-ocspclnt/main/NSS_Init/PKIX_Initialize/PKIX_PL_MonitorLock_Create/PKIX_PL_Object_Alloc/PKIX_PL_Malloc
-
 #393174
 ocspclnt/main/get_cert_status/CERT_CheckOCSPStatus/ocsp_GetOCSPStatusFromNetwork/ocsp_GetEncodedOCSPResponseForSingleCert/ocsp_GetEncodedOCSPResponseFromRequest/fetchOcspHttpClientV1/pkix_pl_HttpDefaultClient_RequestCreateFcn/pkix_pl_HttpDefaultClient_RequestCreate/pkix_HttpCertStore_FindSocketConnection/PKIX_PL_HashTable_Add/pkix_pl_PrimHashTable_Add/PKIX_PL_Malloc/**
 ocspclnt/main/get_cert_status/CERT_CheckOCSPStatus/ocsp_GetOCSPStatusFromNetwork/ocsp_GetEncodedOCSPResponseForSingleCert/ocsp_GetEncodedOCSPResponseFromRequest/fetchOcspHttpClientV1/pkix_pl_HttpDefaultClient_RequestCreateFcn/pkix_pl_HttpDefaultClient_RequestCreate/pkix_HttpCertStore_FindSocketConnection/PKIX_PL_Sprintf/PKIX_PL_String_Create/PKIX_PL_Malloc/**
