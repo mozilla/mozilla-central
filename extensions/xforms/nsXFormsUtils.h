@@ -674,14 +674,7 @@ public:
    * instance() function.
    * The provided node can be an instance node from an instance
    * document and thus be associated to the model in that way (model elements
-   * contain instance elements).  Otherwise the node will be an XForms element
-   * that was used as the context node of the XPath expression (i.e the
-   * XForms control has an attribute that contains an XPath expression).
-   * Form controls are associated with model elements either explicitly through
-   * single-node binding or implicitly (if model cannot by calculated, it
-   * will use the first model element encountered in the document).  The model
-   * can also be inherited from a containing element like xforms:group or
-   * xforms:repeat.
+   * contain instance elements).  
    */
   static NS_HIDDEN_(PRBool) IsNodeAssocWithModel(nsIDOMNode *aNode,
                                                  nsIDOMNode *aModel);
