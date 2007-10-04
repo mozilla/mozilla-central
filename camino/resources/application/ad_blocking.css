@@ -191,6 +191,9 @@ embed[type="application/x-shockwave-flash"][src*=".admission.net"],
 embed[type="application/x-shockwave-flash"][src*="impact-ad.jp"],
 embed[type="application/x-shockwave-flash"][src*=".zedo.com"],
 embed[type="application/x-shockwave-flash"][src*="harvest.adgardener.com"],
+embed[type="application/x-shockwave-flash"][src="gcirm.dmp.gcion.com"],
+embed[type="application/x-shockwave-flash"][src^="http://richmedia"][src*=".yimg.com"],
+embed[type="application/x-shockwave-flash"][src*="cstatic.weborama.fr/weborama/adperf/"],
 
 img[src*="googlesyndication.com"],
 img[src*=".doubleclick.net"],
@@ -355,6 +358,8 @@ iframe[src*=".overture.com"],
 iframe[src*=".fimserve.com"],
 iframe[src*="google-afc"],
 iframe[src*="google-adsense"],
+iframe[id*="google_ads_iframe"],
+iframe[src*="werben-mit-campus-media.de/ads/"],
 
 table#overtureLinksWrapper,
 table.adbritetable,
@@ -424,7 +429,10 @@ div[onclick*="click.pulse360.com"],
 div[id^="adpos"],
 div[id="ad"],
 div[id*="adsense"],
-div[class~="ad-home"]
+div[class~="ad-home"],
+div[id="topad_wrapper"],
+div[id*="google_ads_div"],
+div[id*="mTotem"]>iframe[id*="totem"]
 
 { display: none ! important }
 
