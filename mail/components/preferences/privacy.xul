@@ -97,7 +97,7 @@
       <tabpanels flex="1">
         <tabpanel orient="vertical">
           <description>&junkMail.intro;</description>
-          <class separator="thin"/>
+          <separator class="thin"/>
           
           <checkbox id="manualMark" 
                     preference="mail.spam.manualMark"
@@ -133,7 +133,7 @@
         <!-- Phishing Detector --> 
         <tabpanel orient="vertical">
           <description>&phishingDetector1.intro;</description>
-          <class separator="thin"/>
+          <separator class="thin"/>
           <checkbox id="enablePhishingDetector"
                     label="&enablePhishingDetector1.label;" accesskey="&enablePhishingDetector1.accesskey;"
                     oncommand="gPrivacyPane.updateDownloadedPhishingListState()" 
@@ -148,7 +148,7 @@
         <!-- Anti Virus --> 
         <tabpanel orient="vertical">
           <description>&antiVirus.intro;</description>
-          <class separator="thin"/>
+          <separator class="thin"/>
           <checkbox id="enableAntiVirusQuaruntine"
                     label="&antiVirus.label;" accesskey="&antiVirus.accesskey;"
                     preference="mailnews.downloadToTempFile"/>
@@ -159,6 +159,7 @@
 
         <tabpanel orient="vertical"> 
           <description>&savedPasswords.intro;</description>
+          <separator class="thin"/>
           <checkbox id="encryptEnabled" label="&encryptEnabled.label;" accesskey="&encryptEnabled.accesskey;"
                     preference="wallet.crypto" oncommand="gPrivacyPane.initReencryptCallback();"/>
           <separator/>
