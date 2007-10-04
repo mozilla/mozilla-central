@@ -100,10 +100,6 @@ ocspclnt/main/NSS_Init/SECMOD_LoadModule/SECMOD_LoadModule/SECMOD_LoadPKCS11Modu
 */main/NSS_Shutdown/STAN_Shutdown/NSSTrustDomain_Destroy/nssList_Clear/token_destructor/nssToken_Destroy/nssArena_Destroy/arena_remove_pointer/nssPointerTracker_remove/PL_HashTableRemove/PL_HashTableRawRemove/DefaultAllocTable/**
 */main/*/*/STAN_LoadDefaultNSS3TrustDomain/NSSTrustDomain_Create/NSSArena_Create/nssArena_Create/arena_add_pointer/nssPointerTracker_initialize/call_once/**
 
-#391770
-*/main/*/*/OCSP_InitGlobal/PR_NewMonitor/**
-ocspclnt/main/NSS_Init/OCSP_InitGlobal/PR_NewMonitor/*
-
 #391774
 */main/*/*/PKIX_Initialize/PKIX_PL_HashTable_Create/PKIX_PL_Mutex_Create/PKIX_PL_Object_Alloc/PKIX_PL_Malloc/**
 */main/*/*/PKIX_Initialize/PKIX_PL_HashTable_Create/PKIX_PL_Mutex_Create/PKIX_PL_Object_Alloc/PR_NewLock/**

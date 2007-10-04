@@ -39,7 +39,7 @@
  * Implementation of OCSP services, for both client and server.
  * (XXX, really, mostly just for client right now, but intended to do both.)
  *
- * $Id: ocsp.c,v 1.42 2007-05-25 07:28:32 alexei.volkov.bugs%sun.com Exp $
+ * $Id: ocsp.c,v 1.43 2007-10-04 13:04:42 kaie%kuix.de Exp $
  */
 
 #include "prerror.h"
@@ -874,7 +874,7 @@ SECStatus OCSP_InitGlobal(void)
     return rv;
 }
 
-SECStatus OCSP_ShutdownCache(void)
+SECStatus OCSP_ShutdownGlobal(void)
 {
     if (!OCSP_Global.monitor)
         return SECSuccess;
@@ -888,7 +888,19 @@ SECStatus OCSP_ShutdownCache(void)
     PORT_Assert(OCSP_Global.cache.numberOfEntries == 0);
     OCSP_Global.cache.MRUitem = NULL;
     OCSP_Global.cache.LRUitem = NULL;
+
+    OCSP_Global.defaultHttpClientFcn = NULL;
+    OCSP_Global.maxCacheEntries = DEFAULT_OCSP_CACHE_SIZE;
+    OCSP_Global.minimumSecondsToNextFetchAttempt = 
+      DEFAULT_MINIMUM_SECONDS_TO_NEXT_OCSP_FETCH_ATTEMPT;
+    OCSP_Global.maximumSecondsToNextFetchAttempt =
+      DEFAULT_MAXIMUM_SECONDS_TO_NEXT_OCSP_FETCH_ATTEMPT;
+    OCSP_Global.ocspFailureMode =
+      ocspMode_FailureIsVerificationFailure;
     PR_ExitMonitor(OCSP_Global.monitor);
+
+    PR_DestroyMonitor(OCSP_Global.monitor);
+    OCSP_Global.monitor = NULL;
     return SECSuccess;
 }
 
