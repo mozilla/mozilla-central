@@ -481,6 +481,29 @@ parse_logfile_dbx()
 				tbytes=`expr "${tbytes}" + "${lbytes}"`
 				tblocks=`expr "${tblocks}" + 1`
 			fi
+			
+			gline=`echo "${line}" | grep "Found .* leaked blocks"`
+			if [ -n "${gline}" ] ; then
+				lbytes=`echo "${line}" | sed "s/Found .* leaked blocks with total size \(.*\) bytes.*/\1/"`
+				tbytes=`expr "${tbytes}" + "${lbytes}"`
+				lblocks=`echo "${line}" | sed "s/Found \(.*\) leaked blocks.*/\1/"`
+				tblocks=`expr "${tblocks}" + "${lblocks}"`
+			fi
+			
+			gline=`echo "${line}" | grep "Found block of size"`
+			if [ -n "${gline}" ] ; then
+				lbytes=`echo "${line}" | sed "s/Found block of size \(.*\) bytes.*/\1/"`
+				tbytes=`expr "${tbytes}" + "${lbytes}"`
+				tblocks=`expr "${tblocks}" + 1`
+			fi
+			
+			gline=`echo "${line}" | grep "Found .* blocks totaling"`
+			if [ -n "${gline}" ] ; then
+				lbytes=`echo "${line}" | sed "s/Found .* blocks totaling \(.*\) bytes.*/\1/"`
+				tbytes=`expr "${tbytes}" + "${lbytes}"`
+				lblocks=`echo "${line}" | sed "s/Found \(.*\) blocks totaling.*/\1/"`
+				tblocks=`expr "${tblocks}" + "${lblocks}"`
+			fi
 		else
 			gline=`echo "${line}" | grep "^Running: "`
 			if [ -n "${gline}" ] ; then
