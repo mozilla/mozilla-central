@@ -1673,7 +1673,29 @@ nsresult nsMsgCompose::CreateMessage(const char * originalMsgURI,
 
   // If we are forwarding inline, mime did already setup the compose fields therefore we should stop now
   if (type == nsIMsgCompType::ForwardInline )
+  {
+    // use send_default_charset if reply_in_default_charset is on.
+    nsCOMPtr<nsIPrefBranch> prefs (do_GetService(NS_PREFSERVICE_CONTRACTID));
+    if (prefs)
+    {
+      PRBool replyInDefault = PR_FALSE;
+      prefs->GetBoolPref("mailnews.reply_in_default_charset",
+                         &replyInDefault);
+      if (replyInDefault)
+      {
+        nsString str;
+        nsCString charset;
+        NS_GetLocalizedUnicharPreferenceWithDefault(prefs, "mailnews.send_default_charset",
+                                                    EmptyString(), str);
+        if (!str.IsEmpty())
+        {
+          LossyCopyUTF16toASCII(str, charset);
+          m_compFields->SetCharacterSet(charset.get());
+        }
+      }
+    }
     return rv;
+  }
 
   char *uriList = PL_strdup(originalMsgURI);
   if (!uriList)
