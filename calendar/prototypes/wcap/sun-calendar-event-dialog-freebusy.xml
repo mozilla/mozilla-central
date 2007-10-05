@@ -1025,7 +1025,6 @@
       <field name="mRowHeight">0</field>
       <field name="mNumColumns">0</field>
       <field name="mMaxFreeBusy">0</field>
-      <field name="mConsoleService">null</field>
       <field name="mPendingRequests">null</field>
       <field name="mStartDate">null</field>
       <field name="mEndDate">null</field>
@@ -1112,12 +1111,6 @@
             self.onUnload();
         };
         window.addEventListener("unload", unload, true);
-
-        this.mConsoleService =
-            Components.classes[
-                "@mozilla.org/consoleservice;1"]
-                    .getService(
-                        Components.interfaces.nsIConsoleService);
       ]]></constructor>
 
       <property name="startDate">
@@ -1316,13 +1309,6 @@
                       // Update with 'no data available' until response will be received
                       freebusy.onFreeBusy(null);
                       try {
-                          var msg = "request for <" + calid + "> on row <" + i + ">";
-                          var str = ("\n### freebusy log " +
-                                     start.toString() +
-                                     " " +
-                                     end.toString() +
-                                     "### " + (msg ? msg : ""));
-                          this.mConsoleService.logStringMessage(str);
                           var fbService = Components.classes["@mozilla.org/calendar/freebusy-service;1"]
                                                     .getService(Components.interfaces.calIFreeBusyService);
                           var fbListener = {
