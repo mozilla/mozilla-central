@@ -19,8 +19,8 @@
 /* ::::: Turn on borders and padding for quotes. ::::: */
 
 blockquote[type=cite] {
-  padding: 0em .5em .5em 1em;
-  border-right: 2px  solid;
+  padding: 0em 1em .5em;
+  border-right: 2px solid;
   border-left: 2px solid;
 }
 
