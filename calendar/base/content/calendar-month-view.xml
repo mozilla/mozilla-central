@@ -83,7 +83,7 @@
               </xul:hbox>
               <xul:image anonid="gradient"
                          class="calendar-event-box-gradient event-frame"
-                         hidden="true"/>
+                         hidden="true" height="1px"/>
             </xul:stack>
           </xul:box>
           <xul:image class="calendar-event-box-shadow-right"/>
@@ -106,9 +106,6 @@
                                                                 "event-container");
         if (gradient) {
           gradient.removeAttribute("hidden");
-          gradient.setAttribute("style",
-                                "height: " +
-                                container.boxObject.height+"px");
         }
 
         container.setAttribute("class", "calendar-item");

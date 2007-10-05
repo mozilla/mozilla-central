@@ -70,7 +70,7 @@
             </xul:vbox>
             <xul:image anonid="gradient"
                        class="calendar-event-box-gradient event-frame"
-                       hidden="true"/>
+                       hidden="true" height="1px"/>
           </xul:stack>
           <xul:image class="calendar-event-box-shadow-right"/>
         </xul:hbox>
@@ -92,9 +92,6 @@
                                                                  "event-container");
          if (gradient) {
            gradient.removeAttribute("hidden");
-           gradient.setAttribute("style",
-                                 "height: " +
-                                 container.boxObject.height + "px");
          }
 
          this.setAttribute("tooltip", "itemTooltip");
