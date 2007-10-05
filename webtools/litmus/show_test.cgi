@@ -56,28 +56,25 @@ my $products = Litmus::FormWidget->getProducts($show_admin);
 my $branches = Litmus::FormWidget->getBranches($show_admin);
 my $testgroups = Litmus::FormWidget->getTestgroups($show_admin);
 my $subgroups = Litmus::FormWidget->getSubgroups($show_admin,'sort_order');
+my $platforms = Litmus::FormWidget->getUniquePlatforms($show_admin);
+my $opsyses = Litmus::FormWidget->getOpsyses($show_admin);
+my $locales = Litmus::FormWidget->getLocales();
 
 my $json = JSON->new(skipinvalid => 1, convblessed => 1);
 my $products_js = $json->objToJson($products);
 my $branches_js = $json->objToJson($branches);
 my $testgroups_js = $json->objToJson($testgroups);
 my $subgroups_js = $json->objToJson($subgroups);
+my $platforms_js = $json->objToJson($platforms);
+my $opsyses_js = $json->objToJson($opsyses);
 
 $vars->{'products_js'} = $products_js;
 $vars->{'branches_js'} = $branches_js;
 $vars->{'testgroups_js'} = $testgroups_js;
 $vars->{'subgroups_js'} = $subgroups_js;
-
-if ($show_admin) {
-  my $platforms = Litmus::FormWidget->getUniquePlatforms($show_admin);
-  my $opsyses = Litmus::FormWidget->getOpsyses($show_admin);
-  my $locales = Litmus::FormWidget->getLocales();
-  my $platforms_js = $json->objToJson($platforms);
-  my $opsyses_js = $json->objToJson($opsyses);
-  $vars->{'platforms_js'} = $platforms_js;
-  $vars->{'opsyses_js'} = $opsyses_js;
-  $vars->{'locales'} = $locales;
-}
+$vars->{'platforms_js'} = $platforms_js;
+$vars->{'opsyses_js'} = $opsyses_js;
+$vars->{'locales'} = $locales;
 
 if (! $c->param) {
     Litmus->template()->process("show/search_for_testcases.tmpl", $vars) || 
