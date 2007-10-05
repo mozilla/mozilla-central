@@ -38,8 +38,6 @@
 
 #import <Carbon/Carbon.h>
 
-#import "NSResponder+Utils.h"
-
 #import "NSMenu+Utils.h"
 
 

@@ -41,7 +41,6 @@
 
 #import "NSArray+Utils.h"
 #import "NSString+Utils.h"
-#import "NSResponder+Utils.h"
 #import "NSMenu+Utils.h"
 #import "NSURL+Utils.h"
 #import "NSWorkspace+Utils.h"
