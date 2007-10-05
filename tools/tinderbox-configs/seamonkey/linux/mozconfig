@@ -16,3 +16,5 @@ ac_add_options --enable-tests
 mk_add_options MOZ_CO_MODULE="mozilla/tools/codesighs"
 ac_add_options --enable-codesighs
 
+CC=/tools/gcc-4.1.1/bin/gcc
+CXX=/tools/gcc-4.1.1/bin/g++

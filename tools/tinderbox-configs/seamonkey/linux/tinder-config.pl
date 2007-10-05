@@ -150,7 +150,7 @@ $moz_cvsroot   = ':ext:seabld@cvs.mozilla.org:/cvsroot';
 $ObjDir = "objdir";
 
 # Extra build name, if needed.
-$BuildNameExtra = 'release';
+$BuildNameExtra = 'Nightly';
 
 # User comment, eg. ip address for dhcp builds.
 # ex: $UserComment = "ip = 208.12.36.108";
