@@ -54,10 +54,10 @@
     (var) = ((p)[0] - '0') * 10 + ((p)[1] - '0');	  \
 }
 
-#define SECMIN ((time_t) 60L)
-#define SECHOUR (60L*SECMIN)
-#define SECDAY (24L*SECHOUR)
-#define SECYEAR (365L*SECDAY)
+#define SECMIN  60L            /* seconds in a minute        */
+#define SECHOUR (60L*SECMIN)   /* seconds in an hour         */
+#define SECDAY  (24L*SECHOUR)  /* seconds in a day           */
+#define SECYEAR (365L*SECDAY)  /* seconds in a non-leap year */
 
 static long monthToDayInYear[12] = {
     0,
@@ -190,37 +190,30 @@ DER_AsciiToTime(int64 *dst, const char *string)
     }
     
     
-    /* Convert pieces back into a single value year  */
-    LL_I2L(tmp1, (year-70L));
+    /* Compute the number of seconds in the years elapsed since 1970 */
+    LL_I2L(tmp1, (year-70L));   /* ignores leap days (see below) */
     LL_I2L(tmp2, SECYEAR);
     LL_MUL(result, tmp1, tmp2);
-    
+    /* compute number of seconds since beginning of the given month */
     LL_I2L(tmp1, ( (mday-1L)*SECDAY + hour*SECHOUR + minute*SECMIN -
 		  hourOff*SECHOUR - minOff*SECMIN + second ) );
     LL_ADD(result, result, tmp1);
+    /* compute days for elapsed months in the target year */
+    days = monthToDayInYear[month-1];  /* ignoring leap days */
 
     /*
-    ** Have to specially handle the day in the month and the year, to
-    ** take into account leap days. The return time value is in
-    ** seconds since January 1st, 12:00am 1970, so start examining
-    ** the time after that. We can't represent a time before that.
-    */
-
-    /* Using two digit years, we can only represent dates from 1970
-       to 2069. As a result, we cannot run into the leap year rule
-       that states that 1700, 2100, etc. are not leap years (but 2000
-       is). In other words, there are no years in the span of time
-       that we can represent that are == 0 mod 4 but are not leap
-       years. Whew.
-       */
-
-    days = monthToDayInYear[month-1];
-    days += (year - 68)/4;
-
+    ** Account for leap days. The return time value is in
+    ** microseconds since January 1st, 12:00am 1970 and may be negative.
+    ** Using two digit years, we can only represent dates from 1950
+    ** to 2049.  All years in that span of time that are divisible
+    ** by 4 are leap years.
+    **/
+    /* compute number of elapsed leap days since 1970 */
+    days += (year - 68)/4;  
     if (((year % 4) == 0) && (month < 3)) {
 	days--;
     }
-   
+
     LL_I2L(tmp1, (days * SECDAY) );
     LL_ADD(result, result, tmp1 );
 
