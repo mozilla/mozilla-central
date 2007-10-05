@@ -53,21 +53,26 @@ listbox[disabled="true"] {
 
 .status-icon {
   margin: 0 3px;
+  display: none;
   list-style-image: url("chrome://calendar/skin/sun-calendar-event-dialog-attendees.png");
 }
 
 .status-icon[status="ACCEPTED"] {
+  display: inline;
   -moz-image-region: rect(0px 12px 14px 0px);
 }
 
 .status-icon[status="DECLINED"] {
+  display: inline;
   -moz-image-region: rect(0px 24px 14px 12px);
 }
 
 .status-icon[status="NEEDS-ACTION"] {
+  display: inline;
   -moz-image-region: rect(0px 36px 14px 24px);
 }
 
 .status-icon[status="TENTATIVE"] {
+  display: inline;
   -moz-image-region: rect(0px 48px 14px 36px);
 }
