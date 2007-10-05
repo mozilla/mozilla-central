@@ -26,7 +26,7 @@
  #   Chris Cooper <ccooper@deadsquid.com>
  #   Zach Lipton <zach@zachlipton.com>
  #   Max Kanat-Alexander <mkanat@bugzilla.org>
- #   FrŽdŽric Buclin <LpSolit@gmail.com>
+ #   FrÂŽdÂŽric Buclin <LpSolit@gmail.com>
  # ***** END LICENSE BLOCK *****
 
 =cut
@@ -104,6 +104,13 @@ if (!$db_port) {
 if ($db_host_ro and !$db_port_ro) {
     $db_port_ro=3306;
 }
+
+# For building automatic links in templates
+our $local_litmus_url = "";
+
+# For building bug links in templates, to which a bug ID can be easily 
+# appended.
+our $local_bug_url = 'https://bugzilla.mozilla.org/show_bug.cgi?id=';
 
 # if true, then Litmus will not accept any requests
 our $disabled = 0;
