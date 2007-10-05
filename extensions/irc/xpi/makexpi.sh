@@ -3,11 +3,11 @@
 # Set up settings and paths for finding files.
 if [ -z "$DEBUG" ]; then DEBUG=0; fi
 if [ -z "$PERL" ]; then PERL=perl; fi
+if [ -z "$FEDIR" ]; then FEDIR=$PWD/..; fi
 if [ -z "$CONFIGDIR" ]; then CONFIGDIR=$FEDIR/../../config; fi
 if [ -z "$XPIFILES" ]; then XPIFILES=$PWD/resources; fi
 if [ -z "$XPIROOT" ]; then XPIROOT=$PWD/xpi-tree; fi
 if [ -z "$JARROOT" ]; then JARROOT=$PWD/jar-tree; fi
-if [ -z "$FEDIR" ]; then FEDIR=$PWD/..; fi
 if [ -z "$LOCALEDIR" ]; then LOCALEDIR=$FEDIR/locales; fi
 if [ -z "$AB_CD" ]; then AB_CD=en-US; fi
 
