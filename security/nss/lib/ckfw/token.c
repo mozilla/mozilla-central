@@ -35,7 +35,7 @@
  * ***** END LICENSE BLOCK ***** */
 
 #ifdef DEBUG
-static const char CVS_ID[] = "@(#) $RCSfile: token.c,v $ $Revision: 1.11 $ $Date: 2005-12-16 00:48:01 $";
+static const char CVS_ID[] = "@(#) $RCSfile: token.c,v $ $Revision: 1.12 $ $Date: 2007-10-06 01:41:28 $";
 #endif /* DEBUG */
 
 /*
@@ -336,6 +336,22 @@ nss_ckfwtoken_session_iterator
   return;
 }
 
+static void
+nss_ckfwtoken_object_iterator
+(
+  const void *key,
+  void *value,
+  void *closure
+)
+{
+  /*
+   * Remember that the fwToken->mutex is locked
+   */
+  NSSCKFWObject *fwObject = (NSSCKFWObject *)value;
+  (void)nssCKFWObject_Finalize(fwObject, CK_FALSE);
+  return;
+}
+
 /*
  * nssCKFWToken_Destroy
  *
@@ -368,9 +384,14 @@ nssCKFWToken_Destroy
                                                                 (void *)NULL);
   nssCKFWHash_Destroy(fwToken->sessions);
 
+  /* session objects go away when their sessions are removed */
   if (fwToken->sessionObjectHash) {
     nssCKFWHash_Destroy(fwToken->sessionObjectHash);
   }
+
+  /* free up the token objects */
+  nssCKFWHash_Iterate(fwToken->mdObjectHash, nss_ckfwtoken_object_iterator, 
+                                                                (void *)NULL);
   if (fwToken->mdObjectHash) {
     nssCKFWHash_Destroy(fwToken->mdObjectHash);
   }

@@ -38,7 +38,7 @@
 #define CKFW_H
 
 #ifdef DEBUG
-static const char CKFW_CVS_ID[] = "@(#) $RCSfile: ckfw.h,v $ $Revision: 1.9 $ $Date: 2006-04-22 05:30:18 $";
+static const char CKFW_CVS_ID[] = "@(#) $RCSfile: ckfw.h,v $ $Revision: 1.10 $ $Date: 2007-10-06 01:41:28 $";
 #endif /* DEBUG */
 
 /*
@@ -2198,7 +2198,8 @@ nssCKFWObject_Create
 NSS_EXTERN void
 nssCKFWObject_Finalize
 (
-  NSSCKFWObject *fwObject
+  NSSCKFWObject *fwObject,
+  PRBool removeFromHash
 );
 
 /*

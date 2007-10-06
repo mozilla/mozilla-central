@@ -35,7 +35,7 @@
  * ***** END LICENSE BLOCK ***** */
 
 #ifdef DEBUG
-static const char CVS_ID[] = "@(#) $RCSfile: object.c,v $ $Revision: 1.13 $ $Date: 2007-01-05 00:23:14 $";
+static const char CVS_ID[] = "@(#) $RCSfile: object.c,v $ $Revision: 1.14 $ $Date: 2007-10-06 01:41:28 $";
 #endif /* DEBUG */
 
 /*
@@ -236,7 +236,8 @@ nssCKFWObject_Create
 NSS_IMPLEMENT void
 nssCKFWObject_Finalize
 (
-  NSSCKFWObject *fwObject
+  NSSCKFWObject *fwObject,
+  PRBool removeFromHash
 )
 {
   nssCKFWHash *mdObjectHash;
@@ -255,10 +256,12 @@ nssCKFWObject_Finalize
       fwObject->fwToken, fwObject->mdInstance, fwObject->fwInstance);
   }
 
-  mdObjectHash = nssCKFWToken_GetMDObjectHash(fwObject->fwToken);
-  if( (nssCKFWHash *)NULL != mdObjectHash ) {
-    nssCKFWHash_Remove(mdObjectHash, fwObject->mdObject);
-  }
+  if (removeFromHash) {
+    mdObjectHash = nssCKFWToken_GetMDObjectHash(fwObject->fwToken);
+    if( (nssCKFWHash *)NULL != mdObjectHash ) {
+      nssCKFWHash_Remove(mdObjectHash, fwObject->mdObject);
+    }
+ }
 
   if (fwObject->fwSession) {
     nssCKFWSession_DeregisterSessionObject(fwObject->fwSession, fwObject);
