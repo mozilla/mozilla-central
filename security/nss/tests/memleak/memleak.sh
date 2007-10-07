@@ -79,6 +79,7 @@ memleak_init()
 	OLD_LIBRARY_PATH=${LD_LIBRARY_PATH}
 	TMP_LIBDIR="${HOSTDIR}/tmp$$"
 	TMP_STACKS="${HOSTDIR}/stacks$$"
+	TMP_COUNT="${HOSTDIR}/count$$"
 	
 	PORT=${PORT:-8443}
 	
@@ -107,6 +108,7 @@ memleak_init()
 	case "${OS_NAME}" in
 	"SunOS")
 		DBX=`which dbx`
+		AWK=nawk
 		
 		if [ $? -eq 0 ] ; then
 			echo "${SCRIPTNAME}: DBX found: ${DBX}"
@@ -140,6 +142,7 @@ memleak_init()
 		;;
 	"Linux")
 		VALGRIND=`which valgrind`
+		AWK=awk
 		
 		if [ $? -eq 0 ] ; then
 			echo "${SCRIPTNAME}: Valgrind found: ${VALGRIND}"
@@ -179,6 +182,7 @@ memleak_init()
 
 	tbytes=0
 	tblocks=0
+	truns=0;
 	
 	MEMLEAK_DBG=1
 	export MEMLEAK_DBG
@@ -518,138 +522,69 @@ parse_logfile_dbx()
 ########################################################################
 parse_logfile_valgrind()
 {
-	in_mel=0
-	in_sum=0
-	bin_name=""
+	${AWK} '
+	 BEGIN {
+		 in_mel=0;
+		 in_sum=0;
+		 bytes=0;
+		 blocks=0;
+		 runs=0;
+		 stack_string="";
+		 bin_name=""; }
+	 !/==[0-9]*==/ { 
+		if ( $1 == "'${VALGRIND}'" ) 
+			bin_name = $8 ; 
+		next;
+	 }
+	 /blocks are/ {
+		in_mel = 1;
+		stack_string="";
+		next;
+	 }
+	 /LEAK SUMMARY/ {
+		in_sum=1;
+		runs += 1;
+		next;
+	 }
+	 /^==[0-9]*== *$/ { 
+	    	if (in_mel)
+			print bin_name stack_string;
+		in_sum = 0;
+		in_mel = 0;
+		next;
+	 }
+	 in_mel == 1 {	
+		new_line = $4;
+		if ( new_line == "(within")
+			new_line = "*";
+		stack_string = "/" new_line stack_string;
+	 }
+	 in_sum == 1 {
+		for (i=2; i <= NF; i++) {
+			if ($i == "bytes") {
+				str = $(i-1);
+				gsub(",","",str);
+				bytes += str;
+			}
+			if ($i == "blocks.") {
+				str = $(i-1);
+				gsub(",","",str);
+				blocks += str;
+			}
+		}
+	 }
+	 END {
+		print "# " bytes " bytes " blocks " blocks in " runs " runs" > "/dev/stderr";
+	 }' 2> ${TMP_COUNT}
 
-	while read line
-	do
-		gline=`echo "${line}" | grep "^=="`
-		if [ -z "${gline}" ] ; then
-			gline=`echo "${line}" | grep "^${VALGRIND} " | sed "s:.*/::"`
-			if [ -n "${gline}" ] ; then
-				bin_name=`echo "${line}" | cut -d" " -f8`
-			fi
-			continue
-		fi
-
-		line=`echo "${line}" | sed "s/==[0-9]*==\s*\(.*\)/\1/"`
-
-		gline=`echo "${line}" | grep "blocks are"`
-		if [ -n "${gline}" ] ; then
-			in_mel=1
-			mel_line=0
-			stack_string=""
-		else
-			gline=`echo "${line}" | grep "LEAK SUMMARY"`
-			if [ -n "${gline}" ] ; then
-				in_sum=1
-				mel_line=0
-			fi
-		fi
-		
-		if [ -z "${line}" ] ; then
-			if [ ${in_mel} -eq 1 ] ; then
-				in_mel=0
-				echo "${bin_name}${stack_string}"
-			elif [ ${in_sum} -eq 1 ] ; then
-				in_sum=0
-			fi
-		fi
-			
-		if [ ${in_mel} -eq 1 ] ; then
-			mel_line=`expr ${mel_line} + 1`
-			
-			if [ ${mel_line} -ge 2 ] ; then
-				new_line=`echo "${line}" | sed "s/[^:]*:\ \(\S*\).*/\1/"`
-				if [ "${new_line}" = "(within" ] ; then
-					new_line="*"
-				fi
-				stack_string="/${new_line}${stack_string}"
-			fi
-		elif [ ${in_sum} -eq 1 ] ; then
-			mel_line=`expr ${mel_line} + 1`
-			
-			if [ ${mel_line} -ge 2 ] ; then
-				gline=`echo "${line}" | grep "bytes.*blocks"`
-				if [ -n "${gline}" ] ; then
-					lbytes=`echo "${line}" | sed "s/.*: \(.*\) bytes.*/\1/" | sed "s/,//g"`
-					lblocks=`echo "${line}" | sed "s/.*bytes in \(.*\) blocks.*/\1/" | sed "s/,//g"`
-
-					tbytes=`expr "${tbytes}" + "${lbytes}"`
-					tblocks=`expr "${tblocks}" + "${lblocks}"`
-				else
-					in_sum=0
-				fi
-			fi
-		fi
-	done
-}
-
-############################# log_compare ##############################
-# local shell function to check if selected stack is found in the list
-# of ignored stacks
-########################################################################
-log_compare()
-{
-	BUG_ID=""
-
-	while read line
-	do
-		LINE="${line}"
-		STACK="${stack}"
-
-		if [ "${LINE}" = "${STACK}" ] ; then
-			return 0
-		fi
-		
-		NEXT=0
-
-		gline=`echo "${LINE}" | grep '^#'`
-		if [ -n "${gline}" ] ; then
-			BUG_ID="${LINE}"
-			NEXT=1
-		fi
-		
-		gline=`echo "${LINE}" | grep '*'`
-		if [ -z "${gline}" ] ; then
-			NEXT=1
-		fi
-		
-		while [ "${LINE}" != "" -a ${NEXT} -ne 1 ]
-		do
-			L_WORD=`echo "${LINE}" | cut -d '/' -f1`
-			gline=`echo "${LINE}" | grep '/'`
-			if [ -n "${gline}" ] ; then
-				LINE=`echo "${LINE}" | cut -d '/' -f2-`
-			else
-				LINE=""
-			fi
-
-			S_WORD=`echo "${STACK}" | cut -d '/' -f1`
-			gline=`echo "${STACK}" | grep '/'`
-			if [ -n "${gline}" ] ; then
-				STACK=`echo "${STACK}" | cut -d '/' -f2-`
-			else
-				STACK=""
-			fi
-			
-			if [ "${L_WORD}" = "**" ] ; then
-				return 0
-			fi
-			
-			if [ "${L_WORD}" != "${S_WORD}" -a "${L_WORD}" != "*" -a "${S_WORD}" != "*" ] ; then
-				NEXT=1
-				break
-			fi
-		done
-
-		if [ "${LINE}" = "" -a "${STACK}" = "" ] ; then
-			return 0
-		fi
-	done
-
-	return 1
+	# sigh it would be nice to just pipe stderr and let stdout go by I've never been 
+	# able to convince any shell to do that correctly, so we are reduced to using a temp
+	# file
+	read hash lbytes bytes_str lblocks blocks_str in_str lruns rest < ${TMP_COUNT}
+	tbytes=`expr "${tbytes}" + "${lbytes}"`
+	tblocks=`expr "${tblocks}" + "${lblocks}"`
+	truns=`expr "${truns}" + "${lruns}"`
+	rm ${TMP_COUNT}
 }
 
 ############################# check_ignored ############################
@@ -657,24 +592,83 @@ log_compare()
 ########################################################################
 check_ignored()
 {
-	ret=0
-
-	while read stack
-	do
-		log_compare < ${IGNORED_STACKS}
-		if [ $? -eq 0 ] ; then
-			if [ ${BUG_ID} != "" ] ; then
-				echo "IGNORED STACK (${BUG_ID}): ${stack}"
-			else
-				echo "IGNORED STACK: ${stack}"
-			fi
-		else
-			ret=1
-			echo "NEW STACK: ${stack}"
-		fi
-	done
-
-	return ${ret}
+    ${AWK} -F/ '
+	BEGIN {
+		ignore="'${IGNORED_STACKS}'"
+		# read in the ignore file
+		BUGNUM="";
+		count = 0;
+		new = 0;
+		while ((getline line < ignore) > 0)  {
+			if (line ~ "^#[0-9]+") {
+				BUGNUM = line;
+			} else if (line ~ "^#") {
+				continue;
+			} else if (line == "") {
+				continue;
+			} else {
+				bugnum_array[count] = BUGNUM;
+				line_array[count] = line;
+				depth_array[count]= split(line, tmp_array, "/");
+				for (i=1; i <= depth_array[count]; i++ ) {
+					ignore_array[count,i] = tmp_array[i];
+				}
+				count++;
+			}
+		}
+	}
+	{
+		match_found = 0;
+	 	for (i=0 ; i < count; i++) {
+			do_next = 0;
+			for (j=1; j <= NF; j++) {
+				# our stack is deeper, no match 
+				if (j > depth_array[i]) {
+					do_next = 1;
+					break;
+				}
+				ignore = ignore_array[i,j];
+				# we found the end of the stack we have a match
+				if (ignore == "**") {
+					match_found = 1;
+					break;
+				}
+				# our stack is mismatched, no match
+				if ((ignore != "*") &&
+				    (ignore != $j)) {
+					do_next = 1;
+					break;
+				}
+			}
+			# we ve matched to the end of the stack
+			if (match_found == 1) {
+			    break;
+			}
+			# we haven t found a mismatch, make sure the
+			# stack depth is long enough.
+			if (do_next != 1) {
+				if  (NF == depth_array[i]) {
+					match_found=1;
+					break;
+				}
+			}
+		  }
+		  if (match_found == 1) {
+			if (bugnum_array[i] != "") {
+				print "IGNORED STACK (" bugnum_array[i] "): " $0;
+			} else {
+				print "IGNORED STACK: " $0;
+			}
+		} else {
+			print "NEW STACK: " $0;
+			new=1;
+		}
+	}
+	END {
+		exit new;
+	}'
+	ret=$?
+	return $ret
 }
 
 ############################### parse_log ##############################
@@ -700,6 +694,7 @@ cnt_total()
 	echo ""
 	echo "TinderboxPrint:${OPT} Lk bytes: ${tbytes}"
 	echo "TinderboxPrint:${OPT} Lk blocks: ${tblocks}"
+	echo "TinderboxPrint:${OPT} # of runs: ${truns}"
 	echo ""
 }
 
@@ -723,3 +718,4 @@ run_ocsp
 
 cnt_total
 memleak_cleanup
+
