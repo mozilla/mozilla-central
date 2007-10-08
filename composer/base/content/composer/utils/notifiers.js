@@ -106,14 +106,15 @@ var NotifierUtils = {
 
     if (aKeyword in this.mKeywords)
     {
-      var index = this.mKeywords[aKeyword].indexOf(aFn);
-      if (index != -1)
-      {
-        this.mKeywords[aKeyword].splice(index, 1);
-        this.mContexts[aKeyword].splice(index, 1);
-      }
-      else
-        this._error("no such callback for notifier id", aKeyword);
+      var callbacks = this.mKeywords[aKeyword];
+      for (var index = 0; index < callbacks.length;  index++)
+        if (callbacks[index] == aFn)
+        {
+          this.mKeywords[aKeyword].splice(index, 1);
+          this.mContexts[aKeyword].splice(index, 1);
+          return;
+        }
+      this._error("no such callback for notifier id", aKeyword);
     }
     else
       this._error("called with unrecognized notifier id", aKeyword);
