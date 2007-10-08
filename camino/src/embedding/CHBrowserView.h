@@ -55,7 +55,6 @@ class nsIDOMNode;
 class nsIDOMElement;
 class nsIDOMPopupBlockedEvent;
 class nsIDOMEvent;
-class nsIEventSink;
 class nsIPrintSettings;
 class nsIURI;
 class nsISupports;

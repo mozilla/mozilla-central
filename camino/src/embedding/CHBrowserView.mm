@@ -122,8 +122,6 @@
 #include "nsIClipboardCommands.h"
 #include "nsIInterfaceRequestorUtils.h"
 
-#include "nsIEventSink.h"
-
 // Undo/redo
 #include "nsICommandManager.h"
 #include "nsICommandParams.h"
@@ -158,10 +156,6 @@ const char kDirServiceContractID[] = "@mozilla.org/file/directory_service;1";
 - (void)savePrintSettings;
 
 - (already_AddRefed<nsISecureBrowserUI>)getSecureBrowserUI;
-
-  // given a point in window coordinates, find the Gecko event sink of the ChildView the
-  // point is over.
-- (void) findEventSink:(nsIEventSink**)outSink forPoint:(NSPoint)inPoint inWindow:(NSWindow*)inWind;
 
 @end
 
@@ -1374,26 +1368,6 @@ const char kDirServiceContractID[] = "@mozilla.org/file/directory_service;1";
   // Finally, see if our parent responds to the nativeWindow selector,
   // and if they do, let them handle it.
   return [[self getBrowserContainer] nativeWindow];
-}
-
-
-//
-// -findEventSink:forPoint:inWindow:
-//
-// Given a point in window coordinates, find the Gecko event sink of the ChildView
-// the point is over. This involves first converting the point to this view's
-// coordinate system and using hitTest: to get the subview. Then we get
-// that view's widget and QI it to an event sink
-//
-- (void) findEventSink:(nsIEventSink**)outSink forPoint:(NSPoint)inPoint inWindow:(NSWindow*)inWind
-{
-  NSPoint localPoint = [self convertPoint:inPoint fromView:[inWind contentView]];
-  NSView<mozView>* hitView = [self hitTest:localPoint];
-  if ( [hitView conformsToProtocol:@protocol(mozView)] ) {
-    nsCOMPtr<nsIEventSink> sink (do_QueryInterface([hitView widget]));
-    *outSink = sink.get();
-    NS_IF_ADDREF(*outSink);
-  }
 }
 
 // does NOT addref return value
