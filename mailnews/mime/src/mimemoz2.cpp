@@ -1189,7 +1189,7 @@ mime_image_make_image_html(void *image_closure)
 
   /* Internal-external-reconnect only works when going to the screen. */
   if (!mid->istream)
-    return strdup("<P><CENTER><IMG SRC=\"resource://gre/res/network/gopher-image.gif\" ALT=\"[Image]\"></CENTER><P>");
+    return strdup("<P><CENTER><IMG SRC=\"resource://gre/res/loading-image.gif\" ALT=\"[Image]\"></CENTER><P>");
 
   nsCOMPtr<nsIPrefBranch> prefBranch;
   nsCOMPtr<nsIPrefService> prefSvc(do_GetService(NS_PREFSERVICE_CONTRACTID));

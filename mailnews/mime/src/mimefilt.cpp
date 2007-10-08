@@ -125,23 +125,6 @@ test_file_type (const char *filename, void *stream_closure)
   return 0;
 }
 
-static char *
-test_type_icon(const char *type, void *stream_closure)
-{
-  if (!PL_strncasecmp(type, "text/", 5))
-  return strdup("resource://gre/res/html/gopher-text.gif");
-  if (!PL_strncasecmp(type, "image/", 6))
-  return strdup("resource://gre/res/html/gopher-image.gif");
-  if (!PL_strncasecmp(type, "audio/", 6))
-  return strdup("resource://gre/res/html/gopher-sound.gif");
-  if (!PL_strncasecmp(type, "video/", 6))
-  return strdup("resource://gre/res/html/gopher-movie.gif");
-  if (!PL_strncasecmp(type, "application/", 12))
-  return strdup("resource://gre/res/html/gopher-binary.gif");
-
-  return strdup("resource://gre/res/html/gopher-unknown.gif");
-}
-
 static int
 test_output_fn(char *buf, PRInt32 size, void *closure)
 {
