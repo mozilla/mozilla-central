@@ -49,7 +49,7 @@ EXPORT_RESOURCE_FILES =  \
 
 ifdef MOZ_MOVEMAIL
 ifdef MOZ_THUNDERBIRD
-ifneq (cocoa,$(MOZ_WIDGET_TOOLKIT)))
+ifneq (cocoa,$(MOZ_WIDGET_TOOLKIT))
 EXPORT_RESOURCE_FILES += movemail.rdf
 endif
 else
