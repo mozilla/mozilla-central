@@ -993,6 +993,8 @@ nsldapi_free_request( LDAP *ld, LDAPRequest *lr, int free_conn )
 		lr, lr->lr_origid, lr->lr_msgid );
 
 	if ( lr->lr_parent != NULL ) {
+		/* unlink child from parent */
+		lr->lr_parent->lr_child = NULL;
 		--lr->lr_parent->lr_outrefcnt;
 	}
 
