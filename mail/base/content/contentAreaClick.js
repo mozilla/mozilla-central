@@ -40,46 +40,41 @@
 #
 # ***** END LICENSE BLOCK *****
 
-/*
- * - [ Dependencies ] ---------------------------------------------------------
- *  utilityOverlay.js:
- *    - gatherTextUnder
- */
+  var pref = Components.classes["@mozilla.org/preferences-service;1"]
+                       .getService(Components.interfaces.nsIPrefBranch);
 
-  var pref = Components.classes["@mozilla.org/preferences-service;1"].getService(Components.interfaces.nsIPrefBranch);
-  
-  /** 
-   * extract the href from the link click event. 
+  /**
+   * Extract the href from the link click event.
    * We look for HTMLAnchorElement, HTMLAreaElement, HTMLLinkElement,
    * HTMLInputElement.form.action, and nested anchor tags.
-   * 
+   *
    * @return href for the url being clicked
    */
-  function hRefForClickEvent(event)
+  function hRefForClickEvent(aEvent)
   {
-    var target = event.target;
+    var target = aEvent.target;
     var href;
-    var isKeyPress = (event.type == "keypress");
+    var isKeyPress = (aEvent.type == "keypress");
 
     if (target instanceof HTMLAnchorElement ||
         target instanceof HTMLAreaElement   ||
         target instanceof HTMLLinkElement)
     {
-      if (target.hasAttribute("href")) 
+      if (target.hasAttribute("href"))
         href = target.href;
     }
     else if (target instanceof HTMLInputElement)
     {
       if (target.form && target.form.action)
-        href = target.form.action;      
+        href = target.form.action;
     }
-    else 
+    else
     {
       // we may be nested inside of a link node
-      var linkNode = event.originalTarget;
+      var linkNode = aEvent.originalTarget;
       while (linkNode && !(linkNode instanceof HTMLAnchorElement))
         linkNode = linkNode.parentNode;
-      
+
       if (linkNode)
         href = linkNode.href;
     }
@@ -87,7 +82,7 @@
     return href;
   }
 
-  function messagePaneOnResize(event)
+  function messagePaneOnResize(aEvent)
   {
     // scale any overflowing images
     var messagepane = document.getElementById("messagepane");
@@ -117,23 +112,21 @@
   }
 
   // Called whenever the user clicks in the content area,
-  // except when left-clicking on links (special case)
   // should always return true for click to go through
-  function contentAreaClick(event) 
+  function contentAreaClick(aEvent)
   {
-    var href = hRefForClickEvent(event);
-    if (href) 
+    var href = hRefForClickEvent(aEvent);
+    if (href && !aEvent.button) // left click on link only
     {
-      handleLinkClick(event, href, null);
-      if (!event.button)  // left click only
-        return gPhishingDetector.warnOnSuspiciousLinkClick(href); // let the phishing detector check the link
+      // let the phishing detector check the link
+      return gPhishingDetector.warnOnSuspiciousLinkClick(href);
     }
-    else if (!event.button)
+    if (!aEvent.button)
     {
-      var target = event.target;
+      var target = aEvent.target;
       // is this an image that we might want to scale?
       const Ci = Components.interfaces;
-      if (target instanceof Ci.nsIImageLoadingContent) 
+      if (target instanceof Ci.nsIImageLoadingContent)
       {
         // make sure it loaded successfully
         var req = target.getRequest(Ci.nsIImageLoadingContent.CURRENT_REQUEST);
@@ -159,11 +152,11 @@
         }
       }
     }
-    
+
     return true;
   }
 
-  function openNewTabOrWindow(event, href, sendReferrer)
+  function openNewTabOrWindow(aEvent, aHref, aSendReferrer)
   {
     // always return false for stand alone mail (MOZ_THUNDERBIRD)
     // let someone else deal with it
@@ -172,30 +165,22 @@
 
   function getContentFrameURI(aFocusedWindow)
   {
-    var contentFrame = isContentFrame(aFocusedWindow) ? aFocusedWindow : window.content;
+    var contentFrame =
+      isContentFrame(aFocusedWindow) ? aFocusedWindow : window.content;
     return contentFrame.location.href;
   }
 
-  function handleLinkClick(event, href, linkNode)
-  {
-    // Make sure we are allowed to open this URL
-    var focusedWindow = document.commandDispatcher.focusedWindow;
-    var sourceURL = getContentFrameURI(focusedWindow);
-    urlSecurityCheck(href, sourceURL);
-    return false;
-  }
-
-  function middleMousePaste( event )
+  function middleMousePaste(aEvent)
   {
     return false;
   }
 
-  function makeURLAbsolute( base, url ) 
+  function makeURLAbsolute(aBase, aUrl)
   {
     // Construct nsIURL.
-    var ioService = Components.classes["@mozilla.org/network/io-service;1"]
-                  .getService(Components.interfaces.nsIIOService);
-    var baseURI  = ioService.newURI(base, null, null);
+    var ioService = Components.classes["@mozilla.org/network/io-service;1"].
+                    getService(Components.interfaces.nsIIOService);
+    var baseURI  = ioService.newURI(aBase, null, null);
 
-    return ioService.newURI(baseURI.resolve(url), null, null).spec;
+    return ioService.newURI(baseURI.resolve(aUrl), null, null).spec;
   }

@@ -60,6 +60,8 @@ var mailSession;
 var gMessengerBundle;
 var gBrandBundle;
 
+var gContextMenu;
+
 var datasourceContractIDPrefix = "@mozilla.org/rdf/datasource;1?name=";
 var accountManagerDSContractID = datasourceContractIDPrefix + "msgaccountmanager";
 var folderDSContractID         = datasourceContractIDPrefix + "mailnewsfolders";

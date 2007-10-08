@@ -802,7 +802,7 @@ function IsMenuItemShowing(menuID)
 // message pane context menu helper methods
 function addEmail()
 {
-  var url = gContextMenu.linkURL();
+  var url = gContextMenu.linkURL;
   var addresses = getEmail(url);
   window.openDialog("chrome://messenger/content/addressbook/abNewCardDialog.xul",
                     "",
@@ -812,7 +812,7 @@ function addEmail()
 
 function composeEmailTo ()
 {
-  var url = gContextMenu.linkURL();
+  var url = gContextMenu.linkURL;
   var addresses = getEmail(url);
   var fields = Components.classes["@mozilla.org/messengercompose/composefields;1"].createInstance(Components.interfaces.nsIMsgCompFields);
   var params = Components.classes["@mozilla.org/messengercompose/composeparams;1"].createInstance(Components.interfaces.nsIMsgComposeParams);

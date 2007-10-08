@@ -1,4 +1,4 @@
-# -*- Mode: C; tab-width: 4; indent-tabs-mode: nil; c-basic-offset: 4 -*- */
+# -*- Mode: C; tab-width: 2; indent-tabs-mode: nil; c-basic-offset: 2 -*- */
 # ***** BEGIN LICENSE BLOCK *****
 # Version: MPL 1.1/GPL 2.0/LGPL 2.1
 #
@@ -24,6 +24,7 @@
 #   William A. ("PowerGUI") Law <law@netscape.com>
 #   Blake Ross <blakeross@telocity.com>
 #   Gervase Markham <gerv@gerv.net>
+#   Phil Ringnalda <philringnalda@gmail.com>
 #
 # Alternatively, the contents of this file may be used under the terms of
 # either the GNU General Public License Version 2 or later (the "GPL"), or
@@ -39,733 +40,527 @@
 #
 # ***** END LICENSE BLOCK *****
 
-/*------------------------------ nsContextMenu ---------------------------------
-|   This JavaScript "class" is used to implement the browser's content-area    |
-|   context menu.                                                              |
-|                                                                              |
-|   For usage, see references to this class in navigator.xul.                  |
-|                                                                              |
-|   Currently, this code is relatively useless for any other purpose.  In the  |
-|   longer term, this code will be restructured to make it more reusable.      |
-------------------------------------------------------------------------------*/
+function nsContextMenu(aXulMenu) {
+  this.target         = null;
+  this.menu           = null;
+  this.onTextInput    = false;
+  this.onImage        = false;
+  this.onLoadedImage  = false;
+  this.onLink         = false;
+  this.onMailtoLink   = false;
+  this.onSaveableLink = false;
+  this.onMetaDataItem = false;
+  this.onMathML       = false;
+  this.link           = false;
+  this.linkURL        = "";
+  this.linkURI        = null;
+  this.linkProtocol   = null;
+  this.inFrame        = false;
+  this.hasBGImage     = false;
+  this.isTextSelected = false;
+  this.inDirList      = false;
+  this.shouldDisplay  = true;
 
-
-function nsContextMenu( xulMenu ) {
-    this.target         = null;
-    this.menu           = null;
-    this.popupURL       = null;
-    this.onTextInput    = false;
-    this.onImage        = false;
-    this.onLoadedImage  = false;
-    this.onLink         = false;
-    this.onMailtoLink   = false;
-    this.onSaveableLink = false;
-    this.onMetaDataItem = false;
-    this.onMathML       = false;
-    this.link           = false;
-    this.inFrame        = false;
-    this.hasBGImage     = false;
-    this.isTextSelected = false;
-    this.inDirList      = false;
-    this.shouldDisplay  = true;
-
-    // Initialize new menu.
-    this.initMenu( xulMenu );
+  this.initMenu(aXulMenu);
 }
 
-// Prototype for nsContextMenu "class."
 nsContextMenu.prototype = {
-    // onDestroy is a no-op at this point.
-    onDestroy : function () {
-    },
-    // Initialize context menu.
-    initMenu : function ( popup ) {
-        // Save menu.
-        this.menu = popup;
+  /**
+   * Init: set properties based on the clicked-on element and the state of
+   * the world, then determine which context menu items to show based on
+   * those properties.
+   */
+  initMenu : function CM_initMenu(aPopup) {
+    this.menu = aPopup;
 
-        // Get contextual info.
-        this.setTarget( document.popupNode );
-        
-        this.isTextSelected = this.isTextSelection();
+    // Get contextual info.
+    this.setTarget(document.popupNode);
+    this.isTextSelected = this.isTextSelection();
 
-        this.initPopupURL();
+    this.initItems();
+  },
+  initItems : function CM_initItems() {
+    this.initSaveItems();
+    this.initClipboardItems();
+  },
+  initSaveItems : function CM_initSaveItems() {
+    this.showItem("context-savelink", this.onSaveableLink);
+    this.showItem("context-saveimage", this.onLoadedImage);
+  },
+  initClipboardItems : function CM_initClipboardItems() {
+    // Copy depends on whether there is selected text.
+    // Enabling this context menu item is now done through the global
+    // command updating system.
 
-        // Initialize (disable/remove) menu items.
-        this.initItems();
-    },
-    initItems : function () {
-        this.initOpenItems();
-        this.initNavigationItems();
-        this.initViewItems();
-        this.initMiscItems();
-        this.initSaveItems();
-        this.initClipboardItems();
-        this.initMetadataItems();
-    },
-    initOpenItems : function () {
-        // this.showItem( "context-openlink", this.onSaveableLink || ( this.inDirList && this.onLink ) );
-        this.showItem( "context-openlinkintab", this.onSaveableLink || ( this.inDirList && this.onLink ) );
+    goUpdateGlobalEditMenuItems();
 
-        this.showItem( "context-sep-open", this.onSaveableLink || ( this.inDirList && this.onLink ) );
-    },
-    initNavigationItems : function () {
-        // Back determined by canGoBack broadcaster.
-        this.setItemAttrFromNode( "context-back", "disabled", "canGoBack" );
+    this.showItem("context-copy", this.isTextSelected || this.onTextInput);
+    this.showItem("context-selectall", true);
+    this.showItem("context-copyemail", this.onMailtoLink);
+    this.showItem("context-copylink", this.onLink);
+    this.showItem("context-copyimage", this.onImage);
+  },
 
-        // Forward determined by canGoForward broadcaster.
-        this.setItemAttrFromNode( "context-forward", "disabled", "canGoForward" );
-        
-        this.showItem( "context-back", !( this.isTextSelected || this.onLink || this.onImage || this.onTextInput ) );
-        this.showItem( "context-forward", !( this.isTextSelected || this.onLink || this.onImage || this.onTextInput ) );
-
-        this.showItem( "context-reload", !( this.isTextSelected || this.onLink || this.onImage || this.onTextInput ) );
-        
-        this.showItem( "context-stop", !( this.isTextSelected || this.onLink || this.onImage || this.onTextInput ) );
-        this.showItem( "context-sep-stop", !( this.isTextSelected || this.onLink || this.onImage || this.onTextInput ) );
-
-        // XXX: Stop is determined in navigator.js; the canStop broadcaster is broken
-        //this.setItemAttrFromNode( "context-stop", "disabled", "canStop" );
-    },
-    initSaveItems : function () {
-        this.showItem( "context-savepage", !( this.inDirList || this.isTextSelected || this.onTextInput ) && !( this.onLink && this.onImage ) );
-
-        // Save link depends on whether we're in a link.
-        this.showItem( "context-savelink", this.onSaveableLink );
-
-        // Save image depends on whether there is one.
-        this.showItem( "context-saveimage", this.onLoadedImage );
-        
-        this.showItem( "context-sendimage", this.onImage );
-    },
-    initViewItems : function () {
-        // View source is always OK, unless in directory listing.
-        this.showItem( "context-viewpartialsource-selection", this.isTextSelected && !this.onTextInput );
-        this.showItem( "context-viewpartialsource-mathml", this.onMathML && !this.isTextSelected );
-        this.showItem( "context-viewsource", !( this.inDirList || this.onImage || this.isTextSelected || this.onLink || this.onTextInput ) );
-        this.showItem( "context-viewinfo", !( this.inDirList || this.onImage || this.isTextSelected || this.onLink || this.onTextInput ) );
-
-        this.showItem( "context-sep-properties", !( this.inDirList || this.isTextSelected || this.onTextInput ) );
-        // Set As Wallpaper depends on whether an image was clicked on, and only works on Windows.
-        var isWin = navigator.appVersion.indexOf("Windows") != -1;
-        this.showItem( "context-setWallpaper", isWin && this.onLoadedImage );
-
-        this.showItem( "context-sep-image", this.onImage );
-
-        if( isWin && this.onLoadedImage )
-            // Disable the Set As Wallpaper menu item if we're still trying to load the image
-          this.setItemAttr( "context-setWallpaper", "disabled", (("complete" in this.target) && !this.target.complete) ? "true" : null );
-
-        this.showItem( "context-fitimage", this.onStandaloneImage && _content.document.imageResizingEnabled );
-        if ( this.onStandaloneImage && _content.document.imageResizingEnabled ) {
-          this.setItemAttr( "context-fitimage", "disabled", _content.document.imageIsOverflowing ? null : "true");
-          this.setItemAttr( "context-fitimage", "checked", _content.document.imageIsResized ? "true" : null);
-        }
-
-        // View Image depends on whether an image was clicked on.
-        this.showItem( "context-viewimage", this.onImage && !this.onStandaloneImage);
-
-        // View background image depends on whether there is one.
-        this.showItem( "context-viewbgimage", !( this.inDirList || this.onImage || this.isTextSelected || this.onLink || this.onTextInput ) );
-        this.showItem( "context-sep-viewbgimage", !( this.inDirList || this.onImage || this.isTextSelected || this.onLink || this.onTextInput ) );
-        this.setItemAttr( "context-viewbgimage", "disabled", this.hasBGImage ? null : "true");
-    },
-    initMiscItems : function () {
-        // Use "Bookmark This Link" if on a link.
-        this.showItem( "context-bookmarkpage", !( this.isTextSelected || this.onTextInput ) );
-        this.showItem( "context-bookmarklink", this.onLink && !this.onMailtoLink );
-        this.showItem( "context-searchselect", this.isTextSelected && !this.onTextInput );
-        this.showItem( "frame", this.inFrame );
-        this.showItem( "frame-sep", this.inFrame );
-        var blocking = true;
-        if (this.popupURL)
-          try {
-            const PM = Components.classes["@mozilla.org/PopupWindowManager;1"]
-                       .getService(Components.interfaces.nsIPopupWindowManager);
-            blocking = PM.testPermission(this.popupURL) ==
-                       Components.interfaces.nsIPopupWindowManager.DENY_POPUP;
-          } catch (e) {
-          }
-
-        this.showItem( "popupwindow-reject", this.popupURL && !blocking);
-        this.showItem( "popupwindow-allow", this.popupURL && blocking);
-        this.showItem( "context-sep-popup", this.popupURL);
-    },
-    initClipboardItems : function () {
-
-        // Copy depends on whether there is selected text.
-        // Enabling this context menu item is now done through the global
-        // command updating system
-        // this.setItemAttr( "context-copy", "disabled", !this.isTextSelected() );
-
-        goUpdateGlobalEditMenuItems();
-
-        this.showItem( "context-undo", this.onTextInput );
-        this.showItem( "context-redo", this.onTextInput );
-        this.showItem( "context-sep-undo", this.onTextInput );
-        this.showItem( "context-cut", this.onTextInput );
-        this.showItem( "context-copy", this.isTextSelected || this.onTextInput);
-        this.showItem( "context-paste", this.onTextInput );
-        this.showItem( "context-delete", this.onTextInput );
-        this.showItem( "context-sep-paste", this.onTextInput );
-        this.showItem( "context-selectall", true );
-        this.showItem( "context-sep-selectall", this.isTextSelected && !this.onTextInput );
-        // In a text area there will be nothing after select all, so we don't want a sep
-        // Otherwise, if there's text selected then there are extra menu items
-        // (search for selection and view selection source), so we do want a sep
-
-        // XXX dr
-        // ------
-        // nsDocumentViewer.cpp has code to determine whether we're
-        // on a link or an image. we really ought to be using that...
-
-        // Copy email link depends on whether we're on an email link.
-        this.showItem( "context-copyemail", this.onMailtoLink );
-
-        // Copy link location depends on whether we're on a link.
-        this.showItem( "context-copylink", this.onLink );
-        this.showItem( "context-sep-copylink", this.onLink );
-
-        // Copy image location depends on whether we're on an image.
-        this.showItem( "context-copyimage", this.onImage );
-        this.showItem( "context-sep-copyimage", this.onImage );
-    },
-    initMetadataItems : function () {
-        // Show if user clicked on something which has metadata.
-        this.showItem( "context-metadata", this.onMetaDataItem );
-    },
-    // Set various context menu attributes based on the state of the world.
-    setTarget : function ( node ) {
-        const xulNS = "http://www.mozilla.org/keymaster/gatekeeper/there.is.only.xul";
-        if ( node.namespaceURI == xulNS ) {
-          this.shouldDisplay = false;
-          return;
-        }
-        // Initialize contextual info.
-        this.onImage    = false;
-        this.onLoadedImage = false;
-        this.onStandaloneImage = false;
-        this.onMetaDataItem = false;
-        this.onTextInput = false;
-        this.imageURL   = "";
-        this.onLink     = false;
-        this.onMathML   = false;
-        this.inFrame    = false;
-        this.hasBGImage = false;
-        this.bgImageURL = "";
-
-        // Remember the node that was clicked.
-        this.target = node;
-
-        // See if the user clicked on an image.
-        if ( this.target.nodeType == Node.ELEMENT_NODE ) {
-            if ( this.target instanceof Components.interfaces.nsIImageLoadingContent && this.target.currentURI  ) {
-                this.onImage = true;
-                var request = this.target.getRequest( Components.interfaces.nsIImageLoadingContent.CURRENT_REQUEST );
-                if (request && (request.imageStatus & request.STATUS_SIZE_AVAILABLE))
-                    this.onLoadedImage = true;
-                this.imageURL = this.target.currentURI.spec;
-
-                if ( this.target.ownerDocument instanceof ImageDocument )
-                   this.onStandaloneImage = true;
-            } else if ( this.target instanceof HTMLInputElement) {
-               this.onTextInput = this.isTargetATextBox(this.target);
-            } else if ( this.target instanceof HTMLTextAreaElement ) {
-                 this.onTextInput = true;
-            } else if ( this.target instanceof HTMLHtmlElement ) {
-               // pages with multiple <body>s are lame. we'll teach them a lesson.
-               var bodyElt = this.target.ownerDocument.getElementsByTagName("body")[0];
-               if ( bodyElt ) {
-                 var computedURL = this.getComputedURL( bodyElt, "background-image" );
-                 if ( computedURL ) {
-                   this.hasBGImage = true;
-                   this.bgImageURL = this.makeURLAbsolute( bodyElt.baseURI,
-                                                           computedURL );
-                 }
-               }
-            } else if ( "HTTPIndex" in _content &&
-                        _content.HTTPIndex instanceof Components.interfaces.nsIHTTPIndex ) {
-                this.inDirList = true;
-                // Bubble outward till we get to an element with URL attribute
-                // (which should be the href).
-                var root = this.target;
-                while ( root && !this.link ) {
-                    if ( root.tagName == "tree" ) {
-                        // Hit root of tree; must have clicked in empty space;
-                        // thus, no link.
-                        break;
-                    }
-                    if ( root.getAttribute( "URL" ) ) {
-                        // Build pseudo link object so link-related functions work.
-                        this.onLink = true;
-                        this.link = { href : root.getAttribute("URL"),
-                                      getAttribute: function (attr) {
-                                          if (attr == "title") {
-                                              return root.firstChild.firstChild.getAttribute("label");
-                                          } else {
-                                              return "";
-                                          }
-                                      }
-                                    };
-                        // If element is a directory, then you can't save it.
-                        if ( root.getAttribute( "container" ) == "true" ) {
-                            this.onSaveableLink = false;
-                        } else {
-                            this.onSaveableLink = true;
-                        }
-                    } else {
-                        root = root.parentNode;
-                    }
-                }
-            }
-        }
-
-        // We have meta data on images.
-        this.onMetaDataItem = this.onImage;
-        
-        // See if the user clicked on MathML
-        const NS_MathML = "http://www.w3.org/1998/Math/MathML";
-        if ((this.target.nodeType == Node.TEXT_NODE &&
-             this.target.parentNode.namespaceURI == NS_MathML)
-             || (this.target.namespaceURI == NS_MathML))
-          this.onMathML = true;
-
-        // See if the user clicked in a frame.
-        if ( this.target.ownerDocument != window._content.document ) {
-            this.inFrame = true;
-        }
-        
-        // Bubble out, looking for items of interest
-        var elem = this.target;
-        while ( elem ) {
-            if ( elem.nodeType == Node.ELEMENT_NODE ) {
-                // Link?
-                if ( !this.onLink && 
-                    ( (elem instanceof HTMLAnchorElement && elem.href) ||
-                      elem instanceof HTMLAreaElement ||
-                      elem instanceof HTMLLinkElement ||
-                      elem.getAttributeNS( "http://www.w3.org/1999/xlink", "type") == "simple" ) ) {
-                    // Clicked on a link.
-                    this.onLink = true;
-                    this.onMetaDataItem = true;
-                    // Remember corresponding element.
-                    this.link = elem;
-                    this.onMailtoLink = this.isLinkType( "mailto:", this.link );
-                    // Remember if it is saveable.
-                    this.onSaveableLink = this.isLinkSaveable( this.link );
-                }
-                
-                // Text input?
-                if ( !this.onTextInput ) {
-                    // Clicked on a link.
-                    this.onTextInput = this.isTargetATextBox(elem);
-                }
-                
-                // Metadata item?
-                if ( !this.onMetaDataItem ) {
-                    // We currently display metadata on anything which fits
-                    // the below test.
-                    if ( ( elem instanceof HTMLQuoteElement && elem.cite)    ||
-                         ( elem instanceof HTMLTableElement && elem.summary) ||
-                         ( elem instanceof HTMLModElement &&
-                             ( elem.cite || elem.dateTime ) )                ||
-                         ( elem instanceof HTMLElement &&
-                             ( elem.title || elem.lang ) ) ) {
-                        this.onMetaDataItem = true;
-                    }
-                }
-
-                // Background image?  Don't bother if we've already found a 
-                // background image further down the hierarchy.  Otherwise,
-                // we look for the computed background-image style.
-                if ( !this.hasBGImage ) {
-                    var bgImgUrl = this.getComputedURL( elem, "background-image" );
-                    if ( bgImgUrl ) {
-                        this.hasBGImage = true;
-                        this.bgImageURL = this.makeURLAbsolute( elem.baseURI,
-                                                                bgImgUrl );
-                    }
-                }
-            }
-            elem = elem.parentNode;    
-        }
-    },
-    initPopupURL: function() {
-      // quick check: if no opener, it can't be a popup
-      if (!window.content.opener)
-        return;
-      try {
-        var show = false;
-        // is it a popup window?
-        const CI = Components.interfaces;
-        var xulwin = window
-                    .QueryInterface(CI.nsIInterfaceRequestor)
-                    .getInterface(CI.nsIWebNavigation)
-                    .QueryInterface(CI.nsIDocShellTreeItem)
-                    .treeOwner
-                    .QueryInterface(CI.nsIInterfaceRequestor)
-                    .getInterface(CI.nsIXULWindow);
-        if (xulwin.contextFlags &
-            CI.nsIWindowCreator2.PARENT_IS_LOADING_OR_RUNNING_TIMEOUT) {
-          // do the pref settings allow site-by-site popup management?
-          const PB = Components.classes["@mozilla.org/preferences-service;1"]
-                     .getService(CI.nsIPrefBranch);
-          show = !PB.getBoolPref("dom.disable_open_during_load");
-        }
-        if (show) {
-          // initialize popupURL
-          const IOS = Components.classes["@mozilla.org/network/io-service;1"]
-                      .getService(CI.nsIIOService);
-          var spec = Components.lookupMethod(window.content.opener, "location")
-                     .call();
-          this.popupURL = IOS.newURI(spec, null, null);
-
-          // but cancel if it's an unsuitable URL
-          const PM = Components.classes["@mozilla.org/PopupWindowManager;1"]
-                     .getService(CI.nsIPopupWindowManager);
-        }
-      } catch(e) {
-      }
-    },
-    // Returns the computed style attribute for the given element.
-    getComputedStyle: function( elem, prop ) {
-         return elem.ownerDocument.defaultView.getComputedStyle( elem, '' ).getPropertyValue( prop );
-    },
-    // Returns a "url"-type computed style attribute value, with the url() stripped.
-    getComputedURL: function( elem, prop ) {
-         var url = elem.ownerDocument.defaultView.getComputedStyle( elem, '' ).getPropertyCSSValue( prop );
-         return ( url.primitiveType == CSSPrimitiveValue.CSS_URI ) ? url.getStringValue() : null;
-    },
-    // Returns true iff clicked on link is saveable.
-    isLinkSaveable : function ( link ) {
-        // We don't do the Right Thing for news/snews yet, so turn them off
-        // until we do.
-        return !(this.isLinkType( "mailto:" , link )     ||
-                 this.isLinkType( "javascript:" , link ) ||
-                 this.isLinkType( "news:", link )        || 
-                 this.isLinkType( "snews:", link ) ); 
-    },
-    // Returns true iff clicked on link is of type given.
-    isLinkType : function ( linktype, link ) {        
-        try {
-            // Test for missing protocol property.
-            if ( !link.protocol ) {
-                // We must resort to testing the URL string :-(.
-                var protocol;
-                if ( link.href ) {
-                    protocol = link.href.substr( 0, linktype.length );
-                } else {
-                    protocol = link.getAttributeNS("http://www.w3.org/1999/xlink","href");
-                    if ( protocol ) {
-                        protocol = protocol.substr( 0, linktype.length );
-                    }
-                }
-                return protocol.toLowerCase() === linktype;        
-            } else {
-                // Presume all but javascript: urls are saveable.
-                return link.protocol.toLowerCase() === linktype;
-            }
-        } catch (e) {
-            // something was wrong with the link,
-            // so we won't be able to save it anyway
-            return false;
-        }
-    },
-    // Block popup windows
-    rejectPopupWindows: function(andClose) {
-      const PM = Components.classes["@mozilla.org/PopupWindowManager;1"]
-                 .getService(Components.interfaces.nsIPopupWindowManager);
-      PM.add(this.popupURL, false);
-      if (andClose) {
-        const OS = Components.classes["@mozilla.org/observer-service;1"]
-                   .getService(Components.interfaces.nsIObserverService);
-        OS.notifyObservers(window, "popup-perm-close", this.popupURL.spec);
-      }
-    },
-    // Unblock popup windows
-    allowPopupWindows: function() {
-      const PM = Components.classes["@mozilla.org/PopupWindowManager;1"]
-                 .getService(Components.interfaces.nsIPopupWindowManager);
-      PM.add(this.popupURL, true);
-    },
-    // Reload clicked-in frame.
-    reloadFrame : function () {
-        this.target.ownerDocument.location.reload();
-    },
-    // Open clicked-in frame in its own window.
-    openFrame : function () {
-        openNewWindowWith( this.target.ownerDocument.location.href );
-    },
-    // Open clicked-in frame in the same window
-    showOnlyThisFrame : function () {
-        window.loadURI(this.target.ownerDocument.location.href);
-    },
-    // View Partial Source
-    viewPartialSource : function ( context ) {
-        var focusedWindow = document.commandDispatcher.focusedWindow;
-        if (focusedWindow == window)
-          focusedWindow = _content;
-        var docCharset = null;
-        if (focusedWindow)
-          docCharset = "charset=" + focusedWindow.document.characterSet;
-
-        // "View Selection Source" and others such as "View MathML Source"
-        // are mutually exclusive, with the precedence given to the selection
-        // when there is one
-        var reference = null;
-        if (context == "selection")
-          reference = focusedWindow.getSelection();
-        else if (context == "mathml")
-          reference = this.target;
-        else
-          throw "not reached";
-
-        var docUrl = null; // unused (and play nice for fragments generated via XSLT too)
-        window.openDialog("chrome://navigator/content/viewPartialSource.xul",
-                          "_blank", "scrollbars,resizable,chrome,dialog=no",
-                          docUrl, docCharset, reference, context);
-    },
-    // Open new "view source" window with the frame's URL.
-    viewFrameSource : function () {
-        BrowserViewSourceOfDocument(this.target.ownerDocument);
-    },
-    viewInfo : function () {
-        BrowserPageInfo();
-    },
-    viewFrameInfo : function () {
-        BrowserPageInfo(this.target.ownerDocument);
-    },
-    toggleImageSize : function () {
-        _content.document.toggleImageSize();
-    },
-    // Change current window to the URL of the image.
-    viewImage : function () {
-        // we don't really want to open the url in a top level window because we don't have a 
-        // browser window...for now do nothing
-    },
-    // Change current window to the URL of the background image.
-    viewBGImage : function () {
-        openTopWin( this.bgImageURL );
-    },
-    setWallpaper: function() {
-      var winhooks = Components.classes[ "@mozilla.org/winhooks;1" ].
-                       getService(Components.interfaces.nsIWindowsHooks);
-      
-      winhooks.setImageAsWallpaper(this.target, false);
-    },    
-    // Save URL of clicked-on frame.
-    saveFrame : function () {
-        saveDocument( this.target.ownerDocument );
-    },
-    // Save URL of clicked-on link.
-    saveLink : function () {
-        saveURL( this.linkURL(), this.linkText(), null, true );
-    },
-    // Save URL of clicked-on image.
-    saveImage : function () {
-        saveURL( this.imageURL, null, "SaveImageTitle", false );
-    },
-    // Generate email address and put it on clipboard.
-    copyEmail : function () {
-        // Copy the comma-separated list of email addresses only.
-        // There are other ways of embedding email addresses in a mailto:
-        // link, but such complex parsing is beyond us.
-        
-        const kMailToLength = 7; // length of "mailto:"
-
-        var url = this.linkURL();
-        var qmark = url.indexOf( "?" );
-        var addresses;
-        
-        if ( qmark > kMailToLength ) {
-            addresses = url.substring( kMailToLength, qmark );
-        } else {
-            addresses = url.substr( kMailToLength );
-        }
-
-        // Let's try to unescape it using a character set
-        try {
-          var characterSet = this.target.ownerDocument.characterSet;
-          const textToSubURI = Components.classes["@mozilla.org/intl/texttosuburi;1"]
-                                         .getService(Components.interfaces.nsITextToSubURI);
-          addresses = textToSubURI.unEscapeURIForUI(characterSet, addresses);
-        }
-        catch(ex) {
-          // Do nothing.
-        }
-
-        var clipboard = this.getService( "@mozilla.org/widget/clipboardhelper;1",
-                                         Components.interfaces.nsIClipboardHelper );
-        clipboard.copyString(addresses);
-    },    
-
-    ///////////////
-    // Utilities //
-    ///////////////
-
-    // Create instance of component given contractId and iid (as string).
-    createInstance : function ( contractId, iidName ) {
-        var iid = Components.interfaces[ iidName ];
-        return Components.classes[ contractId ].createInstance( iid );
-    },
-    // Get service given contractId and iid (as string).
-    getService : function ( contractId, iidName ) {
-        var iid = Components.interfaces[ iidName ];
-        return Components.classes[ contractId ].getService( iid );
-    },
-    // Show/hide one item (specified via name or the item element itself).
-    showItem : function ( itemOrId, show ) {
-        var item = itemOrId.constructor == String ? document.getElementById(itemOrId) : itemOrId;
-        if (item) 
-          item.hidden = !show;
-    },
-    // Set given attribute of specified context-menu item.  If the
-    // value is null, then it removes the attribute (which works
-    // nicely for the disabled attribute).
-    setItemAttr : function ( id, attr, val ) {
-        var elem = document.getElementById( id );
-        if ( elem ) {
-            if ( val == null ) {
-                // null indicates attr should be removed.
-                elem.removeAttribute( attr );
-            } else {
-                // Set attr=val.
-                elem.setAttribute( attr, val );
-            }
-        }
-    },
-    // Set context menu attribute according to like attribute of another node
-    // (such as a broadcaster).
-    setItemAttrFromNode : function ( item_id, attr, other_id ) {
-        var elem = document.getElementById( other_id );
-        if ( elem && elem.getAttribute( attr ) == "true" ) {
-            this.setItemAttr( item_id, attr, "true" );
-        } else {
-            this.setItemAttr( item_id, attr, null );
-        }
-    },
-    // Temporary workaround for DOM api not yet implemented by XUL nodes.
-    cloneNode : function ( item ) {
-        // Create another element like the one we're cloning.
-        var node = document.createElement( item.tagName );
-
-        // Copy attributes from argument item to the new one.
-        var attrs = item.attributes;
-        for ( var i = 0; i < attrs.length; i++ ) {
-            var attr = attrs.item( i );
-            node.setAttribute( attr.nodeName, attr.nodeValue );
-        }
-
-        // Voila!
-        return node;
-    },
-    // Generate fully-qualified URL for clicked-on link.
-    linkURL : function () {
-        if (this.link.href) {
-          return this.link.href;
-        }
-        var href = this.link.getAttributeNS("http://www.w3.org/1999/xlink","href");
-        if (!href || !href.match(/\S/)) {
-          throw "Empty href"; // Without this we try to save as the current doc, for example, HTML case also throws if empty
-        }
-        href = this.makeURLAbsolute(this.link.baseURI,href);
-        return href;
-    },
-    // Get text of link.
-    linkText : function () {
-        var text = gatherTextUnder( this.link );
-        if (!text || !text.match(/\S/)) {
-          text = this.link.getAttribute("title");
-          if (!text || !text.match(/\S/)) {
-            text = this.link.getAttribute("alt");
-            if (!text || !text.match(/\S/)) {
-              if (this.link.href) {                
-                text = this.link.href;
-              } else {
-                text = getAttributeNS("http://www.w3.org/1999/xlink", "href");
-                if (text && text.match(/\S/)) {
-                  text = this.makeURLAbsolute(this.link.baseURI, text);
-                }
-              }
-            }
-          }
-        }
-
-        return text;
-    },
-
-    //Get selected object and convert it to a string to get
-    //selected text.   Only use the first 15 chars.
-    isTextSelection : function() {
-        var result = false;
-        var selection = this.searchSelected();
-
-        var bundle = srGetStrBundle("chrome://communicator/locale/contentAreaCommands.properties");
-
-        var searchSelectText;
-        if (selection != "") {
-            searchSelectText = selection.toString();
-            if (searchSelectText.length > 15)
-                searchSelectText = searchSelectText.substr(0,15) + "...";
-            result = true;
-
-          // format "Search for <selection>" string to show in menu
-          searchSelectText = bundle.formatStringFromName("searchText",
-                                                         [searchSelectText], 1);
-          this.setItemAttr("context-searchselect", "label", searchSelectText);
-        } 
-        return result;
-    },
-    
-    searchSelected : function() {
-        var focusedWindow = document.commandDispatcher.focusedWindow;
-        var searchStr = focusedWindow.getSelection();;
-        searchStr = searchStr.toString();
-        searchStr = searchStr.replace( /^\s+/, "" );
-        searchStr = searchStr.replace(/(\n|\r|\t)+/g, " ");
-        searchStr = searchStr.replace(/\s+$/,"");
-        return searchStr;
-    },
-    
-    // Convert relative URL to absolute, using document's <base>.
-    makeURLAbsolute : function ( base, url ) {
-        // Construct nsIURL.
-        var ioService = Components.classes["@mozilla.org/network/io-service;1"]
-                      .getService(Components.interfaces.nsIIOService);
-        var baseURI  = ioService.newURI(base, null, null);
-        
-        return ioService.newURI(baseURI.resolve(url), null, null).spec;
-    },
-
-    toString : function () {
-        return "contextMenu.target     = " + this.target + "\n" +
-               "contextMenu.onImage    = " + this.onImage + "\n" +
-               "contextMenu.onLink     = " + this.onLink + "\n" +
-               "contextMenu.link       = " + this.link + "\n" +
-               "contextMenu.inFrame    = " + this.inFrame + "\n" +
-               "contextMenu.hasBGImage = " + this.hasBGImage + "\n";
-    },
-    isTargetATextBox : function ( node )
-    {
-      if (node instanceof HTMLInputElement)
-        return (node.type == "text" || node.type == "password")
-
-      return (node instanceof HTMLTextAreaElement);
-    },
-
-    // Determines whether or not the separator with the specified ID should be 
-    // shown or not by determining if there are any non-hidden items between it
-    // and the previous separator. 
-    shouldShowSeparator : function ( aSeparatorID )
-    {
-      var separator = document.getElementById(aSeparatorID);
-      if (separator) {
-        var sibling = separator.previousSibling;
-        while (sibling && sibling.localName != "menuseparator") {
-          if (sibling.getAttribute("hidden") != "true")
-            return true;
-          sibling = sibling.previousSibling;
-        }
-      }
-      return false;  
+  /**
+   * Set the nsContextMenu properties based on the selected node and
+   * its ancestors.
+   */
+  setTarget : function CM_setTarget(aNode) {
+    const xulNS =
+      "http://www.mozilla.org/keymaster/gatekeeper/there.is.only.xul";
+    if (aNode.namespaceURI == xulNS) {
+      this.shouldDisplay = false;
+      return;
     }
+    this.onImage        = false;
+    this.onLoadedImage  = false;
+    this.onMetaDataItem = false;
+    this.onTextInput    = false;
+    this.imageURL       = "";
+    this.onLink         = false;
+    this.linkURL        = "";
+    this.linkURI        = null;
+    this.linkProtocol   = null;
+    this.onMathML       = false;
+    this.inFrame        = false;
+    this.hasBGImage     = false;
+    this.bgImageURL     = "";
+
+    this.target = aNode;
+
+    // First, do checks for nodes that never have children.
+    if (this.target.nodeType == Node.ELEMENT_NODE) {
+      if (this.target instanceof Components.interfaces.nsIImageLoadingContent &&
+          this.target.currentURI) {
+        this.onImage = true;
+        this.onMetaDataItem = true;
+
+        var request = this.target.getRequest(Components.interfaces.nsIImageLoadingContent.CURRENT_REQUEST);
+        if (request && (request.imageStatus & request.STATUS_SIZE_AVAILABLE))
+          this.onLoadedImage = true;
+
+        this.imageURL = this.target.currentURI.spec;
+      } else if (this.target instanceof HTMLInputElement) {
+        this.onTextInput = this.isTargetATextBox(this.target);
+      } else if (this.target instanceof HTMLTextAreaElement) {
+        this.onTextInput = true;
+      } else if (this.target instanceof HTMLHtmlElement) {
+        var bodyElt = this.target.ownerDocument.body;
+        if (bodyElt) {
+          var computedURL = this.getComputedURL(bodyElt, "background-image");
+          if (computedURL) {
+            this.hasBGImage = true;
+            this.bgImageURL = this.makeURLAbsolute(bodyElt.baseURI,
+                                                   computedURL);
+          }
+        }
+      } else if ("HTTPIndex" in content &&
+                 content.HTTPIndex instanceof Components.interfaces.nsIHTTPIndex) {
+        this.inDirList = true;
+        // Bubble outward till we get to an element with URL attribute
+        // (which should be the href).
+        var root = this.target;
+        while (root && !this.link) {
+          if (root.tagName == "tree") {
+            // Hit root of tree; must have clicked in empty space;
+            // thus, no link.
+            break;
+          }
+          if (root.getAttribute("URL")) {
+            // Build pseudo link object so link-related functions work.
+            this.onLink = true;
+            this.link = { href : root.getAttribute("URL"),
+                          getAttribute: function (aAttr) {
+                            if (aAttr == "title") {
+                              return root.firstChild.firstChild
+                                         .getAttribute("label");
+                            }
+                            return "";
+                          }
+                        };
+            // If element is a directory, then you can't save it.
+            this.onSaveableLink = root.getAttribute("container") != "true";
+          } else {
+            root = root.parentNode;
+          }
+        }
+      }
+    }
+
+    // Second, bubble out, looking for items of interest that might be
+    // parents of the click target, picking the innermost of each.
+    const XMLNS = "http://www.w3.org/XML/1998/namespace";
+    var elem = this.target;
+    while (elem) {
+      if (elem.nodeType == Node.ELEMENT_NODE) {
+        // Link?
+        if (!this.onLink &&
+            ((elem instanceof HTMLAnchorElement && elem.href) ||
+             elem instanceof HTMLAreaElement && elem.href ||
+             elem instanceof HTMLLinkElement ||
+             elem.getAttributeNS("http://www.w3.org/1999/xlink", "type") == "simple")) {
+
+          // Target is a link or a descendant of a link.
+          this.onLink = true;
+          this.onMetaDataItem = true;
+          // Remember corresponding element.
+          this.link = elem;
+          this.linkURL = this.getLinkURL();
+          this.linkURI = this.getLinkURI();
+          this.linkProtocol = this.getLinkProtocol();
+          this.onMailtoLink = (this.linkProtocol == "mailto");
+          this.onSaveableLink = this.isLinkSaveable();
+        }
+
+        // Text input?
+        if (!this.onTextInput) {
+          this.onTextInput = this.isTargetATextBox(elem);
+        }
+
+        // Metadata item?
+        if (!this.onMetaDataItem) {
+          if ((elem instanceof HTMLQuoteElement && elem.cite) ||
+              (elem instanceof HTMLTableElement && elem.summary) ||
+              (elem instanceof HTMLModElement &&
+                (elem.cite || elem.dateTime)) ||
+              (elem instanceof HTMLElement &&
+                (elem.title || elem.lang)) ||
+              (elem.getAttributeNS(XMLNS, "lang"))) {
+            this.onMetaDataItem = true;
+          }
+        }
+
+        // Background image? Don't bother if we've already found a
+        // background image further down the hierarchy. Otherwise,
+        // we look for the computed background-image style.
+        if (!this.hasBGImage) {
+          var bgImgUrl = this.getComputedURL(elem, "background-image");
+          if (bgImgUrl) {
+            this.hasBGImage = true;
+            this.bgImageURL = this.makeURLAbsolute(elem.baseURI, bgImgUrl);
+          }
+        }
+      }
+      elem = elem.parentNode;
+    }
+
+    // See if the user clicked on MathML.
+    const NS_MathML = "http://www.w3.org/1998/Math/MathML";
+    if ((this.target.nodeType == Node.TEXT_NODE &&
+         this.target.parentNode.namespaceURI == NS_MathML) ||
+        (this.target.namespaceURI == NS_MathML))
+      this.onMathML = true;
+
+    // See if the user clicked in a frame.
+    if (this.target.ownerDocument != window.content.document) {
+      this.inFrame = true;
+    }
+  },
+
+  /**
+   * Get a computed style property for an element.
+   * @param  aElem
+   *         A DOM node
+   * @param  aProp
+   *         The desired CSS property
+   * @return the value of the property
+   */
+  getComputedStyle: function CM_getComputedStyle(aElem, aProp) {
+    return aElem.ownerDocument.defaultView.getComputedStyle(aElem, "")
+                .getPropertyValue(aProp);
+  },
+
+  /**
+   * Generate a URL string from a computed style property, for things like
+   * |style="background-image:url(...)"|
+   * @return a "url"-type computed style attribute value, with the "url(" and
+   *         ")" stripped.
+   */
+  getComputedURL: function CM_getComputedURL(aElem, aProp) {
+    var url = aElem.ownerDocument.defaultView.getComputedStyle(aElem, "")
+                   .getPropertyCSSValue(aProp);
+    return (url.primitiveType == CSSPrimitiveValue.CSS_URI) ? url.getStringValue() : null;
+  },
+
+  /**
+   * Determine whether the clicked-on link can be saved, and whether it
+   * may be saved according to the ScriptSecurityManager.
+   * @return true if the protocol can be persisted and if the target has
+   *         permission to link to the URL, false if not
+   */
+  isLinkSaveable : function CM_isLinkSaveable() {
+    try {
+      const nsIScriptSecurityManager =
+        Components.interfaces.nsIScriptSecurityManager;
+      var secMan = Components.classes["@mozilla.org/scriptsecuritymanager;1"]
+                             .getService(nsIScriptSecurityManager);
+      secMan.checkLoadURIWithPrincipal(this.target.nodePrincipal, this.linkURI,
+                                       nsIScriptSecurityManager.STANDARD);
+    } catch (e) {
+      // Don't save things we can't link to.
+      return false;
+    }
+
+    // We don't do the Right Thing for news/snews yet, so turn them off
+    // until we do.
+    return this.linkProtocol && !(
+             this.linkProtocol == "mailto" ||
+             this.linkProtocol == "javascript" ||
+             this.linkProtocol == "news" ||
+             this.linkProtocol == "snews");
+  },
+
+  /**
+   * Save URL of clicked-on link.
+   */
+  saveLink : function CM_saveLink() {
+    saveURL(this.linkURL, this.linkText(), null, true);
+  },
+
+  /**
+   * Save a clicked-on image.
+   */
+  saveImage : function CM_saveImage() {
+    saveURL(this.imageURL, null, "SaveImageTitle", false);
+  },
+
+  /**
+   * Extract email addresses from a mailto: link and put them on the
+   * clipboard.
+   */
+  copyEmail : function CM_copyEmail() {
+    // Copy the comma-separated list of email addresses only.
+    // There are other ways of embedding email addresses in a mailto:
+    // link, but such complex parsing is beyond us.
+
+    const kMailToLength = 7; // length of "mailto:"
+
+    var url = this.linkURL;
+    var qmark = url.indexOf("?");
+    var addresses;
+
+    if (qmark > kMailToLength) {
+      addresses = url.substring(kMailToLength, qmark);
+    } else {
+      addresses = url.substr(kMailToLength);
+    }
+
+    // Let's try to unescape it using a character set.
+    try {
+      var characterSet = this.target.ownerDocument.characterSet;
+      const textToSubURI = Components.classes["@mozilla.org/intl/texttosuburi;1"]
+                                     .getService(Components.interfaces.nsITextToSubURI);
+      addresses = textToSubURI.unEscapeURIForUI(characterSet, addresses);
+    }
+    catch(ex) {
+      // Do nothing.
+    }
+
+    var clipboard = Components.classes["@mozilla.org/widget/clipboardhelper;1"]
+                              .getService(Components.interfaces.nsIClipboardHelper);
+    clipboard.copyString(addresses);
+  },
+
+  ///////////////
+  // Utilities //
+  ///////////////
+
+  /**
+   * Set a DOM node's hidden property by passing in the node's id or the
+   * element itself.
+   * @param aItemOrId
+   *        a DOM node or the id of a DOM node
+   * @param aShow
+   *        true to show, false to hide
+   */
+  showItem : function CM_showItem(aItemOrId, aShow) {
+    var item = aItemOrId.constructor == String ? document.getElementById(aItemOrId) : aItemOrId;
+    if (item)
+      item.hidden = !aShow;
+  },
+
+  /**
+   * Set given attribute of specified context-menu item. If the
+   * value is null, then it removes the attribute (which works
+   * nicely for the disabled attribute).
+   * @param  aId
+   *         The id of an element
+   * @param  aAttr
+   *         The attribute name
+   * @param  aVal
+   *         The value to set the attribute to, or null to remove the attribute
+   */
+  setItemAttr : function CM_setItemAttr(aId, aAttr, aVal) {
+    var elem = document.getElementById(aId);
+    if (elem) {
+      if (aVal == null) {
+        // null indicates attr should be removed.
+        elem.removeAttribute(aAttr);
+      } else {
+        // Set attr=val.
+        elem.setAttribute(aAttr, aVal);
+      }
+    }
+  },
+
+  /**
+   * Get an absolute URL for clicked-on link, from the href property or by
+   * resolving an XLink URL by hand.
+   * @return the string absolute URL for the clicked-on link
+   */
+  getLinkURL : function CM_getLinkURL() {
+    if (this.link.href) {
+      return this.link.href;
+    }
+    var href = this.link.getAttributeNS("http://www.w3.org/1999/xlink","href");
+    if (!href || !href.match(/\S/)) {
+       // Without this we try to save as the current doc,
+       // for example, HTML case also throws if empty.
+      throw "Empty href";
+    }
+    href = this.makeURLAbsolute(this.link.baseURI,href);
+    return href;
+  },
+
+  /**
+   * Generate a URI object from the linkURL spec
+   * @return an nsIURI if possible, or null if not
+   */
+  getLinkURI: function CM_getLinkURI() {
+    var ioService = Components.classes["@mozilla.org/network/io-service;1"]
+                              .getService(Components.interfaces.nsIIOService);
+    try {
+      return ioService.newURI(this.linkURL, null, null);
+    } catch (ex) {
+      // e.g. empty URL string
+    }
+    return null;
+  },
+
+  /**
+   * Get the scheme for the clicked-on linkURI, if present.
+   * @return a scheme, possibly undefined, or null if there's no linkURI
+   */
+  getLinkProtocol: function CM_getLinkProtocol() {
+    if (this.linkURI)
+      return this.linkURI.scheme; // can be |undefined|
+
+    return null;
+  },
+
+  /**
+   * Get some text, any text, for the clicked-on link.
+   * @return the link text, title, alt, href, or "" if everything fails
+   */
+  linkText : function CM_linkText() {
+    var text = gatherTextUnder(this.link);
+    if (!text || !text.match(/\S/)) {
+      text = this.link.getAttribute("title");
+      if (!text || !text.match(/\S/)) {
+        text = this.link.getAttribute("alt");
+        if (!text || !text.match(/\S/)) {
+          if (this.link.href) {
+            text = this.link.href;
+          } else {
+            text = getAttributeNS("http://www.w3.org/1999/xlink", "href");
+            if (text && text.match(/\S/)) {
+              text = this.makeURLAbsolute(this.link.baseURI, text);
+            }
+          }
+        }
+      }
+    }
+
+    return text;
+  },
+
+  /**
+   * Determines whether the focused window has selected text, and if so
+   * formats the first 15 characters for the label of the context-searchselect
+   * element according to the searchText string.
+   * @return true if there is selected text, false if not
+   */
+  isTextSelection : function CM_isTextSelection() {
+    var result = false;
+    var selection = this.searchSelected();
+
+    if (selection != "") {
+      var bundle = srGetStrBundle("chrome://communicator/locale/contentAreaCommands.properties");
+      var searchSelectText = selection.toString();
+      if (searchSelectText.length > 15)
+        searchSelectText = searchSelectText.substr(0,15) + "...";
+      result = true;
+
+      // Format "Search for <selection>" string to show in menu.
+      searchSelectText = bundle.formatStringFromName("searchText",
+                                                     [searchSelectText], 1);
+      this.setItemAttr("context-searchselect", "label", searchSelectText);
+    }
+    return result;
+  },
+
+  /**
+   * Get the currently selected text, with whitespace trimmed and
+   * newlines and tabs converted to spaces.
+   * @return the selection as a searchable string
+   */
+  searchSelected : function CM_searchSelected() {
+    var focusedWindow = document.commandDispatcher.focusedWindow;
+    var searchStr = focusedWindow.getSelection();
+    searchStr = searchStr.toString();
+    searchStr = searchStr.replace(/^\s+/, "");
+    searchStr = searchStr.replace(/(\n|\r|\t)+/g, " ");
+    searchStr = searchStr.replace(/\s+$/,"");
+    return searchStr;
+  },
+
+  /**
+   * Convert relative URL to absolute, using a provided <base>.
+   * @param  aBase
+   *         The URL string to use as the base
+   * @param  aUrl
+   *         The possibly-relative URL string
+   * @return The string absolute URL
+   */
+  makeURLAbsolute : function CM_makeURLAbsolute(aBase, aUrl) {
+    // Construct nsIURL.
+    var ioService = Components.classes["@mozilla.org/network/io-service;1"]
+                              .getService(Components.interfaces.nsIIOService);
+    var baseURI  = ioService.newURI(aBase, null, null);
+
+    return ioService.newURI(baseURI.resolve(aUrl), null, null).spec;
+  },
+
+  /**
+   * Determine whether a DOM node is a text or password input, or a textarea.
+   * @param  aNode
+   *         The DOM node to check
+   * @return true for textboxes, false for other elements
+   */
+  isTargetATextBox : function CM_isTargetATextBox(aNode) {
+    if (aNode instanceof HTMLInputElement)
+      return (aNode.type == "text" || aNode.type == "password");
+
+    return (aNode instanceof HTMLTextAreaElement);
+  },
+
+  /**
+   * Determine whether a separator should be shown based on whether
+   * there are any non-hidden items between it and the previous separator.
+   * @param  aSeparatorID
+   *         The id of the separator element
+   * @return true if the separator should be shown, false if not
+   */
+  shouldShowSeparator : function CM_shouldShowSeparator(aSeparatorID) {
+    var separator = document.getElementById(aSeparatorID);
+    if (separator) {
+      var sibling = separator.previousSibling;
+      while (sibling && sibling.localName != "menuseparator") {
+        if (sibling.getAttribute("hidden") != "true")
+          return true;
+        sibling = sibling.previousSibling;
+      }
+    }
+    return false;
+  }
 };
