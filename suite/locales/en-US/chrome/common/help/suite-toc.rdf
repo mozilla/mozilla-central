@@ -672,7 +672,7 @@
         <rdf:li> <rdf:Description ID="cust-toolbar" nc:name="Toolbars"  nc:link="customize_help.xhtml#toolbars"/> </rdf:li>
         <rdf:li> <rdf:Description ID="cust-bkmk" nc:name="Bookmarks"  nc:link="customize_help.xhtml#bookmarks"/> </rdf:li>
         <rdf:li> <rdf:Description ID="cust-page" nc:name="Specifying How &brandShortName; Starts Up"  nc:link="customize_help.xhtml#specifying_how_mozilla_starts_up"/> </rdf:li>
-        <rdf:li> <rdf:Description ID="nav-settings" nc:name="Navigator Settings"  nc:link="cs_nav_prefs_appearance.xhtml#navigator_settings"/> </rdf:li>
+        <rdf:li> <rdf:Description ID="nav-settings" nc:name="Browser Settings"  nc:link="cs_nav_prefs_appearance.xhtml#navigator_settings"/> </rdf:li>
       </rdf:Seq>
     </nc:subheadings>
   </rdf:Description>
@@ -754,7 +754,7 @@
     <nc:subheadings>
       <rdf:Seq>
         <rdf:li><rdf:Description ID="appearance_pref" nc:name="Appearance" nc:link="cs_nav_prefs_appearance.xhtml#appearance_preferences"/> </rdf:li>
-        <rdf:li><rdf:Description ID="navigator_pref_navigator" nc:name="Navigator" nc:link="cs_nav_prefs_navigator.xhtml#navigator_preferences"/> </rdf:li>
+        <rdf:li><rdf:Description ID="navigator_pref_navigator" nc:name="Browser" nc:link="cs_nav_prefs_navigator.xhtml#navigator_preferences"/> </rdf:li>
         <rdf:li><rdf:Description ID="advanced_pref_advanced" nc:name="Advanced" nc:link="cs_nav_prefs_advanced.xhtml"/> </rdf:li>
 
       </rdf:Seq>
@@ -1170,7 +1170,7 @@
       <rdf:Seq>
         <rdf:li><rdf:Description ID="shortcuts_using" nc:name="Using Shortcuts" nc:link="shortcuts.xhtml#using_shortcuts"/> </rdf:li>
         <rdf:li><rdf:Description ID="shortcuts_general" nc:name="General &brandShortName; Shortcuts" nc:link="shortcuts.xhtml#general_mozilla_shortcuts"/> </rdf:li>
-        <rdf:li><rdf:Description ID="shortcuts_navigator" nc:name="Navigator Shortcuts" nc:link="shortcuts-navigator.xhtml"/> </rdf:li>
+        <rdf:li><rdf:Description ID="shortcuts_navigator" nc:name="Browser Shortcuts" nc:link="shortcuts-navigator.xhtml"/> </rdf:li>
         <rdf:li><rdf:Description ID="shortcuts_mail" nc:name="Mail &amp; Newsgroups Shortcuts" nc:link="shortcuts-mailnews.xhtml"/> </rdf:li>
         <rdf:li><rdf:Description ID="shortcuts_composer" nc:name="Composer Shortcuts" nc:link="shortcuts-composer.xhtml"/> </rdf:li>
         <rdf:li><rdf:Description ID="shortcuts_help" nc:name="Help Window Shortcuts" nc:link="shortcuts.xhtml#help_window_shortcuts"/> </rdf:li>

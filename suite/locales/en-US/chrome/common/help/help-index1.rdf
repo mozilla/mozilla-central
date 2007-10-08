@@ -169,6 +169,56 @@
          nc:link="customize_help.xhtml#changing_your_home_page"/>
      </rdf:li>
      <rdf:li>
+       <rdf:Description ID="browser:controlling_popups"
+         nc:name="controlling popups"
+         nc:link="cs_priv_prefs_popup.xhtml#controlling_popups"/>
+     </rdf:li>
+     <rdf:li>
+       <rdf:Description ID="browser:Download_Manager"
+         nc:name="Download Manager"
+         nc:link="nav_help.xhtml#plugins_and_downloads"/>
+     </rdf:li>
+     <rdf:li>
+       <rdf:Description ID="browser:full_screen_mode"
+         nc:name="Full screen mode"
+         nc:link="nav_help.xhtml#full_screen_mode"/>
+     </rdf:li>
+     <rdf:li>
+       <rdf:Description ID="browser:helper_applications"
+         nc:name="helper applications"
+         nc:link="cs_nav_prefs_navigator.xhtml#helper_applications"/>
+     </rdf:li>
+     <rdf:li>
+       <rdf:Description ID="browser:home_page"
+         nc:name="home page"
+         nc:link="nav_help.xhtml#viewing_your_home_page"/>
+     </rdf:li>
+     <rdf:li>
+       <rdf:Description ID="browser:keyboard_shortcuts"
+         nc:name="keyboard shortcuts"
+         nc:link="shortcuts-navigator.xhtml"/>
+     </rdf:li>
+     <rdf:li>
+       <rdf:Description ID="browser:opening_pages"
+         nc:name="opening pages"
+         nc:link="nav_help.xhtml#moving_to_another_page"/>
+     </rdf:li>
+     <rdf:li>
+       <rdf:Description ID="browser:preferences"
+         nc:name="Browser Preferences"
+         nc:link="cs_nav_prefs_navigator.xhtml#navigator_preferences"/>
+     </rdf:li>
+     <rdf:li>
+       <rdf:Description ID="browser:set_as_wallpaper"
+         nc:name="set as wallpaper"
+         nc:link="nav_help.xhtml#setting_image_as_wallpaper"/>
+     </rdf:li>
+     <rdf:li>
+       <rdf:Description ID="browser:start_page"
+         nc:name="start page"
+         nc:link="customize_help.xhtml#specifying_a_starting_page"/>
+     </rdf:li>
+     <rdf:li>
        <rdf:Description ID="browser:start_up_components"
          nc:name="start up components"
          nc:link="customize_help.xhtml#specifying_which_components_open_at_launch"/>
@@ -949,7 +999,7 @@
      </rdf:li>
      <rdf:li>
        <rdf:Description ID="keyboard_shortcuts:Navigator"
-         nc:name="Navigator keyboard shortcuts"
+         nc:name="Browser keyboard shortcuts"
          nc:link="shortcuts-navigator.xhtml"/>
      </rdf:li></rdf:Seq>
    </nc:subheadings>
@@ -1283,74 +1333,9 @@
          nc:link="help_help.xhtml#finding_the_topic_you_want"/>
      </rdf:li>
      <rdf:li>
-       <rdf:Description ID="Navigator"
-         nc:name="Navigator"
-         nc:link="nav_help.xhtml"/>
-     </rdf:li>
-     <rdf:li>
        <rdf:Description ID="Newsgroups"
          nc:name="Newsgroups"
          nc:link="mail_help.xhtml#getting_started_with_newsgroups"/>
-     </rdf:li></rdf:Seq>
-   </nc:subheadings>
-</rdf:Description>
-
-<rdf:Description about="#Navigator">
-   <nc:subheadings>
-     <rdf:Seq><rdf:li>
-       <rdf:Description ID="Navigator:changing_your_home_page"
-         nc:name="changing your home page"
-         nc:link="customize_help.xhtml#changing_your_home_page"/>
-     </rdf:li>
-     <rdf:li>
-       <rdf:Description ID="Navigator:controlling_popups"
-         nc:name="controlling popups"
-         nc:link="cs_priv_prefs_popup.xhtml#controlling_popups"/>
-     </rdf:li>
-     <rdf:li>
-       <rdf:Description ID="Navigator:Download_Manager"
-         nc:name="Download Manager"
-         nc:link="nav_help.xhtml#plugins_and_downloads"/>
-     </rdf:li>
-     <rdf:li>
-       <rdf:Description ID="Navigator:full_screen_mode"
-         nc:name="Full screen mode"
-         nc:link="nav_help.xhtml#full_screen_mode"/>
-     </rdf:li>
-     <rdf:li>
-       <rdf:Description ID="Navigator:helper_applications"
-         nc:name="helper applications"
-         nc:link="cs_nav_prefs_navigator.xhtml#helper_applications"/>
-     </rdf:li>
-     <rdf:li>
-       <rdf:Description ID="Navigator:home_page"
-         nc:name="home page"
-         nc:link="nav_help.xhtml#viewing_your_home_page"/>
-     </rdf:li>
-     <rdf:li>
-       <rdf:Description ID="Navigator:keyboard_shortcuts"
-         nc:name="keyboard shortcuts"
-         nc:link="shortcuts-navigator.xhtml"/>
-     </rdf:li>
-     <rdf:li>
-       <rdf:Description ID="Navigator:opening_pages"
-         nc:name="opening pages"
-         nc:link="nav_help.xhtml#moving_to_another_page"/>
-     </rdf:li>
-     <rdf:li>
-       <rdf:Description ID="Navigator:preferences"
-         nc:name="Navigator Preferences"
-         nc:link="cs_nav_prefs_navigator.xhtml#navigator_preferences"/>
-     </rdf:li>
-     <rdf:li>
-       <rdf:Description ID="Navigator:set_as_wallpaper"
-         nc:name="set as wallpaper"
-         nc:link="nav_help.xhtml#setting_image_as_wallpaper"/>
-     </rdf:li>
-     <rdf:li>
-       <rdf:Description ID="Navigator:start_page"
-         nc:name="start page"
-         nc:link="customize_help.xhtml#specifying_a_starting_page"/>
      </rdf:li></rdf:Seq>
    </nc:subheadings>
 </rdf:Description>
@@ -1628,7 +1613,7 @@
      </rdf:li>
      <rdf:li>
        <rdf:Description ID="preferences:Navigator"
-         nc:name="Navigator preferences"
+         nc:name="Browser preferences"
          nc:link="cs_nav_prefs_navigator.xhtml#navigator_preferences"/>
      </rdf:li>
      <rdf:li>
