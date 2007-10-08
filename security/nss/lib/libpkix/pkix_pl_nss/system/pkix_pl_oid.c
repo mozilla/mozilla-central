@@ -251,6 +251,8 @@ pkix_pl_OID_RegisterSelf(
         PKIX_ENTER(OID, "pkix_pl_OID_RegisterSelf");
 
         entry.description = "OID";
+        entry.objCounter = 0;
+        entry.typeObjectSize = sizeof(PKIX_PL_OID);
         entry.destructor = pkix_pl_OID_Destroy;
         entry.equalsFunction = pkix_pl_OID_Equals;
         entry.hashcodeFunction = pkix_pl_OID_Hashcode;

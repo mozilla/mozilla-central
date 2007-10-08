@@ -781,6 +781,8 @@ pkix_pl_GeneralName_RegisterSelf(void *plContext)
         PKIX_ENTER(GENERALNAME, "pkix_pl_GeneralName_RegisterSelf");
 
         entry.description = "GeneralName";
+        entry.objCounter = 0;
+        entry.typeObjectSize = sizeof(PKIX_PL_GeneralName);
         entry.destructor = pkix_pl_GeneralName_Destroy;
         entry.equalsFunction = pkix_pl_GeneralName_Equals;
         entry.hashcodeFunction = pkix_pl_GeneralName_Hashcode;

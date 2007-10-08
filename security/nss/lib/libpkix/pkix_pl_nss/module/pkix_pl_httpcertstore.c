@@ -153,6 +153,8 @@ pkix_pl_HttpCertStoreContext_RegisterSelf(void *plContext)
                 "pkix_pl_HttpCertStoreContext_RegisterSelf");
 
         entry.description = "HttpCertStoreContext";
+        entry.objCounter = 0;
+        entry.typeObjectSize = sizeof(PKIX_PL_HttpCertStoreContext);
         entry.destructor = pkix_pl_HttpCertStoreContext_Destroy;
         entry.equalsFunction = NULL;
         entry.hashcodeFunction = NULL;

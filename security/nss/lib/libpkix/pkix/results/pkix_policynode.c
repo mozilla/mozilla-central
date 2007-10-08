@@ -1214,6 +1214,8 @@ pkix_PolicyNode_RegisterSelf(void *plContext)
         PKIX_ENTER(CERTPOLICYNODE, "pkix_PolicyNode_RegisterSelf");
 
         entry.description = "PolicyNode";
+        entry.objCounter = 0;
+        entry.typeObjectSize = sizeof(PKIX_PolicyNode);
         entry.destructor = pkix_PolicyNode_Destroy;
         entry.equalsFunction = pkix_PolicyNode_Equals;
         entry.hashcodeFunction = pkix_PolicyNode_Hashcode;

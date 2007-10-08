@@ -102,6 +102,8 @@ pkix_TargetCertCheckerState_RegisterSelf(void *plContext)
                     "pkix_TargetCertCheckerState_RegisterSelf");
 
         entry.description = "TargetCertCheckerState";
+        entry.objCounter = 0;
+        entry.typeObjectSize = sizeof(pkix_TargetCertCheckerState);
         entry.destructor = pkix_TargetCertCheckerState_Destroy;
         entry.equalsFunction = NULL;
         entry.hashcodeFunction = NULL;

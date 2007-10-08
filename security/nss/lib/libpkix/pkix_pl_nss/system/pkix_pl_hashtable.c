@@ -108,6 +108,8 @@ pkix_pl_HashTable_RegisterSelf(
         PKIX_ENTER(HASHTABLE, "pkix_pl_HashTable_RegisterSelf");
 
         entry.description = "HashTable";
+        entry.objCounter = 0;
+        entry.typeObjectSize = sizeof(PKIX_PL_HashTable);
         entry.destructor = pkix_pl_HashTable_Destroy;
         entry.equalsFunction = NULL;
         entry.hashcodeFunction = NULL;

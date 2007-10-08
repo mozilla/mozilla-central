@@ -1270,6 +1270,8 @@ pkix_pl_CollectionCertStoreContext_RegisterSelf(void *plContext)
                     "pkix_pl_CollectionCertStoreContext_RegisterSelf");
 
         entry.description = "CollectionCertStoreContext";
+        entry.objCounter = 0;
+        entry.typeObjectSize = sizeof(PKIX_PL_CollectionCertStoreContext);
         entry.destructor = pkix_pl_CollectionCertStoreContext_Destroy;
         entry.equalsFunction = pkix_pl_CollectionCertStoreContext_Equals;
         entry.hashcodeFunction = pkix_pl_CollectionCertStoreContext_Hashcode;

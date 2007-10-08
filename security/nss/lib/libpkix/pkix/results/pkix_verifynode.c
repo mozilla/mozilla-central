@@ -1083,6 +1083,8 @@ pkix_VerifyNode_RegisterSelf(void *plContext)
         PKIX_ENTER(VERIFYNODE, "pkix_VerifyNode_RegisterSelf");
 
         entry.description = "VerifyNode";
+        entry.objCounter = 0;
+        entry.typeObjectSize = sizeof(PKIX_VerifyNode);
         entry.destructor = pkix_VerifyNode_Destroy;
         entry.equalsFunction = pkix_VerifyNode_Equals;
         entry.hashcodeFunction = pkix_VerifyNode_Hashcode;

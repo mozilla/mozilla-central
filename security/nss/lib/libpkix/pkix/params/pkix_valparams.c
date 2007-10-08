@@ -270,6 +270,8 @@ pkix_ValidateParams_RegisterSelf(void *plContext)
         PKIX_ENTER(VALIDATEPARAMS, "pkix_ValidateParams_RegisterSelf");
 
         entry.description = "ValidateParams";
+        entry.objCounter = 0;
+        entry.typeObjectSize = sizeof(PKIX_ValidateParams);
         entry.destructor = pkix_ValidateParams_Destroy;
         entry.equalsFunction = pkix_ValidateParams_Equals;
         entry.hashcodeFunction = pkix_ValidateParams_Hashcode;

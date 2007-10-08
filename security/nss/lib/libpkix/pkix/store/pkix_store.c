@@ -189,6 +189,8 @@ pkix_CertStore_RegisterSelf(void *plContext)
         PKIX_ENTER(CERTSTORE, "pkix_CertStore_RegisterSelf");
 
         entry.description = "CertStore";
+        entry.objCounter = 0;
+        entry.typeObjectSize = sizeof(PKIX_CertStore);
         entry.destructor = pkix_CertStore_Destroy;
         entry.equalsFunction = pkix_CertStore_Equals;
         entry.hashcodeFunction = pkix_CertStore_Hashcode;

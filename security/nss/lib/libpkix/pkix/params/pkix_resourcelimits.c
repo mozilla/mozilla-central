@@ -234,6 +234,8 @@ pkix_ResourceLimits_RegisterSelf(void *plContext)
         PKIX_ENTER(RESOURCELIMITS, "pkix_ResourceLimits_RegisterSelf");
 
         entry.description = "ResourceLimits";
+        entry.objCounter = 0;
+        entry.typeObjectSize = sizeof(PKIX_ResourceLimits);
         entry.destructor = pkix_ResourceLimits_Destroy;
         entry.equalsFunction = pkix_ResourceLimits_Equals;
         entry.hashcodeFunction = pkix_ResourceLimits_Hashcode;

@@ -385,6 +385,8 @@ pkix_pl_CertBasicConstraints_RegisterSelf(void *plContext)
                 "pkix_pl_CertBasicConstraints_RegisterSelf");
 
         entry.description = "CertBasicConstraints";
+        entry.objCounter = 0;
+        entry.typeObjectSize = sizeof(PKIX_PL_CertBasicConstraints);
         entry.destructor = pkix_pl_CertBasicConstraints_Destroy;
         entry.equalsFunction = pkix_pl_CertBasicConstraints_Equals;
         entry.hashcodeFunction = pkix_pl_CertBasicConstraints_Hashcode;

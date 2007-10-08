@@ -354,6 +354,8 @@ pkix_TrustAnchor_RegisterSelf(void *plContext)
         PKIX_ENTER(TRUSTANCHOR, "pkix_TrustAnchor_RegisterSelf");
 
         entry.description = "TrustAnchor";
+        entry.objCounter = 0;
+        entry.typeObjectSize = sizeof(PKIX_TrustAnchor);
         entry.destructor = pkix_TrustAnchor_Destroy;
         entry.equalsFunction = pkix_TrustAnchor_Equals;
         entry.hashcodeFunction = pkix_TrustAnchor_Hashcode;

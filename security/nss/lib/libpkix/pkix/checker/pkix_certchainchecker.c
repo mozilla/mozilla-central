@@ -155,6 +155,8 @@ pkix_CertChainChecker_RegisterSelf(void *plContext)
         PKIX_ENTER(CERTCHAINCHECKER, "pkix_CertChainChecker_RegisterSelf");
 
         entry.description = "CertChainChecker";
+        entry.objCounter = 0;
+        entry.typeObjectSize = sizeof(PKIX_CertChainChecker);
         entry.destructor = pkix_CertChainChecker_Destroy;
         entry.equalsFunction = NULL;
         entry.hashcodeFunction = NULL;

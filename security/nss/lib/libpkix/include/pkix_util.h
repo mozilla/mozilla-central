@@ -514,7 +514,7 @@ PKIX_Error_Create(
  * PARAMETERS:
  *  "error"
  *      Address of Error whose error code is desired. Must be non-NULL.
- *  "pCode"
+ *  "pClass"
  *      Address where PKIX_UInt32 will be stored. Must be non-NULL.
  *  "plContext"
  *      Platform-specific context pointer.
@@ -529,6 +529,33 @@ PKIX_Error *
 PKIX_Error_GetErrorClass(
         PKIX_Error *error,
         PKIX_ERRORCLASS *pClass,
+        void *plContext);
+
+/*
+ * FUNCTION: PKIX_Error_GetErrorCode
+ * DESCRIPTION:
+ *
+ *  Retrieves the error code of the Error pointed to by "error" and 
+ *  stores it at "pCode". Supported error codes are defined in pkixt.h.
+ *
+ * PARAMETERS:
+ *  "error"
+ *      Address of Error whose error code is desired. Must be non-NULL.
+ *  "pCode"
+ *      Address where PKIX_UInt32 will be stored. Must be non-NULL.
+ *  "plContext"
+ *      Platform-specific context pointer.
+ * THREAD SAFETY:
+ *  Thread Safe (see Thread Safety Definitions in Programmer's Guide)
+ * RETURNS:
+ *  Returns NULL if the function succeeds.
+ *  Returns an Error Error if the function fails in a non-fatal way.
+ *  Returns a Fatal Error if the function fails in an unrecoverable way.
+ */
+PKIX_Error *
+PKIX_Error_GetErrorCode(
+        PKIX_Error *error,
+        PKIX_ERRORCODE *pCode,
         void *plContext);
 
 /*

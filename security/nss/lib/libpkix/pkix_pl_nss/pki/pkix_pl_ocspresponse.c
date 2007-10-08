@@ -446,6 +446,8 @@ pkix_pl_OcspResponse_RegisterSelf(void *plContext)
         PKIX_ENTER(OCSPRESPONSE, "pkix_pl_OcspResponse_RegisterSelf");
 
         entry.description = "OcspResponse";
+        entry.objCounter = 0;
+        entry.typeObjectSize = sizeof(PKIX_PL_OcspResponse);
         entry.destructor = pkix_pl_OcspResponse_Destroy;
         entry.equalsFunction = pkix_pl_OcspResponse_Equals;
         entry.hashcodeFunction = pkix_pl_OcspResponse_Hashcode;

@@ -276,6 +276,8 @@ pkix_pl_String_RegisterSelf(
         PKIX_ENTER(STRING, "pkix_pl_String_RegisterSelf");
 
         entry.description = "String";
+        entry.objCounter = 0;
+        entry.typeObjectSize = sizeof(PKIX_PL_String);
         entry.destructor = pkix_pl_String_Destroy;
         entry.equalsFunction = pkix_pl_String_Equals;
         entry.hashcodeFunction = pkix_pl_String_Hashcode;

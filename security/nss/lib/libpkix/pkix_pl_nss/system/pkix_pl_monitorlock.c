@@ -92,6 +92,8 @@ pkix_pl_MonitorLock_RegisterSelf(
         PKIX_ENTER(MONITORLOCK, "pkix_pl_MonitorLock_RegisterSelf");
 
         entry.description = "MonitorLock";
+        entry.objCounter = 0;
+        entry.typeObjectSize = sizeof(PKIX_PL_MonitorLock);
         entry.destructor = pkix_pl_MonitorLock_Destroy;
         entry.equalsFunction = NULL;
         entry.hashcodeFunction = NULL;

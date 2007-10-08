@@ -357,6 +357,8 @@ pkix_PolicyCheckerState_RegisterSelf(void *plContext)
                 "pkix_PolicyCheckerState_RegisterSelf");
 
         entry.description = "PolicyCheckerState";
+        entry.objCounter = 0;
+        entry.typeObjectSize = sizeof(PKIX_PolicyCheckerState);
         entry.destructor = pkix_PolicyCheckerState_Destroy;
         entry.equalsFunction = NULL;
         entry.hashcodeFunction = NULL;

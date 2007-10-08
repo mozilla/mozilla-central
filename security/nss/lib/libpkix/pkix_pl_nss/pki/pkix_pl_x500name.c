@@ -273,6 +273,8 @@ pkix_pl_X500Name_RegisterSelf(void *plContext)
         PKIX_ENTER(X500NAME, "pkix_pl_X500Name_RegisterSelf");
 
         entry.description = "X500Name";
+        entry.objCounter = 0;
+        entry.typeObjectSize = sizeof(PKIX_PL_X500Name);
         entry.destructor = pkix_pl_X500Name_Destroy;
         entry.equalsFunction = pkix_pl_X500Name_Equals;
         entry.hashcodeFunction = pkix_pl_X500Name_Hashcode;

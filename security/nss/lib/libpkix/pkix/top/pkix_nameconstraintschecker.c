@@ -99,6 +99,8 @@ pkix_NameConstraintsCheckerState_RegisterSelf(void *plContext)
                     "pkix_NameConstraintsCheckerState_RegisterSelf");
 
         entry.description = "NameConstraintsCheckerState";
+        entry.objCounter = 0;
+        entry.typeObjectSize = sizeof(pkix_NameConstraintsCheckerState);
         entry.destructor = pkix_NameConstraintsCheckerState_Destroy;
         entry.equalsFunction = NULL;
         entry.hashcodeFunction = NULL;

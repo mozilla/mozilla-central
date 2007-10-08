@@ -685,6 +685,8 @@ pkix_pl_CRL_RegisterSelf(void *plContext)
         PKIX_ENTER(CRL, "pkix_pl_CRL_RegisterSelf");
 
         entry.description = "CRL";
+        entry.objCounter = 0;
+        entry.typeObjectSize = sizeof(PKIX_PL_CRL);
         entry.destructor = pkix_pl_CRL_Destroy;
         entry.equalsFunction = pkix_pl_CRL_Equals;
         entry.hashcodeFunction = pkix_pl_CRL_Hashcode;

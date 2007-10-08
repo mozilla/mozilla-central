@@ -321,6 +321,8 @@ pkix_ValidateResult_RegisterSelf(void *plContext)
         PKIX_ENTER(VALIDATERESULT, "pkix_ValidateResult_RegisterSelf");
 
         entry.description = "ValidateResult";
+        entry.objCounter = 0;
+        entry.typeObjectSize = sizeof(PKIX_ValidateResult);
         entry.destructor = pkix_ValidateResult_Destroy;
         entry.equalsFunction = pkix_ValidateResult_Equals;
         entry.hashcodeFunction = pkix_ValidateResult_Hashcode;

@@ -224,6 +224,8 @@ pkix_ComCertSelParams_RegisterSelf(void *plContext)
         PKIX_ENTER(COMCERTSELPARAMS, "pkix_ComCertSelParams_RegisterSelf");
 
         entry.description = "ComCertSelParams";
+        entry.objCounter = 0;
+        entry.typeObjectSize = sizeof(PKIX_ComCertSelParams);
         entry.destructor = pkix_ComCertSelParams_Destroy;
         entry.equalsFunction = NULL;
         entry.hashcodeFunction = NULL;

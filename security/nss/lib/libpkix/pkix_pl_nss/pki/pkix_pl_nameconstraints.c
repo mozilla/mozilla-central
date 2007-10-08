@@ -729,6 +729,8 @@ pkix_pl_CertNameConstraints_RegisterSelf(void *plContext)
                     "pkix_pl_CertNameConstraints_RegisterSelf");
 
         entry.description = "CertNameConstraints";
+        entry.objCounter = 0;
+        entry.typeObjectSize = sizeof(PKIX_PL_CertNameConstraints);
         entry.destructor = pkix_pl_CertNameConstraints_Destroy;
         entry.equalsFunction = pkix_pl_CertNameConstraints_Equals;
         entry.hashcodeFunction = pkix_pl_CertNameConstraints_Hashcode;

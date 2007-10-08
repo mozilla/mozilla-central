@@ -391,6 +391,8 @@ pkix_Error_RegisterSelf(void *plContext)
         PKIX_ENTER(ERROR, "pkix_Error_RegisterSelf");
 
         entry.description = "Error";
+        entry.objCounter = 0;
+        entry.typeObjectSize = sizeof(PKIX_Error);
         entry.destructor = pkix_Error_Destroy;
         entry.equalsFunction = pkix_Error_Equals;
         entry.hashcodeFunction = pkix_Error_Hashcode;

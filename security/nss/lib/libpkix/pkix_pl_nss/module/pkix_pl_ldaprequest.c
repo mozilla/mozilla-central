@@ -506,6 +506,8 @@ pkix_pl_LdapRequest_RegisterSelf(void *plContext)
         PKIX_ENTER(LDAPREQUEST, "pkix_pl_LdapRequest_RegisterSelf");
 
         entry.description = "LdapRequest";
+        entry.objCounter = 0;
+        entry.typeObjectSize = sizeof(PKIX_PL_LdapRequest);
         entry.destructor = pkix_pl_LdapRequest_Destroy;
         entry.equalsFunction = pkix_pl_LdapRequest_Equals;
         entry.hashcodeFunction = pkix_pl_LdapRequest_Hashcode;

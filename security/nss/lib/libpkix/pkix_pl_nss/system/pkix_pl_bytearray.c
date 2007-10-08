@@ -421,6 +421,8 @@ pkix_pl_ByteArray_RegisterSelf(void *plContext)
         PKIX_ENTER(BYTEARRAY, "pkix_pl_ByteArray_RegisterSelf");
 
         entry.description = "ByteArray";
+        entry.objCounter = 0;
+        entry.typeObjectSize = sizeof(PKIX_PL_ByteArray);
         entry.destructor = pkix_pl_ByteArray_Destroy;
         entry.equalsFunction = pkix_pl_ByteArray_Equals;
         entry.hashcodeFunction = pkix_pl_ByteArray_Hashcode;

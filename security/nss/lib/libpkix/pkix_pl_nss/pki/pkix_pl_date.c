@@ -435,6 +435,8 @@ pkix_pl_Date_RegisterSelf(void *plContext)
         PKIX_ENTER(DATE, "pkix_pl_Date_RegisterSelf");
 
         entry.description = "Date";
+        entry.objCounter = 0;
+        entry.typeObjectSize = sizeof(PKIX_PL_Date);
         entry.destructor = pkix_pl_Date_Destroy;
         entry.equalsFunction = pkix_pl_Date_Equals;
         entry.hashcodeFunction = pkix_pl_Date_Hashcode;

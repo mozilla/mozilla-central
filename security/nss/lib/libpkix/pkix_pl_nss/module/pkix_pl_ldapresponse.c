@@ -304,6 +304,8 @@ pkix_pl_LdapResponse_RegisterSelf(void *plContext)
         PKIX_ENTER(LDAPRESPONSE, "pkix_pl_LdapResponse_RegisterSelf");
 
         entry.description = "LdapResponse";
+        entry.objCounter = 0;
+        entry.typeObjectSize = sizeof(PKIX_PL_LdapResponse);
         entry.destructor = pkix_pl_LdapResponse_Destroy;
         entry.equalsFunction = pkix_pl_LdapResponse_Equals;
         entry.hashcodeFunction = pkix_pl_LdapResponse_Hashcode;

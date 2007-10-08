@@ -343,6 +343,8 @@ pkix_pl_InfoAccess_RegisterSelf(void *plContext)
                 "pkix_pl_InfoAccess_RegisterSelf");
 
         entry.description = "InfoAccess";
+        entry.objCounter = 0;
+        entry.typeObjectSize = sizeof(PKIX_PL_InfoAccess);
         entry.destructor = pkix_pl_InfoAccess_Destroy;
         entry.equalsFunction = pkix_pl_InfoAccess_Equals;
         entry.hashcodeFunction = pkix_pl_InfoAccess_Hashcode;

@@ -449,6 +449,8 @@ pkix_ComCRLSelParams_RegisterSelf(void *plContext)
         PKIX_ENTER(COMCRLSELPARAMS, "pkix_ComCRLSelParams_RegisterSelf");
 
         entry.description = "ComCRLSelParams";
+        entry.objCounter = 0;
+        entry.typeObjectSize = sizeof(PKIX_ComCRLSelParams);
         entry.destructor = pkix_ComCRLSelParams_Destroy;
         entry.equalsFunction = pkix_ComCRLSelParams_Equals;
         entry.hashcodeFunction = pkix_ComCRLSelParams_Hashcode;

@@ -245,6 +245,8 @@ pkix_pl_OcspRequest_RegisterSelf(void *plContext)
         PKIX_ENTER(OCSPREQUEST, "pkix_pl_OcspRequest_RegisterSelf");
 
         entry.description = "OcspRequest";
+        entry.objCounter = 0;
+        entry.typeObjectSize = sizeof(PKIX_PL_OcspRequest);
         entry.destructor = pkix_pl_OcspRequest_Destroy;
         entry.equalsFunction = pkix_pl_OcspRequest_Equals;
         entry.hashcodeFunction = pkix_pl_OcspRequest_Hashcode;

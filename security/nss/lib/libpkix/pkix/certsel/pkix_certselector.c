@@ -1533,6 +1533,8 @@ pkix_CertSelector_RegisterSelf(void *plContext)
         PKIX_ENTER(CERTSELECTOR, "pkix_CertSelector_RegisterSelf");
 
         entry.description = "CertSelector";
+        entry.objCounter = 0;
+        entry.typeObjectSize = sizeof(PKIX_CertSelector);
         entry.destructor = pkix_CertSelector_Destroy;
         entry.equalsFunction = NULL;
         entry.hashcodeFunction = NULL;

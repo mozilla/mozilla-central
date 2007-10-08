@@ -267,6 +267,8 @@ pkix_pl_BigInt_RegisterSelf(void *plContext)
         PKIX_ENTER(BIGINT, "pkix_pl_BigInt_RegisterSelf");
 
         entry.description = "BigInt";
+        entry.objCounter = 0;
+        entry.typeObjectSize = sizeof(PKIX_PL_BigInt);
         entry.destructor = pkix_pl_BigInt_Destroy;
         entry.equalsFunction = pkix_pl_BigInt_Equals;
         entry.hashcodeFunction = pkix_pl_BigInt_Hashcode;

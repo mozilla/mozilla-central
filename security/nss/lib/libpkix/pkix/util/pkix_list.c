@@ -592,6 +592,8 @@ pkix_List_RegisterSelf(void *plContext)
         PKIX_ENTER(LIST, "pkix_List_RegisterSelf");
 
         entry.description = "List";
+        entry.objCounter = 0;
+        entry.typeObjectSize = sizeof(PKIX_List);
         entry.destructor = pkix_List_Destroy;
         entry.equalsFunction = pkix_List_Equals;
         entry.hashcodeFunction = pkix_List_Hashcode;

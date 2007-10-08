@@ -525,6 +525,8 @@ pkix_ProcessingParams_RegisterSelf(void *plContext)
         PKIX_ENTER(PROCESSINGPARAMS, "pkix_ProcessingParams_RegisterSelf");
 
         entry.description = "ProcessingParams";
+        entry.objCounter = 0;
+        entry.typeObjectSize = sizeof(PKIX_ProcessingParams);
         entry.destructor = pkix_ProcessingParams_Destroy;
         entry.equalsFunction = pkix_ProcessingParams_Equals;
         entry.hashcodeFunction = pkix_ProcessingParams_Hashcode;

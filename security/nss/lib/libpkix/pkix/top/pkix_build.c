@@ -607,6 +607,8 @@ pkix_ForwardBuilderState_RegisterSelf(void *plContext)
                     "pkix_ForwardBuilderState_RegisterSelf");
 
         entry.description = "ForwardBuilderState";
+        entry.objCounter = 0;
+        entry.typeObjectSize = sizeof(PKIX_ForwardBuilderState);
         entry.destructor = pkix_ForwardBuilderState_Destroy;
         entry.equalsFunction = NULL;
         entry.hashcodeFunction = NULL;

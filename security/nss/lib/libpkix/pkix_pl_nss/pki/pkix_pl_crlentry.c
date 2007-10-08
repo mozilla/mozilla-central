@@ -661,6 +661,8 @@ pkix_pl_CRLEntry_RegisterSelf(void *plContext)
         PKIX_ENTER(CRLENTRY, "pkix_pl_CRLEntry_RegisterSelf");
 
         entry.description = "CRLEntry";
+        entry.objCounter = 0;
+        entry.typeObjectSize = sizeof(PKIX_PL_CRLEntry);
         entry.destructor = pkix_pl_CRLEntry_Destroy;
         entry.equalsFunction = pkix_pl_CRLEntry_Equals;
         entry.hashcodeFunction = pkix_pl_CRLEntry_Hashcode;

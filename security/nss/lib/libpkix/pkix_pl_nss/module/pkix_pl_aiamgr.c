@@ -142,6 +142,8 @@ pkix_pl_AIAMgr_RegisterSelf(void *plContext)
                 "pkix_pl_AIAMgr_RegisterSelf");
 
         entry.description = "AIAMgr";
+        entry.objCounter = 0;
+        entry.typeObjectSize = sizeof(PKIX_PL_AIAMgr);
         entry.destructor = pkix_pl_AIAMgr_Destroy;
         entry.equalsFunction = NULL;
         entry.hashcodeFunction = NULL;

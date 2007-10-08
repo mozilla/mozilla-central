@@ -1059,6 +1059,8 @@ pkix_pl_LdapDefaultClient_RegisterSelf(void *plContext)
                 "pkix_pl_LdapDefaultClient_RegisterSelf");
 
         entry.description = "LdapDefaultClient";
+        entry.objCounter = 0;
+        entry.typeObjectSize = sizeof(PKIX_PL_LdapDefaultClient);
         entry.destructor = pkix_pl_LdapDefaultClient_Destroy;
         entry.equalsFunction = pkix_pl_LdapDefaultClient_Equals;
         entry.hashcodeFunction = pkix_pl_LdapDefaultClient_Hashcode;

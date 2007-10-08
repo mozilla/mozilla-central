@@ -271,6 +271,8 @@ pkix_BuildResult_RegisterSelf(void *plContext)
         PKIX_ENTER(BUILDRESULT, "pkix_BuildResult_RegisterSelf");
 
         entry.description = "BuildResult";
+        entry.objCounter = 0;
+        entry.typeObjectSize = sizeof(PKIX_BuildResult);
         entry.destructor = pkix_BuildResult_Destroy;
         entry.equalsFunction = pkix_BuildResult_Equals;
         entry.hashcodeFunction = pkix_BuildResult_Hashcode;
