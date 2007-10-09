@@ -105,6 +105,7 @@ typedef enum ECookiePolicyPopupIndex
 -(IBAction) editCookiesDone:(id)aSender;
 -(IBAction) removeCookies:(id)aSender;
 -(IBAction) removeAllCookies:(id)aSender;
+-(IBAction) allowCookiesFromSites:(id)aSender;
 -(IBAction) blockCookiesFromSites:(id)aSender;
 -(IBAction) removeCookiesAndBlockSites:(id)aSender;
 

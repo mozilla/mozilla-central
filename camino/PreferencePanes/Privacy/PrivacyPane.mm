@@ -73,6 +73,9 @@ const int kSortReverse = 1;
 
 - (void)addPermission:(int)inPermission forHost:(NSString*)inHost;
 
+// helper method for blocking/allowing multiple sites at once
+- (void)addPermissionForSelection:(int)inPermission;
+
 - (int)numCookiesSelectedInCookiePanel;
 - (int)numPermissionsSelectedInPermissionsPanel;
 // get the number of unique cookie sites that are selected,
@@ -342,7 +345,7 @@ PR_STATIC_CALLBACK(int) compareValues(nsICookie* aCookie1, nsICookie* aCookie2, 
   
   // ensure a row is selected (cocoa doesn't do this for us, but will keep
   // us from unselecting a row once one is set; go figure).
-  [mCookiesTable selectRow: 0 byExtendingSelection: NO];
+  [mCookiesTable selectRow:0 byExtendingSelection:NO];
   
   [mCookiesTable setUsesAlternatingRowBackgroundColors:YES];
   NSArray* columns = [mCookiesTable tableColumns];
@@ -424,21 +427,14 @@ PR_STATIC_CALLBACK(int) compareValues(nsICookie* aCookie1, nsICookie* aCookie2, 
   }
 }
 
+-(IBAction) allowCookiesFromSites:(id)aSender
+{
+  [self addPermissionForSelection:nsIPermissionManager::ALLOW_ACTION];
+}
+
 -(IBAction) blockCookiesFromSites:(id)aSender
 {
-  if (mCachedCookies && mPermissionManager) {
-    NSArray *rows = [[mCookiesTable selectedRowEnumerator] allObjects];
-    NSEnumerator *e = [rows reverseObjectEnumerator];
-    NSNumber *index;
-    while ((index = [e nextObject]))
-    {
-      int row = [index intValue];
-
-      nsCAutoString host, name, path;
-      mCachedCookies->ObjectAt(row)->GetHost(host);
-      [self addPermission:nsIPermissionManager::DENY_ACTION forHost:[NSString stringWith_nsACString:host]];
-    }
-  }
+  [self addPermissionForSelection:nsIPermissionManager::DENY_ACTION];
 }
 
 -(IBAction) removeCookiesAndBlockSites:(id)aSender
@@ -1054,6 +1050,23 @@ PR_STATIC_CALLBACK(int) compareValues(nsICookie* aCookie1, nsICookie* aCookie2, 
   }
 }
 
+- (void)addPermissionForSelection:(int)inPermission
+{
+  if (mCachedCookies && mPermissionManager) {
+    NSArray* rows = [[mCookiesTable selectedRowEnumerator] allObjects];
+    NSEnumerator* e = [rows reverseObjectEnumerator];
+    NSNumber* index;
+    while ((index = [e nextObject]))
+    {
+      int row = [index intValue];
+
+      nsCAutoString host;
+      mCachedCookies->ObjectAt(row)->GetHost(host);
+      [self addPermission:inPermission forHost:[NSString stringWith_nsACString:host]];
+    }
+  }
+}
+
 - (void)addPermission:(int)inPermission forHost:(NSString*)inHost
 {
   nsCOMPtr<nsIURI> hostURI;
@@ -1134,6 +1147,17 @@ PR_STATIC_CALLBACK(int) compareValues(nsICookie* aCookie1, nsICookie* aCookie2, 
   // only allow "remove all" if we're not filtering
   if (action == @selector(removeAllCookies:))
     return ([[mCookiesFilterField stringValue] length] == 0);
+
+  if (action == @selector(allowCookiesFromSites:))
+  {
+    NSString* siteName = nil;
+    int numCookieSites = [self numUniqueCookieSitesSelected:&siteName];
+    NSString* menuTitle = (numCookieSites == 1) ?
+                            [NSString stringWithFormat:[self getLocalizedString:@"AllowCookieFromSite"], siteName] :
+                            [self getLocalizedString:@"AllowCookiesFromSites"];
+    [inMenuItem setTitle:menuTitle];
+    return (numCookieSites > 0);
+  }
 
   if (action == @selector(blockCookiesFromSites:))
   {

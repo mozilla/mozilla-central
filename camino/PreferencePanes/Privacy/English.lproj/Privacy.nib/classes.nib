@@ -17,6 +17,7 @@
         {CLASS = NSTableView; LANGUAGE = ObjC; SUPERCLASS = NSControl; }, 
         {
             ACTIONS = {
+                allowCookiesFromSites = id; 
                 blockCookiesFromSites = id; 
                 clickAskAboutCookies = id; 
                 clickCookieBehavior = id; 
