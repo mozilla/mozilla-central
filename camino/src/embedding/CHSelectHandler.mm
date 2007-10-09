@@ -61,6 +61,7 @@
 #include "nsIDocument.h"
 #include "nsIPresShell.h"
 #include "nsIFrame.h"
+#include "nsISupportsArray.h"
 
 
 @interface CHOptionSelector : NSObject
@@ -195,6 +196,13 @@ ShowNativeMenuForSelect(nsIDOMHTMLSelectElement* sel)
   options->GetLength(&count);
   PRInt32 selIndex = 0;   // currently unused
 
+  // We need to addref all of the option elements that we set on the menu,
+  // then auto release them when we leave this function. see bug: 373482
+  nsCOMPtr<nsISupportsArray> option_pool;
+  nsresult rv = NS_NewISupportsArray(getter_AddRefs(option_pool));
+  if (NS_FAILED(rv))
+    return rv;
+
   nsCOMPtr<nsIDOMHTMLOptGroupElement> curOptGroup;
 
   for (PRUint32 i = 0; i < count; i++) {
@@ -232,6 +240,7 @@ ShowNativeMenuForSelect(nsIDOMHTMLSelectElement* sel)
 
     NSMenuItem* menuItem = [[[NSMenuItem alloc] initWithTitle: title action: NULL keyEquivalent: @""] autorelease];
     [menu addItem: menuItem];
+    option_pool->AppendElement(option);  // refcount the option.
     [menuItem setRepresentedObject:[NSValue valueWithPointer:option.get()]];
 
     PRBool selected;
