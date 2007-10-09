@@ -1020,7 +1020,7 @@ enum StatusPriority {
     if (!siteIcon)
     {
       if (inLoadError)
-        siteIcon = [NSImage imageNamed:@"brokenbookmark_icon"];   // it should have its own image
+        siteIcon = [NSImage imageNamed:@"error_page_site_icon"];
       else
         siteIcon = [NSImage imageNamed:@"globe_ico"];
     }

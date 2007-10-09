@@ -433,7 +433,7 @@
 		3F44AC6E05BDFB9E00CB4B08 /* addressbook_icon.tif in Resources */ = {isa = PBXBuildFile; fileRef = 3FB2BAE90545EBF2002B9691 /* addressbook_icon.tif */; };
 		3F44AC6F05BDFB9E00CB4B08 /* bookmarkmenu_icon.tif in Resources */ = {isa = PBXBuildFile; fileRef = 3FB2BAEA0545EBF2002B9691 /* bookmarkmenu_icon.tif */; };
 		3F44AC7005BDFB9E00CB4B08 /* bookmarktoolbar_icon.tif in Resources */ = {isa = PBXBuildFile; fileRef = 3FB2BAEB0545EBF2002B9691 /* bookmarktoolbar_icon.tif */; };
-		3F44AC7105BDFB9E00CB4B08 /* brokenbookmark_icon.tif in Resources */ = {isa = PBXBuildFile; fileRef = 3FB2BAEC0545EBF2002B9691 /* brokenbookmark_icon.tif */; };
+		3F44AC7105BDFB9E00CB4B08 /* error_page_site_icon.tiff in Resources */ = {isa = PBXBuildFile; fileRef = 3FB2BAEC0545EBF2002B9691 /* error_page_site_icon.tiff */; };
 		3F44AC7405BDFB9E00CB4B08 /* rendezvous_icon.tif in Resources */ = {isa = PBXBuildFile; fileRef = 3FB2BAEF0545EBF2002B9691 /* rendezvous_icon.tif */; };
 		3F44AC7605BDFB9E00CB4B08 /* top10_icon.tif in Resources */ = {isa = PBXBuildFile; fileRef = 3FB2BAF10545EBF2002B9691 /* top10_icon.tif */; };
 		3F44AC7705BDFB9E00CB4B08 /* manager.tif in Resources */ = {isa = PBXBuildFile; fileRef = 3F63719B057CE0DE00B62EE2 /* manager.tif */; };
@@ -834,7 +834,7 @@
 		3F44AEA705BDFBA000CB4B08 /* addressbook_icon.tif in Resources */ = {isa = PBXBuildFile; fileRef = 3FB2BAE90545EBF2002B9691 /* addressbook_icon.tif */; };
 		3F44AEA805BDFBA000CB4B08 /* bookmarkmenu_icon.tif in Resources */ = {isa = PBXBuildFile; fileRef = 3FB2BAEA0545EBF2002B9691 /* bookmarkmenu_icon.tif */; };
 		3F44AEA905BDFBA000CB4B08 /* bookmarktoolbar_icon.tif in Resources */ = {isa = PBXBuildFile; fileRef = 3FB2BAEB0545EBF2002B9691 /* bookmarktoolbar_icon.tif */; };
-		3F44AEAA05BDFBA000CB4B08 /* brokenbookmark_icon.tif in Resources */ = {isa = PBXBuildFile; fileRef = 3FB2BAEC0545EBF2002B9691 /* brokenbookmark_icon.tif */; };
+		3F44AEAA05BDFBA000CB4B08 /* error_page_site_icon.tiff in Resources */ = {isa = PBXBuildFile; fileRef = 3FB2BAEC0545EBF2002B9691 /* error_page_site_icon.tiff */; };
 		3F44AEAD05BDFBA000CB4B08 /* rendezvous_icon.tif in Resources */ = {isa = PBXBuildFile; fileRef = 3FB2BAEF0545EBF2002B9691 /* rendezvous_icon.tif */; };
 		3F44AEAF05BDFBA000CB4B08 /* top10_icon.tif in Resources */ = {isa = PBXBuildFile; fileRef = 3FB2BAF10545EBF2002B9691 /* top10_icon.tif */; };
 		3F44AEB005BDFBA000CB4B08 /* manager.tif in Resources */ = {isa = PBXBuildFile; fileRef = 3F63719B057CE0DE00B62EE2 /* manager.tif */; };
@@ -2518,7 +2518,7 @@
 		3F2CF8CB042A88B7005FD42F /* ImageAndTextCell.h */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.c.h; name = ImageAndTextCell.h; path = src/extensions/ImageAndTextCell.h; sourceTree = "<group>"; };
 		3F2CF8CC042A88B7005FD42F /* ImageAndTextCell.m */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.c.objc; name = ImageAndTextCell.m; path = src/extensions/ImageAndTextCell.m; sourceTree = "<group>"; };
 		3F42E91905EAD4580045A30C /* bm_book.tif */ = {isa = PBXFileReference; lastKnownFileType = image.tiff; name = bm_book.tif; path = resources/images/toolbar/bm_book.tif; sourceTree = SOURCE_ROOT; };
-		3F42E91A05EAD4580045A30C /* bm_folder.tif */ = {isa = PBXFileReference; lastKnownFileType = image.tiff; name = bm_folder.tif; path = resources/images/toolbar/bm_folder.tif; sourceTree = SOURCE_ROOT; };
+		3F42E91A05EAD4580045A30C /* bm_folder.tif */ = {isa = PBXFileReference; lastKnownFileType = image.tiff; name = bm_folder.tif; path = resources/images/chrome/bm_folder.tif; sourceTree = SOURCE_ROOT; };
 		3F42E91B05EAD4580045A30C /* bm_reveal.tif */ = {isa = PBXFileReference; lastKnownFileType = image.tiff; name = bm_reveal.tif; path = resources/images/toolbar/bm_reveal.tif; sourceTree = SOURCE_ROOT; };
 		3F42EFA705EC13F90045A30C /* throbber-01.tif */ = {isa = PBXFileReference; lastKnownFileType = image.png; name = "throbber-01.tif"; path = "resources/images/throbber/throbber-01.tif"; sourceTree = SOURCE_ROOT; };
 		3F42EFA805EC13F90045A30C /* throbber-07.tif */ = {isa = PBXFileReference; lastKnownFileType = image.gif; name = "throbber-07.tif"; path = "resources/images/throbber/throbber-07.tif"; sourceTree = SOURCE_ROOT; };
@@ -2579,12 +2579,12 @@
 		3FB2BADF0545EB30002B9691 /* AddressBookManager.h */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.c.h; name = AddressBookManager.h; path = src/bookmarks/AddressBookManager.h; sourceTree = "<group>"; };
 		3FB2BAE00545EB30002B9691 /* AddressBookManager.m */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.c.objc; name = AddressBookManager.m; path = src/bookmarks/AddressBookManager.m; sourceTree = "<group>"; };
 		3FB2BAE60545EBAB002B9691 /* English */ = {isa = PBXFileReference; lastKnownFileType = wrapper.nib; name = English; path = resources/localized/English.lproj/BookmarkImportDlg.nib; sourceTree = "<group>"; };
-		3FB2BAE90545EBF2002B9691 /* addressbook_icon.tif */ = {isa = PBXFileReference; lastKnownFileType = image.tiff; name = addressbook_icon.tif; path = resources/images/toolbar/addressbook_icon.tif; sourceTree = SOURCE_ROOT; };
-		3FB2BAEA0545EBF2002B9691 /* bookmarkmenu_icon.tif */ = {isa = PBXFileReference; lastKnownFileType = image.tiff; name = bookmarkmenu_icon.tif; path = resources/images/toolbar/bookmarkmenu_icon.tif; sourceTree = SOURCE_ROOT; };
-		3FB2BAEB0545EBF2002B9691 /* bookmarktoolbar_icon.tif */ = {isa = PBXFileReference; lastKnownFileType = image.tiff; name = bookmarktoolbar_icon.tif; path = resources/images/toolbar/bookmarktoolbar_icon.tif; sourceTree = SOURCE_ROOT; };
-		3FB2BAEC0545EBF2002B9691 /* brokenbookmark_icon.tif */ = {isa = PBXFileReference; lastKnownFileType = image.tiff; name = brokenbookmark_icon.tif; path = resources/images/toolbar/brokenbookmark_icon.tif; sourceTree = SOURCE_ROOT; };
-		3FB2BAEF0545EBF2002B9691 /* rendezvous_icon.tif */ = {isa = PBXFileReference; lastKnownFileType = image.tiff; name = rendezvous_icon.tif; path = resources/images/toolbar/rendezvous_icon.tif; sourceTree = SOURCE_ROOT; };
-		3FB2BAF10545EBF2002B9691 /* top10_icon.tif */ = {isa = PBXFileReference; lastKnownFileType = image.tiff; name = top10_icon.tif; path = resources/images/toolbar/top10_icon.tif; sourceTree = SOURCE_ROOT; };
+		3FB2BAE90545EBF2002B9691 /* addressbook_icon.tif */ = {isa = PBXFileReference; lastKnownFileType = image.tiff; name = addressbook_icon.tif; path = resources/images/chrome/addressbook_icon.tif; sourceTree = SOURCE_ROOT; };
+		3FB2BAEA0545EBF2002B9691 /* bookmarkmenu_icon.tif */ = {isa = PBXFileReference; lastKnownFileType = image.tiff; name = bookmarkmenu_icon.tif; path = resources/images/chrome/bookmarkmenu_icon.tif; sourceTree = SOURCE_ROOT; };
+		3FB2BAEB0545EBF2002B9691 /* bookmarktoolbar_icon.tif */ = {isa = PBXFileReference; lastKnownFileType = image.tiff; name = bookmarktoolbar_icon.tif; path = resources/images/chrome/bookmarktoolbar_icon.tif; sourceTree = SOURCE_ROOT; };
+		3FB2BAEC0545EBF2002B9691 /* error_page_site_icon.tiff */ = {isa = PBXFileReference; lastKnownFileType = image.tiff; name = error_page_site_icon.tiff; path = resources/images/chrome/error_page_site_icon.tif; sourceTree = SOURCE_ROOT; };
+		3FB2BAEF0545EBF2002B9691 /* rendezvous_icon.tif */ = {isa = PBXFileReference; lastKnownFileType = image.tiff; name = rendezvous_icon.tif; path = resources/images/chrome/rendezvous_icon.tif; sourceTree = SOURCE_ROOT; };
+		3FB2BAF10545EBF2002B9691 /* top10_icon.tif */ = {isa = PBXFileReference; lastKnownFileType = image.tiff; name = top10_icon.tif; path = resources/images/chrome/top10_icon.tif; sourceTree = SOURCE_ROOT; };
 		3FBDC7D908252CF300D7F8E0 /* PhoneNumber.mm */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.cpp.objcpp; name = PhoneNumber.mm; path = src/formfill/PhoneNumber.mm; sourceTree = "<group>"; };
 		3FBDC7DA08252CF300D7F8E0 /* wallet.mm */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.cpp.objcpp; name = wallet.mm; path = src/formfill/wallet.mm; sourceTree = "<group>"; };
 		3FBDC84E08253C8B00D7F8E0 /* DistinguishedSchema.tbl */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = text; name = DistinguishedSchema.tbl; path = wallet/tables/DistinguishedSchema.tbl; sourceTree = SOURCE_ROOT; };
@@ -2859,7 +2859,7 @@
 		F55C4DD302D2864D0130B065 /* UserDefaults.h */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.c.h; name = UserDefaults.h; path = src/application/UserDefaults.h; sourceTree = "<group>"; };
 		F55CCFD2020E98EA010001CA /* print.tif */ = {isa = PBXFileReference; lastKnownFileType = image.tiff; name = print.tif; path = resources/images/toolbar/print.tif; sourceTree = SOURCE_ROOT; };
 		F5607CB5023944AD01A967DF /* GeckoUtils.h */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.c.h; name = GeckoUtils.h; path = src/extensions/GeckoUtils.h; sourceTree = "<group>"; };
-		F564872F023B957F010001CA /* historyicon.tif */ = {isa = PBXFileReference; lastKnownFileType = image.tiff; name = historyicon.tif; path = resources/images/toolbar/historyicon.tif; sourceTree = SOURCE_ROOT; };
+		F564872F023B957F010001CA /* historyicon.tif */ = {isa = PBXFileReference; lastKnownFileType = image.tiff; name = historyicon.tif; path = resources/images/chrome/historyicon.tif; sourceTree = SOURCE_ROOT; };
 		F5648739023C3857010001CA /* IconTabViewItem.h */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.c.h; name = IconTabViewItem.h; path = src/extensions/IconTabViewItem.h; sourceTree = "<group>"; };
 		F564873A023C3857010001CA /* IconTabViewItem.mm */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.cpp.objcpp; name = IconTabViewItem.mm; path = src/extensions/IconTabViewItem.mm; sourceTree = "<group>"; };
 		F56610BC0394775201A9666E /* Default Plugin.plugin */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = wrapper.cfbundle; name = "Default Plugin.plugin"; path = "../dist/bin/plugins/Default Plugin.plugin"; sourceTree = SOURCE_ROOT; };
@@ -4011,7 +4011,7 @@
 				3FB2BAE90545EBF2002B9691 /* addressbook_icon.tif */,
 				3FB2BAEA0545EBF2002B9691 /* bookmarkmenu_icon.tif */,
 				3FB2BAEB0545EBF2002B9691 /* bookmarktoolbar_icon.tif */,
-				3FB2BAEC0545EBF2002B9691 /* brokenbookmark_icon.tif */,
+				3FB2BAEC0545EBF2002B9691 /* error_page_site_icon.tiff */,
 				3FB2BAEF0545EBF2002B9691 /* rendezvous_icon.tif */,
 				3FB2BAF10545EBF2002B9691 /* top10_icon.tif */,
 				0FFE0A7E079B147F00966027 /* bm_sort.tiff */,
@@ -5368,7 +5368,7 @@
 				3F44AC6E05BDFB9E00CB4B08 /* addressbook_icon.tif in Resources */,
 				3F44AC6F05BDFB9E00CB4B08 /* bookmarkmenu_icon.tif in Resources */,
 				3F44AC7005BDFB9E00CB4B08 /* bookmarktoolbar_icon.tif in Resources */,
-				3F44AC7105BDFB9E00CB4B08 /* brokenbookmark_icon.tif in Resources */,
+				3F44AC7105BDFB9E00CB4B08 /* error_page_site_icon.tiff in Resources */,
 				3F44AC7405BDFB9E00CB4B08 /* rendezvous_icon.tif in Resources */,
 				3F44AC7605BDFB9E00CB4B08 /* top10_icon.tif in Resources */,
 				3F44AC7705BDFB9E00CB4B08 /* manager.tif in Resources */,
@@ -5557,7 +5557,7 @@
 				3F44AEA705BDFBA000CB4B08 /* addressbook_icon.tif in Resources */,
 				3F44AEA805BDFBA000CB4B08 /* bookmarkmenu_icon.tif in Resources */,
 				3F44AEA905BDFBA000CB4B08 /* bookmarktoolbar_icon.tif in Resources */,
-				3F44AEAA05BDFBA000CB4B08 /* brokenbookmark_icon.tif in Resources */,
+				3F44AEAA05BDFBA000CB4B08 /* error_page_site_icon.tiff in Resources */,
 				3F44AEAD05BDFBA000CB4B08 /* rendezvous_icon.tif in Resources */,
 				3F44AEAF05BDFBA000CB4B08 /* top10_icon.tif in Resources */,
 				3F44AEB005BDFBA000CB4B08 /* manager.tif in Resources */,
