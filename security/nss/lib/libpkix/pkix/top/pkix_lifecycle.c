@@ -108,15 +108,11 @@ PKIX_Initialize(
 
         /*
          * If we are called a second time other than in the situation handled
-         * above, we return a statically allocated error. Our technique works
-         * most of the time, but may not work if multiple threads call this
-         * function simultaneously. However, the function's documentation
-         * makes it clear that this is prohibited, so it's not our
-         * responsibility.
+         * above, we return a positive status.
          */
-
         if (pkixIsInitialized){
-                return (PKIX_ALLOC_ERROR());
+                /* Already initialized */
+                PKIX_RETURN(LIFECYCLE);
         }
 
         pkixInitInProgress = PKIX_TRUE;
@@ -194,7 +190,8 @@ PKIX_Shutdown(void *plContext)
         PKIX_ENTER(LIFECYCLE, "PKIX_Shutdown");
 
         if (!pkixIsInitialized){
-                return (PKIX_ALLOC_ERROR());
+                /* The library was not initialized */
+                PKIX_RETURN(LIFECYCLE);
         }
 
         if (pkixLoggers) {

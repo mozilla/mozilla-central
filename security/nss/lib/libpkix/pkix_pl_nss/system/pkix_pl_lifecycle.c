@@ -102,17 +102,16 @@ PKIX_PL_Initialize(
 
         /*
          * This function can only be called once. If it has already been
-         * called, we return a statically allocated error. Our technique works
-         * most of the time, but may not work if multiple threads call this
-         * function simultaneously. However, the function's documentation
-         * makes it clear that this is prohibited, so it's not our
-         * responsibility.
+         * called, we return a positive status.
          */
-
-        if (pkix_pl_initialized) return (PKIX_ALLOC_ERROR());
+        if (pkix_pl_initialized) {
+            PKIX_RETURN(OBJECT);
+        }
 
         classTableLock = PR_NewLock();
-        if (classTableLock == NULL) return (PKIX_ALLOC_ERROR());
+        if (classTableLock == NULL) {
+            return PKIX_ALLOC_ERROR();
+        }
 
         /* we don't need to register OBJECT */
         systemClasses[PKIX_OBJECT_TYPE] = nullEntry;
@@ -220,7 +219,12 @@ PKIX_PL_Shutdown(void *plContext)
 {
         PKIX_ENTER(OBJECT, "PKIX_PL_Shutdown");
 
-        if (!pkix_pl_initialized) return (PKIX_ALLOC_ERROR());
+        if (!pkix_pl_initialized) {
+            /* The library was not initilized */
+            PKIX_RETURN(OBJECT);
+        }
+
+        PR_DestroyLock(classTableLock);
 
         if (plContext != NULL) {
                 PKIX_PL_NssContext_Destroy(plContext);
