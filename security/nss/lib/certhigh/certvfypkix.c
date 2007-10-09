@@ -59,7 +59,7 @@
 #include "pkix_pl_common.h"
 #include "pkix_pl_ekuchecker.h"
 
-#ifdef DEBUG
+#ifdef DEBUG_volkov
 /* Temporary declarations of functioins. Will be removed with fix for
  * 391183 */
 extern char *
@@ -853,9 +853,9 @@ cert_GetLogFromVerifyNode(
     if (children == NULL) {
         PKIX_ERRORCODE errCode = PKIX_ANCHORDIDNOTCHAINTOCERT;
         if (node->error && node->error->errCode != errCode) {
-#ifdef DEBUG
+#ifdef DEBUG_volkov
             char *string = pkix_Error2ASCII(node->error, plContext);
-            printf("Branch search finished with error: \t%s\n", string);
+            fprintf(stderr, "Branch search finished with error: \t%s\n", string);
             PKIX_PL_Free(string, NULL);
 #endif
             if (log != NULL) {
@@ -973,9 +973,9 @@ cert_GetBuildResults(
 
     if (error) {
         unsigned long nssErrorCode = 0;
-#ifdef DEBUG        
+#ifdef DEBUG_volkov        
         char *temp = pkix_Error2ASCII(error, plContext);
-        printf("BUILD ERROR:\n%s\n", temp);
+        fprintf(stderr, "BUILD ERROR:\n%s\n", temp);
         PKIX_PL_Free(temp, NULL);
 #endif /* DEBUG */
         cert_PkixErrorToNssCode(error, &nssErrorCode, plContext);
@@ -997,7 +997,7 @@ cert_GetBuildResults(
                                           plContext),
             PKIX_BUILDRESULTGETCERTCHAINFAILED);
 
-#ifdef DEBUG
+#ifdef DEBUG_volkov
         tmpPkixError = cert_PrintCertChain(pkixCertChain, plContext);
         if (tmpPkixError) {
             PKIX_PL_Object_DecRef((PKIX_PL_Object*)tmpPkixError, plContext);
@@ -1025,7 +1025,7 @@ cert_GetBuildResults(
                                             plContext),
             PKIX_TRUSTANCHORGETTRUSTEDCERTFAILED);
 
-#ifdef DEBUG
+#ifdef DEBUG_volkov
         if (pvalidChain == NULL) {
             cert_PrintCert(trustedCert, plContext);
         }
@@ -1118,7 +1118,7 @@ cert_VerifyCertChainPkix(
 
     SECStatus              rv = SECFailure;
     void                  *plContext = NULL;
-#ifdef DEBUG
+#ifdef DEBUG_volkov
     CERTCertificate       *trustedRoot = NULL;
     CERTCertList          *validChain = NULL;
 #endif /* DEBUG */
@@ -1156,21 +1156,21 @@ cert_VerifyCertChainPkix(
 
 cleanup:
     error = cert_GetBuildResults(result, verifyNode, error, log,
-#ifdef DEBUG                                 
+#ifdef DEBUG_volkov                                 
                                  &trustedRoot, &validChain,
 #else
                                  NULL, NULL,
 #endif /* DEBUG */
                                  plContext);
     if (error) {
-#ifdef DEBUG        
+#ifdef DEBUG_volkov        
         char *temp = pkix_Error2ASCII(error, plContext);
-        printf("GET BUILD RES ERRORS:\n%s\n", temp);
+        fprintf(stderr, "GET BUILD RES ERRORS:\n%s\n", temp);
         PKIX_PL_Free(temp, NULL);
 #endif /* DEBUG */
         PKIX_PL_Object_DecRef((PKIX_PL_Object *)error, plContext);
     }
-#ifdef DEBUG
+#ifdef DEBUG_volkov
     if (trustedRoot) {
         CERT_DestroyCertificate(trustedRoot);
     }
