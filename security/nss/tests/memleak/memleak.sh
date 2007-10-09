@@ -596,78 +596,60 @@ check_ignored()
 {
     ${AWK} -F/ '
 	BEGIN {
-		ignore="'${IGNORED_STACKS}'"
+		ignore = "'${IGNORED_STACKS}'"
 		# read in the ignore file
-		BUGNUM="";
-		count = 0;
-		new = 0;
+		BUGNUM = ""
+		count = 0
+		new = 0
 		while ((getline line < ignore) > 0)  {
 			if (line ~ "^#[0-9]+") {
-				BUGNUM = line;
+				BUGNUM = line
 			} else if (line ~ "^#") {
-				continue;
+				continue
 			} else if (line == "") {
-				continue;
+				continue
 			} else {
-				bugnum_array[count] = BUGNUM;
-				line_array[count] = line;
-				depth_array[count]= split(line, tmp_array, "/");
-				for (i=1; i <= depth_array[count]; i++ ) {
-					ignore_array[count,i] = tmp_array[i];
-				}
-				count++;
+				bugnum_array[count] = BUGNUM
+ 				# Create a regular expression for the ignored stack:
+ 				# replace * with % so we can later replace them with regular expressions
+ 				# without messing up everything (the regular expressions contain *)
+ 				gsub("\\*","%",line)
+ 				# replace %% with .*
+ 				gsub("%%",".*",line)
+ 				# replace % with [^/]*
+ 				gsub("%","[^/]*",line)
+ 				# add ^ at the beginning
+ 				# add $ at the end
+ 				line_array[count] = "^" line "$"
+				count++
 			}
 		}
 	}
 	{
-		match_found = 0;
+		match_found=0
+		# Look for matching ignored stack
 	 	for (i=0 ; i < count; i++) {
-			do_next = 0;
-			for (j=1; j <= NF; j++) {
-				# our stack is deeper, no match 
-				if (j > depth_array[i]) {
-					do_next = 1;
-					break;
-				}
-				ignore = ignore_array[i,j];
-				# we found the end of the stack we have a match
-				if (ignore == "**") {
-					match_found = 1;
-					break;
-				}
-				# our stack is mismatched, no match
-				if ((ignore != "*") &&
-				    (ignore != $j)) {
-					do_next = 1;
-					break;
-				}
+			if ($0 ~ line_array[i]) {
+				# found a match
+				match_found = 1
+				bug_found = bugnum_array[i]
+				break
 			}
-			# we ve matched to the end of the stack
-			if (match_found == 1) {
-			    break;
-			}
-			# we haven t found a mismatch, make sure the
-			# stack depth is long enough.
-			if (do_next != 1) {
-				if  (NF == depth_array[i]) {
-					match_found=1;
-					break;
+		}
+		# Process result
+		if (match_found == 1 ) {
+				if (bug_found != "") {
+					print "IGNORED STACK (" bug_found "): " $0
+				} else {
+					print "IGNORED STACK: " $0
 				}
-			}
-		  }
-		  if (match_found == 1) {
-			if (bugnum_array[i] != "") {
-				print "IGNORED STACK (" bugnum_array[i] "): " $0;
-			} else {
-				print "IGNORED STACK: " $0;
-			}
 		} else {
-			print "NEW STACK: " $0;
-			new=1;
+				print "NEW STACK: " $0
+				new = 1
 		}
 	}
 	END {
-		exit new;
+		exit new
 	}'
 	ret=$?
 	return $ret
