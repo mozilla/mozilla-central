@@ -37,7 +37,7 @@
  * the terms of any one of the MPL, the GPL or the LGPL.
  *
  * ***** END LICENSE BLOCK ***** */
-/* $Id: loader.c,v 1.35 2007-07-24 14:36:57 slavomir.katuscak%sun.com Exp $ */
+/* $Id: loader.c,v 1.36 2007-10-09 17:06:22 slavomir.katuscak%sun.com Exp $ */
 
 #include "loader.h"
 #include "prmem.h"
@@ -855,9 +855,7 @@ BL_Unload(void)
    * never does a handshake on it, BL_Unload will be called even though freebl
    * was never loaded. So, don't assert blLib. */
   if (blLib) {
-#ifdef DEBUG
       disableUnload = PR_GetEnv("NSS_DISABLE_UNLOAD");
-#endif
       if (!disableUnload) {
           PRStatus status = PR_UnloadLibrary(blLib);
           PORT_Assert(PR_SUCCESS == status);

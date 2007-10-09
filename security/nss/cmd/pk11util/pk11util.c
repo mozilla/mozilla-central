@@ -1430,9 +1430,7 @@ unloadModule(Module *module)
 {
     char *disableUnload = NULL;
 
-#ifdef DEBUG 
     disableUnload = PR_GetEnv("NSS_DISABLE_UNLOAD");
-#endif
 
     if (module->library && !disableUnload) {
 	PR_UnloadLibrary(module->library);

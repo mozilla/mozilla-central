@@ -35,7 +35,7 @@
  * ***** END LICENSE BLOCK ***** */
 
 #ifdef DEBUG
-static const char CVS_ID[] = "@(#) $RCSfile: devmod.c,v $ $Revision: 1.8 $ $Date: 2007-07-24 08:56:39 $";
+static const char CVS_ID[] = "@(#) $RCSfile: devmod.c,v $ $Revision: 1.9 $ $Date: 2007-10-09 17:06:22 $";
 #endif /* DEBUG */
 
 #ifndef NSSCKEPV_H
@@ -306,9 +306,7 @@ nssModule_Unload (
     char *disableUnload = NULL;
     if (mod->library) {
 	(void)CKAPI(mod->epv)->C_Finalize(NULL);
-#ifdef DEBUG
 	disableUnload = PR_GetEnv("NSS_DISABLE_UNLOAD");
-#endif
 	if (!disableUnload) {
 	    nssrv = PR_UnloadLibrary(mod->library);
 	}

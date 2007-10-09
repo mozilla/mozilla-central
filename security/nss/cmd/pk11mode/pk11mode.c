@@ -903,9 +903,7 @@ cleanup:
 #ifdef _WIN32
     FreeLibrary(hModule);
 #else
-#ifdef DEBUG
     disableUnload = PR_GetEnv("NSS_DISABLE_UNLOAD");
-#endif
     if (!disableUnload) {
         PR_UnloadLibrary(lib);
     }

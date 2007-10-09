@@ -36,7 +36,7 @@
  * the terms of any one of the MPL, the GPL or the LGPL.
  *
  * ***** END LICENSE BLOCK ***** */
-/* $Id: lginit.c,v 1.10 2007-08-09 22:36:19 rrelyea%redhat.com Exp $ */
+/* $Id: lginit.c,v 1.11 2007-10-09 17:06:24 slavomir.katuscak%sun.com Exp $ */
 
 #include "lowkeyi.h"
 #include "pcert.h"
@@ -187,9 +187,7 @@ DB * rdbopen(const char *appName, const char *prefix,
     }
 
     /* couldn't find the entry point, unload the library and fail */
-#ifdef DEBUG
     disableUnload = PR_GetEnv("NSS_DISABLE_UNLOAD");
-#endif
     if (!disableUnload) {
         PR_UnloadLibrary(lib);
     }
