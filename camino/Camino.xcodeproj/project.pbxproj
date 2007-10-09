@@ -1216,25 +1216,25 @@
 		6021CDDC0C84FDC4000E7754 /* CHStringBundleOverride.mm in Sources */ = {isa = PBXBuildFile; fileRef = 6021CDD80C84FDC4000E7754 /* CHStringBundleOverride.mm */; };
 		7B9E1BFF09DD967E003256C9 /* libmozreg_s.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 7B9E1BFE09DD966F003256C9 /* libmozreg_s.a */; };
 		7BB332F40A7E99BC0075521C /* libspellchecker.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 7BB332F30A7E99BC0075521C /* libspellchecker.a */; };
-		82180AB107368AD7002EFA6D /* grabber.gif in Copy Gecko HTML Images */ = {isa = PBXBuildFile; fileRef = 82CE28710736615300B4DE07 /* grabber.gif */; };
-		82180AB207368AD7002EFA6D /* table-add-column-after-active.gif in Copy Gecko HTML Images */ = {isa = PBXBuildFile; fileRef = 82CE28720736615300B4DE07 /* table-add-column-after-active.gif */; };
-		82180AB307368AD7002EFA6D /* table-add-column-after-hover.gif in Copy Gecko HTML Images */ = {isa = PBXBuildFile; fileRef = 82CE28730736615300B4DE07 /* table-add-column-after-hover.gif */; };
-		82180AB407368AD7002EFA6D /* table-add-column-after.gif in Copy Gecko HTML Images */ = {isa = PBXBuildFile; fileRef = 82CE28740736615300B4DE07 /* table-add-column-after.gif */; };
-		82180AB507368AD7002EFA6D /* table-add-column-before-active.gif in Copy Gecko HTML Images */ = {isa = PBXBuildFile; fileRef = 82CE28750736615300B4DE07 /* table-add-column-before-active.gif */; };
-		82180AB607368AD7002EFA6D /* table-add-column-before-hover.gif in Copy Gecko HTML Images */ = {isa = PBXBuildFile; fileRef = 82CE28760736615300B4DE07 /* table-add-column-before-hover.gif */; };
-		82180AB707368AD7002EFA6D /* table-add-column-before.gif in Copy Gecko HTML Images */ = {isa = PBXBuildFile; fileRef = 82CE28770736615300B4DE07 /* table-add-column-before.gif */; };
-		82180AB807368AD7002EFA6D /* table-add-row-after-active.gif in Copy Gecko HTML Images */ = {isa = PBXBuildFile; fileRef = 82CE28780736615300B4DE07 /* table-add-row-after-active.gif */; };
-		82180AB907368AD7002EFA6D /* table-add-row-after-hover.gif in Copy Gecko HTML Images */ = {isa = PBXBuildFile; fileRef = 82CE28790736615300B4DE07 /* table-add-row-after-hover.gif */; };
-		82180ABA07368AD7002EFA6D /* table-add-row-after.gif in Copy Gecko HTML Images */ = {isa = PBXBuildFile; fileRef = 82CE287A0736615300B4DE07 /* table-add-row-after.gif */; };
-		82180ABB07368AD7002EFA6D /* table-add-row-before-active.gif in Copy Gecko HTML Images */ = {isa = PBXBuildFile; fileRef = 82CE287B0736615300B4DE07 /* table-add-row-before-active.gif */; };
-		82180ABC07368AD7002EFA6D /* table-add-row-before-hover.gif in Copy Gecko HTML Images */ = {isa = PBXBuildFile; fileRef = 82CE287C0736615300B4DE07 /* table-add-row-before-hover.gif */; };
-		82180ABD07368AD7002EFA6D /* table-add-row-before.gif in Copy Gecko HTML Images */ = {isa = PBXBuildFile; fileRef = 82CE287D0736615300B4DE07 /* table-add-row-before.gif */; };
-		82180ABE07368AD7002EFA6D /* table-remove-column-active.gif in Copy Gecko HTML Images */ = {isa = PBXBuildFile; fileRef = 82CE287E0736615300B4DE07 /* table-remove-column-active.gif */; };
-		82180ABF07368AD7002EFA6D /* table-remove-column-hover.gif in Copy Gecko HTML Images */ = {isa = PBXBuildFile; fileRef = 82CE287F0736615300B4DE07 /* table-remove-column-hover.gif */; };
-		82180AC007368AD7002EFA6D /* table-remove-column.gif in Copy Gecko HTML Images */ = {isa = PBXBuildFile; fileRef = 82CE28800736615300B4DE07 /* table-remove-column.gif */; };
-		82180AC107368AD7002EFA6D /* table-remove-row-active.gif in Copy Gecko HTML Images */ = {isa = PBXBuildFile; fileRef = 82CE28810736615300B4DE07 /* table-remove-row-active.gif */; };
-		82180AC207368AD7002EFA6D /* table-remove-row-hover.gif in Copy Gecko HTML Images */ = {isa = PBXBuildFile; fileRef = 82CE28820736615300B4DE07 /* table-remove-row-hover.gif */; };
-		82180AC307368AD7002EFA6D /* table-remove-row.gif in Copy Gecko HTML Images */ = {isa = PBXBuildFile; fileRef = 82CE28830736615300B4DE07 /* table-remove-row.gif */; };
+		82180AB107368AD7002EFA6D /* grabber.gif in Copy Gecko Resources */ = {isa = PBXBuildFile; fileRef = 82CE28710736615300B4DE07 /* grabber.gif */; };
+		82180AB207368AD7002EFA6D /* table-add-column-after-active.gif in Copy Gecko Resources */ = {isa = PBXBuildFile; fileRef = 82CE28720736615300B4DE07 /* table-add-column-after-active.gif */; };
+		82180AB307368AD7002EFA6D /* table-add-column-after-hover.gif in Copy Gecko Resources */ = {isa = PBXBuildFile; fileRef = 82CE28730736615300B4DE07 /* table-add-column-after-hover.gif */; };
+		82180AB407368AD7002EFA6D /* table-add-column-after.gif in Copy Gecko Resources */ = {isa = PBXBuildFile; fileRef = 82CE28740736615300B4DE07 /* table-add-column-after.gif */; };
+		82180AB507368AD7002EFA6D /* table-add-column-before-active.gif in Copy Gecko Resources */ = {isa = PBXBuildFile; fileRef = 82CE28750736615300B4DE07 /* table-add-column-before-active.gif */; };
+		82180AB607368AD7002EFA6D /* table-add-column-before-hover.gif in Copy Gecko Resources */ = {isa = PBXBuildFile; fileRef = 82CE28760736615300B4DE07 /* table-add-column-before-hover.gif */; };
+		82180AB707368AD7002EFA6D /* table-add-column-before.gif in Copy Gecko Resources */ = {isa = PBXBuildFile; fileRef = 82CE28770736615300B4DE07 /* table-add-column-before.gif */; };
+		82180AB807368AD7002EFA6D /* table-add-row-after-active.gif in Copy Gecko Resources */ = {isa = PBXBuildFile; fileRef = 82CE28780736615300B4DE07 /* table-add-row-after-active.gif */; };
+		82180AB907368AD7002EFA6D /* table-add-row-after-hover.gif in Copy Gecko Resources */ = {isa = PBXBuildFile; fileRef = 82CE28790736615300B4DE07 /* table-add-row-after-hover.gif */; };
+		82180ABA07368AD7002EFA6D /* table-add-row-after.gif in Copy Gecko Resources */ = {isa = PBXBuildFile; fileRef = 82CE287A0736615300B4DE07 /* table-add-row-after.gif */; };
+		82180ABB07368AD7002EFA6D /* table-add-row-before-active.gif in Copy Gecko Resources */ = {isa = PBXBuildFile; fileRef = 82CE287B0736615300B4DE07 /* table-add-row-before-active.gif */; };
+		82180ABC07368AD7002EFA6D /* table-add-row-before-hover.gif in Copy Gecko Resources */ = {isa = PBXBuildFile; fileRef = 82CE287C0736615300B4DE07 /* table-add-row-before-hover.gif */; };
+		82180ABD07368AD7002EFA6D /* table-add-row-before.gif in Copy Gecko Resources */ = {isa = PBXBuildFile; fileRef = 82CE287D0736615300B4DE07 /* table-add-row-before.gif */; };
+		82180ABE07368AD7002EFA6D /* table-remove-column-active.gif in Copy Gecko Resources */ = {isa = PBXBuildFile; fileRef = 82CE287E0736615300B4DE07 /* table-remove-column-active.gif */; };
+		82180ABF07368AD7002EFA6D /* table-remove-column-hover.gif in Copy Gecko Resources */ = {isa = PBXBuildFile; fileRef = 82CE287F0736615300B4DE07 /* table-remove-column-hover.gif */; };
+		82180AC007368AD7002EFA6D /* table-remove-column.gif in Copy Gecko Resources */ = {isa = PBXBuildFile; fileRef = 82CE28800736615300B4DE07 /* table-remove-column.gif */; };
+		82180AC107368AD7002EFA6D /* table-remove-row-active.gif in Copy Gecko Resources */ = {isa = PBXBuildFile; fileRef = 82CE28810736615300B4DE07 /* table-remove-row-active.gif */; };
+		82180AC207368AD7002EFA6D /* table-remove-row-hover.gif in Copy Gecko Resources */ = {isa = PBXBuildFile; fileRef = 82CE28820736615300B4DE07 /* table-remove-row-hover.gif */; };
+		82180AC307368AD7002EFA6D /* table-remove-row.gif in Copy Gecko Resources */ = {isa = PBXBuildFile; fileRef = 82CE28830736615300B4DE07 /* table-remove-row.gif */; };
 		82180AC607368B03002EFA6D /* txmgr.xpt in Copy Component XPTs */ = {isa = PBXBuildFile; fileRef = 82CE28C80736633900B4DE07 /* txmgr.xpt */; };
 		82180AC707368B03002EFA6D /* composer.xpt in Copy Component XPTs */ = {isa = PBXBuildFile; fileRef = 82CE28C40736625800B4DE07 /* composer.xpt */; };
 		82180AC807368B21002EFA6D /* EditorOverride.css in Copy Gecko Resources */ = {isa = PBXBuildFile; fileRef = 82CE28BD073661E300B4DE07 /* EditorOverride.css */; };
@@ -1704,6 +1704,25 @@
 				0E6A98A2097E00A6007962C1 /* mathml.css in Copy Gecko Resources */,
 				82180AC807368B21002EFA6D /* EditorOverride.css in Copy Gecko Resources */,
 				DE1E11C10C28C92B00CD6DD4 /* effective_tld_names.dat in Copy Gecko Resources */,
+				82180AB107368AD7002EFA6D /* grabber.gif in Copy Gecko Resources */,
+				82180AB207368AD7002EFA6D /* table-add-column-after-active.gif in Copy Gecko Resources */,
+				82180AB307368AD7002EFA6D /* table-add-column-after-hover.gif in Copy Gecko Resources */,
+				82180AB407368AD7002EFA6D /* table-add-column-after.gif in Copy Gecko Resources */,
+				82180AB507368AD7002EFA6D /* table-add-column-before-active.gif in Copy Gecko Resources */,
+				82180AB607368AD7002EFA6D /* table-add-column-before-hover.gif in Copy Gecko Resources */,
+				82180AB707368AD7002EFA6D /* table-add-column-before.gif in Copy Gecko Resources */,
+				82180AB807368AD7002EFA6D /* table-add-row-after-active.gif in Copy Gecko Resources */,
+				82180AB907368AD7002EFA6D /* table-add-row-after-hover.gif in Copy Gecko Resources */,
+				82180ABA07368AD7002EFA6D /* table-add-row-after.gif in Copy Gecko Resources */,
+				82180ABB07368AD7002EFA6D /* table-add-row-before-active.gif in Copy Gecko Resources */,
+				82180ABC07368AD7002EFA6D /* table-add-row-before-hover.gif in Copy Gecko Resources */,
+				82180ABD07368AD7002EFA6D /* table-add-row-before.gif in Copy Gecko Resources */,
+				82180ABE07368AD7002EFA6D /* table-remove-column-active.gif in Copy Gecko Resources */,
+				82180ABF07368AD7002EFA6D /* table-remove-column-hover.gif in Copy Gecko Resources */,
+				82180AC007368AD7002EFA6D /* table-remove-column.gif in Copy Gecko Resources */,
+				82180AC107368AD7002EFA6D /* table-remove-row-active.gif in Copy Gecko Resources */,
+				82180AC207368AD7002EFA6D /* table-remove-row-hover.gif in Copy Gecko Resources */,
+				82180AC307368AD7002EFA6D /* table-remove-row.gif in Copy Gecko Resources */,
 				3F44AD2E05BDFB9F00CB4B08 /* charsetalias.properties in Copy Gecko Resources */,
 				3F44AD2F05BDFB9F00CB4B08 /* charsetData.properties in Copy Gecko Resources */,
 				3F44AD3005BDFB9F00CB4B08 /* langGroups.properties in Copy Gecko Resources */,
@@ -1750,35 +1769,6 @@
 				3F44AD4505BDFB9F00CB4B08 /* transliterate.properties in Copy Gecko Entity Tables */,
 			);
 			name = "Copy Gecko Entity Tables";
-			runOnlyForDeploymentPostprocessing = 0;
-		};
-		3F44AD4605BDFB9F00CB4B08 /* Copy Gecko HTML Images */ = {
-			isa = PBXCopyFilesBuildPhase;
-			buildActionMask = 2147483647;
-			dstPath = res/html;
-			dstSubfolderSpec = 6;
-			files = (
-				82180AB107368AD7002EFA6D /* grabber.gif in Copy Gecko HTML Images */,
-				82180AB207368AD7002EFA6D /* table-add-column-after-active.gif in Copy Gecko HTML Images */,
-				82180AB307368AD7002EFA6D /* table-add-column-after-hover.gif in Copy Gecko HTML Images */,
-				82180AB407368AD7002EFA6D /* table-add-column-after.gif in Copy Gecko HTML Images */,
-				82180AB507368AD7002EFA6D /* table-add-column-before-active.gif in Copy Gecko HTML Images */,
-				82180AB607368AD7002EFA6D /* table-add-column-before-hover.gif in Copy Gecko HTML Images */,
-				82180AB707368AD7002EFA6D /* table-add-column-before.gif in Copy Gecko HTML Images */,
-				82180AB807368AD7002EFA6D /* table-add-row-after-active.gif in Copy Gecko HTML Images */,
-				82180AB907368AD7002EFA6D /* table-add-row-after-hover.gif in Copy Gecko HTML Images */,
-				82180ABA07368AD7002EFA6D /* table-add-row-after.gif in Copy Gecko HTML Images */,
-				82180ABB07368AD7002EFA6D /* table-add-row-before-active.gif in Copy Gecko HTML Images */,
-				82180ABC07368AD7002EFA6D /* table-add-row-before-hover.gif in Copy Gecko HTML Images */,
-				82180ABD07368AD7002EFA6D /* table-add-row-before.gif in Copy Gecko HTML Images */,
-				82180ABE07368AD7002EFA6D /* table-remove-column-active.gif in Copy Gecko HTML Images */,
-				82180ABF07368AD7002EFA6D /* table-remove-column-hover.gif in Copy Gecko HTML Images */,
-				82180AC007368AD7002EFA6D /* table-remove-column.gif in Copy Gecko HTML Images */,
-				82180AC107368AD7002EFA6D /* table-remove-row-active.gif in Copy Gecko HTML Images */,
-				82180AC207368AD7002EFA6D /* table-remove-row-hover.gif in Copy Gecko HTML Images */,
-				82180AC307368AD7002EFA6D /* table-remove-row.gif in Copy Gecko HTML Images */,
-			);
-			name = "Copy Gecko HTML Images";
 			runOnlyForDeploymentPostprocessing = 0;
 		};
 		3F44AD5105BDFB9F00CB4B08 /* Copy Camino Prefs */ = {
@@ -2924,16 +2914,6 @@
 		F59E9F3D0237E28401A967DF /* ContentClickListener.h */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.c.h; name = ContentClickListener.h; path = src/browser/ContentClickListener.h; sourceTree = "<group>"; };
 		F59E9F3F0237E43401A967DF /* ContentClickListener.mm */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.cpp.objcpp; name = ContentClickListener.mm; path = src/browser/ContentClickListener.mm; sourceTree = "<group>"; };
 		F5A112C902DF270F01026D5D /* loading-image.gif */ = {isa = PBXFileReference; lastKnownFileType = image.gif; name = "loading-image.gif"; path = "resources/images/gecko/loading-image.gif"; sourceTree = SOURCE_ROOT; };
-		F5A70907036DB4B201202892 /* gopher-audio.gif */ = {isa = PBXFileReference; lastKnownFileType = image.gif; name = "gopher-audio.gif"; path = "../dist/bin/res/html/gopher-audio.gif"; sourceTree = SOURCE_ROOT; };
-		F5A70908036DB4B201202892 /* gopher-binary.gif */ = {isa = PBXFileReference; lastKnownFileType = image.gif; name = "gopher-binary.gif"; path = "../dist/bin/res/html/gopher-binary.gif"; sourceTree = SOURCE_ROOT; };
-		F5A70909036DB4B201202892 /* gopher-find.gif */ = {isa = PBXFileReference; lastKnownFileType = image.gif; name = "gopher-find.gif"; path = "../dist/bin/res/html/gopher-find.gif"; sourceTree = SOURCE_ROOT; };
-		F5A7090A036DB4B201202892 /* gopher-image.gif */ = {isa = PBXFileReference; lastKnownFileType = image.gif; name = "gopher-image.gif"; path = "../dist/bin/res/html/gopher-image.gif"; sourceTree = SOURCE_ROOT; };
-		F5A7090B036DB4B201202892 /* gopher-menu.gif */ = {isa = PBXFileReference; lastKnownFileType = image.gif; name = "gopher-menu.gif"; path = "resources/images/gecko/gopher-menu.gif"; sourceTree = SOURCE_ROOT; };
-		F5A7090C036DB4B201202892 /* gopher-movie.gif */ = {isa = PBXFileReference; lastKnownFileType = image.gif; name = "gopher-movie.gif"; path = "../dist/bin/res/html/gopher-movie.gif"; sourceTree = SOURCE_ROOT; };
-		F5A7090D036DB4B201202892 /* gopher-sound.gif */ = {isa = PBXFileReference; lastKnownFileType = image.gif; name = "gopher-sound.gif"; path = "../dist/bin/res/html/gopher-sound.gif"; sourceTree = SOURCE_ROOT; };
-		F5A7090E036DB4B201202892 /* gopher-telnet.gif */ = {isa = PBXFileReference; lastKnownFileType = image.gif; name = "gopher-telnet.gif"; path = "../dist/bin/res/html/gopher-telnet.gif"; sourceTree = SOURCE_ROOT; };
-		F5A7090F036DB4B201202892 /* gopher-text.gif */ = {isa = PBXFileReference; lastKnownFileType = image.gif; name = "gopher-text.gif"; path = "../dist/bin/res/html/gopher-text.gif"; sourceTree = SOURCE_ROOT; };
-		F5A70910036DB4B201202892 /* gopher-unknown.gif */ = {isa = PBXFileReference; lastKnownFileType = image.gif; name = "gopher-unknown.gif"; path = "resources/images/gecko/gopher-unknown.gif"; sourceTree = SOURCE_ROOT; };
 		F5A8CE4102DFEF4C013CA8EC /* PreferencePaneBase.h */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.c.h; name = PreferencePaneBase.h; path = PreferencePanes/Shared/PreferencePaneBase.h; sourceTree = SOURCE_ROOT; };
 		F5A8CE4202DFEF4C013CA8EC /* PreferencePaneBase.mm */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.cpp.objcpp; name = PreferencePaneBase.mm; path = PreferencePanes/Shared/PreferencePaneBase.mm; sourceTree = SOURCE_ROOT; };
 		F5A8CE4E02DFF167013CA8EC /* Appearance.h */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.c.h; name = Appearance.h; path = PreferencePanes/Appearance/Appearance.h; sourceTree = SOURCE_ROOT; };
@@ -4555,23 +4535,6 @@
 			name = Toolbar;
 			sourceTree = "<group>";
 		};
-		F5A70906036DB46201202892 /* html */ = {
-			isa = PBXGroup;
-			children = (
-				F5A70907036DB4B201202892 /* gopher-audio.gif */,
-				F5A70908036DB4B201202892 /* gopher-binary.gif */,
-				F5A70909036DB4B201202892 /* gopher-find.gif */,
-				F5A7090A036DB4B201202892 /* gopher-image.gif */,
-				F5A7090B036DB4B201202892 /* gopher-menu.gif */,
-				F5A7090C036DB4B201202892 /* gopher-movie.gif */,
-				F5A7090D036DB4B201202892 /* gopher-sound.gif */,
-				F5A7090E036DB4B201202892 /* gopher-telnet.gif */,
-				F5A7090F036DB4B201202892 /* gopher-text.gif */,
-				F5A70910036DB4B201202892 /* gopher-unknown.gif */,
-			);
-			name = html;
-			sourceTree = "<group>";
-		};
 		F5A8CE4002DFEF4C013CA8EC /* Shared */ = {
 			isa = PBXGroup;
 			children = (
@@ -4667,7 +4630,6 @@
 				F6BD64DD01B3172601A962F7 /* forms.css */,
 				3312BF340C84C2B4000E6965 /* arrow.gif */,
 				3312BF350C84C2B4000E6965 /* arrowd.gif */,
-				F5A70906036DB46201202892 /* html */,
 				F6BD64DE01B3172601A962F7 /* html.css */,
 				0E6A9886097DFFD4007962C1 /* mathml.css */,
 				F6BD64DF01B3172601A962F7 /* quirk.css */,
@@ -5105,7 +5067,6 @@
 				3F44AD3E05BDFB9F00CB4B08 /* Copy Gecko DTDs */,
 				0E6A98A6097E00CD007962C1 /* Copy Gecko Fonts */,
 				3F44AD4005BDFB9F00CB4B08 /* Copy Gecko Entity Tables */,
-				3F44AD4605BDFB9F00CB4B08 /* Copy Gecko HTML Images */,
 				3F44AD5105BDFB9F00CB4B08 /* Copy Camino Prefs */,
 				3FBDC88908253CCC00D7F8E0 /* Copy Wallet Resources */,
 				3F44AD5305BDFB9F00CB4B08 /* Copy Base Prefs */,
