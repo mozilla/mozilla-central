@@ -45,7 +45,7 @@ $ENV{MOZ_SYMBOLS_TRANSFER_TYPE} = "rsync";
 #$TestOnly          = 0;      # Only run tests, don't pull/build
 #$BuildEmbed        = 0;      # After building seamonkey, go build embed app.
 #$SkipMozilla       = 0;      # Use to debug post-mozilla.pl scripts.
-#$BuildLocales      = 0;      # Do l10n packaging?
+$BuildLocales      = 1;      # Do l10n packaging?
 
 # Tests
 #$CleanProfile             = 0;
@@ -71,6 +71,16 @@ $VendorName               = 'Mozilla';
 #$QATest                   = 0;  
 #$XULWindowOpenTest        = 0;  # Txul
 #$StartupPerformanceTest   = 0;  # Ts
+$LocaleProduct = "suite";
+@CompareLocaleDirs = (
+  "netwerk",
+  "dom",
+  "toolkit",
+  "security/manager",
+  "extensions/reporter",
+  "editor/ui",
+  "suite",
+);
 
 #$TestsPhoneHome           = 0;  # Should test report back to server?
 
@@ -145,7 +155,7 @@ $moz_cvsroot   = ':ext:seabld@cvs.mozilla.org:/cvsroot';
 $ObjDir = '../build';
 
 # Extra build name, if needed.
-$BuildNameExtra = 'Universal release';
+$BuildNameExtra = 'Universal Nightly';
 
 # User comment, eg. ip address for dhcp builds.
 # ex: $UserComment = "ip = 208.12.36.108";
@@ -161,6 +171,7 @@ $BuildNameExtra = 'Universal release';
 #- Until you get the script working. When it works,
 #- change to the tree you're actually building
 $BuildTree  = 'SeaMonkey';
+$BuildTreeLocale  = 'Mozilla-l10n-%s';
 
 #$BuildName = '';
 #$BuildTag = '';

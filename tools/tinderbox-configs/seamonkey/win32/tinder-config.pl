@@ -52,7 +52,7 @@ $ReportFinalStatus = 1;      # Finer control over $ReportStatus.
 #$TestOnly          = 1;      # Only run tests, don't pull/build
 #$BuildEmbed        = 0;      # After building seamonkey, go build embed app.
 #$SkipMozilla       = 0;      # Use to debug post-mozilla.pl scripts.
-#$BuildLocales      = 0;      # Do l10n packaging?
+$BuildLocales      = 1;      # Do l10n packaging?
 
 # Tests
 $CleanProfile             = 1;
@@ -78,6 +78,16 @@ $LayoutPerformanceTest    = 1;  # Tp
 #$QATest                   = 0;  
 #$XULWindowOpenTest        = 0;  # Txul
 $StartupPerformanceTest   = 1;  # Ts
+$LocaleProduct = "suite";
+@CompareLocaleDirs = (
+  "netwerk",
+  "dom",
+  "toolkit",
+  "security/manager",
+  "extensions/reporter",
+  "editor/ui",
+  "suite",
+);
 
 $TestsPhoneHome           = 1;  # Should test report back to server?
 
@@ -167,6 +177,7 @@ $UserComment = 0;
 #- Until you get the script working. When it works,
 #- change to the tree you're actually building
 $BuildTree  = 'SeaMonkey';
+$BuildTreeLocale  = 'Mozilla-l10n-%s';
 
 #$BuildName = '';
 #$BuildTag = '';
