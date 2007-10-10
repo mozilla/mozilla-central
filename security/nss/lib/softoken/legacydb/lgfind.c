@@ -206,7 +206,7 @@ lg_key_collect(DBT *key, DBT *data, void *arg)
     tmpDBKey.type = siBuffer;
 
     PORT_Assert(keyData->keyHandle);
-    if (!keyData->strict && keyData->id) {
+    if (!keyData->strict && keyData->id && keyData->id->data) {
 	SECItem result;
 	PRBool haveMatch= PR_FALSE;
 	unsigned char hashKey[SHA1_LENGTH];
@@ -666,8 +666,7 @@ lg_searchTokenList(SDB *sdb, SDBFind *search,
     CK_CERTIFICATE_TYPE certType;
     CK_OBJECT_CLASS objectClass;
     CK_RV crv;
-    unsigned long classFlags = 
-	LG_CERT|LG_TRUST|LG_PRIVATE|LG_PUBLIC|LG_KEY|LG_SMIME|LG_CRL;
+    unsigned long classFlags;
 
     if (lg_getCertDB(sdb) == NULL) {
 	classFlags = LG_PRIVATE|LG_KEY;
@@ -846,7 +845,7 @@ lg_searchTokenList(SDB *sdb, SDBFind *search,
 
     /* keys */
     if (classFlags & (LG_PRIVATE|LG_PUBLIC|LG_KEY)) {
-	PRBool mustStrict = ((classFlags & LG_KEY) != 0) && (name.len != 0);
+	PRBool mustStrict = (name.len != 0);
 	lg_searchKeys(sdb, &key_id, classFlags, search,
 			 mustStrict, pTemplate, ulCount);
     }
