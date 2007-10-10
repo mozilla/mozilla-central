@@ -1659,12 +1659,14 @@ portnum = 2001;
         }
 
         *pSocket = socket;
+        socket = NULL;
 
 cleanup:
 
         PKIX_DECREF(formatString);
         PKIX_DECREF(hostString);
         PKIX_DECREF(domainString);
+        PKIX_DECREF(socket);
 
         PKIX_RETURN(CERTSTORE);
 }
