@@ -67,7 +67,7 @@ interface nsIMsgNewsFolder : nsISupports {
   void forgetGroupUsername();
   void forgetGroupPassword();
   
-  void moveFolder(in nsIMsgFolder aNewsgroupToMove, in nsIMsgFolder aRefNewsgroup, in PRint32 aOrientation);
+  void moveFolder(in nsIMsgFolder aNewsgroupToMove, in nsIMsgFolder aRefNewsgroup, in PRInt32 aOrientation);
 
   nsIMsgFolder addNewsgroup(in AUTF8String newsgroupName, in ACString setStr);
 
