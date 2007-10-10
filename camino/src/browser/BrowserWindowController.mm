@@ -74,6 +74,7 @@
 #import "ExtendedSplitView.h"
 #import "WebSearchField.h"
 #import "wallet.h"
+#import "ToolbarScriptItem.h"
 
 #include "nsString.h"
 #include "nsCRT.h"
@@ -1178,30 +1179,32 @@ enum BWCOpenDest {
 
 - (NSArray *)toolbarAllowedItemIdentifiers:(NSToolbar *)toolbar
 {
-    return [NSArray arrayWithObjects:   BackToolbarItemIdentifier,
-                                        ForwardToolbarItemIdentifier,
-                                        ReloadToolbarItemIdentifier,
-                                        StopToolbarItemIdentifier,
-                                        HomeToolbarItemIdentifier,
-                                        CombinedLocationToolbarItemIdentifier,
-                                        BookmarksToolbarItemIdentifier,
-                                        ThrobberToolbarItemIdentifier,
-                                        PrintToolbarItemIdentifier,
-                                        ViewSourceToolbarItemIdentifier,
-                                        BookmarkToolbarItemIdentifier,
-                                        NewTabToolbarItemIdentifier,
-                                        CloseTabToolbarItemIdentifier,
-                                        TextBiggerToolbarItemIdentifier,
-                                        TextSmallerToolbarItemIdentifier,
-                                        SendURLToolbarItemIdentifier,
-                                        NSToolbarCustomizeToolbarItemIdentifier,
-                                        NSToolbarFlexibleSpaceItemIdentifier,
-                                        NSToolbarSpaceItemIdentifier,
-                                        NSToolbarSeparatorItemIdentifier,
-                                        DLManagerToolbarItemIdentifier,
-                                        FormFillToolbarItemIdentifier,
-                                        HistoryToolbarItemIdentifier,
-                                        nil];
+  NSArray *predefinedItems = [NSArray arrayWithObjects: BackToolbarItemIdentifier,
+                                                        ForwardToolbarItemIdentifier,
+                                                        ReloadToolbarItemIdentifier,
+                                                        StopToolbarItemIdentifier,
+                                                        HomeToolbarItemIdentifier,
+                                                        CombinedLocationToolbarItemIdentifier,
+                                                        BookmarksToolbarItemIdentifier,
+                                                        ThrobberToolbarItemIdentifier,
+                                                        PrintToolbarItemIdentifier,
+                                                        ViewSourceToolbarItemIdentifier,
+                                                        BookmarkToolbarItemIdentifier,
+                                                        NewTabToolbarItemIdentifier,
+                                                        CloseTabToolbarItemIdentifier,
+                                                        TextBiggerToolbarItemIdentifier,
+                                                        TextSmallerToolbarItemIdentifier,
+                                                        SendURLToolbarItemIdentifier,
+                                                        NSToolbarCustomizeToolbarItemIdentifier,
+                                                        NSToolbarFlexibleSpaceItemIdentifier,
+                                                        NSToolbarSpaceItemIdentifier,
+                                                        NSToolbarSeparatorItemIdentifier,
+                                                        DLManagerToolbarItemIdentifier,
+                                                        FormFillToolbarItemIdentifier,
+                                                        HistoryToolbarItemIdentifier,
+                                                        nil];
+  // Add script items and return.
+  return [predefinedItems arrayByAddingObjectsFromArray:[ToolbarScriptItem scriptItemIdentifiers]];
 }
 
 // + toolbarDefaults
@@ -1478,6 +1481,9 @@ enum BWCOpenDest {
     [toolbarItem setImage:[NSImage imageNamed:@"history"]];
     [toolbarItem setTarget:self];
     [toolbarItem setAction:@selector(manageHistory:)];
+  }
+  else if ([itemIdent hasPrefix:kScriptItemIdentifierPrefix]) {
+    toolbarItem = [[[ToolbarScriptItem alloc] initWithItemIdentifier:itemIdent] autorelease];
   }
   else {
     toolbarItem = nil;

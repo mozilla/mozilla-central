@@ -1286,6 +1286,10 @@
 		DE6D27E50C1A013800292043 /* CHPermissionManager.h in Headers */ = {isa = PBXBuildFile; fileRef = DE6D27E30C1A013800292043 /* CHPermissionManager.h */; };
 		DE6D27E70C1A014D00292043 /* CHPermissionManager.mm in Sources */ = {isa = PBXBuildFile; fileRef = DE6D27E60C1A014D00292043 /* CHPermissionManager.mm */; };
 		DE6D27E80C1A014D00292043 /* CHPermissionManager.mm in Sources */ = {isa = PBXBuildFile; fileRef = DE6D27E60C1A014D00292043 /* CHPermissionManager.mm */; };
+		DE70BE700CBC7CB400C1CC63 /* ToolbarScriptItem.mm in Sources */ = {isa = PBXBuildFile; fileRef = DE70BE6E0CBC7CB400C1CC63 /* ToolbarScriptItem.mm */; };
+		DE70BE710CBC7CB400C1CC63 /* ToolbarScriptItem.h in Headers */ = {isa = PBXBuildFile; fileRef = DE70BE6F0CBC7CB400C1CC63 /* ToolbarScriptItem.h */; };
+		DE70BE720CBC7CB400C1CC63 /* ToolbarScriptItem.mm in Sources */ = {isa = PBXBuildFile; fileRef = DE70BE6E0CBC7CB400C1CC63 /* ToolbarScriptItem.mm */; };
+		DE70BE730CBC7CB400C1CC63 /* ToolbarScriptItem.h in Headers */ = {isa = PBXBuildFile; fileRef = DE70BE6F0CBC7CB400C1CC63 /* ToolbarScriptItem.h */; };
 		DE74F7480AB25E7D00FD1D5B /* AppListMenuFactory.mm in Sources */ = {isa = PBXBuildFile; fileRef = DE74F7470AB25E7D00FD1D5B /* AppListMenuFactory.mm */; };
 		DE74F7490AB25E7D00FD1D5B /* AppListMenuFactory.mm in Sources */ = {isa = PBXBuildFile; fileRef = DE74F7470AB25E7D00FD1D5B /* AppListMenuFactory.mm */; };
 		DE74F74B0AB25E9900FD1D5B /* AppListMenuFactory.h in Headers */ = {isa = PBXBuildFile; fileRef = DE74F74A0AB25E9900FD1D5B /* AppListMenuFactory.h */; };
@@ -2689,6 +2693,8 @@
 		DE62E4310B72B50C00142851 /* libauth.a */ = {isa = PBXFileReference; lastKnownFileType = archive.ar; name = libauth.a; path = ../staticlib/components/libauth.a; sourceTree = SOURCE_ROOT; };
 		DE6D27E30C1A013800292043 /* CHPermissionManager.h */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.c.h; name = CHPermissionManager.h; path = src/embedding/CHPermissionManager.h; sourceTree = "<group>"; };
 		DE6D27E60C1A014D00292043 /* CHPermissionManager.mm */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.cpp.objcpp; name = CHPermissionManager.mm; path = src/embedding/CHPermissionManager.mm; sourceTree = SOURCE_ROOT; };
+		DE70BE6E0CBC7CB400C1CC63 /* ToolbarScriptItem.mm */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.cpp.objcpp; name = ToolbarScriptItem.mm; path = src/appleevents/ToolbarScriptItem.mm; sourceTree = SOURCE_ROOT; };
+		DE70BE6F0CBC7CB400C1CC63 /* ToolbarScriptItem.h */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.c.h; name = ToolbarScriptItem.h; path = src/appleevents/ToolbarScriptItem.h; sourceTree = SOURCE_ROOT; };
 		DE74F7470AB25E7D00FD1D5B /* AppListMenuFactory.mm */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.cpp.objcpp; name = AppListMenuFactory.mm; path = src/browser/AppListMenuFactory.mm; sourceTree = "<group>"; };
 		DE74F74A0AB25E9900FD1D5B /* AppListMenuFactory.h */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.c.h; name = AppListMenuFactory.h; path = src/browser/AppListMenuFactory.h; sourceTree = "<group>"; };
 		DE74F74D0AB25EBC00FD1D5B /* FeedServiceController.h */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.c.h; name = FeedServiceController.h; path = src/browser/FeedServiceController.h; sourceTree = "<group>"; };
@@ -4316,6 +4322,8 @@
 				F527C90303BCD43601A80166 /* NSView+Utils.m */,
 				0F08FB1408D37DA90022DD45 /* NSWorkspace+Utils.h */,
 				0F08FB1708D37DB30022DD45 /* NSWorkspace+Utils.m */,
+				DE70BE6E0CBC7CB400C1CC63 /* ToolbarScriptItem.mm */,
+				DE70BE6F0CBC7CB400C1CC63 /* ToolbarScriptItem.h */,
 			);
 			name = Categories;
 			sourceTree = "<group>";
@@ -4826,6 +4834,7 @@
 				335639190C84DBDA00DC4D06 /* ViewCertificateDialogController.h in Headers */,
 				6021CDD90C84FDC4000E7754 /* CHStringBundleOverride.h in Headers */,
 				337F2BA40CA200D100572F7D /* ContentDispatchChooser.h in Headers */,
+				DE70BE710CBC7CB400C1CC63 /* ToolbarScriptItem.h in Headers */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -4992,6 +5001,7 @@
 				3356391E0C84DBDA00DC4D06 /* ViewCertificateDialogController.h in Headers */,
 				6021CDDB0C84FDC4000E7754 /* CHStringBundleOverride.h in Headers */,
 				337F2BA60CA200D100572F7D /* ContentDispatchChooser.h in Headers */,
+				DE70BE730CBC7CB400C1CC63 /* ToolbarScriptItem.h in Headers */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -5825,6 +5835,7 @@
 				33FBAAFD0C84D0CA00DD459E /* NSString+Utils.m in Sources */,
 				6021CDDA0C84FDC4000E7754 /* CHStringBundleOverride.mm in Sources */,
 				337F2BA50CA200D100572F7D /* ContentDispatchChooser.mm in Sources */,
+				DE70BE700CBC7CB400C1CC63 /* ToolbarScriptItem.mm in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -5994,6 +6005,7 @@
 				33FBAAFF0C84D0CA00DD459E /* NSString+Utils.m in Sources */,
 				6021CDDC0C84FDC4000E7754 /* CHStringBundleOverride.mm in Sources */,
 				337F2BA70CA200D100572F7D /* ContentDispatchChooser.mm in Sources */,
+				DE70BE720CBC7CB400C1CC63 /* ToolbarScriptItem.mm in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
