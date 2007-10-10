@@ -116,8 +116,6 @@ install:
               $$I > $(TINDERBOX_DIR)/$$I && \
 	   chmod 644 $(TINDERBOX_DIR)/$$I; \
 	done
-	chmod 755 $(addprefix $(TINDERBOX_DIR)/,$(EXE_FILES))
-	chmod 4755 $(addprefix $(TINDERBOX_DIR)/,$(SETUID_SCRIPTS))
 	set -e ; \
 	for I in $(PICS); do \
 	  echo Installing $$I && \
@@ -131,6 +129,8 @@ install:
 	chmod 770 $(TINDERBOX_DIR)/data
 	chmod 770 $(TINDERBOX_DIR)/data/bad
 	chmod 770 $(TINDERBOX_DIR)/examples
+	chmod 755 $(addprefix $(TINDERBOX_DIR)/,$(EXE_FILES))
+	chmod 4755 $(addprefix $(TINDERBOX_DIR)/,$(SETUID_SCRIPTS))
 
 define READPASS
 $(PERL) -e ' \
