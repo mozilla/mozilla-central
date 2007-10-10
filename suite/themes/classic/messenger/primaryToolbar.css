@@ -145,6 +145,40 @@
   -moz-image-region: rect(30px 119px 59px 90px) !important;
 } 
 
+#button-goback {
+  list-style-image: url("chrome://communicator/skin/icons/communicatoricons.png");
+  -moz-image-region: rect(60px 29px 89px 0);
+}
+
+#button-goback:hover {
+  -moz-image-region: rect(60px 59px 89px 30px);
+}
+
+#button-goback:hover:active {
+  -moz-image-region: rect(60px 89px 89px 60px);
+}
+
+#button-goback[disabled="true"] {
+  -moz-image-region: rect(60px 119px 89px 90px) !important;
+}
+
+#button-goforward {
+  list-style-image: url("chrome://communicator/skin/icons/communicatoricons.png");
+  -moz-image-region: rect(90px 29px 119px 0);
+}
+
+#button-goforward:hover {
+  -moz-image-region: rect(90px 59px 119px 30px);
+}
+
+#button-goforward:hover:active {
+  -moz-image-region: rect(90px 89px 119px 60px);
+}
+
+#button-goforward[disabled="true"] {
+  -moz-image-region: rect(90px 119px 119px 90px) !important;
+}
+
 #button-next {
   -moz-image-region: rect(180px 29px 209px 0);
 }

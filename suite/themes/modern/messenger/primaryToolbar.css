@@ -156,6 +156,38 @@
   -moz-image-region: rect(34px 199px 67px 150px) !important;
 } 
 
+#button-goback {
+  -moz-image-region: rect(238px 49px 271px 0);
+}
+
+#button-goback:hover {
+  -moz-image-region: rect(238px 99px 271px 50px);
+}
+
+#button-goback:hover:active {
+-moz-image-region: rect(238px 149px 271px 100px);
+} 
+
+#button-goback[disabled] {
+  -moz-image-region: rect(238px 199px 271px 150px) !important;
+} 
+
+#button-goforward {
+  -moz-image-region: rect(68px 49px 101px 0);
+}
+
+#button-goforward:hover {
+  -moz-image-region: rect(68px 99px 101px 50px);
+} 
+
+#button-goforward:hover:active {
+  -moz-image-region: rect(68px 149px 101px 100px);
+} 
+
+#button-goforward[disabled] {
+  -moz-image-region: rect(68px 199px 101px 150px) !important;
+} 
+
 #button-next {
   -moz-image-region: rect(204px 49px 237px 0);
 }

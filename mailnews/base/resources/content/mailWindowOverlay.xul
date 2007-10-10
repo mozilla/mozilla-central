@@ -52,6 +52,8 @@
 <!DOCTYPE overlay [
 <!ENTITY % messengerDTD SYSTEM "chrome://messenger/locale/messenger.dtd" >
 %messengerDTD;
+<!ENTITY % globalDTD SYSTEM "chrome://global/locale/global.dtd" >
+%globalDTD;
 <!ENTITY % msgViewPickerDTD SYSTEM "chrome://messenger/locale/msgViewPickerOverlay.dtd" >
 %msgViewPickerDTD;
 <!ENTITY % msgHdrViewPopupDTD SYSTEM "chrome://messenger/locale/msgHdrViewPopup.dtd" >
@@ -224,6 +226,8 @@
   <command id="cmd_previousUnreadMsg" oncommand="goDoCommand('cmd_previousUnreadMsg')" disabled="true"/>
   <command id="cmd_previousFlaggedMsg" oncommand="goDoCommand('cmd_previousFlaggedMsg')" disabled="true"/>
   <command id="cmd_goStartPage" oncommand="goDoCommand('cmd_goStartPage');"/>
+  <command id="cmd_goBack" oncommand="goDoCommand('cmd_goBack')" disabled="true"/>
+  <command id="cmd_goForward" oncommand="goDoCommand('cmd_goForward')" disabled="true"/>
 </commandset>
 
 <commandset id="mailMessageMenuItems"
@@ -261,6 +265,8 @@
   <command id="button_getNewMessages"/>
   <command id="button_print"/>
   <command id="button_next"/>
+  <command id="button_goBack"/>
+  <command id="button_goForward"/>
   <command id="button_file"/>
   <command id="cmd_delete"/>
   <command id="cmd_shiftDelete" oncommand="goDoCommand('cmd_shiftDelete');"/>
@@ -347,6 +353,8 @@
   <key id="key_nextUnreadThread" key="&nextUnreadThreadCmd.key;"     oncommand="goDoCommand('cmd_nextUnreadThread')"/>
   <key id="key_previousMsg" key="&previousMsgCmd.key;"               oncommand="goDoCommand('cmd_previousMsg')"/>
   <key id="key_previousUnreadMsg" key="&previousUnreadMsgCmd.key;"   oncommand="goDoCommand('cmd_previousUnreadMsg')"/>
+  <key id="key_goBack" key="&goBackCmd.commandKey;"                  oncommand="goDoCommand('cmd_goBack')"/>
+  <key id="key_goForward" key="&goForwardCmd.commandKey;"            oncommand="goDoCommand('cmd_goForward')"/>
   <key id="key_reply" key="&replyMsgCmd.key;"                        oncommand="goDoCommand('cmd_reply')" modifiers="accel"/>
   <key id="key_replyall" key="&replyToAllMsgCmd.key;"                oncommand="goDoCommand('cmd_replyall')" modifiers="accel, shift"/>
   <key id="key_forward" key="&forwardMsgCmd.key;"                    oncommand="goDoCommand('cmd_forward')" modifiers="accel"/>
@@ -1344,6 +1352,8 @@
           <menuitem label="&prevFlaggedMsgCmd.label;" accesskey="&previousFlaggedMsgCmd.accesskey;" command="cmd_previousFlaggedMsg"/>
         </menupopup>
       </menu>
+        <menuitem label="&goBackCmd.label;" key="key_goBack" observes="cmd_goBack"/>
+        <menuitem label="&goForwardCmd.label;" key="key_goForward" observes="cmd_goForward"/>
       <menuseparator observes="mailHideMenus"/>
       <menuitem id="goStartPage" label="&startPageCmd.label;"
                 accesskey="&startPageCmd.accesskey;" command="cmd_goStartPage"
@@ -1835,6 +1845,27 @@
         </template>
         <menupopup/>
       </toolbarbutton>
+
+      <toolbarbutton class="toolbarbutton-1" id="button-goback"
+                     type="menu-button" label="&goBackButton.label;"
+                     tooltiptext="&goBackButton.tooltip;"
+                     observes="button_goBack"
+                     oncommand="goDoCommand('cmd_goBack')"
+                     chromedir="&locale.dir;">
+        <menupopup onpopupshowing="InitBackToolbarMenu(this)"
+                   oncommand="NavigateToUri(event.target);"/>
+      </toolbarbutton>  
+          
+      <toolbarbutton class="toolbarbutton-1" id="button-goforward"
+                     type="menu-button" label="&goForwardButton.label;"
+                     tooltiptext="&goForwardButton.tooltip;"
+                     observes="button_goForward"
+                     oncommand="goDoCommand('cmd_goForward')"
+                     chromedir="&locale.dir;">
+        <menupopup onpopupshowing="InitForwardToolbarMenu(this)"
+                   oncommand="NavigateToUri(event.target);"/>
+      </toolbarbutton>
+
       <toolbarbutton class="toolbarbutton-1" id="button-next"
                      type="menu-button" label="&nextButton.label;"
                      tooltiptext="&nextButton.tooltip;"

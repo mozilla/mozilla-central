@@ -177,6 +177,8 @@ nsMsgDBViewCommandUpdater.prototype =
     UpdateStandAloneMessageCounts();
     SetKeywords(aKeywords);
     goUpdateCommand("button_junk");
+    goUpdateCommand("button_goBack");
+    goUpdateCommand("button_goForward");
   },
 
   updateNextMessageAfterDelete : function()
@@ -626,6 +628,10 @@ var MessageWindowController =
       case "cmd_previousMsg": 
       case "cmd_previousUnreadMsg": 
       case "cmd_previousFlaggedMsg":
+      case "cmd_goBack":
+      case "button_goBack":
+      case "cmd_goForward":
+      case "button_goForward":
         return (gDBView.keyForFirstSelectedMessage != nsMsgKey_None);
       case "cmd_reply":
       case "button_reply":
@@ -751,6 +757,12 @@ var MessageWindowController =
 			case "cmd_findAgain":
 			case "cmd_findPrev":
 				return MsgCanFindAgain();
+      case "cmd_goBack":
+      case "button_goBack":
+        return gDBView && gDBView.navigateStatus(nsMsgNavigationType.back);
+      case "cmd_goForward":
+      case "button_goForward":
+        return gDBView && gDBView.navigateStatus(nsMsgNavigationType.forward);
       case "cmd_search":
         loadedFolder = GetLoadedMsgFolder();
         return (loadedFolder && loadedFolder.server.canSearchMessages);
@@ -937,6 +949,12 @@ var MessageWindowController =
 			case "cmd_previousFlaggedMsg":
         performNavigation(nsMsgNavigationType.previousFlagged);
 				break;
+      case "cmd_goBack":
+        performNavigation(nsMsgNavigationType.back);
+        break;
+      case "cmd_goForward":
+        performNavigation(nsMsgNavigationType.forward);
+        break;
 		}
 	},
 	

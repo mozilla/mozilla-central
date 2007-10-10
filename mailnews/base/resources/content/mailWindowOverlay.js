@@ -46,7 +46,9 @@
  *
  * ***** END LICENSE BLOCK ***** */
 
+// Flags from nsMsgMessageFlags.h
 const MSG_FLAG_READ              = 0x000001;
+const MSG_FLAG_HAS_RE            = 0x000010;
 const MSG_FLAG_IMAP_DELETED      = 0x200000;
 const MSG_FLAG_MDN_REPORT_NEEDED = 0x400000;
 const MSG_FLAG_MDN_REPORT_SENT   = 0x800000;
@@ -664,6 +666,80 @@ function InitMessageTags(menuPopup)
     if (color)
       newMenuItem.setAttribute("class", "lc-" + color.substr(1));
     menuPopup.insertBefore(newMenuItem, menuseparator);
+  }
+}
+
+function InitBackToolbarMenu(menuPopup)
+{
+  PopulateHistoryMenu(menuPopup, -1);
+}
+
+function InitForwardToolbarMenu(menuPopup)
+{
+  PopulateHistoryMenu(menuPopup, 1);
+}
+
+function PopulateHistoryMenu(menuPopup, navOffset)
+{
+  // remove existing entries
+  while (menuPopup.firstChild)
+    menuPopup.removeChild(menuPopup.firstChild);
+
+  var curPos = {};
+  var numEntries = {};
+  var historyEntries = {};
+  messenger.getNavigateHistory(curPos, numEntries, historyEntries);
+  var historyArray = historyEntries.value;
+  var maxPos = numEntries.value / 2; // numEntries is always even
+  var startPos = curPos.value;
+  if (GetLoadedMessage())
+    startPos += navOffset;
+
+  // starting from the current entry, march through history until we reach
+  // the array border or our menuitem limit
+  for (var i = startPos, itemCount = 0;
+       (i >= 0) && (i < maxPos) && (itemCount < 25);
+       i += navOffset, ++itemCount)
+  {
+    var menuText = "";
+    var folder = RDF.GetResource(historyArray[i * 2 + 1])
+                    .QueryInterface(Components.interfaces.nsIMsgFolder);
+    if (!IsCurrentLoadedFolder(folder))
+      menuText += folder.prettyName + ": ";
+
+    var msgHdr = messenger.msgHdrFromURI(historyArray[i * 2]);
+    var subject = "";
+    if (msgHdr.flags & MSG_FLAG_HAS_RE)
+      subject = "Re: ";
+    if (msgHdr.mime2DecodedSubject)
+       subject += msgHdr.mime2DecodedSubject;
+    if (subject)
+      menuText += subject + " - ";
+    menuText += msgHdr.mime2DecodedAuthor;
+
+    var newMenuItem = document.createElement('menuitem');
+    newMenuItem.setAttribute('label', menuText);
+    newMenuItem.setAttribute('value', i - startPos);
+    menuPopup.appendChild(newMenuItem);
+  }
+}
+
+function NavigateToUri(target)
+{
+  var currentLoadedFolder = GetThreadPaneFolder();
+  var historyIndex = target.getAttribute('value');
+  var folderUri = messenger.getFolderUriAtNavigatePos(historyIndex);
+  var msgUri = messenger.getMsgUriAtNavigatePos(historyIndex);
+  var msgHdr = messenger.msgHdrFromURI(msgUri);
+  messenger.navigatePos += Number(historyIndex);
+  if (folderURI == currentLoadedFolder.URI)
+  {
+    gDBView.selectMsgByKey(msgHdr.messageKey);
+  }
+  else
+  {
+    gStartMsgKey = msgHdr.messageKey;
+    SelectFolder(folderUri);
   }
 }
 
@@ -1826,8 +1902,6 @@ function MsgRefresh() {}
 function MsgViewPageInfo() {}
 function MsgFirstUnreadMessage() {}
 function MsgFirstFlaggedMessage() {}
-function MsgGoBack() {}
-function MsgGoForward() {}
 function MsgAddSenderToAddressBook() {}
 function MsgAddAllToAddressBook() {}
 

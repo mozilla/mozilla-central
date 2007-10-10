@@ -174,6 +174,10 @@ var DefaultController =
 			case "cmd_previousMsg":
 			case "cmd_previousUnreadMsg":
 			case "cmd_previousFlaggedMsg":
+      case "button_goBack":
+      case "cmd_goBack":
+      case "button_goForward":
+      case "cmd_goForward":
       case "cmd_goStartPage":
 			case "cmd_viewAllMsgs":
 			case "cmd_viewUnreadMsgs":
@@ -361,6 +365,12 @@ var DefaultController =
       case "cmd_previousMsg":
       case "cmd_previousUnreadMsg":
         return IsViewNavigationItemEnabled();
+      case "button_goBack":
+      case "cmd_goBack":
+        return gDBView && gDBView.navigateStatus(nsMsgNavigationType.back);
+      case "button_goForward":
+      case "cmd_goForward":
+        return gDBView && gDBView.navigateStatus(nsMsgNavigationType.forward);
       case "cmd_goStartPage":
         return pref.getBoolPref("mailnews.start_page.enabled") && !IsMessagePaneCollapsed();
       case "cmd_markAllRead":
@@ -525,6 +535,14 @@ var DefaultController =
 			case "cmd_previousFlaggedMsg":
 				MsgPreviousFlaggedMessage();
 				break;
+      case "button_goBack":
+      case "cmd_goBack":
+        MsgGoBack();
+        break;
+       case "button_goForward":
+       case "cmd_goForward":
+        MsgGoForward();
+        break;
       case "cmd_goStartPage":
         HideMessageHeaderPane();
         loadStartPage();
@@ -988,6 +1006,16 @@ function MsgPreviousUnreadMessage()
 function MsgPreviousFlaggedMessage()
 {
 	GoNextMessage(nsMsgNavigationType.previousFlagged, true);
+}
+
+function MsgGoBack()
+{
+  GoNextMessage(nsMsgNavigationType.back, true);
+}
+
+function MsgGoForward()
+{
+  GoNextMessage(nsMsgNavigationType.forward, true);
 }
 
 function GetFolderNameFromUri(uri, tree)
