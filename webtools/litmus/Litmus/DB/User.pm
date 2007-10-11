@@ -95,15 +95,15 @@ sub search_full_text {
 	};
 	
 	if ($email) {
-	  $sql .= "users.email COLLATE latin1_general_ci like concat('%%',?,'%%') OR ";
+	  $sql .= "users.email COLLATE utf8_unicode_ci like concat('%%',?,'%%') OR ";
 	  push(@args, $email);
 	}
 	if ($nick) {
-	  $sql .= "users.irc_nickname COLLATE latin1_general_ci  like concat('%%',?,'%%') OR ";
+	  $sql .= "users.irc_nickname COLLATE utf8_unicode_ci  like concat('%%',?,'%%') OR ";
 	  push(@args, $nick);
 	}
 	if ($realname) {
-	  $sql .= "users.realname COLLATE latin1_general_ci like concat('%%',?,'%%')";
+	  $sql .= "users.realname COLLATE utf8_unicode_ci like concat('%%',?,'%%')";
 	  push(@args, $realname);
 	}
 	# catch all case for no email, nick, or realname
@@ -137,9 +137,9 @@ __PACKAGE__->set_sql(FullTextMatches => q{
 	SELECT *
 	FROM __TABLE__ 
 	WHERE 
-	  email COLLATE latin1_general_ci like concat('%%',?,'%%') OR 
-	  irc_nickname COLLATE latin1_general_ci  like concat('%%',?,'%%') OR 
-	  realname COLLATE latin1_general_ci like concat('%%',?,'%%') 
+	  email COLLATE utf8_unicode_ci like concat('%%',?,'%%') OR 
+	  irc_nickname COLLATE utf8_unicode_ci like concat('%%',?,'%%') OR 
+	  realname COLLATE lutf8_unicode_ci like concat('%%',?,'%%') 
 	ORDER BY email ASC
 });
 
