@@ -515,8 +515,6 @@ nsLDAPChannel::AsyncOpen(nsIStreamListener* aListener,
 {
     nsresult rv;
     nsCAutoString host;
-    PRInt32 port;
-    PRUint32 options;
 
     // slurp out relevant pieces of the URL
     //
@@ -526,13 +524,10 @@ nsLDAPChannel::AsyncOpen(nsIStreamListener* aListener,
         return NS_ERROR_FAILURE;
     }
 
-    rv = mURI->GetPort(&port);
-    if (NS_FAILED(rv)) {
-        NS_ERROR("nsLDAPChannel::AsyncRead(): mURI->GetPort failed\n");
-        return NS_ERROR_FAILURE;
-    }
-    if (port == -1)
-        port = LDAP_PORT;
+    // we don't currently allow for a default host
+    //
+    if (host.IsEmpty())
+        return NS_ERROR_MALFORMED_URI;
 
     // QI to nsILDAPURL so that we can call one of the methods on that iface
     //
@@ -542,13 +537,7 @@ nsLDAPChannel::AsyncOpen(nsIStreamListener* aListener,
         return NS_ERROR_FAILURE;
     }
 
-    rv = mLDAPURL->GetOptions(&options);
-    if (NS_FAILED(rv)) {
-        NS_ERROR("nsLDAPChannel::AsyncRead(): mURI->GetOptions failed\n");
-        return NS_ERROR_FAILURE;
-    }
-
-    rv = NS_CheckPortSafety(port, "ldap");
+    rv = NS_CheckPortSafety(mURI);
     if (NS_FAILED(rv))
         return rv;
 
@@ -562,11 +551,6 @@ nsLDAPChannel::AsyncOpen(nsIStreamListener* aListener,
     if (mLoadGroup) {
         mLoadGroup->AddRequest(this, mResponseContext);
     }
-
-    // we don't currently allow for a default host
-    //
-    if (host.IsEmpty())
-        return NS_ERROR_MALFORMED_URI;
 
     // since the LDAP SDK does all the socket management, we don't have
     // an underlying transport channel to create an nsIInputStream to hand
@@ -616,9 +600,7 @@ nsLDAPChannel::AsyncOpen(nsIStreamListener* aListener,
     // initialize it with the defaults
     // XXXdmose - need to deal with bind name
     // Need to deal with VERSION2 pref - don't know how to get it from here.
-    rv = mConnection->Init(host.get(), port,
-                           (options & nsILDAPURL::OPT_SECURE) ? PR_TRUE 
-                           : PR_FALSE, EmptyCString(), this, nsnull, nsILDAPConnection::VERSION3);
+    rv = mConnection->Init(mLDAPURL, EmptyCString(), this, nsnull, nsILDAPConnection::VERSION3);
     switch (rv) {
     case NS_OK:
         break;
