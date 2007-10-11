@@ -24,14 +24,15 @@
   #
   # ***** END LICENSE BLOCK *****
 #%]
-
-    <div id="footer">
+    <div id="footer">    
+    <form action="show_test.cgi" method="get" name="footerIDSearch" id="footerIDSearch">
     Search test results: <a href="search_results.cgi?order_by_created=DESC&amp;timespan=all&amp;result_status=fail&amp;limit=50">Recent&nbsp;Failures</a> | <a href="search_results.cgi?order_by_created=DESC&amp;timespan=all&amp;result_status=unclear&amp;limit=50">Recently&nbsp;Unclear</a> |
     <a href="common_results.cgi?status=fail">Most&nbsp;Common Failures</a> | <a href="common_results.cgi?status=unclear">Testcases&nbsp;Most&nbsp;Frequently&nbsp;Marked&nbsp;As&nbsp;Unclear</a> |
     <a href="aggregate_results.cgi"> Testgroup&nbsp;Popularity</a> | <a href="search_results.cgi?has_comments=1">Results&nbsp;with&nbsp;Comments</a><br/>
     Search testcases: <a href="show_test.cgi?searchType=recent&amp;recently=added">Recently&nbsp;Added</a> |
     <a href="show_test.cgi?searchType=recent&amp;recently=changed">Recently&nbsp;Changed</a>[% IF defaultemail && defaultemail.isInAdminGroup() %] |
-    <a href="show_test.cgi?searchType=ungrouped">Ungrouped</a>[% END %]
+    <a href="show_test.cgi?searchType=ungrouped">Ungrouped</a> | <strong>By ID:</strong>&nbsp;<input type="text" id="id" name="id" size="6" onChange="document.forms['footerIDSearch'].submit();"/>[% END %]
+    </form> 
     </div>
 
     </div>

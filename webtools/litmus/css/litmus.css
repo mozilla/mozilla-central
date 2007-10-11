@@ -150,6 +150,7 @@ a:active {
     clear: both;
     background: url("images/page-background.gif") repeat-x top left;
     margin: 10px 0 0 170px;
+    padding-top: 5px;
     width: auto;
     text-align: center;
     font-size: 0.9em;
