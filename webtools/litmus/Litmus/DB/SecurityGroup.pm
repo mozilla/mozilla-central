@@ -39,6 +39,7 @@ use base 'Litmus::DBI';
 Litmus::DB::SecurityGroup->table('security_groups');
 
 Litmus::DB::SecurityGroup->columns(All => qw/group_id name description grouptype isactive/);
+Litmus::DB::SecurityGroup->utf8_columns(qw/name description/);
 Litmus::DB::SecurityGroup->columns(TEMP => qw//);
 
 Litmus::DB::SecurityGroup->has_many(users => ["Litmus::DB::UserGroupMap" => 'user_id']);

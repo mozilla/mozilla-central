@@ -215,5 +215,7 @@ sub process {
 	
 	$vars{show_admin} = Litmus->getCurrentUser() ? 
 	  Litmus->getCurrentUser()->is_admin() : 0;
+
+        binmode STDOUT, ":utf8";
 	$self->SUPER::process($template, \%vars, $outstream, @opts);
 }

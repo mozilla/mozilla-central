@@ -68,8 +68,8 @@
             </td>
             </tr>
 	    <tr>
-            <td align="right">&uArr;&nbsp;<a name="stepsPreview" onClick="var newwin = window.open('preview.cgi?preview=' + escape(document.getElementById('steps').value),'preview_window','height=400,width=400,resizeable=yes,scrollable=yes');newwin.focus();">Preview</a></td>
-            <td align="right">&uArr;&nbsp;<a name="resultsPreview" onClick="var newwin = window.open('preview.cgi?preview=' + escape(document.getElementById('results').value),'preview_window','height=400,width=400,resizeable=yes,scrollable=yes');newwin.focus();">Preview</a></td>
+            <td align="right">&uArr;&nbsp;<a name="stepsPreview" onClick="var newwin = window.open('preview.cgi?preview=' + encodeURIComponent(document.getElementById('steps').value),'preview_window','height=400,width=400,resizeable=yes,scrollable=yes');newwin.focus();">Preview</a></td>
+            <td align="right">&uArr;&nbsp;<a name="resultsPreview" onClick="var newwin = window.open('preview.cgi?preview=' + encodeURIComponent(document.getElementById('results').value),'preview_window','height=400,width=400,resizeable=yes,scrollable=yes');newwin.focus();">Preview</a></td>
             </tr>
             <tr>
             <td colspan="2" align="right">&uArr;&nbsp;<a name="showFormattingHelp" onclick="toggleHelp(formattingHelpTitle,formattingHelpText);">Formatting Help</a></td>

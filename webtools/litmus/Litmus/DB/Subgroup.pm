@@ -42,6 +42,7 @@ Litmus::DB::Subgroup->table('subgroups');
 
 Litmus::DB::Subgroup->columns(All => qw/subgroup_id name enabled product_id branch_id/);
 Litmus::DB::Subgroup->columns(Essential => qw/subgroup_id name enabled product_id branch_id/);
+Litmus::DB::Subgroup->utf8_columns(qw/name/);
 Litmus::DB::Subgroup->columns(TEMP => qw /num_testcases/);
 
 Litmus::DB::Subgroup->column_alias("subgroup_id", "subgroupid");

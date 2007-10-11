@@ -40,6 +40,7 @@ use base 'Litmus::DBI';
 Litmus::DB::User->table('users');
 
 Litmus::DB::User->columns(All => qw/user_id bugzilla_uid email password realname irc_nickname enabled authtoken/);
+Litmus::DB::User->utf8_columns(qw/email realname irc_nickname authtoken/);
 Litmus::DB::User->columns(TEMP => qw/is_admin_old num_results/);
 
 Litmus::DB::User->column_alias("isSuperUser", "istrusted");

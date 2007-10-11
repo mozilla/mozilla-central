@@ -32,6 +32,9 @@
 
 package Litmus::FormWidget;
 use strict;
+#use Encode qw( encode_utf8 decode_utf8 );
+use utf8;
+use diagnostics;
 
 BEGIN {
     use Exporter ();
@@ -408,7 +411,13 @@ sub _getValues($)
     $sth->execute();
     my @rows;
     while (my $data = $sth->fetchrow_hashref) {
-    push @rows, $data;
+      foreach my $key (keys %$data) {
+#        if (utf8::is_utf8($data->{$key})) {
+#          print STDERR "$key " . $data->{$key} . " is utf8?: " . utf8::is_utf8($data->{$key}) . "\n";
+          utf8::decode($data->{$key});
+#        }
+      }
+      push @rows, $data;
     }
     $sth->finish();
     return \@rows;

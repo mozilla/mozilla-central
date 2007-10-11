@@ -48,6 +48,3 @@ Litmus::DB::PasswordResets->has_a(user => "Litmus::DB::User");
 Litmus::DB::PasswordResets->has_a(session => "Litmus::DB::Session");
 
 1;
-
-
-

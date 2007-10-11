@@ -38,6 +38,7 @@ Litmus::DB::TestDay->table('testdays');
 
 Litmus::DB::TestDay->columns(All => qw/testday_id last_updated start_timestamp finish_timestamp description product_id testgroup_id build_id branch_id locale_abbrev/);
 Litmus::DB::TestDay->columns(Essential => qw/testday_id last_updated start_timestamp finish_timestamp description product_id testgroup_id build_id branch_id locale_abbrev/);
+Litmus::DB::TestDay->utf8_columns(qw/description locale_abbrev/);
 Litmus::DB::TestDay->columns(TEMP => qw //);
 
 Litmus::DB::TestDay->column_alias("product_id", "product");

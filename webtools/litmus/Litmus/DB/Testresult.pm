@@ -47,6 +47,7 @@ Litmus::DB::Testresult->table('test_results');
 
 Litmus::DB::Testresult->columns(All => qw/testresult_id testcase_id last_updated submission_time user_id opsys_id branch_id build_id user_agent result_status_id build_type_id machine_name exit_status_id duration_ms talkback_id valid vetted validated_by_user_id vetted_by_user_id validated_timestamp vetted_timestamp locale_abbrev is_automated_result/);
 Litmus::DB::Testresult->columns(Essential => qw/testresult_id testcase_id last_updated submission_time user_id opsys_id branch_id build_id user_agent result_status_id build_type_id machine_name exit_status_id duration_ms talkback_id valid vetted validated_by_user_id vetted_by_user_id validated_timestamp vetted_timestamp locale_abbrev is_automated_result/);
+Litmus::DB::Testresult->utf8_columns(qw/user_agent machine_name locale_abbrev summary created platform_name product_name result_class class_name result_status_class branch_name email iconpath/);
 Litmus::DB::Testresult->columns(TEMP => qw /summary created platform_name product_name result_status class_name result_status_class branch_name email num_results most_recent max_id iconpath/);
 
 Litmus::DB::Testresult->column_alias("testcase_id", "testcase");
