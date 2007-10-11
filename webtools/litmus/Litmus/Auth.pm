@@ -65,7 +65,9 @@ sub validate_login($$) {
   return 0 if (!$username or $username eq '' or 
                !$password or $password eq '');
 
-  my ($userobj) = Litmus::DB::User->search(email => $username);
+  my ($userobj) = Litmus::DB::User->retrieve_from_sql(qq{
+                                                         lower(email) = lower('$username')
+                                                        });
 
   if (!$userobj) { 
     return 0; 
@@ -344,7 +346,9 @@ sub processLoginForm {
   # check to see if they have forgotten their password:
   if ($type eq "forgot_password") {
     my $username = $c->param("email");
-    my @users = Litmus::DB::User->search(email => $username);
+    my @users = Litmus::DB::User->retrieve_from_sql(qq{
+                                                       lower(email) = lower('$username')
+                                                      });
     if (! $users[0]) {
     	loginError($c, "Invalid email address entered. Please try again");
     }
@@ -380,7 +384,9 @@ sub processLoginForm {
       loginError($c, "Passwords do not match. Please try again.");
     }
 
-    my @users = Litmus::DB::User->search(email => $email);
+    my @users = Litmus::DB::User->retrieve_from_sql(qq{
+                                                       lower(email) = lower('$email')
+                                                      });
     if ($users[0]) {
       loginError($c, "User ".$users[0]->email() ." already exists.");
     }
