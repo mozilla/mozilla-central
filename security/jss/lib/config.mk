@@ -60,6 +60,7 @@ RESNAME = jss.rc
 
 EXTRA_SHARED_LIBS += \
     $(NSS_LIB_DIR)/nss3.lib \
+    $(NSS_LIB_DIR)/nssutil3.lib \
     $(NSS_LIB_DIR)/smime3.lib \
     $(NSS_LIB_DIR)/ssl3.lib \
     $(NSPR_LIB_DIR)/$(NSPR31_LIB_PREFIX)plc4.lib \
@@ -81,6 +82,7 @@ endif
 EXTRA_SHARED_LIBS += \
     -L$(NSS_LIB_DIR) \
     -lnss3 \
+    -lnssutil3 \
     -lsmime3 \
     -lssl3 \
     -L$(NSPR_LIB_DIR) \
