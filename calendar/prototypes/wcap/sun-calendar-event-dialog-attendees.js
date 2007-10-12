@@ -90,6 +90,8 @@ function onLoad() {
     var zoom = document.getElementById("zoom-menulist");
     zoom.value = "100";
 
+    initTimeRange();
+
     // Check if an all-day event has been passed in (to adapt endDate).
     if (startTime.isDate) {
         startTime = startTime.clone();
