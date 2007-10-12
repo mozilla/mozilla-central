@@ -455,7 +455,7 @@
                 return;
 
               if (aWebProgress.DOMWindow == this.mBrowser.contentWindow && aWebProgress.isLoadingDocument)
-                this.mBrowser.parentNode.removeAllNotifications(true);
+                this.mBrowser.parentNode.removeAllNotifications(false);
 
               if (this.mTabBrowser.mCurrentTab == this.mTab) {
                 for (var i = 0; i < this.mTabBrowser.mProgressListeners.length; i++) {

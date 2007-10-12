@@ -28,7 +28,7 @@ notification[type="critical"] {
 }
 
 .messageCloseButton {
-  list-style-image: url("chrome://global/skin/icons/close.gif"");
+  list-style-image: url("chrome://global/skin/icons/close.gif");
   padding: 4px 2px;
   border: none;
 }
