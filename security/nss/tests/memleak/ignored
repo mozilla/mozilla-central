@@ -131,6 +131,7 @@ ocspclnt/main/CERT_SetOCSPDefaultResponder/PORT_Strdup_Util/**
 ocspclnt/main/CERT_SetOCSPDefaultResponder/ocsp_InitStatusChecking/PORT_ZAlloc/**
 ocspclnt/main/CERT_SetOCSPDefaultResponder/ocsp_InitStatusChecking/PORT_ZAlloc_Util/**
 ocspclnt/main/CERT_SetOCSPDefaultResponder/PORT_ZAlloc/**
+ocspclnt/main/CERT_SetOCSPDefaultResponder/PORT_ZAlloc_Util/**
 
 #393183
 ocspclnt/main/PL_CreateOptState
@@ -147,6 +148,7 @@ selfserv/main/SSL_ConfigServerSessionIDCache/__nss_InitLock/PR_NewLock/calloc
 */main/*/*/SECMOD_LoadModule/SECMOD_CreateModule/secmod_NewModule/PORT_ArenaAlloc/PL_ArenaAllocate/LockArena/PR_CallOnce/InitializeArenas/PR_NewLock/**
 */main/*/*/SECMOD_LoadModule/SECMOD_CreateModule/secmod_NewModule/PORT_ArenaAlloc/PL_ArenaAllocate/PR_CallOnce/InitializeArenas/PR_NewLock/**
 */main/*/*/SECMOD_LoadModule/SECMOD_CreateModule/secmod_NewModule/PORT_ArenaAlloc_Util/PL_ArenaAllocate/LockArena/PR_CallOnce/InitializeArenas/PR_NewLock/**
+*/main/*/*/SECMOD_LoadModule/SECMOD_CreateModule/secmod_NewModule/PORT_ArenaAlloc_Util/PL_ArenaAllocate/PR_CallOnce/InitializeArenas/PR_NewLock/**
 */main/*/*/SECMOD_LoadModule/SECMOD_CreateModule/PORT_ArenaAlloc/PL_ArenaAllocate/LockArena/PR_CallOnce/InitializeArenas/PR_NewLock/**
 ocspclnt/main/NSS_Init/SECMOD_LoadModule/SECMOD_CreateModule/secmod_NewModule/PORT_ArenaAlloc/PL_ArenaAllocate/LockArena/PR_CallOnce/InitializeArenas/PR_NewLock/**
 
@@ -155,6 +157,7 @@ strsclnt/_pt_root/thread_wrapper/do_connects/handle_connection/PR_Send/ssl_Send/
 strsclnt/_pt_root/thread_wrapper/do_connects/handle_connection/PR_Send/ssl_Send/ssl_SecureSend/ssl_Do1stHandshake/ssl2_BeginClientHandshake/ssl_LookupSID/lock_cache/ssl_InitClientSessionCacheLock/__nss_InitLock_Util/PR_NewLock/PR_Calloc/calloc
 strsclnt/clone/start_thread/_pt_root/thread_wrapper/do_connects/handle_connection/PR_Send/ssl_Send/ssl_SecureSend/ssl_Do1stHandshake/ssl2_BeginClientHandshake/ssl_LookupSID/lock_cache/ssl_InitClientSessionCacheLock/__nss_InitLock/PR_NewLock/PR_Calloc/calloc
 strsclnt/_lwp_start/_thr_setup/_pt_root/thread_wrapper/do_connects/PR_Send/ssl_Send/ssl_SecureSend/ssl_Do1stHandshake/ssl2_BeginClientHandshake/ssl_LookupSID/__nss_InitLock/PR_NewLock/PR_Calloc/calloc
+strsclnt/_lwp_start/_thr_setup/_pt_root/thread_wrapper/do_connects/PR_Send/ssl_Send/ssl_SecureSend/ssl_Do1stHandshake/ssl2_BeginClientHandshake/ssl_LookupSID/__nss_InitLock_Util/PR_NewLock/PR_Calloc/calloc
 strsclnt/_lwp_start/_pt_root/thread_wrapper/do_connects/ssl_Send/ssl_SecureSend/ssl_Do1stHandshake/ssl2_BeginClientHandshake/ssl_LookupSID/__nss_InitLock/PR_NewLock/calloc
 
 #397487 & #398267
