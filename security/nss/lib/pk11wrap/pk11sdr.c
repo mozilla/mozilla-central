@@ -54,10 +54,13 @@ struct SDRResult
 };
 typedef struct SDRResult SDRResult;
 
+SEC_ASN1_MKSUB(SECOID_AlgorithmIDTemplate);
+
 static SEC_ASN1Template template[] = {
   { SEC_ASN1_SEQUENCE, 0, NULL, sizeof (SDRResult) },
   { SEC_ASN1_OCTET_STRING, offsetof(SDRResult, keyid) },
-  { SEC_ASN1_INLINE, offsetof(SDRResult, alg), SECOID_AlgorithmIDTemplate },
+  { SEC_ASN1_INLINE | SEC_ASN1_XTRN, offsetof(SDRResult, alg),
+    SEC_ASN1_SUB(SECOID_AlgorithmIDTemplate) },
   { SEC_ASN1_OCTET_STRING, offsetof(SDRResult, data) },
   { 0 }
 };

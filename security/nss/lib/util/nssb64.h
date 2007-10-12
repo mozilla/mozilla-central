@@ -37,11 +37,12 @@
 /*
  * Public prototypes for base64 encoding/decoding.
  *
- * $Id: nssb64.h,v 1.3 2004-04-25 15:03:17 gerv%gerv.net Exp $
+ * $Id: nssb64.h,v 1.4 2007-10-12 01:44:51 julien.pierre.boogz%sun.com Exp $
  */
 #ifndef _NSSB64_H_
 #define _NSSB64_H_
 
+#include "utilrename.h"
 #include "seccomon.h"
 #include "nssb64t.h"
 

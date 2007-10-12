@@ -39,12 +39,13 @@
  * Encoding Rules).  The routines are found in and used extensively by the
  * security library, but exported for other use.
  *
- * $Id: secasn1.h,v 1.14 2005-10-31 18:52:20 julien.pierre.bugs%sun.com Exp $
+ * $Id: secasn1.h,v 1.15 2007-10-12 01:44:51 julien.pierre.boogz%sun.com Exp $
  */
 
 #ifndef _SECASN1_H_
 #define _SECASN1_H_
 
+#include "utilrename.h"
 #include "plarena.h"
 
 #include "seccomon.h"
@@ -306,5 +307,14 @@ SEC_ASN1_CHOOSER_DECLARE(SEC_PointerToOctetStringTemplate)
 
 SEC_ASN1_CHOOSER_DECLARE(SEC_SetOfAnyTemplate)
 
+SEC_ASN1_CHOOSER_DECLARE(SEC_EnumeratedTemplate)
+SEC_ASN1_CHOOSER_DECLARE(SEC_PointerToEnumeratedTemplate)
+SEC_ASN1_CHOOSER_DECLARE(SEC_SequenceOfAnyTemplate)
+SEC_ASN1_CHOOSER_DECLARE(SEC_SequenceOfObjectIDTemplate)
+SEC_ASN1_CHOOSER_DECLARE(SEC_SkipTemplate)
+SEC_ASN1_CHOOSER_DECLARE(SEC_UniversalStringTemplate)
+SEC_ASN1_CHOOSER_DECLARE(SEC_PrintableStringTemplate)
+SEC_ASN1_CHOOSER_DECLARE(SEC_T61StringTemplate)
+SEC_ASN1_CHOOSER_DECLARE(SEC_PointerToGeneralizedTimeTemplate)
 SEC_END_PROTOS
 #endif /* _SECASN1_H_ */

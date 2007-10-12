@@ -36,7 +36,7 @@
  * the terms of any one of the MPL, the GPL or the LGPL.
  *
  * ***** END LICENSE BLOCK ***** */
-/* $Id: fipstest.c,v 1.22 2007-06-13 00:24:56 rrelyea%redhat.com Exp $ */
+/* $Id: fipstest.c,v 1.23 2007-10-12 01:44:47 julien.pierre.boogz%sun.com Exp $ */
 
 #include "softoken.h"   /* Required for RC2-ECB, RC2-CBC, RC4, DES-ECB,  */
                         /*              DES-CBC, DES3-ECB, DES3-CBC, RSA */
@@ -47,7 +47,6 @@
 #include "secerr.h"
 
 #ifdef NSS_ENABLE_ECC
-#include "secdert.h"    /* Required for ECDSA */
 #include "ec.h"         /* Required for ECDSA */
 #endif
 

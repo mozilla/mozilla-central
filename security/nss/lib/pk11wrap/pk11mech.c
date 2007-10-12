@@ -1274,8 +1274,9 @@ PK11_ParamFromAlgid(SECAlgorithmID *algid)
     case CKM_JUNIPER_COUNTER:
     case CKM_JUNIPER_SHUFFLE:
 	/* simple cases are simply octet string encoded IVs */
-	rv = SEC_ASN1DecodeItem(arena, &iv, SEC_OctetStringTemplate, 
-					    &(algid->parameters));
+	rv = SEC_ASN1DecodeItem(arena, &iv,
+                                SEC_ASN1_GET(SEC_OctetStringTemplate),
+                                &(algid->parameters));
 	if (rv != SECSuccess || iv.data == NULL) {
 	    goto loser;
 	}
@@ -1597,7 +1598,7 @@ PK11_ParamToAlgid(SECOidTag algTag, SECItem *param,
     case CKM_JUNIPER_COUNTER:
     case CKM_JUNIPER_SHUFFLE:
 	newParams = SEC_ASN1EncodeItem(NULL,NULL,param,
-						SEC_OctetStringTemplate);
+                                       SEC_ASN1_GET(SEC_OctetStringTemplate) );
 	if (newParams == NULL)
 	    break;
 	rv = SECSuccess;

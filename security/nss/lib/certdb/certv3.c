@@ -37,7 +37,7 @@
 /*
  * Code for dealing with X509.V3 extensions.
  *
- * $Id: certv3.c,v 1.9 2006-09-29 20:20:21 alexei.volkov.bugs%sun.com Exp $
+ * $Id: certv3.c,v 1.10 2007-10-12 01:44:40 julien.pierre.boogz%sun.com Exp $
  */
 
 #include "cert.h"
@@ -145,15 +145,16 @@ CERT_FindCertURLExtension(CERTCertificate *cert, int tag, int catag)
 	goto loser;
     }
 
-    rv = SEC_QuickDERDecodeItem(arena, &urlstringitem, SEC_IA5StringTemplate, 
-			    &urlitem);
+    rv = SEC_QuickDERDecodeItem(arena, &urlstringitem,
+                                SEC_ASN1_GET(SEC_IA5StringTemplate), &urlitem);
 
     if ( rv != SECSuccess ) {
 	goto loser;
     }
     if ( hasbase ) {
-	rv = SEC_QuickDERDecodeItem(arena, &basestringitem, SEC_IA5StringTemplate,
-				&baseitem);
+	rv = SEC_QuickDERDecodeItem(arena, &basestringitem,
+                                    SEC_ASN1_GET(SEC_IA5StringTemplate),
+                                    &baseitem);
 
 	if ( rv != SECSuccess ) {
 	    goto loser;
@@ -250,8 +251,8 @@ CERT_FindNSStringExtension(CERTCertificate *cert, int oidtag)
 	goto loser;
     }
 
-    rv = SEC_QuickDERDecodeItem(arena, &tmpItem, SEC_IA5StringTemplate, 
-			    &wrapperItem);
+    rv = SEC_QuickDERDecodeItem(arena, &tmpItem,
+                            SEC_ASN1_GET(SEC_IA5StringTemplate), &wrapperItem);
 
     if ( rv != SECSuccess ) {
 	goto loser;
@@ -305,7 +306,7 @@ CERT_FindSubjectKeyIDExtension(CERTCertificate *cert, SECItem *retItem)
 	PLArenaPool * tmpArena = PORT_NewArena(DER_DEFAULT_CHUNKSIZE);
 	if (tmpArena) {
 	    rv = SEC_QuickDERDecodeItem(tmpArena, &decodedValue, 
-	                                SEC_OctetStringTemplate, 
+	                                SEC_ASN1_GET(SEC_OctetStringTemplate), 
 					&encodedValue);
 	    if (rv == SECSuccess) {
 	        rv = SECITEM_CopyItem(NULL, retItem, &decodedValue);

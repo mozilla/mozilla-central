@@ -37,11 +37,13 @@
 /*
  * secport.h - portability interfaces for security libraries
  *
- * $Id: secport.h,v 1.13 2006-08-15 23:56:01 wtchang%redhat.com Exp $
+ * $Id: secport.h,v 1.14 2007-10-12 01:44:51 julien.pierre.boogz%sun.com Exp $
  */
 
 #ifndef _SECPORT_H_
 #define _SECPORT_H_
+
+#include "utilrename.h"
 
 /*
  * define XP_MAC, XP_WIN, XP_BEOS, or XP_UNIX, in case they are not defined

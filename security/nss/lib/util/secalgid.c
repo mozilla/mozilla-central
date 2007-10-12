@@ -40,27 +40,6 @@
 #include "secitem.h"
 #include "secerr.h"
 
-/* XXX Old template; want to expunge it eventually. */
-DERTemplate SECAlgorithmIDTemplate[] = {
-    { DER_SEQUENCE,
-	  0, NULL, sizeof(SECAlgorithmID) },
-    { DER_OBJECT_ID,
-	  offsetof(SECAlgorithmID,algorithm), },
-    { DER_OPTIONAL | DER_ANY,
-	  offsetof(SECAlgorithmID,parameters), },
-    { 0, }
-};
-
-const SEC_ASN1Template SECOID_AlgorithmIDTemplate[] = {
-    { SEC_ASN1_SEQUENCE,
-	  0, NULL, sizeof(SECAlgorithmID) },
-    { SEC_ASN1_OBJECT_ID,
-	  offsetof(SECAlgorithmID,algorithm), },
-    { SEC_ASN1_OPTIONAL | SEC_ASN1_ANY,
-	  offsetof(SECAlgorithmID,parameters), },
-    { 0, }
-};
-
 SECOidTag
 SECOID_GetAlgorithmTag(SECAlgorithmID *id)
 {
@@ -176,7 +155,3 @@ SECOID_CompareAlgorithmID(SECAlgorithmID *a, SECAlgorithmID *b)
     rv = SECITEM_CompareItem(&a->parameters, &b->parameters);
     return rv;
 }
-
-/* This functions simply returns the address of the above-declared template. */
-SEC_ASN1_CHOOSER_IMPLEMENT(SECOID_AlgorithmIDTemplate)
-

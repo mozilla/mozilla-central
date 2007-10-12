@@ -37,11 +37,12 @@
 /*
  * Public data structures for base64 encoding/decoding.
  *
- * $Id: nssb64t.h,v 1.2 2004-04-25 15:03:17 gerv%gerv.net Exp $
+ * $Id: nssb64t.h,v 1.3 2007-10-12 01:44:51 julien.pierre.boogz%sun.com Exp $
  */
 #ifndef _NSSB64T_H_
 #define _NSSB64T_H_
 
+#include "utilrename.h"
 typedef struct NSSBase64DecoderStr NSSBase64Decoder;
 typedef struct NSSBase64EncoderStr NSSBase64Encoder;
 

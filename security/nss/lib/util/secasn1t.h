@@ -38,11 +38,13 @@
  * Types for encoding/decoding of ASN.1 using BER/DER (Basic/Distinguished
  * Encoding Rules).
  *
- * $Id: secasn1t.h,v 1.9 2004-04-25 15:03:18 gerv%gerv.net Exp $
+ * $Id: secasn1t.h,v 1.10 2007-10-12 01:44:51 julien.pierre.boogz%sun.com Exp $
  */
 
 #ifndef _SECASN1T_H_
 #define _SECASN1T_H_
+
+#include "utilrename.h"
 
 /*
 ** An array of these structures defines a BER/DER encoding for an object.

@@ -42,12 +42,14 @@
 #include "secasn1.h"
 #include "secerr.h"
 
+SEC_ASN1_MKSUB(SEC_AnyTemplate);
+
 const SEC_ASN1Template CERT_AttributeTemplate[] = {
     { SEC_ASN1_SEQUENCE,
 	0, NULL, sizeof(CERTAttribute) },
     { SEC_ASN1_OBJECT_ID, offsetof(CERTAttribute, attrType) },
-    { SEC_ASN1_SET_OF, offsetof(CERTAttribute, attrValue),
-	SEC_AnyTemplate },
+    { SEC_ASN1_SET_OF | SEC_ASN1_XTRN, offsetof(CERTAttribute, attrValue),
+	SEC_ASN1_SUB(SEC_AnyTemplate) },
     { 0 }
 };
 

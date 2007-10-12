@@ -36,11 +36,14 @@
 
 #ifndef _SECITEM_H_
 #define _SECITEM_H_
+
+#include "utilrename.h"
+
 /*
  * secitem.h - public data structures and prototypes for handling
  *	       SECItems
  *
- * $Id: secitem.h,v 1.6 2006-05-22 22:24:34 wtchang%redhat.com Exp $
+ * $Id: secitem.h,v 1.7 2007-10-12 01:44:51 julien.pierre.boogz%sun.com Exp $
  */
 
 #include "plarena.h"

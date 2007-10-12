@@ -41,7 +41,6 @@
 #define CERT_AddTempCertToPerm __CERT_AddTempCertToPerm
 #define PK11_CreateContextByRawKey __PK11_CreateContextByRawKey
 #define PK11_GetKeyData __PK11_GetKeyData
-#define nss_InitLock __nss_InitLock
 #define CERT_ClosePermCertDB __CERT_ClosePermCertDB
 #define CERT_DecodeDERCertificate __CERT_DecodeDERCertificate
 #define CERT_TraversePermCertsForNickname __CERT_TraversePermCertsForNickname

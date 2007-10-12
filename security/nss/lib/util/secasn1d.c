@@ -38,7 +38,7 @@
  * Support for DEcoding ASN.1 data based on BER/DER (Basic/Distinguished
  * Encoding Rules).
  *
- * $Id: secasn1d.c,v 1.37 2007-01-03 12:57:41 nelson%bolyard.com Exp $
+ * $Id: secasn1d.c,v 1.38 2007-10-12 01:44:51 julien.pierre.boogz%sun.com Exp $
  */
 
 /* #define DEBUG_ASN1D_STATES 1 */
@@ -3002,25 +3002,11 @@ void sec_asn1d_Assert(const char *s, const char *file, PRIntn ln)
  *	the appropriate place.
  */
 
-const SEC_ASN1Template SEC_AnyTemplate[] = {
-    { SEC_ASN1_ANY | SEC_ASN1_MAY_STREAM, 0, NULL, sizeof(SECItem) }
-};
-
-const SEC_ASN1Template SEC_PointerToAnyTemplate[] = {
-    { SEC_ASN1_POINTER, 0, SEC_AnyTemplate }
-};
-
 const SEC_ASN1Template SEC_SequenceOfAnyTemplate[] = {
     { SEC_ASN1_SEQUENCE_OF, 0, SEC_AnyTemplate }
 };
 
-const SEC_ASN1Template SEC_SetOfAnyTemplate[] = {
-    { SEC_ASN1_SET_OF, 0, SEC_AnyTemplate }
-};
-
-const SEC_ASN1Template SEC_BitStringTemplate[] = {
-    { SEC_ASN1_BIT_STRING | SEC_ASN1_MAY_STREAM, 0, NULL, sizeof(SECItem) }
-};
+#if 0
 
 const SEC_ASN1Template SEC_PointerToBitStringTemplate[] = {
     { SEC_ASN1_POINTER, 0, SEC_BitStringTemplate }
@@ -3032,10 +3018,6 @@ const SEC_ASN1Template SEC_SequenceOfBitStringTemplate[] = {
 
 const SEC_ASN1Template SEC_SetOfBitStringTemplate[] = {
     { SEC_ASN1_SET_OF, 0, SEC_BitStringTemplate }
-};
-
-const SEC_ASN1Template SEC_BMPStringTemplate[] = {
-    { SEC_ASN1_BMP_STRING | SEC_ASN1_MAY_STREAM, 0, NULL, sizeof(SECItem) }
 };
 
 const SEC_ASN1Template SEC_PointerToBMPStringTemplate[] = {
@@ -3050,10 +3032,6 @@ const SEC_ASN1Template SEC_SetOfBMPStringTemplate[] = {
     { SEC_ASN1_SET_OF, 0, SEC_BMPStringTemplate }
 };
 
-const SEC_ASN1Template SEC_BooleanTemplate[] = {
-    { SEC_ASN1_BOOLEAN, 0, NULL, sizeof(SECItem) }
-};
-
 const SEC_ASN1Template SEC_PointerToBooleanTemplate[] = {
     { SEC_ASN1_POINTER, 0, SEC_BooleanTemplate }
 };
@@ -3066,6 +3044,8 @@ const SEC_ASN1Template SEC_SetOfBooleanTemplate[] = {
     { SEC_ASN1_SET_OF, 0, SEC_BooleanTemplate }
 };
 
+#endif
+
 const SEC_ASN1Template SEC_EnumeratedTemplate[] = {
     { SEC_ASN1_ENUMERATED, 0, NULL, sizeof(SECItem) }
 };
@@ -3074,21 +3054,23 @@ const SEC_ASN1Template SEC_PointerToEnumeratedTemplate[] = {
     { SEC_ASN1_POINTER, 0, SEC_EnumeratedTemplate }
 };
 
+#if 0
+
 const SEC_ASN1Template SEC_SequenceOfEnumeratedTemplate[] = {
     { SEC_ASN1_SEQUENCE_OF, 0, SEC_EnumeratedTemplate }
 };
+
+#endif
 
 const SEC_ASN1Template SEC_SetOfEnumeratedTemplate[] = {
     { SEC_ASN1_SET_OF, 0, SEC_EnumeratedTemplate }
 };
 
-const SEC_ASN1Template SEC_GeneralizedTimeTemplate[] = {
-    { SEC_ASN1_GENERALIZED_TIME | SEC_ASN1_MAY_STREAM, 0, NULL, sizeof(SECItem)}
-};
-
 const SEC_ASN1Template SEC_PointerToGeneralizedTimeTemplate[] = {
     { SEC_ASN1_POINTER, 0, SEC_GeneralizedTimeTemplate }
 };
+
+#if 0
 
 const SEC_ASN1Template SEC_SequenceOfGeneralizedTimeTemplate[] = {
     { SEC_ASN1_SEQUENCE_OF, 0, SEC_GeneralizedTimeTemplate }
@@ -3096,10 +3078,6 @@ const SEC_ASN1Template SEC_SequenceOfGeneralizedTimeTemplate[] = {
 
 const SEC_ASN1Template SEC_SetOfGeneralizedTimeTemplate[] = {
     { SEC_ASN1_SET_OF, 0, SEC_GeneralizedTimeTemplate }
-};
-
-const SEC_ASN1Template SEC_IA5StringTemplate[] = {
-    { SEC_ASN1_IA5_STRING | SEC_ASN1_MAY_STREAM, 0, NULL, sizeof(SECItem) }
 };
 
 const SEC_ASN1Template SEC_PointerToIA5StringTemplate[] = {
@@ -3114,10 +3092,6 @@ const SEC_ASN1Template SEC_SetOfIA5StringTemplate[] = {
     { SEC_ASN1_SET_OF, 0, SEC_IA5StringTemplate }
 };
 
-const SEC_ASN1Template SEC_IntegerTemplate[] = {
-    { SEC_ASN1_INTEGER, 0, NULL, sizeof(SECItem) }
-};
-
 const SEC_ASN1Template SEC_PointerToIntegerTemplate[] = {
     { SEC_ASN1_POINTER, 0, SEC_IntegerTemplate }
 };
@@ -3128,10 +3102,6 @@ const SEC_ASN1Template SEC_SequenceOfIntegerTemplate[] = {
 
 const SEC_ASN1Template SEC_SetOfIntegerTemplate[] = {
     { SEC_ASN1_SET_OF, 0, SEC_IntegerTemplate }
-};
-
-const SEC_ASN1Template SEC_NullTemplate[] = {
-    { SEC_ASN1_NULL, 0, NULL, sizeof(SECItem) }
 };
 
 const SEC_ASN1Template SEC_PointerToNullTemplate[] = {
@@ -3146,28 +3116,20 @@ const SEC_ASN1Template SEC_SetOfNullTemplate[] = {
     { SEC_ASN1_SET_OF, 0, SEC_NullTemplate }
 };
 
-const SEC_ASN1Template SEC_ObjectIDTemplate[] = {
-    { SEC_ASN1_OBJECT_ID, 0, NULL, sizeof(SECItem) }
-};
-
 const SEC_ASN1Template SEC_PointerToObjectIDTemplate[] = {
     { SEC_ASN1_POINTER, 0, SEC_ObjectIDTemplate }
 };
+
+#endif
 
 const SEC_ASN1Template SEC_SequenceOfObjectIDTemplate[] = {
     { SEC_ASN1_SEQUENCE_OF, 0, SEC_ObjectIDTemplate }
 };
 
+#if 0
+
 const SEC_ASN1Template SEC_SetOfObjectIDTemplate[] = {
     { SEC_ASN1_SET_OF, 0, SEC_ObjectIDTemplate }
-};
-
-const SEC_ASN1Template SEC_OctetStringTemplate[] = {
-    { SEC_ASN1_OCTET_STRING | SEC_ASN1_MAY_STREAM, 0, NULL, sizeof(SECItem) }
-};
-
-const SEC_ASN1Template SEC_PointerToOctetStringTemplate[] = {
-    { SEC_ASN1_POINTER | SEC_ASN1_MAY_STREAM, 0, SEC_OctetStringTemplate }
 };
 
 const SEC_ASN1Template SEC_SequenceOfOctetStringTemplate[] = {
@@ -3178,9 +3140,13 @@ const SEC_ASN1Template SEC_SetOfOctetStringTemplate[] = {
     { SEC_ASN1_SET_OF, 0, SEC_OctetStringTemplate }
 };
 
+#endif
+
 const SEC_ASN1Template SEC_PrintableStringTemplate[] = {
     { SEC_ASN1_PRINTABLE_STRING | SEC_ASN1_MAY_STREAM, 0, NULL, sizeof(SECItem)}
 };
+
+#if 0
 
 const SEC_ASN1Template SEC_PointerToPrintableStringTemplate[] = {
     { SEC_ASN1_POINTER, 0, SEC_PrintableStringTemplate }
@@ -3194,9 +3160,13 @@ const SEC_ASN1Template SEC_SetOfPrintableStringTemplate[] = {
     { SEC_ASN1_SET_OF, 0, SEC_PrintableStringTemplate }
 };
 
+#endif
+
 const SEC_ASN1Template SEC_T61StringTemplate[] = {
     { SEC_ASN1_T61_STRING | SEC_ASN1_MAY_STREAM, 0, NULL, sizeof(SECItem) }
 };
+
+#if 0
 
 const SEC_ASN1Template SEC_PointerToT61StringTemplate[] = {
     { SEC_ASN1_POINTER, 0, SEC_T61StringTemplate }
@@ -3210,9 +3180,13 @@ const SEC_ASN1Template SEC_SetOfT61StringTemplate[] = {
     { SEC_ASN1_SET_OF, 0, SEC_T61StringTemplate }
 };
 
+#endif
+
 const SEC_ASN1Template SEC_UniversalStringTemplate[] = {
     { SEC_ASN1_UNIVERSAL_STRING | SEC_ASN1_MAY_STREAM, 0, NULL, sizeof(SECItem)}
 };
+
+#if 0
 
 const SEC_ASN1Template SEC_PointerToUniversalStringTemplate[] = {
     { SEC_ASN1_POINTER, 0, SEC_UniversalStringTemplate }
@@ -3224,10 +3198,6 @@ const SEC_ASN1Template SEC_SequenceOfUniversalStringTemplate[] = {
 
 const SEC_ASN1Template SEC_SetOfUniversalStringTemplate[] = {
     { SEC_ASN1_SET_OF, 0, SEC_UniversalStringTemplate }
-};
-
-const SEC_ASN1Template SEC_UTCTimeTemplate[] = {
-    { SEC_ASN1_UTC_TIME | SEC_ASN1_MAY_STREAM, 0, NULL, sizeof(SECItem) }
 };
 
 const SEC_ASN1Template SEC_PointerToUTCTimeTemplate[] = {
@@ -3242,10 +3212,6 @@ const SEC_ASN1Template SEC_SetOfUTCTimeTemplate[] = {
     { SEC_ASN1_SET_OF, 0, SEC_UTCTimeTemplate }
 };
 
-const SEC_ASN1Template SEC_UTF8StringTemplate[] = {
-    { SEC_ASN1_UTF8_STRING | SEC_ASN1_MAY_STREAM, 0, NULL, sizeof(SECItem)}
-};
-
 const SEC_ASN1Template SEC_PointerToUTF8StringTemplate[] = {
     { SEC_ASN1_POINTER, 0, SEC_UTF8StringTemplate }
 };
@@ -3258,9 +3224,13 @@ const SEC_ASN1Template SEC_SetOfUTF8StringTemplate[] = {
     { SEC_ASN1_SET_OF, 0, SEC_UTF8StringTemplate }
 };
 
+#endif
+
 const SEC_ASN1Template SEC_VisibleStringTemplate[] = {
     { SEC_ASN1_VISIBLE_STRING | SEC_ASN1_MAY_STREAM, 0, NULL, sizeof(SECItem) }
 };
+
+#if 0
 
 const SEC_ASN1Template SEC_PointerToVisibleStringTemplate[] = {
     { SEC_ASN1_POINTER, 0, SEC_VisibleStringTemplate }
@@ -3274,6 +3244,7 @@ const SEC_ASN1Template SEC_SetOfVisibleStringTemplate[] = {
     { SEC_ASN1_SET_OF, 0, SEC_VisibleStringTemplate }
 };
 
+#endif
 
 /*
  * Template for skipping a subitem.
@@ -3290,19 +3261,13 @@ const SEC_ASN1Template SEC_SkipTemplate[] = {
 /* These functions simply return the address of the above-declared templates.
 ** This is necessary for Windows DLLs.  Sigh.
 */
-SEC_ASN1_CHOOSER_IMPLEMENT(SEC_AnyTemplate)
-SEC_ASN1_CHOOSER_IMPLEMENT(SEC_BMPStringTemplate)
-SEC_ASN1_CHOOSER_IMPLEMENT(SEC_BooleanTemplate)
-SEC_ASN1_CHOOSER_IMPLEMENT(SEC_BitStringTemplate)
-SEC_ASN1_CHOOSER_IMPLEMENT(SEC_IA5StringTemplate)
-SEC_ASN1_CHOOSER_IMPLEMENT(SEC_GeneralizedTimeTemplate)
-SEC_ASN1_CHOOSER_IMPLEMENT(SEC_IntegerTemplate)
-SEC_ASN1_CHOOSER_IMPLEMENT(SEC_NullTemplate)
-SEC_ASN1_CHOOSER_IMPLEMENT(SEC_ObjectIDTemplate)
-SEC_ASN1_CHOOSER_IMPLEMENT(SEC_OctetStringTemplate)
-SEC_ASN1_CHOOSER_IMPLEMENT(SEC_PointerToAnyTemplate)
-SEC_ASN1_CHOOSER_IMPLEMENT(SEC_PointerToOctetStringTemplate)
-SEC_ASN1_CHOOSER_IMPLEMENT(SEC_SetOfAnyTemplate)
-SEC_ASN1_CHOOSER_IMPLEMENT(SEC_UTCTimeTemplate)
-SEC_ASN1_CHOOSER_IMPLEMENT(SEC_UTF8StringTemplate)
+SEC_ASN1_CHOOSER_IMPLEMENT(SEC_EnumeratedTemplate)
+SEC_ASN1_CHOOSER_IMPLEMENT(SEC_PointerToEnumeratedTemplate)
+SEC_ASN1_CHOOSER_IMPLEMENT(SEC_SequenceOfAnyTemplate)
+SEC_ASN1_CHOOSER_IMPLEMENT(SEC_SequenceOfObjectIDTemplate)
+SEC_ASN1_CHOOSER_IMPLEMENT(SEC_SkipTemplate)
+SEC_ASN1_CHOOSER_IMPLEMENT(SEC_UniversalStringTemplate)
+SEC_ASN1_CHOOSER_IMPLEMENT(SEC_PrintableStringTemplate)
+SEC_ASN1_CHOOSER_IMPLEMENT(SEC_T61StringTemplate)
+SEC_ASN1_CHOOSER_IMPLEMENT(SEC_PointerToGeneralizedTimeTemplate)
 

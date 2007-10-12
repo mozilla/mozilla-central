@@ -133,6 +133,7 @@
 #ifndef _NSSILCKT_H_
 #define _NSSILCKT_H_
 
+#include "utilrename.h"
 #include "prtypes.h"
 #include "prmon.h"
 #include "prlock.h"

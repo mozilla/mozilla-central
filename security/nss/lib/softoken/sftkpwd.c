@@ -149,12 +149,14 @@ struct SFTKDBEncryptedDataInfoStr {
 };
 typedef struct SFTKDBEncryptedDataInfoStr SFTKDBEncryptedDataInfo;
 
+SEC_ASN1_MKSUB(SECOID_AlgorithmIDTemplate)
+
 const SEC_ASN1Template sftkdb_EncryptedDataInfoTemplate[] = {
     { SEC_ASN1_SEQUENCE,
         0, NULL, sizeof(SFTKDBEncryptedDataInfo) },
-    { SEC_ASN1_INLINE,
+    { SEC_ASN1_INLINE | SEC_ASN1_XTRN ,
         offsetof(SFTKDBEncryptedDataInfo,algorithm),
-        SECOID_AlgorithmIDTemplate },
+        SEC_ASN1_SUB(SECOID_AlgorithmIDTemplate) },
     { SEC_ASN1_OCTET_STRING,
         offsetof(SFTKDBEncryptedDataInfo,encryptedData) },
     { 0 }

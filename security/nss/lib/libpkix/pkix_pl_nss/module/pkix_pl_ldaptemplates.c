@@ -38,6 +38,10 @@
 
 #include "pkix_pl_ldapt.h"
 
+SEC_ASN1_MKSUB(SEC_AnyTemplate);
+SEC_ASN1_MKSUB(SEC_NullTemplate);
+SEC_ASN1_MKSUB(SEC_OctetStringTemplate);
+
 /*
  * CertificatePair      ::= SEQUENCE {
  *      forward [0]     Certificate OPTIONAL,
@@ -49,11 +53,11 @@
 const SEC_ASN1Template PKIX_PL_LDAPCrossCertPairTemplate[] = {
     { SEC_ASN1_SEQUENCE, 0, NULL, sizeof(LDAPCertPair) },
     { SEC_ASN1_OPTIONAL | SEC_ASN1_CONSTRUCTED | SEC_ASN1_CONTEXT_SPECIFIC |
-        SEC_ASN1_EXPLICIT | 0,
-        offsetof(LDAPCertPair, forward), SEC_AnyTemplate },
+        SEC_ASN1_EXPLICIT | SEC_ASN1_XTRN | 0,
+        offsetof(LDAPCertPair, forward), SEC_ASN1_SUB(SEC_AnyTemplate) },
     { SEC_ASN1_OPTIONAL | SEC_ASN1_CONSTRUCTED | SEC_ASN1_CONTEXT_SPECIFIC |
-        SEC_ASN1_EXPLICIT | 1,
-        offsetof(LDAPCertPair, reverse), SEC_AnyTemplate },
+        SEC_ASN1_EXPLICIT | SEC_ASN1_XTRN | 1,
+        offsetof(LDAPCertPair, reverse), SEC_ASN1_SUB(SEC_AnyTemplate) },
     { 0 }
 };
 
@@ -74,7 +78,7 @@ const SEC_ASN1Template PKIX_PL_LDAPCrossCertPairTemplate[] = {
  * LDAPString ::= OCTET STRING
  */
 
-#define LDAPStringTemplate SEC_OctetStringTemplate
+#define LDAPStringTemplate SEC_ASN1_SUB(SEC_OctetStringTemplate)
 
 static const SEC_ASN1Template LDAPBindApplTemplate[] = {
     { SEC_ASN1_SEQUENCE, 0, NULL },
@@ -153,8 +157,8 @@ static const SEC_ASN1Template LDAPBindResponseTemplate[] = {
  */
 
 static const SEC_ASN1Template LDAPUnbindTemplate[] = {
-    { SEC_ASN1_CONSTRUCTED | SEC_ASN1_APPLICATION | LDAP_UNBIND_TYPE, 0,
-        SEC_NullTemplate }
+    { SEC_ASN1_CONSTRUCTED | SEC_ASN1_APPLICATION | SEC_ASN1_XTRN |
+        LDAP_UNBIND_TYPE , 0, SEC_ASN1_SUB(SEC_NullTemplate) }
 };
 
 /*
@@ -192,12 +196,18 @@ static const SEC_ASN1Template LDAPUnbindTemplate[] = {
 static const SEC_ASN1Template LDAPSubstringFilterChoiceTemplate[] = {
     { SEC_ASN1_CHOICE, offsetof(LDAPSubstring, selector), 0,
         sizeof (LDAPFilter) },
-    { SEC_ASN1_CONTEXT_SPECIFIC | 0, offsetof(LDAPSubstring, item),
-        LDAPSubstringFilterInitialTemplate, LDAP_INITIALSUBSTRING_TYPE },
-    { SEC_ASN1_CONTEXT_SPECIFIC | 1, offsetof(LDAPSubstring, item),
-        LDAPSubstringFilterAnyTemplate, LDAP_ANYSUBSTRING_TYPE },
-    { SEC_ASN1_CONTEXT_SPECIFIC | 2, offsetof(LDAPSubstring, item),
-        LDAPSubstringFilterFinalTemplate, LDAP_FINALSUBSTRING_TYPE },
+    { SEC_ASN1_CONTEXT_SPECIFIC | SEC_ASN1_XTRN | 0,
+        offsetof(LDAPSubstring, item),
+        LDAPSubstringFilterInitialTemplate,
+        LDAP_INITIALSUBSTRING_TYPE },
+    { SEC_ASN1_CONTEXT_SPECIFIC | SEC_ASN1_XTRN | 1,
+        offsetof(LDAPSubstring, item),
+        LDAPSubstringFilterAnyTemplate,
+        LDAP_ANYSUBSTRING_TYPE },
+    { SEC_ASN1_CONTEXT_SPECIFIC | SEC_ASN1_XTRN | 2,
+        offsetof(LDAPSubstring, item),
+        LDAPSubstringFilterFinalTemplate,
+        LDAP_FINALSUBSTRING_TYPE },
     { 0 }
 };
 
@@ -352,7 +362,8 @@ static const SEC_ASN1Template LDAPSearchTemplate[] = {
 static const SEC_ASN1Template LDAPSearchResponseAttrTemplate[] = {
     { SEC_ASN1_SEQUENCE, 0, NULL, sizeof(LDAPSearchResponseAttr) },
     { SEC_ASN1_LDAP_STRING, offsetof(LDAPSearchResponseAttr, attrType) },
-    { SEC_ASN1_SET_OF, offsetof(LDAPSearchResponseAttr, val), LDAPStringTemplate },
+    { SEC_ASN1_SET_OF | SEC_ASN1_XTRN, offsetof(LDAPSearchResponseAttr, val),
+        LDAPStringTemplate },
     { 0 }
 };
 

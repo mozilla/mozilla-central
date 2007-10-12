@@ -43,25 +43,6 @@
 
 static const PRTime January1st2050  = LL_INIT(0x0008f81e, 0x1b098000);
 
-const SEC_ASN1Template CERT_TimeChoiceTemplate[] = {
-  { SEC_ASN1_CHOICE, offsetof(SECItem, type), 0, sizeof(SECItem) },
-  { SEC_ASN1_UTC_TIME, 0, 0, siUTCTime },
-  { SEC_ASN1_GENERALIZED_TIME, 0, 0, siGeneralizedTime },
-  { 0 }
-};
-
-SEC_ASN1_CHOOSER_IMPLEMENT(CERT_TimeChoiceTemplate)
-
-const SEC_ASN1Template CERT_ValidityTemplate[] = {
-    { SEC_ASN1_SEQUENCE,
-	  0, NULL, sizeof(CERTValidity) },
-    { SEC_ASN1_INLINE,
-	  offsetof(CERTValidity,notBefore), CERT_TimeChoiceTemplate, 0 },
-    { SEC_ASN1_INLINE,
-	  offsetof(CERTValidity,notAfter), CERT_TimeChoiceTemplate, 0 },
-    { 0 }
-};
-
 static char *DecodeUTCTime2FormattedAscii (SECItem *utcTimeDER, char *format);
 static char *DecodeGeneralizedTime2FormattedAscii (SECItem *generalizedTimeDER, char *format);
 

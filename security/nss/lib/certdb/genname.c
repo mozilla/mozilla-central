@@ -49,20 +49,26 @@
 #include "prprf.h"
 #include "genname.h"
 
-
+SEC_ASN1_MKSUB(SEC_AnyTemplate);
+SEC_ASN1_MKSUB(SEC_IntegerTemplate);
+SEC_ASN1_MKSUB(SEC_IA5StringTemplate);
+SEC_ASN1_MKSUB(SEC_ObjectIDTemplate);
+SEC_ASN1_MKSUB(SEC_OctetStringTemplate);
 
 static const SEC_ASN1Template CERTNameConstraintTemplate[] = {
     { SEC_ASN1_SEQUENCE, 0, NULL, sizeof(CERTNameConstraint) },
     { SEC_ASN1_ANY, offsetof(CERTNameConstraint, DERName) },
-    { SEC_ASN1_OPTIONAL | SEC_ASN1_CONTEXT_SPECIFIC | 0, 
-          offsetof(CERTNameConstraint, min), SEC_IntegerTemplate }, 
-    { SEC_ASN1_OPTIONAL | SEC_ASN1_CONTEXT_SPECIFIC | 1, 
-          offsetof(CERTNameConstraint, max), SEC_IntegerTemplate },
+    { SEC_ASN1_OPTIONAL | SEC_ASN1_CONTEXT_SPECIFIC | SEC_ASN1_XTRN | 0, 
+          offsetof(CERTNameConstraint, min),
+          SEC_ASN1_SUB(SEC_IntegerTemplate) }, 
+    { SEC_ASN1_OPTIONAL | SEC_ASN1_CONTEXT_SPECIFIC | SEC_ASN1_XTRN | 1, 
+          offsetof(CERTNameConstraint, max),
+          SEC_ASN1_SUB(SEC_IntegerTemplate) },
     { 0, }
 };
 
 const SEC_ASN1Template CERT_NameConstraintSubtreeSubTemplate[] = {
-    { SEC_ASN1_SEQUENCE_OF, 0, SEC_AnyTemplate }
+    { SEC_ASN1_SEQUENCE_OF | SEC_ASN1_XTRN, 0, SEC_ASN1_SUB(SEC_AnyTemplate) }
 };
 
 static const SEC_ASN1Template CERTNameConstraintsTemplate[] = {
@@ -81,8 +87,9 @@ static const SEC_ASN1Template CERTOthNameTemplate[] = {
     { SEC_ASN1_SEQUENCE, 0, NULL, sizeof(OtherName) },
     { SEC_ASN1_OBJECT_ID, 
 	  offsetof(OtherName, oid) },
-    { SEC_ASN1_CONTEXT_SPECIFIC | SEC_ASN1_CONSTRUCTED | SEC_ASN1_EXPLICIT | 0,
-          offsetof(OtherName, name), SEC_AnyTemplate },
+    { SEC_ASN1_CONTEXT_SPECIFIC | SEC_ASN1_CONSTRUCTED | SEC_ASN1_EXPLICIT |
+          SEC_ASN1_XTRN | 0, offsetof(OtherName, name),
+          SEC_ASN1_SUB(SEC_AnyTemplate) },
     { 0, } 
 };
 
@@ -103,57 +110,62 @@ static const SEC_ASN1Template CERTOtherName2Template[] = {
 };
 
 static const SEC_ASN1Template CERT_RFC822NameTemplate[] = {
-    { SEC_ASN1_CONTEXT_SPECIFIC | 1 ,
-          offsetof(CERTGeneralName, name.other), SEC_IA5StringTemplate,
+    { SEC_ASN1_CONTEXT_SPECIFIC | SEC_ASN1_XTRN | 1 ,
+          offsetof(CERTGeneralName, name.other),
+          SEC_ASN1_SUB(SEC_IA5StringTemplate),
           sizeof (CERTGeneralName)}
 };
 
 static const SEC_ASN1Template CERT_DNSNameTemplate[] = {
-    { SEC_ASN1_CONTEXT_SPECIFIC | 2 ,
-          offsetof(CERTGeneralName, name.other), SEC_IA5StringTemplate,
+    { SEC_ASN1_CONTEXT_SPECIFIC | SEC_ASN1_XTRN | 2 ,
+          offsetof(CERTGeneralName, name.other),
+          SEC_ASN1_SUB(SEC_IA5StringTemplate),
           sizeof (CERTGeneralName)}
 };
 
 static const SEC_ASN1Template CERT_X400AddressTemplate[] = {
-    { SEC_ASN1_CONTEXT_SPECIFIC | SEC_ASN1_CONSTRUCTED | 3,
-          offsetof(CERTGeneralName, name.other), SEC_AnyTemplate,
+    { SEC_ASN1_CONTEXT_SPECIFIC | SEC_ASN1_CONSTRUCTED | SEC_ASN1_XTRN | 3,
+          offsetof(CERTGeneralName, name.other), SEC_ASN1_SUB(SEC_AnyTemplate),
           sizeof (CERTGeneralName)}
 };
 
 static const SEC_ASN1Template CERT_DirectoryNameTemplate[] = {
-    { SEC_ASN1_CONTEXT_SPECIFIC | SEC_ASN1_CONSTRUCTED | SEC_ASN1_EXPLICIT | 4,
-          offsetof(CERTGeneralName, derDirectoryName), SEC_AnyTemplate,
-          sizeof (CERTGeneralName)}
+    { SEC_ASN1_CONTEXT_SPECIFIC | SEC_ASN1_CONSTRUCTED | SEC_ASN1_EXPLICIT |
+          SEC_ASN1_XTRN | 4, offsetof(CERTGeneralName, derDirectoryName),
+          SEC_ASN1_SUB(SEC_AnyTemplate), sizeof (CERTGeneralName)}
 };
 
 
 static const SEC_ASN1Template CERT_EDIPartyNameTemplate[] = {
-    { SEC_ASN1_CONTEXT_SPECIFIC | SEC_ASN1_CONSTRUCTED | 5,
-          offsetof(CERTGeneralName, name.other), SEC_AnyTemplate,
+    { SEC_ASN1_CONTEXT_SPECIFIC | SEC_ASN1_CONSTRUCTED | SEC_ASN1_XTRN | 5,
+          offsetof(CERTGeneralName, name.other), SEC_ASN1_SUB(SEC_AnyTemplate),
           sizeof (CERTGeneralName)}
 };
 
 static const SEC_ASN1Template CERT_URITemplate[] = {
-    { SEC_ASN1_CONTEXT_SPECIFIC | 6 ,
-          offsetof(CERTGeneralName, name.other), SEC_IA5StringTemplate,
+    { SEC_ASN1_CONTEXT_SPECIFIC | SEC_ASN1_XTRN | 6 ,
+          offsetof(CERTGeneralName, name.other),
+          SEC_ASN1_SUB(SEC_IA5StringTemplate),
           sizeof (CERTGeneralName)}
 };
 
 static const SEC_ASN1Template CERT_IPAddressTemplate[] = {
-    { SEC_ASN1_CONTEXT_SPECIFIC | 7 ,
-          offsetof(CERTGeneralName, name.other), SEC_OctetStringTemplate,
+    { SEC_ASN1_CONTEXT_SPECIFIC | SEC_ASN1_XTRN | 7 ,
+          offsetof(CERTGeneralName, name.other),
+          SEC_ASN1_SUB(SEC_OctetStringTemplate),
           sizeof (CERTGeneralName)}
 };
 
 static const SEC_ASN1Template CERT_RegisteredIDTemplate[] = {
-    { SEC_ASN1_CONTEXT_SPECIFIC | 8 ,
-          offsetof(CERTGeneralName, name.other), SEC_ObjectIDTemplate,
+    { SEC_ASN1_CONTEXT_SPECIFIC | SEC_ASN1_XTRN | 8 ,
+          offsetof(CERTGeneralName, name.other),
+          SEC_ASN1_SUB(SEC_ObjectIDTemplate),
           sizeof (CERTGeneralName)}
 };
 
 
 const SEC_ASN1Template CERT_GeneralNamesTemplate[] = {
-    { SEC_ASN1_SEQUENCE_OF, 0, SEC_AnyTemplate }
+    { SEC_ASN1_SEQUENCE_OF | SEC_ASN1_XTRN , 0, SEC_ASN1_SUB(SEC_AnyTemplate) }
 };
 
 
@@ -1705,7 +1717,8 @@ CERT_GetNickName(CERTCertificate   *cert,
     if (!found)
     	goto loser;
 
-    rv = SEC_QuickDERDecodeItem(arena, &nick, SEC_IA5StringTemplate, 
+    rv = SEC_QuickDERDecodeItem(arena, &nick,
+                            SEC_ASN1_GET(SEC_IA5StringTemplate),
 			    &current->name.OthName.name);
     if (rv != SECSuccess) {
 	goto loser;

@@ -39,7 +39,7 @@
  *
  * NOTE - These are not public interfaces
  *
- * $Id: nsslocks.c,v 1.5 2004-04-25 15:03:17 gerv%gerv.net Exp $
+ * $Id: nsslocks.c,v 1.6 2007-10-12 01:44:51 julien.pierre.boogz%sun.com Exp $
  */
 
 #include "seccomon.h"
@@ -74,12 +74,6 @@ __nss_InitLock(   PZLock    **ppLock, nssILockType ltype )
     }
 
     return (*ppLock != NULL) ? SECSuccess : SECFailure;
-}
-
-SECStatus 
-nss_InitLock(   PZLock    **ppLock, nssILockType ltype )
-{
-    return __nss_InitLock(ppLock, ltype);
 }
 
 /* Given the address of a (global) pointer to a PZMonitor, 

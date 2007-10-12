@@ -51,6 +51,8 @@
 #include "softoken.h"
 #include "secerr.h"
 
+SEC_ASN1_MKSUB(SECOID_AlgorithmIDTemplate)
+
 /* template for PKCS 5 PBE Parameter.  This template has been expanded
  * based upon the additions in PKCS 12.  This should eventually be moved
  * if RSA updates PKCS 5.
@@ -89,10 +91,12 @@ typedef struct nsspkcs5V2PBEParameterStr nsspkcs5V2PBEParameter;
 static const SEC_ASN1Template NSSPKCS5V2PBES2ParameterTemplate[] =
 {   
     { SEC_ASN1_SEQUENCE, 0, NULL, sizeof(nsspkcs5V2PBEParameter) },
-    { SEC_ASN1_INLINE, offsetof(nsspkcs5V2PBEParameter, keyParams), 
-					SECOID_AlgorithmIDTemplate },
-    { SEC_ASN1_INLINE, offsetof(nsspkcs5V2PBEParameter, algParams), 
-					SECOID_AlgorithmIDTemplate },
+    { SEC_ASN1_INLINE | SEC_ASN1_XTRN,
+        offsetof(nsspkcs5V2PBEParameter, keyParams), 
+        SEC_ASN1_SUB(SECOID_AlgorithmIDTemplate) },
+    { SEC_ASN1_INLINE | SEC_ASN1_XTRN,
+        offsetof(nsspkcs5V2PBEParameter, algParams),
+        SEC_ASN1_SUB(SECOID_AlgorithmIDTemplate) },
     { 0 }
 };
 
@@ -104,8 +108,9 @@ static const SEC_ASN1Template NSSPKCS5V2PBEParameterTemplate[] =
     { SEC_ASN1_OCTET_STRING, offsetof(NSSPKCS5PBEParameter, salt) },
     { SEC_ASN1_INTEGER, offsetof(NSSPKCS5PBEParameter, iteration) },
     { SEC_ASN1_INTEGER, offsetof(NSSPKCS5PBEParameter, keyLength) },
-    { SEC_ASN1_INLINE, offsetof(NSSPKCS5PBEParameter, prfAlg), 
-					SECOID_AlgorithmIDTemplate },
+    { SEC_ASN1_INLINE | SEC_ASN1_XTRN,
+        offsetof(NSSPKCS5PBEParameter, prfAlg),
+        SEC_ASN1_SUB(SECOID_AlgorithmIDTemplate) },
     { 0 }
 };
 #endif

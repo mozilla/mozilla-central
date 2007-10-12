@@ -1659,7 +1659,7 @@ RSA_HashSign(SECOidTag hashOid, NSSLOWKEYPrivateKey *key,
     if (!di) { goto loser; }
 
     /* Der encode the digest as a DigestInfo */
-    rv = DER_Encode(arena, &digder, SGNDigestInfoTemplate, di);
+    rv = DER_Encode(arena, &digder, SEC_ASN1_GET(SGNDigestInfoTemplate), di);
     if (rv != SECSuccess) {
 	goto loser;
     }

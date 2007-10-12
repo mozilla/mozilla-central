@@ -375,6 +375,7 @@ VFY_VerifyDigest;
 ;+# Data objects
 ;+#
 ;+# Don't export these DATA symbols on Windows because they don't work right.
+;+# Use the SEC_ASN1_GET / SEC_ASN1_SUB / SEC_ASN1_XTRN macros to access them.
 ;;CERT_CrlTemplate DATA ;
 ;;CERT_SignedDataTemplate DATA ;
 ;;CERT_CertificateTemplate DATA ;
@@ -843,6 +844,7 @@ SECOID_AddEntry;
 ;+# Data objects
 ;+#
 ;+# Don't export these DATA symbols on Windows because they don't work right.
+;+# Use the SEC_ASN1_GET / SEC_ASN1_SUB / SEC_ASN1_XTRN macros to access them.
 ;;CERT_SequenceOfCertExtensionTemplate DATA ;
 ;;CERT_SignedCrlTemplate DATA ;
 NSS_Get_CERT_SequenceOfCertExtensionTemplate;
@@ -919,7 +921,6 @@ SECKEY_ECParamsToBasePointOrderLen;
 SECKEY_ECParamsToKeySize;
 SECMOD_DeleteModuleEx;
 SEC_GetRegisteredHttpClient;
-SEC_StringToOID;
 VFY_CreateContextDirect;
 VFY_CreateContextWithAlgorithmID;
 VFY_VerifyDataDirect;

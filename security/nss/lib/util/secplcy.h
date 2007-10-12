@@ -37,6 +37,8 @@
 #ifndef __secplcy_h__
 #define __secplcy_h__
 
+#include "utilrename.h"
+
 #include "prtypes.h"
 
 /*

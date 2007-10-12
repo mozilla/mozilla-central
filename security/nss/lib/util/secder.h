@@ -37,11 +37,13 @@
 #ifndef _SECDER_H_
 #define _SECDER_H_
 
+#include "utilrename.h"
+
 /*
  * secder.h - public data structures and prototypes for the DER encoding and
  *	      decoding utilities library
  *
- * $Id: secder.h,v 1.10 2007-10-01 11:55:04 biswatosh.chakraborty%sun.com Exp $
+ * $Id: secder.h,v 1.11 2007-10-12 01:44:51 julien.pierre.boogz%sun.com Exp $
  */
 
 #if defined(_WIN32_WCE)

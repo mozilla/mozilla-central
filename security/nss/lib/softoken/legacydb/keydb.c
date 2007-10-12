@@ -34,7 +34,7 @@
  * the terms of any one of the MPL, the GPL or the LGPL.
  *
  * ***** END LICENSE BLOCK ***** */
-/* $Id: keydb.c,v 1.5 2007-09-25 01:14:23 nelson%bolyard.com Exp $ */
+/* $Id: keydb.c,v 1.6 2007-10-12 01:44:48 julien.pierre.boogz%sun.com Exp $ */
 
 #include "lowkeyi.h"
 #include "secasn1.h"
@@ -63,12 +63,14 @@
 /* Size of the global salt for key database */
 #define SALT_LENGTH     16
 
+SEC_ASN1_MKSUB(SECOID_AlgorithmIDTemplate);
+
 const SEC_ASN1Template nsslowkey_EncryptedPrivateKeyInfoTemplate[] = {
     { SEC_ASN1_SEQUENCE,
 	0, NULL, sizeof(NSSLOWKEYEncryptedPrivateKeyInfo) },
-    { SEC_ASN1_INLINE,
+    { SEC_ASN1_INLINE | SEC_ASN1_XTRN,
 	offsetof(NSSLOWKEYEncryptedPrivateKeyInfo,algorithm),
-	SECOID_AlgorithmIDTemplate },
+	SEC_ASN1_SUB(SECOID_AlgorithmIDTemplate) },
     { SEC_ASN1_OCTET_STRING,
 	offsetof(NSSLOWKEYEncryptedPrivateKeyInfo,encryptedData) },
     { 0 }
@@ -1256,9 +1258,9 @@ typedef struct LGEncryptedDataInfoStr LGEncryptedDataInfo;
 const SEC_ASN1Template lg_EncryptedDataInfoTemplate[] = {
     { SEC_ASN1_SEQUENCE,
         0, NULL, sizeof(LGEncryptedDataInfo) },
-    { SEC_ASN1_INLINE,
+    { SEC_ASN1_INLINE | SEC_ASN1_XTRN,
         offsetof(LGEncryptedDataInfo,algorithm),
-        SECOID_AlgorithmIDTemplate },
+        SEC_ASN1_SUB(SECOID_AlgorithmIDTemplate) },
     { SEC_ASN1_OCTET_STRING,
         offsetof(LGEncryptedDataInfo,encryptedData) },
     { 0 }

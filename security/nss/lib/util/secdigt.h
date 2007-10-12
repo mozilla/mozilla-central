@@ -36,11 +36,12 @@
  * the terms of any one of the MPL, the GPL or the LGPL.
  *
  * ***** END LICENSE BLOCK ***** */
-/* $Id: secdigt.h,v 1.3 2004-04-27 23:04:40 gerv%gerv.net Exp $ */
+/* $Id: secdigt.h,v 1.4 2007-10-12 01:44:51 julien.pierre.boogz%sun.com Exp $ */
 
 #ifndef _SECDIGT_H_
 #define _SECDIGT_H_
 
+#include "utilrename.h"
 #include "plarena.h"
 #include "secoidt.h"
 #include "secitem.h"

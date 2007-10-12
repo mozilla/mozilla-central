@@ -41,6 +41,9 @@
 #include "certt.h"
 #include "secerr.h"
 
+SEC_ASN1_MKSUB(SEC_AnyTemplate);
+SEC_ASN1_MKSUB(SEC_BitStringTemplate);
+
 extern void PrepareBitStringForEncoding (SECItem *bitMap, SECItem *value);
 
 static const SEC_ASN1Template FullNameTemplate[] = {
@@ -56,10 +59,12 @@ static const SEC_ASN1Template RelativeNameTemplate[] = {
 static const SEC_ASN1Template CRLDistributionPointTemplate[] = {
     { SEC_ASN1_SEQUENCE, 0, NULL, sizeof(CRLDistributionPoint) },
 	{ SEC_ASN1_OPTIONAL | SEC_ASN1_CONTEXT_SPECIFIC |
-	    SEC_ASN1_CONSTRUCTED | SEC_ASN1_EXPLICIT | 0,
-	    offsetof(CRLDistributionPoint,derDistPoint), SEC_AnyTemplate},
-	{ SEC_ASN1_OPTIONAL | SEC_ASN1_CONTEXT_SPECIFIC | 1,
-	    offsetof(CRLDistributionPoint,bitsmap), SEC_BitStringTemplate},
+	    SEC_ASN1_CONSTRUCTED | SEC_ASN1_EXPLICIT | SEC_ASN1_XTRN | 0,
+	    offsetof(CRLDistributionPoint,derDistPoint),
+            SEC_ASN1_SUB(SEC_AnyTemplate)},
+	{ SEC_ASN1_OPTIONAL | SEC_ASN1_CONTEXT_SPECIFIC | SEC_ASN1_XTRN | 1,
+	    offsetof(CRLDistributionPoint,bitsmap),
+            SEC_ASN1_SUB(SEC_BitStringTemplate) },
 	{ SEC_ASN1_OPTIONAL | SEC_ASN1_CONTEXT_SPECIFIC |
 	    SEC_ASN1_CONSTRUCTED | 2,
 	    offsetof(CRLDistributionPoint, derCrlIssuer), CERT_GeneralNamesTemplate},

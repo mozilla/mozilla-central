@@ -1217,7 +1217,7 @@ PK11_FindCertByIssuerAndSNOnToken(PK11SlotInfo *slot,
      */
     derSerial = SEC_ASN1EncodeItem(NULL, NULL,
                                    &issuerSN->serialNumber,
-                                   SEC_IntegerTemplate);
+                                   SEC_ASN1_GET(SEC_IntegerTemplate));
     if (!derSerial) {
 	return NULL;
     }
@@ -1556,7 +1556,7 @@ PK11_FindCertByIssuerAndSN(PK11SlotInfo **slotPtr, CERTIssuerAndSN *issuerSN,
      */
     derSerial = SEC_ASN1EncodeItem(NULL, NULL,
                                    &issuerSN->serialNumber,
-                                   SEC_IntegerTemplate);
+                                   SEC_ASN1_GET(SEC_IntegerTemplate));
     if (!derSerial) {
 	return NULL;
     }

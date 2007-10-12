@@ -51,15 +51,18 @@
 #include "genname.h"
 #include "secerr.h"
 
-   
+SEC_ASN1_MKSUB(SEC_IntegerTemplate);
+SEC_ASN1_MKSUB(SEC_OctetStringTemplate);
+
 const SEC_ASN1Template CERTAuthKeyIDTemplate[] = {
     { SEC_ASN1_SEQUENCE, 0, NULL, sizeof(CERTAuthKeyID) },
-    { SEC_ASN1_OPTIONAL | SEC_ASN1_CONTEXT_SPECIFIC | 0,
-	  offsetof(CERTAuthKeyID,keyID), SEC_OctetStringTemplate},
+    { SEC_ASN1_OPTIONAL | SEC_ASN1_CONTEXT_SPECIFIC | SEC_ASN1_XTRN | 0,
+	  offsetof(CERTAuthKeyID,keyID), SEC_ASN1_SUB(SEC_OctetStringTemplate)},
     { SEC_ASN1_OPTIONAL | SEC_ASN1_CONSTRUCTED | SEC_ASN1_CONTEXT_SPECIFIC  | 1,
           offsetof(CERTAuthKeyID, DERAuthCertIssuer), CERT_GeneralNamesTemplate},
-    { SEC_ASN1_OPTIONAL | SEC_ASN1_CONTEXT_SPECIFIC | 2,
-	  offsetof(CERTAuthKeyID,authCertSerialNumber), SEC_IntegerTemplate},
+    { SEC_ASN1_OPTIONAL | SEC_ASN1_CONTEXT_SPECIFIC | SEC_ASN1_XTRN | 2,
+	  offsetof(CERTAuthKeyID,authCertSerialNumber),
+          SEC_ASN1_SUB(SEC_IntegerTemplate) },
     { 0 }
 };
 

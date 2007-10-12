@@ -46,12 +46,18 @@
 #include "softoken.h"
 #endif
 
+SEC_ASN1_MKSUB(SEC_AnyTemplate);
+SEC_ASN1_MKSUB(SEC_BitStringTemplate);
+SEC_ASN1_MKSUB(SEC_ObjectIDTemplate);
+SEC_ASN1_MKSUB(SECOID_AlgorithmIDTemplate);
+
 const SEC_ASN1Template nsslowkey_AttributeTemplate[] = {
     { SEC_ASN1_SEQUENCE, 
 	0, NULL, sizeof(NSSLOWKEYAttribute) },
     { SEC_ASN1_OBJECT_ID, offsetof(NSSLOWKEYAttribute, attrType) },
-    { SEC_ASN1_SET_OF, offsetof(NSSLOWKEYAttribute, attrValue), 
-	SEC_AnyTemplate },
+    { SEC_ASN1_SET_OF | SEC_ASN1_XTRN ,
+        offsetof(NSSLOWKEYAttribute, attrValue),
+	SEC_ASN1_SUB(SEC_AnyTemplate) },
     { 0 }
 };
 
@@ -64,9 +70,9 @@ const SEC_ASN1Template nsslowkey_PrivateKeyInfoTemplate[] = {
 	0, NULL, sizeof(NSSLOWKEYPrivateKeyInfo) },
     { SEC_ASN1_INTEGER,
 	offsetof(NSSLOWKEYPrivateKeyInfo,version) },
-    { SEC_ASN1_INLINE,
+    { SEC_ASN1_INLINE | SEC_ASN1_XTRN,
 	offsetof(NSSLOWKEYPrivateKeyInfo,algorithm),
-	SECOID_AlgorithmIDTemplate },
+	SEC_ASN1_SUB(SECOID_AlgorithmIDTemplate) },
     { SEC_ASN1_OCTET_STRING,
 	offsetof(NSSLOWKEYPrivateKeyInfo,privateKey) },
     { SEC_ASN1_OPTIONAL | SEC_ASN1_CONSTRUCTED | SEC_ASN1_CONTEXT_SPECIFIC | 0,
@@ -150,9 +156,10 @@ const SEC_ASN1Template nsslowkey_ECPrivateKeyTemplate[] = {
      */
 #if 1
     { SEC_ASN1_OPTIONAL | SEC_ASN1_CONSTRUCTED |
-      SEC_ASN1_EXPLICIT | SEC_ASN1_CONTEXT_SPECIFIC | 0, 
+      SEC_ASN1_EXPLICIT | SEC_ASN1_CONTEXT_SPECIFIC |
+      SEC_ASN1_XTRN | 0, 
       offsetof(NSSLOWKEYPrivateKey,u.ec.ecParams.curveOID), 
-      SEC_ObjectIDTemplate }, 
+      SEC_ASN1_SUB(SEC_ObjectIDTemplate) }, 
 #else
     { SEC_ASN1_OPTIONAL | SEC_ASN1_CONSTRUCTED |
       SEC_ASN1_EXPLICIT | SEC_ASN1_CONTEXT_SPECIFIC | 0, 
@@ -160,9 +167,10 @@ const SEC_ASN1Template nsslowkey_ECPrivateKeyTemplate[] = {
       nsslowkey_ECParamsTemplate }, 
 #endif
     { SEC_ASN1_OPTIONAL | SEC_ASN1_CONSTRUCTED |
-      SEC_ASN1_EXPLICIT | SEC_ASN1_CONTEXT_SPECIFIC | 1, 
+      SEC_ASN1_EXPLICIT | SEC_ASN1_CONTEXT_SPECIFIC |
+      SEC_ASN1_XTRN | 1, 
       offsetof(NSSLOWKEYPrivateKey,u.ec.publicValue),
-      SEC_BitStringTemplate }, 
+      SEC_ASN1_SUB(SEC_BitStringTemplate) }, 
     { 0, }
 };
 #endif /* NSS_ENABLE_ECC */

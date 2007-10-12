@@ -36,7 +36,7 @@
  *
  * ***** END LICENSE BLOCK ***** */
 #ifdef DEBUG
-static const char CVS_ID[] = "@(#) $RCSfile: mobject.c,v $ $Revision: 1.2 $ $Date: 2007-07-06 03:16:56 $";
+static const char CVS_ID[] = "@(#) $RCSfile: mobject.c,v $ $Revision: 1.3 $ $Date: 2007-10-12 01:44:42 $";
 #endif /* DEBUG */
 
 #include "ckmk.h"
@@ -1531,12 +1531,14 @@ const SEC_ASN1Template ckmk_SetOfAttributeTemplate[] = {
     { SEC_ASN1_SET_OF, 0, ckmk_AttributeTemplate },
 };
 
+SEC_ASN1_MKSUB(SECOID_AlgorithmIDTemplate)
+
 /* ASN1 Templates for new decoder/encoder */
 const SEC_ASN1Template ckmk_PrivateKeyInfoTemplate[] = {
     { SEC_ASN1_SEQUENCE, 0, NULL, sizeof(PrivateKeyInfo) },
     { SEC_ASN1_INTEGER, offsetof(PrivateKeyInfo,version) },
-    { SEC_ASN1_INLINE, offsetof(PrivateKeyInfo,algorithm),
-        SECOID_AlgorithmIDTemplate },
+    { SEC_ASN1_INLINE | SEC_ASN1_XTRN, offsetof(PrivateKeyInfo,algorithm),
+        SEC_ASN1_SUB(SECOID_AlgorithmIDTemplate) },
     { SEC_ASN1_OCTET_STRING, offsetof(PrivateKeyInfo,privateKey) },
     { SEC_ASN1_OPTIONAL | SEC_ASN1_CONSTRUCTED | SEC_ASN1_CONTEXT_SPECIFIC | 0,
         offsetof(PrivateKeyInfo, attributes), ckmk_SetOfAttributeTemplate },

@@ -36,10 +36,13 @@
 
 #ifndef _SECOID_H_
 #define _SECOID_H_
+
+#include "utilrename.h"
+
 /*
  * secoid.h - public data structures and prototypes for ASN.1 OID functions
  *
- * $Id: secoid.h,v 1.7 2007-07-11 23:28:31 nelson%bolyard.com Exp $
+ * $Id: secoid.h,v 1.8 2007-10-12 01:44:51 julien.pierre.boogz%sun.com Exp $
  */
 
 #include "plarena.h"

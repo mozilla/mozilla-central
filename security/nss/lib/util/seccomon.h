@@ -41,12 +41,13 @@
  * for security libraries.  It should not be dependent on any other
  * headers, and should not require linking with any libraries.
  *
- * $Id: seccomon.h,v 1.6 2007-09-07 18:45:53 neil.williams%sun.com Exp $
+ * $Id: seccomon.h,v 1.7 2007-10-12 01:44:51 julien.pierre.boogz%sun.com Exp $
  */
 
 #ifndef _SECCOMMON_H_
 #define _SECCOMMON_H_
 
+#include "utilrename.h"
 #include "prtypes.h"
 
 

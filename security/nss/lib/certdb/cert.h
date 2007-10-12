@@ -37,12 +37,13 @@
 /*
  * cert.h - public data structures and prototypes for the certificate library
  *
- * $Id: cert.h,v 1.61 2007-09-25 23:48:02 rrelyea%redhat.com Exp $
+ * $Id: cert.h,v 1.62 2007-10-12 01:44:40 julien.pierre.boogz%sun.com Exp $
  */
 
 #ifndef _CERT_H_
 #define _CERT_H_
 
+#include "utilrename.h"
 #include "plarena.h"
 #include "plhash.h"
 #include "prlong.h"

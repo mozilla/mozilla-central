@@ -37,7 +37,7 @@
 /*
  * Code for dealing with x.509 v3 crl and crl entries extensions.
  *
- * $Id: crlv2.c,v 1.5 2007-05-25 07:28:32 alexei.volkov.bugs%sun.com Exp $
+ * $Id: crlv2.c,v 1.6 2007-10-12 01:44:41 julien.pierre.boogz%sun.com Exp $
  */
 
 #include "cert.h"
@@ -112,7 +112,8 @@ SECStatus CERT_FindCRLNumberExten (PRArenaPool *arena, CERTCrl *crl,
 
     tmpItem = SECITEM_ArenaDupItem(arena, &encodedExtenValue);
     if (tmpItem) {
-        rv = SEC_QuickDERDecodeItem (arena, value, SEC_IntegerTemplate,
+        rv = SEC_QuickDERDecodeItem (arena, value,
+                                     SEC_ASN1_GET(SEC_IntegerTemplate),
                                      tmpItem);
     } else {
         rv = SECFailure;
@@ -146,7 +147,8 @@ SECStatus CERT_FindCRLEntryReasonExten (CERTCrlEntry *crlEntry,
 	goto loser;
     }
 
-    rv = SEC_QuickDERDecodeItem(arena, &tmpItem, SEC_EnumeratedTemplate,
+    rv = SEC_QuickDERDecodeItem(arena, &tmpItem,
+                                SEC_ASN1_GET(SEC_EnumeratedTemplate),
                                 &wrapperItem);
 
     if ( rv != SECSuccess ) {
@@ -182,7 +184,8 @@ SECStatus CERT_FindInvalidDateExten (CERTCrl *crl, int64 *value)
 	return (rv);
 
     rv = SEC_ASN1DecodeItem (NULL, &decodedExtenValue,
-			     SEC_GeneralizedTimeTemplate, &encodedExtenValue);
+			     SEC_ASN1_GET(SEC_GeneralizedTimeTemplate),
+                             &encodedExtenValue);
     if (rv == SECSuccess)
 	rv = DER_GeneralizedTimeToTime(value, &encodedExtenValue);
     PORT_Free (decodedExtenValue.data);

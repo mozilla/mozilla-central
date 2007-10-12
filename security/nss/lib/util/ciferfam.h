@@ -38,12 +38,13 @@
  * ciferfam.h - cipher familie IDs used for configuring ciphers for export
  *              control
  *
- * $Id: ciferfam.h,v 1.3 2007-05-10 01:12:20 nelson%bolyard.com Exp $
+ * $Id: ciferfam.h,v 1.4 2007-10-12 01:44:50 julien.pierre.boogz%sun.com Exp $
  */
 
 #ifndef _CIFERFAM_H_
 #define _CIFERFAM_H_
 
+#include "utilrename.h"
 /* Cipher Suite "Families" */
 #define CIPHER_FAMILY_PKCS12			"PKCS12"
 #define CIPHER_FAMILY_SMIME			"SMIME"

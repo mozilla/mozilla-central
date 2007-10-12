@@ -50,6 +50,7 @@ ifdef NS_USE_GCC
 EXTRA_SHARED_LIBS += \
 	-L$(DIST)/lib \
 	-lnss3 \
+	-lnssutil3 \
 	-L$(NSPR_LIB_DIR) \
 	-lplc4 \
 	-lplds4 \
@@ -58,6 +59,7 @@ EXTRA_SHARED_LIBS += \
 else # ! NS_USE_GCC
 EXTRA_SHARED_LIBS += \
 	$(DIST)/lib/nss3.lib \
+	$(DIST)/lib/nssutil3.lib \
 	$(NSPR_LIB_DIR)/$(NSPR31_LIB_PREFIX)plc4.lib \
 	$(NSPR_LIB_DIR)/$(NSPR31_LIB_PREFIX)plds4.lib \
 	$(NSPR_LIB_DIR)/$(NSPR31_LIB_PREFIX)nspr4.lib \
@@ -69,6 +71,7 @@ else
 EXTRA_SHARED_LIBS += \
 	-L$(DIST)/lib \
 	-lnss3 \
+	-lnssutil3 \
 	-L$(NSPR_LIB_DIR) \
 	-lplc4 \
 	-lplds4 \

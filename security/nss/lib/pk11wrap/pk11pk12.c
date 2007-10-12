@@ -112,6 +112,8 @@ struct SECKEYRawPrivateKeyStr {
 };
 typedef struct SECKEYRawPrivateKeyStr SECKEYRawPrivateKey;
 
+SEC_ASN1_MKSUB(SEC_AnyTemplate);
+SEC_ASN1_MKSUB(SECOID_AlgorithmIDTemplate);
 
 /* ASN1 Templates for new decoder/encoder */
 /*
@@ -121,8 +123,8 @@ const SEC_ASN1Template SECKEY_AttributeTemplate[] = {
     { SEC_ASN1_SEQUENCE,
         0, NULL, sizeof(SECKEYAttribute) },
     { SEC_ASN1_OBJECT_ID, offsetof(SECKEYAttribute, attrType) },
-    { SEC_ASN1_SET_OF, offsetof(SECKEYAttribute, attrValue),
-        SEC_AnyTemplate },
+    { SEC_ASN1_SET_OF | SEC_ASN1_XTRN, offsetof(SECKEYAttribute, attrValue),
+        SEC_ASN1_SUB(SEC_AnyTemplate) },
     { 0 }
 };
 
@@ -133,8 +135,9 @@ const SEC_ASN1Template SECKEY_SetOfAttributeTemplate[] = {
 const SEC_ASN1Template SECKEY_PrivateKeyInfoTemplate[] = {
     { SEC_ASN1_SEQUENCE, 0, NULL, sizeof(SECKEYPrivateKeyInfo) },
     { SEC_ASN1_INTEGER, offsetof(SECKEYPrivateKeyInfo,version) },
-    { SEC_ASN1_INLINE, offsetof(SECKEYPrivateKeyInfo,algorithm),
-        SECOID_AlgorithmIDTemplate },
+    { SEC_ASN1_INLINE | SEC_ASN1_XTRN,
+        offsetof(SECKEYPrivateKeyInfo,algorithm),
+        SEC_ASN1_SUB(SECOID_AlgorithmIDTemplate) },
     { SEC_ASN1_OCTET_STRING, offsetof(SECKEYPrivateKeyInfo,privateKey) },
     { SEC_ASN1_OPTIONAL | SEC_ASN1_CONSTRUCTED | SEC_ASN1_CONTEXT_SPECIFIC | 0,
         offsetof(SECKEYPrivateKeyInfo,attributes),
@@ -173,9 +176,9 @@ const SEC_ASN1Template SECKEY_DHPrivateKeyExportTemplate[] = {
 const SEC_ASN1Template SECKEY_EncryptedPrivateKeyInfoTemplate[] = {
     { SEC_ASN1_SEQUENCE,
         0, NULL, sizeof(SECKEYEncryptedPrivateKeyInfo) },
-    { SEC_ASN1_INLINE,
+    { SEC_ASN1_INLINE | SEC_ASN1_XTRN,
         offsetof(SECKEYEncryptedPrivateKeyInfo,algorithm),
-        SECOID_AlgorithmIDTemplate },
+        SEC_ASN1_SUB(SECOID_AlgorithmIDTemplate) },
     { SEC_ASN1_OCTET_STRING,
         offsetof(SECKEYEncryptedPrivateKeyInfo,encryptedData) },
     { 0 }

@@ -39,7 +39,7 @@
  * Implementation of OCSP services, for both client and server.
  * (XXX, really, mostly just for client right now, but intended to do both.)
  *
- * $Id: ocsp.c,v 1.43 2007-10-04 13:04:42 kaie%kuix.de Exp $
+ * $Id: ocsp.c,v 1.44 2007-10-12 01:44:41 julien.pierre.boogz%sun.com Exp $
  */
 
 #include "prerror.h"
@@ -937,6 +937,15 @@ typedef struct ocspCheckingContextStr {
     CERTCertificate *defaultResponderCert;
 } ocspCheckingContext;
 
+SEC_ASN1_MKSUB(SEC_AnyTemplate);
+SEC_ASN1_MKSUB(SEC_IntegerTemplate);
+SEC_ASN1_MKSUB(SEC_NullTemplate);
+SEC_ASN1_MKSUB(SEC_OctetStringTemplate);
+SEC_ASN1_MKSUB(SEC_PointerToAnyTemplate);
+SEC_ASN1_MKSUB(SECOID_AlgorithmIDTemplate);
+SEC_ASN1_MKSUB(SEC_SequenceOfAnyTemplate);
+SEC_ASN1_MKSUB(SEC_PointerToGeneralizedTimeTemplate)
+SEC_ASN1_MKSUB(SEC_PointerToEnumeratedTemplate)
 
 /*
  * Forward declarations of sub-types, so I can lay out the types in the
@@ -993,13 +1002,13 @@ const SEC_ASN1Template ocsp_TBSRequestTemplate[] = {
     { SEC_ASN1_SEQUENCE,
 	0, NULL, sizeof(ocspTBSRequest) },
     { SEC_ASN1_OPTIONAL | SEC_ASN1_EXPLICIT |		/* XXX DER_DEFAULT */
-      SEC_ASN1_CONSTRUCTED | SEC_ASN1_CONTEXT_SPECIFIC | 0,
+      SEC_ASN1_CONSTRUCTED | SEC_ASN1_CONTEXT_SPECIFIC | SEC_ASN1_XTRN | 0,
 	offsetof(ocspTBSRequest, version),
-	SEC_IntegerTemplate },
+	SEC_ASN1_SUB(SEC_IntegerTemplate) },
     { SEC_ASN1_OPTIONAL | SEC_ASN1_EXPLICIT |
-      SEC_ASN1_CONSTRUCTED | SEC_ASN1_CONTEXT_SPECIFIC | 1,
+      SEC_ASN1_CONSTRUCTED | SEC_ASN1_CONTEXT_SPECIFIC | SEC_ASN1_XTRN | 1,
 	offsetof(ocspTBSRequest, derRequestorName),
-	SEC_PointerToAnyTemplate },
+	SEC_ASN1_SUB(SEC_PointerToAnyTemplate) },
     { SEC_ASN1_SEQUENCE_OF,
 	offsetof(ocspTBSRequest, requestList),
 	ocsp_SingleRequestTemplate },
@@ -1019,15 +1028,15 @@ const SEC_ASN1Template ocsp_TBSRequestTemplate[] = {
 static const SEC_ASN1Template ocsp_SignatureTemplate[] = {
     { SEC_ASN1_SEQUENCE,
 	0, NULL, sizeof(ocspSignature) },
-    { SEC_ASN1_INLINE,
+    { SEC_ASN1_INLINE | SEC_ASN1_XTRN,
 	offsetof(ocspSignature, signatureAlgorithm),
-	SECOID_AlgorithmIDTemplate },
+	SEC_ASN1_SUB(SECOID_AlgorithmIDTemplate) },
     { SEC_ASN1_BIT_STRING,
 	offsetof(ocspSignature, signature) },
     { SEC_ASN1_OPTIONAL | SEC_ASN1_EXPLICIT |
-      SEC_ASN1_CONSTRUCTED | SEC_ASN1_CONTEXT_SPECIFIC | 0,
+      SEC_ASN1_CONSTRUCTED | SEC_ASN1_CONTEXT_SPECIFIC | SEC_ASN1_XTRN | 0,
 	offsetof(ocspSignature, derCerts), 
-	SEC_SequenceOfAnyTemplate },
+	SEC_ASN1_SUB(SEC_SequenceOfAnyTemplate) },
     { 0 }
 };
 
@@ -1085,9 +1094,9 @@ const SEC_ASN1Template ocsp_SingleRequestTemplate[] = {
 const SEC_ASN1Template ocsp_CertIDTemplate[] = {
     { SEC_ASN1_SEQUENCE, 
 	0, NULL, sizeof(CERTOCSPCertID) },
-    { SEC_ASN1_INLINE,
+    { SEC_ASN1_INLINE | SEC_ASN1_XTRN,
 	offsetof(CERTOCSPCertID, hashAlgorithm),
-	SECOID_AlgorithmIDTemplate },
+	SEC_ASN1_SUB(SECOID_AlgorithmIDTemplate) },
     { SEC_ASN1_OCTET_STRING,
 	offsetof(CERTOCSPCertID, issuerNameHash) },
     { SEC_ASN1_OCTET_STRING,
@@ -1161,15 +1170,15 @@ static const SEC_ASN1Template ocsp_BasicOCSPResponseTemplate[] = {
     { SEC_ASN1_POINTER,
 	offsetof(ocspBasicOCSPResponse, tbsResponseData),
 	ocsp_ResponseDataTemplate },
-    { SEC_ASN1_INLINE,
+    { SEC_ASN1_INLINE | SEC_ASN1_XTRN,
 	offsetof(ocspBasicOCSPResponse, responseSignature.signatureAlgorithm),
-	SECOID_AlgorithmIDTemplate },
+	SEC_ASN1_SUB(SECOID_AlgorithmIDTemplate) },
     { SEC_ASN1_BIT_STRING,
 	offsetof(ocspBasicOCSPResponse, responseSignature.signature) },
     { SEC_ASN1_OPTIONAL | SEC_ASN1_EXPLICIT |
-      SEC_ASN1_CONSTRUCTED | SEC_ASN1_CONTEXT_SPECIFIC | 0,
+      SEC_ASN1_CONSTRUCTED | SEC_ASN1_CONTEXT_SPECIFIC | SEC_ASN1_XTRN | 0,
 	offsetof(ocspBasicOCSPResponse, responseSignature.derCerts),
-	SEC_SequenceOfAnyTemplate },
+	SEC_ASN1_SUB(SEC_SequenceOfAnyTemplate) },
     { 0 }
 };
 
@@ -1189,9 +1198,9 @@ const SEC_ASN1Template ocsp_ResponseDataTemplate[] = {
     { SEC_ASN1_SEQUENCE,
 	0, NULL, sizeof(ocspResponseData) },
     { SEC_ASN1_OPTIONAL | SEC_ASN1_EXPLICIT |		/* XXX DER_DEFAULT */
-      SEC_ASN1_CONSTRUCTED | SEC_ASN1_CONTEXT_SPECIFIC | 0,
+      SEC_ASN1_CONSTRUCTED | SEC_ASN1_CONTEXT_SPECIFIC | SEC_ASN1_XTRN | 0,
 	offsetof(ocspResponseData, version),
-	SEC_IntegerTemplate },
+	SEC_ASN1_SUB(SEC_IntegerTemplate) },
     { SEC_ASN1_ANY,
 	offsetof(ocspResponseData, derResponderID) },
     { SEC_ASN1_GENERALIZED_TIME,
@@ -1227,9 +1236,10 @@ static const SEC_ASN1Template ocsp_ResponderIDByNameTemplate[] = {
 	CERT_NameTemplate }
 };
 static const SEC_ASN1Template ocsp_ResponderIDByKeyTemplate[] = {
-    { SEC_ASN1_EXPLICIT | SEC_ASN1_CONSTRUCTED | SEC_ASN1_CONTEXT_SPECIFIC | 2,
+    { SEC_ASN1_EXPLICIT | SEC_ASN1_CONSTRUCTED | SEC_ASN1_CONTEXT_SPECIFIC |
+        SEC_ASN1_XTRN | 2,
 	offsetof(ocspResponderID, responderIDValue.keyHash),
-	SEC_OctetStringTemplate }
+	SEC_ASN1_SUB(SEC_OctetStringTemplate) }
 };
 static const SEC_ASN1Template ocsp_ResponderIDOtherTemplate[] = {
     { SEC_ASN1_ANY,
@@ -1238,8 +1248,8 @@ static const SEC_ASN1Template ocsp_ResponderIDOtherTemplate[] = {
 
 /* Decode choice container, but leave x509 name object encoded */
 static const SEC_ASN1Template ocsp_ResponderIDDerNameTemplate[] = {
-    { SEC_ASN1_EXPLICIT | SEC_ASN1_CONSTRUCTED | SEC_ASN1_CONTEXT_SPECIFIC | 1,
-	0, SEC_AnyTemplate }
+    { SEC_ASN1_EXPLICIT | SEC_ASN1_CONSTRUCTED | SEC_ASN1_CONTEXT_SPECIFIC |
+        SEC_ASN1_XTRN | 1, 0, SEC_ASN1_SUB(SEC_AnyTemplate) }
 };
 
 /*
@@ -1265,9 +1275,9 @@ const SEC_ASN1Template ocsp_SingleResponseTemplate[] = {
     { SEC_ASN1_GENERALIZED_TIME,
 	offsetof(CERTOCSPSingleResponse, thisUpdate) },
     { SEC_ASN1_OPTIONAL | SEC_ASN1_EXPLICIT |
-      SEC_ASN1_CONSTRUCTED | SEC_ASN1_CONTEXT_SPECIFIC | 0,
+      SEC_ASN1_CONSTRUCTED | SEC_ASN1_CONTEXT_SPECIFIC | SEC_ASN1_XTRN | 0,
 	offsetof(CERTOCSPSingleResponse, nextUpdate),
-	SEC_PointerToGeneralizedTimeTemplate },
+	SEC_ASN1_SUB(SEC_PointerToGeneralizedTimeTemplate) },
     { SEC_ASN1_OPTIONAL | SEC_ASN1_EXPLICIT |
       SEC_ASN1_CONSTRUCTED | SEC_ASN1_CONTEXT_SPECIFIC | 1,
 	offsetof(CERTOCSPSingleResponse, singleExtensions),
@@ -1289,9 +1299,9 @@ const SEC_ASN1Template ocsp_SingleResponseTemplate[] = {
  * now we list each choice as its own template:
  */
 static const SEC_ASN1Template ocsp_CertStatusGoodTemplate[] = {
-    { SEC_ASN1_POINTER | SEC_ASN1_CONTEXT_SPECIFIC | 0,
+    { SEC_ASN1_POINTER | SEC_ASN1_CONTEXT_SPECIFIC | SEC_ASN1_XTRN | 0,
 	offsetof(ocspCertStatus, certStatusInfo.goodInfo),
-	SEC_NullTemplate }
+	SEC_ASN1_SUB(SEC_NullTemplate) }
 };
 static const SEC_ASN1Template ocsp_CertStatusRevokedTemplate[] = {
     { SEC_ASN1_POINTER | SEC_ASN1_CONSTRUCTED | SEC_ASN1_CONTEXT_SPECIFIC | 1, 
@@ -1299,14 +1309,14 @@ static const SEC_ASN1Template ocsp_CertStatusRevokedTemplate[] = {
 	ocsp_RevokedInfoTemplate }
 };
 static const SEC_ASN1Template ocsp_CertStatusUnknownTemplate[] = {
-    { SEC_ASN1_POINTER | SEC_ASN1_CONTEXT_SPECIFIC | 2,
+    { SEC_ASN1_POINTER | SEC_ASN1_CONTEXT_SPECIFIC | SEC_ASN1_XTRN | 2,
 	offsetof(ocspCertStatus, certStatusInfo.unknownInfo),
-	SEC_NullTemplate }
+	SEC_ASN1_SUB(SEC_NullTemplate) }
 };
 static const SEC_ASN1Template ocsp_CertStatusOtherTemplate[] = {
-    { SEC_ASN1_POINTER,
+    { SEC_ASN1_POINTER | SEC_ASN1_XTRN,
 	offsetof(ocspCertStatus, certStatusInfo.otherInfo),
-	SEC_AnyTemplate }
+	SEC_ASN1_SUB(SEC_AnyTemplate) }
 };
 
 /*
@@ -1324,9 +1334,10 @@ const SEC_ASN1Template ocsp_RevokedInfoTemplate[] = {
     { SEC_ASN1_GENERALIZED_TIME,
 	offsetof(ocspRevokedInfo, revocationTime) },
     { SEC_ASN1_OPTIONAL | SEC_ASN1_EXPLICIT |
-      SEC_ASN1_CONSTRUCTED | SEC_ASN1_CONTEXT_SPECIFIC | 0,
+      SEC_ASN1_CONSTRUCTED | SEC_ASN1_CONTEXT_SPECIFIC |
+        SEC_ASN1_XTRN | 0,
 	offsetof(ocspRevokedInfo, revocationReason), 
-	SEC_PointerToEnumeratedTemplate },
+	SEC_ASN1_SUB(SEC_PointerToEnumeratedTemplate) },
     { 0 }
 };
 
@@ -2093,8 +2104,8 @@ CERT_AddOCSPAcceptableResponses(CERTOCSPRequest *request,
     acceptableResponses[i] = NULL;
 
     rv = CERT_EncodeAndAddExtension(extHandle, SEC_OID_PKIX_OCSP_RESPONSE,
-				    &acceptableResponses, PR_FALSE,
-				    SEC_SequenceOfObjectIDTemplate);
+                                &acceptableResponses, PR_FALSE,
+                                SEC_ASN1_GET(SEC_SequenceOfObjectIDTemplate));
     if (rv != SECSuccess)
 	goto loser;
 

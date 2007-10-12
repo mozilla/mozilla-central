@@ -45,7 +45,6 @@ endif
 
 EXTRA_LIBS += \
 	$(CRYPTOLIB) \
-	$(DIST)/lib/$(LIB_PREFIX)secutil.$(LIB_SUFFIX) \
 	$(NULL)
 
 # can't do this in manifest.mn because OS_TARGET isn't defined there.
@@ -61,6 +60,7 @@ RESNAME = $(LIBRARY_NAME).rc
 ifdef NS_USE_GCC
 EXTRA_SHARED_LIBS += \
 	-L$(DIST)/lib \
+	-lnssutil3 \
 	-lsqlite3 \
 	-L$(NSPR_LIB_DIR) \
 	-lplc4 \
@@ -71,9 +71,11 @@ else # ! NS_USE_GCC
 
 EXTRA_SHARED_LIBS += \
 	$(DIST)/lib/sqlite3.lib \
+	$(DIST)/lib/nssutil3.lib \
 	$(NSPR_LIB_DIR)/$(NSPR31_LIB_PREFIX)plc4.lib \
 	$(NSPR_LIB_DIR)/$(NSPR31_LIB_PREFIX)plds4.lib \
 	$(NSPR_LIB_DIR)/$(NSPR31_LIB_PREFIX)nspr4.lib \
+	$(DIST)/lib/nssutil3.lib \
 	$(NULL)
 endif # NS_USE_GCC
 
@@ -83,6 +85,7 @@ else
 # $(EXTRA_SHARED_LIBS) come before $(OS_LIBS), except on AIX.
 EXTRA_SHARED_LIBS += \
 	-L$(DIST)/lib \
+	-lnssutil3 \
 	-lsqlite3 \
 	-L$(NSPR_LIB_DIR) \
 	-lplc4 \

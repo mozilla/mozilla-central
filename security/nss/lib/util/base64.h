@@ -38,11 +38,12 @@
  * base64.h - prototypes for base64 encoding/decoding
  * Note: These functions are deprecated; see nssb64.h for new routines.
  *
- * $Id: base64.h,v 1.2 2004-04-25 15:03:17 gerv%gerv.net Exp $
+ * $Id: base64.h,v 1.3 2007-10-12 01:44:50 julien.pierre.boogz%sun.com Exp $
  */
 #ifndef _BASE64_H_
 #define _BASE64_H_
 
+#include "utilrename.h"
 #include "seccomon.h"
 
 SEC_BEGIN_PROTOS

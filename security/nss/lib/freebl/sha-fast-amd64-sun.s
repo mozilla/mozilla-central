@@ -1952,7 +1952,7 @@ SHA1_End:
 SHA1_NewContext:
 .LFB8:
 	movl	$248, %edi
-	jmp	PORT_Alloc@PLT
+	jmp	PORT_Alloc_Util@PLT
 .LFE8:
 	.size	SHA1_NewContext, .-SHA1_NewContext
 	.align 16
@@ -1987,7 +1987,7 @@ SHA1_DestroyContext:
 	movq	(%rsp), %rbx
 	movq	8(%rsp), %r12
 	leave
-	jmp	PORT_Free@PLT
+	jmp	PORT_Free_Util@PLT
 .LFE9:
 	.size	SHA1_DestroyContext, .-SHA1_DestroyContext
 	.align 16
@@ -2137,6 +2137,6 @@ SHA1_Clone:
 SHA1_TraceState:
 .LFB16:
 	movl	$-5992, %edi
-	jmp	PORT_SetError@PLT
+	jmp	PORT_SetError_Util@PLT
 .LFE16:
 	.size	SHA1_TraceState, .-SHA1_TraceState

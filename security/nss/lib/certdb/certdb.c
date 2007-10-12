@@ -38,7 +38,7 @@
 /*
  * Certificate handling code
  *
- * $Id: certdb.c,v 1.80 2007-07-14 05:51:00 nelson%bolyard.com Exp $
+ * $Id: certdb.c,v 1.81 2007-10-12 01:44:40 julien.pierre.boogz%sun.com Exp $
  */
 
 #include "nssilock.h"
@@ -71,6 +71,12 @@
 #include "pki.h"
 #include "pki3hack.h"
 
+SEC_ASN1_MKSUB(CERT_TimeChoiceTemplate)
+SEC_ASN1_MKSUB(SECOID_AlgorithmIDTemplate)
+SEC_ASN1_MKSUB(SEC_BitStringTemplate)
+SEC_ASN1_MKSUB(SEC_IntegerTemplate)
+SEC_ASN1_MKSUB(SEC_SkipTemplate)
+
 /*
  * Certificate database handling code
  */
@@ -92,18 +98,30 @@ const SEC_ASN1Template CERT_SequenceOfCertExtensionTemplate[] = {
     { SEC_ASN1_SEQUENCE_OF, 0, CERT_CertExtensionTemplate }
 };
 
+const SEC_ASN1Template CERT_ValidityTemplate[] = {
+    { SEC_ASN1_SEQUENCE,
+	  0, NULL, sizeof(CERTValidity) },
+    { SEC_ASN1_INLINE | SEC_ASN1_XTRN,
+          offsetof(CERTValidity,notBefore),
+          SEC_ASN1_SUB(CERT_TimeChoiceTemplate), 0 },
+    { SEC_ASN1_INLINE | SEC_ASN1_XTRN,
+          offsetof(CERTValidity,notAfter),
+          SEC_ASN1_SUB(CERT_TimeChoiceTemplate), 0 },
+    { 0 }
+};
+
 const SEC_ASN1Template CERT_CertificateTemplate[] = {
     { SEC_ASN1_SEQUENCE,
       0, NULL, sizeof(CERTCertificate) },
     { SEC_ASN1_EXPLICIT | SEC_ASN1_OPTIONAL | SEC_ASN1_CONSTRUCTED | 
-	  SEC_ASN1_CONTEXT_SPECIFIC | 0, 		/* XXX DER_DEFAULT */ 
+	  SEC_ASN1_CONTEXT_SPECIFIC | SEC_ASN1_XTRN | 0, /* XXX DER_DEFAULT */ 
 	  offsetof(CERTCertificate,version),
-	  SEC_IntegerTemplate },
+	  SEC_ASN1_SUB(SEC_IntegerTemplate) },
     { SEC_ASN1_INTEGER,
 	  offsetof(CERTCertificate,serialNumber) },
-    { SEC_ASN1_INLINE,
+    { SEC_ASN1_INLINE | SEC_ASN1_XTRN,
 	  offsetof(CERTCertificate,signature),
-	  SECOID_AlgorithmIDTemplate },
+	  SEC_ASN1_SUB(SECOID_AlgorithmIDTemplate) },
     { SEC_ASN1_SAVE, 
 	  offsetof(CERTCertificate,derIssuer) },
     { SEC_ASN1_INLINE,
@@ -122,12 +140,12 @@ const SEC_ASN1Template CERT_CertificateTemplate[] = {
     { SEC_ASN1_INLINE,
 	  offsetof(CERTCertificate,subjectPublicKeyInfo),
 	  CERT_SubjectPublicKeyInfoTemplate },
-    { SEC_ASN1_OPTIONAL |  SEC_ASN1_CONTEXT_SPECIFIC | 1,
+    { SEC_ASN1_OPTIONAL |  SEC_ASN1_CONTEXT_SPECIFIC | SEC_ASN1_XTRN | 1,
 	  offsetof(CERTCertificate,issuerID),
-	  SEC_BitStringTemplate },
-    { SEC_ASN1_OPTIONAL |  SEC_ASN1_CONTEXT_SPECIFIC | 2,
+	  SEC_ASN1_SUB(SEC_BitStringTemplate) },
+    { SEC_ASN1_OPTIONAL |  SEC_ASN1_CONTEXT_SPECIFIC | SEC_ASN1_XTRN | 2,
 	  offsetof(CERTCertificate,subjectID),
-	  SEC_BitStringTemplate },
+	  SEC_ASN1_SUB(SEC_BitStringTemplate) },
     { SEC_ASN1_EXPLICIT | SEC_ASN1_OPTIONAL | SEC_ASN1_CONSTRUCTED | 
 	  SEC_ASN1_CONTEXT_SPECIFIC | 3,
 	  offsetof(CERTCertificate,extensions),
@@ -143,9 +161,9 @@ const SEC_ASN1Template SEC_SignedCertificateTemplate[] =
 	  offsetof(CERTCertificate,signatureWrap.data) },
     { SEC_ASN1_INLINE, 
 	  0, CERT_CertificateTemplate },
-    { SEC_ASN1_INLINE,
+    { SEC_ASN1_INLINE | SEC_ASN1_XTRN,
 	  offsetof(CERTCertificate,signatureWrap.signatureAlgorithm),
-	  SECOID_AlgorithmIDTemplate },
+	  SEC_ASN1_SUB(SECOID_AlgorithmIDTemplate) },
     { SEC_ASN1_BIT_STRING,
 	  offsetof(CERTCertificate,signatureWrap.signature) },
     { 0 }
@@ -158,8 +176,8 @@ const SEC_ASN1Template SEC_CertSubjectTemplate[] = {
     { SEC_ASN1_SEQUENCE,
 	  0, NULL, sizeof(SECItem) },
     { SEC_ASN1_EXPLICIT | SEC_ASN1_OPTIONAL | SEC_ASN1_CONSTRUCTED | 
-	  SEC_ASN1_CONTEXT_SPECIFIC | 0,
-	  0, SEC_SkipTemplate },	/* version */
+	  SEC_ASN1_CONTEXT_SPECIFIC | SEC_ASN1_XTRN | 0,
+	  0, SEC_ASN1_SUB(SEC_SkipTemplate) },	/* version */
     { SEC_ASN1_SKIP },		/* serial number */
     { SEC_ASN1_SKIP },		/* signature algorithm */
     { SEC_ASN1_SKIP },		/* issuer */
@@ -176,8 +194,8 @@ const SEC_ASN1Template SEC_CertIssuerTemplate[] = {
     { SEC_ASN1_SEQUENCE,
 	  0, NULL, sizeof(SECItem) },
     { SEC_ASN1_EXPLICIT | SEC_ASN1_OPTIONAL | SEC_ASN1_CONSTRUCTED | 
-	  SEC_ASN1_CONTEXT_SPECIFIC | 0,
-	  0, SEC_SkipTemplate },	/* version */
+	  SEC_ASN1_CONTEXT_SPECIFIC | SEC_ASN1_XTRN | 0,
+	  0, SEC_ASN1_SUB(SEC_SkipTemplate) },	/* version */
     { SEC_ASN1_SKIP },		/* serial number */
     { SEC_ASN1_SKIP },		/* signature algorithm */
     { SEC_ASN1_ANY, 0, NULL },		/* issuer */
@@ -191,8 +209,8 @@ const SEC_ASN1Template SEC_CertSerialNumberTemplate[] = {
     { SEC_ASN1_SEQUENCE,
 	  0, NULL, sizeof(SECItem) },
     { SEC_ASN1_EXPLICIT | SEC_ASN1_OPTIONAL | SEC_ASN1_CONSTRUCTED | 
-	  SEC_ASN1_CONTEXT_SPECIFIC | 0,
-	  0, SEC_SkipTemplate },	/* version */
+	  SEC_ASN1_CONTEXT_SPECIFIC | SEC_ASN1_XTRN | 0,
+	  0, SEC_ASN1_SUB(SEC_SkipTemplate) },	/* version */
     { SEC_ASN1_ANY, 0, NULL }, /* serial number */
     { SEC_ASN1_SKIP_REST },
     { 0 }
@@ -207,8 +225,8 @@ const SEC_ASN1Template CERT_CertKeyTemplate[] = {
     { SEC_ASN1_SEQUENCE,
 	  0, NULL, sizeof(CERTCertKey) },
     { SEC_ASN1_EXPLICIT | SEC_ASN1_OPTIONAL | SEC_ASN1_CONSTRUCTED | 
-	  SEC_ASN1_CONTEXT_SPECIFIC | 0,
-	  0, SEC_SkipTemplate },	/* version */ 
+	  SEC_ASN1_CONTEXT_SPECIFIC | SEC_ASN1_XTRN | 0,
+	  0, SEC_ASN1_SUB(SEC_SkipTemplate) },	/* version */ 
     { SEC_ASN1_INTEGER,
 	  offsetof(CERTCertKey,serialNumber) },
     { SEC_ASN1_SKIP },		/* signature algorithm */

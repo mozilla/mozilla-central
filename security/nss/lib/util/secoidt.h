@@ -37,10 +37,13 @@
 
 #ifndef _SECOIDT_H_
 #define _SECOIDT_H_
+
+#include "utilrename.h"
+
 /*
  * secoidt.h - public data structures for ASN.1 OID functions
  *
- * $Id: secoidt.h,v 1.25 2007-09-07 18:45:53 neil.williams%sun.com Exp $
+ * $Id: secoidt.h,v 1.26 2007-10-12 01:44:51 julien.pierre.boogz%sun.com Exp $
  */
 
 #include "secitem.h"

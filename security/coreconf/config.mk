@@ -189,3 +189,9 @@ endif
 ifdef BUILD_LIBPKIX_TESTS
 DEFINES += -DBUILD_LIBPKIX_TESTS
 endif
+
+# This allows all library and tools code to use the util function
+# implementations directly from libnssutil3, rather than the wrappers
+# in libnss3 which are present for binary compatibility only
+DEFINES += -DUSE_UTIL_DIRECTLY
+
