@@ -96,12 +96,17 @@ sub _init {
 
 #########################################################################
 sub getBreakdownByLocale {
-  my ($self) = @_;
+  my ($self,$include_admin) = @_;
   my $locale_sql_select = "SELECT tr.locale_abbrev,count(tr.testresult_id) as num_results";
   my $locale_sql_from = "FROM test_results tr";
-  my $locale_sql_where ="WHERE tr.submission_time>=" . $self->{_start_timestamp} . " and tr.submission_time<" . $self->{_finish_timestamp};
+  my $locale_sql_where = "WHERE tr.submission_time>=" . $self->{_start_timestamp} . " and tr.submission_time<" . $self->{_finish_timestamp};
   my $locale_sql_group_by = "GROUP BY tr.locale_abbrev";
   my $locale_sql_order_by = "ORDER BY num_results DESC";
+
+  if (!$include_admin) {
+    $locale_sql_from .= ", users u left join user_group_map ugm on (u.user_id=ugm.user_id)";
+    $locale_sql_where .= " AND tr.user_id=u.user_id AND ugm.user_id is NULL";
+  }
 
   if ($self->{_product_id}) {
     $locale_sql_from .= ", testcases t";
@@ -141,13 +146,18 @@ sub getBreakdownByLocale {
 
 #########################################################################
 sub getBreakdownByPlatform {
-  my ($self) = @_;
+  my ($self,$include_admin) = @_;
 
   my $platform_sql_select = "SELECT pl.name,count(tr.testresult_id) AS num_results";
   my $platform_sql_from = "FROM test_results tr, testcases t, platforms pl, opsyses o";
   my $platform_sql_where = "WHERE tr.testcase_id=t.testcase_id AND tr.submission_time>=$self->{_start_timestamp} and tr.submission_time<$self->{_finish_timestamp} AND tr.opsys_id=o.opsys_id AND o.platform_id=pl.platform_id";
   my $platform_sql_group_by = "GROUP BY o.platform_id";
   my $platform_sql_order_by = "ORDER BY num_results DESC";
+
+  if (!$include_admin) {
+    $platform_sql_from .= ", users u left join user_group_map ugm on (u.user_id=ugm.user_id)";
+    $platform_sql_where .= " AND tr.user_id=u.user_id AND ugm.user_id is NULL";
+  }
 
   if ($self->{_product_id}) {
     $platform_sql_where .= " AND t.product_id=" . $self->{_product_id};
@@ -186,13 +196,18 @@ sub getBreakdownByPlatform {
 
 #########################################################################
 sub getBreakdownByResultStatus {
-  my ($self) = @_;
+  my ($self,$include_admin) = @_;
 
   my $status_sql_select = "SELECT rs.name,count(tr.testresult_id) AS num_results,rs.class_name";
   my $status_sql_from = "FROM test_results tr, test_result_status_lookup rs";
   my $status_sql_where = "WHERE tr.submission_time>=$self->{_start_timestamp} and tr.submission_time<$self->{_finish_timestamp} AND rs.result_status_id=tr.result_status_id";
   my $status_sql_group_by = "GROUP BY tr.result_status_id";
   my $status_sql_order_by = "ORDER BY num_results DESC";
+
+  if (!$include_admin) {
+    $status_sql_from .= ", users u left join user_group_map ugm on (u.user_id=ugm.user_id)";
+    $status_sql_where .= " AND tr.user_id=u.user_id AND ugm.user_id is NULL";
+  }
  
   if ($self->{_product_id}) {
     $status_sql_from .= ", testcases t";
@@ -232,13 +247,18 @@ sub getBreakdownByResultStatus {
 
 #########################################################################
 sub getBreakdownBySubgroup {
-  my ($self) = @_;
+  my ($self,$include_admin) = @_;
 
   my $subgroup_sql_select = "SELECT CONCAT(p.name,':',tg.name,':',s.name) as name,count(tr.testresult_id) as num_results,sgtg.subgroup_id";
   my $subgroup_sql_from = "FROM test_results tr, testcases t, testcase_subgroups tsg, subgroups s, subgroup_testgroups sgtg, testgroups tg, products p";
   my $subgroup_sql_where = "WHERE tr.submission_time>=$self->{_start_timestamp} and tr.submission_time<$self->{_finish_timestamp} AND tg.product_id=p.product_id AND tg.testgroup_id=sgtg.testgroup_id AND sgtg.subgroup_id=s.subgroup_id AND tsg.subgroup_id=s.subgroup_id AND tsg.testcase_id=t.testcase_id AND tr.testcase_id=t.testcase_id";
   my $subgroup_sql_group_by = "GROUP BY tg.product_id,tg.testgroup_id,s.subgroup_id";
   my $subgroup_sql_order_by = "ORDER BY num_results DESC, p.name ASC, tg.name ASC, sgtg.sort_order ASC";
+
+  if (!$include_admin) {
+    $subgroup_sql_from .= ", users u left join user_group_map ugm on (u.user_id=ugm.user_id)";
+    $subgroup_sql_where .= " AND tr.user_id=u.user_id AND ugm.user_id is NULL";
+  }
 
   if ($self->{_product_id}) {
     $subgroup_sql_where .= " AND t.product_id=" . $self->{_product_id};
@@ -286,13 +306,18 @@ sub getBreakdownBySubgroup {
 
 #########################################################################
 sub getBreakdownByUser {
-  my ($self) = @_;
+  my ($self,$include_admin) = @_;
 
   my $user_sql_select = "SELECT u.user_id,u.email,count(tr.testresult_id) AS num_results,u.irc_nickname";
   my $user_sql_from = "FROM test_results tr, testcases t, users u";
   my $user_sql_where = "WHERE tr.testcase_id=t.testcase_id AND tr.submission_time>=$self->{_start_timestamp} and tr.submission_time<$self->{_finish_timestamp} AND tr.user_id=u.user_id";
   my $user_sql_group_by = "GROUP BY tr.user_id";
   my $user_sql_order_by = "ORDER BY num_results DESC";
+
+  if (!$include_admin) {
+    $user_sql_from .= " left join user_group_map ugm on (u.user_id=ugm.user_id)";
+    $user_sql_where .= " AND ugm.user_id is NULL";
+  }
 
   if ($self->{_product_id}) {
     $user_sql_where .= " AND t.product_id=" . $self->{_product_id};
@@ -330,13 +355,18 @@ sub getBreakdownByUser {
 
 #########################################################################
 sub getBreakdownByUserAndResultStatus {
-  my ($self) = @_;
+  my ($self,$include_admin) = @_;
   
   my $tester_sql_select = "SELECT u.email,rs.class_name AS result_status,count(rs.name) as num_results,u.irc_nickname";
-  my $tester_sql_from = "FROM test_results tr, users u, test_result_status_lookup rs";
+  my $tester_sql_from = "FROM test_results tr, test_result_status_lookup rs, users u";
   my $tester_sql_where = "WHERE tr.submission_time>=$self->{_start_timestamp} and tr.submission_time<$self->{_finish_timestamp} AND tr.user_id=u.user_id AND rs.result_status_id=tr.result_status_id";
   my $tester_sql_group_by = "GROUP BY tr.user_id,rs.name";
   my $tester_sql_order_by = "ORDER BY u.irc_nickname DESC, u.email DESC";
+
+  if (!$include_admin) {
+    $tester_sql_from .= " left join user_group_map ugm on (u.user_id=ugm.user_id)";
+    $tester_sql_where .= " AND ugm.user_id is NULL";
+  }
   
   if ($self->{_product_id}) {
     $tester_sql_from .= ", testcases t";

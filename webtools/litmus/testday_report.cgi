@@ -64,16 +64,21 @@ if ($c->param) {
     
   }
 
+  my $include_admin = 0;
+  if ($c->param("include_admin")) { 
+    $include_admin = 1;
+  }
+   
   if ($testday) {
     $vars->{'title'} .= " - " . $testday->getDescription . ", " . $testday->getStartTimestamp(1) . " - " . $testday->getFinishTimestamp(1);
 
     $vars->{'display_results'} = 1;
-    $vars->{'locale_results'} = $testday->getBreakdownByLocale();
-    $vars->{'platform_results'} = $testday->getBreakdownByPlatform();
-    $vars->{'status_results'} = $testday->getBreakdownByResultStatus();
-    $vars->{'subgroup_results'} = $testday->getBreakdownBySubgroup();
-    $vars->{'user_results'} = $testday->getBreakdownByUser();
-    $vars->{'user_status_results'} = $testday->getBreakdownByUserAndResultStatus();
+    $vars->{'locale_results'} = $testday->getBreakdownByLocale($include_admin);
+    $vars->{'platform_results'} = $testday->getBreakdownByPlatform($include_admin);
+    $vars->{'status_results'} = $testday->getBreakdownByResultStatus($include_admin);
+    $vars->{'subgroup_results'} = $testday->getBreakdownBySubgroup($include_admin);
+    $vars->{'user_results'} = $testday->getBreakdownByUser($include_admin);
+    $vars->{'user_status_results'} = $testday->getBreakdownByUserAndResultStatus($include_admin);
 
     $vars->{'test_event'} = $testday;
   }

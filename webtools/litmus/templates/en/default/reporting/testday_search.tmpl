@@ -80,6 +80,9 @@ function checkFormContents(f) {
                 <td>[% INCLUDE form_widgets/select_testday_id.tmpl name="testday_id" %]</td>
               </tr>
               <tr>
+                <td><input type="checkbox" name="include_admin" id="include_admin" checked />&nbsp;Include results from Litmus admins?</td>
+              </tr>
+              <tr>
                 <td><input class="button" type="submit" value="Generate Report"></td>
               </tr>
             </table>
