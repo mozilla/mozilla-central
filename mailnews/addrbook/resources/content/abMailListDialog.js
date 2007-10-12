@@ -399,6 +399,20 @@ function awReturnHit(inputElement)
   }
 }
 
+function awDeleteRow(rowToDelete)
+{
+  /* When we delete a row, we must reset the id of others row in order to not break the sequence */
+  var maxRecipients = top.MAX_RECIPIENTS;
+  awRemoveRow(rowToDelete);
+
+  var numberOfCols = awGetNumberOfCols();
+  for (var row = rowToDelete + 1; row <= maxRecipients; row ++)
+    for (var col = 1; col <= numberOfCols; col++)
+      awGetElementByCol(row, col).setAttribute("id", "addressCol" + (col) + "#" + (row-1));
+
+  awTestRowSequence();
+}
+
 function awInputChanged(inputElement)
 {
 //  AutoCompleteAddress(inputElement);
