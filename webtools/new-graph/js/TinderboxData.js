@@ -257,6 +257,111 @@ DiscreteTinderboxData.prototype = {
             },
             function () {alert ("requestSearchList: Error talking to " + getdatacgi); });
     },
+
+    // arg1 = startTime, arg2 = endTime, arg3 = callback
+    // arg1 = callback, arg2/arg3 == null
+    requestDataSetFor: function (testIds) {
+        var self = this;
+
+        var cb = 
+        function (type, args, obj) {
+            self.onDataSetAvailable.unsubscribe(cb, obj);
+            for (x in args[0] ) {
+                testIds[x].call(window,x,args[1][x]);
+            }
+             
+           // obj.call (window, args[0], args[1]);
+        };
+
+        this.onDataSetAvailable.subscribe (cb, testIds );
+
+        //netscape.security.PrivilegeManager.enablePrivilege("UniversalXPConnect")
+        var testIdString = "";
+
+        for (setId in testIds) {
+            if (testIdString == "" ) {
+                testIdString += setId; 
+            } else {
+                testIdString += "," + setId;
+            }
+        }
+
+        var reqstr = getdatacgi + "setids=" + testIdString;
+        //raw data is the extra_data column
+        //log (reqstr);
+        loadJSONDoc(reqstr)
+        .addCallbacks(
+            function (obj) {
+                var ds = new Array();
+                var baseSet = new Array();
+                var secondarySet = new Array();
+                var sortableSet = new Array();
+                if (!checkErrorReturn(obj)) return;
+                var testIdCount = 0;
+                for ( x in obj.results ) {
+                    testIdCount++;
+                }
+                if ( testIdCount > 1  && getElement("deltasort").checked ) {
+                    for ( x in obj.results ) {
+                        if (baseSet.length == 0 ) {
+                            for ( i = 1; i < obj.results[x].length; i += 2 )  { 
+                                baseSet[i] = obj.results[x][i];  
+                            }
+                        } else {
+                            for ( i = 1; i < obj.results[x].length; i += 2 )  { 
+                                if (typeof(secondarySet[i]) != 'undefined') {  
+                                    secondarySet[i][0] += obj.results[x][i];  
+                                    secondarySet[i][1] += 1;
+                                } else {
+                                    secondarySet[i] = new Array();
+                                    secondarySet[i][0] = obj.results[x][i];  
+                                    secondarySet[i][1] = 1;
+                                }
+                            }
+                        }
+                    }
+                    for ( x in baseSet ) {
+                        sortableSet[x] = new Array();
+                        sortableSet[x][0] = Math.abs(baseSet[x] - ( secondarySet[x][0] / secondarySet[x][1] )); 
+                        sortableSet[x][1] = x;
+                    }
+
+
+                    sortableSet.sort( function(a,b) {
+                                                        return a[0] - b[0];
+                                                    });
+                    for ( x in obj.results ) {
+                        var tempArray = new Array();
+                        for (y=0;y < sortableSet.length / 2; y++ ) {
+                            key = sortableSet[y][1];
+                            tempArray[y*2] = y;
+                            tempArray[y*2 + 1 ] = obj.results[x][key];
+                        }
+                        obj.results[x] = tempArray;
+                    }
+                    var tempRawdata = new Array();
+                    for ( y=0;y < sortableSet.length / 2; y++) {
+                           var key = sortableSet[y][1];
+                           tempRawdata[y*2] = y;
+                           tempRawdata[y*2 + 1] = obj.rawdata[key]; 
+                    }
+                    obj.rawdata = tempRawdata;
+                }
+
+                for ( x in obj.results ) {
+                    ds[x] = new TimeValueDataSet(obj.results[x]);
+                    ds[x].rawdata = obj.rawdata;
+                    if (obj.stats[x]) 
+                        ds[x].stats = obj.stats[x];
+                    self.testData[x] = ds[x];
+                    ds[x].requestedFirstTime = ds[x].data[0];
+                    ds[x].requestedLastTime = ds[x].data[ds[x].data.length - 2];
+                }
+
+                self.onDataSetAvailable.fire(testIds, ds);
+            },
+            function (obj) {alert ("Error talking to " + getdatacgi + " (" + obj + ")"); log (obj.stack); });
+    },
 };
 function ExtraDataTinderboxData() {
 };

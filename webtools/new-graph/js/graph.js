@@ -470,9 +470,17 @@ function onGraphLoadRemainder(baselineDataSet) {
         };
 
         if (graphModule.testIds) {  
-          for each (var testId in graphModule.testIds) { 
-           // log ("working with testId: " + testId);
-            Tinderbox.requestDataSetFor (testId[0], makeCallback(graphModule, randomColor(), testId[1]));
+          if ( graphType == DISCRETE_GRAPH ) {
+            var testIds = new Array();
+            for each ( var testId in graphModule.testIds ) {
+                testIds[testId[0]] = makeCallback(graphModule, randomColor(), testId[1]);
+            }
+            Tinderbox.requestDataSetFor(testIds);
+          } else { 
+              for each (var testId in graphModule.testIds) { 
+               // log ("working with testId: " + testId);
+                Tinderbox.requestDataSetFor (testId[0], makeCallback(graphModule, randomColor(), testId[1]));
+              }
           }
         }
         else {

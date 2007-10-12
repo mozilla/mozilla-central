@@ -137,7 +137,62 @@ def getByDataResults(cur,setid,extradata,starttime,endtime):
                         GROUP BY dataset_info.date ORDER BY dataset_info.date
                 """, (setid,extradata))
                         
+def doSendAllResults(fo, setids):
+    datasets = {} 
+    data = {}
+    fo.write ("{ resultcode: 0,")
+    cur = db.cursor()
+    setids = [ int(x) for x in setids.split(",") ] 
 
+    datasets[setids[0]] = {}
+    # Not using bind variables, but we know that all of the values are integers because of the previous line
+    sql = "SELECT IFNULL(data,0), a.value as `" + str(setids[0]) + "`" 
+    for x in setids[1:]:
+        sql += ", IFNULL( ( SELECT value from dataset_values where time = a.time and dataset_id = " + str(x) + " ),0) as `" + str(x) + "`"
+        datasets[x] = {}
+
+    sql += """
+                FROM dataset_values AS a
+                LEFT JOIN dataset_extra_data as ded ON 
+                    a.dataset_id = ded.dataset_id AND a.time = ded.time
+                WHERE a.dataset_id = """ + str(setids[0]) + """ ORDER BY a.time"""
+
+    cur.execute(sql)
+    i = 0
+    for row in cur:
+        data[i] = row[0]
+        j = 1
+        for x in setids:
+            datasets[x][i] = row[j]
+            j += 1 
+        i += 1
+    cur.close()
+    fo.write( "results: {")
+    for x in datasets:
+        fo.write("'" + str(x)+ "': [")
+        i = 0
+        for y in datasets[x]:
+            fo.write( str(y)+ ","+str(datasets[x][y]) + ",")
+        fo.write ("],")
+                
+    fo.write ("},")
+    fo.write ("rawdata: [")
+    for x in data:
+        fo.write(  str(x) + ",'" + str(data[x]) + "'," )
+        
+    
+    fo.write ("],")
+    fo.write("stats: {")
+    for x in setids:
+        cur = db.cursor()
+        cur.execute("SELECT avg(value), max(value), min(value) from dataset_values where dataset_id = ?  GROUP BY dataset_id", (x,))
+        for row in cur:
+            fo.write("'%s': [%s, %s, %s,]," %(x,row[0], row[1], row[2]))
+        cur.close()
+    fo.write("},")
+    fo.write ("}")
+
+    
 def doSendResults(fo, setid, starttime, endtime, raw, graphby, extradata=None):
     s1 = ""
     s2 = ""
@@ -220,7 +275,7 @@ def checkNumber(var):
 def checkString(var):
     if var is None:
       return 1
-    reString = re.compile('^[0-9A-Za-z._()\- ]*$')
+    reString = re.compile('^[0-9A-Za-z.,_()\- ]*$')
     return reString.match(var)
 
 doGzip = 0
@@ -233,7 +288,7 @@ except:
 form = cgi.FieldStorage()
 
 #make sure that we are getting clean data from the user
-for strField in ["type", "machine", "branch", "test", "graphby","extradata"]:
+for strField in ["type", "machine", "branch", "test", "graphby","extradata","setids"]:
     val = form.getfirst(strField)
     if strField == "test":
         strField = "testname"
@@ -257,8 +312,10 @@ zfile = zbuf
 if doGzip == 1:
     zfile = gzip.GzipFile(mode = 'wb', fileobj = zbuf, compresslevel = 5)
 
-if not setid and not getlist:
+if not setid and not getlist and not setids:
     doListTests(zfile, type, datelimit, branch, machine, testname, graphby)
+elif setids and not getlist:
+    doSendAllResults(zfile,setids)
 elif not getlist:
     doSendResults(zfile, setid, starttime, endtime, raw, graphby,extradata)
 else:
