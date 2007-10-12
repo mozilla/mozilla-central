@@ -144,7 +144,6 @@ nsMailMacIntegration::isDefaultHandlerForProtocol(CFStringRef aScheme)
   OSStatus err = ::_LSCopyDefaultSchemeHandlerURL(aScheme,
                                                   &defaultHandlerURL);
 
-  nsresult rv = NS_ERROR_FAILURE;
   if (err == noErr) {
     // Get a reference to the bundle (based on its URL)
     CFBundleRef defaultHandlerBundle = ::CFBundleCreate(NULL, 
