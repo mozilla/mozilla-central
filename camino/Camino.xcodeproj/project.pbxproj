@@ -294,12 +294,8 @@
 		3F27D94F05DB2600007B543D /* NSSplitView+Utils.mm in Sources */ = {isa = PBXBuildFile; fileRef = 3F27D94B05DB2600007B543D /* NSSplitView+Utils.mm */; };
 		3F383A47087C6D3C00A2594D /* AddressBookManager.m in Sources */ = {isa = PBXBuildFile; fileRef = 3FB2BAE00545EB30002B9691 /* AddressBookManager.m */; };
 		3F383A49087C6D4600A2594D /* AddressBookManager.m in Sources */ = {isa = PBXBuildFile; fileRef = 3FB2BAE00545EB30002B9691 /* AddressBookManager.m */; };
-		3F42E91C05EAD4580045A30C /* bm_book.tif in Resources */ = {isa = PBXBuildFile; fileRef = 3F42E91905EAD4580045A30C /* bm_book.tif */; };
 		3F42E91D05EAD4580045A30C /* bm_folder.tif in Resources */ = {isa = PBXBuildFile; fileRef = 3F42E91A05EAD4580045A30C /* bm_folder.tif */; };
-		3F42E91E05EAD4580045A30C /* bm_reveal.tif in Resources */ = {isa = PBXBuildFile; fileRef = 3F42E91B05EAD4580045A30C /* bm_reveal.tif */; };
-		3F42E91F05EAD4580045A30C /* bm_book.tif in Resources */ = {isa = PBXBuildFile; fileRef = 3F42E91905EAD4580045A30C /* bm_book.tif */; };
 		3F42E92005EAD4580045A30C /* bm_folder.tif in Resources */ = {isa = PBXBuildFile; fileRef = 3F42E91A05EAD4580045A30C /* bm_folder.tif */; };
-		3F42E92105EAD4580045A30C /* bm_reveal.tif in Resources */ = {isa = PBXBuildFile; fileRef = 3F42E91B05EAD4580045A30C /* bm_reveal.tif */; };
 		3F42EFAE05EC13FA0045A30C /* throbber-01.tif in Resources */ = {isa = PBXBuildFile; fileRef = 3F42EFA705EC13F90045A30C /* throbber-01.tif */; };
 		3F42EFAF05EC13FA0045A30C /* throbber-07.tif in Resources */ = {isa = PBXBuildFile; fileRef = 3F42EFA805EC13F90045A30C /* throbber-07.tif */; };
 		3F42EFB005EC13FA0045A30C /* throbber-08.tif in Resources */ = {isa = PBXBuildFile; fileRef = 3F42EFA905EC13F90045A30C /* throbber-08.tif */; };
@@ -2521,9 +2517,7 @@
 		3F27D94B05DB2600007B543D /* NSSplitView+Utils.mm */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.cpp.objcpp; name = "NSSplitView+Utils.mm"; path = "src/extensions/NSSplitView+Utils.mm"; sourceTree = "<group>"; };
 		3F2CF8CB042A88B7005FD42F /* ImageAndTextCell.h */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.c.h; name = ImageAndTextCell.h; path = src/extensions/ImageAndTextCell.h; sourceTree = "<group>"; };
 		3F2CF8CC042A88B7005FD42F /* ImageAndTextCell.m */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.c.objc; name = ImageAndTextCell.m; path = src/extensions/ImageAndTextCell.m; sourceTree = "<group>"; };
-		3F42E91905EAD4580045A30C /* bm_book.tif */ = {isa = PBXFileReference; lastKnownFileType = image.tiff; name = bm_book.tif; path = resources/images/toolbar/bm_book.tif; sourceTree = SOURCE_ROOT; };
 		3F42E91A05EAD4580045A30C /* bm_folder.tif */ = {isa = PBXFileReference; lastKnownFileType = image.tiff; name = bm_folder.tif; path = resources/images/chrome/bm_folder.tif; sourceTree = SOURCE_ROOT; };
-		3F42E91B05EAD4580045A30C /* bm_reveal.tif */ = {isa = PBXFileReference; lastKnownFileType = image.tiff; name = bm_reveal.tif; path = resources/images/toolbar/bm_reveal.tif; sourceTree = SOURCE_ROOT; };
 		3F42EFA705EC13F90045A30C /* throbber-01.tif */ = {isa = PBXFileReference; lastKnownFileType = image.png; name = "throbber-01.tif"; path = "resources/images/throbber/throbber-01.tif"; sourceTree = SOURCE_ROOT; };
 		3F42EFA805EC13F90045A30C /* throbber-07.tif */ = {isa = PBXFileReference; lastKnownFileType = image.gif; name = "throbber-07.tif"; path = "resources/images/throbber/throbber-07.tif"; sourceTree = SOURCE_ROOT; };
 		3F42EFA905EC13F90045A30C /* throbber-08.tif */ = {isa = PBXFileReference; lastKnownFileType = image.gif; name = "throbber-08.tif"; path = "resources/images/throbber/throbber-08.tif"; sourceTree = SOURCE_ROOT; };
@@ -4362,9 +4356,7 @@
 		F564872E023B954E010001CA /* Sidebar */ = {
 			isa = PBXGroup;
 			children = (
-				3F42E91905EAD4580045A30C /* bm_book.tif */,
 				3F42E91A05EAD4580045A30C /* bm_folder.tif */,
-				3F42E91B05EAD4580045A30C /* bm_reveal.tif */,
 				F564872F023B957F010001CA /* historyicon.tif */,
 				F5568A900217CA82010001CA /* folder.tiff */,
 				F5568A8E0217C7F5010001CA /* smallDocument.tiff */,
@@ -5388,9 +5380,7 @@
 				3F44AC7B05BDFB9E00CB4B08 /* dl_open.tif in Resources */,
 				3F44AC7C05BDFB9E00CB4B08 /* dl_remove.tif in Resources */,
 				3F44AC7D05BDFB9E00CB4B08 /* dl_reveal.tif in Resources */,
-				3F42E91C05EAD4580045A30C /* bm_book.tif in Resources */,
 				3F42E91D05EAD4580045A30C /* bm_folder.tif in Resources */,
-				3F42E91E05EAD4580045A30C /* bm_reveal.tif in Resources */,
 				3F42EFAE05EC13FA0045A30C /* throbber-01.tif in Resources */,
 				3F42EFAF05EC13FA0045A30C /* throbber-07.tif in Resources */,
 				3F42EFB005EC13FA0045A30C /* throbber-08.tif in Resources */,
@@ -5577,9 +5567,7 @@
 				3F44AEB405BDFBA000CB4B08 /* dl_open.tif in Resources */,
 				3F44AEB505BDFBA000CB4B08 /* dl_clearall.tif in Resources */,
 				3F44AEB605BDFBA000CB4B08 /* dl_cancel.tif in Resources */,
-				3F42E91F05EAD4580045A30C /* bm_book.tif in Resources */,
 				3F42E92005EAD4580045A30C /* bm_folder.tif in Resources */,
-				3F42E92105EAD4580045A30C /* bm_reveal.tif in Resources */,
 				3F42EFB505EC13FA0045A30C /* throbber-01.tif in Resources */,
 				3F42EFB605EC13FA0045A30C /* throbber-07.tif in Resources */,
 				3F42EFB705EC13FA0045A30C /* throbber-08.tif in Resources */,
