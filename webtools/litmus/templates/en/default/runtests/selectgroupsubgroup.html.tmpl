@@ -95,13 +95,13 @@ Select Testing Group
   [% IF show_admin %]
     [% personal_completed = testgroup.coverage(sysconfig.build_id, sysconfig.platform_id, sysconfig.opsys_id, sysconfig.locale, 0, 0, 1) %]
   [% ELSE %]
-    [% personal_completed = testgroup.coverage(sysconfig.build_id, sysconfig.platform_id, sysconfig.opsys_id, sysconfig.locale, 0, user) %]
+    [% personal_completed = testgroup.coverage(sysconfig.build_id, sysconfig.platform_id, sysconfig.opsys_id, sysconfig.locale, 1, user) %]
   [% END %]
 
   [% IF personal_completed == 100 %]
     [% community_completed = 100 %]
   [% ELSE %]
-    [% community_completed = testgroup.coverage(sysconfig.build_id, sysconfig.platform_id, sysconfig.opsys_id, sysconfig.locale, 0) %]
+    [% community_completed = testgroup.coverage(sysconfig.build_id, sysconfig.platform_id, sysconfig.opsys_id, sysconfig.locale, 1) %]
   [% END %]
 
   [% IF community_completed == 100 OR completed == 'N/A' %]
@@ -160,7 +160,7 @@ Select Subgroup
   <div class="section-content">
 <p>
 [% IF show_admin %]
-  [% headerrow = '<tr><th>Name</th><th>Number of Tests</th><th>Trusted Coverage <a name="showPercentagesHelpText" onclick="toggleHelp(percentagesHelpTitle,percentagesHelpText);"><img class="inline" src="images/info.png" alt="Percentages Explained" /></a></th><th>Community Testing Coverage <a name="showPercentagesHelpText" onclick="toggleHelp(percentagesHelpTitle,percentagesHelpText);"><img class="inline" src="images/info.png" alt="Percentages Explained" /></a></th></tr>' %]
+  [% headerrow = '<tr><th>Name</th><th><abbr title="Community Enabled Testcases (Total Available Testcases)">Number of Testcases</abbr></th><th>Trusted Coverage <a name="showPercentagesHelpText" onclick="toggleHelp(percentagesHelpTitle,percentagesHelpText);"><img class="inline" src="images/info.png" alt="Percentages Explained" /></a></th><th>Community Testing Coverage <a name="showPercentagesHelpText" onclick="toggleHelp(percentagesHelpTitle,percentagesHelpText);"><img class="inline" src="images/info.png" alt="Percentages Explained" /></a></th></tr>' %]
   [% colspan = 5 %]
 [% ELSE %]
   [% headerrow = '<tr><th>Name</th><th>Number of Tests</th><th>Personal Testing Coverage <a name="showPercentagesHelpText" onclick="toggleHelp(percentagesHelpTitle,percentagesHelpText);"><img class="inline" src="images/info.png" alt="Percentages Explained" /></a></th><th>Community Testing Coverage <a name="showPercentagesHelpText" onclick="toggleHelp(percentagesHelpTitle,percentagesHelpText);"><img class="inline" src="images/info.png" alt="Percentages Explained" /></a></th></tr>' %]
@@ -192,18 +192,27 @@ Please select a testing group with testcases, or that has not yet been tested in
             [% IF show_admin %]
               [% personal_completed = cursubgroup.coverage(sysconfig.build_id, sysconfig.platform_id, sysconfig.opsys_id, sysconfig.locale, 0, 0, 1) %]
             [% ELSE %]
-              [% personal_completed = cursubgroup.coverage(sysconfig.build_id, sysconfig.platform_id, sysconfig.opsys_id, sysconfig.locale, 0, user) %]
+              [% personal_completed = cursubgroup.coverage(sysconfig.build_id, sysconfig.platform_id, sysconfig.opsys_id, sysconfig.locale, 1, user) %]
             [% END %]
 
             [% IF personal_completed == 100 %]
               [% community_completed = 100 %]
             [% ELSE %]
-              [% community_completed = cursubgroup.coverage(sysconfig.build_id, sysconfig.platform_id, sysconfig.opsys_id, sysconfig.locale, 0) %]
+              [% community_completed = cursubgroup.coverage(sysconfig.build_id, sysconfig.platform_id, sysconfig.opsys_id, sysconfig.locale, 1) %]
             [% END %]
 
-            [% IF community_completed == 100 OR completed == 'N/A' %]
-              [% groupstyle = 'completegroup' %]
-            [% ELSE %]
+            [% groupstyle = '' %]
+            [% IF show_admin %]
+              [% IF personal_completed == 100 %]
+                [% groupstyle = 'trustedcompletegroup' %]
+              [% ELSE %]
+                [% IF community_completed == 100 OR completed == 'N/A' %]
+                  [% groupstyle = 'completegroup' %]
+                [% END %]
+              [% END %]
+            [% END %]
+
+            [% IF groupstyle == '' %]
               [% IF not (loop.count % 2) %]
                 [% groupstyle = 'even' %]
               [% ELSE %]
@@ -212,22 +221,15 @@ Please select a testing group with testcases, or that has not yet been tested in
             [% END %]
 
             [% IF show_admin %]
-              [% IF personal_completed == 100 %]
-                [% groupstyle = 'trustedcompletegroup' %]
-              [% END %]
+                [% countEnabledTests = cursubgroup.getNumEnabledTestcases() %]
             [% END %]
-            
-            [% IF show_admin %]
-                [% counttests = cursubgroup.getNumEnabledTestcases() %]
-            [% ELSE %]
-                [% counttests = cursubgroup.getNumCommunityEnabledTestcases() %]
-            [% END %]
+            [% countCommunityTests = cursubgroup.getNumCommunityEnabledTestcases() %]
             
             <tr class="[% groupstyle | none %]">
-                <td align="left"><table class="none"><tr><td><input [% IF ! counttests %]disabled [% ELSE %][% IF select_first_avail_subgroup==1 && personal_completed != 'N/A' && personal_completed < 100 %][% select_first_avail_subgroup=0 %]checked [% ELSE %][% IF loop.first %]checked [% END %][% END %][% END %]type="radio" id="subgroup_[% testgroup | html %]" name="subgroup_[% testgroup | html %]" 
+                <td align="left"><table class="none"><tr><td><input [% IF ! countCommunityTests %]disabled [% ELSE %][% IF select_first_avail_subgroup==1 && personal_completed != 'N/A' && personal_completed < 100 %][% select_first_avail_subgroup=0 %]checked [% ELSE %][% IF loop.first %]checked [% END %][% END %][% END %]type="radio" id="subgroup_[% testgroup | html %]" name="subgroup_[% testgroup | html %]" 
                     value="[% cursubgroup.id | html %]" /></td>
                     <td>[% cursubgroup.name | html %]</td></tr></table></td>
-                <td align="center">[% IF ! counttests %] 0 [% ELSE %] [% counttests %] [% END %]</td>
+                <td align="center">[% IF ! countCommunityTests %] 0 [% ELSE %][% countCommunityTests %][% END %][% IF show_admin %] ([% IF ! countEnabledTests %]0[% ELSE %][% countEnabledTests %][% END %])[% END %]</td>
                 <td align="center">[% personal_completed | html %][% IF personal_completed != 'N/A' %]%[% END %]</td>
                 <td align="center">[% community_completed | html %][% IF community_completed != 'N/A' %]%[% END %]</td>
             </tr>
