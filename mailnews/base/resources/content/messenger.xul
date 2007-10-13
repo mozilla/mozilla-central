@@ -135,6 +135,8 @@
   </hbox>
 </popup>
 
+<tooltip id="aHTMLTooltip" onpopupshowing="return FillInHTMLTooltip(document.tooltipNode);"/>
+
 <popup id="messagePaneContext"/>
 
   <toolbox id="mailToolbarToolbox" class="toolbox-top">
@@ -186,6 +188,7 @@
           <hbox id="msgHeaderView"/>
 
           <browser id="messagepane" name="messagepane" height="0" flex="1"
+                   tooltip="aHTMLTooltip"
                    context="messagePaneContext" minwidth="1" minheight="1"
                    disablesecurity="true" disablehistory="true" autofind="false"
                    onresize="return messagePaneOnResize(event);"
