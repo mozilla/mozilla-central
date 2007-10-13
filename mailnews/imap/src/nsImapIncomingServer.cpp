@@ -3464,7 +3464,7 @@ NS_IMETHODIMP nsImapIncomingServer::GetTrashFolderName(nsAString& retval)
   nsresult rv = GetUnicharValue(PREF_TRASH_FOLDER_NAME, retval);
   if (NS_FAILED(rv))
     return rv;
-  else if (retval.IsEmpty())
+  if (retval.IsEmpty())
     retval = NS_LITERAL_STRING(DEFAULT_TRASH_FOLDER_NAME);
   return NS_OK;
 }
