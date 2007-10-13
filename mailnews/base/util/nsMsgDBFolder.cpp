@@ -4851,7 +4851,7 @@ NS_IMETHODIMP nsMsgDBFolder::GetMsgTextFromStream(nsIMsgDBHdr *msgHdr, nsIInputS
                nsCaseInsensitiveCStringComparator()))
       {
         curLine.Right(encoding, curLine.Length() - 27);
-        if (encoding.EqualsLiteral("base64"))
+        if (encoding.LowerCaseEqualsLiteral("base64"))
           isBase64 = PR_TRUE;
       }
     }
@@ -4902,7 +4902,7 @@ NS_IMETHODIMP nsMsgDBFolder::GetMsgTextFromStream(nsIMsgDBHdr *msgHdr, nsIInputS
  */
 void nsMsgDBFolder::decodeMsgSnippet(const nsACString& aEncodingType, PRBool aIsComplete, nsCString& aMsgSnippet)
 {
-  if (aEncodingType.EqualsLiteral("base64"))
+  if (aEncodingType.LowerCaseEqualsLiteral("base64"))
   {
     PRInt32 base64Len = aMsgSnippet.Length();
     if (aIsComplete)
@@ -4915,7 +4915,7 @@ void nsMsgDBFolder::decodeMsgSnippet(const nsACString& aEncodingType, PRBool aIs
     aMsgSnippet.ReplaceChar('\r', '\n');
 
   }
-  else if (aEncodingType.EqualsLiteral("quoted-printable"))
+  else if (aEncodingType.LowerCaseEqualsLiteral("quoted-printable"))
   {
     // giant hack - decode in place, and truncate string.
     MsgStripQuotedPrintable((unsigned char *) aMsgSnippet.get());
