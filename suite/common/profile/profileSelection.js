@@ -71,9 +71,15 @@ function StartUp()
   gProfileService = Components.classes["@mozilla.org/toolkit/profile-service;1"]
                               .getService(Components.interfaces.nsIToolkitProfileService);
   var enum = gProfileService.profiles;
+  var selectedProfile = null;
+  try {
+    selectedProfile = gProfileService.selectedProfile;
+  }
+  catch (ex) {
+  }
   while (enum.hasMoreElements()) {
     AddItem(enum.getNext().QueryInterface(Components.interfaces.nsIToolkitProfile),
-            gProfileService.selectedProfile);
+            selectedProfile);
   }
 
   var autoSelect = document.getElementById("autoSelect");
