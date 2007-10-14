@@ -257,6 +257,13 @@ function CompFields2Recipients(msgCompFields)
   }
 }
 
+function awSetInputAndPopupId(inputElem, popupElem, rowNumber)
+{
+  popupElem.id = "addressCol1#" + rowNumber;
+  inputElem.id = "addressCol2#" + rowNumber;
+  inputElem.setAttributeNS("http://www.w3.org/2005/07/aaa", "aaa:labelledby", popupElem.id);
+}
+
 function awSetInputAndPopupValue(inputElem, inputValue, popupElem, popupValue, rowNumber)
 {
   // remove leading spaces
@@ -269,10 +276,7 @@ function awSetInputAndPopupValue(inputElem, inputValue, popupElem, popupValue, r
   popupElem.selectedItem = popupElem.childNodes[0].childNodes[awGetSelectItemIndex(popupValue)];
 
   if (rowNumber >= 0)
-  {
-    inputElem.setAttribute("id", "addressCol2#" + rowNumber);
-    popupElem.setAttribute("id", "addressCol1#" + rowNumber);
-  }
+    awSetInputAndPopupId(inputElem, popupElem, rowNumber);
 
   _awSetAutoComplete(popupElem, inputElem);
 }
@@ -448,8 +452,7 @@ function awCleanupRows()
       awRemoveRow(row, 1);
     else
     {
-      inputElem.setAttribute("id", "addressCol2#" + rowID);
-      awGetPopupElement(row).setAttribute("id", "addressCol1#" + rowID);
+      awSetInputAndPopupId(inputElem, awGetPopupElement(row), rowID);
       rowID ++;
     }
   }
@@ -463,10 +466,9 @@ function awDeleteRow(rowToDelete)
   var maxRecipients = top.MAX_RECIPIENTS;
   awRemoveRow(rowToDelete);
 
-  var numberOfCols = awGetNumberOfCols();
+  // assume 2 column update (input and popup)
   for (var row = rowToDelete + 1; row <= maxRecipients; row ++)
-    for (var col = 1; col <= numberOfCols; col++)
-      awGetElementByCol(row, col).setAttribute("id", "addressCol" + (col) + "#" + (row-1));
+    awSetInputAndPopupId(awGetInputElement(row), awGetPopupElement(row), (row-1));
 
   awTestRowSequence();
 }
@@ -572,7 +574,6 @@ function awAppendNewRow(setFocus)
     if ( input && input.length == 1 )
     {
       input[0].setAttribute("value", "");
-      input[0].setAttribute("id", "addressCol2#" + top.MAX_RECIPIENTS);
     
       //this copies the autocomplete sessions list from recipient#1 
       input[0].syncSessions(document.getElementById('addressCol2#1'));
@@ -617,7 +618,8 @@ function awAppendNewRow(setFocus)
           select[0].selectedIndex = awGetSelectItemIndex(lastRecipientType);
       }
     
-      select[0].setAttribute("id", "addressCol1#" + top.MAX_RECIPIENTS);
+      awSetInputAndPopupId(input[0], select[0], top.MAX_RECIPIENTS);
+
       if (input)
         _awSetAutoComplete(select[0], input[0]);
     }
