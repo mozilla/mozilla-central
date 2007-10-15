@@ -303,6 +303,7 @@ DiscreteTinderboxData.prototype = {
                 }
                 if ( testIdCount > 1  && getElement("deltasort").checked ) {
                     for ( x in obj.results ) {
+                        // If it is the first iteration put values in the "baseSet"  if it is the second iteration put them in the secondary set. 
                         if (baseSet.length == 0 ) {
                             for ( i = 1; i < obj.results[x].length; i += 2 )  { 
                                 baseSet[i] = obj.results[x][i];  
@@ -320,16 +321,18 @@ DiscreteTinderboxData.prototype = {
                             }
                         }
                     }
+                    // for each value in the baseSet subtract the average of the secondary sets and take the absolute value
                     for ( x in baseSet ) {
                         sortableSet[x] = new Array();
                         sortableSet[x][0] = Math.abs(baseSet[x] - ( secondarySet[x][0] / secondarySet[x][1] )); 
                         sortableSet[x][1] = x;
                     }
 
-
+                    // sort the result to find the biggest differences between the sets
                     sortableSet.sort( function(a,b) {
                                                         return a[0] - b[0];
                                                     });
+                    // Reconstruct a valid results array 
                     for ( x in obj.results ) {
                         var tempArray = new Array();
                         for (y=0;y < sortableSet.length / 2; y++ ) {
@@ -347,7 +350,7 @@ DiscreteTinderboxData.prototype = {
                     }
                     obj.rawdata = tempRawdata;
                 }
-
+                // Stick all the new results arrays back in as datasets.  If there was only one it will just be the single dataset.
                 for ( x in obj.results ) {
                     ds[x] = new TimeValueDataSet(obj.results[x]);
                     ds[x].rawdata = obj.rawdata;
