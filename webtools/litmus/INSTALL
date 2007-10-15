@@ -44,7 +44,8 @@ configuration. Once 'localconfig' is populated with your database information,
 run the populatedb.pl again to populate the initial products, locales, etc... 
 There is no UI at present for doing this.
 
- vi localconfig
+  vi localconfig
+  ./populatedb.pl -r
 
 Then just pop the whole thing into a directory where your web server can
 get at it. Have fun!
