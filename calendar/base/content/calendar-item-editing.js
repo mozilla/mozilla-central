@@ -314,7 +314,8 @@ function setDefaultAlarmValues(aItem)
             if (alarmsBranch.getIntPref("onfortodos") == 1) {
                 // You can't have an alarm if the entryDate doesn't exist.
                 if (!aItem.entryDate) {
-                    aItem.entryDate = getSelectedDay().clone();
+                    aItem.entryDate = getSelectedDay() &&
+                                      getSelectedDay().clone() || now();
                 }
                 var alarmOffset = Components.classes["@mozilla.org/calendar/duration;1"]
                                             .createInstance(Components.interfaces.calIDuration);
