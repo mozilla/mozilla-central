@@ -1220,20 +1220,53 @@ function CalendarTimeGraph(canvasId) {
     this.__proto__.__proto__.init.call (this, canvasId);
 }
 
+function dst(ltime) {
+  var d = new Date(ltime*1000);
+  var y = d.getFullYear();
+  var fall, spring;
+
+  //rules for 2007
+  if (y >= 2007 ) {
+    spring = new Date(y, 2, 1); // the date of Mar 1
+    spring.setUTCDate(15 - spring.getUTCDay()); //second sunday in march
+
+    fall = new Date(y, 10, 1); // the date of Nov 1
+    fall.setUTCDate(8 - fall.getUTCDay()); //first sunday in november
+  } else { //previous rules
+    spring = new Date(y, 3, 1); // the date of april 1st
+    spring.setUTCDate(8 - spring.getUTCDay()); //first sunday in april
+
+    fall = new Date(y, 9, 31); //last day in october
+    fall.setDate(fall.getUTCDate() - fall.getUTCDay()) //last sunday in october
+  }
+
+  // Is it Daylight or Standard time?
+  return ((d > spring) && (d < fall));
+}
+
 function formatTime(ltime, twoLines) {
     // ltime is in seconds since the epoch in, um, so
-    var d = new Date (ltime*1000);
-    var s1 = d.getHours() +
-        (d.getMinutes() < 10 ? ":0" : ":") + d.getMinutes() +
-        (d.getSeconds() < 10 ? ":0" : ":") + d.getSeconds();
+    //figure out dst offset for the time
+    offset = 0;
+    if (dst(ltime)) {
+      offset = 7*60*60*1000;
+    } else {
+      offset = 8*60*60*1000;
+    }
+    // offset adjusts time to pst/pdt - to be the same as the tinderboxes
+    var d = new Date (ltime*1000 - offset);
+
+    var s1 = d.getUTCHours() +
+        (d.getUTCMinutes() < 10 ? ":0" : ":") + d.getUTCMinutes() +
+        (d.getUTCSeconds() < 10 ? ":0" : ":") + d.getUTCSeconds();
     if (twoLines) {
-        var s2 = d.getDate() + " " + MONTH_ABBREV[d.getMonth()] + " " + (d.getYear()+1900);
+        var s2 = d.getUTCDate() + " " + MONTH_ABBREV[d.getUTCMonth()] + " " + d.getUTCFullYear();
         return [s1, s2];
     } else {
-        var yr = d.getYear();
-        if (yr > 100) yr -= 100;
-        if (yr < 10) yr = "0" + yr;
-        var s2 = (d.getMonth()+1) + "/" + d.getDate() + "/" + yr;
+        var yr = d.getUTCFullYear();
+        //if (yr > 100) yr -= 100;
+        //if (yr < 10) yr = "0" + yr;
+        var s2 = (d.getUTCMonth()+1) + "/" + d.getUTCDate() + "/" + yr;
         return s2 + " " + s1;
     }
 }
