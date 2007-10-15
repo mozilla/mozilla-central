@@ -454,69 +454,75 @@ run_ciphers_client()
 ########################################################################
 parse_logfile_dbx()
 {
-	in_mel=0
-	bin_name=""
+	${AWK} '
+	BEGIN {
+		in_mel = 0
+		mel_line = 0
+		bytes = 0
+		blocks = 0
+		runs = 0
+		stack_string = ""
+		bin_name = ""
+	}
+	/Memory Leak \(mel\):/ ||
+	/Possible memory leak -- address in block \(aib\):/ ||
+	/Block in use \(biu\):/ {
+		in_mel = 1
+		stack_string=""
+		next
+	}
+	in_mel == 1 && /^$/ {
+		print bin_name stack_string
+		in_mel = 0
+		mel_line = 0
+		next
+	}
+	in_mel == 1 {
+		mel_line += 1;
+	}
+	/Found leaked block of size/ {
+		bytes += $6
+		blocks += 1
+		next
+	}
+	/Found .* leaked blocks/ {
+		bytes += $8
+		blocks += $2
+		next
+	}
+	/Found block of size/ {
+		bytes += $5
+		blocks += 1
+		next
+	}
+	/Found .* blocks totaling/ {
+		bytes += $5
+		blocks += $2
+		next
+	}
+	mel_line > 2 {
+		gsub(/\(\)/,"")
+		new_line = $2;
+		stack_string = "/" new_line stack_string
+		next
+	}
+	/^Running: / {
+		bin_name = $2
+		next
+	}
+	/execution completed/ {
+		runs += 1
+		next
+	}
+	END {
+		print "# " bytes " bytes " blocks " blocks in " runs " runs" > "/dev/stderr";
+	}' 2> ${TMP_COUNT}
 	
-	while read line
-	do
-		if [ "${line}" = "Memory Leak (mel):" -o "${line}" = "Possible memory leak -- address in block (aib):" \
-			-o "${line}" = "Block in use (biu):" ] ; then
-			in_mel=1
-			mel_line=0
-			stack_string=""
-		fi
-		
-		if [ -z "${line}" ] ; then
-			if [ ${in_mel} -eq "1" ] ; then
-				in_mel=0
-				echo "${bin_name}${stack_string}"
-			fi
-		fi
-			
-		if [ ${in_mel} -eq 1 ] ; then
-			mel_line=`expr ${mel_line} + 1`
-			
-			if [ ${mel_line} -ge 4 ] ; then
-				new_line=`echo "${line}" | cut -d" " -f2 | cut -d"(" -f1`
-				stack_string="/${new_line}${stack_string}"
-			fi
-				
-			gline=`echo "${line}" | grep "Found leaked block of size"`
-			if [ -n "${gline}" ] ; then
-				lbytes=`echo "${line}" | sed "s/Found leaked block of size \(.*\) bytes.*/\1/"`
-				tbytes=`expr "${tbytes}" + "${lbytes}"`
-				tblocks=`expr "${tblocks}" + 1`
-			fi
-			
-			gline=`echo "${line}" | grep "Found .* leaked blocks"`
-			if [ -n "${gline}" ] ; then
-				lbytes=`echo "${line}" | sed "s/Found .* leaked blocks with total size \(.*\) bytes.*/\1/"`
-				tbytes=`expr "${tbytes}" + "${lbytes}"`
-				lblocks=`echo "${line}" | sed "s/Found \(.*\) leaked blocks.*/\1/"`
-				tblocks=`expr "${tblocks}" + "${lblocks}"`
-			fi
-			
-			gline=`echo "${line}" | grep "Found block of size"`
-			if [ -n "${gline}" ] ; then
-				lbytes=`echo "${line}" | sed "s/Found block of size \(.*\) bytes.*/\1/"`
-				tbytes=`expr "${tbytes}" + "${lbytes}"`
-				tblocks=`expr "${tblocks}" + 1`
-			fi
-			
-			gline=`echo "${line}" | grep "Found .* blocks totaling"`
-			if [ -n "${gline}" ] ; then
-				lbytes=`echo "${line}" | sed "s/Found .* blocks totaling \(.*\) bytes.*/\1/"`
-				tbytes=`expr "${tbytes}" + "${lbytes}"`
-				lblocks=`echo "${line}" | sed "s/Found \(.*\) blocks totaling.*/\1/"`
-				tblocks=`expr "${tblocks}" + "${lblocks}"`
-			fi
-		else
-			gline=`echo "${line}" | grep "^Running: "`
-			if [ -n "${gline}" ] ; then
-				bin_name=`echo "${line}" | cut -d" " -f2`
-			fi
-		fi 
-	done
+	read hash lbytes bytes_str lblocks blocks_str in_str lruns rest < ${TMP_COUNT}
+	tbytes=`expr "${tbytes}" + "${lbytes}"`
+	tblocks=`expr "${tblocks}" + "${lblocks}"`
+	truns=`expr "${truns}" + "${lruns}"`
+	rm ${TMP_COUNT}
 }
 
 ######################## parse_logfile_valgrind ########################
