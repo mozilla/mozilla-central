@@ -1183,7 +1183,7 @@
                   var prevEnd;
                   if (col.length > 0) {
                       // Fill in time gaps with a placeholder
-                      prevEnd = col[col.length - 1].endDate;
+                      prevEnd = col[col.length - 1].endDate.clone();
                   } else {
                       // First event in the column, add a placeholder for the
                       // blank time from this.mStartMin to the event's start
@@ -1191,14 +1191,24 @@
                       prevEnd.hour = 0;
                       prevEnd.minute = this.mStartMin;
                   }
-                  var dur = start.subtractDate(prevEnd);
+                  prevEnd.timezone = "floating";
+                  // the reason why we need to calculate time durations
+                  // based on floating timezones is that we need avoid
+                  // dst gaps in this case. converting the date/times to
+                  // floating conveys this idea in a natural way. note that
+                  // we explicitly don't use getInTimezone() as it would
+                  // be slightly more expensive in terms of performance.
+                  var floatstart = start.clone();
+                  floatstart.timezone = "floating";
+                  var dur = floatstart.subtractDate(prevEnd);
                   if (dur.inSeconds) {
                       col.push({duration: dur});
                   }
-
+                  var floatend = end.clone();
+                  floatend.timezone = "floating";
                   col.push({event: data.item,
                             endDate: end,
-                            duration: end.subtractDate(start)});
+                            duration: floatend.subtractDate(floatstart)});
               }
               layerOffset = layers.length;
           }
