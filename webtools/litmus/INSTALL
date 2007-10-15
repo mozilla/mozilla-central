@@ -27,34 +27,49 @@ Time::Piece::MySQL
 Time::Seconds
 XML::XPath
 
-Also, note that 'sendmail' (or a mailer with a compatible command-line 
-interface) is required.
-
 == Setting up the database ==
 
-Run populatedb.pl. This will create a template configuration file, 
+If this is your first time installing Litmus, you'll want to
+run populatedb.pl with the "-r" option. This will populate some of the lookup
+tables with sensible defaults (which you can adjust later, if necessary) that
+will allow you to start using Litmus right away.
+
+  cd litmus
+  ./populatedb.pl -r
+
+The populatedb.pl script will also create a template configuration file, 
 'localconfig,' that contains variables to hold your database configuration 
 information. Edit the newly created 'localconfig' file with your database 
 configuration. Once 'localconfig' is populated with your database information, 
 run the populatedb.pl again to populate the initial products, locales, etc... 
 There is no UI at present for doing this.
 
+ vi localconfig
+
 Then just pop the whole thing into a directory where your web server can
 get at it. Have fun!
+
+== Creating the first admin user ==
 
 To get yourself an administrator account, you'll need to load up Litmus in your 
 web browser and follow the link to create a new account. You'll have been 
 lucky enough to score user id number 1. Grant yourself admin rights by loading 
 up mysql, connecting to your Litmus database, and running the following command:
 
-  insert into user_group_map values ('1', '1');
+ mysql -u litmus -p litmus
+ mysql> insert into user_group_map values ('1', '1');
 
 From there, you can go into "Edit Users" in the web interface and grant 
 rights to any new users. 
 
-Note: After upgrading Litmus, it's a good idea to run populatedb.pl
-again to pick up any schema changes that may have occured.
+== Sending mail from Litmus ==
 
-== Creating the first admin user ==
+Sendmail (or a mailer with a compatible command-line interface) is required if
+you want Litmus to be able to send email, e.g. for daily reports. If you will
+be using something other than sendmail, you may need to change Litmus::Mailer
+appropriately.
 
-Click 'Log In' and create a new Litmus account. In the database, set 'is_admin' = 1 for the new user in the users table. That user will now have access to the admin functions of Litmus through the web interface.
+== Things to do after an upgrade ==
+
+After upgrading Litmus from CVS, it's a good idea to run populatedb.pl again to
+pick up any schema changes that may have occured.
