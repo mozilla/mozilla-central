@@ -32,7 +32,7 @@ $MacUniversalBinary = 1;
 #$ENV{MOZ_SYMBOLS_TRANSFER_TYPE} = "scp";
 
 #- PLEASE FILL THIS IN WITH YOUR PROPER EMAIL ADDRESS
-$BuildAdministrator = "chase\@mozilla.org";
+$BuildAdministrator = 'build@mozilla.org';
 #$BuildAdministrator = "$ENV{USER}\@$ENV{HOST}";
 #$BuildAdministrator = ($ENV{USER} || "cltbld") . "\@" . ($ENV{HOST} || "dhcp");
 
@@ -138,9 +138,9 @@ $AliveTest                = 1;
 # :pserver:$ENV{USER}%netscape.com@cvs.mozilla.org:/cvsroot
 
 #$moz_cvsroot   = $ENV{CVSROOT};
-$moz_cvsroot   = ":ext:cltbld\@cvs.mozilla.org:/cvsroot";
+$moz_cvsroot   = ":ext:tbirdbld\@cvs.mozilla.org:/cvsroot";
 
-$MofoRoot   = ":ext:cltbld\@cvs.mozilla.org:/mofo";
+# $MofoRoot   = ":ext:cltbld\@cvs.mozilla.org:/mofo";
 
 #- Set these proper values for your tinderbox server
 #$Tinderbox_server = 'tinderbox-daemon@tinderbox.mozilla.org';
@@ -200,8 +200,10 @@ $package_creation_path = "/mail/installer";
 # needs setting for mac + talkback: $mac_bundle_path = "/browser/app";
 $mac_bundle_path = "/mail/app";
 $ssh_version   = "2";
-$ssh_user      = "cltbld";
+$ssh_user      = "tbirdbld";
+$ssk_key       = "$ENV{HOME}/.ssh/tbirdbld_dsa";
 $ssh_server    = "stage.mozilla.org";
+$ReleaseGroup  = "thunderbird";
 $ftp_path      = "/home/ftp/pub/thunderbird/nightly";
 $url_path      = "http://ftp.mozilla.org/pub/mozilla.org/thunderbird/nightly";
 $tbox_ftp_path = "/home/ftp/pub/thunderbird/tinderbox-builds";

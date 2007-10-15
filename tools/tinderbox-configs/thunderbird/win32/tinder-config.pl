@@ -7,7 +7,7 @@
 #-    Uncomment the variables you need to set.
 #-    The default values are the same as the commented variables.
 
-$ENV{CVSROOT}=":ext:cltbld\@cvs.mozilla.org:/cvsroot";
+$ENV{CVSROOT}=":ext:tbirdbld\@cvs.mozilla.org:/cvsroot";
 $ENV{MOZ_INSTALLER_USE_7ZIP}="1";
 $ENV{MOZ_PACKAGE_MSI} = 0;
 $ENV{MOZ_CRASHREPORTER_NO_REPORT} = '1';
@@ -111,7 +111,7 @@ $use_blat       = 0;
 
 $moz_cvsroot   = $ENV{CVSROOT};
 
-$MofoRoot   = ":ext:cltbld\@cvs.mozilla.org:/mofo";
+# $MofoRoot   = ":ext:cltbld\@cvs.mozilla.org:/mofo";
 
 #- Set these proper values for your tinderbox server
 #$Tinderbox_server = 'tinderbox-daemon@tinderbox.mozilla.org';
@@ -167,8 +167,10 @@ $build_hour    = "3";
 $package_creation_path = "/mail/installer";
 # needs setting for mac + talkback: $mac_bundle_path = "/browser/app";
 $ssh_version   = "2";
-$ssh_user      = "cltbld";
+$ssh_user      = "tbirdbld";
+$ssk_key       = "$ENV{HOME}/.ssh/tbirdbld_dsa";
 $ssh_server    = "stage.mozilla.org";
+$ReleaseGroup  = "thunderbird";
 $ftp_path      = "/home/ftp/pub/thunderbird/nightly";
 $url_path      = "http://ftp.mozilla.org/pub/mozilla.org/thunderbird/nightly";
 $tbox_ftp_path      = "/home/ftp/pub/thunderbird/tinderbox-builds";

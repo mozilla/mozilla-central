@@ -149,8 +149,8 @@ $RunMozillaTests          = 0;  # Allow turning off of all tests if needed.
 # Note that win32 may not need \@, depends on ' or ".
 # :pserver:$ENV{USER}%netscape.com@cvs.mozilla.org:/cvsroot
 
-#$moz_cvsroot   = $ENV{CVSROOT};
-$moz_cvsroot   = ":ext:cltbld\@cvs.mozilla.org:/cvsroot";
+# sharing bm-xserve09 with T'bird build, do all CVS pulls with that key
+$moz_cvsroot   = ":ext:tbirdbld\@cvs.mozilla.org:/cvsroot";
 
 #- Set these proper values for your tinderbox server
 #$Tinderbox_server = 'tinderbox-daemon@tinderbox.mozilla.org';
@@ -210,8 +210,10 @@ $package_creation_path = "/xulrunner/installer";
 # needs setting for mac + talkback: $mac_bundle_path = "/browser/app";
 $mac_bundle_path = "/browser/app";
 $ssh_version   = "2";
-#$ssh_user      = "cltbld";
-#$ssh_server    = "stage.mozilla.org";
+$ssh_user      = "xrbld";
+$ssk_key       = "$ENV{HOME}/.ssh/xrbld_dsa";
+$ssh_server    = "stage.mozilla.org";
+$ReleaseGroup  = "xulrunner";
 $ftp_path      = "/home/ftp/pub/xulrunner/nightly";
 $url_path      = "http://ftp.mozilla.org/pub/mozilla.org/xulrunner/nightly";
 $tbox_ftp_path = "/home/ftp/pub/xulrunner/tinderbox-builds";
