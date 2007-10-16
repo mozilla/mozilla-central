@@ -145,7 +145,7 @@ $RunMozillaTests          = 0;  # Allow turning off of all tests if needed.
 # :pserver:$ENV{USER}%netscape.com@cvs.mozilla.org:/cvsroot
 
 #$moz_cvsroot   = $ENV{CVSROOT};
-$moz_cvsroot   = ":ext:cltbld\@cvs.mozilla.org:/cvsroot";
+$moz_cvsroot   = ":ext:xrbld\@cvs.mozilla.org:/cvsroot";
 
 #- Set these proper values for your tinderbox server
 #$Tinderbox_server = 'tinderbox-daemon@tinderbox.mozilla.org';
@@ -204,8 +204,10 @@ $ReleaseToDated = 1; # Push the release to YYYY-MM-DD-HH-<milestone>?
 $package_creation_path = "/xulrunner/installer";
 # needs setting for mac + talkback: $mac_bundle_path = "/browser/app";
 $ssh_version   = "2";
-$ssh_user      = "cltbld";
+$ssh_user      = "xrbld";
+$ssh_key       = "$ENV{HOME}/.ssh/xrbld_dsa"
 $ssh_server    = "stage.mozilla.org";
+$ReleaseGroup  = "xulrunner"
 $ftp_path      = "/home/ftp/pub/xulrunner/nightly";
 $url_path      = "http://ftp.mozilla.org/pub/mozilla.org/xulrunner/nightly";
 $tbox_ftp_path = "/home/ftp/pub/xulrunner/tinderbox-builds";
