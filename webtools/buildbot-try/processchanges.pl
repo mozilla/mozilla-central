@@ -86,7 +86,7 @@ my @files = grep { /^[\w.-]+\.info$/ } readdir(DIR);
 closedir(DIR) || die("Could not close directory\nFailure message: $!\n");
 
 if (0 == scalar(@files)) {
-    print LOGFILE scalar(localtime()) . " - No Patches, exiting...";
+    print LOGFILE scalar(localtime()) . " - No Patches, exiting...\n";
     exit 0;
 }
 
