@@ -1075,6 +1075,7 @@ Graph.prototype = {
             return;
 
         this.selectionUpdateFromEventPageCoordinate(event.pageX);
+        this.redrawOverlayOnly();
 
         this.selectionSweeping = false;
         this.onSelectionChanged.fire("range", this.selectionStartTime, this.selectionEndTime);
