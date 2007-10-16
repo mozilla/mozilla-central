@@ -1,401 +1,285 @@
 #!/usr/bin/perl
 
+# ***** BEGIN LICENSE BLOCK *****
+# Version: MPL 1.1
+#
+# The contents of this file are subject to the Mozilla Public License Version
+# 1.1 (the "License"); you may not use this file except in compliance with
+# the License. You may obtain a copy of the License at
+# http://www.mozilla.org/MPL/
+#
+# Software distributed under the License is distributed on an "AS IS" basis,
+# WITHOUT WARRANTY OF ANY KIND, either express or implied. See the License
+# for the specific language governing rights and limitations under the
+# License.
+#
+# The Original Code is Try server submission form.
+#
+# The Initial Developer of the Original Code is
+# Mozilla Corporation.
+# Portions created by the Initial Developer are Copyright (C) 2007
+# the Initial Developer. All Rights Reserved.
+#
+# Contributor(s):
+#   Ben Hearsum <bhearsum@mozilla.com>
+# ***** END LICENSE BLOCK *****
+
+# Description:
+#   This cgi script displays a simple form that allows a user to submit a diff
+#   that will eventually be uploaded to a Buildbot master. It can also be used
+#   to point a Buildbot master at a set of Mercurial repositories.
+#   It generates a .info file that contains all necessary information for
+#   Buildbot to produce a build with the requested patch or repositories.
+#   processchanges.pl should be used to download these patches and send them
+#   to Buildbot.
+
+
 use strict;
 use warnings;
 use CGI qw/:standard/;
 use LWP::Simple qw/!head/;
+use File::Spec::Functions;
 
-# File: sendchange.cgi
-# Author: Ben Hearsum
-# Description:
-#   This cgi script displays a simple form that allows a user to submit a diff
-#   that will eventually be uploaded to a Buildbot master.
-#   It can also be used to point a Buildbot master at a set of Mercurial
-#   repositories to build from.
-#   This script generates a .info file that contains the
-#   name of the submitter, as read from $ENV['REMOTE_USER'], the date in unix
-#   time, the description read from the form, and the relevant change
-#   information (patch file/repository locations).
-#   This information is used by the download script to generate the
-#   'buildbot sendchange' command.
-
+require 'sendchange-ui.pm';
+use vars qw($SIZE_LIMIT);
 
 # where patches and info files will go after being submitted
 my $PATCH_DIR = '/buildbot/patches';
-# the size limit for the file, in bytes
-# 10*1024*1024 is 10MB
-my $SIZE_LIMIT = 10*1024*1024;
-# the URL to the buildbot installation the patches will eventually go to
-my $BUILDBOT_URL = 'http://localhost:8010';
-# the URL to the uploadpatch.cgi script
-my $UPLOADPATCH_URL = 'http://localhost/cgi-bin/sendchange.cgi';
+# regexes for validation
+my $ALLOWED_TEXT_REGEX = '^[\w\s,.]+$';
+my $ALLOWED_FILENAME_REGEX = '^([\w-]|\.[\w-])+$';
+my $ALLOWED_BRANCH_REGEX = '^[\w_]+$';
 
-$CGI::POST_MAX = $SIZE_LIMIT;
-
-sub WriteSuccessPage
-{
-    print "Content-type: text/html\n\n";
-    print <<__END_OF_HTML__;
-<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01//EN"
-          "http://www.w3.org/TR/html4/strict.dtd">
-<html lang="en">
-
-<head><title>Patch uploaded successfully</title></head>
-
-<body>
-<h3 style="text-align: center">Patch Uploaded Successfully</h3>
-<div style="text-align: center">
-  Look for your patch <a href="$BUILDBOT_URL">here</a>
-</div>
-</body>
-</html>
-__END_OF_HTML__
-
-}
-
-sub WritePage
-{
-    my %args = @_;
-    my $description = "";
-    my $type = "patch";
-    my $branch = "HEAD";
-    my $mozillaRepoPath = "http://hg.mozilla.org/mozilla-central";
-    my $tamarinRepoPath = "http://hg.mozilla.org/tamarin-central";
-    my $err = "";
-    if ($args{'description'}) {
-        $description = $args{'description'};
-    }
-    if ($args{'type'}) {
-        $type = $args{'type'};
-    }
-    if ($args{'branch'}) {
-        $branch = $args{'branch'};
-    }
-    if ($args{'mozillaRepoPath'}) {
-        $mozillaRepoPath = $args{'mozillaRepoPath'};
-    }
-    if ($args{'tamarinRepoPath'}) {
-        $tamarinRepoPath = $args{'tamarinRepoPath'};
-    }
-    if ($args{'err'}) {
-        $err = $args{'err'};
-    }
-    my $limit = $SIZE_LIMIT / 1024;
-
-    print "Content-type: text/html\n\n";
-    print <<__END_OF_HTML__;
-<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01//EN"
-          "http://www.w3.org/TR/html4/strict.dtd">
-<html lang="en">
-
-<head>
-<title>Test your code with Buildbot</title>
-<style type="text/css">
-  body {
-    margin-left: auto;
-    margin-right: auto;
-  }
-
-  div {
-    text-align: center;
-  }
-
-  p {
-    text-align: center;
-    color: red;
-    font-weight: bold;
-  }
-
-  table {
-    width: 70%;
-    margin-left: auto;
-    margin-right: auto;
-  }
-
-  td {
-    margin-top: 2px;
-    margin-bottom: 2px;
-    border: none;
-    width: 50%;
-  }
-
-  tr#title {
-    padding-bottom: 6px;
-  }
-
-  th {
-    text-align: center;
-  }
-
-  td.lbl {
-    text-align: right;
-    vertical-align: middle;
-  }
-
-  td.field {
-    text-align: left;
-  }
-</style>
-<script type="text/javascript">
-function disable(id) {
-    var element = document.getElementById(id);
-    element.disabled = "disabled";
-    element.style.backgroundColor = "#D4D0C8";
-}
-
-function enable(id) {
-    var element = document.getElementById(id);
-    element.disabled = "";
-    element.style.backgroundColor = "white";
-}
-</script>
-
-</head>
-
-<body
-__END_OF_HTML__
-    if ($type == "patch") {
-        print "onload=\"enable('patchfile'); enable('branch'); "
-            . "disable('mozilla-repo'); disable('tamarin-repo')\"";
-    } else {
-        print "onload=\"disable('patchfile'); disable('branch'); "
-            . "enable('mozilla-repo'); enable('tamarin-repo')\"";
-    }
-    print ">";
-    print <<__END_OF_HTML__;
-
-<form action="$UPLOADPATCH_URL" method="post"
-      enctype="multipart/form-data">
-<div>
-<table>
-  <tr id="title">
-    <th colspan="2">Test your code with Buildbot</th>
-  </tr>
-  <tr>
-    <td>
-      <table>
-        <tr>
-          <th colspan="2"><input type="radio" name="type" value="patch" 
-__END_OF_HTML__
-    if ($type eq "patch") {
-        print 'checked="checked" ';
-    }
-    print <<__END_OF_HTML__;
-            onclick="enable('patchfile'); enable('branch');
-            disable('mozilla-repo'); disable('tamarin-repo')" />
-            Upload a patch:
-          </th>
-        </tr>
-        <tr>
-          <td class="lbl">Patch:</td>
-          <td class="field">
-            <input id="patchfile" type="file" name="patchfile" />
-          </td>
-        </tr>
-        <tr>
-          <td class="lbl">Branch:</td>
-          <td class="field">
-            <input id="branch" type="text" name="branch" value="$branch"  />
-          </td>
-        </tr>
-      </table>
-    </td>
-    <td>
-      <table>
-        <tr>
-          <th colspan="2">
-            <input type="radio" name="type" value="hg" 
-__END_OF_HTML__
-    if ($type eq "hg") {
-        print 'checked="checked" ';
-    }
-    print <<__END_OF_HTML__;
-            onclick="disable('patchfile'); disable('branch');
-            enable('mozilla-repo'); enable('tamarin-repo')" />
-            Test a Mercurial repository:
-          </th>
-        </tr>
-        <tr>
-          <td class="lbl">Mozilla repository:</td>
-          <td class="field">
-            <input id="mozilla-repo" type="text" name="mozilla-repo" 
-              value="$mozillaRepoPath" />
-          </td>
-        </tr>
-        <tr>
-          <td class="lbl">Tamarin repository:</td>
-          <td class="field">
-            <input id="tamarin-repo" type="text" name="tamarin-repo" 
-              value="$tamarinRepoPath" />
-          </td>
-        </tr>
-      </table>
-    </td>
-  </tr>
-  <tr>
-    <td colspan="2">Description:</td>
-  </tr>
-  <tr>
-    <td colspan="2">
-      <textarea name="description" cols="35" rows="6">$description</textarea>
-    </td>
-  </tr>
-  <tr>
-    <td colspan="2">
-      <input type="submit" value="Submit" />
-    </td>
-  </tr>
-</table>
-</div>
-
-</form>
-<p>Note: Uploaded files must be less than ${limit}kB</p>
-__END_OF_HTML__
-
-    if ($err) {
-        print "<p>$err</p>";
-    }
-    print "</body>\n</html>";
-}
+$CGI::POST_MAX = $SIZE_LIMIT; # comes from sendchange-ui
 
 sub Process
 {
+    # used for ensuring non-conflicting filenames
     my $time = time();
+    my $key = int(rand(1000));
     # get the parameters
-    my $name = $ENV{'REMOTE_USER'};
-    my $description = param('description');
-    my $type = param('type');
-    my $patchFile = param('patchfile');
-    my $branch = param('branch');
-    my $mozillaRepoPath = param('mozilla-repo');
-    my $tamarinRepoPath = param('tamarin-repo');
-    my ($filename, $infoFile);
-
-    my %args = (
-        description     => $description,
-        type            => $type,
-        branch          => $branch,
-        mozillaRepoPath => $mozillaRepoPath,
-        tamarinRepoPath => $tamarinRepoPath
-    );
+    my $name                = $ENV{'REMOTE_USER'};
+    my $type                = param('type');
+    my $patchFile           = param('patchFile');
+    my $patchLevel          = param('patchLevel');
+    my $branch              = param('branch');
+    my $mozillaRepoPath     = param('mozilla-repo');
+    my $tamarinRepoPath     = param('tamarin-repo');
+    my $identifier          = param('identifier');
+    my $description         = param('description');
+    my $mozconfig           = param('mozconfig');
+    my (@err, $infoFile);
 
     if (! $name) {
-        $args{'err'} = 'You must be logged in to use this service';
-        WritePage(%args);
-        return;
+        push(@err, 'You must be logged in to use this service');
     }
 
-    if ($description eq '') {
-        $description = 'No description given.';
+    if ($description =~ /^\s*$/) {
+        $description = 'No description given';
+    }
+
+    if ($identifier eq '') {
+        $identifier = $time;
     }
 
     # only allow alphanumeric, '_', and whitespace
-    if ($description =~ m/[^\w\s]/) {
-        $args{'err'} = 'Description must only contain alphanumeric characters,'
-          . " '_' and whitespace";
-        WritePage(%args);
-        return;
+    if ($description !~ /$ALLOWED_TEXT_REGEX/) {
+        push(@err, 'Description must only contain alphanumeric characters,'
+                 . " '_' and whitespace");
     }
     $description =~ s/\n//g;
 
-    # Using a patchfile
+    if ($identifier !~ /$ALLOWED_FILENAME_REGEX/) {
+        push(@err, "Identifier can only contain alphanumeric characters, "
+                 . " '_', and '-'");
+    }
+
+    if ($mozconfig && $mozconfig !~ /$ALLOWED_FILENAME_REGEX/) {
+        push(@err, 'Bad mozconfig filename. Use only alphanumeric, '
+                 . '-, _, and single dots');
+    }
+
+    # Using a patchFile
     if ($type eq "patch") {
-        if ($branch eq '') {
-            $branch = 'HEAD';
-        } elsif ($branch eq 'trunk' || $branch eq '') {
-            $branch = 'HEAD';
-        } else {
-            # only allow alphanumeric plus '_'
-            if ($branch =~ /[^\w]/) {
-                $args{'err'} = 'Branch must only contain alphanumeric '
-                  . "characters or '_'";
-                WritePage(%args);
-                return;
-            }
-            $branch =~ s/\n//g;
+        if ($branch eq "" || $branch eq "trunk") {
+            $branch = "HEAD";
+        }
+        # only allow alphanumeric plus '_'
+        if ($branch !~ /$ALLOWED_BRANCH_REGEX/) {
+            push(@err, 'Branch/Tag must only contain alphanumeric '
+                     . "characters or '_'");
         }
 
         # only allow alphanumeric, hyphens, and single dots
-        if ($patchFile !~ /^([\w-]|\.[\w-])+$/) {
-            $args{'err'} = 'Invalid filename. Please use only alphanumeric, '
-              . '-, _, and single dots';
-            WritePage(%args);
-            return;
+        if ($patchFile !~ /$ALLOWED_FILENAME_REGEX/) {
+            push(@err, 'Bad patch filename. Please use only alphanumeric, '
+                     . '-, _, and single dots');
         }
 
-        # if we get here the file is small enough and passes the filename test
-
         # pull all of the contents of the file
-        my $patchHandle = upload('patchfile');
+        my $patchHandle = upload('patchFile');
 
         # strip off everything except the filename itself
         $patchFile =~ s/.*[\/\\](.*)/$1/;
 
         # generate the filenames
-        $patchFile = "$time-$patchFile";
+        $patchFile = "$time-$key-$patchFile";
         $infoFile = "$patchFile.info";
 
         # make sure the file has a non-zero length
         # this also handles a case where the file specified doesn't exist
         if (-z $patchHandle) {
-            $args{'err'} = 'Specified file has a length of zero';
-            WritePage(%args);
-            return;
+            push(@err, 'Patch file has a length of zero');
         }
 
         # write the patch
-        $filename = "$PATCH_DIR/$patchFile";
+        my $filename = catfile($PATCH_DIR, $patchFile);
         if (! open(PATCH, ">$filename")) {
-            $args{'err'} = 'Server error - Could not open file for writing';
-            WritePage(%args);
+            push(@err, 'Server error - Could not open file for writing');
+        }
+        if (scalar(@err) > 0) {
+            WritePage(patchLevel        => $patchLevel,
+                      branch            => $branch,
+                      identifier        => $identifier,
+                      description       => $description,
+                      type              => $type,
+                      mozillaRepoPath   => $mozillaRepoPath,
+                      tamarinRepoPath   => $tamarinRepoPath,
+                      err               => \@err);
             return;
         }
-        binmode PATCH;
+        binmode(PATCH);
     
         while (<$patchHandle>) {
             print PATCH;
         }
-        close PATCH;
+        if (! close(PATCH)) {
+            push(@err, "Server error - Could not close patchfile.");
+        }
     } elsif ($type eq "hg") {
         # TODO: is this a valid way to test if there's a repo there?
-        if (get($mozillaRepoPath) eq '') {
-            $args{'err'} = 'Mozilla repository path is not valid';
-            WritePage(%args);
-            return;
+        if (!get($mozillaRepoPath)) {
+            push(@err, 'Mozilla repository path is not valid');
         }
 
-        if (get($tamarinRepoPath) eq '') {
-            $args{'err'} = 'Tamarin repository path is not valid';
-            WritePage(%args);
+        if (!get($tamarinRepoPath)) {
+            push(@err, 'Tamarin repository path is not valid');
+        }
+
+        if (scalar(@err) > 0) {
+            WritePage(patchLevel        => $patchLevel,
+                      branch            => $branch,
+                      identifier        => $identifier,
+                      description       => $description,
+                      type              => $type,
+                      mozillaRepoPath   => $mozillaRepoPath,
+                      tamarinRepoPath   => $tamarinRepoPath,
+                      err               => \@err);
             return;
         }
 
         # generate the infofile name
-        $infoFile = "$time-hg.info";
+        $infoFile = "$time-$key-hg.info";
+    } else {
+        push(@err, 'Please test a patch or a Mercurial repository.');
+        WritePage(patchLevel        => $patchLevel,
+                  branch            => $branch,
+                  identifier        => $identifier,
+                  description       => $description,
+                  type              => $type,
+                  mozillaRepoPath   => $mozillaRepoPath,
+                  tamarinRepoPath   => $tamarinRepoPath,
+                  err               => \@err);
+        return;
+    }
+    
+
+    my $mozconfigHandle = upload('mozconfig');
+    if (! -z $mozconfigHandle) {
+        $mozconfig = "$time-$key-$mozconfig";
+        my $filename = catfile($PATCH_DIR, $mozconfig);
+        if (! open(MOZCONFIG, ">$filename")) {
+            push(@err, 'Server error - Could not open file for writing');
+            WritePage(patchLevel        => $patchLevel,
+                      branch            => $branch,
+                      identifier        => $identifier,
+                      description       => $description,
+                      type              => $type,
+                      mozillaRepoPath   => $mozillaRepoPath,
+                      tamarinRepoPath   => $tamarinRepoPath,
+                      err               => \@err);
+            return;
+        }
+        while (<$mozconfigHandle>) {
+            print MOZCONFIG;
+        }
+        if (! close(MOZCONFIG)) {
+            push(@err, "Server error - Could not close mozconfig file");
+            WritePage(patchLevel        => $patchLevel,
+                      branch            => $branch,
+                      identifier        => $identifier,
+                      description       => $description,
+                      type              => $type,
+                      mozillaRepoPath   => $mozillaRepoPath,
+                      tamarinRepoPath   => $tamarinRepoPath,
+                      err               => \@err);
+            return;
+        }
     }
 
     # now write the infofile
-    $filename = "$PATCH_DIR/$infoFile";
+    my $filename = catfile($PATCH_DIR, $infoFile);
 
     if (! open(INFO, ">$filename")) {
-        $args{'err'} = 'Server error - Could not open file for writing';
-        WritePage(%args);
+        push(@err, 'Server error - Could not open file for writing');
+        WritePage(patchLevel        => $patchLevel,
+                  branch            => $branch,
+                  identifier        => $identifier,
+                  description       => $description,
+                  type              => $type,
+                  mozillaRepoPath   => $mozillaRepoPath,
+                  tamarinRepoPath   => $tamarinRepoPath,
+                  err               => \@err);
         return;
     }
 
     print INFO "submitter: $name\n";
-    print INFO "date: $time\n";
     print INFO "type: $type\n";
     if ($type eq "patch") {
-        print INFO "patchfile: $patchFile\n";
+        print INFO "patchFile: $patchFile\n";
+        print INFO "patchLevel: $patchLevel\n";
         print INFO "branch: $branch\n";
     } elsif ($type eq "hg") {
-        print INFO "mozilla-repo: $mozillaRepoPath\n";
-        print INFO "tamarin-repo: $tamarinRepoPath\n";
+        print INFO "mozillaRepoPath: $mozillaRepoPath\n";
+        print INFO "tamarinRepoPath: $tamarinRepoPath\n";
+    } else {
+        push(@err, 'Please test a patch or a Mercurial repository.');
+        WritePage(patchLevel        => $patchLevel,
+                  branch            => $branch,
+                  identifier        => $identifier,
+                  description       => $description,
+                  type              => $type,
+                  mozillaRepoPath   => $mozillaRepoPath,
+                  tamarinRepoPath   => $tamarinRepoPath,
+                  err               => \@err);
+        return;
     }
+    print INFO "identifier: $identifier\n";
+    print INFO "mozconfig: $mozconfig\n";
     print INFO "description: $description\n";
 
-    close(INFO);
+    if (! close(INFO)) {
+        push(@err, "Could not close info file.");
+        WritePage(patchLevel        => $patchLevel,
+                  branch            => $branch,
+                  identifier        => $identifier,
+                  description       => $description,
+                  type              => $type,
+                  mozillaRepoPath   => $mozillaRepoPath,
+                  tamarinRepoPath   => $tamarinRepoPath,
+                  err               => \@err);
+        return;
+    }
 
     WriteSuccessPage();
 }
