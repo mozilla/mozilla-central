@@ -430,3 +430,12 @@ _PR_MD_NOTIFYALL_CV(_MDCVar *cv, _MDLock *lock)
     md_PostNotifyToCvar(cv, lock, PR_TRUE);
     return;
 }
+
+void _PR_MD_UNLOCK(_MDLock *lock)
+{
+    if (0 != lock->notified.length) {
+        md_UnlockAndPostNotifies(lock, NULL, NULL);
+    } else {
+        DosReleaseMutexSem(lock->mutex);
+    }
+}

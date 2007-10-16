@@ -492,7 +492,10 @@ PR_IMPLEMENT(void) PR_LogPrint(const char *fmt, ...)
         _PUT_LOG(logFile, line_long, nb);
         /* Ensure there is a trailing newline. */
         if (!nb || (line_long[nb-1] != '\n')) {
-            _PUT_LOG(logFile, "\n", 1);
+            char eol[2];
+            eol[0] = '\n';
+            eol[1] = '\0';
+            _PUT_LOG(logFile, eol, 1);
         }
         _PR_UNLOCK_LOG();
         PR_smprintf_free(line_long);
