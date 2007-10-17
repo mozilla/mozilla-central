@@ -173,6 +173,8 @@ repackage-win32-installer-%: $(WIN32_INSTALLER_IN)
 
 ifneq (,$(filter mac cocoa,$(MOZ_WIDGET_TOOLKIT)))
 STAGEDIST = $(_ABS_DIST)/l10n-stage/$(MOZ_PKG_APPNAME)/$(_APPNAME)/Contents/MacOS
+# leave out $(STAGEPATH) as we never have a universal/ subdir here
+PKG_DMG_SOURCE = $(MOZ_PKG_APPNAME)
 else
 STAGEDIST = $(_ABS_DIST)/l10n-stage/$(MOZ_PKG_APPNAME)
 endif
