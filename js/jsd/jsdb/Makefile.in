@@ -44,40 +44,17 @@ srcdir		= @srcdir@
 
 include $(DEPTH)/config/autoconf.mk
 
-CSRCS		= jsdrefl.c \
-		  jsdb.c \
-		  ../../src/js.c \
-		  $(NULL)
-
+CSRCS		= jsdrefl.c jsdb.c
 EXPORTS     = jsdb.h
 
 MODULE		= jsd_refl
 LIBRARY_NAME	= jsdr
-PROGRAM		= jsdb$(BIN_SUFFIX)
 
-REQUIRES = jsdebug js
-
-MOZ_JSD_LIBS    = ../jsd$(MOZ_BITS)$(VERSION_NUMBER).$(LIB_SUFFIX)
-
-EXTRA_DSO_LDOPTS += \
-		$(MOZ_JS_LIBS) \
-		$(MOZ_JSD_LIBS) \
-		$(NULL)
-
-LIBS	= \
-	$(EXTRA_DSO_LIBS) \
-	$(EXTRA_DSO_LDOPTS) \
-	$(NULL)
+REQUIRES = jsd mozjs
 
 ifdef JS_THREADSAFE
 DEFINES         += -DJS_THREADSAFE
 endif
 
-DEFINES += -DJSDEBUGGER -DJSDEBUGGER_C_UI -DJSD_LOWLEVEL_SOURCE -DJSFILE
-
 include $(topsrcdir)/config/rules.mk
 
-libs::
-	 $(INSTALL) $(IFLAGS2) ../jsd$(MOZ_BITS)$(VERSION_NUMBER)$(DLL_SUFFIX) $(DIST)/bin
-	 $(INSTALL) $(IFLAGS1) $(srcdir)/debugger.js $(DIST)/bin
-	 $(INSTALL) $(IFLAGS1) $(srcdir)/f.js $(DIST)/bin

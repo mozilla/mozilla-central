@@ -43,11 +43,6 @@
 #include "jsdbpriv.h"
 #include <errno.h>
 
-#ifndef JS_THREADSAFE
-#define JS_BeginRequest(cx) (void)0
-#define JS_EndRequest(cx) (void)0
-#endif
-
 /***************************************************************************/
 
 JS_STATIC_DLL_CALLBACK(void)
@@ -94,7 +89,6 @@ jsdb_ScriptHookProc(JSDContext* jsdc,
     JSDB_Data* data = (JSDB_Data*) callerdata;
     JSFunction* fun;
 
-    JS_BeginRequest(data->cxDebugger);
     if(data->jsScriptHook &&
        NULL != (fun = JS_ValueToFunction(data->cxDebugger, data->jsScriptHook)))
     {
@@ -106,7 +100,6 @@ jsdb_ScriptHookProc(JSDContext* jsdc,
 
         JS_CallFunction(data->cxDebugger, NULL, fun, 2, args, &result);
     }
-    JS_EndRequest(data->cxDebugger);
 }
 
 uintN JS_DLL_CALLBACK
@@ -127,7 +120,6 @@ jsdb_ExecHookHandler(JSDContext*     jsdc,
     if(data->jsdthreadstate)
         return JSD_HOOK_RETURN_CONTINUE;
 
-    JS_BeginRequest(data->cxDebugger);
     if(!jsdb_SetThreadState(data, jsdthreadstate))
         goto label_bail;
 
@@ -158,7 +150,6 @@ jsdb_ExecHookHandler(JSDContext*     jsdc,
 
 label_bail:
     jsdb_SetThreadState(data, NULL);
-    JS_EndRequest(data->cxDebugger);
     return ourRetVal;
 }
 
@@ -186,7 +177,6 @@ jsdb_ErrorReporter(JSDContext*     jsdc,
     JSDB_Data* data = (JSDB_Data*) callerdata;
     JS_ASSERT(data);
 
-    JS_BeginRequest(data->cxDebugger);
     if(data->jsErrorReporterHook &&
        NULL != (fun = JS_ValueToFunction(data->cxDebugger,
                                          data->jsErrorReporterHook)))
@@ -215,7 +205,6 @@ jsdb_ErrorReporter(JSDContext*     jsdc,
         if(JS_ValueToInt32(data->cxDebugger, result, &answer))
             ourRetVal = (uintN) answer;
     }
-    JS_EndRequest(data->cxDebugger);
     return ourRetVal;
 }
 
@@ -416,20 +405,11 @@ _initReturn(const char* str, JSBool retval)
     return retval;
 }
 
-static JSBool
-_initReturn_cx(const char* str, JSBool retval, JSContext* cx)
-{
-    JS_EndRequest(cx);
-    return _initReturn(str, retval);
-}
-
 #define MAX_DEBUGGER_DEPTH 3
 
 JS_EXPORT_API(JSBool)
 JSDB_InitDebugger(JSRuntime* rt, JSDContext* jsdc, int depth)
 {
-    JSContext* cx;
-    JSObject* dbgObj;
     jsval rvalIgnore;
     static char load_deb[] = "load('debugger.js')";
 
@@ -444,36 +424,35 @@ JSDB_InitDebugger(JSRuntime* rt, JSDContext* jsdc, int depth)
     if(!(data->rtDebugger = JS_NewRuntime(8L * 1024L * 1024L)))
         return _initReturn("debugger runtime creation error", JS_FALSE);
 
-    if(!(data->cxDebugger = cx = JS_NewContext(data->rtDebugger, 8192)))
+    if(!(data->cxDebugger = JS_NewContext(data->rtDebugger, 8192)))
         return _initReturn("debugger creation error", JS_FALSE);
 
-    JS_SetContextPrivate(cx, data);
+    JS_SetContextPrivate(data->cxDebugger, data);
 
-    JS_SetErrorReporter(cx, _ErrorReporter);
+    JS_SetErrorReporter(data->cxDebugger, _ErrorReporter);
 
-    JS_BeginRequest(cx);
-    if(!(data->globDebugger = dbgObj =
-            JS_NewObject(cx, &debugger_global_class, NULL, NULL)))
-        return _initReturn_cx("debugger global object creation error", JS_FALSE, cx);
+    if(!(data->globDebugger =
+            JS_NewObject(data->cxDebugger, &debugger_global_class, NULL, NULL)))
+        return _initReturn("debugger global object creation error", JS_FALSE);
 
-    if(!JS_InitStandardClasses(cx, dbgObj))
-        return _initReturn_cx("debugger InitStandardClasses error", JS_FALSE, cx);
+    if(!JS_InitStandardClasses(data->cxDebugger, data->globDebugger))
+        return _initReturn("debugger InitStandardClasses error", JS_FALSE);
 
-    if(!JS_DefineFunctions(cx, dbgObj, debugger_functions))
-        return _initReturn_cx("debugger DefineFunctions error", JS_FALSE, cx);
+    if(!JS_DefineFunctions(data->cxDebugger, data->globDebugger, debugger_functions))
+        return _initReturn("debugger DefineFunctions error", JS_FALSE);
 
     if(!jsdb_ReflectJSD(data))
-        return _initReturn_cx("debugger reflection of JSD API error", JS_FALSE, cx);
+        return _initReturn("debugger reflection of JSD API error", JS_FALSE);
 
     if(data->debuggerDepth < MAX_DEBUGGER_DEPTH)
     {
         JSDContext* local_jsdc;
         if(!(local_jsdc = JSD_DebuggerOnForUser(data->rtDebugger, NULL, NULL)))
-            return _initReturn_cx("failed to create jsdc for nested debugger",
-                               JS_FALSE, cx);
-        JSD_JSContextInUse(local_jsdc, cx);
+            return _initReturn("failed to create jsdc for nested debugger",
+                               JS_FALSE);
+        JSD_JSContextInUse(local_jsdc, data->cxDebugger);
         if(!JSDB_InitDebugger(data->rtDebugger, local_jsdc, data->debuggerDepth))
-            return _initReturn_cx("failed to init nested debugger", JS_FALSE, cx);
+            return _initReturn("failed to init nested debugger", JS_FALSE);
     }
 
     JSD_SetScriptHook(jsdc, jsdb_ScriptHookProc, data);
@@ -486,10 +465,10 @@ JSDB_InitDebugger(JSRuntime* rt, JSDContext* jsdc, int depth)
     JS_SetSourceHandler(data->rtDebugger, SendSourceToJSDebugger, jsdc);
 #endif /* JSD_LOWLEVEL_SOURCE */
 
-    JS_EvaluateScript(cx, dbgObj,
+    JS_EvaluateScript(data->cxDebugger, data->globDebugger,
                       load_deb, sizeof(load_deb)-1, "jsdb_autoload", 1,
                       &rvalIgnore);
 
-    return _initReturn_cx(NULL, JS_TRUE, cx);
+    return _initReturn(NULL, JS_TRUE);
 }
 
