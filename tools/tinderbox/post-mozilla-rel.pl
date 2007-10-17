@@ -1103,8 +1103,8 @@ sub pushit {
       push(@cmds,"ssh $ssh_opts -l $Settings::ssh_user $ssh_server  rsync -avz $complete_remote_path/ $remote_path/latest-$Settings::milestone/");
     }
 
-    if ( $cachebuild ) {
-      push(@cmds,"ssh $ssh_opts -l $Settings::ssh_user $ssh_server 'cd $remote_path && ln -s $datedir/$short_ud/ .'");
+    if ( $cachebuild && $datedir ne '') {
+      push(@cmds,"ssh $ssh_opts -l $Settings::ssh_user $ssh_server 'cd $remote_path && if [ ! -h $short_ud ]; then ln -s ${datedir}${short_ud} .; fi'");
     }
   } elsif ( $Settings::ReleaseToLatest ) {
     push(@cmds,"ssh $ssh_opts -l $Settings::ssh_user $ssh_server mkdir -p $remote_path/latest-$Settings::milestone");
