@@ -464,29 +464,6 @@ class MozillaInstallDmg(ShellCommand):
         return SUCCESS
 
 
-from buildbot.process.buildstep import BuildStep
-
-class MozillaChangePusher(BuildStep):
-    warnOnFailure = True
-    name = "resubmit extra changes"
-
-    def start(self):
-        changes = self.step_status.build.getChanges()
-        if len(changes) > 1:
-            builderName = self.step_status.build.builder.name
-            remainingChanges = changes[1:] # everything but the first
-            # get rid of the rest of the changes in the Build and BuildStatus
-            changes = changes[:1] # only the first one
-            self.step_status.build.changes = changes
-            bs = BuildSet([builderName], SourceStamp(changes=remainingChanges))
-            # submit the buildset back to the BuildMaster
-            self.build.builder.botmaster.parent.submitBuildSet(bs)
-            self.finished(SUCCESS)
-            return
-
-        self.finished(SKIPPED)
-        return SKIPPED
- 
 def main(argv=None):
     if argv is None:
         argv = sys.argv
