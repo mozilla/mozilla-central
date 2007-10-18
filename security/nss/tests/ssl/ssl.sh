@@ -847,15 +847,17 @@ if [ -z  "$DO_REM_ST" -a -z  "$DO_DIST_ST" ] ; then
     # Test all combinations of client bypass and server bypass
 
     if [ -z "$NSS_TEST_DISABLE_CIPHERS" ] ; then
-	if [ -n "$NSS_TEST_DISABLE_BYPASS" ] ; then
+        if [ -n "$NSS_TEST_DISABLE_BYPASS" ] ; then
             SERVER_OPTIONS=""
             CLIENT_OPTIONS=""
             BYPASS_STRING="No Bypass"
             ssl_run
-	fi
+        fi
 
-        if [ -z "$NSS_TEST_DISABLE_BYPASS" -a -z "$NSS_TEST_DISABLE_CLIENT_BYPASS" ] ; then
-            CLIENT_OPTIONS="-B -s"
+        if [ -z "$NSS_TEST_DISABLE_BYPASS" -a \
+            -z "$NSS_TEST_DISABLE_CLIENT_BYPASS" -a \
+            -z "$NSS_TEST_SERVER_CLIENT_BYPASS" ] ; then
+            CLIENT_OPTIONS="-B -s" 
             SERVER_OPTIONS=""
             BYPASS_STRING="Client Bypass"
             ssl_run
@@ -863,13 +865,23 @@ if [ -z  "$DO_REM_ST" -a -z  "$DO_DIST_ST" ] ; then
             echo "$SCRIPTNAME: Skipping Cipher Coverage - Client Bypass Tests"
         fi
 
-        if [ -z "$NSS_TEST_DISABLE_BYPASS" -a -z "$NSS_TEST_DISABLE_SERVER_BYPASS" ] ; then
+        if [ -z "$NSS_TEST_DISABLE_BYPASS" -a \
+            -z "$NSS_TEST_DISABLE_SERVER_BYPASS" -a \
+            -z "$NSS_TEST_SERVER_CLIENT_BYPASS" ] ; then
             SERVER_OPTIONS="-B -s"
             CLIENT_OPTIONS=""
             BYPASS_STRING="Server Bypass"
             ssl_run
         else
             echo "$SCRIPTNAME: Skipping Cipher Coverage - Server Bypass Tests"
+        fi
+
+        if [ -n "$NSS_TEST_SERVER_CLIENT_BYPASS" -a \
+            -z "$NSS_TEST_DISABLE_BYPASS" ] ; then
+            SERVER_OPTIONS="-B -s"
+            CLIENT_OPTIONS="-B -s"
+            BYPASS_STRING="Server Bypass/Client Bypass"
+            ssl_run
         fi
 
         if [ -z "$NSS_TEST_DISABLE_FIPS" ] ; then

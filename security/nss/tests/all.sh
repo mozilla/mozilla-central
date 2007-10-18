@@ -116,8 +116,36 @@ if [ -z "${INIT_SOURCED}" -o "${INIT_SOURCED}" != "TRUE" ]; then
     . ./init.sh
 fi
 
+OLD_HOSTDIR="${HOSTDIR}"
+OLD_TESTS="${TESTS}"
+OLD_NSS_TEST_SERVER_CLIENT_BYPASS="${NSS_TEST_SERVER_CLIENT_BYPASS}"
+OLD_NSS_TEST_DISABLE_FIPS="${NSS_TEST_DISABLE_FIPS}"
+
 # test the old DATABASE
 run_tests
+
+if [ -z "$NSS_TEST_DISABLE_PKIX" ] ; then
+    NSS_ENABLE_PKIX_VERIFY="1"
+    export NSS_ENABLE_PKIX_VERIFY
+
+    TABLE_ARGS="bgcolor=cyan"
+    TESTS=`echo "${OLD_TESTS}" | sed -e "s/cipher//" -e "s/libpkix//"`
+    NSS_TEST_SERVER_CLIENT_BYPASS="1"
+    NSS_TEST_DISABLE_FIPS="1"
+
+    HOSTDIR="${HOSTDIR}/pkix"
+    mkdir -p "${HOSTDIR}"
+    init_directories
+
+    run_tests
+    
+    unset NSS_ENABLE_PKIX_VERIFY
+
+    TABLE_ARGS=
+    NSS_TEST_SERVER_CLIENT_BYPASS="${OLD_NSS_TEST_SERVER_CLIENT_BYPASS}"
+    NSS_TEST_DISABLE_FIPS="${OLD_NSS_TEST_DISABLE_FIPS}"
+    HOSTDIR="${OLD_HOSTDIR}"
+fi
 
 # 'reset' the databases to initial values
 echo "Reset databases to their initial values:" | tee -a ${LOGFILE}
@@ -161,13 +189,12 @@ NSS_DEFAULT_DB_TYPE="sql"
 export NSS_DEFAULT_DB_TYPE
 
 # run run the subset of tests with the upgraded database
-old_tests=${TESTS}
 TESTS="tools fips sdr crmf smime ssl ocsp"
 run_tests
 
 
 # test the new DATABASE
-TESTS=${old_tests}
+TESTS=${OLD_TESTS}
 #force IOPR tests off for now...
 unset IOPR_HOSTADDR_LIST
 mkdir -p ${HOSTDIR}/sharedb

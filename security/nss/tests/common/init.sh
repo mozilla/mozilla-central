@@ -78,6 +78,65 @@ export NSS_STRICT_SHUTDOWN
 
 if [ -z "${INIT_SOURCED}" -o "${INIT_SOURCED}" != "TRUE" ]; then
 
+    init_directories()
+    {
+        TMP=${HOSTDIR}      #TMP=${TMP-/tmp}
+        TEMP=${TMP}
+        TMPDIR=${TMP}
+
+        CADIR=${HOSTDIR}/CA
+        SERVERDIR=${HOSTDIR}/server
+        CLIENTDIR=${HOSTDIR}/client
+        ALICEDIR=${HOSTDIR}/alicedir
+        BOBDIR=${HOSTDIR}/bobdir
+        DAVEDIR=${HOSTDIR}/dave
+        EVEDIR=${HOSTDIR}/eve
+        FIPSDIR=${HOSTDIR}/fips
+        DBPASSDIR=${HOSTDIR}/dbpass
+        ECCURVES_DIR=${HOSTDIR}/eccurves
+
+        SERVER_CADIR=${HOSTDIR}/serverCA
+        CLIENT_CADIR=${HOSTDIR}/clientCA
+        EXT_SERVERDIR=${HOSTDIR}/ext_server
+        EXT_CLIENTDIR=${HOSTDIR}/ext_client
+
+        IOPR_CADIR=${HOSTDIR}/CA_iopr
+        IOPR_SSL_SERVERDIR=${HOSTDIR}/server_ssl_iopr
+        IOPR_SSL_CLIENTDIR=${HOSTDIR}/client_ssl_iopr
+        IOPR_OCSP_CLIENTDIR=${HOSTDIR}/client_ocsp_iopr
+
+        CERT_EXTENSIONS_DIR=${HOSTDIR}/cert_extensions
+
+        PWFILE=${HOSTDIR}/tests.pw.$$
+        NOISE_FILE=${HOSTDIR}/tests_noise.$$
+        CORELIST_FILE=${HOSTDIR}/clist.$$
+
+        FIPSPWFILE=${HOSTDIR}/tests.fipspw.$$
+        FIPSBADPWFILE=${HOSTDIR}/tests.fipsbadpw.$$
+        FIPSP12PWFILE=${HOSTDIR}/tests.fipsp12pw.$$
+    
+        echo "fIps140" > ${FIPSPWFILE}
+        echo "fips104" > ${FIPSBADPWFILE}
+        echo "pKcs12fips140" > ${FIPSP12PWFILE}
+
+        P_SERVER_CADIR=${SERVER_CADIR}
+        P_CLIENT_CADIR=${CLIENT_CADIR}
+    
+        if [ -n "${MULTIACCESS_DBM}" ]; then
+            P_SERVER_CADIR="multiaccess:${D_SERVER_CA}"
+            P_CLIENT_CADIR="multiaccess:${D_CLIENT_CA}"
+        fi
+
+
+        # a new log file, short - fast to search, mostly for tools to
+        # see if their portion of the cert has succeeded, also for me -
+        CERT_LOG_FILE=${HOSTDIR}/cert.log      #the output.log is so crowded...
+
+        TEMPFILES="${PWFILE} ${NOISE_FILE}"
+
+        export HOSTDIR
+    }
+
 # Exit shellfunction to clean up at exit (error, regular or signal)
     Exit()
     {
@@ -380,40 +439,8 @@ if [ -z "${INIT_SOURCED}" -o "${INIT_SOURCED}" != "TRUE" ]; then
     # would like to preserve some tmp files, also easier to see if there 
     # are "leftovers" - another possibility ${HOSTDIR}/tmp
 
-    TMP=${HOSTDIR}      #TMP=${TMP-/tmp}
-    TEMP=${TMP}
-    TMPDIR=${TMP}
+    init_directories
 
-    CADIR=${HOSTDIR}/CA
-    SERVERDIR=${HOSTDIR}/server
-    CLIENTDIR=${HOSTDIR}/client
-    ALICEDIR=${HOSTDIR}/alicedir
-    BOBDIR=${HOSTDIR}/bobdir
-    DAVEDIR=${HOSTDIR}/dave
-    EVEDIR=${HOSTDIR}/eve
-    FIPSDIR=${HOSTDIR}/fips
-    DBPASSDIR=${HOSTDIR}/dbpass
-    ECCURVES_DIR=${HOSTDIR}/eccurves
-
-    SERVER_CADIR=${HOSTDIR}/serverCA
-    CLIENT_CADIR=${HOSTDIR}/clientCA
-    EXT_SERVERDIR=${HOSTDIR}/ext_server
-    EXT_CLIENTDIR=${HOSTDIR}/ext_client
-
-    IOPR_CADIR=${HOSTDIR}/CA_iopr
-    IOPR_SSL_SERVERDIR=${HOSTDIR}/server_ssl_iopr
-    IOPR_SSL_CLIENTDIR=${HOSTDIR}/client_ssl_iopr
-    IOPR_OCSP_CLIENTDIR=${HOSTDIR}/client_ocsp_iopr
-
-    CERT_EXTENSIONS_DIR=${HOSTDIR}/cert_extensions
-
-    PWFILE=${TMP}/tests.pw.$$
-    NOISE_FILE=${TMP}/tests_noise.$$
-    CORELIST_FILE=${TMP}/clist.$$
-
-    FIPSPWFILE=${TMP}/tests.fipspw.$$
-    FIPSBADPWFILE=${TMP}/tests.fipsbadpw.$$
-    FIPSP12PWFILE=${TMP}/tests.fipsp12pw.$$
     FIPSCERTNICK="FIPS_PUB_140_Test_Certificate"
 
     # domains to handle ipc based access to databases
@@ -464,8 +491,6 @@ if [ -z "${INIT_SOURCED}" -o "${INIT_SOURCED}" != "TRUE" ]; then
     P_R_CLIENTDIR=${R_CLIENTDIR}
     P_R_EXT_SERVERDIR=${R_EXT_SERVERDIR}
     P_R_EXT_CLIENTDIR=${R_EXT_CLIENTDIR}
-    P_SERVER_CADIR=${SERVER_CADIR}
-    P_CLIENT_CADIR=${CLIENT_CADIR}
     if [ -n "${MULTIACCESS_DBM}" ]; then
 	P_R_CADIR="multiaccess:${D_CA}"
 	P_R_ALICEDIR="multiaccess:${D_ALICE}"
@@ -476,8 +501,6 @@ if [ -z "${INIT_SOURCED}" -o "${INIT_SOURCED}" != "TRUE" ]; then
 	P_R_CLIENTDIR="multiaccess:${D_CLIENT}"
 	P_R_EXT_SERVERDIR="multiaccess:${D_EXT_SERVER}"
 	P_R_EXT_CLIENTDIR="multiaccess:${D_EXT_CLIENT}"
-	P_SERVER_CADIR="multiaccess:${D_SERVER_CA}"
-	P_CLIENT_CADIR="multiaccess:${D_CLIENT_CA}"
     fi
 
     R_PWFILE=../tests.pw.$$
@@ -487,21 +510,12 @@ if [ -z "${INIT_SOURCED}" -o "${INIT_SOURCED}" != "TRUE" ]; then
     R_FIPSBADPWFILE=../tests.fipsbadpw.$$
     R_FIPSP12PWFILE=../tests.fipsp12pw.$$
 
-    echo "fIps140" > ${FIPSPWFILE}
-    echo "fips104" > ${FIPSBADPWFILE}
-    echo "pKcs12fips140" > ${FIPSP12PWFILE}
-
-    # a new log file, short - fast to search, mostly for tools to
-    # see if their portion of the cert has succeeded, also for me -
-    CERT_LOG_FILE=${HOSTDIR}/cert.log      #the output.log is so crowded...
-
-    TEMPFILES="${PWFILE} ${NOISE_FILE}"
     trap "Exit $0 Signal_caught" 2 3
 
     export PATH LD_LIBRARY_PATH SHLIB_PATH LIBPATH DYLD_LIBRARY_PATH
     export DOMSUF HOSTADDR
     export KILL PS
-    export MOZILLA_ROOT SECURITY_ROOT DIST TESTDIR OBJDIR HOSTDIR QADIR
+    export MOZILLA_ROOT SECURITY_ROOT DIST TESTDIR OBJDIR QADIR
     export LOGFILE SCRIPTNAME
 
 #used for the distributed stress test, the server generates certificates 
