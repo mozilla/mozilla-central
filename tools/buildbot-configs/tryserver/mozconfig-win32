@@ -1,0 +1,10 @@
+mk_add_options MOZ_CO_PROJECT=browser
+ac_add_options --enable-application=browser
+mk_add_options MOZ_OBJDIR=@TOPSRCDIR@/objdir
+mk_add_options MOZ_PACKAGE_NSIS=1
+ac_add_options --enable-optimize
+ac_add_options --disable-debug
+ac_add_options --disable-tests
+
+# for hg win3 2builds
+ac_add_options --enable-oji

@@ -1,0 +1,12 @@
+if [ -f $topsrcdir/build/macosx/universal/mozconfig ]; then
+  . $topsrcdir/build/macosx/universal/mozconfig
+fi
+
+mk_add_options MOZ_CO_PROJECT=browser
+mk_add_options MOZ_MAKE_FLAGS="-j4"
+ac_add_options --enable-application=browser
+mk_add_options MOZ_OBJDIR=@TOPSRCDIR@/objdir
+ac_add_options --enable-optimize="-O2 -g"
+ac_add_app_options ppc --enable-prebinding
+ac_add_options --disable-debug
+ac_add_options --disable-tests
