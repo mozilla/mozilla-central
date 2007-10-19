@@ -105,7 +105,7 @@
     </groupbox>
 
 
-    <groupbox flex="1">
+    <groupbox>
       <caption label="&newMessagesArrive.label;"/>
 #ifdef XP_MACOSX
       <checkbox id="newMailNotificationBounce" label="&bounceSystemDockIcon.label;"
