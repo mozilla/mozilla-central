@@ -483,6 +483,15 @@ nsAbOSXDirectory::Init(const char *aUri)
 }
 
 NS_IMETHODIMP
+nsAbOSXDirectory::GetURI(nsACString &aURI)
+{
+  aURI.AssignLiteral(NS_ABOSXDIRECTORY_URI_PREFIX);
+  aURI.AppendLiteral("/");
+
+  return NS_OK;
+}
+
+NS_IMETHODIMP
 nsAbOSXDirectory::GetOperations(PRInt32 *aOperations)
 {
   *aOperations = nsIAbDirectory::opRead |

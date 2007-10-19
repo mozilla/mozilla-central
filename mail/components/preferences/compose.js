@@ -145,7 +145,9 @@ var gComposePane = {
       while (enumerator.hasMoreElements())
       {
         var addrbook = enumerator.getNext();
-        if (addrbook instanceof Components.interfaces.nsIAbDirectory && !addrbook.isRemote && !addrbook.isMailList)
+        if (addrbook instanceof Components.interfaces.nsIAbDirectory &&
+            !addrbook.isRemote && !addrbook.isMailList &&
+            (addrbook.operations & addrbook.opWrite))
         {
           var abURI = addrbook.URI;
           item = document.createElement("menuitem");

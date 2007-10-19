@@ -89,7 +89,7 @@ interface nsIAbDirectory : nsISupports {
   // The filename for address books within this directory.
   readonly attribute ACString fileName;
 
-  // The URI of the address book
+  // The RDF resource URI of the address book
   readonly attribute ACString URI;
 
   // The position of the directory on the display.
