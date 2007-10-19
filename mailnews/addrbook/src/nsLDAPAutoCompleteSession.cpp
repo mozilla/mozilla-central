@@ -83,6 +83,7 @@ nsLDAPAutoCompleteSession::~nsLDAPAutoCompleteSession()
     if (mSearchAttrs) {
         NS_FREE_XPCOM_ALLOCATED_POINTER_ARRAY(mSearchAttrsSize, mSearchAttrs);
     }
+    NS_IF_RELEASE(mConnection);
 }
 
 #define IS_CJK_CHAR_FOR_LDAP(u)  (0x2e80 <= (u) && (u) <= 0xd7ff)
