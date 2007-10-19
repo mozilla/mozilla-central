@@ -923,7 +923,7 @@ cert_ssl()
   certu -M -n "TestCA" -t "TC,TC,TC" -d ${PROFILEDIR} -f "${R_PWFILE}"
   if [ -n "$NSS_ENABLE_ECC" ] ; then
       CU_ACTION="Modify trust attributes of EC Root CA -t TC,TC,TC"
-      certu -M -n "TestCA-ec" -t "TC,TC,TC" -d ${PROFILEDIR}
+      certu -M -n "TestCA-ec" -t "TC,TC,TC" -d ${PROFILEDIR} -f "${R_PWFILE}"
   fi
 #  cert_init_cert ${SERVERDIR} "${HOSTADDR}" 1 ${D_SERVER}
 #  echo "************* Copying CA files to ${SERVERDIR}"
