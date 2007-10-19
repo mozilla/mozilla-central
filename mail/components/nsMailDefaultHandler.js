@@ -170,7 +170,7 @@ var nsMailDefaultHandler = {
           switch (remoteParams[0].toLowerCase()) {
           case "openinbox":
             var wm = Components.classes["@mozilla.org/appshell/window-mediator;1"]
-                               .getService(Components.classes.nsIWindowMediator);
+                               .getService(nsIWindowMediator);
             var win = wm.getMostRecentWindow("mail:3pane");
             if (win) {
               win.focus();
