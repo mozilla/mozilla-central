@@ -72,7 +72,7 @@ function addWidgetFor(item) {
     var time = item.startDate || item.entryDate || item.dueDate;
     var dateFormatter = Components.classes["@mozilla.org/calendar/datetime-formatter;1"]
                                   .getService(Components.interfaces.calIDateTimeFormatter);
-    widget.setAttribute("time", dateFormatter.formatDateTime(time));
+    widget.setAttribute("time", dateFormatter.formatDateTime(time.getInTimezone(calendarDefaultTimezone())));
     widget.setAttribute("location", item.getProperty("LOCATION"));
     widget.addEventListener("snooze", onSnoozeAlarm, false);
     widget.addEventListener("dismiss", onDismissAlarm, false);
