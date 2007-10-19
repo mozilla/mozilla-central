@@ -361,7 +361,9 @@ nsresult nsEudoraWin32::ScanDescmap( nsIFile *pFolder, nsISupportsArray *pArray,
     fName.Truncate();
     if (fieldLen)
       fName.Append( pStart, fieldLen);
-    fName.Trim( kWhitespace);
+    // Descmap file name is written without any extraneous white space - i.e.
+    // if there's whitespace present it's intentional and important. Don't
+    // strip whitespace from the fName.
     pos++;
     pData++;
     pStart = pData;
