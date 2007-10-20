@@ -485,13 +485,15 @@ nsContextMenu.prototype = {
     var selection = this.searchSelected();
 
     if (selection != "") {
-      var bundle = srGetStrBundle("chrome://communicator/locale/contentAreaCommands.properties");
       var searchSelectText = selection.toString();
       if (searchSelectText.length > 15)
         searchSelectText = searchSelectText.substr(0,15) + "...";
       result = true;
 
       // Format "Search for <selection>" string to show in menu.
+      var sbs = Components.classes["@mozilla.org/intl/stringbundle;1"]
+                          .getService(Components.interfaces.nsIStringBundleService);
+      var bundle = sbs.createBundle("chrome://communicator/locale/contentAreaCommands.properties");
       searchSelectText = bundle.formatStringFromName("searchText",
                                                      [searchSelectText], 1);
       this.setItemAttr("context-searchselect", "label", searchSelectText);
