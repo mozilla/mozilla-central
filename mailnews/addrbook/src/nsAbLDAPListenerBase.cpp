@@ -294,6 +294,7 @@ NS_IMETHODIMP nsAbLDAPListenerBase::OnLDAPInit(nsILDAPConnection *aConn, nsresul
   if (NS_FAILED(rv))
   {
     NS_ERROR("nsAbLDAPMessageBase::OnLDAPInit(): failed to perform bind operation");
+    mOperation = 0; // Break Listener->Operation->Listener reference cycle
     InitFailed();
   }
   return rv;
