@@ -18,7 +18,6 @@ defaults/profile/extensions/Extensions.rdf
 defaults/profile/extensions/installed-extensions.txt
 defaults/profile/extensions/
 defaults/profile/US/
-dictionaries/*
 # {641d8d09-7dda-4850-8228-ac0ab65e2ac9} = DOM Inspector
 extensions/{641d8d09-7dda-4850-8228-ac0ab65e2ac9}/install.rdf
 extensions/{641d8d09-7dda-4850-8228-ac0ab65e2ac9}/
