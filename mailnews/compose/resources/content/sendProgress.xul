@@ -24,6 +24,7 @@
  Contributor(s):
    Scott MacGregor <mscott@netscape.com>
    Jean-Francois Ducarroz <ducarroz@netscape.com>
+   Žiga Sancin <bisi@pikslar.com>
 
  Alternatively, the contents of this file may be used under the terms of
  either of the GNU General Public License Version 2 or later (the "GPL"),
@@ -52,19 +53,7 @@
         ondialogcancel="return onCancel();">
 
   <script type="application/x-javascript" src="chrome://messenger/content/messengercompose/sendProgress.js"/>
-
-    <!-- This is non-visible content that simply adds translatable string
-         into the document so that it is accessible to JS code.
-         
-         XXX-TODO: 
-          convert to use string bundles. 
-    -->
-  
-    <data id="dialog.strings.titlePrefixSend">&titlePrefixSend;</data>
-    <data id="dialog.strings.titlePrefixSave">&titlePrefixSave;</data>
-    <data id="dialog.strings.messageSent">&messageSent;</data>
-    <data id="dialog.strings.messageSaved">&messageSaved;</data>
-    <data id="dialog.strings.progressText">&percentMsg;</data>
+  <stringbundle id="sendProgressStringBundle" src="chrome://messenger/locale/messengercompose/sendProgress.properties"/>
 
     <grid flex="1">
       <columns>
@@ -75,13 +64,13 @@
       <rows>
         <row>
           <hbox pack="end">
-            <label value="&status;"/>
+            <label value="&status.label;"/>
           </hbox>
           <label id="dialog.status" crop="center"/>
         </row>
         <row class="thin-separator">             
           <hbox pack="end">
-            <label value="&progress;"/>
+            <label value="&progress.label;"/>
           </hbox>
           <progressmeter id="dialog.progress" mode="normal" value="0"/>
           <hbox pack="end">

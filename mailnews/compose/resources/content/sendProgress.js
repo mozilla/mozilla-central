@@ -24,6 +24,7 @@
  *   William A. ("PowerGUI") Law <law@netscape.com>
  *   Scott MacGregor <mscott@netscape.com>
  *   jean-Francois Ducarroz <ducarroz@netscape.com>
+ *   Žiga Sancin <bisi@pikslar.com>
  *
  * Alternatively, the contents of this file may be used under the terms of
  * either of the GNU General Public License Version 2 or later (the "GPL"),
@@ -49,6 +50,7 @@ var msgProgress = null;
 
 // random global variables...
 var itsASaveOperation = false;
+var gSendProgressStringBundle;
 
 // all progress notifications are done through the nsIWebProgressListener implementation...
 var progressListener = {
@@ -57,8 +59,7 @@ var progressListener = {
       if (aStateFlags & Components.interfaces.nsIWebProgressListener.STATE_START)
       {
         // Put progress meter in undetermined mode.
-        // dialog.progress.setAttribute( "value", 0 );
-        dialog.progress.setAttribute( "mode", "undetermined" );
+        dialog.progress.setAttribute("mode", "undetermined");
       }
       
       if (aStateFlags & Components.interfaces.nsIWebProgressListener.STATE_STOP)
@@ -67,16 +68,15 @@ var progressListener = {
         // Indicate completion in status area.
         var msg;
         if (itsASaveOperation)
-          msg = getString( "messageSaved" );
+          msg = gSendProgressStringBundle.getString("messageSaved");
         else
-          msg = getString( "messageSent" );
+          msg = gSendProgressStringBundle.getString("messageSent");
         dialog.status.setAttribute("value", msg);
 
         // Put progress meter at 100%.
-        dialog.progress.setAttribute( "value", 100 );
-        dialog.progress.setAttribute( "mode", "normal" );
-        var percentMsg = getString( "progressText" );
-        percentMsg = replaceInsert( percentMsg, 1, 100 );
+        dialog.progress.setAttribute("value", 100);
+        dialog.progress.setAttribute("mode", "normal");
+        var percentMsg = gSendProgressStringBundle.getFormattedString("percentMsg", [100]);
         dialog.progressText.setAttribute("value", percentMsg);
 
         window.close();
@@ -87,26 +87,25 @@ var progressListener = {
     {
       // Calculate percentage.
       var percent;
-      if ( aMaxTotalProgress > 0 ) 
+      if (aMaxTotalProgress > 0)
       {
-        percent = Math.round( (aCurTotalProgress*100)/aMaxTotalProgress );
-        if ( percent > 100 )
+        percent = Math.round(aCurTotalProgress / aMaxTotalProgress * 100);
+        if (percent > 100)
           percent = 100;
         
-        dialog.progress.removeAttribute( "mode");
+        dialog.progress.removeAttribute("mode");
         
         // Advance progress meter.
-        dialog.progress.setAttribute( "value", percent );
+        dialog.progress.setAttribute("value", percent);
 
         // Update percentage label on progress meter.
-        var percentMsg = getString( "progressText" );
-        percentMsg = replaceInsert( percentMsg, 1, percent );
+        var percentMsg = gSendProgressStringBundle.getFormattedString("percentMsg", [percent]);
         dialog.progressText.setAttribute("value", percentMsg);
       } 
       else 
       {
         // Progress meter should be barber-pole in this case.
-        dialog.progress.setAttribute( "mode", "undetermined" );
+        dialog.progress.setAttribute("mode", "undetermined");
         // Update percentage label on progress meter.
         dialog.progressText.setAttribute("value", "");
       }
@@ -139,39 +138,11 @@ var progressListener = {
     }
 };
 
-function getString( stringId ) {
-   // Check if we've fetched this string already.
-   if (!(stringId in dialog.strings)) {
-      // Try to get it.
-      var elem = document.getElementById( "dialog.strings."+stringId );
-      try {
-        if ( elem
-           &&
-           elem.childNodes
-           &&
-           elem.childNodes[0]
-           &&
-           elem.childNodes[0].nodeValue ) {
-         dialog.strings[ stringId ] = elem.childNodes[0].nodeValue;
-        } else {
-          // If unable to fetch string, use an empty string.
-          dialog.strings[ stringId ] = "";
-        }
-      } catch (e) { dialog.strings[ stringId ] = ""; }
-   }
-   return dialog.strings[ stringId ];
-}
-
-function replaceInsert( text, index, value ) {
-   var result = text;
-   var regExp = new RegExp( "#"+index );
-   result = result.replace( regExp, value );
-   return result;
-}
-
-function onLoad() {
+function onLoad()
+{
     // Set global variables.
     var subject = "";
+    gSendProgressStringBundle = document.getElementById("sendProgressStringBundle");
     msgProgress = window.arguments[0];
     if (window.arguments[1])
     {
@@ -183,16 +154,16 @@ function onLoad() {
       }
     }
 
-    if ( !msgProgress ) {
-        dump("Invalid argument to sendProgress.xul\n");
-        window.close()
-        return;
+    if (!msgProgress)
+    {
+      dump("Invalid argument to sendProgress.xul\n");
+      window.close()
+      return;
     }
 
-    dialog = new Object;
-    dialog.strings = new Array;
-    dialog.status      = document.getElementById("dialog.status");
-    dialog.progress    = document.getElementById("dialog.progress");
+    dialog = {};
+    dialog.status       = document.getElementById("dialog.status");
+    dialog.progress     = document.getElementById("dialog.progress");
     dialog.progressText = document.getElementById("dialog.progressText");
 
     // set our web progress listener on the helper app launcher
@@ -200,20 +171,18 @@ function onLoad() {
     moveToAlertPosition();
 
     var prefix = itsASaveOperation ? "titlePrefixSave" : "titlePrefixSend";
-    document.title = getString(prefix) + " " + subject;
+    document.title = gSendProgressStringBundle.getString(prefix) + " " + subject;
 }
 
 function onUnload() 
 {
   if (msgProgress)
   {
-   try 
-   {
-     msgProgress.unregisterListener(progressListener);
-     msgProgress = null;
-   }
-    
-   catch( exception ) {}
+    try
+    {
+      msgProgress.unregisterListener(progressListener);
+      msgProgress = null;
+    } catch (e) {}
   }
 }
 
@@ -221,11 +190,13 @@ function onUnload()
 function onCancel () 
 {
   // Cancel app launcher.
-   try 
-   {
-     msgProgress.processCanceledByUser = true;
-   }
-   catch( exception ) {return true;}
+  try
+  {
+    msgProgress.processCanceledByUser = true;
+  } catch (e)
+  {
+    return true;
+  }
     
   // don't Close up dialog by returning false, the backend will close the dialog when everything will be aborted.
   return false;
