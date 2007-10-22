@@ -46,6 +46,7 @@
 PKIX_Boolean pkix_pl_initialized = PKIX_FALSE;
 pkix_ClassTable_Entry systemClasses[PKIX_NUMTYPES];
 PRLock *classTableLock;
+PRLogModuleInfo *pkixLog = NULL;
 
 /*
  * PKIX_ALLOC_ERROR is a special error object hard-coded into the
@@ -84,6 +85,38 @@ PKIX_Error* PKIX_ALLOC_ERROR(void)
     return &pkix_Alloc_Error_Data.error;
 }
 
+static PKIX_UInt32
+pkix_pl_lifecycle_ObjectLeakCheck()
+{
+        int   typeCounter = 0;
+        PKIX_UInt32 numObjects = 0;
+        char  classNameBuff[128];
+        char *className = NULL;
+
+        for (; typeCounter < PKIX_NUMTYPES; typeCounter++) {
+                pkix_ClassTable_Entry *entry = &systemClasses[typeCounter];
+
+                numObjects += entry->objCounter;
+                
+                if (!pkixLog || !entry->objCounter) {
+                    continue;
+                }
+                className = entry->description;
+                if (!className) {
+                    className = classNameBuff;
+                    sprintf(className, "Unknown(ref %d)", 
+                            entry->objCounter);
+                }
+
+                PR_LOG(pkixLog, 1, ("Class %s leaked %d objects of "
+                        "size %d bytes, total = %d bytes\n", className, 
+                        entry->objCounter, entry->typeObjectSize,
+                        entry->objCounter * entry->typeObjectSize));
+        }
+ 
+        return numObjects;
+}
+
 /*
  * PKIX_PL_Initialize (see comments in pkix_pl_system.h)
  */
@@ -94,9 +127,6 @@ PKIX_PL_Initialize(
         void **pPlContext)
 {
         void *plContext = NULL;
-
-        pkix_ClassTable_Entry nullEntry = {NULL};
-        /* XXX currently using canned value for config dir; add to plContext */
 
         PKIX_ENTER(OBJECT, "PKIX_PL_Initialize");
 
@@ -113,15 +143,20 @@ PKIX_PL_Initialize(
             return PKIX_ALLOC_ERROR();
         }
 
-        /* we don't need to register OBJECT */
-        systemClasses[PKIX_OBJECT_TYPE] = nullEntry;
+        if (PR_GetEnv("NSS_STRICT_SHUTDOWN")) {
+            pkixLog = PR_NewLogModule("pkix");
+        }
+        /*
+         * Register Object, it is the base object of all other objects.
+         */
+        pkix_pl_Object_RegisterSelf(plContext);
 
         /*
          * Register Error and String, since they will be needed if
          * there is a problem in registering any other type.
          */
         pkix_Error_RegisterSelf(plContext);
-        (void) pkix_pl_String_RegisterSelf(plContext);
+        pkix_pl_String_RegisterSelf(plContext);
 
 
         /*
@@ -131,20 +166,17 @@ PKIX_PL_Initialize(
          * if we register them in the same order as their
          * numbers, defined in pkixt.h.
          */
-        (void) pkix_pl_BigInt_RegisterSelf(plContext);   /* 1-10 */
-        (void) pkix_pl_ByteArray_RegisterSelf(plContext);
-        /* already registered! pkix_Error_RegisterSelf(plContext); */
-        (void) pkix_pl_HashTable_RegisterSelf(plContext);
+        pkix_pl_BigInt_RegisterSelf(plContext);   /* 1-10 */
+        pkix_pl_ByteArray_RegisterSelf(plContext);
+        pkix_pl_HashTable_RegisterSelf(plContext);
         pkix_List_RegisterSelf(plContext);
         pkix_Logger_RegisterSelf(plContext);
-        (void) pkix_pl_Mutex_RegisterSelf(plContext);
-        (void) pkix_pl_OID_RegisterSelf(plContext);
-        (void) pkix_pl_RWLock_RegisterSelf(plContext);
-        /* already registered! pkix_pl_String_RegisterSelf(plContext); */
+        pkix_pl_Mutex_RegisterSelf(plContext);
+        pkix_pl_OID_RegisterSelf(plContext);
+        pkix_pl_RWLock_RegisterSelf(plContext);
 
         pkix_pl_CertBasicConstraints_RegisterSelf(plContext); /* 11-20 */
         pkix_pl_Cert_RegisterSelf(plContext);
-        /* pkix_HttpClient_RegisterSelf(plContext); */
         pkix_pl_CRL_RegisterSelf(plContext);
         pkix_pl_CRLEntry_RegisterSelf(plContext);
         pkix_pl_Date_RegisterSelf(plContext);
@@ -187,7 +219,7 @@ PKIX_PL_Initialize(
         pkix_pl_Socket_RegisterSelf(plContext);
 
         pkix_ResourceLimits_RegisterSelf(plContext); /* 51-59 */
-        (void) pkix_pl_MonitorLock_RegisterSelf(plContext);
+        pkix_pl_MonitorLock_RegisterSelf(plContext);
         pkix_pl_InfoAccess_RegisterSelf(plContext);
         pkix_pl_AIAMgr_RegisterSelf(plContext);
         pkix_OcspChecker_RegisterSelf(plContext);
@@ -217,6 +249,8 @@ cleanup:
 PKIX_Error *
 PKIX_PL_Shutdown(void *plContext)
 {
+        PKIX_UInt32 numLeakedObjects = 0;
+
         PKIX_ENTER(OBJECT, "PKIX_PL_Shutdown");
 
         if (!pkix_pl_initialized) {
@@ -226,6 +260,12 @@ PKIX_PL_Shutdown(void *plContext)
 
         PR_DestroyLock(classTableLock);
 
+        numLeakedObjects = pkix_pl_lifecycle_ObjectLeakCheck();
+
+        if (PR_GetEnv("NSS_STRICT_SHUTDOWN")) {
+            PORT_Assert(numLeakedObjects == 0);
+        }
+
         if (plContext != NULL) {
                 PKIX_PL_NssContext_Destroy(plContext);
         }
@@ -233,5 +273,4 @@ PKIX_PL_Shutdown(void *plContext)
         pkix_pl_initialized = PKIX_FALSE;
 
         PKIX_RETURN(OBJECT);
-
 }

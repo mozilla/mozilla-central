@@ -544,7 +544,7 @@ typedef PKIX_Error *
  */
 PKIX_Error *
 PKIX_PL_Object_Alloc(
-        PKIX_UInt32 type,
+        PKIX_TYPENUM type,
         PKIX_UInt32 size,
         PKIX_PL_Object **pObject,
         void *plContext);

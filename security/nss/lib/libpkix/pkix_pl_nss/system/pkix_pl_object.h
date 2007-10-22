@@ -73,7 +73,7 @@ extern "C" {
 struct PKIX_PL_ObjectStruct {
         PKIX_UInt32 magicHeader;
         PKIX_UInt32 type;
-        PKIX_UInt32 references;
+        PKIX_Int32 references;
         PRLock *lock;
         PKIX_PL_String *stringRep;
         PKIX_UInt32 hashcode;
@@ -102,6 +102,10 @@ PKIX_PL_Object_RegisterSystemType(
 extern PKIX_Boolean initializing;
 extern PKIX_Boolean initialized;
 extern PRLock *classTableLock;
+extern pkix_ClassTable_Entry systemClasses[PKIX_NUMTYPES];
+
+PKIX_Error *
+pkix_pl_Object_RegisterSelf(void *plContext);
 
 #ifdef __cplusplus
 }
