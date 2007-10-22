@@ -543,6 +543,18 @@ calGoogleSession.prototype = {
                                     aItemReturnOccurrences,
                                     aResponseListener,
                                     aExtraData) {
+        // Requesting only a DATE returns items based on UTC. Therefore, we make
+        // sure both start and end dates include a time and timezone. This may
+        // not quite be what was requested, but I'd say its a shortcoming of
+        // rfc3339.
+        if (aRangeStart) {
+            aRangeStart = aRangeStart.clone();
+            aRangeStart.isDate = false;
+        }
+        if (aRangeEnd) {
+            aRangeEnd = aRangeEnd.clone();
+            aRangeEnd.isDate = false;
+        }
 
         var rfcRangeStart = toRFC3339(aRangeStart);
         var rfcRangeEnd = toRFC3339(aRangeEnd);
