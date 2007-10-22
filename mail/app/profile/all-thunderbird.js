@@ -312,6 +312,7 @@ pref("browser.download.manager.openDelay", 100);
 pref("browser.download.manager.focusWhenStarting", false);
 pref("browser.download.manager.flashCount", 0);
 pref("browser.download.manager.displayedHistoryDays", 7);
+pref("browser.download.manager.addToRecentDocs", true);
 
 pref("javascript.options.showInConsole",    true);
 
