@@ -38,10 +38,9 @@
 
 #include "nsAbMDBCard.h"	 
 #include "nsIRDFService.h"
-#include "nsIServiceManager.h"
+#include "nsServiceManagerUtils.h"
 #include "nsRDFCID.h"
-#include "nsString.h"
-#include "nsReadableUtils.h"
+#include "nsStringGlue.h"
 #include "nsCOMPtr.h"
 #include "nsAbBaseCID.h"
 

@@ -42,8 +42,9 @@
 #include "nsIAddrBookSession.h"
 #include "nsILocalFile.h"
 #include "nsIDirectoryService.h"
+#include "nsDirectoryServiceUtils.h"
 #include "nsAppDirectoryServiceDefs.h"
-#include "nsString.h"
+#include "nsStringGlue.h"
 
 NS_IMPL_THREADSAFE_ISUPPORTS1(nsAddrBookSession, nsIAddrBookSession)
     
@@ -262,7 +263,7 @@ NS_IMETHODIMP nsAddrBookSession::GenerateNameFromCard(nsIAbCard *card, PRInt32 g
     // it is better than nothing.
     card->GetPrimaryEmail(name);
     PRInt32 index = name.FindChar('@');
-    if (index != kNotFound)
+    if (index != -1)
       name.SetLength(index);
   }
 

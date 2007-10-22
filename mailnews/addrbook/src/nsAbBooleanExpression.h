@@ -41,7 +41,7 @@
 
 #include "nsIAbBooleanExpression.h"
 #include "nsCOMPtr.h"
-#include "nsString.h"
+#include "nsStringGlue.h"
 
 class nsAbBooleanConditionString : public nsIAbBooleanConditionString
 {

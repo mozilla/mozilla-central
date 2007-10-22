@@ -43,7 +43,7 @@
 #include "nsIAbDirectory.h"
 #include "nsIRDFService.h"
 #include "rdf.h"
-#include "nsString.h"
+#include "nsStringGlue.h"
 #include "nsServiceManagerUtils.h"
 #include "nsAbOSXDirectory.h"
 

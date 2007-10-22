@@ -40,7 +40,7 @@
 #define nsAbDirectoryRDFResource_h__
 
 #include "nsRDFResource.h"
-#include "nsString.h"
+#include "nsStringGlue.h"
 
 class nsAbDirectoryRDFResource : public nsRDFResource
 {

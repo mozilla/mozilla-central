@@ -43,7 +43,7 @@
 #include "nsIAbDirectoryQuery.h"
 #include "nsIAbDirectory.h"
 #include "nsCOMPtr.h"
-#include "nsString.h"
+#include "nsStringGlue.h"
 #include "nsVoidArray.h"
 
 class nsAbDirectoryQuerySimpleBooleanExpression : public nsIAbBooleanExpression

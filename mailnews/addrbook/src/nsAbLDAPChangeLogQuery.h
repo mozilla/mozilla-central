@@ -42,7 +42,7 @@
 #define nsAbLDAPChangeLogQuery_h__
 
 #include "nsAbLDAPReplicationQuery.h"
-#include "nsString.h"
+#include "nsStringGlue.h"
 
 class nsAbLDAPChangeLogQuery : public nsIAbLDAPChangeLogQuery,
                                public nsAbLDAPReplicationQuery

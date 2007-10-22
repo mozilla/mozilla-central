@@ -36,7 +36,7 @@
  *
  * ***** END LICENSE BLOCK ***** */
 #include "nsIAddrDatabase.h"
-#include "nsString.h"
+#include "nsStringGlue.h"
 #include "nsAbLDIFService.h"
 #include "nsIFile.h"
 #include "nsILineInputStream.h"
@@ -48,6 +48,8 @@
 #include "prmem.h"
 #include "prprf.h"
 #include "nsCRTGlue.h"
+
+#include <ctype.h>
 
 NS_IMPL_ISUPPORTS1(nsAbLDIFService, nsIAbLDIFService)
 
@@ -124,7 +126,7 @@ NS_IMETHODIMP nsAbLDIFService::ImportLDIFFile(nsIAddrDatabase *aDb, nsIFile *aSr
 
       while (NS_SUCCEEDED(GetLdifStringRecord(buf, len, startPos)))
       {
-        if (mLdifLine.Find("groupOfNames") == kNotFound)
+        if (mLdifLine.Find("groupOfNames") == -1)
           AddLdifRowToDatabase(PR_FALSE);
         else
         {
@@ -141,7 +143,7 @@ NS_IMETHODIMP nsAbLDIFService::ImportLDIFFile(nsIAddrDatabase *aDb, nsIFile *aSr
     }
   }
   //last row
-  if (!mLdifLine.IsEmpty() && mLdifLine.Find("groupOfNames") == kNotFound)
+  if (!mLdifLine.IsEmpty() && mLdifLine.Find("groupOfNames") == -1)
     AddLdifRowToDatabase(PR_FALSE); 
 
   // mail Lists
@@ -170,7 +172,7 @@ NS_IMETHODIMP nsAbLDIFService::ImportLDIFFile(nsIAddrDatabase *aDb, nsIFile *aSr
 
         while (NS_SUCCEEDED(GetLdifStringRecord(listBuf, len, startPos)))
         {
-          if (mLdifLine.Find("groupOfNames") != kNotFound)
+          if (mLdifLine.Find("groupOfNames") != -1)
           {
             AddLdifRowToDatabase(PR_TRUE);
             if (NS_SUCCEEDED(seekableStream->Seek(nsISeekableStream::NS_SEEK_SET, 0)))
@@ -585,9 +587,9 @@ void nsAbLDIFService::AddLdifColToDatabase(nsIMdbRow* newRow, char* typeSlot, ch
     else if (colType.EqualsLiteral("mozillausehtmlmail"))
     {
       ToLowerCase(column);
-      if (kNotFound != column.Find("true"))
+      if (-1 != column.Find("true"))
         mDatabase->AddPreferMailFormat(newRow, nsIAbPreferMailFormat::html);
-      else if (kNotFound != column.Find("false"))
+      else if (-1 != column.Find("false"))
         mDatabase->AddPreferMailFormat(newRow, nsIAbPreferMailFormat::plaintext);
       else
         mDatabase->AddPreferMailFormat(newRow, nsIAbPreferMailFormat::unknown);
@@ -723,9 +725,9 @@ void nsAbLDIFService::AddLdifColToDatabase(nsIMdbRow* newRow, char* typeSlot, ch
     else if (colType.EqualsLiteral("xmozillausehtmlmail"))
     {
       ToLowerCase(column);
-      if (kNotFound != column.Find("true"))
+      if (-1 != column.Find("true"))
         mDatabase->AddPreferMailFormat(newRow, nsIAbPreferMailFormat::html);
-      else if (kNotFound != column.Find("false"))
+      else if (-1 != column.Find("false"))
         mDatabase->AddPreferMailFormat(newRow, nsIAbPreferMailFormat::plaintext);
       else
         mDatabase->AddPreferMailFormat(newRow, nsIAbPreferMailFormat::unknown);
@@ -871,10 +873,10 @@ NS_IMETHODIMP nsAbLDIFService::IsLDIFFile(nsIFile *pSrc, PRBool *_retval)
 void nsAbLDIFService::SplitCRLFAddressField(nsCString &inputAddress, nsCString &outputLine1, nsCString &outputLine2) const
 {
   PRInt32 crlfPos = inputAddress.Find("\r\n");
-  if (crlfPos != kNotFound)
+  if (crlfPos != -1)
   {
-    inputAddress.Left(outputLine1, crlfPos);
-    inputAddress.Right(outputLine2, inputAddress.Length() - (crlfPos + 2));
+    outputLine1 = Substring(inputAddress, 0, crlfPos);
+    outputLine2 = Substring(inputAddress, crlfPos + 2);
   }
   else
     outputLine1.Assign(inputAddress);

@@ -38,14 +38,12 @@
  *
  * ***** END LICENSE BLOCK ***** */
 
-#include "nsString.h"
 #include "nsLDAPAutoCompleteSession.h"
 #include "nsIComponentManager.h"
 #include "nsIServiceManager.h"
 #include "nsIProxyObjectManager.h"
 #include "nsILDAPURL.h"
 #include "nsILDAPService.h"
-#include "nsReadableUtils.h"
 #include "nspr.h"
 #include "nsIStringBundle.h"
 #include "nsCRTGlue.h"
@@ -56,6 +54,7 @@
 #include "nsILDAPService.h"
 #include "nsILDAPMessage.h"
 #include "nsILDAPErrors.h"
+#include "nsXPCOMCIDInternal.h"
 
 #ifdef PR_LOGGING
 static PRLogModuleInfo *sLDAPAutoCompleteLogModule = 0;
@@ -122,10 +121,8 @@ nsLDAPAutoCompleteSession::OnStartLookup(const PRUnichar *searchString,
     // that are too short
     //
     if (searchString[0] == 0 ||
-        nsDependentString(searchString).FindChar(PRUnichar('@'), 0) != 
-        kNotFound || 
-        nsDependentString(searchString).FindChar(PRUnichar(','), 0) != 
-        kNotFound || 
+        nsDependentString(searchString).FindChar(PRUnichar('@'), 0) != -1 || 
+        nsDependentString(searchString).FindChar(PRUnichar(','), 0) != -1 || 
         ( !IS_CJK_CHAR_FOR_LDAP(searchString[0]) ?
           mMinStringLength && NS_strlen(searchString) < mMinStringLength :
           mCjkMinStringLength && NS_strlen(searchString) < 
@@ -608,7 +605,12 @@ nsLDAPAutoCompleteSession::DoTask()
 
     // get a proxy object so the callback happens on the main thread
     //
-    rv = NS_GetProxyForObject(NS_PROXY_TO_MAIN_THREAD, 
+    nsCOMPtr<nsIProxyObjectManager> proxyObjMgr = do_CreateInstance(NS_XPCOMPROXY_CONTRACTID, &rv);
+    if (NS_FAILED(rv)) {
+        FinishAutoCompleteLookup(nsIAutoCompleteStatus::failureItems, rv, UNBOUND);
+        return NS_ERROR_FAILURE;
+    }
+    rv = proxyObjMgr->GetProxyForObject(NS_PROXY_TO_MAIN_THREAD,
                               NS_GET_IID(nsILDAPMessageListener), 
                               static_cast<nsILDAPMessageListener *>(this), 
                               NS_PROXY_ASYNC | NS_PROXY_ALWAYS, 
@@ -886,7 +888,12 @@ nsLDAPAutoCompleteSession::InitConnection()
 
     // get a proxy object so the callback happens on the main thread
     //
-    rv = NS_GetProxyForObject(NS_PROXY_TO_MAIN_THREAD,
+    nsCOMPtr<nsIProxyObjectManager> proxyObjMgr = do_CreateInstance(NS_XPCOMPROXY_CONTRACTID, &rv);
+    if (NS_FAILED(rv)) {
+        FinishAutoCompleteLookup(nsIAutoCompleteStatus::failureItems, rv, UNBOUND);
+        return NS_ERROR_FAILURE;
+    }
+    rv = proxyObjMgr->GetProxyForObject(NS_PROXY_TO_MAIN_THREAD, 
                               NS_GET_IID(nsILDAPMessageListener), 
                               static_cast<nsILDAPMessageListener *>(this), 
                               NS_PROXY_ASYNC | NS_PROXY_ALWAYS, 

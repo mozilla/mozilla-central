@@ -40,10 +40,9 @@
 
 #include "nsAbCardProperty.h"
 #include "nsIServiceManager.h"
-#include "nsString.h"
+#include "nsStringGlue.h"
 #include "nsAbBaseCID.h"
 #include "nsCOMPtr.h"
-#include "nsReadableUtils.h"
 #include "nsUnicharUtils.h"
 #include "nsIPrefService.h"
 #include "nsIPrefBranch.h"
@@ -59,6 +58,8 @@
 #include "nsRDFCID.h"
 #include "nsMsgUtils.h"
 #include "nsINetUtil.h"
+#include "nsComponentManagerUtils.h"
+#include "nsServiceManagerUtils.h"
 
 #include "nsVCardObj.h"
 
@@ -1228,7 +1229,7 @@ NS_IMETHODIMP nsAbCardProperty::ConvertToXMLPrintData(nsAString &aXMLSubstr)
   NS_ENSURE_SUCCESS(rv,rv);
 
   nsString xmlStr;
-  xmlStr.SetCapacity(4096); // to reduce allocations. should be enough for most cards
+  xmlStr.SetLength(4096); // to reduce allocations. should be enough for most cards
   xmlStr.AssignLiteral("<GeneratedName>\n");
 
   nsCOMPtr<nsIStringBundle> bundle;

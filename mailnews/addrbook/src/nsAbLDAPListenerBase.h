@@ -46,7 +46,7 @@
 #include "nsILDAPURL.h"
 #include "nsILDAPConnection.h"
 #include "nsILDAPOperation.h"
-#include "nsString.h"
+#include "nsStringGlue.h"
 
 class nsAbLDAPListenerBase : public nsILDAPMessageListener
 {

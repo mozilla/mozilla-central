@@ -38,7 +38,7 @@
  * ***** END LICENSE BLOCK ***** */
 
 #include "nsAbOSXUtils.h"
-#include "nsString.h"
+#include "nsStringGlue.h"
 #include "nsAbOSXCard.h"
 
 #include <AddressBook/AddressBook.h>

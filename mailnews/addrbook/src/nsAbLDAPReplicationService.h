@@ -41,7 +41,7 @@
 
 #include "nsIAbLDAPReplicationService.h"
 #include "nsIAbLDAPReplicationQuery.h"
-#include "nsString.h"
+#include "nsStringGlue.h"
 
 class nsAbLDAPReplicationService : public nsIAbLDAPReplicationService
 {

@@ -37,7 +37,6 @@
  * ***** END LICENSE BLOCK ***** */
 
 #include "nsAbBooleanExpression.h"
-#include "nsReadableUtils.h"
 
 NS_IMPL_THREADSAFE_ISUPPORTS1(nsAbBooleanConditionString, nsIAbBooleanConditionString)
 

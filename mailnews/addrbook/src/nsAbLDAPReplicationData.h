@@ -49,7 +49,7 @@
 #include "nsDirPrefs.h"
 #include "nsIAbLDAPAttributeMap.h"
 #include "nsIAbLDAPDirectory.h"
-#include "nsString.h"
+#include "nsStringGlue.h"
 
 class nsAbLDAPProcessReplicationData : public nsIAbLDAPProcessReplicationData,
                                        public nsAbLDAPListenerBase

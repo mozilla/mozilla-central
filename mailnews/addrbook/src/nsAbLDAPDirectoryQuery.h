@@ -46,7 +46,7 @@
 #include "nsILDAPURL.h"
 #include "nsWeakReference.h"
 
-#include "nsString.h"
+#include "nsStringGlue.h"
 #include "nsHashtable.h"
 #include "nsCOMArray.h"
 

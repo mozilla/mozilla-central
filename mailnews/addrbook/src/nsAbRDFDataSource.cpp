@@ -51,10 +51,11 @@
 #include "nsIProxyObjectManager.h"
 
 #include "nsCOMPtr.h"
-#include "nsString.h"
 #include "nsAutoLock.h"
-#include "nsIServiceManager.h"
+#include "nsServiceManagerUtils.h"
+#include "nsComponentManagerUtils.h"
 #include "nsThreadUtils.h"
+#include "nsXPCOMCIDInternal.h"
 
 // this is used for notification of observers using nsVoidArray
 typedef struct _nsAbRDFNotification {
@@ -135,7 +136,10 @@ nsresult nsAbRDFDataSource::CreateProxyObserver (nsIRDFObserver* observer,
    * events.
    * This causes the UI to pause.
    */
-  rv = NS_GetProxyForObject (
+   nsCOMPtr<nsIProxyObjectManager> proxyObjMgr = do_CreateInstance(NS_XPCOMPROXY_CONTRACTID, &rv);
+   NS_ENSURE_SUCCESS(rv, rv);
+
+   rv = proxyObjMgr->GetProxyForObject (
     NS_PROXY_TO_MAIN_THREAD,
     NS_GET_IID(nsIRDFObserver),
     observer,

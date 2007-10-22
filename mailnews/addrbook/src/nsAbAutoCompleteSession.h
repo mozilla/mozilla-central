@@ -40,7 +40,7 @@
 
 #include "msgCore.h"
 #include "nsCOMPtr.h"
-#include "nsReadableUtils.h"
+#include "nsStringGlue.h"
 #include "nsIMsgHeaderParser.h"
 #include "nsIAbDirectory.h"
 #include "nsIAbAutoCompleteSession.h"

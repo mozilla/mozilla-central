@@ -52,7 +52,7 @@
 #include "nsCOMPtr.h"
 #include "nsDirPrefs.h"
 #include "nsIAddrDatabase.h"
-#include "nsString.h"
+#include "nsStringGlue.h"
 #include "nsIPrefBranch.h"
 
  /* 

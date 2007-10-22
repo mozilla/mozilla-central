@@ -51,14 +51,14 @@
 #include "nsIObserverService.h"
 
 #include "nsCOMPtr.h"
-#include "nsString.h"
+#include "nsStringGlue.h"
 
 #include "nsMsgRDFUtils.h"
 #include "nsILocaleService.h"
 #include "nsCollationCID.h"
 #include "prmem.h"
 #include "nsServiceManagerUtils.h"
-#include "nsCRT.h"
+#include "nsComponentManagerUtils.h"
 
 #define NC_RDF_DIRNAME              "http://home.netscape.com/NC-rdf#DirName"
 #define NC_RDF_DIRURI               "http://home.netscape.com/NC-rdf#DirUri"
@@ -443,11 +443,11 @@ NS_IMETHODIMP nsAbDirectoryDataSource::OnItemPropertyChanged(nsISupports *item, 
 
   if (NS_SUCCEEDED(rv))
   {
-    if (PL_strcmp("DirName", property) == 0)
+    if (strcmp("DirName", property) == 0)
     {
       NotifyPropertyChanged(resource, kNC_DirName, oldValue, newValue);
     }
-    else if (PL_strcmp("IsSecure", property) == 0)
+    else if (strcmp("IsSecure", property) == 0)
     {
       NotifyPropertyChanged(resource, kNC_IsSecure, oldValue, newValue);
     }

@@ -47,7 +47,6 @@
 #include "nsProxiedService.h"
 #include "nsAbUtils.h"
 #include "nsDirPrefs.h"
-#include "nsCRT.h"
 #include "prmem.h"
 #include "nsIRDFService.h"
 

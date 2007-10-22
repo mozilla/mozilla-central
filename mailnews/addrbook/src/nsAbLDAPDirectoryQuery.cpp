@@ -49,12 +49,11 @@
 #include "nsIAbLDAPCard.h"
 #include "nsAbUtils.h"
 #include "nsAbBaseCID.h"
-#include "nsString.h"
+#include "nsStringGlue.h"
 #include "nsAutoLock.h"
 #include "nsIProxyObjectManager.h"
 #include "prprf.h"
-#include "nsCRT.h"
-#include "nsIServiceManager.h"
+#include "nsServiceManagerUtils.h"
 #include "nsCategoryManagerUtils.h"
 #include "nsAbLDAPDirectory.h"
 #include "nsAbLDAPListenerBase.h"
@@ -400,7 +399,7 @@ NS_IMETHODIMP nsAbLDAPDirectoryQuery::DoQuery(nsIAbDirectory *aDirectory,
     rv = mDirectoryUrl->Equals(currentUrl, &equal);
       NS_ENSURE_SUCCESS(rv, rv);
   
-    nsXPIDLCString spec;
+    nsCString spec;
     mDirectoryUrl->GetSpec(spec);
     currentUrl->GetSpec(spec);
 

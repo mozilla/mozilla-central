@@ -41,7 +41,7 @@
 #include <windows.h>
 #include <mapix.h>
 
-#include "nsString.h"
+#include "nsStringGlue.h"
 #include "nsVoidArray.h"
  
 struct nsMapiEntry

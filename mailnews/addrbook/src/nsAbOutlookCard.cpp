@@ -37,7 +37,6 @@
  *
  * ***** END LICENSE BLOCK ***** */
 #include "nsAbOutlookCard.h"
-#include "nsCRT.h"
 #include "prlog.h"
 
 #ifdef PR_LOGGING

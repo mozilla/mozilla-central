@@ -41,7 +41,7 @@
 #include "nsIRDFService.h"
 #include "nsIServiceManager.h"
 #include "nsRDFCID.h"
-#include "nsString.h"
+#include "nsStringGlue.h"
 #include "nsCOMPtr.h"
 #include "nsAbBaseCID.h"
 #include "nsAddrDatabase.h"

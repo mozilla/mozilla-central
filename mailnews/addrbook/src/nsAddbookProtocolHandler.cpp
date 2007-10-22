@@ -37,8 +37,7 @@
  *
  * ***** END LICENSE BLOCK ***** */
 #include "msgCore.h"    // precompiled header...
-#include "nsString.h"
-#include "nsReadableUtils.h"
+#include "nsStringGlue.h"
 #include "nsIIOService.h"
 
 #include "nsIStreamListener.h"
@@ -223,7 +222,7 @@ nsAddbookProtocolHandler::GeneratePrintOutput(nsIAddbookUrl *addbookUrl,
    into "moz-abmdbdirectory/abook.mab"
    */
   PRInt32 pos = uri.Find("?action=print");
-	if (pos == kNotFound)
+	if (pos == -1)
     return NS_ERROR_UNEXPECTED;
 
   uri.SetLength(pos);
@@ -233,7 +232,7 @@ nsAddbookProtocolHandler::GeneratePrintOutput(nsIAddbookUrl *addbookUrl,
    into "moz-abmdbdirectory://abook.mab"
    */
   pos = uri.Find("/");
-  if (pos == kNotFound)
+  if (pos == -1)
     return NS_ERROR_UNEXPECTED;
 
   uri.Insert('/', pos);

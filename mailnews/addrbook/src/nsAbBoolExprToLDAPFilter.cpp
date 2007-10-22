@@ -39,7 +39,7 @@
 
 #include "nsIAbLDAPAttributeMap.h"
 #include "nsAbBoolExprToLDAPFilter.h"
-#include "nsString.h"
+#include "nsStringGlue.h"
 
 const int nsAbBoolExprToLDAPFilter::TRANSLATE_CARD_PROPERTY = 1 << 0 ;
 const int nsAbBoolExprToLDAPFilter::ALLOW_NON_CONVERTABLE_CARD_PROPERTY = 1 << 1 ;

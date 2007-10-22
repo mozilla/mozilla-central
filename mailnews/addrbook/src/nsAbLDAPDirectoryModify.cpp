@@ -46,6 +46,10 @@
 #include "nsIProxyObjectManager.h"
 #include "nsIAbLDAPDirectory.h"
 #include "nsIMutableArray.h"
+#include "nsComponentManagerUtils.h"
+#include "nsXPCOMCIDInternal.h"
+
+#include <stdio.h>
 
 class nsAbModifyLDAPMessageListener : public nsAbLDAPListenerBase
 {
@@ -231,8 +235,11 @@ nsresult nsAbModifyLDAPMessageListener::DoTask()
   mModifyOperation = do_CreateInstance(NS_LDAPOPERATION_CONTRACTID, &rv);
   NS_ENSURE_SUCCESS(rv, rv);
 
+  nsCOMPtr<nsIProxyObjectManager> proxyObjMgr = do_CreateInstance(NS_XPCOMPROXY_CONTRACTID, &rv);
+  NS_ENSURE_SUCCESS(rv, rv);
+
   nsCOMPtr<nsILDAPMessageListener> proxyListener;
-  rv = NS_GetProxyForObject( NS_PROXY_TO_MAIN_THREAD,
+  rv = proxyObjMgr->GetProxyForObject( NS_PROXY_TO_MAIN_THREAD,
                              NS_GET_IID(nsILDAPMessageListener),
                              this, NS_PROXY_SYNC | NS_PROXY_ALWAYS,
                              getter_AddRefs(proxyListener));

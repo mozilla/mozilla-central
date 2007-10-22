@@ -39,7 +39,8 @@
 #include "nsAbDirectoryRDFResource.h"
 #include "nsIURL.h"
 #include "nsNetCID.h"
-#include "nsIServiceManager.h"
+#include "nsServiceManagerUtils.h"
+#include "nsComponentManagerUtils.h"
 
 nsAbDirectoryRDFResource::nsAbDirectoryRDFResource () :
     nsRDFResource (),

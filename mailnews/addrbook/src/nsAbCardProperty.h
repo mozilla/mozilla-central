@@ -47,7 +47,7 @@
 
 #include "nsIAbCard.h"  
 #include "nsCOMPtr.h"
-#include "nsString.h"
+#include "nsStringGlue.h"
 
 class nsIStringBundle;
 class mozITXTToHTMLConv;

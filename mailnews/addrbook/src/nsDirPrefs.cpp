@@ -46,7 +46,8 @@
 #include "nsIPrefLocalizedString.h"
 #include "nsIObserver.h"
 #include "nsVoidArray.h"
-#include "nsIServiceManager.h"
+#include "nsServiceManagerUtils.h"
+#include "nsMemory.h"
 #include "nsIAddrDatabase.h"
 #include "nsAbBaseCID.h"
 #include "nsIAddrBookSession.h"
@@ -60,6 +61,8 @@
 #include "prprf.h"
 #include "plstr.h"
 #include "nsQuickSort.h"
+
+#include <ctype.h>
 
 /*****************************************************************************
  * Private definitions
@@ -1215,7 +1218,7 @@ static nsresult DIR_GetServerPreferences(nsVoidArray** list)
     return err;
 
   PRInt32 version = -1;
-  nsVoidArray *newList;
+  nsVoidArray *newList = nsnull;
   
   /* Update the ldap list version and see if there are old prefs to migrate. */
   err = pPref->GetIntPref(PREF_LDAP_VERSION_NAME, &version);

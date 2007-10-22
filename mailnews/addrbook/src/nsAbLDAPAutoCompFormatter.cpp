@@ -39,14 +39,15 @@
 
 #include "nsAbLDAPAutoCompFormatter.h"
 #include "nsIAutoCompleteResults.h"
-#include "nsIServiceManager.h"
+#include "nsServiceManagerUtils.h"
+#include "nsComponentManagerUtils.h"
 #include "nsIMsgHeaderParser.h"
 #include "nsILDAPMessage.h"
-#include "nsReadableUtils.h"
 #include "nsIStringBundle.h"
 #include "nsXPCOM.h"
 #include "nsISupportsPrimitives.h"
 #include "nsNetError.h"
+#include "nsMemory.h"
 #include "nsILDAPErrors.h"
 
 #define LDAP_ERROR_BUNDLE "chrome://mozldap/locale/ldap.properties"
@@ -443,9 +444,8 @@ nsAbLDAPAutoCompFormatter::ProcessFormat(const nsAString & aFormat,
 
     // get some iterators to parse aFormat
     //
-    nsReadingIterator<PRUnichar> iter, iterEnd;
-    aFormat.BeginReading(iter);
-    aFormat.EndReading(iterEnd);
+    const PRUnichar *iter = aFormat.BeginReading();
+    const PRUnichar *iterEnd = aFormat.EndReading();
 
     // get the console service for error logging
     //
@@ -473,8 +473,8 @@ nsAbLDAPAutoCompFormatter::ProcessFormat(const nsAString & aFormat,
 
         case PRUnichar('['):
 
-            rv = ParseAttrName(iter, iterEnd, attrRequired, consoleSvc, 
-                               attrName);
+            rv = ParseAttrName(iter, iterEnd, attrRequired, 
+                               consoleSvc, attrName);
             if ( NS_FAILED(rv) ) {
 
                 // something unrecoverable happened; stop parsing and 
@@ -486,8 +486,22 @@ nsAbLDAPAutoCompFormatter::ProcessFormat(const nsAString & aFormat,
             // if we're building an array
             if ( aAttrs ) { 
 
+                // see if the string is already present in the array
+                int i = 0, found = -1;
+                while ( i < aAttrs->Count() ) {
+#ifdef MOZILLA_INTERNAL_API
+                    if (aAttrs->CStringAt(i)->Equals(attrName, nsCaseInsensitiveCStringComparator())) {
+#else
+                    if (aAttrs->CStringAt(i)->Equals(attrName, CaseInsensitiveCompare)) {
+#endif
+                        found = i;
+                        break;
+                    }
+                    ++i;
+                }
+
                 // and it doesn't already contain this string
-                if (aAttrs->IndexOfIgnoreCase(attrName) == -1) { 
+                if (found == -1) { 
 
                     // add it
                     if (!aAttrs->AppendCString(attrName)) {
@@ -556,7 +570,7 @@ nsAbLDAPAutoCompFormatter::ProcessFormat(const nsAString & aFormat,
 
                 // this character gets treated as a literal
                 //
-                aValue->Append(NS_ConvertUTF16toUTF8(nsDependentString(iter.get(),1)));
+                aValue->Append(NS_ConvertUTF16toUTF8(nsDependentString(iter,1)));
             }
         }
 
@@ -568,8 +582,8 @@ nsAbLDAPAutoCompFormatter::ProcessFormat(const nsAString & aFormat,
 
 nsresult 
 nsAbLDAPAutoCompFormatter::ParseAttrName(
-    nsReadingIterator<PRUnichar> &aIter,        // iterators for mOutputString
-    nsReadingIterator<PRUnichar> &aIterEnd, 
+    const PRUnichar *aIter,                     // iterators for mOutputString
+    const PRUnichar *aIterEnd, 
     PRBool aAttrRequired,                       // required?  or just optional?
     nsCOMPtr<nsIConsoleService> &aConsoleSvc,   // no need to reacquire this
     nsACString &aAttrName)                      // attribute token

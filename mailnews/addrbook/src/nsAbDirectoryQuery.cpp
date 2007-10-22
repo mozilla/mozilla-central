@@ -44,8 +44,7 @@
 
 #include "nsIRDFResource.h"
 
-#include "nsString.h"
-#include "nsReadableUtils.h"
+#include "nsStringGlue.h"
 #include "nsUnicharUtils.h"
 #include "nsIAbDirSearchListener.h"
 
@@ -490,14 +489,19 @@ nsresult nsAbDirectoryQuery::matchCardCondition (nsIAbCard* card,
             *matchFound = PR_TRUE;
             break;
         case nsIAbBooleanConditionTypes::Contains:
-            // When we move to frozen linkage, this should be:
-            // *matchFound = value.Find(matchValue, CaseInsensitiveCompare) >= 0;
+#ifdef MOZILLA_INTERNAL_API
             *matchFound = FindInReadable(matchValue, value, nsCaseInsensitiveStringComparator());
+#else
+            *matchFound = value.Find(matchValue, CaseInsensitiveCompare) >= 0;
+#endif
+
             break;
         case nsIAbBooleanConditionTypes::DoesNotContain:
-            // When we move to frozen linkage, this should be:
-            // *matchFound = value.Find(matchValue, CaseInsensitiveCompare) == -1;
+#ifdef MOZILLA_INTERNAL_API
             *matchFound = !FindInReadable(matchValue, value, nsCaseInsensitiveStringComparator());
+#else
+            *matchFound = value.Find(matchValue, CaseInsensitiveCompare) == -1;
+#endif
             break;
         case nsIAbBooleanConditionTypes::Is:
             *matchFound = value.Equals(matchValue, nsCaseInsensitiveStringComparator());

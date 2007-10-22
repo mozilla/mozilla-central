@@ -42,7 +42,7 @@
 #include "nsIRDFDataSource.h"
 #include "nsIRDFService.h"
 #include "nsCOMArray.h"
-#include "nsString.h"
+#include "nsStringGlue.h"
 #include "nsCycleCollectionParticipant.h"
 
 /**

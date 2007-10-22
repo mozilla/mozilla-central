@@ -43,7 +43,7 @@
 #include "nsIAddrDatabase.h"
 #include "mdb.h"
 #include "nsVoidArray.h"
-#include "nsString.h"
+#include "nsStringGlue.h"
 #include "nsIAddrDBListener.h"
 #include "nsISupportsArray.h"
 #include "nsCOMPtr.h"

@@ -38,12 +38,11 @@
 
 #include "msgCore.h"
 #include "nsAbAutoCompleteSession.h"
-#include "nsString.h"
+#include "nsStringGlue.h"
 #include "nsRDFCID.h"
 #include "nsIRDFService.h"
 #include "nsIAbDirectory.h"
 #include "nsIAbCard.h"
-#include "nsReadableUtils.h"
 #include "nsUnicharUtils.h"
 #include "nsMsgBaseCID.h"
 #include "nsMsgI18N.h"
@@ -54,6 +53,8 @@
 #include "nsIPrefService.h"
 #include "nsIPrefBranch.h"
 #include "nsIAbMDBDirectory.h"
+#include "nsComponentManagerUtils.h"
+#include "nsServiceManagerUtils.h"
 
 NS_IMPL_ISUPPORTS2(nsAbAutoCompleteSession, nsIAbAutoCompleteSession, nsIAutoCompleteSession)
 
@@ -92,8 +93,13 @@ PRBool nsAbAutoCompleteSession::ItsADuplicate(PRUnichar* fullAddrStr, PRInt32 aP
                     if (NS_SUCCEEDED(rv))
                     {
                         rv = resultItem->GetValue(valueStr);
+#ifdef MOZILLA_INTERNAL_API
                         if (NS_SUCCEEDED(rv) && !valueStr.IsEmpty() 
                             && nsDependentString(fullAddrStr).Equals(valueStr, nsCaseInsensitiveStringComparator()))
+#else
+                        if (NS_SUCCEEDED(rv) && !valueStr.IsEmpty() 
+                            && nsDependentString(fullAddrStr).Equals(valueStr, CaseInsensitiveCompare))
+#endif
                         {
                           // ok, we have a duplicate, but before we ignore the dupe, check the popularity index
                           // and use the card that is the most popular so it gets sorted correctly
@@ -144,7 +150,7 @@ nsAbAutoCompleteSession::AddToResult(const PRUnichar* pNickNameStr,
       return;
 
     nsAutoString aStr(pDisplayNameStr);
-    if (aStr.FindChar('@') == kNotFound)
+    if (aStr.FindChar('@') == -1)
     {
       aStr.Append(PRUnichar('@'));
       aStr += mDefaultDomain;
@@ -277,9 +283,15 @@ static PRBool CommonPrefix(const PRUnichar *aString, const PRUnichar *aSubstr, P
   if (!aSubstrLen || (NS_strlen(aString) < static_cast<PRUint32>(aSubstrLen)))
     return PR_FALSE;
 
+#ifdef MOZILLA_INTERNAL_API
   return (Substring(aString,
                     aString+aSubstrLen).Equals(Substring(aSubstr, aSubstr+aSubstrLen),
                                                nsCaseInsensitiveStringComparator()));
+#else
+  return (Substring(aString,
+                    aString+aSubstrLen).Equals(Substring(aSubstr, aSubstr+aSubstrLen),
+                                               CaseInsensitiveCompare));
+#endif
 }
 
 
@@ -309,6 +321,7 @@ nsAbAutoCompleteSession::CheckEntry(nsAbAutoCompleteSearchString* searchStr,
   nsDependentString fullStringStr(fullString, fullStringLen);
   
   // Compare various properties looking for a match (exact or partial)
+#ifdef MOZILLA_INTERNAL_API
   if ( (nickName &&
         fullStringStr.Equals(nsDependentString(nickName), nsCaseInsensitiveStringComparator())) || 
        (displayName &&
@@ -324,6 +337,24 @@ nsAbAutoCompleteSession::CheckEntry(nsAbAutoCompleteSearchString* searchStr,
        (firstName && CommonPrefix(firstName, fullString, fullStringLen)) ||
        (lastName && CommonPrefix(lastName, fullString, fullStringLen)) ||
        (emailAddress && CommonPrefix(emailAddress, fullString, fullStringLen)) )
+#else
+  if ( (nickName &&
+        fullStringStr.Equals(nsDependentString(nickName), CaseInsensitiveCompare)) || 
+       (displayName &&
+        fullStringStr.Equals(nsDependentString(displayName), CaseInsensitiveCompare)) ||
+       (firstName &&
+        fullStringStr.Equals(nsDependentString(firstName), CaseInsensitiveCompare)) ||
+       (lastName &&
+        fullStringStr.Equals(nsDependentString(lastName), CaseInsensitiveCompare)) || 
+       (emailAddress &&
+        fullStringStr.Equals(nsDependentString(emailAddress), CaseInsensitiveCompare)) ||
+       (nickName && CommonPrefix(nickName, fullString, fullStringLen)) ||
+       (displayName && CommonPrefix(displayName, fullString, fullStringLen)) || 
+       (firstName && CommonPrefix(firstName, fullString, fullStringLen)) ||
+       (lastName && CommonPrefix(lastName, fullString, fullStringLen)) ||
+       (emailAddress && CommonPrefix(emailAddress, fullString, fullStringLen)) )
+#endif
+
     isAMatch = PR_TRUE;
   //If we have a muti-part search string, look for a partial match with first name and last name or reverse
   else if (searchStr->mFirstPartLen && searchStr->mSecondPartLen)

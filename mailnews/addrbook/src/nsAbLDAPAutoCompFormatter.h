@@ -37,7 +37,7 @@
  *
  * ***** END LICENSE BLOCK ***** */
 
-#include "nsString.h"
+#include "nsStringGlue.h"
 #include "nsIAbLDAPAutoCompFormatter.h"
 #include "nsIConsoleService.h"
 #include "nsCOMPtr.h"
@@ -65,8 +65,8 @@ class nsAbLDAPAutoCompFormatter : public nsIAbLDAPAutoCompFormatter
                            nsCStringArray *aAttrs);
 
     // process a single attribute while parsing format
-    nsresult ParseAttrName(nsReadingIterator<PRUnichar> & aIter,  
-                           nsReadingIterator<PRUnichar> & aIterEnd, 
+    nsresult ParseAttrName(const PRUnichar *aIter,  
+                           const PRUnichar *aIterEnd, 
                            PRBool aAttrRequired,
                            nsCOMPtr<nsIConsoleService> & aConsoleSvc,
                            nsACString & aAttrName);

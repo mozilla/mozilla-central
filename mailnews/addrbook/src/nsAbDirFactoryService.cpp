@@ -38,13 +38,12 @@
  *
  * ***** END LICENSE BLOCK ***** */
 
-#include "nsIComponentManager.h"
-#include "nsIServiceManager.h"
+#include "nsComponentManagerUtils.h"
+#include "nsServiceManagerUtils.h"
 #include "nsIIOService.h"
 #include "nsNetCID.h"
 #include "nsMemory.h"
-#include "nsString.h"
-#include "nsCRT.h"
+#include "nsStringGlue.h"
 #include "plstr.h"
 
 #include "nsAbBaseCID.h"

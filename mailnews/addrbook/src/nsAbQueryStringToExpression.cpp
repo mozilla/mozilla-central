@@ -38,10 +38,10 @@
 
 #include "nsAbQueryStringToExpression.h"
 
-#include "nsIComponentManager.h"
-#include "nsIServiceManager.h"
+#include "nsComponentManagerUtils.h"
+#include "nsServiceManagerUtils.h"
 #include "nsCOMPtr.h"
-#include "nsString.h"
+#include "nsStringGlue.h"
 #include "nsISupportsArray.h"
 #include "nsITextToSubURI.h"
 #include "nsAbBooleanExpression.h"

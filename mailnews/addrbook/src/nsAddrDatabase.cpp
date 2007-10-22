@@ -41,8 +41,7 @@
 
 #include "nsAddrDatabase.h"
 #include "nsIEnumerator.h"
-#include "nsString.h"
-#include "nsReadableUtils.h"
+#include "nsStringGlue.h"
 #include "nsAutoPtr.h"
 #include "nsRDFCID.h"
 #include "nsUnicharUtils.h"
@@ -54,12 +53,12 @@
 #include "nsIAbMDBDirectory.h"
 #include "nsIAddrBookSession.h"
 
-#include "nsIServiceManager.h"
+#include "nsServiceManagerUtils.h"
+#include "nsComponentManagerUtils.h"
 #include "nsRDFCID.h"
 
 #include "nsMorkCID.h"
 #include "nsIMdbFactoryFactory.h"
-#include "nsString.h"
 #include "nsIRDFService.h"
 #include "nsIProxyObjectManager.h"
 #include "nsProxiedService.h"
@@ -72,6 +71,7 @@
 #include "nsAddressBook.h" // for the map
 
 #include "nsEmbedCID.h"
+#include "nsXPCOMCIDInternal.h"
 
 #define ID_PAB_TABLE            1
 #define ID_DELETEDCARDS_TABLE           2
@@ -2353,7 +2353,7 @@ NS_IMETHODIMP nsAddrDatabase::AddLdifListMember(nsIMdbRow* listRow, const char* 
   nsCAutoString email;
   PRInt32 emailPos = valueString.Find("mail=");
   emailPos += strlen("mail=");
-  valueString.Right(email, valueString.Length() - emailPos);
+  email = Substring(valueString, emailPos);
   nsCOMPtr <nsIMdbRow> cardRow;
   // Please DO NOT change the 3rd param of GetRowFromAttribute() call to
   // PR_TRUE (ie, case insensitive) without reading bugs #128535 and #121478.
@@ -3599,7 +3599,10 @@ NS_IMETHODIMP nsAddrDatabase::AddListDirNode(nsIMdbRow * listRow)
 
         rv = rdfService->GetResource(NS_ConvertUTF16toUTF8(parentURI), getter_AddRefs(parentResource));
         nsCOMPtr<nsIAbDirectory> parentDir;
-        rv = NS_GetProxyForObject( NS_PROXY_TO_MAIN_THREAD,
+
+        nsCOMPtr<nsIProxyObjectManager> proxyObjMgr = do_CreateInstance(NS_XPCOMPROXY_CONTRACTID, &rv);
+        NS_ENSURE_SUCCESS(rv, rv);
+        rv = proxyObjMgr->GetProxyForObject( NS_PROXY_TO_MAIN_THREAD,
                                    NS_GET_IID( nsIAbDirectory),
                                    parentResource,
                                    NS_PROXY_SYNC | NS_PROXY_ALWAYS,

@@ -40,6 +40,8 @@
 #include "nsAbLDAPReplicationQuery.h"
 #include "nsAbBaseCID.h"
 #include "nsIWebProgressListener.h"
+#include "nsComponentManagerUtils.h"
+#include "nsServiceManagerUtils.h"
 
 // XXX Change log replication doesn't work. Bug 311632 should fix it.
 //#include "nsAbLDAPChangeLogQuery.h"

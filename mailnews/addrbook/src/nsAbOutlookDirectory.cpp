@@ -44,7 +44,7 @@
 #include "nsAbBaseCID.h"
 #include "nsIAbCard.h"
 #include "nsAbOutlookCard.h"
-#include "nsString.h"
+#include "nsStringGlue.h"
 #include "nsAbDirectoryQuery.h"
 #include "nsIAbBooleanExpression.h"
 #include "nsIAddressBook.h"
@@ -129,7 +129,7 @@ NS_IMETHODIMP nsAbOutlookDirectory::Init(const char *aUri)
 
     // Get just the basic uri without the search params.
     if (searchCharLocation != kNotFound)
-      uri.Left(uri, searchCharLocation);
+      uri = Substring(uri, 0, searchCharLocation);
 
     // Get the pref servers and the address book directory branch
     nsresult rv;
@@ -163,7 +163,7 @@ NS_IMETHODIMP nsAbOutlookDirectory::Init(const char *aUri)
         if (dotOffset != -1)
         {
           nsCAutoString prefName;
-          child.Left(prefName, dotOffset);
+          prefName = Substring(child, 0, dotOffset);
           m_DirPrefId.AssignLiteral(PREF_LDAP_SERVER_TREE_NAME ".");
           m_DirPrefId.Append(prefName);
         }

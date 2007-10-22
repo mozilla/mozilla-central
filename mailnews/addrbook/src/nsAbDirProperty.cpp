@@ -45,7 +45,6 @@
 #include "nsIPrefLocalizedString.h"
 #include "nsServiceManagerUtils.h"
 #include "prmem.h"
-#include "nsCRT.h"
 #include "rdf.h"
 #include "nsIAddrBookSession.h"
 

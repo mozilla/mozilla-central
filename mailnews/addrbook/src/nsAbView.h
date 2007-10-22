@@ -40,18 +40,20 @@
 #define _nsAbView_H_
 
 #include "nsISupports.h"
-#include "nsString.h"
+#include "nsStringGlue.h"
 #include "nsIAbView.h"
 #include "nsITreeView.h"
 #include "nsITreeBoxObject.h"
 #include "nsITreeSelection.h"
-#include "nsString.h"
 #include "nsVoidArray.h"
 #include "nsIAbDirectory.h"
 #include "nsIAtom.h"
 #include "nsICollation.h"
 #include "nsIAbListener.h"
 #include "nsIObserver.h"
+#include "nsServiceManagerUtils.h"
+#include "nsComponentManagerUtils.h"
+#include "nsMemory.h"
 
 typedef struct AbCard
 {

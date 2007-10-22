@@ -43,11 +43,13 @@
 #include "nsIDOMWindow.h"
 #include "nsIAuthPrompt.h"
 #include "nsIStringBundle.h"
-#include "nsIServiceManager.h"
 #include "nsIProxyObjectManager.h"
 #include "nsILDAPMessage.h"
 #include "nsILDAPErrors.h"
 #include "nsCategoryManagerUtils.h"
+#include "nsComponentManagerUtils.h"
+#include "nsServiceManagerUtils.h"
+#include "nsXPCOMCIDInternal.h"
 
 nsAbLDAPListenerBase::nsAbLDAPListenerBase(nsILDAPURL* url,
                                            nsILDAPConnection* connection,
@@ -267,9 +269,12 @@ NS_IMETHODIMP nsAbLDAPListenerBase::OnLDAPInit(nsILDAPConnection *aConn, nsresul
     return rv;
   }
 
+  nsCOMPtr<nsIProxyObjectManager> proxyObjMgr = do_CreateInstance(NS_XPCOMPROXY_CONTRACTID, &rv);
+  NS_ENSURE_SUCCESS(rv, rv);
+
   nsCOMPtr<nsILDAPMessageListener> proxyListener;
-  rv = NS_GetProxyForObject(NS_PROXY_TO_MAIN_THREAD,
-                            NS_GET_IID(nsILDAPMessageListener),
+  rv = proxyObjMgr->GetProxyForObject(NS_PROXY_TO_MAIN_THREAD,
+                          NS_GET_IID(nsILDAPMessageListener),
                             static_cast<nsILDAPMessageListener *>(this),
                             NS_PROXY_SYNC | NS_PROXY_ALWAYS,
                             getter_AddRefs(proxyListener));

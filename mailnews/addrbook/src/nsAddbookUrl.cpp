@@ -38,8 +38,9 @@
 #include "nsIURI.h"
 #include "nsNetCID.h"
 #include "nsAddbookUrl.h"
-#include "nsString.h"
+#include "nsStringGlue.h"
 #include "nsAbBaseCID.h"
+#include "nsComponentManagerUtils.h"
 
 /////////////////////////////////////////////////////////////////////////////////////
 // addbook url definition

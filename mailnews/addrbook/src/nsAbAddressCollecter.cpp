@@ -39,8 +39,6 @@
 
 #include "msgCore.h"  // for pre-compiled headers
 
-#include "nsIServiceManager.h"
-
 #include "nsIAbCard.h"
 #include "nsAbBaseCID.h"
 #include "nsAbAddressCollecter.h"
@@ -50,9 +48,10 @@
 #include "nsIMsgHeaderParser.h"
 #include "nsIRDFService.h"
 #include "nsRDFCID.h"
-#include "nsString.h"
-#include "nsReadableUtils.h"
+#include "nsStringGlue.h"
 #include "prmem.h"
+#include "nsServiceManagerUtils.h"
+#include "nsComponentManagerUtils.h"
 #include "nsIAbMDBDirectory.h"
 
 NS_IMPL_ISUPPORTS2(nsAbAddressCollecter, nsIAbAddressCollecter, nsIObserver)
@@ -227,8 +226,7 @@ nsresult nsAbAddressCollecter::AutoCollectScreenName(nsIAbCard *aCard, const nsA
   if (atPos == -1) 
     return NS_OK;
     
-  nsCString domain;
-  email.Right(domain, aEmail.Length() - (atPos + 1));
+  nsCString domain(Substring(email, atPos + 1));
   if (domain.IsEmpty())
     return NS_OK; 
 
@@ -239,8 +237,7 @@ nsresult nsAbAddressCollecter::AutoCollectScreenName(nsIAbCard *aCard, const nsA
   // are all AIM screennames.  autocollect that info.
   if (domain.Equals("aol.com") || 
       domain.Equals("cs.com") || domain.Equals("netscape.net")) {
-    nsCString userName;
-    email.Left(userName, atPos);
+    nsCString userName(Substring(email, 0, atPos));
   
     rv = aCard->SetAimScreenName(NS_ConvertUTF8toUTF16(userName));
     NS_ENSURE_SUCCESS(rv,rv);
@@ -284,18 +281,11 @@ nsAbAddressCollecter::SetNamesForCard(nsIAbCard *aSenderCard, const nsACString &
 
 nsresult nsAbAddressCollecter::SplitFullName(const nsACString &aFullName, nsACString &aFirstName, nsACString &aLastName)
 {
-  nsCString lastName;
-  nsCString firstName;
-
   int index = nsCString(aFullName).RFindChar(' ');
   if (index != -1) 
   {
-    nsCString(aFullName).Right(lastName, aFullName.Length() - (index + 1));
-    nsCString(aFullName).Left(firstName, index);
- 
-    aLastName = lastName;
-    aFirstName = firstName;
-
+    aLastName = Substring(aFullName, index + 1);
+    aFirstName = Substring(aFullName, 0, index);
   }
   return NS_OK;
 }

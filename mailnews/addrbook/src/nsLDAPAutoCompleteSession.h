@@ -44,7 +44,7 @@
 #include "nsILDAPAutoCompleteSession.h"
 #include "nsILDAPAutoCompFormatter.h"
 #include "nsILDAPURL.h"
-#include "nsString.h"
+#include "nsStringGlue.h"
 #include "nsISupportsArray.h"
 #include "nsIConsoleService.h"
 #include "nsIAuthPrompt.h"
