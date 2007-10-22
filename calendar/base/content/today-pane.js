@@ -278,9 +278,9 @@ setDaywithjsDate: function(aNewDate)
     if (agendaTreeView.initialized) {
       this.updatePeriod();
     }
-    return this.setMonthDescription(selMonthPanel, this.start.month
-                                   , this.start.year
-                                   , this.weekFormatter.getWeekTitle(this.start));
+    return this.setMonthDescription(selMonthPanel, this.start.month,
+                                   this.start.year,
+                                   this.weekFormatter.getWeekTitle(this.start));
   },
 
   advance: function(dir)
