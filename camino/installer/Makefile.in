@@ -44,7 +44,7 @@ include $(DEPTH)/config/autoconf.mk
 
 include $(topsrcdir)/config/rules.mk
 
-CAMINO_VERSION=1.5.2
+CAMINO_VERSION=1.5.3
 _RELNOTE_VERSION:=$(subst .,-,$(CAMINO_VERSION))
 
 # The packager runs in the dist directory, paths must be relative to there.
