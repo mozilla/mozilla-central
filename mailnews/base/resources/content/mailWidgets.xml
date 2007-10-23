@@ -426,8 +426,10 @@
           <![CDATA[
             // clear out our local state
             this.mAddresses = new Array;
+            if (this.toggleIcon.hasAttribute("open"))
+              // no automatic overflow tracking in this case
+              this.toggleIcon.collapsed = true;
             this.toggleIcon.removeAttribute("open");
-            this.toggleIcon.collapsed = true;
             this.longEmailAddresses.setAttribute("singleline", "true");
             // remove anything inside of each of our labels....
             this.clearChildNodes(this.emailAddresses);
