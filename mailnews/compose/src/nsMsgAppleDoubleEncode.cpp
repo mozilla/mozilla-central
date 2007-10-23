@@ -44,7 +44,6 @@
 *  	  The codes to do apple double encoding/decoding.
 *		
 *		02aug95		mym		created.
-*		27sep95		mym		Add the XP_Mac to ensure the cross-platform.
 *		
 */
 #include "nsID.h"
