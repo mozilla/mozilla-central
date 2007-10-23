@@ -3807,6 +3807,7 @@ nsMsgComposeAndSend::DoDeliveryExitProcessing(nsIURI * aUri, nsresult aExitCode,
 
     nsString eMsg;
     if (aExitCode == NS_ERROR_SMTP_SEND_FAILED_UNKNOWN_SERVER ||
+        aExitCode == NS_ERROR_SMTP_SEND_FAILED_UNKNOWN_REASON ||
         aExitCode == NS_ERROR_SMTP_SEND_FAILED_REFUSED ||
         aExitCode == NS_ERROR_SMTP_SEND_FAILED_INTERRUPTED ||
         aExitCode == NS_ERROR_SMTP_SEND_FAILED_TIMEOUT ||
