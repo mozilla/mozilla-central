@@ -1,0 +1,16 @@
+"x-western"      = "Western";
+"x-central-euro" = "Central European";
+"x-cyrillic"     = "Cyrillic";
+"x-baltic"       = "Baltic";
+"el"             = "Greek";
+"tr"             = "Turkish";
+"he"             = "Hebrew";
+"ar"             = "Arabic";
+"ko"             = "Korean";
+"th"             = "Thai";
+"zh-TW"          = "Traditional Chinese (Taiwan)";
+"zh-HK"          = "Traditional Chinese (Hong Kong)";
+"zh-CN"          = "Simplified Chinese";
+"ja"             = "Japanese";
+"x-unicode"      = "Unicode";
+"x-user-def"     = "User-Defined";

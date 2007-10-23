@@ -64,6 +64,19 @@ PLATFORM_VERSION := $(shell egrep "^[^\#]+" $(PLATFORM_VERSION_FILE))
 PLATFORM_BUILD_ID_FILE = generated/platform_build_id
 PLATFORM_BUILD_ID := $(shell $(PYTHON) $(topsrcdir)/toolkit/xre/make-platformini.py --print-buildid)
 PLATFORM_INI_FILE = ../toolkit/xre/platform.ini
+STRINGS_FILES = resources/localized/English.lproj/CertificateDialogs.strings \
+	resources/localized/English.lproj/Localizable.strings \
+	PreferencePanes/Appearance/English.lproj/Localizable.strings \
+	PreferencePanes/Appearance/English.lproj/RegionNames.strings \
+	PreferencePanes/Downloads/English.lproj/Localizable.strings \
+	PreferencePanes/History/English.lproj/Localizable.strings \
+	PreferencePanes/Navigation/English.lproj/Localizable.strings \
+	PreferencePanes/Privacy/English.lproj/Localizable.strings \
+	PreferencePanes/Security/English.lproj/Localizable.strings \
+	PreferencePanes/Tabs/English.lproj/Localizable.strings \
+	PreferencePanes/WebFeatures/English.lproj/Localizable.strings \
+	$(NULL)
+GENERATED_STRINGS_FILES = $(patsubst %,generated/%,$(STRINGS_FILES))
 
 ifdef MOZ_DEBUG
 BUILDSTYLE	= Development
@@ -104,22 +117,29 @@ endif
 generated:
 	mkdir -p $@
 
-generated/English.lproj: generated
-	mkdir -p $@
-
 # Generate files which need to pull version numbers or dates from other files in the tree
-generated/all-camino.js: $(srcdir)/resources/application/all-camino.js.in $(FOX_APP_VERSION_FILE) $(CM_APP_VERSION_FILE) generated
+generated/resources/application/all-camino.js: $(srcdir)/resources/application/all-camino.js.in $(FOX_APP_VERSION_FILE) $(CM_APP_VERSION_FILE) generated
+	mkdir -p $(dir $@)
 	sed -e "s/%FOX_APP_VERSION%/$(FOX_APP_VERSION)/" \
 	    -e "s/%CM_APP_VERSION%/$(CM_APP_VERSION)/" $< > $@
 
 generated/Info-Camino.plist: $(srcdir)/Info-Camino.plist.in $(CM_APP_VERSION_FILE) $(CM_COPYRIGHT_YEAR_FILE) generated
+	mkdir -p $(dir $@)
 	sed -e "s/%CM_APP_VERSION%/$(CM_APP_VERSION)/" \
 	    -e "s/%CM_COPYRIGHT_YEAR%/$(CM_COPYRIGHT_YEAR)/" $< > $@
 
-generated/English.lproj/InfoPlist.strings: $(srcdir)/resources/localized/English.lproj/InfoPlist.strings.in $(CM_APP_VERSION_FILE) $(CM_COPYRIGHT_YEAR_FILE) generated/English.lproj
+generated/resources/localized/English.lproj/InfoPlist.strings: $(srcdir)/resources/localized/English.lproj/InfoPlist.strings.in $(CM_APP_VERSION_FILE) $(CM_COPYRIGHT_YEAR_FILE) generated
+	mkdir -p $(dir $@)
 	sed -e "s/%CM_APP_VERSION%/$(CM_APP_VERSION)/" \
 	    -e "s/%CM_COPYRIGHT_YEAR%/$(CM_COPYRIGHT_YEAR)/" $< | \
 	  iconv -f UTF-8 -t UTF-16 > $@
+
+# Generate UTF-16 with BOM strings files from UTF-8 strings.in files.  On Mac OS 
+# X, iconv seems always to output big-endian when asked for UTF-16 with a BOM, 
+# which is what AppleGlot seems to require.
+$(GENERATED_STRINGS_FILES): generated/%.strings: $(srcdir)/%.strings.in generated
+	mkdir -p $(dir $@)
+	iconv -f UTF-8 -t UTF-16 $< > $@
 
 # This will only touch the build ID file if the build ID has changed.  The
 # file's timestamp will be preserved when the build ID hasn't changed,
@@ -148,7 +168,7 @@ generated/CmXULAppData.h: $(srcdir)/src/embedding/CmXULAppData.h.in $(PLATFORM_B
 
 # The embed-replacements rsync is done for both srcdir and objdir builds
 # to avoid adding CVS stuff to embed.jar.
-libs:: generated/all-camino.js generated/Info-Camino.plist generated/English.lproj/InfoPlist.strings generated/CmXULAppData.h $(PLATFORM_INI_FILE)
+libs:: generated/resources/application/all-camino.js generated/Info-Camino.plist generated/resources/localized/English.lproj/InfoPlist.strings $(GENERATED_STRINGS_FILES) generated/CmXULAppData.h $(PLATFORM_INI_FILE)
 	rsync -aC --delete $(srcdir)/embed-replacements/ embed-replacements.tmp
 	cd embed-replacements.tmp && $(ZIP) -r0DX ../../dist/Embed/chrome/embed.jar *
 	$(PBBUILD) -project Camino.xcodeproj -target $(TARGET) -configuration $(BUILDSTYLE) $(PBBUILD_SETTINGS)

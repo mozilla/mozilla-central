@@ -1,0 +1,14 @@
+"PreferencePanelLabel" = "History";
+
+"OKButtonText" = "OK";
+"CancelButtonText" = "Cancel";
+
+/* Empty cache messages */
+"EmptyCacheTitle" = "Are you sure you want to empty the cache?";
+"EmptyCacheMessage" = "Camino saves the contents of websites you visit in a cache so that it’s faster to visit them again. You cannot undo this action.";
+"EmptyButton" = "Empty Cache";
+
+/* Clear history message */
+"ClearHistoryTitle" = "Are you sure you want to clear the history?";
+"ClearHistoryMessage" = "Clearing your history will erase the list of sites that you have visited. You won’t be able to autocomplete the URLs of these sites when typing in the location bar.";
+"ClearHistoryButton" = "Clear History";

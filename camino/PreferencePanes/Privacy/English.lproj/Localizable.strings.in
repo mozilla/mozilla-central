@@ -1,0 +1,31 @@
+"PreferencePanelLabel" = "Privacy";
+
+"Allow" = "Allow";
+"Allow for Session" = "Allow for Session";
+"Deny" = "Deny";
+"yes" = "yes";
+"no" = "no";
+
+"CookieExpiresOnQuit" = "On Quit";
+
+"CancelButtonText" = "Cancel";
+
+/* cookie removal warning */
+"Remove All Cookies" = "Remove All Cookies";
+"RemoveAllCookiesWarningTitle" = "Are you sure you want to remove all cookies?";
+"RemoveAllCookiesWarning" = "Removing cookies may cause websites to forget your identity, any online shopping carts, and other personalized site settings. You cannot undo this action.";
+
+/* cookie permissions removal warning  */
+"Remove All Exceptions" = "Remove All Exceptions";
+"RemoveAllCookiePermissionsWarningTitle" = "Are you sure you want to remove all cookie site exceptions?";
+"RemoveAllCookiePermissionsWarning" = "This will clear the list of sites for which you’ve made a decision about allowing or denying cookies. If you have “Ask before accepting each cookie” selected, you will be prompted again to accept cookies for any website that attempts to set them. You cannot undo this action.";
+
+/* cookies context menu */
+"AllowCookieFromSite" = "Allow all cookies from sites matching “%@”";
+"AllowCookiesFromSites" = "Allow all cookies from these sites";
+
+"BlockCookieFromSite" = "Block cookies from sites matching “%@”";
+"BlockCookiesFromSites" = "Block cookies from these sites";
+
+"RemoveAndBlockCookieFromSite" = "Remove and block cookies from sites matching “%@”";
+"RemoveAndBlockCookiesFromSites" = "Remove and block cookies from these sites";

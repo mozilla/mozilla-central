@@ -1,0 +1,434 @@
+/* Localized versions of UI keys */
+
+/* generic */
+"OKButtonText" = "OK";
+"CancelButtonText" = "Cancel";
+"QuitButtonText" = "Quit";
+"ChooseDirectoryOKButton" = "Select";
+"DontShowWarningAgainCheckboxLabel" = "Don’t show this warning again";
+
+"yes" = "yes";
+"no" = "no";
+
+"BuildID" = "Build ID: %010u";
+"AlreadyRunningAlert" = "Cannot Launch %@";
+"AlreadyRunningMsg" = "%@ is already running on this system. Only one copy can be run at a time.";
+
+"StartupFailureAlert" = "Cannot Launch %@";
+"StartupFailureMsg" = "An error occurred which prevents %@ from running.";
+"StartupFailureBinPathMsg" = "An error occurred which prevents %@ from running (could not get path to executable).";
+"StartupFailureInitEmbeddingMsg" = "An error occurred which prevents %@ from running (failed to initialize layout engine).";
+"StartupFailureProfilePathMsg" = "An error occurred which prevents %@ from running (could not get profile location).";
+"StartupFailureProfileSetupMsg" = "An error occurred which prevents %@ from running (failed to setup profile location).";
+"StartupFailureNoPrefsMsg" = "An error occurred which prevents %@ from running (failed to setup preferences).";
+
+"RequiredVersionNotMetTitle" = "Cannot Launch %@";
+"RequiredVersionNotMet" = "%@ requires Mac OS X 10.3 or higher.";
+
+/* Restoring saved session after crash dialog */
+"RestoreAfterCrashTitle" = "Restore previous pages?";
+"RestoreAfterCrashMessage" = "Your last Camino session closed unexpectedly.  Would you like to restore the web pages you were previously viewing?";
+"RestoreAfterCrashActionButton" = "Restore Pages";
+"RestoreAfterCrashCancelButton" = "Don’t Restore";
+
+/* close multiple tabs */
+"CloseWindowWithMultipleTabsMsg" = "Are you sure you want to close this window?";
+"CloseWindowWithMultipleTabsExplFormat" = "You have %u tabs open. If you close the window, you will lose any information that you entered in those tabs.";
+"CloseWindowWithMultipleTabsButton" = "Close Window";
+
+/* close multiple windows */
+"CloseMultipleWindowsMsg" = "Are you sure you want to close all windows?";
+"CloseMultipleWindowsExpl" = "You have %u windows open. If you close these windows, you will lose any information that you entered in them.";
+
+/* quit multiple windows/tabs */
+"QuitWithMultipleWindowsMsg" = "Are you sure you want to quit when there are multiple open windows?";
+"QuitWithMultipleWindowsExpl" = "You have %u windows open. If you quit now, you will lose any information that you entered in those windows.";
+"QuitWithMultipleTabsMsg" = "Are you sure you want to quit when there are multiple tabs open?";
+"QuitWithMultipleTabsExpl" = "You have %u tabs open. If you quit now, you will lose any information that you entered in those tabs.";
+
+/* for toggling show/hide bookmarks toolbar menu item */
+"Hide Bookmarks Toolbar" = "Hide Bookmark Bar";
+"Show Bookmarks Toolbar" = "Show Bookmark Bar";
+
+"HideBookmarkManager" = "Hide Bookmark Manager";
+"ShowBookmarkManager" = "Show Bookmark Manager";
+
+/* offline window title (unused) */
+"OfflineTitleFormat" = "%@ [Working Offline]";
+
+/* Default browser dialog */
+"DefaultBrowserTitle" = "Set Camino as your default browser?";
+"DefaultBrowserMessage" = "The default browser is the browser that will open when you click on links in other applications, such as Mail. You can change the default browser in the Preferences if you want to.";
+"DefaultBrowserChecboxTitle" = "Don’t ask me again";
+"DefaultBrowserAcceptButton" = "Set as Default Browser";
+"DefaultBrowserDenyButton" = "Don’t Set";
+
+/* quit with downloads alert */
+"QuitWithDownloadsMsg" = "Are you sure you want to Quit?";
+"QuitWithDownloadsExpl" = "There are downloads in progress that will be stopped if you quit now.";
+"QuitWithdownloadsButtonDefault" = "Cancel";
+
+/* Parser error loading bookmarks.xml file */
+"CorruptedBookmarksAlert" = "Error Reading Bookmarks";
+"CorruptedBookmarksMsg"   = "Your bookmarks file is damaged and could not be read.";
+
+/* Error importing bookmarks */
+"ImportFailureTitle" = "Import Failed";
+"ImportFailureMessage" = "The file “%@” is not a supported bookmark file type.";
+
+/* feed detection */
+"Select..." = "Select…";
+"FeedDetected" = "This page contains xml feed links";
+"SubscribeTo" = "Subscribe to “%@”";
+"FeedPreferences" = "Feed Preferences…";
+"FeedAppDoesNotExistExplanation" = "There is no feed reader selected. Please choose an application to handle feeds.";
+
+/* Prefs window */
+"ShowAllPrefItems" = "Show All";
+
+/* title for untitled pages */
+"UntitledPageTitle" = "Untitled";
+
+/* prefix of tabs and windows showing source */
+"SourceOf" = "Source of %@";
+
+/* "Loading" message for tab labels */
+"TabLoading" = "Loading…";
+
+/* Preferences window */
+"PrefsWindowTitleFormat" = "%@ Preferences";
+"Loading %@..." = "Loading %@…";
+
+/* About window */
+"AboutWindowTitleFormat" = "About %@";
+
+/* Download Progress Dialog */
+"dlRemoveButtonLabel" = "Remove";
+"dlRevealButtonLabel" = "Show";
+"dlOpenButtonLabel" = "Open";
+"dlCancelButtonLabel" = "Cancel";
+"dlCleanUpButtonLabel" = "Clean Up";
+"dlPauseButtonLabel" = "Pause";
+"dlResumeButtonLabel" = "Resume";
+"dlTrashButtonLabel" = "Trash";
+
+"dlRemoveButtonTooltip" = "Remove selected item from the list";
+"dlRemoveButtonTooltipPlural" = "Remove selected items from the list";
+"dlRevealButtonTooltip" = "Show selected file in Finder";
+"dlRevealButtonTooltipPlural" = "Show selected files in Finder";
+"dlOpenButtonTooltip" = "Open selected file";
+"dlOpenButtonTooltipPlural" = "Open selected files";
+"dlCancelButtonTooltip" = "Cancel selected download";
+"dlCancelButtonTooltipPlural" = "Cancel selected downloads";
+"dlPauseButtonTooltip" = "Pause selected download";
+"dlPauseButtonTooltipPlural" = "Pause selected downloads";
+"dlResumeButtonTooltip" = "Resume selected download";
+"dlResumeButtonTooltipPlural" = "Resume selected downloads";
+"dlTrashButtonTooltip" = "Move selected file to Trash";
+"dlTrashButtonTooltipPlural" = "Move selected files to Trash";
+"dlCleanUpButtonTooltip" = "Remove all inactive items from the list";
+
+/* Download contextual menus */
+"dlRemoveCMLabel" = "Remove";
+"dlRevealCMLabel" = "Show in Finder";
+"dlOpenCMLabel" = "Open";
+"dlCancelCMLabel" = "Cancel";
+"dlCopySourceURLCMLabel" = "Copy Source URL";
+"dlPauseCMLabel" = "Pause";
+"dlResumeCMLabel" = "Resume";
+"dlTrashCMLabel" = "Move to Trash";
+
+"UnderSec" = "Under %d seconds";
+"UnderMin" = "Under a minute";
+"AboutMin" = "About a minute";
+"AboutMins" = "About %d minutes";
+"AboutHour" = "Over an hour";
+"AboutHours" = "Over %d hours";
+"LabelString" = "%@ of %@ (at %@/sec)";
+
+/* New Download progress dialog */
+"DownloadLabelString" = "Downloading “%@” to “%@”";
+"DownloadDoneLabelString" = "Downloaded “%@” to “%@”";
+"DownloadPausedStatusString" = "Paused at %@ of %@";
+"DownloadStatusString" = "%@ of %@ (at %@/sec)";
+"DownloadDoneStatusString" = "%@ of %@ done (at %@/sec)";
+"DownloadCompleted" = "Completed in %@ (%@)";
+"DownloadCancelled" = "Canceled";
+"DownloadInterrupted" = "Interrupted";
+"DownloadCalculatingString" = "Unknown";
+"DownloadRemainingLabel" = "Time remaining:";
+"DownloadRemainingLabelDone" = "Time elapsed:";
+"DownloadingTooltipFormat" = "Downloading %@\n\t%@\n\t%@";
+"DownloadedTooltipFormat" = "Downloaded %@\n\t%@\n\t%@";
+
+/* for Keychain prompts */
+"KeychainCheckTitle" = "Store this password in the Keychain";
+
+"KeychainStoreAlertTitle" = "Save this password in your Keychain?";
+"KeychainStoreAlertText" = "Saving this password allows Camino to fill it in when you return to this website. Use the Keychain Access application to reverse this decision or change the entry. Selecting “Never Save for this Website” is useful for shared computers or public labs.";
+"KeychainStoreAlertStoreButton" = "Save Password";
+"KeychainStoreAlertDontStoreButton" = "Don't Save";
+"KeychainStoreAlertNeverStoreButton" = "Never Save for this Website";
+
+"KeychainUpdateAlertTitle" = "Update your Keychain with new information?";
+"KeychainUpdateAlertText" = "The username or password you entered for this website differs from the information saved in your Keychain.";
+"KeychainUpdateAlertUpdateButton" = "Save New Values";
+"KeychainUpdateAlertDontUpdateButton" = "Keep Old Values";
+
+/* Browser Toolbar Buttons */
+"Back" = "Back";
+"Forward" = "Forward";
+"Reload" = "Reload";
+"Stop" = "Stop";
+"Home" = "Home";
+"Sidebar" = "Sidebar";
+"Search" = "Search";
+"Progress" = "Progress";
+"Location" = "Location";
+"Print" = "Print";
+"View Source" = "View Source";
+"Bookmark" = "Bookmark";
+"Manage Bookmarks" = "Manage Bookmarks";
+"Hide Bookmarks" = "Hide Bookmarks";
+"BigText" = "Bigger Text";
+"SmallText" = "Smaller Text";
+"NewTab" = "New Tab";
+"CloseTab" = "Close Tab";
+"SendLink" = "Email Location";
+"SendLinkPaletteLabel" = "Email Page Location";
+"Downloads" = "Downloads";
+"ScriptItem" = "Script";
+
+"BackToolTipFormat" = "Go back to “%1$@”\n—\n%2$@";        /* 1=title, 2=url */
+"ForwardToolTipFormat" = "Go forward to “%1$@”\n—\n%2$@";  /* 1=title, 2=url */
+"Go Back" = "Go Back";
+"Go Forward" = "Go Forward";
+"Reload Page" = "Reload Page";
+"Force Format" = "Force %@";
+"Stop Loading" = "Stop Loading";
+"Go Home" = "Go Home";
+"Toggle Sidebar" = "Toggle Sidebar";
+"View Page Source" = "View Page Source";
+"Bookmark Page" = "Bookmark Page";
+"Fill Form" = "Fill Form";
+"ShowHistory" = "History";
+
+"BackToolTip" = "Go back one page";
+"ForwardToolTip" = "Go forward one page";
+"ReloadToolTip" = "Reload this page";
+"StopToolTip" = "Stop loading this page";
+"HomeToolTip" = "Go to your home page";
+"ShowBookmarkMgrToolTip" = "Show bookmark manager";
+"HideBookmarkMgrToolTip" = "Hide bookmark manager";
+"SearchToolTip" = "Search the Internet";
+"PrintToolTip" = "Print this page";
+"ViewSourceToolTip" = "Display the HTML source of this page";
+"BookmarkToolTip" = "Add this page to your bookmarks";
+"BigTextToolTip" = "Enlarge the text on this page";
+"SmallTextToolTip" = "Shrink the text on this page";
+"NewTabToolTip" = "Create a new tab";
+"CloseTabToolTip" = "Close this tab";
+"SendLinkToolTip" = "Open a new message in your mail program with the location of this page";
+"DownloadsToolTip" = "Show the Downloads window";
+"FillFormToolTip" = "Fill fields on this page with your Address Book information";
+"ShowHistoryToolTip" = "Show recently visited pages";
+"ScriptItemToolTipFormat" = "Run script “%@”";
+
+"BookmarkButtonTooltipFormat" = "%1$@\n—\n%2$@";  /* 1=title, 2=url */
+
+/* Tabs widget */
+"CloseTabButtonTitle" = "Close Tab";  /* used for accessibility */
+
+/* Rendezvous messages */
+"NoServicesFound"="(No Services Found)";
+"ServiceResolutionFailedTitle"="Could not connect";
+"ServiceResolutionFailedMsgFormat"="There was a problem trying to connect to “%@”.";
+"_ftp._tcp."=" (ftp)";
+"_http._tcp."=" (http)";
+"_https._tcp."=" (ftp)";
+"UserNameRequestTitle"="FTP Login";
+"UsernameRequestFormat"="Enter a username to access the FTP server “%@”. Leave blank to use anonymous login.";
+
+/* Password Dialogs */
+"Username Label" = "Username:";
+"Password Label" = "Password:";
+
+/* Security dialogs */
+"ContinueButton" = "Continue";
+"StopButton" = "Don’t Connect";
+"Accept Always" = "Always Accept";
+"Accept Once" = "Accept Once";
+"Security Warning" = "Security Warning";
+"Post To Insecure" = "The information you have entered will be sent over an unencrypted connection and could easily be read by a third party.\n\nAre you sure you want to continue sending this information?";
+"Security Mismatch" = "There is a problem with this site’s security certificate. It may be invalid, expired, or not registered with a trusted authority.\n\nAre you sure you want to connect to this site?";
+"Expired Certification" = "This site is using an expired certificate.\n\nAre you sure you want to connect to this site?";
+"Unknown Certification" = "This site has an identity that cannot be verified.";
+
+/* cookie dialog */
+"CookieText" = "%s wants to set a cookie. Do you want to allow it?";
+"CookieCheckbox" = "Remember this decision?";
+"CookieTitle" = "Allow Cookie?";
+"Allow" = "Allow";
+"Deny" = "Deny";
+"Allow for Session" = "Allow for Session";
+
+/* Popup Blocking */
+"PopupDisplayRequest" = "%@ wants to show a pop-up";
+"GenericHostString" = "This site";
+
+/* for toggling between page/bookmark info Edit menu item */
+"Page Info" = "Page Info";
+"Bookmark Info" = "Bookmark Info"; /* also used for the bookmark item context menu */
+
+/* Bookmark undo menu messages */
+"Add Folder" = "Add Folder";
+"Add Bookmark" = "Add Bookmark";
+"Add Separator" = "Add Separator";
+"Move Folder" = "Move Folder";
+"Move Bookmark" = "Move Bookmark";
+"Move Separator" = "Move Separator";
+"Copy Folder" ="Copy Folder";
+"Copy Bookmark" = "Copy Bookmark";
+"Delete Bookmark" = "Delete Bookmark";
+"Delete Separator" = "Delete Separator";
+"Delete Folder" = "Delete Folder";
+"Arrange Bookmarks" = "Arrange";
+
+"Arrange Increasing by title" = "↑ by Title";
+"Arrange Decreasing by title" = "↓ by Title";
+"Arrange Increasing by location" = "↑ by Location";
+"Arrange Decreasing by location" = "↓ by Location";
+
+/* Bookmark menu spacer */
+"<Menu Spacer>" = "<Menu Spacer>";
+
+/* Bookmarks edit panel */
+"Bookmark Manager" = "Bookmarks Manager";
+"BookmarkInfoTitle" = "Info for ‘%@’";
+"BlankBookmarkInfoTitle" = "Bookmark Info";
+"NewBookmarkFolder" = "New Folder";
+"BookmarksRootName" = "Bookmarks"; /* root of folders menu in Add Bookmark dialog */
+"OK" = "OK";
+"BookmarksWindowTitle" = "Bookmarks";
+"HistoryWindowTitle" = "History";
+
+/*Bookmark outline view*/
+"Contains Items" = "%u Items";
+
+/* Used when bookmarking multiple tabs; most likely you will only need to localize the word tabs and the order of %d and tabs. */
+"defaultTabGroupTitle" = "[%d tabs] %@";
+
+/*Bookmark Importing*/
+"Import Bookmarks" = "Import Bookmarks";
+"Imported IE Favorites" = "Imported IE Favorites";
+"Imported %@ Bookmarks" = "Imported %@ Bookmarks";
+"Imported Bookmarks" = "Imported Bookmarks";
+"OmniWeb Favorites" = "OmniWeb Favorites";
+"OmniWeb Published" = "OmniWeb Published";
+
+"Export" = "Export";
+"ExportedBookmarkFile" = "ExportedCaminoBookmarks";
+
+/*New Collections */
+"Bookmark Menu" = "Bookmark Menu";
+"Bookmark Bar" = "Bookmark Bar";
+"History" = "History";
+"Top Ten List" = "Top Ten List";
+"Broken Bookmarks" = "Broken Bookmarks";
+"Updated Bookmarks" = "Updated Bookmarks";
+"Rendezvous" = "Bonjour";
+"Address Book" = "Address Book";
+
+/*Bookmark context menus*/
+"Open in New Window" = "Open in New Window";
+"Open in New Windows" = "Open in New Windows";
+"Open in New Tab" = "Open in New Tab";
+"Open in New Tabs" = "Open in New Tabs";
+"Open Tabs in New Window" = "Open Tabs in New Window";
+"Open in Tabs in New Window" = "Open in Tabs in New Window";
+"Open in Tabs" = "Open in Tabs";
+"Create New Folder..." = "Create New Folder…";
+"Create New Folder" = "Create New Folder";
+"Delete" = "Delete";
+"Use as Dock Menu" = "Use as Dock Menu";
+"Copy URL to Clipboard" = "Copy Location to Clipboard";
+"Copy URLs to Clipboard" = "Copy Locations to Clipboard";
+"Reveal in Bookmark Manager" = "Reveal in Bookmark Manager";
+
+/* Page Info */
+"PageInfoDateFormat" = "%x";
+"WebSiteVerified" = "Website identity verified";
+"WebSiteVerifiedMixed" = "Website identity verified, but not all content is secure";
+"WebSiteNotVerified" = "Website identity not verified";
+"WebSiteVerifiedDetailsFormat" = "The identity of the website “%1$@” has been verified by “%2$@”, who issued its security certificate.";
+"WebSiteVerifiedMixedDetailsFormat" = "The identity of the website “%1$@” has been verified by “%2$@”, who issued its security certificate, but some parts of this page came from an unverified source.";
+
+"ConnectionMixedContent" = "Connection Partially Encrypted";
+"ConnectionMixedContentDetails" = "Parts of this page were not encrypted before being transmitted over the Internet.";
+
+"ConnectionStrongEncryptionFormat" = "Connection Encrypted: High-grade Encryption (%@ %d bit)";
+"ConnectionStrongEncryptionDetails" = "This page was encrypted before being transmitted over the Internet.";
+
+"ConnectionWeakEncryptionFormat" = "Connection Encrypted: Low-grade Encryption (%@ %d bit)";
+"ConnectionWeakEncryptionDetails" = "This page was encrypted with low-grade encryption before being transmitted over the Internet.";
+
+"ConnectionNoneEncryption" = "Connection Not Encrypted";
+"ConnectionNoneEncryptionDetails" = "This page was not encrypted before being transmitted over the Internet.";
+
+
+/* Reset feature */
+"Reset Camino Title" = "Are you sure you want to reset Camino?";
+"Reset Warning Message" = "Resetting Camino will erase your browsing history, empty the cache, clear downloads, clear all cookies and site cookie permissions, and remove any passwords Camino saved in your Keychain.\n\nYou cannot undo this action.\n";
+"Reset Camino" = "Reset Camino";
+
+/* History labels */
+"Tomorrow" = "Tomorrow";
+"Today" = "Today";
+"GoMenuEarlierToday" = "Earlier Today";
+"Yesterday" = "Yesterday";
+"HistoryMoreThanAWeek" = "More than a week ago";
+"LocalFilesCategoryTitle" = "Local Files";
+
+/* Most likely the only thing you need to do here is change the ordering. The string should only include the name of the day of the week (%A), day of the month as a number (%d), and name of the month (%B). */
+"HistoryMenuDateFormat" = "%A, %B %d";
+
+/* Empty cache messages (note that these are duplicated in the History prefs panel) */
+"EmptyCacheTitle" = "Are you sure you want to empty the cache?";
+"EmptyCacheMessage" = "Camino saves the contents of web pages you visit in a cache so that it’s faster to visit them again. You cannot undo this action.";
+"EmptyButton" = "Empty";
+
+/* Clear history message (note that these are duplicated in the History prefs panel) */
+"ClearHistoryMenuItem" = "Clear History…";
+"ClearHistoryTitle" = "Are you sure you want to clear the history?";
+"ClearHistoryMessage" = "Clearing your history will erase the list of sites that you have visited. You won’t be able to autocomplete the URLs of these sites when typing in the location bar. You cannot undo this action.";
+"ClearHistoryButton" = "Clear History";
+
+"ShowMoreHistoryMenuItem" = "Show More";
+
+/* mailto: link menu options */
+"Open %@ in Address Book" = "Open %@ in Address Book";
+"Add %@ to Address Book" = "Add %@ to Address Book";
+"Copy Addresses" = "Copy Addresses";
+
+/* used in default browser selection */
+"Application does not exist" = "Application does not exist";
+"BrowserDoesNotExistExplanation" = "The default browser you have chosen no longer exists. Please choose another browser.";
+
+/* Downloading errors */
+"DownloadErrorMsgFmt" = "There was an error downloading the file “%@”";
+"DownloadErrorNoDiskSpaceOnVolumeFmt" = "The download failed because the volume “%@” has run out of disk space.";
+"DownloadErrorDestinationWriteProtectedFmt" = "The download failed because you do not have write permissions in the destination folder “%@”.";
+"DownloadErrorOther" = "The download failed. Check your network connectivity and the download folder, and try again.";
+
+/* Spelling UI */
+"SpellingSubmenu" = "Spelling";
+"SpellingPanel" = "Spelling…";
+"CheckSpelling" = "Check Spelling";
+"CheckSpellingAsYouType" = "Check Spelling as You Type";
+
+/* Page contextual menus */
+"No Guesses Found" = "No Guesses Found";
+"LearnSpelling" = "Learn Spelling";
+"IgnoreSpelling" = "Ignore Spelling";
+"Action in New Tab" = "%@ in New Tab";
+"Action in New Window" = "%@ in New Window";
