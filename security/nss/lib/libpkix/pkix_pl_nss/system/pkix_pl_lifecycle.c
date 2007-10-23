@@ -262,9 +262,13 @@ PKIX_PL_Shutdown(void *plContext)
 
         numLeakedObjects = pkix_pl_lifecycle_ObjectLeakCheck();
 
-        if (PR_GetEnv("NSS_STRICT_SHUTDOWN")) {
-            PORT_Assert(numLeakedObjects == 0);
-        }
+        /* Turn this code on again after bug 397832 get fixed.
+         * if (PR_GetEnv("NSS_STRICT_SHUTDOWN")) {
+         *   
+         *    PORT_Assert(numLeakedObjects == 0);
+         *    
+         * }
+         */ 
 
         if (plContext != NULL) {
                 PKIX_PL_NssContext_Destroy(plContext);
