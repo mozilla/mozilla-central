@@ -308,6 +308,9 @@ void _PR_LogCleanup(void)
     }
 #endif
 
+    if (logBuf)
+        PR_DELETE(logBuf);
+
     while (lm != NULL) {
         PRLogModuleInfo *next = lm->next;
         free((/*const*/ char *)lm->name);
