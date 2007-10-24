@@ -48,15 +48,14 @@
 #define DEFAULT_ITERS           10
 #define DEFAULT_DURATION        10
 #define DEFAULT_KEY_BITS        1024
-#define DEFAULT_KEY_BITS2       2048
 #define MIN_KEY_BITS            512
 #define MAX_KEY_BITS            65536
 #define BUFFER_BYTES            MAX_KEY_BITS / 8
 #define DEFAULT_THREADS         1
 #define DEFAULT_EXPONENT        0x10001
 
-extern NSSLOWKEYPrivateKey * getDefaultRSAPrivateKey(int);
-extern NSSLOWKEYPublicKey  * getDefaultRSAPublicKey(int);
+extern NSSLOWKEYPrivateKey * getDefaultRSAPrivateKey(void);
+extern NSSLOWKEYPublicKey  * getDefaultRSAPublicKey(void);
 
 secuPWData pwData = { PW_NONE, NULL };
 
@@ -217,8 +216,10 @@ dumpItem( SECItem * item, const char * description)
 }
 
 void
-printRSAPrivKey(RSAPrivateKey * rsa)
+printPrivKey(NSSLOWKEYPrivateKey * privKey)
 {
+    RSAPrivateKey *rsa = &privKey->u.rsa;
+
     dumpItem( &rsa->modulus, 		"n");
     dumpItem( &rsa->publicExponent, 	"e");
     dumpItem( &rsa->privateExponent, 	"d");
@@ -229,14 +230,6 @@ printRSAPrivKey(RSAPrivateKey * rsa)
     dumpItem( &rsa->coefficient, 	"(Q ** -1) % P");
     puts("");
 }
-
-void
-printPrivKey(NSSLOWKEYPrivateKey * privKey)
-{
-    RSAPrivateKey *rsa = &privKey->u.rsa;
-    printRSAPrivKey(rsa);
-}
-
 
 typedef SECStatus (* RSAOp)(void *               key, 
 			    unsigned char *      output,
@@ -576,8 +569,7 @@ main(int argc, char **argv)
             keybits = DEFAULT_KEY_BITS;
         }
         if (!doKeyGen) {
-            if ((keybits != DEFAULT_KEY_BITS) && 
-                (keybits != DEFAULT_KEY_BITS2)) {
+            if (keybits != DEFAULT_KEY_BITS) {
                 doKeyGen = PR_TRUE;
             }
         }
@@ -603,9 +595,9 @@ main(int argc, char **argv)
             /* use a hardcoded key */
             printf("Using hardcoded %ld bits key.\n", keybits);
             if (doPub) {
-                pubKey = getDefaultRSAPublicKey(keybits);
+                pubKey = getDefaultRSAPublicKey();
             } else {
-                privKey = getDefaultRSAPrivateKey(keybits);
+                privKey = getDefaultRSAPrivateKey();
             }
         }
 

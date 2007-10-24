@@ -1265,14 +1265,6 @@ const Commands _commands[] = {
 " value           32 bit value to set in the template\n",
 	{ArgAttribute, ArgULong, ArgULong, ArgNone, ArgNone, 
 	 ArgNone, ArgNone, ArgNone, ArgNone, ArgNone }},
-    {"SetTemplateString", F_SetTemplateString,
-"SetTemplateString template index value\n\n"
-"Sets a particular element of a template to a string value\n"
-" template        variable name of the template\n"
-" index           index into the template to the element to change\n"
-" value           UTF8 string\n",
-	{ArgAttribute, ArgULong, ArgVar, ArgNone, ArgNone, 
-	 ArgNone, ArgNone, ArgNone, ArgNone, ArgNone }},
     {"SetString", F_SetStringVar,
 "SetString varName string\n\n"
 "Sets a particular variable to a string value\n"

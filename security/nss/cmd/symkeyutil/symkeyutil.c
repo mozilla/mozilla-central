@@ -280,11 +280,11 @@ int
 HexToBuf(char *inString, SECItem *outbuf)
 {
     int len = strlen(inString);
-    int outlen = (len+1)/2;
+    int outlen = len+1/2;
     int trueLen = 0;
 
     outbuf->data = PORT_Alloc(outlen);
-    if (outbuf->data == NULL) {
+    if (outbuf->data) {
 	return -1;
     }
 
@@ -555,7 +555,6 @@ enum {
     opt_KeyIDFile,
     opt_KeyType,
     opt_Nickname,
-    opt_TargetDB,
     opt_KeyFile,
     opt_Password,
     opt_dbPrefix,
@@ -590,7 +589,6 @@ static secuCommandFlag symKeyUtil_options[] =
 	{ /* opt_KeyIDFile           */  'j', PR_TRUE,  0, PR_FALSE },
 	{ /* opt_KeyType             */  't', PR_TRUE,  0, PR_FALSE },
 	{ /* opt_Nickname            */  'n', PR_TRUE,  0, PR_FALSE },
-	{ /* opt_TargetDB            */  'm', PR_TRUE,  0, PR_FALSE },
 	{ /* opt_KeyFile             */  'k', PR_TRUE,  0, PR_FALSE },
 	{ /* opt_Password            */  'p', PR_TRUE,  0, PR_FALSE },
 	{ /* opt_dbPrefix            */  'P', PR_TRUE,  0, PR_FALSE },
@@ -824,10 +822,9 @@ main(int argc, char **argv)
 
     /* -M needs the target slot  (-g) */
     if (symKeyUtil.commands[cmd_MoveKey].activated  &&
-		!(symKeyUtil.options[opt_TargetToken].activated ||
-		  symKeyUtil.options[opt_TargetDB].activated)) {
-	PR_fprintf(PR_STDERR,
-      "%s -%c: target token or db is required for this command (-g, or -m).\n",
+			!symKeyUtil.options[opt_TargetToken].activated) {
+	PR_fprintf(PR_STDERR, 
+	          "%s -%c: target token is required for this command (-g).\n",
 	           progName, commandToRun);
 	return 255;
     }
@@ -1056,7 +1053,7 @@ main(int argc, char **argv)
     /*  Move key (-M)  */
     if (symKeyUtil.commands[cmd_MoveKey].activated) {
 	PK11SlotInfo *target;
-	char *targetName;
+	char *targetName = symKeyUtil.options[opt_TargetToken].arg;
 	PK11SymKey *newKey;
 	PK11SymKey *symKey = FindKey(slot,name,&keyID,&pwdata);
 	char *keyName = PK11_GetSymKeyNickname(symKey);
@@ -1068,13 +1065,7 @@ main(int argc, char **argv)
 	    PORT_Free(keyName);
 	    goto shutdown;
 	}
-	if (symKeyUtil.options[opt_TargetDB].activated) {
-	    targetName = symKeyUtil.options[opt_TargetDB].arg;
-	    target = SECMOD_OpenUserDB(targetName);
- 	} else {
-	    targetName = symKeyUtil.options[opt_TargetToken].arg;
-	    target = PK11_FindSlotByName(targetName);
-	}
+	target = PK11_FindSlotByName(targetName);
 	if (!target) {
 	    PR_fprintf(PR_STDERR, "%s: Couldn't find slot %s\n",
 			progName, targetName);
