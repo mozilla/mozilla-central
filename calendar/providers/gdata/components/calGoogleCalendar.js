@@ -795,11 +795,13 @@ calGoogleCalendar.prototype = {
             }
 
             // Operation failed
-            aListener.onOperationComplete(this,
-                                          e.result,
-                                          aOperation,
-                                          null,
-                                          e.message);
+            if (aListener) {
+                aListener.onOperationComplete(this,
+                                              e.result,
+                                              aOperation,
+                                              null,
+                                              e.message);
+            }
         }
         // Returning null to avoid js strict warning.
         return null;
