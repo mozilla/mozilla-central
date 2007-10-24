@@ -728,6 +728,37 @@ SetTemplate(Value *vp, CK_ULONG index, CK_ULONG value)
 }
 
 CK_RV
+SetTemplateString(Value *vp, CK_ULONG index, char *string)
+{
+    CK_ATTRIBUTE *template = (CK_ATTRIBUTE *)vp->data;
+    CK_ULONG len;
+    ConstType attrType;
+
+    if (index >= (CK_ULONG) vp->arraySize) {
+	fprintf(stderr,"index (%lu) greater than array (%d)\n", 
+						index, vp->arraySize);
+	return CKR_ARGUMENTS_BAD;
+    }
+    attrType =  getConstFromAttribute(template[index].type);
+
+    if (attrType == ConstNone) {
+	fprintf(stderr,"can't set index (%lu) because ", index);
+	printConst(template[index].type,ConstAttribute, 0);
+	fprintf(stderr, " is not a CK_BBOOL or CK_ULONG\n");
+	return CKR_ARGUMENTS_BAD;
+    }
+    len = strlen(string);
+    if ((template[index].ulValueLen < len) || (template[index].pValue)) {
+	free(template[index].pValue);
+	template[index].pValue = malloc(len);
+	template[index].ulValueLen = len;
+    }
+    PORT_Memcpy(template[index].pValue,string,len);
+    return CKR_OK;
+
+}
+
+CK_RV
 NewMechanism(const char *bp, CK_ULONG mechType)
 {
     Value *value; /* new Value */
@@ -747,6 +778,7 @@ NewInitializeArgs(const char *bp, CK_ULONG flags, const char *param)
 {
     Value *value; /* new Value */
     CK_C_INITIALIZE_ARGS *init;
+
 
     value = NewValue(ArgInitializeArgs, 1);
     init = (CK_C_INITIALIZE_ARGS *)value->data;
@@ -1150,6 +1182,7 @@ printArg(Value *ptr,int arg_number)
         if (initArgs->LibraryParameters) {
 	    printf("Params: %s\n",initArgs->LibraryParameters);
 	}
+	break;
     case ArgFunctionList:
 	functionList = (CK_FUNCTION_LIST *)ptr->data;
 	printf(" Version: %d.%02d\n", VERSION(functionList->version));
@@ -1192,6 +1225,10 @@ parseArgs(int index, const char * bp)
 	size -= 2;
     }
     bp += size;
+
+    while (bp && *bp != ' ') {
+	bp++;
+    }
 
     /*
      * Initialize our argument list
@@ -2011,6 +2048,10 @@ do_func(int index, Value **a)
 	return SetTemplate(a[0],
 		*(CK_ULONG *)a[1]->data,
 		*(CK_ULONG *)a[2]->data);
+    case F_SetTemplateString:
+	return SetTemplateString(a[0],
+		*(CK_ULONG *)a[1]->data,
+		(char *)a[2]->data);
     case F_NewMechanism:
 	(void) DeleteVariable(a[0]->data);
 	return NewMechanism(a[0]->data,*(CK_ULONG *)a[1]->data);
@@ -2160,8 +2201,11 @@ loop(const char *filename, const char *var,
 {
     CK_ULONG i = 0;
     Value *value = 0;
-    CK_RV ckrv;
+    CK_RV ckrv = CKR_OK;
 
+    if ((int)start > (int)end) {
+	return ckrv;
+    }
     for (i=start; i < end; i += step)
     {
         value = NewValue(ArgULong, 1);

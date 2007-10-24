@@ -21,6 +21,7 @@ typedef enum {
     F_NewMechanism,
     F_BuildTemplate,
     F_SetTemplate,
+    F_SetTemplateString,
     F_Print,
     F_SaveVar,
     F_RestoreVar,
