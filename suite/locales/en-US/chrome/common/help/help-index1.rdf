@@ -1657,11 +1657,6 @@
          nc:link="cs_nav_prefs_navigator.xhtml#tabbed_browsing"/>
      </rdf:li>
      <rdf:li>
-       <rdf:Description ID="preferences:themes"
-         nc:name="themes preferences"
-         nc:link="cs_nav_prefs_appearance.xhtml#themes"/>
-     </rdf:li>
-     <rdf:li>
        <rdf:Description ID="preferences:validation"
          nc:name="validation preferences"
          nc:link="validation_help.xhtml#privacy_and_security_preferences_validation"/>
