@@ -80,179 +80,113 @@
 
 run_tests()
 {
-  for i in ${TESTS}
-    do
-      SCRIPTNAME=${i}.sh
-      if [ "$O_CRON" = "ON" ]
-      then
-        echo "Running tests for $i" >> ${LOGFILE}
-        echo "TIMESTAMP $i BEGIN: `date`" >> ${LOGFILE}
-        (cd ${QADIR}/$i ; . ./$SCRIPTNAME all file >> ${LOGFILE} 2>&1)
-        echo "TIMESTAMP $i END: `date`" >> ${LOGFILE}
-      else
-        echo "Running tests for $i" | tee -a ${LOGFILE}
-        echo "TIMESTAMP $i BEGIN: `date`" | tee -a ${LOGFILE}
-        (cd ${QADIR}/$i ; . ./$SCRIPTNAME all file 2>&1 | tee -a ${LOGFILE})
-        echo "TIMESTAMP $i END: `date`" | tee -a ${LOGFILE}
-      fi
-    done
+	for i in ${TESTS}
+	do
+		SCRIPTNAME=${i}.sh
+		if [ "$O_CRON" = "ON" ]; then
+			echo "Running tests for $i" >> ${LOGFILE}
+			echo "TIMESTAMP $i BEGIN: `date`" >> ${LOGFILE}
+			(cd ${QADIR}/$i ; . ./$SCRIPTNAME all file >> ${LOGFILE} 2>&1)
+			echo "TIMESTAMP $i END: `date`" >> ${LOGFILE}
+		else
+			echo "Running tests for $i" | tee -a ${LOGFILE}
+			echo "TIMESTAMP $i BEGIN: `date`" | tee -a ${LOGFILE}
+			(cd ${QADIR}/$i ; . ./$SCRIPTNAME all file 2>&1 | tee -a ${LOGFILE})
+			echo "TIMESTAMP $i END: `date`" | tee -a ${LOGFILE}
+		fi
+	done
 }
 
-LIBPKIX=
-NSS_DEFAULT_DB_TYPE="dbm"
-if [ -n "$BUILD_LIBPKIX_TESTS" ] ; then
-    LIBPKIX=libpkix
+tests="cipher perf libpkix cert dbtests tools fips sdr crmf smime ssl ocsp"
+if [ -z "$BUILD_LIBPKIX_TESTS" ] ; then
+	tests=`echo "${tests}" | sed -e "s/libpkix//"`
 fi
-
-tests="cipher perf ${LIBPKIX} cert dbtests tools fips sdr crmf smime ssl ocsp"
 TESTS=${TESTS:-$tests}
+ALL_TESTS=${TESTS}
+
 SCRIPTNAME=all.sh
 CLEANUP="${SCRIPTNAME}"
 cd `dirname $0`	# will cause problems if sourced 
 
-#all.sh should be the first one to try to source the init 
+# all.sh should be the first one to try to source the init 
 if [ -z "${INIT_SOURCED}" -o "${INIT_SOURCED}" != "TRUE" ]; then
-    cd common
-    . ./init.sh
+	cd common
+	. ./init.sh
 fi
 
-OLD_HOSTDIR="${HOSTDIR}"
-OLD_TESTS="${TESTS}"
-OLD_NSS_TEST_SERVER_CLIENT_BYPASS="${NSS_TEST_SERVER_CLIENT_BYPASS}"
-OLD_NSS_TEST_DISABLE_FIPS="${NSS_TEST_DISABLE_FIPS}"
+# backup selected environment variables
+ENV_BACKUP=${HOSTDIR}/env.sh
+env_backup > ${ENV_BACKUP}
 
-# test the old DATABASE
-run_tests
+# standard tests, no pkix, no sharedb
+if [ -z "$NSS_TEST_DISABLE_STANDARD" ] ; then
+	run_tests
+fi
 
+# PKIX tests
 if [ -z "$NSS_TEST_DISABLE_PKIX" ] ; then
-    NSS_ENABLE_PKIX_VERIFY="1"
-    export NSS_ENABLE_PKIX_VERIFY
-
-    TABLE_ARGS="bgcolor=cyan"
-    TESTS=`echo "${OLD_TESTS}" | sed -e "s/cipher//" -e "s/libpkix//"`
-    NSS_TEST_SERVER_CLIENT_BYPASS="1"
-    NSS_TEST_DISABLE_FIPS="1"
-
-    HOSTDIR="${HOSTDIR}/pkix"
-    mkdir -p "${HOSTDIR}"
-    init_directories
-
-    run_tests
-    
-    unset NSS_ENABLE_PKIX_VERIFY
-
-    TABLE_ARGS=
-    NSS_TEST_SERVER_CLIENT_BYPASS="${OLD_NSS_TEST_SERVER_CLIENT_BYPASS}"
-    NSS_TEST_DISABLE_FIPS="${OLD_NSS_TEST_DISABLE_FIPS}"
-    HOSTDIR="${OLD_HOSTDIR}"
+	TABLE_ARGS="bgcolor=cyan"
+	html_head "Testing with PKIX"
+	html "</TABLE><BR>"
+	
+	HOSTDIR="${HOSTDIR}/pkix"
+	mkdir -p "${HOSTDIR}"
+	init_directories
+	
+	NSS_TEST_SERVER_CLIENT_BYPASS="1"
+	NSS_TEST_DISABLE_FIPS="1"
+	NSS_ENABLE_PKIX_VERIFY="1"
+	export NSS_ENABLE_PKIX_VERIFY
+	
+	TESTS=`echo "${ALL_TESTS}" | sed -e "s/cipher//" -e "s/libpkix//" \
+		-e "s/dbupgrade//"`
+	run_tests
+	
+	. ${ENV_BACKUP}
 fi
 
-# 'reset' the databases to initial values
-echo "Reset databases to their initial values:" | tee -a ${LOGFILE}
-cd ${HOSTDIR}
-certutil -D -n objsigner -d alicedir 2>&1 | tee -a ${LOGFILE} 
-certutil -M -n FIPS_PUB_140_Test_Certificate -t "C,C,C" -d fips -f ${FIPSPWFILE} 2>&1 | tee -a ${LOGFILE} 
-certutil -L -d fips 2>&1 | tee -a ${LOGFILE} 
-rm -f smime/alicehello.env
-
-# test upgrade to the new database
-echo "nss" > ${PWFILE}
-TABLE_ARGS="bgcolor=pink"
-html_head "Legacy to shared Library update"
-dirs="alicedir bobdir CA cert_extensions client clientCA dave eccurves eve ext_client ext_server SDR server serverCA tools/copydir"
-for i in $dirs
-do
-   echo $i
-   if [ -d $i ]; then
-	echo "upgrading db $i"  | tee -a ${LOGFILE}
-	certutil -G -g 512 -d sql:$i -f ${PWFILE} -z ${NOISE_FILE} 2>&1 | tee -a ${LOGFILE} 
-	html_msg $? 0 "Upgrading $i"
-   else
-	echo "skipping db $i" | tee -a ${LOGFILE}
-	html_msg 0 0 "No directory $i"
-   fi
-done
-
-if [ -d fips ]; then
-   echo "upgrading db fips" | tee -a ${LOGFILE}
-   certutil -S -g 512 -n tmprsa -t "u,u,u" -s "CN=tmprsa, C=US" -x -d sql:fips -f ${FIPSPWFILE} -z ${NOISE_FILE} 2>&1 | tee -a ${LOGFILE}
-   html_msg $? 0 "Upgrading fips"
-   # remove our temp certificate we created in the fist token
-   certutil -F -n tmprsa -d sql:fips -f ${FIPSPWFILE} 2>&1 | tee -a ${LOGFILE}
-   certutil -L -d sql:fips 2>&1 | tee -a ${LOGFILE}
+# upgrade cert dbs to shared db + run tests there
+if [ -z "$NSS_TEST_DISABLE_UPGRADE_DB" ] ; then
+	# upgrade certs dbs to shared db 
+	TESTS="dbupgrade"
+	run_tests
+	
+	TABLE_ARGS="bgcolor=pink"
+	html_head "Testing with upgraded library"
+	html "</TABLE><BR>"
+	
+	NSS_DEFAULT_DB_TYPE="sql"
+	export NSS_DEFAULT_DB_TYPE
+	
+	# run the subset of tests with the upgraded database
+	TESTS=`echo "${ALL_TESTS}" | sed -e "s/cipher//" -e "s/perf//" \
+		-e "s/libpkix//" -e "s/cert//" -e "s/dbtests//" -e "s/dbupgrade//"`
+	run_tests
+	
+	. ${ENV_BACKUP}
 fi
 
-html "</TABLE><BR>"
-
-if [ -n "$RUN_SHARED_DB_TESTS" ] ; then
-NSS_DEFAULT_DB_TYPE="sql"
-export NSS_DEFAULT_DB_TYPE
-
-# run run the subset of tests with the upgraded database
-TESTS="tools fips sdr crmf smime ssl ocsp"
-run_tests
-
-
-# test the new DATABASE
-TESTS=${OLD_TESTS}
-#force IOPR tests off for now...
-unset IOPR_HOSTADDR_LIST
-mkdir -p ${HOSTDIR}/sharedb
-saveHostDIR=${HOSTDIR}
-
-# need a function in init.sh to rebase the directories!
-HOSTDIR=${HOSTDIR}/sharedb
-
-TMP=${HOSTDIR}
-TEMP=${TMP}
-TMPDIR=${TMP}
-
-CADIR=${HOSTDIR}/CA
-SERVERDIR=${HOSTDIR}/server
-CLIENTDIR=${HOSTDIR}/client
-ALICEDIR=${HOSTDIR}/alicedir
-BOBDIR=${HOSTDIR}/bobdir
-DAVEDIR=${HOSTDIR}/dave
-EVEDIR=${HOSTDIR}/eve
-FIPSDIR=${HOSTDIR}/fips
-DBPASSDIR=${HOSTDIR}/dbpass
-ECCURVES_DIR=${HOSTDIR}/eccurves
-
-SERVER_CADIR=${HOSTDIR}/serverCA
-CLIENT_CADIR=${HOSTDIR}/clientCA
-EXT_SERVERDIR=${HOSTDIR}/ext_server
-EXT_CLIENTDIR=${HOSTDIR}/ext_client
-
-IOPR_CADIR=${HOSTDIR}/CA_iopr
-IOPR_SERVERDIR=${HOSTDIR}/server_iopr
-IOPR_CLIENTDIR=${HOSTDIR}/client_iopr
-
-P_SERVER_CADIR=${SERVER_CADIR}
-P_CLIENT_CADIR=${CLIENT_CADIR}
-
-CERT_EXTENSIONS_DIR=${HOSTDIR}/cert_extensions
-
-PWFILE=${TMP}/tests.pw.$$
-NOISE_FILE=${TMP}/tests_noise.$$
-CORELIST_FILE=${TMP}/clist.$$
-
-FIPSPWFILE=${TMP}/tests.fipspw.$$
-FIPSBADPWFILE=${TMP}/tests.fipsbadpw.$$
-FIPSP12PWFILE=${TMP}/tests.fipsp12pw.$$
-
-echo "fIps140" > ${FIPSPWFILE}
-echo "fips104" > ${FIPSBADPWFILE}
-echo "pKcs12fips140" > ${FIPSP12PWFILE}
-
-
-# run the tests for native sharedb support
-TABLE_ARGS="bgcolor=yellow"
-html_head "Testing with shared Library"
-html "</TABLE><BR>"
-run_tests
+# tests for native sharedb support
+if [ -z "$NSS_TEST_DISABLE_SHARED_DB" ] ; then
+	TABLE_ARGS="bgcolor=yellow"
+	html_head "Testing with shared library"
+	html "</TABLE><BR>"
+	
+	HOSTDIR="${HOSTDIR}/sharedb"
+	mkdir -p "${HOSTDIR}"
+	init_directories
+	
+	NSS_DEFAULT_DB_TYPE="sql"
+	export NSS_DEFAULT_DB_TYPE
+	
+	# run the tests for native sharedb support
+	TESTS=`echo "${ALL_TESTS}" | sed -e "s/libpkix//" -e "s/dbupgrade//"`
+	run_tests
+	
+	. ${ENV_BACKUP}
 fi
-
 
 SCRIPTNAME=all.sh
 
 . ${QADIR}/common/cleanup.sh
+

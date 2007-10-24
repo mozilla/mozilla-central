@@ -76,8 +76,8 @@
 NSS_STRICT_SHUTDOWN=1
 export NSS_STRICT_SHUTDOWN
 
+# Init directories based on HOSTDIR variable
 if [ -z "${INIT_SOURCED}" -o "${INIT_SOURCED}" != "TRUE" ]; then
-
     init_directories()
     {
         TMP=${HOSTDIR}      #TMP=${TMP-/tmp}
@@ -137,6 +137,24 @@ if [ -z "${INIT_SOURCED}" -o "${INIT_SOURCED}" != "TRUE" ]; then
         export HOSTDIR
     }
 
+# Print selected environment variable (used for backup)
+    env_backup()
+    {
+        echo "HOSTDIR=\"${HOSTDIR}\""
+        echo "TABLE_ARGS="
+        echo "NSS_TEST_DISABLE_CRL=${NSS_TEST_DISABLE_CRL}"
+        echo "NSS_TEST_DISABLE_CIPHERS=${NSS_TEST_DISABLE_CIPHERS}"
+        echo "NSS_TEST_DISABLE_BYPASS=${NSS_TEST_DISABLE_BYPASS}"
+        echo "NSS_TEST_DISABLE_CLIENT_BYPASS=${NSS_TEST_DISABLE_CLIENT_BYPASS}"
+        echo "NSS_TEST_DISABLE_SERVER_BYPASS=${NSS_TEST_DISABLE_SERVER_BYPASS}"
+        echo "NSS_TEST_SERVER_CLIENT_BYPASS=${NSS_TEST_SERVER_CLIENT_BYPASS}"
+        echo "NSS_TEST_DISABLE_FIPS=${NSS_TEST_DISABLE_FIPS}"
+        echo "NSS_DEFAULT_DB_TYPE=${NSS_DEFAULT_DB_TYPE}"
+        echo "export NSS_DEFAULT_DB_TYPE"
+        echo "NSS_ENABLE_PKIX_VERIFY=${NSS_ENABLE_PKIX_VERIFY}"
+        echo "export NSS_ENABLE_PKIX_VERIFY"
+    }
+
 # Exit shellfunction to clean up at exit (error, regular or signal)
     Exit()
     {
@@ -148,7 +166,6 @@ if [ -z "${INIT_SOURCED}" -o "${INIT_SOURCED}" != "TRUE" ]; then
         if [ -n "${SERVERPID}" -a -f "${SERVERPID}" ]; then
             ${KILL} `cat ${SERVERPID}`
         fi
-        CLEANUP=${SCRIPTNAME}
         cd ${QADIR}
         . common/cleanup.sh
         case $1 in
@@ -560,6 +577,9 @@ if [ -z "${INIT_SOURCED}" -o "${INIT_SOURCED}" != "TRUE" ]; then
     TOTAL_GRP_NUM=3
     
     RELOAD_CRL=1
+
+    NSS_DEFAULT_DB_TYPE="dbm"
+    export NSS_DEFAULT_DB_TYPE
 
     #################################################
     # Interoperability testing constatnts
