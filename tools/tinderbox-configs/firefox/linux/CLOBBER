@@ -1,1 +1,2 @@
-See if a clobber will do anything to the Ts regression
+Clobber to pick up PSM makefile change in the NSS build.  Oh, for a sane
+dependency system!

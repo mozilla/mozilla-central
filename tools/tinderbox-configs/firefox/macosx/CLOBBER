@@ -1,1 +1,3 @@
-Clobbered for libpng backout
+Clobber to pick up PSM makefile change in the NSS build.  Oh, for a sane
+dependency system!
+
