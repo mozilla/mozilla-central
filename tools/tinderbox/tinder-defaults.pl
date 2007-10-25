@@ -83,6 +83,7 @@ $RunUnitTests             = 0;  # TUnit
 $CompareLocalesAviary     = 0;  # Should the compare-locales commands use the
                                 # aviary directory structure?
 $TestWithJprof            = 0;  # Use jprof profiler during tests
+$LeakFailureThreshold     = 0;  # How many RLk bytes leaked is a testfailure
 
 $TestsPhoneHome           = 0;  # Should test report back to server?
 $GraphNameOverride        = ''; # Override name built from ::hostname() and $BuildTag
