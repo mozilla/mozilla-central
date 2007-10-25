@@ -222,3 +222,6 @@ strsclnt/ssl3_HandleHandshakeMessage/ssl3_HandleCertificate/mySSLAuthCertificate
 #401072
 **/sftkdb_ReadSecmodDB/sftk_getOldSecmodName/**
 
+#401100
+**/testThreadLockingBehavior/pthread_create@@GLIBC_2.1/**
+
