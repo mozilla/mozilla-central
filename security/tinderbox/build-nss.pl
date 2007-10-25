@@ -12,7 +12,7 @@ use strict;
 # They are not initialized here. The default values are after "__END__".
 $TreeSpecific::nss_build_target = $TreeSpecific::jss_build_target = @TreeSpecific::tip_cvsfiles = @TreeSpecific::jes5_cvsfiles = $TreeSpecific::nss_extraflags = $::Version = undef;
 
-$::Version = '$Revision: 1.1 $ ';
+$::Version = '$Revision: 1.2 $ ';
 
 {
     TinderUtils::Setup();
@@ -39,9 +39,9 @@ sub tree_specific_overides {
         '-r NSS_3_11_BRANCH mozilla/security/dbm', 
         '-r NSS_3_11_BRANCH mozilla/security/coreconf', 
         '-r NSS_3_11_BRANCH mozilla/security/nss', 
-        'mozilla/security/jss', 
+        '-r JSS_4_2_5_RTM mozilla/security/jss', 
         '-r NSS_3_11_1_RTM mozilla/security/nss/lib/freebl/ecl/ecl-curve.h'
     );
 
-    $TreeSpecific::nss_extraflags = 'NSS_ENABLE_ECC=1; export NSS_ENABLE_ECC; NSS_ECC_MORE_THAN_SUITE_B=1; export NSS_ECC_MORE_THAN_SUITE_B; IOPR_HOSTADDR_LIST=dochinups.red.iplanet.com; export IOPR_HOSTADDR_LIST; ';
+    $TreeSpecific::nss_extraflags = 'NSS_ENABLE_ECC=1; export NSS_ENABLE_ECC; NSS_ECC_MORE_THAN_SUITE_B=1; export NSS_ECC_MORE_THAN_SUITE_B; IOPR_HOSTADDR_LIST=dochinups.red.iplanet.com; export IOPR_HOSTADDR_LIST; NSPR_LOG_MODULES="pkix:1"; export NSPR_LOG_MODULES; ';
 }

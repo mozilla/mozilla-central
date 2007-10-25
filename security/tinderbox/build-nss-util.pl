@@ -19,7 +19,7 @@ use Sys::Hostname;
 use strict;
 use POSIX qw(sys_wait_h strftime);
 
-$::UtilsVersion = '$Revision: 1.1 $ ';
+$::UtilsVersion = '$Revision: 1.2 $ ';
 
 package TinderNssUtils;
 
@@ -31,8 +31,11 @@ my $test_status  = 'none';
 my $rsync_cntr   = "1";
 my $hostname = ::hostname();
 my $build_bits;
+my $test_options;
+my $test_cycle = 0;
+my $test_cycles_total = 1;
 
-$::Version = '$Revision: 1.1 $ ';
+$::Version = '$Revision: 1.2 $ ';
 
 sub Build {
     BuildAndRun();
@@ -64,10 +67,14 @@ sub BuildAndRun {
         $nsstests = "standard";
     }
 
+    if ($Settings::Branch eq 'securitytip') {
+        $test_cycles_total = 4;
+    }
+
     while (not $exit_early) {
-        $Settings::BuildName = "$Settings::Branch $nsstests $Settings::OS $build_bits bit $hostname";
-        $Settings::BuildName = "$Settings::Branch $nsstests $Settings::OS/sparc $build_bits bit $hostname" if $Settings::OS eq 'SunOS' and $Settings::CPU eq 'sun4u';
-        $Settings::BuildName = "$Settings::Branch $nsstests $Settings::OS/x86 $build_bits bit $hostname" if $Settings::OS eq 'SunOS' and $Settings::CPU eq 'i86pc';
+        $Settings::BuildName = "$Settings::Branch $nsstests $Settings::OS $hostname";
+        $Settings::BuildName = "$Settings::Branch $nsstests $Settings::OS/sparc $hostname" if $Settings::OS eq 'SunOS' and $Settings::CPU eq 'sun4u';
+        $Settings::BuildName = "$Settings::Branch $nsstests $Settings::OS/x86 $hostname" if $Settings::OS eq 'SunOS' and $Settings::CPU eq 'i86pc';
 
         print "Starting dir is : $build_dir\n";
 
@@ -99,6 +106,32 @@ sub BuildAndRun {
         if (-e "/etc/redhat-release") {
             TinderUtils::print_log(`cat /etc/redhat-release`);
         }
+        
+        TinderUtils::print_log("TinderboxPrint:${build_bits} bit\n");
+
+        $test_options = "";
+        if ($test_cycle ne 0) {
+            $test_options .= "NSS_TEST_DISABLE_STANDARD=1; export NSS_TEST_DISABLE_STANDARD; "
+        }
+        if ($test_cycle ne 1) {
+            $test_options .= "NSS_TEST_DISABLE_PKIX=1; export NSS_TEST_DISABLE_PKIX; "
+        }
+        if ($test_cycle ne 2) {
+            $test_options .= "NSS_TEST_DISABLE_UPGRADE_DB=1; export NSS_TEST_DISABLE_UPGRADE_DB; "
+        }
+        if ($test_cycle ne 3) {
+            $test_options .= "NSS_TEST_DISABLE_SHARED_DB=1; export NSS_TEST_DISABLE_SHARED_DB; "
+        }
+
+        if ($test_cycle eq 0) {
+            TinderUtils::print_log("TinderboxPrint:Standard");
+        } elsif ($test_cycle eq 1) { 
+            TinderUtils::print_log("TinderboxPrint:PKIX");
+        } elsif ($test_cycle eq 2) {
+            TinderUtils::print_log("TinderboxPrint:Upgrade DB");
+        } elsif ($test_cycle eq 3) {
+            TinderUtils::print_log("TinderboxPrint:Shared DB");
+        }
 
         TinderUtils::PrintEnv();
 
@@ -119,9 +152,9 @@ sub BuildAndRun {
 
         unless ($Settings::SkipTesting or $build_status eq "busted") {
             if ($Settings::OS =~ /^W/) {
-            	TinderUtils::run_shell_command("taskkill /f /t /im selfserv; taskkill /f /t /im strsclnt");
+                TinderUtils::run_shell_command("taskkill /f /t /im selfserv; taskkill /f /t /im strsclnt");
             } else {
-            	TinderUtils::run_shell_command("/usr/bin/pkill selfserv; /usr/bin/pkill strsclnt");
+                TinderUtils::run_shell_command("/usr/bin/pkill selfserv; /usr/bin/pkill strsclnt");
             }
 
             my $test_nss_status;
@@ -181,7 +214,12 @@ sub BuildAndRun {
         $exit_early++ if $Settings::BuildOnce;
         $build_status = "restart";
 
-        if ($Settings::BuildBits eq "both") {
+        $test_cycle++;
+        if ($test_cycle ge $test_cycles_total) {
+            $test_cycle = 0;
+        }
+
+        if (($Settings::BuildBits eq "both") && ($test_cycle eq 0)) {
             if ($build_bits eq "32") {
                 $build_bits = "64";
             } else {
@@ -259,7 +297,7 @@ sub build_all {
     mkdir -p $Settings::ObjDir, 0777 if ($Settings::ObjDir && ! -e $Settings::ObjDir);
 
     if ($Settings::OS =~ /^W/) {
-  	TinderUtils::run_shell_command("taskkill /f /t /im selfserv; taskkill /f /t /im strsclnt");
+        TinderUtils::run_shell_command("taskkill /f /t /im selfserv; taskkill /f /t /im strsclnt");
     } else {
         TinderUtils::run_shell_command("/usr/bin/pkill selfserv; /usr/bin/pkill strsclnt");
     }
@@ -308,7 +346,7 @@ sub run_nss_tests {
 sub run_nss_test_cycle {
     my ($build_dir, $opt) = @_;
 
-    my $flags ="";
+    my $flags = "$test_options";
 
     if ($build_bits eq "64") {
         $flags .= "USE_64=1; export USE_64; ";
@@ -321,7 +359,7 @@ sub run_nss_test_cycle {
     if ($Settings::NSSTests ne '') {
         $flags .= "TESTS=$Settings::NSSTests; export TESTS; ";
     }
-         
+
     TinderUtils::print_log("\n######## Running $build_bits bit NSS test in $opt mode ########\n");
 
     my $shell_command = "cd $build_dir/$Settings::Topsrcdir/security/nss/tests; ./all.sh";
@@ -358,11 +396,11 @@ sub run_jss_tests {
 
     TinderUtils::print_log("\n######## Running JSS tests ########\n");
     if ($build_bits eq "64") {
-        TinderUtils::run_shell_command("$Settings::env64 cd $build_dir/$Settings::Topsrcdir/dist;cat $build_dir/../apps/keystore.pw | jarsigner -keystore $build_dir/../apps/keystore -internalsf xpclass_dbg.jar JSSsign;jarsigner -verify -verbose -certs xpclass_dbg.jar");
-        TinderUtils::run_shell_command("$Settings::env64 cd $build_dir/$Settings::Topsrcdir/dist;cat $build_dir/../apps/keystore.pw | jarsigner -keystore $build_dir/../apps/keystore -internalsf xpclass.jar JSSsign;jarsigner -verify -verbose -certs xpclass.jar");
+        TinderUtils::run_shell_command("$Settings::env64 cd $build_dir/$Settings::Topsrcdir/dist;cat $build_dir/../apps/keystore.pw | jarsigner -keystore $build_dir/../apps/keystore -internalsf xpclass_dbg.jar jssdsa;jarsigner -verify -certs xpclass_dbg.jar");
+        TinderUtils::run_shell_command("$Settings::env64 cd $build_dir/$Settings::Topsrcdir/dist;cat $build_dir/../apps/keystore.pw | jarsigner -keystore $build_dir/../apps/keystore -internalsf xpclass.jar jssdsa;jarsigner -verify -certs xpclass.jar");
     } else {   
-        TinderUtils::run_shell_command("$Settings::env32 cd $build_dir/$Settings::Topsrcdir/dist;cat $build_dir/../apps/keystore.pw | jarsigner -keystore $build_dir/../apps/keystore -internalsf xpclass_dbg.jar JSSsign;jarsigner -verify -verbose -certs xpclass_dbg.jar");
-        TinderUtils::run_shell_command("$Settings::env32 cd $build_dir/$Settings::Topsrcdir/dist;cat $build_dir/../apps/keystore.pw | jarsigner -keystore $build_dir/../apps/keystore -internalsf xpclass.jar JSSsign;jarsigner -verify -verbose -certs xpclass.jar");
+        TinderUtils::run_shell_command("$Settings::env32 cd $build_dir/$Settings::Topsrcdir/dist;cat $build_dir/../apps/keystore.pw | jarsigner -keystore $build_dir/../apps/keystore -internalsf xpclass_dbg.jar jssdsa;jarsigner -verify -certs xpclass_dbg.jar");
+        TinderUtils::run_shell_command("$Settings::env32 cd $build_dir/$Settings::Topsrcdir/dist;cat $build_dir/../apps/keystore.pw | jarsigner -keystore $build_dir/../apps/keystore -internalsf xpclass.jar jssdsa;jarsigner -verify -certs xpclass.jar");
     }
 
     $test_status = run_jss_test_cycle($build_dir, "DBG");
