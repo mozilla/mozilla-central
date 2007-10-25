@@ -142,9 +142,9 @@
    <command id="cmd_viewWatchedThreadsWithUnread" oncommand="goDoCommand('cmd_viewWatchedThreadsWithUnread')" disabled="true"/>
    <command id="cmd_viewIgnoredThreads" oncommand="goDoCommand('cmd_viewIgnoredThreads')" disabled="true"/>
    <commandset id="viewZoomCommands">
-     <command id="cmd_textZoomReduce" oncommand="ZoomManager.prototype.getInstance().reduce();"/>
-     <command id="cmd_textZoomEnlarge" oncommand="ZoomManager.prototype.getInstance().enlarge();"/>
-     <command id="cmd_textZoomReset" oncommand="ZoomManager.prototype.getInstance().reset();"/>
+     <command id="cmd_textZoomReduce" oncommand="ZoomManager.reduce();"/>
+     <command id="cmd_textZoomEnlarge" oncommand="ZoomManager.enlarge();"/>
+     <command id="cmd_textZoomReset" oncommand="ZoomManager.reset();"/>
    </commandset>
 </commandset>
 
