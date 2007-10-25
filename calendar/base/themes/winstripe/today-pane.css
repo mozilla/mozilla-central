@@ -85,7 +85,6 @@
 
 .miniday-nav-buttons {
   margin-top: 2px;
-  -moz-padding-end: 0px !important;
   list-style-image: url("chrome://calendar/skin/mini-day-nav-buttons.png");
 }
 
