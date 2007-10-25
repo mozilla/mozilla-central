@@ -38,6 +38,9 @@
 
 #import <Cocoa/Cocoa.h>
 
+#include <sys/resource.h>
+#include <sys/types.h>
+
 static void SetupRuntimeOptions(int argc, const char *argv[])
 {
   if (getenv("MOZ_UNBUFFERED_STDIO")) {
@@ -47,8 +50,27 @@ static void SetupRuntimeOptions(int argc, const char *argv[])
   }
 }
 
+static void SetMaxFileDescriptors(int target)
+{
+  struct rlimit rl;
+  if (getrlimit(RLIMIT_NOFILE, &rl) == 0) {
+    if (rl.rlim_max > 0 && rl.rlim_max < target)
+      target = rl.rlim_max;
+    if (target > rl.rlim_cur) {
+      rl.rlim_cur = target;
+      setrlimit(RLIMIT_NOFILE, &rl);
+    }
+  }
+}
+
 int main(int argc, const char *argv[])
 {
   SetupRuntimeOptions(argc, argv);
+
+  // Because of a nasty file descriptor leak when viewing flash
+  // (bug 397053), bump up our limit up to 1024 so that it takes longer for
+  // the world to end.
+  SetMaxFileDescriptors(1024);
+
   return NSApplicationMain(argc, argv);
 }
