@@ -63,105 +63,136 @@ function onLoad() {
     if (item.parentItem != item) {
         item = item.parentItem;
     }
+    if (!recinfo) {
+        recinfo = createRecurrenceInfo();
+    }
+    // Split out rules and exceptions
+    var rrules = splitRecurrenceRules(recinfo);
+    var rules = rrules[0];
+    var exceptions = rrules[1];
 
-    if (recinfo) {
-        // Split out rules and exceptions
-        var rrules = splitRecurrenceRules(recinfo);
-        var rules = rrules[0];
-        var exceptions = rrules[1];
+    // Deal with the rules
+    if (rules.length > 0) {
+        // We only handle 1 rule currently
+        var rule = rules[0];
+        if (rule instanceof Components.interfaces.calIRecurrenceRule) {
+            switch (rule.type) {
+                case "DAILY":
+                    document.getElementById("period-list").selectedIndex = 0;
+                    setElementValue("daily-days", rule.interval);
+                    break;
+                case "WEEKLY":
+                    setElementValue("weekly-weeks", rule.interval);
+                    document.getElementById("period-list").selectedIndex = 1;
+                    break;
+                case "MONTHLY":
+                    setElementValue("monthly-interval", rule.interval);
+                    document.getElementById("period-list").selectedIndex = 2;
+                    break;
+                case "YEARLY":
+                    setElementValue("yearly-interval", rule.interval);
+                    document.getElementById("period-list").selectedIndex = 3;
+                    break;
+                default:
+                    dump("unable to handle your rule type!\n");
+                    break;
+            }
 
-        // Deal with the rules
-        if (rules.length > 0) {
-            // We only handle 1 rule currently
-            var rule = rules[0];
-            if (rule instanceof Components.interfaces.calIRecurrenceRule) {
-                switch (rule.type) {
-                    case "DAILY":
-                        document.getElementById("period-list").selectedIndex = 0;
-                        setElementValue("daily-days", rule.interval);
-                        var ruleComp = rule.getComponent("BYDAY", {});
-                        if (ruleComp.length > 0) {
-                            document.getElementById("daily-group").selectedIndex = 1;
-                        } else {
-                            document.getElementById("daily-group").selectedIndex = 0;
-                        }
-                        break;
-                    case "WEEKLY":
-                        document.getElementById("period-list").selectedIndex = 1;
-                        setElementValue("weekly-weeks", rule.interval);
-                        var days = rule.getComponent("BYDAY", {});
-                        document.getElementById("daypicker-weekday").days = days;
-                        break;
-                    case "MONTHLY":
-                        document.getElementById("period-list").selectedIndex = 2;
-                        setElementValue("monthly-interval", rule.interval);
-                        var ruleComp = rule.getComponent("BYDAY", {});
-                        if (ruleComp.length > 0) {
-                            document.getElementById("monthly-group").selectedIndex = 0;
-                            var byday = ruleComp[0];
-                            var occurrence = (byday - (byday % 8)) / 8;
-                            var weekday = byday % 8;
-                            setElementValue("monthly-ordinal", occurrence);
-                            setElementValue("monthly-weekday", Math.abs(weekday));
-                        } else {
-                            var ruleComp = rule.getComponent("BYMONTHDAY", {});
-                            if (ruleComp.length > 0) {
-                                if (ruleComp.length == 1 && ruleComp[0] == -1) {
-                                    document.getElementById("monthly-group").selectedIndex = 0;
-                                    setElementValue("monthly-ordinal", ruleComp[0]);
-                                    setElementValue("monthly-weekday", ruleComp[0]);
-                                } else {
-                                    document.getElementById("monthly-group").selectedIndex = 1;
-                                    document.getElementById("monthly-days").days = ruleComp;
-                                }
-                            }
-                        }
-                        break;
-                    case "YEARLY":
-                        document.getElementById("period-list").selectedIndex = 3;
-                        setElementValue("yearly-interval", rule.interval);
-                        var byMonthRule = rule.getComponent("BYMONTH", {});
-                        var byDayRule = rule.getComponent("BYDAY", {});
-                        var byMonthDayRule = rule.getComponent("BYMONTHDAY", {});
-                        if (byMonthRule.length > 0) {
-                            if (byMonthDayRule.length > 0) {
-                                document.getElementById("yearly-group").selectedIndex = 0;
-                                setElementValue("yearly-month-ordinal", byMonthRule[0]);
-                                setElementValue("yearly-days", byMonthDayRule[0]);
-                            } else if (byDayRule.length > 0) {
-                                document.getElementById("yearly-group").selectedIndex = 1;
-                                var byday = byDayRule[0];
-                                var occurrence = (byday - (byday % 8)) / 8;
-                                var weekday = byday % 8;
-                                setElementValue("yearly-ordinal", occurrence);
-                                setElementValue("yearly-weekday", weekday);
-                                setElementValue("yearly-month-rule", byMonthRule[0]);
-                            }
-                        }
-                        break;
-                    default:
-                        dump("unable to handle your rule type!\n");
-                        break;
+            var byDayRuleComponent = rule.getComponent("BYDAY", {});
+            var byMonthDayRuleComponent = rule.getComponent("BYMONTHDAY", {});
+            var byMonthRuleComponent = rule.getComponent("BYMONTH", {});
+            var kDefaultTimezone = calendarDefaultTimezone();
+            var startDate = gStartTime.getInTimezone(kDefaultTimezone);
+
+            // "DAILY" ruletype
+            // byDayRuleComponents may have been set priorily by "MONTHLY"- ruletypes
+            // where they have a different context-
+            // that's why we also query the current rule-type
+            if ((byDayRuleComponent.length == 0)  || (rule.type != "DAILY")){
+                document.getElementById("daily-group").selectedIndex = 0;
+            } else {
+                document.getElementById("daily-group").selectedIndex = 1;
+            }
+
+            // "WEEKLY" ruletype
+            if ((byDayRuleComponent.length == 0) || (rule.type != "WEEKLY")) {
+                document.getElementById("daypicker-weekday").days = [startDate.weekday + 1];
+            }
+            else {
+                document.getElementById("daypicker-weekday").days = byDayRuleComponent;
+            }
+
+            // "MONTHLY" ruletype
+            var ruleComponentsEmpty = ((byDayRuleComponent.length == 0) && 
+                                      (byMonthDayRuleComponent.length == 0));
+            if (ruleComponentsEmpty || (rule.type != "MONTHLY")) {
+                document.getElementById("monthly-group").selectedIndex = 1;
+                document.getElementById("monthly-days").days = [startDate.day];
+                var day = Math.floor((startDate.day - 1) / 7) + 1;
+                setElementValue("monthly-ordinal", day);
+                setElementValue("monthly-weekday", startDate.weekday + 1);
+            }
+            else {
+                if (byDayRuleComponent.length > 0) {
+                    document.getElementById("monthly-group").selectedIndex = 0;
+                    var weekday = getWeekdayOfRule(byDayRuleComponent[0]);
+                    setElementValue("monthly-ordinal", occurrence);
+                    setElementValue("monthly-weekday", Math.abs(weekday));
                 }
+                else {
+                    if (byMonthDayRuleComponent.length > 0) {
+                        if (byMonthDayRuleComponent.length == 1 && byDayRuleComponent[0] == -1) {
+                            document.getElementById("monthly-group").selectedIndex = 0;
+                            setElementValue("monthly-ordinal", byMonthDayRuleComponent[0]);
+                            setElementValue("monthly-weekday", byMonthDayRuleComponent[0]);
+                        } else {
+                            document.getElementById("monthly-group").selectedIndex = 1;
+                            document.getElementById("monthly-days").days = byMonthDayRuleComponent;
+                        }
+                    }
+                }
+            }
 
-                /* load up the duration of the event radiogroup */
-                if (rule.isByCount) {
-                    if (rule.count == -1) {
-                        setElementValue("recurrence-duration", "forever");
-                    } else {
-                        setElementValue("recurrence-duration", "ntimes");
-                        setElementValue("repeat-ntimes-count", rule.count );
-                    }
+            // "YEARLY" ruletype
+            if ((byMonthRuleComponent.length == 0)  || (rule.type != "YEARLY")) {
+                setElementValue("yearly-days", startDate.day);
+                setElementValue("yearly-month-ordinal", startDate.month + 1);
+                var day = Math.floor((startDate.day - 1) / 7) + 1;
+                setElementValue("yearly-ordinal", day);
+                setElementValue("yearly-weekday", startDate.weekday + 1);
+                setElementValue("yearly-month-rule", startDate.month + 1);
+            }
+            else {
+                if (byMonthDayRuleComponent.length > 0) {
+                    document.getElementById("yearly-group").selectedIndex = 0;
+                    setElementValue("yearly-month-ordinal", byMonthRuleComponent[0]);
+                    setElementValue("yearly-days", byMonthDayRuleComponent[0]);
+                } else if (byDayRuleComponent.length > 0) {
+                    document.getElementById("yearly-group").selectedIndex = 1;
+                    var weekday = getWeekdayOfRule(byDayRuleComponent[0]);
+                    setElementValue("yearly-ordinal", occurrence);
+                    setElementValue("yearly-weekday", weekday);
+                    setElementValue("yearly-month-rule", byMonthRuleComponent[0]);
+                }
+            }
+
+            /* load up the duration of the event radiogroup */
+            if (rule.isByCount) {
+                if (rule.count == -1) {
+                    setElementValue("recurrence-duration", "forever");
                 } else {
-                    var endDate = rule.endDate;
-                    if (!endDate) {
-                        setElementValue("recurrence-duration", "forever");
-                    } else {
-                        // Convert the datetime from UTC to localtime.
-                        endDate = endDate.getInTimezone(calendarDefaultTimezone());
-                        setElementValue("recurrence-duration", "until");
-                        setElementValue("repeat-until-date", endDate.jsDate);
-                    }
+                    setElementValue("recurrence-duration", "ntimes");
+                    setElementValue("repeat-ntimes-count", rule.count );
+                }
+            } else {
+                var endDate = rule.endDate;
+                if (!endDate) {
+                    setElementValue("recurrence-duration", "forever");
+                } else {
+                    // Convert the datetime from UTC to localtime.
+                    endDate = endDate.getInTimezone(calendarDefaultTimezone());
+                    setElementValue("recurrence-duration", "until");
+                    setElementValue("repeat-until-date", endDate.jsDate);
                 }
             }
         }
@@ -173,6 +204,13 @@ function onLoad() {
     opener.setCursor("auto");
     self.focus();
 }
+
+
+function getWeekdayOfRule(aByDayRuleComponent) {
+    var occurrence = (aByDayRuleComponent - (aByDayRuleComponent % 8)) / 8;
+    return aByDayRuleComponent % 8;
+}
+
 
 function onSave(item) {
     // Always return 'null' if this item is an occurrence.
