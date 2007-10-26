@@ -175,7 +175,7 @@ enum StatusPriority {
     mStatusStrings = [[NSMutableArray alloc] initWithObjects:[NSNull null], [NSNull null],
                                                              [NSNull null], [NSNull null], nil];
 
-    mDisplayTitle = [[NSString alloc] init];
+    mDisplayTitle = [NSLocalizedString(@"UntitledPageTitle", nil) retain];
     
     mLoadingResources = [[NSMutableSet alloc] init];
     
