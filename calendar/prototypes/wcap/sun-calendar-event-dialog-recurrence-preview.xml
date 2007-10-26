@@ -63,6 +63,7 @@
 
       <field name="mRecurrenceInfo">null</field>
       <field name="mResizeHandler">null</field>
+      <field name="mDateTime">null</field>
 
       <constructor><![CDATA[
         var self = this;
@@ -76,6 +77,17 @@
         window.removeEventListener("resize", this.mResizeHandler, true);
       ]]></destructor>
 
+      <property name="dateTime">
+        <setter><![CDATA[
+            return this.mDateTime = val.clone();
+        ]]></setter>
+        <getter><![CDATA[
+            if (this.mDateTime == null) {
+                this.mDateTime = now();
+            }
+            return this.mDateTime;
+        ]]></getter>
+      </property>
       <method name="onResize">
         <body><![CDATA[
           var mainbox =
@@ -169,7 +181,7 @@
 
       <method name="updateContent">
         <body><![CDATA[
-          var date = new Date();
+          var date = this.dateTime.clone().jsDate;
           var row = document.getAnonymousElementByAttribute(
                         this, "anonid", "row");
           while (row) {
@@ -188,7 +200,7 @@
         <parameter name="aRecurrenceInfo"/>
         <body><![CDATA[
           this.mRecurrenceInfo = aRecurrenceInfo;
-          var start = jsDateToDateTime(new Date());
+          var start = this.dateTime.clone();
           start.day = 1;
           start.hour = 0;
           start.minute = 0;

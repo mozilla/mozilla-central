@@ -49,6 +49,8 @@ function onLoad() {
 
     gStartTime = args.startTime;
     gEndTime = args.endTime;
+    var preview = document.getElementById("recurrence-preview");
+    preview.dateTime = gStartTime.getInTimezone(calendarDefaultTimezone());
 
     // Set period to 'none'.
     document.getElementById("period-list").selectedIndex = 0;
