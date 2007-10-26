@@ -73,7 +73,7 @@ comm.jar:
    content/communicator/tasksOverlay.js
    content/communicator/tasksOverlay.xul
    content/communicator/utilityOverlay.js
-*  content/communicator/utilityOverlay.xul
+   content/communicator/utilityOverlay.xul
    content/communicator/viewZoomOverlay.xul
    content/communicator/viewZoomOverlay.js
 #ifdef XP_MACOSX
@@ -84,12 +84,12 @@ comm.jar:
 #ifdef XP_WIN32
    content/communicator/platformBrowserBindings.xul                 (win/platformBrowserBindings.xul)
    content/communicator/platformEditorBindings.xul                  (win/platformEditorBindings.xul)
-   content/communicator/platformCommunicatorOverlay.xul             (win/platformCommunicatorOverlay.xul)
+*  content/communicator/platformCommunicatorOverlay.xul             (win/platformCommunicatorOverlay.xul)
 #else
 #ifdef XP_OS2
    content/communicator/platformBrowserBindings.xul                 (win/platformBrowserBindings.xul)
    content/communicator/platformEditorBindings.xul                  (win/platformEditorBindings.xul)
-   content/communicator/platformCommunicatorOverlay.xul             (win/platformCommunicatorOverlay.xul)
+*  content/communicator/platformCommunicatorOverlay.xul             (win/platformCommunicatorOverlay.xul)
 #else
    content/communicator/platformBrowserBindings.xul                 (unix/platformBrowserBindings.xul)
    content/communicator/platformEditorBindings.xul                  (unix/platformEditorBindings.xul)

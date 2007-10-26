@@ -60,9 +60,6 @@
 <!ENTITY helpMenu.label					"Help"> 
 <!ENTITY helpMenu.accesskey				"h"> 
 
-<!ENTITY helpForIEUsers.label     "For Internet Explorer Users">
-<!ENTITY helpForIEUsers.accesskey "I">
-
 <!ENTITY releaseCmd.label				"Release Notes">
 <!ENTITY releaseCmd.accesskey                   "N">
 <!ENTITY aboutCmd.label					"About &brandShortName;">

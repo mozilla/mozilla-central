@@ -41,6 +41,12 @@
        key="&findTypeTextCmd.key;"/>
   <key id="key_findTypeLinks"
        key="&findTypeLinksCmd.key;"/>
+#ifdef XP_WIN
+  <menupopup id="helpPopup">
+      <menuitem label="&helpForIEUsers.label;" accesskey="&helpForIEUsers.accesskey;" insertafter="help"
+                oncommand="openHelp('ieusers', 'chrome://communicator/locale/help/suitehelp.rdf');"/>
+  </menupopup>
+#endif
 
   <!-- Tasks Keys -->
   <keyset id="tasksKeys">
