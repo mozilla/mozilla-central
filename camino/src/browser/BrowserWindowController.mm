@@ -76,12 +76,14 @@
 #import "wallet.h"
 #import "ToolbarScriptItem.h"
 
+#import "CHPermissionManager.h"
+#import "CHBrowserService.h"
+
+#include "GeckoUtils.h"
+
 #include "nsString.h"
 #include "nsCRT.h"
 #include "nsServiceManagerUtils.h"
-
-#include "CHBrowserService.h"
-#include "GeckoUtils.h"
 
 #include "nsIWebNavigation.h"
 #include "nsISHistory.h"
@@ -112,7 +114,6 @@
 #include "nsIURI.h"
 #include "nsIURIFixup.h"
 #include "nsIBrowserHistory.h"
-#include "nsIPermissionManager.h"
 #include "nsIWebPageDescriptor.h"
 #include "nsPIDOMWindow.h"
 #include "nsIDOMHTMLImageElement.h"
@@ -546,7 +547,6 @@ enum BWCOpenDest {
 - (void)sessionHistoryItemAtRelativeOffset:(int)indexOffset forWrapper:(BrowserWrapper*)inWrapper title:(NSString**)outTitle URL:(NSString**)outURLString;
 - (NSString *)locationToolTipWithFormat:(NSString *)format title:(NSString *)backTitle URL:(NSString *)backURL;
 
-- (void)whitelistPopupsFromURL:(NSString*)inURL;
 - (void)showPopup:(nsIDOMPopupBlockedEvent*)aBlockedPopup;
 
 - (void)clearContextMenuTarget;
@@ -1899,8 +1899,11 @@ enum BWCOpenDest {
 {
   // Because of the way our UI is set up, we white/blacklist based on the top-level window URI,
   // rather than the requesting URI (which can be different on framed sites).
-  if (shouldWhitelist)
-    [self whitelistPopupsFromURL:[mBrowserView currentURI]];
+  if (shouldWhitelist) {
+    [[CHPermissionManager permissionManager] setPolicy:CHPermissionAllow
+                                                forURI:[mBrowserView currentURI]
+                                                  type:CHPermissionTypePopup];
+  }
 
   nsCOMPtr<nsISimpleEnumerator> enumerator;
   blockedSites->Enumerate(getter_AddRefs(enumerator));
@@ -1962,22 +1965,11 @@ enum BWCOpenDest {
     NSLog(@"Couldn't show the blocked popup window for %@", [NSString stringWith_nsACString:uriStr]);
 }
 
-- (void)whitelistPopupsFromURL:(NSString*)inURL
-{
-  nsCOMPtr<nsIURI> uri;
-  NS_NewURI(getter_AddRefs(uri), [inURL UTF8String]);
-  nsCOMPtr<nsIPermissionManager> pm(do_GetService(NS_PERMISSIONMANAGER_CONTRACTID));
-  if (pm && uri)
-    pm->Add(uri, "popup", nsIPermissionManager::ALLOW_ACTION);
-}
-
 - (void)blacklistPopupsFromURL:(NSString*)inURL
 {
-  nsCOMPtr<nsIURI> uri;
-  NS_NewURI(getter_AddRefs(uri), [inURL UTF8String]);
-  nsCOMPtr<nsIPermissionManager> pm(do_GetService(NS_PERMISSIONMANAGER_CONTRACTID));
-  if (pm && uri)
-    pm->Add(uri, "popup", nsIPermissionManager::DENY_ACTION);
+  [[CHPermissionManager permissionManager] setPolicy:CHPermissionDeny
+                                              forURI:inURL
+                                                type:CHPermissionTypePopup];
 }
 
 //
