@@ -20,6 +20,7 @@
  *
  * Contributor(s):
  *   Simon Fraser <smfr@smfr.org>
+ *   Stuart Morgan <stuart.morgan@alumni.case.edu>
  *
  * Alternatively, the contents of this file may be used under the terms of
  * either the GNU General Public License Version 2 or later (the "GPL"), or
@@ -63,6 +64,7 @@ static NSString* const kCacheEntryExpirationDateKey = @"exp_date";
 
 - (void)postSaveNotification;
 - (void)saveCacheNotification:(NSNotification*)inNotification;
+- (void)shutdownNotification:(NSNotification*)inNotification;
 
 @end
 
@@ -90,12 +92,17 @@ static NSString* const kCacheEntryExpirationDateKey = @"exp_date";
                                              selector:@selector(saveCacheNotification:)
                                                  name:kCacheIndexSaveNotificationName
                                                object:self];
+    [[NSNotificationCenter defaultCenter] addObserver:self
+                                             selector:@selector(shutdownNotification:)
+                                                 name:NSApplicationWillTerminateNotification
+                                               object:nil];
   }
   return self;
 }
 
 - (void)dealloc
 {
+  [[NSNotificationCenter defaultCenter] removeObserver:self];
   [mURLToEntryMap release];
   [mURLToImageMap release];
   [super dealloc];
@@ -261,6 +268,9 @@ static NSString* const kCacheEntryExpirationDateKey = @"exp_date";
 
 - (void)postSaveNotification
 {
+  if (mSuppressSaveNotification)
+    return;
+
   NSNotification* saveCacheNote = [NSNotification notificationWithName:kCacheIndexSaveNotificationName
                                                                 object:self
                                                               userInfo:nil];
@@ -276,6 +286,31 @@ static NSString* const kCacheEntryExpirationDateKey = @"exp_date";
   BOOL cacheSaved = [self writeCacheFile];
   if (!cacheSaved)
     NSLog(@"Failed to save site icon cache index");
+}
+
+- (void)shutdownNotification:(NSNotification*)inNotification
+{
+  // Clear out expired icons. Exempt anything that was requested during this
+  // session (mostly to avoid making the "lost bookmark icons" issue worse).
+  NSMutableSet* removalCandidateURLs = [NSMutableSet setWithArray:[mURLToEntryMap allKeys]];
+  NSSet* memoryCacheURLs = [NSSet setWithArray:[mURLToImageMap allKeys]];
+  [removalCandidateURLs minusSet:memoryCacheURLs];
+
+  mSuppressSaveNotification = YES;
+  NSEnumerator* urlEnumerator = [removalCandidateURLs objectEnumerator];
+  NSString* url;
+  time_t startTime = time(NULL);
+  while ((url = [urlEnumerator nextObject])) {
+    BOOL expired;
+    NSString* uuid = [self UUIDForURL:url expired:&expired];
+    if (uuid && expired)
+      [self removeImageForURL:url uuid:uuid];
+    // Never spend more than a second or two doing cleanup, so we don't slam
+    // first-upgrade users (or users who visit a lot of sites over a very long
+    // session) at shutdown.
+    if (time(NULL) - startTime > 1)
+      break;
+  }
 }
 
 @end
