@@ -265,7 +265,7 @@ static const float kScrollButtonInterval = 0.15;  // time (in seconds) between f
 {
   // draw tab bar background, omitting the selected Tab
   NSRect barFrame = [self bounds];
-  NSPoint patternOrigin = [self convertPoint:NSMakePoint(0.0f, 0.0f) toView:nil];
+  NSPoint patternOrigin = [self convertPoint:NSMakePoint(0.0f, 0.0f) toView:[[self window] contentView]];
   NSRect fillRect;
 
   // first, fill to the left of the active tab
