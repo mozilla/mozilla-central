@@ -124,4 +124,24 @@
 
 #next-day-button[disabled] {
   -moz-image-region: rect(26px 21px 39px 16px);
-} 
+}
+
+.today-closebutton {
+  list-style-image: url("chrome://messenger/skin/icons/close-button.png");
+  -moz-image-region: rect(0 16px 16px 0);
+  -moz-appearance: none;
+  border: none !important;
+  padding: 2px;
+}
+
+.today-closebutton:hover {
+  -moz-image-region: rect(0 32px 16px 16px);
+}
+
+.today-closebutton:hover:active {
+  -moz-image-region: rect(0 48px 16px 32px);
+}
+
+.today-closebutton > .toolbarbutton-icon {
+  -moz-margin-end: 0px; /* override toolkit's default value */
+}

@@ -47,7 +47,6 @@
 
 <?xml-stylesheet href="chrome://calendar/skin/today-pane.css" type="text/css"?>
 <?xml-stylesheet href="chrome://calendar/content/datetimepickers/minimonth.css" type="text/css"?>
-<?xml-stylesheet href="chrome://messenger/skin/messengercompose/messengercompose.css" type="text/css"?>
 
 <overlay xmlns="http://www.mozilla.org/keymaster/gatekeeper/there.is.only.xul">
 
@@ -75,7 +74,7 @@
         <toolbarbutton id="folderview-cycler-right" class="folderview-cycler" 
                        onclick="TodayPane.cyclePaneView(1);"/>
         <spacer id="buttonspacer"/>
-        <toolbarbutton id="today-closer" class="ab-closebutton" command="cmd_toggleTodayPane"/>
+        <toolbarbutton id="today-closer" class="today-closebutton" command="cmd_toggleTodayPane"/>
       </sidebarheader>
       <vbox flex="1">
          <box id="mini-day-box" class="today-subpane">

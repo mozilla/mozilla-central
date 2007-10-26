@@ -126,4 +126,12 @@
 
 #next-day-button[disabled] {
   -moz-image-region: rect(26px 21px 39px 16px);
-} 
+}
+
+.today-closebutton {
+  list-style-image: url("chrome://global/skin/icons/closetab.png") !important;
+}
+
+.today-closebutton > .toolbarbutton-text {
+   display: none;
+}
