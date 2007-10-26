@@ -70,7 +70,7 @@ else {
 
 RunShellCommand(command         => "wget",
                 args            => ['--no-check-certificate', '-q', '-r', '-l1',
-                                    '-np', '-nc', '-nd', '-Rindex.html*',
+                                    '-np', '-nd', '-Rindex.html*,.1',
                                     '-P', $PATCHDIR, $PATCHURL],
                 logfile         => $LOGFILE,
                 appendLogfile   => 1,
