@@ -1,0 +1,84 @@
+?xml version="1.0" encoding="UTF-8"?>
+<!-- ***** BEGIN LICENSE BLOCK *****
+   - Version: MPL 1.1/GPL 2.0/LGPL 2.1
+   -
+   - The contents of this file are subject to the Mozilla Public License Version
+   - 1.1 (the "License"); you may not use this file except in compliance with
+   - the License. You may obtain a copy of the License at
+   - http://www.mozilla.org/MPL/
+   -
+   - Software distributed under the License is distributed on an "AS IS" basis,
+   - WITHOUT WARRANTY OF ANY KIND, either express or implied. See the License
+   - for the specific language governing rights and limitations under the
+   - License.
+   -
+   - The Original Code is Mozilla Calendar code.
+   -
+   - The Initial Developer of the Original Code is
+   -   Philipp Kewisch <mozilla@kewis.ch>
+   - Portions created by the Initial Developer are Copyright (C) 2007
+   - the Initial Developer. All Rights Reserved.
+   -
+   - Contributor(s):
+   -
+   - Alternatively, the contents of this file may be used under the terms of
+   - either the GNU General Public License Version 2 or later (the "GPL"), or
+   - the GNU Lesser General Public License Version 2.1 or later (the "LGPL"),
+   - in which case the provisions of the GPL or the LGPL are applicable instead
+   - of those above. If you wish to allow use of your version of this file only
+   - under the terms of either the GPL or the LGPL, and not to allow others to
+   - use your version of this file under the terms of the MPL, indicate your
+   - decision by deleting the provisions above and replace them with the notice
+   - and other provisions required by the LGPL or the GPL. If you do not delete
+   - the provisions above, a recipient may use your version of this file under
+   - the terms of any one of the MPL, the GPL or the LGPL.
+   -
+   - ***** END LICENSE BLOCK ***** -->
+
+<!DOCTYPE overlay SYSTEM "chrome://calendar/locale/calendar.dtd">
+
+<overlay id="calendar-common-sets-overlay"
+         xmlns="http://www.mozilla.org/keymaster/gatekeeper/there.is.only.xul">
+  <stringbundleset id="calendar_stringbundles">
+    <stringbundle id="bundle_branding" src="chrome://branding/locale/brand.properties"/>
+    <stringbundle id="bundle_calendar" src="chrome://calendar/locale/calendar.properties"/>
+  </stringbundleset>
+
+  <commandset id="calendar_commands">
+    <command id="calendar_new_event_command" oncommand="createEventWithDialog(getSelectedCalendar());"/>
+    <command id="calendar_modify_event_command" oncommand="modifyEventWithDialog(currentView().getSelectedItems({})[0])" disabled="true" disabledwhennoeventsselected="true"/>
+    <command id="calendar_delete_event_command" oncommand="deleteSelectedEvents()" disabled="true" disabledwhennoeventsselected="true"/>
+
+    <command id="calendar_new_todo_command" oncommand="createTodoWithDialog(getSelectedCalendar());"/>
+    <command id="calendar_delete_todo_command" oncommand="deleteToDoCommand()" disabled="true"/>
+
+    <command id="calendar_new_calendar_command" oncommand="openCalendarWizard();"/>
+    <command id="calendar_edit_calendar_command" oncommand="openCalendarProperties(getSelectedCalendar());"/>
+    <command id="calendar_delete_calendar_command" oncommand="promptDeleteCalendar(getSelectedCalendar());" disabled="true"/>
+
+    <command id="calendar_import_command" oncommand="loadEventsFromFile()"/>
+    <command id="calendar_export_command" oncommand="exportEntireCalendar()"/>
+    <command id="calendar_export_selection_command" oncommand="saveEventsToFile(currentView().getSelectedItems({}))" disabledwhennoeventsselected="true" disabled="true"/>
+
+    <command id="calendar_publish_selected_calendar_command" oncommand="publishEntireCalendar(getSelectedCalendar());"/>
+    <command id="calendar_publish_calendar_command" oncommand="publishEntireCalendar()"/>
+    <command id="calendar_publish_selected_events_command" oncommand="publishCalendarData()" disabledwhennoeventsselected="true" disabled="true"/>
+
+    <command id="calendar_reload_remote_calendars" oncommand="getCompositeCalendar().refresh()"/>
+
+    <!-- The dash instead of the underscore is intended. the 'xxx-view' part should be the id of the view in the deck -->
+    <command id="calendar_day-view_command" oncommand="showCalendarView('day')"/>
+    <command id="calendar_week-view_command" oncommand="showCalendarView('week')"/>
+    <command id="calendar_multiweek-view_command" oncommand="showCalendarView('multiweek')"/>
+    <command id="calendar_month-view_command" oncommand="showCalendarView('month')"/>
+
+    <command id="calendar_toggle_orientation_command" persist="checked" oncommand="toggleOrientation()" disabled="true"/>
+    <command id="calendar_toggle_workdays_only_command" persist="checked" oncommand="toggleWorkdaysOnly()"/>
+    <command id="calendar_toggle_tasks_in_view_command" persist="checked" oncommand="toggleTasksInView()"/>
+
+    <command id="calendar_view_next_command" oncommand="moveView(1)"/>
+    <command id="calendar_view_prev_command" oncommand="moveView(-1)"/>
+
+    <command id="calendar_go_to_today_command" oncommand="goToDate(now())"/>
+  </commandset>
+</overlay>
