@@ -1,0 +1,311 @@
+<?xml version="1.0"?>
+<!-- ***** BEGIN LICENSE BLOCK *****
+   - Version: MPL 1.1/GPL 2.0/LGPL 2.1
+   -
+   - The contents of this file are subject to the Mozilla Public License Version
+   - 1.1 (the "License"); you may not use this file except in compliance with
+   - the License. You may obtain a copy of the License at
+   - http://www.mozilla.org/MPL/
+   -
+   - Software distributed under the License is distributed on an "AS IS" basis,
+   - WITHOUT WARRANTY OF ANY KIND, either express or implied. See the License
+   - for the specific language governing rights and limitations under the
+   - License.
+   -
+   - The Original Code is Sun Microsystems code.
+   -
+   - The Initial Developer of the Original Code is Sun Microsystems.
+   - Portions created by the Initial Developer are Copyright (C) 2006
+   - the Initial Developer. All Rights Reserved.
+   -
+   - Contributor(s):
+   -   Michael Buettner <michael.buettner@sun.com>
+   -   Berend Cornelius <berend.cornelius@sun.com>
+   -
+   - Alternatively, the contents of this file may be used under the terms of
+   - either the GNU General Public License Version 2 or later (the "GPL"), or
+   - the GNU Lesser General Public License Version 2.1 or later (the "LGPL"),
+   - in which case the provisions of the GPL or the LGPL are applicable instead
+   - of those above. If you wish to allow use of your version of this file only
+   - under the terms of either the GPL or the LGPL, and not to allow others to
+   - use your version of this file under the terms of the MPL, indicate your
+   - decision by deleting the provisions above and replace them with the notice
+   - and other provisions required by the GPL or the LGPL. If you do not delete
+   - the provisions above, a recipient may use your version of this file under
+   - the terms of any one of the MPL, the GPL or the LGPL.
+   -
+   - ***** END LICENSE BLOCK ***** -->
+
+<bindings xmlns="http://www.mozilla.org/xbl"
+          xmlns:xbl="http://www.mozilla.org/xbl"
+          xmlns:xul="http://www.mozilla.org/keymaster/gatekeeper/there.is.only.xul">
+
+  <!--
+  ########################################################################
+  ## daypicker
+  ########################################################################
+  -->
+
+  <binding id="daypicker" display="xul:button"
+           extends="chrome://global/content/bindings/button.xml#button-base">
+    <resources>
+      <stylesheet src="chrome://calendar/content/calendar-daypicker.css"/>
+    </resources>
+    <content>
+      <xul:stack anonid="stackid" class="daystack" xbl:inherits="bottom,right">
+        <xul:image anonid="imageid" xbl:inherits="mode,height,width"/>
+        <xul:hbox align="center">
+          <xul:label anonid="daytext" 
+                     class="toolbarbutton-text" 
+                     flex="1"
+                     xbl:inherits="value=label"/>
+        </xul:hbox>
+      </xul:stack>
+    </content>
+    <implementation>
+      <method name="onmodified">
+        <parameter name="aEvent"/>
+        <body>
+          <![CDATA[
+            if (aEvent.attrName =="checked") {
+                var event = document.createEvent('Events');
+                event.initEvent('select', true, true);
+                this.calendar.dispatchEvent(event);
+            }
+          ]]>
+        </body>
+      </method>
+      <constructor>
+        <![CDATA[
+          this.setAttribute("autoCheck", "true");
+          this.setAttribute("type", "checkbox");
+          this.addEventListener("DOMAttrModified", this.onmodified, false);
+        ]]>
+      </constructor>
+    </implementation>
+  </binding>
+
+  <!--
+  ########################################################################
+  ## daypicker-weekday
+  ########################################################################
+  -->
+
+  <binding id="daypicker-weekday" extends="xul:box">
+    <resources>
+      <stylesheet src="chrome://calendar/skin/calendar-daypicker.css"/>
+    </resources>
+
+    <content>
+      <xul:hbox anonid="mainbox" flex="1">
+        <xul:daypicker bottom="true" xbl:inherits="disabled,mode=id"/>
+        <xul:daypicker bottom="true" xbl:inherits="disabled,mode=id"/>
+        <xul:daypicker bottom="true" xbl:inherits="disabled,mode=id"/>
+        <xul:daypicker bottom="true" xbl:inherits="disabled,mode=id"/>
+        <xul:daypicker bottom="true" xbl:inherits="disabled,mode=id"/>
+        <xul:daypicker bottom="true" xbl:inherits="disabled,mode=id"/>
+        <xul:daypicker bottom="true" right="true" xbl:inherits="disabled,mode=id"/>
+      </xul:hbox>
+    </content>
+
+    <implementation>
+      <!--
+      The weekday-picker manages an array of selected days of the week and
+      the 'days' property is the interface to this array. the expected argument is
+      an array containing integer elements, where each element represents a selected
+      day of the week, starting with SUNDAY=1.
+      -->
+      <property name="days">
+        <setter><![CDATA[
+          var mainbox =
+              document.getAnonymousElementByAttribute(
+                  this, "anonid", "mainbox");
+          var numChilds = mainbox.childNodes.length;
+          for (var i = 0; i < numChilds; i++) {
+              var child = mainbox.childNodes[i];
+              child.removeAttribute("checked");
+          }
+          for (i = 0; i < val.length; i++) {
+              var index = val[i] - 1 - this.weekStartOffset;
+              if (index < 0) {
+                  index += 7;
+              }
+              mainbox.childNodes[index].setAttribute("checked", "true");
+          }
+          return val;
+        ]]></setter>
+        <getter><![CDATA[
+          var mainbox =
+              document.getAnonymousElementByAttribute(
+                  this, "anonid", "mainbox");
+          var numChilds = mainbox.childNodes.length;
+          var days = [];
+          for (var i = 0; i < numChilds; i++) {
+              var child = mainbox.childNodes[i];
+              if (child.getAttribute("checked") == "true") {
+                  var index = i + this.weekStartOffset;
+                  if (index >= 7)
+                  index -= 7;
+                  days.push(index + 1);
+              }
+          }
+          return days;
+        ]]></getter>
+      </property>
+
+      <constructor><![CDATA[
+        var pb2 = Components.classes[
+            "@mozilla.org/preferences-service;1"]
+                .getService(
+                    Components.interfaces.nsIPrefBranch2);
+        this.weekStartOffset = 0;
+        try {
+            this.weekStartOffset =
+                pb2.getIntPref("calendar.week.start");
+        } catch (ex) {
+        }
+        var sbs = Components.classes[
+            "@mozilla.org/intl/stringbundle;1"]
+                .getService(
+                    Components.interfaces.nsIStringBundleService);
+        var props =
+            sbs.createBundle(
+                "chrome://calendar/locale/dateFormat.properties");
+        var mainbox =
+            document.getAnonymousElementByAttribute(
+                this, "anonid", "mainbox");
+        var numChilds = mainbox.childNodes.length;
+        for (var i = 0; i < numChilds; i++) {
+            var child = mainbox.childNodes[i];
+            var dow = i + this.weekStartOffset;
+            if (dow >= 7) {
+                dow -= 7;
+            }
+            var day = props.GetStringFromName("day." + (dow + 1) + ".Mmm");
+            child.label = day;
+            child.calendar = this;
+        }
+      ]]></constructor>
+
+    </implementation>
+  </binding>
+
+  <!--
+  ########################################################################
+  ## daypicker-monthday
+  ########################################################################
+  -->
+
+  <binding id="daypicker-monthday" extends="xul:box">
+    <resources>
+      <stylesheet src="chrome://calendar/skin/calendar-daypicker.css"/>
+    </resources>
+
+    <content>
+          <xul:vbox anonid="mainbox" class="daypicker-monthday-mainbox" flex="1" >
+            <xul:hbox class="daypicker-row" flex="1">
+              <daypicker label="1" xbl:inherits="disabled, mode=id"/>
+              <daypicker label="2" xbl:inherits="disabled, mode=id"/>
+              <daypicker label="3" xbl:inherits="disabled, mode=id"/>
+              <daypicker label="4" xbl:inherits="disabled, mode=id"/>
+              <daypicker label="5" xbl:inherits="disabled, mode=id"/>
+              <daypicker label="6" xbl:inherits="disabled, mode=id"/>
+              <daypicker label="7" right="true" xbl:inherits="disabled, mode=id"/>
+            </xul:hbox>
+            <xul:hbox class="daypicker-row" flex="1">
+              <daypicker label="8" xbl:inherits="disabled, mode=id"/>
+              <daypicker label="9" xbl:inherits="disabled, mode=id"/>
+              <daypicker label="10" xbl:inherits="disabled, mode=id"/>
+              <daypicker label="11" xbl:inherits="disabled, mode=id"/>
+              <daypicker label="12" xbl:inherits="disabled, mode=id"/>
+              <daypicker label="13" xbl:inherits="disabled, mode=id"/>
+              <daypicker label="14" right="true" xbl:inherits="disabled, mode=id"/>
+            </xul:hbox>
+            <xul:hbox class="daypicker-row" flex="1">
+              <daypicker label="15" xbl:inherits="disabled, mode=id"/>
+              <daypicker label="16" xbl:inherits="disabled, mode=id"/>
+              <daypicker label="17" xbl:inherits="disabled, mode=id"/>
+              <daypicker label="18" xbl:inherits="disabled, mode=id"/>
+              <daypicker label="19" xbl:inherits="disabled, mode=id"/>
+              <daypicker label="20" xbl:inherits="disabled, mode=id"/>
+              <daypicker label="21" right="true" xbl:inherits="disabled, mode=id"/>
+            </xul:hbox>
+            <xul:hbox class="daypicker-row" flex="1">
+              <daypicker label="22" xbl:inherits="disabled, mode=id"/>
+              <daypicker label="23" xbl:inherits="disabled, mode=id"/>
+              <daypicker label="24" xbl:inherits="disabled, mode=id"/>
+              <daypicker label="25" xbl:inherits="disabled, mode=id"/>
+              <daypicker label="26" xbl:inherits="disabled, mode=id"/>
+              <daypicker label="27" xbl:inherits="disabled, mode=id"/>
+              <daypicker label="28" right="true" xbl:inherits="disabled, mode=id"/>
+            </xul:hbox>
+            <xul:hbox class="daypicker-row" flex="1">
+              <daypicker bottom="true" label="29" xbl:inherits="disabled, mode=id"/>
+              <daypicker bottom="true" label="30" xbl:inherits="disabled, mode=id"/>
+              <daypicker bottom="true" label="31" xbl:inherits="disabled, mode=id"/>
+              <daypicker disabled="true" bottom="true" xbl:inherits="mode=id"/>
+              <daypicker disabled="true" bottom="true" xbl:inherits="mode=id"/>
+              <daypicker disabled="true" bottom="true" xbl:inherits="mode=id"/>
+              <daypicker disabled="true" bottom="true" right="true" xbl:inherits="mode=id"/>
+            </xul:hbox>
+          </xul:vbox>
+        </content>
+    <implementation>
+      <property name="days">
+        <setter><![CDATA[
+          var mainbox =
+              document.getAnonymousElementByAttribute(
+                  this, "anonid", "mainbox");
+          var numRows = mainbox.childNodes.length;
+          var days = [];
+          for (var i = 0; i < numRows; i++) {
+              var row = mainbox.childNodes[i];
+              var numChilds = row.childNodes.length;
+              for (var j = 0; j < numChilds; j++) {
+                  var child = row.childNodes[j];
+                  child.removeAttribute("checked");
+                  days.push(child);
+              }
+          }
+          for (i = 0; i < val.length; i++) {
+              days[val[i]-1].setAttribute("checked", "true");
+          }
+          return val;
+        ]]></setter>
+        <getter><![CDATA[
+          var mainbox =
+              document.getAnonymousElementByAttribute(
+                  this, "anonid", "mainbox");
+          var numRows = mainbox.childNodes.length;
+          var days = [];
+          for (var i = 0; i < numRows; i++) {
+              var row = mainbox.childNodes[i];
+              var numChilds = row.childNodes.length;
+              for (var j = 0; j < numChilds; j++) {
+                  var child = row.childNodes[j];
+                  if (child.getAttribute("checked") == "true") {
+                      days.push(Number(child.label));
+                  }
+              }
+          }
+          return days;
+        ]]></getter>
+      </property>
+
+      <constructor><![CDATA[
+        var mainbox =
+            document.getAnonymousElementByAttribute(
+                this, "anonid", "mainbox");
+        var numRows = mainbox.childNodes.length;
+        for (var i = 0; i < numRows; i++) {
+            var row = mainbox.childNodes[i];
+            var numChilds = row.childNodes.length;
+            for (var j = 0; j < numChilds; j++) {
+                var child = row.childNodes[j];
+                child.calendar = this;
+            }
+        }
+      ]]></constructor>
+    </implementation>
+  </binding>
+</bindings>
