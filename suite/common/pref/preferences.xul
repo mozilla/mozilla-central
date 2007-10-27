@@ -1,0 +1,166 @@
+<?xml version="1.0"?> 
+
+<!-- ***** BEGIN LICENSE BLOCK *****
+   - Version: MPL 1.1/GPL 2.0/LGPL 2.1
+   -
+   - The contents of this file are subject to the Mozilla Public License Version
+   - 1.1 (the "License"); you may not use this file except in compliance with
+   - the License. You may obtain a copy of the License at
+   - http://www.mozilla.org/MPL/
+   -
+   - Software distributed under the License is distributed on an "AS IS" basis,
+   - WITHOUT WARRANTY OF ANY KIND, either express or implied. See the License
+   - for the specific language governing rights and limitations under the
+   - License.
+   -
+   - The Original Code is SeaMonkey preferences code.
+   -
+   - The Initial Developer of the Original Code is the SeaMonkey project.
+   - Portions created by the Initial Developer are Copyright (C) 2007
+   - the Initial Developer. All Rights Reserved.
+   -
+   - Contributor(s):
+   -   Karsten Düsterloh <mnyromyr@tprac.de>
+   -
+   - Alternatively, the contents of this file may be used under the terms of
+   - either the GNU General Public License Version 2 or later (the "GPL"), or
+   - the GNU Lesser General Public License Version 2.1 or later (the "LGPL"),
+   - in which case the provisions of the GPL or the LGPL are applicable instead
+   - of those above. If you wish to allow use of your version of this file only
+   - under the terms of either the GPL or the LGPL, and not to allow others to
+   - use your version of this file under the terms of the MPL, indicate your
+   - decision by deleting the provisions above and replace them with the notice
+   - and other provisions required by the LGPL or the GPL. If you do not delete
+   - the provisions above, a recipient may use your version of this file under
+   - the terms of any one of the MPL, the GPL or the LGPL.
+   -
+   - ***** END LICENSE BLOCK ***** -->
+
+<?xml-stylesheet type="text/css" href="chrome://communicator/skin/"?>
+<?xml-stylesheet type="text/css" href="chrome://communicator/content/communicator.css"?>
+
+<?xul-overlay href="chrome://communicator/content/pref/platformPrefOverlay.xul"?>
+
+<!DOCTYPE prefwindow [
+  <!ENTITY % dtd1 SYSTEM "chrome://communicator/locale/pref/pref.dtd" > %dtd1;
+  <!ENTITY % dtd2 SYSTEM "chrome://communicator/locale/pref/preftree.dtd" > %dtd2;
+  <!ENTITY % dtd3 SYSTEM "chrome://communicator-platform/locale/pref/platformPrefOverlay.dtd" > %dtd3;
+]>
+
+<prefwindow id="prefDialog" 
+            xmlns="http://www.mozilla.org/keymaster/gatekeeper/there.is.only.xul"
+            title="&prefWindow.title;" 
+            style="&prefWindow.size;"
+            windowtype="mozilla:preferences"
+            persist="screenX screenY"
+            buttons="accept,cancel,help"
+            autopanes="true"> 
+
+  <stringbundle id="bundle_prefutilities"
+                src="chrome://communicator/locale/pref/prefutilities.properties"/>
+
+  <tree id="prefsTree"
+        style="width: 13em;"
+        seltype="single"
+        hidecolumnpicker="true"
+        hidden="true"
+        flex="1">
+    <treecols>
+      <treecol id="categoryCol"
+               label="&categoryHeader;"
+               primary="true" 
+               flex="1"/>
+    </treecols>
+
+    <treechildren id="panelChildren">
+      <treeitem container="true"
+                id="appearance"
+                label="&appear.label;"
+                url="chrome://communicator/content/pref/pref-appearance.xul">
+        <treechildren id="appearanceChildren">
+          <treeitem label="&fonts.label;"
+                    url="chrome://communicator/content/pref/pref-fonts.xul"/>
+          <treeitem label="&colors.label;"
+                    url="chrome://communicator/content/pref/pref-colors.xul"/>
+          <treeitem label="&locales.label;"
+                    url="chrome://communicator/content/pref/pref-locales.xul"/>
+        </treechildren>
+      </treeitem>
+
+      <treeitem container="true"
+                id="navigator"
+                label="&navigator.label;"
+                prefpane="navigator_pane"
+                helpTopic="navigator_pref_navigator"
+                url="chrome://communicator/content/pref/pref-navigator.xul">
+        <treechildren id="navigatorChildren">
+          <treeitem label="&history.label;"
+                    url="chrome://communicator/content/pref/pref-history.xul"/>
+          <treeitem label="&languages.label;"
+                    url="chrome://communicator/content/pref/pref-languages.xul"/>
+          <treeitem label="&applications.label;"
+                    url="chrome://communicator/content/pref/pref-applications.xul"/>
+          <treeitem label="&smartBrowse.label;"
+                    url="chrome://communicator/content/pref/pref-smart_browsing.xul"/>
+          <treeitem label="&search.label;"
+                    url="chrome://communicator/content/pref/pref-search.xul"/>
+          <treeitem label="&tabWindows.label;"
+                    url="chrome://communicator/content/pref/pref-tabs.xul"/>
+          <treeitem label="&download.label;"
+                    url="chrome://communicator/content/pref/pref-download.xul"/>
+          <!-- Taking out Policies panel b/c bug 44121
+          <treeitem url="chrome://communicator/content/pref/pref-policies.xul" label="&policies.label;"/>
+          -->
+        </treechildren>
+      </treeitem>
+
+      <!-- Security and Privacy items -->
+      <treeitem container="true"
+                id="securityItem"
+                prefpane="security_pane"
+                label="&security.label;"
+                url="chrome://communicator/content/pref/pref-security.xul">
+        <treechildren id="securityChildren">
+          <treeitem label="&cookies.label;"
+                    url="chrome://communicator/content/pref/pref-cookies.xul"/>
+          <treeitem label="&images.label;"
+                    url="chrome://communicator/content/pref/pref-images.xul"/>
+          <treeitem id="popupspref"
+                    label="&popups.label;"
+                    url="chrome://communicator/content/pref/pref-popups.xul"/>
+        </treechildren>
+      </treeitem>
+
+      <treeitem container="true"
+                id="advancedItem"
+                label="&advance.label;"
+                url="chrome://communicator/content/pref/pref-advanced.xul">
+        <treechildren id="advancedChildren">
+          <treeitem label="&scriptsAndWindows.label;"
+                    url="chrome://communicator/content/pref/pref-scripts.xul"/>
+          <treeitem label="&keynav.label;"
+                    url="chrome://communicator/content/pref/pref-keynav.xul"/>
+          <treeitem label="&cache.label;"
+                    url="chrome://communicator/content/pref/pref-cache.xul"/>
+          <treeitem id="proxiesItem"
+                    label="&proxies.label;"
+                    url="chrome://communicator/content/pref/pref-proxies.xul"/>
+          <treeitem label="&httpnetworking.label;"
+                    url="chrome://communicator/content/pref/pref-http.xul"/>
+          <treeitem label="&smart.label;"
+                    url="chrome://communicator/content/pref/pref-smartupdate.xul"/>
+          <treeitem id="mousewheelItem"
+                    label="&mousewheel.label;"
+                    url="chrome://communicator/content/pref/pref-mousewheel.xul"/>
+        </treechildren>
+      </treeitem>
+
+      <!-- commented out until bug 82487 is fixed 
+      <treeitem id="offlineItem"
+                label="&offline.label;"
+                url="chrome://communicator/content/pref/pref-offline.xul"/>
+      -->
+
+    </treechildren>
+  </tree>
+</prefwindow>
