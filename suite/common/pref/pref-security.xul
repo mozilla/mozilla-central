@@ -1,4 +1,5 @@
-<?xml version="1.0"?> 
+<?xml version="1.0"?>
+
 <!-- ***** BEGIN LICENSE BLOCK *****
    - Version: MPL 1.1/GPL 2.0/LGPL 2.1
    -
@@ -35,21 +36,13 @@
    - the terms of any one of the MPL, the GPL or the LGPL.
    -
    - ***** END LICENSE BLOCK ***** -->
-<?xml-stylesheet href="chrome://communicator/skin/" type="text/css"?>
 
-<!DOCTYPE page SYSTEM "chrome://communicator/locale/pref/pref-security.dtd" >
-<page xmlns="http://www.mozilla.org/keymaster/gatekeeper/there.is.only.xul"
-      onload="parent.initPanel('chrome://communicator/content/pref/pref-security.xul');"
-      headertitle="&pref.security.title;">
+<!DOCTYPE overlay SYSTEM "chrome://communicator/locale/pref/pref-security.dtd" >
 
-  <script type="application/x-javascript">
-  <![CDATA[
-    var _elementIDs = [];
-  ]]>
-  </script>
-  
-  <description> &rContent1;</description>
-  <description> &rContent2;</description>
-  <!-- Overlays add UI here -->
-</page>
-
+<overlay xmlns="http://www.mozilla.org/keymaster/gatekeeper/there.is.only.xul">
+  <prefpane id="security_pane" label="&pref.security.title;">
+    <description>&rContent1;</description>
+    <description>&rContent2;</description>
+    <!-- Overlays may add UI here -->
+  </prefpane>
+</overlay>

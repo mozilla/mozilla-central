@@ -25,6 +25,7 @@
  *   Stephen Walker <walk84@yahoo.com>
  *   Christopher A. Aillon <christopher@aillon.com>
  *   Ian Neal <ian@arlen.demon.co.uk>
+ *   Karsten Düsterloh <mnyromyr@tprac.de>
  *
  * Alternatively, the contents of this file may be used under the terms of
  * either the GNU General Public License Version 2 or later (the "GPL"), or
@@ -40,85 +41,62 @@
  *
  * ***** END LICENSE BLOCK ***** */
 
-const nsIFilePicker     = Components.interfaces.nsIFilePicker;
-const nsIWindowMediator = Components.interfaces.nsIWindowMediator;
-const nsIPrefService    = Components.interfaces.nsIPrefService;
-const nsIPrefLocalizedString = Components.interfaces.nsIPrefLocalizedString;
+// The contents of this file will be loaded into the scope of the object
+// <prefpane id="navigator_pane">!
 
-const FILEPICKER_CONTRACTID     = "@mozilla.org/filepicker;1";
-const WINDOWMEDIATOR_CONTRACTID = "@mozilla.org/appshell/window-mediator;1";
-const PREFSERVICE_CONTRACTID    = "@mozilla.org/preferences-service;1";
+// put "global" definitions here for easy reference
+var gHomePageGroupIsSet = "";
+var gDefaultPage = "";
+var gHomePages = [];
 
-var gDefaultPage;
-var gData;
 
-function setHomePageValue(value)
+function GetHomePageValue()
 {
-  var homePageField = document.getElementById("browserStartupHomepage");
-  homePageField.value = value;
+  return document.getElementById("browserStartupHomepage").value;
 }
 
-function getGroupIsSetMessage()
+function SetHomePageValue(aValue)
 {
-  var prefUtilitiesBundle = document.getElementById("bundle_prefutilities");
-  return prefUtilitiesBundle.getString("groupIsSet");
+  document.getElementById("browserStartupHomepage").value = aValue;
 }
 
-function getMostRecentBrowser()
+function GetMostRecentBrowser()
 {
-  var windowManager = Components.classes[WINDOWMEDIATOR_CONTRACTID]
-                                .getService(nsIWindowMediator);
-
+  var windowManager = Components.classes["@mozilla.org/appshell/window-mediator;1"]
+                                .getService(Components.interfaces.nsIWindowMediator);
   var browserWindow = windowManager.getMostRecentWindow("navigator:browser");
-  if (browserWindow)
-    return browserWindow.document.getElementById("content");
-
-  return null;
+  return browserWindow && browserWindow.document.getElementById("content");
 }
 
-function getCurrentPage()
+function GetCurrentPage()
 {
-  var url;
-  var tabbrowser = getMostRecentBrowser();
+  var tabbrowser = GetMostRecentBrowser();
+  return tabbrowser && tabbrowser.currentURI.spec;
+}
+
+function GetCurrentPageGroup()
+{
+  var uris = [];
+  var tabbrowser = GetMostRecentBrowser();
   if (tabbrowser)
-    url = tabbrowser.currentURI.spec;
-
-  return url;
-}
-
-function getCurrentPageGroup()
-{
-  var URIs = [];
-  var tabbrowser = getMostRecentBrowser();
-  if (tabbrowser) {
+  {
     var browsers = tabbrowser.browsers;
-    for (var i = 0; i < browsers.length; ++i)
-      URIs[i] = browsers[i].currentURI.spec;
+    var browsersLen = browsers.length;
+    for (var i = 0; i < browsersLen; ++i)
+      uris[i] = browsers[i].currentURI.spec;
   }
-
-  return URIs;
+  return uris;
 }
 
-function getDefaultPage()
+function UpdateHomePageButtons()
 {
-  var prefService = Components.classes[PREFSERVICE_CONTRACTID]
-                              .getService(nsIPrefService);
-  var pref = prefService.getDefaultBranch(null);
-  return pref.getComplexValue("browser.startup.homepage",
-                              nsIPrefLocalizedString).data;
-}
+  var homepage = GetHomePageValue();
 
-function updateHomePageButtons()
-{
-  var homepage = document.getElementById("browserStartupHomepage").value;
-
-  // disable the "current page" button if the current page
-  // is already the homepage
+  // disable "current page" button if current page is already the homepage
   var currentPageButton = document.getElementById("browserUseCurrent");
-  currentPageButton.disabled = homepage == getCurrentPage();
+  currentPageButton.disabled = (homepage == GetCurrentPage());
 
-  // disable the "default page" button if the default page
-  // is already the homepage
+  // disable "default page" button if default page is already the homepage
   var defaultPageButton = document.getElementById("browserUseDefault");
   defaultPageButton.disabled = (homepage == gDefaultPage);
 
@@ -134,21 +112,25 @@ function updateHomePageButtons()
   //   in those cases we only want to enable the button if:
   //    - there's more than one tab in the most recent browser and
   //      the current group doesn't match the group of homepages
-
   var enabled = false;
-
-  var homePages = gData.navigatorData.homePages;
-  if (homePages.length == 1) {
-    var browser = getMostRecentBrowser();
-    enabled = browser && browser.browsers.length > 1;
-  } else {
-    var currentURIs = getCurrentPageGroup();
-    if (currentURIs.length == homePages.length) {
-      for (var i = 0; !enabled && i < homePages.length; ++i) {
-        if (homePages[i] != currentURIs[i])
+  if (gHomePages.length == 1)
+  {
+    var browser = GetMostRecentBrowser();
+    enabled = !!browser && (browser.browsers.length > 1);
+  }
+  else
+  {
+    var currentURIs = GetCurrentPageGroup();
+    if (currentURIs.length == gHomePages.length)
+    {
+      for (var i = 0; !enabled && (i < gHomePages.length); ++i)
+      {
+        if (gHomePages[i] != currentURIs[i])
           enabled = true;
       }
-    } else if (currentURIs.length > 1) {
+    }
+    else if (currentURIs.length > 1)
+    {
       enabled = true;
     }
   }
@@ -157,163 +139,170 @@ function updateHomePageButtons()
   currentPageGroupButton.disabled = !enabled;
 }
 
-function locationInputHandler()
+function UpdateHomePageListFromInput()
 {
-  var navigatorData = gData.navigatorData;
-  var homePage = document.getElementById("browserStartupHomepage");
-  navigatorData.homePages = [ homePage.value ];
-  updateHomePageButtons();
+  gHomePages = [GetHomePageValue()];
+  UpdateHomePageButtons();
 }
 
-function selectFile()
+function UpdateHomePageList(aSingleURL)
 {
-  var fp = Components.classes[FILEPICKER_CONTRACTID]
-                     .createInstance(nsIFilePicker);
+  // write single URL into input box and set it as the list of homepages
+  SetHomePageValue(aSingleURL);
+  UpdateHomePageListFromInput();
+}
 
+function SelectFile()
+{
+  const nsIFilePicker = Components.interfaces.nsIFilePicker;
+  var fp = Components.classes["@mozilla.org/filepicker;1"]
+                     .createInstance(nsIFilePicker);
   var prefutilitiesBundle = document.getElementById("bundle_prefutilities");
   var title = prefutilitiesBundle.getString("choosehomepage");
   fp.init(window, title, nsIFilePicker.modeOpen);
-  fp.appendFilters(nsIFilePicker.filterAll | nsIFilePicker.filterText |
-                   nsIFilePicker.filterXML | nsIFilePicker.filterHTML |
+  fp.appendFilters(nsIFilePicker.filterAll  |
+                   nsIFilePicker.filterText |
+                   nsIFilePicker.filterXML  |
+                   nsIFilePicker.filterHTML |
                    nsIFilePicker.filterImages);
 
-  var ret = fp.show();
-  if (ret == nsIFilePicker.returnOK) {
-    var folderField = document.getElementById("browserStartupHomepage");
-    folderField.value = fp.fileURL.spec;
-    var url = fp.fileURL.spec;
-    setHomePageValue(url);
-    gData.navigatorData.homePages = [ url ];
-    updateHomePageButtons();
-  }
+  if (fp.show() == nsIFilePicker.returnOK)
+    UpdateHomePageList(fp.fileURL.spec);
 }
 
-function setHomePageToCurrentPage()
+function SetHomePageToCurrentPage()
 {
-  var url = getCurrentPage();
-  if (url) {
-    setHomePageValue(url);
-    gData.navigatorData.homePages = [ url ];
-    updateHomePageButtons();
-  }
+  UpdateHomePageList(GetCurrentPage());
 }
 
-function setHomePageToCurrentGroup()
+function SetHomePageToDefaultPage()
 {
-  var URIs = getCurrentPageGroup();
-  if (URIs.length > 0) {
-    setHomePageValue(gData.navigatorData.groupIsSet);
-    gData.navigatorData.homePages = URIs;
-    updateHomePageButtons();
-  }
+  UpdateHomePageList(gDefaultPage);
 }
 
-function setHomePageToDefaultPage()
+function SetHomePageToCurrentGroup()
 {
-  setHomePageValue(gDefaultPage);
-  gData.navigatorData.homePages = [ gDefaultPage ];
-  updateHomePageButtons();
-}
-
-function init()
-{
-  var prefWindow = parent.hPrefWindow;
-
-  gData = prefWindow.wsm.dataManager
-                        .pageData["chrome://communicator/content/pref/pref-navigator.xul"]
-
-  gDefaultPage = getDefaultPage();
-
-  if ("navigatorData" in gData)
-    return;
-
-  var navigatorData = {};
-
-  navigatorData.groupIsSet = getGroupIsSetMessage();
-
-  var URIs = [];
-  try {
-    URIs[0] = prefWindow.getPref("localizedstring",
-                                 "browser.startup.homepage");
-
-    var count = prefWindow.getPref("int",
-                                   "browser.startup.homepage.count");
-
-    for (var i = 1; i < count; ++i) {
-      URIs[i] = prefWindow.getPref("localizedstring",
-                                   "browser.startup.homepage."+i);
-    }
-    navigatorData.homePages = URIs;
-  } catch(e) {
+  var uris = GetCurrentPageGroup();
+  if (uris.length > 0)
+  {
+    SetHomePageValue(gHomePageGroupIsSet);
+    gHomePages = uris;
+    UpdateHomePageButtons();
   }
-
-  gData.navigatorData = navigatorData;
-
-  prefWindow.registerOKCallbackFunc(doOnOk);
 }
 
 function Startup()
 {
-  init();
+  // initialize global strings
+  gHomePageGroupIsSet = document.getElementById("bundle_prefutilities")
+                                .getString("groupIsSet");
+  gDefaultPage = document.getElementById("browser.startup.homepage").value;
 
-  var navigatorData = gData.navigatorData;
+  // initialize behaviourDeck
+  SetPageAccessKeys(document.getElementById("behaviourDeck").firstChild);
 
-  var homePages = navigatorData.homePages;
-  if (homePages.length == 1)
-    setHomePageValue(homePages[0]);
+  // homepage groups can have an arbitrary number of preferences,
+  // thus we create them manually here 
+  var uris = [];
+  var preferences = document.getElementById("navigator_preferences");
+  var count = document.getElementById("browser.startup.homepage.count").value;
+
+  uris[0] = gDefaultPage;
+  for (var i = 1; i < count; ++i)
+  {
+    // add new <preference> 
+    var pref = document.createElement("preference");
+    var prefname = "browser.startup.homepage." + i;
+    pref.setAttribute("id", prefname);
+    pref.setAttribute("name", prefname);
+    pref.setAttribute("type", "string");
+    preferences.appendChild(pref);
+
+    // remember its URIs
+    try
+    {
+      uris[i] = pref.value;
+    }
+    catch(e) {}
+  }
+  gHomePages = uris;
+
+  if (uris.length == 1)
+    SetHomePageValue(uris[0]);
   else
-    setHomePageValue(navigatorData.groupIsSet);
+    SetHomePageValue(gHomePageGroupIsSet);
+  UpdateHomePageButtons();
 
-  updateHomePageButtons();
-
-  setPageAccessKeys(document.getElementById("behaviourDeck").firstChild);
+  // register our OK handler for the capturing(!) phase
+  window.addEventListener("dialogaccept", this.OnDialogAccept, true);
 }
 
-function doOnOk()
+function OnDialogAccept()
 {
-  var prefWindow = parent.hPrefWindow;
-  // OK could have been hit from another panel, so we need to
-  // get at navigatorData the long but safer way
-  var navigatorData = prefWindow.wsm.dataManager
-                                .pageData["chrome://communicator/content/pref/pref-navigator.xul"]
-                                .navigatorData;
+  // OK could have been hit from another pane,
+  // so we need to get at our data the long but safer way
+  var navigator_pane = document.getElementById("navigator_pane");
 
-  var URIs = navigatorData.homePages;
-
-  prefWindow.setPref("string", "browser.startup.homepage", URIs[0]);
-
+  // toolkit will save all our data for, we just need to make sure it's set
+  var preferences = document.getElementById("navigator_preferences");
+  var uris = navigator_pane.gHomePages;
+  var uriCount = uris.length;
+  if (uriCount > 0)
+    document.getElementById("browser.startup.homepage").value = uris[0];
   var i = 1;
-  for (; i < URIs.length; ++i)
-    prefWindow.setPref("string", "browser.startup.homepage."+i, URIs[i]);
-                 
-  const countPref = "browser.startup.homepage.count";
+  for (; i < uriCount; ++i)
+  {
+    // store current value
+    var prefname = "browser.startup.homepage." + i;
+    var pref = document.getElementById(prefname);
+    if (!pref)
+    {
+      pref = document.createElement("preference");
+      pref.setAttribute("id", prefname);
+      pref.setAttribute("name", prefname);
+      pref.setAttribute("type", "string");
+      preferences.appendChild(pref);
+    }
+    pref.value = uris[i];
+  }
 
   // remove the old user prefs values that we didn't overwrite
-  var oldCount = prefWindow.getPref("int", countPref);
+  var countPref = document.getElementById("browser.startup.homepage.count");
+  var oldCount = countPref.value;
   for (; i < oldCount; ++i)
-    prefWindow.pref.clearUserPref("browser.startup.homepage."+i);
-
-  prefWindow.setPref("int", countPref, URIs.length);
+  {
+    // clear old pref
+    var prefname = "browser.startup.homepage." + i;
+    var pref = document.getElementById(prefname);
+    if (pref)
+    {
+      pref.reset();
+      pref.parentNode.removeChild(pref);
+    }
+  }
+  countPref.value = uris.length;
 }
 
-function setPageAccessKeys(group)
+// the following functions may seem weird, but they are needed to avoid
+// accesskey clashes with hidden deck panes
+function SetPageAccessKeys(aGroup)
 {
-  var nodes = group.childNodes;
+  var nodes = aGroup.childNodes;
   for (var i = 0; i < nodes.length; ++i)
     nodes[i].accessKey = nodes[i].getAttribute("ak");
 }
 
-function removePageAccessKeys(group)
+function RemovePageAccessKeys(aGroup)
 {
-  var nodes = group.childNodes;
+  var nodes = aGroup.childNodes;
   for (var i = 0; i < nodes.length; ++i)
     nodes[i].accessKey = '';
 }
 
-function switchPage(index)
+function SwitchPage(aIndex)
 {
   var deck = document.getElementById("behaviourDeck");
-  removePageAccessKeys(deck.selectedPanel);
-  deck.selectedIndex = index;
-  setPageAccessKeys(deck.selectedPanel);
+  RemovePageAccessKeys(deck.selectedPanel);
+  deck.selectedIndex = aIndex;
+  SetPageAccessKeys(deck.selectedPanel);
 }

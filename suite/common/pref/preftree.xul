@@ -81,7 +81,7 @@
     </treeitem>
     <treeitem container="true" id="navigator">
       <treerow>
-        <treecell url="chrome://communicator/content/pref/pref-navigator.xul" label="&navigator.label;"/> 
+        <treecell label="(migrated)"/> 
       </treerow>
       <treechildren id="navigatorChildren">
         <treeitem>
@@ -131,7 +131,7 @@
     <!-- Security and Privacy items -->
     <treeitem container="true" id="securityItem">
       <treerow>
-        <treecell url="chrome://communicator/content/pref/pref-security.xul" label="&security.label;" />
+        <treecell label="(migrated)" />
       </treerow>
       <treechildren id="securityChildren">
         <treeitem>
