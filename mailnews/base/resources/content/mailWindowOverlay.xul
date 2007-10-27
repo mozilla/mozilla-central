@@ -694,7 +694,7 @@
         <menuitem id="folderPaneContext-compact"
               label="&folderContextCompact.label;"
               accesskey="&folderContextCompact.accesskey;"
-        oncommand="MsgCompactFolder(false);"/>          //for one folder only
+        oncommand="MsgCompactFolder(false);"/>
     <menuitem id="folderPaneContext-remove"
         label="&folderContextRemove.label;"
         accesskey="&folderContextRemove.accesskey;"
