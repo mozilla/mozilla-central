@@ -392,7 +392,8 @@
         <menuitem id="textfieldDirection-swap" hidden="true"/>
 
         <menuseparator id="menu_PrefsSeparator"/> 
-        <menuitem id="menu_preferences" oncommand="goPreferences('navigator', 'chrome://communicator/content/pref/pref-navigator.xul', 'navigator')"/>
+        <menuitem id="menu_preferences" oncommand="goPreferences('navigator_pane')"/>
+        <menuitem label="(Legacy Prefwindow...)" oncommand="goPreferences('navigator', 'chrome://communicator/content/pref/pref-navigator.xul', 'navigator')"/>
       </menupopup>
     </menu>
 

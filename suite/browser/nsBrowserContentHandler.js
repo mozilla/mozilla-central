@@ -188,7 +188,8 @@ function openPreferences()
   if (win)
     win.focus();
   else
-    openWindow(null, "chrome://communicator/content/pref/pref.xul", "chrome,titlebar,dialog=no", "");
+    openWindow(null, "chrome://communicator/content/pref/preferences.xul",
+               "chrome,titlebar,dialog=no,resizable", "");
 }
 
 function getMostRecentWindow(aType)

@@ -237,31 +237,32 @@ function getBrowserURL() {
 
 function goPreferences(containerID, paneURL, itemID)
 {
-  var resizable;
-  var pref = Components.classes["@mozilla.org/preferences-service;1"]
-                       .getService(Components.interfaces.nsIPrefBranch);
-  try {
-    // We are resizable ONLY if in box debugging mode, because in
-    // this special debug mode it is often impossible to see the 
-    // content of the debug panel in order to disable debug mode.
-    resizable = pref.getBoolPref("xul.debug.box");
-  }
-  catch (e) {
-    resizable = false;
-  }
-
   //check for an existing pref window and focus it; it's not application modal
   const kWindowMediatorContractID = "@mozilla.org/appshell/window-mediator;1";
   const kWindowMediatorIID = Components.interfaces.nsIWindowMediator;
-  const kWindowMediator = Components.classes[kWindowMediatorContractID].getService(kWindowMediatorIID);
-  var lastPrefWindow = kWindowMediator.getMostRecentWindow("mozilla:preferences");
+  const kWindowMediator = Components.classes[kWindowMediatorContractID]
+                                    .getService(kWindowMediatorIID);
+
+  // Bug 394522:
+  // Until all our pref panels have been migrated to the toolkit way,
+  // we need to distinguish between old and new methods of opening a specific
+  // panel -> prefwindow only needs the prefpane id in window.arguments[0], so
+  // this function here only needs to get one param passed in the future
+  // -> we assume that a new style style pref panel is requested if only one
+  // (the first) parameter is passed.
+  var legacyPrefWindow = paneURL || itemID;
+  var prefWindowFragment = legacyPrefWindow ? "pref" : "preferences";
+  var lastPrefWindow = kWindowMediator.getMostRecentWindow("mozilla:" + prefWindowFragment);
   if (lastPrefWindow)
     lastPrefWindow.focus();
   else {
-    var resizability = resizable ? "yes" : "no";
-    var features = "chrome,titlebar,resizable=" + resizability;
-    openDialog("chrome://communicator/content/pref/pref.xul","PrefWindow", 
-               features, paneURL, containerID, itemID);
+    if (!legacyPrefWindow) {
+      paneURL = containerID;
+      containerID = null;
+    }
+    openDialog("chrome://communicator/content/pref/" + prefWindowFragment + ".xul",
+               "PrefWindow", "chrome,titlebar,dialog=no,resizable",
+               paneURL, containerID, itemID);
   }
 }
 
