@@ -66,8 +66,6 @@
 
 #miniday-dropdown-button {
   margin: 2px;
-  padding-left: 3px;
-  padding-right: 3px;
   max-width: 15px;
 }
 
@@ -126,6 +124,16 @@
   -moz-image-region: rect(26px 21px 39px 16px);
 }
 
+#miniday-dropdown-button > .toolbarbutton-icon,
+  .miniday-nav-buttons > .toolbarbutton-icon {
+  margin: 1px;
+}
+
+#miniday-dropdown-button > .toolbarbutton-text,
+  .miniday-nav-buttons > .toolbarbutton-text  {
+  display: none;
+}
+
 .today-closebutton {
   list-style-image: url("chrome://messenger/skin/icons/close-button.png");
   -moz-image-region: rect(0 16px 16px 0);
@@ -133,6 +141,7 @@
   border: none !important;
   padding: 2px;
 }
+
 
 .today-closebutton:hover {
   -moz-image-region: rect(0 32px 16px 16px);

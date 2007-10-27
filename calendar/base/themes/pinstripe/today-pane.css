@@ -66,9 +66,6 @@
 
 #miniday-dropdown-button {
   margin: 2px;
-  padding-left: 1px;
-  padding-right: 1px;
-  max-width: 15px;
 }
 
 .monthlabel {
@@ -84,9 +81,8 @@
 }
 
 .miniday-nav-buttons {
-  padding: 0 !important;
-  margin: 0 !important;
-  margin-top: 2px;
+  margin: 2px 0px 0px 0px;
+  padding: 1px;
   list-style-image: url("chrome://calendar/skin/mini-day-nav-buttons.png");
 }
 
@@ -126,6 +122,16 @@
 
 #next-day-button[disabled] {
   -moz-image-region: rect(26px 21px 39px 16px);
+}
+
+#miniday-dropdown-button > .toolbarbutton-icon,
+  .miniday-nav-buttons > .toolbarbutton-icon  {
+  margin: 1px;
+}
+
+#miniday-dropdown-button > .toolbarbutton-text,
+  .miniday-nav-buttons > .toolbarbutton-text  {
+  display: none;
 }
 
 .today-closebutton {
