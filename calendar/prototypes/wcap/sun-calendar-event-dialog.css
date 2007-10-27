@@ -53,17 +53,15 @@ label.label {
 /****************************************************************************************/
 
 daypicker-weekday {
-    -moz-binding: url(chrome://calendar/content/sun-calendar-event-dialog-recurrence-daypicker.xml#daypicker-weekday);
+    -moz-binding: url(chrome://calendar/content/calendar-daypicker.xml#daypicker-weekday);
     -moz-user-focus: normal;
+    margin-top: 2px;
 }
 
 daypicker-monthday {
-    -moz-binding: url(chrome://calendar/content/sun-calendar-event-dialog-recurrence-daypicker.xml#daypicker-monthday);
+    -moz-binding: url(chrome://calendar/content/calendar-daypicker.xml#daypicker-monthday);
     -moz-user-focus: normal;
-}
-
-.daypicker-box {
-    -moz-binding: url(chrome://calendar/content/sun-calendar-event-dialog-recurrence-daypicker.xml#daypicker-box);
+    margin-top: 2px;
 }
 
 recurrence-preview {
