@@ -21,6 +21,7 @@
    -
    - Contributor(s): David Hyatt <hyatt@mozilla.org>
    -                 Matthew Willis (mattwillis@gmail.com)
+   -                 Philipp Kewisch <mozilla@kewis.ch>
    -
    - Alternatively, the contents of this file may be used under the terms of
    - either the GNU General Public License Version 2 or later (the "GPL"), or
@@ -39,6 +40,7 @@
 #ifdef XP_MACOSX
 
 <?xul-overlay href="chrome://global/content/globalOverlay.xul"?>
+<?xul-overlay href="chrome://calendar/content/calendar-common-sets.xul"?>
 
 <!-- All DTD information is stored in a separate file so that it can be shared by
      hiddenWindow.xul. -->

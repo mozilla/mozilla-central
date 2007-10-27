@@ -64,9 +64,9 @@
   </popup>
 
   <menuitem id="menu_customizeToolbar"
-            oncommand="CustomizeApplicationToolbar('mail-toolbox');"
             label="&customizeToolbar.label;"
-            accesskey="&customizeToolbar.accesskey;"/>
+            accesskey="&customizeToolbar.accesskey;"
+            oncommand="CustomizeApplicationToolbar('mail-toolbox');"/>
 
   <toolbarpalette id="MailToolbarPalette">
     <toolbarbutton id="calendar-new-event-button"
@@ -88,7 +88,7 @@
                    class="cal-toolbarbutton-1"
                    label="&calendar.day.button.label;"
                    tooltiptext="&calendar.day.button.tooltip;"
-                   observes="day-view-command"/>
+                   observes="calendar_day-view_command"/>
     <toolbarbutton id="calendar-week-view-button"
                    mode="calendar"
                    type="radio"
@@ -96,7 +96,7 @@
                    class="cal-toolbarbutton-1"
                    label="&calendar.week.button.label;"
                    tooltiptext="&calendar.week.button.tooltip;"
-                   observes="week-view-command"/>
+                   observes="calendar_week-view_command"/>
     <toolbarbutton id="calendar-multiweek-view-button"
                    mode="calendar"
                    type="radio"
@@ -104,7 +104,7 @@
                    class="cal-toolbarbutton-1"
                    label="&calendar.multiweek.button.label;"
                    tooltiptext="&calendar.multiweek.button.tooltip;"
-                   observes="multiweek-view-command"/>
+                   observes="calendar_multiweek-view_command"/>
     <toolbarbutton id="calendar-month-view-button"
                    mode="calendar"
                    type="radio"
@@ -112,13 +112,13 @@
                    class="cal-toolbarbutton-1"
                    label="&calendar.month.button.label;"
                    tooltiptext="&calendar.month.button.tooltip;"
-                   observes="month-view-command"/>
+                   observes="calendar_month-view_command"/>
     <toolbarbutton id="calendar-delete-event-button"
                    mode="calendar"
                    class="cal-toolbarbutton-1"
                    label="&calendar.delete.button.label;"
                    tooltiptext="&calendar.delete.button.tooltip;"
-                   observes="calendar-delete-command"/>
+                   observes="calendar_delete_event_command"/>
     <toolbarbutton id="calendar-print-button"
                    mode="calendar"
                    class="cal-toolbarbutton-1"
@@ -130,7 +130,7 @@
                    class="cal-toolbarbutton-1"
                    label="&calendar.today.button.label;"
                    tooltiptext="&calendar.today.button.tooltip;"
-                   oncommand="goToToday()"/>
+                   observes="calendar_go_to_today_command"/>
     <toolbarbutton id="calendar-show-todaypane-button"
                    class="cal-toolbarbutton-1"
                    label="&calendar.context.button.label;"
@@ -141,31 +141,31 @@
                    class="cal-toolbarbutton-1"
                    label="&calendar.edit.button.label;"
                    tooltiptext="&calendar.edit.button.tooltip;"
-                   observes="modify_command"/>
+                   observes="calendar_modify_event_command"/>
     <toolbarbutton id="calendar-import-button"
                    mode="calendar"
                    class="cal-toolbarbutton-1"
                    label="&calendar.import.button.label;"
                    tooltiptext="&calendar.import.button.tooltip;"
-                   observes="import_command"/>
+                   observes="calendar_import_command"/>
     <toolbarbutton id="calendar-export-button"
                    mode="calendar"
                    class="cal-toolbarbutton-1"
                    label="&calendar.export.button.label;"
                    tooltiptext="&calendar.export.button.tooltip;"
-                   observes="export_command"/>
+                   observes="calendar_export_command"/>
     <toolbarbutton id="calendar-subscribe-button"
                    mode="calendar"
                    class="cal-toolbarbutton-1"
                    label="&calendar.subscribe.button.label;"
                    tooltiptext="&calendar.subscribe.button.tooltip;"
-                   oncommand="openCalendarWizard()"/>
+                   observes="calendar_new_calendar_command"/>
     <toolbarbutton id="calendar-publish-button"
                    mode="calendar"
                    class="cal-toolbarbutton-1"
                    label="&calendar.publish.button.label;"
                    tooltiptext="&calendar.publish.button.tooltip;"
-                   observes="calendar_publish_calendar"/>
+                   observes="calendar_publish_calendar_command"/>
     <toolbarbutton id="calendar-remote-reload-button"
                    mode="calendar"
                    class="cal-toolbarbutton-1"

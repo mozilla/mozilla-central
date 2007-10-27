@@ -1,5 +1,4 @@
-/* -*- Mode: javascript; tab-width: 20; indent-tabs-mode: nil; c-basic-offset: 4 -*-
- * ***** BEGIN LICENSE BLOCK *****
+/* ***** BEGIN LICENSE BLOCK *****
  * Version: MPL 1.1/GPL 2.0/LGPL 2.1
  *
  * The contents of this file are subject to the Mozilla Public License Version
@@ -68,91 +67,59 @@ var gCalendarWindow;
 var gXXXEvilHackSavedSelection;
 
 /*-----------------------------------------------------------------
-*  G L O B A L     C A L E N D A R      F U N C T I O N S
-*/
+ *  G L O B A L     C A L E N D A R      F U N C T I O N S
+ */
 
 /** 
-* Called from calendar.xul window onload.
-*/
+ * Called from calendar.xul window onload.
+ */
+function calendarInit() {
+    // set up the CalendarWindow instance
+    gCalendarWindow = new CalendarWindow();
 
-function calendarInit() 
-{
-   // set up the CalendarWindow instance
+    // set up the views
+    initializeViews();
+    currentView().goToDay(currentView().selectedDay);
+
+    // set up the unifinder
+    prepareCalendarUnifinder();
+    prepareCalendarToDoUnifinder();
    
-   gCalendarWindow = new CalendarWindow();
+    scheduleMidnightUpdate(refreshUIBits);
 
-   // Set up the checkbox variables.  Do not use the typical change*() functions
-   // because those will actually toggle the current value.
-   if (document.getElementById("toggle_workdays_only").getAttribute("checked")
-       == 'true') {
-       var deck = document.getElementById("view-deck")
-       for each (view in deck.childNodes) {
-           view.workdaysOnly = true;
-       }
-       deck.selectedPanel.goToDay(deck.selectedPanel.selectedDay);
-   }
+    loadCalendarManager();
 
-   // tasksInView is false by default
-   if (document.getElementById("toggle_tasks_in_view").getAttribute("checked")
-       == 'true') {
-       var deck = document.getElementById("view-deck")
-       for each (view in deck.childNodes) {
-           view.tasksInView = true;
-       }
-       deck.selectedPanel.goToDay(deck.selectedPanel.selectedDay);
-   }
+    // fire up the alarm service
+    var alarmSvc = Components.classes["@mozilla.org/calendar/alarm-service;1"]
+                   .getService(Components.interfaces.calIAlarmService);
+    alarmSvc.timezone = calendarDefaultTimezone();
+    alarmSvc.startup();
 
-   // showCompleted is false by default
-   if (document.getElementById("hide-completed-checkbox").checked == false) {
-       var deck = document.getElementById("view-deck")
-       for each (view in deck.childNodes) {
-           view.showCompleted = true;
-       }
-       deck.selectedPanel.goToDay(deck.selectedPanel.selectedDay);
-   }
+    // a bit of a hack since the menulist doesn't remember the selected value
+    var value = document.getElementById('event-filter-menulist').value;
+    document.getElementById('event-filter-menulist').selectedItem =
+     document.getElementById('event-filter-' + value);
 
-   updateOrientation();
+    var toolbox = document.getElementById("calendar-toolbox");
+    toolbox.customizeDone = CalendarToolboxCustomizeDone;
 
-   // set up the unifinder
+    getViewDeck().addEventListener("dayselect", observeViewDaySelect, false);
+    getViewDeck().addEventListener("itemselect", onSelectionChanged, true);
 
-   prepareCalendarUnifinder();
+    // Setup undo/redo menu for additional main windows
+    updateUndoRedoMenu();
 
-   prepareCalendarToDoUnifinder();
-   
-   scheduleMidnightUpdate(refreshUIBits);
+    // Handle commandline args
+    for (var i = 0; i < window.arguments.length; i++) {
+        try {
+            var cl = window.arguments[i].QueryInterface(Components.interfaces.nsICommandLine);
+        } catch (ex) {
+            dump("unknown argument passed to main window\n");
+            continue;
+        }
+        handleCommandLine(cl);
+    }
 
-   loadCalendarManager();
-
-   // fire up the alarm service
-   var alarmSvc = Components.classes["@mozilla.org/calendar/alarm-service;1"]
-                  .getService(Components.interfaces.calIAlarmService);
-   alarmSvc.timezone = calendarDefaultTimezone();
-   alarmSvc.startup();
-
-   // a bit of a hack since the menulist doesn't remember the selected value
-   var value = document.getElementById( 'event-filter-menulist' ).value;
-   document.getElementById( 'event-filter-menulist' ).selectedItem = 
-       document.getElementById( 'event-filter-'+value );
-
-   var toolbox = document.getElementById("calendar-toolbox");
-   toolbox.customizeDone = CalendarToolboxCustomizeDone;
-
-   getViewDeck().addEventListener("dayselect", observeViewDaySelect, false);
-   getViewDeck().addEventListener("itemselect", onSelectionChanged, true);
-
-   // Setup undo/redo menu for additional main windows
-   updateUndoRedoMenu();
-
-   // Handle commandline args
-   for (var i=0; i < window.arguments.length; i++) {
-       try {
-           var cl = window.arguments[i].QueryInterface(Components.interfaces.nsICommandLine);
-       } catch(ex) {
-           dump("unknown argument passed to main window\n");
-           continue;
-       }
-       handleCommandLine(cl);
-   }
 }
 
 function handleCommandLine(aComLine) {
@@ -249,17 +216,6 @@ function calendarFinish()
    unloadCalendarManager();
 }
 
-function goFindNewCalendars()
-{
-   //launch the browser to http://www.apple.com/ical/library/
-   var browserService = penapplication.getService( "org.penzilla.browser" );
-   if(browserService)
-   {
-       browserService.setUrl("http://www.icalshare.com/");
-       browserService.focusBrowser();
-   }
-}
-
 function selectAllEvents()
 {
     var items = [];
@@ -313,53 +269,6 @@ function onSelectionChanged(aEvent) {
             elements[i].setAttribute("disabled", "true");
         }
     }
-}
-
-function updateOrientation() {
-
-    var value = (document.getElementById("menu-multiday-rotated")
-                         .getAttribute("checked") == 'true');
-
-    // This makes the views refresh themselves
-    for each (view in document.getElementById("view-deck").childNodes) {
-        view.rotated = value;
-    }
-}
-
-/* Change the only-workday checkbox */
-function changeOnlyWorkdayCheckbox() {
-    var oldValue = (document.getElementById("toggle_workdays_only")
-                           .getAttribute("checked") == 'true');
-    document.getElementById("toggle_workdays_only")
-            .setAttribute("checked", !oldValue);
-
-    // This does NOT make the views refresh themselves
-    for each (view in document.getElementById("view-deck").childNodes) {
-        view.workdaysOnly = !oldValue;
-    }
-
-    // No point in updating views that aren't shown.  They'll notice the change
-    // next time we call their goToDay function, just update the current view
-    var currentView = document.getElementById("view-deck").selectedPanel;
-    currentView.goToDay(currentView.selectedDay);
-}
-
-/* Change the display-todo-inview checkbox */
-function changeDisplayToDoInViewCheckbox() {
-    var oldValue = (document.getElementById("toggle_tasks_in_view")
-                           .getAttribute("checked") == 'true');
-    document.getElementById("toggle_tasks_in_view")
-            .setAttribute("checked", !oldValue);
-
-    // This does NOT make the views refresh themselves
-    for each (view in document.getElementById("view-deck").childNodes) {
-        view.tasksInView = !oldValue;
-    }
-
-    // No point in updating views that aren't shown.  They'll notice the change
-    // next time we call their goToDay function, just update the current view
-    var currentView = document.getElementById("view-deck").selectedPanel;
-    currentView.goToDay(currentView.selectedDay);
 }
 
 function openPreferences() {

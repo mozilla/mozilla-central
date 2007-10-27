@@ -60,13 +60,10 @@
 <?xml-stylesheet href="chrome://calendar/content/datetimepickers/datetimepickers.css" type="text/css"?>
 
 <?xul-overlay href="chrome://calendar/content/calendar-calendars-list.xul"?>
+<?xul-overlay href="chrome://calendar/content/calendar-common-sets.xul"?>
 
 <overlay id="ltnSidebarOverlay"
          xmlns="http://www.mozilla.org/keymaster/gatekeeper/there.is.only.xul">
-
-<stringbundleset id="stringbundleset">
-  <stringbundle id="bundle_calendar" src="chrome://calendar/locale/calendar.properties"/>
-</stringbundleset>
 
 <script type="application/x-javascript" src="chrome://calendar/content/calUtils.js"/>
 <script type="application/x-javascript" src="chrome://calendar/content/calendarCreation.js"/>
@@ -113,62 +110,62 @@
                 accesskey="&lightning.toolbar.day.accesskey;"
                 type="radio"
                 name="calendarMenuViews"
-                observes="day-view-command"/>
+                observes="calendar_day-view_command"/>
       <menuitem id="ltnChangeViewWeek"
                 label="&lightning.toolbar.week.label;"
                 accesskey="&lightning.toolbar.week.accesskey;"
                 type="radio"
                 name="calendarMenuViews"
-                observes="week-view-command"/>
+                observes="calendar_week-view_command"/>
       <menuitem id="ltnChangeViewMultiweek"
                 label="&lightning.toolbar.multiweek.label;"
                 accesskey="&lightning.toolbar.multiweek.accesskey;"
                 type="radio"
                 name="calendarMenuViews"
-                observes="multiweek-view-command"/>
+                observes="calendar_multiweek-view_command"/>
       <menuitem id="ltnChangeViewMonth"
                 label="&lightning.toolbar.month.label;"
                 accesskey="&lightning.toolbar.month.accesskey;"
                 type="radio"
                 name="calendarMenuViews"
-                observes="month-view-command"/>
+                observes="calendar_month-view_command"/>
       <menuseparator/>
       <menu label="&viewMenu.label;" accesskey="&viewMenu.accesskey;">
         <menupopup>
           <menuitem type="checkbox"
                     id="ltn-workdays-only"
-                    persist="checked"
                     label="&calendar.onlyworkday.checkbox.label;"
                     accesskey="&calendar.onlyworkday.checkbox.accesskey;"
-                    oncommand="toggleWorkdaysOnly()"/>
+                    observes="calendar_toggle_workdays_only_command"/>
           <menuitem type="checkbox"
                     id="ltn-tasks-in-view"
-                    persist="checked"
                     label="&calendar.displaytodos.checkbox.label;"
                     accesskey="&calendar.displaytodos.checkbox.accesskey;"
-                    oncommand="toggleTasksInView()"/>
+                    observes="calendar_toggle_tasks_in_view_command"/>
           <menuitem type="checkbox"
-                    id="ltn-multiday-rotated"
-                    persist="checked"
-                    disabled="true"
+                    id="calendar_view_orientation"
                     label="&calendar.orientation.label;"
                     accesskey="&calendar.orientation.accesskey;"
-                    oncommand="updateOrientation()"/>
+                    observes="calendar_toggle_orientation_command"/>
         </menupopup>
       </menu>
       <menuitem id="ltnGoToToday"
                 label="&calendar.context.gototoday.label;"
                 accesskey="&calendar.context.gototoday.accesskey;"
-                oncommand="goToToday()"/>
+                observes="calendar_go_to_today_command"/>
       <menuseparator/>
       <menuitem id="calendar-import-menu"
                 label="&calendar.import.calendar;"
                 accesskey="&calendar.import.accesskey;"
-                observes="import_command"/>
+                observes="calendar_import_command"/>
       <menuitem id="calendar-export-menu"
-                label="&calendar.export.calendar;"
+                label="&calendar.export.calendar.label;"
                 accesskey="&calendar.export.calendar.accesskey;"
-                observes="export_command"/>
+                observes="calendar_export_command"/>
+      <menuitem id="calendar-export-selection-menu"
+                label="&calendar.export.selection.label;"
+                accesskey="&calendar.export.selection.accesskey;"
+                observes="calendar_export_selection_command"/>
     </menupopup>
   </menu>
 </menubar>
@@ -177,30 +174,14 @@
   <broadcasterset id="calendar_broadcasters">
     <broadcaster id="is_editable" hidden="false"/>
   </broadcasterset>
+  <!-- Be sure to keep these sets, since they will be overlayed by
+       calendar/base/content/calendar-common-sets.xul -->
   <commandset id="calendar_commands">
     <command id="agenda_delete_event_command" oncommand="agendaTreeView.deleteEvent()"/>
-    <command id="calendar_new_event_command" oncommand="createEventWithDialog(getSelectedCalendar());"/>
-    <command id="calendar_new_todo_command" oncommand="createTodoWithDialog(getSelectedCalendar());"/>
-    <command id="calendar_new_calendar_command" oncommand="openCalendarWizard();"/>
-    <command id="calendar_edit_calendar_command" oncommand="openCalendarProperties(getSelectedCalendar());"/>
-    <command id="calendar_delete_calendar_command" oncommand="promptDeleteCalendar(getSelectedCalendar());" disabled="true"/>
-    <command id="modify_command" oncommand="modifyEventWithDialog(currentView().getSelectedItems({})[0])" disabled="true" disabledwhennoeventsselected="true"/>
-    <command id="calendar_publish_calendar" oncommand="publishEntireCalendar(getSelectedCalendar());" disabled="true" disabledwhennoeventsselected="true"/>
-    <command id="import_command" oncommand="loadEventsFromFile()"/>
-    <command id="export_command" oncommand="exportEntireCalendar()"/>
-    <command id="calendar_reload_remote_calendars" oncommand="getCompositeCalendar().refresh();"/>
     <command id="switch2mail" checked="true" oncommand="ltnSwitch2Mail()"/>
     <command id="switch2calendar" oncommand="ltnSwitch2Calendar()"/>
     <command id="switch2task" oncommand="ltnSwitch2Task()"/>
     <command id="cmd_toggleTodayPane" oncommand="toggleTodayPaneinMailMode()"/>
-    <command id="day-view-command" oncommand="showCalendarView('day')" persist="checked"/>
-    <command id="week-view-command" oncommand="showCalendarView('week')" persist="checked"/>
-    <command id="multiweek-view-command" oncommand="showCalendarView('multiweek')" persist="checked"/>
-    <command id="month-view-command" oncommand="showCalendarView('month')" persist="checked"/>
-    <command id="calendar-delete-command" oncommand="ltnDeleteSelectedItem()" disabledwhennoeventsselected="true"/>
-    <command id="calendar_new_todo_command" oncommand="createTodoWithDialog(getSelectedCalendar());"/>
-    <command id="modify_todo_command" oncommand="editToDo()"/>
-    <command id="delete_todo_command" oncommand="deleteToDoCommand()" disabled="true"/>
   </commandset>
 
   <keyset id="ltnKeys">
@@ -211,13 +192,17 @@
   <popupset id="calendar-popupset">
     <popup id="calendar-view-context-menu" onpopupshowing="return true;">
       <!-- These labels are set dynamically, based on the current view -->
-      <menuitem id="context_previous" label="" oncommand="moveView(-1)"
+      <menuitem id="context_previous"
+                label=""
+                observes="calendar_view_prev_command"
                 label-day="&calendar.prevday.button.tooltip;"
                 label-week="&calendar.prevweek.button.tooltip;"
                 label-multiweek="&calendar.prevweek.button.tooltip;"
                 label-month="&calendar.prevmonth.button.tooltip;"
                 accesskey="&goPreviousCmd.accesskey;"/>
-      <menuitem id="context_next" label="" oncommand="moveView(1)"
+      <menuitem id="context_next"
+                label=""
+                observes="calendar_view_next_command"
                 label-day="&calendar.nextday.button.tooltip;"
                 label-week="&calendar.nextweek.button.tooltip;"
                 label-multiweek="&calendar.nextweek.button.tooltip;"
@@ -230,10 +215,10 @@
     <popup id="calendar-item-context-menu" onpopupshowing="return true;">
       <menuitem label="&calendar.context.modifyitem.label;" 
                 accesskey="&calendar.context.modifyitem.accesskey;" 
-                oncommand="ltnEditSelectedItem()"/>
+                observes="calendar_modify_event_command"/>
       <menuitem label="&calendar.context.deleteitem.label;" 
                 accesskey="&lightning.context.deleteitem.accesskey;"
-                oncommand="ltnDeleteSelectedItem()"/>
+                observes="calendar_delete_event_command"/>
     </popup>
   </popupset>
   <tooltip id="itemTooltip" noautohide="true"/>

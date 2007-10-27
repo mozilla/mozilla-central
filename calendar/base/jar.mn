@@ -8,6 +8,7 @@ calendar.jar:
     content/calendar/calendar-alarm-widget.css   (content/calendar-alarm-widget.css)
     content/calendar/calendar-alarm-widget.xml   (content/calendar-alarm-widget.xml)
     content/calendar/calendar-attendee-list.xml  (content/calendar-attendee-list.xml)
+    content/calendar/calendar-common-sets.xul    (content/calendar-common-sets.xul)
     content/calendar/calendar-calendars-list.xul (content/calendar-calendars-list.xul)
     content/calendar/calendar-daypicker.xml      (content/calendar-daypicker.xml)
     content/calendar/calendar-decorated-base.xml  (content/calendar-decorated-base.xml)

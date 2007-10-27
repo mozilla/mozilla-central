@@ -101,16 +101,6 @@ function CalendarWindow( )
 
 /** PUBLIC
 *
-*   Display today in the current view
-*/
-
-CalendarWindow.prototype.goToToday = function calWin_goToToday( )
-{
-   document.getElementById("lefthandcalendar").value = new Date();
-   document.getElementById("view-deck").selectedPanel.goToDay(now());
-}
-/** PUBLIC
-*
 *   Choose a date, then go to that date in the current view.
 */
 
@@ -155,29 +145,11 @@ CalendarWindow.prototype.goToDay = function calWin_goToDay( newDate )
 
 CalendarWindow.prototype.switchToView = function calWin_switchToView( newView )
 {
-    // Set up the commands
-    for each (var view in this.availableViews) {
-        var command = document.getElementById(view+"_view_command");
-        if (view == newView) {
-            command.setAttribute("checked", true);
-        } else {
-            command.removeAttribute("checked");
-        }
-    }
-
     var mwWeeksCommand = document.getElementById("menu-numberofweeks-inview")
     if (newView == "multiweek") {
         mwWeeksCommand.removeAttribute("disabled");
     } else {
         mwWeeksCommand.setAttribute("disabled", true);
-    }
-
-    // Disable the orientation menuitem on non multiday views
-    var mwOrientCommand = document.getElementById("menu-multiday-rotated");
-    if (newView == "day" || newView == "week") {
-        mwOrientCommand.removeAttribute("disabled");
-    } else {
-        mwOrientCommand.setAttribute("disabled", true);
     }
 
     // Call the common view switching code in calendar-views.js

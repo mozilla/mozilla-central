@@ -180,16 +180,9 @@ var CalendarController =
   }
 };
 
-function today()
-{
-    var d = Components.classes['@mozilla.org/calendar/datetime;1'].createInstance(Components.interfaces.calIDateTime);
-    d.jsDate = new Date();
-    return d.getInTimezone(calendarDefaultTimezone());
-}
-
 function yesterday()
 {
-    var d = today();
+    var d = now();
     d.day--;
     return d;
 }
@@ -222,7 +215,7 @@ function ltnMinimonthPick(minimonth)
 
     if (document.getElementById("displayDeck").selectedPanel != 
         document.getElementById("calendar-view-box")) {
-        showCalendarView(gLastShownCalendarView);
+        ltnShowCalendarView(gLastShownCalendarView);
     }
 
     cdt = cdt.getInTimezone(currentView().timezone);
@@ -427,6 +420,9 @@ function ltnOnLoad(event)
     injectCommandController();
 
     getViewDeck().addEventListener("itemselect", onSelectionChanged, true);
+
+    // Set up the views
+    initializeViews();
 }
 
 function onSelectionChanged(aEvent) {
@@ -456,13 +452,13 @@ function refreshUIBits() {
     }
 
     if (TodayPane.showsYesterday()) {
-      TodayPane.setDay(today());
+      TodayPane.setDay(now());
     }
     // schedule our next update...
     scheduleMidnightUpdate(refreshUIBits);
 }
 
-function showCalendarView(type)
+function ltnShowCalendarView(type)
 {
     gLastShownCalendarView = type;
 
@@ -484,29 +480,6 @@ function showCalendarView(type)
         }
         uncollapseElement(calendarViewBox);
     }
-
-    var view = document.getElementById(type+"-view");
-    var rotated = document.getElementById("ltn-multiday-rotated");
-
-    if (!view.initialized) {
-        // Set up this view with the current view-checkbox values
-        var workdaysMenu = document.getElementById("ltn-workdays-only");
-        view.workdaysOnly = (workdaysMenu.getAttribute("checked") == 'true');
-
-        var tasksMenu = document.getElementById("ltn-tasks-in-view")
-        view.tasksInView = (tasksMenu.getAttribute("checked") == 'true');
-        view.showCompleted = !document.getElementById("hide-completed-checkbox").checked;
-
-        view.rotated = (rotated.getAttribute("checked") == 'true');
-    }
-
-    // Disable the menuitem when not in day or week view.
-    if (type == "day" || type == "week") {
-        rotated.removeAttribute("disabled");
-    } else {
-        rotated.setAttribute("disabled", true);
-    }
-
     document.getElementById("displayDeck").selectedPanel =  calendarViewBox;
     switchToView(type);
 
@@ -515,28 +488,7 @@ function showCalendarView(type)
     nextCommand.setAttribute("label", nextCommand.getAttribute("label-"+type));
     var previousCommand = document.getElementById("context_previous")
     previousCommand.setAttribute("label", previousCommand.getAttribute("label-"+type));
-
-    // Set up the commands
-    var availableViews = getViewDeck();
-    for (var i = 0; i < availableViews.childNodes.length; i++) {
-        var view = availableViews.childNodes[i];
-        var command = document.getElementById(view.id+"-command");
-        if (view.id == type+"-view") {
-           command.setAttribute("checked", true);
-        } else {
-           command.removeAttribute("checked");
-        }
-    }
 }
-
-function goToToday()
-{
-    // set the current date in the minimonth control;
-    // note, that the current view in the calendar-view-box is automatically updated
-    var currentDay = today();
-    document.getElementById("ltnMinimonth").value = currentDay.jsDate;
-}
-
 
 function toggleTodayPaneinMailMode()
 {
@@ -565,7 +517,7 @@ function selectedCalendarPane(event)
 
     deck.selectedPanel = document.getElementById("calendar-view-box");
 
-    showCalendarView('week');
+    ltnShowCalendarView('week');
 }
 
 function LtnObserveDisplayDeckChange(event)
@@ -582,7 +534,7 @@ function LtnObserveDisplayDeckChange(event)
     try { id = deck.selectedPanel.id } catch (e) { }
 
     // Now we're switching back to the mail view, so put everything back that
-    // we collapsed in showCalendarView()
+    // we collapsed in ltnShowCalendarView()
     if (id != "calendar-view-box") {
         if (gCurrentMode != 'mail') {
             ltnSwitch2Mail();
@@ -596,8 +548,8 @@ function LtnObserveDisplayDeckChange(event)
         }
 
         // Disable the rotate view menuitem
-        document.getElementById("ltn-multiday-rotated")
-                .setAttribute("disabled", true);
+        document.getElementById("calendar_toggle_orientation_command")
+                .setAttribute("disabled", "true");
     }
 }
 
@@ -607,21 +559,6 @@ function ltnFinish() {
     finishCalendarToDoUnifinder();
 
     unloadCalendarManager();
-}
-
-function ltnEditSelectedItem() {
-    var selectedItems = currentView().getSelectedItems({});
-    for each (var item in selectedItems) {
-        calendarViewController.modifyOccurrence(item);
-    }
-}
-
-function ltnDeleteSelectedItem() {
-    var selectedItems = currentView().getSelectedItems({});
-    calendarViewController.deleteOccurrences(selectedItems.length,
-                                             selectedItems,
-                                             false,
-                                             false);
 }
 
 // After 1.5 was released, the search box was moved into an optional toolbar
@@ -640,35 +577,6 @@ function findMailSearchBox() {
     // In later versions, it's possible that a user removed the search box from
     // the toolbar.
     return null;
-}
-
-function updateOrientation() {
-
-    var value = (document.getElementById("ltn-multiday-rotated")
-                         .getAttribute("checked") == 'true');
-
-    var deck = getViewDeck();
-    for each (view in deck.childNodes) {
-        view.rotated = value;
-    }
-}
-
-function toggleWorkdaysOnly() {
-    for each (view in getViewDeck().childNodes) {
-        view.workdaysOnly = !view.workdaysOnly;
-    }
-
-    // Refresh the current view
-    currentView().goToDay(currentView().selectedDay);
-}
-
-function toggleTasksInView() {
-    for each (view in getViewDeck().childNodes) {
-        view.tasksInView = !view.tasksInView;
-    }
-
-    // Refresh the current view
-    currentView().goToDay(currentView().selectedDay);
 }
 
 var gSelectFolder = SelectFolder;

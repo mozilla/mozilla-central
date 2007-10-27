@@ -50,10 +50,6 @@
 </broadcasterset>
 
 <commandset id="calendar_commands">
-  <command id="calendar_new_event_command" oncommand="createEventWithDialog(getSelectedCalendar());"/>
-  <command id="delete_command" oncommand="deleteEventCommand( )" disabled="true" disabledwhennoeventsselected="true"/>
-  <command id="delete_command_no_confirm" oncommand="deleteEventCommand( true )" disabled="true" disabledwhennoeventsselected="true"/>
-  <command id="modify_command" oncommand="modifyEventWithDialog(currentView().getSelectedItems({})[0])" disabled="true" disabledwhennoeventsselected="true"/>
   <command id="cmd_pageSetup" oncommand="PrintUtils.showPageSetup();"/>
   <command id="print_command" oncommand="calPrint()"/>
   
@@ -64,45 +60,11 @@
   <command id="paste_command" oncommand="pasteFromClipboard()"/>
   <command id="select_all_command" oncommand="selectAllEvents()"/>
 
-  <command id="calendar_new_todo_command" oncommand="createTodoWithDialog(getSelectedCalendar());"/>
-  <command id="modify_todo_command" oncommand="editToDo()"/>
-  <command id="delete_todo_command" oncommand="deleteToDoCommand()" disabled="true"/>
-
-  <command id="calendar_new_calendar_command" oncommand="openCalendarWizard();"/>
   <command id="open_local_calendar_command" oncommand="openLocalCalendar()"/>
-  <command id="calendar_edit_calendar_command" oncommand="openCalendarProperties(getSelectedCalendar(), null);"/>
-  <command id="calendar_delete_calendar_command" oncommand="promptDeleteCalendar(getSelectedCalendar());" disabled="true"/>
-  <command id="find_new_calendar_command" oncommand="goFindNewCalendars()"/>
 
-  <command id="next_command" oncommand="moveView(1)"/>
-  <command id="previous_command" oncommand="moveView(-1)"/>
-  <command id="go_today_command" oncommand="gCalendarWindow.goToToday()"/>
   <command id="go_date_command" oncommand="gCalendarWindow.pickAndGoToDate()"/>
 
-  <command id="day_view_command"  oncommand="gCalendarWindow.switchToView('day')"/>
-  <command id="week_view_command"  oncommand="gCalendarWindow.switchToView('week')"/>
-  <command id="month_view_command" oncommand="gCalendarWindow.switchToView('month')"/>
-  <command id="multiweek_view_command" oncommand="gCalendarWindow.switchToView('multiweek')"/>
-
-  <command id="import_command" oncommand="loadEventsFromFile()"/>
-  <command id="export_command" oncommand="saveEventsToFile(currentView().getSelectedItems({}))" disabled="true" disabledwhennoeventsselected="true"/>
-  <command id="ask_and_export_calendar" oncommand="exportEntireCalendar()"/>
-
-  <command id="calendar_reload_remote_calendars" oncommand="getCompositeCalendar().refresh()"/>
-  <command id="calendar_publish_calendar" oncommand="publishEntireCalendar(getSelectedCalendar())"/>
-  <command id="ask_and_publish_calendar" oncommand="publishEntireCalendar()"/>
-  <command id="publish_events_command" oncommand="publishCalendarData()" disabled="true" disabledwhennoeventsselected="true"/>
-
-  <command id="toggle_tasks_in_view" 
-           oncommand="changeDisplayToDoInViewCheckbox()" 
-           persist="checked"/>
-  <command id="toggle_workdays_only" 
-           oncommand="changeOnlyWorkdayCheckbox()"
-           persist="checked"/>
-
   <command id="close_calendar_command" oncommand="closeCalendar()"/>
-
-  <command id="wizard_command" oncommand="launchWizard()" collapsed="true"/>
 
   <command id="cmd_CustomizeToolbars"   oncommand="CalendarCustomizeToolbar()"/>
   <command id="cmd_showSearchToolbar"   oncommand="goToggleToolbar('searchBox', 'menu_showSearchToolbar');"/>
@@ -123,7 +85,7 @@
 #XXX lilmatt: Finish this!
   <key id="new_journal_key"      key="&calendar.new.journal.key;"        modifiers="accel"/>
 
-  <key id="modify_event_key"     key="&event.edit.event.key;"            observes="modify_command"              modifiers="accel"/>
+  <key id="modify_event_key"     key="&event.edit.event.key;"            observes="calendar_modify_event_command"              modifiers="accel"/>
   <key id="new_calendar_key"     key="&calendar.new.server.key;"         observes="calendar_new_calendar_command"  modifiers="accel"/>
   <key id="open_calendar_key"    key="&calendar.open.file.key;"          observes="open_local_calendar_command" modifiers="accel"/>
   <key id="key_close"            key="&calendar.menu.options.close.key;" observes="close_calendar_command"      modifiers="accel"/>
@@ -141,15 +103,15 @@
   <key id="key_paste"            key="&calendar.paste.key;"              observes="paste_command"               modifiers="accel"/>
   <key id="key_selectAll"        key="&calendar.selectall.key;"          observes="select_all_command"          modifiers="accel"/>
 
-  <key id="view_day_key"         key="&calendar.dayView.key;"            observes="day_view_command"            modifiers="accel"/>
-  <key id="view_week_key"        key="&calendar.weekView.key;"           observes="week_view_command"           modifiers="accel"/>
-  <key id="view_multiweek_key"   key="&calendar.multiweekView.key;"      observes="multiweek_view_command"      modifiers="accel"/>
-  <key id="view_month_key"       key="&calendar.monthView.key;"          observes="month_view_command"          modifiers="accel"/>
+  <key id="view_day_key"         key="&calendar.dayView.key;"            observes="calendar_day-view_command"            modifiers="accel"/>
+  <key id="view_week_key"        key="&calendar.weekView.key;"           observes="calendar_week-view_command"           modifiers="accel"/>
+  <key id="view_multiweek_key"   key="&calendar.multiweekView.key;"      observes="calendar_multiweek-view_command"      modifiers="accel"/>
+  <key id="view_month_key"       key="&calendar.monthView.key;"          observes="calendar_month-view_command"          modifiers="accel"/>
 
-  <key id="go_to_today_key"      keycode="VK_DOWN"                       observes="go_today_command"            modifiers="accel"/>
+  <key id="go_to_today_key"      keycode="VK_DOWN"                       observes="calendar_go_to_today_command"            modifiers="accel"/>
   <key id="go_to_date_key"       keycode="VK_UP"                         observes="go_date_command"             modifiers="accel"/>
 
-  <key id="import_key"           key="&calendar.import.key;"             observes="import_command"              modifiers="accel"/>
+  <key id="import_key"           key="&calendar.import.key;"             observes="calendar_import_command"              modifiers="accel"/>
   <key id="reload_server_key"    key="&calendar.reloadserver.key;"       observes="calendar_reload_remote_calendars"     modifiers="accel"/>
 
   <key id="find_key"
@@ -168,11 +130,6 @@
 
 <keyset id="tasksKeys"/>
 
-<!-- STRING BUNDLE for calendar properties -->
-<stringbundleset id="stringbundleset">
-  <stringbundle id="bundle_branding" src="chrome://branding/locale/brand.properties"/>
-  <stringbundle id="bundle_calendar" src="chrome://calendar/locale/calendar.properties"/>
-</stringbundleset>
 <script type="application/x-javascript">
   var gCalendarBundle = document.getElementById("bundle_calendar");
 </script>

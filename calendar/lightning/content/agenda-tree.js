@@ -175,7 +175,7 @@ function setTree(tree)
 agendaTreeView.showsToday =
 function showsToday()
 {
-  return (sameDay(today(), this.today.start));
+  return (sameDay(now(), this.today.start));
 };
 
 agendaTreeView.getCellText =

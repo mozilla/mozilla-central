@@ -25,6 +25,7 @@
  *                 Jussi Kukkonen <jussi.kukkonen@welho.com>
  *                 Michiel van Leeuwen <mvl@exedo.nl>
  *                 Stefan Sitter <ssitter@googlemail.com>
+ *                 Philipp Kewisch <mozilla@kewis.ch>
  *
  * Alternatively, the contents of this file may be used under the terms of
  * either the GNU General Public License Version 2 or later (the "GPL"), or
@@ -63,7 +64,7 @@ function loadEventsFromFile(aCalendar)
   
     var fp = Components.classes["@mozilla.org/filepicker;1"]
                        .createInstance(nsIFilePicker);
-    fp.init(window, calGetString("calendar", "Open"), nsIFilePicker.modeOpen);
+    fp.init(window, calGetString("calendar", "filepickerTitleImport"), nsIFilePicker.modeOpen);
     fp.defaultExtension = "ics";
 
     // Get a list of exporters
@@ -216,19 +217,13 @@ function saveEventsToFile(calendarEventArray, aDefaultFileName)
    if (!calendarEventArray)
        return;
 
-   if (!calendarEventArray.length)
-   {
-      alert(calGetString("calendar", "noEventsToSave"));
-      return;
-   }
-
    // Show the 'Save As' dialog and ask for a filename to save to
    const nsIFilePicker = Components.interfaces.nsIFilePicker;
 
    var fp = Components.classes["@mozilla.org/filepicker;1"]
                       .createInstance(nsIFilePicker);
 
-   fp.init(window, calGetString("calendar", "SaveAs"), nsIFilePicker.modeSave);
+   fp.init(window, calGetString("calendar", "filepickerTitleExport"), nsIFilePicker.modeSave);
 
    if (aDefaultFileName && aDefaultFileName.length && aDefaultFileName.length > 0) {
       fp.defaultString = aDefaultFileName;

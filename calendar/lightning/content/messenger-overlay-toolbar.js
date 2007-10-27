@@ -87,36 +87,36 @@ var toMessengerWindow = function ltnToMessengerWindow() {
  */
 
 function ltnSwitch2Mail() {
-  if (gCurrentMode != 'mail') {
+    if (gCurrentMode != 'mail') {
 
-    var switch2mail = document.getElementById("switch2mail");
-    var switch2calendar = document.getElementById("switch2calendar");
-    switch2mail.setAttribute("checked", "true");
-    switch2calendar.removeAttribute("checked");
+        var switch2mail = document.getElementById("switch2mail");
+        var switch2calendar = document.getElementById("switch2calendar");
+        switch2mail.setAttribute("checked", "true");
+        switch2calendar.removeAttribute("checked");
 
-    gCurrentMode = 'mail';
+        gCurrentMode = 'mail';
 
-    var mailToolbar = getMailBar();
-    var calendarToolbar = document.getElementById("calendar-toolbar");
-    mailToolbar.removeAttribute("collapsed");
-    calendarToolbar.setAttribute("collapsed", "true");
+        var mailToolbar = getMailBar();
+        var calendarToolbar = document.getElementById("calendar-toolbar");
+        mailToolbar.removeAttribute("collapsed");
+        calendarToolbar.setAttribute("collapsed", "true");
 
-    // the content panel should display the folder tree
-    var contentDeck = document.getElementById("contentPanel");
-    contentDeck.selectedPanel = document.getElementById("folderPaneBox");
-    
-    // tell thunderbird that it needs to refresh the mail list.
-    // basically, we fake a selection change by directly calling
-    // the appropriate handler while clearing out some internal
-    // variables in order to force a refresh of the mail views.
-    gMsgFolderSelected = null;
-    msgWindow.openFolder = null;
-    ShowThreadPane();
-    FolderPaneSelectionChange();
-    
-    document.commandDispatcher.updateCommands('mail-toolbar');
-    document.commandDispatcher.updateCommands('calendar_commands');
-  }
+        // the content panel should display the folder tree
+        var contentDeck = document.getElementById("contentPanel");
+        contentDeck.selectedPanel = document.getElementById("folderPaneBox");
+
+        // tell thunderbird that it needs to refresh the mail list.
+        // basically, we fake a selection change by directly calling
+        // the appropriate handler while clearing out some internal
+        // variables in order to force a refresh of the mail views.
+        gMsgFolderSelected = null;
+        msgWindow.openFolder = null;
+        ShowThreadPane();
+        FolderPaneSelectionChange();
+
+        document.commandDispatcher.updateCommands('mail-toolbar');
+        document.commandDispatcher.updateCommands('calendar_commands');
+    }
 }
 
 /**

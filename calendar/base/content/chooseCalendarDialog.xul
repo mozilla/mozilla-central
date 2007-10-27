@@ -1,3 +1,4 @@
+<?xml version="1.0" encoding="UTF-8"?>
 <!-- ***** BEGIN LICENSE BLOCK *****
    - Version: MPL 1.1/GPL 2.0/LGPL 2.1
    -
@@ -19,6 +20,7 @@
    - the Initial Developer. All Rights Reserved.
    -
    - Contributor(s):
+   -   Philipp Kewisch <mozilla@kewis.ch>
    -
    - Alternatively, the contents of this file may be used under the terms of
    - either the GNU General Public License Version 2 or later (the "GPL"), or
@@ -57,13 +59,17 @@
                                             .getService(Components.interfaces.calICalendarManager);
             var calendars = calendarManager.getCalendars({});
             var listbox = document.getElementById("calendar-list");
-            for each (cal in calendars) {
+            var composite = window.opener.getCompositeCalendar();
+            var selectedIndex = 0;
+
+            for (var i = 0; i < calendars.length; i++) {
+                var cal = calendars[i];
                 var listItem = document.createElement("listitem");
 
                 var colorCell = document.createElement("listcell");
                 try {
                     var calColor = calendarManager.getCalendarPref(cal, 'color');
-                    colorCell.style.background = calColor;
+                    colorCell.style.background = calColor || "#a8c2e1";
                 } catch(e) {} 
                 listItem.appendChild(colorCell);
 
@@ -74,8 +80,14 @@
                 listItem.calendar = cal;
                 listbox.appendChild(listItem);
                 listItem.setAttribute("flex","1");
+
+                // Select the default calendar of the opening calendar window.
+                if (cal.id == composite.defaultCalendar.id) {
+                    selectedIndex = i;
+                }
             }
-            listbox.selectedIndex = 0;
+            listbox.ensureIndexIsVisible(i);
+            listbox.selectedIndex = selectedIndex;
             document.getElementById("prompt").value = window.arguments[0].promptText;
         }
 
@@ -87,7 +99,7 @@
 
     <vbox id="dialog-box" flex="1">
         <textbox id="prompt" class="plain" readonly="true" multiline="true" rows="2"/>
-        <listbox id="calendar-list" rows="5" flex="1">
+        <listbox id="calendar-list" rows="5" flex="1" seltype="single">
             <listcols>
                 <listcol/>
                 <listcol flex="1"/>

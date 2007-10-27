@@ -24,6 +24,7 @@
    -                 Matthew Willis <mattwillis@gmail.com>
    -                 Stefan Sitter <ssitter@googlemail.com>
    -                 Berend Cornelius <berend.cornelius@sun.com>
+   -                 Philipp Kewisch <mozilla@kewis.ch>
    -
    - Alternatively, the contents of this file may be used under the terms of
    - either the GNU General Public License Version 2 or later (the "GPL"), or
@@ -90,9 +91,6 @@
 <!ENTITY calendar.import.label                  "Import…">
 <!ENTITY calendar.import.key                    "I">
 <!ENTITY calendar.import.accesskey              "I">
-
-<!ENTITY calendar.wizard.label                  "Launch Wizard…">
-<!ENTITY calendar.wizard.accesskey              "W">
 
 <!ENTITY calendar.export.label                  "Export Selection…">
 <!ENTITY calendar.export.accesskey              "E">

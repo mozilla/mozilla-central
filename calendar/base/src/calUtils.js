@@ -874,18 +874,6 @@ function checkIfInRange(item, rangeStart, rangeEnd)
 }
 
 /**
- *  Delete the current selected items with focus from the unifinder list
- */
-function deleteEventCommand(doNotConfirm)
-{
-    var selectedItems = currentView().getSelectedItems({});
-    calendarViewController.deleteOccurrences(selectedItems.length,
-                                             selectedItems,
-                                             false,
-                                             false);
-}
-
-/**
  * Returns true if we are Sunbird (according to our UUID), false otherwise.
  */
 function isSunbird()

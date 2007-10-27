@@ -61,7 +61,7 @@
       <menuitem id="list-calendars-context-publish"
                 label="&calendar.context.publish.label;"
                 accesskey="&calendar.context.publish.accesskey;"
-                observes="calendar_publish_calendar"/>
+                observes="calendar_publish_selected_calendar_command"/>
       <menuseparator/>
       <menuitem id="list-calendars-context-reload"
                 label="&calendar.context.reloadserver.label;"

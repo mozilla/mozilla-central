@@ -19,6 +19,7 @@
  *
  * Contributor(s):
  *   Berend Cornelius <berend.cornelius@sun.com>
+ *   Philipp Kewisch <mozilla@kewis.ch>
  *
  * Alternatively, the contents of this file may be used under the terms of
  * either the GNU General Public License Version 2 or later (the "GPL"), or 
@@ -291,7 +292,7 @@ setDaywithjsDate: function(aNewDate)
 
   showsToday: function()
   {
-    return (sameDay(today(), this.start));
+    return (sameDay(now(), this.start));
   },
   
   showsYesterday: function()

@@ -241,23 +241,64 @@ var calendarViewController = {
     }
 };
 
+/**
+ * This function provides a neutral way to switch between views.
+ * XXX Kind of confusing. This function calls the app specific function, which
+ * again calls the common switchToView function. They should be consolidated in
+ * a different bug.
+ */
+function showCalendarView(type) {
+    if (isSunbird()) {
+        gCalendarWindow.switchToView(type);
+    } else {
+        ltnShowCalendarView(type);
+    }
+}
+
+/**
+ * This function does the common steps to switch between views. Should be called
+ * from app-specific view switching functions
+ */
 function switchToView(aViewType) {
     var viewDeck = getViewDeck();
     var selectedDay;
     var currentSelection = [];
+
+    // Set up the view commands
+    var views = viewDeck.childNodes;
+    for (var i = 0; i < views.length; i++) {
+        var view = views[i];
+        var commandId = "calendar_" + view.id + "_command";
+        var command = document.getElementById(commandId);
+        if (view.id == aViewType + "-view") {
+            command.setAttribute("checked", "true");
+        } else {
+            command.removeAttribute("checked");
+        }
+    }
+
+    // Disable the menuitem when not in day or week view.
+    var rotated = document.getElementById("calendar_toggle_orientation_command");
+    if (aViewType == "day" || aViewType == "week") {
+        rotated.removeAttribute("disabled");
+    } else {
+        rotated.setAttribute("disabled", "true");
+    }
+
     try {
         selectedDay = viewDeck.selectedPanel.selectedDay;
         currentSelection = viewDeck.selectedPanel.getSelectedItems({});
-    } catch(ex) {
+    } catch (ex) {
         // This dies if no view has even been chosen this session, but that's
         // ok because we'll just use now() below.
-    } 
+    }
 
-    if (!selectedDay)
+    if (!selectedDay) {
         selectedDay = now();
+    }
 
     // Anyone wanting to plug in a view needs to follow this naming scheme
-    var view = document.getElementById(aViewType+"-view");
+    var view = document.getElementById(aViewType + "-view");
     viewDeck.selectedPanel = view;
 
     var compositeCal = getCompositeCalendar();
@@ -299,7 +340,7 @@ function getSelectedDay() {
 
 var gMidnightTimer;
 
-/** Creates a timer that will fire after midnight.  Pass in a function as 
+/** Creates a timer that will fire after midnight.  Pass in a function as
  * aRefreshCallback that should be called at that time.
  */
 function scheduleMidnightUpdate(aRefreshCallback) {
@@ -456,4 +497,101 @@ function observeViewDaySelect(event) {
 function getMinimonth() {
     var sbMinimonth = document.getElementById("lefthandcalendar");
     return sbMinimonth || document.getElementById("ltnMinimonth");
+}
+
+/**
+ * Update the view orientation based on the checked state of the command
+ */
+function toggleOrientation() {
+    var cmd = document.getElementById("calendar_toggle_orientation_command");
+    var newValue = (cmd.getAttribute("checked") == "true" ? "false" : "true");
+    cmd.setAttribute("checked", newValue);
+
+    var deck = getViewDeck();
+    for each (var view in deck.childNodes) {
+        view.rotated = !view.rotated;
+    }
+
+    // orientation refreshes automatically
+}
+
+/**
+ * Toggle the workdays only checkbox and refresh the current view
+ */
+function toggleWorkdaysOnly() {
+    var cmd = document.getElementById("calendar_toggle_workdays_only_command");
+    var newValue = (cmd.getAttribute("checked") == "true" ? "false" : "true");
+    cmd.setAttribute("checked", newValue);
+
+    var deck = getViewDeck();
+    for each (var view in deck.childNodes) {
+        view.workdaysOnly = !view.workdaysOnly;
+    }
+
+    // Refresh the current view
+    currentView().goToDay(currentView().selectedDay);
+}
+
+/**
+ * Toggle the tasks in view checkbox and refresh the current view
+ */
+function toggleTasksInView() {
+    var cmd = document.getElementById("calendar_toggle_tasks_in_view_command");
+    var newValue = (cmd.getAttribute("checked") == "true" ? "false" : "true");
+    cmd.setAttribute("checked", newValue);
+
+    var deck = getViewDeck();
+    for each (var view in deck.childNodes) {
+        view.tasksInView = !view.tasksInView;
+    }
+
+    // Refresh the current view
+    currentView().goToDay(currentView().selectedDay);
+}
+
+/**
+ * Provides a neutral way to go to the current day
+ */
+function goToDate(aDate) {
+    getMinimonth().value = aDate.jsDate;
+    currentView().goToDay(aDate);
+}
+
+/**
+ * Sets up menuitems for the views
+ */
+function initializeViews() {
+    // Set up the checkbox variables. Do not use the typical toggle*() functions
+    // because those will actually toggle the current value.
+    const kWorkdaysCommand = "calendar_toggle_workdays_only_command";
+    const kTasksInViewCommand = "calendar_toggle_tasks_in_view_command";
+    const kOrientation = "calendar_toggle_orientation_command";
+    const kHideCompleted = "hide-completed-checkbox";
+    var workdaysOnly = (document.getElementById(kWorkdaysCommand)
+                                .getAttribute("checked") == "true");
+
+    var tasksInView = (document.getElementById(kTasksInViewCommand)
+                               .getAttribute("checked") == "true");
+    var rotated = (document.getElementById(kOrientation)
+                           .getAttribute("checked") == "true");
+    var showCompleted = !document.getElementById(kHideCompleted).checked;
+
+    var deck = getViewDeck();
+    for each (var view in deck.childNodes) {
+        view.workdaysOnly = workdaysOnly;
+        view.tasksInView = tasksInView;
+        view.showCompleted = showCompleted;
+        view.rotated = rotated;
+    }
+}
+
+/**
+ *  Deletes items currently selected in the view.
+ */
+function deleteSelectedEvents() {
+    var selectedItems = currentView().getSelectedItems({});
+    calendarViewController.deleteOccurrences(selectedItems.length,
+                                             selectedItems,
+                                             false,
+                                             false);
 }

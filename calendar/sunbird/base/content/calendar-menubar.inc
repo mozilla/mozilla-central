@@ -88,25 +88,25 @@
                      key="import_key"
                      label="&calendar.import.label;"
                      accesskey="&calendar.import.accesskey;"
-                     observes="import_command"/>
+                     observes="calendar_import_command"/>
            <!-- export: getting data out of existing files -->
            <menuitem id="calendar-export-menu"
                      label="&calendar.export.selection.label;"
                      accesskey="&calendar.export.selection.accesskey;"
-                     observes="export_command"/>
+                     observes="calendar_export_selection_command"/>
            <menuitem id="calendar-export-calendar-menu"
                      label="&calendar.export.calendar.label;"
                      accesskey="&calendar.export.calendar.accesskey;"
-                     observes="ask_and_export_calendar"/>
+                     observes="calendar_export_command"/>
            <menuseparator id="calendar-importexport-sep"/>
            <menuitem id="calendar-publish-menu"
                      label="&calendar.publish.selection.label;"
                      accesskey="&calendar.publish.selection.accesskey;"
-                     observes="publish_events_command"/>
+                     observes="calendar_publish_selected_events_command"/>
            <menuitem id="calendar-publish-calendar-menu"
                      label="&calendar.publish.calendar.label;"
                      accesskey="&calendar.publish.calendar.accesskey;"
-                     observes="ask_and_publish_calendar"/>
+                     observes="calendar_publish_calendar_command"/>
            <menuseparator id="calendar-publish-sep"/>
 
            <menuitem id="calendar-reloadserver-menu"
@@ -181,16 +181,16 @@
                      key="modify_event_key"
                      label="&event.edit.event;"
                      accesskey="&event.edit.event.accesskey;"
-                     observes="modify_command"/>
+                     observes="calendar_modify_event_command"/>
            <menuitem id="unifinder-remove-menu"
                      key="delete_key"
                      label="&event.delete.event;"
                      accesskey="&event.delete.event.accesskey;"
-                     observes="delete_command" />
+                     observes="calendar_delete_event_command" />
            <menuitem id="unifinder-remove-menu"
                      label="&event.delete.tasks;"
                      accesskey="&event.delete.tasks.accesskey;"
-                     observes="delete_todo_command" />
+                     observes="calendar_delete_todo_command" />
            <menuitem id="calendar-selectall-menu"
                      key="key_selectAll"
                      label="&calendar.selectall.label;"
@@ -249,46 +249,44 @@
                      key="view_day_key"
                      label="&calendar.flat.topbar.dayview;"
                      accesskey="&calendar.dayview.accesskey;"
-                     observes="day_view_command"/>
+                     observes="calendar_day-view_command"/>
            <menuitem id="calendar-view-menu-week"
                      type="radio"
                      name="calendarMenuViews"
                      key="view_week_key"
                      label="&calendar.flat.topbar.weekview;"
                      accesskey="&calendar.weekview.accesskey;"
-                     observes="week_view_command"/>
+                     observes="calendar_week-view_command"/>
            <menuitem id="calendar-view-menu-multiweek"
                      type="radio"
                      name="calendarMenuViews"
                      key="view_multiweek_key"
                      label="&calendar.flat.topbar.multiweekview;"
                      accesskey="&calendar.multiweekview.accesskey;"
-                     observes="multiweek_view_command"/>
+                     observes="calendar_multiweek-view_command"/>
            <menuitem id="calendar-view-menu-month"
                      type="radio"
                      name="calendarMenuViews"
                      key="view_month_key"
                      label="&calendar.flat.topbar.monthview;"
                      accesskey="&calendar.monthview.accesskey;"
-                     observes="month_view_command"/>
+                     observes="calendar_month-view_command"/>
            <menuseparator/>
-           <menuitem id="menu-multiday-rotated"
+           <menuitem id="calendar_view_orientation"
                      type="checkbox"
                      label="&calendar.orientation.label;"
                      accesskey="&calendar.orientation.accesskey;"
-                     oncommand="updateOrientation()"
-                     persist="checked"
-                     disabled="true"/>
+                     observes="calendar_toggle_orientation_command"/>
            <menuitem id="only-workday-checkbox-1"
                      type="checkbox"
                      label="&calendar.onlyworkday.checkbox.label;"
                      accesskey="&calendar.onlyworkday.checkbox.accesskey;"
-                     observes="toggle_workdays_only"/>
+                     observes="calendar_toggle_workdays_only_command"/>
            <menuitem id="display-todo-inview-checkbox-1"
                      type="checkbox"
                      label="&calendar.displaytodos.checkbox.label;"
                      accesskey="&calendar.displaytodos.checkbox.accesskey;"
-                     observes="toggle_tasks_in_view"/>
+                     observes="calendar_toggle_tasks_in_view_command"/>
            <menu id="menu-numberofweeks-inview"
                  label="&calendar.menu.numberofweeks.label;"
                  accesskey="&calendar.menu.numberofweeks.accesskey;"
@@ -334,7 +332,7 @@
                      key="go_to_today_key"
                      label="&goTodayCmd.label;"
                      accesskey="&goTodayCmd.accesskey;"
-                     observes="go_today_command"/>
+                     observes="calendar_go_to_today_command"/>
            <menuitem id="calendar-go-menu-date"
                      key="go_to_date_key"
                      label="&goDateCmd.label;"
@@ -351,7 +349,7 @@
                      label-multiweek-view="&goPreviousCmd.week.label;"
                      label-month-view="&goPreviousCmd.month.label;"
                      accesskey="&goPreviousCmd.accesskey;"
-                     observes="previous_command"/>
+                     observes="calendar_view_prev_command"/>
            <menuitem id="calendar-go-menu-next"
                      key="go_forward_key"
                      label=""
@@ -360,7 +358,7 @@
                      label-multiweek-view="&goNextCmd.week.label;"
                      label-month-view="&goNextCmd.month.label;"
                      accesskey="&goNextCmd.accesskey;"
-                     observes="next_command"/>
+                     observes="calendar_view_next_command"/>
          </menupopup>
        </menu>
 
@@ -368,11 +366,6 @@
              label="&toolsMenu.label;"
              accesskey="&toolsMenu.accesskey;">
          <menupopup id="toolsPopup">
-#           <menuitem id="calendar-wizard-menu"
-#                     label="&calendar.wizard.label;"
-#                     accesskey="&calendar.wizard.accesskey;"
-#                     observes="wizard_command"/>
-#           <menuseparator/>
            <menuitem id="addonsManager"
                      label="&calendar.addons.label;"
                      accesskey="&calendar.addons.accesskey;"

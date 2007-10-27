@@ -27,6 +27,7 @@
  *                 Eric Belhaire <eric.belhaire@ief.u-psud.fr>
  *                 Mark Swaffer <swaff@fudo.org>
  *                 Michael Buettner <michael.buettner@sun.com>
+ *                 Philipp Kewisch <mozilla@kewis.ch>
  *
  * Alternatively, the contents of this file may be used under the terms of
  * either the GNU General Public License Version 2 or later (the "GPL"), or
@@ -251,26 +252,23 @@ function modifyToDoCommand( event )
 }
 
 /**
-*  Set the context menu on mousedown to change it before it is opened
-*/
+ *  Set the context menu on mousedown to change it before it is opened
+ */
 
-function unifinderMouseDownToDo( event )
-{
-   var tree = document.getElementById( ToDoUnifinderTreeName );
-   var treechildren = tree.getElementsByTagName( "treechildren" )[0];
+function unifinderMouseDownToDo(event) {
+    var tree = document.getElementById(ToDoUnifinderTreeName);
+    var treechildren = tree.getElementsByTagName("treechildren")[0];
 
-   var ThisToDo = getToDoFromEvent( event );
-   if( ThisToDo ) 
-   {
-      // TODO HACK notifiers should be rewritten to integrate events and todos
-      document.getElementById( "delete_todo_command" ).removeAttribute( "disabled" );
-   } else
-   {
-      tree.view.selection.clearSelection();
+    var thisToDo = getToDoFromEvent(event);
+    if (thisToDo) {
+        // TODO HACK notifiers should be rewritten to integrate events and todos
+        document.getElementById("calendar_delete_todo_command").removeAttribute("disabled");
+    } else {
+        tree.view.selection.clearSelection();
 
-      // TODO HACK notifiers should be rewritten to integrate events and todos
-      document.getElementById( "delete_todo_command" ).setAttribute( "disabled", "true" );
-   }
+        // TODO HACK notifiers should be rewritten to integrate events and todos
+        document.getElementById("calendar_delete_todo_command").setAttribute("disabled", "true");
+    }
 }
 
 function checkboxClick(thisTodo, completed)
@@ -667,11 +665,19 @@ function changeContextMenuForToDo(event)
        document.getElementById("task-context-menu-modify")
                .removeAttribute("disabled");
        tree.taskView.contextTask = toDoItem;
-   }
-   else {
+   } else {
        document.getElementById("task-context-menu-modify")
-               .setAttribute("disabled", true);
+               .setAttribute("disabled", "true");
        tree.taskView.contextTask = null;
+   }
+
+   // If no task is selected, disable 'Delete Task'
+   if (toDoItem) {
+       document.getElementById("task-context-menu-delete")
+               .removeAttribute("disabled");
+   } else {
+       document.getElementById("task-context-menu-delete")
+               .setAttribute("disabled", "true");
    }
 
    // make progress and priority popup menu visible
@@ -707,13 +713,6 @@ function changeContextMenuForToDo(event)
    }
 }
  
-function editToDo(task) {
-    if (!task)
-       return;
- 
-    modifyEventWithDialog(getOccurrenceOrParent(task));
-}
-
 /**
  *  Delete the current selected item with focus from the ToDo unifinder list
  */
@@ -755,7 +754,7 @@ function onKeyPress(event) {
     const kKE = Components.interfaces.nsIDOMKeyEvent;
     switch (event.keyCode || event.which) {
         case kKE.DOM_VK_DELETE:
-            document.getElementById('delete_todo_command').doCommand();
+            document.getElementById('calendar_delete_todo_command').doCommand();
             event.preventDefault();
             event.stopPropagation();
             break;
