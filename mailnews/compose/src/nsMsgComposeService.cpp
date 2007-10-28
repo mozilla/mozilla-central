@@ -546,15 +546,30 @@ NS_IMETHODIMP nsMsgComposeService::GetParamsForMailto(nsIURI * aURI, nsIMsgCompo
 
       nsAutoString sanitizedBody;
 
-      // Since there is a buffer for each of the body types ('body', 'html-body') and
-      // only one can be used, we give precedence to 'html-body' in the case where
-      // both 'body' and 'html-body' are found in the url.
-      NS_ConvertUTF8toUTF16 rawBody(aHTMLBodyPart);
-      if(rawBody.IsEmpty())
-        CopyUTF8toUTF16(aBodyPart, rawBody);
-
       PRBool composeHTMLFormat;
       DetermineComposeHTML(NULL, requestedComposeFormat, &composeHTMLFormat);
+
+      // If there was an 'html-body' param, finding it will have requested
+      // HTML format in GetMessageContents, so we try to use it first. If it's
+      // empty, but we are composing in HTML because of the user's prefs, the
+      // 'body' param needs to be escaped, since it's supposed to be plain
+      // text, but it then doesn't need to sanitized.
+      NS_ConvertUTF8toUTF16 rawBody(aHTMLBodyPart);
+      if (rawBody.IsEmpty())
+      {
+        if (composeHTMLFormat)
+        {
+          char *escaped = nsEscapeHTML(aBodyPart.get());
+          if (!escaped)
+            return NS_ERROR_OUT_OF_MEMORY;
+
+          CopyUTF8toUTF16(escaped, sanitizedBody);
+          nsMemory::Free(escaped);
+        }
+        else
+          CopyUTF8toUTF16(aBodyPart, rawBody);
+      }
+
       if (!rawBody.IsEmpty() && composeHTMLFormat)
       {
         //For security reason, we must sanitize the message body before accepting any html...

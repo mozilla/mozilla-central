@@ -269,18 +269,9 @@ nsresult nsMailtoUrl::ParseMailtoUrl(char * searchPart)
   if (!m_referencePart.IsEmpty())
     nsUnescape(m_referencePart.BeginWriting());
   if (!m_bodyPart.IsEmpty())
-  {
     nsUnescape(m_bodyPart.BeginWriting());
-    if (mimeConverter)
-    {
-      if (NS_SUCCEEDED(mimeConverter->DecodeMimeHeader(m_bodyPart.get(),
-        &decodedString,
-        "UTF-8", PR_FALSE,
-        PR_FALSE))
-        && decodedString)
-        m_bodyPart.Adopt(decodedString);
-    }
-  }
+  if (!m_htmlPart.IsEmpty())
+    nsUnescape(m_htmlPart.BeginWriting());
   if (!m_newsHostPart.IsEmpty())
     nsUnescape(m_newsHostPart.BeginWriting());
 
