@@ -19,11 +19,11 @@
 "StartupFailureBinPathMsg" = "An error occurred which prevents %@ from running (could not get path to executable).";
 "StartupFailureInitEmbeddingMsg" = "An error occurred which prevents %@ from running (failed to initialize layout engine).";
 "StartupFailureProfilePathMsg" = "An error occurred which prevents %@ from running (could not get profile location).";
-"StartupFailureProfileSetupMsg" = "An error occurred which prevents %@ from running (failed to setup profile location).";
-"StartupFailureNoPrefsMsg" = "An error occurred which prevents %@ from running (failed to setup preferences).";
+"StartupFailureProfileSetupMsg" = "An error occurred which prevents %@ from running (failed to set up profile location).";
+"StartupFailureNoPrefsMsg" = "An error occurred which prevents %@ from running (failed to set up preferences).";
 
 "RequiredVersionNotMetTitle" = "Cannot Launch %@";
-"RequiredVersionNotMet" = "%@ requires Mac OS X 10.3 or higher.";
+"RequiredVersionNotMet" = "%@ requires Mac OS X 10.4 or higher.";
 
 /* Restoring saved session after crash dialog */
 "RestoreAfterCrashTitle" = "Restore previous pages?";
