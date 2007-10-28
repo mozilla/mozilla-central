@@ -44,8 +44,7 @@
 <overlay xmlns="http://www.mozilla.org/keymaster/gatekeeper/there.is.only.xul">
   <prefpane id="navigator_pane"
             label="&pref.navigator.title;"
-            script="  zzzz
-                    chrome://communicator/content/pref/pref-navigator.js">
+            script="chrome://communicator/content/pref/pref-navigator.js">
 
     <preferences id="navigator_preferences">
       <preference id="browser.startup.page"
