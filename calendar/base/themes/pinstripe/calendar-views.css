@@ -454,3 +454,11 @@ calendar-event-box[orient="horizontal"]:hover .calendar-event-box-grippy-top {
 calendar-event-box[orient="horizontal"]:hover .calendar-event-box-grippy-bottom {
   list-style-image: url("chrome://calendar/skin/event-grippy-right.png");
 }
+
+.alarm-image {
+  list-style-image: url(chrome://calendar/skin/alarm.png);
+}
+
+.alarm-image[flashing="true"] {
+  list-style-image: url(chrome://calendar/skin/alarm-flashing.png);
+}

@@ -130,6 +130,14 @@
                        this.calView.goToDay(this.calView.selectedDay);
                        break;
 
+                   case "calendar.alarms.indicator.show":
+                       if (this.calView.startDay && this.calView.endDay) {
+                           // Refresh the view, the view core takes care of
+                           // resetting the alarm image.
+                           this.calView.goToDay(this.calView.selectedDay);
+                       }
+                       break;
+
                    default:
                        break;
                    }

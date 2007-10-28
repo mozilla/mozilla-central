@@ -21,6 +21,7 @@
    -
    - Contributor(s):
    -   Dan Mosedale <dan.mosedale@oracle.com>
+   -   Philipp Kewisch <mozilla@kewis.ch>
    -
    - Alternatively, the contents of this file may be used under the terms of
    - either the GNU General Public License Version 2 or later (the "GPL"), or
@@ -168,6 +169,14 @@
                                 return;
                             }
                             this.goToDay(this.selectedDay);
+                            break;
+
+                        case "calendar.alarms.indicator.show":
+                            if (this.startDay && this.endDay) {
+                                // Refresh the view, the view core takes care of
+                                // resetting the alarm image.
+                                this.goToDay(this.selectedDay);
+                            }
                             break;
 
                         default:

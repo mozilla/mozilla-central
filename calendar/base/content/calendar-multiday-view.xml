@@ -802,6 +802,10 @@
                               chunkBox.setAttribute("width", durMinutes * this.mPixPerMin);
                           }
 
+                          if (chunk.event.hashId in this.calendarView.mFlashingEvents) {
+                              chunkBox.setAttribute("flashing", "true");
+                          }
+
                           innerColumn.appendChild(chunkBox);
 
                           chunkBox.calendarView = this.calendarView;
@@ -1727,6 +1731,20 @@
         ]]></setter>
       </property>
 
+      <method name="findBoxForItem">
+        <parameter name="aItem"/>
+        <body><![CDATA[
+          for each (var item in this.mItemBoxes) {
+              if (aItem && item.occurrence.hasSameIds(aItem)) {
+                  // We can return directly, since there will only be one box per
+                  // item in the header.
+                  return item;
+              }
+          }
+          return null;
+        ]]></body>
+      </method>
+
       <method name="addEvent">
         <parameter name="aItem"/>
         <body><![CDATA[
@@ -1748,6 +1766,10 @@
           var ctxt = this.calendarView.getAttribute("item-context") ||
                      this.calendarView.getAttribute("context");
           itemBox.setAttribute("context", ctxt);
+
+          if (aItem.hashId in this.calendarView.mFlashingEvents) {
+            itemBox.setAttribute("flashing", "true");
+          }
 
           this.mItemBoxes.push(itemBox);
         ]]></body>
@@ -1853,6 +1875,14 @@
                                               whichside="end"
                                               xbl:inherits="parentorient=orient"/>
                 </xul:box>
+                <xul:hbox pack="end">
+                    <xul:vbox pack="start">
+                      <xul:image anonid="alarm-image"
+                                 class="alarm-image"
+                                 xbl:inherits="flashing"
+                                 hidden="true"/>
+                    </xul:vbox>
+                </xul:hbox>
               </xul:stack>
             </xul:box>
           </xul:box>
@@ -2158,6 +2188,10 @@
             childbox, "class", "box-inherit scrollbox-innerbox").flex = "1";
 
         this.reorient();
+
+        var alarmService = Components.classes['@mozilla.org/calendar/alarm-service;1']
+                           .getService(Components.interfaces.calIAlarmService);
+        alarmService.addObserver(this.mObserver);
       ]]></constructor>
 
       <destructor><![CDATA[
@@ -2166,6 +2200,10 @@
         }
         window.removeEventListener("scroll", this.mScrollHandler, true);
         window.removeEventListener("resize", this.mResizeHandler, true);
+
+        var alarmService = Components.classes['@mozilla.org/calendar/alarm-service;1']
+                           .getService(Components.interfaces.calIAlarmService);
+        alarmService.removeObserver(this.mObserver);
       ]]></destructor>
 
       <property name="daysInView" readonly="true">
@@ -2248,12 +2286,14 @@
       <field name="mDisplayDaysOff">true</field>
       <field name="mDaysOffArray">[0,6]</field>
       <field name="mTimezone">"UTC"</field>
+      <field name="mFlashingEvents">new Object()</field>
 
       <field name="mObserver"><![CDATA[
-        // the calIObserver, and calICompositeObserver
+        // the calIObserver, calICompositeObserver, and calIAlarmServiceObserver
         ({
             QueryInterface: function QueryInterface(aIID) {
                 if (!aIID.equals(Components.interfaces.calIObserver) &&
+                    !aIID.equals(Ci.calIAlarmServiceObserver) &&
                     !aIID.equals(Components.interfaces.calICompositeObserver) &&
                     !aIID.equals(Components.interfaces.nsISupports)) {
                     throw Components.results.NS_ERROR_NO_INTERFACE;
@@ -2366,6 +2406,27 @@
             onError: function onError(aErrNo, aMessage) { },
 
             //
+            // calIAlarmServiceObserver stuff
+            //
+            onAlarm: function onAlarm(aAlarmItem) {
+                this.calView.flashAlarm(aAlarmItem, false);
+            },
+
+            onRemoveAlarmsByItem: function onRemoveAlarmsByItem(aItem) {
+                // Stop the flashing for the item.
+                this.calView.flashAlarm(aItem, true);
+            },
+
+            onRemoveAlarmsByCalendar: function onRemoveAlarmsByCalendar(aCalendar) {
+                // Stop the flashing for all items of this calendar
+                for each (var item in this.calView.mFlashingEvents) {
+                    if (item.calendar.id == aCalendar.id) {
+                        this.calView.flashAlarm(item, true);
+                    }
+                }
+            },
+
+            //
             // calICompositeObserver stuff
             // XXXvv we can be smarter about how we handle this stuff
             //
@@ -2420,6 +2481,52 @@
       })
       ]]></field>
 
+      <method name="flashAlarm">
+        <parameter name="aAlarmItem"/>
+        <parameter name="aStop"/>
+        <body><![CDATA[
+          var showIndicator = getPrefSafe("calendar.alarms.indicator.show", true);
+          var totaltime = getPrefSafe("calendar.alarms.indicator.totaltime", 3600);
+
+          if (!aStop && (!showIndicator || totaltime < 1)) {
+            // No need to animate if the indicator should not be shown.
+            return;
+          }
+
+          // Helper function to save some duplicate code
+          function setFlashingAttribute(aBox) {
+            if (aStop) {
+              aBox.removeAttribute("flashing");
+            } else {
+              aBox.setAttribute("flashing", "true");
+            }
+          }
+
+          // Make sure the flashing attribute is set or reset on all visible
+          // boxes.
+          var columns = this.findColumnsForItem(aAlarmItem);
+          for each (var col in columns) {
+            var box = col.column.findChunkForOccurrence(aAlarmItem);
+            if (box && box.eventbox) {
+              setFlashingAttribute(box.eventbox);
+            }
+            box = col.header.findBoxForItem(aAlarmItem);
+            if (box) {
+              setFlashingAttribute(box);
+            }
+          }
+
+          if (!aStop) {
+            // Set up a timer to stop the flashing after the total time.
+            var this_ = this;
+            this.mFlashingEvents[aAlarmItem.hashId] = aAlarmItem;
+            setTimeout(function() { this_.flashAlarm(aAlarmItem, true) }, totaltime);
+          } else {
+            // We are done flashing, prevent newly created event boxes from flashing.
+            delete this.mFlashingEvents[aAlarmItem.hashId];
+          }
+        ]]></body>
+      </method>
 
       <!-- calICalendarView -->
       <property name="supportsDisjointDates"
@@ -3102,18 +3209,21 @@
         ]]></body>
       </method>
 
-
       <method name="findColumnsForItem">
         <parameter name="aItem"/>
         <body><![CDATA[
           var columns = new Array();
+
+          if (!this.mDateColumns) {
+            return columns;
+          }
 
           var tz = this.mDateColumns[0].date.timezone;
 
           // Note that these may be dates or datetimes
           var startDate = aItem.startDate || aItem.entryDate;
           var targetDate = startDate.getInTimezone(tz);
-          var endDate = aItem.endDate || aItem.dueDate;
+          var endDate = aItem.endDate || aItem.dueDate || startDate;
           var finishDate = endDate.getInTimezone(tz);
 
           if (!targetDate.isDate) {

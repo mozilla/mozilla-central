@@ -22,6 +22,7 @@
    -
    - Contributor(s):
    -   Michael Büttner <michael.buettner@sun.com>
+   -   Philipp Kewisch <mozilla@kewis.ch>
    -
    - Alternatively, the contents of this file may be used under the terms of
    - either the GNU General Public License Version 2 or later (the "GPL"), or
@@ -68,6 +69,14 @@
                            wrap="true"/>
               <xul:spacer flex="1"/>
             </xul:vbox>
+            <xul:hbox pack="end">
+                <xul:vbox pack="center">
+                  <xul:image anonid="alarm-image"
+                             class="alarm-image"
+                             xbl:inherits="flashing"
+                             hidden="true"/>
+                </xul:vbox>
+            </xul:hbox>
             <xul:image anonid="gradient"
                        class="calendar-event-box-gradient event-frame"
                        hidden="true" height="1px"/>
@@ -108,6 +117,7 @@
                  self.stopEditing(false);
          };
       ]]></constructor>
+
       <field name="mOccurrence">null</field>
       <field name="mSelected">false</field>
       <field name="mCalendarView">null</field>
@@ -137,11 +147,10 @@
         ]]></setter>
       </property>
 
-
       <property name="occurrence">
         <getter><![CDATA[
-	  return this.mOccurrence;
-	]]></getter>
+          return this.mOccurrence;
+        ]]></getter>
         <setter><![CDATA[
           this.mOccurrence = val;
           this.setEditableLabel();
@@ -190,6 +199,11 @@
           }
 
           container.setAttribute("item-category", categoriesSelectorList);
+
+          var alarmImage = document.getAnonymousElementByAttribute(this, "anonid", "alarm-image");
+          if (item.alarmOffset && getPrefSafe("calendar.alarms.indicator.show", true)) {
+              alarmImage.removeAttribute("hidden");
+          }
         ]]></body>
       </method>
 

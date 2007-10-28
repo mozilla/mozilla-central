@@ -74,6 +74,8 @@ calendar.jar:
     content/calendar/sun-calendar-event-dialog-attendees.js  (/calendar/prototypes/wcap/sun-calendar-event-dialog-attendees.js)
 % skin calendar classic/1.0 %skin/classic/calendar/
     skin/classic/calendar/abcard.png             (themes/common/abcard.png)
+    skin/classic/calendar/alarm-flashing.png     (themes/common/alarm-flashing.png)
+    skin/classic/calendar/alarm.png              (themes/common/alarm.png)
 #expand    skin/classic/calendar/cal-icon32.png         (themes/__THEME__/cal-icon32.png)
 #expand    skin/classic/calendar/daypicker-background.png  (/calendar/base/themes/common/daypicker-background.png)
 #expand    skin/classic/calendar/calendar-toolbar.css   (themes/__THEME__/calendar-toolbar.css)

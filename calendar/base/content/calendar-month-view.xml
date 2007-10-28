@@ -80,6 +80,12 @@
                                wrap="true"/>
                   <xul:spacer flex="1"/>
                 </xul:vbox>
+                <xul:vbox pack="center">
+                  <xul:image anonid="alarm-image"
+                             class="alarm-image"
+                             xbl:inherits="flashing"
+                             hidden="true"/>
+                </xul:vbox>
               </xul:hbox>
               <xul:image anonid="gradient"
                          class="calendar-event-box-gradient event-frame"
@@ -488,6 +494,10 @@
               box.setAttribute("item-calendar", itd.item.calendar.uri.spec);
               box.setAttribute("tooltip", "itemTooltip");
 
+              if (itd.item.hashId in this.monthView.mFlashingEvents) {
+                box.setAttribute("flashing", "true");
+              }
+
               var categoriesSelectorList = "";
               if (itd.item.getProperty("CATEGORIES") != null) {
                 var categoriesList = itd.item.getProperty("CATEGORIES").split(",");
@@ -818,11 +828,19 @@
             headerbox.appendChild(hdr);
             hdr.index = i;
           }
+
+          var alarmService = Components.classes['@mozilla.org/calendar/alarm-service;1']
+                             .getService(Components.interfaces.calIAlarmService);
+          alarmService.addObserver(this.mObserver);
       ]]></constructor>
 
       <destructor><![CDATA[
-        if (this.mCalendar)
+        if (this.mCalendar) {
             this.mCalendar.removeObserver(this.mObserver);
+        }
+        var alarmService = Components.classes['@mozilla.org/calendar/alarm-service;1']
+                           .getService(Components.interfaces.calIAlarmService);
+        alarmService.removeObserver(this.mObserver);
       ]]></destructor>
 
       <!-- fields -->
@@ -846,6 +864,7 @@
       <field name="mDisplayDaysOff">true</field>
       <field name="mDropShadows">null</field>
       <field name="mShadowIndex">0</field>
+      <field name="mFlashingEvents">new Object()</field>
 
       <!-- other methods -->
       <method name="setAttribute">
@@ -1376,6 +1395,7 @@
           return null;
         ]]></body>
       </method>
+
       <method name="findBoxesForItem">
         <parameter name="aItem"/>
         <body><![CDATA[
@@ -1520,7 +1540,7 @@
       ]]></field>
 
       <field name="mObserver"><![CDATA[
-        // the calIObserver, and calICompositeObserver
+        // the calIObserver, calICompositeObserver, calIAlarmServiceObserver
         ({
           calView: this,
           mBatchCount: 0,
@@ -1528,6 +1548,7 @@
           QueryInterface: function (aIID) {
             if (!aIID.equals(Components.interfaces.calIObserver) &&
                 !aIID.equals(Components.interfaces.calICompositeObserver) &&
+                !aIID.equals(Ci.calIAlarmServiceObserver) &&
                 !aIID.equals(Components.interfaces.nsISupports)) {
               throw Components.results.NS_ERROR_NO_INTERFACE;
             }
@@ -1622,6 +1643,27 @@
           onError: function (aErrNo, aMessage) { },
 
           //
+          // calIAlarmServiceObserver stuff
+          //
+          onAlarm: function onAlarm(aAlarmItem) {
+            this.calView.flashAlarm(aAlarmItem, false);
+          },
+
+          onRemoveAlarmsByItem: function onRemoveAlarmsByItem(aItem) {
+              // Stop the flashing for the item.
+              this.calView.flashAlarm(aItem, true);
+          },
+
+          onRemoveAlarmsByCalendar: function onRemoveAlarmsByCalendar(aCalendar) {
+              // Stop the flashing for all items of this calendar
+              for each (var item in this.calView.mFlashingEvents) {
+                  if (item.calendar.id == aCalendar.id) {
+                      this.calView.flashAlarm(item, true);
+                  }
+              }
+          },
+
+          //
           // calICompositeObserver stuff
           // XXXvv we can be smarter about how we handle this stuff
           //
@@ -1639,6 +1681,44 @@
         })
       ]]></field>
 
+      <method name="flashAlarm">
+        <parameter name="aAlarmItem"/>
+        <parameter name="aStop"/>
+        <body><![CDATA[
+          var showIndicator = getPrefSafe("calendar.alarms.indicator.show", true);
+          var totaltime = getPrefSafe("calendar.alarms.indicator.totaltime", 3600);
+
+          if (!aStop && (!showIndicator || totaltime < 1)) {
+            // No need to animate if the indicator should not be shown.
+            return;
+          }
+
+          // Make sure the flashing attribute is set or reset on all visible
+          // boxes.
+          var boxes = this.findBoxesForItem(aAlarmItem);
+          for each (var box in boxes) {
+            for each (var itemData in box.box.mItemData) {
+              if (itemData.item.hasSameIds(aAlarmItem)) {
+                if (aStop) {
+                  itemData.box.removeAttribute("flashing");
+                } else {
+                  itemData.box.setAttribute("flashing", "true");
+                }
+              }
+            }
+          }
+
+          if (!aStop) {
+            // Set up a timer to stop the flashing after the total time.
+            var this_ = this;
+            this.mFlashingEvents[aAlarmItem.hashId] = aAlarmItem;
+            setTimeout(function() { this_.flashAlarm(aAlarmItem, true) }, totaltime);
+          } else {
+            // We are done flashing, prevent newly created event boxes from flashing.
+            delete this.mFlashingEvents[aAlarmItem.hashId];
+          }
+        ]]></body>
+      </method>
     </implementation>
 
     <handlers>
@@ -1659,5 +1739,3 @@
   </binding>
 
 </bindings>
-
-<!-- -*- Mode: xml; indent-tabs-mode: nil; -*- -->
