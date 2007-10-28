@@ -77,6 +77,7 @@
 <script type="application/x-javascript" src="chrome://calendar/content/calendar-views.js"/>
 <script type="application/x-javascript" src="chrome://calendar/content/calendar-minimonth-busy.js"/>
 <script type="application/x-javascript" src="chrome://calendar/content/clipboard.js"/>
+<script type="application/x-javascript" src="chrome://calendar/content/calendar-creation.js"/>
 <script type="application/x-javascript" src="chrome://lightning/content/messenger-overlay-toolbar.js"/>
 <script type="application/x-javascript" src="chrome://calendar/content/calendar-dnd-listener.js"/>
 <script type="application/x-javascript" src="chrome://global/content/nsDragAndDrop.js"/>
@@ -89,6 +90,28 @@
             observes="calendar_new_todo_command"/>
   <menuitem id="ltnNewCalendar" label="&lightning.menupopup.new.calendar.label;"
             observes="calendar_new_calendar_command"/>
+</menupopup>
+
+<!-- Hide the Thunderbird Open menuitem. Don't remove it, since other extensions
+     might depend on its position. A visible menuitem will be added below. -->
+<menuitem id="openMessageFileMenuitem" hidden="true" accesskey="" key=""/>
+
+<menupopup id="menu_FilePopup">
+  <menu id="menu_Open"
+        label="&lightning.menupopup.open.label;"
+        accesskey="&lightning.menupopup.open.accesskey;"
+        insertbefore="openMessageFileMenuitem">
+    <menupopup id="menu_OpenPopup">
+      <menuitem id="ltnOpenMessageFileMenuitem"
+                label="&lightning.menupopup.open.message.label;"
+                accesskey="&lightning.menupopup.open.message.accesskey;"
+                oncommand="MsgOpenFromFile();"/>
+      <menuitem id="ltnOpenCalendarFileMenuitem"
+                label="&lightning.menupopup.open.calendar.label;"
+                accesskey="&lightning.menupopup.open.calendar.accesskey;"
+                oncommand="openLocalCalendar();"/>
+    </menupopup>
+  </menu>
 </menupopup>
 
 <menubar id="mail-menubar">

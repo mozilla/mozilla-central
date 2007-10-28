@@ -344,37 +344,3 @@ function updateUndoRedoMenu() {
             doc.getElementById('redo_command').setAttribute('disabled', true);
     }
 }
-
-function openLocalCalendar() {
-
-    const nsIFilePicker = Components.interfaces.nsIFilePicker;
-    var fp = Components.classes["@mozilla.org/filepicker;1"].createInstance(nsIFilePicker);
-    fp.init(window, gCalendarBundle.getString("Open"), nsIFilePicker.modeOpen);
-    var wildmat = "*.ics";
-    var description = gCalendarBundle.getFormattedString("filterIcs", [wildmat]);
-    fp.appendFilter(description, wildmat);
-    fp.appendFilters(nsIFilePicker.filterAll);
- 
-    if (fp.show() != nsIFilePicker.returnOK) {
-        return;
-    }	
-    
-    var url = fp.fileURL.spec;
-    var calMgr = getCalendarManager();
-    var composite = getCompositeCalendar();
-    var openCalendar = calMgr.createCalendar("ics", makeURL(url));
-    calMgr.registerCalendar(openCalendar);
-     
-    // Strip ".ics" from filename for use as calendar name, taken from calendarCreation.js
-    var fullPathRegex = new RegExp("([^/:]+)[.]ics$");
-    var prettyName = url.match(fullPathRegex);
-    var name;
-        
-    if (prettyName && prettyName.length >= 1) {
-        name = decodeURIComponent(prettyName[1]);
-    } else {
-        name = gCalendarBundle.getString("untitledCalendarName");
-    }
-        
-    openCalendar.name = name;
-}

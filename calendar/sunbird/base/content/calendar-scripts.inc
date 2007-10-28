@@ -75,6 +75,7 @@
   <script type="application/x-javascript" src="chrome://calendar/content/calendar-unifinder-todo.js"/>
   <script type="application/x-javascript" src="chrome://calendar/content/calendar-views.js"/>
   <script type="application/x-javascript" src="chrome://calendar/content/migration.js"/>
+  <script type="application/x-javascript" src="chrome://calendar/content/calendar-creation.js"/>
   <script type="application/x-javascript" src="chrome://calendar/content/calendar-dnd-listener.js"/>
   <script type="application/x-javascript" src="chrome://global/content/nsDragAndDrop.js"/>
 

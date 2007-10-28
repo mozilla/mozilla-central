@@ -219,6 +219,15 @@ var calendarListTreeView = {
         return -1;
     },
 
+    findIndexByUri: function cLTV_findIndexByUri(aUri) {
+        for (var i = 0; i < this.mCalendarList.length; i++) {
+            if (this.mCalendarList[i].uri.equals(aUri)) {
+                return i;
+            }
+        }
+        return -1;
+    },
+
     addCalendar: function cLTV_addCalendar(aCalendar) {
         var composite = getCompositeCalendar();
         this.mCalendarList.push(aCalendar);

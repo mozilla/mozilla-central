@@ -21,6 +21,7 @@
    -   Mike Shaver <shaver@mozilla.org>
    -   Simon Paquet <bugzilla@babylonsounds.com>
    -   Matthew Willis <mattwillis@mac.com>
+   -   Philipp Kewisch <mozilla@kewis.ch>
    -
    - Alternatively, the contents of this file may be used under the terms of
    - either the GNU General Public License Version 2 or later (the "GPL"), or
@@ -49,6 +50,14 @@
 <!ENTITY lightning.menupopup.new.event.label    "Event…">
 <!ENTITY lightning.menupopup.new.task.label     "Task…">
 <!ENTITY lightning.menupopup.new.calendar.label "Calendar…">
+
+<!-- Open menu popup in File menu -->
+<!ENTITY lightning.menupopup.open.label               "Open">
+<!ENTITY lightning.menupopup.open.accesskey           "O">
+<!ENTITY lightning.menupopup.open.message.label       "Saved Message…">
+<!ENTITY lightning.menupopup.open.message.accesskey   "M">
+<!ENTITY lightning.menupopup.open.calendar.label      "Calendar File…">
+<!ENTITY lightning.menupopup.open.calendar.accesskey  "C">
 
 <!-- Agenda Tree View -->
 <!ENTITY agenda.treeview.label           "View:">
