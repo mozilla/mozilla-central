@@ -12,5 +12,16 @@
 "zh-HK"          = "Traditional Chinese (Hong Kong)";
 "zh-CN"          = "Simplified Chinese";
 "ja"             = "Japanese";
+"x-devanagari"   = "Devanagari";
+"x-tamil"        = "Tamil";
+"x-armn"         = "Armenian";
+"x-beng"         = "Bengali";
+"x-ethi"         = "Ethiopic";
+"x-geor"         = "Georgian";
+"x-gujr"         = "Gujarati";
+"x-guru"         = "Gurmukhi";
+"x-khmr"         = "Khmer";
+"x-mlym"         = "Malayalam";
+"x-cans"         = "Unified Canadian Syllabary";
 "x-unicode"      = "Unicode";
 "x-user-def"     = "User-Defined";
