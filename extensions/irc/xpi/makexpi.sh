@@ -204,7 +204,7 @@ echo   ".               done"
 # Make Firefox updates.
 echo -n "  Updating Firefox Extension files"
 echo -n .
-safeCommand sed "s|@REVISION@|$VERSION|g" '<' "$XPIFILES/install.rdf" '>' "$XPIROOT/install.rdf"
+safeCommand $PERL $CONFIGDIR/preprocessor.pl -DCHATZILLA_VERSION=$VERSION "$XPIFILES/install.rdf" '>' "$XPIROOT/install.rdf"
 echo -n .
 safeCommand cp "$XPIFILES/chatzilla-window.ico" "$XPIROOT/chrome/icons/default/chatzilla-window.ico"
 echo -n .
