@@ -159,10 +159,7 @@
   <!-- View Menu -->
   <command id="cmd_showComposeToolbar" oncommand="goDoCommand('cmd_showComposeToolbar')"/>
   <command id="cmd_showFormatToolbar" oncommand="goDoCommand('cmd_showFormatToolbar')"/>
-  
-  <!-- View Menu -->
-  <key id="key_addressSidebar" keycode="VK_F9" oncommand="toggleAddressPicker();" />
-  
+
   <!-- Options Menu -->
   <command id="cmd_quoteMessage" oncommand="goDoCommand('cmd_quoteMessage')"/>
   <command id="cmd_insert"/>
@@ -218,7 +215,10 @@
   <key id="key_findPrev" key="&findPrevCmd.key;" command="cmd_findPrev" modifiers="accel, shift"/>
   <key keycode="&findAgainCmd.key2;" command="cmd_findNext"/>
   <key keycode="&findPrevCmd.key2;"  command="cmd_findPrev" modifiers="shift"/>
-  
+
+  <!-- View Menu -->
+  <key id="key_addressSidebar" keycode="VK_F9" oncommand="toggleAddressPicker();"/>
+
   <!-- Options Menu -->
 #ifdef XP_UNIX
   <key id="key_checkspelling" key="&checkSpellingCmd.key;" command="cmd_spelling" modifiers="accel, shift"/>
