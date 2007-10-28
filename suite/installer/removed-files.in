@@ -18,6 +18,7 @@ extensions/talkback@mozilla.org/InstallDisabled
 components/airbag.xpt
 components/@DLL_PREFIX@bookmark@DLL_SUFFIX@
 components/bookmarks.xpt
+components/chatzilla-service.js
 components/nsCloseAllWindows.js
 components/nsKillAll.js
 components/search.xpt

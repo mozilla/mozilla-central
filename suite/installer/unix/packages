@@ -477,9 +477,11 @@ bin/isp/SpamAssassin.sfd
 bin/isp/SpamPal.sfd
 
 [chatzilla]
-bin/components/chatzilla-service.js
+bin/extensions/{59c81df5-4b7a-477b-912d-4e0fdf64e5f2}/components/chatzilla-service.js
+bin/extensions/{59c81df5-4b7a-477b-912d-4e0fdf64e5f2}/chrome/chatzilla.jar
+bin/extensions/{59c81df5-4b7a-477b-912d-4e0fdf64e5f2}/chrome.manifest
+bin/extensions/{59c81df5-4b7a-477b-912d-4e0fdf64e5f2}/install.rdf
 bin/chrome/chatzilla.jar
-bin/chrome/chatzilla/*
 bin/chrome/icons/default/chatzilla-window.xpm
 bin/chrome/icons/default/chatzilla-window16.xpm
 
