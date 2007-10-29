@@ -1000,9 +1000,9 @@ function XMLEntryToItem(aXMLEntry, aTimezone, aCalendar) {
             var attendee = Components.classes["@mozilla.org/calendar/attendee;1"]
                            .createInstance(Components.interfaces.calIAttendee);
 
-            var rel = who.@rel.substring(33);
-            var type = who.gd::attendeeType.@value.substring(33);
-            var status = who.gd::attendeeStatus.@value.substring(33);
+            var rel = who.@rel.toString().substring(33);
+            var type = who.gd::attendeeType.@value.toString().substring(33);
+            var status = who.gd::attendeeStatus.@value.toString().substring(33);
 
             attendee.id = "mailto:" + who.@email.toString();
             attendee.commonName = who.@valueString.toString();
