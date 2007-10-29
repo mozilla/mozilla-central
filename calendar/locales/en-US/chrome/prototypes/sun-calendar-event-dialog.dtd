@@ -253,7 +253,7 @@
 
 <!ENTITY reminder.title.label                           "Custom Reminder">
 <!ENTITY reminder.reminder.label                        "Reminder">
-<!ENTITY reminder.due.label                             "When Reminder becomes Due">
+<!ENTITY reminder.due.label                             "Choose a Reminder Action">
 <!ENTITY reminder.action.alert.label                    "Show an Alert">
 <!ENTITY reminder.action.sound.label                    "Play a Sound">
 <!ENTITY reminder.action.email.label                    "Send an E-mail">
