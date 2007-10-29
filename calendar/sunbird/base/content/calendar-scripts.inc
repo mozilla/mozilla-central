@@ -71,7 +71,7 @@
   <script type="application/x-javascript" src="chrome://calendar/content/calUtils.js"/>
   <script type="application/x-javascript" src="chrome://calendar/content/calendarWindow.js"/>
   <script type="application/x-javascript" src="chrome://calendar/content/mouseoverPreviews.js"/>
-  <script type="application/x-javascript" src="chrome://calendar/content/unifinder.js"/>
+  <script type="application/x-javascript" src="chrome://calendar/content/calendar-unifinder.js"/>
   <script type="application/x-javascript" src="chrome://calendar/content/calendar-unifinder-todo.js"/>
   <script type="application/x-javascript" src="chrome://calendar/content/calendar-views.js"/>
   <script type="application/x-javascript" src="chrome://calendar/content/migration.js"/>

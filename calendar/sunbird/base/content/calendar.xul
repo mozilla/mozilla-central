@@ -58,6 +58,7 @@
 <!-- Overlays -->
 <?xul-overlay href="chrome://global/content/globalOverlay.xul"?>
 <?xul-overlay href="chrome://calendar/content/calendar-calendars-list.xul"?>
+<?xul-overlay href="chrome://calendar/content/calendar-unifinder.xul"?>
 <?xul-overlay href="chrome://calendar/content/calendar-unifinder-todo.xul"?>
 <?xul-overlay href="chrome://calendar/content/calendar-common-sets.xul"?>
 
@@ -376,102 +377,7 @@
     <splitter id="calendar-splitter" collapse="before" persist="state"
               class="chromeclass-extrachrome sidebar-splitter" orient="horizontal"/>
          
-    <vbox flex="1">
-      <vbox id="bottom-events-box" persist="height">
-        <hbox id="searchBox" persist="collapsed">
-          <box align="center">
-            <menulist id="event-filter-menulist" persist="value">
-              <menupopup id="event-filter-menupopup" oncommand="changeEventFilter( event );">
-                <menuitem id="event-filter-all"
-                          label="&calendar.events.filter.all.label;"
-                          value="all"/>
-                <menuitem id="event-filter-today"
-                          label="&calendar.events.filter.today.label;"
-                          value="today"/>
-                <menuitem id="event-filter-next7Days"
-                          label="&calendar.events.filter.next7Days.label;"
-                          value="next7Days"/>
-                <menuitem id="event-filter-next14Days"
-                          label="&calendar.events.filter.next14Days.label;"
-                          value="next14Days"/>
-                <menuitem id="event-filter-next31Days"
-                          label="&calendar.events.filter.next31Days.label;"
-                          value="next31Days"/>
-                <menuitem id="event-filter-thisCalendarMonth"
-                          label="&calendar.events.filter.thisCalendarMonth.label;"
-                          value="thisCalendarMonth"/>
-                <menuitem id="event-filter-future"
-                          label="&calendar.events.filter.future.label;"
-                          value="future"/>
-                <menuitem id="event-filter-current"
-                          label="&calendar.events.filter.current.label;"
-                          value="current"/>
-              </menupopup>
-            </menulist>
-          </box>
-
-          <box align="center" flex="1">
-            <label control="unifinder-search-field" value="&calendar.search.options.searchfor;"/>
-            <textbox id="unifinder-search-field" onkeypress="searchKeyPress( this, event )" flex="1"/>
-          </box>
-        </hbox>
-        <tree id="unifinder-search-results-listbox" flex="1" 
-              onselect="unifinderOnSelect( event ); onSelectionChanged()"
-              onkeypress="unifinderKeyPress(event)"
-              enableColumnDrag="true">
-          <treecols id="unifinder-search-results-tree-cols">
-            <treecol id="unifinder-search-results-tree-col-title"
-                     persist="hidden ordinal width sortDirection sortActive"
-                     flex="1"
-                     label="&calendar.unifinder.tree.title.label;" />
-            <splitter class="tree-splitter"/>
-            <treecol id="unifinder-search-results-tree-col-startdate"
-                     persist="hidden ordinal width sortDirection sortActive" 
-                     flex="1"
-                     label="&calendar.unifinder.tree.startdate.label;"/>
-            <splitter class="tree-splitter"/>
-            <treecol id="unifinder-search-results-tree-col-enddate"
-                     persist="hidden ordinal width sortDirection sortActive" 
-                     flex="1"
-                     label="&calendar.unifinder.tree.enddate.label;"/>
-            <splitter class="tree-splitter"/>
-            <treecol id="unifinder-search-results-tree-col-categories"
-                     persist="hidden ordinal width sortDirection sortActive" 
-                     flex="1"
-                     label="&calendar.unifinder.tree.categories.label;"/>
-            <splitter class="tree-splitter"/>
-            <treecol id="unifinder-search-results-tree-col-location"
-                     persist="hidden ordinal width sortDirection sortActive" 
-                     flex="1"
-                     hidden="true"
-                     label="&calendar.unifinder.tree.location.label;"/>
-            <splitter class="tree-splitter"/>
-            <treecol id="unifinder-search-results-tree-col-status"
-                     persist="hidden ordinal width sortDirection sortActive" 
-                     flex="1"
-                     hidden="true"
-                     label="&calendar.unifinder.tree.status.label;"/>
-            <treecol id="unifinder-search-results-tree-col-calendarname"
-                     persist="hidden ordinal width sortDirection sortActive" 
-                     flex="1"
-                     hidden="true"
-                     label="&calendar.unifinder.tree.calendarname.label;"/>
-          </treecols>
-
-          <!-- on mousedown here happens before onclick above -->
-          <treechildren tooltip="eventTreeTooltip" 
-                        onkeypress="if (event.keyCode == 13) unifinderEditCommand();"
-                        ondragover="return( false );"  
-                        ondblclick="unifinderDoubleClickEvent( event )"
-                        onfocus="focusFirstItemIfNoSelection( );"/>
-        </tree>
-      </vbox>
-
-      <splitter id="calendar-view-splitter" collapse="before" persist="state"
-                class="chromeclass-extrachrome sidebar-splitter" orient="vertical" onmouseup="setTimeout('refreshEventTree();', 10 );">
-        <grippy class="sidebar-splitter-grippy"/>
-      </splitter>
-
+    <vbox id="calendar-view-box" flex="1">
       <deck id="view-deck" flex="1" persist="selectedIndex">
           <calendar-decorated-day-view id="day-view" flex="1" 
                                        context="context-menu"/>
@@ -482,7 +388,6 @@
           <calendar-decorated-month-view id="month-view" flex="1" 
                                          context="context-menu"/>
       </deck>
-
     </vbox>
   </hbox> <!-- End: box with unifinder on left, calendar on right -->
 </vbox>

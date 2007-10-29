@@ -20,7 +20,6 @@ calendar.jar:
     content/calendar/publish.js  (content/publish.js)
     content/calendar/publishDialog.js  (content/publishDialog.js)    
     content/calendar/publishDialog.xul  (content/publishDialog.xul)
-    content/calendar/unifinder.js (content/unifinder.js)
     content/calendar/mouseoverPreviews.js (content/mouseoverPreviews.js)
     content/calendar/converters/date-time.xsl (content/converters/date-time.xsl)
     content/calendar/converters/ecsJune.xsl (content/converters/ecsJune.xsl)

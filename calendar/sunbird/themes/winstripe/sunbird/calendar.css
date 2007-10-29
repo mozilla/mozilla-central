@@ -751,30 +751,6 @@ toolbar[iconsize="small"] #navigator-throbber[busy="true"] {
   list-style-image: url('chrome://global/skin/throbber/Throbber-small.gif');
 }
 
-/* UNIFINDER */
-
-.calendar-unifinder-event-indent
-{
-      padding-left        : 30px;
-}
-
-.unifinder-treecell-box-class
-{
-   padding              : 2px;
-   padding-left         : 4px;
-   font-family          : Arial, Helvetica;
-   -moz-box-align       : start;
-}
-
-/*--------------------------------------------------------------------
- * Unifinder
- *-------------------------------------------------------------------*/
-/* workaround to avoid Window Flick */
-#unifinder-search-results-listbox
-{
-   min-height : 76px ;
-}
-
 /*--------------------------------------------------------------------
  * tooltips
  *-------------------------------------------------------------------*/

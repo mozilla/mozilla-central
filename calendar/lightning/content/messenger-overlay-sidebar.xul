@@ -324,7 +324,7 @@
 </hbox>
 
 <deck id="displayDeck">
-  <vbox id="calendar-view-box">
+  <vbox id="calendar-view-box" context="calendar-view-context-menu">
     <deck flex="1"
           id="view-deck"
           ondraggesture="nsDragAndDrop.startDrag(event, calendarDNDObserver);"

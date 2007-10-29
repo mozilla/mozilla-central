@@ -607,30 +607,6 @@ toolbarbutton.chevron > .toolbarbutton-menu-dropmarker {
   display: none;
 }
 
-/* UNIFINDER */
-
-.calendar-unifinder-event-indent
-{
-      padding-left        : 30px;
-}
-
-.unifinder-treecell-box-class
-{
-   padding              : 2px;
-   padding-left         : 4px;
-   font-family          : Arial, Helvetica;
-   -moz-box-align       : start;
-}
-
-/*--------------------------------------------------------------------
- * Unifinder
- *-------------------------------------------------------------------*/
-/* workaround to avoid Window Flick */
-#unifinder-search-results-listbox
-{
-   min-height : 92px ;
-}
-
 /*--------------------------------------------------------------------
  * tooltips
  *-------------------------------------------------------------------*/
