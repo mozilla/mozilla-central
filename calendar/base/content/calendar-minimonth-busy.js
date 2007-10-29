@@ -152,6 +152,10 @@ var minimonthBusyListener = {
 
     onError: function mBL_onError(aErrNo, aMessage) {},
 
+    onPropertyChanged: function(aCalendar, aName, aValue, aOldValue) {},
+
+    onPropertyDeleting: function(aCalendar, aName) {},
+
     // calICompositeObserver methods
     onCalendarAdded: function mBL_onCalendarAdded(aCalendar) {
         var minimonth = getMinimonth();

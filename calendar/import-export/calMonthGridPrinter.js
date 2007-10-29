@@ -320,9 +320,7 @@ function makeHTMLWeek(date, sortedList, targetMonth) {
                 time = dateFormatter.formatTime(sDate);
             }
 
-            var calMgr = Components.classes["@mozilla.org/calendar/manager;1"]
-                                   .getService(Components.interfaces.calICalendarManager);
-            var calColor = calMgr.getCalendarPref(item.calendar, 'color');
+            var calColor = item.calendar.getProperty('color');
             if (!calColor) {
                 calColor = "#A8C2E1";
             }

@@ -111,6 +111,8 @@ var unifinderToDoDataSourceObserver =
         }
     },
     onError: function(aErrNo, aMessage) {},
+    onPropertyChanged: function(aCalendar, aName, aValue, aOldValue) {},
+    onPropertyDeleting: function(aCalendar, aName) {},
 
     // calICompositeObserver:
     onCalendarAdded: function(aDeletedItem) {

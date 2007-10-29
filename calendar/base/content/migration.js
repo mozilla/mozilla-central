@@ -373,8 +373,7 @@ var gDataMigrator = {
                     cal = calManager.createCalendar("ics", url);
                 }
                 cal.name = getRDFAttr(node, "name");
-                calManager.setCalendarPref(cal, "color", 
-                                           getRDFAttr(node, "color"));
+                cal.setProperty("color", getRDFAttr(node, "color"));
                 getCompositeCalendar().addCalendar(cal);
             }
             aCallback();

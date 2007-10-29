@@ -2405,6 +2405,9 @@
             },
             onError: function onError(aErrNo, aMessage) { },
 
+            onPropertyChanged: function(aCalendar, aName, aValue, aOldValue) {},
+            onPropertyDeleting: function(aCalendar, aName) {},
+
             //
             // calIAlarmServiceObserver stuff
             //

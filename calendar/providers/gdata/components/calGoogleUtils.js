@@ -38,6 +38,11 @@
 // This global keeps the session Objects for the usernames
 var g_sessionMap;
 
+function getCalendarManager() {
+    return Components.classes["@mozilla.org/calendar/manager;1"]
+                     .getService(Components.interfaces.calICalendarManager);
+}
+
 /**
  * setCalendarPref
  * Helper to set an independant Calendar Preference, since I cannot use the

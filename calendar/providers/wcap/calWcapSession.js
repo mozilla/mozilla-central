@@ -39,7 +39,7 @@
 
 var g_openSessions = {};
 function getWcapSessionFor(cal, uri) {
-    var contextId = getCalendarManager().getCalendarPref(cal, "shared_context");
+    var contextId = cal.getProperty("shared_context");
     if (!contextId) {
         contextId = getUUID();
     }
@@ -57,7 +57,6 @@ function getWcapSessionFor(cal, uri) {
 function calWcapSession(contextId, thatUri) {
     this.wrappedJSObject = this;
     this.m_contextId = contextId;
-    this.m_observers = [];
     this.m_loginQueue = [];
 
     this.m_uri = thatUri.clone();
@@ -538,12 +537,11 @@ calWcapSession.prototype = {
                     // get calprops for all registered calendars:                        
                     var cals = this_.getRegisteredCalendars();
 
-                    var calManager = getCalendarManager();
                     var calprops_resp = null;
                     var defaultCal = this_.defaultCalendar;
                     if (defaultCal && cals[defaultCal.calId] && // default calendar is registered
-                        getPref("calendar.wcap.subscriptions", false) &&
-                        !calManager.getCalendarPref(defaultCal, "subscriptions_registered")) {
+                        getPref("calendar.wcap.subscriptions", true) &&
+                        !defaultCal.getProperty("subscriptions_registered")) {
                         
                         var hasSubscriptions = false;
                         // post register subscribed calendars:
@@ -567,20 +565,17 @@ calWcapSession.prototype = {
                             calprops_resp = function(cal) {
                                 if (cal.isDefaultCalendar) {
                                     // tweak name:
-                                    calManager.setCalendarPref(cal, "name", cal.displayName);
+                                    cal.setProperty("name", cal.displayName);
                                 }
                                 else {
                                     log("registering subscribed calendar: " + cal.calId, this_);
-                                    calManager.registerCalendar(cal);
+                                    getCalendarManager().registerCalendar(cal);
                                 }
                             }
                             // do only once:
-                            calManager.setCalendarPref(defaultCal,
-                                                       "shared_context", this_.m_contextId);
-                            calManager.setCalendarPref(defaultCal,
-                                                       "account_name", defaultCal.name);
-                            calManager.setCalendarPref(defaultCal,
-                                                       "subscriptions_registered", "1");
+                            defaultCal.setProperty("shared_context", this_.m_contextId);
+                            defaultCal.setProperty("account_name", defaultCal.name);
+                            defaultCal.setProperty("subscriptions_registered", true);
                         }
                     }
                     
@@ -1139,10 +1134,9 @@ calWcapSession.prototype = {
             // make sure the calendar belongs to this session:
             if (this.belongsTo(cal)) {
 
-                var calManager = getCalendarManager();
                 function assureDefault(pref, val) {
-                    if (!calManager.getCalendarPref(cal, pref)) {
-                        calManager.setCalendarPref(cal, pref, val);
+                    if (cal.getProperty(pref) === null) {
+                        cal.setProperty(pref, val);
                     }
                 }
                 
@@ -1199,16 +1193,6 @@ calWcapSession.prototype = {
     
     // called before the delete actually takes place
     onCalendarDeleting: function calWcapSession_onCalendarDeleting(cal)
-    {
-    },
-    
-    // called after the pref is set
-    onCalendarPrefChanged: function calWcapSession_onCalendarPrefChanged(cal, name, value, oldvalue)
-    {
-    },
-    
-    // called before the pref is deleted
-    onCalendarPrefDeleting: function calWcapSession_onCalendarPrefDeleting(cal, name)
     {
     }
 };

@@ -48,7 +48,7 @@ function loadCalendarPublishDialog()
 
     /* set the path based on what was passed in */
     var pathTextbox = document.getElementById("publish-remotePath-textbox");
-    pathTextbox.value = getCalendarManager().getCalendarPref(calendar, "remote-ics-path");;
+    pathTextbox.value = calendar.getProperty("remote-ics-path");
 
     /* check the URL field */
     checkURL();
@@ -115,7 +115,7 @@ function publishCalendar(calendar, remotePath)
 
             /* update the remote ics path */
             var calManager = getCalendarManager();
-            calManager.setCalendarPref(window.calendar, "remote-ics-path", remotePath);
+            window.calendar.setProperty("remote-ics-path", remotePath);
 
             /* set the dialog up for closing */
             var progressMeter = document.getElementById("publish-progressmeter");

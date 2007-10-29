@@ -39,6 +39,7 @@
 
 interface calICalendar;
 interface nsIURI;
+interface nsIVariant;
 
 interface calICalendarManagerObserver;
 
@@ -65,10 +66,16 @@ interface calICalendarManager : nsISupports
                     [array, size_is(count), retval] out calICalendar aCalendars);
 
 
-  /* name will be forced to lowercase */
-  AUTF8String getCalendarPref(in calICalendar aCalendar, in AUTF8String aName);
-  void setCalendarPref(in calICalendar aCalendar, in AUTF8String aName, in AUTF8String aValue);
-  void deleteCalendarPref(in calICalendar aCalendar, in AUTF8String aName);
+  /* XXX private, don't use:
+         will vanish as soon as providers will directly read/write from moz prefs
+  */
+  nsIVariant getCalendarPref_(in calICalendar aCalendar,
+                              in AUTF8String aName);
+  void setCalendarPref_(in calICalendar aCalendar,
+                        in nsIVariant aName,
+                        in nsIVariant aValue);
+  void deleteCalendarPref_(in calICalendar aCalendar,
+                           in AUTF8String aName);
   
   void addObserver(in calICalendarManagerObserver aObserver);
   void removeObserver(in calICalendarManagerObserver aObserver);
@@ -85,10 +92,4 @@ interface calICalendarManagerObserver : nsISupports
 
   // called before the delete actually takes place
   void onCalendarDeleting(in calICalendar aCalendar);
-
-  // Called after a preference is changed.
-  void onCalendarPrefChanged(in calICalendar aCalendar, in AUTF8String aName, in AUTF8String aValue, in AUTF8String aOldValue);
-
-  // called before the pref is deleted
-  void onCalendarPrefDeleting(in calICalendar aCalendar, in AUTF8String aName);
 };

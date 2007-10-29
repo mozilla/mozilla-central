@@ -280,10 +280,11 @@ calStorageCalendar.prototype = {
 
     // attribute AUTF8String name;
     get name() {
-        return getCalendarManager().getCalendarPref(this, "NAME");
+        return this.getProperty("name");
     },
     set name(name) {
-        getCalendarManager().setCalendarPref(this, "NAME", name);
+        this.setProperty("name", name);
+        return name;
     },
     // readonly attribute AUTF8String type;
     get type() { return "storage"; },
@@ -299,6 +300,24 @@ calStorageCalendar.prototype = {
 
     get canRefresh() {
         return false;
+    },
+
+    getProperty: function(aName) {
+// xxx future: return getPrefSafe("calendars." + this.id + "." + aName, null);
+        return getCalendarManager().getCalendarPref_(this, aName);
+    },
+    setProperty: function(aName, aValue) {
+        var oldValue = this.getProperty(aName);
+        if (oldValue != aValue) {
+// xxx future: setPrefSafe("calendars." + this.id + "." + aName, aValue);
+            getCalendarManager().setCalendarPref_(this, aName, aValue);
+            this.mObservers.notify("onPropertyChanged",
+                                   [this, aName, aValue, oldValue]);
+        }
+    },
+    deleteProperty: function(aName) {
+        this.mObservers.notify("onPropertyDeleting", [this, aName]);
+        getCalendarManager().deleteCalendarPref_(this, aName);
     },
 
     mURI: null,

@@ -144,14 +144,14 @@ calWcapCalendar.prototype = {
     },
 
     get name() {
-        var name = getCalendarManager().getCalendarPref(this, "name");
+        var name = this.getProperty("name");
         if (!name) {
             name = this.displayName;
         }
         return name;
     },
     set name(name) {
-        getCalendarManager().setCalendarPref(this, "name", name);
+        this.setProperty("name", name);
         return name;
     },
     
@@ -199,6 +199,33 @@ calWcapCalendar.prototype = {
             }
         }
         return this.uri;
+    },
+
+    getProperty: function calWcapCalendar_getProperty(aName) {
+        // xxx future: return getPrefSafe("calendars." + this.id + "." + aName, null);
+        var value = getCalendarManager().getCalendarPref_(this, aName);
+        if ((value === null) &&
+            (aName == "calendar-main-in-composite") &&
+            !this.isDefaultCalendar) {
+            // tweak in-composite to false for secondary calendars:
+            value = false;
+        }
+        return value;
+    },
+
+    setProperty: function calWcapCalendar_setProperty(aName, aValue) {
+        var oldValue = this.getProperty(aName);
+        if (oldValue != aValue) {
+// xxx future: setPrefSafe("calendars." + this.id + "." + aName, aValue);
+            getCalendarManager().setCalendarPref_(this, aName, aValue);
+            this.notifyObservers("onPropertyChanged",
+                                 [this, aName, aValue, oldValue]);
+        }
+    },
+
+    deleteProperty: function calWcapCalendar_deleteProperty(aName) {
+        this.notifyObservers("onPropertyDeleting", [this, aName]);
+        getCalendarManager().deleteCalendarPref_(this, aName);
     },
 
     m_observers: null,
@@ -353,8 +380,8 @@ calWcapCalendar.prototype = {
         var name = ar[0];
         var defaultCal = this.session.defaultCalendar;
         if (defaultCal) {
-            var defName = (getCalendarManager().getCalendarPref(defaultCal, "account_name") ||
-                           getCalendarManager().getCalendarPref(defaultCal, "name"));
+            var defName = (defaultCal.getProperty("account_name") ||
+                           defaultCal.getProperty("name"));
             if (defName) {
                 name += (" (" + defName + ")");
             }

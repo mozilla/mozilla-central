@@ -175,7 +175,7 @@ function calendarListInitCategoryColors() {
 function calendarListUpdateColor(aCalendar) {
     var selectorPrefix = "treechildren::-moz-tree-cell";
 
-    var color = getCalendarManager().getCalendarPref(aCalendar, "color");
+    var color = aCalendar.getProperty("color");
     if (!color) {
         return;
     }
@@ -304,8 +304,7 @@ var calendarListTreeView = {
                 }
                 break;
             case "calendar-list-tree-color":
-                var color = getCalendarManager().getCalendarPref(calendar,
-                                                                 "color");
+                var color = calendar.getProperty("color");
                 color = "color-" + (color ? color.substr(1) : "default");
                 aProps.AppendElement(getAtomFromService(color));
                 break;
@@ -541,7 +540,12 @@ var calendarManagerObserver = {
     // calICalendarManagerObserver
     onCalendarRegistered: function cMO_onCalendarRegistered(aCalendar) {
         this.initializeCalendar(aCalendar);
-        getCompositeCalendar().addCalendar(aCalendar);
+        var composite = getCompositeCalendar();
+        var inComposite = aCalendar.getProperty(composite.prefPrefix +
+                                                "-in-composite");
+        if ((inComposite === null) || inComposite) {
+            composite.addCalendar(aCalendar);
+        }
     },
 
     onCalendarUnregistering: function cMO_onCalendarUnregistering(aCalendar) {
@@ -576,29 +580,6 @@ var calendarManagerObserver = {
         getCompositeCalendar().removeCalendar(aCalendar.uri);
     },
 
-    onCalendarPrefChanged: function cMO_onCalendarPrefChanged(aCalendar,
-                                                              aName,
-                                                              aValue,
-                                                              aOldValue) {
-        switch (aName) {
-            case "color":
-                updateStyleSheetForObject(aCalendar, gCachedStyleSheet);
-                calendarListUpdateColor(aCalendar);
-                // Fall through, update item in any case
-            case "name":
-                calendarListTreeView.updateCalendar(aCalendar);
-                break;
-        }
-    },
-
-    onCalendarPrefDeleting: function cMO_onCalendarPrefDeleting(aCalendar,
-                                                                aName) {
-        // Since the old value is not used directly in onCalendarPrefChanged,
-        // but should not be the same as the value, set it to a different
-        // value.
-        this.onCalendarPrefChanged(aCalendar, aName, null, true);
-    },
-
     // calICompositeObserver
     onCalendarAdded: function cMO_onCalendarAdded(aCalendar) {
         // Make sure the checkbox state is updated
@@ -631,6 +612,29 @@ var calendarManagerObserver = {
 
     onDeleteItem: function cMO_onDeleteItem(aDeletedItem) { },
     onError: function cMO_onError(aErrNo, aMessage) { },
+
+    onPropertyChanged: function cMO_onPropertyChanged(aCalendar,
+                                                      aName,
+                                                      aValue,
+                                                      aOldValue) {
+        switch (aName) {
+            case "color":
+                updateStyleSheetForObject(aCalendar, gCachedStyleSheet);
+                calendarListUpdateColor(aCalendar);
+                // Fall through, update item in any case
+            case "name":
+                calendarListTreeView.updateCalendar(aCalendar);
+                break;
+        }
+    },
+
+    onPropertyDeleting: function cMO_onPropertyDeleting(aCalendar,
+                                                        aName) {
+        // Since the old value is not used directly in onPropertyChanged,
+        // but should not be the same as the value, set it to a different
+        // value.
+        this.onPropertyChanged(aCalendar, aName, null, null);
+    },
 
     // nsIObserver
     observe: function cMO_observe(aSubject, aTopic, aPrefName) {

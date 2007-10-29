@@ -408,7 +408,7 @@ function updateStyleSheetForObject(aObject, aSheet) {
         name = aObject.uri.spec;
         selectorPrefix = "item-calendar=";
         ruleUpdaterFunc = function calendarRuleFunc(aRule, aIndex) {
-            var color = getCalendarManager().getCalendarPref(aObject, 'color');
+            var color = aObject.getProperty('color');
             if (!color) {
                 color = "#A8C2E1";
             }

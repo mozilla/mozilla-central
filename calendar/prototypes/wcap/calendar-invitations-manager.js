@@ -120,10 +120,6 @@ function InvitationsManager() {
             this.mInvitationsManager.unregisterCalendar(aCalendar);
         },
         onCalendarDeleting: function(aCalendar) {
-        },
-        onCalendarPrefChanged: function(aCalendar, aName, aValue) {
-        },
-        onCalendarPrefDeleting: function(aCalendar, aName) {
         }
     };
     getCalendarManager().addObserver(calendarManagerObserver);
@@ -287,6 +283,12 @@ InvitationsManager.prototype = {
                     },
 
                     onError: function(aErrNo, aMessage) {
+                    },
+
+                    onPropertyChanged: function(aCalendar, aName, aValue, aOldValue) {
+                    },
+
+                    onPropertyDeleting: function(aCalendar, aName) {
                     }
                 };
                 var requestStatus =

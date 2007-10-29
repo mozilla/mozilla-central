@@ -77,6 +77,7 @@ calMemoryCalendar.prototype = {
     initMemoryCalendar: function() {
         this.mObservers = new calListenerBag(Components.interfaces.calIObserver);
         this.mItems = { };
+        this.mProperties = {};
     },
 
     //
@@ -120,10 +121,11 @@ calMemoryCalendar.prototype = {
     },
 
     get name() {
-        return getCalendarManager().getCalendarPref(this, "NAME");
+        return this.getProperty("name");
     },
     set name(name) {
-        getCalendarManager().setCalendarPref(this, "NAME", name);
+        this.setProperty("name", name);
+        return name;
     },
 
     // readonly attribute AUTF8String type;
@@ -148,6 +150,22 @@ calMemoryCalendar.prototype = {
     get uri() { return this.mUri; },
     set uri(aURI) { this.mUri = aURI; },
 
+    mProperties: null,
+    getProperty: function(aName) {
+        return this.mProperties[aName];
+    },
+    setProperty: function(aName, aValue) {
+        var oldValue = this.getProperty(aName);
+        if (oldValue != aValue) {
+            this.mProperties[aName] = aValue;
+            this.mObservers.notify("onPropertyChanged",
+                                   [this, aName, aValue, oldValue]);
+        }
+    },
+    deleteProperty: function(aName) {
+        this.mObservers.notify("onPropertyDeleting", [this, aName]);
+        delete this.mProperties[aName];
+    },
 
     refresh: function() {
         // no-op

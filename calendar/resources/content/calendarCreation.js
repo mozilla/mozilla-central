@@ -116,7 +116,7 @@ function doCreateCalendar()
     
     newCalendar.name = cal_name;
 
-    calManager.setCalendarPref(newCalendar, 'color', cal_color);
+    newCalendar.setProperty('color', cal_color);
 
     return true;
 }

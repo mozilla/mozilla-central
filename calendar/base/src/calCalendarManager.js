@@ -541,7 +541,7 @@ calCalendarManager.prototype = {
         }
     },
 
-    getCalendarPref: function(calendar, name) {
+    getCalendarPref_: function(calendar, name) {
         // pref names must be lower case
         name = name.toLowerCase();
 
@@ -559,13 +559,7 @@ calCalendarManager.prototype = {
         return value;
     },
 
-    setCalendarPref: function(calendar, name, value) {
-        var oldvalue = this.getCalendarPref(calendar, name);
-        if (oldvalue == value) {
-            // Only modify the preference if it changed.
-            return;
-        }
-
+    setCalendarPref_: function(calendar, name, value) {
         // pref names must be lower case
         name = name.toLowerCase();
 
@@ -587,16 +581,11 @@ calCalendarManager.prototype = {
         this.mInsertPref.reset();
 
         this.mDB.commitTransaction();
-
-        this.notifyObservers("onCalendarPrefChanged",
-                             [calendar, name, value, oldvalue]);
     },
 
-    deleteCalendarPref: function(calendar, name) {
+    deleteCalendarPref_: function(calendar, name) {
         // pref names must be lower case
         name = name.toLowerCase();
-
-        this.notifyObservers("onCalendarPrefDeleting", [calendar, name]);
 
         var calendarID = calendar.id;
 
@@ -642,7 +631,9 @@ function errorAnnouncer(calendar) {
         onDeleteItem: function(aDeletedItem) {},
         onError: function(aErrNo, aMessage) {
             announcer.announceError(aErrNo, aMessage);
-        }
+        },
+        onPropertyChanged: function(aCalendar, aName, aValue, aOldValue) {},
+        onPropertyDeleting: function(aCalendar, aName) {}
     }
 }
 

@@ -85,6 +85,14 @@ calCompositeCalendarObserverHelper.prototype = {
 
     onError: function(aErrNo, aMessage) {
         this.compCalendar.mObservers.notify("onError", arguments);
+    },
+
+    onPropertyChanged: function(aCalendar, aName, aValue, aOldValue) {
+        this.compCalendar.mObservers.notify("onPropertyChanged", arguments);
+    },
+
+    onPropertyDeleting: function(aCalendar, aName) {
+        this.compCalendar.mObservers.notify("onPropertyDeleting", arguments);
     }
 };
 
@@ -160,9 +168,9 @@ calCompositeCalendar.prototype = {
         var cals = mgr.getCalendars({});
 
         cals.forEach(function (c) {
-            if (mgr.getCalendarPref(c, this.mActivePref))
+            if (c.getProperty(this.mActivePref))
                 this.addCalendar(c);
-            if (mgr.getCalendarPref(c, this.mDefaultPref))
+            if (c.getProperty(this.mDefaultPref))
                 this.setDefaultCalendar(c, false);
         }, this);
     },
@@ -185,8 +193,7 @@ calCompositeCalendar.prototype = {
 
         this.mCalendars.push(aCalendar);
         if (this.mPrefPrefix) {
-            getCalendarManager().setCalendarPref(aCalendar, this.mActivePref,
-                                         "true");
+            aCalendar.setProperty(this.mActivePref, true);
         }
         this.mCompositeObservers.notify("onCalendarAdded", [aCalendar]);
 
@@ -208,10 +215,8 @@ calCompositeCalendar.prototype = {
         if (calToRemove) {
             this.mCalendars = newCalendars;
             if (this.mPrefPrefix) {
-                getCalendarManager().deleteCalendarPref(calToRemove,
-                                                this.mActivePref);
-                getCalendarManager().deleteCalendarPref(calToRemove,
-                                                this.mDefaultPref);
+                calToRemove.deleteProperty(this.mActivePref);
+                calToRemove.deleteProperty(this.mDefaultPref);
             }   
             calToRemove.removeObserver(this.mObserverHelper);
             this.mCompositeObservers.notify("onCalendarRemoved", [calToRemove]);
@@ -243,13 +248,11 @@ calCompositeCalendar.prototype = {
             return;
         if (usePref && this.mPrefPrefix) {
             if (this.mDefaultCalendar) {
-                getCalendarManager().deleteCalendarPref(this.mDefaultCalendar,
-                                                this.mDefaultPref);
+                this.mDefaultCalendar.deleteProperty(this.mDefaultPref);
             }
             // if not null set the new calendar as default in the preferences
             if (cal)  {
-                getCalendarManager().setCalendarPref(cal, this.mDefaultPref,
-                                                     "true");
+                cal.setProperty(this.mDefaultPref, true);
             }
         }
         this.mDefaultCalendar = cal;
@@ -294,6 +297,27 @@ calCompositeCalendar.prototype = {
 
     get canRefresh() {
         return true;
+    },
+
+    get name() {
+        throw Components.results.NS_ERROR_NOT_IMPLEMENTED;
+    },
+    set name(v) {
+        throw Components.results.NS_ERROR_NOT_IMPLEMENTED;
+    },
+
+    get type() {
+        return "composite";
+    },
+
+    getProperty: function(aName) {
+        throw Components.results.NS_ERROR_NOT_IMPLEMENTED;
+    },
+    setProperty: function(aName, aValue) {
+        throw Components.results.NS_ERROR_NOT_IMPLEMENTED;
+    },
+    deleteProperty: function(aName) {
+        throw Components.results.NS_ERROR_NOT_IMPLEMENTED;
     },
 
     // void addObserver( in calIObserver observer );

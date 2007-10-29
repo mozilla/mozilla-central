@@ -99,7 +99,7 @@ function publishEntireCalendar(cal)
     publishObject.calendar = cal;
 
     // restore the remote ics path preference from the calendar passed in
-    var remotePath = getCalendarManager().getCalendarPref(cal, "remote-ics-path");
+    var remotePath = cal.getProperty("remote-ics-path");
     if (remotePath && remotePath.length && remotePath.length > 0) {
         publishObject.remotePath = remotePath;
     }
@@ -119,9 +119,8 @@ function publishEntireCalendar(cal)
 function publishEntireCalendarDialogResponse(CalendarPublishObject, aProgressDialog)
 {
     // store the selected remote ics path as a calendar preference
-    getCalendarManager().setCalendarPref(CalendarPublishObject.calendar, 
-                                         "remote-ics-path", 
-                                         CalendarPublishObject.remotePath);
+    CalendarPublishObject.calendar.setProperty("remote-ics-path", 
+                                           CalendarPublishObject.remotePath);
 
     var itemArray = [];
     var getListener = {

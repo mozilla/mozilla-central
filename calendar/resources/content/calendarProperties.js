@@ -49,10 +49,8 @@ function loadCalendarPropertiesDialog()
    
    gCalendar = args.calendar;
 
-   var calManager = getCalendarManager();
-
    document.getElementById("calendar-name").value = gCalendar.name;
-   var calColor = calManager.getCalendarPref(gCalendar, 'color');
+   var calColor = gCalendar.getProperty('color');
    if (calColor) {
        document.getElementById("calendar-color").color = calColor;
    }
@@ -73,10 +71,7 @@ function onOKCommand()
    if (!newUri.equals(gCalendar.uri))
        gCalendar.uri = newUri;
 
-   var calManager = getCalendarManager();
-
-   calManager.setCalendarPref(gCalendar, 'color',
-                              document.getElementById("calendar-color").color);
+   gCalendar.setProperty('color', document.getElementById("calendar-color").color);
    gCalendar.readOnly = document.getElementById("read-only").checked;
    
    // tell standard dialog stuff to close the dialog

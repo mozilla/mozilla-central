@@ -163,10 +163,11 @@ calDavCalendar.prototype = {
 
     // attribute AUTF8String name;
     get name() {
-        return getCalendarManager().getCalendarPref(this, "NAME");
+        return this.getProperty("name");
     },
     set name(name) {
-        getCalendarManager().setCalendarPref(this, "NAME", name);
+        this.setProperty("name", name);
+        return name;
     },
 
     // readonly attribute AUTF8String type;
@@ -190,6 +191,24 @@ calDavCalendar.prototype = {
 
     get canRefresh() {
         return true;
+    },
+
+    getProperty: function caldav_getProperty(aName) {
+// xxx future: return getPrefSafe("calendars." + this.id + "." + aName, null);
+        return getCalendarManager().getCalendarPref_(this, aName);
+    },
+    setProperty: function caldav_setProperty(aName, aValue) {
+        var oldValue = this.getProperty(aName);
+        if (oldValue != aValue) {
+// xxx future: setPrefSafe("calendars." + this.id + "." + aName, aValue);
+            getCalendarManager().setCalendarPref_(this, aName, aValue);
+            this.mObservers.notify("onPropertyChanged",
+                                   [this, aName, aValue, oldValue]);
+        }
+    },
+    deleteProperty: function caldav_deleteProperty(aName) {
+        this.mObservers.notify("onPropertyDeleting", [this, aName]);
+        getCalendarManager().deleteCalendarPref_(this, aName);
     },
 
     // mUriParams stores trailing ?parameters from the

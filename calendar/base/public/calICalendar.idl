@@ -96,6 +96,44 @@ interface calICalendar : nsISupports
    */
   readonly attribute boolean canRefresh;
 
+  /**
+   * Gets a calendar property.
+   * The call returns null in case the property is not known;
+   * callers should use a sensible default in that case.
+   *
+   * It's up to the provider where to store properties,
+   * e.g. on the server or in local prefs.
+   *
+   * @param aName property name
+   * @return value (string, integer and boolean values are supported),
+   *               else null
+   */
+  nsIVariant getProperty(in AUTF8String aName);
+
+  /**
+   * Sets a calendar property.
+   * This will (only) cause a notification onPropertyChanged() in case
+   * the value has changed.
+   *
+   * It's up to the provider where to store properties,
+   * e.g. on the server or in local prefs.
+   *
+   * @param aName property name
+   * @param aValue value
+   *               (string, integer and boolean values are supported)
+   */
+  void setProperty(in AUTF8String aName, in nsIVariant aValue);
+
+  /**
+   * Deletes a calendar property.
+   *
+   * It's up to the provider where to store properties,
+   * e.g. on the server or in local prefs.
+   *
+   * @param aName property name
+   */
+  void deleteProperty(in AUTF8String aName);
+
   /** 
    * In combination with the other parameters to getItems(), these
    * constants provide for a very basic filtering mechanisms for use
@@ -411,6 +449,16 @@ interface calIObserver : nsISupports
   void onModifyItem( in calIItemBase aNewItem, in calIItemBase aOldItem );
   void onDeleteItem( in calIItemBase aDeletedItem );
   void onError( in nsresult aErrNo, in AUTF8String aMessage );
+
+  /// Called after a property is changed.
+  void onPropertyChanged(in calICalendar aCalendar,
+                         in AUTF8String aName,
+                         in nsIVariant aValue,
+                         in nsIVariant aOldValue);
+
+  /// Called before the property is deleted.
+  void onPropertyDeleting(in calICalendar aCalendar,
+                          in AUTF8String aName);
 };
 
 /**

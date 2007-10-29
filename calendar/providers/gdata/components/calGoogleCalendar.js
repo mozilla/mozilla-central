@@ -51,16 +51,10 @@ function calGoogleCalendar() {
 
     function calAttrHelper(aAttr) {
         this.getAttr = function calAttrHelper_get() {
-            // Note that you need to declare this in here, to avoid cyclic
-            // getService calls.
-            var calMgr = Components.classes["@mozilla.org/calendar/manager;1"].
-                         getService(Components.interfaces.calICalendarManager);
-            return calMgr.getCalendarPref(calObject, aAttr);
+            return calObject.getProperty(aAttr);
         };
         this.setAttr = function calAttrHelper_set(aValue) {
-            var calMgr = Components.classes["@mozilla.org/calendar/manager;1"].
-                         getService(Components.interfaces.calICalendarManager);
-            calMgr.setCalendarPref(calObject, aAttr, aValue);
+            calObject.setProperty(aAttr, aValue);
             return aValue;
         };
     }
@@ -172,6 +166,25 @@ calGoogleCalendar.prototype = {
     /*
      * implement calICalendar
      */
+
+    getProperty: function cGC_getProperty(aName) {
+// xxx future: return getPrefSafe("calendars." + this.id + "." + aName, null);
+        return getCalendarManager().getCalendarPref_(this, aName);
+    },
+    setProperty: function cGC_setProperty(aName, aValue) {
+        var oldValue = this.getProperty(aName);
+        if (oldValue != aValue) {
+// xxx future: setPrefSafe("calendars." + this.id + "." + aName, aValue);
+            getCalendarManager().setCalendarPref_(this, aName, aValue);
+            this.mObservers.notify("onPropertyChanged",
+                                   [this, aName, aValue, oldValue]);
+        }
+    },
+    deleteProperty: function cGC_deleteProperty(aName) {
+        this.mObservers.notify("onPropertyDeleting", [this, aName]);
+        getCalendarManager().deleteCalendarPref_(this, aName);
+    },
+
     // attribute AUTF8String id;
     get id() {
         return this.mID;

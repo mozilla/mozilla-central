@@ -68,7 +68,7 @@
 
                 var colorCell = document.createElement("listcell");
                 try {
-                    var calColor = calendarManager.getCalendarPref(cal, 'color');
+                    var calColor = cal.getProperty('color');
                     colorCell.style.background = calColor || "#a8c2e1";
                 } catch(e) {} 
                 listItem.appendChild(colorCell);

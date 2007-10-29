@@ -226,6 +226,9 @@ var unifinderObserver = {
 
     onError: function uO_onError(aErrNo, aMessage) {},
 
+    onPropertyChanged: function uO_onPropertyChanged(aCalendar, aName, aValue, aOldValue) {},
+    onPropertyDeleting: function uO_onPropertyDeleting(aCalendar, aName) {},
+
     // calICompositeObserver:
     onCalendarAdded: function uO_onCalendarAdded(aDeletedItem) {
         if (!this.mInBatch) {

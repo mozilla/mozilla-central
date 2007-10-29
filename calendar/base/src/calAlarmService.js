@@ -104,7 +104,9 @@ function calAlarmService() {
         onDeleteItem: function(aDeletedItem) {
             this.alarmService.removeAlarm(aDeletedItem);
         },
-        onError: function(aErrNo, aMessage) { }
+        onError: function(aErrNo, aMessage) {},
+        onPropertyChanged: function(aCalendar, aName, aValue, aOldValue) {},
+        onPropertyDeleting: function(aCalendar, aName) {}
     };
 
 
@@ -122,9 +124,7 @@ function calAlarmService() {
             // dismissing those alarms may write data...
             this.alarmService.unobserveCalendar(aCalendar);
         },
-        onCalendarDeleting: function(aCalendar) {},
-        onCalendarPrefChanged: function(aCalendar, aName, aValue, aOldValue) {},
-        onCalendarPrefDeleting: function(aCalendar, aName) {}
+        onCalendarDeleting: function(aCalendar) {}
     };
 }
 

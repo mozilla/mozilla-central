@@ -254,9 +254,7 @@ function weekPrint_getDayTable(aDate, aItems) {
 
         // Get calendar and category colours and apply them to the item's
         // table cell.
-        var calMgr = Components.classes["@mozilla.org/calendar/manager;1"]
-                               .getService(Components.interfaces.calICalendarManager);
-        var calColor = calMgr.getCalendarPref(item.calendar, 'color');
+        var calColor = item.calendar.getProperty('color');
         if (!calColor) {
             calColor = "#A8C2E1";
         }

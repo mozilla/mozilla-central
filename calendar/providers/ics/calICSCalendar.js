@@ -128,10 +128,11 @@ calICSCalendar.prototype = {
     },
 
     get name() {
-        return getCalendarManager().getCalendarPref(this, "NAME");
+        return this.getProperty("name");
     },
     set name(name) {
-        getCalendarManager().setCalendarPref(this, "NAME", name);
+        this.setProperty("name", name);
+        return name;
     },
 
     get type() { return "ics"; },
@@ -143,6 +144,23 @@ calICSCalendar.prototype = {
     },
     set readOnly(bool) {
         this.mReadOnly = bool;
+    },
+
+    getProperty: function calICSCalendar_getProperty(aName) {
+// xxx future: return getPrefSafe("calendars." + this.id + "." + aName, null);
+        return getCalendarManager().getCalendarPref_(this, aName);
+    },
+    setProperty: function calICSCalendar_setProperty(aName, aValue) {
+        var oldValue = this.getProperty(aName);
+        if (oldValue != aValue) {
+// xxx future: setPrefSafe("calendars." + this.id + "." + aName, aValue);
+            getCalendarManager().setCalendarPref_(this, aName, aValue);
+            this.mObserver.onPropertyChanged(this, aName, aValue, oldValue);
+        }
+    },
+    deleteProperty: function calICSCalendar_deleteProperty(aName) {
+        this.mObserver.onPropertyDeleting(this, aName);
+        getCalendarManager().deleteCalendarPref_(this, aName);
     },
 
     get canRefresh() {
@@ -682,10 +700,10 @@ calICSCalendar.prototype = {
         }
 
         try {
-            var pseudoID = getCalendarManager().getCalendarPref(this, "UNIQUENUM");
+            var pseudoID = this.getProperty("uniquenum");
             if (!pseudoID) {
                 pseudoID = new Date().getTime();
-                getCalendarManager().setCalendarPref(this, "UNIQUENUM", pseudoID);
+                this.setProperty("uniquenum", pseudoID);
             }
         } catch(e) {
             // calendarmgr not found. Likely because we are running in
@@ -702,14 +720,12 @@ calICSCalendar.prototype = {
             doInitialBackup = true;
 
         var doDailyBackup = false;
-        var backupTime = new Number(getCalendarManager().
-                                       getCalendarPref(this, 'backup-time'));
+        var backupTime = new Number(this.getProperty('backup-time'));
         if (!backupTime ||
             (new Date().getTime() > backupTime + backupDays*24*60*60*1000)) {
             // It's time do to a daily backup
             doDailyBackup = true;
-            getCalendarManager().setCalendarPref(this, 'backup-time', 
-                                                 new Date().getTime());
+            this.setProperty('backup-time', new Date().getTime());
         }
 
         var dailyBackupFileName;
@@ -790,6 +806,12 @@ calICSObserver.prototype = {
     },
     onDeleteItem: function(aDeletedItem) {
         this.mObservers.notify("onDeleteItem", [aDeletedItem]);
+    },
+    onPropertyChanged: function(aCalendar, aName, aValue, aOldValue) {
+        this.mObservers.notify("onPropertyChanged", [aCalendar, aName, aValue, aOldValue]);
+    },
+    onPropertyDeleting: function(aCalendar, aName) {
+        this.mObservers.notify("onPropertyDeleting", [aCalendar, aName]);
     },
 
     // Unless an error number is in this array, we consider it very bad, set
