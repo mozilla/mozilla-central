@@ -736,7 +736,7 @@ function scrollToCurrentTime() {
 
 function setZoomFactor(aValue) {
     if (gZoomFactor == aValue) {
-        return val;
+        return aValue;
     }
 
     gZoomFactor = aValue;
@@ -786,7 +786,7 @@ function setForce24Hours(aValue) {
 
     var scrollbar = document.getElementById("horizontal-scrollbar");
     if (!scrollbar.hasAttribute("maxpos")) {
-        return;
+        return aValue;
     }
     var curpos = scrollbar.getAttribute("curpos");
     var maxpos = scrollbar.getAttribute("maxpos");
