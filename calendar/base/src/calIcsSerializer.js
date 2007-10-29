@@ -102,8 +102,7 @@ function is_getIcalComponent() {
     icsSvc = Components.classes["@mozilla.org/calendar/ics-service;1"]
                        .getService(Components.interfaces.calIICSService);
     var calComp = icsSvc.createIcalComponent("VCALENDAR");
-    calComp.version = "2.0";
-    calComp.prodid = "-//Mozilla.org/NONSGML Mozilla Calendar V1.1//EN";
+    calSetProdidVersion(calComp);
 
     for each (var prop in this.mProperties) {
         calComp.addProperty(prop);

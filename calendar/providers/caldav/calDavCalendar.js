@@ -605,8 +605,7 @@ calDavCalendar.prototype = {
         const icssvc = Components.classes["@mozilla.org/calendar/ics-service;1"].
                        getService(Components.interfaces.calIICSService);
         var modifiedItem = icssvc.createIcalComponent("VCALENDAR");
-        modifiedItem.prodid = "-//Mozilla Calendar//NONSGML Sunbird//EN";
-        modifiedItem.version = "2.0";
+        calSetProdidVersion(modifiedItem);
         modifiedItem.addSubcomponent(aNewItem.icalComponent);
         if (aNewItem.recurrenceInfo) {
             var exceptions = aNewItem.recurrenceInfo.getExceptionIds({});

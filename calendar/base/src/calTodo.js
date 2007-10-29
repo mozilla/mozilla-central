@@ -182,8 +182,7 @@ calTodo.prototype = {
           classes["@mozilla.org/calendar/ics-service;1"].
           getService(Components.interfaces.calIICSService);
         var calcomp = icssvc.createIcalComponent("VCALENDAR");
-        calcomp.prodid = "-//Mozilla Calendar//NONSGML Sunbird//EN";
-        calcomp.version = "2.0";
+        calSetProdidVersion(calcomp);
         calcomp.addSubcomponent(this.icalComponent);
         return calcomp.serializeToICS();
     },

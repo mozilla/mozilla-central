@@ -122,8 +122,7 @@ function copyToClipboard( calendarItemArray )
     var icssrv = Components.classes["@mozilla.org/calendar/ics-service;1"]
                        .getService(Components.interfaces.calIICSService);
     var calComp = icssrv.createIcalComponent("VCALENDAR");
-    calComp.version = "2.0";
-    calComp.prodid = "-//Mozilla.org/NONSGML Mozilla Calendar V1.1//EN";
+    calSetProdidVersion(calComp);
 
     for each (item in calendarItemArray) {
         // If we copy an item and paste it again, it will have the same ID as
