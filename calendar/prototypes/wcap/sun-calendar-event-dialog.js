@@ -231,24 +231,25 @@ function onCommandCancel() {
                                    isEvent(window.calendarItem) ?
                                       "askSaveTitleEvent" :
                                       "askSaveTitleTask");
-    var promptMessage = calGetString("calendar", "askSaveMessage");
-    var buttonLabel1 = calGetString("calendar", "askSaveLabel1");
-    var buttonLabel2 = calGetString("calendar", "askSaveLabel2");
+    var promptMessage = calGetString("calendar",
+                                     isEvent(window.calendarItem) ?
+                                        "askSaveMessageEvent" :
+                                        "askSaveMessageTask");
 
-    var flags = promptService.BUTTON_TITLE_IS_STRING *
+    var flags = promptService.BUTTON_TITLE_SAVE *
                 promptService.BUTTON_POS_0 +
                 promptService.BUTTON_TITLE_CANCEL *
                 promptService.BUTTON_POS_1 +
-                promptService.BUTTON_TITLE_IS_STRING *
+                promptService.BUTTON_TITLE_DONT_SAVE *
                 promptService.BUTTON_POS_2;
 
     var choice = promptService.confirmEx(null,
                                          promptTitle,
                                          promptMessage,
                                          flags,
-                                         buttonLabel1,
                                          null,
-                                         buttonLabel2,
+                                         null,
+                                         null,
                                          null,
                                          {});
     switch (choice) {
