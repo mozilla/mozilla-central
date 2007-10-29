@@ -48,6 +48,13 @@ SHARED_LIBRARY_DIRS = \
     ../org/mozilla/jss/util \
     ../org/mozilla/jss/provider/java/security \
     $(NULL)
+    
+NSPR_LIB_NAMES = plc4 plds4 nspr4
+
+NSS_LIB_NAMES = smime3 ssl3 nss3
+ifdef USE_UTIL_DIRECTLY
+NSS_LIB_NAMES += nssutil3
+endif
 
 ifeq ($(OS_ARCH),WINNT)
 
@@ -59,13 +66,8 @@ RES = $(OBJDIR)/jss.res
 RESNAME = jss.rc
 
 EXTRA_SHARED_LIBS += \
-    $(NSS_LIB_DIR)/nss3.lib \
-    $(NSS_LIB_DIR)/nssutil3.lib \
-    $(NSS_LIB_DIR)/smime3.lib \
-    $(NSS_LIB_DIR)/ssl3.lib \
-    $(NSPR_LIB_DIR)/$(NSPR31_LIB_PREFIX)plc4.lib \
-    $(NSPR_LIB_DIR)/$(NSPR31_LIB_PREFIX)plds4.lib \
-    $(NSPR_LIB_DIR)/$(NSPR31_LIB_PREFIX)nspr4.lib \
+    $(addprefix $(NSS_LIB_DIR)/, $(addsuffix .$(LIB_SUFFIX), $(NSS_LIB_NAMES))) \
+    $(addprefix $(NSPR_LIB_DIR)/$(NSPR31_LIB_PREFIX), $(addsuffix .$(LIB_SUFFIX), $(NSPR_LIB_NAMES))) \
     $(JAVA_LIBS) \
     $(DLLSYSTEM) \
     $(NULL)
@@ -81,14 +83,9 @@ endif
 
 EXTRA_SHARED_LIBS += \
     -L$(NSS_LIB_DIR) \
-    -lnss3 \
-    -lnssutil3 \
-    -lsmime3 \
-    -lssl3 \
+    $(addprefix -l, $(NSS_LIB_NAMES)) \
     -L$(NSPR_LIB_DIR) \
-    -lplc4 \
-    -lplds4 \
-    -lnspr4 \
+    $(addprefix -l, $(NSPR_LIB_NAMES)) \
     $(JAVA_LIBS) \
     $(NULL)
 

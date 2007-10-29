@@ -194,4 +194,5 @@ endif
 # implementations directly from libnssutil3, rather than the wrappers
 # in libnss3 which are present for binary compatibility only
 DEFINES += -DUSE_UTIL_DIRECTLY
+USE_UTIL_DIRECTLY = 1
 
