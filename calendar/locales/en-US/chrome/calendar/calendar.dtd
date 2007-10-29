@@ -131,10 +131,10 @@
 <!ENTITY calendar.paste.button.label            "Paste" >
 <!ENTITY calendar.print.button.label            "Print" >
 
-<!ENTITY calendar.import.button.tooltip            "Import: Import events from a local file." >
-<!ENTITY calendar.export.button.tooltip            "Export: Export events to a local file." >
-<!ENTITY calendar.subscribe.button.tooltip         "Subscribe: Subscribe to a calendar file on a remote machine." >
-<!ENTITY calendar.publish.button.tooltip            "Publish: Publish events to a remote machine." >
+<!ENTITY calendar.import.button.tooltip            "Import events from a local file" >
+<!ENTITY calendar.export.button.tooltip            "Export events to a local file" >
+<!ENTITY calendar.subscribe.button.tooltip         "Subscribe to a calendar file on a remote machine" >
+<!ENTITY calendar.publish.button.tooltip           "Publish events to a remote machine" >
 
 <!ENTITY calendar.import.calendar                "Import…" >
 <!ENTITY calendar.export.calendar                "Export Calendar…" >
