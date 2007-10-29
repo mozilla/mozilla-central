@@ -1,5 +1,8 @@
 chrome/debugqa.jar
 chrome/debugqa.manifest
+chrome/icons/default/chatzilla-window.xpm
+chrome/icons/default/chatzilla-window16.xpm
+chrome/icons/default/chatzilla-window.ico
 chrome/venkman.jar
 extensions/talkback@mozilla.org/install.rdf
 extensions/talkback@mozilla.org/chrome.manifest

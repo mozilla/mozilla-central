@@ -479,11 +479,11 @@ bin/isp/SpamPal.sfd
 [chatzilla]
 bin/extensions/{59c81df5-4b7a-477b-912d-4e0fdf64e5f2}/components/chatzilla-service.js
 bin/extensions/{59c81df5-4b7a-477b-912d-4e0fdf64e5f2}/chrome/chatzilla.jar
+bin/extensions/{59c81df5-4b7a-477b-912d-4e0fdf64e5f2}/chrome/icons/default/chatzilla-window.xpm
+bin/extensions/{59c81df5-4b7a-477b-912d-4e0fdf64e5f2}/chrome/icons/default/chatzilla-window16.xpm
 bin/extensions/{59c81df5-4b7a-477b-912d-4e0fdf64e5f2}/chrome.manifest
 bin/extensions/{59c81df5-4b7a-477b-912d-4e0fdf64e5f2}/install.rdf
 bin/chrome/chatzilla.jar
-bin/chrome/icons/default/chatzilla-window.xpm
-bin/chrome/icons/default/chatzilla-window16.xpm
 
 [venkman]
 bin/extensions/{f13b157f-b174-47e7-a34d-4815ddfdfeb8}/components/venkman-service.js
