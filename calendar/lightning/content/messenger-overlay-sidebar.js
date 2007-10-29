@@ -472,12 +472,6 @@ function ltnShowCalendarView(type)
     // hide all of the mail stuff so we have room to display the calendar
     var calendarViewBox = document.getElementById("calendar-view-box");
     if (calendarViewBox.style.visibility == "collapse") {
-        collapseElement(GetMessagePane());
-        collapseElement(document.getElementById("threadpane-splitter"));
-        var searchBox = findMailSearchBox();
-        if (searchBox) {
-            collapseElement(searchBox);
-        }
         uncollapseElement(calendarViewBox);
     }
     document.getElementById("displayDeck").selectedPanel =  calendarViewBox;
