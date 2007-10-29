@@ -54,13 +54,17 @@ endif
 XPI_PKGNAME	= lightning
 STRIP_XPI = 1
 
-DIRS		= ../../db/sqlite3/src ../../storage \
-		  ../../extensions/webdav            \
+DIRS		= ../../extensions/webdav            \
                   ../libical ../base ../providers    \
                   ../import-export                   \
                   components                         \
                   ../itip                            \
 		  $(NULL)
+
+ifdef MOZILLA_1_8_BRANCH
+# package storage for Thunderbird 1.5
+DIRS += ../../db/sqlite3/src ../../storage
+endif
 
 # Select a theme from which to pull our skin goodness
 # OS X: pinstripe
