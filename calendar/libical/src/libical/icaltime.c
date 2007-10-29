@@ -396,7 +396,7 @@ struct icaltimetype icaltime_from_string(const char* str)
 	tt.zone = icaltimezone_get_utc_timezone();
 	tt.is_date = 0;
     } else if (size == 8) { /* A DATE */
-	tt.is_utc = 1;
+	tt.is_utc = 0;
 	tt.is_date = 1;
     } else { /* error */
 	goto FAIL;

@@ -46,7 +46,8 @@ function run_test() {
                "RRULE:FREQ=WEEKLY;INTERVAL=1;COUNT=6;BYDAY=TH\n" +
                "DTSTART:20020402T114500\n" +
                "DTEND:20020402T124500\n",
-               ["20020404T114500", "20020411T114500", "20020418T114500",
+               ["20020402T114500", // DTSTART part of the resulting set
+                "20020404T114500", "20020411T114500", "20020418T114500",
                 "20020425T114500", "20020502T114500", "20020509T114500"]);
 
     // bug 353797: occurrences for repeating all day events should stay "all-day"

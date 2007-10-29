@@ -77,4 +77,10 @@ function run_test() {
 
     cd.day += 1;
     do_check_eq(cd.timezoneOffset, 2*3600);
+
+    // Bug 398724 – Problems with floating all-day items
+    var event = Cc["@mozilla.org/calendar/event;1"].createInstance(Ci.calIEvent);
+    event.icalString = "BEGIN:VEVENT\nUID:45674d53-229f-48c6-9f3b-f2b601e7ae4d\nSUMMARY:New Event\nDTSTART;VALUE=DATE:20071003\nDTEND;VALUE=DATE:20071004\nEND:VEVENT";
+    do_check_eq(event.startDate.timezone, "floating");
+    do_check_eq(event.endDate.timezone, "floating");
 }

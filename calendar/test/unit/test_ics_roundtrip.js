@@ -137,6 +137,7 @@ function run_test() {
     event = eventClass.createInstance(eventIID);
     event.icalString = "BEGIN:VEVENT\n" +
                        "UID:1\n" +
+                       "DTSTART:20070521T100000Z\n" +
                        "X-MAGIC:mymagicstring\n" +
                        "END:VEVENT";
     expectedProps = {
