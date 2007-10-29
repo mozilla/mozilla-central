@@ -1,4 +1,3 @@
-/* -*- Mode: C++; tab-width: 4; indent-tabs-mode: nil; c-basic-offset: 4 -*- */
 /* ***** BEGIN LICENSE BLOCK *****
  * Version: MPL 1.1/GPL 2.0/LGPL 2.1
  *
@@ -12,14 +11,15 @@
  * for the specific language governing rights and limitations under the
  * License.
  *
- * The Original Code is mozilla calendar code.
+ * The Original Code is Sun Microsystems code.
  *
  * The Initial Developer of the Original Code is
- *   Michiel van Leeuwen <mvl@exedo.nl>
- * Portions created by the Initial Developer are Copyright (C) 2006
+ * Sun Microsystems, Inc.
+ * Portions created by the Initial Developer are Copyright (C) 2007
  * the Initial Developer. All Rights Reserved.
  *
  * Contributor(s):
+ *   Daniel Boelzle <daniel.boelzle@sun.com>
  *
  * Alternatively, the contents of this file may be used under the terms of
  * either the GNU General Public License Version 2 or later (the "GPL"), or
@@ -34,44 +34,28 @@
  * the terms of any one of the MPL, the GPL or the LGPL.
  *
  * ***** END LICENSE BLOCK ***** */
+#if !defined(INCLUDED_CAL_UTILS_H)
+#define INCLUDED_CAL_UTILS_H
 
-#ifndef CALPERIOD_H_
-#define CALPERIOD_H_
+#if defined(MOZILLA_INTERNAL_API)
+#include "nsCRT.h"
+#include "nsString.h"
+#else
+#include "nsMemory.h"
+#include "nsCRTGlue.h"
+#include "nsStringAPI.h"
+#define nsPromiseFlatCString PromiseFlatCString
+#endif
 
-#include "nsCOMPtr.h"
+#include "nsAutoPtr.h"
+#include "nsVoidArray.h"
+#include "nsIStringEnumerator.h"
 
-#include "calIPeriod.h"
-#include "calDateTime.h"
-#include "calIDuration.h"
+namespace cal {
 
-extern "C" {
-    #include "ical.h"
+nsresult createUTF8StringEnumerator(nsAutoPtr<nsCStringArray> & takeOverArray,
+                                    nsIUTF8StringEnumerator ** ppRet);
+
 }
 
-class calPeriod : public calIPeriod
-{
-public:
-    calPeriod ();
-    explicit calPeriod (const calPeriod& cpt);
-    explicit calPeriod (struct icalperiodtype const* aPeriodPtr);
-
-    // nsISupports interface
-    NS_DECL_ISUPPORTS
-
-    // calIPeriod interface
-    NS_DECL_CALIPERIOD
-
-protected:
-    calPeriod const& operator=(calPeriod const&);
-
-    PRBool mImmutable;
-
-    //struct icaldurationtype mPeriod;
-    nsCOMPtr<calIDateTime> mStart;
-    nsCOMPtr<calIDateTime> mEnd;
-    
-    void FromIcalPeriod(struct icalperiodtype const* icalp);
-};
-
-#endif /* CALPERIOD_H_ */
-
+#endif // !defined(INCLUDED_CAL_UTILS_H)

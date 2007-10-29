@@ -39,8 +39,6 @@
 #ifndef CALRECURRENCERULE_H_
 #define CALRECURRENCERULE_H_
 
-#include "nsCOMPtr.h"
-
 #include "calIRecurrenceRule.h"
 
 struct icalrecurrencetype;

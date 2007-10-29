@@ -36,8 +36,6 @@
  *
  * ***** END LICENSE BLOCK ***** */
 
-#include "nsPrintfCString.h"
-
 #include "calDuration.h"
 #include "calBaseCID.h"
 
@@ -47,6 +45,8 @@
 #ifndef MOZILLA_1_8_BRANCH
 #include "nsIClassInfoImpl.h"
 #endif
+
+#include "calUtils.h"
 
 #define SECONDS_PER_WEEK   604800
 #define SECONDS_PER_DAY     86400

@@ -42,6 +42,8 @@
 #include "nsIClassInfoImpl.h"
 #endif
 
+#include "calUtils.h"
+
 NS_IMPL_ISUPPORTS1_CI(calPeriod, calIPeriod)
 
 calPeriod::calPeriod()

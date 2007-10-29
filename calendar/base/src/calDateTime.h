@@ -39,12 +39,10 @@
 #ifndef CALDATETIME_H_
 #define CALDATETIME_H_
 
-#include "nsString.h"
-
 #include "jsapi.h"
 #include "nsIXPCScriptable.h"
-
 #include "calIDateTime.h"
+#include "calUtils.h"
 
 struct icaltimetype;
 typedef struct _icaltimezone icaltimezone;
@@ -56,7 +54,7 @@ public:
     /* Used by AssignLiteral when we set the tzid to "utc" or "floating". */
     void Assign(char const* c);
     /* Used by mTimezone.Assign as our hook to check the tzid's "freshness". */
-    void Assign(const nsACString_internal& aStr);
+    void Assign(nsACString const& aStr);
 };
 
 class calDateTime : public calIDateTime,

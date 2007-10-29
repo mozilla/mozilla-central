@@ -38,8 +38,6 @@
 #ifndef CALDURATION_H_
 #define CALDURATION_H_
 
-#include "nsString.h"
-
 #include "calIDuration.h"
 
 extern "C" {

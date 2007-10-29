@@ -40,13 +40,9 @@
 #include "calICSService.h"
 #include "calDateTime.h"
 #include "calDuration.h"
-#include "nsString.h"
-#include "nsCOMPtr.h"
 #include "nsInterfaceHashtable.h"
 #include "nsComponentManagerUtils.h"
 #include "nsServiceManagerUtils.h"
-#include "nsStringEnumerator.h"
-#include "nsCRT.h"
 #include "nsStringStream.h"
 
 #ifndef MOZILLA_1_8_BRANCH
@@ -56,6 +52,8 @@
 #include "calIEvent.h"
 #include "calBaseCID.h"
 #include "calIErrors.h"
+
+#include "calUtils.h"
 
 static NS_DEFINE_CID(kCalICSService, CAL_ICSSERVICE_CID);
 
@@ -1046,11 +1044,16 @@ calIcalComponent::SerializeToICSStream(nsIInputStream **aStreamResult)
         return rv;
     }
 
-    // NS_NewCStringInputStream copies the dependent string into the
-    // input stream that's handed back.  This copy is necessary because 
-    // we don't really own icalstr; it's one of libical's ring buffers
-    return NS_NewCStringInputStream(aStreamResult, 
-                                    nsDependentCString(icalstr));
+    nsCOMPtr<nsIStringInputStream> const aStringStream(
+        do_CreateInstance(NS_STRINGINPUTSTREAM_CONTRACTID, &rv));
+    NS_ENSURE_SUCCESS(rv, rv);
+    // copies the string into the input stream that's handed back.
+    // This copy is necessary because we don't really own icalstr;
+    // it's one of libical's ring buffers
+    rv = aStringStream->SetData(icalstr, -1);
+    NS_ENSURE_SUCCESS(rv, rv);
+    NS_ADDREF(*aStreamResult = aStringStream);
+    return rv;
 }
 
 nsresult
@@ -1433,7 +1436,8 @@ calICSService::GetTimezoneIds(nsIUTF8StringEnumerator **aTzids)
     NS_ENSURE_ARG_POINTER(aTzids);
     PRUint32 const arlen =
         sizeof(ical_timezone_data) / sizeof(ical_timezone_data[0]);
-    nsCStringArray * pArray = new nsCStringArray(mTzHash.Count() + arlen);
+    nsAutoPtr<nsCStringArray> pArray(
+        new nsCStringArray(mTzHash.Count() + arlen));
     if (pArray == nsnull)
         return NS_ERROR_OUT_OF_MEMORY;
     // add added ones:
@@ -1443,7 +1447,7 @@ calICSService::GetTimezoneIds(nsIUTF8StringEnumerator **aTzids)
         pArray->AppendCString(nsDependentCString(ical_timezone_data[i].tzid));
     }
     pArray->Sort();
-    return NS_NewAdoptingUTF8StringEnumerator(aTzids, pArray);
+    return cal::createUTF8StringEnumerator(pArray, aTzids);
 }
 
 NS_IMETHODIMP
@@ -1545,8 +1549,9 @@ calICSService::LatestTzId(const nsACString& tzid, nsACString& _retval) {
         // TODO: This assumes that new zones will always be later. If we are
         // ever going to support mixing our TZID headers, then this needs to
         // be a date comparison.
-        _retval = tzIdPrefix + Substring(tzid, prefixEnd + 1,
-                                         tzid.Length() - (prefixEnd + 1));
+        _retval = tzIdPrefix;
+        _retval += Substring(tzid, prefixEnd + 1,
+                             tzid.Length() - (prefixEnd + 1));
     }
     return NS_OK;
 }
