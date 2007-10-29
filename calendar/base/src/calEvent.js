@@ -84,7 +84,7 @@ var calEventClassInfo = {
 };
 
 calEvent.prototype = {
-    __proto__: calItemBase ? (new calItemBase()) : {},
+    __proto__: calItemBase.prototype,
 
     QueryInterface: function (aIID) {
         if (aIID.equals(Components.interfaces.calIEvent) ||

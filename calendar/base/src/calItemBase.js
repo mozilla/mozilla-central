@@ -50,7 +50,7 @@ const kIWritablePropertyBag = Components.interfaces.nsIWritablePropertyBag;
 const HashPropertyBag = new Components.Constructor(kHashPropertyBagContractID, kIWritablePropertyBag);
 
 function calItemBase() {
-    this.mPropertyParams = {};
+    ASSERT(false, "Inheriting objects call initItemBase!");
 }
 
 calItemBase.prototype = {
@@ -199,6 +199,7 @@ calItemBase.prototype = {
         var now = jsDateToDateTime(new Date());
 
         this.mProperties = new HashPropertyBag();
+        this.mPropertyParams = {};
 
         this.setProperty("CREATED", now.clone());
         this.setProperty("LAST-MODIFIED", now.clone());
