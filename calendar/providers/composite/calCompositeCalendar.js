@@ -539,7 +539,14 @@ calCompositeGetListenerHelper.prototype = {
 
 };
 
-
+// nsIFactory
+const calCompositeCalendarFactory = {
+    createInstance: function (outer, iid) {
+        if (outer != null)
+            throw Components.results.NS_ERROR_NO_AGGREGATION;
+        return (new calCompositeCalendar()).QueryInterface(iid);
+    }
+};
 
 /****
  **** module registration
@@ -602,15 +609,7 @@ var calCompositeCalendarModule = {
 
         this.loadUtils();
 
-        return this.mFactory;
-    },
-
-    mFactory: {
-        createInstance: function (outer, iid) {
-            if (outer != null)
-                throw Components.results.NS_ERROR_NO_AGGREGATION;
-            return (new calCompositeCalendar()).QueryInterface(iid);
-        }
+        return calCompositeCalendarFactory;
     },
 
     canUnload: function(compMgr) {

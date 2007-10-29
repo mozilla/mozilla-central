@@ -993,6 +993,15 @@ WebDavResource.prototype = {
     }
 };
 
+// nsIFactory
+const calICSCalendarFactory = {
+    createInstance: function (outer, iid) {
+        if (outer != null)
+            throw Components.results.NS_ERROR_NO_AGGREGATION;
+        return (new calICSCalendar()).QueryInterface(iid);
+    }
+};
+
 /****
  **** module registration
  ****/
@@ -1055,15 +1064,7 @@ var calICSCalendarModule = {
 
         this.loadUtils();
 
-        return this.mFactory;
-    },
-
-    mFactory: {
-        createInstance: function (outer, iid) {
-            if (outer != null)
-                throw Components.results.NS_ERROR_NO_AGGREGATION;
-            return (new calICSCalendar()).QueryInterface(iid);
-        }
+        return calICSCalendarFactory;
     },
 
     canUnload: function(compMgr) {

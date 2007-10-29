@@ -2127,6 +2127,14 @@ calStorageCalendar.prototype = {
     }
 }
 
+// nsIFactory
+const calStorageCalendarFactory = {
+    createInstance: function (outer, iid) {
+        if (outer != null)
+            throw Components.results.NS_ERROR_NO_AGGREGATION;
+        return (new calStorageCalendar()).QueryInterface(iid);
+    }
+};
 
 /****
  **** module registration
@@ -2196,15 +2204,7 @@ var calStorageCalendarModule = {
             initCalStorageCalendarComponent();
         }
 
-        return this.mFactory;
-    },
-
-    mFactory: {
-        createInstance: function (outer, iid) {
-            if (outer != null)
-                throw Components.results.NS_ERROR_NO_AGGREGATION;
-            return (new calStorageCalendar()).QueryInterface(iid);
-        }
+        return calStorageCalendarFactory;
     },
 
     canUnload: function(compMgr) {

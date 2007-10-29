@@ -1504,6 +1504,15 @@ WebDavListener.prototype = {
     }
 }
 
+// nsIFactory
+const calDavCalendarFactory = {
+    createInstance: function (outer, iid) {
+        if (outer != null)
+            throw Components.results.NS_ERROR_NO_AGGREGATION;
+        return (new calDavCalendar()).QueryInterface(iid);
+    }
+};
+
 /****
  **** module registration
  ****/
@@ -1565,15 +1574,7 @@ var calDavCalendarModule = {
 
         this.loadUtils();
 
-        return this.mFactory;
-    },
-
-    mFactory: {
-        createInstance: function (outer, iid) {
-            if (outer != null)
-                throw Components.results.NS_ERROR_NO_AGGREGATION;
-            return (new calDavCalendar()).QueryInterface(iid);
-        }
+        return calDavCalendarFactory;
     },
 
     canUnload: function(compMgr) {

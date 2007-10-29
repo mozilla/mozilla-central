@@ -544,6 +544,15 @@ calMemoryCalendar.prototype = {
     }
 }
 
+// nsIFactory
+const calMemoryCalendarFactory = {
+    createInstance: function (outer, iid) {
+        if (outer != null)
+            throw Components.results.NS_ERROR_NO_AGGREGATION;
+        return (new calMemoryCalendar()).QueryInterface(iid);
+    }
+};
+
 /****
  **** module registration
  ****/
@@ -606,15 +615,7 @@ var calMemoryCalendarModule = {
 
         this.loadUtils();
 
-        return this.mFactory;
-    },
-
-    mFactory: {
-        createInstance: function (outer, iid) {
-            if (outer != null)
-                throw Components.results.NS_ERROR_NO_AGGREGATION;
-            return (new calMemoryCalendar()).QueryInterface(iid);
-        }
+        return calMemoryCalendarFactory;
     },
 
     canUnload: function(compMgr) {
