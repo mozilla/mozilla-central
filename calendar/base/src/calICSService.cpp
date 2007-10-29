@@ -1007,6 +1007,7 @@ calIcalComponent::ClearAllProperties(icalproperty_kind kind)
          prop = next) {
         next = icalcomponent_get_next_property(mComponent, kind);
         icalcomponent_remove_property(mComponent, prop);
+        icalproperty_free(prop);
     }
 }
 
