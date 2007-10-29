@@ -40,14 +40,10 @@
  *
  * ***** END LICENSE BLOCK ***** */
 
-#include "nsPrintfCString.h"
-
 #include "calDateTime.h"
 #include "calBaseCID.h"
 
-#include "nsComponentManagerUtils.h"
 #include "nsServiceManagerUtils.h"
-
 #ifndef MOZILLA_1_8_BRANCH
 #include "nsIClassInfoImpl.h"
 #endif
@@ -57,6 +53,7 @@
 #include "calDuration.h"
 
 #include "jsdate.h"
+#include "prprf.h"
 
 extern "C" {
     #include "ical.h"
@@ -308,11 +305,12 @@ calDateTime::SubtractDate(calIDateTime *aDate, calIDuration **aDuration)
 NS_IMETHODIMP
 calDateTime::ToString(nsACString& aResult)
 {
-    aResult.Assign(nsPrintfCString(100,
-                                   "%04d/%02d/%02d %02d:%02d:%02d %s",
-                                   mYear, mMonth + 1, mDay,
-                                   mHour, mMinute, mSecond,
-                                   mTimezone.get()));
+    char buffer[256];
+    PRUint32 const length = PR_snprintf(
+        buffer, sizeof(buffer), "%04d/%02d/%02d %02d:%02d:%02d %s",
+        mYear, mMonth + 1, mDay, mHour, mMinute, mSecond, mTimezone.get());
+    if (length != static_cast<PRUint32>(-1))
+        aResult.Assign(buffer, length);
     return NS_OK;
 }
 
@@ -995,10 +993,17 @@ calDateTime::HasInstance(nsIXPConnectWrappedNative *wrapper, JSContext * cx,
     return NS_ERROR_NOT_IMPLEMENTED;
 }
 
+#if defined MOZILLA_1_8_BRANCH
+/* PRUint32 mark (in nsIXPConnectWrappedNative wrapper, in JSContextPtr cx, in JSObjectPtr obj, in voidPtr arg); */
+NS_IMETHODIMP
+calDateTime::Mark(nsIXPConnectWrappedNative *wrapper, JSContext * cx,
+                  JSObject * obj, void * arg, PRUint32 *_retval)
+#else
 /* void trace (in nsIXPConnectWrappedNative wrapper, in JSTracePtr trc, in JSObjectPtr obj); */
 NS_IMETHODIMP
 calDateTime::Trace(nsIXPConnectWrappedNative *wrapper, JSTracer *trc,
                    JSObject *obj)
+#endif
 {
     return NS_ERROR_NOT_IMPLEMENTED;
 }
@@ -1036,7 +1041,7 @@ void calTzId::Assign(char const* c)
     this->Assign(nsDependentCString(c));
 }
 
-void calTzId::Assign(const nsACString_internal& aStr)
+void calTzId::Assign(nsACString const& aStr)
 {
     nsCString _retVal;
     nsCOMPtr<calIICSService> const icsSvc(do_GetService(kCalICSService));
