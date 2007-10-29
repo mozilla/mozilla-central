@@ -83,8 +83,9 @@ calAttendee.prototype = {
     get isMutable() { return !this.mImmutable; },
 
     modify: function() {
-        if (this.mImmutable)
-            throw Components.results.NS_ERROR_FAILURE;
+        if (this.mImmutable) {
+            throw Components.results.NS_ERROR_OBJECT_IS_IMMUTABLE;
+        }
     },
 
     makeImmutable : function() {
@@ -124,8 +125,13 @@ calAttendee.prototype = {
     get isOrganizer() { return this.mIsOrganizer; },
     set isOrganizer(bool) { this.mIsOrganizer = bool; },
 
-    get rsvp() { return this.mRsvp == "TRUE"; },
-    set rsvp(aValue) { this.mRsvp = (aValue ? "TRUE" : "FALSE"); },
+    get rsvp() {
+        return this.mRsvp == "TRUE";
+    },
+    set rsvp(aValue) {
+        this.modify();
+        this.mRsvp = (aValue ? "TRUE" : "FALSE");
+    },
 
     // icalatt is a calIcalProperty of type attendee
     set icalProperty (icalatt) {
@@ -203,6 +209,7 @@ calAttendee.prototype = {
         return this.mId;
     },
     set id(aId) {
+        this.modify();
         return this.mId = aId.replace(/^mailto:/i, "MAILTO:");
     }
 };
