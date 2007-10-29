@@ -128,7 +128,7 @@
 
   <!-- Custom reminder action -->
   <groupbox>
-    <caption label="&reminder.due.label;"/>
+    <caption label="&reminder.action.label;"/>
     <checkbox label="&reminder.action.alert.label;" checked="true" disabled="true"/>
     <checkbox label="&reminder.action.sound.label;" disabled="true"/>
     <checkbox label="&reminder.action.email.label;" disabled="true"/>
