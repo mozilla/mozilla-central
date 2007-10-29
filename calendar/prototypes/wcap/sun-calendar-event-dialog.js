@@ -290,14 +290,14 @@ function loadDialog(item) {
     var calendars = getCalendarManager().getCalendars({});
     var calendarToUse = item.calendar || window.arguments[0].calendar
     var selectIndex = 0;
-    for (var i in calendars) {
+    for (var i = 0; i < calendars.length; ++i) {
         var calendar = calendars[i];
         if (calendar == item.calendar ||
             calendar == window.arguments[0].calendar) {
             var menuitem = calendarList.appendItem(calendar.name, i);
             menuitem.calendar = calendar;
             if (calendarToUse) {
-                if (calendarToUse.uri.equals(calendar.uri)) {
+                if (calendarToUse.id == calendar.id) {
                     calendarList.selectedIndex = selectIndex;
                 }
             }
@@ -306,7 +306,7 @@ function loadDialog(item) {
             var menuitem = calendarList.appendItem(calendar.name, i);
             menuitem.calendar = calendar;
             if (calendarToUse) {
-                if (calendarToUse.uri.equals(calendar.uri)) {
+                if (calendarToUse.id == calendar.id) {
                     calendarList.selectedIndex = selectIndex;
                 }
             }
