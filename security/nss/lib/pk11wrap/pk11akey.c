@@ -59,6 +59,32 @@
 #include "secpkcs5.h"  
 #include "ec.h"
 
+static SECItem *
+pk11_MakeIDFromPublicKey(SECKEYPublicKey *pubKey)
+{
+    /* set the ID to the public key so we can find it again */
+    SECItem *pubKeyIndex =  NULL;
+    switch (pubKey->keyType) {
+    case rsaKey:
+      pubKeyIndex = &pubKey->u.rsa.modulus;
+      break;
+    case dsaKey:
+      pubKeyIndex = &pubKey->u.dsa.publicValue;
+      break;
+    case dhKey:
+      pubKeyIndex = &pubKey->u.dh.publicValue;
+      break;      
+    case ecKey:
+      pubKeyIndex = &pubKey->u.ec.publicValue;
+      break;      
+    default:
+      return NULL;
+    }
+    PORT_Assert(pubKeyIndex != NULL);
+
+    return PK11_MakeIDFromPubKey(pubKeyIndex);
+} 
+
 /*
  * import a public key into the desired slot
  */
@@ -71,9 +97,10 @@ PK11_ImportPublicKey(PK11SlotInfo *slot, SECKEYPublicKey *pubKey,
     CK_OBJECT_CLASS keyClass = CKO_PUBLIC_KEY;
     CK_KEY_TYPE keyType = CKK_GENERIC_SECRET;
     CK_OBJECT_HANDLE objectID;
-    CK_ATTRIBUTE theTemplate[10];
+    CK_ATTRIBUTE theTemplate[11];
     CK_ATTRIBUTE *signedattr = NULL;
     CK_ATTRIBUTE *attrs = theTemplate;
+    SECItem *ckaId = NULL;
     int signedcount = 0;
     int templateCount = 0;
     SECStatus rv;
@@ -97,6 +124,14 @@ PK11_ImportPublicKey(PK11SlotInfo *slot, SECKEYPublicKey *pubKey,
     PK11_SETATTRS(attrs, CKA_KEY_TYPE, &keyType, sizeof(keyType) ); attrs++;
     PK11_SETATTRS(attrs, CKA_TOKEN, isToken ? &cktrue : &ckfalse,
 						 sizeof(CK_BBOOL) ); attrs++;
+    if (isToken) {
+	ckaId = pk11_MakeIDFromPublicKey(pubKey);
+	if (ckaId == NULL) {
+	    PORT_SetError( SEC_ERROR_BAD_KEY );
+	    return CK_INVALID_HANDLE;
+	}
+	PK11_SETATTRS(attrs, CKA_ID, ckaId->data, ckaId->len); attrs++;
+    }
 
     /* now import the key */
     {
@@ -176,6 +211,9 @@ PK11_ImportPublicKey(PK11SlotInfo *slot, SECKEYPublicKey *pubKey,
 	} 
         rv = PK11_CreateNewObject(slot, CK_INVALID_SESSION, theTemplate,
 				 	templateCount, isToken, &objectID);
+	if (ckaId) {
+	    SECITEM_FreeItem(ckaId,PR_TRUE);
+	}
 	if ( rv != SECSuccess) {
 	    return CK_INVALID_HANDLE;
 	}
@@ -761,7 +799,6 @@ PK11_GenerateKeyPairWithOpFlags(PK11SlotInfo *slot,CK_MECHANISM_TYPE type,
     int peCount,i;
     CK_ATTRIBUTE *attrs;
     CK_ATTRIBUTE *privattrs;
-    SECItem *pubKeyIndex;
     CK_ATTRIBUTE setTemplate;
     CK_MECHANISM_INFO mechanism_info;
     CK_OBJECT_CLASS keyClass;
@@ -1083,25 +1120,7 @@ PK11_GenerateKeyPairWithOpFlags(PK11SlotInfo *slot,CK_MECHANISM_TYPE type,
     }
 
     /* set the ID to the public key so we can find it again */
-    pubKeyIndex =  NULL;
-    switch (type) {
-    case CKM_RSA_PKCS_KEY_PAIR_GEN:
-    case CKM_RSA_X9_31_KEY_PAIR_GEN:
-      pubKeyIndex = &(*pubKey)->u.rsa.modulus;
-      break;
-    case CKM_DSA_KEY_PAIR_GEN:
-      pubKeyIndex = &(*pubKey)->u.dsa.publicValue;
-      break;
-    case CKM_DH_PKCS_KEY_PAIR_GEN:
-      pubKeyIndex = &(*pubKey)->u.dh.publicValue;
-      break;      
-    case CKM_EC_KEY_PAIR_GEN:
-      pubKeyIndex = &(*pubKey)->u.ec.publicValue;
-      break;      
-    }
-    PORT_Assert(pubKeyIndex != NULL);
-
-    cka_id = PK11_MakeIDFromPubKey(pubKeyIndex);
+    cka_id = pk11_MakeIDFromPublicKey(*pubKey);
     pubIsToken = (PRBool)PK11_HasAttributeSet(slot,pubID, CKA_TOKEN);
 
     PK11_SETATTRS(&setTemplate, CKA_ID, cka_id->data, cka_id->len);
