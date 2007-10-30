@@ -77,26 +77,6 @@ function CalendarWindow( )
            mwView.weeksInView = menuitem.value;
        }
    };
-
-   // Get the last view that was shown before shutdown, and switch to it
-   var SelectedIndex = document.getElementById("view-deck").selectedIndex;
-   
-   switch( SelectedIndex )
-   {
-      case "1":
-         this.switchToView('week');
-         break;
-      case "2":
-         this.switchToView('multiweek');
-         break;
-      case "3":
-         this.switchToView('month');
-         break;
-      case "0":
-      default:
-         this.switchToView('day');
-         break;
-   }
 }
 
 /** PUBLIC

@@ -327,6 +327,7 @@
   <vbox id="calendar-view-box" context="calendar-view-context-menu">
     <deck flex="1"
           id="view-deck"
+          persist="selectedIndex"
           ondraggesture="nsDragAndDrop.startDrag(event, calendarDNDObserver);"
           ondragover="nsDragAndDrop.dragOver(event, calendarDNDObserver);"
           ondragdrop="nsDragAndDrop.drop(event, calendarDNDObserver);">

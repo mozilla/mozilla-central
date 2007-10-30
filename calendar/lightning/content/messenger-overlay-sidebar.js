@@ -345,22 +345,10 @@ function ltnOnLoad(event)
     document.getElementById("ltnModeBox").addEventListener("DOMAttrModified",
                                                            modeBoxAttrModified,
                                                            true);
+    // Initialize Views
+    initializeViews();
 
-    // find last shown calendar view (persist="checked")
-    var availableViews = getViewDeck();
-    var numChilds = availableViews.childNodes.length;
-    for (var i = 0; i < numChilds; i++) {
-        var view = availableViews.childNodes[i];
-        var command = document.getElementById(view.id+"-command");
-        if (command && command.getAttribute("checked") == "true") {
-            gLastShownCalendarView = view.id.substring(0, view.id.indexOf('-'));
-            break;
-        }
-    }
-    if (!gLastShownCalendarView) {
-        gLastShownCalendarView = 'month';
-    }
-
+    // Initialize Minimonth
     gMiniMonthLoading = true;
 
     var today = new Date();

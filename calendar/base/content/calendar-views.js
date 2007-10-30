@@ -583,6 +583,17 @@ function initializeViews() {
         view.showCompleted = showCompleted;
         view.rotated = rotated;
     }
+
+    // Restore the last shown view
+    var deck = getViewDeck();
+    if (deck.selectedIndex < 0) {
+        // No deck item was selected beforehand, default to week view.
+        showCalendarView("week");
+    } else {
+        var viewNode = deck.childNodes[deck.selectedIndex];
+        var viewName = viewNode.id.replace(/-view/, "");
+        showCalendarView(viewName);
+    }
 }
 
 /**
