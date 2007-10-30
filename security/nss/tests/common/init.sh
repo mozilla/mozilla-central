@@ -274,10 +274,18 @@ if [ -z "${INIT_SOURCED}" -o "${INIT_SOURCED}" != "TRUE" ]; then
         TESTDIR=`cygpath -m ${TESTDIR}`
     fi
 
+    # Same problem with MSYS/Mingw, except we need to start over with pwd -W
+    if [ "${OS_ARCH}" = "WINNT" -a "$OS_NAME" = "MINGW32_NT" ]; then
+		mingw_mozilla_root=`(cd ../../../..; pwd -W)`
+		MINGW_MOZILLA_ROOT=${MINGW_MOZILLA_ROOT-$mingw_mozilla_root}
+		TESTDIR=${MINGW_TESTDIR-${MINGW_MOZILLA_ROOT}/tests_results/security}
+    fi
+    echo testdir is $TESTDIR
+
 #in case of backward comp. tests the calling scripts set the
 #PATH and LD_LIBRARY_PATH and do not want them to be changed
     if [ -z "${DON_T_SET_PATHS}" -o "${DON_T_SET_PATHS}" != "TRUE" ] ; then
-        if [ "${OS_ARCH}" = "WINNT" -a "$OS_NAME"  != "CYGWIN_NT" ]; then
+        if [ "${OS_ARCH}" = "WINNT" -a "$OS_NAME"  != "CYGWIN_NT" -a "$OS_NAME" != "MINGW32_NT" ]; then
             PATH=.\;${DIST}/${OBJDIR}/bin\;${DIST}/${OBJDIR}/lib\;$PATH
             PATH=`perl ../path_uniq -d ';' "$PATH"`
         else
