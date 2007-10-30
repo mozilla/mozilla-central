@@ -61,6 +61,7 @@
 }
 
 .minimonth-year-name {
+  min-width: 4em;
   font-family: Arial;
   font-size: 12pt;
   font-weight: bold;

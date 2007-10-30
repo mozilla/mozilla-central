@@ -26,13 +26,15 @@
          Use onmonthchange to reshow parent popop (hidePopup, showPopup).
 */
 -->
+<!DOCTYPE dialog SYSTEM "chrome://calendar/locale/global.dtd">
+
 <bindings id="xulMiniMonth"
           xmlns="http://www.mozilla.org/xbl"
           xmlns:xbl="http://www.mozilla.org/xbl"
           xmlns:xul="http://www.mozilla.org/keymaster/gatekeeper/there.is.only.xul">
 
   <binding id="minimonth" extends="xul:box" xbl:inherits="onchange,onmonthchange,onpopuplisthidden,readonly">
-    <resources>
+    <resources>    
       <stylesheet src="chrome://calendar/skin/datetimepickers/minimonth.css"/>
     </resources>
 
@@ -42,8 +44,24 @@
         <xul:hbox class="minimonth-month-box">
           <xul:image class="minimonth-navbtn" dir="-1"/>
           <xul:spacer flex="1"/>
-          <xul:text class="minimonth-month-name" value="Month" onclick="showPopupList(event, 'month')"/>
-          <xul:text class="minimonth-year-name" value="Year" onclick="showPopupList(event, 'year')"/>
+          <xul:deck anonid="monthheader" onclick="showPopupList(event, 'month')">
+            <xul:text class="minimonth-month-name" value="&month.1.name;"/>
+            <xul:text class="minimonth-month-name" value="&month.2.name;"/>
+            <xul:text class="minimonth-month-name" value="&month.3.name;"/>
+            <xul:text class="minimonth-month-name" value="&month.4.name;"/>
+            <xul:text class="minimonth-month-name" value="&month.5.name;"/>
+            <xul:text class="minimonth-month-name" value="&month.6.name;"/>
+            <xul:text class="minimonth-month-name" value="&month.7.name;"/>
+            <xul:text class="minimonth-month-name" value="&month.8.name;"/>
+            <xul:text class="minimonth-month-name" value="&month.9.name;"/>
+            <xul:text class="minimonth-month-name" value="&month.10.name;"/>
+            <xul:text class="minimonth-month-name" value="&month.11.name;"/>
+            <xul:text class="minimonth-month-name" value="&month.12.name;"/>
+          </xul:deck>
+          <xul:deck>
+            <xul:text anonid="yearcell" class="minimonth-year-name" onclick="showPopupList(event, 'year')"/>
+            <xul:text class="minimonth-year-name"/>
+          </xul:deck>
           <xul:spacer flex="1"/>
           <xul:image class="minimonth-navbtn" dir="1"/>
         </xul:hbox>
@@ -178,18 +196,6 @@
           this.mSelected = false;
           this.mValue = null;
           this.mEditorDate = null; // set only in showMonth
-          this.kMonthNames = new Array(12);
-          var tempDate = new Date(2005, 0, 1);
-          for (var month = 0; month < 12; month++) {
-            tempDate.setMonth(month);
-            // if available, use UILocale months, else operating system format
-            try {
-              this.kMonthNames[month] =
-                calGetString("dateFormat", "month." + (month + 1) + ".name");
-            } catch (e) {
-              this.kMonthNames[month] = tempDate.toLocaleFormat("%B");
-            }
-          }
           this.mPopup = null;
           // save references for convenience
           var anonContent = document.getAnonymousNodes(this);
@@ -200,7 +206,7 @@
           this.kRightBtn = headBox.lastChild;
           this.kRightBtn.kMinimonth = this;
           this.kMonthCell = headBox.childNodes[2];
-          this.kYearCell = headBox.childNodes[3];
+          this.kYearCell = document.getAnonymousElementByAttribute(this, "anonid", "yearcell");
           this.kDaysOfMonthBox = mainBox.childNodes[1];
           var popupSet = anonContent[1];
           this.kMonthPopup = popupSet.childNodes[0];
@@ -388,15 +394,14 @@
             }
 
             // Update the month and year title
-            var mon = this.getMonthName(aDate);
-            this.kMonthCell.setAttribute("value", mon);
+            this.kMonthCell.selectedIndex = aDate.getMonth();
             this.kYearCell.setAttribute("value", aDate.getFullYear());
 
             // Update the month popup
             var i;
             var months = this.kMonthList;
             for (i = 0; i < months.length; i++) {
-              months[i].setAttribute("value", this.kMonthNames[i]);
+              months[i].setAttribute("value", this.kMonthCell.childNodes[i].getAttribute("value"));
               months[i].setAttribute("index", i);
               months[i].setAttribute("current", "false");
               if (i == aDate.getMonth())
@@ -621,15 +626,6 @@
         </body>
       </method>
 
-      <method name="getMonthName">
-        <parameter name="aDate"/>
-        <body>
-          <![CDATA[
-            return this.kMonthNames[aDate.getMonth()];
-          ]]>
-        </body>
-      </method>
-      
       <method name="switchMonth">
         <parameter name="aMonth"/>
         <body>

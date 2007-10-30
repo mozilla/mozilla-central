@@ -57,6 +57,7 @@
 }
 
 .minimonth-year-name {
+  min-width: 4em;
   font-size: 11pt;
   font-weight: bold;
   color: #000000;

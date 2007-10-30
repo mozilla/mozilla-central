@@ -131,3 +131,16 @@
 <!ENTITY calendar.global.units.months   "months">
 <!ENTITY calendar.global.units.year     "year">
 <!ENTITY calendar.global.units.years    "years">
+
+<!ENTITY month.1.name "January" >
+<!ENTITY month.2.name "February" >
+<!ENTITY month.3.name "March" >
+<!ENTITY month.4.name "April" >
+<!ENTITY month.5.name "May" >
+<!ENTITY month.6.name "June" >
+<!ENTITY month.7.name "July" >
+<!ENTITY month.8.name "August" >
+<!ENTITY month.9.name "September" >
+<!ENTITY month.10.name "October" >
+<!ENTITY month.11.name "November" >
+<!ENTITY month.12.name "December" >
