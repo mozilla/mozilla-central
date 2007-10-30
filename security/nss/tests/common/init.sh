@@ -153,6 +153,7 @@ if [ -z "${INIT_SOURCED}" -o "${INIT_SOURCED}" != "TRUE" ]; then
         echo "export NSS_DEFAULT_DB_TYPE"
         echo "NSS_ENABLE_PKIX_VERIFY=${NSS_ENABLE_PKIX_VERIFY}"
         echo "export NSS_ENABLE_PKIX_VERIFY"
+        echo "init_directories"
     }
 
 # Exit shellfunction to clean up at exit (error, regular or signal)
