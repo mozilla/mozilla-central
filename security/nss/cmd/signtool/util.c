@@ -199,71 +199,225 @@ int	rm_dash_r (char *path)
  *  Print some useful help information
  *
  */
-void
-usage (void)
-{
-    PR_fprintf(outputFD, "\n");
-    PR_fprintf(outputFD, "%s %s - a signing tool for jar files\n", LONG_PROGRAM_NAME,
-         NSS_VERSION);
-    PR_fprintf(outputFD, "\n");
-    PR_fprintf(outputFD, "Usage:  %s [options] directory-tree \n\n",
-        PROGRAM_NAME);
-    PR_fprintf(outputFD, "    -b \"basename\"\t\tbasename of .sf, .rsa files for signing\n");
-    PR_fprintf(outputFD, "    -c#\t\t\t\tCompression level, 0-9, 0=none\n");
-    PR_fprintf(outputFD, "    -d \"certificate directory\"\tcontains cert*.db and key*.db\n");
-    PR_fprintf(outputFD, "    -e \".ext\"\t\t\tsign only files with this extension\n");
-    PR_fprintf(outputFD, "    -f \"filename\"\t\t\tread commands from file\n");
-    PR_fprintf(outputFD, "    -G \"nickname\"\t\tcreate object-signing cert with this nickname\n");
-    PR_fprintf(outputFD, "    -i \"installer script\"\tassign installer javascript\n");
-    PR_fprintf(outputFD, "    -j \"javascript directory\"\tsign javascript files in this subtree\n");
-    PR_fprintf(outputFD, "    -J\t\t\t\tdirectory contains HTML files. Javascript will\n"
-        "\t\t\t\tbe extracted and signed.\n");
-    PR_fprintf(outputFD, "    -k \"cert nickname\"\t\tsign with this certificate\n");
-    PR_fprintf(outputFD, "    --leavearc\t\t\tdo not delete .arc directories created\n"
-        "\t\t\t\tby -J option\n");
-    PR_fprintf(outputFD, "    -m \"metafile\"\t\tinclude custom meta-information\n");
-    PR_fprintf(outputFD, "    --norecurse\t\t\tdo not operate on subdirectories\n");
-    PR_fprintf(outputFD, "    -o\t\t\t\toptimize - omit optional headers\n");
-    PR_fprintf(outputFD, "    -O\t\t\t\tenableOCSP - enable OCSP checking\n");
-    PR_fprintf(outputFD, "    --outfile \"filename\"\tredirect output to file\n");
-    PR_fprintf(outputFD, "    -p \"password\"\t\tfor password on command line (insecure)\n");
-    PR_fprintf(outputFD, "    -s keysize\t\t\tkeysize in bits of generated cert\n");
-    PR_fprintf(outputFD, "    -t token\t\t\tname of token on which to generate cert\n");
-    PR_fprintf(outputFD, "    --verbosity #\t\tSet amount of debugging information to generate.\n"
-        "\t\t\t\tLower number means less output, 0 is default.\n");
-    PR_fprintf(outputFD, "    -x \"name\"\t\t\tdirectory or filename to exclude\n");
-    PR_fprintf(outputFD, "    -X\t\t\t\tCreate XPI Compatible Archive\n"
-        "\t\t\t\t(used in conjunction with the -Z)\n");
-    PR_fprintf(outputFD, "    -z\t\t\t\tomit signing time from signature\n");
-    PR_fprintf(outputFD, "    -Z \"jarfile\"\t\tcreate JAR file with the given name.\n"
-        "\t\t\t\t(Default compression level is 6.)\n");
-    PR_fprintf(outputFD, "\n");
-    PR_fprintf(outputFD, "%s -l\n", PROGRAM_NAME);
-    PR_fprintf(outputFD, "  lists the signing certificates in your database\n");
-    PR_fprintf(outputFD, "\n");
-    PR_fprintf(outputFD, "%s -L\n", PROGRAM_NAME);
-    PR_fprintf(outputFD, "  lists all certificates in your database, marks object-signing certificates\n");
-    PR_fprintf(outputFD, "\n");
-    PR_fprintf(outputFD, "%s -M\n", PROGRAM_NAME);
-    PR_fprintf(outputFD, "  lists the PKCS #11 modules available to %s\n",
-         PROGRAM_NAME);
-    PR_fprintf(outputFD, "\n");
-    PR_fprintf(outputFD, "%s -v file.jar\n", PROGRAM_NAME);
-    PR_fprintf(outputFD, "  show the contents of the specified jar file\n");
-    PR_fprintf(outputFD, "\n");
-    PR_fprintf(outputFD, "%s -w file.jar\n", PROGRAM_NAME);
-    PR_fprintf(outputFD, "  if valid, tries to tell you who signed the jar file\n");
-    PR_fprintf(outputFD, "\n");
-    PR_fprintf(outputFD, "%s -d \"certificate directory\" -K -k \"cert nickname\" -p \"password\" -X -Z \"file.xpi\" directory-tree\n",
-         PROGRAM_NAME);
-    PR_fprintf(outputFD, "  Common syntax to create a XPInstall compatible signed archive\n\n");
-    PR_fprintf(outputFD, "For more details, visit\n");
-    PR_fprintf(outputFD, 
-        "  http://developer.netscape.com/library/documentation/signedobj/signtool/\n");
 
+
+void
+Usage (void)
+{
+#define FPS PR_fprintf(outputFD,
+    FPS "%s %s -a signing tool for jar files\n", LONG_PROGRAM_NAME,NSS_VERSION);
+    FPS "\n\nType %s -H for more detailed descriptions\n", PROGRAM_NAME);
+    FPS "\nUsage:  %s -k keyName [-b basename] [-c Compression Level]\n"
+        "\t\t [-d cert-dir] [-i installer script] [-m metafile] [-x name]\n"
+        "\t\t [-e extension] [-o] [-z] [-X] [--outfile] [--verbose value]\n"
+        "\t\t [--norecurse] [--leavearc] [-j directory] [-Z jarfile] [-O]\n"
+        "\t\t [-p password] directory-tree\n", PROGRAM_NAME);
+    FPS "\t%s -J -k keyName [-b basename] [-c Compression Level]\n"
+        "\t\t [-d cert-dir][-i installer script] [-m metafile] [-x name]\n"
+        "\t\t [-e extension] [-o] [-z] [-X] [--outfile] [--verbose value]\n"
+        "\t\t [--norecurse] [--leavearc] [-j directory] [-p password] [-O] \n"
+        "\t\t directory-tree\n", PROGRAM_NAME);
+    FPS "\t%s -h \n", PROGRAM_NAME);
+    FPS "\t%s -H \n", PROGRAM_NAME);
+    FPS "\t%s -l [-k keyName] [-d cert-dir] [--outfile] [-O] \n", PROGRAM_NAME);
+    FPS "\t%s -L [-k keyName] [-d cert-dir] [--outfile] [-O] \n", PROGRAM_NAME);
+    FPS "\t%s -M [--outfile] [-O] \n", PROGRAM_NAME);
+    FPS "\t%s -v [-d cert-dir] [--outfile] [-O] archive\n", PROGRAM_NAME);
+    FPS "\t%s -w [--outfile] [-O] archive\n" , PROGRAM_NAME);
+    FPS "\t%s -G nickname [--keysize|-s size] [-t |--token tokenname]\n"
+        "\t\t [--outfile] [-O] \n", PROGRAM_NAME);
+    FPS "\t%s -f filename\n" , PROGRAM_NAME);
     exit (ERRX);
 }
 
+void 
+LongUsage(void)
+{
+    FPS "%s %s -a signing tool for jar files\n", LONG_PROGRAM_NAME,NSS_VERSION);
+    FPS "\n%-20s  Signs the directory-tree\n",
+        "signtool directory-tree");
+    FPS "%-30s Nickname (key) of the certificate to sign with\n",
+        "   -k keyname");
+    FPS "%-30s Base filename for the .rsa and.sf files in the\n",
+        "   -b basename");
+    FPS "%-30s META-INF directory\n"," ");
+    FPS "%-30s Set the compression level. 0-9, 0=none\n", 
+	"   -c CompressionLevel");
+    FPS "%-30s Certificate database directory containing cert*db\n",
+	"   -d certificate directory");
+    FPS "%-30s and key*db\n"," ");
+    FPS "%-30s Name of the installer script for SmartUpdate\n",
+	"   -i installer script");
+    FPS "%-30s Name of a metadata control file\n",
+	"   -m metafile");
+    FPS "%-30s For optimizing the archive for size.\n",
+	"   -o");
+    FPS "%-30s Omit Optional Headers\n"," ");
+    FPS "%-30s Excludes the specified directory or file from\n",
+	"   -x  directory or file name");
+    FPS "%-30s signing\n"," ");
+    FPS "%-30s To not store the signing time in digital\n",
+	"   -z  directory or file name");
+    FPS "%-30s signature\n"," ");
+    FPS "%-30s Create XPI Compatible Archive. It requires -Z\n",
+	"   -X  directory or file name");
+    FPS "%-30s option\n"," ");
+    FPS "%-30s Sign only files with the given extension\n",
+	"   -e");
+    FPS "%-30s Causes the specified directory to be signed and\n",
+	"   -j");
+    FPS "%-30s tags its entries as inline JavaScript\n"," ");
+    FPS "%-30s Creates a JAR file with the specified name.\n",
+	"   -Z");
+    FPS "%-30s -Z option cannot be used with -J option\n"," ");
+    FPS "%-30s Specifies a password for the private-key database\n",
+	"   -p");
+    FPS "%-30s (insecure)\n"," ");
+    FPS "%-30s File to receive redirected output\n",
+    	"   --outfile filename");
+    FPS "%-30s Sets the quantity of information generated in\n",
+	"   --verbosity value");
+    FPS "%-30s operation\n"," ");
+    FPS "%-30s Blocks recursion into subdirectories\n",
+	"   --norecurse");
+    FPS "%-30s Retains the temporary .arc (archive) directories\n",
+	"   --leavearc");
+    FPS "%-30s -J option creates\n"," ");
+
+    FPS "\n%-20s Signs a directory of HTML files containing JavaScript and\n",
+	"-J" );
+    FPS "%-20s creates as many archive files as are in the HTML tags.\n"," ");
+
+    FPS "%-20s The options are same as without any command option given\n"," ");
+    FPS "%-20s above. -Z and -J options are not allowed together\n"," ");
+    
+    FPS "\n%-20s Generates a new private-public key pair and corresponding\n",
+	"-G nickname");
+    FPS "%-20s object-signing certificates with the given nickname\n"," ");
+    FPS "%-30s Specifies the size of the key for generated \n",
+	"   --keysize|-s keysize");
+    FPS "%-30s certificate\n"," ");
+    FPS "%-30s Specifies which available token should generate\n",
+	"   --token|-t token name ");
+    FPS "%-30s the key and receive the certificate\n"," ");
+    FPS "%-30s Specifies a file to receive redirected output\n",
+	"   --outfile filename ");
+    
+    FPS "\n%-20s Display signtool help\n",
+	"-h ");
+    
+    FPS "\n%-20s Display signtool help(Detailed)\n",
+	"-H ");
+    
+    FPS "\n%-20s Lists signing certificates, including issuing CAs\n",
+	"-l ");
+    FPS "%-30s Certificate database directory containing cert*db\n",
+	"   -d certificate directory");
+    FPS "%-30s and key*db\n"," ");
+
+    FPS "%-30s Specifies a file to receive redirected output\n",
+	"   --outfile filename ");
+    FPS "%-30s Specifies the nickname (key) of the certificate\n",
+	"   -k keyname");
+
+    
+    FPS "\n%-20s Lists the certificates in your database\n",
+	"-L ");
+    FPS "%-30s Certificate database directory containing cert*db\n",
+	"   -d certificate directory");
+    FPS "%-30s and key*db\n"," ");
+
+    FPS "%-30s Specifies a file to receive redirected output\n",
+	"   --outfile filename ");
+    FPS "%-30s Specifies the nickname (key) of the certificate\n",
+	"   -k keyname");
+    
+    FPS "\n%-20s Lists the PKCS #11 modules available to signtool\n",
+	"-M ");
+   
+    FPS "\n%-20s Displays the contents of an archive and verifies\n",
+	"-v archive");
+    FPS "%-20s cryptographic integrity\n"," ");
+    FPS "%-30s Certificate database directory containing cert*db\n",
+	"   -d certificate directory");
+    FPS "%-30s and key*db\n"," ");
+    FPS "%-30s Specifies a file to receive redirected output\n",
+	"   --outfile filename ");
+    
+    FPS "\n%-20s Displays the names of signers in the archive\n",
+	"-w archive");
+    FPS "%-30s Specifies a file to receive redirected output\n",
+	"   --outfile filename ");
+
+    
+    FPS "\n%-30s Common option to all the above.\n",
+	"   -O");
+    FPS "%-30s Enable OCSP checking\n"," ");
+    
+    FPS "\n%-20s Specifies a text file containing options and arguments in\n",
+	"-f command-file");
+    FPS "%-20s keyword=value format. Commands are taken from this file\n"," ");
+
+    FPS  "\n\n\n");
+    FPS  "Example:\n");
+    FPS  "%-10s -d \"certificate directory\" -k \"certnickname\" \\",
+         PROGRAM_NAME);
+    FPS  "\n%-10s -p \"password\"  -X -Z \"file.xpi\" directory-tree\n"," " );
+    FPS  "Common syntax to create an XPInstall compatible"
+         " signed archive\n\n"," ");
+    FPS  "\nCommand File Keywords and Example:\n");
+    FPS "\nKeyword\t\tValue\n");
+    FPS "basename\tSame as -b option\n");
+    FPS "compression\tSame as -c option\n");
+    FPS "certdir\t\tSame as -d option\n");
+    FPS "extension\tSame as -e option\n");
+    FPS "generate\tSame as -G option\n");
+    FPS "installscript\tSame as -i option\n");
+    FPS "javascriptdir\tSame as -j option\n");
+    FPS "htmldir\t\tSame as -J option\n");
+    FPS "certname\tNickname of certificate, as with -k  option\n");
+    FPS "signdir\t\tThe directory to be signed, as with -k option\n");
+    FPS "list\t\tSame as -l option. Value is ignored,\n"
+        "    \t\tbut = sign must be present\n");
+    FPS "listall\t\tSame as -L option. Value is ignored\n"
+        "       \t\tbut = sign must be present\n");
+    FPS "metafile\tSame as -m option\n");
+    FPS "modules\t\tSame as -M option. Value is ignored,\n"
+        "       \t\tbut = sign must be present\n");
+    FPS "optimize\tSame as -o option. Value is ignored,\n" 
+        "        \tbut = sign must be present\n");
+    FPS "ocsp\t\tSame as -O option\n");
+    FPS "password\tSame as -p option\n");
+    FPS "verify\t\tSame as -v option\n");
+    FPS "who\t\tSame as -w option\n");
+    FPS "exclude\t\tSame as -x option\n");
+    FPS "notime\t\tSame as -z option. Value is ignored,\n"
+        "      \t\tbut = sign must be present\n");
+    FPS "jarfile\t\tSame as -Z option\n");
+    FPS "outfile\t\tSame as --outfile option. The argument\n");
+    FPS "       \t\tis the name of a file to which output\n");
+    FPS "       \t\tof a file and error messages will be  \n");
+    FPS "       \t\tredirected\n");
+    FPS "leavearc\tSame as --leavearc option\n");
+    FPS "verbosity\tSame as --verbosity option\n");
+    FPS "keysize\t\tSame as -s option\n");
+    FPS "token\t\tSame as -t option\n");
+    FPS "xpi\t\tSame as -X option\n");
+    FPS "\n\n");
+    FPS "Here's an example of the use of the command file. The command\n\n");
+    FPS "   signtool -d c:\\netscape\\users\\james -k mycert -Z myjar.jar \\\n"
+        "   signdir > output.txt\n\n"); 
+    FPS "becomes\n\n");
+    FPS "   signtool -f somefile\n\n");
+    FPS "where somefile contains the following lines:\n\n");
+    FPS "   certdir=c:\\netscape\\users\\james\n"," "); 
+    FPS "   certname=mycert\n"," "); 
+    FPS "   jarfile=myjar.jar\n"," "); 
+    FPS "   signdir=signdir\n"," "); 
+    FPS "   outfile=output.txt\n"," "); 
+    exit (ERRX);
+#undef FPS
+}
 
 /*
  *  p r i n t _ e r r o r
@@ -496,7 +650,6 @@ password_hardcode(void *arg, void *handle)
     }
     return pw;
 }
-
 
 char	*
 pk11_password_hardcode(PK11SlotInfo *slot, PRBool retry, void *arg)
