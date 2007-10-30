@@ -646,10 +646,12 @@ function ItemToXMLEntry(aItem, aAuthorEmail, aAuthorName) {
     var duration = aItem.endDate.subtractDate(aItem.startDate);
     entry.gd::when.@startTime = toRFC3339(aItem.startDate);
 
-    if (duration != "PT0S") {
-        // Zero Duration Events must not have an end time
-        entry.gd::when.@endTime = toRFC3339(aItem.endDate);
-    }
+    // Google's documentation says that zero length events should be defined by
+    // omitting the end time. This currently does not work though. Workaround is
+    // to always pass an end time. See
+    // http://code.google.com/p/gdata-issues/issues/detail?id=198
+    // for more details.
+    entry.gd::when.@endTime = toRFC3339(aItem.endDate);
 
     // gd:reminder
     if (aItem.alarmOffset) {
