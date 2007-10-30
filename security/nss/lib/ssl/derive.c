@@ -36,7 +36,7 @@
  * the terms of any one of the MPL, the GPL or the LGPL.
  *
  * ***** END LICENSE BLOCK ***** */
-/* $Id: derive.c,v 1.7 2007-09-07 23:08:22 neil.williams%sun.com Exp $ */
+/* $Id: derive.c,v 1.8 2007-10-30 21:42:18 glen.beasley%sun.com Exp $ */
 
 #include "ssl.h" 	/* prereq to sslimpl.h */
 #include "certt.h"	/* prereq to sslimpl.h */
@@ -817,7 +817,9 @@ SSL_CanBypass(CERTCertificate *cert, SECKEYPrivateKey *srvPrivkey,
   done:
     if (pms)
 	PK11_FreeSymKey(pms);
-    
+
+    SECITEM_FreeItem(&enc_pms, PR_FALSE);
+
     if (srvPubkey) {
     	SECKEY_DestroyPublicKey(srvPubkey);
 	srvPubkey = NULL;
