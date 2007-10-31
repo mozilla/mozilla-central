@@ -39,6 +39,7 @@
  * ***** END LICENSE BLOCK ***** */
 
 #import "BookmarkButton.h"
+#import "ImageAdditions.h"
 #import "NSString+Utils.h"
 #import "NSPasteboard+Utils.h"
 #import "DraggableImageAndTextCell.h"
@@ -312,8 +313,8 @@
   // deallocated too soon.  This occurs with SDK >= 10.3, but not earlier.
   // Change in cleanup strategy?  Hold on tight.
   [[self retain] autorelease];
-  [self dragImage:[MainController createImageForDragging:[self image]
-                                                   title:([item isSeparator] ? @"" : title)]
+  [self dragImage:[NSImage dragImageWithIcon:[self image]
+                                       title:([item isSeparator] ? @"" : title)]
                at:NSMakePoint(0, NSHeight([self bounds]))
            offset:NSMakeSize(0, 0)
             event:aEvent

@@ -50,8 +50,6 @@ typedef enum
 
 + (id)ellipsisString;
 + (NSString*)stringWithUUID;
-+ (id)escapedURLString:(NSString *)unescapedString;
-+ (NSString*)unescapedURLString:(NSString*)escapedString;
 
 - (BOOL)isEqualToStringIgnoringCase:(NSString*)inString;
 - (NSString *)stringByRemovingCharactersInSet:(NSCharacterSet*)characterSet;
@@ -75,5 +73,12 @@ typedef enum
 
 - (NSString*)volumeNamePathComponent;
 - (NSString*)displayNameOfLastPathComponent;
+
+@end
+
+@interface NSString (CaminoURLStringUtils)
+
+// Returns true if the string represents a "blank" URL ("" or "about:blank")
+- (BOOL)isBlankURL;
 
 @end

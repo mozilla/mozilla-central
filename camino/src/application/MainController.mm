@@ -662,7 +662,7 @@ NSString* const kPreviousSessionTerminatedNormallyKey = @"PreviousSessionTermina
 
   // The process of creating a new tab in this brand new window loads about:blank for us as a
   // side effect of calling GetDocument(). We don't need to do it again.
-  if ([MainController isBlankURL:aURL])
+  if (!aURL || [aURL isBlankURL])
     [browser disableLoadPage];
   else
     [browser loadURL:aURL referrer:aReferrer focusContent:YES allowPopups:inAllowPopups];
@@ -866,6 +866,27 @@ NSString* const kPreviousSessionTerminatedNormallyKey = @"PreviousSessionTermina
   }
 }
 
+//
+// This takes an NSURL to a local file, and if that file is a file that contains
+// a URL we want and isn't the content itself, we return the URL it contains.
+// Otherwise, we return the URL we originally got. Right now this supports .url,
+// .webloc and .ftploc files.
+//
++ (NSURL*)decodeLocalFileURL:(NSURL*)url
+{
+  NSString* urlPathString = [url path];
+  NSString* ext = [[urlPathString pathExtension] lowercaseString];
+  OSType fileType = NSHFSTypeCodeFromFileType(NSHFSTypeOfFile(urlPathString));
+
+  if ([ext isEqualToString:@"url"] || fileType == 'LINK')
+    url = [NSURL URLFromIEURLFile:urlPathString];
+  else if ([ext isEqualToString:@"webloc"] || [ext isEqualToString:@"ftploc"] ||
+           fileType == 'ilht' || fileType == 'ilft')
+    url = [NSURL URLFromInetloc:urlPathString];
+
+  return url;
+}
+
 #pragma mark -
 #pragma mark Delegate/Notification
 
@@ -1039,7 +1060,7 @@ NSString* const kPreviousSessionTerminatedNormallyKey = @"PreviousSessionTermina
   NSString* homePage = mStartURL ? mStartURL : [[PreferenceManager sharedInstance] homePageUsingStartPage:YES];
   BrowserWindowController* controller = [self openBrowserWindowWithURL:homePage andReferrer:nil behind:nil allowPopups:NO];
 
-  if ([MainController isBlankURL:homePage])
+  if (!homePage || [homePage isBlankURL])
     [controller focusURLBar];
   else
     [[[controller browserWrapper] browserView] setActive:YES];
@@ -1988,65 +2009,7 @@ static int SortByProtocolAndName(NSDictionary* item1, NSDictionary* item2, void*
 }
 
 #pragma mark -
-#pragma mark Miscellaneous Utilities
-//which may not belong in MainController at all
-
-//
-// This takes an NSURL to a local file, and if that file is a file that contains
-// a URL we want and isn't the content itself, we return the URL it contains.
-// Otherwise, we return the URL we originally got. Right now this supports .url,
-// .webloc and .ftploc files.
-//
-+ (NSURL*)decodeLocalFileURL:(NSURL*)url
-{
-  NSString* urlPathString = [url path];
-  NSString* ext = [[urlPathString pathExtension] lowercaseString];
-  OSType fileType = NSHFSTypeCodeFromFileType(NSHFSTypeOfFile(urlPathString));
-
-  if ([ext isEqualToString:@"url"] || fileType == 'LINK')
-    url = [NSURL URLFromIEURLFile:urlPathString];
-  else if ([ext isEqualToString:@"webloc"] || [ext isEqualToString:@"ftploc"] || fileType == 'ilht' || fileType == 'ilft')
-    url = [NSURL URLFromInetloc:urlPathString];
-
-  return url;
-}
-
-+ (NSImage*)createImageForDragging:(NSImage*)aIcon title:(NSString*)aTitle
-{
-  const float kTitleOffset = 2.0f;
-
-  NSDictionary* stringAttrs = [NSDictionary dictionaryWithObjectsAndKeys:
-    [[NSColor textColor] colorWithAlphaComponent:0.8], NSForegroundColorAttributeName,
-    [NSFont systemFontOfSize:[NSFont smallSystemFontSize]], NSFontAttributeName,
-    nil];
-
-  // get the size of the new image we are creating
-  NSSize titleSize = [aTitle sizeWithAttributes:stringAttrs];
-  NSSize imageSize = NSMakeSize(titleSize.width + [aIcon size].width + kTitleOffset + 2,
-                                titleSize.height > [aIcon size].height ? titleSize.height
-                                                                       : [aIcon size].height);
-
-  // create the image and lock drawing focus on it
-  NSImage* dragImage = [[[NSImage alloc] initWithSize:imageSize] autorelease];
-  [dragImage lockFocus];
-
-  // draw the image and title in image with translucency
-  NSRect imageRect = NSMakeRect(0, 0, [aIcon size].width, [aIcon size].height);
-  [aIcon drawAtPoint:NSMakePoint(0, 0) fromRect:imageRect operation:NSCompositeCopy fraction:0.8];
-
-  [aTitle drawAtPoint:NSMakePoint([aIcon size].width + kTitleOffset, 0.0) withAttributes:stringAttrs];
-
-  [dragImage unlockFocus];
-  return dragImage;
-}
-
-+ (BOOL)isBlankURL:(NSString*)inURL
-{
-  BOOL isBlank = NO;
-  if (!inURL || [inURL isEqualToString:@"about:blank"] || [inURL isEqualToString:@""])
-    isBlank = YES;
-  return isBlank;
-}
+#pragma mark Find Panel
 
 - (void)closeFindDialog
 {

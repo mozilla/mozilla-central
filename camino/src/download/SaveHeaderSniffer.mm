@@ -252,8 +252,9 @@ nsHeaderSniffer::PerformSave(nsIURI* inOriginalURI)
         if (url) {
             nsCAutoString urlFileName;
             url->GetFileName(urlFileName); // (2) For file URLs, use the file name.
-            NSString* unescapedString = [NSString unescapedURLString:[NSString stringWithUTF8String:urlFileName.get()]];
-            CopyUTF8toUTF16([unescapedString UTF8String], defaultFileName);
+            NSString* escapedName = [NSString stringWithUTF8String:urlFileName.get()];
+            NSString* unescapedName = [escapedName stringByReplacingPercentEscapesUsingEncoding:NSUTF8StringEncoding];
+            CopyUTF8toUTF16([unescapedName UTF8String], defaultFileName);
         }
     }
     

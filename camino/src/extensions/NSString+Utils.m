@@ -65,26 +65,6 @@
   return [uuidString autorelease];
 }
 
-+ (id)escapedURLString:(NSString *)unescapedString
-{
-  NSString *escapedString =
-    (NSString *)CFURLCreateStringByAddingPercentEscapes(NULL,
-                                                        (CFStringRef)unescapedString,
-                                                        NULL,
-                                                        NULL,
-                                                        kCFStringEncodingUTF8);
-  return [escapedString autorelease];
-}
-
-+ (NSString*)unescapedURLString:(NSString*)escapedString
-{
-  NSString *unescapedString =
-    (NSString *)CFURLCreateStringByReplacingPercentEscapes(NULL,
-                                                           (CFStringRef)escapedString,
-                                                           CFSTR(""));
-  return [unescapedString autorelease];
-}
-
 - (BOOL)isEqualToStringIgnoringCase:(NSString*)inString
 {
   return ([self compare:inString options:NSCaseInsensitiveSearch] == NSOrderedSame);
@@ -324,6 +304,15 @@
 - (NSString*)displayNameOfLastPathComponent
 {
   return [[NSFileManager defaultManager] displayNameAtPath:self];
+}
+
+@end
+
+@implementation NSString (CaminoURLStringUtils)
+
+- (BOOL)isBlankURL
+{
+  return ([self isEqualToString:@"about:blank"] || [self isEqualToString:@""]);
 }
 
 @end
