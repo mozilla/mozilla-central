@@ -160,8 +160,8 @@ const int kAnnoyancePrefSome = 3;
   // Set up policy popups
   NSPopUpButtonCell *popupButtonCell = [mPolicyColumn dataCell];
   [popupButtonCell setEditable:YES];
-  [popupButtonCell addItemsWithTitles:[NSArray arrayWithObjects:[self getLocalizedString:@"Allow"],
-                                                                [self getLocalizedString:@"Deny"],
+  [popupButtonCell addItemsWithTitles:[NSArray arrayWithObjects:[self localizedStringForKey:@"Allow"],
+                                                                [self localizedStringForKey:@"Deny"],
                                                                 nil]];
 
   // Set inital values for tabfocus pref.  Internally, it's a bitwise additive pref:

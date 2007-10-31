@@ -424,7 +424,7 @@ static const unsigned int kMaxTitleLength = 50;
 
 - (BOOL)validateMenuItem:(NSMenuItem*)aMenuItem
 {
-  BrowserWindowController* browserController = [(MainController *)[NSApp delegate] getMainWindowBrowserController];
+  BrowserWindowController* browserController = [(MainController *)[NSApp delegate] mainWindowBrowserController];
   SEL action = [aMenuItem action];
 
   // disable history if a sheet is up
@@ -445,7 +445,7 @@ static const unsigned int kMaxTitleLength = 50;
     NSString* itemURL = [repObject url];
     
     // XXX share this logic with MainController and HistoryOutlineViewDelegate
-    BrowserWindowController* bwc = [(MainController *)[NSApp delegate] getMainWindowBrowserController];
+    BrowserWindowController* bwc = [(MainController *)[NSApp delegate] mainWindowBrowserController];
     if (bwc)
     {
       if ([sender keyEquivalentModifierMask] & NSCommandKeyMask)

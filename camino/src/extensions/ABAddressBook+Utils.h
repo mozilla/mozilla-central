@@ -53,7 +53,7 @@
 // Return the real name of the person in the address book with the
 // specified e-mail address. Returns nil if the e-mail address does not
 // occur in the address book.
-- (NSString*)getRealNameForEmailAddress:(NSString*)emailAddress;
+- (NSString*)realNameForEmailAddress:(NSString*)emailAddress;
 
 // Add a new ABPerson record to the address book with the given e-mail address
 // Then open the new record for edit so the user can fill in the rest of

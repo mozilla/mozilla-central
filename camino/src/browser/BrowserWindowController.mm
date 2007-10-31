@@ -531,7 +531,7 @@ enum BWCOpenDest {
 - (void)setupToolbar;
 - (void)setGeckoActive:(BOOL)inActive;
 - (BOOL)isResponderGeckoView:(NSResponder*) responder;
-- (NSString*)getContextMenuNodeDocumentURL;
+- (NSString*)contextMenuNodeDocumentURL;
 - (void)loadSourceForFrame:(BOOL)forFrame inBackground:(BOOL)loadInBackground;
 - (void)transformFormatString:(NSMutableString*)inFormat domain:(NSString*)inDomain search:(NSString*)inSearch;
 - (void)openNewWindowWithDescriptor:(nsISupports*)aDesc displayType:(PRUint32)aDisplayType loadInBackground:(BOOL)aLoadInBG;
@@ -647,7 +647,7 @@ enum BWCOpenDest {
 - (BOOL)isResponderGeckoView:(NSResponder*) responder
 {
   return ([responder isKindOfClass:[NSView class]] &&
-          [(NSView*)responder isDescendantOf:[mBrowserView getBrowserView]]);
+          [(NSView*)responder isDescendantOf:[mBrowserView browserView]]);
 }
 
 - (void)windowDidChangeMain
@@ -800,7 +800,7 @@ enum BWCOpenDest {
   int numTabs = [mTabBrowser numberOfTabViewItems];
   for (int i = 0; i < numTabs; i++) {
     NSTabViewItem* item = [mTabBrowser tabViewItemAtIndex: i];
-    [[[item view] getBrowserView] stop:NSStopLoadAll];
+    [[[item view] browserView] stop:NSStopLoadAll];
   }
 }
 
@@ -967,11 +967,11 @@ enum BWCOpenDest {
       [mContentView resizeSubviewsWithOldSize:[mContentView frame].size];
       
     // stagger window from last browser, if there is one. we can't just use autoposition
-    // because it doesn't work on multiple monitors (radar bug 2972893). |getFrontmostBrowserWindow|
+    // because it doesn't work on multiple monitors (radar bug 2972893). |frontmostBrowserWindow|
     // only gets fully chromed windows, so this will do the right thing for popups (yay!).
     const int kWindowStaggerOffset = 22;
     
-    NSWindow* lastBrowser = [[NSApp delegate] getFrontmostBrowserWindow];
+    NSWindow* lastBrowser = [[NSApp delegate] frontmostBrowserWindow];
     if ( lastBrowser && lastBrowser != [self window] ) {
       NSRect screenRect = [[lastBrowser screen] visibleFrame];
       NSRect testBrowserFrame = [lastBrowser frame];
@@ -1020,7 +1020,7 @@ enum BWCOpenDest {
 {
   // Maximize to screen
   if (([[NSApp currentEvent] modifierFlags] & NSShiftKeyMask) ||
-      [[self getBrowserWrapper] isEmpty] ||
+      [[self browserWrapper] isEmpty] ||
       [self bookmarkManagerIsVisible])
   {
     [self setZoomState:defaultFrame defaultFrame:defaultFrame];
@@ -1028,7 +1028,7 @@ enum BWCOpenDest {
   }
 
   // Get the needed content size
-  nsCOMPtr<nsIDOMWindow> contentWindow = [[mBrowserView getBrowserView] getContentWindow];
+  nsCOMPtr<nsIDOMWindow> contentWindow = [[mBrowserView browserView] contentWindow];
   if (!contentWindow) {
     [self setZoomState:defaultFrame defaultFrame:defaultFrame];
     return defaultFrame;
@@ -1044,7 +1044,7 @@ enum BWCOpenDest {
   }
 
   // Get the current content size and calculate the changes.
-  NSSize curFrameSize = [[mBrowserView getBrowserView] frame].size;
+  NSSize curFrameSize = [[mBrowserView browserView] frame].size;
   float widthChange   = contentWidth  - curFrameSize.width;
   float heightChange  = contentHeight - curFrameSize.height;
 
@@ -1501,7 +1501,7 @@ enum BWCOpenDest {
   if (action == @selector(back:)) {
     // if the bookmark manager is showing, we enable the back button so that
     // they can click back to return to the webpage they were viewing.
-    BOOL enable = [[mBrowserView getBrowserView] canGoBack];
+    BOOL enable = [[mBrowserView browserView] canGoBack];
 
     // we have to handle all the enabling/disabling ourselves because this
     // toolbar button is a view item. Note the return value is ignored.
@@ -1512,7 +1512,7 @@ enum BWCOpenDest {
     if ([theItem isEnabled]) { // if there is a previous URL
       NSString* backTitle = nil;
       NSString* backURL   = nil;
-      [self sessionHistoryItemAtRelativeOffset:-1 forWrapper:[self getBrowserWrapper] title:&backTitle URL:&backURL];
+      [self sessionHistoryItemAtRelativeOffset:-1 forWrapper:[self browserWrapper] title:&backTitle URL:&backURL];
       toolTipString = [self locationToolTipWithFormat:@"BackToolTipFormat" title:backTitle URL:backURL];
     }
 
@@ -1526,7 +1526,7 @@ enum BWCOpenDest {
   else if (action == @selector(forward:)) {
     // we have to handle all the enabling/disabling ourselves because this
     // toolbar button is a view item. Note the return value is ignored.
-    BOOL enable = [[mBrowserView getBrowserView] canGoForward];
+    BOOL enable = [[mBrowserView browserView] canGoForward];
     [theItem setEnabled:enable];
 
     // set the tooltip to the next URL and title
@@ -1534,7 +1534,7 @@ enum BWCOpenDest {
     if ([theItem isEnabled]) { // if there is a previous URL
       NSString* forwardTitle = nil;
       NSString* forwardURL   = nil;
-      [self sessionHistoryItemAtRelativeOffset:1 forWrapper:[self getBrowserWrapper] title:&forwardTitle URL:&forwardURL];
+      [self sessionHistoryItemAtRelativeOffset:1 forWrapper:[self browserWrapper] title:&forwardTitle URL:&forwardURL];
       toolTipString = [self locationToolTipWithFormat:@"ForwardToolTipFormat" title:forwardTitle URL:forwardURL];
     }
 
@@ -1676,7 +1676,7 @@ enum BWCOpenDest {
     return NO;
 
   if (action == @selector(reloadSendersTab:)) {
-    BrowserTabViewItem* sendersTab = [[self getTabBrowser] itemWithTag:[aMenuItem tag]];
+    BrowserTabViewItem* sendersTab = [[self tabBrowser] itemWithTag:[aMenuItem tag]];
     return [[sendersTab view] canReload];
   }
 
@@ -1696,13 +1696,13 @@ enum BWCOpenDest {
 - (BOOL)validateActionBySelector:(SEL)action
 {
   if (action == @selector(back:))
-    return [[mBrowserView getBrowserView] canGoBack];
+    return [[mBrowserView browserView] canGoBack];
   if (action == @selector(forward:))
-    return [[mBrowserView getBrowserView] canGoForward];
+    return [[mBrowserView browserView] canGoForward];
   if (action == @selector(stop:))
     return [mBrowserView isBusy];
   if (action == @selector(reload:))
-    return [[self getBrowserWrapper] canReload];
+    return [[self browserWrapper] canReload];
   if (action == @selector(moveTabToNewWindow:) ||
       action == @selector(closeSendersTab:) ||
       action == @selector(closeOtherTabs:) ||
@@ -1730,13 +1730,13 @@ enum BWCOpenDest {
   if (action == @selector(makeTextDefaultSize:))
     return [self canMakeTextDefaultSize];
   if (action == @selector(sendURL:))
-    return ![[self getBrowserWrapper] isInternalURI];
+    return ![[self browserWrapper] isInternalURI];
   if (action == @selector(viewSource:) ||
       action == @selector(viewPageSource:) ||
       action == @selector(fillForm:))
   {
-    BrowserWrapper* browser = [self getBrowserWrapper];
-    return (![browser isInternalURI] && [[browser getBrowserView] isTextBasedContent]);
+    BrowserWrapper* browser = [self browserWrapper];
+    return (![browser isInternalURI] && [[browser browserView] isTextBasedContent]);
   }
   if (action == @selector(printDocument:) ||
       action == @selector(pageSetup:))
@@ -1768,7 +1768,7 @@ enum BWCOpenDest {
         [mBrowserView setBrowserActive:YES];
     }
     else
-      [[self window] makeFirstResponder:[mBrowserView getBrowserView]];
+      [[self window] makeFirstResponder:[mBrowserView browserView]];
   }
 
   if ([[self window] isMainWindow])
@@ -1992,7 +1992,7 @@ enum BWCOpenDest {
 - (void)buildFeedsDetectedListMenu:(NSNotification*)notifier
 {
   NSMenu* menu = [[[NSMenu alloc] initWithTitle:@"FeedListMenu"] autorelease];  // retained by the popup button
-  NSEnumerator* feedsEnum = [[[self getBrowserWrapper] feedList] objectEnumerator];
+  NSEnumerator* feedsEnum = [[[self browserWrapper] feedList] objectEnumerator];
   NSString* titleFormat = NSLocalizedString(@"SubscribeTo", nil); // "Subscribe to feedTitle or feedURI"
   NSDictionary* curFeedDict;
   while ((curFeedDict = [feedsEnum nextObject])) {
@@ -2115,7 +2115,7 @@ enum BWCOpenDest {
   NSString* curTitle = nil;
   NSString* curURL = nil;
 
-  nsCOMPtr<nsIWebBrowser> webBrowser = getter_AddRefs([[inWrapper getBrowserView] getWebBrowser]);
+  nsCOMPtr<nsIWebBrowser> webBrowser = dont_AddRef([[inWrapper browserView] webBrowser]);
   if (webBrowser) {
     nsCOMPtr<nsIWebNavigation> webNav(do_QueryInterface(webBrowser));
 
@@ -2265,7 +2265,7 @@ enum BWCOpenDest {
   if ([self bookmarkManagerIsVisible]) {
     int previousPage = [self historyIndexOfPageBeforeBookmarkManager];
     if (previousPage != -1)
-      [[[self getBrowserWrapper] getBrowserView] goToSessionHistoryIndex:previousPage];
+      [[[self browserWrapper] browserView] goToSessionHistoryIndex:previousPage];
   }
   else
     [self loadURL:@"about:bookmarks"];
@@ -2399,22 +2399,22 @@ enum BWCOpenDest {
 }
 - (void)saveDocument:(BOOL)focusedFrame filterView:(NSView*)aFilterView
 {
-  [[mBrowserView getBrowserView] saveDocument:focusedFrame filterView:aFilterView];
+  [[mBrowserView browserView] saveDocument:focusedFrame filterView:aFilterView];
 }
 
 - (void)saveURL:(NSView*)aFilterView url:(NSString*)aURLSpec suggestedFilename:(NSString*)aFilename
 {
-  [[mBrowserView getBrowserView] saveURL:aFilterView url:aURLSpec suggestedFilename:aFilename];
+  [[mBrowserView browserView] saveURL:aFilterView url:aURLSpec suggestedFilename:aFilename];
 }
 
 - (void)loadSourceForFrame:(BOOL)forFrame inBackground:(BOOL)loadInBackground
 {
   // First, to get a descriptor so we can load the source from cache
-  nsCOMPtr<nsISupports> desc = [[mBrowserView getBrowserView] pageDescriptorByFocus:forFrame];
+  nsCOMPtr<nsISupports> desc = [[mBrowserView browserView] pageDescriptorByFocus:forFrame];
   // If that somehow fails, we'll do it by URL
   NSString* viewSource = nil;
   if (!desc) {
-    NSString* urlStr = forFrame ? [[mBrowserView getBrowserView] getFocusedURLString]
+    NSString* urlStr = forFrame ? [[mBrowserView browserView] focusedURLString]
                                 : [mBrowserView currentURI];
     viewSource = [kViewSourceProtocolString stringByAppendingString:urlStr];
   }
@@ -2437,7 +2437,7 @@ enum BWCOpenDest {
       [controller showWindow:nil];
 
     if (desc)
-      [[[controller getBrowserWrapper] getBrowserView] setPageDescriptor:desc displayType:nsIWebPageDescriptor::DISPLAY_AS_SOURCE];
+      [[[controller browserWrapper] browserView] setPageDescriptor:desc displayType:nsIWebPageDescriptor::DISPLAY_AS_SOURCE];
     else
       [controller loadURL:viewSource];
   }
@@ -2488,12 +2488,12 @@ enum BWCOpenDest {
 
 - (IBAction)printDocument:(id)aSender
 {
-  [[mBrowserView getBrowserView] printDocument];
+  [[mBrowserView browserView] printDocument];
 }
 
 - (IBAction)pageSetup:(id)aSender
 {
-  [[mBrowserView getBrowserView] pageSetup];
+  [[mBrowserView browserView] pageSetup];
 }
 
 // -searchFieldTriggered:
@@ -2538,7 +2538,7 @@ enum BWCOpenDest {
 //
 - (IBAction)searchForSelection:(id)aSender
 {
-  NSString* selection = [[mBrowserView getBrowserView] getSelection];
+  NSString* selection = [[mBrowserView browserView] selectedText];
   [mSearchBar becomeFirstResponder];
   [mSearchBar setStringValue:selection];
   
@@ -2569,7 +2569,7 @@ enum BWCOpenDest {
   // This is a fix to deal with Google's Search this Site feature
   // If other sites use %d to search the site, we'll have to have specific rules
   // for those sites.
-  if ([[[self getBrowserWrapper] currentURI] hasPrefix:@"about:"]) {
+  if ([[[self browserWrapper] currentURI] hasPrefix:@"about:"]) {
     NSRange domainStringRange = [searchURL rangeOfString:@" site:%d"
                                                  options:NSBackwardsSearch];
     
@@ -2598,7 +2598,7 @@ enum BWCOpenDest {
         [self loadURL:searchDomain];
     } 
   } else {
-    const char *urlSpec = [[[self getBrowserWrapper] currentURI] UTF8String];
+    const char *urlSpec = [[[self browserWrapper] currentURI] UTF8String];
     
     // Get the domain so that we can replace %d in our searchURL
     NSString *currentDomain = @"";
@@ -2644,7 +2644,7 @@ enum BWCOpenDest {
 
 - (IBAction)sendURL:(id)aSender
 {
-  BrowserWrapper* browserWrapper = [self getBrowserWrapper];
+  BrowserWrapper* browserWrapper = [self browserWrapper];
   NSString* urlString = [browserWrapper currentURI];
   if (!urlString)
     return;
@@ -2785,23 +2785,23 @@ enum BWCOpenDest {
 - (BOOL)findInPageWithPattern:(NSString*)text caseSensitive:(BOOL)inCaseSensitive
     wrap:(BOOL)inWrap backwards:(BOOL)inBackwards
 {
-  return [[mBrowserView getBrowserView] findInPageWithPattern:text caseSensitive:inCaseSensitive
+  return [[mBrowserView browserView] findInPageWithPattern:text caseSensitive:inCaseSensitive
     wrap:inWrap backwards:inBackwards];
 }
 
 - (BOOL)findInPage:(BOOL)inBackwards
 {
-  return [[mBrowserView getBrowserView] findInPage:inBackwards];
+  return [[mBrowserView browserView] findInPage:inBackwards];
 }
 
 - (NSString*)lastFindText
 {
-  return [[mBrowserView getBrowserView] lastFindText];
+  return [[mBrowserView browserView] lastFindText];
 }
 
 - (BOOL)bookmarkManagerIsVisible
 {
-  NSString* currentURL = [[[self getBrowserWrapper] currentURI] lowercaseString];
+  NSString* currentURL = [[[self browserWrapper] currentURI] lowercaseString];
   return [currentURL isEqualToString:@"about:bookmarks"] || [currentURL isEqualToString:@"about:history"];
 }
 
@@ -2867,7 +2867,7 @@ enum BWCOpenDest {
   BookmarkManager* bookmarkManager = [BookmarkManager sharedBookmarkManager];
   BookmarkFolder*  parentFolder = [bookmarkManager lastUsedBookmarkFolder];
 
-  BrowserWrapper* browserWrapper = [self getBrowserWrapper];
+  BrowserWrapper* browserWrapper = [self browserWrapper];
   NSString* itemTitle = [browserWrapper pageTitle];
   NSString* itemURL = [browserWrapper currentURI];
 
@@ -2881,7 +2881,7 @@ enum BWCOpenDest {
   BookmarkFolder* newTabGroup = [[[BookmarkFolder alloc] init] autorelease];
   [newTabGroup setIsGroup:YES];
 
-  BrowserWrapper* currentBrowserWrapper = [self getBrowserWrapper];
+  BrowserWrapper* currentBrowserWrapper = [self browserWrapper];
   int numberOfTabs = [mTabBrowser numberOfTabViewItems];
   NSString *primaryTabTitle = nil;
 
@@ -2959,11 +2959,11 @@ enum BWCOpenDest {
 //
 - (nsIWebNavigation*) currentWebNavigation
 {
-  BrowserWrapper* wrapper = [self getBrowserWrapper];
+  BrowserWrapper* wrapper = [self browserWrapper];
   if (!wrapper) return nsnull;
-  CHBrowserView* view = [wrapper getBrowserView];
+  CHBrowserView* view = [wrapper browserView];
   if (!view) return nsnull;
-  nsCOMPtr<nsIWebBrowser> webBrowser = getter_AddRefs([view getWebBrowser]);
+  nsCOMPtr<nsIWebBrowser> webBrowser = dont_AddRef([view webBrowser]);
   if (!webBrowser) return nsnull;
   nsCOMPtr<nsIWebNavigation> webNav(do_QueryInterface(webBrowser));
   return webNav.get();
@@ -3087,12 +3087,12 @@ enum BWCOpenDest {
 
 - (IBAction)back:(id)aSender
 {
-  [[mBrowserView getBrowserView] goBack];
+  [[mBrowserView browserView] goBack];
 }
 
 - (IBAction)forward:(id)aSender
 {
-  [[mBrowserView getBrowserView] goForward];
+  [[mBrowserView browserView] goForward];
 }
 
 - (IBAction)reload:(id)aSender
@@ -3144,7 +3144,7 @@ enum BWCOpenDest {
 
 - (IBAction)stop:(id)aSender
 {
-  [[mBrowserView getBrowserView] stop:NSStopLoadAll];
+  [[mBrowserView browserView] stop:NSStopLoadAll];
 }
 
 - (IBAction)home:(id)aSender
@@ -3156,7 +3156,7 @@ enum BWCOpenDest {
             allowPopups:NO];
 }
 
-- (NSString*)getContextMenuNodeDocumentURL
+- (NSString*)contextMenuNodeDocumentURL
 {
   if (!mDataOwner->mContextMenuNode) return @"";
 
@@ -3178,7 +3178,7 @@ enum BWCOpenDest {
 - (IBAction)frameToNewWindow:(id)sender
 {
   // assumes mContextMenuNode has been set
-  NSString* frameURL = [self getContextMenuNodeDocumentURL];
+  NSString* frameURL = [self contextMenuNodeDocumentURL];
   if ([frameURL length] > 0)
     [self openNewWindowWithURL:frameURL referrer:nil loadInBackground:NO allowPopups:NO];     // follow the pref?
 }
@@ -3186,7 +3186,7 @@ enum BWCOpenDest {
 - (IBAction)frameToNewTab:(id)sender
 {
   // assumes mContextMenuNode has been set
-  NSString* frameURL = [self getContextMenuNodeDocumentURL];
+  NSString* frameURL = [self contextMenuNodeDocumentURL];
   if ([frameURL length] > 0)
     [self openNewTabWithURL:frameURL referrer:nil loadInBackground:NO allowPopups:NO setJumpback:NO];  // follow the pref?
 }
@@ -3194,7 +3194,7 @@ enum BWCOpenDest {
 - (IBAction)frameToThisWindow:(id)sender
 {
   // assumes mContextMenuNode has been set
-  NSString* frameURL = [self getContextMenuNodeDocumentURL];
+  NSString* frameURL = [self contextMenuNodeDocumentURL];
   if ([frameURL length] > 0)
     [self loadURL:frameURL];
 }
@@ -3223,7 +3223,7 @@ enum BWCOpenDest {
   *outEditor = nsnull;
 
   nsCOMPtr<nsIDOMElement> focusedElement =
-    dont_AddRef([[[self getBrowserWrapper] getBrowserView] getFocusedDOMElement]);
+    dont_AddRef([[[self browserWrapper] browserView] focusedDOMElement]);
   nsCOMPtr<nsIDOMNSEditableElement> editElement = do_QueryInterface(focusedElement);
   if (editElement) {
     editElement->GetEditor(outEditor);
@@ -3232,7 +3232,7 @@ enum BWCOpenDest {
   else {
     #define ENSURE_TRUE(x) if (!x) return;
     nsCOMPtr<nsIFocusController> controller =
-      dont_AddRef([[[self getBrowserWrapper] getBrowserView] getFocusController]);
+      dont_AddRef([[[self browserWrapper] browserView] focusController]);
     ENSURE_TRUE(controller);
     nsCOMPtr<nsIDOMWindowInternal> winInternal;
     controller->GetFocusedWindow(getter_AddRefs(winInternal));
@@ -3498,12 +3498,12 @@ enum BWCOpenDest {
     mBrowserView = nil;
 }
 
--(BrowserTabView*)getTabBrowser
+-(BrowserTabView*)tabBrowser
 {
   return mTabBrowser;
 }
 
--(BrowserWrapper*)getBrowserWrapper
+-(BrowserWrapper*)browserWrapper
 {
   return mBrowserView;
 }
@@ -3580,7 +3580,7 @@ enum BWCOpenDest {
   if (!inLoadInBG)
     [mTabBrowser setJumpbackTab:previouslySelected];
 
-  return [[newTab view] getBrowserView];
+  return [[newTab view] browserView];
 }
 
 //
@@ -3620,13 +3620,13 @@ enum BWCOpenDest {
 -(void)openNewWindowWithDescriptor:(nsISupports*)aDesc displayType:(PRUint32)aDisplayType loadInBackground:(BOOL)aLoadInBG
 {
   BrowserWindowController* browser = [self openNewWindow:aLoadInBG];
-  [[[browser getBrowserWrapper] getBrowserView] setPageDescriptor:aDesc displayType:aDisplayType];
+  [[[browser browserWrapper] browserView] setPageDescriptor:aDesc displayType:aDisplayType];
 }
 
 -(void)openNewTabWithDescriptor:(nsISupports*)aDesc displayType:(PRUint32)aDisplayType loadInBackground:(BOOL)aLoadInBG
 {
   BrowserTabViewItem* newTab = [self openNewTab:aLoadInBG];
-  [[[newTab view] getBrowserView] setPageDescriptor:aDesc displayType:aDisplayType];
+  [[[newTab view] browserView] setPageDescriptor:aDesc displayType:aDisplayType];
 }
 
 - (void)openURLArray:(NSArray*)urlArray tabOpenPolicy:(ETabOpenPolicy)tabPolicy allowPopups:(BOOL)inAllowPopups
@@ -3731,44 +3731,44 @@ enum BWCOpenDest {
 
 - (BOOL)canMakeTextBigger
 {
-  BrowserWrapper* wrapper = [self getBrowserWrapper];
+  BrowserWrapper* wrapper = [self browserWrapper];
   return (![wrapper isEmpty] &&
           ![self bookmarkManagerIsVisible] &&
-          [[wrapper getBrowserView] isTextBasedContent] &&
-          [[wrapper getBrowserView] canMakeTextBigger]);
+          [[wrapper browserView] isTextBasedContent] &&
+          [[wrapper browserView] canMakeTextBigger]);
 }
 
 - (BOOL)canMakeTextSmaller
 {
-  BrowserWrapper* wrapper = [self getBrowserWrapper];
+  BrowserWrapper* wrapper = [self browserWrapper];
   return (![wrapper isEmpty] &&
           ![self bookmarkManagerIsVisible] &&
-          [[wrapper getBrowserView] isTextBasedContent] &&
-          [[wrapper getBrowserView] canMakeTextSmaller]);
+          [[wrapper browserView] isTextBasedContent] &&
+          [[wrapper browserView] canMakeTextSmaller]);
 }
 
 - (BOOL)canMakeTextDefaultSize
 {
-  BrowserWrapper* wrapper = [self getBrowserWrapper];
+  BrowserWrapper* wrapper = [self browserWrapper];
   return (![wrapper isEmpty] &&
           ![self bookmarkManagerIsVisible] &&
-          [[wrapper getBrowserView] isTextBasedContent] &&
-          ![[wrapper getBrowserView] isTextDefaultSize]);
+          [[wrapper browserView] isTextBasedContent] &&
+          ![[wrapper browserView] isTextDefaultSize]);
 }
 
 - (IBAction)makeTextBigger:(id)aSender
 {
-  [[mBrowserView getBrowserView] makeTextBigger];
+  [[mBrowserView browserView] makeTextBigger];
 }
 
 - (IBAction)makeTextSmaller:(id)aSender
 {
-  [[mBrowserView getBrowserView] makeTextSmaller];
+  [[mBrowserView browserView] makeTextSmaller];
 }
 
 - (IBAction)makeTextDefaultSize:(id)aSender
 {
-  [[mBrowserView getBrowserView] makeTextDefaultSize];
+  [[mBrowserView browserView] makeTextDefaultSize];
 }
 
 - (IBAction)getInfo:(id)sender
@@ -3826,7 +3826,7 @@ enum BWCOpenDest {
 // Returns the text of the href attribute for the link the context menu is
 // currently on. Returns an empty string if the context menu is not on a
 // link or we couldn't work out the href for some other reason.
-- (NSString*)getContextMenuNodeHrefText
+- (NSString*)contextMenuNodeHrefText
 {
   if (!mDataOwner->mContextMenuNode)
     return @"";
@@ -3850,7 +3850,7 @@ enum BWCOpenDest {
 //
 - (NSArray*)mailAddressesInContextMenuLinkNode
 {
-  NSString* hrefStr = [self getContextMenuNodeHrefText];
+  NSString* hrefStr = [self contextMenuNodeHrefText];
   
   if ([hrefStr hasPrefix:@"mailto:"]) {
     NSString* linkTargetText = [hrefStr substringFromIndex:7];
@@ -3909,7 +3909,7 @@ enum BWCOpenDest {
     addToAddressBookItem = [[NSMenuItem alloc] init];
 
     if ([[ABAddressBook sharedAddressBook] emailAddressExistsInAddressBook:emailAddress]) {
-      NSString* realName = [[ABAddressBook sharedAddressBook] getRealNameForEmailAddress:emailAddress];
+      NSString* realName = [[ABAddressBook sharedAddressBook] realNameForEmailAddress:emailAddress];
       [addToAddressBookItem setTitle:[NSString stringWithFormat:NSLocalizedString(@"Open %@ in Address Book", @""), realName != nil ? realName : @""]];
     } else {
       [addToAddressBookItem setTitle:[NSString stringWithFormat:NSLocalizedString(@"Add %@ to Address Book", @""), emailAddress]];
@@ -3937,7 +3937,7 @@ enum BWCOpenDest {
   NSArray* emailAddresses = nil;
   unsigned numEmailAddresses = 0;
 
-  BOOL hasSelection = [[mBrowserView getBrowserView] canCopy];
+  BOOL hasSelection = [[mBrowserView browserView] canCopy];
   BOOL isMidas = NO;
 
   if (mDataOwner->mContextMenuNode) {
@@ -3954,7 +3954,7 @@ enum BWCOpenDest {
 
     // If it's not a Midas frame, check to see if it's a subframe
     if (!isMidas) {
-      nsCOMPtr<nsIDOMWindow> contentWindow = [[mBrowserView getBrowserView] getContentWindow];
+      nsCOMPtr<nsIDOMWindow> contentWindow = [[mBrowserView browserView] contentWindow];
 
       nsCOMPtr<nsIDOMDocument> contentDoc;
       if (contentWindow)
@@ -3973,7 +3973,7 @@ enum BWCOpenDest {
       numEmailAddresses = [emailAddresses count];
 
     // Verify that it is safe to open this link.
-    NSString* referrerURL = [[mBrowserView getBrowserView] getFocusedURLString];
+    NSString* referrerURL = [[mBrowserView browserView] focusedURLString];
     nsCOMPtr<nsIDOMElement> linkElement;
     nsAutoString hrefURL;
     GeckoUtils::GetEnclosingLinkElementAndHref(mDataOwner->mContextMenuNode,
@@ -4043,8 +4043,8 @@ enum BWCOpenDest {
     // show the document menu. This prevents us from failing to find a case
     // and not showing the context menu.
     menuPrototype = mPageMenu;
-    [mBackItem    setEnabled: [[mBrowserView getBrowserView] canGoBack]];
-    [mForwardItem setEnabled: [[mBrowserView getBrowserView] canGoForward]];
+    [mBackItem    setEnabled: [[mBrowserView browserView] canGoBack]];
+    [mForwardItem setEnabled: [[mBrowserView browserView] canGoForward]];
     [mCopyItem    setEnabled:hasSelection];
   }
 
@@ -4059,14 +4059,14 @@ enum BWCOpenDest {
   }
 
   // validate View Page/Frame Source
-  BrowserWrapper* browser = [self getBrowserWrapper];
-  if ([browser isInternalURI] || ![[browser getBrowserView] isTextBasedContent]) {
+  BrowserWrapper* browser = [self browserWrapper];
+  if ([browser isInternalURI] || ![[browser browserView] isTextBasedContent]) {
     [[result itemWithTarget:self andAction:@selector(viewPageSource:)] setEnabled:NO];
     [[result itemWithTarget:self andAction:@selector(viewSource:)] setEnabled:NO];
   }
 
   // validate 'Bookmark This Page'
-  [[result itemWithTarget:self andAction:@selector(addBookmark:)] setEnabled:[[self getBrowserWrapper] isBookmarkable]];
+  [[result itemWithTarget:self andAction:@selector(addBookmark:)] setEnabled:[[self browserWrapper] isBookmarkable]];
 
   if (showSpellingItems)
     showSpellingItems = [self prepareSpellingSuggestionMenu:result tag:kSpellingRelatedItemsTag];
@@ -4376,14 +4376,14 @@ enum BWCOpenDest {
 
 -(void)openLinkInNewWindowOrTab:(BOOL)aUseWindow
 {
-  NSString* hrefStr = [self getContextMenuNodeHrefText];
+  NSString* hrefStr = [self contextMenuNodeHrefText];
 
   if ([hrefStr length] == 0)
     return;
 
   BOOL loadInBackground = [BrowserWindowController shouldLoadInBackground:nil];
 
-  NSString* referrer = [[mBrowserView getBrowserView] getFocusedURLString];
+  NSString* referrer = [[mBrowserView browserView] focusedURLString];
 
   if (aUseWindow)
     [self openNewWindowWithURL: hrefStr referrer:referrer loadInBackground: loadInBackground allowPopups:NO];
@@ -4393,19 +4393,19 @@ enum BWCOpenDest {
 
 - (IBAction)savePageAs:(id)aSender
 {
-  NSView* accessoryView = [[NSApp delegate] getSavePanelView];
+  NSView* accessoryView = [[NSApp delegate] savePanelView];
   [self saveDocument:NO filterView:accessoryView];
 }
 
 - (IBAction)saveFrameAs:(id)aSender
 {
-  NSView* accessoryView = [[NSApp delegate] getSavePanelView];
+  NSView* accessoryView = [[NSApp delegate] savePanelView];
   [self saveDocument:YES filterView:accessoryView];
 }
 
 - (IBAction)saveLinkAs:(id)aSender
 {
-  NSString* hrefStr = [self getContextMenuNodeHrefText];
+  NSString* hrefStr = [self contextMenuNodeHrefText];
   if ([hrefStr length] == 0)
     return;
 
@@ -4433,7 +4433,7 @@ enum BWCOpenDest {
 
 - (IBAction)copyImage:(id)sender
 {
-  nsCOMPtr<nsIWebBrowser> webBrowser = getter_AddRefs([[[self getBrowserWrapper] getBrowserView] getWebBrowser]);
+  nsCOMPtr<nsIWebBrowser> webBrowser = dont_AddRef([[[self browserWrapper] browserView] webBrowser]);
   nsCOMPtr<nsICommandManager> commandMgr(do_GetInterface(webBrowser));
   if (!commandMgr)
     return;
@@ -4443,7 +4443,7 @@ enum BWCOpenDest {
 
 - (IBAction)copyImageLocation:(id)sender
 {
-  nsCOMPtr<nsIWebBrowser> webBrowser = getter_AddRefs([[[self getBrowserWrapper] getBrowserView] getWebBrowser]);
+  nsCOMPtr<nsIWebBrowser> webBrowser = dont_AddRef([[[self browserWrapper] browserView] webBrowser]);
   nsCOMPtr<nsIClipboardCommands> clipboard(do_GetInterface(webBrowser));
   if (clipboard)
     clipboard->CopyImageLocation();
@@ -4451,7 +4451,7 @@ enum BWCOpenDest {
 
 - (IBAction)copyLinkLocation:(id)aSender
 {
-  nsCOMPtr<nsIWebBrowser> webBrowser = getter_AddRefs([[[self getBrowserWrapper] getBrowserView] getWebBrowser]);
+  nsCOMPtr<nsIWebBrowser> webBrowser = dont_AddRef([[[self browserWrapper] browserView] webBrowser]);
   nsCOMPtr<nsIClipboardCommands> clipboard(do_GetInterface(webBrowser));
   if (clipboard)
     clipboard->CopyLinkLocation();
@@ -4465,7 +4465,7 @@ enum BWCOpenDest {
     imgElement->GetSrc(url);
 
     NSString* urlStr = [NSString stringWith_nsAString: url];
-    NSString* referrer = [[mBrowserView getBrowserView] getFocusedURLString];
+    NSString* referrer = [[mBrowserView browserView] focusedURLString];
 
     unsigned int modifiers = [aSender keyEquivalentModifierMask];
 
@@ -4486,7 +4486,7 @@ enum BWCOpenDest {
 {
   PageInfoWindowController* pageInfoController = [PageInfoWindowController sharedPageInfoWindowController];
 
-  [pageInfoController updateFromBrowserView:[[self getBrowserWrapper] getBrowserView]];
+  [pageInfoController updateFromBrowserView:[[self browserWrapper] browserView]];
   [[pageInfoController window] makeKeyAndOrderFront:nil];
 }
 
@@ -4646,7 +4646,7 @@ enum BWCOpenDest {
 
 - (CHBrowserView*)activeBrowserView
 {
-  return [mBrowserView getBrowserView];
+  return [mBrowserView browserView];
 }
 
 - (id)windowWillReturnFieldEditor:(NSWindow *)aWindow toObject:(id)anObject
@@ -4783,8 +4783,8 @@ enum BWCOpenDest {
 //
 - (IBAction)fillForm:(id)sender
 {
-  CHBrowserView* browser = [[self getBrowserWrapper] getBrowserView];
-  nsCOMPtr<nsIDOMWindow> domWindow = [browser getContentWindow];
+  CHBrowserView* browser = [[self browserWrapper] browserView];
+  nsCOMPtr<nsIDOMWindow> domWindow = [browser contentWindow];
   nsCOMPtr<nsIDOMWindowInternal> internalDomWindow (do_QueryInterface(domWindow));
   
   Wallet_Prefill(internalDomWindow);
@@ -4928,7 +4928,7 @@ int TabBarVisiblePrefChangedCallback(const char* inPref, void* inBWC)
   if (strcmp(inPref, gTabBarVisiblePref) == 0) {
     BOOL newValue = [[PreferenceManager sharedInstance] getBooleanPref:gTabBarVisiblePref withSuccess:nil];
     BrowserWindowController* bwc = (BrowserWindowController*)inBWC;
-    [[bwc getTabBrowser] setBarAlwaysVisible:newValue];
+    [[bwc tabBrowser] setBarAlwaysVisible:newValue];
   }
   return NS_OK;
 }

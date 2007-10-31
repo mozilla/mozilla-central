@@ -91,7 +91,7 @@ const int kLabelCheckboxAdjustment = 2; // # pixels the label must be pushed dow
 
 - (int)runModalWindow:(NSWindow*)inDialog relativeToWindow:(NSWindow*)inParentWindow;
 
-- (NSPanel*)getAlertPanelWithTitle:(NSString*)title
+- (NSPanel*)alertPanelWithTitle:(NSString*)title
         message:(NSString*)message
         defaultButton:(NSString*)defaultLabel
         altButton:(NSString*)altLabel
@@ -101,14 +101,14 @@ const int kLabelCheckboxAdjustment = 2; // # pixels the label must be pushed dow
         
 - (NSButton*)makeButtonWithTitle:(NSString*)title;
 
-- (float)getContentWidthWithDefaultButton:(NSString*)defStr alternateButton:(NSString*)altStr otherButton:(NSString*)otherStr;
-- (NSTextField*)getTitleView:(NSString*)title withWidth:(float)width;
-- (NSTextField*)getLabelView:(NSString*)title withWidth:(float)width;
-- (NSView*)getLoginField:(NSTextField**)field withWidth:(float)width;
-- (NSView*)getPasswordField:(NSSecureTextField**)field withWidth:(float)width;
-- (int)getLoginTextLabelSize;
-- (NSView*)getMessageView:(NSString*)message withWidth:(float)width maxHeight:(float)maxHeight smallFont:(BOOL)useSmallFont;
-- (NSView*)getCheckboxView:(NSButton**)checkBox withLabel:(NSString*)label andWidth:(float)width;
+- (float)contentWidthWithDefaultButton:(NSString*)defStr alternateButton:(NSString*)altStr otherButton:(NSString*)otherStr;
+- (NSTextField*)titleView:(NSString*)title withWidth:(float)width;
+- (NSTextField*)labelView:(NSString*)title withWidth:(float)width;
+- (NSView*)loginField:(NSTextField**)field withWidth:(float)width;
+- (NSView*)passwordField:(NSSecureTextField**)field withWidth:(float)width;
+- (int)loginTextLabelSize;
+- (NSView*)messageView:(NSString*)message withWidth:(float)width maxHeight:(float)maxHeight smallFont:(BOOL)useSmallFont;
+- (NSView*)checkboxView:(NSButton**)checkBox withLabel:(NSString*)label andWidth:(float)width;
 
 -(void)tester:(id)sender;
 
@@ -168,7 +168,13 @@ const int kLabelCheckboxAdjustment = 2; // # pixels the label must be pushed dow
 
 - (void)alert:(NSWindow*)parent title:(NSString*)title text:(NSString*)text
 { 
-  NSPanel* panel = [self getAlertPanelWithTitle: title message: text defaultButton: NSLocalizedString(@"OKButtonText", @"") altButton: nil otherButton: nil extraView: nil lastResponder:nil];
+  NSPanel* panel = [self alertPanelWithTitle:title
+                                     message:text
+                               defaultButton:NSLocalizedString(@"OKButtonText", nil)
+                                   altButton:nil
+                                 otherButton:nil
+                                   extraView:nil
+                               lastResponder:nil];
   [self runModalWindow:panel relativeToWindow:parent];
   [panel close];
 }
@@ -177,13 +183,21 @@ const int kLabelCheckboxAdjustment = 2; // # pixels the label must be pushed dow
 {
   //  set up check box view
   NSButton* checkBox = nil;
-  float width = [self getContentWidthWithDefaultButton: NSLocalizedString(@"OKButtonText", @"") alternateButton: nil otherButton: nil];
-  NSView* checkboxView = [self getCheckboxView: &checkBox withLabel: checkMsg andWidth: width];
+  float width = [self contentWidthWithDefaultButton:NSLocalizedString(@"OKButtonText", nil)
+                                    alternateButton:nil
+                                        otherButton:nil];
+  NSView* checkboxView = [self checkboxView:&checkBox withLabel:checkMsg andWidth:width];
   int state = (*checkValue ? NSOnState : NSOffState);
   [checkBox setState:state];
   
   //  get panel and display it
-  NSPanel* panel = [self getAlertPanelWithTitle: title message: text defaultButton: NSLocalizedString(@"OKButtonText", @"") altButton: nil otherButton: nil extraView: checkboxView lastResponder: checkBox];
+  NSPanel* panel = [self alertPanelWithTitle:title
+                                     message:text
+                               defaultButton:NSLocalizedString(@"OKButtonText", nil)
+                                   altButton:nil
+                                 otherButton:nil
+                                   extraView:checkboxView
+                               lastResponder:checkBox];
   [panel setInitialFirstResponder: checkBox];
 
   [self runModalWindow:panel relativeToWindow:parent];
@@ -194,7 +208,13 @@ const int kLabelCheckboxAdjustment = 2; // # pixels the label must be pushed dow
 
 - (BOOL)confirm:(NSWindow*)parent title:(NSString*)title text:(NSString*)text
 {
-  NSPanel* panel = [self getAlertPanelWithTitle: title message: text defaultButton: NSLocalizedString(@"OKButtonText", @"") altButton: NSLocalizedString(@"CancelButtonText", @"") otherButton: nil extraView: nil lastResponder: nil];
+  NSPanel* panel = [self alertPanelWithTitle:title
+                                     message:text
+                               defaultButton:NSLocalizedString(@"OKButtonText", nil)
+                                   altButton:NSLocalizedString(@"CancelButtonText", nil)
+                                 otherButton:nil
+                                   extraView:nil
+                               lastResponder:nil];
   
   int result = [self runModalWindow:panel relativeToWindow:parent];
   
@@ -211,13 +231,21 @@ const int kLabelCheckboxAdjustment = 2; // # pixels the label must be pushed dow
 
   //  set up check box view
   NSButton* checkBox = nil;
-  float width = [self getContentWidthWithDefaultButton: okButton alternateButton: cancelButton otherButton: nil];
-  NSView* checkboxView = [self getCheckboxView: &checkBox withLabel: checkMsg andWidth: width];
+  float width = [self contentWidthWithDefaultButton:okButton
+                                    alternateButton:cancelButton
+                                        otherButton:nil];
+  NSView* checkboxView = [self checkboxView:&checkBox withLabel:checkMsg andWidth:width];
   int state = (*checkValue ? NSOnState : NSOffState);
   [checkBox setState:state];
   
   //  get panel and display it
-  NSPanel* panel = [self getAlertPanelWithTitle: title message: text defaultButton: okButton altButton: cancelButton otherButton: nil extraView: checkboxView lastResponder: checkBox];
+  NSPanel* panel = [self alertPanelWithTitle:title
+                                     message:text
+                               defaultButton:okButton
+                                   altButton:cancelButton
+                                 otherButton:nil
+                                   extraView:checkboxView
+                               lastResponder:checkBox];
   [panel setInitialFirstResponder: checkBox];
 
   int result = [self runModalWindow:panel relativeToWindow:parent];
@@ -230,7 +258,13 @@ const int kLabelCheckboxAdjustment = 2; // # pixels the label must be pushed dow
 
 - (int)confirmEx:(NSWindow*)parent title:(NSString*)title text:(NSString*)text button1:(NSString*)btn1 button2:(NSString*)btn2 button3:(NSString*)btn3
 {
-   NSPanel* panel = [self getAlertPanelWithTitle: title message: text defaultButton: btn1 altButton: btn2 otherButton: btn3 extraView: nil lastResponder: nil];
+   NSPanel* panel = [self alertPanelWithTitle:title
+                                      message:text
+                                defaultButton:btn1
+                                    altButton:btn2
+                                  otherButton:btn3
+                                    extraView:nil
+                                lastResponder:nil];
 
   int result = [self runModalWindow:panel relativeToWindow:parent];
 
@@ -242,13 +276,21 @@ const int kLabelCheckboxAdjustment = 2; // # pixels the label must be pushed dow
 {
   //  set up check box view
   NSButton* checkBox = nil;
-  float width = [self getContentWidthWithDefaultButton: btn1 alternateButton: btn2 otherButton: btn3];
-  NSView* checkboxView = [self getCheckboxView: &checkBox withLabel: checkMsg andWidth: width];
+  float width = [self contentWidthWithDefaultButton:btn1
+                                    alternateButton:btn2
+                                        otherButton:btn3];
+  NSView* checkboxView = [self checkboxView:&checkBox withLabel:checkMsg andWidth:width];
   int state = (*checkValue ? NSOnState : NSOffState);
 	[checkBox setState:state];
   
   //  get panel and display it
-  NSPanel* panel = [self getAlertPanelWithTitle: title message: text defaultButton: btn1 altButton: btn2 otherButton: btn3 extraView: checkboxView lastResponder: checkBox];
+  NSPanel* panel = [self alertPanelWithTitle:title 
+                                     message:text
+                               defaultButton:btn1
+                                   altButton:btn2
+                                 otherButton:btn3
+                                   extraView:checkboxView
+                               lastResponder:checkBox];
   [panel setInitialFirstResponder: checkBox];
 
   int result = [self runModalWindow:panel relativeToWindow:parent];
@@ -264,7 +306,9 @@ const int kLabelCheckboxAdjustment = 2; // # pixels the label must be pushed dow
 {
   NSString* okButton = NSLocalizedString(@"OKButtonText", @"");
   NSString* cancelButton = NSLocalizedString(@"CancelButtonText", @"");
-  float width = [self getContentWidthWithDefaultButton: okButton alternateButton: cancelButton otherButton: nil];
+  float width = [self contentWidthWithDefaultButton:okButton
+                                    alternateButton:cancelButton
+                                        otherButton:nil];
   NSView* extraView = [[[NSView alloc] initWithFrame: NSMakeRect(0, 0, width, kTextFieldHeight)] autorelease];;
 
   //  set up input field
@@ -283,7 +327,7 @@ const int kLabelCheckboxAdjustment = 2; // # pixels the label must be pushed dow
   NSButton* checkBox = nil;  
   if (doCheck) {
     int state = (*checkValue ? NSOnState : NSOffState);
-    NSView* checkboxView = [self getCheckboxView: &checkBox withLabel: checkMsg andWidth: width];
+    NSView* checkboxView = [self checkboxView:&checkBox withLabel:checkMsg andWidth:width];
     [checkBox setState:state];
     [checkboxView setFrameOrigin: NSMakePoint(0, 0)];
     [extraView setFrameSize: NSMakeSize(width, kTextFieldHeight + kGeneralViewSpace + NSHeight([checkboxView frame]))];
@@ -293,7 +337,13 @@ const int kLabelCheckboxAdjustment = 2; // # pixels the label must be pushed dow
     
   //  get panel and display it
   NSView* lastResponder = (doCheck ? (NSView*)checkBox : (NSView*)field);
-  NSPanel* panel = [self getAlertPanelWithTitle: title message: text defaultButton: okButton altButton: cancelButton otherButton: nil extraView: extraView lastResponder:lastResponder];
+  NSPanel* panel = [self alertPanelWithTitle:title
+                                     message:text
+                               defaultButton:okButton
+                                   altButton:cancelButton
+                                 otherButton:nil
+                                   extraView:extraView
+                               lastResponder:lastResponder];
   [panel setInitialFirstResponder: field];
 
   int result = [self runModalWindow:panel relativeToWindow:parent];
@@ -313,12 +363,14 @@ const int kLabelCheckboxAdjustment = 2; // # pixels the label must be pushed dow
 {
   NSString* okButton = NSLocalizedString(@"OKButtonText", @"");
   NSString* cancelButton = NSLocalizedString(@"CancelButtonText", @"");
-  float width = [self getContentWidthWithDefaultButton: okButton alternateButton: cancelButton otherButton: nil];
+  float width = [self contentWidthWithDefaultButton:okButton
+                                    alternateButton:cancelButton
+                                        otherButton:nil];
   NSView* extraView = [[[NSView alloc] initWithFrame: NSMakeRect(0, 0, width, 2*kTextFieldHeight + kGeneralViewSpace)] autorelease];
 
   //  set up username field
   NSTextField* userField = nil;
-  NSView* userView = [self getLoginField: &userField withWidth: width];
+  NSView* userView = [self loginField:&userField withWidth:width];
   [userView setAutoresizingMask: NSViewMinYMargin];
   [userView setFrameOrigin: NSMakePoint(0, kTextFieldHeight + kGeneralViewSpace)];
   [userField setStringValue: userNameText];
@@ -327,7 +379,7 @@ const int kLabelCheckboxAdjustment = 2; // # pixels the label must be pushed dow
   
   //  set up password field
   NSSecureTextField* passField = nil;
-  NSView* passView = [self getPasswordField: &passField withWidth: width];
+  NSView* passView = [self passwordField:&passField withWidth:width];
   [passView setAutoresizingMask: NSViewMinYMargin];
   [passView setFrameOrigin: NSMakePoint(0, 0)];
   [passField setStringValue: passwordText];
@@ -338,7 +390,7 @@ const int kLabelCheckboxAdjustment = 2; // # pixels the label must be pushed dow
   NSButton* checkBox = nil;  
   if (doCheck) {
     int state = (*checkValue ? NSOnState : NSOffState);
-    NSView* checkboxView = [self getCheckboxView: &checkBox withLabel: checkMsg andWidth: width];
+    NSView* checkboxView = [self checkboxView:&checkBox withLabel:checkMsg andWidth:width];
     [checkBox setState:state];
     [checkboxView setFrameOrigin: NSMakePoint(0, 0)];
     [extraView setFrameSize: NSMakeSize(width,  2*kTextFieldHeight + 2*kGeneralViewSpace + NSHeight([checkboxView frame]))];
@@ -348,7 +400,13 @@ const int kLabelCheckboxAdjustment = 2; // # pixels the label must be pushed dow
     
   //  get panel and display it
   NSView* lastResponder = (doCheck ? (NSView*)checkBox : (NSView*)passField);
-  NSPanel* panel = [self getAlertPanelWithTitle: title message: text defaultButton: okButton altButton: cancelButton otherButton: nil extraView: extraView lastResponder:lastResponder];
+  NSPanel* panel = [self alertPanelWithTitle:title
+                                     message:text
+                               defaultButton:okButton
+                                   altButton:cancelButton
+                                 otherButton:nil
+                                   extraView:extraView
+                               lastResponder:lastResponder];
   [panel setInitialFirstResponder: userField];
 
   int result = [self runModalWindow:panel relativeToWindow:parent];
@@ -369,12 +427,14 @@ const int kLabelCheckboxAdjustment = 2; // # pixels the label must be pushed dow
 {
   NSString* okButton = NSLocalizedString(@"OKButtonText", @"");
   NSString* cancelButton = NSLocalizedString(@"CancelButtonText", @"");
-  float width = [self getContentWidthWithDefaultButton: okButton alternateButton: cancelButton otherButton: nil];
+  float width = [self contentWidthWithDefaultButton:okButton
+                                    alternateButton:cancelButton
+                                        otherButton:nil];
   NSView* extraView = [[[NSView alloc] initWithFrame: NSMakeRect(0, 0, width, kTextFieldHeight)] autorelease];;
 
   //  set up input field
   NSSecureTextField* passField = nil;
-  NSView* passView = [self getPasswordField: &passField withWidth: width];
+  NSView* passView = [self passwordField:&passField withWidth:width];
   [passView setAutoresizingMask: NSViewMinYMargin];
   [passView setFrameOrigin: NSMakePoint(0, 0)];
   [passField setStringValue: passwordText];
@@ -385,7 +445,7 @@ const int kLabelCheckboxAdjustment = 2; // # pixels the label must be pushed dow
   NSButton* checkBox = nil;  
   if (doCheck) {
     int state = (*checkValue ? NSOnState : NSOffState);
-    NSView* checkboxView = [self getCheckboxView: &checkBox withLabel: checkMsg andWidth: width];
+    NSView* checkboxView = [self checkboxView:&checkBox withLabel:checkMsg andWidth:width];
     [checkBox setState:state];
     [checkboxView setFrameOrigin: NSMakePoint(0, 0)];
     [extraView setFrameSize: NSMakeSize(width, kTextFieldHeight + kGeneralViewSpace + NSHeight([checkboxView frame]))];
@@ -395,7 +455,13 @@ const int kLabelCheckboxAdjustment = 2; // # pixels the label must be pushed dow
     
   //  get panel and display it
   NSView* lastResponder = (doCheck ? (NSView*)checkBox : (NSView*)passField);
-  NSPanel* panel = [self getAlertPanelWithTitle: title message: text defaultButton: okButton altButton: cancelButton otherButton: nil extraView: extraView lastResponder:lastResponder];
+  NSPanel* panel = [self alertPanelWithTitle:title
+                                     message:text
+                               defaultButton:okButton
+                                   altButton:cancelButton
+                                 otherButton:nil
+                                   extraView:extraView
+                               lastResponder:lastResponder];
   [panel setInitialFirstResponder: passField];
 
   int result = [self runModalWindow:panel relativeToWindow:parent];
@@ -445,7 +511,9 @@ const int kLabelCheckboxAdjustment = 2; // # pixels the label must be pushed dow
 
 // The content width is determined by how much space is needed to display all 3 buttons,
 // since every other view in the dialog can wrap if necessary
-- (float)getContentWidthWithDefaultButton:(NSString*)defStr alternateButton:(NSString*)altStr otherButton:(NSString*)otherStr
+- (float)contentWidthWithDefaultButton:(NSString*)defStr
+                       alternateButton:(NSString*)altStr
+                           otherButton:(NSString*)otherStr
 {
   NSButton* defButton = [self makeButtonWithTitle: defStr];
   NSButton* altButton = [self makeButtonWithTitle: altStr];
@@ -462,9 +530,13 @@ const int kLabelCheckboxAdjustment = 2; // # pixels the label must be pushed dow
   return (minContentWidth > buttonWidth) ? minContentWidth : buttonWidth;
 }
 
-- (NSPanel*)getAlertPanelWithTitle:(NSString*)title message:(NSString*)message
-                defaultButton:(NSString*)defaultLabel altButton:(NSString*)altLabel
-                otherButton:(NSString*)otherLabel extraView:(NSView*)extraView lastResponder:(NSView*)lastResponder
+- (NSPanel*)alertPanelWithTitle:(NSString*)title
+                        message:(NSString*)message
+                  defaultButton:(NSString*)defaultLabel
+                      altButton:(NSString*)altLabel
+                    otherButton:(NSString*)otherLabel
+                      extraView:(NSView*)extraView
+                  lastResponder:(NSView*)lastResponder
 {
   NSRect rect = NSMakeRect(0, 0, kMinDialogWidth, kMaxDialogHeight);
   NSPanel* panel = [[[NSPanel alloc] initWithContentRect: rect styleMask: NSTitledWindowMask backing: NSBackingStoreBuffered defer: YES] autorelease];
@@ -532,14 +604,16 @@ const int kLabelCheckboxAdjustment = 2; // # pixels the label must be pushed dow
   //  contentWidth is the width of the area with text, buttons, etc
   //  windowWidth is the total window width (contentWidth + margins + icon)
   
-  float contentWidth = [self getContentWidthWithDefaultButton: defaultLabel alternateButton: altLabel otherButton: otherLabel];
+  float contentWidth = [self contentWidthWithDefaultButton:defaultLabel
+                                           alternateButton:altLabel
+                                               otherButton:otherLabel];
   float windowWidth = kIconSize + kIconMargin + 2*kWindowBorder + contentWidth;
   if (windowWidth < kMinDialogWidth)
     windowWidth = kMinDialogWidth;
 
   //  get the height of all elements, and set the window height
   
-  NSTextField* titleField = [self getTitleView: title withWidth: contentWidth];
+  NSTextField* titleField = [self titleView:title withWidth:contentWidth];
   
   float titleHeight = [title length] ? NSHeight([titleField frame]) : 0;
   float extraViewHeight = (extraView) ? NSHeight([extraView frame]) : 0;
@@ -548,7 +622,10 @@ const int kLabelCheckboxAdjustment = 2; // # pixels the label must be pushed dow
     totalHeight += extraViewHeight + kGeneralViewSpace;
   
   float maxMessageHeight = kMaxDialogHeight - totalHeight;
-  NSView* messageView = [self getMessageView: message withWidth: contentWidth maxHeight: maxMessageHeight smallFont:[title length]];
+  NSView* messageView = [self messageView:message
+                                withWidth:contentWidth
+                                maxHeight:maxMessageHeight
+                                smallFont:[title length]];
   float messageHeight = NSHeight([messageView frame]);
   totalHeight += messageHeight;
   
@@ -622,7 +699,7 @@ const int kLabelCheckboxAdjustment = 2; // # pixels the label must be pushed dow
 }
 
 
-- (NSTextField*)getTitleView:(NSString*)title withWidth:(float)width
+- (NSTextField*)titleView:(NSString*)title withWidth:(float)width
 {
   NSTextView* textView = [[[NSTextView alloc] initWithFrame: NSMakeRect(0, 0, width, 100)] autorelease];		
   [textView setString: title];
@@ -646,7 +723,7 @@ const int kLabelCheckboxAdjustment = 2; // # pixels the label must be pushed dow
   return field;
 }
 
-- (NSTextField*)getLabelView:(NSString*)title withWidth:(float)width
+- (NSTextField*)labelView:(NSString*)title withWidth:(float)width
 {
   NSTextView* textView = [[[NSTextView alloc] initWithFrame: NSMakeRect(0, 0, width, 100)] autorelease];		
   [textView setString: title];
@@ -670,7 +747,10 @@ const int kLabelCheckboxAdjustment = 2; // # pixels the label must be pushed dow
   return field;
 }
 
-- (NSView*)getMessageView:(NSString*)message withWidth:(float)width maxHeight:(float)maxHeight smallFont:(BOOL)useSmallFont
+- (NSView*)getMessageView:(NSString*)message
+                withWidth:(float)width
+                maxHeight:(float)maxHeight 
+                smallFont:(BOOL)useSmallFont
 {
   NSTextView* textView = [[[NSTextView alloc] initWithFrame: NSMakeRect(0, 0, width, 100)] autorelease];		
   [textView setString: message];
@@ -714,9 +794,9 @@ const int kLabelCheckboxAdjustment = 2; // # pixels the label must be pushed dow
   return scrollView;
 }
 
-- (NSView*)getCheckboxView:(NSButton**)checkBoxPtr withLabel:(NSString*)label andWidth:(float)width
+- (NSView*)checkboxView:(NSButton**)checkBoxPtr withLabel:(NSString*)label andWidth:(float)width
 {
-  NSTextField* textField = [self getLabelView: label withWidth: width - kCheckBoxWidth];
+  NSTextField* textField = [self labelView:label withWidth:(width - kCheckBoxWidth)];
   float height = NSHeight([textField frame]);
   
   //  one line of text isn't as tall as the checkbox.  make the view taller, or the checkbox will get clipped
@@ -748,9 +828,9 @@ const int kLabelCheckboxAdjustment = 2; // # pixels the label must be pushed dow
   return view;
 }
 
-- (NSView*)getLoginField:(NSTextField**)fieldPtr withWidth:(float)width
+- (NSView*)loginField:(NSTextField**)fieldPtr withWidth:(float)width
 {
-  int labelSize = [self getLoginTextLabelSize];
+  int labelSize = [self loginTextLabelSize];
   int fieldLeftEdge = labelSize + kFieldLabelSpacer;
 
   NSView* view = [[[NSView alloc] initWithFrame: NSMakeRect(0, 0, width, kTextFieldHeight)] autorelease];
@@ -775,9 +855,9 @@ const int kLabelCheckboxAdjustment = 2; // # pixels the label must be pushed dow
   return view;
 }
 
-- (NSView*)getPasswordField:(NSSecureTextField**)fieldPtr withWidth:(float)width
+- (NSView*)passwordField:(NSSecureTextField**)fieldPtr withWidth:(float)width
 {
-  int labelSize = [self getLoginTextLabelSize];
+  int labelSize = [self loginTextLabelSize];
   int fieldLeftEdge = labelSize + kFieldLabelSpacer;
 
   NSView* view = [[[NSView alloc] initWithFrame: NSMakeRect(0, 0, width, kTextFieldHeight)] autorelease];
@@ -802,7 +882,7 @@ const int kLabelCheckboxAdjustment = 2; // # pixels the label must be pushed dow
   return view;
 }
 
-- (int)getLoginTextLabelSize
+- (int)loginTextLabelSize
 {
   NSTextField* label = [[[NSTextField alloc] initWithFrame: NSMakeRect(0, 0, 200, kStaticTextFieldHeight)] autorelease];
   [[label cell] setControlSize: NSSmallControlSize];

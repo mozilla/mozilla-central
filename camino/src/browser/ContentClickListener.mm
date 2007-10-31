@@ -99,7 +99,7 @@ ContentClickListener::MouseClick(nsIDOMEvent* aEvent)
   NSString* hrefStr = [NSString stringWith_nsAString:href];
 
   if ((metaKey && button == 0) || button == 1) {
-    NSString* referrer = [[[mBrowserController getBrowserWrapper] getBrowserView] getFocusedURLString];
+    NSString* referrer = [[[mBrowserController browserWrapper] browserView] focusedURLString];
 
     NSRange firstColon = [hrefStr rangeOfString:@":"];
     NSString* hrefScheme;

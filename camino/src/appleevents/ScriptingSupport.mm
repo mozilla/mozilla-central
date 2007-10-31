@@ -267,12 +267,12 @@
 // Returns the BrowserWrappers (tabs) in this BrowserWindow (browser window).
 - (NSArray *)tabs
 {
-  return [self valueForKeyPath:@"windowController.getTabBrowser.tabViewItems.view"];
+  return [self valueForKeyPath:@"windowController.tabBrowser.tabViewItems.view"];
 }
 
 - (BrowserWrapper *)currentTab
 {
-  return [self valueForKeyPath:@"windowController.getTabBrowser.selectedTabViewItem.view"];
+  return [self valueForKeyPath:@"windowController.tabBrowser.selectedTabViewItem.view"];
 }
 
 @end
@@ -286,7 +286,7 @@
 - (NSScriptObjectSpecifier *)objectSpecifier
 {
   BrowserWindow *window = (BrowserWindow *)[self nativeWindow];
-  NSArray *tabArray = [window valueForKeyPath:@"windowController.getTabBrowser.tabViewItems.view"];
+  NSArray *tabArray = [window valueForKeyPath:@"windowController.tabBrowser.tabViewItems.view"];
   unsigned index = [tabArray indexOfObjectIdenticalTo:self];
   
   if (index != NSNotFound) {

@@ -185,7 +185,7 @@ class nsIArray;
 
 
 // accessors
-- (CHBrowserView*)getBrowserView;
+- (CHBrowserView*)browserView;
 - (BOOL)isBusy;
 - (BOOL)isEmpty;                      // is about:blank loaded?
 - (BOOL)isInternalURI;

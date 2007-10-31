@@ -98,7 +98,7 @@
 
   id parentWindowController = [[self window] windowController];
   if ([parentWindowController isKindOfClass:[BrowserWindowController class]]) {
-    BrowserWrapper* browserWrapper = [(BrowserWindowController*)parentWindowController getBrowserWrapper];
+    BrowserWrapper* browserWrapper = [(BrowserWindowController*)parentWindowController browserWrapper];
     urlString = [browserWrapper currentURI];
     titleString = [browserWrapper pageTitle];
   }

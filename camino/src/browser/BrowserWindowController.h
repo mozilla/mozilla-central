@@ -180,8 +180,8 @@ typedef enum
   NSTextView *mURLFieldEditor;
 }
 
-- (BrowserTabView*)getTabBrowser;
-- (BrowserWrapper*)getBrowserWrapper;
+- (BrowserTabView*)tabBrowser;
+- (BrowserWrapper*)browserWrapper;
 
 - (void)loadURL:(NSString*)aURLSpec referrer:(NSString*)aReferrer focusContent:(BOOL)focusContent allowPopups:(BOOL)inAllowPopups;
 - (void)loadURL:(NSString*)aURLSpec;
@@ -305,7 +305,7 @@ typedef enum
 - (NSMenuItem*)prepareAddToAddressBookMenuItem:(NSString*)emailAddress;
 - (NSMenu*)contextMenu;
 - (NSArray*)mailAddressesInContextMenuLinkNode;
-- (NSString*)getContextMenuNodeHrefText;
+- (NSString*)contextMenuNodeHrefText;
 
 // Context menu methods
 - (IBAction)openLinkInNewWindow:(id)aSender;

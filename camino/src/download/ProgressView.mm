@@ -132,7 +132,7 @@ NSString* const kDownloadInstanceCancelledNotificationName = @"DownloadInstanceC
   mProgressController = controller;
 }
 
--(ProgressViewController*)getController
+-(ProgressViewController*)controller
 {
   return mProgressController;
 }
@@ -146,7 +146,7 @@ NSString* const kDownloadInstanceCancelledNotificationName = @"DownloadInstanceC
     [self display]; // change selection immediately
     [[NSNotificationCenter defaultCenter] postNotificationName:kDownloadInstanceSelectedNotificationName object:self];
   }
-  return [[self getController] contextualMenu];
+  return [[self controller] contextualMenu];
 }
 
 -(BOOL)performKeyEquivalent:(NSEvent*)theEvent

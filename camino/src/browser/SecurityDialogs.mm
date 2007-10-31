@@ -131,7 +131,7 @@ NS_IMETHODIMP SecurityDialogs::ConfirmDownloadCACert(nsIInterfaceRequestor *ctx,
   [downloadCertDialogController setCertificateItem:[CertificateItem certificateItemWithCert:cert]];
 
   // XXX fix window parenting
-  NSWindow* parentWindow = [(MainController*)[NSApp delegate] getFrontmostBrowserWindow];
+  NSWindow* parentWindow = [(MainController*)[NSApp delegate] frontmostBrowserWindow];
   int result = [nsAlertController safeRunModalForWindow:[downloadCertDialogController window] relativeToWindow:parentWindow];
   if (result == NSAlertDefaultReturn)
   {
@@ -199,7 +199,7 @@ NS_IMETHODIMP SecurityDialogs::SetPKCS12FilePassword(nsIInterfaceRequestor *ctx,
   NSWindow* parentWindow = nil;
   // XXX fix window parenting
 #if 0
-  parentWindow = [(MainController*)[NSApp delegate] getFrontmostBrowserWindow];
+  parentWindow = [(MainController*)[NSApp delegate] frontmostBrowserWindow];
 #endif
 
   int result = [nsAlertController safeRunModalForWindow:[pwDialogController window] relativeToWindow:parentWindow];
@@ -452,7 +452,7 @@ SecurityDialogs::SetPassword(nsIInterfaceRequestor *ctx, const PRUnichar *tokenN
   NSWindow* parentWindow = nil;
   // XXX fix window parenting
 #if 0
-  parentWindow = [(MainController*)[NSApp delegate] getFrontmostBrowserWindow];
+  parentWindow = [(MainController*)[NSApp delegate] frontmostBrowserWindow];
 #endif
   int result = [nsAlertController safeRunModalForWindow:[pwDialogController window] relativeToWindow:parentWindow];
 
@@ -587,7 +587,7 @@ SecurityDialogs::ChooseCertificate(nsIInterfaceRequestor *ctx, const PRUnichar *
   [dialogController setCertificates:certArray];
 
   // XXX fix window parenting
-  NSWindow* parentWindow = [(MainController*)[NSApp delegate] getFrontmostBrowserWindow];
+  NSWindow* parentWindow = [(MainController*)[NSApp delegate] frontmostBrowserWindow];
   int result = [nsAlertController safeRunModalForWindow:[dialogController window] relativeToWindow:parentWindow];
 
   if (result == NSAlertDefaultReturn)
@@ -793,7 +793,7 @@ SecurityDialogs::ConfirmPostToInsecureFromSecure(nsIInterfaceRequestor *ctx,
 
   // Yes there is:
   // nsCOMPtr<nsIDOMWindowInternal> parent = do_GetInterface(ctx);
-  *_result = (PRBool)[controller postToInsecureFromSecure:[(MainController*)[NSApp delegate] getFrontmostBrowserWindow]];
+  *_result = (PRBool)[controller postToInsecureFromSecure:[(MainController*)[NSApp delegate] frontmostBrowserWindow]];
 
   return NS_OK;
 }

@@ -107,31 +107,31 @@ const int kDefaultExpireDays = 9;
 // Clear the user's disk cache
 - (IBAction)clearDiskCache:(id)aSender
 {
-  NSBeginCriticalAlertSheet([self getLocalizedString:@"EmptyCacheTitle"],
-                            [self getLocalizedString:@"EmptyButton"],
-                            [self getLocalizedString:@"CancelButtonText"],
+  NSBeginCriticalAlertSheet([self localizedStringForKey:@"EmptyCacheTitle"],
+                            [self localizedStringForKey:@"EmptyButton"],
+                            [self localizedStringForKey:@"CancelButtonText"],
                             nil,
                             [textFieldHistoryDays window],    // any view will do
                             self,
                             @selector(clearDiskCacheSheetDidEnd:returnCode:contextInfo:),
                             nil,
                             NULL,
-                            [self getLocalizedString:@"EmptyCacheMessage"]);
+                            [self localizedStringForKey:@"EmptyCacheMessage"]);
 }
 
 // use the browser history service to clear out the user's global history
 - (IBAction)clearGlobalHistory:(id)sender
 {
-  NSBeginCriticalAlertSheet([self getLocalizedString:@"ClearHistoryTitle"],
-                            [self getLocalizedString:@"ClearHistoryButton"],
-                            [self getLocalizedString:@"CancelButtonText"],
+  NSBeginCriticalAlertSheet([self localizedStringForKey:@"ClearHistoryTitle"],
+                            [self localizedStringForKey:@"ClearHistoryButton"],
+                            [self localizedStringForKey:@"CancelButtonText"],
                             nil,
                             [textFieldHistoryDays window],    // any view willl do
                             self,
                             @selector(clearGlobalHistorySheetDidEnd:returnCode:contextInfo:),
                             nil,
                             NULL,
-                            [self getLocalizedString:@"ClearHistoryMessage"]);
+                            [self localizedStringForKey:@"ClearHistoryMessage"]);
 }
 
 #pragma mark -

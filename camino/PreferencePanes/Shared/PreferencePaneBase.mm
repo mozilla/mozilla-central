@@ -169,7 +169,7 @@
   }
 }
 
-- (NSString*)getLocalizedString:(NSString*)key
+- (NSString*)localizedStringForKey:(NSString*)key
 {
   return NSLocalizedStringFromTableInBundle(key, nil, [NSBundle bundleForClass:[self class]], @"");
 }

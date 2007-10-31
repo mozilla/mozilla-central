@@ -51,7 +51,7 @@ const int kDefaultExpireDays = 9;
 
 @interface OrgMozillaChimeraPreferenceNavigation(Private)
 
-- (NSString*)getCurrentHomePage;
+- (NSString*)currentHomePage;
 - (void)updateDefaultBrowserMenu;
 - (void)browserSelectionPanelDidEnd:(NSOpenPanel*)sheet returnCode:(int)returnCode contextInfo:(void*)contextInfo;
 - (void)feedSelectionPanelDidEnd:(NSOpenPanel*)sheet returnCode:(int)returnCode contextInfo:(void*)contextInfo;
@@ -101,7 +101,7 @@ const int kDefaultExpireDays = 9;
   if ([self getBooleanPref:"camino.remember_window_state" withSuccess:&gotPref])
     [checkboxRememberWindowState setState:NSOnState];
 
-  [textFieldHomePage setStringValue:[self getCurrentHomePage]];
+  [textFieldHomePage setStringValue:[self currentHomePage]];
 
   // set up default browser menu
   [self updateDefaultBrowserMenu];
@@ -161,7 +161,7 @@ const int kDefaultExpireDays = 9;
     [self setPref:"camino.check_default_browser" toBoolean:([sender state] == NSOnState)];
 }
 
-- (NSString*)getCurrentHomePage
+- (NSString*)currentHomePage
 {
   BOOL gotPref;
   return [self getStringPref:"browser.startup.homepage" withSuccess:&gotPref];

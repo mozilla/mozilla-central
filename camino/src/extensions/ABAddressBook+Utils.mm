@@ -76,7 +76,7 @@
 // specified e-mail address. Returns nil if the e-mail address does not
 // occur in the address book.
 //
-- (NSString*)getRealNameForEmailAddress:(NSString*)emailAddress
+- (NSString*)realNameForEmailAddress:(NSString*)emailAddress
 {
   NSString* realName = nil;
 

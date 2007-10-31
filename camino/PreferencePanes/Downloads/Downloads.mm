@@ -80,7 +80,7 @@ private:
 
 @interface OrgMozillaChimeraPreferenceDownloads(Private)
 
-- (NSString*)getDownloadFolderDescription;
+- (NSString*)downloadFolderDescription;
 - (void)setupDownloadMenuWithPath:(NSString*)inDLPath;
 - (void)setDownloadFolder:(NSString*)inNewFolder;
 
@@ -110,13 +110,13 @@ private:
   [mEnableHelperApps setState:[self getBooleanPref:"browser.download.autoDispatch" withSuccess:&gotPref]];
   [mDownloadRemovalPolicy selectItem:[[mDownloadRemovalPolicy menu] itemWithTag:[self getIntPref:"browser.download.downloadRemoveAction" withSuccess:&gotPref]]];
 
-  NSString* downloadFolderDesc = [self getDownloadFolderDescription];
+  NSString* downloadFolderDesc = [self downloadFolderDescription];
   if ([downloadFolderDesc length] == 0)
-    downloadFolderDesc = [self getLocalizedString:@"MissingDlFolder"];
+    downloadFolderDesc = [self localizedStringForKey:@"MissingDlFolder"];
   
   [self setupDownloadMenuWithPath:downloadFolderDesc];
   
-//  [mDownloadFolder setStringValue:[self getDownloadFolderDescription]];
+//  [mDownloadFolder setStringValue:[self downloadFolderDescription]];
 }
 
 - (IBAction)checkboxClicked:(id)sender
@@ -132,7 +132,7 @@ private:
   }
 }
 
-- (NSString*)getDownloadFolderDescription
+- (NSString*)downloadFolderDescription
 {
   NSString* downloadStr = @"";
   nsCOMPtr<nsIFile> downloadsDir;
@@ -221,7 +221,7 @@ private:
 // display a file picker sheet allowing the user to set their new download folder
 - (IBAction)chooseDownloadFolder:(id)sender
 {
-  NSString* oldDLFolder = [self getDownloadFolderDescription];
+  NSString* oldDLFolder = [self downloadFolderDescription];
   NSOpenPanel* panel = [NSOpenPanel openPanel];
   [panel setCanChooseFiles:NO];
   [panel setCanChooseDirectories:YES];

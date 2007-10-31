@@ -166,12 +166,12 @@ static PageInfoWindowController* gSingletonPageInfoController;
 
 - (void)updateGeneralInfoFromBrowserView:(CHBrowserView*)inBrowserView
 {
-  nsCOMPtr<nsIDOMWindow> contentWindow = [inBrowserView getContentWindow];
+  nsCOMPtr<nsIDOMWindow> contentWindow = [inBrowserView contentWindow];
   if (!contentWindow) return;
 
   // general info
   [mPageTitleField setStringValue:[inBrowserView pageTitle]];
-  [mPageLocationField setStringValue:[inBrowserView getCurrentURI]];
+  [mPageLocationField setStringValue:[inBrowserView currentURI]];
   NSDate* lastModDate = [inBrowserView pageLastModifiedDate];
 
   if (lastModDate)

@@ -115,7 +115,7 @@ typedef enum ECookiePolicyPopupIndex
 -(IBAction) editPermissionsDone:(id)aSender;
 -(IBAction) removeCookiePermissions:(id)aSender;
 -(IBAction) removeAllCookiePermissions:(id)aSender;
--(int) getRowForPermissionWithHost:(NSString *)aHost;
+-(int) rowForPermissionWithHost:(NSString *)aHost;
 
 -(void) mapCookiePrefToGUI:(int)pref;
 

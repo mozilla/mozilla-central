@@ -318,7 +318,7 @@ static id gSharedProgressController = nil;
   if (![selectedView isKindOfClass:[ProgressView class]])
     return;
 
-  ProgressViewController* selectedViewController = [selectedView getController];
+  ProgressViewController* selectedViewController = [selectedView controller];
   
   NSArray* selectedArray = [self selectedProgressViewControllers];
 

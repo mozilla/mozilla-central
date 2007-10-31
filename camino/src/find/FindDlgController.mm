@@ -43,7 +43,7 @@
 - (void)loadNewFindStringFromPasteboard;
 - (void)putFindStringOnPasteboard;
 
-- (NSString*)getSearchText;
+- (NSString*)searchText;
 - (BOOL)find:(BOOL)searchBack;
 
 @end
@@ -57,7 +57,7 @@
 
 - (void)loadNewFindStringFromPasteboard
 {
-  [mSearchField setStringValue:[self getSearchText]];
+  [mSearchField setStringValue:[self searchText]];
   [mSearchField selectText:nil];
 
   if ([[mSearchField stringValue] length] > 0)
@@ -139,11 +139,11 @@
 }
 
 //
-// -getSearchText
+// -searchText
 //
 // Retrieve the most recent search string
 //
-- (NSString*)getSearchText
+- (NSString*)searchText
 {
   NSString* searchText;
 

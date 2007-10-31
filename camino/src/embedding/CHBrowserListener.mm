@@ -136,7 +136,7 @@ NS_IMETHODIMP
 CHBrowserListener::GetInterface(const nsIID &aIID, void** aInstancePtr)
 {
   if (aIID.Equals(NS_GET_IID(nsIDOMWindow))) {
-    nsCOMPtr<nsIWebBrowser> browser = dont_AddRef([mView getWebBrowser]);
+    nsCOMPtr<nsIWebBrowser> browser = dont_AddRef([mView webBrowser]);
     if (browser)
       return browser->GetContentDOMWindow((nsIDOMWindow **) aInstancePtr);
   }
@@ -167,7 +167,7 @@ CHBrowserListener::CreateChromeWindow(nsIWebBrowserChrome *parent,
     return NS_ERROR_FAILURE;
   }
   
-  CHBrowserListener* listener = [childView getCocoaBrowserListener];
+  CHBrowserListener* listener = [childView cocoaBrowserListener];
   if (!listener) {
 #if DEBUG
     NSLog(@"Uh-oh! No listener yet for a newly created window (nsCocoaBrowserlistener)");
@@ -187,7 +187,7 @@ CHBrowserListener::CreateChromeWindow(nsIWebBrowserChrome *parent,
   // apply scrollbar chrome flags
   if (!(chromeFlags & nsIWebBrowserChrome::CHROME_SCROLLBARS))
   {
-    nsCOMPtr<nsIDOMWindow> contentWindow = [childView getContentWindow];
+    nsCOMPtr<nsIDOMWindow> contentWindow = [childView contentWindow];
     if (contentWindow)
     {
       nsCOMPtr<nsIDOMBarProp> scrollbars;
@@ -233,10 +233,10 @@ CHBrowserListener::ProvideWindow(nsIDOMWindow *inParent, PRUint32 inChromeFlags,
   BOOL prefersTabs = [mContainer shouldReuseExistingWindow];
   if (prefersTabs) {
     CHBrowserView* newContainer = [mContainer reuseExistingBrowserWindow:inChromeFlags];
-    nsCOMPtr<nsIDOMWindow> contentWindow = [newContainer getContentWindow];
+    nsCOMPtr<nsIDOMWindow> contentWindow = [newContainer contentWindow];
     
     // make sure gecko knows whether we're creating a new browser window (new tabs don't count)
-    nsCOMPtr<nsIDOMWindow> currentWindow = [mView getContentWindow];
+    nsCOMPtr<nsIDOMWindow> currentWindow = [mView contentWindow];
     *outWindowIsNew = (contentWindow != currentWindow);
     
     NS_IF_ADDREF(*outDOMWindow = contentWindow.get());
@@ -297,7 +297,7 @@ CHBrowserListener::GetWebBrowser(nsIWebBrowser * *aWebBrowser)
   if (!mView) {
     return NS_ERROR_FAILURE;
   }
-  *aWebBrowser = [mView getWebBrowser];
+  *aWebBrowser = [mView webBrowser];
 
   return NS_OK;
 }

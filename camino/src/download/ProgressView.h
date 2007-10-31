@@ -66,6 +66,6 @@ extern NSString* const kDownloadInstanceCancelledNotificationName;
 
 // get/set our owning controller, to which we maintain a weak link
 -(void)setController:(ProgressViewController*)controller;
--(ProgressViewController*)getController;
+-(ProgressViewController*)controller;
 
 @end

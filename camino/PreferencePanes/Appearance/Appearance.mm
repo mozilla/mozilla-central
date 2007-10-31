@@ -63,14 +63,14 @@
 - (void)setupFontSamplesFromDict:(NSDictionary*)regionDict;
 - (void)setupFontSampleOfType:(NSString*)fontType fromDict:(NSDictionary*)regionDict;
 
-- (NSFont*)getFontOfType:(NSString*)fontType fromDict:(NSDictionary*)regionDict;
+- (NSFont*)fontOfType:(NSString*)fontType fromDict:(NSDictionary*)regionDict;
 
 - (void)setFontSampleOfType:(NSString *)fontType withFont:(NSFont*)font andDict:(NSDictionary*)regionDict;
 - (void)saveFont:(NSFont*)font toDict:(NSMutableDictionary*)regionDict forType:(NSString*)fontType;
 
 - (void)updateFontSampleOfType:(NSString *)fontType;
-- (NSTextField*)getFontSampleForType:(NSString *)fontType;
-- (NSString*)getFontSizeType:(NSString*)fontType;
+- (NSTextField*)fontSampleForType:(NSString *)fontType;
+- (NSString*)fontSizeType:(NSString*)fontType;
 
 - (void)buildFontPopup:(NSPopUpButton*)popupButton;
 
@@ -218,7 +218,7 @@
 
   NSString* defaultFontType = [self defaultProportionalFontTypeForCurrentRegion];
 
-  NSFont *newFont = [[self getFontSampleForType:defaultFontType] font];
+  NSFont *newFont = [[self fontSampleForType:defaultFontType] font];
   mFontButtonForEditor = mChooseProportionalFontButton;
   [fontManager setSelectedFont:newFont isMultiple:NO];
   [[fontManager fontPanel:YES] makeKeyAndOrderFront:self];
@@ -227,7 +227,7 @@
 - (IBAction)monospaceFontChoiceButtonClicked:(id)sender
 {
   NSFontManager *fontManager = [NSFontManager sharedFontManager];
-  NSFont *newFont = [[self getFontSampleForType:@"monospace"] font];
+  NSFont *newFont = [[self fontSampleForType:@"monospace"] font];
   mFontButtonForEditor = mChooseMonospaceFontButton;
   [fontManager setSelectedFont:newFont isMultiple:NO];
   [[fontManager fontPanel:YES] makeKeyAndOrderFront:self];
@@ -497,17 +497,17 @@
     [fontTypeDict removeObjectForKey:@"missing"];
     
     [fontTypeDict setObject:[font familyName] forKey:@"fontfamily"];
-    [fontSizeDict setObject:[NSNumber numberWithInt:(int)[font pointSize]] forKey:[self getFontSizeType:fontType]];
+    [fontSizeDict setObject:[NSNumber numberWithInt:(int)[font pointSize]] forKey:[self fontSizeType:fontType]];
   }
 }
  
-- (NSFont*)getFontOfType:(NSString*)fontType fromDict:(NSDictionary*)regionDict
+- (NSFont*)fontOfType:(NSString*)fontType fromDict:(NSDictionary*)regionDict
 {
   NSDictionary	*fontTypeDict = [regionDict objectForKey:fontType];
   NSDictionary	*fontSizeDict = [regionDict objectForKey:@"fontsize"];
 
   NSString *fontName = [fontTypeDict objectForKey:@"fontfamily"];
-  int fontSize = [[fontSizeDict objectForKey:[self getFontSizeType:fontType]] intValue];
+  int fontSize = [[fontSizeDict objectForKey:[self fontSizeType:fontType]] intValue];
   
   NSFont *returnFont = nil;
   
@@ -542,7 +542,7 @@
 
 - (void)setupFontSampleOfType:(NSString*)fontType fromDict:(NSDictionary*)regionDict
 {
-  NSFont *foundFont = [self getFontOfType:fontType fromDict:regionDict];
+  NSFont *foundFont = [self fontOfType:fontType fromDict:regionDict];
   [self setFontSampleOfType:fontType withFont:foundFont andDict:regionDict];
 }
 
@@ -556,7 +556,7 @@
   // a string to display from the dict.
   NSMutableDictionary *fontTypeDict = [regionDict objectForKey:fontType];
 
-  NSTextField *sampleCell = [self getFontSampleForType:fontType];
+  NSTextField *sampleCell = [self fontSampleForType:fontType];
   NSString *displayString = nil;
   
   if (font == nil)
@@ -565,9 +565,9 @@
     {
       NSDictionary *fontSizeDict = [regionDict objectForKey:@"fontsize"];
       NSString *fontName = [fontTypeDict objectForKey:@"fontfamily"];
-      int fontSize = [[fontSizeDict objectForKey:[self getFontSizeType:fontType]] intValue];
+      int fontSize = [[fontSizeDict objectForKey:[self fontSizeType:fontType]] intValue];
 
-      displayString = [NSString stringWithFormat:@"%@, %dpt %@", fontName, fontSize, [self getLocalizedString:@"Missing"]];
+      displayString = [NSString stringWithFormat:@"%@, %dpt %@", fontName, fontSize, [self localizedStringForKey:@"Missing"]];
       font = [NSFont userFontOfSize:14.0];
 
       // set the missing flag in the dict
@@ -577,7 +577,7 @@
     else
     {
       // should never happen
-      displayString = [self getLocalizedString:@"FontMissing"];
+      displayString = [self localizedStringForKey:@"FontMissing"];
       font = [NSFont userFontOfSize:16.0];
     }
   }
@@ -601,7 +601,7 @@
   NSMutableDictionary* regionDict = [self settingsForCurrentRegion];
   if (!regionDict) return;
 
-  NSTextField *sampleCell = [self getFontSampleForType:fontType];
+  NSTextField *sampleCell = [self fontSampleForType:fontType];
   NSFont *sampleFont = [[NSFontManager sharedFontManager] convertFont:[sampleCell font]];
 
   // save the font in the dictionaries
@@ -610,7 +610,7 @@
   [self setFontSampleOfType:fontType withFont:sampleFont andDict:regionDict];
 }
 
-- (NSTextField*)getFontSampleForType:(NSString *)fontType
+- (NSTextField*)fontSampleForType:(NSString *)fontType
 {
   if ([fontType isEqualToString:@"serif"] || [fontType isEqualToString:@"sans-serif"])
     return mFontSampleProportional;
@@ -621,7 +621,7 @@
   return nil;
 }
 
-- (NSString*)getFontSizeType:(NSString*)fontType
+- (NSString*)fontSizeType:(NSString*)fontType
 {
   if ([fontType isEqualToString:@"monospace"])
     return @"fixed";
@@ -636,10 +636,11 @@
 
   NSString* defaultFontType = [self defaultProportionalFontTypeForCurrentRegion];
   // make sure the 'proportional' label matches
-  NSString* propLabelString = [NSString stringWithFormat:[self getLocalizedString:@"ProportionalLabelFormat"], [self getLocalizedString:defaultFontType]];
+  NSString* propLabelString = [NSString stringWithFormat:[self localizedStringForKey:@"ProportionalLabelFormat"],
+                                                         [self localizedStringForKey:defaultFontType]];
   [mProportionalSampleLabel setStringValue:propLabelString];
   
-  NSString* sublabelValue = [self getLocalizedString:[defaultFontType stringByAppendingString:@"_note"]];
+  NSString* sublabelValue = [self localizedStringForKey:[defaultFontType stringByAppendingString:@"_note"]];
   [mProportionalSubLabel setStringValue:sublabelValue];
 
   NSString* noteFontExample = [defaultFontType isEqualToString:@"serif"] ? @"Times" : @"Helvetica";
@@ -661,7 +662,8 @@ const int kDefaultFontSansSerifTag = 1;
   NSDictionary* regionDict = [self settingsForCurrentRegion];
   if (!regionDict) return;
 
-  NSString* advancedLabel = [NSString stringWithFormat:[self getLocalizedString:@"AdditionalFontsLabelFormat"], [regionDict objectForKey:@"region"]];
+  NSString* advancedLabel = [NSString stringWithFormat:[self localizedStringForKey:@"AdditionalFontsLabelFormat"],
+                                                       [regionDict objectForKey:@"region"]];
   [mAdvancedFontsLabel setStringValue:advancedLabel];
   
   // set up the dialog for the current region
@@ -815,7 +817,7 @@ const int kMissingFontPopupItemTag = 9999;
       [[popupButton menu] addItem:missingFontItem];
     }
 
-    NSString* itemTitle = [NSString stringWithFormat:@"%@ %@", defaultValue, [self getLocalizedString:@"Missing"]];
+    NSString* itemTitle = [NSString stringWithFormat:@"%@ %@", defaultValue, [self localizedStringForKey:@"Missing"]];
     [missingFontItem setTitle:itemTitle];
     [popupButton selectItem:missingFontItem];
   } else {

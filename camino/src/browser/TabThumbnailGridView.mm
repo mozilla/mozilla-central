@@ -96,14 +96,14 @@ CGColorSpaceRef getTheGreyColorSpace(void);
   // Browser wrapper is used here since moving CHBrowserView disconnects needed attributes (i.e. URL)
   // The window isn't hooked up yet, so go through the superview
   BrowserWindowController* bwc = (BrowserWindowController*)[[[self superview] window] windowController];
-  BrowserTabView* tabView = [bwc getTabBrowser];
+  BrowserTabView* tabView = [bwc tabBrowser];
   NSArray* openTabs = [tabView tabViewItems];
 
   NSEnumerator* tabEnum = [openTabs objectEnumerator];
   BrowserTabViewItem* tabViewItem;
 
   while ((tabViewItem = [tabEnum nextObject])) {
-    NSImage* thumb = [[[tabViewItem view] getBrowserView] snapshot];
+    NSImage* thumb = [[[tabViewItem view] browserView] snapshot];
     if (!thumb)
       continue;
     ThumbnailView* curThumbView = [[[ThumbnailView alloc] init] autorelease];
@@ -137,7 +137,7 @@ CGColorSpaceRef getTheGreyColorSpace(void);
 - (void)thumbnailViewWasSelected:(ThumbnailView*)selectedView
 {
   BrowserWindowController* bwc = (BrowserWindowController*)[[self window] windowController];
-  BrowserTabView* tabView = [bwc getTabBrowser];
+  BrowserTabView* tabView = [bwc tabBrowser];
 
   [tabView selectTabViewItem:[selectedView representedObject]];
   [bwc toggleTabThumbnailView:self];

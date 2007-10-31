@@ -170,7 +170,7 @@ static const int kEscapeKeyCode = 53;
 // accessor for the 'URL' Apple Event attribute
 - (NSString*)getURL
 {
-  BrowserWrapper* browserWrapper = [(BrowserWindowController*)[self delegate] getBrowserWrapper];
+  BrowserWrapper* browserWrapper = [(BrowserWindowController*)[self delegate] browserWrapper];
 
   return [browserWrapper currentURI];
 }

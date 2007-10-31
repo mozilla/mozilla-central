@@ -111,7 +111,7 @@ const NSTimeInterval kPersistDelay = 10.0;
       BrowserWindowController* browser = (BrowserWindowController*)[window windowController];
 
       NSMutableArray* storedTabs = [NSMutableArray array];
-      BrowserTabView* tabView = [browser getTabBrowser];
+      BrowserTabView* tabView = [browser tabBrowser];
       NSEnumerator* tabEnumerator = [[tabView tabViewItems] objectEnumerator];
       BrowserTabViewItem* tab;
       while ((tab = [tabEnumerator nextObject])) {
@@ -183,7 +183,7 @@ const NSTimeInterval kPersistDelay = 10.0;
 
     [browser showWindow:self];
     [browser openURLArray:[windowInfo objectForKey:kTabListKey] tabOpenPolicy:eReplaceTabs allowPopups:NO];
-    [[browser getTabBrowser] selectTabViewItemAtIndex:[[windowInfo objectForKey:kSelectedTabKey] intValue]];
+    [[browser tabBrowser] selectTabViewItemAtIndex:[[windowInfo objectForKey:kSelectedTabKey] intValue]];
 
     if ([[windowInfo valueForKey:kIsMiniaturizedKey] boolValue])
       [[browser window] miniaturize:self];

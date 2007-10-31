@@ -144,18 +144,18 @@ const char kDirServiceContractID[] = "@mozilla.org/file/directory_service;1";
 
 @interface CHBrowserView(Private)
 
-- (id<CHBrowserContainer>)getBrowserContainer;
-- (nsIContentViewer*)getContentViewer;		// addrefs return value
-- (float)getTextZoom;
+- (id<CHBrowserContainer>)browserContainer;
+- (nsIContentViewer*)contentViewer;		// addrefs return value
+- (float)textZoom;
 - (void)incrementTextZoom:(float)increment min:(float)min max:(float)max;
-- (nsIDocShell*)getDocShell;    // does NOT addref
-- (NSString*)getSelection;
+- (nsIDocShell*)docShell;    // does NOT addref
+- (NSString*)selectedText;
 - (already_AddRefed<nsIDOMWindow>)focussedDOMWindow;
 - (NSString*)locationFromDOMWindow:(nsIDOMWindow*)inDOMWindow;
 - (void)ensurePrintSettings;
 - (void)savePrintSettings;
 
-- (already_AddRefed<nsISecureBrowserUI>)getSecureBrowserUI;
+- (already_AddRefed<nsISecureBrowserUI>)secureBrowserUI;
 
 @end
 
@@ -247,7 +247,7 @@ const char kDirServiceContractID[] = "@mozilla.org/file/directory_service;1";
     if (!selectHandler)
       return nil;
 
-    nsCOMPtr<nsIDOMWindow> contentWindow = [self getContentWindow];
+    nsCOMPtr<nsIDOMWindow> contentWindow = [self contentWindow];
     nsCOMPtr<nsPIDOMWindow> piWindow(do_QueryInterface(contentWindow));
     nsPIDOMEventTarget *chromeHandler = piWindow->GetChromeEventHandler();
     if (chromeHandler) {
@@ -351,7 +351,7 @@ const char kDirServiceContractID[] = "@mozilla.org/file/directory_service;1";
 }
 
 // addrefs return value
-- (already_AddRefed<nsIDOMWindow>)getContentWindow
+- (already_AddRefed<nsIDOMWindow>)contentWindow
 {
   nsIDOMWindow* window = nsnull;
 
@@ -362,11 +362,11 @@ const char kDirServiceContractID[] = "@mozilla.org/file/directory_service;1";
 }
 
 // addrefs return value
-- (already_AddRefed<nsISecureBrowserUI>)getSecureBrowserUI
+- (already_AddRefed<nsISecureBrowserUI>)secureBrowserUI
 {
   nsISecureBrowserUI* secureUI = nsnull;
   
-  nsIDocShell* docShell = [self getDocShell];
+  nsIDocShell* docShell = [self docShell];
   if (docShell)
     docShell->GetSecurityUI(&secureUI);
 
@@ -379,7 +379,7 @@ const char kDirServiceContractID[] = "@mozilla.org/file/directory_service;1";
 
   // if |inAllowPopups|, temporarily allow popups for the load. We allow them for trusted things like
   // bookmarks.
-  nsCOMPtr<nsIDOMWindow> contentWindow = [self getContentWindow];
+  nsCOMPtr<nsIDOMWindow> contentWindow = [self contentWindow];
   nsCOMPtr<nsPIDOMWindow> piWindow;
   if (inAllowPopups)
     piWindow = do_QueryInterface(contentWindow);
@@ -524,7 +524,7 @@ const char kDirServiceContractID[] = "@mozilla.org/file/directory_service;1";
 // according to gecko.
 //
 // should we be using the window.location URL instead? see nsIDOMLocation.h
-- (NSString*)getCurrentURI
+- (NSString*)currentURI
 {
   nsCOMPtr<nsIWebNavigation> nav = do_QueryInterface(_webBrowser);
   if (!nav)
@@ -548,14 +548,14 @@ const char kDirServiceContractID[] = "@mozilla.org/file/directory_service;1";
 
 - (NSString*)pageLocation
 {
-  nsCOMPtr<nsIDOMWindow> contentWindow = [self getContentWindow];
+  nsCOMPtr<nsIDOMWindow> contentWindow = [self contentWindow];
   NSString* location = [self locationFromDOMWindow:contentWindow];
   return location ? location : @"";
 }
 
 - (NSString*)pageLocationHost
 {
-  nsCOMPtr<nsIDOMWindow> domWindow = [self getContentWindow];
+  nsCOMPtr<nsIDOMWindow> domWindow = [self contentWindow];
   if (!domWindow) return @"";
   nsCOMPtr<nsIDOMDocument> domDocument;
   domWindow->GetDocument(getter_AddRefs(domDocument));
@@ -574,7 +574,7 @@ const char kDirServiceContractID[] = "@mozilla.org/file/directory_service;1";
 
 - (NSString*)pageTitle
 {
-  nsCOMPtr<nsIDOMWindow> window = [self getContentWindow];
+  nsCOMPtr<nsIDOMWindow> window = [self contentWindow];
   if (!window)
     return @"";
   
@@ -592,7 +592,7 @@ const char kDirServiceContractID[] = "@mozilla.org/file/directory_service;1";
 
 - (NSDate*)pageLastModifiedDate
 {
-  nsCOMPtr<nsIDOMWindow> domWindow = [self getContentWindow];
+  nsCOMPtr<nsIDOMWindow> domWindow = [self contentWindow];
 
   nsCOMPtr<nsIDOMDocument> domDocument;
   domWindow->GetDocument(getter_AddRefs(domDocument));
@@ -616,12 +616,12 @@ const char kDirServiceContractID[] = "@mozilla.org/file/directory_service;1";
   return nil;
 }
 
-- (CHBrowserListener*)getCocoaBrowserListener
+- (CHBrowserListener*)cocoaBrowserListener
 {
   return _listener;
 }
 
-- (nsIWebBrowser*)getWebBrowser
+- (nsIWebBrowser*)webBrowser
 {
   NS_IF_ADDREF(_webBrowser);
   return _webBrowser;
@@ -647,7 +647,7 @@ const char kDirServiceContractID[] = "@mozilla.org/file/directory_service;1";
 
 }
 
-- (nsIFocusController*)getFocusController
+- (nsIFocusController*)focusController
 {
   if (!_webBrowser)
     return nsnull;
@@ -661,9 +661,9 @@ const char kDirServiceContractID[] = "@mozilla.org/file/directory_service;1";
   return focusController;
 }
 
-- (nsIDOMElement*)getFocusedDOMElement
+- (nsIDOMElement*)focusedDOMElement
 {
-  nsCOMPtr<nsIFocusController> controller = dont_AddRef([self getFocusController]);
+  nsCOMPtr<nsIFocusController> controller = dont_AddRef([self focusController]);
   if (!controller)
     return nsnull;
   nsCOMPtr<nsIDOMElement> focusedItem;
@@ -678,7 +678,7 @@ const char kDirServiceContractID[] = "@mozilla.org/file/directory_service;1";
   NSSize viewportSize = [self bounds].size;
   // We don't draw scrollbars, so set the snapshot width to be the smaller of
   // the view width and the dom width to prevent a blank strip in the snapshot.
-  nsCOMPtr<nsIDOMWindow> domWindow = [self getContentWindow];
+  nsCOMPtr<nsIDOMWindow> domWindow = [self contentWindow];
   if (!domWindow)
     return nil;
   int pageWidth;
@@ -699,7 +699,7 @@ const char kDirServiceContractID[] = "@mozilla.org/file/directory_service;1";
     return nil;
 
   // Get the page presentation.
-  nsCOMPtr<nsIDocShell> docShell = [self getDocShell];
+  nsCOMPtr<nsIDocShell> docShell = [self docShell];
   if (!docShell)
     return nil;
   nsCOMPtr<nsPresContext> presContext;
@@ -898,7 +898,7 @@ const char kDirServiceContractID[] = "@mozilla.org/file/directory_service;1";
     case NSFindPanelActionSetFindString:
     {
       // set the selected text on the find pasteboard so it's usable from other apps
-      NSString* selectedText = [self getSelection];
+      NSString* selectedText = [self selectedText];
       NSPasteboard* pboard = [NSPasteboard pasteboardWithName:NSFindPboard];
       [pboard declareTypes:[NSArray arrayWithObject:NSStringPboardType] owner:nil];
       [pboard setString:selectedText forType:NSStringPboardType];
@@ -1026,7 +1026,7 @@ const char kDirServiceContractID[] = "@mozilla.org/file/directory_service;1";
   return [NSString stringWith_nsAString:urlStr];
 }
 
--(NSString*)getFocusedURLString
+-(NSString*)focusedURLString
 {
   if (!_webBrowser)
     return @"";
@@ -1106,7 +1106,7 @@ const char kDirServiceContractID[] = "@mozilla.org/file/directory_service;1";
 
 - (BOOL)isTextBasedContent
 {
-  nsCOMPtr<nsIDOMWindow> domWindow = [self getContentWindow];
+  nsCOMPtr<nsIDOMWindow> domWindow = [self contentWindow];
   
   nsCOMPtr<nsIDOMDocument> domDocument;
   domWindow->GetDocument(getter_AddRefs(domDocument));
@@ -1229,7 +1229,7 @@ const char kDirServiceContractID[] = "@mozilla.org/file/directory_service;1";
 
 - (void)makeTextDefaultSize
 {
-  nsCOMPtr<nsIContentViewer> contentViewer = dont_AddRef([self getContentViewer]);
+  nsCOMPtr<nsIContentViewer> contentViewer = dont_AddRef([self contentViewer]);
   nsCOMPtr<nsIMarkupDocumentViewer> markupViewer(do_QueryInterface(contentViewer));
   if (!markupViewer)
     return;
@@ -1239,24 +1239,24 @@ const char kDirServiceContractID[] = "@mozilla.org/file/directory_service;1";
 
 - (BOOL)canMakeTextBigger
 {
-  float zoom = [self getTextZoom];
+  float zoom = [self textZoom];
   return zoom < MAX_TEXT_ZOOM;
 }
 
 - (BOOL)canMakeTextSmaller
 {
-  float zoom = [self getTextZoom];
+  float zoom = [self textZoom];
   return zoom > MIN_TEXT_ZOOM;
 }
 
 - (BOOL)isTextDefaultSize
 {
-  return (fabsf([self getTextZoom] - DEFAULT_TEXT_ZOOM) < .001);
+  return (fabsf([self textZoom] - DEFAULT_TEXT_ZOOM) < .001);
 }
 
 - (BOOL)shouldUnload
 {
-  nsCOMPtr<nsIContentViewer> contentViewer = dont_AddRef([self getContentViewer]);
+  nsCOMPtr<nsIContentViewer> contentViewer = dont_AddRef([self contentViewer]);
   if (!contentViewer)
     return YES;
 
@@ -1275,7 +1275,7 @@ const char kDirServiceContractID[] = "@mozilla.org/file/directory_service;1";
 {
   BOOL isFocused = NO;
   
-  nsCOMPtr<nsIDOMElement> focusedItem = dont_AddRef([self getFocusedDOMElement]);
+  nsCOMPtr<nsIDOMElement> focusedItem = dont_AddRef([self focusedDOMElement]);
   
   // we got it, now check if it's what we care about
   nsCOMPtr<nsIDOMHTMLInputElement> input = do_QueryInterface(focusedItem);
@@ -1299,7 +1299,7 @@ const char kDirServiceContractID[] = "@mozilla.org/file/directory_service;1";
 //
 - (BOOL)isPluginFocused
 {
-  nsCOMPtr<nsIDOMElement> focusedItem = dont_AddRef([self getFocusedDOMElement]);
+  nsCOMPtr<nsIDOMElement> focusedItem = dont_AddRef([self focusedDOMElement]);
   
   // we got it, now check if it's what we care about
   nsCOMPtr<nsIDOMHTMLEmbedElement> embed = do_QueryInterface(focusedItem);
@@ -1330,12 +1330,12 @@ const char kDirServiceContractID[] = "@mozilla.org/file/directory_service;1";
 
 - (void)doBeforePromptDisplay
 {
-  [[self getBrowserContainer] willShowPrompt];
+  [[self browserContainer] willShowPrompt];
 }
 
 - (void)doAfterPromptDismissal
 {
-  [[self getBrowserContainer] didDismissPrompt];
+  [[self browserContainer] didDismissPrompt];
 }
 
 - (void)setActive: (BOOL)aIsActive
@@ -1351,7 +1351,7 @@ const char kDirServiceContractID[] = "@mozilla.org/file/directory_service;1";
 
 -(NSMenu*)contextMenu
 {
-	return [[self getBrowserContainer] contextMenu];
+	return [[self browserContainer] contextMenu];
 }
 
 -(NSWindow*)nativeWindow
@@ -1367,11 +1367,11 @@ const char kDirServiceContractID[] = "@mozilla.org/file/directory_service;1";
   
   // Finally, see if our parent responds to the nativeWindow selector,
   // and if they do, let them handle it.
-  return [[self getBrowserContainer] nativeWindow];
+  return [[self browserContainer] nativeWindow];
 }
 
 // does NOT addref return value
-- (nsIDocShell*)getDocShell
+- (nsIDocShell*)docShell
 {
   if (!_webBrowser)
     return NULL;
@@ -1388,12 +1388,12 @@ const char kDirServiceContractID[] = "@mozilla.org/file/directory_service;1";
 - (already_AddRefed<nsIDocShell>)findDocShellForURI:(nsIURI*)aURI
 {
   nsIDocShell *match;
-  GeckoUtils::FindDocShellForURI(aURI, [self getDocShell], &match);
+  GeckoUtils::FindDocShellForURI(aURI, [self docShell], &match);
   return match;
 }
 
 
-- (id<CHBrowserContainer>)getBrowserContainer
+- (id<CHBrowserContainer>)browserContainer
 {
   // i'm not sure why this doesn't return whatever -setContainer: was called with
   if ([[self superview] conformsToProtocol:@protocol(CHBrowserContainer)])
@@ -1402,17 +1402,17 @@ const char kDirServiceContractID[] = "@mozilla.org/file/directory_service;1";
   return nil;
 }
 
-- (nsIContentViewer*)getContentViewer		// addrefs return value
+- (nsIContentViewer*)contentViewer		// addrefs return value
 {
-  nsIDocShell* docShell = [self getDocShell];
+  nsIDocShell* docShell = [self docShell];
   nsIContentViewer* cv = NULL;
   docShell->GetContentViewer(&cv);		// addrefs
   return cv;
 }
 
-- (float)getTextZoom
+- (float)textZoom
 {
-  nsCOMPtr<nsIContentViewer> contentViewer = dont_AddRef([self getContentViewer]);
+  nsCOMPtr<nsIContentViewer> contentViewer = dont_AddRef([self contentViewer]);
   nsCOMPtr<nsIMarkupDocumentViewer> markupViewer(do_QueryInterface(contentViewer));
   if (!markupViewer)
     return DEFAULT_TEXT_ZOOM;
@@ -1424,7 +1424,7 @@ const char kDirServiceContractID[] = "@mozilla.org/file/directory_service;1";
 
 - (void)incrementTextZoom:(float)increment min:(float)min max:(float)max
 {
-  nsCOMPtr<nsIContentViewer> contentViewer = dont_AddRef([self getContentViewer]);
+  nsCOMPtr<nsIContentViewer> contentViewer = dont_AddRef([self contentViewer]);
   nsCOMPtr<nsIMarkupDocumentViewer> markupViewer(do_QueryInterface(contentViewer));
   if (!markupViewer)
     return;
@@ -1510,11 +1510,11 @@ const char kDirServiceContractID[] = "@mozilla.org/file/directory_service;1";
 }
 
 //
-// -getSelection
+// -selectedText
 //
 // Returns the currently selected text as a NSString. 
 //
-- (NSString*)getSelection
+- (NSString*)selectedText
 {
   nsCOMPtr<nsICommandManager> cmdManager = do_GetInterface(_webBrowser);
   if (!cmdManager) return NO;
@@ -1540,7 +1540,7 @@ const char kDirServiceContractID[] = "@mozilla.org/file/directory_service;1";
   if ([types containsObject:NSStringPboardType] == NO)
     return NO;
 
-  NSString* selectedText = [self getSelection];
+  NSString* selectedText = [self selectedText];
   
   NSArray* typesDeclared = [NSArray arrayWithObject:NSStringPboardType];
   [pboard declareTypes:typesDeclared owner:nil];
@@ -1573,7 +1573,7 @@ const char kDirServiceContractID[] = "@mozilla.org/file/directory_service;1";
 - (IBAction)reloadWithNewCharset:(NSString*)inCharset
 {
   // set charset on document then reload the page (hopefully not hitting the network)
-  nsCOMPtr<nsIDocCharset> charset ( do_QueryInterface([self getDocShell]) );
+  nsCOMPtr<nsIDocCharset> charset ( do_QueryInterface([self docShell]) );
   if ( charset && inCharset ) {
     charset->SetCharset([inCharset cString]);
     [self reload:nsIWebNavigation::LOAD_FLAGS_CHARSET_CHANGE];
@@ -1618,7 +1618,7 @@ const char kDirServiceContractID[] = "@mozilla.org/file/directory_service;1";
 
 - (BOOL)hasSSLStatus
 {
-  nsCOMPtr<nsISecureBrowserUI> secureUI([self getSecureBrowserUI]);
+  nsCOMPtr<nsISecureBrowserUI> secureUI([self secureBrowserUI]);
   nsCOMPtr<nsISSLStatusProvider> statusProvider = do_QueryInterface(secureUI);
   if (!statusProvider) return NO;
 
@@ -1630,7 +1630,7 @@ const char kDirServiceContractID[] = "@mozilla.org/file/directory_service;1";
 
 - (unsigned int)secretKeyLength
 {
-  nsCOMPtr<nsISecureBrowserUI> secureUI([self getSecureBrowserUI]);
+  nsCOMPtr<nsISecureBrowserUI> secureUI([self secureBrowserUI]);
   nsCOMPtr<nsISSLStatusProvider> statusProvider = do_QueryInterface(secureUI);
   if (!statusProvider) return 0;
 
@@ -1647,7 +1647,7 @@ const char kDirServiceContractID[] = "@mozilla.org/file/directory_service;1";
 
 - (NSString*)cipherName
 {
-  nsCOMPtr<nsISecureBrowserUI> secureUI([self getSecureBrowserUI]);
+  nsCOMPtr<nsISecureBrowserUI> secureUI([self secureBrowserUI]);
   nsCOMPtr<nsISSLStatusProvider> statusProvider = do_QueryInterface(secureUI);
   if (!statusProvider) return @"";
 
@@ -1668,7 +1668,7 @@ const char kDirServiceContractID[] = "@mozilla.org/file/directory_service;1";
 
 - (CHSecurityStatus)securityStatus
 {
-  nsCOMPtr<nsISecureBrowserUI> secureUI([self getSecureBrowserUI]);
+  nsCOMPtr<nsISecureBrowserUI> secureUI([self secureBrowserUI]);
   if (!secureUI) return CHSecurityInsecure;
   
   PRUint32 pageState;
@@ -1689,7 +1689,7 @@ const char kDirServiceContractID[] = "@mozilla.org/file/directory_service;1";
 
 - (CHSecurityStrength)securityStrength
 {
-  nsCOMPtr<nsISecureBrowserUI> secureUI([self getSecureBrowserUI]);
+  nsCOMPtr<nsISecureBrowserUI> secureUI([self secureBrowserUI]);
   if (!secureUI) return CHSecurityNone;
   
   PRUint32 pageState;
@@ -1714,7 +1714,7 @@ const char kDirServiceContractID[] = "@mozilla.org/file/directory_service;1";
 
 - (CertificateItem*)siteCertificate
 {
-  nsCOMPtr<nsISecureBrowserUI> secureUI([self getSecureBrowserUI]);
+  nsCOMPtr<nsISecureBrowserUI> secureUI([self secureBrowserUI]);
   nsCOMPtr<nsISSLStatusProvider> statusProvider = do_QueryInterface(secureUI);
   if (!statusProvider) return nil;
 
@@ -1748,7 +1748,7 @@ const char kDirServiceContractID[] = "@mozilla.org/file/directory_service;1";
     docShell = privWin->GetDocShell(); // doesn't addref
   }
   else {
-    docShell = [self getDocShell];     // doesn't addref
+    docShell = [self docShell];     // doesn't addref
   }
   
   nsCOMPtr<nsIWebPageDescriptor> wpd = do_QueryInterface(docShell);
@@ -1762,7 +1762,7 @@ const char kDirServiceContractID[] = "@mozilla.org/file/directory_service;1";
 
 - (void)setPageDescriptor:(nsISupports*)aDesc displayType:(PRUint32)aDisplayType
 {
-  nsCOMPtr<nsIWebPageDescriptor> wpd = do_QueryInterface([self getDocShell]);
+  nsCOMPtr<nsIWebPageDescriptor> wpd = do_QueryInterface([self docShell]);
   if(!wpd)
     return;
 
