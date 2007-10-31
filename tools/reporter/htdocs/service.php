@@ -41,7 +41,7 @@ require_once($config['base_path'].'/includes/iolib.inc.php');
 require_once($config['base_path'].'/includes/db.inc.php');
 
 // Turn off Error Reporting because it breaks xml formatting and causes errors
-error_reporting(1);
+error_reporting(0);
 
 // If debugging is enabled, we turn it on (mostly a negative thing)
 if($config['debug']){
