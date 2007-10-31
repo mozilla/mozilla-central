@@ -1055,17 +1055,32 @@ tools are selected during the Xcode/Developer Tools installation.])
                 dnl CPP needs to be set for AC_CHECK_HEADER.
                 CPP="$CPP -nostdinc ${SDK_C_INCLUDE}"
 
-                dnl ld support for -syslibroot is compiler-agnostic, but only
-                dnl available on Tiger.  Although it's possible to switch on
-                dnl the build host's OS release to use ld -syslibroot when
-                dnl available, ld -syslibroot cause warnings as long as
-                dnl NEXT_ROOT is set.  NEXT_ROOT should be set because both
-                dnl both the compiler and linker use it.
-                dnl
+                changequote(,)
+                HOST_DARWIN_MAJOR=`echo "$build_os" | sed -E -e 's/^darwin([0-9]+).*$/\1/'`
+                changequote([,])
+                if test "$HOST_DARWIN_MAJOR" -lt 9 ; then
+                    dnl The build host is running Tiger (10.4) or earlier.
+                    dnl ld support for -syslibroot is compiler-agnostic, but
+                    dnl only available on Tiger and later.  On Tiger and
+                    dnl earlier build hosts, just rely on NEXT_ROOT, because
+                    dnl it's not been shown to cause any problems.
+                    MACOS_SDK_LIBS="-L${MACOS_SDK_DIR}/usr/lib/gcc/darwin -L${MACOS_SDK_DIR}/usr/lib/gcc/darwin/${GCC_VERSION_FULL} -L${MACOS_SDK_DIR}/usr/lib ${SDK_C_FRAMEWORK}"
+                else
+                    dnl The build host is running Leopard (10.5) or later.
+                    dnl With NEXT_ROOT set, the linker will still not apply
+                    dnl it when resolving dependencies.  This causes problems
+                    dnl on Leopard, where an SDK depends on frameworks which
+                    dnl were present in earlier OS releases (and the associated
+                    dnl SDK) but not in Leopard.  -syslibroot does not have
+                    dnl this problem, but it results in harmless warnings when
+                    dnl NEXT_ROOT is set.  NEXT_ROOT needs to remain set even
+                    dnl on Leopard because the compiler uses it too.
+                    MACOS_SDK_LIBS="-Wl,-syslibroot,${MACOS_SDK_DIR}"
+                fi
+
                 dnl LDFLAGS is for the utilities built in config (now and
                 dnl nsinstall).  DSO_LDOPTS is used when linking shared
                 dnl libraries.
-                MACOS_SDK_LIBS="-L${MACOS_SDK_DIR}/usr/lib/gcc/darwin -L${MACOS_SDK_DIR}/usr/lib/gcc/darwin/${GCC_VERSION_FULL} -L${MACOS_SDK_DIR}/usr/lib ${SDK_C_FRAMEWORK}"
                 LDFLAGS="${MACOS_SDK_LIBS} $LDFLAGS"
                 DSO_LDOPTS="${MACOS_SDK_LIBS} $DSO_LDOPTS"
                 export NEXT_ROOT=$MACOS_SDK_DIR
