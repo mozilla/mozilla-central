@@ -39,99 +39,64 @@
 require_once('../config.inc.php');
 require_once($config['base_path'].'/includes/iolib.inc.php');
 require_once($config['base_path'].'/includes/db.inc.php');
-require_once($config['base_path'].'/includes/contrib/nusoap/lib/nusoap.php');
 
 // Turn off Error Reporting because it breaks xml formatting and causes errors
-error_reporting(0);
+error_reporting(1);
 
 // If debugging is enabled, we turn it on (mostly a negative thing)
 if($config['debug']){
     $debug = 1;
 }
 
-// Create the server instance
-$server = new soap_server;
-
-// UTF-8 support is good
-$server->soap_defencoding = "UTF-8";
-$server->decode_utf8 = false;
-
-// WSDL Support
-if($config['use_wsdl']){
-    $server->configureWSDL('reporterwsdl', 'urn:reporterwsdl');
-}
-
-// Register the method to expose
-// Note: with NuSOAP 0.6.3, only method name is used w/o WSDL
-$server->register(
-    'register',                              // method name
-    array('language' => 'xsd:string',),  // input parameters
-    array('return' => 'xsd:string'),         // output parameters
-    'uri:MozillaReporter',                   // namespace
-    'uri:MozillaReporter/register',          // SOAPAction
-    'rpc',                                   // style
-    'encoded'                                // use
-);
-
 /******************************************************
- *            submitReport Method
- *
- * In version 0.2, the service is envoked merely though /service/
- * In version 0.3 the service has a version number appended to it
- * such that it's now /service/0.3/.
- * We detect this and register the correct version of the API for
- * that client.  This is a a simple workaround for nuSOAP's inability
- * to know what is what in a SOAP request (it simply goes by order)
- * and saves us a lot of trouble.  No this isn't pretty, but it's a
- * really simple fix to this one limitation.
+ * Below is some version specific code.  Effectively
+ * how it works is it maps the variables accordingly to
+ * the processing functions so that we reuse all the logic.
  ******************************************************/
 
-/***
- * v0.3 Firefox > 2.0 (Minefield and later)
- ***/
-if($_REQUEST['v'] == '0.3'){
+/******************************************************
+ *                   Version 0.2
+ *
+ * This version is from Firefox 1.5 - Minefield 3.0 alphas.
+ * It makes use of SOAP as a medium and can be accessed via:
+ * /service/ or /service/0.2/
+ *
+ * It is depreciated and it will no longer gain support for
+ * new options/params.
+ ******************************************************/
+if(!isset($_REQUEST['v']) || $_REQUEST['v'] == '0.2' || $_REQUEST['v'] == ''){
+     // Load up soap library
+    require_once($config['base_path'].'/includes/contrib/nusoap/lib/nusoap.php');
+
+    // If undefined, it's 0.2 for legacy purposes
+    if(!isset($_REQUEST['v'])){
+        $_REQUEST['v'] = 0.2;
+    }
+
+    // Create the server instance
+    $server = new soap_server;
+
+    // UTF-8 support is good
+    $server->soap_defencoding = "UTF-8";
+    $server->decode_utf8 = false;
+
+    // WSDL Support
+    if($config['use_wsdl']){
+        $server->configureWSDL('reporterwsdl', 'urn:reporterwsdl');
+    }
+
+    // Register the method to expose
+    // Note: with NuSOAP 0.6.3, only method name is used w/o WSDL
     $server->register(
-        'submitReport',                                 // method name
-        array('rmoVers' => 'xsd:string',
-              'url' => 'xsd:string',
-              'problem_type' => 'xsd:string',
-              'description' => 'xsd:string',
-              'behind_login' => 'xsd:string',
-              'platform' => 'xsd:string',
-              'oscpu' => 'xsd:string',
-              'gecko' => 'xsd:string',
-              'product' => 'xsd:string',
-              'useragent' => 'xsd:string',
-              'buildconfig' => 'xsd:string',
-              'language' => 'xsd:string',
-              'email' => 'xsd:string',
-              'sysid' => 'xsd:string',
-              'charset' => 'xsd:string',
-              'screenshot' => 'xsd:base64Binary',
-              'screenshot_format' => 'xsd:string'),     // input parameters
-        array('return' => 'xsd:string'),                // output parameters
-        'uri:MozillaReporter',                          // namespace
-        'uri:MozillaReporter/submitReport',             // SOAPAction
-        'rpc',                                          // style
-        'encoded'                                       // use
+        'submitRegister',                         // method name
+        array('language' => 'xsd:string',),      // input parameters
+        array('return' => 'xsd:string'),         // output parameters
+        'uri:MozillaReporter',                   // namespace
+        'uri:MozillaReporter/register',          // SOAPAction
+        'rpc',                                   // style
+        'encoded'                                // use
     );
 
-    function submitReport($rmoVers, $url, $problem_type, $description, $behind_login,
-                 $platform, $oscpu, $gecko, $product, $useragent, $buildconfig,
-                 $language, $email, $sysid, $screenshot, $screenshot_format, $charset){
-
-        // What we're really calling
-        return processReport($rmoVers, $url, $problem_type, $description, $behind_login,
-                             $platform, $oscpu, $gecko, $product, $useragent, $buildconfig,
-                             $language, $email, $sysid, $screenshot, $screenshot_format, $charset);
-    }
-}
-
-/***
- * v0.2 Shipped in Firefox 1.5.x and Firefox 2.0.x.
- *   Note it's critical we support service/  without a version param to handle older < 2.0+ clients.
- ***/
-else if($_REQUEST['v'] == '0.2' || !isset($_REQUEST['v']) || $_REQUEST['v'] == ''){
     $server->register(
         'submitReport',                                 // method name
         array('rmoVers' => 'xsd:string',
@@ -160,24 +125,77 @@ else if($_REQUEST['v'] == '0.2' || !isset($_REQUEST['v']) || $_REQUEST['v'] == '
                  $language, $email, $sysid){
 
         // What we're really calling
-        return processReport($rmoVers, $url, $problem_type, $description, $behind_login,
-                             $platform, $oscpu, $gecko, $product, $useragent, $buildconfig,
-                             $language, $email, $sysid);
+        $r = processReport($rmoVers, $url, $problem_type, $description, $behind_login,
+                           $platform, $oscpu, $gecko, $product, $useragent, $buildconfig,
+                           $language, $email, $sysid);
+        if($r->returnCode == false){
+            return new soap_error($r->returnActor, '', $r->returnResponse);
+        }
+        return $r->returnResponse;
     }
+
+    function submitRegister($language){
+        $r = register($language);
+        if($r->returnCode == false){
+            return new soap_error($r->returnActor, '', $r->returnResponse);
+        }
+        return $r->returnResponse;
+    }
+
+
+    // Use the request to (try to) invoke the service
+    $HTTP_RAW_POST_DATA = isset($HTTP_RAW_POST_DATA) ? $HTTP_RAW_POST_DATA : '';
+    $server->service($HTTP_RAW_POST_DATA);
 }
-// If someone attempts a version > we support (url hacking) we just won't have a submitRequest method for them.
 
 
-/***
- * This is the actual submitReport.  Everything after the earliest version supported should be =null, so it's ignored.
- ***/
+ /******************************************************
+ *                   Version 0.3
+ *
+ * This version is from Minefield 3.0 alphas to current.
+ * It makes use of xmlHttpRequest as a transport medium
+ * and can be accessed via /service/0.3/
+ *
+ * This is the current method and does gain support for
+ * new options/params as time progresses
+ ******************************************************/
+if($_REQUEST['v'] == '0.3'){
+    if($_REQUEST['method'] == 'submitRegister'){
+        $r = register($_POST['language']);
+        xmlHttpResponse($r->returnCode, $r->returnResponse);
+        return;
+    }
+    else if($_REQUEST['method'] == 'submitReport'){
+        // Since they are added after 0.3 was created, they could not be defined, in which case just send null.
+        if(!isset($_POST['screenshot'])){
+            $_POST['screenshot'] = null;
+        }
+        if(!isset($_POST['screenshot_format'])){
+            $_POST['screenshot_format'] = null;
+        }
+        if(!isset($_POST['charset'])){
+            $_POST['charset'] = null;
+        }
+
+       $r = processReport($_POST['rmoVers'], $_POST['url'], $_POST['problem_type'], $_POST['description'], $_POST['behind_login'],
+                          $_POST['platform'], $_POST['oscpu'], $_POST['gecko'], $_POST['product'], $_POST['useragent'], $_POST['buildconfig'],
+                          $_POST['language'], $_POST['email'], $_POST['sysid'], $_POST['screenshot'], $_POST['screenshot_format'], $_POST['charset']);
+       xmlHttpResponse($r->returnCode, $r->returnResponse);
+       return;
+    }
+    xmlHttpResponse(false, array('errorString' => 'An incomplete request was sent to the reporter service.') );
+    return;
+}
+
+
+
 function processReport($rmoVers, $url, $problem_type, $description, $behind_login,
                        $platform, $oscpu, $gecko, $product, $useragent, $buildconfig,
                        $language, $email, $sysid, $screenshot = null, $screenshot_format = null, $charset = null) {
     global $config;
 
     if ($config['service_active'] == false){
-        return new soap_fault('SERVER', '', 'The service is currently unavailable.  Please try again in a few minutes.');
+        return new serverReturn(false, 'SERVER', 'The service is currently unavailable.  Please try again in a few minutes.');
     }
 
     /**********
@@ -205,44 +223,44 @@ function processReport($rmoVers, $url, $problem_type, $description, $behind_logi
 
     // check verison
     if ($rmoVers < $config['min_vers']){
-        return new soap_fault('Client', '', 'Your product is out of date, please upgrade.  Visit http://www.getfirefox.com for a newer version', $rmoVers);
+        return new serverReturn(false, 'CLIENT', 'Your product is out of date, please upgrade.  Visit http://www.getfirefox.com for a newer version', $rmoVers);
     }
 
     $parsedUrl = parse_url($url);
     if (!$url || !$parsedUrl['host']){
-        return new soap_fault('Client', '', 'url must use a valid URL syntax http://mozilla.com/page', $url);
+        return new serverReturn(false, 'CLIENT', 'url must use a valid URL syntax http://mozilla.com/page', $url);
     }
     if (!$problem_type || $problem_type == -1 || $problem_type == "0") {
     }
     if ($behind_login != 1 && $behind_login != 0) {
-        return new soap_fault('Client', '', 'behind_login must be type bool int', $behind_login);
+        return new serverReturn(false, 'CLIENT', 'behind_login must be type bool int', $behind_login);
     }
     if (!$platform) {
-        return new soap_fault('Client', '', 'Invalid Platform Type', $platform);
+        return new serverReturn(false, 'CLIENT', 'Invalid Platform Type', $platform);
     }
     if (!$product) {
-        return new soap_fault('Client', '', 'Invalid Product', $product);
+        return new serverReturn(false, 'CLIENT', 'Invalid Product', $product);
     }
     if (!$language) {
-        return new soap_fault('Client', '', 'Invalid Localization', $language);
+        return new serverReturn(false, 'CLIENT', 'Invalid Localization', $language);
     }
 
     /*  We don't explicity require this since some older clients may not return this.
    if (!$gecko) {
-        return new soap_fault('Client', '', 'Invalid Gecko ID', $gecko);
+        return new serverReturn(false, 'CLIENT', 'Invalid Gecko ID', $gecko);
     }
     */
     if (!$oscpu) {
-        return new soap_fault('Client', '', 'Invalid OS CPU', $oscpu);
+        return new serverReturn(false, 'CLIENT', 'Invalid OS CPU', $oscpu);
     }
     if (!$useragent) {
-        return new soap_fault('Client', '', 'Invalid Useragent', $useragent);
+        return new serverReturn(false, 'CLIENT', 'Invalid User Agent', $useragent);
     }
     if (!$buildconfig) {
-        return new soap_fault('Client', '', 'Invalid Build Config', $buildconfig);
+        return new serverReturn(false, 'CLIENT', 'Invalid Build Config', $buildconfig);
     }
     if (!$sysid) {
-        return new soap_fault('Client', '', 'No SysID Entered', $sysid);
+        return new serverReturn(false, 'CLIENT', 'No SysID Entered', $sysid);
     }
 
     // Image Validation
@@ -250,12 +268,12 @@ function processReport($rmoVers, $url, $problem_type, $description, $behind_logi
 
         // If no format specified, it's invalid
         if($screenshot_format == null) {
-            return new soap_fault('Client', '', 'Invalid Screenshot', $screenshot_format);
+            return new serverReturn(false, 'CLIENT', 'Invalid Screenshot', $screenshot_format);
         }
 
         // Must be in our list of approved formats.
         if(!in_array($screenshot_format, $config['screenshot_imageTypes'])){
-            return new soap_fault('Client', '', 'Invalid Screenshot Format', $screenshot_format);
+            return new serverReturn(false, 'CLIENT', 'Invalid Screenshot Format', $screenshot_format);
         }
     }
 
@@ -288,11 +306,11 @@ function processReport($rmoVers, $url, $problem_type, $description, $behind_logi
                                 FROM sysid
                                 WHERE sysid.sysid_id = ".$db->quote($sysid));
     if(!$sysIdQuery){
-        return new soap_fault('SERVER', '', 'Database Error SR1');
+        return new serverReturn(false, 'SERVER', 'Database Error SR1');
     }
 
     if ($sysIdQuery->RecordCount() != 1){
-        return new soap_fault('Client', '', 'Invalid SysID', $sysid);
+        return new serverReturn(false, 'CLIENT', 'Invalid SysID');
     }
 
     /**********
@@ -302,7 +320,7 @@ function processReport($rmoVers, $url, $problem_type, $description, $behind_logi
                                    FROM host
                                    WHERE host.host_hostname = ".$db->quote($parsedUrl['host']));
     if(!$hostnameQuery){
-        return new soap_fault('SERVER', '', 'Database Error SR2');
+        return new serverReturn(false, 'SERVER', 'Database Error SR2');
     }
 
     /**********
@@ -321,7 +339,7 @@ function processReport($rmoVers, $url, $problem_type, $description, $behind_logi
                                              now()
                                          )");
         if (!$addUrlQuery) {
-            return new soap_fault('SERVER', '', 'Database Error SR3');
+            return new serverReturn(false, 'SERVER', 'Database Error SR3');
         }
     }
     else if ($hostnameQuery->RecordCount() == 1) {
@@ -329,7 +347,7 @@ function processReport($rmoVers, $url, $problem_type, $description, $behind_logi
         // pull the hash from DB
         $host_id = $hostnameQuery->fields['host_id'];
     } else{
-        return new soap_fault('SERVER', '', 'Host Exception Error');
+        return new serverReturn(false, 'SERVER', 'Host Exception Error');
     }
 
     /**********
@@ -376,7 +394,7 @@ function processReport($rmoVers, $url, $problem_type, $description, $behind_logi
                                         ".$db->quote($sysid)."
                                     );");
     if (!$addReportQuery) {
-        return new soap_fault('SERVER', '', 'Database Error SR4');
+        return new serverReturn(false, 'SERVER', 'Database Error SR4');
     }
 
     /**********
@@ -400,7 +418,7 @@ function processReport($rmoVers, $url, $problem_type, $description, $behind_logi
                                        );
         ");
         if(!$insertSsQuery){
-            return new soap_fault('SERVER', '', 'Database Error SR5');
+            return new serverReturn(false, 'SERVER', 'Database Error SR5');
         }
         // If we got this far, the screenshot was successfully added!
     }
@@ -409,7 +427,7 @@ function processReport($rmoVers, $url, $problem_type, $description, $behind_logi
      * Disconnect (optional really)
      **********/
     $db->disconnect();
-    return $report_id;
+    return new serverReturn(true, 'SERVER', array('reportId' => $report_id) );
 }
 
 function register($language){
@@ -435,7 +453,7 @@ function register($language){
                                       WHERE sysid.sysid_id = '$id'
                                ");
         if(!$uniqueQuery){
-            return new soap_fault('SERVER', '', 'Database Error R1');
+            return new serverReturn(false, 'SERVER', 'Database Error R1');
         }
         $numRows = $uniqueQuery->RecordCount();
         if ($numRows == 0) {
@@ -460,7 +478,7 @@ function register($language){
                                        ".$db->quote($language)."
                                    )");
     if (!$addSysIdQuery) {
-        return new soap_fault('SERVER', '', 'Database Error R2');
+        return new serverReturn(false, 'SERVER', 'Database Error R2');
     }
 
     /**********
@@ -468,7 +486,7 @@ function register($language){
      **********/
     $db->disconnect();
 
-    return $id;
+    return new serverReturn(true, 'SERVER', $id);
 }
 
 function openDB(){
@@ -480,8 +498,51 @@ function openDB(){
     return $db;
 }
 
-// Use the request to (try to) invoke the service
-$HTTP_RAW_POST_DATA = isset($HTTP_RAW_POST_DATA) ? $HTTP_RAW_POST_DATA : '';
-$server->service($HTTP_RAW_POST_DATA);
+function xmlHttpResponse($returnCode, $returnResponse){
+    //  No caching
+    header('Expires: Mon, 26 Jul 1997 05:00:00 GMT' );
+    header('Last-Modified: ' . gmdate( 'D, d M Y H:i:s' ) . ' GMT');
+    header('Cache-Control: no-store, no-cache, must-revalidate');
+    header('Cache-Control: post-check=0, pre-check=0', false);
+    header('Pragma: no-cache');
 
+    // We do xml around these parts
+    header('Content-type: text/xml');
+
+    // On error, we should return a 500
+    if(!$returnCode){
+        header("HTTP/1.1 500 Internal Server error");
+    }
+
+    $result = '<' . '?xml version="1.0" encoding="utf-8"?' . '>' . "\r";
+    $result .= '<reporterResponse>' . "\r";
+
+    foreach($returnResponse as $tag => $data){
+        $result .= "\t" . '<' . $tag . '>' . htmlspecialchars($data) . '</' . $tag . '>' . "\r";
+    }
+
+    $result .= '</reporterResponse>' . "\r";
+    print $result;
+}
+
+class serverReturn {
+    var $returnCode = false;
+    var $returnActor = 'Server';
+    var $returnResponse = array();
+
+    function serverReturn($returnCode, $returnActor, $returnResponse){
+        $this->returnCode = $returnCode;
+        $this->returnActor = $returnActor;
+        if(is_array($returnResponse)){
+            $this->returnResponse = array_merge($this->returnResponse, $returnResponse);
+        } else {
+            if($returnCode){
+                $this->returnResponse['result'] = $returnResponse;
+            } else {
+                $this->returnResponse['errorString'] = $returnResponse;
+            }
+        }
+        return;
+    }
+}
 ?>
