@@ -51,7 +51,6 @@ _RELNOTE_VERSION:=$(subst .,-,$(CAMINO_VERSION))
 MOZ_PKG_MAC_DSSTORE=../camino/resources/package/dsstore
 MOZ_PKG_MAC_BACKGROUND=../camino/resources/package/background.jpg
 MOZ_PKG_MAC_ICON=../camino/resources/package/disk.icns
-MOZ_PKG_MAC_RSRC=../camino/resources/package/license.r
 # The docs aren't copied into an objdir, chase them in the srcdir.
 # Use $(_ABS_TOPSRCDIR) for an absolute path, handling both srcdir and
 # objdir builds.
