@@ -170,7 +170,7 @@ ocsp_iopr() {
         for certName in $testValidCertNames $testRevokedCertNames \
             $testStatUnknownCertName; do
             ocsp_get_cert_status $dbDir $certName "$responderUrl" \
-                "$testResponder" 2>&1
+                "$testResponder" 
         done
     fi
 }
@@ -235,8 +235,7 @@ ocsp_iopr_run() {
             fi
             if [ -n "${MEMLEAK_DBG}" ]; then
                 ocsp_iopr $ocspTestType ${IOPR_HOSTADDR} \
-                    ${IOPR_OCSP_CLIENTDIR}_${IOPR_HOSTADDR} 2>&1 | 
-                    tee -a ${LOGFILE}
+                    ${IOPR_OCSP_CLIENTDIR}_${IOPR_HOSTADDR} 2>> ${LOGFILE}
             else
                 ocsp_iopr $ocspTestType ${IOPR_HOSTADDR} \
                     ${IOPR_OCSP_CLIENTDIR}_${IOPR_HOSTADDR}
@@ -244,7 +243,7 @@ ocsp_iopr_run() {
         done
 
         if [ -n "${MEMLEAK_DBG}" ]; then
-            log_parse >> ${FOUNDLEAKS}
+            log_parse
             ret=$?
             html_msg ${ret} 0 "${LOGNAME}" \
                 "produced a returncode of $ret, expected is 0"

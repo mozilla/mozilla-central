@@ -79,6 +79,7 @@ memleak_init()
 	OLD_LIBRARY_PATH=${LD_LIBRARY_PATH}
 	TMP_LIBDIR="${HOSTDIR}/tmp$$"
 	TMP_STACKS="${HOSTDIR}/stacks$$"
+	TMP_SORTED="${HOSTDIR}/sorted$$"
 	TMP_COUNT="${HOSTDIR}/count$$"
 	
 	PORT=${PORT:-8443}
@@ -307,7 +308,7 @@ run ${ATTR}
 	echo "${DBX} ${COMMAND}"
 	echo "${SCRIPTNAME}: -------- DBX commands:"
 	echo "${DBX_CMD}"
-	echo "${DBX_CMD}" | ${DBX} ${COMMAND} 2>/dev/null | grep -v Reading
+	echo "${DBX_CMD}" | ${DBX} ${COMMAND} 2>/dev/null | grep -v Reading 1>&2
 }
 
 ######################### run_command_valgrind #########################
@@ -321,7 +322,7 @@ run_command_valgrind()
 
 	echo "${SCRIPTNAME}: -------- Running ${COMMAND} under Valgrind:"
 	echo "${VALGRIND} --tool=memcheck --leak-check=yes --show-reachable=yes --partial-loads-ok=yes --leak-resolution=high --num-callers=50 ${COMMAND} ${ATTR}"
-	${VALGRIND} --tool=memcheck --leak-check=yes --show-reachable=yes --partial-loads-ok=yes --leak-resolution=high --num-callers=50 ${COMMAND} ${ATTR} 
+	${VALGRIND} --tool=memcheck --leak-check=yes --show-reachable=yes --partial-loads-ok=yes --leak-resolution=high --num-callers=50 ${COMMAND} ${ATTR} 1>&2
 	echo "==0==" 
 }
 
@@ -459,14 +460,14 @@ run_ciphers_server()
 			LOGFILE=${LOGDIR}/${LOGNAME}.log
 			echo "Running ${LOGNAME}"
 			
-			run_selfserv_dbg 2>&1 | tee ${LOGFILE} &
+			run_selfserv_dbg 2>> ${LOGFILE} &
 			sleep 5
 			run_strsclnt
 			
 			sleep 20
 			clear_freebl
 			
-			log_parse >> ${FOUNDLEAKS}
+			log_parse
 			ret=$?
 			
 			html_msg ${ret} 0 "${LOGNAME}" "produced a returncode of $ret, expected is 0"
@@ -500,12 +501,12 @@ run_ciphers_client()
 			
 			run_selfserv &
 			sleep 5
-			run_strsclnt_dbg 2>&1 | tee ${LOGFILE}
+			run_strsclnt_dbg 2>> ${LOGFILE}
 			
 			sleep 20
 			clear_freebl
 			
-			log_parse >> ${FOUNDLEAKS}
+			log_parse
 			ret=$?
 			html_msg ${ret} 0 "${LOGNAME}" "produced a returncode of $ret, expected is 0"
 		done
@@ -757,13 +758,15 @@ check_ignored()
 ########################################################################
 log_parse()
 {
-	echo "${SCRIPTNAME}: Processing log ${LOGNAME}:"
 	${PARSE_LOGFILE} < ${LOGFILE} > ${TMP_STACKS}
-	cat ${TMP_STACKS} | sort -u | check_ignored
+	echo "${SCRIPTNAME}: Processing log ${LOGNAME}:" > ${TMP_SORTED}
+	cat ${TMP_STACKS} | sort -u | check_ignored >> ${TMP_SORTED}
 	ret=$?
-	rm ${TMP_STACKS}
-	echo ""
-
+	echo >> ${TMP_SORTED}
+	
+	cat ${TMP_SORTED} | tee -a ${FOUNDLEAKS}
+	rm ${TMP_STACKS} ${TMP_SORTED}
+	
 	return ${ret}
 }
 
