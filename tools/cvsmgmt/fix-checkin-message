@@ -3,11 +3,13 @@
 use File::Temp qw(tempdir);
 
 my $cvs_host = "dm-cvs01";
-my $remote_cvs_path = "/cvsdisk/jail/cvsroot";
-
 my $bonsai_host = "dm-webtools02";
+
+my $cvsroot_path = "/cvsroot";
 my $bonsai_path = "/var/www/webtools/bonsai-cvs";
-my $local_cvs_path = "/cvsdisk/jail/cvsroot";
+
+my $remote_cvs_path = "/cvsdisk/jail$cvsroot_path";
+my $local_cvs_path = "/cvsdisk/jail$cvsroot_path";
 
 $|=1;
 
@@ -42,7 +44,7 @@ print "\nPlease enter your email address used for CVS: ";
 my $cvsuser = <STDIN>;
 chomp $cvsuser;
 $cvsuser =~ s/\@/%/;
-my $cvsroot = "$cvsuser\@cvs.mozilla.org:/cvsroot";
+my $cvsroot = "$cvsuser\@$cvs_host:$cvsroot_path";
 
 my $groups = `ssh $cvs_host groups $cvsuser`;
 if ($groups !~ /\bcvsadm\b/) {
