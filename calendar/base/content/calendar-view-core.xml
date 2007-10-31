@@ -224,7 +224,19 @@
           this.eventNameInput.select();
         ]]></body>
       </method>
-
+      <method name="select">
+        <parameter name="event"/>
+        <body><![CDATA[
+            var items;
+            if (event.ctrlKey || event.metaKey) {
+                items = this.calendarView.mSelectedItems;
+                items.push(this.mOccurrence);
+            } else {
+                items = [this.mOccurrence];
+            }
+            this.calendarView.setSelectedItems(items.length, items);
+        ]]></body>
+      </method>
       <method name="stopEditing">
         <parameter name="saveChanges"/>
         <body><![CDATA[
@@ -255,29 +267,26 @@
     </implementation>
 
     <handlers>
-      <handler event="click"><![CDATA[
+      <handler event="contextmenu" phase="capturing"><![CDATA[
+       // If the middle/right button was used for click just select the item.
+        this.select(event);
+      ]]></handler>
+      <handler event="click" button="0"><![CDATA[
         if (this.mEditing) {
             return;
         }
 
-        // If the middle/right button was used for click just select the item.
         // If the left button was used and the item is already selected start
         // the 'single click edit' timeout. Otherwise select the item too.
-        if (this.selected && (event.button == 0)) {
+        if (this.selected) {
             var self = this;
             if (this.editingTimer) {
                 clearTimeout(this.editingTimer);
             }
             this.editingTimer = setTimeout(function alldayTimeout() { self.startEditing(); }, 350);
-        } else {
-            var items;
-            if (event.ctrlKey || event.metaKey) {
-                items = this.calendarView.mSelectedItems;
-                items.push(this.mOccurrence);
-            } else {
-                items = [this.mOccurrence];
-            }
-            this.calendarView.setSelectedItems(items.length, items);
+        }
+        else {
+            this.select(event);
             event.stopPropagation();
         }
       ]]></handler>
