@@ -104,7 +104,7 @@ SECStatus PK11_UpdateSlotAttribute(PK11SlotInfo *slot,
 #define PK11_SETATTRS(x,id,v,l) (x)->type = (id); \
 		(x)->pValue=(v); (x)->ulValueLen = (l);
 SECStatus PK11_CreateNewObject(PK11SlotInfo *slot, CK_SESSION_HANDLE session,
-                               CK_ATTRIBUTE *theTemplate, int count,
+                               const CK_ATTRIBUTE *theTemplate, int count,
                                 PRBool token, CK_OBJECT_HANDLE *objectID);
 
 SECStatus pbe_PK11AlgidToParam(SECAlgorithmID *algid,SECItem *mech);

@@ -390,7 +390,7 @@ pk11_CloseSession(PK11SlotInfo *slot,CK_SESSION_HANDLE session,PRBool owner)
 
 SECStatus
 PK11_CreateNewObject(PK11SlotInfo *slot, CK_SESSION_HANDLE session,
-				CK_ATTRIBUTE *theTemplate, int count, 
+				const CK_ATTRIBUTE *theTemplate, int count, 
 				PRBool token, CK_OBJECT_HANDLE *objectID)
 {
 	CK_SESSION_HANDLE rwsession;
@@ -1323,9 +1323,99 @@ PK11_DestroyGenericObjects(PK11GenericObject *objects)
 	PK11_DestroyGenericObject(objects);
     }
     /* delete all the objects before it in the list */
-    for (objects = prevObject; objects;  objects = nextObject) {
+    for (objects = prevObject; objects;  objects = prevObject) {
 	prevObject = objects->prev;
 	PK11_DestroyGenericObject(objects);
+    }
+    return SECSuccess;
+}
+
+
+/*
+ * Hand Create a new object and return the Generic object for our new object.
+ */
+PK11GenericObject *
+PK11_CreateGenericObject(PK11SlotInfo *slot, const CK_ATTRIBUTE *pTemplate,
+		int count,  PRBool token)
+{
+    CK_OBJECT_HANDLE objectID;
+    PK11GenericObject *obj;
+    CK_RV crv;
+
+    PK11_EnterSlotMonitor(slot);
+    crv = PK11_CreateNewObject(slot, slot->session, pTemplate, count, 
+			       token, &objectID);
+    PK11_ExitSlotMonitor(slot);
+    if (crv != CKR_OK) {
+	PORT_SetError(PK11_MapError(crv));
+	return NULL;
+    }
+
+    obj = PORT_New(PK11GenericObject);
+    if ( !obj ) {
+	/* error set by PORT_New */
+	return NULL;
+    }
+
+    /* initialize it */	
+    obj->slot = PK11_ReferenceSlot(slot);
+    obj->objectID = objectID;
+    obj->next = NULL;
+    obj->prev = NULL;
+    return obj;
+}
+
+/*
+ * Change an attribute on a raw object
+ */
+SECStatus
+PK11_WriteRawAttribute(PK11ObjectType objType, void *objSpec, 
+				CK_ATTRIBUTE_TYPE attrType, SECItem *item)
+{
+    PK11SlotInfo *slot = NULL;
+    CK_OBJECT_HANDLE handle;
+    CK_ATTRIBUTE setTemplate;
+    CK_RV crv;
+    CK_SESSION_HANDLE rwsession;
+
+    switch (objType) {
+    case PK11_TypeGeneric:
+	slot = ((PK11GenericObject *)objSpec)->slot;
+	handle = ((PK11GenericObject *)objSpec)->objectID;
+	break;
+    case PK11_TypePrivKey:
+	slot = ((SECKEYPrivateKey *)objSpec)->pkcs11Slot;
+	handle = ((SECKEYPrivateKey *)objSpec)->pkcs11ID;
+	break;
+    case PK11_TypePubKey:
+	slot = ((SECKEYPublicKey *)objSpec)->pkcs11Slot;
+	handle = ((SECKEYPublicKey *)objSpec)->pkcs11ID;
+	break;
+    case PK11_TypeSymKey:
+	slot = ((PK11SymKey *)objSpec)->slot;
+	handle = ((PK11SymKey *)objSpec)->objectID;
+	break;
+    case PK11_TypeCert: /* don't handle cert case for now */
+    default:
+	break;
+    }
+    if (slot == NULL) {
+	PORT_SetError(SEC_ERROR_UNKNOWN_OBJECT_TYPE);
+	return SECFailure;
+    }
+
+    PK11_SETATTRS(&setTemplate, attrType, (CK_CHAR *) item->data, item->len);
+    rwsession = PK11_GetRWSession(slot);
+    if (rwsession == CK_INVALID_SESSION) {
+    	PORT_SetError(SEC_ERROR_BAD_DATA);
+    	return SECFailure;
+    }
+    crv = PK11_GETTAB(slot)->C_SetAttributeValue(rwsession, handle,
+			&setTemplate, 1);
+    PK11_RestoreROSession(slot, rwsession);
+    if (crv != CKR_OK) {
+	PORT_SetError(PK11_MapError(crv));
+	return SECFailure;
     }
     return SECSuccess;
 }

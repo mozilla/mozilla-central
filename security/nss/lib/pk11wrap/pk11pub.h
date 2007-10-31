@@ -710,7 +710,31 @@ SECStatus PK11_LinkGenericObject(PK11GenericObject *list,
 				 PK11GenericObject *object);
 SECStatus PK11_DestroyGenericObjects(PK11GenericObject *object);
 SECStatus PK11_DestroyGenericObject(PK11GenericObject *object);
+PK11GenericObject *PK11_CreateGenericObject(PK11SlotInfo *slot, 
+				   const CK_ATTRIBUTE *pTemplate, 
+				   int count, PRBool token);
+
+/*
+ * PK11_ReadRawAttribute and PK11_WriteRawAttribute are generic
+ * functions to read and modify the actual PKCS #11 attributes of
+ * the underlying pkcs #11 object.
+ * 
+ * object is a pointer to an NSS object that represents the underlying
+ *  PKCS #11 object. It's type must match the type of PK11ObjectType
+ *  as follows:
+ *
+ *     type                           object
+ *   PK11_TypeGeneric            PK11GenericObject *
+ *   PK11_TypePrivKey            SECKEYPrivateKey *
+ *   PK11_TypePubKey             SECKEYPublicKey *
+ *   PK11_TypeSymKey             PK11SymKey *
+ *
+ *  All other types are considered invalid. If type does not match the object
+ *  passed, unpredictable results will occur.
+ */
 SECStatus PK11_ReadRawAttribute(PK11ObjectType type, void *object, 
+				CK_ATTRIBUTE_TYPE attr, SECItem *item);
+SECStatus PK11_WriteRawAttribute(PK11ObjectType type, void *object, 
 				CK_ATTRIBUTE_TYPE attr, SECItem *item);
 
 
