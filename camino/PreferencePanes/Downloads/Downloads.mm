@@ -148,8 +148,8 @@ private:
   nsresult rv = macDir->GetFSRef(&folderRef);
   if (NS_FAILED(rv))
     return downloadStr;
-  UInt8 utf8path[MAXPATHLEN+1];
-  ::FSRefMakePath(&folderRef, utf8path, MAXPATHLEN);
+  UInt8 utf8path[PATH_MAX + 1];
+  ::FSRefMakePath(&folderRef, utf8path, PATH_MAX);
   return [NSString stringWithUTF8String:(const char*)utf8path];
 }
 
