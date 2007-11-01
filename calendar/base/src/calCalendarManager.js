@@ -613,6 +613,15 @@ calCalendarManager.prototype = {
     }
 };
 
+function equalMessage(msg1, msg2) {
+    if (msg1.GetString(0) == msg2.GetString(0) &&
+        msg1.GetString(1) == msg2.GetString(1) &&
+        msg1.GetString(2) == msg2.GetString(2)) {
+        return true;
+    }
+    return false;
+}
+
 // This is a prototype object for announcing the fact that a calendar error has
 // happened and that the calendar has therefore been put in readOnly mode.  We
 // implement a new one of these for each calendar registered to the calmgr.
@@ -621,7 +630,52 @@ function errorAnnouncer(calendar) {
     // We compare this to determine if the state actually changed.
     this.storedReadOnly = calendar.readOnly;
     var announcer = this;
+    this.announcedMessages = [];
     this.observer = {
+
+        QueryInterface: function mBL_QueryInterface(aIID) {
+            ensureIID(
+                [ Components.interfaces.nsIWindowMediatorListener,
+                  Components.interfaces.calIObserver,
+                  Components.interfaces.nsISupports], aIID);
+            return this;
+        },
+
+        // nsIWindowMediatorListener:
+        onCloseWindow: function(aXulWindow) {
+
+            try {
+                var aDOMWindow = aXulWindow.docShell
+                    .QueryInterface(
+                        Components.interfaces.nsIInterfaceRequestor)
+                    .getInterface(
+                        Components.interfaces.nsIDOMWindow); 
+                var args = aDOMWindow.arguments[0]
+                    .QueryInterface(
+                        Components.interfaces.nsIDialogParamBlock);
+
+                // remove the message that has been shown from
+                // the list of all announced messages.
+                announcer.announcedMessages = announcer.announcedMessages.filter(
+                    function(announcedMessage) {
+                        return !equalMessage(announcedMessage, args);
+                    });
+
+                // if the list is now empty we can safely remove the listener
+                if(!announcer.announcedMessages.length) {
+                    var windowMediator = Components.classes["@mozilla.org/appshell/window-mediator;1"]
+                                         .getService(Components.interfaces.nsIWindowMediator);
+                    windowMediator.removeListener(announcer.observer); 
+                }
+
+            } catch(e) {
+                Components.utils.reportError(e);
+            }
+        },
+
+        onOpenWindow: function(aXulWindow) {},
+        onWindowTitleChange: function(aXulWindow,aNewTitle) {},
+
         // calIObserver:
         onStartBatch: function() {},
         onEndBatch: function() {},
@@ -685,6 +739,27 @@ errorAnnouncer.prototype.announceError = function(aErrNo, aMessage) {
     paramBlock.SetString(1, errCode);
     paramBlock.SetString(2, message);
 
+    // silently don't do anything if this message already has
+    // been announed without being acknowledged.    
+    if (this.announcedMessages.some(
+        function(element, index, array) {
+            return equalMessage(paramBlock, element);
+        })) {
+        return;
+    }
+
+    // if no message has been announced, i.e. no window has been
+    // raised, we need to install the appropriate listener now.
+    if(!this.announcedMessages.length) {
+        Components.classes["@mozilla.org/appshell/window-mediator;1"]
+                  .getService(Components.interfaces.nsIWindowMediator)
+                  .addListener(this.observer); 
+    }
+
+    // this message hasn't been announced recently, remember the
+    // details of the message for future reference.
+    this.announcedMessages.push(paramBlock);
+
     this.storedReadOnly = this.calendar.readOnly;
 
     var wWatcher = Components.classes["@mozilla.org/embedcomp/window-watcher;1"]
@@ -692,6 +767,6 @@ errorAnnouncer.prototype.announceError = function(aErrNo, aMessage) {
     wWatcher.openWindow(null,
                         "chrome://calendar/content/calErrorPrompt.xul",
                         "_blank",
-                        "chrome,dialog=yes",
+                        "chrome,dialog=yes,alwaysRaised=yes",
                         paramBlock);
 }
