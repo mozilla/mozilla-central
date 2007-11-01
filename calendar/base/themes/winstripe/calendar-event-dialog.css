@@ -57,8 +57,7 @@ listbox[disabled="true"] {
   list-style-image: url("chrome://calendar/skin/sun-calendar-event-dialog-attendees.png");
 }
 
-.status-icon[status="ACCEPTED"] 
-{
+.status-icon[status="ACCEPTED"] {
   display: inline;
   -moz-image-region: rect(0px 12px 14px 0px);
 }
