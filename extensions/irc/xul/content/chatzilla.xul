@@ -51,6 +51,7 @@
 
 <window id="chatzilla-window"
   xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#"
+  xmlns:aaa="http://www.w3.org/2005/07/aaa"
   xmlns="http://www.mozilla.org/keymaster/gatekeeper/there.is.only.xul"
   orient="vertical" onload="onLoad();" onunload="onUnload();"
   onclose="return onClose();" onmouseover="onMouseOver(event);"
@@ -69,8 +70,8 @@
  
           <tree id="user-list" container="true" datasources="rdf:null" flex="1"
             containment="http://home.netscape.com/NC-irc#chanuser"
-            hidecolumnpicker="true"
-            context="context:userlist">
+            hidecolumnpicker="true" context="context:userlist"
+            aaa:live="off" aaa:relevant="additions removals text">
 
             <template>
               <rule>

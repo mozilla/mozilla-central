@@ -3073,9 +3073,11 @@ function createMessages(source)
     playEventSounds(source.TYPE, "start");
 
     source.messages = document.createElementNS(XHTML_NS, "html:table");
+    source.messages.setAttribute("class", "msg-table");
+    source.messages.setAttribute("view-type", source.TYPE);
+    source.messages.setAttribute("role", "log");
+    source.messages.setAttribute("aria-live", "polite");
 
-    source.messages.setAttribute ("class", "msg-table");
-    source.messages.setAttribute ("view-type", source.TYPE);
     var tbody = document.createElementNS(XHTML_NS, "html:tbody");
     source.messages.appendChild (tbody);
     source.messageCount = 0;
@@ -3836,8 +3838,6 @@ function __display(message, msgtype, sourceObj, destObj)
         else
             msgRow.setAttribute("msg-source", fromAttr);
     }
-    if (isImportant)
-        msgTimestamp.setAttribute ("important", "true");
 
     // Timestamp cell.
     var msgRowTimestamp = document.createElementNS(XHTML_NS, "html:td");
@@ -3994,7 +3994,10 @@ function __display(message, msgtype, sourceObj, destObj)
         msgRow.setAttribute("mark", this.mark);
 
     if (isImportant)
-        msgRow.setAttribute ("important", "true");
+    {
+        msgRow.setAttribute("important", "true");
+        msgRow.setAttribute("aria-channel", "notify");
+    }
 
     // Timestamps first...
     msgRow.appendChild(msgRowTimestamp);
@@ -4020,6 +4023,7 @@ function __display(message, msgtype, sourceObj, destObj)
         tr.appendChild(td);
         var table = document.createElementNS(XHTML_NS, "html:table");
         table.setAttribute ("class", "msg-nested-table");
+        table.setAttribute("role", "presentation");
 
         td.appendChild (table);
         var tbody =  document.createElementNS(XHTML_NS, "html:tbody");

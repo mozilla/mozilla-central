@@ -139,6 +139,12 @@ function stock_initOutputWindow(newClient, newView, newClickHandler)
     {
         header = cacheNodes(headers[view.TYPE].prefix,
                             headers[view.TYPE].fields);
+        // Turn off accessibility announcements: they're useless as all these
+        // changes are in the "log" as well, normally.
+        // We're setting the attribute here instead of in the HTML to cope with
+        // custom output windows and so we set it only on the Right header
+        // for this view.
+        header["container"].setAttribute("aria-live", "off");
         header.update = headers[view.TYPE].update;
     }
 
