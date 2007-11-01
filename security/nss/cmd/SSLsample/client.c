@@ -175,8 +175,8 @@ retry:
 	}
 
 	secStatus = SSL_HandshakeCallback(sslSocket, 
-	                                 (SSLHandshakeCallback)myHandshakeCallback,
-	                                 NULL);
+	                                  myHandshakeCallback,
+	                                  NULL);
 	if (secStatus != SECSuccess) {
 		errWarn("SSL_HandshakeCallback");
 		goto loser;

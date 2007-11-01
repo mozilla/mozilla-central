@@ -311,11 +311,10 @@ myGetClientAuthData(void *arg,
  * Note: This function is not implemented in this sample, as we are using
  * blocking sockets.
  */
-SECStatus 
+void
 myHandshakeCallback(PRFileDesc *socket, void *arg) 
 {
     printf("Handshake has completed, ready to send data securely.\n");
-    return SECSuccess;
 }
 
 

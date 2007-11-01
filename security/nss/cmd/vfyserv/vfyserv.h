@@ -91,7 +91,7 @@ SECStatus myAuthCertificate(void *arg, PRFileDesc *socket,
 
 SECStatus myBadCertHandler(void *arg, PRFileDesc *socket);
 
-SECStatus myHandshakeCallback(PRFileDesc *socket, void *arg);
+void myHandshakeCallback(PRFileDesc *socket, void *arg);
 
 SECStatus myGetClientAuthData(void *arg, PRFileDesc *socket,
                               struct CERTDistNamesStr *caNames,

@@ -738,11 +738,10 @@ handle_connection( PRFileDesc *ssl_sock, int tid)
 
 PRInt32 lastFullHandshakePeerID;
 
-SECStatus 
+void
 myHandshakeCallback(PRFileDesc *socket, void *arg) 
 {
     PR_AtomicSet(&lastFullHandshakePeerID, (PRInt32) arg);
-    return SECSuccess;
 }
 
 #endif

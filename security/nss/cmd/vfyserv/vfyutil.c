@@ -314,7 +314,7 @@ myGetClientAuthData(void *arg,
     return secStatus;
 }
 
-/* Function: SECStatus myHandshakeCallback()
+/* Function: void myHandshakeCallback()
  *
  * Purpose: Called by SSL to inform application that the handshake is
  * complete. This function is mostly used on the server side of an SSL
@@ -337,11 +337,10 @@ myGetClientAuthData(void *arg,
  * Note: This function is not implemented in this sample, as we are using
  * blocking sockets.
  */
-SECStatus 
+void
 myHandshakeCallback(PRFileDesc *socket, void *arg) 
 {
     fprintf(stderr,"Handshake Complete: SERVER CONFIGURED CORRECTLY\n");
-    return SECSuccess;
 }
 
 
