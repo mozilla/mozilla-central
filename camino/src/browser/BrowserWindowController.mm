@@ -45,6 +45,7 @@
 #import "NSSplitView+Utils.h"
 #import "NSMenu+Utils.h"
 #import "NSPasteboard+Utils.h"
+#import "NSWorkspace+Utils.h"
 
 #import "BrowserWindowController.h"
 #import "BrowserWindow.h"
@@ -130,6 +131,12 @@
 #include "nsIDOMRange.h"
 
 #include "nsAppDirectoryServiceDefs.h"
+
+#if MAC_OS_X_VERSION_MIN_REQUIRED <= MAC_OS_X_VERSION_10_4
+@interface NSWindow(LeopardSDKDeclarations)
+- (void)setContentBorderThickness:(float)borderThickness forEdge:(NSRectEdge)edge;
+@end
+#endif
 
 static NSString* const BrowserToolbarIdentifier         = @"Browser Window Toolbar Combined";
 static NSString* const BackToolbarItemIdentifier        = @"Back Toolbar Item";
@@ -863,11 +870,16 @@ enum BWCOpenDest {
       [mStatusBar setHidden:YES];
       mustResizeChrome = YES;
     }
-    // due to a cocoa issue with it updating the bounding box of two rects
-    // that both needing updating instead of just the two individual rects
-    // (radar 2194819), we need to make the text area opaque.
-    [mStatus setBackgroundColor:[NSColor windowBackgroundColor]];
-    [mStatus setDrawsBackground:YES];
+    if ([NSWorkspace isLeopardOrHigher]) {
+      [[self window] setContentBorderThickness:NSHeight([mStatusBar bounds]) forEdge:NSMinYEdge];
+    }
+    else {
+      // due to a cocoa issue with it updating the bounding box of two rects
+      // that both needing updating instead of just the two individual rects
+      // (radar 2194819), we need to make the text area opaque.
+      [mStatus setBackgroundColor:[NSColor windowBackgroundColor]];
+      [mStatus setDrawsBackground:YES];
+    }
 
     // Set up the menus in the search fields
     [self setUpSearchFields];
@@ -1845,8 +1857,25 @@ enum BWCOpenDest {
 
 - (void)updateStatus:(NSString*)status
 {
-  if (![[mStatus stringValue] isEqualToString:status])
+  if ([[mStatus stringValue] isEqualToString:status])
+    return;
+
+  if ([NSWorkspace isLeopardOrHigher]) {
+    // On 10.5+, give the text an etched look for the textured status bar.
+    static NSDictionary* shadowAttributes = nil;
+    if (!shadowAttributes) {
+      NSShadow* shadow = [[[NSShadow alloc] init] autorelease];
+      [shadow setShadowOffset:NSMakeSize(0.0, -2.0)];
+      [shadow setShadowColor:[NSColor colorWithCalibratedWhite:1.0 alpha:0.6]];
+      shadowAttributes = [[NSDictionary dictionaryWithObject:shadow forKey:NSShadowAttributeName] retain];
+    }
+    NSAttributedString* shadowedStatus = [[[NSAttributedString alloc] initWithString:status
+                                                                          attributes:shadowAttributes] autorelease];
+    [mStatus setAttributedStringValue:shadowedStatus];
+  }
+  else {
     [mStatus setStringValue:status];
+  }
 }
 
 - (void)updateLocationFields:(NSString*)url ignoreTyping:(BOOL)ignoreTyping

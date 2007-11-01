@@ -149,6 +149,20 @@
 }
 
 //
+// +isLeopardOrHigher
+//
+// returns YES if we're on 10.5 or better
+//
++ (BOOL)isLeopardOrHigher
+{
+#if MAC_OS_X_VERSION_MIN_REQUIRED > MAC_OS_X_VERSION_10_4
+  return YES;
+#else
+  return [self systemVersion] >= 0x1050;
+#endif
+}
+
+//
 // +isTigerOrHigher
 //
 // returns YES if we're on 10.4 or better
