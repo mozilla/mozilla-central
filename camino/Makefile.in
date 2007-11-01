@@ -45,7 +45,6 @@ VPATH		= @srcdir@
 include $(DEPTH)/config/autoconf.mk
 
 DIRS = \
-	IBPalette \
 	flashblock \
 	$(NULL)
 
@@ -92,7 +91,6 @@ endif
 
 GARBAGE_DIRS += build \
 	$(DIST)/$(APP_NAME).app \
-	IBPalette/build \
 	embed-replacements.tmp \
 	generated \
 	$(NULL)
