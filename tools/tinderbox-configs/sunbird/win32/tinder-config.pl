@@ -248,6 +248,10 @@ $update_hash = "sha1";
 $update_filehost = "ftp.mozilla.org";
 $update_ver_file = 'calendar/sunbird/config/version.txt';
 $update_pushinfo = 1;
+
+# override tinder-defaults.pl to use community server
+$update_aus_host = 'aus2-community.mozilla.org';
+
 $crashreporter_buildsymbols = 1;
 $crashreporter_pushsymbols = 1;
 $ENV{SYMBOL_SERVER_HOST} = 'stage.mozilla.org';
