@@ -88,7 +88,7 @@ if(!isset($_REQUEST['v']) || $_REQUEST['v'] == '0.2' || $_REQUEST['v'] == ''){
     // Register the method to expose
     // Note: with NuSOAP 0.6.3, only method name is used w/o WSDL
     $server->register(
-        'submitRegister',                         // method name
+        'register',                              // method name
         array('language' => 'xsd:string',),      // input parameters
         array('return' => 'xsd:string'),         // output parameters
         'uri:MozillaReporter',                   // namespace
@@ -131,15 +131,15 @@ if(!isset($_REQUEST['v']) || $_REQUEST['v'] == '0.2' || $_REQUEST['v'] == ''){
         if($r->returnCode == false){
             return new soap_error($r->returnActor, '', $r->returnResponse);
         }
-        return $r->returnResponse;
+        return $r->returnResponse['reportId'];
     }
 
-    function submitRegister($language){
-        $r = register($language);
+    function register($language){
+        $r = registerRoutine($language);
         if($r->returnCode == false){
             return new soap_error($r->returnActor, '', $r->returnResponse);
         }
-        return $r->returnResponse;
+        return $r->returnResponse['result'];
     }
 
 
@@ -161,7 +161,7 @@ if(!isset($_REQUEST['v']) || $_REQUEST['v'] == '0.2' || $_REQUEST['v'] == ''){
  ******************************************************/
 if($_REQUEST['v'] == '0.3'){
     if($_REQUEST['method'] == 'submitRegister'){
-        $r = register($_POST['language']);
+        $r = registerRoutine($_POST['language']);
         xmlHttpResponse($r->returnCode, $r->returnResponse);
         return;
     }
@@ -430,7 +430,7 @@ function processReport($rmoVers, $url, $problem_type, $description, $behind_logi
     return new serverReturn(true, 'SERVER', array('reportId' => $report_id) );
 }
 
-function register($language){
+function registerRoutine($language){
     global $config;
 
     /**********
