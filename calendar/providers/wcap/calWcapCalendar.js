@@ -36,10 +36,6 @@
  *
  * ***** END LICENSE BLOCK ***** */
 
-var g_lastOnErrorTime = 0;
-var g_lastOnErrorNo = 0;
-var g_lastOnErrorMsg = null;
-
 function calWcapCalendar(/*optional*/session, /*optional*/calProps) {
     this.wrappedJSObject = this;
     this.m_session = session;
@@ -102,21 +98,31 @@ calWcapCalendar.prototype = {
             str += ", default calendar";
         return str;
     },
-    notifyError: function calWcapCalendar_notifyError(err, suppressOnError)
+    notifyError_: function calWcapCalendar_notifyError_(err, context, suppressOnError)
     {
-        if (getResultCode(err) == calIErrors.OPERATION_CANCELLED) {
+        var rc = getResultCode(err);
+        if ((rc == calIErrors.OPERATION_CANCELLED) ||
+            (rc == NS_ERROR_OFFLINE)) { // no real error
             return;
         }
-        debugger;
-        var msg = logError(err, this);
+        var msg;
+        if (checkResultCode(rc, calIErrors.WCAP_ERROR_BASE, 8) ||
+            (getErrorModule(rc) == NS_ERROR_MODULE_NETWORK)) {
+            // don't bloat the js error console with these errors
+            msg = log("error: " + errorToString(err), context);
+        } else {
+            msg = logError(err, context);
+        }
         if (!suppressOnError) {
-            this.notifyObservers(
-                "onError",
-                err instanceof Components.interfaces.nsIException
-                ? [err.result, err.message] : [isNaN(err) ? -1 : err, msg]);
+            this.notifyObservers("onError",
+                                 err instanceof Components.interfaces.nsIException
+                                 ? [err.result, err.message] : [isNaN(err) ? -1 : err, msg]);
         }
     },
-    
+    notifyError: function calWcapCalendar_notifyError(err, suppressOnError) {
+        this.notifyError_(err, this, suppressOnError);
+    },
+
     // calICalendarProvider:
     get prefChromeOverlay() {
         return null;
@@ -168,10 +174,12 @@ calWcapCalendar.prototype = {
     m_bReadOnly: undefined,
     get readOnly() {
         // xxx todo:
-        // read-only if not logged in, this flag is tested quite
+        // read-write if not logged in, this flag is tested quite
         // early, so don't log in here if not logged in already...
+        if (!this.session.isLoggedIn) {
+            return this.m_bReadOnly;
+        }
         return (this.m_bReadOnly ||
-                !this.session.isLoggedIn ||
                 // limit to write permission on components:
                 !this.checkAccess(calIWcapCalendar.AC_COMP_WRITE) ||
                 ((this.m_bReadOnly === undefined) && // has not been explicitly set
@@ -232,21 +240,6 @@ calWcapCalendar.prototype = {
     notifyObservers: function calWcapCalendar_notifyObservers(func, args) {
         if (g_bShutdown)
             return;
-        if (func == "onError") {
-            // xxx todo: hack
-            // suppress identical error bursts when multiple similar calls eg on getItems() fail.
-            var now = (new Date()).getTime();
-            if ((now - g_lastOnErrorTime) < 1000 &&
-                (args[0] == g_lastOnErrorNo) &&
-                (args[1] == g_lastOnErrorMsg)) {
-                log("suppressing calIObserver::onError.", this);
-                return;
-            }
-            g_lastOnErrorTime = now;
-            g_lastOnErrorNo = args[0];
-            g_lastOnErrorMsg = args[1];
-        }
-
         this.m_observers.notify(func, args);
     },
     addObserver: function calWcapCalendar_addObserver(observer) {

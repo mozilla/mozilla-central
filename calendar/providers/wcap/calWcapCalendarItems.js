@@ -659,8 +659,7 @@ function calWcapCalendar_adoptItem(item, listener)
     
     try {
         if (!isParent(item)) {
-            this_.logError("adoptItem(): unexpected proxy!");
-            debugger;
+            logError("adoptItem(): unexpected proxy!", this);
         }
         this.storeItem(true/*bAddItem*/,
                        item, null, request,

@@ -84,8 +84,10 @@ function initLogging()
                 logError(exc, "init logging");
             }
         }
-        log("################################# NEW LOG (0.5) #################################",
+        log("################################# NEW WCAP LOG #################################",
             "init logging");
+        logWarning("WCAP logging enabled! level=" + LOG_LEVEL +
+                   (g_logFilestream ? (", file=" + logFileName) : ""));
     }
     if (!g_logPrefObserver) {
         g_logPrefObserver = { // nsIObserver:
@@ -170,7 +172,9 @@ function logWarning(err, context)
 function logError(err, context)
 {
     var msg = errorToString(err);
-    Components.utils.reportError( log("error: " + msg, context, true) );
+    Components.utils.reportError(
+        log("error: " + msg + "\nstack:\n" + STACK(), context, true));
+    debugger;
     return msg;
 }
 

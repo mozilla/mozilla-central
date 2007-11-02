@@ -136,17 +136,11 @@ calWcapSession.prototype = {
     },
     notifyError: function calWcapSession_notifyError(err, suppressOnError)
     {
-        if (getResultCode(err) == calIErrors.OPERATION_CANCELLED) {
-            return;
-        }
-        debugger;
-        var msg = logError(err, this);
-        if (!suppressOnError && this.defaultCalendar) {
-            // xxx todo: currently takes observer bag of default calendar (which is always present):
-            this.defaultCalendar.notifyObservers(
-                "onError",
-                err instanceof Components.interfaces.nsIException
-                ? [err.result, err.message] : [isNaN(err) ? -1 : err, msg]);
+        if (this.defaultCalendar) {
+            this.defaultCalendar.notifyError_(err, this, suppressOnError);
+        } else {
+            logError("no default calendar!", this);
+            logError(err, this);
         }
     },
 
@@ -216,8 +210,8 @@ calWcapSession.prototype = {
             var this_ = this;
             this.getSessionId_(
                 request,
-                function getSessionId_resp(err, sessionId) {
-                    log("getSessionId_resp(): " + sessionId, this_);
+                function getSessionId_resp_(err, sessionId) {
+                    log("getSessionId_resp_(): " + sessionId, this_);
                     if (err) {
                         this_.notifyError(err, request.suppressOnError);
                     }
@@ -231,7 +225,7 @@ calWcapSession.prototype = {
                     this_.m_loginQueue = [];
                     log("unlocked login queue.", this_);
 
-                    function exec(func) {
+                    function getSessionId_exec(func) {
                         try {
                             func(err, sessionId);
                         }
@@ -240,9 +234,9 @@ calWcapSession.prototype = {
                         }
                     }
                     // answer first request:
-                    exec(respFunc);
+                    getSessionId_exec(respFunc);
                     // and any remaining:
-                    queue.forEach(exec);
+                    queue.forEach(getSessionId_exec);
                 });
         }
     },
@@ -393,7 +387,7 @@ calWcapSession.prototype = {
                     err = exc;
                     var rc = getResultCode(exc);
                     if (rc == calIWcapErrors.WCAP_LOGIN_FAILED) {
-                        logError(exc, this_); // log login failure
+                        log("error: " + errorToString(exc), this_); // log login failure
                     }
                     else if (getErrorModule(rc) == NS_ERROR_MODULE_NETWORK) {
                         // server seems unavailable:
@@ -471,12 +465,16 @@ calWcapSession.prototype = {
                             err = exc;
                         }
                     }
-                    if (err) { // soft error; request denied etc.
-                               // map into localized message:
-                        throw new Components.Exception(
-                            calGetString("wcap", "accessingServerFailedError.text",
-                                         [this_.sessionUri.hostPort]),
-                            calIWcapErrors.WCAP_LOGIN_FAILED);
+                    if (err) {
+                        if (getResultCode(err) == calIErrors.OPERATION_CANCELLED) {
+                            throw err;
+                        } else { // soft error; request denied etc.
+                                 // map into localized message:
+                            throw new Components.Exception(
+                                calGetString("wcap", "accessingServerFailedError.text",
+                                             [this_.sessionUri.hostPort]),
+                                calIWcapErrors.WCAP_LOGIN_FAILED);
+                        }
                     }
                     var prop = icalRootComp.getFirstProperty("X-NSCP-WCAPVERSION");
                     if (!prop)
@@ -497,8 +495,8 @@ calWcapSession.prototype = {
                         if (!prompt.confirm(
                                 labelText,
                                 calGetString("wcap", "insufficientWcapVersionConfirmation.text", vars))) {
-                            throw new Components.Exception(
-                                labelText, calIWcapErrors.WCAP_LOGIN_FAILED);
+                            throw new Components.Exception(labelText,
+                                                           calIWcapErrors.WCAP_LOGIN_FAILED);
                         }
                     }
                     loginText = calGetString("wcap", "loginDialog.text", [this_.sessionUri.hostPort]);
@@ -1024,7 +1022,6 @@ calWcapSession.prototype = {
             function _resp(request, err, data) {
                 var rc = getResultCode(err);
                 switch (rc) {
-                case calIErrors.OPERATION_CANCELLED:
                 case calIWcapErrors.WCAP_NO_ERRNO: // workaround
                 case calIWcapErrors.WCAP_ACCESS_DENIED_TO_CALENDAR:
                 case calIWcapErrors.WCAP_CALENDAR_DOES_NOT_EXIST:

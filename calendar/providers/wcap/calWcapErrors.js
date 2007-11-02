@@ -45,7 +45,8 @@ const NS_ERROR_MODULE_BASE_OFFSET = 0x45;
 const NS_ERROR_MODULE_NETWORK = 6;
 
 function generateFailure(module, code) {
-    return ((1<<31) | ((module + NS_ERROR_MODULE_BASE_OFFSET) << 16) | code);
+    // 1<<31 generates negative number, so use literal, don't use logical operators:
+    return (0x80000000 + ((module + NS_ERROR_MODULE_BASE_OFFSET) << 16) + code);
 }
 
 function generateNetFailure(code) {
@@ -347,6 +348,10 @@ function getResultCode(err)
             return Components.results.NS_ERROR_FAILURE;
     }
     return err;
+}
+
+function checkResultCode(rc, baseCode, bits) {
+    return ((rc ^ baseCode) >>> bits) == 0;
 }
 
 function errorToString(err)
