@@ -1202,7 +1202,7 @@ function calWcapCalendar_getItems(itemFilter, maxResults, rangeStart, rangeEnd, 
                         {
                             var freeBusyListener = { // calIGenericOperationListener:
                                 onResult: function freeBusyListener_onResult(request, result) {
-                                    if (!request.success)
+                                    if (!Components.isSuccessCode(request.status))
                                         throw request.status;
                                     var items = [];
                                     for each (var entry in result) {

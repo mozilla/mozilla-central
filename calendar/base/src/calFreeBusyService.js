@@ -38,7 +38,6 @@
 function calFreeBusyListener(numOperations, finalListener) {
     this.mFinalListener = finalListener;
     this.mNumOperations = numOperations;
-    this.mResults = [];
 
     var this_ = this;
     function cancelFunc() { // operation group has been cancelled
@@ -49,14 +48,14 @@ function calFreeBusyListener(numOperations, finalListener) {
 calFreeBusyListener.prototype = {
     mFinalListener: null,
     mNumOperations: 0,
-    mResults: null,
     opGroup: null,
 
     notifyResult: function calFreeBusyListener_notifyResult(result) {
         var listener = this.mFinalListener
         if (listener) {
-            ASSERT(!this.opGroup.isPending, "[calFreeBusyListener_notifyResult] !this.opGroup.isPending");
-            this.mFinalListener = null;
+            if (!this.opGroup.isPending) {
+                this.mFinalListener = null;
+            }
             listener.onResult(this.opGroup, result);
         }
     },
@@ -64,13 +63,14 @@ calFreeBusyListener.prototype = {
     // calIGenericOperationListener:
     onResult: function calFreeBusyListener_onResult(aOperation, aResult) {
         if (this.mFinalListener) {
-            if (aOperation.success) {
-                this.mResults = this.mResults.concat(aResult);
+            if (!aOperation || !aOperation.isPending) {
+                --this.mNumOperations;
+                if (this.mNumOperations == 0) {
+                    this.opGroup.notifyCompleted();
+                }
             }
-            --this.mNumOperations;
-            if (this.mNumOperations == 0) {
-                this.opGroup.notifyCompleted();
-                this.notifyResult(this.mResults);
+            if (aResult) {
+                this.notifyResult(aResult);
             }
         }
     }
@@ -98,7 +98,9 @@ calFreeBusyService.prototype = {
         count.value = calFreeBusyService_ifaces.length;
         return calFreeBusyService_ifaces;
     },
-    getHelperForLanguage: function calFreeBusyService_getHelperForLanguage(language) { return null; },
+    getHelperForLanguage: function calFreeBusyService_getHelperForLanguage(language) {
+        return null;
+    },
     contractID: "@mozilla.org/calendar/freebusy-service;1",
     classDescription: "Calendar FreeBusy Service",
     classID: Components.ID("{29C56CD5-D36E-453a-ACDE-0083BD4FE6D3}"),

@@ -499,13 +499,13 @@ calCompositeGetListenerHelper.prototype = {
 
         if (this.mReceivedCompletes == this.mNumQueries) {
             // we're done here.
+            this.mFinished = true;
+            this.opGroup.notifyCompleted();
             this.mRealListener.onOperationComplete (this,
                                                     aStatus,
                                                     calIOperationListener.GET,
                                                     null,
                                                     null);
-            this.mFinished = true;
-            this.opGroup.notifyCompleted();
         }
     },
 

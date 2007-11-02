@@ -75,6 +75,8 @@ interface calIGenericOperationListener : nsISupports
 {
     /**
      * Generic callback receiving result.
+     * Results may appear in multiple calls, i.e. callees have to collect
+     * until isPending is false.
      *
      * @param aOperation operation object
      * @param aResult    result or null in case of an error

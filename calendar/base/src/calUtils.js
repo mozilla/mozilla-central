@@ -1253,7 +1253,7 @@ calOperationGroup.prototype = {
     mSubOperations: null,
 
     add: function calOperationGroup_add(op) {
-        if (op) {
+        if (op && op.isPending) {
             this.mSubOperations.push(op);
         }
     },
@@ -1308,17 +1308,17 @@ calOperationGroup.prototype = {
                 status = Components.interfaces.calIErrors.OPERATION_CANCELLED;
             }
             this.notifyCompleted(status);
-            var subOperations = this.mSubOperations;
-            this.mSubOperations = [];
-            function forEachFunc(op) {
-                op.cancel(null);
-            }
-            subOperations.forEach(forEachFunc);
             var cancelFunc = this.mCancelFunc;
             if (cancelFunc) {
                 this.mCancelFunc = null;
                 cancelFunc();
             }
+            var subOperations = this.mSubOperations;
+            this.mSubOperations = [];
+            function forEachFunc(op) {
+                op.cancel(Components.interfaces.calIErrors.OPERATION_CANCELLED);
+            }
+            subOperations.forEach(forEachFunc);
         }
     }
 };

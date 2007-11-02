@@ -1316,13 +1316,14 @@
                               binding: this,
                               // calIGenericOperationListener:
                               onResult: function mFBL_onResult(request, entries) {
-                                  // Find request in list of pending requests and remove from queue:
-                                  function neq(op) {
-                                      return (request.id != op.id);
+                                  if (!request || !request.isPending) {
+                                      // Find request in list of pending requests and remove from queue:
+                                      function neq(op) {
+                                          return (request.id != op.id);
+                                      }
+                                      this.binding.mPendingRequests = this.binding.mPendingRequests.filter(neq);
                                   }
-                                  this.binding.mPendingRequests = this.binding.mPendingRequests.filter(neq);
-                                  
-                                  if (request.success) {
+                                  if (entries) {
                                       var freebusy = this.binding.getFreeBusyElement(this.row);
                                       freebusy.onFreeBusy(entries);
                                   }
