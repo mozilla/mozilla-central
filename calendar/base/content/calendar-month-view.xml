@@ -1548,7 +1548,7 @@
           QueryInterface: function (aIID) {
             if (!aIID.equals(Components.interfaces.calIObserver) &&
                 !aIID.equals(Components.interfaces.calICompositeObserver) &&
-                !aIID.equals(Ci.calIAlarmServiceObserver) &&
+                !aIID.equals(Components.interfaces.calIAlarmServiceObserver) &&
                 !aIID.equals(Components.interfaces.nsISupports)) {
               throw Components.results.NS_ERROR_NO_INTERFACE;
             }
