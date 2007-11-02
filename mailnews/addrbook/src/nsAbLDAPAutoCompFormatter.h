@@ -65,7 +65,7 @@ class nsAbLDAPAutoCompFormatter : public nsIAbLDAPAutoCompFormatter
                            nsCStringArray *aAttrs);
 
     // process a single attribute while parsing format
-    nsresult ParseAttrName(const PRUnichar *aIter,  
+    nsresult ParseAttrName(const PRUnichar **aIter,  
                            const PRUnichar *aIterEnd, 
                            PRBool aAttrRequired,
                            nsCOMPtr<nsIConsoleService> & aConsoleSvc,

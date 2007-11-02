@@ -473,8 +473,9 @@ nsAbLDAPAutoCompFormatter::ProcessFormat(const nsAString & aFormat,
 
         case PRUnichar('['):
 
-            rv = ParseAttrName(iter, iterEnd, attrRequired, 
+            rv = ParseAttrName(&iter, iterEnd, attrRequired,
                                consoleSvc, attrName);
+
             if ( NS_FAILED(rv) ) {
 
                 // something unrecoverable happened; stop parsing and 
@@ -582,7 +583,7 @@ nsAbLDAPAutoCompFormatter::ProcessFormat(const nsAString & aFormat,
 
 nsresult 
 nsAbLDAPAutoCompFormatter::ParseAttrName(
-    const PRUnichar *aIter,                     // iterators for mOutputString
+    const PRUnichar **aIter,                     // iterators for mOutputString
     const PRUnichar *aIterEnd, 
     PRBool aAttrRequired,                       // required?  or just optional?
     nsCOMPtr<nsIConsoleService> &aConsoleSvc,   // no need to reacquire this
@@ -590,7 +591,7 @@ nsAbLDAPAutoCompFormatter::ParseAttrName(
 {
     // reset attrname, and move past the opening brace
     //
-    ++aIter;
+    ++(*aIter);
 
     // get the rest of the attribute name
     //
@@ -598,7 +599,7 @@ nsAbLDAPAutoCompFormatter::ParseAttrName(
 
         // be sure we haven't run off the end
         //
-        if (aIter == aIterEnd) {
+        if (*aIter == aIterEnd) {
 
             // abort; missing closing delimiter
             //
@@ -613,8 +614,8 @@ nsAbLDAPAutoCompFormatter::ParseAttrName(
 
             return NS_ERROR_ILLEGAL_VALUE;
 
-        } else if ( (aAttrRequired && *aIter == PRUnichar('}')) || 
-                    (!aAttrRequired && *aIter == PRUnichar(']')) ) {
+        } else if ( (aAttrRequired && **aIter == PRUnichar('}')) ||
+                    (!aAttrRequired && **aIter == PRUnichar(']')) ) {
 
             // done with this attribute
             //
@@ -624,10 +625,10 @@ nsAbLDAPAutoCompFormatter::ParseAttrName(
 
             // this must be part of the attribute name
             //
-            aAttrName.Append(static_cast<char>(*aIter));
+            aAttrName.Append(static_cast<char>(**aIter));
         }
 
-        ++aIter;
+        ++(*aIter);
 
     } while (1);
 
