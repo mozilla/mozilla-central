@@ -112,6 +112,8 @@ messenger.jar:
     content/messenger/mailViewList.js               (/mailnews/extensions/mailviews/resources/content/mailViewList.js)
     content/messenger/am-mdn.xul                    (/mailnews/extensions/mdn/resources/content/am-mdn.xul)
     content/messenger/am-mdn.js                     (/mailnews/extensions/mdn/resources/content/am-mdn.js)
+    content/messenger/shutdownWindow.xul            (/mailnews/base/resources/content/shutdownWindow.xul)
+    content/messenger/shutdownWindow.js             (/mailnews/base/resources/content/shutdownWindow.js)
 #ifdef XP_MACOSX
     content/messenger/macMenuOverlay.xul            (content/macMenuOverlay.xul)
 #endif
