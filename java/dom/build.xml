@@ -96,6 +96,8 @@
                      executable="make"/>
     <exec os="Windows 2000" dir="${objdir.native.path}/src" executable="make" 
                      failonerror="yes"/>
+    <exec os="Windows XP" dir="${objdir.native.path}/src" executable="make" 
+                     failonerror="yes"/>
 
   </target>
 
@@ -106,6 +108,8 @@
     <exec os="Linux" dir="${objdir.native.path}/jni" failonerror="yes" 
                      executable="make"/>
     <exec os="Windows 2000" dir="${objdir.native.path}/jni" executable="make" 
+                     failonerror="yes"/>
+    <exec os="Windows XP" dir="${objdir.native.path}/jni" executable="make" 
                      failonerror="yes"/>
     <exec os="Mac OS X" dir="${objdir.native.path}/jni" failonerror="yes" 
                      executable="make"/>
@@ -154,6 +158,12 @@
       <arg line="clobber_all"/>
     </exec>
 
+    <exec os="Windows XP" dir="${objdir.native.path}/src" executable="make" 
+                     failonerror="yes">
+      <arg line="clobber_all"/>
+    </exec>
+
+
     <exec os="SunOS" dir="${objdir.native.path}/jni" executable="gmake" 
           failonerror="yes">
 
@@ -167,6 +177,11 @@
 
     </exec>
     <exec os="Windows 2000" dir="${objdir.native.path}/jni" executable="make" 
+                     failonerror="yes">
+      <arg line="clobber_all"/>
+    </exec>
+
+    <exec os="Windows XP" dir="${objdir.native.path}/jni" executable="make" 
                      failonerror="yes">
       <arg line="clobber_all"/>
     </exec>

@@ -153,6 +153,8 @@
                      executable="make"/>
     <exec os="Windows 2000" dir="${objdir.native.path}/src_share" executable="make" 
                      failonerror="yes"/>
+    <exec os="Windows XP" dir="${objdir.native.path}/src_share" executable="make" 
+                     failonerror="yes"/>
     <exec os="Mac OS X" dir="${objdir.native.path}/src_share" executable="make" 
                      failonerror="yes">
     </exec>
@@ -216,6 +218,8 @@
                      failonerror="yes">
     </exec>
     <exec os="Windows 2000" dir="${objdir.native.path}/src_moz" executable="make" 
+                     failonerror="yes"/>
+    <exec os="Windows XP" dir="${objdir.native.path}/src_moz" executable="make" 
                      failonerror="yes"/>
 
   </target>
@@ -357,6 +361,12 @@ ${myenv.MOZ_JDKHOME}/bin/java ${debug.options} org.mozilla.webclient.test.Embedd
       <arg line="clobber_all"/>
     </exec>
 
+    <exec os="Windows XP" dir="${objdir.native.path}/src_ie" executable="make" 
+                     failonerror="yes">
+      <arg line="clobber_all"/>
+    </exec>
+
+
     <exec os="SunOS" dir="${objdir.native.path}/src_share" executable="gmake"
           failonerror="yes">
 
@@ -373,6 +383,12 @@ ${myenv.MOZ_JDKHOME}/bin/java ${debug.options} org.mozilla.webclient.test.Embedd
                      failonerror="yes">
       <arg line="clobber_all"/>
     </exec>
+
+    <exec os="Windows XP" dir="${objdir.native.path}/src_share" executable="make" 
+                     failonerror="yes">
+      <arg line="clobber_all"/>
+    </exec>
+
 
     <exec os="Mac OS X" dir="${objdir.native.path}/src_share" executable="make" 
                      failonerror="yes">
