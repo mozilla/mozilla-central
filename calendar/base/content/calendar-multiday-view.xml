@@ -1864,6 +1864,14 @@
                                wrap="true"/>
                 </xul:vbox>
                 <xul:image class="calendar-event-box-gradient"/>
+                <xul:hbox pack="end">
+                    <xul:vbox pack="start">
+                      <xul:image anonid="alarm-image"
+                                 class="alarm-image"
+                                 xbl:inherits="flashing"
+                                 hidden="true"/>
+                    </xul:vbox>
+                </xul:hbox>
                 <xul:box xbl:inherits="orient" flex="1">
                   <xul:calendar-event-gripbar anonid="gripbar1"
                                               class="calendar-event-box-grippy-top"
@@ -1875,14 +1883,9 @@
                                               whichside="end"
                                               xbl:inherits="parentorient=orient"/>
                 </xul:box>
-                <xul:hbox pack="end">
-                    <xul:vbox pack="start">
-                      <xul:image anonid="alarm-image"
-                                 class="alarm-image"
-                                 xbl:inherits="flashing"
-                                 hidden="true"/>
-                    </xul:vbox>
-                </xul:hbox>
+                <!-- Do not insert anything here, otherwise the event boxes will
+                     not be resizable using the gripbars. If you want to insert
+                     additional elements, do so above the box with the gripbars. -->
               </xul:stack>
             </xul:box>
           </xul:box>
