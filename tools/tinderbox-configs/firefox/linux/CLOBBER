@@ -1,2 +1,1 @@
-Clobber to pick up PSM makefile change in the NSS build.  Oh, for a sane
-dependency system!
+Clobbering to pick up peterv's crash fix in bug 401687.
