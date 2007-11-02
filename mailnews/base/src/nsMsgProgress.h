@@ -36,8 +36,10 @@
  *
  * ***** END LICENSE BLOCK ***** */
 
-#include "nsIMsgProgress.h"
+#ifndef nsMsgProgress_h_
+#define nsMsgProgress_h_
 
+#include "nsIMsgProgress.h"
 #include "nsCOMPtr.h"
 #include "nsCOMArray.h"
 #include "nsIDOMWindowInternal.h"
@@ -48,28 +50,32 @@
 #include "nsIStringBundle.h"
 #include "nsWeakReference.h"
 
-class nsMsgProgress : public nsIMsgProgress, public nsIMsgStatusFeedback, public nsIProgressEventSink,
+class nsMsgProgress : public nsIMsgProgress, 
+                      public nsIMsgStatusFeedback, 
+                      public nsIProgressEventSink,
                       public nsSupportsWeakReference
 {
 public: 
+  nsMsgProgress();
+  virtual ~nsMsgProgress();
+  
   NS_DECL_ISUPPORTS
   NS_DECL_NSIMSGPROGRESS
   NS_DECL_NSIWEBPROGRESSLISTENER
   NS_DECL_NSIMSGSTATUSFEEDBACK
   NS_DECL_NSIPROGRESSEVENTSINK
 
-  nsMsgProgress();
-  virtual ~nsMsgProgress();
-
 private:
   nsresult ReleaseListeners(void);
-
-  PRBool                            m_closeProgress;
-  PRBool                            m_processCanceled;
-  nsString                          m_pendingStatus;
-  PRInt32                           m_pendingStateFlags;
-  PRInt32                           m_pendingStateValue;
-  nsCOMPtr<nsIDOMWindowInternal>    m_dialog;
-  nsWeakPtr                         m_msgWindow;
+  
+  PRBool                             m_closeProgress;
+  PRBool                             m_processCanceled;
+  nsString                           m_pendingStatus;
+  PRInt32                            m_pendingStateFlags;
+  PRInt32                            m_pendingStateValue;
+  nsCOMPtr<nsIDOMWindowInternal>     m_dialog;
+  nsWeakPtr                          m_msgWindow;
   nsCOMArray<nsIWebProgressListener> m_listenerList;
 };
+
+#endif  // nsMsgProgress_h_

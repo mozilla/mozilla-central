@@ -20,6 +20,7 @@
  * the Initial Developer. All Rights Reserved.
  *
  * Contributor(s):
+ *   Nick Kreeger <nick.kreeger@park.edu>
  *
  * Alternatively, the contents of this file may be used under the terms of
  * either of the GNU General Public License Version 2 or later (the "GPL"),
@@ -44,6 +45,10 @@
 #include "nsIMsgStatusFeedback.h"
 #include "nsIMsgWindow.h"
 #include "nsCOMArray.h"
+#include "nsIMsgShutdown.h"
+#include "nsIObserver.h"
+#include "nsIMutableArray.h"
+#include "nsIMsgProgress.h"
 
 ///////////////////////////////////////////////////////////////////////////////////
 // The mail session is a replacement for the old 4.x MSG_Master object. It contains
@@ -77,5 +82,30 @@ protected:
   nsCOMPtr <nsIMsgWindow> m_temporaryMsgWindow;
 };
 
+/********************************************************************************/
+
+class nsMsgShutdownService : public nsIMsgShutdownService,
+                             public nsIUrlListener,
+                             public nsIObserver
+{
+public:
+  nsMsgShutdownService();
+  virtual ~nsMsgShutdownService();
+  
+  NS_DECL_ISUPPORTS
+  NS_DECL_NSIMSGSHUTDOWNSERVICE
+  NS_DECL_NSIURLLISTENER
+  NS_DECL_NSIOBSERVER
+    
+protected:
+  nsresult ProcessNextTask();
+  nsresult AttemptShutdown();
+  
+private:
+  nsCOMArray<nsIMsgShutdownTask> mShutdownTasks;
+  nsCOMPtr<nsIMsgProgress>       mMsgProgress;
+  PRUint32                       mTaskIndex;
+  PRBool                         mShouldShutdown;
+};
 
 #endif /* nsMsgMailSession_h__ */

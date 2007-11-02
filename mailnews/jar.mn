@@ -202,6 +202,8 @@ messenger.jar:
     content/messenger/markByDate.xul                                           (base/resources/content/markByDate.xul)
     content/messenger/dateFormat.js                                            (base/resources/content/dateFormat.js)
     content/messenger/start.xhtml                                              (base/resources/content/start.xhtml)
+    content/messenger/shutdownWindow.xul                                       (base/resources/content/shutdownWindow.xul)
+    content/messenger/shutdownWindow.js                                        (base/resources/content/shutdownWindow.js)
 #ifdef XP_MACOSX
     content/messenger/platformMailnewsOverlay.xul                              (base/resources/content/mac/platformMailnewsOverlay.xul)
 #else

@@ -344,6 +344,7 @@ NS_GENERIC_FACTORY_CONSTRUCTOR(nsMsgTagService)
 NS_GENERIC_FACTORY_CONSTRUCTOR(nsMsgFolderNotificationService)
 NS_GENERIC_FACTORY_CONSTRUCTOR(nsCidProtocolHandler)
 NS_GENERIC_FACTORY_CONSTRUCTOR(nsMailDirProvider)
+NS_GENERIC_FACTORY_CONSTRUCTOR(nsMsgShutdownService)
 #ifdef XP_WIN
 NS_GENERIC_FACTORY_CONSTRUCTOR_INIT(nsMessengerWinIntegration, Init)
 #endif
@@ -898,7 +899,13 @@ static const nsModuleComponentInfo gComponents[] = {
        NS_MSGCONTENTPOLICY_CID,
        NS_MSGCONTENTPOLICY_CONTRACTID,
        nsMsgContentPolicyConstructor,
-       RegisterContentPolicy, UnregisterContentPolicy },
+       RegisterContentPolicy, UnregisterContentPolicy 
+    },
+    { "msg shutdown service",
+       NS_MSGSHUTDOWNSERVICE_CID,
+       NS_MSGSHUTDOWNSERVICE_CONTRACTID,
+       nsMsgShutdownServiceConstructor
+    },
 #ifdef MOZ_THUNDERBIRD
     { "mail cookie policy enforcer",
       NS_MSGCOOKIEPOLICY_CID,

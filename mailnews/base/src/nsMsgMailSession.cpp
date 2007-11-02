@@ -52,8 +52,16 @@
 #include "nsPIDOMWindow.h"
 #include "nsIDOMDocument.h"
 #include "nsIDOMElement.h"
-#include "nsIWindowMediator.h"
 #include "nsIDocShell.h"
+#include "nsIObserverService.h"
+#include "nsIAppStartup.h"
+#include "nsXPFEComponentsCID.h"
+#include "nsIPrefBranch.h"
+#include "nsIPrefService.h"
+#include "nsISupportsPrimitives.h"
+#include "nsIAppShellService.h"
+#include "nsAppShellCID.h"
+#include "nsIWindowMediator.h"
 
 NS_IMPL_THREADSAFE_ADDREF(nsMsgMailSession)
 NS_IMPL_THREADSAFE_RELEASE(nsMsgMailSession)
@@ -75,6 +83,7 @@ nsMsgMailSession::~nsMsgMailSession()
 
 nsresult nsMsgMailSession::Init()
 {
+  nsCOMPtr<nsIMsgShutdownService> shutdownService = do_GetService(NS_MSGSHUTDOWNSERVICE_CONTRACTID);
   return NS_NewISupportsArray(getter_AddRefs(mWindows));
 }
 
@@ -231,7 +240,7 @@ NS_IMETHODIMP nsMsgMailSession::OnItemAdded(nsIRDFResource *parentItem, nsISuppo
 NS_IMETHODIMP nsMsgMailSession::OnItemRemoved(nsIRDFResource *parentItem, nsISupports *item)
 {
   PRInt32 count = mListeners.Count();
-  
+
   for(PRInt32 i = 0; i < count; i++)
   {
     if (mListenerNotifyFlags[i] & nsIFolderListener::removed) {
@@ -528,4 +537,201 @@ nsMsgMailSession::GetDataFilesDir(const char* dirName, nsIFile **dataFilesDir)
   NS_IF_ADDREF(*dataFilesDir = defaultsDir);
 
   return rv;
+}
+
+/********************************************************************************/
+
+NS_IMPL_ISUPPORTS3(nsMsgShutdownService, nsIMsgShutdownService, nsIUrlListener, nsIObserver)
+
+nsMsgShutdownService::nsMsgShutdownService()
+{
+  nsCOMPtr<nsIObserverService> observerService = do_GetService("@mozilla.org/observer-service;1");
+  if (observerService)
+    observerService->AddObserver(this, "quit-application-requested", PR_FALSE);
+}
+
+nsMsgShutdownService::~nsMsgShutdownService()
+{
+  nsCOMPtr<nsIObserverService> observerService = do_GetService("@mozilla.org/observer-service;1");
+  if (observerService)
+    observerService->RemoveObserver(this, "quit-application-requested");
+}
+
+nsresult nsMsgShutdownService::ProcessNextTask()
+{
+  PRBool shutdownTasksDone = PR_TRUE;
+  
+  PRInt32 count = mShutdownTasks.Count();
+  if (mTaskIndex < count)
+  {
+    shutdownTasksDone = PR_FALSE;
+
+    nsCOMPtr<nsIMsgShutdownTask> curTask = mShutdownTasks[mTaskIndex];    
+    nsString taskName;
+    curTask->GetCurrentTaskName(taskName); 
+    SetStatusText(taskName);
+   
+    nsCOMPtr<nsIMsgMailSession> mailSession = do_GetService(NS_MSGMAILSESSION_CONTRACTID);
+    NS_ENSURE_TRUE(mailSession, NS_ERROR_FAILURE);
+
+    nsCOMPtr<nsIMsgWindow> topMsgWindow;
+    mailSession->GetTopmostMsgWindow(getter_AddRefs(topMsgWindow));
+
+    PRBool taskIsRunning = PR_TRUE;
+    nsresult rv = curTask->DoShutdownTask(this, topMsgWindow, &taskIsRunning);
+    if (NS_FAILED(rv) || !taskIsRunning)
+    {
+      // We have failed, let's go on to the next task.
+      mTaskIndex++;
+      mMsgProgress->OnProgressChange(nsnull, nsnull, 0, 0, mTaskIndex, count);
+      ProcessNextTask();
+    }
+  }
+
+  if (shutdownTasksDone)
+  {
+    mMsgProgress->OnStateChange(nsnull, nsnull, nsIWebProgressListener::STATE_STOP, NS_OK);
+    if (mShouldShutdown)
+      AttemptShutdown();
+  }
+  
+  return NS_OK;
+}
+
+nsresult nsMsgShutdownService::AttemptShutdown()
+{
+  nsCOMPtr<nsIAppStartup> appStartup = do_GetService(NS_APPSTARTUP_CONTRACTID);
+  NS_ENSURE_TRUE(appStartup, NS_ERROR_FAILURE);
+  return appStartup->Quit(nsIAppStartup::eAttemptQuit);
+}
+
+NS_IMETHODIMP nsMsgShutdownService::SetShutdownListener(nsIWebProgressListener *inListener)
+{
+  NS_ENSURE_TRUE(mMsgProgress, NS_ERROR_FAILURE);
+  mMsgProgress->RegisterListener(inListener);
+  return NS_OK;
+}
+
+NS_IMETHODIMP nsMsgShutdownService::Observe(nsISupports *aSubject,
+                                            const char *aTopic,
+                                            const PRUnichar *aData)
+{
+  nsCOMPtr<nsIObserverService> observerService = do_GetService("@mozilla.org/observer-service;1");
+  NS_ENSURE_STATE(observerService);
+  
+  nsCOMPtr<nsISimpleEnumerator> listenerEnum;
+  nsresult rv = observerService->EnumerateObservers("msg-shutdown", getter_AddRefs(listenerEnum));
+  if (NS_SUCCEEDED(rv) && listenerEnum)
+  {
+    PRBool hasMore;
+    listenerEnum->HasMoreElements(&hasMore);
+    if (!hasMore)
+      return NS_OK;
+
+    while (hasMore)
+    {
+      nsCOMPtr<nsISupports> curObject;
+      listenerEnum->GetNext(getter_AddRefs(curObject));
+      
+      nsCOMPtr<nsIMsgShutdownTask> curTask = do_QueryInterface(curObject);
+      if (curTask)
+      {
+        PRBool shouldRunTask;
+        curTask->GetNeedsToRunTask(&shouldRunTask);
+        if (shouldRunTask)
+          mShutdownTasks.AppendObject(curTask);
+      }
+      
+      listenerEnum->HasMoreElements(&hasMore);
+    }
+    
+    if (mShutdownTasks.Count() < 1)
+      return NS_ERROR_FAILURE;
+    
+    mTaskIndex = 0;
+    
+    mMsgProgress = do_CreateInstance(NS_MSGPROGRESS_CONTRACTID);
+    NS_ENSURE_TRUE(mMsgProgress, NS_ERROR_FAILURE);
+    
+    nsCOMPtr<nsIMsgMailSession> mailSession = do_GetService(NS_MSGMAILSESSION_CONTRACTID);
+    NS_ENSURE_TRUE(mailSession, NS_ERROR_FAILURE);
+
+    nsCOMPtr<nsIMsgWindow> topMsgWindow;
+    mailSession->GetTopmostMsgWindow(getter_AddRefs(topMsgWindow));
+    
+    nsCOMPtr<nsIDOMWindowInternal> internalDomWin;
+    if (topMsgWindow)
+      topMsgWindow->GetDomWindow(getter_AddRefs(internalDomWin));
+    
+    PRBool showModal = PR_TRUE;
+    if (!internalDomWin)
+    {
+      // First see if there is a window open. 
+      nsCOMPtr<nsIWindowMediator> winMed = do_GetService(NS_WINDOWMEDIATOR_CONTRACTID);
+      winMed->GetMostRecentWindow(nsnull, getter_AddRefs(internalDomWin));
+      
+      //If not use the hidden window.
+      if (!internalDomWin)
+      {
+        nsCOMPtr<nsIAppShellService> appShell(do_GetService(NS_APPSHELLSERVICE_CONTRACTID));
+        appShell->GetHiddenDOMWindow(getter_AddRefs(internalDomWin));
+        NS_ENSURE_TRUE(internalDomWin, NS_ERROR_FAILURE);  // bail if we don't get a window.
+        showModal = PR_FALSE;
+        mShouldShutdown = PR_TRUE;
+        
+        // Cancel the shutdown process since this isn't going to be a modal dialog. This
+        // class will be responsible for shuttingdown.
+        mShouldShutdown = PR_TRUE;
+        nsCOMPtr<nsISupportsPRBool> stopShutdown = do_QueryInterface(aSubject);
+        stopShutdown->SetData(PR_TRUE);
+      }
+    }
+    
+    mMsgProgress->OpenProgressDialog(internalDomWin, topMsgWindow, 
+                                     "chrome://messenger/content/shutdownWindow.xul", 
+                                     showModal, nsnull);
+  }
+  
+  return NS_OK;
+}
+
+// nsIUrlListener
+NS_IMETHODIMP nsMsgShutdownService::OnStartRunningUrl(nsIURI *url)
+{
+  return NS_OK;
+}
+
+NS_IMETHODIMP nsMsgShutdownService::OnStopRunningUrl(nsIURI *url, nsresult aExitCode)
+{
+  mTaskIndex++;
+
+  PRInt32 numTasks = mShutdownTasks.Count();
+  mMsgProgress->OnProgressChange(nsnull, nsnull, 0, 0, mTaskIndex, numTasks);
+  
+  ProcessNextTask();
+  return NS_OK;
+}
+
+NS_IMETHODIMP nsMsgShutdownService::GetNumTasks(PRInt32 *inNumTasks)
+{
+  *inNumTasks = mShutdownTasks.Count();
+  return NS_OK;
+}
+
+NS_IMETHODIMP nsMsgShutdownService::StartShutdownTasks()
+{
+  ProcessNextTask();
+  return NS_OK;
+}
+
+NS_IMETHODIMP nsMsgShutdownService::CancelShutdownTasks()
+{
+  return AttemptShutdown();
+}
+
+NS_IMETHODIMP nsMsgShutdownService::SetStatusText(const nsAString & inStatusString)
+{
+  nsString statusString(inStatusString);
+  mMsgProgress->OnStatusChange(nsnull, nsnull, NS_OK, statusString.get());
+  return NS_OK;
 }

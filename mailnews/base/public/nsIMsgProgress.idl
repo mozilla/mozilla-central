@@ -43,14 +43,18 @@
 interface nsIDOMWindowInternal;
 interface nsIMsgWindow;
 
-[scriptable, uuid(9f4dd200-3b1f-11d5-9daa-c345c9453d3c)]
+[scriptable, uuid(892A9E47-853A-454A-8B02-94A7521D046D)]
 interface nsIMsgProgress: nsIWebProgressListener {
 
-  /* Open the progress dialog
-     you can specify parameters through an xpcom object
-  */
-  void openProgressDialog(in nsIDOMWindowInternal parent, in nsIMsgWindow aMsgWindow, in string dialogURL, in nsISupports parameters);
-  
+  /** 
+   * Open the progress dialog, you can specify parameters through an xpcom object
+   */
+  void openProgressDialog(in nsIDOMWindowInternal parent, 
+                          in nsIMsgWindow aMsgWindow, 
+                          in string dialogURL, 
+                          in boolean inDisplayModal,
+                          in nsISupports parameters);
+
   /* Close the progress dialog */
   void closeProgressDialog(in boolean forceClose);
   

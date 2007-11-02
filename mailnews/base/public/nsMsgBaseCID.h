@@ -564,4 +564,15 @@
 #define NS_MESSENGERCONTENTHANDLER_CONTRACTID   \
   NS_CONTENT_HANDLER_CONTRACTID_PREFIX "application/x-message-display"
 
+//
+// nsMsgShutdownService
+//
+#define NS_MSGSHUTDOWNSERVICE_CID          \
+{ /* 483c8abb-ecf9-48a3-a394-2c604b603bd5 */    \
+  0x483c8abb, 0xecf9, 0x48a3, \
+    { 0xa3, 0x94, 0x2c, 0x60, 0x4b, 0x60, 0x3b, 0xd5 }}
+
+#define NS_MSGSHUTDOWNSERVICE_CONTRACTID   \
+  "@mozilla.org/messenger/msgshutdownservice;1"
+
 #endif // nsMessageBaseCID_h__

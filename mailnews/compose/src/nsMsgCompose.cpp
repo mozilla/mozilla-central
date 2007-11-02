@@ -1161,7 +1161,10 @@ NS_IMETHODIMP nsMsgCompose::SendMsg(MSG_DeliverMode deliverMode, nsIMsgIdentity 
           params->SetSubject(msgSubject.get());
           params->SetDeliveryMode(deliverMode);
 
-          mProgress->OpenProgressDialog(m_window, aMsgWindow, "chrome://messenger/content/messengercompose/sendProgress.xul", params);
+          mProgress->OpenProgressDialog(m_window, aMsgWindow, 
+                                        "chrome://messenger/content/messengercompose/sendProgress.xul", 
+                                        PR_FALSE, params);
+          
           mProgress->GetPrompter(getter_AddRefs(prompt));
         }
       }

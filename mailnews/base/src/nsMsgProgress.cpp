@@ -45,6 +45,7 @@
 #include "nsIComponentManager.h"
 #include "nsNetError.h"
 #include "nsInt64.h"
+#include "nsIWindowWatcher.h"
 
 NS_IMPL_THREADSAFE_ADDREF(nsMsgProgress)
 NS_IMPL_THREADSAFE_RELEASE(nsMsgProgress)
@@ -72,48 +73,50 @@ nsMsgProgress::~nsMsgProgress()
   (void)ReleaseListeners();
 }
 
-/* void openProgressDialog (in nsIDOMWindowInternal parent, in nsIMsgWindow aMsgWindow,
-   in string dialogURL, in nsISupports parameters);
-*/
-NS_IMETHODIMP nsMsgProgress::OpenProgressDialog(nsIDOMWindowInternal *parent, nsIMsgWindow *aMsgWindow,
-                                                const char *dialogURL,
+NS_IMETHODIMP nsMsgProgress::OpenProgressDialog(nsIDOMWindowInternal *parent, 
+                                                nsIMsgWindow *aMsgWindow, 
+                                                const char *dialogURL, 
+                                                PRBool inDisplayModal, 
                                                 nsISupports *parameters)
 {
   nsresult rv;
-
+  
   if (aMsgWindow)
   {
     SetMsgWindow(aMsgWindow);
     aMsgWindow->SetStatusFeedback(this);
   }
-
+  
   NS_ENSURE_TRUE(!m_dialog, NS_ERROR_ALREADY_INITIALIZED);
   NS_ENSURE_ARG_POINTER(dialogURL);
   NS_ENSURE_ARG_POINTER(parent);
-
+  
   // Set up window.arguments[0]...
   nsCOMPtr<nsISupportsArray> array;
   rv = NS_NewISupportsArray(getter_AddRefs(array));
   NS_ENSURE_SUCCESS(rv, rv);
-
+  
   nsCOMPtr<nsISupportsInterfacePointer> ifptr =
     do_CreateInstance(NS_SUPPORTS_INTERFACE_POINTER_CONTRACTID, &rv);
   NS_ENSURE_SUCCESS(rv, rv);
-
+  
   ifptr->SetData(static_cast<nsIMsgProgress*>(this));
   ifptr->SetDataIID(&NS_GET_IID(nsIMsgProgress));
-
+  
   array->AppendElement(ifptr);
   array->AppendElement(parameters);
-
+  
   // Open the dialog.
   nsCOMPtr<nsIDOMWindow> newWindow;
-  rv = parent->OpenDialog(NS_ConvertASCIItoUTF16(dialogURL),
-                          NS_LITERAL_STRING("_blank"),
-                          NS_LITERAL_STRING("chrome,titlebar,dependent"),
-                          array, getter_AddRefs(newWindow));
-
-  return rv;
+  
+  nsString chromeOptions(NS_LITERAL_STRING("chrome,titlebar,dependent"));
+  if (inDisplayModal)
+    chromeOptions.AppendLiteral(",modal");
+  
+  return parent->OpenDialog(NS_ConvertASCIItoUTF16(dialogURL),
+                            NS_LITERAL_STRING("_blank"),
+                            chromeOptions,
+                            array, getter_AddRefs(newWindow));
 }
 
 /* void closeProgressDialog (in boolean forceClose); */
