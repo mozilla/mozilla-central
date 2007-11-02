@@ -322,6 +322,7 @@ run_command_valgrind()
 
 	echo "${SCRIPTNAME}: -------- Running ${COMMAND} under Valgrind:"
 	echo "${VALGRIND} --tool=memcheck --leak-check=yes --show-reachable=yes --partial-loads-ok=yes --leak-resolution=high --num-callers=50 ${COMMAND} ${ATTR}"
+	echo "Running: ${COMMAND} ${ATTR}"
 	${VALGRIND} --tool=memcheck --leak-check=yes --show-reachable=yes --partial-loads-ok=yes --leak-resolution=high --num-callers=50 ${COMMAND} ${ATTR} 1>&2
 	echo "==0==" 
 }
@@ -627,8 +628,8 @@ parse_logfile_valgrind()
 		bin_name = "" 
 	}
 	!/==[0-9]*==/ { 
-		if ( $1 == "'${VALGRIND}'" ) 
-			bin_name = $8 
+		if ( $1 == "Running:" ) 
+			bin_name = $2 
 		next
 	}
 	/blocks are/ {
