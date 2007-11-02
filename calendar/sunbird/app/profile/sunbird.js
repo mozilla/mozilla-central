@@ -1,4 +1,3 @@
-/* -*- Mode: Java; tab-width: 4; indent-tabs-mode: nil; c-basic-offset: 2 -*- */
 /* ***** BEGIN LICENSE BLOCK *****
  * Version: MPL 1.1/GPL 2.0/LGPL 2.1
  *
@@ -52,6 +51,8 @@ pref("calendar.alarms.todoalarmlen", 15);
 pref("calendar.alarms.eventalarmunit", "minutes");
 pref("calendar.alarms.todoalarmunit", "minutes");
 pref("calendar.alarms.defaultsnoozelength", 60);
+pref("calendar.alarms.indicator.show", true);
+pref("calendar.alarms.indicator.totaltime", 3600);
 pref("calendar.autorefresh.enabled", true);
 pref("calendar.autorefresh.timeout", 30);
 pref("calendar.date.format", 0);

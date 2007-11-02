@@ -48,6 +48,8 @@ pref("calendar.alarms.showmissed", true);
 pref("calendar.alarms.playsound", true);
 pref("calendar.alarms.soundURL", "chrome://calendar/content/sound.wav");
 pref("calendar.alarms.defaultsnoozelength", 5);
+pref("calendar.alarms.indicator.show", true);
+pref("calendar.alarms.indicator.totaltime", 3600);
 
 // default alarm settings for new event
 pref("calendar.alarms.onforevents", 0);
