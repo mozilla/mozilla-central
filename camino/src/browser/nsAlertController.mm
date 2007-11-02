@@ -747,10 +747,10 @@ const int kLabelCheckboxAdjustment = 2; // # pixels the label must be pushed dow
   return field;
 }
 
-- (NSView*)getMessageView:(NSString*)message
-                withWidth:(float)width
-                maxHeight:(float)maxHeight 
-                smallFont:(BOOL)useSmallFont
+- (NSView*)messageView:(NSString*)message
+             withWidth:(float)width
+             maxHeight:(float)maxHeight 
+             smallFont:(BOOL)useSmallFont
 {
   NSTextView* textView = [[[NSTextView alloc] initWithFrame: NSMakeRect(0, 0, width, 100)] autorelease];		
   [textView setString: message];
