@@ -139,10 +139,6 @@ const int kAnnoyancePrefSome = 3;
   else // annoyingWindowPrefs == kAnnoyancePrefSome
     [mEnableAnnoyanceBlocker setState:NSMixedState];
 
-  // set initial value on image-resizing
-  BOOL enableImageResize = [self getBooleanPref:"browser.enable_automatic_image_resizing" withSuccess:&gotPref];
-  [mImageResize setState:enableImageResize];
-
   [mPreventAnimation setState:[self preventAnimationCheckboxState]];
 
   BOOL enableAdBlock = [self getBooleanPref:"camino.enable_ad_blocking" withSuccess:&gotPref];
@@ -238,16 +234,6 @@ const int kAnnoyancePrefSome = 3;
 {
   [self setPref:"dom.disable_open_during_load" toBoolean:([sender state] == NSOnState)];
   [mEditWhitelist setEnabled:[sender state]];
-}
-
-//
-// clickEnableImageResizing:
-//
-// Enable and disable mozilla's auto image resizing feature.
-//
--(IBAction) clickEnableImageResizing:(id)sender
-{
-  [self setPref:"browser.enable_automatic_image_resizing" toBoolean:([sender state] == NSOnState)];
 }
 
 //
