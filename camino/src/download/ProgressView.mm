@@ -52,7 +52,6 @@ NSString* const kDownloadInstanceCancelledNotificationName = @"DownloadInstanceC
 
 @end
 
-
 @implementation ProgressView
 
 - (id)initWithFrame:(NSRect)frame
@@ -63,6 +62,12 @@ NSString* const kDownloadInstanceCancelledNotificationName = @"DownloadInstanceC
     mProgressController = nil;
   }
   return self;
+}
+
+- (void)dealloc
+{
+  [mFileIconMouseDownEvent release];
+  [super dealloc];
 }
 
 -(void)drawRect:(NSRect)rect
@@ -93,14 +98,89 @@ NSString* const kDownloadInstanceCancelledNotificationName = @"DownloadInstanceC
     }
   }
   [self setSelected:shouldSelect];
-  [[NSNotificationCenter defaultCenter] postNotificationName:kDownloadInstanceSelectedNotificationName object:self];
+  [[NSNotificationCenter defaultCenter] postNotificationName:kDownloadInstanceSelectedNotificationName
+                                                      object:self];
 
-  // after we've processed selection and modifiers, see if it's a double-click. If so, 
-  // send a notification off to the controller which will handle it accordingly. Doing it after
-  // processing the modifiers allows someone to shift-dblClick and open all selected items
-  // in the list in one action.
-  if ([theEvent type] == NSLeftMouseDown && [theEvent clickCount] == 2)
-    [[NSNotificationCenter defaultCenter] postNotificationName:kDownloadInstanceOpenedNotificationName object:self];
+  [mFileIconMouseDownEvent release];
+  mFileIconMouseDownEvent = nil;
+  if ([theEvent type] == NSLeftMouseDown) {
+    // See if it's a double-click; if so, send a notification off to the
+    // controller which will handle it accordingly. Doing it after processing
+    // the modifiers allows someone to shift-dblClick and open all selected
+    // items in the list in one action.
+    if ([theEvent clickCount] == 2) {
+      [[NSNotificationCenter defaultCenter] postNotificationName:kDownloadInstanceOpenedNotificationName
+                                                          object:self];
+    }
+    // If not, and the download isn't active, see if it's a click on the icon.
+    else if (![mProgressController isActive]) {
+      NSPoint clickPoint = [self convertPoint:[theEvent locationInWindow] fromView:nil];
+      if (NSPointInRect(clickPoint, [mFileIconView frame]))
+        mFileIconMouseDownEvent = [theEvent retain];
+    }
+  }
+}
+
+- (BOOL)acceptsFirstMouse:(NSEvent*)theEvent {
+  // Allow click-through on the file icon to allow dragging files even if the
+  // view is in a background window.
+  NSPoint clickPoint = [self convertPoint:[theEvent locationInWindow] fromView:nil];
+  return NSPointInRect(clickPoint, [mFileIconView frame]);
+}
+
+- (void)mouseDragged:(NSEvent*)aEvent
+{
+  if (!mFileIconMouseDownEvent)
+    return;
+
+  // Check that the controller thinks this view represents a file we know about,
+  // but also that the file is actually still there in case the controller's
+  // information is stale.
+  if (![mProgressController fileExists])
+    return;
+  NSString* filePath = [mProgressController representedFilePath];
+  if (!(filePath && [[NSFileManager defaultManager] fileExistsAtPath:filePath]))
+    return;
+
+  NSPasteboard* pasteboard = [NSPasteboard pasteboardWithName:NSDragPboard];
+  [pasteboard declareTypes:[NSArray arrayWithObject:NSFilenamesPboardType] owner:nil];
+  [pasteboard setPropertyList:[NSArray arrayWithObject:filePath] forType:NSFilenamesPboardType];
+
+  NSRect fileIconFrame = [mFileIconView frame];
+
+  NSImage* dragImage = [[[NSImage alloc] initWithSize:fileIconFrame.size] autorelease];
+  [dragImage lockFocus];
+  NSRect imageRect = NSMakeRect(0, 0, fileIconFrame.size.width, fileIconFrame.size.height);
+  [[mFileIconView image] drawAtPoint:NSMakePoint(0, 0)
+                           fromRect:imageRect
+                          operation:NSCompositeCopy
+                           fraction:0.8];
+  [dragImage unlockFocus];
+
+  NSPoint clickLocation = [self convertPoint:[mFileIconMouseDownEvent locationInWindow] fromView:nil];
+  [self dragImage:dragImage
+               at:fileIconFrame.origin
+           offset:NSMakeSize(clickLocation.x - fileIconFrame.origin.x,
+                             clickLocation.y - fileIconFrame.origin.y)
+            event:mFileIconMouseDownEvent
+       pasteboard:pasteboard
+           source:self
+        slideBack:YES];
+}
+
+- (unsigned int)draggingSourceOperationMaskForLocal:(BOOL)localFlag
+{
+  return NSDragOperationEvery;
+}
+
+- (void)draggedImage:(NSImage *)anImage endedAt:(NSPoint)aPoint operation:(NSDragOperation)operation
+{
+  if (operation == NSDragOperationDelete) {
+    [mProgressController deleteFile];
+    [mProgressController remove:self];
+  }
+  if (operation == NSDragOperationMove)
+    [mProgressController remove:self];
 }
 
 -(int)lastModifier
