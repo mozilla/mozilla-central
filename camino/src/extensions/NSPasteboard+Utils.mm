@@ -198,23 +198,24 @@ NSString* const kWebURLsWithTitlesPboardType  = @"WebURLsWithTitlesPboardType"; 
     }
   } else if ([types containsObject:NSURLPboardType]) {
     *outUrls = [NSArray arrayWithObject:[[NSURL URLFromPasteboard:self] absoluteString]];
-    if ([types containsObject:kCorePasteboardFlavorType_urld]) {
-      NSString* title = [self stringForType:kCorePasteboardFlavorType_urld];
-      if (!title)
-        title = [self stringForType:NSStringPboardType];
-      if (title)
-        *outTitles = [NSArray arrayWithObject:title];
-    }
-    else
-      *outTitles = [NSArray arrayWithObject:@""];
+    NSString* title = nil;
+    if ([types containsObject:kCorePasteboardFlavorType_urld])
+      title = [self stringForType:kCorePasteboardFlavorType_urld];
+    if (!title && [types containsObject:kCorePasteboardFlavorType_urln])
+      title = [self stringForType:kCorePasteboardFlavorType_urln];
+    if (!title && [types containsObject:NSStringPboardType])
+      title = [self stringForType:NSStringPboardType];
+    *outTitles = [NSArray arrayWithObject:(title ? title : @"")];
   } else if ([types containsObject:NSStringPboardType]) {
     NSURL* testURL = [NSURL URLWithString:[self stringForType:NSStringPboardType]];
     if (testURL) {
       *outUrls = [NSArray arrayWithObject:[self stringForType:NSStringPboardType]];
+      NSString* title = nil;
       if ([types containsObject:kCorePasteboardFlavorType_urld])
-        *outTitles = [NSArray arrayWithObject:[self stringForType:kCorePasteboardFlavorType_urld]];
-      else
-        *outTitles = [NSArray arrayWithObject:@""];
+        title = [self stringForType:kCorePasteboardFlavorType_urld];
+      if (!title && [types containsObject:kCorePasteboardFlavorType_urln])
+        title = [self stringForType:kCorePasteboardFlavorType_urln];
+      *outTitles = [NSArray arrayWithObject:(title ? title : @"")];
     } else {
       // The string doesn't look like a URL - return empty arrays
       *outUrls = [NSArray array];
