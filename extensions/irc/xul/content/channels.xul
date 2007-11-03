@@ -44,7 +44,7 @@
     xmlns:html="http://www.w3.org/1999/xhtml"
     windowtype="irc:chatzilla:channels"
     buttons="cancel"
-    onload="onLoad(); runFilter()"
+    onload="onLoad()"
     onunload="onUnload()"
     ondialogaccept="return joinChannel()"
     title="&window.title;">
@@ -60,7 +60,7 @@
         <label value="&qsearch.label;" accesskey="&qsearch.accesskey;" 
             control="filterText"/>
         <textbox id="filterText" flex="1" type="timed" timeout="500" 
-            oncommand="runFilter()" onkeypress="onKeyPress(event)"/>
+            oncommand="onFilter()" onkeypress="onKeyPress(event)"/>
       </hbox>
       <checkbox id="searchTopics" oncommand="runFilter(); focusSearch()" 
           label="&topics.label;" accesskey="&topics.accesskey;" 
@@ -75,7 +75,7 @@
         <treechildren flex="1"/>
       </tree>
       <hbox id="loadContainer">
-        <label id="loadLabel" value="" flex="1"/>
+        <label id="loadLabel" value="" flex="1" crop="right"/>
         <deck id="loadBarDeck">
           <progressmeter id="loadBar" mode="undetermined" />
           <box/>
@@ -95,13 +95,13 @@
             <label value="&minusers.label;" accesskey="&minusers.accesskey;" 
                 control="minUsers"/>
             <textbox id="minUsers" type="timed" timeout="500" 
-                oncommand="runFilter()"/>
+                oncommand="onFilter()"/>
             </row>
             <row align="center">
             <label value="&maxusers.label;" accesskey="&maxusers.accesskey;"
                 control="maxUsers"/>
             <textbox id="maxUsers" type="timed" timeout="500" 
-                oncommand="runFilter()"/>
+                oncommand="onFilter()"/>
           </row>
         </rows>
       </grid>

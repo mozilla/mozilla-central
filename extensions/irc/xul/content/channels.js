@@ -38,25 +38,55 @@ var client;
 var network;
 var channels = new Array();
 var createChannelItem;
+var serverChannelPrefixes;
 
 var channelTreeShare = new Object();
-var channelTreeView;
+var channelTreeView, channelTreeBoxObject, channelLoadLabel, channelLoadBar,
+    channelLoadBarDesk, channelFilterText, channelSearchTopics, channelMinUsers,
+    channelMaxUsers, channelJoinBtn, channelRefreshBtn;
 
+
+// Create list of operations. These are handled by common code.
+const OPS = new Array();
+OPS.push({ key: "noop",   ignore: true   });
+OPS.push({ key: "list",   canStop: false });
+OPS.push({ key: "load",   canStop: true  });
+OPS.push({ key: "filter", canStop: true  });
+
+
+// Define constants for each operation.
+// NOTE: This order MUST be the same as those above!
 var s = 0;
-const STATE_IDLE = ++s;            // Doing nothing.
-const STATE_LOAD = ++s;            // Loading from saved file only.
-const STATE_LIST_AND_LOAD = ++s;   // Doing /list and loading simultaneously.
-const STATE_LIST_THEN_LOAD = ++s;  // Doing /list, after which do load.
+const OP_LIST   = ++s;  // A /list operation on the server.
+const OP_LOAD   = ++s;  // Loading the saved file.
+const OP_FILTER = ++s;  // Filtering the loaded list.
 
+
+// Define constants for the valid states of each operation.
+// All states before STATE_START must be idle (stopped) states.
+// All states from STATE_START onwards must be busy (running) states.
 s = 0;
-const SUBSTATE_START = ++s;  // Starting an operation.
-const SUBSTATE_RUN   = ++s;  // Running...
-const SUBSTATE_END   = ++s;  // Clean-up/ending operation.
-const SUBSTATE_ERROR = ++s;  // Error occurred: don't try do to any more.
+const STATE_IDLE  = ++s;  // Not doing this operation.
+const STATE_ERROR = ++s;  // Error occurred: don't try do to any more.
+const STATE_START = ++s;  // Starting an operation.
+const STATE_RUN   = ++s;  // Running...
+const STATE_STOP  = ++s;  // Clean-up/ending operation.
 delete s;
 
-var state = { state: STATE_IDLE, substate: 0 };
-const STATE_DELAY = 1000;
+
+// Store all the operation data here.
+var data = {
+    list:   { state: STATE_IDLE },
+    load:   { state: STATE_IDLE },
+    filter: { state: STATE_IDLE },
+};
+
+
+// This should keep things responsive enough, for the user to click buttons and
+// edit the filter text and options, without giving up too much time to letting
+// Gecko catch up.
+const PROCESS_TIME_MAX = 200;
+const PROCESS_DELAY    =  50;
 
 const colIDToSortKey = { chanColName: "name",
                          chanColUsers: "users",
@@ -82,7 +112,10 @@ function onLoad()
     network = window.arguments[0].network;
     network.joinDialog = window;
 
+    serverChannelPrefixes = network.primServ.channelTypes;
+
     window.dd = client.mainWindow.dd;
+    window.ASSERT = client.mainWindow.ASSERT;
     window.toUnicode = client.mainWindow.toUnicode;
     window.getMsg = client.mainWindow.getMsg;
     window.MSG_CHANNEL_OPENED = client.mainWindow.MSG_CHANNEL_OPENED;
@@ -97,11 +130,22 @@ function onLoad()
     }
 
     var tree = document.getElementById("channelList");
+    channelTreeBoxObject = tree.treeBoxObject;
 
     channelTreeView = new XULTreeView(channelTreeShare);
     channelTreeView.onRowCommand = doJoin;
     channelTreeView.cycleHeader = changeSort;
-    tree.treeBoxObject.view = channelTreeView;
+    channelTreeBoxObject.view = channelTreeView;
+
+    channelLoadLabel = document.getElementById("loadLabel");
+    channelLoadBar = document.getElementById("loadBar");
+    channelLoadBarDesk = document.getElementById("loadBarDeck");
+    channelFilterText = document.getElementById("filterText");
+    channelSearchTopics = document.getElementById("searchTopics");
+    channelMinUsers = document.getElementById("minUsers");
+    channelMaxUsers = document.getElementById("maxUsers");
+    channelJoinBtn = document.getElementById("joinBtn");
+    channelRefreshBtn = document.getElementById("refreshNow");
 
     // Sort by user count, decending.
     changeSort("chanColUsers");
@@ -130,8 +174,8 @@ function onLoad()
         window.moveTo(opener.screenX + sx, opener.screenY + sy);
     }
 
-    setInterval(doCurrentStatus, STATE_DELAY);
-    setState(STATE_LOAD);
+    setTimeout(updateOperations, PROCESS_DELAY);
+    startOperation(OP_LOAD);
 }
 
 function onUnload()
@@ -144,102 +188,31 @@ function onKeyPress(event)
     if (event.keyCode == event.DOM_VK_UP)
     {
         if (channelTreeView.selectedIndex > 0)
+        {
             channelTreeView.selectedIndex = channelTreeView.selectedIndex - 1;
+            ensureRowIsVisible();
+        }
         event.preventDefault();
     }
     else if (event.keyCode == event.DOM_VK_DOWN)
     {
         if (channelTreeView.selectedIndex < channelTreeView.rowCount - 1)
+        {
             channelTreeView.selectedIndex = channelTreeView.selectedIndex + 1;
+            ensureRowIsVisible();
+        }
         event.preventDefault();
     }
 }
 
 function onSelectionChange()
 {
-    var joinBtn = document.getElementById("joinBtn");
-    joinBtn.disabled = (channelTreeView.selectedIndex == -1);
+    channelJoinBtn.disabled = (channelTreeView.selectedIndex == -1);
 }
 
-function runFilter()
+function onFilter()
 {
-    function process()
-    {
-        var exactMatch = null;
-        var channelText = text;
-        if (!channelText.match(/^[#&+!]/))
-            channelText = "#" + channelText;
-
-        // Should ideally be calling freeze()/thaw() here, but unfortunately they
-        // mess up the selection, even if they make this so much faster.
-        for (var i = 0; i < channels.length; i++)
-        {
-            var match = (channels[i].name.toLowerCase().indexOf(text) != -1) ||
-                        (searchTopics &&
-                         (channels[i].topic.toLowerCase().indexOf(text) != -1));
-
-            if (minUsers && (channels[i].users < minUsers))
-                match = false;
-            if (maxUsers && (channels[i].users > maxUsers))
-                match = false;
-
-            if (channels[i].isHidden)
-            {
-                if (match)
-                    channels[i].unHide();
-            }
-            else
-            {
-                if (!match)
-                    channels[i].hide();
-            }
-
-            if (match && (channels[i].name.toLowerCase() == channelText))
-                exactMatch = channels[i];
-
-            if ((i % 100) == 0)
-                updateProgress(MSG_CD_FILTERING, 100 * i / channels.length);
-        }
-        updateProgress();
-
-        createChannelItem.name = channelText;
-        var tree = document.getElementById("channelList");
-        tree.treeBoxObject.invalidateRow(0);
-
-        if (exactMatch)
-        {
-            if (!createChannelItem.isHidden)
-                createChannelItem.hide();
-            channelTreeView.selectedIndex = exactMatch.calculateVisualRow();
-        }
-        else
-        {
-            if (createChannelItem.isHidden)
-                createChannelItem.unHide();
-            if (channelTreeView.selectedIndex == -1)
-            {
-                // The special 'create' row is visible, so prefer the first
-                // real channel over it.
-                if (channelTreeView.rowCount >= 2)
-                    channelTreeView.selectedIndex = 1;
-                else if (channelTreeView.rowCount == 1)
-                    channelTreeView.selectedIndex = 0;
-            }
-        }
-
-    };
-
-    var text = document.getElementById("filterText").value.toLowerCase();
-    var searchTopics = document.getElementById("searchTopics").checked;
-    var minUsers = document.getElementById("minUsers").value * 1;
-    var maxUsers = document.getElementById("maxUsers").value * 1;
-
-    if (channels.length > 1000)
-        updateProgress(getMsg(MSG_CD_FILTERING1, channels.length));
-    else
-        updateProgress(getMsg(MSG_CD_FILTERING2, channels.length));
-
-    setTimeout(process, 100);
+    startOperation(OP_FILTER);
 }
 
 function joinChannel()
@@ -256,39 +229,39 @@ function joinChannel()
 
 function focusSearch()
 {
-    document.getElementById("filterText").focus();
+    channelFilterText.focus();
 }
 
 function refreshList()
 {
-    setState(STATE_LIST_THEN_LOAD);
+    startOperation(OP_LIST);
 }
 
 function updateProgress(label, pro)
 {
     if (label)
     {
-        document.getElementById("loadLabel").value = label;
+        channelLoadLabel.value = label;
     }
     else
     {
         var msg = getMsg(MSG_CD_SHOWING,
              [(channelTreeView.rowCount - (createChannelItem.isHidden ? 0 : 1)),
               channels.length]);
-        document.getElementById("loadLabel").value = msg;
+        channelLoadLabel.value = msg;
     }
 
     var loadBarDeckIndex = ((typeof pro == "undefined") ? 1 : 0);
-    document.getElementById("loadBarDeck").selectedIndex = loadBarDeckIndex;
+    channelLoadBarDesk.selectedIndex = loadBarDeckIndex;
 
     if ((typeof pro == "undefined") || (pro == -1))
     {
-        document.getElementById("loadBar").mode = "undetermined";
+        channelLoadBar.mode = "undetermined";
     }
     else
     {
-        document.getElementById("loadBar").mode = "determined";
-        document.getElementById("loadBar").value = pro;
+        channelLoadBar.mode = "determined";
+        channelLoadBar.value = pro;
     }
 }
 
@@ -324,216 +297,419 @@ function changeSort(col)
     }
 }
 
-function setState(newState)
+
+// ***** BEGIN OPERATIONS CODE *****
+
+
+/* Return the static data about an operation (e.g. whether it can be
+ * stopped, etc.). The data returned is always the same for a given op code.
+ */
+function getOperation(op)
 {
-    state.state = newState;
-    if (newState == STATE_IDLE)
+    ASSERT(op in OPS, "Invalid op-code: " + op);
+    return OPS[op];
+}
+
+/* Returns the live data about an operation (e.g. current state). Accepts
+ * either the op ID or the static data (as returned from getOperation(op)).
+ */
+function getOperationData(op)
+{
+    if (typeof op == "object")
+        return data[op.key];
+    return data[getOperation(op).key];
+}
+
+// Returns the current state of an operation; accepts same as getOperationData.
+function getOperationState(op)
+{
+    return getOperationData(op).state;
+}
+
+function startOperation(op)
+{
+    var ops = getOperation(op);
+    if (ops.ignore)
+        return;
+
+    var dbg = "startOperation(" + ops.key + ")";
+    var opData = getOperationData(ops);
+
+    // STATE_ERROR operations must not do anything. Assert and bail.
+    if (!ASSERT(opData.state != STATE_ERROR, dbg + " in STATE_ERROR"))
+        return;
+
+    // Check we can stop a non-idle operation.
+    if (!ASSERT((opData.state == STATE_IDLE) || ops.canStop,
+           dbg + " not in STATE_IDLE and can't stop"))
     {
-        state.substate = 0;
-        // We finished doing something. Fix selection.
-        if (channelTreeView.rowCount > 0)
-        {
-            // Skip the creation row if it's there:
-            if (channelTreeView.rowCount >= 2)
-                channelTreeView.selectedIndex = 1;
-            else
-                channelTreeView.selectedIndex = 0;
-            var tbo = document.getElementById("channelList").treeBoxObject;
-            tbo.scrollToRow(0);
-        }
+        return;
     }
+
+    // Stop the current operation.
+    if (opData.state != STATE_IDLE)
+        stopOperation(op);
+
+    // Begin!
+    var opData = getOperationData(op);
+    opData.state = STATE_START;
+    processOperation(op);
+    ASSERT(opData.state == STATE_RUN, dbg + " didn't enter STATE_RUN");
+}
+
+function updateOperations()
+{
+    for (var i = 1; i < OPS.length; i++)
+    {
+        var state = getOperationState(i);
+        if ((state == STATE_RUN) || (state == STATE_STOP))
+            processOperation(i);
+    }
+
+    setTimeout(updateOperations, PROCESS_DELAY);
+}
+
+function processOperation(op)
+{
+    var ops = getOperation(op);
+    if (ops.ignore)
+        return;
+
+    var dbg = "processOperation(" + ops.key + ")";
+    var opData = getOperationData(ops);
+
+    var fn = "processOp";
+    fn += ops.key[0].toUpperCase() + ops.key.substr(1);
+    if (opData.state == STATE_START)
+        fn += "Start";
+    else if (opData.state == STATE_RUN)
+        fn += "Run";
+    else if (opData.state == STATE_STOP)
+        fn += "Stop";
     else
-    {
-        state.substate = SUBSTATE_START;
-    }
-    // Force an update when the state changes.
-    doCurrentStatus();
-}
+        return ASSERT(false, dbg + " invalid state: " + opData.state);
 
-function setSubstate(newSubstate)
-{
-    state.substate = newSubstate;
-}
-
-function doCurrentStatus()
-{
-    var st = Number(new Date());
     try
     {
-        switch (state.substate)
-        {
-            case SUBSTATE_START:
-                doCurrentStatusStart();
-                break;
-
-            case SUBSTATE_RUN:
-                doCurrentStatusRun();
-                break;
-
-            case SUBSTATE_END:
-                doCurrentStatusEnd();
-                break;
-        }
+        var newState = window[fn](opData);
+        if (typeof newState != "undefined")
+            opData.state = newState;
     }
     catch(ex)
     {
         /* If an error has occured, we display it (updateProgress) and then
          * halt our opperations to prevent further damage.
          */
-        dd("Exception in channels.js:doCurrentStatus: " + formatException(ex));
+        dd("Exception in channels.js: " + dbg + ": " + fn + ": " + formatException(ex));
         updateProgress(formatException(ex));
-        state.substate = SUBSTATE_ERROR;
+        opData.state = STATE_ERROR;
     }
-    var en = Number(new Date());
-    state.timeTaken = (en - st);
 }
 
-function doCurrentStatusStart()
+function stopOperation(op)
 {
-    // Only the list has an initial message.
-    if (state.state == STATE_LIST_THEN_LOAD)
-        updateProgress(MSG_CD_FETCHING, -1);
+    var ops = getOperation(op);
+    if (ops.ignore)
+        return;
 
-    // The file is used in all 3 cases.
-    var file = getListFile();
+    var dbg = "stopOperation(" + ops.key + ")";
+    var opData = getOperationData(ops);
 
+    // STATE_ERROR operations must not do anything. Assert and bail.
+    if (!ASSERT(opData.state != STATE_ERROR, dbg + " in STATE_ERROR"))
+        return;
+
+    // Nothing to do for STATE_IDLE. We shouldn't really be here, so assert.
+    if (!ASSERT(opData.state != STATE_IDLE, dbg + " in STATE_IDLE"))
+        return;
+
+    // Force the end and process synchronously.
+    opData.state = STATE_STOP;
+    processOperation(op);
+    ASSERT(opData.state == STATE_IDLE, dbg + " didn't enter STATE_IDLE");
+}
+
+// *****  END OPERATIONS CODE  *****
+
+
+// ***** BEGIN OPERATION HANDLERS *****
+
+function processOpListStart(opData)
+{
     // Doing the list should disable the refresh button.
-    if ((state.state == STATE_LIST_AND_LOAD) || (state.state == STATE_LIST_THEN_LOAD))
-    {
-        document.getElementById("refreshNow").disabled = true;
-        network.list("", file.path);
-    }
+    channelRefreshBtn.disabled = true;
 
-    // Do file handling setup for both loading states.
-    if ((state.state == STATE_LOAD) || (state.state == STATE_LIST_AND_LOAD))
-    {
-        if (!file.exists())
-        {
-            // We tried to do a load, but the file does not exist.
-            setState(STATE_LIST_AND_LOAD);
-            return;
-        }
+    // Show a general message until we get some data.
+    updateProgress(MSG_CD_FETCHING, -1);
 
-        // Nuke contents.
-        channelTreeView.selectedIndex = -1;
-        channelTreeView.freeze();
-        while (channelTreeView.childData.childData.length > 1)
-            channelTreeView.childData.removeChildAtIndex(1);
-        channelTreeView.thaw();
+    // Get the file we're going to save to, and start the /list.
+    var file = getListFile();
+    network.list("", file.path);
 
-        // Nuke more stuff.
-        channels = new Array();
-
-        // And... here we go.
-        state.loadFile = new LocalFile(file, "<");
-        state.loadPendingData = "";
-        state.loadChunk = 10000;
-        state.loadedSoFar = 0;
-        // The loading from the file will never complete whilst this is true.
-        state.loadNeverComplete = (state.state == STATE_LIST_AND_LOAD);
-    }
-
-    setSubstate(SUBSTATE_RUN);
+    return STATE_RUN;
 }
 
-function doCurrentStatusRun()
+function processOpListRun(opData)
 {
-    if (state.state == STATE_LIST_THEN_LOAD)
-    {
-        // Update the progress and end if /list done for "list only" state.
-        updateProgress(getMsg(MSG_CD_FETCHED, network._list.count), -1);
+    // Update the progress and end if /list done for "list only" state.
+    updateProgress(getMsg(MSG_CD_FETCHED, network._list.count), -1);
 
-        if (network._list.done)
-            setSubstate(SUBSTATE_END);
-    }
-
-    /* If we're doing the list+load state, flag is as ok to stop loading the
-     * file when the network has finished doing the /list.
-     */
-    if ((state.state == STATE_LIST_AND_LOAD) && network._list.done)
-        state.loadNeverComplete = false;
-
-    // Do file handling for loading states.
-    if ((state.state == STATE_LOAD) || (state.state == STATE_LIST_AND_LOAD))
-    {
-        // Adjust chunk size to keep time per-chunk between 750ms and 1000ms.
-        if ((state.timeTaken > 1.25 * STATE_DELAY) && (state.loadChunk >= 2000))
-            state.loadChunk -= 1000;
-        else if ((state.timeTaken > STATE_DELAY) && (state.loadChunk >= 1100))
-            state.loadChunk -= 100;
-        if (state.timeTaken < 0.5 * STATE_DELAY)
-            state.loadChunk += 1000;
-        else if (state.timeTaken < 0.75 * STATE_DELAY)
-            state.loadChunk += 100;
-        state.loadedSoFar += state.loadChunk;
-
-        var newChunk = state.loadFile.read(state.loadChunk);
-        if (newChunk)
-            state.loadPendingData += newChunk;
-
-        while (state.loadPendingData.indexOf("\n") != -1)
-        {
-            var lines = state.loadPendingData.split("\n");
-            state.loadPendingData = lines.pop();
-
-            for (var i = 0; i < lines.length; i++)
-            {
-                var ary = lines[i].match(/^([^ ]+) ([^ ]+) (.*)$/);
-                if (ary)
-                {
-                    var chan = new ChannelEntry(toUnicode(ary[1], "UTF-8"), ary[2],
-                                                toUnicode(ary[3], "UTF-8"));
-                    channels.push(chan);
-                }
-            }
-        }
-
-        var dataLeft = state.loadFile.inputStream.available();
-        var pro = state.loadedSoFar / (state.loadedSoFar + dataLeft);
-        pro = Math.round(100 * pro);
-        updateProgress(getMsg(MSG_CD_LOADED, channels.length), pro);
-
-        // Done if there is no more data, and we're not *expecting* any more.
-        if ((dataLeft == 0) && !state.loadNeverComplete)
-            setSubstate(SUBSTATE_END);
-    }
+    // Stop if the network's /list has finished.
+    return (network._list.done ? STATE_STOP : STATE_RUN);
 }
-function doCurrentStatusEnd()
+
+function processOpListStop(opData)
 {
     // Reset refresh button.
-    if ((state.state == STATE_LIST_AND_LOAD) || (state.state == STATE_LIST_THEN_LOAD))
-        document.getElementById("refreshNow").disabled = false;
+    channelRefreshBtn.disabled = false;
 
     // Check that /list finished ok if we're just doing a list.
-    if (state.state == STATE_LIST_THEN_LOAD)
+    if ("error" in network._list)
     {
-        if ("error" in network._list)
+        updateProgress(MSG_CD_ERROR_LIST);
+    }
+    else
+    {
+        updateProgress();
+        if (getOperationState(OP_LOAD) == STATE_IDLE)
+            startOperation(OP_LOAD);
+    }
+
+    return STATE_IDLE;
+}
+
+function processOpLoadStart(opData)
+{
+    var file = getListFile();
+    if (!file.exists())
+    {
+        // We tried to do a load, but the file does not exist. Start a list to
+        // fill up the file.
+        startOperation(OP_LIST);
+
+        // File still doesn't exist, just give up.
+        if (!file.exists())
+            return STATE_IDLE;
+    }
+
+    // Nuke contents.
+    channelTreeView.selectedIndex = -1;
+    channelTreeView.freeze();
+    while (channelTreeView.childData.childData.length > 1)
+        channelTreeView.childData.removeChildAtIndex(1);
+    channelTreeView.thaw();
+
+    // Nuke more stuff.
+    channels = new Array();
+
+    // And... here we go.
+    opData.loadFile = new LocalFile(file, "<");
+    opData.loadPendingData = "";
+    opData.loadChunk = 10000;
+    opData.loadedSoFar = 0;
+
+    return STATE_RUN;
+}
+
+function processOpLoadRun(opData)
+{
+    // All states before STATE_START are "not running" states.
+    var opListRunning = (getOperationState(OP_LIST) >= STATE_START);
+
+    var end = Number(new Date()) + PROCESS_TIME_MAX;
+    while (Number(new Date()) < end)
+    {
+        var nlIndex = opData.loadPendingData.indexOf("\n");
+        if (nlIndex == -1)
         {
-            updateProgress(MSG_CD_ERROR_LIST);
-            // Can't seem to "undefine" the parameters using the function format.
-            setTimeout("updateProgress()", 10000);
-            // Bail out if there was an error!
-            return;
+            opData.loadedSoFar += opData.loadChunk;
+            var newChunk = opData.loadFile.read(opData.loadChunk);
+            if (newChunk)
+                opData.loadPendingData += newChunk;
+            nlIndex = opData.loadPendingData.indexOf("\n");
+            if (nlIndex == -1)
+                break;
         }
-        // Replace files.
-        updateProgress();
-        setState(STATE_LOAD);
+
+        var line = opData.loadPendingData.substr(0, nlIndex);
+        opData.loadPendingData = opData.loadPendingData.substr(nlIndex + 1);
+
+        line = toUnicode(line, "UTF-8");
+        var ary = line.match(/^([^ ]+) ([^ ]+) (.*)$/);
+        if (ary)
+        {
+            var chan = new ChannelEntry(ary[1], ary[2], ary[3]);
+            channels.push(chan);
+        }
     }
-    // Finish file handling work.
-    else if ((state.state == STATE_LOAD) || (state.state == STATE_LIST_AND_LOAD))
+
+    var dataLeft = opData.loadFile.inputStream.available();
+
+    // We shouldn't update the display when listing as well, as we're not
+    // going to show anything useful (always 100% or near to it, and
+    // replaces the 'fetching' message).
+    if (!opListRunning)
     {
-        if (channels.length > 0)
-            channelTreeView.childData.appendChildren(channels);
-        state.loadFile.close();
-        delete state.loadFile;
-        delete state.loadPendingData;
-        delete state.loadChunk;
-        delete state.loadedSoFar;
-        delete state.loadNeverComplete;
-        updateProgress();
-        setState(STATE_IDLE);
-        runFilter();
+        var pro = opData.loadedSoFar / (opData.loadedSoFar + dataLeft);
+        pro = Math.round(100 * pro);
+        updateProgress(getMsg(MSG_CD_LOADED, channels.length), pro);
     }
+
+    // Done if there is no more data, and we're not *expecting* any more.
+    if ((dataLeft == 0) && !opListRunning)
+        return STATE_STOP;
+
+    return STATE_RUN;
+}
+
+function processOpLoadStop(opData)
+{
+    if (channels.length > 0)
+        channelTreeView.childData.appendChildren(channels);
+    opData.loadFile.close();
+    delete opData.loadFile;
+    delete opData.loadPendingData;
+    delete opData.loadChunk;
+    delete opData.loadedSoFar;
+    delete opData.loadNeverComplete;
+    updateProgress();
+
+    startOperation(OP_FILTER);
+
+    return STATE_IDLE;
+}
+
+function processOpFilterStart(opData)
+{
+    opData.text = channelFilterText.value.toLowerCase();
+    opData.searchTopics = channelSearchTopics.checked;
+    opData.minUsers = channelMinUsers.value * 1;
+    opData.maxUsers = channelMaxUsers.value * 1;
+    opData.exactMatch = null;
+    opData.currentIndex = 0;
+    opData.channelText = opData.text;
+
+    if ((arrayIndexOf(["#", "&", "+", "!"], opData.channelText[0]) == -1) &&
+        (arrayIndexOf(serverChannelPrefixes, opData.channelText[0]) == -1))
+    {
+        opData.channelText = serverChannelPrefixes[0] + opData.channelText;
+    }
+
+    // Update special "create channel" row, and select it.
+    createChannelItem.name = opData.channelText;
+    if (createChannelItem.isHidden)
+        createChannelItem.unHide();
+
+    // Scroll to the top and select the "create channel" row.
+    channelTreeView.selectedIndex = 0;
+    channelTreeBoxObject.invalidateRow(0);
+    channelTreeBoxObject.scrollToRow(0);
+    ensureRowIsVisible();
+
+    updateProgress(getMsg(MSG_CD_FILTERING, [0, channels.length]), 0);
+
+    return STATE_RUN;
+}
+
+function processOpFilterRun(opData)
+{
+    var end = Number(new Date()) + PROCESS_TIME_MAX;
+    var more = false;
+
+    // Save selection because freeze/thaw screws it up.
+    // Note that we only save the item if it isn't the "create channel" row.
+    var index = channelTreeView.selectedIndex;
+    var item = null;
+    if (index > 0)
+        item = channelTreeView.childData.locateChildByVisualRow(index);
+
+    channelTreeView.freeze();
+    for (var i = opData.currentIndex; i < channels.length; i++)
+    {
+        var c = channels[i];
+
+        var match = (c.nameLC.indexOf(opData.text) != -1) ||
+                    (opData.searchTopics &&
+                     (c.topicLC.indexOf(opData.text) != -1));
+
+        if (opData.minUsers && (c.users < opData.minUsers))
+            match = false;
+        if (opData.maxUsers && (c.users > opData.maxUsers))
+            match = false;
+
+        if (c.isHidden && match)
+            c.unHide();
+        if (!c.isHidden && !match)
+            c.hide();
+
+        if (match && (c.nameLC == opData.channelText))
+            opData.exactMatch = c;
+
+        opData.currentIndex = i;
+        if ((new Date()) > end)
+        {
+            more = true;
+            break;
+        }
+    }
+    channelTreeView.thaw();
+
+    // No item selected by user, so use our exact match instead.
+    if (!item && opData.exactMatch)
+        item = opData.exactMatch;
+
+    // Restore selected item.
+    if (item)
+        channelTreeView.selectedIndex = item.calculateVisualRow();
+    else
+        channelTreeView.selectedIndex = 0;
+
+    ensureRowIsVisible();
+
+    updateProgress(getMsg(MSG_CD_FILTERING,
+                          [opData.currentIndex, channels.length]),
+                   100 * opData.currentIndex / channels.length);
+
+    return (more ? STATE_RUN : STATE_STOP);
+}
+
+function processOpFilterStop(opData)
+{
+    if (opData.exactMatch)
+    {
+        if (!createChannelItem.isHidden)
+            createChannelItem.hide();
+    }
+    // If nothing is selected, select the "create channel" row.
+    else if (channelTreeView.selectedIndex < 0)
+    {
+        channelTreeView.selectedIndex = 0;
+    }
+
+    ensureRowIsVisible();
+
+    delete opData.text;
+    delete opData.searchTopics;
+    delete opData.minUsers;
+    delete opData.maxUsers;
+    delete opData.exactMatch;
+    delete opData.currentIndex;
+    delete opData.channelText;
+    updateProgress();
+
+    return STATE_IDLE;
+}
+
+
+// *****  END OPERATION HANDLERS  *****
+
+
+function ensureRowIsVisible()
+{
+    if (channelTreeView.selectedIndex >= 0)
+        channelTreeBoxObject.ensureRowIsVisible(channelTreeView.selectedIndex);
+    else
+        channelTreeBoxObject.ensureRowIsVisible(0);
 }
 
 function getListFile(temp)
@@ -561,6 +737,9 @@ function ChannelEntry(name, users, topic)
     this.name  = name;
     this.users = users;
     this.topic = topic;
+
+    this.nameLC = this.name.toLowerCase();
+    this.topicLC = this.topic.toLowerCase();
 }
 
 ChannelEntry.prototype = new XULTreeViewRecord(channelTreeShare);
