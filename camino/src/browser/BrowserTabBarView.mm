@@ -487,13 +487,13 @@ static const float kScrollButtonInterval = 0.15;  // time (in seconds) between f
   int numberOfTabs = [mTabView numberOfTabViewItems];
 
   // check to see whether or not the tabs will fit without the overflows
-  float widthOfATab = NSWidth([self tabsRectWithOverflow:NO]) / numberOfTabs;
+  float widthOfATab = floor(NSWidth([self tabsRectWithOverflow:NO]) / numberOfTabs);
   mOverflowTabs = widthOfATab < kMinTabWidth;
 
   if (mOverflowTabs) {
     float widthOfTabBar = NSWidth([self tabsRect]);
     mNumberOfVisibleTabs = (int)floor(widthOfTabBar / kMinTabWidth);
-    widthOfATab = widthOfTabBar / mNumberOfVisibleTabs;
+    widthOfATab = floor(widthOfTabBar / mNumberOfVisibleTabs);
     if (mNumberOfVisibleTabs + mLeftMostVisibleTabIndex > numberOfTabs)
       [self setLeftMostVisibleTabIndex:(numberOfTabs - mNumberOfVisibleTabs)];
     if (keepCurrentTabVisible && selectedTab)
@@ -507,7 +507,11 @@ static const float kScrollButtonInterval = 0.15;  // time (in seconds) between f
 
   [self setOverflowButtonsVisible:mOverflowTabs];
 
-  float nextTabXOrigin  = NSMinX([self tabsRect]);
+  NSRect tabsRect = [self tabsRect];
+  float extraWidth = 0.0;
+  if (widthOfATab < kMaxTabWidth)
+    extraWidth = NSWidth(tabsRect) - widthOfATab * mNumberOfVisibleTabs;
+  float nextTabXOrigin  = NSMinX(tabsRect);
   NSRect invisibleTabRect = NSMakeRect(nextTabXOrigin, 0, 0, 0);
   for (int i = 0; i < numberOfTabs; i++) {
     TabButtonCell* tabButtonCell = [(BrowserTabViewItem*)[mTabView tabViewItemAtIndex:i] tabButtonCell];
@@ -520,9 +524,15 @@ static const float kScrollButtonInterval = 0.15;  // time (in seconds) between f
     }
     // Regular visible tab
     else {
-      [tabButtonCell setFrame:NSMakeRect(nextTabXOrigin, 0, widthOfATab, [self tabBarHeight])];
+      NSRect tabRect = NSMakeRect(nextTabXOrigin, 0, widthOfATab, [self tabBarHeight]);
+      // spread the extra width from rounding tab sizes over the leftmost tabs.
+      if (extraWidth > 0.5) {
+        extraWidth -= 1.0;
+        tabRect.size.width += 1.0;
+      }
+      [tabButtonCell setFrame:tabRect];
       [tabButtonCell setDrawDivider:YES];
-      nextTabXOrigin += (int)widthOfATab;
+      nextTabXOrigin += NSWidth(tabRect);
     }
   }
 
