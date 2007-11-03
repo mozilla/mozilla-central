@@ -150,16 +150,16 @@ nsDownloadListener::GetPercentComplete(PRInt32 *aPercentComplete)
   return NS_ERROR_NOT_IMPLEMENTED;
 }
 
-/* readonly attribute PRInt64 amountTransferred; */
+/* readonly attribute PRUint64 amountTransferred; */
 NS_IMETHODIMP
-nsDownloadListener::GetAmountTransferred(PRInt64 *aAmountTransferred)
+nsDownloadListener::GetAmountTransferred(PRUint64 *aAmountTransferred)
 {
   return NS_ERROR_NOT_IMPLEMENTED;
 }
 
-/* readonly attribute PRInt64 size; */
+/* readonly attribute PRUint64 size; */
 NS_IMETHODIMP
-nsDownloadListener::GetSize(PRInt64 *aSize)
+nsDownloadListener::GetSize(PRUint64 *aSize)
 {
   return NS_ERROR_NOT_IMPLEMENTED;
 }
@@ -212,11 +212,6 @@ nsDownloadListener::GetId(PRUint32 *aId)
 NS_IMETHODIMP
 nsDownloadListener::GetState(PRInt16 *aState)
 {
-  return NS_ERROR_NOT_IMPLEMENTED;
-}
-
-NS_IMETHODIMP
-nsDownloadListener::GetReferrer(nsIURI * *aReferrer) {
   return NS_ERROR_NOT_IMPLEMENTED;
 }
 
