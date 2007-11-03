@@ -340,6 +340,7 @@ PKIX_ValidateParams_GetProcessingParams(
 
         *pProcParams = valParams->procParams;
 
+cleanup:
         PKIX_RETURN(VALIDATEPARAMS);
 }
 
@@ -359,5 +360,6 @@ PKIX_ValidateParams_GetCertChain(
 
         *pChain = valParams->chain;
 
+cleanup:
         PKIX_RETURN(VALIDATEPARAMS);
 }

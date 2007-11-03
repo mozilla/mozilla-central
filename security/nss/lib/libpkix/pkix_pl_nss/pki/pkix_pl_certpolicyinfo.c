@@ -371,6 +371,7 @@ PKIX_PL_CertPolicyInfo_GetPolicyId(
 
         *pPolicyId = policyInfo->cpID;
 
+cleanup:
         PKIX_RETURN(CERTPOLICYINFO);
 }
 
@@ -396,5 +397,6 @@ PKIX_PL_CertPolicyInfo_GetPolQualifiers(
          */
         *pQuals = policyInfo->policyQualifiers;
 
+cleanup:
         PKIX_RETURN(CERTPOLICYINFO);
 }

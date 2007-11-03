@@ -364,6 +364,7 @@ PKIX_CertStore_GetCertStoreContext(
         PKIX_INCREF(store->certStoreContext);
         *pCertStoreContext = store->certStoreContext;
 
+cleanup:
         PKIX_RETURN(CERTSTORE);
 }
 

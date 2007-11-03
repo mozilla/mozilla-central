@@ -428,8 +428,10 @@ extern const PKIX_StdVars zeroStdVars;
 	if (obj){ \
 	    pkixTempResult = PKIX_PL_Object_IncRef \
 			((PKIX_PL_Object *)(obj), plContext); \
-	    if (pkixTempResult)  \
-		return pkixTempResult; \
+	    if (pkixTempResult) { \
+		   pkixErrorResult = pkixTempResult; \
+           goto cleanup; \
+		} \
 	} \
     } while (0)
 

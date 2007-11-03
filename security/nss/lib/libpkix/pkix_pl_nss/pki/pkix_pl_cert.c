@@ -3341,6 +3341,7 @@ PKIX_PL_Cert_GetTrustCertStore(
         PKIX_INCREF(cert->store);
         *pTrustCertStore = cert->store;
 
+cleanup:
         PKIX_RETURN(CERT);
 }
 
@@ -3359,6 +3360,7 @@ PKIX_PL_Cert_SetTrustCertStore(
         PKIX_INCREF(trustCertStore);
         cert->store = trustCertStore;
 
+cleanup:
         PKIX_RETURN(CERT);
 }
 

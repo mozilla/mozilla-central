@@ -521,6 +521,7 @@ PKIX_PL_InfoAccess_GetLocation(
 
         *pLocation = infoAccess->location;
 
+cleanup:
         PKIX_RETURN(INFOACCESS);
 }
 

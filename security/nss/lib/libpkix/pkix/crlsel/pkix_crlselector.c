@@ -690,6 +690,7 @@ PKIX_CRLSelector_GetCRLSelectorContext(
 
         *pCrlSelectorContext = selector->context;
 
+cleanup:
         PKIX_RETURN(CRLSELECTOR);
 }
 
@@ -710,6 +711,7 @@ PKIX_CRLSelector_GetCommonCRLSelectorParams(
 
         *pParams = selector->params;
 
+cleanup:
         PKIX_RETURN(CRLSELECTOR);
 }
 

@@ -417,6 +417,7 @@ PKIX_ValidateResult_GetPublicKey(
         PKIX_INCREF(result->pubKey);
         *pPublicKey = result->pubKey;
 
+cleanup:
         PKIX_RETURN(VALIDATERESULT);
 }
 
@@ -436,6 +437,7 @@ PKIX_ValidateResult_GetTrustAnchor(
         PKIX_INCREF(result->anchor);
         *pTrustAnchor = result->anchor;
 
+cleanup:
         PKIX_RETURN(VALIDATERESULT);
 }
 
@@ -455,5 +457,6 @@ PKIX_ValidateResult_GetPolicyTree(
         PKIX_INCREF(result->policyTree);
         (*pPolicyTree) = result->policyTree;
 
+cleanup:
         PKIX_RETURN(VALIDATERESULT);
 }

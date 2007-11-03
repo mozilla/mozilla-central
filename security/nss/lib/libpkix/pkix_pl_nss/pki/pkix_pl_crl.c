@@ -249,7 +249,6 @@ pkix_pl_CRL_GetSignatureAlgId(
         }
 
         PKIX_INCREF(crl->signatureAlgId);
-
         *pSignatureAlgId = crl->signatureAlgId;
 
 cleanup:

@@ -516,6 +516,7 @@ PKIX_ComCRLSelParams_GetIssuerNames(
 
         *pIssuerNames = params->issuerNames;
 
+cleanup:
         PKIX_RETURN(COMCRLSELPARAMS);
 }
 
@@ -603,6 +604,7 @@ PKIX_ComCRLSelParams_GetCertificateChecking(
 
         *pCert = params->cert;
 
+cleanup:
         PKIX_RETURN(COMCRLSELPARAMS);
 }
 
@@ -653,6 +655,7 @@ PKIX_ComCRLSelParams_GetDateAndTime(
 
         *pDate = params->date;
 
+cleanup:
         PKIX_RETURN(COMCRLSELPARAMS);
 }
 
@@ -744,6 +747,7 @@ PKIX_ComCRLSelParams_GetMaxCRLNumber(
 
         *pMaxCRLNumber = params->maxCRLNumber;
 
+cleanup:
         PKIX_RETURN(COMCRLSELPARAMS);
 }
 
@@ -795,6 +799,7 @@ PKIX_ComCRLSelParams_GetMinCRLNumber(
 
         *pMinCRLNumber = params->minCRLNumber;
 
+cleanup:
         PKIX_RETURN(COMCRLSELPARAMS);
 }
 

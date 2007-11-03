@@ -293,6 +293,7 @@ PKIX_CertChainChecker_GetCertChainCheckerState(
 
         *pCertChainCheckerState = checker->state;
 
+cleanup:
         PKIX_RETURN(CERTCHAINCHECKER);
 
 }
@@ -346,6 +347,7 @@ PKIX_CertChainChecker_GetSupportedExtensions(
 
         *pExtensions = checker->extensions;
 
+cleanup:
         PKIX_RETURN(CERTCHAINCHECKER);
 
 }

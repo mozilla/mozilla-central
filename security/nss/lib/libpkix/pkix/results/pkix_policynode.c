@@ -92,6 +92,7 @@ pkix_PolicyNode_GetChildrenMutable(
 
         *pChildren = node->children;
 
+cleanup:
         PKIX_RETURN(CERTPOLICYNODE);
 }
 
@@ -1286,6 +1287,7 @@ PKIX_PolicyNode_GetParent(
         PKIX_INCREF(node->parent);
         *pParent = node->parent;
 
+cleanup:
         PKIX_RETURN(CERTPOLICYNODE);
 }
 
@@ -1307,6 +1309,7 @@ PKIX_PolicyNode_GetValidPolicy(
         PKIX_INCREF(node->validPolicy);
         *pValidPolicy = node->validPolicy;
 
+cleanup:
         PKIX_RETURN(CERTPOLICYNODE);
 }
 
@@ -1362,6 +1365,7 @@ PKIX_PolicyNode_GetExpectedPolicies(
         PKIX_INCREF(node->expectedPolicySet);
         *pExpPolicies = node->expectedPolicySet;
 
+cleanup:
         PKIX_RETURN(CERTPOLICYNODE);
 }
 

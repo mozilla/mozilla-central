@@ -309,5 +309,6 @@ PKIX_BuildParams_GetProcessingParams(
 
         *pProcParams = buildParams->procParams;
 
+cleanup:
         PKIX_RETURN(BUILDPARAMS);
 }

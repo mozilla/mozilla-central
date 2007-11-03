@@ -460,6 +460,7 @@ PKIX_Error_Create(
 
         *pError = error;
 
+cleanup:
         PKIX_RETURN(ERROR);
 }
 
@@ -515,6 +516,7 @@ PKIX_Error_GetCause(
 
         *pCause = error->cause;
 
+cleanup:
         PKIX_RETURN(ERROR);
 }
 
@@ -534,6 +536,7 @@ PKIX_Error_GetSupplementaryInfo(
 
         *pInfo = error->info;
 
+cleanup:
         PKIX_RETURN(ERROR);
 }
 

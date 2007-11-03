@@ -390,6 +390,7 @@ PKIX_PL_CertPolicyMap_GetIssuerDomainPolicy(
         PKIX_INCREF(policyMapping->issuerDomainPolicy);
         *pIssuerDomainPolicy = policyMapping->issuerDomainPolicy;
 
+cleanup:
         PKIX_RETURN(CERTPOLICYMAP);
 }
 
@@ -411,5 +412,6 @@ PKIX_PL_CertPolicyMap_GetSubjectDomainPolicy(
         PKIX_INCREF(policyMapping->subjectDomainPolicy);
         *pSubjectDomainPolicy = policyMapping->subjectDomainPolicy;
 
+cleanup:
         PKIX_RETURN(CERTPOLICYMAP);
 }

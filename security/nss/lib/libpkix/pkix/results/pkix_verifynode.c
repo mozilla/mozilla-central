@@ -1134,5 +1134,6 @@ pkix_VerifyNode_SetError(
         PKIX_INCREF(error);
         node->error = error;
 
+cleanup:
         PKIX_RETURN(VERIFYNODE);
 }

@@ -614,6 +614,7 @@ PKIX_ProcessingParams_GetTrustAnchors(
 
         *pAnchors = params->trustAnchors;
 
+cleanup:
         PKIX_RETURN(PROCESSINGPARAMS);
 }
 
@@ -632,6 +633,7 @@ PKIX_ProcessingParams_GetDate(
         PKIX_INCREF(params->date);
         *pDate = params->date;
 
+cleanup:
         PKIX_RETURN(PROCESSINGPARAMS);
 }
 
@@ -683,6 +685,7 @@ PKIX_ProcessingParams_GetTargetCertConstraints(
         PKIX_INCREF(params->constraints);
         *pConstraints = params->constraints;
 
+cleanup:
         PKIX_RETURN(PROCESSINGPARAMS);
 }
 
@@ -849,6 +852,7 @@ PKIX_ProcessingParams_GetCertChainCheckers(
 
         *pCheckers = params->certChainCheckers;
 
+cleanup:
         PKIX_RETURN(PROCESSINGPARAMS);
 }
 
@@ -1313,6 +1317,7 @@ PKIX_ProcessingParams_SetResourceLimits(
         PKIX_INCREF(resourceLimits);
         params->resourceLimits = resourceLimits;
 
+cleanup:
         PKIX_RETURN(PROCESSINGPARAMS);
 }
 
@@ -1333,6 +1338,7 @@ PKIX_ProcessingParams_GetResourceLimits(
         PKIX_INCREF(params->resourceLimits);
         *pResourceLimits = params->resourceLimits;
 
+cleanup:
         PKIX_RETURN(PROCESSINGPARAMS);
 }
 
@@ -1492,6 +1498,7 @@ PKIX_ProcessingParams_SetHintCerts(
         PKIX_INCREF(hintCerts);
         params->hintCerts = hintCerts;
 
+cleanup:
         PKIX_RETURN(PROCESSINGPARAMS);
 }
 
@@ -1512,5 +1519,6 @@ PKIX_ProcessingParams_GetHintCerts(
         PKIX_INCREF(params->hintCerts);
         *pHintCerts = params->hintCerts;
 
+cleanup:
         PKIX_RETURN(PROCESSINGPARAMS);
 }

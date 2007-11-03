@@ -365,6 +365,7 @@ PKIX_BuildResult_GetValidateResult(
         PKIX_INCREF(result->valResult);
         *pResult = result->valResult;
 
+cleanup:
         PKIX_RETURN(BUILDRESULT);
 }
 
@@ -386,5 +387,6 @@ PKIX_BuildResult_GetCertChain(
         PKIX_INCREF(result->certChain);
         *pChain = result->certChain;
 
+cleanup:
         PKIX_RETURN(BUILDRESULT);
 }

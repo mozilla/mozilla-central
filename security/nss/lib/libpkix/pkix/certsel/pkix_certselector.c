@@ -1633,6 +1633,7 @@ PKIX_CertSelector_GetCertSelectorContext(
 
         *pCertSelectorContext = selector->context;
 
+cleanup:
         PKIX_RETURN(CERTSELECTOR);
 }
 
@@ -1654,6 +1655,7 @@ PKIX_CertSelector_GetCommonCertSelectorParams(
         PKIX_INCREF(selector->params);
         *pParams = selector->params;
 
+cleanup:
         PKIX_RETURN(CERTSELECTOR);
 
 }

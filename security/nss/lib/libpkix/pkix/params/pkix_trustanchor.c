@@ -467,6 +467,7 @@ PKIX_TrustAnchor_GetTrustedCert(
 
         *pCert = anchor->trustedCert;
 
+cleanup:
         PKIX_RETURN(TRUSTANCHOR);
 
 }
@@ -487,6 +488,7 @@ PKIX_TrustAnchor_GetCAName(
 
         *pCAName = anchor->caName;
 
+cleanup:
         PKIX_RETURN(TRUSTANCHOR);
 
 }
@@ -507,6 +509,7 @@ PKIX_TrustAnchor_GetCAPublicKey(
 
         *pPubKey = anchor->caPubKey;
 
+cleanup:
         PKIX_RETURN(TRUSTANCHOR);
 }
 
@@ -527,5 +530,6 @@ PKIX_TrustAnchor_GetNameConstraints(
 
         *pNameConstraints = anchor->nameConstraints;
 
+cleanup:
         PKIX_RETURN(TRUSTANCHOR);
 }

@@ -663,6 +663,7 @@ PKIX_Logger_GetLoggerContext(
         PKIX_INCREF(logger->context);
         *pLoggerContext = logger->context;
 
+cleanup:
         PKIX_RETURN(LOGGER);
 }
 

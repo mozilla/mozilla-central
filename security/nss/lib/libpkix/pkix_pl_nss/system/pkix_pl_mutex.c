@@ -191,5 +191,6 @@ PKIX_PL_Mutex_Unlock(
                 PKIX_ERROR_FATAL(PKIX_ERRORUNLOCKINGMUTEX);
         }
 
+cleanup:
         PKIX_RETURN(MUTEX);
 }

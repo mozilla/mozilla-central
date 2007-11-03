@@ -368,6 +368,8 @@ PKIX_PL_PolicyQualifier_GetPolicyQualifierId(
         PKIX_INCREF(policyQualifierInfo->policyQualifierId);
 
         *pPolicyQualifierId = policyQualifierInfo->policyQualifierId;
+
+cleanup:
         PKIX_RETURN(CERTPOLICYQUALIFIER);
 }
 
@@ -389,5 +391,6 @@ PKIX_PL_PolicyQualifier_GetQualifier(
 
         *pQualifier = policyQualifierInfo->qualifier;
 
+cleanup:
         PKIX_RETURN(CERTPOLICYQUALIFIER);
 }

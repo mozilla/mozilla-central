@@ -232,6 +232,7 @@ PKIX_RevocationChecker_GetRevCheckerContext(
 
         *pRevCheckerContext = checker->revCheckerContext;
 
+cleanup:
         PKIX_RETURN(REVOCATIONCHECKER);
 
 }
