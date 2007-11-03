@@ -679,7 +679,7 @@
         <spacer flex="1"/>
         <toolbarbutton class="ab-closebutton" oncommand="toggleAddressPicker();"/>      
       </sidebarheader>  
-      <browser id="sidebar" flex="1" src=""
+      <browser id="sidebar" flex="1" src="" disablehistory="true"
                style="min-width: 150px; width: 200px; max-width: 400px;"/>         
     </vbox> 
 
