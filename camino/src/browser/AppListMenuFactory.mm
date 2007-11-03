@@ -321,7 +321,7 @@ static AppListMenuFactory* sAppListMenuFactoryInstance = nil;
   BOOL succeeded = NO;
   
   // if the user selected something other than the default application
-  if (defaultAppID && ![inBundleID isEqualToString:defaultAppID]) {
+  if (!(defaultAppID && [inBundleID isEqualToString:defaultAppID])) {
     NSURL* appURL = [[NSWorkspace sharedWorkspace] urlOfApplicationWithIdentifier:inBundleID];
     if (appURL) {
       [[NSWorkspace sharedWorkspace] setDefaultFeedViewerWithIdentifier:inBundleID];
@@ -351,7 +351,7 @@ static AppListMenuFactory* sAppListMenuFactoryInstance = nil;
   BOOL succeeded = NO;
   
   // only set a new item if the user selected something other than the default application
-  if (defaultBrowserID && ![inBundleID isEqualToString:defaultBrowserID]) {
+  if (!(defaultBrowserID && [inBundleID isEqualToString:defaultBrowserID])) {
     NSURL* appURL = [[NSWorkspace sharedWorkspace] urlOfApplicationWithIdentifier:inBundleID];
     if (appURL) {
       [[NSWorkspace sharedWorkspace] setDefaultBrowserWithIdentifier:inBundleID];
