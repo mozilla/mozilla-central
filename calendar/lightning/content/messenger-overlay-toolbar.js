@@ -105,6 +105,10 @@ function ltnSwitch2Mail() {
         var contentDeck = document.getElementById("contentPanel");
         contentDeck.selectedPanel = document.getElementById("folderPaneBox");
 
+        // display the mail panel on the display deck
+        var viewBox = document.getElementById("calendar-view-box");
+        collapseElement(viewBox);
+
         // tell thunderbird that it needs to refresh the mail list.
         // basically, we fake a selection change by directly calling
         // the appropriate handler while clearing out some internal
@@ -116,6 +120,10 @@ function ltnSwitch2Mail() {
 
         document.commandDispatcher.updateCommands('mail-toolbar');
         document.commandDispatcher.updateCommands('calendar_commands');
+
+        // Disable the rotate view menuitem
+        document.getElementById("calendar_toggle_orientation_command")
+                .setAttribute("disabled", "true");
     }
 }
 
@@ -143,8 +151,10 @@ function ltnSwitch2Calendar() {
     contentDeck.selectedPanel = document.getElementById("ltnSidebar");
 
     // display the calendar panel on the display deck
+    var viewBox = document.getElementById("calendar-view-box");
+    uncollapseElement(viewBox);
     var deck = document.getElementById("displayDeck");
-    deck.selectedPanel = document.getElementById("calendar-view-box");
+    deck.selectedPanel = viewBox;
 
     // show the last displayed type of calendar view
     showCalendarView(gLastShownCalendarView);

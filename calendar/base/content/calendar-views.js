@@ -256,6 +256,18 @@ function showCalendarView(type) {
 }
 
 /**
+ * This function acts like the above, but does not bring the view to the front
+ * if the application is showing other elements (i.e Lightning).
+ */
+function selectCalendarView(type) {
+    if (isSunbird()) {
+        gCalendarWindow.switchToView(type);
+    } else {
+        ltnSelectCalendarView(type);
+    }
+}
+
+/**
  * This function does the common steps to switch between views. Should be called
  * from app-specific view switching functions
  */
@@ -588,11 +600,11 @@ function initializeViews() {
     var deck = getViewDeck();
     if (deck.selectedIndex < 0) {
         // No deck item was selected beforehand, default to week view.
-        showCalendarView("week");
+        selectCalendarView("week");
     } else {
         var viewNode = deck.childNodes[deck.selectedIndex];
         var viewName = viewNode.id.replace(/-view/, "");
-        showCalendarView(viewName);
+        selectCalendarView(viewName);
     }
 }
 

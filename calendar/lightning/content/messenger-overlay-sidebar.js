@@ -345,7 +345,8 @@ function ltnOnLoad(event)
     document.getElementById("ltnModeBox").addEventListener("DOMAttrModified",
                                                            modeBoxAttrModified,
                                                            true);
-    // Initialize Views
+
+    // Set up the views
     initializeViews();
 
     // Initialize Minimonth
@@ -408,9 +409,6 @@ function ltnOnLoad(event)
     injectCommandController();
 
     getViewDeck().addEventListener("itemselect", onSelectionChanged, true);
-
-    // Set up the views
-    initializeViews();
 }
 
 function onSelectionChanged(aEvent) {
@@ -446,6 +444,27 @@ function refreshUIBits() {
     scheduleMidnightUpdate(refreshUIBits);
 }
 
+/**
+ * Select the calendar view in the background, not switching to calendar mode if
+ * in mail mode.
+ */
+function ltnSelectCalendarView(type) {
+    gLastShownCalendarView = type;
+
+    // Sunbird/Lightning Common view switching code
+    switchToView(type);
+
+    // Set the labels for the context-menu
+    var nextCommand = document.getElementById("context_next");
+    nextCommand.setAttribute("label", nextCommand.getAttribute("label-"+type));
+    var previousCommand = document.getElementById("context_previous")
+    previousCommand.setAttribute("label", previousCommand.getAttribute("label-"+type));
+
+}
+
+/**
+ * Show the calendar view, also switching to calendar mode if in mail mode
+ */
 function ltnShowCalendarView(type)
 {
     gLastShownCalendarView = type;
@@ -456,20 +475,7 @@ function ltnShowCalendarView(type)
         return;
     }
 
-    // If we got this call while a mail-view is being shown, we need to
-    // hide all of the mail stuff so we have room to display the calendar
-    var calendarViewBox = document.getElementById("calendar-view-box");
-    if (calendarViewBox.style.visibility == "collapse") {
-        uncollapseElement(calendarViewBox);
-    }
-    document.getElementById("displayDeck").selectedPanel =  calendarViewBox;
-    switchToView(type);
-
-    // Set the labels for the context-menu
-    var nextCommand = document.getElementById("context_next");
-    nextCommand.setAttribute("label", nextCommand.getAttribute("label-"+type));
-    var previousCommand = document.getElementById("context_previous")
-    previousCommand.setAttribute("label", previousCommand.getAttribute("label-"+type));
+    ltnSelectCalendarView(type);
 }
 
 function toggleTodayPaneinMailMode()
@@ -502,8 +508,20 @@ function selectedCalendarPane(event)
     ltnShowCalendarView('week');
 }
 
-function LtnObserveDisplayDeckChange(event)
-{
+/**
+ * This function has the sole responsibility to switch back to
+ * mail mode (by calling ltnSwitch2Mail()) if we are getting
+ * notifications from other panels (besides the calendar views)
+ * but find out that we're not in mail mode. This situation can
+ * for example happen if we're in calendar mode but the 'new mail'
+ * slider gets clicked and wants to display the appropriate mail.
+ * All necessary logic for switching between the different modes
+ * should live inside of the corresponding functions:
+ * - ltnSwitch2Mail()
+ * - ltnSwitch2Calendar()
+ * - ltnSwitch2Task()
+ */
+function LtnObserveDisplayDeckChange(event) {
     var deck = event.target;
 
     // Bug 309505: The 'select' event also fires when we change the selected
@@ -515,23 +533,10 @@ function LtnObserveDisplayDeckChange(event)
     var id = null;
     try { id = deck.selectedPanel.id } catch (e) { }
 
-    // Now we're switching back to the mail view, so put everything back that
-    // we collapsed in ltnShowCalendarView()
-    if (id != "calendar-view-box") {
-        if (gCurrentMode != 'mail') {
-            ltnSwitch2Mail();
-        }
-        collapseElement(document.getElementById("calendar-view-box"));
-        uncollapseElement(GetMessagePane());
-        uncollapseElement(document.getElementById("threadpane-splitter"));
-        var searchBox = findMailSearchBox();
-        if (searchBox) {
-            uncollapseElement(searchBox);
-        }
-
-        // Disable the rotate view menuitem
-        document.getElementById("calendar_toggle_orientation_command")
-                .setAttribute("disabled", "true");
+    // Switch back to mail mode in case we find that this
+    // notification has been fired but we're still in calendar mode.
+    if (id != "calendar-view-box" && gCurrentMode != 'mail') {
+        ltnSwitch2Mail();
     }
 }
 
