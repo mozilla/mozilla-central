@@ -103,3 +103,13 @@ body[dir="rtl"] #brand {
 #errorContainer {
   display: none;
 }
+
+#securityOverrideDiv {
+  padding-top: 1em;
+}
+
+#securityOverrideContent {
+  background-color: #E8DB99;
+  padding: 10px;
+  -moz-border-radius: 10px;
+}
