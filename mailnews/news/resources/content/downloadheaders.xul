@@ -42,6 +42,7 @@
 <!DOCTYPE dialog SYSTEM "chrome://messenger/locale/downloadheaders.dtd">
 
 <dialog xmlns="http://www.mozilla.org/keymaster/gatekeeper/there.is.only.xul"
+        xmlns:aaa="http://www.w3.org/2005/07/aaa"
         style="max-width: 27em;"
         buttonpack="center"
         ondialogaccept="return OkButtonCallback();"
@@ -51,8 +52,8 @@
   <stringbundle id="bundle_news" src="chrome://messenger/locale/news.properties"/>
   <script type="application/x-javascript" src="chrome://messenger/content/downloadheaders.js" />
 
-  <description class="header" style="width: 25em; max-width: 25em;" id="newsgroupLabel"/> 
-  <description style="width: 25em; max-width: 25em;" id="info"/>
+  <label class="header" style="width: 25em; max-width: 25em;" id="newsgroupLabel" control="downloadGroup"/> 
+  <description style="width: 25em; max-width: 25em;" id="info" control="downloadGroup"/>
   <separator class="thin"/>
   <vbox class="indent">
     <radiogroup id="downloadGroup">
@@ -62,10 +63,11 @@
       <hbox align="center" valign="middle">
         <radio id="some" selected="true" label="&download.label;"
                accesskey="&download.accesskey;"
-               oncommand="setupDownloadUI(true);"/>
-        <textbox id="number" size="7"/>
+               oncommand="setupDownloadUI(true);"
+               aaa:labelledby="some number headers"/>
+        <textbox id="number" size="7" aaa:labelledby="some number headers"/>
         <label value="&headers.label;" accesskey="&headers.accesskey;"
-               control="number"/>
+               id="headers" control="number"/>
       </hbox>
     </radiogroup>
 
