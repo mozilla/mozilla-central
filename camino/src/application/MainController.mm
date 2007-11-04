@@ -636,13 +636,6 @@ NSString* const kPreviousSessionTerminatedNormallyKey = @"PreviousSessionTermina
   return nil;
 }
 
-- (BOOL)isMainWindowABrowserWindow
-{
-  // see also frontmostBrowserWindow. That will always return a browser
-  // window if one exists. This will only return one if it is frontmost.
-  return [[[mApplication mainWindow] windowController] isMemberOfClass:[BrowserWindowController class]];
-}
-
 #pragma mark -
 #pragma mark Page Loading
 
@@ -1667,9 +1660,18 @@ NSString* const kPreviousSessionTerminatedNormallyKey = @"PreviousSessionTermina
   }
 
   // only enable newTab if there is a browser window frontmost, or if there is no window
-  // (i.e., disable it for non-browser windows).
+  // (i.e., disable it for non-browser windows and popups).
   if (action == @selector(newTab:))
-    return (browserController || ![NSApp mainWindow]);
+    return (((browserController && ([NSApp mainWindow] == [self frontmostBrowserWindow]))) ||
+            ![NSApp mainWindow]);
+
+  // disable openFile if the frontmost window is a popup or view-source window
+  if (action == @selector(openFile:)) {
+    if (browserController)
+      return ([NSApp mainWindow] == [self frontmostBrowserWindow]);
+    else
+      return YES;
+  }
 
   // disable non-BWC items that aren't relevant if there's no main browser window open
   // or the bookmark/history manager is open
