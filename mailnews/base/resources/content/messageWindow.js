@@ -1,4 +1,4 @@
-/* -*- Mode: C++; tab-width: 4; indent-tabs-mode: nil; c-basic-offset: 4 -*-
+/* -*- Mode: C++; tab-width: 2; indent-tabs-mode: nil; c-basic-offset: 2 -*-
  * ***** BEGIN LICENSE BLOCK *****
  * Version: MPL 1.1/GPL 2.0/LGPL 2.1
  *
@@ -851,9 +851,9 @@ var MessageWindowController =
       case "button_junk":
         MsgJunk();
         break;
-		  case "cmd_printSetup":
-		    NSPrintSetup();
-		    break;
+      case "cmd_printSetup":
+        PrintUtils.showPageSetup();
+        break;
 			case "cmd_print":
 				PrintEnginePrint();
 				break;
