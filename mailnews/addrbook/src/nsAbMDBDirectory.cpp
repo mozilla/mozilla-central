@@ -223,16 +223,11 @@ nsresult nsAbMDBDirectory::RemoveCardFromAddressList(nsIAbCard* card)
 
 NS_IMETHODIMP nsAbMDBDirectory::DeleteDirectory(nsIAbDirectory *directory)
 {
-  nsresult rv = NS_OK;
-  
   if (!directory)
     return NS_ERROR_FAILURE;
 
-  nsCOMPtr<nsIAbMDBDirectory> dbdirectory(do_QueryInterface(directory, &rv));
-  NS_ENSURE_SUCCESS(rv, rv);
-
   nsCOMPtr<nsIAddrDatabase> database;
-  rv = dbdirectory->GetDatabase(getter_AddRefs(database));
+  nsresult rv = GetDatabase(getter_AddRefs(database));
   NS_ENSURE_SUCCESS(rv, rv);
 
   rv = database->DeleteMailList(directory, PR_TRUE);
@@ -665,17 +660,17 @@ NS_IMETHODIMP nsAbMDBDirectory::HasDirectory(nsIAbDirectory *dir, PRBool *hasDir
   if (!hasDir)
     return NS_ERROR_NULL_POINTER;
 
-  nsresult rv = NS_ERROR_FAILURE;
+  nsresult rv;
 
   nsCOMPtr<nsIAbMDBDirectory> dbdir(do_QueryInterface(dir, &rv));
-    NS_ENSURE_SUCCESS(rv, rv);
+  NS_ENSURE_SUCCESS(rv, rv);
   
   PRBool bIsMailingList  = PR_FALSE;
   dir->GetIsMailList(&bIsMailingList);
   if (bIsMailingList)
   {
     nsCOMPtr<nsIAddrDatabase> database;
-    rv = dbdir->GetDatabase(getter_AddRefs(database));
+    rv = GetDatabase(getter_AddRefs(database));
 
     if (NS_SUCCEEDED(rv))
       rv = database->ContainsMailList(dir, hasDir);
