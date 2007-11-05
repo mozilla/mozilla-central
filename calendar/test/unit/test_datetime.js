@@ -83,4 +83,23 @@ function run_test() {
     event.icalString = "BEGIN:VEVENT\nUID:45674d53-229f-48c6-9f3b-f2b601e7ae4d\nSUMMARY:New Event\nDTSTART;VALUE=DATE:20071003\nDTEND;VALUE=DATE:20071004\nEND:VEVENT";
     do_check_eq(event.startDate.timezone, "floating");
     do_check_eq(event.endDate.timezone, "floating");
+
+    // Bug 392853 - Same times, different timezones, but subtractDate says times are PT0S apart
+    const zeroLength = Cc["@mozilla.org/calendar/duration;1"].createInstance(Ci.calIDuration);
+    const a = Cc["@mozilla.org/calendar/datetime;1"].createInstance(Ci.calIDateTime);
+    a.jsDate = new Date();
+    a.timezone = "/mozilla.org/20070129_1/Europe/Berlin";
+
+    var b = a.clone();
+    b.timezone = "/mozilla.org/20070129_1/America/New_York";
+
+    var duration = a.subtractDate(b);
+    do_check_neq(duration.compare(zeroLength), 0);
+    do_check_neq(a.compare(b), 0);
+
+    // Should lead to zero length duration
+    b = a.getInTimezone("/mozilla.org/20070129_1/America/New_York");
+    duration = a.subtractDate(b);
+    do_check_eq(duration.compare(zeroLength), 0);
+    do_check_eq(a.compare(b), 0);
 }
