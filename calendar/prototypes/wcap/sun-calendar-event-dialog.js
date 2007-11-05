@@ -1582,8 +1582,7 @@ function updateRepeat() {
                 recurrenceInfo.deleteRecurrenceItem(rrules[0][0]);
             }
         } else {
-            recurrenceInfo = createRecurrenceInfo();
-            recurrenceInfo.item = item;
+            recurrenceInfo = createRecurrenceInfo(item);
         }
 
         switch (repeatValue) {

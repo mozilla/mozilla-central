@@ -59,9 +59,11 @@ function createDateTime() {
 }
 
 /* Returns a clean new calIRecurrenceInfo */
-function createRecurrenceInfo() {
-    return Components.classes["@mozilla.org/calendar/recurrence-info;1"].
+function createRecurrenceInfo(aItem) {
+    var recInfo = Components.classes["@mozilla.org/calendar/recurrence-info;1"].
            createInstance(Components.interfaces.calIRecurrenceInfo);
+    recInfo.item = aItem;
+    return recInfo;
 }
 
 /* Returns a clean new calIRecurrenceRule */
