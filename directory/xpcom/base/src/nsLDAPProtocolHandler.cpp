@@ -118,6 +118,7 @@ NS_IMETHODIMP
 nsLDAPProtocolHandler::NewChannel(nsIURI* uri, 
                                   nsIChannel* *result)
 {
+#ifdef MOZ_LDAP_XPCOM_EXPERIMENTAL
     NS_ENSURE_ARG_POINTER(uri);
     nsresult rv;
     nsLDAPChannel *channel;
@@ -137,6 +138,9 @@ nsLDAPProtocolHandler::NewChannel(nsIURI* uri,
     *result = channel;
 
     return NS_OK;
+#else
+    return NS_ERROR_NOT_IMPLEMENTED;
+#endif
 }
 
 NS_IMETHODIMP 

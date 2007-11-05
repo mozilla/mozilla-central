@@ -71,13 +71,13 @@ CPPSRCS		= \
 		nsLDAPControl.cpp \
 		nsLDAPBERElement.cpp \
 		nsLDAPModification.cpp \
+		nsLDAPProtocolHandler.cpp \
 		$(NULL)
 
 ifdef MOZ_LDAP_XPCOM_EXPERIMENTAL
 DEFINES		+= -DMOZ_LDAP_XPCOM_EXPERIMENTAL
 
 CPPSRCS		+= \
-		nsLDAPProtocolHandler.cpp \
 		nsLDAPChannel.cpp \
 		$(NULL)
 

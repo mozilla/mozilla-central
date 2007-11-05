@@ -273,8 +273,14 @@ nsLDAPURL::SetPassword(const nsACString &aPassword)
 NS_IMETHODIMP 
 nsLDAPURL::GetHostPort(nsACString &_retval)
 {
-    _retval.Truncate();
-    return NS_OK;
+  nsCString result(mHost);
+  result.AppendLiteral(":");
+  if (mPort)
+    result.AppendInt(mPort);
+
+  _retval.Assign(result);
+
+  return NS_OK;
 }
 NS_IMETHODIMP 
 nsLDAPURL::SetHostPort(const nsACString &aHostPort)
