@@ -42,7 +42,7 @@ sub IsChecked {
     }
 }
 
-print "Content-type: text/html
+print "Content-type: text/html; charset=UTF-8
 
 <HTML>
 <TITLE>Let's do the time warp again...</TITLE>

@@ -38,7 +38,7 @@ require 'CGI.pl';
 my $form_id = &ExpectCheckinId($::FORM{'id'});
 my $info = eval("\\%" . $form_id);
 
-print "Content-type: text/html
+print "Content-type: text/html; charset=UTF-8
 
 <HTML>
 <TITLE>Say the magic word.</TITLE>

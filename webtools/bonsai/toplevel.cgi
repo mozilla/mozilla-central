@@ -33,7 +33,7 @@ sub StupidFuncToShutUpWarningsByUsingVarsAgain {
     $z = $::TreeList;
 }
 
-print "Content-type: text/html\nRefresh: 300\n\n";
+print "Content-Type: text/html; charset=UTF-8\nRefresh: 300\n\n";
 
 PutsHeader("Bonsai -- the art of effectively controlling trees",
            "Bonsai", "CVS Tree Control");

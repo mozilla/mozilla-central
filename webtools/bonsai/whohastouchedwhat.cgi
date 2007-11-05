@@ -30,7 +30,7 @@ my $db = ConnectToDatabase();
 $| = 1;
 
 if (!defined $form{'repositoryid'}) {
-    print "Content-type: text/html
+    print "Content-type: text/html; charset=UTF-8
 
 This will create a cryptic report of all the people who have ever
 touched each file within a directory heirarchy.

@@ -26,7 +26,7 @@ use strict;
 require 'CGI.pl';
 require 'adminfuncs.pl';
 
-print "Content-type: text/html\n\n";
+print "Content-Type: text/html; charset=UTF-8\n\n";
 
 &validateReferer('admin.cgi');
 CheckPassword(FormData('password'));

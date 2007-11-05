@@ -24,7 +24,7 @@ use strict;
 
 require 'CGI.pl';
 
-print "Content-type: text/html
+print "Content-type: text/html; charset=UTF-8
 
 <HTML>";
 

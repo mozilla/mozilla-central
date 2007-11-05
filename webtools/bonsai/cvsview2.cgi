@@ -56,12 +56,12 @@ sub sillyness {
 }
 
 my $request = new CGI;
+$request->charset('UTF-8');
 
 sub http_die {
     my ($str) = (@_);
     print $request->header();
     print "\n";
-    print "Content-type: text/html\n\n";
     die "$str\n";
 }
 

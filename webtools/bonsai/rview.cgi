@@ -70,7 +70,7 @@ die "Invalid directory: " . &shell_escape($dir) . ".\n" if (! -d $path);
 
 my $rev = &SanitizeRevision($::FORM{"rev"});
 
-print "Content-type: text/html\n\n";
+print "Content-Type: text/html; charset=UTF-8\n\n";
 
 
 my $registryurl = Param('registryurl');

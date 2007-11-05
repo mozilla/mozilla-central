@@ -387,7 +387,7 @@ sub FormData {
 sub CheckEmailSyntax {
     my ($addr) = (@_);
     if ($addr !~ /^[^@, ]*@[^@, ]*\.[^@, ]*$/) {
-        print "Content-type: text/html\n\n";
+        print "Content-Type: text/html; charset=UTF-8\n\n";
 
         print "<H1>Invalid e-mail address entered.</H1>\n";
         print "The e-mail address you entered\n";
@@ -409,7 +409,7 @@ sub CheckEmailSyntax {
 $| = 1;
 
 # Uncommenting this next line can help debugging.
-# print "Content-type: text/html\n\nHello mom\n";
+# print "Content-Type: text/html; charset=UTF-8\n\nHello mom\n";
 
 # foreach my $k (sort(keys %ENV)) {
 #     print "$k $ENV{$k}<br>\n";

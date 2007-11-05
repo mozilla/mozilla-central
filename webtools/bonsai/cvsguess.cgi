@@ -30,7 +30,7 @@ my $ln = (($mark =~ m/^\d+$/ && $mark > 10) ? $mark-10 : 1 );
 my $rev = &SanitizeRevision($::FORM{'rev'});
 my $debug = $::FORM{'debug'};
 
-print "Content-Type: text/html\n\n";
+print "Content-Type: text/html; charset=UTF-8\n\n";
 
 my $CVS_ROOT = $::FORM{'root'};
 if( !defined($CVS_ROOT) || $CVS_ROOT eq '' ){ 

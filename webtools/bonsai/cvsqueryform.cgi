@@ -29,7 +29,7 @@ require 'CGI.pl';
 
 $|=1;
 
-print "Content-type: text/html\n\n";
+print "Content-Type: text/html; charset=UTF-8\n\n";
 
 &LoadTreeConfig();
 $::CVS_ROOT = $::FORM{'cvsroot'};

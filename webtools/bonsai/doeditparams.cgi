@@ -31,7 +31,7 @@ use vars %::param,
     @::param_list;
 
 
-print "Content-type: text/html\n\n";
+print "Content-Type: text/html; charset=UTF-8\n\n";
 
 &validateReferer('editparams.cgi');
 CheckPassword(FormData('password'));

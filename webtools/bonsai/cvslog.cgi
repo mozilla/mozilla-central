@@ -64,7 +64,7 @@ my $filename = '';
 $filename = $::FORM{'file'} if defined($::FORM{'file'});
 if ($filename eq '') 
 {
-    print "Content-Type:text/html\n\n";
+    print "Content-Type: text/html; charset=UTF-8\n\n";
     &print_usage;
     PutsTrailer();
     exit;
@@ -94,7 +94,7 @@ if (defined $root && $root ne '') {
     if (-d $root) {
         unshift(@src_roots, $root);
     } else {
-        print "Content-Type:text/html\n\n";
+        print "Content-Type: text/html; charset=UTF-8\n\n";
         &print_top;
         print "Error:  Root, $root, is not a directory.<BR><BR>\n";
         PutsTrailer();
@@ -119,7 +119,7 @@ foreach (@src_roots) {
 
 # File not found
 unless ($found_rcs_file) {
-    print "Content-Type:text/html\n\n";
+    print "Content-Type: text/html; charset=UTF-8\n\n";
     &print_top;
     my $escaped_filename = html_quote($filename);
     print "Rcs file, $escaped_filename, does not exist.<BR><BR>\n";
@@ -181,7 +181,7 @@ if ($ctype eq "rss") {
     display_rss();
 }
 else {
-    print "Content-Type: text/html\n\n";
+    print "Content-Type: text/html; charset=UTF-8\n\n";
     display_html();
 }
 
@@ -387,7 +387,7 @@ sub display_rss {
     $link = value_quote($link);
 
     print <<"END";
-<?xml version="1.0" encoding="utf-8"?>
+<?xml version="1.0" encoding="UTF-8"?>
 <rdf:RDF
   xmlns="http://purl.org/rss/1.0/"
   xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#" 

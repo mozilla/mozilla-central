@@ -25,7 +25,7 @@ use strict;
 require 'CGI.pl';
 use vars qw(@TreeList);
 
-print "Content-type: text/html\n\n";
+print "Content-Type: text/html; charset=UTF-8\n\n";
 
 Lock();
 LoadCheckins();

@@ -33,7 +33,7 @@ sub print_top {
     my ($title) = @_;
     $title ||= "Error";
 
-    print "Content-type: text/html\n\n";
+    print "Content-Type: text/html; charset=UTF-8\n\n";
     print "<!DOCTYPE HTML PUBLIC \"-//W3C//DTD HTML 4.01 Transitional//EN\">\n";
     print "<html>\n<head>\n";
     print " <title>$title</title>\n";

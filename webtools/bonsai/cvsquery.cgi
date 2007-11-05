@@ -97,7 +97,7 @@ if ($::FORM{'graph'}) {
 }
 
 if (!$show_xml && !$generateBackoutCVSCommands) {
-    print "Content-type: text/html\n\n";
+    print "Content-type: text/html; charset=UTF-8\n\n";
     if (!$show_graph) {
         print setup_script();
     }

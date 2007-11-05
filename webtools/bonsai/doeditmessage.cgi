@@ -33,7 +33,7 @@ sub sillyness {
 
 require 'CGI.pl';
 
-print "Content-type: text/html\n\n";
+print "Content-Type: text/html; charset=UTF-8\n\n";
 
 &validateReferer('editmessage.cgi');
 CheckPassword(FormData('password'));

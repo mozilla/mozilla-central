@@ -30,7 +30,7 @@ require "defparams.pl";
 use vars @::param_desc,
     @::param_list;
 
-print "Content-type: text/html\n\n";
+print "Content-Type: text/html; charset=UTF-8\n\n";
 
 #    
 # Check to ensure they've logged in properly

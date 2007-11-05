@@ -39,7 +39,7 @@ Unlock();
 my $BIP = BatchIdPart('?');
 my $BIP_nohook = BatchIdPart();
 
-print "Content-type: text/html\n\n";
+print "Content-Type: text/html; charset=UTF-8\n\n";
 PutsHeader("Bonsai Administration  [`$::TreeID' Tree]",
            "Bonsai Administration",
            "Administrating `$::TreeID' Tree");

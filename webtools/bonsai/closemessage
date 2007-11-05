@@ -2,7 +2,7 @@ From: bonsai-daemon
 To: %name%
 Subject: [Bonsai] Hey!  You checked in while the tree was closed!
 Mime-Version: 1.0
-Content-Type: text/html
+Content-Type: text/html; charset=UTF-8
 
 <HTML>
 

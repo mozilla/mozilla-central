@@ -57,7 +57,7 @@ require 'cvsblame.pl';
 # Cope with the cookie and print the header, first thing.  That way, if
 # any errors result, they will show up for the user.
 
-print "Content-Type:text/html\n";
+print "Content-Type: text/html; charset=UTF-8\n";
 if ($ENV{REQUEST_METHOD} eq 'POST' and defined $::FORM{set_line}) {
     # Expire the cookie 5 months from now
     print "Set-Cookie: line_nums="

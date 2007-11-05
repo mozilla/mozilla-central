@@ -218,7 +218,7 @@ elsif ($#ARGV == 2) {
 }
 else {
 
-     print "Content-type: text/html
+     print "Content-type: text/html; charset=UTF-8
 
 <HTML>";
      CheckPassword(FormData('password'));
