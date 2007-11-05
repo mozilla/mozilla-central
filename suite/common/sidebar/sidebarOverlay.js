@@ -301,8 +301,11 @@ function panel_loader() {
 
   this.removeEventListener("load", panel_loader, true);
   this.removeAttribute('collapsed');
-  this.setAttribute('loadstate','loaded');
-  this.parentNode.firstChild.setAttribute('hidden','true');
+  // uncollapse the notificationbox element
+  this.parentNode.removeAttribute('collapsed');
+  this.setAttribute('loadstate', 'loaded');
+  // hide the load area
+  this.parentNode.parentNode.firstChild.setAttribute('hidden', 'true');
 
   if (this.hasAttribute('focusOnLoad')) {
     var elementToFocus = this.contentDocument.documentElement.getAttribute('elementtofocus');
@@ -412,6 +415,7 @@ function (force_reload)
 
       // Pick sandboxed, or unsandboxed iframe
       var iframe = panel.get_iframe();
+      var notificationbox = iframe.parentNode;
       var load_state;
 
       if (selected_id == id) {
@@ -425,6 +429,9 @@ function (force_reload)
           if (!panel.is_persistent()) {
             debug("    set src=about:blank");
             iframe.setAttribute('src', 'about:blank');
+            // content will be reloaded: remove notifications
+            // to prevent them from showing when expanding the sidebar
+            notificationbox.removeAllNotifications(true);
           }
         } else {
           var saved_src = iframe.getAttribute('content');
@@ -434,6 +441,8 @@ function (force_reload)
           if (force_reload || (saved_src != src)) {
             debug("    set src="+saved_src);
             iframe.setAttribute('src', saved_src);
+            // content is being reloaded: remove notifications
+            notificationbox.removeAllNotifications(true);
 
             if (gTimeoutID != null)
               clearTimeout(gTimeoutID);
@@ -466,10 +475,6 @@ function (force_reload)
             content.setAttribute('hidden','true');
             iframe.setAttribute('loadstate', 'never loaded');
           }
-        }
-        if (panel.is_sandboxed()) {
-          if (!panel.is_persistent())
-            iframe.setAttribute('src', 'about:blank');
         }
       }
     }
@@ -531,8 +536,8 @@ sbPanel.prototype.is_sandboxed =
 function ()
 {
   if (typeof this.sandboxed == "undefined") {
-    var content = this.get_content();
-    var unsandboxed_iframe = content.childNodes.item(1);
+    var notificationbox = this.get_content().childNodes.item(1);
+    var unsandboxed_iframe = notificationbox.firstChild;
     this.sandboxed = !unsandboxed_iframe.getAttribute('content').match(/^chrome:/);
   }
   return this.sandboxed;
@@ -542,14 +547,9 @@ sbPanel.prototype.get_iframe =
 function ()
 {
   if (typeof this.iframe == "undefined") {
-    var content = this.get_content();
-    if (this.is_sandboxed()) {
-      var unsandboxed_iframe = content.childNodes.item(2);
-      this.iframe = unsandboxed_iframe;
-    } else {
-      var sandboxed_iframe = content.childNodes.item(1);
-      this.iframe = sandboxed_iframe;
-    }
+    var notificationbox = this.get_content().childNodes.item(1);
+    this.iframe = this.is_sandboxed() ? notificationbox.lastChild : 
+                                        notificationbox.firstChild;
   }
   return this.iframe;
 }

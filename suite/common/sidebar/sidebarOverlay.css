@@ -99,3 +99,9 @@ sidebarheader[type="splitter"] {
       min-width           : 1px;
     }
 
+/**
+ * prevent the notification in the sidebar from being too wide 
+ */
+.sidebar-notificationbox > notification > hbox > hbox[anonid="details"] {
+  -moz-box-orient: vertical;
+}

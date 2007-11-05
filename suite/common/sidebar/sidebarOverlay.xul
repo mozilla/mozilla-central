@@ -175,11 +175,14 @@
                   </hbox>
                   <spacer flex="100%"/>
                 </vbox>
-                <browser flex="1" class="browser-sidebar" src="about:blank"
-                  hidden="true" collapsed="true" content="?content"/>
-                <browser flex="1" class="browser-sidebar" src="about:blank"
-                  hidden="true" collapsed="true" content="?content"
-                  type="content" context="contentAreaContextMenu" tooltip="aHTMLTooltip"/>
+                <notificationbox flex="1" collapsed="true" class="sidebar-notificationbox">
+                  <browser flex="1" class="browser-sidebar" src="about:blank"
+                           hidden="true" collapsed="true" content="?content"/>
+                  <browser flex="1" class="browser-sidebar" src="about:blank"
+                           hidden="true" collapsed="true" content="?content"
+                           type="content" context="contentAreaContextMenu"
+                           tooltip="aHTMLTooltip"/>
+                </notificationbox>
               </vbox>
             </action>
           </rule>
