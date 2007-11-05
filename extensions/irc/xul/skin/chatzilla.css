@@ -322,3 +322,28 @@ progressmeter[mode="undetermined"] {
 #offline-status[offlinestate="online"] {
     list-style-image: url("chrome://chatzilla/skin/images/online.png");
 }
+
+/* Focus styling for a11y reasons */
+#user-list-box[focusobvious="true"], #browser-box[focusobvious="true"],
+#multiline-hug-box[focusobvious="true"], #singleline-hug-box[focusobvious="true"] {
+    border-color: highlight !important;
+}
+
+/* Not setting a right border so the scrollbar remains on the window edge. */
+#browser-box:last-child, #user-list-box:last-child {
+    border-left: 2px solid transparent;
+    border-top: 2px solid transparent;
+    border-bottom: 2px solid transparent;
+}
+
+#user-list-box:first-child, #browser-box:first-child {
+    border-right: 2px solid transparent;
+    border-top: 2px solid transparent;
+    border-bottom: 2px solid transparent;
+}
+
+#singleline-hug-box, #multiline-hug-box {
+    border-right: 2px solid transparent;
+    border-left: 2px solid transparent;
+    border-top: 2px solid transparent;
+}

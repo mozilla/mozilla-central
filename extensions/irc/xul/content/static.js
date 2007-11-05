@@ -2677,6 +2677,36 @@ function advanceKeyboardFocus(amount)
 
     var newIndex = (arrayIndexOf(focusableElems, elem) * 1 + 3 + amount) % 3;
     focusableElems[newIndex].focus();
+
+    // Make it obvious this element now has focus.
+    var outlinedElem;
+    if (focusableElems[newIndex] == client.input.inputField)
+        outlinedElem = client.input.parentNode.id;
+    else if (focusableElems[newIndex] == userList)
+        outlinedElem = "user-list-box"
+    else
+        outlinedElem = "browser-box";
+
+    // Do magic, and make sure it gets undone at the right time:
+    if (("focusedElemTimeout" in client) && client.focusedElemTimeout)
+        clearTimeout(client.focusedElemTimeout);
+    outlineFocusedElem(outlinedElem);
+    client.focusedElemTimeout = setTimeout(outlineFocusedElem, 1000, "");
+}
+
+function outlineFocusedElem(id)
+{
+    var outlinedElements = ["user-list-box", "browser-box", "multiline-hug-box",
+                            "singleline-hug-box"];
+    for (var i = 0; i < outlinedElements.length; i++)
+    {
+        var elem = document.getElementById(outlinedElements[i]);
+        if (outlinedElements[i] == id)
+            elem.setAttribute("focusobvious", "true");
+        else
+            elem.removeAttribute("focusobvious");
+    }
+    client.focusedElemTimeout = 0;
 }
 
 /* valid values for |what| are "superfluous", "activity", and "attention".
