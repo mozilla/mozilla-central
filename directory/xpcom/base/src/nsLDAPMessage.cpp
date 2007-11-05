@@ -482,10 +482,12 @@ nsLDAPMessage::GetValues(const char *aAttr, PRUint32 *aCount,
                          PRUnichar ***aValues)
 {
     char **values;
-
+    
+#if defined(DEBUG)
     // We only want this being logged for debug builds so as not to affect performance too much.
     PR_LOG(gLDAPLogModule, PR_LOG_DEBUG,
            ("nsLDAPMessage::GetValues(): called with aAttr = '%s'", aAttr));
+#endif
 
     values = ldap_get_values(mConnectionHandle, mMsgHandle, aAttr);
 
