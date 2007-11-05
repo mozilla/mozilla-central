@@ -103,6 +103,10 @@
             <label value="&read.only.location.label;" class="headline"/>
             <label id="item-location"/>
           </row>
+          <row id="category-row" align="top" hidden="true">
+            <label value="&read.only.category.label;" class="headline"/>
+            <label id="item-category"/>
+          </row>
           <row id="organizer-row" align="top" hidden="true">
             <label value="&read.only.organizer.label;" class="headline"/>
             <label id="item-organizer"

@@ -82,6 +82,16 @@
 
                    subj.QueryInterface(Components.interfaces.nsIPrefBranch2);
 
+                   // refresh view if categories seem to have changed
+                   if (pref.indexOf("calendar.category.color") == 0) {
+                       if (!this.calView.startDay || !this.calView.endDay) {
+                           // Don't refresh if we're not initialized
+                           return;
+                       }
+                       // Refresh the view to recreate the event boxes
+                       this.calView.goToDay(this.calView.selectedDay);
+                   }
+
                    switch (pref) {
 
                    case "calendar.previousweeks.inview":

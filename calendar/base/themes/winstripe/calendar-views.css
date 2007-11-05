@@ -159,19 +159,12 @@ calendar-header-container[weekend="true"][selected="true"],
 
 .calendar-event-box-container {
   padding: 0;
+  margin: 1px;
   overflow: hidden;
 }
 
-.calendar-event-box-container[parentorient="vertical"] {
-  margin: 2px;
-}
-
-.calendar-event-box-container[parentorient="horizontal"] {
-  margin: 2px;
-}
-
-.event-frame {
-  margin: 2px;
+.calendar-event-box-container[has-category="true"] {
+  margin-right: 0px;
 }
 
 .calendar-event-details {
@@ -417,6 +410,10 @@ box[dropbox="true"] {
 
 .calendar-event-box-gradient {
   list-style-image: url("chrome://calendar/skin/gradient-overlay.png");
+}
+
+.calendar-category-box-gradient {
+  list-style-image: url("chrome://calendar/skin/category-overlay.png");
 }
 
 .calendar-event-box-shadow-right {

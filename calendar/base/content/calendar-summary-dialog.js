@@ -124,6 +124,12 @@ function onLoad() {
         document.getElementById("item-location").value = location;
     }
 
+    var category = item.getProperty("CATEGORIES");
+    if (category && category.length) {
+        document.getElementById("category-row").removeAttribute("hidden");
+        document.getElementById("item-category").value = category;
+    }
+
     var organizer = item.organizer;
     if (organizer) {
         if (organizer.commonName && organizer.commonName.length) {

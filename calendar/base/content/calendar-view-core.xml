@@ -52,42 +52,48 @@
       <xul:vbox flex="1">
         <xul:hbox>
           <xul:image class="calendar-event-box-shadow-left"/>
-          <xul:stack anonid="event-container"
-                     class="calendar-event-box-container"
-                     flex="1"
-                     xbl:inherits="context">
-            <xul:vbox class="calendar-event-details calendar-event-selection">
-              <xul:label anonid="event-name"
-                         crop="right"
-                         flex="1"
-                         style="margin: 0;"/>
-              <xul:textbox anonid="event-name-textbox"
-                           class="plain"
-                           crop="right"
-                           hidden="true"
-                           style="background: transparent !important;"
-                           wrap="true"/>
-              <xul:spacer flex="1"/>
-            </xul:vbox>
-            <xul:hbox pack="end">
-                <xul:vbox pack="center">
-                  <xul:image anonid="alarm-image"
-                             class="alarm-image"
-                             xbl:inherits="flashing"
-                             hidden="true"/>
-                </xul:vbox>
-            </xul:hbox>
-            <xul:image anonid="gradient"
-                       class="calendar-event-box-gradient event-frame"
-                       hidden="true" height="1px"/>
-          </xul:stack>
+          <xul:box anonid="event-container" flex="1">
+            <xul:box class="calendar-event-selection" orient="horizontal" flex="1">
+              <xul:stack anonid="eventbox"
+                         class="calendar-event-box-container"      
+                         flex="1">
+                <xul:hbox class="calendar-event-details">
+                  <xul:vbox align="left"
+                            flex="1"
+                            xbl:inherits="context">
+                    <xul:label anonid="event-name"
+                               crop="end"
+                               flex="1"
+                               style="margin: 0;"/>
+                    <xul:textbox anonid="event-name-textbox"
+                                 class="plain"
+                                 crop="end"
+                                 hidden="true"
+                                 style="background: transparent !important;"
+                                 wrap="true"/>
+                    <xul:spacer flex="1"/>
+                  </xul:vbox>
+                  <xul:vbox pack="center">
+                    <xul:image anonid="alarm-image"
+                               class="alarm-image"
+                               xbl:inherits="flashing"
+                               hidden="true"/>
+                  </xul:vbox>
+                </xul:hbox>
+                <xul:image anonid="gradient"
+                           class="calendar-event-box-gradient"
+                           hidden="true" height="1px"/>
+              </xul:stack>
+            </xul:box>
+            <xul:calendar-category-box anonid="category-box"/>
+          </xul:box>
           <xul:image class="calendar-event-box-shadow-right"/>
         </xul:hbox>
-        <xul:hbox>
+        <xul:box orient="horizontal">
           <xul:image class="calendar-event-box-shadow-edge-left"/>
           <xul:image class="calendar-event-box-shadow-bottom" flex="1"/>
           <xul:image class="calendar-event-box-shadow-edge-right"/>
-        </xul:hbox>
+        </xul:box>
       </xul:vbox>
     </content>
 
@@ -198,7 +204,20 @@
             categoriesSelectorList = categoriesList.join(" ");
           }
 
-          container.setAttribute("item-category", categoriesSelectorList);
+          var box = document.
+              getAnonymousElementByAttribute(this,"anonid","category-box");
+          if (box) {
+              box.categories = categoriesSelectorList;
+              box = document.
+                  getAnonymousElementByAttribute(this,"anonid","eventbox");
+              if (box) {
+                if (categoriesSelectorList.length > 0) {
+                  box.setAttribute("has-category","true");
+                } else {
+                  box.removeAttribute("has-category");
+                }
+              }
+          }
 
           var alarmImage = document.getAnonymousElementByAttribute(this, "anonid", "alarm-image");
           if (item.alarmOffset && getPrefSafe("calendar.alarms.indicator.show", true)) {
@@ -313,4 +332,31 @@
       ]]></handler>
     </handlers>
   </binding>
+
+  <binding id="calendar-category-box">
+    <content>
+      <xul:vbox anonid="category-box" hidden="true" class="calendar-item calendar-event-selection">
+        <xul:hbox flex="1">
+          <xul:image class="calendar-category-box-gradient" height="1"/>
+        </xul:hbox>
+        <xul:hbox height="1"/>
+      </xul:vbox>
+    </content>
+    <implementation>
+      <property name="categories">
+        <setter><![CDATA[
+          var box = document.getAnonymousElementByAttribute(this,
+                                                            "anonid",
+                                                            "category-box");
+          box.setAttribute("item-category", val);
+          if (val.length > 0) {
+            box.removeAttribute("hidden");
+          } else {
+            box.setAttribute("hidden","true");
+          }
+        ]]></setter>
+      </property>
+    </implementation>
+  </binding>
+
 </bindings>

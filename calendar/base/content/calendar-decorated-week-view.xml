@@ -78,6 +78,16 @@
                 <body><![CDATA[
                     aSubject.QueryInterface(Components.interfaces.nsIPrefBranch2);
 
+                    // refresh view if categories seem to have changed
+                    if (aPreference.indexOf("calendar.category.color") == 0) {
+                        if (!this.startDay || !this.endDay) {
+                            // Don't refresh if we're not initialized
+                            return;
+                        }
+                        // Refresh the view to recreate the event boxes
+                        this.goToDay(this.selectedDay);
+                    }
+
                     switch (aPreference) {
 
                         case "calendar.week.start":

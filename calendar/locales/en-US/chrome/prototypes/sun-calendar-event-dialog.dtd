@@ -278,6 +278,7 @@
 <!ENTITY read.only.date.label            "Date:">
 <!ENTITY read.only.repeat.label          "Repeat:">
 <!ENTITY read.only.location.label        "Location:">
+<!ENTITY read.only.category.label        "Category:">
 <!ENTITY read.only.organizer.label       "Organizer:">
 <!ENTITY read.only.reply.label           "Reply:">
 <!ENTITY read.only.accept.label          "I will attend">

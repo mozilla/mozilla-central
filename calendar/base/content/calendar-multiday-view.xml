@@ -229,22 +229,12 @@
 
     <handlers>
       <handler event="mousedown" button="0"><![CDATA[
-        event.stopPropagation();
-        var whichside = this.getAttribute("whichside");
-        if (!whichside)
-            return;
-
-        // we make assumptions about our position in the tree here;
-        // specifically, this should get us to a <calendar-event-box>
-        var evbox = this.parentNode.parentNode.parentNode.parentNode.
-                         parentNode.parentNode.parentNode;
-
-        // still select it (since we'll stopPropagation())
-        evbox.calendarView.setSelectedItems(1,
-            [event.ctrlKey ? evbox.mOccurrence.parentItem : evbox.mOccurrence]);
-
-        // then start dragging it
-        evbox.parentColumn.startSweepingToModifyEvent(evbox, evbox.mOccurrence, whichside, event.screenX, event.screenY);
+        // store the attribute 'whichside' in the event object
+        // but *don't* call stopPropagation(). as soon as the
+        // enclosing event box will receive the event it will
+        // make use of this information in order to invoke the
+        // appropriate action.
+        event.whichside = this.getAttribute("whichside");
       ]]></handler>
       <handler event="click" button="0"><![CDATA[
         event.stopPropagation();
@@ -1846,9 +1836,7 @@
                      class="calendar-event-box-shadow-left"
                      hidden="true"/>
           <xul:box anonid="event-container" xbl:inherits="orient" flex="1">
-            <xul:box class="calendar-event-selection"
-                     flex="1"
-                     xbl:inherits="orient">
+            <xul:box class="calendar-event-selection" orient="horizontal" flex="1">
               <xul:stack anonid="eventbox"
                          align="stretch"
                          class="calendar-event-box-container"
@@ -1887,6 +1875,7 @@
                      not be resizable using the gripbars. If you want to insert
                      additional elements, do so above the box with the gripbars. -->
               </xul:stack>
+              <xul:calendar-category-box anonid="category-box"/>
             </xul:box>
           </xul:box>
           <xul:image anonid="shadow-bottom"
@@ -2027,6 +2016,16 @@
         this.mInMouseDown = true;
         this.mMouseX = event.screenX;
         this.mMouseY = event.screenY;
+        
+        var whichside = event.whichside;
+        if (!whichside)
+            return;
+        
+        this.calendarView.setSelectedItems(1,
+            [event.ctrlKey ? this.mOccurrence.parentItem : this.mOccurrence]);
+
+        // start dragging it
+        this.parentColumn.startSweepingToModifyEvent(this, this.mOccurrence, whichside, event.screenX, event.screenY);
       ]]></handler>
 
       <handler event="mousemove"><![CDATA[

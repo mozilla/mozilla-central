@@ -435,7 +435,7 @@ function updateStyleSheetForObject(aObject, aSheet) {
         ruleUpdaterFunc = function categoryRuleFunc(aRule, aIndex) {
             var color = getPrefSafe("calendar.category.color."+aObject, null);
             if (color) {
-                aRule.style.border = color + " solid 2px";
+                aRule.style.backgroundColor = color;
             } else {
                 aSheet.deleteRule(aIndex);
             }
