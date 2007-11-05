@@ -37,7 +37,7 @@
 /*
  * Test program for SDR (Secret Decoder Ring) functions.
  *
- * $Id: shlibsign.c,v 1.14 2005-11-15 00:34:39 julien.pierre.bugs%sun.com Exp $
+ * $Id: shlibsign.c,v 1.15 2007-11-05 17:13:27 wtc%google.com Exp $
  */
 
 #ifdef XP_UNIX
@@ -155,7 +155,7 @@ main (int argc, char **argv)
     int keySize = 1024;
     PQGParams *pqgParams = NULL;
     PQGVerify *pqgVerify = NULL;
-    char* nssDir = NULL;
+    const char *nssDir = NULL;
 #ifdef USES_LINKS
     int ret;
     struct stat stat_buf;

@@ -1333,7 +1333,7 @@ DoChallengeResponse(SECKEYPrivateKey *privKey,
 	    return 912;
 	}
 	if (retrieved != randomNums[i]) {
-	    printf ("Retrieved the number (%d), expected (%d)\n", retrieved,
+	    printf ("Retrieved the number (%ld), expected (%ld)\n", retrieved,
 		    randomNums[i]);
 	    return 913;
 	}
@@ -1439,7 +1439,6 @@ DestroyPairReqAndMsg(TESTKeyPair *pair)
 int
 DestroyPair(TESTKeyPair *pair)
 {
-    SECStatus rv  = SECSuccess;
     int       irv = 0;
 
     if (pair->pubKey) {

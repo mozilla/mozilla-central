@@ -163,12 +163,12 @@ void
 forgetCerts(void)
 {
     certMem * oldCertMem;
-    while (oldCertMem = theCerts) {
-    	theCerts = oldCertMem->next;
+    while (theCerts) {
+	oldCertMem = theCerts;
+    	theCerts = theCerts->next;
 	CERT_DestroyCertificate(oldCertMem->cert);
 	PORT_Free(oldCertMem);
     }
-    theCerts = NULL;
 }
 
 

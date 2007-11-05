@@ -252,13 +252,6 @@ disableAllSSLCiphers(void)
     }
 }
 
-static SECStatus
-myGoodSSLAuthCertificate(void *arg, PRFileDesc *fd, PRBool checkSig,
-		     PRBool isServer)
-{
-    return SECSuccess;
-}
-
 /* This invokes the "default" AuthCert handler in libssl.
 ** The only reason to use this one is that it prints out info as it goes. 
 */
