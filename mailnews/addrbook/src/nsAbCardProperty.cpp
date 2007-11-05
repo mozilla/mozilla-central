@@ -51,7 +51,6 @@
 #include "plbase64.h"
 #include "nsIAddrBookSession.h"
 #include "nsIStringBundle.h"
-#include "nsIAddressBook.h"
 #include "plstr.h"
 #include "nsIRDFResource.h"
 #include "nsIRDFService.h"

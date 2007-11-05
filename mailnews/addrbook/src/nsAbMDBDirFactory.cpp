@@ -50,7 +50,6 @@
 
 #include "nsIAbMDBDirectory.h"
 #include "nsAbMDBDirFactory.h"
-#include "nsIAddressBook.h"
 #include "nsIAddrBookSession.h"
 #include "nsIAddrDBListener.h"
 #include "nsIAddrDatabase.h"

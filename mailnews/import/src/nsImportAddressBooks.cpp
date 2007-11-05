@@ -60,7 +60,6 @@
 #include "nsRDFCID.h"
 #include "nsAbBaseCID.h"
 #include "nsIAbDirectory.h"
-#include "nsIAddressBook.h"
 #include "nsIStringBundle.h"
 #include "nsImportStringBundle.h"
 #include "nsTextFormatter.h"

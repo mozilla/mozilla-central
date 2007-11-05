@@ -48,7 +48,6 @@
 #include "nsDirPrefs.h"
 #include "nsAbBaseCID.h"
 #include "nsMsgBaseCID.h"
-#include "nsIAddressBook.h"
 #include "nsAddrDatabase.h"
 #include "nsIAddrBookSession.h"
 #include "nsIAbMDBDirectory.h"

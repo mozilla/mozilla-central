@@ -49,7 +49,6 @@
 #include "nsIAbCard.h"
 #include "nsIAbListener.h"
 #include "nsIAddrBookSession.h"
-#include "nsIAddressBook.h"
 #include "nsIAbMDBCard.h"
 
 #include "mdb.h"

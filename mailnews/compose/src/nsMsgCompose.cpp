@@ -82,7 +82,6 @@
 #include "nsAbBaseCID.h"
 #include "nsIAddrDatabase.h"
 #include "nsIAddrBookSession.h"
-#include "nsIAddressBook.h"
 #include "nsIAbMDBDirectory.h"
 #include "nsCExternalHandlerService.h"
 #include "nsIMIMEService.h"

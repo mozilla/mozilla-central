@@ -46,7 +46,6 @@
 
 #include "nsAddrDatabase.h"
 #include "nsIAddrBookSession.h"
-#include "nsIAddressBook.h"
 
 nsAbMDBCard::nsAbMDBCard(void)
 {

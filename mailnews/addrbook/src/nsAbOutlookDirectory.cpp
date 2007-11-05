@@ -47,7 +47,6 @@
 #include "nsStringGlue.h"
 #include "nsAbDirectoryQuery.h"
 #include "nsIAbBooleanExpression.h"
-#include "nsIAddressBook.h"
 #include "nsIAddrBookSession.h"
 #include "nsIAbMDBDirectory.h"
 #include "nsAbQueryStringToExpression.h"

@@ -46,7 +46,6 @@
 
 #include "nsIAbDirectory.h"
 #include "nsAbLDAPDirectory.h"
-#include "nsIAddressBook.h"
 
 #include "nsEnumeratorUtils.h"
 #include "nsAbBaseCID.h"
