@@ -1,4 +1,4 @@
-# $Id: Common.pm,v 1.31 2006-12-06 10:22:03 reed%reedloden.com Exp $
+# $Id: Common.pm,v 1.32 2007-11-05 22:43:03 cbiesinger%gmx.at Exp $
 
 package LXR::Common;
 
@@ -46,7 +46,7 @@ sub fatal {
 
 sub abortall {
     print(STDERR "[",scalar(localtime),"] abortall: $_[0]\n");
-    print("Content-Type: text/html\n\n",
+    print("Content-Type: text/html; charset=utf-8\n\n",
 	  "<html>\n<head>\n<title>Abort</title>\n</head>\n",
 	  "<body><h1>Abort!</h1>\n",
 	  "<b><i>** Aborting: $_[0]</i></b>\n",
@@ -482,7 +482,7 @@ sub init_all {
     if (defined($readraw)) {
 	print("\n");
     } else {
-        print("Content-Type: text/html\n");
+        print("Content-Type: text/html; charset=utf-8\n");
 
 	#
 	# Print out a Last-Modified date that is the larger of: the
