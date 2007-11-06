@@ -95,7 +95,7 @@
           <textbox id="unifinder-search-field" onkeypress="searchKeyPress( this, event )" flex="1"/>
         </box>
       </hbox>
-      <tree id="unifinder-search-results-listbox" flex="1"
+      <tree id="unifinder-search-results-tree" flex="1"
             onselect="unifinderOnSelect( event ); onSelectionChanged()"
             onkeypress="unifinderKeyPress(event)"
             enableColumnDrag="true">
@@ -139,7 +139,7 @@
         </treecols>
 
         <!-- on mousedown here happens before onclick above -->
-        <treechildren tooltip="eventTreeTooltip" class="unifinder-class"
+        <treechildren tooltip="eventTreeTooltip"
                       onkeypress="if (event.keyCode == 13) unifinderEditCommand();"
                       ondragover="return( false );"
                       ondblclick="unifinderDoubleClickEvent( event )"

@@ -58,16 +58,16 @@
 }
 
 /* only format Unifinder lists */
-treechildren.unifinder-class::-moz-tree-row {
+#unifinder-search-results-tree > treechildren::-moz-tree-row {
     border-bottom: 1px dotted #AAA;
 }
 
-treechildren::-moz-tree-cell-text(selected) {
+#unifinder-search-results-tree > treechildren::-moz-tree-cell-text(selected) {
     color: HighlightText;
 }
 
 /* workaround to avoid Window Flick */
-#unifinder-search-results-listbox {
+#unifinder-search-results-tree {
    /* increased to display scrollbar and at least 2 lines */
    min-height : 92px ;
    /* remove margin to match Thunderbird's layout */

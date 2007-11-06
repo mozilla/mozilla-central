@@ -52,7 +52,6 @@
  * This is a hacked in interface to the unifinder. We will need to
  * improve this to make it usable in general.
  */
-var gUnifinderTreeName = "unifinder-search-results-listbox";
 var kEventStatusOrder = ["TENTATIVE", "CONFIRMED", "CANCELLED"];
 
 // Set this to true when the calendar event tree is clicked to allow for
@@ -76,7 +75,7 @@ function resetAllowSelection() {
      */
     doingSelection = false;
 
-    var searchTree = document.getElementById(gUnifinderTreeName);
+    var searchTree = document.getElementById("unifinder-search-results-tree");
     searchTree.view.selection.selectEventsSuppressed = false;
     searchTree.addEventListener("select", unifinderOnSelect, true);
 }
@@ -91,7 +90,7 @@ function selectSelectedEventsInTree(aEventsToSelect) {
     if (aEventsToSelect === false) {
         aEventsToSelect = currentView().getSelectedItems({});
     }
-    var searchTree = document.getElementById(gUnifinderTreeName);
+    var searchTree = document.getElementById("unifinder-search-results-tree");
 
     /**
      * The following is a brutal hack, caused by
@@ -202,7 +201,7 @@ var unifinderObserver = {
         items = items.filter(this.dateFilter);
         gEventArray = gEventArray.concat(items);
         gEventArray.sort(compareEvents);
-        var tree = document.getElementById("unifinder-search-results-listbox");
+        var tree = document.getElementById("unifinder-search-results-tree");
         for each (var item in items) {
             var row = tree.eventView.getRowOfCalendarEvent(item);
             tree.treeBoxObject.rowCountChanged(row, 1);
@@ -216,7 +215,7 @@ var unifinderObserver = {
             items = [aItem];
         }
         items = items.filter(this.dateFilter);
-        var tree = document.getElementById("unifinder-search-results-listbox");
+        var tree = document.getElementById("unifinder-search-results-tree");
         for each (var item in items) {
             var row = tree.eventView.getRowOfCalendarEvent(item);
             gEventArray.splice(row, 1);
@@ -315,7 +314,7 @@ function unifinderDoubleClickEvent(event) {
  * Get the calendar from the given event
  */
 function getCalendarEventFromEvent(event) {
-    var tree = document.getElementById(gUnifinderTreeName);
+    var tree = document.getElementById("unifinder-search-results-tree");
     var row = tree.treeBoxObject.getRowAt(event.clientX, event.clientY);
 
     if (row != -1 && row < tree.view.rowCount) {
@@ -340,7 +339,7 @@ function unifinderOnSelect(event) {
     var calendarEvent;
 
     // Get the selected events from the tree
-    var tree = document.getElementById(gUnifinderTreeName);
+    var tree = document.getElementById("unifinder-search-results-tree");
     var start = new Object();
     var end = new Object();
     var numRanges = tree.view.selection.getRangeCount();
@@ -368,10 +367,6 @@ function unifinderOnSelect(event) {
     // Pass in true, so we don't end up in a circular loop
     currentView().setSelectedItems(arrayOfEvents.length, arrayOfEvents, true);
     onSelectionChanged({detail: arrayOfEvents});
-}
-
-function unifinderToDoHasFocus() {
-    return document.getElementById(ToDogUnifinderTreeName).treeBoxObject.focused;
 }
 
 /**
@@ -448,7 +443,7 @@ var unifinderTreeView = {
         this.sortDirection = col.element.getAttribute("sortDirection");
 
         if (sortActive != "true") {
-            var unifinder = document.getElementById("unifinder-search-results-listbox");
+            var unifinder = document.getElementById("unifinder-search-results-tree");
             var treeCols = unifinder.getElementsByTagName("treecol");
             for (var i = 0; i < treeCols.length; i++) {
                 treeCols[i].removeAttribute("sortActive");
@@ -467,7 +462,7 @@ var unifinderTreeView = {
         this.sortStartedTime = new Date().getTime(); // for null/0 dates in sort
         gEventArray.sort(compareEvents);
 
-        document.getElementById(gUnifinderTreeName).view = this;
+        document.getElementById("unifinder-search-results-tree").view = this;
     },
 
     setTree: function uTV_setTree(tree) { this.tree = tree; },
@@ -761,7 +756,7 @@ function refreshEventTreeInternal(eventArray) {
     }
     gEventArray = gEventArray.filter(dateFilter);
 
-    var unifinderTree = document.getElementById(gUnifinderTreeName);
+    var unifinderTree = document.getElementById("unifinder-search-results-tree");
     var arrayOfTreeCols = unifinderTree.getElementsByTagName("treecol");
 
     for (var i = 0; i < arrayOfTreeCols.length; i++) {
