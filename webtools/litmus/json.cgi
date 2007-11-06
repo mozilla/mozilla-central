@@ -130,18 +130,24 @@ if ($c->param("testcase_id")) {
   my @products = Litmus::DB::Product->search_ByPlatform($platform_id);
   $platform->{'products'} = \@products;
   $js = $json->objToJson($platform);
-} elsif ($c->param("opsys_id")) {
-  my $opsys_id = $c->param("opsys_id");
-  my $opsys = Litmus::DB::Opsys->retrieve($opsys_id);
-  $js = $json->objToJson($opsys);
 } elsif ($c->param("branch_id")) {
   my $branch_id = $c->param("branch_id");
   my $branch = Litmus::DB::Branch->retrieve($branch_id);
   $js = $json->objToJson($branch);
+} elsif ($c->param("platform_id")) {
+  my $platform_id = $c->param("platform_id");
+  my $platform = Litmus::DB::Platform->retrieve($platform_id);
+  $js = $json->objToJson($platform);
+} elsif ($c->param("opsys_id")) {
+  my $opsys_id = $c->param("opsys_id");
+  my $opsys = Litmus::DB::Opsys->retrieve($opsys_id);
+  $js = $json->objToJson($opsys);
 } elsif ($c->param("testday_id")) {
   use Litmus::DB::TestDay;
   my $testday_id = $c->param("testday_id");
   my $testday = Litmus::DB::TestDay->retrieve($testday_id);
+  my @subgroups = Litmus::DB::Subgroup->search_ByTestDay($testday_id);
+  $testday->{'subgroups'} = \@subgroups;
   $js = $json->objToJson($testday);
 } elsif ($c->param("products")) {
   my @products = Litmus::DB::Product->retrieve_all();
@@ -170,6 +176,10 @@ if ($c->param("testcase_id")) {
   $stats{'alltime'} = [Litmus::DB::Testresult->search_NumResultsByUserDays(
   	$user->id(), 40000)]->[0]->num_results(); # 40000 is close enough to forever :)
   $js = $json->objToJson(\%stats);
+}
+
+if (utf8::is_utf8($js)) {
+  utf8::encode($js);
 }
 
 print $js;

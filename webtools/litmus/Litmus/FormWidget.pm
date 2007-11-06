@@ -411,12 +411,10 @@ sub _getValues($)
     $sth->execute();
     my @rows;
     while (my $data = $sth->fetchrow_hashref) {
-      foreach my $key (keys %$data) {
-#        if (utf8::is_utf8($data->{$key})) {
-#          print STDERR "$key " . $data->{$key} . " is utf8?: " . utf8::is_utf8($data->{$key}) . "\n";
-          utf8::decode($data->{$key});
-#        }
-      }
+     foreach my $key (keys %$data) {
+       Encode::_utf8_on($data->{$key});
+       utf8::decode($data->{$key});
+     }
       push @rows, $data;
     }
     $sth->finish();

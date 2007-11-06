@@ -45,8 +45,8 @@ Litmus::DB::Testcase->table('testcases');
 
 Litmus::DB::Testcase->columns(Primary => qw/testcase_id/);
 Litmus::DB::Testcase->columns(Essential => qw/summary details enabled community_enabled format_id regression_bug_id product_id steps expected_results author_id creation_date last_updated version branch_id/);
-Litmus::DB::Testcase->utf8_columns(qw/summary details steps expected_results/);
-Litmus::DB::Testcase->columns(TEMP => qw /relevance subgroup_name/);
+Litmus::DB::Testcase->utf8_columns(qw/summary details steps expected_results steps_formatted expected_results_formatted/);
+Litmus::DB::Testcase->columns(TEMP => qw /relevance subgroup_name steps_formatted expected_results_formatted/);
 
 Litmus::DB::Testcase->column_alias("testcase_id", "testid");
 Litmus::DB::Testcase->column_alias("testcase_id", "test_id");

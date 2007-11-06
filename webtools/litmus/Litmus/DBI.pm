@@ -149,18 +149,22 @@ package Litmus::DBI;
 require Apache::DBI;
 use strict;
 use warnings;
+use Class::DBI;
+use DBI;
+use Encode qw( encode_utf8 decode_utf8 );
 use Litmus::Config;
 use Litmus::Memoize;
-use DBI;
+use utf8;
 
-use base 'Class::DBI::mysql';
-
-use Class::DBI::utf8;
+use base qw( Exporter Class::Data::Inheritable Class::DBI::mysql );
 
 use constant MP2 => ( exists $ENV{MOD_PERL_API_VERSION} and 
                         $ENV{MOD_PERL_API_VERSION} >= 2 ); 
 use constant MP1 => ( exists $ENV{MOD_PERL} and 
                         ! exists $ENV{MOD_PERL_API_VERSION});  
+
+# export the following functions..
+our @EXPORT = (qw(  utf8_all_columns utf8_columns ));
 
 our $dsn = "dbi:mysql(RootClass=AuditDBI):database=$Litmus::Config::db_name;host=$Litmus::Config::db_host;port=$Litmus::Config::db_port";
 Litmus::DBI->connection($dsn,
@@ -174,6 +178,9 @@ our $readonly_dbh;
 our %column_aliases;
 
 Litmus::DBI->autoupdate(0);
+
+# add an accessor to store which columns are utf8-enabled
+Class::DBI->mk_classdata('_utf8_columns');
 
 # In some cases, we have column names that make sense from a database perspective
 # (i.e. subgroup_id), but that don't make sense from a class/object perspective 
@@ -265,6 +272,102 @@ sub db_ReadOnly() {
     return $readonly_dbh if ($readonly_dbh);
 
     return $class->db_Main();
+}
+
+sub utf8_all_columns {
+  my $class = shift;
+  $class->utf8_columns( $class->columns('All') );
+}
+
+sub utf8_columns {
+  my $class = shift;
+  # the default
+  $class->_utf8_columns([]) unless $class->_utf8_columns;
+
+  # a getter?
+  return @{ $class->_utf8_columns } unless @_;
+
+  my @columns = @_;
+  push @{ $class->_utf8_columns }, @columns;
+
+  $class->add_trigger($_ => sub { 
+    my ($self) = @_;
+    for (@columns) {
+      next if ref($self->{$_});
+      utf8::upgrade( $self->{$_} ) if defined($self->{$_});
+    }
+
+  }) for qw( before_create before_update );
+
+  $class->add_trigger(select => sub { 
+    my ($self) = @_;
+
+    for (@columns) {
+      next if ref($self->{$_});
+
+      if (defined($self->{$_})) {
+        # flip the bit..
+        Encode::_utf8_on($self->{$_});
+        utf8::decode($self->{$_});
+        # ..sanity check
+        if (!utf8::valid($self->{$_})) {
+          # if we're in an eval, let's at least not _completely_ stuff
+          # the process. Turn the bit off again.
+          Encode::_utf8_off($self->{$_});
+          # ..and die
+          $self->_croak("Invalid UTF8 from database in column '$_'");
+        }
+      }
+    }
+  });
+
+}
+
+sub import {
+  my $class = shift;
+  local $Exporter::ExportLevel = 1;
+  if ($_[0] && $_[0] eq "-nosearch") {
+    shift; # ignore option
+    return $class->SUPER::import(@_);
+  }
+  if (caller(0)->isa('Class::DBI')) {
+    caller(0)->add_searcher(search => "Litmus::DBI::utf8Search");
+  }
+  $class->SUPER::import(@_);
+}
+
+#########################################################################
+package Litmus::DBI::utf8Search;
+use base 'Class::DBI::Search::Basic';
+
+sub bind {
+  my $self = shift;
+
+  # for fast lookup of which cols are utf8
+  my %hash = map { $_ => 1 } $self->class->utf8_columns;
+
+  # get name => values of columns to search for
+  my $search_for = $self->_search_for();
+  
+  # make an array that says whether the value at that position should be 
+  # upgraded to utf8. This relies on ->bind() sorting the keys from _search_for()
+  # in the same way.
+  my @utf8cols = map { $hash{$_} && defined($search_for->{$_}) } sort keys %$search_for;
+  
+  # take copy of array to avoid upgrading the original values; we only want to
+  # upgrade the values for the search.
+  my @bind = @{ $self->SUPER::bind(@_) };
+
+  my $i = 0;
+  for (@bind) {   
+    if (shift @utf8cols) {
+      my $copy = $_;
+      utf8::upgrade($copy);
+      $bind[$i] = $copy;
+    }
+    $i++;
+  }
+  \@bind;
 }
 
 1;

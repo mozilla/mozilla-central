@@ -115,18 +115,63 @@
 </tr>
 <tr>
 	<td>clickAndWait</td>
-	<td>delete_testcase_button</td>
+	<td>link=Manage Subgroups</td>
 	<td></td>
 </tr>
 <tr>
-	<td>assertConfirmation</td>
-	<td>Really delete this testcase?</td>
+	<td>select</td>
+	<td>subgroup_id</td>
+	<td>label=WebDav Calendar (591)</td>
+</tr>
+<tr>
+	<td>waitForVisible</td>
+	<td>subgroup_display_div</td>
 	<td></td>
 </tr>
 <tr>
-	<td>verifyNotSomethingSelected</td>
-	<td>testcase_id</td>
+	<td>click</td>
+	<td>edit_subgroup_button</td>
 	<td></td>
+</tr>
+<tr>
+	<td>waitForVisible</td>
+	<td>editform_div</td>
+	<td></td>
+</tr>
+<tr>
+	<td>addSelection</td>
+	<td>testcases_for_product</td>
+	<td>label=日本語 (*)</td>
+</tr>
+<tr>
+	<td>click</td>
+	<td>add_testcase_button</td>
+	<td></td>
+</tr>
+<tr>
+	<td>clickAndWait</td>
+	<td>submit</td>
+	<td></td>
+</tr>
+<tr>
+	<td>waitForVisible</td>
+	<td>subgroup_display_div</td>
+	<td></td>
+</tr>
+<tr>
+	<td>click</td>
+	<td>edit_subgroup_button</td>
+	<td></td>
+</tr>
+<tr>
+	<td>waitForVisible</td>
+	<td>editform_div</td>
+	<td></td>
+</tr>
+<tr>
+	<td>verifyText</td>
+	<td>//td[3]/select/option[4]</td>
+	<td>日本語 (*)</td>
 </tr>
 
 </tbody></table>

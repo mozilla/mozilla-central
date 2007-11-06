@@ -133,14 +133,22 @@ if ($c->param) {
             $where_criteria .= "Testcase ID# is \'".$c->param($param)."\'<br/>";
         } elsif ($param eq 'summary') {
             my $value = quotemeta($c->param($param));
+            my $display_value = $c->param($param);
+            # Upgrade to utf8 prior to search. 
+            utf8::upgrade($value);
             push @where, {field => $param,
                           value => $value};
-            $where_criteria .= "Summary like \'".$c->param($param)."\'<br/>";
-        } elsif ($param eq 'email') {
+            utf8::decode($display_value);
+            $where_criteria .= "Summary like \'".$display_value."\'<br/>";
+        } elsif ($param eq 'email') {            
             my $value = quotemeta($c->param($param));
+            my $display_value = $c->param($param);
+            # Upgrade to utf8 prior to search.
+            utf8::upgrade($value);
             push @where, {field => $param,
                           value => $value};
-            $where_criteria .= "Submitted By like \'".$c->param($param)."\'<br/>";
+            utf8::decode($display_value);
+            $where_criteria .= "Submitted By like \'".$display_value."\'<br/>";
         } elsif ($param eq 'result_status') {
             my $value = quotemeta($c->param($param));
             push @where, {field => $param,

@@ -106,11 +106,15 @@ if ($c->param) {
             my $search_field = $c->param($param);
             my $match_criteria = $c->param("match_criteria$field_num");
             my $value = $c->param("search_value$field_num");
+            my $display_value = $value;
+            # Upgrade to utf8 prior to search. 
+            utf8::upgrade($value);
             push @where, { 'field' => 'search_field',
                            'search_field' => $search_field,
                            'match_criteria' => $match_criteria,
                            'value' => $value};
-            $where_criteria .= ucfirst $search_field . " $match_criteria '$value'<br/>";
+            utf8::decode($display_value);
+            $where_criteria .= ucfirst $search_field . " $match_criteria '$display_value'<br/>";
 
         } elsif ($param eq 'start_date') {
             my $start_date = $c->param($param);

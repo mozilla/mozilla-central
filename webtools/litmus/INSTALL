@@ -1,4 +1,4 @@
-= Litmus Installation Instructions =
+\= Litmus Installation Instructions =
 
 == Required Perl Modules ==
 
@@ -7,7 +7,7 @@ CGI
 Class::DBI 
 Class::DBI::mysql 
 Class::DBI::Pager
-Class::DBI::utf8
+Class::DBI::Search::Basic
 Data::Dumper
 Data::JavaScript
 Date::Manip
@@ -26,6 +26,7 @@ Time::Piece
 Time::Piece::MySQL 
 Time::Seconds
 XML::XPath
+utf8
 
 == Setting up the database ==
 

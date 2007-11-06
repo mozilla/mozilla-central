@@ -199,12 +199,16 @@ if ($c->param('searchType')) {
   if ($c->param('searchType') eq 'fulltext') {
     if ($c->param("text_snippet")) {
       my $text_snippet = $c->param("text_snippet");
+      # Upgrade to utf8 prior to search. 
+      utf8::upgrade($text_snippet);
       my $match_limit = $c->param("match_limit");
       my $relevance_threshold = $c->param("relevance_threshold");
       my @testcases = Litmus::DB::Testcase->getFullTextMatches($text_snippet,
                                                                $match_limit,
                                                                $relevance_threshold);
       $vars->{'testcases'} = \@testcases;
+      # Decode text snippet again before display.
+      utf8::decode($text_snippet);
       $vars->{'search_string_for_display'} = "Full-Text Search: \"$text_snippet\"";
       $vars->{'fulltext'} = 1;
     }

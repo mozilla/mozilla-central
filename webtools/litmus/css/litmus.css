@@ -1441,6 +1441,13 @@ table.newCriteria td {
 img.coverage-loading, td.name img {
     padding: 0px;
     border: 0px;
+}
+
+img.coverage-loading {
+    height: 1.5em;
+}
+
+td.name img {
     height: 1em;
 }
 
