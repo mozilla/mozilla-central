@@ -409,7 +409,7 @@ STDMETHODIMP CPalmSyncImp::nsDeleteAB(BOOL aIsUnicode, long aCategoryIndex, LPTS
   // (ie the callers don't need to call AckSyncdone after this is done).
   nsAbPalmHotSync palmHotSync(aIsUnicode, aABName, (const char*)aABName, aCategoryIndex, -1);
 
-  nsresult rv = palmHotSync.DeleteAB(aCategoryIndex, (const char*)aABUrl);
+  nsresult rv = palmHotSync.DeleteAB((const char*)aABUrl);
 
   if (NS_FAILED(rv))
       return E_FAIL;

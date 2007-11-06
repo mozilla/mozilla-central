@@ -356,18 +356,13 @@ function onAccept()
     var am = Components.classes["@mozilla.org/messenger/account-manager;1"]
                  .getService(Components.interfaces.nsIMsgAccountManager);
     if (am) {
-      var RDF, addressbook, addressbookDS; 
+      var addressbook;
       try {
-        // the rdf service
-        RDF = Components.classes["@mozilla.org/rdf/rdf-service;1"].
-                         getService(Components.interfaces.nsIRDFService);
-        // get the datasource for the addressdirectory
-        addressbookDS = RDF.GetDataSource("rdf:addressdirectory");
         addressbook = Components.classes["@mozilla.org/addressbook;1"].
                          createInstance(Components.interfaces.nsIAddressBook);
       }
       catch(ex){
-        dump("Failed to get RDF Service or addressbook " + ex + "\n");
+        dump("Failed to get addressbook " + ex + "\n");
       }
  
       var allIdentities = am.allIdentities;
@@ -392,20 +387,9 @@ function onAccept()
           }
         }
         try {
-          // delete the directory     
-          var parentArray = Components.classes["@mozilla.org/supports-array;1"].createInstance(Components.interfaces.nsISupportsArray);
-
-          // moz-abdirectory:// is the RDF root to get all types of addressbooks.
-          var parentDir = RDF.GetResource("moz-abdirectory://").QueryInterface(Components.interfaces.nsIAbDirectory);
-          parentArray.AppendElement(parentDir);
-          var resourceArray = Components.classes["@mozilla.org/supports-array;1"].createInstance(Components.interfaces.nsISupportsArray);
-
-          // the RDF resource URI for LDAPDirectory will be moz-abldapdirectory://<prefName>
-          var selectedABURI = "moz-abldapdirectory://" + gDeletedDirectories[i];
-          var selectedABDirectory = RDF.GetResource(selectedABURI).QueryInterface(Components.interfaces.nsIAbDirectory);
-          var selectedABResource = selectedABDirectory.QueryInterface(Components.interfaces.nsIRDFResource);
-          resourceArray.AppendElement(selectedABResource);
-          addressbook.deleteAddressBooks(addressbookDS, parentArray, resourceArray);
+          // The for LDAPDirectory will be moz-abldapdirectory://<prefName>
+          addressbook.deleteAddressBook("moz-abldapdirectory://" +
+                                        gDeletedDirectories[i]);
         }
         catch(ex){
           dump("Failed to delete the addressbook " + ex + "\n");

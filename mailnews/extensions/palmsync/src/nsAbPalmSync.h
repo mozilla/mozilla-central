@@ -79,7 +79,7 @@ public:
     nsresult UpdateSyncInfo(long aCategoryIndex);
 
     // this will delete an AB
-    nsresult DeleteAB(long aCategoryIndex, const char * aABUrl);
+    nsresult DeleteAB(const char * aABUrl);
 
     // this will rename an AB
     nsresult RenameAB(long aCategoryIndex, const char * aABUrl);

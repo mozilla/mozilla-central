@@ -92,8 +92,6 @@ function OnLoadSelectAddress()
 
   doSetOKCancel(SelectAddressOKButton, 0);
 
-  top.addressbook = Components.classes["@mozilla.org/addressbook;1"].createInstance(Components.interfaces.nsIAddressBook);
-
   // look in arguments[0] for parameters
   if (window.arguments && window.arguments[0])
   {

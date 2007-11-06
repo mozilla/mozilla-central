@@ -971,45 +971,13 @@ nsresult nsAbPalmHotSync::UpdateSyncInfo(long aCategoryIndex)
     return(UpdateABInfo(0, aCategoryIndex)); // Reset mod time.
 }
 
-nsresult nsAbPalmHotSync::DeleteAB(long aCategoryIndex, const char * aABUrl)
+nsresult nsAbPalmHotSync::DeleteAB(const char* aABUrl)
 {
   nsresult rv;
-  nsCOMPtr<nsISupportsArray> parentArray(do_CreateInstance(NS_SUPPORTSARRAY_CONTRACTID, &rv));
-  NS_ENSURE_SUCCESS(rv, rv);
-  nsCOMPtr<nsISupportsArray> selectedArray(do_CreateInstance(NS_SUPPORTSARRAY_CONTRACTID, &rv));
+  nsCOMPtr<nsIAddressBook> ab(do_CreateInstance(NS_ADDRESSBOOK_CONTRACTID, &rv));
   NS_ENSURE_SUCCESS(rv, rv);
 
-  nsCOMPtr<nsIRDFService> rdfService = do_GetService (NS_RDF_CONTRACTID "/rdf-service;1", &rv);
-  NS_ENSURE_SUCCESS(rv, rv);
-
-  // Parent nsIABDirectory: like "moz-abdirectory://".
-  nsCOMPtr <nsIRDFResource> resource;
-  rv = rdfService->GetResource(NS_LITERAL_CSTRING("moz-abdirectory://"),
-                               getter_AddRefs(resource));
-  NS_ENSURE_SUCCESS(rv, rv);
-
-  nsCOMPtr <nsIAbDirectory> parentDirectory = do_QueryInterface(resource, &rv);
-  NS_ENSURE_SUCCESS(rv, rv);
-
-  parentArray->AppendElement(parentDirectory);
-
-  // Selected folder nsIABDirectory: like "moz-abmdbdirectory://abook-1.mab"
-  nsCOMPtr <nsIRDFResource> childResource;
-  rv = rdfService->GetResource(nsDependentCString(aABUrl), getter_AddRefs(childResource));
-  NS_ENSURE_SUCCESS(rv, rv);
-  nsCOMPtr <nsIAbDirectory> selectedDirectory = do_QueryInterface(childResource, &rv);
-  NS_ENSURE_SUCCESS(rv, rv);
-
-  selectedArray->AppendElement(selectedDirectory);
-
-  nsCOMPtr<nsIRDFDataSource> ds;
-  rv = rdfService->GetDataSource("rdf:addressdirectory", getter_AddRefs(ds));
-  NS_ENSURE_SUCCESS(rv, rv);
-
-  nsCOMPtr <nsIAddressBook> ab = do_CreateInstance(NS_ADDRESSBOOK_CONTRACTID, &rv);
-  NS_ENSURE_SUCCESS(rv, rv);
-
-  return(ab->DeleteAddressBooks(ds, parentArray, selectedArray));
+  return ab->DeleteAddressBook(nsDependentCString(aABUrl));
 }
 
 nsresult nsAbPalmHotSync::RenameAB(long aCategoryIndex, const char * aABUrl)

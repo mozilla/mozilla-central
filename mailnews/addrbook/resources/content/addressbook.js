@@ -174,8 +174,6 @@ function OnLoadAddressBook()
 
   verifyAccounts(null); 	// this will do migration, if we need to.
 
-  top.addressbook = Components.classes["@mozilla.org/addressbook;1"].createInstance(Components.interfaces.nsIAddressBook);
-
   InitCommonJS();
 
   UpgradeAddressBookResultsPaneUI("mailnews.ui.addressbook_results.version");
@@ -371,7 +369,9 @@ function AbRenameAddressBook()
 
 function AbOnCreateNewAddressBook(aName)
 {
-  top.addressbook.newAddressBook(aName, "", kPABDirectory);
+  Components.classes["@mozilla.org/addressbook;1"]
+            .createInstance(Components.interfaces.nsIAddressBook)
+            .newAddressBook(aName, "", kPABDirectory);
 }
 
 function AbOnRenameAddressBook(aName)
@@ -525,72 +525,6 @@ function AbExport()
         message);
     }
   }
-}
-
-function AbDeleteDirectory()
-{
-  var selectedABURI = GetSelectedDirectory();
-  if (!selectedABURI)
-    return;
-
-  var parentArray = Components.classes["@mozilla.org/supports-array;1"].createInstance(Components.interfaces.nsISupportsArray);
-  if (!parentArray) 
-    return; 
-
-  var promptService = Components.classes["@mozilla.org/embedcomp/prompt-service;1"].getService(Components.interfaces.nsIPromptService);
- 
-  var parentRow = dirTree.view.getParentIndex(dirTree.currentIndex);
-  var parentId = (parentRow == -1) ? "moz-abdirectory://" : dirTree.builderView.getResourceAtIndex(parentRow).Value;
-  var parentDir = GetDirectoryFromURI(parentId);
-  parentArray.AppendElement(parentDir);
-    
-  var directory = GetDirectoryFromURI(selectedABURI);
-  var confirmDeleteMessage;
-  var clearPrefsRequired = false;
-
-  if (directory.isMailList)
-    confirmDeleteMessage = gAddressBookBundle.getString("confirmDeleteMailingList");
-  else {
-    // Check if this address book is being used for collection
-    if (gPrefs.getCharPref("mail.collect_addressbook") == selectedABURI &&
-        (gPrefs.getBoolPref("mail.collect_email_address_outgoing") ||
-         gPrefs.getBoolPref("mail.collect_email_address_incoming") ||
-         gPrefs.getBoolPref("mail.collect_email_address_newsgroup"))) {
-      var brandShortName = document.getElementById("bundle_brand").getString("brandShortName");
-
-      confirmDeleteMessage = gAddressBookBundle.getFormattedString("confirmDeleteCollectionAddressbook", [brandShortName]);
-      clearPrefsRequired = true;
-    }
-    else {
-      confirmDeleteMessage = gAddressBookBundle.getString("confirmDeleteAddressbook");
-    }
-  }
-
-  if (!promptService.confirm(window,
-                             gAddressBookBundle.getString(
-                                                directory.isMailList ?
-                                                "confirmDeleteMailingListTitle" :
-                                                "confirmDeleteAddressbookTitle"),
-                             confirmDeleteMessage))
-    return;
-
-  // First clear all the prefs if required
-  if (clearPrefsRequired) {
-    gPrefs.setBoolPref("mail.collect_email_address_outgoing", false);
-    gPrefs.setBoolPref("mail.collect_email_address_incoming", false);
-    gPrefs.setBoolPref("mail.collect_email_address_newsgroup", false);
-
-    // Also reset the displayed value so that we don't get a blank item in the
-    // prefs dialog if it gets enabled.
-    gPrefs.setCharPref("mail.collect_addressbook", kPersonalAddressbookURI);
-  }
-
-  var resourceArray = Components.classes["@mozilla.org/supports-array;1"].createInstance(Components.interfaces.nsISupportsArray);
-  var selectedABResource = GetDirectoryFromURI(selectedABURI).QueryInterface(Components.interfaces.nsIRDFResource);
-
-  resourceArray.AppendElement(selectedABResource);
-
-  top.addressbook.deleteAddressBooks(dirTree.database, parentArray, resourceArray);
 }
 
 function SetStatusText(total)

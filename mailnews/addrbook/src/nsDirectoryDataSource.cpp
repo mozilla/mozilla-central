@@ -68,9 +68,6 @@
 #define NC_RDF_DIRTREENAMESORT      "http://home.netscape.com/NC-rdf#DirTreeNameSort"
 #define NC_RDF_SUPPORTSMAILINGLISTS "http://home.netscape.com/NC-rdf#SupportsMailingLists"
 
-//Directory Commands
-#define NC_RDF_DELETECARDS          "http://home.netscape.com/NC-rdf#DeleteCards"
-
 ////////////////////////////////////////////////////////////////////////
 
 nsAbDirectoryDataSource::nsAbDirectoryDataSource()
@@ -160,12 +157,6 @@ nsAbDirectoryDataSource::Init()
                         getter_AddRefs(kNC_IsWriteable));
   NS_ENSURE_SUCCESS(rv,rv);
   rv = rdf->GetResource(NS_LITERAL_CSTRING(NC_RDF_DIRTREENAMESORT), getter_AddRefs(kNC_DirTreeNameSort));
-  NS_ENSURE_SUCCESS(rv,rv);
-  rv = rdf->GetResource(NS_LITERAL_CSTRING(NC_RDF_DELETE),
-                        getter_AddRefs(kNC_Delete));
-  NS_ENSURE_SUCCESS(rv,rv);
-  rv = rdf->GetResource(NS_LITERAL_CSTRING(NC_RDF_DELETECARDS),
-                        getter_AddRefs(kNC_DeleteCards));
   NS_ENSURE_SUCCESS(rv,rv);
   rv = rdf->GetResource(NS_LITERAL_CSTRING(NC_RDF_SUPPORTSMAILINGLISTS),
                         getter_AddRefs(kNC_SupportsMailingLists));
@@ -336,56 +327,6 @@ nsAbDirectoryDataSource::getDirectoryArcLabelsOut(nsIAbDirectory *directory,
   (*arcs)->AppendElement(kNC_IsWriteable);
   (*arcs)->AppendElement(kNC_DirTreeNameSort);
   (*arcs)->AppendElement(kNC_SupportsMailingLists);
-  return NS_OK;
-}
-
-NS_IMETHODIMP
-nsAbDirectoryDataSource::IsCommandEnabled(nsISupportsArray/*<nsIRDFResource>*/* aSources,
-                                        nsIRDFResource*   aCommand,
-                                        nsISupportsArray/*<nsIRDFResource>*/* aArguments,
-                                        PRBool* aResult)
-{
-  nsresult rv;
-  nsCOMPtr<nsIAbDirectory> directory;
-
-  PRUint32 i, cnt;
-  rv = aSources->Count(&cnt);
-  for (i = 0; i < cnt; i++) {
-    directory = do_QueryElementAt(aSources, i, &rv);
-    if (NS_SUCCEEDED(rv)) {
-      // we don't care about the arguments -- directory commands are always enabled
-      if (!((aCommand == kNC_Delete) || (aCommand == kNC_DeleteCards))) {
-        *aResult = PR_FALSE;
-        return NS_OK;
-      }
-    }
-  }
-  *aResult = PR_TRUE;
-  return NS_OK; // succeeded for all sources
-}
-
-NS_IMETHODIMP
-nsAbDirectoryDataSource::DoCommand(nsISupportsArray/*<nsIRDFResource>*/* aSources,
-                                 nsIRDFResource*   aCommand,
-                                 nsISupportsArray/*<nsIRDFResource>*/* aArguments)
-{
-  PRUint32 i, cnt;
-  nsresult rv = aSources->Count(&cnt);
-  NS_ENSURE_SUCCESS(rv, rv);
-
-  if ((aCommand == kNC_Delete))
-    rv = DoDeleteFromDirectory(aSources, aArguments);
-  else {
-    for (i = 0; i < cnt; i++) {
-      nsCOMPtr<nsIAbDirectory> directory = do_QueryElementAt(aSources, i, &rv);
-      if (NS_SUCCEEDED(rv)) {
-        NS_ASSERTION(aCommand == kNC_DeleteCards, "unknown command");
-        if ((aCommand == kNC_DeleteCards))
-          rv = DoDeleteCardsFromDirectory(directory, aArguments);
-      }
-    }
-  }
-  //for the moment return NS_OK, because failure stops entire DoCommand process.
   return NS_OK;
 }
 
@@ -707,58 +648,6 @@ nsresult nsAbDirectoryDataSource::CreateCollationKey(const nsString &aSource,  P
 
   return mCollationKeyGenerator->AllocateRawSortKey(nsICollation::kCollationCaseInSensitive, aSource, aKey, aLength);
 }
-
-nsresult nsAbDirectoryDataSource::DoDeleteFromDirectory(nsISupportsArray *parentDirs, nsISupportsArray *delDirs)
-{
-  PRUint32 item, itemCount;
-  nsresult rv = parentDirs->Count(&itemCount);
-  NS_ENSURE_SUCCESS(rv, rv);
-
-  for (item = 0; item < itemCount; item++)
-  {
-    nsCOMPtr<nsIAbDirectory> parent = do_QueryElementAt(parentDirs, item, &rv);
-    if (NS_SUCCEEDED(rv))
-    {
-      nsCOMPtr<nsIAbDirectory> deletedDir(do_QueryElementAt(delDirs, item));
-      if(deletedDir)
-      {
-        rv = parent->DeleteDirectory(deletedDir);
-      }
-    }
-  }
-  return rv;
-}
-
-nsresult nsAbDirectoryDataSource::DoDeleteCardsFromDirectory(nsIAbDirectory *directory, nsISupportsArray *arguments)
-{
-  nsresult rv = NS_OK;
-  PRUint32 itemCount;
-  rv = arguments->Count(&itemCount);
-  NS_ENSURE_SUCCESS(rv, rv);
-
-  nsCOMPtr<nsISupportsArray> cardArray;
-  NS_NewISupportsArray(getter_AddRefs(cardArray));
-
-  //Split up deleted items into different type arrays to be passed to the folder
-  //for deletion.
-  PRUint32 item;
-  for(item = 0; item < itemCount; item++)
-  {
-    nsCOMPtr<nsIAbCard> deletedCard(do_QueryElementAt(arguments, item));
-    if (deletedCard)
-    {
-      rv = cardArray->AppendElement(deletedCard);
-      NS_ENSURE_SUCCESS(rv, rv);
-    }
-  }
-  PRUint32 cnt;
-  rv = cardArray->Count(&cnt);
-  NS_ENSURE_SUCCESS(rv, rv);
-  if (cnt > 0)
-    rv = directory->DeleteCards(cardArray);
-  return rv;
-}
-
 
 nsresult nsAbDirectoryDataSource::DoDirectoryAssert(nsIAbDirectory *directory, nsIRDFResource *property, nsIRDFNode *target)
 {

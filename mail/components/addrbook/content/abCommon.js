@@ -254,7 +254,7 @@ var DirPaneController =
       case "cmd_delete":
       case "button_delete":
         if (dirTree)
-          AbDeleteDirectory();
+          AbDeleteSelectedDirectory();
         break;
       case "button_edit":
         AbEditSelectedDirectory();
@@ -302,6 +302,65 @@ function AbEditSelectedDirectory()
       }
     }
   }
+}
+
+function AbDeleteSelectedDirectory()
+{
+  var selectedABURI = GetSelectedDirectory();
+  if (!selectedABURI)
+    return;
+
+  AbDeleteDirectory(selectedABURI);
+}
+
+function AbDeleteDirectory(aURI)
+{
+  var promptService = Components.classes["@mozilla.org/embedcomp/prompt-service;1"].getService(Components.interfaces.nsIPromptService);
+
+  var directory = GetDirectoryFromURI(aURI);
+  var confirmDeleteMessage;
+  var clearPrefsRequired = false;
+
+  if (directory.isMailList)
+    confirmDeleteMessage = gAddressBookBundle.getString("confirmDeleteMailingList");
+  else {
+    // Check if this address book is being used for collection
+    if (gPrefs.getCharPref("mail.collect_addressbook") == aURI &&
+        (gPrefs.getBoolPref("mail.collect_email_address_outgoing") ||
+         gPrefs.getBoolPref("mail.collect_email_address_incoming") ||
+         gPrefs.getBoolPref("mail.collect_email_address_newsgroup"))) {
+      var brandShortName = document.getElementById("bundle_brand").getString("brandShortName");
+
+      confirmDeleteMessage = gAddressBookBundle.getFormattedString("confirmDeleteCollectionAddressbook", [brandShortName]);
+      clearPrefsRequired = true;
+    }
+    else {
+      confirmDeleteMessage = gAddressBookBundle.getString("confirmDeleteAddressbook");
+    }
+  }
+
+  if (!promptService.confirm(window,
+                             gAddressBookBundle.getString(
+                                                directory.isMailList ?
+                                                "confirmDeleteMailingListTitle" :
+                                                "confirmDeleteAddressbookTitle"),
+                             confirmDeleteMessage))
+    return;
+
+  // First clear all the prefs if required
+  if (clearPrefsRequired) {
+    gPrefs.setBoolPref("mail.collect_email_address_outgoing", false);
+    gPrefs.setBoolPref("mail.collect_email_address_incoming", false);
+    gPrefs.setBoolPref("mail.collect_email_address_newsgroup", false);
+
+    // Also reset the displayed value so that we don't get a blank item in the
+    // prefs dialog if it gets enabled.
+    gPrefs.setCharPref("mail.collect_addressbook", kPersonalAddressbookURI);
+  }
+
+  Components.classes["@mozilla.org/addressbook;1"]
+            .createInstance(Components.interfaces.nsIAddressBook)
+            .deleteAddressBook(aURI);
 }
 
 function GetParentRow(aTree, aRow)

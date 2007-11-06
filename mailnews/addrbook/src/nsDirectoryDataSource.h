@@ -98,15 +98,6 @@ public:
   NS_IMETHOD ArcLabelsOut(nsIRDFResource* source,
               nsISimpleEnumerator** labels); 
 
-  NS_IMETHOD IsCommandEnabled(nsISupportsArray/*<nsIRDFResource>*/* aSources,
-                nsIRDFResource*   aCommand,
-                nsISupportsArray/*<nsIRDFResource>*/* aArguments,
-                PRBool* aResult);
-
-  NS_IMETHOD DoCommand(nsISupportsArray/*<nsIRDFResource>*/* aSources,
-             nsIRDFResource*   aCommand,
-             nsISupportsArray/*<nsIRDFResource>*/* aArguments);
-
 protected:
 
   nsresult createDirectoryNode(nsIAbDirectory* directory, nsIRDFResource* property,
@@ -132,11 +123,6 @@ protected:
   nsresult getDirectoryArcLabelsOut(nsIAbDirectory *directory,
                        nsISupportsArray **arcs);
 
-  nsresult DoDeleteFromDirectory(nsISupportsArray *parentDirs,
-                nsISupportsArray *delDirs);
-  nsresult DoDeleteCardsFromDirectory(nsIAbDirectory *directory,
-                nsISupportsArray *delDirs);
-
   nsresult DoDirectoryAssert(nsIAbDirectory *directory, 
           nsIRDFResource *property, nsIRDFNode *target);
   nsresult DoDirectoryHasAssertion(nsIAbDirectory *directory, 
@@ -157,11 +143,7 @@ protected:
   nsCOMPtr<nsIRDFResource> kNC_DirTreeNameSort;
   nsCOMPtr<nsIRDFResource> kNC_SupportsMailingLists;
   nsCOMPtr<nsICollation> mCollationKeyGenerator;
-  
-  // commands
-  nsCOMPtr<nsIRDFResource> kNC_Delete;
-  nsCOMPtr<nsIRDFResource> kNC_DeleteCards;
-  
+
   //Cached literals
   nsCOMPtr<nsIRDFNode> kTrueLiteral;
   nsCOMPtr<nsIRDFNode> kFalseLiteral;
