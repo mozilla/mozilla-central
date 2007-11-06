@@ -1,9 +1,7 @@
 #
 ## hostname: fx-linux-tbox
-## uname: Linux fx-linux-tbox.build.mozilla.org 2.6.9-42.ELsmp #1 SMP Sat Aug 12 09:39:11 CDT 2006 i686 i686 i386 GNU/Linux
+## uname: Linux fx-linux-tbox.build.mozilla.org 2.6.18-8.el5 #1 SMP Thu Mar 15 19:57:35 EDT 2007 i686 i686 i386 GNU/Linux
 #
-
-export MOZILLA_OFFICIAL=1
 
 mk_add_options MOZ_CO_PROJECT=browser
 mk_add_options PROFILE_GEN_SCRIPT=@TOPSRCDIR@/build/profile_pageloader.pl

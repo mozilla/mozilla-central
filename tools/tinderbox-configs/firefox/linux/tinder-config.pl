@@ -7,10 +7,7 @@
 #-    Uncomment the variables you need to set.
 #-    The default values are the same as the commented variables.
 
-$ENV{MOZILLA_OFFICIAL} = 1;
 $ENV{CVS_RSH} = "ssh";
-#$ENV{PATH} = "/usr/gcc-3.3.2rh/bin:$ENV{PATH}";
-# $ENV{PAGELOAD_URL} = "http://spider/page-loader";
 $ENV{MOZ_CRASHREPORTER_NO_REPORT} = '1';
 
 # To ensure Talkback client builds properly on some Linux boxen where LANG
@@ -149,8 +146,6 @@ $pageload_server      = "pageload.build.mozilla.org";
 #$moz_cvsroot   = $ENV{CVSROOT};
 $moz_cvsroot   = ":ext:cltbld\@cvs.mozilla.org:/cvsroot";
 
-$MofoRoot = ":ext:cltbld\@cvs.mozilla.org:/mofo";
-
 #- Set these proper values for your tinderbox server
 #$Tinderbox_server = 'tinderbox-daemon@tinderbox.mozilla.org';
 
@@ -177,7 +172,6 @@ $BuildNameExtra = 'Nightly';
 #- Until you get the script working. When it works,
 #- change to the tree you're actually building
 $BuildTree  = 'Firefox';
-#$BuildTree = "MozillaTest";
 
 #$BuildName = '';
 #$BuildTag = '';
@@ -230,10 +224,10 @@ $update_filehost = 'ftp.mozilla.org';
 $update_ver_file = 'browser/config/version.txt';
 $crashreporter_buildsymbols = 1;
 $crashreporter_pushsymbols = 1;
-$ENV{SYMBOL_SERVER_HOST} = 'stage.mozilla.org';
-$ENV{SYMBOL_SERVER_USER}   = 'ffxbld';
-$ENV{SYMBOL_SERVER_PATH}   = '/mnt/netapp/breakpad/symbols_ffx/';
-$ENV{SYMBOL_SERVER_SSH_KEY}   = "$ENV{HOME}/.ssh/ffxbld_dsa";
+$ENV{'SYMBOL_SERVER_HOST'} = 'stage.mozilla.org';
+$ENV{'SYMBOL_SERVER_USER'}   = 'ffxbld';
+$ENV{'SYMBOL_SERVER_PATH'}   = '/mnt/netapp/breakpad/symbols_ffx/';
+$ENV{'SYMBOL_SERVER_SSH_KEY'}   = "$ENV{'HOME'}/.ssh/ffxbld_dsa";
 
 # Reboot the OS at the end of build-and-test cycle. This is primarily
 # intended for Win9x, which can't last more than a few cycles before

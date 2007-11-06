@@ -143,11 +143,7 @@ $DHTMLPerformanceTestTimeout      = 180;  # entire test, seconds
 # Note that win32 may not need \@, depends on ' or ".
 # :pserver:$ENV{USER}%netscape.com@cvs.mozilla.org:/cvsroot
 
-#$moz_cvsroot   = $ENV{CVSROOT};
 $moz_cvsroot   = ":ext:cltbld\@cvs.mozilla.org:/cvsroot";
-#$moz_cvsroot   = "/builds/cvs.hourly/cvsroot";
-
-$MofoRoot = ":ext:cltbld\@cvs.mozilla.org:/mofo";
 
 #- Set these proper values for your tinderbox server
 #$Tinderbox_server = 'tinderbox-daemon@tinderbox.mozilla.org';
@@ -199,8 +195,8 @@ $BinaryName = 'firefox-bin';
 # Release build options
 $ReleaseBuild  = 1;
 $shiptalkback  = 0;
-#$ReleaseToLatest = 1; # Push the release to latest-<milestone>?
-#$ReleaseToDated = 1; # Push the release to YYYY-MM-DD-HH-<milestone>?
+$ReleaseToLatest = 1; # Push the release to latest-<milestone>?
+$ReleaseToDated = 1; # Push the release to YYYY-MM-DD-HH-<milestone>?
 $build_hour    = "4";
 $package_creation_path = "/browser/installer";
 # needs setting for mac + talkback: $mac_bundle_path = "/browser/app";
@@ -217,7 +213,7 @@ $notify_list   = "build-announce\@mozilla.org";
 $stub_installer = 0;
 $sea_installer = 0;
 $archive       = 1;
-#$push_raw_xpis = 1;
+$push_raw_xpis = 0;
 $update_package = 1;
 $update_product = "Firefox";
 $update_version = "trunk";
