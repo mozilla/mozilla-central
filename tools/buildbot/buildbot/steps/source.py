@@ -22,7 +22,7 @@ class Source(LoggingBuildStep):
 
     branch = None # the default branch, should be set in __init__
 
-    def __init__(self, workdir, mode='update', alwaysUseLatest=False,
+    def __init__(self, workdir=None, mode='update', alwaysUseLatest=False,
                  timeout=20*60, retry=None, **kwargs):
         """
         @type  workdir: string
@@ -105,6 +105,12 @@ class Source(LoggingBuildStep):
         """
 
         LoggingBuildStep.__init__(self, **kwargs)
+        self.addFactoryArguments(workdir=workdir,
+                                 mode=mode,
+                                 alwaysUseLatest=alwaysUseLatest,
+                                 timeout=timeout,
+                                 retry=retry,
+                                 )
 
         assert mode in ("update", "copy", "clobber", "export")
         if retry:
@@ -131,6 +137,9 @@ class Source(LoggingBuildStep):
             descriptionDone = ["export"]
         self.description = description
         self.descriptionDone = descriptionDone
+
+    def setDefaultWorkdir(self, workdir):
+        self.args['workdir'] = self.args['workdir'] or workdir
 
     def describe(self, done=False):
         if done:
@@ -169,6 +178,8 @@ class Source(LoggingBuildStep):
 
         # 'patch' is None or a tuple of (patchlevel, diff)
         patch = s.patch
+        if patch:
+            self.addCompleteLog("patch", patch[1])
 
         self.startVC(branch, revision, patch)
 
@@ -204,7 +215,6 @@ class CVS(Source):
     def __init__(self, cvsroot, cvsmodule, 
                  global_options=[], branch=None, checkoutDelay=None,
                  login=None,
-                 clobber=0, export=0, copydir=None,
                  **kwargs):
 
         """
@@ -261,20 +271,14 @@ class CVS(Source):
         self.checkoutDelay = checkoutDelay
         self.branch = branch
 
-        if not kwargs.has_key('mode') and (clobber or export or copydir):
-            # deal with old configs
-            warnings.warn("Please use mode=, not clobber/export/copydir",
-                          DeprecationWarning)
-            if export:
-                kwargs['mode'] = "export"
-            elif clobber:
-                kwargs['mode'] = "clobber"
-            elif copydir:
-                kwargs['mode'] = "copy"
-            else:
-                kwargs['mode'] = "update"
-
         Source.__init__(self, **kwargs)
+        self.addFactoryArguments(cvsroot=cvsroot,
+                                 cvsmodule=cvsmodule,
+                                 global_options=global_options,
+                                 branch=branch,
+                                 checkoutDelay=checkoutDelay,
+                                 login=login,
+                                 )
 
         self.args.update({'cvsroot': cvsroot,
                           'cvsmodule': cvsmodule,
@@ -381,6 +385,11 @@ class SVN(Source):
         self.branch = defaultBranch
 
         Source.__init__(self, **kwargs)
+        self.addFactoryArguments(svnurl=svnurl,
+                                 baseURL=baseURL,
+                                 defaultBranch=defaultBranch,
+                                 directory=directory,
+                                 )
 
         if not svnurl and not baseURL:
             raise ValueError("you must use exactly one of svnurl and baseURL")
@@ -456,6 +465,8 @@ class SVN(Source):
             revstuff.append("[branch]")
         if revision is not None:
             revstuff.append("r%s" % revision)
+        if patch is not None:
+            revstuff.append("[patch]")
         self.description.extend(revstuff)
         self.descriptionDone.extend(revstuff)
 
@@ -500,7 +511,11 @@ class Darcs(Source):
         self.baseURL = baseURL
         self.branch = defaultBranch
         Source.__init__(self, **kwargs)
-        assert kwargs['mode'] != "export", \
+        self.addFactoryArguments(repourl=repourl,
+                                 baseURL=baseURL,
+                                 defaultBranch=defaultBranch,
+                                 )
+        assert self.args['mode'] != "export", \
                "Darcs does not have an 'export' mode"
         if (not repourl and not baseURL) or (repourl and baseURL):
             raise ValueError("you must provide exactly one of repourl and"
@@ -563,6 +578,7 @@ class Git(Source):
         """
         self.branch = None # TODO
         Source.__init__(self, **kwargs)
+        self.addFactoryArguments(repourl=repourl)
         self.args['repourl'] = repourl
 
     def startVC(self, branch, revision, patch):
@@ -607,6 +623,10 @@ class Arch(Source):
         """
         self.branch = version
         Source.__init__(self, **kwargs)
+        self.addFactoryArguments(url=url,
+                                 version=version,
+                                 archive=archive,
+                                 )
         self.args.update({'url': url,
                           'archive': archive,
                           })
@@ -714,6 +734,10 @@ class Bazaar(Arch):
         """
         self.branch = version
         Source.__init__(self, **kwargs)
+        self.addFactoryArguments(url=url,
+                                 version=version,
+                                 archive=archive,
+                                 )
         self.args.update({'url': url,
                           'archive': archive,
                           })
@@ -734,6 +758,76 @@ class Bazaar(Arch):
 
         cmd = LoggedRemoteCommand("bazaar", self.args)
         self.startCommand(cmd, warnings)
+
+class Bzr(Source):
+    """Check out a source tree from a bzr (Bazaar) repository at 'repourl'.
+
+    """
+
+    name = "bzr"
+
+    def __init__(self, repourl=None, baseURL=None, defaultBranch=None,
+                 **kwargs):
+        """
+        @type  repourl: string
+        @param repourl: the URL which points at the bzr repository. This
+                        is used as the default branch. Using C{repourl} does
+                        not enable builds of alternate branches: use
+                        C{baseURL} to enable this. Use either C{repourl} or
+                        C{baseURL}, not both.
+
+        @param baseURL: if branches are enabled, this is the base URL to
+                        which a branch name will be appended. It should
+                        probably end in a slash. Use exactly one of
+                        C{repourl} and C{baseURL}.
+                         
+        @param defaultBranch: if branches are enabled, this is the branch
+                              to use if the Build does not specify one
+                              explicitly. It will simply be appended to
+                              C{baseURL} and the result handed to the
+                              'bzr checkout pull' command.
+        """
+        self.repourl = repourl
+        self.baseURL = baseURL
+        self.branch = defaultBranch
+        Source.__init__(self, **kwargs)
+        self.addFactoryArguments(repourl=repourl,
+                                 baseURL=baseURL,
+                                 defaultBranch=defaultBranch,
+                                 )
+        if (not repourl and not baseURL) or (repourl and baseURL):
+            raise ValueError("you must provide exactly one of repourl and"
+                             " baseURL")
+
+    def computeSourceRevision(self, changes):
+        if not changes:
+            return None
+        lastChange = max([int(c.revision) for c in changes])
+        return lastChange
+
+    def startVC(self, branch, revision, patch):
+        slavever = self.slaveVersion("bzr")
+        if not slavever:
+            m = "slave is too old, does not know about bzr"
+            raise BuildSlaveTooOldError(m)
+
+        if self.repourl:
+            assert not branch # we need baseURL= to use branches
+            self.args['repourl'] = self.repourl
+        else:
+            self.args['repourl'] = self.baseURL + branch
+        self.args['revision'] = revision
+        self.args['patch'] = patch
+
+        revstuff = []
+        if branch is not None and branch != self.branch:
+            revstuff.append("[branch]")
+        self.description.extend(revstuff)
+        self.descriptionDone.extend(revstuff)
+
+        cmd = LoggedRemoteCommand("bzr", self.args)
+        self.startCommand(cmd)
+
 
 class Mercurial(Source):
     """Check out a source tree from a mercurial repository 'repourl'."""
@@ -765,6 +859,10 @@ class Mercurial(Source):
         self.baseURL = baseURL
         self.branch = defaultBranch
         Source.__init__(self, **kwargs)
+        self.addFactoryArguments(repourl=repourl,
+                                 baseURL=baseURL,
+                                 defaultBranch=defaultBranch,
+                                 )
         if (not repourl and not baseURL) or (repourl and baseURL):
             raise ValueError("you must provide exactly one of repourl and"
                              " baseURL")
@@ -791,6 +889,19 @@ class Mercurial(Source):
 
         cmd = LoggedRemoteCommand("hg", self.args)
         self.startCommand(cmd)
+
+    def computeSourceRevision(self, changes):
+        if not changes:
+            return None
+        # without knowing the revision ancestry graph, we can't sort the
+        # changes at all. So for now, assume they were given to us in sorted
+        # order, and just pay attention to the last one. See ticket #103 for
+        # more details.
+        if len(changes) > 1:
+            log.msg("Mercurial.computeSourceRevision: warning: "
+                    "there are %d changes here, assuming the last one is "
+                    "the most recent" % len(changes))
+        return changes[-1].revision
 
 
 class P4(Source):
@@ -832,14 +943,26 @@ class P4(Source):
 
         self.branch = defaultBranch
         Source.__init__(self, **kwargs)
+        self.addFactoryArguments(p4base=p4base,
+                                 defaultBranch=defaultBranch,
+                                 p4port=p4port,
+                                 p4user=p4user,
+                                 p4passwd=p4passwd,
+                                 p4extra_views=p4extra_views,
+                                 p4client=p4client,
+                                 )
         self.args['p4port'] = p4port
         self.args['p4user'] = p4user
         self.args['p4passwd'] = p4passwd
         self.args['p4base'] = p4base
         self.args['p4extra_views'] = p4extra_views
-        self.args['p4client'] = p4client % {
-            'slave': self.build.slavename,
-            'builder': self.build.builder.name,
+        self.p4client = p4client
+
+    def setBuild(self, build):
+        Source.setBuild(self, build)
+        self.args['p4client'] = self.p4client % {
+            'slave': build.slavename,
+            'builder': build.builder.name,
         }
 
     def computeSourceRevision(self, changes):
@@ -882,6 +1005,11 @@ class P4Sync(Source):
         assert kwargs['mode'] == "copy", "P4Sync can only be used in mode=copy"
         self.branch = None
         Source.__init__(self, **kwargs)
+        self.addFactoryArguments(p4port=p4port,
+                                 p4user=p4user,
+                                 p4passwd=p4passwd,
+                                 p4client=p4client,
+                                )
         self.args['p4port'] = p4port
         self.args['p4user'] = p4user
         self.args['p4passwd'] = p4passwd
@@ -914,6 +1042,11 @@ class Monotone(Source):
                  monotone="monotone",
                  **kwargs):
         Source.__init__(self, **kwargs)
+        self.addFactoryArguments(server_addr=server_addr,
+                                 branch=branch,
+                                 db_path=db_path,
+                                 monotone=monotone,
+                                 )
         self.args.update({"server_addr": server_addr,
                           "branch": branch,
                           "db_path": db_path,

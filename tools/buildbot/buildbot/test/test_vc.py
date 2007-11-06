@@ -1,13 +1,13 @@
 # -*- test-case-name: buildbot.test.test_vc -*-
 
-from __future__ import generators
-
 import sys, os, time, re
 from email.Utils import mktime_tz, parsedate_tz
+from cStringIO import StringIO
 
 from twisted.trial import unittest
 from twisted.internet import defer, reactor, utils, protocol, error
 from twisted.python import failure
+from twisted.python.procutils import which
 
 #defer.Deferred.debug = True
 
@@ -22,13 +22,11 @@ from buildbot.process import base
 from buildbot.steps import source
 from buildbot.changes import changes
 from buildbot.sourcestamp import SourceStamp
-from buildbot.twcompat import maybeWait, which
 from buildbot.scripts import tryclient
 from buildbot.test.runutils import SignalMixin
 
 #step.LoggedRemoteCommand.debug = True
 
-# buildbot.twcompat will patch these into t.i.defer if necessary
 from twisted.internet.defer import waitForDeferred, deferredGenerator
 
 # Most of these tests (all but SourceStamp) depend upon having a set of
@@ -54,17 +52,11 @@ from twisted.internet.defer import waitForDeferred, deferredGenerator
 # use a predetermined Internet-domain port number, unless we want to go
 # all-out: bind the listen socket ourselves and pretend to be inetd.
 
-try:
-    import cStringIO
-    StringIO = cStringIO
-except ImportError:
-    import StringIO
-
 class _PutEverythingGetter(protocol.ProcessProtocol):
     def __init__(self, deferred, stdin):
         self.deferred = deferred
-        self.outBuf = StringIO.StringIO()
-        self.errBuf = StringIO.StringIO()
+        self.outBuf = StringIO()
+        self.errBuf = StringIO()
         self.outReceived = self.outBuf.write
         self.errReceived = self.errBuf.write
         self.stdin = stdin
@@ -98,14 +90,14 @@ def myGetProcessOutputAndValue(executable, args=(), env={}, path='.',
 config_vc = """
 from buildbot.process import factory
 from buildbot.steps import source
+from buildbot.buildslave import BuildSlave
 s = factory.s
 
 f1 = factory.BuildFactory([
     %s,
     ])
 c = {}
-c['bots'] = [['bot1', 'sekrit']]
-c['sources'] = []
+c['slaves'] = [BuildSlave('bot1', 'sekrit')]
 c['schedulers'] = []
 c['builders'] = [{'name': 'vc', 'slavename': 'bot1',
                   'builddir': 'vc-dir', 'factory': f1}]
@@ -330,7 +322,8 @@ class BaseHelper:
         raise NotImplementedError
 
     def populate(self, basedir):
-        os.makedirs(basedir)
+        if not os.path.exists(basedir):
+            os.makedirs(basedir)
         os.makedirs(os.path.join(basedir, "subdir"))
         open(os.path.join(basedir, "main.c"), "w").write(MAIN_C)
         self.version = 1
@@ -423,7 +416,7 @@ class VCBase(SignalMixin):
     def setUp(self):
         d = VCS.skipIfNotCapable(self.vc_name)
         d.addCallback(self._setUp1)
-        return maybeWait(d)
+        return d
 
     def _setUp1(self, res):
         self.helper = VCS.getHelper(self.vc_name)
@@ -1066,14 +1059,11 @@ class VCBase(SignalMixin):
         if self.httpServer:
             d.addCallback(lambda res: self.httpServer.stopListening())
             def stopHTTPTimer():
-                try:
-                    from twisted.web import http # Twisted-2.0
-                except ImportError:
-                    from twisted.protocols import http # Twisted-1.3
+                from twisted.web import http
                 http._logDateTimeStop() # shut down the internal timer. DUMB!
             d.addCallback(lambda res: stopHTTPTimer())
         d.addCallback(lambda res: self.tearDown2())
-        return maybeWait(d)
+        return d
 
     def tearDown2(self):
         pass
@@ -1209,19 +1199,19 @@ class CVS(VCBase, unittest.TestCase):
 
     def testCheckout(self):
         d = self.do_vctest()
-        return maybeWait(d)
+        return d
 
     def testPatch(self):
         d = self.do_patch()
-        return maybeWait(d)
+        return d
 
     def testCheckoutBranch(self):
         d = self.do_branch()
-        return maybeWait(d)
+        return d
         
     def testTry(self):
         d = self.do_getpatch(doBranch=False)
-        return maybeWait(d)
+        return d
 
 VCS.registerVC(CVS.vc_name, CVSHelper())
 
@@ -1352,21 +1342,21 @@ class SVN(VCBase, unittest.TestCase):
         # baseURL/defaultBranch style in testPatch and testCheckoutBranch.
         self.helper.vcargs = { 'svnurl': self.helper.svnurl_trunk }
         d = self.do_vctest()
-        return maybeWait(d)
+        return d
 
     def testPatch(self):
         self.helper.vcargs = { 'baseURL': self.helper.svnurl + "/",
                                'defaultBranch': "sample/trunk",
                                }
         d = self.do_patch()
-        return maybeWait(d)
+        return d
 
     def testCheckoutBranch(self):
         self.helper.vcargs = { 'baseURL': self.helper.svnurl + "/",
                                'defaultBranch': "sample/trunk",
                                }
         d = self.do_branch()
-        return maybeWait(d)
+        return d
 
     def testTry(self):
         # extract the base revision and patch from a modified tree, use it to
@@ -1375,7 +1365,7 @@ class SVN(VCBase, unittest.TestCase):
                                'defaultBranch': "sample/trunk",
                                }
         d = self.do_getpatch()
-        return maybeWait(d)
+        return d
 
 VCS.registerVC(SVN.vc_name, SVNHelper())
 
@@ -1516,7 +1506,7 @@ class P4(VCBase, unittest.TestCase):
 
     def tearDownClass(self):
         if self.helper:
-            return maybeWait(self.helper.shutdown_p4d())
+            return self.helper.shutdown_p4d()
 
     def testCheckout(self):
         self.helper.vcargs = { 'p4port': self.helper.p4port,
@@ -1525,21 +1515,21 @@ class P4(VCBase, unittest.TestCase):
         d = self.do_vctest(testRetry=False)
         # TODO: like arch and darcs, sync does nothing when server is not
         # changed.
-        return maybeWait(d)
+        return d
 
     def testCheckoutBranch(self):
         self.helper.vcargs = { 'p4port': self.helper.p4port,
                                'p4base': '//depot/',
                                'defaultBranch': 'trunk' }
         d = self.do_branch()
-        return maybeWait(d)
+        return d
 
     def testPatch(self):
         self.helper.vcargs = { 'p4port': self.helper.p4port,
                                'p4base': '//depot/',
                                'defaultBranch': 'trunk' }
         d = self.do_patch()
-        return maybeWait(d)
+        return d
 
 VCS.registerVC(P4.vc_name, P4Helper())
 
@@ -1650,32 +1640,32 @@ class Darcs(VCBase, unittest.TestCase):
 
         # TODO: testRetry has the same problem with Darcs as it does for
         # Arch
-        return maybeWait(d)
+        return d
 
     def testPatch(self):
         self.helper.vcargs = { 'baseURL': self.helper.darcs_base + "/",
                                'defaultBranch': "trunk" }
         d = self.do_patch()
-        return maybeWait(d)
+        return d
 
     def testCheckoutBranch(self):
         self.helper.vcargs = { 'baseURL': self.helper.darcs_base + "/",
                                'defaultBranch': "trunk" }
         d = self.do_branch()
-        return maybeWait(d)
+        return d
 
     def testCheckoutHTTP(self):
         self.serveHTTP()
         repourl = "http://localhost:%d/Darcs-Repository/trunk" % self.httpPort
         self.helper.vcargs =  { 'repourl': repourl }
         d = self.do_vctest(testRetry=False)
-        return maybeWait(d)
+        return d
         
     def testTry(self):
         self.helper.vcargs = { 'baseURL': self.helper.darcs_base + "/",
                                'defaultBranch': "trunk" }
         d = self.do_getpatch()
-        return maybeWait(d)
+        return d
 
 VCS.registerVC(Darcs.vc_name, DarcsHelper())
 
@@ -1944,7 +1934,7 @@ class Arch(VCBase, unittest.TestCase):
         # some better test logic, probably involving a copy of the
         # repository that has a few changes checked in.
 
-        return maybeWait(d)
+        return d
 
     def testCheckoutHTTP(self):
         self.serveHTTP()
@@ -1952,25 +1942,25 @@ class Arch(VCBase, unittest.TestCase):
         self.helper.vcargs = { 'url': url,
                                'version': "testvc--mainline--1" }
         d = self.do_vctest(testRetry=False)
-        return maybeWait(d)
+        return d
 
     def testPatch(self):
         self.helper.vcargs = {'url': self.helper.archrep,
                               'version': self.helper.defaultbranch }
         d = self.do_patch()
-        return maybeWait(d)
+        return d
 
     def testCheckoutBranch(self):
         self.helper.vcargs = {'url': self.helper.archrep,
                               'version': self.helper.defaultbranch }
         d = self.do_branch()
-        return maybeWait(d)
+        return d
 
     def testTry(self):
         self.helper.vcargs = {'url': self.helper.archrep,
                               'version': self.helper.defaultbranch }
         d = self.do_getpatch()
-        return maybeWait(d)
+        return d
 
 VCS.registerVC(Arch.vc_name, TlaHelper())
 
@@ -2017,7 +2007,7 @@ class Bazaar(Arch):
         # some better test logic, probably involving a copy of the
         # repository that has a few changes checked in.
 
-        return maybeWait(d)
+        return d
 
     def testCheckoutHTTP(self):
         self.serveHTTP()
@@ -2027,7 +2017,7 @@ class Bazaar(Arch):
                                'version': self.helper.defaultbranch,
                                }
         d = self.do_vctest(testRetry=False)
-        return maybeWait(d)
+        return d
 
     def testPatch(self):
         self.helper.vcargs = {'url': self.helper.archrep,
@@ -2036,7 +2026,7 @@ class Bazaar(Arch):
                               'version': self.helper.defaultbranch,
                               }
         d = self.do_patch()
-        return maybeWait(d)
+        return d
 
     def testCheckoutBranch(self):
         self.helper.vcargs = {'url': self.helper.archrep,
@@ -2045,7 +2035,7 @@ class Bazaar(Arch):
                               'version': self.helper.defaultbranch,
                               }
         d = self.do_branch()
-        return maybeWait(d)
+        return d
 
     def testTry(self):
         self.helper.vcargs = {'url': self.helper.archrep,
@@ -2054,7 +2044,7 @@ class Bazaar(Arch):
                               'version': self.helper.defaultbranch,
                               }
         d = self.do_getpatch()
-        return maybeWait(d)
+        return d
 
     def fixRepository(self):
         self.fixtimer = None
@@ -2088,7 +2078,7 @@ class Bazaar(Arch):
                                }
         d = self.do_vctest_once(True)
         d.addCallback(self._testRetry_1)
-        return maybeWait(d)
+        return d
     def _testRetry_1(self, bs):
         # make sure there was mention of the retry attempt in the logs
         l = bs.getLogs()[0]
@@ -2117,7 +2107,7 @@ class Bazaar(Arch):
                               }
         d = self.do_vctest_once(False)
         d.addCallback(self._testRetryFails_1)
-        return maybeWait(d)
+        return d
     def _testRetryFails_1(self, bs):
         self.failUnlessEqual(bs.getResults(), FAILURE)
 
@@ -2133,6 +2123,202 @@ class Bazaar(Arch):
         return d
 
 VCS.registerVC(Bazaar.vc_name, BazaarHelper())
+
+class BzrHelper(BaseHelper):
+    branchname = "branch"
+    try_branchname = "branch"
+
+    def capable(self):
+        bzrpaths = which('bzr')
+        if not bzrpaths:
+            return (False, "bzr is not installed")
+        self.vcexe = bzrpaths[0]
+        return (True, None)
+
+    def get_revision_number(self, out):
+        for line in out.split("\n"):
+            colon = line.index(":")
+            key, value = line[:colon], line[colon+2:]
+            if key == "revno":
+                return int(value)
+        raise RuntimeError("unable to find revno: in bzr output: '%s'" % out)
+
+    def createRepository(self):
+        self.createBasedir()
+        self.bzr_base = os.path.join(self.repbase, "Bzr-Repository")
+        self.rep_trunk = os.path.join(self.bzr_base, "trunk")
+        self.rep_branch = os.path.join(self.bzr_base, "branch")
+        tmp = os.path.join(self.repbase, "bzrtmp")
+        btmp = os.path.join(self.repbase, "bzrtmp-branch")
+
+        os.makedirs(self.rep_trunk)
+        w = self.dovc(self.rep_trunk, ["init"])
+        yield w; w.getResult()
+        w = self.dovc(self.bzr_base,
+                      ["branch", self.rep_trunk, self.rep_branch])
+        yield w; w.getResult()
+
+        w = self.dovc(self.repbase, ["checkout", self.rep_trunk, tmp])
+        yield w; w.getResult()
+        self.populate(tmp)
+        w = self.dovc(tmp, qw("add"))
+        yield w; w.getResult()
+        w = self.dovc(tmp, qw("commit -m initial_import"))
+        yield w; w.getResult()
+        w = self.dovc(tmp, qw("version-info"))
+        yield w; out = w.getResult()
+        self.addTrunkRev(self.get_revision_number(out))
+        rmdirRecursive(tmp)
+
+        # pull all trunk revisions to the branch
+        w = self.dovc(self.rep_branch, qw("pull"))
+        yield w; w.getResult()
+        # obtain a branch tree
+        w = self.dovc(self.repbase, ["checkout", self.rep_branch, btmp])
+        yield w; w.getResult()
+        # modify it
+        self.populate_branch(btmp)
+        w = self.dovc(btmp, qw("add"))
+        yield w; w.getResult()
+        w = self.dovc(btmp, qw("commit -m commit_on_branch"))
+        yield w; w.getResult()
+        w = self.dovc(btmp, qw("version-info"))
+        yield w; out = w.getResult()
+        self.addBranchRev(self.get_revision_number(out))
+        rmdirRecursive(btmp)
+    createRepository = deferredGenerator(createRepository)
+
+    def vc_revise(self):
+        tmp = os.path.join(self.repbase, "bzrtmp")
+        w = self.dovc(self.repbase, ["checkout", self.rep_trunk, tmp])
+        yield w; w.getResult()
+
+        self.version += 1
+        version_c = VERSION_C % self.version
+        open(os.path.join(tmp, "version.c"), "w").write(version_c)
+        w = self.dovc(tmp, qw("commit -m revised_to_%d" % self.version))
+        yield w; w.getResult()
+        w = self.dovc(tmp, qw("version-info"))
+        yield w; out = w.getResult()
+        self.addTrunkRev(self.get_revision_number(out))
+        rmdirRecursive(tmp)
+    vc_revise = deferredGenerator(vc_revise)
+
+    def vc_try_checkout(self, workdir, rev, branch=None):
+        assert os.path.abspath(workdir) == workdir
+        if os.path.exists(workdir):
+            rmdirRecursive(workdir)
+        #os.makedirs(workdir)
+        if not branch:
+            rep = self.rep_trunk
+        else:
+            rep = os.path.join(self.bzr_base, branch)
+        w = self.dovc(self.bzr_base, ["checkout", rep, workdir])
+        yield w; w.getResult()
+        open(os.path.join(workdir, "subdir", "subdir.c"), "w").write(TRY_C)
+    vc_try_checkout = deferredGenerator(vc_try_checkout)
+
+    def vc_try_finish(self, workdir):
+        rmdirRecursive(workdir)
+
+class Bzr(VCBase, unittest.TestCase):
+    vc_name = "bzr"
+
+    metadir = ".bzr"
+    vctype = "source.Bzr"
+    vctype_try = "bzr"
+    has_got_revision = True
+
+    def testCheckout(self):
+        self.helper.vcargs = { 'repourl': self.helper.rep_trunk }
+        d = self.do_vctest(testRetry=False)
+
+        # TODO: testRetry has the same problem with Bzr as it does for
+        # Arch
+        return d
+
+    def testPatch(self):
+        self.helper.vcargs = { 'baseURL': self.helper.bzr_base + "/",
+                               'defaultBranch': "trunk" }
+        d = self.do_patch()
+        return d
+
+    def testCheckoutBranch(self):
+        self.helper.vcargs = { 'baseURL': self.helper.bzr_base + "/",
+                               'defaultBranch': "trunk" }
+        d = self.do_branch()
+        return d
+
+    def testCheckoutHTTP(self):
+        self.serveHTTP()
+        repourl = "http://localhost:%d/Bzr-Repository/trunk" % self.httpPort
+        self.helper.vcargs =  { 'repourl': repourl }
+        d = self.do_vctest(testRetry=False)
+        return d
+
+
+    def fixRepository(self):
+        self.fixtimer = None
+        self.site.resource = self.root
+
+    def testRetry(self):
+        # this test takes a while to run
+        self.serveHTTP()
+
+        # break the repository server
+        from twisted.web import static
+        self.site.resource = static.Data("Sorry, repository is offline",
+                                         "text/plain")
+        # and arrange to fix it again in 5 seconds, while the test is
+        # running.
+        self.fixtimer = reactor.callLater(5, self.fixRepository)
+
+        repourl = "http://localhost:%d/Bzr-Repository/trunk" % self.httpPort
+        self.helper.vcargs =  { 'repourl': repourl,
+                                'retry': (5.0, 4),
+                                }
+        d = self.do_vctest_once(True)
+        d.addCallback(self._testRetry_1)
+        return d
+    def _testRetry_1(self, bs):
+        # make sure there was mention of the retry attempt in the logs
+        l = bs.getLogs()[0]
+        self.failUnlessIn("ERROR: Not a branch: ", l.getText(),
+                          "funny, VC operation didn't fail at least once")
+        self.failUnlessIn("update failed, trying 4 more times after 5 seconds",
+                          l.getTextWithHeaders(),
+                          "funny, VC operation wasn't reattempted")
+
+    def testRetryFails(self):
+        # make sure that the build eventually gives up on a repository which
+        # is completely unavailable
+
+        self.serveHTTP()
+
+        # break the repository server, and leave it broken
+        from twisted.web import static
+        self.site.resource = static.Data("Sorry, repository is offline",
+                                         "text/plain")
+
+        repourl = "http://localhost:%d/Bzr-Repository/trunk" % self.httpPort
+        self.helper.vcargs =  { 'repourl': repourl,
+                                'retry': (0.5, 3),
+                                }
+        d = self.do_vctest_once(False)
+        d.addCallback(self._testRetryFails_1)
+        return d
+    def _testRetryFails_1(self, bs):
+        self.failUnlessEqual(bs.getResults(), FAILURE)
+
+
+    def testTry(self):
+        self.helper.vcargs = { 'baseURL': self.helper.bzr_base + "/",
+                               'defaultBranch': "trunk" }
+        d = self.do_getpatch()
+        return d
+
+VCS.registerVC(Bzr.vc_name, BzrHelper())
+
 
 class MercurialHelper(BaseHelper):
     branchname = "branch"
@@ -2246,26 +2432,26 @@ class Mercurial(VCBase, unittest.TestCase):
 
         # TODO: testRetry has the same problem with Mercurial as it does for
         # Arch
-        return maybeWait(d)
+        return d
 
     def testPatch(self):
         self.helper.vcargs = { 'baseURL': self.helper.hg_base + "/",
                                'defaultBranch': "trunk" }
         d = self.do_patch()
-        return maybeWait(d)
+        return d
 
     def testCheckoutBranch(self):
         self.helper.vcargs = { 'baseURL': self.helper.hg_base + "/",
                                'defaultBranch': "trunk" }
         d = self.do_branch()
-        return maybeWait(d)
+        return d
 
     def testCheckoutHTTP(self):
         self.serveHTTP()
         repourl = "http://localhost:%d/Mercurial-Repository/trunk/.hg" % self.httpPort
         self.helper.vcargs =  { 'repourl': repourl }
         d = self.do_vctest(testRetry=False)
-        return maybeWait(d)
+        return d
     # TODO: The easiest way to publish hg over HTTP is by running 'hg serve'
     # as a child process while the test is running. (you can also use a CGI
     # script, which sounds difficult, or you can publish the files directly,
@@ -2276,7 +2462,7 @@ class Mercurial(VCBase, unittest.TestCase):
         self.helper.vcargs = { 'baseURL': self.helper.hg_base + "/",
                                'defaultBranch': "trunk" }
         d = self.do_getpatch()
-        return maybeWait(d)
+        return d
 
 VCS.registerVC(Mercurial.vc_name, MercurialHelper())
 
@@ -2291,7 +2477,8 @@ class Sources(unittest.TestCase):
     def testCVS1(self):
         r = base.BuildRequest("forced build", SourceStamp())
         b = base.Build([r])
-        s = source.CVS(cvsroot=None, cvsmodule=None, workdir=None, build=b)
+        s = source.CVS(cvsroot=None, cvsmodule=None)
+        s.setBuild(b)
         self.failUnlessEqual(s.computeSourceRevision(b.allChanges()), None)
 
     def testCVS2(self):
@@ -2303,7 +2490,8 @@ class Sources(unittest.TestCase):
         submitted = "Wed, 08 Sep 2004 09:04:00 -0700"
         r.submittedAt = mktime_tz(parsedate_tz(submitted))
         b = base.Build([r])
-        s = source.CVS(cvsroot=None, cvsmodule=None, workdir=None, build=b)
+        s = source.CVS(cvsroot=None, cvsmodule=None)
+        s.setBuild(b)
         self.failUnlessEqual(s.computeSourceRevision(b.allChanges()),
                              "Wed, 08 Sep 2004 16:03:00 -0000")
 
@@ -2316,8 +2504,8 @@ class Sources(unittest.TestCase):
         submitted = "Wed, 08 Sep 2004 09:04:00 -0700"
         r.submittedAt = mktime_tz(parsedate_tz(submitted))
         b = base.Build([r])
-        s = source.CVS(cvsroot=None, cvsmodule=None, workdir=None, build=b,
-                       checkoutDelay=10)
+        s = source.CVS(cvsroot=None, cvsmodule=None, checkoutDelay=10)
+        s.setBuild(b)
         self.failUnlessEqual(s.computeSourceRevision(b.allChanges()),
                              "Wed, 08 Sep 2004 16:02:10 -0000")
 
@@ -2337,14 +2525,16 @@ class Sources(unittest.TestCase):
         r2.submittedAt = mktime_tz(parsedate_tz(submitted))
 
         b = base.Build([r1, r2])
-        s = source.CVS(cvsroot=None, cvsmodule=None, workdir=None, build=b)
+        s = source.CVS(cvsroot=None, cvsmodule=None)
+        s.setBuild(b)
         self.failUnlessEqual(s.computeSourceRevision(b.allChanges()),
                              "Wed, 08 Sep 2004 16:06:00 -0000")
 
     def testSVN1(self):
         r = base.BuildRequest("forced", SourceStamp())
         b = base.Build([r])
-        s = source.SVN(svnurl="dummy", workdir=None, build=b)
+        s = source.SVN(svnurl="dummy")
+        s.setBuild(b)
         self.failUnlessEqual(s.computeSourceRevision(b.allChanges()), None)
 
     def testSVN2(self):
@@ -2354,7 +2544,8 @@ class Sources(unittest.TestCase):
         c.append(self.makeChange(revision=67))
         r = base.BuildRequest("forced", SourceStamp(changes=c))
         b = base.Build([r])
-        s = source.SVN(svnurl="dummy", workdir=None, build=b)
+        s = source.SVN(svnurl="dummy")
+        s.setBuild(b)
         self.failUnlessEqual(s.computeSourceRevision(b.allChanges()), 67)
 
 class Patch(VCBase, unittest.TestCase):
@@ -2382,7 +2573,7 @@ class Patch(VCBase, unittest.TestCase):
                                   sendRC=False, initialStdin=p0_diff)
         d = c.start()
         d.addCallback(self._testPatch_1)
-        return maybeWait(d)
+        return d
 
     def _testPatch_1(self, res):
         # make sure the file actually got patched

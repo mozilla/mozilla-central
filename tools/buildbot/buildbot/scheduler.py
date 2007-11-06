@@ -2,6 +2,7 @@
 
 import time, os.path
 
+from zope.interface import implements
 from twisted.internet import reactor
 from twisted.application import service, internet, strports
 from twisted.python import log, runtime
@@ -11,17 +12,12 @@ from twisted.spread import pb
 
 from buildbot import interfaces, buildset, util, pbutil
 from buildbot.status import builder
-from buildbot.twcompat import implements, providedBy
 from buildbot.sourcestamp import SourceStamp
-from buildbot.changes import maildirtwisted
+from buildbot.changes.maildir import MaildirService
 
 
 class BaseScheduler(service.MultiService, util.ComparableMixin):
-    if implements:
-        implements(interfaces.IScheduler)
-    else:
-        __implements__ = (interfaces.IScheduler,
-                          service.MultiService.__implements__)
+    implements(interfaces.IScheduler)
 
     def __init__(self, name):
         service.MultiService.__init__(self)
@@ -38,11 +34,7 @@ class BaseScheduler(service.MultiService, util.ComparableMixin):
         pass
 
 class BaseUpstreamScheduler(BaseScheduler):
-    if implements:
-        implements(interfaces.IUpstreamScheduler)
-    else:
-        __implements__ = (interfaces.IUpstreamScheduler,
-                          BaseScheduler.__implements__)
+    implements(interfaces.IUpstreamScheduler)
 
     def __init__(self, name):
         BaseScheduler.__init__(self, name)
@@ -290,7 +282,7 @@ class Dependent(BaseUpstreamScheduler):
     compare_attrs = ('name', 'upstream', 'builders')
 
     def __init__(self, name, upstream, builderNames):
-        assert providedBy(upstream, interfaces.IUpstreamScheduler)
+        assert interfaces.IUpstreamScheduler.providedBy(upstream)
         BaseUpstreamScheduler.__init__(self, name)
         self.upstream = upstream
         self.builderNames = builderNames
@@ -518,11 +510,7 @@ class Nightly(BaseUpstreamScheduler):
 
 
 class TryBase(service.MultiService, util.ComparableMixin):
-    if implements:
-        implements(interfaces.IScheduler)
-    else:
-        __implements__ = (interfaces.IScheduler,
-                          service.MultiService.__implements__)
+    implements(interfaces.IScheduler)
 
     def __init__(self, name, builderNames):
         service.MultiService.__init__(self)
@@ -562,7 +550,7 @@ class Try_Jobdir(TryBase):
     def __init__(self, name, builderNames, jobdir):
         TryBase.__init__(self, name, builderNames)
         self.jobdir = jobdir
-        self.watcher = maildirtwisted.MaildirService()
+        self.watcher = MaildirService()
         self.watcher.setServiceParent(self)
 
     def setServiceParent(self, parent):
@@ -575,7 +563,7 @@ class Try_Jobdir(TryBase):
         #  "1", the version number of this format
         #  buildsetID, arbitrary string, used to find the buildSet later
         #  branch name, "" for default-branch
-        #  base revision
+        #  base revision, "" for HEAD
         #  patchlevel, usually "1"
         #  patch
         #  builderNames...
@@ -591,6 +579,8 @@ class Try_Jobdir(TryBase):
         builderNames = s[5:]
         if branch == "":
             branch = None
+        if baserev == "":
+            baserev = None
         patchlevel = int(patchlevel)
         patch = (patchlevel, diff)
         ss = SourceStamp(branch, baserev, patch)
@@ -638,12 +628,7 @@ class Try_Jobdir(TryBase):
 
 class Try_Userpass(TryBase):
     compare_attrs = ["name", "builderNames", "port", "userpass"]
-
-    if implements:
-        implements(portal.IRealm)
-    else:
-        __implements__ = (portal.IRealm,
-                          TryBase.__implements__)
+    implements(portal.IRealm)
 
     def __init__(self, name, builderNames, port, userpass):
         TryBase.__init__(self, name, builderNames)

@@ -24,7 +24,12 @@ class BuildFactory(util.ComparableMixin):
     def __init__(self, steps=None):
         if steps is None:
             steps = []
-        self.steps = steps
+        self.steps = [self._makeStepFactory(s) for s in steps]
+
+    def _makeStepFactory(self, step_or_factory):
+        if isinstance(step_or_factory, BuildStep):
+            return step_or_factory.getStepFactory()
+        return step_or_factory
 
     def newBuild(self, request):
         """Create a new Build instance.
@@ -32,11 +37,15 @@ class BuildFactory(util.ComparableMixin):
         """
         b = self.buildClass(request)
         b.useProgress = self.useProgress
-        b.setSteps(self.steps)
+        b.setStepFactories(self.steps)
         return b
 
-    def addStep(self, steptype, **kwargs):
-        self.steps.append((steptype, kwargs))
+    def addStep(self, step_or_factory, **kwargs):
+        if isinstance(step_or_factory, BuildStep):
+            s = step_or_factory.getStepFactory()
+        else:
+            s = (step_or_factory, dict(kwargs))
+        self.steps.append(s)
 
 
 # BuildFactory subclasses for common build tools
@@ -47,8 +56,6 @@ class GNUAutoconf(BuildFactory):
                  configureFlags=[],
                  compile=["make", "all"],
                  test=["make", "check"]):
-        assert isinstance(source, tuple)
-        assert issubclass(source[0], BuildStep)
         BuildFactory.__init__(self, [source])
         if configure is not None:
             # we either need to wind up with a string (which will be
@@ -71,8 +78,6 @@ class GNUAutoconf(BuildFactory):
 
 class CPAN(BuildFactory):
     def __init__(self, source, perl="perl"):
-        assert isinstance(source, tuple)
-        assert issubclass(source[0], BuildStep)
         BuildFactory.__init__(self, [source])
         self.addStep(Configure, command=[perl, "Makefile.PL"])
         self.addStep(Compile, command=["make"])
@@ -80,8 +85,6 @@ class CPAN(BuildFactory):
 
 class Distutils(BuildFactory):
     def __init__(self, source, python="python", test=None):
-        assert isinstance(source, tuple)
-        assert issubclass(source[0], BuildStep)
         BuildFactory.__init__(self, [source])
         self.addStep(Compile, command=[python, "./setup.py", "build"])
         if test is not None:
@@ -107,8 +110,6 @@ class Trial(BuildFactory):
                  testpath=".", randomly=None, recurse=None,
                  tests=None,  useTestCaseNames=False, env=None):
         BuildFactory.__init__(self, [source])
-        assert isinstance(source, tuple)
-        assert issubclass(source[0], BuildStep)
         assert tests or useTestCaseNames, "must use one or the other"
         if trial is not None:
             self.trial = trial

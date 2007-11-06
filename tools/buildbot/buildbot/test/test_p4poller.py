@@ -4,7 +4,6 @@ from twisted.python import failure
 from twisted.internet import defer
 from twisted.trial import unittest
 
-from buildbot.twcompat import maybeWait
 from buildbot.changes.changes import Change
 from buildbot.changes.p4poller import P4Source, get_simple_split
 
@@ -39,20 +38,20 @@ change_2_log = \
 """
 
 p4change = {
-    '3': change_3_log +
+    3: change_3_log +
 """Affected files ...
 
 ... //depot/myproject/branch_b/branch_b_file#1 add
 ... //depot/myproject/branch_b/whatbranch#1 branch
 ... //depot/myproject/branch_c/whatbranch#1 branch
 """,
-    '2': change_2_log +
+    2: change_2_log +
 """Affected files ...
 
 ... //depot/myproject/trunk/whatbranch#1 add
 ... //depot/otherproject/trunk/something#1 add
 """,
-    '5': change_4_log +
+    5: change_4_log +
 """Affected files ...
 
 ... //depot/myproject/branch_b/branch_b_file#1 add
@@ -105,18 +104,18 @@ class TestP4Poller(unittest.TestCase):
         # The first time, it just learns the change to start at.
         self.assert_(self.t.last_change is None)
         self.assert_(not self.t.working)
-        return maybeWait(self.t.checkp4().addCallback(self._testCheck2))
+        return self.t.checkp4().addCallback(self._testCheck2)
 
     def _testCheck2(self, res):
         self.assertEquals(self.changes, [])
-        self.assertEquals(self.t.last_change, '1')
+        self.assertEquals(self.t.last_change, 1)
 
         # Subsequent times, it returns Change objects for new changes.
         return self.t.checkp4().addCallback(self._testCheck3)
 
     def _testCheck3(self, res):
         self.assertEquals(len(self.changes), 3)
-        self.assertEquals(self.t.last_change, '3')
+        self.assertEquals(self.t.last_change, 3)
         self.assert_(not self.t.working)
 
         # They're supposed to go oldest to newest, so this one must be first.
@@ -161,7 +160,7 @@ class TestP4Poller(unittest.TestCase):
         self.t.parent = self
         d = self.t.checkp4()
         d.addBoth(self._testFailedChanges2)
-        return maybeWait(d)
+        return d
 
     def _testFailedChanges2(self, f):
         self.assert_(isinstance(f, failure.Failure))
@@ -171,13 +170,13 @@ class TestP4Poller(unittest.TestCase):
     def testFailedDescribe(self):
         """'p4 describe' failure is properly reported"""
         c = dict(p4change)
-        c['3'] = 'Perforce client error:\n...'
+        c[3] = 'Perforce client error:\n...'
         self.t = MockP4Source(p4changes=[first_p4changes, second_p4changes],
                               p4change=c, p4port=None, p4user=None)
         self.t.parent = self
         d = self.t.checkp4()
         d.addCallback(self._testFailedDescribe2)
-        return maybeWait(d)
+        return d
 
     def _testFailedDescribe2(self, res):
         # first time finds nothing; check again.
@@ -187,7 +186,7 @@ class TestP4Poller(unittest.TestCase):
         self.assert_(isinstance(f, failure.Failure))
         self.failUnlessIn('Perforce client error', str(f))
         self.assert_(not self.t.working)
-        self.assertEquals(self.t.last_change, '2')
+        self.assertEquals(self.t.last_change, 2)
 
     def testAlreadyWorking(self):
         """don't launch a new poll while old is still going"""
@@ -214,4 +213,4 @@ class TestP4Poller(unittest.TestCase):
 
     def _testSplitFile(self, res):
         self.assertEquals(len(self.changes), 2)
-        self.assertEquals(self.t.last_change, '5')
+        self.assertEquals(self.t.last_change, 5)

@@ -1,3 +1,1055 @@
+2007-09-30  Brian Warner  <warner@lothar.com>
+
+	* buildbot/__init__.py (version): Releasing buildbot-0.7.6
+	* docs/buildbot.texinfo: same
+
+2007-09-30  Brian Warner  <warner@lothar.com>
+
+	* NEWS: small updates, remove duplicate items from the 0.7.5 notes
+	* setup.py: install all test files from buildbot/test/mail/* . Also
+	update URL to point at buildbot.net
+	* MANIFEST.in: update with new files
+
+	* buildbot/status/web/baseweb.py (WebStatus.setupSite): ugh, yes
+	auto-create an empty public_html directory, otherwise we get
+	internal server errors instead of 404s.
+
+	* README: reference buildbot.net, remove CVSToys section (does
+	anyone still use it?)
+
+	* buildbot/status/web/baseweb.py (WebStatus): emit a useful log
+	message when public_html/ is missing (indicating that you should
+	probably run 'upgrade-master'), and don't auto-create an empty
+	directory in that case.
+
+	* contrib/darcs_buildbot.py: refactor internals a bit, make it
+	possible to use as an importable module (to make it easier to
+	write some unit tests for it)
+
+	* buildbot/status/web/baseweb.py (Waterfall.__init__): add a
+	DeprecationWarning for Waterfall, advising users to switch over to
+	WebStatus instead.
+
+	* NEWS: update with user-visible changes since the last release
+
+	* buildbot/status/web/waterfall.py
+	(WaterfallStatusResource.get_reload_time): if the suggest a
+	reload time of less than 15 seconds, give them 15 seconds instead
+	of ignoring their request entirely, because that'd be confusing.
+
+	* buildbot/steps/source.py (Mercurial.computeSourceRevision): log a
+	warning if we must invoke the last-change-is-most-recent guess
+
+	* buildbot/status/web/baseweb.py (Waterfall.__init__): if an old
+	Waterfall is running in an upgraded master (which is the usual
+	case for folks who have followed the instructions to run
+	'upgrade-master' but who have not yet resolved all the
+	DeprecationWarnings), prefer the buildbot.css from public_html/
+	rather than the one passed in on the buildbot= argument.
+	Otherwise, the resulting pages don't quite use CSS right..
+	sometimes it works, sometimes it doesn't, and I don't know why.
+	Sites that are using custom CSS will see the default CSS until
+	they modify public_html/buildbot.css to include their
+	customizations.
+
+	* docs/buildbot.texinfo (WebStatus): explain robots.txt a bit more
+	* buildbot/status/web/robots.txt (Disallow): update to cover all
+	dynamically-generated pages
+
+	* buildbot/status/web/base.py (map_branches): when we see 'trunk',
+	include both 'trunk' and None in the output list, since some VC
+	systems (SVN, frequently) refer to trunk as 'trunk'.
+
+	* buildbot/status/web/waterfall.py (WaterfallStatusResource):
+	point the 'welcome' link explicitly at index.html, rather than
+	'.', so that old Waterfall users can reach it and discover all the
+	new pages.
+
+	* buildbot/status/web/base.py (OneLineMixin.make_line): add the
+	build's text to the end of the line, without a CSS class so it
+	remains uncolored.
+
+	* buildbot/interfaces.py (IStatus.generateFinishedBuilds): add a
+	'max_search=' argument, to limit the number of builds that are
+	examined while trying to find ones that match the other criteria.
+	This helps to limit the work we do, since otherwise we might have
+	to trawl through all history.
+	(IBuilderStatus.generateFinishedBuilds): same
+	* buildbot/status/builder.py (Status.generateFinishedBuilds): same
+	(BuilderStatus.generateFinishedBuilds): same
+
+	* buildbot/status/web/base.py (OneLineMixin.make_line): stringify
+	our got_revision before checking its length: SVN (at least) still
+	reports numeric values for this.
+	* buildbot/status/web/build.py (StatusResourceBuild.body): same
+	* buildbot/status/web/xmlrpc.py
+	(XMLRPCServer.xmlrpc_getAllBuildsInInterval): same, also stop
+	serving a completely fake revision
+
+	* buildbot/scripts/runner.py (Maker.check_master_cfg): prepend
+	basedir to sys.path, to mimic what a real buildmaster would have
+	access to, since it is common for master.cfg to import helper
+	classes from .py files in the buildmaster directory, and we want
+	config-file checking to accomodate this.
+
+	* buildbot/status/web/base.py (map_branches): when referring to
+	branches through WebStatus (i.e. by appending ?branch=FOO query
+	arguments to the URL), make "trunk" mean trunk, by mapping it to
+	None before passing it to generateFinishedBuilds() and the like.
+	* buildbot/status/web/baseweb.py (OneLinePerBuild.body): same
+	(OneBoxPerBuilder.body): same, also improve display of branches in
+	the HTML a bit
+	* buildbot/status/web/waterfall.py (BuildTopBox.getBox): same
+	(WaterfallStatusResource.buildGrid): same. Note that this filters
+	Changes as well as Builds.
+	* docs/buildbot.texinfo (Buildbot Web Resources): remove the
+	caveat about trunk branches, now that it's fixed
+
+	* buildbot/status/web/base.py (OneLineMixin): refactor, move this
+	from builder.py, use it on the Builder page too
+
+	* buildbot/status/web/builder.py (StatusResourceBuilder): same
+	* buildbot/status/web/baseweb.py (OneLinePerBuild): display branch
+	names, add some CSS classes
+	* buildbot/status/web/classic.css (td.box): new class, for
+	OneBoxPerBuild
+
+	* docs/buildbot.texinfo (WebStatus): update docs
+
+	* buildbot/slave/commands.py (SVN.parseGotRevision._parse): remove
+	the trailing "M" indicator that tells us this is a modified file.
+	This should help with mode="update" builds that modify files
+	in-place. Thanks to "Oz" (chris at santacruzgames.com) for the
+	patch.
+
+	* buildbot/scripts/runner.py (upgradeMaster): improvements: write
+	new copies of files (to .new) when those files already exist,
+	check the master.cfg file for errors (and give DeprecationWarnings
+	a chance to be displayed).
+	* buildbot/test/test_runner.py: add more tests
+	* docs/buildbot.texinfo (Upgrading an Existing Buildmaster): docs
+
+2007-09-29  Brian Warner  <warner@lothar.com>
+
+	* buildbot/steps/source.py (Mercurial.computeSourceRevision): take
+	the revision id from the last change in our list, since that's the
+	best we can do without knowing the full ancestry graph. Closes #103.
+
+	* buildbot/scripts/sample.cfg: use buildstep instances in
+	f.addStep, to demonstrate the (correct) modern usage.
+	* docs/examples/hello.cfg: bring this up to date. Closes #79.
+	* docs/examples/twisted_master.cfg: add a big warning about how
+	old this is
+	* docs/examples/glib_master.cfg: delete this one entirely, it is
+	ancient and not a very useful example anyways
+
+	* buildbot/status/web/base.py (HtmlResource.render): keep track of
+	HTTPChannels, so we can shut them down at reconfig time (when the
+	WebStatus goes away). Closes #102.
+	* buildbot/status/web/baseweb.py (WebStatus.__init__): same
+	(WebStatus.registerChannel): same
+	(WebStatus.stopService): do .loseConnection() here
+
+	* buildbot/test/test_webparts.py (Webparts.testPages): reload the
+	WebStatus, make sure all pages are still retrievable. I thought
+	this would exercise a bug, but it turns out that it was firefox
+	caching connections (and continuing to talk to the old WebStatus
+	even though I'd loaded a new one).
+	* buildbot/status/web/baseweb.py (WebStatus): add some comments
+	(WebStatus.__repr__): include id() in the repr
+
+	* buildbot/status/tinderbox.py (TinderboxMailNotifier): allow
+	this to specify an errorparser. From Ted Mielczarek and the
+	mozilla crew. Closes #94.
+
+	* buildbot/changes/bonsaipoller.py (BonsaiParser): "Make
+	bonsaipoller ignore funkyness in xml output for empy log
+	messages", from Axel Hecht. Closes #90.
+	* buildbot/test/test_bonsaipoller.py
+	(TestBonsaiPoller.testMergeEmptyLogMsg): same
+
+	* buildbot/status/tinderbox.py (TinderboxMailNotifier.buildStarted):
+	respect 'builders' arg, from Ben Hearsum. Closes #89.
+
+	* buildbot/scripts/runner.py (stop): increase the timeout from 5
+	seconds to 10, to give heavily loaded machines a better chance to
+	finish shutting down. Addresses (partially) #68.
+	* buildbot/scripts/logwatcher.py (LogWatcher.TIMEOUT_DELAY): same,
+	on startup
+	* buildbot/scripts/reconfig.py (Reconfigurator.run): same
+	* buildbot/scripts/startup.py (Follower._failure): update message
+
+	* buildbot/changes/bonsaipoller.py: apply changes from the Mozilla
+	team, to fix some bugs and avoid the use of blocking urlopen().
+	closes #61.
+	* buildbot/test/test_bonsaipoller.py: same
+
+2007-09-28  Brian Warner  <warner@lothar.com>
+
+	* buildbot/buildslave.py (BuildSlave): add notify_on_missing=
+	argument, to send email about buildslaves which are disconnected
+	for more than an hour. Closes #64.
+	* buildbot/test/test_slaves.py (BuildSlave.test_mail_on_missing):
+	test it
+	* docs/buildbot.texinfo (When Buildslaves Go Missing): document it
+	(MailNotifier): add docs for this too
+
+
+	* buildbot/status/web/baseweb.py (OneBoxPerBuilder): make this page
+	respect branch= queryargs, by restricting the builds displayed to
+	those matching the given branch names
+	* buildbot/status/web/waterfall.py (BuildTopBox): same
+
+	* buildbot/test/test_web.py (WaterfallSteps.test_urls.FakeRequest):
+	fix a test failure by adding .prepath to this fake object
+
+	* buildbot/status/web/*: big set of changes to WebStatus, cleaning
+	up generation of relative URLs. With luck, this should play with
+	reverse proxies much better now.
+	* buildbot/test/test_webparts.py: new test for most of the subpages
+	* buildbot/test/test_web.py (base_config): add enough of a config
+	to exercise more Waterfall code
+
+2007-09-27  Brian Warner  <warner@lothar.com>
+
+	* buildbot/status/web/build.py (StatusResourceBuild.body): use a
+	relative URL to the buildbot welcome page, rather than
+	getBuildbotURL.
+	* buildbot/status/web/builder.py (StatusResourceBuilder.body): same
+
+	* buildbot/status/web/base.py (HtmlResource.title): change the
+	default title of all Buildbot-generated page to "Buildbot"
+	* buildbot/status/web/builder.py (StatusResourceBuilder.getTitle):
+	change the title to include the Builder name
+	* buildbot/status/web/build.py (StatusResourceBuild.getTitle):
+	same, and also show the build number
+	(StatusResourceBuild.rebuild): after using the 'Rebuild' button,
+	redirect the browser to the Builder page
+
+2007-09-26  Brian Warner  <warner@lothar.com>
+
+	* buildbot/status/web/baseweb.py (OneBoxPerBuilder.body): fix URL
+	problem with the build links
+
+2007-09-25  Brian Warner  <warner@lothar.com>
+
+	* buildbot/status/web/base.py (HtmlResource.render): fix addSlash
+	to emit relative URLs instead of using URLPath,
+
+	* docs/buildbot.texinfo (WebStatus): provide an example
+
+	* buildbot/status/web/baseweb.py (OneBoxPerBuilder): new status
+	page, shows a simple table with one row per Builder. Still pretty
+	ugly, but functional.
+	* buildbot/status/web/index.html: reference it
+
+	* buildbot/status/web/waterfall.py (Spacer): make this *not*
+	inherit from builder.Event, so that show_events=false doesn't hide
+	spacers, since that would make the waterfall weirdly compressed.
+
+	* buildbot/status/web/waterfall.py (HELP): put the View button in
+	its own section, so it doesn't get visually confused with the
+	reload-timer section
+	(WaterfallStatusResource.body): make the '[help]' links more
+	visually distinct from each other, and add a link to the Welcome
+	page
+	* buildbot/status/web/slaves.py (BuildSlavesResource): handle
+	unused buildslaves without exploding
+
+	* buildbot/status/web/waterfall.py
+	(WaterfallStatusResource.body.with_args): don't use req.URLPath,
+	it gives us absolute paths that break proxies
+	* buildbot/status/web/base.py (HtmlResource.path_to_root): fix
+	this, it was giving bad results when the Waterfall is behind a
+	reverse proxy.
+
+	* buildbot/scripts/runner.py (upgradeMaster): first phase of the
+	new 'upgrade-master' command, which will bring an old buildmaster
+	directory up-to-date. Right now the only thing it does is populate
+	public_html/ if it wasn't already there. Still to do: check the
+	other files, add documentation.
+	* buildbot/test/test_runner.py (Create.testUpgradeMaster): test it
+	(Create.failUnlessSameFiles): use sets.Set() for 2.3 compatibility
+
+2007-08-13  Brian Warner  <warner@lothar.com>
+
+	* buildbot/changes/changes.py (Change.get_HTML_box): add a tooltip
+	that contains the checkin comments when you hover over the entry
+	in the 'changes' column of the waterfall. Thanks to Frederic Leroy
+	for the patch.
+
+	* buildbot/status/web/waterfall.py (WaterfallStatusResource): improve
+	'help' page linkage
+
+	* buildbot/status/web/about.py (AboutBuildbot): add an 'about'
+	page with versions of python, buildbot, and twisted
+	* buildbot/status/web/baseweb.py (WebStatus.setupUsualPages): same
+	* buildbot/status/web/index.html: add links to most pages
+	* docs/buildbot.texinfo (Buildbot Web Resources): update docs
+
+	* buildbot/status/web/robots.txt: put a robots.txt in new installs
+	which discourages robot access to all large dynamically-generated
+	pages. The intention is that the index page and the 'about' page
+	are the only ones which should be crawlable.
+	* buildbot/scripts/runner.py (Maker.public_html): same
+	(createMaster): same
+	* setup.py: ship index.html and robots.txt in source distributions
+
+	* buildbot/status/web/waterfall.py: add 'refresh' query arg, to
+	activate automatic reloading of the page (using a meta Refresh:
+	tag). Closes #69.
+	(WaterfallHelp): new page to explain all the nifty query arguments
+	you can use on the Waterfall, along with forms to set them for
+	you. From this page, you can add filters for builder=, branch=,
+	show_events=, as well as turning on reload=.
+	(WaterfallStatusResource.buildGrid): new query args: last_time=,
+	first_time=, show_time=, num_events= . The old show= is still
+	accepted, but the new builder= is preferred. We ignore empty
+	branch= arguments, to make the WaterfallHelp form easier to
+	implement.
+	(WaterfallStatusResource.head): new method to add text to the
+	<head> of the page.
+	* buildbot/status/web/base.py (HtmlResource.content): use head()
+	* buildbot/status/web/baseweb.py (OneLinePerBuild.body): ignore
+	empty branch= arguments
+	(OneLinePerBuildOneBuilder.body): same
+
+2007-08-12  Brian Warner  <warner@lothar.com>
+
+	* buildbot/status/web/waterfall.py (WaterfallStatusResource): add
+	new query args: 'last_time' is a timestamp of the top-most event
+	on the display, 'first_time' is a timestamp for the bottom-most
+	event. 'show_time' is the difference between them, and overrides
+	'first_time'. 'num_events' puts an upper limit on the number of
+	timestamps that will be displayed on the left hand edge.
+	(WaterfallStatusResource.body): add a 'next page' link to the
+	bottom, which shows the events that come just after those shown on
+	the current page. This is a first step towards #67, but we need
+	some more controls before we can close that one.
+
+	* buildbot/buildslave.py (BuildSlave): these are now MultiService
+	instances too, and live as children of the BotMaster. The main
+	advantage of this approach is that BuildSlaves can know when they
+	are being removed (so they can shut off the upcoming
+	when-do-we-email-an-admin-because-we-lost-our-slave timer).
+	* buildbot/interfaces.py (IBuildSlave): marker interface so we can
+	identify which service children are BuildSlaves
+	* buildbot/master.py (BuildMaster.loadConfig_Slaves): handle the
+	Checker updates here, but delegate the rest to..
+	(BotMaster.loadConfig_Slaves): .. here, which looks at the
+	BotMaster's service children to identify the old slaves. I think
+	the previous approach of using master.slaves was broken in the
+	face of config updates that modified BuildSlave instances but did
+	not completely replace them.
+	* docs/buildbot.texinfo (Developer's Appendix): note the change to
+	the Service hierarchy
+
+	* buildbot/status/web/slaves.py (BuildSlavesResource): new status
+	page (at URL /buildslaves/) to view status of all buildslaves at
+	once, including how long it's been since we last heard from them,
+	and which Builders use them.
+
+	* buildbot/status/web/baseweb.py: fix title of one-line-per-build
+	pages
+
+	* buildbot/interfaces.py (IStatus.getSlaveNames): new method to
+	list all buildslaves
+
+	* buildbot/buildslave.py (BuildSlave.messageReceivedFromSlave):
+	use the BuildSlave to keep track of the last time we've heard from
+	the buildslave. This is updated upon receipt of any message from
+	any SlaveBuilder (which generally means when RemoteCommands are
+	giving us status updates, as BuildSteps run). In the future this
+	will include slave pings too.
+	* buildbot/process/base.py
+	(Build.setupBuild): give each BuildStep a reference to the BuildSlave
+	* buildbot/process/buildstep.py:
+	(BuildStep.setBuildSlave): accept that reference
+	(BuildStep.runCommand): pass the reference on to the RemoteCommand
+	(RemoteCommand.remote_update): update the timestamp
+	(RemoteCommand.remote_complete): same
+	* buildbot/test/runutils.py (StepTester.makeStep): match the change
+	* buildbot/test/test_steps.py (BuildStep.testShellCommand1): same
+	* buildbot/interfaces.py (ISlaveStatus.lastMessageReceived): new
+	interface to retrieve this timestamp
+	* buildbot/status/builder.py (SlaveStatus): track a copy of the
+	timestamp
+
+
+	* buildbot/status/web/baseweb.py (OneLineMixin.make_line): tighten
+	up the format a bit
+	(OneLinePerBuild.body): use a <ul> instead of <div>s
+	(OneLinePerBuildOneBuilder.body): same
+
+	* contrib/darcs_buildbot.py (makeChange): handle moved files too,
+	by adding the file's new name to the list of changed files. This
+	ought to be sufficient for things like isFileImportant and trial
+	tests that only exercise tests for files that have been modified.
+	Closes #31.
+
+	* buildbot/status/web/xmlrpc.py (XMLRPCServer): add preliminary
+	XMLRPC server to the WebStatus page. This only has two methods
+	right now (getAllBuildsInInterval and getBuild), but we'll be
+	adding more in the future. This server is extracted from the
+	trac-plugin branch.
+
+	* buildbot/status/web/baseweb.py (OneLinePerBuild): refactor using
+	generateFinishedBuilds, and improve the data displayed.
+	* buildbot/status/web/build.py (StatusResourceBuild): rearrange
+	the per-Build page, add some information like ETA and got_revision
+	* buildbot/status/web/builder.py (StatusResourceBuilder): same,
+	adding a list of recently completed builds
+	* buildbot/status/web/base.py (css_classes): factor this out
+
+	* buildbot/interfaces.py (IStatus.generateFinishedBuilds): define
+	new method, to make status display classes easier to write,
+	especially the WebStatus 'one_line_per_build' page.
+	(IBuilderStatus.generateFinishedBuilds): same
+	* buildbot/status/builder.py (BuilderStatus.generateFinishedBuilds):
+	(Status.generateFinishedBuilds): implement it
+
+	* buildbot/process/factory.py (GNUAutoconf.__init__): allow
+	'source' to be a BuildStep instance, since BuildFactory accepts
+	them now.
+	(CPAN.__init__): same
+	(Distutils.__init__): same
+	(Trial.__init__): same
+
+	* buildbot/interfaces.py (IBuildStatus.getProperty): note that
+	this might raise KeyError
+
+2007-08-07  Brian Warner  <warner@lothar.com>
+
+	* buildbot/slave/commands.py (P4): use 'p4user' to construct the
+	'Owner:' field of the view, rather than 'p4logname', since
+	p4logname comes from the buildslave's environment and seems
+	unlikely to ever do the right thing. Thanks to Wade Brainerd for
+	the patch. Closes #40.
+
+	* buildbot/buildslave.py (BuildSlave.__init__): add max_builds=,
+	which imposes a per-slave limit on how many builds are allowed to
+	run simultaneously. This has a the same scope than the SlaveLock,
+	but is different because max_builds= gives the buildmaster the
+	freedom to assign the build to a different slave, whereas the
+	SlaveLock doesn't get tested until after the build is irrevocably
+	assigned to a slave. Therefore using max_builds= will improve
+	utilization in the presence of multiple buildslaves that are
+	attached to the same Builder. This completes the incorporation of
+	Dustin Mitchell's patches, and closes ticket #48. Thanks Dustin!
+	* buildbot/process/builder.py (SlaveBuilder.buildFinished): when
+	any Builder finishes, potentially trigger *all* Builders, since
+	max_builds= may have stalled someone else while waiting for the
+	slave.
+	* buildbot/scripts/sample.cfg: mention max_builds=
+	* buildbot/test/test_run.py (ConcurrencyLimit): test it
+	* docs/buildbot.texinfo (Buildslave Specifiers): document it
+
+	* buildbot/test/test_run.py (CanStartBuild._do_test2): tests which
+	inherit from RunMixin do not need to call master.stopService()
+	themselves, since RunMixin.tearDown does that. The double call
+	fails on Twisted-2.0.x, which didn't happen to protect against it.
+	* buildbot/test/test_slaves.py (BuildSlave.test_track_builders): same
+
+	* buildbot/buildslave.py (BuildSlave.addSlaveBuilder): third patch
+	from #48, this one to have the BuildSlave objects track
+	SlaveBuilders, so they'll be able to use that knowledge to
+	influence their canStartBuild() response.
+	* buildbot/process/builder.py (SlaveBuilder.attached): call it
+	(SlaveBuilder.detached): same
+	* buildbot/test/test_slaves.py (BuildSlave): test it
+
+	* buildbot/buildslave.py (BuildSlave.canStartBuild): incorporate
+	the second of Dustin's #48 patches, this one adding a method to
+	the BuildSlave that allows it to decide whether it is willing to
+	participate in a build or not.
+	(SlaveBuilder.isAvailable): use canStartBuild() to decide
+
+	* buildbot/test/test_run.py (CanStartBuild): test for it
+
+	* all: incorporate the first of four patches by Dustin Mitchell
+	from ticket #48, working towards improving control over slave
+	concurrency. The first patch is to use a long-lived BuildSlave
+	object per slave, on which other behavior can be added later. I've
+	modified his patch considerably.
+	* buildbot/buildslave.py (BuildSlave): move class out of
+	slave/__init__.py (where it would get loaded by the slave as well
+	as the master, making dependencies trickier), and merge it with
+	BotPerspective. Now these BuildSlave instances are created once in
+	the master.cfg file, and not destroyed until they are either
+	removed from the config file or changed so
+	much (name/password/class changes) that we cannot continue to use
+	the old one. This affects config files: they must use
+	'from buildbot.buildslave import BuildSlave' instead of using
+	'from buildbot.slave import BuildSlave'.
+	* buildbot/master.py: move BotPerspective out
+	(BuildMaster.loadConfig_Slaves): examine old and new slaves,
+	add or remove as necessary, update the rest using data from
+	the new config file.
+	* buildbot/slave/__init__.py: move BuildSlave out
+	* buildbot/test/test*.py: import BuildSlave from the new place
+	* buildbot/scripts/sample.cfg: update to match
+	* docs/buildbot.texinfo: update to match
+	* buildbot/process/builder.py: update comments to match
+
+2007-08-02  Brian Warner  <warner@lothar.com>
+
+	* buildbot/status/web/baseweb.py (OneLinePerBuild): improve
+	one-line-per-build pages a bit, add a header, refactor slightly
+
+	* buildbot/test/test_maildir.py (MaildirTest.testMaildir): cleanup
+	the TimeOutError timer, patch by Dustin Mitchell.
+
+2007-08-01  Brian Warner  <warner@lothar.com>
+
+	* buildbot/status/web/baseweb.py (OneLinePerBuild): make this
+	mostly work (branch= is still ignored, we need a useful header)
+	(OneLinePerBuildOneBuilder.body): this too
+
+	* buildbot/status/web/builder.py (StatusResourceBuilder.force):
+	bring this up-to-date w.r.t. recent refactorings, and fix
+	redirections to bounce the browser to the top page after hitting
+	the 'force' button. This needs to be improved, but at least it now
+	redirects to a valid page.
+	(StatusResourceBuilder.ping): same
+	(StatusResourceBuilder.getChild): same, although I think this code
+	might be dead anyways
+
+	* buildbot/status/web/waterfall.py (WaterfallStatusResource): add
+	a branch= query argument, to filter the display down to builds and
+	changes that involve the given branch. You can add multiple
+	branch= arguments to see multiple branches (using a logical OR).
+	Note that there is no way to include the default branch (i.e.
+	None, i.e. trunk) yet, there is still work to be done to allow for
+	simple+uniform names of branches (i.e. removing the VC-specific
+	details of how branches are implemented, so calling the branch
+	'beta4' even though the SVN checkout step requires
+	'branches/beta4').
+	* buildbot/status/builder.py (BuilderStatus.eventGenerator): same
+	* buildbot/changes/changes.py (ChangeMaster.eventGenerator): same
+	* buildbot/interfaces.py (IEventSource.eventGenerator): same
+	* docs/buildbot.texinfo (Buildbot Web Resources): document it
+
+	* all: bring import statements up-to-date: don't import
+	__future__, assume cPickle and cStringIO are always available.
+	Also remove #!/usr/bin/python lines from non-scripts, my editor
+	has been a bit over-enthusiastic about stuffing them into new .py
+	files.
+
+	* buildbot/status/web/index.html: put a link to the waterfall page
+	on the index, otherwise first-time users of WebStatus aren't going
+	to see anything very interesting.
+
+	* buildbot/interfaces.py (IEventSource): document this interface.
+	Thanks to Dustin Mitchell for the patch. Closes #60.
+	* buildbot/status/builder.py (BuilderStatus): same
+	* buildbot/changes/changes.py (ChangeMaster): same
+
+	* buildbot/status/web/waterfall.py (WaterfallStatusResource.buildGrid):
+	add a query arg of 'show_events=true' to display non-build events,
+	like slaves attaching/detaching and reconfig events, or
+	'show_events=false' to hide them. The default is 'true'.
+	* docs/buildbot.texinfo (Buildbot Web Resources): document it
+
+	* web-parts: merge in web-parts branch. Lots of changes. The new
+	functionality is to add buildbot.status.html.WebStatus, which is a
+	superset of the Waterfall that adds new status pages and serves
+	regular files from BASEDIR/public_html/ , which is now the preferred
+	place to put robots.txt, buildbot.css, and index.html .
+	* buildbot/scripts/runner.py: the 'create-master' command now
+	creates public_html/ too, and populates it with a couple of
+	static files.
+	* buildbot/status/web: split waterfall code into smaller pieces
+
+2007-07-31  Brian Warner  <warner@lothar.com>
+
+	* buildbot/scripts/startup.py (launch): import twistd.run in a
+	different way to hush pyflakes
+	* buildbot/process/builder.py: remove unused import
+
+2007-07-30  Brian Warner  <warner@lothar.com>
+
+	* buildbot/interfaces.py (ISourceStamp): cleanup patch by Dustin
+	Mitchell: pass SourceStamps around rather than branch/version/etc
+	tuples. Thanks Dustin! Closes #70.
+	* buildbot/sourcestamp.py (SourceStamp): insist that .changes is a
+	tuple rather than a list, to avoid surprising mutations
+	* buildbot/process/builder.py (BuilderControl.resubmitBuild): same
+	* buildbot/status/mail.py (MailNotifier.buildMessage): same
+	* buildbot/status/builder.py (BuildStatus.getSourceStamp): same
+	* buildbot/test/test_status.py (Subscription): same
+	* buildbot/test/test_control.py (Force): same
+	* buildbot/test/test_buildreq.py (Request.testMerge): same
+
+2007-07-29  Brian Warner  <warner@lothar.com>
+
+	* buildbot/scripts/sample.cfg: remove the spurious 'builders'
+	variable, since it wasn't used and is confusing in the presence of
+	c['builders'] (which *is* used). Thanks to Thomas Vander Stichele
+	for the suggestion.
+
+	* buildbot/status/web/waterfall.py (WaterfallStatusResource): update
+	the Buildbot home-page link to point at buildbot.net instead of 
+	sourceforge, and add a current-version query parameter so we can
+	get some statistics on which versions are in use out there.
+
+2007-07-28  Brian Warner  <warner@lothar.com>
+
+	* buildbot/master.py (BuildMaster.loadConfig): replace c['sources']
+	with c['change_source'], leaving c['sources'] for backwards
+	compatibility (but deprecated), scheduled for removal in 0.8.0
+	* docs/buildbot.texinfo: same
+	* buildbot/test/test_config.py: verify that c['sources'] still works
+	* buildbot/test/test_*.py: replace c['sources'] with c['change_source']
+	* buildbot/scripts/sample.cfg: update to match
+
+	* buildbot/changes/mail.py (MaildirSource): parse with python's
+	stdlib 'email' module, which has been available since python2.2,
+	and drop use of the 'rfc822' module, which has been depreceated
+	since python2.3 .
+	* buildbot/test/test_maildir.py: same: use parse_file() not parse
+
+	* buildbot/test/test_maildir.py (MaildirTest.testMaildir): oops,
+	this needs to match the renaming in test/mail/msg*
+
+	* README (SETTING UP A BUILD MASTER): fix capitalization-typo.
+	Closes SF#1752648.
+
+	* buildbot/test/test_mailparse.py: rename sample emails a bit
+	* buildbot/test/mail/msg*: same
+
+	* buildbot/changes/mail.py (SVNCommitEmailMaildirSource): add a
+	parser for the "commit-email.pl" script that is shipped with SVN,
+	written by Justin Mason. Thanks! Closes SF#1072845.
+	* buildbot/test/mail/svn-commit.*: sample messages
+	* buildbot/test/test_mailparse.py (TestSVNCommitEmail): test it
+	* docs/buildbot.texinfo (SVNCommitEmailMaildirSource): docs
+
+2007-07-27  Brian Warner  <warner@lothar.com>
+
+	* buildbot/changes/mail.py: refactor: move parsing into a method
+	named 'parse', each parser type gets a separate subclass. Remove
+	the old 'sep' argument (hardcode it to '/'), fix usage of prefix=
+	to be a simple leading-substring match. Add a warning to the logs
+	if prefix= does not end in a slash, since that's probably a
+	mistake. Fix both places where a prefix= mismatch would skip all
+	subsequent files in the same email, instead of just skipping the
+	one that didn't match.
+	* buildbot/test/test_mailparse.py: match changes
+
+	* docs/buildbot.texinfo (Getting Source Code Changes): refactor
+	docs on email-based ChangeSources
+
+	* docs/buildbot.texinfo (Getting Source Code Changes): move all
+	the changesource types up a level, removing the one-entry menu in
+	the process
+
+	* buildbot/master.py (BuildMaster.loadConfig_Slaves): rename
+	c['bots'] to c['slaves'], and use buildbot.slave.BuildSlave
+	instances instead of tuples. Closes #63.
+	* buildbot/slave/__init__.py (BuildSlave): define marker class
+	* buildbot/scripts/sample.cfg: use c['slaves'] in sample config
+	* docs/buildbot.texinfo (Buildslave Specifiers): document c['slaves']
+	* buildbot/test/test_*.py: update tests to match
+	* buildbot/test/test_config.py (ConfigTest.testBots): verify that
+	the c['bots'] backwards-compatibility handler works
+
+2007-07-26  Brian Warner  <warner@lothar.com>
+
+	* buildbot/changes/hgbuildbot.py (hook): add an in-process
+	Mercurial change-sending hook, contributed by Frederic Leroy.
+	Thanks! Addresses #50.
+	* docs/buildbot.texinfo (MercurialHook): document it
+
+	* buildbot/changes/hgbuildbot.py: change the way imports are done,
+	to make it compatible with at least hg-0.9.1 and the current 0.9.4
+
+2007-07-17  Brian Warner  <warner@lothar.com>
+
+	* buildbot/process/buildstep.py (BuildStep.getLog): add a
+	convenience method to retrieve a log added with
+	addLog()/addCompleteLog()/etc or logfiles= . I should have added
+	this two years ago..
+
+2007-07-03  Brian Warner  <warner@lothar.com>
+
+	* buildbot/slave/commands.py (ShellCommand._startCommand): when
+	logging the environment variables, put one variable on each line,
+	rather than having one really long line with all of them. This
+	should make them a bit more readable and not trigger the
+	horizontal scrollbar (when viewing it in a web browser) quite so
+	much. Thanks to Albert Hofkamp for the patch.
+
+	* buildbot/steps/shell.py (ShellCommand): allow workdir= to be a
+	WithProperties instance. Thanks to Axel Hecht for the patch.
+	Closes #43.
+	* buildbot/test/test_properties.py (Interpolate.testWorkdir): test it
+	* docs/buildbot.texinfo (Build Properties): document it
+	* buildbot/slave/commands.py (ShellCommand._startCommand): create the
+	workdir if it didn't already exist.
+
+	* docs/buildbot.texinfo (Scheduler Types): correct the description
+	of Dependent schedulers. Thanks to Greg Ward for the patch.
+
+	* buildbot/steps/source.py (SVN.startVC): when applying a patch,
+	add "[patch]" to the step's display. Thanks to Dustin Mitchell for
+	the patch. Closes #49.
+
+	* buildbot/slave/commands.py (rmdirRecursive): chmod everything to
+	0700 before removing it, to deal with situations where a build will
+	leave files around without write permissions and the 'copy' or
+	'clobber' VC checkout modes need to blow away the tree first.
+	Thanks to Steve Milner for the suggestion and the patch (which I
+	mangled horribly). Closes #29.
+	* buildbot/test/test_slavecommand.py (Utilities.test_rmdirRecursive):
+	test for it
+
+	* buildbot/test/runutils.py (RunMixin.disappearSlave): oops, add
+	an allowReconnect= argument to let callers control whether they
+	want this don't-let-it-reconnect behavior, since some tests care.
+	Factor out the .continueTrying=False lines from those callers.
+	* buildbot/test/test_slaves.py: same
+	* buildbot/test/test_run.py: same
+
+2007-07-02  Brian Warner  <warner@lothar.com>
+
+	* buildbot/test/runutils.py (RunMixin.disappearSlave): once a
+	slave has been disappeared, don't let it reconnect. This was
+	causing an intermittent failure in test_slaves.py, when the slave
+	that was supposed to be gone managed to come back by the end of
+	the test and affect the count.
+	* buildbot/test/test_slaves.py (Slave.testFallback2): minor
+	refactorings
+	* buildbot/process/builder.py (SlaveBuilder.__repr__): added some
+	diagnostic messages to track down this problem
+	(Builder.startBuild): same
+
+	* buildbot/process/builder.py (Builder.maybeStartBuild): choose
+	the slave randomly rather than always taking the first one. Thanks
+	to Pike for the patch. Closes #36.
+	* buildbot/test/test_slaves.py: match the change. to avoid huge
+	changes to the tests, I added a CHOOSE_SLAVES_RANDOMLY flag which
+	enables/disables the round-robin-ness (enabled by default), and
+	some unit tests disable it.
+	* docs/buildbot.texinfo (Buildmaster Architecture): document it
+
+	* buildbot/slave/bot.py (BuildSlave.__init__): rename the 'host'
+	argument to 'buildmaster_host', to make it more obvious that this
+	points to the buildmaster. Thanks to Bob Proulx for the
+	suggestion.
+	* buildbot/scripts/runner.py (slaveTAC): same
+	* buildbot/test/test_runner.py (Create.testSlave): match the change
+
+	* contrib/hg_buildbot.py: patch from Frederic Leroy to make this
+	work better.
+
+2007-06-17  Brian Warner  <warner@lothar.com>
+
+	* buildbot/test/test_config.py (Factories.testAllSteps): make sure
+	we can round-trip all of our current step classes by calling
+	getStepFactory() and using the results to make a clone of the
+	original step.
+
+	* buildbot/steps/maxq.py: fix import errors. Guess this hasn't been
+	used in a while..
+
+	* buildbot/process/factory.py (BuildFactory.addStep): To simplify
+	the config file, we're moving to using actual instances instead of
+	the (class, kwargs) 'step specification' tuples. BuildFactory
+	still keeps a list of tuples internally, but when real instances
+	are passed in to addStep(), they are asked for their class and
+	kwargs using the new BuildStep.getStepFactory method. BuildFactory
+	accepts both instances and the tuple form, and converts instances
+	to the tuple form, but the instance form is preferred because it
+	gives the Steps a chance to do argument validation. Closes: #11.
+
+	* buildbot/process/buildstep.py (BuildStep.__init__): record the
+	factory information necessary to implement getStepFactory. The
+	addFactoryArguments() method can be used to include arguments that
+	aren't passed to the BuildStep base class constructor.
+	(BuildStep.setBuild):
+	(BuildStep.setDefaultWorkdir): new methods to take parameters that
+	are needed for live BuildSteps but not to construct the specification
+	tuples that are stashed in the factory.
+
+	* buildbot/process/base.py (Build.setupBuild): pass 'build' and
+	'workdir' into new BuildSteps by using methods instead of
+	arguments. This makes the constructor for BuildSteps a lot
+	simpler.
+
+	* buildbot/steps/*.py: update to match this change. Basically this
+	means adding calls to addFactoryArguments() in the __init__
+	methods to capture the arguments that aren't passed through to the
+	base class.
+	* buildbot/steps/shell.py (ShellCommand.setDefaultWorkdir): copy
+	the new workdir (if any) into the RemoteShellCommands arguments.
+	* buildbot/steps/source.py: allow workdir= to be optional,
+	implement setDefaultWorkdir() since we don't inherit from
+	(CVS): finally remove old clobber=/export=/copydir= arguments,
+	in favor of the mode= argument that's been around forever now.
+	* buildbot/steps/transfer.py: remove build= argument
+
+	* buildbot/test/*.py: update to match, generally by turning all
+	build= arguments into subsequent calls to s.setBuild()
+	* buildbot/test/test_config.py (Factories): verify that we can
+	use either BuildStep instances or class/kwarg tuples in both
+	BuildFactory.addStep and BuildFactory.__init__
+
+	* docs/buildbot.texinfo (Build Steps): document the new approach,
+	mention compatibility with the old approach, update all examples
+	to use the new style.
+
+2007-06-16  Brian Warner  <warner@lothar.com>
+
+	* buildbot/changes/svnpoller.py: when the poll fails, don't kill
+	the LoopingCall, just eat the failure so that we'll poll again
+	next time. This should allow us to tolerate (e.g.) sf.net SVN
+	failures more gracefully. Many thanks to Dustin Mitchell for the
+	patch. Closes #34.
+
+2007-05-17  Brian Warner  <warner@lothar.com>
+
+	* buildbot/status/words.py: refactor the IRC status bot into
+	separate 'Contact' and 'Channel' classes. The base Contact class
+	contains the interaction code: commands and responses. The
+	IRCContact subclass (and IrcStatusBot 'Channel') handle the
+	IRC-specific aspects. The plan is to write other subclasses for
+	other IM protocols like AIM and Jabber.
+
+2007-04-16  Brian Warner  <warner@lothar.com>
+
+	* CREDITS: update list of contributors. Thank you all!
+
+2007-04-13  Brian Warner  <warner@lothar.com>
+
+	* buildbot/status/mail.py (MailNotifier): add the project name to
+	the subject line and message body, to make it easier to
+	distinguish email coming from different buildmasters. Thanks to
+	Benoit Sigoure for the patch.
+	* buildbot/test/test_status.py (Mail): update to match
+
+2007-03-24  Brian Warner  <warner@lothar.com>
+
+	* buildbot/steps/transfer.py: open all files in 'b' binary mode to
+	avoid text-conversion problems between DOS/windows and unix.
+	Thanks to Phil Thompson for the patch. Fixes SF#1674927.
+
+2007-03-03  Brian Warner  <warner@lothar.com>
+
+	* buildbot/status/html.py (_hush_pyflakes): hush a pyflakes
+	warning about the use of Waterfall here
+
+2007-03-01  Brian Warner  <warner@lothar.com>
+
+	* buildbot/interfaces.py (IStatus.getBuilder): mention exceptions
+
+2007-02-28  Brian Warner  <warner@lothar.com>
+
+	* buildbot/changes/p4poller.py (P4Source): apply change from Scott
+	Lamb to use a more optimal form of 'p4 changes', to reduce server
+	load. He reports that this optimization was added to p4d release
+	2005.2, but it should work in all versions. Closes #27.
+	* buildbot/test/test_p4poller.py: match it
+
+2007-02-27  Brian Warner  <warner@lothar.com>
+
+	* buildbot/status/web/*.py: move all web status stuff into a
+	separate directory, in anticipation of splitting it into smaller
+	pieces and adding more files. html.py was getting way too big.
+	* buildbot/status/classic.css: move it too
+	* setup.py: add the new sub-package
+	* buildbot/test/test_web.py: match the changes
+	* MANIFEST.in: handle the move of classic.css
+
+2007-02-07  Brian Warner  <warner@lothar.com>
+
+	* contrib/OS-X/*: add some launchd .plist files for automatically
+	starting a buildmaster or buildslave under OS-X (10.4 or later).
+	Thanks to Mark Pauley for these.
+
+2007-02-06  Brian Warner  <warner@lothar.com>
+
+	* docs/buildbot.texinfo (Requirements): update requirements to
+	stop claiming compatibility with python-2.2 or twisted-1.3.x .
+	Closes #13.
+	* README: mention python-2.5 and twisted-2.5 compatibility
+
+	* buildbot/clients/debug.py: hush pyflakes warnings by removing a
+	redundant import
+	* buildbot/scripts/startup.py: same, by removing twisted-1.3.0
+	compatibility
+	* buildbot/status/builder.py: same, by requiring cStringIO
+	* buildbot/status/words.py: same, remove twisted-1.3.0 compat
+	* buildbot/test/test_vc.py: same
+	* buildbot/test/test_web.py:
+	* buildbot/test/test_steps.py: same, remove unused import
+
+	* buildbot/status/html.py (StatusResourceBuild.body): oops, close
+	the FORM tag
+
+	* buildbot/master.py (BuildMaster.loadConfig): warn the user if we
+	see any Builders that don't have Schedulers to drive them
+
+	* buildbot/master.py (BotPerspective.__repr__): fit bitrot, the
+	attributes this uses went away
+
+	* contrib/bb_applet.py (MyApplet.filled): add a small prefs
+	dialog, to allow you to reset the buildmaster and force
+	connect/disconnect. Correctly handle losing the buildmaster
+	connection (by switching the display to the hexnut, at which point
+	you can use the 'Connect' menu item to reconnect).
+
+	* buildbot/steps/source.py (Source.start): if we're using a patch,
+	add it as a LogFile to the checkout/update step. This will turn
+	into a link on the waterfall page.
+
+	* buildbot/scripts/tryclient.py (Try.createJob): implement --diff
+	option, to take the patch from a pre-made file rather than
+	generating it from the local tree. Thanks to Robert Helmer for the
+	idea. Closes #15 (the Trac ticket on the new http://buildbot.net/).
+	* buildbot/scripts/runner.py (TryOptions): add --diff,
+	--patchlevel, and --baserev options
+	* buildbot/scheduler.py (Try_Jobdir.parseJob): treat a baserev of ""
+	as None, meaning HEAD.
+	* buildbot/sourcestamp.py (SourceStamp): update docstring to
+	indicate that baserev=None means HEAD
+	* docs/buildbot.texinfo (try --diff): document it
+
+	* buildbot/test/test_steps.py (BuildStep): remove use of
+	reactor.iterate(), although the technique I replaced it with is a
+	gross polling hack that must be cleaned up properly some day. This
+	was the last use of reactor.iterate in the entire tree, yay.
+
+2007-02-05  Brian Warner  <warner@lothar.com>
+
+	* buildbot/status/mail.py (MailNotifier.__init__): assert that 'mode'
+	is one of the three known values, otherwise we emit some confusing
+	messages later on. Thanks to Grig Gheorghiu for the catch.
+
+2007-01-30  Brian Warner  <warner@lothar.com>
+
+	* buildbot/changes/bonsaipoller.py (BonsaiParser.__init__): Ben
+	Hearsum contributed a patch to let BonsaiPoller work with results
+	that contain non-ascii characters. Closes SF#1632641.
+
+2007-01-27  Brian Warner  <warner@lothar.com>
+
+	* Makefile (release): produce both .tar.gz and .zip source bundles.
+	Closes SF#1222216.
+
+2007-01-23  Brian Warner  <warner@lothar.com>
+
+	* buildbot/changes/freshcvsmail.py: hush a pyflakes warning
+	* buildbot/changes/monotone.py: same
+
+	* buildbot/changes/maildir.py: combine several files into one,
+	clean up maildir.py to use Services properly.
+	* buildbot/changes/maildirtwisted.py: remove
+	* buildbot/changes/maildirgtk.py: remove, it wasn't used by
+	buildbot anyways.
+	* buildbot/changes/mail.py: match the change
+	* buildbot/scheduler.py: same, since Try_Jobdir uses a maildir
+	* buildbot/test/test_maildir.py: remove use of reactor.iterate()
+
+	* buildbot/slave/commands.py (command_version): bump to "2.3" to
+	indicate that the buildslave knows about the 'bzr' command
+
+2007-01-22  Brian Warner  <warner@lothar.com>
+
+	* buildbot/process/builder.py (Builder.fireTestEvent): don't use
+	'with', it will become a reserved work in python2.6 .
+
+	* contrib/bb_applet.py: add a simple gnome-panel applet, to
+	display a terse summary of buildbot status.
+	* docs/hexnut32.png, docs/hexnut48.png, docs/hexnut64.png: add
+	some icons, small versions of the Blender object that lives in
+	docs/images/icon.blend
+
+	* buildbot/steps/source.py (Bzr): add Bazaar-ng support
+	* buildbot/slave/commands.py (Bzr): same
+	* buildbot/scripts/tryclient.py (BzrExtractor): same
+	(SourceStampExtractor.dovc): modify this to allow non-zero exit
+	status, since 'bzr diff' does that
+	* buildbot/test/test_vc.py (Bzr): same
+	* docs/buildbot.texinfo (How Different VC Systems Specify Sources):
+	add notes on bzr
+	(Bzr): document it
+
+2007-01-20  Brian Warner  <warner@lothar.com>
+
+	* contrib/darcs_buildbot.py: tidy up the progress messages
+
+2007-01-17  Brian Warner  <warner@lothar.com>
+
+	* contrib/darcs_buildbot.py: enhance to handle multiple patches
+	being pushed at a time. This keeps state in the repository in a
+	small file named .darcs_buildbot-lastchange, but that shouldn't
+	interfere with normal repository operations. Fixes SF#1534049.
+	* buildbot/clients/sendchange.py (Sender): make a single Sender
+	capable of sending Changes with different usernames.
+
+2006-12-11  Brian Warner  <warner@lothar.com>
+
+	* buildbot/changes/freshcvsmail.py: mark this file as deprecated,
+	scheduled for removal in 0.7.7 . The FCMaildirSource was moved to
+	buildbot.changes.mail a long time ago, but I forgot to add the
+	DeprecationWarning until now.
+
+	* buildbot/process/maxq.py: remove this, the functionality now
+	lives in buildbot.steps.maxq
+
+	* buildbot/clients/debug.py: remove an unnecessary gnome.ui import
+	* buildbot/clients/gtkPanes.py: remove unused import
+
+	* buildbot/slave/trial.py: remove an unused/incomplete/buggy file,
+	that was meant to provide a special Reporter to run inside trial
+	and give the buildslave lots of machine-readable status. We never
+	finished this project.
+
+	* buildbot/changes/bonsaipoller.py: remove unused imports
+	* buildbot/changes/svnpoller.py: same
+	* buildbot/process/builder.py: same
+	* buildbot/process/buildstep.py: same
+	* buildbot/slave/bot.py: hush pyflakes warning
+	* buildbot/status/tests.py: remove unused imports
+	* buildbot/status/tinderbox.py: same
+	* buildbot/steps/python_twisted.py: same
+
+	* buildbot/process/step.py: remove this file, these names were
+	deprecated in 0.7.5 and are now being removed.
+	* buildbot/process/step_twisted.py: same
+	* buildbot/test/test_steps.py (ReorgCompatibility): remove test
+
+	* buildbot/twcompat.py: remove the empty file, yay it is gone
+
+	* buildbot/twcompat.py (waitForDeferred): remove the monkeypatch,
+	tw-2.0.0 and newer have the method we need.
+	(getProcessOutputAndValue): same
+	(which): remove this method, tw-2.0.0 t.p.procutils has it
+
+	* buildbot/twcompat.py (implements): remove this method
+	* buildbot/*: import implements() from zope.interface directly
+
+	* buildbot/status/mail.py: stop falling back to importing
+	twisted.protocols.smtp.sendmail, now that we don't need tw-1.3.0
+	support
+
+	* buildbot/twcompat.py (Interface): remove this import
+	* buildbot/*: import Interface from zope.interface directly
+
+	* buildbot/twcompat.py (providedBy): remove this method
+	* buildbot/*: turn all uses of providedBy(obj, iface) into
+	iface.providedBy(obj)
+
+	* buildbot/twcompat.py (maybeWait): remove this method, now that
+	we no longer maintain compatibility with Twisted<=1.3.0 .
+	Twisted-2.0.0 and later allow trial methods to return Deferreds
+	directly.
+	* buildbot/test/*: remove all uses of maybeWait
+
+	* buildbot/__init__.py (version): bump to 0.7.5+ while between
+	releases
+	* docs/buildbot.texinfo: same
+
 2006-12-10  Brian Warner  <warner@lothar.com>
 
 	* buildbot/__init__.py (version): Releasing buildbot-0.7.5

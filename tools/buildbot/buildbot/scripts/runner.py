@@ -59,7 +59,7 @@ class Maker:
     def __init__(self, config):
         self.config = config
         self.basedir = config['basedir']
-        self.force = config['force']
+        self.force = config.get('force', False)
         self.quiet = config['quiet']
 
     def mkdir(self):
@@ -153,6 +153,162 @@ class Maker:
         f.close()
         os.chmod(target, 0600)
 
+    def public_html(self, index_html, buildbot_css, robots_txt):
+        webdir = os.path.join(self.basedir, "public_html")
+        if os.path.exists(webdir):
+            if not self.quiet:
+                print "public_html/ already exists: not replacing"
+            return
+        else:
+            os.mkdir(webdir)
+        if not self.quiet:
+            print "populating public_html/"
+        target = os.path.join(webdir, "index.html")
+        f = open(target, "wt")
+        f.write(open(index_html, "rt").read())
+        f.close()
+
+        target = os.path.join(webdir, "buildbot.css")
+        f = open(target, "wt")
+        f.write(open(buildbot_css, "rt").read())
+        f.close()
+
+        target = os.path.join(webdir, "robots.txt")
+        f = open(target, "wt")
+        f.write(open(robots_txt, "rt").read())
+        f.close()
+
+    def populate_if_missing(self, target, source, overwrite=False):
+        new_contents = open(source, "rt").read()
+        if os.path.exists(target):
+            old_contents = open(target, "rt").read()
+            if old_contents != new_contents:
+                if overwrite:
+                    if not self.quiet:
+                        print "%s has old/modified contents" % target
+                        print " overwriting it with new contents"
+                    open(target, "wt").write(new_contents)
+                else:
+                    if not self.quiet:
+                        print "%s has old/modified contents" % target
+                        print " writing new contents to %s.new" % target
+                    open(target + ".new", "wt").write(new_contents)
+            # otherwise, it's up to date
+        else:
+            if not self.quiet:
+                print "populating %s" % target
+            open(target, "wt").write(new_contents)
+
+    def upgrade_public_html(self, index_html, buildbot_css, robots_txt):
+        webdir = os.path.join(self.basedir, "public_html")
+        if not os.path.exists(webdir):
+            if not self.quiet:
+                print "populating public_html/"
+            os.mkdir(webdir)
+        self.populate_if_missing(os.path.join(webdir, "index.html"),
+                                 index_html)
+        self.populate_if_missing(os.path.join(webdir, "buildbot.css"),
+                                 buildbot_css)
+        self.populate_if_missing(os.path.join(webdir, "robots.txt"),
+                                 robots_txt)
+
+    def check_master_cfg(self):
+        from buildbot.master import BuildMaster
+        from twisted.python import log, failure
+
+        master_cfg = os.path.join(self.basedir, "master.cfg")
+        if not os.path.exists(master_cfg):
+            if not self.quiet:
+                print "No master.cfg found"
+            return 1
+
+        # side-effects of loading the config file:
+
+        #  for each Builder defined in c['builders'], if the status directory
+        #  didn't already exist, it will be created, and the
+        #  $BUILDERNAME/builder pickle might be created (with a single
+        #  "builder created" event).
+
+        # we put basedir in front of sys.path, because that's how the
+        # buildmaster itself will run, and it is quite common to have the
+        # buildmaster import helper classes from other .py files in its
+        # basedir.
+
+        if sys.path[0] != self.basedir:
+            sys.path.insert(0, self.basedir)
+
+        m = BuildMaster(self.basedir)
+        # we need to route log.msg to stdout, so any problems can be seen
+        # there. But if everything goes well, I'd rather not clutter stdout
+        # with log messages. So instead we add a logObserver which gathers
+        # messages and only displays them if something goes wrong.
+        messages = []
+        log.addObserver(messages.append)
+        try:
+            # this will raise an exception if there's something wrong with
+            # the config file. Note that this BuildMaster instance is never
+            # started, so it won't actually do anything with the
+            # configuration.
+            m.loadConfig(open(master_cfg, "r"))
+        except:
+            f = failure.Failure()
+            if not self.quiet:
+                print
+                for m in messages:
+                    print "".join(m['message'])
+                print f
+                print
+                print "An error was detected in the master.cfg file."
+                print "Please correct the problem and run 'buildbot upgrade-master' again."
+                print
+            return 1
+        return 0
+
+class UpgradeMasterOptions(MakerBase):
+    optFlags = [
+        ["replace", "r", "Replace any modified files without confirmation."],
+        ]
+
+    def getSynopsis(self):
+        return "Usage:    buildbot upgrade-master [options] <basedir>"
+
+    longdesc = """
+    This command takes an existing buildmaster working directory and
+    adds/modifies the files there to work with the current version of
+    buildbot. When this command is finished, the buildmaster directory should
+    look much like a brand-new one created by the 'create-master' command.
+
+    Use this after you've upgraded your buildbot installation and before you
+    restart the buildmaster to use the new version.
+
+    If you have modified the files in your working directory, this command
+    will leave them untouched, but will put the new recommended contents in a
+    .new file (for example, if index.html has been modified, this command
+    will create index.html.new). You can then look at the new version and
+    decide how to merge its contents into your modified file.
+    """
+
+def upgradeMaster(config):
+    basedir = config['basedir']
+    m = Maker(config)
+    # TODO: check Makefile
+    # TODO: check TAC file
+    # check web files: index.html, classic.css, robots.txt
+    webdir = os.path.join(basedir, "public_html")
+    m.upgrade_public_html(util.sibpath(__file__, "../status/web/index.html"),
+                          util.sibpath(__file__, "../status/web/classic.css"),
+                          util.sibpath(__file__, "../status/web/robots.txt"),
+                          )
+    m.populate_if_missing(os.path.join(basedir, "master.cfg.sample"),
+                          util.sibpath(__file__, "sample.cfg"),
+                          overwrite=True)
+    rc = m.check_master_cfg()
+    if rc:
+        return rc
+    if not config['quiet']:
+        print "upgrade complete"
+
+
 class MasterOptions(MakerBase):
     optFlags = [
         ["force", "f",
@@ -194,6 +350,10 @@ def createMaster(config):
     contents = masterTAC % config
     m.makeTAC(contents)
     m.sampleconfig(util.sibpath(__file__, "sample.cfg"))
+    m.public_html(util.sibpath(__file__, "../status/web/index.html"),
+                  util.sibpath(__file__, "../status/web/classic.css"),
+                  util.sibpath(__file__, "../status/web/robots.txt"),
+                  )
     m.makefile()
 
     if not m.quiet: print "buildmaster configured in %s" % m.basedir
@@ -252,7 +412,7 @@ from twisted.application import service
 from buildbot.slave.bot import BuildSlave
 
 basedir = r'%(basedir)s'
-host = '%(host)s'
+buildmaster_host = '%(host)s'
 port = %(port)d
 slavename = '%(name)s'
 passwd = '%(passwd)s'
@@ -261,8 +421,8 @@ usepty = %(usepty)d
 umask = %(umask)s
 
 application = service.Application('buildslave')
-s = BuildSlave(host, port, slavename, passwd, basedir, keepalive, usepty,
-               umask=umask)
+s = BuildSlave(buildmaster_host, port, slavename, passwd, basedir,
+               keepalive, usepty, umask=umask)
 s.setServiceParent(application)
 
 """
@@ -306,8 +466,8 @@ def stop(config, signame="TERM", wait=False):
             print "sent SIG%s to process" % signame
         return
     time.sleep(0.1)
-    while timer < 5:
-        # poll once per second until twistd.pid goes away, up to 5 seconds
+    while timer < 10:
+        # poll once per second until twistd.pid goes away, up to 10 seconds
         try:
             os.kill(pid, 0)
         except OSError:
@@ -585,7 +745,15 @@ class TryOptions(usage.Options):
         ["master", "m", None,
          "Location of the buildmaster's PBListener (host:port)"],
         ["passwd", None, None, "password for PB authentication"],
-        
+
+        ["diff", None, None,
+         "Filename of a patch to use instead of scanning a local tree. Use '-' for stdin."],
+        ["patchlevel", "p", 0,
+         "Number of slashes to remove from patch pathnames, like the -p option to 'patch'"],
+
+        ["baserev", None, None,
+         "Base revision to use instead of scanning a local tree."],
+
         ["vc", None, None,
          "The VC system in use, one of: cvs,svn,tla,baz,darcs"],
         ["branch", None, None,
@@ -606,6 +774,9 @@ class TryOptions(usage.Options):
 
     def opt_builder(self, option):
         self['builders'].append(option)
+
+    def opt_patchlevel(self, option):
+        self['patchlevel'] = int(option)
 
     def getSynopsis(self):
         return "Usage:    buildbot try [options]"
@@ -645,6 +816,8 @@ class Options(usage.Options):
         # the following are all admin commands
         ['create-master', None, MasterOptions,
          "Create and populate a directory for a new buildmaster"],
+        ['upgrade-master', None, UpgradeMasterOptions,
+         "Upgrade an existing buildmaster directory for the current version"],
         ['create-slave', None, SlaveOptions,
          "Create and populate a directory for a new buildslave"],
         ['start', None, StartOptions, "Start a buildmaster or buildslave"],
@@ -707,6 +880,8 @@ def run():
 
     if command == "create-master":
         createMaster(so)
+    elif command == "upgrade-master":
+        upgradeMaster(so)
     elif command == "create-slave":
         createSlave(so)
     elif command == "start":

@@ -5,8 +5,8 @@ from twisted.internet import defer, reactor
 from twisted.python import log, util
 
 from buildbot import master, interfaces
-from buildbot.twcompat import maybeWait
 from buildbot.slave import bot
+from buildbot.buildslave import BuildSlave
 from buildbot.process.builder import Builder
 from buildbot.process.base import BuildRequest, Build
 from buildbot.process.buildstep import BuildStep
@@ -137,7 +137,7 @@ class RunMixin:
         d = self.shutdownAllSlaves()
         d.addCallback(self._tearDown_1)
         d.addCallback(self._tearDown_2)
-        return maybeWait(d)
+        return d
     def _tearDown_1(self, res):
         if self.master:
             return defer.maybeDeferred(self.master.stopService)
@@ -194,7 +194,8 @@ class RunMixin:
         broker.transport.loseConnection()
         del self.slaves['bot1']
 
-    def disappearSlave(self, slavename="bot1", buildername="dummy"):
+    def disappearSlave(self, slavename="bot1", buildername="dummy",
+                       allowReconnect=False):
         # the slave's host has vanished off the net, leaving the connection
         # dangling. This will be detected quickly by app-level keepalives or
         # a ping, or slowly by TCP timeouts.
@@ -207,6 +208,10 @@ class RunMixin:
         broker = bot.builders[buildername].remote.broker
         broker.dataReceived = discard # seal its ears
         broker.transport.write = discard # and take away its voice
+        if not allowReconnect:
+            # also discourage it from reconnecting once the connection goes away
+            assert self.slaves[slavename].bf.continueTrying
+            self.slaves[slavename].bf.continueTrying = False
 
     def ghostSlave(self):
         # the slave thinks it has lost the connection, and initiated a
@@ -243,7 +248,8 @@ def makeBuildStep(basedir, step_class=BuildStep, **kwargs):
     br = BuildRequest("reason", ss)
     b = Build([br])
     b.setBuilder(b0)
-    s = step_class(build=b, **kwargs)
+    s = step_class(**kwargs)
+    s.setBuild(b)
     s.setStepStatus(bss)
     b.setupStatus(bss.getBuild())
     s.slaveVersion = fake_slaveVersion
@@ -399,9 +405,9 @@ class StepTester:
 
     workdir = "build"
     def makeStep(self, factory, **kwargs):
-        if not kwargs.has_key("workdir"):
-            kwargs['workdir'] = self.workdir
         step = makeBuildStep(self.masterbase, factory, **kwargs)
+        step.setBuildSlave(BuildSlave("name", "password"))
+        step.setDefaultWorkdir(self.workdir)
         return step
 
     def runStep(self, step):

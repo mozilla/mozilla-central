@@ -1,20 +1,14 @@
-#! /usr/bin/python
 
-from __future__ import generators
 import sys, os, time
-try:
-    import cPickle
-    pickle = cPickle
-except ImportError:
-    import pickle
+from cPickle import dump
 
+from zope.interface import implements
 from twisted.python import log
 from twisted.internet import defer
 from twisted.application import service
 from twisted.web import html
 
 from buildbot import interfaces, util
-from buildbot.twcompat import implements, providedBy
 
 html_tmpl = """
 <p>Changed by: <b>%(who)s</b><br />
@@ -51,10 +45,7 @@ class Change:
     chronologically increasing order. Out-of-order changes will probably
     cause the html.Waterfall display to be corrupted."""
 
-    if implements:
-        implements(interfaces.IStatusEvent)
-    else:
-        __implements__ = interfaces.IStatusEvent,
+    implements(interfaces.IStatusEvent)
 
     number = None
 
@@ -106,6 +97,25 @@ class Change:
                    'branch'  : branch,
                    'comments': html.PRE(self.comments) }
         return html_tmpl % kwargs
+
+    def get_HTML_box(self, url):
+        """Return the contents of a TD cell for the waterfall display.
+
+        @param url: the URL that points to an HTML page that will render
+        using our asHTML method. The Change is free to use this or ignore it
+        as it pleases.
+
+        @return: the HTML that will be put inside the table cell. Typically
+        this is just a single href named after the author of the change and
+        pointing at the passed-in 'url'.
+        """
+        who = self.getShortAuthor()
+        return '<a href="%s" title="%s">%s</a>' % (url,
+                                                   html.escape(self.comments),
+                                                   html.escape(who))
+
+    def getShortAuthor(self):
+        return self.who
 
     def getTime(self):
         if not self.when:
@@ -170,6 +180,8 @@ class ChangeMaster(service.MultiService):
     
     """
 
+    implements(interfaces.IEventSource)
+
     debug = False
     # todo: use Maildir class to watch for changes arriving by mail
 
@@ -180,8 +192,8 @@ class ChangeMaster(service.MultiService):
         self.nextNumber = 1
 
     def addSource(self, source):
-        assert providedBy(source, interfaces.IChangeSource)
-        assert providedBy(source, service.IService)
+        assert interfaces.IChangeSource.providedBy(source)
+        assert service.IService.providedBy(source)
         if self.debug:
             print "ChangeMaster.addSource", source
         source.setServiceParent(self)
@@ -209,10 +221,11 @@ class ChangeMaster(service.MultiService):
     def pruneChanges(self):
         self.changes = self.changes[-100:] # or something
 
-    def eventGenerator(self):
+    def eventGenerator(self, branches=[]):
         for i in range(len(self.changes)-1, -1, -1):
             c = self.changes[i]
-            yield c
+            if not branches or c.branch in branches:
+                yield c
 
     def getChangeNumbered(self, num):
         if not self.changes:
@@ -249,7 +262,7 @@ class ChangeMaster(service.MultiService):
         filename = os.path.join(self.basedir, "changes.pck")
         tmpfilename = filename + ".tmp"
         try:
-            pickle.dump(self, open(tmpfilename, "wb"))
+            dump(self, open(tmpfilename, "wb"))
             if sys.platform == 'win32':
                 # windows cannot rename a file on top of an existing one
                 if os.path.exists(filename):

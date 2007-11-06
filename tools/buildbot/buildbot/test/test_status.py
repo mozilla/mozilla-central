@@ -2,13 +2,13 @@
 
 import email, os
 
+from zope.interface import implements
 from twisted.internet import defer, reactor
 from twisted.trial import unittest
 
 from buildbot import interfaces
 from buildbot.sourcestamp import SourceStamp
 from buildbot.process.base import BuildRequest
-from buildbot.twcompat import implements, providedBy, maybeWait
 from buildbot.status import builder, base
 
 mail = None
@@ -109,10 +109,7 @@ class MyBuild(builder.BuildStatus):
         return self.testlogs
 
 class MyLookup:
-    if implements:
-        implements(interfaces.IEmailLookup)
-    else:
-        __implements__ = interfaces.IEmailLookup,
+    implements(interfaces.IEmailLookup)
 
     def getAddress(self, user):
         d = defer.Deferred()
@@ -138,7 +135,11 @@ class Mail(unittest.TestCase):
         return MyBuild(self.builder, number, results)
 
     def failUnlessIn(self, substring, string):
-        self.failUnless(string.find(substring) != -1)
+        self.failUnless(string.find(substring) != -1,
+                        "didn't see '%s' in '%s'" % (substring, string))
+
+    def getProjectName(self):
+        return "PROJECT"
 
     def getBuildbotURL(self):
         return "BUILDBOT_URL"
@@ -165,7 +166,7 @@ class Mail(unittest.TestCase):
         self.failUnlessIn("To: bob@dev.com, recip2@example.com, "
                           "recip@example.com\n", t)
         self.failUnlessIn("From: buildbot@example.com\n", t)
-        self.failUnlessIn("Subject: buildbot success in builder1\n", t)
+        self.failUnlessIn("Subject: buildbot success in PROJECT on builder1\n", t)
         self.failUnlessIn("Date: ", t)
         self.failUnlessIn("Build succeeded!\n", t)
         self.failUnlessIn("Buildbot URL: BUILDBOT_URL\n", t)
@@ -190,7 +191,7 @@ class Mail(unittest.TestCase):
         self.failUnlessIn("To: recip2@example.com, "
                           "recip@example.com\n", t)
         self.failUnlessIn("From: buildbot@example.com\n", t)
-        self.failUnlessIn("Subject: buildbot success in builder1\n", t)
+        self.failUnlessIn("Subject: buildbot success in PROJECT on builder1\n", t)
         self.failUnlessIn("Build succeeded!\n", t)
         self.failUnlessIn("Buildbot URL: BUILDBOT_URL\n", t)
 
@@ -291,7 +292,7 @@ class Mail(unittest.TestCase):
         self.failUnlessIn("To: dev3@dev.com, dev4@dev.com, "
                           "recip2@example.com, recip@example.com\n", t)
         self.failUnlessIn("From: buildbot@example.com\n", t)
-        self.failUnlessIn("Subject: buildbot failure in builder1\n", t)
+        self.failUnlessIn("Subject: buildbot failure in PROJECT on builder1\n", t)
         self.failUnlessIn("The Buildbot has detected a new failure", t)
         self.failUnlessIn("BUILD FAILED: snarkleack polarization failed\n", t)
         self.failUnlessEqual(r, ["dev3@dev.com", "dev4@dev.com",
@@ -317,7 +318,7 @@ class Mail(unittest.TestCase):
         self.failUnless(len(self.messages) == 1)
         m,r = self.messages.pop()
         t = m.as_string()
-        self.failUnlessIn("Subject: buildbot warnings in builder1\n", t)
+        self.failUnlessIn("Subject: buildbot warnings in PROJECT on builder1\n", t)
         m2 = email.message_from_string(t)
         p = m2.get_payload()
         self.failUnlessEqual(len(p), 3)
@@ -360,7 +361,7 @@ class Mail(unittest.TestCase):
         # otherwise a malicious SMTP server could make us consume lots of
         # memory.
         d.addCallback(self.stall, 0.1)
-        return maybeWait(d)
+        return d
 
 if not mail:
     Mail.skip = "the Twisted Mail package is not installed"
@@ -394,7 +395,7 @@ class Results(unittest.TestCase):
         res = b.getTestResults()
         self.failUnlessEqual(res.keys(), [testname])
         t = res[testname]
-        self.failUnless(providedBy(t, interfaces.ITestResult))
+        self.failUnless(interfaces.ITestResult.providedBy(t))
         self.failUnlessEqual(t.getName(), testname)
         self.failUnlessEqual(t.getResults(), builder.SUCCESS)
         self.failUnlessEqual(t.getText(), ["passed"])
@@ -629,7 +630,8 @@ class Log(unittest.TestCase):
         s = MyLogConsumer()
         d = l1.subscribeConsumer(s)
         d.addCallback(self._testConsumer_1, s)
-        return maybeWait(d, 5)
+        return d
+    testConsumer.timeout = 5
     def _testConsumer_1(self, res, s):
         self.failIf(s.chunks)
         self.failUnless(s.finished)
@@ -721,12 +723,13 @@ class Log(unittest.TestCase):
         # NetstringReceiver.dataReceived where it does
         # self.transport.loseConnection() because of the NetstringParseError,
         # however self.transport is None
-        return maybeWait(d, 5)
+        return d
     testLargeSummary.timeout = 5
 
 config_base = """
 from buildbot.process import factory
 from buildbot.steps import dummy
+from buildbot.buildslave import BuildSlave
 s = factory.s
 
 f1 = factory.QuickBuildFactory('fakerep', 'cvsmodule', configure=None)
@@ -737,8 +740,7 @@ f2 = factory.BuildFactory([
     ])
 
 BuildmasterConfig = c = {}
-c['bots'] = [['bot1', 'sekrit']]
-c['sources'] = []
+c['slaves'] = [BuildSlave('bot1', 'sekrit')]
 c['schedulers'] = []
 c['builders'] = []
 c['builders'].append({'name':'quick', 'slavename':'bot1',
@@ -859,7 +861,7 @@ class Subscription(RunMixin, unittest.TestCase):
 
         d = self.connectSlave(builders=["dummy", "testdummy"])
         d.addCallback(self._testSlave_1, t1)
-        return maybeWait(d)
+        return d
 
     def _testSlave_1(self, res, t1):
         self.failUnlessEqual(len(t1.events), 2)
@@ -910,9 +912,11 @@ class Subscription(RunMixin, unittest.TestCase):
         self.failUnless(b)
         self.failUnlessEqual(b.getBuilder().getName(), "dummy")
         self.failUnlessEqual(b.getNumber(), 0)
-        self.failUnlessEqual(b.getSourceStamp(), (None, None, None))
+        self.failUnlessEqual(b.getSourceStamp().branch, None)
+        self.failUnlessEqual(b.getSourceStamp().patch, None)
+        self.failUnlessEqual(b.getSourceStamp().revision, None)
         self.failUnlessEqual(b.getReason(), "forced build for testing")
-        self.failUnlessEqual(b.getChanges(), [])
+        self.failUnlessEqual(b.getChanges(), ())
         self.failUnlessEqual(b.getResponsibleUsers(), [])
         self.failUnless(b.isFinished())
         self.failUnlessEqual(b.getText(), ['build', 'successful'])

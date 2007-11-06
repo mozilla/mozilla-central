@@ -4,6 +4,7 @@
 from twisted.trial import unittest
 from twisted.python import usage
 import os, shutil, shlex
+import sets
 
 from buildbot.scripts import runner, tryclient
 
@@ -80,6 +81,12 @@ class Create(unittest.TestCase):
     def failIfExists(self, filename):
         self.failIf(os.path.exists(filename), "%s should not exist" % filename)
 
+    def setUp(self):
+        self.cwd = os.getcwd()
+
+    def tearDown(self):
+        os.chdir(self.cwd)
+
     def testMaster(self):
         basedir = "test_runner.master"
         options = runner.MasterOptions()
@@ -149,6 +156,90 @@ class Create(unittest.TestCase):
         self.failUnlessEqual(samplecfg, oldsamplecfg,
                              "*should* rewrite master.cfg.sample")
 
+    def testUpgradeMaster(self):
+        # first, create a master, run it briefly, then upgrade it. Nothing
+        # should change.
+        basedir = "test_runner.master2"
+        options = runner.MasterOptions()
+        options.parseOptions(["-q", basedir])
+        cwd = os.getcwd()
+        runner.createMaster(options)
+        os.chdir(cwd)
+
+        f = open(os.path.join(basedir, "master.cfg"), "w")
+        f.write(open(os.path.join(basedir, "master.cfg.sample"), "r").read())
+        f.close()
+
+        # the upgrade process (specifically the verify-master.cfg step) will
+        # create any builder status directories that weren't already created.
+        # Create those ahead of time.
+        os.mkdir(os.path.join(basedir, "full"))
+
+        files1 = self.record_files(basedir)
+
+        # upgrade it
+        options = runner.UpgradeMasterOptions()
+        options.parseOptions(["--quiet", basedir])
+        cwd = os.getcwd()
+        runner.upgradeMaster(options)
+        os.chdir(cwd)
+
+        files2 = self.record_files(basedir)
+        self.failUnlessSameFiles(files1, files2)
+
+        # now make it look like the one that 0.7.5 creates: no public_html
+        for fn in os.listdir(os.path.join(basedir, "public_html")):
+            os.unlink(os.path.join(basedir, "public_html", fn))
+        os.rmdir(os.path.join(basedir, "public_html"))
+
+        # and make sure that upgrading it re-populates public_html
+        options = runner.UpgradeMasterOptions()
+        options.parseOptions(["-q", basedir])
+        cwd = os.getcwd()
+        runner.upgradeMaster(options)
+        os.chdir(cwd)
+
+        files3 = self.record_files(basedir)
+        self.failUnlessSameFiles(files1, files3)
+
+        # now induce an error in master.cfg and make sure that upgrade
+        # notices it.
+        f = open(os.path.join(basedir, "master.cfg"), "a")
+        f.write("raise RuntimeError('catch me please')\n")
+        f.close()
+
+        options = runner.UpgradeMasterOptions()
+        options.parseOptions(["-q", basedir])
+        cwd = os.getcwd()
+        rc = runner.upgradeMaster(options)
+        os.chdir(cwd)
+        self.failUnless(rc != 0, rc)
+        # TODO: change the way runner.py works to let us pass in a stderr
+        # filehandle, and use a StringIO to capture its output, and make sure
+        # the right error messages appear therein.
+
+
+    def failUnlessSameFiles(self, files1, files2):
+        f1 = sets.Set(files1.keys())
+        f2 = sets.Set(files2.keys())
+        msg = ""
+        if f2 - f1:
+            msg += "Missing from files1: %s\n" % (list(f2-f1),)
+        if f1 - f2:
+            msg += "Missing from files2: %s\n" % (list(f1-f2),)
+        if msg:
+            self.fail(msg)
+
+    def record_files(self, basedir):
+        allfiles = {}
+        for root, dirs, files in os.walk(basedir):
+            for f in files:
+                fn = os.path.join(root, f)
+                allfiles[fn] = ("FILE", open(fn,"rb").read())
+            for d in dirs:
+                allfiles[os.path.join(root, d)] = ("DIR",)
+        return allfiles
+
 
     def testSlave(self):
         basedir = "test_runner.slave"
@@ -163,12 +254,13 @@ class Create(unittest.TestCase):
         self.failUnless(os.path.exists(tac))
         tacfile = open(tac,"rt").read()
         self.failUnlessIn("basedir", tacfile)
-        self.failUnlessIn("host = 'buildmaster'", tacfile)
+        self.failUnlessIn("buildmaster_host = 'buildmaster'", tacfile)
         self.failUnlessIn("port = 1234", tacfile)
         self.failUnlessIn("slavename = 'botname'", tacfile)
         self.failUnlessIn("passwd = 'passwd'", tacfile)
         self.failUnlessIn("keepalive = 600", tacfile)
-        self.failUnlessIn("BuildSlave(host, port, slavename", tacfile)
+        self.failUnlessIn("BuildSlave(buildmaster_host, port, slavename",
+                          tacfile)
 
         makefile = os.path.join(basedir, "Makefile.sample")
         self.failUnlessExists(makefile)
@@ -211,12 +303,13 @@ class Create(unittest.TestCase):
         self.failUnlessExists(os.path.join(basedir, "buildbot.tac.new"))
         tacfile = open(os.path.join(basedir, "buildbot.tac.new"),"rt").read()
         self.failUnlessIn("basedir", tacfile)
-        self.failUnlessIn("host = 'buildmaster'", tacfile)
+        self.failUnlessIn("buildmaster_host = 'buildmaster'", tacfile)
         self.failUnlessIn("port = 9999", tacfile)
         self.failUnlessIn("slavename = 'newbotname'", tacfile)
         self.failUnlessIn("passwd = 'passwd'", tacfile)
         self.failUnlessIn("keepalive = 30", tacfile)
-        self.failUnlessIn("BuildSlave(host, port, slavename", tacfile)
+        self.failUnlessIn("BuildSlave(buildmaster_host, port, slavename",
+                          tacfile)
 
         make = open(os.path.join(basedir, "Makefile.sample"), "rt").read()
         self.failUnlessEqual(make, oldmake, "*should* rewrite Makefile.sample")

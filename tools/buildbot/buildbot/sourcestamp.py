@@ -1,36 +1,33 @@
 
+from zope.interface import implements
 from buildbot import util, interfaces
-from buildbot.twcompat import implements
 
 class SourceStamp(util.ComparableMixin):
     """This is a tuple of (branch, revision, patchspec, changes).
 
     C{branch} is always valid, although it may be None to let the Source
-    step use its default branch. There are four possibilities for the
+    step use its default branch. There are three possibilities for the
     remaining elements:
-     - (revision=REV, patchspec=None, changes=None): build REV
+     - (revision=REV, patchspec=None, changes=None): build REV. If REV is
+       None, build the HEAD revision from the given branch.
      - (revision=REV, patchspec=(LEVEL, DIFF), changes=None): checkout REV,
        then apply a patch to the source, with C{patch -pPATCHLEVEL <DIFF}.
+       If REV is None, checkout HEAD and patch it.
      - (revision=None, patchspec=None, changes=[CHANGES]): let the Source
        step check out the latest revision indicated by the given Changes.
-       CHANGES is a list of L{buildbot.changes.changes.Change} instances,
+       CHANGES is a tuple of L{buildbot.changes.changes.Change} instances,
        and all must be on the same branch.
-     - (revision=None, patchspec=None, changes=None): build the latest code
-       from the given branch.
     """
 
     # all four of these are publically visible attributes
     branch = None
     revision = None
     patch = None
-    changes = []
+    changes = ()
 
     compare_attrs = ('branch', 'revision', 'patch', 'changes')
 
-    if implements:
-        implements(interfaces.ISourceStamp)
-    else:
-        __implements__ = interfaces.ISourceStamp,
+    implements(interfaces.ISourceStamp)
 
     def __init__(self, branch=None, revision=None, patch=None,
                  changes=None):
@@ -38,7 +35,7 @@ class SourceStamp(util.ComparableMixin):
         self.revision = revision
         self.patch = patch
         if changes:
-            self.changes = changes
+            self.changes = tuple(changes)
             self.branch = changes[0].branch
 
     def canBeMergedWith(self, other):
@@ -83,3 +80,13 @@ class SourceStamp(util.ComparableMixin):
                                 changes=changes)
         return newsource
 
+    def getText(self):
+        # TODO: this won't work for VC's with huge 'revision' strings
+        if self.revision is None:
+            return [ "latest" ]
+        text = [ str(self.revision) ]
+        if self.branch:
+            text.append("in '%s'" % self.branch)
+        if self.patch:
+            text.append("[patch]")
+        return text

@@ -1,7 +1,6 @@
 # -*- test-case-name: buildbot.test.test_slaves -*-
 
 from twisted.trial import unittest
-from buildbot.twcompat import maybeWait
 from twisted.internet import defer, reactor
 from twisted.python import log
 
@@ -9,16 +8,18 @@ from buildbot.test.runutils import RunMixin
 from buildbot.sourcestamp import SourceStamp
 from buildbot.process.base import BuildRequest
 from buildbot.status.builder import SUCCESS
+from buildbot.status import mail
 from buildbot.slave import bot
 
 config_1 = """
 from buildbot.process import factory
 from buildbot.steps import dummy
+from buildbot.buildslave import BuildSlave
 s = factory.s
 
 BuildmasterConfig = c = {}
-c['bots'] = [('bot1', 'sekrit'), ('bot2', 'sekrit'), ('bot3', 'sekrit')]
-c['sources'] = []
+c['slaves'] = [BuildSlave('bot1', 'sekrit'), BuildSlave('bot2', 'sekrit'),
+               BuildSlave('bot3', 'sekrit')]
 c['schedulers'] = []
 c['slavePortnum'] = 0
 c['schedulers'] = []
@@ -49,7 +50,7 @@ class Slave(RunMixin, unittest.TestCase):
         self.master.startService()
         d = self.connectSlave(["b1"])
         d.addCallback(lambda res: self.connectSlave(["b1"], "bot2"))
-        return maybeWait(d)
+        return d
 
     def doBuild(self, buildername):
         br = BuildRequest("forced", SourceStamp())
@@ -69,10 +70,11 @@ class Slave(RunMixin, unittest.TestCase):
         # rotate or attempt any sort of load-balancing, two builds in
         # sequence should both use the first slave. This may change later if
         # we move to a more sophisticated scheme.
+        b.CHOOSE_SLAVES_RANDOMLY = False
 
         d = self.doBuild("b1")
         d.addCallback(self._testSequence_1)
-        return maybeWait(d)
+        return d
     def _testSequence_1(self, res):
         self.failUnlessEqual(res.getResults(), SUCCESS)
         self.failUnlessEqual(res.getSlavename(), "bot1")
@@ -89,22 +91,26 @@ class Slave(RunMixin, unittest.TestCase):
         d1 = self.doBuild("b1")
         d2 = self.doBuild("b1")
         d1.addCallback(self._testSimultaneous_1, d2)
-        return maybeWait(d1)
+        return d1
     def _testSimultaneous_1(self, res, d2):
         self.failUnlessEqual(res.getResults(), SUCCESS)
-        self.failUnlessEqual(res.getSlavename(), "bot1")
-        d2.addCallback(self._testSimultaneous_2)
+        b1_slavename = res.getSlavename()
+        d2.addCallback(self._testSimultaneous_2, b1_slavename)
         return d2
-    def _testSimultaneous_2(self, res):
+    def _testSimultaneous_2(self, res, b1_slavename):
         self.failUnlessEqual(res.getResults(), SUCCESS)
-        self.failUnlessEqual(res.getSlavename(), "bot2")
+        b2_slavename = res.getSlavename()
+        # make sure the two builds were run by different slaves
+        slavenames = [b1_slavename, b2_slavename]
+        slavenames.sort()
+        self.failUnlessEqual(slavenames, ["bot1", "bot2"])
 
     def testFallback1(self):
         # detach the first slave, verify that a build is run using the second
         # slave instead
         d = self.shutdownSlave("bot1", "b1")
         d.addCallback(self._testFallback1_1)
-        return maybeWait(d)
+        return d
     def _testFallback1_1(self, res):
         attached_slaves = [c for c in self.master.botmaster.slaves.values()
                            if c.slave]
@@ -124,17 +130,20 @@ class Slave(RunMixin, unittest.TestCase):
         # claimed for the build, and that the failing one is removed from the
         # list.
 
+        b1 = self.master.botmaster.builders["b1"]
         # reduce the ping time so we'll failover faster
-        self.master.botmaster.builders["b1"].START_BUILD_TIMEOUT = 1
-        self.disappearSlave("bot1", "b1")
+        b1.START_BUILD_TIMEOUT = 1
+        assert b1.CHOOSE_SLAVES_RANDOMLY
+        b1.CHOOSE_SLAVES_RANDOMLY = False
+        self.disappearSlave("bot1", "b1", allowReconnect=False)
         d = self.doBuild("b1")
         d.addCallback(self._testFallback2_1)
-        return maybeWait(d)
+        return d
     def _testFallback2_1(self, res):
         self.failUnlessEqual(res.getResults(), SUCCESS)
         self.failUnlessEqual(res.getSlavename(), "bot2")
         b1slaves = self.master.botmaster.builders["b1"].slaves
-        self.failUnlessEqual(len(b1slaves), 1)
+        self.failUnlessEqual(len(b1slaves), 1, "whoops: %s" % (b1slaves,))
         self.failUnlessEqual(b1slaves[0].slave.slavename, "bot2")
 
 
@@ -153,13 +162,14 @@ class Slave(RunMixin, unittest.TestCase):
         self.slaves['bot1'].debugOpts["stallPings"] = (10, timers)
         br = BuildRequest("forced", SourceStamp())
         d1 = br.waitUntilFinished()
+        self.master.botmaster.builders["b1"].CHOOSE_SLAVES_RANDOMLY = False
         self.control.getBuilder("b1").requestBuild(br)
         s1 = br.status # this is a BuildRequestStatus
         # give it a chance to start pinging
         d2 = defer.Deferred()
         d2.addCallback(self._testDontClaimPingingSlave_1, d1, s1, timers)
         reactor.callLater(1, d2.callback, None)
-        return maybeWait(d2)
+        return d2
     def _testDontClaimPingingSlave_1(self, res, d1, s1, timers):
         # now the first build is running (waiting on the ping), so start the
         # second build. This should claim the second slave, not the first,
@@ -182,11 +192,11 @@ class Slave(RunMixin, unittest.TestCase):
 config_3 = """
 from buildbot.process import factory
 from buildbot.steps import dummy
+from buildbot.buildslave import BuildSlave
 s = factory.s
 
 BuildmasterConfig = c = {}
-c['bots'] = [('bot1', 'sekrit')]
-c['sources'] = []
+c['slaves'] = [BuildSlave('bot1', 'sekrit')]
 c['schedulers'] = []
 c['slavePortnum'] = 0
 c['schedulers'] = []
@@ -224,7 +234,7 @@ class Reconfig(RunMixin, unittest.TestCase):
         self.master.loadConfig(config_3)
         self.master.startService()
         d = self.connectSlave(["b1"])
-        return maybeWait(d)
+        return d
 
     def _one_started(self):
         log.msg("testReconfig._one_started")
@@ -413,7 +423,7 @@ class Slave2(RunMixin, unittest.TestCase):
         # build has already started.
         d = self.connectSlave(["b1"], opts={"failPingOnce": True})
         d.addCallback(self._testFirstComeFirstServed_1, d1, d2)
-        return maybeWait(d)
+        return d
     def _testFirstComeFirstServed_1(self, res, d1, d2):
         # the master has send the slaveping. When this is received, it will
         # fail, causing the master to hang up on the slave. When it
@@ -431,3 +441,93 @@ class Slave2(RunMixin, unittest.TestCase):
         reasons = [build.getReason() for build in builds]
         self.failUnlessEqual(reasons, ["first", "second"])
 
+config_multi_builders = config_1 + """
+c['builders'] = [
+    {'name': 'dummy', 'slavenames': ['bot1','bot2','bot3'],
+     'builddir': 'b1', 'factory': f2},
+    {'name': 'dummy2', 'slavenames': ['bot1','bot2','bot3'],
+     'builddir': 'b2', 'factory': f2},
+    {'name': 'dummy3', 'slavenames': ['bot1','bot2','bot3'],
+     'builddir': 'b3', 'factory': f2},
+    ]
+
+"""
+
+config_mail_missing = config_1 + """
+c['slaves'] = [BuildSlave('bot1', 'sekrit', notify_on_missing='admin',
+                          missing_timeout=1)]
+c['builders'] = [
+    {'name': 'dummy', 'slavenames': ['bot1'],
+     'builddir': 'b1', 'factory': f1},
+    ]
+c['projectName'] = 'myproject'
+c['projectURL'] = 'myURL'
+"""
+
+class FakeMailer(mail.MailNotifier):
+    def sendMessage(self, m, recipients):
+        self.messages.append((m,recipients))
+        return defer.succeed(None)
+
+class BuildSlave(RunMixin, unittest.TestCase):
+    def test_track_builders(self):
+        self.master.loadConfig(config_multi_builders)
+        self.master.readConfig = True
+        self.master.startService()
+        d = self.connectSlave()
+
+        def _check(res):
+            b = self.master.botmaster.builders['dummy']
+            self.failUnless(len(b.slaves) == 1) # just bot1
+
+            bs = b.slaves[0].slave
+            self.failUnless(len(bs.slavebuilders) == 3)
+            self.failUnless(b in [sb.builder for sb in bs.slavebuilders])
+
+        d.addCallback(_check)
+        return d
+
+    def test_mail_on_missing(self):
+        self.master.loadConfig(config_mail_missing)
+        self.master.readConfig = True
+        self.master.startService()
+        fm = FakeMailer("buildbot@example.org")
+        fm.messages = []
+        fm.setServiceParent(self.master)
+        self.master.statusTargets.append(fm)
+        
+        d = self.connectSlave()
+        d.addCallback(self.stall, 1)
+        d.addCallback(lambda res: self.shutdownSlave("bot1", "dummy"))
+        def _not_yet(res):
+            self.failIf(fm.messages)
+        d.addCallback(_not_yet)
+        # we reconnect right away, so the timer shouldn't fire
+        d.addCallback(lambda res: self.connectSlave())
+        d.addCallback(self.stall, 3)
+        d.addCallback(_not_yet)
+        d.addCallback(lambda res: self.shutdownSlave("bot1", "dummy"))
+        d.addCallback(_not_yet)
+        # now we let it sit disconnected for long enough for the timer to
+        # fire
+        d.addCallback(self.stall, 3)
+        def _check(res):
+            self.failUnlessEqual(len(fm.messages), 1)
+            msg,recips = fm.messages[0]
+            self.failUnlessEqual(recips, ["admin"])
+            body = msg.as_string()
+            self.failUnlessIn("Subject: Buildbot: buildslave bot1 was lost",
+                              body)
+            self.failUnlessIn("From: buildbot@example.org", body)
+            self.failUnlessIn("working for 'myproject'", body)
+            self.failUnlessIn("has noticed that the buildslave named bot1 went away",
+                              body)
+            self.failUnlessIn("was 'one'", body)
+            self.failUnlessIn("myURL", body)
+        d.addCallback(_check)
+        return d
+
+    def stall(self, result, delay=1):
+        d = defer.Deferred()
+        reactor.callLater(delay, d.callback, result)
+        return d

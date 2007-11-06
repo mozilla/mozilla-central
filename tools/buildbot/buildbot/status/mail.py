@@ -12,24 +12,18 @@ except ImportError:
     canDoAttachments = False
 import urllib
 
+from zope.interface import implements
 from twisted.internet import defer
-try:
-    from twisted.mail.smtp import sendmail # Twisted-2.0
-except ImportError:
-    from twisted.protocols.smtp import sendmail # Twisted-1.3
+from twisted.mail.smtp import sendmail
 from twisted.python import log
 
 from buildbot import interfaces, util
-from buildbot.twcompat import implements, providedBy
 from buildbot.status import base
 from buildbot.status.builder import FAILURE, SUCCESS, WARNINGS
 
 
 class Domain(util.ComparableMixin):
-    if implements:
-        implements(interfaces.IEmailLookup)
-    else:
-        __implements__ = interfaces.IEmailLookup
+    implements(interfaces.IEmailLookup)
     compare_attrs = ["domain"]
 
     def __init__(self, domain):
@@ -59,11 +53,7 @@ class MailNotifier(base.StatusReceiverMultiService):
     MailNotifiers.
     """
 
-    if implements:
-        implements(interfaces.IEmailSender)
-    else:
-        __implements__ = (interfaces.IEmailSender,
-                          base.StatusReceiverMultiService.__implements__)
+    implements(interfaces.IEmailSender)
 
     compare_attrs = ["extraRecipients", "lookup", "fromaddr", "mode",
                      "categories", "builders", "addLogs", "relayhost",
@@ -71,7 +61,7 @@ class MailNotifier(base.StatusReceiverMultiService):
 
     def __init__(self, fromaddr, mode="all", categories=None, builders=None,
                  addLogs=False, relayhost="localhost",
-                 subject="buildbot %(result)s in %(builder)s",
+                 subject="buildbot %(result)s in %(projectName)s on %(builder)s",
                  lookup=None, extraRecipients=[],
                  sendToInterestedUsers=True):
         """
@@ -146,6 +136,7 @@ class MailNotifier(base.StatusReceiverMultiService):
         self.extraRecipients = extraRecipients
         self.sendToInterestedUsers = sendToInterestedUsers
         self.fromaddr = fromaddr
+        assert mode in ('all', 'failing', 'problem')
         self.mode = mode
         self.categories = categories
         self.builders = builders
@@ -155,7 +146,7 @@ class MailNotifier(base.StatusReceiverMultiService):
         if lookup is not None:
             if type(lookup) is str:
                 lookup = Domain(lookup)
-            assert providedBy(lookup, interfaces.IEmailLookup)
+            assert interfaces.IEmailLookup.providedBy(lookup)
         self.lookup = lookup
         self.watched = []
         self.status = None
@@ -223,13 +214,15 @@ class MailNotifier(base.StatusReceiverMultiService):
         return self.buildMessage(name, build, results)
 
     def buildMessage(self, name, build, results):
+        projectName = self.status.getProjectName()
         text = ""
         if self.mode == "all":
-            text += "The Buildbot has finished a build of %s.\n" % name
+            text += "The Buildbot has finished a build"
         elif self.mode == "failing":
-            text += "The Buildbot has detected a failed build of %s.\n" % name
+            text += "The Buildbot has detected a failed build"
         else:
-            text += "The Buildbot has detected a new failure of %s.\n" % name
+            text += "The Buildbot has detected a new failure"
+        text += " of %s on %s.\n" % (name, projectName)
         buildurl = self.status.getURLForThing(build)
         if buildurl:
             text += "Full details are available at:\n %s\n" % buildurl
@@ -247,16 +240,16 @@ class MailNotifier(base.StatusReceiverMultiService):
         if ss is None:
             source = "unavailable"
         else:
-            branch, revision, patch = ss
             source = ""
-            if branch:
-                source += "[branch %s] " % branch
-            if revision:
-                source += revision
+            if ss.branch:
+                source += "[branch %s] " % ss.branch
+            if ss.revision:
+                source += ss.revision
             else:
                 source += "HEAD"
-            if patch is not None:
+            if ss.patch is not None:
                 source += " (plus patch)"
+                patch = ss.patch
         text += "Build Source Stamp: %s\n" % source
 
         text += "Blamelist: %s\n" % ",".join(build.getResponsibleUsers())
@@ -313,6 +306,7 @@ class MailNotifier(base.StatusReceiverMultiService):
 
         m['Date'] = formatdate(localtime=True)
         m['Subject'] = self.subject % { 'result': res,
+                                        'projectName': projectName,
                                         'builder': name,
                                         }
         m['From'] = self.fromaddr

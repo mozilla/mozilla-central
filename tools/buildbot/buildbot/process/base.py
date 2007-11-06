@@ -2,12 +2,12 @@
 
 import types
 
+from zope.interface import implements
 from twisted.python import log
 from twisted.python.failure import Failure
 from twisted.internet import reactor, defer, error
 
 from buildbot import interfaces
-from buildbot.twcompat import implements
 from buildbot.status.builder import SUCCESS, WARNINGS, FAILURE, EXCEPTION
 from buildbot.status.builder import Results, BuildRequestStatus
 from buildbot.status.progress import BuildProgress
@@ -50,10 +50,7 @@ class BuildRequest:
     builder = None
     startCount = 0 # how many times we have tried to start this build
 
-    if implements:
-        implements(interfaces.IBuildRequestControl)
-    else:
-        __implements__ = interfaces.IBuildRequestControl,
+    implements(interfaces.IBuildRequestControl)
 
     def __init__(self, reason, source, builderName=None):
         # TODO: remove the =None on builderName, it is there so I don't have
@@ -155,10 +152,7 @@ class Build:
                         collects our status
     """
 
-    if implements:
-        implements(interfaces.IBuildControl)
-    else:
-        __implements__ = interfaces.IBuildControl,
+    implements(interfaces.IBuildControl)
 
     workdir = "build"
     build_status = None
@@ -243,16 +237,14 @@ class Build:
         # consider sorting these by number
         return changetext
 
-    def setSteps(self, steps):
-        """Set a list of StepFactories, which are generally just class
-        objects which derive from step.BuildStep . These are used to create
-        the Steps themselves when the Build starts (as opposed to when it is
-        first created). By creating the steps later, their __init__ method
-        will have access to things like build.allFiles() ."""
-        self.stepFactories = steps # tuples of (factory, kwargs)
-        for s in steps:
-            pass
-
+    def setStepFactories(self, step_factories):
+        """Set a list of 'step factories', which are tuples of (class,
+        kwargs), where 'class' is generally a subclass of step.BuildStep .
+        These are used to create the Steps themselves when the Build starts
+        (as opposed to when it is first created). By creating the steps
+        later, their __init__ method will have access to things like
+        build.allFiles() ."""
+        self.stepFactories = list(step_factories)
 
 
 
@@ -355,14 +347,15 @@ class Build:
 
         for factory, args in self.stepFactories:
             args = args.copy()
-            if not args.has_key("workdir"):
-                args['workdir'] = self.workdir
             try:
-                step = factory(build=self, **args)
+                step = factory(**args)
             except:
                 log.msg("error while creating step, factory=%s, args=%s"
                         % (factory, args))
                 raise
+            step.setBuild(self)
+            step.setBuildSlave(self.slavebuilder.slave)
+            step.setDefaultWorkdir(self.workdir)
             name = step.name
             count = 1
             while name in stepnames and count < 100:

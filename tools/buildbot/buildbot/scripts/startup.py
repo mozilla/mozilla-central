@@ -25,13 +25,13 @@ class Follower:
              ReconfigError, BuildslaveTimeoutError, BuildSlaveDetectedError
         if why.check(BuildmasterTimeoutError):
             print """
-The buildmaster took more than 5 seconds to start, so we were unable to
+The buildmaster took more than 10 seconds to start, so we were unable to
 confirm that it started correctly. Please 'tail twistd.log' and look for a
 line that says 'configuration update complete' to verify correct startup.
 """
         elif why.check(BuildslaveTimeoutError):
             print """
-The buildslave took more than 5 seconds to start and/or connect to the
+The buildslave took more than 10 seconds to start and/or connect to the
 buildmaster, so we were unable to confirm that it started and connected
 correctly. Please 'tail twistd.log' and look for a line that says 'message
 from master: attached' to verify correct startup. If you see a bunch of
@@ -105,14 +105,12 @@ def launch(config):
             argv.append("--reactor=win32")
         sys.argv = argv
 
-        # this is copied from bin/twistd. twisted-1.3.0 uses twistw, while
-        # twisted-2.0.0 uses _twistw.
+        # this is copied from bin/twistd. twisted-2.0.0 uses _twistw.
         if platformType == "win32":
-            try:
-                from twisted.scripts._twistw import run
-            except ImportError:
-                from twisted.scripts.twistw import run
+            from twisted.scripts import _twistw
+            run = _twistw.run
         else:
-            from twisted.scripts.twistd import run
+            from twisted.scripts import twistd
+            run = twistd.run
         run()
 

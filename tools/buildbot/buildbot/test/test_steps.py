@@ -14,19 +14,19 @@
 # todo: test batched updates, by invoking remote_update(updates) instead of
 # statusUpdate(update). Also involves interrupted builds.
 
-import os, time
+import os
 
 from twisted.trial import unittest
 from twisted.internet import reactor, defer
 
 from buildbot.sourcestamp import SourceStamp
 from buildbot.process import buildstep, base, factory
+from buildbot.buildslave import BuildSlave
 from buildbot.steps import shell, source, python
 from buildbot.status import builder
 from buildbot.status.builder import SUCCESS, FAILURE
 from buildbot.test.runutils import RunMixin, rmtree
 from buildbot.test.runutils import makeBuildStep, StepTester
-from buildbot.twcompat import maybeWait
 from buildbot.slave import commands, registry
 
 
@@ -97,22 +97,34 @@ class BuildStep(unittest.TestCase):
     def testShellCommand1(self):
         cmd = "argle bargle"
         dir = "murkle"
-        expectedEvents = []
+        self.expectedEvents = []
         buildstep.RemoteCommand.commandCounter[0] = 3
-        c = MyShellCommand(workdir=dir, command=cmd, build=self.build,
-                           timeout=10)
-        self.assertEqual(self.remote.events, expectedEvents)
+        c = MyShellCommand(workdir=dir, command=cmd, timeout=10)
+        c.setBuild(self.build)
+        c.setBuildSlave(BuildSlave("name", "password"))
+        self.assertEqual(self.remote.events, self.expectedEvents)
         c.step_status = self.build_status.addStepWithName("myshellcommand")
         d = c.startStep(self.remote)
         self.failUnless(c.started)
-        rc = c.rc
         d.addCallbacks(self.callback, self.errback)
-        timeout = time.time() + 10
-        while self.remote.remoteCalls == 0:
-            if time.time() > timeout:
-                self.fail("timeout")
-            reactor.iterate(0.01)
-        expectedEvents.append(["callRemote", "startCommand",
+        d2 = self.poll()
+        d2.addCallback(self._testShellCommand1_2, c)
+        return d2
+    testShellCommand1.timeout = 10
+
+    def poll(self, ignored=None):
+        # TODO: This is gross, but at least it's no longer using
+        # reactor.iterate() . Still, get rid of this some day soon.
+        if self.remote.remoteCalls == 0:
+            d = defer.Deferred()
+            d.addCallback(self.poll)
+            reactor.callLater(0.1, d.callback, None)
+            return d
+        return defer.succeed(None)
+
+    def _testShellCommand1_2(self, res, c):
+        rc = c.rc
+        self.expectedEvents.append(["callRemote", "startCommand",
                                (rc, "3",
                                "shell",
                                 {'command': "argle bargle",
@@ -122,7 +134,7 @@ class BuildStep(unittest.TestCase):
                                  'logfiles': {},
                                  'timeout': 10,
                                  'env': None}) ] )
-        self.assertEqual(self.remote.events, expectedEvents)
+        self.assertEqual(self.remote.events, self.expectedEvents)
 
         # we could do self.remote.deferred.errback(UnknownCommand) here. We
         # could also do .callback(), but generally the master end silently
@@ -150,11 +162,19 @@ class BuildStep(unittest.TestCase):
         
         rc.remote_complete()
         # that should fire the Deferred
-        timeout = time.time() + 10
-        while not self.finished:
-            if time.time() > timeout:
-                self.fail("timeout")
-            reactor.iterate(0.01)
+        d = self.poll2()
+        d.addCallback(self._testShellCommand1_3)
+        return d
+
+    def poll2(self, ignored=None):
+        if not self.finished:
+            d = defer.Deferred()
+            d.addCallback(self.poll2)
+            reactor.callLater(0.1, d.callback, None)
+            return d
+        return defer.succeed(None)
+
+    def _testShellCommand1_3(self, res):
         self.assertEqual(self.failed, 0)
         self.assertEqual(self.results, 0)
 
@@ -218,6 +238,8 @@ class Steps(unittest.TestCase):
         self.failUnlessEqual(len(logs), 1)
         l1 = logs[0]
         self.failUnlessEqual(l1.getText(), "some stdout here")
+        l1a = s.getLog("newlog")
+        self.failUnlessEqual(l1a.getText(), "some stdout here")
 
     def test_addHTMLLog(self):
         s = makeBuildStep("test_steps.Steps.test_addHTMLLog")
@@ -237,6 +259,8 @@ class Steps(unittest.TestCase):
         self.failUnlessEqual(len(logs), 1)
         l1 = logs[0]
         self.failUnlessEqual(l1.getText(), "some stdout here")
+        l1a = s.getLog("newlog")
+        self.failUnlessEqual(l1a.getText(), "some stdout here")
 
     def test_addLogObserver(self):
         s = makeBuildStep("test_steps.Steps.test_addLogObserver")
@@ -289,12 +313,12 @@ class VersionCheckingStep(buildstep.BuildStep):
 version_config = """
 from buildbot.process import factory
 from buildbot.test.test_steps import VersionCheckingStep
+from buildbot.buildslave import BuildSlave
 BuildmasterConfig = c = {}
 f1 = factory.BuildFactory([
     factory.s(VersionCheckingStep),
     ])
-c['bots'] = [['bot1', 'sekrit']]
-c['sources'] = []
+c['slaves'] = [BuildSlave('bot1', 'sekrit')]
 c['schedulers'] = []
 c['builders'] = [{'name':'quick', 'slavename':'bot1',
                   'builddir': 'quickdir', 'factory': f1}]
@@ -307,7 +331,7 @@ class SlaveVersion(RunMixin, unittest.TestCase):
         self.master.loadConfig(version_config)
         self.master.startService()
         d = self.connectSlave(["quick"])
-        return maybeWait(d)
+        return d
 
     def doBuild(self, buildername):
         br = base.BuildRequest("forced", SourceStamp())
@@ -338,38 +362,7 @@ class SlaveVersion(RunMixin, unittest.TestCase):
     def testCompare(self):
         self.master._checker = self.checkCompare
         d = self.doBuild("quick")
-        return maybeWait(d)
-
-
-class ReorgCompatibility(unittest.TestCase):
-    def testCompat(self):
-        from buildbot.process.step import LogObserver, LogLineObserver
-        from buildbot.process.step import RemoteShellCommand
-        from buildbot.process.step import BuildStep, LoggingBuildStep
-        from buildbot.process.step import ShellCommand, WithProperties
-        from buildbot.process.step import TreeSize
-        from buildbot.process.step import Configure
-        from buildbot.process.step import Compile
-        from buildbot.process.step import Test
-        from buildbot.process.step import CVS
-        from buildbot.process.step import SVN
-        from buildbot.process.step import Darcs
-        from buildbot.process.step import Git
-        from buildbot.process.step import Arch
-        from buildbot.process.step import Bazaar
-        from buildbot.process.step import Mercurial
-        from buildbot.process.step import P4
-        from buildbot.process.step import P4Sync
-        from buildbot.process.step import Dummy
-        from buildbot.process.step import FailingDummy
-        from buildbot.process.step import RemoteDummy
-
-        # now trick pyflakes into thinking we care
-        unused = [LogObserver, LogLineObserver, RemoteShellCommand,
-                  BuildStep, LoggingBuildStep, ShellCommand, WithProperties,
-                  TreeSize, Configure, Compile, Test, CVS, SVN, Darcs,
-                  Git, Arch, Bazaar, Mercurial, P4, P4Sync,
-                  Dummy, FailingDummy, RemoteDummy]
+        return d
 
 
 class _SimpleBuildStep(buildstep.BuildStep):
@@ -398,7 +391,7 @@ class CheckStepTester(StepTester, unittest.TestCase):
             self.failUnless(sb.flag)
             self.failUnlessEqual(sb.flag_args, {"arg1": "value"})
         d.addCallback(_checkSimple)
-        return maybeWait(d)
+        return d
 
 class Python(StepTester, unittest.TestCase):
     def testPyFlakes1(self):

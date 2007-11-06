@@ -1,5 +1,5 @@
 from buildbot.steps.shell import ShellCommand
-from buildbot.status import event, builder
+from buildbot.status.builder import Event, SUCCESS, FAILURE
 
 class MaxQ(ShellCommand):
     flunkOnFailure = True
@@ -8,12 +8,13 @@ class MaxQ(ShellCommand):
     def __init__(self, testdir=None, **kwargs):
         if not testdir:
             raise TypeError("please pass testdir")
-        command = 'run_maxq.py %s' % (testdir,)
-        ShellCommand.__init__(self, command=command, **kwargs)
+        kwargs['command'] = 'run_maxq.py %s' % (testdir,)
+        ShellCommand.__init__(self, **kwargs)
+        self.addFactoryArguments(testdir=testdir)
 
     def startStatus(self):
-        evt = event.Event("yellow", ['running', 'maxq', 'tests'],
-                      files={'log': self.log})
+        evt = Event("yellow", ['running', 'maxq', 'tests'],
+                    files={'log': self.log})
         self.setCurrentActivity(evt)
 
 
@@ -24,11 +25,10 @@ class MaxQ(ShellCommand):
         output = self.log.getAll()
         self.failures += output.count('\nTEST FAILURE:')
 
-        result = (builder.SUCCESS, ['maxq'])
+        result = (SUCCESS, ['maxq'])
 
         if self.failures:
-            result = (builder.FAILURE,
-                      [str(self.failures), 'maxq', 'failures'])
+            result = (FAILURE, [str(self.failures), 'maxq', 'failures'])
 
         return self.stepComplete(result)
 

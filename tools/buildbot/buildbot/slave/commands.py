@@ -3,18 +3,19 @@
 import os, re, signal, shutil, types, time
 from stat import ST_CTIME, ST_MTIME, ST_SIZE
 
+from zope.interface import implements
 from twisted.internet.protocol import ProcessProtocol
 from twisted.internet import reactor, defer, task
 from twisted.python import log, failure, runtime
+from twisted.python.procutils import which
 
-from buildbot.twcompat import implements, which
 from buildbot.slave.interfaces import ISlaveCommand
 from buildbot.slave.registry import registerSlaveCommand
 
 # this used to be a CVS $-style "Revision" auto-updated keyword, but since I
 # moved to Darcs as the primary repository, this is updated manually each
 # time this file is changed. The last cvs_ver that was here was 1.51 .
-command_version = "2.2"
+command_version = "2.3"
 
 # version history:
 #  >=1.17: commands are interruptable
@@ -33,6 +34,7 @@ command_version = "2.2"
 #          keepStdinOpen=) and no longer accepts stdin=)
 #          (release 0.7.4)
 #  >= 2.2: added monotone, uploadFile, and downloadFile (release 0.7.5)
+#  >= 2.3: added bzr
 
 class CommandInterrupted(Exception):
     pass
@@ -64,17 +66,24 @@ def rmdirRecursive(dir):
         os.remove(dir)
         return
 
+    # Verify the directory is read/write/execute for the current user
+    os.chmod(dir, 0700)
+
     for name in os.listdir(dir):
         full_name = os.path.join(dir, name)
         # on Windows, if we don't have write permission we can't remove
         # the file/directory either, so turn that on
         if os.name == 'nt':
             if not os.access(full_name, os.W_OK):
+                # I think this is now redundant, but I don't have an NT
+                # machine to test on, so I'm going to leave it in place
+                # -warner
                 os.chmod(full_name, 0600)
+
         if os.path.isdir(full_name):
             rmdirRecursive(full_name)
         else:
-            # print "removing file", full_name
+            os.chmod(full_name, 0700)
             os.remove(full_name)
     os.rmdir(dir)
 
@@ -300,6 +309,9 @@ class ShellCommand:
         return self.deferred
 
     def _startCommand(self):
+        # ensure workdir exists
+        if not os.path.isdir(self.workdir):
+            os.makedirs(self.workdir)
         log.msg("ShellCommand._startCommand")
         if self.notreally:
             self.sendStatus({'header': "command '%s' in dir %s" % \
@@ -350,9 +362,13 @@ class ShellCommand:
         self.sendStatus({'header': msg+"\n"})
 
         # then the environment, since it sometimes causes problems
-        msg = " environment: %s" % (self.environ,)
-        log.msg(" " + msg)
-        self.sendStatus({'header': msg+"\n"})
+        msg = " environment:\n"
+        env_names = self.environ.keys()
+        env_names.sort()
+        for name in env_names:
+            msg += "  %s=%s\n" % (name, self.environ[name])
+        log.msg(" environment: %s" % (self.environ,))
+        self.sendStatus({'header': msg})
 
         # this will be buffered until connectionMade is called
         if self.initialStdin:
@@ -537,10 +553,7 @@ class ShellCommand:
 
 
 class Command:
-    if implements:
-        implements(ISlaveCommand)
-    else:
-        __implements__ = ISlaveCommand
+    implements(ISlaveCommand)
 
     """This class defines one command that can be invoked by the build master.
     The command is executed on the slave side, and always sends back a
@@ -702,7 +715,7 @@ class SlaveFileUploadCommand(Command):
                                  self.workdir,
                                  os.path.expanduser(self.filename))
         try:
-            self.fp = open(self.path, 'r')
+            self.fp = open(self.path, 'rb')
             if self.debug:
                 log.msg('Opened %r for upload' % self.path)
         except:
@@ -814,7 +827,7 @@ class SlaveFileDownloadCommand(Command):
                                  self.workdir,
                                  os.path.expanduser(self.filename))
         try:
-            self.fp = open(self.path, 'w')
+            self.fp = open(self.path, 'wb')
             if self.debug:
                 log.msg('Opened %r for download' % self.path)
             if self.mode is not None:
@@ -1498,6 +1511,9 @@ class SVN(SourceBase):
         d = c.start()
         def _parse(res):
             r = c.stdout.strip()
+            # Support for removing svnversion indicator for 'modified'
+            if r[-1] == 'M':
+                r = r[:-1]
             got_version = None
             try:
                 got_version = int(r)
@@ -1934,6 +1950,128 @@ class Bazaar(Arch):
 registerSlaveCommand("bazaar", Bazaar, command_version)
 
 
+class Bzr(SourceBase):
+    """bzr-specific VC operation. In addition to the arguments
+    handled by SourceBase, this command reads the following keys:
+
+    ['repourl'] (required): the Bzr repository string
+    """
+
+    header = "bzr operation"
+
+    def setup(self, args):
+        SourceBase.setup(self, args)
+        self.vcexe = getCommand("bzr")
+        self.repourl = args['repourl']
+        self.sourcedata = "%s\n" % self.repourl
+        self.revision = self.args.get('revision')
+
+    def sourcedirIsUpdateable(self):
+        if os.path.exists(os.path.join(self.builder.basedir,
+                                       self.srcdir, ".buildbot-patched")):
+            return False
+        if self.revision:
+            # checking out a specific revision requires a full 'bzr checkout'
+            return False
+        return os.path.isdir(os.path.join(self.builder.basedir,
+                                          self.srcdir, ".bzr"))
+
+    def doVCUpdate(self):
+        assert not self.revision
+        # update: possible for mode in ('copy', 'update')
+        srcdir = os.path.join(self.builder.basedir, self.srcdir)
+        command = [self.vcexe, 'update']
+        c = ShellCommand(self.builder, command, srcdir,
+                         sendRC=False, timeout=self.timeout)
+        self.command = c
+        return c.start()
+
+    def doVCFull(self):
+        # checkout or export
+        d = self.builder.basedir
+        if self.mode == "export":
+            # exporting in bzr requires a separate directory
+            return self.doVCExport()
+        # originally I added --lightweight here, but then 'bzr revno' is
+        # wrong. The revno reported in 'bzr version-info' is correct,
+        # however. Maybe this is a bzr bug?
+        #
+        # In addition, you cannot perform a 'bzr update' on a repo pulled
+        # from an HTTP repository that used 'bzr checkout --lightweight'. You
+        # get a "ERROR: Cannot lock: transport is read only" when you try.
+        #
+        # So I won't bother using --lightweight for now.
+
+        command = [self.vcexe, 'checkout']
+        if self.revision:
+            command.append('--revision')
+            command.append(str(self.revision))
+        command.append(self.repourl)
+        command.append(self.srcdir)
+
+        c = ShellCommand(self.builder, command, d,
+                         sendRC=False, timeout=self.timeout)
+        self.command = c
+        d = c.start()
+        return d
+
+    def doVCExport(self):
+        tmpdir = os.path.join(self.builder.basedir, "export-temp")
+        srcdir = os.path.join(self.builder.basedir, self.srcdir)
+        command = [self.vcexe, 'checkout', '--lightweight']
+        if self.revision:
+            command.append('--revision')
+            command.append(str(self.revision))
+        command.append(self.repourl)
+        command.append(tmpdir)
+        c = ShellCommand(self.builder, command, self.builder.basedir,
+                         sendRC=False, timeout=self.timeout)
+        self.command = c
+        d = c.start()
+        def _export(res):
+            command = [self.vcexe, 'export', srcdir]
+            c = ShellCommand(self.builder, command, tmpdir,
+                             sendRC=False, timeout=self.timeout)
+            self.command = c
+            return c.start()
+        d.addCallback(_export)
+        return d
+
+    def get_revision_number(self, out):
+        # it feels like 'bzr revno' sometimes gives different results than
+        # the 'revno:' line from 'bzr version-info', and the one from
+        # version-info is more likely to be correct.
+        for line in out.split("\n"):
+            colon = line.find(":")
+            if colon != -1:
+                key, value = line[:colon], line[colon+2:]
+                if key == "revno":
+                    return int(value)
+        raise ValueError("unable to find revno: in bzr output: '%s'" % out)
+
+    def parseGotRevision(self):
+        command = [self.vcexe, "version-info"]
+        c = ShellCommand(self.builder, command,
+                         os.path.join(self.builder.basedir, self.srcdir),
+                         environ=self.env,
+                         sendStdout=False, sendStderr=False, sendRC=False,
+                         keepStdout=True)
+        c.usePTY = False
+        d = c.start()
+        def _parse(res):
+            try:
+                return self.get_revision_number(c.stdout)
+            except ValueError:
+                msg =("Bzr.parseGotRevision unable to parse output "
+                      "of bzr version-info: '%s'" % c.stdout.strip())
+                log.msg(msg)
+                self.sendStatus({'header': msg + "\n"})
+                return None
+        d.addCallback(_parse)
+        return d
+
+registerSlaveCommand("bzr", Bzr, command_version)
+
 class Mercurial(SourceBase):
     """Mercurial specific VC operation. In addition to the arguments
     handled by SourceBase, this command reads the following keys:
@@ -2021,7 +2159,7 @@ class P4(SourceBase):
     ['p4user'] (optional): user to use for access
     ['p4passwd'] (optional): passwd to try for the user
     ['p4client'] (optional): client spec to use
-    ['p4views'] (optional): client views to use
+    ['p4extra_views'] (optional): additional client views to use
     """
 
     header = "p4"
@@ -2036,7 +2174,6 @@ class P4(SourceBase):
         self.p4extra_views = args['p4extra_views']
         self.p4mode = args['mode']
         self.p4branch = args['branch']
-        self.p4logname = os.environ['LOGNAME']
 
         self.sourcedata = str([
             # Perforce server.
@@ -2101,8 +2238,8 @@ class P4(SourceBase):
         command = ['p4']
         client_spec = ''
         client_spec += "Client: %s\n\n" % self.p4client
-        client_spec += "Owner: %s\n\n" % self.p4logname
-        client_spec += "Description:\n\tCreated by %s\n\n" % self.p4logname
+        client_spec += "Owner: %s\n\n" % self.p4user
+        client_spec += "Description:\n\tCreated by %s\n\n" % self.p4user
         client_spec += "Root:\t%s\n\n" % self.builder.basedir
         client_spec += "Options:\tallwrite rmdir\n\n"
         client_spec += "LineEnd:\tlocal\n\n"

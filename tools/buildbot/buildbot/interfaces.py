@@ -1,11 +1,10 @@
-#! /usr/bin/python
 
 """Interface documentation.
 
 Define the interfaces that are implemented by various buildbot classes.
 """
 
-from buildbot.twcompat import Interface
+from zope.interface import Interface
 
 # exceptions that can be raised while trying to start a build
 class NoSlaveError(Exception):
@@ -73,7 +72,37 @@ class IUpstreamScheduler(Interface):
         Scheduler might feed."""
 
 class ISourceStamp(Interface):
-    pass
+    """
+    @cvar branch: branch from which source was drawn
+    @type branch: string or None
+
+    @cvar revision: revision of the source, or None to use CHANGES
+    @type revision: varies depending on VC
+
+    @cvar patch: patch applied to the source, or None if no patch
+    @type patch: None or tuple (level diff)
+
+    @cvar changes: the source step should check out hte latest revision
+                   in the given changes
+    @type changes: tuple of L{buildbot.changes.changes.Change} instances,
+                   all of which are on the same branch
+    """
+
+    def canBeMergedWith(self, other):
+        """
+        Can this SourceStamp be merged with OTHER?
+        """
+
+    def mergeWith(self, others):
+        """Generate a SourceStamp for the merger of me and all the other
+        BuildRequests. This is called by a Build when it starts, to figure
+        out what its sourceStamp should be."""
+
+    def getText(self):
+        """Returns a list of strings to describe the stamp. These are
+        intended to be displayed in a narrow column. If more space is
+        available, the caller should join them together with spaces before
+        presenting them to the user."""
 
 class IEmailSender(Interface):
     """I know how to send email, and can be used by other parts of the
@@ -104,6 +133,12 @@ class IStatus(Interface):
         interfaces defined in L{buildbot.interfaces}. Returns None if no
         suitable page is available (or if no Waterfall is running)."""
 
+    def getChangeSources():
+        """Return a list of IChangeSource objects."""
+
+    def getChange(number):
+        """Return an IChange object."""
+
     def getSchedulers():
         """Return a list of ISchedulerStatus objects for all
         currently-registered Schedulers."""
@@ -111,12 +146,51 @@ class IStatus(Interface):
     def getBuilderNames(categories=None):
         """Return a list of the names of all current Builders."""
     def getBuilder(name):
-        """Return the IBuilderStatus object for a given named Builder."""
+        """Return the IBuilderStatus object for a given named Builder. Raises
+        KeyError if there is no Builder by that name."""
+
+    def getSlaveNames():
+        """Return a list of buildslave names, suitable for passing to
+        getSlave()."""
     def getSlave(name):
         """Return the ISlaveStatus object for a given named buildslave."""
 
     def getBuildSets():
         """Return a list of active (non-finished) IBuildSetStatus objects."""
+
+    def generateFinishedBuilds(builders=[], branches=[],
+                               num_builds=None, finished_before=None,
+                               max_search=200):
+        """Return a generator that will produce IBuildStatus objects each
+        time you invoke its .next() method, starting with the most recent
+        finished build and working backwards.
+
+        @param builders: this is a list of Builder names, and the generator
+                         will only produce builds that ran on the given
+                         Builders. If the list is empty, produce builds from
+                         all Builders.
+
+        @param branches: this is a list of branch names, and the generator
+                         will only produce builds that used the given
+                         branches. If the list is empty, produce builds from
+                         all branches.
+
+        @param num_builds: the generator will stop after providing this many
+                           builds. The default of None means to produce as
+                           many builds as possible.
+
+        @type finished_before: int: a timestamp, seconds since the epoch
+        @param finished_before: if provided, do not produce any builds that
+                                finished after the given timestamp.
+
+        @type max_search: int
+        @param max_search: this method may have to examine a lot of builds
+                           to find some that match the search parameters,
+                           especially if there aren't any matching builds.
+                           This argument imposes a hard limit on the number
+                           of builds that will be examined within any given
+                           Builder.
+        """
 
     def subscribe(receiver):
         """Register an IStatusReceiver to receive new status events. The
@@ -138,6 +212,11 @@ class IBuildSetStatus(Interface):
     using the same source tree."""
 
     def getSourceStamp():
+        """Return a SourceStamp object which can be used to re-create
+        the source tree that this build used.
+
+        This method will return None if the source information is no longer
+        available."""
         pass
     def getReason():
         pass
@@ -175,6 +254,11 @@ class IBuildRequestStatus(Interface):
     finally turned into a Build."""
 
     def getSourceStamp():
+        """Return a SourceStamp object which can be used to re-create
+        the source tree that this build used.
+
+        This method will return None if the source information is no longer
+        available."""
         pass
     def getBuilderName():
         pass
@@ -206,6 +290,10 @@ class ISlaveStatus(Interface):
 
     def isConnected():
         """Return True if the slave is currently online, False if not."""
+
+    def lastMessageReceived():
+        """Return a timestamp (seconds since epoch) indicating when the most
+        recent message was received from the buildslave."""
 
 class ISchedulerStatus(Interface):
     def getName():
@@ -267,6 +355,48 @@ class IBuilderStatus(Interface):
         getEvent(-1) will return the most recent event. Events are numbered,
         but it probably doesn't make sense to ever do getEvent(+n)."""
 
+    def generateFinishedBuilds(branches=[],
+                               num_builds=None,
+                               max_buildnum=None, finished_before=None,
+                               max_search=200,
+                               ):
+        """Return a generator that will produce IBuildStatus objects each
+        time you invoke its .next() method, starting with the most recent
+        finished build, then the previous build, and so on back to the oldest
+        build available.
+
+        @param branches: this is a list of branch names, and the generator
+                         will only produce builds that involve the given
+                         branches. If the list is empty, the generator will
+                         produce all builds regardless of what branch they
+                         used.
+
+        @param num_builds: if provided, the generator will stop after
+                           providing this many builds. The default of None
+                           means to produce as many builds as possible.
+
+        @param max_buildnum: if provided, the generator will start by
+                             providing the build with this number, or the
+                             highest-numbered preceding build (i.e. the
+                             generator will not produce any build numbered
+                             *higher* than max_buildnum). The default of None
+                             means to start with the most recent finished
+                             build. -1 means the same as None. -2 means to
+                             start with the next-most-recent completed build,
+                             etc.
+
+        @type finished_before: int: a timestamp, seconds since the epoch
+        @param finished_before: if provided, do not produce any builds that
+                                finished after the given timestamp.
+
+        @type max_search: int
+        @param max_search: this method may have to examine a lot of builds
+                           to find some that match the search parameters,
+                           especially if there aren't any matching builds.
+                           This argument imposes a hard limit on the number
+                           of builds that will be examined.
+        """
+
     def subscribe(receiver):
         """Register an IStatusReceiver to receive new status events. The
         receiver will be given builderChangedState, buildStarted, and
@@ -275,6 +405,20 @@ class IBuilderStatus(Interface):
     def unsubscribe(receiver):
         """Unregister an IStatusReceiver. No further status messgaes will be
         delivered."""
+
+class IEventSource(Interface):
+    def eventGenerator(branches=[]):
+        """This function creates a generator which will yield all of this
+        object's status events, starting with the most recent and progressing
+        backwards in time. These events provide the IStatusEvent interface.
+        At the moment they are all instances of buildbot.status.builder.Event
+        or buildbot.status.builder.BuildStepStatus .
+
+        @param branches: a list of branch names. The generator should only
+        return events that are associated with these branches. If the list is
+        empty, events for all branches should be returned (i.e. an empty list
+        means 'accept all' rather than 'accept none').
+        """
 
 class IBuildStatus(Interface):
     """I represent the status of a single Build/BuildRequest. It could be
@@ -297,7 +441,8 @@ class IBuildStatus(Interface):
         callback is given this IBuildStatus instance as an argument."""
 
     def getProperty(propname):
-        """Return the value of the build property with the given name."""
+        """Return the value of the build property with the given name. Raises
+        KeyError if there is no such property on this build."""
 
     def getReason():
         """Return a string that indicates why the build was run. 'changes',
@@ -305,22 +450,13 @@ class IBuildStatus(Interface):
         added in the future."""
 
     def getSourceStamp():
-        """Return a tuple of (branch, revision, patch) which can be used to
-        re-create the source tree that this build used. 'branch' is a string
-        with a VC-specific meaning, or None to indicate that the checkout
-        step used its default branch. 'revision' is a string, the sort you
-        would pass to 'cvs co -r REVISION'. 'patch' is either None, or a
-        (level, diff) tuple which represents a patch that should be applied
-        with 'patch -pLEVEL < DIFF' from the directory created by the
-        checkout operation.
+        """Return a SourceStamp object which can be used to re-create
+        the source tree that this build used.
 
         This method will return None if the source information is no longer
         available."""
         # TODO: it should be possible to expire the patch but still remember
         # that the build was r123+something.
-
-        # TODO: change this to return the actual SourceStamp instance, and
-        # remove getChanges()
 
     def getChanges():
         """Return a list of Change objects which represent which source
@@ -916,3 +1052,6 @@ class ILogObserver(Interface):
     def logChunk(build, step, log, channel, text):
         pass
 
+class IBuildSlave(Interface):
+    # this is a marker interface for the BuildSlave class
+    pass

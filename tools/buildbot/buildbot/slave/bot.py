@@ -1,4 +1,3 @@
-#! /usr/bin/python
 
 import os.path
 
@@ -11,8 +10,11 @@ from twisted.cred import credentials
 from buildbot.util import now
 from buildbot.pbutil import ReconnectingPBClientFactory
 from buildbot.slave import registry
-# make sure the standard commands get registered
+# make sure the standard commands get registered. This import is performed
+# for its side-effects.
 from buildbot.slave import commands
+# and make pyflakes think we aren't being stupid
+commands = commands
 
 class NoCommandRunning(pb.Error):
     pass
@@ -460,8 +462,9 @@ class BuildSlave(service.MultiService):
     # debugOpts['failPingOnce'] can be set to True to make the slaveping fail
     # exactly once.
 
-    def __init__(self, host, port, name, passwd, basedir, keepalive,
-                 usePTY, keepaliveTimeout=30, umask=None, debugOpts={}):
+    def __init__(self, buildmaster_host, port, name, passwd, basedir,
+                 keepalive, usePTY, keepaliveTimeout=30, umask=None,
+                 debugOpts={}):
         log.msg("Creating BuildSlave")
         service.MultiService.__init__(self)
         self.debugOpts = debugOpts.copy()
@@ -473,7 +476,7 @@ class BuildSlave(service.MultiService):
         self.umask = umask
         bf = self.bf = BotFactory(keepalive, keepaliveTimeout)
         bf.startLogin(credentials.UsernamePassword(name, passwd), client=bot)
-        self.connection = c = internet.TCPClient(host, port, bf)
+        self.connection = c = internet.TCPClient(buildmaster_host, port, bf)
         c.setServiceParent(self)
 
     def waitUntilDisconnected(self):

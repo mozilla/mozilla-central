@@ -1,20 +1,11 @@
 # -*- test-case-name: buildbot.test.test_config -*-
 
-from __future__ import generators
 import os
 
 from twisted.trial import unittest
 from twisted.python import failure
 from twisted.internet import defer
 
-cvstoys = None
-try:
-    import cvstoys
-    from buildbot.changes.freshcvs import FreshCVSSource
-except ImportError:
-    pass
-
-from buildbot.twcompat import providedBy, maybeWait
 from buildbot.master import BuildMaster
 from buildbot import scheduler
 from twisted.application import service, internet
@@ -23,9 +14,13 @@ from twisted.web.server import Site
 from twisted.web.distrib import ResourcePublisher
 from buildbot.process.builder import Builder
 from buildbot.process.factory import BasicBuildFactory
-from buildbot.steps.source import CVS
-from buildbot.steps.shell import Compile, Test
+from buildbot.changes.pb import PBChangeSource
+from buildbot.changes.mail import SyncmailMaildirSource
+from buildbot.steps.source import CVS, Darcs
+from buildbot.steps.shell import Compile, Test, ShellCommand
 from buildbot.status import base
+from buildbot.steps import dummy, maxq, python, python_twisted, shell, \
+     source, transfer
 words = None
 try:
     from buildbot.status import words
@@ -34,9 +29,9 @@ except ImportError:
 
 emptyCfg = \
 """
+from buildbot.buildslave import BuildSlave
 BuildmasterConfig = c = {}
-c['bots'] = []
-c['sources'] = []
+c['slaves'] = []
 c['schedulers'] = []
 c['builders'] = []
 c['slavePortnum'] = 9999
@@ -48,9 +43,9 @@ c['buildbotURL'] = 'http://dummy.example.com/buildbot'
 buildersCfg = \
 """
 from buildbot.process.factory import BasicBuildFactory
+from buildbot.buildslave import BuildSlave
 BuildmasterConfig = c = {}
-c['bots'] = [('bot1', 'pw1')]
-c['sources'] = []
+c['slaves'] = [BuildSlave('bot1', 'pw1')]
 c['schedulers'] = []
 c['slavePortnum'] = 9999
 f1 = BasicBuildFactory('cvsroot', 'cvsmodule')
@@ -157,9 +152,9 @@ c['debugPassword'] = 'sekrit'
 interlockCfgBad = \
 """
 from buildbot.process.factory import BasicBuildFactory
+from buildbot.buildslave import BuildSlave
 c = {}
-c['bots'] = [('bot1', 'pw1')]
-c['sources'] = []
+c['slaves'] = [BuildSlave('bot1', 'pw1')]
 c['schedulers'] = []
 f1 = BasicBuildFactory('cvsroot', 'cvsmodule')
 c['builders'] = [
@@ -180,9 +175,9 @@ lockCfgBad1 = \
 from buildbot.steps.dummy import Dummy
 from buildbot.process.factory import BuildFactory, s
 from buildbot.locks import MasterLock
+from buildbot.buildslave import BuildSlave
 c = {}
-c['bots'] = [('bot1', 'pw1')]
-c['sources'] = []
+c['slaves'] = [BuildSlave('bot1', 'pw1')]
 c['schedulers'] = []
 l1 = MasterLock('lock1')
 l2 = MasterLock('lock1') # duplicate lock name
@@ -202,9 +197,9 @@ lockCfgBad2 = \
 from buildbot.steps.dummy import Dummy
 from buildbot.process.factory import BuildFactory, s
 from buildbot.locks import MasterLock, SlaveLock
+from buildbot.buildslave import BuildSlave
 c = {}
-c['bots'] = [('bot1', 'pw1')]
-c['sources'] = []
+c['slaves'] = [BuildSlave('bot1', 'pw1')]
 c['schedulers'] = []
 l1 = MasterLock('lock1')
 l2 = SlaveLock('lock1') # duplicate lock name
@@ -224,9 +219,9 @@ lockCfgBad3 = \
 from buildbot.steps.dummy import Dummy
 from buildbot.process.factory import BuildFactory, s
 from buildbot.locks import MasterLock
+from buildbot.buildslave import BuildSlave
 c = {}
-c['bots'] = [('bot1', 'pw1')]
-c['sources'] = []
+c['slaves'] = [BuildSlave('bot1', 'pw1')]
 c['schedulers'] = []
 l1 = MasterLock('lock1')
 l2 = MasterLock('lock1') # duplicate lock name
@@ -246,9 +241,9 @@ lockCfg1a = \
 """
 from buildbot.process.factory import BasicBuildFactory
 from buildbot.locks import MasterLock
+from buildbot.buildslave import BuildSlave
 c = {}
-c['bots'] = [('bot1', 'pw1')]
-c['sources'] = []
+c['slaves'] = [BuildSlave('bot1', 'pw1')]
 c['schedulers'] = []
 f1 = BasicBuildFactory('cvsroot', 'cvsmodule')
 l1 = MasterLock('lock1')
@@ -267,9 +262,9 @@ lockCfg1b = \
 """
 from buildbot.process.factory import BasicBuildFactory
 from buildbot.locks import MasterLock
+from buildbot.buildslave import BuildSlave
 c = {}
-c['bots'] = [('bot1', 'pw1')]
-c['sources'] = []
+c['slaves'] = [BuildSlave('bot1', 'pw1')]
 c['schedulers'] = []
 f1 = BasicBuildFactory('cvsroot', 'cvsmodule')
 l1 = MasterLock('lock1')
@@ -290,9 +285,9 @@ lockCfg2a = \
 from buildbot.steps.dummy import Dummy
 from buildbot.process.factory import BuildFactory, s
 from buildbot.locks import MasterLock
+from buildbot.buildslave import BuildSlave
 c = {}
-c['bots'] = [('bot1', 'pw1')]
-c['sources'] = []
+c['slaves'] = [BuildSlave('bot1', 'pw1')]
 c['schedulers'] = []
 l1 = MasterLock('lock1')
 l2 = MasterLock('lock2')
@@ -314,9 +309,9 @@ lockCfg2b = \
 from buildbot.steps.dummy import Dummy
 from buildbot.process.factory import BuildFactory, s
 from buildbot.locks import MasterLock
+from buildbot.buildslave import BuildSlave
 c = {}
-c['bots'] = [('bot1', 'pw1')]
-c['sources'] = []
+c['slaves'] = [BuildSlave('bot1', 'pw1')]
 c['schedulers'] = []
 l1 = MasterLock('lock1')
 l2 = MasterLock('lock2')
@@ -338,9 +333,9 @@ lockCfg2c = \
 from buildbot.steps.dummy import Dummy
 from buildbot.process.factory import BuildFactory, s
 from buildbot.locks import MasterLock
+from buildbot.buildslave import BuildSlave
 c = {}
-c['bots'] = [('bot1', 'pw1')]
-c['sources'] = []
+c['slaves'] = [BuildSlave('bot1', 'pw1')]
 c['schedulers'] = []
 l1 = MasterLock('lock1')
 l2 = MasterLock('lock2')
@@ -361,9 +356,9 @@ schedulersCfg = \
 """
 from buildbot.scheduler import Scheduler, Dependent
 from buildbot.process.factory import BasicBuildFactory
+from buildbot.buildslave import BuildSlave
 c = {}
-c['bots'] = [('bot1', 'pw1')]
-c['sources'] = []
+c['slaves'] = [BuildSlave('bot1', 'pw1')]
 f1 = BasicBuildFactory('cvsroot', 'cvsmodule')
 b1 = {'name':'builder1', 'slavename':'bot1',
       'builddir':'workdir', 'factory':f1}
@@ -392,7 +387,7 @@ class ConfigTest(unittest.TestCase):
         # twisted.application.internet.TCPServer, then extract their .args
         # values to find the TCP ports they want to listen on
         for child in s:
-            if providedBy(child, service.IServiceCollection):
+            if service.IServiceCollection.providedBy(child):
                 for gc in self.servers(child, types):
                     yield gc
             if isinstance(child, types):
@@ -473,13 +468,16 @@ class ConfigTest(unittest.TestCase):
         self.failIf(p is ports[0],
                     "slave port was unchanged but configuration was changed")
 
-    def testBots(self):
+    def testSlaves(self):
         master = self.buildmaster
         master.loadChanges()
         master.loadConfig(emptyCfg)
         self.failUnlessEqual(master.botmaster.builders, {})
         self.failUnlessEqual(master.checker.users,
                              {"change": "changepw"})
+        # 'botsCfg' is testing backwards compatibility, for 0.7.5 config
+        # files that have not yet been updated to 0.7.6 . This compatibility
+        # (and this test) is scheduled for removal in 0.8.0 .
         botsCfg = (emptyCfg +
                    "c['bots'] = [('bot1', 'pw1'), ('bot2', 'pw2')]\n")
         master.loadConfig(botsCfg)
@@ -495,56 +493,108 @@ class ConfigTest(unittest.TestCase):
         master.loadConfig(emptyCfg)
         self.failUnlessEqual(master.checker.users,
                              {"change": "changepw"})
+        slavesCfg = (emptyCfg +
+                     "from buildbot.buildslave import BuildSlave\n"
+                     "c['slaves'] = [BuildSlave('bot1','pw1'), "
+                     "BuildSlave('bot2','pw2')]\n")
+        master.loadConfig(slavesCfg)
+        self.failUnlessEqual(master.checker.users,
+                             {"change": "changepw",
+                              "bot1": "pw1",
+                              "bot2": "pw2"})
 
 
-    def testSources(self):
-        if not cvstoys:
-            raise unittest.SkipTest("this test needs CVSToys installed")
+    def testChangeSource(self):
         master = self.buildmaster
         master.loadChanges()
         master.loadConfig(emptyCfg)
         self.failUnlessEqual(list(master.change_svc), [])
 
-        self.sourcesCfg = emptyCfg + \
+        sourcesCfg = emptyCfg + \
 """
-from buildbot.changes.freshcvs import FreshCVSSource
-s1 = FreshCVSSource('cvs.example.com', 1000, 'pname', 'spass',
-                    prefix='Prefix/')
-c['sources'] = [s1]
+from buildbot.changes.pb import PBChangeSource
+c['change_source'] = PBChangeSource()
 """
 
-        d = master.loadConfig(self.sourcesCfg)
-        d.addCallback(self._testSources_1)
-        return maybeWait(d)
+        d = master.loadConfig(sourcesCfg)
+        def _check1(res):
+            self.failUnlessEqual(len(list(self.buildmaster.change_svc)), 1)
+            s1 = list(self.buildmaster.change_svc)[0]
+            self.failUnless(isinstance(s1, PBChangeSource))
+            self.failUnlessEqual(s1, list(self.buildmaster.change_svc)[0])
+            self.failUnless(s1.parent)
 
-    def _testSources_1(self, res):
-        self.failUnlessEqual(len(list(self.buildmaster.change_svc)), 1)
-        s1 = list(self.buildmaster.change_svc)[0]
-        self.failUnless(isinstance(s1, FreshCVSSource))
-        self.failUnlessEqual(s1.host, "cvs.example.com")
-        self.failUnlessEqual(s1.port, 1000)
-        self.failUnlessEqual(s1.prefix, "Prefix/")
-        self.failUnlessEqual(s1, list(self.buildmaster.change_svc)[0])
-        self.failUnless(s1.parent)
+            # verify that unchanged sources are not interrupted
+            d1 = self.buildmaster.loadConfig(sourcesCfg)
 
-        # verify that unchanged sources are not interrupted
-        d = self.buildmaster.loadConfig(self.sourcesCfg)
-        d.addCallback(self._testSources_2, s1)
-        return d
-
-    def _testSources_2(self, res, s1):
-        self.failUnlessEqual(len(list(self.buildmaster.change_svc)), 1)
-        s2 = list(self.buildmaster.change_svc)[0]
-        self.failUnlessIdentical(s1, s2)
-        self.failUnless(s1.parent)
+            def _check2(res):
+                self.failUnlessEqual(len(list(self.buildmaster.change_svc)), 1)
+                s2 = list(self.buildmaster.change_svc)[0]
+                self.failUnlessIdentical(s1, s2)
+                self.failUnless(s1.parent)
+            d1.addCallback(_check2)
+            return d1
+        d.addCallback(_check1)
 
         # make sure we can get rid of the sources too
-        d = self.buildmaster.loadConfig(emptyCfg)
-        d.addCallback(self._testSources_3)
+        d.addCallback(lambda res: self.buildmaster.loadConfig(emptyCfg))
+
+        def _check3(res):
+            self.failUnlessEqual(list(self.buildmaster.change_svc), [])
+        d.addCallback(_check3)
+
         return d
 
-    def _testSources_3(self, res):
-        self.failUnlessEqual(list(self.buildmaster.change_svc), [])
+    def testChangeSources(self):
+        # make sure we can accept a list
+        master = self.buildmaster
+        master.loadChanges()
+        master.loadConfig(emptyCfg)
+        self.failUnlessEqual(list(master.change_svc), [])
+
+        sourcesCfg = emptyCfg + \
+"""
+from buildbot.changes.pb import PBChangeSource
+from buildbot.changes.mail import SyncmailMaildirSource
+c['change_source'] = [PBChangeSource(),
+                     SyncmailMaildirSource('.'),
+                    ]
+"""
+
+        d = master.loadConfig(sourcesCfg)
+        def _check1(res):
+            self.failUnlessEqual(len(list(self.buildmaster.change_svc)), 2)
+            s1,s2 = list(self.buildmaster.change_svc)
+            if isinstance(s2, PBChangeSource):
+                s1,s2 = s2,s1
+            self.failUnless(isinstance(s1, PBChangeSource))
+            self.failUnless(s1.parent)
+            self.failUnless(isinstance(s2, SyncmailMaildirSource))
+            self.failUnless(s2.parent)
+        d.addCallback(_check1)
+        return d
+
+    def testSources(self):
+        # test backwards compatibility. c['sources'] is deprecated.
+        master = self.buildmaster
+        master.loadChanges()
+        master.loadConfig(emptyCfg)
+        self.failUnlessEqual(list(master.change_svc), [])
+
+        sourcesCfg = emptyCfg + \
+"""
+from buildbot.changes.pb import PBChangeSource
+c['sources'] = [PBChangeSource()]
+"""
+
+        d = master.loadConfig(sourcesCfg)
+        def _check1(res):
+            self.failUnlessEqual(len(list(self.buildmaster.change_svc)), 1)
+            s1 = list(self.buildmaster.change_svc)[0]
+            self.failUnless(isinstance(s1, PBChangeSource))
+            self.failUnless(s1.parent)
+        d.addCallback(_check1)
+        return d
 
     def shouldBeFailure(self, res, *expected):
         self.failUnless(isinstance(res, failure.Failure),
@@ -629,7 +679,7 @@ c['schedulers'] = [Scheduler('dup', None, 60, []),
         d.addCallback(_loadConfig, badcfg)
         d.addBoth(_shouldBeFailure, "Schedulers must have unique names")
 
-        return maybeWait(d)
+        return d
 
     def testSchedulers(self):
         master = self.buildmaster
@@ -639,7 +689,7 @@ c['schedulers'] = [Scheduler('dup', None, 60, []),
 
         d = self.buildmaster.loadConfig(schedulersCfg)
         d.addCallback(self._testSchedulers_1)
-        return maybeWait(d)
+        return d
 
     def _testSchedulers_1(self, res):
         sch = self.buildmaster.allSchedulers()
@@ -806,46 +856,50 @@ c['schedulers'] = [s1, Dependent('downstream', s1, ['builder1'])]
         d.addCallback(lambda res: master.loadConfig(ircCfg1))
         e5 = {'irc.us.freenode.net': ('buildbot', ['twisted'])}
         d.addCallback(lambda res: self.checkIRC(master, e5))
-        return maybeWait(d)
+        return d
 
     def testWebPortnum(self):
         master = self.buildmaster
         master.loadChanges()
 
         d = master.loadConfig(webCfg1)
-        d.addCallback(self._testWebPortnum_1)
-        return maybeWait(d)
-    def _testWebPortnum_1(self, res):
-        ports = self.checkPorts(self.buildmaster, [(9999, pb.PBServerFactory),
-                                                   (9980, Site)])
-        p = ports[1]
+        def _check1(res):
+            ports = self.checkPorts(self.buildmaster,
+                                    [(9999, pb.PBServerFactory), (9980, Site)])
+            p = ports[1]
+            self.p = p
+        # nothing should be changed
+        d.addCallback(_check1)
 
-        d = self.buildmaster.loadConfig(webCfg1) # nothing should be changed
-        d.addCallback(self._testWebPortnum_2, p)
-        return d
-    def _testWebPortnum_2(self, res, p):
-        ports = self.checkPorts(self.buildmaster, [(9999, pb.PBServerFactory),
-                                                   (9980, Site)])
-        self.failUnlessIdentical(p, ports[1],
-                                 "web port was changed even though " + \
-                                 "configuration was not")
+        d.addCallback(lambda res: self.buildmaster.loadConfig(webCfg1))
+        def _check2(res):
+            ports = self.checkPorts(self.buildmaster,
+                                    [(9999, pb.PBServerFactory), (9980, Site)])
+            self.failUnlessIdentical(self.p, ports[1],
+                                     "web port was changed even though "
+                                     "configuration was not")
+        # WebStatus is no longer a ComparableMixin, so it will be
+        # rebuilt on each reconfig
+        #d.addCallback(_check2)
 
-        d = self.buildmaster.loadConfig(webCfg2) # changes to 9981
-        d.addCallback(self._testWebPortnum_3, p)
-        return d
-    def _testWebPortnum_3(self, res, p):
-        ports = self.checkPorts(self.buildmaster, [(9999, pb.PBServerFactory),
-                                                   (9981, Site)])
-        self.failIf(p is ports[1],
-                    "configuration was changed but web port was unchanged")
-        d = self.buildmaster.loadConfig(webCfg3) # 9981 on only localhost
-        d.addCallback(self._testWebPortnum_4, ports[1])
-        return d
-    def _testWebPortnum_4(self, res, p):
-        ports = self.checkPorts(self.buildmaster, [(9999, pb.PBServerFactory),
-                                                   (9981, Site)])
-        self.failUnlessEqual(ports[1].kwargs['interface'], "127.0.0.1")
-        d = self.buildmaster.loadConfig(emptyCfg)
+        d.addCallback(lambda res: self.buildmaster.loadConfig(webCfg2))
+        # changes port to 9981
+        def _check3(p):
+            ports = self.checkPorts(self.buildmaster,
+                                    [(9999, pb.PBServerFactory), (9981, Site)])
+            self.failIf(self.p is ports[1],
+                        "configuration was changed but web port was unchanged")
+        d.addCallback(_check3)
+
+        d.addCallback(lambda res: self.buildmaster.loadConfig(webCfg3))
+        # make 9981 on only localhost
+        def _check4(p):
+            ports = self.checkPorts(self.buildmaster,
+                                    [(9999, pb.PBServerFactory), (9981, Site)])
+            self.failUnlessEqual(ports[1].kwargs['interface'], "127.0.0.1")
+        d.addCallback(_check4)
+
+        d.addCallback(lambda res: self.buildmaster.loadConfig(emptyCfg))
         d.addCallback(lambda res:
                       self.checkPorts(self.buildmaster,
                                       [(9999, pb.PBServerFactory)]))
@@ -856,40 +910,41 @@ c['schedulers'] = [s1, Dependent('downstream', s1, ['builder1'])]
         master.loadChanges()
 
         d = master.loadConfig(webNameCfg1)
-        d.addCallback(self._testWebPathname_1)
-        return maybeWait(d)
-    def _testWebPathname_1(self, res):
-        self.checkPorts(self.buildmaster,
-                        [(9999, pb.PBServerFactory),
-                         ('~/.twistd-web-pb', pb.PBServerFactory)])
-        unixports = self.UNIXports(self.buildmaster)
-        f = unixports[0].args[1]
-        self.failUnless(isinstance(f.root, ResourcePublisher))
+        def _check1(res):
+            self.checkPorts(self.buildmaster,
+                            [(9999, pb.PBServerFactory),
+                             ('~/.twistd-web-pb', pb.PBServerFactory)])
+            unixports = self.UNIXports(self.buildmaster)
+            self.f = f = unixports[0].args[1]
+            self.failUnless(isinstance(f.root, ResourcePublisher))
+        d.addCallback(_check1)
 
-        d = self.buildmaster.loadConfig(webNameCfg1)
+        d.addCallback(lambda res: self.buildmaster.loadConfig(webNameCfg1))
         # nothing should be changed
-        d.addCallback(self._testWebPathname_2, f)
-        return d
-    def _testWebPathname_2(self, res, f):
-        self.checkPorts(self.buildmaster,
-                        [(9999, pb.PBServerFactory),
-                         ('~/.twistd-web-pb', pb.PBServerFactory)])
-        self.failUnlessIdentical(f,
-                                 self.UNIXports(self.buildmaster)[0].args[1],
-                                 "web factory was changed even though " + \
-                                 "configuration was not")
+        def _check2(res):
+            self.checkPorts(self.buildmaster,
+                            [(9999, pb.PBServerFactory),
+                             ('~/.twistd-web-pb', pb.PBServerFactory)])
+            newf = self.UNIXports(self.buildmaster)[0].args[1]
+            self.failUnlessIdentical(self.f, newf,
+                                     "web factory was changed even though "
+                                     "configuration was not")
+        # WebStatus is no longer a ComparableMixin, so it will be
+        # rebuilt on each reconfig
+        #d.addCallback(_check2)
 
-        d = self.buildmaster.loadConfig(webNameCfg2)
-        d.addCallback(self._testWebPathname_3, f)
-        return d
-    def _testWebPathname_3(self, res, f):
-        self.checkPorts(self.buildmaster,
-                        [(9999, pb.PBServerFactory),
-                         ('./bar.socket', pb.PBServerFactory)])
-        self.failIf(f is self.UNIXports(self.buildmaster)[0].args[1],
-                    "web factory was unchanged but configuration was changed")
+        d.addCallback(lambda res: self.buildmaster.loadConfig(webNameCfg2))
+        def _check3(res):
+            self.checkPorts(self.buildmaster,
+                            [(9999, pb.PBServerFactory),
+                             ('./bar.socket', pb.PBServerFactory)])
+            newf = self.UNIXports(self.buildmaster)[0].args[1],
+            self.failIf(self.f is newf,
+                        "web factory was unchanged but "
+                        "configuration was changed")
+        d.addCallback(_check3)
 
-        d = self.buildmaster.loadConfig(emptyCfg)
+        d.addCallback(lambda res: self.buildmaster.loadConfig(emptyCfg))
         d.addCallback(lambda res:
                       self.checkPorts(self.buildmaster,
                                       [(9999, pb.PBServerFactory)]))
@@ -1056,7 +1111,7 @@ class StartService(unittest.TestCase):
         m.startService()
         d = m.loadConfig(startableEmptyCfg % 0)
         d.addCallback(self._testStartService_0)
-        return maybeWait(d)
+        return d
 
     def _testStartService_0(self, res):
         m = self.master
@@ -1100,3 +1155,119 @@ class StartService(unittest.TestCase):
     def _testStartService_4(self, res):
         self.failUnlessEqual(self.master.targetevents,
                              [('stop', 'b'), ('start', 'a')])
+
+cfg1 = \
+"""
+from buildbot.process.factory import BuildFactory, s
+from buildbot.steps.shell import ShellCommand
+from buildbot.steps.source import Darcs
+from buildbot.buildslave import BuildSlave
+BuildmasterConfig = c = {}
+c['slaves'] = [BuildSlave('bot1', 'pw1')]
+c['schedulers'] = []
+c['slavePortnum'] = 9999
+f1 = BuildFactory([ShellCommand(command='echo yes'),
+                   s(ShellCommand, command='old-style'),
+                   ])
+f1.addStep(Darcs(repourl='http://buildbot.net/repos/trunk'))
+f1.addStep(ShellCommand, command='echo old-style')
+c['builders'] = [{'name':'builder1', 'slavename':'bot1',
+                  'builddir':'workdir', 'factory':f1}]
+"""
+
+class Factories(unittest.TestCase):
+
+    def failUnlessExpectedShell(self, factory, defaults=True, **kwargs):
+        shell_args = {}
+        if defaults:
+            shell_args.update({'descriptionDone': None,
+                               'description': None,
+                               'workdir': None,
+                               'logfiles': {},
+                               })
+        shell_args.update(kwargs)
+        self.failUnlessIdentical(factory[0], ShellCommand)
+        if factory[1] != shell_args:
+            print
+            print "factory had:"
+            for k in sorted(factory[1].keys()):
+                print k
+            print "but we were expecting:"
+            for k in sorted(shell_args.keys()):
+                print k
+        self.failUnlessEqual(factory[1], shell_args)
+
+    def failUnlessExpectedDarcs(self, factory, **kwargs):
+        darcs_args = {'workdir': None,
+                      'alwaysUseLatest': False,
+                      'mode': 'update',
+                      'timeout': 1200,
+                      'retry': None,
+                      'baseURL': None,
+                      'defaultBranch': None,
+                      'logfiles': {},
+                      }
+        darcs_args.update(kwargs)
+        self.failUnlessIdentical(factory[0], Darcs)
+        if factory[1] != darcs_args:
+            print
+            print "factory had:"
+            for k in sorted(factory[1].keys()):
+                print k
+            print "but we were expecting:"
+            for k in sorted(darcs_args.keys()):
+                print k
+        self.failUnlessEqual(factory[1], darcs_args)
+
+    def testSteps(self):
+        m = BuildMaster(".")
+        m.loadConfig(cfg1)
+        b = m.botmaster.builders["builder1"]
+        steps = b.buildFactory.steps
+        self.failUnlessEqual(len(steps), 4)
+
+        self.failUnlessExpectedShell(steps[0], command="echo yes")
+        self.failUnlessExpectedShell(steps[1], defaults=False,
+                                     command="old-style")
+        self.failUnlessExpectedDarcs(steps[2],
+                                     repourl="http://buildbot.net/repos/trunk")
+        self.failUnlessExpectedShell(steps[3], defaults=False,
+                                     command="echo old-style")
+
+    def _loop(self, orig):
+        step_class, kwargs = orig.getStepFactory()
+        newstep = step_class(**kwargs)
+        return newstep
+
+    def testAllSteps(self):
+        # make sure that steps can be created from the factories that they
+        # return
+        for s in ( dummy.Dummy(), dummy.FailingDummy(), dummy.RemoteDummy(),
+                   maxq.MaxQ("testdir"),
+                   python.BuildEPYDoc(), python.PyFlakes(),
+                   python_twisted.HLint(),
+                   python_twisted.Trial(testpath=None, tests="tests"),
+                   python_twisted.ProcessDocs(), python_twisted.BuildDebs(),
+                   python_twisted.RemovePYCs(),
+                   shell.ShellCommand(), shell.TreeSize(),
+                   shell.Configure(), shell.Compile(), shell.Test(),
+                   source.CVS("cvsroot", "module"),
+                   source.SVN("svnurl"), source.Darcs("repourl"),
+                   source.Git("repourl"),
+                   source.Arch("url", "version"),
+                   source.Bazaar("url", "version", "archive"),
+                   source.Bzr("repourl"),
+                   source.Mercurial("repourl"),
+                   source.P4("p4base"),
+                   source.P4Sync(1234, "p4user", "passwd", "client",
+                                 mode="copy"),
+                   source.Monotone("server", "branch"),
+                   transfer.FileUpload("src", "dest"),
+                   transfer.FileDownload("src", "dest"),
+                   ):
+            try:
+                self._loop(s)
+            except:
+                print "error checking %s" % s
+                raise
+

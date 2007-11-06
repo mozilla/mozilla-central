@@ -4,7 +4,6 @@ from twisted.trial import unittest
 from twisted.internet import defer, reactor
 
 from buildbot import master
-from buildbot.twcompat import maybeWait
 from buildbot.changes import pb
 from buildbot.scripts import runner
 
@@ -98,9 +97,8 @@ class TestChangePerspective(unittest.TestCase):
 
 config_empty = """
 BuildmasterConfig = c = {}
-c['bots'] = []
+c['slaves'] = []
 c['builders'] = []
-c['sources'] = []
 c['schedulers'] = []
 c['slavePortnum'] = 0
 """
@@ -108,7 +106,7 @@ c['slavePortnum'] = 0
 config_sender = config_empty + \
 """
 from buildbot.changes import pb
-c['sources'] = [pb.PBChangeSource(port=None)]
+c['change_source'] = pb.PBChangeSource(port=None)
 """
 
 class Sender(unittest.TestCase):
@@ -122,7 +120,7 @@ class Sender(unittest.TestCase):
         # This iterate() is a quick hack to deal with the problem. I need to
         # investigate more thoroughly and find a better solution.
         d.addCallback(self.stall, 0.1)
-        return maybeWait(d)
+        return d
 
     def stall(self, res, timeout):
         d = defer.Deferred()
@@ -136,7 +134,7 @@ class Sender(unittest.TestCase):
         # have to load it twice. Clean this up.
         d = self.master.loadConfig(config_sender)
         d.addCallback(self._testSender_1)
-        return maybeWait(d)
+        return d
 
     def _testSender_1(self, res):
         self.cm = cm = self.master.change_svc

@@ -1,5 +1,6 @@
 # -*- test-case-name: buildbot.test.test_steps -*-
 
+from zope.interface import implements
 from twisted.internet import reactor, defer, error
 from twisted.protocols import basic
 from twisted.spread import pb
@@ -8,8 +9,6 @@ from twisted.python.failure import Failure
 from twisted.web.util import formatFailure
 
 from buildbot import interfaces
-from buildbot.twcompat import implements, providedBy
-from buildbot import util
 from buildbot.status import progress
 from buildbot.status.builder import SUCCESS, WARNINGS, FAILURE, SKIPPED, \
      EXCEPTION
@@ -153,6 +152,7 @@ class RemoteCommand(pb.Referenceable):
         @type  updates: list of [object, int]
         @param updates: list of updates from the remote command
         """
+        self.buildslave.messageReceivedFromSlave()
         max_updatenum = 0
         for (update, num) in updates:
             #log.msg("update[%d]:" % num)
@@ -180,6 +180,7 @@ class RemoteCommand(pb.Referenceable):
 
         @rtype: None
         """
+        self.buildslave.messageReceivedFromSlave()
         # call the real remoteComplete a moment later, but first return an
         # acknowledgement so the slave can retire the completion message.
         if self.active:
@@ -285,7 +286,7 @@ class LoggedRemoteCommand(RemoteCommand):
 
         """
 
-        assert providedBy(loog, interfaces.ILogFile)
+        assert interfaces.ILogFile.providedBy(loog)
         if not logfileName:
             logfileName = loog.getName()
         assert logfileName not in self.logs
@@ -357,16 +358,13 @@ class LoggedRemoteCommand(RemoteCommand):
 
 
 class LogObserver:
-    if implements:
-        implements(interfaces.ILogObserver)
-    else:
-        __implements__ = interfaces.ILogObserver,
+    implements(interfaces.ILogObserver)
 
     def setStep(self, step):
         self.step = step
 
     def setLog(self, loog):
-        assert providedBy(loog, interfaces.IStatusLog)
+        assert interfaces.IStatusLog.providedBy(loog)
         loog.subscribe(self, True)
 
     def logChunk(self, build, step, log, channel, text):
@@ -550,7 +548,7 @@ class BuildStep:
     # arguments to the RemoteShellCommand that it creates). Such delegating
     # subclasses will use this list to figure out which arguments are meant
     # for us and which should be given to someone else.
-    parms = ['build', 'name', 'locks',
+    parms = ['name', 'locks',
              'haltOnFailure',
              'flunkOnWarnings',
              'flunkOnFailure',
@@ -567,22 +565,42 @@ class BuildStep:
     step_status = None
     progress = None
 
-    def __init__(self, build, **kwargs):
-        self.build = build
+    def __init__(self, **kwargs):
+        self.factory = (self.__class__, dict(kwargs))
         for p in self.__class__.parms:
             if kwargs.has_key(p):
                 setattr(self, p, kwargs[p])
                 del kwargs[p]
-        # we want to encourage all steps to get a workdir, so tolerate its
-        # presence here. It really only matters for non-ShellCommand steps
-        # like Dummy
-        if kwargs.has_key('workdir'):
-            del kwargs['workdir']
         if kwargs:
             why = "%s.__init__ got unexpected keyword argument(s) %s" \
                   % (self, kwargs.keys())
             raise TypeError(why)
         self._pendingLogObservers = []
+
+    def setBuild(self, build):
+        # subclasses which wish to base their behavior upon qualities of the
+        # Build (e.g. use the list of changed files to run unit tests only on
+        # code which has been modified) should do so here. The Build is not
+        # available during __init__, but setBuild() will be called just
+        # afterwards.
+        self.build = build
+
+    def setBuildSlave(self, buildslave):
+        self.buildslave = buildslave
+
+    def setDefaultWorkdir(self, workdir):
+        # the Build calls this just after __init__ and setDefaultWorkdir.
+        # ShellCommand and variants use a slave-side workdir, but some other
+        # steps do not. Subclasses which use a workdir should use the value
+        # set by this method unless they were constructed with something more
+        # specific.
+        pass
+
+    def addFactoryArguments(self, **kwargs):
+        self.factory[1].update(kwargs)
+
+    def getStepFactory(self):
+        return self.factory
 
     def setStepStatus(self, step_status):
         self.step_status = step_status
@@ -824,10 +842,11 @@ class BuildStep:
         self._connectPendingLogObservers()
         return loog
 
-    # TODO: add a getLog() ? At the moment all logs have to be retrieved from
-    # the RemoteCommand that created them, but for status summarizers it
-    # would be more convenient to get them from the BuildStep / BSStatus,
-    # especially if there are multiple RemoteCommands involved.
+    def getLog(self, name):
+        for l in self.step_status.getLogs():
+            if l.getName() == name:
+                return l
+        raise KeyError("no log named '%s'" % (name,))
 
     def addCompleteLog(self, name, text):
         log.msg("addCompleteLog(%s)" % name)
@@ -844,7 +863,7 @@ class BuildStep:
         self._connectPendingLogObservers()
 
     def addLogObserver(self, logname, observer):
-        assert providedBy(observer, interfaces.ILogObserver)
+        assert interfaces.ILogObserver.providedBy(observer)
         observer.setStep(self)
         self._pendingLogObservers.append((logname, observer))
         self._connectPendingLogObservers()
@@ -873,6 +892,7 @@ class BuildStep:
         self.step_status.addURL(name, url)
 
     def runCommand(self, c):
+        c.buildslave = self.buildslave
         d = c.run(self, self.remote)
         return d
 
@@ -899,6 +919,7 @@ class LoggingBuildStep(BuildStep):
 
     def __init__(self, logfiles={}, *args, **kwargs):
         BuildStep.__init__(self, *args, **kwargs)
+        self.addFactoryArguments(logfiles=logfiles)
         # merge a class-level 'logfiles' attribute with one passed in as an
         # argument
         self.logfiles = self.logfiles.copy()

@@ -1,26 +1,17 @@
 # -*- test-case-name: buildbot.test.test_status -*-
 
-from __future__ import generators
-
+from zope.interface import implements
 from twisted.python import log
 from twisted.persisted import styles
 from twisted.internet import reactor, defer
 from twisted.protocols import basic
 
-import os, shutil, sys, re, urllib
-try:
-    import cPickle
-    pickle = cPickle
-except ImportError:
-    import pickle
-try:
-    from cStringIO import StringIO
-except ImportError:
-    from StringIO import StringIO
+import os, shutil, sys, re, urllib, itertools
+from cPickle import load, dump
+from cStringIO import StringIO
 
 # sibling imports
 from buildbot import interfaces, util, sourcestamp
-from buildbot.twcompat import implements, providedBy
 
 SUCCESS, WARNINGS, FAILURE, SKIPPED, EXCEPTION = range(5)
 Results = ["success", "warnings", "failure", "skipped", "exception"]
@@ -205,10 +196,7 @@ class LogFile:
     so users who go from 0.6.5 back to 0.6.4 don't have to lose their
     logs."""
 
-    if implements:
-        implements(interfaces.IStatusLog, interfaces.ILogFile)
-    else:
-        __implements__ = (interfaces.IStatusLog, interfaces.ILogFile)
+    implements(interfaces.IStatusLog, interfaces.ILogFile)
 
     finished = False
     length = 0
@@ -462,10 +450,7 @@ class LogFile:
 
 
 class HTMLLogFile:
-    if implements:
-        implements(interfaces.IStatusLog)
-    else:
-        __implements__ = interfaces.IStatusLog,
+    implements(interfaces.IStatusLog)
 
     filename = None
 
@@ -512,10 +497,7 @@ class HTMLLogFile:
 
 
 class Event:
-    if implements:
-        implements(interfaces.IStatusEvent)
-    else:
-        __implements__ = interfaces.IStatusEvent,
+    implements(interfaces.IStatusEvent)
 
     started = None
     finished = None
@@ -536,10 +518,7 @@ class Event:
         self.finished = util.now()
 
 class TestResult:
-    if implements:
-        implements(interfaces.ITestResult)
-    else:
-        __implements__ = interfaces.ITestResult,
+    implements(interfaces.ITestResult)
 
     def __init__(self, name, results, text, logs):
         assert isinstance(name, tuple)
@@ -562,10 +541,7 @@ class TestResult:
 
 
 class BuildSetStatus:
-    if implements:
-        implements(interfaces.IBuildSetStatus)
-    else:
-        __implements__ = interfaces.IBuildSetStatus,
+    implements(interfaces.IBuildSetStatus)
 
     def __init__(self, source, reason, builderNames, bsid=None):
         self.source = source
@@ -631,10 +607,7 @@ class BuildSetStatus:
         return d
 
 class BuildRequestStatus:
-    if implements:
-        implements(interfaces.IBuildRequestStatus)
-    else:
-        __implements__ = interfaces.IBuildRequestStatus,
+    implements(interfaces.IBuildRequestStatus)
 
     def __init__(self, source, builderName):
         self.source = source
@@ -684,10 +657,7 @@ class BuildStepStatus(styles.Versioned):
     """
     # note that these are created when the Build is set up, before each
     # corresponding BuildStep has started.
-    if implements:
-        implements(interfaces.IBuildStepStatus, interfaces.IStatusEvent)
-    else:
-        __implements__ = interfaces.IBuildStepStatus, interfaces.IStatusEvent
+    implements(interfaces.IBuildStepStatus, interfaces.IStatusEvent)
     persistenceVersion = 1
 
     started = None
@@ -917,10 +887,7 @@ class BuildStepStatus(styles.Versioned):
 
 
 class BuildStatus(styles.Versioned):
-    if implements:
-        implements(interfaces.IBuildStatus, interfaces.IStatusEvent)
-    else:
-        __implements__ = interfaces.IBuildStatus, interfaces.IStatusEvent
+    implements(interfaces.IBuildStatus, interfaces.IStatusEvent)
     persistenceVersion = 2
 
     source = None
@@ -979,7 +946,7 @@ class BuildStatus(styles.Versioned):
         return self.builder.getBuild(self.number-1)
 
     def getSourceStamp(self):
-        return (self.source.branch, self.source.revision, self.source.patch)
+        return self.source
 
     def getReason(self):
         return self.reason
@@ -1282,7 +1249,7 @@ class BuildStatus(styles.Versioned):
             shutil.rmtree(filename, ignore_errors=True)
         tmpfilename = filename + ".tmp"
         try:
-            pickle.dump(self, open(tmpfilename, "wb"), -1)
+            dump(self, open(tmpfilename, "wb"), -1)
             if sys.platform == 'win32':
                 # windows cannot rename a file on top of an existing one, so
                 # fall back to delete-first. There are ways this can fail and
@@ -1317,10 +1284,7 @@ class BuilderStatus(styles.Versioned):
                      used to filter on in status clients
     """
 
-    if implements:
-        implements(interfaces.IBuilderStatus)
-    else:
-        __implements__ = interfaces.IBuilderStatus,
+    implements(interfaces.IBuilderStatus, interfaces.IEventSource)
     persistenceVersion = 1
 
     # these limit the amount of memory we consume, as well as the size of the
@@ -1414,7 +1378,7 @@ class BuilderStatus(styles.Versioned):
         filename = os.path.join(self.basedir, "builder")
         tmpfilename = filename + ".tmp"
         try:
-            pickle.dump(self, open(tmpfilename, "wb"), -1)
+            dump(self, open(tmpfilename, "wb"), -1)
             if sys.platform == 'win32':
                 # windows cannot rename a file on top of an existing one
                 if os.path.exists(filename):
@@ -1443,7 +1407,7 @@ class BuilderStatus(styles.Versioned):
                 return build
         filename = os.path.join(self.basedir, "%d" % number)
         try:
-            build = pickle.load(open(filename, "rb"))
+            build = load(open(filename, "rb"))
             styles.doUpgrade()
             build.builder = self
             # handle LogFiles from after 0.5.0 and before 0.6.5
@@ -1502,7 +1466,39 @@ class BuilderStatus(styles.Versioned):
         except IndexError:
             return None
 
-    def eventGenerator(self):
+    def generateFinishedBuilds(self, branches=[],
+                               num_builds=None,
+                               max_buildnum=None,
+                               finished_before=None,
+                               max_search=200):
+        got = 0
+        for Nb in itertools.count(1):
+            if Nb > self.nextBuildNumber:
+                break
+            if Nb > max_search:
+                break
+            build = self.getBuild(-Nb)
+            if build is None:
+                continue
+            if max_buildnum is not None:
+                if build.getNumber() > max_buildnum:
+                    continue
+            if not build.isFinished():
+                continue
+            if finished_before is not None:
+                start, end = build.getTimes()
+                if end >= finished_before:
+                    continue
+            if branches:
+                if build.getSourceStamp().branch not in branches:
+                    continue
+            got += 1
+            yield build
+            if num_builds is not None:
+                if got >= num_builds:
+                    return
+
+    def eventGenerator(self, branches=[]):
         """This function creates a generator which will provide all of this
         Builder's status events, starting with the most recent and
         progressing backwards in time. """
@@ -1512,12 +1508,18 @@ class BuilderStatus(styles.Versioned):
         # TODO: interleave build steps and self.events by timestamp.
         # TODO: um, I think we're already doing that.
 
+        # TODO: there's probably something clever we could do here to
+        # interleave two event streams (one from self.getBuild and the other
+        # from self.getEvent), which would be simpler than this control flow
+
         eventIndex = -1
         e = self.getEvent(eventIndex)
         for Nb in range(1, self.nextBuildNumber+1):
             b = self.getBuild(-Nb)
             if not b:
                 break
+            if branches and not b.getSourceStamp().branch in branches:
+                continue
             steps = b.getSteps()
             for Ns in range(1, len(steps)+1):
                 if steps[-Ns].started:
@@ -1720,10 +1722,7 @@ class BuilderStatus(styles.Versioned):
             self.subscribers.remove(client)
 
 class SlaveStatus:
-    if implements:
-        implements(interfaces.ISlaveStatus)
-    else:
-        __implements__ = interfaces.ISlaveStatus,
+    implements(interfaces.ISlaveStatus)
 
     admin = None
     host = None
@@ -1731,6 +1730,7 @@ class SlaveStatus:
 
     def __init__(self, name):
         self.name = name
+        self._lastMessageReceived = 0
 
     def getName(self):
         return self.name
@@ -1740,6 +1740,8 @@ class SlaveStatus:
         return self.host
     def isConnected(self):
         return self.connected
+    def lastMessageReceived(self):
+        return self._lastMessageReceived
 
     def setAdmin(self, admin):
         self.admin = admin
@@ -1747,15 +1749,14 @@ class SlaveStatus:
         self.host = host
     def setConnected(self, isConnected):
         self.connected = isConnected
+    def setLastMessageReceived(self, when):
+        self._lastMessageReceived = when
 
 class Status:
     """
     I represent the status of the buildmaster.
     """
-    if implements:
-        implements(interfaces.IStatus)
-    else:
-        __implements__ = interfaces.IStatus,
+    implements(interfaces.IStatus)
 
     def __init__(self, botmaster, basedir):
         """
@@ -1791,21 +1792,21 @@ class Status:
         prefix = self.getBuildbotURL()
         if not prefix:
             return None
-        if providedBy(thing, interfaces.IStatus):
+        if interfaces.IStatus.providedBy(thing):
             return prefix
-        if providedBy(thing, interfaces.ISchedulerStatus):
+        if interfaces.ISchedulerStatus.providedBy(thing):
             pass
-        if providedBy(thing, interfaces.IBuilderStatus):
+        if interfaces.IBuilderStatus.providedBy(thing):
             builder = thing
             return prefix + urllib.quote(builder.getName(), safe='')
-        if providedBy(thing, interfaces.IBuildStatus):
+        if interfaces.IBuildStatus.providedBy(thing):
             build = thing
             builder = build.getBuilder()
             return "%s%s/builds/%d" % (
                 prefix,
                 urllib.quote(builder.getName(), safe=''),
                 build.getNumber())
-        if providedBy(thing, interfaces.IBuildStepStatus):
+        if interfaces.IBuildStepStatus.providedBy(thing):
             step = thing
             build = step.getBuild()
             builder = build.getBuilder()
@@ -1819,14 +1820,14 @@ class Status:
         # ISlaveStatus
 
         # IStatusEvent
-        if providedBy(thing, interfaces.IStatusEvent):
+        if interfaces.IStatusEvent.providedBy(thing):
             from buildbot.changes import changes
             # TODO: this is goofy, create IChange or something
             if isinstance(thing, changes.Change):
                 change = thing
                 return "%schanges/%d" % (prefix, change.number)
 
-        if providedBy(thing, interfaces.IStatusLog):
+        if interfaces.IStatusLog.providedBy(thing):
             log = thing
             step = log.getStep()
             build = step.getBuild()
@@ -1846,6 +1847,11 @@ class Status:
                 "step-" + urllib.quote(step.getName(), safe=''),
                 lognum)
 
+    def getChangeSources(self):
+        return list(self.botmaster.parent.change_svc)
+
+    def getChange(self, number):
+        return self.botmaster.parent.change_svc.getChangeNumbered(number)
 
     def getSchedulers(self):
         return self.botmaster.parent.allSchedulers()
@@ -1868,11 +1874,74 @@ class Status:
         """
         return self.botmaster.builders[name].builder_status
 
+    def getSlaveNames(self):
+        return self.botmaster.slaves.keys()
+
     def getSlave(self, slavename):
         return self.botmaster.slaves[slavename].slave_status
 
     def getBuildSets(self):
         return self.activeBuildSets[:]
+
+    def generateFinishedBuilds(self, builders=[], branches=[],
+                               num_builds=None, finished_before=None,
+                               max_search=200):
+
+        def want_builder(bn):
+            if builders:
+                return bn in builders
+            return True
+        builder_names = [bn
+                         for bn in self.getBuilderNames()
+                         if want_builder(bn)]
+
+        # 'sources' is a list of generators, one for each Builder we're
+        # using. When the generator is exhausted, it is replaced in this list
+        # with None.
+        sources = []
+        for bn in builder_names:
+            b = self.getBuilder(bn)
+            g = b.generateFinishedBuilds(branches,
+                                         finished_before=finished_before,
+                                         max_search=max_search)
+            sources.append(g)
+
+        # next_build the next build from each source
+        next_build = [None] * len(sources)
+
+        def refill():
+            for i,g in enumerate(sources):
+                if next_build[i]:
+                    # already filled
+                    continue
+                if not g:
+                    # already exhausted
+                    continue
+                try:
+                    next_build[i] = g.next()
+                except StopIteration:
+                    next_build[i] = None
+                    sources[i] = None
+
+        got = 0
+        while True:
+            refill()
+            # find the latest build among all the candidates
+            candidates = [(i, b, b.getTimes()[1])
+                          for i,b in enumerate(next_build)
+                          if b is not None]
+            candidates.sort(lambda x,y: cmp(x[2], y[2]))
+            if not candidates:
+                return
+
+            # and remove it from the list
+            i, build, finshed_time = candidates[-1]
+            next_build[i] = None
+            got += 1
+            yield build
+            if num_builds is not None:
+                if got >= num_builds:
+                    return
 
     def subscribe(self, target):
         self.watchers.append(target)
@@ -1897,7 +1966,7 @@ class Status:
         log.msg("trying to load status pickle from %s" % filename)
         builder_status = None
         try:
-            builder_status = pickle.load(open(filename, "rb"))
+            builder_status = load(open(filename, "rb"))
             styles.doUpgrade()
         except IOError:
             log.msg("no saved status pickle, creating a new one")

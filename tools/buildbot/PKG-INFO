@@ -1,8 +1,8 @@
 Metadata-Version: 1.0
 Name: buildbot
-Version: 0.7.5
+Version: 0.7.6
 Summary: BuildBot build automation system
-Home-page: http://buildbot.sourceforge.net/
+Home-page: http://buildbot.net/
 Author: Brian Warner
 Author-email: warner-buildbot@lothar.com
 License: GNU GPL

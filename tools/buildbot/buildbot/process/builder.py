@@ -1,13 +1,11 @@
-#! /usr/bin/python
 
-import warnings
-
+import random
+from zope.interface import implements
 from twisted.python import log, components
 from twisted.spread import pb
 from twisted.internet import reactor, defer
 
-from buildbot import interfaces, sourcestamp
-from buildbot.twcompat import implements
+from buildbot import interfaces
 from buildbot.status.progress import Expectations
 from buildbot.util import now
 from buildbot.process import base
@@ -28,6 +26,17 @@ class SlaveBuilder(pb.Referenceable):
         self.ping_watchers = []
         self.state = ATTACHING
         self.remote = None
+        self.slave = None
+        self.builder_name = None
+
+    def __repr__(self):
+        r = "<SlaveBuilder"
+        if self.builder_name:
+            r += " builder=%s" % self.builder_name
+        if self.slave:
+            r += " slave=%s" % self.slave.slavename
+        r += ">"
+        return r
 
     def setBuilder(self, b):
         self.builder = b
@@ -40,14 +49,34 @@ class SlaveBuilder(pb.Referenceable):
         return self.remoteCommands.get(command)
 
     def isAvailable(self):
-        if self.state == IDLE:
-            return True
+        # if this SlaveBuilder is busy, then it's definitely not available
+        if self.isBusy():
+            return False
+
+        # otherwise, check in with the BuildSlave
+        if self.slave:
+            return self.slave.canStartBuild()
+
+        # no slave? not very available.
         return False
 
+    def isBusy(self):
+        return self.state != IDLE
+
     def attached(self, slave, remote, commands):
+        """
+        @type  slave: L{buildbot.buildslave.BuildSlave}
+        @param slave: the BuildSlave that represents the buildslave as a
+                      whole
+        @type  remote: L{twisted.spread.pb.RemoteReference}
+        @param remote: a reference to the L{buildbot.slave.bot.SlaveBuilder}
+        @type  commands: dict: string -> string, or None
+        @param commands: provides the slave's version of each RemoteCommand
+        """
         self.slave = slave
         self.remote = remote
         self.remoteCommands = commands # maps command name to version
+        self.slave.addSlaveBuilder(self)
         log.msg("Buildslave %s attached to %s" % (slave.slavename,
                                                   self.builder_name))
         d = self.remote.callRemote("setMaster", self)
@@ -75,6 +104,8 @@ class SlaveBuilder(pb.Referenceable):
     def detached(self):
         log.msg("Buildslave %s detached from %s" % (self.slave.slavename,
                                                     self.builder_name))
+        if self.slave:
+            self.slave.removeSlaveBuilder(self)
         self.slave = None
         self.remote = None
         self.remoteCommands = None
@@ -84,7 +115,7 @@ class SlaveBuilder(pb.Referenceable):
 
     def buildFinished(self):
         self.state = IDLE
-        reactor.callLater(0, self.builder.maybeStartBuild)
+        reactor.callLater(0, self.builder.botmaster.maybeStartAllBuilds)
 
     def ping(self, timeout, status=None):
         """Ping the slave to make sure it is still there. Returns a Deferred
@@ -149,7 +180,7 @@ class Ping:
 
     def _ping_timeout(self, remote):
         log.msg("ping timeout")
-        # force the BotPerspective to disconnect, since this indicates that
+        # force the BuildSlave to disconnect, since this indicates that
         # the bot is unreachable.
         del self.timer
         remote.broker.transport.loseConnection()
@@ -226,6 +257,7 @@ class Builder(pb.Referenceable):
 
     expectations = None # this is created the first time we get a good build
     START_BUILD_TIMEOUT = 10
+    CHOOSE_SLAVES_RANDOMLY = True # disabled for determinism during tests
 
     def __init__(self, setup, builder_status):
         """
@@ -382,21 +414,20 @@ class Builder(pb.Referenceable):
 
         return # all done
 
-    def fireTestEvent(self, name, with=None):
-        if with is None:
-            with = self
+    def fireTestEvent(self, name, fire_with=None):
+        if fire_with is None:
+            fire_with = self
         watchers = self.watchers[name]
         self.watchers[name] = []
         for w in watchers:
-            reactor.callLater(0, w.callback, with)
+            reactor.callLater(0, w.callback, fire_with)
 
     def attached(self, slave, remote, commands):
-        """This is invoked by the BotPerspective when the self.slavename bot
+        """This is invoked by the BuildSlave when the self.slavename bot
         registers their builder.
 
-        @type  slave: L{buildbot.master.BotPerspective}
-        @param slave: the BotPerspective that represents the buildslave as a
-                      whole
+        @type  slave: L{buildbot.master.BuildSlave}
+        @param slave: the BuildSlave that represents the buildslave as a whole
         @type  remote: L{twisted.spread.pb.RemoteReference}
         @param remote: a reference to the L{buildbot.slave.bot.SlaveBuilder}
         @type  commands: dict: string -> string, or None
@@ -504,15 +535,18 @@ class Builder(pb.Referenceable):
         if not self.buildable:
             self.updateBigStatus()
             return # nothing to do
-        # find the first idle slave
-        for sb in self.slaves:
-            if sb.isAvailable():
-                break
-        else:
+
+        # pick an idle slave
+        available_slaves = [sb for sb in self.slaves if sb.isAvailable()]
+        if not available_slaves:
             log.msg("%s: want to start build, but we don't have a remote"
                     % self)
             self.updateBigStatus()
             return
+        if self.CHOOSE_SLAVES_RANDOMLY:
+            sb = random.choice(available_slaves)
+        else:
+            sb = available_slaves[0]
 
         # there is something to build, and there is a slave on which to build
         # it. Grab the oldest request, see if we can merge it with anything
@@ -549,7 +583,7 @@ class Builder(pb.Referenceable):
         self.building.append(build)
         self.updateBigStatus()
 
-        log.msg("starting build %s.. pinging the slave" % build)
+        log.msg("starting build %s.. pinging the slave %s" % (build, sb))
         # ping the slave to make sure they're still there. If they're fallen
         # off the map (due to a NAT timeout or something), this will fail in
         # a couple of minutes, depending upon the TCP timeout. TODO: consider
@@ -638,10 +672,7 @@ class Builder(pb.Referenceable):
 
 
 class BuilderControl(components.Adapter):
-    if implements:
-        implements(interfaces.IBuilderControl)
-    else:
-        __implements__ = interfaces.IBuilderControl,
+    implements(interfaces.IBuilderControl)
 
     def requestBuild(self, req):
         """Submit a BuildRequest to this Builder."""
@@ -660,9 +691,8 @@ class BuilderControl(components.Adapter):
     def resubmitBuild(self, bs, reason="<rebuild, no reason given>"):
         if not bs.isFinished():
             return
-        branch, revision, patch = bs.getSourceStamp()
-        changes = bs.getChanges()
-        ss = sourcestamp.SourceStamp(branch, revision, patch, changes)
+
+        ss = bs.getSourceStamp()
         req = base.BuildRequest(reason, ss, self.original.name)
         self.requestBuild(req)
 

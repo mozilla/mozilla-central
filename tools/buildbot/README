@@ -1,6 +1,6 @@
 
 BuildBot: build/test automation
-  http://buildbot.sourceforge.net/
+  http://buildbot.net
   Brian Warner <warner-buildbot @ lothar . com>
 
 
@@ -53,13 +53,13 @@ REQUIREMENTS:
  Python: http://www.python.org
 
    Buildbot requires python-2.3 or later, and is primarily developed against
-   python-2.4 . It has *not* yet been tested against python-2.5 .
+   python-2.4 . It is also tested against python-2.5 .
 
  Twisted: http://twistedmatrix.com
 
    Both the buildmaster and the buildslaves require Twisted-2.0.x or later.
    As always, the most recent version is recommended. It has been tested
-   against Twisted-2.4.0 and Twisted SVN as of the date of release.
+   against Twisted-2.5.0 and Twisted SVN as of the date of release.
 
    Twisted is delivered as a collection of subpackages. You'll need at least
    "Twisted" (the core package), and you'll also want TwistedMail,
@@ -67,16 +67,6 @@ REQUIREMENTS:
    page, and delivering build status via IRC, respectively). You might also
    want TwistedConch (for the encrypted Manhole debug port). Note that
    Twisted requires ZopeInterface to be installed as well.
-
-ACCESSORIES:
-
- CVSToys: http://purl.net/net/CVSToys
-
-   If your buildmaster uses FreshCVSSource to receive change notification
-   from a cvstoys daemon, it will require CVSToys be installed (tested with
-   CVSToys-1.0.10). If the it doesn't use that source (i.e. if you only use
-   a mail-parsing change source, or the SVN notification script), you will
-   not need CVSToys.
 
 INSTALLATION:
 
@@ -179,7 +169,7 @@ seconds (10 minutes) is a reasonable value.
 Please read the user's manual for instructions. The short form is that you
 use 'buildbot create-master MASTERDIR' to create the base directory, then you
 edit the 'master.cfg' file to configure the buildmaster. Once this is ready,
-you use 'buildbot START MASTERDIR' to launch it.
+you use 'buildbot start MASTERDIR' to launch it.
 
 A sample configuration file will be created for you in WORKDIR/master.cfg .
 There are more examples in docs/examples/, and plenty of documentation in the
@@ -189,5 +179,4 @@ user's manual. Everything is controlled by the config file.
 SUPPORT:
 
  Please send questions, bugs, patches, etc, to the buildbot-devel mailing
- list reachable through http://buildbot.sourceforge.net/, so that everyone
- can see them.
+ list reachable through http://buildbot.net/, so that everyone can see them.

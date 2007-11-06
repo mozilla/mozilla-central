@@ -11,8 +11,8 @@ from twisted.internet.interfaces import IReactorUNIX
 from twisted.web import client
 
 from buildbot import master, interfaces, sourcestamp
-from buildbot.twcompat import providedBy, maybeWait
 from buildbot.status import html, builder
+from buildbot.status.web import waterfall
 from buildbot.changes.changes import Change
 from buildbot.process import base
 from buildbot.process.buildstep import BuildStep
@@ -34,12 +34,18 @@ components.registerAdapter(master.Control, ConfiguredMaster,
 
 
 base_config = """
+from buildbot.changes.pb import PBChangeSource
 from buildbot.status import html
+from buildbot.buildslave import BuildSlave
+from buildbot.scheduler import Scheduler
+from buildbot.process.factory import BuildFactory
+
 BuildmasterConfig = c = {
-    'bots': [],
-    'sources': [],
-    'schedulers': [],
-    'builders': [],
+    'change_source': PBChangeSource(),
+    'slaves': [BuildSlave('bot1name', 'bot1passwd')],
+    'schedulers': [Scheduler('name', None, 60, ['builder1'])],
+    'builders': [{'name': 'builder1', 'slavename': 'bot1name',
+                  'builddir': 'builder1', 'factory': BuildFactory()}],
     'slavePortnum': 0,
     }
 """
@@ -103,87 +109,97 @@ class CFactory(protocol.ClientFactory):
 
 def stopHTTPLog():
     # grr.
-    try:
-        from twisted.web import http # Twisted-2.0
-    except ImportError:
-        from twisted.protocols import http # Twisted-1.3
+    from twisted.web import http
     http._logDateTimeStop()
 
 class BaseWeb:
     master = None
 
-    def failUnlessIn(self, substr, string):
-        self.failUnless(string.find(substr) != -1)
+    def failUnlessIn(self, substr, string, note=None):
+        self.failUnless(string.find(substr) != -1, note)
 
     def tearDown(self):
         stopHTTPLog()
         if self.master:
             d = self.master.stopService()
-            return maybeWait(d)
+            return d
+
+    def find_webstatus(self, master):
+        for child in list(master):
+            if isinstance(child, html.WebStatus):
+                return child
 
     def find_waterfall(self, master):
-        return filter(lambda child: isinstance(child, html.Waterfall),
-                      list(master))
+        for child in list(master):
+            if isinstance(child, html.Waterfall):
+                return child
 
 class Ports(BaseWeb, unittest.TestCase):
 
     def test_webPortnum(self):
         # run a regular web server on a TCP socket
-        config = base_config + "c['status'] = [html.Waterfall(http_port=0)]\n"
+        config = base_config + "c['status'] = [html.WebStatus(http_port=0)]\n"
         os.mkdir("test_web1")
         self.master = m = ConfiguredMaster("test_web1", config)
         m.startService()
         # hack to find out what randomly-assigned port it is listening on
-        port = list(self.find_waterfall(m)[0])[0]._port.getHost().port
+        port = self.find_webstatus(m).getPortnum()
 
-        d = client.getPage("http://localhost:%d/" % port)
-        d.addCallback(self._test_webPortnum_1)
-        return maybeWait(d)
+        d = client.getPage("http://localhost:%d/waterfall" % port)
+        def _check(page):
+            #print page
+            self.failUnless(page)
+        d.addCallback(_check)
+        return d
     test_webPortnum.timeout = 10
-    def _test_webPortnum_1(self, page):
-        #print page
-        self.failUnless(page)
 
     def test_webPathname(self):
         # running a t.web.distrib server over a UNIX socket
-        if not providedBy(reactor, IReactorUNIX):
+        if not IReactorUNIX.providedBy(reactor):
             raise unittest.SkipTest("UNIX sockets not supported here")
         config = (base_config +
-                  "c['status'] = [html.Waterfall(distrib_port='.web-pb')]\n")
+                  "c['status'] = [html.WebStatus(distrib_port='.web-pb')]\n")
         os.mkdir("test_web2")
         self.master = m = ConfiguredMaster("test_web2", config)
         m.startService()
             
         p = DistribUNIX("test_web2/.web-pb")
 
-        d = client.getPage("http://localhost:%d/remote/" % p.portnum)
-        d.addCallback(self._test_webPathname_1, p)
-        return maybeWait(d)
+        d = client.getPage("http://localhost:%d/remote/waterfall" % p.portnum)
+        def _check(page):
+            self.failUnless(page)
+        d.addCallback(_check)
+        def _done(res):
+            d1 = p.shutdown()
+            d1.addCallback(lambda x: res)
+            return d1
+        d.addBoth(_done)
+        return d
     test_webPathname.timeout = 10
-    def _test_webPathname_1(self, page, p):
-        #print page
-        self.failUnless(page)
-        return p.shutdown()
 
 
     def test_webPathname_port(self):
         # running a t.web.distrib server over TCP
         config = (base_config +
-                  "c['status'] = [html.Waterfall(distrib_port=0)]\n")
+                  "c['status'] = [html.WebStatus(distrib_port=0)]\n")
         os.mkdir("test_web3")
         self.master = m = ConfiguredMaster("test_web3", config)
         m.startService()
-        dport = list(self.find_waterfall(m)[0])[0]._port.getHost().port
+        dport = self.find_webstatus(m).getPortnum()
 
         p = DistribTCP(dport)
 
-        d = client.getPage("http://localhost:%d/remote/" % p.portnum)
-        d.addCallback(self._test_webPathname_port_1, p)
-        return maybeWait(d)
+        d = client.getPage("http://localhost:%d/remote/waterfall" % p.portnum)
+        def _check(page):
+            self.failUnlessIn("BuildBot", page)
+        d.addCallback(_check)
+        def _done(res):
+            d1 = p.shutdown()
+            d1.addCallback(lambda x: res)
+            return d1
+        d.addBoth(_done)
+        return d
     test_webPathname_port.timeout = 10
-    def _test_webPathname_port_1(self, page, p):
-        self.failUnlessIn("BuildBot", page)
-        return p.shutdown()
 
 
 class Waterfall(BaseWeb, unittest.TestCase):
@@ -199,56 +215,51 @@ class Waterfall(BaseWeb, unittest.TestCase):
         # this is the right way to configure the Waterfall status
         config1 = base_config + """
 from buildbot.changes import mail
-c['sources'] = [mail.SyncmailMaildirSource('my-maildir')]
+c['change_source'] = mail.SyncmailMaildirSource('my-maildir')
 c['status'] = [html.Waterfall(http_port=0, robots_txt=%s)]
 """ % repr(self.robots_txt)
 
         self.master = m = ConfiguredMaster("test_web4", config1)
         m.startService()
-        # hack to find out what randomly-assigned port it is listening on
-        port = list(self.find_waterfall(m)[0])[0]._port.getHost().port
+        port = self.find_waterfall(m).getPortnum()
         self.port = port
         # insert an event
         m.change_svc.addChange(Change("user", ["foo.c"], "comments"))
 
         d = client.getPage("http://localhost:%d/" % port)
-        d.addCallback(self._test_waterfall_1)
-        return maybeWait(d)
+
+        def _check1(page):
+            self.failUnless(page)
+            self.failUnlessIn("current activity", page)
+            self.failUnlessIn("<html", page)
+            TZ = time.tzname[time.daylight]
+            self.failUnlessIn("time (%s)" % TZ, page)
+
+            # phase=0 is really for debugging the waterfall layout
+            return client.getPage("http://localhost:%d/?phase=0" % self.port)
+        d.addCallback(_check1)
+
+        def _check2(page):
+            self.failUnless(page)
+            self.failUnlessIn("<html", page)
+
+            return client.getPage("http://localhost:%d/changes" % self.port)
+        d.addCallback(_check2)
+
+        def _check3(changes):
+            self.failUnlessIn("<li>Syncmail mailing list in maildir " +
+                              "my-maildir</li>", changes)
+
+            return client.getPage("http://localhost:%d/robots.txt" % self.port)
+        d.addCallback(_check3)
+
+        def _check4(robotstxt):
+            self.failUnless(robotstxt == self.robots_txt_contents)
+        d.addCallback(_check4)
+
+        return d
+
     test_waterfall.timeout = 10
-    def _test_waterfall_1(self, page):
-        self.failUnless(page)
-        self.failUnlessIn("current activity", page)
-        self.failUnlessIn("<html", page)
-        TZ = time.tzname[time.daylight]
-        self.failUnlessIn("time (%s)" % TZ, page)
-
-        # phase=0 is really for debugging the waterfall layout
-        d = client.getPage("http://localhost:%d/?phase=0" % self.port)
-        d.addCallback(self._test_waterfall_2)
-        return d
-    def _test_waterfall_2(self, page):
-        self.failUnless(page)
-        self.failUnlessIn("<html", page)
-
-        d = client.getPage("http://localhost:%d/favicon.ico" % self.port)
-        d.addCallback(self._test_waterfall_3)
-        return d
-    def _test_waterfall_3(self, icon):
-        expected = open(html.buildbot_icon,"rb").read()
-        self.failUnless(icon == expected)
-
-        d = client.getPage("http://localhost:%d/changes" % self.port)
-        d.addCallback(self._test_waterfall_4)
-        return d
-    def _test_waterfall_4(self, changes):
-        self.failUnlessIn("<li>Syncmail mailing list in maildir " +
-                          "my-maildir</li>", changes)
-
-        d = client.getPage("http://localhost:%d/robots.txt" % self.port)
-        d.addCallback(self._test_waterfall_5)
-        return d
-    def _test_waterfall_5(self, robotstxt):
-        self.failUnless(robotstxt == self.robots_txt_contents)
 
 class WaterfallSteps(unittest.TestCase):
 
@@ -268,7 +279,13 @@ class WaterfallSteps(unittest.TestCase):
         s = setupBuildStepStatus("test_web.test_urls")
         s.addURL("coverage", "http://coverage.example.org/target")
         s.addURL("icon", "http://coverage.example.org/icon.png")
-        box = html.IBox(s).getBox()
+        class FakeRequest:
+            prepath = []
+            postpath = []
+            def childLink(self, name):
+                return name
+        req = FakeRequest()
+        box = waterfall.IBox(s).getBox(req)
         td = box.td()
         e1 = '[<a href="http://coverage.example.org/target" class="BuildStep external">coverage</a>]'
         self.failUnlessSubstring(e1, td)
@@ -284,6 +301,7 @@ from buildbot.process import factory
 from buildbot.steps import dummy
 from buildbot.scheduler import Scheduler
 from buildbot.changes.base import ChangeSource
+from buildbot.buildslave import BuildSlave
 s = factory.s
 
 class DiscardScheduler(Scheduler):
@@ -293,8 +311,8 @@ class DummyChangeSource(ChangeSource):
     pass
 
 BuildmasterConfig = c = {}
-c['bots'] = [('bot1', 'sekrit'), ('bot2', 'sekrit')]
-c['sources'] = [DummyChangeSource()]
+c['slaves'] = [BuildSlave('bot1', 'sekrit'), BuildSlave('bot2', 'sekrit')]
+c['change_source'] = DummyChangeSource()
 c['schedulers'] = [DiscardScheduler('discard', None, 60, ['b1'])]
 c['slavePortnum'] = 0
 c['status'] = [html.Waterfall(http_port=0)]
@@ -316,7 +334,7 @@ class GetURL(RunMixin, unittest.TestCase):
         self.master.loadConfig(geturl_config)
         self.master.startService()
         d = self.connectSlave(["b1"])
-        return maybeWait(d)
+        return d
 
     def tearDown(self):
         stopHTTPLog()
@@ -340,7 +358,7 @@ class GetURL(RunMixin, unittest.TestCase):
         noweb_config1 = geturl_config + "del c['buildbotURL']\n"
         d = self.master.loadConfig(noweb_config1)
         d.addCallback(self._testMissingBase_1)
-        return maybeWait(d)
+        return d
     def _testMissingBase_1(self, res):
         s = self.status
         self.assertNoURL(s)
@@ -367,7 +385,7 @@ class GetURL(RunMixin, unittest.TestCase):
         d = self.doBuild("b1")
         # maybe check IBuildSetStatus here?
         d.addCallback(self._testBuild_1)
-        return maybeWait(d)
+        return d
 
     def _testBuild_1(self, res):
         s = self.status
@@ -388,15 +406,15 @@ class Logfile(BaseWeb, RunMixin, unittest.TestCase):
         config = """
 from buildbot.status import html
 from buildbot.process.factory import BasicBuildFactory
+from buildbot.buildslave import BuildSlave
 f1 = BasicBuildFactory('cvsroot', 'cvsmodule')
 BuildmasterConfig = {
-    'bots': [('bot1', 'passwd1')],
-    'sources': [],
+    'slaves': [BuildSlave('bot1', 'passwd1')],
     'schedulers': [],
     'builders': [{'name': 'builder1', 'slavename': 'bot1',
                   'builddir':'workdir', 'factory':f1}],
     'slavePortnum': 0,
-    'status': [html.Waterfall(http_port=0)],
+    'status': [html.WebStatus(http_port=0)],
     }
 """
         if os.path.exists("test_logfile"):
@@ -405,7 +423,7 @@ BuildmasterConfig = {
         self.master = m = ConfiguredMaster("test_logfile", config)
         m.startService()
         # hack to find out what randomly-assigned port it is listening on
-        port = list(self.find_waterfall(m)[0])[0]._port.getHost().port
+        port = self.find_webstatus(m).getPortnum()
         self.port = port
         # insert an event
 
@@ -415,7 +433,8 @@ BuildmasterConfig = {
         bs.setReason("reason")
         bs.buildStarted(build1)
 
-        step1 = BuildStep(build=build1, name="setup")
+        step1 = BuildStep(name="setup")
+        step1.setBuild(build1)
         bss = bs.addStepWithName("setup")
         step1.setStepStatus(bss)
         bss.stepStarted()
@@ -439,42 +458,44 @@ BuildmasterConfig = {
         step1.step_status.stepFinished(builder.SUCCESS)
         bs.buildFinished()
 
-    def getLogURL(self, stepname, lognum):
-        logurl = "http://localhost:%d/builder1/builds/0/step-%s/%d" \
-                 % (self.port, stepname, lognum)
-        return logurl
+    def getLogPath(self, stepname, logname):
+        return ("/builders/builder1/builds/0/steps/%s/logs/%s" %
+                (stepname, logname))
+
+    def getLogURL(self, stepname, logname):
+        return ("http://localhost:%d" % self.port
+                + self.getLogPath(stepname, logname))
 
     def test_logfile1(self):
         d = client.getPage("http://localhost:%d/" % self.port)
-        d.addCallback(self._test_logfile1_1)
-        return maybeWait(d)
-    test_logfile1.timeout = 20
-    def _test_logfile1_1(self, page):
-        self.failUnless(page)
+        def _check(page):
+            self.failUnless(page)
+        d.addCallback(_check)
+        return d
 
     def test_logfile2(self):
-        logurl = self.getLogURL("setup", 0)
+        logurl = self.getLogURL("setup", "output")
         d = client.getPage(logurl)
-        d.addCallback(self._test_logfile2_1)
-        return maybeWait(d)
-    def _test_logfile2_1(self, logbody):
-        self.failUnless(logbody)
+        def _check(logbody):
+            self.failUnless(logbody)
+        d.addCallback(_check)
+        return d
 
     def test_logfile3(self):
-        logurl = self.getLogURL("setup", 0)
+        logurl = self.getLogURL("setup", "output")
         d = client.getPage(logurl + "/text")
-        d.addCallback(self._test_logfile3_1)
-        return maybeWait(d)
-    def _test_logfile3_1(self, logtext):
-        self.failUnlessEqual(logtext, "some stdout\n")
+        def _check(logtext):
+            self.failUnlessEqual(logtext, "some stdout\n")
+        d.addCallback(_check)
+        return d
 
     def test_logfile4(self):
-        logurl = self.getLogURL("setup", 1)
+        logurl = self.getLogURL("setup", "error")
         d = client.getPage(logurl)
-        d.addCallback(self._test_logfile4_1)
-        return maybeWait(d)
-    def _test_logfile4_1(self, logbody):
-        self.failUnlessEqual(logbody, "<html>ouch</html>")
+        def _check(logbody):
+            self.failUnlessEqual(logbody, "<html>ouch</html>")
+        d.addCallback(_check)
+        return d
 
     def test_logfile5(self):
         # this is log3, which is about 1MB in size, made up of alternating
@@ -482,33 +503,33 @@ BuildmasterConfig = {
         # twisted-1.3.0, fails to resume sending chunks after the client
         # stalls for a few seconds, because of a recursive doWrite() call
         # that was fixed in twisted-2.0.0
-        p = SlowReader("GET /builder1/builds/0/step-setup/2 HTTP/1.0\r\n\r\n")
-        f = CFactory(p)
-        c = reactor.connectTCP("localhost", self.port, f)
+        p = SlowReader("GET %s HTTP/1.0\r\n\r\n"
+                       % self.getLogPath("setup", "big"))
+        cf = CFactory(p)
+        c = reactor.connectTCP("localhost", self.port, cf)
         d = p.d
-        d.addCallback(self._test_logfile5_1, p)
-        return maybeWait(d, 10)
-    test_logfile5.timeout = 10
-    def _test_logfile5_1(self, res, p):
-        self.failUnlessIn("big log", p.data)
-        self.failUnlessIn("a"*100, p.data)
-        self.failUnless(p.count > 1*1000*1000)
+        def _check(res):
+            self.failUnlessIn("big log", p.data)
+            self.failUnlessIn("a"*100, p.data)
+            self.failUnless(p.count > 1*1000*1000)
+        d.addCallback(_check)
+        return d
 
     def test_logfile6(self):
         # this is log4, which is about 1MB in size, one big chunk.
         # buildbot-0.6.6 dies as the NetstringReceiver barfs on the
         # saved logfile, because it was using one big chunk and exceeding
         # NetstringReceiver.MAX_LENGTH
-        p = SlowReader("GET /builder1/builds/0/step-setup/3 HTTP/1.0\r\n\r\n")
-        f = CFactory(p)
-        c = reactor.connectTCP("localhost", self.port, f)
+        p = SlowReader("GET %s HTTP/1.0\r\n\r\n"
+                       % self.getLogPath("setup", "bigcomplete"))
+        cf = CFactory(p)
+        c = reactor.connectTCP("localhost", self.port, cf)
         d = p.d
-        d.addCallback(self._test_logfile6_1, p)
-        return maybeWait(d, 10)
-    test_logfile6.timeout = 10
-    def _test_logfile6_1(self, res, p):
-        self.failUnlessIn("big2 log", p.data)
-        self.failUnlessIn("a"*100, p.data)
-        self.failUnless(p.count > 1*1000*1000)
+        def _check(res):
+            self.failUnlessIn("big2 log", p.data)
+            self.failUnlessIn("a"*100, p.data)
+            self.failUnless(p.count > 1*1000*1000)
+        d.addCallback(_check)
+        return d
 
 
