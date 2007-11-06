@@ -220,6 +220,16 @@ function getFreeBusyService() {
     return g_fbService;
 }
 
+var g_calendarSearchService = null;
+function getCalendarSearchService() {
+    if (!g_calendarSearchService) {
+        g_calendarSearchService =
+            Components.classes["@mozilla.org/calendar/calendarsearch-service;1"]
+                      .getService(Components.interfaces.calICalendarSearchService);
+    }
+    return g_calendarSearchService;
+}
+
 var g_domParser = null;
 function getDomParser() {
     if (!g_domParser) {

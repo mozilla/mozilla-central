@@ -112,6 +112,12 @@ const componentData =
      constructor: "calFreeBusyService",
      service: true},
 
+    {cid: Components.ID("{F5F743CD-8997-428e-BC1B-644E73F61203}"),
+     contractid: "@mozilla.org/calendar/calendarsearch-service;1",
+     script: "calCalendarSearchService.js",
+     constructor: "calCalendarSearchService",
+     service: true},
+
     {cid: Components.ID("{4b7ae030-ed79-11d9-8cd6-0800200c9a66}"),
      contractid: "@mozilla.org/calendar/alarm-monitor;1",
      script: "calAlarmMonitor.js",

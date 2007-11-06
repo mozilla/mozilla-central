@@ -77,6 +77,7 @@ function calWcapSession(contextId, thatUri) {
 calWcapSession.prototype = {
     m_ifaces: [ calIWcapSession,
                 calIFreeBusyProvider,
+                calICalendarSearchProvider,
                 Components.interfaces.calICalendarManagerObserver,
                 Components.interfaces.nsIInterfaceRequestor,
                 Components.interfaces.nsIClassInfo,
@@ -205,6 +206,7 @@ calWcapSession.prototype = {
             if (timedOutSessionId) {
                 log("reconnecting due to session timeout...", this);
                 getFreeBusyService().removeProvider(this);
+                getCalendarSearchService().removeProvider(this);
             }
             
             var this_ = this;
@@ -218,6 +220,7 @@ calWcapSession.prototype = {
                     else {
                         this_.m_sessionId = sessionId;
                         getFreeBusyService().addProvider(this_);
+                        getCalendarSearchService().addProvider(this);
                     }
                     
                     var queue = this_.m_loginQueue;
@@ -428,6 +431,7 @@ calWcapSession.prototype = {
             url = (this.sessionUri.spec + "logout.wcap?fmt-out=text%2Fxml&id=" + this.m_sessionId);
             this.m_sessionId = null;
             getFreeBusyService().removeProvider(this);
+            getCalendarSearchService().removeProvider(this);
         }
         this.m_credentials = null;
         
@@ -661,7 +665,7 @@ calWcapSession.prototype = {
                 var listener = {
                     onResult: function search_onResult(request, result) {
                         try {
-                            if (!request.success)
+                            if (!Components.isSuccessCode(request.status))
                                 throw request.status;
                             if (result.length < 1)
                                 throw Components.results.NS_ERROR_UNEXPECTED;
@@ -694,12 +698,7 @@ calWcapSession.prototype = {
                 if (!issuedSearchRequests[calId]) {
                     issuedSearchRequests[calId] = true;
                     this.searchForCalendars(
-                        calId,
-                        calIWcapSession.SEARCH_STRING_EXACT |
-                        calIWcapSession.SEARCH_INCLUDE_CALID |
-                        // else searching for secondary calendars doesn't work:
-                        calIWcapSession.SEARCH_INCLUDE_OWNER,
-                        20, listener);
+                        calId, calICalendarSearchProvider.HINT_EXACT_MATCH, 20, listener);
                 }
             }
         }
@@ -915,9 +914,10 @@ calWcapSession.prototype = {
         out_count.value = ret.length;
         return ret;
     },
-    
+
+    // calICalendarSearchProvider:
     searchForCalendars:
-    function calWcapSession_searchForCalendars(searchString, searchOptions, maxResults, listener)
+    function calWcapSession_searchForCalendars(searchString, hints, maxResults, listener)
     {
         var this_ = this;
         var request = new calWcapRequest(
@@ -934,16 +934,12 @@ calWcapSession.prototype = {
             
             var params = ("&fmt-out=text%2Fxml&search-string=" +
                           encodeURIComponent(searchString));
-            params += ("&searchOpts=" + (searchOptions & 3).toString(10));
-            if (maxResults > 0)
+            if (maxResults > 0) {
                 params += ("&maxResults=" + maxResults);
-            if (searchOptions & calIWcapSession.SEARCH_INCLUDE_CALID)
-                params += "&calid=1";
-            if (searchOptions & calIWcapSession.SEARCH_INCLUDE_NAME)
-                params += "&name=1";
-            if (searchOptions & calIWcapSession.SEARCH_INCLUDE_OWNER)
-                params += "&primaryOwner=1";
-            
+            }
+            params += ("&name=1&calid=1&primaryOwner=1&searchOpts=" +
+                       ((hints & calICalendarSearchProvider.HINT_EXACT_MATCH) ? "3" : "0"));
+
             this.issueNetworkRequest(
                 request,
                 function searchForCalendars_netResp(err, data) {
@@ -1170,6 +1166,7 @@ calWcapSession.prototype = {
             cal = this.belongsTo(cal);
             if (cal && cal.isDefaultCalendar) {
                 getFreeBusyService().removeProvider(this);
+                getCalendarSearchService().removeProvider(this);
                 var registeredCalendars = this.getRegisteredCalendars();
                 for each (var regCal in registeredCalendars) {
                     try {

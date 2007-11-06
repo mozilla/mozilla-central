@@ -52,6 +52,7 @@ const calIItemBase = Components.interfaces.calIItemBase;
 const calIOperationListener = Components.interfaces.calIOperationListener;
 const calIFreeBusyProvider = Components.interfaces.calIFreeBusyProvider;
 const calIFreeBusyInterval = Components.interfaces.calIFreeBusyInterval;
+const calICalendarSearchProvider = Components.interfaces.calICalendarSearchProvider;
 const calIErrors = Components.interfaces.calIErrors;
 
 // ctors:

@@ -81,6 +81,7 @@ XPIDLSRCS	= calIAlarmService.idl \
 		  calITransactionManager.idl \
 		  calIOperation.idl \
 		  calIFreeBusyProvider.idl \
+		  calICalendarSearchProvider.idl \
 		  $(NULL)
 
 EXPORTS		= calBaseCID.h

@@ -68,37 +68,5 @@ interface calIWcapSession : nsISupports
      * Gets the default calendar instance of this session.
      */
     readonly attribute calIWcapCalendar defaultCalendar;
-    
-    /**
-     * Specifies how to match the searchString.
-     */
-    const unsigned long SEARCH_STRING_CONTAINS = 0;
-    const unsigned long SEARCH_STRING_BEGINS_WITH = 1;
-    const unsigned long SEARCH_STRING_ENDS_WITH = 2;
-    const unsigned long SEARCH_STRING_EXACT = 3;
-    /**
-     * Specifies what properties to include.
-     */
-    const unsigned long SEARCH_INCLUDE_CALID = 1 << 2;
-    const unsigned long SEARCH_INCLUDE_NAME = 1 << 3;
-    const unsigned long SEARCH_INCLUDE_OWNER = 1 << 4;
-    
-    /* xxx todo searching: separate into own interface? */
-    /**
-     * Searches for calendars matching the specified searchString.
-     * Results are notified to the passed listener instance as
-     * an array of calendar instances.
-     *
-     * @param searchString the search string to match
-     * @param searchOptions the search options
-     * @param maxResults maximum number of results
-     *                   (0 means default, e.g. 200 with respect to Sun calendar servers)
-     * @param listener listener called with an array of calIWcapCalendar objects
-     * @return optional object to track operation
-     */
-    calIOperation searchForCalendars(in string searchString,
-                                     in unsigned long searchOptions,
-                                     in unsigned long maxResults,
-                                     in calIGenericOperationListener listener);
 };
 
