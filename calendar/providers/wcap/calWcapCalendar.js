@@ -108,8 +108,9 @@ calWcapCalendar.prototype = {
         var msg;
         if (checkResultCode(rc, calIErrors.WCAP_ERROR_BASE, 8) ||
             (getErrorModule(rc) == NS_ERROR_MODULE_NETWORK)) {
-            // don't bloat the js error console with these errors
-            msg = log("error: " + errorToString(err), context);
+            // don't bloat the js error console with these errors:
+            msg = errorToString(err);
+            log("error: " + msg, context);
         } else {
             msg = logError(err, context);
         }
