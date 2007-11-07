@@ -220,7 +220,7 @@ calWcapSession.prototype = {
                     else {
                         this_.m_sessionId = sessionId;
                         getFreeBusyService().addProvider(this_);
-                        getCalendarSearchService().addProvider(this);
+                        getCalendarSearchService().addProvider(this_);
                     }
                     
                     var queue = this_.m_loginQueue;
