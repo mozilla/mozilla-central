@@ -272,6 +272,11 @@ xpidl.exe
 xpt_dump.exe
 xpt_link.exe
 #
+# Clean out obsolete files from Sunbird 0.5 installer
+#
+components/calAlarmService.js
+js/calWcapCachedCalendar.js
+#
 #endif
 #
 #ifndef XP_MACOSX
