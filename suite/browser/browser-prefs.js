@@ -299,6 +299,7 @@ pref("extensions.update.interval", 86400);  // Check for updates to Extensions a
 // Non-symmetric (not shared by extensions) extension-specific [update] preferences
 pref("extensions.getMoreExtensionsURL", "chrome://branding/locale/brand.properties");
 pref("extensions.getMoreThemesURL", "chrome://branding/locale/brand.properties");
+pref("extensions.getMorePluginsURL", "chrome://branding/locale/brand.properties");
 pref("extensions.getMoreLocalesURL", "chrome://branding/locale/brand.properties");
 pref("extensions.dss.enabled", false);          // Dynamic Skin Switching
 pref("extensions.dss.switchPending", false);    // Non-dynamic switch pending after next
