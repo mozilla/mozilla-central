@@ -60,7 +60,7 @@ RESNAME = $(LIBRARY_NAME).rc
 
 ifdef NS_USE_GCC
 EXTRA_SHARED_LIBS += \
-	-L $(DIST)/lib \
+	-L$(DIST)/lib \
 	-lnssutil3 \
 	-L$(NSPR_LIB_DIR) \
 	-lplc4 \
@@ -82,7 +82,7 @@ else
 # $(PROGRAM) has NO explicit dependencies on $(EXTRA_SHARED_LIBS)
 # $(EXTRA_SHARED_LIBS) come before $(OS_LIBS), except on AIX.
 EXTRA_SHARED_LIBS += \
-	-L $(DIST)/lib \
+	-L$(DIST)/lib \
 	-lnssutil3 \
 	-L$(NSPR_LIB_DIR) \
 	-lplc4 \
