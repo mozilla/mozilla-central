@@ -96,12 +96,10 @@ pkix_pl_Pk11CertStore_CheckTrust(
         while (0 != (certificateUsage = certificateUsage >> 1)) { certUsage++; }
 
         rv = CERT_TrustFlagsForCACertUsage(certUsage, &requiredFlags, &trustType);
-        if (rv != SECSuccess) {
-                requiredFlags = 0;
-                trustType = trustSSL;
+        if (rv == SECSuccess) {
+                rv = CERT_GetCertTrust(cert->nssCert, &trust);
         }
 
-        rv = CERT_GetCertTrust(cert->nssCert, &trust);
         if (rv == SECSuccess) {
                 unsigned int certFlags;
                 certFlags = SEC_GET_TRUST_FLAGS((&trust), trustType);

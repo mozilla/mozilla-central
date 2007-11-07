@@ -3271,8 +3271,8 @@ PKIX_PL_Cert_IsCertTrusted(
 
         rv = CERT_TrustFlagsForCACertUsage(certUsage, &requiredFlags, &trustType);
         if (rv != SECSuccess) {
-                requiredFlags = 0;
-                trustType = trustSSL;
+                *pTrusted = PKIX_FALSE;
+                goto cleanup;
         }
 
         nssCert = cert->nssCert;
