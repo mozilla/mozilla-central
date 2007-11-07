@@ -36,7 +36,7 @@
  * the terms of any one of the MPL, the GPL or the LGPL.
  *
  * ***** END LICENSE BLOCK ***** */
-/* $Id: secdig.h,v 1.6 2007-10-12 01:44:51 julien.pierre.boogz%sun.com Exp $ */
+/* $Id: secdig.h,v 1.7 2007-11-07 02:37:22 julien.pierre.boogz%sun.com Exp $ */
 
 #ifndef _SECDIG_H_
 #define _SECDIG_H_
@@ -54,10 +54,6 @@ SEC_BEGIN_PROTOS
 extern const SEC_ASN1Template sgn_DigestInfoTemplate[];
 
 SEC_ASN1_CHOOSER_DECLARE(sgn_DigestInfoTemplate)
-
-extern DERTemplate SGNDigestInfoTemplate[];
-
-SEC_ASN1_CHOOSER_DECLARE(SGNDigestInfoTemplate)
 
 /****************************************/
 /*

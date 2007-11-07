@@ -1638,6 +1638,32 @@ sftk_HashSign(SFTKHashSignInfo *info,unsigned char *sig,unsigned int *sigLen,
 							hash,hashLen);
 }
 
+/* XXX Old template; want to expunge it eventually. */
+static DERTemplate SECAlgorithmIDTemplate[] = {
+    { DER_SEQUENCE,
+	  0, NULL, sizeof(SECAlgorithmID) },
+    { DER_OBJECT_ID,
+	  offsetof(SECAlgorithmID,algorithm), },
+    { DER_OPTIONAL | DER_ANY,
+	  offsetof(SECAlgorithmID,parameters), },
+    { 0, }
+};
+
+/*
+ * XXX OLD Template.  Once all uses have been switched over to new one,
+ * remove this.
+ */
+static DERTemplate SGNDigestInfoTemplate[] = {
+    { DER_SEQUENCE,
+	  0, NULL, sizeof(SGNDigestInfo) },
+    { DER_INLINE,
+	  offsetof(SGNDigestInfo,digestAlgorithm),
+	  SECAlgorithmIDTemplate, },
+    { DER_OCTET_STRING,
+	  offsetof(SGNDigestInfo,digest), },
+    { 0, }
+};
+
 SECStatus
 RSA_HashSign(SECOidTag hashOid, NSSLOWKEYPrivateKey *key,
 		unsigned char *sig, unsigned int *sigLen, unsigned int maxLen,
@@ -1659,7 +1685,7 @@ RSA_HashSign(SECOidTag hashOid, NSSLOWKEYPrivateKey *key,
     if (!di) { goto loser; }
 
     /* Der encode the digest as a DigestInfo */
-    rv = DER_Encode(arena, &digder, SEC_ASN1_GET(SGNDigestInfoTemplate), di);
+    rv = DER_Encode(arena, &digder, SGNDigestInfoTemplate, di);
     if (rv != SECSuccess) {
 	goto loser;
     }

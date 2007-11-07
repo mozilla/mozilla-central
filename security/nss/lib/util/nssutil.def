@@ -219,7 +219,6 @@ SGN_DestroyDigestInfo_Util;
 ;;SEC_UTF8StringTemplate_Util DATA ;
 ;;SECOID_AlgorithmIDTemplate_Util DATA ;
 ;;sgn_DigestInfoTemplate_Util DATA ;
-;;SGNDigestInfoTemplate DATA ;
 NSS_Get_CERT_TimeChoiceTemplate_Util;
 NSS_Get_SEC_AnyTemplate_Util;
 NSS_Get_SEC_BitStringTemplate_Util;
@@ -246,7 +245,6 @@ NSS_Get_SEC_UniversalStringTemplate;
 NSS_Get_SEC_UTF8StringTemplate_Util;
 NSS_Get_SECOID_AlgorithmIDTemplate_Util;
 NSS_Get_sgn_DigestInfoTemplate_Util;
-NSS_Get_SGNDigestInfoTemplate;
 ;+    local:
 ;+       *;
 ;+};
