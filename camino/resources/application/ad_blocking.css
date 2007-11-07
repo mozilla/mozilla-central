@@ -108,6 +108,7 @@ a:link[href*="hrtrak.net"] img,
 a:link[href*="specificclick.net"] img,
 a:link[href*="adremote.timeinc.net"] img,
 a:link[href*=".inetinteractive.com/"] img,
+a:link[href*="adgardener.com"] img,
 
 embed[src*="/us.yimg.com/a/"],
 embed[src*="/ai.yimg.jp/"],
@@ -263,6 +264,8 @@ img[src*="show.onenetworkdirect.net"],
 img[src*="/ai.yimg.jp/"],
 img[src*="impact-ad.jp"],
 img[src*="/RealMedia/ads/"],
+img[src*="mercuras.com"],
+img[src*="images.industrybrains.com/banner"],
 
 iframe[src*="/ad."],
 iframe[src*="/ads."],
@@ -432,12 +435,23 @@ div[id*="adsense"],
 div[class~="ad-home"],
 div[id="topad_wrapper"],
 div[id*="google_ads_div"],
-div[id*="mTotem"]>iframe[id*="totem"]
+div[id*="mTotem"]>iframe[id*="totem"],
+div[class="advertising"],
+div[id^="ad1"],
+div[id^="ad2"],
+div[id^="ad3"],
+div[id^="ad4"],
+div[id^="ad5"],
+div[id^="ad6"],
+div[id^="ad7"],
+div[id^="ad8"],
+div[id^="ad9"]
 
 { display: none ! important }
 
 @-moz-document domain(mail.google.com) {                                        
-div#rhc>div.rh {display: none ! important }                                    
+div#rhc>div.rh,
+div.slwyWc {display: none ! important }                                    
 }                                                                               
 
 /* turn some false positives back off */
