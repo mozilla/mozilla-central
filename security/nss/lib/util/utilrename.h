@@ -51,8 +51,6 @@
 #define ATOB_ConvertAsciiToItem ATOB_ConvertAsciiToItem_Util
 #define BTOA_ConvertItemToAscii BTOA_ConvertItemToAscii_Util
 #define BTOA_DataToAscii BTOA_DataToAscii_Util
-#define CERT_CreateValidity CERT_CreateValidity_Util
-#define CERT_DestroyValidity CERT_DestroyValidity_Util
 #define CERT_GenTime2FormattedAscii CERT_GenTime2FormattedAscii_Util
 #define DER_AsciiToTime DER_AsciiToTime_Util
 #define DER_DecodeTimeChoice DER_DecodeTimeChoice_Util

@@ -39,7 +39,7 @@
 #define _PKCS11N_H_
 
 #ifdef DEBUG
-static const char CKT_CVS_ID[] = "@(#) $RCSfile: pkcs11n.h,v $ $Revision: 1.17 $ $Date: 2007-07-11 04:41:54 $";
+static const char CKT_CVS_ID[] = "@(#) $RCSfile: pkcs11n.h,v $ $Revision: 1.18 $ $Date: 2007-11-07 21:43:27 $";
 #endif /* DEBUG */
 
 /*
@@ -150,6 +150,9 @@ static const char CKT_CVS_ID[] = "@(#) $RCSfile: pkcs11n.h,v $ $Revision: 1.17 $
 /* HISTORICAL: define used to pass in the database key for DSA private keys */
 #define CKA_NETSCAPE_DB                 0xD5A0DB00L
 #define CKA_NETSCAPE_TRUST              0x80000001L
+
+/* FAKE PKCS #11 defines */
+#define CKM_INVALID_MECHANISM 0xffffffffUL
 
 /*
  * NSS-defined crypto mechanisms

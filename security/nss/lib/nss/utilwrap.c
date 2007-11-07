@@ -55,8 +55,6 @@
 #undef ATOB_ConvertAsciiToItem
 #undef BTOA_ConvertItemToAscii
 #undef BTOA_DataToAscii
-#undef CERT_CreateValidity
-#undef CERT_DestroyValidity
 #undef CERT_GenTime2FormattedAscii
 #undef DER_AsciiToTime
 #undef DER_DecodeTimeChoice
@@ -785,16 +783,6 @@ PRBool NSSRWLock_HaveWriteLock(NSSRWLock *rwlock)
 SECStatus __nss_InitLock(   PZLock    **ppLock, nssILockType ltype )
 {
     return __nss_InitLock_Util(ppLock, ltype);
-}
-
-CERTValidity *CERT_CreateValidity(int64 notBefore, int64 notAfter)
-{
-    return CERT_CreateValidity_Util(notBefore, notAfter);
-}
-
-void CERT_DestroyValidity(CERTValidity *v)
-{
-    CERT_DestroyValidity_Util(v);
 }
 
 /* templates duplicated in libnss3 and libnssutil3 */

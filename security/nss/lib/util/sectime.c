@@ -37,7 +37,6 @@
 #include "prlong.h"
 #include "prtime.h"
 #include "secder.h"
-#include "cert.h"
 #include "secitem.h"
 #include "secerr.h"
 
@@ -86,63 +85,6 @@ DER_TimeChoiceDayToAscii(SECItem *timechoice)
         PORT_SetError(SEC_ERROR_INVALID_ARGS);
         return NULL;
     }
-}
-
-
-
-CERTValidity *
-CERT_CreateValidity(int64 notBefore, int64 notAfter)
-{
-    CERTValidity *v;
-    int rv;
-    PRArenaPool *arena;
-
-    if (notBefore > notAfter) {
-       PORT_SetError(SEC_ERROR_INVALID_ARGS);
-       return NULL;
-    }
-    arena = PORT_NewArena(DER_DEFAULT_CHUNKSIZE);
-    
-    if ( !arena ) {
-	return(0);
-    }
-    
-    v = (CERTValidity*) PORT_ArenaZAlloc(arena, sizeof(CERTValidity));
-    if (v) {
-	v->arena = arena;
-	rv = DER_EncodeTimeChoice(arena, &v->notBefore, notBefore);
-	if (rv) goto loser;
-	rv = DER_EncodeTimeChoice(arena, &v->notAfter, notAfter);
-	if (rv) goto loser;
-    }
-    return v;
-
-  loser:
-    CERT_DestroyValidity(v);
-    return 0;
-}
-
-SECStatus
-CERT_CopyValidity(PRArenaPool *arena, CERTValidity *to, CERTValidity *from)
-{
-    SECStatus rv;
-
-    CERT_DestroyValidity(to);
-    to->arena = arena;
-    
-    rv = SECITEM_CopyItem(arena, &to->notBefore, &from->notBefore);
-    if (rv) return rv;
-    rv = SECITEM_CopyItem(arena, &to->notAfter, &from->notAfter);
-    return rv;
-}
-
-void
-CERT_DestroyValidity(CERTValidity *v)
-{
-    if (v && v->arena) {
-	PORT_FreeArena(v->arena, PR_FALSE);
-    }
-    return;
 }
 
 char *
