@@ -520,8 +520,24 @@ sub get_buildid {
   if (-e $platformIni) {
       my $c = read_file($platformIni);
       if ($c =~ /^BuildID=(\d+)/m) {
-	  $buildid = $1;
+          $buildid = $1;
       }
+  }
+
+  if (!defined($buildid) && $Settings::XULRunnerApp) {
+    my @possibleBuildIdLocations = (
+        "$objdir/xulrunner/dist/bin/platform.ini",
+        "$objdir/xulrunner/toolkit/xre/platform.ini",        
+    );
+    foreach my $file (@possibleBuildIdLocations) {
+      if (-e $file) {
+        my $c = read_file($file);
+        if ($c =~ /^BuildID=(\d+)/m) {
+	  $buildid = $1;
+          last;
+        }
+      }
+    }
   }
 
   if (!defined($buildid) && defined($dist)) {
