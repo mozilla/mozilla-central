@@ -1329,6 +1329,9 @@ PR_IMPLEMENT(PRFileDesc*) PR_Socket(PRInt32 domain, PRInt32 type, PRInt32 proto)
 	if (fd != NULL) {
 		_PR_MD_MAKE_NONBLOCK(fd);
 		_PR_MD_INIT_FD_INHERITABLE(fd, PR_FALSE);
+#ifdef _PR_NEED_SECRET_AF
+		fd->secret->af = domain;
+#endif
 #if defined(_PR_INET6_PROBE) || !defined(_PR_INET6)
 		/*
 		 * For platforms with no support for IPv6 
@@ -1340,9 +1343,6 @@ PR_IMPLEMENT(PRFileDesc*) PR_Socket(PRInt32 domain, PRInt32 type, PRInt32 proto)
 				fd = NULL;
 			}
 		}
-#endif
-#ifdef _PR_NEED_SECRET_AF
-		fd->secret->af = domain;
 #endif
 	} else
 		_PR_MD_CLOSE_SOCKET(osfd);
