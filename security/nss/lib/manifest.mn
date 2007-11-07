@@ -49,7 +49,7 @@ DEPTH      = ../..
 #  ckfw (builtins module)
 #  crmf jar (not dll's)
 DIRS =  util freebl softoken \
-	base asn1 dev pki pki1 \
+	base dev pki pki1 \
 	libpkix \
 	certdb certhigh pk11wrap cryptohi nss \
 	ssl \
@@ -62,7 +62,7 @@ DIRS =  util freebl softoken \
 
 # NSS 4.0 build - pure stan libraries
 ifdef PURE_STAN_BUILD
-DIRS = base asn1 dev pki pki1
+DIRS = base dev pki pki1
 endif
 
 #
