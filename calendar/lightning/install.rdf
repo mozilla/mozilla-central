@@ -12,8 +12,8 @@
         <!-- thunderbird -->
         <em:id>{3550f703-e582-4d05-9a08-453d09bdfdc6}</em:id>
 #ifdef MOZILLA_1_8_BRANCH
-        <em:minVersion>1.5</em:minVersion>
-        <em:maxVersion>2.0.*</em:maxVersion>
+        <em:minVersion>2.0</em:minVersion>
+        <em:maxVersion>2.0.0.*</em:maxVersion>
 #else
         <em:minVersion>@THUNDERBIRD_VERSION@</em:minVersion>
         <em:maxVersion>@THUNDERBIRD_VERSION@</em:maxVersion>
@@ -30,8 +30,8 @@
         <!-- firefox -->
         <em:id>{ec8030f7-c20a-464f-9b0e-13a3a9e97384}</em:id>
 #ifdef MOZILLA_1_8_BRANCH
-        <em:minVersion>1.5</em:minVersion>
-        <em:maxVersion>2.0.*</em:maxVersion>
+        <em:minVersion>2.0</em:minVersion>
+        <em:maxVersion>2.0.0.*</em:maxVersion>
 #else
         <em:minVersion>@FIREFOX_VERSION@</em:minVersion>
         <em:maxVersion>@FIREFOX_VERSION@</em:maxVersion>
