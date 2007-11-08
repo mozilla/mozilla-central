@@ -591,8 +591,7 @@ nsresult nsMsgShutdownService::ProcessNextTask()
   if (shutdownTasksDone)
   {
     mMsgProgress->OnStateChange(nsnull, nsnull, nsIWebProgressListener::STATE_STOP, NS_OK);
-    if (mShouldShutdown)
-      AttemptShutdown();
+    AttemptShutdown();
   }
   
   return NS_OK;
@@ -663,7 +662,6 @@ NS_IMETHODIMP nsMsgShutdownService::Observe(nsISupports *aSubject,
     if (topMsgWindow)
       topMsgWindow->GetDomWindow(getter_AddRefs(internalDomWin));
     
-    PRBool showModal = PR_TRUE;
     if (!internalDomWin)
     {
       // First see if there is a window open. 
@@ -676,20 +674,15 @@ NS_IMETHODIMP nsMsgShutdownService::Observe(nsISupports *aSubject,
         nsCOMPtr<nsIAppShellService> appShell(do_GetService(NS_APPSHELLSERVICE_CONTRACTID));
         appShell->GetHiddenDOMWindow(getter_AddRefs(internalDomWin));
         NS_ENSURE_TRUE(internalDomWin, NS_ERROR_FAILURE);  // bail if we don't get a window.
-        showModal = PR_FALSE;
-        mShouldShutdown = PR_TRUE;
-        
-        // Cancel the shutdown process since this isn't going to be a modal dialog. This
-        // class will be responsible for shuttingdown.
-        mShouldShutdown = PR_TRUE;
-        nsCOMPtr<nsISupportsPRBool> stopShutdown = do_QueryInterface(aSubject);
-        stopShutdown->SetData(PR_TRUE);
       }
     }
     
+    nsCOMPtr<nsISupportsPRBool> stopShutdown = do_QueryInterface(aSubject);
+    stopShutdown->SetData(PR_TRUE);
+    
     mMsgProgress->OpenProgressDialog(internalDomWin, topMsgWindow, 
                                      "chrome://messenger/content/shutdownWindow.xul", 
-                                     showModal, nsnull);
+                                     PR_FALSE, nsnull);
   }
   
   return NS_OK;
