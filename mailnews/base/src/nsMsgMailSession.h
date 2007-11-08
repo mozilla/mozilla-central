@@ -105,7 +105,6 @@ private:
   nsCOMArray<nsIMsgShutdownTask> mShutdownTasks;
   nsCOMPtr<nsIMsgProgress>       mMsgProgress;
   PRUint32                       mTaskIndex;
-  PRBool                         mShouldShutdown;
 };
 
 #endif /* nsMsgMailSession_h__ */
