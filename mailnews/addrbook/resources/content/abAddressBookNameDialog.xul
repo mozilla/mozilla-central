@@ -46,6 +46,11 @@
         onload="abNameOnLoad();"
         ondialogaccept="return abNameOKButton();">
 
+  <stringbundleset id="stringbundleset">
+    <stringbundle id="bundle_addressBook"
+                  src="chrome://messenger/locale/addressbook/addressBook.properties"/>
+  </stringbundleset>
+
   <script type="application/x-javascript" src="chrome://messenger/content/addressbook/abAddressBookNameDialog.js"/>
 
   <hbox align="center">
