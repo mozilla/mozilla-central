@@ -2077,6 +2077,8 @@ cert_GetTargetCertConstraints(CERTCertificate *target, void *plContext)
     pkix_pl_Cert_CreateWithNSSCert
 	(target, &eeCert, plContext);
 
+    error = PKIX_CertSelector_Create(NULL, NULL, &certSelector, plContext);
+    if (error != NULL) goto cleanup;
 
     error = PKIX_ComCertSelParams_Create(&certSelParams, plContext);
     if (error != NULL) goto cleanup;
@@ -2085,15 +2087,12 @@ cert_GetTargetCertConstraints(CERTCertificate *target, void *plContext)
 				certSelParams, eeCert, plContext);
     if (error != NULL) goto cleanup;
 
-    error = PKIX_CertSelector_Create(NULL, NULL, &certSelector, plContext);
-    if (error != NULL) goto cleanup;
-
     error = PKIX_CertSelector_SetCommonCertSelectorParams
 	(certSelector, certSelParams, plContext);
     if (error != NULL) goto cleanup;
 
-    error = PKIX_PL_Object_IncRef((PKIX_PL_Object *)certSelParams, plContext);
-    if (error == NULL) r = certSelParams;
+    error = PKIX_PL_Object_IncRef((PKIX_PL_Object *)certSelector, plContext);
+    if (error == NULL) r = certSelector;
 
 cleanup:
     if (certSelParams != NULL) 
@@ -2102,8 +2101,8 @@ cleanup:
     if (eeCert != NULL) 
 	PKIX_PL_Object_DecRef((PKIX_PL_Object *)eeCert, plContext);
 
-    if (certSelParams != NULL) 
-	PKIX_PL_Object_DecRef((PKIX_PL_Object *)certSelParams, plContext);
+    if (certSelector != NULL) 
+	PKIX_PL_Object_DecRef((PKIX_PL_Object *)certSelector, plContext);
 
     return r;
 }
