@@ -145,10 +145,16 @@ const float kVOffset = 20.0;
 
   // finally, do the buggy sizeToFit
   [mTextView sizeToFit];
+  // The first time we sizeToFit a text field on Leopard, it decides that
+  // 0 would be a good height. We disagree, so make it try again.
+  NSRect textViewFrame = [mTextView frame];
+  if (textViewFrame.size.height < 1.0) {
+    [mTextView sizeToFit];
+    textViewFrame = [mTextView frame];
+  }
   
   // set the origin back where its supposed to be
-  NSRect textViewFrame = [mTextView frame];
-  [mTextView setFrame:NSMakeRect(0, kBorderPadding, textViewFrame.size.width, textViewFrame.size.height)];
+  [mTextView setFrameOrigin:NSMakePoint(0, kBorderPadding)];
   
   // size the panel correctly, taking border into account
   NSSize textSize = textViewFrame.size;
