@@ -345,8 +345,7 @@ calDateTime::GetInTimezone(const nsACString& aTimezone, calIDateTime **aResult)
         // if it's a date, we really just want to make a copy of this
         // and set the timezone.
         cdt = new calDateTime(*this);
-        if (!mTimezone.EqualsLiteral("floating"))
-            cdt->mTimezone.Assign(aTimezone);
+        cdt->mTimezone.Assign(aTimezone);
     } else if (mTimezone.Equals(aTimezone)) {
         cdt = new calDateTime(*this);
     } else {
@@ -388,9 +387,7 @@ calDateTime::GetInTimezone(const nsACString& aTimezone, calIDateTime **aResult)
             icalt.is_utc = 1;
         else
             icalt.is_utc = 0;
-
-        if (!mTimezone.EqualsLiteral("floating"))
-            icalt.zone = tz;
+        icalt.zone = tz;
 
         cdt = new calDateTime(&icalt);
     }
