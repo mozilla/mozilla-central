@@ -119,6 +119,15 @@ WHERE
 ORDER by sg.name ASC
 });
 
+__PACKAGE__->set_sql(ByTestDay => qq{
+SELECT sg.*
+FROM subgroups sg, testday_subgroups tdsg
+WHERE 
+  tdsg.testday_id=? AND 
+  tdsg.subgroup_id=sg.subgroup_id 
+ORDER by sg.name ASC
+});
+
 #########################################################################
 sub coverage() {
   my $self = shift;
