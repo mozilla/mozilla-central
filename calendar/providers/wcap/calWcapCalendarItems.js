@@ -68,7 +68,7 @@ calWcapCalendar.prototype.encodeNscpTzid =
 function calWcapCalendar_encodeNscpTzid(dateTime)
 {
     var params = "X-NSCP-ORIGINAL-OPERATION=X-NSCP-WCAP-PROPERTY-";
-    if (!dateTime || !dateTime.isValid || dateTime.isDate || (dateTime.timezone == "floating")) {
+    if (!dateTime || !dateTime.isValid || (dateTime.timezone == "floating")) {
         params += "DELETE^";
     } else {
         params += ("REPLACE^" + encodeURIComponent(this.getAlignedTimezone(dateTime.timezone)));
@@ -579,13 +579,7 @@ function calWcapCalendar_storeItem(bAddItem, item, oldItem, request, netRespFunc
         if (bIsParent)
             params += "&mod=4"; // THIS AND ALL INSTANCES
         else {
-            var rid = item.recurrenceId;
-            if (rid.isDate) {
-                // cs does not accept DATE:
-                rid = rid.clone();
-                rid.isDate = false;
-            }
-            params += ("&mod=1&rid=" + getIcalUTC(rid)); // THIS INSTANCE
+            params += ("&mod=1&rid=" + getIcalUTC(item.recurrenceId)); // THIS INSTANCE
         }
         
         params += ("&method=" + method);
@@ -780,7 +774,7 @@ function calWcapCalendar_deleteItem(item, listener)
         else { // delete THIS INSTANCE:
             var rid = item.recurrenceId;
             if (rid.isDate) {
-                // cs does not accept DATE:
+                // cs does not accept DATE here:
                 rid = rid.clone();
                 rid.isDate = false;
             }
@@ -845,7 +839,7 @@ calWcapCalendar.prototype.parseItems = function calWcapCalendar_parseItems(
                     if (tzid != null) {
                         subComp[attr] = dt.getInTimezone(tzid.value);
                         if (LOG_LEVEL > 2) {
-                            log("patching " + xprop + " from " +
+                            log("patching " + xprop + ": from " +
                                 dt + " to " + subComp[attr], this_);
                         }
                     }
@@ -853,6 +847,7 @@ calWcapCalendar.prototype.parseItems = function calWcapCalendar_parseItems(
             }
 
             patchTimezone(subComp, "startTime", "X-NSCP-DTSTART-TZID");
+            patchTimezone(subComp, "recurrenceId", "X-NSCP-DTSTART-TZID");
             var item = null;
             switch (subComp.componentType) {
             case "VEVENT": {
@@ -902,7 +897,7 @@ calWcapCalendar.prototype.parseItems = function calWcapCalendar_parseItems(
                     item.recurrenceInfo = null;
                     if (LOG_LEVEL > 1) {
                         log("exception item: " + item.title +
-                            "\nrid=" + rid.icalString +
+                            "\nrid=" + getIcalUTC(rid) +
                             "\nitem.id=" + item.id, this_);
                     }
                     excItems.push(item);
@@ -942,7 +937,7 @@ calWcapCalendar.prototype.parseItems = function calWcapCalendar_parseItems(
         }
         else {
             logError("parseItems(): no parent item for " + item.title +
-                     ", rid=" + item.recurrenceId.icalString +
+                     ", rid=" + getIcalUTC(item.recurrenceId) +
                      ", item.id=" + item.id, this);
             // due to a server bug, in some scenarions the returned
             // data is lacking the parent item, leave parentItem open then
