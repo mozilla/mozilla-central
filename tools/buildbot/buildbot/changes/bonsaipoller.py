@@ -2,7 +2,7 @@ import time
 from xml.dom import minidom, Node
 
 from twisted.python import log, failure
-from twisted.internet import defer, reactor
+from twisted.internet import reactor
 from twisted.internet.task import LoopingCall
 from twisted.web.client import getPage
 

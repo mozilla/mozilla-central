@@ -2,11 +2,11 @@
 from email.Message import Message
 from email.Utils import formatdate
 
+from zope.interface import implements
 from twisted.internet import defer
 
 from buildbot import interfaces
-from buildbot.twcompat import implements
-from buildbot.status import base, mail
+from buildbot.status import mail
 from buildbot.status.builder import SUCCESS, WARNINGS
 from buildbot.steps.shell import WithProperties
 
@@ -30,11 +30,7 @@ class TinderboxMailNotifier(mail.MailNotifier):
     tinderbox option.
 
     """
-    if implements:
-        implements(interfaces.IEmailSender)
-    else:
-        __implements__ = (interfaces.IEmailSender,
-                          base.StatusReceiverMultiService.__implements__)
+    implements(interfaces.IEmailSender)
 
     compare_attrs = ["extraRecipients", "fromaddr", "categories", "builders",
                      "addLogs", "relayhost", "subject", "binaryURL", "tree",
