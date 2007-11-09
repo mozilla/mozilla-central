@@ -113,13 +113,13 @@ function SelectAndScrollToKey(aMsgKey)
 // A helper routine called after a folder is loaded to make sure
 // we select and scroll to the correct message (could be the first new message,
 // could be the last displayed message, etc.)
-// returns true if we ended up scrolling to a message
 function ScrollToMessageAfterFolderLoad(folder)
 {
   var scrolled = pref.getBoolPref("mailnews.scroll_to_new_message") &&
       ScrollToMessage(nsMsgNavigationType.firstNew, true, false /* selectMessage */);
   if (!scrolled && folder && pref.getBoolPref("mailnews.remember_selected_message"))
   {
+    // If we failed to scroll to a new message,
     // reselect the last selected message
     var lastMessageLoaded = folder.lastMessageLoaded;
     if (lastMessageLoaded != nsMsgKey_None)
@@ -149,8 +149,6 @@ function ScrollToMessageAfterFolderLoad(folder)
     if (!scrolled)
       EnsureRowInThreadTreeIsVisible(0);
   }
-
-  return scrolled;
 }
 
 // the folderListener object
@@ -179,7 +177,7 @@ var folderListener = {
       var eventType = event.toString();
       if (eventType == "FolderLoaded") {
         if (folder) {
-          var scrolled = false;  
+          var scrolled = false;
           var msgFolder = folder.QueryInterface(Components.interfaces.nsIMsgFolder);
           var uri = folder.URI;
           var rerootingFolder = (uri == gCurrentFolderToReroot);
@@ -1119,6 +1117,7 @@ function GetUnreadCountElement()
     gUnreadCount = document.getElementById('unreadMessageCount');
   return gUnreadCount;
 }
+
 function GetTotalCountElement()
 {
   if (!gTotalCount)
