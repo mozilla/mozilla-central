@@ -45,7 +45,9 @@ my $vars = {
            };
 
 if ($c->param("preview")) {
-  $vars->{'text_to_preview'} = $c->param("preview"); 
+  my $preview_text = $c->param("preview");
+  utf8::decode($preview_text);
+  $vars->{'text_to_preview'} = $preview_text;
 }
 
 my $cookie =  Litmus::Auth::getCookie();
