@@ -659,7 +659,7 @@
                                     disable-on-readonly="true"
                                     onchange="dateTimeControls2State(true);"/>
                     <checkbox id="todo-has-entrydate"
-                              class="todo-only"
+                              class="todo-only checkbox-no-label"
                               disable-on-readonly="true"
                               oncommand="updateEntryDate();"/>
                     <datetimepicker id="todo-entrydate"
@@ -698,7 +698,7 @@
                                         disable-on-readonly="true"
                                         onchange="dateTimeControls2State(false);"/>
                         <checkbox id="todo-has-duedate"
-                                  class="todo-only"
+                                  class="todo-only checkbox-no-label"
                                   disable-on-readonly="true"
                                   oncommand="updateDueDate();"/>
                         <datetimepicker id="todo-duedate"

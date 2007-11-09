@@ -395,3 +395,7 @@ listboxbody {
 .selection-bar-spacer {
     cursor: -moz-grab;
 }
+
+.checkbox-no-label > .checkbox-label-box {
+    display: none;
+}
