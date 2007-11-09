@@ -125,20 +125,6 @@ pref("browser.tabs.opentabfor.urlbar", false);
 pref("browser.tabs.tooltippreview.enable", true);
 pref("browser.tabs.tooltippreview.width", 300);
 pref("browser.tabs.undoclose.depth", 3);
-pref("browser.tabs.autoHide", true);
-pref("browser.tabs.forceHide", false);
-pref("browser.tabs.warnOnClose", true);
-pref("browser.tabs.warnOnCloseOther", true);
-// 0 = append, 1 = replace
-pref("browser.tabs.loadGroup", 1);
-
-// lets new tab/window load something different than first window
-// -1 - use navigator startup preference
-//  0 - loads blank page
-//  1 - loads home page
-//  2 - loads last page visited
-pref("browser.tabs.loadOnNewTab", 0);
-pref("browser.windows.loadOnNewWindow", 1);
 
 // external link handling in tabbed browsers. values from nsIBrowserDOMWindow.
 // 0=default window, 1=current window/tab, 2=new window, 3=new tab in most recent window
