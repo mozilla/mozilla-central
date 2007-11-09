@@ -226,6 +226,13 @@ sub AUTOLOAD {
     return $self->$col(@args);
 }
 
+sub _log {
+    my ($self, $message, %info) = @_;
+    binmode(STDERR,':utf8');
+    print STDERR "$message";
+    return;
+}
+
 # DBI error handler for SQL errors:        
 sub _croak {
 	my ($self, $message, %info) = @_;
@@ -315,7 +322,7 @@ sub utf8_columns {
           # the process. Turn the bit off again.
           Encode::_utf8_off($self->{$_});
           # ..and die
-          $self->_croak("Invalid UTF8 from database in column '$_'");
+          $self->_log("Invalid UTF8 from database in column '$_': " . $self->{$_});
         }
       }
     }
