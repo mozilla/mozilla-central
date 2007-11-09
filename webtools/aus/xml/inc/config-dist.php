@@ -86,7 +86,7 @@ $productBranchVersions = array(
         '1.6a1'   =>  'trunk',
         '1.*'     =>  '1.5',
         '2.0*'    =>  '2.0',
-        '3.0a*'   =>  'trunk'
+        '3.0*'   =>  'trunk'
     ),
     'Thunderbird' =>  array(
         '1.5.0.*' =>  '1.5.0.x',
