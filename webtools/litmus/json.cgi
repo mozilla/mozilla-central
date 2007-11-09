@@ -58,9 +58,18 @@ if ($c->param("testcase_id")) {
   $testcase->{'subgroups'} = \@subgroups;
   
   # apply markdown formatting to the steps and expected results:
-  $testcase->{'steps_formatted'} = Text::Markdown::markdown($testcase->steps());
-  $testcase->{'expected_results_formatted'} = Text::Markdown::markdown($testcase->expected_results());
-  
+  eval {
+    $testcase->{'steps_formatted'} = Text::Markdown::markdown($testcase->steps());
+  };
+  if ($@) {
+    $testcase->{'steps_formatted'} = $testcase->steps();
+  }
+  eval {
+    $testcase->{'expected_results_formatted'} = Text::Markdown::markdown($testcase->expected_results());
+  };
+  if ($@) {
+    $testcase->{'expected_results_formatted'} = $testcase->expected_results();
+  }
   $js = $json->objToJson($testcase);
 } elsif ($c->param("subgroup_id")) {
   my $subgroup_id = $c->param("subgroup_id");

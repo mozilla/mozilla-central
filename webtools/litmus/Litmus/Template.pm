@@ -166,8 +166,10 @@ sub create {
             # process the text with the markdown text processor
             markdown => sub {
             	my ($data) = @_;
-            	$data = Text::Markdown::markdown($data);
-            	return $data;
+                eval {
+            	  $data = Text::Markdown::markdown($data);
+                };
+                return $data;
             },
             
             # Returns the text with backslashes, single/double quotes,
