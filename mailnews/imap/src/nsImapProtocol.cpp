@@ -703,7 +703,7 @@ nsresult nsImapProtocol::SetupWithUrl(nsIURI * aURL, nsISupports* aConsumer)
       rv = NS_GetProxyForObject(m_sinkEventTarget,
                                 NS_GET_IID(nsIStreamListener),
                                 aRealStreamListener,
-                                NS_PROXY_ASYNC | NS_PROXY_ALWAYS,
+                                NS_PROXY_SYNC | NS_PROXY_ALWAYS,
                                 getter_AddRefs(m_channelListener));
       if (NS_FAILED(rv)) return rv;
     }
