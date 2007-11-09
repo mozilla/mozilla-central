@@ -38,7 +38,7 @@
 #
 # ***** END LICENSE BLOCK *****
 #
-#ident	"$Id: prototype,v 1.7 2005-08-18 03:42:00 nelsonb%netscape.com Exp $"
+#ident	"$Id: prototype,v 1.8 2007-11-09 18:49:35 wtc%google.com Exp $"
 #
 # This required package information file contains a list of package contents.
 # The 'pkgmk' command uses this file to identify the contents of a package
@@ -132,7 +132,6 @@ f none usr/include/mps/pkcs12.h 0644 root bin
 f none usr/include/mps/pkcs12t.h 0644 root bin
 f none usr/include/mps/pkcs7t.h 0644 root bin
 f none usr/include/mps/portreg.h 0644 root bin
-#f none usr/include/mps/pqgutil.h 0644 root bin
 f none usr/include/mps/preenc.h 0644 root bin
 f none usr/include/mps/secasn1.h 0644 root bin
 f none usr/include/mps/secasn1t.h 0644 root bin

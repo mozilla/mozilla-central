@@ -55,7 +55,6 @@
 #include "secitem.h"
 #include "secport.h"
 #include "blapi.h"
-#include "pqgutil.h"
 #include "pkcs11.h"
 #include "pkcs11i.h"
 #include "lowkeyi.h"

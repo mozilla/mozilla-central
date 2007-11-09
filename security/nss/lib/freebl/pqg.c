@@ -37,7 +37,7 @@
 /*
  * PQG parameter generation/verification.  Based on FIPS 186-1.
  *
- * $Id: pqg.c,v 1.14 2006-05-12 16:49:07 wtchang%redhat.com Exp $
+ * $Id: pqg.c,v 1.15 2007-11-09 18:49:32 wtc%google.com Exp $
  */
 
 #include "prerr.h"
@@ -677,4 +677,38 @@ cleanup:
     return rv;
 }
 
+/**************************************************************************
+ *  Free the PQGParams struct and the things it points to.                *
+ **************************************************************************/
+void
+PQG_DestroyParams(PQGParams *params)
+{
+    if (params == NULL) 
+    	return;
+    if (params->arena != NULL) {
+	PORT_FreeArena(params->arena, PR_FALSE);	/* don't zero it */
+    } else {
+	SECITEM_FreeItem(&params->prime,    PR_FALSE); /* don't free prime */
+	SECITEM_FreeItem(&params->subPrime, PR_FALSE); /* don't free subPrime */
+	SECITEM_FreeItem(&params->base,     PR_FALSE); /* don't free base */
+	PORT_Free(params);
+    }
+}
 
+/**************************************************************************
+ *  Free the PQGVerify struct and the things it points to.                *
+ **************************************************************************/
+
+void
+PQG_DestroyVerify(PQGVerify *vfy)
+{
+    if (vfy == NULL) 
+    	return;
+    if (vfy->arena != NULL) {
+	PORT_FreeArena(vfy->arena, PR_FALSE);	/* don't zero it */
+    } else {
+	SECITEM_FreeItem(&vfy->seed,   PR_FALSE); /* don't free seed */
+	SECITEM_FreeItem(&vfy->h,      PR_FALSE); /* don't free h */
+	PORT_Free(vfy);
+    }
+}

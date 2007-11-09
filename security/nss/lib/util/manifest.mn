@@ -64,7 +64,6 @@ EXPORTS = \
 	$(NULL)
 
 PRIVATE_EXPORTS = \
-	pqgutil.h \
 	templates.c \
 	$(NULL)
 
@@ -82,7 +81,6 @@ CSRCS = \
 	nsslocks.c \
 	oidstring.c \
 	portreg.c \
-	pqgutil.c \
 	secalgid.c \
 	secasn1d.c \
 	secasn1e.c \

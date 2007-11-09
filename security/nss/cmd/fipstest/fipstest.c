@@ -49,7 +49,6 @@
 #include "hasht.h"
 #include "lowkeyi.h"
 #include "softoken.h"
-#include "pqgutil.h"
 
 #if 0
 #include "../../lib/freebl/mpi/mpi.h"

@@ -37,7 +37,7 @@
  * the terms of any one of the MPL, the GPL or the LGPL.
  *
  * ***** END LICENSE BLOCK ***** */
-/* $Id: loader.c,v 1.36 2007-10-09 17:06:22 slavomir.katuscak%sun.com Exp $ */
+/* $Id: loader.c,v 1.37 2007-11-09 18:49:32 wtc%google.com Exp $ */
 
 #include "loader.h"
 #include "prmem.h"
@@ -832,6 +832,22 @@ PQG_VerifyParams(const PQGParams *params, const PQGVerify *vfy,
   if (!vector && PR_SUCCESS != freebl_RunLoaderOnce())
       return SECFailure;
   return (vector->p_PQG_VerifyParams)(params, vfy, result);
+}
+
+void   
+PQG_DestroyParams(PQGParams *params)
+{
+  if (!vector && PR_SUCCESS != freebl_RunLoaderOnce())
+      return SECFailure;
+  return (vector->p_PQG_DestroyParams)(params);
+}
+
+void   
+PQG_DestroyVerify(PQGVerify *vfy)
+{
+  if (!vector && PR_SUCCESS != freebl_RunLoaderOnce())
+      return SECFailure;
+  return (vector->p_PQG_DestroyVerify)(vfy);
 }
 
 void 

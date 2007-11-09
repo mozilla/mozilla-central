@@ -37,7 +37,7 @@
  * the terms of any one of the MPL, the GPL or the LGPL.
  *
  * ***** END LICENSE BLOCK ***** */
-/* $Id: blapi.h,v 1.26 2007-02-28 19:47:37 rrelyea%redhat.com Exp $ */
+/* $Id: blapi.h,v 1.27 2007-11-09 18:49:32 wtc%google.com Exp $ */
 
 #ifndef _BLAPI_H_
 #define _BLAPI_H_
@@ -1140,6 +1140,10 @@ PQG_ParamGenSeedLen(
 
 extern SECStatus   PQG_VerifyParams(const PQGParams *params, 
                                     const PQGVerify *vfy, SECStatus *result);
+
+extern void PQG_DestroyParams(PQGParams *params);
+
+extern void PQG_DestroyVerify(PQGVerify *vfy);
 
 
 /*

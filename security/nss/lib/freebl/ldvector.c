@@ -37,7 +37,7 @@
  * the terms of any one of the MPL, the GPL or the LGPL.
  *
  * ***** END LICENSE BLOCK ***** */
-/* $Id: ldvector.c,v 1.15 2007-02-28 19:47:37 rrelyea%redhat.com Exp $ */
+/* $Id: ldvector.c,v 1.16 2007-11-09 18:49:32 wtc%google.com Exp $ */
 
 #include "loader.h"
 #include "alghmac.h"
@@ -233,6 +233,10 @@ static const struct FREEBLVectorStr vector =
     Camellia_DestroyContext,
     Camellia_Encrypt,
     Camellia_Decrypt,
+
+    /* End of Version 3.010. */
+    PQG_DestroyParams,
+    PQG_DestroyVerify,
 
 };
 
