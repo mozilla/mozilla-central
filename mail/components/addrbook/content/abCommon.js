@@ -298,7 +298,10 @@ function AbEditSelectedDirectory()
                       "editDirectory", "chrome,modal=yes,resizable=no,centerscreen", { selectedDirectory: directory });
       }
       else {
-        AbRenameAddressBook();
+        window.openDialog(
+          "chrome://messenger/content/addressbook/abAddressBookNameDialog.xul",
+          "", "chrome,modal=yes,resizable=no,centerscreen",
+          {selectedDirectory: directory});
       }
     }
   }

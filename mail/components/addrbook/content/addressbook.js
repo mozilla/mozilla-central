@@ -347,63 +347,9 @@ function AbNewLDAPDirectory()
 
 function AbNewAddressBook()
 {
-  var strBundleService = Components.classes["@mozilla.org/intl/stringbundle;1"].
-      getService(Components.interfaces.nsIStringBundleService);
-  var bundle = strBundleService.createBundle("chrome://messenger/locale/addressbook/addressBook.properties");
-  var dialogTitle = bundle.GetStringFromName('newAddressBookTitle');
-
-  var dialog = window.openDialog(
+  window.openDialog(
     "chrome://messenger/content/addressbook/abAddressBookNameDialog.xul",
-     "", "chrome,modal=yes,resizable=no,centerscreen", {title: dialogTitle, okCallback:AbOnCreateNewAddressBook});
-}
-
-function AbRenameAddressBook()
-{
-  var selectedABURI = GetSelectedDirectory();
-
-  // the rdf service
-  var RDF = Components.classes["@mozilla.org/rdf/rdf-service;1"].getService(Components.interfaces.nsIRDFService);
-
-  // the RDF resource URI for LDAPDirectory will be like: "moz-abmdbdirectory://abook-3.mab"
-  var selectedABDirectory = RDF.GetResource(selectedABURI).QueryInterface(Components.interfaces.nsIAbDirectory);
-
-  var strBundleService = Components.classes["@mozilla.org/intl/stringbundle;1"].
-      getService(Components.interfaces.nsIStringBundleService);
-  var bundle = strBundleService.createBundle("chrome://messenger/locale/addressbook/addressBook.properties");
-  var dialogTitle = bundle.GetStringFromName('renameAddressBookTitle');
-
-  // you can't rename the PAB or the CAB
-  var canRename = (selectedABURI != kCollectedAddressbookURI && selectedABURI != kPersonalAddressbookURI);
-
-  var dialog = window.openDialog(
-    "chrome://messenger/content/addressbook/abAddressBookNameDialog.xul",
-     "", "chrome,modal=yes,resizable=no,centerscreen", {title: dialogTitle, canRename: canRename, name: selectedABDirectory.dirName,
-      okCallback:AbOnRenameAddressBook});
-}
-
-function AbOnCreateNewAddressBook(aName)
-{
-  Components.classes["@mozilla.org/addressbook;1"]
-            .createInstance(Components.interfaces.nsIAddressBook)
-            .newAddressBook(aName, "", kPABDirectory);
-}
-
-function AbOnRenameAddressBook(aName)
-{
-  var selectedABURI = GetSelectedDirectory();
-
-  // the rdf service
-  var RDF = Components.classes["@mozilla.org/rdf/rdf-service;1"].getService(Components.interfaces.nsIRDFService);
-  // get the datasource for the addressdirectory
-  var addressbookDS = RDF.GetDataSource("rdf:addressdirectory");
-
-  // moz-abdirectory:// is the RDF root to get all types of addressbooks.
-  var parentDir = RDF.GetResource("moz-abdirectory://").QueryInterface(Components.interfaces.nsIAbDirectory);
-
-  // the RDF resource URI for LDAPDirectory will be like: "moz-abmdbdirectory://abook-3.mab"
-  var selectedABDirectory = RDF.GetResource(selectedABURI).QueryInterface(Components.interfaces.nsIAbDirectory);
-
-  selectedABDirectory.dirName = aName;
+    "", "chrome,modal=yes,resizable=no,centerscreen", null);
 }
 
 function AbPrintCardInternal(doPrintPreview, msgType)
