@@ -192,11 +192,6 @@ struct PK11DefaultArrayEntryStr {
 #define PK11_OWN_PW_DEFAULTS 0x20000000L
 #define PK11_DISABLE_FLAG    0x40000000L
 
-/* FAKE PKCS #11 defines */
-#define CKM_FAKE_RANDOM       0x80000efeUL
-#define CKA_DIGEST            0x81000000L
-#define CKA_FLAGS_ONLY        0 /* CKA_CLASS */
-
 /*
  * PK11AttrFlags
  *
