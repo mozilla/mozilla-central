@@ -439,10 +439,14 @@ NS_IMETHODIMP nsAbLDAPDirectoryQuery::DoQuery(nsIAbDirectory *aDirectory,
   nsCOMPtr<nsIAbLDAPAttributeMap> map = do_QueryInterface(iSupportsMap, &rv);
   NS_ENSURE_SUCCESS(rv, rv);
 
-  // require all attributes
+  // Require all attributes that are mapped to card properties
   nsCAutoString returnAttributes;
   rv = map->GetAllCardAttributes(returnAttributes);
-  NS_ASSERTION(NS_SUCCEEDED(rv), "GetAllSupportedAttributes failed");
+  NS_ASSERTION(NS_SUCCEEDED(rv), "GetAllCardAttributes failed");
+
+  // Also require the objectClass attribute, it is used by
+  // nsAbLDAPCard::SetMetaProperties
+  returnAttributes.AppendLiteral(",objectClass");
 
   // Get the filter
   nsCOMPtr<nsISupports> supportsExpression;
