@@ -41,7 +41,6 @@
 <!DOCTYPE dialog SYSTEM "chrome://messenger/locale/addressbook/abAddressBookNameDialog.dtd">
 
 <dialog xmlns="http://www.mozilla.org/keymaster/gatekeeper/there.is.only.xul"
-        title="&abAddressBookNameDialog.title;"
         style="width: 36em;"
         onload="abNameOnLoad();"
         ondialogaccept="return abNameOKButton();">
