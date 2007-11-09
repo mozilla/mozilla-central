@@ -50,18 +50,18 @@
 <?xul-overlay href="chrome://messenger/content/platformMailnewsOverlay.xul"?>
 
 <!DOCTYPE overlay [
-<!ENTITY % messengerDTD SYSTEM "chrome://messenger/locale/messenger.dtd" >
-%messengerDTD;
-<!ENTITY % globalDTD SYSTEM "chrome://global/locale/global.dtd" >
-%globalDTD;
-<!ENTITY % msgViewPickerDTD SYSTEM "chrome://messenger/locale/msgViewPickerOverlay.dtd" >
-%msgViewPickerDTD;
-<!ENTITY % msgHdrViewPopupDTD SYSTEM "chrome://messenger/locale/msgHdrViewPopup.dtd" >
-%msgHdrViewPopupDTD;
-<!ENTITY % contentAreaCommandsDTD SYSTEM "chrome://communicator/locale/contentAreaCommands.dtd" >
-%contentAreaCommandsDTD;
-<!ENTITY % brandDTD SYSTEM "chrome://branding/locale/brand.dtd" >
-%brandDTD;
+  <!ENTITY % messengerDTD SYSTEM "chrome://messenger/locale/messenger.dtd">
+  %messengerDTD;
+  <!ENTITY % globalDTD SYSTEM "chrome://global/locale/global.dtd">
+  %globalDTD;
+  <!ENTITY % msgViewPickerDTD SYSTEM "chrome://messenger/locale/msgViewPickerOverlay.dtd">
+  %msgViewPickerDTD;
+  <!ENTITY % msgHdrViewPopupDTD SYSTEM "chrome://messenger/locale/msgHdrViewPopup.dtd">
+  %msgHdrViewPopupDTD;
+  <!ENTITY % contentAreaCommandsDTD SYSTEM "chrome://communicator/locale/contentAreaCommands.dtd">
+  %contentAreaCommandsDTD;
+  <!ENTITY % brandDTD SYSTEM "chrome://branding/locale/brand.dtd">
+  %brandDTD;
 ]>
 
 <overlay
@@ -118,9 +118,7 @@
 
     <command id="cmd_emptyTrash" oncommand="goDoCommand('cmd_emptyTrash')" disabled="true"/>
     <command id="cmd_compactFolder" oncommand="goDoCommand('cmd_compactFolder')" disabled="true"/>
-    <command id="cmd_synchronizeOffline" oncommand="goDoCommand('cmd_synchronizeOffline')" disabled="true"/>
     <commandset id="mailDownloadCommands"/>
-    <command id="cmd_settingsOffline" oncommand="goDoCommand('cmd_settingsOffline')" disabled="true"/>
 
     <command id="cmd_printSetup" oncommand="goDoCommand('cmd_printSetup')" disabled="true"/>
     <command id="cmd_print" oncommand="goDoCommand('cmd_print')" disabled="true"/>
@@ -130,6 +128,8 @@
     <command id="cmd_getNextNMessages" oncommand="goDoCommand('cmd_getNextNMessages')" disabled="true"/>
     <command id="cmd_renameFolder" oncommand="goDoCommand('cmd_renameFolder')" />
     <command id="cmd_sendUnsentMsgs" oncommand="goDoCommand('cmd_sendUnsentMsgs')" />
+    <command id="cmd_synchronizeOffline" oncommand="goDoCommand('cmd_synchronizeOffline');" disabled="true"/>
+    <command id="cmd_settingsOffline" oncommand="goDoCommand('cmd_settingsOffline');" disabled="true"/>
 </commandset>
 
 <commandset id="mailCommands">
@@ -228,7 +228,7 @@
   <command id="cmd_previousFlaggedMsg" oncommand="goDoCommand('cmd_previousFlaggedMsg')" disabled="true"/>
   <command id="cmd_goStartPage" oncommand="goDoCommand('cmd_goStartPage');"/>
   <command id="cmd_goBack" oncommand="goDoCommand('cmd_goBack')" disabled="true"/>
-  <command id="cmd_goForward" oncommand="goDoCommand('cmd_goForward')" disabled="true"/>
+  <command id="cmd_goForward" oncommand="goDoCommand('cmd_goForward');" disabled="true"/>
 </commandset>
 
 <commandset id="mailMessageMenuItems"
@@ -354,7 +354,7 @@
   <key id="key_previousMsg" key="&previousMsgCmd.key;"               oncommand="goDoCommand('cmd_previousMsg')"/>
   <key id="key_previousUnreadMsg" key="&previousUnreadMsgCmd.key;"   oncommand="goDoCommand('cmd_previousUnreadMsg')"/>
   <key id="key_goBack" key="&goBackCmd.commandKey;"                  oncommand="goDoCommand('cmd_goBack')"/>
-  <key id="key_goForward" key="&goForwardCmd.commandKey;"            oncommand="goDoCommand('cmd_goForward')"/>
+  <key id="key_goForward" key="&goForwardCmd.commandKey;"            oncommand="goDoCommand('cmd_goForward');"/>
   <key id="key_reply" key="&replyMsgCmd.key;"                        oncommand="goDoCommand('cmd_reply')" modifiers="accel"/>
   <key id="key_replyall" key="&replyToAllMsgCmd.key;"                oncommand="goDoCommand('cmd_replyall')" modifiers="accel, shift"/>
   <key id="key_forward" key="&forwardMsgCmd.key;"                    oncommand="goDoCommand('cmd_forward')" modifiers="accel"/>
@@ -658,10 +658,22 @@
 
   <popup id="folderPaneContext" onpopupshowing="return fillFolderPaneContextMenu();"
     onpopuphiding="if (event.target == this) folderPaneOnPopupHiding();">
+
+    <menuitem id="folderPaneContext-getMessages"
+              label="&folderContextGetMessages.label;"
+              accesskey="&folderContextGetMessages.accesskey;"
+              oncommand="MsgGetMessage();"/>
+
     <menuitem id="folderPaneContext-openNewWindow"
-        label="&folderContextOpenNewWindow.label;"
-        accesskey="&folderContextOpenNewWindow.accesskey;"
-        oncommand="MsgOpenNewWindowForFolder(null,-1);"/>
+              label="&folderContextOpenNewWindow.label;"
+              accesskey="&folderContextOpenNewWindow.accesskey;"
+              oncommand="MsgOpenNewWindowForFolder(null,-1);"/>
+
+    <menuitem id="folderPaneContext-searchMessages"
+              label="&folderContextSearchMessages.label;"
+              accesskey="&folderContextSearchMessages.accesskey;"
+              command="cmd_search"/>
+
     <menuitem id="folderPaneContext-subscribe"
         label="&folderContextSubscribe.label;"
         accesskey="&folderContextSubscribe.accesskey;"
@@ -670,35 +682,34 @@
         label="&folderContextUnsubscribe.label;"
         accesskey="&folderContextUnsubscribe.accesskey;"
         oncommand="MsgUnsubscribe();"/>
+
     <menuseparator id="folderPaneContext-sep1"/>
-    <menuitem id="folderPaneContext-getMessages"
-        label="&folderContextGetMessages.label;"
-        accesskey="&folderContextGetMessages.accesskey;"
-        oncommand="MsgGetMessage();"/>
-    <menuitem id="folderPaneContext-markNewsgroupAllRead"
-        label="&folderContextMarkNewsgroupRead.label;"
-        accesskey="&folderContextMarkNewsgroupRead.accesskey;"
-        oncommand="MsgMarkAllRead();"/>
-    <menuitem id="folderPaneContext-markMailFolderAllRead"
-        label="&folderContextMarkMailFolderRead.label;"
-        accesskey="&folderContextMarkMailFolderRead.accesskey;"
-        oncommand="MsgMarkAllRead();"/>
+
     <menuitem id="folderPaneContext-new"
         label="&folderContextNew.label;"
         accesskey="&folderContextNew.accesskey;"
         oncommand="MsgNewFolder(NewFolder);"/>
+    <menuitem id="folderPaneContext-remove"
+              label="&folderContextRemove.label;"
+              accesskey="&folderContextRemove.accesskey;"
+              oncommand="MsgDeleteFolder();"/>
     <menuitem id="folderPaneContext-rename"
         label="&folderContextRename.label;"
         accesskey="&folderContextRename.accesskey;"
         oncommand="MsgRenameFolder();"/>
+
     <menuitem id="folderPaneContext-compact"
         label="&folderContextCompact.label;"
         accesskey="&folderContextCompact.accesskey;"
         oncommand="MsgCompactFolder(false);"/>
-    <menuitem id="folderPaneContext-remove"
-        label="&folderContextRemove.label;"
-        accesskey="&folderContextRemove.accesskey;"
-        oncommand="MsgDeleteFolder();"/>
+    <menuitem id="folderPaneContext-markMailFolderAllRead"
+              label="&folderContextMarkMailFolderRead.label;"
+              accesskey="&folderContextMarkMailFolderRead.accesskey;"
+              oncommand="MsgMarkAllRead();"/>
+    <menuitem id="folderPaneContext-markNewsgroupAllRead"
+              label="&folderContextMarkNewsgroupRead.label;"
+              accesskey="&folderContextMarkNewsgroupRead.accesskey;"
+              oncommand="MsgMarkAllRead();"/>
     <menuitem id="folderPaneContext-emptyTrash"
         label="&folderContextEmptyTrash.label;"
         accesskey="&folderContextEmptyTrash.accesskey;"
@@ -711,11 +722,9 @@
         label="&folderContextSendUnsentMessages.label;"
         accesskey="&folderContextSendUnsentMessages.accesskey;"
         oncommand="goDoCommand('cmd_sendUnsentMsgs')"/>
+
     <menuseparator id="folderPaneContext-sep-edit"/>
-    <menuitem id="folderPaneContext-searchMessages"
-        label="&folderContextSearchMessages.label;"
-        accesskey="&folderContextSearchMessages.accesskey;"
-        command="cmd_search"/>
+
     <menuitem id="folderPaneContext-properties"
         label="&folderContextProperties.label;"
         accesskey="&folderContextProperties.accesskey;"
@@ -973,10 +982,22 @@
     <menuitem id="messagePaneContext-delete"
         command="cmd_delete"/>
     <menuseparator id="messagePaneContext-sep-edit"/>
+    <menuitem id="context-copylink"
+              label="&copyLinkCmd.label;"
+              accesskey="&copyLinkCmd.accesskey;"
+              command="cmd_copyLink"/>
+    <menuitem id="context-copyimage"
+              label="&copyImageCmd.label;"
+              accesskey="&copyImageCmd.accesskey;"
+              command="cmd_copyImage"/>
         <menuitem id="context-viewimage"
                   label="&viewImageCmd.label;"
                   accesskey="&viewImageCmd.accesskey;"
                   oncommand="gContextMenu.viewImage();"/>
+    <menuitem id="context-addemail"
+              label="&AddToAddressBook.label;"
+              accesskey="&AddToAddressBook.accesskey;"
+              oncommand="AddEmailToAddressBook(gContextMenu.getEmail(), gContextMenu.linkText());"/>
         <menuseparator id="messagePaneContext-sep-image"/>
     <menuitem id="context-composeemailto"
               label="&SendMailTo.label;"
@@ -986,22 +1007,10 @@
                   label="&CreateFilterFrom.label;"
                   accesskey="&CreateFilterFrom.accesskey;"
                   oncommand="CreateFilterFromMail(gContextMenu.getEmail());"/>
-        <menuitem id="context-addemail"
-                  label="&AddToAddressBook.label;"
-                  accesskey="&AddToAddressBook.accesskey;"
-                  oncommand="AddEmailToAddressBook(gContextMenu.getEmail(), gContextMenu.linkText());"/>
     <menuitem id="context-copyemail"
               label="&copyEmailCmd.label;"
               accesskey="&copyEmailCmd.accesskey;"
               oncommand="gContextMenu.copyEmail();"/>
-        <menuitem id="context-copylink"
-                  label="&copyLinkCmd.label;"
-                  accesskey="&copyLinkCmd.accesskey;"
-                  command="cmd_copyLink"/>
-        <menuitem id="context-copyimage"
-                  label="&copyImageCmd.label;"
-                  accesskey="&copyImageCmd.accesskey;"
-                  command="cmd_copyImage"/>
     <menuseparator id="messagePaneContext-sep-copy"/>
     <menuitem id="context-savelink"
               label="&saveLinkCmd.label;"
@@ -1707,28 +1716,28 @@
       <toolbarbutton type="menu-button" id="button-getmsg"
                      class="toolbarbutton-1"
                      label="&getMsgButton.label;"
+                     tooltiptext="&getMsgButton.tooltip;"
                      sortResource="http://home.netscape.com/NC-rdf#FolderTreeName"
                      sortDirection="ascending"
-                     tooltiptext="&getMsgButton.tooltip;"
                      observes="button_getNewMessages" datasources="rdf:msgaccountmanager rdf:mailnewsfolders"
-                     oncommand="goDoCommand('cmd_getNewMessages')"
+                     oncommand="goDoCommand('cmd_getNewMessages');"
                      containment="http://home.netscape.com/NC-rdf#child"
                      ref="msgaccounts:/">
-          <menupopup onpopupshowing="getMsgToolbarMenu_init()">
-              <menuitem label="&getAllNewMsgCmd.label;"
-                        command="cmd_getMsgsForAuthAccounts"/>
-              <menuseparator/>
-          </menupopup>
-          <template>
-              <rule nc:IsServer="true" nc:CanGetMessages="true">
-                  <menupopup>
-                      <menuitem uri="..."
-                                value="..."
-                                label="rdf:http://home.netscape.com/NC-rdf#Name"
-                                oncommand="MsgGetMessagesForAccount(event);"/>
-                  </menupopup>
-              </rule>
-          </template>
+      <menupopup onpopupshowing="getMsgToolbarMenu_init();">
+        <menuitem label="&getAllNewMsgCmd.label;"
+                  command="cmd_getMsgsForAuthAccounts"/>
+        <menuseparator/>
+      </menupopup>
+      <template>
+        <rule nc:IsServer="true" nc:CanGetMessages="true">
+          <menupopup>
+            <menuitem uri="..."
+                      value="..."
+                      label="rdf:http://home.netscape.com/NC-rdf#Name"
+                      oncommand="MsgGetMessagesForAccount(event);"/>
+            </menupopup>
+          </rule>
+        </template>
       </toolbarbutton>
       <toolbarbutton id="button-newmsg" class="toolbarbutton-1" label="&newMsgButton.label;" tooltiptext="&newMsgButton.tooltip;" oncommand="MsgNewMessage(event)"/>
       <toolbarseparator class="toolbarseparator-primary"/>
