@@ -38,7 +38,7 @@
 /*
  * Certificate handling code
  *
- * $Id: certdb.c,v 1.82 2007-11-07 21:43:24 wtc%google.com Exp $
+ * $Id: certdb.c,v 1.83 2007-11-10 04:23:25 julien.pierre.boogz%sun.com Exp $
  */
 
 #include "nssilock.h"
@@ -2696,11 +2696,7 @@ static PZLock *certRefCountLock = NULL;
 void
 CERT_LockCertRefCount(CERTCertificate *cert)
 {
-    if ( certRefCountLock == NULL ) {
-	nss_InitLock(&certRefCountLock, nssILockRefLock);
-	PORT_Assert(certRefCountLock != NULL);
-    }
-    
+    PORT_Assert(certRefCountLock != NULL);
     PZ_Lock(certRefCountLock);
     return;
 }
@@ -2733,13 +2729,55 @@ static PZLock *certTrustLock = NULL;
 void
 CERT_LockCertTrust(CERTCertificate *cert)
 {
-    if ( certTrustLock == NULL ) {
-	nss_InitLock(&certTrustLock, nssILockCertDB);
-	PORT_Assert(certTrustLock != NULL);
-    }
-    
+    PORT_Assert(certTrustLock != NULL);
     PZ_Lock(certTrustLock);
     return;
+}
+
+SECStatus
+cert_InitLocks(void)
+{
+    if ( certRefCountLock == NULL ) {
+        nss_InitLock(&certRefCountLock, nssILockRefLock);
+        PORT_Assert(certRefCountLock != NULL);
+        if (!certRefCountLock) {
+            return SECFailure;
+        }
+    }
+
+    if ( certTrustLock == NULL ) {
+        nss_InitLock(&certTrustLock, nssILockCertDB);
+        PORT_Assert(certTrustLock != NULL);
+        if (!certTrustLock) {
+            PZ_DestroyLock(certRefCountLock);
+            return SECFailure;
+        }
+    }    
+
+    return SECSuccess;
+}
+
+SECStatus
+cert_DestroyLocks(void)
+{
+    SECStatus rv = SECSuccess;
+
+    PORT_Assert(certRefCountLock != NULL);
+    if (certRefCountLock) {
+        PZ_DestroyLock(certRefCountLock);
+        certRefCountLock = NULL;
+    } else {
+        rv = SECFailure;
+    }
+
+    PORT_Assert(certTrustLock != NULL);
+    if (certTrustLock) {
+        PZ_DestroyLock(certTrustLock);
+        certTrustLock = NULL;
+    } else {
+        rv = SECFailure;
+    }
+    return rv;
 }
 
 /*

@@ -36,7 +36,7 @@
 /*
  * certi.h - private data structures for the certificate library
  *
- * $Id: certi.h,v 1.21 2007-08-29 17:53:19 alexei.volkov.bugs%sun.com Exp $
+ * $Id: certi.h,v 1.22 2007-11-10 04:23:25 julien.pierre.boogz%sun.com Exp $
  */
 #ifndef _CERTI_H_
 #define _CERTI_H_
@@ -295,5 +295,10 @@ cert_VerifyCertChainPkix(CERTCertificate *cert,
                          CERTVerifyLog   *log,
                          PRBool          *sigError,
                          PRBool          *revoked);
+
+SECStatus cert_InitLocks(void);
+
+SECStatus cert_DestroyLocks(void);
+
 #endif /* _CERTI_H_ */
 
