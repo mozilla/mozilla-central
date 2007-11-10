@@ -112,12 +112,20 @@ public class FipsTest {
             System.out.println("\t"+
             ((PK11Module)items.nextElement()).getName() );
         }
+        CryptoToken tok;
+        String tokenName;
 
         items = cm.getAllTokens();
         System.out.println("\nAll Tokens:");
         while(items.hasMoreElements()) {
-            System.out.println("\t"+
-            ((CryptoToken)items.nextElement()).getName() );
+            tok = (CryptoToken)items.nextElement();
+
+            System.out.print("\t" + tok.getName());
+            if (tok.needsLogin() == true){
+                System.out.println("\t - Needs login.\n");
+            } else {
+                System.out.println("\t - Does not need login.\n");
+            }
         }
 
         items = cm.getExternalTokens();
@@ -126,9 +134,6 @@ public class FipsTest {
             System.out.println("\t"+
             ((CryptoToken)items.nextElement()).getName() );
         }
-
-        CryptoToken tok;
-        String tokenName;
 
         /* find the Internal Key Storage token */
         if (cm.FIPSEnabled() == true ) {

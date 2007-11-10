@@ -316,3 +316,10 @@ Java_org_mozilla_jss_ssl_SSLSocket_isFipsCipherSuiteNative;
 ;+    local:
 ;+       *;
 ;+};
+;+JSS_4.3 {     # JSS 4.3 release
+;+    global:
+Java_org_mozilla_jss_pkcs11_PK11Token_needsLogin;
+;+    local:
+;+       *;
+;+};
+

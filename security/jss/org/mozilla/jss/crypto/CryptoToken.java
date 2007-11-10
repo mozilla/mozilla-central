@@ -269,6 +269,16 @@ public interface CryptoToken {
      * @see #logout
      */
     public boolean isLoggedIn() throws TokenException;
+     
+    /**
+     * returns true if this token needs to be logged into before 
+     * it can be used.
+     *
+     * @see #login
+     * @see #logout
+     */
+    public boolean needsLogin() throws TokenException;
+
 
 	/**
 	 * Initialize the password of this token.

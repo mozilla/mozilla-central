@@ -137,10 +137,11 @@ finish:
     return Token;
 }
 
-#if 0
-/*
- * PK11Token.needsLogin
- * Returns true if this token needs to be logged in before it can be used.
+/************************************************************************
+ *
+ * P K 1 1 T o k e n . needs Login
+ *
+ * returns true if this token needs to be logged into before it can be used.
  */
 JNIEXPORT jboolean JNICALL Java_org_mozilla_jss_pkcs11_PK11Token_needsLogin
   (JNIEnv *env, jobject this)
@@ -167,7 +168,6 @@ JNIEXPORT jboolean JNICALL Java_org_mozilla_jss_pkcs11_PK11Token_needsLogin
 finish:
     return retval;
 }
-#endif
 
 /************************************************************************
  *
