@@ -260,6 +260,8 @@ pkix_pl_Pk11CertStore_CertQuery(
                                 PKIX_CERTCREATEWITHNSSCERTFAILED);
 
                         if (PKIX_ERROR_RECEIVED) {
+                                CERT_DestroyCertificate(nssCert);
+                                nssCert = NULL;
                                 continue; /* just skip bad certs */
                         }
 
@@ -276,24 +278,21 @@ pkix_pl_Pk11CertStore_CertQuery(
         }
 
         *pSelected = certList;
+        certList = NULL;
 
 cleanup:
-        if (PKIX_ERROR_RECEIVED) {
-                PKIX_DECREF(certList);
-                if (arena) {
-                        PKIX_PL_NSSCALL
-                                (CERTSTORE, PORT_FreeArena, (arena, PR_FALSE));
-                }
-        }
-
+        
         if (pk11CertList) {
-                PKIX_PL_NSSCALL
-                        (CERTSTORE, CERT_DestroyCertList, (pk11CertList));
+            CERT_DestroyCertList(pk11CertList);
+        }
+        if (arena) {
+            PORT_FreeArena(arena, PR_FALSE);
         }
 
         PKIX_DECREF(subjectName);
         PKIX_DECREF(certValid);
         PKIX_DECREF(cert);
+        PKIX_DECREF(certList);
 
         PKIX_RETURN(CERTSTORE);
 }
@@ -452,18 +451,16 @@ pkix_pl_Pk11CertStore_CrlQuery(
         }
 
         *pSelected = crlList;
+        crlList = NULL;
 
 cleanup:
 
-        if (PKIX_ERROR_RECEIVED) {
-                PKIX_DECREF(crlList);
-        }
+        PKIX_DECREF(crlList);
 
-        PKIX_PL_NSSCALL(CERTSTORE, ReleaseDPCache, (dpcache, writeLocked));
+        ReleaseDPCache(dpcache, writeLocked);
 
         if (arena) {
-                PKIX_PL_NSSCALL
-                        (CERTSTORE, PORT_FreeArena, (arena, PR_FALSE));
+            PORT_FreeArena(arena, PR_FALSE);
         }
 
         PKIX_DECREF(issuerNames);
@@ -574,11 +571,11 @@ pkix_pl_Pk11CertStore_GetCert(
                 PKIX_LISTSETIMMUTABLEFAILED);
 
         *pCertList = filtered;
+        filtered = NULL;
 
 cleanup:
-        if (PKIX_ERROR_RECEIVED) {
-                PKIX_DECREF(filtered);
-        }
+
+        PKIX_DECREF(filtered);
         PKIX_DECREF(candidate);
         PKIX_DECREF(selected);
         PKIX_DECREF(params);
@@ -666,11 +663,11 @@ pkix_pl_Pk11CertStore_GetCRL(
                 PKIX_LISTSETIMMUTABLEFAILED);
 
         *pCrlList = filtered;
+        filtered = NULL;
 
 cleanup:
-        if (PKIX_ERROR_RECEIVED) {
-                PKIX_DECREF(filtered);
-        }
+
+        PKIX_DECREF(filtered);
         PKIX_DECREF(candidate);
         PKIX_DECREF(selected);
         PKIX_DECREF(params);

@@ -640,7 +640,6 @@ pkix_pl_LdapDefaultClient_CreateHelper(
                 (LDAP_CACHEBUCKETS, 0, &ht, plContext),
                 PKIX_HASHTABLECREATEFAILED);
 
-        PKIX_INCREF(ht);
         ldapDefaultClient->cachePtr = ht;
 
         PKIX_CHECK(pkix_pl_Socket_GetCallbackList
@@ -656,8 +655,7 @@ pkix_pl_LdapDefaultClient_CreateHelper(
 
         ldapDefaultClient->bindAPI = bindAPI;
 
-        PKIX_PL_NSSCALLRV
-            (LDAPDEFAULTCLIENT, arena, PORT_NewArena, (DER_DEFAULT_CHUNKSIZE));
+        arena = PORT_NewArena(DER_DEFAULT_CHUNKSIZE);
         if (!arena) {
             PKIX_ERROR_FATAL(PKIX_OUTOFMEMORY);
         }
@@ -681,11 +679,10 @@ pkix_pl_LdapDefaultClient_CreateHelper(
         *pClient = ldapDefaultClient;
 
 cleanup:
+
         if (PKIX_ERROR_RECEIVED) {
                 PKIX_DECREF(ldapDefaultClient);
         }
-
-        PKIX_DECREF(ht);
 
         PKIX_RETURN(LDAPDEFAULTCLIENT);
 }

@@ -780,7 +780,7 @@ pkix_CRLSelector_Select(
 	PKIX_Boolean match = PKIX_FALSE;
 	PKIX_UInt32 numBefore = 0;
 	PKIX_UInt32 i = 0;
-        PKIX_List *filtered = NULL;
+	PKIX_List *filtered = NULL;
 	PKIX_PL_CRL *candidate = NULL;
 
         PKIX_ENTER(CRLSELECTOR, "PKIX_CRLSelector_Select");
@@ -802,7 +802,7 @@ pkix_CRLSelector_Select(
                         (selector, candidate, &match, plContext),
                         PKIX_CRLSELECTORMATCHCALLBACKFAILED);
 
-                if ((!(PKIX_ERROR_RECEIVED)) && (match == PKIX_TRUE)) {
+                if (!(PKIX_ERROR_RECEIVED) && match == PKIX_TRUE) {
 
                         PKIX_CHECK_ONLY_FATAL(PKIX_List_AppendItem
                                 (filtered,
@@ -822,9 +822,11 @@ pkix_CRLSelector_Select(
         pkixTempErrorReceived = PKIX_FALSE;
 
         *pAfter = filtered;
+        filtered = NULL;
 
 cleanup:
 
+        PKIX_DECREF(filtered);
         PKIX_DECREF(candidate);
 
         PKIX_RETURN(CRLSELECTOR);

@@ -633,9 +633,7 @@ pkix_pl_LdapCertStore_GetCert(
          * Get a short-lived arena. We'll be done with this space once
          * the request is encoded.
          */
-        PKIX_PL_NSSCALLRV
-            (CERTSTORE, requestArena, PORT_NewArena, (DER_DEFAULT_CHUNKSIZE));
-
+        requestArena = PORT_NewArena(DER_DEFAULT_CHUNKSIZE);
         if (!requestArena) {
                 PKIX_ERROR_FATAL(PKIX_OUTOFMEMORY);
         }
@@ -683,6 +681,7 @@ pkix_pl_LdapCertStore_GetCert(
 
                         *pNBIOContext = NULL;
                         *pCertList = filteredCerts;
+                        filteredCerts = NULL;
                         goto cleanup;
                 }
         } else {
@@ -750,6 +749,7 @@ pkix_pl_LdapCertStore_GetCert(
 
         *pNBIOContext = NULL;
         *pCertList = filteredCerts;
+        filteredCerts = NULL;
 
 cleanup:
 
@@ -757,6 +757,7 @@ cleanup:
         PKIX_DECREF(subjectName);
         PKIX_DECREF(responses);
         PKIX_DECREF(unfilteredCerts);
+        PKIX_DECREF(filteredCerts);
         PKIX_DECREF(lcs);
 
         PKIX_RETURN(CERTSTORE);
@@ -1006,6 +1007,7 @@ pkix_pl_LdapCertStore_GetCRL(
         *pCrlList = filteredCRLs;
 
 cleanup:
+
         if (PKIX_ERROR_RECEIVED) {
                 PKIX_DECREF(filteredCRLs);
         }
