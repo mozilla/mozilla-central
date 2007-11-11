@@ -40,7 +40,7 @@
    == Styles shared throughout the Editor application.
    ========================================================================== */
 
-@import url("chrome://communicator/skin/");
+@import url("chrome://global/skin/");
 @namespace url("http://www.mozilla.org/keymaster/gatekeeper/there.is.only.xul");
 
 #content-frame { 
