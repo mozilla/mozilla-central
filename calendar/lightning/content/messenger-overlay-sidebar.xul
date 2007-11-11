@@ -240,7 +240,7 @@
                 accesskey="&calendar.context.modifyitem.accesskey;" 
                 observes="calendar_modify_event_command"/>
       <menuitem label="&calendar.context.deleteitem.label;" 
-                accesskey="&lightning.context.deleteitem.accesskey;"
+                accesskey="&calendar.context.deleteitem.accesskey;"
                 observes="calendar_delete_event_command"/>
     </popup>
   </popupset>
