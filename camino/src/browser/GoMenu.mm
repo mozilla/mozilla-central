@@ -64,7 +64,7 @@
 
 
 // the maximum number of history entry menuitems to display
-static const int kMaxNumHistoryItems = 100;
+static const int kMaxNumHistoryItems = 150;
 
 // the maximum number of "today" items to show on the main menu
 static const int kMaxTodayItems = 12;
@@ -394,7 +394,7 @@ static const unsigned int kMaxTitleLength = 50;
     }
     
     // if we're not the Go menu, stop after kMaxNumHistoryItems items
-    if (![self isKindOfClass:[GoMenu class]] && ([self numberOfItems] == kMaxNumHistoryItems))
+    if (![self isKindOfClass:[GoMenu class]] && ([self numberOfItems] >= kMaxNumHistoryItems))
       break;
   }
   
