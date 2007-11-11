@@ -116,7 +116,11 @@ function initNetworks()
 
     // Merge the user's network list with the default ones.
     for (var i = 0; i < userNetworkList.length; i++)
-        networks[userNetworkList[i].name] = userNetworkList[i];
+    {
+        var lowerNetName = userNetworkList[i].name.toLowerCase();
+        networks[lowerNetName] = userNetworkList[i];
+        networks[lowerNetName].name = lowerNetName;
+    }
 
     /* Flag up all networks that are built-in, so they can be handled properly.
      * We need to do this last so that it ensures networks overridden by the
