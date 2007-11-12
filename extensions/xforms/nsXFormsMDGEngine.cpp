@@ -323,7 +323,7 @@ nsXFormsMDGEngine::Recalculate(nsCOMArray<nsIDOMNode> *aChangedNodes)
   NS_ENSURE_ARG(aChangedNodes);
 
 #ifdef DEBUG_XF_MDG
-  printf("nsXFormsMDGEngine::Recalculcate(aChangedNodes=|%d|)\n",
+  printf("nsXFormsMDGEngine::Recalculate(aChangedNodes=|%d|)\n",
          aChangedNodes->Count());
 #endif
 
@@ -349,21 +349,21 @@ nsXFormsMDGEngine::Recalculate(nsCOMArray<nsIDOMNode> *aChangedNodes)
     g = static_cast<nsXFormsMDGNode*>(mGraph[i]);
 
     if (!g) {
-      NS_WARNING("nsXFormsMDGEngine::Calculcate(): Empty node in graph!!!");
+      NS_WARNING("nsXFormsMDGEngine::Calculate(): Empty node in graph!!!");
       continue;
     }
 
     NS_ASSERTION(g->mCount == 0,
-                 "nsXFormsMDGEngine::Calculcate(): Graph node with mCount != 0");
+                 "nsXFormsMDGEngine::Calculate(): Graph node with mCount != 0");
 
 #ifdef DEBUG_XF_MDG
     nsAutoString domNodeName;
     g->mContextNode->GetNodeName(domNodeName);
 
-    printf("\tNode #%d: This=%p, Dirty=%d, DynFunc=%d, Type=%d, Count=%d, Suc=%d, CSize=%d, CPos=%d, Next=%p, domnode=%s\n",
+    printf("\tNode #%d: This=%p, Dirty=%d, DynFunc=%d, Type=%d, Count=%d, Suc=%d, CSize=%d, CPos=%d, Next=%p, HasExpr=%d, domnode=%s\n",
            i, (void*) g, g->IsDirty(), g->mDynFunc, g->mType,
            g->mCount, g->mSuc.Count(), g->mContextSize, g->mContextPosition,
-           (void*) g->mNext, NS_ConvertUTF16toUTF8(domNodeName).get());
+           (void*) g->mNext, g->HasExpr(), NS_ConvertUTF16toUTF8(domNodeName).get());
 #endif
 
     // Ignore node if it is not dirty
@@ -404,9 +404,10 @@ nsXFormsMDGEngine::Recalculate(nsCOMArray<nsIDOMNode> *aChangedNodes)
           NS_ENSURE_TRUE(aChangedNodes->AppendObject(g->mContextNode),
                          NS_ERROR_FAILURE);
         }
+
+        ns->Set(eFlag_DISPATCH_VALUE_CHANGED, PR_TRUE);
       }
 
-      ns->Set(eFlag_DISPATCH_VALUE_CHANGED, PR_TRUE);
       break;
       
     case eModel_constraint:
