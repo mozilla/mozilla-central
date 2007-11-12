@@ -42,7 +42,6 @@ function calWcapCalendar(/*optional*/session, /*optional*/calProps) {
     this.m_session = session;
     this.m_calProps = calProps;
     this.m_observers = new calListenerBag(Components.interfaces.calIObserver);
-    this.m_bSuppressAlarms = SUPPRESS_ALARMS;
 }
 calWcapCalendar.prototype = {
     m_ifaces: [ calIWcapCalendar,
@@ -171,30 +170,12 @@ calWcapCalendar.prototype = {
     set superCalendar(cal) {
         return (this.m_superCalendar = cal);
     },
-    
-    m_bReadOnly: undefined,
+
     get readOnly() {
-        // xxx todo:
-        // read-write if not logged in, this flag is tested quite
-        // early, so don't log in here if not logged in already...
-        if (!this.session.isLoggedIn) {
-            return this.m_bReadOnly;
-        }
-        return (this.m_bReadOnly ||
-                // limit to write permission on components:
-                !this.checkAccess(calIWcapCalendar.AC_COMP_WRITE) ||
-                ((this.m_bReadOnly === undefined) && // has not been explicitly set
-                 !this.isOwnedCalendar));
+        return this.getProperty("readOnly");
     },
     set readOnly(bReadOnly) {
         return this.setProperty("readOnly", bReadOnly);
-        var oldValue = this.m_bReadOnly;
-        this.m_bReadOnly = bReadOnly;
-        if (oldValue != bReadOnly) {
-            this.mObservers.notify("onPropertyChanged",
-                                   [this, "readOnly", bReadOnly, oldValue]);
-        }
-        return bReadOnly;
     },
 
     m_uri: null,
@@ -217,35 +198,49 @@ calWcapCalendar.prototype = {
         return this.uri;
     },
 
+    m_bReadOnly: false,
     getProperty: function calWcapCalendar_getProperty(aName) {
         var value = getCalendarManager().getCalendarPref_(this, aName);
         switch (aName) {
-            case "readOnly":
-                return this.mReadOnly;
-            case "calendar-main-in-composite":
-                if (value === null && !this.isDefaultCalendar) {
-                    // tweak in-composite to false for secondary calendars:
-                    value = false;
-                }
-                // Fall through
-            default:
-                // xxx future: return getPrefSafe("calendars." + this.id + "." + aName, null);
-                return value;
+        case "readOnly":
+            value = this.m_bReadOnly;
+            break;
+        case "calendar-main-in-composite":
+            if (value === null && !this.isDefaultCalendar) {
+                // tweak in-composite to false for secondary calendars:
+                value = false;
+            }
+            break;
+        case "suppressAlarms":
+            // CS cannot store X-props reliably (thus writing X-MOZ stamps etc is not possible).
+            // Popup alarms not available no matter what; wtf.
+            value = true;
+            break;
         }
+        // xxx future: return getPrefSafe("calendars." + this.id + "." + aName, null);
+        return value;
     },
     setProperty: function calWcapCalendar_setProperty(aName, aValue) {
         var oldValue = this.getProperty(aName);
         if (oldValue != aValue) {
             switch (aName) {
-                case "readOnly":
-                    this.mReadOnly = aValue;
+            case "readOnly":
+                this.m_bReadOnly = aValue;
+                break;
+            case "suppressAlarms":
+            case "calendar-main-in-composite":
+                if (!aValue) {
+                    getCalendarManager().deleteCalendarPref_(this, aName);
                     break;
-                default:
-                    // xxx future: setPrefSafe("calendars." + this.id + "." + aName, aValue);
-                    getCalendarManager().setCalendarPref_(this, aName, aValue);
+                }
+                // fallthru intended
+            default:
+                // xxx future: setPrefSafe("calendars." + this.id + "." + aName, aValue);
+                getCalendarManager().setCalendarPref_(this, aName, aValue);
+                break;
             }
-            this.mObservers.notify("onPropertyChanged",
-                                   [this, aName, aValue, oldValue]);
+            this.m_observers.notify("onPropertyChanged",
+                                    [this, aName, aValue, oldValue]);
         }
         return aValue;
     },
@@ -274,26 +269,7 @@ calWcapCalendar.prototype = {
     endBatch: function calWcapCalendar_endBatch() {
         this.notifyObservers("onEndBatch");
     },
-    
-    // xxx todo: rework like in
-    //           https://bugzilla.mozilla.org/show_bug.cgi?id=257428
-    m_bSuppressAlarms: false,
-    get suppressAlarms() {
-        return (this.m_bSuppressAlarms ||
-                // writing lastAck does currently not work on readOnly cals,
-                // so avoid alarms if not writable at all... discuss!
-                // use m_bReadOnly here instead of attribute, because this
-                // calendar acts read-only if not logged in
-                this.m_bReadOnly ||
-                // xxx todo: check write permissions in advance
-                // alarms only for own calendars:
-                // xxx todo: assume alarms if not logged in already
-                (this.session.isLoggedIn && !this.isOwnedCalendar));
-    },
-    set suppressAlarms(bSuppressAlarms) {
-        return (this.m_bSuppressAlarms = bSuppressAlarms);
-    },
-    
+
     get sendItipInvitations() {
         return false;
     },

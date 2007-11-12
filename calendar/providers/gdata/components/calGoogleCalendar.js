@@ -58,7 +58,7 @@ function calGoogleCalendar() {
         };
     }
 
-    var prefAttrs = ["name", "suppressAlarms", "readOnly"];
+    var prefAttrs = ["name", "readOnly"];
     for each (var attr in prefAttrs) {
         var helper = new calAttrHelper(attr);
         this.__defineGetter__(attr, helper.getAttr);

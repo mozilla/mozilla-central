@@ -102,8 +102,20 @@ function calAlarmService() {
             this.alarmService.removeAlarm(aDeletedItem);
         },
         onError: function(aErrNo, aMessage) {},
-        onPropertyChanged: function(aCalendar, aName, aValue, aOldValue) {},
-        onPropertyDeleting: function(aCalendar, aName) {}
+        onPropertyChanged: function(aCalendar, aName, aValue, aOldValue) {
+            if (aName == "suppressAlarms") {
+                if (!aOldValue && aValue) {
+                    this.alarmService.initAlarms([aCalendar]);
+                } else if (aOldValue && !aValue) {
+                    this.alarmService.notifyObservers("onRemoveAlarmsByCalendar", [aCalendar]);
+                }
+            }
+        },
+        onPropertyDeleting: function(aCalendar, aName) {
+            if (aName == "suppressAlarms") {
+                this.onPropertyChanged(aCalendar, aName, null, aCalendar.getProperty(aName));
+            }
+        }
     };
 
     this.calendarManagerObserver = {
@@ -557,7 +569,7 @@ calAlarmService.prototype = {
 
         for each(var calendar in calendars) {
             // assuming that suppressAlarms does not change anymore until refresh:
-            if (!calendar.suppressAlarms) {
+            if (!calendar.getProperty("suppressAlarms")) {
                 calendar.getItems(filter, 0, start, until, getListener);
             }
         }
@@ -576,7 +588,7 @@ calAlarmService.prototype = {
     },
 
     alarmFired: function cas_alarmFired(event) {
-        if (event.calendar.suppressAlarms)
+        if (event.calendar.getProperty("suppressAlarms"))
             return;
 
         this.notifyObservers("onAlarm", [event]);

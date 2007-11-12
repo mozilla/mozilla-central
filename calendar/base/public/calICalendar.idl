@@ -104,6 +104,12 @@ interface calICalendar : nsISupports
    * It's up to the provider where to store properties,
    * e.g. on the server or in local prefs.
    *
+   * Currently known properties are:
+   *   [boolean] readOnly
+   *   [boolean] suppressAlarms
+   *   [boolean] calendar-main-in-composite
+   *   [string]  name
+   *
    * @param aName property name
    * @return value (string, integer and boolean values are supported),
    *               else null
@@ -347,11 +353,6 @@ interface calICalendar : nsISupports
                          in calIDateTime aRangeStart,
                          in calIDateTime aRangeEndEx,
                          in calIOperationListener aListener);
-
-  /**
-   * Whether or not alarms for this calendar should be suppressed.
-   */
-  attribute boolean suppressAlarms;
 
   /**
    * Whether or not this provider requires us to send iTIP invitations when

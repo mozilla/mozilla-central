@@ -79,9 +79,6 @@ var CACHE_LAST_RESULTS_INVALIDATE = 120;
 // logging:
 var LOG_LEVEL = 0;
 
-// whether alarms are turned on/off:
-var SUPPRESS_ALARMS = false;
-
 var g_ioService = null;
 function getIoService() {
     if (!g_ioService) {
@@ -128,8 +125,6 @@ function initWcapProvider()
         g_confidentialItemTitle = calGetString("wcap", "confidentialItem.title.text");
         g_busyItemTitle = calGetString("wcap", "busyItem.title.text");
         g_busyPhantomItemUuidPrefix = ("PHANTOM_uuid_" + getUUID());
-
-        SUPPRESS_ALARMS = getPref("calendar.wcap.suppress_alarms", true);
 
         CACHE_LAST_RESULTS = getPref("calendar.wcap.cache_last_results", 4);
         CACHE_LAST_RESULTS_INVALIDATE = getPref("calendar.wcap.cache_last_results_invalidate", 120);

@@ -382,10 +382,6 @@ calStorageCalendar.prototype = {
         // no-op
     },
 
-    // attribute boolean suppressAlarms;
-    get suppressAlarms() { return false; },
-    set suppressAlarms(aSuppressAlarms) { throw Components.results.NS_ERROR_NOT_IMPLEMENTED; },
-
     get sendItipInvitations() { return true; },
 
     // void addObserver( in calIObserver observer );

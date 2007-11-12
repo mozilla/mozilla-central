@@ -263,15 +263,6 @@ calDavCalendar.prototype = {
         this.mObservers.notify("onLoad", [this]);
     },
 
-    // attribute boolean suppressAlarms;
-    mSuppressAlarms: false,
-    get suppressAlarms() {
-        return this.mSuppressAlarms;
-    },
-    set suppressAlarms(aSuppressAlarms) {
-        return (this.mSuppressAlarms = aSuppressAlarms);
-    },
- 
     // XXX todo: in general we want to do CalDAV scheduling, but for servers
     //           that don't support it, we want Itip
     get sendItipInvitations() { return true; },
