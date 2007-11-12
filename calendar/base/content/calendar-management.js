@@ -449,7 +449,7 @@ var calendarListTreeView = {
                 if (this.tree.currentIndex > -1 ) {
                     var cbCol =
                         this.treebox.columns
-                            .getNamedColumn("list-calendarsr-tree-checkbox");
+                            .getNamedColumn("calendar-list-tree-checkbox");
                     this.cycleCell(this.tree.currentIndex, cbCol);
                 }
                 break;
@@ -630,7 +630,11 @@ var calendarManagerObserver = {
     setupWritableCalendars: function cMO_setupWritableCalendars() {
         var nodes = document.getElementsByAttribute("disable-when-no-writable-calendars", "true");
         for (var i = 0; i < nodes.length; i++) {
-            nodes[i].disabled = (this.mWritableCalendars < 1);
+            if (this.mWritableCalendars < 1) {
+                nodes[i].setAttribute("disabled", "true");
+            } else {
+                nodes[i].removeAttribute("disabled");
+            }
         }
     },
 
