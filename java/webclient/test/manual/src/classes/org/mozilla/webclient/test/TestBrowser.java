@@ -51,11 +51,6 @@ import org.w3c.dom.Element;
 
 public class TestBrowser extends JPanel {
 
-    public void addNotify() {
-	super.addNotify();
-	browserControlCanvas.setVisible(true);
-    }
-
     public static ImageIcon browseIcon = new ImageIcon(
         TestBrowser.class.getResource("images/Right.gif"));
 
