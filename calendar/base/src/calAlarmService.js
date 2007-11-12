@@ -84,10 +84,7 @@ function calAlarmService() {
             } else {
                 occs = [aItem];
             }
-            function hasAlarm(a) {
-                return a.alarmOffset || a.parentItem.alarmOffset;
-            }
-            occs = occs.filter(hasAlarm);
+
             for each (var occ in occs) {
                 this.alarmService.addAlarm(occ);
             }
@@ -97,8 +94,8 @@ function calAlarmService() {
                 // deleting an occurrence currently calls modifyItem(newParent, *oldOccurrence*)
                 aOldItem = aOldItem.parentItem;
             }
-            this.alarmService.removeAlarm(aOldItem);
 
+            this.onDeleteItem(aOldItem);
             this.onAddItem(aNewItem);
         },
         onDeleteItem: function(aDeletedItem) {
@@ -108,7 +105,6 @@ function calAlarmService() {
         onPropertyChanged: function(aCalendar, aName, aValue, aOldValue) {},
         onPropertyDeleting: function(aCalendar, aName) {}
     };
-
 
     this.calendarManagerObserver = {
         alarmService: this,
@@ -171,7 +167,6 @@ calAlarmService.prototype = {
 
         return this;
     },
-
 
     /* nsIObserver */
     observe: function cas_observe(subject, topic, data) {
@@ -249,10 +244,6 @@ calAlarmService.prototype = {
 
     notifyObservers: function cas_notifyObservers(functionName, args) {
         this.mObservers.notify(functionName, args);
-    },
-
-    hasAlarm: function cas_hasAlarm(aItem) {
-        return aItem.alarmOffset || aItem.parentItem.alarmOffset;
     },
 
     startup: function cas_startup() {
@@ -368,7 +359,6 @@ calAlarmService.prototype = {
         this.mStarted = false;
     },
 
-
     observeCalendar: function cas_observeCalendar(calendar) {
         calendar.addObserver(this.calendarObserver);
     },
@@ -378,16 +368,43 @@ calAlarmService.prototype = {
         this.notifyObservers("onRemoveAlarmsByCalendar", [calendar]);
     },
 
-    addAlarm: function cas_addAlarm(aItem) {
-        var alarmTime;
+    getAlarmDate: function cas_getAlarmTime(aItem) {
+        var alarmDate = null;
         if (aItem.alarmRelated == Components.interfaces.calIItemBase.ALARM_RELATED_START) {
-            alarmTime = aItem.startDate || aItem.entryDate || aItem.dueDate;
+            alarmDate = aItem.startDate || aItem.entryDate || aItem.dueDate;
         } else {
-            alarmTime = aItem.endDate || aItem.dueDate || aItem.entryDate;
+            alarmDate = aItem.endDate || aItem.dueDate || aItem.entryDate;
         }
 
+        if (!aItem.alarmOffset && !aItem.parentItem.alarmOffset || !alarmDate) {
+            // If there is no alarm offset, or no date the alarm offset could be
+            // relative to, then there is no valid alarm.
+            return null;
+        }
+
+        alarmDate = alarmDate.clone();
+
+        // Handle all day events.  This is kinda weird, because they don't have
+        // a well defined startTime.  We just consider the start/end to be
+        // midnight in the user's timezone.
+        if (alarmDate.isDate) {
+            alarmDate = alarmDate.getInTimezone(this.mTimezone);
+            alarmDate.isDate = false;
+        }
+
+        var offset = aItem.alarmOffset || aItem.parentItem.alarmOffset;
+
+        alarmDate.addDuration(offset);
+        alarmDate = alarmDate.getInTimezone("UTC");
+
+        return alarmDate;
+    },
+
+    addAlarm: function cas_addAlarm(aItem) {
+        // Get the alarm time
+        var alarmTime = this.getAlarmDate(aItem);
         if (!alarmTime) {
-            ASSERT(false, "[calAlarmService] Could not determine alarm time for item: " + aItem.title);
+            // If there is no alarm time, don't add the alarm.
             return;
         }
 
@@ -404,25 +421,12 @@ calAlarmService.prototype = {
             time.icalString = snoozeTime;
             snoozeTime = time;
         }
-        LOG("[calAlarmService] snooze time: " + snoozeTime);
-        alarmTime = alarmTime.clone();
-
-        // Handle all day events.  This is kinda weird, because they don't have
-        // a well defined startTime.  We just consider the start/end to be 
-        // midnight in the user's timezone.
-        if (alarmTime.isDate) {
-            alarmTime = alarmTime.getInTimezone(this.mTimezone);
-            alarmTime.isDate = false;
-        }
-
-        var offset = aItem.alarmOffset || aItem.parentItem.alarmOffset;
-
-        alarmTime.addDuration(offset);
-        alarmTime = alarmTime.getInTimezone("UTC");
-        alarmTime = snoozeTime || alarmTime;
         LOG("[calAlarmService] considering alarm for item: " + aItem.title +
-            "\n offset: " + offset +
-            ", which makes alarm time: " + alarmTime);
+            " alarm time: " + alarmTime + " snooze time: " + snoozeTime);
+
+        // If the alarm was snoozed, the snooze time is more important.
+        alarmTime = snoozeTime || alarmTime;
+
         var now = jsDateToDateTime((new Date()));
         if (alarmTime.timezone == "floating") {
             now = now.getInTimezone(calendarDefaultTimezone());
@@ -471,6 +475,12 @@ calAlarmService.prototype = {
     },
 
     removeAlarm: function cas_removeAlarm(aItem) {
+        // If the item has no alarm start date, then it was never added so don't
+        // remove it.
+        if (!this.getAlarmDate(aItem)) {
+            return;
+        }
+
         // make sure already fired alarms are purged out of the alarm window:
         this.notifyObservers("onRemoveAlarmsByItem", [aItem]);
         for each (var timer in this.removeTimers(aItem)) {
@@ -535,9 +545,7 @@ calAlarmService.prototype = {
                     // assure we don't fire alarms twice, handle removed alarms as far as we can:
                     // e.g. we cannot purge removed items from ics files. XXX todo.
                     this.alarmService.removeAlarm(item);
-                    if (this.alarmService.hasAlarm(item)) {
-                        this.alarmService.addAlarm(item);
-                    }
+                    this.alarmService.addAlarm(item);
                 }
             }
         };
