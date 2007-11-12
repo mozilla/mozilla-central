@@ -54,12 +54,11 @@ function calGoogleCalendar() {
             return calObject.getProperty(aAttr);
         };
         this.setAttr = function calAttrHelper_set(aValue) {
-            calObject.setProperty(aAttr, aValue);
-            return aValue;
+            return calObject.setProperty(aAttr, aValue);
         };
     }
 
-    var prefAttrs = ["name", "suppressAlarms"];
+    var prefAttrs = ["name", "suppressAlarms", "readOnly"];
     for each (var attr in prefAttrs) {
         var helper = new calAttrHelper(attr);
         this.__defineGetter__(attr, helper.getAttr);
@@ -166,19 +165,30 @@ calGoogleCalendar.prototype = {
     /*
      * implement calICalendar
      */
-
     getProperty: function cGC_getProperty(aName) {
-// xxx future: return getPrefSafe("calendars." + this.id + "." + aName, null);
-        return getCalendarManager().getCalendarPref_(this, aName);
+        switch (aName) {
+            case "readOnly":
+                return this.mReadOnly;
+            default:
+                // xxx future: return getPrefSafe("calendars." + this.id + "." + aName, null);
+                return getCalendarManager().getCalendarPref_(this, aName);
+        }
     },
     setProperty: function cGC_setProperty(aName, aValue) {
         var oldValue = this.getProperty(aName);
         if (oldValue != aValue) {
-// xxx future: setPrefSafe("calendars." + this.id + "." + aName, aValue);
-            getCalendarManager().setCalendarPref_(this, aName, aValue);
+            switch (aName) {
+                case "readOnly":
+                    this.mReadOnly = aValue;
+                    break;
+                default:
+                    // xxx future: setPrefSafe("calendars." + this.id + "." + aName, aValue);
+                    getCalendarManager().setCalendarPref_(this, aName, aValue);
+            }
             this.mObservers.notify("onPropertyChanged",
                                    [this, aName, aValue, oldValue]);
         }
+        return aValue;
     },
     deleteProperty: function cGC_deleteProperty(aName) {
         this.mObservers.notify("onPropertyDeleting", [this, aName]);
@@ -194,13 +204,6 @@ calGoogleCalendar.prototype = {
         if (this.mID)
             throw Components.results.NS_ERROR_ALREADY_INITIALIZED;
         return (this.mID = id);
-    },
-
-    get readOnly() {
-        return this.mReadOnly;
-    },
-    set readOnly(v) {
-        return this.mReadOnly = v;
     },
 
     get type() {

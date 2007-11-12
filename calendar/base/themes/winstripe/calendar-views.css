@@ -452,6 +452,16 @@ calendar-event-box[orient="horizontal"]:hover .calendar-event-box-grippy-bottom 
   list-style-image: url("chrome://calendar/skin/event-grippy-right.png");
 }
 
+calendar-event-box[readOnly="true"]:hover .calendar-event-box-grippy-top {
+  list-style-image: none;
+  cursor: auto;
+}
+
+calendar-event-box[readOnly="true"]:hover .calendar-event-box-grippy-bottom {
+  list-style-image: none;
+  cursor: auto;
+}
+
 .alarm-image {
   list-style-image: url(chrome://calendar/skin/alarm.png);
 }

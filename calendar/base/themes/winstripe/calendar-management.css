@@ -48,8 +48,24 @@ treechildren::-moz-tree-cell(color-default) {
 
 treechildren::-moz-tree-cell(calendar-list-tree-color) {
     margin: 1px;
+    padding: 0;
 }
 
 treechildren::-moz-tree-cell(calendar-list-tree-calendar) {
     margin-left: 1px;
+}
+treechildren::-moz-tree-image(calendar-list-tree-color, readOnly, black) {
+    list-style-image: url(chrome://calendar/skin/calendar-readOnly.png);
+    -moz-image-region: rect(0, 10px, 10px, 0);
+}
+
+treechildren::-moz-tree-image(calendar-list-tree-color, readOnly, white) {
+    list-style-image: url(chrome://calendar/skin/calendar-readOnly.png);
+    -moz-image-region: rect(0, 20px, 10px, 10px);
+}
+
+#calendar-list-tree-color {
+    list-style-image: url(chrome://calendar/skin/calendar-readOnly.png);
+    -moz-image-region: rect(0, 10px, 10px, 0);
+    padding: 0;
 }

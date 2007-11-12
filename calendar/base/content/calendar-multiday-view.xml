@@ -792,6 +792,10 @@
                               chunkBox.setAttribute("width", durMinutes * this.mPixPerMin);
                           }
 
+                          if (chunk.event.calendar.readOnly) {
+                              chunkBox.setAttribute("readOnly", "true");
+                          }
+
                           if (chunk.event.hashId in this.calendarView.mFlashingEvents) {
                               chunkBox.setAttribute("flashing", "true");
                           }
@@ -1458,6 +1462,10 @@
         <parameter name="aMouseX"/>
         <parameter name="aMouseY"/>
         <body><![CDATA[
+          if (aOccurrence.calendar.readOnly) {
+              return;
+          }
+
           //dump ("startSweepingToModify\n");
           this.mDragState = {
               origColumn: this,
@@ -1646,6 +1654,11 @@
       <handler event="mousedown"><![CDATA[
         // select this column
         this.calendarView.selectedDay = this.mDate;
+
+        // If the selected calendar is readOnly, we don't want any sweeping.
+        if (getSelectedCalendar().readOnly) {
+            return;
+        }
 
         // Only start sweeping out an event if the left button was clicked
         if (event.button != 0) {
@@ -2407,8 +2420,19 @@
             },
             onError: function onError(aErrNo, aMessage) { },
 
-            onPropertyChanged: function(aCalendar, aName, aValue, aOldValue) {},
-            onPropertyDeleting: function(aCalendar, aName) {},
+            onPropertyChanged: function(aCalendar, aName, aValue, aOldValue) {
+                switch (aName) {
+                    case "readOnly":
+                        // XXXvv we can be smarter about how we handle this stuff
+                        this.calView.refresh();
+                        break;
+                }
+            },
+
+            onPropertyDeleting: function(aCalendar, aName) {
+                // Values are not important here yet.
+                this.onPropertyChanged(aCalendar, aName, null, null);
+            },
 
             //
             // calIAlarmServiceObserver stuff

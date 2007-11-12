@@ -45,18 +45,18 @@
   </stringbundleset>
 
   <commandset id="calendar_commands">
-    <command id="calendar_new_event_command" oncommand="createEventWithDialog(getSelectedCalendar());"/>
+    <command id="calendar_new_event_command" oncommand="createEventWithDialog(getSelectedCalendar());" disable-when-no-writable-calendars="true" disabled="true"/>
     <command id="calendar_modify_event_command" oncommand="modifyEventWithDialog(currentView().getSelectedItems({})[0])" disabled="true" disabledwhennoeventsselected="true"/>
     <command id="calendar_delete_event_command" oncommand="deleteSelectedEvents()" disabled="true" disabledwhennoeventsselected="true"/>
 
-    <command id="calendar_new_todo_command" oncommand="createTodoWithDialog(getSelectedCalendar());"/>
+    <command id="calendar_new_todo_command" oncommand="createTodoWithDialog(getSelectedCalendar());" disable-when-no-writable-calendars="true" disabled="true"/>
     <command id="calendar_delete_todo_command" oncommand="deleteToDoCommand()" disabled="true"/>
 
     <command id="calendar_new_calendar_command" oncommand="openCalendarWizard();"/>
     <command id="calendar_edit_calendar_command" oncommand="openCalendarProperties(getSelectedCalendar());"/>
     <command id="calendar_delete_calendar_command" oncommand="promptDeleteCalendar(getSelectedCalendar());" disabled="true"/>
 
-    <command id="calendar_import_command" oncommand="loadEventsFromFile()"/>
+    <command id="calendar_import_command" oncommand="loadEventsFromFile()" disable-when-no-writable-calendars="true" disabled="true"/>
     <command id="calendar_export_command" oncommand="exportEntireCalendar()"/>
     <command id="calendar_export_selection_command" oncommand="saveEventsToFile(currentView().getSelectedItems({}))" disabledwhennoeventsselected="true" disabled="true"/>
 

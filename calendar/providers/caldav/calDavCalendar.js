@@ -1,4 +1,3 @@
-/* -*- Mode: javascript; tab-width: 20; indent-tabs-mode: nil; c-basic-offset: 4 -*- */
 /* ***** BEGIN LICENSE BLOCK *****
  * Version: MPL 1.1/GPL 2.0/LGPL 2.1
  *
@@ -27,6 +26,7 @@
  *   Bruno Browning <browning@uwalumni.com>
  *   Matthew Willis <lilmatt@mozilla.com>
  *   Daniel Boelzle <daniel.boelzle@sun.com>
+ *   Philipp Kewisch <mozilla@kewis.ch>
  *
  * Alternatively, the contents of this file may be used under the terms of
  * either the GNU General Public License Version 2 or later (the "GPL"), or
@@ -166,8 +166,7 @@ calDavCalendar.prototype = {
         return this.getProperty("name");
     },
     set name(name) {
-        this.setProperty("name", name);
-        return name;
+        return this.setProperty("name", name);
     },
 
     // readonly attribute AUTF8String type;
@@ -175,11 +174,11 @@ calDavCalendar.prototype = {
 
     mReadOnly: false,
 
-    get readOnly() { 
-        return this.mReadOnly;
+    get readOnly() {
+        return this.getProperty("readOnly");
     },
-    set readOnly(bool) {
-        this.mReadOnly = bool;
+    set readOnly(aValue) {
+        return this.setProperty("readOnly", aValue);
     },
 
     mDisabled: false,
@@ -194,17 +193,29 @@ calDavCalendar.prototype = {
     },
 
     getProperty: function caldav_getProperty(aName) {
-// xxx future: return getPrefSafe("calendars." + this.id + "." + aName, null);
-        return getCalendarManager().getCalendarPref_(this, aName);
+        switch (aName) {
+            case "readOnly":
+                return this.mReadOnly;
+            default:
+                // xxx future: return getPrefSafe("calendars." + this.id + "." + aName, null);
+                return getCalendarManager().getCalendarPref_(this, aName);
+        }
     },
     setProperty: function caldav_setProperty(aName, aValue) {
         var oldValue = this.getProperty(aName);
         if (oldValue != aValue) {
-// xxx future: setPrefSafe("calendars." + this.id + "." + aName, aValue);
-            getCalendarManager().setCalendarPref_(this, aName, aValue);
+            switch (aName) {
+                case "readOnly":
+                    this.mReadOnly = aValue;
+                    break;
+                default:
+                    // xxx future: setPrefSafe("calendars." + this.id + "." + aName, aValue);
+                    getCalendarManager().setCalendarPref_(this, aName, aValue);
+            }
             this.mObservers.notify("onPropertyChanged",
                                    [this, aName, aValue, oldValue]);
         }
+        return aValue;
     },
     deleteProperty: function caldav_deleteProperty(aName) {
         this.mObservers.notify("onPropertyDeleting", [this, aName]);

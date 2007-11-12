@@ -21,6 +21,7 @@
  *
  * Contributor(s):
  *   Daniel Boelzle <daniel.boelzle@sun.com>
+ *   Philipp Kewisch <mozilla@kewis.ch>
  *
  * Alternatively, the contents of this file may be used under the terms of
  * either the GNU General Public License Version 2 or later (the "GPL"), or
@@ -158,8 +159,7 @@ calWcapCalendar.prototype = {
         return name;
     },
     set name(name) {
-        this.setProperty("name", name);
-        return name;
+        return this.setProperty("name", name);
     },
     
     get type() { return "wcap"; },
@@ -187,7 +187,14 @@ calWcapCalendar.prototype = {
                  !this.isOwnedCalendar));
     },
     set readOnly(bReadOnly) {
-        return (this.m_bReadOnly = bReadOnly);
+        return this.setProperty("readOnly", bReadOnly);
+        var oldValue = this.m_bReadOnly;
+        this.m_bReadOnly = bReadOnly;
+        if (oldValue != bReadOnly) {
+            this.mObservers.notify("onPropertyChanged",
+                                   [this, "readOnly", bReadOnly, oldValue]);
+        }
+        return bReadOnly;
     },
 
     m_uri: null,
@@ -211,27 +218,37 @@ calWcapCalendar.prototype = {
     },
 
     getProperty: function calWcapCalendar_getProperty(aName) {
-        // xxx future: return getPrefSafe("calendars." + this.id + "." + aName, null);
         var value = getCalendarManager().getCalendarPref_(this, aName);
-        if ((value === null) &&
-            (aName == "calendar-main-in-composite") &&
-            !this.isDefaultCalendar) {
-            // tweak in-composite to false for secondary calendars:
-            value = false;
+        switch (aName) {
+            case "readOnly":
+                return this.mReadOnly;
+            case "calendar-main-in-composite":
+                if (value === null && !this.isDefaultCalendar) {
+                    // tweak in-composite to false for secondary calendars:
+                    value = false;
+                }
+                // Fall through
+            default:
+                // xxx future: return getPrefSafe("calendars." + this.id + "." + aName, null);
+                return value;
         }
-        return value;
     },
-
     setProperty: function calWcapCalendar_setProperty(aName, aValue) {
         var oldValue = this.getProperty(aName);
         if (oldValue != aValue) {
-// xxx future: setPrefSafe("calendars." + this.id + "." + aName, aValue);
-            getCalendarManager().setCalendarPref_(this, aName, aValue);
-            this.notifyObservers("onPropertyChanged",
-                                 [this, aName, aValue, oldValue]);
+            switch (aName) {
+                case "readOnly":
+                    this.mReadOnly = aValue;
+                    break;
+                default:
+                    // xxx future: setPrefSafe("calendars." + this.id + "." + aName, aValue);
+                    getCalendarManager().setCalendarPref_(this, aName, aValue);
+            }
+            this.mObservers.notify("onPropertyChanged",
+                                   [this, aName, aValue, oldValue]);
         }
+        return aValue;
     },
-
     deleteProperty: function calWcapCalendar_deleteProperty(aName) {
         this.notifyObservers("onPropertyDeleting", [this, aName]);
         getCalendarManager().deleteCalendarPref_(this, aName);

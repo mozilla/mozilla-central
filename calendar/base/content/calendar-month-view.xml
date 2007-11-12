@@ -170,9 +170,12 @@
                           getService(Components.interfaces.nsIDragService);
         var transfer = Components.classes["@mozilla.org/widget/transferable;1"].
                        createInstance(Components.interfaces.nsITransferable);
+        transfer.addDataFlavor("text/calendar");
 
         var item = this.occurrence;
-        transfer.addDataFlavor("text/calendar");
+        if (item.calendar.readOnly) {
+            return;
+        }
 
         var flavourProvider = {
             QueryInterface: function(aIID) {

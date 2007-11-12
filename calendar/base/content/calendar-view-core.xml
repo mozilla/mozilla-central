@@ -297,14 +297,14 @@
 
         // If the left button was used and the item is already selected start
         // the 'single click edit' timeout. Otherwise select the item too.
-        if (this.selected) {
+        // Also, check if the calendar is readOnly.
+        if (this.selected && !this.mOccurrence.calendar.readOnly) {
             var self = this;
             if (this.editingTimer) {
                 clearTimeout(this.editingTimer);
             }
             this.editingTimer = setTimeout(function alldayTimeout() { self.startEditing(); }, 350);
-        }
-        else {
+        } else {
             this.select(event);
             event.stopPropagation();
         }

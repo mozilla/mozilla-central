@@ -1,4 +1,3 @@
-/* -*- Mode: javascript; tab-width: 20; indent-tabs-mode: nil; c-basic-offset: 4 -*- */
 /* ***** BEGIN LICENSE BLOCK *****
  * Version: MPL 1.1/GPL 2.0/LGPL 2.1
  *
@@ -283,8 +282,7 @@ calStorageCalendar.prototype = {
         return this.getProperty("name");
     },
     set name(name) {
-        this.setProperty("name", name);
-        return name;
+        return this.setProperty("name", name);
     },
     // readonly attribute AUTF8String type;
     get type() { return "storage"; },
@@ -292,28 +290,40 @@ calStorageCalendar.prototype = {
     mReadOnly: false,
 
     get readOnly() { 
-        return this.mReadOnly;
+        return this.getProperty("readOnly");
     },
-    set readOnly(bool) {
-        this.mReadOnly = bool;
+    set readOnly(aValue) {
+        return this.setProperty("readOnly", aValue);
     },
 
     get canRefresh() {
         return false;
     },
 
-    getProperty: function(aName) {
-// xxx future: return getPrefSafe("calendars." + this.id + "." + aName, null);
-        return getCalendarManager().getCalendarPref_(this, aName);
+    getProperty: function calStorageCalendar_getProperty(aName) {
+        switch (aName) {
+            case "readOnly":
+                return this.mReadOnly;
+            default:
+                // xxx future: return getPrefSafe("calendars." + this.id + "." + aName, null);
+                return getCalendarManager().getCalendarPref_(this, aName);
+        }
     },
-    setProperty: function(aName, aValue) {
+    setProperty: function calStorageCalendar_setProperty(aName, aValue) {
         var oldValue = this.getProperty(aName);
         if (oldValue != aValue) {
-// xxx future: setPrefSafe("calendars." + this.id + "." + aName, aValue);
-            getCalendarManager().setCalendarPref_(this, aName, aValue);
+            switch (aName) {
+                case "readOnly":
+                    this.mReadOnly = aValue;
+                    break;
+                default:
+                    // xxx future: setPrefSafe("calendars." + this.id + "." + aName, aValue);
+                    getCalendarManager().setCalendarPref_(this, aName, aValue);
+            }
             this.mObservers.notify("onPropertyChanged",
                                    [this, aName, aValue, oldValue]);
         }
+        return aValue;
     },
     deleteProperty: function(aName) {
         this.mObservers.notify("onPropertyDeleting", [this, aName]);
