@@ -217,6 +217,7 @@ pkix_pl_Pk11CertStore_CertQuery(
                         }
                         PKIX_PL_NSSCALL
                                 (CERTSTORE, PORT_FreeArena, (arena, PR_FALSE));
+                        arena = NULL;
                 }
 
         } else {
