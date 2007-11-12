@@ -1313,10 +1313,6 @@ calOperationGroup.prototype = {
         return this.mStatus;
     },
 
-    get success() {
-        return (!this.isPending && Components.isSuccessCode(this.status));
-    },
-
     cancel: function calOperationGroup_cancel(status) {
         if (this.isPending) {
             if (!status) {

@@ -202,9 +202,6 @@ calWcapRequest.prototype = {
     get isPending() {
         return this.m_isPending;
     },
-    get success() {
-        return (!this.isPending && Components.isSuccessCode( getResultCode(this.status) ));
-    },
     get status() {
         return (this.m_status === null ? NS_OK : this.m_status);
     },
@@ -259,9 +256,6 @@ calWcapNetworkRequest.prototype = {
     m_isPending: true,
     get isPending() { return this.m_isPending; },
     
-    get success() {
-        return (!this.isPending && Components.isSuccessCode( getResultCode(this.status) ));
-    },
     get status() {
         return this.m_channel.status;
     },
