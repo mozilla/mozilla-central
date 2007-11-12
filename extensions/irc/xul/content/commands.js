@@ -2579,10 +2579,20 @@ function cmdLoad(e)
 
         if ("init" in plugin)
         {
+            // Sanity check plugin's methods and properties:
+            if (!("id" in plugin) || (plugin.id == MSG_UNKNOWN))
+                display(getMsg(MSG_ERR_PLUGINAPI_NOID, e.url));
+            else if (!(plugin.id.match(/^[A-Za-z-_]+$/)))
+                display(getMsg(MSG_ERR_PLUGINAPI_FAULTYID, e.url));
+            else if (!("enable" in plugin))
+                display(getMsg(MSG_ERR_PLUGINAPI_NOENABLE, e.url));
+            else if (!("disable" in plugin))
+                display(getMsg(MSG_ERR_PLUGINAPI_NODISABLE, e.url));
+
             if (!("enable" in plugin) || !("disable" in plugin) ||
-                !("id" in plugin) || !(plugin.id.match(/^[A-Za-z-_]+$/)))
+                !("id" in plugin) || (plugin.id == MSG_UNKNOWN) ||
+                !(plugin.id.match(/^[A-Za-z-_]+$/)))
             {
-                display (getMsg(MSG_ERR_PLUGINAPI, e.url));
                 display (getMsg(MSG_ERR_SCRIPTLOAD, e.url));
                 return null;
             }
