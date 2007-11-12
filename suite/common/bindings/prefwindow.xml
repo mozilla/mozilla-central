@@ -130,7 +130,7 @@
           </xul:deck>
         </xul:vbox>
       </xul:hbox>
-      <xul:hbox anonid="dlg-buttons" class="prefWindow-dlgbuttons">
+      <xul:hbox anonid="dlg-buttons" class="prefWindow-dlgbuttons" pack="end">
 #ifdef XP_UNIX
         <xul:button dlgtype="disclosure" class="dialog-button" hidden="true"/>
         <xul:button dlgtype="help" class="dialog-button" hidden="true" icon="help"/>
