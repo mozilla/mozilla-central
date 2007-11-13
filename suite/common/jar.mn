@@ -22,16 +22,13 @@ comm.jar:
 % overlay chrome://pippki/content/clientauthask.xul chrome://communicator/content/helpSecurityOverlay.xul
 % overlay chrome://pippki/content/crlImportDialog.xul chrome://communicator/content/helpSecurityOverlay.xul
 % overlay chrome://pippki/content/deletecert.xul chrome://communicator/content/helpSecurityOverlay.xul
-% overlay chrome://pippki/content/domainMismatch.xul chrome://communicator/content/helpSecurityOverlay.xul
 % overlay chrome://pippki/content/editcacert.xul chrome://communicator/content/helpSecurityOverlay.xul
 % overlay chrome://pippki/content/editemailcert.xul chrome://communicator/content/helpSecurityOverlay.xul
 % overlay chrome://pippki/content/editsslcert.xul chrome://communicator/content/helpSecurityOverlay.xul
 % overlay chrome://pippki/content/escrowWarn.xul chrome://communicator/content/helpSecurityOverlay.xul
 % overlay chrome://pippki/content/getp12password.xul chrome://communicator/content/helpSecurityOverlay.xul
 % overlay chrome://pippki/content/setp12password.xul chrome://communicator/content/helpSecurityOverlay.xul
-% overlay chrome://pippki/content/newserver.xul chrome://communicator/content/helpSecurityOverlay.xul
 % overlay chrome://pippki/content/pref-crlupdate.xul chrome://communicator/content/helpSecurityOverlay.xul
-% overlay chrome://pippki/content/serverCertExpired.xul chrome://communicator/content/helpSecurityOverlay.xul
 % overlay chrome://pippki/content/serverCrlNextupdate.xul chrome://communicator/content/helpSecurityOverlay.xul
 % overlay chrome://pippki/content/crlManager.xul chrome://communicator/content/helpSecurityOverlay.xul
 % overlay chrome://pippki/content/resetpassword.xul chrome://communicator/content/helpSecurityOverlay.xul

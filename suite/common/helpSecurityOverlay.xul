@@ -116,11 +116,6 @@
           buttons="accept,cancel,help"
           ondialoghelp="doDeleteCertificateHelpButton();"/>
 
-  <dialog id="domainMismatch"
-          spacerflex="1"
-          buttons="accept,cancel,help,extra2"
-          ondialoghelp="openHelp('bad_name_web_cert');"/>
-
   <dialog id="editCaCert"
           buttons="accept,cancel,help"
           ondialoghelp="openHelp('edit_ca_certs');"/>
@@ -146,18 +141,9 @@
           buttons="accept,cancel,help"
           ondialoghelp="openHelp('cert_backup_pwd');"/>
 
-  <dialog id="newServerDialog"
-          buttons="accept,cancel,help,extra2"
-          ondialoghelp="openHelp('new_web_cert');"/>
-
   <dialog id="crlUpdatePref"
           buttons="accept,cancel,help"
           ondialoghelp="openHelp('validation-crl-auto-update-prefs');"/>
-
-  <dialog id="serverCertExpired"
-          spacerflex="1"
-          buttons="accept,cancel,help,extra2"
-          ondialoghelp="openHelp('exp_web_cert');"/>
 
   <dialog id="serverCrlNextupdate"
           buttons="accept,help"
