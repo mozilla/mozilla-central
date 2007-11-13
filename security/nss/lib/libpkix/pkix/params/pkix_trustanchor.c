@@ -401,8 +401,11 @@ PKIX_TrustAnchor_CreateWithCert(
         anchor->nameConstraints = NULL;
 
         *pAnchor = anchor;
+        anchor = NULL;
 
 cleanup:
+
+        PKIX_DECREF(anchor);
 
         PKIX_RETURN(TRUSTANCHOR);
 

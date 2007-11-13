@@ -285,8 +285,11 @@ PKIX_BuildParams_Create(
         params->procParams = procParams;
 
         *pParams = params;
+        params = NULL;
 
 cleanup:
+
+        PKIX_DECREF(params);
 
         PKIX_RETURN(BUILDPARAMS);
 

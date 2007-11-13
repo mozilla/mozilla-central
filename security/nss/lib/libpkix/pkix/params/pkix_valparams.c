@@ -316,8 +316,11 @@ PKIX_ValidateParams_Create(
         params->chain = chain;
 
         *pParams = params;
+        params = NULL;
 
 cleanup:
+
+        PKIX_DECREF(params);
 
         PKIX_RETURN(VALIDATEPARAMS);
 
