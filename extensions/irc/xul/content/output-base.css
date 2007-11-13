@@ -382,10 +382,6 @@ a.chatzilla-link:hover {
     content: url(chrome://chatzilla/skin/images/face-angry.png);
 }
 
-.chatzilla-emote[type="face-arrow"]:after {
-    content: url(chrome://chatzilla/skin/images/face-arrow.png);
-}
-
 .chatzilla-emote[type="face-cry"]:after {
     content: url(chrome://chatzilla/skin/images/face-cry.png);
 }
@@ -414,14 +410,6 @@ a.chatzilla-link:hover {
     content: url(chrome://chatzilla/skin/images/face-evil.png);
 }
 
-.chatzilla-emote[type="face-exclaim"]:after {
-    content: url(chrome://chatzilla/skin/images/face-exclaim.png);
-}
-
-.chatzilla-emote[type="face-idea"]:after {
-    content: url(chrome://chatzilla/skin/images/face-idea.png);
-}
-
 .chatzilla-emote[type="face-laugh"]:after {
     content: url(chrome://chatzilla/skin/images/face-laugh.png);
 }
@@ -430,20 +418,12 @@ a.chatzilla-link:hover {
     content: url(chrome://chatzilla/skin/images/face-lol.png);
 }
 
-.chatzilla-emote[type="face-mrgreen"]:after {
-    content: url(chrome://chatzilla/skin/images/face-mrgreen.png);
-}
-
 .chatzilla-emote[type="face-normal"]:after {
     content: url(chrome://chatzilla/skin/images/face-normal.png);
 }
 
 .chatzilla-emote[type="face-question"]:after {
     content: url(chrome://chatzilla/skin/images/face-question.png);
-}
-
-.chatzilla-emote[type="face-razz"]:after {
-    content: url(chrome://chatzilla/skin/images/face-razz.png);
 }
 
 .chatzilla-emote[type="face-red"]:after {
