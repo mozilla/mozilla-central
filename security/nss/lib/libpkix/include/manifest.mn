@@ -38,6 +38,9 @@
 CORE_DEPTH = ../../../..
 
 EXPORTS = \
+	$(NULL)
+
+PRIVATE_EXPORTS = \
 	pkix.h \
 	pkix_crlsel.h \
 	pkix_errorstrings.h \
@@ -52,9 +55,6 @@ EXPORTS = \
 	pkix_checker.h \
 	pkix_pl_system.h \
 	pkix_util.h \
-	$(NULL)
-
-PRIVATE_EXPORTS = \
 	$(NULL)
 
 MODULE = nss

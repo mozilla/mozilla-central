@@ -38,8 +38,6 @@
 CORE_DEPTH = ../../../../..
 
 EXPORTS = \
-	pkix_certselector.h \
-	pkix_comcertselparams.h \
 	$(NULL)
 
 PRIVATE_EXPORTS = \
