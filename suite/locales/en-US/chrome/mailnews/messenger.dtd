@@ -529,10 +529,6 @@
 <!ENTITY contextPrint.accesskey "P">
 <!ENTITY contextPrintPreview.label "Print Preview">
 <!ENTITY contextPrintPreview.accesskey "v">
-<!ENTITY contextAddSenderToAddressBook.label "Add Sender To Address Book">
-<!ENTITY contextAddSenderToAddressBook.accesskey "B">
-<!ENTITY contextAddAllToAddressBook.label "Add All To Address Book">
-<!ENTITY contextAddAllToAddressBook.accesskey "A">
 
 <!-- Folder Pane Context Menu -->
 <!ENTITY folderContextGetMessages.label "Get Messages for Account">

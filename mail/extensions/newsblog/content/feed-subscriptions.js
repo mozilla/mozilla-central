@@ -621,7 +621,7 @@ var gFeedSubscriptionsWindow = {
   storeFeed: function(feedProperties)
   {
     var itemResource = rdf.GetResource(feedProperties.feedLocation);
-    feed = new Feed(itemResource, this.mRSSServer);
+    var feed = new Feed(itemResource, this.mRSSServer);
 
     // if the user specified a specific folder to add the feed too, then set it here
     if (feedProperties.folderURI)

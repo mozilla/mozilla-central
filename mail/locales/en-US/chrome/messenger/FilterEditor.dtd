@@ -1,20 +1,5 @@
 <!ENTITY window.title "Filter Rules">
-<!ENTITY subject.label "subject">
-<!ENTITY sender.label "sender">
-<!ENTITY date.label "date">
-<!ENTITY anyText.label "any text">
-<!ENTITY keyword.label "keyword">
-<!ENTITY age.label "age in days">
-<!ENTITY to.label "to">
 
-<!-- LOCALIZATION NOTE (cc.label): DONT_TRANSLATE -->
-<!ENTITY cc.label "Cc">
-
-<!ENTITY status.label "status">
-<!ENTITY priority.label "priority">
-<!ENTITY body.label "body">
-<!ENTITY contains.label "contains">
-<!ENTITY nocontains.label "doesn't contain">
 <!ENTITY filterName.label "Filter name:">
 <!ENTITY filterName.accesskey "i">
 
@@ -41,7 +26,6 @@
 <!ENTITY replyWithTemplate.label "Reply with Template">
 <!ENTITY markMessageRead.label "Mark As Read">
 <!ENTITY markMessageStarred.label "Add Star">
-<!ENTITY labelMessage.label "Label Message As">
 <!ENTITY setPriority.label "Set Priority to">
 <!ENTITY addTag.label "Tag Message">
 <!ENTITY setJunkScore.label "Set Junk Status to">
