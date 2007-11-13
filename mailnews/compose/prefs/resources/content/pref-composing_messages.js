@@ -36,7 +36,7 @@ function PopulateFonts() {
 }
 
 function InitLanguageMenu() {
-  var spellChecker = Components.classes["@mozilla.org/spellchecker/hunspell;1"]
+  var spellChecker = Components.classes["@mozilla.org/spellchecker/engine;1"]
                                .getService(Components.interfaces.mozISpellCheckingEngine);
 
   var o1 = {};
