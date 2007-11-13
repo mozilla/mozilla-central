@@ -851,7 +851,7 @@ enum {
 
 /********************** Recurrence type routines **************/
 
-/* See RFC 2445 Section 4.3.10, RECUR Value, for an explaination of
+/* See RFC 2445 Section 4.3.10, RECUR Value, for an explanation of
    the values and fields in struct icalrecurrencetype */
 
 #define ICAL_BY_SECOND_SIZE 61

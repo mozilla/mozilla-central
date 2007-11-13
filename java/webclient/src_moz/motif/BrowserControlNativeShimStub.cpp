@@ -24,7 +24,7 @@
  * BrowserControlNativeShimStub.cpp
  */
 
-// PENDING(mark): I suppose this is where I need to go into my explaination of why
+// PENDING(mark): I suppose this is where I need to go into my explanation of why
 // this file is needed...
 
 // For loading DLL
