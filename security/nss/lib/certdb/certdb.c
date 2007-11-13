@@ -38,7 +38,7 @@
 /*
  * Certificate handling code
  *
- * $Id: certdb.c,v 1.83 2007-11-10 04:23:25 julien.pierre.boogz%sun.com Exp $
+ * $Id: certdb.c,v 1.84 2007-11-13 23:10:45 wtc%google.com Exp $
  */
 
 #include "nssilock.h"
@@ -2738,7 +2738,7 @@ SECStatus
 cert_InitLocks(void)
 {
     if ( certRefCountLock == NULL ) {
-        nss_InitLock(&certRefCountLock, nssILockRefLock);
+        certRefCountLock = PZ_NewLock(nssILockRefLock);
         PORT_Assert(certRefCountLock != NULL);
         if (!certRefCountLock) {
             return SECFailure;
@@ -2746,7 +2746,7 @@ cert_InitLocks(void)
     }
 
     if ( certTrustLock == NULL ) {
-        nss_InitLock(&certTrustLock, nssILockCertDB);
+        certTrustLock = PZ_NewLock(nssILockCertDB);
         PORT_Assert(certTrustLock != NULL);
         if (!certTrustLock) {
             PZ_DestroyLock(certRefCountLock);
