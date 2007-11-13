@@ -48,7 +48,7 @@ interface nsISchemaBuiltinType;
  * Private interface implemented by the model element for other
  * elements to use.
  */
-[uuid(3d94c3a4-e8d4-466c-a753-3cc65a338954)]
+[uuid(e0c08554-0509-45b4-b3e5-b25c6cad8153)]
 interface nsIModelElementPrivate : nsIXFormsModelElement
 {
   /**
@@ -202,6 +202,12 @@ interface nsIModelElementPrivate : nsIXFormsModelElement
    */
   void forceRebind(in nsIXFormsControl control);
 
+   /**
+    * Determine the type for a form control based on the schema included by
+    * this model.
+    */
+  nsISchemaType getTypeForNode(in nsIDOMNode node);
+
   /**
    * Determine the type for a form control based on the schema included by
    * this model.
@@ -214,7 +220,7 @@ interface nsIModelElementPrivate : nsIXFormsModelElement
    */
   AString getBuiltinTypeNameForControl(in nsIXFormsControl control);
 
-  /** 
+  /**
    * This function takes an instance data node, finds the type bound to it, and
    * returns the separated out type and namespace URI.  If no type is set for
    * the node, then it returns the defaults: "http://www.w3.org/2001/XMLSchema"

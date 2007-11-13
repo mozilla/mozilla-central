@@ -49,6 +49,8 @@
 #include "nsIParserService.h"
 #include "nsIDOMNamedNodeMap.h"
 #include "nsDataHashtable.h"
+#include "nsIVariant.h"
+#include "nsIAttribute.h"
 
 // string includes
 #include "nsReadableUtils.h"
@@ -213,11 +215,11 @@ nsSchemaValidator::Validate(nsIDOMNode* aElement, PRBool *aResult)
     NS_ENSURE_SUCCESS(rv, rv);
   }
 
-  /* 
+  /*
    * We allow the schema validator to continue validating a structure
    * even if the nodevalue is invalid per its simpletype binding.  This is done
    * so that we continue to mark nodes with their types, even if we encounter
-   * an invalid nodevalue.  We remember that we had an invalid nodevalue by 
+   * an invalid nodevalue.  We remember that we had an invalid nodevalue by
    * using mForceInvalid as an override for the final return.
    */
 
@@ -227,6 +229,19 @@ nsSchemaValidator::Validate(nsIDOMNode* aElement, PRBool *aResult)
   *aResult = mForceInvalid ? PR_FALSE : isValid;
   return rv;
 }
+
+// This is passed into setProperty so that the variant passed as
+// an xsdtype is released when the property is destroyed
+static void VariantDTor(void           *aObject,
+                        nsIAtom        *aPropertyName,
+                        void           *aPropertyValue,
+                        void           *aData)
+{
+  nsIVariant *pVariant = static_cast<nsIVariant *>(aPropertyValue);
+  NS_IF_RELEASE(pVariant);
+}
+
+
 
 NS_IMETHODIMP
 nsSchemaValidator::ValidateAgainstType(nsIDOMNode* aElement,
@@ -243,6 +258,7 @@ nsSchemaValidator::ValidateAgainstType(nsIDOMNode* aElement,
   NS_ENSURE_SUCCESS(rv, rv);
 
   PRBool isValid = PR_FALSE;
+
   if (typevalue == nsISchemaType::SCHEMA_TYPE_SIMPLE) {
     nsCOMPtr<nsISchemaSimpleType> simpleType = do_QueryInterface(aType);
 
@@ -272,16 +288,24 @@ nsSchemaValidator::ValidateAgainstType(nsIDOMNode* aElement,
         isValid = PR_TRUE;
       }
 
-      // set the property so that callers can check validity of nodes
-      nsCOMPtr<nsIContent> content = do_QueryInterface(aElement);
+      nsCOMPtr<nsIWritableVariant> holder =
+        do_CreateInstance("@mozilla.org/variant;1");
+      NS_ENSURE_STATE(holder);
+
+      holder->SetAsInterface(nsISchemaType::GetIID(), aType);
+
+      // and save on the node
+      nsCOMPtr<nsIContent> content = do_QueryInterface(domNode3);
       NS_ENSURE_STATE(content);
 
-      nsCOMPtr<nsIAtom> myAtom = do_GetAtom("xsdtype");
+      // we have to be really carefull to set the destructor function correctly.
+      // this also has to be a pointer to a variant
+      nsCOMPtr<nsIAtom> key = do_GetAtom("xsdtype");
+      NS_ENSURE_TRUE(key, NS_ERROR_OUT_OF_MEMORY);
 
-      // We need to make aType live one cycle longer, so that getProperty
-      // can access it.  ReleaseObject will take care of the releasing.
-      NS_ADDREF(aType);
-      rv = content->SetProperty(myAtom, aType, ReleaseObject);
+      nsIVariant *pVariant = holder;
+      NS_IF_ADDREF(pVariant);
+      rv = content->SetProperty(key, pVariant, &VariantDTor);
       NS_ENSURE_SUCCESS(rv, rv);
     }
   } else if (typevalue == nsISchemaType::SCHEMA_TYPE_COMPLEX) {
@@ -1622,7 +1646,7 @@ nsSchemaValidator::ValidateBuiltinTypeString(const nsAString & aNodeValue,
 }
 
 /* http://www.w3.org/TR/xmlschema-2/#boolean */
-nsresult 
+nsresult
 nsSchemaValidator::ValidateBuiltinTypeBoolean(const nsAString & aNodeValue,
                                               PRBool *aResult)
 {
@@ -1793,7 +1817,7 @@ nsSchemaValidator::ValidateBuiltinTypeGMonth(const nsAString & aNodeValue,
   if (isValid && !aMaxExclusive.IsEmpty()) {
     nsSchemaGMonth maxExclusive;
 
-    if(IsValidSchemaGMonth(aMaxExclusive, &maxExclusive) &&
+    if (IsValidSchemaGMonth(aMaxExclusive, &maxExclusive) &&
        gmonth.month >= maxExclusive.month) {
       isValid = PR_FALSE;
       LOG(("  Not valid: Value (%d) is too large", gmonth.month));
@@ -2051,12 +2075,12 @@ nsresult
 nsSchemaValidator::ValidateBuiltinTypeGYearMonth(const nsAString & aNodeValue,
                                                  const nsAString & aMaxExclusive,
                                                  const nsAString & aMinExclusive,
-                                                 const nsAString & aMaxInclusive, 
+                                                 const nsAString & aMaxInclusive,
                                                  const nsAString & aMinInclusive,
                                                  PRBool *aResult)
 {
   nsSchemaGYearMonth gyearmonth;
-  
+
   PRBool isValid = IsValidSchemaGYearMonth(aNodeValue, &gyearmonth);
 
   if (isValid && !aMaxExclusive.IsEmpty()) {
@@ -2619,7 +2643,7 @@ nsSchemaValidator::IsValidSchemaDate(const nsAString & aNodeValue,
   if (aNodeValue.IsEmpty())
     return PR_FALSE;
 
-  nsAutoString dateString(aNodeValue); 
+  nsAutoString dateString(aNodeValue);
   if (dateString.First() == '-') {
     aResult->isNegative = PR_TRUE;
   }
@@ -2683,7 +2707,7 @@ nsSchemaValidator::ValidateBuiltinTypeDuration(const nsAString & aNodeValue,
   if (isValid && !aMaxInclusive.IsEmpty()) {
     nsCOMPtr<nsISchemaDuration> maxInclusiveDuration;
 
-    if (IsValidSchemaDuration(aMaxInclusive, getter_AddRefs(maxInclusiveDuration)) && 
+    if (IsValidSchemaDuration(aMaxInclusive, getter_AddRefs(maxInclusiveDuration)) &&
         nsSchemaValidatorUtils::CompareDurations(duration, maxInclusiveDuration) == 1){
       isValid = PR_FALSE;
       LOG(("  Not valid: Value is too large or indeterminate"));
@@ -3266,7 +3290,7 @@ nsSchemaValidator::IsValidSchemaDecimal(const nsAString & aNodeValue,
                               aNodeValue.Length() - findString - 1);
   }
 
-  // to make test easier for example 
+  // to make test easier for example
   //   nsAutoString wh1, wh2, fr1, fr2;
   //   IsValidSchemaDecimal(NS_LITERAL_STRING("123.456"), wh1,fr1);
   //   IsValidSchemaDecimal(NS_LITERAL_STRING("000123.4560000"), wh2,fr2);
@@ -3480,7 +3504,7 @@ nsSchemaValidator::ValidateBuiltinTypeQName(const nsAString & aNodeValue,
   if (isValid) {
     length = aNodeValue.Length();
 
-    if (aLengthDefined && (length != aLength)) {  
+    if (aLengthDefined && (length != aLength)) {
       isValid = PR_FALSE;
       LOG(("  Not valid: Not the right length (%d)", length));
     }
@@ -3584,7 +3608,7 @@ nsSchemaValidator::IsValidSchemaHexBinary(const nsAString & aString)
   // hex binary length has to be even
   PRUint32 length = aString.Length();
 
-  if (length % 2 != 0) 
+  if (length % 2 != 0)
     return PR_FALSE;
 
   nsAString::const_iterator start, end;
@@ -3790,7 +3814,7 @@ nsSchemaValidator::ValidateComplexModelEmpty(nsIDOMNode* aNode,
   nsCOMPtr<nsIDOMNode> currentNode;
   rv = aNode->GetFirstChild(getter_AddRefs(currentNode));
   NS_ENSURE_SUCCESS(rv, rv);
-  
+
   while (isValid && currentNode) {
     PRUint16 nodeType;
     currentNode->GetNodeType(&nodeType);
@@ -4170,8 +4194,12 @@ nsSchemaValidator::ValidateComplexParticle(nsIDOMNode* aNode,
         NS_ENSURE_SUCCESS(rv, rv);
 
         if (nodeName.Equals(particleName)) {
+          LOG(("<%s>", NS_ConvertUTF16toUTF8(nodeName).get()));
           rv = ValidateComplexElement(leftOvers, aSchemaParticle, &isValid);
           NS_ENSURE_SUCCESS(rv, rv);
+          LOG(("</%s> (Valid = %s)",
+              NS_ConvertUTF16toUTF8(nodeName).get(),
+                                    (isValid ? "true" : "false")));
 
           // set rest to the next element if node is valid
           if (isValid) {
@@ -4212,10 +4240,8 @@ nsSchemaValidator::ValidateComplexParticle(nsIDOMNode* aNode,
       break;
     }
 
-    case nsISchemaParticle::PARTICLE_TYPE_ANY: {
-      rv = NS_ERROR_NOT_IMPLEMENTED;
-      break;
-    }
+    case nsISchemaParticle::PARTICLE_TYPE_ANY:
+      return Validate(aNode, aResult);
   }
 
   leftOvers.swap(*aLeftOvers);
@@ -4239,7 +4265,7 @@ nsSchemaValidator::GetElementXsiType(nsIDOMNode*     aNode,
                                            &hasTypeAttribute);
   NS_ENSURE_SUCCESS(rv, rv);
 
-  /* XXX: This all may need to change when 
+  /* XXX: This all may need to change when
      element.GetSchemaTypeInfo() is implemented from DOM Level 3 Core,
      see:
      http://www.w3.org/TR/DOM-Level-3-Core/core.html#Attr-schemaTypeInfo
@@ -4669,7 +4695,11 @@ nsSchemaValidator::ValidateAttributeComponent(nsIDOMNode* aNode,
     }
 
     case nsISchemaAttributeComponent::COMPONENT_TYPE_ANY: {
-      rv = NS_ERROR_NOT_IMPLEMENTED;
+      // for now we just accept this one as being valid.
+      // should look at the attribute namespace and validate the
+      // attribute against it
+      // XXX: implement this
+      isValid = PR_TRUE;
       break;
     }
   }
@@ -4706,22 +4736,12 @@ nsSchemaValidator::ValidateSchemaAttribute(nsIDOMNode* aNode,
   PRBool hasAttr = PR_FALSE;
   PRBool isValid = PR_FALSE;
 
-  if (!qualifiedNamespace.IsEmpty()) {
-    rv = elm->HasAttributeNS(qualifiedNamespace, aAttrName, &hasAttr);
-    NS_ENSURE_SUCCESS(rv, rv);
+  rv = elm->HasAttribute(aAttrName, &hasAttr);
+  NS_ENSURE_SUCCESS(rv, rv);
 
-    if (hasAttr) {
-      rv = elm->GetAttributeNS(qualifiedNamespace, aAttrName, attrValue);
-      NS_ENSURE_SUCCESS(rv, rv);
-    }
-  } else {
-    rv = elm->HasAttribute(aAttrName, &hasAttr);
+  if (hasAttr) {
+    rv = elm->GetAttribute(aAttrName, attrValue);
     NS_ENSURE_SUCCESS(rv, rv);
-
-    if (hasAttr) {
-      rv = elm->GetAttribute(aAttrName, attrValue);
-      NS_ENSURE_SUCCESS(rv, rv);
-    }
   }
 
   if (!hasAttr) {
@@ -4756,6 +4776,33 @@ nsSchemaValidator::ValidateSchemaAttribute(nsIDOMNode* aNode,
       LOG(("        -- attribute prohibited!"));
     } else {
       if (simpleType) {
+        // save the type on the attribute
+        nsCOMPtr<nsIDOMAttr> attrNode;
+
+        if (NS_SUCCEEDED(elm->GetAttributeNode(aAttrName,
+                                               getter_AddRefs(attrNode)))) {
+          nsCOMPtr<nsIWritableVariant> holder =
+            do_CreateInstance("@mozilla.org/variant;1");
+          NS_ENSURE_STATE(holder);
+
+          holder->SetAsInterface(nsISchemaType::GetIID(), simpleType);
+
+          // and save on the node
+          nsCOMPtr<nsIAttribute> pAttribute(do_QueryInterface(attrNode));
+
+          if (pAttribute) {
+            // we have to be really careful to set the destructor function
+            // correctly. this also has to be a pointer to a variant
+            nsCOMPtr<nsIAtom> key = do_GetAtom("xsdtype");
+            NS_ENSURE_TRUE(key, NS_ERROR_OUT_OF_MEMORY);
+
+            nsIVariant *pVariant = holder;
+            NS_IF_ADDREF(pVariant);
+            rv = pAttribute->SetProperty(key, pVariant, &VariantDTor);
+            NS_ENSURE_SUCCESS(rv, rv);
+          }
+        }
+
         rv = ValidateSimpletype(attrValue, simpleType, &isValid);
       } else {
         // If no type exists (ergo no simpleType), we should use the

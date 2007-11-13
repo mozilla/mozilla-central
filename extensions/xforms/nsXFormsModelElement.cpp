@@ -45,6 +45,7 @@
 #include "nsIDOMElement.h"
 #include "nsIDOM3Node.h"
 #include "nsIDOMNodeList.h"
+#include "nsIVariant.h"
 #include "nsString.h"
 #include "nsIDocument.h"
 #include "nsXFormsAtoms.h"
@@ -228,7 +229,7 @@ nsXFormsControlListItem::iterator::operator++()
     }
     mStack.AppendElement(mCur->mFirstChild);
   }
-    
+
   if (mCur->mNextSibling) {
     mCur = mCur->mNextSibling;
   } else if (mStack.Count()) {
@@ -255,7 +256,7 @@ nsXFormsControlListItem::nsXFormsControlListItem(
     mFirstChild(nsnull),
     mControlListHash(aHashtable)
 {
-  
+
 }
 
 nsXFormsControlListItem::~nsXFormsControlListItem()
@@ -574,7 +575,7 @@ nsPostRefresh::~nsPostRefresh()
   sContainerPostRefreshList = nsnull;
 }
 
-const nsVoidArray* 
+const nsVoidArray*
 nsPostRefresh::PostRefreshList()
 {
   return sPostRefreshList;
@@ -748,7 +749,7 @@ nsXFormsModelElement::DocumentChanged(nsIDOMDocument* aNewDocument)
       targ->AddEventListener(NS_LITERAL_STRING("unload"), this, PR_TRUE);
     }
   }
-  
+
   return NS_OK;
 }
 
@@ -1038,7 +1039,7 @@ nsXFormsModelElement::GetInstanceDocument(const nsAString& aInstanceID,
   if (*aDocument) {
     return NS_OK;
   }
-  
+
   const nsPromiseFlatString& flat = PromiseFlatString(aInstanceID);
   const PRUnichar *strings[] = { flat.get() };
   nsXFormsUtils::ReportError(aInstanceID.IsEmpty() ?
@@ -1087,7 +1088,7 @@ nsXFormsModelElement::Recalculate()
 #ifdef DEBUG
   printf("nsXFormsModelElement::Recalculate()\n");
 #endif
-  
+
   return mMDG.Recalculate(&mChangedNodes);
 }
 
@@ -1107,7 +1108,7 @@ nsXFormsModelElement::SetStates(nsIXFormsControl *aControl,
                                 nsIDOMNode       *aNode)
 {
   NS_ENSURE_ARG(aControl);
-  
+
   nsCOMPtr<nsIDOMElement> element;
   aControl->GetElement(getter_AddRefs(element));
   NS_ENSURE_STATE(element);
@@ -1129,7 +1130,7 @@ nsXFormsModelElement::SetStates(nsIXFormsControl *aControl,
   } else {
     aControl->GetDefaultIntrinsicState(&iState);
   }
-  
+
   nsresult rv = xtfWrap->SetIntrinsicState(iState);
   NS_ENSURE_SUCCESS(rv, rv);
 
@@ -1193,7 +1194,7 @@ nsXFormsModelElement::RefreshSubTree(nsXFormsControlListItem *aCurrent,
   while (current) {
     nsCOMPtr<nsIXFormsControl> control(current->Control());
     NS_ASSERTION(control, "A tree node without a control?!");
-    
+
     // Get bound node
     nsCOMPtr<nsIDOMNode> boundNode;
     control->GetBoundNode(getter_AddRefs(boundNode));
@@ -1228,7 +1229,7 @@ nsXFormsModelElement::RefreshSubTree(nsXFormsControlListItem *aCurrent,
         if (!boundNode) {
           PRBool usesSNB = PR_TRUE;
           control->GetUsesSingleNodeBinding(&usesSNB);
-      
+
           // If the control doesn't use single node binding (and can thus be
           // bound to many nodes), the above test for boundNode means nothing.
           // We'll need to continue on with the work this function does so that
@@ -1250,7 +1251,7 @@ nsXFormsModelElement::RefreshSubTree(nsXFormsControlListItem *aCurrent,
         control->GetDependencies(&deps);
       }
       PRUint32 depCount = deps ? deps->Count() : 0;
-        
+
 #ifdef DEBUG_MODEL
       nsAutoString boundName;
       if (boundNode)
@@ -1314,7 +1315,7 @@ nsXFormsModelElement::RefreshSubTree(nsXFormsControlListItem *aCurrent,
       }
 #ifdef DEBUG_MODEL
       printf("\trebind: %d, refresh: %d\n", rebind, refresh);
-#endif    
+#endif
     }
 
     // Handle rebinding
@@ -1362,11 +1363,11 @@ nsXFormsModelElement::Refresh()
   // before we clear the dispatch flags
   {
     nsPostRefresh postRefresh = nsPostRefresh();
-  
+
     if (!mDocumentLoaded) {
       return NS_OK;
     }
-  
+
     // Kick off refreshing on root node
     nsresult rv = RefreshSubTree(mFormControls.FirstChild(), PR_FALSE);
     NS_ENSURE_SUCCESS(rv, rv);
@@ -1471,15 +1472,22 @@ nsXFormsModelElement::GetTypeForControl(nsIXFormsControl  *aControl,
   nsCOMPtr<nsIDOMNode> boundNode;
   aControl->GetBoundNode(getter_AddRefs(boundNode));
   if (!boundNode) {
-    // if the control isn't bound to instance data, it doesn't make sense to 
+    // if the control isn't bound to instance data, it doesn't make sense to
     // return a type.  It is perfectly valid for there to be no bound node,
     // so no need to use an NS_ENSURE_xxx macro, either.
     return NS_ERROR_FAILURE;
   }
 
+  return GetTypeForNode(boundNode, aType);
+}
+
+NS_IMETHODIMP nsXFormsModelElement::GetTypeForNode(nsIDOMNode     *aBoundNode,
+                                                   nsISchemaType **aType)
+{
   nsAutoString schemaTypeName, schemaTypeNamespace;
-  nsresult rv = GetTypeAndNSFromNode(boundNode, schemaTypeName,
-                                     schemaTypeNamespace);
+  nsresult rv = GetTypeFromNode(aBoundNode, schemaTypeName,
+                                schemaTypeNamespace);
+
   NS_ENSURE_SUCCESS(rv, rv);
 
   nsXFormsSchemaValidator validator;
@@ -1493,24 +1501,53 @@ nsXFormsModelElement::GetTypeForControl(nsIXFormsControl  *aControl,
       validator.LoadSchema(schema);
   }
 
-  PRBool foundType = validator.GetType(schemaTypeName, schemaTypeNamespace,
-                                       aType);
-  return foundType ? NS_OK : NS_ERROR_FAILURE;
+  if (validator.GetType(schemaTypeName, schemaTypeNamespace, aType))
+    rv = NS_OK;
+  else
+    rv = NS_ERROR_FAILURE;
+
+  return rv;
 }
 
 /* static */ nsresult
 nsXFormsModelElement::GetTypeAndNSFromNode(nsIDOMNode *aInstanceData,
                                            nsAString &aType, nsAString &aNSUri)
 {
-  nsresult rv = GetTypeFromNode(aInstanceData, aType, aNSUri);
+  // 6.2.1 1. see if the instance data has a schema type.
+  // if the control has a schema type then we will then
+  // have to set a MIP node.
+  nsCOMPtr<nsISchemaType> schemaType;
+  nsresult rv = GetTypeForNode(aInstanceData, getter_AddRefs(schemaType));
 
+  if (rv == NS_OK) {
+    schemaType->GetTargetNamespace(aNSUri);
+    schemaType->GetName(aType);
+
+    return NS_OK;
+  }
+
+  // 6.2.1 2 & 3
+  // see if the type is assigned as an xsi:type, or XForms:type
+  nsAutoString schemaTypePrefix;
+  rv = nsXFormsUtils::ParseTypeFromNode(aInstanceData, aType, schemaTypePrefix);
+
+  // 6.2.1 4. Otherwise it is a string
   if (rv == NS_ERROR_NOT_AVAILABLE) {
     // if there is no type assigned, then assume that the type is 'string'
     aNSUri.Assign(NS_LITERAL_STRING(NS_NAMESPACE_XML_SCHEMA));
     aType.Assign(NS_LITERAL_STRING("string"));
     rv = NS_OK;
-  }
+  } else {
+    if (schemaTypePrefix.IsEmpty()) {
+      aNSUri.AssignLiteral("");
+    } else {
+      // get the namespace url from the prefix
+      nsCOMPtr<nsIDOM3Node> domNode3(do_QueryInterface(mElement, &rv));
+      NS_ENSURE_SUCCESS(rv, rv);
 
+      rv = domNode3->LookupNamespaceURI(schemaTypePrefix, aNSUri);
+    }
+  }
   return rv;
 }
 
@@ -1568,7 +1605,7 @@ nsXFormsModelElement::FindInstanceElement(const nsAString &aID,
       } else if (!element) {
         // this should only happen if the instance on the list is lazy authored
         // and as far as I can tell, a lazy authored instance should be the
-        // first (and only) instance in the model and unable to have an ID.  
+        // first (and only) instance in the model and unable to have an ID.
         // But that isn't clear to me reading the spec, so for now
         // we'll play it safe in case the WG more clearly defines lazy authoring
         // in the future.
@@ -1612,7 +1649,7 @@ NS_IMETHODIMP
 nsXFormsModelElement::SetNodeContent(nsIDOMNode *aNode,
                                      nsIDOMNode *aNodeContent,
                                      PRBool      aDoRebuild)
-{ 
+{
   nsresult rv = mMDG.SetNodeContent(aNode, aNodeContent);
   NS_ENSURE_SUCCESS(rv, rv);
 
@@ -1636,7 +1673,7 @@ nsXFormsModelElement::ValidateNode(nsIDOMNode *aInstanceNode, PRBool *aResult)
   NS_ENSURE_ARG_POINTER(aResult);
 
   nsAutoString schemaTypeName, schemaTypeNamespace;
-  nsresult rv = GetTypeAndNSFromNode(aInstanceNode, schemaTypeName, 
+  nsresult rv = GetTypeAndNSFromNode(aInstanceNode, schemaTypeName,
                                      schemaTypeNamespace);
   NS_ENSURE_SUCCESS(rv, rv);
 
@@ -1713,7 +1750,7 @@ nsXFormsModelElement::ValidateDocument(nsIDOMDocument *aInstanceDocument,
     *aResult = PR_TRUE;
     return NS_OK;
   }
-  
+
   nsXFormsSchemaValidator validator;
   validator.LoadSchema(schema);
   // Validate will validate the node and its subtree, as per the schema
@@ -1795,14 +1832,31 @@ nsXFormsModelElement::GetTypeFromNode(nsIDOMNode *aInstanceData,
   // bound to the node via \<xforms:bind\>
   if (!typeVal && !mNodeToType.Get(aInstanceData, &typeVal)) {
     // check if schema validation left us a nsISchemaType*
-    nsCOMPtr<nsIContent> content = do_QueryInterface(aInstanceData);
+    nsCOMPtr<nsIAtom> key = do_GetAtom("xsdtype");
+    NS_ENSURE_TRUE(key, NS_ERROR_OUT_OF_MEMORY);
 
-    if (content) {
-      nsISchemaType *type;
-      nsCOMPtr<nsIAtom> myAtom = do_GetAtom("xsdtype");
+    nsresult rv = NS_ERROR_FAILURE;
+    nsCOMPtr<nsIVariant> xsdType;
+    // this is stored on the DOM3Node as a property called xsdtype
+    nsCOMPtr<nsIContent> pContent(do_QueryInterface(aInstanceData));
 
-      type = static_cast<nsISchemaType *>(content->GetProperty(myAtom));
-      if (type) {
+    if (pContent) {
+       xsdType = static_cast<nsIVariant*>(pContent->GetProperty(key, &rv));
+    } else {
+      // see if this is stored on an attribute node
+      nsCOMPtr<nsIAttribute> pAttribute(do_QueryInterface(aInstanceData));
+
+      if (pAttribute) {
+        xsdType = static_cast<nsIVariant*>(pAttribute->GetProperty(key, &rv));
+      }
+    }
+
+    if (NS_SUCCEEDED(rv) && xsdType) {
+      nsCOMPtr<nsISchemaType> type;
+      nsIID *containedInterface;
+
+      if (NS_SUCCEEDED(xsdType->GetAsInterface(&containedInterface,
+                                               getter_AddRefs(type))) && type) {
         type->GetName(aType);
         type->GetTargetNamespace(aNSUri);
         return NS_OK;
@@ -1955,7 +2009,7 @@ nsXFormsModelElement::GetContext(nsAString      &aModelID,
                                  PRInt32        *aContextPosition,
                                  PRInt32        *aContextSize)
 {
-  // Adding the nsIXFormsContextControl interface to model to allow 
+  // Adding the nsIXFormsContextControl interface to model to allow
   // submission elements to call our binding evaluation methods, like
   // EvaluateNodeBinding.  If GetContext can get called outside of the binding
   // codepath, then this MIGHT lead to problems.
@@ -1968,7 +2022,7 @@ nsXFormsModelElement::GetContext(nsAString      &aModelID,
   // changing the other values that we are returning unless this is successful.
   nsresult rv = NS_ERROR_FAILURE;
 
-  // Anybody (like a submission element) asking a model element for its context 
+  // Anybody (like a submission element) asking a model element for its context
   // for XPath expressions will want the root node of the default instance
   // document
   nsCOMPtr<nsIDOMDocument> firstInstanceDoc =
@@ -2097,7 +2151,7 @@ nsXFormsModelElement::BackupOrRestoreInstanceData(PRBool restore)
 
       // Don't know what to do with error if we get one.
       // Restore/BackupOriginalDocument will already output warnings.
-      if(restore) {
+      if (restore) {
         instance->RestoreOriginalDocument();
       }
       else {
@@ -2162,7 +2216,7 @@ nsXFormsModelElement::FinishConstruction()
   // we get the instance data from our instance child nodes
 
   // We're done initializing this model.
-  // 5. Perform an xforms-rebuild, xforms-recalculate, and xforms-revalidate in 
+  // 5. Perform an xforms-rebuild, xforms-recalculate, and xforms-revalidate in
   // sequence, for this model element. (The xforms-refresh is not performed
   // since the user interface has not yet been initialized).
   nsXFormsUtils::DispatchEvent(mElement, eEvent_Rebuild);
@@ -2307,7 +2361,7 @@ nsXFormsModelElement::MaybeNotifyCompletion()
       // if we are still waiting for external messages to load, then put off
       // the xforms-ready until a model in the document is notified that they
       // are finished loading
-   
+
       return;
     }
   }
@@ -2386,7 +2440,7 @@ nsXFormsModelElement::ProcessBind(nsIDOMXPathEvaluator *aEvaluator,
   }
 
   NS_ENSURE_STATE(result);
-  
+
   // If this is an outer bind, store the nodeset, as controls binding to this
   // bind will need this.
   if (aIsOuter) {
@@ -2403,7 +2457,7 @@ nsXFormsModelElement::ProcessBind(nsIDOMXPathEvaluator *aEvaluator,
   PRUint32 snapLen;
   rv = result->GetSnapshotLength(&snapLen);
   NS_ENSURE_SUCCESS(rv, rv);
-  
+
 
   // Iterate over resultset
   nsCOMArray<nsIDOMNode> deps;
@@ -2564,7 +2618,7 @@ nsXFormsModelElement::ProcessBind(nsIDOMXPathEvaluator *aEvaluator,
           child->GetLocalName(value);
           if (!value.EqualsLiteral("bind"))
             continue;
-          
+
           child->GetNamespaceURI(value);
           if (!value.EqualsLiteral(NS_NAMESPACE_XFORMS))
             continue;
@@ -2595,7 +2649,7 @@ nsXFormsModelElement::ProcessBind(nsIDOMXPathEvaluator *aEvaluator,
 }
 
 NS_IMETHODIMP
-nsXFormsModelElement::AddInstanceElement(nsIInstanceElementPrivate *aInstEle) 
+nsXFormsModelElement::AddInstanceElement(nsIInstanceElementPrivate *aInstEle)
 {
   NS_ENSURE_STATE(mInstanceDocuments);
   mInstanceDocuments->AddInstance(aInstEle);
@@ -2613,7 +2667,7 @@ nsXFormsModelElement::RemoveInstanceElement(nsIInstanceElementPrivate *aInstEle)
 }
 
 NS_IMETHODIMP
-nsXFormsModelElement::MessageLoadFinished() 
+nsXFormsModelElement::MessageLoadFinished()
 {
   // This is our signal that all external message links have been tested.  If
   // we were waiting for this to send out xforms-ready, then now is the time.
@@ -3240,7 +3294,7 @@ nsXFormsModelElement::DeferElementBind(nsIXFormsControl *aControl)
   nsCOMPtr<nsIDOMElement> element;
   nsresult rv = aControl->GetElement(getter_AddRefs(element));
   NS_ENSURE_SUCCESS(rv, rv);
-  
+
   nsCOMPtr<nsIContent> content(do_QueryInterface(element));
   NS_ASSERTION(content, "nsIDOMElement not implementing nsIContent?!");
 
