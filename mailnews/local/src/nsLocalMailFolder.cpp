@@ -651,10 +651,19 @@ NS_IMETHODIMP nsMsgLocalMailFolder::GetFolderURL(nsACString& aUrl)
   rv = GetFilePath(getter_AddRefs(path));
   if (NS_FAILED(rv)) return rv;
 
-  nsCAutoString tmpPath;
-  path->GetNativePath(tmpPath);
+  nsCAutoString nativePath;
+  path->GetNativePath(nativePath);
+
+  nsAutoString unicodePath;
+  NS_CopyNativeToUnicode(nativePath, unicodePath);
+
+  nsCAutoString escapedPath;
+  rv = NS_MsgEscapeEncodeURLPath(unicodePath, escapedPath);
+  NS_ENSURE_SUCCESS(rv, rv);
+
   aUrl.AssignLiteral("mailbox:");
-  aUrl.Append(tmpPath);
+  aUrl.Append(escapedPath);
+
   return NS_OK;
 }
 
@@ -2579,7 +2588,6 @@ static PRBool gDeleteFromServerOnMove;
 
 PRBool nsMsgLocalMailFolder::GetDeleteFromServerOnMove()
 {
-  PRBool deleteFromServerOnMove = PR_FALSE;
   if (!gGotGlobalPrefs)
   {
     nsCOMPtr<nsIPrefBranch> pPrefBranch(do_GetService(NS_PREFSERVICE_CONTRACTID));
