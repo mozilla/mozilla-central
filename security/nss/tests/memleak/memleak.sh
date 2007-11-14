@@ -169,7 +169,7 @@ memleak_init()
 		;;
 	esac
 
-	if [ "${BUILD_OPT}" -eq "1" ] ; then
+	if [ "${BUILD_OPT}" = "1" ] ; then
 		OPT="OPT"
 	else 
 		OPT="DBG"
