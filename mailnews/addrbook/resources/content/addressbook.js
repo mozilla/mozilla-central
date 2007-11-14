@@ -40,7 +40,6 @@
  * ***** END LICENSE BLOCK ***** */
 
 var cvPrefs = 0;
-var addressbook = 0;
 var gSearchTimer = null;
 var gStatusText = null;
 var gQueryURIFormat = null;
@@ -447,7 +446,9 @@ function AbExport()
     if (!selectedABURI) return;
     
     var directory = GetDirectoryFromURI(selectedABURI);
-    addressbook.exportAddressBook(window, directory);
+    Components.classes["@mozilla.org/addressbook;1"]
+              .createInstance(Components.interfaces.nsIAddressBook)
+              .exportAddressBook(window, directory);
   }
   catch (ex) {
     var promptService = Components.classes["@mozilla.org/embedcomp/prompt-service;1"].getService(Components.interfaces.nsIPromptService);
