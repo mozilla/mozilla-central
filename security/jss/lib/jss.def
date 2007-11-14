@@ -322,4 +322,3 @@ Java_org_mozilla_jss_pkcs11_PK11Token_needsLogin;
 ;+    local:
 ;+       *;
 ;+};
-
