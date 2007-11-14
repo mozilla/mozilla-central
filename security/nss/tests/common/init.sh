@@ -257,14 +257,23 @@ if [ -z "${INIT_SOURCED}" -o "${INIT_SOURCED}" != "TRUE" ]; then
     COMMON=${TEST_COMMON-$common}
     export COMMON
 
+    MAKE=`which gmake`
+    if [ -z "$MAKE" ]; then
+		MAKE=`which make`
+    fi
+    if [ -z "$MAKE" ]; then
+		You are missing make.
+		exit 5
+    fi
+
     DIST=${DIST-${MOZILLA_ROOT}/dist}
     SECURITY_ROOT=${SECURITY_ROOT-${MOZILLA_ROOT}/security/nss}
     TESTDIR=${TESTDIR-${MOZILLA_ROOT}/tests_results/security}
-    OBJDIR=`(cd $COMMON; gmake objdir_name)`
-    OS_ARCH=`(cd $COMMON; gmake os_arch)`
-    DLL_PREFIX=`(cd $COMMON; gmake dll_prefix)`
-    DLL_SUFFIX=`(cd $COMMON; gmake dll_suffix)`
-    OS_NAME=`uname -s | sed -e "s/-[0-9]*\.[0-9]*//"`
+    OBJDIR=`(cd $COMMON; $MAKE objdir_name)`
+    OS_ARCH=`(cd $COMMON; $MAKE os_arch)`
+    DLL_PREFIX=`(cd $COMMON; $MAKE dll_prefix)`
+    DLL_SUFFIX=`(cd $COMMON; $MAKE dll_suffix)`
+    OS_NAME=`uname -s | sed -e "s/-[0-9]*\.[0-9]*//" | sed -e "s/-WOW64//"`
 
     # Pathnames constructed from ${TESTDIR} are passed to NSS tools
     # such as certutil, which don't understand Cygwin pathnames.
@@ -272,6 +281,14 @@ if [ -z "${INIT_SOURCED}" -o "${INIT_SOURCED}" != "TRUE" ]; then
     # regular slashes).
     if [ "${OS_ARCH}" = "WINNT" -a "$OS_NAME" = "CYGWIN_NT" ]; then
         TESTDIR=`cygpath -m ${TESTDIR}`
+        QADIR=`cygpath -m ${QADIR}`
+    fi
+
+    # Same problem with MSYS/Mingw, except we need to start over with pwd -W
+    if [ "${OS_ARCH}" = "WINNT" -a "$OS_NAME" = "MINGW32_NT" ]; then
+		mingw_mozilla_root=`(cd ../../../..; pwd -W)`
+		MINGW_MOZILLA_ROOT=${MINGW_MOZILLA_ROOT-$mingw_mozilla_root}
+		TESTDIR=${MINGW_TESTDIR-${MINGW_MOZILLA_ROOT}/tests_results/security}
     fi
 
     # Same problem with MSYS/Mingw, except we need to start over with pwd -W

@@ -97,6 +97,11 @@ cert_init()
       html_passed "<TR><TD>Looking for root certs module."
   fi
 
+  if [ "${OS_ARCH}" = "WINNT" -a "$OS_NAME" = "CYGWIN_NT" ]; then
+	ROOTCERTSFILE=`cygpath -m ${ROOTCERTSFILE}`
+  fi
+
+
   ################## Generate noise for our CA cert. ######################
   # NOTE: these keys are only suitable for testing, as this whole thing 
   # bypasses the entropy gathering. Don't use this method to generate 
@@ -220,6 +225,9 @@ cert_init_cert()
     CERTDIR="."
 
     PROFILEDIR=`cd ${CERTDIR}; pwd`
+    if [ "${OS_ARCH}" = "WINNT" -a "$OS_NAME" = "CYGWIN_NT" ]; then
+        PROFILEDIR=`cygpath -m ${PROFILEDIR}`
+    fi
     if [ -n "${MULTIACCESS_DBM}" ]; then
 	PROFILEDIR="multiaccess:${DOMAIN}"
     fi
@@ -490,6 +498,9 @@ cert_CA()
   pwd
 
   LPROFILE=`pwd`
+  if [ "${OS_ARCH}" = "WINNT" -a "$OS_NAME" = "CYGWIN_NT" ]; then
+     LPROFILE=`cygpath -m ${LPROFILE}`
+  fi
   if [ -n "${MULTIACCESS_DBM}" ]; then
 	LPROFILE="multiaccess:${DOMAIN}"
   fi
@@ -952,6 +963,9 @@ cert_stresscerts()
   cd "${CERTDIR}"
 
   PROFILEDIR=`cd ${CERTDIR}; pwd`
+  if [ "${OS_ARCH}" = "WINNT" -a "$OS_NAME" = "CYGWIN_NT" ]; then
+     PROFILEDIR=`cygpath -m ${PROFILEDIR}`
+  fi  
   if [ -n "${MULTIACCESS_DBM}" ]; then
      PROFILEDIR="multiaccess:${D_CLIENT}"
   fi
@@ -1170,6 +1184,9 @@ cert_crl_ssl()
   cd $CADIR
   
   PROFILEDIR=`cd ${CLIENTDIR}; pwd`
+  if [ "${OS_ARCH}" = "WINNT" -a "$OS_NAME" = "CYGWIN_NT" ]; then
+     PROFILEDIR=`cygpath -m ${PROFILEDIR}`
+  fi
   CRL_GRPS_END=`expr ${CRL_GRP_1_BEGIN} + ${TOTAL_CRL_RANGE} - 1`
   echo "$SCRIPTNAME: Creating Client CA Issued Certificates Range $CRL_GRP_1_BEGIN - $CRL_GRPS_END ==="
   CU_ACTION="Creating client test certs"

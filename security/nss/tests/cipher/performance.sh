@@ -5,6 +5,9 @@
 #
 . ../common/init.sh
 CURDIR=`pwd`
+if [ "${OS_ARCH}" = "WINNT" -a "$OS_NAME" = "CYGWIN_NT" ]; then
+	CURDIR=`cygpath -m ${CURDIR}`
+fi
 
 CIPHERDIR=${HOSTDIR}/cipher
 SKTESTS=${CURDIR}/symmkey.txt
