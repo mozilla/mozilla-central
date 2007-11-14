@@ -259,6 +259,9 @@ ifeq (CYGWIN_NT,$(findstring CYGWIN_NT,$(OS_ARCH)))
     OS_RELEASE := $(patsubst CYGWIN_NT-%,%,$(OS_ARCH))
     OS_ARCH = WINNT
     ifndef CPU_ARCH
+    ifeq (WOW64,$(findstring WOW64,$(OS_RELEASE)))
+        OS_RELEASE := $(patsubst %-WOW64,%,$(OS_RELEASE))
+    endif    
 	CPU_ARCH := $(shell uname -m)
 	#
 	# Cygwin's uname -m returns "i686" on a Pentium Pro machine.

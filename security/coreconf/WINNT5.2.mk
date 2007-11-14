@@ -45,7 +45,11 @@ include $(CORE_DEPTH)/coreconf/WIN32.mk
 
 ifeq ($(CPU_ARCH), x386)
 	OS_CFLAGS += -W3 -nologo
+ifdef USE_64
+	DEFINES += -D_AMD64_
+else
 	DEFINES += -D_X86_
+endif
 else 
 	ifeq ($(CPU_ARCH), MIPS)
 		#OS_CFLAGS += -W3 -nologo

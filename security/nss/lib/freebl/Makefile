@@ -88,6 +88,7 @@ ifeq ($(OS_TARGET),OSF1)
 endif
 
 ifeq (,$(filter-out WINNT WIN95,$(OS_TARGET)))  #omits WIN16 and WINCE
+ifndef USE_64
 ifdef NS_USE_GCC
 # Ideally, we want to use assembler
 #     ASFILES  = mpi_x86.s
@@ -104,6 +105,7 @@ else
     ifdef BUILD_OPT
 	OPTIMIZER += -Ox  # maximum optimization for freebl
     endif
+endif
 endif
 endif
 

@@ -559,7 +559,9 @@ void RNG_FileForRNG(const char *filename)
  * functions in advapi32.dll at run time.
  */
 
+#ifndef WIN64
 typedef unsigned long HCRYPTPROV;
+#endif
 
 #define CRYPT_VERIFYCONTEXT 0xF0000000
 
