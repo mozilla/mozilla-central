@@ -93,9 +93,6 @@
 <!ENTITY day.6.name "Friday" >
 <!ENTITY day.7.name "Saturday" >
 
-<!ENTITY time.am "AM" >
-<!ENTITY time.pm "PM" >
-
 <!-- Month Names -->
 <!ENTITY month.1.MMM "JAN" >
 <!ENTITY month.2.MMM "FEB" >
@@ -109,12 +106,6 @@
 <!ENTITY month.10.MMM "OCT" >
 <!ENTITY month.11.MMM "NOV" >
 <!ENTITY month.12.MMM "DEC" >
-
-<!ENTITY time.AM "AM" >
-<!ENTITY time.PM "PM" >
-
-<!ENTITY more.label "MORE" >
-<!ENTITY less.label "LESS" >
 
 <!-- Units -->
 <!ENTITY calendar.global.units.second   "second">
