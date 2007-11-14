@@ -94,7 +94,6 @@ typedef struct pkixStdVarsStr {
     PKIX_ERRORCLASS    aPkixErrorClass;
     PKIX_UInt32        aPkixType;
     PKIX_PL_Object    *aLockedObject;
-    PKIX_PL_Mutex     *aLockedMutex;
 } PKIX_StdVars;
 
 #ifdef PKIX_STDVARS_POINTER
@@ -109,7 +108,6 @@ typedef struct pkixStdVarsStr {
 #define pkixErrorClass		stdVars->aPkixErrorClass
 #define pkixType		stdVars->aPkixType
 #define lockedObject		stdVars->aLockedObject
-#define lockedMutex		stdVars->aLockedMutex
 #else
 #define myFuncName              stdVars.aMyFuncName
 #define pkixErrorResult		stdVars.aPkixErrorResult
@@ -122,7 +120,6 @@ typedef struct pkixStdVarsStr {
 #define pkixErrorClass		stdVars.aPkixErrorClass
 #define pkixType		stdVars.aPkixType
 #define lockedObject		stdVars.aLockedObject
-#define lockedMutex		stdVars.aLockedMutex
 #endif
 
 extern PKIX_Error * PKIX_DoReturn(PKIX_StdVars * stdVars, 
@@ -211,18 +208,6 @@ extern const PKIX_StdVars zeroStdVars;
 	} \
     } while (0)
 
-#define PKIX_MUTEX_UNLOCK(mutex) \
-    do { \
-	if (mutex){ \
-	    PORT_Assert(lockedMutex == (PKIX_PL_Mutex *)(mutex)); \
-	    pkixTempResult = \
-		    PKIX_PL_Mutex_Unlock((mutex), plContext); \
-	    if (pkixTempResult) \
-		return pkixTempResult; \
-	    lockedMutex = NULL; \
-	} \
-    } while (0)
-
 #define PKIX_DECREF(obj) \
     do { \
 	if (obj){ \
@@ -256,7 +241,6 @@ extern const PKIX_StdVars zeroStdVars;
 #define PKIX_RETURN(type) \
     { \
 	PKIX_OBJECT_UNLOCK(lockedObject); \
-	PKIX_MUTEX_UNLOCK(lockedMutex); \
 	if ((pkixErrorReceived) || (pkixErrorResult)) \
 	    PKIX_THROW(type, pkixErrorCode); \
 	PKIX_DEBUG_EXIT(type); \
@@ -272,7 +256,6 @@ extern const PKIX_StdVars zeroStdVars;
 #define PKIX_RETURN_NO_LOGGER(type) \
     { \
 	PKIX_OBJECT_UNLOCK(lockedObject); \
-	PKIX_MUTEX_UNLOCK(lockedMutex); \
 	if ((pkixErrorReceived) || (pkixErrorResult)) \
 	    PKIX_THROW(type, pkixErrorCode); \
 	PKIX_DEBUG_EXIT(type); \
@@ -398,15 +381,6 @@ extern const PKIX_StdVars zeroStdVars;
 		    ((PKIX_PL_Object*)(obj), plContext), \
 		    PKIX_OBJECTLOCKFAILED); \
 	    lockedObject = (PKIX_PL_Object *)(obj); \
-	} \
-    } while (0)
-
-#define PKIX_MUTEX_LOCK(obj) \
-    do { \
-	if (obj){ \
-	    PKIX_CHECK(PKIX_PL_Mutex_Lock((obj), plContext), \
-		    PKIX_MUTEXLOCKFAILED); \
-	    lockedMutex = (obj); \
 	} \
     } while (0)
 

@@ -50,12 +50,6 @@
 extern "C" {
 #endif
 
-struct PKIX_PL_HashTableStruct {
-        pkix_pl_PrimHashTable *primHash;
-        PKIX_PL_Mutex *tableLock;
-        PKIX_UInt32 maxEntriesPerBucket;
-};
-
 /* see source file for function documentation */
 
 PKIX_Error *

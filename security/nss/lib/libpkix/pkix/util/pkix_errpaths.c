@@ -64,7 +64,6 @@ PKIX_DoReturn(PKIX_StdVars * stdVars, PKIX_ERRORCLASS errClass,
               PKIX_Boolean doLogger, void *plContext)
 {
     PKIX_OBJECT_UNLOCK(lockedObject);
-    PKIX_MUTEX_UNLOCK(lockedMutex);
     if ((pkixErrorReceived) || (pkixErrorResult))
 	return PKIX_DoThrow(stdVars, errClass, pkixErrorCode, plContext);
     /* PKIX_DEBUG_EXIT(type); */
