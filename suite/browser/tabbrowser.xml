@@ -120,7 +120,7 @@
           </xul:tabs>
         </xul:hbox>
         <xul:tabpanels flex="1" class="plain" selectedIndex="0" anonid="panelcontainer">
-          <xul:notificationbox>
+          <xul:notificationbox class="browser-notificationbox">
             <xul:browser flex="1" type="content-primary" xbl:inherits="tooltip=contenttooltip,contextmenu=contentcontextmenu,autocompletepopup"/>
           </xul:notificationbox>
         </xul:tabpanels>
@@ -454,6 +454,7 @@
               if (this.mBlank)
                 return;
 
+              // XXX should be: removeAllNotifications(true) once bug 303327 is fixed 
               if (aWebProgress.DOMWindow == this.mBrowser.contentWindow && aWebProgress.isLoadingDocument)
                 this.mBrowser.parentNode.removeAllNotifications(false);
 
@@ -1040,6 +1041,7 @@
             // Add the Message and the Browser to the box
             var n = document.createElementNS("http://www.mozilla.org/keymaster/gatekeeper/there.is.only.xul",
                                              "notificationbox");
+            n.setAttribute("class", "browser-notificationbox");
             n.appendChild(b);
             this.mPanelContainer.appendChild(n);
 
@@ -1327,6 +1329,7 @@
               // JS properties set on them, the browser element won't be
               // destroyed until the document goes away.  So we force a
               // cleanup ourselves.
+              oldBrowser.parentNode.destroy();
               oldBrowser.destroy();
               this.mPanelContainer.removeChild(oldBrowser.parentNode);
 

@@ -1,0 +1,189 @@
+<?xml version="1.0"?>
+
+<!DOCTYPE bindings [
+<!ENTITY % notificationDTD SYSTEM "chrome://global/locale/notification.dtd">
+%notificationDTD;
+]>
+
+<bindings id="browserNotificationBindings"
+          xmlns="http://www.mozilla.org/xbl"
+          xmlns:xbl="http://www.mozilla.org/xbl"
+          xmlns:xul="http://www.mozilla.org/keymaster/gatekeeper/there.is.only.xul">
+
+  <binding id="browser-notificationbox"
+           extends="chrome://global/content/bindings/notification.xml#notificationbox">
+    <implementation implements="nsIObserver">
+      <field name="_stringBundle" readonly="true">
+        <![CDATA[
+          Components.classes["@mozilla.org/intl/stringbundle;1"]
+                    .getService(Components.interfaces.nsIStringBundleService)
+                    .createBundle("chrome://communicator/locale/notification.properties");
+        ]]>
+      </field>
+
+      <field name="_brandStringBundle" readonly="true">
+        <![CDATA[
+          Components.classes["@mozilla.org/intl/stringbundle;1"]
+                    .getService(Components.interfaces.nsIStringBundleService)
+                    .createBundle("chrome://branding/locale/brand.properties");
+        ]]>
+      </field>
+
+      <field name="_activeBrowser">null</field>
+
+      <property name="activeBrowser" readonly="true">
+        <getter>
+          <![CDATA[
+            if (!this._activeBrowser) {
+              const XUL_NS = "http://www.mozilla.org/keymaster/gatekeeper/there.is.only.xul";
+              var browsers = this.getElementsByTagNameNS(XUL_NS, "browser");
+              if (browsers.length == 1) {
+                this._activeBrowser = browsers.item(0);
+              } else if (browsers.length) {
+                for (var i = 0; i < browsers.length; i++) {
+                  if (browsers.item(i).docShell) {
+                    this._activeBrowser = browsers.item(i);
+                    break;
+                  }
+                }
+              }
+            }
+            return this._activeBrowser;
+          ]]>
+        </getter>
+      </property>
+      
+      <method name="observe">
+        <parameter name="aSubject" />
+        <parameter name="aTopic" />
+        <parameter name="aData" />
+        <body>
+          <![CDATA[
+            var browser = this.activeBrowser;
+
+            // inactive sidebar panel:
+            if (!browser || !browser.docShell)
+              return;
+
+            switch (aTopic) {
+              case "xpinstall-install-blocked":
+                var installInfo = aSubject.QueryInterface(Components.interfaces.nsIXPIInstallInfo);
+                if (installInfo.originatingWindow.top != browser.contentWindow)
+                  return;
+
+                var notificationName, messageString, buttons, host;
+                try {
+                  // this fails with nsSimpleURIs like data: URIs
+                  host = installInfo.originatingURI.host;
+                } catch (ex) {
+                  host = this._stringBundle.GetStringFromName("xpinstallHostNotAvailable");
+                }
+
+                if (!pref.getBoolPref("xpinstall.enabled")) {
+                  notificationName = "xpinstall-disabled";
+                  if (pref.prefIsLocked("xpinstall.enabled")) {
+                    messageString = this._stringBundle.GetStringFromName("xpinstallDisabledMessageLocked");
+                    buttons = [];
+                  } else {
+                    messageString = this._stringBundle.GetStringFromName("xpinstallDisabledMessage");
+                    buttons = [{
+                      label: this._stringBundle.GetStringFromName("xpinstallDisabledButton"),
+                      accessKey: this._stringBundle.GetStringFromName("xpinstallDisabledButton.accesskey"),
+                      popup: null,
+                      callback: function editPrefs() {
+                        pref.setBoolPref("xpinstall.enabled", true);
+                        return false;
+                      }
+                    }];
+                  }
+                } else {
+                  notificationName = "xpinstall";
+                  var brandShortName = this._brandStringBundle.GetStringFromName("brandShortName");
+                  messageString = this._stringBundle.formatStringFromName("xpinstallPromptWarning",
+                                                                          [brandShortName, host], 2);
+                  buttons = [{
+                    label: this._stringBundle.GetStringFromName("xpinstallPromptInstallButton"),
+                    accessKey: this._stringBundle.GetStringFromName("xpinstallPromptInstallButton.accesskey"),
+                    popup: null,
+                    callback: function allowInstall() { 
+                      var mgr = Components.classes["@mozilla.org/xpinstall/install-manager;1"]
+                                          .createInstance(Components.interfaces.nsIXPInstallManager);
+                      mgr.initManagerWithInstallInfo(installInfo);
+
+                      return false;
+                    }
+                  }];
+                }
+
+                if (!this.getNotificationWithValue(notificationName)) {
+                  const priority = this.PRIORITY_WARNING_MEDIUM;
+                  const iconURL = "chrome://mozapps/skin/xpinstall/xpinstallItemGeneric.png";
+                  this.appendNotification(messageString, notificationName,
+                                          iconURL, priority, buttons);
+                }
+                break;
+            }
+          ]]>
+        </body>
+      </method>
+
+      <constructor>
+        <![CDATA[
+          var os = Components.classes["@mozilla.org/observer-service;1"]
+                             .getService(Components.interfaces.nsIObserverService);
+          os.addObserver(this, "xpinstall-install-blocked", false);       
+        ]]>
+      </constructor>
+
+      <destructor>
+        <![CDATA[
+          this.destroy();
+        ]]>
+      </destructor>
+      
+      <field name="mDestroyed">false</field>
+
+      <!-- This is necessary because the destructor doesn't always get called when
+            we are removed from a tabbrowser. This will be explicitly called by tabbrowser -->
+      <method name="destroy">
+        <body>
+          <![CDATA[
+            if (this.mDestroyed)
+              return;
+            this.mDestroyed = true;
+
+            this._activeBrowser = null;
+            var os = Components.classes["@mozilla.org/observer-service;1"]
+                                .getService(Components.interfaces.nsIObserverService);
+            try {
+              os.removeObserver(this, "xpinstall-install-blocked");
+            } catch (ex) {}
+          ]]>
+        </body>
+      </method>
+    </implementation>
+  </binding>
+
+  <binding id="sidebar-notification"
+           extends="chrome://global/content/bindings/notification.xml#notification">
+    <content>
+      <xul:vbox class="notification-inner outset" flex="1" xbl:inherits="type">
+        <xul:hbox align="center">
+          <xul:image anonid="messageImage" class="messageImage" xbl:inherits="src=image"/>
+          <xul:spacer flex="1"/>
+          <xul:toolbarbutton ondblclick="event.stopPropagation();"
+                             class="messageCloseButton tabbable"
+                             xbl:inherits="hidden=hideclose"
+                             tooltiptext="&closeNotification.tooltip;"
+                             oncommand="document.getBindingParent(this).close();"/>
+        </xul:hbox>
+        <xul:description anonid="messageText" class="messageText" flex="1" xbl:inherits="xbl:text=label"/>
+        <xul:hbox anonid="details"
+                  oncommand="document.getBindingParent(this)._doButtonCommand(event);">
+          <xul:spacer flex="1"/>
+          <children/>
+        </xul:hbox>
+      </xul:vbox>
+    </content>
+  </binding>
+</bindings>

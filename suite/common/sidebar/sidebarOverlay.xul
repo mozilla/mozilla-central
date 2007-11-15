@@ -175,7 +175,7 @@
                   </hbox>
                   <spacer flex="100%"/>
                 </vbox>
-                <notificationbox flex="1" collapsed="true" class="sidebar-notificationbox">
+                <notificationbox flex="1" collapsed="true" class="sidebar-notificationbox browser-notificationbox">
                   <browser flex="1" class="browser-sidebar" src="about:blank"
                            hidden="true" collapsed="true" content="?content"/>
                   <browser flex="1" class="browser-sidebar" src="about:blank"

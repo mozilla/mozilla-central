@@ -317,7 +317,6 @@ pref("xpinstall.dialog.progress.type.chrome", "Extension:Manager");
 pref("xpinstall.whitelist.add.103", "addons.mozilla.org");
 
 pref("xpinstall.whitelist.add", "update.mozilla.org");
-pref("xpinstall.whitelist.required", false);
 pref("xpinstall.blacklist.add", "");
 
 // Customizable toolbar stuff
