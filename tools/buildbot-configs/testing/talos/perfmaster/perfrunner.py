@@ -10,6 +10,7 @@ import re, urllib, sys, os
 from time import strptime, strftime, localtime
 from datetime import datetime
 from os import path
+import copy
 
 MozillaEnvironments = { }
 
@@ -260,6 +261,7 @@ class MozillaRunPerfTests(ShellCommand):
     
     def start(self):
         """docstring for start"""
+        self.command = copy.deepcopy(self.command)
         self.command.append(self.getProperty("configFile"))
         ShellCommand.start(self)
     
