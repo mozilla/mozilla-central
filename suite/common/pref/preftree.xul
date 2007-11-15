@@ -81,7 +81,7 @@
     </treeitem>
     <treeitem container="true" id="navigator">
       <treerow>
-        <treecell label="(migrated)"/> 
+        <treecell label="(Migrated: &navigator.label;)"/> 
       </treerow>
       <treechildren id="navigatorChildren">
         <treeitem>
@@ -131,7 +131,7 @@
     <!-- Security and Privacy items -->
     <treeitem container="true" id="securityItem">
       <treerow>
-        <treecell label="(migrated)" />
+        <treecell label="(Migrated: &security.label;)"/>
       </treerow>
       <treechildren id="securityChildren">
         <treeitem>

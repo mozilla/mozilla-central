@@ -52,7 +52,6 @@
             title="&prefWindow.title;" 
             style="&prefWindow.size;"
             windowtype="mozilla:preferences"
-            persist="screenX screenY"
             buttons="accept,cancel,help"
             autopanes="true"> 
 
@@ -73,6 +72,8 @@
     </treecols>
 
     <treechildren id="panelChildren">
+      <treeitem label="READ THIS!" prefpane="temp_readthis_pane"/>
+<!-- commenting out yet unmigrated panels
       <treeitem container="true"
                 id="appearance"
                 label="&appear.label;"
@@ -86,13 +87,14 @@
                     url="chrome://communicator/content/pref/pref-locales.xul"/>
         </treechildren>
       </treeitem>
-
+-->
       <treeitem container="true"
                 id="navigator"
                 label="&navigator.label;"
                 prefpane="navigator_pane"
                 helpTopic="navigator_pref_navigator"
                 url="chrome://communicator/content/pref/pref-navigator.xul">
+<!-- commenting out yet unmigrated panels
         <treechildren id="navigatorChildren">
           <treeitem label="&history.label;"
                     url="chrome://communicator/content/pref/pref-history.xul"/>
@@ -108,10 +110,13 @@
                     url="chrome://communicator/content/pref/pref-tabs.xul"/>
           <treeitem label="&download.label;"
                     url="chrome://communicator/content/pref/pref-download.xul"/>
+-->
           <!-- Taking out Policies panel b/c bug 44121
           <treeitem url="chrome://communicator/content/pref/pref-policies.xul" label="&policies.label;"/>
           -->
+<!-- commenting out yet unmigrated panels
         </treechildren>
+-->
       </treeitem>
 
       <!-- Security and Privacy items -->
@@ -120,6 +125,7 @@
                 prefpane="security_pane"
                 label="&security.label;"
                 url="chrome://communicator/content/pref/pref-security.xul">
+<!-- commenting out yet unmigrated panels
         <treechildren id="securityChildren">
           <treeitem label="&cookies.label;"
                     url="chrome://communicator/content/pref/pref-cookies.xul"/>
@@ -129,8 +135,10 @@
                     label="&popups.label;"
                     url="chrome://communicator/content/pref/pref-popups.xul"/>
         </treechildren>
+-->
       </treeitem>
 
+<!-- commenting out yet unmigrated panels
       <treeitem container="true"
                 id="advancedItem"
                 label="&advance.label;"
@@ -154,13 +162,38 @@
                     url="chrome://communicator/content/pref/pref-mousewheel.xul"/>
         </treechildren>
       </treeitem>
+-->
 
       <!-- commented out until bug 82487 is fixed 
       <treeitem id="offlineItem"
                 label="&offline.label;"
                 url="chrome://communicator/content/pref/pref-offline.xul"/>
       -->
-
     </treechildren>
   </tree>
+
+  <!-- the following script is only needed for the temporary prefpane below -->
+  <script type="application/x-javascript" src="chrome://communicator/content/utilityOverlay.js"/>
+  <prefpane id="temp_readthis_pane" label="Some Explanatory Words…">
+    <description>
+      The SeaMonkey preferences are being rewritten to use the same backend code
+      as other applications using the Mozilla XUL toolkit, e.g. Firefox or
+      Thunderbird. We have over 40 panels to migrate, which we'll do in small
+      chunks to guarantee we don't break anything. During this transition,
+      this dialog here will only contain those panels which have already been
+      migrated.
+    </description>
+    <description>
+      You can reach the old dialog via the menuitem Edit→(Legacy Prefwindow…)
+      in a browser window or by clicking the button below.
+    </description>
+    <description>
+      This panel will go away once all panels have been migrated.
+    </description>
+    <button label="Show old dialog with still unmigrated panels."
+            oncommand="goPreferences('navigator', 'chrome://communicator/content/pref/pref-navigator.xul', 'navigator');"/>
+    <label class="text-link" value="More information…"
+           onclick="openTopWin('https://bugzilla.mozilla.org/show_bug.cgi?id=394522', null);"/>
+  </prefpane>
+
 </prefwindow>
