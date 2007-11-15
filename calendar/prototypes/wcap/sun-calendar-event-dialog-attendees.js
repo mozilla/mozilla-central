@@ -346,19 +346,11 @@ function updateStartTime() {
     // jsDate is always in OS timezone, thus we create a calIDateTime
     // object from the jsDate representation and simply set the new
     // timezone instead of converting.
-    var kDefaultTimezone = calendarDefaultTimezone();
-    var start = jsDateToDateTime(startWidget.value);
-    start = start.getInTimezone(kDefaultTimezone);
-    if (gDisplayTimezone) {
-        start.timezone = gStartTimezone;
-    }
+    var start = jsDateToDateTime(startWidget.value,
+                                 gDisplayTimezone ? gStartTimezone : calendarDefaultTimezone());
     gStartDate = start.clone();
     start.addDuration(gDuration);
-    start = start.getInTimezone(gEndTimezone);
-    if (gDisplayTimezone) {
-        start.timezone = gEndTimezone;
-    }
-    gEndDate = start;
+    gEndDate = start.getInTimezone(gEndTimezone);
 
     var allDayElement = document.getElementById("all-day");
     var allDay = allDayElement.getAttribute("checked") == "true";
@@ -385,25 +377,17 @@ function updateEndTime() {
     var saveEndTime = gEndDate;
     var kDefaultTimezone = calendarDefaultTimezone();
 
-    var start = jsDateToDateTime(startWidget.value);
-    start = start.getInTimezone(kDefaultTimezone);
-    if (gDisplayTimezone) {
-        start.timezone = gStartTimezone;
-    }
-    gStartDate = start;
+    gStartDate = jsDateToDateTime(startWidget.value,
+                                  gDisplayTimezone ? gStartTimezone : calendarDefaultTimezone());
 
-    var end = jsDateToDateTime(endWidget.value);
-    end = end.getInTimezone(kDefaultTimezone);
     var timezone = gEndTimezone;
     if (timezone == "UTC" &&
         gStartDate &&
         gStartTimezone != gEndTimezone) {
         timezone = gStartTimezone;
     }
-    if (gDisplayTimezone) {
-        end.timezone = timezone;
-    }
-    gEndDate = end;
+    gEndDate = jsDateToDateTime(endWidget.value,
+                                gDisplayTimezone ? timezone : kDefaultTimezone);
 
     var allDayElement = document.getElementById("all-day");
     var allDay = allDayElement.getAttribute("checked") == "true";
@@ -416,7 +400,7 @@ function updateEndTime() {
     // don't allow for negative durations.
     var warning = false;
     if (gEndDate.compare(gStartDate) >= 0) {
-        gDuration = end.subtractDate(start);
+        gDuration = gEndDate.subtractDate(gStartDate);
     } else {
         gStartDate = saveStartTime;
         gEndDate = saveEndTime;
