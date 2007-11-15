@@ -219,10 +219,10 @@ public class JSSE_SSLClient {
             }
             if (server.equalsIgnoreCase("JSS")) {
                 //For JSS SSLServer don't test
-                if (ciphersuite.contains("_DHE_") ||
-                        ciphersuite.contains("_DES40_") ||
-                        ciphersuite.contains("_anon_") ||
-                        ciphersuite.contains("_KRB5_") ) {
+                if ((ciphersuite.indexOf("_DHE_") != -1)||
+                        (ciphersuite.indexOf("_DES40_") != -1) ||
+                        (ciphersuite.indexOf("_anon_") != -1) ||
+                        (ciphersuite.indexOf("_KRB5_") != -1)) {
                     if (bVerbose) System.out.print(" -");
                     testCipher = false;
                 }
@@ -230,10 +230,10 @@ public class JSSE_SSLClient {
             if (server.equalsIgnoreCase("JSSE")) {
                 //For JSSE SSLServers don't test _DHE_, _EXPORT_, _anon_, _KRB5_
                 /*
-                if (ciphersuite.contains("_DHE_") ||
-                    ciphersuite.contains("_EXPORT_") ||
-                    ciphersuite.contains("_anon_") ||
-                    ciphersuite.contains("_KRB5_") ) {
+                if ((ciphersuite.indexOf("_DHE_") != -1) ||
+                    (ciphersuite.indexOf("_EXPORT_") != -1) ||
+                    (ciphersuite.indexOf("_anon_") != -1) ||
+                    (ciphersuite.indexOf("_KRB5_") != -1) ) {
                     if (bVerbose) System.out.print(" -");
                     testCipher = false;
                 }

@@ -38,6 +38,7 @@ package org.mozilla.jss.tests;
 
 import org.mozilla.jss.CertDatabaseException;
 import org.mozilla.jss.KeyDatabaseException;
+import org.mozilla.jss.asn1.INTEGER;
 import org.mozilla.jss.ssl.*;
 import org.mozilla.jss.CryptoManager;
 import org.mozilla.jss.crypto.*;
@@ -229,52 +230,54 @@ public class JSS_SelfServClient implements ConstantsBase, Constants {
             }
             if (server.equalsIgnoreCase("JSS")) {
                 //For JSS SSLServer don'te test
-                if (ciphersuite.contains("_DHE_") ||
-                        ciphersuite.contains("SSL2") ||
+                
+                if ((ciphersuite.indexOf("_DHE_") != -1) ||
+                        (ciphersuite.indexOf("SSL2") != -1) ||
                         //Need to figure out why _ECDH_RSA don't work
-                        (ciphersuite.contains("RSA") &&
-                        ciphersuite.contains("_ECDH_")) ) {
+                        ( (ciphersuite.indexOf("RSA") != -1) &&
+                        (ciphersuite.indexOf("_ECDH_") != -1)) ) {
                     if (bVerbose) System.out.print(" -");
                     testCipher = false;
                 }
             }
             if (server.equalsIgnoreCase("JSSE")) {
                 //For JSSE SSLServers don't test
-                if (ciphersuite.contains("SSL2_")    ||
-                        ciphersuite.contains("_ECDHE_")   ||
-                        ciphersuite.contains("_ECDH_")    ||
-                        ciphersuite.contains("_CAMELLIA_")||
-                        ciphersuite.contains("_DHE_DSS_") ||
-                        ciphersuite.contains("_EXPORT1024_") ||
-                        ciphersuite.contains("_RSA_FIPS_")   ||
-                        ciphersuite.contains("EXPORT_WITH_RC2") ||
-                        ciphersuite.contains("_ECDSA_") ||
-                        ciphersuite.contains("_256_")   ) {
+                if ((ciphersuite.indexOf("SSL2_") != -1)    ||
+                        (ciphersuite.indexOf("_ECDHE_") != -1)  ||
+                        (ciphersuite.indexOf("_ECDH_") != -1)   ||
+                        (ciphersuite.indexOf("_CAMELLIA_") != -1)||
+                        (ciphersuite.indexOf("_DHE_DSS_") != -1) ||
+                        (ciphersuite.indexOf("_EXPORT1024_") != -1) ||
+                        (ciphersuite.indexOf("_RSA_FIPS_") != -1)  ||
+                        (ciphersuite.indexOf("EXPORT_WITH_RC2") != -1) ||
+                        (ciphersuite.indexOf("_ECDSA_") != -1) ||
+                        (ciphersuite.indexOf("_256_") != -1)  ) {
                     if (bVerbose) System.out.print(" -");
                     testCipher = false;
                 }
             }
             if (server.equalsIgnoreCase("Mozilla-JSS")) {
                 //For JSSE Mozilla-JSS SSLServers don't test
-                if (ciphersuite.contains("SSL2_")    ||
-                        ciphersuite.contains("_ECDHE_")   ||
-                        ciphersuite.contains("_ECDH_")    ||
-                        ciphersuite.contains("_CAMELLIA_")||
-                        ciphersuite.contains("_DHE_DSS_") ||
-                        ciphersuite.contains("_EXPORT1024_") ||
-                        ciphersuite.contains("_RSA_FIPS_")   ||
-                        ciphersuite.contains("EXPORT_WITH_RC2") ||
-                        ciphersuite.contains("_ECDSA_") ||
-                        ciphersuite.contains(
-                        "SSL3_DHE_RSA_WITH_3DES_EDE_CBC_SHA") ||
-                        ciphersuite.contains(
-                        "SSL3_RSA_WITH_3DES_EDE_CBC_SHA") ||
-                        ciphersuite.contains(
-                        "SSL3_DHE_RSA_WITH_DES_CBC_SHA") ||
-                        ciphersuite.contains("SSL3_RSA_WITH_DES_CBC_SHA") ||
-                        ciphersuite.contains(
-                        "SSL3_RSA_EXPORT_WITH_RC4_40_MD5") ||
-                        ciphersuite.contains("_256_")   ) {
+                if ((ciphersuite.indexOf("SSL2_")  != -1)  ||
+                        (ciphersuite.indexOf("_ECDHE_") != -1)  ||
+                        (ciphersuite.indexOf("_ECDH_") != -1)   ||
+                        (ciphersuite.indexOf("_CAMELLIA_") != -1)||
+                        (ciphersuite.indexOf("_DHE_DSS_") != -1)||
+                        (ciphersuite.indexOf("_EXPORT1024_") != -1) ||
+                        (ciphersuite.indexOf("_RSA_FIPS_") != -1)  ||
+                        (ciphersuite.indexOf("EXPORT_WITH_RC2") != -1) ||
+                        (ciphersuite.indexOf("_ECDSA_") != -1) ||
+                        (ciphersuite.indexOf(
+                        "SSL3_DHE_RSA_WITH_3DES_EDE_CBC_SHA") != -1) ||
+                        (ciphersuite.indexOf(
+                        "SSL3_RSA_WITH_3DES_EDE_CBC_SHA") != -1) ||
+                        (ciphersuite.indexOf(
+                        "SSL3_DHE_RSA_WITH_DES_CBC_SHA") != -1)||
+                        (ciphersuite.indexOf(
+                        "SSL3_RSA_WITH_DES_CBC_SHA") != -1) ||
+                        (ciphersuite.indexOf(
+                        "SSL3_RSA_EXPORT_WITH_RC4_40_MD5") != -1) ||
+                        (ciphersuite.indexOf("_256_") != -1)  ) {
                     if (bVerbose) System.out.print(" -");
                     testCipher = false;
                 }
@@ -284,7 +287,7 @@ public class JSS_SelfServClient implements ConstantsBase, Constants {
                 if (bFipsMode) {
                     try {
                         if (SSLSocket.isFipsCipherSuite(ciphers[i])) {
-                            ciphersToTest.add(ciphers[i]);
+                            ciphersToTest.add(new Integer(ciphers[i]));
                             if (bVerbose)
                                 System.out.print(" - FIPS Testing");
                         } else if (bVerbose) System.out.print(" -");
@@ -292,7 +295,7 @@ public class JSS_SelfServClient implements ConstantsBase, Constants {
                         ex.printStackTrace();
                     }
                 } else {
-                    ciphersToTest.add(ciphers[i]);
+                    ciphersToTest.add(new Integer(ciphers[i]));
                     if (bVerbose) System.out.print(" - Testing");
                 }
             }
@@ -311,7 +314,7 @@ public class JSS_SelfServClient implements ConstantsBase, Constants {
         Iterator iter = ciphersToTest.iterator();
         setTestCiphers(true);
         while (iter.hasNext()) {
-            setCipher(new Integer((Integer)iter.next()).intValue());
+            setCipher(((Integer)iter.next()).intValue());
             try {
                 createSSLConnections(numOfThreads);
             } catch (Exception ex) {
@@ -955,7 +958,7 @@ public class JSS_SelfServClient implements ConstantsBase, Constants {
             }
             if (args.length >= 2) {
                 if (args[1].startsWith("0x") || args[1].startsWith("0X")) {
-                    testCipher = Integer.decode(args[1]);
+                    testCipher = Integer.decode(args[1]).intValue();
                 } else {
                     testCipher = new Integer(args[1]).intValue();
                 }

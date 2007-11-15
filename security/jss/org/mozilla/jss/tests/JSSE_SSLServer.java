@@ -44,7 +44,8 @@ import java.util.Vector;
 import org.mozilla.jss.*;
 import java.security.Provider;
 import java.security.Security;
-import sun.security.pkcs11.SunPKCS11;
+//note: SunPKCS11 requires JDK 1.5 or higher. 
+//SunPKCS11 import sun.security.pkcs11.SunPKCS11;
 
 /**
  * JSSE SSLServer class that acts as SSL Server
@@ -130,7 +131,7 @@ public class JSSE_SSLServer {
                 "[ClientAuth = true | false]" + 
                 "[config directory] [keystore filename]" +
                 "[NSS DB passwordFile]" +
-                "[JCE || Mozilla-JSS || NSSPkcs11]");
+                "[JCE || Mozilla-JSS || Sunpkcs11]");
             System.out.println(
                 "\nIf the second argument is TLS, it will start as a\n" +
                 "TLS server, otherwise, it will be started in SSLv3 mode." +
@@ -175,12 +176,14 @@ public class JSSE_SSLServer {
                 
              } else if (args[5].equalsIgnoreCase("Sunpkcs11")) {
                 
-                nssConfig = args[6];
-                System.out.println("Initializing " +  args[5] + "-NSS");
-                    Provider nss = null;
-                    nss = new sun.security.pkcs11.SunPKCS11(nssConfig);
-                    Security.insertProviderAt(nss, 1);
-                    System.out.println("Initialized " +  args[5] + "-NSS"); 
+                System.out.println("Sunpkcs11 requires JDK 1.5" +
+                        "at this time JSS need to build with JDK 1.4.2");
+//SunPKCS11     nssConfig = args[6];
+//SunPKCS11     System.out.println("Initializing " +  args[5] + "-NSS");
+//SunPKCS11     Provider nss = null;
+//SunPKCS11     nss = new sun.security.pkcs11.SunPKCS11(nssConfig);
+//SunPKCS11     Security.insertProviderAt(nss, 1);
+//SunPKCS11     System.out.println("Initialized " +  args[5] + "-NSS"); 
                     
             } else {
                 //use default 

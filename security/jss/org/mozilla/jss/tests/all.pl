@@ -565,11 +565,6 @@ $serverCommand = "./startJssSelfServ.$scriptext $jss_classpath $testdir $hostnam
 $command = "$java -cp $jss_classpath org.mozilla.jss.tests.JSSE_SSLClient $testdir $serverPort $hostname JSS";
 run_ssl_test($testname, $serverCommand, $command);
 
-if ($osname =~ /HP/ || ( ($osname =~ /Linux/)  && $java =~ /1.5/i && ($ENV{USE_64}) )) {
-    print "don't run the JSSE Server tests on HP or Linux  64 bit with java5.\n";
-    print "Java 5 on HP does not have SunPKCS11 class\n"; 
-} else {
-
 $serverPort = checkPort($serverPort);
 $testname = "SSL Ciphersuite JSSE Server using default provider and JSS client with Bypass Off";
 $serverCommand = "./startJsseServ.$scriptext $jss_classpath $serverPort false $testdir rsa.pfx default $configfile $pwfile $java";
@@ -582,18 +577,25 @@ $serverCommand = "./startJsseServ.$scriptext $jss_classpath $serverPort false $t
 $command = "$java -cp $jss_classpath org.mozilla.jss.tests.JSS_SelfServClient 2 -1 $testdir $pwfile $hostname $serverPort bypass verboseoff JSSE";
 run_ssl_test($testname, $serverCommand, $command);
 
-$serverPort = checkPort($serverPort);
-$testname = "SSL Ciphersuite JSSE Server using Sunpkcs11-NSS provider and JSS client with Bypass Off";
-$serverCommand = "./startJsseServ.$scriptext $jss_classpath $serverPort false $testdir rsa.pfx Sunpkcs11 $configfile $pwfile $java";
-$command = "$java -cp $jss_classpath org.mozilla.jss.tests.JSS_SelfServClient 2 -1 $testdir $pwfile $hostname $serverPort bypassOff verboseoff JSSE";
-run_ssl_test($testname, $serverCommand, $command);
+if ($java =~ /1.4/i || $osname =~ /HP/ || ( ($osname =~ /Linux/)  && $java =~ /1.5/i && ($ENV{USE_64}) )) {
+    print "don't run the SunJSSE with Mozilla-JSS provider with Java4 need java5 or higher";
+    print "don't run the JSSE Server tests on HP or Linux  64 bit with java5.\n";
+    print "Java 5 on HP does not have SunPKCS11 class\n"; 
+} else {
+#with JSS is being build with JDK 1.5 add the Sunpkcs11-NSS support back in!
+#$serverPort = checkPort($serverPort);
+#$testname = "SSL Ciphersuite JSSE Server using Sunpkcs11-NSS provider and JSS client with Bypass Off";
+#$serverCommand = "./startJsseServ.$scriptext $jss_classpath $serverPort false $testdir rsa.pfx Sunpkcs11 $configfile $pwfile $java";
+#$command = "$java -cp $jss_classpath org.mozilla.jss.tests.JSS_SelfServClient 2 -1 $testdir $pwfile $hostname $serverPort bypassOff verboseoff JSSE";
+#run_ssl_test($testname, $serverCommand, $command);
 
-$serverPort = checkPort($serverPort);
-$testname = "SSL Ciphersuite JSSE Server using Sunpkcs11-NSS provider and JSS client with Bypass ON";
-$serverCommand = "./startJsseServ.$scriptext $jss_classpath $serverPort false $testdir rsa.pfx Sunpkcs11 $configfile $pwfile $java";
-$command = "$java -cp $jss_classpath org.mozilla.jss.tests.JSS_SelfServClient 2 -1 $testdir $pwfile $hostname $serverPort bypass verboseoff JSSE";
-run_ssl_test($testname, $serverCommand, $command);
+#$serverPort = checkPort($serverPort);
+#$testname = "SSL Ciphersuite JSSE Server using Sunpkcs11-NSS provider and JSS client with Bypass ON";
+#$serverCommand = "./startJsseServ.$scriptext $jss_classpath $serverPort false $testdir rsa.pfx Sunpkcs11 $configfile $pwfile $java";
+#$command = "$java -cp $jss_classpath org.mozilla.jss.tests.JSS_SelfServClient 2 -1 $testdir $pwfile $hostname $serverPort bypass verboseoff JSSE";
+#run_ssl_test($testname, $serverCommand, $command);
 
+#Mozilla-JSS only works with JDK 1.5 or higher when used as provider for SunJSSE
 $serverPort = checkPort($serverPort);
 $testname = "SSL Ciphersuite JSSE Server using Mozilla-JSS provider and JSS client with Bypass Off";
 $serverCommand = "./startJsseServ.$scriptext $jss_classpath $serverPort false $testdir rsa.pfx Mozilla-JSS $configfile $pwfile $java";
