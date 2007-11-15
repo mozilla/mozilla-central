@@ -261,7 +261,7 @@ class MozillaRunPerfTests(ShellCommand):
     
     def start(self):
         """docstring for start"""
-        self.command = copy.deepcopy(self.command)
+        self.command = copy.copy(self.command)
         self.command.append(self.getProperty("configFile"))
         ShellCommand.start(self)
     
