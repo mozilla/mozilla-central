@@ -535,7 +535,7 @@ function dateTimeControls2State(aKeepDuration) {
         // jsDate is always in OS timezone, thus we create a calIDateTime
         // object from the jsDate representation and simply set the new
         // timezone instead of converting.
-        var menuItem = document.getElementById('menu-options-timezone');
+        var menuItem = document.getElementById('options-timezone-menuitem');
         gStartTime = jsDateToDateTime(
             getElementValue(startWidgetId),
             (menuItem.getAttribute('checked') == 'true') ? gStartTimezone : kDefaultTimezone);
@@ -949,7 +949,7 @@ function updateAccept() {
         startDate = jsDateToDateTime(getElementValue("event-starttime"));
         endDate = jsDateToDateTime(getElementValue("event-endtime"));
 
-        var menuItem = document.getElementById('menu-options-timezone');
+        var menuItem = document.getElementById('options-timezone-menuitem');
         if (menuItem.getAttribute('checked') == 'true') {
             var startTimezone = gStartTimezone;
             var endTimezone = gEndTimezone;
@@ -1133,7 +1133,7 @@ function editAttendees() {
         endTime.isDate = false;
     }
 
-    var menuItem = document.getElementById('menu-options-timezone');
+    var menuItem = document.getElementById('options-timezone-menuitem');
     var displayTimezone = menuItem.getAttribute('checked') == 'true';
 
     var args = new Object();
@@ -1912,7 +1912,7 @@ function editTimezone(aElementId,aDateTime,aCallback) {
 // - 'todo-duedate'
 // the date/time-objects are either displayed in their repective
 // timezone or in the default timezone. this decision is based
-// on whether or not 'menu-options-timezone' is checked.
+// on whether or not 'options-timezone-menuitem' is checked.
 // the necessary information is taken from the following variables:
 // - 'gStartTime'
 // - 'gEndTime'
@@ -1921,7 +1921,7 @@ function updateDateTime() {
     gIgnoreUpdate = true;
 
     var item = window.calendarItem;
-    var menuItem = document.getElementById('menu-options-timezone');
+    var menuItem = document.getElementById('options-timezone-menuitem');
 
     // convert to default timezone if the timezone option
     // is *not* checked, otherwise keep the specific timezone
@@ -2044,10 +2044,10 @@ function updateDateTime() {
 // - 'timezone-starttime'
 // - 'timezone-endtime'
 // the timezone-links show the corrosponding names of the
-// start/end times. if 'menu-options-timezone' is not checked
+// start/end times. if 'options-timezone-menuitem' is not checked
 // the links will be collapsed.
 function updateTimezone() {
-    var menuItem = document.getElementById('menu-options-timezone');
+    var menuItem = document.getElementById('options-timezone-menuitem');
 
     // convert to default timezone if the timezone option
     // is *not* checked, otherwise keep the specific timezone
@@ -2117,7 +2117,7 @@ function updateTimezone() {
 }
 
 function updateDocument() {
-    var documentRow = document.getElementById("document-row");
+    var documentRow = document.getElementById("event-grid-document-row");
     if (!gURL || gURL == "") {
         documentRow.setAttribute('collapsed', 'true');
     } else {
@@ -2136,8 +2136,8 @@ function browseDocument() {
 
 function updateAttendees() {
     var regexp = new RegExp("^mailto:(.*)", "i");
-    var attendeeRow = document.getElementById("attendee-row");
-    var attendeeRow2 = document.getElementById("attendee-row-2");
+    var attendeeRow = document.getElementById("event-grid-attendee-row");
+    var attendeeRow2 = document.getElementById("event-grid-attendee-row-2");
     if (!window.attendees || !window.attendees.length) {
         attendeeRow.setAttribute('collapsed', 'true');
         attendeeRow2.setAttribute('collapsed', 'true');
