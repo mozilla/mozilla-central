@@ -233,7 +233,7 @@
                       var dates = aRecurrenceInfo.getOccurrenceDates(start, end, 0, {});
                       
                       // now run throgh all days of this month and set the
-                      // 'busy' attribute with respect to the occurence array.
+                      // 'busy' attribute with respect to the occurrence array.
                       var index = 0;
                       var occurrence = null;
                       if (index < dates.length) {

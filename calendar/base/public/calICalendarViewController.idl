@@ -92,7 +92,7 @@ interface calICalendarViewController : nsISupports
    *
    * @param aCount          The number of events in the array
    * @param aOccurrences    An array of Items/Occurrences to delete
-   * @param aUseParentItems If set, each occurence will have its parent item
+   * @param aUseParentItems If set, each occurrence will have its parent item
    *                        deleted.
    * @param aDoNotConfirm   If set, the events will be deleted without
    *                        confirmation.

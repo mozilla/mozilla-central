@@ -1293,7 +1293,7 @@ icalsetiter icalbdbset_begin_component(icalset* set, icalcomponent_kind kind, ic
                     itr.last_component = NULL;
                     icalrecur_iterator_free(itr.ritr);
                     itr.ritr = NULL;
-                    /* no matched occurence */
+                    /* no matched occurrence */
                     goto getNextComp;
                 } else {
                     itr.last_component = comp;
@@ -1399,8 +1399,8 @@ icalcomponent* icalbdbset_form_a_matched_recurrence_component(icalsetiter* itr)
             itr->last_component = NULL;
             icalrecur_iterator_free(itr->ritr);
             itr->ritr = NULL;
-            /* no more pending matched occurence,
-             * all the pending matched occurences have been returned */
+            /* no more pending matched occurrence,
+             * all the pending matched occurrences have been returned */
             return NULL;
         } else {
             itr->last_component = comp;
@@ -1450,7 +1450,7 @@ icalcomponent* icalbdbsetiter_to_next(icalset *set, icalsetiter* i)
 
     do {
 
-        /* no pending occurence, read the next component */
+        /* no pending occurrence, read the next component */
         if (i->last_component == NULL) {
             comp = icalcompiter_next(&(i->iter));
         }
@@ -1506,7 +1506,7 @@ icalcomponent* icalbdbsetiter_to_next(icalset *set, icalsetiter* i)
                     i->last_component = NULL;
                     icalrecur_iterator_free(i->ritr);
                     i->ritr = NULL;
-                    /* no more occurence, should go to get next component */
+                    /* no more occurrence, should go to get next component */
                     continue;
                 } else {
                     i->last_component = comp;

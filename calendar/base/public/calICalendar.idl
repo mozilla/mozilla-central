@@ -80,8 +80,8 @@ interface calICalendar : nsISupports
 
   /**
    * Setting this URI causes the calendar to be (re)loaded.
-   * This is not an unique indentifier! It is also not unchangeable. Don't
-   * use it to indentify a calandar, use the id attribute for that purpose.
+   * This is not an unique identifier! It is also not unchangeable. Don't
+   * use it to identify a calendar, use the id attribute for that purpose.
    */
   attribute nsIURI uri;
 
@@ -308,12 +308,12 @@ interface calICalendar : nsISupports
    *   as follows to make for the least amount of pain when
    *   migrating existing frontend code:
    *
-   *     The events are sorted based on the order of their next occurence
-   *     if they recur in the future or their last occurence in the past
+   *     The events are sorted based on the order of their next occurrence
+   *     if they recur in the future or their last occurrence in the past
    *     otherwise.  Here's a presentation of the sort criteria using the
    *     time axis:
    *   
-   *     -----(Last occurence of Event1)---(Last occurence of Event2)----(Now)----(Next occurence of Event3)---->
+   *     -----(Last occurrence of Event1)---(Last occurrence of Event2)----(Now)----(Next occurrence of Event3)---->
    *
    *     (Note that Event1 and Event2 will not recur in the future.)
    *
@@ -321,8 +321,8 @@ interface calICalendar : nsISupports
    *   at some point in the future.
    *
    * Note that the range is intended to act as a mask on the
-   * occurences, not just the initial recurring items.  So if a
-   * getItems() call without ITEM_FILTER_CLASS_OCCURENCES is made, all
+   * occurrences, not just the initial recurring items.  So if a
+   * getItems() call without ITEM_FILTER_CLASS_occurrenceS is made, all
    * events and todos which have occurrences inside the range should
    * be returned, even if some of those events or todos themselves
    * live outside the range.

@@ -484,7 +484,7 @@ bool VComponent::remove(VComponent& fromVC, bool ignoreValue){
     return true;
 }
 /* removeMissing == true: remove properties that are missing from fromC */
-/* todo: only change the first occurence of the property */
+/* todo: only change the first occurrence of the property */
 /* todo: removeMissing is not implemented */
 bool VComponent::update(VComponent& fromC, bool removeMissing){
 

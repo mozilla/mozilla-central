@@ -42,7 +42,7 @@ var changeItems = [];
 
 // This will get the items from the calendars into the global arrays,
 // then call doSync()
-getCalandarItems();
+getCalendarItems();
 
 function doSync()
 {
@@ -128,7 +128,7 @@ function createEvent(aID, aTitle, aCal)
   aCal.addItem(event, emptyListener);
 }
 
-function getCalandarItems()
+function getCalendarItems()
 {
   var calendarsFinished = 0;
 

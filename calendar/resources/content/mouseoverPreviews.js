@@ -465,9 +465,9 @@ function createTooltipHeaderDescription(text)
 }
 
 /**
- * If now is during an occurrence, return the ocurrence.
- * Else if now is before an ocurrence, return the next ocurrence.
- * Otherwise return the previous ocurrence.
+ * If now is during an occurrence, return the occurrence.
+ * Else if now is before an occurrence, return the next occurrence.
+ * Otherwise return the previous occurrence.
  */
 function getCurrentNextOrPreviousRecurrence(calendarEvent)
 {

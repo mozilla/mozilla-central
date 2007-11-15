@@ -336,7 +336,7 @@ calGoogleCalendar.prototype = {
             }
 
             // Check if the item is an occurrence. Until bug 362650 is solved,
-            // there is no support for changing single ocurrences.
+            // there is no support for changing single occurrences.
             if (aOldItem.getProperty("X-GOOGLE-ITEM-IS-OCCURRENCE")) {
                 throw new Components.Exception("", Components.results.NS_ERROR_NOT_IMPLEMENTED);
             }

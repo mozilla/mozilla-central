@@ -81,7 +81,7 @@ interface calIDecoratedView : nsISupports
    * The displayCalendar of the embedded calICalendarView.  This *must* be set
    * prior to calling goToDay the first time.
    */
-  attribute calICalendar displayCalender;
+  attribute calICalendar displayCalendar;
 
   /**
    * The controller of the calICalendarView that is embedded

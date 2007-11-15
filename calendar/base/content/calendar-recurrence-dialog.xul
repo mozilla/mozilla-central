@@ -184,7 +184,7 @@
             <hbox align="center">
               <textbox id="repeat-ntimes-count" size="3" value="5" oninput="validateIntegerRange(event, 1, 0x7FFF); updateAccept();"/>
               <spacer flex="0.5"/>
-              <label value="&repeat.units.occurence.both;"/>
+              <label value="&repeat.units.occurrence.both;"/>
               <spacer flex="1"/>
             </hbox>
           </row>

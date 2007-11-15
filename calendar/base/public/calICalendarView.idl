@@ -58,7 +58,7 @@ interface calICalendarView : nsISupports
   /**
    * the calendar that this view is displaying
    */
-  attribute calICalendar displayCalender;
+  attribute calICalendar displayCalendar;
 
   /**
    * the controller for this view
