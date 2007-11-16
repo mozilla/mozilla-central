@@ -2540,6 +2540,11 @@ SECStatus CERT_PKIXVerifyCert(
 	goto cleanup;
     }
 
+    error = pkix_pl_NssContext_SetCertUsage(usages, plContext);
+    if (error != NULL) {
+        PORT_SetError(SEC_ERROR_INVALID_ARGS);
+        goto cleanup;
+    }
 
     /* The 'anchors' parameter must be supplied, but it can be an 
        empty list. PKIX will use the NSS trust database to form
