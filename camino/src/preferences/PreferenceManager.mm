@@ -722,6 +722,18 @@ static BOOL gMadePrefManager;
   BOOL flashBlockAllowed = [self isFlashBlockAllowed];	
   if (flashBlockAllowed && [self getBooleanPref:"camino.enable_flashblock" withSuccess:NULL])
     [self refreshFlashBlockStyleSheet:YES];
+
+  // Make sure the homepage has been set up.
+  nsCOMPtr<nsIPrefBranch> prefBranch = do_QueryInterface(mPrefs);
+  if (prefBranch) {
+    PRInt32 homepagePrefExists;
+    if (NS_FAILED(prefBranch->PrefHasUserValue("browser.startup.homepage", &homepagePrefExists)) || !homepagePrefExists) {
+      NSString* defaultHomepage = NSLocalizedStringFromTable(@"HomePageDefault", @"WebsiteDefaults", nil);
+      // Check that we actually got a sane value back before storing it.
+      if (![defaultHomepage isEqualToString:@"HomePageDefault"])
+        [self setPref:"browser.startup.homepage" toString:defaultHomepage];
+    }
+  }
 }
 
 - (void)setAcceptLanguagesPref
@@ -1168,22 +1180,9 @@ typedef enum EProxyConfig {
     rv = mPrefs->GetIntPref("browser.startup.page", &mode);
 
   if (NS_FAILED(rv) || mode == 1) {
-    nsCOMPtr<nsIPrefBranch> prefBranch = do_QueryInterface(mPrefs);
-    if (!prefBranch)
-      return @"about:blank";
-    
-    NSString* homepagePref = nil;
-    PRInt32 haveUserPref;
-    if (NS_FAILED(prefBranch->PrefHasUserValue("browser.startup.homepage", &haveUserPref)) || !haveUserPref) {
-      // no home page pref is set in user prefs.
+    NSString* homepagePref = [self getStringPref:"browser.startup.homepage" withSuccess:NULL];
+    if (!homepagePref)
       homepagePref = NSLocalizedStringFromTable(@"HomePageDefault", @"WebsiteDefaults", nil);
-      // and let's copy this into the homepage pref if it's not bad
-      if (![homepagePref isEqualToString:@"HomePageDefault"])
-        mPrefs->SetCharPref("browser.startup.homepage", [homepagePref UTF8String]);
-    }
-    else {
-      homepagePref = [self getStringPref:"browser.startup.homepage" withSuccess:NULL];
-    }
 
     if (homepagePref && [homepagePref length] > 0 && ![homepagePref isEqualToString:@"HomePageDefault"])
       return homepagePref;
