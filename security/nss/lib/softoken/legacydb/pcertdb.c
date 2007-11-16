@@ -37,7 +37,7 @@
 /*
  * Permanent Certificate database handling code 
  *
- * $Id: pcertdb.c,v 1.5 2007-06-15 20:37:56 rrelyea%redhat.com Exp $
+ * $Id: pcertdb.c,v 1.6 2007-11-16 02:04:57 julien.pierre.boogz%sun.com Exp $
  */
 #include "lowkeyti.h"
 #include "pcert.h"
@@ -46,7 +46,6 @@
 #include "secitem.h"
 #include "secder.h"
 
-#include "nsslocks.h"
 #include "secerr.h"
 #include "lgdb.h"
 
@@ -87,7 +86,7 @@ void
 certdb_InitDBLock(NSSLOWCERTCertDBHandle *handle)
 {
     if (dbLock == NULL) {
-	nss_InitLock(&dbLock, nssILockCertDB);
+	dbLock = PZ_NewLock(nssILockCertDB);
 	PORT_Assert(dbLock != NULL);
     }
 }
@@ -96,19 +95,19 @@ SECStatus
 nsslowcert_InitLocks(void)
 {
     if (freeListLock == NULL) {
-	nss_InitLock(&freeListLock, nssILockRefLock);
+	freeListLock = PZ_NewLock(nssILockRefLock);
 	if (freeListLock == NULL) {
 	    return SECFailure;
 	}
     }
     if (certRefCountLock == NULL) {
-	nss_InitLock(&certRefCountLock, nssILockRefLock);
+	certRefCountLock = PZ_NewLock(nssILockRefLock);
 	if (certRefCountLock == NULL) {
 	    return SECFailure;
 	}
     }
     if (certTrustLock == NULL ) {
-	nss_InitLock(&certTrustLock, nssILockCertDB);
+	certTrustLock = PZ_NewLock(nssILockCertDB);
 	if (certTrustLock == NULL) {
 	    return SECFailure;
 	}

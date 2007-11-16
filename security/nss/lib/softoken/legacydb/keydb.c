@@ -34,7 +34,7 @@
  * the terms of any one of the MPL, the GPL or the LGPL.
  *
  * ***** END LICENSE BLOCK ***** */
-/* $Id: keydb.c,v 1.6 2007-10-12 01:44:48 julien.pierre.boogz%sun.com Exp $ */
+/* $Id: keydb.c,v 1.7 2007-11-16 02:04:57 julien.pierre.boogz%sun.com Exp $ */
 
 #include "lowkeyi.h"
 #include "secasn1.h"
@@ -45,7 +45,6 @@
 #include "pcert.h"
 #include "mcom_db.h"
 #include "secerr.h"
-#include "nsslocks.h"
 
 #include "keydbi.h"
 #include "lgdb.h"
@@ -63,7 +62,7 @@
 /* Size of the global salt for key database */
 #define SALT_LENGTH     16
 
-SEC_ASN1_MKSUB(SECOID_AlgorithmIDTemplate);
+SEC_ASN1_MKSUB(SECOID_AlgorithmIDTemplate)
 
 const SEC_ASN1Template nsslowkey_EncryptedPrivateKeyInfoTemplate[] = {
     { SEC_ASN1_SEQUENCE,
@@ -115,7 +114,7 @@ static void
 keydb_InitLocks(NSSLOWKEYDBHandle *handle) 
 {
     if (handle->lock == NULL) {
-	nss_InitLock(&handle->lock, nssILockKeyDB);
+	handle->lock = PZ_NewLock(nssILockKeyDB);
     }
 
     return;
