@@ -51,6 +51,7 @@
 #include "prdtoa.h"
 #include "nsMsgUtils.h"
 #include "nsIArray.h"
+#include "nsArrayUtils.h"
 
 #define  PREVIOUS_EXTENSION ".prev"
 #define  kPABDirectory  2 // defined in nsDirPrefs.h
