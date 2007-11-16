@@ -35,7 +35,7 @@
  * ***** END LICENSE BLOCK ***** */
 
 #ifdef DEBUG
-static const char CVS_ID[] = "@(#) $RCSfile: trustdomain.c,v $ $Revision: 1.55 $ $Date: 2007-11-16 05:29:27 $";
+static const char CVS_ID[] = "@(#) $RCSfile: trustdomain.c,v $ $Revision: 1.56 $ $Date: 2007-11-16 18:57:54 $";
 #endif /* DEBUG */
 
 #ifndef DEV_H
@@ -128,6 +128,10 @@ NSSTrustDomain_Destroy (
 	status = nssTrustDomain_DestroyCache(td);
 	if (status == PR_FAILURE) {
 	    return status;
+	}
+	if (td->statusConfig) {
+	    td->statusConfig->statusDestroy(td->statusConfig);
+	    td->statusConfig = NULL;
 	}
 	/* Destroy the trust domain */
 	nssArena_Destroy(td->arena);
