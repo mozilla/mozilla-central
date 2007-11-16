@@ -514,7 +514,7 @@ nsresult nsAbPalmHotSync::LoadDeletedCardsSinceLastSync()
         return NS_ERROR_NOT_INITIALIZED;
     
     nsCOMPtr<nsIArray> deletedCardArray;
-    nsresult rv = mABDB->GetDeletedCardList(&deletedCardArray);
+    nsresult rv = mABDB->GetDeletedCardList(getter_AddRefs(deletedCardArray));
     if (NS_FAILED(rv))
         return rv;
 
@@ -525,7 +525,7 @@ nsresult nsAbPalmHotSync::LoadDeletedCardsSinceLastSync()
 
     for(PRUint32 i=0; i < deletedCardCount; i++) 
     {
-        nsCOMPtr<nsIAbCard> card(do_QueryElementAt(deletedCardArray, i, &rv)
+        nsCOMPtr<nsIAbCard> card(do_QueryElementAt(deletedCardArray, i, &rv));
         if (NS_FAILED(rv)) // can this be anything but a card?
             continue;
         
@@ -978,7 +978,7 @@ nsresult nsAbPalmHotSync::UpdateSyncInfo(long aCategoryIndex)
 nsresult nsAbPalmHotSync::DeleteAB(const char* aABUrl)
 {
   nsresult rv;
-  nsCOMPtr<nsIAddressBook> ab(do_CreateInstance(NS_ADDRESSBOOK_CONTRACTID, &rv));
+  nsCOMPtr<nsIAddressBook> ab(do_GetService(NS_ADDRESSBOOK_CONTRACTID, &rv));
   NS_ENSURE_SUCCESS(rv, rv);
 
   return ab->DeleteAddressBook(nsDependentCString(aABUrl));
@@ -995,7 +995,7 @@ nsresult nsAbPalmHotSync::RenameAB(long aCategoryIndex, const char * aABUrl)
 nsresult nsAbPalmHotSync::NewAB(const nsString& aAbName)
 {
   nsresult rv;
-  nsCOMPtr <nsIAddressBook> ab = do_CreateInstance(NS_ADDRESSBOOK_CONTRACTID, &rv);
+  nsCOMPtr <nsIAddressBook> ab(do_GetService(NS_ADDRESSBOOK_CONTRACTID, &rv));
   NS_ENSURE_SUCCESS(rv, rv);
 
   // Don't actually need to keep the result
