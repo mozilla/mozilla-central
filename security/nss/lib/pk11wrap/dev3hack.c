@@ -35,12 +35,8 @@
  * ***** END LICENSE BLOCK ***** */
 
 #ifdef DEBUG
-static const char CVS_ID[] = "@(#) $RCSfile: dev3hack.c,v $ $Revision: 1.22 $ $Date: 2006-10-09 22:14:04 $";
+static const char CVS_ID[] = "@(#) $RCSfile: dev3hack.c,v $ $Revision: 1.23 $ $Date: 2007-11-16 05:29:26 $";
 #endif /* DEBUG */
-
-#ifndef NSS_3_4_CODE
-#define NSS_3_4_CODE
-#endif /* NSS_3_4_CODE */
 
 #ifndef PKIT_H
 #include "pkit.h"
@@ -108,7 +104,7 @@ nssSlot_CreateSession
          * 3. If the module is thread safe and we are using a new
          *    session, no higher-level lock has been locked and we
          *    would need a lock for the new session.  However, the
-         *    NSS_3_4_CODE usage of the session is that it is always
+         *    current usage of the session is that it is always
          *    used and destroyed within the same function and never
          *    shared with another thread.
          * So the session is either already protected by another

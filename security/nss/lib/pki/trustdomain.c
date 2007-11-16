@@ -35,7 +35,7 @@
  * ***** END LICENSE BLOCK ***** */
 
 #ifdef DEBUG
-static const char CVS_ID[] = "@(#) $RCSfile: trustdomain.c,v $ $Revision: 1.54 $ $Date: 2007-07-11 04:47:42 $";
+static const char CVS_ID[] = "@(#) $RCSfile: trustdomain.c,v $ $Revision: 1.55 $ $Date: 2007-11-16 05:29:27 $";
 #endif /* DEBUG */
 
 #ifndef DEV_H
@@ -50,28 +50,12 @@ static const char CVS_ID[] = "@(#) $RCSfile: trustdomain.c,v $ $Revision: 1.54 $
 #include "pki1t.h"
 #endif /* PKI1T_H */
 
-#ifdef NSS_3_4_CODE
 #include "cert.h"
 #include "pki3hack.h"
-#endif
 
 #include "nssrwlk.h"
 
 #define NSSTRUSTDOMAIN_DEFAULT_CACHE_SIZE 32
-
-#ifdef PURE_STAN_BUILD
-struct NSSTrustDomainStr {
-    PRInt32 refCount;
-    NSSArena *arena;
-    NSSCallback *defaultCallback;
-    struct {
-	nssSlotList *forCerts;
-	nssSlotList *forCiphers;
-	nssSlotList *forTrust;
-    } slots;
-    nssCertificateCache *cache;
-};
-#endif
 
 extern const NSSError NSS_ERROR_NOT_FOUND;
 
@@ -103,9 +87,7 @@ NSSTrustDomain_Create (
     nssTrustDomain_InitializeCache(rvTD, NSSTRUSTDOMAIN_DEFAULT_CACHE_SIZE);
     rvTD->arena = arena;
     rvTD->refCount = 1;
-#ifdef NSS_3_4_CODE
     rvTD->statusConfig = NULL;
-#endif
     return rvTD;
 loser:
     if (rvTD && rvTD->tokensLock) {

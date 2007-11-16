@@ -34,7 +34,7 @@
 # the terms of any one of the MPL, the GPL or the LGPL.
 #
 # ***** END LICENSE BLOCK *****
-MANIFEST_CVS_ID = "@(#) $RCSfile: manifest.mn,v $ $Revision: 1.15 $ $Date: 2007-08-15 15:30:01 $"
+MANIFEST_CVS_ID = "@(#) $RCSfile: manifest.mn,v $ $Revision: 1.16 $ $Date: 2007-11-16 05:29:27 $"
 
 CORE_DEPTH = ../../..
 
@@ -43,6 +43,10 @@ PRIVATE_EXPORTS = \
 	pkit.h     \
 	nsspkit.h  \
 	nsspki.h   \
+	pkistore.h   \
+	pki3hack.h   \
+	pkitm.h   \
+	pkim.h   \
 	$(NULL)
 
 EXPORTS =	   \
@@ -60,14 +64,10 @@ CSRCS =		        \
 	certdecode.c    \
 	pkistore.c      \
 	pkibase.c       \
+	pki3hack.c       \
 	$(NULL)
 
-ifndef PURE_STAN_BUILD
-CSRCS += pki3hack.c
-PRIVATE_EXPORTS += pkistore.h pki3hack.h pkitm.h pkim.h
-#DEFINES = -DNSS_3_4_CODE -DDEBUG_CACHE
-DEFINES = -DNSS_3_4_CODE
-endif
+#DEFINES = -DDEBUG_CACHE
 
 REQUIRES = nspr
 

@@ -35,7 +35,7 @@
  * ***** END LICENSE BLOCK ***** */
 
 #ifdef DEBUG
-static const char CVS_ID[] = "@(#) $RCSfile: devtoken.c,v $ $Revision: 1.41 $ $Date: 2007-08-09 22:36:17 $";
+static const char CVS_ID[] = "@(#) $RCSfile: devtoken.c,v $ $Revision: 1.42 $ $Date: 2007-11-16 05:29:25 $";
 #endif /* DEBUG */
 
 #ifndef NSSCKEPV_H
@@ -50,11 +50,9 @@ static const char CVS_ID[] = "@(#) $RCSfile: devtoken.c,v $ $Revision: 1.41 $ $D
 #include "ckhelper.h"
 #endif /* CKHELPER_H */
 
-#ifdef NSS_3_4_CODE
 #include "pk11func.h"
 #include "dev3hack.h"
 #include "secerr.h"
-#endif
 
 extern const NSSError NSS_ERROR_NOT_FOUND;
 extern const NSSError NSS_ERROR_INVALID_ARGUMENT;
@@ -62,96 +60,6 @@ extern const NSSError NSS_ERROR_PKCS11;
 
 /* The number of object handles to grab during each call to C_FindObjects */
 #define OBJECT_STACK_SIZE 16
-
-#ifdef PURE_STAN_BUILD
-struct NSSTokenStr
-{
-  struct nssDeviceBaseStr base;
-  NSSSlot *slot;  /* Peer */
-  CK_FLAGS ckFlags; /* from CK_TOKEN_INFO.flags */
-  nssSession *defaultSession;
-  nssTokenObjectCache *cache;
-};
-
-NSS_IMPLEMENT NSSToken *
-nssToken_Create (
-  CK_SLOT_ID slotID,
-  NSSSlot *peer
-)
-{
-    NSSArena *arena;
-    NSSToken *rvToken;
-    nssSession *session = NULL;
-    NSSUTF8 *tokenName = NULL;
-    PRUint32 length;
-    PRBool readWrite;
-    CK_TOKEN_INFO tokenInfo;
-    CK_RV ckrv;
-    void *epv = nssSlot_GetCryptokiEPV(peer);
-    arena = NSSArena_Create();
-    if(!arena) {
-	return (NSSToken *)NULL;
-    }
-    rvToken = nss_ZNEW(arena, NSSToken);
-    if (!rvToken) {
-	goto loser;
-    }
-    /* Get token information */
-    ckrv = CKAPI(epv)->C_GetTokenInfo(slotID, &tokenInfo);
-    if (ckrv != CKR_OK) {
-	/* use the error stack to pass the PKCS #11 error out  */
-	nss_SetError(ckrv);
-	nss_SetError(NSS_ERROR_PKCS11);
-	goto loser;
-    }
-    /* Grab the slot description from the PKCS#11 fixed-length buffer */
-    length = nssPKCS11String_Length(tokenInfo.label, sizeof(tokenInfo.label));
-    if (length > 0) {
-	tokenName = nssUTF8_Create(arena, nssStringType_UTF8String, 
-	                           (void *)tokenInfo.label, length);
-	if (!tokenName) {
-	    goto loser;
-	}
-    }
-    /* Open a default session handle for the token. */
-    if (tokenInfo.ulMaxSessionCount == 1) {
-	/* if the token can only handle one session, it must be RW. */
-	readWrite = PR_TRUE;
-    } else {
-	readWrite = PR_FALSE;
-    }
-    session = nssSlot_CreateSession(peer, arena, readWrite);
-    if (session == NULL) {
-	goto loser;
-    }
-    /* TODO: seed the RNG here */
-    rvToken->base.arena = arena;
-    rvToken->base.refCount = 1;
-    rvToken->base.name = tokenName;
-    rvToken->base.lock = PZ_NewLock(nssNSSILockOther); /* XXX */
-    if (!rvToken->base.lock) {
-	goto loser;
-    }
-    rvToken->slot = peer; /* slot owns ref to token */
-    rvToken->ckFlags = tokenInfo.flags;
-    rvToken->defaultSession = session;
-    if (nssSlot_IsHardware(peer)) {
-	rvToken->cache = nssTokenObjectCache_Create(rvToken, 
-	                                            PR_TRUE, PR_TRUE, PR_TRUE);
-	if (!rvToken->cache) {
-	    nssSlot_Destroy(peer);
-	    goto loser;
-	}
-    }
-    return rvToken;
-loser:
-    if (session) {
-	nssSession_Destroy(session);
-    }
-    nssArena_Destroy(arena);
-    return (NSSToken *)NULL;
-}
-#endif /* PURE_STAN_BUILD */
 
 NSS_IMPLEMENT PRStatus
 nssToken_Destroy (
@@ -200,16 +108,6 @@ nssToken_GetSlot (
 {
     return nssSlot_AddRef(tok->slot);
 }
-
-#ifdef PURE_STAN_BUILD
-NSS_IMPLEMENT NSSModule *
-nssToken_GetModule (
-  NSSToken *token
-)
-{
-    return nssSlot_GetModule(token->slot);
-}
-#endif
 
 NSS_IMPLEMENT void *
 nssToken_GetCryptokiEPV (
@@ -528,9 +426,7 @@ find_objects_by_template (
     }
     PR_ASSERT(i < otsize);
     if (i == otsize) {
-#ifdef NSS_3_4_CODE
 	PORT_SetError(SEC_ERROR_LIBRARY_FAILURE);
-#endif
 	if (statusOpt) *statusOpt = PR_FAILURE;
 	return NULL;
     }
@@ -1118,17 +1014,11 @@ static void
 sha1_hash(NSSItem *input, NSSItem *output)
 {
     NSSAlgorithmAndParameters *ap;
-#ifdef NSS_3_4_CODE
     PK11SlotInfo *internal = PK11_GetInternalSlot();
     NSSToken *token = PK11Slot_GetNSSToken(internal);
-#else
-    NSSToken *token = nss_GetDefaultCryptoToken();
-#endif
     ap = NSSAlgorithmAndParameters_CreateSHA1Digest(NULL);
     (void)nssToken_Digest(token, NULL, ap, input, output, NULL);
-#ifdef NSS_3_4_CODE
     PK11_FreeSlot(token->pk11slot);
-#endif
     nss_ZFreeIf(ap);
 }
 
@@ -1136,17 +1026,11 @@ static void
 md5_hash(NSSItem *input, NSSItem *output)
 {
     NSSAlgorithmAndParameters *ap;
-#ifdef NSS_3_4_CODE
     PK11SlotInfo *internal = PK11_GetInternalSlot();
     NSSToken *token = PK11Slot_GetNSSToken(internal);
-#else
-    NSSToken *token = nss_GetDefaultCryptoToken();
-#endif
     ap = NSSAlgorithmAndParameters_CreateMD5Digest(NULL);
     (void)nssToken_Digest(token, NULL, ap, input, output, NULL);
-#ifdef NSS_3_4_CODE
     PK11_FreeSlot(token->pk11slot);
-#endif
     nss_ZFreeIf(ap);
 }
 

@@ -43,9 +43,6 @@
 #include "cert.h"
 #include "certxutl.h"
 
-#ifndef NSS_3_4_CODE
-#define NSS_3_4_CODE
-#endif
 #include "nsspki.h"
 #include "pki.h"
 #include "pkit.h"

@@ -34,12 +34,14 @@
 # the terms of any one of the MPL, the GPL or the LGPL.
 #
 # ***** END LICENSE BLOCK *****
-MANIFEST_CVS_ID = "@(#) $RCSfile: manifest.mn,v $ $Revision: 1.12 $ $Date: 2007-08-15 15:29:54 $"
+MANIFEST_CVS_ID = "@(#) $RCSfile: manifest.mn,v $ $Revision: 1.13 $ $Date: 2007-11-16 05:29:25 $"
 
 CORE_DEPTH = ../../..
 
 PRIVATE_EXPORTS = \
 	ckhelper.h \
+	devm.h     \
+	devtm.h      \
 	devt.h     \
 	dev.h      \
 	nssdevt.h  \
@@ -52,18 +54,11 @@ EXPORTS =	   \
 MODULE = nss
 
 CSRCS =		        \
-	devmod.c        \
 	devslot.c       \
 	devtoken.c      \
 	devutil.c       \
 	ckhelper.c      \
 	$(NULL)
-
-# here is where the 3.4 glue code is added
-ifndef PURE_STAN_BUILD
-DEFINES = -DNSS_3_4_CODE
-PRIVATE_EXPORTS += devm.h devtm.h
-endif
 
 REQUIRES = nspr
 

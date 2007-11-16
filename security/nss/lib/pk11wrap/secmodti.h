@@ -47,9 +47,6 @@
 #include "secmodt.h"
 #include "pkcs11t.h"
 
-#ifndef NSS_3_4_CODE
-#define NSS_3_4_CODE
-#endif /* NSS_3_4_CODE */
 #include "nssdevt.h"
 
 /* internal data structures */

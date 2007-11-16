@@ -35,7 +35,7 @@
  * ***** END LICENSE BLOCK ***** */
 
 #ifdef DEBUG
-static const char CVS_ID[] = "@(#) $RCSfile: certdecode.c,v $ $Revision: 1.16 $ $Date: 2005-01-20 02:25:48 $";
+static const char CVS_ID[] = "@(#) $RCSfile: certdecode.c,v $ $Revision: 1.17 $ $Date: 2007-11-16 05:29:27 $";
 #endif /* DEBUG */
 
 #ifndef PKIT_H
@@ -46,7 +46,6 @@ static const char CVS_ID[] = "@(#) $RCSfile: certdecode.c,v $ $Revision: 1.16 $ 
 #include "pkim.h"
 #endif /* PKIM_H */
 
-#ifdef NSS_3_4_CODE
 /* This is defined in pki3hack.c */
 NSS_EXTERN nssDecodedCert *
 nssDecodedPKIXCertificate_Create (
@@ -58,25 +57,6 @@ NSS_IMPLEMENT PRStatus
 nssDecodedPKIXCertificate_Destroy (
   nssDecodedCert *dc
 );
-#else /* NSS_4_0_CODE */
-/* This is where 4.0 PKIX code will handle the decoding */
-static nssDecodedCert *
-nssDecodedPKIXCertificate_Create (
-  NSSArena *arenaOpt,
-  NSSDER *encoding
-)
-{
-    return (nssDecodedCert *)NULL;
-}
-
-static PRStatus
-nssDecodedPKIXCertificate_Destroy (
-  nssDecodedCert *dc
-)
-{
-    return PR_FAILURE;
-}
-#endif /* not NSS_3_4_CODE */
 
 NSS_IMPLEMENT nssDecodedCert *
 nssDecodedCert_Create (

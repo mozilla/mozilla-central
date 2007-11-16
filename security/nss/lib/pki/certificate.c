@@ -35,7 +35,7 @@
  * ***** END LICENSE BLOCK ***** */
 
 #ifdef DEBUG
-static const char CVS_ID[] = "@(#) $RCSfile: certificate.c,v $ $Revision: 1.62 $ $Date: 2007-01-05 00:25:05 $";
+static const char CVS_ID[] = "@(#) $RCSfile: certificate.c,v $ $Revision: 1.63 $ $Date: 2007-11-16 05:29:27 $";
 #endif /* DEBUG */
 
 #ifndef NSSPKI_H
@@ -56,11 +56,9 @@ static const char CVS_ID[] = "@(#) $RCSfile: certificate.c,v $ $Revision: 1.62 $
 
 #include "pkistore.h"
 
-#ifdef NSS_3_4_CODE
 #include "pki3hack.h"
 #include "pk11func.h"
 #include "hasht.h"
-#endif
 
 #ifndef BASE_H
 #include "base.h"
@@ -497,22 +495,15 @@ nssCertificate_BuildChain (
         (!td && (td = NSSCertificate_GetTrustDomain(c)) == NULL)) {
 	goto loser;
     }
-#ifdef NSS_3_4_CODE
     /* bump the usage up to CA level */
     issuerUsage.nss3lookingForCA = PR_TRUE;
-#endif
     collection = nssCertificateCollection_Create(td, NULL);
     if (!collection)
 	goto loser;
     st = nssPKIObjectCollection_AddObject(collection, (nssPKIObject *)c);
     if (st != PR_SUCCESS)
     	goto loser;
-    /* XXX This breaks code for which NSS_3_4_CODE is not defined (pure
-     *     4.0 builds).  That won't affect the tip.  But be careful
-     *     when merging 4.0!!!
-     */
     for (rvCount = 1; (!rvLimit || rvCount < rvLimit); ++rvCount) {
-#ifdef NSS_3_4_CODE
 	CERTCertificate *cCert = STAN_GetCERTCertificate(c);
 	if (cCert->isRoot) {
 	    /* not including the issuer of the self-signed cert, which is,
@@ -520,7 +511,6 @@ nssCertificate_BuildChain (
 	     */
 	    break;
 	}
-#endif
 	c = find_cert_issuer(c, timeOpt, &issuerUsage, policiesOpt, td, cc);
 	if (!c) {
 	    ret = PR_FAILURE;

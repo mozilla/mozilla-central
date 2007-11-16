@@ -50,9 +50,6 @@
 #include "pkix_pl_cert.h"
 
 
-#ifndef NSS_3_4_CODE
-#define NSS_3_4_CODE
-#endif /* NSS_3_4_CODE */
 #include "nsspki.h"
 #include "pkitm.h"
 #include "pkim.h"

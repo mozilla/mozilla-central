@@ -38,7 +38,7 @@
 #define PKIT_H
 
 #ifdef DEBUG
-static const char PKIT_CVS_ID[] = "@(#) $RCSfile: pkit.h,v $ $Revision: 1.18 $ $Date: 2006-08-22 22:54:11 $";
+static const char PKIT_CVS_ID[] = "@(#) $RCSfile: pkit.h,v $ $Revision: 1.19 $ $Date: 2007-11-16 05:29:27 $";
 #endif /* DEBUG */
 
 /*
@@ -55,10 +55,8 @@ static const char PKIT_CVS_ID[] = "@(#) $RCSfile: pkit.h,v $ $Revision: 1.18 $ $
 #include "baset.h"
 #endif /* BASET_H */
 
-#ifdef NSS_3_4_CODE
 #include "certt.h"
 #include "pkcs11t.h"
-#endif /* NSS_3_4_CODE */
 
 #ifndef NSSPKIT_H
 #include "nsspkit.h"
@@ -188,10 +186,8 @@ struct NSSTrustDomainStr {
     nssListIterator *tokens;
     nssTDCertificateCache *cache;
     NSSRWLock *tokensLock;
-#ifdef NSS_3_4_CODE
     void *spkDigestInfo;
     CERTStatusConfig *statusConfig;
-#endif
 };
 
 struct NSSCryptoContextStr

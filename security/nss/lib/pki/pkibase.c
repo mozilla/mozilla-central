@@ -35,7 +35,7 @@
  * ***** END LICENSE BLOCK ***** */
 
 #ifdef DEBUG
-static const char CVS_ID[] = "@(#) $RCSfile: pkibase.c,v $ $Revision: 1.27 $ $Date: 2007-01-05 00:25:05 $";
+static const char CVS_ID[] = "@(#) $RCSfile: pkibase.c,v $ $Revision: 1.28 $ $Date: 2007-11-16 05:29:27 $";
 #endif /* DEBUG */
 
 #ifndef DEV_H
@@ -46,9 +46,7 @@ static const char CVS_ID[] = "@(#) $RCSfile: pkibase.c,v $ $Revision: 1.27 $ $Da
 #include "pkim.h"
 #endif /* PKIM_H */
 
-#ifdef NSS_3_4_CODE
 #include "pki3hack.h"
-#endif
 
 extern const NSSError NSS_ERROR_NOT_FOUND;
 
@@ -312,35 +310,11 @@ nssPKIObject_DeleteStoredObject (
 {
     PRUint32 i, numNotDestroyed;
     PRStatus status = PR_SUCCESS;
-#ifndef NSS_3_4_CODE
-    NSSTrustDomain *td = object->trustDomain;
-    NSSCallback *pwcb = uhh ?  /* is this optional? */
-                        uhh : 
-                        nssTrustDomain_GetDefaultCallback(td, NULL);
-#endif
     numNotDestroyed = 0;
     nssPKIObject_Lock(object);
     for (i=0; i<object->numInstances; i++) {
 	nssCryptokiObject *instance = object->instances[i];
-#ifndef NSS_3_4_CODE
-	NSSSlot *slot = nssToken_GetSlot(instance->token);
-	/* If both the operation and the slot are friendly, login is
-	 * not required.  If either or both are not friendly, it is
-	 * required.
-	 */
-	if (!(isFriendly && nssSlot_IsFriendly(slot))) {
-	    status = nssSlot_Login(slot, pwcb);
-	    nssSlot_Destroy(slot);
-	    if (status == PR_SUCCESS) {
-		/* XXX this should be fixed to understand read-only tokens,
-		 * for now, to handle the builtins, just make the attempt.
-		 */
-		status = nssToken_DeleteStoredObject(instance);
-	    }
-	}
-#else
 	status = nssToken_DeleteStoredObject(instance);
-#endif
 	object->instances[i] = NULL;
 	if (status == PR_SUCCESS) {
 	    nssCryptokiObject_Destroy(instance);
@@ -402,7 +376,6 @@ nssPKIObject_GetNicknameForToken (
     return nickname;
 }
 
-#ifdef NSS_3_4_CODE
 NSS_IMPLEMENT nssCryptokiObject **
 nssPKIObject_GetInstances (
   nssPKIObject *object
@@ -424,7 +397,6 @@ nssPKIObject_GetInstances (
     nssPKIObject_Unlock(object);
     return instances;
 }
-#endif
 
 NSS_IMPLEMENT void
 nssCertificateArray_Destroy (
@@ -434,7 +406,6 @@ nssCertificateArray_Destroy (
     if (certs) {
 	NSSCertificate **certp;
 	for (certp = certs; *certp; certp++) {
-#ifdef NSS_3_4_CODE
 	    if ((*certp)->decoding) {
 		CERTCertificate *cc = STAN_GetCERTCertificate(*certp);
 		if (cc) {
@@ -442,7 +413,6 @@ nssCertificateArray_Destroy (
 		}
 		continue;
 	    }
-#endif
 	    nssCertificate_Destroy(*certp);
 	}
 	nss_ZFreeIf(certs);
@@ -1005,7 +975,6 @@ nssPKIObjectCollection_AddInstanceAsObject (
 	}
 	node->haveObject = PR_TRUE;
     }
-#ifdef NSS_3_4_CODE
     else if (!foundIt) {
 	/* The instance was added to a pre-existing node.  This
 	 * function is *only* being used for certificates, and having
@@ -1017,7 +986,6 @@ nssPKIObjectCollection_AddInstanceAsObject (
 	 */
 	STAN_ForceCERTCertificateUpdate((NSSCertificate *)node->object);
     }
-#endif
     return PR_SUCCESS;
 }
 
@@ -1029,7 +997,6 @@ static void
 cert_destroyObject(nssPKIObject *o)
 {
     NSSCertificate *c = (NSSCertificate *)o;
-#ifdef NSS_3_4_CODE
     if (c->decoding) {
 	CERTCertificate *cc = STAN_GetCERTCertificate(c);
 	if (cc) {
@@ -1037,7 +1004,6 @@ cert_destroyObject(nssPKIObject *o)
 	    return;
 	} /* else destroy it as NSSCertificate below */
     }
-#endif
     nssCertificate_Destroy(c);
 }
 
@@ -1045,7 +1011,6 @@ static PRStatus
 cert_getUIDFromObject(nssPKIObject *o, NSSItem *uid)
 {
     NSSCertificate *c = (NSSCertificate *)o;
-#ifdef NSS_3_4_CODE
     /* The builtins are still returning decoded serial numbers.  Until
      * this compatibility issue is resolved, use the full DER of the
      * cert to uniquely identify it.
@@ -1057,13 +1022,6 @@ cert_getUIDFromObject(nssPKIObject *o, NSSItem *uid)
     if (derCert != NULL) {
 	uid[0] = *derCert;
     }
-#else
-    NSSDER *issuer, *serial;
-    issuer = nssCertificate_GetIssuer(c);
-    serial = nssCertificate_GetSerialNumber(c);
-    uid[0] = *issuer;
-    uid[1] = *serial;
-#endif /* NSS_3_4_CODE */
     return PR_SUCCESS;
 }
 
@@ -1071,7 +1029,6 @@ static PRStatus
 cert_getUIDFromInstance(nssCryptokiObject *instance, NSSItem *uid, 
                         NSSArena *arena)
 {
-#ifdef NSS_3_4_CODE
     /* The builtins are still returning decoded serial numbers.  Until
      * this compatibility issue is resolved, use the full DER of the
      * cert to uniquely identify it.
@@ -1086,17 +1043,6 @@ cert_getUIDFromInstance(nssCryptokiObject *instance, NSSItem *uid,
                                                 NULL,  /* issuer   */
                                                 NULL,  /* serial   */
                                                 NULL);  /* subject  */
-#else
-    return nssCryptokiCertificate_GetAttributes(instance,
-                                                NULL,  /* XXX sessionOpt */
-                                                arena, /* arena    */
-                                                NULL,  /* type     */
-                                                NULL,  /* id       */
-                                                NULL,  /* encoding */
-                                                &uid[0], /* issuer */
-                                                &uid[1], /* serial */
-                                                NULL);  /* subject  */
-#endif /* NSS_3_4_CODE */
 }
 
 static nssPKIObject *
@@ -1104,7 +1050,6 @@ cert_createObject(nssPKIObject *o)
 {
     NSSCertificate *cert;
     cert = nssCertificate_Create(o);
-#ifdef NSS_3_4_CODE
 /*    if (STAN_GetCERTCertificate(cert) == NULL) {
 	nssCertificate_Destroy(cert);
 	return (nssPKIObject *)NULL;
@@ -1117,7 +1062,6 @@ cert_createObject(nssPKIObject *o)
 	NSSTrustDomain *td = o->trustDomain;
 	nssTrustDomain_AddCertsToCache(td, &cert, 1);
     }
-#endif
     return (nssPKIObject *)cert;
 }
 
@@ -1288,210 +1232,6 @@ nssPKIObjectCollection_GetCRLs (
     }
     return rvOpt;
 }
-
-#ifdef PURE_STAN_BUILD
-/*
- * PrivateKey collections
- */
-
-static void
-privkey_destroyObject(nssPKIObject *o)
-{
-    NSSPrivateKey *pvk = (NSSPrivateKey *)o;
-    nssPrivateKey_Destroy(pvk);
-}
-
-static PRStatus
-privkey_getUIDFromObject(nssPKIObject *o, NSSItem *uid)
-{
-    NSSPrivateKey *pvk = (NSSPrivateKey *)o;
-    NSSItem *id;
-    id = nssPrivateKey_GetID(pvk);
-    uid[0] = *id;
-    return PR_SUCCESS;
-}
-
-static PRStatus
-privkey_getUIDFromInstance(nssCryptokiObject *instance, NSSItem *uid, 
-                           NSSArena *arena)
-{
-    return nssCryptokiPrivateKey_GetAttributes(instance,
-                                               NULL,  /* XXX sessionOpt */
-                                               arena,
-                                               NULL, /* type */
-                                               &uid[0]);
-}
-
-static nssPKIObject *
-privkey_createObject(nssPKIObject *o)
-{
-    NSSPrivateKey *pvk;
-    pvk = nssPrivateKey_Create(o);
-    return (nssPKIObject *)pvk;
-}
-
-NSS_IMPLEMENT nssPKIObjectCollection *
-nssPrivateKeyCollection_Create (
-  NSSTrustDomain *td,
-  NSSPrivateKey **pvkOpt
-)
-{
-    PRStatus status;
-    nssPKIObjectCollection *collection;
-    collection = nssPKIObjectCollection_Create(td, NULL, nssPKILock);
-    collection->objectType = pkiObjectType_PrivateKey;
-    collection->destroyObject = privkey_destroyObject;
-    collection->getUIDFromObject = privkey_getUIDFromObject;
-    collection->getUIDFromInstance = privkey_getUIDFromInstance;
-    collection->createObject = privkey_createObject;
-    if (pvkOpt) {
-	for (; *pvkOpt; pvkOpt++) {
-	    nssPKIObject *o = (nssPKIObject *)(*pvkOpt);
-	    status = nssPKIObjectCollection_AddObject(collection, o);
-	}
-    }
-    return collection;
-}
-
-NSS_IMPLEMENT NSSPrivateKey **
-nssPKIObjectCollection_GetPrivateKeys (
-  nssPKIObjectCollection *collection,
-  NSSPrivateKey **rvOpt,
-  PRUint32 maximumOpt,
-  NSSArena *arenaOpt
-)
-{
-    PRStatus status;
-    PRUint32 rvSize;
-    PRBool allocated = PR_FALSE;
-    if (collection->size == 0) {
-	return (NSSPrivateKey **)NULL;
-    }
-    if (maximumOpt == 0) {
-	rvSize = collection->size;
-    } else {
-	rvSize = PR_MIN(collection->size, maximumOpt);
-    }
-    if (!rvOpt) {
-	rvOpt = nss_ZNEWARRAY(arenaOpt, NSSPrivateKey *, rvSize + 1);
-	if (!rvOpt) {
-	    return (NSSPrivateKey **)NULL;
-	}
-	allocated = PR_TRUE;
-    }
-    status = nssPKIObjectCollection_GetObjects(collection, 
-                                               (nssPKIObject **)rvOpt, 
-                                               rvSize);
-    if (status != PR_SUCCESS) {
-	if (allocated) {
-	    nss_ZFreeIf(rvOpt);
-	}
-	return (NSSPrivateKey **)NULL;
-    }
-    return rvOpt;
-}
-
-/*
- * PublicKey collections
- */
-
-static void
-pubkey_destroyObject(nssPKIObject *o)
-{
-    NSSPublicKey *pubk = (NSSPublicKey *)o;
-    nssPublicKey_Destroy(pubk);
-}
-
-static PRStatus
-pubkey_getUIDFromObject(nssPKIObject *o, NSSItem *uid)
-{
-    NSSPublicKey *pubk = (NSSPublicKey *)o;
-    NSSItem *id;
-    id = nssPublicKey_GetID(pubk);
-    uid[0] = *id;
-    return PR_SUCCESS;
-}
-
-static PRStatus
-pubkey_getUIDFromInstance(nssCryptokiObject *instance, NSSItem *uid, 
-                          NSSArena *arena)
-{
-    return nssCryptokiPublicKey_GetAttributes(instance,
-                                              NULL,  /* XXX sessionOpt */
-                                              arena,
-                                              NULL, /* type */
-                                              &uid[0]);
-}
-
-static nssPKIObject *
-pubkey_createObject(nssPKIObject *o)
-{
-    NSSPublicKey *pubk;
-    pubk = nssPublicKey_Create(o);
-    return (nssPKIObject *)pubk;
-}
-
-NSS_IMPLEMENT nssPKIObjectCollection *
-nssPublicKeyCollection_Create (
-  NSSTrustDomain *td,
-  NSSPublicKey **pubkOpt
-)
-{
-    PRStatus status;
-    nssPKIObjectCollection *collection;
-    collection = nssPKIObjectCollection_Create(td, NULL, nssPKILock);
-    collection->objectType = pkiObjectType_PublicKey;
-    collection->destroyObject = pubkey_destroyObject;
-    collection->getUIDFromObject = pubkey_getUIDFromObject;
-    collection->getUIDFromInstance = pubkey_getUIDFromInstance;
-    collection->createObject = pubkey_createObject;
-    if (pubkOpt) {
-	for (; *pubkOpt; pubkOpt++) {
-	    nssPKIObject *o = (nssPKIObject *)(*pubkOpt);
-	    status = nssPKIObjectCollection_AddObject(collection, o);
-	}
-    }
-    return collection;
-}
-
-NSS_IMPLEMENT NSSPublicKey **
-nssPKIObjectCollection_GetPublicKeys (
-  nssPKIObjectCollection *collection,
-  NSSPublicKey **rvOpt,
-  PRUint32 maximumOpt,
-  NSSArena *arenaOpt
-)
-{
-    PRStatus status;
-    PRUint32 rvSize;
-    PRBool allocated = PR_FALSE;
-    if (collection->size == 0) {
-	return (NSSPublicKey **)NULL;
-    }
-    if (maximumOpt == 0) {
-	rvSize = collection->size;
-    } else {
-	rvSize = PR_MIN(collection->size, maximumOpt);
-    }
-    if (!rvOpt) {
-	rvOpt = nss_ZNEWARRAY(arenaOpt, NSSPublicKey *, rvSize + 1);
-	if (!rvOpt) {
-	    return (NSSPublicKey **)NULL;
-	}
-	allocated = PR_TRUE;
-    }
-    status = nssPKIObjectCollection_GetObjects(collection, 
-                                               (nssPKIObject **)rvOpt, 
-                                               rvSize);
-    if (status != PR_SUCCESS) {
-	if (allocated) {
-	    nss_ZFreeIf(rvOpt);
-	}
-	return (NSSPublicKey **)NULL;
-    }
-    return rvOpt;
-}
-#endif /* PURE_STAN_BUILD */
 
 /* how bad would it be to have a static now sitting around, updated whenever
  * this was called?  would avoid repeated allocs...

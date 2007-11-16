@@ -35,7 +35,7 @@
  * ***** END LICENSE BLOCK ***** */
 
 #ifdef DEBUG
-static const char CVS_ID[] = "@(#) $RCSfile: ckhelper.c,v $ $Revision: 1.35 $ $Date: 2006-10-09 22:11:44 $";
+static const char CVS_ID[] = "@(#) $RCSfile: ckhelper.c,v $ $Revision: 1.36 $ $Date: 2007-11-16 05:29:25 $";
 #endif /* DEBUG */
 
 #ifndef NSSCKEPV_H
@@ -391,128 +391,6 @@ nssCryptokiCertificate_GetAttributes (
     }
     return PR_SUCCESS;
 }
-
-#ifdef PURE_STAN_BUILD
-static NSSKeyPairType
-nss_key_pair_type_from_ck_attrib(CK_ATTRIBUTE_PTR attrib)
-{
-    CK_KEY_TYPE ckKeyType;
-    PR_ASSERT(attrib->pValue);
-    ckKeyType = *((CK_ULONG *)attrib->pValue);
-    switch (ckKeyType) {
-    case CKK_RSA: return NSSKeyPairType_RSA;
-    case CKK_DSA: return NSSKeyPairType_DSA;
-    default: break;
-    }
-    return NSSKeyPairType_Unknown;
-}
-
-NSS_IMPLEMENT PRStatus
-nssCryptokiPrivateKey_GetAttributes (
-  nssCryptokiObject *keyObject,
-  nssSession *sessionOpt,
-  NSSArena *arenaOpt,
-  NSSKeyPairType *keyTypeOpt,
-  NSSItem *idOpt
-)
-{
-    PRStatus status;
-    PRUint32 i;
-    nssSession *session;
-    NSSSlot *slot;
-    CK_ULONG template_size;
-    CK_ATTRIBUTE_PTR attr;
-    CK_ATTRIBUTE key_template[2];
-    /* Set up a template of all options chosen by caller */
-    NSS_CK_TEMPLATE_START(key_template, attr, template_size);
-    if (keyTypeOpt) {
-	NSS_CK_SET_ATTRIBUTE_NULL(attr, CKA_KEY_TYPE);
-    }
-    if (idOpt) {
-	NSS_CK_SET_ATTRIBUTE_NULL(attr, CKA_ID);
-    }
-    NSS_CK_TEMPLATE_FINISH(key_template, attr, template_size);
-    if (template_size == 0) {
-	/* caller didn't want anything */
-	return PR_SUCCESS;
-    }
-
-    session = sessionOpt ? 
-              sessionOpt : 
-              nssToken_GetDefaultSession(keyObject->token);
-
-    slot = nssToken_GetSlot(keyObject->token);
-    status = nssCKObject_GetAttributes(keyObject->handle, 
-                                       key_template, template_size,
-                                       arenaOpt, session, slot);
-    nssSlot_Destroy(slot);
-    if (status != PR_SUCCESS) {
-	return status;
-    }
-
-    i=0;
-    if (keyTypeOpt) {
-	*keyTypeOpt = nss_key_pair_type_from_ck_attrib(&key_template[i]); i++;
-    }
-    if (idOpt) {
-	NSS_CK_ATTRIBUTE_TO_ITEM(&key_template[i], idOpt); i++;
-    }
-    return PR_SUCCESS;
-}
-
-NSS_IMPLEMENT PRStatus
-nssCryptokiPublicKey_GetAttributes (
-  nssCryptokiObject *keyObject,
-  nssSession *sessionOpt,
-  NSSArena *arenaOpt,
-  NSSKeyPairType *keyTypeOpt,
-  NSSItem *idOpt
-)
-{
-    PRStatus status;
-    PRUint32 i;
-    nssSession *session;
-    NSSSlot *slot;
-    CK_ULONG template_size;
-    CK_ATTRIBUTE_PTR attr;
-    CK_ATTRIBUTE key_template[2];
-    /* Set up a template of all options chosen by caller */
-    NSS_CK_TEMPLATE_START(key_template, attr, template_size);
-    if (keyTypeOpt) {
-	NSS_CK_SET_ATTRIBUTE_NULL(attr, CKA_KEY_TYPE);
-    }
-    if (idOpt) {
-	NSS_CK_SET_ATTRIBUTE_NULL(attr, CKA_ID);
-    }
-    NSS_CK_TEMPLATE_FINISH(key_template, attr, template_size);
-    if (template_size == 0) {
-	/* caller didn't want anything */
-	return PR_SUCCESS;
-    }
-
-    session = sessionOpt ? 
-              sessionOpt : 
-              nssToken_GetDefaultSession(keyObject->token);
-
-    slot = nssToken_GetSlot(keyObject->token);
-    status = nssCKObject_GetAttributes(keyObject->handle, 
-                                       key_template, template_size,
-                                       arenaOpt, session, slot);
-    nssSlot_Destroy(slot);
-    if (status != PR_SUCCESS) {
-	return status;
-    }
-
-    i=0;
-    if (keyTypeOpt) {
-	*keyTypeOpt = nss_key_pair_type_from_ck_attrib(&key_template[i]); i++;
-    }
-    if (idOpt) {
-	NSS_CK_ATTRIBUTE_TO_ITEM(&key_template[i], idOpt); i++;
-    }
-    return PR_SUCCESS;
-}
-#endif /* PURE_STAN_BUILD */
 
 static nssTrustLevel 
 get_nss_trust (

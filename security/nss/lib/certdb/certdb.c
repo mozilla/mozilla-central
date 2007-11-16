@@ -38,7 +38,7 @@
 /*
  * Certificate handling code
  *
- * $Id: certdb.c,v 1.84 2007-11-13 23:10:45 wtc%google.com Exp $
+ * $Id: certdb.c,v 1.85 2007-11-16 05:29:24 julien.pierre.boogz%sun.com Exp $
  */
 
 #include "nssilock.h"
@@ -65,9 +65,6 @@
 #include "pk11func.h"
 #include "xconst.h"   /* for  CERT_DecodeAltNameExtension */
 
-#ifndef NSS_3_4_CODE
-#define NSS_3_4_CODE
-#endif /* NSS_3_4_CODE */
 #include "pki.h"
 #include "pki3hack.h"
 
