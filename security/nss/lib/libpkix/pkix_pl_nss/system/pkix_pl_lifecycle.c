@@ -260,8 +260,6 @@ PKIX_PL_Shutdown(void *plContext)
 
         PR_DestroyLock(classTableLock);
 
-        pkix_pl_HttpCertStore_Shutdown(plContext);
-
         numLeakedObjects = pkix_pl_lifecycle_ObjectLeakCheck();
 
         /* Turn this code on again after bug 397832 get fixed.

@@ -600,7 +600,7 @@ int test_pk11certstore(int argc, char *argv[]) {
 
         startTests("Pk11CertStore");
 
-        if (argc < 2) {
+        if (argc < 3) {
                 printUsage(argv[0]);
                 return (0);
         }
@@ -608,7 +608,7 @@ int test_pk11certstore(int argc, char *argv[]) {
         PKIX_TEST_EXPECT_NO_ERROR(
             PKIX_PL_NssContext_Create(0, PKIX_FALSE, NULL, &plContext));
 
-        crlDir = argv[j+1];
+        crlDir = argv[j+2];
 
         /* Two certs for prof should be valid now */
         PKIX_TEST_EXPECT_NO_ERROR(pkix_pl_Date_CreateFromPRTime

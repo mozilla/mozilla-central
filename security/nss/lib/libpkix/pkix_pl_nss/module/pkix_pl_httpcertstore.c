@@ -45,6 +45,7 @@
 
 #include "pkix_pl_httpcertstore.h"
 extern PKIX_PL_HashTable *httpSocketCache;
+static const SEC_ASN1Template sec_PKCS7ContentInfoTemplate[4];
 SEC_ASN1_MKSUB(CERT_IssuerAndSNTemplate)
 SEC_ASN1_MKSUB(SECOID_AlgorithmIDTemplate)
 SEC_ASN1_MKSUB(SEC_SetOfAnyTemplate)
@@ -166,14 +167,17 @@ pkix_pl_HttpCertStoreContext_RegisterSelf(void *plContext)
         PKIX_RETURN(HTTPCERTSTORECONTEXT);
 }
 
-
 /* --Private-Http-CertStore-Database-Functions----------------------- */
+extern void SEC_ASN1DecoderSetNotifyProc(
+        SEC_ASN1DecoderContext *dcx,
+        SEC_ASN1NotifyProc sec_pkcs7_decoder_notify,
+        void *p7dcx);
+
 
 typedef struct callbackContextStruct  {
         PKIX_List *pkixCertList;
         void *plContext;
 } callbackContext;
-
 
 /*
  * FUNCTION: certCallback
@@ -238,59 +242,422 @@ certCallback(void *arg, SECItem **secitemCerts, int numcerts)
         return ((certsFound == numcerts)?SECSuccess:SECFailure);
 }
 
-
-typedef SECStatus (*pkix_DecodeCertsFunc)(char *certbuf, int certlen,
-                                          CERTImportCertificateFunc f, void *arg);
-
-
-struct pkix_DecodeFuncStr {
-    pkix_DecodeCertsFunc func;          /* function pointer to the 
-                                         * CERT_DecodeCertPackage function */
-    PRLibrary *smimeLib;                /* Pointer to the smime shared lib*/
-    PRCallOnceType once;
-};
-
-static struct pkix_DecodeFuncStr pkix_decodeFunc;
-static const PRCallOnceType pkix_pristine;
-
-#define SMIME_LIB_NAME SHLIB_PREFIX"smime3."SHLIB_SUFFIX
-
-/*
- * load the smime library and look up the SEC_ReadPKCS7Certs function.
- *  we do this so we don't have a circular depenency on the smime library,
- *  and also so we don't have to load the smime library in applications that
- * don't use it.
- */
-static PRStatus PR_CALLBACK pkix_getDecodeFunction(void)
+static SECOidTag
+SEC_PKCS7ContentType (SEC_PKCS7ContentInfo *cinfo)
 {
-    pkix_decodeFunc.smimeLib = 
-		PR_LoadLibrary(SHLIB_PREFIX"smime3."SHLIB_SUFFIX);
-    if (pkix_decodeFunc.smimeLib == NULL) {
-	return PR_FAILURE;
-    }
+    if (cinfo->contentTypeTag == NULL)
+	cinfo->contentTypeTag = SECOID_FindOID(&(cinfo->contentType));
 
-    pkix_decodeFunc.func = (pkix_DecodeCertsFunc) PR_FindFunctionSymbol(
-		pkix_decodeFunc.smimeLib, "CERT_DecodeCertPackage");
-    if (!pkix_decodeFunc.func) {
-	return PR_FAILURE;
-    }
-    return PR_SUCCESS;
+    if (cinfo->contentTypeTag == NULL)
+	return SEC_OID_UNKNOWN;
 
+    return cinfo->contentTypeTag->offset;
 }
 
 /*
- * clears our global state on shutdown. 
+ * Destroy a PKCS7 contentInfo and all of its sub-pieces.
  */
-void
-pkix_pl_HttpCertStore_Shutdown(void *plContext)
+
+static void
+SEC_PKCS7DestroyContentInfo(SEC_PKCS7ContentInfo *cinfo)
 {
-    if (pkix_decodeFunc.smimeLib) {
-	PR_UnloadLibrary(pkix_decodeFunc.smimeLib);
-	pkix_decodeFunc.smimeLib = NULL;
+    SECOidTag kind;
+    CERTCertificate **certs;
+    CERTCertificateList **certlists;
+    SEC_PKCS7SignerInfo **signerinfos;
+    SEC_PKCS7RecipientInfo **recipientinfos;
+
+    PORT_Assert (cinfo->refCount > 0);
+    if (cinfo->refCount <= 0)
+	return;
+
+    cinfo->refCount--;
+    if (cinfo->refCount > 0)
+	return;
+
+    certs = NULL;
+    certlists = NULL;
+    recipientinfos = NULL;
+    signerinfos = NULL;
+
+    kind = SEC_PKCS7ContentType (cinfo);
+    switch (kind) {
+      case SEC_OID_PKCS7_SIGNED_DATA:
+	{
+	    SEC_PKCS7SignedData *sdp;
+
+	    sdp = cinfo->content.signedData;
+	    if (sdp != NULL) {
+		certs = sdp->certs;
+		certlists = sdp->certLists;
+		signerinfos = sdp->signerInfos;
+	    }
+	}
+	break;
+      default:
+	/* XXX Anything else that needs to be "manually" freed/destroyed? */
+	break;
     }
-    /* the function pointer just need to be cleared, not freed */
-    pkix_decodeFunc.func = NULL;
-    pkix_decodeFunc.once = pkix_pristine;
+
+    if (certs != NULL) {
+	CERTCertificate *cert;
+
+	while ((cert = *certs++) != NULL) {
+	    CERT_DestroyCertificate (cert);
+	}
+    }
+
+    if (certlists != NULL) {
+	CERTCertificateList *certlist;
+
+	while ((certlist = *certlists++) != NULL) {
+	    CERT_DestroyCertificateList (certlist);
+	}
+    }
+
+    if (recipientinfos != NULL) {
+	SEC_PKCS7RecipientInfo *ri;
+
+	while ((ri = *recipientinfos++) != NULL) {
+	    if (ri->cert != NULL)
+		CERT_DestroyCertificate (ri->cert);
+	}
+    }
+
+    if (signerinfos != NULL) {
+	SEC_PKCS7SignerInfo *si;
+
+	while ((si = *signerinfos++) != NULL) {
+	    if (si->cert != NULL)
+		CERT_DestroyCertificate (si->cert);
+	    if (si->certList != NULL)
+		CERT_DestroyCertificateList (si->certList);
+	}
+    }
+
+    if (cinfo->poolp != NULL) {
+	PORT_FreeArena (cinfo->poolp, PR_FALSE);	/* XXX clear it? */
+    }
+}
+
+/* XXX unused? */
+static SECStatus
+sec_pkcs7_decoder_start_digests (SEC_PKCS7DecoderContext *p7dcx, int depth,
+				 SECAlgorithmID **digestalgs)
+{
+	return (SECFailure);
+}
+
+/* XXX unused? */
+static SECStatus
+sec_pkcs7_decoder_finish_digests (SEC_PKCS7DecoderContext *p7dcx,
+				  PRArenaPool *poolp,
+				  SECItem ***digestsp)
+{
+	return (SECFailure);
+}
+
+static void
+sec_pkcs7_decoder_notify (void *arg, PRBool before, void *dest, int depth)
+{
+    SEC_PKCS7DecoderContext *p7dcx;
+    SEC_PKCS7ContentInfo *cinfo;
+    SEC_PKCS7SignedData *sigd;
+    PRBool after;
+    SECStatus rv;
+
+    /*
+     * Just to make the code easier to read, create an "after" variable
+     * that is equivalent to "not before".
+     * (This used to be just the statement "after = !before", but that
+     * causes a warning on the mac; to avoid that, we do it the long way.)
+     */
+    if (before)
+	after = PR_FALSE;
+    else
+	after = PR_TRUE;
+
+    p7dcx = (SEC_PKCS7DecoderContext*)arg;
+    cinfo = p7dcx->cinfo;
+
+    if (cinfo->contentTypeTag == NULL) {
+	if (after && dest == &(cinfo->contentType))
+	    cinfo->contentTypeTag = SECOID_FindOID(&(cinfo->contentType));
+	return;
+    }
+
+    switch (cinfo->contentTypeTag->offset) {
+      case SEC_OID_PKCS7_SIGNED_DATA:
+	sigd = cinfo->content.signedData;
+	if (sigd == NULL)
+	    break;
+
+	if (sigd->contentInfo.contentTypeTag == NULL) {
+	    if (after && dest == &(sigd->contentInfo.contentType))
+		sigd->contentInfo.contentTypeTag =
+			SECOID_FindOID(&(sigd->contentInfo.contentType));
+	    break;
+	}
+
+	/*
+	 * We only set up a filtering digest if the content is
+	 * plain DATA; anything else needs more work because a
+	 * second pass is required to produce a DER encoding from
+	 * an input that can be BER encoded.  (This is a requirement
+	 * of PKCS7 that is unfortunate, but there you have it.)
+	 *
+	 * XXX Also, since we stop here if this is not DATA, the
+	 * inner content is not getting processed at all.  Someday
+	 * we may want to fix that.
+	 */
+	if (sigd->contentInfo.contentTypeTag->offset != SEC_OID_PKCS7_DATA) {
+	    /* XXX Set an error in p7dcx->error */
+	    SEC_ASN1DecoderClearNotifyProc (p7dcx->dcx);
+	    break;
+	}
+
+	/*
+	 * Just before the content, we want to set up a digest context
+	 * for each digest algorithm listed, and start a filter which
+	 * will run all of the contents bytes through that digest.
+	 */
+	if (before && dest == &(sigd->contentInfo.content)) {
+	    rv = sec_pkcs7_decoder_start_digests (p7dcx, depth,
+						  sigd->digestAlgorithms);
+	    if (rv != SECSuccess)
+		SEC_ASN1DecoderClearNotifyProc (p7dcx->dcx);
+
+	    break;
+	}
+
+	/*
+	 * XXX To handle nested types, here is where we would want
+	 * to check for inner boundaries that need handling.
+	 */
+
+	/*
+	 * Are we done?
+	 */
+	if (after && dest == &(sigd->contentInfo.content)) {
+	    /*
+	     * Close out the digest contexts.  We ignore any error
+	     * because we are stopping anyway; the error status left
+	     * behind in p7dcx will be seen by outer functions.
+	     */
+	    (void) sec_pkcs7_decoder_finish_digests (p7dcx, cinfo->poolp,
+						     &(sigd->digests));
+
+	    /*
+	     * XXX To handle nested contents, we would need to remove
+	     * the worker from the chain (and free it).
+	     */
+
+	    /*
+	     * Stop notify.
+	     */
+	    SEC_ASN1DecoderClearNotifyProc (p7dcx->dcx);
+	}
+	break;
+
+      default:
+	SEC_ASN1DecoderClearNotifyProc (p7dcx->dcx);
+	break;
+    }
+}
+
+
+/* XXX Only called with all args NULL */
+
+static SEC_PKCS7DecoderContext *
+SEC_PKCS7DecoderStart(SEC_PKCS7DecoderContentCallback cb, void *cb_arg,
+		      SECKEYGetPasswordKey pwfn, void *pwfn_arg,
+		      SEC_PKCS7GetDecryptKeyCallback decrypt_key_cb, 
+		      void *decrypt_key_cb_arg,
+		      SEC_PKCS7DecryptionAllowedCallback decrypt_allowed_cb)
+{
+    SEC_PKCS7DecoderContext *p7dcx;
+    SEC_ASN1DecoderContext *dcx;
+    SEC_PKCS7ContentInfo *cinfo;
+    PRArenaPool *poolp;
+
+    poolp = PORT_NewArena (1024);		/* XXX what is right value? */
+    if (poolp == NULL)
+	return NULL;
+
+    cinfo = (SEC_PKCS7ContentInfo*)PORT_ArenaZAlloc (poolp, sizeof(*cinfo));
+    if (cinfo == NULL) {
+	PORT_FreeArena (poolp, PR_FALSE);
+	return NULL;
+    }
+
+    cinfo->poolp = poolp;
+    cinfo->pwfn = pwfn;
+    cinfo->pwfn_arg = pwfn_arg;
+    cinfo->created = PR_FALSE;
+    cinfo->refCount = 1;
+
+    p7dcx = 
+      (SEC_PKCS7DecoderContext*)PORT_ZAlloc (sizeof(SEC_PKCS7DecoderContext));
+    if (p7dcx == NULL) {
+	PORT_FreeArena (poolp, PR_FALSE);
+	return NULL;
+    }
+
+    p7dcx->tmp_poolp = PORT_NewArena (1024);	/* XXX what is right value? */
+    if (p7dcx->tmp_poolp == NULL) {
+	PORT_Free (p7dcx);
+	PORT_FreeArena (poolp, PR_FALSE);
+	return NULL;
+    }
+
+    dcx = SEC_ASN1DecoderStart (poolp, cinfo, sec_PKCS7ContentInfoTemplate);
+    if (dcx == NULL) {
+	PORT_FreeArena (p7dcx->tmp_poolp, PR_FALSE);
+	PORT_Free (p7dcx);
+	PORT_FreeArena (poolp, PR_FALSE);
+	return NULL;
+    }
+
+    SEC_ASN1DecoderSetNotifyProc (dcx, sec_pkcs7_decoder_notify, p7dcx);
+
+    p7dcx->dcx = dcx;
+    p7dcx->cinfo = cinfo;
+    p7dcx->cb = cb;
+    p7dcx->cb_arg = cb_arg;
+    p7dcx->pwfn = pwfn;
+    p7dcx->pwfn_arg = pwfn_arg;
+    p7dcx->dkcb = decrypt_key_cb;
+    p7dcx->dkcb_arg = decrypt_key_cb_arg;
+    p7dcx->decrypt_allowed_cb = decrypt_allowed_cb;
+
+    return p7dcx;
+}
+
+
+/*
+ * Do the next chunk of PKCS7 decoding.  If there is a problem, set
+ * an error and return a failure status.  Note that in the case of
+ * an error, this routine is still prepared to be called again and
+ * again in case that is the easiest route for our caller to take.
+ * We simply detect it and do not do anything except keep setting
+ * that error in case our caller has not noticed it yet...
+ */
+static SECStatus
+SEC_PKCS7DecoderUpdate(SEC_PKCS7DecoderContext *p7dcx,
+		       const char *buf, unsigned long len)
+{
+    if (p7dcx->cinfo != NULL && p7dcx->dcx != NULL) { 
+	PORT_Assert (p7dcx->error == 0);
+	if (p7dcx->error == 0) {
+	    if (SEC_ASN1DecoderUpdate (p7dcx->dcx, buf, len) != SECSuccess) {
+		p7dcx->error = PORT_GetError();
+		PORT_Assert (p7dcx->error);
+		if (p7dcx->error == 0)
+		    p7dcx->error = -1;
+	    }
+	}
+    }
+
+    if (p7dcx->error) {
+	if (p7dcx->dcx != NULL) {
+	    (void) SEC_ASN1DecoderFinish (p7dcx->dcx);
+	    p7dcx->dcx = NULL;
+	}
+	if (p7dcx->cinfo != NULL) {
+	    SEC_PKCS7DestroyContentInfo (p7dcx->cinfo);
+	    p7dcx->cinfo = NULL;
+	}
+	PORT_SetError (p7dcx->error);
+	return SECFailure;
+    }
+
+    return SECSuccess;
+}
+
+static void
+sec_pkcs7_destroy_cipher (sec_PKCS7CipherObject *obj)
+{
+    (* obj->destroy) (obj->cx, PR_TRUE);
+    PORT_Free (obj);
+}
+
+static void
+sec_PKCS7DestroyDecryptObject (sec_PKCS7CipherObject *obj)
+{
+    PORT_Assert (obj != NULL);
+    if (obj == NULL)
+	return;
+    PORT_Assert (! obj->encrypt);
+    sec_pkcs7_destroy_cipher (obj);
+}
+
+static SEC_PKCS7ContentInfo *
+SEC_PKCS7DecoderFinish(SEC_PKCS7DecoderContext *p7dcx)
+{
+    SEC_PKCS7ContentInfo *cinfo;
+
+    cinfo = p7dcx->cinfo;
+    if (p7dcx->dcx != NULL) {
+	if (SEC_ASN1DecoderFinish (p7dcx->dcx) != SECSuccess) {
+	    SEC_PKCS7DestroyContentInfo (cinfo);
+	    cinfo = NULL;
+	}
+    }
+    /* free any NSS data structures */
+    if (p7dcx->worker.decryptobj) {
+        sec_PKCS7DestroyDecryptObject (p7dcx->worker.decryptobj);
+    }
+    PORT_FreeArena (p7dcx->tmp_poolp, PR_FALSE);
+    PORT_Free (p7dcx);
+    return cinfo;
+}
+
+static SECStatus
+SEC_ReadPKCS7Certs(SECItem *pkcs7Item, CERTImportCertificateFunc f, void *arg)
+{
+    SEC_PKCS7ContentInfo *contentInfo = NULL;
+    SECStatus rv;
+    SECItem **certs;
+    int count;
+
+    SEC_PKCS7DecoderContext *p7dcx;
+
+    p7dcx = SEC_PKCS7DecoderStart(NULL, NULL, NULL, NULL, NULL, NULL, NULL);
+    (void) SEC_PKCS7DecoderUpdate
+	    (p7dcx, (char *) pkcs7Item->data, pkcs7Item->len);
+    contentInfo = SEC_PKCS7DecoderFinish(p7dcx);
+
+    if ( contentInfo == NULL ) {
+	goto loser;
+    }
+
+    if ( SEC_PKCS7ContentType (contentInfo) != SEC_OID_PKCS7_SIGNED_DATA ) {
+	goto loser;
+    }
+
+    certs = contentInfo->content.signedData->rawCerts;
+    if ( certs ) {
+	count = 0;
+	
+	while ( *certs ) {
+	    count++;
+	    certs++;
+	}
+	rv = (* f)(arg, contentInfo->content.signedData->rawCerts, count);
+    }
+    
+    rv = SECSuccess;
+    
+    goto done;
+loser:
+    rv = SECFailure;
+    
+done:
+    if ( contentInfo ) {
+	SEC_PKCS7DestroyContentInfo(contentInfo);
+    }
+
+    return(rv);
 }
 
 /*
@@ -305,34 +672,126 @@ pkix_pl_HttpCertStore_DecodeCertPackage
         void *arg,
         void *plContext)
 {
-   
-        PRStatus status;
-        SECStatus rv;
-
+        unsigned char *cp;
+        unsigned char *bincert = NULL;
+        char *ascCert = NULL;
+        SECItem certitem;
+        SECItem *pcertitem = &certitem;
+        int seqLen, seqLenLen;
+        SECStatus rv = SECFailure;
+    
         PKIX_ENTER
                 (HTTPCERTSTORECONTEXT,
                 "pkix_pl_HttpCertStore_DecodeCertPackage");
         PKIX_NULLCHECK_TWO(certbuf, f);
-
-        status = PR_CallOnce(&pkix_decodeFunc.once, pkix_getDecodeFunction);
-
-        if (status != PR_SUCCESS) {
-               PKIX_ERROR(PKIX_CANTLOADLIBSMIME);
-        }
-
-        /* paranoia, shouldn't happen if status == PR_SUCCESS); */
-        if (!pkix_decodeFunc.func) {
-               PKIX_ERROR(PKIX_CANTLOADLIBSMIME);
-        }
-
-        rv = (*pkix_decodeFunc.func)(certbuf, certlen, f, arg);
-
-        if (rv != SECSuccess) {
-                PKIX_ERROR (PKIX_SECREADPKCS7CERTSFAILED);
-        }
     
+        cp = (unsigned char *)certbuf;
+
+        /* is this a DER encoded certificate of some type? */
+        if ( ( *cp  & 0x1f ) == SEC_ASN1_SEQUENCE ) {
+
+                cp++;
+        
+                if (*cp & 0x80) {
+                        /* Multibyte length */
+                        seqLenLen = cp[0] & 0x7f;
+            
+                        switch (seqLenLen) {
+                          case 4:
+                            seqLen = ((unsigned long)cp[1] << 24) |
+                                    ((unsigned long)cp[2] << 16) |
+                                    (cp[3]<<8) | cp[4];
+                            break;
+                          case 3:
+                            seqLen = ((unsigned long)cp[1]<<16) |
+                                    (cp[2]<<8) | cp[3];
+                            break;
+                          case 2:
+                            seqLen = (cp[1]<<8) | cp[2];
+                            break;
+                          case 1:
+                            seqLen = cp[1];
+                            break;
+                          default:
+                            /* indefinite length */
+                            seqLen = 0;
+                        }
+                        cp += ( seqLenLen + 1 );
+
+                } else {
+                        seqLenLen = 0;
+                        seqLen = *cp;
+                        cp++;
+                }
+
+                /* check entire length if definite length */
+                if ( seqLen || seqLenLen ) {
+                        if ( certlen != ( seqLen + seqLenLen + 2 ) ) {
+                            if (certlen > ( seqLen + seqLenLen + 2 )) {
+                                PKIX_ERROR(PKIX_TOOMUCHDATAINDERSEQUENCE);
+                            } else {
+                                PKIX_ERROR(PKIX_TOOLITTLEDATAINDERSEQUENCE);
+                            }
+                        }
+                } else {
+                        PKIX_ERROR(PKIX_NOTDERPACKAGE);
+		}
+
+                if ( cp[0] == SEC_ASN1_OBJECT_ID ) {
+                        SECOidData *oiddata;
+            		SECItem oiditem;
+            		/* XXX - assume DER encoding of OID len!! */
+            		oiditem.len = cp[1];
+            		oiditem.data = (unsigned char *)&cp[2];
+			PKIX_PL_NSSCALLRV
+				(HTTPCERTSTORECONTEXT, oiddata, SECOID_FindOID,
+				(&oiditem));
+            		if ( oiddata == NULL ) {
+				PKIX_ERROR(PKIX_UNKNOWNOBJECTOID);
+            		}
+
+            		certitem.data = (unsigned char*)certbuf;
+            		certitem.len = certlen;
+            
+            		switch ( oiddata->offset ) {
+              			case SEC_OID_PKCS7_SIGNED_DATA:
+					PKIX_PL_NSSCALLRV
+						(HTTPCERTSTORECONTEXT,
+						rv,
+                				SEC_ReadPKCS7Certs,
+						(&certitem, f, arg));
+		                        if (rv != SECSuccess) {
+                	                    PKIX_ERROR
+						(PKIX_SECREADPKCS7CERTSFAILED);
+					}
+                		break;
+              		default:
+				PKIX_ERROR(PKIX_UNKNOWNOBJECTOID);
+                      		break;
+            		}
+            
+        	} else {
+            		/* it had better be a certificate by now!! */
+            		certitem.data = (unsigned char*)certbuf;
+            		certitem.len = certlen;
+            
+	        	rv = (* f)(arg, &pcertitem, 1);
+                        if (rv != SECSuccess) {
+                                PKIX_ERROR
+				    (PKIX_CERTIMPORTCERTIFICATEFUNCTIONFAILED);
+			}
+                }
+        }
 
 cleanup:
+
+        if ( bincert ) {
+                PORT_Free(bincert);
+        }
+
+        if ( ascCert ) {
+                PORT_Free(ascCert);
+        }
 
         PKIX_RETURN(HTTPCERTSTORECONTEXT);
 }
@@ -1212,3 +1671,195 @@ cleanup:
         PKIX_RETURN(CERTSTORE);
 }
 
+static const SEC_ASN1Template *
+sec_attr_choose_attr_value_template(void *src_or_dest, PRBool encoding)
+{
+    const SEC_ASN1Template *theTemplate;
+
+    SEC_PKCS7Attribute *attribute;
+    SECOidData *oiddata;
+    PRBool encoded;
+
+    PORT_Assert (src_or_dest != NULL);
+    if (src_or_dest == NULL)
+	return NULL;
+
+    attribute = (SEC_PKCS7Attribute*)src_or_dest;
+
+    if (encoding && attribute->encoded)
+	return SEC_ASN1_GET(SEC_AnyTemplate);
+
+    oiddata = attribute->typeTag;
+    if (oiddata == NULL) {
+	oiddata = SECOID_FindOID(&attribute->type);
+	attribute->typeTag = oiddata;
+    }
+
+    if (oiddata == NULL) {
+	encoded = PR_TRUE;
+	theTemplate = SEC_ASN1_GET(SEC_AnyTemplate);
+    } else {
+	switch (oiddata->offset) {
+	  default:
+	    encoded = PR_TRUE;
+	    theTemplate = SEC_ASN1_GET(SEC_AnyTemplate);
+	    break;
+	  case SEC_OID_PKCS9_EMAIL_ADDRESS:
+	  case SEC_OID_RFC1274_MAIL:
+	  case SEC_OID_PKCS9_UNSTRUCTURED_NAME:
+	    encoded = PR_FALSE;
+	    theTemplate = SEC_ASN1_GET(SEC_IA5StringTemplate);
+	    break;
+	  case SEC_OID_PKCS9_CONTENT_TYPE:
+	    encoded = PR_FALSE;
+	    theTemplate = SEC_ASN1_GET(SEC_ObjectIDTemplate);
+	    break;
+	  case SEC_OID_PKCS9_MESSAGE_DIGEST:
+	    encoded = PR_FALSE;
+	    theTemplate = SEC_ASN1_GET(SEC_OctetStringTemplate);
+	    break;
+	  case SEC_OID_PKCS9_SIGNING_TIME:
+	    encoded = PR_FALSE;
+            theTemplate = SEC_ASN1_GET(CERT_TimeChoiceTemplate);
+	    break;
+	  /* XXX Want other types here, too */
+	}
+    }
+
+    if (encoding) {
+	/*
+	 * If we are encoding and we think we have an already-encoded value,
+	 * then the code which initialized this attribute should have set
+	 * the "encoded" property to true (and we would have returned early,
+	 * up above).  No devastating error, but that code should be fixed.
+	 * (It could indicate that the resulting encoded bytes are wrong.)
+	 */
+	PORT_Assert (!encoded);
+    } else {
+	/*
+	 * We are decoding; record whether the resulting value is
+	 * still encoded or not.
+	 */
+	attribute->encoded = encoded;
+    }
+    return theTemplate;
+}
+
+static const SEC_ASN1Template *
+sec_pkcs7_choose_content_template(void *src_or_dest, PRBool encoding);
+
+static const SEC_ASN1TemplateChooserPtr sec_pkcs7_chooser
+	= sec_pkcs7_choose_content_template;
+
+static const SEC_ASN1TemplateChooserPtr sec_attr_chooser
+	= sec_attr_choose_attr_value_template;
+
+static const SEC_ASN1Template sec_pkcs7_attribute_template[] = {
+    { SEC_ASN1_SEQUENCE,
+	  0, NULL, sizeof(SEC_PKCS7Attribute) },
+    { SEC_ASN1_OBJECT_ID,
+	  offsetof(SEC_PKCS7Attribute,type) },
+    { SEC_ASN1_DYNAMIC | SEC_ASN1_SET_OF,
+	  offsetof(SEC_PKCS7Attribute,values),
+	  &sec_attr_chooser },
+    { 0 }
+};
+
+static const SEC_ASN1Template sec_pkcs7_set_of_attribute_template[] = {
+    { SEC_ASN1_SET_OF, 0, sec_pkcs7_attribute_template },
+};
+
+static const SEC_ASN1Template sec_PKCS7ContentInfoTemplate[] = {
+    { SEC_ASN1_SEQUENCE | SEC_ASN1_MAY_STREAM,
+	  0, NULL, sizeof(SEC_PKCS7ContentInfo) },
+    { SEC_ASN1_OBJECT_ID,
+	  offsetof(SEC_PKCS7ContentInfo,contentType) },
+    { SEC_ASN1_OPTIONAL | SEC_ASN1_DYNAMIC | SEC_ASN1_MAY_STREAM
+     | SEC_ASN1_EXPLICIT | SEC_ASN1_CONSTRUCTED | SEC_ASN1_CONTEXT_SPECIFIC | 0,
+	  offsetof(SEC_PKCS7ContentInfo,content),
+	  &sec_pkcs7_chooser },
+    { 0 }
+};
+
+static const SEC_ASN1Template SEC_PKCS7SignerInfoTemplate[] = {
+    { SEC_ASN1_SEQUENCE,
+	  0, NULL, sizeof(SEC_PKCS7SignerInfo) },
+    { SEC_ASN1_INTEGER,
+	  offsetof(SEC_PKCS7SignerInfo,version) },
+    { SEC_ASN1_POINTER | SEC_ASN1_XTRN,
+	  offsetof(SEC_PKCS7SignerInfo,issuerAndSN),
+	  SEC_ASN1_SUB(CERT_IssuerAndSNTemplate) },
+    { SEC_ASN1_INLINE | SEC_ASN1_XTRN,
+	  offsetof(SEC_PKCS7SignerInfo,digestAlg),
+	  SEC_ASN1_SUB(SECOID_AlgorithmIDTemplate) },
+    { SEC_ASN1_OPTIONAL | SEC_ASN1_CONSTRUCTED | SEC_ASN1_CONTEXT_SPECIFIC | 0,
+	  offsetof(SEC_PKCS7SignerInfo,authAttr),
+	  sec_pkcs7_set_of_attribute_template },
+    { SEC_ASN1_INLINE | SEC_ASN1_XTRN,
+	  offsetof(SEC_PKCS7SignerInfo,digestEncAlg),
+	  SEC_ASN1_SUB(SECOID_AlgorithmIDTemplate) },
+    { SEC_ASN1_OCTET_STRING,
+	  offsetof(SEC_PKCS7SignerInfo,encDigest) },
+    { SEC_ASN1_OPTIONAL | SEC_ASN1_CONSTRUCTED | SEC_ASN1_CONTEXT_SPECIFIC | 1,
+	  offsetof(SEC_PKCS7SignerInfo,unAuthAttr),
+	  sec_pkcs7_set_of_attribute_template },
+    { 0 }
+};
+
+static const SEC_ASN1Template SEC_PKCS7SignedDataTemplate[] = {
+    { SEC_ASN1_SEQUENCE | SEC_ASN1_MAY_STREAM,
+	  0, NULL, sizeof(SEC_PKCS7SignedData) },
+    { SEC_ASN1_INTEGER,
+	  offsetof(SEC_PKCS7SignedData,version) },
+    { SEC_ASN1_SET_OF | SEC_ASN1_XTRN,
+	  offsetof(SEC_PKCS7SignedData,digestAlgorithms),
+	  SEC_ASN1_SUB(SECOID_AlgorithmIDTemplate) },
+    { SEC_ASN1_INLINE,
+	  offsetof(SEC_PKCS7SignedData,contentInfo),
+	  sec_PKCS7ContentInfoTemplate },
+    { SEC_ASN1_OPTIONAL | SEC_ASN1_CONSTRUCTED | SEC_ASN1_CONTEXT_SPECIFIC  |
+      SEC_ASN1_XTRN | 0,
+	  offsetof(SEC_PKCS7SignedData,rawCerts),
+	  SEC_ASN1_SUB(SEC_SetOfAnyTemplate) },
+    { SEC_ASN1_OPTIONAL | SEC_ASN1_CONSTRUCTED | SEC_ASN1_CONTEXT_SPECIFIC  |
+      SEC_ASN1_XTRN | 1,
+	  offsetof(SEC_PKCS7SignedData,crls),
+	  SEC_ASN1_SUB(CERT_SetOfSignedCrlTemplate) },
+    { SEC_ASN1_SET_OF,
+	  offsetof(SEC_PKCS7SignedData,signerInfos),
+	  SEC_PKCS7SignerInfoTemplate },
+    { 0 }
+};
+
+static const SEC_ASN1Template SEC_PointerToPKCS7SignedDataTemplate[] = {
+    { SEC_ASN1_POINTER, 0, SEC_PKCS7SignedDataTemplate }
+};
+
+static const SEC_ASN1Template *
+sec_pkcs7_choose_content_template(void *src_or_dest, PRBool encoding)
+{
+    const SEC_ASN1Template *theTemplate;
+    SEC_PKCS7ContentInfo *cinfo;
+    SECOidTag kind;
+
+    PORT_Assert (src_or_dest != NULL);
+    if (src_or_dest == NULL)
+	return NULL;
+
+    cinfo = (SEC_PKCS7ContentInfo*)src_or_dest;
+    kind = SEC_PKCS7ContentType (cinfo);
+    switch (kind) {
+      default:
+	theTemplate = SEC_ASN1_GET(SEC_PointerToAnyTemplate);
+	break;
+      case SEC_OID_PKCS7_SIGNED_DATA:
+	theTemplate = SEC_PointerToPKCS7SignedDataTemplate;
+	break;
+    }
+    return theTemplate;
+}
+
+/*
+ * End of templates.  Do not add stuff after this; put new code
+ * up above the start of the template definitions.
+ */

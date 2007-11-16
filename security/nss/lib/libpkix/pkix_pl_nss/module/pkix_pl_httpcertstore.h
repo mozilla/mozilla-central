@@ -50,6 +50,55 @@
 extern "C" {
 #endif
 
+#define RCVBUFSIZE              512
+
+typedef SECStatus (*sec_pkcs7_cipher_function) (void *,
+						unsigned char *,
+						unsigned *,
+						unsigned int,
+						const unsigned char *,
+						unsigned int);
+typedef SECStatus (*sec_pkcs7_cipher_destroy) (void *, PRBool);
+
+#define BLOCK_SIZE 4096
+
+struct sec_pkcs7_cipher_object {
+    void *cx;
+    sec_pkcs7_cipher_function doit;
+    sec_pkcs7_cipher_destroy destroy;
+    PRBool encrypt;
+    int block_size;
+    int pad_size;
+    int pending_count;
+    unsigned char pending_buf[BLOCK_SIZE];
+};
+
+typedef struct sec_pkcs7_cipher_object sec_PKCS7CipherObject;
+
+struct sec_pkcs7_decoder_worker {
+    int depth;
+    int digcnt;
+    void **digcxs;
+    void **   /* const SECHashObject **/ digobjs;
+    void *   /* sec_PKCS7CipherObject * */ decryptobj;
+    PRBool saw_contents;
+};
+
+struct SEC_PKCS7DecoderContextStr {
+    SEC_ASN1DecoderContext *dcx;
+    SEC_PKCS7ContentInfo *cinfo;
+    SEC_PKCS7DecoderContentCallback cb;
+    void *cb_arg;
+    SECKEYGetPasswordKey pwfn;
+    void *pwfn_arg;
+    struct sec_pkcs7_decoder_worker worker;
+    PRArenaPool *tmp_poolp;
+    int error;
+    SEC_PKCS7GetDecryptKeyCallback dkcb;
+    void *dkcb_arg;
+    SEC_PKCS7DecryptionAllowedCallback decrypt_allowed_cb;
+};
+
 struct PKIX_PL_HttpCertStoreContextStruct {
         const SEC_HttpClientFcn *client;
         SEC_HTTP_SERVER_SESSION serverSession;
@@ -60,8 +109,6 @@ struct PKIX_PL_HttpCertStoreContextStruct {
 /* see source file for function documentation */
 
 PKIX_Error *pkix_pl_HttpCertStoreContext_RegisterSelf(void *plContext);
-
-void pkix_pl_HttpCertStore_Shutdown(void *plContext);
 
 PKIX_Error *
 pkix_pl_HttpCertStore_CreateWithAsciiName(
