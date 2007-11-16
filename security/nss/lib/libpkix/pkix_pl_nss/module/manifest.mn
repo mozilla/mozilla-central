@@ -58,6 +58,9 @@ PRIVATE_EXPORTS = \
 
 MODULE = nss
 
+DEFINES += -DSHLIB_SUFFIX=\"$(DLL_SUFFIX)\" -DSHLIB_PREFIX=\"$(DLL_PREFIX)\" -DSHLIB_VERSION=\"$(LIBRARY_VERSION)\"
+
+
 CSRCS = \
 	pkix_pl_aiamgr.c \
 	pkix_pl_ekuchecker.c \
