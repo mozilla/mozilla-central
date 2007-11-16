@@ -1252,7 +1252,7 @@ table.test_run_summary td.name {
     border: solid #bbbbbb 1px;
 }
 
-table.test_run_summary td.coverage {
+table.test_run_summary td.coverage, table.test_run_summary td.coverage-loading, table.test_run_summary td.results-loading {
     text-align: center;
     font-size: 1.1em;
     font-weight: bold;
@@ -1438,12 +1438,12 @@ table.newCriteria td {
     margin-right: auto;
 }
 
-img.coverage-loading, td.name img {
+img.coverage, td.name img {
     padding: 0px;
     border: 0px;
 }
 
-img.coverage-loading {
+img.coverage {
     height: 1.5em;
 }
 

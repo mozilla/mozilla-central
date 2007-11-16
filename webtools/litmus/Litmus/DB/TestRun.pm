@@ -43,7 +43,7 @@ Litmus::DB::TestRun->columns(Primary => qw/test_run_id/);
 Litmus::DB::TestRun->columns(All => qw/test_run_id name description start_timestamp finish_timestamp enabled recommended product_id branch_id creation_date last_updated author_id version/);
 Litmus::DB::TestRun->columns(Essential => qw/test_run_id name description start_timestamp finish_timestamp enabled recommended product_id branch_id creation_date last_updated author_id version/);
 Litmus::DB::TestRun->utf8_columns(qw/name description/);
-Litmus::DB::TestRun->columns(TEMP => qw/testgroups criteria/);
+Litmus::DB::TestRun->columns(TEMP => qw/testgroups criteria num_pass num_fail num_unclear num_comments/);
 
 Litmus::DB::TestRun->column_alias("product_id", "product");
 Litmus::DB::TestRun->column_alias("branch_id", "branch");
@@ -378,14 +378,14 @@ $sql .= " WHERE
 #########################################################################
 sub getNumResultsByStatus {
   my $self = shift;
-  my $status_id = shift;
+  my $status_class_name = shift;
   my $community_only = shift;
   my $user = shift;
   my $trusted = shift;
 
   my $sql = "
 SELECT COUNT(DISTINCT(tr.testresult_id))
-FROM test_runs trun, test_run_testgroups truntg, testgroups tg, subgroup_testgroups sgtg, subgroups sg, testcase_subgroups tcsg, testcases tc, test_results tr, opsyses o, platforms pl, users u";
+FROM test_runs trun, test_run_testgroups truntg, testgroups tg, subgroup_testgroups sgtg, subgroups sg, testcase_subgroups tcsg, testcases tc, test_results tr, opsyses o, platforms pl, users u, test_result_status_lookup trsl";
 if ($trusted) {
 	$sql .= ", user_group_map ugm, security_groups secgrps";
 }
@@ -398,6 +398,8 @@ $sql .= " WHERE
   sgtg.subgroup_id=sg.subgroup_id AND
   tcsg.testcase_id=tc.testcase_id AND
   tc.testcase_id=tr.testcase_id AND
+  tr.result_status_id=trsl.result_status_id AND
+  trsl.class_name=? AND
   tr.opsys_id=o.opsys_id AND
   o.platform_id=pl.platform_id AND
   tg.enabled=1 AND
@@ -406,8 +408,7 @@ $sql .= " WHERE
   tr.submission_time>=trun.start_timestamp AND
   tr.submission_time<=trun.finish_timestamp AND
   tr.branch_id=trun.branch_id AND
-  tr.user_id=u.user_id AND
-  tr.result_status_id=?
+  tr.user_id=u.user_id
 ";
 
   if ($community_only) {
@@ -427,7 +428,7 @@ $sql .= " WHERE
 
   my $dbh = __PACKAGE__->db_ReadOnly();
   my $sth = $dbh->prepare($sql);
-  $sth->execute($self->test_run_id,$status_id);
+  $sth->execute($self->test_run_id,$status_class_name);
   my ($num_results) = $sth->fetchrow_array;
   $sth->finish();
 

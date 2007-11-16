@@ -94,13 +94,18 @@ if ($c->param("testcase_id")) {
     my $coverage = $test_run->coverage;
     print '{"test_run_id":' . $test_run_id . ',"coverage":' . ($coverage||0) . '}';
     exit 0;
+  } elsif ($c->param("results")) {
+    $test_run->{'num_pass'} = $test_run->getNumResultsByStatus("pass") || 0;
+    $test_run->{'num_fail'} = $test_run->getNumResultsByStatus("fail") || 0;
+    $test_run->{'num_unclear'} = $test_run->getNumResultsByStatus("unclear") || 0;
+    $test_run->{'num_comments'} = $test_run->getNumResultsWithComments || 0;
   } else {
     my @testgroups = Litmus::DB::Testgroup->search_ByTestRun($test_run_id);
     $test_run->{'testgroups'} = \@testgroups;
     my $criteria = $test_run->getCriteria();
     $test_run->{'criteria'} = $criteria;  
-    $js = $json->objToJson($test_run);
   }
+  $js = $json->objToJson($test_run);
 } elsif ($c->param("test_runs_by_branch_product_name")) {
   my $branch;
   my $product;
