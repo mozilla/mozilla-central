@@ -45,7 +45,6 @@
 #include "nsVoidArray.h"
 #include "nsStringGlue.h"
 #include "nsIAddrDBListener.h"
-#include "nsISupportsArray.h"
 #include "nsCOMPtr.h"
 
 typedef enum
@@ -91,8 +90,8 @@ public:
   NS_IMETHOD AddCardRowToDB(nsIMdbRow *newRow);
   NS_IMETHOD AddLdifListMember(nsIMdbRow* row, const char * value);
 
-  NS_IMETHOD GetDeletedCardList(PRUint32 *aCount, nsISupportsArray **aDeletedList);
-  NS_IMETHOD GetDeletedCardCount(PRUint32 *count);
+  NS_IMETHOD GetDeletedCardList(nsIArray **aResult);
+  NS_IMETHOD GetDeletedCardCount(PRUint32 *aCount);
   NS_IMETHOD PurgeDeletedCardTable();
 
   NS_IMETHOD AddFirstName(nsIMdbRow * row, const char * value)

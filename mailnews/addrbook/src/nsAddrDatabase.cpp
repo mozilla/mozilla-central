@@ -63,7 +63,7 @@
 #include "nsIProxyObjectManager.h"
 #include "nsProxiedService.h"
 #include "prprf.h"
-
+#include "nsIMutableArray.h"
 #include "nsIPromptService.h"
 #include "nsIStringBundle.h"
 #include "nsIFile.h"
@@ -2062,16 +2062,18 @@ NS_IMETHODIMP nsAddrDatabase::GetCardValue(nsIAbCard *card, const char *name, PR
   return NS_OK;
 }
 
-NS_IMETHODIMP nsAddrDatabase::GetDeletedCardList(PRUint32 *aCount, nsISupportsArray **aDeletedList)
+NS_IMETHODIMP nsAddrDatabase::GetDeletedCardList(nsIArray **aResult)
 {
-  if (!m_mdbEnv)
+  if (!m_mdbEnv || !aResult)
     return NS_ERROR_NULL_POINTER;
 
-  nsCOMPtr<nsISupportsArray> resultCardArray;
-  nsresult rv = NS_NewISupportsArray(getter_AddRefs(resultCardArray));
-  if (NS_FAILED(rv))
-    return rv;
-  *aCount = 0;
+  *aResult = nsnull;
+
+  nsresult rv;
+  nsCOMPtr<nsIMutableArray> resultCardArray =
+    do_CreateInstance(NS_ARRAY_CONTRACTID, &rv);
+  NS_ENSURE_SUCCESS(rv, rv);
+
   // make sure the member is set properly
   InitDeletedCardsTable(PR_FALSE);
   if (m_mdbDeletedCardsTable)
@@ -2095,17 +2097,17 @@ NS_IMETHODIMP nsAddrDatabase::GetDeletedCardList(PRUint32 *aCount, nsISupportsAr
           nsCOMPtr<nsIAbCard>    card;
           rv = CreateCardFromDeletedCardsTable(currentRow, 0, getter_AddRefs(card));
           if (NS_SUCCEEDED(rv)) {
-            (*aCount) += 1;
-            resultCardArray->AppendElement(card);
+            resultCardArray->AppendElement(card, PR_FALSE);
           }
         }
       }
       else
           done = PR_TRUE;
     }
-    if (*aCount > 0)
-      NS_IF_ADDREF(*aDeletedList = resultCardArray);
   }
+
+  NS_IF_ADDREF(*aResult = resultCardArray);
+
   return NS_OK;
 }
 

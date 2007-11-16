@@ -50,6 +50,7 @@
 #include "nsAbCardProperty.h"
 #include "prdtoa.h"
 #include "nsMsgUtils.h"
+#include "nsIArray.h"
 
 #define  PREVIOUS_EXTENSION ".prev"
 #define  kPABDirectory  2 // defined in nsDirPrefs.h
@@ -509,19 +510,22 @@ nsresult nsAbPalmHotSync::DoSyncAndGetUpdatedCards(PRInt32 aPalmCount, lpnsABCOM
 // this takes care of the cases when the state is deleted
 nsresult nsAbPalmHotSync::LoadDeletedCardsSinceLastSync()
 {
-    if(!mDBOpen || !mABDB || !mInitialized) 
+    if (!mDBOpen || !mABDB || !mInitialized) 
         return NS_ERROR_NOT_INITIALIZED;
     
-    nsISupportsArray * deletedCardArray;
-    PRUint32  deletedCardCount;
-    nsresult rv = mABDB->GetDeletedCardList(&deletedCardCount, &deletedCardArray);
-    if(NS_FAILED(rv))
+    nsCOMPtr<nsIArray> deletedCardArray;
+    nsresult rv = mABDB->GetDeletedCardList(&deletedCardArray);
+    if (NS_FAILED(rv))
+        return rv;
+
+    PRUint32 deletedCardCount;
+    rv = deletedCardArray->GetLength(&deletedCardCount);
+    if (NS_FAILED(rv))
         return rv;
 
     for(PRUint32 i=0; i < deletedCardCount; i++) 
     {
-        nsCOMPtr<nsIAbCard> card; 
-        rv = deletedCardArray->QueryElementAt(i, NS_GET_IID(nsIAbCard), getter_AddRefs(card));
+        nsCOMPtr<nsIAbCard> card(do_QueryElementAt(deletedCardArray, i, &rv)
         if (NS_FAILED(rv)) // can this be anything but a card?
             continue;
         

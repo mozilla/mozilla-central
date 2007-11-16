@@ -41,7 +41,6 @@ interface nsIDOMWindow;
 interface nsIAbDirectory;
 interface nsIAbCard;
 interface nsIAbDirectoryProperties;
-interface nsISupportsArray;
 interface nsIRDFDataSource;
 
 [scriptable, uuid(0823e46e-8802-42d5-b91b-7e4816c8d2f0)]

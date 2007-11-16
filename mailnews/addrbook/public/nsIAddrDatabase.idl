@@ -45,6 +45,7 @@ interface nsIFile;
 interface nsIMdbTableRowCursor;
 interface nsIMdbEnv;
 interface nsIMdbRow;
+interface nsIArray;
 
 %{C++
 // this is the prefix we for attributes that are specific
@@ -137,7 +138,7 @@ interface nsAddrDBCommitType
   const long kCompressCommit = 3;
 };
 
-[scriptable, uuid(244d95ab-ca93-436b-9809-80ef21118bd4)]
+[scriptable, uuid(f1f688f6-39b7-4030-b96b-aedf55d91ad3)]
 interface nsIAddrDatabase : nsIAddrDBAnnouncer {
 
   /**
@@ -280,8 +281,15 @@ interface nsIAddrDatabase : nsIAddrDBAnnouncer {
   void setCardValue(in nsIAbCard card, in string name, in wstring value, in boolean notify);
   wstring getCardValue(in nsIAbCard card, in string name);
 
-  void getDeletedCardList(out unsigned long aCount, out nsISupportsArray aDeletedList); 
-  void getDeletedCardCount(out unsigned long count); 
+  /**
+   * Returns an array of the deleted cards currently stored in the mork file.
+   */
+  readonly attribute nsIArray deletedCardList;
+
+  /**
+   * Returns the count of the deleted card currently stored in the mork file.
+   */
+  readonly attribute unsigned long deletedCardCount;
 
   void AddListCardColumnsToRow(in nsIAbCard aPCard,
                                in nsIMdbRow aPListRow,
