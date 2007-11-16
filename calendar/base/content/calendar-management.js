@@ -655,6 +655,9 @@ var calendarManagerObserver = {
         calendarListTreeView.removeCalendar(aCalendar);
         aCalendar.removeObserver(this);
 
+        // Make sure the calendar is removed from the composite calendar
+        getCompositeCalendar().removeCalendar(aCalendar.uri);
+
         // We want to make sure its not possible to delete the last calendar.
         // Since at this point the current calendar hasn't been deleted yet,
         // start disabling when there are two calendars.
@@ -677,8 +680,6 @@ var calendarManagerObserver = {
     },
 
     onCalendarDeleting: function cMO_onCalendarDeleting(aCalendar) {
-        // Make sure the calendar is removed from the composite calendar
-        getCompositeCalendar().removeCalendar(aCalendar.uri);
     },
 
     // calIObserver. Note that each registered calendar uses this observer, not
