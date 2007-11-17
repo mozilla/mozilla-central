@@ -302,36 +302,42 @@
             }
           }
 
-          // Some of the toolkit base binding's select events fire before we
-          // get here, so we may need to sync the tree manually now.
-          // Furthermore, if the panel to load initially has just been created,
-          // we need to load it first.
+          // Some parts of the toolkit base binding's initialization code (like
+          // panel select events) "fire" before we get here. Thus, we may need
+          // to sync the tree manually now (again), if we added any panels or
+          // if toolkit failed to select one.
           // (This is a loose copy from the toolkit ctor.)
-          if (!this.currentPane)
+          var lastPane = this.lastSelected &&
+                         document.getElementById(this.lastSelected);
+          if (!lastPane)
+            this.lastSelected = "";
+          var paneToLoad = null;
+          if ("arguments" in window && window.arguments[0])
           {
-            var lastPane = this.lastSelected &&
-                           document.getElementById(this.lastSelected);
-            if (!lastPane)
-              this.lastSelected = "";
-            var paneToLoad = null;
-            if ("arguments" in window && window.arguments[0])
+            var initialPane = document.getElementById(window.arguments[0]);
+            if (initialPane && initialPane.nodeName == "prefpane")
             {
-              var initialPane = document.getElementById(window.arguments[0]);
-              if (initialPane && initialPane.nodeName == "prefpane")
-              {
-                paneToLoad = initialPane;
-                this.lastSelected = paneToLoad.id;
-              }
+              paneToLoad = initialPane;
+              this.lastSelected = paneToLoad.id;
             }
-            else if (lastPane)
-              paneToLoad = lastPane;
-            else if (this.preferencePanes.length > 0)
-              paneToLoad = this.preferencePanes[0];
-            if (paneToLoad)
+          }
+          else if (lastPane)
+            paneToLoad = lastPane;
+          else if (this.preferencePanes.length > 0)
+            paneToLoad = this.preferencePanes[0];
+          if (paneToLoad && (paneToLoad != this.currentPane))
+          {
+            this._initialized = false;
+            try
             {
-              this.showPane(paneToLoad);
-              this.currentPane = paneToLoad;
+              this.showPane(paneToLoad); // may need to load it first
             }
+            catch (e)
+            {
+              dump('***** broken prefpane: ' + paneToLoad.id + '\n' + e + '\n');
+              paneToLoad = null;
+            }
+            this.currentPane = paneToLoad;
           }
           if (this.currentPane)
             this.syncTreeWithPane(this.currentPane);
@@ -379,7 +385,7 @@
                 }
                 catch (e)
                 {
-                  dump('***** broken prefpane: ' + pane + '\n' + e + '\n');
+                  dump('***** broken prefpane: ' + pane.id + '\n' + e + '\n');
                   pane = null;
                 }
               }
