@@ -277,6 +277,21 @@ function SendCommandToResultsPane(command)
   gAbResultsTree.focus();
 }
 
+function AbNewLDAPDirectory()
+{
+  window.openDialog("chrome://messenger/content/addressbook/pref-directory-add.xul", 
+                    "", 
+                    "chrome,modal=yes,resizable=no,centerscreen", 
+                    null);
+}
+
+function AbNewAddressBook()
+{
+  window.openDialog(
+    "chrome://messenger/content/addressbook/abAddressBookNameDialog.xul", 
+    "", "chrome,modal=yes,resizable=no,centerscreen", null);
+}
+
 function AbEditSelectedDirectory()
 {
   if (dirTree.view.selection.count == 1) {
@@ -286,16 +301,9 @@ function AbEditSelectedDirectory()
       goEditListDialog(null, selecteduri, UpdateCardView);
     }
     else {
-      if (directory instanceof Components.interfaces.nsIAbLDAPDirectory) {
-        window.openDialog("chrome://messenger/content/addressbook/pref-directory-add.xul",
-                      "editDirectory", "chrome,modal=yes,resizable=no,centerscreen", { selectedDirectory: directory });
-      }
-      else {
-        window.openDialog(
-          "chrome://messenger/content/addressbook/abAddressBookNameDialog.xul",
-          "", "chrome,modal=yes,resizable=no,centerscreen",
-          {selectedDirectory: directory});
-      }
+      window.openDialog(directory.propertiesChromeURI,
+                        "editDirectory", "chrome,modal=yes,resizable=no",
+                        { selectedDirectory: directory });
     }
   }
 }

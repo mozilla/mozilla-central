@@ -336,21 +336,6 @@ function AbClose()
   top.close();
 }
 
-function AbNewLDAPDirectory()
-{
-  window.openDialog("chrome://messenger/content/addressbook/pref-directory-add.xul",
-                    "",
-                    "chrome,modal=yes,resizable=no,centerscreen",
-                    null);
-}
-
-function AbNewAddressBook()
-{
-  window.openDialog(
-    "chrome://messenger/content/addressbook/abAddressBookNameDialog.xul",
-    "", "chrome,modal=yes,resizable=no,centerscreen", null);
-}
-
 function AbPrintCardInternal(doPrintPreview, msgType)
 {
   var selectedItems = GetSelectedAbCards();

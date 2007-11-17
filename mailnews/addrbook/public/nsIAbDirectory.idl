@@ -56,8 +56,16 @@
 #define kABFileName_CurrentSuffix ".mab"  /* v3 address book extension */
 %}
 
-[scriptable, uuid(0e4fe001-a62f-41fe-bddb-5ccd8b2911a0)]
+[scriptable, uuid(97d7858d-9222-45c0-813e-2f3b0ea9ac03)]
 interface nsIAbDirectory : nsISupports {
+
+  /**
+   * The chrome URI to use for bringing up a dialog to edit this directory.
+   * When opening the dialog, use a JS argument of
+   * {selectedDirectory: thisdir} where thisdir is this directory that you just
+   * got the chrome URI from.
+   */
+  readonly attribute ACString propertiesChromeURI;
 
   // Types of operation
   // Perform linear reading of directory card

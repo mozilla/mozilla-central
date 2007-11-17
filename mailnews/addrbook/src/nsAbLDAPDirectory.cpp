@@ -86,6 +86,12 @@ NS_IMPL_ISUPPORTS_INHERITED3(nsAbLDAPDirectory, nsAbDirectoryRDFResource,
                              nsIAbDirectory, nsIAbDirSearchListener,
                              nsIAbLDAPDirectory)
 
+NS_IMETHODIMP nsAbLDAPDirectory::GetPropertiesChromeURI(nsACString &aResult)
+{
+  aResult.AssignLiteral("chrome://messenger/content/addressbook/pref-directory-add.xul");
+  return NS_OK;
+}
+
 NS_IMETHODIMP nsAbLDAPDirectory::Init(const char* aURI)
 {
   // We need to ensure that the m_DirPrefId is initialized properly
