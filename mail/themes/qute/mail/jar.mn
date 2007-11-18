@@ -137,6 +137,8 @@ classic.jar:
     skin/classic/messenger/icons/tab-right.png                      (icons/tab-right.png)
     skin/classic/messenger/icons/tab-right-bkgnd.png                (icons/tab-right-bkgnd.png)
     skin/classic/messenger/icons/tabstrip-bottom.png                (icons/tabstrip-bottom.png)
+% skin communicator classic/1.0 %skin/classic/communicator/
+    skin/classic/communicator/communicator.css
     skin/classic/communicator/icons/smileys/smiley-smile.png    (icons/smiley-smile.png)
     skin/classic/communicator/icons/smileys/smiley-frown.png    (icons/smiley-frown.png)
     skin/classic/communicator/icons/smileys/smiley-wink.png     (icons/smiley-wink.png)

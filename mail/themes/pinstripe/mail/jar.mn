@@ -232,6 +232,8 @@ classic.jar:
      skin/classic/messenger/accountcentral/manage-subscriptions.png (accountcentral/manage-subscriptions.png)
      skin/classic/messenger/accountcentral/manage-rss.png           (accountcentral/manage-rss.png)
      skin/classic/messenger/accountcentral/writemail.png            (accountcentral/writemail.png)
+% skin communicator classic/1.0 %skin/classic/communicator/
+     skin/classic/communicator/communicator.css
      skin/classic/communicator/smileys.css
      skin/classic/communicator/button.css
      skin/classic/communicator/icons/smileys/smiley-smile.png       (icons/smiley-smile.png)
