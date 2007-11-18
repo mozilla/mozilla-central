@@ -154,19 +154,24 @@ nsresult nsMsgContentPolicy::AllowRemoteContentForSender(nsIMsgDBHdr * aMsgHdr, 
   rv = headerParser->ExtractHeaderAddressMailboxes(nsnull, author.get(), getter_Copies(emailAddress));
   NS_ENSURE_SUCCESS(rv, rv);
 
-  // Use the RDF service to walk through the list of local directories
-  nsCOMPtr<nsIRDFService> rdfService = do_GetService("@mozilla.org/rdf/rdf-service;1", &rv);
-  NS_ENSURE_SUCCESS(rv, rv);
-    
-  nsCOMPtr <nsIRDFResource> resource;
-  rv = rdfService->GetResource(NS_LITERAL_CSTRING("moz-abdirectory://"), getter_AddRefs(resource));
-  NS_ENSURE_SUCCESS(rv, rv);
+  if (!mCachedTopLevelAb)
+  {
+    // Use the RDF service to walk through the list of local directories
+    nsCOMPtr<nsIRDFService> rdfService =
+      do_GetService("@mozilla.org/rdf/rdf-service;1", &rv);
+    NS_ENSURE_SUCCESS(rv, rv);
 
-  nsCOMPtr <nsIAbDirectory> directory = do_QueryInterface(resource, &rv);
-  NS_ENSURE_SUCCESS(rv, rv);
+    nsCOMPtr<nsIRDFResource> resource;
+    rv = rdfService->GetResource(NS_LITERAL_CSTRING("moz-abdirectory://"),
+                                 getter_AddRefs(resource));
+    NS_ENSURE_SUCCESS(rv, rv);
+
+    mCachedTopLevelAb = do_QueryInterface(resource, &rv);
+    NS_ENSURE_SUCCESS(rv, rv);
+  }
 
   nsCOMPtr<nsISimpleEnumerator> enumerator;
-  rv = directory->GetChildNodes(getter_AddRefs(enumerator));
+  rv = mCachedTopLevelAb->GetChildNodes(getter_AddRefs(enumerator));
   NS_ENSURE_SUCCESS(rv, rv);
 
   nsCOMPtr<nsISupports> supports;
@@ -363,8 +368,6 @@ nsresult nsMsgContentPolicy::AllowRemoteContentForMsgHdr(nsIMsgDBHdr * aMsgHdr, 
 {
   NS_ENSURE_ARG_POINTER(aMsgHdr);
 
-  PRBool allowRemoteContent = PR_FALSE;
-
   // Case #1, check the db hdr for the remote content policy on this particular message
   PRUint32 remoteContentPolicy = kNoRemoteContentPolicy;
   aMsgHdr->GetUint32Property("remoteContentPolicy", &remoteContentPolicy);
@@ -373,15 +376,23 @@ nsresult nsMsgContentPolicy::AllowRemoteContentForMsgHdr(nsIMsgDBHdr * aMsgHdr, 
   PRBool isRSS = PR_FALSE;
   IsRSSArticle(aRequestingLocation, &isRSS);
 
-  // Case #3, author is in our white list..
+  // Case #3, the domain for the remote image is in our white list
+  PRBool trustedDomain = IsTrustedDomain(aContentLocation);
+
+  // Case 4 is expensive as we're looking up items in the address book. So if
+  // either of the two previous items means we load the data, just do it.
+  if (isRSS || remoteContentPolicy == kAllowRemoteContent || trustedDomain)
+  {
+    *aDecision = nsIContentPolicy::ACCEPT;
+    return NS_OK;
+  }
+
+  // Case #4, author is in our white list..
   PRBool allowForSender = PR_FALSE;
   AllowRemoteContentForSender(aMsgHdr, &allowForSender);
 
-  // Case #4, the domain for the remote image is in our white list
-  PRBool trustedDomain = IsTrustedDomain(aContentLocation);
-
-  *aDecision = (isRSS || remoteContentPolicy == kAllowRemoteContent || allowForSender || trustedDomain) 
-               ? nsIContentPolicy::ACCEPT : nsIContentPolicy::REJECT_REQUEST;
+  *aDecision = allowForSender ?
+               nsIContentPolicy::ACCEPT : nsIContentPolicy::REJECT_REQUEST;
   
   if (*aDecision == nsIContentPolicy::REJECT_REQUEST && !remoteContentPolicy) // kNoRemoteContentPolicy means we have never set a value on the message
     aMsgHdr->SetUint32Property("remoteContentPolicy", kBlockRemoteContent);
@@ -465,9 +476,6 @@ nsresult nsMsgContentPolicy::ComposeShouldLoad(nsIDocShell * aRootDocShell, nsIS
                                                nsIURI * aContentLocation, PRInt16 * aDecision)
 {
   nsresult rv;
-
-  PRBool authorInWhiteList = PR_FALSE;
-  PRBool trustedDomain = PR_FALSE;
 
   nsCOMPtr<nsIDOMWindowInternal> window(do_GetInterface(aRootDocShell, &rv));
   NS_ENSURE_SUCCESS(rv, NS_OK);
