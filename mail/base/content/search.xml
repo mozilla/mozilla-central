@@ -38,6 +38,11 @@
 # the terms of any one of the MPL, the GPL or the LGPL.
 # ***** END LICENSE BLOCK *****
 
+<!DOCTYPE bindings [
+<!ENTITY % globalDTD SYSTEM "chrome://global/locale/global.dtd">
+%globalDTD;
+]>
+
 <bindings id="SearchBindings"
    xmlns="http://www.mozilla.org/xbl"
    xmlns:html="http://www.w3.org/1999/xhtml"
@@ -54,7 +59,10 @@
         <html:input class="textbox-input" flex="1" anonid="input" allowevents="true"
                     xbl:inherits="onfocus,onblur,value,type,maxlength,disabled,size,readonly,tabindex,accesskey"/>
       </xul:hbox>
-      <xul:toolbarbutton id="quick-search-clearbutton" xbl:inherits="" disabled="true" class="quick-search-clearbutton" onclick="onClearSearch(); return false;"/>
+      <xul:toolbarbutton id="quick-search-clearbutton" xbl:inherits=""
+                         disabled="true" class="quick-search-clearbutton"
+                         onclick="onClearSearch(); return false;"
+                         chromedir="&locale.dir;"/>
     </content>
 
     <implementation>

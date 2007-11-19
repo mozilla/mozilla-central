@@ -49,6 +49,8 @@
 %abResultsPaneOverlayDTD;
 <!ENTITY % abContactsPanelDTD SYSTEM "chrome://messenger/locale/addressbook/abContactsPanel.dtd" >
 %abContactsPanelDTD;
+<!ENTITY % globalDTD SYSTEM "chrome://global/locale/global.dtd">
+%globalDTD;
 ]>
 
 <page id="abContactsPanel"
@@ -110,8 +112,8 @@
       <label value="&searchInput.label;" accesskey="&searchInput.accesskey;" control="searchInput"/>
       <textbox id="searchInput" flex="1" onfocus="onSearchInputFocus(event);" onblur="onSearchInputBlur(event);"
                onclick="this.select();" oninput="onAbSearchInput(false);"
-               onkeypress="onAbSearchKeyPress(event);">
-        <button id="quick-search-button" type="menu">
+               onkeypress="onAbSearchKeyPress(event);" chromedir="&locale.dir;">
+        <button id="quick-search-button" type="menu" chromedir="&locale.dir;">
           <menupopup id="quick-search-menupopup" value="0" persist="value" popupalign="topleft" popupanchor="bottomleft">
             <menuitem value="0" label="&SearchNameOrEmail.label;" type="radio"/>
           </menupopup>

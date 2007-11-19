@@ -43,7 +43,10 @@
 
 #quick-search-button {
   min-width: 22px;
-  margin: 0px 3px 0px 5px; 
+  -moz-margin-start: 5px;
+  -moz-margin-end: 3px;
+  margin-bottom: 0;
+  margin-top: 0;
 }
 
 .quick-search-button-image {
@@ -53,18 +56,25 @@
 
 
 .quick-search-button-dropmarker {
-  padding: 6px 0px 5px 17px;
+  -moz-padding-start: 17px;
+  -moz-padding-end: 0;
+  padding-top: 6px;
+  padding-bottom: 5px;
   list-style-image: url("chrome://global/skin/arrow/arrow-dn.png");
 }
 
 .quick-search-clearbutton {
-  background: url("chrome://messenger/skin/icons/SearchBarRight.png") right center no-repeat;
+  background: url("chrome://messenger/skin/icons/SearchBarEnd.png") right center no-repeat;
   list-style-image: none;
   -moz-appearance: none;
   padding: 0px !important;
   border: none !important;
   margin: 0px !important;
   width: 20px;
+}
+
+.quick-search-clearbutton[chromedir="rtl"] {
+  background: url("chrome://messenger/skin/icons/SearchBarEnd-rtl.png") left center no-repeat;
 }
 
 .quick-search-clearbutton[clearButtonHidden="false"] {
@@ -82,12 +92,16 @@
 }
 
 #searchInput {
-  background: url("chrome://messenger/skin/icons/SearchBarLeft.png") left center no-repeat;
+  background: url("chrome://messenger/skin/icons/SearchBarStart.png") left center no-repeat;
   margin: 4px !important;
   -moz-appearance: none;
   font: icon;
   height: 22px !important;
   border: none !important;
+}
+
+#searchInput[chromedir="rtl"] {
+  background: url("chrome://messenger/skin/icons/SearchBarStart-rtl.png") right center no-repeat;
 }
 
 #searchInput > .textbox-input-box {
@@ -97,8 +111,3 @@
   height: 21px !important;
   margin: 0 !important;
 }
-
-#abContactsPanel #searchInput {
-  padding-left: 12px;
-}
-

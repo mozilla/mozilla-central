@@ -49,6 +49,8 @@
 %abMainWindowDTD;
 <!ENTITY % brandDTD SYSTEM "chrome://branding/locale/brand.dtd" >
 %brandDTD;
+<!ENTITY % globalDTD SYSTEM "chrome://global/locale/global.dtd">
+%globalDTD;
 #ifdef TOOLBAR_CUSTOMIZATION_SHEET
 <!ENTITY % customizeToolbarDTD SYSTEM "chrome://global/locale/customizeToolbar.dtd">
 %customizeToolbarDTD;
@@ -526,8 +528,9 @@
       <toolbaritem id="search-container" title="&searchItem.title;" align="center" class="chromeclass-toolbar-additional">
         <textbox id="searchInput" flex="1" onfocus="onSearchInputFocus(event);" onblur="onSearchInputBlur(event);" 
                  onclick="this.select();" oninput="onAbSearchInput(false);"
-                 onkeypress="onAbSearchKeyPress(event);">
-          <button id="quick-search-button" type="menu">
+                 onkeypress="onAbSearchKeyPress(event);"
+                 chromedir="&locale.dir;">
+          <button id="quick-search-button" type="menu" chromedir="&locale.dir;">
             <menupopup id="quick-search-menupopup" value="0" persist="value" popupalign="topleft" popupanchor="bottomleft">
               <menuitem value="0" label="&SearchNameOrEmail.label;" type="radio"/>
             </menupopup>

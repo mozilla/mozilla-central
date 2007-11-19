@@ -2104,8 +2104,9 @@
       <toolbaritem id="search-container" title="&searchItem.title;" align="center" class="chromeclass-toolbar-additional">
         <textbox id="searchInput" flex="1" onfocus="onSearchInputFocus(event);" onclick="onSearchInputClick(event);"
                  onmousedown="onSearchInputMousedown(event);" onblur="onSearchInputBlur(event);"
-                 oninput="onSearchInput(false);" onkeypress="onSearchKeyPress(event);">
-          <button id="quick-search-button" type="menu">
+                 oninput="onSearchInput(false);"
+                 onkeypress="onSearchKeyPress(event);" chromedir="&locale.dir;">
+          <button id="quick-search-button" type="menu" chromedir="&locale.dir;">
             <menupopup id="quick-search-menupopup" value="2" persist="value" onpopupshowing="InitQuickSearchPopup();" popupalign="topleft" popupanchor="bottomleft">
               <menuitem value="0" label="&searchSubjectMenu.label;" type="radio"
                         oncommand="changeQuickSearchMode(this)"/>
