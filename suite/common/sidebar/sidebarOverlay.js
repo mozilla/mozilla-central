@@ -303,6 +303,9 @@ function panel_loader() {
   this.removeAttribute('collapsed');
   // uncollapse the notificationbox element
   this.parentNode.removeAttribute('collapsed');
+  // register a progress listener for the notificationbox,
+  // now that this browser has a docShell
+  this.parentNode.addProgressListener();
   this.setAttribute('loadstate', 'loaded');
   // hide the load area
   this.parentNode.parentNode.firstChild.setAttribute('hidden', 'true');
@@ -429,9 +432,6 @@ function (force_reload)
           if (!panel.is_persistent()) {
             debug("    set src=about:blank");
             iframe.setAttribute('src', 'about:blank');
-            // content will be reloaded: remove notifications
-            // to prevent them from showing when expanding the sidebar
-            notificationbox.removeAllNotifications(true);
           }
         } else {
           var saved_src = iframe.getAttribute('content');
@@ -441,8 +441,6 @@ function (force_reload)
           if (force_reload || (saved_src != src)) {
             debug("    set src="+saved_src);
             iframe.setAttribute('src', saved_src);
-            // content is being reloaded: remove notifications
-            notificationbox.removeAllNotifications(true);
 
             if (gTimeoutID != null)
               clearTimeout(gTimeoutID);

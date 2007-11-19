@@ -451,14 +451,7 @@
               if (this.mBrowser.userTypedClear > 0)
                 this.mBrowser.userTypedValue = null;
 
-              if (this.mBlank)
-                return;
-
-              // XXX should be: removeAllNotifications(true) once bug 303327 is fixed 
-              if (aWebProgress.DOMWindow == this.mBrowser.contentWindow && aWebProgress.isLoadingDocument)
-                this.mBrowser.parentNode.removeAllNotifications(false);
-
-              if (this.mTabBrowser.mCurrentTab == this.mTab) {
+              if (!this.mBlank && this.mTabBrowser.mCurrentTab == this.mTab) {
                 for (var i = 0; i < this.mTabBrowser.mProgressListeners.length; i++) {
                   var p = this.mTabBrowser.mProgressListeners[i];
                   if (p)

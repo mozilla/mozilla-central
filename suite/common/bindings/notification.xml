@@ -12,7 +12,7 @@
 
   <binding id="browser-notificationbox"
            extends="chrome://global/content/bindings/notification.xml#notificationbox">
-    <implementation implements="nsIObserver">
+    <implementation implements="nsIObserver, nsIWebProgressListener">
       <field name="_stringBundle" readonly="true">
         <![CDATA[
           Components.classes["@mozilla.org/intl/stringbundle;1"]
@@ -52,7 +52,36 @@
           ]]>
         </getter>
       </property>
-      
+
+      <field name="_addedProgressListener">false</field>
+
+      <method name="addProgressListener">
+        <body>
+          <![CDATA[
+            if (this.activeBrowser && !this._addedProgressListener) {
+              this.activeBrowser.webProgress.addProgressListener(this, Components.interfaces.nsIWebProgress.NOTIFY_LOCATION);
+              this._addedProgressListener = true;
+            }
+          ]]>
+        </body>
+      </method>
+
+      <method name="onLocationChange">
+        <parameter name="aWebProgress" />
+        <parameter name="aRequest" />
+        <parameter name="aLocation" />
+        <body>
+          <![CDATA[
+            var errorPage = aRequest && !Components.isSuccessCode(aRequest.status);
+            if (aWebProgress.DOMWindow == this.activeBrowser.contentWindow &&
+                (aWebProgress.isLoadingDocument || errorPage)) {
+              // XXX should be: removeAllNotifications(true) once bug 303327 is fixed
+              this.removeAllNotifications(false);
+            }
+          ]]>
+        </body>  
+      </method>
+
       <method name="observe">
         <parameter name="aSubject" />
         <parameter name="aTopic" />
@@ -131,7 +160,9 @@
         <![CDATA[
           var os = Components.classes["@mozilla.org/observer-service;1"]
                              .getService(Components.interfaces.nsIObserverService);
-          os.addObserver(this, "xpinstall-install-blocked", false);       
+          os.addObserver(this, "xpinstall-install-blocked", false);
+
+          this.addProgressListener();
         ]]>
       </constructor>
 
@@ -140,7 +171,7 @@
           this.destroy();
         ]]>
       </destructor>
-      
+
       <field name="mDestroyed">false</field>
 
       <!-- This is necessary because the destructor doesn't always get called when
@@ -151,6 +182,11 @@
             if (this.mDestroyed)
               return;
             this.mDestroyed = true;
+
+            if (this._addedProgressListener) {
+              this.activeBrowser.webProgress.removeProgressListener(this);
+              this._addedProgressListener = false;
+            }
 
             this._activeBrowser = null;
             var os = Components.classes["@mozilla.org/observer-service;1"]
