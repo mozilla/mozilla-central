@@ -386,7 +386,7 @@ const int kAnnoyancePrefSome = 3;
 
 - (void) editWhitelistSheetDidEnd:(NSWindow *)sheet returnCode:(int)returnCode contextInfo:(void  *)contextInfo
 {
-
+  [mAddField setStringValue:@""];
 }
 
 // data source informal protocol (NSTableDataSource)
