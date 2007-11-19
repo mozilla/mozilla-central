@@ -1,5 +1,5 @@
 <?php
-/* SVN FILE: $Id: index.php,v 1.1 2007-05-25 05:54:14 rflint%ryanflint.com Exp $ */
+/* SVN FILE: $Id: index.php,v 1.2 2007-11-19 10:03:51 rflint%ryanflint.com Exp $ */
 /**
  * Short description for file.
  *
@@ -21,9 +21,9 @@
  * @package			cake
  * @subpackage		cake.app.webroot
  * @since			CakePHP(tm) v 0.2.9
- * @version			$Revision: 1.1 $
+ * @version			$Revision: 1.2 $
  * @modifiedby		$LastChangedBy: phpnut $
- * @lastmodified	$Date: 2007-05-25 05:54:14 $
+ * @lastmodified	$Date: 2007-11-19 10:03:51 $
  * @license			http://www.opensource.org/licenses/mit-license.php The MIT License
  */
 /**
@@ -75,11 +75,12 @@
 		 }
 	}
 	if (!include(CORE_PATH . 'cake' . DS . 'bootstrap.php')) {
-		trigger_error(__("Can't find CakePHP core.  Check the value of CAKE_CORE_INCLUDE_PATH in app/webroot/index.php.  It should point to the directory containing your " . DS . "cake core directory and your " . DS . "vendors root directory.", true), E_USER_ERROR);
+		trigger_error("Can't find CakePHP core.  Check the value of CAKE_CORE_INCLUDE_PATH in app/webroot/index.php.  It should point to the directory containing your " . DS . "cake core directory and your " . DS . "vendors root directory.", E_USER_ERROR);
 	}
 	if (isset($_GET['url']) && $_GET['url'] === 'favicon.ico') {
+		return;
 	} else {
-		 $Dispatcher=new Dispatcher();
+		 $Dispatcher = new Dispatcher();
 		 $Dispatcher->dispatch($url);
 	}
 	if (Configure::read() > 0) {

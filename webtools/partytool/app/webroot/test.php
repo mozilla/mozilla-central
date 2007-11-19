@@ -1,5 +1,5 @@
 <?php
-/* SVN FILE: $Id: test.php,v 1.1 2007-05-25 05:54:14 rflint%ryanflint.com Exp $ */
+/* SVN FILE: $Id: test.php,v 1.2 2007-11-19 10:03:51 rflint%ryanflint.com Exp $ */
 /**
  * Short description for file.
  *
@@ -21,13 +21,13 @@
  * @package			cake
  * @subpackage		cake.cake.tests.libs
  * @since			CakePHP(tm) v 1.2.0.4433
- * @version			$Revision: 1.1 $
+ * @version			$Revision: 1.2 $
  * @modifiedby		$LastChangedBy: phpnut $
- * @lastmodified	$Date: 2007-05-25 05:54:14 $
+ * @lastmodified	$Date: 2007-11-19 10:03:51 $
  * @license			http://www.opensource.org/licenses/opengroup.php The Open Group Test Suite License
  */
 error_reporting(E_ALL);
-set_time_limit(600);
+set_time_limit(0);
 ini_set('memory_limit','128M');
 if (!defined('DS')) {
 	define('DS', DIRECTORY_SEPARATOR);
@@ -59,12 +59,13 @@ if (!defined('CORE_PATH')) {
 }
 
 ini_set('display_errors', 1);
-require_once CORE_PATH . 'cake' . DS . 'bootstrap.php';
-require_once CAKE . 'basics.php';
-require_once CAKE . 'config' . DS . 'paths.php';
+if (!include(CORE_PATH . 'cake' . DS . 'bootstrap.php')) {
+	trigger_error("Can't find CakePHP core.  Check the value of CAKE_CORE_INCLUDE_PATH in app/webroot/test.php.  It should point to the directory containing your " . DS . "cake core directory and your " . DS . "vendors root directory.", E_USER_ERROR);
+}
 require_once CAKE . 'tests' . DS . 'lib' . DS . 'test_manager.php';
-if(DEBUG < 1) {
-	die('Invalid url.');
+
+if (Configure::read('debug') < 1) {
+	die(__('Debug setting does not allow access to this url.', true));
 }
 
 if (!isset($_SERVER['SERVER_NAME'])) {
@@ -74,10 +75,10 @@ if (empty( $_GET['output'])) {
 	$_GET['output'] = 'html';
 }
 
-if (!defined('BASE_URL')){
-	$dispatch =& new Dispatcher();
-	define('BASE_URL', $dispatch->baseUrl());
-}
+$dispatch =& new Dispatcher();
+$dispatch->baseUrl();
+define('BASE', $dispatch->webroot);
+
 /**
  *
  * Used to determine output to display
@@ -85,13 +86,13 @@ if (!defined('BASE_URL')){
 define('CAKE_TEST_OUTPUT_HTML',1);
 define('CAKE_TEST_OUTPUT_TEXT',2);
 
-if(isset($_GET['output']) && $_GET['output'] == 'html') {
+if (isset($_GET['output']) && $_GET['output'] == 'html') {
 	define('CAKE_TEST_OUTPUT', CAKE_TEST_OUTPUT_HTML);
 } else {
 	define('CAKE_TEST_OUTPUT', CAKE_TEST_OUTPUT_TEXT);
 }
 
-if(!vendor('simpletest' . DS . 'reporter')) {
+if (!vendor('simpletest' . DS . 'reporter')) {
 	CakePHPTestHeader();
 	include CAKE . 'tests' . DS . 'lib' . DS . 'simpletest.php';
 	CakePHPTestSuiteFooter();
@@ -118,20 +119,20 @@ if(!vendor('simpletest' . DS . 'reporter')) {
 		switch (CAKE_TEST_OUTPUT) {
 			case CAKE_TEST_OUTPUT_HTML:
 				if (isset($_GET['group'])) {
-					if(isset($_GET['app'])) {
+					if (isset($_GET['app'])) {
 						$show = '?show=groups&amp;app=true';
 					} else {
 						$show = '?show=groups';
 					}
 				}
 				if (isset($_GET['case'])) {
-					if(isset($_GET['app'])) {
+					if (isset($_GET['app'])) {
 						$show = '??show=cases&amp;app=truee';
 					} else {
 						$show = '?show=cases';
 					}
 				}
-				echo "<p><a href='" . $_SERVER['PHP_SELF'] . $show . "'>Run more tests</a></p>\n";
+				echo "<p><a href='" . RUN_TEST_LINK . $show . "'>Run more tests</a></p>\n";
 			break;
 		}
 	}
@@ -179,8 +180,8 @@ if(!vendor('simpletest' . DS . 'reporter')) {
 	function CakePHPTestHeader() {
 		switch (CAKE_TEST_OUTPUT) {
 			case CAKE_TEST_OUTPUT_HTML:
-				$baseUrl = BASE_URL;
-				$characterSet = 'ISO-8859-1';
+				$baseUrl = BASE;
+				$characterSet = 'charset=utf-8';
 				include CAKE . 'tests' . DS . 'lib' . DS . 'header.php';
 			break;
 			case CAKE_TEST_OUTPUT_TEXT:
@@ -203,7 +204,7 @@ if(!vendor('simpletest' . DS . 'reporter')) {
 	function CakePHPTestSuiteFooter() {
 		switch ( CAKE_TEST_OUTPUT) {
 			case CAKE_TEST_OUTPUT_HTML:
-				$baseUrl = BASE_URL;
+				$baseUrl = BASE;
 				include CAKE . 'tests' . DS . 'lib' . DS . 'footer.php';
 			break;
 		}
@@ -211,6 +212,7 @@ if(!vendor('simpletest' . DS . 'reporter')) {
 
 	CakePHPTestHeader();
 	CakePHPTestSuiteHeader();
+	define('RUN_TEST_LINK', $_SERVER['PHP_SELF']);
 
 	if (isset($_GET['group'])) {
 		if ('all' == $_GET['group']) {
