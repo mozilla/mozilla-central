@@ -252,6 +252,15 @@ nsTypeAheadFind::Shutdown()
   if (windowWatcher) {
     windowWatcher->UnregisterNotification(this);
   }
+
+  // Clear strong refs.  It's important to release these so that we don't hold
+  // on to objects that depends on other modules.
+  // E.g. gfxFonts in the nsThebesGfxModule, see bug 398084.
+  mFocusController = nsnull;
+  mFocusedDocSelection = nsnull;
+  mFocusedDocSelCon = nsnull;
+  mFocusedWindow = nsnull;
+  mManualFindWindows->Clear();
 }
 
 
