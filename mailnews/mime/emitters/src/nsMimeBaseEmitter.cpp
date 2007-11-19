@@ -716,7 +716,7 @@ nsMimeBaseEmitter::WriteHeaderFieldHTML(const char *field, const char *value)
   }
   else
   {
-    newValue = strdup(value);
+    newValue = nsEscapeHTML(value);
   }
 
   if (!newValue)
