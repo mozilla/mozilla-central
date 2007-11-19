@@ -1,5 +1,5 @@
 <?php
-/* SVN FILE: $Id: dbo_postgres.php,v 1.1 2007-05-25 05:54:19 rflint%ryanflint.com Exp $ */
+/* SVN FILE: $Id: dbo_postgres.php,v 1.2 2007-11-19 08:49:54 rflint%ryanflint.com Exp $ */
 
 /**
  * PostgreSQL layer for DBO.
@@ -22,9 +22,9 @@
  * @package			cake
  * @subpackage		cake.cake.libs.model.datasources.dbo
  * @since			CakePHP(tm) v 0.9.1.114
- * @version			$Revision: 1.1 $
+ * @version			$Revision: 1.2 $
  * @modifiedby		$LastChangedBy: phpnut $
- * @lastmodified	$Date: 2007-05-25 05:54:19 $
+ * @lastmodified	$Date: 2007-11-19 08:49:54 $
  * @license			http://www.opensource.org/licenses/mit-license.php The MIT License
  */
 
@@ -91,6 +91,7 @@ class DboPostgres extends DboSource {
 
 		if ($this->connection) {
 			$this->connected = true;
+			$this->_execute("SET search_path TO " . $config['schema']);
 		} else {
 			$this->connected = false;
 		}
@@ -142,7 +143,7 @@ class DboPostgres extends DboSource {
 		} else {
 			$tables = array();
 
-			foreach($result as $item) {
+			foreach ($result as $item) {
 				$tables[] = $item[0]['name'];
 			}
 
@@ -170,7 +171,7 @@ class DboPostgres extends DboSource {
 		$fields = false;
 		$cols = $this->fetchAll("SELECT DISTINCT column_name AS name, data_type AS type, is_nullable AS null, column_default AS default, ordinal_position AS position, character_maximum_length AS char_length, character_octet_length AS oct_length FROM information_schema.columns WHERE table_name =" . $this->value($model->tablePrefix . $model->table) . " ORDER BY position");
 
-		foreach($cols as $column) {
+		foreach ($cols as $column) {
 			$colKey = array_keys($column);
 
 			if (isset($column[$colKey[0]]) && !isset($column[0])) {
@@ -189,8 +190,7 @@ class DboPostgres extends DboSource {
 				} else {
 					$length = $this->length($c['type']);
 				}
-				$fields[] = array(
-					'name'    => $c['name'],
+				$fields[$c['name']] = array(
 					'type'    => $this->column($c['type']),
 					'null'    => ($c['null'] == 'NO' ? false : true),
 					'default' => $c['default'],
@@ -222,7 +222,7 @@ class DboPostgres extends DboSource {
 
 		switch($column) {
 			case 'inet':
-				if (!strlen($data)){
+				if (!strlen($data)) {
 					return 'DEFAULT';
 				} else {
 					$data = pg_escape_string($data);
@@ -240,14 +240,12 @@ class DboPostgres extends DboSource {
 
 			break;
 			case 'boolean':
-				$data = $this->boolean((bool)$data, false);
-				if ($data === true) {
-					$data = '1';
-				} elseif ($data === false) {
-					$data = '0';
-				}
-			break;
 			default:
+				if ($data === true) {
+					return 'TRUE';
+				} elseif ($data === false) {
+					return 'FALSE';
+				}
 				$data = pg_escape_string($data);
 			break;
 		}
@@ -318,7 +316,7 @@ class DboPostgres extends DboSource {
 /**
  * Returns number of affected rows in previous database operation. If no previous operation exists, this returns false.
  *
- * @return int Number of affected rows
+ * @return integer Number of affected rows
  */
 	function lastAffected() {
 		if ($this->_result) {
@@ -331,7 +329,7 @@ class DboPostgres extends DboSource {
  * Returns number of rows in previous resultset. If no previous resultset exists,
  * this returns false.
  *
- * @return int Number of rows in resultset
+ * @return integer Number of rows in resultset
  */
 	function lastNumRows() {
 		if ($this->_result) {
@@ -345,7 +343,7 @@ class DboPostgres extends DboSource {
  *
  * @param string $source Name of the database table
  * @param string $field Name of the ID database field. Defaults to "id"
- * @return int
+ * @return integer
  */
 	function lastInsertId($source, $field = 'id') {
 		foreach ($this->__descriptions[$source] as $sourceinfo) {
@@ -386,7 +384,7 @@ class DboPostgres extends DboSource {
 		$count = count($fields);
 
 		if ($count >= 1 && $fields[0] != '*' && strpos($fields[0], 'COUNT(*)') === false) {
-			for($i = 0; $i < $count; $i++) {
+			for ($i = 0; $i < $count; $i++) {
 				if (!preg_match('/^.+\\(.*\\)/', $fields[$i]) && !preg_match('/\s+AS\s+/', $fields[$i])) {
 					$prepend = '';
 					if (strpos($fields[$i], 'DISTINCT') !== false) {
@@ -409,8 +407,8 @@ class DboPostgres extends DboSource {
 /**
  * Returns a limit statement in the correct format for the particular database.
  *
- * @param int $limit Limit of results returned
- * @param int $offset Offset from which to start results
+ * @param integer $limit Limit of results returned
+ * @param integer $offset Offset from which to start results
  * @return string SQL limit/offset statement
  */
 	function limit($limit, $offset = null) {
@@ -493,10 +491,6 @@ class DboPostgres extends DboSource {
 
 		if ($limit != null) {
 			return intval($limit);
-		} elseif ($col == 'integer') {
-			return 11;
-		} elseif (in_array($col, array('int2', 'int4', 'int8'))) {
-			return intval(r('int', '', $col));
 		}
 		return null;
 	}
@@ -512,7 +506,7 @@ class DboPostgres extends DboSource {
 		$index = 0;
 		$j = 0;
 
-		while($j < $num_fields) {
+		while ($j < $num_fields) {
 			$columnName = pg_field_name($results, $j);
 
 			if (strpos($columnName, '__')) {
@@ -534,7 +528,7 @@ class DboPostgres extends DboSource {
 			$resultRow = array();
 			$i = 0;
 
-			foreach($row as $index => $field) {
+			foreach ($row as $index => $field) {
 				list($table, $column) = $this->map[$index];
 				$resultRow[$table][$column] = $row[$index];
 				$i++;
@@ -557,7 +551,7 @@ class DboPostgres extends DboSource {
 		if ($data === true || $data === false) {
 			$result = $data;
 		} elseif (is_string($data) && !is_numeric($data)) {
-			if (strpos($data, 't') !== false) {
+			if (strpos(low($data), 't') !== false) {
 				$result = true;
 			} else {
 				$result = false;
@@ -565,11 +559,6 @@ class DboPostgres extends DboSource {
 		} else {
 			$result = (bool)$data;
 		}
-
-		if ($quote) {
-			$result = "'" . $result . "'";
-		}
-
 		return $result;
 	}
 /**
@@ -590,58 +579,17 @@ class DboPostgres extends DboSource {
 		return pg_client_encoding($this->connection);
 	}
 /**
- * Generate a PostgreSQL-native column schema string
+ * Inserts multiple values into a join table
  *
- * @param array $column An array structured like the following: array('name', 'type'[, options]),
- *                      where options can be 'default', 'length', or 'key'.
- * @return string
+ * @param string $table
+ * @param string $fields
+ * @param array $values
  */
-	function generateColumnSchema($column) {
-		$name = $type = $out = null;
-		$column = am(array('null' => true), $column);
-		list($name, $type) = $column;
-
-		if (empty($name) || empty($type)) {
-			trigger_error('Column name or type not defined in schema', E_USER_WARNING);
-			return null;
+	function insertMulti($table, $fields, $values) {
+		$count = count($values);
+		for ($x = 0; $x < $count; $x++) {
+			$this->query("INSERT INTO {$table} ({$fields}) VALUES {$values[$x]}");
 		}
-		if (!isset($this->columns[$type])) {
-			trigger_error("Column type {$type} does not exist", E_USER_WARNING);
-			return null;
-		}
-		$out = "\t" . $this->name($name) . ' ';
-
-		if (!isset($column['key']) || $column['key'] != 'primary') {
-			$real = $this->columns[$type];
-			$out .= $real['name'];
-
-			if (isset($real['limit']) || isset($real['length']) || isset($column['limit']) || isset($column['length'])) {
-				if (isset($column['length'])) {
-					$length = $column['length'];
-				} elseif (isset($column['limit'])) {
-					$length = $column['limit'];
-				} elseif (isset($real['length'])) {
-					$length = $real['length'];
-				} else {
-					$length = $real['limit'];
-				}
-				$out .= '(' . $length . ')';
-			}
-		}
-
-		if (isset($column['key']) && $column['key'] == 'primary') {
-			$out .= $this->columns['primary_key']['name'];
-		} elseif (isset($column['default'])) {
-			$out .= ' DEFAULT ' . $this->value($column['default'], $type);
-		} elseif (isset($column['null']) && $column['null'] == true) {
-			$out .= ' DEFAULT NULL';
-		} elseif (isset($column['default']) && isset($column['null']) && $column['null'] == false) {
-			$out .= ' DEFAULT ' . $this->value($column['default'], $type) . ' NOT NULL';
-		} elseif (isset($column['null']) && $column['null'] == false) {
-			$out .= ' NOT NULL';
-		}
-		return $out;
 	}
 }
-
 ?>

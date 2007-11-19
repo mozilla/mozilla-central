@@ -1,5 +1,5 @@
 <?php
-/* SVN FILE: $Id: l10n.php,v 1.1 2007-05-25 05:54:17 rflint%ryanflint.com Exp $ */
+/* SVN FILE: $Id: l10n.php,v 1.2 2007-11-19 08:49:53 rflint%ryanflint.com Exp $ */
 /**
  * Short description for file.
  *
@@ -21,9 +21,9 @@
  * @package			cake
  * @subpackage		cake.cake.libs
  * @since			CakePHP(tm) v 1.2.0.4116
- * @version			$Revision: 1.1 $
+ * @version			$Revision: 1.2 $
  * @modifiedby		$LastChangedBy: phpnut $
- * @lastmodified	$Date: 2007-05-25 05:54:17 $
+ * @lastmodified	$Date: 2007-11-19 08:49:53 $
  * @license			http://www.opensource.org/licenses/mit-license.php The MIT License
  */
 /**
@@ -118,8 +118,8 @@ class L10n extends Object {
 								/* French (Standard) */ 'fre' => 'fr',
 								/* Gaelic (Scots) */ 'gla' => 'gd',
 								/* Galician */ 'glg' => 'gl',
-								/* German  (Standard) */ 'deu' => 'de',
-								/* German  (Standard) */ 'ger' => 'de',
+								/* German (Standard) */ 'deu' => 'de',
+								/* German (Standard) */ 'ger' => 'de',
 								/* Greek */ 'ell' => 'el',
 								/* Greek */ 'gre' => 'el',
 								/* Hebrew */ 'heb' => 'he',
@@ -135,7 +135,7 @@ class L10n extends Object {
 								/* Latvian */ 'lav' => 'lv',
 								/* Lithuanian */ 'lit' => 'lt',
 								/* Macedonian */ 'mac' => 'mk',
-								/* Macedonian  */ 'mkd' => 'mk',
+								/* Macedonian */ 'mkd' => 'mk',
 								/* Malaysian */ 'may' => 'ms',
 								/* Malaysian */ 'msa' => 'ms',
 								/* Maltese */ 'mlt' => 'mt',
@@ -158,8 +158,8 @@ class L10n extends Object {
 								/* Sorbian */ 'wen' => 'sb',
 								/* Spanish (Spain - Traditional) */ 'spa' => 'es',
 								/* Swedish */ 'swe' => 'sv',
-								/* Thai */  'tha' => 'th',
-								/* Tsonga */  'tso' => 'ts',
+								/* Thai */ 'tha' => 'th',
+								/* Tsonga */ 'tso' => 'ts',
 								/* Tswana */ 'tsn' => 'tn',
 								/* Turkish */ 'tur' => 'tr',
 								/* Ukrainian */ 'ukr' => 'uk',
@@ -168,7 +168,7 @@ class L10n extends Object {
 								/* Vietnamese */ 'vie' => 'vi',
 								/* Xhosa */ 'xho' => 'xh',
 								/* Yiddish */ 'yid' => 'yi',
-								/* Zulu */  'zul' => 'zu');
+								/* Zulu */ 'zul' => 'zu');
 /**
  * HTTP_ACCEPT_LANGUAGE catalog
  *
@@ -200,12 +200,12 @@ class L10n extends Object {
 										'ca' => array('language' => 'Catalan', 'locale' => 'cat', 'localeFallback' => 'cat', 'charset' => 'utf-8'),
 										'cs' => array('language' => 'Czech', 'locale' => 'cze', 'localeFallback' => 'cze', 'charset' => 'utf-8'),
 										'da' => array('language' => 'Danish', 'locale' => 'dan', 'localeFallback' => 'dan', 'charset' => 'utf-8'),
-										'de' => array('language' => 'German  (Standard)', 'locale' => 'deu', 'localeFallback' => 'deu', 'charset' => 'utf-8'),
-										'de-at' => array('language' => 'German  (Austria)', 'locale' => 'de_at', 'localeFallback' => 'deu', 'charset' => 'utf-8'),
-										'de-ch' => array('language' => 'German  (Swiss)', 'locale' => 'de_ch', 'localeFallback' => 'deu', 'charset' => 'utf-8'),
-										'de-de' => array('language' => 'German  (Germany)', 'locale' => 'de_de', 'localeFallback' => 'deu', 'charset' => 'utf-8'),
-										'de-li' => array('language' => 'German  (Liechtenstein)', 'locale' => 'de_li', 'localeFallback' => 'deu', 'charset' => 'utf-8'),
-										'de-lu' => array('language' => 'German  (Luxembourg)', 'locale' => 'de_lu', 'localeFallback' => 'deu', 'charset' => 'utf-8'),
+										'de' => array('language' => 'German (Standard)', 'locale' => 'deu', 'localeFallback' => 'deu', 'charset' => 'utf-8'),
+										'de-at' => array('language' => 'German (Austria)', 'locale' => 'de_at', 'localeFallback' => 'deu', 'charset' => 'utf-8'),
+										'de-ch' => array('language' => 'German (Swiss)', 'locale' => 'de_ch', 'localeFallback' => 'deu', 'charset' => 'utf-8'),
+										'de-de' => array('language' => 'German (Germany)', 'locale' => 'de_de', 'localeFallback' => 'deu', 'charset' => 'utf-8'),
+										'de-li' => array('language' => 'German (Liechtenstein)', 'locale' => 'de_li', 'localeFallback' => 'deu', 'charset' => 'utf-8'),
+										'de-lu' => array('language' => 'German (Luxembourg)', 'locale' => 'de_lu', 'localeFallback' => 'deu', 'charset' => 'utf-8'),
 										'e' => array('language' => 'Greek', 'locale' => 'gre', 'localeFallback' => 'gre', 'charset' => 'utf-8'),
 										'el' => array('language' => 'Greek', 'locale' => 'gre', 'localeFallback' => 'gre', 'charset' => 'utf-8'),
 										'en' => array('language' => 'English', 'locale' => 'eng', 'localeFallback' => 'eng', 'charset' => 'utf-8'),
@@ -329,14 +329,13 @@ class L10n extends Object {
  * If $language is null it attempt to get settings from I10n::__autoLanguage(); if this fails
  * the method will get the settings from I10n::__setLanguage();
  *
- * @param string $language
- * @return void
- * @access private
+ * @param string $language Language (if null will use DEFAULT_LANGUAGE if defined)
+ * @access public
  */
 	function get($language = null) {
 		if (!is_null($language)) {
 			return $this->__setLanguage($language);
-		} elseif ($this->__autoLanguage() === false){
+		} elseif ($this->__autoLanguage() === false) {
 			return $this->__setLanguage($language);
 		}
 	}
@@ -344,7 +343,7 @@ class L10n extends Object {
  * Sets the class vars to correct values for $language.
  * If $language is null it will use the DEFAULT_LANGUAGE if defined
  *
- * @param string $language
+ * @param string $language Language (if null will use DEFAULT_LANGUAGE if defined)
  * @access private
  */
 	function __setLanguage($language = null) {
@@ -373,8 +372,8 @@ class L10n extends Object {
 			$this->charset = $this->__l10nCatalog[$this->__l10nMap[DEFAULT_LANGUAGE]]['charset'];
 		}
 
-		if($this->default) {
-			$this->languagePath[2] = $this->__l10nCatalog[$this->default]['localeFallback'];
+		if ($this->default) {
+			$this->languagePath[2] = $this->__l10nCatalog[$this->__l10nMap[$this->default]]['localeFallback'];
 		}
 		$this->found = true;
 		Configure::write('Config.language', $this->lang);
@@ -382,6 +381,8 @@ class L10n extends Object {
 	}
 /**
  * Attempts to find the locale settings based on the HTTP_ACCEPT_LANGUAGE variable
+ *
+ * @return boolean Success
  * @access private
  */
 	function __autoLanguage() {
@@ -397,7 +398,7 @@ class L10n extends Object {
 				$this->locale = $this->__l10nCatalog[$langKey]['locale'];
 				$this->charset = $this->__l10nCatalog[$langKey]['charset'];
 
-				if($this->default) {
+				if ($this->default) {
 					$this->languagePath[2] = $this->__l10nCatalog[$this->default]['localeFallback'];
 				}
 				$this->found = true;
@@ -407,6 +408,63 @@ class L10n extends Object {
 			}
 		}
 		return false;
+	}
+/**
+ * Attempts to find locale for language, or language for locale
+ *
+ * @param mixed $mixed 2/3 char string (language/locale), array of those strings, or null
+ * @return mixed string language/locale, array of those values, whole map as an array, or false when language/locale doesn't exist
+ * @access public
+ */
+	function map($mixed = null) {
+		if (is_array($mixed)) {
+			$result = array();
+			foreach ($mixed as $_mixed) {
+				if ($_result = $this->map($_mixed)) {
+					$result[$_mixed] = $_result;
+				}
+			}
+			return $result;
+		}
+
+		if (is_string($mixed)) {
+			if (2 == strlen($mixed)) {
+				if (in_array($mixed, $this->__l10nMap)) {
+					return array_search($mixed, $this->__l10nMap);
+				}
+			} else {
+				if (isset($this->__l10nMap[$mixed])) {
+					return $this->__l10nMap[$mixed];
+				}
+			}
+			return false;
+		}
+		return $this->__l10nMap;
+	}
+/**
+ * Attempts to find catalog record for requested language
+ *
+ * @param mixed $language string requested language, array of requested languages, or null for whole catalog
+ * @return mixed array catalog record for requested language, array of catalog records, whole catalog, or false when language doesn't exist
+ */
+	function catalog($language = null) {
+		if (is_array($language)) {
+			$result = array();
+			foreach ($language as $_language) {
+				if ($_result = $this->catalog($_language)) {
+					$result[$_language] = $_result;
+				}
+			}
+			return $result;
+		}
+
+		if (is_string($language)) {
+			if (isset($this->__l10nCatalog[$language])) {
+				return $this->__l10nCatalog[$language];
+			}
+			return false;
+		}
+		return $this->__l10nCatalog;
 	}
 }
 ?>

@@ -1,5 +1,5 @@
 <?php
-/* SVN FILE: $Id: security.php,v 1.1 2007-05-25 05:54:17 rflint%ryanflint.com Exp $ */
+/* SVN FILE: $Id: security.php,v 1.2 2007-11-19 08:49:53 rflint%ryanflint.com Exp $ */
 /**
  * Short description for file.
  *
@@ -21,9 +21,9 @@
  * @package			cake
  * @subpackage		cake.cake.libs
  * @since			CakePHP(tm) v .0.10.0.1233
- * @version			$Revision: 1.1 $
+ * @version			$Revision: 1.2 $
  * @modifiedby		$LastChangedBy: phpnut $
- * @lastmodified	$Date: 2007-05-25 05:54:17 $
+ * @lastmodified	$Date: 2007-11-19 08:49:53 $
  * @license			http://www.opensource.org/licenses/mit-license.php The MIT License
  */
 /**
@@ -34,11 +34,21 @@
  * @package		cake
  * @subpackage	cake.cake.libs
  */
-class Security extends Object{
+class Security extends Object {
+
 /**
-  * Enter description here...
+ * Default hash method
+ *
+ * @var string
+ * @access public
+ */
+	var $hashType = null;
+/**
+  * Singleton implementation to get object instance.
   *
-  * @return unknown
+  * @return object
+  * @access public
+  * @static
   */
 	function &getInstance() {
 		static $instance = array();
@@ -48,13 +58,15 @@ class Security extends Object{
 	 	return $instance[0];
 	}
 /**
-  * Enter description here...
+  * Get allowed minutes of inactivity based on security level.
   *
-  * @return unknown
+  * @return integer Allowed inactivity in minutes
+  * @access public
+  * @static
   */
 	function inactiveMins() {
 		$_this =& Security::getInstance();
-		switch(CAKE_SECURITY) {
+		switch(Configure::read('Security.level')) {
 			case 'high':
 				return 10;
 			break;
@@ -68,35 +80,48 @@ class Security extends Object{
 		}
 	}
 /**
-  * Enter description here...
+  * Generate authorization hash.
   *
-  * @return unknown
+  * @return string Hash
+  * @access public
+  * @static
   */
 	function generateAuthKey() {
 		$_this =& Security::getInstance();
-		return $_this->hash(uniqid(rand(), true));
+		if(!class_exists('String')) {
+			uses('string');
+		}
+		return $_this->hash(String::uuid());
 	}
 /**
- * Enter description here...
+ * Validate authorization hash.
  *
- * @param unknown_type $authKey
- * @return unknown
+ * @param string $authKey Authorization hash
+ * @return boolean Success
+ * @access public
+ * @static
  */
 	function validateAuthKey($authKey) {
 		$_this =& Security::getInstance();
 		return true;
 	}
 /**
- * Enter description here...
+ * Create a hash from string using given method.
  *
- * @param unknown_type $string
- * @param unknown_type $type
- * @return unknown
+ * @param string $string String to hash
+ * @param string $type Method to use (sha1/sha256/md5)
+ * @return string Hash
+ * @access public
+ * @static
  */
-	function hash($string, $type = 'sha1') {
+	function hash($string, $type = null) {
 		$_this =& Security::getInstance();
+		if (empty($type)) {
+			$type = $_this->hashType;
+		}
 		$type = strtolower($type);
-		if ($type == 'sha1') {
+
+		if ($type == 'sha1' || $type == null) {
 			if (function_exists('sha1')) {
 				$return = sha1($string);
 				return $return;
@@ -120,11 +145,26 @@ class Security extends Object{
 		}
 	}
 /**
- * Enter description here...
+ * Sets the default hash method for the Security object.  This affects all objects using
+ * Security::hash().
  *
- * @param unknown_type $text
- * @param unknown_type $key
- * @return unknown
+ * @param string $hash Method to use (sha1/sha256/md5)
+ * @access public
+ * @static
+ * @see Security::hash()
+ */
+	function setHash($hash) {
+		$_this =& Security::getInstance();
+		$_this->hashType = $hash;
+	}
+/**
+ * Encripts/Decrypts a text using the given key.
+ *
+ * @param string $text Encrypted string to decrypt, normal string to encrypt
+ * @param string $key Key to use
+ * @return string Encrypted/Decrypted string
+ * @access public
+ * @static
  */
 	function cipher($text, $key) {
 		$_this =& Security::getInstance();
@@ -135,8 +175,8 @@ class Security extends Object{
 		srand (CIPHER_SEED);
 		$out = '';
 
-		for($i = 0; $i < strlen($text); $i++) {
-			for($j = 0; $j < ord(substr($key, $i % strlen($key), 1)); $j++) {
+		for ($i = 0; $i < strlen($text); $i++) {
+			for ($j = 0; $j < ord(substr($key, $i % strlen($key), 1)); $j++) {
 				$toss = rand(0, 255);
 			}
 			$mask = rand(0, 255);

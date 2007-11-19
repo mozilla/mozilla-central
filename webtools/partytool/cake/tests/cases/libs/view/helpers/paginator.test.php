@@ -1,5 +1,5 @@
 <?php
-/* SVN FILE: $Id: paginator.test.php,v 1.1 2007-05-25 05:54:26 rflint%ryanflint.com Exp $ */
+/* SVN FILE: $Id: paginator.test.php,v 1.2 2007-11-19 08:49:57 rflint%ryanflint.com Exp $ */
 /**
  * Short description for file.
  *
@@ -21,16 +21,14 @@
  * @package			cake.tests
  * @subpackage		cake.tests.cases.libs.view.helpers
  * @since			CakePHP(tm) v 1.2.0.4206
- * @version			$Revision: 1.1 $
+ * @version			$Revision: 1.2 $
  * @modifiedby		$LastChangedBy: phpnut $
- * @lastmodified	$Date: 2007-05-25 05:54:26 $
+ * @lastmodified	$Date: 2007-11-19 08:49:57 $
  * @license			http://www.opensource.org/licenses/opengroup.php The Open Group Test Suite License
  */
-	require_once LIBS.'../app_helper.php';
-	require_once LIBS.DS.'view'.DS.'helper.php';
-	require_once LIBS.DS.'view'.DS.'helpers'.DS.'html.php';
-	require_once LIBS.DS.'view'.DS.'helpers'.DS.'ajax.php';
-	require_once LIBS.DS.'view'.DS.'helpers'.DS.'paginator.php';
+require_once CAKE.'app_helper.php';
+uses('view'.DS.'helper', 'view'.DS.'helpers'.DS.'html', 'view'.DS.'helpers'.DS.'form',
+	'view'.DS.'helpers'.DS.'ajax', 'view'.DS.'helpers'.DS.'javascript', 'view'.DS.'helpers'.DS.'paginator');
 /**
  * Short description for class.
  *
@@ -40,8 +38,8 @@
 class PaginatorTest extends UnitTestCase {
 
 	function setUp() {
-		$this->paginator = new PaginatorHelper();
-		$this->paginator->params['paging'] = array(
+		$this->Paginator = new PaginatorHelper();
+		$this->Paginator->params['paging'] = array(
 			'Article' => array(
 				'current' => 9,
 				'count' => 62,
@@ -49,36 +47,75 @@ class PaginatorTest extends UnitTestCase {
 				'nextPage' => true,
 				'pageCount' => 7,
 				'defaults' => array(
-					'order' => 'Article.date DESC',
+					'order' => 'Article.date ASC',
 					'limit' => 9,
 					'conditions' => array()
-                )
-			),
-
-			'options' => array(
-				'order' => 'Article.date DESC',
-				'limit' => 9,
-				'page' => 1
+                ),
+				'options' => array(
+					'order' => 'Article.date ASC',
+					'limit' => 9,
+					'page' => 1,
+					'conditions' => array()
+				)
 			)
 		);
+		$this->Paginator->Html =& new HtmlHelper();
+		$this->Paginator->Ajax =& new AjaxHelper();
+		$this->Paginator->Ajax->Html =& new HtmlHelper();
+		$this->Paginator->Ajax->Javascript =& new JavascriptHelper();
+		$this->Paginator->Ajax->Form =& new FormHelper();
+
 	}
 
 	function testHasPrevious() {
-		$this->assertIdentical($this->paginator->hasPrev(), false);
-		$this->paginator->params['paging']['Article']['prevPage'] = true;
-		$this->assertIdentical($this->paginator->hasPrev(), true);
-		$this->paginator->params['paging']['Article']['prevPage'] = false;
+		$this->assertIdentical($this->Paginator->hasPrev(), false);
+		$this->Paginator->params['paging']['Article']['prevPage'] = true;
+		$this->assertIdentical($this->Paginator->hasPrev(), true);
+		$this->Paginator->params['paging']['Article']['prevPage'] = false;
 	}
 
 	function testHasNext() {
-		$this->assertIdentical($this->paginator->hasNext(), true);
-		$this->paginator->params['paging']['Article']['nextPage'] = false;
-		$this->assertIdentical($this->paginator->hasNext(), false);
-		$this->paginator->params['paging']['Article']['nextPage'] = true;
+		$this->assertIdentical($this->Paginator->hasNext(), true);
+		$this->Paginator->params['paging']['Article']['nextPage'] = false;
+		$this->assertIdentical($this->Paginator->hasNext(), false);
+		$this->Paginator->params['paging']['Article']['nextPage'] = true;
+	}
+
+	function testDisabledLink() {
+		$this->Paginator->params['paging']['Article']['nextPage'] = false;
+		$this->Paginator->params['paging']['Article']['page'] = 1;
+		$result = $this->Paginator->next('Next', array(), true);
+		$expected = '<div>Next</div>';
+		$this->assertEqual($result, $expected);
+	}
+
+	function testSortLinks() {
+		Router::reload();
+		Router::parse('/');
+		Router::setRequestInfo(array(
+			array('plugin' => null, 'controller' => 'accounts', 'action' => 'index', 'pass' => array(), 'form' => array(), 'url' => array('url' => 'accounts/', 'mod_rewrite' => 'true'), 'bare' => 0),
+			array('plugin' => null, 'controller' => null, 'action' => null, 'base' => '/officespace', 'here' => '/officespace/accounts/', 'webroot' => '/officespace/', 'passedArgs' => array())
+		));
+		$this->Paginator->options(array('url' => array('param')));
+		$result = $this->Paginator->sort('title');
+		$this->assertPattern('/\/accounts\/index\/param\/page:1\/sort:title\/direction:asc"\s*>Title<\/a>$/', $result);
+
+		$result = $this->Paginator->sort('date');
+		$this->assertPattern('/\/accounts\/index\/param\/page:1\/sort:date\/direction:desc"\s*>Date<\/a>$/', $result);
+
+		$result = $this->Paginator->numbers(array('modulus'=> '2', 'url'=> array('controller'=>'projects', 'action'=>'sort'),'update'=>'list'));
+		$this->assertPattern('/\/projects\/sort\/page:2/', $result);
+		$this->assertPattern('/<script type="text\/javascript">Event.observe/', $result);
+	}
+
+	function testUrlGeneration() {
+		$result = $this->Paginator->sort('controller');
+		$this->assertPattern('/\/page:1\//', $result);
+		$this->assertPattern('/\/sort:controller\//', $result);
 	}
 
 	function tearDown() {
-		unset($this->paginator);
+		unset($this->Paginator);
 	}
 }
 

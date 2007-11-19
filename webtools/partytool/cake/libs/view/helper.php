@@ -1,5 +1,5 @@
 <?php
-/* SVN FILE: $Id: helper.php,v 1.1 2007-05-25 05:54:19 rflint%ryanflint.com Exp $ */
+/* SVN FILE: $Id: helper.php,v 1.2 2007-11-19 08:49:54 rflint%ryanflint.com Exp $ */
 
 /**
  * Backend for helpers.
@@ -22,9 +22,9 @@
  * @package			cake
  * @subpackage		cake.cake.libs.view
  * @since			CakePHP(tm) v 0.2.9
- * @version			$Revision: 1.1 $
+ * @version			$Revision: 1.2 $
  * @modifiedby		$LastChangedBy: phpnut $
- * @lastmodified	$Date: 2007-05-25 05:54:19 $
+ * @lastmodified	$Date: 2007-11-19 08:49:54 $
  * @license			http://www.opensource.org/licenses/mit-license.php The MIT License
  */
 
@@ -157,7 +157,7 @@ class Helper extends Overloadable {
 	function loadConfig($name = 'tags') {
 		if (file_exists(APP . 'config' . DS . $name .'.php')) {
 			require(APP . 'config' . DS . $name .'.php');
-			if(isset($tags)) {
+			if (isset($tags)) {
 				$this->tags = am($this->tags, $tags);
 			}
 		}
@@ -190,14 +190,14 @@ class Helper extends Overloadable {
  */
 	function webroot($file) {
 		$webPath = "{$this->webroot}" . $file;
-		if(!empty($this->themeWeb)) {
+		if (!empty($this->themeWeb)) {
 			$os = env('OS');
 			if (!empty($os) && strpos($os, 'Windows') !== false) {
 				$path = str_replace('/', '\\', WWW_ROOT . $this->themeWeb  . $file);
 			} else {
 				$path = WWW_ROOT . $this->themeWeb  . $file;
 			}
-			if(file_exists($path)){
+			if (file_exists($path)) {
 				$webPath = "{$this->webroot}" . $this->themeWeb . $file;
 			}
 		}
@@ -211,7 +211,7 @@ class Helper extends Overloadable {
  * @return cleaned content for output
  * @access public
  */
-	function clean($output){
+	function clean($output) {
 		$this->__reset();
 		if (is_array($output)) {
 			foreach ($output as $key => $value) {
@@ -268,7 +268,7 @@ class Helper extends Overloadable {
 			$values = array_intersect_key(array_values($options), $keys);
 			$escape = $options['escape'];
 			$attributes = array();
-			foreach($keys as $index => $key) {
+			foreach ($keys as $index => $key) {
 				$attributes[] = $this->__formatAttribute($key, $values[$index], $escape);
 			}
 			$out = implode(' ', $attributes);
@@ -304,20 +304,37 @@ class Helper extends Overloadable {
  */
 	function setFormTag($tagValue) {
 		$view =& ClassRegistry::getObject('view');
+
+		if ($tagValue === null) {
+			$view->model = null;
+			$view->association = null;
+			$view->modelId = null;
+			return;
+		}
+
 		$parts = preg_split('/\/|\./', $tagValue);
+		$view->association = null;
 
 		if (count($parts) == 1) {
 			$view->field = $parts[0];
+		//} elseif (count($parts) == 2 && !ClassRegistry::isKeySet($parts[0]) && !ClassRegistry::isKeySet($parts[0])) {
 		} elseif (count($parts) == 2 && is_numeric($parts[0])) {
 			$view->modelId = $parts[0];
 			$view->field = $parts[1];
-		} elseif (count($parts) == 2) {
+		} elseif (count($parts) == 2 && empty($parts[1])) {
 			$view->model = $parts[0];
 			$view->field = $parts[1];
+		} elseif (count($parts) == 2) {
+			$view->association = $parts[0];
+			$view->field = $parts[1];
 		} elseif (count($parts) == 3) {
-			$view->model   = $parts[0];
+			$view->association   = $parts[0];
 			$view->modelId = $parts[1];
 			$view->field   = $parts[2];
+		}
+		if (!isset($view->model)) {
+			$view->model = $view->association;
+			$view->association = null;
 		}
 	}
 /**
@@ -327,7 +344,11 @@ class Helper extends Overloadable {
  */
 	function model() {
 		$view =& ClassRegistry::getObject('view');
-		return $view->model;
+		if ($view->association == null) {
+			return $view->model;
+		} else {
+			return $view->association;
+		}
 	}
 /**
  * Gets the ID of the currently-used model of the rendering context.
@@ -403,12 +424,12 @@ class Helper extends Overloadable {
 		}
 
 		switch($field) {
-			case 'method':
 			case '_method':
 				$name = $field;
 			break;
 			default:
-				$name = array_filter(array($this->model(), $this->field(), $this->modelID()));
+				//$name = array_filter(array($this->model(), $this->field(), $this->modelID()));
+				$name = array_filter(array($this->model(), $this->field()));
 				if ($this->modelID() === 0) {
 					$name[] = $this->modelID();
 				}
@@ -429,8 +450,9 @@ class Helper extends Overloadable {
  * @param array $options
  * @param string $key
  * @return array
+ * @access public
  */
-	function __value($options = array(), $field = null, $key = 'value') {
+	function value($options = array(), $field = null, $key = 'value') {
 		if ($options === null) {
 			$options = array();
 		} elseif (is_string($options)) {
@@ -447,12 +469,13 @@ class Helper extends Overloadable {
 		}
 
 		$result = null;
+
 		if (isset($this->data[$this->model()][$this->field()])) {
 			$result = $this->data[$this->model()][$this->field()];
 		} elseif (isset($this->data[$this->field()]) && is_array($this->data[$this->field()])) {
 			if (ClassRegistry::isKeySet($this->field())) {
-				$key =& ClassRegistry::getObject($this->field());
-				$result = $this->__selectedArray($this->data[$this->field()], $key->primaryKey);
+				$model =& ClassRegistry::getObject($this->field());
+				$result = $this->__selectedArray($this->data[$this->field()], $model->primaryKey);
 			}
 		}
 
@@ -481,12 +504,11 @@ class Helper extends Overloadable {
 		$this->setFormTag($field);
 		$options = (array)$options;
 		$options = $this->__name($options);
-		$options = $this->__value($options);
+		$options = $this->value($options);
 		$options = $this->domId($options);
 		if ($this->tagIsInvalid()) {
 			$options = $this->addClass($options, 'form-error');
 		}
-		unset($options['name']); // Temporary
 		return $options;
 	}
 /**
@@ -537,28 +559,24 @@ class Helper extends Overloadable {
 /**
  * Before render callback.  Overridden in subclasses.
  *
- * @return void
  */
 	function beforeRender() {
 	}
 /**
  * After render callback.  Overridden in subclasses.
  *
- * @return void
  */
 	function afterRender() {
 	}
 /**
  * Before layout callback.  Overridden in subclasses.
  *
- * @return void
  */
 	function beforeLayout() {
 	}
 /**
  * After layout callback.  Overridden in subclasses.
  *
- * @return void
  */
 	function afterLayout() {
 	}
@@ -571,18 +589,18 @@ class Helper extends Overloadable {
  * @access private
  */
 	function __selectedArray($data, $key = 'id') {
-		if(!is_array($data)) {
+		if (!is_array($data)) {
 			$model = $data;
-			if(!empty($this->data[$model][$model])) {
+			if (!empty($this->data[$model][$model])) {
 				return $this->data[$model][$model];
 			}
-			if(!empty($this->data[$model])) {
+			if (!empty($this->data[$model])) {
 				$data = $this->data[$model];
 			}
 		}
 		$array = array();
-		if(!empty($data)) {
-			foreach($data as $var) {
+		if (!empty($data)) {
+			foreach ($data as $var) {
 				$array[$var[$key]] = $var[$key];
 			}
 		}
@@ -591,20 +609,18 @@ class Helper extends Overloadable {
 /**
  * Resets the vars used by Helper::clean() to null
  *
- * @return void
  * @access private
  */
-	function __reset(){
+	function __reset() {
 		$this->__tainted = null;
 		$this->__cleaned = null;
 	}
 /**
  * Removes harmful content from output
  *
- * @return void
  * @access private
  */
-	function __clean(){
+	function __clean() {
 		if (get_magic_quotes_gpc()) {
 			$this->__cleaned = stripslashes($this->__tainted);
 		} else {

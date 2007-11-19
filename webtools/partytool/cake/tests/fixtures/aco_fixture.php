@@ -1,5 +1,5 @@
 <?php
-/* SVN FILE: $Id: aco_fixture.php,v 1.1 2007-05-25 05:54:27 rflint%ryanflint.com Exp $ */
+/* SVN FILE: $Id: aco_fixture.php,v 1.2 2007-11-19 08:49:57 rflint%ryanflint.com Exp $ */
 /**
  * Short description for file.
  *
@@ -21,9 +21,9 @@
  * @package			cake.tests
  * @subpackage		cake.tests.fixtures
  * @since			CakePHP(tm) v 1.2.0.4667
- * @version			$Revision: 1.1 $
+ * @version			$Revision: 1.2 $
  * @modifiedby		$LastChangedBy: phpnut $
- * @lastmodified	$Date: 2007-05-25 05:54:27 $
+ * @lastmodified	$Date: 2007-11-19 08:49:57 $
  * @license			http://www.opensource.org/licenses/opengroup.php The Open Group Test Suite License
  */
 /**
@@ -35,7 +35,7 @@
 class AcoFixture extends CakeTestFixture {
 	var $name = 'Aco';
 	var $fields = array(
-		'id' => array('type' => 'integer', 'key' => 'primary'),
+		'id' => array('type' => 'integer', 'key' => 'primary', 'extra'=> 'auto_increment'),
 		'parent_id' => array('type' => 'integer', 'length' => 10, 'null' => true),
 		'model' => array('type' => 'string', 'default' => ''),
 		'foreign_key' => array('type' => 'integer', 'length' => 10, 'null' => true),
@@ -44,6 +44,15 @@ class AcoFixture extends CakeTestFixture {
 		'rght' => array('type' => 'integer', 'length' => 10, 'null' => true)
 	);
 	var $records = array(
+		array ('id' => 1, 'parent_id' => null, 	'model' => null, 'foreign_key' => null, 'alias' => 'ROOT',			'lft' => 1,  'rght' => 18),
+        array ('id' => 2, 'parent_id' => 1,		'model' => null, 'foreign_key' => null, 'alias' => 'Controller1',	'lft' => 2,  'rght' => 9),
+        array ('id' => 3, 'parent_id' => 2,		'model' => null, 'foreign_key' => null, 'alias' => 'action1',		'lft' => 3,  'rght' => 6),
+        array ('id' => 4, 'parent_id' => 3,		'model' => null, 'foreign_key' => null, 'alias' => 'record1',		'lft' => 4,  'rght' => 5),
+        array ('id' => 5, 'parent_id' => 2,		'model' => null, 'foreign_key' => null, 'alias' => 'action2',		'lft' => 7,  'rght' => 8),
+        array ('id' => 6, 'parent_id' => 1,		'model' => null, 'foreign_key' => null, 'alias' => 'Controller2',	'lft' => 10, 'rght' => 17),
+        array ('id' => 7, 'parent_id' => 6,		'model' => null, 'foreign_key' => null, 'alias' => 'action1',		'lft' => 11, 'rght' => 14),
+        array ('id' => 8, 'parent_id' => 7,		'model' => null, 'foreign_key' => null, 'alias' => 'record1',		'lft' => 12, 'rght' => 13),
+        array ('id' => 9, 'parent_id' => 6,		'model' => null, 'foreign_key' => null, 'alias' => 'action2',		'lft' => 15, 'rght' => 16),
 	);
 }
 

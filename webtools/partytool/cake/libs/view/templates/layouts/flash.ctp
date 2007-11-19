@@ -1,5 +1,5 @@
 <?php
-/* SVN FILE: $Id: flash.ctp,v 1.1 2007-05-25 05:54:21 rflint%ryanflint.com Exp $ */
+/* SVN FILE: $Id: flash.ctp,v 1.2 2007-11-19 08:49:55 rflint%ryanflint.com Exp $ */
 /**
  *
  * PHP versions 4 and 5
@@ -18,9 +18,9 @@
  * @package			cake
  * @subpackage		cake.cake.libs.view.templates.layouts
  * @since			CakePHP(tm) v 0.10.0.1076
- * @version			$Revision: 1.1 $
+ * @version			$Revision: 1.2 $
  * @modifiedby		$LastChangedBy: phpnut $
- * @lastmodified	$Date: 2007-05-25 05:54:21 $
+ * @lastmodified	$Date: 2007-11-19 08:49:55 $
  * @license			http://www.opensource.org/licenses/mit-license.php The MIT License
  */
 ?>
@@ -30,7 +30,7 @@
 <title><?php echo $page_title?></title>
 <?php echo $html->charset(); ?>
 
-<?php if(Configure::read() == 0) { ?>
+<?php if (Configure::read() == 0) { ?>
 <meta http-equiv="Refresh" content="<?php echo $pause?>;url=<?php echo $url?>"/>
 <?php } ?>
 <style><!--

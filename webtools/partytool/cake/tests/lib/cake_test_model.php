@@ -1,5 +1,5 @@
 <?php
-/* SVN FILE: $Id: cake_test_model.php,v 1.1 2007-05-25 05:54:28 rflint%ryanflint.com Exp $ */
+/* SVN FILE: $Id: cake_test_model.php,v 1.2 2007-11-19 08:49:57 rflint%ryanflint.com Exp $ */
 /**
  * Short description for file.
  *
@@ -21,9 +21,9 @@
  * @package			cake
  * @subpackage		cake.cake.tests.libs
  * @since			CakePHP(tm) v 1.2.0.4667
- * @version			$Revision: 1.1 $
+ * @version			$Revision: 1.2 $
  * @modifiedby		$LastChangedBy: phpnut $
- * @lastmodified	$Date: 2007-05-25 05:54:28 $
+ * @lastmodified	$Date: 2007-11-19 08:49:57 $
  * @license			http://www.opensource.org/licenses/opengroup.php The Open Group Test Suite License
  */
 require_once LIBS.'model'.DS.'model.php';
@@ -35,5 +35,6 @@ require_once LIBS.'model'.DS.'model.php';
  */
 class CakeTestModel extends Model {
 	var $useDbConfig = 'test_suite';
+	var $cacheSources = false;
 }
 ?>

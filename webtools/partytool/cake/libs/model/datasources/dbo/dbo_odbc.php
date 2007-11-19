@@ -1,5 +1,5 @@
 <?php
-/* SVN FILE: $Id: dbo_odbc.php,v 1.1 2007-05-25 05:54:19 rflint%ryanflint.com Exp $ */
+/* SVN FILE: $Id: dbo_odbc.php,v 1.2 2007-11-19 08:49:54 rflint%ryanflint.com Exp $ */
 
 /**
  * ODBC for DBO
@@ -22,9 +22,9 @@
  * @package			cake
  * @subpackage		cake.cake.libs.model.dbo
  * @since			CakePHP(tm) v 0.10.5.1790
- * @version			$Revision: 1.1 $
+ * @version			$Revision: 1.2 $
  * @modifiedby		$LastChangedBy: phpnut $
- * @lastmodified	$Date: 2007-05-25 05:54:19 $
+ * @lastmodified	$Date: 2007-11-19 08:49:54 $
  * @license			http://www.opensource.org/licenses/mit-license.php The MIT License
  */
 
@@ -154,10 +154,6 @@ class DboOdbc extends DboSource{
 			array_push($tables, odbc_result($result, "TABLE_NAME"));
 		}
 
-		foreach( $tables as $t ) {
-			echo "$t\n";
-		}
-
 		parent::listSources($tables);
 		return $tables;
 	}
@@ -174,23 +170,19 @@ class DboOdbc extends DboSource{
 				return $cache;
 		}
 
-		$fields=array();
-		$sql='SELECT * FROM ' . $this->fullTableName($model) . ' LIMIT 1';
-		$result=odbc_exec($this->connection, $sql);
+		$fields = array();
+		$sql = 'SELECT * FROM ' . $this->fullTableName($model);
+		$result = odbc_exec($this->connection, $sql);
 
-		$count=odbc_num_fields($result);
+		$count = odbc_num_fields($result);
 
-		for($i = 1; $i <= $count; $i++) {
+		for ($i = 1; $i <= $count; $i++) {
 				$cols[$i - 1] = odbc_field_name($result, $i);
 		}
 
-		foreach($cols as $column) {
-				$type
-				= odbc_field_type(
-					odbc_exec($this->connection, "SELECT " . $column . " FROM " . $this->fullTableName($model)),
-					1);
-				array_push($fields, array('name' => $column,
-												'type' => $type));
+		foreach ($cols as $column) {
+			$type = odbc_field_type(odbc_exec($this->connection, "SELECT " . $column . " FROM " . $this->fullTableName($model)), 1);
+			$fields[$column] = array('type' => $type);
 		}
 
 		$this->__cacheDescription($model->tablePrefix . $model->table, $fields);
@@ -202,7 +194,7 @@ class DboOdbc extends DboSource{
 				return '*';
 		}
 
-		$pos=strpos($data, '`');
+		$pos = strpos($data, '`');
 
 		if ($pos === false) {
 				$data = '' . str_replace('.', '.', $data) . '';
@@ -336,7 +328,7 @@ class DboOdbc extends DboSource{
  * Returns number of affected rows in previous database operation. If no previous operation exists,
  * this returns false.
  *
- * @return int Number of affected rows
+ * @return integer Number of affected rows
  */
 	function lastAffected() {
 		if ($this->_result) {
@@ -350,7 +342,7 @@ class DboOdbc extends DboSource{
  * Returns number of rows in previous resultset. If no previous resultset exists,
  * this returns false.
  *
- * @return int Number of rows in resultset
+ * @return integer Number of rows in resultset
  */
 	function lastNumRows() {
 		if ($this->_result) {
@@ -367,7 +359,7 @@ class DboOdbc extends DboSource{
  * @return int
  */
 	function lastInsertId($source = null) {
-		$result=$this->fetchAll('SELECT @@IDENTITY');
+		$result=$this->fetchRow('SELECT @@IDENTITY');
 		return $result[0];
 	}
 
@@ -402,7 +394,7 @@ class DboOdbc extends DboSource{
 		$index        =0;
 		$j            =0;
 
-		while($j < $num_fields) {
+		while ($j < $num_fields) {
 				$column = odbc_fetch_array($results, $j);
 
 				if (!empty($column->table)) {
@@ -430,7 +422,7 @@ class DboOdbc extends DboSource{
 				$resultRow=array();
 				$i=0;
 
-				foreach($row as $index => $field) {
+				foreach ($row as $index => $field) {
 					list($table, $column)      = $this->map[$index];
 					$resultRow[$table][$column]=$row[$index];
 					$i++;
@@ -440,27 +432,6 @@ class DboOdbc extends DboSource{
 		} else {
 				return false;
 		}
-	}
-
-	function buildSchemaQuery($schema) {
-		$search=array('{AUTOINCREMENT}',
-					'{PRIMARY}',
-					'{UNSIGNED}',
-					'{FULLTEXT}',
-					'{FULLTEXT_MYSQL}',
-					'{BOOLEAN}',
-					'{UTF_8}');
-
-		$replace=array('int(11) not null auto_increment',
-					'primary key',
-					'unsigned',
-					'FULLTEXT',
-					'FULLTEXT',
-					'enum (\'true\', \'false\') NOT NULL default \'true\'',
-					'/*!40100 CHARACTER SET utf8 COLLATE utf8_unicode_ci */');
-
-		$query=trim(str_replace($search, $replace, $schema));
-		return $query;
 	}
 }
 ?>

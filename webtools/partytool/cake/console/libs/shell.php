@@ -1,5 +1,5 @@
 <?php
-/* SVN FILE: $Id: shell.php,v 1.1 2007-05-25 05:54:16 rflint%ryanflint.com Exp $ */
+/* SVN FILE: $Id: shell.php,v 1.2 2007-11-19 08:49:52 rflint%ryanflint.com Exp $ */
 /**
  * Base class for Shells
  *
@@ -21,9 +21,9 @@
  * @package			cake
  * @subpackage		cake.cake.console.libs
  * @since			CakePHP(tm) v 1.2.0.5012
- * @version			$Revision: 1.1 $
+ * @version			$Revision: 1.2 $
  * @modifiedby		$LastChangedBy: phpnut $
- * @lastmodified	$Date: 2007-05-25 05:54:16 $
+ * @lastmodified	$Date: 2007-11-19 08:49:52 $
  * @license			http://www.opensource.org/licenses/mit-license.php The MIT License
  */
 require_once CAKE . 'console' . DS . 'error.php';
@@ -34,17 +34,18 @@ require_once CAKE . 'console' . DS . 'error.php';
  * @subpackage	cake.cake.console.libs
  */
 class Shell extends Object {
-
 /**
- * ShellDispatcher object
+ * An instance of the ShellDispatcher object that loaded this script
  *
- * @var object An instance of the ShellDispatcher object that loaded this script
+ * @var object
+ * @access public
  */
 	var $Dispatch = null;
 /**
  * If true, the script will ask for permission to perform actions.
  *
  * @var boolean
+ * @access public
  */
 	var $interactive = true;
 /**
@@ -52,60 +53,70 @@ class Shell extends Object {
  * or the app does not exist.
  *
  * @var object
+ * @access public
  */
-	var $dbConfig = null;
+	var $DbConfig = null;
 /**
  * Contains command switches parsed from the command line.
  *
  * @var array
+ * @access public
  */
 	var $params = array();
 /**
  * Contains arguments parsed from the command line.
  *
  * @var array
+ * @access public
  */
 	var $args = array();
 /**
  * The file name of the shell that was invoked.
  *
  * @var string
+ * @access public
  */
 	var $shell = null;
 /**
  * The class name of the shell that was invoked.
  *
  * @var string
+ * @access public
  */
 	var $className = null;
 /**
  * The command called if public methods are available.
  *
  * @var string
+ * @access public
  */
 	var $command = null;
 /**
  * The name of the shell in camelized.
  *
  * @var string
+ * @access public
  */
 	var $name = null;
 /**
  * Contains tasks to load and instantiate
  *
  * @var array
+ * @access public
  */
 	var $tasks = array();
 /**
  * Contains the loaded tasks
  *
  * @var array
+ * @access public
  */
 	var $taskNames = array();
 /**
  * Contains models to load and instantiate
  *
  * @var array
+ * @access public
  */
 	var $uses = array();
 /**
@@ -113,34 +124,50 @@ class Shell extends Object {
  *
  */
 	function __construct(&$dispatch) {
-		$this->Dispatch = & $dispatch;
 		$vars = array('params', 'args', 'shell', 'shellName'=> 'name', 'shellClass'=> 'className', 'shellCommand'=> 'command');
-		foreach($vars as $key => $var) {
-			if(is_string($key)){
-				$this->{$var} = & $this->Dispatch->{$key};
+		foreach ($vars as $key => $var) {
+			if (is_string($key)) {
+				$this->{$var} =& $dispatch->{$key};
 			} else {
-				$this->{$var} = & $this->Dispatch->{$var};
+				$this->{$var} =& $dispatch->{$var};
 			}
 		}
-		$name = get_class($this);
-		if(strpos($name, 'Task') === false && strpos($name, 'task') == false) {
-			$this->_loadTasks();
+
+		$shellKey = Inflector::underscore($this->name);
+		ClassRegistry::addObject($shellKey, $this);
+		ClassRegistry::map($shellKey, $shellKey);
+		if (!PHP5 && isset($this->args[0]) && strpos(low(get_class($this)), low(Inflector::camelize($this->args[0]))) !== false) {
+			$dispatch->shiftArgs();
 		}
+		if (!PHP5 && isset($this->args[0]) && low($this->command) == low(Inflector::variable($this->args[0])) && method_exists($this, $this->command)) {
+			$dispatch->shiftArgs();
+		}
+		$this->Dispatch =& $dispatch;
 	}
 /**
  * Initializes the Shell
- * can be overriden in subclasses
+ * acts as constructor for subclasses
+ * allows configuration of tasks prior to shell execution
  *
- * @return void
+ * @access public
  */
 	function initialize() {
 		$this->_loadModels();
+	}
+/**
+ * Starts up the the Shell
+ * allows for checking and configuring prior to command or main execution
+ * can be overriden in subclasses
+ *
+ * @access public
+ */
+	function startup() {
 		$this->_welcome();
 	}
 /**
  * Displays a header for the shell
  *
- * @return void
+ * @access protected
  */
 	function _welcome() {
 		$this->out('App : '. APP_DIR);
@@ -149,16 +176,15 @@ class Shell extends Object {
 	}
 /**
  * Loads database file and constructs DATABASE_CONFIG class
- * makes $this->dbConfig available to subclasses
+ * makes $this->DbConfig available to subclasses
  *
  * @return bool
+ * @access protected
  */
 	function _loadDbConfig() {
-		if(config('database')) {
-			if (class_exists('DATABASE_CONFIG')) {
-				$this->dbConfig = new DATABASE_CONFIG();
-				return true;
-			}
+		if (config('database') && class_exists('DATABASE_CONFIG')) {
+			$this->DbConfig =& new DATABASE_CONFIG();
+			return true;
 		}
 		$this->err('Database config could not be loaded');
 		$this->out('Run \'bake\' to create the database configuration');
@@ -168,13 +194,13 @@ class Shell extends Object {
  * if var $uses = true
  * Loads AppModel file and constructs AppModel class
  * makes $this->AppModel available to subclasses
- * if var $uses is an array of models
+ * if var $uses is an array of models will load those models
  *
  * @return bool
+ * @access protected
  */
 	function _loadModels() {
-
-		if($this->uses === null || $this->uses === false) {
+		if ($this->uses === null || $this->uses === false) {
 			return;
 		}
 
@@ -182,7 +208,7 @@ class Shell extends Object {
 			'model'.DS.'datasources'.DS.'dbo_source', 'model'.DS.'model'
 		);
 
-		if($this->uses === true && loadModel()) {
+		if ($this->uses === true && loadModel()) {
 			$this->AppModel = & new AppModel(false, false, false);
 			return true;
 		}
@@ -191,13 +217,13 @@ class Shell extends Object {
 			$uses = is_array($this->uses) ? $this->uses : array($this->uses);
 			$this->modelClass = $uses[0];
 
-			foreach($uses as $modelClass) {
+			foreach ($uses as $modelClass) {
 				$modelKey = Inflector::underscore($modelClass);
 
-				if(!class_exists($modelClass)){
+				if (!class_exists($modelClass)) {
 					loadModel($modelClass);
 				}
-				if(class_exists($modelClass)) {
+				if (class_exists($modelClass)) {
 					$model =& new $modelClass();
 					$this->modelNames[] = $modelClass;
 					$this->{$modelClass} =& $model;
@@ -214,25 +240,23 @@ class Shell extends Object {
  * Loads tasks defined in var $tasks
  *
  * @return bool
+ * @access public
  */
-	function _loadTasks() {
-		if($this->tasks === null || $this->tasks === false) {
+	function loadTasks() {
+		if ($this->tasks === null || $this->tasks === false) {
 			return;
 		}
 
 		if ($this->tasks !== true && !empty($this->tasks)) {
 
 			$tasks = $this->tasks;
-			if(!is_array($tasks)) {
+			if (!is_array($tasks)) {
 				$tasks = array($tasks);
 			}
 
-			$this->taskClass = $tasks[0];
-
-			foreach($tasks as $taskName) {
-				$taskKey = Inflector::underscore($taskName);
+			foreach ($tasks as $taskName) {
 				$loaded = false;
-				foreach($this->Dispatch->shellPaths as $path) {
+				foreach ($this->Dispatch->shellPaths as $path) {
 					$taskPath = $path . 'tasks' . DS . Inflector::underscore($taskName).'.php';
 					if (file_exists($taskPath)) {
 						$loaded = true;
@@ -241,19 +265,30 @@ class Shell extends Object {
 				}
 
 				if ($loaded) {
+					$taskKey = Inflector::underscore($taskName);
 					$taskClass = Inflector::camelize($taskName.'Task');
-					if(!class_exists($taskClass)) {
+					if (!class_exists($taskClass)) {
 						require_once $taskPath;
 					}
-
-					if(class_exists($taskClass) &&  !isset($this->{$taskName})) {
-						$task =& new $taskClass($this->Dispatch);
+					if (ClassRegistry::isKeySet($taskKey)) {
 						$this->taskNames[] = $taskName;
-						$this->{$taskName} =& $task;
-						ClassRegistry::addObject($taskKey, $task);
+						if (!PHP5) {
+							$this->{$taskName} =& ClassRegistry::getObject($taskKey);
+							ClassRegistry::map($taskName, $taskKey);
+						} else {
+							$this->{$taskName} = ClassRegistry::getObject($taskKey);
+							ClassRegistry::map($taskName, $taskKey);
+						}
+					} else {
+						$this->taskNames[] = $taskName;
+						if (!PHP5) {
+							$this->{$taskName} =& new $taskClass($this->Dispatch);
+						} else {
+							$this->{$taskName} = new $taskClass($this->Dispatch);
+						}
 					}
 
-					if(!isset($this->{$taskName})) {
+					if (!isset($this->{$taskName})) {
 						$this->err("Task '".$taskName."' could not be loaded");
 						exit();
 					}
@@ -273,24 +308,25 @@ class Shell extends Object {
  * @param mixed $options Array or string of options.
  * @param string $default Default input value.
  * @return Either the default value, or the user-provided input.
+ * @access public
  */
 	function in($prompt, $options = null, $default = null) {
 		$in = $this->Dispatch->getInput($prompt, $options, $default);
-		if($options && is_string($options)) {
-			if(strpos($options, ',')) {
+		if ($options && is_string($options)) {
+			if (strpos($options, ',')) {
 				$options = explode(',', $options);
-			} else if(strpos($options, '/')) {
+			} elseif (strpos($options, '/')) {
 				$options = explode('/', $options);
 			} else {
 				$options = array($options);
 			}
 		}
-		if(is_array($options)) {
-			while($in == '' || ($in && (!in_array(low($in), $options) && !in_array(up($in), $options)) && !in_array($in, $options))) {
+		if (is_array($options)) {
+			while ($in == '' || ($in && (!in_array(low($in), $options) && !in_array(up($in), $options)) && !in_array($in, $options))) {
 				 $in = $this->Dispatch->getInput($prompt, $options, $default);
 			}
 		}
-		if($in) {
+		if ($in) {
 			return $in;
 		}
 	}
@@ -299,21 +335,39 @@ class Shell extends Object {
  *
  * @param string $string String to output.
  * @param boolean $newline If true, the outputs gets an added newline.
+ * @access public
  */
 	function out($string, $newline = true) {
+		if(is_array($string)) {
+			$str = '';
+			foreach($string as $message) {
+				$str .= $message ."\n";
+			}
+			$string = $str;
+		}
 		return $this->Dispatch->stdout($string, $newline);
 	}
 /**
  * Outputs to the stderr filehandle.
  *
  * @param string $string Error text to output.
+ * @access public
  */
 	function err($string) {
+		if(is_array($string)) {
+			$str = '';
+			foreach($string as $message) {
+				$str .= $message ."\n";
+			}
+			$string = $str;
+		}
 		return $this->Dispatch->stderr($string."\n");
 	}
 /**
  * Outputs a series of minus characters to the standard output, acts as a visual separator.
  *
+ * @param boolean $newline If true, the outputs gets an added newline.
+ * @access public
  */
 	function hr($newline = false) {
 		if ($newline) {
@@ -325,13 +379,14 @@ class Shell extends Object {
 		}
 	}
 /**
- * Displays a formatted error message
+ * Displays a formatted error message and exits the application
  *
- * @param unknown_type $title
- * @param unknown_type $msg
+ * @param string $title Title of the error message
+ * @param string $msg Error message
+ * @access public
  */
 	function error($title, $msg) {
-		$out .= "$title\n";
+		$out  = "$title\n";
 		$out .= "$msg\n";
 		$out .= "\n";
 		$this->err($out);
@@ -340,40 +395,42 @@ class Shell extends Object {
 /**
  * Will check the number args matches otherwise throw an error
  *
- * @param unknown_type $expectedNum
- * @param unknown_type $command
+ * @param integer $expectedNum Expected number of paramters
+ * @param string $command Command
+ * @access protected
  */
 	function _checkArgs($expectedNum, $command = null) {
-		if(!$command) {
+		if (!$command) {
 			$command = $this->command;
 		}
 		if (count($this->args) < $expectedNum) {
-			$this->error('Wrong number of parameters: '.count($this->args), 'Please type \'cake '.$this->shell.' help\' for help on usage of the '.$this->name.' '.$command);
+			$this->error("Wrong number of parameters: ".count($this->args), "Expected: {$expectedNum}\nPlease type 'cake {$this->shell} help' for help on usage of the {$this->name} {$command}");
 		}
 	}
 /**
- * Creates a file at given path.
+ * Creates a file at given path
  *
- * @param string $path		Where to put the file.
+ * @param string $path Where to put the file.
  * @param string $contents Content to put in the file.
- * @return Success
+ * @return boolean Success
+ * @access public
  */
 	function createFile ($path, $contents) {
 		$path = str_replace(DS . DS, DS, $path);
-		$this->out("\n".__(sprintf("Creating file %s", $path), true));
+		$this->out("\n" . sprintf(__("Creating file %s", true), $path));
 		if (is_file($path) && $this->interactive === true) {
 			$key = $this->in(__("File exists, overwrite?", true). " {$path}",  array('y', 'n', 'q'), 'n');
 			if (low($key) == 'q') {
 				$this->out(__("Quitting.", true) ."\n");
 				exit;
-			} else if (low($key) == 'a') {
+			} elseif (low($key) == 'a') {
 				$this->dont_ask = true;
-			} else if (low($key) != 'y') {
+			} elseif (low($key) != 'y') {
 				$this->out(__("Skip", true) ." {$path}\n");
 				return false;
 			}
 		}
-		if(!class_exists('File')) {
+		if (!class_exists('File')) {
 			uses('file');
 		}
 		if ($File = new File($path, true)) {
@@ -388,18 +445,20 @@ class Shell extends Object {
 /**
  * Outputs usage text on the standard output. Implement it in subclasses.
  *
+ * @access public
  */
 	function help() {
-		if($this->command != null) {
+		if ($this->command != null) {
 			$this->err("Unknown {$this->name} command '$this->command'.\nFor usage, try 'cake {$this->shell} help'.\n\n");
-		} else{
+		} else {
 			$this->Dispatch->help();
 		}
 	}
 /**
- * Action to create a Unit Test.
+ * Action to create a Unit Test
  *
- * @return Success
+ * @return boolean Success
+ * @access protected
  */
 	function _checkUnitTest() {
 		if (is_dir(VENDORS.'simpletest') || is_dir(ROOT.DS.APP_DIR.DS.'vendors'.DS.'simpletest')) {
@@ -413,48 +472,93 @@ class Shell extends Object {
 		}
 		return $result;
 	}
-
 /**
- * creates the proper pluralize controller for the url
+ * Makes absolute file path easier to read
  *
- * @param string $name
- * @return string $name
+ * @param string $file Absolute file path
+ * @return sting short path
+ * @access public
+ */
+	function shortPath($file) {
+		$shortPath = str_replace(ROOT, null, $file);
+		$shortPath = str_replace('..'.DS, '', $shortPath);
+		return r(DS.DS, DS, $shortPath);
+	}
+/**
+ * Checks for Configure::read('Routing.admin') and forces user to input it if not enabled
+ *
+ * @return string Admin route to use
+ * @access public
+ */
+	function getAdmin() {
+		$admin = '';
+		$cakeAdmin = null;
+		$adminRoute = Configure::read('Routing.admin');
+		if (!empty($adminRoute)) {
+			$cakeAdmin = $adminRoute . '_';
+		} else {
+			$this->out('You need to enable Configure::write(\'Routing.admin\',\'admin\') in /app/config/core.php to use admin routing.');
+			$this->out('What would you like the admin route to be?');
+			$this->out('Example: www.example.com/admin/controller');
+			while ($admin == '') {
+				$admin = $this->in("What would you like the admin route to be?", null, 'admin');
+			}
+			if ($this->Project->cakeAdmin($admin) !== true) {
+				$this->out('Unable to write to /app/config/core.php.');
+				$this->out('You need to enable Configure::write(\'Routing.admin\',\'admin\') in /app/config/core.php to use admin routing.');
+				exit();
+			} else {
+				$cakeAdmin = $admin . '_';
+			}
+		}
+		return $cakeAdmin;
+	}
+/**
+ * Creates the proper controller path for the specified controller class name
+ *
+ * @param string $name Controller class name
+ * @return string Path to controller
+ * @access protected
  */
 	function _controllerPath($name) {
 		return low(Inflector::underscore($name));
 	}
 /**
- * creates the proper pluralize controller class name.
+ * Creates the proper controller plural name for the specified controller class name
  *
- * @param string $name
- * @return string $name
+ * @param string $name Controller class name
+ * @return string Controller plural name
+ * @access protected
  */
 	function _controllerName($name) {
 		return Inflector::pluralize(Inflector::camelize($name));
 	}
 /**
- * creates the proper singular model name.
+ * Creates the proper controller camelized name (singularized) for the specified name
  *
- * @param string $name
- * @return string $name
+ * @param string $name Name
+ * @return string Camelized and singularized controller name
+ * @access protected
  */
 	function _modelName($name) {
 		return Inflector::camelize(Inflector::singularize($name));
 	}
 /**
- * creates the proper singular model key for associations.
+ * Creates the proper singular model key for associations
  *
- * @param string $name
- * @return string $name
+ * @param string $name Controller class name
+ * @return string Singular model key
+ * @access protected
  */
 	function _modelKey($name) {
 		return Inflector::underscore(Inflector::singularize($name)).'_id';
 	}
 /**
- * creates the proper model name from a foreign key.
+ * Creates the proper model name from a foreign key
  *
- * @param string $key
- * @return string $name
+ * @param string $key Foreign key
+ * @return string Model name
+ * @access protected
  */
 	function _modelNameFromKey($key) {
 		$name = str_replace('_id', '',$key);
@@ -465,33 +569,37 @@ class Shell extends Object {
  *
  * @param string $name
  * @return string $name
+ * @access protected
  */
 	function _singularName($name) {
 		return Inflector::variable(Inflector::singularize($name));
 	}
 /**
- * creates the plural name for views.
+ * Creates the plural name for views
  *
- * @param string $name
- * @return string $name
+ * @param string $name Name to use
+ * @return string Plural name for views
+ * @access protected
  */
 	function _pluralName($name) {
 		return Inflector::variable(Inflector::pluralize($name));
 	}
 /**
- * creates the singular human name used in views
+ * Creates the singular human name used in views
  *
- * @param string $name
- * @return string $name
+ * @param string $name Controller name
+ * @return string Singular human name
+ * @access protected
  */
 	function _singularHumanName($name) {
 		return Inflector::humanize(Inflector::underscore(Inflector::singularize($name)));
 	}
 /**
- * creates the plural humna name used in views
+ * Creates the plural human name used in views
  *
- * @param string $name
- * @return string $name
+ * @param string $name Controller name
+ * @return string Plural human name
+ * @access protected
  */
 	function _pluralHumanName($name) {
 		return Inflector::humanize(Inflector::underscore(Inflector::pluralize($name)));

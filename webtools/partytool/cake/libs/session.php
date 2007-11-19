@@ -1,5 +1,5 @@
 <?php
-/* SVN FILE: $Id: session.php,v 1.1 2007-05-25 05:54:17 rflint%ryanflint.com Exp $ */
+/* SVN FILE: $Id: session.php,v 1.2 2007-11-19 08:49:53 rflint%ryanflint.com Exp $ */
 /**
  * Session class for Cake.
  *
@@ -24,23 +24,16 @@
  * @package			cake
  * @subpackage		cake.cake.libs
  * @since			CakePHP(tm) v .0.10.0.1222
- * @version			$Revision: 1.1 $
+ * @version			$Revision: 1.2 $
  * @modifiedby		$LastChangedBy: phpnut $
- * @lastmodified	$Date: 2007-05-25 05:54:17 $
+ * @lastmodified	$Date: 2007-11-19 08:49:53 $
  * @license			http://www.opensource.org/licenses/mit-license.php The MIT License
  */
 /**
  * Database name for cake sessions.
  *
  */
-	if (!defined('CAKE_SESSION_TABLE')) {
-		 define('CAKE_SESSION_TABLE', 'cake_sessions');
-	}
-
-	if (CAKE_SESSION_SAVE === 'database') {
-		uses('model' . DS . 'connection_manager');
-	}
-	uses('set');
+uses('set');
 /**
  * Session class for Cake.
  *
@@ -71,7 +64,7 @@ class CakeSession extends Object {
  * @var string
  * @access protected
  */
-	var $_userAgent = false;
+	var $_userAgent = '';
 /**
  * Path to where the session is active.
  *
@@ -87,7 +80,7 @@ class CakeSession extends Object {
  */
 	var $lastError = null;
 /**
- * CAKE_SECURITY setting, "high", "medium", or "low".
+ * 'Security.level' setting, "high", "medium", or "low".
  *
  * @var string
  * @access public
@@ -118,21 +111,25 @@ class CakeSession extends Object {
  * Constructor.
  *
  * @param string $base The base path for the Session
- * @param boolean $start
+ * @param boolean $start Should session be started right now
  * @access public
  */
 	function __construct($base = null, $start = true) {
-		if (env('HTTP_USER_AGENT') != null) {
-			$this->_userAgent = md5(env('HTTP_USER_AGENT') . CAKE_SESSION_STRING);
-		} else {
-				$this->_userAgent = "";
+		if (Configure::read('Session.save') === 'database' && !class_exists('ConnectionManager')) {
+			uses('model' . DS . 'connection_manager');
+		}
+
+		if (Configure::read('Session.checkAgent') === true) {
+			if (env('HTTP_USER_AGENT') != null) {
+				$this->_userAgent = md5(env('HTTP_USER_AGENT') . Configure::read('Security.salt'));
+			}
 		}
 		$this->time = time();
 
-		if($start === true) {
+		if ($start === true) {
 			$this->host = env('HTTP_HOST');
 
-			if (empty($base) || strpos($base, '?')) {
+			if (empty($base) || strpos($base, '?' || strpos($base, 'index.php'))) {
 				$this->path = '/';
 			} else {
 				$this->path = $base;
@@ -142,17 +139,19 @@ class CakeSession extends Object {
 				$this->host = substr($this->host, 0, strpos($this->host, ':'));
 			}
 
-			$this->sessionTime = $this->time + (Security::inactiveMins() * CAKE_SESSION_TIMEOUT);
-			$this->security = CAKE_SECURITY;
+			if (!class_exists('Security')) {
+				uses('security');
+			}
+
+			$this->sessionTime = $this->time + (Security::inactiveMins() * Configure::read('Session.timeout'));
+			$this->security = Configure::read('Security.level');
 
 			if (function_exists('session_write_close')) {
 				session_write_close();
 			}
 
 			$this->__initSession();
-			session_cache_limiter ("must-revalidate");
-			session_start();
-			header ('P3P: CP="NOI ADM DEV PSAi COM NAV OUR OTRo STP IND DEM"');
+			$this->__startSession();
 			$this->__checkValid();
 		}
 		parent::__construct();
@@ -174,17 +173,21 @@ class CakeSession extends Object {
 	}
 
 /**
- * Temp method until we are able to remove the last eval()
+ * Temp method until we are able to remove the last eval().
+ * Builds an expression to fetch a session variable with specified name.
+ *
+ * @param string $name Name of variable (in dot notation)
+ * @access private
  */
 	function __sessionVarNames($name) {
-		if (is_string($name) && preg_match("/^[0-9a-zA-Z._-]+$/", $name)) {
+		if (is_string($name) && preg_match("/^[ 0-9a-zA-Z._-]*$/", $name)) {
 			if (strpos($name, ".")) {
 				$names = explode(".", $name);
 			} else {
 				$names = array($name);
 			}
-			$expression="\$_SESSION";
-			foreach($names as $item) {
+			$expression = "\$_SESSION";
+			foreach ($names as $item) {
 				$expression .= is_numeric($item) ? "[$item]" : "['$item']";
 			}
 			return $expression;
@@ -215,9 +218,8 @@ class CakeSession extends Object {
 /**
  * Used to write new data to _SESSION, since PHP doesn't like us setting the _SESSION var itself
  *
- * @param array $old
- * @param array $new
- * @return void
+ * @param array $old Set of old variables => values
+ * @param array $new New set of variable => value
  * @access private
  */
 	function __overwrite(&$old, $new) {
@@ -233,9 +235,9 @@ class CakeSession extends Object {
 /**
  * Return error description for given error number.
  *
- * @param int $errorNumber
+ * @param integer $errorNumber Error to set
  * @return string Error as string
- * @access public
+ * @access private
  */
 	function __error($errorNumber) {
 		if (!is_array($this->error) || !array_key_exists($errorNumber, $this->error)) {
@@ -260,13 +262,15 @@ class CakeSession extends Object {
 /**
  * Returns true if session is valid.
  *
- * @return boolean
+ * @return boolean Success
  * @access public
  */
 	function valid() {
 		if ($this->read('Config')) {
-			if ($this->_userAgent == $this->read("Config.userAgent") && $this->time <= $this->read("Config.time")) {
-				$this->valid = true;
+			if (Configure::read('Session.checkAgent') === false || $this->_userAgent == $this->read("Config.userAgent") && $this->time <= $this->read("Config.time")) {
+				if ($this->error === false) {
+					$this->valid = true;
+				}
 			} else {
 				$this->valid = false;
 				$this->__setError(1, "Session Highjacking Attempted !!!");
@@ -277,7 +281,7 @@ class CakeSession extends Object {
 /**
  * Returns given session variable, or all of them, if no parameters given.
  *
- * @param mixed $name The name of the session variable
+ * @param mixed $name The name of the session variable (or a path as sent to Set.extract)
  * @return mixed The value of the session variable
  * @access public
  */
@@ -300,7 +304,7 @@ class CakeSession extends Object {
  * Returns all session variables.
  *
  * @return mixed Full $_SESSION array, or false on error.
- * @access public
+ * @access private
  */
 	function __returnSessionVars() {
 		if (!empty($_SESSION)) {
@@ -313,7 +317,7 @@ class CakeSession extends Object {
  * Tells Session to write a notification when a certain session path or subpath is written to
  *
  * @param mixed $var The variable path to watch
- * @return void
+ * @access public
  */
 	function watch($var) {
 		$var = $this->__validateKeys($var);
@@ -326,7 +330,7 @@ class CakeSession extends Object {
  * Tells Session to stop watching a given key path
  *
  * @param mixed $var The variable path to watch
- * @return void
+ * @access public
  */
 	function ignore($var) {
 		$var = $this->__validateKeys($var);
@@ -344,9 +348,10 @@ class CakeSession extends Object {
 /**
  * Writes value to given session variable name.
  *
- * @param mixed $name
- * @param string $value
+ * @param mixed $name Name of variable
+ * @param string $value Value to write
  * @return boolean True if the write was successful, false if the write failed
+ * @access public
  */
 	function write($name, $value) {
 		$var = $this->__validateKeys($name);
@@ -358,13 +363,12 @@ class CakeSession extends Object {
 			trigger_error('Writing session key {' . $var . '}: ' . Debugger::exportVar($value), E_USER_NOTICE);
 		}
 		$this->__overwrite($_SESSION, Set::insert($_SESSION, $var, $value));
-		return (Set::extract($_SESSION, $var) == $value);
+		return (Set::extract($_SESSION, $var) === $value);
 	}
 /**
  * Helper method to destroy invalid sessions.
  *
- * @return void
- * @access private
+ * @access public
  */
 	function destroy() {
 		$sessionpath = session_save_path();
@@ -373,7 +377,7 @@ class CakeSession extends Object {
 		}
 
 		if (isset($_COOKIE[session_name()])) {
-			setcookie(CAKE_SESSION_COOKIE, '', time() - 42000, $this->path);
+			setcookie(Configure::read('Session.cookie'), '', time() - 42000, $this->path);
 		}
 
 		$_SESSION = array();
@@ -386,19 +390,21 @@ class CakeSession extends Object {
 /**
  * Helper method to initialize a session, based on Cake core settings.
  *
- * @return void
  * @access private
  */
 	function __initSession() {
 		switch($this->security) {
 			case 'high':
-				$this->cookieLifeTime=0;
+				$this->cookieLifeTime = 0;
 				if (function_exists('ini_set')) {
 					ini_set('session.referer_check', $this->host);
 				}
 			break;
 			case 'medium':
 				$this->cookieLifeTime = 7 * 86400;
+				if (function_exists('ini_set')) {
+					ini_set('session.referer_check', $this->host);
+				}
 			break;
 			case 'low':
 			default:
@@ -406,7 +412,7 @@ class CakeSession extends Object {
 			break;
 		}
 
-		switch(CAKE_SESSION_SAVE) {
+		switch(Configure::read('Session.save')) {
 			case 'cake':
 				if (!isset($_SESSION)) {
 					if (function_exists('ini_set')) {
@@ -414,7 +420,7 @@ class CakeSession extends Object {
 						ini_set('url_rewriter.tags', '');
 						ini_set('session.serialize_handler', 'php');
 						ini_set('session.use_cookies', 1);
-						ini_set('session.name', CAKE_SESSION_COOKIE);
+						ini_set('session.name', Configure::read('Session.cookie'));
 						ini_set('session.cookie_lifetime', $this->cookieLifeTime);
 						ini_set('session.cookie_path', $this->path);
 						ini_set('session.auto_start', 0);
@@ -424,13 +430,19 @@ class CakeSession extends Object {
 			break;
 			case 'database':
 				if (!isset($_SESSION)) {
+					if (Configure::read('Session.table') === null) {
+						trigger_error(__("You must set the all Configure::write('Session.*') in core.php to use database storage"), E_USER_WARNING);
+						exit();
+					} elseif (Configure::read('Session.database') === null) {
+						Configure::write('Session.database', 'default');
+					}
 					if (function_exists('ini_set')) {
 						ini_set('session.use_trans_sid', 0);
 						ini_set('url_rewriter.tags', '');
 						ini_set('session.save_handler', 'user');
 						ini_set('session.serialize_handler', 'php');
 						ini_set('session.use_cookies', 1);
-						ini_set('session.name', CAKE_SESSION_COOKIE);
+						ini_set('session.name', Configure::read('Session.cookie'));
 						ini_set('session.cookie_lifetime', $this->cookieLifeTime);
 						ini_set('session.cookie_path', $this->path);
 						ini_set('session.auto_start', 0);
@@ -447,7 +459,7 @@ class CakeSession extends Object {
 				if (!isset($_SESSION)) {
 					if (function_exists('ini_set')) {
 						ini_set('session.use_trans_sid', 0);
-						ini_set('session.name', CAKE_SESSION_COOKIE);
+						ini_set('session.name', Configure::read('Session.cookie'));
 						ini_set('session.cookie_lifetime', $this->cookieLifeTime);
 						ini_set('session.cookie_path', $this->path);
 					}
@@ -455,7 +467,7 @@ class CakeSession extends Object {
 			break;
 			default:
 				if (!isset($_SESSION)) {
-					$config = CONFIGS . CAKE_SESSION_SAVE . '.php';
+					$config = CONFIGS . Configure::read('Session.cookie') . '.php';
 
 					if (is_file($config)) {
 						require_once ($config);
@@ -465,21 +477,38 @@ class CakeSession extends Object {
 		}
 	}
 /**
+ * Helper method to start a session
+ *
+ * @access private
+ */
+	function __startSession() {
+		if (headers_sent()) {
+			if (!isset($_SESSION)) {
+				$_SESSION = array();
+			}
+		} else {
+			session_cache_limiter ("must-revalidate");
+			session_start();
+			if (Configure::read('Security.level') === 'high') {
+				$this->renew();
+			}
+			header ('P3P: CP="NOI ADM DEV PSAi COM NAV OUR OTRo STP IND DEM"');
+		}
+	}
+/**
  * Helper method to create a new session.
  *
- * @return void
  * @access private
- *
  */
 	function __checkValid() {
 		if ($this->read('Config')) {
-			if ($this->_userAgent == $this->read("Config.userAgent") && $this->time <= $this->read("Config.time")) {
+			if (Configure::read('Session.checkAgent') === false || $this->_userAgent == $this->read("Config.userAgent") && $this->time <= $this->read("Config.time")) {
 				$this->write("Config.time", $this->sessionTime);
 				$this->valid = true;
 			} else {
+				$this->destroy();
 				$this->valid = false;
 				$this->__setError(1, "Session Highjacking Attempted !!!");
-				$this->destroy();
 			}
 		} else {
 			srand ((double)microtime() * 1000000);
@@ -493,7 +522,6 @@ class CakeSession extends Object {
 /**
  * Helper method to restart a session.
  *
- * @return void
  * @access private
  */
 	function __regenerateId() {
@@ -504,7 +532,7 @@ class CakeSession extends Object {
 		}
 
 		if (isset($_COOKIE[session_name()])) {
-			setcookie(CAKE_SESSION_COOKIE, '', time() - 42000, $this->path);
+			setcookie(Configure::read('Session.cookie'), '', time() - 42000, $this->path);
 		}
 		session_regenerate_id();
 		$newSessid = session_id();
@@ -525,7 +553,6 @@ class CakeSession extends Object {
 /**
  * Restarts this session.
  *
- * @return void
  * @access public
  */
 	function renew() {
@@ -536,11 +563,11 @@ class CakeSession extends Object {
  * example: $name = 'ControllerName.key';
  *
  * @param string $name Session key names as string.
- * @return boolean false is $name is not correct format
+ * @return mixed false is $name is not correct format, or $name if it is correct
  * @access private
  */
 	function __validateKeys($name) {
-		if (is_string($name) && preg_match("/^[0-9a-zA-Z._-]+$/", $name)) {
+		if (is_string($name) && preg_match("/^[ 0-9a-zA-Z._-]*$/", $name)) {
 			return $name;
 		}
 		$this->__setError(3, "$name is not a string");
@@ -549,9 +576,8 @@ class CakeSession extends Object {
 /**
  * Helper method to set an internal error message.
  *
- * @param int $errorNumber Number of the error
+ * @param integer $errorNumber Number of the error
  * @param string $errorMessage Description of the error
- * @return void
  * @access private
  */
 	function __setError($errorNumber, $errorMessage) {
@@ -562,41 +588,37 @@ class CakeSession extends Object {
 		$this->lastError = $errorNumber;
 	}
 /**
- * Method called on open of a database
- * sesson
+ * Method called on open of a database session.
  *
- * @return boolean
+ * @return boolean Success
  * @access private
- *
  */
 	function __open() {
 		return true;
 	}
 /**
- * Method called on close of a database
- * session
+ * Method called on close of a database session.
  *
- * @return boolean
+ * @return boolean Success
  * @access private
  */
 	function __close() {
 		$probability = mt_rand(1, 150);
-		if($probability <= 3) {
+		if ($probability <= 3) {
 			CakeSession::__gc();
 		}
 		return true;
 	}
 /**
- * Method used to read from a database
- * session
+ * Method used to read from a database session.
  *
  * @param mixed $key The key of the value to read
  * @return mixed The value of the key or false if it does not exist
  * @access private
  */
 	function __read($key) {
-		$db =& ConnectionManager::getDataSource('default');
-		$table = $db->fullTableName(CAKE_SESSION_TABLE, false);
+		$db =& ConnectionManager::getDataSource(Configure::read('Session.database'));
+		$table = $db->fullTableName(Configure::read('Session.table'), false);
 		$row = $db->query("SELECT " . $db->name($table.'.data') . " FROM " . $db->name($table) . " WHERE " . $db->name($table.'.id') . " = " . $db->value($key), false);
 
 		if ($row && !isset($row[0][$table]) && isset($row[0][0])) {
@@ -610,19 +632,18 @@ class CakeSession extends Object {
 		}
 	}
 /**
- * Helper function called on write for database
- * sessions
+ * Helper function called on write for database sessions.
  *
  * @param mixed $key The name of the var
  * @param mixed $value The value of the var
- * @return boolean
+ * @return boolean Success
  * @access private
  */
 	function __write($key, $value) {
-		$db =& ConnectionManager::getDataSource('default');
-		$table = $db->fullTableName(CAKE_SESSION_TABLE);
+		$db =& ConnectionManager::getDataSource(Configure::read('Session.database'));
+		$table = $db->fullTableName(Configure::read('Session.table'));
 
-		switch(CAKE_SECURITY) {
+		switch(Configure::read('Security.level')) {
 			case 'high':
 				$factor = 10;
 			break;
@@ -636,7 +657,7 @@ class CakeSession extends Object {
 				$factor = 10;
 			break;
 		}
-		$expires = time() + CAKE_SESSION_TIMEOUT * $factor;
+		$expires = time() +  Configure::read('Session.timeout') * $factor;
 		$row = $db->query("SELECT COUNT(id) AS count FROM " . $db->name($table) . " WHERE "
 								 . $db->name('id') . " = "
 								 . $db->value($key), false);
@@ -655,30 +676,28 @@ class CakeSession extends Object {
 		return true;
 	}
 /**
- * Method called on the destruction of a
- * database session
+ * Method called on the destruction of a database session.
  *
- * @param integer $key
- * @return boolean
+ * @param integer $key Key that uniquely identifies session in database
+ * @return boolean Success
  * @access private
  */
 	function __destroy($key) {
-		$db =& ConnectionManager::getDataSource('default');
-		$table = $db->fullTableName(CAKE_SESSION_TABLE);
+		$db =& ConnectionManager::getDataSource(Configure::read('Session.database'));
+		$table = $db->fullTableName(Configure::read('Session.table'));
 		$db->execute("DELETE FROM " . $db->name($table) . " WHERE " . $db->name($table.'.id') . " = " . $db->value($key, 'integer'));
 		return true;
 	}
 /**
- * Helper function called on gc for
- * database sessions
+ * Helper function called on gc for database sessions.
  *
- * @param unknown_type $expires
- * @return boolean
+ * @param integer $expires Timestamp (defaults to current time)
+ * @return boolean Success
  * @access private
  */
 	function __gc($expires = null) {
-		$db =& ConnectionManager::getDataSource('default');
-		$table = $db->fullTableName(CAKE_SESSION_TABLE);
+		$db =& ConnectionManager::getDataSource(Configure::read('Session.database'));
+		$table = $db->fullTableName(Configure::read('Session.table'));
 		$db->execute("DELETE FROM " . $db->name($table) . " WHERE " . $db->name($table.'.expires') . " < ". $db->value(time()));
 		return true;
 	 }

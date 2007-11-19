@@ -1,5 +1,5 @@
 <?php
-/* SVN FILE: $Id: class_registry.php,v 1.1 2007-05-25 05:54:17 rflint%ryanflint.com Exp $ */
+/* SVN FILE: $Id: class_registry.php,v 1.2 2007-11-19 08:49:53 rflint%ryanflint.com Exp $ */
 /**
  * Class collections.
  *
@@ -21,9 +21,9 @@
  * @package			cake
  * @subpackage		cake.cake.libs
  * @since			CakePHP(tm) v 0.9.2
- * @version			$Revision: 1.1 $
+ * @version			$Revision: 1.2 $
  * @modifiedby		$LastChangedBy: phpnut $
- * @lastmodified	$Date: 2007-05-25 05:54:17 $
+ * @lastmodified	$Date: 2007-11-19 08:49:53 $
  * @license			http://www.opensource.org/licenses/mit-license.php The MIT License
  */
 /**
@@ -69,6 +69,7 @@ class ClassRegistry {
  *
  * @param string $key	Key for the object in registry
  * @param mixed $object	Object to store
+ * @return boolean True if the object was written, false if $key already exists
  * @access public
  */
 	function addObject($key, &$object) {
@@ -76,7 +77,9 @@ class ClassRegistry {
 		$key = Inflector::underscore($key);
 		if (array_key_exists($key, $_this->__objects) === false) {
 			$_this->__objects[$key] = &$object;
+			return true;
 		}
+		return false;
 	}
 /**
  * Remove object which corresponds to given key.
@@ -101,7 +104,7 @@ class ClassRegistry {
 	function isKeySet($key) {
 		$_this =& ClassRegistry::getInstance();
 		$key = Inflector::underscore($key);
-		if(array_key_exists($key, $_this->__objects)) {
+		if (array_key_exists($key, $_this->__objects)) {
 			return true;
 		} elseif (array_key_exists($key, $_this->__map)) {
 			return true;
@@ -129,11 +132,11 @@ class ClassRegistry {
 		$_this =& ClassRegistry::getInstance();
 		$key = Inflector::underscore($key);
 
-		if(isset($_this->__objects[$key])){
+		if (isset($_this->__objects[$key])) {
 			return $_this->__objects[$key];
 		} else {
 			$key = $_this->__getMap($key);
-			if(isset($_this->__objects[$key])){
+			if (isset($_this->__objects[$key])) {
 				return $_this->__objects[$key];
 			}
 		}
@@ -178,6 +181,16 @@ class ClassRegistry {
 		if (array_key_exists($key, $_this->__map)) {
 			return $_this->__map[$key];
 		}
+	}
+/**
+ * Flushes all objects from the ClassREgistry.
+ *
+ * @access public
+ */
+	function flush() {
+		$_this =& ClassRegistry::getInstance();
+		$_this->__objects = array();
+		$_this->__map = array();
 	}
 }
 ?>

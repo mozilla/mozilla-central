@@ -1,5 +1,5 @@
 <?php
-/* SVN FILE: $Id: dump.ctp,v 1.1 2007-05-25 05:54:20 rflint%ryanflint.com Exp $ */
+/* SVN FILE: $Id: dump.ctp,v 1.2 2007-11-19 08:49:55 rflint%ryanflint.com Exp $ */
 /**
  *
  * PHP versions 4 and 5
@@ -18,15 +18,15 @@
  * @package			cake
  * @subpackage		cake.cake.libs.view.templates.elements
  * @since			CakePHP(tm) v 0.10.5.1782
- * @version			$Revision: 1.1 $
+ * @version			$Revision: 1.2 $
  * @modifiedby		$LastChangedBy: phpnut $
- * @lastmodified	$Date: 2007-05-25 05:54:20 $
+ * @lastmodified	$Date: 2007-11-19 08:49:55 $
  * @license			http://www.opensource.org/licenses/mit-license.php The MIT License
  */
 ?>
 <div id="cakeControllerDump">
 	<h2><?php __('Controller dump:'); ?></h2>
 		<pre>
-			<?php print_r($this->controller); ?>
+			<?php Debugger::exportVar($controller); ?>
 		</pre>
 </div>

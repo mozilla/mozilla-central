@@ -1,5 +1,5 @@
 <?php
-/* SVN FILE: $Id: session.php,v 1.1 2007-05-25 05:54:17 rflint%ryanflint.com Exp $ */
+/* SVN FILE: $Id: session.php,v 1.2 2007-11-19 08:49:53 rflint%ryanflint.com Exp $ */
 
 /**
  * Short description for file.
@@ -22,11 +22,12 @@
  * @package			cake
  * @subpackage		cake.cake.libs.controller.components
  * @since			CakePHP(tm) v 0.10.0.1232
- * @version			$Revision: 1.1 $
+ * @version			$Revision: 1.2 $
  * @modifiedby		$LastChangedBy: phpnut $
- * @lastmodified	$Date: 2007-05-25 05:54:17 $
+ * @lastmodified	$Date: 2007-11-19 08:49:53 $
  * @license			http://www.opensource.org/licenses/mit-license.php The MIT License
  */
+uses('session');
 /**
  * Session Component.
  *
@@ -47,19 +48,20 @@ class SessionComponent extends CakeSession {
 /**
  * Class constructor
  *
- * @param string $base
+ * @param string $base The base path for the Session
  */
 	function __construct($base = null) {
-		if (!defined('AUTO_SESSION') || AUTO_SESSION === true) {
+		if (Configure::read('Session.start') === true) {
 			parent::__construct($base);
 		} else {
 			$this->__active = false;
 		}
 	}
 /**
- * Turn sessions on if AUTO_SESSION is set to false in core.php
+ * Turn sessions on if 'Session.start' is set to false in core.php
  *
- * @param string $base
+ * @param string $base The base path for the Session
+ * @access public
  */
 	function activate($base = null) {
 		if ($this->__active === true) {
@@ -69,9 +71,9 @@ class SessionComponent extends CakeSession {
 		$this->__active = true;
 	}
 /**
- * Startup method.  Copies controller data locally for rendering flash messages.
+ * Startup method. Copies controller data locally for rendering flash messages.
  *
- * @param object $controller
+ * @param object $controller Instantiating controller
  * @access public
  */
 	function startup(&$controller) {
@@ -95,8 +97,8 @@ class SessionComponent extends CakeSession {
  */
 	function write($name, $value = null) {
 		if ($this->__active === true) {
-			if(is_array($name)) {
-				foreach($name as $key => $value) {
+			if (is_array($name)) {
+				foreach ($name as $key => $value) {
 					if (parent::write($key, $value) === false) {
 						return false;
 					}
@@ -117,8 +119,7 @@ class SessionComponent extends CakeSession {
  * Calling the method without a param will return all session vars
  *
  * @param string $name the name of the session key you want to read
- *
- * @return values from the session vars
+ * @return mixed value from the session vars
  * @access public
  */
 	function read($name = null) {
@@ -132,8 +133,9 @@ class SessionComponent extends CakeSession {
  *
  * In your controller: $this->Session->del('Controller.sessKey');
  *
- * @param string $name
- * @return boolean, true is session variable is set and can be deleted, false is variable was not set.
+ * @param string $name the name of the session key you want to delete
+ * @return boolean true is session variable is set and can be deleted, false is variable was not set.
+ * @access public
  */
 	function del($name) {
 		if ($this->__active === true) {
@@ -146,8 +148,8 @@ class SessionComponent extends CakeSession {
  *
  * In your controller: $this->Session->delete('Controller.sessKey');
  *
- * @param string $name
- * @return boolean, true is session variable is set and can be deleted, false is variable was not set.
+ * @param string $name the name of the session key you want to delete
+ * @return bool, true is session variable is set and can be deleted, false is variable was not set.
  * @access public
  */
 	function delete($name) {
@@ -161,7 +163,7 @@ class SessionComponent extends CakeSession {
  *
  * In your controller: $this->Session->check('Controller.sessKey');
  *
- * @param string $name
+ * @param string $name the name of the session key you want to check
  * @return boolean true is session variable is set, false if not
  * @access public
  */
@@ -207,6 +209,7 @@ class SessionComponent extends CakeSession {
  * Used to renew a session id
  *
  * In your controller: $this->Session->renew();
+ *
  * @access public
  */
 	function renew() {
@@ -231,7 +234,8 @@ class SessionComponent extends CakeSession {
 /**
  * Used to destroy sessions
  *
- * In your controller:. $this->Session->destroy();
+ * In your controller: $this->Session->destroy();
+ *
  * @access public
  */
 	function destroy() {

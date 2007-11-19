@@ -1,5 +1,5 @@
 <?php
-/* SVN FILE: $Id: paths.php,v 1.1 2007-05-25 05:54:15 rflint%ryanflint.com Exp $ */
+/* SVN FILE: $Id: paths.php,v 1.2 2007-11-19 08:49:52 rflint%ryanflint.com Exp $ */
 /**
  * Short description for file.
  *
@@ -21,9 +21,9 @@
  * @package			cake
  * @subpackage		cake.cake.app.config
  * @since			CakePHP(tm) v 0.2.9
- * @version			$Revision: 1.1 $
+ * @version			$Revision: 1.2 $
  * @modifiedby		$LastChangedBy: phpnut $
- * @lastmodified	$Date: 2007-05-25 05:54:15 $
+ * @lastmodified	$Date: 2007-11-19 08:49:52 $
  * @license			http://www.opensource.org/licenses/mit-license.php The MIT License
  */
 /**
@@ -32,10 +32,10 @@
  * directory we will define ROOT there, otherwise we set it
  * here.
  */
-	if(!defined('ROOT')) {
+	if (!defined('ROOT')) {
 		define ('ROOT', '../');
 	}
-	if(!defined('WEBROOT_DIR')) {
+	if (!defined('WEBROOT_DIR')) {
 		define ('WEBROOT_DIR', 'webroot');
 	}
 /**

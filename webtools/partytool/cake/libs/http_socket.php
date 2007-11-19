@@ -1,5 +1,5 @@
 <?php
-/* SVN FILE: $Id: http_socket.php,v 1.1 2007-05-25 05:54:17 rflint%ryanflint.com Exp $ */
+/* SVN FILE: $Id: http_socket.php,v 1.2 2007-11-19 08:49:53 rflint%ryanflint.com Exp $ */
 /**
  * HTTP Socket connection class.
  *
@@ -19,9 +19,9 @@
  * @package			cake
  * @subpackage		cake.cake.libs
  * @since			CakePHP(tm) v 1.2.0
- * @version			$Revision: 1.1 $
+ * @version			$Revision: 1.2 $
  * @modifiedby		$LastChangedBy: phpnut $
- * @lastmodified	$Date: 2007-05-25 05:54:17 $
+ * @lastmodified	$Date: 2007-11-19 08:49:53 $
  * @license			http://www.opensource.org/licenses/mit-license.php The MIT License
  */
 uses('socket', 'set');
@@ -29,7 +29,7 @@ uses('socket', 'set');
 /**
  * Cake network socket connection class.
  *
- * Core base class for network communication.
+ * Core base class for HTTP network communication.
  *
  * @package		cake
  * @subpackage	cake.cake.libs
@@ -39,7 +39,7 @@ class HttpSocket extends CakeSocket {
  * Object description
  *
  * @var string
- * @access protected
+ * @access public
  */
 	var $description = 'HTTP-based DataSource Interface';
 
@@ -48,7 +48,7 @@ class HttpSocket extends CakeSocket {
  * will be disabled and additional measures to deal with non-standard responses will be enabled.
  *
  * @var boolean
- * @access protected
+ * @access public
  */
 	var $quirksMode = false;
 
@@ -56,7 +56,7 @@ class HttpSocket extends CakeSocket {
  * The default values to use for a request
  *
  * @var array
- * @access protected
+ * @access public
  */
 	var $request = array(
 		'method' => 'GET',
@@ -88,7 +88,7 @@ class HttpSocket extends CakeSocket {
 * The default structure for storing the response
 *
 * @var array
-* @access protected
+* @access public
 */
 	var $response = array(
 		'raw' => array(
@@ -110,7 +110,7 @@ class HttpSocket extends CakeSocket {
  * Default configuration settings for the HttpSocket
  *
  * @var array
- * @access protected
+ * @access public
  */
 	var $config = array(
 		'persistent' => false,
@@ -136,7 +136,7 @@ class HttpSocket extends CakeSocket {
  * String that represents a line break.
  *
  * @var string
- * @access protected
+ * @access public
  */
 	var $lineBreak = "\r\n";
 
@@ -371,7 +371,7 @@ class HttpSocket extends CakeSocket {
 
 		if (!is_callable(array(&$this, $decodeMethod))) {
 			if (!$this->quirksMode) {
-				trigger_error(sprintf(__('HttpSocket::decodeBody - Unkown encoding: %s. Activate quirks mode to surpress error.', true), h($encoding)), E_USER_WARNING);
+				trigger_error(sprintf(__('HttpSocket::decodeBody - Unknown encoding: %s. Activate quirks mode to surpress error.', true), h($encoding)), E_USER_WARNING);
 			}
 			return array('body' => $body, 'header' => false);
 		}
@@ -600,7 +600,7 @@ class HttpSocket extends CakeSocket {
 					$value = (int)$value;
 				}
 
-				if(preg_match_all('/\[([^\[\]]*)\]/iUs', $key, $matches)) {
+				if (preg_match_all('/\[([^\[\]]*)\]/iUs', $key, $matches)) {
 					$subKeys = $matches[1];
 					$rootKey = substr($key, 0, strpos($key, '['));
 					if (!empty($rootKey)) {

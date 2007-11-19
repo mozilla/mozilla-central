@@ -1,5 +1,5 @@
 <?php
-/* SVN FILE: $Id: header.php,v 1.1 2007-05-25 05:54:28 rflint%ryanflint.com Exp $ */
+/* SVN FILE: $Id: header.php,v 1.2 2007-11-19 08:49:57 rflint%ryanflint.com Exp $ */
 /**
  * Short description for file.
  *
@@ -21,9 +21,9 @@
  * @package			cake
  * @subpackage		cake.cake.tests.lib
  * @since			CakePHP(tm) v 1.2.0.4433
- * @version			$Revision: 1.1 $
+ * @version			$Revision: 1.2 $
  * @modifiedby		$LastChangedBy: phpnut $
- * @lastmodified	$Date: 2007-05-25 05:54:28 $
+ * @lastmodified	$Date: 2007-11-19 08:49:57 $
  * @license			http://www.opensource.org/licenses/opengroup.php The Open Group Test Suite License
  */
 ?>
@@ -32,7 +32,7 @@
 	<head>
 		<meta http-equiv='content-Type' content='text/html; <?php echo $characterSet; ?>' />
 		<title>CakePHP Test Suite v 1.2.0.0</title>
-		<link rel="stylesheet" type="text/css" href="<?php echo $baseUrl; ?>/css/cake.generic.css" />
+		<link rel="stylesheet" type="text/css" href="<?php echo $baseUrl; ?>css/cake.generic.css" />
 		<style>
 			h3 {font-size: 150%}
 			a {font-size: 120%}
@@ -43,7 +43,7 @@
 	<body>
 		<div id="container">
 			<div id="header">
-				<h1>CakePHP: the PHP Rapid Development Framework</h1>
+				<h1>CakePHP: the rapid development php framework</h1>
 			</div>
 			<div id="content">
 			<h2>CakePHP Test Suite v 1.2.0.0</h2>

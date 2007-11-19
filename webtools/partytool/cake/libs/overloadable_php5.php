@@ -1,5 +1,5 @@
 <?php
-/* SVN FILE: $Id: overloadable_php5.php,v 1.1 2007-05-25 05:54:17 rflint%ryanflint.com Exp $ */
+/* SVN FILE: $Id: overloadable_php5.php,v 1.2 2007-11-19 08:49:53 rflint%ryanflint.com Exp $ */
 /**
  * Overload abstraction interface.  Merges differences between PHP4 and 5.
  *
@@ -19,9 +19,9 @@
  * @package			cake
  * @subpackage		cake.cake.libs
  * @since			CakePHP(tm) v 1.2
- * @version			$Revision: 1.1 $
+ * @version			$Revision: 1.2 $
  * @modifiedby		$LastChangedBy: phpnut $
- * @lastmodified	$Date: 2007-05-25 05:54:17 $
+ * @lastmodified	$Date: 2007-11-19 08:49:53 $
  * @license			http://www.opensource.org/licenses/mit-license.php The MIT License
  */
 /**
@@ -37,10 +37,23 @@
  */
 class Overloadable extends Object {
 
+/**
+ * Overload implementation. No need for implementation in PHP5.
+ *
+ * @access public
+ */
 	function overload() { }
 
+/**
+ * Magic method handler.
+ *
+ * @param string $method Method name
+ * @param array $params Parameters to send to method
+ * @return mixed Return value from method
+ * @access private
+ */
 	function __call($method, $params) {
-		if(!method_exists($this, 'call__')) {
+		if (!method_exists($this, 'call__')) {
 			trigger_error(sprintf(__('Magic method handler call__ not defined in %s', true), get_class($this)), E_USER_ERROR);
 		}
 		return $this->call__($method, $params);
@@ -49,19 +62,48 @@ class Overloadable extends Object {
 
 class Overloadable2 extends Object {
 
+/**
+ * Overload implementation. No need for implementation in PHP5.
+ *
+ * @access public
+ */
 	function overload() { }
 
+/**
+ * Magic method handler.
+ *
+ * @param string $method Method name
+ * @param array $params Parameters to send to method
+ * @return mixed Return value from method
+ * @access private
+ */
 	function __call($method, $params) {
-		if(!method_exists($this, 'call__')) {
+		if (!method_exists($this, 'call__')) {
 			trigger_error(sprintf(__('Magic method handler call__ not defined in %s', true), get_class($this)), E_USER_ERROR);
 		}
 		return $this->call__($method, $params);
 	}
 
+/**
+ * Getter.
+ *
+ * @param mixed $name What to get
+ * @param mixed $value Where to store returned value
+ * @return boolean Success
+ * @access private
+ */
 	function __get($name) {
 		return $this->get__($name);
 	}
 
+/**
+ * Setter.
+ *
+ * @param mixed $name What to set
+ * @param mixed $value Value to set
+ * @return boolean Success
+ * @access private
+ */
 	function __set($name, $value) {
 		return $this->set__($name, $value);
 	}

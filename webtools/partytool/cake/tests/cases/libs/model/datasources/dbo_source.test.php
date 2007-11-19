@@ -1,5 +1,5 @@
 <?php
-/* SVN FILE: $Id: dbo_source.test.php,v 1.1 2007-05-25 05:54:26 rflint%ryanflint.com Exp $ */
+/* SVN FILE: $Id: dbo_source.test.php,v 1.2 2007-11-19 08:49:56 rflint%ryanflint.com Exp $ */
 /**
  * Short description for file.
  *
@@ -21,18 +21,17 @@
  * @package			cake.tests
  * @subpackage		cake.tests.cases.libs.model.datasources
  * @since			CakePHP(tm) v 1.2.0.4206
- * @version			$Revision: 1.1 $
+ * @version			$Revision: 1.2 $
  * @modifiedby		$LastChangedBy: phpnut $
- * @lastmodified	$Date: 2007-05-25 05:54:26 $
+ * @lastmodified	$Date: 2007-11-19 08:49:56 $
  * @license			http://www.opensource.org/licenses/opengroup.php The Open Group Test Suite License
  */
-	if (!defined('CAKEPHP_UNIT_TEST_EXECUTION')) {
-		define('CAKEPHP_UNIT_TEST_EXECUTION', 1);
-	}
-	require_once LIBS.'model'.DS.'model.php';
-	require_once LIBS.'model'.DS.'datasources'.DS.'datasource.php';
-	require_once LIBS.'model'.DS.'datasources'.DS.'dbo_source.php';
-	require_once LIBS.'model'.DS.'datasources'.DS.'dbo'.DS.'dbo_mysql.php';
+if (!defined('CAKEPHP_UNIT_TEST_EXECUTION')) {
+	define('CAKEPHP_UNIT_TEST_EXECUTION', 1);
+}
+
+uses('model'.DS.'model', 'model'.DS.'datasources'.DS.'datasource',
+	'model'.DS.'datasources'.DS.'dbo_source', 'model'.DS.'datasources'.DS.'dbo'.DS.'dbo_mysql');
 /**
  * Short description for class.
  *
@@ -604,7 +603,7 @@ class DboTest extends DboMysql {
 class DboSourceTest extends UnitTestCase {
 
 	function setUp() {
-		require_once r('//', '/', APP) . 'config/database.php';
+		config('database');
 		$config = new DATABASE_CONFIG();
 		$this->db =& new DboTest($config->default);
 		$this->db->fullDebug = false;
@@ -627,8 +626,8 @@ class DboSourceTest extends UnitTestCase {
 
 		$queryData = array();
 
-		foreach($this->model->Category2->__associations as $type) {
-			foreach($this->model->Category2->{$type} as $assoc => $assocData) {
+		foreach ($this->model->Category2->__associations as $type) {
+			foreach ($this->model->Category2->{$type} as $assoc => $assocData) {
 				$linkModel =& $this->model->Category2->{$assoc};
 				$external = isset($assocData['external']);
 
@@ -983,14 +982,14 @@ class DboSourceTest extends UnitTestCase {
 		$this->assertPattern('/\s+FROM\s+`test_model5` AS `TestModel5`\s+WHERE\s+/', $result);
 		$this->assertPattern('/\s+WHERE\s+(?:\()?`TestModel5`.`name`\s+!=\s+\'mariano\'(?:\))?\s*$/', $result);
 	}
-	
+
 	function testGenerateAssociationQueryHasManyWithOffsetAndLimit() {
 		$this->model = new TestModel5();
 		$this->model->loadInfo();
 		$this->_buildRelatedModels($this->model);
-		
+
 		$__backup = $this->model->hasMany['TestModel6'];
-		
+
 		$this->model->hasMany['TestModel6']['offset'] = 2;
 		$this->model->hasMany['TestModel6']['limit'] = 5;
 
@@ -1006,22 +1005,22 @@ class DboSourceTest extends UnitTestCase {
 		$this->assertPattern('/\s+FROM\s+`test_model6` AS `TestModel6`\s+WHERE\s+/', $result);
 		$this->assertPattern('/WHERE\s+(?:\()?`TestModel6`\.`test_model5_id`\s+IN\s+\({\$__cakeID__\$}\)(?:\))?/', $result);
 		$this->assertPattern('/\s+LIMIT 2,\s*5\s*$/', $result);
-		
+
 		$result = $this->db->generateAssociationQuery($this->model, $null, null, null, null, $queryData, false, $null);
 		$this->assertPattern('/^SELECT\s+`TestModel5`\.`id`, `TestModel5`\.`test_model4_id`, `TestModel5`\.`name`, `TestModel5`\.`created`, `TestModel5`\.`updated`\s+/', $result);
 		$this->assertPattern('/\s+FROM\s+`test_model5` AS `TestModel5`\s+WHERE\s+/', $result);
 		$this->assertPattern('/\s+WHERE\s+(?:\()?1\s+=\s+1(?:\))?\s*$/', $result);
-		
+
 		$this->model->hasMany['TestModel6'] = $__backup;
 	}
-	
+
 	function testGenerateAssociationQueryHasManyWithPageAndLimit() {
 		$this->model = new TestModel5();
 		$this->model->loadInfo();
 		$this->_buildRelatedModels($this->model);
-		
+
 		$__backup = $this->model->hasMany['TestModel6'];
-		
+
 		$this->model->hasMany['TestModel6']['page'] = 2;
 		$this->model->hasMany['TestModel6']['limit'] = 5;
 
@@ -1037,12 +1036,12 @@ class DboSourceTest extends UnitTestCase {
 		$this->assertPattern('/\s+FROM\s+`test_model6` AS `TestModel6`\s+WHERE\s+/', $result);
 		$this->assertPattern('/WHERE\s+(?:\()?`TestModel6`\.`test_model5_id`\s+IN\s+\({\$__cakeID__\$}\)(?:\))?/', $result);
 		$this->assertPattern('/\s+LIMIT 5,\s*5\s*$/', $result);
-		
+
 		$result = $this->db->generateAssociationQuery($this->model, $null, null, null, null, $queryData, false, $null);
 		$this->assertPattern('/^SELECT\s+`TestModel5`\.`id`, `TestModel5`\.`test_model4_id`, `TestModel5`\.`name`, `TestModel5`\.`created`, `TestModel5`\.`updated`\s+/', $result);
 		$this->assertPattern('/\s+FROM\s+`test_model5` AS `TestModel5`\s+WHERE\s+/', $result);
 		$this->assertPattern('/\s+WHERE\s+(?:\()?1\s+=\s+1(?:\))?\s*$/', $result);
-		
+
 		$this->model->hasMany['TestModel6'] = $__backup;
 	}
 
@@ -1213,17 +1212,17 @@ class DboSourceTest extends UnitTestCase {
 		$this->assertPattern('/^SELECT\s+`TestModel4`\.`id`, `TestModel4`\.`name`, `TestModel4`\.`created`, `TestModel4`\.`updated`\s+/', $result);
 		$this->assertPattern('/\s+FROM\s+`test_model4` AS `TestModel4`\s+WHERE\s+(?:\()?`TestModel4`.`name`\s+!=\s+\'mariano\'(?:\))?\s*$/', $result);
 	}
-	
+
 	function testGenerateAssociationQueryHasAndBelongsToManyWithOffsetAndLimit() {
 		$this->model = new TestModel4();
 		$this->model->loadInfo();
 		$this->_buildRelatedModels($this->model);
-		
+
 		$__backup = $this->model->hasAndBelongsToMany['TestModel7'];
-		
+
 		$this->model->hasAndBelongsToMany['TestModel7']['offset'] = 2;
 		$this->model->hasAndBelongsToMany['TestModel7']['limit'] = 5;
-		
+
 		$binding = array('type'=>'hasAndBelongsToMany', 'model'=>'TestModel7');
 		$queryData = array();
 		$resultSet = null;
@@ -1232,30 +1231,30 @@ class DboSourceTest extends UnitTestCase {
 		$params = &$this->_prepareAssociationQuery($this->model, $queryData, $binding);
 
 		$result = $this->db->generateAssociationQuery($this->model, $params['linkModel'], $params['type'], $params['assoc'], $params['assocData'], $queryData, $params['external'], $resultSet);
-		
+
 		$this->assertPattern('/^SELECT\s+`TestModel7`\.`id`, `TestModel7`\.`name`, `TestModel7`\.`created`, `TestModel7`\.`updated`\s+/', $result);
 		$this->assertPattern('/\s+FROM\s+`test_model7` AS `TestModel7`\s+JOIN\s+`test_model4_test_model7`+/', $result);
 		$this->assertPattern('/\s+ON\s+(?:\()?`test_model4_test_model7`\.`test_model4_id`\s+=\s+{\$__cakeID__\$}(?:\))?/', $result);
 		$this->assertPattern('/\s+AND\s+(?:\()?`test_model4_test_model7`\.`test_model7_id`\s+=\s+`TestModel7`.`id`(?:\))?\s+WHERE\s+/', $result);
 		$this->assertPattern('/\s+(?:\()?1\s+=\s+1(?:\))?\s*\s+LIMIT 2,\s*5\s*$/', $result);
-		
+
 		$result = $this->db->generateAssociationQuery($this->model, $null, null, null, null, $queryData, false, $null);
 		$this->assertPattern('/^SELECT\s+`TestModel4`\.`id`, `TestModel4`\.`name`, `TestModel4`\.`created`, `TestModel4`\.`updated`\s+/', $result);
 		$this->assertPattern('/\s+FROM\s+`test_model4` AS `TestModel4`\s+WHERE\s+(?:\()?1\s+=\s+1(?:\))?\s*$/', $result);
-		
+
 		$this->model->hasAndBelongsToMany['TestModel7'] = $__backup;
 	}
-	
+
 	function testGenerateAssociationQueryHasAndBelongsToManyWithPageAndLimit() {
 		$this->model = new TestModel4();
 		$this->model->loadInfo();
 		$this->_buildRelatedModels($this->model);
-		
+
 		$__backup = $this->model->hasAndBelongsToMany['TestModel7'];
-		
+
 		$this->model->hasAndBelongsToMany['TestModel7']['page'] = 2;
 		$this->model->hasAndBelongsToMany['TestModel7']['limit'] = 5;
-		
+
 		$binding = array('type'=>'hasAndBelongsToMany', 'model'=>'TestModel7');
 		$queryData = array();
 		$resultSet = null;
@@ -1264,26 +1263,26 @@ class DboSourceTest extends UnitTestCase {
 		$params = &$this->_prepareAssociationQuery($this->model, $queryData, $binding);
 
 		$result = $this->db->generateAssociationQuery($this->model, $params['linkModel'], $params['type'], $params['assoc'], $params['assocData'], $queryData, $params['external'], $resultSet);
-		
+
 		$this->assertPattern('/^SELECT\s+`TestModel7`\.`id`, `TestModel7`\.`name`, `TestModel7`\.`created`, `TestModel7`\.`updated`\s+/', $result);
 		$this->assertPattern('/\s+FROM\s+`test_model7` AS `TestModel7`\s+JOIN\s+`test_model4_test_model7`+/', $result);
 		$this->assertPattern('/\s+ON\s+(?:\()?`test_model4_test_model7`\.`test_model4_id`\s+=\s+{\$__cakeID__\$}(?:\))?/', $result);
 		$this->assertPattern('/\s+AND\s+(?:\()?`test_model4_test_model7`\.`test_model7_id`\s+=\s+`TestModel7`.`id`(?:\))?\s+WHERE\s+/', $result);
 		$this->assertPattern('/\s+(?:\()?1\s+=\s+1(?:\))?\s*\s+LIMIT 5,\s*5\s*$/', $result);
-		
+
 		$result = $this->db->generateAssociationQuery($this->model, $null, null, null, null, $queryData, false, $null);
 		$this->assertPattern('/^SELECT\s+`TestModel4`\.`id`, `TestModel4`\.`name`, `TestModel4`\.`created`, `TestModel4`\.`updated`\s+/', $result);
 		$this->assertPattern('/\s+FROM\s+`test_model4` AS `TestModel4`\s+WHERE\s+(?:\()?1\s+=\s+1(?:\))?\s*$/', $result);
-		
+
 		$this->model->hasAndBelongsToMany['TestModel7'] = $__backup;
 	}
 
 	function _buildRelatedModels(&$model) {
-		foreach($model->__associations as $type) {
-			foreach($model->{$type} as $assoc => $assocData) {
+		foreach ($model->__associations as $type) {
+			foreach ($model->{$type} as $assoc => $assocData) {
 				if (is_string($assocData)) {
 					$className = $assocData;
-				} else if (isset($assocData['className'])) {
+				} elseif (isset($assocData['className'])) {
 					$className = $assocData['className'];
 				}
 				$model->$className = new $className();
@@ -1314,6 +1313,10 @@ class DboSourceTest extends UnitTestCase {
 	}
 
 	function testStringConditionsParsing() {
+		$result = $this->db->conditions("ProjectBid.project_id = Project.id");
+		$expected = " WHERE `ProjectBid`.`project_id` = `Project`.`id`";
+		$this->assertEqual($result, $expected);
+
 		$result = $this->db->conditions("Candy.name LIKE 'a' AND HardCandy.name LIKE 'c'");
 		$expected = " WHERE `Candy`.`name` LIKE 'a' AND `HardCandy`.`name` LIKE 'c'";
 		$this->assertEqual($result, $expected);
@@ -1389,6 +1392,20 @@ class DboSourceTest extends UnitTestCase {
 
 		$result = $this->db->conditions('DATEDIFF(NOW(),Article.published) < 1 && Article.live=1');
 		$expected = " WHERE DATEDIFF(NOW(),`Article`.`published`) < 1 && `Article`.`live`=1";
+		$this->assertEqual($result, $expected);
+
+		$result = $this->db->conditions('file = "index.html"');
+		$expected = ' WHERE file = "index.html"';
+		$this->assertEqual($result, $expected);
+
+		$result = $this->db->conditions("file = 'index.html'");
+		$expected = " WHERE file = 'index.html'";
+		$this->assertEqual($result, $expected);
+
+		$letter = $letter = 'd.a';
+		$conditions = array('Company.name' => 'like '.$letter.'%');
+		$result = $this->db->conditions($conditions);
+		$expected = " WHERE `Company`.`name` like  'd.a%'";
 		$this->assertEqual($result, $expected);
 	}
 
@@ -1552,19 +1569,19 @@ class DboSourceTest extends UnitTestCase {
 		$this->assertEqual($result, $expected);
 
 		$result = $this->db->conditions(array('or' => array( 'score' => 'BETWEEN 4 AND 5', 'rating' => '> 20') ));
-		$expected = " WHERE (`score` BETWEEN  '4' AND '5') OR (`rating` >  20)";
+		$expected = " WHERE ((`score` BETWEEN  '4' AND '5') OR (`rating` >  20))";
 		$this->assertEqual($result, $expected);
 
 		$result = $this->db->conditions(array('or' => array('score' => 'BETWEEN 4 AND 5', array('score' => '> 20')) ));
-		$expected = " WHERE (`score` BETWEEN  '4' AND '5') OR (`score` >  20)";
+		$expected = " WHERE ((`score` BETWEEN  '4' AND '5') OR (`score` >  20))";
 		$this->assertEqual($result, $expected);
 
 		$result = $this->db->conditions(array('and' => array( 'score' => 'BETWEEN 4 AND 5', array('score' => '> 20')) ));
-		$expected = " WHERE (`score` BETWEEN  '4' AND '5') AND (`score` >  20)";
+		$expected = " WHERE ((`score` BETWEEN  '4' AND '5') AND (`score` >  20))";
 		$this->assertEqual($result, $expected);
 
 		$result = $this->db->conditions(array('published' => 1, 'or' => array('score' => '< 2', array('score' => '> 20')) ));
-		$expected = " WHERE `published`  =  1 AND (`score` <  2) OR (`score` >  20)";
+		$expected = " WHERE `published`  =  1 AND ((`score` <  2) OR (`score` >  20))";
 		$this->assertEqual($result, $expected);
 
 		$result = $this->db->conditions(array(array('Project.removed' => false)));
@@ -1590,7 +1607,7 @@ class DboSourceTest extends UnitTestCase {
 			'NOT' => array('Course.id' => null, 'Course.vet' => 'N', 'level_of_education_id' => array(912,999)),
 			'Enrollment.yearcompleted' => '> 0')
 		);
-		$this->assertPattern('/^\s*WHERE\s+NOT\s+\(`Course`\.`id` IS NULL\)\s+AND NOT\s+\(`Course`\.`vet`\s+=\s+\'N\'\)\s+AND NOT\s+\(`level_of_education_id` IN \(912, 999\)\s*\)\s+AND\s+`Enrollment`\.`yearcompleted`\s+>\s+0\s*$/', $result);
+		$this->assertPattern('/^\s*WHERE\s+NOT\s+\(\(`Course`\.`id` IS NULL\)\s+AND NOT\s+\(`Course`\.`vet`\s+=\s+\'N\'\)\s+AND NOT\s+\(`level_of_education_id` IN \(912, 999\)\s*\)\)\s+AND\s+`Enrollment`\.`yearcompleted`\s+>\s+0\s*$/', $result);
 
 		$result = $this->db->conditions(array('id' => '<> 8'));
 		$this->assertPattern('/^\s*WHERE\s+`id`\s+<>\s+8\s*$/', $result);
@@ -1598,15 +1615,46 @@ class DboSourceTest extends UnitTestCase {
 		$result = $this->db->conditions(array('TestModel.field' => '= gribe$@()lu'));
 		$expected = " WHERE `TestModel`.`field` =  'gribe$@()lu'";
 		$this->assertEqual($result, $expected);
+
+		$conditions['NOT'] = array('Listing.expiration' => "BETWEEN 1 AND 100");
+		$conditions[0]['OR'] = array(
+			"Listing.title" => "LIKE %term%",
+			"Listing.description" => "LIKE %term%"
+		);
+		$conditions[1]['OR'] = array(
+			"Listing.title" => "LIKE %term_2%",
+			"Listing.description" => "LIKE %term_2%"
+		);
+		$result = $this->db->conditions($conditions);
+		$expected = " WHERE NOT ((`Listing`.`expiration` BETWEEN  '1' AND '100')) AND ((`Listing`.`title` LIKE  '%term%') OR (`Listing`.`description` LIKE  '%term%')) AND ((`Listing`.`title` LIKE  '%term_2%') OR (`Listing`.`description` LIKE  '%term_2%'))";
+		$this->assertEqual($result, $expected);
+
+		$result = $this->db->conditions(array('MD5(CONCAT(Reg.email,Reg.id))' => 'blah'));
+		$expected = " WHERE MD5(CONCAT(`Reg`.`email`,`Reg`.`id`))  =  'blah'";
+		$this->assertEqual($result, $expected);
+
+		$conditions = array('id' => array(2, 5, 6, 9, 12, 45, 78, 43, 76));
+		$result = $this->db->conditions($conditions);
+		$expected = " WHERE `id` IN (2, 5, 6, 9, 12, 45, 78, 43, 76) ";
+		$this->assertEqual($result, $expected);
 	}
 
-	function testMixedConditionsParsing(){
+	function testMixedConditionsParsing() {
 		$conditions[] = 'User.first_name = \'Firstname\'';
 		$conditions[] = array('User.last_name' => 'Lastname');
 		$result = $this->db->conditions($conditions);
 		$expected = " WHERE `User`.`first_name` = 'Firstname' AND `User`.`last_name`  =  'Lastname'";
 		$this->assertEqual($result, $expected);
+
+		$conditions = array(
+			'Thread.project_id' => 5,
+			'Thread.buyer_id' => 14,
+			'1=1 GROUP BY Thread.project_id'
+		);
+		$result = $this->db->conditions($conditions);
+		$this->assertPattern('/^\s*WHERE\s+`Thread`.`project_id`\s*=\s*5\s+AND\s+`Thread`.`buyer_id`\s*=\s*14\s+AND\s+1\s*=\s*1\s+GROUP BY `Thread`.`project_id`$/', $result);
 	}
+
 	function testFieldParsing() {
 		$result = $this->db->fields($this->model, 'Vendor', "Vendor.id, COUNT(Model.vendor_id) AS `Vendor`.`count`");
 		$expected = array('`Vendor`.`id`', 'COUNT(`Model`.`vendor_id`) AS `Vendor`.`count`');
@@ -1666,6 +1714,26 @@ class DboSourceTest extends UnitTestCase {
 
 		$result = $this->db->fields($this->model, null, 'COUNT(*)');
 		$expected = array('COUNT(*)');
+		$this->assertEqual($result, $expected);
+
+		$result = $this->db->fields($this->model, null, 'SUM(Thread.unread_buyer) AS ' . $this->db->name('sum_unread_buyer'));
+		$expected = array('SUM(`Thread`.`unread_buyer`) AS `sum_unread_buyer`');
+		$this->assertEqual($result, $expected);
+
+		$result = $this->db->fields($this->model, null, 'name, count(*)');
+		$expected = array('`TestModel`.`name`', 'count(*)');
+		$this->assertEqual($result, $expected);
+
+		$result = $this->db->fields($this->model, null, 'count(*), name');
+		$expected = array('count(*)', '`TestModel`.`name`');
+		$this->assertEqual($result, $expected);
+
+		$result = $this->db->fields($this->model, null, 'field1, field2, field3, count(*), name');
+		$expected = array('`TestModel`.`field1`', '`TestModel`.`field2`', '`TestModel`.`field3`', 'count(*)', '`TestModel`.`name`');
+		$this->assertEqual($result, $expected);
+
+		$result = $this->db->fields($this->model, null, array('dayofyear(now())'));
+		$expected = array('dayofyear(now())');
 		$this->assertEqual($result, $expected);
 	}
 
@@ -1972,7 +2040,16 @@ class DboSourceTest extends UnitTestCase {
 
 		$result = $this->db->order(array(array("title")));
 		$this->assertPattern('/^\s*ORDER BY\s+`title`\s+ASC\s*$/', $result);
+
+		$result = $this->db->order("Dealer.id = 7 desc, Dealer.id = 3 desc, Dealer.title asc");
+		$expected = " ORDER BY Dealer`.`id` = 7 desc,  Dealer`.`id` = 3 desc,  `Dealer`.`title` asc";
+		$this->assertEqual($result, $expected);
+
+		$result = $this->db->order(array("Page.name"=>"='test' DESC"));
+		$this->assertPattern("/^\s*ORDER BY\s+`Page`\.`name`\s*='test'\s+DESC\s*$/", $result);
+
+		$result = $this->db->order("Page.name = 'view' DESC");
+		$this->assertPattern("/^\s*ORDER BY\s+`Page`\.`name`\s*=\s*'view'\s+DESC\s*$/", $result);
 	}
 }
-
 ?>

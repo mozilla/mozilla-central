@@ -1,6 +1,5 @@
 <?php
-/* SVN FILE: $Id: dbo_mssql.php,v 1.1 2007-05-25 05:54:19 rflint%ryanflint.com Exp $ */
-
+/* SVN FILE: $Id: dbo_mssql.php,v 1.2 2007-11-19 08:49:54 rflint%ryanflint.com Exp $ */
 /**
  * MS SQL layer for DBO
  *
@@ -22,9 +21,9 @@
  * @package			cake
  * @subpackage		cake.cake.libs.model.datasources.dbo
  * @since			CakePHP(tm) v 0.10.5.1790
- * @version			$Revision: 1.1 $
+ * @version			$Revision: 1.2 $
  * @modifiedby		$LastChangedBy: phpnut $
- * @lastmodified	$Date: 2007-05-25 05:54:19 $
+ * @lastmodified	$Date: 2007-11-19 08:49:54 $
  * @license			http://www.opensource.org/licenses/mit-license.php The MIT License
  */
 
@@ -100,13 +99,15 @@ class DboMssql extends DboSource {
  * @param array $config Configuration data from app/config/databases.php
  * @return boolean True if connected successfully, false on error
  */
-	function __construct($config) {
-		if (!function_exists('mssql_min_message_severity')) {
-			trigger_error("PHP SQL Server interface is not installed, cannot continue.  For troubleshooting information, see http://php.net/mssql/", E_USER_ERROR);
+	function __construct($config, $autoConnect = true) {
+		if ($autoConnect) {
+			if (!function_exists('mssql_min_message_severity')) {
+				trigger_error("PHP SQL Server interface is not installed, cannot continue.  For troubleshooting information, see http://php.net/mssql/", E_USER_WARNING);
+			}
+			mssql_min_message_severity(15);
+			mssql_min_error_severity(2);
 		}
-		mssql_min_message_severity(15);
-		mssql_min_error_severity(2);
-		return parent::__construct($config);
+		return parent::__construct($config, $autoConnect);
 	}
 /**
  * Connects to the database using options in the given configuration array.
@@ -180,7 +181,7 @@ class DboMssql extends DboSource {
 		} else {
 			$tables = array();
 
-			foreach($result as $table) {
+			foreach ($result as $table) {
 				$tables[] = $table[0]['TABLE_NAME'];
 			}
 
@@ -204,7 +205,7 @@ class DboMssql extends DboSource {
 		$fields = false;
 		$cols = $this->fetchAll("SELECT COLUMN_NAME as Field, DATA_TYPE as Type, COL_LENGTH('" . $this->fullTableName($model, false) . "', COLUMN_NAME) as Length, IS_NULLABLE As [Null], COLUMN_DEFAULT as [Default], COLUMNPROPERTY(OBJECT_ID('" . $this->fullTableName($model, false) . "'), COLUMN_NAME, 'IsIdentity') as [Key], NUMERIC_SCALE as Size FROM INFORMATION_SCHEMA.COLUMNS WHERE TABLE_NAME = '" . $this->fullTableName($model, false) . "'", false);
 
-		foreach($cols as $column) {
+		foreach ($cols as $column) {
 			$fields[] = array(
 				'name' => $column[0]['Field'],
 				'type' => $this->column($column[0]['Type']),
@@ -248,6 +249,10 @@ class DboMssql extends DboSource {
 				}
 			break;
 		}
+
+		if (in_array($column, array('integer', 'float')) && is_numeric($data)) {
+			return $data;
+		}
 		return "'" . $data . "'";
 	}
 /**
@@ -266,7 +271,7 @@ class DboMssql extends DboSource {
 		$count = count($fields);
 
 		if ($count >= 1 && $fields[0] != '*' && strpos($fields[0], 'COUNT(*)') === false) {
-			for($i = 0; $i < $count; $i++) {
+			for ($i = 0; $i < $count; $i++) {
 				$dot = strrpos($fields[$i], '.');
 				$fieldAlias = count($this->__fieldMappings);
 
@@ -336,7 +341,7 @@ class DboMssql extends DboSource {
  * @return array
  */
 	function update(&$model, $fields = array(), $values = array()) {
-		foreach($fields as $i => $field) {
+		foreach ($fields as $i => $field) {
 			if ($field == $model->primaryKey) {
 				unset ($fields[$i]);
 				unset ($values[$i]);
@@ -354,7 +359,7 @@ class DboMssql extends DboSource {
 		$error = mssql_get_last_message($this->connection);
 
 		if ($error) {
-			if (strpos('changed database', low($error)) !== false) {
+			if (strpos(low($error), 'changed database') === false) {
 				return $error;
 			}
 		}
@@ -364,7 +369,7 @@ class DboMssql extends DboSource {
  * Returns number of affected rows in previous database operation. If no previous operation exists,
  * this returns false.
  *
- * @return int Number of affected rows
+ * @return integer Number of affected rows
  */
 	function lastAffected() {
 		if ($this->_result) {
@@ -376,7 +381,7 @@ class DboMssql extends DboSource {
  * Returns number of rows in previous resultset. If no previous resultset exists,
  * this returns false.
  *
- * @return int Number of rows in resultset
+ * @return integer Number of rows in resultset
  */
 	function lastNumRows() {
 		if ($this->_result) {
@@ -391,14 +396,14 @@ class DboMssql extends DboSource {
  * @return in
  */
 	function lastInsertId($source = null) {
-		$id = $this->fetchAll('SELECT SCOPE_IDENTITY() AS insertID', false);
-		return $id[0][0]['insertID'];
+		$id = $this->fetchRow('SELECT SCOPE_IDENTITY() AS insertID', false);
+		return $id[0]['insertID'];
 	}
 /**
  * Returns a limit statement in the correct format for the particular database.
  *
- * @param int $limit Limit of results returned
- * @param int $offset Offset from which to start results
+ * @param integer $limit Limit of results returned
+ * @param integer $offset Offset from which to start results
  * @return string SQL limit/offset statement
  */
 	function limit($limit, $offset = null) {
@@ -475,16 +480,16 @@ class DboMssql extends DboSource {
 		$index = 0;
 		$j = 0;
 
-		while($j < $num_fields) {
+		while ($j < $num_fields) {
 			$column = mssql_field_name($results, $j);
 
 			if (strpos($column, '__')) {
 				if (isset($this->__fieldMappings[$column]) && strpos($this->__fieldMappings[$column], '.')) {
 					$map = explode('.', $this->__fieldMappings[$column]);
-				} elseif(isset($this->__fieldMappings[$column])) {
+				} elseif (isset($this->__fieldMappings[$column])) {
 					$map = array(0, $this->__fieldMappings[$column]);
 				} else {
-					$map = array(0, $column);	
+					$map = array(0, $column);
 				}
 				$this->map[$index++] = $map;
 			} else {
@@ -494,7 +499,7 @@ class DboMssql extends DboSource {
 		}
 	}
 /**
- * Builds final SQL statement 
+ * Builds final SQL statement
  *
  * @param array $data Query data
  * @return string
@@ -513,7 +518,7 @@ class DboMssql extends DboSource {
 		}
 	}
 /**
- * Reverses the sort direction of ORDER statements to get paging offsets to work correctly 
+ * Reverses the sort direction of ORDER statements to get paging offsets to work correctly
  *
  * @param string $order
  * @return string
@@ -565,7 +570,7 @@ class DboMssql extends DboSource {
 			$resultRow = array();
 			$i = 0;
 
-			foreach($row as $index => $field) {
+			foreach ($row as $index => $field) {
 				list($table, $column) = $this->map[$index];
 				$resultRow[$table][$column] = $row[$index];
 				$i++;
@@ -575,16 +580,19 @@ class DboMssql extends DboSource {
 			return false;
 		}
 	}
-
-	function buildSchemaQuery($schema) {
-		$search = array('{AUTOINCREMENT}', '{PRIMARY}', '{UNSIGNED}', '{FULLTEXT}', '{BOOLEAN}', '{UTF_8}');
-
-		$replace = array('int(11) not null auto_increment', 'primary key', 'unsigned', 'FULLTEXT',
-		'enum (\'true\', \'false\') NOT NULL default \'true\'', '/*!40100 CHARACTER SET utf8 COLLATE utf8_unicode_ci */');
-
-		$query = trim(r($search, $replace, $schema));
-		return $query;
+/**
+ * Inserts multiple values into a join table
+ *
+ * @param string $table
+ * @param string $fields
+ * @param array $values
+ */
+	function insertMulti($table, $fields, $values) {
+		$count = count($values);
+		for ($x = 0; $x < $count; $x++) {
+			$this->query("INSERT INTO {$table} ({$fields}) VALUES {$values[$x]}");
+		}
 	}
-}
 
+}
 ?>

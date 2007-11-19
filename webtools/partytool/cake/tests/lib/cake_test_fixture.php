@@ -1,5 +1,5 @@
 <?php
-/* SVN FILE: $Id: cake_test_fixture.php,v 1.1 2007-05-25 05:54:28 rflint%ryanflint.com Exp $ */
+/* SVN FILE: $Id: cake_test_fixture.php,v 1.2 2007-11-19 08:49:57 rflint%ryanflint.com Exp $ */
 /**
  * Short description for file.
  *
@@ -21,9 +21,9 @@
  * @package			cake
  * @subpackage		cake.cake.tests.libs
  * @since			CakePHP(tm) v 1.2.0.4667
- * @version			$Revision: 1.1 $
+ * @version			$Revision: 1.2 $
  * @modifiedby		$LastChangedBy: phpnut $
- * @lastmodified	$Date: 2007-05-25 05:54:28 $
+ * @lastmodified	$Date: 2007-11-19 08:49:57 $
  * @license			http://www.opensource.org/licenses/opengroup.php The Open Group Test Suite License
  */
 /**
@@ -44,70 +44,71 @@ class CakeTestFixture extends Object {
 	function __construct(&$db) {
 		$this->db =& $db;
 		$this->init();
+		if(!class_exists('cakeschema')) {
+			uses('model' . DS .'schema');
+		}
+		$this->Schema = new CakeSchema(array('name'=>'TestSuite', 'connection'=>'test_suite'));
 	}
 /**
  * Initialize the fixture.
  *
  */
 	function init() {
+
 		if (isset($this->import) && (is_string($this->import) || is_array($this->import))) {
 			$import = array();
-			
+
 			if (is_string($this->import) || is_array($this->import) && isset($this->import['model'])) {
 				$import = am(array('records' => false), ife(is_array($this->import), $this->import, array()));
-				
+
 				$import['model'] = ife(is_array($this->import), $this->import['model'], $this->import);
-			} else if (isset($this->import['table'])) {
+			} elseif (isset($this->import['table'])) {
 				$import = am(array('connection' => 'default', 'records' => false), $this->import);
 			}
-			
+
 			if (isset($import['model']) && (class_exists($import['model']) || loadModel($import['model']))) {
 				$model =& new $import['model'];
-				$modelDb =& ConnectionManager::getDataSource($model->useDbConfig);
-				
-				$info = $model->loadInfo();
-				
-				$this->fields = array_combine(Set::extract($info->value, '{n}.name'), $info->value);
+				$db =& ConnectionManager::getDataSource($model->useDbConfig);
+				$db->cacheSources = false;
+				$this->table = $this->useTable;
+				$schema = $model->schema(true);
+				$this->fields = $schema->value;
 				$this->fields[$model->primaryKey]['key'] = 'primary';
-				
-				$this->primaryKey = array( $model->primaryKey );
-			} else if (isset($import['table'])) {
-				$model =& new stdClass();
-				$modelDb =& ConnectionManager::getDataSource($import['connection']);
-				
+			} elseif (isset($import['table'])) {
+				$model =& new Model(null, $import['table'], $import['connection']);
+				$db =& ConnectionManager::getDataSource($import['connection']);
+				$db->cacheSources = false;
 				$model->name = Inflector::camelize(Inflector::singularize($import['table']));
 				$model->table = $import['table'];
-				$model->tablePrefix = $modelDb->config['prefix'];
-				
-				$info = $modelDb->describe($model);
-				
-				$this->fields = array_combine(Set::extract($info, '{n}.name'), $info);
+				$model->tablePrefix = $db->config['prefix'];
+				$schema = $model->schema(true);
+				$this->fields = $schema->value;
 			}
-			
-			if ($import['records'] !== false && isset($model) && isset($modelDb)) {
+
+			if ($import['records'] !== false && isset($model) && isset($db)) {
 				$this->records = array();
-				
+
 				$query = array(
-					'fields' => Set::extract($this->fields, '{n}.name'),
-					'table' => $modelDb->name($model->table),
+					'fields' => array_keys($this->fields),
+					'table' => $db->name($model->table),
 					'alias' => $model->name,
 					'conditions' => array(),
 					'order' => null,
 					'limit' => null
 				);
-				
-				foreach($query['fields'] as $index => $field) {
-					$query['fields'][$index] = $modelDb->name($query['alias']) . '.' . $modelDb->name($field);
+
+				foreach ($query['fields'] as $index => $field) {
+					$query['fields'][$index] = $db->name($query['alias']) . '.' . $db->name($field);
 				}
-				
-				$records = $modelDb->fetchAll($modelDb->buildStatement($query, $model), false, $model->name);
-				
+
+				$records = $db->fetchAll($db->buildStatement($query, $model), false, $model->name);
+
 				if ($records !== false && !empty($records)) {
 					$this->records = Set::extract($records, '{n}.' . $model->name);
 				}
 			}
 		}
-		
+
 		if (!isset($this->table)) {
 			$this->table = Inflector::underscore(Inflector::pluralize($this->name));
 		}
@@ -116,16 +117,8 @@ class CakeTestFixture extends Object {
 			$this->primaryKey = 'id';
 		}
 
-		if (isset($this->primaryKey) && !is_array($this->primaryKey)) {
-			$this->primaryKey = array( $this->primaryKey );
-		}
-		
-		if (isset($this->primaryKey) && isset($this->fields[$this->primaryKey[0]])) {
-			$this->fields[$this->primaryKey[0]]['key'] = 'primary';
-		}
-		
 		if (isset($this->fields)) {
-			foreach($this->fields as $index => $field) {
+			foreach ($this->fields as $index => $field) {
 				if (empty($field['default'])) {
 					unset($this->fields[$index]['default']);
 				}
@@ -144,43 +137,9 @@ class CakeTestFixture extends Object {
 			if (!isset($this->fields) || empty($this->fields)) {
 				return null;
 			}
-
-			$create = 'CREATE TABLE ' . $this->db->name($this->db->config['prefix'] . $this->table) . ' (' . "\n";
-
-			foreach($this->fields as $field => $attributes) {
-				if (!is_array($attributes)) {
-					$attributes = array('type' => $attributes);
-				} else if (isset($attributes['key']) && low($attributes['key']) == 'primary' && !isset($this->primaryKey)) {
-					$this->primaryKey = array ( $field );
-				}
-
-				$column = array($field, $attributes['type']);
-				unset($attributes['type']);
-
-				if (!empty($attributes)) {
-					$column = array_merge($column, $attributes);
-				}
-
-				$create .= $this->db->generateColumnSchema($column) . ',' . "\n";
-			}
-
-			if (isset($this->primaryKey)) {
-				foreach($this->primaryKey as $index => $field) {
-					$this->primaryKey[$index] = $this->db->name($field);
-				}
-			}
-
-			if (!isset($this->primaryKey)) {
-				$create = substr($create, 0, -1);
-			} else {
-				$create .= 'PRIMARY KEY(' . implode(', ', $this->primaryKey) . ')' . "\n";
-			}
-
-			$create .= ')';
-
-			$this->_create = $create;
+			$this->Schema->_build(array($this->table => $this->fields));
+			$this->_create = $this->db->createSchema($this->Schema);
 		}
-		
 		return $this->_create;
 	}
 /**
@@ -192,9 +151,9 @@ class CakeTestFixture extends Object {
  */
 	function drop() {
 		if (!isset($this->_drop)) {
-			$this->_drop = 'DROP TABLE ' . $this->db->name($this->db->config['prefix'] . $this->table);
+			$this->Schema->_build(array($this->table => $this->fields));
+			$this->_drop = $this->db->dropSchema($this->Schema);
 		}
-
 		return $this->_drop;
 	}
 /**
@@ -206,7 +165,7 @@ class CakeTestFixture extends Object {
  */
 	function truncate() {
 		if (!isset($this->_truncate)) {
-			$this->_truncate = 'TRUNCATE ' . $this->db->name($this->db->config['prefix'] . $this->table);
+			$this->_truncate = 'TRUNCATE TABLE ' . $this->db->name($this->db->config['prefix'] . $this->table);
 		}
 
 		return $this->_truncate;
@@ -223,20 +182,20 @@ class CakeTestFixture extends Object {
 			$inserts = array();
 
 			if (isset($this->records) && !empty($this->records)) {
-				foreach($this->records as $record) {
+				foreach ($this->records as $record) {
 					$fields = array_keys($record);
 					$values = array_values($record);
 
 					$insert = 'INSERT INTO ' . $this->db->name($this->db->config['prefix'] . $this->table) . '(';
 
-					foreach($fields as $field) {
+					foreach ($fields as $field) {
 						$insert .= $this->db->name($field) . ',';
 					}
 					$insert = substr($insert, 0, -1);
 
 					$insert .= ') VALUES (';
 
-					foreach($values as $values) {
+					foreach ($values as $values) {
 						$insert .= $this->db->value($values) . ',';
 					}
 					$insert = substr($insert, 0, -1);
@@ -249,7 +208,7 @@ class CakeTestFixture extends Object {
 
 			$this->_insert = $inserts;
 		}
-		
+
 		return $this->_insert;
 	}
 }

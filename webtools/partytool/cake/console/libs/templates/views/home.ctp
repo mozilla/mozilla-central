@@ -1,15 +1,18 @@
 <?php
 $output = "<h2>Sweet, \"".Inflector::humanize($app)."\" got Baked by CakePHP!</h2>\n";
 $output .="
-<?php Debugger::checkSessionKey(); ?>
+<?php
+if(Configure::read() > 0):
+	Debugger::checkSessionKey();
+endif;
+?>
 <p>
 	<span class=\"notice\">
 		<?php
-			__('Your tmp directory is ');
-			if(is_writable(TMP)):
-				__('writable.');
+			if (is_writable(TMP)):
+				__('Your tmp directory is writable.');
 			else:
-				__('NOT writable.');
+				__('Your tmp directory is NOT writable.');
 			endif;
 		?>
 	</span>
@@ -17,12 +20,11 @@ $output .="
 <p>
 	<span class=\"notice\">
 		<?php
-			__('Your cache is ');
 			if (Cache::isInitialized()):
-				__('set up and initialized properly.');
+				__('Your cache is set up and initialized properly.');
 				\$settings = Cache::settings();
-				echo '<p>' . \$settings['class'];
-				__(' is being used to cache, to change this edit config/core.php ');
+				echo '<p>';
+				echo sprintf(__('%s is being used to cache, to change this edit config'.DS.'core.php ', true), \$settings['engine'] . 'Engine');
 				echo '</p>';
 
 				echo 'Settings: <ul>';
@@ -32,10 +34,12 @@ $output .="
 				echo '</ul>';
 
 			else:
-				__('NOT working.');
+				__('Your cache is NOT working.');
 				echo '<br />';
-				if(is_writable(TMP)):
-					__('Edit: config/core.php to insure you have the newset version of this file and the variable \$cakeCache set properly');
+				if (is_writable(TMP . 'cache')):
+					__('Edit: config'.DS.'core.php to insure you have the newset version of this file and the variable \$cakeCache set properly');
+				else:
+					__('Your cache directory is not writable');
 				endif;
 			endif;
 		?>
@@ -44,15 +48,14 @@ $output .="
 <p>
 	<span class=\"notice\">
 		<?php
-			__('Your database configuration file is ');
 			\$filePresent = null;
-			if(file_exists(CONFIGS.'database.php')):
-				__('present.');
+			if (file_exists(CONFIGS.'database.php')):
+				__('Your database configuration file is present.');
 				\$filePresent = true;
 			else:
-				__('NOT present.');
+				__('Your database configuration file is NOT present.');
 				echo '<br/>';
-				__('Rename config/database.php.default to config/database.php');
+				__('Rename config'.DS.'database.php.default to config'.DS.'database.php');
 			endif;
 		?>
 	</span>
@@ -66,21 +69,19 @@ if (!empty(\$filePresent)):
 <p>
 	<span class=\"notice\">
 		<?php
-			__('Cake');
-			if(\$connected->isConnected()):
-		 		__(' is able to ');
+			if (\$connected->isConnected()):
+		 		__('Cake is able to connect to the database.');
 			else:
-				__(' is NOT able to ');
+				__('Cake is NOT able to connect to the database.');
 			endif;
-			__('connect to the database.');
 		?>
 	</span>
 </p>\n";
 $output .= "<?php endif;?>\n";
-$output .= "<h3>Editing this Page</h3>\n";
+$output .= "<h3><?php __('Editing this Page') ?></h3>\n";
 $output .= "<p>\n";
-$output .= "To change the content of this page, edit: ".$dir.DS."views".DS."pages".DS."home.ctp.<br />\n";
-$output .= "To change its layout, edit: ".$dir.DS."views".DS."layouts".DS."default.ctp.<br />\n";
-$output .= "You can also add some CSS styles for your pages at: ".$dir.DS."webroot/css/.\n";
+$output .= "<?php __('To change the content of this page, edit: ".$dir."pages".DS."home.ctp.<br />\n";
+$output .= "To change its layout, edit: ".$dir."layouts".DS."default.ctp.<br />\n";
+$output .= "You can also add some CSS styles for your pages at: ".$dir."webroot".DS."css.\n') ?>";
 $output .= "</p>\n";
 ?>

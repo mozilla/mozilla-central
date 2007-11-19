@@ -1,5 +1,5 @@
 <?php
-/* SVN FILE: $Id: dbo_db2.php,v 1.1 2007-05-25 05:54:19 rflint%ryanflint.com Exp $ */
+/* SVN FILE: $Id: dbo_db2.php,v 1.2 2007-11-19 08:49:54 rflint%ryanflint.com Exp $ */
 /**
  * IBM DB2 for DBO
  *
@@ -23,12 +23,11 @@
  * @package			cake
  * @subpackage		cake.cake.libs.model.datasources.dbo
  * @since			CakePHP(tm) v 0.10.5.1790
- * @version			$Revision: 1.1 $
+ * @version			$Revision: 1.2 $
  * @modifiedby		$LastChangedBy: phpnut $
- * @lastmodified	$Date: 2007-05-25 05:54:19 $
+ * @lastmodified	$Date: 2007-11-19 08:49:54 $
  * @license			http://www.opensource.org/licenses/mit-license.php The MIT License
  */
-
 /**
  * IBM DB2 for DBO
  *
@@ -129,11 +128,11 @@ class DboDb2 extends DboSource {
 		if ($this->connection) {
 			$this->connected = true;
 		}
-		
+
 		if ($config['schema'] !== '') {
-			$this->_execute('SET CURRENT SCHEMA = ' . $config['schema']);					
-		}		
-		
+			$this->_execute('SET CURRENT SCHEMA = ' . $config['schema']);
+		}
+
 		return $this->connected;
 	}
 /**
@@ -158,23 +157,28 @@ class DboDb2 extends DboSource {
 	function _execute($sql) {
 		// get result from db
 		$result = db2_exec($this->connection, $sql);
-		
-		// build table/column map for this result
-		$map = array();
-		$num_fields = db2_num_fields($result);
-		$index = 0;
-		$j = 0;
-		
-		while ($j < $num_fields) {
-			$columnName = strtolower(db2_field_name($result, $j));
-			$tableName = substr($sql, 0, strpos($sql, '.' . $columnName));
-			$tableName = substr($tableName, strrpos($tableName, ' ') + 1);
-			$map[$index++] = array($tableName, $columnName);
-			$j++;
+
+		if(!is_bool($result)){
+			// build table/column map for this result
+			$map = array();
+			$num_fields = db2_num_fields($result);
+			$index = 0;
+			$j = 0;
+			$offset = 0;
+
+			while ($j < $num_fields) {
+				$columnName = strtolower(db2_field_name($result, $j));
+				$tmp = strpos($sql, '.' . $columnName, $offset);
+				$tableName = substr($sql, $offset, ($tmp-$offset));
+				$tableName = substr($tableName, strrpos($tableName, ' ') + 1);
+				$map[$index++] = array($tableName, $columnName);
+				$j++;
+				$offset = strpos($sql, ' ', $tmp);
+			}
+
+			$this->_resultMap[$result] = $map;
 		}
-		
-		$this->_resultMap[$result] = $map;
-		
+
 		return $result;
 	}
 /**
@@ -216,9 +220,8 @@ class DboDb2 extends DboSource {
 		$result = db2_columns($this->connection, '', '', strtoupper($this->fullTableName($model)));
 
 		while (db2_fetch_row($result)) {
-			$fields[] = array(
-				'name' => strtolower(db2_result($result, 'COLUMN_NAME')),
-				'type' => db2_result($result, 'TYPE_NAME'),
+			$fields[strtolower(db2_result($result, 'COLUMN_NAME'))] = array(
+				'type' => strtolower(db2_result($result, 'TYPE_NAME')),
 				'null' => db2_result($result, 'NULLABLE'),
 				'default' => db2_result($result, 'COLUMN_DEF'));
 		}
@@ -358,7 +361,7 @@ class DboDb2 extends DboSource {
  * @return array
  */
 	function update(&$model, $fields = array(), $values = array()) {
-		foreach($fields as $i => $field) {
+		foreach ($fields as $i => $field) {
 			if ($field == $model->primaryKey) {
 				unset ($fields[$i]);
 				unset ($values[$i]);
@@ -377,7 +380,7 @@ class DboDb2 extends DboSource {
 	function lastError() {
 		if (db2_stmt_error()) {
 			return db2_stmt_error() . ': ' . db2_stmt_errormsg();
-		} else if (db2_conn_error()) {
+		} elseif (db2_conn_error()) {
 			return db2_conn_error() . ': ' . db2_conn_errormsg();
 		}
 		return null;
@@ -386,7 +389,7 @@ class DboDb2 extends DboSource {
  * Returns number of affected rows in previous database operation. If no previous operation exists,
  * this returns false.
  *
- * @return int Number of affected rows
+ * @return integer Number of affected rows
  */
 	function lastAffected() {
 		if ($this->_result) {
@@ -398,7 +401,7 @@ class DboDb2 extends DboSource {
  * Returns number of rows in previous resultset. If no previous resultset exists,
  * this returns false.
  *
- * @return int Number of rows in resultset
+ * @return integer Number of rows in resultset
  */
 	function lastNumRows() {
 		if ($this->_result) {
@@ -413,7 +416,7 @@ class DboDb2 extends DboSource {
  * @return in
  */
 	function lastInsertId($source = null) {
-		$data = $this->fetchAll(sprintf('SELECT SYSIBM.IDENTITY_VAL_LOCAL() AS ID FROM %s FETCH FIRST ROW ONLY', $source));
+		$data = $this->fetchRow(sprintf('SELECT SYSIBM.IDENTITY_VAL_LOCAL() AS ID FROM %s FETCH FIRST ROW ONLY', $source));
 
 		if ($data && isset($data[0]['id'])) {
 			return $data[0]['id'];
@@ -423,8 +426,8 @@ class DboDb2 extends DboSource {
 /**
  * Returns a limit statement in the correct format for the particular database.
  *
- * @param int $limit Limit of results returned
- * @param int $offset Offset from which to start results
+ * @param integer $limit Limit of results returned
+ * @param integer $offset Offset from which to start results
  * @return string SQL limit/offset statement
  */
 	function limit($limit, $offset = null) {

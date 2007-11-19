@@ -1,5 +1,5 @@
 <?php
-/* SVN FILE: $Id: time.php,v 1.1 2007-05-25 05:54:20 rflint%ryanflint.com Exp $ */
+/* SVN FILE: $Id: time.php,v 1.2 2007-11-19 08:49:55 rflint%ryanflint.com Exp $ */
 
 /**
  * Time Helper class file.
@@ -20,9 +20,9 @@
  * @package			cake
  * @subpackage		cake.cake.libs.view.helpers
  * @since			CakePHP(tm) v 0.10.0.1076
- * @version			$Revision: 1.1 $
+ * @version			$Revision: 1.2 $
  * @modifiedby		$LastChangedBy: phpnut $
- * @lastmodified	$Date: 2007-05-25 05:54:20 $
+ * @lastmodified	$Date: 2007-11-19 08:49:55 $
  * @license			http://www.opensource.org/licenses/mit-license.php The MIT License
  */
 
@@ -94,7 +94,7 @@ class TimeHelper extends AppHelper {
 
 		if ($this->isToday($date)) {
 			$ret = "Today, " . date("H:i", $date);
-		} elseif($this->wasYesterday($date)) {
+		} elseif ($this->wasYesterday($date)) {
 			$ret = "Yesterday, " . date("H:i", $date);
 		} else {
 			$ret = date("M jS{$y}, H:i", $date);
@@ -198,7 +198,7 @@ class TimeHelper extends AppHelper {
  * Returns a UNIX timestamp from a textual datetime description. Wrapper for PHP function strtotime().
  *
  * @param string $date_string Datetime string to be represented as a Unix timestamp
- * @return int Unix timestamp
+ * @return integer Unix timestamp
  */
 	function toUnix($date_string) {
 		$ret = strtotime($date_string);
@@ -280,15 +280,15 @@ class TimeHelper extends AppHelper {
 				// weeks and days
 				$relative_date .= ($relative_date ? ', ' : '') . $weeks . ' week' . ($weeks > 1 ? 's' : '');
 				$relative_date .= $days > 0 ? ($relative_date ? ', ' : '') . $days . ' day' . ($days > 1 ? 's' : '') : '';
-			} elseif($days > 0) {
+			} elseif ($days > 0) {
 				// days and hours
 				$relative_date .= ($relative_date ? ', ' : '') . $days . ' day' . ($days > 1 ? 's' : '');
 				$relative_date .= $hours > 0 ? ($relative_date ? ', ' : '') . $hours . ' hour' . ($hours > 1 ? 's' : '') : '';
-			} elseif($hours > 0) {
+			} elseif ($hours > 0) {
 				// hours and minutes
 				$relative_date .= ($relative_date ? ', ' : '') . $hours . ' hour' . ($hours > 1 ? 's' : '');
 				$relative_date .= $minutes > 0 ? ($relative_date ? ', ' : '') . $minutes . ' minute' . ($minutes > 1 ? 's' : '') : '';
-			} elseif($minutes > 0) {
+			} elseif ($minutes > 0) {
 				// minutes only
 				$relative_date .= ($relative_date ? ', ' : '') . $minutes . ' minute' . ($minutes > 1 ? 's' : '');
 			} else {
@@ -327,7 +327,7 @@ class TimeHelper extends AppHelper {
  *
  * @param mixed $timeInterval the numeric value with space then time type. Example of valid types: 6 hours, 2 days, 1 minute.
  * @param mixed $date_string the datestring or unix timestamp to compare
- * @return boolean
+ * @return bool
  */
 	function wasWithinLast($timeInterval, $date_string) {
 		$date = $this->fromString($date_string);
@@ -413,7 +413,7 @@ class TimeHelper extends AppHelper {
 		$return = gmmktime($hour, $minute, $second, $month, $day, $year);
 		return $return;
 	}
-	
+
 	function format($format = 'd-m-Y', $date) {
 		return date($format, $this->fromString($date));
 	}

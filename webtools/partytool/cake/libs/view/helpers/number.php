@@ -1,5 +1,5 @@
 <?php
-/* SVN FILE: $Id: number.php,v 1.1 2007-05-25 05:54:20 rflint%ryanflint.com Exp $ */
+/* SVN FILE: $Id: number.php,v 1.2 2007-11-19 08:49:55 rflint%ryanflint.com Exp $ */
 
 /**
  * Number Helper.
@@ -22,9 +22,9 @@
  * @package			cake
  * @subpackage		cake.cake.libs.view.helpers
  * @since			CakePHP(tm) v 0.10.0.1076
- * @version			$Revision: 1.1 $
+ * @version			$Revision: 1.2 $
  * @modifiedby		$LastChangedBy: phpnut $
- * @lastmodified	$Date: 2007-05-25 05:54:20 $
+ * @lastmodified	$Date: 2007-11-19 08:49:55 $
  * @license			http://www.opensource.org/licenses/mit-license.php The MIT License
  */
 
@@ -58,18 +58,20 @@ class NumberHelper extends AppHelper {
  */
 	function toReadableSize($size) {
 		switch($size) {
+			case 0:
+				return '0 Bytes';
 			case 1:
 				return '1 Byte';
 			case $size < 1024:
 				return $size . ' Bytes';
 			case $size < 1024 * 1024:
-				return NumberHelper::precision($size / 1024, 0) . ' KB';
+				return $this->precision($size / 1024, 0) . ' KB';
 			case $size < 1024 * 1024 * 1024:
-				return NumberHelper::precision($size / 1024 / 1024, 2) . ' MB';
+				return $this->precision($size / 1024 / 1024, 2) . ' MB';
 			case $size < 1024 * 1024 * 1024 * 1024:
-				return NumberHelper::precision($size / 1024 / 1024 / 1024, 2) . ' GB';
+				return $this->precision($size / 1024 / 1024 / 1024, 2) . ' GB';
 			case $size < 1024 * 1024 * 1024 * 1024 * 1024:
-				return NumberHelper::precision($size / 1024 / 1024 / 1024 / 1024, 2) . ' TB';
+				return $this->precision($size / 1024 / 1024 / 1024 / 1024, 2) . ' TB';
 		}
 	}
 /**
@@ -81,10 +83,72 @@ class NumberHelper extends AppHelper {
  * @static
  */
 	function toPercentage($number, $precision = 2) {
-		return NumberHelper::precision($number, $precision) . '%';
+		return $this->precision($number, $precision) . '%';
 	}
 /**
- * Formats a number into a percentage string.
+ * Formats a number into a currnecy format.
+ *
+ * @param float $number A floating point number
+ * @param integer $options if int then places, if string then before, if (,.-) then use it
+ * 							or array with places and before keys
+ * @return string formatted number
+ * @static
+ */
+	function format($number, $options = false) {
+		$places = 0;
+		if (is_int($options)) {
+			$places = $options;
+		}
+
+		$separators = array(',', '.', '-', ':');
+
+		$before = null;
+		if (is_string($options) && !in_array($options, $separators)) {
+			$before = $options;
+		}
+		$separator = ',';
+		if (!is_array($options) && in_array($options, $separators)) {
+			$separator = $options;
+		}
+		$decimals = '.';
+		if (!is_array($options) && in_array($options, $separators)) {
+			$decimals = $options;
+		}
+		$escape = true;
+		if (is_array($options) && isset($options['escape'])) {
+			$escape = $options['escape'];
+		}
+
+		if (is_array($options)) {
+			if (isset($options['places'])) {
+				$places = $options['places'];
+				unset($options['places']);
+			}
+
+			if (isset($options['before'])) {
+				$before = $options['before'];
+				unset($options['before']);
+			}
+
+			if (isset($options['decimals'])) {
+				$decimals = $options['decimals'];
+				unset($options['decimals']);
+			}
+
+			if (isset($options['separator'])) {
+				$separator = $options['separator'];
+				unset($options['separator']);
+			}
+		}
+
+		if ($escape) {
+			$before = h($before);
+		}
+
+		return $before . number_format ($number, $places, $decimals, $separator);
+	}
+/**
+ * Formats a number into a currency format.
  *
  * @param float $number A floating point number
  * @param integer $precision The precision of the returned number
@@ -92,19 +156,21 @@ class NumberHelper extends AppHelper {
  * @static
  */
 	function currency ($number, $currency = 'USD') {
+
 		switch ($currency) {
 			case "EUR":
-				$return = "&#128; " . number_format ($number, 2, ",", ".");
+				return $this->format($number, array('escape' => false, 'places'=>'2', 'before'=>'&#8364;', 'separator'=>'.', 'decimals'=>','));
 			break;
 			case "GBP":
-				$return = "&#163;" . number_format ($number, 2, ".", ",");
+				return $this->format($number, array('escape' => false, 'places'=>'2', 'before'=>'&#163;'));
 			break;
 			case 'USD':
+				return $this->format($number, array('places'=>'2', 'before'=>'$'));
+			break;
 			default:
-				$return = "$" . number_format ($number, 2, ".", ",");
+				return $this->format($number, array('places'=>'2', 'before'=> $currency));
 			break;
 		}
-		return $return;
 	}
 }
 

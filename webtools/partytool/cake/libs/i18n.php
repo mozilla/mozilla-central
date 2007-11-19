@@ -1,5 +1,5 @@
 <?php
-/* SVN FILE: $Id: i18n.php,v 1.1 2007-05-25 05:54:17 rflint%ryanflint.com Exp $ */
+/* SVN FILE: $Id: i18n.php,v 1.2 2007-11-19 08:49:53 rflint%ryanflint.com Exp $ */
 /**
  * Short description for file.
  *
@@ -21,14 +21,14 @@
  * @package			cake
  * @subpackage		cake.cake.libs
  * @since			CakePHP(tm) v 1.2.0.4116
- * @version			$Revision: 1.1 $
+ * @version			$Revision: 1.2 $
  * @modifiedby		$LastChangedBy: phpnut $
- * @lastmodified	$Date: 2007-05-25 05:54:17 $
+ * @lastmodified	$Date: 2007-11-19 08:49:53 $
  * @license			http://www.opensource.org/licenses/mit-license.php The MIT License
  */
 /**
-  * Included libraries.
-  */
+ * Included libraries.
+ */
 uses('l10n');
 /**
  * Short description for file.
@@ -43,16 +43,9 @@ class I18n extends Object {
  * Instance of the I10n class for localization
  *
  * @var object
- * @access private
- */
-	var $__l10n = null;
-/**
- * The locale for current translation
- *
- * @var string
  * @access public
  */
-	var $locale = null;
+	var $l10n = null;
 /**
  * Translation strings for a specific domain read from the .mo or .po files
  *
@@ -86,46 +79,41 @@ class I18n extends Object {
 		static $instance = array();
 		if (!$instance) {
 			$instance[0] =& new I18n();
-			$instance[0]->__l10n =& new L10n();
+			$instance[0]->l10n =& new L10n();
+
+			$language = Configure::read('Config.language');
+			if ($language === null && !empty($_SESSION['Config']['language'])) {
+				$language = $_SESSION['Config']['language'];
+			}
+			$instance[0]->l10n->get($language);
 		}
 		return $instance[0];
 	}
 /**
- *
  * Used by the translation functions in basics.php
  * Can also be used like I18n::translate(); but only if the uses('i18n'); has been used to load the class.
  *
- * @param string $singular
- * @param string $plural
- * @param string $domain
- * @param string $category
- * @param integer $count
- * @param string $directory
- * @return translated strings.
+ * @param string $singular String to translate
+ * @param string $plural Plural string (if any)
+ * @param string $domain Domain
+ * @param string $category Category
+ * @param integer $count Count
+ * @param string $directory Directory that contains the file that is requesting translation
+ * @return string translated strings.
  * @access public
  */
 	function translate($singular, $plural = null, $domain = null, $category = 5, $count = null, $directory = null) {
 		$_this =& I18n::getInstance();
 		$_this->category = $_this->__categories[$category];
 
-		if($_this->__l10n->found === false) {
-			$language = Configure::read('Config.language');
-
-			if($language === null && !empty($_SESSION['Config']['language'])) {
-				$language = $_SESSION['Config']['language'];
-			}
-			$_this->__l10n->get($language);
-			$_this->locale = $_this->__l10n->locale;
-		}
-
-		if(is_null($domain)) {
+		if (is_null($domain)) {
 			if (preg_match('/views{0,1}\\'.DS.'([^\/]*)/', $directory, $regs)) {
 				$domain = $regs[1];
 			} elseif (preg_match('/controllers{0,1}\\'.DS.'([^\/]*)/', $directory, $regs)) {
 				$domain = $regs[1];
 			}
 
-			if(isset($domain) && $domain == 'templates') {
+			if (isset($domain) && $domain == 'templates') {
 				if (preg_match('/templates{0,1}\\'.DS.'([^\/]*)/', $directory, $regs)) {
 					$domain = $regs[1];
 				}
@@ -133,7 +121,7 @@ class I18n extends Object {
 			$directory = null;
 		}
 
-		if(!isset($_this->__domains[$_this->category][$domain])) {
+		if (!isset($_this->__domains[$_this->category][$domain])) {
 			$_this->__bindTextDomain($domain, $directory);
 		}
 
@@ -150,7 +138,7 @@ class I18n extends Object {
 			}
 		}
 
-		if(!empty($_this->__domains[$_this->category][$domain][$singular])) {
+		if (!empty($_this->__domains[$_this->category][$domain][$singular])) {
 			if (($trans = $_this->__domains[$_this->category][$domain][$singular]) || ($pli) && ($trans = $_this->__domains[$_this->category][$domain][$plural])) {
 				if (is_array($trans)) {
 					if (!isset($trans[$pli])) {
@@ -165,17 +153,17 @@ class I18n extends Object {
 			}
 		}
 
-		if(!empty($pli)) {
+		if (!empty($pli)) {
 			return($plural);
 		}
 		return($singular);
-    }
+	}
 /**
  * Attempts to find the plural form of a string.
  *
- * @param string $type
- * @param integrer $n
- * @return plural match
+ * @param string $type Type
+ * @param integrer $n Number
+ * @return integer plural match
  * @access private
  */
 	function __pluralGuess(&$type, $n) {
@@ -216,7 +204,7 @@ class I18n extends Object {
 
 		switch ($type) {
 			case -1:
-				return   (0);
+				return (0);
 			case 1:
 				if ($n != 1) {
 					return (1);
@@ -228,7 +216,7 @@ class I18n extends Object {
 				}
 				return (0);
 			case 7:
-				return   ($n);
+				return ($n);
 			case 21:
 				if (($n % 10 == 1) && ($n % 100 != 11)) {
 					return (0);
@@ -301,14 +289,15 @@ class I18n extends Object {
  * Binds the given domain to a file in the specified directory.
  * If directory is null, will attempt to search default locations.
  *
- * @param string $domain
- * @return string
+ * @param string $domain Domain to bind
+ * @param string $directory Directory
+ * @return string Domain binded
  * @access private
  */
 	function __bindTextDomain($domain, $directory = null) {
 		$_this =& I18n::getInstance();
 		$_this->__noLocale = true;
-		if(is_null($directory)) {
+		if (is_null($directory)) {
 			$searchPath[] = APP . 'locale';
 			$searchPath[] = CAKE_CORE_INCLUDE_PATH . DS . 'cake' . DS . 'locale';
 		} else {
@@ -316,17 +305,17 @@ class I18n extends Object {
 		}
 
 		foreach ($searchPath as $directory) {
-			foreach ($_this->__l10n->languagePath as $lang) {
+			foreach ($_this->l10n->languagePath as $lang) {
 				$file = $directory . DS . $lang . DS . $_this->category . DS . $domain;
 				$default = APP . 'locale'. DS . $lang . DS . $_this->category . DS . 'default';
 				$core = CAKE_CORE_INCLUDE_PATH . DS . 'cake' . DS . 'locale'. DS . $lang . DS . $_this->category . DS . 'core';
 
-				if (file_exists($fn = "$file.mo") && ($f = fopen($fn, "rb"))) {
-					$_this->__loadMo($f, $domain);
+				if (file_exists($fn = "$file.mo")) {
+					$_this->__loadMo($fn, $domain);
 					$_this->__noLocale = false;
 					break 2;
-				} elseif (file_exists($fn = "$default.mo") && ($f = fopen($fn, "rb"))) {
-					$_this->__loadMo($f, $domain);
+				} elseif (file_exists($fn = "$default.mo")) {
+					$_this->__loadMo($fn, $domain);
 					$_this->__noLocale = false;
 					break 2;
 				} elseif (file_exists($fn = "$file.po") && ($f = fopen($fn, "r"))) {
@@ -337,8 +326,8 @@ class I18n extends Object {
 					$_this->__loadPo($f, $domain);
 					$_this->__noLocale = false;
 					break 2;
-				} elseif (file_exists($fn = "$core.mo") && ($f = fopen($fn, "rb"))) {
-					$_this->__loadMo($f, $domain);
+				} elseif (file_exists($fn = "$core.mo")) {
+					$_this->__loadMo($fn, $domain);
 					$_this->__noLocale = false;
 					break 2;
 				} elseif (file_exists($fn = "$core.po") && ($f = fopen($fn, "r"))) {
@@ -349,7 +338,7 @@ class I18n extends Object {
 			}
 		}
 
-		if(empty($_this->__domains[$_this->category][$domain])) {
+		if (empty($_this->__domains[$_this->category][$domain])) {
 			return($domain);
 		}
 
@@ -360,25 +349,23 @@ class I18n extends Object {
 				$_this->__domains[$_this->category][$domain]["%po-header"][strtolower($header)] = $line;
 			}
 
-			if(isset($_this->__domains[$_this->category][$domain]["%po-header"]["plural-forms"])) {
-				$switch = preg_replace("/[(){}\\[\\]^\\s*\\]]+/", "", $_this->__domains[$_this->category][$domain]["%po-header"]["plural-forms"]);
+			if (isset($_this->__domains[$_this->category][$domain]["%po-header"]["plural-forms"])) {
+				$switch = preg_replace("/[() {}\\[\\]^\\s*\\]]+/", "", $_this->__domains[$_this->category][$domain]["%po-header"]["plural-forms"]);
 				$_this->__domains[$_this->category][$domain]["%plural-c"] = $switch;
 			}
 		}
 		return($domain);
 	}
 /**
- *
  * Loads the binary .mo file for translation and sets the values for this translation in the var I18n::__domains
  *
- * @param resource $file
- * @param string $domain
+ * @param resource $file Binary .mo file to load
+ * @param string $domain Domain where to load file in
  * @access private
  */
 	function __loadMo($file, $domain) {
 		$_this =& I18n::getInstance();
-		$data = fread($file, 1<<20);
-		fclose($file);
+		$data = file_get_contents($file);
 
 		if ($data) {
 			$header = substr($data, 0, 20);
@@ -412,9 +399,9 @@ class I18n extends Object {
 /**
  * Loads the text .po file for translation and sets the values for this translation in the var I18n::__domains
  *
- * @param resource $file
- * @param string $domain
- * @return unknown
+ * @param resource $file Text .po file to load
+ * @param string $domain Domain to load file in
+ * @return array Binded domain elements
  * @access private
  */
 	function __loadPo($file, $domain) {
@@ -484,9 +471,9 @@ class I18n extends Object {
 /**
  * Not implemented
  *
- * @param string $domain
- * @param string $codeset
- * @return unknown
+ * @param string $domain Domain
+ * @param string $codeset Code set
+ * @return string
  * @access private
  * @todo Not implemented
  */

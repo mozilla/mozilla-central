@@ -1,5 +1,5 @@
 <?php
-/* SVN FILE: $Id: set.test.php,v 1.1 2007-05-25 05:54:25 rflint%ryanflint.com Exp $ */
+/* SVN FILE: $Id: set.test.php,v 1.2 2007-11-19 08:49:56 rflint%ryanflint.com Exp $ */
 /**
  * Short description for file.
  *
@@ -19,11 +19,11 @@
  * @copyright		Copyright 2005-2007, Cake Software Foundation, Inc.
  * @link				https://trac.cakephp.org/wiki/Developement/TestSuite CakePHP(tm) Tests
  * @package			cake.tests
- * @subpackage		cake.tests.cases.libs.model
+ * @subpackage		cake.tests.cases.libs
  * @since			CakePHP(tm) v 1.2.0.4206
- * @version			$Revision: 1.1 $
+ * @version			$Revision: 1.2 $
  * @modifiedby		$LastChangedBy: phpnut $
- * @lastmodified	$Date: 2007-05-25 05:54:25 $
+ * @lastmodified	$Date: 2007-11-19 08:49:56 $
  * @license			http://www.opensource.org/licenses/opengroup.php The Open Group Test Suite License
  */
 
@@ -33,10 +33,16 @@ uses('set');
 /**
  * UnitTestCase for the Set class
  *
- * @package		cake
- * @subpackage	cake.cake.libs
+ * @package		cake.tests
+ * @subpackage	cake.tests.cases.libs
  */
 class SetTest extends UnitTestCase {
+
+	function testNumericKeyExtraction() {
+		$data = array('plugin' => null, 'controller' => '', 'action' => '', 1, 'whatever');
+		$this->assertIdentical(Set::extract($data, '{n}'), array(1, 'whatever'));
+		$this->assertIdentical(Set::diff($data, Set::extract($data, '{n}')), array('plugin' => null, 'controller' => '', 'action' => ''));
+	}
 
 	function testMerge() {
 		// Test that passing in just 1 array returns it "as-is"
@@ -134,19 +140,13 @@ class SetTest extends UnitTestCase {
 		);
 		$this->assertIdentical(Set::merge($a, $b, $c), $expected);
 
-		// Test that passing in an empty array does not mess things up
 		$this->assertIdentical(Set::merge($a, $b, array(), $c), $expected);
 
-		// Create a new Set instance from the $a array
 		$Set =& new Set($a);
-		// Merge $b, an empty array and $c over it
 		$r = $Set->merge($b, array(), $c);
-		// And test that it produces the same result as a static call would
 		$this->assertIdentical($r, $expected);
-		// And also updates it's own value property
 		$this->assertIdentical($Set->value, $expected);
 
-		// Let the garbage collector eat the Set instance
 		unset($Set);
 
 		$Set =& new Set();
@@ -156,9 +156,7 @@ class SetTest extends UnitTestCase {
 		$SetC =& new Set($c);
 
 		$r = $Set->merge($SetA, $SetB, $SetC);
-		// And test that it produces the same result as a static call would
 		$this->assertIdentical($r, $expected);
-		// And also updates it's own value property
 		$this->assertIdentical($Set->value, $expected);
 	}
 
@@ -256,6 +254,320 @@ class SetTest extends UnitTestCase {
 			'2 sales'
 		);
 		$this->assertIdentical($result, $expected);
+	}
+
+	function testCheck() {
+		$set = new Set(array(
+			'My Index 1' => array('First' => 'The first item')
+		));
+		$this->assertTrue($set->check('My Index 1.First'));
+
+		$set = new Set(array(
+			'My Index 1' => array('First' => array('Second' => array('Third' => array('Fourth' => 'Heavy. Nesting.'))))
+		));
+		$this->assertTrue($set->check('My Index 1.First.Second'));
+		$this->assertTrue($set->check('My Index 1.First.Second.Third'));
+		$this->assertTrue($set->check('My Index 1.First.Second.Third.Fourth'));
+	}
+
+	function testWritingWithFunkyKeys() {
+		$set = new Set();
+		$set->insert('Session Test', "test");
+		$this->assertEqual($set->extract('Session Test'), 'test');
+
+		$set->remove('Session Test');
+		$this->assertFalse($set->check('Session Test'));
+
+		$this->assertTrue($set->insert('Session Test.Test Case', "test"));
+		$this->assertTrue($set->check('Session Test.Test Case'));
+	}
+
+	function testCombine() {
+		$a = array(
+			array('User' => array(
+				'id' => 2,
+				'group_id' => 1,
+				'Data' => array(
+					'user' => 'mariano.iglesias',
+					'name' => 'Mariano Iglesias'
+				)
+			)),
+			array('User' => array(
+				'id' => 14,
+				'group_id' => 2,
+				'Data' => array(
+					'user' => 'phpnut',
+					'name' => 'Larry E. Masters'
+				)
+			)),
+			array('User' => array(
+				'id' => 25,
+				'group_id' => 1,
+				'Data' => array(
+					'user' => 'gwoo',
+					'name' => 'The Gwoo'
+				)
+			))
+		);
+
+		$result = Set::combine($a, '{n}.User.id');
+		$expected = array(
+			2 => null,
+			14 => null,
+			25 => null
+		);
+		$this->assertIdentical($result, $expected);
+
+		$result = Set::combine($a, '{n}.User.id', '{n}.User.Data');
+		$expected = array(
+			2 => array(
+				'user' => 'mariano.iglesias',
+				'name' => 'Mariano Iglesias'
+			),
+			14 => array(
+				'user' => 'phpnut',
+				'name' => 'Larry E. Masters'
+			),
+			25 => array(
+				'user' => 'gwoo',
+				'name' => 'The Gwoo'
+			)
+		);
+		$this->assertIdentical($result, $expected);
+
+		$result = Set::combine($a, '{n}.User.id', '{n}.User.Data.name');
+		$expected = array(
+			2 => 'Mariano Iglesias',
+			14 => 'Larry E. Masters',
+			25 => 'The Gwoo'
+		);
+		$this->assertIdentical($result, $expected);
+
+		$result = Set::combine($a, '{n}.User.id', '{n}.User.Data', '{n}.User.group_id');
+		$expected = array(
+			1 => array(
+				2 => array(
+					'user' => 'mariano.iglesias',
+					'name' => 'Mariano Iglesias'
+				),
+				25 => array(
+					'user' => 'gwoo',
+					'name' => 'The Gwoo'
+				)
+			),
+			2 => array(
+				14 => array(
+					'user' => 'phpnut',
+					'name' => 'Larry E. Masters'
+				)
+			)
+		);
+		$this->assertIdentical($result, $expected);
+
+		$result = Set::combine($a, '{n}.User.id', '{n}.User.Data.name', '{n}.User.group_id');
+		$expected = array(
+			1 => array(
+				2 => 'Mariano Iglesias',
+				25 => 'The Gwoo'
+			),
+			2 => array(
+				14 => 'Larry E. Masters'
+			)
+		);
+		$this->assertIdentical($result, $expected);
+
+		$Set =& new Set($a);
+
+		$result = $Set->combine('{n}.User.id');
+		$expected = array(
+			2 => null,
+			14 => null,
+			25 => null
+		);
+		$this->assertIdentical($result, $expected);
+
+		$result = $Set->combine('{n}.User.id', '{n}.User.Data');
+		$expected = array(
+			2 => array(
+				'user' => 'mariano.iglesias',
+				'name' => 'Mariano Iglesias'
+			),
+			14 => array(
+				'user' => 'phpnut',
+				'name' => 'Larry E. Masters'
+			),
+			25 => array(
+				'user' => 'gwoo',
+				'name' => 'The Gwoo'
+			)
+		);
+		$this->assertIdentical($result, $expected);
+
+		$result = $Set->combine('{n}.User.id', '{n}.User.Data.name');
+		$expected = array(
+			2 => 'Mariano Iglesias',
+			14 => 'Larry E. Masters',
+			25 => 'The Gwoo'
+		);
+		$this->assertIdentical($result, $expected);
+
+		$result = $Set->combine('{n}.User.id', '{n}.User.Data', '{n}.User.group_id');
+		$expected = array(
+			1 => array(
+				2 => array(
+					'user' => 'mariano.iglesias',
+					'name' => 'Mariano Iglesias'
+				),
+				25 => array(
+					'user' => 'gwoo',
+					'name' => 'The Gwoo'
+				)
+			),
+			2 => array(
+				14 => array(
+					'user' => 'phpnut',
+					'name' => 'Larry E. Masters'
+				)
+			)
+		);
+		$this->assertIdentical($result, $expected);
+
+		$result = $Set->combine('{n}.User.id', '{n}.User.Data.name', '{n}.User.group_id');
+		$expected = array(
+			1 => array(
+				2 => 'Mariano Iglesias',
+				25 => 'The Gwoo'
+			),
+			2 => array(
+				14 => 'Larry E. Masters'
+			)
+		);
+		$this->assertIdentical($result, $expected);
+
+		$result = Set::combine($a, '{n}.User.id', array('{0}: {1}', '{n}.User.Data.user', '{n}.User.Data.name'), '{n}.User.group_id');
+		$expected = array (
+			1 => array (
+				2 => 'mariano.iglesias: Mariano Iglesias',
+				25 => 'gwoo: The Gwoo'
+			),
+			2 => array (14 => 'phpnut: Larry E. Masters')
+		);
+		$this->assertIdentical($result, $expected);
+	}
+
+	function testMapReverse() {
+		$expected = array('Array1' => array(
+		'Array1Data1' => 'Array1Data1 value 1',
+		'Array1Data2' => 'Array1Data2 value 2',
+		'Array1Data3' => 'Array1Data3 value 3',
+		'Array1Data4' => 'Array1Data4 value 4',
+		'Array1Data5' => 'Array1Data5 value 5',
+		'Array1Data6' => 'Array1Data6 value 6',
+		'Array1Data7' => 'Array1Data7 value 7',
+		'Array1Data8' => 'Array1Data8 value 8'),
+
+		'Array2' => array(
+		0 => array(
+		'Array2Data1' => 1,
+		'Array2Data2' => 'Array2Data2 value 2',
+		'Array2Data3' => 'Array2Data3 value 2',
+		'Array2Data4' => 'Array2Data4 value 4'),
+		1 => array(
+		'Array2Data1' => 2,
+		'Array2Data2' => 'Array2Data2 value 2',
+		'Array2Data3' => 'Array2Data3 value 2',
+		'Array2Data4' => 'Array2Data4 value 4'),
+		2 => array(
+		'Array2Data1' => 3,
+		'Array2Data2' => 'Array2Data2 value 2',
+		'Array2Data3' => 'Array2Data3 value 2',
+		'Array2Data4' => 'Array2Data4 value 4'),
+		3 => array(
+		'Array2Data1' => 4,
+		'Array2Data2' => 'Array2Data2 value 2',
+		'Array2Data3' => 'Array2Data3 value 2',
+		'Array2Data4' => 'Array2Data4 value 4'),
+		4 => array(
+		'Array2Data1' => 5,
+		'Array2Data2' => 'Array2Data2 value 2',
+		'Array2Data3' => 'Array2Data3 value 2',
+		'Array2Data4' => 'Array2Data4 value 4')),
+
+		'Array3' => array(
+		0 => array(
+		'Array3Data1' => 1,
+		'Array3Data2' => 'Array3Data2 value 2',
+		'Array3Data3' => 'Array3Data3 value 2',
+		'Array3Data4' => 'Array3Data4 value 4'),
+		1 => array(
+		'Array3Data1' => 2,
+		'Array3Data2' => 'Array3Data2 value 2',
+		'Array3Data3' => 'Array3Data3 value 2',
+		'Array3Data4' => 'Array3Data4 value 4'),
+		2 => array(
+		'Array3Data1' => 3,
+		'Array3Data2' => 'Array3Data2 value 2',
+		'Array3Data3' => 'Array3Data3 value 2',
+		'Array3Data4' => 'Array3Data4 value 4'),
+		3 => array(
+		'Array3Data1' => 4,
+		'Array3Data2' => 'Array3Data2 value 2',
+		'Array3Data3' => 'Array3Data3 value 2',
+		'Array3Data4' => 'Array3Data4 value 4'),
+		4 => array(
+		'Array3Data1' => 5,
+		'Array3Data2' => 'Array3Data2 value 2',
+		'Array3Data3' => 'Array3Data3 value 2',
+		'Array3Data4' => 'Array3Data4 value 4')));
+
+		$map = Set::map($expected);
+		$result = Set::reverse($map);
+		$this->assertIdentical($result, $expected);
+	}
+
+	function testFormatting() {
+		$data = array(
+			array('Person'		=> array(
+				'first_name'	=> 'Nate',
+				'last_name'		=> 'Abele',
+				'city'			=> 'Boston',
+				'state'			=> 'MA',
+				'something'		=> '42'
+			)),
+			array('Person'		=> array(
+				'first_name'	=> 'Larry',
+				'last_name'		=> 'Masters',
+				'city'			=> 'Boondock',
+				'state'			=> 'TN',
+				'something'		=> '{0}'
+			)),
+			array('Person'		=> array(
+				'first_name'	=> 'Garrett',
+				'last_name'		=> 'Woodworth',
+				'city'			=> 'Venice Beach',
+				'state'			=> 'CA',
+				'something'		=> '{1}'
+			))
+		);
+
+		$result = Set::format($data, '{1}, {0}', array('{n}.Person.first_name', '{n}.Person.last_name'));
+		$expected = array('Abele, Nate', 'Masters, Larry', 'Woodworth, Garrett');
+		$this->assertEqual($result, $expected);
+
+		$result = Set::format($data, '{0}, {1}', array('{n}.Person.last_name', '{n}.Person.first_name'));
+		$this->assertEqual($result, $expected);
+
+		$result = Set::format($data, '{0}, {1}', array('{n}.Person.city', '{n}.Person.state'));
+		$expected = array('Boston, MA', 'Boondock, TN', 'Venice Beach, CA');
+		$this->assertEqual($result, $expected);
+
+		$result = Set::format($data, '{{0}, {1}}', array('{n}.Person.city', '{n}.Person.state'));
+		$expected = array('{Boston, MA}', '{Boondock, TN}', '{Venice Beach, CA}');
+		$this->assertEqual($result, $expected);
+
+		$result = Set::format($data, '{{0}, {1}}', array('{n}.Person.something', '{n}.Person.something'));
+		$expected = array('{42, 42}', '{{0}, {0}}', '{{1}, {1}}');
+		$this->assertEqual($result, $expected);
 	}
 }
 

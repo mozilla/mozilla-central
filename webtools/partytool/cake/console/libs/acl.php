@@ -1,5 +1,5 @@
 <?php
-/* SVN FILE: $Id: acl.php,v 1.1 2007-05-25 05:54:16 rflint%ryanflint.com Exp $ */
+/* SVN FILE: $Id: acl.php,v 1.2 2007-11-19 08:49:52 rflint%ryanflint.com Exp $ */
 /**
  * Short description for file.
  *
@@ -21,84 +21,94 @@
  * @package			cake
  * @subpackage		cake.cake.console.libs
  * @since			CakePHP(tm) v 1.2.0.5012
- * @version			$Revision: 1.1 $
+ * @version			$Revision: 1.2 $
  * @modifiedby		$LastChangedBy: phpnut $
- * @lastmodified	$Date: 2007-05-25 05:54:16 $
+ * @lastmodified	$Date: 2007-11-19 08:49:52 $
  * @license			http://www.opensource.org/licenses/mit-license.php The MIT License
  */
 uses ('controller'.DS.'components'.DS.'acl', 'model'.DS.'db_acl');
 /**
+ * Shell for ACL management.
+ *
  * @package		cake
  * @subpackage	cake.cake.console.libs
  */
 class AclShell extends Shell {
 /**
- * Enter description here...
+ * Contains instance of AclComponent
  *
- * @var unknown_type
+ * @var object
+ * @access public
  */
-	var $acl;
+	var $Acl;
 /**
- * Enter description here...
+ * Contains arguments parsed from the command line.
  *
- * @var unknown_type
+ * @var array
+ * @access public
  */
 	var $args;
 /**
- * Enter description here...
+ * Contains database source to use
  *
- * @var unknown_type
+ * @var string
+ * @access public
  */
 	var $dataSource = 'default';
 /**
- * override intialize of the Shell
+ * Contains tasks to load and instantiate
  *
+ * @var array
+ * @access public
  */
-	function initialize () {
+	var $tasks = array('DbConfig');
+/**
+ * Override startup of the Shell
+ *
+ * @access public
+ */
+	function startup() {
 		$this->dataSource = 'default';
 
 		if (isset($this->params['datasource'])) {
 			$this->dataSource = $this->params['datasource'];
 		}
 
-		if (ACL_CLASSNAME != 'DB_ACL') {
+		if (Configure::read('Acl.classname') != 'DB_ACL') {
 			$out = "--------------------------------------------------\n";
-			$out .= "Error: Your current Cake configuration is set to \n";
-			$out .= "an ACL implementation other than DB. Please change \n";
-			$out .= "your core config to reflect your decision to use \n";
-			$out .= "DB_ACL before attempting to use this script.\n";
+			$out .= __("Error: Your current Cake configuration is set to", true) . "\n";
+			$out .= __("an ACL implementation other than DB. Please change", true) . "\n";
+			$out .= __("your core config to reflect your decision to use", true) . "\n";
+			$out .= __("DB_ACL before attempting to use this script", true) . ".\n";
 			$out .= "--------------------------------------------------\n";
-			$out .= "Current ACL Classname: " . ACL_CLASSNAME . "\n";
+			$out .= sprintf(__("Current ACL Classname: %s", true), Configure::read('Acl.classname')) . "\n";
 			$out .= "--------------------------------------------------\n";
 			$this->err($out);
 			exit();
 		}
 
-		//$this->Dispatch->shiftArgs();
-
-
-		if($this->command && !in_array($this->command, array('help'))) {
-			if(!file_exists(CONFIGS.'database.php')) {
-				$this->out('');
-				$this->out('Your database configuration was not found.');
-				$this->out('Take a moment to create one:');
-				$this->__doDbConfig();
+		if ($this->command && !in_array($this->command, array('help'))) {
+			if (!config('database')) {
+				$this->out(__("Your database configuration was not found. Take a moment to create one.", true), true);
+				$this->args = null;
+				return $this->DbConfig->execute();
 			}
 			require_once (CONFIGS.'database.php');
 
-			if(!in_array($this->command, array('initdb'))) {
+			if (!in_array($this->command, array('initdb'))) {
 				$this->Acl = new AclComponent();
-				$this->db =& ConnectionManager::getDataSource($this->dataSource);
+				$controller = null;
+				$this->Acl->startup($controller);
 			}
 		}
-
 	}
 /**
  * Override main() for help message hook
  *
+ * @access public
  */
 	function main() {
-		$out  = "Available ACL commands:\n";
+		$out  = __("Available ACL commands:", true) . "\n";
 		$out .= "\t - create\n";
 		$out .= "\t - delete\n";
 		$out .= "\t - setParent\n";
@@ -109,14 +119,16 @@ class AclShell extends Shell {
 		$out .= "\t - view\n";
 		$out .= "\t - initdb\n";
 		$out .= "\t - help\n\n";
-		$out .= "For help, run the 'help' command.  For help on a specific command, run 'help <command>'";
+		$out .= __("For help, run the 'help' command.  For help on a specific command, run 'help <command>'", true);
 		$this->out($out);
 	}
 /**
  * Creates an ARO/ACO node
  *
+ * @access public
  */
 	function create() {
+
 		$this->_checkArgs(3, 'create');
 		$this->checkNodeType();
 		extract($this->__dataVars());
@@ -136,7 +148,7 @@ class AclShell extends Shell {
 		if (!empty($parent) && $parent != '/' && $parent != 'root') {
 			@$parent = $object->node($parent);
 			if (empty($parent)) {
-				$this->err('Could not find parent node using reference "' . $this->args[1] . '"');
+				$this->err(sprintf(__('Could not find parent node using reference "%s"', true), $this->args[1]));
 				return;
 			} else {
 				$parent = Set::extract($parent, "0.{$class}.id");
@@ -151,151 +163,171 @@ class AclShell extends Shell {
 				'foreign_key' => $matches[2],
 			);
 		} else {
-			$data = array('alias' => $this->args[2]);
+			if (!($this->args[2] == '/')) {
+				$data = array('alias' => $this->args[2]);
+			} else {
+				$this->error(__('/ can not be used as an alias!', true), __('\t/ is the root, please supply a sub alias', true));
+			}
 		}
 
 		$data['parent_id'] = $parent;
 		$object->create();
 
-		if($object->save($data)) {
-			$this->out("New $class '".$this->args[2]."' created.\n\n");
+		if ($object->save($data)) {
+			$this->out(sprintf(__("New %s '%s' created.\n", true), $class, $this->args[2]), true);
 		} else {
-			$this->err("There was a problem creating a new $class '".$this->args[2]."'.");
+			$this->err(sprintf(__("There was a problem creating a new %s '%s'.", true), $class, $this->args[2]));
 		}
 	}
 /**
- * Enter description here...
+ * Delete an ARO/ACO node.
  *
+ * @access public
  */
 	function delete() {
 		$this->_checkArgs(2, 'delete');
 		$this->checkNodeType();
 		extract($this->__dataVars());
-		if(!$this->Acl->{$class}->delete($this->args[1])) {
-			$this->error("Node Not Deleted", "There was an error deleting the ".$class.". Check that the node exists.\n");
+		if (!$this->Acl->{$class}->delete($this->args[1])) {
+			$this->error(__("Node Not Deleted", true), sprintf(__("There was an error deleting the %s. Check that the node exists", true), $class) . ".\n");
 		}
-		$this->out("{$class} deleted.\n\n");
+		$this->out(sprintf(__("%s deleted", true), $class) . ".\n", true);
 	}
 
 /**
- * Enter description here...
+ * Set parent for an ARO/ACO node.
  *
+ * @access public
  */
 	function setParent() {
 		$this->_checkArgs(3, 'setParent');
 		$this->checkNodeType();
 		extract($this->__dataVars());
-		if (!$this->Acl->{$class}->setParent($this->args[2], $this->args[1])){
-			$this->out("Error in setting new parent. Please make sure the parent node exists, and is not a descendant of the node specified.\n");
+		if (!$this->Acl->{$class}->setParent($this->args[2], $this->args[1])) {
+			$this->out(__("Error in setting new parent. Please make sure the parent node exists, and is not a descendant of the node specified.", true), true);
 		} else {
-			$this->out("Node parent set to ".$this->args[2]."\n\n");
+			$this->out(sprintf(__("Node parent set to %s", true), $this->args[2]) . "\n", true);
 		}
 	}
 /**
- * Enter description here...
+ * Get path to specified ARO/ACO node.
  *
+ * @access public
  */
 	function getPath() {
 		$this->_checkArgs(2, 'getPath');
 		$this->checkNodeType();
 		extract($this->__dataVars());
-		$id = (is_numeric($this->args[2])) ? intval($this->args[1]) : $this->args[1];
+		$id = ife(is_numeric($this->args[1]), intval($this->args[1]), $this->args[1]);
 		$nodes = $this->Acl->{$class}->getPath($id);
 		if (empty($nodes)) {
-			$this->error("Supplied Node '".$this->args[1]."' not found", "No tree returned.");
+			$this->error(sprintf(__("Supplied Node '%s' not found", true), $this->args[1]), __("No tree returned.", true));
 		}
 		for ($i = 0; $i < count($nodes); $i++) {
 			$this->out(str_repeat('  ', $i) . "[" . $nodes[$i][$class]['id'] . "]" . $nodes[$i][$class]['alias'] . "\n");
 		}
 	}
 /**
- * Enter description here...
+ * Grant permission for a given ARO to a given ACO.
  *
+ * @access public
  */
 	function grant() {
 		$this->_checkArgs(3, 'grant');
 		//add existence checks for nodes involved
-		$aro = (is_numeric($this->args[0])) ? intval($this->args[0]) : $this->args[0];
-		$aco = (is_numeric($this->args[1])) ? intval($this->args[1]) : $this->args[1];
-		$this->Acl->allow($aro, $aco, $this->args[2]);
-		$this->out("Permission granted.\n");
+		$aro = ife(is_numeric($this->args[0]), intval($this->args[0]), $this->args[0]);
+		$aco = ife(is_numeric($this->args[1]), intval($this->args[1]), $this->args[1]);
+
+		if ($this->Acl->allow($aro, $aco, $this->args[2])) {
+			$this->out(__("Permission granted.", true), true);
+		}
 	}
 /**
- * Enter description here...
+ * Deny access for an ARO to an ACO.
  *
+ * @access public
  */
 	function deny() {
 		$this->_checkArgs(3, 'deny');
 		//add existence checks for nodes involved
-		$aro = (is_numeric($this->args[0])) ? intval($this->args[0]) : $this->args[0];
-		$aco = (is_numeric($this->args[1])) ? intval($this->args[1]) : $this->args[1];
+		$aro = ife(is_numeric($this->args[0]), intval($this->args[0]), $this->args[0]);
+		$aco = ife(is_numeric($this->args[1]), intval($this->args[1]), $this->args[1]);
 		$this->Acl->deny($aro, $aco, $this->args[2]);
-		$this->out("Requested permission successfully denied.\n");
+		$this->out(__("Requested permission successfully denied.", true), true);
 	}
 /**
- * Enter description here...
+ * Set an ARO to inhermit permission to an ACO.
  *
+ * @access public
  */
 	function inherit() {
 		$this->_checkArgs(3, 'inherit');
-		$aro = (is_numeric($this->args[0])) ? intval($this->args[0]) : $this->args[0];
-		$aco = (is_numeric($this->args[1])) ? intval($this->args[1]) : $this->args[1];
+		$aro = ife(is_numeric($this->args[0]), intval($this->args[0]), $this->args[0]);
+		$aco = ife(is_numeric($this->args[1]), intval($this->args[1]), $this->args[1]);
 		$this->Acl->inherit($aro, $aco, $this->args[2]);
-		$this->out("Requested permission successfully inherited.\n");
+		$this->out(__("Requested permission successfully inherited.", true), true);
 	}
 /**
- * Enter description here...
+ * Show a specific ARO/ACO node.
  *
+ * @access public
  */
 	function view() {
 		$this->_checkArgs(1, 'view');
 		$this->checkNodeType();
 		extract($this->__dataVars());
 		if (isset($this->args[1]) && !is_null($this->args[1])) {
-			$conditions = $this->Acl->{$class}->_resolveID($this->args[1]);
+			$key = ife(is_numeric($this->args[1]), $secondary_id, 'alias');
+			$conditions = array($class . '.' . $key => $this->args[1]);
 		} else {
 			$conditions = null;
 		}
 		$nodes = $this->Acl->{$class}->findAll($conditions, null, 'lft ASC');
 		if (empty($nodes)) {
-			$this->error($this->args[1]." not found", "No tree returned.");
+			if(isset($this->args[1])) {
+				$this->error(sprintf(__("%s not found", true), $this->args[1]), __("No tree returned.", true));
+			} elseif (isset($this->args[0])) {
+				$this->error(sprintf(__("%s not found", true), $this->args[0]), __("No tree returned.", true));
+			}
 		}
 		$this->out($class . " tree:");
 		$this->hr();
-		$nodeCount = count($nodes);
-		$right = $left = array();
-		for($i = 0; $i < $nodeCount; $i++) {
-			$count = 0;
-			$right[$i] = $nodes[$i][$class]['rght'];
-			$left[$i] = $nodes[$i][$class]['lft'];
-			if(isset($left[$i]) && isset($left[$i-1]) && $left[$i] > $left[$i-1]) {				
-				array_pop($left);
-				$count = count($left);				
+		$stack = array();
+		$last  = null;
+		foreach ($nodes as $n) {
+			$stack[] = $n;
+			if (!empty($last)) {
+				$end = end($stack);
+				if ($end[$class]['rght'] > $last) {
+					foreach ($stack as $k => $v) {
+						$end = end($stack);
+                        if ($v[$class]['rght'] < $end[$class]['rght']) {
+                            unset($stack[$k]);
+                        }
+                    }
+				}
 			}
-			if(isset($right[$i]) && isset($right[$i-1]) && $right[$i] < $right[$i-1]) {
-				array_pop($right);
-				$count = count($right);
-			}
-			
-			$this->out(str_repeat('  ', $count) . "[" . $nodes[$i][$class]['id'] . "]" . $nodes[$i][$class]['alias']."\n");
-			$right[] = $nodes[$i][$class]['rght'];
+			$last   = $n[$class]['rght'];
+			$count  = count($stack);
+			$this->out(str_repeat('  ', $count) . "[" . $n[$class]['id'] . "]" . $n[$class]['alias']."\n");
 		}
 		$this->hr();
 	}
 /**
- * Enter description here...
+ * Initialize ACL database.
  *
+ * @access public
  */
 	function initdb() {
 		$db =& ConnectionManager::getDataSource($this->dataSource);
-		$this->out("Initializing Database...\n");
-		$this->out("Creating access control objects table (acos)...\n");
+		$this->out(__("Initializing Database...", true), true);
+		$this->out(__("Creating access control objects table (acos)...", true), true);
 		$sql = " CREATE TABLE ".$db->fullTableName('acos')." (
 				".$db->name('id')." ".$db->column($db->columns['primary_key']).",
 				".$db->name('parent_id')." ".$db->column($db->columns['integer'])." default NULL,
-				".$db->name('model')." ".$db->column($db->columns['string'])." default '' NOT NULL,
+				".$db->name('model')." ".$db->column($db->columns['string'])." default '',
 				".$db->name('foreign_key')." ".$db->column($db->columns['integer'])." default NULL,
-				".$db->name('alias')." ".$db->column($db->columns['string'])." default '' NOT NULL,
+				".$db->name('alias')." ".$db->column($db->columns['string'])." default '',
 				".$db->name('lft')." ".$db->column($db->columns['integer'])." default NULL,
 				".$db->name('rght')." ".$db->column($db->columns['integer'])." default NULL,
 				PRIMARY KEY  (".$db->name('id').")
@@ -304,13 +336,13 @@ class AclShell extends Shell {
 			die("Error: " . $db->lastError() . "\n\n");
 		}
 
-		$this->out("Creating access request objects table (aros)...\n");
+		$this->out(__("Creating access request objects table (aros)...", true), true);
 		$sql2 = "CREATE TABLE ".$db->fullTableName('aros')." (
 				".$db->name('id')." ".$db->column($db->columns['primary_key']).",
 				".$db->name('parent_id')." ".$db->column($db->columns['integer'])." default NULL,
-				".$db->name('model')." ".$db->column($db->columns['string'])." default '' NOT NULL,
+				".$db->name('model')." ".$db->column($db->columns['string'])." default '',
 				".$db->name('foreign_key')." ".$db->column($db->columns['integer'])." default NULL,
-				".$db->name('alias')." ".$db->column($db->columns['string'])." default '' NOT NULL,
+				".$db->name('alias')." ".$db->column($db->columns['string'])." default '',
 				".$db->name('lft')." ".$db->column($db->columns['integer'])." default NULL,
 				".$db->name('rght')." ".$db->column($db->columns['integer'])." default NULL,
 				PRIMARY KEY  (".$db->name('id').")
@@ -319,7 +351,7 @@ class AclShell extends Shell {
 			die("Error: " . $db->lastError() . "\n\n");
 		}
 
-		$this->out("Creating relationships table (aros_acos)...\n");
+		$this->out(__("Creating relationships table (aros_acos)...", true), true);
 		$sql3 = "CREATE TABLE ".$db->fullTableName('aros_acos')." (
 				".$db->name('id')." ".$db->column($db->columns['primary_key']).",
 				".$db->name('aro_id')." ".$db->column($db->columns['integer'])." default NULL,
@@ -334,260 +366,128 @@ class AclShell extends Shell {
 			die("Error: " . $db->lastError() . "\n\n");
 		}
 
-		$this->out("\nDone.\n");
+		$this->out("\n" . __("Done.", true), true);
 	}
-
 /**
- * Enter description here...
+ * Show help screen.
  *
+ * @access public
  */
 	function help() {
-		$head  = "Usage: cake acl <command> <arg1> <arg2>...\n";
+		$head  = __("Usage: cake acl <command> <arg1> <arg2>...", true) . "\n";
 		$head .= "-----------------------------------------------\n";
-		$head .= "Commands:\n\n";
+		$head .= __("Commands:", true) . "\n\n";
 
 		$commands = array(
 			'create' => "\tcreate aro|aco <parent> <node>\n" .
-						"\t\tCreates a new ACL object <node> under the parent specified by <parent>, an id/alias.\n" .
-						"\t\tThe <parent> and <node> references can be in one of the following formats:\n" .
-						"\t\t\t- <model>.<id> - The node will be bound to a specific record of the given model\n" .
-						"\t\t\t- <alias> - The node will be given a string alias (or path, in the case of <parent>),\n" .
-						"\t\t\t  i.e. 'John'.  When used with <parent>, this takes the form of an alias path,\n" .
-						"\t\t\t  i.e. <group>/<subgroup>/<parent>.\n" .
-						"\t\tTo add a node at the root level, enter 'root' or '/' as the <parent> parameter.",
+						"\t\t" . __("Creates a new ACL object <node> under the parent specified by <parent>, an id/alias.", true) . "\n" .
+						"\t\t" . __("The <parent> and <node> references can be in one of the following formats:", true) . "\n" .
+						"\t\t\t- " . __("<model>.<id> - The node will be bound to a specific record of the given model", true) . "\n" .
+						"\t\t\t- " . __("<alias> - The node will be given a string alias (or path, in the case of <parent>),", true) . "\n" .
+						"\t\t\t  " . __("i.e. 'John'.  When used with <parent>, this takes the form of an alias path,", true) . "\n" .
+						"\t\t\t  " . __("i.e. <group>/<subgroup>/<parent>.", true) . "\n" .
+						"\t\t" . __("To add a node at the root level, enter 'root' or '/' as the <parent> parameter.", true) . "\n",
 
 			'delete' =>	"\tdelete aro|aco <node>\n" .
-						"\t\tDeletes the ACL object with the given <node> reference (see 'create' for info on node references).\n",
+						"\t\t" . __("Deletes the ACL object with the given <node> reference (see 'create' for info on node references).", true) . "\n",
 
 			'setparent' => "\tsetParent aro|aco <node> <parent>\n" .
-							"\t\tMoves the ACL object specified by <node> beneath the parent ACL object specified by <parent>.\n",
+							"\t\t" . __("Moves the ACL object specified by <node> beneath the parent ACL object specified by <parent>.", true) . "\n",
 
 			'getpath' => "\tgetPath aro|aco <node>\n" .
-						"\t\tReturns the path to the ACL object specified by <node>. This command is\n" .
-						"\t\tis useful in determining the inhertiance of permissions for a certain\n" .
-						"\t\tobject in the tree.\n",
+						"\t\t" . __("Returns the path to the ACL object specified by <node>. This command", true) . "\n" .
+						"\t\t" . __("is useful in determining the inhertiance of permissions for a certain", true) . "\n" .
+						"\t\t" . __("object in the tree.", true) . "\n",
 
-			'grant' =>	"\tgrant <aro_id> <aco_id> [<aco_action>]\n" .
-						"\t\tUse this command to grant ACL permissions. Once executed, the ARO\n" .
-						"\t\tspecified (and its children, if any) will have ALLOW access to the\n" .
-						"\t\tspecified ACO action (and the ACO's children, if any).\n",
+			'grant' =>	"\tgrant <aro_id> <aco_id> [<aco_action>] " . __("or", true) . " '*' " . __("(quotes required)", true) . "\n" .
+						"\t\t" . __("Use this command to grant ACL permissions. Once executed, the ARO", true) . "\n" .
+						"\t\t" . __("specified (and its children, if any) will have ALLOW access to the", true) . "\n" .
+						"\t\t" . __("specified ACO action (and the ACO's children, if any).", true) . "\n",
 
 			'deny' =>	"\tdeny <aro_id> <aco_id> [<aco_action>]\n" .
-						"\t\tUse this command to deny ACL permissions. Once executed, the ARO\n" .
-						"\t\tspecified (and its children, if any) will have DENY access to the\n" .
-						"\t\tspecified ACO action (and the ACO's children, if any).\n",
+						"\t\t" . __("Use this command to deny ACL permissions. Once executed, the ARO", true) . "\n" .
+						"\t\t" . __("specified (and its children, if any) will have DENY access to the", true) . "\n" .
+						"\t\t" . __("specified ACO action (and the ACO's children, if any).", true) . "\n",
 
 			'inherit' =>	"\tinherit <aro_id> <aco_id> [<aco_action>]\n" .
-							"\t\tUse this command to force a child ARO object to inherit its\n" .
-							"\t\tpermissions settings from its parent.\n",
+							"\t\t" . __("Use this command to force a child ARO object to inherit its", true) . "\n" .
+							"\t\t" . __("permissions settings from its parent.", true) . "\n",
 
 			'view' =>	"\tview aro|aco [<node>]\n" .
-						"\t\tThe view command will return the ARO or ACO tree. The optional\n" .
-						"\t\tid/alias parameter allows you to return only a portion of the requested\n" .
-						"\t\ttree.\n",
+						"\t\t" . __("The view command will return the ARO or ACO tree. The optional", true) . "\n" .
+						"\t\t" . __("id/alias parameter allows you to return only a portion of the requested tree.", true) . "\n",
 
 			'initdb' =>	"\tinitdb\n".
-						"\t\tUse this command to create the database tables needed to use DB ACL.\n",
+						"\t\t" . __("Use this command to create the database tables needed to use DB ACL.", true) . "\n",
 
 			'help' => 	"\thelp [<command>]\n" .
-						"\t\tDisplays this help message, or a message on a specific command.\n"
+						"\t\t" . __("Displays this help message, or a message on a specific command.", true) . "\n"
 		);
 
 		$this->out($head);
-		if (!isset($this->args[1])) {
+		if (!isset($this->args[0])) {
 			foreach ($commands as $cmd) {
 				$this->out("{$cmd}\n\n");
 			}
-		} elseif (isset($commands[low($this->args[1])])) {
-			$this->out($commands[low($this->args[1])] . "\n\n");
+		} elseif (isset($commands[low($this->args[0])])) {
+			$this->out($commands[low($this->args[0])] . "\n\n");
 		} else {
-			$this->out("Command '" . $this->args[1] . "' not found");
+			$this->out(sprintf(__("Command '%s' not found", true), $this->args[0]));
 		}
 	}
 /**
- * Enter description here...
+ * Check that first argument specifies a valid Node type (ARO/ACO)
  *
+ * @access public
  */
 	function checkNodeType() {
-		if(!isset($this->args[0])) {
+		if (!isset($this->args[0])) {
 			return false;
 		}
 		if ($this->args[0] != 'aco' && $this->args[0] != 'aro') {
-			$this->error("Missing/Unknown node type: '".$this->args[1]."'", 'Please specify which ACL object type you wish to create.');
+			$this->error(sprintf(__("Missing/Unknown node type: '%s'", true), $this->args[1]), __('Please specify which ACL object type you wish to create.', true));
 		}
 	}
 /**
- * Enter description here...
+ * Checks that given node exists
  *
- * @param unknown_type $type
- * @param unknown_type $id
- * @return unknown
+ * @param string $type Node type (ARO/ACO)
+ * @param integer $id Node id
+ * @return boolean Success
+ * @access public
  */
-	function nodeExists($type, $id) {
-		//$this->out("Check to see if $type with ID = $id exists...\n");
-		extract($this->__dataVars($type));
-		$conditions = $this->Acl->{$class}->_resolveID($id);
+	function nodeExists() {
+		if (!$this->checkNodeType() && !isset($this->args[1])) {
+			return false;
+		}
+		extract($this->__dataVars($this->args[0]));
+		$key = (ife(is_numeric($this->args[1]), $secondary_id, 'alias'));
+		$conditions = array($class . '.' . $key => $this->args[1]);
 		$possibility = $this->Acl->{$class}->findAll($conditions);
+		if (empty($possibility)) {
+			$this->error(sprintf(__("%s not found", true), $this->args[1]), __("No tree returned.", true));
+		}
 		return $possibility;
 	}
 
 /**
- * Enter description here...
+ * Build data parameters based on node type
  *
- * @param unknown_type $type
- * @return unknown
+ * @param string $type Node type  (ARO/ACO)
+ * @return array Variables
+ * @access private
  */
 	function __dataVars($type = null) {
 		if ($type == null) {
 			$type = $this->args[0];
 		}
-
 		$vars = array();
 		$class = ucwords($type);
-		$vars['secondary_id'] = ($class == 'aro' ? 'foreign_key' : 'object_id');
+		$vars['secondary_id'] = ife(strtolower($class) == 'aro', 'foreign_key', 'object_id');
 		$vars['data_name'] = $type;
 		$vars['table_name'] = $type . 's';
 		$vars['class'] = $class;
 		return $vars;
 	}
-/**
- * Database configuration setup.
- *
- */
-	function __doDbConfig() {
-		$this->hr(true);
-		$this->out('Database Configuration:');
-		$this->hr(true);
-
-		$driver = '';
-
-		while ($driver == '') {
-			$driver = $this->in('What database driver would you like to use?', array('mysql','mysqli','mssql','sqlite','postgres', 'odbc', 'oracle'), 'mysql');
-			if ($driver == '') {
-				$this->out('The database driver supplied was empty. Please supply a database driver.');
-			}
-		}
-
-		switch($driver) {
-			case 'mysql':
-			$connect = 'mysql_connect';
-			break;
-			case 'mysqli':
-			$connect = 'mysqli_connect';
-			break;
-			case 'mssql':
-			$connect = 'mssql_connect';
-			break;
-			case 'sqlite':
-			$connect = 'sqlite_open';
-			break;
-			case 'postgres':
-			$connect = 'pg_connect';
-			break;
-			case 'odbc':
-			$connect = 'odbc_connect';
-			break;
-			case 'oracle':
-			$connect = 'ocilogon';
-			break;
-			default:
-			$this->out('The connection parameter could not be set.');
-			break;
-		}
-
-		$host = '';
-
-		while ($host == '') {
-			$host = $this->in('What is the hostname for the database server?', null, 'localhost');
-			if ($host == '') {
-				$this->out('The host name you supplied was empty. Please supply a hostname.');
-			}
-		}
-		$login = '';
-
-		while ($login == '') {
-			$login = $this->in('What is the database username?', null, 'root');
-
-			if ($login == '') {
-				$this->out('The database username you supplied was empty. Please try again.');
-			}
-		}
-		$password = '';
-		$blankPassword = false;
-
-		while ($password == '' && $blankPassword == false) {
-			$password = $this->in('What is the database password?');
-			if ($password == '') {
-				$blank = $this->in('The password you supplied was empty. Use an empty password?', array('y', 'n'), 'n');
-				if($blank == 'y')
-				{
-					$blankPassword = true;
-				}
-			}
-		}
-		$database = '';
-
-		while ($database == '') {
-			$database = $this->in('What is the name of the database you will be using?', null, 'cake');
-
-			if ($database == '')  {
-				$this->out('The database name you supplied was empty. Please try again.');
-			}
-		}
-
-		$prefix = '';
-
-		while ($prefix == '') {
-			$prefix = $this->in('Enter a table prefix?', null, 'n');
-		}
-		if(low($prefix) == 'n') {
-			$prefix = '';
-		}
-
-		$this->hr(true);
-		$this->out('The following database configuration will be created:');
-		$this->hr(true);
-		$this->out("Driver:        $driver");
-		$this->out("Connection:    $connect");
-		$this->out("Host:          $host");
-		$this->out("User:          $login");
-		$this->out("Pass:          " . str_repeat('*', strlen($password)));
-		$this->out("Database:      $database");
-		$this->out("Table prefix:  $prefix");
-		$this->hr(true);
-		$looksGood = $this->in('Look okay?', array('y', 'n'), 'y');
-
-		if (low($looksGood) == 'y' || low($looksGood) == 'yes') {
-			$this->bakeDbConfig($driver, $connect, $host, $login, $password, $database, $prefix);
-		} else {
-			$this->out('Bake Aborted.');
-		}
-	}
-/**
- * Creates a database configuration file for Bake.
- *
- * @param string $host
- * @param string $login
- * @param string $password
- * @param string $database
- */
-	function bakeDbConfig( $driver, $connect, $host, $login, $password, $database, $prefix) {
-		$out = "<?php\n";
-		$out .= "class DATABASE_CONFIG {\n\n";
-		$out .= "\tvar \$default = array(\n";
-		$out .= "\t\t'driver' => '{$driver}',\n";
-		$out .= "\t\t'connect' => '{$connect}',\n";
-		$out .= "\t\t'host' => '{$host}',\n";
-		$out .= "\t\t'login' => '{$login}',\n";
-		$out .= "\t\t'password' => '{$password}',\n";
-		$out .= "\t\t'database' => '{$database}', \n";
-		$out .= "\t\t'prefix' => '{$prefix}' \n";
-		$out .= "\t);\n";
-		$out .= "}\n";
-		$out .= "?>";
-		$filename = CONFIGS.'database.php';
-		$this->createFile($filename, $out);
-	}
 }
-
 ?>

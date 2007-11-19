@@ -1,5 +1,5 @@
 <?php
-/* SVN FILE: $Id: error.php,v 1.1 2007-05-25 05:54:17 rflint%ryanflint.com Exp $ */
+/* SVN FILE: $Id: error.php,v 1.2 2007-11-19 08:49:53 rflint%ryanflint.com Exp $ */
 /**
  * Short description for file.
  *
@@ -21,9 +21,9 @@
  * @package			cake
  * @subpackage		cake.cake.libs
  * @since			CakePHP(tm) v 0.10.5.1732
- * @version			$Revision: 1.1 $
+ * @version			$Revision: 1.2 $
  * @modifiedby		$LastChangedBy: phpnut $
- * @lastmodified	$Date: 2007-05-25 05:54:17 $
+ * @lastmodified	$Date: 2007-11-19 08:49:53 $
  * @license			http://www.opensource.org/licenses/mit-license.php The MIT License
  */
 uses('sanitize');
@@ -40,7 +40,7 @@ class ErrorHandler extends Object{
  * Controller instance.
  *
  * @var object
- * @access private
+ * @access public
  */
 	var $controller = null;
 
@@ -55,25 +55,23 @@ class ErrorHandler extends Object{
 		static $__previousError = null;
 
 		$allow = array('.', '/', '_', ' ', '-', '~');
-	    if(substr(PHP_OS,0,3) == "WIN") {
+	    if (substr(PHP_OS,0,3) == "WIN") {
             $allow = array_merge($allow, array('\\', ':') );
         }
 		$clean = new Sanitize();
 		$messages = $clean->paranoid($messages, $allow);
-		if(!class_exists('dispatcher')) {
+		if (!class_exists('dispatcher')) {
 			require CAKE . 'dispatcher.php';
 		}
 		$this->__dispatch =& new Dispatcher();
-
+		if (!class_exists('appcontroller')) {
+			loadController(null);
+		}
 		if ($__previousError != array($method, $messages)) {
 			$__previousError = array($method, $messages);
 
-			if (!class_exists('AppController')) {
-				loadController(null);
-			}
-
 			$this->controller =& new AppController();
-			if(!empty($this->controller->uses)) {
+			if (!empty($this->controller->uses)) {
 				$this->controller->constructClasses();
 			}
 			$this->controller->_initComponents();
@@ -84,7 +82,7 @@ class ErrorHandler extends Object{
 				return $this->controller->appError($method, $messages);
 			}
 		} else {
-			$this->controller =& new Controller();
+			$this->controller =& new AppController();
 			$this->controller->cacheAction = false;
 		}
 		if (Configure::read() > 0 || $method == 'error') {
@@ -132,7 +130,7 @@ class ErrorHandler extends Object{
 
 		header("HTTP/1.0 404 Not Found");
 		$this->error(array('code' => '404',
-							'name' => 'Not found',
+							'name' => __('Not found', true),
 							'message' => sprintf(__("The requested address %s was not found on this server.", true), $url, $message),
 							'base' => $base));
 		exit();

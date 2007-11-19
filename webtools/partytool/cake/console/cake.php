@@ -1,6 +1,6 @@
 #!/usr/bin/php -q
 <?php
-/* SVN FILE: $Id: cake.php,v 1.1 2007-05-25 05:54:15 rflint%ryanflint.com Exp $ */
+/* SVN FILE: $Id: cake.php,v 1.2 2007-11-19 08:49:52 rflint%ryanflint.com Exp $ */
 /**
  * Command-line code generation utility to automate programmer chores.
  *
@@ -22,9 +22,9 @@
  * @package			cake
  * @subpackage		cake.cake.console
  * @since			CakePHP(tm) v 1.2.0.5012
- * @version			$Revision: 1.1 $
+ * @version			$Revision: 1.2 $
  * @modifiedby		$LastChangedBy: phpnut $
- * @lastmodified	$Date: 2007-05-25 05:54:15 $
+ * @lastmodified	$Date: 2007-11-19 08:49:52 $
  * @license			http://www.opensource.org/licenses/mit-license.php The MIT License
  */
 /**
@@ -38,86 +38,94 @@ class ShellDispatcher {
  * Standard input stream.
  *
  * @var filehandle
+ * @access public
  */
 	var $stdin;
 /**
  * Standard output stream.
  *
  * @var filehandle
+ * @access public
  */
 	var $stdout;
 /**
  * Standard error stream.
  *
  * @var filehandle
+ * @access public
  */
 	var $stderr;
 /**
  * Contains command switches parsed from the command line.
  *
  * @var array
+ * @access public
  */
 	var $params = array();
 /**
  * Contains arguments parsed from the command line.
  *
  * @var array
+ * @access public
  */
 	var $args = array();
 /**
  * The file name of the shell that was invoked.
  *
  * @var string
+ * @access public
  */
 	var $shell = null;
 /**
  * The class name of the shell that was invoked.
  *
  * @var string
+ * @access public
  */
 	var $shellClass = null;
-
 /**
  * The command called if public methods are available.
  *
  * @var string
+ * @access public
  */
 	var $shellCommand = null;
-
-
 /**
- * The path location of shells.
+ * The path locations of shells.
  *
  * @var array
+ * @access public
  */
 	var $shellPaths = array();
-
 /**
  * The path to the current shell location.
  *
  * @var string
+ * @access public
  */
 	var $shellPath = null;
-
 /**
  * The name of the shell in camelized.
  *
  * @var string
+ * @access public
  */
 	var $shellName = null;
-
-
 /**
- *  Constructs this ShellDispatcher instance.
+ * Constructs this ShellDispatcher instance.
  *
  * @param array $args the argv.
- * @return void
  */
 	function ShellDispatcher($args = array()) {
 		$this->__construct($args);
 	}
-
+/**
+ * Constructor
+ *
+ * @param array $args the argv.
+ */
 	function __construct($args = array()) {
+		set_time_limit(0);
 		$this->__initConstants();
 		$this->parseParams($args);
 		$this->__initEnvironment();
@@ -125,9 +133,9 @@ class ShellDispatcher {
 		die("\n");
 	}
 /**
- *  Defines core configuration.
+ * Defines core configuration.
  *
- * @return void
+ * @access private
  */
 	function __initConstants() {
 		if (function_exists('ini_set')) {
@@ -144,12 +152,11 @@ class ShellDispatcher {
 		define('DISABLE_DEFAULT_ERROR_HANDLING', false);
 	}
 /**
- *  Defines current working environment.
+ * Defines current working environment.
  *
- * @return void
+ * @access private
  */
 	function __initEnvironment() {
-
 		$this->stdin = fopen('php://stdin', 'r');
 		$this->stdout = fopen('php://stdout', 'w');
 		$this->stderr = fopen('php://stderr', 'w');
@@ -189,43 +196,42 @@ class ShellDispatcher {
 /**
  * Initializes the environment and loads the Cake core.
  *
- * @return boolean Returns false if loading failed.
+ * @return boolean Success.
+ * @access private
  */
 	function __bootstrap() {
 
 		define('ROOT', $this->params['root']);
 		define('APP_DIR', $this->params['app']);
 		define('APP_PATH', ROOT . DS . APP_DIR . DS);
+		define('WWW_ROOT', 'webroot');
 
 		$includes = array(
 			CORE_PATH . 'cake' . DS . 'basics.php',
 			CORE_PATH . 'cake' . DS . 'config' . DS . 'paths.php',
+			CORE_PATH . 'cake' . DS . 'libs' . DS . 'object.php',
+		 	CORE_PATH . 'cake' . DS . 'libs' . DS . 'inflector.php',
+			CORE_PATH . 'cake' . DS . 'libs' . DS . 'configure.php',
+			CORE_PATH . 'cake' . DS . 'libs' . DS . 'cache.php'
 		);
 
-		if(!file_exists(APP_PATH . 'config' . DS . 'core.php')) {
-			$includes[] = CORE_PATH . 'cake' . DS . 'console' . DS . 'libs' . DS . 'templates' . DS . 'skel' . DS . 'config' . DS . 'core.php';
-		} else {
-			$includes[] = APP_PATH . 'config' . DS . 'core.php';
-		}
-
 		foreach ($includes as $inc) {
-			if (!@include_once($inc)) {
-				$this->stdout("Failed to load Cake core file {$inc}");
+			if (!require($inc)) {
+				$this->stderr("Failed to load Cake core file {$inc}");
 				return false;
 			}
 		}
 
-		$libraries = array('object', 'session', 'configure', 'inflector', 'model'.DS.'connection_manager',
-							'debugger', 'security', 'controller' . DS . 'controller');
-		foreach ($libraries as $inc) {
-			if (!file_exists(LIBS . $inc . '.php')) {
-				$this->stdout("Failed to load Cake core class " . ucwords($inc));
-				$this->stdout("(" . LIBS.$inc.".php)");
-				return false;
-			}
-			uses($inc);
-		}
 		Configure::getInstance(file_exists(CONFIGS . 'bootstrap.php'));
+
+		if (!file_exists(APP_PATH . 'config' . DS . 'core.php')) {
+			include_once CORE_PATH . 'cake' . DS . 'console' . DS . 'libs' . DS . 'templates' . DS . 'skel' . DS . 'config' . DS . 'core.php';
+		} else {
+			include_once APP_PATH . 'config' . DS . 'core.php';
+		}
+
+		require CORE_PATH . 'cake' . DS . 'libs' . DS . 'class_registry.php';
+
 		Configure::write('debug', 1);
 		return true;
 	}
@@ -233,29 +239,22 @@ class ShellDispatcher {
 /**
  * Dispatches a CLI request
  *
- * @return void
+ * @access public
  */
 	function dispatch() {
 		$this->stdout("\nWelcome to CakePHP v" . Configure::version() . " Console");
 		$this->stdout("---------------------------------------------------------------");
-		$protectedCommands = array('initialize', 'main','in','out','err','hr',
-									'createFile', 'isDir','copyDir','Object','toString',
-									'requestAction','log','cakeError', 'ShellDispatcher',
-									'__initConstants','__initEnvironment','__construct',
-									'dispatch','__bootstrap','getInput','stdout','stderr','parseParams','shiftArgs'
-								);
 		if (isset($this->args[0])) {
-			// Load requested shell
 			$this->shell = $this->args[0];
 			$this->shiftArgs();
 			$this->shellName = Inflector::camelize($this->shell);
 			$this->shellClass = $this->shellName . 'Shell';
 
-			if (method_exists($this, $this->shell) && !in_array($this->shell, $protectedCommands)) {
-				$this->{$this->shell}();
+			if ($this->shell == 'help') {
+				$this->help();
 			} else {
 				$loaded = false;
-				foreach($this->shellPaths as $path) {
+				foreach ($this->shellPaths as $path) {
 					$this->shellPath = $path . $this->shell . ".php";
 					if (file_exists($this->shellPath)) {
 						$loaded = true;
@@ -266,30 +265,34 @@ class ShellDispatcher {
 				if ($loaded) {
 					require CONSOLE_LIBS . 'shell.php';
 					require $this->shellPath;
-					if(class_exists($this->shellClass)) {
-						$shell = new $this->shellClass($this);
-
+					if (class_exists($this->shellClass)) {
 						$command = null;
-						if(isset($this->args[0])) {
+						if (isset($this->args[0])) {
 							$command = $this->args[0];
 						}
+						$this->shellCommand = Inflector::variable($command);
+						$shell = new $this->shellClass($this);
 
-						if($command == 'help') {
-							if(method_exists($shell, 'help')) {
-								$shell->command = $command;
-								$this->shiftArgs();
-								$shell->initialize();
-								$shell->help();
-								exit();
-							} else {
-								$this->help();
-							}
+						$shell->initialize();
+						$shell->loadTasks();
+
+						foreach ($shell->taskNames as $task) {
+							$shell->{$task}->initialize();
+							$shell->{$task}->loadTasks();
 						}
 
 						$task = Inflector::camelize($command);
-						if(in_array($task, $shell->taskNames)) {
+						if (in_array($task, $shell->taskNames)) {
 							$this->shiftArgs();
-							$shell->{$task}->initialize();
+							$shell->{$task}->startup();
+							if (isset($this->args[0]) && $this->args[0] == 'help') {
+								if (method_exists($shell->{$task}, 'help')) {
+									$shell->{$task}->help();
+									exit();
+								} else {
+									$this->help();
+								}
+							}
 							$shell->{$task}->execute();
 							return;
 						}
@@ -297,31 +300,30 @@ class ShellDispatcher {
 						$classMethods = get_class_methods($shell);
 
 						$privateMethod = $missingCommand = false;
-						if((in_array($command, $classMethods) || in_array(strtolower($command), $classMethods)) && strpos($command, '_', 0) === 0) {
+						if ((in_array($command, $classMethods) || in_array(strtolower($command), $classMethods)) && strpos($command, '_', 0) === 0) {
 							$privateMethod = true;
 						}
 
-						if(!in_array($command, $classMethods) && !in_array(strtolower($command), $classMethods)) {
+						if (!in_array($command, $classMethods) && !in_array(strtolower($command), $classMethods)) {
 							$missingCommand = true;
 						}
 
+						$protectedCommands = array('initialize','in','out','err','hr',
+													'createfile', 'isdir','copydir','object','tostring',
+													'requestaction','log','cakeerror', 'shelldispatcher',
+													'__initconstants','__initenvironment','__construct',
+													'dispatch','__bootstrap','getinput','stdout','stderr','parseparams','shiftargs'
+													);
 						if (in_array(strtolower($command), $protectedCommands)) {
 							$missingCommand = true;
 						}
 
-
-						if($missingCommand && method_exists($shell, 'main')) {
-							$shell->initialize();
+						if ($missingCommand && method_exists($shell, 'main')) {
+							$shell->startup();
 							$shell->main();
-						} else if($missingCommand && method_exists($shell, 'help')) {
-							$shell->command = $command;
+						} elseif (!$privateMethod && method_exists($shell, $command)) {
 							$this->shiftArgs();
-							$shell->initialize();
-							$shell->help();
-						} else if(!$privateMethod && method_exists($shell, $command)) {
-							$shell->command = $command;
-							$this->shiftArgs();
-							$shell->initialize();
+							$shell->startup();
 							$shell->{$command}();
 						} else {
 							$this->stderr("Unknown {$this->shellName} command '$command'.\nFor usage, try 'cake {$this->shell} help'.\n\n");
@@ -344,6 +346,7 @@ class ShellDispatcher {
  * @param mixed $options Array or string of options.
  * @param string $default Default input value.
  * @return Either the default value, or the user-provided input.
+ * @access public
  */
 	function getInput($prompt, $options = null, $default = null) {
 		if (!is_array($options)) {
@@ -352,14 +355,19 @@ class ShellDispatcher {
 			$print_options = '(' . implode('/', $options) . ')';
 		}
 
-		if($default == null) {
+		if ($default == null) {
 			$this->stdout($prompt . " $print_options \n" . '> ', false);
 		} else {
 			$this->stdout($prompt . " $print_options \n" . "[$default] > ", false);
 		}
-		$result = trim(fgets($this->stdin));
+		$result = fgets($this->stdin);
 
-		if($default != null && empty($result)) {
+		if($result === false){
+			exit;
+		}
+		$result = trim($result);
+
+		if ($default != null && empty($result)) {
 			return $default;
 		} else {
 			return $result;
@@ -370,6 +378,7 @@ class ShellDispatcher {
  *
  * @param string $string String to output.
  * @param boolean $newline If true, the outputs gets an added newline.
+ * @access public
  */
 	function stdout($string, $newline = true) {
 		if ($newline) {
@@ -382,6 +391,7 @@ class ShellDispatcher {
  * Outputs to the stderr filehandle.
  *
  * @param string $string Error text to output.
+ * @access public
  */
 	function stderr($string) {
 		fwrite($this->stderr, 'Error: '. $string);
@@ -389,8 +399,8 @@ class ShellDispatcher {
 /**
  * Parses command line options
  *
- * @param array $params
- * @return void
+ * @param array $params Parameters to parse
+ * @access public
  */
 	function parseParams($params) {
 		$out = array();
@@ -405,37 +415,33 @@ class ShellDispatcher {
 		$app = 'app';
 		$root = dirname(dirname(dirname(__FILE__)));
 
-		if(!empty($this->params['working'])) {
-			$root = dirname($this->params['working']);
-			$app = basename($this->params['working']);
+		if (!empty($this->params['working']) && (!isset($this->args[0]) || isset($this->args[0]) && $this->args[0]{0} !== '.')) {
+			if (empty($this->params['app'])) {
+				$root = dirname($this->params['working']);
+				$app = basename($this->params['working']);
+			} else {
+				$root = $this->params['working'];
+			}
 			unset($this->params['working']);
  		}
 
-		if(!empty($this->params['app'])) {
-			if($this->params['app']{0} == '/') {
+		if (!empty($this->params['app'])) {
+			if ($this->params['app']{0} == '/') {
 				$root = dirname($this->params['app']);
-				$app = basename($this->params['app']);
-			} else {
-				$root = $root . DS . $app;
-				$app = $this->params['app'];
- 			}
+			}
+			$app = basename($this->params['app']);
 			unset($this->params['app']);
 		}
 
+		$working = str_replace(DS . DS, DS, $root . DS . $app);
 
-		if(in_array($app, array('cake', 'console')) || realpath($root.DS.$app) === dirname(dirname(dirname(__FILE__)))) {
-			$root = dirname(dirname(dirname(__FILE__)));
-			$app = 'app';
-		}
-
-		$working = $root . DS . $app;
-
-		$this->params = array_merge(array('app'=> $app, 'root'=> $root, 'working'=> $working), $this->params);
+		$this->params = array_merge($this->params, array('app'=> $app, 'root'=> $root, 'working'=> $working));
 	}
 /**
  * Removes first argument and shifts other arguments up
  *
  * @return boolean False if there are no arguments
+ * @access public
  */
 	function shiftArgs() {
 		if (empty($this->args)) {
@@ -448,7 +454,7 @@ class ShellDispatcher {
 /**
  * Shows console help
  *
- * @return void
+ * @access public
  */
 	function help() {
 		$this->stdout("Current Paths:");
@@ -463,12 +469,12 @@ class ShellDispatcher {
 		$this->stdout("Example: -app relative/path/to/myapp or -app /absolute/path/to/myapp");
 
 		$this->stdout("\nAvailable Shells:");
-		foreach($this->shellPaths as $path) {
-			if(is_dir($path)) {
+		foreach ($this->shellPaths as $path) {
+			if (is_dir($path)) {
 				$shells = listClasses($path);
 				$path = r(CORE_PATH, '', $path);
 				$this->stdout("\n " . $path . ":");
-				if(empty($shells)) {
+				if (empty($shells)) {
 					$this->stdout("\t - none");
 				} else {
 					foreach ($shells as $shell) {

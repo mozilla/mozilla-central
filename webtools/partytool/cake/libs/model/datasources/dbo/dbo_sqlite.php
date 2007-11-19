@@ -1,5 +1,5 @@
 <?php
-/* SVN FILE: $Id: dbo_sqlite.php,v 1.1 2007-05-25 05:54:19 rflint%ryanflint.com Exp $ */
+/* SVN FILE: $Id: dbo_sqlite.php,v 1.2 2007-11-19 08:49:54 rflint%ryanflint.com Exp $ */
 
 /**
  * SQLite layer for DBO
@@ -22,9 +22,9 @@
  * @package			cake
  * @subpackage		cake.cake.libs.model.datasources.dbo
  * @since			CakePHP(tm) v 0.9.0
- * @version			$Revision: 1.1 $
+ * @version			$Revision: 1.2 $
  * @modifiedby		$LastChangedBy: phpnut $
- * @lastmodified	$Date: 2007-05-25 05:54:19 $
+ * @lastmodified	$Date: 2007-11-19 08:49:54 $
  * @license			http://www.opensource.org/licenses/mit-license.php The MIT License
  */
 /**
@@ -160,8 +160,7 @@ class DboSqlite extends DboSource {
 		$result = $this->fetchAll('PRAGMA table_info(' . $model->tablePrefix . $model->table . ')');
 
 		foreach ($result as $column) {
-			$fields[] = array(
-				'name' => $column[0]['name'],
+			$fields[$column[0]['name']] = array(
 				'type' => $this->column($column[0]['type']),
 				'null' => ! $column[0]['notnull'],
 				'default' => $column[0]['dflt_value']
@@ -188,7 +187,7 @@ class DboSqlite extends DboSource {
 			return 'NULL';
 		}
 
-		if($data === '') {
+		if ($data === '') {
 			return  "''";
 		}
 
@@ -262,7 +261,7 @@ class DboSqlite extends DboSource {
 /**
  * Returns number of affected rows in previous database operation. If no previous operation exists, this returns false.
  *
- * @return int Number of affected rows
+ * @return integer Number of affected rows
  */
 	function lastAffected() {
 		if ($this->_result) {
@@ -274,7 +273,7 @@ class DboSqlite extends DboSource {
  * Returns number of rows in previous resultset. If no previous resultset exists,
  * this returns false.
  *
- * @return int Number of rows in resultset
+ * @return integer Number of rows in resultset
  */
 	function lastNumRows() {
 		if ($this->_result) {
@@ -375,8 +374,8 @@ class DboSqlite extends DboSource {
 /**
  * Returns a limit statement in the correct format for the particular database.
  *
- * @param int $limit Limit of results returned
- * @param int $offset Offset from which to start results
+ * @param integer $limit Limit of results returned
+ * @param integer $offset Offset from which to start results
  * @return string SQL limit/offset statement
  */
 	function limit ($limit, $offset = null) {
@@ -387,12 +386,24 @@ class DboSqlite extends DboSource {
 			}
 			$rt .= ' ' . $limit;
 			if ($offset) {
-				$rt .= ', ' . $offset;
+				$rt .= ' OFFSET ' . $offset;
 			}
 			return $rt;
 		}
 		return null;
 	}
+/**
+ * Inserts multiple values into a join table
+ *
+ * @param string $table
+ * @param string $fields
+ * @param array $values
+ */
+	function insertMulti($table, $fields, $values) {
+		$count = count($values);
+		for ($x = 0; $x < $count; $x++) {
+			$this->query("INSERT INTO {$table} ({$fields}) VALUES {$values[$x]}");
+		}
+	}
 }
-
 ?>

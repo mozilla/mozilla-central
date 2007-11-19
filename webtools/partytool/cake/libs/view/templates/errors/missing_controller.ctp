@@ -1,5 +1,5 @@
 <?php
-/* SVN FILE: $Id: missing_controller.ctp,v 1.1 2007-05-25 05:54:20 rflint%ryanflint.com Exp $ */
+/* SVN FILE: $Id: missing_controller.ctp,v 1.2 2007-11-19 08:49:55 rflint%ryanflint.com Exp $ */
 /**
  *
  * PHP versions 4 and 5
@@ -18,9 +18,9 @@
  * @package			cake
  * @subpackage		cake.cake.libs.view.templates.errors
  * @since			CakePHP(tm) v 0.10.0.1076
- * @version			$Revision: 1.1 $
+ * @version			$Revision: 1.2 $
  * @modifiedby		$LastChangedBy: phpnut $
- * @lastmodified	$Date: 2007-05-25 05:54:20 $
+ * @lastmodified	$Date: 2007-11-19 08:49:55 $
  * @license			http://www.opensource.org/licenses/mit-license.php The MIT License
  */
 ?>
@@ -28,7 +28,7 @@
 <p class="error"><?php echo sprintf(__('You are seeing this error because controller <em>%s</em> could not be found.', true), $controller);?></p>
 
 <p><span class="notice"><strong><?php __('Notice'); ?>: </strong>
-<?php echo sprintf(__('If you want to customize this error message, create %s', true), APP_DIR.DS."views/errors/missing_controller.ctp");?></span></p>
+<?php echo sprintf(__('If you want to customize this error message, create %s', true), APP_DIR.DS."views".DS."errors".DS."missing_controller.ctp");?></span></p>
 <p><span class="notice"><strong><?php __('Fatal'); ?>: </strong>
 <?php echo sprintf(__('Create the class below in file: %s', true), APP_DIR.DS."controllers".DS.Inflector::underscore($controller).".php");?></span></p>
 <p>&lt;?php<br />

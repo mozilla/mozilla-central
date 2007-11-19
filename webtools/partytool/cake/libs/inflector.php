@@ -1,5 +1,5 @@
 <?php
-/* SVN FILE: $Id: inflector.php,v 1.1 2007-05-25 05:54:17 rflint%ryanflint.com Exp $ */
+/* SVN FILE: $Id: inflector.php,v 1.2 2007-11-19 08:49:53 rflint%ryanflint.com Exp $ */
 /**
  * Pluralize and singularize English words.
  *
@@ -21,9 +21,9 @@
  * @package			cake
  * @subpackage		cake.cake.libs
  * @since			CakePHP(tm) v 0.2.9
- * @version			$Revision: 1.1 $
+ * @version			$Revision: 1.2 $
  * @modifiedby		$LastChangedBy: phpnut $
- * @lastmodified	$Date: 2007-05-25 05:54:17 $
+ * @lastmodified	$Date: 2007-11-19 08:49:53 $
  * @license			http://www.opensource.org/licenses/mit-license.php The MIT License
  */
 /**
@@ -56,6 +56,7 @@ class Inflector extends Object {
  * Gets a reference to the Inflector object instance
  *
  * @return object
+ * @access public
  */
 	function &getInstance() {
 		static $instance = array();
@@ -70,7 +71,6 @@ class Inflector extends Object {
  * Initializes plural inflection rules
  *
  * @access protected
- * @return void
  */
 	function __initPluralRules() {
 		$_this =& Inflector::getInstance();
@@ -120,7 +120,6 @@ class Inflector extends Object {
 										'hoof' => 'hoofs',
 										'loaf' => 'loaves',
 										'man' => 'men',
-										'menu' => 'menus',
 										'money' => 'monies',
 										'mongoose' => 'mongooses',
 										'move' => 'moves',
@@ -156,6 +155,8 @@ class Inflector extends Object {
  *
  * @param string $word Word in singular
  * @return string Word in plural
+ * @access public
+ * @static
  */
 	function pluralize($word) {
 
@@ -186,7 +187,7 @@ class Inflector extends Object {
 			return $word;
 		}
 
-		foreach($pluralRules as $rule => $replacement) {
+		foreach ($pluralRules as $rule => $replacement) {
 			if (preg_match($rule, $word)) {
 				$_this->pluralized[$word] = preg_replace($rule, $replacement, $word);
 				return $_this->pluralized[$word];
@@ -199,12 +200,12 @@ class Inflector extends Object {
  * Initializes singular inflection rules
  *
  * @access protected
- * @return void
  */
 	function __initSingularRules() {
 
 		$_this =& Inflector::getInstance();
 		$coreSingularRules = array('/(s)tatuses$/i' => '\1\2tatus',
+									'/^(.*)(menu)s$/i' => '\1\2',
 									'/(quiz)zes$/i' => '\\1',
 									'/(matr)ices$/i' => '\1ix',
 									'/(vert|ind)ices$/i' => '\1ex',
@@ -233,9 +234,10 @@ class Inflector extends Object {
 									'/(m)en$/i' => '\1an',
 									'/(c)hildren$/i' => '\1\2hild',
 									'/(n)ews$/i' => '\1\2ews',
+									'/^(.*us)$/' => '\\1',
 									'/s$/i' => '');
 
-		$coreUninflectedSingular = array('.*[nrlm]ese', '.*deer', '.*fish', '.*measles', '.*ois', '.*pox', '.*sheep', '.*us', '.*ss', 'Amoyese',
+		$coreUninflectedSingular = array('.*[nrlm]ese', '.*deer', '.*fish', '.*measles', '.*ois', '.*pox', '.*sheep', '.*ss', 'Amoyese',
 											'bison', 'Borghese', 'bream', 'breeches', 'britches', 'buffalo', 'cantus', 'carp', 'chassis', 'clippers',
 											'cod', 'coitus', 'Congoese', 'contretemps', 'corps', 'debris', 'diabetes', 'djinn', 'eland', 'elk',
 											'equipment', 'Faroese', 'flounder', 'Foochowese', 'gallows', 'Genevese', 'Genoese', 'Gilbertese', 'graffiti',
@@ -259,7 +261,6 @@ class Inflector extends Object {
 										'hoofs' => 'hoof',
 										'loaves' => 'loaf',
 										'men' => 'man',
-										'menus' => 'menu',
 										'monies' => 'money',
 										'mongooses' => 'mongoose',
 										'moves' => 'move',
@@ -295,9 +296,10 @@ class Inflector extends Object {
  *
  * @param string $word Word in plural
  * @return string Word in singular
+ * @access public
+ * @static
  */
 	function singularize($word) {
-
 		$_this =& Inflector::getInstance();
 		if (!isset($_this->singularRules) || empty($_this->singularRules)) {
 			$_this->__initSingularRules();
@@ -325,7 +327,7 @@ class Inflector extends Object {
 			return $word;
 		}
 
-		foreach($singularRules as $rule => $replacement) {
+		foreach ($singularRules as $rule => $replacement) {
 			if (preg_match($rule, $word)) {
 				$_this->singularized[$word] = preg_replace($rule, $replacement, $word);
 				return $_this->singularized[$word];
@@ -339,6 +341,8 @@ class Inflector extends Object {
  *
  * @param string $lower_case_and_underscored_word Word to camelize
  * @return string Camelized word. likeThis.
+ * @access public
+ * @static
  */
 	function camelize($lowerCaseAndUnderscoredWord) {
 		$replace = str_replace(" ", "", ucwords(str_replace("_", " ", $lowerCaseAndUnderscoredWord)));
@@ -349,6 +353,8 @@ class Inflector extends Object {
  *
  * @param string $camel_cased_word Camel-cased word to be "underscorized"
  * @return string Underscore-syntaxed version of the $camel_cased_word
+ * @access public
+ * @static
  */
 	function underscore($camelCasedWord) {
 		$replace = strtolower(preg_replace('/(?<=\\w)([A-Z])/', '_\\1', $camelCasedWord));
@@ -360,6 +366,8 @@ class Inflector extends Object {
  *
  * @param string $lower_case_and_underscored_word String to be made more readable
  * @return string Human-readable string
+ * @access public
+ * @static
  */
 	function humanize($lowerCaseAndUnderscoredWord) {
 		$replace = ucwords(str_replace("_", " ", $lowerCaseAndUnderscoredWord));
@@ -370,6 +378,8 @@ class Inflector extends Object {
  *
  * @param string $class_name Name of class to get database table name for
  * @return string Name of the database table for given class
+ * @access public
+ * @static
  */
 	function tableize($className) {
 		$replace = Inflector::pluralize(Inflector::underscore($className));
@@ -380,6 +390,8 @@ class Inflector extends Object {
  *
  * @param string $tableName Name of database table to get class name for
  * @return string
+ * @access public
+ * @static
  */
 	function classify($tableName) {
 		$replace = Inflector::camelize(Inflector::singularize($tableName));
@@ -390,6 +402,8 @@ class Inflector extends Object {
  *
  * @param string $string
  * @return string
+ * @access public
+ * @static
  */
 	function variable($string) {
 		$string = Inflector::camelize(Inflector::underscore($string));
@@ -397,13 +411,25 @@ class Inflector extends Object {
 		$variable = preg_replace('/\\w/', $replace, $string, 1);
 		return $variable;
 	}
-}
-
 /**
- * Enter description here...
+ * Returns a string with all spaces converted to $replacement and non word characters removed.
  *
- * @param unknown_type $string
- * @return unknown
+ * @param string $string
+ * @param string $replacement
+ * @return string
+ * @access public
+ * @static
+ */
+	function slug($string, $replacement = '_') {
+		$string = preg_replace(array('/[^\w\s]/', '/\\s+/') , array(' ', $replacement), $string);
+		return $string;
+	}
+}
+/**
+ * Enclose a string for preg matching.
+ *
+ * @param string $string String to enclose
+ * @return string Enclosed string
  */
 	function __enclose($string) {
 		return '(?:' . $string . ')';

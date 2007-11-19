@@ -1,5 +1,5 @@
 <?php
-/* SVN FILE: $Id: test_manager.php,v 1.1 2007-05-25 05:54:28 rflint%ryanflint.com Exp $ */
+/* SVN FILE: $Id: test_manager.php,v 1.2 2007-11-19 08:49:57 rflint%ryanflint.com Exp $ */
 /**
  * Short description for file.
  *
@@ -21,13 +21,13 @@
  * @package			cake
  * @subpackage		cake.cake.tests.lib
  * @since			CakePHP(tm) v 1.2.0.4433
- * @version			$Revision: 1.1 $
+ * @version			$Revision: 1.2 $
  * @modifiedby		$LastChangedBy: phpnut $
- * @lastmodified	$Date: 2007-05-25 05:54:28 $
+ * @lastmodified	$Date: 2007-11-19 08:49:57 $
  * @license			http://www.opensource.org/licenses/opengroup.php The Open Group Test Suite License
  */
-define ('CORE_TEST_CASES', CAKE_CORE_INCLUDE_PATH . DS . 'cake' . DS .  'tests' . DS . 'cases');
-define ('CORE_TEST_GROUPS', CAKE_CORE_INCLUDE_PATH . DS . 'cake' . DS .  'tests' . DS . 'groups');
+define ('CORE_TEST_CASES', dirname(dirname(__FILE__)) . DS . 'cases');
+define ('CORE_TEST_GROUPS', dirname(dirname(__FILE__)) . DS . 'groups');
 define ('APP_TEST_CASES', APP . 'tests' .DS. 'cases');
 define ('APP_TEST_GROUPS', APP . 'tests' .DS. 'groups');
 /**
@@ -49,7 +49,7 @@ class TestManager {
 	}
 
 	function _installSimpleTest() {
-		vendor('simpletest'.DS.'unit_tester', 'simpletest'.DS.'web_tester', 'simpletest'.DS.'mock_objects');
+		vendor('simpletest'.DS.'unit_tester', 'simpletest'.DS.'mock_objects', 'simpletest'.DS.'web_tester');
 		require_once(LIB_TESTS . 'cake_web_test_case.php');
 		require_once(LIB_TESTS . 'cake_test_case.php');
 	}
@@ -57,10 +57,10 @@ class TestManager {
 	function runAllTests(&$reporter) {
 		$manager =& new TestManager();
 
-		if(!empty($manager->usersAppTest)) {
-			$testCasePath = APP_TEST_CASES . DIRECTORY_SEPARATOR;
+		if (!empty($manager->usersAppTest)) {
+			$testCasePath = APP_TEST_CASES;
 		} else {
-			$testCasePath = CORE_TEST_CASES . DIRECTORY_SEPARATOR;
+			$testCasePath = CORE_TEST_CASES;
 		}
 		$testCases =& $manager->_getTestFileList($testCasePath);
 		$test =& new GroupTest('All Core Tests');
@@ -74,13 +74,13 @@ class TestManager {
 		foreach ($testCases as $testCase) {
 			$test->addTestFile($testCase);
 		}
-		$test->run($reporter);
+		return $test->run($reporter);
 	}
 
 	function runTestCase($testCaseFile, &$reporter) {
 		$manager =& new TestManager();
 
-		if(!empty($manager->usersAppTest)) {
+		if (!empty($manager->usersAppTest)) {
 			$testCaseFileWithPath = APP_TEST_CASES . DIRECTORY_SEPARATOR . $testCaseFile;
 		} else {
 			$testCaseFileWithPath = CORE_TEST_CASES . DIRECTORY_SEPARATOR . $testCaseFile;
@@ -90,7 +90,7 @@ class TestManager {
 		}
 		$test =& new GroupTest("Individual test case: " . $testCaseFile);
 		$test->addTestFile($testCaseFileWithPath);
-		$test->run($reporter);
+		return $test->run($reporter);
 	}
 
 	function runGroupTest($groupTestName, $groupTestDirectory, &$reporter) {
@@ -104,15 +104,14 @@ class TestManager {
 
 		require_once $filePath;
 		$test =& new GroupTest($groupTestName . ' group test');
-
 		foreach ($manager->_getGroupTestClassNames($filePath) as $groupTest) {
 			$testCase = new $groupTest();
 			$test->addTestCase($testCase);
-			if(isset($testCase->label)) {
+			if (isset($testCase->label)) {
 				$test->_label = $testCase->label;
 			}
 		}
-		$test->run($reporter);
+		return $test->run($reporter);
 	}
 
 	function addTestCasesFromDirectory(&$groupTest, $directory = '.') {
@@ -327,7 +326,7 @@ class HtmlTestManager extends TestManager {
 			return $noGroupTests;
 		}
 
-		if (isset($_GET['app'])){
+		if (isset($_GET['app'])) {
 			$buffer = "<h3>Available App Test Groups:</h3>\n<ul>";
 		} else {
 			$buffer = "<h3>Available Core Test Groups:</h3>\n<ul>";

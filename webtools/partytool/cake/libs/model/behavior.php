@@ -1,5 +1,5 @@
 <?php
-/* SVN FILE: $Id: behavior.php,v 1.1 2007-05-25 05:54:18 rflint%ryanflint.com Exp $ */
+/* SVN FILE: $Id: behavior.php,v 1.2 2007-11-19 08:49:54 rflint%ryanflint.com Exp $ */
 
 /**
  * Model behaviors base class.
@@ -22,9 +22,9 @@
  * @package			cake
  * @subpackage		cake.cake.libs.model
  * @since			CakePHP(tm) v 1.2.0.0
- * @version			$Revision: 1.1 $
+ * @version			$Revision: 1.2 $
  * @modifiedby		$LastChangedBy: phpnut $
- * @lastmodified	$Date: 2007-05-25 05:54:18 $
+ * @lastmodified	$Date: 2007-11-19 08:49:54 $
  * @license			http://www.opensource.org/licenses/mit-license.php The MIT License
  */
 /**
@@ -63,6 +63,8 @@ class ModelBehavior extends Object {
 	function beforeFind(&$model, $query) { }
 
 	function afterFind(&$model, $results, $primary) { }
+
+	function beforeValidate(&$model) { }
 
 	function beforeSave(&$model) { }
 

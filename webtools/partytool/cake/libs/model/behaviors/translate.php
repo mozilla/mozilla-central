@@ -1,5 +1,5 @@
 <?php
-/* SVN FILE: $Id: translate.php,v 1.1 2007-05-25 05:54:18 rflint%ryanflint.com Exp $ */
+/* SVN FILE: $Id: translate.php,v 1.2 2007-11-19 08:49:54 rflint%ryanflint.com Exp $ */
 /**
  * Short description for file.
  *
@@ -21,9 +21,9 @@
  * @package			cake
  * @subpackage		cake.cake.libs.model.behaviors
  * @since			CakePHP(tm) v 1.2.0.4525
- * @version			$Revision: 1.1 $
+ * @version			$Revision: 1.2 $
  * @modifiedby		$LastChangedBy: phpnut $
- * @lastmodified	$Date: 2007-05-25 05:54:18 $
+ * @lastmodified	$Date: 2007-11-19 08:49:54 $
  * @license			http://www.opensource.org/licenses/mit-license.php The MIT License
  */
 /**
@@ -40,19 +40,6 @@ class TranslateBehavior extends ModelBehavior {
  */
 	var $runtime = array();
 /**
- * Instance of I18nModel class, used internally
- */
-	var $_model = null;
-/**
- * Constructor
- */
-	function __construct() {
-		parent::__construct();
-
-		$this->_model =& new I18nModel();
-		ClassRegistry::addObject('I18nModel', $this->_model);
-	}
-/**
  * Callback
  *
  * $config for TranslateBehavior should be
@@ -66,58 +53,59 @@ class TranslateBehavior extends ModelBehavior {
  * bindTranslation() method
  */
 	function setup(&$model, $config = array()) {
-		$this->settings[$model->name] = array();
-		$this->runtime[$model->name] = array('fields' => array());
 		$db =& ConnectionManager::getDataSource($model->useDbConfig);
-
-		if(!$db->connected) {
-			trigger_error('Datasource '.$model->useDbConfig.' for I18nBehavior of model '.$model->name.' is not connected', E_USER_ERROR);
+		if (!$db->connected) {
+			trigger_error('Datasource '.$model->useDbConfig.' for TranslateBehavior of model '.$model->name.' is not connected', E_USER_ERROR);
 			return false;
 		}
-		$this->runtime[$model->name]['tablePrefix'] = $db->config['prefix'];
-		return $this->bindTranslation($model, $config, false);
+
+		$this->settings[$model->name] = array();
+		$this->runtime[$model->name] = array('fields' => array());
+		$this->translateModel($model);
+		return $this->bindTranslation($model, null, false);
 	}
 /**
  * Callback
  */
 	function beforeFind(&$model, $query) {
 		$locale = $this->_getLocale($model);
+		$db =& ConnectionManager::getDataSource($model->useDbConfig);
+		$tablePrefix = $db->config['prefix'];
+		$RuntimeModel =& $this->translateModel($model);
 
-		if(is_string($query['fields']) && 'COUNT(*) AS count' == $query['fields']) {
+		if (is_string($query['fields']) && 'COUNT(*) AS '.$db->name('count') == $query['fields']) {
 			$this->runtime[$model->name]['count'] = true;
 
-			$db =& ConnectionManager::getDataSource($model->useDbConfig);
-			$tablePrefix = $this->runtime[$model->name]['tablePrefix'];
-
+			if (empty($locale)) {
+				return $query;
+			}
 			$query['fields'] = 'COUNT(DISTINCT('.$db->name($model->name).'.'.$db->name($model->primaryKey).')) ' . $db->alias . 'count';
 			$query['joins'][] = array(
-				'type' => 'INNER',
-				'alias' => 'I18nModel',
-				'table' => $tablePrefix . 'i18n',
-				'conditions' => array(
-					$model->name.'.id'	=> '{$__cakeIdentifier[I18nModel.row_id]__$}',
-					'I18nModel.model'	=> $model->name,
-					'I18nModel.locale'	=> $locale
-				)
-			);
+						'type' => 'INNER',
+						'alias' => $RuntimeModel->name,
+						'table' => $db->name($tablePrefix . 'i18n'),
+						'conditions' => array(
+								$model->name.'.id' => '{$__cakeIdentifier['.$RuntimeModel->name.'.foreign_key]__$}',
+								$RuntimeModel->name.'.model' => $model->name,
+								$RuntimeModel->name.'.locale' => $locale));
 			return $query;
 		}
 
-		if(empty($locale) || is_array($locale)) {
+		if (empty($locale)) {
 			return $query;
 		}
 		$autoFields = false;
 
-		if(empty($query['fields'])) {
+		if (empty($query['fields'])) {
 			$query['fields'] = array($model->name.'.*');
 
-			foreach(array('hasOne', 'belongsTo') as $type) {
-				foreach($model->{$type} as $key => $value) {
+			foreach (array('hasOne', 'belongsTo') as $type) {
+				foreach ($model->{$type} as $key => $value) {
 
-					if(empty($value['fields'])) {
+					if (empty($value['fields'])) {
 						$query['fields'][] = $key.'.*';
 					} else {
-						foreach($value['fields'] as $field) {
+						foreach ($value['fields'] as $field) {
 							$query['fields'][] = $key.'.'.$field;
 						}
 					}
@@ -125,42 +113,53 @@ class TranslateBehavior extends ModelBehavior {
 			}
 			$autoFields = true;
 		}
-
 		$fields = am($this->settings[$model->name], $this->runtime[$model->name]['fields']);
-		$tablePrefix = $this->runtime[$model->name]['tablePrefix'];
 		$addFields = array();
+		if (is_array($query['fields'])) {
+			foreach ($fields as $key => $value) {
+				$field = ife(is_numeric($key), $value, $key);
 
-		if(is_array($query['fields'])) {
-			if(in_array($model->name.'.*', $query['fields'])) {
-				foreach($fields as $key => $value) {
-					$addFields[] = ife(is_numeric($key), $value, $key);
-				}
-			} else {
-				foreach($fields as $key => $value) {
-					$field = ife(is_numeric($key), $value, $key);
-					if($autoFields || in_array($model->name.'.'.$field, $query['fields']) || in_array($field, $query['fields'])) {
-						$addFields[] = $field;
-					}
+				if (in_array($model->name.'.*', $query['fields']) || $autoFields || in_array($model->name.'.'.$field, $query['fields']) || in_array($field, $query['fields'])) {
+					$addFields[] = $field;
 				}
 			}
 		}
 
-		if($addFields) {
-			$db =& ConnectionManager::getDataSource($model->useDbConfig);
+		if ($addFields) {
+			foreach ($addFields as $field) {
+				foreach (array($field, $model->name.'.'.$field) as $_field) {
+					$key = array_search($_field, $query['fields']);
 
-			foreach($addFields as $field) {
-				$key = array_search($model->name.'.'.$field, $query['fields']);
-				if(false !== $key) {
-					unset($query['fields'][$key]);
+					if ($key !== false) {
+						unset($query['fields'][$key]);
+					}
 				}
 
-				$query['fields'][] = 'I18n__'.$field.'.content';
-
-				$query['joins'][] = 'LEFT JOIN '.$db->name($tablePrefix.'i18n').' AS '.$db->name('I18n__'.$field.'Model').' ON '.$db->name($model->name.'.id').' = '.$db->name('I18n__'.$field.'Model.row_id');
-				$query['joins'][] = 'LEFT JOIN '.$db->name($tablePrefix.'i18n_content').' AS '.$db->name('I18n__'.$field).' ON '.$db->name('I18n__'.$field.'Model.i18n_content_id').' = '.$db->name('I18n__'.$field.'.id');
-				$query['conditions'][$db->name('I18n__'.$field.'Model.model')] = $model->name;
-				$query['conditions'][$db->name('I18n__'.$field.'Model.field')] = $field;
-				$query['conditions'][$db->name('I18n__'.$field.'Model`.`locale')] = $locale;
+				if (is_array($locale)) {
+					foreach ($locale as $_locale) {
+						$query['fields'][] = 'I18n__'.$field.'__'.$_locale.'.content';
+						$query['joins'][] = array(
+								'type' => 'LEFT',
+								'alias' => 'I18n__'.$field.'__'.$_locale,
+								'table' => $db->name($tablePrefix . 'i18n'),
+								'conditions' => array(
+										$model->name.'.id' => '{$__cakeIdentifier[I18n__'.$field.'__'.$_locale.'.foreign_key]__$}',
+										'I18n__'.$field.'__'.$_locale.'.model' => $model->name,
+										'I18n__'.$field.'__'.$_locale.'.'.$RuntimeModel->displayField => $field,
+										'I18n__'.$field.'__'.$_locale.'.locale' => $_locale));
+					}
+				} else {
+					$query['fields'][] = 'I18n__'.$field.'.content';
+					$query['joins'][] = array(
+							'type' => 'LEFT',
+							'alias' => 'I18n__'.$field,
+							'table' => $db->name($tablePrefix . 'i18n'),
+							'conditions' => array(
+									$model->name.'.id' => '{$__cakeIdentifier[I18n__'.$field.'.foreign_key]__$}',
+									'I18n__'.$field.'.model' => $model->name,
+									'I18n__'.$field.'.'.$RuntimeModel->displayField => $field));
+					$query['conditions'][$db->name('I18n__'.$field.'.locale')] = $locale;
+				}
 			}
 		}
 		$query['fields'] = am($query['fields']);
@@ -171,38 +170,30 @@ class TranslateBehavior extends ModelBehavior {
  * Callback
  */
 	function afterFind(&$model, $results, $primary) {
-		if(!empty($this->runtime[$model->name]['count'])) {
-			unset($this->runtime[$model->name]['count']);
-			return $results;
-		}
 		$this->runtime[$model->name]['fields'] = array();
 		$locale = $this->_getLocale($model);
 
-		if(empty($locale) || empty($results)) {
+		if (empty($locale) || empty($results) || empty($this->runtime[$model->name]['beforeFind'])) {
 			return $results;
 		}
+		$beforeFind = $this->runtime[$model->name]['beforeFind'];
 
-		if(is_array($locale)) {
-			$fields = am($this->settings[$model->name], $this->runtime[$model->name]['fields']);
-			$emptyFields = array('locale' => '');
+		foreach ($results as $key => $row) {
+			$results[$key][$model->name]['locale'] = ife(is_array($locale), @$locale[0], $locale);
 
-			foreach($fields as $key => $value) {
-				$field = ife(is_numeric($key), $value, $key);
-				$emptyFields[$field] = '';
-			}
-			unset($fields);
+			foreach ($beforeFind as $field) {
+				if (is_array($locale)) {
+					foreach ($locale as $_locale) {
+						if (!isset($results[$key][$model->name][$field]) && !empty($results[$key]['I18n__'.$field.'__'.$_locale]['content'])) {
+							$results[$key][$model->name][$field] = $results[$key]['I18n__'.$field.'__'.$_locale]['content'];
+						}
+						unset($results[$key]['I18n__'.$field.'__'.$_locale]);
+					}
 
-			foreach($results as $key => $row) {
-				$results[$key][$model->name] = am($results[$key][$model->name], $emptyFields);
-			}
-			unset($emptyFields);
-		} elseif(!empty($this->runtime[$model->name]['beforeFind'])) {
-			$beforeFind = $this->runtime[$model->name]['beforeFind'];
-
-			foreach($results as $key => $row) {
-				$results[$key][$model->name]['locale'] = $locale;
-
-				foreach($beforeFind as $field) {
+					if (!isset($results[$key][$model->name][$field])) {
+						$results[$key][$model->name][$field] = '';
+					}
+				} else {
 					$value = ife(empty($results[$key]['I18n__'.$field]['content']), '', $results[$key]['I18n__'.$field]['content']);
 					$results[$key][$model->name][$field] = $value;
 					unset($results[$key]['I18n__'.$field]);
@@ -210,113 +201,69 @@ class TranslateBehavior extends ModelBehavior {
 			}
 		}
 		return $results;
-	}
+    }
 /**
  * Callback
  */
 	function beforeSave(&$model) {
 		$locale = $this->_getLocale($model);
 
-		if(empty($locale) || is_array($locale)) {
+		if (empty($locale) || is_array($locale)) {
 			return true;
 		}
 		$fields = am($this->settings[$model->name], $this->runtime[$model->name]['fields']);
 		$tempData = array();
 
-		foreach($fields as $key => $value) {
+		foreach ($fields as $key => $value) {
 			$field = ife(is_numeric($key), $value, $key);
 
-			if(isset($model->data[$model->name][$field])) {
+			if (isset($model->data[$model->name][$field])) {
 				$tempData[$field] = $model->data[$model->name][$field];
 				unset($model->data[$model->name][$field]);
-			} else {
-				$tempData[$field] = '';
 			}
 		}
 		$this->runtime[$model->name]['beforeSave'] = $tempData;
-		$this->runtime[$model->name]['ignoreUserAbort'] = ignore_user_abort();
-		@ignore_user_abort(true);
 		return true;
 	}
 /**
  * Callback
  */
 	function afterSave(&$model, $created) {
-		$locale = $this->_getLocale($model);
-
-		if(empty($locale) || is_array($locale) || empty($this->runtime[$model->name]['beforeSave'])) {
+		if (!isset($this->runtime[$model->name]['beforeSave'])) {
 			return true;
 		}
+		$locale = $this->_getLocale($model);
 		$tempData = $this->runtime[$model->name]['beforeSave'];
 		unset($this->runtime[$model->name]['beforeSave']);
+		$conditions = array('locale' => $locale, 'model' => $model->name, 'foreign_key' => $model->id);
+		$RuntimeModel =& $this->translateModel($model);
 
-		$conditions = array('locale' => $locale,
-									'model' => $model->name,
-									'row_id' => $model->id);
+		if (empty($created)) {
+			$translations = $RuntimeModel->generateList(am($conditions, array($RuntimeModel->displayField => array_keys($tempData))));
 
-		if($created) {
-			foreach($tempData as $field => $value) {
-				$this->_model->Content->create();
-				$this->_model->Content->save(array('I18nContent' => array('content' => $value)));
-
-				$this->_model->create();
-				$this->_model->save(array('I18nModel' => am($conditions, array(
-													'i18n_content_id' => $this->_model->Content->getInsertID(),
-													'field' => $field))));
-			}
-		} else {
-			$this->_model->recursive = -1;
-			$translations = $this->_model->findAll($conditions, array('field', 'i18n_content_id'));
-			$fields = Set::extract($translations, '{n}.I18nModel.field');
-			$ids = Set::extract($translations, '{n}.I18nModel.i18n_content_id');
-
-			foreach($fields as $key => $field) {
-				if(array_key_exists($field, $tempData)) {
-					$this->_model->Content->create();
-					$this->_model->Content->save(array('I18nContent' => array(
-																	'id' => $ids[$key],
-																	'content' => $tempData[$field])));
+			if ($translations) {
+				foreach ($translations as $id => $field) {
+					$RuntimeModel->create();
+					$RuntimeModel->save(array($RuntimeModel->name => array('id' => $id, 'content' => $tempData[$field])));
+					unset($tempData[$field]);
 				}
 			}
 		}
-		@ignore_user_abort((bool) $this->runtime[$model->name]['ignoreUserAbort']);
-		unset($this->runtime[$model->name]['ignoreUserAbort']);
-	}
-/**
- * Callback
- */
-	function beforeDelete(&$model) {
-		$this->runtime[$model->name]['ignoreUserAbort'] = ignore_user_abort();
-		@ignore_user_abort(true);
-		return true;
+
+		if (!empty($tempData)) {
+			foreach ($tempData as $field => $value) {
+				$RuntimeModel->create(am($conditions, array($RuntimeModel->displayField => $field, 'content' => $value)));
+				$RuntimeModel->save();
+			}
+		}
 	}
 /**
  * Callback
  */
 	function afterDelete(&$model) {
-		$this->_model->recursive = -1;
-		$conditions = array('model' => $model->name, 'row_id' => $model->id);
-		$translations = $this->_model->findAll($conditions, array('i18n_content_id'));
-		$ids = Set::extract($translations, '{n}.I18nModel.i18n_content_id');
-
-		$db =& ConnectionManager::getDataSource($model->useDbConfig);
-		$db->delete($this->_model->Content, array('id' => $ids));
-		$db->delete($this->_model, $conditions);
-
-		@ignore_user_abort((bool) $this->runtime[$model->name]['ignoreUserAbort']);
-		unset($this->runtime[$model->name]['ignoreUserAbort']);
-	}
-/**
- * Autodetects locale for application
- *
- * @todo
- * @return string
- */
-	function _autoDetectLocale() {
-		// just fast hack to obtain selected locale
-		__d('core', 'Notice', true);
-		$I18n =& I18n::getInstance();
-		return $I18n->locale;
+		$RuntimeModel =& $this->translateModel($model);
+		$conditions = array('model' => $model->name, 'foreign_key' => $model->id);
+		$RuntimeModel->deleteAll($conditions);
 	}
 /**
  * Get selected locale for model
@@ -324,38 +271,72 @@ class TranslateBehavior extends ModelBehavior {
  * @return mixed string or false
  */
 	function _getLocale(&$model) {
-		if(!isset($model->locale) || is_null($model->locale)) {
-			$model->locale = $this->_autoDetectLocale();
+		if (!isset($model->locale) || is_null($model->locale)) {
+			if (!class_exists('I18n')) {
+				uses('i18n');
+			}
+			$I18n =& I18n::getInstance();
+			$model->locale = $I18n->l10n->locale;
 		}
 		return $model->locale;
 	}
+/**
+ * Get instance of model for translations
+ *
+ * @return object
+ */
+	function &translateModel(&$model) {
+		if (!isset($this->runtime[$model->name]['model'])) {
+			if (!isset($model->translateModel) || empty($model->translateModel)) {
+				$className = 'I18nModel';
+			} else {
+				$className = $model->translateModel;
+				if (!class_exists($className) && !loadModel($className)) {
+					return $this->cakeError('missingModel', array(array('className' => $className)));
+				}
+			}
 
+			if (ClassRegistry::isKeySet($className)) {
+				if (PHP5) {
+					$this->runtime[$model->name]['model'] = ClassRegistry::getObject($className);
+				} else {
+					$this->runtime[$model->name]['model'] =& ClassRegistry::getObject($className);
+				}
+			} else {
+				if (PHP5) {
+					$this->runtime[$model->name]['model'] = new $className();
+				} else {
+					$this->runtime[$model->name]['model'] =& new $className();
+				}
+				ClassRegistry::addObject($className, $this->runtime[$model->name]['model']);
+				ClassRegistry::map($className, $className);
+			}
+		}
+		return $this->runtime[$model->name]['model'];
+	}
 /**
  * Bind translation for fields, optionally with hasMany association for
  * fake field
  *
  * @param object instance of model
- * @param mixed string with field or array(field1, field2=>AssocName, field3)
- * @param boolead $reset
- * @return boolean
+ * @param mixed string with field, or array(field1, field2=>AssocName, field3), or null for bind all original translations
+ * @param boolean $reset
+ * @return bool
  */
-	function bindTranslation(&$model, $fields, $reset = true) {
-		if(empty($fields)) {
-			return true;
+	function bindTranslation(&$model, $fields = null, $reset = true) {
+		if (empty($fields)) {
+			return $this->bindTranslation($model, $model->actsAs['Translate'], $reset);
 		}
 
-		if(is_string($fields)) {
+		if (is_string($fields)) {
 			$fields = array($fields);
 		}
-		$settings =& $this->settings[$model->name];
-		$runtime =& $this->runtime[$model->name]['fields'];
 		$associations = array();
+		$RuntimeModel =& $this->translateModel($model);
+		$default = array('className' => $RuntimeModel->name, 'foreignKey' => 'foreign_key');
 
-		$default = array('className' => 'I18nModel', 'foreignKey' => 'row_id');
-
-		foreach($fields as $key => $value) {
-
-			if(is_numeric($key)) {
+		foreach ($fields as $key => $value) {
+			if (is_numeric($key)) {
 				$field = $value;
 				$association = null;
 			} else {
@@ -363,44 +344,47 @@ class TranslateBehavior extends ModelBehavior {
 				$association = $value;
 			}
 
-			if(in_array($field, $settings)) {
-				$this->settings[$model->name] = array_diff_assoc($settings, array($field));
-			} elseif(array_key_exists($field, $settings)) {
-				unset($settings[$field]);
+			if (array_key_exists($field, $this->settings[$model->name])) {
+				unset($this->settings[$model->name][$field]);
+
+			} elseif (in_array($field, $this->settings[$model->name])) {
+				$this->settings[$model->name] = am(array_diff_assoc($this->settings[$model->name], array($field)));
 			}
 
-			if(in_array($field, $runtime)) {
-				$this->runtime[$model->name]['fields'] = array_diff_assoc($runtime, array($field));
-			} elseif(array_key_exists($field, $runtime)) {
-				unset($runtime[$field]);
+			if (array_key_exists($field, $this->runtime[$model->name]['fields'])) {
+				unset($this->runtime[$model->name]['fields'][$field]);
+
+			} elseif (in_array($field, $this->runtime[$model->name]['fields'])) {
+				$this->runtime[$model->name]['fields'] = am(array_diff_assoc($this->runtime[$model->name]['fields'], array($field)));
 			}
 
-			if(is_null($association)) {
-				if($reset) {
-					$runtime[] = $field;
+			if (is_null($association)) {
+				if ($reset) {
+					$this->runtime[$model->name]['fields'][] = $field;
 				} else {
-					$settings[] = $field;
+					$this->settings[$model->name][] = $field;
 				}
 			} else {
-				if($reset) {
-					$runtime[$field] = $association;
+
+				if ($reset) {
+					$this->runtime[$model->name]['fields'][$field] = $association;
 				} else {
-					$settings[$field] = $association;
+					$this->settings[$model->name][$field] = $association;
 				}
 
-				foreach(array('hasOne', 'hasMany', 'belongsTo', 'hasAndBelongsToMany') as $type) {
-					if(isset($model->{$type}[$association]) || isset($model->__backAssociation[$type][$association])) {
+				foreach (array('hasOne', 'hasMany', 'belongsTo', 'hasAndBelongsToMany') as $type) {
+					if (isset($model->{$type}[$association]) || isset($model->__backAssociation[$type][$association])) {
 						trigger_error('Association '.$association.' is already binded to model '.$model->name, E_USER_ERROR);
 						return false;
 					}
 				}
 				$associations[$association] = am($default, array('conditions' => array(
-																					'model' => $model->name,
-																					'field' => $field)));
+						'model' => $model->name,
+						$RuntimeModel->displayField => $field)));
 			}
 		}
 
-		if(!empty($associations)) {
+		if (!empty($associations)) {
 			$model->bindModel(array('hasMany' => $associations), $reset);
 		}
 		return true;
@@ -410,25 +394,23 @@ class TranslateBehavior extends ModelBehavior {
  * fake field
  *
  * @param object instance of model
- * @param mixed string with field or array(field1, field2=>AssocName, field3)
- * @return boolean
+ * @param mixed string with field, or array(field1, field2=>AssocName, field3), or null for unbind all original translations
+ * @return bool
  */
-	function unbindTranslation(&$model, $fields) {
-		if(empty($fields)) {
-			return true;
+	function unbindTranslation(&$model, $fields = null) {
+		if (empty($fields)) {
+			return $this->unbindTranslation($model, $model->actsAs['Translate']);
 		}
 
-		if(is_string($fields)) {
+		if (is_string($fields)) {
 			$fields = array($fields);
 		}
-		$settings =& $this->settings[$model->name];
-		$runtime =& $this->runtime[$model->name]['fields'];
-
-		$default = array('className' => 'I18nModel', 'foreignKey' => 'row_id');
+		$RuntimeModel =& $this->translateModel($model);
+		$default = array('className' => $RuntimeModel->name, 'foreignKey' => 'foreign_key');
 		$associations = array();
 
-		foreach($fields as $key => $value) {
-			if(is_numeric($key)) {
+		foreach ($fields as $key => $value) {
+			if (is_numeric($key)) {
 				$field = $value;
 				$association = null;
 			} else {
@@ -436,44 +418,40 @@ class TranslateBehavior extends ModelBehavior {
 				$association = $value;
 			}
 
-			if(in_array($field, $settings)) {
-				$this->settings[$model->name] = array_diff_assoc($settings, array($field));
-			} elseif (array_key_exists($field, $settings)) {
-				unset($settings[$field]);
+			if (array_key_exists($field, $this->settings[$model->name])) {
+				unset($this->settings[$model->name][$field]);
+
+			} elseif (in_array($field, $this->settings[$model->name])) {
+				$this->settings[$model->name] = am(array_diff_assoc($this->settings[$model->name], array($field)));
 			}
 
-			if(in_array($field, $runtime)) {
-				$this->runtime[$model->name]['fields'] = array_diff_assoc($runtime, array($field));
-			} elseif(array_key_exists($field, $runtime)) {
-				unset($runtime[$field]);
+			if (array_key_exists($field, $this->runtime[$model->name]['fields'])) {
+				unset($this->runtime[$model->name]['fields'][$field]);
+
+			} elseif (in_array($field, $this->runtime[$model->name]['fields'])) {
+				$this->runtime[$model->name]['fields'] = am(array_diff_assoc($this->runtime[$model->name]['fields'], array($field)));
 			}
 
-			if(!is_null($association) && (isset($model->hasMany[$association]) || isset($model->__backAssociation['hasMany'][$association]))) {
+			if (!is_null($association) && (isset($model->hasMany[$association]) || isset($model->__backAssociation['hasMany'][$association]))) {
 				$associations[] = $association;
 			}
 		}
 
-		if(!empty($associations)) {
+		if (!empty($associations)) {
 			$model->unbindModel(array('hasMany' => $associations), false);
 		}
 		return true;
 	}
 }
+if (!defined('CAKEPHP_UNIT_TEST_EXECUTION')) {
 /**
  * @package	 	cake
  * @subpackage	cake.cake.libs.model.behaviors
  */
-class I18nContent extends AppModel {
-	var $name = 'I18nContent';
-	var $useTable = 'i18n_content';
-}
-/**
- * @package	 	cake
- * @subpackage	cake.cake.libs.model.behaviors
- */
-class I18nModel extends AppModel {
-	var $name = 'I18nModel';
-	var $useTable = 'i18n';
-	var $belongsTo = array('Content' => array('className' => 'I18nContent', 'foreignKey' => 'i18n_content_id'));
+	class I18nModel extends AppModel {
+		var $name = 'I18nModel';
+		var $useTable = 'i18n';
+		var $displayField = 'field';
+	}
 }
 ?>

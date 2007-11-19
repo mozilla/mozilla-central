@@ -1,7 +1,7 @@
 <?php
-/* SVN FILE: $Id: dbo_sybase.php,v 1.1 2007-05-25 05:54:19 rflint%ryanflint.com Exp $ */
+/* SVN FILE: $Id: dbo_sybase.php,v 1.2 2007-11-19 08:49:54 rflint%ryanflint.com Exp $ */
 /**
- * MySQL layer for DBO
+ * Sybase layer for DBO
  *
  * Long description for file
  *
@@ -21,9 +21,9 @@
  * @package			cake
  * @subpackage		cake.cake.libs.model.datasources.dbo
  * @since			CakePHP(tm) v 1.2.0.3097
- * @version			$Revision: 1.1 $
+ * @version			$Revision: 1.2 $
  * @modifiedby		$LastChangedBy: phpnut $
- * @lastmodified	$Date: 2007-05-25 05:54:19 $
+ * @lastmodified	$Date: 2007-11-19 08:49:54 $
  * @license			http://www.opensource.org/licenses/mit-license.php The MIT License
  */
 /**
@@ -46,13 +46,13 @@ class DboSybase extends DboSource {
  *
  * @var string
  */
-	var $startQuote = "`";
+	var $startQuote = "";
 /**
  * End quote for quoted identifiers
  *
  * @var string
  */
-	var $endQuote = "`";
+	var $endQuote = "";
 /**
  * Base configuration settings for Sybase driver
  *
@@ -170,7 +170,9 @@ class DboSybase extends DboSource {
 				$column[0] = $column[$colKey[0]];
 			}
 			if (isset($column[0])) {
-				$fields[] = array('name' => $column[0]['Field'], 'type' => $this->column($column[0]['Type']), 'null' => $column[0]['Null']);
+				$fields[$column[0]['Field']] = array('type' => $this->column($column[0]['Type']),
+														'null' => $column[0]['Null']
+													);
 			}
 		}
 
@@ -196,7 +198,7 @@ class DboSybase extends DboSource {
 			return 'NULL';
 		}
 
-		if($data === '') {
+		if ($data === '') {
 			return  "''";
 		}
 
@@ -259,23 +261,21 @@ class DboSybase extends DboSource {
 /**
  * Returns a formatted error message from previous database operation.
  *
+ * @todo not implemented
  * @return string Error message with error number
  */
 	function lastError() {
-		if (mysql_errno($this->connection)) {
-			return mysql_errno($this->connection).': '.mysql_error($this->connection);
-		}
 		return null;
 	}
 /**
  * Returns number of affected rows in previous database operation. If no previous operation exists,
  * this returns false.
  *
- * @return int Number of affected rows
+ * @return integer Number of affected rows
  */
 	function lastAffected() {
 		if ($this->_result) {
-			return mysql_affected_rows($this->connection);
+			return sybase_affected_rows($this->connection);
 		}
 		return null;
 	}
@@ -283,11 +283,11 @@ class DboSybase extends DboSource {
  * Returns number of rows in previous resultset. If no previous resultset exists,
  * this returns false.
  *
- * @return int Number of rows in resultset
+ * @return integer Number of rows in resultset
  */
 	function lastNumRows() {
 		if ($this->_result and is_resource($this->_result)) {
-			return @mysql_num_rows($this->_result);
+			return @sybase_num_rows($this->_result);
 		}
 		return null;
 	}
@@ -298,15 +298,8 @@ class DboSybase extends DboSource {
  * @return in
  */
 	function lastInsertId($source = null) {
-		$id = mysql_insert_id($this->connection);
-		if ($id) {
-			return $id;
-		}
-
-		$data = $this->fetchAll('SELECT LAST_INSERT_ID() as id From '.$source);
-		if ($data && isset($data[0]['id'])) {
-			return $data[0]['id'];
-		}
+		$result=$this->fetchRow('SELECT @@IDENTITY');
+		return $result[0];
 	}
 /**
  * Converts database-layer column types to basic types
@@ -352,13 +345,13 @@ class DboSybase extends DboSource {
 	function resultSet(&$results) {
 		$this->results =& $results;
 		$this->map = array();
-		$num_fields = mysql_num_fields($results);
+		$num_fields = sybase_num_fields($results);
 		$index = 0;
 		$j = 0;
 
 		while ($j < $num_fields) {
 
-			$column = mysql_fetch_field($results,$j);
+			$column = sybase_fetch_field($results,$j);
 			if (!empty($column->table)) {
 				$this->map[$index++] = array($column->table, $column->name);
 			} else {
@@ -373,7 +366,7 @@ class DboSybase extends DboSource {
  * @return unknown
  */
 	function fetchResult() {
-		if ($row = mysql_fetch_row($this->results)) {
+		if ($row = sybase_fetch_row($this->results)) {
 			$resultRow = array();
 			$i = 0;
 			foreach ($row as $index => $field) {
@@ -387,19 +380,17 @@ class DboSybase extends DboSource {
 		}
 	}
 /**
- * Enter description here...
+ * Inserts multiple values into a join table
  *
- * @param unknown_type $schema
- *  @return unknown
+ * @param string $table
+ * @param string $fields
+ * @param array $values
  */
-	function buildSchemaQuery($schema) {
-		$search = array('{AUTOINCREMENT}', '{PRIMARY}', '{UNSIGNED}', '{FULLTEXT}',
-						'{FULLTEXT_MYSQL}', '{BOOLEAN}', '{UTF_8}');
-		$replace = array('int(11) not null auto_increment', 'primary key', 'unsigned',
-						'FULLTEXT', 'FULLTEXT', 'enum (\'true\', \'false\') NOT NULL default \'true\'',
-						'/*!40100 CHARACTER SET utf8 COLLATE utf8_unicode_ci */');
-		$query = trim(r($search, $replace, $schema));
-		return $query;
+	function insertMulti($table, $fields, $values) {
+		$count = count($values);
+		for ($x = 0; $x < $count; $x++) {
+			$this->query("INSERT INTO {$table} ({$fields}) VALUES {$values[$x]}");
+		}
 	}
 }
 ?>

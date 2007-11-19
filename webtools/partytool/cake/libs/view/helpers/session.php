@@ -1,5 +1,5 @@
 <?php
-/* SVN FILE: $Id: session.php,v 1.1 2007-05-25 05:54:20 rflint%ryanflint.com Exp $ */
+/* SVN FILE: $Id: session.php,v 1.2 2007-11-19 08:49:55 rflint%ryanflint.com Exp $ */
 /**
  * Short description for file.
  *
@@ -21,9 +21,9 @@
  * @package			cake
  * @subpackage		cake.cake.libs.view.helpers
  * @since			CakePHP(tm) v 1.1.7.3328
- * @version			$Revision: 1.1 $
+ * @version			$Revision: 1.2 $
  * @modifiedby		$LastChangedBy: phpnut $
- * @lastmodified	$Date: 2007-05-25 05:54:20 $
+ * @lastmodified	$Date: 2007-11-19 08:49:55 $
  * @license			http://www.opensource.org/licenses/mit-license.php The MIT License
  */
 /**
@@ -35,6 +35,9 @@
  * @subpackage	cake.cake.libs.view.helpers
  *
  */
+if(!class_exists('cakesession')) {
+	uses('session');
+}
 class SessionHelper extends CakeSession {
 /**
  * List of helpers used by this helper
@@ -54,14 +57,14 @@ class SessionHelper extends CakeSession {
  * @param string $base
  */
 	function __construct($base = null) {
-		if (!defined('AUTO_SESSION') || AUTO_SESSION === true) {
+		if (Configure::read('Session.start') === true) {
 			parent::__construct($base, false);
 		} else {
 			$this->__active = false;
 		}
 	}
 /**
- * Turn sessions on if AUTO_SESSION is set to false in core.php
+ * Turn sessions on if 'Session.start' is set to false in core.php
  *
  * @param string $base
  */
@@ -91,7 +94,7 @@ class SessionHelper extends CakeSession {
  * In your view: $session->check('Controller.sessKey');
  *
  * @param string $name
- * @return boolean
+ * @return bool
  * @access public
  */
 	function check($name) {
@@ -150,13 +153,23 @@ class SessionHelper extends CakeSession {
 /**
  * Used to check is a session is valid in a view
  *
- * @return boolean
+ * @return bool
  * @access public
  */
 	function valid() {
 		if ($this->__active === true) {
 			return parent::valid();
 		}
+	}
+/**
+ * Override CakeSession::write().
+ * This method should not be used in a view
+ *
+ * @return bool
+ * @access public
+ */
+	function write() {
+		trigger_error(__('You can not write to a Session from the view', true), E_USER_WARNING);
 	}
 }
 ?>

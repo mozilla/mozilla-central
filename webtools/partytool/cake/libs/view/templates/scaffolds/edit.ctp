@@ -1,5 +1,5 @@
 <?php
-/* SVN FILE: $Id: edit.ctp,v 1.1 2007-05-25 05:54:23 rflint%ryanflint.com Exp $ */
+/* SVN FILE: $Id: edit.ctp,v 1.2 2007-11-19 08:49:56 rflint%ryanflint.com Exp $ */
 /**
  *
  * PHP versions 4 and 5
@@ -18,36 +18,39 @@
  * @package			cake
  * @subpackage		cake.cake.libs.view.templates.scaffolds
  * @since			CakePHP(tm) v 0.10.0.1076
- * @version			$Revision: 1.1 $
+ * @version			$Revision: 1.2 $
  * @modifiedby		$LastChangedBy: phpnut $
- * @lastmodified	$Date: 2007-05-25 05:54:23 $
+ * @lastmodified	$Date: 2007-11-19 08:49:56 $
  * @license			http://www.opensource.org/licenses/mit-license.php The MIT License
  */
 ?>
+<div class="<?php echo $this->action ?> <?php echo $singularVar;?>">
+<?php echo $form->create($modelClass);?>
+<?php echo $form->inputs(null, array('created', 'modified', 'updated'));?>
 <?php
-echo $form->create($modelClass);
-echo $form->inputs($fieldNames);
-echo $form->end(__('Save', true)); ?>
-
-<div class="nav">
-	<ul>
-		<?php
-			if($formName == 'Edit') {
-				echo "<li>".$html->link(__('Delete  ', true).$humanSingularName, array('action' => 'delete', $data[$modelClass][$primaryKey]), null, 'Are you sure you want to delete '.$data[$modelClass][$displayField])."</li>";
-
-				foreach($fieldNames as $field => $value) {
-					if(isset($value['foreignKey'])) {
-						echo '<li>' . $html->link(__('View ', true) . Inflector::humanize($value['controller']), array('action' => 'index')) . '</li>';
-						echo '<li>' . $html->link(__('Add ', true) . Inflector::humanize($value['modelKey']), array('action' => 'add')) . '</li>';
-					}
+	echo $form->end(__('Submit', true));
+?>
+	<div class="actions">
+		<ul>
+	<?php if ($this->action != 'add'):?>
+			<li><?php echo $html->link(__('Delete', true), array('action'=>'delete', $form->value($modelClass.'.'.$primaryKey)), null, __('Are you sure you want to delete', true).' #' . $form->value($modelClass.'.'.$primaryKey)); ?></li>
+	<?php endif;?>
+			<li><?php echo $html->link(__('List', true).' '.$pluralHumanName, array('action'=>'index'));?></li>
+	<?php
+			foreach ($foreignKeys as $field => $value) {
+				$otherModelClass = $value['1'];
+				if ($otherModelClass != $modelClass) {
+					$otherModelKey = Inflector::underscore($otherModelClass);
+					$otherControllerName = Inflector::pluralize($otherModelClass);
+					$otherControllerPath = Inflector::underscore($otherControllerName);
+					$otherSingularName = Inflector::variable($otherModelClass);
+					$otherPluralHumanName = Inflector::humanize($otherControllerPath);
+					$otherSingularHumanName = Inflector::humanize($otherModelKey);
+					echo "\t\t<li>".$html->link(__('List', true).' '.$otherPluralHumanName, array('controller'=> $otherControllerPath, 'action'=>'index'))."</li>\n";
+					echo "\t\t<li>".$html->link(__('New', true).' '.$otherSingularHumanName, array('controller'=> $otherControllerPath, 'action'=>'add'))."</li>\n";
 				}
 			}
-
-			echo "<li>".$html->link($humanPluralName, array('action' => 'index'))."</li>";
-
-			foreach($linked as $name => $controller) {
-				echo '<li>'.$html->link(Inflector::humanize($controller), array('controller'=> $controller)).'</li>';
-			}
-		?>
-	</ul>
+	?>
+		</ul>
+	</div>
 </div>

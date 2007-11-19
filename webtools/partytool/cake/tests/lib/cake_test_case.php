@@ -1,5 +1,5 @@
 <?php
-/* SVN FILE: $Id: cake_test_case.php,v 1.1 2007-05-25 05:54:28 rflint%ryanflint.com Exp $ */
+/* SVN FILE: $Id: cake_test_case.php,v 1.2 2007-11-19 08:49:57 rflint%ryanflint.com Exp $ */
 /**
  * Short description for file.
  *
@@ -21,9 +21,9 @@
  * @package			cake
  * @subpackage		cake.cake.tests.libs
  * @since			CakePHP(tm) v 1.2.0.4667
- * @version			$Revision: 1.1 $
+ * @version			$Revision: 1.2 $
  * @modifiedby		$LastChangedBy: phpnut $
- * @lastmodified	$Date: 2007-05-25 05:54:28 $
+ * @lastmodified	$Date: 2007-11-19 08:49:57 $
  * @license			http://www.opensource.org/licenses/opengroup.php The Open Group Test Suite License
  */
 require_once CAKE . 'tests' . DS . 'lib' . DS . 'cake_test_model.php';
@@ -125,7 +125,7 @@ class CakeTestCase extends UnitTestCase {
 			$classRegistry =& ClassRegistry::getInstance();
 			$models = array();
 
-			foreach($classRegistry->__map as $key => $name) {
+			foreach ($classRegistry->__map as $key => $name) {
 				$object =& $classRegistry->getObject(Inflector::camelize($key));
 				if (is_subclass_of($object, 'Model') && ((is_array($params['fixturize']) && in_array($object->name, $params['fixturize'])) || $params['fixturize'] === true)) {
 					$models[$object->name] = array (
@@ -143,7 +143,7 @@ class CakeTestCase extends UnitTestCase {
 					'drop' => array()
 				);
 
-				foreach($models as $model) {
+				foreach ($models as $model) {
 					$fixture =& new CakeTestFixture($this->db);
 
 					$fixture->name = $model['model'] . 'Test';
@@ -167,24 +167,23 @@ class CakeTestCase extends UnitTestCase {
 					}
 				}
 
-				foreach($this->_queries['create'] as $query) {
+				foreach ($this->_queries['create'] as $query) {
 					if (isset($query) && $query !== false) {
 						$this->db->_execute($query);
 					}
 				}
 
-				foreach($this->_queries['insert'] as $query) {
+				foreach ($this->_queries['insert'] as $query) {
 					if (isset($query) && $query !== false) {
 						$this->db->_execute($query);
 					}
 				}
 
-				foreach($models as $model) {
+				foreach ($models as $model) {
 					$object =& $classRegistry->getObject($model['key']);
-
 					if ($object !== false) {
-						$object->useDbConfig = 'test_suite';
-						$object->setDataSource();
+						$object->setDataSource('test_suite');
+						$object->cacheSources = false;
 					}
 				}
 			}
@@ -198,7 +197,7 @@ class CakeTestCase extends UnitTestCase {
  */
 	function endController(&$controller, $params = array()) {
 		if (isset($this->db) && isset($this->_queries) && !empty($this->_queries) && !empty($this->_queries['drop'])) {
-			foreach($this->_queries['drop'] as $query) {
+			foreach ($this->_queries['drop'] as $query) {
 				if (isset($query) && $query !== false) {
 					$this->db->_execute($query);
 				}
@@ -258,7 +257,7 @@ class CakeTestCase extends UnitTestCase {
 
 				$result = array();
 
-				foreach($viewVars as $var) {
+				foreach ($viewVars as $var) {
 					$result[$var] = $view->getVar($var);
 				}
 
@@ -276,7 +275,7 @@ class CakeTestCase extends UnitTestCase {
 
 		$classRegistry =& ClassRegistry::getInstance();
 		$keys = array_keys($classRegistry->__objects);
-		foreach($keys as $key) {
+		foreach ($keys as $key) {
 			$key = Inflector::camelize($key);
 			$classRegistry->removeObject($key);
 		}
@@ -310,11 +309,11 @@ class CakeTestCase extends UnitTestCase {
 
 		// Create records
 		if (isset($this->_fixtures) && isset($this->db) && !in_array(low($method), array('start', 'end'))) {
-			foreach($this->_fixtures as $fixture) {
+			foreach ($this->_fixtures as $fixture) {
 				$inserts = $fixture->insert();
 
 				if (isset($inserts) && !empty($inserts)) {
-					foreach($inserts as $query) {
+					foreach ($inserts as $query) {
 						if (isset($query) && $query !== false) {
 							$this->db->_execute($query);
 						}
@@ -334,9 +333,8 @@ class CakeTestCase extends UnitTestCase {
  */
 	function start() {
 		if (isset($this->_fixtures) && isset($this->db)) {
-			foreach($this->_fixtures as $fixture) {
+			foreach ($this->_fixtures as $fixture) {
 				$query = $fixture->create();
-
 				if (isset($query) && $query !== false) {
 					$this->db->_execute($query);
 				}
@@ -350,9 +348,8 @@ class CakeTestCase extends UnitTestCase {
  */
 	function end() {
 		if (isset($this->_fixtures) && isset($this->db)) {
-			foreach(array_reverse($this->_fixtures) as $fixture) {
+			foreach (array_reverse($this->_fixtures) as $fixture) {
 				$query = $fixture->drop();
-
 				if (isset($query) && $query !== false) {
 					$this->db->_execute($query);
 				}
@@ -368,9 +365,8 @@ class CakeTestCase extends UnitTestCase {
  */
 	function after($method) {
 		if (isset($this->_fixtures) && isset($this->db) && !in_array(low($method), array('start', 'end'))) {
-			foreach($this->_fixtures as $fixture) {
+			foreach ($this->_fixtures as $fixture) {
 				$query = $fixture->truncate();
-
 				if (isset($query) && $query !== false) {
 					$this->db->_execute($query);
 				}
@@ -393,9 +389,7 @@ class CakeTestCase extends UnitTestCase {
  */
 	function getTests() {
 		$methods = array_diff(parent::getTests(), array('testAction', 'testaction'));
-
 		$methods = am(am(array('start', 'startCase'), $methods), array('endCase', 'end'));
-
 		return $methods;
 	}
 /**
@@ -424,15 +418,12 @@ class CakeTestCase extends UnitTestCase {
 			$db =& ConnectionManager::getDataSource('default');
 		}
 
-		// Add test prefix
-		$config = $db->config;
-		$config['prefix'] .= 'test_suite_';
+		$db->config['prefix'] = 'test_suite_';
 
- 		// Set up db connection
-		ConnectionManager::create('test_suite', $config);
-
+		ConnectionManager::create('test_suite', $db->config);
 		// Get db connection
 		$this->db =& ConnectionManager::getDataSource('test_suite');
+		$this->db->cacheSources  = false;
 		$this->db->fullDebug = false;
 	}
 /**
@@ -451,7 +442,7 @@ class CakeTestCase extends UnitTestCase {
 
 		$this->_fixtures = array();
 
-		foreach($this->fixtures as $index => $fixture) {
+		foreach ($this->fixtures as $index => $fixture) {
 			$fixtureFile = null;
 
 			if (strpos($fixture, 'core.') === 0) {
@@ -459,19 +450,21 @@ class CakeTestCase extends UnitTestCase {
 				$fixturePaths = array(
 					CAKE_CORE_INCLUDE_PATH . DS . 'cake' . DS . 'tests' . DS . 'fixtures'
 				);
-			} else if (strpos($fixture, 'app.') === 0) {
+			} elseif (strpos($fixture, 'app.') === 0) {
 				$fixture = substr($fixture, strlen('app.'));
 				$fixturePaths = array(
-					APP . 'tests' . DS . 'fixtures'
+					TESTS . DS . 'fixtures',
+					VENDORS . 'tests' . DS . 'fixtures'
 				);
 			} else {
 				$fixturePaths = array(
 					TESTS . 'fixtures',
+					VENDORS . 'tests' . DS . 'fixtures',
 					CAKE_CORE_INCLUDE_PATH . DS . 'cake' . DS . 'tests' . DS . 'fixtures'
 				);
 			}
 
-			foreach($fixturePaths as $path) {
+			foreach ($fixturePaths as $path) {
 				if (is_readable($path . DS . $fixture . '_fixture.php')) {
 					$fixtureFile = $path . DS . $fixture . '_fixture.php';
 					break;

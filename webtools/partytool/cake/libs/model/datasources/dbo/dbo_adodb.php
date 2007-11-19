@@ -1,5 +1,5 @@
 <?php
-/* SVN FILE: $Id: dbo_adodb.php,v 1.1 2007-05-25 05:54:18 rflint%ryanflint.com Exp $ */
+/* SVN FILE: $Id: dbo_adodb.php,v 1.2 2007-11-19 08:49:54 rflint%ryanflint.com Exp $ */
 
 /**
  * AdoDB layer for DBO.
@@ -22,9 +22,9 @@
  * @package			cake
  * @subpackage		cake.cake.libs.model.datasources.dbo
  * @since			CakePHP(tm) v 0.2.9
- * @version			$Revision: 1.1 $
+ * @version			$Revision: 1.2 $
  * @modifiedby		$LastChangedBy: phpnut $
- * @lastmodified	$Date: 2007-05-25 05:54:18 $
+ * @lastmodified	$Date: 2007-11-19 08:49:54 $
  * @license			http://www.opensource.org/licenses/mit-license.php The MIT License
  */
 
@@ -93,8 +93,11 @@ class DboAdodb extends DboSource {
 		}
 
 		$this->_adodb = NewADOConnection($adodb_driver);
-		$adodb = &$this->_adodb;
-		$this->connected = $adodb->$connect($config['host'], $config['login'], $config['password'], $config['database']);
+
+		$this->startQuote = $this->_adodb->nameQuote;
+		$this->endQuote = $this->_adodb->nameQuote;
+
+		$this->connected = $this->_adodb->$connect($config['host'], $config['login'], $config['password'], $config['database']);
 		return $this->connected;
 	}
 /**
@@ -217,9 +220,10 @@ class DboAdodb extends DboSource {
 		$fields = false;
 		$cols = $this->_adodb->MetaColumns($this->fullTableName($model, false));
 
-		foreach($cols as $column) {
-			$fields[] = array('name' => $column->name,
-									'type' => $this->column($column->type));
+		foreach ($cols as $column) {
+			$fields[$column->name] = array(
+										'type' => $this->column($column->type)
+									);
 		}
 
 		$this->__cacheDescription($this->fullTableName($model, false), $fields);
@@ -236,7 +240,7 @@ class DboAdodb extends DboSource {
 /**
  * Returns number of affected rows in previous database operation, or false if no previous operation exists.
  *
- * @return int Number of affected rows
+ * @return integer Number of affected rows
  */
 	function lastAffected() {
 		return $this->_adodb->Affected_Rows();
@@ -244,7 +248,7 @@ class DboAdodb extends DboSource {
 /**
  * Returns number of rows in previous resultset, or false if no previous resultset exists.
  *
- * @return int Number of rows in resultset
+ * @return integer Number of rows in resultset
  */
 	function lastNumRows() {
 		return $this->_result ? $this->_result->RecordCount() : false;
@@ -263,8 +267,8 @@ class DboAdodb extends DboSource {
 /**
  * Returns a LIMIT statement in the correct format for the particular database.
  *
- * @param int $limit Limit of results returned
- * @param int $offset Offset from which to start results
+ * @param integer $limit Limit of results returned
+ * @param integer $offset Offset from which to start results
  * @return string SQL limit/offset statement
  * @todo Please change output string to whatever select your database accepts. adodb doesn't allow us to get the correct limit string out of it.
  */
@@ -328,10 +332,12 @@ class DboAdodb extends DboSource {
  * @param mixed $fields
  * @return array
  */
-	function fields(&$model, $alias, $fields) {
-		if (is_array($fields)) {
-				$fields = $fields;
-		} else {
+	function fields(&$model, $alias = null, $fields = null, $quote = true) {
+		if (empty($alias)) {
+			$alias = $model->name;
+		}
+
+		if (!is_array($fields)) {
 			if ($fields != null) {
 				if (strpos($fields, ',')) {
 					$fields = explode(',', $fields);
@@ -340,7 +346,7 @@ class DboAdodb extends DboSource {
 				}
 				$fields = array_map('trim', $fields);
 			} else {
-				foreach($model->_tableInfo->value as $field) {
+				foreach ($model->_tableInfo->value as $field) {
 					$fields[] = $field['name'];
 				}
 			}
@@ -349,7 +355,7 @@ class DboAdodb extends DboSource {
 		$count = count($fields);
 
 		if ($count >= 1 && $fields[0] != '*' && strpos($fields[0], 'COUNT(*)') === false) {
-			for($i = 0; $i < $count; $i++) {
+			for ($i = 0; $i < $count; $i++) {
 				if (!preg_match('/^.+\\(.*\\)/', $fields[$i])) {
 					$prepend = '';
 					if (strpos($fields[$i], 'DISTINCT') !== false) {
@@ -382,7 +388,7 @@ class DboAdodb extends DboSource {
 		$index = 0;
 		$j = 0;
 
-		while($j < $num_fields) {
+		while ($j < $num_fields) {
 			$columnName = $fields[$j];
 
 			if (strpos($columnName, '__')) {
@@ -414,6 +420,18 @@ class DboAdodb extends DboSource {
 			return false;
 		}
 	}
+/**
+ * Inserts multiple values into a join table
+ *
+ * @param string $table
+ * @param string $fields
+ * @param array $values
+ */
+	function insertMulti($table, $fields, $values) {
+		$count = count($values);
+		for ($x = 0; $x < $count; $x++) {
+			$this->query("INSERT INTO {$table} ({$fields}) VALUES {$values[$x]}");
+		}
+	}
 }
-
 ?>

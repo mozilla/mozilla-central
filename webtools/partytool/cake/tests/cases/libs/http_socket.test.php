@@ -1,5 +1,5 @@
 <?php
-/* SVN FILE: $Id: http_socket.test.php,v 1.1 2007-05-25 05:54:25 rflint%ryanflint.com Exp $ */
+/* SVN FILE: $Id: http_socket.test.php,v 1.2 2007-11-19 08:49:56 rflint%ryanflint.com Exp $ */
 /**
  * Short description for file.
  *
@@ -7,32 +7,37 @@
  *
  * PHP versions 4 and 5
  *
- * CakePHP Test Suite <https://trac.cakephp.org/wiki/Developement/TestSuite>
- * Copyright (c) 2006, Larry E. Masters Shorewood, IL. 60431
- * Author(s): Larry E. Masters aka PhpNut <phpnut@gmail.com>
+ * CakePHP(tm) Tests <https://trac.cakephp.org/wiki/Developement/TestSuite>
+ * Copyright 2005-2007, Cake Software Foundation, Inc.
+ *								1785 E. Sahara Avenue, Suite 490-204
+ *								Las Vegas, Nevada 89104
  *
  *  Licensed under The Open Group Test Suite License
  *  Redistributions of files must retain the above copyright notice.
  *
  * @filesource
- * @author       Larry E. Masters aka PhpNut <phpnut@gmail.com>
- * @copyright    Copyright (c) 2006, Larry E. Masters Shorewood, IL. 60431
- * @link         http://www.phpnut.com/projects/
- * @package      test_suite
- * @subpackage   test_suite.cases.app
- * @since        CakePHP Test Suite v 1.0.0.0
- * @version      $Revision: 1.1 $
- * @modifiedby   $LastChangedBy: phpnut $
- * @lastmodified $Date: 2007-05-25 05:54:25 $
- * @license      http://www.opensource.org/licenses/opengroup.php The Open Group Test Suite License
+ * @copyright		Copyright 2005-2007, Cake Software Foundation, Inc.
+ * @link				https://trac.cakephp.org/wiki/Developement/TestSuite CakePHP(tm) Tests
+ * @package			cake.tests
+ * @subpackage		cake.tests.cases.libs
+ * @since			CakePHP(tm) v 1.2.0.4206
+ * @version			$Revision: 1.2 $
+ * @modifiedby		$LastChangedBy: phpnut $
+ * @lastmodified	$Date: 2007-11-19 08:49:56 $
+ * @license			http://www.opensource.org/licenses/opengroup.php The Open Group Test Suite License
  */
 uses('http_socket');
-
 /**
- * Enter description here...
+ * Short description for class.
  *
+ * @package		cake.tests
+ * @subpackage	cake.tests.cases.libs
  */
 class HttpSocketTest extends UnitTestCase {
+
+	var $Socket = null;
+
+	var $RequestSocket = null;
 /**
  * This function sets up a TestHttpSocket instance we are going to use for testing
  *
@@ -366,7 +371,7 @@ class HttpSocketTest extends UnitTestCase {
 			'foo-coded' => array(
 				'encoded' => '!Foobar!',
 				'decoded' => array('body' => '!Foobar!', 'header' => false),
-				'error' => new PatternExpectation('/unkown encoding: "foo-coded"/i')
+				'error' => new PatternExpectation('/unknown encoding: foo-coded/i')
 			)
 		);
 
@@ -972,6 +977,6 @@ class HttpSocketTest extends UnitTestCase {
 		}
 		$this->assertIdentical($return, true);
 	}
-}
 
+}
 ?>

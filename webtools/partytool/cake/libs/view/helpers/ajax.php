@@ -1,5 +1,5 @@
 <?php
-/* SVN FILE: $Id: ajax.php,v 1.1 2007-05-25 05:54:20 rflint%ryanflint.com Exp $ */
+/* SVN FILE: $Id: ajax.php,v 1.2 2007-11-19 08:49:54 rflint%ryanflint.com Exp $ */
 
 /**
  * Helper for AJAX operations.
@@ -22,9 +22,9 @@
  * @package			cake
  * @subpackage		cake.cake.libs.view.helpers
  * @since			CakePHP(tm) v 0.10.0.1076
- * @version			$Revision: 1.1 $
+ * @version			$Revision: 1.2 $
  * @modifiedby		$LastChangedBy: phpnut $
- * @lastmodified	$Date: 2007-05-25 05:54:20 $
+ * @lastmodified	$Date: 2007-11-19 08:49:54 $
  * @license			http://www.opensource.org/licenses/mit-license.php The MIT License
  */
 
@@ -193,7 +193,7 @@ class AjaxHelper extends AppHelper {
 			$htmlOptions['onclick'] = '';
 		}
 
-		$htmlOptions['onclick'] .= ' return false;';
+		$htmlOptions['onclick'] .= ' event.returnValue = false; return false;';
 		$return = $this->Html->link($title, $href, $htmlOptions, null, $escapeTitle);
 		$script = $this->Javascript->event("'{$htmlOptions['id']}'", "click", $this->remoteFunction($options));
 
@@ -249,7 +249,7 @@ class AjaxHelper extends AppHelper {
 
 		if (isset($options['confirm'])) {
 			$func = "if (confirm('" . $this->Javascript->escapeString($options['confirm'])
-				. "')) { $func; } else { return false; }";
+				. "')) { $func; } else { event.returnValue = false; return false; }";
 		}
 		return $func;
 	}
@@ -305,7 +305,7 @@ class AjaxHelper extends AppHelper {
 			array(
 				'id'		=> 'form' . intval(rand()),
 				'action'	=> $action,
-				'onsubmit'	=> "return false;",
+				'onsubmit'	=> "event.returnValue = false; return false;",
 				'type'		=> $type
 			),
 			$this->__getHtmlOptions($options)
@@ -344,7 +344,7 @@ class AjaxHelper extends AppHelper {
 			$htmlOptions['id'] = 'submit' . intval(rand());
 		}
 
-		$htmlOptions['onclick'] = "return false;";
+		$htmlOptions['onclick'] = "event.returnValue = false; return false;";
 		return $this->Form->submit($title, $htmlOptions)
 			. $this->Javascript->event('"' . $htmlOptions['id'] . '"', 'click', $this->remoteFunction($options));
 	}
@@ -552,7 +552,7 @@ class AjaxHelper extends AppHelper {
  * @return string JavaScript block to create a droppable element
  */
 	function dropRemote($id, $options = array(), $ajaxOptions = array()) {
-		$options['onDrop'] = "function(element, droppable){" . $this->remoteFunction($ajaxOptions) . "}";
+		$options['onDrop'] = "function(element, droppable) {" . $this->remoteFunction($ajaxOptions) . "}";
 		$options = $this->_optionsToString($options, array('accept', 'overlap', 'hoverclass'));
 		$options = $this->_buildOptions($options, $this->dropOptions);
 		return $this->Javascript->codeBlock("Droppables.add('{$id}', {$options});");
@@ -605,7 +605,7 @@ class AjaxHelper extends AppHelper {
 		$url = $this->url($url);
 		$options['ajaxOptions'] = $this->__optionsForAjax($options);
 
-		foreach($this->ajaxOptions as $opt) {
+		foreach ($this->ajaxOptions as $opt) {
 			if (isset($options[$opt])) {
 				unset($options[$opt]);
 			}
@@ -643,7 +643,7 @@ class AjaxHelper extends AppHelper {
 			if (empty($options['with'])) {
 				$options['with'] = "Sortable.serialize('$id')";
 			}
-			$options['onUpdate'] = 'function(sortable){' . $this->remoteFunction($options) . '}';
+			$options['onUpdate'] = 'function(sortable) {' . $this->remoteFunction($options) . '}';
 		}
 
 		$options = $this->_optionsToString($options, array('tag', 'constraint', 'only', 'handle', 'hoverclass', 'scroll', 'tree', 'treeTag'));
@@ -682,7 +682,7 @@ class AjaxHelper extends AppHelper {
 		);
 		$options = $this->_optionsToString($options, array('method'));
 
-		foreach($options as $key => $value) {
+		foreach ($options as $key => $value) {
 			switch($key) {
 				case 'type':
 					$jsOptions['asynchronous'] = ife(($value == 'synchronous'), 'false', 'true');
@@ -721,13 +721,13 @@ class AjaxHelper extends AppHelper {
  * @access private
  */
 	function __getHtmlOptions($options, $extra = array()) {
-		foreach($this->ajaxOptions as $key) {
+		foreach ($this->ajaxOptions as $key) {
 			if (isset($options[$key])) {
 				unset($options[$key]);
 			}
 		}
 
-		foreach($extra as $key) {
+		foreach ($extra as $key) {
 			if (isset($options[$key])) {
 				unset($options[$key]);
 			}
@@ -747,8 +747,13 @@ class AjaxHelper extends AppHelper {
 		if (is_array($options)) {
 			$out = array();
 
-			foreach($options as $k => $v) {
+			foreach ($options as $k => $v) {
 				if (in_array($k, $acceptable)) {
+					if ($v === true) {
+						$v = 'true';
+					} elseif ($v === false) {
+						$v = 'false';
+					}
 					$out[] = "$k:$v";
 				}
 			}
@@ -789,14 +794,14 @@ class AjaxHelper extends AppHelper {
 	function _buildCallbacks($options) {
 		$callbacks = array();
 
-		foreach($this->callbacks as $callback) {
+		foreach ($this->callbacks as $callback) {
 			if (isset($options[$callback])) {
 				$name = 'on' . ucfirst($callback);
 				$code = $options[$callback];
 				if ($name == 'onComplete') {
-					$callbacks[$name] = "function(request, json){" . $code . "}";
+					$callbacks[$name] = "function(request, json) {" . $code . "}";
 				} else {
-					$callbacks[$name] = "function(request){" . $code . "}";
+					$callbacks[$name] = "function(request) {" . $code . "}";
 				}
 				if (isset($options['bind'])) {
 					if ((is_array($options['bind']) && in_array($callback, $options['bind'])) || (is_string($options['bind']) && strpos($options['bind'], $callback) !== false)) {
@@ -816,8 +821,8 @@ class AjaxHelper extends AppHelper {
  * @return array
  */
 	function _optionsToString($options, $stringOpts = array()) {
-		foreach($stringOpts as $option) {
-			if (isset($options[$option]) && !$options[$option][0] != "'") {
+		foreach ($stringOpts as $option) {
+			if (isset($options[$option]) && $options[$option][0] != "'") {
 				if ($options[$option] === true || $options[$option] === 'true') {
 					$options[$option] = 'true';
 				} elseif ($options[$option] === false || $options[$option] === 'false') {
@@ -847,7 +852,7 @@ class AjaxHelper extends AppHelper {
 					}
 				}
 				$out  = 'var __ajaxUpdater__ = {' . join(", \n", $data) . '};' . "\n";
-				$out .= 'for (n in __ajaxUpdater__) { if (typeof __ajaxUpdater__[n] == "string" && $(n)) Element.update($(n), unescape(__ajaxUpdater__[n])); }';
+				$out .= 'for (n in __ajaxUpdater__) { if (typeof __ajaxUpdater__[n] == "string" && $(n)) Element.update($(n), unescape(decodeURIComponent(__ajaxUpdater__[n]))); }';
 
 				e($this->Javascript->codeBlock($out, false));
 			}

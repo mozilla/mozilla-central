@@ -1,5 +1,5 @@
 <?php
-/* SVN FILE: $Id: debugger.php,v 1.1 2007-05-25 05:54:17 rflint%ryanflint.com Exp $ */
+/* SVN FILE: $Id: debugger.php,v 1.2 2007-11-19 08:49:53 rflint%ryanflint.com Exp $ */
 /**
  * Framework debugging and PHP error-handling class
  *
@@ -21,9 +21,9 @@
  * @package			cake
  * @subpackage		cake.cake.libs
  * @since			CakePHP(tm) v 1.2.4560
- * @version			$Revision: 1.1 $
+ * @version			$Revision: 1.2 $
  * @modifiedby		$LastChangedBy: phpnut $
- * @lastmodified	$Date: 2007-05-25 05:54:17 $
+ * @lastmodified	$Date: 2007-11-19 08:49:53 $
  * @license			http://www.opensource.org/licenses/mit-license.php The MIT License
  */
 /**
@@ -70,10 +70,6 @@ class Debugger extends Object {
 		if (!defined('E_RECOVERABLE_ERROR')) {
 			define('E_RECOVERABLE_ERROR', 4096);
 		}
-		if (Configure::read() > 0) {
-			Configure::version(); // Make sure the core config is loaded
-			$this->helpPath = Configure::read('Cake.Debugger.HelpPath');
-		}
 	}
 /**
  * Gets a reference to the Debugger object instance
@@ -85,26 +81,31 @@ class Debugger extends Object {
 		static $instance = array();
 
 		if (!isset($instance[0]) || !$instance[0]) {
-			$instance[0] = &new Debugger();
+			$instance[0] =& new Debugger();
+			if (Configure::read() > 0) {
+				Configure::version(); // Make sure the core config is loaded
+				$instance[0]->helpPath = Configure::read('Cake.Debugger.HelpPath');
+			}
 		}
 		return $instance[0];
 	}
 /**
  * Overrides PHP's default error handling
  *
- * @param int $code Code of error
+ * @param integer $code Code of error
  * @param string $description Error description
  * @param string $file File on which error occurred
- * @param int $line Line that triggered the error
+ * @param integer $line Line that triggered the error
  * @param array $context Context
  * @return boolean true if error was handled
  * @access public
  */
 	function handleError($code, $description, $file = null, $line = null, $context = null) {
-		if (error_reporting() == 0) {
-			// Error suppression (@) enabled
+		if (error_reporting() == 0 || $code === 2048) {
 			return;
 		}
+
+		$_this = Debugger::getInstance();
 
 		if (empty($file)) {
 			$file = '[internal]';
@@ -112,11 +113,11 @@ class Debugger extends Object {
 		if (empty($line)) {
 			$line = '??';
 		}
-		$file = $this->trimPath($file);
+		$file = $_this->trimPath($file);
 
 		$info = compact('code', 'description', 'file', 'line');
-		if (!in_array($info, $this->errors)) {
-			$this->errors[] = $info;
+		if (!in_array($info, $_this->errors)) {
+			$_this->errors[] = $info;
 		} else {
 			return;
 		}
@@ -147,46 +148,46 @@ class Debugger extends Object {
 		}
 
 		$helpCode = null;
-		if (!empty($this->helpPath) && preg_match('/.*\[([0-9]+)\]$/', $description, $codes)) {
+		if (!empty($_this->helpPath) && preg_match('/.*\[([0-9]+)\]$/', $description, $codes)) {
 			if (isset($codes[1])) {
 				$helpCode = $codes[1];
 				$description = trim(preg_replace('/\[[0-9]+\]$/', '', $description));
 			}
 		}
 
-		$link = "document.getElementById(\"CakeStackTrace" . count($this->errors) . "\").style.display = (document.getElementById(\"CakeStackTrace" . count($this->errors) . "\").style.display == \"none\" ? \"\" : \"none\")";
+		$link = "document.getElementById(\"CakeStackTrace" . count($_this->errors) . "\").style.display = (document.getElementById(\"CakeStackTrace" . count($_this->errors) . "\").style.display == \"none\" ? \"\" : \"none\")";
 		$out = "<a href='javascript:void(0);' onclick='{$link}'><b>{$error}</b> ({$code})</a>: {$description} [<b>{$file}</b>, line <b>{$line}</b>]";
 
 		if (Configure::read() > 0) {
-			debug($out);
-			e('<div id="CakeStackTrace' . count($this->errors) . '" class="cake-stack-trace" style="display: none;">');
+			debug($out, false, false);
+			e('<div id="CakeStackTrace' . count($_this->errors) . '" class="cake-stack-trace" style="display: none;">');
 			if (!empty($context)) {
-				$link = "document.getElementById(\"CakeErrorContext" . count($this->errors) . "\").style.display = (document.getElementById(\"CakeErrorContext" . count($this->errors) . "\").style.display == \"none\" ? \"\" : \"none\")";
+				$link = "document.getElementById(\"CakeErrorContext" . count($_this->errors) . "\").style.display = (document.getElementById(\"CakeErrorContext" . count($_this->errors) . "\").style.display == \"none\" ? \"\" : \"none\")";
 				e("<a href='javascript:void(0);' onclick='{$link}'>Context</a> | ");
-				$link = "document.getElementById(\"CakeErrorCode" . count($this->errors) . "\").style.display = (document.getElementById(\"CakeErrorCode" . count($this->errors) . "\").style.display == \"none\" ? \"\" : \"none\")";
+				$link = "document.getElementById(\"CakeErrorCode" . count($_this->errors) . "\").style.display = (document.getElementById(\"CakeErrorCode" . count($_this->errors) . "\").style.display == \"none\" ? \"\" : \"none\")";
 				e("<a href='javascript:void(0);' onclick='{$link}'>Code</a>");
 
 				if (!empty($helpCode)) {
-					e(" | <a href='{$this->helpPath}{$helpCode}' target='blank'>Help</a>");
+					e(" | <a href='{$_this->helpPath}{$helpCode}' target='blank'>Help</a>");
 				}
 
-				e("<pre id=\"CakeErrorContext" . count($this->errors) . "\" class=\"cake-context\" style=\"display: none;\">");
+				e("<pre id=\"CakeErrorContext" . count($_this->errors) . "\" class=\"cake-context\" style=\"display: none;\">");
 				foreach ($context as $var => $value) {
-					e("\${$var}\t=\t" . $this->exportVar($value, 1) . "\n");
+					e("\${$var}\t=\t" . $_this->exportVar($value, 1) . "\n");
 				}
 				e("</pre>");
 			}
 		}
 
-		$files = $this->trace(array('start' => 1, 'format' => 'points'));
+		$files = $_this->trace(array('start' => 1, 'format' => 'points'));
 		$listing = Debugger::excerpt($files[0]['file'], $files[0]['line'] - 1, 2);
 
 		if (Configure::read() > 0) {
-			e("<div id=\"CakeErrorCode" . count($this->errors) . "\" class=\"cake-code-dump\" style=\"display: none;\">");
-			pr(implode("\n", $listing));
+			e("<div id=\"CakeErrorCode" . count($_this->errors) . "\" class=\"cake-code-dump\" style=\"display: none;\">");
+			pr(implode("\n", $listing), false);
 			e('</div>');
 
-			pr($this->trace(array('start' => 1)));
+			pr($_this->trace(array('start' => 1)), false);
 			e('</div>');
 		}
 
@@ -297,8 +298,8 @@ class Debugger extends Object {
  * Grabs an excerpt from a file and highlights a given line of code
  *
  * @param string $file Absolute path to a PHP file
- * @param int $line Line number to highlight
- * @param int $context Number of lines of context to extract above and below $line
+ * @param integer $line Line number to highlight
+ * @param integer $context Number of lines of context to extract above and below $line
  * @return array Set of lines highlighted
  * @access protected
  */
@@ -340,9 +341,11 @@ class Debugger extends Object {
 			case 'string':
 				return '"' . $var . '"';
 			break;
+			case 'object':
+				$var = get_object_vars($var);
 			case 'array':
 				$out = 'array(';
-				if ($recursion != 0) {
+				if ($recursion !== 0) {
 					$vars = array();
 					foreach ($var as $key => $val) {
 						$vars[] = Debugger::exportVar($key) . ' => ' . Debugger::exportVar($val, $recursion - 1);
@@ -355,13 +358,61 @@ class Debugger extends Object {
 			case 'resource':
 				return low(gettype($var));
 			break;
-			case 'object':
-				return get_class($var) . ' object';
-			break;
 			case 'null':
 				return 'null';
 			break;
 		}
+	}
+
+	function __object($var) {
+		static $history = array();
+		$serialized = serialize($var);
+		array_push($history, $serialized);
+		echo "\n";
+
+		if(is_object($var)) {
+			$className = get_class($var);
+			$objectVars = get_object_vars($var);
+			foreach($objectVars as $key => $value) {
+				$value = ife((!is_object($value) && !is_array($value) && trim($value) == ""), "[empty string]", $value);
+				if(strpos($key, '_', 0) !== 0) {
+					echo "$className::$key = ";
+				}
+
+				if(is_object($value) || is_array($value)) {
+					$serialized = serialize($value);
+
+					if(in_array($serialized, $history, true)) {
+						$value = ife(is_object($value), "*RECURSION* -> " . get_class($value), "*RECURSION*");
+					}
+				}
+
+				if(in_array(gettype($value), array('boolean', 'integer', 'double', 'string', 'array', 'resource', 'object', 'null'))) {
+					if(is_array($value)) {
+						foreach($value as $name => $output) {
+							if(is_numeric($name)) {
+								echo "$output ";
+							} else {
+								echo "$name => $output ";
+							}
+						}
+						echo "\n";
+					} else {
+						echo Debugger::exportVar($value) . "\n";
+					}
+				} else {
+					echo $value . "\n";
+				}
+			}
+
+			$objectMethods = get_class_methods($className);
+			foreach($objectMethods as $key => $value) {
+				if(strpos($value, '_', 0) !== 0) {
+					echo "$className::$value() \n";
+				}
+			}
+		}
+		array_pop($history);
 	}
 /**
  * Verify that the application's salt has been changed from the default value
@@ -369,8 +420,8 @@ class Debugger extends Object {
  * @access public
  */
 	function checkSessionKey() {
-		if (CAKE_SESSION_STRING == 'DYhG93b0qyJfIxfs2guVoUubWwvniR2G0FgaC9mi') {
-			trigger_error(__('Please change the value of CAKE_SESSION_STRING in app/config/core.php to a salt value specific to your application', true), E_USER_NOTICE);
+		if (Configure::read('Security.salt') == 'DYhG93b0qyJfIxfs2guVoUubWwvniR2G0FgaC9mi') {
+			trigger_error(__('Please change the value of \'Security.salt\' in app/config/core.php to a salt value specific to your application', true), E_USER_NOTICE);
 		}
 	}
 /**

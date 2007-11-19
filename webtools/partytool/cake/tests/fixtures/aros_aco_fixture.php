@@ -1,5 +1,5 @@
 <?php
-/* SVN FILE: $Id: aros_aco_fixture.php,v 1.1 2007-05-25 05:54:27 rflint%ryanflint.com Exp $ */
+/* SVN FILE: $Id: aros_aco_fixture.php,v 1.2 2007-11-19 08:49:57 rflint%ryanflint.com Exp $ */
 /**
  * Short description for file.
  *
@@ -21,9 +21,9 @@
  * @package			cake.tests
  * @subpackage		cake.tests.fixtures
  * @since			CakePHP(tm) v 1.2.0.4667
- * @version			$Revision: 1.1 $
+ * @version			$Revision: 1.2 $
  * @modifiedby		$LastChangedBy: phpnut $
- * @lastmodified	$Date: 2007-05-25 05:54:27 $
+ * @lastmodified	$Date: 2007-11-19 08:49:57 $
  * @license			http://www.opensource.org/licenses/opengroup.php The Open Group Test Suite License
  */
 /**
@@ -35,7 +35,7 @@
 class ArosAcoFixture extends CakeTestFixture {
 	var $name = 'ArosAco';
 	var $fields = array(
-		'id' => array('type' => 'integer', 'key' => 'primary'),
+		'id' => array('type' => 'integer', 'key' => 'primary', 'extra'=> 'auto_increment'),
 		'aro_id' => array('type' => 'integer', 'length' => 10, 'null' => false),
 		'aco_id' => array('type' => 'integer', 'length' => 10, 'null' => false),
 		'_create' => array('type' => 'string', 'length' => 2, 'null' => false, 'default' => '0'),

@@ -1,5 +1,5 @@
 <?php
-/* SVN FILE: $Id: console.php,v 1.1 2007-05-25 05:54:16 rflint%ryanflint.com Exp $ */
+/* SVN FILE: $Id: console.php,v 1.2 2007-11-19 08:49:52 rflint%ryanflint.com Exp $ */
 /**
  * Short description for file.
  *
@@ -21,9 +21,9 @@
  * @package			cake
  * @subpackage		cake.cake.console.libs
  * @since			CakePHP(tm) v 1.2.0.5012
- * @version			$Revision: 1.1 $
+ * @version			$Revision: 1.2 $
  * @modifiedby		$LastChangedBy: phpnut $
- * @lastmodified	$Date: 2007-05-25 05:54:16 $
+ * @lastmodified	$Date: 2007-11-19 08:49:52 $
  * @license			http://www.opensource.org/licenses/mit-license.php The MIT License
  */
 /**
@@ -31,107 +31,239 @@
  * @subpackage	cake.cake.console.libs
  */
 class ConsoleShell extends Shell {
-	var $ignoreList = array(T_WHITESPACE, T_OPEN_TAG, T_CLOSE_TAG);
-	var $returnList = array(T_FOREACH, T_DO, T_WHILE, T_FOR, T_IF, T_RETURN,
-									T_CLASS, T_FUNCTION, T_INTERFACE, T_PRINT, T_ECHO,
-									T_COMMENT, T_UNSET, T_INCLUDE, T_REQUIRE, T_INCLUDE_ONCE,
-									T_REQUIRE_ONCE,T_TRY);
-	var $continueList = array(T_VARIABLE, T_STRING, T_NEW, T_EXTENDS, T_IMPLEMENTS,
-									T_OBJECT_OPERATOR, T_DOUBLE_COLON, T_INSTANCEOF, T_CATCH, T_ELSE,
-									T_AS, T_LNUMBER, T_DNUMBER, T_CONSTANT_ENCAPSED_STRING, T_ENCAPSED_AND_WHITESPACE,
-									T_CHARACTER, T_ARRAY, T_DOUBLE_ARROW, T_CONST, T_PUBLIC,
-									T_PROTECTED, T_PRIVATE, T_ABSTRACT, T_STATIC, T_VAR,
-									T_INC, T_DEC, T_SL, T_SL_EQUAL, T_SR,
-									T_SR_EQUAL, T_IS_EQUAL, T_IS_IDENTICAL, T_IS_GREATER_OR_EQUAL, T_IS_SMALLER_OR_EQUAL,
-									T_BOOLEAN_OR, T_LOGICAL_OR, T_BOOLEAN_AND, T_LOGICAL_AND, T_LOGICAL_XOR,
-									T_MINUS_EQUAL, T_PLUS_EQUAL, T_MUL_EQUAL, T_DIV_EQUAL, T_MOD_EQUAL,
-									T_XOR_EQUAL, T_AND_EQUAL, T_OR_EQUAL, T_FUNC_C, T_CLASS_C,
-									T_LINE, T_FILE);
-	function main() {
-		$models = @loadModels();
-		foreach ($models as $model) {
+/**
+ * Available binding types
+ *
+ * @var array
+ * @access public
+ */
+	var $associations = array('hasOne', 'hasMany', 'belongsTo', 'hasAndBelongsToMany');
+/**
+ * Chars that describe invalid commands
+ *
+ * @var array
+ * @access public
+ */
+	var $badCommandChars = array('$', ';');
+/**
+ * Available models
+ *
+ * @var array
+ * @access public
+ */
+	var $models = array();
+/**
+ * Override intialize of the Shell
+ *
+ * @access public
+ */
+	function initialize() {
+		$this->models = @loadModels();
+		foreach ($this->models as $model) {
 			$class = Inflector::camelize(r('.php', '', $model));
-			$models[$model] = $class;
-			@${$class} =& new $class();
+			$this->models[$model] = $class;
+			$this->{$class} =& new $class();
 		}
+		$this->out('Model classes:');
+		$this->out('--------------');
 
+		foreach ($this->models as $model) {
+			$this->out(" - {$model}");
+		}
+	}
+/**
+ * Override main() to handle action
+ *
+ * @access public
+ */
+	function main() {
 		while (true) {
 			$command = trim($this->in(''));
 
 			switch($command) {
+				case 'help':
+					$this->out('Console help:');
+					$this->out('-------------');
+					$this->out('The interactive console is a tool for testing models before you commit code');
+					$this->out('');
+					$this->out('To test for results, use the name of your model without a leading $');
+					$this->out('e.g. Foo->findAll()');
+					$this->out('');
+					$this->out('To dynamically set associations, you can do the following:');
+					$this->out("\tModelA bind <association> ModelB");
+					$this->out("where the supported assocations are hasOne, hasMany, belongsTo, hasAndBelongsToMany");
+					$this->out('');
+					$this->out('To dynamically remove associations, you can do the following:');
+					$this->out("\t ModelA unbind <association> ModelB");
+					$this->out("where the supported associations are the same as above");
+					$this->out('');
+					$this->out("To save a new field in a model, you can do the following:");
+					$this->out("\tModelA->save(array('foo' => 'bar', 'baz' => 0))");
+					$this->out("where you are passing a hash of data to be saved in the format");
+					$this->out("of field => value pairs");
+					$this->out('');
+					$this->out("To get column information for a model, use the following:");
+					$this->out("\tModelA columns");
+					$this->out("which returns a list of columns and their type");
+				break;
 				case 'quit':
 				case 'exit':
 					return true;
 				break;
 				case 'models':
 					$this->out('Model classes:');
-					$this->out('--------------');
-
-					foreach ($models as $model) {
+					$this->hr();
+					foreach ($this->models as $model) {
 						$this->out(" - {$model}");
 					}
 				break;
-				default:
-					$tokens = token_get_all($command);
-					$semicolon = FALSE;
-					$return = TRUE;
-					$ignore = FALSE;
-					$braces = array();
-					$methods = array();
-					$ws_t = array();
-					$command = '';
+				case (preg_match("/^(\w+) bind (\w+) (\w+)/", $command, $tmp) == true):
+					foreach ($tmp as $data) {
+						$data = strip_tags($data);
+						$data = str_replace($this->badCommandChars, "", $data);
+					}
 
-					foreach ($tokens as $idx => $token) {
-						// Parse the tokens
-						if(is_array($token)) {
-							if(in_array($token[0], $this->ignoreList)) {
-								$ignore = TRUE;
-							} elseif(in_array($token[0], $this->returnList)) {
-								$return = FALSE;
-							} elseif(in_array($token[0], $this->continueList)) {
-								// everything is okay
-							} else {
-								$error = sprintf(">> Unknown tag: %d (%s): %s".PHP_EOL, $token[0], token_name($token[0]), $token[1]);
-							}
-							if($ignore == TRUE) {
-								$command .= $token[1] . " ";
-								$ws_t[] = array("token" => $token[0], "value" => $token[1]);
-							}
-						} else {
-							$ws_t[] = array("token" => $token, "value" => '');
-							$last_idx = count($ws_t) - 1;
+					$modelA = $tmp[1];
+					$association = $tmp[2];
+					$modelB = $tmp[3];
 
-							switch ($token) {
-								case '(':
-								break;
-								case '{':
-								break;
-								case ')':
-								break;
-								case '}':
-								break;
-							}
+					if ($this->__isValidModel($modelA) && $this->__isValidModel($modelB) && in_array($association, $this->associations)) {
+						$this->{$modelA}->bindModel(array($association => array($modelB => array('className' => $modelB))), false);
+						$this->out("Created $association association between $modelA and $modelB");
+					} else {
+						$this->out("Please verify you are using valid models and association types");
+					}
+				break;
+				case (preg_match("/^(\w+) unbind (\w+) (\w+)/", $command, $tmp) == true):
+					foreach ($tmp as $data) {
+						$data = strip_tags($data);
+						$data = str_replace($this->badCommandChars, "", $data);
+					}
+
+					$modelA = $tmp[1];
+					$association = $tmp[2];
+					$modelB = $tmp[3];
+
+					// Verify that there is actually an association to unbind
+					$currentAssociations = $this->{$modelA}->getAssociated();
+					$validCurrentAssociation = false;
+
+					foreach ($currentAssociations as $model => $currentAssociation) {
+						if ($model == $modelB && $association == $currentAssociation) {
+							$validCurrentAssociation = true;
 						}
 					}
+
+					if ($this->__isValidModel($modelA) && $this->__isValidModel($modelB) && in_array($association, $this->associations) && $validCurrentAssociation) {
+						$this->{$modelA}->unbindModel(array($association => array($modelB)));
+						$this->out("Removed $association association between $modelA and $modelB");
+					} else {
+						$this->out("Please verify you are using valid models, valid current association, and valid association types");
+					}
+				break;
+				case (strpos($command, "->find") > 0):
+					// Remove any bad info
+					$command = strip_tags($command);
+					$command = str_replace($this->badCommandChars, "", $command);
+
+					// Do we have a valid model?
+					list($modelToCheck, $tmp) = explode('->', $command);
+
+					if ($this->__isValidModel($modelToCheck)) {
+						$findCommand = "\$data = \$this->$command;";
+						@eval($findCommand);
+
+						if (is_array($data)) {
+							foreach ($data as $idx => $results) {
+								if (is_numeric($idx)) { // findAll() output
+									foreach ($results as $modelName => $result) {
+										$this->out("$modelName");
+
+										foreach ($result as $field => $value) {
+											if (is_array($value)) {
+												foreach ($value as $field2 => $value2) {
+													$this->out("\t$field2: $value2");
+												}
+
+												$this->out("");
+											} else {
+												$this->out("\t$field: $value");
+											}
+										}
+									}
+								} else { // find() output
+									$this->out($idx);
+
+									foreach ($results as $field => $value) {
+										if (is_array($value)) {
+											foreach ($value as $field2 => $value2) {
+												$this->out("\t$field2: $value2");
+											}
+
+											$this->out("");
+										} else {
+											$this->out("\t$field: $value");
+										}
+									}
+								}
+							}
+						} else {
+							$this->out("\nNo result set found");
+						}
+					} else {
+						$this->out("$modelToCheck is not a valid model");
+					}
+
+				break;
+				case (strpos($command, '->save') > 0):
+					// Validate the model we're trying to save here
+					$command = strip_tags($command);
+					$command = str_replace($this->badCommandChars, "", $command);
+					list($modelToSave, $tmp) = explode("->", $command);
+
+					if ($this->__isValidModel($modelToSave)) {
+						// Extract the array of data we are trying to build
+						list($foo, $data) = explode("->save", $command);
+						$badChars = array("(", ")");
+						$data = str_replace($badChars, "", $data);
+						$saveCommand = "\$this->{$modelToSave}->save(array('{$modelToSave}' => array({$data})));";
+						@eval($saveCommand);
+						$this->out('Saved record for ' . $modelToSave);
+					}
+
+				break;
+				case (preg_match("/^(\w+) columns/", $command, $tmp) == true):
+					$modelToCheck = strip_tags(str_replace($this->badCommandChars, "", $tmp[1]));
+
+					if ($this->__isValidModel($modelToCheck)) {
+						// Get the column info for this model
+						$fieldsCommand = "\$data = \$this->{$modelToCheck}->getColumnTypes();";
+						@eval($fieldsCommand);
+
+						if (is_array($data)) {
+							foreach ($data as $field => $type) {
+								$this->out("\t{$field}: {$type}");
+							}
+						}
+					} else {
+						$this->out("Please verify that you selected a valid model");
+					}
+				break;
+				default:
+					$this->out("Invalid command\n");
+				break;
 			}
 		}
 	}
+/**
+ * Tells if the specified model is included in the list of available models
+ *
+ * @param string $modelToCheck
+ * @return boolean true if is an available model, false otherwise
+ * @access private
+ */
+	function __isValidModel($modelToCheck) {
+		return in_array($modelToCheck, $this->models);
+	}
 }
-	function fatal_error_handler($buffer) {
-		if(ereg("(error</b>:)(.+)(<br)", $buffer, $regs) ) {
-			$err = preg_replace("/<.*?>/", "", $regs[2]);
-			error_log($err);
-			return "ERROR CAUGHT check log file";
-		}
-		return $buffer;
-	}
-
-	function handle_error ($errno, $errstr, $errfile, $errline) {
-		error_log("$errstr in $errfile on line $errline");
-		if($errno == FATAL || $errno == ERROR){
-			ob_end_flush();
-			echo "ERROR CAUGHT check log file";
-			exit(0);
-		}
-	}
 ?>

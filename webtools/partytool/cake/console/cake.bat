@@ -17,14 +17,14 @@
 :: @package			cake
 :: @subpackage		cake.cake.console
 :: @since			CakePHP(tm) v 1.2.0.5012
-:: @version			$Revision: 1.1 $
+:: @version			$Revision: 1.2 $
 :: @modifiedby		$LastChangedBy: phpnut $
-:: @lastmodified	$Date: 2007-05-25 05:54:15 $
+:: @lastmodified	$Date: 2007-11-19 08:49:52 $
 :: @license			http://www.opensource.org/licenses/mit-license.php The MIT License
 ::
 ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
 
-:: In order for this script to work as intended, the cake\scripts\ folder must be in your PATH
+:: In order for this script to work as intended, the cake\console\ folder must be in your PATH
 
 @echo.
 @echo off
@@ -32,6 +32,6 @@
 SET app=%0
 SET lib=%~dp0
 
-php -q "%lib%cake.php" %* -working "%CD%\"
+php -q "%lib%cake.php" -working "%CD%" %*
 
 echo.
