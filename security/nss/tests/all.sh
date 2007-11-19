@@ -114,6 +114,18 @@ if [ -z "${INIT_SOURCED}" -o "${INIT_SOURCED}" != "TRUE" ]; then
 	. ./init.sh
 fi
 
+# Since in make at the top level, modutil is the last file
+# created, we check for modutil to know whether the build
+# is complete. If a new file is created after that, the 
+# following test for modutil should check for that instead.
+
+if [ ! -f ${DIST}/${OBJDIR}/bin/modutil -a  \
+     ! -f ${DIST}/${OBJDIR}/bin/modutil.exe ]; then
+	echo "Build Incomplete. Aborting test." >> ${LOGFILE}
+	html_head "Testing Initialization"
+	Exit "Checking for build"
+fi
+
 # backup selected environment variables
 ENV_BACKUP=${HOSTDIR}/env.sh
 env_backup > ${ENV_BACKUP}
