@@ -134,7 +134,6 @@ const nsMsgViewIndex nsMsgViewIndex_None = 0xFFFFFFFF;
 									   */
 #define MSG_FLAG_IGNORED	0x40000 /* the thread is ignored */
 
-
 #define MSG_FLAG_IMAP_DELETED	0x200000 /* message is marked deleted on the server */
 
 #define MSG_FLAG_MDN_REPORT_NEEDED 0x400000 /* This msg required to send an MDN 
