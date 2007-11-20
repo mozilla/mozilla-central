@@ -228,6 +228,16 @@ components/myspell/en-US.dic
 components/myspell/en-US.aff
 regxpcom.exe
 components/xmlextras.xpt
+res/html/gopher-audio.gif
+res/html/gopher-binary.gif
+res/html/gopher-find.gif
+res/html/gopher-image.gif
+res/html/gopher-menu.gif
+res/html/gopher-movie.gif
+res/html/gopher-sound.gif
+res/html/gopher-telnet.gif
+res/html/gopher-text.gif
+res/html/gopher-unknown.gif
 extensions/talkback@mozilla.org/
 extensions/talkback@mozilla.org/install.rdf
 extensions/talkback@mozilla.org/chrome.manifest
