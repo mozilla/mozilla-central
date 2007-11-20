@@ -61,30 +61,7 @@ const nsMsgKey nsMsgKey_None = 0xffffffff;
  *  - AB_NameCompletionIndex
  */
 
-
 const nsMsgViewIndex nsMsgViewIndex_None = 0xFFFFFFFF;
-
-// The following enums are all persistent in databases, so don't go changing the values!
-enum nsMsgSortOrder {
-  nsMsgSortOrder_None = 0,
-  nsMsgSortOrder_Ascending = 1,
-  nsMsgSortOrder_Descending = 2
-};
-
-// We should be using the property name we're sorting by instead of these types.
-enum nsMsgSortType {
-  nsMsgSortType_Date = 0x12,
-  nsMsgSortType_Subject = 0x13,
-  nsMsgSortType_Author = 0x14,
-  nsMsgSortType_Id = 0x15,
-  nsMsgSortType_Thread = 0x16,
-  nsMsgSortType_Priority = 0x17,
-  nsMsgSortType_Status = 0x18,
-  nsMsgSortType_Size = 0x19,
-  nsMsgSortType_Flagged = 0x1a,
-  nsMsgSortType_Unread = 0x1b,
-  nsMsgSortType_Recipient
-};
 
 /* Flags about a single message.  These values are used in the MSG_MessageLine
    struct and in a folder's mozilla-status line. The summary file database
