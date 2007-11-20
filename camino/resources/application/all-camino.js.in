@@ -124,9 +124,6 @@ pref("network.protocol-handler.warn-external.news", false);
 pref("network.protocol-handler.warn-external.snews", false);
 pref("network.protocol-handler.warn-external.nntp", false);
 
-// cookies: 0 = accept all, 1 = don't accept third-party, 2 = don't accept any
-pref("network.cookie.cookieBehavior", 1);
-
 // defaults for cmd-click opening windows or tabs (default to windows)
 pref("browser.tabs.opentabfor.middleclick", false);
 // ...and default to opening new pages in the foreground
