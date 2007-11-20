@@ -2071,8 +2071,8 @@ cert_GetTargetCertConstraints(CERTCertificate *target, void *plContext)
     PKIX_PL_Cert *eeCert = NULL;
     PKIX_Error *error = NULL;
 
-    pkix_pl_Cert_CreateWithNSSCert
-	(target, &eeCert, plContext);
+    error = PKIX_PL_Cert_CreateFromCERTCertificate(target, &eeCert, plContext);
+    if (error != NULL) goto cleanup;
 
     error = PKIX_CertSelector_Create(NULL, NULL, &certSelector, plContext);
     if (error != NULL) goto cleanup;
