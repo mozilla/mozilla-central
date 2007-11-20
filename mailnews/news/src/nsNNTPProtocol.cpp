@@ -1471,11 +1471,9 @@ nsNNTPProtocol::ParseURL(nsIURI * aURL, char ** aGroup, char ** aMessageID,
     { // for news://host/message-id decompose complete url
       nsCAutoString urlSpec;
       m_url->GetAsciiSpec(urlSpec);
-
       rv = nntpService->DecomposeNewsURI(urlSpec.get(), getter_AddRefs(folder), &m_key);
-      NS_ENSURE_SUCCESS(rv,rv);
     }
-    else
+    if ((!*aMessageID) || NS_FAILED(rv))
     { // for news://host/* decompose only server uri
       rv = nntpService->DecomposeNewsURI(serverURI.get(), getter_AddRefs(folder), &m_key);
       NS_ENSURE_SUCCESS(rv,rv);
