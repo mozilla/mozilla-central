@@ -44,44 +44,14 @@
  * @constructor
  */
 function calGoogleCalendar() {
-
-    this.mObservers = new calListenerBag(Components.interfaces.calIObserver);
-
-    var calObject = this;
-
-    function calAttrHelper(aAttr) {
-        this.getAttr = function calAttrHelper_get() {
-            return calObject.getProperty(aAttr);
-        };
-        this.setAttr = function calAttrHelper_set(aValue) {
-            return calObject.setProperty(aAttr, aValue);
-        };
-    }
-
-    var prefAttrs = ["name", "readOnly"];
-    for each (var attr in prefAttrs) {
-        var helper = new calAttrHelper(attr);
-        this.__defineGetter__(attr, helper.getAttr);
-        this.__defineSetter__(attr, helper.setAttr);
-    }
+    this.initProviderBase();
 }
 
 calGoogleCalendar.prototype = {
-
-    QueryInterface: function cGC_QueryInterface(aIID) {
-        if (!aIID.equals(Components.interfaces.nsISupports) &&
-            !aIID.equals(Components.interfaces.calICalendar)) {
-            throw Components.results.NS_ERROR_NO_INTERFACE;
-        }
-        return this;
-    },
+    __proto__: calProviderBase.prototype,
 
     /* Member Variables */
-    mID: null,
     mSession: null,
-    mObservers: null,
-    mReadOnly: false,
-    mUri: null,
     mFullUri: null,
     mCalendarName: null,
 
@@ -107,17 +77,6 @@ calGoogleCalendar.prototype = {
     },
     set session(v) {
         return this.mSession = v;
-    },
-
-    /**
-     * notifyObservers
-     * Notify this calendar's observers that a specific event has happened
-     *
-     * @param aEvent       The Event that happened.
-     * @param aArgs        An array of arguments that is passed to the observer
-     */
-    notifyObservers: function cGC_notifyObservers(aEvent, aArgs) {
-        this.mObservers.notify(aEvent, aArgs);
     },
 
     /**
@@ -165,47 +124,6 @@ calGoogleCalendar.prototype = {
     /*
      * implement calICalendar
      */
-    getProperty: function cGC_getProperty(aName) {
-        switch (aName) {
-            case "readOnly":
-                return this.mReadOnly;
-            default:
-                // xxx future: return getPrefSafe("calendars." + this.id + "." + aName, null);
-                return getCalendarManager().getCalendarPref_(this, aName);
-        }
-    },
-    setProperty: function cGC_setProperty(aName, aValue) {
-        var oldValue = this.getProperty(aName);
-        if (oldValue != aValue) {
-            switch (aName) {
-                case "readOnly":
-                    this.mReadOnly = aValue;
-                    break;
-                default:
-                    // xxx future: setPrefSafe("calendars." + this.id + "." + aName, aValue);
-                    getCalendarManager().setCalendarPref_(this, aName, aValue);
-            }
-            this.mObservers.notify("onPropertyChanged",
-                                   [this, aName, aValue, oldValue]);
-        }
-        return aValue;
-    },
-    deleteProperty: function cGC_deleteProperty(aName) {
-        this.mObservers.notify("onPropertyDeleting", [this, aName]);
-        getCalendarManager().deleteCalendarPref_(this, aName);
-    },
-
-    // attribute AUTF8String id;
-    get id() {
-        return this.mID;
-    },
-
-    set id(id) {
-        if (this.mID)
-            throw Components.results.NS_ERROR_ALREADY_INITIALIZED;
-        return (this.mID = id);
-    },
-
     get type() {
         return "gdata";
     },
@@ -253,20 +171,12 @@ calGoogleCalendar.prototype = {
         return true;
     },
 
-    addObserver: function cGC_addObserver(aObserver) {
-        this.mObservers.add(aObserver);
-    },
-
-    removeObserver: function cGC_removeObserver(aObserver) {
-        this.mObservers.remove(aObserver);
-    },
-
     adoptItem: function cGC_adoptItem(aItem, aListener) {
         LOG("Adding item " + aItem.title);
 
         try {
             // Check if calendar is readonly
-            if (this.mReadOnly) {
+            if (this.readOnly) {
                 throw new Components.Exception("",
                                                Components.interfaces.calIErrors.CAL_IS_READONLY);
             }
@@ -300,8 +210,8 @@ calGoogleCalendar.prototype = {
                 // The calendar is readonly, make sure this is set and
                 // notify the user. This can come from above or from
                 // mSession.addItem which checks for the editURI
-                this.mReadOnly = true;
-                this.notifyObservers("onError", [e.result, e.message]);
+                this.readOnly = true;
+                this.mObservers.notify("onError", [e.result, e.message]);
             }
 
             if (aListener != null) {
@@ -324,7 +234,7 @@ calGoogleCalendar.prototype = {
         LOG("Modifying item " + aOldItem.title);
 
         try {
-            if (this.mReadOnly) {
+            if (this.readOnly) {
                 throw new Components.Exception("",
                                                Components.interfaces.calIErrors.CAL_IS_READONLY);
             }
@@ -354,7 +264,7 @@ calGoogleCalendar.prototype = {
                                                   aNewItem.id,
                                                   aNewItem);
                 }
-                this.notifyObservers("onModifyItem", [aNewItem, aOldItem]);
+                this.mObservers.notify("onModifyItem", [aNewItem, aOldItem]);
                 return;
             }
 
@@ -375,8 +285,8 @@ calGoogleCalendar.prototype = {
                 // The calendar is readonly, make sure this is set and
                 // notify the user. This can come from above or from
                 // mSession.modifyItem which checks for the editURI
-                this.mReadOnly = true;
-                this.notifyObservers("onError", [e.result, e.message]);
+                this.readOnly = true;
+                this.mObservers.notify("onError", [e.result, e.message]);
             }
 
             if (aListener != null) {
@@ -393,7 +303,7 @@ calGoogleCalendar.prototype = {
         LOG("Deleting item " + aItem.title + "(" + aItem.id + ")");
 
         try {
-            if (this.mReadOnly) {
+            if (this.readOnly) {
                 throw new Components.Exception("",
                                                Components.interfaces.calIErrors.CAL_IS_READONLY);
             }
@@ -420,8 +330,8 @@ calGoogleCalendar.prototype = {
                 // The calendar is readonly, make sure this is set and
                 // notify the user. This can come from above or from
                 // mSession.deleteItem which checks for the editURI
-                this.mReadOnly = true;
-                this.notifyObservers("onError", [e.result, e.message]);
+                this.readOnly = true;
+                this.mObservers.notify("onError", [e.result, e.message]);
             }
 
             if (aListener != null) {
@@ -510,15 +420,7 @@ calGoogleCalendar.prototype = {
     },
 
     refresh: function cGC_refresh() {
-        this.notifyObservers("onLoad", [this]);
-    },
-
-    startBatch: function cGC_startBatch() {
-        this.notifyObservers("onStartBatch", []);
-    },
-
-    endBatch: function cGC_endBatch() {
-        this.notifyObservers("onEndBatch", []);
+        this.mObservers.notify("onLoad", [this]);
     },
 
     /*
@@ -543,7 +445,7 @@ calGoogleCalendar.prototype = {
                                          aRequest.extraData);
         // Notify Observers
         if (item) {
-            this.notifyObservers("onAddItem", [item]);
+            this.mObservers.notify("onAddItem", [item]);
         }
     },
 
@@ -565,8 +467,8 @@ calGoogleCalendar.prototype = {
                                          aRequest.extraData.listener);
         // Notify Observers
         if (item) {
-            this.notifyObservers("onModifyItem",
-                                 [item, aRequest.extraData.olditem]);
+            this.mObservers.notify("onModifyItem",
+                                   [item, aRequest.extraData.olditem]);
         }
     },
 
@@ -605,7 +507,7 @@ calGoogleCalendar.prototype = {
             }
 
             // Notify Observers
-            this.notifyObservers("onDeleteItem", [aRequest.extraData.item]);
+            this.mObservers.notify("onDeleteItem", [aRequest.extraData.item]);
         } catch (e) {
             LOG("Deleting item " + aRequest.extraData.item.id + " failed");
             // Operation failed
@@ -806,8 +708,8 @@ calGoogleCalendar.prototype = {
             if (e.result == Components.interfaces.calIErrors.CAL_IS_READONLY) {
                 // The calendar is readonly, make sure this is set and
                 // notify the user.
-                this.mReadOnly = true;
-                this.notifyObservers("onError", [e.result, e.message]);
+                this.readOnly = true;
+                this.mObservers.notify("onError", [e.result, e.message]);
             }
 
             // Operation failed

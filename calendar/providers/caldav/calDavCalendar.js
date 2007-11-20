@@ -58,8 +58,7 @@
 const xmlHeader = '<?xml version="1.0" encoding="UTF-8"?>\n';
 
 function calDavCalendar() {
-    this.wrappedJSObject = this;
-    this.mObservers = new calListenerBag(Components.interfaces.calIObserver);
+    this.initProviderBase();
     this.unmappedProperties = [];
     this.mPendingStartupRequests = [];
     this.mUriParams = null;
@@ -68,7 +67,7 @@ function calDavCalendar() {
 }
 
 // some shorthand
-const nsIWebDAVOperationListener = 
+const nsIWebDAVOperationListener =
     Components.interfaces.nsIWebDAVOperationListener;
 const calICalendar = Components.interfaces.calICalendar;
 const nsISupportsCString = Components.interfaces.nsISupportsCString;
@@ -88,7 +87,7 @@ function makeOccurrence(item, start, end)
 
     return occ;
 }
-  
+
 // END_OF_TIME needs to be the max value a PRTime can be
 const START_OF_TIME = -0x7fffffffffffffff;
 const END_OF_TIME = 0x7fffffffffffffff;
@@ -111,18 +110,14 @@ const CALDAV_DELETE_ITEM = 3;
 const CALDAV_CACHE_ETAG = 4;
 
 calDavCalendar.prototype = {
+    __proto__: calProviderBase.prototype,
     //
     // nsISupports interface
-    // 
+    //
     QueryInterface: function (aIID) {
-        if (!aIID.equals(Components.interfaces.nsISupports) &&
-            !aIID.equals(Components.interfaces.calICalendarProvider) &&
-            !aIID.equals(Components.interfaces.calICalendar) &&
-            !aIID.equals(Components.interfaces.nsIInterfaceRequestor)) {
-            throw Components.results.NS_ERROR_NO_INTERFACE;
-        }
-
-        return this;
+        return doQueryInterface(this, aIID,
+                                [Components.interfaces.calICalendarProvider,
+                                 Components.interfaces.nsIInterfaceRequestor]);
     },
 
     //
@@ -148,36 +143,8 @@ calDavCalendar.prototype = {
     // calICalendar interface
     //
 
-    // attribute AUTF8String id;
-    mID: null,
-    get id() {
-        return this.mID;
-    },
-    set id(id) {
-        if (this.mID)
-            throw Components.results.NS_ERROR_ALREADY_INITIALIZED;
-        return (this.mID = id);
-    },
-
-    // attribute AUTF8String name;
-    get name() {
-        return this.getProperty("name");
-    },
-    set name(name) {
-        return this.setProperty("name", name);
-    },
-
     // readonly attribute AUTF8String type;
     get type() { return "caldav"; },
-
-    mReadOnly: false,
-
-    get readOnly() {
-        return this.getProperty("readOnly");
-    },
-    set readOnly(aValue) {
-        return this.setProperty("readOnly", aValue);
-    },
 
     mDisabled: false,
 
@@ -190,47 +157,12 @@ calDavCalendar.prototype = {
         return true;
     },
 
-    getProperty: function caldav_getProperty(aName) {
-        switch (aName) {
-            case "readOnly":
-                return this.mReadOnly;
-            default:
-                // xxx future: return getPrefSafe("calendars." + this.id + "." + aName, null);
-                return getCalendarManager().getCalendarPref_(this, aName);
-        }
-    },
-    setProperty: function caldav_setProperty(aName, aValue) {
-        var oldValue = this.getProperty(aName);
-        if (oldValue != aValue) {
-            switch (aName) {
-                case "readOnly":
-                    this.mReadOnly = aValue;
-                    break;
-                default:
-                    // xxx future: setPrefSafe("calendars." + this.id + "." + aName, aValue);
-                    getCalendarManager().setCalendarPref_(this, aName, aValue);
-            }
-            this.mObservers.notify("onPropertyChanged",
-                                   [this, aName, aValue, oldValue]);
-        }
-        return aValue;
-    },
-    deleteProperty: function caldav_deleteProperty(aName) {
-        this.mObservers.notify("onPropertyDeleting", [this, aName]);
-        getCalendarManager().deleteCalendarPref_(this, aName);
-    },
-
     // mUriParams stores trailing ?parameters from the
     // supplied calendar URI. Needed for (at least) Cosmo
     // tickets
     mUriParams: null,
 
-    // attribute nsIURI uri;
-    mUri: null,
-    get uri() { return this.mUri; },
-    set uri(aUri) { return (this.mUri = aUri); },
-
-    get mCalendarUri() { 
+    get mCalendarUri() {
         calUri = this.mUri.clone();
         var parts = calUri.spec.split('?');
         if (parts.length > 1) {
@@ -242,7 +174,7 @@ calDavCalendar.prototype = {
         }
         return calUri;
     },
-    
+
     makeUri: function caldav_makeUri(aInsertString) {
         var spec = this.mCalendarUri.spec + aInsertString;
         if (this.mUriParams) {
@@ -263,17 +195,7 @@ calDavCalendar.prototype = {
 
     // XXX todo: in general we want to do CalDAV scheduling, but for servers
     //           that don't support it, we want Itip
-    get sendItipInvitations() { return true; },
-
-    // void addObserver( in calIObserver observer );
-    addObserver: function caldav_addObserver(aObserver) {
-        this.mObservers.add(aObserver);
-    },
-
-    // void removeObserver( in calIObserver observer );
-    removeObserver: function (aObserver) {
-        this.mObservers.remove(aObserver);
-    },
+    // sendItipInvitations is now used from calProviderBase.
 
     promptOverwrite: function caldavPO(aMethod, aItem, aListener, aOldItem) {
         var promptService = Components.classes["@mozilla.org/embedcomp/prompt-service;1"].
@@ -290,7 +212,7 @@ calDavCalendar.prototype = {
             promptMessage += calGetString("calendar", "deleteWillLoseData");
             buttonLabel1 = calGetString("calendar", "proceedDelete");
         }
-        
+
         var buttonLabel2 = calGetString("calendar", "updateFromServer");
 
         var flags = promptService.BUTTON_TITLE_IS_STRING *
@@ -661,7 +583,7 @@ calDavCalendar.prototype = {
     /**
      * deleteItem(); required by calICalendar.idl
      * the actual deletion is done in doDeleteItem()
-     * 
+     *
      * @param aItem       item to delete
      * @param aListener   listener for method completion
      */
@@ -700,10 +622,10 @@ calDavCalendar.prototype = {
         var delListener = {};
         var thisCalendar = this;
         var realListener = aListener; // need to access from callback
-        
+
         delListener.onStreamComplete =
         function caldavDLoSC(aLoader, aContext, aStatus, aResultLength, aResult) {
-            
+
             var status = aContext.responseStatus;
             // 204 = HTTP "No content"
             //
@@ -728,7 +650,7 @@ calDavCalendar.prototype = {
                     streamLoader2.init(streamListener2);
                     channel.asyncOpen(streamLoader2, httpchannel2);
                 }
-                
+
             } else {
                 LOG("Error deleting item: " + status);
                 // XXX real error handling here
@@ -815,7 +737,7 @@ calDavCalendar.prototype = {
         if (aItem instanceof Components.interfaces.calITodo) {
             itemType = "VTODO";
         }
-        
+
         var queryStatuses = new Array();
 
         var C = new Namespace("C", "urn:ietf:params:xml:ns:caldav");
@@ -869,7 +791,7 @@ calDavCalendar.prototype = {
         // XXX need a prefix in the namespace decl?
         default xml namespace = "urn:ietf:params:xml:ns:caldav";
         var D = new Namespace("D", "DAV:");
-        queryXml = 
+        queryXml =
           <calendar-query xmlns:D="DAV:">
             <D:prop>
               <calendar-data/>
@@ -887,7 +809,7 @@ calDavCalendar.prototype = {
             </filter>
           </calendar-query>;
 
-        this.reportInternal(xmlHeader + queryXml.toXMLString(), 
+        this.reportInternal(xmlHeader + queryXml.toXMLString(),
                             false, null, null, 1, aListener);
         return;
     },
@@ -921,9 +843,9 @@ calDavCalendar.prototype = {
             // XXX need to do better than looking for just 200
             if (aStatusCode == 200) {
 
-                // we've already called back the maximum number of hits, so 
+                // we've already called back the maximum number of hits, so
                 // we're done here.
-                // 
+                //
                 if (aCount && count >= aCount) {
                     return;
                 }
@@ -1027,7 +949,7 @@ calDavCalendar.prototype = {
                                     excItems.push(item);
                                 }
                             }
-                        } catch (ex) { 
+                        } catch (ex) {
                             thisCalendar.mObservers.notify("onError", [ex.result, ex.toString()]);
                         }
                         subComp = calComp.getNextSubcomponent("ANY");
@@ -1091,7 +1013,7 @@ calDavCalendar.prototype = {
                     rv = Components.results.NS_ERROR_FAILURE;
                 }
 
-            } else { 
+            } else {
                 // XXX
                 LOG("aStatusCode = " + aStatusCode);
                 errString = "XXX";
@@ -1155,7 +1077,7 @@ calDavCalendar.prototype = {
 
                 return;
             } else {
-                // there's still a query pending, so it's too early to 
+                // there's still a query pending, so it's too early to
                 // call the listener back
             }
         };
@@ -1175,12 +1097,12 @@ calDavCalendar.prototype = {
             .getService(Components.interfaces.nsIWebDAVService);
         webSvc.report(calendarDirResource, queryDoc, true, reportListener,
                       this, null);
-        return;    
+        return;
 
     },
 
 
-    // void getItems( in unsigned long aItemFilter, in unsigned long aCount, 
+    // void getItems( in unsigned long aItemFilter, in unsigned long aCount,
     //                in calIDateTime aRangeStart, in calIDateTime aRangeEnd,
     //                in calIOperationListener aListener );
     getItems: function (aItemFilter, aCount, aRangeStart, aRangeEnd, aListener)
@@ -1218,7 +1140,7 @@ calDavCalendar.prototype = {
         var D = new Namespace("D", "DAV:");
         default xml namespace = C;
 
-        var queryXml = 
+        var queryXml =
           <calendar-query xmlns:D={D}>
             <D:prop>
               <D:getetag/>
@@ -1233,7 +1155,7 @@ calDavCalendar.prototype = {
 
         var compFilterNames = new Array();
         compFilterNames[calICalendar.ITEM_FILTER_TYPE_TODO] = "VTODO";
-        // omit VJOURNAL for now since we don't support it and not all 
+        // omit VJOURNAL for now since we don't support it and not all
         // CalDAV servers can handle requests for it
         // compFilterNames[calICalendar.ITEM_FILTER_TYPE_JOURNAL] = "VJOURNAL";
         compFilterNames[calICalendar.ITEM_FILTER_TYPE_EVENT] = "VEVENT";
@@ -1257,7 +1179,7 @@ calDavCalendar.prototype = {
         // if a time range has been specified, do the appropriate restriction.
         // XXX express "end of time" in caldav by leaving off "start", "end"
         var hasRange = false;
-        if (aRangeStart && aRangeStart.isValid && 
+        if (aRangeStart && aRangeStart.isValid &&
             aRangeEnd && aRangeEnd.isValid) {
 
             var hasRange = true;
@@ -1285,7 +1207,7 @@ calDavCalendar.prototype = {
             //see http://tools.ietf.org/html/rfc4791#section-7.8.9
             if(queryFilters[queryFilter] == "VTODO" ){
                 if((aItemFilter &  calICalendar.ITEM_FILTER_COMPLETED_YES) != 1 ) {
-                    var filter_todo = 
+                    var filter_todo =
                         <prop-filter name="COMPLETED">
                             <is-not-defined/>
                         </prop-filter>;
@@ -1293,7 +1215,7 @@ calDavCalendar.prototype = {
                     typeQueryXml[0].C::filter.C::["comp-filter"]
                         .C::["comp-filter"].appendChild(filter_todo);
                 }
-             } 
+             }
 
             // append the time-range as a child of our innermost comp-filter
             if (hasRange) {
@@ -1311,15 +1233,6 @@ calDavCalendar.prototype = {
                                 queryStatuses);
         }
 
-    },
-
-    startBatch: function ()
-    {
-        this.mObservers.notify("onStartBatch");
-    },
-    endBatch: function ()
-    {
-        this.mObservers.notify("onEndBatch");
     },
 
     // nsIInterfaceRequestor impl
@@ -1476,7 +1389,7 @@ calDavCalendar.prototype = {
         this.onError(aErrNo, calGetString("calendar", aMessage, [this.mUri.spec]));
     },
 
-    // stubs to keep callbacks we don't support yet from throwing errors 
+    // stubs to keep callbacks we don't support yet from throwing errors
     // we don't care about
     // nsIProgressEventSink
     onProgress: function onProgress(aRequest, aContext, aProgress, aProgressMax) {},
@@ -1491,14 +1404,14 @@ function WebDavResource(url) {
 
 WebDavResource.prototype = {
     mResourceURL: {},
-    get resourceURL() { 
+    get resourceURL() {
         return this.mResourceURL;}  ,
     QueryInterface: function(iid) {
         if (iid.equals(CI.nsIWebDAVResource) ||
             iid.equals(CI.nsISupports)) {
             return this;
         }
-       
+
         throw Components.interfaces.NS_ERROR_NO_INTERFACE;
     }
 };
@@ -1506,7 +1419,7 @@ WebDavResource.prototype = {
 function WebDavListener() {
 }
 
-WebDavListener.prototype = { 
+WebDavListener.prototype = {
 
     QueryInterface: function (aIID) {
         if (!aIID.equals(Components.interfaces.nsISupports) &&
@@ -1531,87 +1444,4 @@ WebDavListener.prototype = {
         LOG("WebDavListener.onOperationDetail() called");
         return;
     }
-}
-
-// nsIFactory
-const calDavCalendarFactory = {
-    createInstance: function (outer, iid) {
-        if (outer != null)
-            throw Components.results.NS_ERROR_NO_AGGREGATION;
-        return (new calDavCalendar()).QueryInterface(iid);
-    }
-};
-
-/****
- **** module registration
- ****/
-
-var calDavCalendarModule = {
-    mCID: Components.ID("{a35fc6ea-3d92-11d9-89f9-00045ace3b8d}"),
-    mContractID: "@mozilla.org/calendar/calendar;1?type=caldav",
-
-    mUtilsLoaded: false,
-    loadUtils: function caldavLoadUtils() {
-        if (this.mUtilsLoaded)
-            return;
-
-        const jssslContractID = "@mozilla.org/moz/jssubscript-loader;1";
-        const jssslIID = Components.interfaces.mozIJSSubScriptLoader;
-
-        const iosvcContractID = "@mozilla.org/network/io-service;1";
-        const iosvcIID = Components.interfaces.nsIIOService;
-
-        var loader = Components.classes[jssslContractID].getService(jssslIID);
-        var iosvc = Components.classes[iosvcContractID].getService(iosvcIID);
-
-        // Note that unintuitively, __LOCATION__.parent == .
-        // We expect to find utils in ./../js
-        var appdir = __LOCATION__.parent.parent;
-        appdir.append("js");
-        var scriptName = "calUtils.js";
-
-        var f = appdir.clone();
-        f.append(scriptName);
-
-        try {
-            var fileurl = iosvc.newFileURI(f);
-            loader.loadSubScript(fileurl.spec, this.__parent__.__parent__);
-        } catch (e) {
-            LOG("Error while loading " + fileurl.spec );
-            throw e;
-        }
-
-        this.mUtilsLoaded = true;
-    },
-    
-    registerSelf: function (compMgr, fileSpec, location, type) {
-        compMgr = compMgr.QueryInterface(Components.interfaces.nsIComponentRegistrar);
-        compMgr.registerFactoryLocation(this.mCID,
-                                        "Calendar CalDAV back-end",
-                                        this.mContractID,
-                                        fileSpec,
-                                        location,
-                                        type);
-    },
-
-    getClassObject: function (compMgr, cid, iid) {
-        if (!cid.equals(this.mCID))
-            throw Components.results.NS_ERROR_NO_INTERFACE;
-
-        if (!iid.equals(Components.interfaces.nsIFactory))
-            throw Components.results.NS_ERROR_NOT_IMPLEMENTED;
-
-        this.loadUtils();
-
-        return calDavCalendarFactory;
-    },
-
-    canUnload: function(compMgr) {
-        return true;
-    }
-};
-
-
-function NSGetModule(compMgr, fileSpec) {
-    return calDavCalendarModule;
 }

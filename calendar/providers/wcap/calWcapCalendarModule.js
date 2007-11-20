@@ -21,6 +21,7 @@
  *
  * Contributor(s):
  *   Daniel Boelzle <daniel.boelzle@sun.com>
+ *   Philipp Kewisch <mozilla@kewis.ch>
  *
  * Alternatively, the contents of this file may be used under the terms of
  * either the GNU General Public License Version 2 or later (the "GPL"), or
@@ -183,7 +184,8 @@ var calWcapCalendarModule = { // nsIModule:
     {
         if (!this.m_scriptsLoaded) {
             // loading extra scripts from ../js:
-            const scripts = [ "calUtils.js", "calWcapUtils.js", "calWcapErrors.js",
+            const scripts = [ "calUtils.js", "calProviderBase.js",
+                              "calWcapUtils.js", "calWcapErrors.js",
                               "calWcapRequest.js", "calWcapSession.js",
                               "calWcapCalendar.js", "calWcapCalendarItems.js" ];
             var scriptLoader =

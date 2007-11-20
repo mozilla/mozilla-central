@@ -20,6 +20,7 @@
 #
 # Contributor(s):
 #   Vladimir Vukicevic <vladimir.vukicevic@oracle.com>
+#   Philipp Kewisch <mozilla@kewis.ch>
 #
 # Alternatively, the contents of this file may be used under the terms of
 # either the GNU General Public License Version 2 or later (the "GPL"), or
@@ -44,6 +45,11 @@ include $(DEPTH)/config/autoconf.mk
 
 MODULE = calMemoryCalendar
 
-EXTRA_COMPONENTS = calMemoryCalendar.js
+EXTRA_COMPONENTS = calMemoryCalendarModule.js
+EXTRA_SCRIPTS = calMemoryCalendar.js
+
+libs:: $(EXTRA_SCRIPTS)
+	if test ! -d $(FINAL_TARGET)/js; then $(NSINSTALL) -D $(FINAL_TARGET)/js; fi
+	$(INSTALL) $^ $(FINAL_TARGET)/js
 
 include $(topsrcdir)/config/rules.mk

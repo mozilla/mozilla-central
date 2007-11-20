@@ -38,12 +38,14 @@
  * ***** END LICENSE BLOCK ***** */
 
 function calWcapCalendar(/*optional*/session, /*optional*/calProps) {
-    this.wrappedJSObject = this;
+    this.initProviderBase();
     this.m_session = session;
     this.m_calProps = calProps;
     this.m_observers = new calListenerBag(Components.interfaces.calIObserver);
 }
 calWcapCalendar.prototype = {
+    __proto__: calProviderBase.prototype,
+
     m_ifaces: [ calIWcapCalendar,
                 calICalendar,
                 Components.interfaces.calICalendarProvider,
@@ -53,8 +55,7 @@ calWcapCalendar.prototype = {
     
     // nsISupports:
     QueryInterface: function calWcapCalendar_QueryInterface(iid) {
-        ensureIID(this.m_ifaces, iid); // throws
-        return this;
+        return doQueryInterface(this, aIID, this.m_ifaces, this);
     },
     
     // nsIClassInfo:
@@ -140,16 +141,6 @@ calWcapCalendar.prototype = {
     },
     
     // calICalendar:
-    mID: null,
-    get id() {
-        return this.mID;
-    },
-    set id(id) {
-        if (this.mID)
-            throw Components.results.NS_ERROR_ALREADY_INITIALIZED;
-        return (this.mID = id);
-    },
-
     get name() {
         var name = this.getProperty("name");
         if (!name) {
@@ -169,13 +160,6 @@ calWcapCalendar.prototype = {
     },
     set superCalendar(cal) {
         return (this.m_superCalendar = cal);
-    },
-
-    get readOnly() {
-        return this.getProperty("readOnly");
-    },
-    set readOnly(bReadOnly) {
-        return this.setProperty("readOnly", bReadOnly);
     },
 
     m_uri: null,
@@ -244,10 +228,7 @@ calWcapCalendar.prototype = {
         }
         return aValue;
     },
-    deleteProperty: function calWcapCalendar_deleteProperty(aName) {
-        this.notifyObservers("onPropertyDeleting", [this, aName]);
-        getCalendarManager().deleteCalendarPref_(this, aName);
-    },
+    // deleteProperty implemented in calProviderBase
 
     m_observers: null,
     notifyObservers: function calWcapCalendar_notifyObservers(func, args) {

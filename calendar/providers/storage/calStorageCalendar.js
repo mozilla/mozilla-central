@@ -40,10 +40,6 @@
  *
  * ***** END LICENSE BLOCK ***** */
 
-//
-// calStorageCalendar.js
-//
-
 const kStorageServiceContractID = "@mozilla.org/storage/service;1";
 const kStorageServiceIID = Components.interfaces.mozIStorageService;
 
@@ -77,6 +73,19 @@ if (!kMozStorageStatementWrapperIID) {
     dump("*** mozStorage not available, calendar/storage provider will not function\n");
 }
 
+function initCalStorageCalendarComponent() {
+    CalAttendee = new Components.Constructor(kCalAttendeeContractID, kCalIAttendee);
+    CalRecurrenceInfo = new Components.Constructor(kCalRecurrenceInfoContractID, kCalIRecurrenceInfo);
+    CalRecurrenceRule = new Components.Constructor(kCalRecurrenceRuleContractID, kCalIRecurrenceRule);
+    CalRecurrenceDateSet = new Components.Constructor(kCalRecurrenceDateSetContractID, kCalIRecurrenceDateSet);
+    CalRecurrenceDate = new Components.Constructor(kCalRecurrenceDateContractID, kCalIRecurrenceDate);
+    MozStorageStatementWrapper = new Components.Constructor(kMozStorageStatementWrapperContractID, kMozStorageStatementWrapperIID);
+}
+
+//
+// calStorageCalendar.js
+//
+
 const CAL_ITEM_TYPE_EVENT = 0;
 const CAL_ITEM_TYPE_TODO = 1;
 
@@ -89,15 +98,6 @@ const CAL_ITEM_FLAG_HAS_RECURRENCE = 16;
 const CAL_ITEM_FLAG_HAS_EXCEPTIONS = 32;
 
 const USECS_PER_SECOND = 1000000;
-
-function initCalStorageCalendarComponent() {
-    CalAttendee = new Components.Constructor(kCalAttendeeContractID, kCalIAttendee);
-    CalRecurrenceInfo = new Components.Constructor(kCalRecurrenceInfoContractID, kCalIRecurrenceInfo);
-    CalRecurrenceRule = new Components.Constructor(kCalRecurrenceRuleContractID, kCalIRecurrenceRule);
-    CalRecurrenceDateSet = new Components.Constructor(kCalRecurrenceDateSetContractID, kCalIRecurrenceDateSet);
-    CalRecurrenceDate = new Components.Constructor(kCalRecurrenceDateContractID, kCalIRecurrenceDate);
-    MozStorageStatementWrapper = new Components.Constructor(kMozStorageStatementWrapperContractID, kMozStorageStatementWrapperIID);
-}
 
 //
 // Storage helpers
@@ -195,12 +195,12 @@ function newDateTime(aNativeTime, aTimezone) {
 //
 
 function calStorageCalendar() {
-    this.wrappedJSObject = this;
-    this.mObservers = new calListenerBag(Components.interfaces.calIObserver);
+    this.initProviderBase();
     this.mItemCache = new Array();
 }
 
 calStorageCalendar.prototype = {
+    __proto__: calProviderBase.prototype,
     //
     // private members
     //
@@ -212,14 +212,8 @@ calStorageCalendar.prototype = {
     // nsISupports interface
     // 
     QueryInterface: function (aIID) {
-        if (!aIID.equals(Components.interfaces.nsISupports) &&
-            !aIID.equals(Components.interfaces.calICalendarProvider) &&
-            !aIID.equals(Components.interfaces.calICalendar))
-        {
-            throw Components.results.NS_ERROR_NO_INTERFACE;
-        }
-
-        return this;
+        return doQueryInterface(this, aIID,
+                                [Components.interfaces.calICalendarProvider]);
     },
 
     //
@@ -266,82 +260,23 @@ calStorageCalendar.prototype = {
     // calICalendar interface
     //
     
-    // attribute AUTF8String id;
-    mID: null,
-    get id() {
-        return this.mID;
-    },
-    set id(id) {
-        if (this.mID)
-            throw Components.results.NS_ERROR_ALREADY_INITIALIZED;
-        return (this.mID = id);
-    },
-
-    // attribute AUTF8String name;
-    get name() {
-        return this.getProperty("name");
-    },
-    set name(name) {
-        return this.setProperty("name", name);
-    },
     // readonly attribute AUTF8String type;
     get type() { return "storage"; },
 
-    mReadOnly: false,
-
-    get readOnly() { 
-        return this.getProperty("readOnly");
-    },
-    set readOnly(aValue) {
-        return this.setProperty("readOnly", aValue);
-    },
-
-    get canRefresh() {
-        return false;
-    },
-
-    getProperty: function calStorageCalendar_getProperty(aName) {
-        switch (aName) {
-            case "readOnly":
-                return this.mReadOnly;
-            default:
-                // xxx future: return getPrefSafe("calendars." + this.id + "." + aName, null);
-                return getCalendarManager().getCalendarPref_(this, aName);
-        }
-    },
-    setProperty: function calStorageCalendar_setProperty(aName, aValue) {
-        var oldValue = this.getProperty(aName);
-        if (oldValue != aValue) {
-            switch (aName) {
-                case "readOnly":
-                    this.mReadOnly = aValue;
-                    break;
-                default:
-                    // xxx future: setPrefSafe("calendars." + this.id + "." + aName, aValue);
-                    getCalendarManager().setCalendarPref_(this, aName, aValue);
-            }
-            this.mObservers.notify("onPropertyChanged",
-                                   [this, aName, aValue, oldValue]);
-        }
-        return aValue;
-    },
-    deleteProperty: function(aName) {
-        this.mObservers.notify("onPropertyDeleting", [this, aName]);
-        getCalendarManager().deleteCalendarPref_(this, aName);
-    },
-
-    mURI: null,
     // attribute nsIURI uri;
-    get uri() { return this.mURI; },
-    set uri(aURI) {
+    get uri() {
+        return this.mUri;
+    },
+    set uri(aUri) {
         // we can only load once
-        if (this.mURI)
+        if (this.mUri) {
             throw Components.results.NS_ERROR_FAILURE;
+        }
 
         var id = 0;
 
         // check if there's a ?id=
-        var path = aURI.path;
+        var path = aUri.path;
         var pos = path.indexOf("?id=");
 
         if (pos != -1) {
@@ -350,8 +285,8 @@ calStorageCalendar.prototype = {
         }
 
         var dbService;
-        if (aURI.scheme == "file") {
-            var fileURL = aURI.QueryInterface(Components.interfaces.nsIFileURL);
+        if (aUri.scheme == "file") {
+            var fileURL = aUri.QueryInterface(Components.interfaces.nsIFileURL);
             if (!fileURL)
                 throw Components.results.NS_ERROR_NOT_IMPLEMENTED;
 
@@ -359,7 +294,7 @@ calStorageCalendar.prototype = {
             dbService = Components.classes[kStorageServiceContractID].getService(kStorageServiceIID);
             this.mDB = dbService.openDatabase (fileURL.file);
             this.mDBTwo = dbService.openDatabase (fileURL.file);
-        } else if (aURI.scheme == "moz-profile-calendar") {
+        } else if (aUri.scheme == "moz-profile-calendar") {
             dbService = Components.classes[kStorageServiceContractID].getService(kStorageServiceIID);
 	    if ( "getProfileStorage" in dbService ) {
 	      // 1.8 branch
@@ -375,23 +310,11 @@ calStorageCalendar.prototype = {
         this.initDB();
 
         this.mCalId = id;
-        this.mURI = aURI;
+        this.mUri = aUri;
     },
 
     refresh: function() {
         // no-op
-    },
-
-    get sendItipInvitations() { return true; },
-
-    // void addObserver( in calIObserver observer );
-    addObserver: function (aObserver) {
-        this.mObservers.add(aObserver);
-    },
-
-    // void removeObserver( in calIObserver observer );
-    removeObserver: function (aObserver) {
-        this.mObservers.remove(aObserver);
     },
 
     // void addItem( in calIItemBase aItem, in calIOperationListener aListener );
@@ -844,15 +767,6 @@ calStorageCalendar.prototype = {
 
         //var profEndTime = Date.now();
         //dump ("++++ getItems took: " + (profEndTime - profStartTime) + " ms\n");
-    },
-
-    startBatch: function ()
-    {
-        this.mObservers.notify("onStartBatch");
-    },
-    endBatch: function ()
-    {
-        this.mObservers.notify("onEndBatch");
     },
 
     //
@@ -1733,19 +1647,19 @@ calStorageCalendar.prototype = {
                 this.mSelectEventExceptions.params.id = item.id;
                 while (this.mSelectEventExceptions.step()) {
                     var row = this.mSelectEventExceptions.row;
-                    var flags = {};
-                    var exc = this.getEventFromRow(row, flags);
-                    exceptions.push({item: exc, flags: flags.value});
+                    var eflags = {};
+                    var exc = this.getEventFromRow(row, eflags);
+                    exceptions.push({item: exc, flags: eflags.value});
                 }
                 this.mSelectEventExceptions.reset();
             } else if (item instanceof Components.interfaces.calITodo) {
                 this.mSelectTodoExceptions.params.id = item.id;
                 while (this.mSelectTodoExceptions.step()) {
                     var row = this.mSelectTodoExceptions.row;
-                    var flags = {};
-                    var exc = this.getTodoFromRow(row, flags);
+                    var eflags = {};
+                    var exc = this.getTodoFromRow(row, eflags);
                     
-                    exceptions.push({item: exc, flags: flags.value});
+                    exceptions.push({item: exc, flags: eflags.value});
                 }
                 this.mSelectTodoExceptions.reset();
             } else {
@@ -2133,97 +2047,6 @@ calStorageCalendar.prototype = {
     }
 }
 
-// nsIFactory
-const calStorageCalendarFactory = {
-    createInstance: function (outer, iid) {
-        if (outer != null)
-            throw Components.results.NS_ERROR_NO_AGGREGATION;
-        return (new calStorageCalendar()).QueryInterface(iid);
-    }
-};
-
-/****
- **** module registration
- ****/
-
-var calStorageCalendarModule = {
-    mCID: Components.ID("{b3eaa1c4-5dfe-4c0a-b62a-b3a514218461}"),
-    mContractID: "@mozilla.org/calendar/calendar;1?type=storage",
-
-    mUtilsLoaded: false,
-    loadUtils: function storageLoadUtils() {
-        if (this.mUtilsLoaded)
-            return;
-
-        const jssslContractID = "@mozilla.org/moz/jssubscript-loader;1";
-        const jssslIID = Components.interfaces.mozIJSSubScriptLoader;
-
-        const iosvcContractID = "@mozilla.org/network/io-service;1";
-        const iosvcIID = Components.interfaces.nsIIOService;
-
-        var loader = Components.classes[jssslContractID].getService(jssslIID);
-        var iosvc = Components.classes[iosvcContractID].getService(iosvcIID);
-
-        // Note that unintuitively, __LOCATION__.parent == .
-        // We expect to find utils in ./../js
-        var appdir = __LOCATION__.parent.parent;
-        appdir.append("js");
-        var scriptName = "calUtils.js";
-
-        var f = appdir.clone();
-        f.append(scriptName);
-
-        try {
-            var fileurl = iosvc.newFileURI(f);
-            loader.loadSubScript(fileurl.spec, this.__parent__.__parent__);
-        } catch (e) {
-            dump("Error while loading " + fileurl.spec + "\n");
-            throw e;
-        }
-
-        this.mUtilsLoaded = true;
-    },
-    
-    registerSelf: function (compMgr, fileSpec, location, type) {
-        compMgr = compMgr.QueryInterface(Components.interfaces.nsIComponentRegistrar);
-        compMgr.registerFactoryLocation(this.mCID,
-                                        "Calendar mozStorage/SQL back-end",
-                                        this.mContractID,
-                                        fileSpec,
-                                        location,
-                                        type);
-    },
-
-    getClassObject: function (compMgr, cid, iid) {
-        if (!cid.equals(this.mCID))
-            throw Components.results.NS_ERROR_NO_INTERFACE;
-
-        if (!iid.equals(Components.interfaces.nsIFactory))
-            throw Components.results.NS_ERROR_NOT_IMPLEMENTED;
-
-        if (!kStorageServiceIID)
-            throw Components.results.NS_ERROR_NOT_INITIALIZED;
-
-        this.loadUtils();
-
-        if (!CalAttendee) {
-            initCalStorageCalendarComponent();
-        }
-
-        return calStorageCalendarFactory;
-    },
-
-    canUnload: function(compMgr) {
-        return true;
-    }
-};
-
-function NSGetModule(compMgr, fileSpec) {
-    return calStorageCalendarModule;
-}
-
-
-
 //
 // sqlTables generated from schema.sql via makejsschema.pl
 //
@@ -2355,6 +2178,6 @@ var sqlTables = {
     "	recurrence_id_tz	TEXT," +
     "	key		TEXT," +
     "	value		BLOB" +
-    "",
+    ""
 
 };

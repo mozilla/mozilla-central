@@ -596,6 +596,38 @@ function ensureIID(aList, aIID) {
 }
 
 /**
+ * Takes care of all QueryInterface business, including calling the QI of any
+ * existing parent prototypes.
+ *
+ * @param aSelf         The object the QueryInterface is being made to
+ * @param aIID          The IID to check for
+ * @param aList         An array of interfaces from Components.interfaces
+ * @param aClassInfo    (Optional) an Object containing the class info for this
+ *                      prototype.
+ */
+function doQueryInterface(aSelf, aIID, aList, aClassInfo) {
+    if (aClassInfo && aIID.equals(Components.interfaces.nsIClassInfo)) {
+        return aClassInfo;
+    }
+
+    function checkIID(iid) {
+        return iid.equals(aIID);
+    }
+    if (aList.some(checkIID)) {
+        // Does the current prototype offer this implementation?
+        return aSelf;
+    }
+
+    var base = aSelf.__proto__.__proto__;
+
+    if (base && base.QueryInterface) {
+        // Try to QI the base prototype
+        return base.QueryInterface.call(aSelf, aIID);
+    }
+    throw Components.results.NS_ERROR_NO_INTERFACE;
+}
+
+/**
  * Many computations want to work only with date-times, not with dates.  This
  * method will return a proper datetime (set to midnight) for a date object.  If
  * the object is already a datetime, it will simply be returned.

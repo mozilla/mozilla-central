@@ -46,7 +46,7 @@ const calICalendarManager = Components.interfaces.calICalendarManager;
 const USECS_PER_SECOND = 1000000;
 
 function calMemoryCalendar() {
-    this.wrappedJSObject = this;
+    this.initProviderBase();
     this.calendarToReturn = this,
     this.initMemoryCalendar();
 }
@@ -56,22 +56,18 @@ const START_OF_TIME = -0x7fffffffffffffff;
 const END_OF_TIME = 0x7fffffffffffffff;
 
 calMemoryCalendar.prototype = {
+    __proto__: calProviderBase.prototype,
+
     // This will be returned from getItems as the calendar. The ics
     // calendar overwrites this.
     calendarToReturn: null,
-    mObservers: null,
 
     //
     // nsISupports interface
     // 
     QueryInterface: function (aIID) {
-        if (!aIID.equals(Components.interfaces.nsISupports) &&
-            !aIID.equals(Components.interfaces.calICalendarProvider) &&
-            !aIID.equals(Components.interfaces.calICalendar)) {
-            throw Components.results.NS_ERROR_NO_INTERFACE;
-        }
-
-        return this;
+        return doQueryInterface(this, aIID,
+                                [Components.interfaces.calICalendarProvider]);
     },
 
     initMemoryCalendar: function() {
@@ -108,46 +104,8 @@ calMemoryCalendar.prototype = {
     // calICalendar interface
     //
 
-    // attribute AUTF8String name;
-    // attribute AUTF8String id;
-    mID: null,
-    get id() {
-        return this.mID;
-    },
-    set id(id) {
-        if (this.mID)
-            throw Components.results.NS_ERROR_ALREADY_INITIALIZED;
-        return (this.mID = id);
-    },
-
-    get name() {
-        return this.getProperty("name");
-    },
-    set name(name) {
-        return this.setProperty("name", name);
-    },
-
     // readonly attribute AUTF8String type;
     get type() { return "memory"; },
-
-    mReadOnly: false,
-
-    // Most of the time you can just let the ics calendar handle this
-    get readOnly() { 
-        return this.getProperty("readOnly");
-    },
-    set readOnly(bool) {
-        return this.setProperty("readOnly", bool);
-    },
-
-    get canRefresh() {
-        return false;
-    },
-
-    // attribute nsIURI uri;
-    mUri: null,
-    get uri() { return this.mUri; },
-    set uri(aURI) { this.mUri = aURI; },
 
     mProperties: null,
     getProperty: function(aName) {
@@ -165,22 +123,6 @@ calMemoryCalendar.prototype = {
     deleteProperty: function(aName) {
         this.mObservers.notify("onPropertyDeleting", [this, aName]);
         delete this.mProperties[aName];
-    },
-
-    refresh: function() {
-        // no-op
-    },
-
-    get sendItipInvitations() { return true; },
-
-    // void addObserver( in calIObserver observer );
-    addObserver: function (aObserver) {
-        this.mObservers.add(aObserver);
-    },
-
-    // void removeObserver( in calIObserver observer );
-    removeObserver: function (aObserver) {
-        this.mObservers.remove(aObserver);
     },
 
     // void addItem( in calIItemBase aItem, in calIOperationListener aListener );
@@ -528,97 +470,5 @@ calMemoryCalendar.prototype = {
                                        aListener.GET,
                                        null,
                                        null);
-    },
-
-    startBatch: function ()
-    {
-        this.mObservers.notify("onStartBatch");
-    },
-    endBatch: function ()
-    {
-        this.mObservers.notify("onEndBatch");
-    }
-}
-
-// nsIFactory
-const calMemoryCalendarFactory = {
-    createInstance: function (outer, iid) {
-        if (outer != null)
-            throw Components.results.NS_ERROR_NO_AGGREGATION;
-        return (new calMemoryCalendar()).QueryInterface(iid);
     }
 };
-
-/****
- **** module registration
- ****/
-
-var calMemoryCalendarModule = {
-    mCID: Components.ID("{bda0dd7f-0a2f-4fcf-ba08-5517e6fbf133}"),
-    mContractID: "@mozilla.org/calendar/calendar;1?type=memory",
-
-    mUtilsLoaded: false,
-    loadUtils: function memoryLoadUtils() {
-        if (this.mUtilsLoaded)
-            return;
-
-        const jssslContractID = "@mozilla.org/moz/jssubscript-loader;1";
-        const jssslIID = Components.interfaces.mozIJSSubScriptLoader;
-
-        const iosvcContractID = "@mozilla.org/network/io-service;1";
-        const iosvcIID = Components.interfaces.nsIIOService;
-
-        var loader = Components.classes[jssslContractID].getService(jssslIID);
-        var iosvc = Components.classes[iosvcContractID].getService(iosvcIID);
-
-        // Note that unintuitively, __LOCATION__.parent == .
-        // We expect to find utils in ./../js
-        var appdir = __LOCATION__.parent.parent;
-        appdir.append("js");
-        var scriptName = "calUtils.js";
-
-        var f = appdir.clone();
-        f.append(scriptName);
-
-        try {
-            var fileurl = iosvc.newFileURI(f);
-            loader.loadSubScript(fileurl.spec, this.__parent__.__parent__);
-        } catch (e) {
-            dump("Error while loading " + fileurl.spec + "\n");
-            throw e;
-        }
-
-        this.mUtilsLoaded = true;
-    },
-
-    
-    registerSelf: function (compMgr, fileSpec, location, type) {
-        compMgr = compMgr.QueryInterface(Components.interfaces.nsIComponentRegistrar);
-        compMgr.registerFactoryLocation(this.mCID,
-                                        "Calendar in-memory back-end",
-                                        this.mContractID,
-                                        fileSpec,
-                                        location,
-                                        type);
-    },
-
-    getClassObject: function (compMgr, cid, iid) {
-        if (!cid.equals(this.mCID))
-            throw Components.results.NS_ERROR_NO_INTERFACE;
-
-        if (!iid.equals(Components.interfaces.nsIFactory))
-            throw Components.results.NS_ERROR_NOT_IMPLEMENTED;
-
-        this.loadUtils();
-
-        return calMemoryCalendarFactory;
-    },
-
-    canUnload: function(compMgr) {
-        return true;
-    }
-};
-
-function NSGetModule(compMgr, fileSpec) {
-    return calMemoryCalendarModule;
-}
