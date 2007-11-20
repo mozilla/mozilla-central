@@ -428,12 +428,16 @@ pkix_pl_PrimHashTable_Lookup(
                                 plContext),
                                 PKIX_COULDNOTTESTWHETHERKEYSEQUAL);
                 } else {
-                        PKIX_CHECK_FATAL(keyComp
-                                ((PKIX_PL_Object *)key,
-                                (PKIX_PL_Object *)(element->key),
-                                &compResult,
-                                plContext),
-                                PKIX_COULDNOTTESTWHETHERKEYSEQUAL);
+                       pkixErrorResult =
+                           keyComp((PKIX_PL_Object *)key,
+                                   (PKIX_PL_Object *)(element->key),
+                                   &compResult,
+                                   plContext);
+                       if (pkixErrorResult) {
+                           pkixErrorClass = PKIX_FATAL_ERROR;
+                           pkixErrorCode = PKIX_COULDNOTTESTWHETHERKEYSEQUAL;
+                           goto cleanup;
+                       }
                 }
 
                 if ((element->hashCode == hashCode) &&

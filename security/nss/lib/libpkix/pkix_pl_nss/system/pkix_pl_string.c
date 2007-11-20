@@ -452,7 +452,9 @@ PKIX_PL_Sprintf(
 
         PKIX_STRING_DEBUG("\tCalling PR_Malloc).\n");
         convertedAsciiFormat = PR_Malloc(length + 1);
-        if (convertedAsciiFormat == NULL) return PKIX_ALLOC_ERROR();
+        if (convertedAsciiFormat == NULL)
+                PKIX_ERROR_ALLOC_ERROR();
+
         convertedAsciiFormatBase = convertedAsciiFormat;
 
         PKIX_STRING_DEBUG("\tCalling va_start).\n");

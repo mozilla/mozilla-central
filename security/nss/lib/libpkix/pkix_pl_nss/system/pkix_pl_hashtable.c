@@ -60,7 +60,7 @@ struct PKIX_PL_HashTableStruct {
                 PKIX_PL_Mutex_Unlock((mutex), plContext); \
             PORT_Assert(pkixTempResult == NULL); \
             if (pkixTempResult) { \
-                /* PKIX_DoAddError(&stdVars, pkixTempResult, plContext); */ \
+                PKIX_DoAddError(&stdVars, pkixTempResult, plContext); \
                 pkixTempResult = NULL; \
             } \
             lockedMutex = NULL; \

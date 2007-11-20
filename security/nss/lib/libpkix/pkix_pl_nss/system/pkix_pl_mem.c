@@ -74,13 +74,14 @@ PKIX_PL_Malloc(
                     if (result == NULL) {
                         PKIX_MEM_DEBUG("Fatal Error Occurred: "
                                         "PR_Malloc failed.\n");
-                        return (PKIX_ALLOC_ERROR());
+                        PKIX_ERROR_ALLOC_ERROR();
                     } else {
                         *pMemory = result;
                     }
                 }
         }
 
+cleanup:
         PKIX_RETURN(MEM);
 }
 
@@ -116,12 +117,14 @@ PKIX_PL_Calloc(
                     if (result == NULL) {
                         PKIX_MEM_DEBUG("Fatal Error Occurred: "
                                         "PR_Calloc failed.\n");
-                        return (PKIX_ALLOC_ERROR());
+                        PKIX_ERROR_ALLOC_ERROR();
                     } else {
                         *pMemory = result;
                     }
                 }
         }
+
+cleanup:
 
         PKIX_RETURN(MEM);
 }
@@ -164,12 +167,14 @@ PKIX_PL_Realloc(
                                 PKIX_MEM_DEBUG
                                         ("Fatal Error Occurred: "
                                         "PR_Realloc failed.\n");
-                                return (PKIX_ALLOC_ERROR());
+                                PKIX_ERROR_ALLOC_ERROR();
                         }
                 } else {
                         *pMemory = result;
                 }
         }
+
+cleanup:
 
         PKIX_RETURN(MEM);
 }
@@ -187,14 +192,9 @@ PKIX_PL_Free(
         PKIX_ENTER(MEM, "PKIX_PL_Free");
 
         context = (PKIX_PL_NssContext *) plContext;
-        if (context != NULL) {
-                if (context->arena == NULL) {
-                    PKIX_MEM_DEBUG("\tCalling PR_Free.\n");
-                    (void) PR_Free(ptr);
-                }
-        } else {
-                PKIX_MEM_DEBUG("\tCalling PR_Free.\n");
-                (void) PR_Free(ptr);
+        if (context == NULL || context->arena == NULL) {
+            PKIX_MEM_DEBUG("\tCalling PR_Free.\n");
+            (void) PR_Free(ptr);
         }
 
         PKIX_RETURN(MEM);
@@ -218,11 +218,13 @@ PKIX_PL_Memcpy(
         nssContext = (PKIX_PL_NssContext *)plContext; 
 
         if (nssContext != NULL && nssContext->arena != NULL) {
-                return (PKIX_ALLOC_ERROR());
+                 PKIX_ERROR_ALLOC_ERROR();
         }
 
         PKIX_MEM_DEBUG("\tCalling PORT_Memcpy.\n");
         (void) PORT_Memcpy(*pDest, source, length);
+
+cleanup:
 
         PKIX_RETURN(MEM);
 }

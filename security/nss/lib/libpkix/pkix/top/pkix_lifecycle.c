@@ -216,6 +216,12 @@ PKIX_Shutdown(void *plContext)
         PKIX_DECREF(aiaConnectionCache);
         PKIX_DECREF(httpSocketCache);
 
+        /* Clean up any temporary errors that happened during shutdown */
+        if (pkixErrorList) {
+            PKIX_PL_Object_DecRef((PKIX_PL_Object*)pkixErrorList, plContext);
+            pkixErrorList = NULL;
+        }
+
         PKIX_CHECK(PKIX_PL_Shutdown(plContext),
                 PKIX_SHUTDOWNFAILED);
 

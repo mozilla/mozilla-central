@@ -162,6 +162,7 @@ pkix_Throw(
         PKIX_ERRORCLASS errorClass,
         const char *funcName,
         PKIX_ERRORCODE errorCode,
+        PKIX_ERRORCLASS overrideClass,
         PKIX_Error *cause,
         PKIX_Error **pError,
         void *plContext)
@@ -175,14 +176,14 @@ pkix_Throw(
 
         /* if cause has error class of PKIX_FATAL_ERROR, return immediately */
         if (cause) {
-                pkixTempResult = PKIX_Error_GetErrorClass
-                        (cause, &causeClass, plContext);
-                if (pkixTempResult) goto cleanup;
-
-                if (causeClass == PKIX_FATAL_ERROR){
+                if (cause->errClass == PKIX_FATAL_ERROR){
                         *pError = cause;
                         goto cleanup;
                 }
+        }
+        
+        if (overrideClass == PKIX_FATAL_ERROR){
+                errorClass = overrideClass;
         }
 
        pkixTempResult = PKIX_Error_Create(errorClass, cause, NULL,

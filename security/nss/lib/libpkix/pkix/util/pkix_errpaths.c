@@ -35,9 +35,9 @@
  *
  * ***** END LICENSE BLOCK ***** */
 /*
- * pkix_error.c
+ * pkix_errpaths.c
  *
- * Error Object Functions
+ * Error Handling Helper Functions
  *
  */
 
@@ -46,17 +46,36 @@
 
 const PKIX_StdVars zeroStdVars;
 
-PKIX_Error *
+PKIX_Error*
 PKIX_DoThrow(PKIX_StdVars * stdVars, PKIX_ERRORCLASS errClass, 
-             PKIX_ERRORCODE errCode, void *plContext)
+             PKIX_ERRORCODE errCode, PKIX_ERRORCLASS overrideClass,
+             void *plContext)
 {
-    pkixTempResult = (PKIX_Error*)pkix_Throw(errClass, myFuncName, errCode,
-	                 pkixErrorResult, &pkixReturnResult, plContext);
-    if (pkixErrorResult != PKIX_ALLOC_ERROR())
-	PKIX_DECREF(pkixErrorResult);
-    if (pkixTempResult)
-	return pkixTempResult;
-    return pkixReturnResult;
+    if (!pkixErrorReceived && !pkixErrorResult && pkixErrorList) { 
+        pkixTempResult = PKIX_List_GetItem(pkixErrorList, 0, 
+                         (PKIX_PL_Object**)&pkixReturnResult,
+                                           plContext); 
+    } else { 
+        pkixTempResult = (PKIX_Error*)pkix_Throw(errClass, myFuncName, errCode,
+                                                 overrideClass, pkixErrorResult,
+                                                 &pkixReturnResult, plContext);
+    }
+    if (pkixReturnResult) {
+        if (pkixErrorResult != PKIX_ALLOC_ERROR()) {
+            PKIX_DECREF(pkixErrorResult);
+        }
+        pkixTempResult = pkixReturnResult;
+    } else if (pkixErrorResult) {
+        if (pkixTempResult != PKIX_ALLOC_ERROR()) {
+            PKIX_DECREF(pkixTempResult);
+        }
+        pkixTempResult = pkixErrorResult;
+    }
+    if (pkixErrorList) {
+        PKIX_PL_Object_DecRef((PKIX_PL_Object*)pkixErrorList, plContext);
+        pkixErrorList = NULL;
+    }
+    return pkixTempResult;
 }
 
 PKIX_Error *
@@ -64,23 +83,54 @@ PKIX_DoReturn(PKIX_StdVars * stdVars, PKIX_ERRORCLASS errClass,
               PKIX_Boolean doLogger, void *plContext)
 {
     PKIX_OBJECT_UNLOCK(lockedObject);
-    if ((pkixErrorReceived) || (pkixErrorResult))
-	return PKIX_DoThrow(stdVars, errClass, pkixErrorCode, plContext);
+    if (pkixErrorReceived || pkixErrorResult || pkixErrorList)
+	return PKIX_DoThrow(stdVars, errClass, pkixErrorCode, pkixErrorClass,
+                             plContext);
     /* PKIX_DEBUG_EXIT(type); */
     if (doLogger)
 	_PKIX_DEBUG_TRACE(pkixLoggersDebugTrace, "<<<", PKIX_LOGGER_LEVEL_TRACE);
     return NULL;
 }
 
-PKIX_Error *
-PKIX_DoCheck(PKIX_StdVars * stdVars, PKIX_ERRORCODE errCode, void *plContext)
+/* PKIX_DoAddError - creates the list of received error if it does not exist
+ * yet and adds newly received error into the list. */
+void
+PKIX_DoAddError(PKIX_StdVars *stdVars, PKIX_Error *error, void * plContext)
 {
-    pkixTempResult = 
-	PKIX_Error_GetErrorClass(pkixErrorResult, &pkixErrorClass, plContext);
-    if (pkixTempResult)
-	return pkixTempResult;
-    pkixErrorMsg = PKIX_ErrorText[errCode];
-    if (pkixErrorClass == PKIX_FATAL_ERROR)
-	return PKIX_DoReturn(stdVars, pkixErrorClass, PKIX_TRUE, plContext);
-    return NULL;
+    PKIX_List *localList = NULL;
+    PKIX_Error *localError = NULL;
+    PKIX_Boolean listCreated = PKIX_FALSE;
+
+    if (!pkixErrorList) {
+        localError = PKIX_List_Create(&localList, plContext);
+        if (localError)
+            goto cleanup;
+        listCreated = PKIX_TRUE;
+    } else {
+        localList = pkixErrorList;
+    }
+
+    localError = PKIX_List_AppendItem(localList, (PKIX_PL_Object*)error,
+                                      plContext);
+    PORT_Assert (localError == NULL);
+    if (localError != NULL) {
+        if (listCreated) {
+            /* ignore the error code of DecRef function */
+            PKIX_PL_Object_DecRef((PKIX_PL_Object*)localList, plContext);
+            localList = NULL;
+        }
+    } else {
+        pkixErrorList = localList;
+    }
+
+cleanup:
+
+    if (localError && localError != PKIX_ALLOC_ERROR()) {
+        PKIX_PL_Object_DecRef((PKIX_PL_Object*)localError, plContext);
+    }
+
+    if (error && error != PKIX_ALLOC_ERROR()) {
+        PKIX_PL_Object_DecRef((PKIX_PL_Object*)error, plContext);
+    }
 }
+
