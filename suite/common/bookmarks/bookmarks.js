@@ -863,19 +863,11 @@ var BookmarksController = {
       const kClipboardContractID = "@mozilla.org/widget/clipboard;1";
       const kClipboardIID = Components.interfaces.nsIClipboard;
       var clipboard = Components.classes[kClipboardContractID].getService(kClipboardIID);
-      const kSuppArrayContractID = "@mozilla.org/supports-array;1";
-      const kSuppArrayIID = Components.interfaces.nsISupportsArray;
-      var flavourArray = Components.classes[kSuppArrayContractID].createInstance(kSuppArrayIID);
-      const kSuppStringContractID = "@mozilla.org/supports-cstring;1";
-      const kSuppStringIID = Components.interfaces.nsISupportsCString;
-    
-      var flavours = ["moz/bookmarkclipboarditem", "text/x-moz-url"];
-      for (i = 0; i < flavours.length; ++i) {
-        const kSuppString = Components.classes[kSuppStringContractID].createInstance(kSuppStringIID);
-        kSuppString.data = flavours[i];
-        flavourArray.AppendElement(kSuppString);
-      }
-      var hasFlavours = clipboard.hasDataMatchingFlavors(flavourArray, kClipboardIID.kGlobalClipboard);
+      var flavorArray = ["moz/bookmarkclipboarditem", "text/x-moz-url"];
+      var hasFlavours =
+        clipboard.hasDataMatchingFlavors(flavorArray,
+                                         flavorArray.length,
+                                         kClipboardIID.kGlobalClipboard);
       return hasFlavours;
     case "cmd_bm_copy":
       return length > 0;
