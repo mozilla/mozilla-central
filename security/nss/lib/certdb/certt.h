@@ -36,7 +36,7 @@
 /*
  * certt.h - public data structures for the certificate library
  *
- * $Id: certt.h,v 1.39 2007-09-25 23:48:02 rrelyea%redhat.com Exp $
+ * $Id: certt.h,v 1.40 2007-11-20 21:05:55 rrelyea%redhat.com Exp $
  */
 #ifndef _CERTT_H_
 #define _CERTT_H_
@@ -1068,8 +1068,10 @@ typedef struct {
 #define CERT_REV_FLAG_CRL_LEAF_ONLY     8
 /* set if we don't want to fail because we were unable to get revocation
  * data */
-#define CERT_REV_FAIL_SOFT           0x10
-#define CERT_REV_NIST		(CERT_REV_FLAG_OCSP|CERT_REV_FLAG_CRL)
+#define CERT_REV_FAIL_SOFT_OCSP         0x10
+#define CERT_REV_FAIL_SOFT_CRL          0x20
+/* REV_NIST is CRL and !CRL_LEAF_ONLY and !FAIL_SOFT_CRL */
+#define CERT_REV_NIST		   (CERT_REV_FLAG_CRL)
 
 /*
  * CertStore flags
