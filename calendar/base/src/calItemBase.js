@@ -245,12 +245,23 @@ calItemBase.prototype = {
         var e = this.mProperties.enumerator;
         while (e.hasMoreElements()) {
             var prop = e.getNext().QueryInterface(Components.interfaces.nsIProperty);
+            var name = prop.name;
             var val = prop.value;
 
-            if (prop.value instanceof Components.interfaces.calIDateTime)
-                val = prop.value.clone();
+            if (val instanceof Components.interfaces.calIDateTime) {
+                val = val.clone();
+            }
 
-            m.mProperties.setProperty (prop.name, val);
+            m.mProperties.setProperty(name, val);
+
+            var propBucket = this.mPropertyParams[name];
+            if (propBucket) {
+                var newBucket = {};
+                for (var param in propBucket) {
+                    newBucket[param] = propBucket[param];
+                }
+                m.mPropertyParams[name] = newBucket;
+            }
         }
 
         m.mDirty = false;
