@@ -2644,6 +2644,9 @@ pkix_BuildForwardDepthFirstSearch(
 
                     if (PKIX_ERROR_RECEIVED) {
                             if (state->verifyNode != NULL) {
+                                PKIX_CHECK_FATAL(pkix_VerifyNode_SetError
+                                    (verifyNode, verifyError, plContext),
+                                    PKIX_VERIFYNODESETERRORFAILED);
                                 PKIX_CHECK_FATAL(pkix_VerifyNode_AddToTree
                                         (state->verifyNode,
                                         verifyNode,
@@ -2651,6 +2654,7 @@ pkix_BuildForwardDepthFirstSearch(
                                         PKIX_VERIFYNODEADDTOTREEFAILED);
                                 PKIX_DECREF(verifyNode);
                             }
+                            PKIX_DECREF(verifyError);
                             if (state->certLoopingDetected) {
                                 PKIX_ERROR
                                     (PKIX_LOOPDISCOVEREDDUPCERTSNOTALLOWED);
