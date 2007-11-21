@@ -36,7 +36,7 @@
 /*
  * certt.h - public data structures for the certificate library
  *
- * $Id: certt.h,v 1.40 2007-11-20 21:05:55 rrelyea%redhat.com Exp $
+ * $Id: certt.h,v 1.41 2007-11-21 21:35:45 julien.pierre.boogz%sun.com Exp $
  */
 #ifndef _CERTT_H_
 #define _CERTT_H_
@@ -62,11 +62,7 @@ typedef struct CERTAttributeStr                  CERTAttribute;
 typedef struct CERTAuthInfoAccessStr             CERTAuthInfoAccess;
 typedef struct CERTAuthKeyIDStr                  CERTAuthKeyID;
 typedef struct CERTBasicConstraintsStr           CERTBasicConstraints;
-#ifdef NSS_CLASSIC
-typedef struct CERTCertDBHandleStr               CERTCertDBHandle;
-#else
 typedef struct NSSTrustDomainStr                 CERTCertDBHandle;
-#endif
 typedef struct CERTCertExtensionStr              CERTCertExtension;
 typedef struct CERTCertKeyStr                    CERTCertKey;
 typedef struct CERTCertListStr                   CERTCertList;

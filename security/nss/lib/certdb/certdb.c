@@ -38,7 +38,7 @@
 /*
  * Certificate handling code
  *
- * $Id: certdb.c,v 1.86 2007-11-21 21:19:39 wtc%google.com Exp $
+ * $Id: certdb.c,v 1.87 2007-11-21 21:35:45 julien.pierre.boogz%sun.com Exp $
  */
 
 #include "nssilock.h"
@@ -1367,14 +1367,8 @@ CERTCertificate *
 CERT_DupCertificate(CERTCertificate *c)
 {
     if (c) {
-#ifdef NSS_CLASSIC
-	CERT_LockCertRefCount(c);
-	++c->referenceCount;
-	CERT_UnlockCertRefCount(c);
-#else
 	NSSCertificate *tmp = STAN_GetNSSCertificate(c);
 	nssCertificate_AddRef(tmp);
-#endif
     }
     return c;
 }

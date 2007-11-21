@@ -226,90 +226,6 @@ SEC_CheckCRL(CERTCertDBHandle *handle,CERTCertificate *cert,
 CERTCertificate *
 CERT_FindCertIssuer(CERTCertificate *cert, int64 validTime, SECCertUsage usage)
 {
-#ifdef NSS_CLASSIC
-    CERTAuthKeyID *   authorityKeyID = NULL;  
-    CERTCertificate * issuerCert     = NULL;
-    SECItem *         caName;
-    PRArenaPool       *tmpArena = NULL;
-
-    tmpArena = PORT_NewArena(DER_DEFAULT_CHUNKSIZE);
-    
-    if ( !tmpArena ) {
-	goto loser;
-    }
-    authorityKeyID = CERT_FindAuthKeyIDExten(tmpArena,cert);
-
-    if ( authorityKeyID != NULL ) {
-	/* has the authority key ID extension */
-	if ( authorityKeyID->keyID.data != NULL ) {
-	    /* extension contains a key ID, so lookup based on it */
-	    issuerCert = CERT_FindCertByKeyID(cert->dbhandle, &cert->derIssuer,
-					      &authorityKeyID->keyID);
-	    if ( issuerCert == NULL ) {
-		PORT_SetError (SEC_ERROR_UNKNOWN_ISSUER);
-		goto loser;
-	    }
-	    
-	} else if ( authorityKeyID->authCertIssuer != NULL ) {
-	    /* no key ID, so try issuer and serial number */
-	    caName = (SECItem*)CERT_GetGeneralNameByType(authorityKeyID->authCertIssuer,
-					       		 certDirectoryName, PR_TRUE);
-
-	    /*
-	     * caName is NULL when the authCertIssuer field is not
-	     * being used, or other name form is used instead.
-	     * If the directoryName format and serialNumber fields are
-	     * used, we use them to find the CA cert.
-	     * Note:
-	     *	By the time it gets here, we known for sure that if the
-	     *	authCertIssuer exists, then the authCertSerialNumber
-	     *	must also exists (CERT_DecodeAuthKeyID() ensures this).
-	     *	We don't need to check again. 
-	     */
-
-	    if (caName != NULL) {
-		CERTIssuerAndSN issuerSN;
-
-		issuerSN.derIssuer.data = caName->data;
-		issuerSN.derIssuer.len = caName->len;
-		issuerSN.serialNumber.data = 
-			authorityKeyID->authCertSerialNumber.data;
-		issuerSN.serialNumber.len = 
-			authorityKeyID->authCertSerialNumber.len;
-		issuerCert = CERT_FindCertByIssuerAndSN(cert->dbhandle,
-								&issuerSN);
-		if ( issuerCert == NULL ) {
-		    PORT_SetError (SEC_ERROR_UNKNOWN_ISSUER);
-		    goto loser;
-		}
-	    }
-	}
-    }
-    if ( issuerCert == NULL ) {
-	/* if there is not authorityKeyID, then try to find the issuer */
-	/* find a valid CA cert with correct usage */
-	issuerCert = CERT_FindMatchingCert(cert->dbhandle,
-					   &cert->derIssuer,
-					   certOwnerCA, usage, PR_TRUE,
-					   validTime, PR_TRUE);
-
-	/* if that fails, then fall back to grabbing any cert with right name*/
-	if ( issuerCert == NULL ) {
-	    issuerCert = CERT_FindCertByName(cert->dbhandle, &cert->derIssuer);
-	    if ( issuerCert == NULL ) {
-		PORT_SetError (SEC_ERROR_UNKNOWN_ISSUER);
-	    }
-	}
-    }
-
-loser:
-    if (tmpArena != NULL) {
-	PORT_FreeArena(tmpArena, PR_FALSE);
-	tmpArena = NULL;
-    }
-
-    return(issuerCert);
-#else
     NSSCertificate *me;
     NSSTime *nssTime;
     NSSTrustDomain *td;
@@ -349,7 +265,6 @@ loser:
     }
     PORT_SetError (SEC_ERROR_UNKNOWN_ISSUER);
     return NULL;
-#endif
 }
 
 /*

@@ -938,99 +938,6 @@ CERTCertificateList *
 CERT_CertChainFromCert(CERTCertificate *cert, SECCertUsage usage,
 		       PRBool includeRoot)
 {
-#ifdef NSS_CLASSIC
-    CERTCertificateList *chain = NULL;
-    CERTCertificate *c;
-    SECItem *p;
-    int rv, len = 0;
-    PRArenaPool *tmpArena, *arena;
-    certNode *head, *tail, *node;
-
-    /*
-     * Initialize stuff so we can goto loser.
-     */
-    head = NULL;
-    arena = NULL;
-
-    /* arena for linked list */
-    tmpArena = PORT_NewArena(DER_DEFAULT_CHUNKSIZE);
-    if (tmpArena == NULL) goto no_memory;
-
-    /* arena for SecCertificateList */
-    arena = PORT_NewArena(DER_DEFAULT_CHUNKSIZE);
-    if (arena == NULL) goto no_memory;
-
-    head = tail = (certNode*)PORT_ArenaZAlloc(tmpArena, sizeof(certNode));
-    if (head == NULL) goto no_memory;
-
-    /* put primary cert first in the linked list */
-    head->cert = c = CERT_DupCertificate(cert);
-    if (head->cert == NULL) goto loser;
-    len++;
-
-    /* add certs until we come to a self-signed one */
-    while(SECITEM_CompareItem(&c->derIssuer, &c->derSubject) != SECEqual) {
-	c = CERT_FindCertIssuer(tail->cert, PR_Now(), usage);
-	if (c == NULL) {
-	    /* no root is found, so make sure we don't attempt to delete one
-	     * below
-	     */
-	    includeRoot = PR_TRUE;
-	    break;
-	}
-	
-	tail->next = (certNode*)PORT_ArenaZAlloc(tmpArena, sizeof(certNode));
-	tail = tail->next;
-	if (tail == NULL) goto no_memory;
-	
-	tail->cert = c;
-	len++;
-    }
-
-    /* now build the CERTCertificateList */
-    chain = (CERTCertificateList *)PORT_ArenaAlloc(arena, sizeof(CERTCertificateList));
-    if (chain == NULL) goto no_memory;
-    chain->certs = (SECItem*)PORT_ArenaAlloc(arena, len * sizeof(SECItem));
-    if (chain->certs == NULL) goto no_memory;
-    
-    for(node = head, p = chain->certs; node; node = node->next, p++) {
-	rv = SECITEM_CopyItem(arena, p, &node->cert->derCert);
-	CERT_DestroyCertificate(node->cert);
-	node->cert = NULL;
-	if (rv < 0) goto loser;
-    }
-    if ( !includeRoot && len > 1) {
-	chain->len = len - 1;
-    } else {
-	chain->len = len;
-    }
-    
-    chain->arena = arena;
-
-    PORT_FreeArena(tmpArena, PR_FALSE);
-    
-    return chain;
-
-no_memory:
-    PORT_SetError(SEC_ERROR_NO_MEMORY);
-loser:
-    if (head != NULL) {
-	for (node = head; node; node = node->next) {
-	    if (node->cert != NULL)
-		CERT_DestroyCertificate(node->cert);
-	}
-    }
-
-    if (arena != NULL) {
-	PORT_FreeArena(arena, PR_FALSE);
-    }
-
-    if (tmpArena != NULL) {
-	PORT_FreeArena(tmpArena, PR_FALSE);
-    }
-
-    return NULL;
-#else
     CERTCertificateList *chain = NULL;
     NSSCertificate **stanChain;
     NSSCertificate *stanCert;
@@ -1116,7 +1023,6 @@ loser:
 	PORT_FreeArena(arena, PR_FALSE);
     }
     return NULL;
-#endif
 }
 
 /* Builds a CERTCertificateList holding just one DER-encoded cert, namely
