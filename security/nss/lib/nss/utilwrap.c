@@ -787,8 +787,6 @@ SECStatus __nss_InitLock(   PZLock    **ppLock, nssILockType ltype )
 
 /* templates duplicated in libnss3 and libnssutil3 */
 
-#undef CERT_TimeChoiceTemplate
-#undef NSS_Get_CERT_TimeChoiceTemplate
 #undef NSS_Get_SEC_AnyTemplate
 #undef NSS_Get_SEC_BitStringTemplate
 #undef NSS_Get_SEC_BMPStringTemplate

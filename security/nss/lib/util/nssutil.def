@@ -180,7 +180,6 @@ SGN_DestroyDigestInfo_Util;
 ;+#
 ;+# Don't export these DATA symbols on Windows because they don't work right.
 ;+# Use the SEC_ASN1_GET / SEC_ASN1_SUB / SEC_ASN1_XTRN macros to access them.
-;;CERT_TimeChoiceTemplate_Util DATA ;
 ;;SEC_AnyTemplate_Util DATA ;
 ;;SEC_BitStringTemplate_Util DATA ;
 ;;SEC_BMPStringTemplate_Util DATA ;
@@ -206,7 +205,6 @@ SGN_DestroyDigestInfo_Util;
 ;;SEC_UTF8StringTemplate_Util DATA ;
 ;;SECOID_AlgorithmIDTemplate_Util DATA ;
 ;;sgn_DigestInfoTemplate_Util DATA ;
-NSS_Get_CERT_TimeChoiceTemplate_Util;
 NSS_Get_SEC_AnyTemplate_Util;
 NSS_Get_SEC_BitStringTemplate_Util;
 NSS_Get_SEC_BMPStringTemplate_Util;

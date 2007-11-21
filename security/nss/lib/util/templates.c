@@ -50,15 +50,6 @@
 #include "secoid.h"
 #include "secdig.h"
 
-const SEC_ASN1Template CERT_TimeChoiceTemplate[] = {
-  { SEC_ASN1_CHOICE, offsetof(SECItem, type), 0, sizeof(SECItem) },
-  { SEC_ASN1_UTC_TIME, 0, 0, siUTCTime },
-  { SEC_ASN1_GENERALIZED_TIME, 0, 0, siGeneralizedTime },
-  { 0 }
-};
-
-SEC_ASN1_CHOOSER_IMPLEMENT(CERT_TimeChoiceTemplate)
-
 const SEC_ASN1Template SECOID_AlgorithmIDTemplate[] = {
     { SEC_ASN1_SEQUENCE,
 	  0, NULL, sizeof(SECAlgorithmID) },

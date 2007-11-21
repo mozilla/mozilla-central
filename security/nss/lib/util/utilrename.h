@@ -156,8 +156,6 @@
 #define SGN_DestroyDigestInfo SGN_DestroyDigestInfo_Util
 
 /* templates moved from libnss3 */
-#define CERT_TimeChoiceTemplate CERT_TimeChoiceTemplate_Util
-#define NSS_Get_CERT_TimeChoiceTemplate NSS_Get_CERT_TimeChoiceTemplate_Util
 #define NSS_Get_SEC_AnyTemplate NSS_Get_SEC_AnyTemplate_Util
 #define NSS_Get_SEC_BitStringTemplate NSS_Get_SEC_BitStringTemplate_Util
 #define NSS_Get_SEC_BMPStringTemplate NSS_Get_SEC_BMPStringTemplate_Util
