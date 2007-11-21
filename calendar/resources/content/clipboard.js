@@ -76,15 +76,19 @@ function canPaste()
     var clipboard = getClipboard();
     var flavourArray = new SupportsArray;
     var flavours = ["text/calendar", "text/unicode"];
-   
-    for (var i = 0; i < flavours.length; ++i)
-    {
-        var kSuppString = new SupportsCString;
-        kSuppString.data = flavours[i];
-        flavourArray.AppendElement(kSuppString);
+
+    if (kClipboardIID.number == "{8b5314ba-db01-11d2-96ce-0060b0fb9956}") { // on branch
+        for (var i = 0; i < flavours.length; ++i) {
+            var kSuppString = new SupportsCString;
+            kSuppString.data = flavours[i];
+            flavourArray.AppendElement(kSuppString);
+        }
+        return clipboard.hasDataMatchingFlavors(flavourArray,
+                                                kClipboardIID.kGlobalClipboard);
+    } else {
+        return clipboard.hasDataMatchingFlavors(flavours, flavours.length,
+                                                kClipboardIID.kGlobalClipboard);
     }
-   
-    return clipboard.hasDataMatchingFlavors(flavourArray, kClipboardIID.kGlobalClipboard);
 }
 
 /** 
