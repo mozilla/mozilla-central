@@ -47,6 +47,7 @@ import java.io.ByteArrayInputStream;
 import org.mozilla.jss.crypto.*;
 import java.security.*;
 import java.security.spec.AlgorithmParameterSpec;
+import javax.crypto.spec.RC2ParameterSpec;
 import org.mozilla.jss.util.Password;
 import org.mozilla.jss.CryptoManager;
 
@@ -193,6 +194,10 @@ public class EncryptedContentInfo implements ASN1Value {
         AlgorithmParameterSpec params=null;
         if( encAlg.getParameterClass().equals( IVParameterSpec.class ) ) {
             params = new IVParameterSpec( kg.generatePBE_IV() );
+        } else if( encAlg.getParameterClass().equals( 
+                        RC2ParameterSpec.class ) ) {
+            params = new RC2ParameterSpec(key.getStrength(), 
+                                          kg.generatePBE_IV()); 
         }
 
         // perform encryption
@@ -281,12 +286,14 @@ public class EncryptedContentInfo implements ASN1Value {
 
         // compute algorithm parameters
         EncryptionAlgorithm encAlg = ((PBEAlgorithm)kgAlg).getEncryptionAlg();
-        AlgorithmParameterSpec algParams;
+        AlgorithmParameterSpec algParams = null;
         if( encAlg.getParameterClass().equals( IVParameterSpec.class ) ) {
             algParams = new IVParameterSpec( kg.generatePBE_IV() );
-        } else {
-            algParams = null;
-        }
+        } else if( encAlg.getParameterClass().equals( 
+                       RC2ParameterSpec.class ) ) {
+            algParams = new RC2ParameterSpec(key.getStrength(), 
+                                             kg.generatePBE_IV());  
+        } 
 
         // perform the decryption
         Cipher cipher = token.getCipherContext( encAlg );
