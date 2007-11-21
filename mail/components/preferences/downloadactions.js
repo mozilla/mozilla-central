@@ -69,7 +69,7 @@ var gDownloadActionsWindow = {
   _bundle       : null,
   _pref         : Components.classes["@mozilla.org/preferences-service;1"]
                             .getService(Components.interfaces.nsIPrefBranch),
-  _mimeSvc      : Components.classes["@mozilla.org/uriloader/external-helper-app-service;1"]
+  _mimeSvc      : Components.classes["@mozilla.org/mime;1"]
                             .getService(Components.interfaces.nsIMIMEService),
   _excludingPlugins           : false,
   _excludingMissingExtensions : false,
