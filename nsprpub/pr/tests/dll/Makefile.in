@@ -90,7 +90,7 @@ TARGETS		= $(SHARED_LIBRARY)
 endif
 
 #
-# To create a loadable module on Rhapsody, we must override
+# To create a loadable module on Darwin, we must override
 # -dynamiclib with -bundle.
 #
 ifeq ($(OS_ARCH),Darwin)
