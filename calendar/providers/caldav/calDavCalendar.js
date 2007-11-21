@@ -320,7 +320,7 @@ calDavCalendar.prototype = {
 
         if (aItem.id == null) {
             if (aListener)
-                aListener.onOperationComplete (this,
+                aListener.onOperationComplete (this.superCalendar,
                                                Components.results.NS_ERROR_FAILURE,
                                                aListener.ADD,
                                                aItem.id,
@@ -370,7 +370,7 @@ calDavCalendar.prototype = {
             // notify the listener
             if (aListener) {
                 try {
-                    aListener.onOperationComplete(thisCalendar,
+                    aListener.onOperationComplete(thisCalendar.superCalendar,
                                                   retVal,
                                                   aListener.ADD,
                                                   aItem.id,
@@ -386,7 +386,7 @@ calDavCalendar.prototype = {
             }
         }
 
-        aItem.calendar = this;
+        aItem.calendar = this.superCalendar;
         aItem.generation = 1;
         aItem.setProperty("X-MOZ-LOCATIONPATH", locationPath);
         aItem.makeImmutable();
@@ -442,7 +442,7 @@ calDavCalendar.prototype = {
             // this is definitely an error
             if (aListener) {
                 try {
-                    aListener.onOperationComplete(this,
+                    aListener.onOperationComplete(this.superCalendar,
                                                   Components.results.NS_ERROR_FAILURE,
                                                   aListener.MODIFY,
                                                   aItem.id,
@@ -473,11 +473,11 @@ calDavCalendar.prototype = {
         // but until the idl is changed we do it.
         if (aOldItem.parentItem.generation != aNewItem.generation) {
             if (aListener) {
-                aListener.onOperationComplete (this,
-                                               Components.results.NS_ERROR_FAILURE,
-                                               aListener.MODIFY,
-                                               aNewItem.id,
-                                               "generation mismatch in modifyItem");
+                aListener.onOperationComplete(this.superCalendar,
+                                              Components.results.NS_ERROR_FAILURE,
+                                              aListener.MODIFY,
+                                              aNewItem.id,
+                                              "generation mismatch in modifyItem");
             }
             return;
         }
@@ -536,9 +536,11 @@ calDavCalendar.prototype = {
             // notify listener
             if (aListener) {
                 try {
-                    aListener.onOperationComplete(thisCalendar, retVal,
+                    aListener.onOperationComplete(thisCalendar.superCalendar,
+                                                  retVal,
                                                   aListener.MODIFY,
-                                                  aNewItem.id, aNewItem);
+                                                  aNewItem.id,
+                                                  aNewItem);
                 } catch (ex) {
                     LOG("modifyItem's onOperationComplete threw an"
                           + " exception " + ex + "; ignoring");
@@ -602,7 +604,7 @@ calDavCalendar.prototype = {
 
         if (aItem.id == null) {
             if (aListener)
-                aListener.onOperationComplete (this,
+                aListener.onOperationComplete (this.superCalendar,
                                                Components.results.NS_ERROR_FAILURE,
                                                aListener.DELETE,
                                                aItem.id,
@@ -660,7 +662,7 @@ calDavCalendar.prototype = {
             // notify the listener
             if (aListener) {
                 try {
-                    aListener.onOperationComplete(thisCalendar,
+                    aListener.onOperationComplete(thisCalendar.superCalendar,
                                                   Components.results.NS_OK,
                                                   aListener.DELETE,
                                                   aItem.id,
@@ -725,7 +727,7 @@ calDavCalendar.prototype = {
         }
 
         if (aItem == null) {
-            aListener.onOperationComplete(this,
+            aListener.onOperationComplete(this.superCalendar,
                                           Components.results.NS_ERROR_FAILURE,
                                           aListener.GET,
                                           null,
@@ -777,7 +779,7 @@ calDavCalendar.prototype = {
             return;
 
         if (aId == null) {
-            aListener.onOperationComplete(this,
+            aListener.onOperationComplete(this.superCalendar,
                                           Components.results.NS_ERROR_FAILURE,
                                           aListener.GET,
                                           null,
@@ -942,7 +944,7 @@ calDavCalendar.prototype = {
                                         uid2parent[item.id] = item;
                                     }
                                 } else {
-                                    item.calendar = thisCalendar;
+                                    item.calendar = thisCalendar.superCalendar;
                                     // force no recurrence info so we can
                                     // rebuild it cleanly below
                                     item.recurrenceInfo = null;
@@ -970,7 +972,7 @@ calDavCalendar.prototype = {
                 // if we loop over both excItems and unexpandedItems using 'item'
                 // we can be confident that 'item' means something below
                 for each (var item in unexpandedItems) {
-                    item.calendar = thisCalendar;
+                    item.calendar = thisCalendar.superCalendar;
                 }
 
                 thisCalendar.mEtagCache[item.id] = etag;
@@ -1026,7 +1028,10 @@ calDavCalendar.prototype = {
             }
 
             try {
-                aListener.onGetResult(thisCalendar, rv, iid, null,
+                aListener.onGetResult(thisCalendar.superCalendar,
+                                      rv,
+                                      iid,
+                                      null,
                                       items ? items.length : 0,
                                       errString ? errString : items);
             } catch (ex) {
@@ -1065,7 +1070,7 @@ calDavCalendar.prototype = {
                 // call back the listener
                 try {
                     if (aListener) {
-                    aListener.onOperationComplete(thisCalendar,
+                    aListener.onOperationComplete(thisCalendar.superCalendar,
                                                   Components.results.
                                                   rv, aListener.GET, null,
                                                   errString);
@@ -1113,7 +1118,7 @@ calDavCalendar.prototype = {
 
         if (this.mDisabled) {
             var errString = "calendar " + this.name + " is disabled";
-            aListener.onOperationComplete(this,
+            aListener.onOperationComplete(this.superCalendar,
                                           Components.results.NS_ERROR_FAILURE,
                                           aListener.GET, null, errString);
             while (this.mPendingStartupRequests.length > 0) {

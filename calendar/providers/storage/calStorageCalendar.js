@@ -342,7 +342,7 @@ calStorageCalendar.prototype = {
             var olditem = this.getItemById(aItem.id);
             if (olditem) {
                 if (aListener)
-                    aListener.onOperationComplete (this,
+                    aListener.onOperationComplete (this.superCalendar,
                                                    Components.interfaces.calIErrors.DUPLICATE_ID,
                                                    aListener.ADD,
                                                    aItem.id,
@@ -351,7 +351,7 @@ calStorageCalendar.prototype = {
             }
         }
 
-        aItem.calendar = this;
+        aItem.calendar = this.superCalendar;
         aItem.generation = 1;
         aItem.makeImmutable();
 
@@ -359,7 +359,7 @@ calStorageCalendar.prototype = {
 
         // notify the listener
         if (aListener)
-            aListener.onOperationComplete (this,
+            aListener.onOperationComplete (this.superCalendar,
                                            Components.results.NS_OK,
                                            aListener.ADD,
                                            aItem.id,
@@ -375,7 +375,7 @@ calStorageCalendar.prototype = {
             throw Components.interfaces.calIErrors.CAL_IS_READONLY;
         function reportError(errId, errStr) {
             if (aListener)
-                aListener.onOperationComplete (this,
+                aListener.onOperationComplete (this.superCalendar,
                                                errId ? errId : Components.results.NS_ERROR_FAILURE,
                                                aListener.MODIFY,
                                                aNewItem.id,
@@ -403,7 +403,7 @@ calStorageCalendar.prototype = {
         if (!olditem) {
             // no old item found?  should be using addItem, then.
             if (aListener)
-                aListener.onOperationComplete (this,
+                aListener.onOperationComplete (this.superCalendar,
                                                Components.results.NS_ERROR_FAILURE,
                                                aListener.MODIFY,
                                                aNewItem.id,
@@ -413,7 +413,7 @@ calStorageCalendar.prototype = {
 
         if (aOldItem.generation != aNewItem.generation) {
             if (aListener)
-                aListener.onOperationComplete (this,
+                aListener.onOperationComplete (this.superCalendar,
                                                Components.results.NS_ERROR_FAILURE,
                                                aListener.MODIFY,
                                                aNewItem.id,
@@ -428,7 +428,7 @@ calStorageCalendar.prototype = {
         this.flushItem (modifiedItem, aOldItem);
 
         if (aListener)
-            aListener.onOperationComplete (this,
+            aListener.onOperationComplete (this.superCalendar,
                                            Components.results.NS_OK,
                                            aListener.MODIFY,
                                            modifiedItem.id,
@@ -449,7 +449,7 @@ calStorageCalendar.prototype = {
 
         if (aItem.id == null) {
             if (aListener)
-                aListener.onOperationComplete (this,
+                aListener.onOperationComplete (this.superCalendar,
                                                Components.results.NS_ERROR_FAILURE,
                                                aListener.DELETE,
                                                null,
@@ -460,7 +460,7 @@ calStorageCalendar.prototype = {
         this.deleteItemById(aItem.id);
 
         if (aListener)
-            aListener.onOperationComplete (this,
+            aListener.onOperationComplete (this.superCalendar,
                                            Components.results.NS_OK,
                                            aListener.DELETE,
                                            aItem.id,
@@ -477,7 +477,7 @@ calStorageCalendar.prototype = {
 
         var item = this.getItemById (aId);
         if (!item) {
-            aListener.onOperationComplete (this,
+            aListener.onOperationComplete (this.superCalendar,
                                            Components.results.NS_ERROR_FAILURE,
                                            aListener.GET,
                                            aId,
@@ -490,7 +490,7 @@ calStorageCalendar.prototype = {
         else if (item instanceof Components.interfaces.calITodo)
             item_iid = Components.interfaces.calITodo;
         else {
-            aListener.onOperationComplete (this,
+            aListener.onOperationComplete (this.superCalendar,
                                            Components.results.NS_ERROR_FAILURE,
                                            aListener.GET,
                                            aId,
@@ -498,12 +498,12 @@ calStorageCalendar.prototype = {
             return;
         }
 
-        aListener.onGetResult (this,
+        aListener.onGetResult (this.superCalendar,
                                Components.results.NS_OK,
                                item_iid, null,
                                1, [item]);
 
-        aListener.onOperationComplete (this,
+        aListener.onOperationComplete (this.superCalendar,
                                        Components.results.NS_OK,
                                        aListener.GET,
                                        aId,
@@ -537,7 +537,7 @@ calStorageCalendar.prototype = {
         var asOccurrences = ((aItemFilter & kCalICalendar.ITEM_FILTER_CLASS_OCCURRENCES) != 0);
         if (!wantEvents && !wantTodos) {
             // nothing to do
-            aListener.onOperationComplete (this,
+            aListener.onOperationComplete (this.superCalendar,
                                            Components.results.NS_OK,
                                            aListener.GET,
                                            null,
@@ -570,7 +570,7 @@ calStorageCalendar.prototype = {
 
             if (queuedItems.length != 0 && (!theItems || queuedItems.length > maxQueueSize)) {
                 //var listenerStart = Date.now();
-                aListener.onGetResult(self,
+                aListener.onGetResult(self.superCalendar,
                                       Components.results.NS_OK,
                                       queuedItemsIID, null,
                                       queuedItems.length, queuedItems);
@@ -607,7 +607,7 @@ calStorageCalendar.prototype = {
                 queueItems(null);
 
                 // send operation complete
-                aListener.onOperationComplete (self,
+                aListener.onOperationComplete (self.superCalendar,
                                                Components.results.NS_OK,
                                                aListener.GET,
                                                null,
@@ -759,7 +759,7 @@ calStorageCalendar.prototype = {
         queueItems(null);
 
         // and finish
-        aListener.onOperationComplete (this,
+        aListener.onOperationComplete (this.superCalendar,
                                        Components.results.NS_OK,
                                        aListener.GET,
                                        null,
@@ -1389,7 +1389,7 @@ calStorageCalendar.prototype = {
     // read in the common ItemBase attributes from aDBRow, and stick
     // them on item
     getItemBaseFromRow: function (row, flags, item) {
-        item.calendar = this;
+        item.calendar = this.superCalendar;
         item.id = row.id;
         if (row.title)
             item.title = row.title;

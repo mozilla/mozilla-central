@@ -74,6 +74,16 @@ calProviderBase.prototype = {
         return this.setProperty("name", aValue);
     },
 
+    // attribute calICalendar superCalendar;
+    get superCalendar() {
+        // If we have a superCalendar, check this calendar for a superCalendar.
+        // This will make sure the topmost calendar is returned
+        return (this.mSuperCalendar ? this.mSuperCalendar.superCalendar : this);
+    },
+    set superCalendar(val) {
+        return (this.mSuperCalendar = val);
+    },
+
     // attribute nsIURI uri;
     get uri() {
         return this.mUri;

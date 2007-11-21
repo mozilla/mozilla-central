@@ -191,7 +191,7 @@ calGoogleCalendar.prototype = {
             }
 
             // Add the calendar to the item, for later use.
-            aItem.calendar = this;
+            aItem.calendar = this.superCalendar;
 
             // When adding items, the google user is the organizer.
             var organizer = createAttendee();
@@ -200,7 +200,7 @@ calGoogleCalendar.prototype = {
             organizer.id = "mailto:" + this.mSession.googleUser;
             aItem.organizer = organizer;
 
-            this.mSession.addItem(this,
+            this.mSession.addItem(this.superCalendar,
                                   aItem,
                                   this.addItem_response,
                                   aListener);
@@ -215,7 +215,7 @@ calGoogleCalendar.prototype = {
             }
 
             if (aListener != null) {
-                aListener.onOperationComplete(this,
+                aListener.onOperationComplete(this.superCalendar,
                                               e.result,
                                               Components.interfaces.calIOperationListener.ADD,
                                               null,
@@ -258,7 +258,7 @@ calGoogleCalendar.prototype = {
                     "(" + aOldItem.title + "), relevant fields match");
 
                 if (aListener != null) {
-                    aListener.onOperationComplete(this,
+                    aListener.onOperationComplete(this.superCalendar,
                                                   Components.results.NS_OK,
                                                   Components.interfaces.calIOperationListener.MODIFY,
                                                   aNewItem.id,
@@ -272,7 +272,7 @@ calGoogleCalendar.prototype = {
             // called correctly.
             var extradata = { olditem: aOldItem, listener: aListener };
 
-            this.mSession.modifyItem(this,
+            this.mSession.modifyItem(this.superCalendar,
                                      aOldItem,
                                      aNewItem,
                                      this.modifyItem_response,
@@ -290,7 +290,7 @@ calGoogleCalendar.prototype = {
             }
 
             if (aListener != null) {
-                aListener.onOperationComplete(this,
+                aListener.onOperationComplete(this.superCalendar,
                                               e.result,
                                               Components.interfaces.calIOperationListener.MODIFY,
                                               null,
@@ -318,7 +318,7 @@ calGoogleCalendar.prototype = {
             // item XML data on delete, and we need to call the observers.
             var extradata = { listener: aListener, item: aItem };
 
-            this.mSession.deleteItem(this,
+            this.mSession.deleteItem(this.superCalendar,
                                      aItem,
                                      this.deleteItem_response,
                                      extradata);
@@ -335,7 +335,7 @@ calGoogleCalendar.prototype = {
             }
 
             if (aListener != null) {
-                aListener.onOperationComplete(this,
+                aListener.onOperationComplete(this.superCalendar,
                                               e.result,
                                               Components.interfaces.calIOperationListener.DELETE,
                                               null,
@@ -355,13 +355,16 @@ calGoogleCalendar.prototype = {
                 this.findSession();
             }
 
-            this.mSession.getItem(this, aId, this.getItem_response, aListener);
+            this.mSession.getItem(this.superCalendar,
+                                  aId,
+                                  this.getItem_response,
+                                  aListener);
         } catch (e) {
             LOG("getItem failed before request " + aItem.title + "(" + aItem.id
                 + "):\n" + e);
 
             if (aListener != null) {
-                aListener.onOperationComplete(this,
+                aListener.onOperationComplete(this.superCalendar,
                                               e.result,
                                               Components.interfaces.calIOperationListener.GET,
                                               null,
@@ -402,7 +405,7 @@ calGoogleCalendar.prototype = {
 
             var extradata = { itemfilter: aItemFilter, listener: aListener };
 
-            this.mSession.getItems(this,
+            this.mSession.getItems(this.superCalendar,
                                    aCount,
                                    aRangeStart,
                                    aRangeEnd,
@@ -411,7 +414,7 @@ calGoogleCalendar.prototype = {
                                    extradata);
         } catch (e) {
             if (aListener != null) {
-                aListener.onOperationComplete(this,
+                aListener.onOperationComplete(this.superCalendar,
                                               e.result,
                                               Components.interfaces.calIOperationListener.GET,
                                               null, e.message);
@@ -499,7 +502,7 @@ calGoogleCalendar.prototype = {
                 LOG("Deleting item " + aRequest.extraData.item.id +
                     " successful");
 
-                aRequest.extraData.listener.onOperationComplete(this,
+                aRequest.extraData.listener.onOperationComplete(this.superCalendar,
                                                                 Components.results.NS_OK,
                                                                 Components.interfaces.calIOperationListener.DELETE,
                                                                 aRequest.extraData.item.id,
@@ -512,7 +515,7 @@ calGoogleCalendar.prototype = {
             LOG("Deleting item " + aRequest.extraData.item.id + " failed");
             // Operation failed
             if (aRequest.extraData.listener) {
-                aRequest.extraData.listener.onOperationComplete(this,
+                aRequest.extraData.listener.onOperationComplete(this.superCalendar,
                                                                 e.result,
                                                                 Components.interfaces.calIOperationListener.DELETE,
                                                                 null,
@@ -590,7 +593,7 @@ calGoogleCalendar.prototype = {
 
             // Parse all <entry> tags
             for each (var entry in xml.entry) {
-                var item = XMLEntryToItem(entry, timezone, this);
+                var item = XMLEntryToItem(entry, timezone, this.superCalendar);
 
                 if (item) {
                     var itemReturnOccurrences =
@@ -603,11 +606,11 @@ calGoogleCalendar.prototype = {
                         !itemIsOccurrence) {
                         LOG("Parsing entry:\n" + entry + "\n");
 
-                        item.calendar = this;
+                        item.calendar = this.superCalendar;
                         item.makeImmutable();
                         LOGitem(item);
 
-                        aRequest.extraData.listener.onGetResult(this,
+                        aRequest.extraData.listener.onGetResult(this.superCalendar,
                                                                 Components.results.NS_OK,
                                                                 Components.interfaces.calIEvent,
                                                                 null,
@@ -623,7 +626,7 @@ calGoogleCalendar.prototype = {
 
             // Operation Completed successfully.
             if (aRequest.extraData.listener != null) {
-                aRequest.extraData.listener.onOperationComplete(this,
+                aRequest.extraData.listener.onOperationComplete(this.superCalendar,
                                                                 Components.results.NS_OK,
                                                                 Components.interfaces.calIOperationListener.GET,
                                                                 null,
@@ -633,7 +636,7 @@ calGoogleCalendar.prototype = {
             LOG("Error getting items:\n" + e);
             // Operation failed
             if (aRequest.extraData.listener != null) {
-                aRequest.extraData.listener.onOperationComplete(this,
+                aRequest.extraData.listener.onOperationComplete(this.superCalendar,
                                                                 e.result,
                                                                 Components.interfaces.calIOperationListener.GET,
                                                                 null,
@@ -677,15 +680,15 @@ calGoogleCalendar.prototype = {
             var timezone = getPrefSafe("calendar.timezone.local");
 
             // Parse the Item with the given timezone
-            var item = XMLEntryToItem(xml, timezone, this);
+            var item = XMLEntryToItem(xml, timezone, this.superCalendar);
 
             LOGitem(item);
-            item.calendar = this;
+            item.calendar = this.superCalendar;
             item.makeImmutable();
 
             // GET operations need to call onGetResult
             if (aOperation == Components.interfaces.calIOperationListener.GET) {
-                aListener.onGetResult(this,
+                aListener.onGetResult(this.superCalendar,
                                       Components.results.NS_OK,
                                       Components.interfaces.calIEvent,
                                       null,
@@ -695,7 +698,7 @@ calGoogleCalendar.prototype = {
 
             // All operations need to call onOperationComplete
             if (aListener) {
-                aListener.onOperationComplete(this,
+                aListener.onOperationComplete(this.superCalendar,
                                               Components.results.NS_OK,
                                               aOperation,
                                               (item ? item.id : null),
@@ -714,7 +717,7 @@ calGoogleCalendar.prototype = {
 
             // Operation failed
             if (aListener) {
-                aListener.onOperationComplete(this,
+                aListener.onOperationComplete(this.superCalendar,
                                               e.result,
                                               aOperation,
                                               null,

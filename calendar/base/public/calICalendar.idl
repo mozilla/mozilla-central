@@ -77,6 +77,17 @@ interface calICalendar : nsISupports
    *   'memory', 'storage', 'caldav', etc
    */
   readonly attribute AUTF8String type;
+  
+  /**
+   * Multiple calendar instances may be composited, logically acting as a
+   * single calendar, e.g. for caching puorposing.
+   * This attribute determines the topmost calendar that returned items should
+   * belong to. If the current instance is the topmost calendar, then it should
+   * be returned directly.
+   *
+   * @see calIItemBase::calendar
+   */
+  attribute calICalendar superCalendar;
 
   /**
    * Setting this URI causes the calendar to be (re)loaded.

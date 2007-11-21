@@ -47,7 +47,6 @@ const USECS_PER_SECOND = 1000000;
 
 function calMemoryCalendar() {
     this.initProviderBase();
-    this.calendarToReturn = this,
     this.initMemoryCalendar();
 }
 
@@ -57,10 +56,6 @@ const END_OF_TIME = 0x7fffffffffffffff;
 
 calMemoryCalendar.prototype = {
     __proto__: calProviderBase.prototype,
-
-    // This will be returned from getItems as the calendar. The ics
-    // calendar overwrites this.
-    calendarToReturn: null,
 
     //
     // nsISupports interface
@@ -140,7 +135,7 @@ calMemoryCalendar.prototype = {
 
         if (aItem.id == null) {
             if (aListener)
-                aListener.onOperationComplete (this.calendarToReturn,
+                aListener.onOperationComplete (this.superCalendar,
                                                Components.results.NS_ERROR_FAILURE,
                                                aListener.ADD,
                                                aItem.id,
@@ -151,7 +146,7 @@ calMemoryCalendar.prototype = {
         if (this.mItems[aItem.id] != null) {
             // is this an error?
             if (aListener)
-                aListener.onOperationComplete (this.calendarToReturn,
+                aListener.onOperationComplete (this.superCalendar,
                                                Components.interfaces.calIErrors.DUPLICATE_ID,
                                                aListener.ADD,
                                                aItem.id,
@@ -159,7 +154,7 @@ calMemoryCalendar.prototype = {
             return;
         }
 
-        aItem.calendar = this.calendarToReturn;
+        aItem.calendar = this.superCalendar;
         var rec = aItem.recurrenceInfo;
         if (rec) {
             var exceptions = rec.getExceptionIds({});
@@ -169,7 +164,7 @@ calMemoryCalendar.prototype = {
                     if (!exception.isMutable) {
                         exception = exception.clone();
                     }
-                    exception.calendar = this.calendarToReturn;
+                    exception.calendar = this.superCalendar;
                     rec.modifyException(exception);
                 }
             }
@@ -181,7 +176,7 @@ calMemoryCalendar.prototype = {
 
         // notify the listener
         if (aListener)
-            aListener.onOperationComplete (this.calendarToReturn,
+            aListener.onOperationComplete (this.superCalendar,
                                            Components.results.NS_OK,
                                            aListener.ADD,
                                            aItem.id,
@@ -200,7 +195,7 @@ calMemoryCalendar.prototype = {
         if (aNewItem.id == null || this.mItems[aNewItem.id] == null) {
             // this is definitely an error
             if (aListener)
-                aListener.onOperationComplete (this.calendarToReturn,
+                aListener.onOperationComplete (this.superCalendar,
                                                Components.results.NS_ERROR_FAILURE,
                                                aListener.MODIFY,
                                                aNewItem.id,
@@ -211,7 +206,7 @@ calMemoryCalendar.prototype = {
         // do the old and new items match?
         if (aOldItem.id != aNewItem.id) {
             if (aListener)
-                aListener.onOperationComplete (this.calendarToReturn,
+                aListener.onOperationComplete (this.superCalendar,
                                                Components.results.NS_ERROR_FAILURE,
                                                aListener.MODIFY,
                                                aNewItem.id,
@@ -227,7 +222,7 @@ calMemoryCalendar.prototype = {
 
         if (!compareItems(this.mItems[aOldItem.id], aOldItem)) {
             if (aListener)
-                aListener.onOperationComplete (this.calendarToReturn,
+                aListener.onOperationComplete (this.superCalendar,
                                                Components.results.NS_ERROR_FAILURE,
                                                aListener.MODIFY,
                                                aNewItem.id,
@@ -237,7 +232,7 @@ calMemoryCalendar.prototype = {
 
         if (aOldItem.generation != aNewItem.generation) {
             if (aListener)
-                aListener.onOperationComplete (this.calendarToReturn,
+                aListener.onOperationComplete (this.superCalendar,
                                                Components.results.NS_ERROR_FAILURE,
                                                aListener.MODIFY,
                                                aNewItem.id,
@@ -251,7 +246,7 @@ calMemoryCalendar.prototype = {
         this.mItems[aNewItem.id] = modifiedItem;
 
         if (aListener)
-            aListener.onOperationComplete (this.calendarToReturn,
+            aListener.onOperationComplete (this.superCalendar,
                                            Components.results.NS_OK,
                                            aListener.MODIFY,
                                            modifiedItem.id,
@@ -266,7 +261,7 @@ calMemoryCalendar.prototype = {
             throw Components.interfaces.calIErrors.CAL_IS_READONLY;
         if (aItem.id == null || this.mItems[aItem.id] == null) {
             if (aListener)
-                aListener.onOperationComplete (this.calendarToReturn,
+                aListener.onOperationComplete (this.superCalendar,
                                                Components.results.NS_ERROR_FAILURE,
                                                aListener.DELETE,
                                                aItem.id,
@@ -277,7 +272,7 @@ calMemoryCalendar.prototype = {
         var oldItem = this.mItems[aItem.id];
         if (oldItem.generation != aItem.generation) {
             if (aListener)
-                aListener.onOperationComplete (this.calendarToReturn,
+                aListener.onOperationComplete (this.superCalendar,
                                                Components.results.NS_ERROR_FAILURE,
                                                aListener.DELETE,
                                                aItem.id,
@@ -288,7 +283,7 @@ calMemoryCalendar.prototype = {
         delete this.mItems[aItem.id];
 
         if (aListener)
-            aListener.onOperationComplete (this.calendarToReturn,
+            aListener.onOperationComplete (this.superCalendar,
                                            Components.results.NS_OK,
                                            aListener.DELETE,
                                            aItem.id,
@@ -304,7 +299,7 @@ calMemoryCalendar.prototype = {
 
         if (aId == null ||
             this.mItems[aId] == null) {
-            aListener.onOperationComplete(this.calendarToReturn,
+            aListener.onOperationComplete(this.superCalendar,
                                           Components.results.NS_ERROR_FAILURE,
                                           aListener.GET,
                                           null,
@@ -320,7 +315,7 @@ calMemoryCalendar.prototype = {
         } else if (item instanceof Components.interfaces.calITodo) {
             iid = Components.interfaces.calITodo;
         } else {
-            aListener.onOperationComplete (this.calendarToReturn,
+            aListener.onOperationComplete (this.superCalendar,
                                            Components.results.NS_ERROR_FAILURE,
                                            aListener.GET,
                                            aId,
@@ -328,12 +323,12 @@ calMemoryCalendar.prototype = {
             return;
         }
 
-        aListener.onGetResult (this.calendarToReturn,
+        aListener.onGetResult (this.superCalendar,
                                Components.results.NS_OK,
                                iid,
                                null, 1, [item]);
 
-        aListener.onOperationComplete (this.calendarToReturn,
+        aListener.onOperationComplete (this.superCalendar,
                                        Components.results.NS_OK,
                                        aListener.GET,
                                        aId,
@@ -370,7 +365,7 @@ calMemoryCalendar.prototype = {
         var wantTodos = ((aItemFilter & calICalendar.ITEM_FILTER_TYPE_TODO) != 0);
         if(!wantEvents && !wantTodos) {
             // bail.
-            aListener.onOperationComplete (this.calendarToReturn,
+            aListener.onOperationComplete (this.superCalendar,
                                            Components.results.NS_ERROR_FAILURE,
                                            aListener.GET,
                                            null,
@@ -458,14 +453,14 @@ calMemoryCalendar.prototype = {
                 break;
         }
 
-        aListener.onGetResult (this.calendarToReturn,
+        aListener.onGetResult (this.superCalendar,
                                Components.results.NS_OK,
                                typeIID,
                                null,
                                itemsFound.length,
                                itemsFound);
 
-        aListener.onOperationComplete (this.calendarToReturn,
+        aListener.onOperationComplete (this.superCalendar,
                                        Components.results.NS_OK,
                                        aListener.GET,
                                        null,

@@ -86,9 +86,9 @@ calICSCalendar.prototype = {
         this.mICSService = Components.classes["@mozilla.org/calendar/ics-service;1"]
                                      .getService(Components.interfaces.calIICSService);
 
+        this.mMemoryCalendar.superCalendar = this;
         this.mObserver = new calICSObserver(this);
         this.mMemoryCalendar.addObserver(this.mObserver);
-        this.mMemoryCalendar.wrappedJSObject.calendarToReturn = this;
     },
 
     //
@@ -218,7 +218,7 @@ calICSCalendar.prototype = {
         this.mMemoryCalendar = Components.classes["@mozilla.org/calendar/calendar;1?type=memory"]
                                          .createInstance(Components.interfaces.calICalendar);
         this.mMemoryCalendar.uri = this.mUri;
-        this.mMemoryCalendar.wrappedJSObject.calendarToReturn = this;
+        this.mMemoryCalendar.superCalendar = this;
 
         this.mObserver.onStartBatch();
 
