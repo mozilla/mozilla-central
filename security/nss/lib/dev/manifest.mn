@@ -34,14 +34,14 @@
 # the terms of any one of the MPL, the GPL or the LGPL.
 #
 # ***** END LICENSE BLOCK *****
-MANIFEST_CVS_ID = "@(#) $RCSfile: manifest.mn,v $ $Revision: 1.13 $ $Date: 2007-11-16 05:29:25 $"
+MANIFEST_CVS_ID = "@(#) $RCSfile: manifest.mn,v $ $Revision: 1.14 $ $Date: 2007-11-21 18:02:12 $"
 
 CORE_DEPTH = ../../..
 
 PRIVATE_EXPORTS = \
 	ckhelper.h \
 	devm.h     \
-	devtm.h      \
+	devtm.h    \
 	devt.h     \
 	dev.h      \
 	nssdevt.h  \
