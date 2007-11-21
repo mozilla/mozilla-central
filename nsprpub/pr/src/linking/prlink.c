@@ -774,10 +774,16 @@ pr_LoadViaDyld(const char *name, PRLibrary *lm)
     if (lm->dlh == NULL) {
         lm->image = NSAddImage(name, NSADDIMAGE_OPTION_RETURN_ON_ERROR
                                | NSADDIMAGE_OPTION_WITH_SEARCHING);
-        /*
-         * TODO: If NSAddImage fails, use NSLinkEditError to retrieve
-         * error information.
-         */
+        if (lm->image == NULL) {
+            NSLinkEditErrors linkEditError;
+            int errorNum;
+            const char *errorString;
+            const char *fileName;
+            NSLinkEditError(&linkEditError, &errorNum, &fileName, &errorString);
+            PR_LOG(_pr_linker_lm, PR_LOG_MIN, 
+                   ("LoadMachDyldModule error %d:%d for file %s:\n%s",
+                    linkEditError, errorNum, fileName, errorString));
+        }
     }
     return (lm->dlh != NULL || lm->image != NULL) ? PR_SUCCESS : PR_FAILURE;
 }
