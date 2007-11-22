@@ -119,8 +119,21 @@ var messagepaneObserver = {
     var sourceUri = aData.data;
     if (sourceUri != gCurrentMessageUri)
     {
-      SelectFolder(GetMsgHdrFromUri(sourceUri).folder.URI);
-      SelectMessage(sourceUri);
+      var msgHdr = GetMsgHdrFromUri(sourceUri);
+
+      // Reset the window's message uri and folder uri vars, and
+      // update the command handlers to what's going to be used.
+      // This has to be done before the call to CreateView().
+      gCurrentMessageUri = sourceUri;
+      gCurrentFolderUri = msgHdr.folder.URI;
+      UpdateMailToolbar('onDrop');
+
+      // even if the folder uri's match, we can't use the existing view
+      // (msgHdr.folder.URI == windowID.gCurrentFolderUri)
+      // the reason is quick search and mail views.
+      // see bug #187673
+      CreateView(aDragSession.sourceNode.ownerDocument.defaultView.gDBView);
+      LoadMessageByMsgKey(msgHdr.messageKey);
     }
   },
 
