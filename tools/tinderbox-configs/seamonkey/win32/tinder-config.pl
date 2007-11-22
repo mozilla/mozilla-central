@@ -12,6 +12,10 @@ $ENV{MOZ_INSTALLER_USE_7ZIP} = '1';
 # Ship the MSVC8 runtime libs
 $ENV{WIN32_REDIST_DIR} = 'C:\Program Files\Microsoft Visual Studio 8\VC\Redist\x86\Microsoft.VC80.CRT';
 
+# Enable Building of the Palm Sync extension.
+$ENV{BUILD_PALMSYNC} = '1';
+$ENV{PALM_CDK_DIR} = 'C:\PALMCDK403';
+
 #- tinder-config.pl - Tinderbox configuration file.
 #-    Uncomment the variables you need to set.
 #-    The default values are the same as the commented variables.
