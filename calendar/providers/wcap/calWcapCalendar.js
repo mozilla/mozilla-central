@@ -52,12 +52,12 @@ calWcapCalendar.prototype = {
                 Components.interfaces.nsIInterfaceRequestor,
                 Components.interfaces.nsIClassInfo,
                 nsISupports ],
-    
+
     // nsISupports:
     QueryInterface: function calWcapCalendar_QueryInterface(iid) {
-        return doQueryInterface(this, aIID, this.m_ifaces, this);
+        return doQueryInterface(this, iid, this.m_ifaces, this);
     },
-    
+
     // nsIClassInfo:
     getInterfaces: function calWcapCalendar_getInterfaces(count) {
         count.value = this.m_ifaces.length;
@@ -182,12 +182,16 @@ calWcapCalendar.prototype = {
         return this.uri;
     },
 
-    m_bReadOnly: false,
+    m_bReadOnly: null,
     getProperty: function calWcapCalendar_getProperty(aName) {
         var value = getCalendarManager().getCalendarPref_(this, aName);
         switch (aName) {
         case "readOnly":
             value = this.m_bReadOnly;
+            if (value === null) {
+                // tweak readOnly default to true for non-owned calendars:
+                value = (this.session.isLoggedIn && !this.isOwnedCalendar);
+            }
             break;
         case "calendar-main-in-composite":
             if (value === null && !this.isDefaultCalendar) {
