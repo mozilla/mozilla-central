@@ -1,0 +1,942 @@
+<?xml version="1.0"?>
+<!-- ***** BEGIN LICENSE BLOCK *****
+   - Version: MPL 1.1/GPL 2.0/LGPL 2.1
+   -
+   - The contents of this file are subject to the Mozilla Public License Version
+   - 1.1 (the "License"); you may not use this file except in compliance with
+   - the License. You may obtain a copy of the License at
+   - http://www.mozilla.org/MPL/
+   -
+   - Software distributed under the License is distributed on an "AS IS" basis,
+   - WITHOUT WARRANTY OF ANY KIND, either express or implied. See the License
+   - for the specific language governing rights and limitations under the
+   - License.
+   -
+   - The Original Code is OEone Calendar Code, released October 31st, 2001.
+   -
+   - The Initial Developer of the Original Code is OEone Corporation.
+   - Portions created by the Initial Developer are Copyright (C) 2001
+   - the Initial Developer. All Rights Reserved.
+   -
+   - Contributor(s):
+   -   Garth Smedley <garths@oeone.com>
+   -   Mike Potter <mikep@oeone.com>
+   -   Chris Charabaruk <coldacid@meldstar.com>
+   -   Colin Phillips <colinp@oeone.com>
+   -   ArentJan Banck <ajbanck@planet.nl>
+   -   Curtis Jewell <csjewell@mail.freeshell.org>
+   -   Eric Belhaire <eric.belhaire@ief.u-psud.fr>
+   -   Mark Swaffer <swaff@fudo.org>
+   -   Michael Buettner <michael.buettner@sun.com>
+   -   Philipp Kewisch <mozilla@kewis.ch>
+   -
+   - Alternatively, the contents of this file may be used under the terms of
+   - either the GNU General Public License Version 2 or later (the "GPL"), or
+   - the GNU Lesser General Public License Version 2.1 or later (the "LGPL"),
+   - in which case the provisions of the GPL or the LGPL are applicable instead
+   - of those above. If you wish to allow use of your version of this file only
+   - under the terms of either the GPL or the LGPL, and not to allow others to
+   - use your version of this file under the terms of the MPL, indicate your
+   - decision by deleting the provisions above and replace them with the notice
+   - and other provisions required by the GPL or the LGPL. If you do not delete
+   - the provisions above, a recipient may use your version of this file under
+   - the terms of any one of the MPL, the GPL or the LGPL.
+   -
+   - ***** END LICENSE BLOCK ***** -->
+
+<!DOCTYPE dialog [
+  <!ENTITY % dtd1 SYSTEM "chrome://calendar/locale/global.dtd" > %dtd1;
+  <!ENTITY % dtd2 SYSTEM "chrome://calendar/locale/calendar.dtd" > %dtd2;
+]>
+
+<bindings id="calendar-task-tree-bindings"
+  xmlns="http://www.mozilla.org/xbl"
+  xmlns:xbl="http://www.mozilla.org/xbl"
+  xmlns:xul="http://www.mozilla.org/keymaster/gatekeeper/there.is.only.xul">
+
+  <binding id="calendar-task-tree">
+    <resources>
+      <stylesheet src="chrome://calendar/skin/calendar-task-tree.css"/>
+    </resources>
+    <content>
+      <xul:tree anonid="calendar-task-tree"
+                class="calendar-task-tree" 
+                flex="1"
+                enableColumnDrag="false">
+        <xul:treecols anonid="calendar-task-tree-cols">
+          <xul:treecol anonid="calendar-task-tree-col-completed"
+                       class="calendar-task-tree-col-completed" 
+                       persist="hidden ordinal width sortDirection sortActive"
+                       xbl:inherits="hidden=hide-column-completed"
+                       width="18"
+                       cycler="true"
+                       label="&calendar.unifinder.tree.done.label;">
+            <xul:image anonid="checkboximg" />
+          </xul:treecol>
+          <xul:splitter class="tree-splitter"/>
+          <xul:treecol anonid="calendar-task-tree-col-priority"
+                       class="calendar-task-tree-col-priority"
+                       persist="hidden ordinal width sortDirection sortActive"
+                       xbl:inherits="hidden=hide-column-priority"
+                       width="18" 
+                       label="&calendar.unifinder.tree.priority.label;">
+            <xul:image anonid="priorityimg"/>
+          </xul:treecol>
+          <xul:splitter class="tree-splitter"/>
+          <xul:treecol anonid="calendar-task-tree-col-title"
+                       persist="hidden ordinal width sortDirection sortActive"
+                       xbl:inherits="hidden=hide-column-title"
+                       flex="1" 
+                       label="&calendar.unifinder.tree.title.label;"/>
+          <xul:splitter class="tree-splitter"/>
+          <xul:treecol anonid="calendar-task-tree-col-startdate"
+                       persist="hidden ordinal width sortDirection sortActive"
+                       xbl:inherits="hidden=hide-column-startdate"
+                       flex="1" label="&calendar.unifinder.tree.startdate.label;"/>
+          <xul:splitter class="tree-splitter"/>
+          <xul:treecol anonid="calendar-task-tree-col-duedate"
+                       persist="hidden ordinal width sortDirection sortActive" 
+                       xbl:inherits="hidden=hide-column-duedate"
+                       flex="1" label="&calendar.unifinder.tree.duedate.label;"/>
+          <xul:splitter class="tree-splitter"/>
+          <xul:treecol anonid="calendar-task-tree-col-completeddate"
+                       persist="hidden ordinal width sortDirection sortActive" 
+                       xbl:inherits="hidden=hide-column-completeddate"
+                       flex="1" label="&calendar.unifinder.tree.completeddate.label;"/>
+          <xul:splitter class="tree-splitter"/>
+          <xul:treecol anonid="calendar-task-tree-col-percentcomplete"
+                       persist="hidden ordinal width sortDirection sortActive" 
+                       xbl:inherits="hidden=hide-column-percentcomplete"
+                       flex="1" label="&calendar.unifinder.tree.percentcomplete.label;"/>
+          <xul:splitter class="tree-splitter"/>
+          <xul:treecol anonid="calendar-task-tree-col-categories"
+                       persist="hidden ordinal width sortDirection sortActive" 
+                       xbl:inherits="hidden=hide-column-categories"
+                       flex="1" label="&calendar.unifinder.tree.categories.label;"/>
+          <xul:splitter class="tree-splitter"/>
+          <xul:treecol anonid="calendar-task-tree-col-location"
+                       persist="hidden ordinal width sortDirection sortActive" 
+                       xbl:inherits="hidden=hide-column-location"
+                       label="&calendar.unifinder.tree.location.label;"/>
+          <xul:splitter class="tree-splitter"/>
+          <xul:treecol anonid="calendar-task-tree-col-status"
+                       persist="hidden ordinal width sortDirection sortActive" 
+                       flex="1"
+                       xbl:inherits="hidden=hide-column-status"
+                       label="&calendar.unifinder.tree.status.label;"/>
+          <xul:splitter class="tree-splitter"/>
+          <xul:treecol anonid="calendar-task-tree-col-calendarname"
+                       persist="hidden ordinal width sortDirection sortActive" 
+                       xbl:inherits="hidden=hide-column-calendarname"
+                       flex="1"
+                       label="&calendar.unifinder.tree.calendarname.label;"/>
+        </xul:treecols>
+        <xul:treechildren tooltip="taskTreeTooltip"/>
+      </xul:tree>
+    </content>
+
+    <implementation>
+      
+      <field name="mLoadCount">0</field>
+      <field name="mTaskArray">[]</field>
+      <field name="mHash2Index">{}</field>
+      <field name="mContextTask">null</field>
+      <field name="mRefreshQueue">[]</field>
+      <field name="mPendingRefresh">null</field>
+
+      <property name="currentIndex">
+        <getter><![CDATA[
+          var tree = document.getAnonymousElementByAttribute(
+              this, "anonid", "calendar-task-tree");
+          return tree.currentIndex;
+        ]]></getter>
+      </property>
+
+      <property name="currentTask">
+        <getter><![CDATA[
+          var tree = document.getAnonymousElementByAttribute(
+              this, "anonid", "calendar-task-tree");
+          var index = tree.currentIndex;
+          return (index < 0) ? null : this.mTaskArray[index];
+        ]]></getter>
+      </property>
+
+      <method name="getTaskAtRow">
+        <parameter name="aRow"/>
+        <body><![CDATA[
+          return this.mTaskArray[aRow];
+        ]]></body>
+      </method>
+
+      <method name="getTaskFromEvent">
+        <parameter name="aEvent"/>
+        <body><![CDATA[
+          return this.mTreeView._getItemFromEvent(aEvent);
+        ]]></body>
+      </method>
+      
+      <property name="contextTask">
+        <getter><![CDATA[
+          return this.mContextTask;
+        ]]></getter>
+        <setter><![CDATA[
+          this.mContextTask = val;
+          return this.mContextTask;
+        ]]></setter>
+      </property>
+            
+      <field name="mTreeView"><![CDATA[
+      ({
+          /**
+           * Attributes
+           */
+
+          // back reference to the binding
+          binding: this,
+          tree: null,
+          treebox: null,
+          selectedColumn: null,
+          sortDirection: null,
+          
+          // updated just before sort
+          sortStartedTime: now(),
+
+          /**
+           * High-level task tree manipulation
+           */
+
+          addItem: function tTV_addItem(aItem) {
+              // The rowCountChanged function takes two arguments, the index where the
+              // first row was inserted and the number of rows to insert. 
+              this.binding.mTaskArray.push(aItem);
+              var index = this.binding.mTaskArray.length - 1;
+              this.binding.mHash2Index[aItem.hashId] = index;
+              this.treebox.rowCountChanged(index, 1);
+              this.tree.view.selection.select(index);
+          },
+
+          removeItem: function tTV_removeItem(aItem) {
+              var index = this.binding.mHash2Index[aItem.hashId];
+              if (index != undefined) {
+                  delete this.binding.mHash2Index[aItem.hashId];
+                  this.binding.mTaskArray.splice(index, 1);
+                  this.treebox.rowCountChanged(index, -1);
+
+                  if (index == this.rowCount) {
+                      index--;
+                  }
+
+                  this.tree.view.selection.select(index);
+              }
+          },
+
+          modifyItem: function tTV_modifyItem(aNewItem, aOldItem) {
+              var index = this.binding.mHash2Index[aOldItem.hashId];
+              if (index != undefined) {
+                  delete this.binding.mHash2Index[aOldItem.hashId];
+                  this.binding.mHash2Index[aNewItem.hashId] = index;
+                  this.binding.mTaskArray[index] = aNewItem;
+                  this.tree.view.selection.select(index);
+                  this.treebox.invalidateRow(index);
+              }
+          },
+
+          clear: function tTV_clear() {
+              var count = this.binding.mTaskArray.length;
+              if (count > 0) {
+                  this.binding.mTaskArray = [];
+                  this.binding.mHash2Index = {};
+                  this.treebox.rowCountChanged(0, -count);
+                  this.tree.view.selection.clearSelection();
+              }
+          },
+          
+          updateItem: function tTV_updateItem(aItem) {
+              var index = this.binding.mHash2Index[aItem.hashId];
+              if (index) {
+                  this.treebox.invalidateRow(index);
+              }
+          },
+
+          /**
+           * nsITreeView methods and properties
+           */
+
+          get rowCount() {
+              return this.binding.mTaskArray.length;
+          },
+          
+          // An atomized list of properties for a given cell. Each property, x, that the
+          // view gives back will cause the pseudoclass :moz-tree-cell-x to be matched
+          // on the ::moz-tree-cell pseudoelement. It is use here to color a particular
+          // row with a color given by the progress state of the task.
+          getCellProperties: function mTV_getCellProperties(aRow, aCol, aProps) { 
+              var task = this.binding.mTaskArray[aRow];
+              if (aCol.element.getAttribute("anonid") == "calendar-task-tree-col-priority") {
+                  if(task.priority > 0 && task.priority < 5) {
+                      aProps.AppendElement(getAtomFromService("highpriority"));
+                  }
+                  if(task.priority > 5 && task.priority < 10) {
+                      aProps.AppendElement(getAtomFromService("lowpriority"));
+                  }
+              }
+              aProps.AppendElement(getAtomFromService(this._progressAtom(task)));
+              if (aCol.element.hasAttribute("anonid")) {
+                  aProps.AppendElement(getAtomFromService(aCol.element.getAttribute("anonid")));
+              }
+          },
+          
+          // Called to get properties to paint a column background.
+          // For shading the sort column, etc.
+          getColumnProperties: function mTV_getColumnProperties() {
+              return false;
+          },
+         
+          // An atomized list of properties for a given row. Each property, x, that the
+          // view gives back will cause the pseudoclass :moz-tree-row-x to be matched
+          // on the pseudoelement ::moz-tree-row. It is used here to color the background
+          // of a selected task with a color given by  the progress state of the task.
+          getRowProperties: function mTV_getRowProperties(aRow, aProps) {
+              var task = this.binding.mTaskArray[aRow];
+              aProps.AppendElement(getAtomFromService(this._progressAtom(task)));
+          },
+
+          // Called on the view when a cell in a non-selectable cycling
+          // column (e.g., unread/flag/etc.) is clicked.
+          cycleCell: function mTV_cycleCell(aRow, aCol) {
+              var task = this.binding.mTaskArray[aRow];
+              if(!task)
+                  return;
+              if (aCol != null) {
+                  var anonid = aCol.element.getAttribute("anonid");
+                  if (anonid == "calendar-task-tree-col-completed")  {
+                      var newTask = task.clone().QueryInterface(Components.interfaces.calITodo);
+                      newTask.isCompleted = !task.completedDate;
+                      doTransaction('modify', newTask, newTask.calendar, task, null);
+                  }
+              }
+          },
+
+          // Called on the view when a header is clicked.
+          cycleHeader: function mTV_cycleHeader(aCol) {
+              var element = aCol.element;
+              var sortActive = element.getAttribute("sortActive");
+              this.selectedColumn = element.getAttribute("anonid");  
+              this.sortDirection = element.getAttribute("sortDirection");
+
+              var treeCols;
+              if (sortActive != "true") {
+                  var treecols = document.getAnonymousNodes(
+                      this.binding)[0].getElementsByTagName("treecol");
+                  for (var i = 0; i < treecols.length; i++) {
+                      treecols[i].removeAttribute("sortActive");
+                      treecols[i].removeAttribute("sortDirection");
+                  }
+                  sortActive = true;
+                  this.sortDirection = "ascending";
+              }
+              else {
+                  sortActive = true;
+                  if(this.sortDirection == "" || this.sortDirection == "descending") {
+                      this.sortDirection = "ascending";
+                  } else {
+                      this.sortDirection = "descending";
+                  }
+              }
+              element.setAttribute("sortActive", sortActive);
+              element.setAttribute("sortDirection", this.sortDirection);
+              this.sortStartedTime = now(); // for null dates during sort
+              this.binding.sortTaskArray();
+              this.binding.recreateHashTable();
+          },
+          
+          // The text for a given cell. If a column consists only of an
+          // image, then the empty string is returned.
+          getCellText: function mTV_getCellText(aRow, aCol) {
+              var task = this.binding.mTaskArray[aRow];
+              if (!task)
+                  return false;
+              switch(aCol.element.getAttribute("anonid")) {
+                  case "calendar-task-tree-col-title":
+                      // return title, or "Untitled" if empty/null
+                      return task.title || gCalendarBundle.getString("eventUntitled");
+                  case "calendar-task-tree-col-startdate":
+                      return this._formatDateTime(task.entryDate);
+                  case "calendar-task-tree-col-duedate":
+                      return this._formatDateTime(task.dueDate);
+                  case "calendar-task-tree-col-completeddate":
+                      return this._formatDateTime(task.completedDate);
+                  case "calendar-task-tree-col-percentcomplete":
+                      return task.percentComplete+"%";
+                  case "calendar-task-tree-col-categories":
+                      return task.getProperty("CATEGORIES");
+                  case "calendar-task-tree-col-location":
+                      return task.getProperty("LOCATION");
+                  case "calendar-task-tree-col-status":
+                      return getToDoStatusString(task);
+                  case "calendar-task-tree-col-calendarname":
+                      return task.calendar.name;
+                  case "calendar-task-tree-col-completed":
+                  case "calendar-task-tree-col-priority":
+                  default:
+                      return "";
+              }
+          },
+          
+          // This method is only called for columns of type other than text.
+          getCellValue: function mTV_getCellValue(aRow, aCol) {
+              return null;
+          },
+
+          // SetCellValue is called when the value of the cell has been set by the user.
+          // This method is only called for columns of type other than text.
+          setCellValue: function mTV_setCellValue(aRow, aCol, aValue) {
+              return null;
+          },
+
+          // The image path for a given cell. For defining an icon for a cell.
+          // If the empty string is returned, the :moz-tree-image pseudoelement will be used.
+          getImageSrc: function mTV_getImageSrc(aRow, aCol) {
+             // Return the empty string in order 
+             // to use moz-tree-image pseudoelement : 
+             // it is mandatory to return "" and not false :-(
+             return("");
+          },
+
+          // IsEditable is called to ask the view if the cell contents are editable.
+          // A value of true will result in the tree popping up a text field when the user
+          // tries to inline edit the cell.
+          isEditable: function mTV_isEditable(aRow, aCol) {
+              return true;
+          },
+
+          // Called during initialization to link the view to the front end box object.
+          setTree: function mTV_setTree(aTreeBox) {
+            this.treebox = aTreeBox;
+          },
+
+          // Methods that can be used to test whether or not a twisty should
+          // be drawn, and if so, whether an open or closed twisty should be used.
+          isContainer: function mTV_isContainer(aRow) {
+              return false;
+          },
+
+          // IsSeparator is used to determine if the row at index is a separator.
+          // A value of true will result in the tree drawing a horizontal separator.
+          // The tree uses the ::moz-tree-separator pseudoclass to draw the separator.
+          isSeparator: function mTV_isSeparator(aRow) {
+              return false;
+          },
+
+          // Specifies if there is currently a sort on any column.
+          // Used mostly by dragdrop to affect drop feedback.
+          isSorted: function mTV_isSorted(aRow) {
+              return false;
+          },
+
+          // The level is an integer value that represents the level of indentation.
+          // It is multiplied by the width specified in the :moz-tree-indentation
+          // pseudoelement to compute the exact indendation.
+          getLevel: function mTV_getLevel(aRow) {
+              return 0;
+          },
+          
+          /**
+           * Task Tree Events
+           */
+          onSelect: function tTV_onSelect(event) {},
+
+          onDoubleClick: function tTV_onDoubleClick(event) {
+              var col = {};
+              var item = this._getItemFromEvent(event, col);
+              if (event.button != 0 || 
+                 (col.value && col.value.anonid == "calendar-task-tree-col-completed")) {
+                  // Only left clicks that are not on the checkbox column
+                  return;
+              }
+              if (item) {
+                  modifyEventWithDialog(item);
+              } else {
+                  createTodoWithDialog();
+              }
+          },
+
+          onKeyPress: function tTV_onKeyPress(event) {
+              const kKE = Components.interfaces.nsIDOMKeyEvent;
+              switch (event.keyCode || event.which) {
+                  case kKE.DOM_VK_DELETE:
+                      document.popupNode = this.binding;
+                      document.getElementById('calendar_delete_todo_command').doCommand();
+                      event.preventDefault();
+                      event.stopPropagation();
+                      break;
+                  case kKE.DOM_VK_SPACE:
+                      if (this.tree.currentIndex > -1) {
+                          var col = document.getAnonymousElementByAttribute(
+                              this.binding, "anonid", "calendar-task-tree-col-completed");
+                          this.cycleCell(
+                              this.tree.currentIndex,
+                              { element: col });
+                      }
+                      break;
+                  case kKE.DOM_VK_RETURN:
+                      var index = this.tree.currentIndex;
+                      if (index > 0) {
+                          modifyEventWithDialog(this.binding.mTaskArray[index]);
+                      }
+                      break;
+              }
+          },
+      
+          // Set the context menu on mousedown to change it before it is opened
+          onMouseDown: function tTV_onMouseDown(event) {
+            var tree = document.getAnonymousElementByAttribute(
+                this.binding, "anonid", "calendar-task-tree");
+            var treechildren = tree.getElementsByTagName("treechildren")[0];
+            
+            if (this._getItemFromEvent(event)) {
+                // TODO HACK notifiers should be rewritten to integrate events and todos
+                document.getElementById("calendar_delete_todo_command").removeAttribute("disabled");
+            } else {
+                tree.view.selection.clearSelection();
+
+                // TODO HACK notifiers should be rewritten to integrate events and todos
+                document.getElementById("calendar_delete_todo_command").setAttribute("disabled", "true");
+            }
+          },
+          
+          /**
+           * Private methods and attributes
+           */
+          
+          _getItemFromEvent: function tTV_getItemFromEvent(event,aCol,aRow) {
+            var aRow = aRow || {};
+            this.treebox.getCellAt(event.clientX,event.clientY,aRow,aCol || {},{});
+            return aRow && aRow.value > -1 && this.binding.mTaskArray[aRow.value];
+          },
+          
+          // This function return the progress state of a task :
+          // completed, overdue, duetoday, inprogress, future
+          _progressAtom: function tTV_progressAtom(aTask) {
+              var now = new Date();
+
+              if (aTask.isCompleted)
+                  return "completed";
+
+              if (aTask.dueDate && aTask.dueDate.isValid) {
+                  if (aTask.dueDate.jsDate.getTime() < now.getTime())
+                      return "overdue";
+                  else if (aTask.dueDate.year == now.getFullYear() &&
+                           aTask.dueDate.month == now.getMonth() &&
+                           aTask.dueDate.day == now.getDate())
+                      return "duetoday";
+              }
+
+              if (aTask.entryDate && aTask.entryDate.isValid &&
+                  aTask.entryDate.jsDate.getTime() < now.getTime())
+                  return "inprogress";
+
+              return "future";
+          },
+          
+
+          // Helper function to display datetimes
+          _formatDateTime: function tTV_formatDateTime(aDateTime) {
+              var dateFormatter = Components.classes["@mozilla.org/calendar/datetime-formatter;1"]
+                                            .getService(Components.interfaces.calIDateTimeFormatter);
+
+              // datetime is from todo object, it is not a javascript date
+              if (aDateTime && aDateTime.isValid)
+                  return dateFormatter.formatDateTime(aDateTime);
+              return "";
+          }
+      })
+      ]]></field>
+
+      <!--
+        Observer for the calendar event data source. This keeps the unifinder
+        display up to date when the calendar event data is changed
+        -->
+      <field name="mTaskTreeObserver"><![CDATA[
+      ({
+          binding: this,
+          mInBatch: false,
+
+          QueryInterface: function tTO_QueryInterface(aIID) {
+              ensureIID(
+                  [ Components.interfaces.calICompositeObserver,
+                    Components.interfaces.calIObserver,
+                    Components.interfaces.nsISupports], aIID);
+              return this;
+          },
+
+         /**
+           * calIObserver methods and properties
+           */
+          onStartBatch: function tTO_onStartBatch() {
+              this.mInBatch = true;
+          },
+          
+          onEndBatch: function tTO_onEndBatch() {
+              this.mInBatch = false;
+              this.binding.refresh();
+          },
+          
+          onLoad: function tTO_onLoad() {
+              if (!this.mInBatch) {
+                  this.binding.refresh();
+              }
+          },
+          
+          onAddItem: function tTO_onAddItem(aItem) {
+              if (aItem instanceof Components.interfaces.calITodo && !this.mInBatch) {
+                  this.binding.mTreeView.addItem(aItem);
+              }
+          },
+          
+          onModifyItem: function tTO_onModifyItem(aNewItem, aOldItem) {
+              if ((aNewItem instanceof Components.interfaces.calITodo ||
+                  aOldItem instanceof Components.interfaces.calITodo) &&
+                  !this.mInBatch) {
+                  
+                  // forward the call to the view which will in turn
+                  // update the internal reference and the view.
+                  this.binding.mTreeView.modifyItem(aNewItem, aOldItem);
+                  
+                  // we also need to notify potential listeners.
+                  var event = document.createEvent('Events');
+                  event.initEvent('select', true, false);
+                  this.binding.dispatchEvent(event);
+              }
+          },
+          
+          onDeleteItem: function tTO_onDeleteItem(aDeletedItem) {
+              if (aDeletedItem instanceof Components.interfaces.calITodo &&
+                  !this.mInBatch) {
+                  this.binding.mTreeView.removeItem(aDeletedItem);  
+              }
+          },
+          
+          onError: function tTO_onError(aErrNo, aMessage) {},
+          onPropertyChanged: function tTO_onPropertyChanged(aCalendar, aName, aValue, aOldValue) {},
+          onPropertyDeleting: function tTO_onPropertyDeleting(aCalendar, aName) {},
+
+          /**
+           * calICompositeObserver methods and properties
+           */
+          onCalendarAdded: function tTO_onCalendarAdded(aCalendar) {
+              if (!this.mInBatch) {
+                  this.binding.onCalendarAdded(aCalendar);
+              }
+          },
+          
+          onCalendarRemoved: function tTO_onCalendarRemoved(aCalendar) {
+              if (!this.mInBatch) {
+                  this.binding.onCalendarRemoved(aCalendar);
+              }
+          },
+          
+          onDefaultCalendarChanged: function tTO_onDefaultCalendarChanged(aNewDefaultCalendar) {}
+      })
+      ]]></field>
+      
+      <constructor><![CDATA[
+        var self = this;
+        var load = function tTV_loadHandler() {
+            self.onLoad();
+        };
+        window.addEventListener("load", load, true);
+        var unload = function tTV_unloadHandler() {
+            self.onUnload();
+        };
+        window.addEventListener("unload", unload, true);
+
+        // we want to make several attributes persistent, but this requires
+        // that the relevant elements have an id attribute. that's why we
+        // iterate through the columns (these are the elements that need
+        // to be made persistent) and create identifiers. the identifier gets
+        // contructed from the name of the binding and the name of the column.
+        var treecols = document.getAnonymousNodes(
+            this)[0].getElementsByTagName("treecol");
+        var index = "calendar-task-tree".length;
+        for (var i = 0; i < treecols.length; i++) {
+            treecols[i].setAttribute(
+                "id",
+                this.id+treecols[i].getAttribute(
+                    "anonid").substr(index));
+        }
+      ]]></constructor>
+
+      <method name="onLoad">
+        <body><![CDATA[
+          if (!this.mLoadCount++) {
+
+              // set up the custom tree view
+              var tree = document.getAnonymousElementByAttribute(this, "anonid", "calendar-task-tree");
+              this.mTreeView.tree = tree;
+              tree.view = this.mTreeView;
+          
+              // set up our calendar event observer
+              var composite = getCompositeCalendar();
+              composite.addObserver(this.mTaskTreeObserver);
+          }
+        ]]></body>
+      </method>
+
+      <method name="onUnload">
+        <body><![CDATA[
+          if (!--this.mLoadCount) {
+              // remove out calendar event observer
+              var composite = getCompositeCalendar();
+              composite.removeObserver(this.mTaskTreeObserver);
+          }
+        ]]></body>
+      </method>
+
+      <!-- Called by event observers to update the display -->
+      <method name="refresh">
+        <parameter name="aFilter"/>
+        <body><![CDATA[
+          var savedThis = this;
+          var refreshListener = {
+              mTaskArray: [],
+
+              onOperationComplete: function(aCalendar, aStatus, aOperationType, aId, aDateTime) {
+                  savedThis.mTaskArray = this.mTaskArray;
+                  savedThis.onOperationComplete();
+             },
+
+             onGetResult: function(aCalendar, aStatus, aItemType, aDetail, aCount, aItems) {
+                 for (var i=0; i<aCount; i++) {
+                     refreshListener.mTaskArray.push(aItems[i]);
+                 }
+             }
+          };
+
+          var refreshJob = {
+              execute: function() {
+                  var composite = getCompositeCalendar();
+                  var filter = aFilter ||
+                      (composite.ITEM_FILTER_TYPE_TODO|composite.ITEM_FILTER_COMPLETED_ALL);
+                  composite.getItems(filter, 0, null, null, refreshListener);
+              }
+          };
+          this.mRefreshQueue.push(refreshJob);
+          this.popRefreshQueue();
+        ]]></body>
+      </method>
+
+      <method name="onCalendarAdded">
+        <parameter name="aCalendar"/>
+        <parameter name="aFilter"/>
+        <body><![CDATA[
+          var savedThis = this;
+          var refreshListener = {
+              onOperationComplete: function (aCalendar, aStatus, aOperationType, aId, aDateTime) {
+                  savedThis.onOperationComplete();
+             },
+
+             onGetResult: function (aCalendar, aStatus, aItemType, aDetail, aCount, aItems) {
+                 for (var i=0; i<aCount; i++) {
+                     savedThis.mTaskArray.push(aItems[i]);
+                 }
+             }
+          };
+          
+          var refreshJob = {
+              execute: function() {
+                  var filter = aFilter ||
+                      (aCalendar.ITEM_FILTER_TYPE_TODO|aCalendar.ITEM_FILTER_COMPLETED_ALL);
+                  aCalendar.getItems(filter, 0, null, null, refreshListener);
+              }
+          };
+          this.mRefreshQueue.push(refreshJob);
+          this.popRefreshQueue();
+        ]]></body>
+      </method>
+      
+      <method name="onCalendarRemoved">
+        <parameter name="aCalendar"/>
+        <body><![CDATA[
+          if (this.mTaskArray.length > 0) {
+              var index = this.mTaskArray.length - 1;
+              while(index >= 0) {
+                  var item = this.mTaskArray[index];
+                  if (item.calendar == aCalendar) {
+                      this.mTreeView.removeItem(item);  
+                  }
+                  --index;
+              }
+          }
+
+          // we also need to notify potential listeners.
+          var event = document.createEvent('Events');
+          event.initEvent('select', true, false);
+          this.dispatchEvent(event);
+        ]]></body>
+      </method>
+
+      <method name="popRefreshQueue">
+        <body><![CDATA[
+          var pendingRefresh = this.mPendingRefresh;
+          if (pendingRefresh) {
+              if (pendingRefresh instanceof Components.interfaces.calIOperation) {
+                  this.mPendingRefresh = null;
+                  pendingRefresh.cancel(null);
+              } else {
+                  return;
+              }
+          }
+
+          var refreshJob = this.mRefreshQueue.pop();
+          if (!refreshJob) {
+              return;
+          }
+
+          this.mPendingRefresh = true;
+          pendingRefresh = refreshJob.execute();
+          if (pendingRefresh && pendingRefresh.isPending) {
+              this.mPendingRefresh = pendingRefresh;
+          }
+        ]]></body>
+      </method>
+      
+      <method name="onOperationComplete">
+        <body><![CDATA[
+          // signal that the current operation finished.
+          this.mPendingRefresh = null;
+        
+          // immediately start the next job on the queue.
+          this.popRefreshQueue();
+        
+          this.mTreeView.rowCount = this.mTaskArray.length;
+          var treecols = document.getAnonymousNodes(this)[0].getElementsByTagName("treecol");
+          for (var i = 0; i < treecols.length; i++) {
+            if (treecols[i].getAttribute("sortActive") == "true") {
+               this.mTreeView.selectedColumn = treecols[i].getAttribute("anonid");
+               this.mTreeView.sortDirection = treecols[i].getAttribute("sortDirection");
+               this.mTreeView.sortStartedTime = now(); //for null/0 dates
+               this.sortTaskArray();
+               break;
+            }
+          }
+          this.recreateHashTable();
+          
+          var tree = document.getAnonymousElementByAttribute(
+              this, "anonid", "calendar-task-tree");
+          tree.view = this.mTreeView;
+
+          // we also need to notify potential listeners.
+          var event = document.createEvent('Events');
+          event.initEvent('select', true, false);
+          this.dispatchEvent(event);
+        ]]></body>
+      </method>
+      
+      <method name="sortTaskArray">
+        <body><![CDATA[
+          var kStatusOrder = [
+              "NEEDS-ACTION",
+              "IN-PROCESS",
+              "COMPLETED",
+              "CANCELLED" ];
+          function compareString(a, b) {
+              a = nullToEmpty(a);
+              b = nullToEmpty(b);
+              return ((a < b) ? -1 :
+                      (a > b) ?  1 : 0);
+          }
+
+          function nullToEmpty(value) {
+              return value == null? "" : value;
+          }
+
+          function compareNumber(a, b) {
+              // Number converts a date to msecs since 1970, and converts a null to 0.
+              a = Number(a); 
+              b = Number(b);
+              return ((a < b) ? -1 :      // avoid underflow problems of subtraction
+                      (a > b) ?  1 : 0); 
+          }
+
+          var sortStartedTime = this.mTreeView.sortStartedTime;
+          var sortDirection = this.mTreeView.sortDirection;
+          var selectedColumn = this.mTreeView.selectedColumn;
+
+          // Takes two calDateTimes
+          function compareDate(a, b) {
+              if (!a)
+                  a = sortStartedTime;
+              if (!b)
+                  b = sortStartedTime;
+              return a.compare(b);
+          }
+                  
+          function compareItems(a, b) {
+              var modifier = (sortDirection == "descending") ? -1 : 1;
+              switch(selectedColumn) {
+                  case "calendar-task-tree-col-priority":  // 0-9
+                      // No priority set (0) sorts before high priority (1).
+                      return compareNumber(a.priority, b.priority) * modifier;
+                  case "calendar-task-tree-col-title":
+                      return compareString(a.title.toLowerCase(), b.title.toLowerCase()) * modifier;
+                  case "calendar-task-tree-col-startdate":
+                      return compareDate(a.entryDate, b.entryDate) * modifier;
+                  case "calendar-task-tree-col-duedate":
+                      return compareDate(a.dueDate, b.dueDate) * modifier;
+                  case "calendar-task-tree-col-completed": // checkbox if date exists
+                  case "calendar-task-tree-col-completeddate":
+                      return compareDate(a.completedDate, b.completedDate) * modifier;
+                  case "calendar-task-tree-col-percentcomplete":
+                      return compareNumber(a.percentComplete, b.percentComplete) * modifier;
+                  case "calendar-task-tree-col-categories":
+                      return compareString(a.getProperty("CATEGORIES"), b.getProperty("CATEGORIES")) * modifier;
+                  case "calendar-task-tree-col-location":
+                      return compareString(a.getProperty("LOCATION"), b.getProperty("LOCATION")) * modifier;
+                  case "calendar-task-tree-col-status":
+                      return compareNumber(kStatusOrder.indexOf(a.status), kStatusOrder.indexOf(b.status)) * modifier;
+                  case "calendar-task-tree-col-calendarname":
+                      return compareString(a.calendar.name, b.calendar.name) * modifier;
+                  default:
+                      return 0;
+              }
+          }
+        
+          // use above local defined functor
+          this.mTaskArray.sort(compareItems);
+          
+          var tree = document.getAnonymousElementByAttribute(this, "anonid", "calendar-task-tree");
+          tree.boxObject.invalidateRange(0, this.mTaskArray.length - 1);
+        ]]></body>
+      </method>
+      
+      <method name="recreateHashTable">
+        <body><![CDATA[
+          this.mHash2Index = {};
+          for (var i=0; i<this.mTaskArray.length; i++) {
+              var item = this.mTaskArray[i];
+              this.mHash2Index[item.hashId] = i;
+          }
+        ]]></body>
+      </method>
+      
+    </implementation>
+
+    <handlers>
+      <handler event="select"><![CDATA[
+        this.mTreeView.onSelect(event);
+      ]]></handler>
+      <handler event="dblclick" button="0"><![CDATA[
+        this.mTreeView.onDoubleClick(event);
+      ]]></handler>
+      <handler event="keypress"><![CDATA[
+        this.mTreeView.onKeyPress(event);
+      ]]></handler>
+      <handler event="mousedown"><![CDATA[
+        this.mTreeView.onMouseDown(event);
+      ]]></handler>
+    </handlers>
+
+  </binding>
+
+</bindings>

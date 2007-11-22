@@ -335,7 +335,7 @@ function updateTodayPaneDisplay() {
   try { id = deck.selectedPanel.id } catch (e) { }
 
   var todaysplitter = document.getElementById("today-splitter");
-  if (id == "calendar-view-box") {
+  if (id == "calendar-view-box" || id == "calendar-task-box") {
     // we collapse the todaypane but don't not affect the 
     // attribute "collapsedinMailMode". Therefor this function is only to be used
     // when switching to calendar mode

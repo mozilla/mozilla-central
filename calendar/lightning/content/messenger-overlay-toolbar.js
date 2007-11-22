@@ -87,44 +87,48 @@ var toMessengerWindow = function ltnToMessengerWindow() {
  */
 
 function ltnSwitch2Mail() {
-    if (gCurrentMode != 'mail') {
+  if (gCurrentMode != 'mail') {
 
-        var switch2mail = document.getElementById("switch2mail");
-        var switch2calendar = document.getElementById("switch2calendar");
-        switch2mail.setAttribute("checked", "true");
-        switch2calendar.removeAttribute("checked");
+    var switch2mail = document.getElementById("switch2mail");
+    var switch2calendar = document.getElementById("switch2calendar");
+    var switch2task = document.getElementById("switch2task");
+    switch2mail.setAttribute("checked", "true");
+    switch2calendar.removeAttribute("checked");
+    switch2task.removeAttribute("checked");
 
-        gCurrentMode = 'mail';
+    gCurrentMode = 'mail';
 
-        var mailToolbar = getMailBar();
-        var calendarToolbar = document.getElementById("calendar-toolbar");
-        mailToolbar.removeAttribute("collapsed");
-        calendarToolbar.setAttribute("collapsed", "true");
+    var mailToolbar = getMailBar();
+    var calendarToolbar = document.getElementById("calendar-toolbar");
+    mailToolbar.removeAttribute("collapsed");
+    calendarToolbar.setAttribute("collapsed", "true");
 
-        // the content panel should display the folder tree
-        var contentDeck = document.getElementById("contentPanel");
-        contentDeck.selectedPanel = document.getElementById("folderPaneBox");
+    // the content panel should display the folder tree
+    var contentDeck = document.getElementById("contentPanel");
+    contentDeck.selectedPanel = document.getElementById("folderPaneBox");
 
-        // display the mail panel on the display deck
-        var viewBox = document.getElementById("calendar-view-box");
-        collapseElement(viewBox);
+    // display the mail panel on the display deck
+    var viewBox = document.getElementById("calendar-view-box");
+    collapseElement(viewBox);
 
-        // tell thunderbird that it needs to refresh the mail list.
-        // basically, we fake a selection change by directly calling
-        // the appropriate handler while clearing out some internal
-        // variables in order to force a refresh of the mail views.
-        gMsgFolderSelected = null;
-        msgWindow.openFolder = null;
-        ShowThreadPane();
-        FolderPaneSelectionChange();
+    // tell thunderbird that it needs to refresh the mail list.
+    // basically, we fake a selection change by directly calling
+    // the appropriate handler while clearing out some internal
+    // variables in order to force a refresh of the mail views.
+    gMsgFolderSelected = null;
+    msgWindow.openFolder = null;
+    ShowThreadPane();
+    FolderPaneSelectionChange();
 
-        document.commandDispatcher.updateCommands('mail-toolbar');
-        document.commandDispatcher.updateCommands('calendar_commands');
+    document.commandDispatcher.updateCommands('mail-toolbar');
+    document.commandDispatcher.updateCommands('calendar_commands');
 
-        // Disable the rotate view menuitem
-        document.getElementById("calendar_toggle_orientation_command")
-                .setAttribute("disabled", "true");
-    }
+    // Disable the rotate view menuitem
+    document.getElementById("calendar_toggle_orientation_command")
+            .setAttribute("disabled", "true");
+            
+    window.setCursor("auto");
+  }
 }
 
 /**
@@ -136,8 +140,10 @@ function ltnSwitch2Calendar() {
 
     var switch2mail = document.getElementById("switch2mail");
     var switch2calendar = document.getElementById("switch2calendar");
-    switch2calendar.setAttribute("checked", "true");
+    var switch2task = document.getElementById("switch2task");
     switch2mail.removeAttribute("checked");
+    switch2calendar.setAttribute("checked", "true");
+    switch2task.removeAttribute("checked");
 
     gCurrentMode = 'calendar';
 
@@ -161,6 +167,8 @@ function ltnSwitch2Calendar() {
 
     document.commandDispatcher.updateCommands('mail-toolbar');
     document.commandDispatcher.updateCommands('calendar_commands');
+
+    window.setCursor("auto");
   }
 }
 
@@ -171,10 +179,34 @@ function ltnSwitch2Calendar() {
 function ltnSwitch2Task() {
   if (gCurrentMode != 'task') {
 
+    var switch2mail = document.getElementById("switch2mail");
+    var switch2calendar = document.getElementById("switch2calendar");
+    var switch2task = document.getElementById("switch2task");
+    switch2mail.removeAttribute("checked");
+    switch2calendar.removeAttribute("checked");
+    switch2task.setAttribute("checked", "true");
+
+    gCurrentMode = 'task';
+
+    var mailToolbar = getMailBar();
+    var calendarToolbar = document.getElementById("calendar-toolbar");
+    mailToolbar.setAttribute("collapsed", "true");
+    calendarToolbar.removeAttribute("collapsed");
+
+    // the content deck should display the calendar panel
+    var contentDeck = document.getElementById("contentPanel");
+    contentDeck.selectedPanel = document.getElementById("ltnSidebar");
+
+    // display the task panel on the display deck
+    var taskBox = document.getElementById("calendar-task-box");
+    uncollapseElement(taskBox);
+    var deck = document.getElementById("displayDeck");
+    deck.selectedPanel = taskBox;
+
     document.commandDispatcher.updateCommands('mail-toolbar');
     document.commandDispatcher.updateCommands('calendar_commands');
-  
-    gCurrentMode = 'task';
+
+    window.setCursor("auto");
   }
 }
 

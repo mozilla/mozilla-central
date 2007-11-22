@@ -534,16 +534,18 @@ function LtnObserveDisplayDeckChange(event) {
     try { id = deck.selectedPanel.id } catch (e) { }
 
     // Switch back to mail mode in case we find that this
-    // notification has been fired but we're still in calendar mode.
-    if (id != "calendar-view-box" && gCurrentMode != 'mail') {
-        ltnSwitch2Mail();
+    // notification has been fired but we're still in calendar or task mode.
+    // Specifically, switch back if we're *not* in mail mode but the notification
+    // did *not* come from either the "calendar-view-box" or the "calendar-task-box".
+    if (gCurrentMode != 'mail') {
+        if (id != "calendar-view-box" && id != "calendar-task-box") {
+            ltnSwitch2Mail();
+        }
     }
 }
 
 function ltnFinish() {
     getCompositeCalendar().removeObserver(agendaTreeView.calendarObserver);
-
-    finishCalendarToDoUnifinder();
 
     unloadCalendarManager();
 }

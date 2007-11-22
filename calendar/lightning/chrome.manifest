@@ -14,6 +14,7 @@ overlay chrome://messenger/content/mailWindowOverlay.xul chrome://lightning/cont
 overlay chrome://global/content/customizeToolbar.xul chrome://lightning/content/customize-toolbar.xul
 overlay chrome://lightning/content/messenger-overlay-sidebar.xul chrome://calendar/content/calendar-unifinder.xul
 overlay chrome://lightning/content/messenger-overlay-sidebar.xul chrome://calendar/content/calendar-unifinder-todo.xul
+overlay chrome://lightning/content/messenger-overlay-sidebar.xul chrome://calendar/content/calendar-task-view.xul
 overlay chrome://lightning/content/lightning-standalone.xul chrome://lightning/content/messenger-overlay-sidebar.xul
 overlay chrome://global/content/customizeToolbar.xul chrome://lightning/content/toolkit-overlay-custombar.xul
 skin    lightning classic/1.0 jar:chrome/lightning.jar!/skin/classic/lightning/

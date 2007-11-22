@@ -173,6 +173,8 @@
 <!ENTITY calendar.menu.numberofweeks.5      "5 Weeks" >
 <!ENTITY calendar.menu.numberofweeks.6      "6 Weeks" >
 
+<!ENTITY calendar.task.details.title.label   "Title:">
+
 <!-- Statusbar -->
 <!ENTITY statusText.label            "Document: Done">
 

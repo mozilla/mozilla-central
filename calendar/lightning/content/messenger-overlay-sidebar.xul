@@ -55,7 +55,7 @@
 
 <?xml-stylesheet href="chrome://calendar/content/calendar-view-bindings.css" type="text/css"?>
 <?xml-stylesheet href="chrome://calendar/skin/calendar-views.css" type="text/css"?>
-<?xml-stylesheet href="chrome://calendar/content/calendar-decorated-views.css" type="text/css"?>
+<?xml-stylesheet href="chrome://calendar/content/calendar-bindings.css" type="text/css"?>
 <?xml-stylesheet href="chrome://calendar/content/datetimepickers/minimonth.css" type="text/css"?>
 <?xml-stylesheet href="chrome://calendar/content/datetimepickers/datetimepickers.css" type="text/css"?>
 
@@ -302,20 +302,16 @@
                        id="calendar-switch-button"
                        label="&lightning.toolbar.calendar.label;"
                        command="switch2calendar"/>
-
-<!-- XXX Disable task-switch-button until task view is implemented
         <toolbarbutton class="toolbarbutton-2"
                        mode="mode" 
                        id="task-switch-button"
                        label="&lightning.toolbar.task.label;"
                        command="switch2task"/>
--->
-
       </toolbarpalette>
       <toolbar id="mode-toolbar"
                class="chromeclass-toolbar"
                customizable="true"
-               defaultset="mail-switch-button,calendar-switch-button,spring"
+               defaultset="mail-switch-button,calendar-switch-button,task-switch-button,spring"
                context="mode-toolbar-context-menu"/>
       <toolbarset id="custom-toolbars"/>
     </toolbox>

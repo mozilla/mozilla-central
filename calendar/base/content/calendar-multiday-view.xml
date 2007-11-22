@@ -3251,6 +3251,9 @@
 
           // Note that these may be dates or datetimes
           var startDate = aItem.startDate || aItem.entryDate;
+          if (!startDate) {
+              return columns;
+          }
           var targetDate = startDate.getInTimezone(tz);
           var endDate = aItem.endDate || aItem.dueDate || startDate;
           var finishDate = endDate.getInTimezone(tz);

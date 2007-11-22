@@ -211,8 +211,6 @@ function calendarFinish()
 
    finishCalendarUnifinder();
    
-   finishCalendarToDoUnifinder();
-
    unloadCalendarManager();
 }
 

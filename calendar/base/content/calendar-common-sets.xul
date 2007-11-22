@@ -35,7 +35,12 @@
    -
    - ***** END LICENSE BLOCK ***** -->
 
-<!DOCTYPE overlay SYSTEM "chrome://calendar/locale/calendar.dtd">
+<!DOCTYPE overlay [
+  <!ENTITY % calendarDTD SYSTEM "chrome://calendar/locale/calendar.dtd" >
+  <!ENTITY % eventDialogDTD SYSTEM "chrome://calendar/locale/calendar-event-dialog.dtd">
+  %calendarDTD;
+  %eventDialogDTD;
+]>
 
 <overlay id="calendar-common-sets-overlay"
          xmlns="http://www.mozilla.org/keymaster/gatekeeper/there.is.only.xul">
@@ -81,4 +86,84 @@
 
     <command id="calendar_go_to_today_command" oncommand="goToDate(now())"/>
   </commandset>
+
+  <popupset id="calendar-popupset">
+    
+    <!-- TASK ITEM CONTEXT MENU -->
+    <popup id="taskitem-context-menu" onpopupshowing="changeContextMenuForTask(event);">
+      <menuitem label="&calendar.context.newtodo.label;"
+                accesskey="&calendar.context.newtodo.accesskey;"
+                id="task-context-menu-new"
+                observes="calendar_new_todo_command"/>
+      <menuitem id="task-context-menu-modify"
+                label="&calendar.context.modifytask.label;"
+                accesskey="&calendar.context.modifytask.accesskey;"
+                oncommand="modifyTaskFromContext()"/>
+      <menuitem label="&calendar.context.deletetask.label;"
+                accesskey="&calendar.context.deletetask.accesskey;"
+                id="task-context-menu-delete"
+                observes="calendar_delete_todo_command"/>
+      <menu label="&calendar.context.progress.label;"
+            accesskey="&calendar.context.progress.accesskey;"
+            id="task-context-menu-progress"
+            observes="is_editable">
+        <menupopup>
+          <menuitem type="checkbox"
+                    id="percent-0-menuitem"
+                    label="&progress.level.0;"
+                    accesskey="&progress.level.0.accesskey;"
+                    oncommand="contextChangeProgress(event, 0);"/>
+          <menuitem type="checkbox"
+                    id="percent-25-menuitem"
+                    label="&progress.level.25;"
+                    accesskey="&progress.level.25.accesskey;"
+                    oncommand="contextChangeProgress(event, 25);"/>
+          <menuitem type="checkbox"
+                    id="percent-50-menuitem"
+                    label="&progress.level.50;"
+                    accesskey="&progress.level.50.accesskey;"
+                    oncommand="contextChangeProgress(event, 50);"/>
+          <menuitem type="checkbox"
+                    id="percent-75-menuitem"
+                    label="&progress.level.75;"
+                    accesskey="&progress.level.75.accesskey;"
+                    oncommand="contextChangeProgress(event, 75);"/>
+          <menuitem type="checkbox"
+                    id="percent-100-menuitem"
+                    label="&progress.level.100;"
+                    accesskey="&progress.level.100.accesskey;"
+                    oncommand="contextChangeProgress(event, 100);"/>
+        </menupopup>
+      </menu>
+      <menu label="&calendar.context.priority.label;"
+            accesskey="&calendar.context.priority.accesskey;"
+            id="task-context-menu-priority"
+            observes="is_editable">
+        <menupopup>
+          <menuitem type="checkbox"
+                    id="priority-0-menuitem"
+                    label="&priority.level.none;"
+                    accesskey="&priority.level.none.accesskey;"
+                    oncommand="contextChangePriority(event, 0);"/>
+          <menuitem type="checkbox"
+                    id="priority-9-menuitem"
+                    label="&priority.level.low;"
+                    accesskey="&priority.level.low.accesskey;"
+                    oncommand="contextChangePriority(event, 9);"/>
+          <menuitem type="checkbox"
+                    id="priority-5-menuitem"
+                    label="&priority.level.medium;"
+                    accesskey="&priority.level.medium.accesskey;"
+                    oncommand="contextChangePriority(event, 5);"/>
+          <menuitem type="checkbox"
+                    id="priority-1-menuitem"
+                    label="&priority.level.high;"
+                    accesskey="&priority.level.high.accesskey;"
+                    oncommand="contextChangePriority(event, 1);"/>
+        </menupopup>
+      </menu>
+    </popup>
+  </popupset>
+  
 </overlay>
+
