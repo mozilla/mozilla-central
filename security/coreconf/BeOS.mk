@@ -64,7 +64,7 @@ ifdef BUILD_OPT
 	OPTIMIZER	= -O2
 endif
 
-OS_CFLAGS		= $(DSO_CFLAGS) $(OS_REL_CFLAGS) -Wall -pipe
+OS_CFLAGS		= $(DSO_CFLAGS) $(OS_REL_CFLAGS) -Wall -Wno-switch -pipe
 OS_LIBS			= -lbe
 
 DEFINES			+= -DBEOS
