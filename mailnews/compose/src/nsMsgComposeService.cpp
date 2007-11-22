@@ -1557,12 +1557,9 @@ nsMsgComposeService::Handle(nsICommandLine* aCmdLine)
     nsCOMPtr<nsIWindowWatcher> wwatch (do_GetService(NS_WINDOWWATCHER_CONTRACTID));
     NS_ENSURE_TRUE(wwatch, NS_ERROR_FAILURE);
 
-    nsCOMPtr<nsISupportsString> arg;
-    if (!uristr.IsEmpty()) {
-      arg = do_CreateInstance(NS_SUPPORTS_STRING_CONTRACTID);
-      if (arg)
-        arg->SetData(uristr);
-    }
+    nsCOMPtr<nsISupportsString> arg(do_CreateInstance(NS_SUPPORTS_STRING_CONTRACTID));
+    if (arg)
+      arg->SetData(uristr);
 
     nsCOMPtr<nsIDOMWindow> opened;
     wwatch->OpenWindow(nsnull, DEFAULT_CHROME, "_blank",
