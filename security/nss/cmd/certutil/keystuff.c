@@ -83,7 +83,7 @@ static int
 UpdateRNG(void)
 {
     char           randbuf[RAND_BUF_SIZE];
-    int            fd, i, count;
+    int            fd,  count;
     int            c;
     int            rv		= 0;
 #ifdef XP_UNIX

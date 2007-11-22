@@ -697,20 +697,6 @@ ValidateCert(CERTCertDBHandle *handle, char *name, char *date,
     return (rv);
 }
 
-
-static SECStatus
-printKeyCB(SECKEYPublicKey *key, SECItem *data, void *arg)
-{
-    if (key->keyType == rsaKey) {
-	fprintf(stdout, "RSA Public-Key:\n");
-	SECU_PrintInteger(stdout, &key->u.rsa.modulus, "modulus", 1);
-    } else {
-	fprintf(stdout, "DSA Public-Key:\n");
-	SECU_PrintInteger(stdout, &key->u.dsa.publicValue, "publicValue", 1);
-    }
-    return SECSuccess;
-}
-
 /* callback for listing certs through pkcs11 */
 static SECStatus
 secu_PrintKey(FILE *out, int count, SECKEYPrivateKey *key)
