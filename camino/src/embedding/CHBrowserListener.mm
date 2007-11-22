@@ -971,11 +971,23 @@ CHBrowserListener::HandleFeedLink(nsIDOMElement* inElement)
   if (NS_FAILED(rv))
     return;
   
-  // set the scheme to feed:// so sending to outside application is one only one call
-  feedURI->SetScheme(NS_LITERAL_CSTRING("feed"));
-  
+  // set the scheme to feed: so sending to an outside application is only one call
+  PRBool isHttp;
   nsCAutoString feedFullURI;
-  feedURI->GetAsciiSpec(feedFullURI);
+
+  rv = feedURI->SchemeIs("http", &isHttp);
+  if (isHttp)
+  {
+    // for http:, we want feed://example.com
+    feedURI->SetScheme(NS_LITERAL_CSTRING("feed"));
+    feedURI->GetAsciiSpec(feedFullURI);
+  }
+  else
+  {
+    // for https:, we want feed:https://example.com
+    feedURI->GetAsciiSpec(feedFullURI);
+    feedFullURI.Insert(NS_LITERAL_CSTRING("feed:"), 0);
+  }
   
   // get the two specs, the feed's uri and the feed's title
   NSString* feedSpec = [NSString stringWith_nsACString:feedFullURI];
