@@ -348,4 +348,10 @@ extensions/talkback@mozilla.org/components/talkback.so
 #endif
 #
 #endif
-#
+
+# bug 404085 (Consolidate provider methods into a default calendar
+# implementation)
+components/calDavCalendar.js
+components/calICSCalendar.js
+components/calMemoryCalendar.js
+components/calStorageCalendar.js
