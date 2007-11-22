@@ -49,7 +49,7 @@ RANLIB     = ranlib
 CPU_ARCH   = sparc
 
 # Purify doesn't like -MDupdate
-NOMD_OS_CFLAGS += -Wall -Wno-format -DSUNOS4
+NOMD_OS_CFLAGS += -Wall -Wno-format -Wno-switch -DSUNOS4
 OS_CFLAGS      += $(DSO_CFLAGS) $(NOMD_OS_CFLAGS) -MDupdate $(DEPENDENCIES)
 MKSHLIB         = $(LD)
 MKSHLIB        += $(DSO_LDOPTS)

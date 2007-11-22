@@ -90,7 +90,7 @@ ifdef NS_USE_GCC
 		CXX  = g++
 		# always use -fPIC - some makefiles are still broken and don't distinguish
 		# situation when they build shared and static libraries
-		CFLAGS  += -fPIC -Wall $(GCC_FLAGS_EXTRA)
+		CFLAGS  += -fPIC -Wall -Wno-switch $(GCC_FLAGS_EXTRA)
 #		OS_LIBS += -L/usr/local/lib -lstdc++ -lg++ -lgcc
 	endif
 endif

@@ -48,7 +48,7 @@ else
 CPU_ARCH		= x86
 endif
 
-OS_CFLAGS		= $(DSO_CFLAGS) -ansi -Wall -DFREEBSD -DHAVE_STRERROR -DHAVE_BSD_FLOCK
+OS_CFLAGS		= $(DSO_CFLAGS) -ansi -Wall -Wno-switch -DFREEBSD -DHAVE_STRERROR -DHAVE_BSD_FLOCK
 
 DSO_CFLAGS		= -fPIC
 DSO_LDOPTS		= -shared -Wl,-soname -Wl,$(notdir $@)

@@ -97,7 +97,7 @@ PROCESS_MAP_FILE = \
 
 endif   #NO_SHARED_LIB
 
-OS_CFLAGS          = -Wall -W -Wno-unused -Wpointer-arith -Wcast-align -Zomf -DDEBUG -DTRACING -g
+OS_CFLAGS          = -Wall -W -Wno-unused -Wpointer-arith -Wcast-align -Wno-switch -Zomf -DDEBUG -DTRACING -g
 
 ifdef BUILD_OPT
 OPTIMIZER		= -O2 -s

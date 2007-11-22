@@ -41,7 +41,7 @@ DEFAULT_COMPILER = cc
 
 ifdef NS_USE_GCC
 	CC		= gcc
-	OS_CFLAGS	+= -Wall -Wno-format
+	OS_CFLAGS	+= -Wall -Wno-format -Wno-switch
 	CCC		= g++
 	CCC		+= -Wall -Wno-format
 	ASFLAGS		+= -x assembler-with-cpp
