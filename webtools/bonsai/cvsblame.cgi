@@ -287,9 +287,8 @@ $graph_cell
 </TABLE>
 );
 
-my $open_table_tag =
-    '<TABLE BORDER=0 CELLPADDING=0 CELLSPACING=0 WIDTH="100%">';
-print "$open_table_tag<TR><TD colspan=3><PRE>";
+# Netscape 4 always gives <pre> not in a table cell margins, so use divs...
+print '<DIV CLASS="code">';
 
 # Print each line of the revision, preceded by its annotation.
 #
@@ -304,15 +303,13 @@ my $line = 0;
 my %usedlog;
 $usedlog{$revision} = 1;
 my $old_revision = 0;
-my $row_color = '';
-my $lines_in_table = 0;
+my $row_color = ' CLASS="code"';
 my $inMark = 0;
 my $rev_count = 0;
 foreach $revision (@::revision_map)
 {
     my $text = $text[$line++];
     $usedlog{$revision} = 1;
-    $lines_in_table++;
 
     if ($opt_html_comments) {
         # Don't escape HTML in C/C++ comments
@@ -330,27 +327,21 @@ foreach $revision (@::revision_map)
     # Highlight lines
     my $mark_cmd;
     if (defined($mark_cmd = $mark_line{$line}) and $mark_cmd ne 'end') {
-	$output .= '</TD></TR><TR><TD BGCOLOR=LIGHTGREEN WIDTH="100%"><PRE>';
+	# Netscape 4 doesn't support space-separated multiple classes.
+	# What a crock.
+	$output .= '</DIV><DIV CLASS="markedcode">';
 	$inMark = 1;
     }
 
     if ($old_revision ne $revision and $line != 1) {
-      if ($row_color eq '') {
-	$row_color=' BGCOLOR="#e7e7e7"';
+      if ($row_color eq ' CLASS="code"') {
+	$row_color=' CLASS="graycode"';
       } else {
-	$row_color='';
+	$row_color=' CLASS="code"';
       }
       if (not $inMark) {
-	if ($lines_in_table > 100) {
-	  $output .= "</TD></TR></TABLE>$open_table_tag<TR><TD colspan=3$row_color><PRE>";
-	  $lines_in_table=0;
-	} else {
-	  $output .= "</TD></TR><TR><TD colspan=3$row_color><PRE>";
-	}
+        $output .= "</DIV><DIV$row_color>";
       }
-    } elsif ($lines_in_table > 200 and not $inMark) {
-      $output .= "</TD></TR></TABLE>$open_table_tag<TR><TD colspan=3$row_color><PRE>";
-      $lines_in_table=0;
     }
 
     $output .= "<A NAME=$line></A>";
@@ -388,13 +379,13 @@ foreach $revision (@::revision_map)
     # Close the highlighted section
     if (defined $mark_cmd and $mark_cmd ne 'begin') {
         chop($output);
-        $output .= "</TD></TR><TR><TD colspan=3$row_color><PRE>";
+        $output .= "</DIV><DIV$row_color>";
 	$inMark = 0;
     }
 
     print $output;
 }
-print "</TD></TR></TABLE>\n";
+print "</DIV>\n";
 
 if ($::use_layers || $::use_dom) {
   # Write out cvs log messages as a JS variables
@@ -577,6 +568,17 @@ a:active {
 
 pre {
     margin: 0;
+}
+
+.graycode {
+    background-color: #e7e7e7;
+}
+.markedcode {
+    background-color: lightgreen;
+}
+.graycode, .markedcode, .code {
+    white-space: pre;
+    font-family: monospace;
 }
 </style>
 </head>
