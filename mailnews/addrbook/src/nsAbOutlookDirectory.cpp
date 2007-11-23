@@ -59,6 +59,8 @@
 #include "nsIPrefService.h"
 #include "nsIPrefBranch.h"
 #include "nsCRTGlue.h"
+#include "nsIArray.h"
+#include "nsArrayUtils.h"
 
 #ifdef PR_LOGGING
 static PRLogModuleInfo* gAbOutlookDirectoryLog
@@ -794,14 +796,14 @@ static nsresult BuildRestriction(nsIAbBooleanExpression *aLevel,
     nsresult retCode = NS_OK ;
     nsAbBooleanOperationType operationType = 0 ;
     PRUint32 nbExpressions = 0 ;
-    nsCOMPtr<nsISupportsArray> expressions ;
-    
-    retCode = aLevel->GetOperation(&operationType) ;
-    NS_ENSURE_SUCCESS(retCode, retCode) ;
-    retCode = aLevel->GetExpressions(getter_AddRefs(expressions)) ;
-    NS_ENSURE_SUCCESS(retCode, retCode) ;
-    retCode = expressions->Count(&nbExpressions) ;
-    NS_ENSURE_SUCCESS(retCode, retCode) ;
+    nsCOMPtr<nsIArray> expressions;
+
+    retCode = aLevel->GetOperation(&operationType);
+    NS_ENSURE_SUCCESS(retCode, retCode);
+    retCode = aLevel->GetExpressions(getter_AddRefs(expressions));
+    NS_ENSURE_SUCCESS(retCode, retCode);
+    retCode = expressions->GetLength(&nbExpressions);
+    NS_ENSURE_SUCCESS(retCode, retCode);
     if (nbExpressions == 0) { 
         PRINTF(("Error, no expressions.\n")) ;
         return NS_OK ;
@@ -814,36 +816,41 @@ static nsresult BuildRestriction(nsIAbBooleanExpression *aLevel,
     PRUint32 realNbExpressions = 0 ;
     PRBool skipItem = PR_FALSE ;
     PRUint32 i = 0 ;
-    nsCOMPtr<nsISupports> element ;
 
-    for (i = 0 ; i < nbExpressions ; ++ i) {
-        retCode = expressions->GetElementAt(i, getter_AddRefs(element)) ;
+    nsCOMPtr<nsIAbBooleanConditionString> condition;
+    nsCOMPtr<nsIAbBooleanExpression> subExpression;
+
+    for (i = 0; i < nbExpressions; ++i) {
+      condition = do_QueryElementAt(expressions, i, &retCode);
+
+      if (NS_SUCCEEDED(retCode)) {
+        retCode = BuildRestriction(condition, *restrictionArray, skipItem);
         if (NS_SUCCEEDED(retCode)) {
-            nsCOMPtr<nsIAbBooleanConditionString> condition (do_QueryInterface(element, &retCode)) ;
-            
-            if (NS_SUCCEEDED(retCode)) {
-                retCode = BuildRestriction(condition, *restrictionArray, skipItem) ;
-                if (NS_SUCCEEDED(retCode)) {
-                    if (!skipItem) { ++ restrictionArray ; ++ realNbExpressions ; }
-                }
-                else { PRINTF(("Cannot build restriction for item %d %08x.\n", i, retCode)) ; }
-            }
-            else { 
-                nsCOMPtr<nsIAbBooleanExpression> subExpression (do_QueryInterface(element, &retCode)) ;
-
-                if (NS_SUCCEEDED(retCode)) {
-                    retCode = BuildRestriction(subExpression, *restrictionArray) ;
-                    if (NS_SUCCEEDED(retCode)) {
-                        if (restrictionArray->rt != RES_COMMENT) {
-                            ++ restrictionArray ; ++ realNbExpressions ; 
-                        }
-                    }
-                }
-                else { PRINTF(("Cannot get interface for item %d %08x.\n", i, retCode)) ; }
-            }
+          if (!skipItem) {
+            ++restrictionArray;
+            ++realNbExpressions;
+          }
         }
-        else { PRINTF(("Cannot get item %d %08x.\n", i, retCode)) ; }
+        else
+          PRINTF(("Cannot build restriction for item %d %08x.\n", i, retCode));
+      }
+      else { 
+        subExpression = do_QueryElementAt(expressions, i, &retCode);
+
+        if (NS_SUCCEEDED(retCode)) {
+          retCode = BuildRestriction(subExpression, *restrictionArray);
+          if (NS_SUCCEEDED(retCode)) {
+            if (restrictionArray->rt != RES_COMMENT) {
+              ++restrictionArray;
+              ++realNbExpressions;
+            }
+          }
+        }
+        else
+          PRINTF(("Cannot get interface for item %d %08x.\n", i, retCode));
+      }
     }
+
     restrictionArray -= realNbExpressions ;
     if (realNbExpressions > 1) {
         if (operationType == nsIAbBooleanOperationTypes::OR) {

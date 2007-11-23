@@ -42,11 +42,11 @@
 #include "nsServiceManagerUtils.h"
 #include "nsCOMPtr.h"
 #include "nsStringGlue.h"
-#include "nsISupportsArray.h"
 #include "nsITextToSubURI.h"
 #include "nsAbBooleanExpression.h"
 #include "nsAbBaseCID.h"
 #include "plstr.h"
+#include "nsIMutableArray.h"
 
 nsresult nsAbQueryStringToExpression::Convert (
     const char* queryString,
@@ -146,9 +146,10 @@ nsresult nsAbQueryStringToExpression::ParseExpressions (
     nsIAbBooleanExpression* expression)
 {
     nsresult rv;
-
-    nsCOMPtr<nsISupportsArray> expressions;
-    NS_NewISupportsArray(getter_AddRefs(expressions));
+    nsCOMPtr<nsIMutableArray> expressions(do_CreateInstance(NS_ARRAY_CONTRACTID,
+                                                            &rv));
+    if (NS_FAILED(rv))
+        return NS_ERROR_OUT_OF_MEMORY;
 
     // Case: ")(*)(*)....(*))"
     // printf ("Case: )(*)(*)....(*)): %s\n", *index);
@@ -158,7 +159,7 @@ nsresult nsAbQueryStringToExpression::ParseExpressions (
         rv = ParseExpression (index, getter_AddRefs (childExpression));
         NS_ENSURE_SUCCESS(rv, rv);
 
-        expressions->AppendElement (childExpression);
+        expressions->AppendElement(childExpression, PR_FALSE);
     }
 
     if (**index == 0)

@@ -42,6 +42,7 @@
 #include "nsIAbBooleanExpression.h"
 #include "nsCOMPtr.h"
 #include "nsStringGlue.h"
+#include "nsIArray.h"
 
 class nsAbBooleanConditionString : public nsIAbBooleanConditionString
 {
@@ -69,7 +70,7 @@ public:
 
 protected:
     nsAbBooleanOperationType mOperation;
-    nsCOMPtr<nsISupportsArray> mExpressions;
+    nsCOMPtr<nsIArray> mExpressions;
 };
 
 #endif

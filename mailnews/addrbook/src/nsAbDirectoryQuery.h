@@ -44,7 +44,7 @@
 #include "nsIAbDirectory.h"
 #include "nsCOMPtr.h"
 #include "nsStringGlue.h"
-#include "nsVoidArray.h"
+#include "nsIArray.h"
 
 class nsAbDirectoryQuerySimpleBooleanExpression : public nsIAbBooleanExpression
 {
@@ -56,7 +56,7 @@ public:
     virtual ~nsAbDirectoryQuerySimpleBooleanExpression();
 
 public:
-    nsCOMPtr<nsISupportsArray> mExpressions;
+    nsCOMPtr<nsIArray> mExpressions;
     nsAbBooleanOperationType mOperation;
 };
 

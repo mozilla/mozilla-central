@@ -49,6 +49,8 @@
 #include "nsIAddrBookSession.h"
 #include "nsIRDFService.h"
 #include "nsServiceManagerUtils.h"
+#include "nsIArray.h"
+#include "nsArrayUtils.h"
 
 #include <AddressBook/AddressBook.h>
 #if (MAC_OS_X_VERSION_MAX_ALLOWED < MAC_OS_X_VERSION_10_3)
@@ -362,7 +364,7 @@ BuildSearchElements(nsIAbBooleanExpression *aExpression,
 {
   aCanHandle = PR_TRUE;
   
-  nsCOMPtr<nsISupportsArray> expressions;
+  nsCOMPtr<nsIArray> expressions;
   nsresult rv = aExpression->GetExpressions(getter_AddRefs(expressions));
   NS_ENSURE_SUCCESS(rv, rv);
   
@@ -371,7 +373,7 @@ BuildSearchElements(nsIAbBooleanExpression *aExpression,
   NS_ENSURE_SUCCESS(rv, rv);
   
   PRUint32 count;
-  rv = expressions->Count(&count);
+  rv = expressions->GetLength(&count);
   NS_ENSURE_SUCCESS(rv, rv);
   
   NS_ASSERTION(count > 1 && operation != nsIAbBooleanOperationTypes::NOT,

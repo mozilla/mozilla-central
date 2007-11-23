@@ -40,7 +40,6 @@
 
 #include "nscore.h"
 #include "nsCOMPtr.h"
-#include "nsISupportsArray.h"
 #include "nsAddbookProtocolHandler.h"
 #include "nsIProtocolHandler.h"
 #include "nsIAddbookUrl.h"

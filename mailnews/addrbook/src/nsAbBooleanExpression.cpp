@@ -37,6 +37,7 @@
  * ***** END LICENSE BLOCK ***** */
 
 #include "nsAbBooleanExpression.h"
+#include "nsComponentManagerUtils.h"
 
 NS_IMPL_THREADSAFE_ISUPPORTS1(nsAbBooleanConditionString, nsIAbBooleanConditionString)
 
@@ -135,27 +136,32 @@ NS_IMETHODIMP nsAbBooleanExpression::SetOperation(nsAbBooleanOperationType aOper
     return NS_OK;
 }
 
-/* attribute nsISupportsArray expressions; */
-NS_IMETHODIMP nsAbBooleanExpression::GetExpressions(nsISupportsArray** aExpressions)
+/* attribute nsIArray expressions; */
+NS_IMETHODIMP nsAbBooleanExpression::GetExpressions(nsIArray **aExpressions)
 {
-    if (!aExpressions)
-        return NS_ERROR_NULL_POINTER;
+  if (!aExpressions)
+    return NS_ERROR_NULL_POINTER;
+
+  if (!mExpressions)
+  {
+    mExpressions = do_CreateInstance(NS_ARRAY_CONTRACTID);
 
     if (!mExpressions)
-        NS_NewISupportsArray(getter_AddRefs(mExpressions));
+      return NS_ERROR_OUT_OF_MEMORY;
+  }
 
-    NS_IF_ADDREF(*aExpressions = mExpressions);
-    return NS_OK;
+  NS_ADDREF(*aExpressions = mExpressions);
+  return NS_OK;
 }
 
-NS_IMETHODIMP nsAbBooleanExpression::SetExpressions(nsISupportsArray* aExpressions)
+NS_IMETHODIMP nsAbBooleanExpression::SetExpressions(nsIArray *aExpressions)
 {
-    if (!aExpressions)
-        return NS_ERROR_NULL_POINTER;
+  if (!aExpressions)
+    return NS_ERROR_NULL_POINTER;
 
-    mExpressions = aExpressions;
+  mExpressions = aExpressions;
 
-    return NS_OK;
+  return NS_OK;
 }
 
 /* void asetExpressions (in unsigned long aExpressionsSize, [array, size_is (aExpressionsSize)] in nsISupports aExpressionsArray); */

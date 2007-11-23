@@ -41,9 +41,9 @@
 #include "nsAbDirectoryQueryProxy.h"
 #include "nsAbUtils.h"
 #include "nsAbBooleanExpression.h"
-
+#include "nsArrayUtils.h"
 #include "nsIRDFResource.h"
-
+#include "nsComponentManagerUtils.h"
 #include "nsStringGlue.h"
 #include "nsUnicharUtils.h"
 #include "nsIAbDirSearchListener.h"
@@ -80,42 +80,47 @@ NS_IMETHODIMP nsAbDirectoryQuerySimpleBooleanExpression::SetOperation(nsAbBoolea
     return NS_OK;
 }
 
-/* attribute nsISupportsArray expressions; */
-NS_IMETHODIMP nsAbDirectoryQuerySimpleBooleanExpression::GetExpressions(nsISupportsArray** aExpressions)
+/* attribute nsIArray expressions; */
+NS_IMETHODIMP nsAbDirectoryQuerySimpleBooleanExpression::GetExpressions(nsIArray **aExpressions)
 {
-    if (!aExpressions)
-        return NS_ERROR_NULL_POINTER;
+  if (!aExpressions)
+    return NS_ERROR_NULL_POINTER;
 
+  if (!mExpressions)
+  {
+    mExpressions = do_CreateInstance(NS_ARRAY_CONTRACTID);
     if (!mExpressions)
-        NS_NewISupportsArray(getter_AddRefs(mExpressions));
+      return NS_ERROR_OUT_OF_MEMORY;
+  }
 
-    NS_IF_ADDREF(*aExpressions = mExpressions);
-    return NS_OK;
+  NS_ADDREF(*aExpressions = mExpressions);
+  return NS_OK;
 }
 
-NS_IMETHODIMP nsAbDirectoryQuerySimpleBooleanExpression::SetExpressions(nsISupportsArray* aExpressions)
+NS_IMETHODIMP nsAbDirectoryQuerySimpleBooleanExpression::SetExpressions(nsIArray *aExpressions)
 {
-    if (!aExpressions)
-        return NS_ERROR_NULL_POINTER;
+  if (!aExpressions)
+    return NS_ERROR_NULL_POINTER;
 
-    nsresult rv;
-    PRUint32 count;
-    rv = aExpressions->Count (&count);
-    NS_ENSURE_SUCCESS(rv, rv);
+  // Ensure all the items are of the right type.
+  nsresult rv;
+  PRUint32 count;
+  rv = aExpressions->GetLength(&count);
+  NS_ENSURE_SUCCESS(rv, rv);
 
-    for (PRUint32 i = 0; i < count; i++)
-    {
-        nsCOMPtr<nsISupports> item;
-        rv = aExpressions->GetElementAt (i, getter_AddRefs (item));
-        NS_ENSURE_SUCCESS(rv, rv);
+  nsCOMPtr<nsIAbBooleanConditionString> queryExpression;
 
-        nsCOMPtr<nsIAbBooleanConditionString> queryExpression (do_QueryInterface (item, &rv));
-        NS_ENSURE_SUCCESS(rv, rv);
-    }
+  for (PRUint32 i = 0; i < count; ++i)
+  {
+    queryExpression = do_QueryElementAt(aExpressions, i, &rv);
+    if (NS_FAILED(rv))
+      return NS_ERROR_ILLEGAL_VALUE;
+  }
 
-    mExpressions = aExpressions;
+  // Values ok, so we can just save and return.
+  mExpressions = aExpressions;
 
-    return NS_OK;
+  return NS_OK;
 }
 
 /* void asetExpressions (in unsigned long aExpressionsSize, [array, size_is (aExpressionsSize)] in nsISupports aExpressionsArray); */
@@ -141,7 +146,7 @@ nsAbDirectoryQueryArguments::~nsAbDirectoryQueryArguments()
 {
 }
 
-/* attribute nsISupportsArray matchItems; */
+/* attribute nsISupports matchItems; */
 NS_IMETHODIMP nsAbDirectoryQueryArguments::GetExpression(nsISupports** aExpression)
 {
     if (!aExpression)
@@ -395,12 +400,12 @@ nsresult nsAbDirectoryQuery::matchCardExpression (nsIAbCard* card,
     nsresult rv = expression->GetOperation (&operation);
     NS_ENSURE_SUCCESS(rv, rv);
 
-    nsCOMPtr<nsISupportsArray> childExpressions;
+    nsCOMPtr<nsIArray> childExpressions;
     rv = expression->GetExpressions (getter_AddRefs (childExpressions));
     NS_ENSURE_SUCCESS(rv, rv);
     
     PRUint32 count;
-    rv = childExpressions->Count (&count);
+    rv = childExpressions->GetLength(&count);
     NS_ENSURE_SUCCESS(rv, rv);
 
     if (operation == nsIAbBooleanOperationTypes::NOT &&
@@ -408,14 +413,12 @@ nsresult nsAbDirectoryQuery::matchCardExpression (nsIAbCard* card,
         return NS_ERROR_FAILURE;
 
     PRBool value = *result = PR_FALSE;
+    nsCOMPtr<nsIAbBooleanConditionString> childCondition;
+    nsCOMPtr<nsIAbBooleanExpression> childExpression;
+
     for (PRUint32 i = 0; i < count; i++)
     {
-        nsCOMPtr<nsISupports> item;
-        rv = childExpressions->GetElementAt (i, getter_AddRefs (item));
-        NS_ENSURE_SUCCESS(rv, rv);
-
-        nsCOMPtr<nsIAbBooleanConditionString>
-            childCondition(do_QueryInterface(item, &rv));
+        childCondition = do_QueryElementAt(childExpressions, i, &rv);
         if (NS_SUCCEEDED(rv))
         {
             rv = matchCardCondition (card, childCondition, &value);
@@ -423,8 +426,7 @@ nsresult nsAbDirectoryQuery::matchCardExpression (nsIAbCard* card,
         }
         else
         {
-            nsCOMPtr<nsIAbBooleanExpression>
-                childExpression(do_QueryInterface(item, &rv));
+            childExpression = do_QueryElementAt(childExpressions, i, &rv);
             if (NS_SUCCEEDED(rv))
             {
                 rv = matchCardExpression (card, childExpression, &value);

@@ -37,8 +37,8 @@
  * ***** END LICENSE BLOCK ***** */
 
 #include "nsISupports.idl"
-#include "nsISupportsArray.idl"
 
+interface nsIArray;
 typedef long nsAbBooleanConditionType;
 
 /**
@@ -134,7 +134,7 @@ interface nsIAbBooleanConditionString : nsISupports
  * child conditions or expressions
  *
  */
-[scriptable, uuid(67F87C44-2C63-41A2-9545-AFF1D9F09623)]
+[scriptable, uuid(55096af9-78d1-4869-82ed-f1d2e1d97727)]
 interface nsIAbBooleanExpression: nsISupports
 {
     /**
@@ -150,7 +150,7 @@ interface nsIAbBooleanExpression: nsISupports
      * e1 [op] e2 [op] .... en
      *
      */
-    attribute nsISupportsArray expressions;
+    attribute nsIArray expressions;
 
     /**
      * expressions attribute defined explicitly as an

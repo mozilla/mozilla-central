@@ -66,7 +66,7 @@ protected:
         int flags);
     static nsresult FilterExpressions (
         nsIAbLDAPAttributeMap* map,
-        nsISupportsArray* expressions,
+        nsIArray* expressions,
         nsCString& filter,
         int flags);
     static nsresult FilterCondition (
