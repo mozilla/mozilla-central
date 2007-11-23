@@ -1864,7 +1864,7 @@
                                style="background: transparent !important;"
                                wrap="true"/>
                 </xul:vbox>
-                <xul:image class="calendar-event-box-gradient"/>
+                <xul:image width="1px" class="calendar-event-box-gradient"/>
                 <xul:hbox pack="end">
                     <xul:vbox pack="start">
                       <xul:image anonid="alarm-image"
