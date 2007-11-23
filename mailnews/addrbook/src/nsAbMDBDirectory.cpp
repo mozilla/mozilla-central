@@ -489,6 +489,10 @@ NS_IMETHODIMP nsAbMDBDirectory::GetChildCards(nsISimpleEnumerator* *result)
 
   nsresult rv = GetAbDatabase();
 
+  // No file, so can't have any cards, so just return an empty enumerator.
+  if (rv == NS_ERROR_FILE_NOT_FOUND)
+    return NS_NewArrayEnumerator(result, (nsIArray*)nsnull);
+
   if (NS_SUCCEEDED(rv) && mDatabase)
   {
     if (mIsMailingList == 0)
@@ -1074,11 +1078,16 @@ nsresult nsAbMDBDirectory::GetAbDatabase()
 NS_IMETHODIMP nsAbMDBDirectory::CardForEmailAddress(const char * aEmailAddress, nsIAbCard ** aAbCard)
 {
   NS_ENSURE_ARG_POINTER(aAbCard);
-  NS_ENSURE_ARG_POINTER(aEmailAddress);
 
-  nsresult rv = NS_OK;
   *aAbCard = NULL;
 
+  // Ensure that if we've not been given an email address we never match
+  // so that we don't fail out unnecessarily and we don't match a blank email
+  // address against random cards that the user hasn't supplied an email for.
+  if (!aEmailAddress || !*aEmailAddress)
+    return NS_OK;
+
+  nsresult rv = NS_OK;
   if (!mDatabase)
     rv = GetAbDatabase();
   if (rv == NS_ERROR_FILE_NOT_FOUND)
