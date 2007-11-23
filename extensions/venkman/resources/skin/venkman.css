@@ -37,7 +37,7 @@
  *
  * ***** END LICENSE BLOCK ***** */
 
-@import url(chrome://communicator/skin/);
+@import url(chrome://global/skin/);
 
 /*
  * we have to explicitly import this css, because we're overriding the binding
@@ -72,7 +72,7 @@ treecol[hideheader="true"] {
     height: 0px;
 }
 
-#source2-heading { 
+#source2-heading {
     padding-top: 2px !important;
 }
 
@@ -289,7 +289,7 @@ browser {
     margin: 1px;
 }
 
-tab { 
+tab {
     -moz-binding: none;
     padding-right: 5px;
 }
