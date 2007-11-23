@@ -509,9 +509,9 @@
            * Private methods and attributes
            */
           
-          _getItemFromEvent: function tTV_getItemFromEvent(event,aCol,aRow) {
-            var aRow = aRow || {};
-            this.treebox.getCellAt(event.clientX,event.clientY,aRow,aCol || {},{});
+          _getItemFromEvent: function tTV_getItemFromEvent(event, aCol, aRow) {
+            aRow = aRow || {};
+            this.treebox.getCellAt(event.clientX, event.clientY, aRow, aCol || {}, {});
             return aRow && aRow.value > -1 && this.binding.mTaskArray[aRow.value];
           },
           
