@@ -251,7 +251,7 @@ $::RepositoryID  = GetId('repositories', 'repository', $::Repository);
 
 print "
 Rebuilding entire checkin history in $::Description, (`$::TreeID' tree) ...
-";
+" if !$::Filename;
 
 Log("Rebuilding cvs history in $::Description, (`$::TreeID' tree)...");
 
