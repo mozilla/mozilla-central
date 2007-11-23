@@ -489,10 +489,6 @@ NS_IMETHODIMP nsAbMDBDirectory::GetChildCards(nsISimpleEnumerator* *result)
 
   nsresult rv = GetAbDatabase();
 
-  // No file, so can't have any cards, so just return an empty enumerator.
-  if (rv == NS_ERROR_FILE_NOT_FOUND)
-    return NS_NewArrayEnumerator(result, (nsIArray*)nsnull);
-
   if (NS_SUCCEEDED(rv) && mDatabase)
   {
     if (mIsMailingList == 0)
