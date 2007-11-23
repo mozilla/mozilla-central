@@ -36,6 +36,9 @@ CO=@CO@
 RCSDIFF=@RCSDIFF@
 CVSGRAPH=@CVSGRAPH@
 
+BONSAI_USER=bonsai
+BONSAI_GROUP=bonsai
+
 FILES =		CGI.pl			\
 		addcheckin.pl		\
 		adminfuncs.pl		\
@@ -90,6 +93,9 @@ EXECFILES =	admin.cgi		\
 		toplevel.cgi		\
 		viewold.cgi
 
+SETUID_SCRIPTS = handleAdminMail.pl	\
+		handleCheckinMail.pl
+
 all: treeconfig.pl params
 
 treeconfig.pl: treeconfig.pl.in
@@ -114,17 +120,17 @@ install: all
 	  echo Installing CGI file $$I && \
           sed -e s#/usr/bin/perl#$(PERL)#g \
               $$I > $(PREFIX)/$$I && \
-	  chmod 755 $(PREFIX)/$$I; done
-	-mkdir -p $(PREFIX)/data && chmod 777 $(PREFIX)/data
+	  chmod 750 $(PREFIX)/$$I; done
+	-mkdir -p $(PREFIX)/data && chmod 770 $(PREFIX)/data
 	cp htaccess-dist $(PREFIX)/data/.htaccess
 	chmod 644 $(PREFIX)/data/.htaccess
 	# put trapdoor into data
 	cp trapdoor $(PREFIX)/data
-	chmod 755 $(PREFIX)/data/trapdoor
+	chmod 750 $(PREFIX)/data/trapdoor
 	@if test ! -r $(PREFIX)/data/treeconfig.pl ; then \
 	echo "Installing treeconfig.pl" && \
 	cp treeconfig.pl $(PREFIX)/data \
-	chmod 644 $(PREFIX)/data/treeconfig.pl ; \
+	chmod 640 $(PREFIX)/data/treeconfig.pl ; \
 	else \
 	echo ; \
 	echo "Not replacing existing treeconfig.pl" ;  \
@@ -133,7 +139,7 @@ install: all
 	@if test ! -r $(PREFIX)/data/params ; then \
 	echo "Installing params" && \
 	cp params $(PREFIX)/data \
-	chmod 666 $(PREFIX)/data/params ; \
+	chmod 660 $(PREFIX)/data/params ; \
 	else \
 	echo ; \
 	echo "Not replacing existing params" ;  \
@@ -141,11 +147,15 @@ install: all
 	@if test ! -r $(PREFIX)/data/cvsgraph.conf ; then \
 	echo "Installing cvsgraph.conf" && \
 	cp cvsgraph.conf $(PREFIX)/data \
-	chmod 644 $(PREFIX)/data/cvsgraph.conf ; \
+	chmod 640 $(PREFIX)/data/cvsgraph.conf ; \
 	else \
 	echo ; \
 	echo "Not replacing existing cvsgraph.conf" ; \
 	fi
+	@echo "Fixing permissions"
+	@chown -R ${BONSAI_USER} $(PREFIX)
+	@chgrp -R ${BONSAI_GROUP} $(PREFIX)
+	@chmod 4775 $(addprefix $(PREFIX)/,$(SETUID_SCRIPTS))
 	@echo
 	@echo "If you are updating an existing install, be sure to check"
 	@echo "editparams.cgi to see if there are any new things you should"
