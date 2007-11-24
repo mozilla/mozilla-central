@@ -515,30 +515,26 @@ function ViewPageSource(messages)
     return false;
   }
 
-    try {
-        // First, get the mail session
-        const mailSessionContractID = "@mozilla.org/messenger/services/session;1";
-        const nsIMsgMailSession = Components.interfaces.nsIMsgMailSession;
-        var mailSession = Components.classes[mailSessionContractID].getService(nsIMsgMailSession);
+  try {
+    // First, get the mail session
+    const mailSessionContractID = "@mozilla.org/messenger/services/session;1";
+    const nsIMsgMailSession = Components.interfaces.nsIMsgMailSession;
+    var mailSession = Components.classes[mailSessionContractID].getService(nsIMsgMailSession);
+    var mailCharacterSet = "charset=" + msgWindow.mailCharacterSet;
 
-        var mailCharacterSet = "charset=" + msgWindow.mailCharacterSet;
-
-        for (var i = 0; i < numMessages; i++)
-        {
-            // Now, we need to get a URL from a URI
-            var url = mailSession.ConvertMsgURIToMsgURL(messages[i], msgWindow);
-
-            window.openDialog( "chrome://global/content/viewSource.xul",
-                               "_blank",
-                               "scrollbars,resizable,chrome,dialog=no",
-                               url,
-                               mailCharacterSet);
-        }
-        return true;
-    } catch (e) {
-        // Couldn't get mail session
-        return false;
+    for (var i = 0; i < numMessages; i++)
+    {
+      // Now, we need to get a URL from a URI
+      var url = mailSession.ConvertMsgURIToMsgURL(messages[i], msgWindow);
+      window.openDialog("chrome://global/content/viewSource.xul",
+                        "_blank", "all,dialog=no", url,
+                        mailCharacterSet);
     }
+    return true;
+  } catch (e) {
+    // Couldn't get mail session
+    return false;
+  }
 }
 
 function doHelpButton()
