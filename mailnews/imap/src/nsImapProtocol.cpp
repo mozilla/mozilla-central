@@ -316,6 +316,7 @@ static PRBool gUseEnvelopeCmd = PR_FALSE;
 static PRBool gUseLiteralPlus = PR_TRUE;
 static PRBool gExpungeAfterDelete = PR_FALSE;
 static PRBool gCheckDeletedBeforeExpunge = PR_FALSE; //bug 235004
+static PRInt32 gExpungeThreshold = 20;
 static PRInt32 gResponseTimeout = 60;
 static nsCStringArray gCustomDBHeaders;
 
@@ -342,6 +343,7 @@ nsresult nsImapProtocol::GlobalInitialization()
     prefBranch->GetBoolPref("mail.imap.use_literal_plus", &gUseLiteralPlus);
     prefBranch->GetBoolPref("mail.imap.expunge_after_delete", &gExpungeAfterDelete);
     prefBranch->GetBoolPref("mail.imap.check_deleted_before_expunge", &gCheckDeletedBeforeExpunge);
+    prefBranch->GetIntPref("mail.imap.expunge_threshold_number", &gExpungeThreshold);
     prefBranch->GetIntPref("mailnews.tcptimeout", &gResponseTimeout);
     nsCString customDBHeaders;
     prefBranch->GetCharPref("mailnews.customDBHeaders", getter_Copies(customDBHeaders));
@@ -3659,9 +3661,8 @@ void nsImapProtocol::ProcessMailboxUpdate(PRBool handlePossibleUndo)
       // lets see if we should expunge during a full sync of flags.
       if (!DeathSignalReceived()) // only expunge if not reading messages manually and before fetching new
       {
-        // ### TODO read gExpungeThreshhold from prefs. Don't do expunge when we
-        // are lite selecting folder because we could be doing undo
-        if ((m_flagState->GetNumberOfDeletedMessages() >= 20 /* gExpungeThreshold */) &&
+        // Don't do expunge when we are lite selecting folder because we could be doing undo
+        if ((m_flagState->GetNumberOfDeletedMessages() >= gExpungeThreshold) &&
                  !GetShowDeletedMessages() && 
                  m_imapAction != nsIImapUrl::nsImapLiteSelectFolder)
           Expunge();
