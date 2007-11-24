@@ -191,6 +191,7 @@
                 mAddTabGroupMenuItem = NSMenuItem; 
                 mAddTabGroupWithoutPromptMenuItem = NSMenuItem; 
                 mApplication = NSApplication; 
+                mAutoUpdater = SUUpdater; 
                 mBookmarksHelperMenu = NSMenu; 
                 mBookmarksMenu = BookmarkMenu; 
                 mBookmarksToolbarMenuItem = NSMenuItem; 
@@ -215,6 +216,12 @@
             SUPERCLASS = NSView; 
         }, 
         {CLASS = NSObject; LANGUAGE = ObjC; }, 
+        {
+            ACTIONS = {checkForUpdates = id; }; 
+            CLASS = SUUpdater; 
+            LANGUAGE = ObjC; 
+            SUPERCLASS = NSObject; 
+        }, 
         {CLASS = ThrobberHandler; LANGUAGE = ObjC; SUPERCLASS = NSObject; }, 
         {
             CLASS = ToolbarController; 

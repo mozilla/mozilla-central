@@ -151,6 +151,13 @@
 	</array>
 	<key>CFBundleVersion</key>
 	<string>%CM_APP_VERSION%</string>
+	<key>LSFileQuarantineEnabled</key>
+	<true/>
+	<key>LSFileQuarantineExcludedPathPatterns</key>
+	<array>
+		<string>~/Library/Caches/*</string>
+		<string>~/Library/Application Support/*</string>
+	</array>
 	<key>LSMinimumSystemVersion</key>
 	<string>10.4</string>
 	<key>NSAppleScriptEnabled</key>
@@ -182,15 +189,33 @@
 			</array>
 		</dict>
 	</array>
-	<key>LSFileQuarantineEnabled</key>
-	<true/>
-	<key>LSFileQuarantineExcludedPathPatterns</key>
-	<array>
-		<string>~/Library/Caches/*</string>
-		<string>~/Library/Application Support/*</string>
-	</array>
 	<key>OSAScriptingDefinition</key>
 	<string>Camino.sdef</string>
+	<key>SUCheckAtStartup</key>
+	<false/>
+	<key>SUExpectsDSASignature</key>
+	<true/>
+	<key>SUPublicDSAKey</key>
+	<string>-----BEGIN PUBLIC KEY-----
+MIIDOjCCAi0GByqGSM44BAEwggIgAoIBAQDQ4Easn8ybXNil3l8UXWHnu2s7Q4Kk
+uXXMZ2V/l8LLrQ3AlaH/7CZoUKY+LtpmPHL57yHvFWQIxJGz4BwkFBgt+4Yvw2Lh
+miXi2sMSKK721sXkoPZO3iQsdSIav0A//B2EWM3wCya3LY8V7Pwd06hIGErG+2sR
+Zm7oqyCZvC2f8jjradkGzOKssOWm1TaLHL230u65lf9roTVG0UCFSPcgN29u0u7v
+OGiYlkTqsE0Dv4hi4QxxJQk2mn7dJYcNRnkbciaxCSdcqPMvIg0DPL300C3YfaCu
+dDAHlCj70kZSp2m2jGZQFwGyZ82xu6QjE3ocTG7mjHJSTG2cmeSn2cFDAhUAxjIm
+aMWtvHGo5Rxcn09EzZvqa28CggEAA0bvQnqr3ekK8Tuy3GbqOQxQahOmLmjKKDfT
+3QXYPMt+pyWh5Eoay1uCpZtc99PXqWDg1dN0LVRFu2M9S8iTeNNCtQ42E0Hm1oNs
+J0SQa1lf2/rMr+xwIj0kJtpr+uvYTPPoSJgPOXa/W/5o0b/VCRCT8QXqvQMmd++B
+ZFkf9pLVh8eH/Gfa5abLcLGDR2kWsRA4vra+cZJbMDKxfB3MsI125ejBhb698ltv
+dHHUIxm/e92+r6pP73/EC9SwgjtFQWBL4ZjBZg6kdhHdw6WIWVRDsZTvdquK5B7g
+I5NMqJyl/eaTGnKD+Q349GeQtdnc2txUGxeMb83SWulPgEZNZQOCAQUAAoIBAHva
+7XzuaZiAvgnIGFuSA61tO3nIT7CtLbgMqRPBBGoIh9qG+JcQNOQ5BAtq839mP1FC
+nOXEajr3UDO5tKn4V3Y3X/jCjwDLZHIP+Y5m/cvVm50tSrBIfT2G5pUrGd9cSEDG
+XfYOEaMdGVa9aLBrSo9739WVbWg7UIEqb0D2a3nBo16JDSyn9H7Hcq2cjWJugQZ6
+UM2UtHwvaK/NHAcprjANQuYQ78U4GapNnuLIXx1EBru8gSKHlcyeOu9fa79oAhvN
+xz+k1ujre1mK8oq2DT2kCo29Ufgsc6U5bCc2Bs7S/fHOVBjxUf9/XIfvOyJRCbVJ
+2hR9h9Vj9Fd3jEyXbQA=
+-----END PUBLIC KEY-----</string>
 	<key>mozProfileDirName</key>
 	<string>Camino</string>
 </dict>

@@ -48,6 +48,7 @@
 @class PreferenceManager;
 @class FindDlgController;
 @class MVPreferencesController;
+@class SUUpdater;
 
 
 typedef enum EBookmarkOpenBehavior
@@ -87,6 +88,8 @@ typedef enum EBookmarkOpenBehavior
     IBOutlet NSMenuItem*    mCreateBookmarksFolderMenuItem;
     IBOutlet NSMenuItem*    mCreateBookmarksSeparatorMenuItem;  // unused
     IBOutlet NSMenuItem*    mShowAllBookmarksMenuItem;
+
+    IBOutlet SUUpdater*     mAutoUpdater;
 
     BOOL                    mInitialized;
     BOOL                    mOffline;

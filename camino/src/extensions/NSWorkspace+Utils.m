@@ -135,6 +135,19 @@
 }
 
 //
+// +osVersionString
+//
+// Returns the system version string from
+// /System/Library/CoreServices/SystemVersion.plist
+// (as recommended by Apple).
+//
++ (NSString*)osVersionString
+{
+  NSDictionary* versionInfo = [NSDictionary dictionaryWithContentsOfFile:@"/System/Library/CoreServices/SystemVersion.plist"];
+  return [versionInfo objectForKey:@"ProductVersion"];
+}
+
+//
 // +systemVersion
 //
 // Returns the host's OS version as returned by the 'sysv' gestalt selector,

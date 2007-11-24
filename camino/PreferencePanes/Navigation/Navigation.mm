@@ -41,9 +41,11 @@
 #import <Carbon/Carbon.h>
 #import <Cocoa/Cocoa.h>
 #import <ApplicationServices/ApplicationServices.h>
+#import <Sparkle/Sparkle.h>
 
 #import "NSWorkspace+Utils.h"
 #import "AppListMenuFactory.h"
+#import "UserDefaults.h"
 
 #import "Navigation.h"
 
@@ -100,6 +102,9 @@ const int kDefaultExpireDays = 9;
 
   if ([self getBooleanPref:"camino.remember_window_state" withSuccess:&gotPref])
     [checkboxRememberWindowState setState:NSOnState];
+
+  if ([[NSUserDefaults standardUserDefaults] integerForKey:SUScheduledCheckIntervalKey] > 0)
+    [checkboxAutoUpdate setState:NSOnState];
 
   [textFieldHomePage setStringValue:[self currentHomePage]];
 
@@ -159,6 +164,20 @@ const int kDefaultExpireDays = 9;
 {
   if (sender == checkboxCheckDefaultBrowserOnLaunch)
     [self setPref:"camino.check_default_browser" toBoolean:([sender state] == NSOnState)];
+}
+
+- (IBAction)autoUpdateCheckboxClicked:(id)sender
+{
+  if (sender == checkboxAutoUpdate) {
+    NSUserDefaults* defaults = [NSUserDefaults standardUserDefaults];
+    if ([sender state] == NSOnState) {
+      [defaults setInteger:USER_DEFAULTS_UPDATE_INTERVAL_DEFAULT
+                    forKey:SUScheduledCheckIntervalKey];
+    }
+    else {
+      [defaults setInteger:0 forKey:SUScheduledCheckIntervalKey];
+    }
+  }
 }
 
 - (NSString*)currentHomePage

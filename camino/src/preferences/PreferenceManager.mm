@@ -38,7 +38,10 @@
 
 #import <SystemConfiguration/SystemConfiguration.h>
 
+#import <Sparkle/Sparkle.h>
+
 #import "NSString+Gecko.h"
+#import "NSWorkspace+Utils.h"
 
 #import "PreferenceManager.h"
 #import "AppDirServiceProvider.h"
@@ -201,6 +204,7 @@ WriteVersion(nsIFile* aProfileDir, const nsACString& aVersion,
 @interface PreferenceManager(PreferenceManagerPrivate)
 
 - (void)registerNotificationListener;
+- (void)initUpdatePrefs;
 
 - (void)termEmbedding:(NSNotification*)aNotification;
 - (void)xpcomTerminate:(NSNotification*)aNotification;
@@ -376,6 +380,8 @@ static BOOL gMadePrefManager;
       // we should never get here
       NSLog (@"Failed to initialize mozilla prefs");
     }
+
+    [self initUpdatePrefs];
     
     mDefaults = [NSUserDefaults standardUserDefaults];
   }
@@ -652,6 +658,41 @@ static BOOL gMadePrefManager;
     [[NSNotificationCenter defaultCenter] postNotificationName:InitEmbeddingNotificationName object:nil];
 
     return YES;
+}
+
+- (void)initUpdatePrefs
+{
+  NSUserDefaults* defaults = [NSUserDefaults standardUserDefaults];
+
+  // Get the base auto-update manifest URL
+  NSString* baseURL = [self getStringPref:"app.update.url.override"
+                              withSuccess:NULL];
+  if (![baseURL length])
+    baseURL = [self getStringPref:"app.update.url" withSuccess:NULL];
+  NSString* intlUAString = [self getStringPref:"general.useragent.extra.multilang"
+                                   withSuccess:NULL];
+  // Append the parameters we might be interested in.
+  NSString* manifestURL = !baseURL ? @"" : [NSString stringWithFormat:@"%@?os=%@&arch=%@&version=%@&intl=%d",
+    baseURL,
+    [NSWorkspace osVersionString],
+#if defined(__ppc__)
+    @"ppc",
+#elif defined(__i386__)
+    @"x86",
+#else
+#error Unknown Architecture
+#endif
+    [[NSBundle mainBundle] objectForInfoDictionaryKey:@"CFBundleShortVersionString"],
+    ([intlUAString length] ? 1 : 0)];
+  [defaults setObject:manifestURL forKey:SUFeedURLKey];
+
+  // Set the update interval default if none is set. We don't set this in the
+  // Info.plist because once there's a value there it's impossible to actually
+  // disable update checking.
+  if (![defaults objectForKey:SUScheduledCheckIntervalKey]) {
+    [defaults setInteger:USER_DEFAULTS_UPDATE_INTERVAL_DEFAULT
+                  forKey:SUScheduledCheckIntervalKey];
+  }
 }
 
 // Convert an Apple locale (or language with the dialect specified) from the form en_GB

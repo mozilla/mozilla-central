@@ -57,6 +57,7 @@
 - (NSString*)displayNameForFile:(NSURL*)inFileURL;
 
 // OS feature checks
++ (NSString*)osVersionString;
 + (BOOL)isLeopardOrHigher;
 + (BOOL)isTigerOrHigher;
 + (BOOL)supportsSpotlight;

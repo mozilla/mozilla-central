@@ -51,4 +51,5 @@
 #define USER_DEFAULTS_AUTOCOMPLETE_WHILE_TYPING @"Autocomplete While Typing"     /* Boolean */
 #define USER_DEFAULTS_CONTAINER_SPLITTER_WIDTH  @"Bookmarks Splitter position"   /* Float */
 #define USER_DEFAULTS_LAST_SELECTED_BM_FOLDER   @"Last Selected Bookmark Folder" /* String */
+#define USER_DEFAULTS_UPDATE_INTERVAL_DEFAULT   (24 * 60 * 60)
 
