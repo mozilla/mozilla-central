@@ -155,8 +155,7 @@
 	<true/>
 	<key>LSFileQuarantineExcludedPathPatterns</key>
 	<array>
-		<string>~/Library/Caches/*</string>
-		<string>~/Library/Application Support/*</string>
+		<string>~/Library/*</string>
 	</array>
 	<key>LSMinimumSystemVersion</key>
 	<string>10.4</string>
