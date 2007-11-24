@@ -993,18 +993,12 @@ function MsgDeleteMessage(reallyDelete)
     // if the user deletes a message before its mark as read timer goes off, we should mark it as read
     // this ensures that we clear the biff indicator from the system tray when the user deletes the new message
     if (gMarkViewedMessageAsReadTimer)
-    {
       MarkCurrentMessageAsRead();
-      ClearPendingReadTimer();
-    }
-
     SetNextMessageAfterDelete();
-    if (reallyDelete) {
-        gDBView.doCommand(nsMsgViewCommandType.deleteNoTrash);
-    }
-    else {
-        gDBView.doCommand(nsMsgViewCommandType.deleteMsg);
-    }
+    if (reallyDelete)
+      gDBView.doCommand(nsMsgViewCommandType.deleteNoTrash);
+    else
+      gDBView.doCommand(nsMsgViewCommandType.deleteMsg);
 }
 
 function MsgCopyMessage(destFolder)
@@ -1520,6 +1514,7 @@ function MsgDownloadSelected()
 
 function MsgMarkThreadAsRead()
 {
+  ClearPendingReadTimer();
   gDBView.doCommand(nsMsgViewCommandType.markThreadRead);
 }
 
@@ -2438,6 +2433,7 @@ function checkMsgHdrPropertyIsNot(aProperty, aValue)
 
 function MarkCurrentMessageAsRead()
 {
+  ClearPendingReadTimer();
   gDBView.doCommand(nsMsgViewCommandType.markMessagesRead);
 }
 
@@ -2502,11 +2498,16 @@ function OnMsgLoaded(aUrl)
     {
       var wintype = document.documentElement.getAttribute('windowtype');
       if (markReadOnADelay && wintype == "mail:3pane") // only use the timer if viewing using the 3-pane preview pane and the user has set the pref
+      {
+        ClearPendingReadTimer();
         gMarkViewedMessageAsReadTimer = setTimeout(MarkCurrentMessageAsRead, gPrefBranch.getIntPref("mailnews.mark_message_read.delay.interval") * 1000);
+      }
       else
+      {
         MarkCurrentMessageAsRead();
-     }
-        
+      }
+    }
+
     // See if MDN was requested but has not been sent.
     HandleMDNResponse(aUrl);
     
