@@ -1873,11 +1873,27 @@ nsresult nsMsgCompose::CreateMessage(const char * originalMsgURI,
 
             nsCString author, authorEmailAddress;
             msgHdr->GetAuthor(getter_Copies(author));
+
+            nsCString recipients, recipientsEmailAddresses;
+            msgHdr->GetRecipients(getter_Copies(recipients));
+
+            nsCString ccList, ccListEmailAddresses;
+            msgHdr->GetCcList(getter_Copies(ccList));
+
             nsCOMPtr<nsIMsgHeaderParser> parser (do_GetService(NS_MAILNEWS_MIME_HEADER_PARSER_CONTRACTID));
             if (parser) {
               // convert to UTF8 before passing to MakeFullAddress
               rv = parser->ExtractHeaderAddressMailboxes(nsnull, author.get(),
-                                                            getter_Copies(authorEmailAddress));
+                                                         getter_Copies(authorEmailAddress));
+              NS_ENSURE_SUCCESS(rv,rv);
+
+              rv = parser->ExtractHeaderAddressMailboxes(nsnull, recipients.get(),
+                                                         getter_Copies(recipientsEmailAddresses));
+              NS_ENSURE_SUCCESS(rv,rv);
+
+              rv = parser->ExtractHeaderAddressMailboxes(nsnull, ccList.get(),
+                                                         getter_Copies(ccListEmailAddresses));
+              NS_ENSURE_SUCCESS(rv,rv);
             }
 
             PRBool replyToSelfCheckAll = PR_FALSE;
@@ -1938,9 +1954,30 @@ nsresult nsMsgCompose::CreateMessage(const char * originalMsgURI,
 
                 nsCString curIdentityEmail;
                 lookupIdentity->GetEmail(curIdentityEmail);
+
+                // See if it's a reply to own message, but not a reply between identities.
                 if (curIdentityEmail.Equals(authorEmailAddress))
                 {
                   isReplyToOwnMsg = PR_TRUE;
+                  // For a true reply-to-self, none of your identities are in To or CC.
+                  for (PRUint32 j = 0; j < count; j++)
+                  {
+                    nsCOMPtr<nsIMsgIdentity> lookupIdentity2;
+                    rv = identities->QueryElementAt(j, NS_GET_IID(nsIMsgIdentity),
+                                                    getter_AddRefs(lookupIdentity2));
+                    if (NS_FAILED(rv))
+                      continue;
+
+                    nsCString curIdentityEmail2;
+                    lookupIdentity2->GetEmail(curIdentityEmail2);
+                    if (FindInReadable(curIdentityEmail2, recipientsEmailAddresses) ||
+                        FindInReadable(curIdentityEmail2, ccListEmailAddresses))
+                    {
+                      // An identity among the recipients -> not reply-to-self.
+                      isReplyToOwnMsg = PR_FALSE;
+                      break;
+                    }
+                  }
                   break;
                 }
               }
