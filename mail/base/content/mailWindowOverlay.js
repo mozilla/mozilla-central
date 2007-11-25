@@ -3012,7 +3012,7 @@ function checkForUpdates()
   // UI instead and let the user know they have to restart the application for
   // the changes to be applied. 
   if (um.activeUpdate && um.activeUpdate.state == "pending")
-    prompter.showUpdateDownloaded(um.activeUpdate);
+    prompter.showUpdateDownloaded(um.activeUpdate, false);
   else
   prompter.checkForUpdates();
 }
