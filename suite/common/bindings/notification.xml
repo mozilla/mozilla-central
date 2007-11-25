@@ -12,7 +12,7 @@
 
   <binding id="browser-notificationbox"
            extends="chrome://global/content/bindings/notification.xml#notificationbox">
-    <implementation implements="nsIObserver, nsIWebProgressListener">
+    <implementation implements="nsIObserver, nsIWebProgressListener, nsIDOMEventListener">
       <field name="_stringBundle" readonly="true">
         <![CDATA[
           Components.classes["@mozilla.org/intl/stringbundle;1"]
@@ -26,6 +26,13 @@
           Components.classes["@mozilla.org/intl/stringbundle;1"]
                     .getService(Components.interfaces.nsIStringBundleService)
                     .createBundle("chrome://branding/locale/brand.properties");
+        ]]>
+      </field>
+
+      <field name="_prefs" readonly="true">
+        <![CDATA[
+          Components.classes['@mozilla.org/preferences-service;1']
+                    .getService(Components.interfaces.nsIPrefBranch2);
         ]]>
       </field>
 
@@ -75,6 +82,7 @@
             var errorPage = aRequest && !Components.isSuccessCode(aRequest.status);
             if (aWebProgress.DOMWindow == this.activeBrowser.contentWindow &&
                 (aWebProgress.isLoadingDocument || errorPage)) {
+              this.missingPlugins = {};
               // XXX should be: removeAllNotifications(true) once bug 303327 is fixed
               this.removeAllNotifications(false);
             }
@@ -108,19 +116,20 @@
                   host = this._stringBundle.GetStringFromName("xpinstallHostNotAvailable");
                 }
 
-                if (!pref.getBoolPref("xpinstall.enabled")) {
+                if (!this._prefs.getBoolPref("xpinstall.enabled")) {
                   notificationName = "xpinstall-disabled";
-                  if (pref.prefIsLocked("xpinstall.enabled")) {
+                  if (this._prefs.prefIsLocked("xpinstall.enabled")) {
                     messageString = this._stringBundle.GetStringFromName("xpinstallDisabledMessageLocked");
                     buttons = [];
                   } else {
+                    var prefBranch = this._prefs;
                     messageString = this._stringBundle.GetStringFromName("xpinstallDisabledMessage");
                     buttons = [{
                       label: this._stringBundle.GetStringFromName("xpinstallDisabledButton"),
                       accessKey: this._stringBundle.GetStringFromName("xpinstallDisabledButton.accesskey"),
                       popup: null,
                       callback: function editPrefs() {
-                        pref.setBoolPref("xpinstall.enabled", true);
+                        prefBranch.setBoolPref("xpinstall.enabled", true);
                         return false;
                       }
                     }];
@@ -151,7 +160,70 @@
                                           iconURL, priority, buttons);
                 }
                 break;
+
+              case "nsPref:changed":
+                if (aData == "plugins.hide_infobar_for_missing_plugin") {
+                  if (!this._prefs.getBoolPref(aData))
+                    return;
+
+                  var pluginNotification = this.getNotificationWithValue("missing-plugins");
+                  if (pluginNotification)
+                    this.removeNotification(pluginNotification);
+                }
+                break;
             }
+          ]]>
+        </body>
+      </method>
+
+      <field name="missingPlugins">{}</field>
+
+      <method name="getPluginInfo">
+        <parameter name="pluginElement"/>
+        <body>
+          <![CDATA[
+            var mimetype;
+            var pluginsPage;
+            if (pluginElement instanceof HTMLAppletElement) {
+              mimetype = "application/x-java-vm";
+            } else {
+              if (pluginElement instanceof HTMLObjectElement) {
+                pluginsPage = pluginElement.codebase;
+              } else {
+                pluginsPage = pluginElement.getAttribute("pluginspage");
+                if (pluginsPage) {
+                  var doc = pluginElement.ownerDocument;
+                  var ioService = Components.classes["@mozilla.org/network/io-service;1"]
+                                            .getService(Components.interfaces.nsIIOService);
+                  pluginsPage = ioService.newURI(pluginsPage, doc.characterSet, doc.documentURIObject).spec;
+                }
+              }
+
+              mimetype = pluginElement.QueryInterface(Components.interfaces.nsIObjectLoadingContent)
+                                      .actualType;
+
+              if (!mimetype) {
+                mimetype = pluginElement.type;
+              }
+            }
+
+            return {mimetype: mimetype, pluginsPage: pluginsPage};
+          ]]>
+        </body>
+      </method>
+
+      <method name="handleEvent">
+        <parameter name="aEvent"/>
+        <body>
+          <![CDATA[
+            var missingPlugins = {};
+            var pluginInfo = this.getPluginInfo(aEvent.target);
+            missingPlugins[pluginInfo.mimetype] = pluginInfo;
+
+            window.openDialog("chrome://mozapps/content/plugins/pluginInstallerWizard.xul",
+                              "", "chrome,resizable=yes",
+                              {plugins: missingPlugins, browser: this.activeBrowser});
+            aEvent.preventDefault();
           ]]>
         </body>
       </method>
@@ -161,6 +233,8 @@
           var os = Components.classes["@mozilla.org/observer-service;1"]
                              .getService(Components.interfaces.nsIObserverService);
           os.addObserver(this, "xpinstall-install-blocked", false);
+
+          this._prefs.addObserver("plugins.hide_infobar_for_missing_plugin", this, false);
 
           this.addProgressListener();
         ]]>
@@ -194,10 +268,74 @@
             try {
               os.removeObserver(this, "xpinstall-install-blocked");
             } catch (ex) {}
+
+            try {
+              this._prefs.removeObserver("plugins.hide_infobar_for_missing_plugin", this);
+            } catch (ex) {}
           ]]>
         </body>
       </method>
     </implementation>
+
+    <handlers>
+      <handler event="PluginNotFound">
+        <![CDATA[
+          // Since we are expecting also untrusted events, make sure
+          // that the target is a plugin
+          if (!(event.target instanceof Components.interfaces.nsIObjectLoadingContent))
+            return;
+
+          // For broken non-object plugin tags, register a click handler so
+          // that the user can click the plugin replacement to get the new
+          // plugin. Object tags can, and often do, deal with that themselves,
+          // so don't stomp on the page developers toes.
+
+          if (!(event.target instanceof HTMLObjectElement))
+            event.target.addEventListener("click", this, false);
+
+          if (this._prefs.getBoolPref("plugins.hide_infobar_for_missing_plugin"))
+            return;
+
+          var pluginInfo = this.getPluginInfo(event.target);
+
+          this.missingPlugins[pluginInfo.mimetype] = pluginInfo;
+
+          if (!this.getNotificationWithValue("missing-plugins")) {
+            var self = this;
+            var messageString = this._stringBundle.GetStringFromName("missingpluginsMessage.title");
+            var buttons = [{
+              label: this._stringBundle.GetStringFromName("missingpluginsMessage.button.label"),
+              accessKey: this._stringBundle.GetStringFromName("missingpluginsMessage.button.accesskey"),
+              popup: null,
+              callback: function openPluginInstallerWizard() {
+                window.openDialog("chrome://mozapps/content/plugins/pluginInstallerWizard.xul",
+                                  "", "chrome,resizable=yes",
+                                  {plugins: self.missingPlugins, browser: self.activeBrowser});
+              }
+            }];
+
+            const priority = this.PRIORITY_WARNING_MEDIUM;
+            const iconURL = "chrome://mozapps/skin/plugins/pluginGeneric.png";
+            this.appendNotification(messageString, "missing-plugins",
+                                    iconURL, priority, buttons);
+          }
+        ]]>
+      </handler>
+
+      <handler event="NewPluginInstalled">
+        <![CDATA[
+          this.missingPlugins = {};
+
+          // clean up the UI after a new plugin has been installed.
+          var notification = this.getNotificationWithValue("missing-plugins");
+          if (notification)
+            this.removeNotification(notification);
+
+          // reload the browser to make the new plugin show.
+          this.activeBrowser.reload();
+        ]]>
+      </handler>
+    </handlers>
   </binding>
 
   <binding id="sidebar-notification"

@@ -367,6 +367,12 @@ pref("dom.disable_window_flip",        true);
 // prevent JS from disabling or replacing context menus
 pref("dom.event.contextmenu.enabled",  true);
 
+// Disables default plugin for Plugin Finder Service
+pref("plugin.default_plugin_disabled", true);
+// plugin finder service url
+pref("pfs.datasource.url", "https://pfs.mozilla.org/plugins/PluginFinderService.php?mimetype=%PLUGIN_MIMETYPE%&appID=%APP_ID%&appVersion=%APP_VERSION%&clientOS=%CLIENT_OS%&chromeLocale=%CHROME_LOCALE%");
+pref("plugins.hide_infobar_for_missing_plugin", false);
+
 #ifdef XP_MACOSX
 // determines the behavior upon starting a download.
 //  0 - open the download manager
