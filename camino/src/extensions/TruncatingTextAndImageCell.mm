@@ -92,9 +92,11 @@
   // we always reserve space for the image, even if there isn't one
   // assume the image rect is always square
   float imageWidth = NSHeight(cellFrame) - 2 * mImagePadding;
+  //Put the favicon/spinner to the left of the text
+  NSDivideRect(cellFrame, &imageRect, &textRect, imageWidth, NSMinXEdge);
+
   // draw the progress indicator if we have a reference to it, otherwise draw the favicon
   if (mProgressIndicator) {
-    NSDivideRect(cellFrame, &textRect, &imageRect, NSWidth(cellFrame) - imageWidth, NSMinXEdge);
     if (controlView != [mProgressIndicator superview]) {
       [controlView addSubview:mProgressIndicator];
     }
@@ -102,8 +104,6 @@
     [mProgressIndicator setNeedsDisplay:YES];
   }
   else if (mImage && mImageIsVisible) {
-    //Put the favicon to the left of the text
-    NSDivideRect(cellFrame,&imageRect,&textRect,imageWidth,NSMinXEdge);
     NSRect imageSrcRect = NSZeroRect;
     imageSrcRect.size = [mImage size];
     float imagePadding = mImagePadding;
@@ -114,9 +114,7 @@
     [mImage drawInRect:NSInsetRect(imageRect, mImagePadding, mImagePadding)
             fromRect:imageSrcRect operation:NSCompositeSourceOver fraction:mImageAlpha];
   }
-  else {
-    NSDivideRect(cellFrame,&imageRect,&textRect,imageWidth,NSMinXEdge);
-  }
+
   mImageFrame = [controlView convertRect:imageRect toView:nil];
   // remove image space
   NSDivideRect(textRect, &imageRect, &textRect, mImageSpace, NSMinXEdge);

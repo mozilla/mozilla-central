@@ -315,18 +315,12 @@ const int kMenuTruncationChars = 60;
     mTabContentsView = [[BrowserTabItemContainerView alloc]
                             initWithFrame:NSMakeRect(0, 0, 0, 0) andTabItem:self];
 
-    // create progress wheel. keep a strong ref as view goes in and out of view hierarchy. We
-    // cannot use |NSProgressIndicatorSpinningStyle| on 10.1, so don't bother even creating it
-    // and let all the calls to it be no-ops elsewhere in this class (prevents clutter, imho).
-#if USE_PROGRESS_SPINNER
-// the progress spinner causes content to shear when scrolling because of
-// redraw problems on jaguar and panther. Removing until we can fix it. (bug 203349)
+    // create progress wheel. keep a strong ref as view goes in and out of view hierarchy.
     mProgressWheel = [[NSProgressIndicator alloc] initWithFrame:NSMakeRect(0, 0, 16, 16)];
     [mProgressWheel setStyle:NSProgressIndicatorSpinningStyle];
     [mProgressWheel setUsesThreadedAnimation:YES];
     [mProgressWheel setDisplayedWhenStopped:NO];
     [mProgressWheel setAutoresizingMask:NSViewMaxXMargin];
-#endif
 
     // create close button. keep a strong ref as view goes in and out of view hierarchy
     mCloseButton = [[RolloverImageButton alloc] initWithFrame:NSMakeRect(0, 0, 16, 16)];
@@ -479,30 +473,22 @@ const int kMenuTruncationChars = 60;
 
 - (void)startLoadAnimation
 {
-#if USE_PROGRESS_SPINNER
   // add spinner to tab view and start animation
   [[mTabContentsView labelCell] addProgressIndicator:mProgressWheel];
   [(BrowserTabView *)[self tabView] refreshTab:self];
   [mProgressWheel startAnimation:self];
-#else
-  // allow the favicon to display if there's no spinner
-  [[mTabContentsView labelCell] setImageVisible: YES];
-  [mTabContentsView setNeedsDisplay:YES];
-#endif
 }
 
 - (void)stopLoadAnimation
 {
   // show the tab icon
-  [[mTabContentsView labelCell] setImageVisible: YES];
+  [[mTabContentsView labelCell] setImageVisible:YES];
   [mTabContentsView setNeedsDisplay:YES];
-  
-#if USE_PROGRESS_SPINNER
+
   // stop animation and remove spinner from tab view
   [mProgressWheel stopAnimation:self];
   [[mTabContentsView labelCell] removeProgressIndicator];
   [(BrowserTabView *)[self tabView] refreshTab:self];
-#endif
 }
 
 - (RolloverImageButton *) closeButton
