@@ -22,6 +22,7 @@
  * Contributor(s):
  *   Vladimir Vukicevic <vladimir.vukicevic@oracle.com>
  *   Matthew Willis <lilmatt@mozilla.com>
+ *   Daniel Boelzle <daniel.boelzle@sun.com>
  *
  * Alternatively, the contents of this file may be used under the terms of
  * either the GNU General Public License Version 2 or later (the "GPL"), or
@@ -338,26 +339,24 @@ calRecurrenceInfo.prototype = {
         if (!this.mBaseItem)
             throw Components.results.NS_ERROR_NOT_INITIALIZED;
 
+        // workaround for UTC- timezones
+        var rangeStart = ensureDateTime(aRangeStart);
+        var rangeEnd = ensureDateTime(aRangeEnd);
+
         // If aRangeStart falls in the middle of an occurrence, libical will
         // not return that occurrence when we go and ask for an
         // icalrecur_iterator_new.  This actually seems fairly rational, so 
         // instead of hacking libical, I'm going to move aRangeStart back far
         // enough to make sure we get the occurrences we might miss.
-        var searchStart = aRangeStart.clone();
+        var searchStart = rangeStart.clone();
+        var baseDuration = null;
         try {
-            var duration = this.mBaseItem.duration.clone();
+            baseDuration = this.mBaseItem.duration;
+            var duration = baseDuration.clone();
             duration.isNegative = true;
-            searchStart.isDate = false; // workaround for UTC+ timezones
             searchStart.addDuration(duration);
         } catch(ex) {
             dump("recurrence tweaking exception:"+ex+'\n');
-        }
-
-        // workaround for UTC- timezones
-        var rangeEnd = aRangeEnd;
-        if (rangeEnd && rangeEnd.isDate) {
-            rangeEnd = aRangeEnd.clone();
-            rangeEnd.isDate = false;
         }
 
         var startDate = this.mBaseItem.recurrenceStartDate;
@@ -383,6 +382,16 @@ calRecurrenceInfo.prototype = {
                 });
         }
 
+        // if both range start and end are specified, we ask for all of the occurrences,
+        // to make sure we catch all possible exceptions.  If aRangeEnd isn't specified,
+        // then we have to ask for aMaxCount, and hope for the best.
+        var maxCount;
+        if (rangeStart && rangeEnd) {
+            maxCount = 0;
+        } else {
+            maxCount = aMaxCount;
+        }
+
         // apply positive items before negative:
         var sortedRecurrenceItems = [];
         for each ( var ritem in this.mRecurrenceItems ) {
@@ -394,15 +403,6 @@ calRecurrenceInfo.prototype = {
         for each (ritem in sortedRecurrenceItems) {
             var cur_dates;
 
-            // if both range start and end are specified, we ask for all of the occurrences,
-            // to make sure we catch all possible exceptions.  If aRangeEnd isn't specified,
-            // then we have to ask for aMaxCount, and hope for the best.
-            var maxCount;
-            if (aRangeStart && aRangeEnd) {
-                maxCount = 0;
-            } else {
-                maxCount = aMaxCount;
-            }
             cur_dates = ritem.getOccurrences(startDate,
                                              searchStart,
                                              rangeEnd,
@@ -424,21 +424,28 @@ calRecurrenceInfo.prototype = {
                                        dates = dates.filter(function (d) { return d.compare(dateToRemove) != 0; });
                                    });
             } else {
-                // XXX todo: IMO a bug here,
-                //           if we are asked for DTSTART dates
-                //           (aReturnRIDs is false => getOccurrenceDates),
-                //           then pumping in the plain expanded rule dates is wrong,
-                //           we need to take the "exception'ed" DTSTART dates
-
                 // if positive, we just add these date to the existing set,
                 // but only if they're not already there
-                var datesToAdd = [];
-                var rinfo = this;
-                cur_dates.forEach (function (dateToAdd) {
-                                       if (!dates.some(function (d) { return d.compare(dateToAdd) == 0; })) {
-                                           dates.push(dateToAdd);
-                                       }
-                                   });
+
+                var index = 0;
+                const len = cur_dates.length;
+
+                // skip items before rangeStart due to searchStart libical hack:
+                if (rangeStart && baseDuration) {
+                    for (; index < len; ++index) {
+                        var date = cur_dates[index].clone();
+                        date.addDuration(baseDuration);
+                        if (rangeStart.compare(date) < 0) {
+                            break;
+                        }
+                    }
+                }
+                for (; index < len; ++index) {
+                    var dateToAdd = cur_dates[index];
+                    if (!dates.some(function (d) { return d.compare(dateToAdd) == 0; })) {
+                        dates.push(dateToAdd);
+                    }
+                }
             }
         }
 

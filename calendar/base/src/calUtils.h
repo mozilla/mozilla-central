@@ -51,6 +51,8 @@
 #include "nsVoidArray.h"
 #include "nsIStringEnumerator.h"
 
+#define CAL_ENSURE_MEMORY(p) NS_ENSURE_TRUE(p, NS_ERROR_OUT_OF_MEMORY)
+
 namespace cal {
 
 nsresult createUTF8StringEnumerator(nsAutoPtr<nsCStringArray> & takeOverArray,

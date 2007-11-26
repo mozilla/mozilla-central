@@ -307,8 +307,9 @@ calDateTime::ToString(nsACString& aResult)
 {
     char buffer[256];
     PRUint32 const length = PR_snprintf(
-        buffer, sizeof(buffer), "%04d/%02d/%02d %02d:%02d:%02d %s",
-        mYear, mMonth + 1, mDay, mHour, mMinute, mSecond, mTimezone.get());
+        buffer, sizeof(buffer), "%04hd/%02hd/%02hd %02hd:%02hd:%02hd %s isDate=%01hd",
+        mYear, mMonth + 1, mDay, mHour, mMinute, mSecond,
+        mTimezone.get(), static_cast<PRInt16>(mIsDate));
     if (length != static_cast<PRUint32>(-1))
         aResult.Assign(buffer, length);
     return NS_OK;

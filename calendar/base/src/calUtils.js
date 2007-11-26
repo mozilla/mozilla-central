@@ -20,6 +20,7 @@
  *
  * Contributor(s):
  *   Philipp Kewisch <mozilla@kewis.ch>
+ *   Daniel Boelzle <daniel.boelzle@sun.com>
  *
  * Alternatively, the contents of this file may be used under the terms of
  * either the GNU General Public License Version 2 or later (the "GPL"), or
@@ -635,16 +636,10 @@ function doQueryInterface(aSelf, aIID, aList, aClassInfo) {
  * @param aDate  the date or datetime to check
  */
 function ensureDateTime(aDate) {
-    if (!aDate) {
-        return null;
-    }
-    if (!aDate.isDate) {
+    if (!aDate || !aDate.isDate) {
         return aDate;
     }
     var newDate = aDate.clone();
-    newDate.hour = 0;
-    newDate.minute = 0;
-    newDate.second = 0;
     newDate.isDate = false;
     return newDate;
 }

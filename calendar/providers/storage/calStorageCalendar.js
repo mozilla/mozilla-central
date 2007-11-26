@@ -25,6 +25,8 @@
  *   Thomas Benisch <thomas.benisch@sun.com>
  *   Matthew Willis <lilmatt@mozilla.com>
  *   Philipp Kewisch <mozilla@kewis.ch>
+ *   Daniel Boelzle <daniel.boelzle@sun.com>
+ *   Sebastian Schwieger <sebo.moz@googlemail.com>
  *
  * Alternatively, the contents of this file may be used under the terms of
  * either the GNU General Public License Version 2 or later (the "GPL"), or
@@ -1180,7 +1182,11 @@ calStorageCalendar.prototype = {
             );
 
         // The more readable version of the next where-clause is:
-        //   WHERE event_end >= :range_start AND event_start < :range_end
+        //   WHERE  ((event_end > :range_start OR
+        //           (event_end = :range_start AND
+        //           event_start = :range_start))
+        //          AND event_start < :range_end)
+        //         
         // but that doesn't work with floating start or end times. The logic
         // is the same though.
         // For readability, a few helpers:
@@ -1193,11 +1199,16 @@ calStorageCalendar.prototype = {
             this.mDB,
             "SELECT * FROM cal_events " +
             "WHERE " +
-            " (("+floatingEventEnd+" >= :range_start + :start_offset) OR " +
-            "  ("+nonFloatingEventEnd+" >= :range_start)) AND " +
-            " (("+floatingEventStart+" < :range_end + :end_offset) OR " +
-            "  ("+nonFloatingEventStart+" < :range_end)) " +
-            "  AND cal_id = :cal_id AND recurrence_id IS NULL"
+            " (("+floatingEventEnd+" > :range_start + :start_offset) OR " +
+            "  ("+nonFloatingEventEnd+" > :range_start) OR " +
+            "  ((("+floatingEventEnd+" = :range_start + :start_offset) OR " +
+            "    ("+nonFloatingEventEnd+" = :range_start)) AND " +
+            "   (("+floatingEventStart+" = :range_start + :start_offset) OR " +
+            "    ("+nonFloatingEventStart+" = :range_start)))) " +
+            " AND " +
+            "  (("+floatingEventStart+" < :range_end + :end_offset) OR " +
+            "   ("+nonFloatingEventStart+" < :range_end)) " +
+            " AND cal_id = :cal_id AND recurrence_id IS NULL"
             );
 
         var floatingTodoEntry = "todo_entry_tz = 'floating' AND todo_entry";
@@ -1209,11 +1220,17 @@ calStorageCalendar.prototype = {
             this.mDB,
             "SELECT * FROM cal_todos " +
             "WHERE " +
-            " ((("+floatingTodoDue+" >= :range_start + :start_offset) OR " +
-            "   ("+nonFloatingTodoDue+" >= :range_start)) OR " +
-            "  (todo_due IS NULL)) AND " +
-            " ((("+floatingTodoEntry+" < :range_end + :end_offset) OR " +
-            "   ("+nonFloatingTodoEntry+" < :range_end)) OR " +
+            " (("+floatingTodoDue+" > :range_start + :start_offset) OR " +
+            "  ("+nonFloatingTodoDue+" > :range_start) OR " +
+            "  (todo_due IS NULL) OR " +
+            "  ((("+floatingTodoDue+" = :range_start + :start_offset) OR " +
+            "    ("+nonFloatingTodoDue+" = :range_start)) AND " +
+            "   (("+floatingTodoEntry+" = :range_start + :start_offset) OR " +
+            "    ("+nonFloatingTodoEntry+" = :range_start) OR " +
+            "    (todo_entry IS NULL)))) " +
+            " AND " +
+            " (("+floatingTodoEntry+" < :range_end + :end_offset) OR " +
+            "  ("+nonFloatingTodoEntry+" < :range_end) OR " +
             "  (todo_entry IS NULL)) " +
             " AND cal_id = :cal_id AND recurrence_id IS NULL"
             );

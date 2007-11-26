@@ -21,6 +21,7 @@
  *
  * Contributor(s):
  *   Vladimir Vukicevic <vladimir.vukicevic@oracle.com>
+ *   Daniel Boelzle <daniel.boelzle@sun.com>
  *
  * Alternatively, the contents of this file may be used under the terms of
  * either the GNU General Public License Version 2 or later (the "GPL"), or
@@ -411,14 +412,17 @@ calRecurrenceRule::GetNextOccurrence(calIDateTime *aStartTime,
     return NS_OK;
 }
 
-static int PR_CALLBACK
-calDateTimeComparator (calIDateTime *aElement1,
-                       calIDateTime *aElement2,
-                       void *aData)
-{
-    PRInt32 result;
-    aElement1->Compare(aElement2, &result);
-    return result;
+static inline icaltimetype ensureDateTime(icaltimetype const& icalt) {
+    if (!icalt.is_date) {
+        return icalt;
+    } else {
+        icaltimetype ret = icalt;
+        ret.is_date = 0;
+        ret.hour = 0;
+        ret.minute = 0;
+        ret.second = 0;
+        return ret;
+    }
 }
 
 NS_IMETHODIMP
@@ -440,21 +444,23 @@ calRecurrenceRule::GetOccurrences(calIDateTime *aStartTime,
 
     nsCOMArray<calIDateTime> dates;
 
-#ifdef DEBUG_vlad
+#ifdef DEBUG_dbo
     {
         char* ss = icalrecurrencetype_as_string(mIcalRecur);
         nsCAutoString tst, tend;
         aRangeStart->ToString(tst);
         aRangeEnd->ToString(tend);
-        fprintf (stderr, "RULE: [%s -> %s, %d]: %s\n", tst.get(), tend.get(), mIcalRecur->count, ss);
+        printf("RULE: [%s -> %s, %d]: %s\n", tst.get(), tend.get(), mIcalRecur->count, ss);
     }
 #endif
 
     struct icaltimetype rangestart, dtstart, dtend;
     aRangeStart->ToIcalTime(&rangestart);
+    rangestart = ensureDateTime(rangestart);
     aStartTime->ToIcalTime(&dtstart);
     if (aRangeEnd) {
         aRangeEnd->ToIcalTime(&dtend);
+        dtend = ensureDateTime(dtend);
 
         // if the start of the recurrence is past the end,
         // we have no dates
@@ -472,15 +478,18 @@ calRecurrenceRule::GetOccurrences(calIDateTime *aStartTime,
 
     PRUint32 count = 0;
 
-    struct icaltimetype next = icalrecur_iterator_next(recur_iter);
-    while (!icaltime_is_null_time(next)) {
+    for (icaltimetype next = icalrecur_iterator_next(recur_iter);
+         !icaltime_is_null_time(next);
+         next = icalrecur_iterator_next(recur_iter))
+    {
+        icaltimetype const dtNext(ensureDateTime(next));
+
         // if this thing is before the range start
-        if (icaltime_compare(next, rangestart) < 0) {
-            next = icalrecur_iterator_next(recur_iter);
+        if (icaltime_compare(dtNext, rangestart) < 0) {
             continue;
         }
 
-        if (aRangeEnd && icaltime_compare(next, dtend) >= 0)
+        if (aRangeEnd && icaltime_compare(dtNext, dtend) >= 0)
             break;
 
         nsCOMPtr<calIDateTime> cdt = new calDateTime(&next);
@@ -490,22 +499,25 @@ calRecurrenceRule::GetOccurrences(calIDateTime *aStartTime,
         }
 
         dates.AppendObject(cdt);
-
-        next = icalrecur_iterator_next(recur_iter);
-
+#ifdef DEBUG_dbo
+        {
+            nsCAutoString str;
+            cdt->ToString(str);
+            printf("  occ: %s\n", str.get());
+        }
+#endif
         count++;
-
         if (aMaxCount && aMaxCount <= count)
             break;
     }
 
     icalrecur_iterator_free(recur_iter);
 
-    dates.Sort(calDateTimeComparator, nsnull);
-
     if (count) {
-        calIDateTime **dateArray = (calIDateTime **) nsMemory::Alloc(sizeof(calIDateTime*) * count);
-        for (int i = 0; i < (int) count; i++) {
+        calIDateTime ** const dateArray =
+            static_cast<calIDateTime **>(nsMemory::Alloc(sizeof(calIDateTime*) * count));
+        CAL_ENSURE_MEMORY(dateArray);
+        for (PRUint32 i = 0; i < count; ++i) {
             NS_ADDREF(dateArray[i] = dates[i]);
         }
         *aDates = dateArray;

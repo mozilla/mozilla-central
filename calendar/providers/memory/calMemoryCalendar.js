@@ -21,6 +21,7 @@
  * Contributor(s):
  *   Vladimir Vukicevic <vladimir.vukicevic@oracle.com>
  *   Philipp Kewisch <mozilla@kewis.ch>
+ *   Daniel Boelzle <daniel.boelzle@sun.com>
  *
  * Alternatively, the contents of this file may be used under the terms of
  * either the GNU General Public License Version 2 or later (the "GPL"), or
@@ -43,16 +44,10 @@
 const calCalendarManagerContractID = "@mozilla.org/calendar/manager;1";
 const calICalendarManager = Components.interfaces.calICalendarManager;
 
-const USECS_PER_SECOND = 1000000;
-
 function calMemoryCalendar() {
     this.initProviderBase();
     this.initMemoryCalendar();
 }
-
-// END_OF_TIME needs to be the max value a PRTime can be
-const START_OF_TIME = -0x7fffffffffffffff;
-const END_OF_TIME = 0x7fffffffffffffff;
 
 calMemoryCalendar.prototype = {
     __proto__: calProviderBase.prototype,
@@ -349,12 +344,6 @@ calMemoryCalendar.prototype = {
         const calIRecurrenceInfo = Components.interfaces.calIRecurrenceInfo;
 
         var itemsFound = Array();
-        var startTime = START_OF_TIME;
-        var endTime = END_OF_TIME;
-        if (aRangeStart)
-            startTime = aRangeStart.nativeTime;
-        if (aRangeEnd)
-            endTime = aRangeEnd.nativeTime;
 
         //
         // filters
@@ -376,6 +365,9 @@ calMemoryCalendar.prototype = {
         // completed?
         var itemCompletedFilter = ((aItemFilter & calICalendar.ITEM_FILTER_COMPLETED_YES) != 0);
         var itemNotCompletedFilter = ((aItemFilter & calICalendar.ITEM_FILTER_COMPLETED_NO) != 0);
+        function checkCompleted(item) {
+            return (item.isCompleted ? itemCompletedFilter : itemNotCompletedFilter);
+        }
 
         // return occurrences?
         var itemReturnOccurrences = ((aItemFilter & calICalendar.ITEM_FILTER_CLASS_OCCURRENCES) != 0);
@@ -394,63 +386,34 @@ calMemoryCalendar.prototype = {
             }
         }
 
-        //  if aCount != 0, we don't attempt to sort anything, and
-        //  instead return the first aCount items that match.
+        aRangeStart = ensureDateTime(aRangeStart);
+        aRangeEnd = ensureDateTime(aRangeEnd);
 
         for (var itemIndex in this.mItems) {
             var item = this.mItems[itemIndex];
-            var itemtoadd = null;
-
-            var itemStartTime = 0;
-            var itemEndTime = 0;
-
-            var tmpitem = item;
-            if (wantEvents && (item instanceof Components.interfaces.calIEvent)) {
-                tmpitem = item.QueryInterface(Components.interfaces.calIEvent);
-                itemStartTime = (item.startDate
-                                 ? item.startDate.nativeTime
-                                 : START_OF_TIME);
-                itemEndTime = (item.endDate
-                               ? item.endDate.nativeTime
-                               : END_OF_TIME);
-            } else if (wantTodos && (item instanceof Components.interfaces.calITodo)) {
-                // if it's a todo, also filter based on completeness
-                if (item.isCompleted && !itemCompletedFilter)
+            var isEvent_ = isEvent(item);
+            if (isEvent_) {
+                if (!wantEvents) {
                     continue;
-                else if (item.isCompleted && !itemNotCompletedFilter)
-                    continue;
-
-                itemStartTime = (item.entryDate
-                                 ? item.entryDate.nativeTime
-                                 : START_OF_TIME);
-                itemEndTime = (item.dueDate
-                               ? item.dueDate.nativeTime
-                               : END_OF_TIME);
-            } else {
-                // XXX unknown item type, wth do we do?
+                }
+            } else if (!wantTodos) {
                 continue;
             }
 
-            // Correct for floating
-            if (aRangeStart && item.startDate && item.startDate.timezone == 'floating')
-                itemStartTime -= aRangeStart.timezoneOffset * USECS_PER_SECOND;
-            if (aRangeEnd && item.endDate && item.endDate.timezone == 'floating')
-                itemEndTime -= aRangeEnd.timezoneOffset * USECS_PER_SECOND;
-
-            if (itemStartTime < endTime) {
-                // figure out if there are recurrences here we care about
-                if (itemReturnOccurrences && item.recurrenceInfo)
-                {
-                    // there might be some recurrences here that we need to handle
-                    var recs = item.recurrenceInfo.getOccurrences (aRangeStart, aRangeEnd, 0, {});
-                    itemsFound = itemsFound.concat(recs);
-                } else if (itemEndTime >= startTime) {
-                    itemsFound.push(item);
+            if (itemReturnOccurrences && item.recurrenceInfo) {
+                var occurrences = item.recurrenceInfo.getOccurrences(
+                    aRangeStart, aRangeEnd, aCount ? aCount - itemsFound.length : 0, {});
+                if (!isEvent_) {
+                    occurrences = occurrences.filter(checkCompleted);
                 }
+                itemsFound = itemsFound.concat(occurrences);
+            } else if ((isEvent_ || checkCompleted(item)) &&
+                       checkIfInRange(item, aRangeStart, aRangeEnd)) {
+                itemsFound.push(item);
             }
-
-            if (aCount && itemsFound.length >= aCount)
+            if (aCount && itemsFound.length >= aCount) {
                 break;
+            }
         }
 
         aListener.onGetResult (this.superCalendar,
