@@ -1669,7 +1669,8 @@ NS_IMETHODIMP nsMsgNewsFolder::SetSortOrder(PRInt32 order)
   PRInt32 oldOrder = mSortOrder;
   
   mSortOrder = order;
-  nsCOMPtr<nsIAtom> sortOrderAtom = NS_NewAtom("SortOrder");
+  nsCOMPtr<nsIAtom> sortOrderAtom = do_GetAtom("SortOrder");
+  // What to do if the atom can't be allocated?
   NotifyIntPropertyChanged(sortOrderAtom, oldOrder, order);
   
   return NS_OK;
