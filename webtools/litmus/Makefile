@@ -36,20 +36,20 @@ templates: index.html.tmpl
 			} \
 		}, no_chdir => 1 }, 'templates/en/default'); \
 	"
-	
+
 # tags: generate ctags style hints for ease of editing
 # requires Exuberant Ctags to be installed (http://ctags.sf.net/)
 ctags: 
 	`which ctags` --excmd=number --tag-relative=no --fields=+a+m+n+S -R `pwd`
 
 tags: ctags
-	
+
 test: 
 	$(PERL) runtests.pl
 
 cache: 
-	$(PERL) -MLitmus -MLitmus::Cache -e "Litmus::Cache::rebuildCache();"
-	@echo "Done";
+	#$(PERL) -MLitmus -MLitmus::Cache -e "Litmus::Cache::rebuildCache();"
+        @echo "Deprecated - rebuildCache no longer required";
 
 clean: 
 	rm -rf data

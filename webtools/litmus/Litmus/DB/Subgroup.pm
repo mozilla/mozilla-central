@@ -300,10 +300,23 @@ sub delete_from_testcases() {
 }
 
 #########################################################################
+sub delete_from_testdays() {
+  my $self = shift;
+  
+  my $dbh = __PACKAGE__->db_Main();  
+  my $sql = "DELETE from testday_subgroups WHERE subgroup_id=?";
+  return $dbh->do($sql,
+                  undef,
+                  $self->subgroup_id
+                 );
+}
+
+#########################################################################
 sub delete_with_refs() {
   my $self = shift;
   $self->delete_from_testgroups();
   $self->delete_from_testcases();
+  $self->delete_from_testdays();
   return $self->delete;
 }
 

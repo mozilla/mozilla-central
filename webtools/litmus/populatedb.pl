@@ -281,11 +281,7 @@ $dbtool->RenameField("locale_lookup", "abbrev", "locale_abbrev");
 
 print "Schema update complete.\n\n";
 
-# javascript cache
-print "Rebuilding JS cache...";
-require Litmus::Cache;
-Litmus::Cache::rebuildCache(); 
-print "done.\n";
+print "Done.\n";
 
 exit;
 

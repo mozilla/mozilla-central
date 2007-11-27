@@ -46,11 +46,13 @@ function init() {
 
   formName = 'testevent_report';
   loadProducts(productBox)
-  FormInit(document.forms['testevent_report'], document.location.search);
+  FormInit(document.forms['testevent_report'], document.location.search, "product");
   changeProduct();
-  FormInit(document.forms['testevent_report'], document.location.search);
+  FormInit(document.forms['testevent_report'], document.location.search, "branch");
   changeBranch();
-  FormInit(document.forms['testevent_report'], document.location.search);
+  FormInit(document.forms['testevent_report'], document.location.search, "testgroup");
+  changeTestgroup();
+  FormInit(document.forms['testevent_report'], document.location.search, "subgroup");
 }
 
 function checkFormContents(f) {
@@ -110,7 +112,7 @@ function checkFormContents(f) {
                 <td colspan="3"><hr/></td>
               </tr>
               <tr>
-                <td>Start Time:</td>
+                <td >Start Time:</td>
                 <td><input name="start_timestamp" id="start_timestamp" type="text" size="16"></td>
 	        <td>&lArr; YYYYMMDDHHmmSS (required)</td>
               </tr>
@@ -130,8 +132,13 @@ function checkFormContents(f) {
               </tr>
               <tr>
                 <td>Testgroup:</td>
-                <td>[% INCLUDE form_widgets/select_testgroup_id.tmpl name="testgroup" placeholder=1 %]</td>
+                <td>[% INCLUDE form_widgets/select_testgroup_id.tmpl name="testgroup" onchange="enableFormAfterLoad=1;changeTestgroup();" placeholder=1 %]</td>
  		<td>&lArr; Select Branch first</td>
+              </tr>
+              <tr>
+                <td>Subgroup(s):</td>
+                <td>[% INCLUDE form_widgets/select_subgroup_id.tmpl name="subgroup" placeholder=1 size=5 multiple=1 %]</td>
+                <td>&lArr; Select Testgroup first</td>
               </tr>
               <tr>
                 <td>Build ID:</td>

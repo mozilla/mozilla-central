@@ -59,8 +59,12 @@ sub _init {
 
   if ($args{testday_id}) {
     my $testday = Litmus::DB::TestDay->retrieve($args{testday_id});
+    
 
     if ($testday) {
+      my @subgroups = Litmus::DB::Subgroup->search_ByTestDay($testday->testday_id);
+      $testday->{'subgroups'} = \@subgroups;
+
       $self->{_planned_testday} = 1;
       
       $self->{_start_timestamp} = &UnixDate($testday->start_timestamp,"%q");
@@ -68,6 +72,7 @@ sub _init {
       $self->{_description} = $testday->description;
       $self->{_product_id} = $testday->product_id;
       $self->{_testgroup_id} = $testday->testgroup_id;
+      $self->{_subgroups} = $testday->subgroups;
       $self->{_build_id} = $testday->build_id;
       $self->{_branch_id} = $testday->branch_id;
       $self->{_locale} = $testday->locale_abbrev;
@@ -89,9 +94,11 @@ sub _init {
   $self->{_description} = "User-defined";  
   $self->{_product_id} = $args{product_id};
   $self->{_testgroup_id} = $args{testgroup_id};
+  $self->{_subgroups} = $args{subgroups};
   $self->{_build_id} = $args{build_id};
   $self->{_branch_id} = $args{branch_id};
   $self->{_locale} = $args{locale};
+
 }
 
 #########################################################################
@@ -113,17 +120,27 @@ sub getBreakdownByLocale {
     $locale_sql_where .= " AND tr.testcase_id=t.testcase_id AND t.product_id=" . $self->{_product_id};
   }
 
+  if ($self->{_branch_id}) {
+    $locale_sql_where .= " AND tr.branch_id=" . $self->{_branch_id};
+  }
+
   if ($self->{_testgroup_id}) {
     $locale_sql_from .= ", testcase_subgroups tsg, subgroup_testgroups sgtg";
     $locale_sql_where .= " AND tr.testcase_id=tsg.testcase_id AND tsg.subgroup_id=sgtg.subgroup_id AND sgtg.testgroup_id=".$self->{_testgroup_id};
+    if ($self->{_subgroups}) {
+      $locale_sql_where .= " AND tsg.subgroup_id IN (";
+      for (my $i=0; $i<=$#{$self->{_subgroups}}; $i++) {
+        if ($i>0) {
+          $locale_sql_where .= ",";
+        }
+        $locale_sql_where .= $self->{_subgroups}[$i]->{subgroup_id};
+      }
+      $locale_sql_where .= ")";
+    }
   }
 
   if ($self->{_build_id}) {
     $locale_sql_where .= " AND tr.build_id LIKE '" . $self->{_build_id} . "%'";
-  }
-
-  if ($self->{_branch_id}) {
-    $locale_sql_where .= " AND tr.branch_id=" . $self->{_branch_id};
   }
 
   if ($self->{_locale}) {
@@ -163,17 +180,27 @@ sub getBreakdownByPlatform {
     $platform_sql_where .= " AND t.product_id=" . $self->{_product_id};
   }
 
+  if ($self->{_branch_id}) {
+    $platform_sql_where .= " AND tr.branch_id=" . $self->{_branch_id};
+  }
+
   if ($self->{_testgroup_id}) {
     $platform_sql_from .= ",  testcase_subgroups tsg, subgroup_testgroups sgtg";
     $platform_sql_where .= " AND tr.testcase_id=tsg.testcase_id AND tsg.subgroup_id=sgtg.subgroup_id AND sgtg.testgroup_id=$self->{_testgroup_id}";
+    if ($self->{_subgroups}) {
+      $platform_sql_where .= " AND tsg.subgroup_id IN (";
+      for (my $i=0; $i<=$#{$self->{_subgroups}}; $i++) {
+        if ($i>0) {
+          $platform_sql_where .= ",";
+        }
+        $platform_sql_where .= $self->{_subgroups}[$i]->{subgroup_id};
+      }
+      $platform_sql_where .= ")";
+    }
   }
 
   if ($self->{_build_id}) {
     $platform_sql_where .= " AND tr.build_id LIKE '" . $self->{_build_id} . "%'";
-  }
-
-  if ($self->{_branch_id}) {
-    $platform_sql_where .= " AND tr.branch_id=" . $self->{_branch_id};
   }
 
   if ($self->{_locale}) {
@@ -214,18 +241,28 @@ sub getBreakdownByResultStatus {
     $status_sql_where .= " AND tr.testcase_id=t.testcase_id AND t.product_id=" . $self->{_product_id};
   }
 
+  if ($self->{_branch_id}) {
+    $status_sql_where .= " AND tr.branch_id=" . $self->{_branch_id};
+  }
+
   if ($self->{_testgroup_id}) {
     $status_sql_from .= ",  testcase_subgroups tsg, subgroup_testgroups sgtg";
     $status_sql_where .= " AND tr.testcase_id=tsg.testcase_id AND tsg.subgroup_id=sgtg.subgroup_id AND sgtg.testgroup_id=" . $self->{_testgroup_id};
+    if ($self->{_subgroups}) {
+      $status_sql_where .= " AND tsg.subgroup_id IN (";
+      for (my $i=0; $i<=$#{$self->{_subgroups}}; $i++) {
+        if ($i>0) {
+          $status_sql_where .= ",";
+        }
+        $status_sql_where .= $self->{_subgroups}[$i]->{subgroup_id};
+      }
+      $status_sql_where .= ")";
+    }
   }
 
   if ($self->{_build_id}) {
     $status_sql_where .= " AND tr.build_id LIKE '" . $self->{_build_id} . "%'";
   } 
-
-  if ($self->{_branch_id}) {
-    $status_sql_where .= " AND tr.branch_id=" . $self->{_branch_id};
-  }
 
   if ($self->{_locale}) {
     $status_sql_where .= " AND tr.locale_abbrev='" . $self->{_locale} . "'";
@@ -264,17 +301,28 @@ sub getBreakdownBySubgroup {
     $subgroup_sql_where .= " AND t.product_id=" . $self->{_product_id};
   }
 
+  if ($self->{_branch_id}) {
+    $subgroup_sql_where .= " AND tr.branch_id=$self->{_branch_id}";
+  }
+
   if ($self->{_testgroup_id}) {
     $subgroup_sql_where .= " AND tg.testgroup_id=" . $self->{_testgroup_id};
+    if ($self->{_subgroups}) {
+      $subgroup_sql_where .= " AND tsg.subgroup_id IN (";
+      for (my $i=0; $i<=$#{$self->{_subgroups}}; $i++) {
+        if ($i>0) {
+          $subgroup_sql_where .= ",";
+        }
+        $subgroup_sql_where .= $self->{_subgroups}[$i]->{subgroup_id};
+      }
+      $subgroup_sql_where .= ")";
+    }
   }
 
   if ($self->{_build_id}) {
     $subgroup_sql_where .= " AND tr.build_id LIKE '" . $self->{_build_id} . "%'";
   }
   
-  if ($self->{_branch_id}) {
-    $subgroup_sql_where .= " AND tr.branch_id=$self->{_branch_id}";
-  }
   if ($self->{_locale}) {
     $subgroup_sql_where .= " AND tr.locale_abbrev='" . $self->{_locale} . "'";
   }
@@ -323,18 +371,29 @@ sub getBreakdownByUser {
     $user_sql_where .= " AND t.product_id=" . $self->{_product_id};
   }
 
+  if ($self->{_branch_id}) {
+    $user_sql_where .= " AND tr.branch_id=" . $self->{_branch_id};
+  }
+
   if ($self->{_testgroup_id}) {
     $user_sql_from .= ",  testcase_subgroups tsg, subgroup_testgroups sgtg";
     $user_sql_where .= " AND tr.testcase_id=tsg.testcase_id AND tsg.subgroup_id=sgtg.subgroup_id AND sgtg.testgroup_id=" . $self->{_testgroup_id};
+    if ($self->{_subgroups}) {
+      $user_sql_where .= " AND tsg.subgroup_id IN (";
+      for (my $i=0; $i<=$#{$self->{_subgroups}}; $i++) {
+        if ($i>0) {
+          $user_sql_where .= ",";
+        }
+        $user_sql_where .= $self->{_subgroups}[$i]->{subgroup_id};
+      }
+      $user_sql_where .= ")";
+    }
   }
 
   if ($self->{_build_id}) {
     $user_sql_where .= " AND tr.build_id LIKE '" . $self->{_build_id} . "%'";
   }
 
-  if ($self->{_branch_id}) {
-    $user_sql_where .= " AND tr.branch_id=" . $self->{_branch_id};
-  }
   if ($self->{_locale}) {
     $user_sql_where .= " AND tr.locale_abbrev='" . $self->{_locale} . "'";
   }
@@ -373,17 +432,27 @@ sub getBreakdownByUserAndResultStatus {
     $tester_sql_where .= " AND tr.testcase_id=t.testcase_id AND t.product_id=" . $self->{_product_id};
   }
 
+  if ($self->{_branch_id}) {
+    $tester_sql_where .= " AND tr.branch_id=$self->{_branch_id}";
+  }
+
   if ($self->{_testgroup_id}) {
     $tester_sql_from .= ",  testcase_subgroups tsg, subgroup_testgroups sgtg";
     $tester_sql_where .= " AND tr.testcase_id=tsg.testcase_id AND tsg.subgroup_id=sgtg.subgroup_id AND sgtg.testgroup_id=$self->{_testgroup_id}";
+    if ($self->{_subgroups}) {
+      $tester_sql_where .= " AND tsg.subgroup_id IN (";
+      for (my $i=0; $i<=$#{$self->{_subgroups}}; $i++) {
+        if ($i>0) {
+          $tester_sql_where .= ",";
+        }
+        $tester_sql_where .= $self->{_subgroups}[$i]->{subgroup_id};
+      }
+      $tester_sql_where .= ")";
+    }
   }
   
   if ($self->{_build_id}) {
     $tester_sql_where .= " AND tr.build_id LIKE '$self->{_build_id}%'";
-  }
-  
-  if ($self->{_branch_id}) {
-    $tester_sql_where .= " AND tr.branch_id=$self->{_branch_id}";
   }
   
   if ($self->{_locale}) {

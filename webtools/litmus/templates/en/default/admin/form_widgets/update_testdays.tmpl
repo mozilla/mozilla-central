@@ -73,8 +73,13 @@
           </tr>
           <tr>
             <td class="headerleft">Testgroup:</td>
-            <td>[% INCLUDE form_widgets/select_testgroup_id.tmpl name="testgroup" placeholder=1 %]</td>
+            <td>[% INCLUDE form_widgets/select_testgroup_id.tmpl name="testgroup" placeholder=1 onchange="enableFormAfterLoad=1;changeTestgroup();" %]</td>
             <td>&lArr; Select Branch first</td>
+          </tr>
+          <tr>
+            <td class="headerleft" valign="top">Subgroup(s):</td>
+            <td>[% INCLUDE form_widgets/select_subgroup_id.tmpl name="subgroup" placeholder=1 size=5 multiple=1 %]</td>
+            <td>&lArr; Select Testgroup first</td>
           </tr>
           <tr>
             <td class="headerleft">Build ID:</td>

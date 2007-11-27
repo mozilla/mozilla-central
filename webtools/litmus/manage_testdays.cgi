@@ -53,7 +53,6 @@ print $c->header();
 my $message;
 my $status;
 my $rv;
-my $rebuild_cache = 0;
 my $defaults;
 my $warning;
 
@@ -65,11 +64,10 @@ if ($c->param) {
     my $testday = Litmus::DB::TestDay->retrieve($testday_id);
     if ($testday) {
       Litmus::Auth::requireProductAdmin("manage_testdays.cgi", $testday->product());
-      $rv = $testday->delete;
+      $rv = $testday->delete_with_refs;
       if ($rv) {
         $status = "success";
         $message = "Testday ID# $testday_id deleted successfully.";
-        $rebuild_cache=1;
       } else {
         $status = "failure";
         $message = "Failed to delete testday ID# $testday_id.";
@@ -85,7 +83,7 @@ if ($c->param) {
                   start_timestamp => $c->param('edit_testday_form_start_timestamp'),
                   finish_timestamp => $c->param('edit_testday_form_finish_timestamp'),
                  );
-      
+      my @subgroups;
       
       if ($c->param('product')) {
         Litmus::Auth::requireProductAdmin("manage_testdays.cgi", $c->param('product'));
@@ -96,6 +94,9 @@ if ($c->param) {
       }
       if ($c->param('testgroup')) {
         $hash{testgroup_id} = $c->param('testgroup');
+      }
+      if ($c->param('subgroup')) {
+        @subgroups = $c->param('subgroup');
       }
       if ($c->param('build_id')) {
         $hash{build_id} = $c->param('build_id');
@@ -115,6 +116,9 @@ if ($c->param) {
       my $new_testday = 
         Litmus::DB::TestDay->create(\%hash);
       if ($new_testday) {
+        if (scalar @subgroups) {
+          $new_testday->update_subgroups(\@subgroups);
+        }
         $status = "success";
         $message = "Testday added successfully. New testday ID# is " . $new_testday->testday_id;
         if (@overlap) {
@@ -122,7 +126,6 @@ if ($c->param) {
         }
                 
         $defaults->{'testday_id'} = $new_testday->testday_id;
-        $rebuild_cache=1;
       } else {
         $status = "failure";
         $message = "Failed to add testday.";
@@ -131,6 +134,7 @@ if ($c->param) {
       my $testday_id = $c->param("edit_testday_form_testday_id");
       my $testday = Litmus::DB::TestDay->retrieve($testday_id);
       if ($testday) {
+        my @subgroups;
         Litmus::Auth::requireProductAdmin("manage_testdays.cgi", $testday->product());
         $testday->description($c->param('edit_testday_form_desc'));
         $testday->start_timestamp($c->param('edit_testday_form_start_timestamp'));
@@ -145,6 +149,9 @@ if ($c->param) {
         if ($c->param('testgroup')) {
           $testday->testgroup_id($c->param('testgroup'));
         }
+        if ($c->param('subgroup')) {
+          @subgroups = $c->param('subgroup');
+        }
         if ($c->param('build_id')) {
           $testday->build_id($c->param('build_id'));
         }
@@ -155,10 +162,10 @@ if ($c->param) {
 
         $rv = $testday->update();
         if ($rv) {
+          $testday->update_subgroups(\@subgroups);
           $status = "success";
           $message = "Testday ID# $testday_id updated successfully.";
           $defaults->{'testday_id'} = $testday_id;
-          $rebuild_cache=1;
         } else {
           $status = "failure";
           $message = "Failed to update testday ID# $testday_id.";
@@ -172,13 +179,10 @@ if ($c->param) {
 
 }
 
-if ($rebuild_cache) {
-  Litmus::Cache::rebuildCache();
-}
-
 my $products = Litmus::FormWidget->getProducts();
 my $branches = Litmus::FormWidget->getBranches();
 my $testgroups = Litmus::FormWidget->getTestgroups();
+my $subgroups = Litmus::FormWidget->getSubgroups();
 my $testdays = Litmus::FormWidget->getTestdays();
 my $locales = Litmus::FormWidget->getLocales;
 
@@ -186,6 +190,7 @@ my $json = JSON->new(skipinvalid => 1, convblessed => 1);
 my $products_js = $json->objToJson($products);
 my $branches_js = $json->objToJson($branches);
 my $testgroups_js = $json->objToJson($testgroups);
+my $subgroups_js = $json->objToJson($subgroups);
 
 my $vars = {
             title => 'Manage Testdays',
@@ -199,6 +204,7 @@ my $vars = {
 $vars->{'products_js'} = $products_js;
 $vars->{'branches_js'} = $branches_js;
 $vars->{'testgroups_js'} = $testgroups_js;
+$vars->{'subgroups_js'} = $subgroups_js;
 
 if ($status and $message) {
   $vars->{'onload'} = "toggleMessage('$status','$message');";

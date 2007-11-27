@@ -52,7 +52,6 @@ print $c->header();
 my $message;
 my $status;
 my $rv;
-my $rebuild_cache = 0;
 my $defaults;
 
 if ($c->param) {
@@ -76,7 +75,6 @@ if ($c->param) {
       if ($rv) {
         $status = "success";
         $message = "Product ID# $product_id deleted successfully.";
-        $rebuild_cache=1;
       } else {
         $status = "failure";
         $message = "Failed to delete Product ID# $product_id.";
@@ -108,7 +106,6 @@ if ($c->param) {
         $status = "success";
         $message = "Product added successfully. New product ID# is " . $new_product->product_id;
         $defaults->{'product_id'} = $new_product->product_id;
-        $rebuild_cache=1;
       } else {
         $status = "failure";
         $message = "Failed to add product.";        
@@ -125,7 +122,6 @@ if ($c->param) {
           $status = "success";
           $message = "Product ID# $product_id updated successfully.";
           $defaults->{'product_id'} = $product_id;
-          $rebuild_cache=1;
         } else {
           $status = "failure";
           $message = "Failed to update product ID# $product_id.";        
@@ -147,7 +143,6 @@ if ($c->param) {
       if ($rv) {
         $status = "success";
         $message = "Platform ID# $platform_id deleted successfully.";
-        $rebuild_cache=1;
       } else {
         $status = "failure";
         $message = "Failed to delete Platform ID# $platform_id.";
@@ -171,7 +166,6 @@ if ($c->param) {
         $status = "success";
         $message = "Platform added successfully. New platform ID# is " . $new_platform->platform_id;
         $defaults->{'platform_id'} = $new_platform->platform_id;
-        $rebuild_cache=1;
       } else {
         $status = "failure";
         $message = "Failed to add platform.";        
@@ -190,7 +184,6 @@ if ($c->param) {
           $status = "success";
           $message = "Platform ID# $platform_id updated successfully.";
           $defaults->{'platform_id'} = $platform_id;
-          $rebuild_cache=1;
         } else {
           $status = "failure";
           $message = "Failed to update platform ID# $platform_id.";        
@@ -212,7 +205,6 @@ if ($c->param) {
       if ($rv) {
         $status = "success";
         $message = "Operating system ID# $opsys_id deleted successfully.";
-        $rebuild_cache=1;
       } else {
         $status = "failure";
         $message = "Failed to delete Operating system ID# $opsys_id.";
@@ -234,7 +226,6 @@ if ($c->param) {
         $status = "success";
         $message = "Operating system added successfully. New operating system ID# is " . $new_opsys->opsys_id;
         $defaults->{'opsys_id'} = $new_opsys->opsys_id;
-        $rebuild_cache=1;
       } else {
         $status = "failure";
         $message = "Failed to add operating system.";        
@@ -251,7 +242,6 @@ if ($c->param) {
           $status = "success";
           $message = "Operating system ID# $opsys_id updated successfully.";
           $defaults->{'opsys_id'} = $opsys_id;
-          $rebuild_cache=1;
         } else {
           $status = "failure";
           $message = "Failed to update operating system ID# $opsys_id.";
@@ -275,7 +265,6 @@ if ($c->param) {
       if ($rv) {
         $status = "success";
         $message = "Branch ID# $branch_id deleted successfully.";
-        $rebuild_cache=1;
       } else {
         $status = "failure";
         $message = "Failed to delete branch ID# $branch_id.";
@@ -304,7 +293,6 @@ if ($c->param) {
         $status = "success";
         $message = "Branch added successfully. New branch ID# is " . $new_branch->branch_id;
         $defaults->{'branch_id'} = $new_branch->branch_id;
-        $rebuild_cache=1;
       } else {
         $status = "failure";
         $message = "Failed to add branch.";
@@ -326,7 +314,6 @@ if ($c->param) {
           $status = "success";
           $message = "Branch ID# $branch_id updated successfully.";
           $defaults->{'branch_id'} = $branch_id;
-          $rebuild_cache=1;
         } else {
           $status = "failure";
           $message = "Failed to update branch ID# $branch_id.";
@@ -338,10 +325,6 @@ if ($c->param) {
     }
   }
 
-}
-
-if ($rebuild_cache) {
-  Litmus::Cache::rebuildCache();
 }
 
 my $products = Litmus::FormWidget->getProducts();

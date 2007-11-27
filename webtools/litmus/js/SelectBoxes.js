@@ -350,7 +350,7 @@ function populateBranches(branchBox,productBox) {
   }
 }
 
-function setSelected(selectBox,selectedValue) {
+function setSelected(selectBox,selectedValue,preserveAlreadySelected) {
   var options = selectBox.getElementsByTagName('option');
   var found_selected = 0;
   for (var i=0; i<options.length; i++) {
@@ -358,7 +358,9 @@ function setSelected(selectBox,selectedValue) {
       options[i].selected = true;
       found_selected=1;
     } else {
-      options[i].selected = false;
+      if (!preserveAlreadySelected) { 
+        options[i].selected = false;
+      }
     }
   }
   if (found_selected == 0) {

@@ -28,6 +28,7 @@
 # ***** END LICENSE BLOCK *****
 
 use strict;
+use diagnostics;
 
 use Time::HiRes qw( gettimeofday tv_interval );
 our $t0 = [gettimeofday];

@@ -19,6 +19,7 @@
 # Rights Reserved.
 #
 # Contributor(s): Zach Lipton <zach@zachlipton.com>
+#                 Chris Cooper <ccooper@deadsquid.com>
 
 use strict;
 
@@ -54,14 +55,24 @@ if ($c->param) {
     $testday = Litmus::TestEvent->new(testday_id => $c->param("testday_id"));
   } elsif ($c->param("start_timestamp") and 
            $c->param("finish_timestamp")) {
-    $testday = Litmus::TestEvent->new(start_timestamp => $c->param("start_timestamp"),
-                                      finish_timestamp => $c->param("finish_timestamp"),
-                                      testgroup_id => $c->param("testgroup_id"),
-                                      build_id => $c->param("build_id"),
-                                      branch_id => $c->param("branch_id"),
-                                      locale => $c->param("locale"),
-);
-    
+    my @subgroups;
+    if ($c->param('subgroup')) {
+      my @subgroup_ids = $c->param('subgroup');
+      foreach my $subgroup_id (@subgroup_ids) {
+        push @subgroups, Litmus::DB::Subgroup->retrieve($subgroup_id);
+      }
+    }
+    $testday = Litmus::TestEvent->new(
+                                      (start_timestamp => $c->param("start_timestamp"),
+                                       finish_timestamp => $c->param("finish_timestamp"),
+                                       product_id => $c->param("product"),
+                                       branch_id => $c->param("branch"),
+                                       testgroup_id => $c->param("testgroup"),
+                                       subgroups => \@subgroups,
+                                       build_id => $c->param("build_id"),
+                                       locale => $c->param("locale"),
+                                      )
+                                     );    
   }
 
   my $include_admin = 0;
