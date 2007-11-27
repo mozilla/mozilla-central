@@ -42,8 +42,8 @@
 <!ENTITY  homepageURL.label             "Homepage URL:">
 <!ENTITY  updateURL.label               "Update URL:">
 <!ENTITY  icon.label                    "Icon:">
-<!ENTITY  chooseFile.label              "Choose File...">
-<!ENTITY  chooseDir.label               "Choose Dir...">
+<!ENTITY  chooseFile.label              "Choose File…">
+<!ENTITY  chooseDir.label               "Choose Dir…">
 
 <!ENTITY  filename.label                "Filename:">
 

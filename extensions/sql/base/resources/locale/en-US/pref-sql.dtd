@@ -37,4 +37,4 @@
 
 <!ENTITY aliasManager.label "Alias Manager">
 <!ENTITY aliasManagerDescription.label "Alias manager maintains a set of aliases, one for each database to connect to.">
-<!ENTITY manageAliases.label "Manage Aliases...">
+<!ENTITY manageAliases.label "Manage Aliases…">

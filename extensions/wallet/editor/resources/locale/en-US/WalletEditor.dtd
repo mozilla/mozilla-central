@@ -8,7 +8,7 @@
 <!ENTITY     treehead.synonyms1.label        " ">
 <!ENTITY     treehead.synonymsoff.label     "Select a value above to see its synonyms">
 <!ENTITY     button.remove.label            "Remove">
-<!ENTITY     button.addschema.label         "Add New Field ...">
-<!ENTITY     button.addentry.label          "Add New Value ...">
-<!ENTITY     button.addsynonym.label        "Add New Synonym ...">
+<!ENTITY     button.addschema.label         "Add New Field …">
+<!ENTITY     button.addentry.label          "Add New Value …">
+<!ENTITY     button.addsynonym.label        "Add New Synonym …">
 <!ENTITY     windowtitle.label              "Stored Form Data">
