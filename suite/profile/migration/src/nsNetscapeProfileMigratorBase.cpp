@@ -809,14 +809,28 @@ nsNetscapeProfileMigratorBase::WriteBranch(const char * branchName,
 nsresult
 nsNetscapeProfileMigratorBase::CopyCookies(PRBool aReplace)
 {
-  if (aReplace)
+  if (aReplace) {
+    // can't start the cookieservice, so just push files around:
+    // 1) remove target cookies.sqlite file if it exists, to force import
+    // 2) copy source cookies.txt file, which will be imported on startup
+    nsCOMPtr<nsIFile> targetFile;
+    mTargetProfile->Clone(getter_AddRefs(targetFile));
+    targetFile->AppendNative(NS_LITERAL_CSTRING(FILE_NAME_COOKIES_SQLITE));
+    targetFile->Remove(PR_FALSE);
+
     return CopyFile(FILE_NAME_COOKIES, FILE_NAME_COOKIES);
+  }
+
+  nsresult rv;
+  nsCOMPtr<nsICookieManager2> cookieManager(do_GetService(NS_COOKIEMANAGER_CONTRACTID, &rv));
+  if (NS_FAILED(rv)) 
+    return rv;
 
   nsCOMPtr<nsIFile> seamonkeyCookiesFile;
   mSourceProfile->Clone(getter_AddRefs(seamonkeyCookiesFile));
   seamonkeyCookiesFile->AppendNative(NS_LITERAL_CSTRING(FILE_NAME_COOKIES));
 
-  return ImportNetscapeCookies(seamonkeyCookiesFile);
+  return cookieManager->ImportCookies(seamonkeyCookiesFile);
 }
 
 nsresult
@@ -866,95 +880,6 @@ nsNetscapeProfileMigratorBase::CopyUserSheet(const char* aFileName)
 
   return sourceUserContent->CopyToNative(targetChromeDir,
                                          nsDependentCString(aFileName));
-}
-
-nsresult
-nsNetscapeProfileMigratorBase::ImportNetscapeCookies(nsIFile* aCookiesFile)
-{
-  nsresult rv;
-  nsCOMPtr<nsIInputStream> cookiesStream;
-  rv = NS_NewLocalFileInputStream(getter_AddRefs(cookiesStream), aCookiesFile);
-  if (NS_FAILED(rv))
-    return rv;
-
-  nsCOMPtr<nsILineInputStream> lineInputStream(
-    do_QueryInterface(cookiesStream));
-
-  // This code is copied from mozilla/netwerk/cookie/src/nsCookieManager.cpp
-  static NS_NAMED_LITERAL_CSTRING(kTrue, "TRUE");
-
-  nsCAutoString buffer;
-  PRBool isMore = PR_TRUE;
-  PRInt32 hostIndex = 0, isDomainIndex, pathIndex, secureIndex;
-  PRInt32 expiresIndex, nameIndex, cookieIndex;
-  PRInt32 numInts;
-  PRInt64 expires;
-  PRBool isDomain;
-  PRInt64 currentTime = PR_Now() / PR_USEC_PER_SEC;
-
-  nsCOMPtr<nsICookieManager2> cookieManager(
-    do_GetService(NS_COOKIEMANAGER_CONTRACTID, &rv));
-  if (NS_FAILED(rv)) return rv;
-
-  /* file format is:
-   *
-   * host \t isDomain \t path \t secure \t expires \t name \t cookie
-   *
-   * if this format isn't respected we move onto the next line in the file.
-   * isDomain is "TRUE" or "FALSE" (default to "FALSE")
-   * isSecure is "TRUE" or "FALSE" (default to "TRUE")
-   * expires is a PRInt64 integer
-   * note 1: cookie can contain tabs.
-   * note 2: cookies are written in order of lastAccessed time:
-   *         most-recently used come first; least-recently-used come last.
-   */
-
-  while (isMore && NS_SUCCEEDED(lineInputStream->ReadLine(buffer, &isMore))) {
-    if (buffer.IsEmpty() || buffer.First() == '#')
-      continue;
-
-    // this is a cheap, cheesy way of parsing a tab-delimited line into
-    // string indexes, which can be lopped off into substrings. just for
-    // purposes of obfuscation, it also checks that each token was found.
-    // todo: use iterators?
-    if ((isDomainIndex = buffer.FindChar('\t', hostIndex)     + 1) == 0 ||
-        (pathIndex     = buffer.FindChar('\t', isDomainIndex) + 1) == 0 ||
-        (secureIndex   = buffer.FindChar('\t', pathIndex)     + 1) == 0 ||
-        (expiresIndex  = buffer.FindChar('\t', secureIndex)   + 1) == 0 ||
-        (nameIndex     = buffer.FindChar('\t', expiresIndex)  + 1) == 0 ||
-        (cookieIndex   = buffer.FindChar('\t', nameIndex)     + 1) == 0)
-      continue;
-
-    // check the expirytime first - if it's expired, ignore
-    // nullstomp the trailing tab, to avoid copying the string
-    char* iter = buffer.BeginWriting();
-    *(iter += nameIndex - 1) = char(0);
-    numInts = PR_sscanf(buffer.get() + expiresIndex, "%lld", &expires);
-    if (numInts != 1 || expires < currentTime)
-      continue;
-
-    isDomain = Substring(buffer, isDomainIndex,
-                         pathIndex - isDomainIndex - 1).Equals(kTrue);
-    const nsDependentCSubstring &host =
-      Substring(buffer, hostIndex, isDomainIndex - hostIndex - 1);
-    // check for bad legacy cookies (domain not starting with a dot,
-    // or containing a port), and discard
-    if (isDomain && !host.IsEmpty() && host.First() != '.' ||
-        host.FindChar(':') != -1)
-      continue;
-
-    // create a new nsCookie and assign the data.
-    rv = cookieManager->Add(host,
-                            Substring(buffer, pathIndex, secureIndex - pathIndex - 1),
-                            Substring(buffer, nameIndex, cookieIndex - nameIndex - 1),
-                            Substring(buffer, cookieIndex, buffer.Length() - cookieIndex),
-                            Substring(buffer, secureIndex, expiresIndex - secureIndex - 1).Equals(kTrue),
-                            PR_FALSE, // isHttpOnly
-                            PR_FALSE, // isSession
-                            expires);
-  }
-
-  return rv;
 }
 
 nsresult

@@ -58,6 +58,7 @@ struct fileTransactionEntry {
 
 #define FILE_NAME_BOOKMARKS       "bookmarks.html"
 #define FILE_NAME_COOKIES         "cookies.txt"
+#define FILE_NAME_COOKIES_SQLITE  "cookies.sqlite"
 #define FILE_NAME_PREFS           "prefs.js"
 #define FILE_NAME_JUNKTRAINING    "training.dat"
 #define FILE_NAME_VIRTUALFOLDERS  "virtualFolders.dat"
@@ -158,7 +159,6 @@ protected:
   nsresult CopyPasswords(PRBool aReplace);
   nsresult CopyUserSheet(const char* aFileName);
   nsresult GetSignonFileName(PRBool aReplace, char** aFileName);
-  nsresult ImportNetscapeCookies(nsIFile* aCookiesFile);
 
   // Browser Import Functions
   nsresult CopyBookmarks(PRBool aReplace);
