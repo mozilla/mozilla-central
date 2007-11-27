@@ -185,8 +185,7 @@ if ($c->param) {
     if ($where_criteria eq '' and 
         $order_by_criteria eq '' and
         $limit_criteria eq '') {
-        ($criteria,$results,$pager) = 
-          Litmus::DB::Testresult->getDefaultTestResults($page);    
+        $criteria = "No criteria specified";
     } else {
         $criteria .= $where_criteria . $order_by_criteria . $limit_criteria;
         $criteria =~ s/_/ /g;
@@ -196,8 +195,7 @@ if ($c->param) {
                                                                    $page);
     }
 } else {
-    ($criteria,$results,$pager) = 
-      Litmus::DB::Testresult->getDefaultTestResults($page);    
+    $criteria = "No criteria specified";
 }
 
 # Populate each of our form widgets for select/input.
