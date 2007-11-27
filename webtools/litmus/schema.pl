@@ -363,6 +363,11 @@ $table{testdays} =
          index(branch_id),
          index(locale_abbrev)';
 
+$table{testday_subgroups} =
+        'testday_id smallint(6) not null default \'0\',
+         subgroup_id smallint(6) not null default \'0\',
+         primary key(testday_id, subgroup_id)';
+
 $table{testgroups} = 
 	'testgroup_id smallint(6) not null primary key auto_increment,
 	 product_id tinyint(4) not null,

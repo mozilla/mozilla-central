@@ -20,7 +20,7 @@ install: templates
 		\$$template->context()->template('$@'); \
 	"
 
-templates: index.html.tmpl
+templates: index.tmpl
 	$(PERL) -e " \
 		use File::Find; \
 		find({ wanted => sub { \
@@ -48,8 +48,7 @@ test:
 	$(PERL) runtests.pl
 
 cache: 
-	#$(PERL) -MLitmus -MLitmus::Cache -e "Litmus::Cache::rebuildCache();"
-        @echo "Deprecated - rebuildCache no longer required";
+	@echo "Deprecated - rebuildCache no longer required";
 
 clean: 
 	rm -rf data
