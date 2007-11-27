@@ -231,7 +231,8 @@ function saveDocument(aDocument)
     // Failure to get a content-disposition is ok
   }
   internalSave(aDocument.location.href, aDocument, null, dispHeader,
-               aDocument.contentType, false, null, null);
+               aDocument.contentType, false, null, null,
+               aDocument.referrer ? makeURI(aDocument.referrer) : null);
 }
 
 function DownloadListener(win, transfer) {
