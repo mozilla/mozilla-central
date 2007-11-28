@@ -232,10 +232,10 @@ pref("app.update.mode", 1);
 pref("app.update.silent", false);
 
 // Update service URL:
-pref("app.update.url", "https://aus2.mozilla.org/update/1/%PRODUCT%/%VERSION%/%BUILD_ID%/%BUILD_TARGET%/%LOCALE%/%CHANNEL%/update.xml");
+pref("app.update.url", "https://aus2-community.mozilla.org/update/1/%PRODUCT%/%VERSION%/%BUILD_ID%/%BUILD_TARGET%/%LOCALE%/%CHANNEL%/update.xml");
 // URL user can browse to manually if for some reason all update installation
 // attempts fail.
-pref("app.update.url.manual", "http://www.mozilla.org/projects/seamonkey/");
+pref("app.update.url.manual", "http://www.seamonkey-project.org/");
 // A default value for the "More information about this update" link
 // supplied in the "An update is available" page of the update wizard. 
 pref("app.update.url.details", "chrome://communicator-region/locale/region.properties");
@@ -335,11 +335,6 @@ pref("browser.throbber.url","chrome://navigator-region/locale/region.properties"
 pref("alerts.slideIncrement", 1);
 pref("alerts.slideIncrementTime", 10);
 pref("alerts.totalOpenTime", 4000);
-
-// update notifications prefs
-pref("update_notifications.enabled", true);
-pref("update_notifications.provider.0.frequency", 7); // number of days
-pref("update_notifications.provider.0.datasource", "chrome://communicator-region/locale/region.properties");
 
 // 0 opens the download manager
 // 1 opens a progress dialog

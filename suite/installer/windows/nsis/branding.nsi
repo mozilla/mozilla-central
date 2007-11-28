@@ -40,7 +40,7 @@
 !define BrandFullNameInternal   "SeaMonkey"
 !define CompanyName             "mozilla.org"
 !define URLInfoAbout            "http://www.mozilla.org"
-!define URLUpdateInfo           "http://www.mozilla.org/projects/seamonkey"
+!define URLUpdateInfo           "http://www.seamonkey-project.org"
 
 # Percentage of new "Standard" installs to enable talkback for
 !define RandomPercent           "100"

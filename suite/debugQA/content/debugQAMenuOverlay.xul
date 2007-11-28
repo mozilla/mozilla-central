@@ -201,7 +201,7 @@
     <menu id="qaMenu" accesskey="Q" label="QA">
       <menupopup id="qaMenuPopup">
         <menuitem label="Getting Involved"
-                  oncommand="openTopWin('http://www.mozilla.org/projects/seamonkey/start/');"/>
+                  oncommand="openTopWin('http://www.seamonkey-project.org/start/');"/>
         <menuitem label="Mozilla QA Overview"
                   oncommand="openTopWin('http://www.mozilla.org/quality/');"/>
 
