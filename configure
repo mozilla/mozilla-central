@@ -1069,7 +1069,7 @@ GLIB_VERSION=1.2.0
 LIBIDL_VERSION=0.6.3
 PERL_VERSION=5.006
 LIBART_VERSION=2.3.4
-CAIRO_VERSION=1.4.2
+CAIRO_VERSION=1.5.2
 GLITZ_VERSION=0.4.0
 PANGO_VERSION=1.10.0
 GTK2_VERSION=1.8.0
@@ -11976,7 +11976,7 @@ else
   echo "$ac_t""no" 1>&6
 fi
 
-	min_nspr_version=4.0.0
+	min_nspr_version=4.7.0
 	echo $ac_n "checking for NSPR - version >= $min_nspr_version (skipping)""... $ac_c" 1>&6
 echo "configure:11982: checking for NSPR - version >= $min_nspr_version (skipping)" >&5
 
@@ -12137,7 +12137,7 @@ else
   echo "$ac_t""no" 1>&6
 fi
 
-	min_nss_version=3.0.0
+	min_nss_version=3.12.0
 	echo $ac_n "checking for NSS - version >= $min_nss_version (skipping)""... $ac_c" 1>&6
 echo "configure:12143: checking for NSS - version >= $min_nss_version (skipping)" >&5
 
