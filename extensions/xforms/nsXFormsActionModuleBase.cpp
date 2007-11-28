@@ -21,6 +21,7 @@
  *
  * Contributor(s):
  *   Olli Pettay <Olli.Pettay@helsinki.fi> (original author)
+ *   John L. Clark <jlc6@po.cwru.edu>
  *
  * Alternatively, the contents of this file may be used under the terms of
  * either of the GNU General Public License Version 2 or later (the "GPL"),
@@ -49,7 +50,16 @@
 #include "nsIDOMDocumentEvent.h"
 #include "nsIDOMEventTarget.h"
 
-nsXFormsActionModuleBase::nsXFormsActionModuleBase() : mElement(nsnull)
+#include "nsXFormsUtils.h"
+#include "nsIDOMAttr.h"
+#include "nsIXFormsControl.h"
+
+#include "nsIPrefBranch.h"
+#include "nsIPrefService.h"
+#include "nsServiceManagerUtils.h"
+
+nsXFormsActionModuleBase::nsXFormsActionModuleBase(PRBool canIterate) :
+  nsXFormsStubElement(), mCanIterate(canIterate)
 {
 }
 
@@ -131,3 +141,124 @@ nsXFormsActionModuleBase::HandleEvent(nsIDOMEvent* aEvent)
            HandleAction(aEvent, nsnull) : NS_OK;
 }
 
+NS_IMETHODIMP
+nsXFormsActionModuleBase::HandleAction(nsIDOMEvent            *aEvent,
+                                       nsIXFormsActionElement *aParentAction)
+{
+  if (!mElement)
+    return NS_OK;
+
+  // Set the maximum run time for the loop (in microseconds).
+  PRTime microseconds = nsXFormsUtils::waitLimit * PR_USEC_PER_SEC;
+
+  PRTime runTime = 0, start = PR_Now();
+
+  while (PR_TRUE) {
+    // Test the `if` and `while` attributes to determine whether this action
+    // can be performed and should be repeated.
+    PRBool usesWhile;
+    if (!CanPerformAction(&usesWhile)) {
+      return NS_OK;
+    }
+
+    nsresult rv = HandleSingleAction(aEvent, aParentAction);
+    NS_ENSURE_SUCCESS(rv, rv);
+
+    // Repeat this action if it can iterate and if it uses the `while`
+    // attribute (the expression of which must have evaluated to true to
+    // arrive here).
+    if (!mCanIterate || !usesWhile) {
+      return NS_OK;
+    }
+
+    // See if we've exceeded our time limit, and if so, prompt the user to
+    // determine if she wants to cancel the loop.
+    LL_SUB(runTime, PR_Now(), start);
+    if (microseconds <= 0 || runTime < microseconds) {
+      continue;
+    }
+
+    // The remaining part of the loop prompts the user about cancelling the
+    // loop, and is only executed if we've gone over the time limit.
+    PRBool stopWaiting = nsXFormsUtils::AskStopWaiting(mElement);
+
+    if (stopWaiting) {
+      // Stop the loop
+      return NS_OK;
+    } else {
+      start = PR_Now();
+    }
+  }
+}
+
+PRBool
+nsXFormsActionModuleBase::CanPerformAction(PRBool     *aUsesWhile,
+                                           nsIDOMNode *aContext,
+                                           PRInt32     aContextSize,
+                                           PRInt32     aContextPosition)
+{
+  *aUsesWhile = PR_FALSE;
+
+  nsAutoString ifExpr;
+  nsAutoString whileExpr;
+  mElement->GetAttribute(NS_LITERAL_STRING("if"), ifExpr);
+  mElement->GetAttribute(NS_LITERAL_STRING("while"), whileExpr);
+
+  if (whileExpr.IsEmpty() && ifExpr.IsEmpty()) {
+    return PR_TRUE;
+  }
+
+  nsresult rv;
+  nsCOMPtr<nsIDOMXPathResult> res;
+  PRBool condTrue;
+
+  nsCOMPtr<nsIDOMNode> contextNode;
+
+  if (aContext) {
+    contextNode = aContext;
+  } else {
+    // Determine evaluation context.
+    nsCOMPtr<nsIModelElementPrivate> model;
+    nsCOMPtr<nsIDOMElement> bindElement;
+    nsCOMPtr<nsIXFormsControl> parentControl;
+    PRBool outerBind;
+    rv = nsXFormsUtils::GetNodeContext(mElement, 0,
+                                       getter_AddRefs(model),
+                                       getter_AddRefs(bindElement),
+                                       &outerBind,
+                                       getter_AddRefs(parentControl),
+                                       getter_AddRefs(contextNode),
+                                       &aContextPosition, &aContextSize, PR_FALSE);
+    NS_ENSURE_SUCCESS(rv, PR_FALSE);
+  }
+
+  if (!whileExpr.IsEmpty()) {
+    *aUsesWhile = PR_TRUE;
+
+    rv = nsXFormsUtils::EvaluateXPath(whileExpr, contextNode, mElement,
+                                      nsIDOMXPathResult::BOOLEAN_TYPE,
+                                      getter_AddRefs(res),
+                                      aContextPosition, aContextSize);
+    NS_ENSURE_SUCCESS(rv, PR_FALSE);
+    
+    rv = res->GetBooleanValue(&condTrue);
+    if (NS_FAILED(rv) || !condTrue) {
+      return PR_FALSE;
+    }
+  }
+
+  if (!ifExpr.IsEmpty()) {
+    rv = nsXFormsUtils::EvaluateXPath(ifExpr, contextNode, mElement, 
+                                      nsIDOMXPathResult::BOOLEAN_TYPE,
+                                      getter_AddRefs(res),
+                                      aContextPosition, aContextSize);
+    NS_ENSURE_SUCCESS(rv, PR_FALSE);
+    
+    rv = res->GetBooleanValue(&condTrue);
+    if (NS_FAILED(rv) || !condTrue) {
+      return PR_FALSE;
+    }
+  }
+
+  return PR_TRUE;
+}

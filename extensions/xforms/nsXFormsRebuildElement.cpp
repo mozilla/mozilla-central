@@ -43,16 +43,19 @@ class nsXFormsRebuildElement : public nsXFormsActionModuleBase
 {
 public:
   nsXFormsRebuildElement();
-  NS_DECL_NSIXFORMSACTIONMODULEELEMENT
+protected:
+  nsresult HandleSingleAction(nsIDOMEvent* aEvent,
+                              nsIXFormsActionElement *aParentAction);
 };
 
-nsXFormsRebuildElement::nsXFormsRebuildElement()
+nsXFormsRebuildElement::nsXFormsRebuildElement() :
+  nsXFormsActionModuleBase(PR_TRUE)
 {
 }
 
-NS_IMETHODIMP
-nsXFormsRebuildElement::HandleAction(nsIDOMEvent* aEvent,
-                                     nsIXFormsActionElement *aParentAction)
+nsresult
+nsXFormsRebuildElement::HandleSingleAction(nsIDOMEvent* aEvent,
+                                           nsIXFormsActionElement *aParentAction)
 {
   nsCOMPtr<nsIModelElementPrivate> model = nsXFormsUtils::GetModel(mElement);
   NS_ENSURE_STATE(model);

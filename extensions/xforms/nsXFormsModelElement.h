@@ -462,7 +462,6 @@ private:
   NS_HIDDEN_(nsresult) BuiltinTypeToPrimative(nsISchemaBuiltinType *aSchemaType,
                                               PRUint16             *aPrimType);
 
-  nsIDOMElement            *mElement;
   nsCOMPtr<nsISchemaLoader> mSchemas;
   nsStringArray             mPendingInlineSchemas;
   nsXFormsControlListItem   mFormControls;

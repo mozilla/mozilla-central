@@ -103,7 +103,6 @@ private:
 
   nsCOMPtr<nsIDOMDocument>    mDocument;
   nsCOMPtr<nsIDOMDocument>    mOriginalDocument;
-  nsIDOMElement              *mElement;
   nsCOMPtr<nsIStreamListener> mListener;
   PRBool                      mInitialized;
   PRBool                      mLazy;

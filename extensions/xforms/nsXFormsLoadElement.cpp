@@ -49,19 +49,20 @@ class nsXFormsLoadElement : public nsXFormsActionModuleBase
 {
 public:
   nsXFormsLoadElement();
-  NS_DECL_NSIXFORMSACTIONMODULEELEMENT
+protected:
+  nsresult HandleSingleAction(nsIDOMEvent* aEvent,
+                              nsIXFormsActionElement *aParentAction);
 };
 
-nsXFormsLoadElement::nsXFormsLoadElement()
+nsXFormsLoadElement::nsXFormsLoadElement() :
+  nsXFormsActionModuleBase(PR_TRUE)
 {
 }
 
-NS_IMETHODIMP
-nsXFormsLoadElement::HandleAction(nsIDOMEvent* aEvent,
-                                  nsIXFormsActionElement *aParentAction)
+nsresult
+nsXFormsLoadElement::HandleSingleAction(nsIDOMEvent* aEvent,
+                                        nsIXFormsActionElement *aParentAction)
 {
-  if(!mElement)
-    return NS_OK;
   //If the element has 'resource' and single node binding, the
   //action has no effect.
   PRBool hasBind;

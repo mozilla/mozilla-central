@@ -112,8 +112,22 @@ public:
 
   /** Constructor */
   nsXFormsInsertDeleteElement(PRBool aIsInsert) :
+    nsXFormsActionModuleBase(PR_TRUE),
     mIsInsert(aIsInsert)
     {}
+protected:
+  /**
+   * Normally, an action element implements the body of its action handler
+   * using this method; however, since an `nsXFormsInsertDeleteElement` sets
+   * up additional context before evaluating `if` and `while`, it overrides
+   * the `HandleAction` method instead to get full control over the
+   * execution of its action.
+   */
+  nsresult HandleSingleAction(nsIDOMEvent* aEvent,
+                              nsIXFormsActionElement *aParentAction)
+  {
+    return NS_OK;
+  }
 };
 
 NS_IMETHODIMP
@@ -137,6 +151,7 @@ nsXFormsInsertDeleteElement::HandleAction(nsIDOMEvent            *aEvent,
   nsCOMPtr<nsIDOMXPathResult> contextNodeset;
   nsCOMPtr<nsIDOMNode> contextNode;
   PRUint32 contextNodesetSize = 0;
+  PRInt32 contextPosition;
 
   // Get the in-scope evaluation context. The last parameter to GetNodeContext
   // indicates whether it should try to get the context using @bind. We want to
@@ -153,7 +168,9 @@ nsXFormsInsertDeleteElement::HandleAction(nsIDOMEvent            *aEvent,
                                      &outerBind,
                                      getter_AddRefs(parentControl),
                                      getter_AddRefs(contextNode),
-                                     nsnull, nsnull, PR_FALSE);
+                                     &contextPosition,
+                                     (PRInt32*)&contextNodesetSize,
+                                     PR_FALSE);
 
   NS_ENSURE_SUCCESS(rv, rv);
 
@@ -184,6 +201,7 @@ nsXFormsInsertDeleteElement::HandleAction(nsIDOMEvent            *aEvent,
   
       // Context node is the first node in the nodeset.
       contextNodeset->SnapshotItem(0, getter_AddRefs(contextNode));
+      contextPosition = 1;
     }
   }
 
@@ -199,6 +217,17 @@ nsXFormsInsertDeleteElement::HandleAction(nsIDOMEvent            *aEvent,
     contextNode->GetNodeType(&nodeType);
     if (nodeType != nsIDOMNode::ELEMENT_NODE)
       return NS_OK;
+  }
+
+  // Test the `if` and `while` attributes to determine whether this action
+  // can be performed and should be repeated.  As the insert and delete
+  // actions can change their context, we do this testing here instead of
+  // relying on the default logic from our parent class' `HandleAction`
+  // definition.
+  PRBool usesWhile;
+  if (!CanPerformAction(&usesWhile, contextNode,
+                        contextNodesetSize, contextPosition)) {
+    return NS_OK;
   }
 
   //
@@ -634,6 +663,12 @@ nsXFormsInsertDeleteElement::HandleAction(nsIDOMEvent            *aEvent,
     NS_ENSURE_SUCCESS(rv, rv);
     rv = model->RequestRefresh();
     NS_ENSURE_SUCCESS(rv, rv);
+  }
+
+  // Repeat this action if it uses the `while` attribute (which must have
+  // evaluated to true to arrive here).
+  if (usesWhile) {
+    return HandleAction(aEvent, aParentAction);
   }
 
   return NS_OK;

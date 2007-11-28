@@ -109,6 +109,16 @@
 #include "nsIEventStateManager.h"
 #include "nsXFormsModelElement.h"
 
+#include "prtime.h"
+#include "nsIDocShell.h"
+#include "nsIDocShellTreeItem.h"
+#include "nsIInterfaceRequestor.h"
+#include "nsIInterfaceRequestorUtils.h"
+#include "nsIPrompt.h"
+
+// For locale aware string methods
+#include "plstr.h"
+
 #define CANCELABLE 0x01
 #define BUBBLES    0x02
 
@@ -213,6 +223,7 @@ struct EventItem
 };
 
 static PRBool gExperimentalFeaturesEnabled = PR_FALSE;
+PRInt32 nsXFormsUtils::waitLimit = 10;
 
 PR_STATIC_CALLBACK(int) PrefChangedCallback(const char* aPref, void* aData)
 {
@@ -226,6 +237,12 @@ PR_STATIC_CALLBACK(int) PrefChangedCallback(const char* aPref, void* aData)
       PRBool val;
       if (NS_SUCCEEDED(pref->GetBoolPref(PREF_EXPERIMENTAL_FEATURES, &val))) {
         gExperimentalFeaturesEnabled = val;
+      }
+    }
+    else if (strcmp(aPref, PREF_WAIT_LIMIT) == 0) {
+      PRInt32 val;
+      if (NS_SUCCEEDED(pref->GetIntPref(PREF_WAIT_LIMIT, &val))) {
+        nsXFormsUtils::waitLimit = val;
       }
     }
   }
@@ -272,11 +289,19 @@ nsXFormsUtils::Init()
     if (NS_SUCCEEDED(rv)) {
       gExperimentalFeaturesEnabled = val;
     }
+    PRInt32 intval;
+    rv = prefBranch->GetIntPref(PREF_WAIT_LIMIT, &intval);
+    if (NS_SUCCEEDED(rv)) {
+      nsXFormsUtils::waitLimit = intval;
+    }
   }
 
   nsCOMPtr<nsIPref> pref = do_GetService(NS_PREF_CONTRACTID, &rv);
   NS_ENSURE_STATE(pref);
   rv = pref->RegisterCallback(PREF_EXPERIMENTAL_FEATURES,
+                              PrefChangedCallback, nsnull);
+  NS_ENSURE_SUCCESS(rv, rv);
+  rv = pref->RegisterCallback(PREF_WAIT_LIMIT,
                               PrefChangedCallback, nsnull);
   NS_ENSURE_SUCCESS(rv, rv);
 
@@ -295,6 +320,9 @@ nsXFormsUtils::Shutdown()
                                 PrefChangedCallback, nsnull);
   NS_ENSURE_SUCCESS(rv, rv);
   gExperimentalFeaturesEnabled = PR_FALSE;
+  rv = pref->UnregisterCallback(PREF_WAIT_LIMIT,
+                                PrefChangedCallback, nsnull);
+  NS_ENSURE_SUCCESS(rv, rv);
 
   return NS_OK;
 }
@@ -2821,6 +2849,73 @@ nsXFormsUtils::NodeHasItemset(nsIDOMNode *aNode)
     }
   }
   return hasItemset;
+}
+
+/* static */ PRBool
+nsXFormsUtils::AskStopWaiting(nsIDOMElement *aElement)
+{
+  nsCOMPtr<nsIDOMDocument> domDoc;
+  aElement->GetOwnerDocument(getter_AddRefs(domDoc));
+  nsCOMPtr<nsIDocument> doc(do_QueryInterface(domDoc));
+  NS_ENSURE_TRUE(doc, PR_TRUE);
+
+  nsCOMPtr<nsPIDOMWindow> win = doc->GetWindow();
+  NS_ENSURE_TRUE(win, PR_TRUE);
+
+  nsIDocShell *docShell = win->GetDocShell();
+  NS_ENSURE_TRUE(docShell, PR_TRUE);
+
+  nsCOMPtr<nsIInterfaceRequestor> ireq(do_QueryInterface(docShell));
+  NS_ENSURE_TRUE(ireq, PR_TRUE);
+
+  // Get the nsIPrompt interface from the docshell
+  nsCOMPtr<nsIPrompt> prompt;
+  ireq->GetInterface(NS_GET_IID(nsIPrompt), getter_AddRefs(prompt));
+  NS_ENSURE_TRUE(prompt, PR_TRUE);
+
+  // Get localizable strings
+  nsCOMPtr<nsIStringBundleService>
+    stringService(do_GetService(NS_STRINGBUNDLE_CONTRACTID));
+  NS_ENSURE_TRUE(stringService, PR_TRUE);
+
+  nsCOMPtr<nsIStringBundle> bundle;
+  stringService->CreateBundle("chrome://global/locale/dom/dom.properties",
+                              getter_AddRefs(bundle));
+  NS_ENSURE_TRUE(bundle, PR_TRUE);
+  
+  nsXPIDLString title, msg, stopButton, waitButton;
+
+  nsresult rv;
+  rv = bundle->GetStringFromName(NS_LITERAL_STRING("KillScriptTitle").get(),
+                                 getter_Copies(title));
+  rv |= bundle->GetStringFromName(NS_LITERAL_STRING("StopScriptButton").get(),
+                                  getter_Copies(stopButton));
+  rv |= bundle->GetStringFromName(NS_LITERAL_STRING("WaitForScriptButton").get(),
+                                  getter_Copies(waitButton));
+  rv |= bundle->GetStringFromName(NS_LITERAL_STRING("KillScriptMessage").get(),
+                                  getter_Copies(msg));
+
+
+  // GetStringFromName can return NS_OK and still give NULL string
+  if (NS_FAILED(rv) || !title || !msg || !stopButton || !waitButton) {
+    NS_ERROR("Failed to get localized strings.");
+    return PR_TRUE;
+  }
+
+  PRInt32 buttonPressed = 1; // In case user exits dialog by clicking X
+  PRUint32 buttonFlags = (nsIPrompt::BUTTON_TITLE_IS_STRING *
+                          (nsIPrompt::BUTTON_POS_0 + nsIPrompt::BUTTON_POS_1));
+
+  // Open the dialog.
+  rv = prompt->ConfirmEx(title, msg, buttonFlags, stopButton, waitButton,
+                         nsnull, nsnull, nsnull, &buttonPressed);
+
+  if (NS_SUCCEEDED(rv) && (buttonPressed == 0)) {
+    // Request stopping the unresponsive code
+    return PR_TRUE;
+  } else {
+    return PR_FALSE;
+  }
 }
 
 /* static */ PRBool

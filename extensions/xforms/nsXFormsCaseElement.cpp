@@ -63,12 +63,11 @@ public:
   NS_IMETHOD DoneAddingChildren();
 
   nsXFormsCaseElement()
-  : mElement(nsnull), mSelected(PR_FALSE), mCachedSelectedAttr(PR_FALSE)
+  : nsXFormsStubElement(), mSelected(PR_FALSE), mCachedSelectedAttr(PR_FALSE)
   {
   }
 
 protected:
-  nsIDOMElement* mElement;
   PRPackedBool   mSelected;
   PRPackedBool   mCachedSelectedAttr;
 };

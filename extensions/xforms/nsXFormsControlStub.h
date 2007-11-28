@@ -64,7 +64,7 @@ class nsIDOMXPathResult;
  * Common stub for all XForms controls that inherit from nsIXFormsControl and
  * is bound to an instance node.
  */
-class nsXFormsControlStub : public nsXFormsStubElement,
+class nsXFormsControlStub : public virtual nsXFormsStubElement,
                             public nsIXFormsControl
 {
 public:
@@ -159,6 +159,7 @@ public:
 
   /** Constructor */
   nsXFormsControlStub() :
+    nsXFormsStubElement(),
     kStandardNotificationMask(nsIXTFElement::NOTIFY_WILL_SET_ATTRIBUTE |
                               nsIXTFElement::NOTIFY_ATTRIBUTE_SET |
                               nsIXTFElement::NOTIFY_WILL_REMOVE_ATTRIBUTE | 
@@ -177,9 +178,6 @@ public:
     {};
 
 protected:
-  /** The nsIXTFElementWrapper */
-  nsIDOMElement*                      mElement;
-
   /** The node that the control is bound to. */
   nsCOMPtr<nsIDOMNode>                mBoundNode;
 

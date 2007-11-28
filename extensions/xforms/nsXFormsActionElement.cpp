@@ -49,7 +49,8 @@
 #define DEFERRED_REVALIDATE  0x04
 #define DEFERRED_REFRESH     0x08
 
-nsXFormsActionElement::nsXFormsActionElement() : mElement(nsnull)
+nsXFormsActionElement::nsXFormsActionElement() :
+  nsXFormsActionModuleBase(PR_TRUE)
 {
 }
 
@@ -154,14 +155,10 @@ PR_STATIC_CALLBACK(PLDHashOperator) DoDeferredActions(nsISupports * aModel,
   return PL_DHASH_NEXT;
 }
 
-NS_IMETHODIMP
-nsXFormsActionElement::HandleAction(nsIDOMEvent* aEvent,
-                                    nsIXFormsActionElement *aParentAction)
+nsresult
+nsXFormsActionElement::HandleSingleAction(nsIDOMEvent* aEvent,
+                                          nsIXFormsActionElement *aParentAction)
 {
-  if (!mElement) {
-    return NS_OK;
-  }
-
   if (!mDeferredUpdates.IsInitialized()) {
     NS_ENSURE_TRUE(mDeferredUpdates.Init(), NS_ERROR_OUT_OF_MEMORY);
   } else {

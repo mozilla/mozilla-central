@@ -43,16 +43,19 @@ class nsXFormsRecalculateElement : public nsXFormsActionModuleBase
 {
 public:
   nsXFormsRecalculateElement();
-  NS_DECL_NSIXFORMSACTIONMODULEELEMENT
+protected:
+  nsresult HandleSingleAction(nsIDOMEvent* aEvent,
+                              nsIXFormsActionElement *aParentAction);
 };
 
-nsXFormsRecalculateElement::nsXFormsRecalculateElement()
+nsXFormsRecalculateElement::nsXFormsRecalculateElement() :
+  nsXFormsActionModuleBase(PR_TRUE)
 {
 }
 
-NS_IMETHODIMP
-nsXFormsRecalculateElement::HandleAction(nsIDOMEvent* aEvent,
-                                         nsIXFormsActionElement *aParentAction)
+nsresult
+nsXFormsRecalculateElement::HandleSingleAction(nsIDOMEvent* aEvent,
+                                               nsIXFormsActionElement *aParentAction)
 {
   nsCOMPtr<nsIModelElementPrivate> model = nsXFormsUtils::GetModel(mElement);
   NS_ENSURE_STATE(model);

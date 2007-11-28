@@ -62,7 +62,7 @@ NS_IMPL_ISUPPORTS_INHERITED6(nsXFormsInstanceElement,
                              nsIChannelEventSink)
 
 nsXFormsInstanceElement::nsXFormsInstanceElement()
-  : mElement(nsnull)
+  : nsXFormsStubElement()
   , mInitialized(PR_FALSE)
   , mLazy(PR_FALSE)
 {

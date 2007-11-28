@@ -51,7 +51,7 @@ class nsXFormsChoicesElement : public nsXFormsStubElement,
                                public nsIXFormsSelectChild
 {
 public:
-  nsXFormsChoicesElement() : mElement(nsnull), mDoneAddingChildren(PR_FALSE) {}
+  nsXFormsChoicesElement() : nsXFormsStubElement(), mDoneAddingChildren(PR_FALSE) {}
 
   NS_DECL_ISUPPORTS_INHERITED
 
@@ -69,7 +69,6 @@ public:
   NS_DECL_NSIXFORMSSELECTCHILD
 
 private:
-  nsIDOMElement* mElement;
   PRBool         mDoneAddingChildren;
 
   void Refresh();

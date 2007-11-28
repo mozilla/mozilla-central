@@ -41,6 +41,7 @@
 #include "nsXFormsDelegateStub.h"
 #include "nsXFormsActionElement.h"
 #include "nsIXFormsActionModuleElement.h"
+#include "nsXFormsActionModuleBase.h"
 
 #include "nsIDOMText.h"
 #include "nsIDOM3Node.h"
@@ -103,11 +104,10 @@ class nsXFormsEventListener;
  * @see http://www.w3.org/TR/xforms/slice10.html#action-info
  */
 class nsXFormsMessageElement : public nsXFormsDelegateStub,
-                               public nsIDOMEventListener,
-                               public nsIXFormsActionModuleElement,
                                public nsIStreamListener,
                                public nsIInterfaceRequestor,
-                               public nsIChannelEventSink
+                               public nsIChannelEventSink,
+                               public nsXFormsActionModuleBase
 {
 public:
   NS_DECL_ISUPPORTS_INHERITED
@@ -118,6 +118,7 @@ public:
   // nsIXTFElement overrides
   NS_IMETHOD OnCreated(nsIXTFElementWrapper *aWrapper);
   NS_IMETHOD WillChangeDocument(nsIDOMDocument *aNewDocument);
+  NS_IMETHOD DocumentChanged(nsIDOMDocument *aNewDocument);
   NS_IMETHOD OnDestroyed();
   NS_IMETHOD ParentChanged(nsIDOMElement *aNewParent);
   NS_IMETHOD WillChangeParent(nsIDOMElement *aNewParent);
@@ -130,7 +131,6 @@ public:
   NS_DECL_NSISTREAMLISTENER
   NS_DECL_NSIINTERFACEREQUESTOR
   NS_DECL_NSIDOMEVENTLISTENER
-  NS_DECL_NSIXFORMSACTIONMODULEELEMENT
 
   // Start the timer, which is used to set the message visible
   void StartEphemeral();
@@ -159,9 +159,13 @@ public:
 
 
   nsXFormsMessageElement(MessageType aType) :
+    nsXFormsDelegateStub(), nsXFormsActionModuleBase(PR_TRUE),
     mType(aType), mPosX(-1), mPosY(-1), mDocument(nsnull),
     mStopType(eStopType_None), mSrcAttrText(""),
     mDoneAddingChildren(PR_FALSE) {}
+protected:
+  nsresult HandleSingleAction(nsIDOMEvent* aEvent,
+                              nsIXFormsActionElement *aParentAction);
 private:
   nsresult HandleEphemeralMessage(nsIDOMDocument* aDoc, nsIDOMEvent* aEvent);
   nsresult HandleModalAndModelessMessage(nsIDOMDocument* aDoc, nsAString& aLevel);
@@ -259,6 +263,20 @@ nsXFormsMessageElement::WillChangeDocument(nsIDOMDocument *aNewDocument)
 
   mDocument = aNewDocument;
   return nsXFormsDelegateStub::WillChangeDocument(aNewDocument);
+}
+
+/**
+ * The `nsXFormsMessageElement` class inherits from both
+ * `nsXFormsActionModuleBase` and `nsXFormsControlStub`, which both
+ * implement a `DocumentChanged` method.  The method defined by
+ * `nsXFormsControlStub` completely subsumes that of
+ * `nsXFormsActionModuleBase`, so we delegate to the former method as the
+ * implementation of this method.
+ */
+NS_IMETHODIMP
+nsXFormsMessageElement::DocumentChanged(nsIDOMDocument *aNewDocument)
+{
+  return nsXFormsControlStub::DocumentChanged(aNewDocument);
 }
 
 NS_IMETHODIMP
@@ -439,13 +457,10 @@ nsXFormsMessageElement::DoneAddingChildren()
   return NS_OK;
 }
 
-NS_IMETHODIMP
-nsXFormsMessageElement::HandleAction(nsIDOMEvent* aEvent, 
-                                     nsIXFormsActionElement *aParentAction)
+nsresult
+nsXFormsMessageElement::HandleSingleAction(nsIDOMEvent *aEvent,
+                                           nsIXFormsActionElement *aParentAction)
 {
-  if (!mElement)
-    return NS_OK;
-
   // If TestExternalFile fails, then there is an external link that we need
   // to use that we can't reach right now.  If it won't load, then might as
   // well stop here.  We don't want to be popping up empty windows

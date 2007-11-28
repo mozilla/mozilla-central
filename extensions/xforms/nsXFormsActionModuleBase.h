@@ -21,6 +21,7 @@
  *
  * Contributor(s):
  *   Olli Pettay <Olli.Pettay@helsinki.fi> (original author)
+ *   John L. Clark <jlc6@po.cwru.edu>
  *
  * Alternatively, the contents of this file may be used under the terms of
  * either of the GNU General Public License Version 2 or later (the "GPL"),
@@ -40,6 +41,7 @@
 #define nsXFormsActionModuleBase_h_
 
 #include "nsIDOMEventListener.h"
+#include "nsIXFormsActionElement.h"
 #include "nsXFormsStubElement.h"
 #include "nsIDOMElement.h"
 #include "nsIXFormsActionModuleElement.h"
@@ -47,13 +49,14 @@
 #include "nsXFormsUtils.h"
 
 class nsXFormsActionModuleBase : public nsIDOMEventListener,
-                                 public nsXFormsStubElement,
+                                 public virtual nsXFormsStubElement,
                                  public nsIXFormsActionModuleElement
 {
 public:
-  nsXFormsActionModuleBase();
+  nsXFormsActionModuleBase(PRBool canIterate = PR_FALSE);
   virtual ~nsXFormsActionModuleBase();
   NS_DECL_ISUPPORTS_INHERITED
+  NS_DECL_NSIXFORMSACTIONMODULEELEMENT
   NS_DECL_NSIDOMEVENTLISTENER
   NS_IMETHOD OnCreated(nsIXTFElementWrapper *aWrapper);
   NS_IMETHOD OnDestroyed();
@@ -62,7 +65,40 @@ public:
   NS_IMETHOD WillChangeParent(nsIDOMElement *aNewParent);
   NS_IMETHOD ParentChanged(nsIDOMElement *aNewParent);
 protected:
-  nsIDOMElement* mElement;
+  /**
+   * Determine whether this action element should be executed, based upon
+   * optional `if` and `while` attributes.  For each of these attributes
+   * that are present on an action element, the action is only performed if
+   * the boolean value of the XPath expression contained in the attribute is
+   * true.  In addition, if the `while` attribute is used, the action is
+   * "executed repeatedly" until one of these attributes evaluates to false.
+   * This method indicates to the caller whether the action element uses a
+   * `while` attribute through the `usesWhile` parameter.
+   */
+  NS_HIDDEN_(PRBool) CanPerformAction(PRBool         *usesWhile,
+                                      nsIDOMNode     *contextNode = nsnull,
+                                      PRInt32         contextSize = 0,
+                                      PRInt32         contextPosition = 0);
+
+  /**
+   * With the `while` attribute, actions can potentially be iterated.  The
+   * `HandleSingleAction` method processes one iteration of an action (that
+   * is, the "body" of the action); it should be dispatched by the
+   * `HandleAction` method, which manages the conditional execution and
+   * iteration of the action.
+   */
+  virtual nsresult
+    HandleSingleAction(nsIDOMEvent* aEvent,
+                       nsIXFormsActionElement *aParentAction) = 0;
+
+  /**
+   * This signals whether or not this action can iterate.  Technically, all
+   * XForms 1.1 actions are allowed to iterate, but for some of them it
+   * may not make sense.  Currently, this is set to PR_TRUE for all actions,
+   * but we can optionally disable iteration for specific actions based upon
+   * additional information in the future.
+   */
+  PRBool mCanIterate;
 };
 
 #endif

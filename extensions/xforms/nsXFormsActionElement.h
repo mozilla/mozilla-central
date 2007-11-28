@@ -46,28 +46,28 @@
 
 class nsIXTFElementWrapper;
 
-class nsXFormsActionElement : public nsXFormsStubElement,
-                              public nsIXFormsActionElement,
-                              public nsIXFormsActionModuleElement,
-                              public nsIDOMEventListener
+class nsXFormsActionElement : public nsIXFormsActionElement,
+                              public nsXFormsActionModuleBase
 {
 public:
   nsXFormsActionElement();
   NS_DECL_ISUPPORTS_INHERITED
   NS_DECL_NSIDOMEVENTLISTENER
   NS_DECL_NSIXFORMSACTIONELEMENT
-  NS_DECL_NSIXFORMSACTIONMODULEELEMENT
-  NS_IMETHOD OnCreated(nsIXTFElementWrapper* aWrapper);
+  NS_IMETHOD OnCreated(nsIXTFElementWrapper *aWrapper);
   NS_IMETHOD OnDestroyed();
   NS_IMETHOD WillChangeDocument(nsIDOMDocument *aNewDocument);
   NS_IMETHOD DocumentChanged(nsIDOMDocument *aNewDocument);
   NS_IMETHOD WillChangeParent(nsIDOMElement *aNewParent);
   NS_IMETHOD ParentChanged(nsIDOMElement *aNewParent);
+protected:
+  nsresult HandleSingleAction(nsIDOMEvent* aEvent,
+                              nsIXFormsActionElement *aParentAction);
 private:
-  nsIDOMElement*                                mElement;
   nsCOMPtr<nsIXFormsActionElement>              mParentAction;
   nsDataHashtable<nsISupportsHashKey, PRUint32> mDeferredUpdates;
 };
+
 
 #endif
 

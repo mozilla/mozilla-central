@@ -56,7 +56,7 @@ class nsXFormsCopyElement : public nsXFormsStubElement,
                             public nsIXFormsCopyElement
 {
 public:
-  nsXFormsCopyElement() : mElement(nsnull) {}
+  nsXFormsCopyElement() : nsXFormsStubElement() {}
 
   NS_DECL_ISUPPORTS_INHERITED
 
@@ -67,9 +67,6 @@ public:
 
   // nsIXFormsCopyElement
   NS_DECL_NSIXFORMSCOPYELEMENT
-
-private:
-  nsIDOMElement *mElement;
 };
 
 NS_IMPL_ISUPPORTS_INHERITED1(nsXFormsCopyElement,

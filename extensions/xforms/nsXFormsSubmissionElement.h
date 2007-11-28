@@ -81,7 +81,7 @@ public:
   NS_DECL_NSIINTERFACEREQUESTOR
 
   nsXFormsSubmissionElement()
-    : mElement(nsnull),
+    : nsXFormsStubElement(),
       mSubmissionActive(PR_FALSE),
       mIsReplaceInstance(PR_FALSE),
       mIsSOAPRequest(PR_FALSE),
@@ -145,7 +145,6 @@ public:
                                 const nsCString &contentType);
 
 private:
-  nsIDOMElement*                   mElement;
   PRPackedBool                     mSubmissionActive;
    // Valid when mSubmissionActive == PR_TRUE
   PRPackedBool                     mIsReplaceInstance;
