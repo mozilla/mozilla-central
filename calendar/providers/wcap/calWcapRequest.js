@@ -194,7 +194,15 @@ calWcapRequest.prototype = {
             this.detachFromParent(this.m_status);
         }
     },
-    
+
+    execSubRespFunc: function calWcapRequest_execSubRespFunc(func, err, data) {
+        try {
+            func(err, data);
+        } catch (exc) {
+            this.execRespFunc(exc);
+        }
+    },
+
     // calIOperation:
     get id() {
         return this.m_id;
@@ -303,7 +311,15 @@ calWcapNetworkRequest.prototype = {
             this.detachFromParent(err);
         }
     },
-    
+
+    execSubRespFunc: function calWcapNetworkRequest_execSubRespFunc(func, err, data) {
+        try {
+            func(err, data);
+        } catch (exc) {
+            this.execRespFunc(exc);
+        }
+    },
+
     // nsIUnicharStreamLoaderObserver:
     onDetermineCharset: function calWcapNetworkRequest_onDetermineCharset(
         loader, context, firstSegment, length)

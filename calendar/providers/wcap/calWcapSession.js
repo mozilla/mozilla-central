@@ -214,10 +214,7 @@ calWcapSession.prototype = {
                 request,
                 function getSessionId_resp_(err, sessionId) {
                     log("getSessionId_resp_(): " + sessionId, this_);
-                    if (err) {
-                        this_.notifyError(err, request.suppressOnError);
-                    }
-                    else {
+                    if (!err) {
                         this_.m_sessionId = sessionId;
                         getFreeBusyService().addProvider(this_);
                         getCalendarSearchService().addProvider(this_);
@@ -232,7 +229,7 @@ calWcapSession.prototype = {
                         try {
                             func(err, sessionId);
                         }
-                        catch (exc) {
+                        catch (exc) { // unexpected
                             this_.notifyError(exc);
                         }
                     }
@@ -774,7 +771,7 @@ calWcapSession.prototype = {
         var this_ = this;
         function getSessionId_resp(err, sessionId) {
             if (err)
-                respFunc(err);
+                request.execSubRespFunc(respFunc, err);
             else {
                 // else have session uri and id:
                 this_.issueNetworkRequest_(
@@ -789,7 +786,7 @@ calWcapSession.prototype = {
                                 sessionId/* (old) timed-out session */);
                             return;
                         }
-                        respFunc(err, data);
+                        request.execSubRespFunc(respFunc, err, data);
                     },
                     dataConvFunc, wcapCommand, params, sessionId);
             }
@@ -816,7 +813,7 @@ calWcapSession.prototype = {
                         err = exc;
                     }
                 }
-                respFunc(err, data);
+                request.execSubRespFunc(respFunc, err, data);
             }, url);
     },
     

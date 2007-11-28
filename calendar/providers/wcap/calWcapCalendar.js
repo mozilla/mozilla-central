@@ -287,7 +287,7 @@ calWcapCalendar.prototype = {
                         request, respFunc, dataConvFunc, wcapCommand, params);
                 }
                 catch (exc) {
-                    respFunc(exc);
+                    request.execSubRespFunc(respFunc, exc);
                 }
             });
     },
