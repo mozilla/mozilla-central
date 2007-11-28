@@ -531,11 +531,11 @@ function dateTimeControls2State(aKeepDuration) {
     var saveEndTime = gEndTime;
     var kDefaultTimezone = calendarDefaultTimezone();
 
+    var menuItem = document.getElementById('options-timezone-menuitem');
     if (gStartTime) {
         // jsDate is always in OS timezone, thus we create a calIDateTime
         // object from the jsDate representation and simply set the new
         // timezone instead of converting.
-        var menuItem = document.getElementById('options-timezone-menuitem');
         gStartTime = jsDateToDateTime(
             getElementValue(startWidgetId),
             (menuItem.getAttribute('checked') == 'true') ? gStartTimezone : kDefaultTimezone);
