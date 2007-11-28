@@ -55,7 +55,7 @@ calWcapCalendar.prototype = {
 
     // nsISupports:
     QueryInterface: function calWcapCalendar_QueryInterface(iid) {
-        return doQueryInterface(this, iid, this.m_ifaces, this);
+        return doQueryInterface(this, calWcapCalendar.prototype, iid, this.m_ifaces, this);
     },
 
     // nsIClassInfo:

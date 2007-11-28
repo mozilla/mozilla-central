@@ -56,7 +56,7 @@ calMemoryCalendar.prototype = {
     // nsISupports interface
     // 
     QueryInterface: function (aIID) {
-        return doQueryInterface(this, aIID,
+        return doQueryInterface(this, calMemoryCalendar.prototype, aIID,
                                 [Components.interfaces.calICalendarProvider]);
     },
 

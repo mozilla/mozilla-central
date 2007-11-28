@@ -601,12 +601,13 @@ function ensureIID(aList, aIID) {
  * existing parent prototypes.
  *
  * @param aSelf         The object the QueryInterface is being made to
+ * @param aProto        Caller's prototype object
  * @param aIID          The IID to check for
  * @param aList         An array of interfaces from Components.interfaces
  * @param aClassInfo    (Optional) an Object containing the class info for this
  *                      prototype.
  */
-function doQueryInterface(aSelf, aIID, aList, aClassInfo) {
+function doQueryInterface(aSelf, aProto, aIID, aList, aClassInfo) {
     if (aClassInfo && aIID.equals(Components.interfaces.nsIClassInfo)) {
         return aClassInfo;
     }
@@ -619,7 +620,7 @@ function doQueryInterface(aSelf, aIID, aList, aClassInfo) {
         return aSelf;
     }
 
-    var base = aSelf.__proto__.__proto__;
+    var base = aProto.__proto__;
 
     if (base && base.QueryInterface) {
         // Try to QI the base prototype

@@ -122,7 +122,7 @@ calDavCalendar.prototype = {
     // nsISupports interface
     //
     QueryInterface: function (aIID) {
-        return doQueryInterface(this, aIID,
+        return doQueryInterface(this, calDavCalendar.prototype, aIID,
                                 [Components.interfaces.calICalendarProvider,
                                  Components.interfaces.nsIInterfaceRequestor,
                                  Components.interfaces.calIFreeBusyProvider]);

@@ -40,7 +40,7 @@ function calProviderBase() {
 
 calProviderBase.prototype = {
     QueryInterface: function cPB_QueryInterface(aIID) {
-        return doQueryInterface(this, aIID,
+        return doQueryInterface(this, calProviderBase.prototype, aIID,
                                 [Components.interfaces.nsISupports,
                                  Components.interfaces.calICalendar]);
     },

@@ -73,7 +73,7 @@ calICSCalendar.prototype = {
     locked: false,
 
     QueryInterface: function (aIID) {
-        return doQueryInterface(this, aIID,
+        return doQueryInterface(this, calICSCalendar.prototype, aIID,
                                 [Components.interfaces.calICalendarProvider,
                                  Components.interfaces.nsIStreamListener,
                                  Components.interfaces.nsIStreamLoaderObserver,
