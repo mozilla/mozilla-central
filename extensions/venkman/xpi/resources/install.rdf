@@ -30,17 +30,17 @@
 		<em:targetApplication>
 			<Description>
 				<em:id>{a463f10c-3994-11da-9945-000d60ca027b}</em:id>
-				<em:minVersion>1.0</em:minVersion>
-				<em:maxVersion>1.0+</em:maxVersion>
+				<em:minVersion>0.4</em:minVersion>
+				<em:maxVersion>1.0.*</em:maxVersion>
 			</Description>
 		</em:targetApplication>
 		
-		<!-- target: Mozilla Sunbird version 0.3 -->
+		<!-- target: Mozilla Sunbird version 0.3 and later -->
 		<em:targetApplication>
 			<Description>
 				<em:id>{718e30fb-e89b-41dd-9da7-e25a45638b28}</em:id>
-				<em:minVersion>0.3a</em:minVersion>
-				<em:maxVersion>0.3</em:maxVersion>
+				<em:minVersion>0.3a1</em:minVersion>
+				<em:maxVersion>0.8pre</em:maxVersion>
 			</Description>
 		</em:targetApplication>
 
@@ -48,7 +48,7 @@
 		<em:targetApplication>
 			<Description>
 				<em:id>{92650c4d-4b8e-4d2a-b7eb-24ecf4f6b63a}</em:id>
-				<em:minVersion>2.0a1pre</em:minVersion>
+				<em:minVersion>2.0a</em:minVersion>
 				<em:maxVersion>2.0</em:maxVersion>
 			</Description>
 		</em:targetApplication>
