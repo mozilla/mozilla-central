@@ -1334,7 +1334,7 @@
       <menuitem label="&reloadCmd.label;" accesskey="&reloadCmd.accesskey;" command="cmd_reload"/>
       <menuseparator/>
       <!-- overlayed from viewZoomOverlay.xul -->
-      <menu id="menu_textZoom"/>
+      <menu id="menu_zoom"/>
       <menu id="mailviewCharsetMenu" />
       <menuseparator/>
       <menuitem id="pageSourceMenuItem" label="&pageSourceCmd.label;" key="key_viewPageSource" accesskey="&pageSourceCmd.accesskey;" command="cmd_viewPageSource"/>

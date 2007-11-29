@@ -48,26 +48,27 @@
   <stringbundle id="bundle_viewZoom" src="chrome://communicator/locale/viewZoomOverlay.properties"/>
 
   <keyset id="viewZoomKeys">
-    <key id="key_textZoomReduce"  key="&textZoomReduceCmd.commandkey;"   command="cmd_textZoomReduce"  modifiers="accel"/>
-    <key id="key_textZoomEnlarge" key="&textZoomEnlargeCmd.commandkey;"  command="cmd_textZoomEnlarge" modifiers="accel"/>
-    <key                          key="&textZoomEnlargeCmd.commandkey;"  command="cmd_textZoomEnlarge" modifiers="accel,shift"/>
-    <key                          key="&textZoomEnlargeCmd.commandkey2;" command="cmd_textZoomEnlarge" modifiers="accel"/>
-    <key id="key_textZoomReset"   key="&textZoomResetCmd.commandkey;"    command="cmd_textZoomReset"   modifiers="accel"/>
+    <key id="key_zoomReduce"  key="&zoomReduceCmd.commandkey;"   command="cmd_zoomReduce"  modifiers="accel"/>
+    <key id="key_zoomEnlarge" key="&zoomEnlargeCmd.commandkey;"  command="cmd_zoomEnlarge" modifiers="accel"/>
+    <key                      key="&zoomEnlargeCmd.commandkey;"  command="cmd_zoomEnlarge" modifiers="accel,shift"/>
+    <key                      key="&zoomEnlargeCmd.commandkey2;" command="cmd_zoomEnlarge" modifiers="accel"/>
+    <key id="key_zoomReset"   key="&zoomResetCmd.commandkey;"    command="cmd_zoomReset"   modifiers="accel"/>
   </keyset>
 
   <commandset id="viewZoomCommands">
-    <command id="cmd_textZoomReduce"  oncommand="ZoomManager.prototype.getInstance().reduce();"/>
-    <command id="cmd_textZoomEnlarge" oncommand="ZoomManager.prototype.getInstance().enlarge();"/>
-    <command id="cmd_textZoomReset"   oncommand="ZoomManager.prototype.getInstance().reset();"/>
+    <command id="cmd_zoomReduce"  oncommand="ZoomManager.prototype.getInstance().reduce();"/>
+    <command id="cmd_zoomEnlarge" oncommand="ZoomManager.prototype.getInstance().enlarge();"/>
+    <command id="cmd_zoomReset"   oncommand="ZoomManager.prototype.getInstance().reset();"/>
+    <command id="cmd_zoomOther"   oncommand="setZoomOther();"/>
   </commandset>
 
-  <menu id="menu_textZoom" accesskey="&textZoomMenu.accesskey;">
-    <menupopup id="menu_textZoomPopup" onpopupshowing="updateTextZoomMenu();">
-      <menuitem key="key_textZoomReduce"  label="&textZoomReduceCmd.label;"  accesskey="&textZoomReduceCmd.accesskey;" command="cmd_textZoomReduce"/>
-      <menuitem key="key_textZoomEnlarge" label="&textZoomEnlargeCmd.label;" accesskey="&textZoomEnlargeCmd.accesskey;" command="cmd_textZoomEnlarge"/>
+  <menu id="menu_zoom" accesskey="&zoomMenu.accesskey;">
+    <menupopup id="menu_zoomPopup" onpopupshowing="updateZoomMenu();" oncommand="ZoomManager.prototype.getInstance().currentZoom = event.target.value;">
+      <menuitem key="key_zoomReduce"  label="&zoomReduceCmd.label;"  accesskey="&zoomReduceCmd.accesskey;" command="cmd_zoomReduce"/>
+      <menuitem key="key_zoomEnlarge" label="&zoomEnlargeCmd.label;" accesskey="&zoomEnlargeCmd.accesskey;" command="cmd_zoomEnlarge"/>
       <menuseparator/>
-      <menuseparator id="menu_textZoomInsertBefore"/>
-      <menuitem id="menu_textZoomOther" type="radio" name="textZoom" accesskey="&textZoomOtherCmd.accesskey;" oncommand="setTextZoomOther();"/>
+      <menuseparator id="menu_zoomInsertBefore"/>
+      <menuitem id="menu_zoomOther" type="radio" name="zoom" accesskey="&zoomOtherCmd.accesskey;" command="cmd_zoomOther"/>
     </menupopup>
   </menu>
 

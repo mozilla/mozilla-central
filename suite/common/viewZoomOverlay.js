@@ -40,7 +40,7 @@
 
 /** Document Zoom Management Code
  *
- * To use this, you'll need to have a <menu id="menu_textZoom"/>
+ * To use this, you'll need to have a <menu id="menu_zoom"/>
  * and a getMarkupDocumentViewer() function which returns a
  * nsIMarkupDocumentViewer.
  *
@@ -76,10 +76,18 @@ ZoomManager.prototype = {
   factorAnchor : 300,
   steps : 0,
 
-  get textZoom() {
+  pref : Components.classes["@mozilla.org/preferences-service;1"]
+                   .getService(Components.interfaces.nsIPrefService)
+                   .getBranch(null),
+
+  get zoomType() {
+    return this.pref.getBoolPref("browser.zoom.full") ? "fullZoom" : "textZoom";
+  },
+
+  get currentZoom() {
     var currentZoom;
     try {
-      currentZoom = Math.round(getMarkupDocumentViewer().textZoom * 100);
+      currentZoom = Math.round(getMarkupDocumentViewer()[this.zoomType] * 100);
       if (this.indexOf(currentZoom) == -1) {
         if (currentZoom != this.factorOther) {
           this.factorOther = currentZoom;
@@ -92,11 +100,11 @@ ZoomManager.prototype = {
     return currentZoom;
   },
 
-  set textZoom(aZoom) {
+  set currentZoom(aZoom) {
     if (aZoom < this.MIN || aZoom > this.MAX)
       throw Components.results.NS_ERROR_INVALID_ARG;
 
-    getMarkupDocumentViewer().textZoom = aZoom / 100;
+    getMarkupDocumentViewer()[this.zoomType] = aZoom / 100;
   },
 
   enlarge : function() {
@@ -108,7 +116,7 @@ ZoomManager.prototype = {
   },
 
   reset : function() {
-    this.textZoom = 100;
+    this.currentZoom = 100;
   },
 
   getZoomFactors : function() {
@@ -156,7 +164,7 @@ ZoomManager.prototype = {
 
     this.ensureZoomFactors();
 
-    var currentZoom = this.textZoom;
+    var currentZoom = this.currentZoom;
     var insertIndex = -1;
     var stepFactor = parseFloat(this.bundle.getString("stepFactor"));
 
@@ -202,7 +210,7 @@ ZoomManager.prototype = {
     if (insertIndex != -1)
       this.zoomFactors.splice(insertIndex, 1);
 
-    this.textZoom = factor;
+    this.currentZoom = factor;
   },
 
   snap : function(aZoom) {
@@ -227,32 +235,31 @@ window.addEventListener("load", registerZoomManager, false);
 
 function registerZoomManager()
 {
-  var textZoomMenu = document.getElementById("menu_textZoom");
+  var zoomMenu = document.getElementById("menu_zoom");
   var zoom = ZoomManager.prototype.getInstance();
 
-  var parentMenu = textZoomMenu.parentNode;
+  var parentMenu = zoomMenu.parentNode;
   parentMenu.addEventListener("popupshowing", updateViewMenu, false);
 
-  var insertBefore = document.getElementById("menu_textZoomInsertBefore");
+  var insertBefore = document.getElementById("menu_zoomInsertBefore");
   var popup = insertBefore.parentNode;
   var accessKeys = zoom.bundle.getString("accessKeys").split(",");
   var zoomFactors = zoom.getZoomFactors();
   for (var i = 0; i < zoomFactors.length; ++i) {
     var menuItem = document.createElement("menuitem");
     menuItem.setAttribute("type", "radio");
-    menuItem.setAttribute("name", "textZoom");
+    menuItem.setAttribute("name", "zoom");
 
     var label;
     if (zoomFactors[i] == 100) {
       label = zoom.bundle.getString("labelOriginal");
-      menuItem.setAttribute("key", "key_textZoomReset");
+      menuItem.setAttribute("key", "key_zoomReset");
     }
     else
       label = zoom.bundle.getString("label");
 
     menuItem.setAttribute("label", label.replace(/%zoom%/, zoomFactors[i]));
     menuItem.setAttribute("accesskey", accessKeys[i]);
-    menuItem.setAttribute("oncommand", "ZoomManager.prototype.getInstance().textZoom = this.value;");
     menuItem.setAttribute("value", zoomFactors[i]);
     popup.insertBefore(menuItem, insertBefore);
   }
@@ -262,26 +269,26 @@ function updateViewMenu()
 {
   var zoom = ZoomManager.prototype.getInstance();
 
-  var textZoomMenu = document.getElementById("menu_textZoom");
-  var menuLabel = zoom.bundle.getString("menuLabel").replace(/%zoom%/, zoom.textZoom);
-  textZoomMenu.setAttribute("label", menuLabel);
+  var zoomMenu = document.getElementById("menu_zoom");
+  var menuLabel = zoom.bundle.getString(zoom.zoomType).replace(/%zoom%/, zoom.currentZoom);
+  zoomMenu.setAttribute("label", menuLabel);
 }
 
-function updateTextZoomMenu()
+function updateZoomMenu()
 {
   var zoom = ZoomManager.prototype.getInstance();
 
-  var currentZoom = zoom.textZoom;
+  var currentZoom = zoom.currentZoom;
 
-  var textZoomOther = document.getElementById("menu_textZoomOther");
+  var zoomOther = document.getElementById("menu_zoomOther");
   var label = zoom.bundle.getString("labelOther");
-  textZoomOther.setAttribute("label", label.replace(/%zoom%/, zoom.factorOther));
-  textZoomOther.setAttribute("value", zoom.factorOther);
+  zoomOther.setAttribute("label", label.replace(/%zoom%/, zoom.factorOther));
+  zoomOther.setAttribute("value", zoom.factorOther);
 
-  var popup = document.getElementById("menu_textZoomPopup");
+  var popup = document.getElementById("menu_zoomPopup");
   var item = popup.firstChild;
   while (item) {
-    if (item.getAttribute("name") == "textZoom") {
+    if (item.getAttribute("name") == "zoom") {
       if (item.getAttribute("value") == currentZoom)
         item.setAttribute("checked","true");
       else
@@ -291,7 +298,7 @@ function updateTextZoomMenu()
   }
 }
 
-function setTextZoomOther()
+function setZoomOther()
 {
   var zoom = ZoomManager.prototype.getInstance();
 
@@ -299,5 +306,5 @@ function setTextZoomOther()
   var o = {value: zoom.factorOther, zoomMin: zoom.MIN, zoomMax: zoom.MAX};
   window.openDialog("chrome://communicator/content/askViewZoom.xul", "AskViewZoom", "chrome,modal,titlebar", o);
   if (o.zoomOK)
-    zoom.textZoom = o.value;
+    zoom.currentZoom = o.value;
 }

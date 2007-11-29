@@ -155,6 +155,8 @@ pref("browser.search.defaultenginename", "chrome://communicator-region/locale/re
 // 2 and other values, nothing
 pref("browser.backspace_action", 0);
 
+pref("browser.zoom.full", true);
+
 pref("javascript.options.showInConsole",    true);
 
 pref("offline.startup_state",            0);

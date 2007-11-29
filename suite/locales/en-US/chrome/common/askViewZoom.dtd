@@ -35,6 +35,5 @@
    -
    - ***** END LICENSE BLOCK ***** -->
 
-<!-- hopefully this will become view zoom, not just text zoom -->
-<!ENTITY askViewZoom.title "Text Zoom">
-<!ENTITY selectZoom.label "Select text zoom (&#37;):">
+<!ENTITY askViewZoom.title "Zoom">
+<!ENTITY selectZoom.label "Select zoom (&#37;):">

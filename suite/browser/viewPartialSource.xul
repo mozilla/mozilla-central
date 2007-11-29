@@ -77,7 +77,7 @@
         <menupopup id="menu_View_Popup">
           <menuitem accesskey="&reloadCmd.accesskey;" key="key_reload" label="&reloadCmd.label;" oncommand="BrowserReload();"/>
           <menuseparator />
-          <menu id="menu_textZoom"/>  
+          <menu id="menu_zoom"/>  
           <menuseparator/>
 <!--      <menuitem key="key_viewInfo" observes="View:PageInfo"
                     label="&pageInfoCmd.label;" accesskey="&pageInfoCmd.accesskey;"/>

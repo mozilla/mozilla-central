@@ -1752,7 +1752,7 @@ function hiddenWindowStartup()
                        'BlockCookies', 'UseCookiesDefault',
                        'AllowSessionCookies', 'AllowCookies', 'BlockImages',
                        'UseImagesDefault', 'AllowImages', 'AllowPopups',
-                       'menu_textZoom', 'cmd_minimizeWindow', 'cmd_zoomWindow'];
+                       'menu_zoom', 'cmd_minimizeWindow', 'cmd_zoomWindow'];
   var broadcaster;
 
   for (var id in disabledItems) {
