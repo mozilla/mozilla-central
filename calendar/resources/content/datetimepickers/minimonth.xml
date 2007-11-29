@@ -380,7 +380,8 @@
             aDate.setMinutes(0);
             aDate.setSeconds(0);
             aDate.setMilliseconds(0);
-            var monthChanged = (this.mEditorDate != aDate);
+            // Don't fire onmonthchange event upon initialization
+            var monthChanged = this.mEditorDate && (this.mEditorDate != aDate);
             this.mEditorDate = aDate; // only place mEditorDate is set.
 
             if (this.mToday) {
