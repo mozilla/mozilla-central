@@ -157,9 +157,12 @@
                     url="chrome://communicator/content/pref/pref-http.xul"/>
           <treeitem label="&smart.label;"
                     url="chrome://communicator/content/pref/pref-smartupdate.xul"/>
+-->
           <treeitem id="mousewheelItem"
+                    prefpane="mousewheel_pane"
                     label="&mousewheel.label;"
                     url="chrome://communicator/content/pref/pref-mousewheel.xul"/>
+<!--
         </treechildren>
       </treeitem>
 -->

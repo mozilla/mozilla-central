@@ -193,7 +193,7 @@
         </treeitem>
         <treeitem id="mousewheelItem">
           <treerow>
-            <treecell url="chrome://communicator/content/pref/pref-mousewheel.xul" label="&mousewheel.label;"/>
+            <treecell label="(Migrated: &mousewheel.label;)"/>
           </treerow>  
         </treeitem> 
       </treechildren>

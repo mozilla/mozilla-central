@@ -11,19 +11,17 @@
 <!ENTITY mousewheelHorizGroup.label      "Horizontal scrolling">
 <!ENTITY scroll.label                    "Scroll the document by ">
 <!ENTITY scroll.accesskey                "S">
-<!ENTITY scrollHoriz.accesskey           "c">
-<!ENTITY scrollLines.label               " lines">
-<!ENTITY scrollChars.label               " characters">
+<!ENTITY scrollLines.label               "lines">
+<!ENTITY scrollChars.label               "characters">
 <!ENTITY useSystemDefault.label          "Use system default">
 <!ENTITY useSystemDefault.accesskey      "U">
-<!ENTITY useSystemDefaultHoriz.accesskey "d">
 <!ENTITY scrollPgUpPgDn.label            "Scroll a page up or a page down">
-<!ENTITY scrollPgUpPgDn.accesskey        "c">
+<!ENTITY scrollPgUpPgDn.accesskey        "p">
 <!ENTITY scrollPgLtPgRt.label            "Scroll a page left or a page right">
-<!ENTITY scrollPgLtPgRt.accesskey        "o">
+<!ENTITY scrollPgLtPgRt.accesskey        "p">
 <!ENTITY history.label                   "Move back and forward in the browsing history">
 <!ENTITY history.accesskey               "M">
-<!ENTITY historyHoriz.accesskey          "b">
 <!ENTITY textsize.label                  "Make the text larger or smaller">
 <!ENTITY textsize.accesskey              "t">
-<!ENTITY textsizeHoriz.accesskey         "e">
+<!ENTITY zoom.label                      "Zoom the page in or out">
+<!ENTITY zoom.accesskey                  "Z">
