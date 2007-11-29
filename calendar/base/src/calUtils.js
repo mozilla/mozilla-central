@@ -496,14 +496,21 @@ function getLocalizedPref(aPrefName, aDefault) {
  * @param aParams      optional array of parameters to format the string
  */
 function calGetString(aBundleName, aStringName, aParams) {
-    var sbs = Components.classes["@mozilla.org/intl/stringbundle;1"]
-                        .getService(Components.interfaces.nsIStringBundleService);
-    var props = sbs.createBundle("chrome://calendar/locale/"+aBundleName+".properties");
+    try {
+        var sbs = Components.classes["@mozilla.org/intl/stringbundle;1"]
+                            .getService(Components.interfaces.nsIStringBundleService);
+        var props = sbs.createBundle("chrome://calendar/locale/"+aBundleName+".properties");
 
-    if (aParams && aParams.length) {
-        return props.formatStringFromName(aStringName, aParams, aParams.length);
-    } else {
-        return props.GetStringFromName(aStringName);
+        if (aParams && aParams.length) {
+            return props.formatStringFromName(aStringName, aParams, aParams.length);
+        } else {
+            return props.GetStringFromName(aStringName);
+        }
+    } catch (ex) {
+        var s = "Failed to read '" + aStringName + "' from " +
+                "'chrome://calendar/locale/" + aBundleName + ".properties'.";
+        Components.utils.reportError(s + " Error: " + ex);
+        return s;
     }
 }
 
