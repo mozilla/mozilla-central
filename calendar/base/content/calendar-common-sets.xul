@@ -51,7 +51,7 @@
 
   <commandset id="calendar_commands">
     <command id="calendar_new_event_command" oncommand="createEventWithDialog(getSelectedCalendar());" disable-when-no-writable-calendars="true" disabled="true"/>
-    <command id="calendar_modify_event_command" oncommand="modifyEventWithDialog(currentView().getSelectedItems({})[0])" disabled="true" disabledwhennoeventsselected="true"/>
+    <command id="calendar_modify_event_command" oncommand="editSelectedEvents()" disabled="true" disabledwhennoeventsselected="true"/>
     <command id="calendar_delete_event_command" oncommand="deleteSelectedEvents()" disabled="true" disabledwhennoeventsselected="true"/>
 
     <command id="calendar_new_todo_command" oncommand="createTodoWithDialog(getSelectedCalendar());" disable-when-no-writable-calendars="true" disabled="true"/>

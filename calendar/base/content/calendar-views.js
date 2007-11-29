@@ -618,3 +618,13 @@ function deleteSelectedEvents() {
                                              false,
                                              false);
 }
+
+/**
+ *  Edit the items currently selected in the view.
+ */
+function editSelectedEvents() {
+    var selectedItems = currentView().getSelectedItems({});
+    if (selectedItems && selectedItems.length >= 1) {
+        modifyEventWithDialog(getOccurrenceOrParent(selectedItems[0]));
+    }
+}

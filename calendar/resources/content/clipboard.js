@@ -102,7 +102,7 @@ function cutToClipboard( /* calendarEventArray */)
 
     if( copyToClipboard( calendarEventArray ) )
     {
-         deleteEventCommand( true ); // deletes all selected events without prompting.
+         deleteSelectedEvents();
     }
 }
 

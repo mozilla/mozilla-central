@@ -304,7 +304,7 @@ function unifinderDoubleClickEvent(event) {
     var calendarEvent = getCalendarEventFromEvent(event);
 
     if (calendarEvent != null) {
-        modifyEventWithDialog(calendarEvent);
+        modifyEventWithDialog(getOccurrenceOrParent(calendarEvent));
     } else {
         createEventWithDialog();
     }
@@ -781,11 +781,11 @@ function unifinderKeyPress(aEvent) {
     switch (aEvent.keyCode) {
         case 13:
             // Enter, edit the event
-            modifyEventWithDialog(getSelectedItems()[0]);
+            editSelectedEvents();
             break;
         case kKE.DOM_VK_BACK_SPACE:
         case kKE.DOM_VK_DELETE:
-            deleteEventCommand(true);
+            deleteSelectedEvents();
             break;
     }
 }
