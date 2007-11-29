@@ -34,6 +34,49 @@
  *
  * ***** END LICENSE BLOCK ***** */
 
+var taskEdit = {
+
+    instructions: null,
+    value: null,
+    
+    /**
+     * Task Edit Events
+     */
+    onFocus: function tE_onFocus(aEvent) {
+        var edit = document.getElementById("task-edit-field");
+        taskEdit.instructions = edit.getAttribute("instructions");
+        edit.value = taskEdit.value || "";
+        edit.removeAttribute("instructions");
+    },
+    
+    onBlur: function tE_onBlur(aEvent) {
+        var edit = document.getElementById("task-edit-field");
+        taskEdit.value = edit.value;
+        edit.value = taskEdit.instructions;
+        edit.setAttribute("instructions", taskEdit.instructions);
+    },
+
+    onKeyPress: function tE_onKeyPress(aEvent) {
+        if (aEvent.keyCode == Components.interfaces.nsIDOMKeyEvent.DOM_VK_RETURN) {
+            var edit = document.getElementById("task-edit-field");
+            if(edit.value && edit.value.length > 0) {
+                var item = createTodo();
+                item.calendar = getSelectedCalendar();
+                item.title = edit.value;
+                edit.value = "";
+                setDefaultAlarmValues(item);
+                doTransaction('add', item, item.calendar, null,
+                    new OpCompleteListener(
+                        function respFunc(savedItem) {
+                            if (savedItem) {
+                                checkForAttendees(savedItem, null);
+                            }
+                        }));
+            }
+        }
+    }
+}
+
 var taskDetailsView = {
 
     /**
@@ -51,14 +94,6 @@ var taskDetailsView = {
         }
     }
 };
-
-function taskViewOnLoad() {
-    // set up the custom tree view
-    var tree = document.getElementById("calendar-task-tree");
-    taskTreeView.tree = tree;
-    tree.view = taskTreeView;
-
-}
 
 function taskViewObserveDisplayDeckChange(event) {
     var deck = event.target;

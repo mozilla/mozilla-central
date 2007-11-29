@@ -49,6 +49,14 @@
   <vbox id="displayDeck">
     <vbox id="calendar-task-box" flex="1"
           onselect="taskDetailsView.onSelect(event);">
+      <hbox align="center">
+        <textbox id="task-edit-field" flex="1"
+                 value="&calendar.task.edit.instructions.label;"
+                 instructions="&calendar.task.edit.instructions.label;"
+                 onfocus="taskEdit.onFocus(event)" 
+                 onblur="taskEdit.onBlur(event)" 
+                 onkeypress="taskEdit.onKeyPress(event)"/>
+      </hbox>
       <calendar-task-tree id="calendar-task-tree" flex="1"
                           hide-column-completed="false" 
                           hide-column-priority="false" 

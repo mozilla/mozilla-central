@@ -48,3 +48,11 @@
 #calendar-task-tree > .calendar-task-tree > treechildren::-moz-tree-cell {
     border-right: 1px dotted #AAA;
 }
+
+#task-edit-field {
+    margin: 5px;
+}
+
+#task-edit-field[instructions] {
+    color: grey;
+}
