@@ -110,7 +110,9 @@
                 <label value="&pref.weekstarts.label;"
                        accesskey="&pref.weekstarts.accesskey;"
                        control="weekstarts"/>
-                <menulist id="weekstarts" preference="calendar.week.start">
+                <menulist id="weekstarts"
+                          preference="calendar.week.start"
+                          oncommand="gViewsPane.updateViewWorkDayCheckboxes(this.value)">
                     <menupopup id="weekstartspopup">
                         <menuitem label="&day.1.name;" value="0"/>
                         <menuitem label="&day.2.name;" value="1"/>
@@ -128,37 +130,44 @@
             <caption label="&pref.calendar.view.workweek.caption;"/>
             <hbox>
                 <label value="&pref.daysoff.label;"/>
-                <checkbox class="dayOffCheckbox"
+                <checkbox id="dayoff0"
+                          class="dayOffCheckbox"
                           label="&day.1.Ddd;"
                           accesskey="&day.1.Ddd.accesskey;"
                           orient="vertical"
                           preference="calendar.week.d0sundaysoff"/>
-                <checkbox class="dayOffCheckbox"
+                <checkbox id="dayoff1"
+                          class="dayOffCheckbox"
                           label="&day.2.Ddd;"
                           accesskey="&day.2.Ddd.accesskey;"
                           orient="vertical"
                           preference="calendar.week.d1mondaysoff"/>
-                <checkbox class="dayOffCheckbox"
+                <checkbox id="dayoff2"
+                          class="dayOffCheckbox"
                           label="&day.3.Ddd;"
                           accesskey="&day.3.Ddd.accesskey;"
                           orient="vertical"
                           preference="calendar.week.d2tuesdaysoff"/>
-                <checkbox class="dayOffCheckbox"
+                <checkbox id="dayoff3"
+                          class="dayOffCheckbox"
                           label="&day.4.Ddd;"
                           accesskey="&day.4.Ddd.accesskey;"
                           orient="vertical"
                           preference="calendar.week.d3wednesdaysoff"/>
-                <checkbox class="dayOffCheckbox"
+                <checkbox id="dayoff4"
+                          class="dayOffCheckbox"
                           label="&day.5.Ddd;"
                           accesskey="&day.5.Ddd.accesskey;"
                           orient="vertical"
                           preference="calendar.week.d4thursdaysoff"/>
-                <checkbox class="dayOffCheckbox"
+                <checkbox id="dayoff5"
+                          class="dayOffCheckbox"
                           label="&day.6.Ddd;"
                           accesskey="&day.6.Ddd.accesskey;"
                           orient="vertical"
                           preference="calendar.week.d5fridaysoff"/>
-                <checkbox class="dayOffCheckbox"
+                <checkbox id="dayoff6"
+                          class="dayOffCheckbox"
                           label="&day.7.Ddd;"
                           accesskey="&day.7.Ddd.accesskey;"
                           orient="vertical"

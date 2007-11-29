@@ -40,6 +40,7 @@ var gViewsPane = {
     init: function prefViewInit() {
         this.updateViewEndMenu(document.getElementById("daystarthour").value);
         this.updateViewStartMenu(document.getElementById("dayendhour").value);
+        this.updateViewWorkDayCheckboxes(document.getElementById("weekstarts").value);
     },
 
     updateViewEndMenu: function prefUpdateViewEnd(aStartValue) {
@@ -64,6 +65,13 @@ var gViewsPane = {
                 startMenuKids[i].removeAttribute("hidden");
             }
         }
-    }
+    },
 
+    updateViewWorkDayCheckboxes: function prefUpdateViewWorkDays(weekStart) {
+        weekStart = Number(weekStart);
+        for (var i = weekStart; i < weekStart + 7; i++) {
+            var checkbox = document.getElementById("dayoff" + (i % 7));
+            checkbox.parentNode.appendChild(checkbox);
+        }
+    }
 };
