@@ -771,6 +771,8 @@ Function preSummary
   !insertmacro MUI_INSTALLOPTIONS_INITDIALOG "summary.ini"
   GetDlgItem $0 $HWNDPARENT 1
   System::Call "user32::SetFocus(i r0, i 0x0007, i,i)i"
+  ${MUI_INSTALLOPTIONS_READ} $1 "summary.ini" "Field 2" "HWND"
+  SendMessage $1 ${WM_SETTEXT} 0 "STR:$INSTDIR"
   !insertmacro MUI_INSTALLOPTIONS_SHOW
 FunctionEnd
 
