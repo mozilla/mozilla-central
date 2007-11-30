@@ -366,7 +366,7 @@ calRecurrenceInfo.prototype = {
         // the base item cannot be replaced by an exception;
         // an exception can only be defined on an item resulting from an RDATE/RRULE;
         // DTSTART always equals RECURRENCE-ID for items expanded from RRULE
-        var baseOccDate = checkIfInRange(this.mBaseItem, aRangeStart, aRangeEnd);
+        var baseOccDate = checkIfInRange(this.mBaseItem, aRangeStart, aRangeEnd, true);
         if (baseOccDate) {
             dates.push(baseOccDate);
         }
@@ -375,7 +375,7 @@ calRecurrenceInfo.prototype = {
         if (this.mExceptions) {
             this.mExceptions.forEach(
                 function(ex) {
-                    var occDate = checkIfInRange(ex.item, aRangeStart, aRangeEnd);
+                    var occDate = checkIfInRange(ex.item, aRangeStart, aRangeEnd, true);
                     if (occDate) {
                         dates.push(aReturnRIDs ? ex.id : occDate);
                     }

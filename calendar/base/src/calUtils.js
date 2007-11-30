@@ -887,21 +887,46 @@ function calGetEndDate(aItem)
 }
 
 /**
- * Returns the item's start (or due) date if the item is in the specified Range;
- * null otherwise.
+ * Checks whether the passed item fits into the demanded range.
+ *
+ * @param item               the item
+ * @param rangeStart         (inclusive) range start or null (open range)
+ * @param rangeStart         (exclusive) range end or null (open range)
+ * @param returnDtstartOrDue returns item's start (or due) date in case
+ *                           the item is in the specified Range; null otherwise.
  */
-function checkIfInRange(item, rangeStart, rangeEnd)
+function checkIfInRange(item, rangeStart, rangeEnd, returnDtstartOrDue)
 {
-    var dueDate = null;
-    var startDate = (item.getProperty("DTSTART") ||
-                     (dueDate = item.getProperty("DUE")));
-    if (!startDate) {
-        // DTSTART or DUE mandatory
-        return null;
+    var startDate;
+    var endDate;
+    if (isEvent(item)) {
+        startDate = item.startDate;
+        if (!startDate) { // DTSTART mandatory
+            // xxx todo: should we assert this case?
+            return null;
+        }
+        endDate = (item.endDate || startDate);
+    } else {
+        var dueDate = item.dueDate;
+        startDate = (item.entryDate || dueDate);
+        if (!startDate) {
+            if (returnDtstartOrDue) { // DTSTART or DUE mandatory
+                return null;
+            }
+            // 3.6.2. To-do Component
+            // A "VTODO" calendar component without the "DTSTART" and "DUE" (or
+            // "DURATION") properties specifies a to-do that will be associated
+            // with each successive calendar date, until it is completed.
+            var completedDate = item.completedDate;
+            if (completedDate) {
+                var queryStart = ensureDateTime(rangeStart);
+                var completedDate = ensureDateTime(completedDate);
+                return (!queryStart || completedDate.compare(queryStart) > 0);
+            }
+            return true;
+        }
+        endDate = (dueDate || startDate);
     }
-    var endDate = (item.getProperty("DTEND") ||
-                   (dueDate ? dueDate : item.getProperty("DUE")) ||
-                   startDate);
 
     var start = ensureDateTime(startDate);
     var end = ensureDateTime(endDate);
