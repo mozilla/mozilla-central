@@ -128,7 +128,7 @@
 
 // Thumbnailing
 #include "gfxContext.h"
-#include "gfxImageSurface.h"
+#include "gfxQuartzSurface.h"
 #include "nsPresContext.h"
 
 #include "GeckoUtils.h"
@@ -684,14 +684,20 @@ const char kDirServiceContractID[] = "@mozilla.org/file/directory_service;1";
   int pageWidth;
   int pageHeight;
   GeckoUtils::GetIntrisicSize(domWindow, &pageWidth, &pageHeight);
+  // Enforce a non-zero size, since Gecko gets very angry with a zero-sized
+  // Quartz surface.
+  if (pageWidth == 0)
+    pageWidth = 1;
+  if (pageHeight == 0)
+    pageHeight = 1;
   NSSize snapshotSize = NSMakeSize(MIN(pageWidth, viewportSize.width),
                                    viewportSize.height);
 
   // Create a context to draw into.
-  // TODO: use a quartz-based surface, so that widgets will draw onto it.
-  nsRefPtr<gfxImageSurface> surface = new gfxImageSurface(gfxIntSize(snapshotSize.width,
-                                                                     snapshotSize.height),
-                                                          gfxImageSurface::ImageFormatARGB32);
+  nsRefPtr<gfxQuartzSurface> surface = new gfxQuartzSurface(gfxSize(snapshotSize.width,
+                                                                    snapshotSize.height),
+                                                            gfxQuartzSurface::ImageFormatARGB32);
+
   if (!surface)
     return nil;
   nsRefPtr<gfxContext> context = new gfxContext(surface);
@@ -721,38 +727,8 @@ const char kDirServiceContractID[] = "@mozilla.org/file/directory_service;1";
                   NSIntPixelsToAppUnits(viewportSize.height, appUnitsPerPixel));
   presShell->RenderDocument(viewRect, PR_FALSE, PR_TRUE, NS_RGB(255, 255, 255), context);
 
-  // The data is ARGB, in host endianness, which doesn't convert nicely to an
-  // NSImage, so pass it through CGImage to extract the data.
-  size_t bitsPerComponent = 8;
-  size_t componentsPerPixel = 4;
-  size_t imageBytes = componentsPerPixel * snapshotSize.width * snapshotSize.height;
-  CGDataProviderRef dataProvider = CGDataProviderCreateWithData(NULL,
-                                                                surface->Data(),
-                                                                imageBytes,
-                                                                NULL);
-  if (!dataProvider)
-    return nil;
-  CGColorSpaceRef colorSpace = CGColorSpaceCreateWithName(kCGColorSpaceGenericRGB);
-  if (!colorSpace) {
-    CGDataProviderRelease(dataProvider);
-    return nil;
-  }
-  CGImageRef cgImage = CGImageCreate(snapshotSize.width, snapshotSize.height,
-                                     bitsPerComponent,
-                                     bitsPerComponent * componentsPerPixel,
-                                     surface->Stride(),
-                                     colorSpace,
-                                     kCGImageAlphaFirst | kCGBitmapByteOrder32Host,
-                                     dataProvider,
-                                     NULL, // no decode
-                                     true, // enable interpolation
-                                     kCGRenderingIntentDefault);
-  CGDataProviderRelease(dataProvider);
-  CGColorSpaceRelease(colorSpace);
-  if (!cgImage)
-    return nil;
-
-  // Finally, get it into an NSImage.
+  // Now transfer the context contents into an NSImage.
+  CGImageRef cgImage = CGBitmapContextCreateImage(surface->GetCGContext());
   NSImage* snapshot = [[[NSImage alloc] initWithSize:snapshotSize] autorelease];
   NSRect imageRect = NSMakeRect(0, 0, snapshotSize.width, snapshotSize.height);
   [snapshot lockFocus];
