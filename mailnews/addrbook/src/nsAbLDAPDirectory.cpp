@@ -1,3 +1,4 @@
+#define MOZ_EXPERIMENTAL_WRITEABLE_LDAP 1
 /* -*- Mode: C++; tab-width: 2; indent-tabs-mode: nil; c-basic-offset: 2 -*- */
 /* ***** BEGIN LICENSE BLOCK *****
  * Version: MPL 1.1/GPL 2.0/LGPL 2.1
@@ -165,8 +166,7 @@ NS_IMETHODIMP nsAbLDAPDirectory::GetOperations(PRInt32 *aOperations)
 
 NS_IMETHODIMP nsAbLDAPDirectory::GetChildNodes(nsISimpleEnumerator* *aResult)
 {
-  nsCOMArray<nsIAbDirectory> children;
-  return NS_NewArrayEnumerator(aResult, children);
+  return NS_NewEmptyEnumerator(aResult);
 }
 
 NS_IMETHODIMP nsAbLDAPDirectory::GetChildCards(nsISimpleEnumerator** result)

@@ -239,20 +239,20 @@ NS_IMETHODIMP nsAbOutlookDirectory::GetURI(nsACString &aURI)
 
 NS_IMETHODIMP nsAbOutlookDirectory::GetChildNodes(nsISimpleEnumerator **aNodes)
 {
-    if (!aNodes) { return NS_ERROR_NULL_POINTER ; }
-    *aNodes = nsnull ;
-    nsCOMPtr<nsISupportsArray> nodeList ;
-    nsresult retCode = NS_OK ;
+  NS_ENSURE_ARG_POINTER(aNodes);
+
+  *aNodes = nsnull;
     
-    if (mIsQueryURI) {
-        NS_NewISupportsArray(getter_AddRefs(nodeList)) ;
-    }
-    else {
-        retCode = GetChildNodes(getter_AddRefs(nodeList)) ;
-    }
-    if (NS_SUCCEEDED(retCode))
-      retCode = NS_NewArrayEnumerator(aNodes, nodeList);
-    return retCode;
+  if (mIsQueryURI) {
+    return NS_NewEmptyEnumerator(aNodes);
+  }
+
+  nsresult rv;
+  nsCOMPtr<nsISupportsArray> nodeList;
+  rv = GetChildNodes(getter_AddRefs(nodeList));
+  NS_ENSURE_SUCCESS(rv, rv);
+
+  return NS_NewArrayEnumerator(aNodes, nodeList);
 }
 
 NS_IMETHODIMP nsAbOutlookDirectory::GetChildCards(nsISimpleEnumerator **aCards)

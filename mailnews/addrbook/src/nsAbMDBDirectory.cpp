@@ -53,6 +53,7 @@
 #include "nsAbDirectoryQuery.h"
 #include "nsIAbDirectoryQueryProxy.h"
 #include "nsAbQueryStringToExpression.h"
+#include "nsIMutableArray.h"
 #include "nsArrayEnumerator.h"
 #include "nsAbMDBCardProperty.h"
 #include "nsEnumeratorUtils.h"
@@ -437,10 +438,7 @@ NS_IMETHODIMP nsAbMDBDirectory::GetURI(nsACString &aURI)
 NS_IMETHODIMP nsAbMDBDirectory::GetChildNodes(nsISimpleEnumerator* *aResult)
 {
   if (mIsQueryURI)
-  {
-    nsCOMArray<nsIAbDirectory> children;
-    return NS_NewArrayEnumerator(aResult, children);
-  }
+    return NS_NewEmptyEnumerator(aResult);
 
   mInitialized = PR_TRUE;
   return NS_NewArrayEnumerator(aResult, mSubDirectories);
@@ -448,11 +446,11 @@ NS_IMETHODIMP nsAbMDBDirectory::GetChildNodes(nsISimpleEnumerator* *aResult)
 
 PR_STATIC_CALLBACK(PRBool) enumerateSearchCache(nsHashKey *aKey, void *aData, void* closure)
 {
-        nsISupportsArray* array = (nsISupportsArray* )closure;
-  nsIAbCard* card = (nsIAbCard* )aData;
+  nsIMutableArray* array = static_cast<nsIMutableArray*>(closure);
+  nsIAbCard* card = static_cast<nsIAbCard*>(aData);
 
-  array->AppendElement (card);
-        return PR_TRUE;
+  array->AppendElement(card, PR_FALSE);
+  return PR_TRUE;
 }
 
 NS_IMETHODIMP nsAbMDBDirectory::GetChildCards(nsISimpleEnumerator* *result)
@@ -466,8 +464,7 @@ NS_IMETHODIMP nsAbMDBDirectory::GetChildCards(nsISimpleEnumerator* *result)
     // TODO
     // Search is synchronous so need to return
     // results after search is complete
-    nsCOMPtr<nsISupportsArray> array;
-    NS_NewISupportsArray(getter_AddRefs(array));
+    nsCOMPtr<nsIMutableArray> array(do_CreateInstance(NS_ARRAY_CONTRACTID));
     mSearchCache.Enumerate(enumerateSearchCache, (void*)array);
     return NS_NewArrayEnumerator(result, array);
   }

@@ -247,14 +247,7 @@ nsMsgRDFDataSource::HasArcOut(nsIRDFResource *aSource, nsIRDFResource *aArc, PRB
 NS_IMETHODIMP
 nsMsgRDFDataSource::ArcLabelsIn(nsIRDFNode *aNode, nsISimpleEnumerator **_retval)
 {
- //return empty enumerator
-  nsCOMPtr<nsISupportsArray> arcs;
-
-  nsresult rv = NS_NewISupportsArray(getter_AddRefs(arcs));
-  if(NS_FAILED(rv))
-    return rv;
-
-  return NS_NewArrayEnumerator(_retval, arcs);
+  return NS_NewEmptyEnumerator(_retval);
 }
 
 
