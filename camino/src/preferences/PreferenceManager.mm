@@ -693,6 +693,14 @@ static BOOL gMadePrefManager;
     [defaults setInteger:USER_DEFAULTS_UPDATE_INTERVAL_DEFAULT
                   forKey:SUScheduledCheckIntervalKey];
   }
+
+  // If no check time has been stored, then store the current time to start
+  // things off; this ensures that users who never leave Camino running for
+  // the whole interval duration will still have update checks run.
+  if (![defaults objectForKey:SULastCheckTimeKey]) {
+    [[NSUserDefaults standardUserDefaults] setObject:[NSDate date]
+                                              forKey:SULastCheckTimeKey];
+  }
 }
 
 // Convert an Apple locale (or language with the dialect specified) from the form en_GB
