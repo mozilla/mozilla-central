@@ -180,7 +180,9 @@
              customizable="true"
              context="toolbar-context-menu"
              collapsed="true"
-             defaultset="calendar-new-event-button,calendar-new-task-button,separator,calendar-go-to-today-button,separator,calendar-day-view-button,calendar-week-view-button,calendar-multiweek-view-button,calendar-month-view-button,separator,calendar-delete-event-button,calendar-print-button,separator,calendar-remote-reload-button,spring"/>
+             collapsedinMode="false"
+             defaultset="calendar-new-event-button,calendar-new-task-button,separator,calendar-go-to-today-button,separator,calendar-day-view-button,calendar-week-view-button,calendar-multiweek-view-button,calendar-month-view-button,separator,calendar-delete-event-button,calendar-print-button,separator,calendar-remote-reload-button,spring"
+             persist="collapsedinMode"/>
   </toolbox>
 
 </overlay>

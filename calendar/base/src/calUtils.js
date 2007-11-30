@@ -1407,7 +1407,7 @@ function sameDay(date1, date2) {
 
 /**
  * This is a centralized function for setting the prodid and version on an
- * ical components.  This should be used whenever you need to set the prodid
+ * ical component.  This should be used whenever you need to set the prodid
  * and version on a calIcalComponent object.
  *
  * @param
@@ -1422,3 +1422,30 @@ function calSetProdidVersion(aIcalComponent) {
     aIcalComponent.prodid = "-//Mozilla.org/NONSGML Mozilla Calendar V1.1//EN";
     aIcalComponent.version = "2.0";
 }
+
+/**
+ * This function returns a sibling of a XUL element, that is positioned behind
+ * it in the DOM hierarchy *
+ * @param
+ *      aElement  The XUL element to derive the sibling from
+ * @param
+ *      aDistance  An integer value denoting how the relative position 
+ *                  of the returned sibling within the parent container
+ */
+function getAdjacentSibling(aElement, aDistance) {
+    var retElement = aElement;
+    if (aDistance > 0) {
+        for (var i = 0; i < aDistance; i++) {
+            if (retElement) {
+                try {
+                    retElement = retElement.nextSibling;
+                } catch (e) {
+                    retElement = null;
+                    i = aDistance;
+                }
+            }
+        }
+    }
+    return retElement;
+}
+

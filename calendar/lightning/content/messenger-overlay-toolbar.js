@@ -97,8 +97,14 @@ function ltnSwitch2Mail() {
     switch2task.removeAttribute("checked");
 
     gCurrentMode = 'mail';
+    swapPopupMenus();
 
     var mailToolbar = getMailBar();
+    var mailToolbarMenuItem = document.getElementById("menu_showMessengerToolbar");
+    if (mailToolbarMenuItem.getAttribute("checked") == "true") {
+        mailToolbar.removeAttribute("collapsed");
+    }
+
     var calendarToolbar = document.getElementById("calendar-toolbar");
     mailToolbar.removeAttribute("collapsed");
     calendarToolbar.setAttribute("collapsed", "true");
@@ -146,11 +152,13 @@ function ltnSwitch2Calendar() {
     switch2task.removeAttribute("checked");
 
     gCurrentMode = 'calendar';
+    swapPopupMenus();
 
     var mailToolbar = getMailBar();
-    var calendarToolbar = document.getElementById("calendar-toolbar");
     mailToolbar.setAttribute("collapsed", "true");
-    calendarToolbar.removeAttribute("collapsed");
+
+    toggleControlDisplay("cmd_toggleCalendarToolbar", "calendar-toolbar", "calendar");
+
 
     // the content deck should display the calendar panel
     var contentDeck = document.getElementById("contentPanel");

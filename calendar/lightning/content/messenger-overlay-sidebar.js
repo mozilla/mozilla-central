@@ -174,7 +174,7 @@ var CalendarController =
   onEvent: function ccOE(event) {
     // do nothing here...
   },
-  
+
   isCalendarInForeground: function ccIC() {
     return document.getElementById("displayDeck").selectedPanel.id == "calendar-view-box";
   }
@@ -279,7 +279,7 @@ function ltnOnLoad(event)
       }
       return toolbars;
     }
-    
+
     var restoreToolbarProperties = function(toolbox,toolbars)
     {
       var toolbar = toolbox.firstChild;
@@ -296,7 +296,7 @@ function ltnOnLoad(event)
         toolbar = toolbar.nextSibling;
       }
     }
-    
+
     // DOMAttrModified handler that listens on the toolbox element
     var onModified = function(aEvent)
     {
@@ -310,7 +310,6 @@ function ltnOnLoad(event)
           // place the mode toolbox at the top of the left pane
           modeToolbox = contentPanel.parentNode.insertBefore(modeToolbox, contentPanel);
           modeToolbox.palette = palette;
-          var toolbar = document.getElementById("mode-toolbar");
         } else if(aEvent.newValue == "bottom" && aEvent.prevValue == "top") {
           // place the mode toolbox at the bottom of the left pane
           modeToolbox = contentPanel.parentNode.appendChild(modeToolbox);
@@ -404,6 +403,7 @@ function ltnOnLoad(event)
       } else {
         CalendarController.defaultController = controller;
         top.controllers.insertControllerAt(0, CalendarController);
+        ltnInitializeCalendarMenu();
       }
     }
     injectCommandController();
@@ -462,6 +462,49 @@ function ltnSelectCalendarView(type) {
 
 }
 
+function toggleControlDisplay(aCommandId, aControlId) {
+    var control = document.getElementById(aControlId);
+    var command = document.getElementById(aCommandId);
+    if (control.getAttribute("collapsedinMode") == "false") {
+        if (control.hasAttribute("collapsed")) {
+            control.removeAttribute("collapsed");
+            command.setAttribute("checked", "true");
+            return;
+        }
+    }
+    command.setAttribute("checked", "false");
+}
+
+function toggleControlinMode(aCommandId, aControlId) {
+    var control = document.getElementById(aControlId);
+    var command = document.getElementById(aCommandId);
+    if (control.hasAttribute("collapsed")) {
+        control.removeAttribute("collapsed");
+        control.setAttribute("collapsedinMode", "false");
+        command.setAttribute("checked","true");
+    }
+    else {
+        control.setAttribute("collapsed", "true");
+        control.setAttribute("collapsedinMode", "true");
+        command.setAttribute("checked", "false");
+    }
+}
+
+function toggleToolbar(aCommandId, aToolbarId) {
+    var toolBar = document.getElementById(aToolbarId);
+    var command = document.getElementById(aCommandId);
+    if (toolBar.hasAttribute("collapsed")) {
+       toolBar.removeAttribute("collapsed");
+       command.setAttribute("checked", "true");
+    }
+    else {
+       toolBar.setAttribute("collapsed", "true");
+       command.setAttribute("checked", "false");
+    }
+ }
+
+
+
 /**
  * Show the calendar view, also switching to calendar mode if in mail mode
  */
@@ -495,18 +538,6 @@ function toggleTodayPaneinMailMode()
   }
 }
 
-function selectedCalendarPane(event)
-{
-    var deck = document.getElementById("displayDeck");
-
-    // If we're already showing a calendar view, don't do anything
-    if (deck.selectedPanel.id == "calendar-view-box")
-        return;
-
-    deck.selectedPanel = document.getElementById("calendar-view-box");
-
-    ltnShowCalendarView('week');
-}
 
 /**
  * This function has the sole responsibility to switch back to
@@ -575,6 +606,207 @@ SelectFolder = function(folderUri) {
     document.getElementById("switch2mail").doCommand();
     gSelectFolder(folderUri);
 }
+
+
+
+var calendarpopuplist = new Array();
+var mailpopuplist = new Array();
+var menulist = new Array();
+
+function ltnInitializeCalendarMenu() {
+    function copyPopupMenus() {
+        addToPopuplists(document.getElementById("menu_File"));
+        addToPopuplists(document.getElementById("menu_Edit"));
+        var menuView = document.getElementById("menu_View");
+        addToPopuplists(menuView);
+        addToPopuplists(menuView.nextSibling, document.getElementById("calendar-GoPopupMenu"));
+        addToPopuplists(document.getElementById("messageMenu"), document.getElementById("calendarCalendarPopupMenu"));
+        var tasksMenu = document.getElementById("tasksMenu");
+        addToPopuplists(tasksMenu);
+    }
+
+    function addToPopuplists(aMenuElement, acalendarpopupmenu) {
+        var child = aMenuElement.firstChild;
+        if (child) {
+            if (child.localName == "menupopup") {
+                var newcalendarPopupMenu = acalendarpopupmenu;
+                if (newcalendarPopupMenu == null) {
+                    newcalendarPopupMenu = child.cloneNode(true);
+                }
+                if (aMenuElement.getAttribute("id") != "menu_Edit") {
+                    newcalendarPopupMenu.removeAttribute("onpopupshowing");
+                }
+                removeMenuElements(child, "calendar");
+                calendarpopuplist.push(newcalendarPopupMenu);
+                mailpopuplist.push(child);
+                menulist.push(aMenuElement);
+            }
+        }
+    }
+
+    function getCalendarMenuElementById(aElementId, aMenuPopup) {
+        var element = null;
+        var elements = aMenuPopup.getElementsByAttribute("id", aElementId);
+        if (elements.length > 0) {
+            element = elements[0];
+        }
+        return element;
+    }
+    
+    copyPopupMenus();
+
+
+// "File" - menu
+    [getCalendarMenuElementById("openMessageFileMenuitem", calendarpopuplist[0]),
+     getCalendarMenuElementById("newAccountMenuItem", calendarpopuplist[0]),
+     getCalendarMenuElementById("fileAttachmentMenu", calendarpopuplist[0]),
+     getAdjacentSibling(getCalendarMenuElementById("menu_saveAs", calendarpopuplist[0]), 2),
+
+// "Edit" - menu
+     getCalendarMenuElementById("menu_find", calendarpopuplist[1]),
+     getCalendarMenuElementById("menu_favoriteFolder", calendarpopuplist[1]),
+     getCalendarMenuElementById("menu_properties", calendarpopuplist[1]),
+     getCalendarMenuElementById("menu_accountmgr", calendarpopuplist[1]),
+
+// "View"-menu
+     getCalendarMenuElementById("menu_showMessengerToolbar", calendarpopuplist[2]),
+
+// "Tools"-menu
+     getCalendarMenuElementById("tasksMenuMail", calendarpopuplist[5]),
+     getCalendarMenuElementById("menu_import", calendarpopuplist[5])].forEach(function(element) {
+        try {
+            if (element) {
+                element.parentNode.removeChild(element);
+            }
+        } catch (e) {
+            dump("Element '" + element.getAttribute("id") + "' could not be removed\n");
+        }
+    });
+
+    calendarpopuplist.forEach(function(aMenuPopup) {
+        var child = aMenuPopup.lastChild;
+        if (child) {
+            if (child.localName == "menuseparator") {
+                try {
+                    aMenuPopup.removeChild(child)
+                } catch (e) {
+                    dump("Element '" + child.getAttribute("id") + "' could not be removed\n");
+                }
+            }
+        }
+    });
+
+// "File" - menu
+    [getCalendarMenuElementById("menu_newFolder", calendarpopuplist[0]),
+     getCalendarMenuElementById("menu_saveAs", calendarpopuplist[0]),
+     getCalendarMenuElementById("menu_getnextnmsg", calendarpopuplist[0]),
+     getCalendarMenuElementById("menu_renameFolder", calendarpopuplist[0]),
+     getCalendarMenuElementById("offlineMenuItem", calendarpopuplist[0]),
+// "Edit" - menu
+     getCalendarMenuElementById("menu_delete", calendarpopuplist[1]),
+     getCalendarMenuElementById("menu_select", calendarpopuplist[1]),
+    
+// "View"-menu
+     getCalendarMenuElementById("menu_MessagePaneLayout", calendarpopuplist[2]),
+     getCalendarMenuElementById("viewSortMenu", calendarpopuplist[2]),
+     getCalendarMenuElementById("viewheadersmenu", calendarpopuplist[2]),
+     getCalendarMenuElementById("viewTextSizeMenu", calendarpopuplist[2]),
+     getCalendarMenuElementById("pageSourceMenuItem", calendarpopuplist[2]),
+
+// "Tools"-menu
+     getCalendarMenuElementById("filtersCmd", calendarpopuplist[5]),
+     getCalendarMenuElementById("runJunkControls", calendarpopuplist[5])].forEach(function(element){
+
+/**  removes all succeedingmenu elements of a container up to the next
+*    menuseparator that thus denotes the end of the section. Elements with the
+*    attribute mode == 'calendar' are ignored
+*/
+        function removeMenuElementsInSection(aElement) {
+            var element = aElement
+            var bleaveloop = false;
+            while (!bleaveloop) {
+                var ignore = false;
+                bleaveloop = element.localName == "menuseparator";
+                if (bleaveloop) {
+                    // we delete the menuseparator only if it's the last element
+                    // within its container
+                    bleaveloop = (element.nextSibling != null);
+                }
+                if (element.hasAttribute("mode")) {
+                    ignore = element.getAttribute("mode") == "calendar";
+                }
+                var nextMenuElement = element.nextSibling;
+                if (!ignore) {
+                    try {
+                        element.parentNode.removeChild(element);
+                    } catch (e) {
+                        dump("Element '" + element.getAttribute("id") + "' could not be removed\n");
+                    }
+                }
+                if (!bleaveloop) {
+                    element = nextMenuElement;
+                    bleaveloop = (element == null);
+                }
+            }
+        }
+        removeMenuElementsInSection(element);
+    });
+
+    document.getElementById("calendar-toolbar").setAttribute("collapsed", "true")
+    var modeToolbar = document.getElementById("mode-toolbar");
+    var visible = !modeToolbar.hasAttribute("collapsed");
+    document.getElementById("modeBroadcaster").setAttribute("checked", visible);
+}
+
+function swapPopupMenus() {
+    var showStatusbar = document.getElementById("menu_showTaskbar").getAttribute("checked");
+    var oldmenupopuplist = null;
+    var newmenupopuplist = null;
+    if (gCurrentMode == "mail") {
+        oldmenupopuplist = calendarpopuplist;
+        newmenupopuplist = mailpopuplist;
+    }
+    else if (gCurrentMode == "calendar") {
+        oldmenupopuplist = mailpopuplist;
+        newmenupopuplist = calendarpopuplist;
+    }
+    for (var i = 0; i < menulist.length; i++) {
+        var menu = menulist[i];
+        var oldmenupopup = menu.firstChild;
+        if (oldmenupopup) {
+            var newmenupopup = null;
+            oldmenupopuplist[i] = oldmenupopup;
+            menu.replaceChild(newmenupopuplist[i], oldmenupopup);
+        }
+    }
+    document.getElementById("menu_showTaskbar").setAttribute("checked", showStatusbar);
+    var messageMenu = document.getElementById("messageMenu");
+    if (gCurrentMode == "mail") {
+        messageMenu.setAttribute("label", messagemenulabel);
+        messageMenu.setAttribute("accesskey", messagemenuaccesskey);
+    }
+    else {
+        messageMenu.setAttribute("label", calendarmenulabel);
+        messageMenu.setAttribute("accesskey", calendarmenuaccesskey);
+    }
+}
+
+function removeMenuElements(aRoot, aModeValue) {
+    var modeElements = aRoot.getElementsByAttribute("mode", aModeValue);
+    if (modeElements.length > 0) {
+        for (var i = modeElements.length-1; i >=0; i--) {
+            var element = modeElements[i];
+            if (element) {
+                var localName = element.localName;
+                if (localName =="menuitem" || localName == "menuseparator" || localName == "menu"){
+                    element.parentNode.removeChild(element);
+                }
+            }
+        }
+    }
+}
+
+
 
 SelectMessage = function(messageUri) {
     document.getElementById("switch2mail").doCommand();
