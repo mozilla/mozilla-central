@@ -866,7 +866,8 @@ safe_pclose(FILE *fp)
     /* if the child hasn't exited, kill it -- we're done with its output */
     while ((rv = waitpid(pid, &status, WNOHANG)) == -1 && errno == EINTR)
 	;
-    if (rv == 0 && kill(pid, SIGKILL) == 0) {
+    if (rv == 0) {
+	kill(pid, SIGKILL);
 	while ((rv = waitpid(pid, &status, 0)) == -1 && errno == EINTR)
 	    ;
     }
