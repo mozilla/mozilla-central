@@ -2038,7 +2038,19 @@ function cmdMotif(e)
 function cmdList(e)
 {
     if (!e.channelName)
+    {
         e.channelName = "";
+        var c = e.server.channelCount;
+        if ((c > client.SAFE_LIST_COUNT) && !("listWarned" in e.network))
+        {
+            client.munger.getRule(".inline-buttons").enabled = true;
+            display(getMsg(MSG_LIST_CHANCOUNT, [c, "list"]), MT_WARN);
+            client.munger.getRule(".inline-buttons").enabled = false;
+            e.network.listWarned = true;
+            return;
+        }
+    }
+
     e.network.list(e.channelName);
 }
 
@@ -2084,6 +2096,16 @@ function cmdRlist(e)
     catch (ex)
     {
         display(MSG_ERR_INVALID_REGEX, MT_ERROR);
+        return;
+    }
+
+    var c = e.server.channelCount;
+    if ((c > client.SAFE_LIST_COUNT) && !("listWarned" in e.network))
+    {
+        client.munger.getRule(".inline-buttons").enabled = true;
+        display(getMsg(MSG_LIST_CHANCOUNT, [c, "rlist " + e.regexp]), MT_WARN);
+        client.munger.getRule(".inline-buttons").enabled = false;
+        e.network.listWarned = true;
         return;
     }
     e.network.list(re);

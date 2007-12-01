@@ -488,6 +488,7 @@ function CIRCServer (parent, hostname, port, isSecure, password)
     s.supports = null;
     s.channelTypes = null;
     s.channelModes = null;
+    s.channelCount = -1;
     s.userModes = null;
     s.maxLineLength = 400;
 
@@ -1584,6 +1585,15 @@ function serv_251(e)
         this.parent.primChan.join();
     }
 
+    e.destObject = this.parent;
+    e.set = "network";
+}
+
+/* channels */
+CIRCServer.prototype.on254 =
+function serv_254(e)
+{
+    this.channelCount = e.params[2];
     e.destObject = this.parent;
     e.set = "network";
 }

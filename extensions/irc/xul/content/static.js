@@ -79,10 +79,6 @@ client.MAX_NICK_DISPLAY = 14;
 /* longest word to show in display before abbreviating */
 client.MAX_WORD_DISPLAY = 20;
 
-client.MAX_MSG_PER_ROW = 3; /* default number of messages to collapse into a
-                             * single row, max. */
-client.INITIAL_COLSPAN = 5; /* MAX_MSG_PER_ROW cannot grow to greater than
-                             * one half INITIAL_COLSPAN + 1. */
 client.NOTIFY_TIMEOUT = 5 * 60 * 1000; /* update notify list every 5 minutes */
 
 // Check every minute which networks have away statuses that need an update.
@@ -95,14 +91,13 @@ client.SLOPPY_NETWORKS = true; /* true if msgs from a network can be displayed
                                 * is on the network that the results came from)
                                 */
 client.DOUBLETAB_TIME = 500;
-client.IMAGEDIR = "chrome://chatzilla/skin/images/";
 client.HIDE_CODES = true;      /* true if you'd prefer to show numeric response
                                 * codes as some default value (ie, "===") */
-/* true if the browser widget shouldn't be allowed to take focus.  windows, and
- * probably the mac, need to be able to give focus to the browser widget for
- * copy to work properly. */
-client.NO_BROWSER_FOCUS = (navigator.platform.search(/mac|win/i) == -1);
 client.DEFAULT_RESPONSE_CODE = "===";
+
+/* Maximum number of channels we'll try to list without complaining */
+client.SAFE_LIST_COUNT = 500;
+
 /* Minimum number of users above or below the conference limit the user count
  * must go, before it is changed. This allows the user count to fluctuate
  * around the limit without continously going on and off.
