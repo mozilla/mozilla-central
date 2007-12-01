@@ -4332,7 +4332,7 @@ function cmdWatchExpr (e)
 {
     var watches = console.views.watches;
     
-    if (!e.expression)
+    if (!e.watchExpression)
     {
         if ("isInteractive" in e && e.isInteractive)
         {
@@ -4361,8 +4361,8 @@ function cmdWatchExpr (e)
         else
             parent = window;
             
-        e.expression = prompt(MSG_ENTER_WATCH, "", parent);
-        if (!e.expression)
+        e.watchExpression = prompt(MSG_ENTER_WATCH, "", parent);
+        if (!e.watchExpression)
             return null;
     }
     
@@ -4379,7 +4379,8 @@ function cmdWatchExpr (e)
                         if ("frames" in console)
                         {
                             this.jsdFrame = getCurrentFrame();
-                            this.value = evalInTargetScope(e.expression, true);
+                            this.value = evalInTargetScope(e.watchExpression,
+                                                           true);
                         }
                         else
                         {
@@ -4395,12 +4396,13 @@ function cmdWatchExpr (e)
     else
     {
         refresher = function () {
-                        var rv = evalInDebuggerScope(e.expression, true);
+                        var rv = evalInDebuggerScope(e.watchExpression, true);
                         this.value = console.jsds.wrapValue(rv);
                     };
     }
     
-    var rec = new ValueRecord(console.jsds.wrapValue(null), e.expression, 0);
+    var rec = new ValueRecord(console.jsds.wrapValue(null),
+                              e.watchExpression, 0);
     rec.onPreRefresh = refresher;
     rec.refresh();
     watches.childData.appendChild(rec);
