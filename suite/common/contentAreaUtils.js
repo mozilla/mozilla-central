@@ -871,6 +871,9 @@ function getNormalizedLeafName(aFile, aDefaultExtension)
   if (/Win/.test(navigator.platform))
     aFile = aFile.replace(/[\s.]+$/, "");
 
+  // Remove leading dots
+  aFile = aFile.replace(/^\.+/, "");
+
   // Fix up the file name we're saving to to include the default extension
   var i = aFile.lastIndexOf(".");
   if (aFile.substr(i + 1) != aDefaultExtension)
