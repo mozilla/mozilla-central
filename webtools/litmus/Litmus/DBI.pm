@@ -170,7 +170,8 @@ our $dsn = "dbi:mysql(RootClass=AuditDBI):database=$Litmus::Config::db_name;host
 Litmus::DBI->connection($dsn,
                         $Litmus::Config::db_user,
                         $Litmus::Config::db_pass,
-                        {mysql_enable_utf8 => 1}
+                        {mysql_enable_utf8 => 1,
+                         wait_timeout => 60*60*8}
 );
 
 our $readonly_dbh;
