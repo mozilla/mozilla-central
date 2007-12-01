@@ -62,7 +62,7 @@ function calDavCalendar() {
     this.unmappedProperties = [];
     this.mPendingStartupRequests = [];
     this.mUriParams = null;
-    this.mEtagCache = [];
+    this.mItemInfoCache = [];
     this.mDisabled = false;
     this.mPrincipalUrl = null;
     this.mPrincipalsNS = null;
@@ -86,14 +86,19 @@ var appInfo = Components.classes["@mozilla.org/xre/app-info;1"]
 var isOnBranch = appInfo.platformVersion.indexOf("1.8") == 0;
 
 
-function makeOccurrence(item, start, end)
-{
-    var occ = item.createProxy();
-    occ.recurrenceId = start;
-    occ.startDate = start;
-    occ.endDate = end;
+function getLocationPath(item) {
 
-    return occ;
+    var locPath = this.mItemInfoCache[item.id].locationPath;
+    if (locPath) {
+        LOG("using locationPath: " + locPath);
+    } else {
+        locPath = item.id;
+        if (locPath) {
+            locPath += ".ics";
+        }
+        LOG("using locationPath: " + locPath);
+    }
+    return locPath;
 }
 
 // END_OF_TIME needs to be the max value a PRTime can be
@@ -225,8 +230,8 @@ calDavCalendar.prototype = {
     },
 
     refresh: function caldav_refresh() {
-        // clear etag cache
-        this.mEtagCache = [];
+        // clear item info cache
+        this.mItemInfoCache = [];
         this.mObservers.notify("onLoad", [this]);
     },
 
@@ -273,7 +278,7 @@ calDavCalendar.prototype = {
 
     },
 
-    mEtagCache: null,
+    mItemInfoCache: null,
 
     /**
      * prepare channel with standard request headers
@@ -415,7 +420,6 @@ calDavCalendar.prototype = {
 
         aItem.calendar = this.superCalendar;
         aItem.generation = 1;
-        aItem.setProperty("X-MOZ-LOCATIONPATH", locationPath);
         aItem.makeImmutable();
 
         // LOG("icalString = " + aItem.icalString);
@@ -489,12 +493,7 @@ calDavCalendar.prototype = {
         }
 
         var eventUri = this.mCalendarUri.clone();
-        try {
-            eventUri.spec = this.makeUri(aNewItem.getProperty("X-MOZ-LOCATIONPATH"));
-            LOG("using X-MOZ-LOCATIONPATH: " + eventUri.spec);
-        } catch (ex) {
-            eventUri.spec = this.makeUri(aNewItem.id + ".ics");
-        }
+        eventUri.spec = this.makeUri(this.mItemInfoCache[aNewItem.id].locationPath);
 
         // It seems redundant to use generation when we have etags
         // but until the idl is changed we do it.
@@ -590,7 +589,8 @@ calDavCalendar.prototype = {
 
         if (!aIgnoreEtag) {
             httpchannel.setRequestHeader("If-Match",
-                                         this.mEtagCache[aNewItem.id], false);
+                                         this.mItemInfoCache[aNewItem.id].etag,
+                                         false);
         }
 
         LOG("modifyItem: PUTting = " + modifiedItemICS);
@@ -639,13 +639,7 @@ calDavCalendar.prototype = {
         }
 
         var eventUri = this.mCalendarUri.clone();
-        try {
-            eventUri.spec = this.makeUri(aItem.getProperty("X-MOZ-LOCATIONPATH"));
-            LOG("using X-MOZ-LOCATIONPATH: " + eventUri.spec);
-        } catch (ex) {
-            // XXX how are we REALLY supposed to figure this out?
-            eventUri.spec = this.makeUri(aItem.id + ".ics");
-        }
+        eventUri.spec = this.makeUri(this.mItemInfoCache[aItem.id].locationPath);
 
         var delListener = {};
         var thisCalendar = this;
@@ -658,7 +652,7 @@ calDavCalendar.prototype = {
             // 204 = HTTP "No content"
             //
             if (status == 204) {
-                delete thisCalendar.mEtagCache[aItem.id];
+                delete thisCalendar.mItemInfoCache[aItem.id];
                 LOG("Item deleted successfully.");
                 var retVal = Components.results.NS_OK;
             }
@@ -721,7 +715,8 @@ calDavCalendar.prototype = {
         // XXX check generation
         var httpchannel = this.prepChannel(eventUri, null, null);
         if (!aIgnoreEtag) {
-            httpchannel.setRequestHeader("If-Match", this.mEtagCache[aItem.id],
+            httpchannel.setRequestHeader("If-Match",
+                                         this.mItemInfoCache[aItem.id].etag,
                                          false);
         }
         httpchannel.requestMethod = "DELETE";
@@ -961,7 +956,11 @@ calDavCalendar.prototype = {
                                 // won't contain any auth info embedded in the URI
                                 var locationPath = decodeURIComponent(aResource.path)
                                                    .substr(thisCalendar.mLocationPath.length);
-                                item.setProperty("X-MOZ-LOCATIONPATH", locationPath);
+                                if (!thisCalendar.mItemInfoCache[item.id]) {
+                                    thisCalendar.mItemInfoCache[item.id] = {};
+                                }
+                                thisCalendar.mItemInfoCache[item.id].locationPath =
+                                    locationPath;
 
                                 var rid = item.recurrenceId;
                                 if (rid == null) {
@@ -1001,7 +1000,7 @@ calDavCalendar.prototype = {
                     item.calendar = thisCalendar.superCalendar;
                 }
 
-                thisCalendar.mEtagCache[item.id] = etag;
+                thisCalendar.mItemInfoCache[item.id].etag = etag;
                 if (aItem) {
                     // if aItem is not null, we were called from
                     // getUpdatedItem(), and the view isn't listening to any
