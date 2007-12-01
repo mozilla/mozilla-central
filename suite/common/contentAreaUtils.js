@@ -41,8 +41,7 @@ const kNewWindow = Components.interfaces.nsIBrowserDOMWindow.OPEN_NEWWINDOW;
 const kNewTab = Components.interfaces.nsIBrowserDOMWindow.OPEN_NEWTAB;
 
 /**
- * Determine whether or not a given focused DOMWindow is in the content
- * area.
+ * Determine whether or not a given focused DOMWindow is in the content area.
  **/
 function isContentFrame(aFocusedWindow)
 {
@@ -215,14 +214,13 @@ function saveFrameDocument()
 
 function saveDocument(aDocument)
 {
-  if (!aDocument) {
+  if (!aDocument)
     throw "Must have a document when calling saveDocument";
-  }
 
   // We want to use cached data because the document is currently visible.
-  var dispHeader = null;
+  var contentDisposition = null;
   try {
-    dispHeader =
+    contentDisposition =
       aDocument.defaultView
                .QueryInterface(Components.interfaces.nsIInterfaceRequestor)
                .getInterface(Components.interfaces.nsIDOMWindowUtils)
@@ -230,7 +228,7 @@ function saveDocument(aDocument)
   } catch (ex) {
     // Failure to get a content-disposition is ok
   }
-  internalSave(aDocument.location.href, aDocument, null, dispHeader,
+  internalSave(aDocument.location.href, aDocument, null, contentDisposition,
                aDocument.contentType, false, null, null,
                aDocument.referrer ? makeURI(aDocument.referrer) : null);
 }
@@ -277,8 +275,10 @@ DownloadListener.prototype = {
   }
 }
 
-const SAVETYPE_COMPLETE_PAGE = 0x00;
-const SAVETYPE_TEXT_ONLY     = 0x02;
+const kSaveAsType_Complete = 0; // Save document with attached objects.
+// const kSaveAsType_URL      = 1; // Save document or URL by itself.
+const kSaveAsType_Text     = 2; // Save document, converting to plain text.
+
 /**
  * internalSave: Used when saving a document or URL. This method:
  *  - Determines a local target filename to use (unless parameter
@@ -312,7 +312,7 @@ function internalSave(aURL, aDocument, aDefaultFileName, aContentDisposition,
   // Note: aDocument == null when this code is used by save-link-as...
   var saveMode = GetSaveModeForContentType(aContentType);
   var isDocument = aDocument != null && saveMode != SAVEMODE_FILEONLY;
-  var saveAsType = SAVETYPE_COMPLETE_PAGE;
+  var saveAsType = kSaveAsType_Complete;
 
   var file, fileURL;
   // Find the URI object for aURL and the FileName/Extension to use when saving.
@@ -338,6 +338,7 @@ function internalSave(aURL, aDocument, aDefaultFileName, aContentDisposition,
       file: file,
       fileURL: fileURL
     };
+
     if (!poseFilePicker(fpParams))
       // If the method returned false this is because the user cancelled from
       // the save file picker dialog.
@@ -353,12 +354,11 @@ function internalSave(aURL, aDocument, aDefaultFileName, aContentDisposition,
     fileURL = makeFileURI(file);
 
   // XXX We depend on the following holding true in appendFiltersForContentType():
-  // If we should save as a complete page, the saveAsType is SAVETYPE_COMPLETE_PAGE.
-  // If we should save as text, the saveAsType is SAVETYPE_TEXT_ONLY.
+  // If we should save as a complete page, the saveAsType is kSaveAsType_Complete.
+  // If we should save as text, the saveAsType is kSaveAsType_Text.
   var useSaveDocument = isDocument &&
-                        (((saveMode & SAVEMODE_COMPLETE_DOM) && (saveAsType == SAVETYPE_COMPLETE_PAGE)) ||
-                         ((saveMode & SAVEMODE_COMPLETE_TEXT) && (saveAsType == SAVETYPE_TEXT_ONLY)));
-
+                        (((saveMode & SAVEMODE_COMPLETE_DOM) && (saveAsType == kSaveAsType_Complete)) ||
+                         ((saveMode & SAVEMODE_COMPLETE_TEXT) && (saveAsType == kSaveAsType_Text)));
   // If we're saving a document, and are saving either in complete mode or
   // as converted text, pass the document to the web browser persist component.
   // If we're just saving the HTML (second option in the list), send only the URI.
@@ -366,7 +366,7 @@ function internalSave(aURL, aDocument, aDefaultFileName, aContentDisposition,
   var persistArgs = {
     source      : source,
     contentType : (!aChosenData && useSaveDocument &&
-                   saveAsType == SAVETYPE_TEXT_ONLY) ?
+                   saveAsType == kSaveAsType_Text) ?
                   "text/plain" : null,
     target      : fileURL,
     postData    : isDocument ? getPostData() : null,
@@ -499,7 +499,7 @@ function initFileInfo(aFI, aURL, aURLCharset, aDocument,
       aFI.fileExt = "htm";
       aFI.fileBaseName = aFI.fileName;
     } else {
-      aFI.fileExt    = getDefaultExtension(aFI.fileName, aFI.uri, aContentType);
+      aFI.fileExt = getDefaultExtension(aFI.fileName, aFI.uri, aContentType);
       aFI.fileBaseName = getFileBaseName(aFI.fileName, aFI.fileExt);
     }
   } catch (e) {
@@ -642,9 +642,8 @@ function appendFiltersForContentType(aFilePicker, aContentType, aFileExtension, 
     break;
 
   default:
-    if (aSaveMode != SAVEMODE_FILEONLY) {
+    if (aSaveMode != SAVEMODE_FILEONLY)
       throw "Invalid save mode for type '" + aContentType + "'";
-    }
 
     var mimeInfo = getMIMEInfoForType(aContentType, aFileExtension);
     if (mimeInfo) {
@@ -660,9 +659,8 @@ function appendFiltersForContentType(aFilePicker, aContentType, aFileExtension, 
         extString += "*." + extension;
       }
 
-      if (extString) {
+      if (extString)
         aFilePicker.appendFilter(mimeInfo.description, extString);
-      }
     }
 
     break;
@@ -675,9 +673,8 @@ function appendFiltersForContentType(aFilePicker, aContentType, aFileExtension, 
     aFilePicker.appendFilter(bundle.GetStringFromName(bundleName), filterString);
   }
 
-  if (aSaveMode & SAVEMODE_COMPLETE_TEXT) {
+  if (aSaveMode & SAVEMODE_COMPLETE_TEXT)
     aFilePicker.appendFilters(Components.interfaces.nsIFilePicker.filterText);
-  }
 
   // Always append the all files (*) filter
   aFilePicker.appendFilters(Components.interfaces.nsIFilePicker.filterAll);
@@ -735,14 +732,14 @@ function makeWebBrowserPersist()
 function makeURI(aURL, aOriginCharset)
 {
   var ioService = Components.classes["@mozilla.org/network/io-service;1"]
-                .getService(Components.interfaces.nsIIOService);
+                            .getService(Components.interfaces.nsIIOService);
   return ioService.newURI(aURL, aOriginCharset, null);
 }
 
 function makeFileURI(aFile)
 {
   var ioService = Components.classes["@mozilla.org/network/io-service;1"]
-                .getService(Components.interfaces.nsIIOService);
+                            .getService(Components.interfaces.nsIIOService);
   return ioService.newFileURI(aFile);
 }
 
@@ -814,9 +811,8 @@ function getDefaultFileName(aDefaultFileName, aURI, aDocument,
       catch (e) {
       }
     }
-    if (fileName) {
+    if (fileName)
       return fileName;
-    }
   }
 
   try {
@@ -846,9 +842,8 @@ function getDefaultFileName(aDefaultFileName, aURI, aDocument,
 
   // 5) If this is a directory, use the last directory name
   var path = aURI.path.match(/\/([^\/]+)\/$/);
-  if (path && path.length > 1) {
+  if (path && path.length > 1)
     return validateFileName(path[1]);
-  }
 
   try {
     if (aURI.host)
@@ -902,9 +897,8 @@ function getDefaultExtension(aFilename, aURI, aContentType)
 
   var mimeInfo = getMIMEInfoForType(aContentType, ext);
 
-  if (ext && mimeInfo && mimeInfo.extensionExists(ext)) {
+  if (ext && mimeInfo && mimeInfo.extensionExists(ext))
     return ext;
-  }
 
   // Well, that failed.  Now try the extension from the URI
   var urlext;
@@ -956,7 +950,7 @@ function getCharsetforSave(aDocument)
   if (document.commandDispatcher.focusedWindow)
     return document.commandDispatcher.focusedWindow.document.characterSet;
 
-  return  window.content.document.characterSet;
+  return window.content.document.characterSet;
 }
 
 /**
