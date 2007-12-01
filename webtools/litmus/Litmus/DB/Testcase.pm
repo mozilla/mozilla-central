@@ -242,7 +242,7 @@ sub coverage() {
     }
     my $sql = $select . $from . $where . $order_by;
     #print $sql,"<br/>\n";
-    my $sth = $dbh->prepare_cached($sql);
+    my $sth = $dbh->prepare($sql);
     $sth->execute();
     my @test_results;
     while (my ($result_id, $class_name) = $sth->fetchrow_array) {

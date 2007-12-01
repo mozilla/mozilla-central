@@ -49,9 +49,12 @@ use CGI::Carp qw(set_message fatalsToBrowser);
 
 # if we die for some reason, make sure we give a fatal error per spec
 BEGIN { 
-	set_message(sub { 
-		print "Fatal error: internal server error\n";
-	});
+  set_message(sub {
+                eval { print "Fatal error: internal server error\n"; };
+                if ($@ && $ref $@) {
+                  warn "handled exception: $@";
+                }
+              });
 }
 
 no warnings;

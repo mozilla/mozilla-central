@@ -144,7 +144,7 @@ sub coverage() {
     $sql .= " AND t.community_enabled=1";
   }
   my $dbh = $self->db_ReadOnly();
-  my $sth = $dbh->prepare_cached($sql);
+  my $sth = $dbh->prepare($sql);
   $sth->execute(
                 $self->{'subgroup_id'},
                );
@@ -176,7 +176,7 @@ sub coverage() {
   
   $sql .= " GROUP BY tr.testcase_id";
 
-  $sth = $dbh->prepare_cached($sql);
+  $sth = $dbh->prepare($sql);
   $sth->execute(
                 $self->{'subgroup_id'},
                 $build_id,
