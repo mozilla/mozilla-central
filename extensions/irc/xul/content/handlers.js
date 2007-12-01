@@ -1352,7 +1352,13 @@ function my_263 (e)
 CIRCNetwork.prototype.isRunningList =
 function my_running_list()
 {
-    return (("_list" in this) && !this._list.done && !this._list.cancelled);
+    /* The list is considered "running" when a cancel is effective. This means
+     * that even if _list.done is true (finished recieving data), we will still
+     * be "running" whilst we have undisplayed items.
+     */
+    return (("_list" in this) &&
+            (!this._list.done || (this._list.length > this._list.displayed)) &&
+            !this._list.cancelled);
 }
 
 CIRCNetwork.prototype.list =

@@ -923,14 +923,14 @@ function cmdBanOrExcept(e)
 function cmdCancel(e)
 {
     var network = e.network;
-    
-    if ((network.state == NET_ONLINE) && network.isRunningList())
+
+    if (network.isRunningList())
     {
-        // We're running a /list, terminate the output so we return to sanity
+        // We're running a /list, terminate the output so we return to sanity.
         display(MSG_CANCELLING_LIST);
         network.abortList();
     }
-    else if ((network.state == NET_CONNECTING) || 
+    else if ((network.state == NET_CONNECTING) ||
              (network.state == NET_WAITING))
     {
         // We're trying to connect to a network, and want to cancel. Do so:
