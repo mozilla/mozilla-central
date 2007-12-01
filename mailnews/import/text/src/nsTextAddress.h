@@ -41,7 +41,7 @@
 #define nsTextAddress_h__
 
 #include "nsCOMPtr.h"
-#include "nsString.h"
+#include "nsStringGlue.h"
 #include "nsIImportFieldMap.h"
 #include "nsIImportService.h"
 

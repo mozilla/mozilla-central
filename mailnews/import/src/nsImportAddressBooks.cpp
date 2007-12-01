@@ -36,36 +36,26 @@
  *
  * ***** END LICENSE BLOCK ***** */
 
-#include "prthread.h"
 #include "prprf.h"
-#include "nscore.h"
-#include "nsCOMPtr.h"
+#include "plstr.h"
 #include "nsIImportService.h"
-#include "nsISupportsArray.h"
 #include "nsIImportAddressBooks.h"
 #include "nsIImportGeneric.h"
-#include "nsXPCOM.h"
 #include "nsISupportsPrimitives.h"
 #include "nsIImportABDescriptor.h"
 #include "nsIImportFieldMap.h"
 #include "nsStringGlue.h"
-#include "nsIURL.h"
-#include "nsNetCID.h"
-
 #include "nsILocalFile.h"
-
 #include "nsIAddrDatabase.h"
 #include "nsIAddrBookSession.h"
 #include "nsIRDFService.h"
 #include "nsRDFCID.h"
 #include "nsAbBaseCID.h"
-#include "nsIAbDirectory.h"
 #include "nsIStringBundle.h"
 #include "nsImportStringBundle.h"
 #include "nsTextFormatter.h"
 #include "nsIProxyObjectManager.h"
 #include "nsServiceManagerUtils.h"
-#include "nsProxiedService.h"
 #include "msgCore.h"
 #include "ImportDebug.h"
 #include "nsIAbMDBDirectory.h"
@@ -749,14 +739,27 @@ nsIAddrDatabase *GetAddressBookFromUri(const char *pUri)
   nsIAddrDatabase *  pDatabase = nsnull;
   if (pUri) {
     nsresult rv;
-    NS_WITH_PROXIED_SERVICE(nsIRDFService, rdfService,
-                            "@mozilla.org/rdf/rdf-service;1",
-                            NS_PROXY_TO_MAIN_THREAD, &rv);
+    nsCOMPtr<nsIProxyObjectManager> proxyObjectManager =
+      do_GetService(NS_XPCOMPROXY_CONTRACTID, &rv);
+    if (NS_FAILED(rv))
+      return nsnull;
+
+    nsCOMPtr<nsIRDFService> mainRdfService =
+      do_GetService(kRDFServiceCID, &rv);
+    if (NS_FAILED(rv))
+      return nsnull;
+
+    nsIRDFService *rdfService = nsnull;
+    rv = proxyObjectManager->GetProxyForObject(NS_PROXY_TO_MAIN_THREAD,
+                                               NS_GET_IID(nsIRDFService),
+                                               mainRdfService,
+                                               NS_PROXY_SYNC,
+                                               (void**)&rdfService);
     if (NS_SUCCEEDED(rv) && rdfService)
     {
       nsCOMPtr<nsIRDFResource> resource;
       rv = rdfService->GetResource(nsDependentCString(pUri),
-                                   getter_AddRefs(resource));
+                                        getter_AddRefs(resource));
       if (NS_SUCCEEDED(rv))
       {
         nsCOMPtr<nsIAbMDBDirectory> directory = do_QueryInterface(resource, &rv);
@@ -786,9 +789,22 @@ nsIAddrDatabase *GetAddressBook( const PRUnichar *name, PRBool makeNew)
   /* Get the profile directory */
   nsCOMPtr<nsILocalFile> dbPath;
 
-  NS_WITH_PROXIED_SERVICE(nsIAddrBookSession, abSession,
-                          NS_ADDRBOOKSESSION_CONTRACTID,
-                          NS_PROXY_TO_MAIN_THREAD, &rv);
+  nsCOMPtr<nsIProxyObjectManager> proxyObjectManager =
+    do_GetService(NS_XPCOMPROXY_CONTRACTID, &rv);
+  if (NS_FAILED(rv))
+    return nsnull;
+
+  nsCOMPtr<nsIAddrBookSession> addrBookSession =
+    do_GetService(NS_ADDRBOOKSESSION_CONTRACTID, &rv);
+  if (NS_FAILED(rv))
+    return nsnull;
+
+  nsIAddrBookSession *abSession = nsnull;
+  rv = proxyObjectManager->GetProxyForObject(NS_PROXY_TO_MAIN_THREAD,
+                                             NS_GET_IID(nsIAddrBookSession),
+                                             addrBookSession,
+                                             NS_PROXY_SYNC,
+                                             (void**)&abSession);
 
   if (NS_SUCCEEDED(rv))
     rv = abSession->GetUserProfileDirectory(getter_AddRefs(dbPath));
@@ -802,9 +818,17 @@ nsIAddrDatabase *GetAddressBook( const PRUnichar *name, PRBool makeNew)
           if (NS_SUCCEEDED(rv)) {
             IMPORT_LOG0( "Getting the address database factory\n");
 
-            NS_WITH_PROXIED_SERVICE(nsIAddrDatabase, addrDBFactory,
-                                    NS_ADDRDATABASE_CONTRACTID,
-                                    NS_PROXY_TO_MAIN_THREAD, &rv);
+            nsCOMPtr<nsIAddrDatabase> addrDatabaseFactory =
+              do_GetService(NS_ADDRDATABASE_CONTRACTID, &rv);
+            if (NS_FAILED(rv))
+              return nsnull;
+
+            nsIAddrDatabase *addrDBFactory = nsnull;
+            rv = proxyObjectManager->GetProxyForObject(NS_PROXY_TO_MAIN_THREAD,
+                                                       NS_GET_IID(nsIAddrDatabase),
+                                                       addrDatabaseFactory,
+                                                       NS_PROXY_SYNC,
+                                                       (void**)&addrDBFactory);
             if (NS_SUCCEEDED(rv) && addrDBFactory) {
           IMPORT_LOG0( "Opening the new address book\n");
         rv = addrDBFactory->Open( dbPath, PR_TRUE, PR_TRUE, &pDatabase);
@@ -822,8 +846,17 @@ nsIAddrDatabase *GetAddressBook( const PRUnichar *name, PRBool makeNew)
     // This is major bogosity again!  Why doesn't the address book
     // just handle this properly for me?  Uggggg...
 
-    NS_WITH_PROXIED_SERVICE(nsIRDFService, rdfService, kRDFServiceCID,
-                            NS_PROXY_TO_MAIN_THREAD, &rv);
+    nsCOMPtr<nsIRDFService> mainRdfService =
+      do_GetService(kRDFServiceCID, &rv);
+    if (NS_FAILED(rv))
+      return nsnull;
+
+    nsIRDFService *rdfService = nsnull;
+    rv = proxyObjectManager->GetProxyForObject(NS_PROXY_TO_MAIN_THREAD,
+                                               NS_GET_IID(nsIRDFService),
+                                               mainRdfService,
+                                               NS_PROXY_SYNC,
+                                               (void**)&rdfService);
     if (NS_SUCCEEDED(rv)) {
       nsCOMPtr<nsIRDFResource>  parentResource;
       rv = rdfService->GetResource(NS_LITERAL_CSTRING(kAllDirectoryRoot),
@@ -840,11 +873,11 @@ nsIAddrDatabase *GetAddressBook( const PRUnichar *name, PRBool makeNew)
        * a thread other than the UI thread.
        *
        */
-      rv = NS_GetProxyForObject( NS_PROXY_TO_MAIN_THREAD,
-                                 NS_GET_IID( nsIAbDirectory),
-                                 parentResource,
-                                 NS_PROXY_SYNC | NS_PROXY_ALWAYS,
-                                 getter_AddRefs( parentDir));
+      rv = proxyObjectManager->GetProxyForObject(NS_PROXY_TO_MAIN_THREAD,
+                                                 NS_GET_IID(nsIAbDirectory),
+                                                 parentResource,
+                                                 NS_PROXY_SYNC | NS_PROXY_ALWAYS,
+                                                 getter_AddRefs(parentDir));
       if (parentDir)
       {
         nsCAutoString URI("moz-abmdbdirectory://");
@@ -931,12 +964,17 @@ PR_STATIC_CALLBACK( void) ImportAddressThread( void *stuff)
           pDestDB = GetAddressBook(name.get(), PR_TRUE);
         }
 
+        nsCOMPtr<nsIProxyObjectManager> proxyObjectManager =
+          do_GetService(NS_XPCOMPROXY_CONTRACTID, &rv);
+        if (NS_FAILED(rv))
+          return;
+
         nsCOMPtr<nsIAddrDatabase> proxyAddrDatabase;
-        rv = NS_GetProxyForObject(NS_PROXY_TO_MAIN_THREAD,
-                                          NS_GET_IID(nsIAddrDatabase),
-                                          pDestDB,
-                                          NS_PROXY_SYNC | NS_PROXY_ALWAYS,
-                                          getter_AddRefs(proxyAddrDatabase));
+        rv = proxyObjectManager->GetProxyForObject(NS_PROXY_TO_MAIN_THREAD,
+                                                   NS_GET_IID(nsIAddrDatabase),
+                                                   pDestDB,
+                                                   NS_PROXY_SYNC | NS_PROXY_ALWAYS,
+                                                   getter_AddRefs(proxyAddrDatabase));
         if (NS_FAILED(rv))
           return;
 

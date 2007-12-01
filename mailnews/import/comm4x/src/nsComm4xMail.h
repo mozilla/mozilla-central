@@ -38,7 +38,7 @@
 #define nsComm4xMail_h__
 
 #include "nscore.h"
-#include "nsString.h"
+#include "nsStringGlue.h"
 #include "nsILocalFile.h"
 #include "nsISupportsArray.h"
 

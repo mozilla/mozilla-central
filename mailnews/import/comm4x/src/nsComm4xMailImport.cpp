@@ -47,7 +47,7 @@
 #endif
 
 #include "nscore.h"
-#include "nsString.h"
+#include "nsStringGlue.h"
 #include "nsCOMPtr.h"
 #include "nsIServiceManager.h"
 #include "nsIImportService.h"
@@ -64,13 +64,12 @@
 #include "nsTextFormatter.h"
 #include "nsComm4xMailStringBundle.h"
 #include "nsIStringBundle.h"
-#include "nsReadableUtils.h"
 #include "Comm4xMailDebugLog.h"
-
+#include "nsServiceManagerUtils.h"
 #include "nsDirectoryServiceDefs.h"
-
+#include "nsComponentManagerUtils.h"
 #include "nsIProxyObjectManager.h"
-#include "nsProxiedService.h"
+#include "nsXPCOMCIDInternal.h"
 
 #define COMM4XMAIL_MSGS_URL   "chrome://messenger/locale/comm4xMailImportMsgs.properties"
 
@@ -195,11 +194,16 @@ nsresult ImportComm4xMailImpl::Initialize()
     if (NS_SUCCEEDED(rv) && (pBundleService)) {
         pBundleService->CreateBundle(COMM4XMAIL_MSGS_URL, getter_AddRefs(pBundle));
 
-        rv = NS_GetProxyForObject( NS_PROXY_TO_MAIN_THREAD,
-                                   NS_GET_IID(nsIStringBundle),
-                                   pBundle,
-                                   NS_PROXY_SYNC | NS_PROXY_ALWAYS,
-                                   getter_AddRefs(m_pBundleProxy));
+	nsCOMPtr<nsIProxyObjectManager> proxyObjectManager =
+	  do_GetService(NS_XPCOMPROXY_CONTRACTID, &rv);
+	if (NS_FAILED(rv))
+	  return nsnull;
+
+	rv = proxyObjectManager->GetProxyForObject(NS_PROXY_TO_MAIN_THREAD,
+						   NS_GET_IID(nsIStringBundle),
+						   pBundle,
+						   NS_PROXY_SYNC | NS_PROXY_ALWAYS,
+						   getter_AddRefs(m_pBundleProxy));
     }
     return rv;
 }

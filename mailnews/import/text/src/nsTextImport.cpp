@@ -50,8 +50,6 @@
 #endif
 
 #include "nscore.h"
-#include "nsString.h"
-#include "nsReadableUtils.h"
 #include "nsIServiceManager.h"
 #include "nsIImportService.h"
 #include "nsMsgI18N.h"
@@ -71,7 +69,6 @@
 #include "nsTextAddress.h"
 #include "nsIPrefService.h"
 #include "nsIPrefBranch.h"
-#include "nsProxiedService.h"
 #include "TextDebugLog.h"
 #include "nsNetUtil.h"
 
@@ -353,9 +350,7 @@ NS_IMETHODIMP ImportAddressImpl::FindAddressBooks(nsIFile *pLoc, nsISupportsArra
 
   PRInt32 idx = name.RFindChar( '.');
   if ((idx != -1) && (idx > 0) && ((name.Length() - idx - 1) < 5)) {
-    nsString t;
-    name.Left( t, idx);
-    name = t;
+    name.SetLength(idx);
   }
 
   nsCOMPtr<nsIImportABDescriptor>  desc;
@@ -570,9 +565,21 @@ NS_IMETHODIMP ImportAddressImpl::GetNeedsFieldMap(nsIFile *aLocation, PRBool *_r
 void ImportAddressImpl::SanitizeSampleData( nsCString& val)
 {
   // remove any line-feeds...
-  val.ReplaceSubstring( "\x0D\x0A", ", ");
-  val.ReplaceChar( 13, ',');
-  val.ReplaceChar( 10, ',');
+  PRInt32 offset = val.Find(NS_LITERAL_CSTRING("\x0D\x0A"));
+  while (offset != -1) {
+    val.Replace(offset, 2, ", ");
+    offset = val.Find(NS_LITERAL_CSTRING("\x0D\x0A"), offset + 2);
+  }
+  offset = val.FindChar(13);
+  while (offset != -1) {
+    val.Replace(offset, 1, ',');
+    offset = val.FindChar(13, offset + 2);
+  }
+  offset = val.FindChar(10);
+  while (offset != -1) {
+    val.Replace(offset, 1, ',');
+    offset = val.FindChar(10, offset + 2);
+  }
 }
 
 NS_IMETHODIMP ImportAddressImpl::GetSampleData( PRInt32 index, PRBool *pFound, PRUnichar **pStr)

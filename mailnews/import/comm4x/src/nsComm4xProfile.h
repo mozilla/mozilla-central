@@ -43,7 +43,7 @@
 #include "nsIFile.h"
 #include "nsILocalFile.h"
 #include "nsIComm4xProfile.h"
-#include "nsString.h"
+#include "nsStringGlue.h"
 
 /* c66c1060-2bdc-11d6-92a0-0010a4b26cda */
 #define NS_ICOMM4XPROFILE_CID \

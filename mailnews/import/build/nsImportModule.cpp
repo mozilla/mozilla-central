@@ -42,6 +42,7 @@
 #include "nsIModule.h"
 #include "nsIGenericFactory.h"
 #include "nsICategoryManager.h"
+#include "nsServiceManagerUtils.h"
 
 ////////////////////////////////////////////////////////////////////////////////
 // core import Include Files

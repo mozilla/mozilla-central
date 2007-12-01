@@ -39,10 +39,10 @@
 #include "nsComm4xProfile.h"
 #include "nsIFileStreams.h"
 #include "nsILineInputStream.h"
-#include "nsReadableUtils.h"
 #include "nsNetCID.h"
 #include "nsDirectoryServiceDefs.h"
 #include "NSReg.h"
+#include "nsComponentManagerUtils.h"
 
 #if defined(XP_MACOSX)
 #define PREF_FILE_NAME_IN_4x "Netscape Preferences"
@@ -260,15 +260,13 @@ nsresult nsComm4xProfile::GetPrefValue(nsILocalFile *filePath, const char * pref
        if (NS_FAILED(rv))
            break;
        CopyASCIItoUTF16(cLine, buffer);
-       offset = buffer.Find(prefName,PR_FALSE, 0, -1);
-       if (offset != kNotFound) {
-           endOffset = buffer.Find(prefEnd,PR_FALSE, 0, -1);
-           if (endOffset != kNotFound) {
-               nsAutoString prefValue;
-               buffer.Mid(prefValue, offset + PREF_LENGTH, endOffset-(offset + PREF_LENGTH));
-               found = PR_TRUE;
-               *retval = ToNewUnicode(prefValue);
-               break;
+       offset = buffer.Find(prefName);
+       if (offset != -1) {
+           endOffset = buffer.Find(prefEnd);
+           if (endOffset != -1) {
+             *retval = ToNewUnicode(Substring(buffer, offset + PREF_LENGTH, endOffset - (offset + PREF_LENGTH)));
+             found = PR_TRUE;
+             break;
            }
        }
   }

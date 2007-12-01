@@ -168,7 +168,16 @@ nsresult nsTextAddress::ReadRecord(nsILineInputStream *aLineStream, nsCString &a
           aLine.AppendLiteral(MSG_LINEBREAK);
         aLine.Append(line);
 
+#ifdef MOZILLA_INTERNAL_API
         numQuotes += line.CountChar('"');
+#else
+        const char *begin, *end;
+        line.BeginReading(&begin, &end);
+        for (const char *current = begin; current < end; ++current) {
+          if (*current == '"')
+            ++numQuotes;
+        }
+#endif
       }
     }
     // Continue whilst everything is ok, and we have an odd number of quotes.
@@ -358,7 +367,11 @@ PRBool nsTextAddress::GetField( const char *pLine, PRInt32 maxLen, PRInt32 index
     field.Trim( kWhitespace);
 
     if (quoted) {
-        field.ReplaceSubstring( "\"\"", "\"");
+      PRInt32 offset = field.Find(NS_LITERAL_CSTRING("\"\""));
+      while (offset != -1) {
+        field.Cut(offset, 1);
+        offset = field.Find(NS_LITERAL_CSTRING("\"\""), offset + 1);
+      }
     }
 
     return( result);

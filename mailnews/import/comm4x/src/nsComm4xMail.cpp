@@ -36,7 +36,6 @@
  * ***** END LICENSE BLOCK ***** */
 
 #include "nsCOMPtr.h"
-#include "nsReadableUtils.h"
 #include "nsIServiceManager.h"
 #include "nsMsgBaseCID.h"
 #include "nsMsgI18N.h"
@@ -49,27 +48,11 @@
 #include "Comm4xMailDebugLog.h"
 #include "prmem.h"
 #include "nsNativeCharsetUtils.h"
+#include "nsServiceManagerUtils.h"
 
 #define  kCopyBufferSize    8192
 #define  kMailReadBufferSize  16384
 
-
-static PRBool
-nsStringEndsWith(nsString& name, const char *ending)
-{
-    if (!ending) return PR_FALSE;
-
-    PRInt32 len = name.Length();
-    if (len == 0) return PR_FALSE;
-
-    PRInt32 endingLen = strlen(ending);
-    if (len > endingLen && name.RFind(ending, PR_TRUE) == len - endingLen) {
-        return PR_TRUE;
-    }
-    else {
-        return PR_FALSE;
-    }
-}
 
 static PRBool
 nsShouldIgnoreFile(nsString& name)
@@ -84,13 +67,13 @@ nsShouldIgnoreFile(nsString& name)
 
     // don't add summary files to the list of folders;
     // don't add popstate files to the list either, or rules (sort.dat).
-    if (nsStringEndsWith(name, ".snm") ||
+    if (StringEndsWith(name, NS_LITERAL_STRING(".snm")) ||
         name.LowerCaseEqualsLiteral("popstate.dat") ||
         name.LowerCaseEqualsLiteral("sort.dat") ||
         name.LowerCaseEqualsLiteral("mailfilt.log") ||
         name.LowerCaseEqualsLiteral("filters.js") ||
-        nsStringEndsWith(name, ".toc")||
-        nsStringEndsWith(name,".sbd"))
+        StringEndsWith(name, NS_LITERAL_STRING(".toc")) ||
+        StringEndsWith(name, NS_LITERAL_STRING(".sbd")))
         return PR_TRUE;
 
     return PR_FALSE;
