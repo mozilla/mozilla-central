@@ -71,11 +71,22 @@ protected:
   nsIMsgDatabase * m_db;
 
   // Transformations
-  PRBool m_stripHeaders;  // PR_TRUE if we're supposed to strip of message headers
-  PRBool m_stripHtml;    // PR_TRUE if we're supposed to strip off HTML tags
-  PRBool m_passedHeaders;  // PR_TRUE if we've already skipped over the headers
-  PRBool m_messageIsHtml;  // PR_TRUE if the Content-type header claims text/html
-  PRInt32 ApplyTransformations (nsCString &buf, PRInt32 length, PRBool &returnThisLine);
-  void StripHtml (nsCString &buf);
+  // With the exception of m_isMultipart, these all apply to the various parts
+  PRBool m_stripHeaders;   // PR_TRUE if we're supposed to strip of message headers
+  PRBool m_stripHtml;      // PR_TRUE if we're supposed to strip off HTML tags
+  PRBool m_pastHeaders;  // PR_TRUE if we've already skipped over the headers
+  PRBool m_partIsHtml;     // PR_TRUE if the Content-type header claims text/html
+  PRBool m_base64part;     // PR_TRUE if the current part is in base64
+  PRBool m_isMultipart;    // PR_TRUE if the message is a multipart/* message
+  PRBool m_partIsText;     // PR_TRUE if the current part is text/*
+
+  nsCString boundary;      // The boundary string to look for
+
+  // See implementation for comments
+  PRInt32 ApplyTransformations (const nsCString &line, PRInt32 length,
+                                PRBool &returnThisLine, nsCString &buf);
+  void SniffPossibleMIMEHeader (nsCString &line);
+  static void StripHtml (nsCString &buf);
+  static void Base64Decode (nsCString &buf);
 };
 #endif

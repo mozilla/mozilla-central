@@ -43,6 +43,7 @@
 #include "nsISeekableStream.h"
 #include "nsIInputStream.h"
 #include "nsILocalFile.h"
+#include "plbase64.h"
 
 nsMsgBodyHandler::nsMsgBodyHandler (nsIMsgSearchScopeTerm * scope, PRUint32 offset, PRUint32 numLines, nsIMsgDBHdr* msg, nsIMsgDatabase * db)
 {
@@ -90,10 +91,12 @@ void nsMsgBodyHandler::Initialize()
   // Default transformations for local message search and MAPI access
   m_stripHeaders = PR_TRUE;
   m_stripHtml = PR_TRUE;
-  m_messageIsHtml = PR_FALSE;
-  m_passedHeaders = PR_FALSE;
+  m_partIsHtml = PR_FALSE;
+  m_base64part = PR_FALSE;
+  m_isMultipart = PR_FALSE;
+  m_partIsText = PR_TRUE; // default is text/plain
+  m_pastHeaders = PR_FALSE;
   m_headerBytesRead = 0;
-  
 }
 
 nsMsgBodyHandler::~nsMsgBodyHandler()
@@ -104,11 +107,12 @@ PRInt32 nsMsgBodyHandler::GetNextLine (nsCString &buf)
 {
   PRInt32 length = 0;
   PRBool eatThisLine = PR_FALSE;
-  
+  nsCAutoString nextLine;
+
   do {
     // first, handle the filtering case...this is easy....
     if (m_Filtering)
-      length = GetNextFilterLine(buf);
+      length = GetNextFilterLine(nextLine);
     else
     {
       // 3 cases: Offline IMAP, POP, or we are dealing with a news message....
@@ -116,13 +120,23 @@ PRInt32 nsMsgBodyHandler::GetNextLine (nsCString &buf)
       // to store offline messages in berkeley format folders.
       if (m_db)
       {
-         length = GetNextLocalLine (buf); // (2) POP
+         length = GetNextLocalLine (nextLine); // (2) POP
       }
     }
     
     if (length >= 0)
-      length = ApplyTransformations (buf, length, eatThisLine);
+      length = ApplyTransformations (nextLine, length, eatThisLine, buf);
   } while (eatThisLine && length >= 0);  // if we hit eof, make sure we break out of this loop. Bug #:
+ 
+  // For non-multipart messages, the entire message minus headers is encoded
+  // ApplyTransformations can only decode a part
+  if (!m_isMultipart && m_base64part)
+  {
+    Base64Decode(buf);
+    m_base64part = PR_FALSE;
+    // And reapply our transformations...
+    length = ApplyTransformations(buf, buf.Length(), eatThisLine, buf);
+  }
   return length;  
 }
 
@@ -181,7 +195,7 @@ PRInt32 nsMsgBodyHandler::GetNextLocalLine(nsCString &buf)
 {
   if (m_numLocalLines)
   {
-    if (m_passedHeaders)
+    if (m_pastHeaders)
       m_numLocalLines--; // the line count is only for body lines
     // do we need to check the return value here?
     if (m_fileLineStream)
@@ -196,28 +210,99 @@ PRInt32 nsMsgBodyHandler::GetNextLocalLine(nsCString &buf)
   return -1;
 }
 
-PRInt32 nsMsgBodyHandler::ApplyTransformations (nsCString &buf, PRInt32 length, PRBool &eatThisLine)
+/**
+ * This method applies a sequence of transformations to the line.
+ * 
+ * It applies the following sequences in order
+ * * Removes headers if the searcher doesn't want them
+ *   (sets m_pastHeaders)
+ * * Determines the current MIME type.
+ *   (via SniffPossibleMIMEHeader)
+ * * Strips any HTML if the searcher doesn't want it
+ * * Strips non-text parts
+ * * Decodes any base64 part
+ *   (resetting part variables: m_base64part, m_pastHeaders, m_partIsHtml,
+ *    m_partIsText)
+ *
+ * @param line        (in)    the current line
+ * @param length      (in)    the length of said line
+ * @param eatThisLine (out)   whether or not to ignore this line
+ * @param buf         (inout) if m_base64part, the current part as needed for
+ *                            decoding; else, it is treated as an out param (a
+ *                            redundant version of line).
+ * @return            the length of the line after applying transformations
+ */
+PRInt32 nsMsgBodyHandler::ApplyTransformations (const nsCString &line, PRInt32 length,
+                                                PRBool &eatThisLine, nsCString &buf)
 {
   PRInt32 newLength = length;
   eatThisLine = PR_FALSE;
   
-  if (!m_passedHeaders)  // buf is a line from the message headers
+  if (!m_pastHeaders)  // line is a line from the message headers
   {
     if (m_stripHeaders)
       eatThisLine = PR_TRUE;
+
+    // We have already grabbed all worthwhile information from the headers,
+    // so there is no need to keep track of the current lines
+    buf.Assign(line);
+   
+    SniffPossibleMIMEHeader(buf);
     
-    if (StringBeginsWith(buf, NS_LITERAL_CSTRING("Content-Type:")) && buf.Find("text/html") >= 0)
-      m_messageIsHtml = PR_TRUE;
-    
-    m_passedHeaders = buf.IsEmpty() || buf.First() == '\r' || buf.First() == '\n';
+    m_pastHeaders = buf.IsEmpty() || buf.First() == '\r' ||
+      buf.First() == '\n';
+
+    return length;
   }
-  else  // buf is a line from the message body
+
+  // Check to see if this is the boundary string
+  if (m_isMultipart && StringBeginsWith(line, boundary))
   {
-    if (m_stripHtml && m_messageIsHtml)
+    if (m_base64part && m_partIsText) 
     {
-      StripHtml (buf);
-      newLength = buf.Length();
+      Base64Decode(buf);
+      // Work on the parsed string
+      ApplyTransformations(buf, buf.Length(), eatThisLine, buf);
+      // Avoid spurious failures
+      eatThisLine = PR_FALSE;
     }
+    else
+    {
+      buf.Truncate();
+      eatThisLine = PR_TRUE; // We have no content...
+    }
+
+    // Reset all assumed headers
+    m_base64part = PR_FALSE;
+    m_pastHeaders = PR_FALSE;
+    m_partIsHtml = PR_FALSE;
+    m_partIsText = PR_TRUE;
+
+    return buf.Length();
+  }
+ 
+  if (!m_partIsText)
+  {
+    // Ignore non-text parts
+    buf.Truncate();
+    eatThisLine = PR_TRUE;
+    return 0;
+  }
+
+  if (m_base64part)
+  {
+    // We need to keep track of all lines to parse base64encoded...
+    buf.Append(line.get());
+    eatThisLine = PR_TRUE;
+    return buf.Length();
+  }
+    
+  // ... but there's no point if we're not parsing base64.
+  buf.Assign(line);
+  if (m_stripHtml && m_partIsHtml)
+  {
+    StripHtml (buf);
+    newLength = buf.Length();
   }
   
   return newLength;
@@ -250,3 +335,80 @@ void nsMsgBodyHandler::StripHtml (nsCString &pBufInOut)
   }
 }
 
+/**
+ * Determines the MIME type, if present, from the current line.
+ *
+ * m_partIsHtml, m_isMultipart, m_partIsText, m_base64part, and boundary are
+ * all set by this method at various points in time.
+ *
+ * @param line        (in)    a header line that may contain a MIME header
+ */
+void nsMsgBodyHandler::SniffPossibleMIMEHeader(nsCString &line)
+{
+  if (StringBeginsWith(line, NS_LITERAL_CSTRING("Content-Type:"),
+      nsCaseInsensitiveCStringComparator()))
+  {
+    if (line.Find("text/html", PR_TRUE) != kNotFound)
+      m_partIsHtml = PR_TRUE;
+    // Strenuous edge case: a message/rfc822 is equivalent to the content type
+    // of whatever the message is. Headers should be ignored here. Even more
+    // strenuous are message/partial and message/external-body, where the first
+    // case requires reassembly across messages and the second is actually an
+    // external source. And of course, there are other message types to handle.
+    // RFC 3798 complicates things with the message/disposition-notification
+    // MIME type. message/rfc822 is best treated as a multipart with no proper
+    // boundary; since we only use boundaries for retriggering the headers,
+    // the lack of one can safely be ignored.
+    else if (line.Find("multipart/", PR_TRUE) != kNotFound ||
+        line.Find("message/", PR_TRUE) != kNotFound)
+    {
+      if (m_isMultipart)
+      {
+        // This means we have a nested multipart tree. Since we currently only
+        // handle the first children, we are probably better off assuming that
+        // this nested part is going to have text/* children. After all, the
+        // biggest usage that I've seen is multipart/signed.
+        m_partIsText = PR_TRUE;
+      }
+      m_isMultipart = PR_TRUE;
+    }
+    else if (line.Find("text/", PR_TRUE) == kNotFound)
+      m_partIsText = PR_FALSE; // We have disproved our assumption
+  }
+
+  // TODO: make this work for nested multiparts (requires some redesign)
+  if (m_isMultipart && boundary.IsEmpty() &&
+      line.Find("boundary=", PR_TRUE) != kNotFound)
+  {
+    PRInt32 start=line.Find("boundary=", PR_TRUE);
+    start += 9;
+    if (line[start] == '\"')
+      start++;
+    PRInt32 end = line.RFindChar('\"');
+    if (end == kNotFound)
+      end = line.Length();
+
+    boundary.Assign("--");
+    boundary.Append(Substring(line,start,end-start));
+  }
+
+  if (StringBeginsWith(line, NS_LITERAL_CSTRING("Content-Transfer-Encoding:"),
+      nsCaseInsensitiveCStringComparator()) &&
+      line.Find("base64", PR_TRUE) != kNotFound)
+    m_base64part = PR_TRUE;
+}
+
+/**
+ * Decodes the given base64 string.
+ *
+ * It returns its decoded string in its input.
+ *
+ * @param pBufInOut   (inout) a buffer of the string
+ */
+void nsMsgBodyHandler::Base64Decode (nsCString &pBufInOut)
+{
+  char *decodedBody = PL_Base64Decode(pBufInOut.get(), pBufInOut.Length(), nsnull);
+  if (decodedBody)
+    pBufInOut.Adopt(decodedBody);
+  pBufInOut.ReplaceChar("\n\r",' '); // Searching does not like EOLs
+}
