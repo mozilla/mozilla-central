@@ -154,8 +154,8 @@ pref("extensions.update.url", "chrome://mozapps/locale/extensions/extensions.pro
 pref("extensions.update.interval", 86400);
 
 // Non-symmetric (not shared by extensions) extension-specific [update] preferences
-pref("extensions.getMoreExtensionsURL", "chrome://mozapps/locale/extensions/extensions.properties");
-pref("extensions.getMoreThemesURL", "chrome://mozapps/locale/extensions/extensions.properties");
+pref("extensions.getMoreExtensionsURL", "https://%LOCALE%.add-ons.mozilla.com/%LOCALE%/%APP%/%VERSION%/extensions/");
+pref("extensions.getMoreThemesURL", "https://%LOCALE%.add-ons.mozilla.com/%LOCALE%/%APP%/%VERSION%/themes/");
 pref("extensions.dss.enabled", false);          // Dynamic Skin Switching                                               
 pref("extensions.dss.switchPending", false);    // Non-dynamic switch pending after next
                                                 // restart.
