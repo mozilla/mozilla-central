@@ -1341,6 +1341,18 @@
 		DEE9EBA50AF5C379002BC511 /* SessionManager.h in Headers */ = {isa = PBXBuildFile; fileRef = DEE9EBA30AF5C379002BC511 /* SessionManager.h */; };
 		DEE9EBA70AF5C390002BC511 /* SessionManager.mm in Sources */ = {isa = PBXBuildFile; fileRef = DEE9EBA60AF5C390002BC511 /* SessionManager.mm */; };
 		DEE9EBA80AF5C390002BC511 /* SessionManager.mm in Sources */ = {isa = PBXBuildFile; fileRef = DEE9EBA60AF5C390002BC511 /* SessionManager.mm */; };
+		DEFD23500D021C3A006899B9 /* dom_loadsave.xpt in Copy Component XPTs */ = {isa = PBXBuildFile; fileRef = DEFD234F0D021C3A006899B9 /* dom_loadsave.xpt */; };
+		DEFD23510D021C3A006899B9 /* dom_loadsave.xpt in Copy Component XPTs */ = {isa = PBXBuildFile; fileRef = DEFD234F0D021C3A006899B9 /* dom_loadsave.xpt */; };
+		DEFD23530D021C48006899B9 /* dom_storage.xpt in Copy Component XPTs */ = {isa = PBXBuildFile; fileRef = DEFD23520D021C48006899B9 /* dom_storage.xpt */; };
+		DEFD23540D021C48006899B9 /* dom_storage.xpt in Copy Component XPTs */ = {isa = PBXBuildFile; fileRef = DEFD23520D021C48006899B9 /* dom_storage.xpt */; };
+		DEFD23580D021C63006899B9 /* content_xmldoc.xpt in Copy Component XPTs */ = {isa = PBXBuildFile; fileRef = DEFD23550D021C63006899B9 /* content_xmldoc.xpt */; };
+		DEFD23590D021C63006899B9 /* content_html.xpt in Copy Component XPTs */ = {isa = PBXBuildFile; fileRef = DEFD23560D021C63006899B9 /* content_html.xpt */; };
+		DEFD235A0D021C63006899B9 /* content_htmldoc.xpt in Copy Component XPTs */ = {isa = PBXBuildFile; fileRef = DEFD23570D021C63006899B9 /* content_htmldoc.xpt */; };
+		DEFD235B0D021C63006899B9 /* content_xmldoc.xpt in Copy Component XPTs */ = {isa = PBXBuildFile; fileRef = DEFD23550D021C63006899B9 /* content_xmldoc.xpt */; };
+		DEFD235C0D021C63006899B9 /* content_html.xpt in Copy Component XPTs */ = {isa = PBXBuildFile; fileRef = DEFD23560D021C63006899B9 /* content_html.xpt */; };
+		DEFD235D0D021C63006899B9 /* content_htmldoc.xpt in Copy Component XPTs */ = {isa = PBXBuildFile; fileRef = DEFD23570D021C63006899B9 /* content_htmldoc.xpt */; };
+		DEFD235F0D021C6A006899B9 /* content_xtf.xpt in Copy Component XPTs */ = {isa = PBXBuildFile; fileRef = DEFD235E0D021C6A006899B9 /* content_xtf.xpt */; };
+		DEFD23600D021C6A006899B9 /* content_xtf.xpt in Copy Component XPTs */ = {isa = PBXBuildFile; fileRef = DEFD235E0D021C6A006899B9 /* content_xtf.xpt */; };
 		E010866906BCA2E500BD5DE0 /* colResize.tiff in Copy Gecko Cursors */ = {isa = PBXBuildFile; fileRef = E010866206BCA2E500BD5DE0 /* colResize.tiff */; };
 		E010866C06BCA2E500BD5DE0 /* rowResize.tiff in Copy Gecko Cursors */ = {isa = PBXBuildFile; fileRef = E010866506BCA2E500BD5DE0 /* rowResize.tiff */; };
 		E010866D06BCA2E500BD5DE0 /* sizeNESW.tiff in Copy Gecko Cursors */ = {isa = PBXBuildFile; fileRef = E010866606BCA2E500BD5DE0 /* sizeNESW.tiff */; };
@@ -1670,7 +1682,11 @@
 				82180AC607368B03002EFA6D /* txmgr.xpt in Copy Component XPTs */,
 				82180AC707368B03002EFA6D /* composer.xpt in Copy Component XPTs */,
 				82AC0D65065A602200776B02 /* dom_xpath.xpt in Copy Component XPTs */,
+				DEFD23590D021C63006899B9 /* content_html.xpt in Copy Component XPTs */,
+				DEFD235A0D021C63006899B9 /* content_htmldoc.xpt in Copy Component XPTs */,
+				DEFD23580D021C63006899B9 /* content_xmldoc.xpt in Copy Component XPTs */,
 				82AC0D66065A602200776B02 /* content_xslt.xpt in Copy Component XPTs */,
+				DEFD235F0D021C6A006899B9 /* content_xtf.xpt in Copy Component XPTs */,
 				3F44ACD105BDFB9F00CB4B08 /* xpcom_obsolete.xpt in Copy Component XPTs */,
 				3F44ACD705BDFB9F00CB4B08 /* caps.xpt in Copy Component XPTs */,
 				3F44ACD905BDFB9F00CB4B08 /* docshell.xpt in Copy Component XPTs */,
@@ -1680,7 +1696,9 @@
 				3F44ACDC05BDFB9F00CB4B08 /* dom_css.xpt in Copy Component XPTs */,
 				3F44ACDD05BDFB9F00CB4B08 /* dom_events.xpt in Copy Component XPTs */,
 				3F44ACDE05BDFB9F00CB4B08 /* dom_html.xpt in Copy Component XPTs */,
+				DEFD23500D021C3A006899B9 /* dom_loadsave.xpt in Copy Component XPTs */,
 				3F44ACDF05BDFB9F00CB4B08 /* dom_range.xpt in Copy Component XPTs */,
+				DEFD23530D021C48006899B9 /* dom_storage.xpt in Copy Component XPTs */,
 				3F44ACE005BDFB9F00CB4B08 /* dom_stylesheets.xpt in Copy Component XPTs */,
 				3F44ACE005BDFB9F00CB4C08 /* dom_svg.xpt in Copy Component XPTs */,
 				3F44ACE105BDFB9F00CB4B08 /* dom_traversal.xpt in Copy Component XPTs */,
@@ -1964,7 +1982,11 @@
 				82CE28CB0736634A00B4DE07 /* txmgr.xpt in Copy Component XPTs */,
 				82CE28C7073662B400B4DE07 /* composer.xpt in Copy Component XPTs */,
 				828FBD97065A986900B3D52A /* dom_xpath.xpt in Copy Component XPTs */,
+				DEFD235C0D021C63006899B9 /* content_html.xpt in Copy Component XPTs */,
+				DEFD235D0D021C63006899B9 /* content_htmldoc.xpt in Copy Component XPTs */,
+				DEFD235B0D021C63006899B9 /* content_xmldoc.xpt in Copy Component XPTs */,
 				828FBD98065A986900B3D52A /* content_xslt.xpt in Copy Component XPTs */,
+				DEFD23600D021C6A006899B9 /* content_xtf.xpt in Copy Component XPTs */,
 				3F44AF0E05BDFBA000CB4B08 /* caps.xpt in Copy Component XPTs */,
 				3F44AF0F05BDFBA000CB4B08 /* docshell.xpt in Copy Component XPTs */,
 				3F44AF1005BDFBA000CB4B08 /* dom_base.xpt in Copy Component XPTs */,
@@ -1973,7 +1995,9 @@
 				3F44AF1205BDFBA000CB4B08 /* dom_css.xpt in Copy Component XPTs */,
 				3F44AF1305BDFBA000CB4B08 /* dom_events.xpt in Copy Component XPTs */,
 				3F44AF1405BDFBA000CB4B08 /* dom_html.xpt in Copy Component XPTs */,
+				DEFD23510D021C3A006899B9 /* dom_loadsave.xpt in Copy Component XPTs */,
 				3F44AF1505BDFBA000CB4B08 /* dom_range.xpt in Copy Component XPTs */,
+				DEFD23540D021C48006899B9 /* dom_storage.xpt in Copy Component XPTs */,
 				3F44AF1605BDFBA000CB4B08 /* dom_stylesheets.xpt in Copy Component XPTs */,
 				3F44AF1605BDFBA000CB4C08 /* dom_svg.xpt in Copy Component XPTs */,
 				3F44AF1705BDFBA000CB4B08 /* dom_traversal.xpt in Copy Component XPTs */,
@@ -2759,6 +2783,12 @@
 		DEE34A560B84F5E100BCD687 /* FileChangeWatcher.m */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.c.objc; name = FileChangeWatcher.m; path = src/download/FileChangeWatcher.m; sourceTree = "<group>"; };
 		DEE9EBA30AF5C379002BC511 /* SessionManager.h */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.c.h; name = SessionManager.h; path = src/application/SessionManager.h; sourceTree = "<group>"; };
 		DEE9EBA60AF5C390002BC511 /* SessionManager.mm */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.cpp.objcpp; name = SessionManager.mm; path = src/application/SessionManager.mm; sourceTree = SOURCE_ROOT; };
+		DEFD234F0D021C3A006899B9 /* dom_loadsave.xpt */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = file; name = dom_loadsave.xpt; path = ../dist/bin/components/dom_loadsave.xpt; sourceTree = SOURCE_ROOT; };
+		DEFD23520D021C48006899B9 /* dom_storage.xpt */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = file; name = dom_storage.xpt; path = ../dist/bin/components/dom_storage.xpt; sourceTree = SOURCE_ROOT; };
+		DEFD23550D021C63006899B9 /* content_xmldoc.xpt */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = file; name = content_xmldoc.xpt; path = ../dist/bin/components/content_xmldoc.xpt; sourceTree = SOURCE_ROOT; };
+		DEFD23560D021C63006899B9 /* content_html.xpt */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = file; name = content_html.xpt; path = ../dist/bin/components/content_html.xpt; sourceTree = SOURCE_ROOT; };
+		DEFD23570D021C63006899B9 /* content_htmldoc.xpt */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = file; name = content_htmldoc.xpt; path = ../dist/bin/components/content_htmldoc.xpt; sourceTree = SOURCE_ROOT; };
+		DEFD235E0D021C6A006899B9 /* content_xtf.xpt */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = file; name = content_xtf.xpt; path = ../dist/bin/components/content_xtf.xpt; sourceTree = SOURCE_ROOT; };
 		E010866206BCA2E500BD5DE0 /* colResize.tiff */ = {isa = PBXFileReference; lastKnownFileType = image.tiff; path = colResize.tiff; sourceTree = "<group>"; };
 		E010866506BCA2E500BD5DE0 /* rowResize.tiff */ = {isa = PBXFileReference; lastKnownFileType = image.tiff; path = rowResize.tiff; sourceTree = "<group>"; };
 		E010866606BCA2E500BD5DE0 /* sizeNESW.tiff */ = {isa = PBXFileReference; lastKnownFileType = image.tiff; path = sizeNESW.tiff; sourceTree = "<group>"; };
@@ -3478,7 +3508,11 @@
 				F6BD639401B3131201A962F7 /* caps.xpt */,
 				82CE28C40736625800B4DE07 /* composer.xpt */,
 				F6BD63D901B313EE01A962F7 /* content_base.xpt */,
+				DEFD23560D021C63006899B9 /* content_html.xpt */,
+				DEFD23570D021C63006899B9 /* content_htmldoc.xpt */,
+				DEFD23550D021C63006899B9 /* content_xmldoc.xpt */,
 				82AC0D5D065A5F2300776B02 /* content_xslt.xpt */,
+				DEFD235E0D021C6A006899B9 /* content_xtf.xpt */,
 				F6BD639601B3131201A962F7 /* docshell.xpt */,
 				F6BD63A201B3131201A962F7 /* dom.xpt */,
 				F6BD639701B3131201A962F7 /* dom_base.xpt */,
@@ -3487,7 +3521,9 @@
 				F6BD639901B3131201A962F7 /* dom_css.xpt */,
 				F6BD639A01B3131201A962F7 /* dom_events.xpt */,
 				F6BD639B01B3131201A962F7 /* dom_html.xpt */,
+				DEFD234F0D021C3A006899B9 /* dom_loadsave.xpt */,
 				F6BD639C01B3131201A962F7 /* dom_range.xpt */,
+				DEFD23520D021C48006899B9 /* dom_storage.xpt */,
 				F6BD639D01B3131201A962F7 /* dom_stylesheets.xpt */,
 				F6BD639D01B3131201A963F7 /* dom_svg.xpt */,
 				F6BD639E01B3131201A962F7 /* dom_traversal.xpt */,
