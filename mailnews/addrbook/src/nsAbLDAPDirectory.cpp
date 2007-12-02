@@ -74,6 +74,7 @@ nsAbLDAPDirectory::nsAbLDAPDirectory() :
   mContext(0),
   mLock(0)
 {
+  mCache.Init();
 }
 
 nsAbLDAPDirectory::~nsAbLDAPDirectory()
@@ -226,12 +227,10 @@ NS_IMETHODIMP nsAbLDAPDirectory::HasCard(nsIAbCard* card, PRBool* hasCard)
   nsresult rv = Initiate ();
   NS_ENSURE_SUCCESS(rv, rv);
 
-  nsVoidKey key (static_cast<void*>(card));
-
   // Enter lock
   nsAutoLock lock (mLock);
 
-  *hasCard = mCache.Exists (&key);
+  *hasCard = mCache.Get(card, nsnull);
   if (!*hasCard && mPerformingQuery)
     return NS_ERROR_NOT_AVAILABLE;
 
@@ -389,7 +388,7 @@ NS_IMETHODIMP nsAbLDAPDirectory::StartSearch ()
     // Enter lock
     nsAutoLock lock(mLock);
     mPerformingQuery = PR_TRUE;
-    mCache.Reset();
+    mCache.Clear();
 
     return rv;
 }  
@@ -435,11 +434,10 @@ NS_IMETHODIMP nsAbLDAPDirectory::OnSearchFoundCard(nsIAbCard* card)
   nsresult rv = Initiate();
   NS_ENSURE_SUCCESS(rv, rv);
 
-  nsVoidKey key (static_cast<void*>(card));
   // Enter lock
   {
     nsAutoLock lock(mLock);
-    mCache.Put(&key, card);
+    mCache.Put(card, card);
   }
   // Exit lock
 

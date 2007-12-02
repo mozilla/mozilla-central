@@ -48,7 +48,7 @@
 #include "nsIAbDirSearchListener.h"
 #include "nsIAbLDAPDirectory.h"
 #include "nsIMutableArray.h"
-#include "nsHashtable.h"
+#include "nsInterfaceHashtable.h"
 
 class nsAbLDAPDirectory :
   public nsAbDirectoryRDFResource,    // nsIRDFResource
@@ -97,7 +97,7 @@ protected:
   PRInt32 mContext;
   PRInt32 mMaxHits;
 
-  nsSupportsHashtable mCache;
+  nsInterfaceHashtable<nsISupportsHashKey, nsIAbCard> mCache;
 
   PRLock* mLock;
   nsCOMPtr<nsIAbDirectoryQuery> mDirectoryQuery;

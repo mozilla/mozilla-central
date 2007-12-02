@@ -47,7 +47,6 @@
 #include "nsWeakReference.h"
 
 #include "nsStringGlue.h"
-#include "nsHashtable.h"
 #include "nsCOMArray.h"
 
 class nsAbLDAPDirectoryQuery : public nsIAbDirectoryQuery,

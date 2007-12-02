@@ -52,7 +52,7 @@
 #include "nsDirPrefs.h"
 #include "nsIAbDirectorySearch.h"
 #include "nsIAbDirSearchListener.h"
-#include "nsHashtable.h"
+#include "nsInterfaceHashtable.h"
 #include "nsAbDirectoryRDFResource.h"
 #include "nsIAddrDBListener.h"
 
@@ -126,7 +126,7 @@ protected:
 
   PRInt32 mContext;
   PRBool mPerformingQuery;
-  nsSupportsHashtable mSearchCache;
+  nsInterfaceHashtable<nsISupportsHashKey, nsIAbCard> mSearchCache;
 };
 
 #endif

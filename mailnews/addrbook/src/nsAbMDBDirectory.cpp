@@ -73,6 +73,7 @@ nsAbMDBDirectory::nsAbMDBDirectory(void):
      mIsMailingList(-1),
      mPerformingQuery(PR_FALSE)
 {
+  mSearchCache.Init();
 }
 
 nsAbMDBDirectory::~nsAbMDBDirectory(void)
@@ -444,13 +445,13 @@ NS_IMETHODIMP nsAbMDBDirectory::GetChildNodes(nsISimpleEnumerator* *aResult)
   return NS_NewArrayEnumerator(aResult, mSubDirectories);
 }
 
-PR_STATIC_CALLBACK(PRBool) enumerateSearchCache(nsHashKey *aKey, void *aData, void* closure)
+PR_STATIC_CALLBACK(PLDHashOperator) 
+enumerateSearchCache(nsISupports *aKey, nsCOMPtr<nsIAbCard> &aData, void* aClosure)
 {
-  nsIMutableArray* array = static_cast<nsIMutableArray*>(closure);
-  nsIAbCard* card = static_cast<nsIAbCard*>(aData);
+  nsIMutableArray* array = static_cast<nsIMutableArray*>(aClosure);
 
-  array->AppendElement(card, PR_FALSE);
-  return PR_TRUE;
+  array->AppendElement(aData, PR_FALSE);
+  return PL_DHASH_NEXT;
 }
 
 NS_IMETHODIMP nsAbMDBDirectory::GetChildCards(nsISimpleEnumerator* *result)
@@ -635,8 +636,7 @@ NS_IMETHODIMP nsAbMDBDirectory::HasCard(nsIAbCard *cards, PRBool *hasCard)
 
   if (mIsQueryURI)
   {
-    nsVoidKey key (static_cast<void*>(cards));
-    *hasCard = mSearchCache.Exists (&key);
+    *hasCard = mSearchCache.Get(cards, nsnull);
     return NS_OK;
   }
 
@@ -952,7 +952,7 @@ NS_IMETHODIMP nsAbMDBDirectory::StartSearch()
   nsresult rv;
 
   mPerformingQuery = PR_TRUE;
-  mSearchCache.Reset();
+  mSearchCache.Clear();
 
   nsCOMPtr<nsIAbDirectoryQueryArguments> arguments = do_CreateInstance(NS_ABDIRECTORYQUERYARGUMENTS_CONTRACTID,&rv);
   NS_ENSURE_SUCCESS(rv, rv);
@@ -1013,8 +1013,7 @@ NS_IMETHODIMP nsAbMDBDirectory::OnSearchFinished(PRInt32 aResult,
 
 NS_IMETHODIMP nsAbMDBDirectory::OnSearchFoundCard(nsIAbCard* card)
 {
-  nsVoidKey key (static_cast<void*>(card));
-  mSearchCache.Put (&key, card);
+  mSearchCache.Put(card, card);
 
   // TODO
   // Search is synchronous so asserting on the
