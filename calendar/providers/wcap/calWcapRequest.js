@@ -215,7 +215,6 @@ calWcapRequest.prototype = {
     },
     
     cancel: function calWcapRequest_cancel(status) {
-        log("cancel.", this);
         if (!status)
             status = calIErrors.OPERATION_CANCELLED;
         this.execRespFunc(status);
@@ -277,7 +276,6 @@ calWcapNetworkRequest.prototype = {
     },
     
     cancel: function calWcapNetworkRequest_cancel(status) {
-        log("cancel.", this);
         if (!status)
             status = calIErrors.OPERATION_CANCELLED;
         this.execRespFunc(status);
