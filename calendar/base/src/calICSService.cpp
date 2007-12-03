@@ -39,6 +39,7 @@
 #include "nsStringStream.h"
 #ifndef MOZILLA_1_8_BRANCH
 #include "nsIClassInfoImpl.h"
+#include "nsComponentManagerUtils.h"
 #endif
 #include "calICSService.h"
 #include "calTimezoneService.h"
