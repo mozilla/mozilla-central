@@ -44,19 +44,19 @@
         <xul:hbox class="minimonth-month-box">
           <xul:image class="minimonth-navbtn" dir="-1"/>
           <xul:spacer flex="1"/>
-          <xul:deck anonid="monthheader" onclick="showPopupList(event, 'month')">
-            <xul:text class="minimonth-month-name" value="&month.1.name;"/>
-            <xul:text class="minimonth-month-name" value="&month.2.name;"/>
-            <xul:text class="minimonth-month-name" value="&month.3.name;"/>
-            <xul:text class="minimonth-month-name" value="&month.4.name;"/>
-            <xul:text class="minimonth-month-name" value="&month.5.name;"/>
-            <xul:text class="minimonth-month-name" value="&month.6.name;"/>
-            <xul:text class="minimonth-month-name" value="&month.7.name;"/>
-            <xul:text class="minimonth-month-name" value="&month.8.name;"/>
-            <xul:text class="minimonth-month-name" value="&month.9.name;"/>
-            <xul:text class="minimonth-month-name" value="&month.10.name;"/>
-            <xul:text class="minimonth-month-name" value="&month.11.name;"/>
-            <xul:text class="minimonth-month-name" value="&month.12.name;"/>
+          <xul:deck anonid="monthheader" class="minimonth-month-name" onclick="showPopupList(event, 'month')">
+            <xul:text value="&month.1.name;"/>
+            <xul:text value="&month.2.name;"/>
+            <xul:text value="&month.3.name;"/>
+            <xul:text value="&month.4.name;"/>
+            <xul:text value="&month.5.name;"/>
+            <xul:text value="&month.6.name;"/>
+            <xul:text value="&month.7.name;"/>
+            <xul:text value="&month.8.name;"/>
+            <xul:text value="&month.9.name;"/>
+            <xul:text value="&month.10.name;"/>
+            <xul:text value="&month.11.name;"/>
+            <xul:text value="&month.12.name;"/>
           </xul:deck>
           <xul:deck>
             <xul:text anonid="yearcell" class="minimonth-year-name" onclick="showPopupList(event, 'year')"/>
