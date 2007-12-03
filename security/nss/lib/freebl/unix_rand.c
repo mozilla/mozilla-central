@@ -922,15 +922,6 @@ void RNG_SystemInfoForRNG(void)
     };
 #endif
 
-#ifdef DO_PS
-For now it is considered that it is too expensive to run the ps command
-for the small amount of entropy it provides.
-#if defined(__sun) && (!defined(__svr4) && !defined(SVR4)) || defined(bsdi) || defined(LINUX)
-    static char ps_cmd[] = "ps aux";
-#else
-    static char ps_cmd[] = "ps -el";
-#endif
-#endif /* DO_PS */
 #if defined(BSDI)
     static char netstat_ni_cmd[] = "netstat -nis";
 #else
@@ -1008,15 +999,6 @@ for the small amount of entropy it provides.
         }
         bytes += kstat_bytes;
         PORT_Assert(bytes);
-    }
-#endif
-
-#ifdef DO_PS
-    fp = safe_popen(ps_cmd);
-    if (fp != NULL) {
-	while ((bytes = fread(buf, 1, sizeof(buf), fp)) > 0)
-	    RNG_RandomUpdate(buf, bytes);
-	safe_pclose(fp);
     }
 #endif
 
