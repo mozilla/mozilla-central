@@ -71,7 +71,7 @@ var calendarDNDObserver = {
             case "text/calendar":
                 var parser = Components.classes["@mozilla.org/calendar/ics-parser;1"]
                              .createInstance(Components.interfaces.calIIcsParser);
-                parser.parseString(data);
+                parser.parseString(data, null);
                 startBatchTransaction();
                 try {
                     for each (var item in parser.getItems({})) {
@@ -150,7 +150,7 @@ var calendarDNDObserver = {
                             }
                             var parser = Components.classes["@mozilla.org/calendar/ics-parser;1"]
                                          .createInstance(Components.interfaces.calIIcsParser);
-                            parser.parseString(str);
+                            parser.parseString(str, null);
                             startBatchTransaction();
                             try {
                                 for each (var item in parser.getItems({})) {

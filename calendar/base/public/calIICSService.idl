@@ -21,6 +21,7 @@
  *
  * Contributor(s):
  *   Mike Shaver <shaver@off.net>
+ *   Daniel Boelzle <daniel.boelzle@sun.com>
  *
  * Alternatively, the contents of this file may be used under the terms of
  * either the GNU General Public License Version 2 or later (the "GPL"), or
@@ -44,6 +45,8 @@
 interface calIItemBase;
 interface calIDateTime;
 interface calIDuration;
+interface calITimezone;
+interface calITimezoneProvider;
 
 interface calIIcalProperty;
 interface nsIUTF8StringEnumerator;
@@ -51,6 +54,7 @@ interface nsIInputStream;
 
 [ptr] native icalpropertyptr(struct icalproperty_impl);
 [ptr] native icalcomponentptr(struct icalcomponent_impl);
+[ptr] native icaltimezoneptr(struct _icaltimezone);
 
 /**
  * General notes:
@@ -128,6 +132,11 @@ interface calIIcalComponent : nsISupports
     AUTF8String serializeToICS();
 
     /**
+     * Return a string representation of this instance.
+     */
+    AUTF8String toString();
+
+    /**
      * Serializes this component (and subcomponents) directly to an
      * input stream.  Typically used for performance to avoid
      * unnecessary conversions and XPConnect traversals.
@@ -140,7 +149,9 @@ interface calIIcalComponent : nsISupports
     nsIInputStream serializeToICSStream();
 
     void addSubcomponent(in calIIcalComponent comp);
-    void removeSubcomponent(in calIIcalComponent comp);
+// If you add then remove a property/component, the referenced
+// timezones won't get purged out. There's currently no client code.
+//     void removeSubcomponent(in calIIcalComponent comp);
 
     /**
      * @param kind ANY, ATTENDEE, X-WHATEVER, etc.
@@ -148,36 +159,35 @@ interface calIIcalComponent : nsISupports
     calIIcalProperty getFirstProperty(in AUTF8String kind);
     calIIcalProperty getNextProperty(in AUTF8String kind);
     void addProperty(in calIIcalProperty prop);
-    void removeProperty(in calIIcalProperty prop);
+// If you add then remove a property/component, the referenced
+// timezones won't get purged out. There's currently no client code.
+//     void removeProperty(in calIIcalProperty prop);
 
     /**
      * Timezones need special handling, as they must be
      * emitted as children of VCALENDAR, but can be referenced by
-     * any sub component.  The components this expects to receive
-     * are VCALENDAR components with a single VTIMEZONE child.
-     * Adding the same TZID twice will cause the second and later
-     * adds to be ignored.  Appropriate calIIcalComponents can
-     * be obtained via the calIICSService.
+     * any sub component.
+     * Adding a second timezone (of the same TZID) will remove the
+     * first one.
      */
-    void addTimezoneReference(in calIIcalComponent aTimezone);
+    void addTimezoneReference(in calITimezone aTimezone);
 
     /**
-     * Returns an array of VCALENDAR components, each with a single
-     * VTIMEZONE.  These are the timezones that are in use by this
-     * component and its children.  Child timezones are only added
-     * at addSubcomponent time.
+     * Returns an array of VTIMEZONE components.
+     * These are the timezones that are in use by this
+     * component and its children.
      */
     void getReferencedTimezones(out PRUint32 aCount,
-                                [array,size_is(aCount),retval] out calIIcalComponent aTimezones);
+                                [array,size_is(aCount),retval] out calITimezone aTimezones);
 
     /**
      * Clones the component. The cloned component is decoupled from any parent.
      * @return cloned component
      */
     calIIcalComponent clone();
-    
+
     [noscript,notxpcom] icalcomponentptr getIcalComponent();
-    [noscript, notxpcom] nsresult addTimezoneReferenceById(in ACStringPtr tzid);
+    [noscript,notxpcom] icaltimezoneptr getIcalTimezone();
 };
 
 [scriptable,uuid(17349a10-5d80-47fa-9bea-f22957357675)]
@@ -188,6 +198,11 @@ interface calIIcalProperty : nsISupports
      * @exception Any libical error will be thrown as an calIError::ICS_ error.
      */
     readonly attribute AUTF8String icalString;
+
+    /**
+     * Return a string representation of this instance.
+     */
+    AUTF8String toString();
     
     /**
      * The value of the property as string.
@@ -204,8 +219,7 @@ interface calIIcalProperty : nsISupports
 
     /**
      * The value of the property as date/datetime value, keeping
-     * track of the used timezone being resolvable and referenced in the
-     * owning component.
+     * track of the used timezone referenced in the owning component.
      */
     attribute calIDateTime valueAsDatetime;
 
@@ -237,51 +251,23 @@ interface calIIcalProperty : nsISupports
 [scriptable,uuid(ae4ca6c3-981b-4f66-a0ce-2f2c218ad9e3)]
 interface calIICSService : nsISupports
 {
-    calIIcalComponent parseICS(in AUTF8String serialized);
+    /**
+     * Parses an ICS string and uses the passed tzProvider instance to
+     * resolve timezones not contained withing the VCALENDAR.
+     *
+     * @param serialized     an ICS string
+     * @param tzProvider     timezone provider used to resolve TZIDs
+     *                       not contained within the VCALENDAR;
+     *                       if null is passed, parsing falls back to
+     *                       using the timezone service
+     */
+    calIIcalComponent parseICS(in AUTF8String serialized,
+                               in calITimezoneProvider tzProvider);
+
     calIIcalComponent createIcalComponent(in AUTF8String kind);
     calIIcalProperty createIcalProperty(in AUTF8String kind);
     /* I wish I could write this function atop libical!
     boolean isLegalParameterValue(in AUTF8String paramKind,
                                   in AUTF8String paramValue);
     */
-
-    /* Return a calIIcalComponent for the given timezone.  Note that
-     * the component returned is a VCALENDAR with a VTIMEZONE child,
-     * not the VTIMEZONE itself.
-     */
-    calIIcalComponent getTimezone(in AUTF8String tzid);
-    AUTF8String getTimezoneLatitude(in AUTF8String tzid);
-    AUTF8String getTimezoneLongitude(in AUTF8String tzid);
-
-    /**
-     * Adds and takes over ownership of a timezone record.
-     * Record will be ignored if there is already an existing one with the
-     * same id.
-     * 
-     * @param tzCal VCALENDAR with a VTIMEZONE child
-     * @param tzLatitude timzeone latitude, empty string if unknown
-     * @param tzLongitude timzeone longitude, empty string if unknown
-     * @return present VCALENDAR with a VTIMEZONE child
-     */
-    calIIcalComponent addTimezone(in calIIcalComponent tzCal,
-                                  in AUTF8String tzLatitude,
-                                  in AUTF8String tzLongitude);
-    
-    readonly attribute nsIUTF8StringEnumerator timezoneIds;
-
-    /**
-     * This is the string that is used to prefix all tzIds that come from our
-     * local tzid database.  This includes a trailing slash character.
-     */
-    readonly attribute AUTF8String tzIdPrefix;
-
-    /** 
-     * Takes a tzId, and if it's an old version of one of ours, returns 
-     * the current version of that tzId.  Otherwise returns the empty string.
-     *
-     * @param aTzId  the tzid to check
-     *
-     * @return       updated version of the same tzid or ""
-     */
-    AUTF8String latestTzId(in AUTF8String tzId);
 };

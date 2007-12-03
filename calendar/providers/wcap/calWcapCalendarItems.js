@@ -68,10 +68,10 @@ calWcapCalendar.prototype.encodeNscpTzid =
 function calWcapCalendar_encodeNscpTzid(dateTime)
 {
     var params = "X-NSCP-ORIGINAL-OPERATION=X-NSCP-WCAP-PROPERTY-";
-    if (!dateTime || !dateTime.isValid || (dateTime.timezone == "floating")) {
+    if (!dateTime || !dateTime.isValid || dateTime.timezone.isUTC || dateTime.timezone.isFloating) {
         params += "DELETE^";
     } else {
-        params += ("REPLACE^" + encodeURIComponent(this.getAlignedTimezone(dateTime.timezone)));
+        params += ("REPLACE^" + encodeURIComponent(this.getAlignedTzid(dateTime.timezone)));
     }
     return params;
 };
@@ -277,7 +277,7 @@ function equalDatetimes(one, two) {
 function identicalDatetimes(one, two) {
     return ((!one && !two) ||
             (equalDatetimes(one, two) &&
-             (one.timezone == two.timezone)));
+             compareObjects(one.timezone, two.timezone)));
 }
 
 // @return null if nothing has changed else value to be written
@@ -564,11 +564,13 @@ function calWcapCalendar_storeItem(bAddItem, item, oldItem, request, netRespFunc
     else {
         var someDate = (item.startDate || item.entryDate || item.dueDate);
         if (someDate) {
-            // provide some date: eMail notification dates are influenced by this parameter...
-            params += ("&tzid=" + encodeURIComponent(
-                           this.getAlignedTimezone(someDate.timezone)));
+            someTz = someDate.timezone;
+            if (!someTz.isUTC && !someTz.isFloating) {
+                // provide some tzid: eMail notification dates are influenced by this parameter
+                params += ("&tzid=" + encodeURIComponent(this.getAlignedTzid(someTz)));
+            }
         }
-        
+
         if (item.id)
             params += ("&uid=" + encodeURIComponent(item.id));
         
@@ -836,11 +838,15 @@ calWcapCalendar.prototype.parseItems = function calWcapCalendar_parseItems(
                         log(attr + " is " + dt, this_);
                     }
                     var tzid = subComp.getFirstProperty(xprop);
-                    if (tzid != null) {
-                        subComp[attr] = dt.getInTimezone(tzid.value);
-                        if (LOG_LEVEL > 2) {
-                            log("patching " + xprop + ": from " +
-                                dt + " to " + subComp[attr], this_);
+                    if (tzid) {
+                        var tz = this_.session.getTimezone(tzid.value);
+                        ASSERT(tz, "timezone not found: " + tzid);
+                        if (tz) {
+                            subComp[attr] = dt.getInTimezone(tz);
+                            if (LOG_LEVEL > 2) {
+                                log("patching " + xprop + ": from " +
+                                    dt + " to " + subComp[attr], this_);
+                            }
                         }
                     }
                 }

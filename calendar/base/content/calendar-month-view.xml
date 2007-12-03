@@ -836,6 +836,7 @@
             hdr.index = i;
           }
 
+          this.mTimezone = floating();
           var alarmService = Components.classes['@mozilla.org/calendar/alarm-service;1']
                              .getService(Components.interfaces.calIAlarmService);
           alarmService.addObserver(this.mObserver);
@@ -857,7 +858,7 @@
       <field name="mStartDate">null</field>
       <field name="mEndDate">null</field>
       <field name="mDateBoxes">null</field>
-      <field name="mTimezone">"floating"</field>
+      <field name="mTimezone">null</field>
 
       <field name="mSelectedItems">[]</field>
       <field name="mSelectedDayBox">null</field>

@@ -148,12 +148,12 @@ function textToDate(d) {
 function dateToText(d) {
     var datestr;
     var tz = null;
-    if (d.timezone != "floating") {
-        if (d.timezone == "UTC") {
+    if (!d.timezone.isFloating) {
+        if (d.timezone.isUTC) {
             datestr = "U";
         } else {
             datestr = "Z";
-            tz = d.timezone;
+            tz = d.timezone.tzid;
         }
     } else {
         datestr = "L";
@@ -183,10 +183,11 @@ function dateToText(d) {
 function newDateTime(aNativeTime, aTimezone) {
     var t = createDateTime();
     t.nativeTime = aNativeTime;
-    if (aTimezone && aTimezone != "floating") {
-        t = t.getInTimezone(aTimezone);
+    if (aTimezone) {
+        var tz = getTimezoneService().getTimezone(aTimezone);
+        t = t.getInTimezone(tz);
     } else {
-        t.timezone = "floating";
+        t.timezone = floating();
     }
 
     return t;
@@ -1756,7 +1757,7 @@ calStorageCalendar.prototype = {
     setDateParamHelper: function (params, entryname, cdt) {
         if (cdt) {
             params[entryname] = cdt.nativeTime;
-            params[entryname + "_tz"] = cdt.timezone;
+            params[entryname + "_tz"] = cdt.timezone.tzid;
         } else {
             params[entryname] = null;
             params[entryname + "_tz"] = null;

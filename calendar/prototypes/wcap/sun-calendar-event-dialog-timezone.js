@@ -39,13 +39,11 @@ function onLoad() {
     window.time = args.time;
     window.onAcceptCallback = args.onOk;
 
-    var tzname = timezoneString(window.time.timezone);
+    var tzname = timezoneString(window.time.timezone.tzid);
     var menulist = document.getElementById("timezone-menulist");
     var index = findTimezone(tzname);
     if (index < 0) {
-        var kDefaultTimezone = calendarDefaultTimezone();
-        var tzstring = window.time.getInTimezone(kDefaultTimezone).timezone;
-        tzname = timezoneString(tzstring);
+        tzname = timezoneString(calendarDefaultTimezone().tzid);
         index = findTimezone(tzname);
     }
 
@@ -69,19 +67,19 @@ function findTimezone(timezone) {
     return -1;
 }
 
-function timezoneString(timezone) {
-    var fragments = timezone.split('/');
-    var num = fragments.length;
-    if (num <= 1) {
-        return fragments[0];
+function timezoneString(tzid) {
+    var prefix = getTimezoneService().tzidPrefix;
+    if (tzid.indexOf(prefix) == 0) {
+        tzid = tzid.substring(prefix.length);
     }
-    return fragments[num-2] + '/' + fragments[num - 1];
+    return tzid;
 }
 
 function updateTimezone() {
     var menulist = document.getElementById("timezone-menulist");
     var menuitem = menulist.selectedItem;
     var someTZ = menuitem.getAttribute("value");
+    var tz = getTimezoneService().getTimezone(someTZ);
 
     // convert the date/time to the currently selected timezone
     // and display the result in the appropriate control.
@@ -89,15 +87,11 @@ function updateTimezone() {
     // to set the timezone to 'floating' in order to avoid the
     // automatic conversion back into the OS timezone.
     var datetime = document.getElementById("timezone-time");
-    var time = window.time.getInTimezone(someTZ);
-    time.timezone = "floating";
+    var time = window.time.getInTimezone(tz);
+    time.timezone = floating();
     datetime.value = time.jsDate;
 
-    var icssrv = Components.classes["@mozilla.org/calendar/ics-service;1"]
-                 .getService(Components.interfaces.calIICSService);
-
-    var comp = icssrv.getTimezone(someTZ);
-    var subComp = comp.getFirstSubcomponent("VTIMEZONE");
+    var subComp = tz.component;
     var standard = subComp.getFirstSubcomponent("STANDARD");
     var standardTZOffset = standard.getFirstProperty("TZOFFSETTO").valueAsIcalString;
 
@@ -120,7 +114,8 @@ function onAccept() {
     var menulist = document.getElementById("timezone-menulist");
     var menuitem = menulist.selectedItem;
     var timezone = menuitem.getAttribute("value");
-    var datetime = window.time.getInTimezone(timezone);
+    var tz = getTimezoneService().getTimezone(timezone);
+    var datetime = window.time.getInTimezone(tz);
     window.onAcceptCallback(datetime);
     return true;
 }

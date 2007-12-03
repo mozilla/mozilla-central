@@ -51,13 +51,95 @@
 #include "nsVoidArray.h"
 #include "nsIStringEnumerator.h"
 
+#include "calITimezoneProvider.h"
+#include "calIICSService.h"
+#include "nsCOMPtr.h"
+
+#define CAL_STRLEN_ARGS(x) x, sizeof(x)-1
 #define CAL_ENSURE_MEMORY(p) NS_ENSURE_TRUE(p, NS_ERROR_OUT_OF_MEMORY)
+
+typedef struct _icaltimezone icaltimezone;
+typedef struct icaltimetype icaltimetype;
 
 namespace cal {
 
+/**
+ * Creates a UTF8 string enumerator.
+ *
+ * @param takeOverArray      a C string array that is taken over by the resulting
+ *                           string enumerator object (nsAutoPtr passes over ownership)
+ * @param ppRet              returned enumerator object
+ */
 nsresult createUTF8StringEnumerator(nsAutoPtr<nsCStringArray> & takeOverArray,
                                     nsIUTF8StringEnumerator ** ppRet);
 
+// some static timezone helpers, we leak those, but this is ok since the
+// underlying service leaks those anyway until process termination
+
+/**
+ * Gets the global ICS service.
+ */
+nsCOMPtr<calIICSService> const& getICSService();
+
+/**
+ * Gets the global timezone service.
+ */
+nsCOMPtr<calITimezoneService> const& getTimezoneService();
+
+/**
+ * Gets the "floating" timezone
+ */
+nsCOMPtr<calITimezone> const& floating();
+
+/**
+ * Gets the "UTC" timezone.
+ */
+nsCOMPtr<calITimezone> const& UTC();
+
+/**
+ * Returns the libical VTIMEZONE component, null if floating.
+ * 
+ * @attention
+ * Every timezone provider needs to use calICSService for
+ * creating its timezone components since we need to stick to the
+ * same libical.
+ */    
+icaltimezone * getIcalTimezone(calITimezone * tz);
+
+/**
+ * Detects the timezone icalt refers to, either using the
+ * passed timezone provider or the global timezone service.
+ *
+ * @param icalt      an icaltime
+ * @param tzProvider timezone provider or null which
+ *                   defaults to the timezone service
+ */
+nsCOMPtr<calITimezone> detectTimezone(icaltimetype const& icalt,
+                                      calITimezoneProvider * tzProvider);
+
+/**
+ * Tests whether two interface pointers refer to the same object.
+ */
+inline NSCAP_BOOL sameXpcomObject(nsISupports * i1_, nsISupports * i2_) {
+    nsCOMPtr<nsISupports> const i1 = do_QueryInterface(i1_);
+    nsCOMPtr<nsISupports> const i2 = do_QueryInterface(i2_);
+    return i1 == i2;
 }
+
+/**
+ * Common base class for XPCOM object implementations:
+ * - disallows public deletion (virtual protected dtor)
+ * - disallows copy semantics (no assignment, no copy ctor)
+ */
+class XpcomBase {
+protected:
+    XpcomBase() {}
+    virtual ~XpcomBase();
+private:
+    XpcomBase(XpcomBase const&); // left unimplemented
+    XpcomBase const& operator=(XpcomBase const&); // left unimplemented
+};
+
+} // namespace cal
 
 #endif // !defined(INCLUDED_CAL_UTILS_H)

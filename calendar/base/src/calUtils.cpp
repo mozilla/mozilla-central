@@ -34,15 +34,21 @@
  * the terms of any one of the MPL, the GPL or the LGPL.
  *
  * ***** END LICENSE BLOCK ***** */
-
-#ifndef MOZILLA_1_8_BRANCH
-#include "nsIClassInfoImpl.h"
-#endif
+#include "nsServiceManagerUtils.h"
+// #ifndef MOZILLA_1_8_BRANCH
+// #include "nsIClassInfoImpl.h"
+// #endif
+#include "calBaseCID.h"
 #include "calUtils.h"
+
+extern "C" {
+#include "ical.h"
+}
 
 namespace cal {
 
-class UTF8StringEnumerator : public nsIUTF8StringEnumerator
+class UTF8StringEnumerator : public nsIUTF8StringEnumerator,
+                             public XpcomBase
 {
 public:
     NS_DECL_ISUPPORTS
@@ -51,16 +57,9 @@ public:
     explicit UTF8StringEnumerator(nsAutoPtr<nsCStringArray> & takeOverArray)
         : mArray(takeOverArray), mPos(0) {}
 private:
-    UTF8StringEnumerator const& operator=(UTF8StringEnumerator const&);
-    virtual ~UTF8StringEnumerator();
-
     nsAutoPtr<nsCStringArray> const mArray;
     PRInt32 mPos;
 };
-
-UTF8StringEnumerator::~UTF8StringEnumerator()
-{
-}
 
 NS_IMPL_ISUPPORTS1(UTF8StringEnumerator, nsIUTF8StringEnumerator)
 
@@ -88,10 +87,85 @@ nsresult createUTF8StringEnumerator(nsAutoPtr<nsCStringArray> & takeOverArray,
     NS_ENSURE_ARG_POINTER(takeOverArray.get());
     NS_ENSURE_ARG_POINTER(ppRet);
     *ppRet = new UTF8StringEnumerator(takeOverArray);
-    if (!*ppRet)
-        return NS_ERROR_OUT_OF_MEMORY;
+    CAL_ENSURE_MEMORY(*ppRet);
     NS_ADDREF(*ppRet);
     return NS_OK;
+}
+
+nsCOMPtr<calIICSService> const& getICSService() {
+    static nsCOMPtr<calIICSService> sIcsService;
+    if (!sIcsService) {
+        sIcsService = do_GetService(CAL_ICSSERVICE_CONTRACTID);
+        NS_ASSERTION(sIcsService, "Could not init ics service! Will crash now...");
+    }
+    return sIcsService;
+}
+
+nsCOMPtr<calITimezoneService> const& getTimezoneService() {
+    static nsCOMPtr<calITimezoneService> sTzService;
+    if (!sTzService) {
+        sTzService = do_GetService(CAL_TIMEZONESERVICE_CONTRACTID);
+        NS_ASSERTION(sTzService, "Could not init timezone service! Will crash now...");
+    }
+    return sTzService;
+}
+
+nsCOMPtr<calITimezone> const& floating() {
+    static nsCOMPtr<calITimezone> sFloating;
+    if (!sFloating) {
+        getTimezoneService()->GetFloating(getter_AddRefs(sFloating));
+    }
+    return sFloating;
+}
+
+nsCOMPtr<calITimezone> const& UTC() {
+    static nsCOMPtr<calITimezone> sUTC;
+    if (!sUTC) {
+        getTimezoneService()->GetUTC(getter_AddRefs(sUTC));
+    }
+    return sUTC;
+}
+
+nsCOMPtr<calITimezone> detectTimezone(icaltimetype const& icalt,
+                                      calITimezoneProvider * tzProvider)
+{
+    if (!tzProvider) {
+        tzProvider = getTimezoneService();
+    }
+    if (icalt.is_utc) {
+        return UTC();
+    }
+    if (icalt.zone) {
+        char const* const tzid = icaltimezone_get_tzid(const_cast<icaltimezone *>(icalt.zone));
+        if (tzid) {
+            nsCOMPtr<calITimezone> tz;
+            tzProvider->GetTimezone(nsDependentCString(tzid), getter_AddRefs(tz));
+            if (tz) {
+                return tz;
+            }
+            NS_ASSERTION(tz, "no timezone found, falling back to floating!");
+        }
+    }
+    return floating();
+}
+
+icaltimezone * getIcalTimezone(calITimezone * tz) {
+    icaltimezone * icaltz = nsnull;
+    PRBool b;
+    tz->GetIsUTC(&b);
+    if (b) {
+        icaltz = icaltimezone_get_utc_timezone();
+    } else {
+        nsCOMPtr<calIIcalComponent> tzComp;
+        tz->GetComponent(getter_AddRefs(tzComp));
+        if (tzComp) {
+            icaltz = tzComp->GetIcalTimezone();
+        } // else floating
+    }
+    return icaltz;
+}
+
+XpcomBase::~XpcomBase() {
 }
 
 }

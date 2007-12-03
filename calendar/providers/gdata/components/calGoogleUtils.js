@@ -210,29 +210,30 @@ function getCalendarCredentials(aCalendarName,
  * @return              The same string including /mozilla.org/<date>/
  */
 function getMozillaTimezone(aICALTimezone) {
-
-    if (!aICALTimezone ||
-        aICALTimezone == "UTC" ||
-        aICALTimezone == "floating") {
-        return aICALTimezone;
+    ASSERT(aICALTimezone, "No timezone passed", true);
+    if (aICALTimezone == "floating") {
+        return floating();
+    } else if (aICALTimezone == "UTC") {
+        return UTC();
     }
+
     // TODO A patch to Bug 363191 should make this more efficient.
     // For now we need to go through all timezones and see which timezone
     // ends with aICALTimezone.
 
-    var icsSvc = Components.classes["@mozilla.org/calendar/ics-service;1"].
-                 getService(Components.interfaces.calIICSService);
-
+    var tzService = getTimezoneService();
     // Enumerate timezones, set them, check their offset
-    var enumerator = icsSvc.timezoneIds;
+    var enumerator = tzService.timezoneIds;
+    var id = null;
     while (enumerator.hasMore()) {
-        var id = enumerator.getNext();
+        id = enumerator.getNext();
 
         if (id.substr(-aICALTimezone.length) == aICALTimezone) {
-            return id;
+            return tzService.getTimezone(id);
         }
     }
-    return null;
+
+    return floating();
 }
 
 /**
@@ -257,7 +258,7 @@ function fromRFC3339(aStr, aTimezone) {
         "(([Zz]|([+-])([0-9]{2}):([0-9]{2})))?");
 
     var matches = re.exec(aStr);
-    var moztz = getMozillaTimezone(aTimezone) || "UTC";
+    var moztz = getMozillaTimezone(aTimezone);
 
     if (!matches) {
         return null;
@@ -280,7 +281,7 @@ function fromRFC3339(aStr, aTimezone) {
     if (matches[9] == "Z") {
         // If the dates timezone is "Z", then this is UTC, no matter
         // what timezone was passed
-        dateTime.timezone = "UTC";
+        dateTime.timezone = UTC();
 
     } else if (matches[9] == null) {
         // We have no timezone info, only a date. We have no way to
@@ -302,21 +303,19 @@ function fromRFC3339(aStr, aTimezone) {
         if (dateTime.timezoneOffset != offset_in_s) {
             // TODO A patch to Bug 363191 should make this more efficient.
 
-            var icsSvc = Components.classes["@mozilla.org/calendar/ics-service;1"].
-                         getService(Components.interfaces.calIICSService);
-
+			var tzService = getTimezoneService();
             // Enumerate timezones, set them, check their offset
-            var enumerator = icsSvc.timezoneIds;
+            var enumerator = tzService.timezoneIds;
             while (enumerator.hasMore()) {
                 var id = enumerator.getNext();
-                dateTime.timezone = id;
+                dateTime.timezone = tzService.getTimezone(id);
                 if (dateTime.timezoneOffset == offset_in_s) {
                     // This is our last step, so go ahead and return
                     return dateTime;
                 }
             }
             // We are still here: no timezone was found
-            dateTime.timezone = "UTC";
+            dateTime.timezone = UTC();
             if (!dateTime.isDate) {
                 dateTime.hour += (matches[11] == "-" ? -1 : 1) * matches[12];
                 dateTime.minute += (matches[11] == "-" ? -1 : 1) * matches[13];
@@ -358,7 +357,7 @@ function toRFC3339(aDateTime) {
             str += (tzoffset_hr < 0 ? "-" : "+") +
                    ("00" + Math.abs(tzoffset_hr)).substr(-2) + ":" +
                    ("00" + Math.abs(tzoffset_mn)).substr(-2);
-        } else if (aDateTime.timezone == "floating") {
+        } else if (aDateTime.timezone.isFloating) {
             // RFC3339 Section 4.3 Unknown Local Offset Convention
             str += "-00:00";
         } else {
@@ -1037,7 +1036,6 @@ function XMLEntryToItem(aXMLEntry, aTimezone, aCalendar) {
         // those recurrence events.
         // XXX This code is somewhat preliminary
 
-        var timezone;
         var startDate = createDateTime();
         var endDate;
         for each (var line in lines) {

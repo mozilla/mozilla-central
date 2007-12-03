@@ -165,7 +165,7 @@ calItipItem.prototype = {
     init: function ciiI(aIcalString) {
         var parser = Components.classes["@mozilla.org/calendar/ics-parser;1"].
                      createInstance(Components.interfaces.calIIcsParser);
-        parser.parseString(aIcalString);
+        parser.parseString(aIcalString, null);
         this.mItemList = parser.getItems({});
         this.mPropertiesList = parser.getProperties({});
 

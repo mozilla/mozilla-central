@@ -677,7 +677,7 @@ calGoogleCalendar.prototype = {
             var xml = new XML(aItemString.substring(38));
 
             // Get the local timezone from the preferences
-            var timezone = getPrefSafe("calendar.timezone.local");
+            var timezone = calendarDefaultTimezone().tzid;
 
             // Parse the Item with the given timezone
             var item = XMLEntryToItem(xml, timezone, this.superCalendar);

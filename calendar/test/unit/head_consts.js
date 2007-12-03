@@ -19,6 +19,7 @@
  * the Initial Developer. All Rights Reserved.
  *
  * Contributor(s):
+ *   Daniel Boelzle <daniel.boelzle@sun.com>
  *
  * Alternatively, the contents of this file may be used under the terms of
  * either the GNU General Public License Version 2 or later (the "GPL"), or
@@ -37,10 +38,35 @@
 const Cc = Components.classes;
 const Ci = Components.interfaces;
 
+/* Shortcut to the timezone service */
+function getTimezoneService() {
+    if (getTimezoneService.mObject === undefined) {
+        getTimezoneService.mObject = Components.classes["@mozilla.org/calendar/timezone-service;1"]
+                                               .getService(Components.interfaces.calITimezoneService);
+    }
+    return getTimezoneService.mObject;
+}
+
+/// @return the UTC timezone.
+function UTC() {
+    if (UTC.mObject === undefined) {
+        UTC.mObject = getTimezoneService().UTC;
+    }
+    return UTC.mObject;
+}
+
+/// @return the floating timezone.
+function floating() {
+    if (floating.mObject === undefined) {
+        floating.mObject = getTimezoneService().floating;
+    }
+    return floating.mObject;
+}
+
 function createDate(aYear, aMonth, aDay) {
     var cd = Cc["@mozilla.org/calendar/datetime;1"].
              createInstance(Ci.calIDateTime);
-    cd.resetTo(aYear, aMonth, aDay, 0, 0, 0, "UTC");
+    cd.resetTo(aYear, aMonth, aDay, 0, 0, 0, UTC());
     cd.isDate = true;
     return cd;
 }

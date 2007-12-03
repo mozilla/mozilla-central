@@ -15,7 +15,7 @@ var str = "BEGIN:VCALENDAR\n";
 var icsServ = Components.classes["@mozilla.org/calendar/ics-service;1"]
                         .getService(Components.interfaces.calIICSService);
 
-var calComp = icsServ.parseICS(str);
+var calComp = icsServ.parseICS(str, null);
 var subComp = calComp.getFirstSubcomponent("VEVENT");
 var event = Components.classes["@mozilla.org/calendar/event;1"]
                       .createInstance(Components.interfaces.calIEvent);

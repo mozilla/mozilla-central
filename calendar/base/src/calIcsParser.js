@@ -53,11 +53,11 @@ function QueryInterface(aIID) {
 };
 
 calIcsParser.prototype.parseString =
-function ip_parseString(aICSString) {
+function ip_parseString(aICSString, aTzProvider) {
     icsSvc = Components.classes["@mozilla.org/calendar/ics-service;1"]
                        .getService(Components.interfaces.calIICSService);
 
-    var rootComp = icsSvc.parseICS(aICSString);
+    var rootComp = icsSvc.parseICS(aICSString, aTzProvider);
     var calComp;
     // libical returns the vcalendar component if there is just one vcalendar.
     // If there are multiple vcalendars, it returns an xroot component, with
@@ -95,14 +95,12 @@ function ip_parseString(aICSString) {
             var item = null;
             switch (subComp.componentType) {
             case "VEVENT":
-                var event = Components.classes["@mozilla.org/calendar/event;1"]
-                                      .createInstance(Components.interfaces.calIEvent);
-                item = event;
+                item = Components.classes["@mozilla.org/calendar/event;1"]
+                                 .createInstance(Components.interfaces.calIEvent);
                 break;
             case "VTODO":
-                var todo = Components.classes["@mozilla.org/calendar/todo;1"]
-                                     .createInstance(Components.interfaces.calITodo);
-                item = todo;
+                item = Components.classes["@mozilla.org/calendar/todo;1"]
+                                 .createInstance(Components.interfaces.calITodo);
                 break;
             case "VTIMEZONE":
                 // this should already be attached to the relevant
@@ -155,7 +153,7 @@ function ip_parseString(aICSString) {
 };
 
 calIcsParser.prototype.parseFromStream =
-function ip_parseFromStream(aStream) {
+function ip_parseFromStream(aStream, aTzProvider) {
     // Read in the string. Note that it isn't a real string at this point, 
     // because likely, the file is utf8. The multibyte chars show up as multiple
     // 'chars' in this string. So call it an array of octets for now.
@@ -186,7 +184,7 @@ function ip_parseFromStream(aStream) {
     // ICS files are always UTF8
     unicodeConverter.charset = "UTF-8";
     var str = unicodeConverter.convertFromByteArray(octetArray, octetArray.length);
-    return this.parseString(str);
+    return this.parseString(str, aTzProvider);
 }
 
 calIcsParser.prototype.getItems =

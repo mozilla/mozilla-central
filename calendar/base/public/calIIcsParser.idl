@@ -41,6 +41,7 @@ interface calIIcalProperty;
 interface calIIcalComponent;
 interface calIItemBase;
 interface nsIInputStream;
+interface calITimezoneProvider;
 
 /**
  * An interface for parsing an ics string or stream into its items.
@@ -56,8 +57,12 @@ interface calIIcsParser : nsISupports
    *
    * @param aICSString
    *    The ICS string to parse
+   * @param aTzProvider
+   *    The timezone provider used to resolve timezones not contained in the
+   *    parent VCALENDAR or null (falls back to timezone service)
    */
-  void parseString(in AString aICSString);
+    void parseString(in AString aICSString,
+                     in calITimezoneProvider aTzProvider);
 
   /**
    * Parse an input stream.
@@ -65,8 +70,12 @@ interface calIIcsParser : nsISupports
    * @see parseString
    * @param aICSString
    *    The stream to parse
+   * @param aTzProvider
+   *    The timezone provider used to resolve timezones not contained in the
+   *    parent VCALENDAR or null (falls back to timezone service)
    */
-  void parseFromStream(in nsIInputStream aStream);
+    void parseFromStream(in nsIInputStream aStream,
+                         in calITimezoneProvider aTzProvider);
 
   /**
    * Get the items that were in the string or stream

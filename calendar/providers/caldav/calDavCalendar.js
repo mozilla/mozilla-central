@@ -904,7 +904,7 @@ calDavCalendar.prototype = {
                     thisCalendar.mICSService = Components.classes["@mozilla.org/calendar/ics-service;1"].
                                                getService(Components.interfaces.calIICSService);
                 }
-                var rootComp = thisCalendar.mICSService.parseICS(calData);
+                var rootComp = thisCalendar.mICSService.parseICS(calData, null);
 
                 var calComp;
                 if (rootComp.componentType == 'VCALENDAR') {
@@ -1222,8 +1222,8 @@ calDavCalendar.prototype = {
                 queryRangeEnd.day++;
                 queryRangeEnd.isDate = false;
             }
-            var rangeXml = <time-range start={queryRangeStart.getInTimezone("UTC").icalString}
-                                       end={queryRangeEnd.getInTimezone("UTC").icalString}/>;
+            var rangeXml = <time-range start={queryRangeStart.getInTimezone(UTC()).icalString}
+                                       end={queryRangeEnd.getInTimezone(UTC()).icalString}/>;
 
         }
 
@@ -1671,9 +1671,9 @@ calDavCalendar.prototype = {
 
         var organizer = this.mMailToUrl;
 
-        var dtstamp = now().getInTimezone("UTC").icalString;
-        var dtstart = aRangeStart.getInTimezone("UTC").icalString;
-        var dtend = aRangeEnd.getInTimezone("UTC").icalString;
+        var dtstamp = now().getInTimezone(UTC()).icalString;
+        var dtstart = aRangeStart.getInTimezone(UTC()).icalString;
+        var dtend = aRangeEnd.getInTimezone(UTC()).icalString;
         var uuid = getUUID();
 
         var fbQuery = "BEGIN:VCALENDAR\n";

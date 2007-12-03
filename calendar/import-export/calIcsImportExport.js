@@ -66,7 +66,7 @@ calIcsImporter.prototype.importFromStream =
 function ics_importFromStream(aStream, aCount) {
     var parser = Components.classes["@mozilla.org/calendar/ics-parser;1"].
                             createInstance(Components.interfaces.calIIcsParser);
-    parser.parseFromStream(aStream);
+    parser.parseFromStream(aStream, null);
     return parser.getItems(aCount);
 };
 

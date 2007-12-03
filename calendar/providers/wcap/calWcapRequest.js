@@ -409,7 +409,7 @@ function getWcapRequestStatusString(xml)
     return str;
 }
 
-function stringToIcal(data, expectedErrno)
+function stringToIcal(session, data, expectedErrno)
 {
     if (!data || data.length == 0) { // assuming time-out; WTF.
         throw new Components.Exception(
@@ -418,7 +418,7 @@ function stringToIcal(data, expectedErrno)
     }
     var icalRootComp;
     try {
-        icalRootComp = getIcsService().parseICS(data);
+        icalRootComp = getIcsService().parseICS(data, session /*implements calITimezoneProvider*/);
     }
     catch (exc) { // map into more useful error string:
         throw new Components.Exception("error parsing ical data!",
@@ -428,7 +428,7 @@ function stringToIcal(data, expectedErrno)
     return icalRootComp;
 }
 
-function stringToXml(data, expectedErrno)
+function stringToXml(session, data, expectedErrno)
 {
     if (!data || data.length == 0) { // assuming time-out
         throw new Components.Exception(

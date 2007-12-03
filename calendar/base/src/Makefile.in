@@ -69,6 +69,7 @@ CPPSRCS = calDateTime.cpp \
 	  calDuration.cpp \
 	  calPeriod.cpp \
 	  calICSService.cpp \
+	  calTimezoneService.cpp \
 	  calRecurrenceRule.cpp \
 	  calRecurrenceDate.cpp \
 	  calRecurrenceDateSet.cpp \

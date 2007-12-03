@@ -396,15 +396,19 @@ calWcapCalendar.prototype = {
         return tzid[0];
     },
     
-    getAlignedTimezone: function calWcapCalendar_getAlignedTimezone(tzid) {
-        // check whether it is one of cs:
-        if (tzid.indexOf("/mozilla.org/") == 0) {
-            // cut mozilla prefix: assuming that the latter string portion
-            //                     semantically equals the demanded timezone
-            tzid = tzid.substring( // next slash after "/mozilla.org/"
-                tzid.indexOf("/", "/mozilla.org/".length) + 1);
+    getAlignedTzid: function calWcapCalendar_getAlignedTzid(tz) {
+        var tzid = tz.tzid;
+        // check whether it is one cs supports:
+        if (!tz.isUTC && !tz.isFloating && !compareObjects(tz.provider, this.session)) {
+            log("not a server timezone: " + tzid);
+            var prefix = getTimezoneService().tzidPrefix;
+            if (tzid.indexOf(prefix) == 0) {
+                // cut mozilla prefix: assuming that the latter string portion
+                //                     semantically equals the demanded timezone
+                tzid = tzid.substring(prefix.length);
+            }
         }
-        if (!this.session.isSupportedTimezone(tzid)) {
+        if (!this.session.getTimezone(tzid)) {
             // xxx todo: we could further on search for a matching region,
             //           e.g. CET (in TZNAME), but for now stick to
             //           user's default if not supported directly
@@ -413,8 +417,7 @@ calWcapCalendar.prototype = {
             log(tzid + " not supported, falling back to default: " + ret, this);
             return ret;
         }
-        else // is ok (supported):
-            return tzid;
+        return tzid;
     },
     
     checkAccess: function calWcapCalendar_checkAccess(accessControlBits)

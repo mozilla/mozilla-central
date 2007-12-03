@@ -60,7 +60,7 @@ function calDateTimeFormatter() {
     var probeDate = 
         Components.classes["@mozilla.org/calendar/datetime;1"]
                   .createInstance(Components.interfaces.calIDateTime);
-    probeDate.timezone = "UTC";
+    probeDate.timezone = UTC();
     probeDate.year = 2002;
     probeDate.month = 3;
     probeDate.day = 5;

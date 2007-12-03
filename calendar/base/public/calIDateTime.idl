@@ -40,6 +40,7 @@
 #include "nsISupports.idl"
 
 interface calIDuration;
+interface calITimezone;
 [ptr] native icaltimetypeptr(struct icaltimetype);
 
 [scriptable, uuid(5678d4a3-2543-4ece-afbb-079292f2866e)]
@@ -120,21 +121,11 @@ interface calIDateTime : nsISupports
   /**
    * Gets or sets the timezone of this calIDateTime instance.
    * Setting the timezone does not change the actual date/time components;
-   * to convert between timezones, use getInTimezone(). 
+   * to convert between timezones, use getInTimezone().
    *
-   * Valid values are:
-   *
-   * - "UTC" (or "utc", "UTC" preferred)
-   *   - the object refers to a time in UTC.
-   * - a TZID string, understood by the ICS Service
-   *   - the object refers to a time in that tz
-   * - "floating"
-   *   - the object is in floating time and does not have an
-   *     associated timezone.
-   *
-   * @throws NS_ERROR_INVALID_ARG if an invalid timezone is passed in.
+   * @throws NS_ERROR_INVALID_ARG if null is passed in.
    */
-  attribute AUTF8String timezone;
+  attribute calITimezone timezone;
 
   /**
    * Resets the datetime object.
@@ -145,12 +136,12 @@ interface calIDateTime : nsISupports
    * @param hour     hour, 0-23
    * @param minute   minute, 0-59
    * @param second   decond, 0-59
-   * @param timezone timezone, e.g. "UTC", "floating", "Europe/Berlin"
+   * @param timezone timezone
    *
    * The passed datetime will be normalized, e.g. a minute value of 60 will
    * increase the hour.
    *
-   * @throws NS_ERROR_INVALID_ARG if an invalid timezone is passed in.
+   * @throws NS_ERROR_INVALID_ARG if no timezone is passed in.
    */
   void resetTo(in short year,
                in short month,
@@ -158,7 +149,7 @@ interface calIDateTime : nsISupports
                in short hour,
                in short minute,
                in short second,
-               in AUTF8String timezone);
+               in calITimezone timezone);
 
   /**
    * The offset of the timezone this datetime is in, relative to UTC, in
@@ -205,11 +196,9 @@ interface calIDateTime : nsISupports
   /**
    * Set the value of this calIDateTime instance
    * to aTime milliseconds since the epoch in the
-   * given timezone.  Valid values for the aTimezone
-   * are either a known TZID or "UTC"; null/empty string
-   * is not valid.
+   * given timezone.
    */
-  void setTimeInTimezone (in PRTime aTime, in AUTF8String aTimezone);
+  void setTimeInTimezone(in PRTime aTime, in calITimezone aTimezone);
 
   /**
    * Return a new calIDateTime instance that's the result of
@@ -218,7 +207,7 @@ interface calIDateTime : nsISupports
    * the "floating" timezone is given, then this object
    * is just cloned, and the timezone is set to floating.
    */
-  calIDateTime getInTimezone (in AUTF8String aTimezone);
+  calIDateTime getInTimezone(in calITimezone aTimezone);
 
   // add the given calIDateTime, treating it as a duration, to
   // this item.

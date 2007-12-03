@@ -720,8 +720,8 @@ calRecurrenceInfo.prototype = {
         }
     
         // convert both dates to UTC since subtractDate is not timezone aware.
-        aOldStartTime = aOldStartTime.getInTimezone("UTC");
-        aNewStartTime = aNewStartTime.getInTimezone("UTC");
+        aOldStartTime = aOldStartTime.getInTimezone(UTC());
+        aNewStartTime = aNewStartTime.getInTimezone(UTC());
         var timeDiff = aNewStartTime.subtractDate(aOldStartTime);
         var exceptions = this.getExceptionIds({});
         var modifiedExceptions = [];

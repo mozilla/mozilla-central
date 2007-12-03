@@ -61,6 +61,11 @@
 #define CAL_ICSSERVICE_CONTRACTID \
     "@mozilla.org/calendar/ics-service;1"
 
+#define CAL_TIMEZONESERVICE_CID \
+    { 0x1a23ace4, 0xa0dd, 0x43b4, { 0x96, 0xa8, 0xb3, 0xcd, 0x41, 0x9a, 0x14, 0xa5 } }
+#define CAL_TIMEZONESERVICE_CONTRACTID \
+    "@mozilla.org/calendar/timezone-service;1"
+
 #define CAL_RECURRENCERULE_CID \
     { 0xd9560bf9, 0x3065, 0x404a, { 0x90, 0x4c, 0xc8, 0x82, 0xfc, 0x9c, 0x9b, 0x74 } }
 #define CAL_RECURRENCERULE_CONTRACTID \

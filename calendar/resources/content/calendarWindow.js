@@ -87,7 +87,7 @@ function CalendarWindow( )
 CalendarWindow.prototype.pickAndGoToDate = function calWin_pickAndGoToDate( )
 {
   var args = new Object();
-  args.initialDate = currentView().selectedDay.getInTimezone("floating").jsDate;
+  args.initialDate = currentView().selectedDay.getInTimezone(floating()).jsDate;
   args.onOk = function receiveAndGoToDate( pickedDate ) {
     currentView().goToDay( jsDateToDateTime(pickedDate) );
     document.getElementById( "lefthandcalendar" ).value = pickedDate;

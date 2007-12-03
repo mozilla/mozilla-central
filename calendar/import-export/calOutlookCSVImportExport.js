@@ -326,7 +326,7 @@ function parseDateTime(aDate, aTime, aLocale)
                          .createInstance(Components.interfaces.calIDateTime);
 
     //XXX Can we do better?
-    date.timezone = "floating";
+    date.timezone = floating();
 
     var rd = aLocale.dateRe.exec(aDate);
     var rt = aLocale.timeRe.exec(aTime);

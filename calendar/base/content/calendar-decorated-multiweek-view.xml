@@ -132,7 +132,7 @@
                        this.calView.goToDay(this.calView.selectedDay);
                        break;
                    case "calendar.timezone.local":
-                       this.calView.viewElem.timezone = subj.getCharPref(pref);
+                       this.calView.viewElem.timezone = calendarDefaultTimezone();
                        if (!this.calView.startDay || !this.calView.endDay) {
                            // Don't refresh if we're not initialized
                            return;

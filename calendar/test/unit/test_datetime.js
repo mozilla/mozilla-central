@@ -35,22 +35,23 @@
  * ***** END LICENSE BLOCK ***** */
 
 function run_test() {
-    const Cc = Components.classes;
-    const Ci = Components.interfaces;
+    function getMozTimezone(tzid) {
+        return getTimezoneService().getTimezone(tzid);
+    }
 
     var cd = Cc["@mozilla.org/calendar/datetime;1"].
              createInstance(Ci.calIDateTime);
     cd.resetTo(2005, 10, 13,
                10, 0, 0,
-               "/mozilla.org/20050126_1/America/Bogota");
+               getMozTimezone("/mozilla.org/20050126_1/America/Bogota"));
 
     do_check_eq(cd.hour, 10);
     do_check_eq(cd.icalString, "20051113T100000");
 
-    var cd_floating = cd.getInTimezone("floating");
+    var cd_floating = cd.getInTimezone(floating());
     do_check_eq(cd_floating.hour, 10);
 
-    var cd_utc = cd.getInTimezone("UTC");
+    var cd_utc = cd.getInTimezone(UTC());
     do_check_eq(cd_utc.hour, 15);
     do_check_eq(cd_utc.icalString, "20051113T150000Z");
 
@@ -70,7 +71,7 @@ function run_test() {
     // Daylight savings test
     cd.resetTo(2006, 2, 26,
                1, 0, 0,
-               "/mozilla.org/20050126_1/Europe/Amsterdam");
+               getMozTimezone("/mozilla.org/20050126_1/Europe/Amsterdam"));
 
     do_check_eq(cd.weekday, 0);
     do_check_eq(cd.timezoneOffset, 1*3600);
@@ -81,24 +82,24 @@ function run_test() {
     // Bug 398724 – Problems with floating all-day items
     var event = Cc["@mozilla.org/calendar/event;1"].createInstance(Ci.calIEvent);
     event.icalString = "BEGIN:VEVENT\nUID:45674d53-229f-48c6-9f3b-f2b601e7ae4d\nSUMMARY:New Event\nDTSTART;VALUE=DATE:20071003\nDTEND;VALUE=DATE:20071004\nEND:VEVENT";
-    do_check_eq(event.startDate.timezone, "floating");
-    do_check_eq(event.endDate.timezone, "floating");
+    do_check_eq(event.startDate.timezone.isFloating, true);
+    do_check_eq(event.endDate.timezone.isFloating, true);
 
     // Bug 392853 - Same times, different timezones, but subtractDate says times are PT0S apart
     const zeroLength = Cc["@mozilla.org/calendar/duration;1"].createInstance(Ci.calIDuration);
     const a = Cc["@mozilla.org/calendar/datetime;1"].createInstance(Ci.calIDateTime);
     a.jsDate = new Date();
-    a.timezone = "/mozilla.org/20070129_1/Europe/Berlin";
+    a.timezone = getMozTimezone("/mozilla.org/20070129_1/Europe/Berlin");
 
     var b = a.clone();
-    b.timezone = "/mozilla.org/20070129_1/America/New_York";
+    b.timezone = getMozTimezone("/mozilla.org/20070129_1/America/New_York");
 
     var duration = a.subtractDate(b);
     do_check_neq(duration.compare(zeroLength), 0);
     do_check_neq(a.compare(b), 0);
 
     // Should lead to zero length duration
-    b = a.getInTimezone("/mozilla.org/20070129_1/America/New_York");
+    b = a.getInTimezone(getMozTimezone("/mozilla.org/20070129_1/America/New_York"));
     duration = a.subtractDate(b);
     do_check_eq(duration.compare(zeroLength), 0);
     do_check_eq(a.compare(b), 0);

@@ -54,6 +54,25 @@ function getWcapSessionFor(cal, uri) {
     return session;
 }
 
+function calWcapTimezone(tzProvider, tzid_, component_) {
+    this.wrappedJSObject = this;
+    this.provider = tzProvider;
+    this.component = component_;
+    this.tzid = tzid_;
+    this.isUTC = false;
+    this.isFloating = false;
+    this.latitude = "";
+    this.longitude = "";
+}
+calWcapTimezone.prototype = {
+    toString: function() {
+        // xxx todo remove: for some time, we want to know if a calITimezone object
+        //                  is handled as string...
+        ASSERT(false, "calWcapTimezone.toString!");
+        return this.component.toString();
+    }
+};
+
 function calWcapSession(contextId, thatUri) {
     this.wrappedJSObject = this;
     this.m_contextId = contextId;
@@ -78,6 +97,7 @@ calWcapSession.prototype = {
     m_ifaces: [ calIWcapSession,
                 calIFreeBusyProvider,
                 calICalendarSearchProvider,
+                Components.interfaces.calITimezoneProvider,
                 Components.interfaces.calICalendarManagerObserver,
                 Components.interfaces.nsIInterfaceRequestor,
                 Components.interfaces.nsIClassInfo,
@@ -145,18 +165,44 @@ calWcapSession.prototype = {
         }
     },
 
+    // calITimezoneProvider:
     m_serverTimezones: null,
-    isSupportedTimezone: function calWcapSession_isSupportedTimezone(tzid)
-    {
-        if (!this.m_serverTimezones) {
-            throw new Components.Exception(
-                "early run into getSupportedTimezones()!",
-                Components.results.NS_ERROR_NOT_AVAILABLE);
+    get timezoneIds() {
+        var tzids = [];
+        tzids.push("floating");
+        tzids.push("UTC");
+        for (var tz in this.m_serverTimezones) {
+            tzids.push(tz.tzid);
         }
-        return this.m_serverTimezones.some(
-            function someFunc(id) { return tzid == id; } );
+        return {
+            // nsIUTF8StringEnumerator:
+            m_index: 0,
+            getNext: function() {
+                if (this.m_index >= tzids) {
+                    ASSERT(false, "calWcapSession::timezoneIds enumerator!");
+                    throw Components.results.NS_ERROR_UNEXPECTED;
+                }
+                return tzids[this.m_index++];
+            },
+            hasMoreElements: function() {
+                return (this.m_index < tzids);
+            }
+        };
     },
-    
+    getTimezone: function calWcapSession_getTimezone(tzid) {
+        switch (tzid) {
+        case "floating":
+            return floating();
+        case "UTC":
+            return UTC();
+        default:
+            if (this.m_serverTimezones) {
+                return this.m_serverTimezones[tzid];
+            }
+            return null;
+        }
+    },
+
     m_serverTimeDiff: null,
     getServerTime: function calWcapSession_getServerTime(localTime)
     {
@@ -374,7 +420,7 @@ calWcapSession.prototype = {
                     // currently, xml parsing at an early stage during
                     // process startup does not work reliably, so use
                     // libical parsing for now:
-                    var icalRootComp = stringToIcal(str);
+                    var icalRootComp = stringToIcal(this_, str);
                     var prop = icalRootComp.getFirstProperty("X-NSCP-WCAP-SESSION-ID");
                     if (!prop) {
                         throw new Components.Exception(
@@ -438,7 +484,7 @@ calWcapSession.prototype = {
                 function netResp(err, str) {
                     if (err)
                         throw err;
-                    stringToXml(str, -1 /* logout successfull */);
+                    stringToXml(this_, str, -1 /* logout successfull */);
                 }, url);
         }
         else {
@@ -460,7 +506,7 @@ calWcapSession.prototype = {
                     var icalRootComp;
                     if (!err) {
                         try {
-                            icalRootComp = stringToIcal(str);
+                            icalRootComp = stringToIcal(this_, str);
                         }
                         catch (exc) {
                             err = exc;
@@ -726,7 +772,7 @@ calWcapSession.prototype = {
     installServerTimezones:
     function calWcapSession_installServerTimezones(sessionId, request)
     {
-        this.m_serverTimezones = [];
+        this.m_serverTimezones = {};
         var this_ = this;
         this_.issueNetworkRequest_(
             request,
@@ -734,17 +780,12 @@ calWcapSession.prototype = {
                 if (err)
                     throw err;
                 var tzids = [];
-                var icsService = getIcsService();
                 forEachIcalComponent(
                     data, "VTIMEZONE",
                     function eachComp(subComp) {
                         try {
-                            var tzCal = icsService.createIcalComponent("VCALENDAR");
-                            subComp = subComp.clone();
-                            tzCal.addSubcomponent(subComp);
-                            icsService.addTimezone(tzCal, "", "");
-                            this_.m_serverTimezones.push(
-                                subComp.getFirstProperty("TZID").value);
+                            var tzid = subComp.getFirstProperty("TZID").value;
+                            this_.m_serverTimezones[tzid] = new calWcapTimezone(this_, tzid, subComp);
                         }
                         catch (exc) { // ignore but errors:
                             logError(exc, this_);
@@ -798,6 +839,7 @@ calWcapSession.prototype = {
         request, respFunc, dataConvFunc, wcapCommand, params, sessionId)
     {
         var url = this.getCommandUrl(wcapCommand, params, sessionId);
+        var this_ = this;
         issueNetworkRequest(
             request,
             function netResp(err, str) {
@@ -805,7 +847,7 @@ calWcapSession.prototype = {
                 if (!err) {
                     try {
                         if (dataConvFunc)
-                            data = dataConvFunc(str);
+                            data = dataConvFunc(this_, str);
                         else
                             data = str;
                     }
@@ -1040,13 +1082,13 @@ calWcapSession.prototype = {
 
             // cannot use stringToXml here, because cs 6.3 returns plain nothing
             // on invalid user freebusy requests. WTF.
-            function stringToXml_(data) {
+            function stringToXml_(session, data) {
                 if (!data || data.length == 0) { // assuming invalid user
                     throw new Components.Exception(
                         wcapErrorToString(calIWcapErrors.WCAP_CALENDAR_DOES_NOT_EXIST),
                         calIWcapErrors.WCAP_CALENDAR_DOES_NOT_EXIST);
                 }
-                return stringToXml(data);
+                return stringToXml(session, data);
             }
             this.issueNetworkRequest(
                 request,

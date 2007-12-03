@@ -81,8 +81,36 @@ function createAttendee() {
 
 /* Shortcut to the calendar-manager service */
 function getCalendarManager() {
-    return Components.classes["@mozilla.org/calendar/manager;1"].
-           getService(Components.interfaces.calICalendarManager);
+    if (getCalendarManager.mObject === undefined) {
+        getCalendarManager.mObject = Components.classes["@mozilla.org/calendar/manager;1"]
+                                               .getService(Components.interfaces.calICalendarManager);
+    }
+    return getCalendarManager.mObject;
+}
+
+/* Shortcut to the timezone service */
+function getTimezoneService() {
+    if (getTimezoneService.mObject === undefined) {
+        getTimezoneService.mObject = Components.classes["@mozilla.org/calendar/timezone-service;1"]
+                                               .getService(Components.interfaces.calITimezoneService);
+    }
+    return getTimezoneService.mObject;
+}
+
+/// @return the UTC timezone.
+function UTC() {
+    if (UTC.mObject === undefined) {
+        UTC.mObject = getTimezoneService().UTC;
+    }
+    return UTC.mObject;
+}
+
+/// @return the floating timezone.
+function floating() {
+    if (floating.mObject === undefined) {
+        floating.mObject = getTimezoneService().floating;
+    }
+    return floating.mObject;
 }
 
 /**
@@ -90,26 +118,23 @@ function getCalendarManager() {
  * use the value of the calendar.timezone.local preference, if it exists.  If
  * not, we'll do our best guess.
  *
- * @returns  a string of the Mozilla TZID for the user's default timezone.
+ * @return user's default timezone.
  */
-var gDefaultTimezone;
 function calendarDefaultTimezone() {
-    if (!gDefaultTimezone) {
-        gDefaultTimezone = getPrefSafe("calendar.timezone.local", null);
-        if (!gDefaultTimezone) {
-            gDefaultTimezone = guessSystemTimezone();
-        } else {
-            var icsSvc = Components.classes["@mozilla.org/calendar/ics-service;1"].
-                         getService(Components.interfaces.calIICSService);
-
-            // Update this tzid if necessary.
-            if (icsSvc.latestTzId(gDefaultTimezone).length) {
-                gDefaultTimezone = icsSvc.latestTzId(gDefaultTimezone);
-                setPref("calendar.timezone.local", "CHAR", gDefaultTimezone);
-            }
+    if (calendarDefaultTimezone.mTz === undefined) {
+        var prefTzid = getPrefSafe("calendar.timezone.local", null);
+        var tzid = prefTzid;
+        if (!tzid) {
+            tzid = guessSystemTimezone();
+        }
+        calendarDefaultTimezone.mTz = getTimezoneService().getTimezone(tzid);
+        ASSERT(calendarDefaultTimezone.mTz, "timezone not found: " + tzid);
+        // Update prefs if necessary:
+        if (calendarDefaultTimezone.mTz && calendarDefaultTimezone.mTz.tzid != prefTzid) {
+            setPref("calendar.timezone.local", "CHAR", calendarDefaultTimezone.mTz.tzid);
         }
     }
-    return gDefaultTimezone;
+    return calendarDefaultTimezone.mTz;
 }
 
 /**
@@ -157,14 +182,11 @@ function guessSystemTimezone() {
         dump("TZname1: " + TZname1 + "\nTZname2: " + TZname2 + "\n");
     }
 
-    var icsSvc = Components.classes["@mozilla.org/calendar/ics-service;1"].
-                 getService(Components.interfaces.calIICSService);
-
     // returns 0=definitely not, 1=maybe, 2=likely
     function checkTZ(someTZ)
     {
-        var comp = icsSvc.getTimezone(someTZ);
-        var subComp = comp.getFirstSubcomponent("VTIMEZONE");
+        var tz = getTimezoneService().getTimezone(someTZ);
+        var subComp = tz.component;
         var standard = subComp.getFirstSubcomponent("STANDARD");
         var standardTZOffset = standard.getFirstProperty("TZOFFSETTO").valueAsIcalString;
         var standardNameProp = standard.getFirstProperty("TZNAME");
@@ -223,8 +245,7 @@ function guessSystemTimezone() {
             // This happens if the l10n team didn't know how to get a time from
             // tzdata.c.  To convert an Olson time to a ics-timezone-string we
             // need to append this prefix.
-            // XXX Get this prefix from calIICSService.tzIdPrefix
-            stringBundleTZ = "/mozilla.org/20070129_1/" + stringBundleTZ;
+            stringBundleTZ = getTimezoneService().tzidPrefix + stringBundleTZ;
         }
 
         switch (checkTZ(stringBundleTZ)) {
@@ -241,7 +262,7 @@ function guessSystemTimezone() {
     catch (ex) { // Oh well, this didn't work, next option...
     }
         
-    var tzIDs = icsSvc.timezoneIds;
+    var tzIDs = getTimezoneService().timezoneIds;
     while (tzIDs.hasMore()) {
         var theTZ = tzIDs.getNext();
         try {
@@ -558,9 +579,18 @@ function compareItems(aItem, aOtherItem) {
  *
  * @param aObject        first object to be compared
  * @param aOtherObject   second object to be compared
- * @param aIID           IID to use in comparison
+ * @param aIID           IID to use in comparison, undefined/null defaults to nsISupports
  */
 function compareObjects(aObject, aOtherObject, aIID) {
+    // xxx todo: seems to work fine e.g. for WCAP, but I still mistrust this trickery...
+    //           Anybody knows an official API that could be used for this purpose?
+    //           For what reason do clients need to pass aIID since
+    //           every XPCOM object has to implement nsISupports?
+    //           XPCOM (like COM, like UNO, ...) defines that QueryInterface *only* needs to return
+    //           the very same pointer for nsISupports during its lifetime.
+    if (!aIID) {
+        aIID = Components.interfaces.nsISupports;
+    }
     var sip1 = Components.classes["@mozilla.org/supports-interface-pointer;1"].
                createInstance(Components.interfaces.nsISupportsInterfacePointer);
     sip1.data = aObject;
@@ -1297,9 +1327,6 @@ function sendMailTo(aRecipient, aSubject, aBody) {
     }
 }
 
-var gOpGroupPrefix;
-var gOpGroupId = 0;
-
 /**
  * This object implements calIOperation and could group multiple sub
  * operations into one. You can pass a cancel function which is called once
@@ -1312,12 +1339,14 @@ var gOpGroupId = 0;
  */
 function calOperationGroup(cancelFunc) {
     this.wrappedJSObject = this;
-    if (!gOpGroupPrefix) {
-        gOpGroupPrefix = (getUUID() + "-");
+    if (calOperationGroup.mOpGroupId === undefined) {
+        calOperationGroup.mOpGroupId = 0;
+    }
+    if (calOperationGroup.mOpGroupPrefix === undefined) {
+        calOperationGroup.mOpGroupPrefix = (getUUID() + "-");
     }
     this.mCancelFunc = cancelFunc;
-    this.mId = (gOpGroupPrefix + gOpGroupId);
-    ++gOpGroupId;
+    this.mId = (calOperationGroup.mOpGroupPrefix + calOperationGroup.mOpGroupId++);
     this.mSubOperations = [];
 }
 calOperationGroup.prototype = {

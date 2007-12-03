@@ -43,8 +43,7 @@ var g_logPrefObserver = null;
 
 function initLogging()
 {
-    g_logTimezone = getPref("calendar.timezone.local", null);
-    
+    g_logTimezone = calendarDefaultTimezone();
     if (g_logFilestream) {
         try {
             g_logFilestream.close();
@@ -306,10 +305,10 @@ function getIcalUTC(dt) {
         return "0";
     else {
         var dtz = dt.timezone;
-        if (dtz == "UTC" || dtz == "floating")
+        if (dtz.isUTC || dtz.isFloating)
             return dt.icalString;
         else
-            return dt.getInTimezone("UTC").icalString;
+            return dt.getInTimezone(UTC()).icalString;
     }
 }
 

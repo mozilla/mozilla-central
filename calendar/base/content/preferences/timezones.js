@@ -45,7 +45,7 @@ var gTimezonesPane = {
 
         if (!prefValue) {
             prefValue = calendarDefaultTimezone();
-            tzMenuList.value = prefValue;
+            tzMenuList.value = prefValue.tzid;
         }
     }
 };

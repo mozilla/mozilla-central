@@ -228,7 +228,7 @@ calICSCalendar.prototype = {
         try {
             var parser = Components.classes["@mozilla.org/calendar/ics-parser;1"].
                                     createInstance(Components.interfaces.calIIcsParser);
-            parser.parseString(str);
+            parser.parseString(str, null);
             var items = parser.getItems({});
             
             for each (var item in items) {

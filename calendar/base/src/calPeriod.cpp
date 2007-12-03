@@ -109,8 +109,7 @@ NS_IMETHODIMP calPeriod::SetStart(calIDateTime *aValue)
         return NS_ERROR_OBJECT_IS_IMMUTABLE;
     // rfc2445 says that periods are always in utc. libical ignore that,
     // so we need the conversion here.
-    nsresult const rv = aValue->GetInTimezone(
-        NS_LITERAL_CSTRING("UTC"), getter_AddRefs(mStart));
+    nsresult const rv = aValue->GetInTimezone(cal::UTC(), getter_AddRefs(mStart));
     NS_ENSURE_SUCCESS(rv, rv);
     return mStart->MakeImmutable();
 }
@@ -127,8 +126,7 @@ NS_IMETHODIMP calPeriod::SetEnd(calIDateTime *aValue)
     NS_ENSURE_ARG_POINTER(aValue);
     if (mImmutable)
         return NS_ERROR_OBJECT_IS_IMMUTABLE;
-    nsresult const rv = aValue->GetInTimezone(
-        NS_LITERAL_CSTRING("UTC"), getter_AddRefs(mEnd));
+    nsresult const rv = aValue->GetInTimezone(cal::UTC(), getter_AddRefs(mEnd));
     NS_ENSURE_SUCCESS(rv, rv);
     return mEnd->MakeImmutable();
 }
@@ -163,9 +161,9 @@ calPeriod::ToIcalPeriod(struct icalperiodtype *icalp)
 void
 calPeriod::FromIcalPeriod(struct icalperiodtype const* icalp)
 {
-    mStart = new calDateTime(&(icalp->start));
+    mStart = new calDateTime(&(icalp->start), nsnull);
     mStart->MakeImmutable();
-    mEnd = new calDateTime(&(icalp->end));
+    mEnd = new calDateTime(&(icalp->end), nsnull);
     mEnd->MakeImmutable();
     return;
 }
@@ -196,7 +194,7 @@ calPeriod::SetIcalString(const nsACString& aIcalString)
     ip = icalperiodtype_from_string(nsPromiseFlatCString(aIcalString).get());
     //XXX Shortcut. Assumes nobody tried to overrule our impl. of calIDateTime
     //    Should use NS_NEWXPCOM()
-    mStart = new calDateTime(&ip.start);
-    mEnd = new calDateTime(&ip.end);
+    mStart = new calDateTime(&ip.start, nsnull);
+    mEnd = new calDateTime(&ip.end, nsnull);
     return NS_OK;
 }

@@ -163,7 +163,7 @@
                             break;
 
                         case "calendar.timezone.local":
-                            this.viewElem.timezone = aSubject.getCharPref(aPreference);
+                            this.viewElem.timezone = calendarDefaultTimezone();
                             if (!this.startDay || !this.endDay) {
                                 // don't refresh if we're not initialized
                                 return;

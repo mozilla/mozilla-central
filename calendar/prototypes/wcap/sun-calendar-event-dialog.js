@@ -271,13 +271,13 @@ function onCancel() {
     return result;
 }
 
-function timezoneString(aDate) {
-    var fragments = aDate.split('/');
-    var num = fragments.length;
-    if (num <= 1) {
-        return fragments[0];
+function timezoneString(tz) {
+    var tzid = tz.tzid;
+    var prefix = getTimezoneService().tzidPrefix;
+    if (tzid.indexOf(prefix) == 0) {
+        tzid = tzid.substring(prefix.length);
     }
-    return fragments[num-2] + '/'+fragments[num - 1];
+    return tzid;
 }
 
 function loadDialog(item) {
@@ -448,6 +448,7 @@ function loadDialog(item) {
 }
 
 function loadDateTime(item) {
+    var kDefaultTimezone = calendarDefaultTimezone();
     if (isEvent(item)) {
         var startTime = item.startDate;
         var endTime = item.endDate;
@@ -465,7 +466,6 @@ function loadDateTime(item) {
         // store the start/end-times as calIDateTime-objects
         // converted to the default timezone. store the timezones
         // separately.
-        var kDefaultTimezone = calendarDefaultTimezone();
         gStartTimezone = startTime.timezone;
         gEndTimezone = endTime.timezone;
         gStartTime = startTime.getInTimezone(kDefaultTimezone);
@@ -478,7 +478,6 @@ function loadDateTime(item) {
         var endTime = null;
         var duration = null;
 
-        var kDefaultTimezone = calendarDefaultTimezone();
         var hasEntryDate = (item.entryDate != null);
         if (hasEntryDate) {
             startTime = item.entryDate;
@@ -550,8 +549,8 @@ function dateTimeControls2State(aKeepDuration) {
             }
         } else {
             var timezone = gEndTimezone;
-            if (timezone == "UTC") {
-                if (gStartTime && gStartTimezone != gEndTimezone) {
+            if (timezone.isUTC) {
+                if (gStartTime && !compareObjects(gStartTimezone, gEndTimezone)) {
                     timezone = gStartTimezone;
                 }
             }
@@ -953,8 +952,8 @@ function updateAccept() {
         if (menuItem.getAttribute('checked') == 'true') {
             var startTimezone = gStartTimezone;
             var endTimezone = gEndTimezone;
-            if (endTimezone == "UTC") {
-                if (gStartTimezone != gEndTimezone) {
+            if (endTimezone.isUTC) {
+                if (!compareObjects(gStartTimezone, gEndTimezone)) {
                     endTimezone = gStartTimezone;
                 }
             }
@@ -1318,7 +1317,7 @@ function setItemProperty(item, propertyName, value) {
         case "startDate":
             if (value.isDate && !item.startDate.isDate ||
                 !value.isDate && item.startDate.isDate ||
-                value.timezone != item.startDate.timezone ||
+                !compareObjects(value.timezone, item.startDate.timezone) ||
                 value.compare(item.startDate) != 0) {
                 item.startDate = value;
             }
@@ -1326,7 +1325,7 @@ function setItemProperty(item, propertyName, value) {
         case "endDate":
             if (value.isDate && !item.endDate.isDate ||
                 !value.isDate && item.endDate.isDate ||
-                value.timezone != item.endDate.timezone ||
+                !compareObjects(value.timezone, item.endDate.timezone) ||
                 value.compare(item.endDate) != 0) {
                 item.endDate = value;
             }
@@ -1338,7 +1337,7 @@ function setItemProperty(item, propertyName, value) {
             if (value && !item.entryDate ||
                 !value && item.entryDate ||
                 value.isDate != item.entryDate.isDate ||
-                value.timezone != item.entryDate.timezone ||
+                !compareObjects(value.timezone, item.entryDate.timezone) ||
                 value.compare(item.entryDate) != 0) {
                 item.entryDate = value;
             }
@@ -1350,7 +1349,7 @@ function setItemProperty(item, propertyName, value) {
             if (value && !item.dueDate ||
                 !value && item.dueDate ||
                 value.isDate != item.dueDate.isDate ||
-                value.timezone != item.dueDate.timezone ||
+                !compareObjects(value.timezone, item.dueDate.timezone) ||
                 value.compare(item.dueDate) != 0) {
                 item.dueDate = value;
             }
@@ -1871,7 +1870,7 @@ function editEndTimezone() {
         function(datetime) {
             var equalTimezones = false;
             if (gStartTimezone && gEndTimezone) {
-                if (gStartTimezone == gEndTimezone) {
+                if (compareObjects(gStartTimezone, gEndTimezone)) {
                     equalTimezones = true;
                 }
             }
@@ -1937,8 +1936,8 @@ function updateDateTime() {
           // the timezone of the endtime is "UTC", we convert
           // the endtime into the timezone of the starttime.
           if (startTime && endTime) {
-            if (startTime.timezone != endTime.timezone) {
-              if (endTime.timezone == "UTC") {
+            if (!compareObjects(startTime.timezone, endTime.timezone)) {
+              if (endTime.timezone.isUTC) {
                 endTime = endTime.getInTimezone(startTime.timezone);
               }
             }
@@ -1947,8 +1946,8 @@ function updateDateTime() {
           // before feeding the date/time value into the control we need
           // to set the timezone to 'floating' in order to avoid the
           // automatic conversion back into the OS timezone.
-          startTime.timezone = "floating";
-          endTime.timezone = "floating";
+          startTime.timezone = floating();
+          endTime.timezone = floating();
 
           setElementValue("event-starttime", startTime.jsDate);
           setElementValue("event-endtime", endTime.jsDate);
@@ -1962,25 +1961,25 @@ function updateDateTime() {
 
           if (hasEntryDate && hasDueDate) {
               setElementValue("todo-has-entrydate", hasEntryDate, "checked");
-              startTime.timezone = "floating";
+              startTime.timezone = floating();
               setElementValue("todo-entrydate", startTime.jsDate);
 
               setElementValue("todo-has-duedate", hasDueDate, "checked");
-              endTime.timezone = "floating";
+              endTime.timezone = floating();
               setElementValue("todo-duedate", endTime.jsDate);
           } else if (hasEntryDate) {
               setElementValue("todo-has-entrydate", hasEntryDate, "checked");
-              startTime.timezone = "floating";
+              startTime.timezone = floating();
               setElementValue("todo-entrydate", startTime.jsDate);
 
-              startTime.timezone = "floating";
+              startTime.timezone = floating();
               setElementValue("todo-duedate", startTime.jsDate);
           } else if (hasDueDate) {
-              endTime.timezone = "floating";
+              endTime.timezone = floating();
               setElementValue("todo-entrydate", endTime.jsDate);
 
               setElementValue("todo-has-duedate", hasDueDate, "checked");
-              endTime.timezone = "floating";
+              endTime.timezone = floating();
               setElementValue("todo-duedate", endTime.jsDate);
           }
         }
@@ -1995,8 +1994,8 @@ function updateDateTime() {
             // before feeding the date/time value into the control we need
             // to set the timezone to 'floating' in order to avoid the
             // automatic conversion back into the OS timezone.
-            startTime.timezone = "floating";
-            endTime.timezone = "floating";
+            startTime.timezone = floating();
+            endTime.timezone = floating();
             setElementValue("event-starttime", startTime.jsDate);
             setElementValue("event-endtime", endTime.jsDate);
         }
@@ -2010,25 +2009,25 @@ function updateDateTime() {
 
             if (hasEntryDate && hasDueDate) {
                 setElementValue("todo-has-entrydate", hasEntryDate, "checked");
-                startTime.timezone = "floating";
+                startTime.timezone = floating();
                 setElementValue("todo-entrydate", startTime.jsDate);
 
                 setElementValue("todo-has-duedate", hasDueDate, "checked");
-                endTime.timezone = "floating";
+                endTime.timezone = floating();
                 setElementValue("todo-duedate", endTime.jsDate);
             } else if (hasEntryDate) {
                 setElementValue("todo-has-entrydate", hasEntryDate, "checked");
-                startTime.timezone = "floating";
+                startTime.timezone = floating();
                 setElementValue("todo-entrydate", startTime.jsDate);
 
-                startTime.timezone = "floating";
+                startTime.timezone = floating();
                 setElementValue("todo-duedate", startTime.jsDate);
             } else if (hasDueDate) {
-                endTime.timezone = "floating";
+                endTime.timezone = floating();
                 setElementValue("todo-entrydate", endTime.jsDate);
 
                 setElementValue("todo-has-duedate", hasDueDate, "checked");
-                endTime.timezone = "floating";
+                endTime.timezone = floating();
                 setElementValue("todo-duedate", endTime.jsDate);
             }
         }
@@ -2058,7 +2057,7 @@ function updateTimezone() {
 
         var equalTimezones = false;
         if (startTimezone && endTimezone) {
-            if (startTimezone == endTimezone || endTimezone == "UTC") {
+            if (compareObjects(startTimezone, endTimezone) || endTimezone.isUTC) {
                 equalTimezones = true;
             }
         }

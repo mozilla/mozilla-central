@@ -1,4 +1,3 @@
-/* -*- Mode: C++; tab-width: 20; indent-tabs-mode: nil; c-basic-offset: 4 -*- */
 /* ***** BEGIN LICENSE BLOCK *****
  * Version: MPL 1.1/GPL 2.0/LGPL 2.1
  *
@@ -21,6 +20,7 @@
  *
  * Contributor(s):
  *   Vladimir Vukicevic <vladimir.vukicevic@oracle.com>
+ *   Daniel Boelzle <daniel.boelzle@sun.com>
  *
  * Alternatively, the contents of this file may be used under the terms of
  * either the GNU General Public License Version 2 or later (the "GPL"), or
@@ -35,31 +35,31 @@
  * the terms of any one of the MPL, the GPL or the LGPL.
  *
  * ***** END LICENSE BLOCK ***** */
-
-#ifndef CALRECURRENCERULE_H_
-#define CALRECURRENCERULE_H_
+#if !defined(INCLUDED_CAL_RECURRENCERULE_H)
+#define INCLUDED_CAL_RECURRENCERULE_H
 
 #include "calIRecurrenceRule.h"
+#include "calUtils.h"
 
-struct icalrecurrencetype;
+extern "C" {
+#include "ical.h"
+}
 
-class calRecurrenceRule : public calIRecurrenceRule
+class calRecurrenceRule : public calIRecurrenceRule,
+                          public cal::XpcomBase
 {
 public:
     calRecurrenceRule();
-    ~calRecurrenceRule();
 
     NS_DECL_ISUPPORTS
-
     NS_DECL_CALIRECURRENCEITEM
-
     NS_DECL_CALIRECURRENCERULE
 protected:
+    icalrecurrencetype mIcalRecur;
+
     PRBool mImmutable;
     PRBool mIsNegative;
-
     PRBool mIsByCount;
-    struct icalrecurrencetype *mIcalRecur;
 };
 
-#endif
+#endif // INCLUDED_CAL_RECURRENCERULE_H

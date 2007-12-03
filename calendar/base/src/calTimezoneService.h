@@ -11,15 +11,14 @@
  * for the specific language governing rights and limitations under the
  * License.
  *
- * The Original Code is Oracle Corporation code.
+ * The Original Code is Sun Microsystems code.
  *
  * The Initial Developer of the Original Code is
- *  Oracle Corporation
- * Portions created by the Initial Developer are Copyright (C) 2004
+ * Sun Microsystems, Inc.
+ * Portions created by the Initial Developer are Copyright (C) 2007
  * the Initial Developer. All Rights Reserved.
  *
  * Contributor(s):
- *   Vladimir Vukicevic <vladimir.vukicevic@oracle.com>
  *   Daniel Boelzle <daniel.boelzle@sun.com>
  *
  * Alternatively, the contents of this file may be used under the terms of
@@ -35,53 +34,63 @@
  * the terms of any one of the MPL, the GPL or the LGPL.
  *
  * ***** END LICENSE BLOCK ***** */
-#if !defined(INCLUDED_CALDATETIME_H)
-#define INCLUDED_CALDATETIME_H
+#if !defined(INCLUDED_CAL_TIMEZONESERVIC_H)
+#define INCLUDED_CAL_TIMEZONESERVIC_H
 
-#include "jsapi.h"
-#include "nsIXPCScriptable.h"
-#include "calIDateTime.h"
+#include "nsCOMPtr.h"
 #include "calITimezoneProvider.h"
+#include "nsInterfaceHashtable.h"
 #include "calUtils.h"
 
-struct icaltimetype;
-typedef struct _icaltimezone icaltimezone;
+extern "C" {
+#include "ical.h"
+}
 
-class calDateTime : public calIDateTime,
-                    public nsIXPCScriptable,
+class calTimezone : public calITimezone,
                     public cal::XpcomBase
 {
 public:
-    calDateTime();
-    calDateTime(icaltimetype const* icalt, calITimezone * tz);
+    calTimezone(calIIcalComponent * component,
+                nsCString const& tzid,
+                PRBool isUTC = PR_FALSE,
+                PRBool isFloating = PR_FALSE,
+                nsCString const& latitude = nsCString(),
+                nsCString const& longitude = nsCString())
+        : mComponent(component),
+          mTzid(tzid),
+          mLatitude(latitude),
+          mLongitude(longitude),
+          mIsFloating(isFloating),
+          mIsUTC(isUTC) {}
 
     NS_DECL_ISUPPORTS
-    NS_DECL_CALIDATETIME
-    NS_DECL_NSIXPCSCRIPTABLE
+    NS_DECL_CALITIMEZONE
 
-protected:
-    PRBool mImmutable;
-    PRBool mIsValid;
-    PRBool mIsDate;
-
-    PRInt16 mYear;
-    PRInt16 mMonth;
-    PRInt16 mDay;
-    PRInt16 mHour;
-    PRInt16 mMinute;
-    PRInt16 mSecond;
-    PRInt16 mWeekday;
-    PRInt16 mYearday;
-
-    PRTime mNativeTime;
-    nsCOMPtr<calITimezone> mTimezone;
-
-    void Normalize();
-    void FromIcalTime(icaltimetype const* icalt, calITimezone *tz);
-
-    static PRTime IcaltimeToPRTime(icaltimetype const* icalt, icaltimezone const* tz);
-    static void PRTimeToIcaltime(PRTime time, PRBool isdate,
-                                 icaltimezone const* tz, icaltimetype *icalt);
+private:
+    nsCOMPtr<calIIcalComponent> const mComponent;
+    nsCString const                   mTzid;
+    nsCString const                   mLatitude;
+    nsCString const                   mLongitude;
+    PRBool const                      mIsFloating;
+    PRBool const                      mIsUTC;
 };
 
-#endif // INCLUDED_CALDATETIME_H
+class calTimezoneService : public calITimezoneService,
+                           public cal::XpcomBase
+{
+public:
+    calTimezoneService();
+
+    NS_DECL_ISUPPORTS
+    NS_DECL_CALITIMEZONEPROVIDER
+    NS_DECL_CALITIMEZONESERVICE
+
+private:
+    nsresult LatestTzId(const nsACString& tzid, nsACString& _retval);
+
+    nsInterfaceHashtable<nsCStringHashKey, calITimezone> mTzHash;
+    nsCOMPtr<calITimezone> const mUTC;
+    nsCOMPtr<calITimezone> const mFloating;
+};
+
+#endif // INCLUDED_CAL_TIMEZONESERVIC_H

@@ -216,7 +216,7 @@ function pasteFromClipboard()
         case "text/unicode":
             var icssrv = Components.classes["@mozilla.org/calendar/ics-service;1"]
                                    .getService(Components.interfaces.calIICSService);
-            var calComp = icssrv.parseICS(data);
+            var calComp = icssrv.parseICS(data, null);
             var subComp = calComp.getFirstSubcomponent("ANY");
             while (subComp) {
                 switch (subComp.componentType) {

@@ -74,7 +74,7 @@ function ComponentsUtilsImport(aFile) {
         var scriptUri = iosvc.newFileURI(aFile);
         loader.loadSubScript(scriptUri.spec, null);
     } catch (e) {
-        Components.utils.reportError("Error while loading " + fileurl.spec);
+        Components.utils.reportError("Error while loading " + aFile.path);
         throw e;
     }
 }

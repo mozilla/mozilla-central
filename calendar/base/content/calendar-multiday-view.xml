@@ -265,6 +265,7 @@
     <implementation>
       <constructor><![CDATA[
         this.mEvents = Array();
+        this.mTimezone = UTC();
       ]]></constructor>
 
       <!-- fields -->
@@ -277,7 +278,7 @@
       <field name="mEventMap">null</field>
       <field name="mCalendarView">null</field>
       <field name="mDate">null</field>
-      <field name="mTimezone">"UTC"</field>
+      <field name="mTimezone">null</field>
       <field name="mDragState">null</field>
       <field name="mLayoutBatchCount">0</field>
       <!-- Since we'll often be getting many events in rapid succession, this
@@ -339,7 +340,7 @@
         <setter><![CDATA[
           this.mDate = val;
 
-          if (val.timezone != this.mTimezone) {
+          if (!compareObjects(val.timezone, this.mTimezone)) {
               //dump ("++ column tz: " + val.timezone + "\n");
               this.mTimezone = val.timezone;
               if (!this.mLayoutBatchCount) {
@@ -540,11 +541,11 @@
            var stdate = aOccurrence.startDate || aOccurrence.entryDate;
            var enddate = aOccurrence.endDate || aOccurrence.dueDate;
 
-           if (stdate.timezone != this.mTimezone) {
+           if (!compareObjects(stdate.timezone, this.mTimezone)) {
                stdate = stdate.getInTimezone (this.mTimezone);
            }
 
-           if (enddate.timezone != this.mTimezone) {
+           if (!compareObjects(enddate.timezone, this.mTimezone)) {
                enddate = enddate.getInTimezone (this.mTimezone);
            }
 
@@ -1151,7 +1152,7 @@
                   // that's why i'm clipping the start- and end-time to the
                   // timespan of this column.
                   var start = data.item.startDate || data.item.entryDate;
-                  if (start.timezone != this.mTimezone) {
+                  if (!compareObjects(start.timezone, this.mTimezone)) {
                       start = start.getInTimezone(this.mTimezone);
                   }
                   if (start.year  != this.date.year ||
@@ -1165,7 +1166,7 @@
                                     start.timezone);
                   }
                   var end = data.item.endDate || data.item.dueDate;
-                  if (end.timezone != this.mTimezone) {
+                  if (!compareObjects(end.timezone, this.mTimezone)) {
                       end = end.getInTimezone(this.mTimezone);
                   }
                   if (end.year  != this.date.year ||
@@ -1189,7 +1190,7 @@
                       prevEnd.hour = 0;
                       prevEnd.minute = this.mStartMin;
                   }
-                  prevEnd.timezone = "floating";
+                  prevEnd.timezone = floating();
                   // the reason why we need to calculate time durations
                   // based on floating timezones is that we need avoid
                   // dst gaps in this case. converting the date/times to
@@ -1197,13 +1198,13 @@
                   // we explicitly don't use getInTimezone() as it would
                   // be slightly more expensive in terms of performance.
                   var floatstart = start.clone();
-                  floatstart.timezone = "floating";
+                  floatstart.timezone = floating();
                   var dur = floatstart.subtractDate(prevEnd);
                   if (dur.inSeconds) {
                       col.push({duration: dur});
                   }
                   var floatend = end.clone();
-                  floatend.timezone = "floating";
+                  floatend.timezone = floating();
                   col.push({event: data.item,
                             endDate: end,
                             duration: floatend.subtractDate(floatstart)});
@@ -2190,6 +2191,7 @@
       <field name="mResizeHandler">null</field>
       <constructor><![CDATA[
         var self = this;
+        this.mTimezone = UTC();
         this.mResizeHandler = function resizeHandler() { self.onResize(); };
         window.addEventListener("resize", this.mResizeHandler, true);
         this.mScrollHandler = function scrollHandler() { self.onScroll(); };
@@ -2300,7 +2302,7 @@
       <field name="mShowCompleted">false</field>
       <field name="mDisplayDaysOff">true</field>
       <field name="mDaysOffArray">[0,6]</field>
-      <field name="mTimezone">"UTC"</field>
+      <field name="mTimezone">null</field>
       <field name="mFlashingEvents">new Object()</field>
 
       <field name="mObserver"><![CDATA[

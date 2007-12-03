@@ -39,6 +39,10 @@
 
 const kHoursBetweenUpdates = 6;
 
+function nowUTC() {
+    return jsDateToDateTime(new Date()).getInTimezone(UTC());
+}
+
 function newTimerWithCallback(callback, delay, repeating)
 {
     var timer = Components.classes["@mozilla.org/timer;1"].createInstance(Components.interfaces.nsITimer);
@@ -198,7 +202,7 @@ calAlarmService.prototype = {
     },
 
     set timezone(aTimezone) {
-        this.mTimezone = aTimezone;
+        return (this.mTimezone = aTimezone);
     },
 
     snoozeAlarm: function cas_snoozeAlarm(event, duration) {
@@ -206,7 +210,7 @@ calAlarmService.prototype = {
         // Make sure we're working with the parent, otherwise we'll accidentally
         // create an exception
         var newEvent = event.parentItem.clone();
-        var alarmTime = jsDateToDateTime((new Date())).getInTimezone("UTC");
+        var alarmTime = nowUTC();
 
         // Set the last acknowledged time to now.
         newEvent.alarmLastAck = alarmTime;
@@ -230,7 +234,7 @@ calAlarmService.prototype = {
     },
 
     dismissAlarm: function cas_dismissAlarm(item) {
-        var now = jsDateToDateTime(new Date()).getInTimezone("UTC");
+        var now = nowUTC();
         // We want the parent item, otherwise we're going to accidentally create an
         // exception.  We've relnoted (for 0.1) the slightly odd behavior this can
         // cause if you move an event after dismissing an alarm
@@ -296,7 +300,7 @@ calAlarmService.prototype = {
         var timerCallback = {
             alarmService: this,
             notify: function timer_notify() {
-                var now = jsDateToDateTime((new Date())).getInTimezone("UTC");
+                var now = nowUTC();
                 var start;
                 if (!this.alarmService.mRangeEnd) {
                     // This is our first search for alarms.  We're going to look for
@@ -315,7 +319,7 @@ calAlarmService.prototype = {
                 // We don't set timers for every future alarm, only those within 6 hours
                 var end = now.clone();
                 end.hour += kHoursBetweenUpdates;
-                this.alarmService.mRangeEnd = end.getInTimezone("UTC");
+                this.alarmService.mRangeEnd = end.getInTimezone(UTC());
 
                 this.alarmService.findAlarms(this.alarmService.calendarManager.getCalendars({}),
                                              start, until);
@@ -400,14 +404,14 @@ calAlarmService.prototype = {
         // a well defined startTime.  We just consider the start/end to be
         // midnight in the user's timezone.
         if (alarmDate.isDate) {
-            alarmDate = alarmDate.getInTimezone(this.mTimezone);
+            alarmDate = alarmDate.getInTimezone(this.timezone);
             alarmDate.isDate = false;
         }
 
         var offset = aItem.alarmOffset || aItem.parentItem.alarmOffset;
 
         alarmDate.addDuration(offset);
-        alarmDate = alarmDate.getInTimezone("UTC");
+        alarmDate = alarmDate.getInTimezone(UTC());
 
         return alarmDate;
     },
@@ -439,12 +443,12 @@ calAlarmService.prototype = {
         // If the alarm was snoozed, the snooze time is more important.
         alarmTime = snoozeTime || alarmTime;
 
-        var now = jsDateToDateTime((new Date()));
-        if (alarmTime.timezone == "floating") {
+        var now = jsDateToDateTime(new Date());
+        if (alarmTime.timezone.isFloating) {
             now = now.getInTimezone(calendarDefaultTimezone());
-            now.timezone = "floating";
+            now.timezone = floating();
         } else {
-            now = now.getInTimezone("UTC");
+            now = now.getInTimezone(UTC());
         }
         LOG("[calAlarmService] now is " + now);
         var callbackObj = {
@@ -514,7 +518,7 @@ calAlarmService.prototype = {
             cal[aItem.id] = itemTimers;
         }
         var rid = aItem.recurrenceId;
-        itemTimers[rid ? rid.getInTimezone("UTC").icalString : "mTimer"] = aTimer;
+        itemTimers[rid ? rid.getInTimezone(UTC()).icalString : "mTimer"] = aTimer;
         ++itemTimers.mCount;
     },
 
@@ -525,7 +529,7 @@ calAlarmService.prototype = {
             if (itemTimers) {
                 var rid = aItem.recurrenceId;
                 if (rid) {
-                    rid = rid.getInTimezone("UTC").icalString;
+                    rid = rid.getInTimezone(UTC()).icalString;
                     var timer = itemTimers[rid];
                     if (timer) {
                         delete itemTimers[rid];
@@ -580,7 +584,7 @@ calAlarmService.prototype = {
         // alarms +/- 1 month from now.  If someone sets an alarm more than
         // a month ahead of an event, or doesn't start Sunbird/Lightning
         // for a month, they'll miss some, but that's a slim chance
-        var start = jsDateToDateTime((new Date())).getInTimezone("UTC");
+        var start = nowUTC();
         var until = start.clone();
         start.month -= 1;
         until.month += 1;

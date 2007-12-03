@@ -39,8 +39,12 @@
 #ifndef CALATTRIBUTEHELPERS_H_
 #define CALATTRIBUTEHELPERS_H_
 
-#ifndef UPDATE_LAST_MODIFIED
-#define UPDATE_LAST_MODIFIED /**/
+#ifndef CAL_ATTR_SET_PRE
+#define CAL_ATTR_SET_PRE /**/
+#endif
+
+#ifndef CAL_ATTR_SET_POST
+#define CAL_ATTR_SET_POST /**/
 #endif
 
 /**
@@ -59,9 +63,9 @@ cname::Get##name (mtype &_retval) { \
 #define CAL_STRINGTYPE_ATTR_SETTER(cname,mtype,name) \
 NS_IMETHODIMP \
 cname::Set##name (const mtype &aValue) { \
-    if (mImmutable) return NS_ERROR_OBJECT_IS_IMMUTABLE; \
+    CAL_ATTR_SET_PRE; \
     m##name.Assign(aValue); \
-    UPDATE_LAST_MODIFIED; \
+    CAL_ATTR_SET_POST; \
     return NS_OK; \
 }
 
@@ -73,6 +77,7 @@ cname::Set##name (const mtype &aValue) { \
 #define CAL_VALUETYPE_ATTR_GETTER(cname,mtype,name) \
 NS_IMETHODIMP \
 cname::Get##name (mtype *_retval) { \
+    NS_ENSURE_ARG_POINTER(_retval); \
     *_retval = m##name; \
     return NS_OK; \
 }
@@ -80,10 +85,10 @@ cname::Get##name (mtype *_retval) { \
 #define CAL_VALUETYPE_ATTR_SETTER(cname,mtype,name) \
 NS_IMETHODIMP \
 cname::Set##name (mtype aValue) { \
-    if (mImmutable) return NS_ERROR_OBJECT_IS_IMMUTABLE; \
+    CAL_ATTR_SET_PRE; \
     if (m##name != aValue) { \
         m##name = aValue; \
-        UPDATE_LAST_MODIFIED; \
+        CAL_ATTR_SET_POST; \
     } \
     return NS_OK; \
 }
@@ -96,6 +101,7 @@ cname::Set##name (mtype aValue) { \
 #define CAL_ISUPPORTS_ATTR_GETTER(cname,mtype,name) \
 NS_IMETHODIMP \
 cname::Get##name (mtype **_retval) { \
+    NS_ENSURE_ARG_POINTER(_retval); \
     NS_IF_ADDREF (*_retval = m##name); \
     return NS_OK; \
 }
@@ -103,10 +109,10 @@ cname::Get##name (mtype **_retval) { \
 #define CAL_ISUPPORTS_ATTR_SETTER(cname,mtype,name) \
 NS_IMETHODIMP \
 cname::Set##name (mtype *aValue) { \
-    if (mImmutable) return NS_ERROR_OBJECT_IS_IMMUTABLE; \
+    CAL_ATTR_SET_PRE; \
     if (m##name != aValue) { \
         m##name = aValue; \
-        UPDATE_LAST_MODIFIED; \
+        CAL_ATTR_SET_POST; \
     } \
     return NS_OK; \
 }

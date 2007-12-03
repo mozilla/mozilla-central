@@ -74,7 +74,7 @@ calItemBase.prototype = {
             var cal = this.calendar;
             // some unused delim character:
             this.mHashId = [encodeURIComponent(this.id),
-                            rid ? rid.getInTimezone("UTC").icalString : "",
+                            rid ? rid.getInTimezone(UTC()).icalString : "",
                             cal ? encodeURIComponent(cal.id) : ""].join("#");
         }
         return this.mHashId;
@@ -808,7 +808,7 @@ function icalFromString(str)
 {
     const icssvc = Components.classes["@mozilla.org/calendar/ics-service;1"].
         getService(Components.interfaces.calIICSService);
-    return icssvc.parseICS(str);
+    return icssvc.parseICS(str, null);
 }
 
 function icalProp(kind)
