@@ -267,7 +267,7 @@
      <key id="newEventKey" key="I" modifiers="accel" command="calendar_new_event_command"/>
      <key id="newTaskKey" key="D" modifiers="accel" command="calendar_new_todo_command"/>
      <key id="day-view-key" key="1" modifiers="alt" command="calendar_day-view_command"/>
-     <key id="week-view-key" key="2" modifiers="alt" command="calendar_week-view-command"/>
+     <key id="week-view-key" key="2" modifiers="alt" command="calendar_week-view_command"/>
      <key id="multiweek-view-key" key="3" modifiers="alt" command="calendar_multiweek-view_command"/>
      <key id="month-view-key" key="4" modifiers="alt" command="calendar_month-view_command"/>
      <!-- not yet in use...-->
