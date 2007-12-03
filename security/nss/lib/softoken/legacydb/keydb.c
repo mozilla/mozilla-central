@@ -34,7 +34,7 @@
  * the terms of any one of the MPL, the GPL or the LGPL.
  *
  * ***** END LICENSE BLOCK ***** */
-/* $Id: keydb.c,v 1.8 2007-11-16 20:51:50 wtc%google.com Exp $ */
+/* $Id: keydb.c,v 1.9 2007-12-03 20:26:44 kaie%kuix.de Exp $ */
 
 #include "lowkeyi.h"
 #include "secasn1.h"
@@ -1400,7 +1400,7 @@ loser:
     if (dbkey) {
  	sec_destroy_dbkey(dbkey);
     }
-    if (global_salt) {
+    if (global_salt && global_salt != &none) {
 	SECITEM_FreeItem(global_salt,PR_TRUE);
     }
     return rv;
