@@ -11,3 +11,4 @@ Edit this file and include an explanation of why you're respinning. - #build
 2007-03-08 16:10 UTC - Respinning to pick up fix for bad checkin
 2007-05-21 18:30 UTC - Respinning to rebuild components because of bug 377437
 2007-09-14 17:50 UTC - Respinning to make distclean before enabling objdir (bug 374235)
+2007-12-03 04:17 PST - Respinning to for webdav frozen linkage (bug 400382)
