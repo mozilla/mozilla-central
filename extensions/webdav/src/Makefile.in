@@ -52,7 +52,6 @@ IS_COMPONENT    = 1
 MODULE_NAME     = nsWebDAVService
 GRE_MODULE      = 1
 # PACKAGE_FILE    = webdav.pkg
-MOZILLA_INTERNAL_API = 1
 
 # XXX widget is because of a transitive inclusion from nsIDocument.h of
 # XXX nsEvent.h -- I mean, really!
@@ -72,7 +71,8 @@ CPPSRCS         = nsWebDAVService.cpp            \
 
 EXTRA_DSO_LDOPTS = \
 		$(LIBS_DIR) \
-		$(MOZ_COMPONENT_LIBS) \
+		$(NSPR_LIBS) \
+		$(XPCOM_GLUE_LDOPTS) \
 		$(NULL)
 
 include $(topsrcdir)/config/rules.mk

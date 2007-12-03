@@ -122,7 +122,7 @@ NS_WD_GetDocAndResponseListFromBuffer(const nsACString &buffer,
         parser(do_CreateInstance("@mozilla.org/xmlextras/domparser;1", &rv));
     NS_ENSURE_SUCCESS(rv, rv);
 
-    nsPromiseFlatCString flat(buffer);
+    nsCString const flat(buffer);
 
     PR_LOG(gDAVLog, 5, ("XML:\n\n%*s\n\n", flat.Length(), flat.get()));
 

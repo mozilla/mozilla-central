@@ -131,11 +131,13 @@ nsWebDAVService::SendDocumentToChannel(nsIDocument *doc,
                                        nsIStreamListener *listener,
                                        PRBool withDepth)
 {
-    nsCOMPtr<nsIStorageStream> storageStream;
     // Why do I have to pick values for these?  I just want to store some data
     // for stream access!  (And how would script set these?)
-    nsresult rv = NS_NewStorageStream(4096, PR_UINT32_MAX,
-                                      getter_AddRefs(storageStream));
+    nsresult rv;
+    nsCOMPtr<nsIStorageStream> const storageStream(
+        do_CreateInstance("@mozilla.org/storagestream;1", &rv));
+    NS_ENSURE_SUCCESS(rv, rv);
+    rv = storageStream->Init(4096, PR_UINT32_MAX, nsnull);
     NS_ENSURE_SUCCESS(rv, rv);
 
     nsCOMPtr<nsIOutputStream> storageOutputStream;
@@ -415,36 +417,26 @@ nsWebDAVService::PropfindInternal(nsIWebDAVResource *resource,
         for (PRUint32 i = 0; i < propCount; i++) {
             nsDependentCString fullpropName(properties[i]);
 
-            // This string math is _ridiculous_.  It better compile to a total of
-            // 5 instructions, or I'm ripping it all out and doing my own looping.
-
-            nsACString::const_iterator start, saveStart, end, saveEnd;
-            fullpropName.BeginReading(start);
-            fullpropName.BeginReading(saveStart);
-            fullpropName.EndReading(end);
-            fullpropName.EndReading(saveEnd);
-            RFindInReadable(NS_LITERAL_CSTRING(" "), start, end);
-
-            if (start == end) {
-                nsCAutoString msg(NS_LITERAL_CSTRING("Illegal property name ")
-                                  + fullpropName + NS_LITERAL_CSTRING("\n"));
+            PRInt32 const index = fullpropName.RFindChar(' ');
+            if (index < 0) {
+                nsCAutoString msg(NS_LITERAL_CSTRING("Illegal property name "));
+                msg += fullpropName;
+                msg.Append('\n');
                 NS_WARNING(msg.get());
                 return NS_ERROR_INVALID_ARG;
             }
 
+            nsDependentCSubstring const propNamespace_(fullpropName, 0, index);
+            nsDependentCSubstring const propName_(fullpropName, index + 1);
 #ifdef PR_LOGGING
             if (LOG_ENABLED()) {
-                nsACString::const_iterator s = start;
-                
-                nsCAutoString propNamespace(nsDependentCSubstring(saveStart, s));
-                nsCAutoString propName(nsDependentCSubstring(++s, saveEnd));
-                
-                LOG(("prop ns: '%s', name: '%s'", propNamespace.get(), propName.get()));
+                nsCString const ns(propNamespace_);
+                nsCString const name(propName_);
+                LOG(("prop ns: '%s', name: '%s'", ns.get(), name.get()));
             }
 #endif
-
-            NS_ConvertASCIItoUTF16 propNamespace(nsDependentCSubstring(saveStart, start)),
-                propName(nsDependentCSubstring(++start, saveEnd));
+            NS_ConvertASCIItoUTF16 const propNamespace(propNamespace_);
+            NS_ConvertASCIItoUTF16 const propName(propName_);
 
             nsCOMPtr<nsIDOMElement> junk;
             rv = NS_WD_AppendElementWithNS(requestDoc, propElt, propNamespace,

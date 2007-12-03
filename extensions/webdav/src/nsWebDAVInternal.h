@@ -46,7 +46,7 @@
 
 #include "prlog.h"
 #include "nsCOMPtr.h"
-#include "nsString.h"
+#include "nsStringAPI.h"
 
 class nsIStreamListener;
 class nsIRequestObserver;
