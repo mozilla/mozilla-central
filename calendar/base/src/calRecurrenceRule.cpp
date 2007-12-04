@@ -230,7 +230,6 @@ calRecurrenceRule::GetEndDate(calIDateTime * *aRecurEnd)
 NS_IMETHODIMP
 calRecurrenceRule::SetEndDate(calIDateTime * aRecurEnd)
 {
-    NS_ENSURE_ARG_POINTER(aRecurEnd);
     if (aRecurEnd) {
         nsCOMPtr<calIDateTime> dt(aRecurEnd);
         nsCOMPtr<calITimezone> tz;
