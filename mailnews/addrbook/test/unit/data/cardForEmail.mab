@@ -1,0 +1,64 @@
+// <!-- <mdb:mork:z v="1.4"/> -->
+< <(a=c)> // (f=iso-8859-1)
+  (B8=Custom4)(B9=Notes)(BA=LastModifiedDate)(BB=RecordKey)
+  (BC=AddrCharSet)(BD=LastRecordKey)(BE=ns:addrbk:db:table:kind:pab)
+  (BF=ListName)(C0=ListNickName)(C1=ListDescription)
+  (C2=ListTotalAddresses)(C3=LowercaseListName)
+  (C4=ns:addrbk:db:table:kind:deleted)
+  (80=ns:addrbk:db:row:scope:card:all)
+  (81=ns:addrbk:db:row:scope:list:all)
+  (82=ns:addrbk:db:row:scope:data:all)(83=FirstName)(84=LastName)
+  (85=PhoneticFirstName)(86=PhoneticLastName)(87=DisplayName)
+  (88=NickName)(89=PrimaryEmail)(8A=LowercasePrimaryEmail)
+  (8B=SecondEmail)(8C=PreferMailFormat)(8D=PopularityIndex)
+  (8E=AllowRemoteContent)(8F=WorkPhone)(90=HomePhone)(91=FaxNumber)
+  (92=PagerNumber)(93=CellularNumber)(94=WorkPhoneType)(95=HomePhoneType)
+  (96=FaxNumberType)(97=PagerNumberType)(98=CellularNumberType)
+  (99=HomeAddress)(9A=HomeAddress2)(9B=HomeCity)(9C=HomeState)
+  (9D=HomeZipCode)(9E=HomeCountry)(9F=WorkAddress)(A0=WorkAddress2)
+  (A1=WorkCity)(A2=WorkState)(A3=WorkZipCode)(A4=WorkCountry)
+  (A5=JobTitle)(A6=Department)(A7=Company)(A8=_AimScreenName)
+  (A9=AnniversaryYear)(AA=AnniversaryMonth)(AB=AnniversaryDay)
+  (AC=SpouseName)(AD=FamilyName)(AE=DefaultAddress)(AF=Category)
+  (B0=WebPage1)(B1=WebPage2)(B2=BirthYear)(B3=BirthMonth)(B4=BirthDay)
+  (B5=Custom1)(B6=Custom2)(B7=Custom3)>
+
+<(80=0)>
+{1:^80 {(k^BE:c)(s=9)} 
+  [1:^82(^BD=0)]}
+
+@$${1{@
+
+<(85=1)(81=Empty)(82=Email)(83=)(84=Empty Email)>
+{-1:^80 {(k^BE:c)(s=9)} 
+  [1:^82(^BD=1)]
+  [-1(^83^81)(^84^82)(^85=)(^86=)(^87^84)(^88=)(^8B=)(^8C=0)(^8D=0)
+    (^8E=0)(^8F=)(^90=)(^91=)(^92=)(^93=)(^94=)(^95=)(^96=)(^97=)(^98=)
+    (^99=)(^9A=)(^9B=)(^9C=)(^9D=)(^9E=)(^9F=)(^A0=)(^A1=)(^A2=)(^A3=)
+    (^A4=)(^A5=)(^A6=)(^A7=)(^A8=)(^A9=)(^AA=)(^AB=)(^AC=)(^AD=)(^AE=)
+    (^AF=)(^B0=)(^B1=)(^B2=)(^B3=)(^B4=)(^B5=)(^B6=)(^B7=)(^B8=)(^B9=)
+    (^BA=0)(^BB=1)]}
+@$$}1}@
+
+@$${2{@
+
+<(A9=2)(86=FirstName1)(87=LastName1)(88=DisplayName1)(89=NickName1)
+  (8A=PrimaryEmail1@test.invalid)(8B=primaryemail1@test.invalid)(8C
+    =SecondEmail1@test.invalid)(8D=WorkPhone1)(8E=HomePhone1)(8F
+    =FaxNumber1)(90=PagerNumber1)(91=CellularNumber1)(92=HomeAddress11)
+  (93=HomeAddress21)(94=HomeCity1)(95=HomeState1)(96=HomeZipCode1)(97
+    =HomeCountry1)(98=WorkAddress1)(99=WorkAddress21)(9A=WorkCity1)
+  (9B=WorkState1)(9C=WorkZipCode1)(9D=WorkCountry1)(9E=JobTitle1)(9F
+    =Department1)(A0=Organization1)(A1=ScreenName1)(A2=http://WebPage21)
+  (A3=http://WebPage11)(A4=Custom11)(A5=Custom21)(A6=Custom31)(A7=Custom41)
+  (A8=Notes1)>
+{-1:^80 {(k^BE:c)(s=9)} 
+  [1:^82(^BD=2)]1 
+  [-2(^83^86)(^84^87)(^85=)(^86=)(^87^88)(^88^89)(^89^8A)(^8A^8B)(^8B^8C)
+    (^8C=0)(^8D=0)(^8E=0)(^8F^8D)(^90^8E)(^91^8F)(^92^90)(^93^91)(^94=)
+    (^95=)(^96=)(^97=)(^98=)(^99^92)(^9A^93)(^9B^94)(^9C^95)(^9D^96)
+    (^9E^97)(^9F^98)(^A0^99)(^A1^9A)(^A2^9B)(^A3^9C)(^A4^9D)(^A5^9E)
+    (^A6^9F)(^A7^A0)(^A8^A1)(^A9=)(^AA=)(^AB=)(^AC=)(^AD=)(^AE=)(^AF=)
+    (^B0^A2)(^B1^A3)(^B2=)(^B3=)(^B4=)(^B5^A4)(^B6^A5)(^B7^A6)(^B8^A7)
+    (^B9^A8)(^BA=0)(^BB=2)]}
+@$$}2}@
