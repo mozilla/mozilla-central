@@ -1615,164 +1615,68 @@ function doURLTest()
 {
     for (var u in testURLs)
     {
-        dd ("testing url \"" + testURLs[u] + "\"");
+        dd("testing url \"" + testURLs[u] + "\"");
         var o = parseIRCURL(testURLs[u]);
         if (!o)
-            dd ("PARSE FAILED!");
+            dd("PARSE FAILED!");
         else
-            dd (dumpObjectTree(o));
-        dd ("---");
+            dd(dumpObjectTree(o));
+        dd("---");
     }
 }
 
-function parseIRCURL (url)
+var testIRCURLObjects =
+    [
+     [{}, "irc://"],
+     [{host: "undernet"},                                    "irc://undernet/"],
+     [{host: "irc.undernet.org"},                    "irc://irc.undernet.org/"],
+     [{host: "irc.undernet.org", isserver: true},    "irc://irc.undernet.org/"],
+     [{host: "undernet", isserver: true},           "irc://undernet/,isserver"],
+     [{host: "irc.undernet.org", port: 6667},        "irc://irc.undernet.org/"],
+     [{host: "irc.undernet.org", port: 1},         "irc://irc.undernet.org:1/"],
+     [{host: "irc.undernet.org", port: 1, scheme: "ircs"},
+                                                  "ircs://irc.undernet.org:1/"],
+     [{host: "irc.undernet.org", port: 9999, scheme: "ircs"},
+                                                    "ircs://irc.undernet.org/"],
+     [{host: "undernet", needpass: true},           "irc://undernet/,needpass"],
+     [{host: "undernet", pass: "cz"},                "irc://undernet/?pass=cz"],
+     [{host: "undernet", charset: "utf-8"},    "irc://undernet/?charset=utf-8"],
+     [{host: "undernet", target: "#foo"},              "irc://undernet/%23foo"],
+     [{host: "undernet", target: "#foo", needkey: true},
+                                               "irc://undernet/%23foo,needkey"],
+     [{host: "undernet", target: "John", isnick: true},
+                                                  "irc://undernet/John,isnick"],
+     [{host: "undernet", target: "#foo", key: "cz"},
+                                                "irc://undernet/%23foo?key=cz"],
+     [{host: "undernet", charset: "utf-8"},    "irc://undernet/?charset=utf-8"],
+     [{host: "undernet", target: "John", msg: "spam!"},
+                                             "irc://undernet/John?msg=spam%21"],
+     [{host: "undernet", target: "foo", isnick: true, msg: "spam!", pass: "cz"},
+                               "irc://undernet/foo,isnick?msg=spam%21&pass=cz"]
+    ];
+
+function doObjectURLtest()
 {
-    var specifiedHost = "";
-
-    var rv = new Object();
-    rv.spec = url;
-    rv.scheme = url.split(":")[0];
-    rv.host = null;
-    rv.target = "";
-    rv.port = (rv.scheme == "ircs" ? 9999 : 6667);
-    rv.msg = "";
-    rv.pass = null;
-    rv.key = null;
-    rv.charset = null;
-    rv.needpass = false;
-    rv.needkey = false;
-    rv.isnick = false;
-    rv.isserver = false;
-
-    if (url.search(/^(ircs?:\/?\/?)$/i) != -1)
-        return rv;
-
-    /* split url into <host>/<everything-else> pieces */
-    var ary = url.match (/^ircs?:\/\/([^\/\s]+)?(\/[^\s]*)?$/i);
-    if (!ary || !ary[1])
+    var passed = 0, total = testIRCURLObjects.length;
+    for (var i = 0; i < total; i++)
     {
-        dd ("parseIRCURL: initial split failed");
-        return null;
-    }
-    var host = ary[1];
-    var rest = arrayHasElementAt(ary, 2) ? ary[2] : "";
-
-    /* split <host> into server (or network) / port */
-    ary = host.match (/^([^\:]+)?(\:\d+)?$/);
-    if (!ary)
-    {
-        dd ("parseIRCURL: host/port split failed");
-        return null;
-    }
-
-    if (arrayHasElementAt(ary, 2))
-    {
-        if (!arrayHasElementAt(ary, 2))
+        var obj = testIRCURLObjects[i][0];
+        var url = testIRCURLObjects[i][1];
+        var parsedURL = constructIRCURL(obj)
+        if (url != parsedURL)
         {
-            dd ("parseIRCURL: port with no host");
-            return null;
+            display("Parsed IRC Object incorrectly! Expected '" + url +
+                    "', got '" + parsedURL, MT_ERROR);
         }
-        specifiedHost = rv.host = ary[1].toLowerCase();
-        rv.isserver = true;
-        rv.port = parseInt(ary[2].substr(1));
-    }
-    else if (arrayHasElementAt(ary, 1))
-    {
-        specifiedHost = rv.host = ary[1].toLowerCase();
-        if (specifiedHost.indexOf(".") != -1)
-            rv.isserver = true;
-    }
-
-    if (rest)
-    {
-        ary = rest.match (/^\/([^\?\s\/,]*)?\/?(,[^\?]*)?(\?.*)?$/);
-        if (!ary)
+        else
         {
-            dd ("parseIRCURL: rest split failed ``" + rest + "''");
-            return null;
-        }
-
-        rv.target = arrayHasElementAt(ary, 1) ? ecmaUnescape(ary[1]) : "";
-
-        if (rv.target.search(/[\x07,\s]/) != -1)
-        {
-            dd ("parseIRCURL: invalid characters in channel name");
-            return null;
-        }
-
-        var params = arrayHasElementAt(ary, 2) ? ary[2].toLowerCase() : "";
-        var query = arrayHasElementAt(ary, 3) ? ary[3] : "";
-
-        if (params)
-        {
-            rv.isnick =
-                (params.search (/,isnick(?:,|$)/) != -1);
-            if (rv.isnick && !rv.target)
-            {
-                dd ("parseIRCURL: isnick w/o target");
-                /* isnick w/o a target is bogus */
-                return null;
-            }
-
-            if (!rv.isserver)
-            {
-                rv.isserver =
-                    (params.search (/,isserver(?:,|$)/) != -1);
-            }
-
-            if (rv.isserver && !specifiedHost)
-            {
-                dd ("parseIRCURL: isserver w/o host");
-                    /* isserver w/o a host is bogus */
-                return null;
-            }
-
-            rv.needpass =
-                (params.search (/,needpass(?:,|$)/) != -1);
-
-            rv.needkey =
-                (params.search (/,needkey(?:,|$)/) != -1);
-
-        }
-
-        if (query)
-        {
-            ary = query.substr(1).split("&");
-            while (ary.length)
-            {
-                var arg = ary.pop().split("=");
-                /*
-                 * we don't want to accept *any* query, or folks could
-                 * say things like "target=foo", and overwrite what we've
-                 * already parsed, so we only use query args we know about.
-                 */
-                switch (arg[0].toLowerCase())
-                {
-                    case "msg":
-                        rv.msg = unescape(arg[1]).replace ("\n", "\\n");
-                         break;
-
-                    case "pass":
-                        rv.needpass = true;
-                        rv.pass = unescape(arg[1]).replace ("\n", "\\n");
-                        break;
-
-                    case "key":
-                        rv.needkey = true;
-                        rv.key = unescape(arg[1]).replace ("\n", "\\n");
-                        break;
-
-                    case "charset":
-                        rv.charset = unescape(arg[1]).replace ("\n", "\\n");
-                        break;
-                }
-            }
+            passed++;
         }
     }
-
-    return rv;
-
+    display("Passed " + passed + " out of " + total + " tests (" +
+            passed / total * 100 + "%).", MT_INFO);
 }
+
 
 function gotoIRCURL (url)
 {
