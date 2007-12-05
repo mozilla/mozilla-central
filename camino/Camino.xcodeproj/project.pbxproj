@@ -5150,6 +5150,7 @@
 				3F44AD6F05BDFB9F00CB4B08 /* Copy Security Chrome */,
 				3F44AD7105BDFB9F00CB4B08 /* Copy Preference Panes */,
 				3F44AD7705BDFB9F00CB4B08 /* Copy Frameworks */,
+				3365CA1F0D073ECA00ACBF18 /* Scrub Sparkle Languages */,
 				3F44AD7A05BDFB9F00CB4B08 /* Copy Plugins */,
 				4D5881750864B276001305B3 /* Copy Gecko Plugins */,
 				3F44AD7C05BDFB9F00CB4B08 /* Frameworks */,
@@ -5300,6 +5301,7 @@
 				3F44AF8005BDFBA000CB4B08 /* Copy Preference Panes */,
 				3F44AF8605BDFBA000CB4B08 /* Copy Libraries */,
 				3F44AF9005BDFBA000CB4B08 /* Copy Frameworks */,
+				3365CA0F0D07197E00ACBF18 /* Scrub Sparkle Languages */,
 				3F44AF9205BDFBA000CB4B08 /* Copy Plugins */,
 				4D5881790864B297001305B3 /* Copy Gecko Plugins */,
 				3F44AF9405BDFBA000CB4B08 /* Frameworks */,
@@ -5770,6 +5772,37 @@
 			runOnlyForDeploymentPostprocessing = 0;
 		};
 /* End PBXRezBuildPhase section */
+
+/* Begin PBXShellScriptBuildPhase section */
+		3365CA0F0D07197E00ACBF18 /* Scrub Sparkle Languages */ = {
+			isa = PBXShellScriptBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			inputPaths = (
+			);
+			name = "Scrub Sparkle Languages";
+			outputPaths = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+			shellPath = /usr/bin/perl;
+			shellScript = "#!/usr/bin/perl\n# Removes all the Sparkle languages that aren't also part of the app bundle, since those\n# languages can't be loaded anyway.\nuse warnings;\nuse strict;\n\n# Map of language names to cannonical forms for comparison.\nmy %language_code = ( \"English\" => \"en\" );\n\nmy $app_resources = \"$ENV{BUILT_PRODUCTS_DIR}/$ENV{PRODUCT_NAME}.app/Contents/Resources\";\nmy $sparkle_resources = \"$ENV{BUILT_PRODUCTS_DIR}/$ENV{PRODUCT_NAME}.app/Contents/Frameworks/Sparkle.framework/Resources\";\ndie \"Can't find $ENV{PRODUCT_NAME} resource directory\" unless -d $app_resources;\ndie \"Can't find Sparkle resource directory\" unless -d $sparkle_resources;\n\nmy %standardized_app_languages;\nfor (&languages_for_bundle($app_resources)) {\n  $standardized_app_languages{&standardized_language($_)} = 1;\n}\nmy @sparkle_languages = &languages_for_bundle($sparkle_resources);\n\nprint \"Scrubbing Sparkle lprojs...\\n\";\nforeach my $language (@sparkle_languages) {\n  unless ($standardized_app_languages{$language}) {\n    my $lproj = \"$sparkle_resources/$language.lproj\";\n    print \"  Removing unnecessary Sparkle lproj: $lproj\\n\";\n    system(\"/bin/rm\", \"-rf\", $lproj);\n  }\n}\n\n\nsub languages_for_bundle {\n  my ($resources_dir) = @_;\n  opendir(RESDIR, $resources_dir) or die \"Can't open resource directory '$resources_dir\";\n  my @languages = map { $_ =~ s/.lproj//; $_ } grep { /\\.lproj/ } readdir(RESDIR);\n  closedir(RESDIR);\n  return @languages;\n}\n\nsub standardized_language {\n  my ($language) = @_;\n  return $language_code{$_} || $_;\n}";
+		};
+		3365CA1F0D073ECA00ACBF18 /* Scrub Sparkle Languages */ = {
+			isa = PBXShellScriptBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			inputPaths = (
+			);
+			name = "Scrub Sparkle Languages";
+			outputPaths = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+			shellPath = /usr/bin/perl;
+			shellScript = "#!/usr/bin/perl\n# Removes all the Sparkle languages that aren't also part of the app bundle, since those\n# languages can't be loaded anyway.\nuse warnings;\nuse strict;\n\n# Map of language names to cannonical forms for comparison.\nmy %language_code = ( \"English\" => \"en\" );\n\nmy $app_resources = \"$ENV{BUILT_PRODUCTS_DIR}/$ENV{PRODUCT_NAME}.app/Contents/Resources\";\nmy $sparkle_resources = \"$ENV{BUILT_PRODUCTS_DIR}/$ENV{PRODUCT_NAME}.app/Contents/Frameworks/Sparkle.framework/Resources\";\ndie \"Can't find $ENV{PRODUCT_NAME} resource directory\" unless -d $app_resources;\ndie \"Can't find Sparkle resource directory\" unless -d $sparkle_resources;\n\nmy %standardized_app_languages;\nfor (&languages_for_bundle($app_resources)) {\n  $standardized_app_languages{&standardized_language($_)} = 1;\n}\nmy @sparkle_languages = &languages_for_bundle($sparkle_resources);\n\nprint \"Scrubbing Sparkle lprojs...\\n\";\nforeach my $language (@sparkle_languages) {\n  unless ($standardized_app_languages{$language}) {\n    my $lproj = \"$sparkle_resources/$language.lproj\";\n    print \"  Removing unnecessary Sparkle lproj: $lproj\\n\";\n    system(\"/bin/rm\", \"-rf\", $lproj);\n  }\n}\n\n\nsub languages_for_bundle {\n  my ($resources_dir) = @_;\n  opendir(RESDIR, $resources_dir) or die \"Can't open resource directory '$resources_dir\";\n  my @languages = map { $_ =~ s/.lproj//; $_ } grep { /\\.lproj/ } readdir(RESDIR);\n  closedir(RESDIR);\n  return @languages;\n}\n\nsub standardized_language {\n  my ($language) = @_;\n  return $language_code{$_} || $_;\n}";
+		};
+/* End PBXShellScriptBuildPhase section */
 
 /* Begin PBXSourcesBuildPhase section */
 		035A4972079DC83D0084B05F /* Sources */ = {
