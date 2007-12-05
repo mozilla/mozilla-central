@@ -306,7 +306,7 @@ class MozillaUnixCrashtest(MozillaCrashtest):
                "-P",
                "default",
                "-reftest",
-               "crashtest.list"]
+               "crashtests.list"]
 
 class MozillaOSXCrashtest(MozillaCrashtest):
     command = ["../../objdir/dist/Minefield.app/Contents/MacOS/firefox",
@@ -314,10 +314,10 @@ class MozillaOSXCrashtest(MozillaCrashtest):
                "-P",
                "default",
                "-reftest",
-               "crashtest.list"]
+               "crashtests.list"]
 
 class MozillaWin32Crashtest(MozillaCrashtest):
-    command = [r'..\..\objdir\dist\bin\firefox.exe -P debug -reftest crashtest.list']
+    command = [r'..\..\objdir\dist\bin\firefox.exe -P debug -reftest crashtests.list']
 
 class MozillaMochitest(ShellCommand):
     name = "mochitest"
