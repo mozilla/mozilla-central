@@ -14,13 +14,11 @@
  * The Original Code is mozilla.org code.
  *
  * The Initial Developer of the Original Code is
- * Netscape Communications Corporation.
- * Portions created by the Initial Developer are Copyright (C) 2001
+ * Petr Kostka.
+ * Portions created by the Initial Developer are Copyright (C) 2007
  * the Initial Developer. All Rights Reserved.
  *
  * Contributor(s):
- *   Terry Hayes <thayes@netscape.com>
- *   Petr Kostka <petr.kostka@st.com>
  *
  * Alternatively, the contents of this file may be used under the terms of
  * either the GNU General Public License Version 2 or later (the "GPL"), or
@@ -36,29 +34,50 @@
  *
  * ***** END LICENSE BLOCK ***** */
 
-#include "nsISupports.idl"
+#ifndef NSPROTECTEDAUTHTHREAD_H_
+#define NSPROTECTEDAUTHTHREAD_H_
 
-interface nsIInterfaceRequestor;
-interface nsIProtectedAuthThread;
+#include "keyhi.h"
+#include "nspr.h"
 
-[scriptable, uuid(bb4bae9c-39c5-11d5-ba26-00108303b117)]
-interface nsITokenDialogs : nsISupports
+#include "nsIProtectedAuthThread.h"
+
+class nsProtectedAuthThread : public nsIProtectedAuthThread
 {
-  void ChooseToken(in nsIInterfaceRequestor ctx,
-                   [array, size_is(count)] in wstring tokenNameList,
-                   in unsigned long count,
-                   out wstring tokenName,
-                   out boolean canceled);
+private:
+    PRLock      *mMutex;
 
-    /**
-    * displayProtectedAuth - displays notification dialog to the user 
-    * that he is expected to authenticate to the token using its
-    * "protected authentication path" feature
-    */
-  void displayProtectedAuth(in nsIInterfaceRequestor ctx,
-                            in nsIProtectedAuthThread runnable);
+    nsIDOMWindowInternal*   mStatusDialogPtr;
+
+    PRBool      mIAmRunning;
+    PRBool      mStatusDialogClosed;
+    PRBool      mLoginReady;
+
+    PRThread    *mThreadHandle;
+
+    // Slot to do authentication on
+    PK11SlotInfo*   mSlot;
+
+    // Result of the authentication
+    SECStatus       mLoginResult;
+
+public:
+
+    nsProtectedAuthThread();
+    virtual ~nsProtectedAuthThread();
+
+    NS_DECL_ISUPPORTS
+    NS_DECL_NSIPROTECTEDAUTHTHREAD
+
+    // Sets parameters for the thread
+    void SetParams(PK11SlotInfo *slot);
+
+    // Gets result of the protected authentication operation
+    SECStatus GetResult();
+
+    void Join(void);
+
+    void Run(void);
 };
 
-%{C++
-#define NS_TOKENDIALOGS_CONTRACTID "@mozilla.org/nsTokenDialogs;1"
-%}
+#endif // NSPROTECTEDAUTHTHREAD_H_

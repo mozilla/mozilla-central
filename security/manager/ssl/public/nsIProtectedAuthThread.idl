@@ -14,13 +14,11 @@
  * The Original Code is mozilla.org code.
  *
  * The Initial Developer of the Original Code is
- * Netscape Communications Corporation.
- * Portions created by the Initial Developer are Copyright (C) 2001
+ * Petr Kostka.
+ * Portions created by the Initial Developer are Copyright (C) 2007
  * the Initial Developer. All Rights Reserved.
  *
  * Contributor(s):
- *   Terry Hayes <thayes@netscape.com>
- *   Petr Kostka <petr.kostka@st.com>
  *
  * Alternatively, the contents of this file may be used under the terms of
  * either the GNU General Public License Version 2 or later (the "GPL"), or
@@ -37,28 +35,34 @@
  * ***** END LICENSE BLOCK ***** */
 
 #include "nsISupports.idl"
+#include "nsIDOMWindowInternal.idl"
 
-interface nsIInterfaceRequestor;
-interface nsIProtectedAuthThread;
-
-[scriptable, uuid(bb4bae9c-39c5-11d5-ba26-00108303b117)]
-interface nsITokenDialogs : nsISupports
+/**
+ * nsIProtectedAuthThread
+ *  This is used to communicate with the thread login on to 
+ *  a token with CKF_PROTECTED_AUTHENTICATION_PATH set.
+ */
+[scriptable, uuid(45334489-3d30-47c6-920b-0a55a313aebf)]
+interface nsIProtectedAuthThread : nsISupports
 {
-  void ChooseToken(in nsIInterfaceRequestor ctx,
-                   [array, size_is(count)] in wstring tokenNameList,
-                   in unsigned long count,
-                   out wstring tokenName,
-                   out boolean canceled);
+  /**
+   * login - run the thread
+   *   A user interface implementing this interface needs to
+   *   call this method as soon as the message to the user is
+   *   displayed. This will trigger login operation. No user 
+   *   cancellation is possible during login operation.
+   */
+  void login(in nsIDOMWindowInternal dialog);
 
-    /**
-    * displayProtectedAuth - displays notification dialog to the user 
-    * that he is expected to authenticate to the token using its
-    * "protected authentication path" feature
-    */
-  void displayProtectedAuth(in nsIInterfaceRequestor ctx,
-                            in nsIProtectedAuthThread runnable);
+  /**
+   * Gets token to be logged in name.
+   */
+  wstring getTokenName();
 };
 
-%{C++
-#define NS_TOKENDIALOGS_CONTRACTID "@mozilla.org/nsTokenDialogs;1"
+%{ C++
+// {45334489-3D30-47c6-920B-0A55A313AEBF}
+#define NS_PROTECTEDAUTHTHREAD_CID \
+{ 0x45334489, 0x3d30, 0x47c6, { 0x92, 0x0b, 0x0a, 0x55, 0xa3, 0x13, 0xae, 0xbf } }
+#define NS_PROTECTEDAUTHTHREAD_CONTRACTID "@mozilla.org/security/protectedauththread;1"
 %}

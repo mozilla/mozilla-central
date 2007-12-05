@@ -614,6 +614,14 @@ SecurityDialogs::ChooseToken(nsIInterfaceRequestor *ctx, const PRUnichar **token
   return NS_ERROR_NOT_IMPLEMENTED;
 }
 
+/* void DisplayProtectedAuth (in nsIInterfaceRequestor ctx, in nsIProtectedAuthThread runnable); */
+NS_IMETHODIMP
+SecurityDialogs::DisplayProtectedAuth(nsIInterfaceRequestor *ctx, nsIProtectedAuthThread *runnable)
+{
+  NSLog(@"DisplayProtectedAuth not implemented");
+  return NS_ERROR_NOT_IMPLEMENTED;
+}
+
 // nsIDOMCryptoDialogs
 /* boolean ConfirmKeyEscrow (in nsIX509Cert escrowAuthority); */
 NS_IMETHODIMP

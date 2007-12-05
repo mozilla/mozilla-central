@@ -14,13 +14,11 @@
  * The Original Code is mozilla.org code.
  *
  * The Initial Developer of the Original Code is
- * Netscape Communications Corporation.
- * Portions created by the Initial Developer are Copyright (C) 2001
+ * Petr Kostka.
+ * Portions created by the Initial Developer are Copyright (C) 2007
  * the Initial Developer. All Rights Reserved.
  *
  * Contributor(s):
- *   Terry Hayes <thayes@netscape.com>
- *   Petr Kostka <petr.kostka@st.com>
  *
  * Alternatively, the contents of this file may be used under the terms of
  * either the GNU General Public License Version 2 or later (the "GPL"), or
@@ -36,29 +34,35 @@
  *
  * ***** END LICENSE BLOCK ***** */
 
-#include "nsISupports.idl"
-
-interface nsIInterfaceRequestor;
-interface nsIProtectedAuthThread;
-
-[scriptable, uuid(bb4bae9c-39c5-11d5-ba26-00108303b117)]
-interface nsITokenDialogs : nsISupports
+function onLoad()
 {
-  void ChooseToken(in nsIInterfaceRequestor ctx,
-                   [array, size_is(count)] in wstring tokenNameList,
-                   in unsigned long count,
-                   out wstring tokenName,
-                   out boolean canceled);
+    protectedAuthThread = window.arguments[0].QueryInterface(Components.interfaces.nsIProtectedAuthThread);
 
-    /**
-    * displayProtectedAuth - displays notification dialog to the user 
-    * that he is expected to authenticate to the token using its
-    * "protected authentication path" feature
-    */
-  void displayProtectedAuth(in nsIInterfaceRequestor ctx,
-                            in nsIProtectedAuthThread runnable);
-};
+    if (!protectedAuthThread) 
+    {
+        window.close();
+        return;
+    }
 
-%{C++
-#define NS_TOKENDIALOGS_CONTRACTID "@mozilla.org/nsTokenDialogs;1"
-%}
+    try
+    {
+        var tokenName = protectedAuthThread.getTokenName();
+
+        var tag = document.getElementById("tokenName");
+        tag.setAttribute("value",tokenName);
+
+        setCursor("wait");
+  
+        protectedAuthThread.login(window);
+
+    } catch (exception)
+    {
+        window.close();
+        return;
+    }
+}
+
+function onClose()
+{
+    setCursor("default");
+}
