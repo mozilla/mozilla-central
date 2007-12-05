@@ -129,6 +129,7 @@ function initPrefs()
          ["autoAwayCap",        300,      "global"],
          ["autoAwayPeriod",     2,        "appearance.misc"],
          ["autoRejoin",         false,    ".connect"],
+         ["away",               "",       "hidden"],
          ["awayNick",           "",       ".ident"],
          ["bugURL",           "https://bugzilla.mozilla.org/show_bug.cgi?id=%s",
                                           "appearance.misc"],
@@ -413,7 +414,7 @@ function getNetworkPrefManager(network)
         [
          ["autoAwayPeriod",   defer, "appearance.misc"],
          ["autoRejoin",       defer, ".connect"],
-         ["away",             "",    "hidden"],
+         ["away",             defer, "hidden"],
          ["awayNick",         defer, ".ident"],
          ["bugURL",           defer, "appearance.misc"],
          ["charset",          defer, ".connect"],

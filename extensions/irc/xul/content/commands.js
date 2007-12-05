@@ -2168,7 +2168,9 @@ function cmdNick(e)
     if (!e.nickname)
     {
         var curNick;
-        if (e.network)
+        if (e.server && e.server.isConnected())
+            curNick = e.server.me.unicodeName;
+        else if (e.network)
             curNick = e.network.prefs["nickname"];
         else
             curNick = client.prefs["nickname"];
@@ -2182,9 +2184,15 @@ function cmdNick(e)
         e.server.changeNick(e.nickname);
 
     if (e.network)
+    {
         e.network.prefs["nickname"] = e.nickname;
+        e.network.preferredNick = e.nickname;
+    }
     else
+    {
         client.prefs["nickname"] = e.nickname;
+        updateTitle(client);
+    }
 }
 
 function cmdNotice(e)
@@ -2849,17 +2857,23 @@ function cmdAway(e)
 
         if (e.server)
         {
+            var normalNick = e.network.prefs["nickname"];
+            var awayNick = e.network.prefs["awayNick"];
             if (e.network.state == NET_ONLINE)
             {
-                if (e.network.prefs["awayNick"])
-                    e.server.sendData("NICK " + e.network.prefs["awayNick"] + "\n");
-
+                // Postulate that if normal nick and away nick are the same,
+                // user doesn't want to change nicks:
+                if (awayNick && (normalNick != awayNick))
+                    e.server.changeNick(awayNick);
                 e.server.sendData("AWAY :" + fromUnicode(e.reason, e.network) + "\n");
             }
+            if (awayNick && (normalNick != awayNick))
+                e.network.preferredNick = awayNick;
             e.network.prefs["away"] = e.reason;
         }
         else
         {
+            client.prefs["away"] = e.reason;
             // Client view, do command for all networks.
             sendToAllNetworks("away", e.reason);
             display(getMsg(MSG_AWAY_ON, e.reason));
@@ -2872,15 +2886,20 @@ function cmdAway(e)
         {
             if (e.network.state == NET_ONLINE)
             {
-                if (e.network.prefs["awayNick"])
-                    e.server.sendData("NICK " + e.network.prefs["nickname"] + "\n");
-
+                var curNick = e.server.me.unicodeName;
+                var awayNick = e.network.prefs["awayNick"];
+                if (awayNick && (curNick == awayNick))
+                    e.server.changeNick(e.network.prefs["nickname"]);
                 e.server.sendData("AWAY\n");
             }
+            // Go back to old nick, even if not connected:
+            if (awayNick && (curNick == awayNick))
+                e.network.preferredNick = e.network.prefs["nickname"];
             e.network.prefs["away"] = "";
         }
         else
         {
+            client.prefs["away"] = "";
             // Client view, do command for all networks.
             sendToAllNetworks("back");
             display(MSG_AWAY_OFF);

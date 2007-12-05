@@ -420,9 +420,14 @@ function initMenus()
         ]
     };
 
-    var net          = "cx.network";
+    // Gross hacks to figure out if we're away:
     var netAway      = "cx.network.prefs['away']";
-    var awayChecked = "cx.network and (cx.network.prefs.away == item.message)";
+    var cliAway      = "client.prefs['away']";
+    var awayCheckNet = "(cx.network and (" + netAway + " == item.message))";
+    var awayCheckCli = "(!cx.network and (" + cliAway + " == item.message))";
+    var awayChecked = awayCheckNet + " or " + awayCheckCli;
+    var areBack = "(cx.network and !" + netAway + ") or " +
+                  "(!cx.network and !" + cliAway + ")";
 
     client.menuSpecs["mainmenu:nickname"] = {
         label: client.prefs["nickname"],
@@ -432,7 +437,7 @@ function initMenus()
         [
          ["nick"],
          ["-"],
-         ["back", {type: "checkbox", checkedif: net + " and !" + netAway}],
+         ["back", {type: "checkbox", checkedif: areBack}],
          ["away", {type: "checkbox",
                      checkedif: awayChecked,
                      repeatfor: "client.awayMsgs",

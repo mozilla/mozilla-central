@@ -1103,6 +1103,12 @@ function my_showtonet (e)
 
             client.ident.removeNetwork(this);
 
+            // Figure out what nick we *really* want:
+            if (this.prefs["away"] && this.prefs["awayNick"])
+                this.preferredNick = this.prefs["awayNick"];
+            else
+                this.preferredNick = this.prefs["nickname"];
+
             str = e.decodeParam(2);
 
             break;
@@ -1158,7 +1164,7 @@ function my_showtonet (e)
             }
 
             // Had some collision during connect.
-            if (this.primServ.me.unicodeName != this.prefs["nickname"])
+            if (this.primServ.me.unicodeName != this.preferredNick)
             {
                 this.reclaimLeft = this.RECLAIM_TIMEOUT;
                 this.reclaimName();
@@ -1842,7 +1848,7 @@ function my_433 (e)
 
         this.INITIAL_NICK = newnick;
         this.display(getMsg(MSG_RETRY_NICK, [nick, newnick]), "433");
-        this.primServ.sendData("NICK " + fromUnicode(newnick, this) + "\n");
+        this.primServ.changeNick(newnick);
     }
     else
     {
@@ -2184,7 +2190,7 @@ function my_reclaimname()
     if ((this.state != NET_ONLINE) || !this.primServ)
         return false;
 
-    if (this.primServ.me.unicodeName == this.prefs["nickname"])
+    if (this.primServ.me.unicodeName != this.preferredNick)
         return false;
 
     this.reclaimLeft -= this.RECLAIM_WAIT;
@@ -2193,7 +2199,7 @@ function my_reclaimname()
         return false;
 
     this.pendingReclaimCheck = true;
-    this.primServ.sendData("NICK " + fromUnicode(this.prefs["nickname"], this) + "\n");
+    this.primServ.changeNick(this.preferredNick);
 
     setTimeout(callback, this.RECLAIM_WAIT);
 

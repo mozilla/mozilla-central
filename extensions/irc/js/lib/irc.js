@@ -769,7 +769,7 @@ function serv_login(nick, name, desc)
     this.me = new CIRCUser(this, nick, null, name);
     if (this.password)
        this.sendData("PASS " + this.password + "\n");
-    this.sendData("NICK " + this.me.encodedName + "\n");
+    this.changeNick(this.me.unicodeName);
     this.sendData("USER " + name + " * * :" +
                   fromUnicode(desc, this) + "\n");
 }
