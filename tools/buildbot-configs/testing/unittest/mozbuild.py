@@ -238,18 +238,11 @@ class MozillaCheck(ShellCommand):
             return WARNINGS
         return SUCCESS
     
-
 class MozillaReftest(ShellCommand):
-    name = "reftest"
     warnOnFailure = True
+    name = "reftest"
     description = ["reftest"]
     descriptionDone = ["reftest complete"]
-    command = ["../../objdir/dist/bin/run-mozilla.sh",
-               "../../objdir/dist/bin/firefox",
-               "-P",
-               "default",
-               "-reftest",
-               "reftest.list"]
    
     def createSummary(self, log):
         testCount = 0
@@ -271,8 +264,8 @@ class MozillaReftest(ShellCommand):
                 knownFailCount += 1
             else:
                 passCount += 1
-        summary = "TinderboxPrint: reftest<br/>" + str(passCount) + "/" + \
-            str(failCount) + "/" + str(knownFailCount) + "\n"
+        summary = "TinderboxPrint: " + self.name + "<br/>" + str(passCount) + \
+            "/" + str(failCount) + "/" + str(knownFailCount) + "\n"
         self.addCompleteLog('summary', summary)
     
     def evaluateCommand(self, cmd):
@@ -283,6 +276,13 @@ class MozillaReftest(ShellCommand):
             return WARNINGS
         return SUCCESS
     
+class MozillaUnixReftest(MozillaReftest):
+    command = ["../../objdir/dist/bin/run-mozilla.sh",
+               "../../objdir/dist/bin/firefox",
+               "-P",
+               "default",
+               "-reftest",
+               "reftest.list"]
 
 class MozillaOSXReftest(MozillaReftest):
     command = ["../../objdir/dist/Minefield.app/Contents/MacOS/firefox",
@@ -293,7 +293,31 @@ class MozillaOSXReftest(MozillaReftest):
                "reftest.list"]
 
 class MozillaWin32Reftest(MozillaReftest):
-    command = ['..\\..\\objdir\\dist\\bin\\firefox.exe -P debug -reftest reftest.list']
+    command = [r'..\..\objdir\dist\bin\firefox.exe -P debug -reftest reftest.list']
+
+class MozillaCrashtest(MozillaReftest):
+    name = "crashtest"
+    description = ["crashtest"]
+    descriptionDone = ["crashtest complete"]
+
+class MozillaUnixCrashtest(MozillaCrashtest):
+    command = ["../../objdir/dist/bin/run-mozilla.sh",
+               "../../objdir/dist/bin/firefox",
+               "-P",
+               "default",
+               "-reftest",
+               "crashtest.list"]
+
+class MozillaOSXCrashtest(MozillaCrashtest):
+    command = ["../../objdir/dist/Minefield.app/Contents/MacOS/firefox",
+               "-console",
+               "-P",
+               "default",
+               "-reftest",
+               "crashtest.list"]
+
+class MozillaWin32Crashtest(MozillaCrashtest):
+    command = [r'..\..\objdir\dist\bin\firefox.exe -P debug -reftest crashtest.list']
 
 class MozillaMochitest(ShellCommand):
     name = "mochitest"
