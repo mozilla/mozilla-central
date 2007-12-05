@@ -94,16 +94,19 @@ pkix_VerifyNode_Create(
         PKIX_INCREF(cert);
         node->verifyCert = cert;
 
-        node->depth = depth;
-
         PKIX_INCREF(error);
         node->error = error;
+
+        node->depth = depth;
 
         node->children = NULL;
 
         *pObject = node;
+        node = NULL;
 
 cleanup:
+
+        PKIX_DECREF(node);
 
         PKIX_RETURN(VERIFYNODE);
 }
