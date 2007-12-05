@@ -308,12 +308,10 @@ pkix_ForwardBuilderState_Create(
         }
 
         *pState = state;
-
+        state = NULL;
 cleanup:
-
-        if (PKIX_ERROR_RECEIVED) {
-                PKIX_DECREF(state);
-        }
+        
+        PKIX_DECREF(state);
 
         PKIX_RETURN(FORWARDBUILDERSTATE);
 }
@@ -3855,12 +3853,14 @@ pkix_Build_InitiateBuildChain(
                         goto cleanup;
                     }
                     if (pVerifyNode != NULL) {
-                            pkixTempResult =
+                            PKIX_Error *tempResult =
                                 pkix_VerifyNode_Create(targetCert, 0,
                                                        pkixErrorResult,
                                                        pVerifyNode,
                                                        plContext);
-                            if (pkixTempResult) {
+                            if (tempResult) {
+                                PKIX_DECREF(pkixErrorResult);
+                                pkixErrorResult = tempResult;
                                 pkixErrorCode = PKIX_VERIFYNODECREATEFAILED;
                                 pkixErrorClass = PKIX_FATAL_ERROR;
                                 goto cleanup;
@@ -4019,11 +4019,12 @@ pkix_Build_InitiateBuildChain(
             }
 
             if (pVerifyNode != NULL) {
-                pkixTempResult =
+                PKIX_Error *tempResult =
                     pkix_VerifyNode_Create(targetCert, 0, NULL,
                                            &(state->verifyNode),
                                            plContext);
-                if (pkixTempResult) {
+                if (tempResult) {
+                    pkixErrorResult = tempResult;
                     pkixErrorCode = PKIX_VERIFYNODECREATEFAILED;
                     pkixErrorClass = PKIX_FATAL_ERROR;
                     goto cleanup;
