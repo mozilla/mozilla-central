@@ -101,11 +101,37 @@ pkix_pl_Pk11CertStore_CheckTrust(
         }
 
         if (rv == SECSuccess) {
-                unsigned int certFlags;
+            unsigned int certFlags;
+
+            if (certUsage != certUsageAnyCA &&
+                certUsage != certUsageStatusResponder) {
+                CERTCertificate *nssCert = cert->nssCert;
+                
+                if (certUsage == certUsageVerifyCA) {
+                    if (nssCert->nsCertType & NS_CERT_TYPE_EMAIL_CA) {
+                        trustType = trustEmail;
+                    } else if (nssCert->nsCertType & NS_CERT_TYPE_SSL_CA) {
+                        trustType = trustSSL;
+                    } else {
+                        trustType = trustObjectSigning;
+                    }
+                }
+                
                 certFlags = SEC_GET_TRUST_FLAGS((&trust), trustType);
                 if ((certFlags & requiredFlags) == requiredFlags) {
-                        trusted = PKIX_TRUE;
+                    trusted = PKIX_TRUE;
                 }
+            } else {
+                for (trustType = trustSSL; trustType < trustTypeNone;
+                     trustType++) {
+                    certFlags =
+                        SEC_GET_TRUST_FLAGS((&trust), trustType);
+                    if ((certFlags & requiredFlags) == requiredFlags) {
+                        trusted = PKIX_TRUE;
+                        break;
+                    }
+                }
+            }
         }
 
         *pTrusted = trusted;

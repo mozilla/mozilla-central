@@ -492,7 +492,6 @@ cert_VerifyCertChainOld(CERTCertDBHandle *handle, CERTCertificate *cert,
     int count;
     int currentPathLen = 0;
     int pathLengthLimit = CERT_UNLIMITED_PATH_CONSTRAINT;
-    int flags;
     unsigned int caCertType;
     unsigned int requiredCAKeyUsage;
     unsigned int requiredFlags;
@@ -730,36 +729,49 @@ cert_VerifyCertChainOld(CERTCertDBHandle *handle, CERTCertificate *cert,
 	     * explicitly UNtrusted.  We won't know until we examine the
 	     * trust bits.
 	     */
-	    if (certUsage == certUsageStatusResponder) {
-		/* XXX NSS has done this for years, but it seems incorrect. */
-		rv = rvFinal;
-		goto done;
-	    }
+	    unsigned int flags;
 
-	    /*
-	     * check the trust parms of the issuer
-	     */
-	    if ( certUsage == certUsageVerifyCA ) {
-		if ( subjectCert->nsCertType & NS_CERT_TYPE_EMAIL_CA ) {
-		    trustType = trustEmail;
-		} else if ( subjectCert->nsCertType & NS_CERT_TYPE_SSL_CA ) {
-		    trustType = trustSSL;
-		} else {
-		    trustType = trustObjectSigning;
-		}
-	    }
-	    
-	    flags = SEC_GET_TRUST_FLAGS(issuerCert->trust, trustType);
-	    
-	    if (flags & CERTDB_VALID_CA) {
-		if ( ( flags & requiredFlags ) == requiredFlags) {
-		    /* we found a trusted one, so return */
-		    rv = rvFinal; 
-		    goto done;
-		}
-		validCAOverride = PR_TRUE;
-	    }
-	}
+	    if (certUsage != certUsageAnyCA &&
+	        certUsage != certUsageStatusResponder) {
+
+	        /*
+	         * check the trust parms of the issuer
+	         */
+	        if ( certUsage == certUsageVerifyCA ) {
+	            if ( subjectCert->nsCertType & NS_CERT_TYPE_EMAIL_CA ) {
+	                trustType = trustEmail;
+	            } else if ( subjectCert->nsCertType & NS_CERT_TYPE_SSL_CA ) {
+	                trustType = trustSSL;
+	            } else {
+	                trustType = trustObjectSigning;
+	            }
+	        }
+
+	        flags = SEC_GET_TRUST_FLAGS(issuerCert->trust, trustType);
+
+	        if (flags & CERTDB_VALID_CA) {
+	            if ( ( flags & requiredFlags ) == requiredFlags) {
+	                /* we found a trusted one, so return */
+	                rv = rvFinal; 
+	                goto done;
+	            }
+	            validCAOverride = PR_TRUE;
+	        }
+	    } else {
+                /* Check if we have any valid trust when cheching for
+                 * certUsageAnyCA or certUsageStatusResponder. */
+                for (trustType = trustSSL; trustType < trustTypeNone;
+                     trustType++) {
+                    flags = SEC_GET_TRUST_FLAGS(issuerCert->trust, trustType);
+                    if ((flags & requiredFlags) == requiredFlags) {
+	                rv = rvFinal; 
+	                goto done;
+                    }
+                    if (flags & CERTDB_VALID_CA)
+                        validCAOverride = PR_TRUE;
+                }
+            }
+        }
 
 	if (!validCAOverride) {
 	    /*
