@@ -29,6 +29,7 @@ preferences :
   browser.dom.window.dump.enabled: true
   network.proxy.type : 1
   network.proxy.http : localhost
+  network.proxy.share_proxy_settings : true
   network.proxy.http_port : 80
   dom.disable_window_flip : true
   dom.disable_window_move_resize : true
