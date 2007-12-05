@@ -228,6 +228,7 @@ pref("signon.rememberSignons",              true);
 pref("signon.expireMasterPassword",         false);
 pref("signon.SignonFileName",               "signons.txt");
 pref("signon.SignonFileName2",              "signons2.txt");
+pref("signon.SignonFileName3",              "signons3.txt");
 
 pref("browser.hiddenWindowChromeURL", "chrome://messenger/content/hiddenWindow.xul");
 
