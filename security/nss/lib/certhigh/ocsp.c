@@ -39,7 +39,7 @@
  * Implementation of OCSP services, for both client and server.
  * (XXX, really, mostly just for client right now, but intended to do both.)
  *
- * $Id: ocsp.c,v 1.44 2007-10-12 01:44:41 julien.pierre.boogz%sun.com Exp $
+ * $Id: ocsp.c,v 1.45 2007-12-05 07:41:19 kaie%kuix.de Exp $
  */
 
 #include "prerror.h"
@@ -72,6 +72,7 @@
 #define DEFAULT_OCSP_CACHE_SIZE 1000
 #define DEFAULT_MINIMUM_SECONDS_TO_NEXT_OCSP_FETCH_ATTEMPT 1*60*60L
 #define DEFAULT_MAXIMUM_SECONDS_TO_NEXT_OCSP_FETCH_ATTEMPT 24*60*60L
+#define DEFAULT_OSCP_TIMEOUT_SECONDS 60
 #define MICROSECONDS_PER_SECOND 1000000L
 
 typedef struct OCSPCacheItemStr OCSPCacheItem;
@@ -112,6 +113,7 @@ static struct OCSPGlobalStruct {
     PRInt32 maxCacheEntries;
     PRUint32 minimumSecondsToNextFetchAttempt;
     PRUint32 maximumSecondsToNextFetchAttempt;
+    PRUint32 timeoutSeconds;
     OCSPCacheData cache;
     SEC_OcspFailureMode ocspFailureMode;
 } OCSP_Global = { NULL, 
@@ -119,6 +121,7 @@ static struct OCSPGlobalStruct {
                   DEFAULT_OCSP_CACHE_SIZE, 
                   DEFAULT_MINIMUM_SECONDS_TO_NEXT_OCSP_FETCH_ATTEMPT,
                   DEFAULT_MAXIMUM_SECONDS_TO_NEXT_OCSP_FETCH_ATTEMPT,
+                  DEFAULT_OSCP_TIMEOUT_SECONDS,
                   {NULL, 0, NULL, NULL},
                   ocspMode_FailureIsVerificationFailure
                 };
@@ -833,6 +836,14 @@ CERT_OCSPCacheSettings(PRInt32 maxCacheEntries,
     ocsp_CheckCacheSize(&OCSP_Global.cache);
   
     PR_ExitMonitor(OCSP_Global.monitor);
+    return SECSuccess;
+}
+
+SECStatus
+CERT_SetOCSPTimeout(PRUint32 seconds)
+{
+    /* no locking, see bug 406120 */
+    OCSP_Global.timeoutSeconds = seconds;
     return SECSuccess;
 }
 
@@ -3245,6 +3256,7 @@ fetchOcspHttpClientV1(PRArenaPool *arena,
        - the client will use blocking I/O
        - TryFcn will not return WOULD_BLOCK nor a poll descriptor
        - it's sufficient to call TryFcn once
+       No lock for accessing OCSP_Global.timeoutSeconds, bug 406120
     */
 
     if ((*hcv1->createFcn)(
@@ -3252,7 +3264,7 @@ fetchOcspHttpClientV1(PRArenaPool *arena,
             "http",
             path,
             "POST",
-            PR_TicksPerSecond() * 60,
+            PR_TicksPerSecond() * OCSP_Global.timeoutSeconds,
             &pRequestSession) != SECSuccess) {
         PORT_SetError(SEC_ERROR_OCSP_SERVER_ERROR);
         goto loser;

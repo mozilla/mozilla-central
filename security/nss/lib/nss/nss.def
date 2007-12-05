@@ -914,6 +914,7 @@ CERT_EncodeUserNotice;
 CERT_FindCRLEntryReasonExten;
 CERT_FindCRLNumberExten;
 CERT_FindNameConstraintsExten;
+CERT_SetOCSPTimeout;
 CERT_PKIXVerifyCert;
 PK11_CreateGenericObject;
 PK11_GenerateKeyPairWithOpFlags;
