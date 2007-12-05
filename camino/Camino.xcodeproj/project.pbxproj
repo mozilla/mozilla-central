@@ -77,14 +77,6 @@
 		0E6A98A2097E00A6007962C1 /* mathml.css in Copy Gecko Resources */ = {isa = PBXBuildFile; fileRef = 0E6A9886097DFFD4007962C1 /* mathml.css */; };
 		0E6A98A3097E00BB007962C1 /* mathml.dtd in Copy Gecko DTDs */ = {isa = PBXBuildFile; fileRef = 0E6A9888097DFFF4007962C1 /* mathml.dtd */; };
 		0E6A98A9097E010C007962C1 /* mathfont.properties in Copy Gecko Fonts */ = {isa = PBXBuildFile; fileRef = 0E6A988E097E0044007962C1 /* mathfont.properties */; };
-		0E6A98AA097E010C007962C1 /* mathfontCMEX10.properties in Copy Gecko Fonts */ = {isa = PBXBuildFile; fileRef = 0E6A988F097E0044007962C1 /* mathfontCMEX10.properties */; };
-		0E6A98AB097E010C007962C1 /* mathfontCMSY10.properties in Copy Gecko Fonts */ = {isa = PBXBuildFile; fileRef = 0E6A9890097E0044007962C1 /* mathfontCMSY10.properties */; };
-		0E6A98AC097E010C007962C1 /* mathfontMath1.properties in Copy Gecko Fonts */ = {isa = PBXBuildFile; fileRef = 0E6A9891097E0044007962C1 /* mathfontMath1.properties */; };
-		0E6A98AD097E010C007962C1 /* mathfontMath2.properties in Copy Gecko Fonts */ = {isa = PBXBuildFile; fileRef = 0E6A9892097E0044007962C1 /* mathfontMath2.properties */; };
-		0E6A98AE097E010C007962C1 /* mathfontMath4.properties in Copy Gecko Fonts */ = {isa = PBXBuildFile; fileRef = 0E6A9893097E0044007962C1 /* mathfontMath4.properties */; };
-		0E6A98AF097E010C007962C1 /* mathfontMTExtra.properties in Copy Gecko Fonts */ = {isa = PBXBuildFile; fileRef = 0E6A9894097E0044007962C1 /* mathfontMTExtra.properties */; };
-		0E6A98B0097E010C007962C1 /* mathfontPUA.properties in Copy Gecko Fonts */ = {isa = PBXBuildFile; fileRef = 0E6A9895097E0044007962C1 /* mathfontPUA.properties */; };
-		0E6A98B1097E010C007962C1 /* mathfontSymbol.properties in Copy Gecko Fonts */ = {isa = PBXBuildFile; fileRef = 0E6A9896097E0044007962C1 /* mathfontSymbol.properties */; };
 		0F01117408F2FE7C00423C02 /* bm_separator.tiff in Resources */ = {isa = PBXBuildFile; fileRef = 0F01117308F2FE7C00423C02 /* bm_separator.tiff */; };
 		0F01117508F2FE7C00423C02 /* bm_separator.tiff in Resources */ = {isa = PBXBuildFile; fileRef = 0F01117308F2FE7C00423C02 /* bm_separator.tiff */; };
 		0F07686A0927B09E00E1BD6F /* SiteIconCache.mm in Sources */ = {isa = PBXBuildFile; fileRef = 0FEA7DE30926BC0C00B06154 /* SiteIconCache.mm */; };
@@ -1193,14 +1185,6 @@
 		4DD0EFF709918B3200B6BBFD /* mathml.css in Copy Gecko Resources */ = {isa = PBXBuildFile; fileRef = 0E6A9886097DFFD4007962C1 /* mathml.css */; };
 		4DD0EFF809918BCF00B6BBFD /* mathml.dtd in Copy Gecko DTDs */ = {isa = PBXBuildFile; fileRef = 0E6A9888097DFFF4007962C1 /* mathml.dtd */; };
 		4DD0F00109918C2300B6BBFD /* mathfont.properties in Copy Gecko Fonts */ = {isa = PBXBuildFile; fileRef = 0E6A988E097E0044007962C1 /* mathfont.properties */; };
-		4DD0F00209918C2300B6BBFD /* mathfontCMEX10.properties in Copy Gecko Fonts */ = {isa = PBXBuildFile; fileRef = 0E6A988F097E0044007962C1 /* mathfontCMEX10.properties */; };
-		4DD0F00309918C2300B6BBFD /* mathfontCMSY10.properties in Copy Gecko Fonts */ = {isa = PBXBuildFile; fileRef = 0E6A9890097E0044007962C1 /* mathfontCMSY10.properties */; };
-		4DD0F00409918C2300B6BBFD /* mathfontMath1.properties in Copy Gecko Fonts */ = {isa = PBXBuildFile; fileRef = 0E6A9891097E0044007962C1 /* mathfontMath1.properties */; };
-		4DD0F00509918C2300B6BBFD /* mathfontMath2.properties in Copy Gecko Fonts */ = {isa = PBXBuildFile; fileRef = 0E6A9892097E0044007962C1 /* mathfontMath2.properties */; };
-		4DD0F00609918C2300B6BBFD /* mathfontMath4.properties in Copy Gecko Fonts */ = {isa = PBXBuildFile; fileRef = 0E6A9893097E0044007962C1 /* mathfontMath4.properties */; };
-		4DD0F00709918C2300B6BBFD /* mathfontMTExtra.properties in Copy Gecko Fonts */ = {isa = PBXBuildFile; fileRef = 0E6A9894097E0044007962C1 /* mathfontMTExtra.properties */; };
-		4DD0F00809918C2300B6BBFD /* mathfontPUA.properties in Copy Gecko Fonts */ = {isa = PBXBuildFile; fileRef = 0E6A9895097E0044007962C1 /* mathfontPUA.properties */; };
-		4DD0F00909918C2300B6BBFD /* mathfontSymbol.properties in Copy Gecko Fonts */ = {isa = PBXBuildFile; fileRef = 0E6A9896097E0044007962C1 /* mathfontSymbol.properties */; };
 		4DD988E708EB7D3700AD0788 /* dl_trash.tif in Resources */ = {isa = PBXBuildFile; fileRef = 34D112DD08E9B17400989FD5 /* dl_trash.tif */; };
 		506770F70C823B090050EF73 /* CHSelectHandler.mm in Sources */ = {isa = PBXBuildFile; fileRef = 506770F60C823B090050EF73 /* CHSelectHandler.mm */; };
 		506770F80C823B090050EF73 /* CHSelectHandler.mm in Sources */ = {isa = PBXBuildFile; fileRef = 506770F60C823B090050EF73 /* CHSelectHandler.mm */; };
@@ -1281,6 +1265,14 @@
 		DE1BDD270AD4E13000F0C7BD /* tab_scroll_button_right.tif in Resources */ = {isa = PBXBuildFile; fileRef = DE1BDD230AD4E13000F0C7BD /* tab_scroll_button_right.tif */; };
 		DE1E11C00C28C92B00CD6DD4 /* effective_tld_names.dat in Copy Gecko Resources */ = {isa = PBXBuildFile; fileRef = DE1E11BF0C28C92B00CD6DD4 /* effective_tld_names.dat */; };
 		DE1E11C10C28C92B00CD6DD4 /* effective_tld_names.dat in Copy Gecko Resources */ = {isa = PBXBuildFile; fileRef = DE1E11BF0C28C92B00CD6DD4 /* effective_tld_names.dat */; };
+		DE1EBDBE0D066F5100BE9ECC /* mathfontUnicode.properties in Copy Gecko Fonts */ = {isa = PBXBuildFile; fileRef = DE1EBDBA0D066F5100BE9ECC /* mathfontUnicode.properties */; };
+		DE1EBDBF0D066F5100BE9ECC /* mathfontSTIXSize1.properties in Copy Gecko Fonts */ = {isa = PBXBuildFile; fileRef = DE1EBDBB0D066F5100BE9ECC /* mathfontSTIXSize1.properties */; };
+		DE1EBDC00D066F5100BE9ECC /* mathfontSTIXNonUnicode.properties in Copy Gecko Fonts */ = {isa = PBXBuildFile; fileRef = DE1EBDBC0D066F5100BE9ECC /* mathfontSTIXNonUnicode.properties */; };
+		DE1EBDC10D066F5100BE9ECC /* mathfontStandardSymbolsL.properties in Copy Gecko Fonts */ = {isa = PBXBuildFile; fileRef = DE1EBDBD0D066F5100BE9ECC /* mathfontStandardSymbolsL.properties */; };
+		DE1EBDC20D066F5100BE9ECC /* mathfontUnicode.properties in Copy Gecko Fonts */ = {isa = PBXBuildFile; fileRef = DE1EBDBA0D066F5100BE9ECC /* mathfontUnicode.properties */; };
+		DE1EBDC30D066F5100BE9ECC /* mathfontSTIXSize1.properties in Copy Gecko Fonts */ = {isa = PBXBuildFile; fileRef = DE1EBDBB0D066F5100BE9ECC /* mathfontSTIXSize1.properties */; };
+		DE1EBDC40D066F5100BE9ECC /* mathfontSTIXNonUnicode.properties in Copy Gecko Fonts */ = {isa = PBXBuildFile; fileRef = DE1EBDBC0D066F5100BE9ECC /* mathfontSTIXNonUnicode.properties */; };
+		DE1EBDC50D066F5100BE9ECC /* mathfontStandardSymbolsL.properties in Copy Gecko Fonts */ = {isa = PBXBuildFile; fileRef = DE1EBDBD0D066F5100BE9ECC /* mathfontStandardSymbolsL.properties */; };
 		DE62E4300B72B3D200142851 /* libauth.dylib in Copy Component Libraries */ = {isa = PBXBuildFile; fileRef = DE62E42F0B72B3D200142851 /* libauth.dylib */; };
 		DE62E4320B72B50C00142851 /* libauth.a in Frameworks */ = {isa = PBXBuildFile; fileRef = DE62E4310B72B50C00142851 /* libauth.a */; };
 		DE6D27E40C1A013800292043 /* CHPermissionManager.h in Headers */ = {isa = PBXBuildFile; fileRef = DE6D27E30C1A013800292043 /* CHPermissionManager.h */; };
@@ -1600,14 +1592,10 @@
 			dstSubfolderSpec = 6;
 			files = (
 				0E6A98A9097E010C007962C1 /* mathfont.properties in Copy Gecko Fonts */,
-				0E6A98AA097E010C007962C1 /* mathfontCMEX10.properties in Copy Gecko Fonts */,
-				0E6A98AB097E010C007962C1 /* mathfontCMSY10.properties in Copy Gecko Fonts */,
-				0E6A98AC097E010C007962C1 /* mathfontMath1.properties in Copy Gecko Fonts */,
-				0E6A98AD097E010C007962C1 /* mathfontMath2.properties in Copy Gecko Fonts */,
-				0E6A98AE097E010C007962C1 /* mathfontMath4.properties in Copy Gecko Fonts */,
-				0E6A98AF097E010C007962C1 /* mathfontMTExtra.properties in Copy Gecko Fonts */,
-				0E6A98B0097E010C007962C1 /* mathfontPUA.properties in Copy Gecko Fonts */,
-				0E6A98B1097E010C007962C1 /* mathfontSymbol.properties in Copy Gecko Fonts */,
+				DE1EBDC10D066F5100BE9ECC /* mathfontStandardSymbolsL.properties in Copy Gecko Fonts */,
+				DE1EBDC00D066F5100BE9ECC /* mathfontSTIXNonUnicode.properties in Copy Gecko Fonts */,
+				DE1EBDBF0D066F5100BE9ECC /* mathfontSTIXSize1.properties in Copy Gecko Fonts */,
+				DE1EBDBE0D066F5100BE9ECC /* mathfontUnicode.properties in Copy Gecko Fonts */,
 			);
 			name = "Copy Gecko Fonts";
 			runOnlyForDeploymentPostprocessing = 0;
@@ -2333,14 +2321,10 @@
 			dstSubfolderSpec = 6;
 			files = (
 				4DD0F00109918C2300B6BBFD /* mathfont.properties in Copy Gecko Fonts */,
-				4DD0F00209918C2300B6BBFD /* mathfontCMEX10.properties in Copy Gecko Fonts */,
-				4DD0F00309918C2300B6BBFD /* mathfontCMSY10.properties in Copy Gecko Fonts */,
-				4DD0F00409918C2300B6BBFD /* mathfontMath1.properties in Copy Gecko Fonts */,
-				4DD0F00509918C2300B6BBFD /* mathfontMath2.properties in Copy Gecko Fonts */,
-				4DD0F00609918C2300B6BBFD /* mathfontMath4.properties in Copy Gecko Fonts */,
-				4DD0F00709918C2300B6BBFD /* mathfontMTExtra.properties in Copy Gecko Fonts */,
-				4DD0F00809918C2300B6BBFD /* mathfontPUA.properties in Copy Gecko Fonts */,
-				4DD0F00909918C2300B6BBFD /* mathfontSymbol.properties in Copy Gecko Fonts */,
+				DE1EBDC50D066F5100BE9ECC /* mathfontStandardSymbolsL.properties in Copy Gecko Fonts */,
+				DE1EBDC40D066F5100BE9ECC /* mathfontSTIXNonUnicode.properties in Copy Gecko Fonts */,
+				DE1EBDC30D066F5100BE9ECC /* mathfontSTIXSize1.properties in Copy Gecko Fonts */,
+				DE1EBDC20D066F5100BE9ECC /* mathfontUnicode.properties in Copy Gecko Fonts */,
 			);
 			name = "Copy Gecko Fonts";
 			runOnlyForDeploymentPostprocessing = 0;
@@ -2447,14 +2431,6 @@
 		0E6A9886097DFFD4007962C1 /* mathml.css */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = text; name = mathml.css; path = ../dist/Embed/res/mathml.css; sourceTree = SOURCE_ROOT; };
 		0E6A9888097DFFF4007962C1 /* mathml.dtd */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = text.xml; path = mathml.dtd; sourceTree = "<group>"; };
 		0E6A988E097E0044007962C1 /* mathfont.properties */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = text; path = mathfont.properties; sourceTree = "<group>"; };
-		0E6A988F097E0044007962C1 /* mathfontCMEX10.properties */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = text; path = mathfontCMEX10.properties; sourceTree = "<group>"; };
-		0E6A9890097E0044007962C1 /* mathfontCMSY10.properties */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = text; path = mathfontCMSY10.properties; sourceTree = "<group>"; };
-		0E6A9891097E0044007962C1 /* mathfontMath1.properties */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = text; path = mathfontMath1.properties; sourceTree = "<group>"; };
-		0E6A9892097E0044007962C1 /* mathfontMath2.properties */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = text; path = mathfontMath2.properties; sourceTree = "<group>"; };
-		0E6A9893097E0044007962C1 /* mathfontMath4.properties */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = text; path = mathfontMath4.properties; sourceTree = "<group>"; };
-		0E6A9894097E0044007962C1 /* mathfontMTExtra.properties */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = text; path = mathfontMTExtra.properties; sourceTree = "<group>"; };
-		0E6A9895097E0044007962C1 /* mathfontPUA.properties */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = text; path = mathfontPUA.properties; sourceTree = "<group>"; };
-		0E6A9896097E0044007962C1 /* mathfontSymbol.properties */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = text; path = mathfontSymbol.properties; sourceTree = "<group>"; };
 		0F01117308F2FE7C00423C02 /* bm_separator.tiff */ = {isa = PBXFileReference; lastKnownFileType = image.tiff; name = bm_separator.tiff; path = chrome/bm_separator.tiff; sourceTree = "<group>"; };
 		0F08FB1408D37DA90022DD45 /* NSWorkspace+Utils.h */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.c.h; name = "NSWorkspace+Utils.h"; path = "src/extensions/NSWorkspace+Utils.h"; sourceTree = "<group>"; };
 		0F08FB1708D37DB30022DD45 /* NSWorkspace+Utils.m */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.c.objc; name = "NSWorkspace+Utils.m"; path = "src/extensions/NSWorkspace+Utils.m"; sourceTree = "<group>"; };
@@ -2751,6 +2727,10 @@
 		DE1BDD220AD4E13000F0C7BD /* tab_scroll_button_left.tif */ = {isa = PBXFileReference; lastKnownFileType = image.tiff; name = tab_scroll_button_left.tif; path = resources/images/chrome/tab_scroll_button_left.tif; sourceTree = SOURCE_ROOT; };
 		DE1BDD230AD4E13000F0C7BD /* tab_scroll_button_right.tif */ = {isa = PBXFileReference; lastKnownFileType = image.tiff; name = tab_scroll_button_right.tif; path = resources/images/chrome/tab_scroll_button_right.tif; sourceTree = SOURCE_ROOT; };
 		DE1E11BF0C28C92B00CD6DD4 /* effective_tld_names.dat */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; name = effective_tld_names.dat; path = ../dist/Embed/res/effective_tld_names.dat; sourceTree = SOURCE_ROOT; };
+		DE1EBDBA0D066F5100BE9ECC /* mathfontUnicode.properties */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = text; name = mathfontUnicode.properties; path = ../dist/bin/res/fonts/mathfontUnicode.properties; sourceTree = SOURCE_ROOT; };
+		DE1EBDBB0D066F5100BE9ECC /* mathfontSTIXSize1.properties */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = text; name = mathfontSTIXSize1.properties; path = ../dist/bin/res/fonts/mathfontSTIXSize1.properties; sourceTree = SOURCE_ROOT; };
+		DE1EBDBC0D066F5100BE9ECC /* mathfontSTIXNonUnicode.properties */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = text; name = mathfontSTIXNonUnicode.properties; path = ../dist/bin/res/fonts/mathfontSTIXNonUnicode.properties; sourceTree = SOURCE_ROOT; };
+		DE1EBDBD0D066F5100BE9ECC /* mathfontStandardSymbolsL.properties */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = text; name = mathfontStandardSymbolsL.properties; path = ../dist/bin/res/fonts/mathfontStandardSymbolsL.properties; sourceTree = SOURCE_ROOT; };
 		DE62E42F0B72B3D200142851 /* libauth.dylib */ = {isa = PBXFileReference; lastKnownFileType = "compiled.mach-o.bundle"; name = libauth.dylib; path = ../dist/bin/components/libauth.dylib; sourceTree = SOURCE_ROOT; };
 		DE62E4310B72B50C00142851 /* libauth.a */ = {isa = PBXFileReference; lastKnownFileType = archive.ar; name = libauth.a; path = ../staticlib/components/libauth.a; sourceTree = SOURCE_ROOT; };
 		DE6D27E30C1A013800292043 /* CHPermissionManager.h */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.c.h; name = CHPermissionManager.h; path = src/embedding/CHPermissionManager.h; sourceTree = "<group>"; };
@@ -3448,14 +3428,10 @@
 			isa = PBXGroup;
 			children = (
 				0E6A988E097E0044007962C1 /* mathfont.properties */,
-				0E6A988F097E0044007962C1 /* mathfontCMEX10.properties */,
-				0E6A9890097E0044007962C1 /* mathfontCMSY10.properties */,
-				0E6A9891097E0044007962C1 /* mathfontMath1.properties */,
-				0E6A9892097E0044007962C1 /* mathfontMath2.properties */,
-				0E6A9893097E0044007962C1 /* mathfontMath4.properties */,
-				0E6A9894097E0044007962C1 /* mathfontMTExtra.properties */,
-				0E6A9895097E0044007962C1 /* mathfontPUA.properties */,
-				0E6A9896097E0044007962C1 /* mathfontSymbol.properties */,
+				DE1EBDBD0D066F5100BE9ECC /* mathfontStandardSymbolsL.properties */,
+				DE1EBDBB0D066F5100BE9ECC /* mathfontSTIXSize1.properties */,
+				DE1EBDBC0D066F5100BE9ECC /* mathfontSTIXNonUnicode.properties */,
+				DE1EBDBA0D066F5100BE9ECC /* mathfontUnicode.properties */,
 			);
 			name = fonts;
 			path = ../dist/Embed/res/fonts;
