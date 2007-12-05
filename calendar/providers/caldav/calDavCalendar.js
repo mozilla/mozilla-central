@@ -64,7 +64,7 @@ function calDavCalendar() {
     this.mUriParams = null;
     this.mItemInfoCache = [];
     this.mDisabled = false;
-    this.mPrincipalUrl = null;
+    this.mCalHomeSet = null;
     this.mPrincipalsNS = null;
     this.mInBoxUrl = null;
     this.mOutBoxUrl = null;
@@ -194,13 +194,13 @@ calDavCalendar.prototype = {
         return calUri;
     },
 
-    // we need to be able to locate the principal-URL of the calendar
+    // we need to be able to locate the calendar-home-set of the calendar
     // in order to get certain properties, but there currently is no reliable
     // way to do this programatically that works with different server
     // implementations. So provisionally we assume the 99% case, where the
-    // calendar's principal-URL is the immediate parent of the calendar itself
+    // calendar's calendar-home-set is the immediate parent of the calendar itself
 
-    setPrincipalUrl: function caldav_setPrincipalUrl() {
+    setCalHomeSet: function caldav_setCalHomeSet() {
         var calUri = this.mUri.clone();
         var split1 = calUri.spec.split('?');
         var baseUrl = split1[0];
@@ -210,7 +210,7 @@ calDavCalendar.prototype = {
         var split2 = baseUrl.split('/');
         split2.pop();
         calUri.spec = split2.join('/') + '/';
-        this.mPrincipalUrl = calUri;
+        this.mCalHomeSet = calUri;
     },
 
     mOutBoxUrl:  null,
@@ -1374,7 +1374,7 @@ calDavCalendar.prototype = {
             // we've authenticated in the process of PROPFINDing and can flush
             // the getItems request queue
             thisCalendar.mAuthenticationStatus = kCaldavFreshlyAuthenticated;
-            thisCalendar.setPrincipalUrl();
+            thisCalendar.setCalHomeSet();
             thisCalendar.checkServerCaps();
 
         }
@@ -1426,10 +1426,10 @@ calDavCalendar.prototype = {
      */
     checkServerCaps: function caldav_checkServerCaps() {
 
-        var principalUri = this.mPrincipalUrl.clone();
+        var homeSet = this.mCalHomeSet.clone();
         var thisCalendar = this;
 
-        var httpchannel = this.prepChannel(principalUri, null, null);
+        var httpchannel = this.prepChannel(homeSet, null, null);
 
         httpchannel.requestMethod = "OPTIONS";
 
@@ -1446,7 +1446,7 @@ calDavCalendar.prototype = {
                 // if another calendar with the same principal-URL has already
                 // done so
                 getFreeBusyService().addProvider(thisCalendar);
-                thisCalendar.findInOutBoxes();
+                thisCalendar.findPrincipalNS();
             } else {
                 LOG("Server does not support CalDAV scheduling.");
                 if (thisCalendar.mAuthenticationStatus == kCaldavFreshlyAuthenticated
@@ -1470,26 +1470,24 @@ calDavCalendar.prototype = {
     },
 
     /**
-     * Checks the principal-url to find scheduling in- and out- boxes
-     * and the principal namespace
+     * Locates the principal namespace
      */
-    findInOutBoxes: function caldav_findInOutBoxes() {
+    findPrincipalNS: function caldav_findPrincipalNS() {
 
-        var principalUri = this.mPrincipalUrl.clone();
+        var homeSet = this.mCalHomeSet.clone();
         var thisCalendar = this;
 
         var D = new Namespace("D", "DAV:");
         var queryXml = <D:propfind xmlns:D="DAV:">
                     <D:prop>
-                      <D:resourcetype/>
                       <D:principal-collection-set/>
                     </D:prop>
                   </D:propfind>
 
-        var httpchannel = this.prepChannel(principalUri, queryXml,
+        var httpchannel = this.prepChannel(homeSet, queryXml,
                                            "text/xml; charset=utf-8");
 
-        httpchannel.setRequestHeader("Depth", "1", false);
+        httpchannel.setRequestHeader("Depth", "0", false);
         httpchannel.requestMethod = "PROPFIND";
 
         var streamListener = {};
@@ -1506,33 +1504,13 @@ calDavCalendar.prototype = {
             try {
                 str = resultConverter.convertFromByteArray(aResult, aResultLength);
             } catch(e) {
-                LOG("Failed to propstat principal uri");
+                LOG("Failed to propstat principal namespace");
             }
             str = str.substring(str.indexOf('\n'));
             var multistatus = new XML(str);
-
-            for (var i = 0; i < multistatus.*.length(); i++) {
-                var response = new XML(multistatus.*[i]);
-                if (!thisCalendar.mPrincipalsNS) {
-                    var principalsNameSpace =
-                        response..D::propstat..D::prop..D::href;
-                    var pnsUri = thisCalendar.mUri.clone();
-                    pnsUri.path = principalsNameSpace;
-                    thisCalendar.mPrincipalsNS = pnsUri;
-                }
-                var href = response..D::href[0];
-                var ob = response..D::propstat..D::prop..D::resourcetype;
-                if (ob.toString().indexOf('schedule-inbox') != -1) {
-                    var obUri = thisCalendar.mUri.clone();
-                    obUri.path = response..D::href[0];
-                    thisCalendar.mInBoxUrl = obUri;
-                }
-                if (ob.toString().indexOf('schedule-outbox') != -1) {
-                    var obUri = thisCalendar.mUri.clone();
-                    obUri.path = response..D::href[0];
-                    thisCalendar.mOutBoxUrl = obUri;
-                }
-            }
+            var pnsUri = thisCalendar.mUri.clone();
+            pnsUri.path = multistatus..D::["principal-collection-set"]..D::href;
+            thisCalendar.mPrincipalsNS = pnsUri;
             thisCalendar.checkPrincipalsNameSpace();
         }
 
@@ -1549,14 +1527,14 @@ calDavCalendar.prototype = {
     },
 
     /**
-     * Checks the principal namespace to find to find user URL for scheduling
+     * Checks the principals namespace for scheduling info
      */
     checkPrincipalsNameSpace: function caldav_cPNS() {
 
         var pns = this.mPrincipalsNS.clone();
         var thisCalendar = this;
 
-        var homePath = this.mPrincipalUrl.path;
+        var homePath = this.mCalHomeSet.path;
         if (homePath.charAt(homePath.length-1) == '/') {
             homePath = homePath.substr(0, homePath.length-1);
         }
@@ -1574,7 +1552,10 @@ calDavCalendar.prototype = {
                 <D:match>{homePath}</D:match>
             </D:property-search>
                 <D:prop>
+                    <C:calendar-home-set/>
                     <C:calendar-user-address-set/>
+                    <C:schedule-inbox-URL/>
+                    <C:schedule-outbox-URL/>
                 </D:prop>
             </D:principal-property-search>;
 
@@ -1606,16 +1587,37 @@ calDavCalendar.prototype = {
                 LOG("Failed to report principals namespace");
             }
             thisCalendar.mMailToUrl = thisCalendar.mCalendarUri.spec;
-            str = str.substring(str.indexOf('\n'));
+
+            if (str.substr(0,6) == "<?xml ") {
+                str = str.substring(str.indexOf('\n'));
+            }
             var multistatus = new XML(str);
+
             for (var i = 0; i < multistatus.*.length(); i++) {
                 var response = new XML(multistatus.*[i]);
-                var hrefs = response..D::href;
-                for (var j = 0; j < hrefs.*.length(); j++) {
-                    if (hrefs[j].substr(0,7).toLowerCase() == "mailto:") {
-                        thisCalendar.mMailToUrl = hrefs[j];
+                var responseCHS =
+                    response..D::propstat..D::["calendar-home-set"]..D::href[0];
+
+                if (responseCHS + "/" != thisCalendar.mCalHomeSet.path) {
+                    continue;
+                }
+                var addrHrefs =
+                    response..D::propstat..D::["calendar-user-address-set"]..D::href;
+                for (var j = 0; j < addrHrefs.*.length(); j++) {
+                    if (addrHrefs[j].substr(0,7).toLowerCase() == "mailto:") {
+                        thisCalendar.mMailToUrl = addrHrefs[j];
                     }
                 }
+                var ibUrl = thisCalendar.mUri.clone();
+                var ibPath =
+                    response..D::propstat..D::["schedule-inbox-URL"]..D::href[0];
+                ibUrl.path = ibPath;
+                thisCalendar.mInBoxUrl = ibUrl;
+                var obUrl = thisCalendar.mUri.clone();
+                var obPath =
+                    response..D::propstat..D::["schedule-outbox-URL"]..D::href[0];
+                obUrl.path = obPath;
+                thisCalendar.mOutBoxUrl = obUrl;
             }
 
             if (thisCalendar.mAuthenticationStatus == kCaldavFreshlyAuthenticated
@@ -1733,7 +1735,9 @@ calDavCalendar.prototype = {
                 var C = new Namespace("C", "urn:ietf:params:xml:ns:caldav");
                 var D = new Namespace("D", "DAV:");
 
-                str = str.substring(str.indexOf('\n'));
+                if (str.substr(0,6) == "<?xml ") {
+                    str = str.substring(str.indexOf('\n'));
+                }
                 str = str.replace(/\n\ /g, "");
                 str = str.replace(/\r/g, "");
 
