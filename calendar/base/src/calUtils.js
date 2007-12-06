@@ -950,7 +950,7 @@ function checkIfInRange(item, rangeStart, rangeEnd, returnDtstartOrDue)
             var completedDate = item.completedDate;
             if (completedDate) {
                 var queryStart = ensureDateTime(rangeStart);
-                var completedDate = ensureDateTime(completedDate);
+                completedDate = ensureDateTime(completedDate);
                 return (!queryStart || completedDate.compare(queryStart) > 0);
             }
             return true;

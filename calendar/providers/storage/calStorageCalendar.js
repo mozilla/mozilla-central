@@ -1560,7 +1560,11 @@ calStorageCalendar.prototype = {
             
             while (selectItem.step()) {
                 row = selectItem.row;
-                item.setProperty (row.key, row.value);
+                var name = row.key;
+                if (name != "DURATION") {
+                    // for events DTEND/DUE is enforced by calEvent/calTodo, so suppress DURATION:
+                    item.setProperty(name, row.value);
+                }
             }
             selectItem.reset();
         }
@@ -1833,14 +1837,8 @@ calStorageCalendar.prototype = {
         var ip = this.mInsertEvent.params;
         this.setupItemBaseParams(item, olditem,ip);
 
-        var tmp;
-
-        tmp = item.getUnproxiedProperty("DTSTART");
-        //if (tmp instanceof Components.interfaces.calIDateTime) {}
-        this.setDateParamHelper(ip, "event_start", tmp);
-        tmp = item.getUnproxiedProperty("DTEND");
-        //if (tmp instanceof Components.interfaces.calIDateTime) {}
-        this.setDateParamHelper(ip, "event_end", tmp);
+        this.setDateParamHelper(ip, "event_start", item.startDate);
+        this.setDateParamHelper(ip, "event_end", item.endDate);
 
         if (item.startDate.isDate)
             flags |= CAL_ITEM_FLAG_EVENT_ALLDAY;
@@ -1855,8 +1853,8 @@ calStorageCalendar.prototype = {
 
         this.setupItemBaseParams(item, olditem,ip);
 
-        this.setDateParamHelper(ip, "todo_entry", item.getUnproxiedProperty("DTSTART"));
-        this.setDateParamHelper(ip, "todo_due", item.getUnproxiedProperty("DUE"));
+        this.setDateParamHelper(ip, "todo_entry", item.entryDate);
+        this.setDateParamHelper(ip, "todo_due", item.dueDate);
         this.setDateParamHelper(ip, "todo_completed", item.getUnproxiedProperty("COMPLETED"));
 
         ip.todo_complete = item.getUnproxiedProperty("PERCENT-COMPLETED");
