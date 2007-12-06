@@ -54,7 +54,11 @@ CAL_VALUETYPE_ATTR_GETTER(calTimezone, PRBool, IsUTC)
 NS_IMETHODIMP
 calTimezone::GetProvider(calITimezoneProvider ** _retval) {
     NS_ENSURE_ARG_POINTER(_retval);
-    NS_ADDREF(*_retval = cal::getTimezoneService());
+    if (mIsIntrinsic) {
+        NS_ADDREF(*_retval = cal::getTimezoneService());
+    } else {
+        *_retval = nsnull;
+    }
     return NS_OK;
 }
 
@@ -72,8 +76,8 @@ calTimezone::ToString(nsACString & aResult) {
 }
 
 calTimezoneService::calTimezoneService()
-    : mUTC(new calTimezone(nsnull, NS_LITERAL_CSTRING("UTC"), PR_TRUE)),
-      mFloating(new calTimezone(nsnull, NS_LITERAL_CSTRING("floating"), PR_FALSE, PR_TRUE))
+    : mUTC(new calTimezone(calTimezone::IS_UTC, nsnull, NS_LITERAL_CSTRING("UTC"))),
+      mFloating(new calTimezone(calTimezone::IS_FLOATING, nsnull, NS_LITERAL_CSTRING("floating")))
 {
     mTzHash.Init();
     mTzHash.Put(NS_LITERAL_CSTRING("UTC"), mUTC);
@@ -114,7 +118,8 @@ calTimezoneService::GetTimezone(nsACString const& tzid_, calITimezone ** _retval
                         NS_WARNING(ical_timezone_data[i].tzid);
                         break;
                     }
-                    nsCOMPtr<calITimezone> const tz(new calTimezone(vtimezone, tzid, PR_FALSE, PR_FALSE,
+                    nsCOMPtr<calITimezone> const tz(new calTimezone(calTimezone::IS_INTRINSIC,
+                                                                    vtimezone, tzid,
                                                                     nsDependentCString(tzdata.latitude),
                                                                     nsDependentCString(tzdata.longitude)));
                     if (!mTzHash.Put(tzid, tz)) {

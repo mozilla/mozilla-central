@@ -92,7 +92,7 @@ class calIcalComponent : public calIIcalComponent,
 public:
     calIcalComponent(icalcomponent *ical, calIIcalComponent *parent,
                      calITimezoneProvider *tzProvider = nsnull)
-        : mComponent(ical), mParent(parent), mTimezone(nsnull), mTzProvider(tzProvider)
+        : mComponent(ical), mTimezone(nsnull), mTzProvider(tzProvider), mParent(parent)
     {
         mReferencedTimezones.Init();
     }
@@ -148,8 +148,8 @@ protected:
     nsInterfaceHashtable<nsCStringHashKey, calITimezone> mReferencedTimezones;
     icalcomponent *                                      mComponent;
     icaltimezone *                                       mTimezone; // set iff VTIMEZONE
-    nsCOMPtr<calIIcalComponent>                          mParent;
     nsCOMPtr<calITimezoneProvider> const                 mTzProvider;
+    nsCOMPtr<calIIcalComponent>                          mParent;
 };
 
 inline calIcalProperty * toIcalProperty(calIIcalProperty * p) {

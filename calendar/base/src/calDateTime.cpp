@@ -456,12 +456,12 @@ void calDateTime::FromIcalTime(icaltimetype const* icalt, calITimezone * tz)
         t = icaltime_normalize(t);
     }
 
-    mYear = t.year;
-    mMonth = t.month - 1;
-    mDay = t.day;
-    mHour = t.hour;
-    mMinute = t.minute;
-    mSecond = t.second;
+    mYear = static_cast<PRInt16>(t.year);
+    mMonth = static_cast<PRInt16>(t.month - 1);
+    mDay = static_cast<PRInt16>(t.day);
+    mHour = static_cast<PRInt16>(t.hour);
+    mMinute = static_cast<PRInt16>(t.minute);
+    mSecond = static_cast<PRInt16>(t.second);
 
     if (tz) {
         mTimezone = tz;
@@ -485,8 +485,8 @@ void calDateTime::FromIcalTime(icaltimetype const* icalt, calITimezone * tz)
     }
 #endif
 
-    mWeekday = icaltime_day_of_week(t) - 1;
-    mYearday = icaltime_day_of_year(t);
+    mWeekday = static_cast<PRInt16>(icaltime_day_of_week(t) - 1);
+    mYearday = static_cast<PRInt16>(icaltime_day_of_year(t));
 
     // mNativeTime: not moving the existing date to UTC,
     // but merely representing it a UTC-based way.
@@ -523,9 +523,9 @@ PRTime calDateTime::IcaltimeToPRTime(icaltimetype const* icalt, icaltimezone con
         et.tm_min = tt.minute;
         et.tm_hour = tt.hour;
     }
-    et.tm_mday = tt.day;
-    et.tm_month = tt.month-1;
-    et.tm_year = tt.year;
+    et.tm_mday = static_cast<PRInt16>(tt.day);
+    et.tm_month = static_cast<PRInt16>(tt.month-1);
+    et.tm_year = static_cast<PRInt16>(tt.year);
 
     return PR_ImplodeTime(&et);
 }

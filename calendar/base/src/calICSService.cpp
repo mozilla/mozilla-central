@@ -409,7 +409,7 @@ nsresult calIcalProperty::getDatetime_(calIcalComponent * parent,
                     new calIcalComponent(icaltimezone_get_component(const_cast<icaltimezone *>(zone)),
                                          comp));
                 CAL_ENSURE_MEMORY(tzComp);
-                tz = new calTimezone(tzComp, tzid);
+                tz = new calTimezone(calTimezone::IS_FOREIGN, tzComp, tzid);
                 CAL_ENSURE_MEMORY(tz);
             }
             if (!tz && parent) {
@@ -466,7 +466,7 @@ calIcalComponent::AddTimezoneReference(calITimezone *aTimezone)
 }
 
 PR_STATIC_CALLBACK(PLDHashOperator)
-TimezoneHashToTimezoneArray(nsACString const& tzid, calITimezone * tz, void * arg)
+TimezoneHashToTimezoneArray(nsACString const& /*tzid*/, calITimezone * tz, void * arg)
 {
     calITimezone *** const arrayPtr = static_cast<calITimezone ***>(arg);
     NS_ADDREF(**arrayPtr = tz);
@@ -711,7 +711,7 @@ nsresult calIcalComponent::SetDateTimeAttribute(icalproperty_kind kind,
                                                 calIDateTime * dt)
 {
     ClearAllProperties(kind);
-    PRBool isValid, wantTz = PR_FALSE;
+    PRBool isValid;
     if (!dt || NS_FAILED(dt->GetIsValid(&isValid)) || !isValid) {
         return NS_OK;
     }
@@ -916,7 +916,7 @@ void calIcalComponent::ClearAllProperties(icalproperty_kind kind)
 }
 
 PR_STATIC_CALLBACK(PLDHashOperator)
-AddTimezoneComponentToIcal(nsACString const& tzid, calITimezone * tz, void * arg)
+AddTimezoneComponentToIcal(nsACString const& /*tzid*/, calITimezone * tz, void * arg)
 {
     icalcomponent * const comp = static_cast<icalcomponent *>(arg);
     icaltimezone * icaltz = cal::getIcalTimezone(tz);

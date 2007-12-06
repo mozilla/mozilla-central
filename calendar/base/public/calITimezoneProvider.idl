@@ -46,7 +46,7 @@ interface calITimezoneProvider;
 interface calITimezone : nsISupports
 {
     /**
-     * The timezone provider this timezone belongs to.
+     * The timezone provider this timezone belongs to, if any.
      */
     readonly attribute calITimezoneProvider provider;
 

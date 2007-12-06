@@ -185,7 +185,11 @@ function newDateTime(aNativeTime, aTimezone) {
     t.nativeTime = aNativeTime;
     if (aTimezone) {
         var tz = getTimezoneService().getTimezone(aTimezone);
-        t = t.getInTimezone(tz);
+        if (tz) {
+            t = t.getInTimezone(tz);
+        } else {
+            ASSERT(false, "timezone not available: " + aTimezone);
+        }
     } else {
         t.timezone = floating();
     }
@@ -1760,8 +1764,29 @@ calStorageCalendar.prototype = {
 
     setDateParamHelper: function (params, entryname, cdt) {
         if (cdt) {
+            var tz = cdt.timezone;
+            var tzService = getTimezoneService();
+            if (!compareObjects(tz.provider, tzService)) { // foreign one
+                // try to map to our Olson set or fall back to UTC unless bug 402518 is done:
+                var tzid = tz.tzid;
+                if (tzid.indexOf("/mozilla.org/") != 0) {
+                    tzid = (tzService.tzidPrefix + tzid);
+                }
+                tz = tzService.getTimezone(tzid);
+                if (tz) {
+                    if (cdt.timezone.tzid != tz.tzid) {
+                        WARN("foreign timezone \"" + cdt.timezone.tzid +
+                             "\" has been mapped to internal \"" + tz.tzid + "\".");
+                    }
+                } else {
+                    WARN("foreign timezone \"" + cdt.timezone.tzid +
+                         "\" cannot be stored, falling back to UTC!");
+                    tz = tzService.UTC;
+                }
+                cdt = cdt.getInTimezone(tz);
+            }
             params[entryname] = cdt.nativeTime;
-            params[entryname + "_tz"] = cdt.timezone.tzid;
+            params[entryname + "_tz"] = tz.tzid;
         } else {
             params[entryname] = null;
             params[entryname + "_tz"] = null;

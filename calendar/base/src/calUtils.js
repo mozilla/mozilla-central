@@ -724,6 +724,23 @@ function LOG(aArg) {
 }
 
 /**
+ * Dumps a warning to both console and js console.
+ *
+ * @param aMessage warning message
+ */
+function WARN(aMessage) {
+    dump("Warning: " + aMessage + '\n');
+    var scriptError = Components.classes["@mozilla.org/scripterror;1"]
+                                .createInstance(Components.interfaces.nsIScriptError);
+    scriptError.init(aMessage, null, null, 0, 0,
+                     Components.interfaces.nsIScriptError.warningFlag,
+                     "component javascript");
+    var consoleSvc = Components.classes["@mozilla.org/consoleservice;1"]
+                               .getService(Components.interfaces.nsIConsoleService);
+    consoleSvc.logMessage(scriptError);
+}
+
+/**
  * Returns a string describing the current js-stack.  Note that this is
  * different than Components.stack, in that STACK just returns that js
  * functions that were called on the way to this function.
