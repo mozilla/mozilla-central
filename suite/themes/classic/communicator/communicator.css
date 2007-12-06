@@ -54,6 +54,12 @@
   -moz-binding: url("chrome://communicator/content/bindings/toolbar.xml#grippytoolbar-primary");
 }
 
+/* ::::: autocomplete ::::: */
+
+.autocomplete-history-popup {
+  max-height: 25em;
+}
+
 /* ::::: online/offline icons ::::: */
 
 #offline-status[offline="true"] {
