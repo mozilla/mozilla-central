@@ -37,7 +37,7 @@
 /*
  * Test program for client-side OCSP.
  *
- * $Id: ocspclnt.c,v 1.11 2007-07-11 23:43:03 nelson%bolyard.com Exp $
+ * $Id: ocspclnt.c,v 1.12 2007-12-06 09:41:36 slavomir.katuscak%sun.com Exp $
  */
 
 #include "secutil.h"
@@ -1106,6 +1106,8 @@ main (int argc, char **argv)
 	}
     }
 
+    PL_DestroyOptState(optstate);
+
     if ((crequest + dresponse + prequest + presponse + ccert + vcert) != 1) {
 	PR_fprintf (PR_STDERR, "%s: must specify exactly one command\n\n",
 		    program_name);
@@ -1282,7 +1284,7 @@ nssdone:
     }
 
     if (NSS_Shutdown () != SECSuccess) {
-	exit(1);
+	retval = 1;
     }
 
 prdone:
