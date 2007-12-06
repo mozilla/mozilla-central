@@ -1285,9 +1285,6 @@ pkix_Build_ValidationCheckers(
         PKIX_CHECK(PKIX_List_Create(&checkers, plContext),
                 PKIX_LISTCREATEFAILED);
 
-        PKIX_CHECK(PKIX_List_Create(&revCheckers, plContext),
-                PKIX_LISTCREATEFAILED);
-
         PKIX_CHECK(PKIX_List_ReverseList
                 (certChain, &reversedCertChain, plContext),
                 PKIX_LISTREVERSELISTFAILED);
@@ -1408,6 +1405,18 @@ pkix_Build_ValidationCheckers(
                         PKIX_DECREF(userCheckerExtOIDs);
                         PKIX_DECREF(userChecker);
                 }
+        }
+
+        if (procParams->revCheckers) {
+            PKIX_CHECK(
+                PKIX_PL_Object_Duplicate(
+                    (PKIX_PL_Object*)procParams->revCheckers,
+                    (PKIX_PL_Object **)&revCheckers,
+                    plContext),
+                PKIX_LISTDUPLICATEFAILED);
+        } else {
+            PKIX_CHECK(PKIX_List_Create(&revCheckers, plContext),
+                       PKIX_LISTCREATEFAILED);
         }
 
         if ((state->dsaParamsNeeded) || (state->revCheckDelayed)) {
