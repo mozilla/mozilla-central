@@ -173,8 +173,11 @@ pkix_NameConstraintsCheckerState_Create(
         state->certsRemaining = numCerts;
 
         *pCheckerState = state;
+        state = NULL;
 
 cleanup:
+
+        PKIX_DECREF(state);
 
         PKIX_RETURN(CERTNAMECONSTRAINTSCHECKERSTATE);
 }

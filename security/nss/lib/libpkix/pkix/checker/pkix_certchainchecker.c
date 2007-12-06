@@ -209,8 +209,10 @@ PKIX_CertChainChecker_Create(
         checker->state = initialState;
 
         *pChecker = checker;
-
+        checker = NULL;
 cleanup:
+        
+        PKIX_DECREF(checker);
 
         PKIX_RETURN(CERTCHAINCHECKER);
 

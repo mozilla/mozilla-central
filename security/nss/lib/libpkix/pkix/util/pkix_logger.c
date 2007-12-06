@@ -625,8 +625,11 @@ PKIX_Logger_Create(
         logger->context = loggerContext;
 
         *pLogger = logger;
+        logger = NULL;
 
 cleanup:
+
+        PKIX_DECREF(logger);
 
         PKIX_RETURN(LOGGER);
 }

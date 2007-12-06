@@ -185,8 +185,11 @@ pkix_DefaultRevChecker_Create(
         revChecker->certsRemaining = certsRemaining;
 
         *pRevChecker = revChecker;
+        revChecker = NULL;
 
 cleanup:
+
+        PKIX_DECREF(revChecker);
 
         PKIX_RETURN(DEFAULTREVOCATIONCHECKER);
 }

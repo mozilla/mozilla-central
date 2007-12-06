@@ -339,8 +339,11 @@ pkix_BuildResult_Create(
                      PKIX_LISTSETIMMUTABLEFAILED);
 
         *pResult = result;
+        result = NULL;
 
 cleanup:
+
+        PKIX_DECREF(result);
 
         PKIX_RETURN(BUILDRESULT);
 

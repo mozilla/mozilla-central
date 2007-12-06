@@ -182,12 +182,13 @@ pkix_pl_PublicKey_Destroy(
 
         pubKey = (PKIX_PL_PublicKey *)object;
 
-        PKIX_NULLCHECK_ONE(pubKey->nssSPKI);
+        if (pubKey->nssSPKI) {
 
-        PKIX_CHECK(pkix_pl_DestroySPKI(pubKey->nssSPKI, plContext),
-                    PKIX_DESTROYSPKIFAILED);
-
-        PKIX_FREE(pubKey->nssSPKI);
+            PKIX_CHECK(pkix_pl_DestroySPKI(pubKey->nssSPKI, plContext),
+                       PKIX_DESTROYSPKIFAILED);
+            
+            PKIX_FREE(pubKey->nssSPKI);
+        }
 
 cleanup:
 

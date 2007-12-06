@@ -1727,7 +1727,7 @@ pkix_CertSelector_Select(
 	PKIX_Boolean match = PKIX_FALSE;
 	PKIX_UInt32 numBefore = 0;
 	PKIX_UInt32 i = 0;
-        PKIX_List *filtered = NULL;
+	PKIX_List *filtered = NULL;
 	PKIX_PL_Cert *candidate = NULL;
 
         PKIX_ENTER(CERTSELECTOR, "PKIX_CertSelector_Select");
@@ -1769,9 +1769,11 @@ pkix_CertSelector_Select(
         pkixTempErrorReceived = PKIX_FALSE;
 
         *pAfter = filtered;
+        filtered = NULL;
 
 cleanup:
 
+        PKIX_DECREF(filtered);
         PKIX_DECREF(candidate);
 
         PKIX_RETURN(CERTSELECTOR);

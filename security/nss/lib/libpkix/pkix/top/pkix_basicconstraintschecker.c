@@ -163,12 +163,11 @@ pkix_BasicConstraintsCheckerState_Create(
                     PKIX_OIDCREATEFAILED);
 
         *pState = state;
+        state = NULL;
 
 cleanup:
 
-        if (PKIX_ERROR_RECEIVED) {
-                PKIX_DECREF(state);
-        }
+        PKIX_DECREF(state);
 
         PKIX_RETURN(BASICCONSTRAINTSCHECKERSTATE);
 }

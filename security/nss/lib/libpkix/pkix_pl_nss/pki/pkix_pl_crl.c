@@ -864,25 +864,25 @@ pkix_pl_CRL_CreateToList(
         PKIX_ENTER(CRL, "pkix_pl_CRL_CreateToList");
         PKIX_NULLCHECK_TWO(derCrlItem, crlList);
 
-        PKIX_PL_NSSCALLRV(CRL, nssCrl, CERT_DecodeDERCrl,
-                (NULL, derCrlItem, SEC_CRL_TYPE));
-
-        if (nssCrl) {
-                PKIX_CHECK_ONLY_FATAL(pkix_pl_CRL_CreateWithSignedCRL
-                        (nssCrl, &crl, plContext),
-                        PKIX_CRLCREATEWITHSIGNEDCRLFAILED);
-
-                /* skip bad crls and append good ones */
-                if (!PKIX_ERROR_RECEIVED) {
-                        PKIX_CHECK(PKIX_List_AppendItem
-                                (crlList, (PKIX_PL_Object *) crl, plContext),
-                                PKIX_LISTAPPENDITEMFAILED);
-                }
-
-                PKIX_DECREF(crl);
-
+        nssCrl = CERT_DecodeDERCrl(NULL, derCrlItem, SEC_CRL_TYPE);
+        if (nssCrl == NULL) {
+            goto cleanup;
         }
+
+        PKIX_CHECK(pkix_pl_CRL_CreateWithSignedCRL
+                   (nssCrl, &crl, plContext),
+                   PKIX_CRLCREATEWITHSIGNEDCRLFAILED);
+        
+        nssCrl = NULL;
+
+        PKIX_CHECK(PKIX_List_AppendItem
+                   (crlList, (PKIX_PL_Object *) crl, plContext),
+                   PKIX_LISTAPPENDITEMFAILED);
+
 cleanup:
+        if (nssCrl) {
+            SEC_DestroyCrl(nssCrl);
+        }
 
         PKIX_DECREF(crl);
 

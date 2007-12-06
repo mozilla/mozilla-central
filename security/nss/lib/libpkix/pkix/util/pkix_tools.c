@@ -100,7 +100,7 @@ pkix_IsCertSelfIssued(
         PKIX_PL_X500Name *subject = NULL;
         PKIX_PL_X500Name *issuer = NULL;
 
-        PKIX_ENTER(CERT, "pkix_isCertSelfIssued");
+        PKIX_ENTER(CERT, "pkix_IsCertSelfIssued");
         PKIX_NULLCHECK_TWO(cert, pSelfIssued);
 
         PKIX_CHECK(PKIX_PL_Cert_GetSubject(cert, &subject, plContext),
@@ -121,6 +121,7 @@ pkix_IsCertSelfIssued(
 cleanup:
         PKIX_DECREF(subject);
         PKIX_DECREF(issuer);
+
         PKIX_RETURN(CERT);
 }
 

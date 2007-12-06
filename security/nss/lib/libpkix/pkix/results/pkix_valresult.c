@@ -392,8 +392,11 @@ pkix_ValidateResult_Create(
         result->policyTree = policyTree;
 
         *pResult = result;
+        result = NULL;
 
 cleanup:
+
+        PKIX_DECREF(result);
 
         PKIX_RETURN(VALIDATERESULT);
 

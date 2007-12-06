@@ -645,12 +645,11 @@ PKIX_CRLSelector_Create(
         selector->context = crlSelectorContext;
 
         *pSelector = selector;
+        selector = NULL;
 
 cleanup:
 
-        if (PKIX_ERROR_RECEIVED){
-                PKIX_DECREF(selector);
-        }
+        PKIX_DECREF(selector);
 
         PKIX_RETURN(CRLSELECTOR);
 }

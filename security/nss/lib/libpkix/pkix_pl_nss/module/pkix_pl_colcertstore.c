@@ -183,8 +183,12 @@ pkix_pl_CollectionCertStoreContext_Create(
         colCertStoreContext->certList = NULL;
 
         *pColCertStoreContext = colCertStoreContext;
+        colCertStoreContext = NULL;
 
 cleanup:
+
+        PKIX_DECREF(colCertStoreContext);
+
         PKIX_RETURN(COLLECTIONCERTSTORECONTEXT);
 }
 

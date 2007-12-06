@@ -178,11 +178,11 @@ pkix_PolicyNode_Create(
         node->depth = 0;
 
         *pObject = node;
+        node = NULL;
 
 cleanup:
-        if (PKIX_ERROR_RECEIVED) {
-                PKIX_DECREF(node);
-        }
+
+        PKIX_DECREF(node);
 
         PKIX_RETURN(CERTPOLICYNODE);
 }

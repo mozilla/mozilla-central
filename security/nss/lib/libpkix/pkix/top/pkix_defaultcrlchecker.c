@@ -226,8 +226,11 @@ pkix_DefaultCRLCheckerState_Create(
         state->numCrlStores = 0;
 
         *pCheckerState = state;
+        state = NULL;
 
 cleanup:
+
+        PKIX_DECREF(state);
 
         PKIX_RETURN(DEFAULTCRLCHECKERSTATE);
 }

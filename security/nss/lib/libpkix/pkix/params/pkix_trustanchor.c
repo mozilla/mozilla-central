@@ -448,8 +448,10 @@ PKIX_TrustAnchor_CreateWithNameKeyPair(
         anchor->nameConstraints = nameConstraints;
 
         *pAnchor = anchor;
-
+        anchor = NULL;
 cleanup:
+
+        PKIX_DECREF(anchor);
 
         PKIX_RETURN(TRUSTANCHOR);
 }

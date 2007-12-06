@@ -527,12 +527,11 @@ pkix_PolicyCheckerState_Create(
         checkerState->mappedPolicyOIDs = NULL;
 
         *pCheckerState = checkerState;
+        checkerState = NULL;
 
 cleanup:
 
-        if (PKIX_ERROR_RECEIVED) {
-                PKIX_DECREF(checkerState);
-        }
+        PKIX_DECREF(checkerState);
 
         PKIX_DECREF(anyPolicyList);
 

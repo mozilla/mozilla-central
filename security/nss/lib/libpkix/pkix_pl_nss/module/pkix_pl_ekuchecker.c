@@ -283,14 +283,13 @@ pkix_pl_EkuCheckerState_Create(
         state->requiredExtKeyUsage = requiredExtKeyUsage;
 
         *pState = state;
+        state = NULL;
 
 cleanup:
 
         PKIX_DECREF(certSelector);
 
-        if (PKIX_ERROR_RECEIVED) {
-                PKIX_DECREF(state);
-        }
+        PKIX_DECREF(state);
 
         PKIX_RETURN(USERDEFINEDMODULES);
 }

@@ -320,6 +320,7 @@ pkix_Error_ToString(
 
 cleanup:
 
+        PKIX_DECREF(desc);
         PKIX_DECREF(causeString);
         PKIX_DECREF(formatString);
         PKIX_DECREF(optCauseString);
@@ -446,7 +447,7 @@ PKIX_Error_Create(
             tempCause = tempCause->cause) {
                 /* If we detect a loop, throw a new error */
                 if (tempCause == error) {
-                        PKIX_THROW(ERROR, PKIX_LOOPOFERRORCAUSEDETECTED);
+                        PKIX_ERROR(PKIX_LOOPOFERRORCAUSEDETECTED);
                 }
         }
 
@@ -459,8 +460,12 @@ PKIX_Error_Create(
         error->errCode = errCode;
 
         *pError = error;
+        error = NULL;
 
 cleanup:
+        /* PKIX-XXX Fix for leak during error creation */
+        PKIX_DECREF(error);
+
         PKIX_RETURN(ERROR);
 }
 

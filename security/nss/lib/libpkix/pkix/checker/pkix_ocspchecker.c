@@ -295,8 +295,11 @@ pkix_OcspChecker_Create(
         checkerObject->nbioContext = NULL;
 
         *pChecker = checkerObject;
+        checkerObject = NULL;
 
 cleanup:
+
+        PKIX_DECREF(checkerObject);
 
         PKIX_RETURN(OCSPCHECKER);
 

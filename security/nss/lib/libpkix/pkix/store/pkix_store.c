@@ -245,8 +245,11 @@ PKIX_CertStore_Create(
         certStore->certStoreContext = certStoreContext;
 
         *pStore = certStore;
+        certStore = NULL;
 
 cleanup:
+
+        PKIX_DECREF(certStore);
 
         PKIX_RETURN(CERTSTORE);
 }
