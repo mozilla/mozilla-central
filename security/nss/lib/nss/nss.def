@@ -901,6 +901,12 @@ DER_TimeToGeneralizedTimeArena;
 ;+    local:
 ;+       *;
 ;+};
+;+NSS_3.11.9 {
+;+    global:
+PK11_UnconfigurePKCS11;
+;+    local:
+;+       *;
+;+};
 ;+NSS_3.12 { 	# NSS 3.12 release
 ;+    global:
 CERT_CheckNameSpace;
