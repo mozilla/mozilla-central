@@ -71,7 +71,7 @@
                flex="1"/>
     </treecols>
 
-    <treechildren id="panelChildren">
+    <treechildren id="prefsPanelChildren">
       <treeitem label="READ THIS!" prefpane="temp_readthis_pane"/>
 <!-- commenting out yet unmigrated panels
       <treeitem container="true"
