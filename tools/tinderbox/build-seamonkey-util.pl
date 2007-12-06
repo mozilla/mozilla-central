@@ -24,7 +24,7 @@ use Config;         # for $Config{sig_name} and $Config{sig_num}
 use File::Find ();
 use File::Copy;
 
-$::UtilsVersion = '$Revision: 1.376 $ ';
+$::UtilsVersion = '$Revision: 1.377 $ ';
 
 package TinderUtils;
 
@@ -2931,6 +2931,8 @@ sub DHTMLPerformanceTest {
       if ($Settings::TestsPhoneHome) {
         send_results_to_server($dhtml_time, "--", "dhtml");
       }      
+    } else {
+      print_log "TinderboxPrint:Tdhtml:[FAILED]\n";
     }
 
     return $dhtml_test_result;
@@ -3217,7 +3219,7 @@ sub StartupPerformanceTest {
   my $startup_count   = 0; # Number of successful runs.
   my $avg_startuptime = 0; # Average startup time.
   my @times;
-  my $startup_test_result = 'success';
+  my $startup_test_result = 'testfailed';
   
   for($i=0; $i<10; $i++) {
     # Settle OS.
@@ -3244,17 +3246,13 @@ sub StartupPerformanceTest {
     # -P $Settings::MozProfileName added 3% to startup time, assume one profile
     # and get the 3% back. (http://bugzilla.mozilla.org/show_bug.cgi?id=112767)
     #
-    if($startup_test_result eq 'success') {
-      $startuptime =
-        AliveTestReturnToken("StartupPerformanceTest-$i",
-                             $build_dir,
-                             [$binary, @$startup_test_args, $url],
-                             $Settings::StartupPerformanceTestTimeout,
-                             "__startuptime",
-                             ",");
-    } else {
-      print "Startup test failed.\n";
-    }
+    $startuptime =
+      AliveTestReturnToken("StartupPerformanceTest-$i",
+                           $build_dir,
+                           [$binary, @$startup_test_args, $url],
+                           $Settings::StartupPerformanceTestTimeout,
+                           "__startuptime",
+                           ",");
     
     if($startuptime) {
       $startup_test_result = 'success';
@@ -3268,6 +3266,7 @@ sub StartupPerformanceTest {
     } else {
       $startup_test_result = 'testfailed';
       print_log "StartupPerformanceTest: test failed\n";
+      last;
     }
     
   } # for loop
@@ -3300,6 +3299,8 @@ sub StartupPerformanceTest {
       print_log "phonehome = 1\n";
       send_results_to_server($min_startuptime, $times_string, "startup");
     } 
+  } else {
+    print_log "TinderboxPrint:Ts:[FAILED]\n";
   }
 
   return $startup_test_result;
