@@ -18,7 +18,8 @@
  * Portions created by the Initial Developer are Copyright (C) 2003
  * the Initial Developer. All Rights Reserved.
  *
- * Contributor(s): Matthew Willis <mattwillis@gmail.com>
+ * Contributor(s): 
+ *   Matthew Willis <mattwillis@gmail.com>
  *   Philipp Kewisch <mozilla@kewis.ch>
  *
  * Alternatively, the contents of this file may be used under the terms of
@@ -37,107 +38,6 @@
 
 
 const nsIWindowMediator = Components.interfaces.nsIWindowMediator;
-
-// "About Sunbird" dialog
-function openAboutDialog()
-{
-  const SUNBIRD_ID = "{718e30fb-e89b-41dd-9da7-e25a45638b28}";
-  var appInfo = Components.classes["@mozilla.org/xre/app-info;1"]
-                          .getService(Components.interfaces.nsIXULAppInfo);
-  var url = (appInfo.ID == SUNBIRD_ID) ?
-    "chrome://calendar/content/aboutDialog.xul" :
-    "chrome://messenger/content/aboutDialog.xul" ;
-  var name = "About";
-#ifdef XP_MACOSX
-  // Define minimizable=no although it does nothing on OS X (bug 287162).
-  // Remove this comment once bug 287162 is fixed
-  window.open(url, name, "centerscreen,chrome,resizable=no,minimizable=no");
-#else
-  window.openDialog(url, name, "modal,centerscreen,chrome,resizable=no");
-#endif
-}
-
-/**
- * Opens the release notes page for this version of the application.
- */
-function openReleaseNotes()
-{
-  const SUNBIRD_ID = "{718e30fb-e89b-41dd-9da7-e25a45638b28}";
-  var appInfo = Components.classes["@mozilla.org/xre/app-info;1"]
-                          .getService(Components.interfaces.nsIXULAppInfo);
-  if (appInfo.ID == SUNBIRD_ID) {
-    var appInfo = Components.classes["@mozilla.org/xre/app-info;1"]
-                            .getService(Components.interfaces.nsIXULAppInfo);
-    var sbs = Components.classes["@mozilla.org/intl/stringbundle;1"]
-                        .getService(Components.interfaces.nsIStringBundleService);
-    var bundle = sbs.createBundle("chrome://branding/locale/brand.properties");
-    var relNotesURL = bundle.formatStringFromName("releaseNotesURL",[appInfo.version],1)
-    launchBrowser(relNotesURL);
-  } else {
-    openFormattedRegionURL('app.releaseNotesURL');
-  }
-}
-
-/**
- * Opens region specific web pages for the application like the release notes, the help site, etc. 
- *   aResourceName --> the string resource ID in region.properties to load. 
- */
-function openRegionURL(aResourceName)
-{
-  var appInfo = Components.classes["@mozilla.org/xre/app-info;1"]
-                          .getService(Components.interfaces.nsIXULAppInfo);
-  try {
-    var strBundleService = Components.classes["@mozilla.org/intl/stringbundle;1"].getService(Components.interfaces.nsIStringBundleService);
-    var regionBundle = strBundleService.createBundle("chrome://messenger-region/locale/region.properties");
-    // the release notes are special and need to be formatted with the app version
-    var urlToOpen;
-    if (aResourceName == "releaseNotesURL")
-      urlToOpen = regionBundle.formatStringFromName(aResourceName, [appInfo.version], 1);
-    else
-      urlToOpen = regionBundle.GetStringFromName(aResourceName);
-      
-    var uri = Components.classes["@mozilla.org/network/io-service;1"]
-              .getService(Components.interfaces.nsIIOService)
-              .newURI(urlToOpen, null, null);
-
-    var protocolSvc = Components.classes["@mozilla.org/uriloader/external-protocol-service;1"]
-                      .getService(Components.interfaces.nsIExternalProtocolService);
-    protocolSvc.loadUrl(uri);
-  } catch (ex) {}
-}
-
-/**
- *  Fetches the url for the passed in pref name, formats it and then loads it in the default
- *  browser.
- *
- *  @param aPrefName - name of the pref that holds the url we want to format and open
- */
-function openFormattedRegionURL(aPrefName)
-{
-  var formattedUrl = getFormattedRegionURL(aPrefName);
-  
-  var uri = Components.classes["@mozilla.org/network/io-service;1"].
-                       getService(Components.interfaces.nsIIOService).
-                       newURI(formattedUrl, null, null);
-
-  var protocolSvc = Components.classes["@mozilla.org/uriloader/external-protocol-service;1"].
-                               getService(Components.interfaces.nsIExternalProtocolService);
-  protocolSvc.loadUrl(uri);  
-}
-
-/**
- *  Fetches the url for the passed in pref name and uses the URL formatter service to 
- *    process it.
- *
- *  @param aPrefName - name of the pref that holds the url we want to format and open
- *  @returns the formatted url string
- */
-function getFormattedRegionURL(aPrefName)
-{
-  var formatter = Components.classes["@mozilla.org/toolkit/URLFormatterService;1"].
-                             getService(Components.interfaces.nsIURLFormatter);
-  return formatter.formatURLPref(aPrefName);
-}
 
 function toOpenWindowByType(inType, uri)
 {
@@ -160,71 +60,6 @@ function toJavaScriptConsole()
 {
     toOpenWindowByType("global:console", "chrome://global/content/console.xul");
 }
-
-function launchBrowser(UrlToGoTo)
-{
-  if (!UrlToGoTo) {
-    return;
-  }
-
-  // 0. Prevent people from trying to launch URLs such as javascript:foo();
-  //    by only allowing URLs starting with http or https.
-  // XXX: We likely will want to do this using nsIURLs in the future to
-  //      prevent sneaky nasty escaping issues, but this is fine for now.
-  if (UrlToGoTo.indexOf("http") != 0) {
-    Components.utils.reportError ("launchBrowser: " +
-                                  "Invalid URL provided: " + UrlToGoTo +
-                                  " Only http:// and https:// URLs are valid.");
-    return;
-  }
-
-  // 1. try to get (most recent) browser window, in case in browser app.
-  var navWindow;
-  try {
-    var wm = (Components
-              .classes["@mozilla.org/appshell/window-mediator;1"]
-              .getService(Components.interfaces.nsIWindowMediator));
-    navWindow = wm.getMostRecentWindow("navigator:browser");
-  } catch (e) {
-    dump("launchBrowser (getMostRecentWindow) exception:\n" + e + "\n");
-  }
-  if (navWindow) {
-    if ("delayedOpenTab" in navWindow)
-      navWindow.delayedOpenTab(UrlToGoTo);
-    else if ("loadURI" in navWindow)
-      navWindow.loadURI(UrlToGoTo);
-    else
-      navWindow.content.location.href = UrlToGoTo;
-    return;
-  }
-
-  // 2. try a new browser window, in case in suite (seamonkey)
-  var messenger;
-  try {
-    var messenger = (Components
-                     .classes["@mozilla.org/messenger;1"]
-                     .createInstance());
-    messenger = messenger.QueryInterface(Components.interfaces.nsIMessenger);
-  } catch (e) {
-    dump("launchBrowser (messenger) exception:\n"+e+"\n");
-  }
-  if (messenger) {
-    messenger.launchExternalURL(UrlToGoTo);  
-    return;
-  } 
-
-  // 3. try an external app, in case not in a browser app (SB, TB, etc).
-  var externalLoader =
-    (Components
-     .classes["@mozilla.org/uriloader/external-protocol-service;1"]
-     .getService(Components.interfaces.nsIExternalProtocolService));
-  var nsURI = (Components
-               .classes["@mozilla.org/network/io-service;1"]
-               .getService(Components.interfaces.nsIIOService)
-               .newURI(UrlToGoTo, null, null));
-  externalLoader.loadUrl(nsURI);
-}
-
 
 function goToggleToolbar(id, elementID)
 {

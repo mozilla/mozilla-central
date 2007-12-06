@@ -69,7 +69,7 @@
   <script type="application/x-javascript"
           src="chrome://calendar/content/calUtils.js"/>
   <script type="application/x-javascript"
-          src="chrome://calendar/content/applicationUtil.js"/>
+          src="chrome://calendar/content/calApplicationUtils.js"/>
 
   <!-- General -->
   <box id="item-general-box" orient="vertical">

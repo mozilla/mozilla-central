@@ -2,7 +2,6 @@
 
 calendar.jar:
 % content calendar %content/calendar/
-*   content/calendar/applicationUtil.js          (/calendar/resources/content/applicationUtil.js)
     content/calendar/calendar-alarm-dialog.js    (content/calendar-alarm-dialog.js)
     content/calendar/calendar-alarm-dialog.xul   (content/calendar-alarm-dialog.xul)
     content/calendar/calendar-alarm-widget.css   (content/calendar-alarm-widget.css)
@@ -46,6 +45,7 @@ calendar.jar:
     content/calendar/calendar-view-bindings.css  (content/calendar-view-bindings.css)
     content/calendar/calendar-view-core.xml      (content/calendar-view-core.xml)
     content/calendar/calendar-views.js           (content/calendar-views.js)
+*   content/calendar/calApplicationUtils.js      (src/calApplicationUtils.js)
     content/calendar/calUtils.js                 (src/calUtils.js)
     content/calendar/calErrorPrompt.xul          (content/calErrorPrompt.xul)
     content/calendar/chooseCalendarDialog.xul    (content/chooseCalendarDialog.xul)
