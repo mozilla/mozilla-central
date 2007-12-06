@@ -2190,7 +2190,7 @@ function my_reclaimname()
     if ((this.state != NET_ONLINE) || !this.primServ)
         return false;
 
-    if (this.primServ.me.unicodeName != this.preferredNick)
+    if (this.primServ.me.unicodeName == this.preferredNick)
         return false;
 
     this.reclaimLeft -= this.RECLAIM_WAIT;
