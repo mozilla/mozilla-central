@@ -57,11 +57,24 @@
   </groupbox>
 
   <!-- category tree entries for mail/news -->
+  <treechildren id="prefsPanelChildren">
+    <treeitem container="true" id="mailnews" label="&mail.label;"
+              prefpane="mail_prefs_general" insertafter="navigator"
+              url="chrome://messenger/content/pref-mailnews.xul"
+              helpTopic="mail_prefs_general">
+      <treechildren id="messengerChildren">
+        <!-- XXX Move pref panes from below to here as they are migrated -->
+      </treechildren>
+    </treeitem>
+  </treechildren>
+
+  <!-- category tree entries for mail/news -->
   <treechildren id="panelChildren">
     <treeitem container="true" id="mailnews" insertafter="navigator">
-      <treerow>       
-        <treecell url="chrome://messenger/content/pref-mailnews.xul" label="&mail.label;"/> 
+      <treerow>
+        <treecell label="(Migrated: &mail.label;)"/>
       </treerow>
+      <!-- XXX Move these up as we migrate the panels -->
       <treechildren id="messengerChildren">
         <treeitem>
           <treerow>

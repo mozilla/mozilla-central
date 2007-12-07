@@ -122,6 +122,4 @@ mailnews/extensions/mailviews/resources/Makefile
 mailnews/extensions/mailviews/resources/content/Makefile
 mailnews/extensions/offline-startup/Makefile
 mailnews/mapi/Makefile
-mailnews/mapi/resources/content/Makefile
-mailnews/mapi/resources/Makefile
 "

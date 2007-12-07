@@ -42,98 +42,129 @@
 <?xml-stylesheet href="chrome://messenger/skin/prefPanels.css" type="text/css"?>
 <?xml-stylesheet href="chrome://communicator/skin/" type="text/css"?>
 
-<!DOCTYPE page SYSTEM "chrome://messenger/locale/pref-mailnews.dtd">
+<!DOCTYPE overlay [
+<!ENTITY % brandDTD SYSTEM "chrome://branding/locale/brand.dtd">
+%brandDTD;
+<!ENTITY % prefMailnewsDTD SYSTEM "chrome://messenger/locale/pref-mailnews.dtd">
+%prefMailnewsDTD;
+]>
 
-<page xmlns="http://www.mozilla.org/keymaster/gatekeeper/there.is.only.xul"
-      onload="parent.initPanel('chrome://messenger/content/pref-mailnews.xul');"
-      headertitle="&pref.mailnews.title;">
+<overlay xmlns="http://www.mozilla.org/keymaster/gatekeeper/there.is.only.xul">
+  <prefpane id="mail_prefs_general"
+            label="&pref.mailnews.title;"
+            script="chrome://messenger/content/pref-mailnews.js">
 
-  <script type="application/x-javascript" src="chrome://messenger/content/pref-mailnews.js"/>
+    <preferences id="mailnews_preferences">
+      <preference id="mailnews.confirm.moveFoldersToTrash"
+                  name="mailnews.confirm.moveFoldersToTrash" type="bool"/>
+      <preference id="mailnews.remember_selected_message"
+                  name="mailnews.remember_selected_message" type="bool"/>
+      <preference id="mailnews.thread_pane_column_unthreads"
+                  name="mailnews.thread_pane_column_unthreads" type="bool"/>
+      <preference id="mailnews.start_page.enabled"
+                  onchange="this.parentNode.parentNode.startPageCheck();"
+                  name="mailnews.start_page.enabled" type="bool"/>
+      <preference id="mailnews.start_page.url"
+                  name="mailnews.start_page.url" type="wstring"/>
+      <preference id="mail.toolbars.showbutton.file"
+                  name="mail.toolbars.showbutton.file" type="bool"/>
+      <preference id="mail.toolbars.showbutton.next"
+                  name="mail.toolbars.showbutton.next" type="bool"/>
+      <preference id="mail.toolbars.showbutton.print"
+                  name="mail.toolbars.showbutton.print" type="bool"/>
+      <preference id="mail.toolbars.showbutton.stop"
+                  name="mail.toolbars.showbutton.stop" type="bool"/>
+      <preference id="mail.toolbars.showbutton.junk"
+                  name="mail.toolbars.showbutton.junk" type="bool"/>
+      <preference id="system.windows.lock_ui.defaultMailClient" readonly="true"
+                  name="system.windows.lock_ui.defaultMailClient" type="bool"/>
+      <preference id="system.windows.lock_ui.defaultNewsClient" readonly="true"
+                  name="system.windows.lock_ui.defaultNewsClient" type="bool"/>
+    </preferences>
 
-  <script type="application/x-javascript">
-  <![CDATA[
-    var _elementIDs = ["mailnewsConfirmMoveFoldersToTrash", 
-                       "mailPreserveThreading",
-                       "mailnewsStartPageEnabled", "mailnewsStartPageUrl", 
-                       "fileButton", "nextButton",
-                       "printButton", "stopButton", 
-                       "mailRememberLastMsg", "junkMailButton"];
-  ]]>
-  </script>
-  
-  <groupbox>
-    <caption label="&generalSettings.caption;"/>
-    
-    <hbox align="center">
-      <checkbox id="mailnewsConfirmMoveFoldersToTrash" label="&confirmMove.label;"
-                prefstring="mailnews.confirm.moveFoldersToTrash"
-                accesskey="&confirmMove.accesskey;"/>
-    </hbox>
+    <groupbox>
+      <caption label="&generalSettings.caption;"/>
 
-    <hbox align="center">
-      <checkbox id="mailRememberLastMsg" label="&rememberLastMsg.label;"
-                prefstring="mailnews.remember_selected_message"
-                accesskey="&rememberLastMsg.accesskey;" />
-    </hbox>
+      <hbox align="center">
+        <checkbox id="mailnewsConfirmMoveFoldersToTrash" label="&confirmMove.label;"
+                  preference="mailnews.confirm.moveFoldersToTrash"
+                  accesskey="&confirmMove.accesskey;"/>
+      </hbox>
 
-    <hbox align="center">
-      <checkbox id="mailPreserveThreading"
-                label="&preserveThreading.label;"
-                accesskey="&preserveThreading.accesskey;"
-                prefstring="mailnews.thread_pane_column_unthreads"
-                reversed="true" />
-    </hbox>    
+      <hbox align="center">
+        <checkbox id="mailRememberLastMsg" label="&rememberLastMsg.label;"
+                  preference="mailnews.remember_selected_message"
+                  accesskey="&rememberLastMsg.accesskey;" />
+      </hbox>
 
-    <vbox id="mapi"/>
-  </groupbox>
+      <hbox align="center">
+        <checkbox id="mailPreserveThreading"
+                  label="&preserveThreading.label;"
+                  accesskey="&preserveThreading.accesskey;"
+                  preference="mailnews.thread_pane_column_unthreads"
+                  reversed="true" />
+      </hbox>
+      <vbox id="defaultMailPrefs">
+        <separator class="thin"/>
 
-  <groupbox>
-    <caption label="&messengerStartPage.caption;"/>
+        <description>&defaultMailSettings.description;</description>
+        <hbox class="indent" align="center">
+          <button id="setDefaultMail" accesskey="&setDefaultMail.accesskey;"
+                  label="&setDefaultMail.label;" oncommand="onSetDefaultMail();"
+                  preference="system.windows.lock_ui.defaultMailClient"/>
+          <button id="setDefaultNews" accesskey="&setDefaultNews.accesskey;"
+                  label="&setDefaultNews.label;" oncommand="onSetDefaultNews();"
+                  preference="system.windows.lock_ui.defaultNewsClient"/>
+        </hbox>
+      </vbox>
+    </groupbox>
+
+    <groupbox>
+      <caption label="&messengerStartPage.caption;"/>
       <hbox align="center">
         <checkbox id="mailnewsStartPageEnabled" label="&enableStartPage.label;"
-                  prefstring="mailnews.start_page.enabled" oncommand="StartPageCheck();"
+                  preference="mailnews.start_page.enabled"
                   accesskey="&enableStartPage.accesskey;"/>
       </hbox>
 
       <hbox align="center">
         <label value="&location.label;" accesskey="&location.accesskey;" 
                control="mailnewsStartPageUrl"/>
-        <textbox id="mailnewsStartPageUrl" flex="1" preftype="localizedstring"
-                 type="autocomplete" prefstring="mailnews.start_page.url"
-                 autocompletesearch="history" timeout="50" maxrows="6" class="uri-element"/>
+        <textbox id="mailnewsStartPageUrl" flex="1" type="autocomplete"
+                 preference="mailnews.start_page.url" timeout="50"
+                 autocompletesearch="history" maxrows="6" class="uri-element"/>
+      </hbox>
+      <hbox pack="end">
+        <button label="&useDefault.label;" accesskey="&useDefault.accesskey;"
+                oncommand="setHomePageToDefaultPage();">
+          <observes element="mailnewsStartPageUrl" attribute="disabled"/>
+        </button>
       </hbox>
 
-    <hbox pack="end">
-      <button label="&useDefault.label;" accesskey="&useDefault.accesskey;"
-              oncommand="setHomePageToDefaultPage('mailnewsStartPageUrl');">
-        <observes element="mailnewsStartPageUrl" attribute="disabled"/>
-      </button>
-     </hbox>
+    </groupbox>
 
-  </groupbox>
-
-  <!-- toolbar buttons customization -->
-  <groupbox flex="1" orient="horizontal">
-    <caption label="&toolbarIntro.caption;"/>
-    <vbox>
-      <checkbox id="fileButton"
-                label="&fileButton.label;" accesskey="&fileButton.accesskey;"
-                prefstring="mail.toolbars.showbutton.file"/>
-      <checkbox id="nextButton"
-                label="&nextButton.label;" accesskey="&nextButton.accesskey;"
-                prefstring="mail.toolbars.showbutton.next"/>
-      <checkbox id="printButton"
-                label="&printButton.label;" accesskey="&printButton.accesskey;"
-                prefstring="mail.toolbars.showbutton.print"/>
-    </vbox>
-    <vbox>
-      <checkbox id="stopButton"
-                label="&stopButton.label;" accesskey="&stopButton.accesskey;"
-                prefstring="mail.toolbars.showbutton.stop"/>
-      <checkbox id="junkMailButton"
-                label="&junkMailButton.label;" accesskey="&junkMailButton.accesskey;"
-                prefstring="mail.toolbars.showbutton.junk"/>
-    </vbox>
-  </groupbox>
- 
-</page>
+    <!-- toolbar buttons customization -->
+    <groupbox flex="1" orient="horizontal">
+      <caption label="&toolbarIntro.caption;"/>
+      <vbox>
+        <checkbox id="fileButton"
+                  label="&fileButton.label;" accesskey="&fileButton.accesskey;"
+                  preference="mail.toolbars.showbutton.file"/>
+        <checkbox id="nextButton"
+                  label="&nextButton.label;" accesskey="&nextButton.accesskey;"
+                  preference="mail.toolbars.showbutton.next"/>
+        <checkbox id="printButton"
+                  label="&printButton.label;" accesskey="&printButton.accesskey;"
+                  preference="mail.toolbars.showbutton.print"/>
+      </vbox>
+      <vbox>
+        <checkbox id="stopButton"
+                  label="&stopButton.label;" accesskey="&stopButton.accesskey;"
+                  preference="mail.toolbars.showbutton.stop"/>
+        <checkbox id="junkMailButton"
+                  label="&junkMailButton.label;" accesskey="&junkMailButton.accesskey;"
+                  preference="mail.toolbars.showbutton.junk"/>
+      </vbox>
+    </groupbox>
+  </prefpane>
+</overlay>

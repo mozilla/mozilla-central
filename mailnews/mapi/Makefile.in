@@ -45,6 +45,6 @@ include $(DEPTH)/config/autoconf.mk
 MODULE = msgMapi
 PACKAGE_FILE = mapi.pkg
 
-DIRS	= resources mapiDll mapihook
+DIRS	= mapiDll mapihook
 
 include $(topsrcdir)/config/rules.mk

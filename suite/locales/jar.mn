@@ -298,7 +298,6 @@
   locale/@AB_CD@/messenger/virtualFolderProperties.dtd                      (%chrome/mailnews/virtualFolderProperties.dtd)
   locale/@AB_CD@/messenger/virtualFolderListDialog.dtd                      (%chrome/mailnews/virtualFolderListDialog.dtd)
   locale/@AB_CD@/messenger-mapi/mapi.properties                             (%chrome/mailnews/mapi/mapi.properties)
-  locale/@AB_CD@/messenger-mapi/pref-mailnewsOverlay.dtd                    (%chrome/mailnews/mapi/pref-mailnewsOverlay.dtd)
   locale/@AB_CD@/messenger-region/region.properties                         (%chrome/mailnews/region.properties)
 #ifdef MOZ_PSM
   locale/@AB_CD@/messenger/am-smime.dtd                                     (%chrome/mailnews/smime/am-smime.dtd)
