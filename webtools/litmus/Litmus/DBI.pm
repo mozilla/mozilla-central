@@ -157,6 +157,7 @@ use Litmus::Memoize;
 use utf8;
 
 use base qw( Exporter Class::Data::Inheritable Class::DBI::mysql );
+use Class::DBI::Plugin::RetrieveAll;
 
 use constant MP2 => ( exists $ENV{MOD_PERL_API_VERSION} and 
                         $ENV{MOD_PERL_API_VERSION} >= 2 ); 

@@ -3,7 +3,7 @@
 [% IF testdays %]
 [% FOREACH testday=testdays %]
     <option[% IF defaults.testday_id==testday.testday_id %] selected[% END %] 
-        value="[% testday.testday_id | html %]">[% testday.description | html %], [% testday.start_timestamp | html %] - [% testday.finish_timestamp | html %]</option>
+        value="[% testday.testday_id | html %]">[% testday.description | html %], [% testday.start_timestamp | html %] - [% testday.finish_timestamp | html %][% IF display_id %] ([% testday.testday_id %])[% END %]</option>
 [% END %]
 [% END %]
 </select>

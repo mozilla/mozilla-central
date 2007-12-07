@@ -291,7 +291,7 @@ sub getUsers()
 #########################################################################
 sub getTestdays()
 {
-  my @testdays = reverse Litmus::DB::TestDay->retrieve_all();
+  my @testdays = Litmus::DB::TestDay->retrieve_all_sorted_by("finish_timestamp DESC, product_id ASC, branch_id ASC, testday_id ASC" );
   return \@testdays;
 }
 

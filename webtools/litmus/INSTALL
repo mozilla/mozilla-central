@@ -7,6 +7,7 @@ CGI
 Class::DBI 
 Class::DBI::mysql 
 Class::DBI::Pager
+Class::DBI::Plugin::RetrieveAll
 Class::DBI::Search::Basic
 Data::Dumper
 Data::JavaScript
