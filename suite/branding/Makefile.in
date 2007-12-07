@@ -60,6 +60,7 @@ endif
 
 DESKTOP_ICONS = \
 	abcardWindow \
+	ablistWindow \
 	addressbookWindow \
 	bmPropsWindow \
 	bookmark-window \
@@ -68,7 +69,7 @@ DESKTOP_ICONS = \
 	findBookmarkWindow \
 	findHistoryWindow \
 	history-window \
-	jsconsoleWindow \
+	JSConsoleWindow \
 	main-window \
 	messengerWindow \
 	msgcomposeWindow \
@@ -99,10 +100,9 @@ install:: icons/gtk/seamonkey.png
 GARBAGE	+= $(DIST)/bin/chrome/icons/default/seamonkey.png
 
 DESKTOP_ICONS += default
-DESKTOP_ICONS_SMALL=$(patsubst %,%16,$(DESKTOP_ICONS))
 endif
 
-DESKTOP_ICON_FILES = $(addsuffix $(ICON_SUFFIX), $(DESKTOP_ICONS) $(DESKTOP_ICONS_SMALL))
+DESKTOP_ICON_FILES = $(addsuffix $(ICON_SUFFIX), $(DESKTOP_ICONS))
 
 libs:: $(addprefix icons/$(ICON_DIR)/,$(DESKTOP_ICON_FILES))
 	$(INSTALL) $^ $(DIST)/bin/chrome/icons/default
