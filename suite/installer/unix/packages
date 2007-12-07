@@ -294,29 +294,18 @@ bin/components/libmozgnome.so
 bin/chrome/comm.jar
 bin/chrome/comm.manifest
 bin/chrome/icons/default/bmPropsWindow.xpm
-bin/chrome/icons/default/bmPropsWindow16.xpm
 bin/chrome/icons/default/bookmark-window.xpm
-bin/chrome/icons/default/bookmark-window16.xpm
 bin/chrome/icons/default/default.xpm
-bin/chrome/icons/default/default16.xpm
 bin/chrome/icons/default/downloadManager.xpm
-bin/chrome/icons/default/downloadManager16.xpm
 bin/chrome/icons/default/editorWindow.xpm
-bin/chrome/icons/default/editorWindow16.xpm
 bin/chrome/icons/default/findBookmarkWindow.xpm
-bin/chrome/icons/default/findBookmarkWindow16.xpm
 bin/chrome/icons/default/findHistoryWindow.xpm
-bin/chrome/icons/default/findHistoryWindow16.xpm
 bin/chrome/icons/default/history-window.xpm
-bin/chrome/icons/default/history-window16.xpm
-bin/chrome/icons/default/jsconsoleWindow.xpm
-bin/chrome/icons/default/jsconsoleWindow16.xpm
+bin/chrome/icons/default/JSConsoleWindow.xpm
 bin/chrome/icons/default/main-window.xpm
-bin/chrome/icons/default/main-window16.xpm
 bin/chrome/icons/default/seamonkey.png
 ; Although venkman-window is an extension, its icon is still suite-specific
 bin/chrome/icons/default/venkman-window.xpm
-bin/chrome/icons/default/venkman-window16.xpm
 bin/chrome/installed-chrome.txt
 bin/chrome/toolkit.jar
 bin/chrome/toolkit.manifest
@@ -440,13 +429,10 @@ bin/components/libnkgnomevfs.so
 
 [mail]
 bin/chrome/icons/default/abcardWindow.xpm
-bin/chrome/icons/default/abcardWindow16.xpm
+bin/chrome/icons/default/ablistWindow.xpm
 bin/chrome/icons/default/addressbookWindow.xpm
-bin/chrome/icons/default/addressbookWindow16.xpm
 bin/chrome/icons/default/messengerWindow.xpm
-bin/chrome/icons/default/messengerWindow16.xpm
 bin/chrome/icons/default/msgcomposeWindow.xpm
-bin/chrome/icons/default/msgcomposeWindow16.xpm
 bin/chrome/messenger.jar
 bin/chrome/messenger.manifest
 bin/chrome/messenger/*

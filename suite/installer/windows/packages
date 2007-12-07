@@ -328,7 +328,7 @@ bin\chrome\icons\default\editorWindow.ico
 bin\chrome\icons\default\findBookmarkWindow.ico
 bin\chrome\icons\default\findHistoryWindow.ico
 bin\chrome\icons\default\history-window.ico
-bin\chrome\icons\default\jsconsoleWindow.ico
+bin\chrome\icons\default\JSConsoleWindow.ico
 bin\chrome\icons\default\main-window.ico
 bin\chrome\icons\default\gif-file.ico
 bin\chrome\icons\default\html-file.ico
@@ -494,6 +494,7 @@ bin\chrome\messenger.jar
 bin\chrome\messenger.manifest
 bin\chrome\messenger\*
 bin\chrome\icons\default\abcardWindow.ico
+bin\chrome\icons\default\ablistWindow.ico
 bin\chrome\icons\default\addressbookWindow.ico
 bin\chrome\icons\default\messengerWindow.ico
 bin\chrome\icons\default\msgcomposeWindow.ico
