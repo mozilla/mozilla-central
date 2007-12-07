@@ -44,6 +44,12 @@ toolbar[printpreview="true"] {
   -moz-binding: url("chrome://communicator/content/printPreviewBindings.xml#printpreviewtoolbar");
 }
 
+/* ::::: notification box ::::: */
+
+.browser-notificationbox {
+  -moz-binding: url("chrome://communicator/content/bindings/notification.xml#browser-notificationbox");
+}
+
 
 /* With the move to the new toolkit, SeaMonkey needs to overwrite certain bindings
  * if it wants to keep its distinctive likeness. The now hidden new toolkit bindings
