@@ -65,17 +65,8 @@
                 persist="checked"/>
     </box>
     <calendar-task-tree id="unifinder-todo-tree" flex="1"
-                        hide-column-completed="false" 
-                        hide-column-priority="false" 
-                        hide-column-title="false" 
-                        hide-column-startdate="true" 
-                        hide-column-duedate="true" 
-                        hide-column-completeddate="true" 
-                        hide-column-percentcomplete="true" 
-                        hide-column-categories="true" 
-                        hide-column-location="true" 
-                        hide-column-status="true" 
-                        hide-column-calendarname="true" 
+                        visible-columns="completed priority title"
+                        persist="visible-columns ordinals widths sort-active sort-direction"
                         context="taskitem-context-menu"/>
   </vbox>
 </overlay>

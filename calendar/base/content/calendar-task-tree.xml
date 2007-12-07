@@ -66,8 +66,6 @@
         <xul:treecols anonid="calendar-task-tree-cols">
           <xul:treecol anonid="calendar-task-tree-col-completed"
                        class="calendar-task-tree-col-completed" 
-                       persist="hidden ordinal width sortDirection sortActive"
-                       xbl:inherits="hidden=hide-column-completed"
                        width="18"
                        cycler="true"
                        label="&calendar.unifinder.tree.done.label;">
@@ -76,58 +74,38 @@
           <xul:splitter class="tree-splitter"/>
           <xul:treecol anonid="calendar-task-tree-col-priority"
                        class="calendar-task-tree-col-priority"
-                       persist="hidden ordinal width sortDirection sortActive"
-                       xbl:inherits="hidden=hide-column-priority"
                        width="18" 
                        label="&calendar.unifinder.tree.priority.label;">
             <xul:image anonid="priorityimg"/>
           </xul:treecol>
           <xul:splitter class="tree-splitter"/>
           <xul:treecol anonid="calendar-task-tree-col-title"
-                       persist="hidden ordinal width sortDirection sortActive"
-                       xbl:inherits="hidden=hide-column-title"
                        flex="1" 
                        label="&calendar.unifinder.tree.title.label;"/>
           <xul:splitter class="tree-splitter"/>
           <xul:treecol anonid="calendar-task-tree-col-startdate"
-                       persist="hidden ordinal width sortDirection sortActive"
-                       xbl:inherits="hidden=hide-column-startdate"
                        flex="1" label="&calendar.unifinder.tree.startdate.label;"/>
           <xul:splitter class="tree-splitter"/>
           <xul:treecol anonid="calendar-task-tree-col-duedate"
-                       persist="hidden ordinal width sortDirection sortActive" 
-                       xbl:inherits="hidden=hide-column-duedate"
                        flex="1" label="&calendar.unifinder.tree.duedate.label;"/>
           <xul:splitter class="tree-splitter"/>
           <xul:treecol anonid="calendar-task-tree-col-completeddate"
-                       persist="hidden ordinal width sortDirection sortActive" 
-                       xbl:inherits="hidden=hide-column-completeddate"
                        flex="1" label="&calendar.unifinder.tree.completeddate.label;"/>
           <xul:splitter class="tree-splitter"/>
           <xul:treecol anonid="calendar-task-tree-col-percentcomplete"
-                       persist="hidden ordinal width sortDirection sortActive" 
-                       xbl:inherits="hidden=hide-column-percentcomplete"
                        flex="1" label="&calendar.unifinder.tree.percentcomplete.label;"/>
           <xul:splitter class="tree-splitter"/>
           <xul:treecol anonid="calendar-task-tree-col-categories"
-                       persist="hidden ordinal width sortDirection sortActive" 
-                       xbl:inherits="hidden=hide-column-categories"
                        flex="1" label="&calendar.unifinder.tree.categories.label;"/>
           <xul:splitter class="tree-splitter"/>
           <xul:treecol anonid="calendar-task-tree-col-location"
-                       persist="hidden ordinal width sortDirection sortActive" 
-                       xbl:inherits="hidden=hide-column-location"
                        label="&calendar.unifinder.tree.location.label;"/>
           <xul:splitter class="tree-splitter"/>
           <xul:treecol anonid="calendar-task-tree-col-status"
-                       persist="hidden ordinal width sortDirection sortActive" 
                        flex="1"
-                       xbl:inherits="hidden=hide-column-status"
                        label="&calendar.unifinder.tree.status.label;"/>
           <xul:splitter class="tree-splitter"/>
           <xul:treecol anonid="calendar-task-tree-col-calendarname"
-                       persist="hidden ordinal width sortDirection sortActive" 
-                       xbl:inherits="hidden=hide-column-calendarname"
                        flex="1"
                        label="&calendar.unifinder.tree.calendarname.label;"/>
         </xul:treecols>
@@ -651,19 +629,42 @@
         };
         window.addEventListener("unload", unload, true);
 
-        // we want to make several attributes persistent, but this requires
-        // that the relevant elements have an id attribute. that's why we
-        // iterate through the columns (these are the elements that need
-        // to be made persistent) and create identifiers. the identifier gets
-        // contructed from the name of the binding and the name of the column.
+        // we want to make several attributes on the column
+        // elements persistent, but unfortunately there's no
+        // relyable way with the 'persist' feature.
+        // that's why we need to store the necessary bits and
+        // pieces at the element this binding is attached to.
+        var names = this.getAttribute("visible-columns").split(' ');
+        var ordinals = this.getAttribute("ordinals").split(' ');
+        var widths = this.getAttribute("widths").split(' ');
+        var sortActive = this.getAttribute("sort-active");
+        var sortDirection = this.getAttribute("sort-direction") || "ascending";
         var treecols = document.getAnonymousNodes(
             this)[0].getElementsByTagName("treecol");
-        var index = "calendar-task-tree".length;
         for (var i = 0; i < treecols.length; i++) {
-            treecols[i].setAttribute(
-                "id",
-                this.id+treecols[i].getAttribute(
-                    "anonid").substr(index));
+            var anonid = treecols[i].getAttribute("anonid");
+            if (names.some(
+                function(element) {
+                    var pos = anonid.length - element.length;
+                    return (anonid.indexOf(element) == pos);
+                })) {
+                treecols[i].removeAttribute("hidden");
+            } else {
+                treecols[i].setAttribute("hidden","true");
+            }
+            if (ordinals && ordinals.length > 0) {
+               treecols[i].ordinal = Number(ordinals.shift());
+            }
+            if (widths && widths.length > 0) {
+               treecols[i].width = Number(widths.shift());
+            }
+            if (sortActive && sortActive.length > 0) {
+                var pos = anonid.length - sortActive.length;
+                if (anonid.indexOf(sortActive) == pos) {
+                    treecols[i].setAttribute("sortActive", "true");
+                    treecols[i].setAttribute("sortDirection", sortDirection);
+                }
+            }
         }
       ]]></constructor>
 
@@ -689,6 +690,44 @@
               // remove out calendar event observer
               var composite = getCompositeCalendar();
               composite.removeObserver(this.mTaskTreeObserver);
+              
+              var widths = "";
+              var ordinals = "";
+              var visible = "";
+              var sortActive = null;
+              var sortDirection = null;
+              var treecols = document.getAnonymousNodes(
+                  this)[0].getElementsByTagName("treecol");
+              for (var i = 0; i < treecols.length; i++) {
+                  if (treecols[i].getAttribute("hidden") != "true") {
+                    var anonid = treecols[i].getAttribute("anonid");
+                    anonid = anonid.substr(anonid.lastIndexOf("-")+1);
+                    visible += (visible.length > 0) ? " "+anonid : anonid;
+                  }
+                  if(ordinals.length > 0)
+                      ordinals += " ";
+                  ordinals += treecols[i].ordinal;
+                  if(widths.length > 0)
+                      widths += " ";
+                  widths += treecols[i].width || 0;
+
+                  if (treecols[i].getAttribute("sortActive") == "true") {
+                    sortActive = treecols[i].getAttribute("anonid");
+                    sortActive = sortActive.substr(sortActive.lastIndexOf("-")+1);
+                    sortDirection = treecols[i].getAttribute("sortDirection");
+                  }
+
+              }
+              this.setAttribute("visible-columns",visible);
+              this.setAttribute("ordinals",ordinals);
+              this.setAttribute("widths",widths);
+              if (sortActive) {
+                  this.setAttribute("sort-active",sortActive);
+                  this.setAttribute("sort-direction",sortDirection);
+              } else {
+                  this.removeAttribute("sort-active");
+                  this.removeAttribute("sort-direction");
+              }
           }
         ]]></body>
       </method>
@@ -904,9 +943,10 @@
         
           // use above local defined functor
           this.mTaskArray.sort(compareItems);
-          
           var tree = document.getAnonymousElementByAttribute(this, "anonid", "calendar-task-tree");
-          tree.boxObject.invalidateRange(0, this.mTaskArray.length - 1);
+          if (tree.boxObject.invalidateRange) {
+              tree.boxObject.invalidateRange(0, this.mTaskArray.length - 1);
+          }
         ]]></body>
       </method>
       

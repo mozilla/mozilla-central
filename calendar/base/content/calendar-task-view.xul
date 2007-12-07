@@ -58,17 +58,8 @@
                  onkeypress="taskEdit.onKeyPress(event)"/>
       </hbox>
       <calendar-task-tree id="calendar-task-tree" flex="1"
-                          hide-column-completed="false" 
-                          hide-column-priority="false" 
-                          hide-column-title="false" 
-                          hide-column-startdate="false" 
-                          hide-column-duedate="false" 
-                          hide-column-completeddate="true" 
-                          hide-column-percentcomplete="true" 
-                          hide-column-categories="true" 
-                          hide-column-location="true" 
-                          hide-column-status="true" 
-                          hide-column-calendarname="true" 
+                          visible-columns="completed priority title startdate duedate"
+                          persist="visible-columns ordinals widths sort-active sort-direction"
                           context="taskitem-context-menu"/>
       <splitter id="calendar-task-view-splitter" collapse="before" persist="state"/>
       <vbox>
