@@ -20,6 +20,7 @@
 #
 # Contributor(s):
 #   Ben Hearsum <bhearsum@mozilla.com>
+#   Johnathan Nightingale <johnath@mozilla.com>
 # ***** END LICENSE BLOCK *****
 
 # Description:
@@ -41,6 +42,10 @@ my $SENDCHANGE_URL = 'http://localhost/cgi-bin/sendchange.cgi';
 my $MOZILLA_REPO_PATH = 'http://hg.mozilla.org/mozilla-central';
 # the default path to the tamarin-central hg repository
 my $TAMARIN_REPO_PATH = 'http://hg.mozilla.org/tamarin-central';
+# the URL to the try server documentation
+my $DOCUMENTATION_URL = 'http://wiki.mozilla.org/Build:TryServer';
+# the URL to the tinderbox tracker
+my $TINDERBOX_URL = 'http://tinderbox.mozilla.org/MozillaTry/';
 
 sub WriteSuccessPage
 {
@@ -110,30 +115,36 @@ sub WritePage
 <html lang="en">
 
 <head>
-<title>Test your code with Buildbot</title>
-
+<title>MozillaTry Buildbot Test Page</title>
+<!-- Favicon courtesy of FAMFAMFAM silk - http://famfamfam.com/ -->
+<link rel="shortcut icon" href="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABAAAAAQCAYAAAAf8/9hAAAABGdBTUEAAK/INwWK6QAAABl0RVh0U29mdHdhcmUAQWRvYmUgSW1hZ2VSZWFkeXHJZTwAAAHMSURBVDjLlZLBSyJhGMa/UxTUIWJ0ZVmlwxLLEiEhurCoKeqCOtZN7J4ZRZdd9rSG6NFbSOegDp5aqWWI3UGm6KBUxsq2LLj+CzV9jDOH8NlvJtqLjuXhBy/z8Xvel4chAMhTKGfOMeVsbqXf2wBp3s5Yf5hno8rp24YxS9PTVHq18mTAgzj3k4mCIs0cqZeLUCTHJ1q13VKRSz0v4PRNVr1KQfu9Aa31BZ2LKKg42aHfJ8ZNA9i5L9hWUZFeQ73kof3N42SPR6OyjFZ1FZ36AuQfo5CPyc7gDiRHttNYwsl+Apqmodvt4uJrCur1GmSB/GI4TAOo9JKjVasQi8VQr9ehqiqazSaqu1Fofz5C/kYow9M3gJVkp+JUJZFIIJ1Oo1gsolwu42hngcmfdfmecS4fki3TC3ieN2SPx4NAIIB4PA7lPIo70YY7YQJyhdhNS3yU3W43/H4/LBaLvnWbbbxnvGNyQz4gmb4ByWQShULBkH0+HziOg/6die+ZKOjzzQEZYXzoCYhEIsjn8z3yI0wKmf7KwWAQuVwOLpcLXq+3Rx4EyWQyaLfbcDqdCIVCQ8n/A2q1GkqlklHYMLIREA6HN/WzrVbr0LLOP1AMs7UPAa92AAAAAElFTkSuQmCC"/>
 <style type="text/css">
   body {
-    background-color: #CCCCCC;
+    /* Background image courtesy of flickr user Compound Eye, http://flickr.com/photos/paopix/199190129 */
+    background: #FFF url('background.jpg') no-repeat fixed top left;
     margin-left: auto;
     margin-right: auto;
+    font-family: sans-serif;
   }
 
-  div#main {
-    text-align: center;
+  #main {
+    text-align: left;
   }
 
-  div#types {
-    margin-left: auto;
-    margin-right: auto;
-    width: 60%;
+  #types {
+    width: 75%;
+    margin: 20px auto;
+    border: 3px solid #AAA;
+    background-color: #EFF;
+    padding: 10px;
+    -moz-border-radius: 10px;
   }
 
   h3 {
     margin-bottom: 1em;
   }
 
-  p {
+  .alert {
     text-align: center;
     color: red;
   }
@@ -141,10 +152,10 @@ sub WritePage
   table {
     margin-left: auto;
     margin-right: auto;
-    width: 40%;
+    width: 80%;
   }
 
-  table td {
+  td {
     padding-top: 2px;
     padding-bottom: 2px;
     border: none;
@@ -153,7 +164,6 @@ sub WritePage
   td.lbl {
     text-align: right;
     vertical-align: middle;
-    width: 35%;
   }
 
   td.field {
@@ -162,7 +172,6 @@ sub WritePage
   }
 
   table th {
-    color: red;
     font-weight: normal;
   }
 
@@ -173,11 +182,7 @@ sub WritePage
     list-style-type: none;
   }
 
-  ul#testType li {
-    display: inline;
-  }
-
-  span#identifierTooltip {
+  #identifierTooltip {
     color: blue;
     cursor: default;
   }
@@ -185,6 +190,11 @@ sub WritePage
   fieldset {
     margin-left: auto;
     margin-right: auto;
+  }
+  
+  #patchfield {
+    font-weight: bold;
+    font-size: 140%;
   }
 
 </style>
@@ -240,7 +250,12 @@ __END_OF_HTML__
 <div id="main">
 
 <div id="types">
-  <h3>Test your code with Buildbot</h3>
+  <h3>Welcome to the Mozilla Buildbot Try Server</h3>
+  <p>The try server is an easy way to test a patch on all 3 platforms without
+  committing to a repository.  For more information, check the <a
+  href="$DOCUMENTATION_URL">wiki page</a>.  For build status, check the <a
+  href="$TINDERBOX_URL">tinderbox</a>.  Test builds are deleted after 30 days.</p>
+  <p>Note: Uploaded patches must be less than 10240kB in size.</p>
   <ul id="testType">
     <li>
     <input id="patch" name="type" value="patch" onclick="use_patchFile();"
@@ -256,14 +271,9 @@ __END_OF_HTML__
 
 <table id="patchTable">
   <tr>
-    <th colspan="2">
-      Note: Uploaded patches must be less than 10240kB in size.
-    </th>
-  </tr>
-  <tr>
-    <td class="lbl"><label for="patchFile">Patch:</label></td>
+    <td class="lbl" id="patchfield"><label for="patchFile">Patch:</label></td>
     <td class="field">
-      <input id="patchFile" name="patchFile" type="file" />(required)
+      <input id="patchFile" name="patchFile" type="file"/>
     </td>
   </tr>
   <tr>
@@ -315,17 +325,15 @@ __END_OF_HTML__
 <table id="allTable">
   <tr>
     <td class="lbl">
-      <label for="identifier">Identifier</label>
-      <span id="identifierTooltip"
-        title="A string that will be appended to all package names">
-      <sup>?</sup></span>:
+      <label for="identifier">Custom Identifier String</label><span id="identifierTooltip"
+        title="A string that will be appended to all package names"><sup>?</sup></span>:
     </td>
     <td class="field">
       <input id="identifier" type="text" name="identifier" value="$identifier"/>
     </td>
   </tr>
   <tr>
-    <td class="lbl"><label for="mozconfig">Mozconfig:</label></td>
+    <td class="lbl"><label for="mozconfig">Alternate mozconfig:</label></td>
     <td class="field">
       <input id="mozconfig" type="file" name="mozconfig" />
     </td>
@@ -338,13 +346,14 @@ __END_OF_HTML__
     </td>
   </tr>
   <tr>
-    <td colspan="2">
+    <td/>
+    <td>
       <input value="Submit" type="submit">
     </td>
   </tr>
 </table>
 
-<p id="errors">
+<p id="errors" class="alert">
 __END_OF_HTML__
     foreach my $e (@err) {
         print "$e<br />\n";
