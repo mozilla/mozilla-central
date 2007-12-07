@@ -149,7 +149,6 @@ const ExportAttributesTableStruct EXPORT_ATTRIBUTES_TABLE[] = {
 //
 nsAddressBook::nsAddressBook()
 {
-  printf("****\n******\n******\nCreating nsIAddressBook\n****\n******\n******\n");
 }
 
 nsAddressBook::~nsAddressBook()
