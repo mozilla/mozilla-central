@@ -106,7 +106,6 @@ function ltnSwitch2Mail() {
     }
 
     var calendarToolbar = document.getElementById("calendar-toolbar");
-    mailToolbar.removeAttribute("collapsed");
     calendarToolbar.setAttribute("collapsed", "true");
 
     // the content panel should display the folder tree

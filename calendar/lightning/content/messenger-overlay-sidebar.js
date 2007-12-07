@@ -760,22 +760,17 @@ function ltnInitializeCalendarMenu() {
 
 function swapPopupMenus() {
     var showStatusbar = document.getElementById("menu_showTaskbar").getAttribute("checked");
-    var oldmenupopuplist = null;
     var newmenupopuplist = null;
     if (gCurrentMode == "mail") {
-        oldmenupopuplist = calendarpopuplist;
         newmenupopuplist = mailpopuplist;
     }
     else if (gCurrentMode == "calendar") {
-        oldmenupopuplist = mailpopuplist;
         newmenupopuplist = calendarpopuplist;
     }
     for (var i = 0; i < menulist.length; i++) {
         var menu = menulist[i];
         var oldmenupopup = menu.firstChild;
         if (oldmenupopup) {
-            var newmenupopup = null;
-            oldmenupopuplist[i] = oldmenupopup;
             menu.replaceChild(newmenupopuplist[i], oldmenupopup);
         }
     }
