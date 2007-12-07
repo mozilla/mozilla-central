@@ -30,14 +30,7 @@
 #%]
 
 [% test_run=test_runs.0 %]
-[% INCLUDE global/html_header.tmpl js_files=['js/prototype.lite.js',
-                                             'js/moo.fx.js',
-                                             'js/moo.fx.pack.js',
-                                             'js/RunTests.js',
-                                             'js/json.js',
-                                             'js/MochiKit/MochiKit.js',
-                                             'js/TestRunCoverage.js'
-                                             ] %]
+[% INCLUDE global/html_header.tmpl %]
 [% INCLUDE global/litmus_header.tmpl %]
 
 <div id="page">
@@ -176,6 +169,8 @@ Any OS
 [% END %]
 </table>
 
+<script language="JavaScript" type="text/Javascript" src="js/Litmus.js"></script>
+<script language="JavaScript" type="text/Javascript" src="js/TestRunCoverage.js"></script>
 <script type="text/javascript">
 showAll=0;
 testConfigHeight = new fx.Height('test_run_summary', {duration: 400});

@@ -32,7 +32,7 @@
 
 [% title="View Testcase" %]
 
-[% INCLUDE global/html_header.tmpl js_files=['js/FormValidation.js','js/MochiKit/MochiKit.js','js/json.js','js/Help.js','js/SelectBoxes.js','js/FormPersist.js','js/ViewTestcase.js'] %]
+[% INCLUDE global/html_header.tmpl %]
 [% INCLUDE global/litmus_header.tmpl %]
 
 <script type="text/javascript">
@@ -165,6 +165,9 @@ var relevanceHelpText = '<p>Relevance values are non-negative floating-point num
 </div> <!--END content-->
 
 </div> <!--END page-->
+
+<script language="JavaScript" type="text/Javascript" src="js/Litmus.js"></script>
+<script language="JavaScript" type="text/Javascript" src="js/ViewTestcase.js"></script>
 
 [% INCLUDE global/litmus_footer.tmpl %]
 [% INCLUDE global/html_footer.tmpl %]

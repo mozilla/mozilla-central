@@ -25,7 +25,7 @@
   # ***** END LICENSE BLOCK *****
 #%]
   
-[% INCLUDE global/html_header.tmpl js_files=['js/prototype.lite.js','js/moo.fx.js','js/moo.fx.pack.js','js/FormValidation.js','js/EditCategories.js','js/MochiKit/MochiKit.js','js/json.js','js/Help.js','js/SelectBoxes.js','js/SelectSort.js','js/ManageTestdays.js'] %]
+[% INCLUDE global/html_header.tmpl %]
 [% INCLUDE global/litmus_header.tmpl %]
 
 <script type="text/javascript">
@@ -57,6 +57,9 @@ var subgroups=[% IF subgroups_js %][% subgroups_js %][% ELSE %]{}[% END %];
 
   </div> <!--END content-->
 
+  <script language="JavaScript" type="text/Javascript" src="js/Litmus.js"></script>
+  <script language="JavaScript" type="text/Javascript" src="js/EditCategories.js"></script>
+  <script language="JavaScript" type="text/Javascript" src="js/ManageTestdays.js"></script>
   <script type="text/javascript">
     Element.cleanWhitespace('manage_testdays_div');    
   </script>

@@ -25,7 +25,7 @@
   # ***** END LICENSE BLOCK *****
 #%]
 
-[% INCLUDE global/html_header.tmpl js_files=['js/Help.js','js/AdvancedSearch.js'] %]
+[% INCLUDE global/html_header.tmpl %]
 [% INCLUDE global/litmus_header.tmpl %]
 
 <div id="page">
@@ -35,6 +35,8 @@
   <div id="content">
 
     <h1 class="firstHeading">[% title | html %]</h1>
+    <script language="JavaScript" type="text/Javascript" src="js/Litmus.js"></script>
+    <script language="JavaScript" type="text/Javascript" src="js/AdvancedSearch.js"></script>
     [% INCLUDE reporting/result_display.tmpl %]
 
   </div> <!--END content-->

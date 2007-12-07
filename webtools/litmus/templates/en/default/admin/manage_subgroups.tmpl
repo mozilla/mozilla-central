@@ -25,7 +25,7 @@
   # ***** END LICENSE BLOCK *****
 #%]
 
-[% INCLUDE global/html_header.tmpl js_files=['js/FormValidation.js','js/MochiKit/MochiKit.js','js/json.js','js/Help.js','js/SelectBoxes.js','js/SelectSort.js','js/ManageSubgroups.js'] %]
+[% INCLUDE global/html_header.tmpl %]
 [% INCLUDE global/litmus_header.tmpl %]
 
 <script type="text/javascript">
@@ -117,6 +117,8 @@ var testcases=[% IF testcases_js %][% testcases_js %][% ELSE %]{}[% END %];
 
 </div> <!--END page-->
 
+<script language="JavaScript" type="text/Javascript" src="js/Litmus.js"></script>
+<script language="JavaScript" type="text/Javascript" src="js/ManageSubgroups.js"></script>
 <script type="text/javascript">
 var em = document.getElementById('subgroup_id'); 
 if (em.selectedIndex >= 0) {

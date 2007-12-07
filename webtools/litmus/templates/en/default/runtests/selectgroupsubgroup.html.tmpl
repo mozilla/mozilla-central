@@ -36,7 +36,7 @@
 
 [% onload = "$onload; showsubgroup();" %]
 [% test_run=test_runs.0 %]
-[% INCLUDE global/html_header.tmpl js_files=['js/prototype.lite.js','js/moo.fx.js','js/moo.fx.pack.js','js/SubGroup.js','js/SelectBoxes.js','js/RunTests.js','js/Help.js','js/json.js','js/MochiKit/MochiKit.js','js/TestRunCoverage.js'] %] 
+[% INCLUDE global/html_header.tmpl %] 
 [% INCLUDE global/litmus_header.tmpl %]
 
 <script type="text/javascript">
@@ -259,6 +259,9 @@ Please select a testing group with testcases, or that has not yet been tested in
 
   </div> <!--END content-->
 
+  <script language="JavaScript" type="text/Javascript" src="js/Litmus.js"></script>
+  <script language="JavaScript" type="text/Javascript" src="js/SubGroup.js"></script>
+  <script language="JavaScript" type="text/Javascript" src="js/TestRunCoverage.js"></script>
   <script type="text/javascript">
     group_init([% defaulttestgroup %]);
     beginCoverageLookup();

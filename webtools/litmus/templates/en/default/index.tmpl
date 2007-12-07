@@ -25,7 +25,7 @@
   # ***** END LICENSE BLOCK *****
 #%]
   
-[% INCLUDE global/html_header.tmpl js_files=['js/Help.js','js/prototype.lite.js','js/json.js','js/MochiKit/MochiKit.js','js/TestRunCoverage.js','js/RunTests.js'] %]
+[% INCLUDE global/html_header.tmpl %]
 [% INCLUDE global/litmus_header.tmpl %]
 
 <div id="page">
@@ -41,6 +41,8 @@
 
 </div> <!--END page-->
 
+<script language="JavaScript" type="text/Javascript" src="js/Litmus.js"></script>
+<script language="JavaScript" type="text/Javascript" src="js/RunTests.js"></script>
 <script type="text/javascript">
   beginCoverageLookup();
 </script>

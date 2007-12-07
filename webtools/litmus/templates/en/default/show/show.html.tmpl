@@ -39,7 +39,7 @@
 [% title="Testcase disabled" %]
 [% END %]
 
-[% INCLUDE global/html_header.tmpl js_files=['js/prototype.lite.js','js/moo.fx.js','js/moo.fx.pack.js','js/FormValidation.js','js/SelectBoxes.js','js/ManageTestcases.js','js/Help.js','js/RunTests.js','js/Search.js'] %] 
+[% INCLUDE global/html_header.tmpl %] 
 [% INCLUDE global/litmus_header.tmpl %]
 
 <script type="text/javascript">
@@ -72,6 +72,9 @@ var opsyses=[% IF opsyses_js %][% opsyses_js %][% ELSE %]{}[% END %];
 <input name="id" type="hidden" value="[% testcase.testcase_id | html %]">
 
     <div class="testcase-content">
+    <script language="JavaScript" type="text/Javascript" src="js/Litmus.js"></script>
+    <script language="JavaScript" type="text/Javascript" src="js/RunTests.js"></script>
+    <script language="JavaScript" type="text/Javascript" src="js/ManageTestcases.js"></script>
     [% INCLUDE test/test.html.tmpl testcase=testcase results=results show_config=1 single=1 sysconfig=sysconfig %]
     </div>
 </form>    
@@ -80,6 +83,7 @@ var opsyses=[% IF opsyses_js %][% opsyses_js %][% ELSE %]{}[% END %];
 
 [% IF sysconfig %]
 [% INCLUDE runtests/testing_config.tmpl sysconfig=sysconfig %]
+
 
   <script type="text/javascript">
     Element.cleanWhitespace('testconfig');

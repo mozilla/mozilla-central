@@ -34,7 +34,7 @@
   # $message (optional) - an error message to display	  
 #%]
 
-[% INCLUDE global/html_header.tmpl js_files = ['js/FormValidation.js'] %] 
+[% INCLUDE global/html_header.tmpl %] 
 [% INCLUDE global/litmus_header.tmpl %] 
 
 [% # Dump CGI data into hidden fields for safekeeping as the user 
@@ -247,5 +247,7 @@ primary email address if this concerns you.</p>
   </div> <!--END content-->
 
 </div> <!--END page-->
+
+<script language="JavaScript" type="text/Javascript" src="js/Litmus.js"></script>
 
 [% INCLUDE global/html_footer.tmpl %]

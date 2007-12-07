@@ -25,7 +25,7 @@
   # ***** END LICENSE BLOCK *****
 #%]
 
-[% INCLUDE global/html_header.tmpl js_files=['js/FormValidation.js','js/MochiKit/MochiKit.js','js/json.js','js/Help.js','js/SelectBoxes.js','js/ManageTestcases.js'] %]
+[% INCLUDE global/html_header.tmpl %]
 [% INCLUDE global/litmus_header.tmpl %]
 
 <script type="text/javascript">
@@ -120,6 +120,8 @@ var initial_subgroup=[% IF subgroup_persist %][% subgroup_persist %][% ELSE %]0[
 
 </div> <!--END page-->
 
+<script language="JavaScript" type="text/Javascript" src="js/Litmus.js"></script>
+<script language="JavaScript" type="text/Javascript" src="js/ManageTestcases.js"></script>
 <script type="text/javascript">
 loadProducts(document.getElementById('product_filter'),'_filter',1);
 var em = document.getElementById('testcase_id'); 

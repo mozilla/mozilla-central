@@ -24,7 +24,7 @@
 #%]
 
 [% includeselects=1 %]
-[% INCLUDE global/html_header.tmpl js_files=['js/SelectBoxes.js','js/FormValidation.js'] title='Edit User' %]
+[% INCLUDE global/html_header.tmpl title='Edit User' %]
 [% INCLUDE global/litmus_header.tmpl %]
 
 <script type="text/javascript">
@@ -140,11 +140,11 @@ function checkFormContents(f) {
 </form>
 </div>
 
-
 </div><!--END content-->
 
 </div><!--END page-->
 
+<script language="JavaScript" type="text/Javascript" src="js/Litmus.js"></script>
 
 [% INCLUDE global/litmus_footer.tmpl %]
 [% INCLUDE global/html_footer.tmpl %]

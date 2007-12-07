@@ -30,7 +30,7 @@
   #             search criteria used to lookup results
 #%]  
 
-[% INCLUDE global/html_header.tmpl js_files=['js/Help.js','js/prototype.lite.js','js/moo.fx.js','js/moo.fx.pack.js','js/MochiKit/MochiKit.js','js/json.js','js/FormValidation.js','js/SelectBoxes.js','js/Search.js','js/AdvancedSearch.js'] %]
+[% INCLUDE global/html_header.tmpl %]
 [% INCLUDE global/litmus_header.tmpl %]
 
 <div id="page">
@@ -42,12 +42,14 @@
     <h1 class="firstHeading"><a title="Click to display the advanced search criteria form" onclick="advSearchFormHeight.toggle('height');" name="search_form">Advanced Search Criteria&nbsp;&raquo;</a></h1>
     [% INCLUDE reporting/advanced_search_form.tmpl %]
 
+<script language="JavaScript" type="text/Javascript" src="js/Litmus.js"></script>
+<script language="JavaScript" type="text/Javascript" src="js/AdvancedSearch.js"></script>
+
 [% IF ! no_search %]
 <hr/>
 
     <h1 class="firstHeading">Advanced Search Results</h1>
     [% INCLUDE reporting/test_results.tmpl %]
-[% IF ! no_search %]
 
   </div> <!--END content-->
 
@@ -59,7 +61,6 @@
     toggleMessage('info','The search criteria form has been collapsed.<br/>Click on <b>advanced search criteria</b> to expand the form.');
     advSearchFormHeight.toggle(); 
     [% END %]
-[% END %]
   </script>
 [% END %]
 

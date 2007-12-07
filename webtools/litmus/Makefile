@@ -4,6 +4,7 @@ PERL=perl
 
 install: templates
 	$(PERL) populatedb.pl
+	scripts/minify_js.bash
 
 # precompile all templates with the Template Toolkit
 # to speed things up a good bit. 

@@ -25,7 +25,7 @@
 [% PROCESS global/selects.none.tmpl %]
 
 [% includeselects=1 %]
-[% INCLUDE global/html_header.tmpl js_files=['js/SelectBoxes.js'] 
+[% INCLUDE global/html_header.tmpl ] 
     title='Enter Testcase' %]
 [% INCLUDE global/litmus_header.tmpl %]
 
@@ -50,6 +50,7 @@ Test <a href="show_test.cgi?id=[%test.testid | html | uri%]">#[% test.testid | h
 
 </div><!--END page-->
 
+<script language="JavaScript" type="text/Javascript" src="js/Litmus.js"></script>
 
 [% INCLUDE global/litmus_footer.tmpl %]
 [% INCLUDE global/html_footer.tmpl %]
