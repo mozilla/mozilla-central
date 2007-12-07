@@ -152,7 +152,7 @@ function OnLoadNewCard()
       HideNonVcardFields();
       gEditCard.card =
         Components.classes["@mozilla.org/addressbook;1"]
-                  .createInstance(Components.interfaces.nsIAddressBook)
+                  .getService(Components.interfaces.nsIAddressBook)
                   .escapedVCardToAbCard(window.arguments[0].escapedVCardStr);
     }
 
@@ -382,7 +382,8 @@ function NewCardOKButton()
     if (!CheckAndSetCardValues(gEditCard.card, document, true))
       return false;  // don't close window
 
-    var addressbook = Components.classes["@mozilla.org/addressbook;1"].createInstance(Components.interfaces.nsIAddressBook);
+    var addressbook = Components.classes["@mozilla.org/addressbook;1"]
+                                .getService(Components.interfaces.nsIAddressBook);
     gOkCallback(addressbook.abCardToEscapedVCard(gEditCard.card));
     return true;  // close the window
   }

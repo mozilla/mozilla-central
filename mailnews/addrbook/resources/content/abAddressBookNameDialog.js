@@ -93,7 +93,7 @@ function abNameOKButton()
     gDirectory.dirName = newName;
   else
     Components.classes["@mozilla.org/addressbook;1"]
-              .createInstance(Components.interfaces.nsIAddressBook)
+              .getService(Components.interfaces.nsIAddressBook)
               .newAddressBook(newName, "", kPABDirectory);
 
   return true;

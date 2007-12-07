@@ -133,6 +133,7 @@
 #include "nsAbMDBDirFactory.h"
 #include "nsAddrDatabase.h"
 #include "nsAddressBook.h"
+#include "nsAbContentHandler.h"
 #include "nsAddrBookSession.h"
 #include "nsAbDirProperty.h"
 #include "nsAbAutoCompleteSession.h"
@@ -367,6 +368,7 @@ NS_GENERIC_FACTORY_CONSTRUCTOR(nsMsgCookiePolicy)
 // addrbook factories
 ////////////////////////////////////////////////////////////////////////////////
 NS_GENERIC_FACTORY_CONSTRUCTOR(nsAddressBook)
+NS_GENERIC_FACTORY_CONSTRUCTOR(nsAbContentHandler)
 NS_GENERIC_FACTORY_CONSTRUCTOR_INIT(nsAbDirectoryDataSource,Init)
 NS_GENERIC_FACTORY_CONSTRUCTOR(nsAbDirProperty)
 NS_GENERIC_FACTORY_CONSTRUCTOR(nsAbCardProperty)
@@ -943,8 +945,12 @@ static const nsModuleComponentInfo gComponents[] = {
       NS_ADDBOOKURL_CONTRACTID, nsAddbookUrlConstructor },
     { "The addbook Protocol Handler", NS_ADDBOOK_HANDLER_CID,
       NS_NETWORK_PROTOCOL_CONTRACTID_PREFIX "addbook", nsAddbookProtocolHandlerConstructor },
-    { "add vCard content handler", NS_ADDRESSBOOK_CID, NS_CONTENT_HANDLER_CONTRACTID_PREFIX"application/x-addvcard", nsAddressBookConstructor },
-    { "add vCard content handler", NS_ADDRESSBOOK_CID, NS_CONTENT_HANDLER_CONTRACTID_PREFIX"text/x-vcard", nsAddressBookConstructor },
+    { "add vCard content handler", NS_ABCONTENTHANDLER_CID,
+      NS_CONTENT_HANDLER_CONTRACTID_PREFIX"application/x-addvcard",
+      nsAbContentHandlerConstructor },
+    { "add vCard content handler", NS_ABCONTENTHANDLER_CID,
+      NS_CONTENT_HANDLER_CONTRACTID_PREFIX"text/x-vcard",
+      nsAbContentHandlerConstructor },
 
     { "The directory factory service interface", NS_ABDIRFACTORYSERVICE_CID,
       NS_ABDIRFACTORYSERVICE_CONTRACTID, nsAbDirFactoryServiceConstructor },

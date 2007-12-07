@@ -344,7 +344,8 @@ function AbPrintCardInternal(doPrintPreview, msgType)
   if (!numSelected)
     return;
 
-  var addressbook = Components.classes["@mozilla.org/addressbook;1"].createInstance(Components.interfaces.nsIAddressBook);
+  var addressbook = Components.classes["@mozilla.org/addressbook;1"]
+                              .getService(Components.interfaces.nsIAddressBook);
   var uri = GetSelectedDirectory();
   if (!uri)
     return;
@@ -399,7 +400,8 @@ function CreatePrintCardUrl(card)
 
 function AbPrintAddressBookInternal(doPrintPreview, msgType)
 {
-  var addressbook = Components.classes["@mozilla.org/addressbook;1"].createInstance(Components.interfaces.nsIAddressBook);
+  var addressbook = Components.classes["@mozilla.org/addressbook;1"]
+                              .getService(Components.interfaces.nsIAddressBook);
   var uri = GetSelectedDirectory();
   if (!uri)
     return;
@@ -446,7 +448,7 @@ function AbExport()
 
     var directory = GetDirectoryFromURI(selectedABURI);
     Components.classes["@mozilla.org/addressbook;1"]
-              .createInstance(Components.interfaces.nsIAddressBook)
+              .getService(Components.interfaces.nsIAddressBook)
               .exportAddressBook(window, directory);
   }
   catch (ex) {

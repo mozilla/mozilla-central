@@ -1,4 +1,4 @@
-/* -*- Mode: IDL; tab-width: 2; indent-tabs-mode: nil; c-basic-offset: 2 -*- */
+/* -*- Mode: C++; tab-width: 2; indent-tabs-mode: nil; c-basic-offset: 2 -*- */
 /* ***** BEGIN LICENSE BLOCK *****
  * Version: MPL 1.1/GPL 2.0/LGPL 2.1
  *
@@ -35,48 +35,22 @@
  *
  * ***** END LICENSE BLOCK ***** */
 
-#include "nsISupports.idl"
+#ifndef __nsAbContentHandler_h
+#define __nsAbContentHandler_h
+ 
+#include "nsIStreamLoader.h"
+#include "nsIContentHandler.h"
 
-interface nsIDOMWindow;
-interface nsIAbDirectory;
-interface nsIAbCard;
-interface nsIAbDirectoryProperties;
-interface nsIRDFDataSource;
-
-/**
- * nsIAddressBook is an interface to the address book service accessible
- * via the contract id "@mozilla.org/addressbook;1"
- *
- * It contains the main functions to create and delete address books as well
- * as some helper functions.
- */
-[scriptable, uuid(bf83d970-1697-40ad-aad1-3b0606957c32)]
-interface nsIAddressBook : nsISupports 
+class nsAbContentHandler : public nsIContentHandler,
+                           public nsIStreamLoaderObserver
 {
-  /**
-   * Creates a new address book.
-   *
-   * @param aDirName  The description of the address book.
-   *
-   * @param aURI      The URI for the address book. This is specific to each
-   *                  type of address book.
-   *
-   * @param aType     The type of the address book (see nsDirPrefs.h)
-   */
-  ACString newAddressBook(in AString aDirName, in ACString aURI,
-                          in unsigned long aType);
+public:
+  nsAbContentHandler();
+  virtual ~nsAbContentHandler();
 
-  /**
-   * Deletes an address book.
-   *
-   * @param aURI      The URI for the address book. This is specific to each
-   *                  type of address book.
-   */
-  void deleteAddressBook(in ACString aURI);
-
-  void exportAddressBook(in nsIDOMWindow aParentWin, in nsIAbDirectory aDirectory);
-  boolean mailListNameExists(in wstring name);
-  nsIAbCard escapedVCardToAbCard(in string escapedVCardStr);
-  string abCardToEscapedVCard(in nsIAbCard aCard);
+  NS_DECL_ISUPPORTS
+  NS_DECL_NSICONTENTHANDLER
+  NS_DECL_NSISTREAMLOADEROBSERVER
 };
 
+#endif

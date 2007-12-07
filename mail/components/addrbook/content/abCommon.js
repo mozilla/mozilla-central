@@ -369,7 +369,7 @@ function AbDeleteDirectory(aURI)
   }
 
   Components.classes["@mozilla.org/addressbook;1"]
-            .createInstance(Components.interfaces.nsIAddressBook)
+            .getService(Components.interfaces.nsIAddressBook)
             .deleteAddressBook(aURI);
 }
 

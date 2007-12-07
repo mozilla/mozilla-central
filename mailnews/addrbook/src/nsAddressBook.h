@@ -39,46 +39,14 @@
 #define __nsAddressBook_h
  
 #include "nsIAddressBook.h"
-#include "nsIAbCard.h"
-#include "nsCOMPtr.h"
-#include "nsIAddrDatabase.h"
-#include "nsIComponentManager.h"
-#include "nsIContentHandler.h"
-#include "nsIStreamLoader.h"
 #include "nsICommandLineHandler.h"
 
 class nsILocalFile;
 class nsIAbDirectory;
 class nsIAbLDAPAttributeMap;
 
-#define   EXPORT_ATTRIBUTES_TABLE_COUNT      51
-
-struct ExportAttributesTableStruct
-{
-    const char* abColName;
-    PRUint32 plainTextStringID;
-};
-
-const extern ExportAttributesTableStruct EXPORT_ATTRIBUTES_TABLE[EXPORT_ATTRIBUTES_TABLE_COUNT];
-
-// for now, the oder of the attributes with PR_TRUE for includeForPlainText
-// should be in the same order as they are in the import code
-// see importMsgProperties and nsImportStringBundle.
-// 
-// XXX todo, merge with what's in nsAbLDAPProperties.cpp, so we can
-// use this for LDAP and LDIF export
-//
-// here's how we're coming up with the ldapPropertyName values
-// if they are specified in RFC 2798, use them
-// else use the 4.x LDIF attribute names (for example, "xmozillanickname"
-// as we want to allow export from mozilla back to 4.x, and other apps
-// are probably out there that can handle 4.x LDIF)
-// else use the MOZ_AB_LDIF_PREFIX prefix, see nsIAddrDatabase.idl
-
 class nsAddressBook : public nsIAddressBook,
-                      public nsICommandLineHandler,
-                      public nsIContentHandler,
-                      public nsIStreamLoaderObserver
+                      public nsICommandLineHandler
 {
   
 public:
@@ -87,8 +55,6 @@ public:
 
 	NS_DECL_ISUPPORTS
  	NS_DECL_NSIADDRESSBOOK
-  NS_DECL_NSICONTENTHANDLER
-  NS_DECL_NSISTREAMLOADEROBSERVER
   NS_DECL_NSICOMMANDLINEHANDLER
 
 private:
