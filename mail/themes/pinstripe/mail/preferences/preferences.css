@@ -39,6 +39,10 @@
 # ***** END LICENSE BLOCK *****
 */
 
+menulist > menupopup > menuitem {
+  font: -moz-pull-down-menu;
+}
+ 
 prefwindow:not([type="child"]) {
   padding: 0 !important;
 }

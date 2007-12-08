@@ -39,6 +39,9 @@
 # ***** END LICENSE BLOCK *****
 
 <?xml-stylesheet href="chrome://global/skin/"?>
+#ifdef XP_MACOSX
+<?xml-stylesheet href="chrome://messenger/skin/preferences/preferences.css"?>
+#endif
 
 <!DOCTYPE prefwindow [
 <!ENTITY % brandDTD SYSTEM "chrome://branding/locale/brand.dtd" >
