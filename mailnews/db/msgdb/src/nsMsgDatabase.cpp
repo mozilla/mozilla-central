@@ -3133,12 +3133,14 @@ nsresult nsMsgDatabase::RowCellColumnToMime2DecodedString(nsIMdbRow *row, mdb_to
     if (m_mimeConverter)
     {
       nsAutoString decodedStr;
-      const char *charSet;
+      nsCString charSet;
       PRBool characterSetOverride;
-      m_dbFolderInfo->GetConstCharPtrCharacterSet(&charSet);
+      m_dbFolderInfo->GetEffectiveCharacterSet(charSet);
       m_dbFolderInfo->GetCharacterSetOverride(&characterSetOverride);
 
-      err = m_mimeConverter->DecodeMimeHeader(nakedString, resultStr, charSet, characterSetOverride);
+      err = m_mimeConverter->DecodeMimeHeader(nakedString, resultStr,
+                                              charSet.get(),
+                                              characterSetOverride);
     }
   }
   return err;
@@ -3163,7 +3165,7 @@ nsresult nsMsgDatabase::RowCellColumnToAddressCollationKey(nsIMdbRow *row, mdb_t
         nsCString resultStr;
         nsCString charset;
         PRBool characterSetOverride;
-        m_dbFolderInfo->GetCharPtrCharacterSet(getter_Copies(charset));
+        m_dbFolderInfo->GetEffectiveCharacterSet(charset);
         m_dbFolderInfo->GetCharacterSetOverride(&characterSetOverride);
 
         ret = converter->DecodeMimeHeader(cSender, getter_Copies(resultStr),
@@ -3224,12 +3226,15 @@ nsresult nsMsgDatabase::RowCellColumnToCollationKey(nsIMdbRow *row, mdb_token co
     if (m_mimeConverter)
     {
       nsCString decodedStr;
-      const char *charSet;
+      nsCString charSet;
       PRBool characterSetOverride;
-      m_dbFolderInfo->GetConstCharPtrCharacterSet(&charSet);
+      m_dbFolderInfo->GetEffectiveCharacterSet(charSet);
       m_dbFolderInfo->GetCharacterSetOverride(&characterSetOverride);
 
-      err = m_mimeConverter->DecodeMimeHeader(nakedString, getter_Copies(decodedStr), charSet, characterSetOverride);
+      err = m_mimeConverter->DecodeMimeHeader(nakedString,
+                                              getter_Copies(decodedStr),
+                                              charSet.get(),
+                                              characterSetOverride);
       if (NS_SUCCEEDED(err))
         err = CreateCollationKey(NS_ConvertUTF8toUTF16(decodedStr), result, len);
     }

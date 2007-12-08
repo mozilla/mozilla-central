@@ -1780,7 +1780,7 @@
             {
               var msgDatabase = aFolder.getMsgDatabase(null);
               var dbFolderInfo = msgDatabase.dBFolderInfo;
-              var srchFolderUri = dbFolderInfo.getCharPtrProperty("searchFolderUri");
+              var srchFolderUri = dbFolderInfo.getCharProperty("searchFolderUri");
               var srchFolderUriArray = srchFolderUri.split('|');
               var foldersAdded = 0;
               var RDF = Components.classes['@mozilla.org/rdf/rdf-service;1'].getService().QueryInterface(Components.interfaces.nsIRDFService);

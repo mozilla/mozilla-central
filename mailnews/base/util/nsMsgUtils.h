@@ -39,7 +39,7 @@
 #define _NSMSGUTILS_H
 
 #include "nsIURL.h"
-#include "nsString.h"
+#include "nsStringGlue.h"
 #include "nsIEnumerator.h"
 #include "msgCore.h"
 #include "nsCOMPtr.h"

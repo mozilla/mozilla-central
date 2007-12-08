@@ -41,7 +41,7 @@
 #include "nsIMsgDatabase.h"
 #include "nsMsgHdr.h"
 #include "nsVoidArray.h"
-#include "nsString.h"
+#include "nsStringGlue.h"
 #include "nsIDBChangeListener.h"
 #include "nsIDBChangeAnnouncer.h"
 #include "nsMsgMessageFlags.h"

@@ -942,10 +942,10 @@ function FolderPaneSelectionChange()
                   if (folderFlags & MSG_FOLDER_FLAG_VIRTUAL)
                   {
                     viewType = nsMsgViewType.eShowQuickSearchResults;
-                    var searchTermString = dbFolderInfo.getCharPtrProperty("searchStr");
+                    var searchTermString = dbFolderInfo.getCharProperty("searchStr");
                     // trick the view code into updating the real folder...
                     gCurrentVirtualFolderUri = uriToLoad;
-                    var srchFolderUri = dbFolderInfo.getCharPtrProperty("searchFolderUri");
+                    var srchFolderUri = dbFolderInfo.getCharProperty("searchFolderUri");
                     var srchFolderUriArray = srchFolderUri.split('|');
                     var searchOnline = dbFolderInfo.getBooleanProperty("searchOnline", false);
                     // cross folder search
@@ -1138,8 +1138,8 @@ function  CreateVirtualFolder(newName, parentFolder, searchFolderURIs, searchTer
       var dbFolderInfo = vfdb.dBFolderInfo;
       // set the view string as a property of the db folder info
       // set the original folder name as well.
-      dbFolderInfo.setCharPtrProperty("searchStr", searchTermString);
-      dbFolderInfo.setCharPtrProperty("searchFolderUri", searchFolderURIs);
+      dbFolderInfo.setCharProperty("searchStr", searchTermString);
+      dbFolderInfo.setCharProperty("searchFolderUri", searchFolderURIs);
       dbFolderInfo.setBooleanProperty("searchOnline", searchOnline);
       vfdb.summaryValid = true;
       vfdb.Close(true);

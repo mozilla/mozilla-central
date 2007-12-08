@@ -143,8 +143,8 @@ function InitDialogWithVirtualFolder(aVirtualFolderURI)
   var msgDatabase = msgFolder.getMsgDatabase(msgWindow);
   var dbFolderInfo = msgDatabase.dBFolderInfo;
 
-  gSearchFolderURIs = dbFolderInfo.getCharPtrProperty("searchFolderUri");
-  var searchTermString = dbFolderInfo.getCharPtrProperty("searchStr");
+  gSearchFolderURIs = dbFolderInfo.getCharProperty("searchFolderUri");
+  var searchTermString = dbFolderInfo.getCharProperty("searchStr");
   document.getElementById('searchOnline').checked = dbFolderInfo.getBooleanProperty("searchOnline", false);
 
   // work around to get our search term string converted into a real array of search terms
@@ -188,8 +188,8 @@ function onOK()
 
     // set the view string as a property of the db folder info
     // set the original folder name as well.
-    dbFolderInfo.setCharPtrProperty("searchStr", searchTermString);
-    dbFolderInfo.setCharPtrProperty("searchFolderUri", gSearchFolderURIs);
+    dbFolderInfo.setCharProperty("searchStr", searchTermString);
+    dbFolderInfo.setCharProperty("searchFolderUri", gSearchFolderURIs);
     dbFolderInfo.setBooleanProperty("searchOnline", searchOnline);
     msgDatabase.Close(true);
 

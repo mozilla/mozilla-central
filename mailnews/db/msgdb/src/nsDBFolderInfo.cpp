@@ -1,4 +1,4 @@
-/* -*- Mode: C++; tab-width: 4; indent-tabs-mode: nil; c-basic-offset: 4 -*- */
+/* -*- Mode: C++; tab-width: 2; indent-tabs-mode: nil; c-basic-offset: 2 -*- */
 /* ***** BEGIN LICENSE BLOCK *****
  * Version: MPL 1.1/GPL 2.0/LGPL 2.1
  *
@@ -47,8 +47,8 @@
 #include "nsIObserver.h"
 #include "nsIObserverService.h"
 #include "nsIMsgDBView.h"
-#include "nsReadableUtils.h"
 #include "nsISupportsObsolete.h"
+#include "nsServiceManagerUtils.h"
 
 static const char *kDBFolderInfoScope = "ns:msg:db:row:scope:dbfolderinfo:all";
 static const char *kDBFolderInfoTableKind = "ns:msg:db:table:kind:dbfolderinfo";
@@ -78,7 +78,7 @@ static const char * kLocaleColumnName = "locale";
 
 #define kMAILNEWS_VIEW_DEFAULT_CHARSET        "mailnews.view_default_charset"
 #define kMAILNEWS_DEFAULT_CHARSET_OVERRIDE    "mailnews.force_charset_override"
-static char * gDefaultCharacterSet = NULL;
+static nsCString* gDefaultCharacterSet = nsnull;
 static PRBool     gDefaultCharacterOverride;
 static nsIObserver *gFolderCharsetObserver = nsnull;
 
@@ -122,8 +122,7 @@ NS_IMETHODIMP nsFolderCharsetObserver::Observe(nsISupports *aSubject, const char
         if (!ucsval.IsEmpty())
         {
           if (gDefaultCharacterSet)
-            nsMemory::Free(gDefaultCharacterSet);
-          gDefaultCharacterSet = ToNewCString(ucsval);
+            CopyUTF16toUTF8(ucsval, *gDefaultCharacterSet);
         }
       }
     }
@@ -141,12 +140,8 @@ NS_IMETHODIMP nsFolderCharsetObserver::Observe(nsISupports *aSubject, const char
       rv = pbi->RemoveObserver(kMAILNEWS_DEFAULT_CHARSET_OVERRIDE, this);
     }
     NS_IF_RELEASE(gFolderCharsetObserver);
-    // this can be called many times
-    if (gDefaultCharacterSet)
-    {
-      nsMemory::Free(gDefaultCharacterSet);
-      gDefaultCharacterSet = NULL; // free doesn't null out our ptr.
-    }
+    delete gDefaultCharacterSet;
+    gDefaultCharacterSet = nsnull;
   }
   return rv;
 }
@@ -218,9 +213,11 @@ nsDBFolderInfo::nsDBFolderInfo(nsMsgDatabase *mdb)
         pls->ToString(getter_Copies(ucsval));
         if (!ucsval.IsEmpty())
         {
+          if (!gDefaultCharacterSet)
+            gDefaultCharacterSet = new nsCString;
+
           if (gDefaultCharacterSet)
-            nsMemory::Free(gDefaultCharacterSet);
-          gDefaultCharacterSet = ToNewCString(ucsval);
+            CopyUTF16toUTF8(ucsval, *gDefaultCharacterSet);
         }
       }
       rv = prefBranch->GetBoolPref(kMAILNEWS_DEFAULT_CHARSET_OVERRIDE, &gDefaultCharacterOverride);
@@ -395,6 +392,7 @@ nsresult nsDBFolderInfo::InitMDBInfo()
     store->StringToToken(env,  kVersionColumnName, &m_versionColumnToken);
     m_mdbTokensInitialized  = PR_TRUE;
   }
+
   return ret;
 }
 
@@ -630,45 +628,33 @@ PRBool nsDBFolderInfo::TestFlag(PRInt32 flags)
 }
 
 NS_IMETHODIMP
-nsDBFolderInfo::GetCharacterSet(nsACString &result, PRBool *usedDefault)
-{
-  *usedDefault = PR_FALSE;
-  nsresult rv = GetCharPtrProperty(kCharacterSetColumnName, getter_Copies(result));
-  if (NS_SUCCEEDED(rv) && result.IsEmpty())
-  {
-    result = gDefaultCharacterSet;
-    *usedDefault = PR_TRUE;
-  }
-  return rv;
-}
-
-nsresult nsDBFolderInfo::GetConstCharPtrCharacterSet(const char**result)
+nsDBFolderInfo::GetCharacterSet(nsACString &result)
 {
   if (!m_charSet.IsEmpty())
-    *result = m_charSet.get();
+    result.Assign(m_charSet);
+  else if (gDefaultCharacterSet)
+    result.Assign(*gDefaultCharacterSet);
   else
-    *result = gDefaultCharacterSet;
+    result.Truncate();
+
   return NS_OK;
 }
 
 NS_IMETHODIMP
-nsDBFolderInfo::GetCharPtrCharacterSet(char **result)
+nsDBFolderInfo::GetEffectiveCharacterSet(nsACString &result)
 {
-  *result = ToNewCString(m_charSet);
+  result.Truncate();
+  if (NS_FAILED(GetCharProperty(kCharacterSetColumnName, result)) ||
+      (result.IsEmpty() && gDefaultCharacterSet))
+    result = *gDefaultCharacterSet;
 
-  if ((*result == nsnull || **result == '\0'))
-  {
-    PR_Free(*result);
-    *result = strdup(gDefaultCharacterSet);
-  }
-
-  return (*result) ? NS_OK : NS_ERROR_OUT_OF_MEMORY;
+  return NS_OK;
 }
 
-NS_IMETHODIMP nsDBFolderInfo::SetCharacterSet(const char *charSet)
+NS_IMETHODIMP nsDBFolderInfo::SetCharacterSet(const nsACString &charSet)
 {
   m_charSet.Assign(charSet);
-  return SetCharPtrProperty(kCharacterSetColumnName, charSet);
+  return SetCharProperty(kCharacterSetColumnName, charSet);
 }
 
 NS_IMETHODIMP nsDBFolderInfo::GetCharacterSetOverride(PRBool *characterSetOverride)
@@ -829,15 +815,21 @@ NS_IMETHODIMP nsDBFolderInfo::GetProperty(const char *propertyName, nsAString &r
   return m_mdb->GetPropertyAsNSString(m_mdbRow, propertyName, resultProperty);
 }
 
-NS_IMETHODIMP nsDBFolderInfo::SetCharPtrProperty(const char *aPropertyName, const char *aPropertyValue)
+NS_IMETHODIMP nsDBFolderInfo::SetCharProperty(const char *aPropertyName,
+                                              const nsACString &aPropertyValue)
 {
-  return m_mdb->SetProperty(m_mdbRow, aPropertyName, aPropertyValue);
+  return m_mdb->SetProperty(m_mdbRow, aPropertyName,
+                            nsCString(aPropertyValue).get());
 }
 
-// Caller must PR_Free resultProperty.
-NS_IMETHODIMP nsDBFolderInfo::GetCharPtrProperty(const char *propertyName, char **resultProperty)
+NS_IMETHODIMP nsDBFolderInfo::GetCharProperty(const char *propertyName,
+                                              nsACString &resultProperty)
 {
-  return m_mdb->GetProperty(m_mdbRow, propertyName, resultProperty);
+  nsCString result;
+  nsresult rv = m_mdb->GetProperty(m_mdbRow, propertyName, getter_Copies(result));
+  if (NS_SUCCEEDED(rv))
+    resultProperty.Assign(result);
+  return rv;
 }
 
 NS_IMETHODIMP nsDBFolderInfo::SetUint32Property(const char *propertyName, PRUint32 propertyValue)
@@ -900,14 +892,14 @@ NS_IMETHODIMP	nsDBFolderInfo::SetBooleanProperty(const char *propertyName, PRBoo
   return m_mdb->SetUint32Property(m_mdbRow, propertyName, propertyValue ? 1 : 0);
 }
 
-NS_IMETHODIMP nsDBFolderInfo::GetFolderName(char **folderName)
+NS_IMETHODIMP nsDBFolderInfo::GetFolderName(nsACString &folderName)
 {
-  return GetCharPtrProperty("folderName", folderName);
+  return GetCharProperty("folderName", folderName);
 }
 
-NS_IMETHODIMP nsDBFolderInfo::SetFolderName(const char *folderName)
+NS_IMETHODIMP nsDBFolderInfo::SetFolderName(const nsACString &folderName)
 {
-  return SetCharPtrProperty("folderName", folderName);
+  return SetCharProperty("folderName", folderName);
 }
 
 class nsTransferDBFolderInfo : public nsDBFolderInfo
@@ -975,7 +967,7 @@ NS_IMETHODIMP nsDBFolderInfo::InitFromTransferInfo(nsIDBFolderInfo *aTransferInf
   nsTransferDBFolderInfo *transferInfo = static_cast<nsTransferDBFolderInfo *>(aTransferInfo);
 
   for (PRInt32 i = 0; i < transferInfo->m_values.Count(); i++)
-    SetCharPtrProperty(transferInfo->m_properties[i]->get(), transferInfo->m_values[i]->get());
+    SetCharProperty(transferInfo->m_properties[i]->get(), *transferInfo->m_values[i]);
 
   LoadMemberVariables();
   return NS_OK;

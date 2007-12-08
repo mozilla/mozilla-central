@@ -204,7 +204,7 @@ NS_IMETHODIMP nsRssIncomingServer::GetNewMail(nsIMsgWindow *aMsgWindow, nsIUrlLi
         nsCString url;
         nsString folderName;
         aFolder->GetName(folderName);
-        folderInfo->GetCharPtrProperty("feedUrl", getter_Copies(url));
+        folderInfo->GetCharProperty("feedUrl", url);
 
         rv = rssDownloader->DownloadFeed(url.get(),
                                          aFolder, PR_FALSE, folderName.get(), aUrlListener, aMsgWindow);

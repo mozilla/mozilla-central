@@ -41,7 +41,7 @@
 #ifndef _nsDBFolderInfo_H
 #define _nsDBFolderInfo_H
 
-#include "nsString.h"
+#include "nsStringGlue.h"
 #include "MailNewsTypes.h"
 #include "mdb.h"
 #include "nsMsgKeyArray.h"
@@ -86,9 +86,7 @@ public:
   nsresult	GetPropertyWithToken(mdb_token aProperty, nsAString &resultProperty);
   nsresult	GetUint32PropertyWithToken(mdb_token aProperty, PRUint32 &propertyValue, PRUint32 defaultValue = 0);
   nsresult	GetInt32PropertyWithToken(mdb_token aProperty, PRInt32 &propertyValue, PRInt32 defaultValue = 0);
-  nsresult      GetConstCharPtrCharacterSet(const char**result);
-  
-  
+
   nsMsgKeyArray m_lateredKeys;		// list of latered messages
   
 protected:
@@ -128,7 +126,7 @@ protected:
   nsMsgDatabase *m_mdb;
   nsIMdbTable   *m_mdbTable;	// singleton table in db
   nsIMdbRow     *m_mdbRow;	// singleton row in table;
-  
+
   nsCString     m_charSet;
   PRBool        m_charSetOverride;
   PRBool        m_mdbTokensInitialized;

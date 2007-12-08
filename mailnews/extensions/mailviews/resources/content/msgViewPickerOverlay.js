@@ -175,7 +175,7 @@ function GetMailViewForFolder(aFolder)
   var folderInfo = GetFolderInfo(aFolder);
   if (folderInfo)
   {
-    val = folderInfo.getCharPtrProperty(kViewCurrentTag);
+    val = folderInfo.getCharProperty(kViewCurrentTag);
     if (!val)
     {
       // no new view value, thus using the old
@@ -199,7 +199,7 @@ function SetMailViewForFolder(aFolder, aValue)
     // we can't map tags back to labels in general,
     // so set view to all for backwards compatibility in this case
     folderInfo.setUint32Property (kViewCurrent, isNaN(aValue) ? kViewItemAll : aValue);
-    folderInfo.setCharPtrProperty(kViewCurrentTag, aValue);
+    folderInfo.setCharProperty(kViewCurrentTag, aValue);
   }
 }
 

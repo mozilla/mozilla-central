@@ -1,4 +1,4 @@
-/* -*- Mode: C++; tab-width: 4; indent-tabs-mode: nil; c-basic-offset: 4 -*- */
+/* -*- Mode: C++; tab-width: 2; indent-tabs-mode: nil; c-basic-offset: 2 -*- */
 /* ***** BEGIN LICENSE BLOCK *****
  * Version: MPL 1.1/GPL 2.0/LGPL 2.1
  *
@@ -38,7 +38,7 @@
 #include "nsISupports.idl"
 #include "MailNewsTypes2.idl"
 
-[scriptable, uuid(5cb11c00-cb8b-11d2-8d67-00805f8a6617)]
+[scriptable, uuid(83254767-a395-4bc6-be46-78687c5f1bba)]
 interface  nsIDBFolderInfo : nsISupports {
   attribute long Flags;
   long  OrFlags(in long flags);
@@ -69,8 +69,20 @@ interface  nsIDBFolderInfo : nsISupports {
 
   void ChangeExpungedBytes(in long delta);
 
-  string getCharPtrProperty(in string propertyName);
-  void setCharPtrProperty(in string aPropertyName, in string aPropertyValue);
+  /**
+   * Gets a string property from the folder.
+   *
+   * @param propertyName The name of the property for the value to retrieve.
+   */
+  ACString getCharProperty(in string propertyName);
+
+  /**
+   * Sets a string property from the folder.
+   *
+   * @param propertyName   The name of the property for which to set a value
+   * @param propertyValue  The new value of the property.
+   */
+  void setCharProperty(in string aPropertyName, in ACString aPropertyValue);
   void setUint32Property(in string propertyName, in unsigned long propertyValue);
   unsigned long getUint32Property(in string propertyName, in unsigned long defaultValue);
   boolean getBooleanProperty(in string propertyName, in boolean defaultValue);
@@ -78,12 +90,19 @@ interface  nsIDBFolderInfo : nsISupports {
   nsIDBFolderInfo	GetTransferInfo();
   void	initFromTransferInfo(in nsIDBFolderInfo transferInfo);
 
-  void getCharacterSet(out ACString charSet, out boolean overriden);
-  void setCharacterSet(in string charSet);
+  /**
+   * Gets/Sets the current character set for the folder. If there is no
+   * specific character set for the folder, it will return an empty string.
+   */
+  attribute ACString characterSet;
+
+  /**
+   * Returns the effective character set on the folder. If there is no specific
+   * set defined for the folder, it will return the default character set.
+   */
+  readonly attribute ACString effectiveCharacterSet;
 
   attribute boolean characterSetOverride;
-
-  string getCharPtrCharacterSet();
 
   attribute AString locale;
   attribute AString mailboxName;
@@ -93,7 +112,5 @@ interface  nsIDBFolderInfo : nsISupports {
   void setProperty(in string propertyName, in AString propertyStr);
 
   attribute string knownArtsSet;
-  attribute string folderName;
+  attribute ACString folderName;
 };
-
-

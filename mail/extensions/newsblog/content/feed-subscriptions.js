@@ -393,7 +393,7 @@ var gFeedSubscriptionsWindow = {
     {
       var msgdb = aFolder.QueryInterface(Components.interfaces.nsIMsgFolder).getMsgDatabase(null);
       var folderInfo = msgdb.dBFolderInfo;
-      var feedurls = folderInfo.getCharPtrProperty("feedUrl");
+      var feedurls = folderInfo.getCharProperty("feedUrl");
       var feedUrlArray = feedurls.split("|");
       for (url in feedUrlArray)
       {
@@ -564,7 +564,7 @@ var gFeedSubscriptionsWindow = {
 
 //    var msgdb = currentFolder.QueryInterface(Components.interfaces.nsIMsgFolder).getMsgDatabase(null);
 //   var folderInfo = msgdb.dBFolderInfo;
-//    var oldFeedUrl = folderInfo.getCharPtrProperty("feedUrl");
+//    var oldFeedUrl = folderInfo.getCharProperty("feedUrl");
 
 //    if (!oldFeedUrl) // no more feeds pointing to the folder?
 //    {

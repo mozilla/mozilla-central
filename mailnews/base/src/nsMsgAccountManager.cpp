@@ -2387,7 +2387,7 @@ nsresult VirtualFolderChangeListener::Init()
   if (NS_SUCCEEDED(rv) && msgDB)
   {
     nsCString searchTermString;
-    dbFolderInfo->GetCharPtrProperty("searchStr", getter_Copies(searchTermString));
+    dbFolderInfo->GetCharProperty("searchStr", searchTermString);
     nsCOMPtr<nsIMsgFilterService> filterService = do_GetService(NS_MSGFILTERSERVICE_CONTRACTID, &rv);
     nsCOMPtr<nsIMsgFilterList> filterList;
     rv = filterService->GetTempFilterList(m_virtualFolder, getter_AddRefs(filterList));
@@ -2730,7 +2730,7 @@ NS_IMETHODIMP nsMsgAccountManager::LoadVirtualFolders()
           // and we have to add a pending listener for each of them.
           if (buffer.Length())
           {
-            dbFolderInfo->SetCharPtrProperty("searchFolderUri", buffer.get());
+            dbFolderInfo->SetCharProperty("searchFolderUri", buffer);
             AddVFListenersForVF(virtualFolder, buffer.get(), rdf, msgDBService);
           }
           else // this folder is useless
@@ -2740,7 +2740,7 @@ NS_IMETHODIMP nsMsgAccountManager::LoadVirtualFolders()
         else if (dbFolderInfo && Substring(buffer, 0, 6).Equals("terms="))
         {
           buffer.Cut(0, 6);
-          dbFolderInfo->SetCharPtrProperty("searchStr", buffer.get());
+          dbFolderInfo->SetCharProperty("searchStr", buffer);
         }
         else if (dbFolderInfo && Substring(buffer, 0, 13).Equals("searchOnline="))
         {
@@ -2808,8 +2808,8 @@ NS_IMETHODIMP nsMsgAccountManager::SaveVirtualFolders()
               nsCString searchTerms;
               PRBool searchOnline = PR_FALSE;
               dbFolderInfo->GetBooleanProperty("searchOnline", PR_FALSE, &searchOnline);
-              dbFolderInfo->GetCharPtrProperty("searchFolderUri", getter_Copies(srchFolderUri));
-              dbFolderInfo->GetCharPtrProperty("searchStr", getter_Copies(searchTerms));
+              dbFolderInfo->GetCharProperty("searchFolderUri", srchFolderUri);
+              dbFolderInfo->GetCharProperty("searchStr", searchTerms);
               folderRes->GetValueConst(&uri);
               if (!srchFolderUri.IsEmpty() && !searchTerms.IsEmpty())
               {
@@ -2883,7 +2883,7 @@ NS_IMETHODIMP nsMsgAccountManager::OnItemAdded(nsIRDFResource *parentItem, nsISu
       rv = folder->GetDBFolderInfoAndDB(getter_AddRefs(dbFolderInfo), getter_AddRefs(virtDatabase));
       NS_ENSURE_SUCCESS(rv, rv);
       nsCString srchFolderUri;
-      dbFolderInfo->GetCharPtrProperty("searchFolderUri", getter_Copies(srchFolderUri));
+      dbFolderInfo->GetCharProperty("searchFolderUri", srchFolderUri);
       nsCOMPtr<nsIRDFService> rdf(do_GetService("@mozilla.org/rdf/rdf-service;1", &rv));
       AddVFListenersForVF(folder, srchFolderUri.get(), rdf, msgDBService);
     }

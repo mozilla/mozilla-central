@@ -1899,7 +1899,7 @@ nsImapMailFolder::GetDBFolderInfoAndDB(nsIDBFolderInfo **folderInfo, nsIMsgDatab
     return rv; //GetDBFolderInfo can't return NS_OK if !folderInfo
 
   nsCString onlineName;
-  rv = (*folderInfo)->GetCharPtrProperty("onlineName", getter_Copies(onlineName));
+  rv = (*folderInfo)->GetCharProperty("onlineName", onlineName);
   if (NS_FAILED(rv))
     return rv;
 

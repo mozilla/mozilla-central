@@ -37,7 +37,6 @@
  * ***** END LICENSE BLOCK ***** */
 
 #include "msgCore.h"
-#include "nsReadableUtils.h"
 #include "nsUnicharUtils.h"
 #include "nsMsgDBFolder.h"
 #include "nsMsgFolderFlags.h"
@@ -333,7 +332,7 @@ NS_IMETHODIMP nsMsgDBFolder::GetCharset(nsACString& aCharset)
   nsCOMPtr<nsIMsgDatabase> db;
   nsresult rv = GetDBFolderInfoAndDB(getter_AddRefs(folderInfo), getter_AddRefs(db));
   if(NS_SUCCEEDED(rv))
-    rv = folderInfo->GetCharPtrCharacterSet(getter_Copies(aCharset));
+    rv = folderInfo->GetEffectiveCharacterSet(aCharset);
   return rv;
 }
 
@@ -346,7 +345,7 @@ NS_IMETHODIMP nsMsgDBFolder::SetCharset(const nsACString& aCharset)
   rv = GetDBFolderInfoAndDB(getter_AddRefs(folderInfo), getter_AddRefs(db));
   if(NS_SUCCEEDED(rv))
   {
-    rv = folderInfo->SetCharacterSet(nsCString(aCharset).get());
+    rv = folderInfo->SetCharacterSet(aCharset);
     db->Commit(nsMsgDBCommitType::kLargeCommit);
     mCharset = aCharset;
   }
@@ -558,7 +557,7 @@ nsresult nsMsgDBFolder::ReadDBFolderInfo(PRBool force)
         folderInfo->GetExpungedBytes((PRInt32 *)&mExpungedBytes);
 
         nsCString utf8Name;
-        folderInfo->GetFolderName(getter_Copies(utf8Name));
+        folderInfo->GetFolderName(utf8Name);
         if (!utf8Name.IsEmpty())
           CopyUTF8toUTF16(utf8Name, mName);
 
@@ -566,10 +565,7 @@ nsresult nsMsgDBFolder::ReadDBFolderInfo(PRBool force)
         //folderInfo->GetImapTotalPendingMessages(&mNumPendingTotalMessages);
         //folderInfo->GetImapUnreadPendingMessages(&mNumPendingUnreadMessages);
 
-        PRBool defaultUsed;
-        folderInfo->GetCharacterSet(mCharset, &defaultUsed);
-        if (defaultUsed)
-          mCharset.Truncate();
+        folderInfo->GetCharacterSet(mCharset);
         folderInfo->GetCharacterSetOverride(&mCharsetOverride);
 
         if (db) {
@@ -1743,7 +1739,7 @@ nsMsgDBFolder::GetStringProperty(const char *propertyName, nsACString& propertyV
         return NS_MSG_ERROR_FOLDER_MISSING;
       rv = GetDBFolderInfoAndDB(getter_AddRefs(folderInfo), getter_AddRefs(db));
       if (NS_SUCCEEDED(rv))
-        rv = folderInfo->GetCharPtrProperty(propertyName, getter_Copies(propertyValue));
+        rv = folderInfo->GetCharProperty(propertyName, propertyValue);
     }
   }
   return rv;
@@ -1767,7 +1763,7 @@ nsMsgDBFolder::SetStringProperty(const char *propertyName, const nsACString& pro
   nsresult rv = GetDBFolderInfoAndDB(getter_AddRefs(folderInfo), getter_AddRefs(db));
   if(NS_SUCCEEDED(rv))
   {
-    folderInfo->SetCharPtrProperty(propertyName, nsCString(propertyValue).get());
+    folderInfo->SetCharProperty(propertyName, propertyValue);
     db->Commit(nsMsgDBCommitType::kLargeCommit);  //commiting the db also commits the cache
   }
   return NS_OK;
@@ -2251,7 +2247,7 @@ nsMsgDBFolder::Clear(void)
 NS_IMETHODIMP
 nsMsgDBFolder::GetURI(nsACString& name)
 {
-  return nsRDFResource::GetValue(getter_Copies(name));
+  return nsRDFResource::GetValueUTF8(name);
 }
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -2423,7 +2419,7 @@ nsMsgDBFolder::parseURI(PRBool needServer)
   NS_ENSURE_SUCCESS(rv, rv);
 #endif
 
-  rv = url->SetSpec(nsDependentCString(mURI));
+  rv = url->SetSpec(mURI);
   NS_ENSURE_SUCCESS(rv, rv);
   // empty path tells us it's a server.
   if (!mIsServerIsValid)

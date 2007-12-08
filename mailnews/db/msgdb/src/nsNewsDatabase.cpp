@@ -96,7 +96,7 @@ nsresult nsNewsDatabase::Commit(nsMsgDBCommit commitType)
     // the .rc file next time we start up.
     nsCString readSet;
     m_readSet->Output(getter_Copies(readSet));
-    m_dbFolderInfo->SetCharPtrProperty("readSet", readSet.get());
+    m_dbFolderInfo->SetCharProperty("readSet", readSet);
   }
   return nsMsgDatabase::Commit(commitType);
 }
@@ -194,7 +194,7 @@ NS_IMETHODIMP nsNewsDatabase::SetReadSet(nsMsgKeySet *pSet)
     // If not equivalent, sync with this one.
     nsCString dbReadSet;
     if (m_dbFolderInfo)
-      m_dbFolderInfo->GetCharPtrProperty("readSet", getter_Copies(dbReadSet));
+      m_dbFolderInfo->GetCharProperty("readSet", dbReadSet);
     nsCString newsrcReadSet;
     m_readSet->Output(getter_Copies(newsrcReadSet));
     if (!dbReadSet.Equals(newsrcReadSet))
