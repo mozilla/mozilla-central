@@ -73,6 +73,7 @@
     <script src="chrome://chatzilla/content/lib/js/ident.js"/>
     <script src="chrome://chatzilla/content/lib/js/text-serializer.js"/>
     <script src="chrome://chatzilla/content/lib/xul/munger.js"/>
+    <script src="chrome://chatzilla/content/lib/xul/tree-utils.js"/>
 
     <script src="chrome://chatzilla/content/static.js"/>
     <script src="chrome://chatzilla/content/commands.js"/>
@@ -81,7 +82,6 @@
     <script src="chrome://chatzilla/content/messages.js"/>
     <script src="chrome://chatzilla/content/mungers.js"/>
     <script src="chrome://chatzilla/content/handlers.js"/>
-    <script src="chrome://chatzilla/content/rdf.js"/>
     <script src="chrome://chatzilla/content/networks.js"/>
 
   </overlaytarget>

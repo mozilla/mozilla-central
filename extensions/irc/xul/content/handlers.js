@@ -254,26 +254,6 @@ function onMouseOver (e)
     }
 }
 
-function onSortCol(sortColName)
-{
-    var node = document.getElementById(sortColName);
-    if (!node)
-        return false;
-
-    // determine column resource to sort on
-    var sortResource = node.getAttribute("resource");
-    var sortDirection = node.getAttribute("sortDirection");
-
-    if (sortDirection == "ascending")
-        sortDirection = "descending";
-    else
-        sortDirection = "ascending";
-
-    sortUserList(node, sortDirection);
-
-    return false;
-}
-
 function onSecurityIconDblClick(e)
 {
     if (e.button == 0)
@@ -812,28 +792,6 @@ function onInputKeyPressCallback (el)
         doPopup(document.getElementById("percentTooltip"));
     else
         doPopup(null);
-}
-
-/* 'private' function, should only be used from inside */
-CIRCChannel.prototype._addUserToGraph =
-function my_addtograph (user)
-{
-    if (!user.TYPE)
-        dd (getStackTrace());
-
-    client.rdf.Assert (this.getGraphResource(), client.rdf.resChanUser,
-                       user.getGraphResource(), true);
-
-}
-
-/* 'private' function, should only be used from inside */
-CIRCChannel.prototype._removeUserFromGraph =
-function my_remfgraph (user)
-{
-
-    client.rdf.Unassert (this.getGraphResource(), client.rdf.resChanUser,
-                         user.getGraphResource());
-
 }
 
 CIRCChannel.prototype._updateConferenceMode =
@@ -1618,10 +1576,14 @@ function my_315 (e)
 
     if ("whoUpdates" in this)
     {
+        var userlist = document.getElementById("user-list");
         for (var c in this.whoUpdates)
         {
             for (var i = 0; i < this.whoUpdates[c].length; i++)
-                this.whoUpdates[c][i].updateGraphResource();
+            {
+                var index = this.whoUpdates[c][i].chanListEntry.childIndex;
+                userlist.treeBoxObject.invalidateRow(index);
+            }
             this.primServ.channels[c].updateUsers(this.whoUpdates[c]);
         }
         delete this.whoUpdates;
@@ -2090,8 +2052,7 @@ function my_netdisconnect (e)
     for (var c in this.primServ.channels)
     {
         var channel = this.primServ.channels[c];
-        client.rdf.clearTargets(channel.getGraphResource(),
-                                client.rdf.resChanUser);
+        channel._clearUserList();
     }
 
     dispatch("sync-header");
@@ -2265,24 +2226,15 @@ function my_cprivmsg (e)
 CIRCChannel.prototype.on366 =
 function my_366 (e)
 {
-    if (client.currentObject == this)
-        /* hide the tree while we add (possibly tons) of nodes */
-        client.rdf.setTreeRoot("user-list", client.rdf.resNullChan);
-
-    client.rdf.clearTargets(this.getGraphResource(), client.rdf.resChanUser);
-
-    var updates = new Array();
+    var entries = new Array(), updates = new Array();
     for (var u in this.users)
     {
-        this.users[u].updateGraphResource();
-        this._addUserToGraph (this.users[u]);
+        entries.push(new UserEntry(this.users[u], this.userListShare));
         updates.push(this.users[u]);
     }
     this.addUsers(updates);
 
-    if (client.currentObject == this)
-        /* redisplay the tree */
-        client.rdf.setTreeRoot("user-list", this.getGraphResource());
+    this.userList.childData.appendChildren(entries);
 
     if (this.pendingNamesReply)
     {
@@ -2474,21 +2426,22 @@ function my_cjoin (e)
         this._updateConferenceMode();
     }
 
-    this._addUserToGraph(e.user);
     /* We don't want to add ourself here, since the names reply we'll be
      * getting right after the join will include us as well! (FIXME)
      */
     if (!userIsMe(e.user))
+    {
         this.addUsers([e.user]);
-    if (client.currentObject == this)
-        updateUserList();
+        var entry = new UserEntry(e.user, this.userListShare);
+        this.userList.childData.appendChild(entry);
+        this.userList.childData.reSort();
+    }
     this.updateHeader();
 }
 
 CIRCChannel.prototype.onPart =
 function my_cpart (e)
 {
-    this._removeUserFromGraph(e.user);
     this.removeUsers([e.user]);
     this.updateHeader();
 
@@ -2496,13 +2449,7 @@ function my_cpart (e)
     {
         var params = [e.user.unicodeName, e.channel.unicodeName];
         this.display (getMsg(MSG_YOU_LEFT, params), "PART", e.user, this);
-
-        if (client.currentObject == this)
-            /* hide the tree while we remove (possibly tons) of nodes */
-            client.rdf.setTreeRoot("user-list", client.rdf.resNullChan);
-
-        client.rdf.clearTargets(this.getGraphResource(),
-                                client.rdf.resChanUser, true);
+        this._clearUserList();
 
         if ("partTimer" in this)
         {
@@ -2511,10 +2458,6 @@ function my_cpart (e)
             this.busy = false;
             updateProgress();
         }
-
-        if (client.currentObject == this)
-            /* redisplay the tree */
-            client.rdf.setTreeRoot("user-list", this.getGraphResource());
 
         if (this.deleteWhenDone)
             this.dispatch("delete-view");
@@ -2538,6 +2481,8 @@ function my_cpart (e)
                                       e.reason]),
                          "PART", e.user, this);
         }
+
+        this.removeFromList(e.user);
     }
 }
 
@@ -2561,6 +2506,7 @@ function my_ckick (e)
                           "KICK", (void 0), this);
         }
 
+        this._clearUserList();
         /* Try 1 re-join attempt if allowed. */
         if (this.prefs["autoRejoin"])
             this.join(this.mode.key);
@@ -2588,11 +2534,23 @@ function my_ckick (e)
                             [e.lamer.unicodeName, e.channel.unicodeName,
                              enforcerProper, e.reason]),
                      "KICK", e.user, this);
+
+        this.removeFromList(e.lamer);
     }
 
-    this._removeUserFromGraph(e.lamer);
     this.removeUsers([e.lamer]);
     this.updateHeader();
+}
+
+CIRCChannel.prototype.removeFromList =
+function my_removeFromList(user)
+{
+    // Remove the user from the list and 'disconnect' the user from their entry:
+    var idx = user.chanListEntry.childIndex;
+    this.userList.childData.removeChildAtIndex(idx);
+
+    delete user.chanListEntry._userObj;
+    delete user.chanListEntry;
 }
 
 CIRCChannel.prototype.onChanMode =
@@ -2618,13 +2576,9 @@ function my_cmode (e)
         view.display(getMsg(MSG_MODE_ALL, [this.unicodeName, msg]), "MODE");
         delete this.pendingModeReply;
     }
-
     var updates = new Array();
     for (var u in e.usersAffected)
-    {
-        e.usersAffected[u].updateGraphResource();
         updates.push(e.usersAffected[u]);
-    }
     this.updateUsers(updates);
 
     this.updateHeader();
@@ -2652,7 +2606,6 @@ function my_cnick (e)
                      "NICK", e.user, this);
     }
 
-    e.user.updateGraphResource();
     this.updateUsers([e.user]);
     if (client.currentObject == this)
         updateUserList();
@@ -2666,6 +2619,7 @@ function my_cquit (e)
         /* I dont think this can happen */
         var pms = [e.user.unicodeName, e.server.parent.unicodeName, e.reason];
         this.display (getMsg(MSG_YOU_QUIT, pms),"QUIT", e.user, this);
+        this._clearUserList();
     }
     else
     {
@@ -2681,9 +2635,29 @@ function my_cquit (e)
         }
     }
 
-    this._removeUserFromGraph(e.user);
     this.removeUsers([e.user]);
+    this.removeFromList(e.user);
+
     this.updateHeader();
+}
+
+CIRCChannel.prototype._clearUserList =
+function _my_clearuserlist()
+{
+    if (this.userList && this.userList.childData &&
+        this.userList.childData.childData)
+    {
+        this.userList.freeze();
+        var len = this.userList.childData.childData.length;
+        while (len > 0)
+        {
+            var entry = this.userList.childData.childData[--len];
+            this.userList.childData.removeChildAtIndex(len);
+            delete entry._userObj.chanListEntry;
+            delete entry._userObj;
+        }
+        this.userList.thaw();
+    }
 }
 
 CIRCUser.prototype.onInit =
@@ -3169,3 +3143,62 @@ function phand_qi(iid)
 
     throw Components.results.NS_ERROR_NO_INTERFACE;
 }
+
+function UserEntry(userObj, channelListShare)
+{
+    var self = this;
+    function getUName()
+    {
+        return userObj.unicodeName;
+    };
+    function getSortFn()
+    {
+        if (client.prefs["sortUsersByMode"])
+            return ule_sortByMode;
+        return ule_sortByName;
+    };
+
+    // This object is used to represent a user in the userlist. To work with our
+    // JS tree view, it needs a bunch of stuff that is set through the
+    // constructor and the prototype (see also a couple of lines down). Here we
+    // call the original constructor to do some work for us:
+    XULTreeViewRecord.call(this, channelListShare);
+
+    // This magic function means the unicodeName is used for display:
+    this.setColumnPropertyName("usercol", getUName);
+
+    // We need this for sorting by mode (op, hop, voice, etc.)
+    this._userObj = userObj;
+
+    // When the user leaves, we need to have the entry so we can remove it:
+    userObj.chanListEntry = this;
+
+    // Gross hack: we set up the sort function by getter so we don't have to go
+    // back (array sort -> xpc -> our pref lib -> xpc -> pref interfaces) for
+    // every bloody compare. Now it will be a function that doesn't need prefs
+    // after being retrieved, which is much much faster.
+    this.__defineGetter__("sortCompare", getSortFn);
+}
+
+// See explanation in the constructor.
+UserEntry.prototype = XULTreeViewRecord.prototype;
+
+function ule_sortByName(a, b)
+{
+    if (a._userObj.unicodeName == b._userObj.unicodeName)
+        return 0;
+    var aName = a._userObj.unicodeName.toLowerCase();
+    var bName = b._userObj.unicodeName.toLowerCase();
+    return (aName < bName ? -1 : 1);
+}
+
+function ule_sortByMode(a, b)
+{
+    if (a._userObj.sortName == b._userObj.sortName)
+        return 0;
+    var aName = a._userObj.sortName.toLowerCase();
+    var bName = b._userObj.sortName.toLowerCase();
+    return (aName < bName ? -1 : 1);
+}
+
+

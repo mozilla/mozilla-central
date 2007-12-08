@@ -1805,41 +1805,12 @@ function cmdToggleUI(e)
     var newState;
     var elem = document.getElementById(ids[0]);
     var sourceObject = e.sourceObject;
-
-    if (elem.getAttribute("collapsed") == "true")
-    {
-        if (e.thing == "userlist")
-        {
-            if (sourceObject.TYPE == "IRCChannel")
-            {
-                client.rdf.setTreeRoot("user-list",
-                                       sourceObject.getGraphResource());
-                setSelectedNicknames(document.getElementById("user-list"),
-                                     sourceObject.userlistSelection);
-                
-            }
-            else
-            {
-                client.rdf.setTreeRoot("user-list", client.rdf.resNullChan);
-            }
-        }
-
-        newState = "false";
-    }
-    else
-    {
-        if ((e.thing == "userlist") && (sourceObject.TYPE == "IRCChannel"))
-        {
-            var rv = getSelectedNicknames(document.getElementById("user-list"));
-            sourceObject.userlistSelection = rv;
-        }
-        newState = "true";
-    }
+    var newState = !elem.collapsed;
 
     for (var i in ids)
     {
         elem = document.getElementById(ids[i]);
-        elem.setAttribute ("collapsed", newState);
+        elem.collapsed = newState;
     }
 
     updateTitle();

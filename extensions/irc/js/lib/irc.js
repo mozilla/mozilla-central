@@ -2136,6 +2136,9 @@ function serv_nick (e)
             ev.server = this;
             ev.oldNick = e.oldNick;
             this.parent.eventPump.addEvent(ev);
+
+            // User must be a channel user, update sort name for userlist:
+            cuser.updateSortName();
         }
 
     }
@@ -3316,7 +3319,7 @@ function CIRCChanUser(parent, unicodeName, encodedName, modes, userInChannel)
             true : false;
         existingUser.isVoice = (arrayContains(existingUser.modes, "v")) ?
             true : false;
-
+        existingUser.updateSortName();
         return existingUser;
     }
 
@@ -3334,6 +3337,7 @@ function CIRCChanUser(parent, unicodeName, encodedName, modes, userInChannel)
     this.notice = cusr_notice;
     this.act = cusr_act;
     this.whois = cusr_whois;
+    this.updateSortName = cusr_updatesortname;
     this.parent = parent;
     this.TYPE = "IRCChanUser";
 
@@ -3345,11 +3349,37 @@ function CIRCChanUser(parent, unicodeName, encodedName, modes, userInChannel)
     this.isOp = (arrayContains(this.modes, "o")) ? true : false;
     this.isHalfOp = (arrayContains(this.modes, "h")) ? true : false;
     this.isVoice = (arrayContains(this.modes, "v")) ? true : false;
+    this.updateSortName();
 
     if (userInChannel)
         parent.users[this.canonicalName] = this;
 
     return this;
+}
+
+function cusr_updatesortname()
+{
+    // Check for the highest mode the user has (for sorting the userlist)
+    const userModes = this.parent.parent.userModes;
+    var modeLevel = 0;
+    var mode;
+    for (var i = 0; i < this.modes.length; i++)
+    {
+        for (var j = 0; j < userModes.length; j++)
+        {
+            if (userModes[j].mode == this.modes[i])
+            {
+                if (userModes.length - j > modeLevel)
+                {
+                    modeLevel = userModes.length - j;
+                    mode = userModes[j];
+                }
+                break;
+            }
+        }
+    }
+    // Counts numerically down from 9.
+    this.sortName = (9 - modeLevel) + "-" + this.unicodeName;
 }
 
 function cusr_geturl ()

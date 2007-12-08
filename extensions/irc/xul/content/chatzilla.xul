@@ -68,48 +68,13 @@
       <hbox id="tabpanels-contents-box" flex="1">
         <vbox id="user-list-box" width="125" persist="collapsed width">
  
-          <tree id="user-list" container="true" datasources="rdf:null" flex="1"
-            containment="http://home.netscape.com/NC-irc#chanuser"
-            hidecolumnpicker="true" context="context:userlist"
-            aaa:live="off" aaa:relevant="additions removals text">
-
-            <template>
-              <rule>
-                <conditions>
-                  <content uri="?container"/>
-                  <member container="?container" child="?member"/>
-                </conditions>
-                
-                <bindings>
-                  <binding subject="?member" predicate="http://home.netscape.com/NC-irc#sortname" object="?sortname"/>
-                  <binding subject="?member" predicate="http://home.netscape.com/NC-irc#founder" object="?founder"/>
-                  <binding subject="?member" predicate="http://home.netscape.com/NC-irc#admin" object="?admin"/>
-                  <binding subject="?member" predicate="http://home.netscape.com/NC-irc#op" object="?op"/>
-                  <binding subject="?member" predicate="http://home.netscape.com/NC-irc#halfop" object="?halfop"/>
-                  <binding subject="?member" predicate="http://home.netscape.com/NC-irc#voice" object="?voice"/>
-                  <binding subject="?member" predicate="http://home.netscape.com/NC-irc#nick" object="?nick"/>
-                  <binding subject="?member" predicate="http://home.netscape.com/NC-irc#unicodeName" object="?unicodeName"/>
-                  <binding subject="?member" predicate="http://home.netscape.com/NC-irc#away" object="?away"/>
-                </bindings>
-                
-                <action>
-                  <treechildren>
-                    <treeitem uri="?member" flex="1"
-                      properties="founder-?founder admin-?admin op-?op halfop-?halfop voice-?voice away-?away">
-                      <treerow>
-                          <treecell properties="founder-?founder admin-?admin op-?op halfop-?halfop voice-?voice away-?away"
-                           label="?nick" unicodeName="?unicodeName"/>
-                      </treerow>
-                    </treeitem>
-                  </treechildren>
-                </action>
-              </rule>
-            </template>
-    
+          <tree id="user-list" flex="1" hidecolumnpicker="true"
+                context="context:userlist" aaa:live="off"
+                aaa:relevant="additions removals text">
             <treecols>
-              <treecol id="usercol" hideheader="true" flex="1"
-                properties="founder-?founder admin-?admin op-?op halfop-?halfop voice-?voice away-?away"/>
+              <treecol id="usercol" hideheader="true" flex="1"/>
             </treecols>
+            <treechildren/>
           </tree>
     
         </vbox> <!-- user-list-box -->

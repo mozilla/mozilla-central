@@ -161,7 +161,6 @@ function init()
     if (client.host == "")
         showErrorDlg(getMsg(MSG_ERR_UNKNOWN_HOST, client.unknownUID));
 
-    initRDF();
     initCommands();
     initPrefs();
     initMunger();
@@ -230,6 +229,9 @@ function initStatic()
     {
         dd("IO service failed to initialize: " + ex);
     }
+    
+    // Need this for the userlist
+    client.atomSvc = getService("@mozilla.org/atom-service;1", "nsIAtomService");
 
     try
     {
@@ -1135,37 +1137,9 @@ function getSelectedNicknames(tree)
 
         // Loop through the contents of the current selection range.
         for (var k = start.value; k <= end.value; ++k)
-        {
-            var item = tree.contentView.getItemAtIndex(k).firstChild.firstChild;
-            var userName = item.getAttribute("unicodeName");
-            rv.push(userName);
-        }
+            rv.push(getNicknameForUserlistRow(k));
     }
     return rv;
-}
-
-function setSelectedNicknames(tree, nicknameAry)
-{
-    if (!tree || !tree.view || !tree.view.selection || !nicknameAry)
-        return;
-    var item, unicodeName, resultAry = [];
-    // Clear selection:
-    tree.view.selection.select(-1);
-    // Loop through the tree to (re-)select nicknames
-    for (var i = 0; i < tree.view.rowCount; i++)
-    {
-        item = tree.contentView.getItemAtIndex(i).firstChild.firstChild;
-        unicodeName = item.getAttribute("unicodeName");
-        if ((unicodeName != "") && arrayContains(nicknameAry, unicodeName))
-        {
-            tree.view.selection.toggleSelect(i);
-            resultAry.push(unicodeName);
-        }
-    }
-    // Make sure we pass back a correct array:
-    nicknameAry.length = 0;
-    for (var j = 0; j < resultAry.length; j++)
-        nicknameAry.push(resultAry[j]);
 }
 
 function getFontContext(cx)
@@ -2316,6 +2290,9 @@ function updateUserlistSide(shouldBeLeft)
         listParent.appendChild(listParent.childNodes[0]);
         listParent.childNodes[1].setAttribute("collapse", "after");
     }
+    var userlist = document.getElementById("user-list")
+    if (client.currentObject && (client.currentObject.TYPE == "IRCChannel"))
+        userlist.view = client.currentObject.userList;
 }
 
 function multilineInputMode (state)
@@ -2448,12 +2425,6 @@ client.__defineGetter__ ("currentFrame", getFrame);
 
 function setCurrentObject (obj)
 {
-    function clearList()
-    {
-        client.rdf.Unassert (client.rdf.resNullChan, client.rdf.resChanUser,
-                             client.rdf.resNullUser, true);
-    };
-
     if (!ASSERT(obj.messages, "INVALID OBJECT passed to setCurrentObject **"))
         return;
 
@@ -2468,46 +2439,25 @@ function setCurrentObject (obj)
     userList = document.getElementById("user-list");
 
     if ("currentObject" in client && client.currentObject)
-    {
-        var co = client.currentObject;
-        // Save any nicknames selected
-        if (client.currentObject.TYPE == "IRCChannel")
-            co.userlistSelection = getSelectedNicknames(userList);
-        tb = getTabForObject(co);
-    }
+        tb = getTabForObject(client.currentObject);
     if (tb)
         tb.setAttribute("state", "normal");
 
-    /* Unselect currently selected users.
-     * If the splitter's collapsed, the userlist *isn't* visible, but we'll not
+    client.currentObject = obj;
+
+    /* If the splitter's collapsed, the userlist *isn't* visible, but we'll not
      * get told when it becomes visible, so update it even if it's only the
      * splitter visible. */
     if (isVisible("user-list-box") || isVisible("main-splitter"))
     {
-        /* Remove currently selected items before this tree gets rerooted,
-         * because it seems to remember the selections for eternity if not. */
-        if (userList.view && userList.view.selection)
-            userList.view.selection.select(-1);
-
+        userList.view = null;
         if (obj.TYPE == "IRCChannel")
         {
-            client.rdf.setTreeRoot("user-list", obj.getGraphResource());
-            reSortUserlist(userList);
-            // Restore any selections previously made
-            if (("userlistSelection" in obj) && obj.userlistSelection)
-                setSelectedNicknames(userList, obj.userlistSelection);
-        }
-        else
-        {
-            var rdf = client.rdf;
-            rdf.setTreeRoot("user-list", rdf.resNullChan);
-            rdf.Assert (rdf.resNullChan, rdf.resChanUser, rdf.resNullUser,
-                        true);
-            setTimeout(clearList, 100);
+            userList.view = obj.userList;
+            updateUserList();
         }
     }
 
-    client.currentObject = obj;
     tb = dispatch("create-tab-for-view", { view: obj });
     if (tb)
     {
@@ -2740,7 +2690,8 @@ function setListMode(mode)
         elem.setAttribute("mode", mode);
     else
         elem.removeAttribute("mode");
-    updateUserList();
+    if (elem && elem.view && elem.treeBoxObject)
+        elem.treeBoxObject.clearStyleAndImageCaches();
 }
 
 function updateUserList()
@@ -2751,48 +2702,29 @@ function updateUserList()
     if (!node.view)
         return;
 
-    // We'll lose the selection in a bit, if we don't save it if necessary:
     if (("currentObject" in client) && client.currentObject &&
         client.currentObject.TYPE == "IRCChannel")
     {
-        chan = client.currentObject;
-        chan.userlistSelection = getSelectedNicknames(node, chan);
+        reSortUserlist(client.currentObject);
     }
-    reSortUserlist(node);
-
-    // If this is a channel, restore the selection in the userlist.
-    if (chan)
-        setSelectedNicknames(node, client.currentObject.userlistSelection);
 }
 
-function reSortUserlist(node)
+function reSortUserlist(channel)
 {
-    const nsIXULSortService = Components.interfaces.nsIXULSortService;
-    const isupports_uri = "@mozilla.org/xul/xul-sort-service;1";
-
-    var xulSortService =
-        Components.classes[isupports_uri].getService(nsIXULSortService);
-    if (!xulSortService)
+    if (!channel || !channel.userList)
         return;
+    channel.userList.childData.reSort();
+}
 
-    var sortResource;
-
-    if (client.prefs["sortUsersByMode"])
-        sortResource = RES_PFX + "sortname";
+function getNicknameForUserlistRow(index)
+{
+    // This wouldn't be so hard if APIs didn't change so much... see bug 221619
+    var userlist = document.getElementById("user-list");
+    if (userlist.columns)
+        var col = userlist.columns.getNamedColumn("usercol");
     else
-        sortResource = RES_PFX + "unicodeName";
-
-    try
-    {
-        if ("sort" in xulSortService)
-            xulSortService.sort(node, sortResource, "ascending");
-        else
-            xulSortService.Sort(node, sortResource, "ascending");
-    }
-    catch(ex)
-    {
-        dd("Exception calling xulSortService.sort()");
-    }
+        col = "usercol";
+    return userlist.view.getCellText(index, col);
 }
 
 function getFrameForDOMWindow(window)
@@ -3100,10 +3032,36 @@ function getTabForObject (source, create)
         ASSERT(client.deck, "no deck?");
         client.deck.appendChild (browser);
         syncOutputFrame (source);
+
+        if (!("userList" in source) && (source.TYPE == "IRCChannel"))
+        {
+            source.userListShare = new Object();
+            source.userList = new XULTreeView(source.userListShare);
+            source.userList.getCellProperties = ul_getcellprops;
+        }
     }
 
     return tb;
 
+}
+
+// Properties getter for user list tree view
+function ul_getcellprops(index, column, properties)
+{
+    if ((index < 0) || (index >= this.childData.childData.length) ||
+        !properties)
+    {
+        return;
+    }
+
+    var userObj = this.childData.childData[index]._userObj;
+
+    properties.AppendElement(client.atomSvc.getAtom("voice-" + userObj.isVoice));
+    properties.AppendElement(client.atomSvc.getAtom("op-" + userObj.isOp));
+    properties.AppendElement(client.atomSvc.getAtom("halfop-" + userObj.isHalfOp));
+    properties.AppendElement(client.atomSvc.getAtom("admin-" + userObj.isAdmin));
+    properties.AppendElement(client.atomSvc.getAtom("founder-" + userObj.isFounder));
+    properties.AppendElement(client.atomSvc.getAtom("away-" + userObj.isAway));
 }
 
 var contentDropObserver = new Object();
@@ -3173,9 +3131,8 @@ function userlistdnd_dstart(event, transferData, dragAction)
     // Check whether we're actually on a normal row and cell
     if (!cell.value || (row.value == -1))
         return;
-    var user = tree.contentView.getItemAtIndex(row.value).firstChild.firstChild;
-    var nickname = user.getAttribute("unicodeName");
 
+    var nickname = getNicknameForUserlistRow(row.value);
     transferData.data = new TransferData();
     transferData.data.addDataForFlavour("text/unicode", nickname);
 }
@@ -4501,128 +4458,4 @@ function gettabmatch_other (line, wordStart, wordEnd, word, cursorpos, lcFn)
     }
 
     return list;
-}
-
-CIRCChannel.prototype.getGraphResource =
-function my_graphres ()
-{
-    if (!("rdfRes" in this))
-    {
-        var id = RES_PFX + "CHANNEL:" + this.parent.parent.unicodeName + ":" +
-            escape(this.unicodeName);
-        this.rdfRes = client.rdf.GetResource(id);
-    }
-
-    return this.rdfRes;
-}
-
-CIRCUser.prototype.getGraphResource =
-function usr_graphres()
-{
-    if (!ASSERT(this.TYPE == "IRCChanUser",
-                "cuser.getGraphResource called on wrong object"))
-    {
-        return null;
-    }
-
-    var rdf = client.rdf;
-
-    if (!("rdfRes" in this))
-    {
-        if (!("nextResID" in CIRCUser))
-            CIRCUser.nextResID = 0;
-
-        this.rdfRes = rdf.GetResource(RES_PFX + "CUSER:" +
-                                      this.parent.parent.parent.unicodeName + ":" +
-                                      this.parent.unicodeName + ":" +
-                                      CIRCUser.nextResID++);
-
-            //dd ("created cuser resource " + this.rdfRes.Value);
-
-        rdf.Assert (this.rdfRes, rdf.resNick, rdf.GetLiteral(this.unicodeName));
-        rdf.Assert (this.rdfRes, rdf.resUniName, rdf.GetLiteral(this.unicodeName));
-        rdf.Assert (this.rdfRes, rdf.resUser, rdf.litUnk);
-        rdf.Assert (this.rdfRes, rdf.resHost, rdf.litUnk);
-        rdf.Assert (this.rdfRes, rdf.resSortName, rdf.litUnk);
-        rdf.Assert (this.rdfRes, rdf.resFounder, rdf.litUnk);
-        rdf.Assert (this.rdfRes, rdf.resAdmin, rdf.litUnk);
-        rdf.Assert (this.rdfRes, rdf.resOp, rdf.litUnk);
-        rdf.Assert (this.rdfRes, rdf.resHalfOp, rdf.litUnk);
-        rdf.Assert (this.rdfRes, rdf.resVoice, rdf.litUnk);
-        rdf.Assert (this.rdfRes, rdf.resAway, rdf.litUnk);
-        this.updateGraphResource();
-    }
-
-    return this.rdfRes;
-}
-
-CIRCUser.prototype.updateGraphResource =
-function usr_updres()
-{
-    if (!ASSERT(this.TYPE == "IRCChanUser",
-                "cuser.updateGraphResource called on wrong object"))
-    {
-        return;
-    }
-
-    if (!("rdfRes" in this))
-    {
-        this.getGraphResource();
-        return;
-    }
-
-    var rdf = client.rdf;
-
-    rdf.Change (this.rdfRes, rdf.resUniName, rdf.GetLiteral(this.unicodeName));
-    if (this.name)
-        rdf.Change (this.rdfRes, rdf.resUser, rdf.GetLiteral(this.name));
-    else
-        rdf.Change (this.rdfRes, rdf.resUser, rdf.litUnk);
-    if (this.host)
-        rdf.Change (this.rdfRes, rdf.resHost, rdf.GetLiteral(this.host));
-    else
-        rdf.Change (this.rdfRes, rdf.resHost, rdf.litUnk);
-
-    // Check for the highest mode the user has.
-    const userModes = this.parent.parent.userModes;
-    var modeLevel = 0;
-    var mode;
-    for (var i = 0; i < this.modes.length; i++)
-    {
-        for (var j = 0; j < userModes.length; j++)
-        {
-            if (userModes[j].mode == this.modes[i])
-            {
-                if (userModes.length - j > modeLevel)
-                {
-                    modeLevel = userModes.length - j;
-                    mode = userModes[j];
-                }
-                break;
-            }
-        }
-    }
-
-    // Counts numerically down from 9.
-    var sortname = (9 - modeLevel) + "-" + this.unicodeName;
-
-    // We want to show mode symbols, but only for modes we don't 'style'.
-    var displayname = this.unicodeName;
-    if (mode && !mode.mode.match(/^[qaohv]$/))
-        displayname = mode.symbol + " " + displayname;
-
-    rdf.Change(this.rdfRes, rdf.resNick, rdf.GetLiteral(displayname));
-    rdf.Change(this.rdfRes, rdf.resSortName, rdf.GetLiteral(sortname));
-    rdf.Change(this.rdfRes, rdf.resFounder,
-               this.isFounder ? rdf.litTrue : rdf.litFalse);
-    rdf.Change(this.rdfRes, rdf.resAdmin,
-               this.isAdmin ? rdf.litTrue : rdf.litFalse);
-    rdf.Change(this.rdfRes, rdf.resOp,
-               this.isOp ? rdf.litTrue : rdf.litFalse);
-    rdf.Change(this.rdfRes, rdf.resHalfOp,
-               this.isHalfOp ? rdf.litTrue : rdf.litFalse);
-    rdf.Change(this.rdfRes, rdf.resVoice,
-               this.isVoice ? rdf.litTrue : rdf.litFalse);
-    rdf.Change(this.rdfRes, rdf.resAway,
-               this.isAway ? rdf.litTrue : rdf.litFalse);
 }
