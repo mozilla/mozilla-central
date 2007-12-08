@@ -3038,6 +3038,7 @@ function getTabForObject (source, create)
             source.userListShare = new Object();
             source.userList = new XULTreeView(source.userListShare);
             source.userList.getCellProperties = ul_getcellprops;
+            source.userList.childData.setSortDirection(1);
         }
     }
 
