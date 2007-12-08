@@ -50,7 +50,7 @@ interface nsIRDFDataSource;
  * It contains the main functions to create and delete address books as well
  * as some helper functions.
  */
-[scriptable, uuid(bf83d970-1697-40ad-aad1-3b0606957c32)]
+[scriptable, uuid(c741cb5d-0e65-4eab-8759-68189f541151)]
 interface nsIAddressBook : nsISupports 
 {
   /**
@@ -77,6 +77,5 @@ interface nsIAddressBook : nsISupports
   void exportAddressBook(in nsIDOMWindow aParentWin, in nsIAbDirectory aDirectory);
   boolean mailListNameExists(in wstring name);
   nsIAbCard escapedVCardToAbCard(in string escapedVCardStr);
-  string abCardToEscapedVCard(in nsIAbCard aCard);
 };
 

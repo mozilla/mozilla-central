@@ -384,9 +384,7 @@ function NewCardOKButton()
     if (!CheckAndSetCardValues(gEditCard.card, document, true))
       return false;  // don't close window
 
-    var addressbook = Components.classes["@mozilla.org/addressbook;1"]
-                                .getService(Components.interfaces.nsIAddressBook);
-    gOkCallback(addressbook.abCardToEscapedVCard(gEditCard.card));
+    gOkCallback(gEditCard.card.convertToEscapedVCard());
     return true;  // close the window
   }
 
