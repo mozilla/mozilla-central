@@ -24,7 +24,7 @@ use Config;         # for $Config{sig_name} and $Config{sig_num}
 use File::Find ();
 use File::Copy;
 
-$::UtilsVersion = '$Revision: 1.377 $ ';
+$::UtilsVersion = '$Revision: 1.378 $ ';
 
 package TinderUtils;
 
@@ -2174,6 +2174,10 @@ sub run_all_tests {
 
                 # Suppress session restore dialog
                 set_pref($pref_file, 'browser.sessionstore.resume_from_crash', 'false');
+                
+                # Suppress tab warning dialog when closing the browser. 
+                set_pref($pref_file, 'browser.warnOnQuit', 'false');
+
             }
             elsif ($Settings::BinaryName eq 'Camino') {
                 # Suppress default browser dialog
@@ -2289,6 +2293,18 @@ sub run_all_tests {
         setTestnameForTalkbackReport($talkback_ini_path,"BloatTest");
       }
 
+      if ($Settings::OS eq 'Darwin') {
+          set_pref($pref_file, 
+                   'capability.principal.codebase.p0.granted',
+                   '"UniversalXPConnect"');
+          set_pref($pref_file, 
+                   'capability.principal.codebase.p0.id',
+                   '"resource://"');
+          set_pref($pref_file,
+                   'capability.principal.codebase.p0.subjectName', 
+                   '""');
+      }
+          
       $test_result = BloatTest($binary, $build_dir,
                                $app_args, "",
                                $Settings::BloatTestTimeout);
@@ -2299,6 +2315,19 @@ sub run_all_tests {
         if ($talkback_installed) {
             setTestnameForTalkbackReport($talkback_ini_path,"BloatTest2");
         }
+
+        if ($Settings::OS eq 'Darwin') {
+            set_pref($pref_file, 
+                     'capability.principal.codebase.p0.granted',
+                     '"UniversalXPConnect"');
+            set_pref($pref_file, 
+                     'capability.principal.codebase.p0.id',
+                     '"resource://"');
+            set_pref($pref_file,
+                     'capability.principal.codebase.p0.subjectName', 
+                     '""');
+        }
+
         $test_result = BloatTest2($binary, $build_dir, $Settings::BloatTestTimeout);
     }
 
