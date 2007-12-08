@@ -44,15 +44,17 @@ var opsyses=[% IF opsyses_js %][% opsyses_js %][% ELSE %]{}[% END %];
   <div id="content">
 
 [% INCLUDE instructions/required_criteria.tmpl %]
+
+<script language="JavaScript" type="text/Javascript" src="js/Litmus.js"></script>
+<script language="JavaScript" type="text/Javascript" src="js/RunTests.js"></script>
+<script language="JavaScript" type="text/Javascript" src="js/TestRunCoverage.js"></script>
+
 [% INCLUDE runtests/test_run_detail.tmpl active_test_runs=test_run select_criteria=-1 display_title_link=0 %]
 
   </div> <!--END content-->
 
 </div> <!--END page-->
 
-<script language="JavaScript" type="text/Javascript" src="js/Litmus.js"></script>
-<script language="JavaScript" type="text/Javascript" src="js/RunTests.js"></script>
-<script language="JavaScript" type="text/Javascript" src="js/TestRunCoverage.js"></script>
 <script type="text/javascript">
   beginCoverageLookup();
 </script>
