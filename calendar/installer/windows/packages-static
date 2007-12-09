@@ -286,6 +286,8 @@ bin\chrome\comm.jar
 bin\chrome\comm.manifest
 bin\chrome\toolkit.jar
 bin\chrome\toolkit.manifest
+; [Calendar Chrome Icons]
+bin\chrome\icons\default\calendar-alarm-dialog.ico
 
 ; [Default Preferences]
 ; All the pref files must be part of base to prevent migration bugs

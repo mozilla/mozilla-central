@@ -2,9 +2,10 @@
 
 calendar.jar:
 % content calendar %content/calendar/
-    content/calendar/calendar-alarm-dialog.js    (content/calendar-alarm-dialog.js)
+*   content/calendar/calendar-alarm-dialog.js    (content/calendar-alarm-dialog.js)
     content/calendar/calendar-alarm-dialog.xul   (content/calendar-alarm-dialog.xul)
-    content/calendar/calendar-alarm-widget.css   (content/calendar-alarm-widget.css)
+    content/calendar/calendar-alarm-snooze-popup.xul   (content/calendar-alarm-snooze-popup.xul)
+    content/calendar/calendar-alarm-snooze-popup.js   (content/calendar-alarm-snooze-popup.js)
     content/calendar/calendar-alarm-widget.xml   (content/calendar-alarm-widget.xml)
     content/calendar/calendar-attendee-list.xml  (content/calendar-attendee-list.xml)
     content/calendar/calendar-bindings.css       (content/calendar-bindings.css)
@@ -84,6 +85,7 @@ calendar.jar:
     skin/classic/calendar/alarm.png              (themes/common/alarm.png)
 #expand    skin/classic/calendar/cal-icon32.png         (themes/__THEME__/cal-icon32.png)
 #expand    skin/classic/calendar/daypicker-background.png  (/calendar/base/themes/common/daypicker-background.png)
+#expand    skin/classic/calendar/calendar-alarm-dialog.css   (themes/__THEME__/calendar-alarm-dialog.css)
 #expand    skin/classic/calendar/calendar-toolbar.css   (themes/__THEME__/calendar-toolbar.css)
 #expand    skin/classic/calendar/today-pane.css         (themes/__THEME__/today-pane.css)
 #expand    skin/classic/calendar/calendar-event-dialog.css (themes/__THEME__/calendar-event-dialog.css)
@@ -92,6 +94,7 @@ calendar.jar:
 #expand    skin/classic/calendar/toolbar-large.png      (themes/__THEME__/toolbar-large.png)
 #expand    skin/classic/calendar/toolbar-small.png      (themes/__THEME__/toolbar-small.png)
 #expand    skin/classic/calendar/mode-switch-icons.png  (themes/__THEME__/mode-switch-icons.png)
+#expand    skin/classic/calendar/ok-cancel.png          (themes/__THEME__/ok-cancel.png)
 #expand    skin/classic/calendar/calendar-management.css  (themes/__THEME__/calendar-management.css)
 #expand    skin/classic/calendar/calendar-daypicker.css  (themes/__THEME__/calendar-daypicker.css)
 #expand    skin/classic/calendar/calendar-task-tree.css  (themes/__THEME__/calendar-task-tree.css)

@@ -36,6 +36,11 @@
  *
  * ***** END LICENSE BLOCK ***** */
 
+/**
+ * Helper function to get the alarm service and cache it.
+ *
+ * @return The alarm service component
+ */
 function getAlarmService() {
     if (!window.mAlarmService) {
         window.mAlarmService = Components.classes["@mozilla.org/calendar/alarm-service;1"]
@@ -44,6 +49,12 @@ function getAlarmService() {
     return window.mAlarmService;
 }
 
+/**
+ * Event handler for the 'snooze' event. Snoozes the given alarm by the given
+ * number of minutes using the alarm service.
+ *
+ * @param event     The snooze event
+ */
 function onSnoozeAlarm(event) {
     // reschedule alarm:
     var duration = Components.classes["@mozilla.org/calendar/duration;1"]
@@ -53,67 +64,225 @@ function onSnoozeAlarm(event) {
     getAlarmService().snoozeAlarm(event.target.item, duration);
 }
 
+/**
+ * Event handler for the 'dismiss' event. Dismisses the given alarm using the
+ * alarm service.
+ *
+ * @param event     The snooze event
+ */
 function onDismissAlarm(event) {
     getAlarmService().dismissAlarm(event.target.item);
 }
 
-function onDismissAllAlarms(event) {
+/**
+ * Called to dismiss all alarms in the alarm window.
+ */
+function onDismissAllAlarms() {
     // removes widgets on the fly:
-    var alarmlist = document.getElementById("alarmlist");
-    for (var i = alarmlist.childNodes.length-1; i >= 0; i--) {
-        getAlarmService().dismissAlarm(alarmlist.childNodes[i].item);
-    }
-    return true; // close dialog
-}
-
-function addWidgetFor(item) {
-    var widget = document.createElement("calendar-alarm-widget");
-    widget.setAttribute("title", item.title);
-    var time = item.startDate || item.entryDate || item.dueDate;
-    var dateFormatter = Components.classes["@mozilla.org/calendar/datetime-formatter;1"]
-                                  .getService(Components.interfaces.calIDateTimeFormatter);
-    widget.setAttribute("time", dateFormatter.formatDateTime(time.getInTimezone(calendarDefaultTimezone())));
-    widget.setAttribute("location", item.getProperty("LOCATION"));
-    widget.addEventListener("snooze", onSnoozeAlarm, false);
-    widget.addEventListener("dismiss", onDismissAlarm, false);
-    widget.item = item;
-    document.getElementById("alarmlist").appendChild(widget);
-
-    var snoozePref = getPrefSafe("calendar.alarms.defaultsnoozelength", 0);
-    if (snoozePref <= 0) {
-        snoozePref = 5;
-    }
-    if ((snoozePref % 60) == 0) {
-        snoozePref = snoozePref / 60;
-        if ((snoozePref % 24) == 0) {
-            snoozePref = snoozePref / 24;
-            document.getAnonymousElementByAttribute(widget, "anonid", "alarm-widget-snooze-unit").selectedIndex = 2;
-        } else {
-            document.getAnonymousElementByAttribute(widget, "anonid", "alarm-widget-snooze-unit").selectedIndex = 1;
+    var alarmRichlist = document.getElementById("alarm-richlist");
+    for (var i = alarmRichlist.childNodes.length - 1; i >= 0; i--) {
+        if (alarmRichlist.childNodes[i].item) {
+            getAlarmService().dismissAlarm(alarmRichlist.childNodes[i].item);
         }
     }
-    document.getAnonymousElementByAttribute(widget, "anonid", "alarm-widget-snooze-value").value = snoozePref;
+}
 
+/**
+ * Event handler fired when the alarm widget's "Details..." label was clicked.
+ * Open the event dialog in the most recent sunbird or thunderbird window
+ *
+ * @param event     The itemdetails event.
+ */
+function onItemDetails(event) {
+    // We want this to happen in a calendar window.
+    var wm = Components.classes["@mozilla.org/appshell/window-mediator;1"]
+                       .getService(Components.interfaces.nsIWindowMediator);
+    var calWindow = wm.getMostRecentWindow("calendarMainWindow") ||
+                    wm.getMostRecentWindow("mail:3pane");
+    var item = calWindow.getOccurrenceOrParent(event.target.item);
+    calWindow.modifyEventWithDialog(item);
+}
+
+/**
+ * Sets up the alarm dialog, initializing the default snooze length and setting
+ * up the relative date update timer.
+ */
+var gRelativeDateUpdateTimer;
+function setupWindow() {
+    // We want to update when we are at 0 seconds past the minute. To do so, use
+    // setTimeout to wait until we are there, then setInterval to exectue every
+    // minute. Since setInterval is not totally exact, we may run into problems
+    // here. I hope not!
+    var current = new Date();
+
+    var timeout = (60 - current.getSeconds()) * 1000;
+    gRelativeDateUpdateTimer = setTimeout(function wait_until_next_minute() {
+        updateRelativeDates();
+        gRelativeDateUpdateTimer = setInterval(updateRelativeDates, 60 * 1000);
+    }, timeout);
+
+    // Give focus to the alarm richlist after onload completes. see bug 103197
+    setTimeout(onFocusWindow, 0);
+}
+
+/**
+ * Unload function for the alarm dialog. If applicable, snooze the remaining
+ * alarms and clean up the relative date update timer.
+ */
+function finishWindow() {
+    var alarmRichlist = document.getElementById("alarm-richlist");
+
+    if (alarmRichlist.childNodes.length > 0) {
+        // If there are still items, the window wasn't closed using dismiss
+        // all/snooze all. This can happen when the closer is clicked or escape
+        // is pressed. Snooze all remaining items using the default snooze
+        // property.
+        onSnoozeAllAlarms();
+        var snoozePref = getPrefSafe("calendar.alarms.defaultsnoozelength", 0);
+        if (snoozePref <= 0) {
+            snoozePref = 5;
+        }
+        snoozeAllItems(snoozePref);
+    }
+
+    // Stop updating the relative time
+    clearTimeout(gRelativeDateUpdateTimer);
+}
+
+/**
+ * Set up the focused element. If no element is focused, then switch to the
+ * richlist.
+ */
+function onFocusWindow() {
+    if (!document.commandDispatcher.focusedElement) {
+        document.getElementById("alarm-richlist").focus();
+    }
+}
+
+/**
+ * Timer callback to update all relative date labels
+ */
+function updateRelativeDates() {
+    var alarmRichlist = document.getElementById("alarm-richlist");
+    for (var i = alarmRichlist.childNodes.length - 1; i >= 0; i--) {
+        if (alarmRichlist.childNodes[i].item) {
+            alarmRichlist.childNodes[i].updateRelativeDateLabel();
+        }
+    }
+}
+
+/**
+ * Opens the alarm snooze popup, using the event to determine the position.
+ * The given container item must be an object that has a function snoozeAlarm.
+ * This function will be called with the chosen alarm duration in minutes.
+ *
+ * @param event           The event used to determine the position of the popup
+ * @param aContainerItem  The container item as described above
+ */
+function openSnoozeWindow(event, aContainerItem) {
+    const uri = "chrome://calendar/content/calendar-alarm-snooze-popup.xul";
+    var pos = ",left=" + (event.target.boxObject.screenX - 3) +
+             ",top=" + (event.target.boxObject.screenY + event.target.boxObject.height - 3);
+#ifdef MOZILLA_1_8_BRANCH
+#ifdef XP_MACOSX
+    // On branch on the mac, the titlebar seems to be part of the
+    // window, even though titlebar is set to no. It is 22px and I was
+    // told that its not possible to change its size.
+    pos = ",left=" + event.target.boxObject.screenX +
+         ",top=" + (event.target.boxObject.screenY + event.target.boxObject.height - 22);
+#endif
+#endif
+    window.openDialog(uri,
+                      uri,
+                      "chrome,dependent=yes,titlebar=no" + pos,
+                      aContainerItem);
+}
+
+/**
+ * Function to snooze all alarms the given number of minutes.
+ *
+ * @param aDurationMinutes    The duration in minutes
+ */
+function snoozeAllItems(aDurationMinutes) {
+    var duration = Components.classes["@mozilla.org/calendar/duration;1"]
+                             .createInstance(Components.interfaces.calIDuration);
+    duration.minutes = aDurationMinutes;
+    duration.normalize();
+
+    var alarmRichlist = document.getElementById("alarm-richlist");
+    for (var i = alarmRichlist.childNodes.length - 1; i >= 0; i--) {
+        if (alarmRichlist.childNodes[i].item) {
+            getAlarmService().snoozeAlarm(alarmRichlist.childNodes[i].item, duration);
+        }
+    }
+}
+
+/**
+ * Sets up the window title, counting the number of alarms in the window.
+ */
+function setupTitle() {
+    var alarmRichlist = document.getElementById("alarm-richlist");
+    var reminders = alarmRichlist.childNodes.length;
+
+    document.title = calGetString("calendar", "alarmWindowTitle", [reminders]);
+}
+
+/**
+ * Add an alarm widget for the passed calendar item
+ *
+ * @param aItem       The calendar item to add a widget for.
+ */
+function addWidgetFor(aItem) {
+    var widget = document.createElement("calendar-alarm-widget");
+    var alarmRichlist = document.getElementById("alarm-richlist");
+    alarmRichlist.appendChild(widget);
+
+    widget.item = aItem;
+    widget.addEventListener("snooze", onSnoozeAlarm, false);
+    widget.addEventListener("dismiss", onDismissAlarm, false);
+    widget.addEventListener("itemdetails", onItemDetails, false);
+
+    setupTitle();
+
+    if (alarmRichlist.selectedIndex < 0) {
+        alarmRichlist.selectedIndex = 0;
+    }
+
+    window.focus();
     window.getAttention();
 }
 
-function removeWidgetFor(item) {
-    var hashId = item.hashId;
-    var alarmlist = document.getElementById("alarmlist");
-    var nodes = alarmlist.childNodes;
+/**
+ * Remove the alarm widget for the passed calendar item
+ *
+ * @param aItem       The calendar item to remove the alarm widget for.
+ */
+function removeWidgetFor(aItem) {
+    var hashId = aItem.hashId;
+    var alarmRichlist = document.getElementById("alarm-richlist");
+    var nodes = alarmRichlist.childNodes;
     for (var i = nodes.length - 1; i >= 0; --i) {
         var widget = nodes[i];
-        if (widget.item.hashId == hashId) {
+        if (widget.item && widget.item.hashId == hashId) {
+
+            if (widget.selected) {
+                // Advance selection if needed
+                widget.control.selectedItem = widget.previousSibling ||
+                                              widget.nextSibling;
+            }
+
             widget.removeEventListener("snooze", onSnoozeAlarm, false);
             widget.removeEventListener("dismiss", onDismissAlarm, false);
-            alarmlist.removeChild(widget);
-            if (!alarmlist.hasChildNodes()) {
+            widget.removeEventListener("itemdetails", onItemDetails, false);
+            alarmRichlist.removeChild(widget);
+
+            if (!alarmRichlist.hasChildNodes()) {
                 // check again next round since this removeWidgetFor call may be
                 // followed by an addWidgetFor call (e.g. when refreshing), and
                 // we don't want to close and open the window in that case.
                 function closer() {
-                    if (!alarmlist.hasChildNodes()) {
-                        document.getElementById("calendar-alarmwindow").cancelDialog();
+                    if (!alarmRichlist.hasChildNodes()) {
+                        window.close();
                     }
                 }
                 setTimeout(closer, 0);
@@ -121,4 +290,7 @@ function removeWidgetFor(item) {
             break;
         }
     }
+
+    // Update the title
+    setupTitle();
 }

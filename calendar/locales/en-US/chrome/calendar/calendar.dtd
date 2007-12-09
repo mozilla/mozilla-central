@@ -252,16 +252,27 @@
 <!ENTITY calendar.context.properties.accesskey         "P">
 
 <!-- Calendar Alarm Dialog -->
-<!ENTITY calendar.alarm.snooze.label                "Snooze" >
-<!ENTITY calendar.alarm.title.label                "Calendar Alarm" >
+
+<!ENTITY calendar.alarm.location.label              "Location:" >
+<!ENTITY calendar.alarm.details.label               "Details…" >
+
+<!ENTITY calendar.alarm.snoozefor.label             "Snooze for" >
+<!ENTITY calendar.alarm.snoozeallfor.label          "Snooze All for" >
+<!-- In case your language needs a different word order, this entity can be used
+     to add words to the end of the "Snooze all for XXX minutes" line -->
+<!ENTITY calendar.alarm.snoozeall.suffix.label      "">
+<!ENTITY calendar.alarm.title.label                 "Calendar Alarm" >
 <!ENTITY calendar.alarm.dismiss.label               "Dismiss" >
 <!ENTITY calendar.alarm.dismissall.label            "Dismiss All" >
-<!ENTITY calendar.alarm.for.label  "for" >
-<!ENTITY calendar.alarm.5minutes  "5 minutes" >
-<!ENTITY calendar.alarm.15minutes  "15 minutes" >
-<!ENTITY calendar.alarm.30minutes  "30 minutes" >
-<!ENTITY calendar.alarm.1hour  "1 hour" >
-<!ENTITY calendar.alarm.1day  "1 day" >
+
+<!ENTITY calendar.alarm.snooze.5minutes.label       "5 Minutes" >
+<!ENTITY calendar.alarm.snooze.10minutes.label      "10 Minutes" >
+<!ENTITY calendar.alarm.snooze.15minutes.label      "15 Minutes" >
+<!ENTITY calendar.alarm.snooze.30minutes.label      "30 Minutes" >
+<!ENTITY calendar.alarm.snooze.45minutes.label      "45 Minutes" >
+<!ENTITY calendar.alarm.snooze.1hour.label          "1 Hour" >
+<!ENTITY calendar.alarm.snooze.2hours.label         "2 Hours" >
+<!ENTITY calendar.alarm.snooze.1day.label           "1 Day" >
 
 <!-- Calendar Server Dialog -->
 <!ENTITY calendar.server.dialog.title.edit          "Edit Calendar">

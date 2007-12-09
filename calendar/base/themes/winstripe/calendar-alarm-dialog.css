@@ -1,0 +1,185 @@
+/* ***** BEGIN LICENSE BLOCK *****
+ * Version: MPL 1.1/GPL 2.0/LGPL 2.1
+ *
+ * The contents of this file are subject to the Mozilla Public License Version
+ * 1.1 (the "License"); you may not use this file except in compliance with
+ * the License. You may obtain a copy of the License at
+ * http://www.mozilla.org/MPL/
+ *
+ * Software distributed under the License is distributed on an "AS IS" basis,
+ * WITHOUT WARRANTY OF ANY KIND, either express or implied. See the License
+ * for the specific language governing rights and limitations under the
+ * License.
+ *
+ * The Original Code is Mozilla Calendar code.
+ *
+ * The Initial Developer of the Original Code is
+ *   Philipp Kewisch <mozilla@kewis.ch>
+ * Portions created by the Initial Developer are Copyright (C) 2007
+ * the Initial Developer. All Rights Reserved.
+ *
+ * Contributor(s):
+ *
+ * Alternatively, the contents of this file may be used under the terms of
+ * either the GNU General Public License Version 2 or later (the "GPL"), or
+ * the GNU Lesser General Public License Version 2.1 or later (the "LGPL"),
+ * in which case the provisions of the GPL or the LGPL are applicable instead
+ * of those above. If you wish to allow use of your version of this file only
+ * under the terms of either the GPL or the LGPL, and not to allow others to
+ * use your version of this file under the terms of the MPL, indicate your
+ * decision by deleting the provisions above and replace them with the notice
+ * and other provisions required by the GPL or the LGPL. If you do not delete
+ * the provisions above, a recipient may use your version of this file under
+ * the terms of any one of the MPL, the GPL or the LGPL.
+ *
+ * ***** END LICENSE BLOCK ***** */
+
+/* Bindings */
+calendar-alarm-widget {
+    -moz-binding: url(chrome://calendar/content/calendar-alarm-widget.xml#calendar-alarm-widget);
+}
+
+/* Alarm dialog styles */
+#alarm-richlist {
+    margin: 10px;
+}
+
+#alarm-actionbar {
+    min-width: 1px;
+    margin: 0 5px;
+}
+
+/* Alarm widget specific styles */
+calendar-alarm-widget {
+    border-bottom: 1px dotted #C0C0C0;
+    padding: 6px 7px;
+}
+
+calendar-alarm-widget[selected="true"] {
+    background-image: url(chrome://mozapps/skin/extensions/itemEnabledFader.png);
+    background-color: #a2bdd8;
+    padding: 0 5px;
+}
+
+calendar-alarm-widget[selected="true"] .alarm-title-label {
+   font-weight: bold;
+}
+
+calendar-alarm-widget[selected="true"] .alarm-action-buttons {
+    display: -moz-box;
+}
+
+calendar-alarm-widget[selected="true"] > hbox {
+    margin: 5px;
+}
+
+calendar-alarm-widget[selected="true"] .alarm-relative-date-label,
+.additional-information-box,
+.alarm-action-buttons {
+    display: none;
+}
+
+calendar-alarm-widget[selected="true"] .additional-information-box,
+calendar-alarm-widget[selected="true"] .action-buttons-box {
+    display: -moz-box;
+}
+
+.alarm-details-label {
+    text-decoration: underline;
+}
+
+calendar-alarm-widget[selected="true"] .alarm-calendar-image {
+    list-style-image: url(chrome://calendar/skin/cal-icon32.png);
+}
+
+.resizer-box {
+    min-height: 15px;
+}
+
+/* Custom alarm popup styles */
+#calendar-alarm-snooze-popup-window {
+    background-color: menu;
+    color: menutext;
+    border: 1px solid ThreeDShadow;
+    z-index: 2147483648;
+}
+
+#custom-menupopup-radiogroup .radio-check-box1 {
+    display: none;
+}
+
+#custom-menupopup-radiogroup radio[selected] {
+    background-color: Highlight;
+    color: HighlightText;
+}
+
+#custom-menupopup-radiogroup radio  {
+    -moz-appearance: none;
+    min-height: 1.5ex;
+    max-width: 42em;
+    padding: 3px;
+    margin: 1px;
+    background-color: transparent;
+    color: menutext;
+}
+
+#custom-menupopup-radiogroup > radio > .radio-label-box {
+    -moz-margin-start: 17px;
+    border: 0;
+}
+
+.custom-menupopup-ok-button {
+    -moz-image-region: rect(0px, 14px, 14px, 0px);
+}
+
+.custom-menupopup-ok-button:hover {
+    -moz-image-region: rect(14px, 14px, 28px, 0px);
+}
+
+.custom-menupopup-ok-button:active {
+    -moz-image-region: rect(28px, 14px, 42px, 0px);
+}
+
+.custom-menupopup-ok-button[disabled="true"] {
+    -moz-image-region: rect(42px, 14px, 56px, 0px);
+}
+
+.custom-menupopup-cancel-button {
+    -moz-image-region: rect(0px, 28px, 14px, 14px);
+}
+
+.custom-menupopup-cancel-button:hover {
+    -moz-image-region: rect(14px, 28px, 28px, 14px);
+}
+
+.custom-menupopup-cancel-button:active {
+    -moz-image-region: rect(28px, 28px, 42px, 14px);
+}
+
+.custom-menupopup-ok-button,
+.custom-menupopup-cancel-button {
+    list-style-image: url(chrome://calendar/skin/ok-cancel.png);
+    border: 0;
+    padding: 0;
+    margin: 2px;
+    min-width: 0;
+    -moz-appearance: none;
+}
+
+.custom-menupopup-ok-button > .button-box,
+.custom-menupopup-cancel-button > .button-box {
+    border: 0;
+    padding: 0;
+    -moz-box-pack: center;
+    -moz-box-align: center;
+}
+
+.custom-menupopup-ok-button:focus > .button-box,
+.custom-menupopup-cancel-button:focus > .button-box {
+    border: 1px dotted ThreeDDarkShadow;
+    padding: 0;
+}
+
+.button-menu-dropmarker {
+    height: 11px;
+}

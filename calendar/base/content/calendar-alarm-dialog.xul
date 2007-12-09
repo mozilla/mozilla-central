@@ -22,6 +22,7 @@
    - Contributor(s):
    -   Stuart Parmenter <stuart.parmenter@oracle.com>
    -   Robin Edrenius <robin.edrenius@gmail.com>
+   -   Philipp Kewisch <mozilla@kewis.ch>
    -
    - Alternatively, the contents of this file may be used under the terms of
    - either the GNU General Public License Version 2 or later (the "GPL"), or
@@ -38,34 +39,44 @@
    - ***** END LICENSE BLOCK ***** -->
 
 <?xml-stylesheet href="chrome://global/skin/global.css" type="text/css"?>
-<?xml-stylesheet href="chrome://calendar/content/calendar-alarm-widget.css" type="text/css"?>
+<?xml-stylesheet href="chrome://calendar/skin/calendar-alarm-dialog.css" type="text/css"?>
+
+<!-- used for button-text and button-menu-dropmarker classes -->
+<?xml-stylesheet href="chrome://global/skin/button.css" type="text/css"?>
 
 <!-- DTD File with all strings specific to the calendar -->
 <!DOCTYPE dialog
 [
   <!ENTITY % dtd1 SYSTEM "chrome://calendar/locale/global.dtd" > %dtd1;
   <!ENTITY % dtd2 SYSTEM "chrome://calendar/locale/calendar.dtd" > %dtd2;
-  <!ENTITY % dtd3 SYSTEM "chrome://branding/locale/brand.dtd" > %dtd3;
 ]>
 
-<dialog xmlns="http://www.mozilla.org/keymaster/gatekeeper/there.is.only.xul"
-        id="calendar-alarmwindow"
+<window xmlns="http://www.mozilla.org/keymaster/gatekeeper/there.is.only.xul"
+        id="calendar-alarm-dialog"
         title="&calendar.alarm.title.label;"
         windowtype="calendarAlarmWindow"
         persist="screenX screenY width height"
-        buttons="accept"
-        buttonlabelaccept="&calendar.alarm.dismissall.label;"
-        onload="window.arguments[0].wrappedJSObject.window_onLoad();"
-        ondialogaccept="return onDismissAllAlarms();"
-        width="400"
-        height="200">
+        onload="setupWindow(); window.arguments[0].wrappedJSObject.window_onLoad();"
+        onunload="finishWindow();"
+        onfocus="onFocusWindow();"
+        onkeypress="if (event.keyCode == event.DOM_VK_ESCAPE) { window.close(); }"
+        width="600"
+        height="300">
+  <script type="application/x-javascript" src="chrome://calendar/content/calendar-alarm-dialog.js"/>
+  <script type="application/x-javascript" src="chrome://calendar/content/calUtils.js"/>
 
-<!-- Javascript includes -->
-<script type="application/x-javascript" src="chrome://calendar/content/calendar-alarm-dialog.js"/>
-<script type="application/x-javascript" src="chrome://calendar/content/calUtils.js"/>
+  <richlistbox id="alarm-richlist" flex="1"/>
 
-<!-- The dialog -->
-    <vbox id="alarmlist" flex="1" style="overflow: auto;">
-    </vbox>
-
-</dialog>
+  <hbox pack="end" id="alarm-actionbar" align="center">
+    <button id="alarm-snooze-all-button"
+            oncommand="openSnoozeWindow(event, { snoozeAlarm: snoozeAllItems }); return false;">
+      <label class="button-text" value="&calendar.alarm.snoozeallfor.label;"/>
+      <dropmarker class="button-menu-dropmarker"/>
+    </button>
+    <button label="&calendar.alarm.dismissall.label;"
+            oncommand="onDismissAllAlarms();"/>
+  </hbox>
+  <hbox pack="end" class="resizer-box">
+    <resizer dir="bottomright"/>
+  </hbox>
+</window>
