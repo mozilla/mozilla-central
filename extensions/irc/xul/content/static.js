@@ -2691,7 +2691,10 @@ function setListMode(mode)
     else
         elem.removeAttribute("mode");
     if (elem && elem.view && elem.treeBoxObject)
+    {
         elem.treeBoxObject.clearStyleAndImageCaches();
+        elem.treeBoxObject.invalidate();
+    }
 }
 
 function updateUserList()
