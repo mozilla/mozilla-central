@@ -461,9 +461,18 @@ int KeychainPrefChangedCallback(const char* inPref, void* unused)
   NSAlert* alert = [[[NSAlert alloc] init] autorelease];
   [alert setMessageText:NSLocalizedString(@"KeychainStoreAlertTitle", nil)];
   [alert setInformativeText:NSLocalizedString(@"KeychainStoreAlertText", nil)];
+
   [alert addButtonWithTitle:NSLocalizedString(@"KeychainStoreAlertStoreButton", nil)];
-  [alert addButtonWithTitle:NSLocalizedString(@"KeychainStoreAlertDontStoreButton", nil)];
-  [alert addButtonWithTitle:NSLocalizedString(@"KeychainStoreAlertNeverStoreButton", nil)];
+
+  NSButton* dontStore = [alert addButtonWithTitle:NSLocalizedString(@"KeychainStoreAlertDontStoreButton", nil)];
+  [dontStore setKeyEquivalent:@"\e"];  // Esc
+  [dontStore setKeyEquivalentModifierMask:0];
+
+  NSButton* neverStore = [alert addButtonWithTitle:NSLocalizedString(@"KeychainStoreAlertNeverStoreButton", nil)];
+  [neverStore setKeyEquivalent:@"n"];
+  [neverStore setKeyEquivalentModifierMask:NSCommandKeyMask];
+
+  [[alert window] makeFirstResponder:dontStore];
   [alert beginSheetModalForWindow:window
                     modalDelegate:self
                    didEndSelector:@selector(storeSheetDidEnd:returnCode:contextInfo:)
@@ -519,8 +528,13 @@ int KeychainPrefChangedCallback(const char* inPref, void* unused)
   NSAlert* alert = [[[NSAlert alloc] init] autorelease];
   [alert setMessageText:NSLocalizedString(@"KeychainUpdateAlertTitle", nil)];
   [alert setInformativeText:NSLocalizedString(@"KeychainUpdateAlertText", nil)];
+
   [alert addButtonWithTitle:NSLocalizedString(@"KeychainUpdateAlertUpdateButton", nil)];
-  [alert addButtonWithTitle:NSLocalizedString(@"KeychainUpdateAlertDontUpdateButton", nil)];
+
+  NSButton* dontUpdate = [alert addButtonWithTitle:NSLocalizedString(@"KeychainUpdateAlertDontUpdateButton", nil)];
+  [dontUpdate setKeyEquivalent:@"\e"];  // Esc
+  [dontUpdate setKeyEquivalentModifierMask:0];
+
   [alert beginSheetModalForWindow:window
                     modalDelegate:self
                    didEndSelector:@selector(updateSheetDidEnd:returnCode:contextInfo:)
