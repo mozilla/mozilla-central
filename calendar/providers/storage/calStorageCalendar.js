@@ -1215,28 +1215,48 @@ calStorageCalendar.prototype = {
             "   ("+nonFloatingEventStart+" < :range_end)) " +
             " AND cal_id = :cal_id AND recurrence_id IS NULL"
             );
+       /**
+        * WHERE (due > rangeStart AND start < rangeEnd) OR
+        *       (due = rangeStart AND start = rangeStart) OR
+        *       (due IS NULL AND ((start >= rangeStart AND start < rangeEnd) OR
+        *                         (start IS NULL AND 
+        *                          (completed > rangeStart OR completed IS NULL))) OR
+        *       (start IS NULL AND due >= rangeStart AND due < rangeEnd)
+        */
 
         var floatingTodoEntry = "todo_entry_tz = 'floating' AND todo_entry";
         var nonFloatingTodoEntry = "todo_entry_tz != 'floating' AND todo_entry";
         var floatingTodoDue = "todo_due_tz = 'floating' AND todo_due";
         var nonFloatingTodoDue = "todo_due_tz != 'floating' AND todo_due";
+        var floatingCompleted = "todo_completed_tz = 'floating' AND todo_completed";
+        var nonFloatingCompleted = "todo_completed_tz != 'floating' AND todo_completed";
 
         this.mSelectTodosByRange = createStatement(
             this.mDB,
             "SELECT * FROM cal_todos " +
             "WHERE " +
-            " (("+floatingTodoDue+" > :range_start + :start_offset) OR " +
-            "  ("+nonFloatingTodoDue+" > :range_start) OR " +
-            "  (todo_due IS NULL) OR " +
-            "  ((("+floatingTodoDue+" = :range_start + :start_offset) OR " +
-            "    ("+nonFloatingTodoDue+" = :range_start)) AND " +
-            "   (("+floatingTodoEntry+" = :range_start + :start_offset) OR " +
-            "    ("+nonFloatingTodoEntry+" = :range_start) OR " +
-            "    (todo_entry IS NULL)))) " +
-            " AND " +
-            " (("+floatingTodoEntry+" < :range_end + :end_offset) OR " +
-            "  ("+nonFloatingTodoEntry+" < :range_end) OR " +
-            "  (todo_entry IS NULL)) " +
+            " ((("+floatingTodoDue+" > :range_start + :start_offset) OR " +
+            "   ("+nonFloatingTodoDue+" > :range_start)) AND " +
+            "  (("+floatingTodoEntry+" < :range_end + :end_offset) OR " +
+            "   ("+nonFloatingTodoEntry+" < :range_end))) OR " +
+            " ((("+floatingTodoDue+" = :range_start + :start_offset) OR " +
+            "   ("+nonFloatingTodoDue+" = :range_start)) AND " +
+            "  (("+floatingTodoEntry+" = :range_start + :start_offset) OR " +
+            "   ("+nonFloatingTodoEntry+" = :range_start))) OR " +
+            " ((todo_due IS NULL) AND " +
+            "  (((("+floatingTodoEntry+" >= :range_start + :start_offset) OR " +
+            "    ("+nonFloatingTodoEntry+" >= :range_start)) AND " +
+            "    (("+floatingTodoEntry+" < :range_end + :end_offset) OR " +
+            "     ("+nonFloatingTodoEntry+" < :range_end))) OR " +
+            "   ((todo_entry IS NULL) AND " +
+            "    ((("+floatingCompleted+" > :range_start + :start_offset) OR " +
+            "      ("+nonFloatingCompleted+" > :range_start)) OR " +
+            "     (todo_completed IS NULL))))) OR " +
+            " ((todo_entry IS NULL) AND " +
+            "  (("+floatingTodoDue+" >= :range_start + :start_offset) OR " +
+            "   ("+nonFloatingTodoDue+" >= :range_start)) AND " +
+            "  (("+floatingTodoDue+" < :range_end + :end_offset) OR " +
+            "   ("+nonFloatingTodoDue+" < :range_end))) " +            
             " AND cal_id = :cal_id AND recurrence_id IS NULL"
             );
 
