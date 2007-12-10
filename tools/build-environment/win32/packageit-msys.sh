@@ -43,7 +43,7 @@ tar -xjf "${MSYS_SRCDIR}/cvs-1.11.22.tar.bz2" -C "${MSYS_STAGEDIR}"
 pushd "${MSYS_STAGEDIR}/cvs-1.11.22"
 ./configure --prefix=/local
 make
-make install prefix="${MSYS_STAGEDIR}/mozilal-build/msys/local"
+make install prefix="${MSYS_STAGEDIR}/mozilla-build/msys/local"
 popd
 
 # In order for this to actually work, we now need to rebase
