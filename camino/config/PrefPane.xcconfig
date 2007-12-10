@@ -3,17 +3,17 @@ INSTALL_PATH = "$(USER_LIBRARY_DIR)/Bundles"
 
 GCC_PREFIX_HEADER = src/includes/ChimeraPrefix.h
 
+// Most/all of this will be removed when pref panes switch to bundle linking
+// rather than actually compiling any core code.
+GCC_PREPROCESSOR_DEFINITIONS = OSTYPE=Darwin1.4 OSARCH=Darwin MOZILLA_INTERNAL_API=1
+OTHER_LDFLAGS = -lpthread -lm
+OTHER_CFLAGS = -fshort-wchar
+LIBRARY_STYLE = BUNDLE
+GCC_ENABLE_PASCAL_STRINGS = YES
 GCC_ENABLE_CPP_EXCEPTIONS = NO
 GCC_ENABLE_CPP_RTTI = NO
 
-// Needed because some preference panes still use libxpcom_core.dylib and
-// related headers as an internal Mozilla user.
-GCC_PREPROCESSOR_DEFINITIONS = OSTYPE=Darwin1.4 OSARCH=Darwin MOZILLA_INTERNAL_API=1
-OTHER_CFLAGS = -fshort-wchar
-
+// Thes warning settings should be revisited once pref panes aren't tied to core
 GCC_WARN_SIGN_COMPARE = YES
 WARNING_CFLAGS = -Wall -Wno-four-char-constants
 OTHER_CPLUSPLUSFLAGS = $(OTHER_CPLUSPLUSFLAGS) -Wno-non-virtual-dtor
-
-CONFIGURATION_BUILD_DIR = $(BUILD_DIR)/$(CONFIGURATION)/Camino.app/Contents/PreferencePanes
-BUNDLE_LOADER = $(BUILD_DIR)/$(CONFIGURATION)/Camino.app/Contents/MacOS/Camino
