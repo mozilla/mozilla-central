@@ -33,13 +33,19 @@ if "%VC8DIR%"=="" (
     rem Prepend MSVC paths
     call "%VC8EXPRESSDIR%\Bin\vcvars32.bat"
 
+    SET USESDK=1
     rem Don't set SDK paths in this block, because blocks are early-evaluated.
 ) else (
     rem Prepend MSVC paths
     call "%VC8DIR%\Bin\vcvars32.bat"
+
+    rem If the SDK is Win2k3SP2 or higher, we want to use it
+    if %SDKVER% GEQ 5 (
+      SET USESDK=1
+    )
 )
 
-if "%VC8DIR%"=="" (
+if "%USESDK%"=="1" (
     rem Prepend SDK paths - Don't use the SDK SetEnv.cmd because it pulls in
     rem random VC paths which we don't want.
     rem Add the atlthunk compat library to the end of our LIB

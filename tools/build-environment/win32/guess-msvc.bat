@@ -73,10 +73,14 @@ SET SDK2003SP1KEY=%SDKROOTKEY%\8F9E5EF3-A9A5-491B-A889-C58EFFECE8B3
 SET SDK2003SP2KEY=%SDKROOTKEY%\D2FF9F89-8AA2-4373-8A31-C838BF4DBBE1
 SET SDK6KEY=HKLM\SOFTWARE\Microsoft\Microsoft SDKs\Windows\v6.0\WinSDKBuild
 
+REM Just a base value to compare against
+SET SDKVER=0
+
 REG QUERY "%SDK6KEY%" /v InstallationFolder >nul 2>nul
 if "%SDKDIR%"=="" (
   IF %ERRORLEVEL% EQU 0 (
     FOR /F "tokens=2* usebackq delims=	 " %%A IN (`REG QUERY "HKLM\SOFTWARE\Microsoft\Microsoft SDKs\Windows\v6.0\WinSDKBuild" /v InstallationFolder`) DO SET SDKDIR=%%B
+    SET SDKVER=6
   )
 )
 
@@ -84,6 +88,8 @@ REG QUERY "%SDK2003SP2KEY%" /v "Install Dir" >nul 2>nul
 if "%SDKDIR%"=="" (
   IF %ERRORLEVEL% EQU 0 (
     FOR /F "tokens=3* delims=	 " %%A IN ('REG QUERY "%SDK2003SP2KEY%" /v "Install Dir"') DO SET SDKDIR=%%B
+    REM arbitrary, but works for me
+    SET SDKVER=5
   )
 )
 
@@ -91,6 +97,7 @@ REG QUERY "%SDK2003SP1KEY%" /v "Install Dir" >nul 2>nul
 if "%SDKDIR%"=="" (
   IF %ERRORLEVEL% EQU 0 (
     FOR /F "tokens=3* delims=	 " %%A IN ('REG QUERY "%SDK2003SP1KEY%" /v "Install Dir"') DO SET SDKDIR=%%B
+    SET SDKVER=4
   )
 )
 
@@ -101,3 +108,4 @@ ECHO Visual C++ 8 Express directory: %VC8EXPRESSDIR%
 ECHO Visual C++ 9 directory: %VC9DIR%
 ECHO Visual C++ 9 Express directory: %VC9EXPRESSDIR%
 ECHO SDK directory: %SDKDIR%
+ECHO SDK version: %SDKVER%
