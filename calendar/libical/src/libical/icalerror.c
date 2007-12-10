@@ -3,7 +3,7 @@
   FILE: icalerror.c
   CREATOR: eric 16 May 1999
   
-  $Id: icalerror.c,v 1.20 2007/05/31 21:26:14 artcancro Exp $
+  $Id: icalerror.c,v 1.17 2002/10/09 20:48:08 acampi Exp $
   $Locker:  $
     
 
@@ -108,7 +108,7 @@ void icalerror_clear_errno() {
     icalerrno = ICAL_NO_ERROR;
 }
 
-#if ICAL_ERRORS_ARE_FATAL
+#ifdef ICAL_ERRORS_ARE_FATAL
 int icalerror_errors_are_fatal = 1;
 #else
 int icalerror_errors_are_fatal = 0;
@@ -141,7 +141,7 @@ struct icalerror_string_map {
     char name[160];
 };
 
-static const struct icalerror_string_map string_map[] = 
+static struct icalerror_string_map string_map[] = 
 {
     {"BADARG",ICAL_BADARG_ERROR,"BADARG: Bad argument to function"},
     { "NEWFAILED",ICAL_NEWFAILED_ERROR,"NEWFAILED: Failed to create a new object via a *_new() routine"},
@@ -187,7 +187,7 @@ icalerrorstate icalerror_supress(const char* error){
     return es;
 }
 
-const char* icalerror_perror()
+char* icalerror_perror()
 {
     return icalerror_strerror(icalerrno);
 }
@@ -233,7 +233,7 @@ icalerrorstate icalerror_get_error_state( icalerrorenum error)
 
 
 
-const char* icalerror_strerror(icalerrorenum e) {
+char* icalerror_strerror(icalerrorenum e) {
 
     int i;
 

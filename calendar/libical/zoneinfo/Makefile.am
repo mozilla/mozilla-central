@@ -6,10 +6,8 @@ zoneinfodata_DATA = zones.tab
 DIRS = \
 	Africa			\
 	America			\
-	America/North_Dakota	\
 	America/Indiana		\
 	America/Kentucky	\
-	America/Argentina	\
 	Antarctica		\
 	Arctic			\
 	Asia			\

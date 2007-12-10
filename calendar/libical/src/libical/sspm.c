@@ -3,7 +3,7 @@
   FILE: sspm.c Parse Mime
   CREATOR: eric 25 June 2000
   
-  $Id: sspm.c,v 1.11 2007/08/21 02:45:54 artcancro Exp $
+  $Id: sspm.c,v 1.9 2005/01/24 13:15:19 acampi Exp $
   $Locker:  $
     
  The contents of this file are subject to the Mozilla Public License
@@ -69,7 +69,7 @@ struct mime_impl{
 	size_t max_parts;
 	int part_no;
 	int level;
-	const struct sspm_action_map *actions;
+	struct sspm_action_map *actions;
 	char* (*get_string)(char *s, size_t size, void* data);
 	void* get_string_data;
 	char temp[TMP_BUF_SIZE];
@@ -424,17 +424,19 @@ static struct sspm_action_map get_action(struct mime_impl *impl,
 char* sspm_lowercase(char* str)
 {
     char* p = 0;
-    char* new = sspm_strdup(str);
+    char* ret;
 
     if(str ==0){
 	return 0;
     }
 
-    for(p = new; *p!=0; p++){
+    ret = sspm_strdup(str);
+
+    for(p = ret; *p!=0; p++){
 	*p = tolower(*p);
     }
 
-    return new;
+    return ret;
 }
 
 enum sspm_major_type sspm_find_major_content_type(char* type)
@@ -531,7 +533,7 @@ void sspm_build_header(struct sspm_header *header, char* line)
     val = sspm_strdup(sspm_value(line));
     prop = sspm_strdup(sspm_property_name(line));
 
-    if(strcasecmp(prop,"Content-Type") == 0){
+    if(strcmp(prop,"Content-Type") == 0){
 	
 	/* Create a new mime_header, fill in content-type
 	   and possibly boundary */
@@ -558,19 +560,19 @@ void sspm_build_header(struct sspm_header *header, char* line)
 	    header->boundary = sspm_strdup(boundary);
 	}
 	
-    } else if(strcasecmp(prop,"Content-Transfer-Encoding")==0){
+    } else if(strcmp(prop,"Content-Transfer-Encoding")==0){
 	char* encoding = sspm_value(line);
 	char* lencoding = sspm_lowercase(encoding);
 
-	if(strcasecmp(lencoding,"base64")==0){
+	if(strcmp(lencoding,"base64")==0){
 	    header->encoding = SSPM_BASE64_ENCODING;
-	} else 	if(strcasecmp(lencoding,"quoted-printable")==0){
+	} else 	if(strcmp(lencoding,"quoted-printable")==0){
 	    header->encoding = SSPM_QUOTED_PRINTABLE_ENCODING;
-	} else 	if(strcasecmp(lencoding,"binary")==0){
+	} else 	if(strcmp(lencoding,"binary")==0){
 	    header->encoding = SSPM_BINARY_ENCODING;
-	} else 	if(strcasecmp(lencoding,"7bit")==0){
+	} else 	if(strcmp(lencoding,"7bit")==0){
 	    header->encoding = SSPM_7BIT_ENCODING;
-	} else 	if(strcasecmp(lencoding,"8bit")==0){
+	} else 	if(strcmp(lencoding,"8bit")==0){
 	    header->encoding = SSPM_8BIT_ENCODING;
 	} else {
 	    header->encoding = SSPM_UNKNOWN_ENCODING;
@@ -581,7 +583,7 @@ void sspm_build_header(struct sspm_header *header, char* line)
 
 	header->def = 0;
 	
-    } else if(strcasecmp(prop,"Content-Id")==0){
+    } else if(strcmp(prop,"Content-Id")==0){
 	char* cid = sspm_value(line);
 	header->content_id = sspm_strdup(cid);
 	header->def = 0;
@@ -953,9 +955,9 @@ void sspm_read_header(struct mime_impl *impl,struct sspm_header *header)
 		
 		assert(strlen(buf) < BUF_SIZE);
 		
-		strncpy(header_lines[current_line],buf,BUF_SIZE);
+		strncpy(header_lines[current_line],buf,BUF_SIZE-1);
 		header_lines[current_line][BUF_SIZE-1] = '\0';
-		      
+		
 		break;
 	    }
 	    
@@ -989,8 +991,8 @@ void sspm_read_header(struct mime_impl *impl,struct sspm_header *header)
 		
 		assert( strlen(buf_start) + strlen(last_line) < BUF_SIZE);
 		
-		strncat(last_line,buf_start, BUF_SIZE-strlen(last_line)-1);
-
+		strncat(last_line,buf_start,BUF_SIZE-strlen(last_line)-1);
+		
 		break;
 	    }
 	    
@@ -1015,7 +1017,7 @@ void sspm_read_header(struct mime_impl *impl,struct sspm_header *header)
 /* Root routine for parsing mime entries*/
 int sspm_parse_mime(struct sspm_part *parts, 
 		    size_t max_parts,
-		    const struct sspm_action_map *actions,
+		    struct sspm_action_map *actions,
 		    char* (*get_string)(char *s, size_t size, void* data),
 		    void *get_string_data,
 		    struct sspm_header *first_header
@@ -1169,7 +1171,7 @@ char *decode_base64(char *dest,
 			     char *src,
 			     size_t *size)
 {
-    int cc;
+    int cc = 0;
     char buf[4] = {0,0,0,0};  
     int p = 0;
     int valid_data = 0;
