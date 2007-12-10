@@ -43,6 +43,10 @@
 #include <stdio.h> /* for printf */
 #include <stdarg.h> /* for va_list, va_start, etc. */
                                                
+#ifdef WIN32
+#define strcasecmp      stricmp
+#endif
+
 struct icalproperty_impl*
 icalproperty_new_impl (icalproperty_kind kind);
 void icalproperty_add_parameters(struct icalproperty_impl *prop,va_list args);

@@ -21,7 +21,9 @@
 /* #undef HAVE_PTHREAD_H 1 */
 
 /* Define to 1 if you have the `snprintf' function. */
+#ifndef XP_WIN32
 #define HAVE_SNPRINTF 1
+#endif
 
 /* Define to 1 if you have the <stdint.h> header file. */
 #if !defined(XP_WIN32) && !defined(__sun) && !defined(XP_BEOS)

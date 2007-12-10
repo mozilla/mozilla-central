@@ -40,7 +40,7 @@
 #include "icaltimezone.h"
 
 #ifdef WIN32
-#define snprintf _snprintf
+#define strcasecmp stricmp
 #define PACKAGE_DATA_DIR "/Projects/libical"
 #else
 #ifdef XP_MAC

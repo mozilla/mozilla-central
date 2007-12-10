@@ -47,6 +47,11 @@
 #include <string.h> /* for strdup */
 #include <limits.h> /* for INT_MAX */
 
+#ifdef WIN32
+#define snprintf        _snprintf
+#endif
+
+
 struct icalcomponent_impl 
 {
 	char id[5];
