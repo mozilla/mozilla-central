@@ -1050,8 +1050,9 @@ function calWcapCalendar_getItem(id, listener)
             request,
             function fetchEventById_resp(err, icalRootComp) {
                 if (err) {
-                    if (getResultCode(err) != calIWcapErrors.WCAP_FETCH_EVENTS_BY_ID_FAILED)
+                    if (!checkErrorCode(err, calIWcapErrors.WCAP_FETCH_EVENTS_BY_ID_FAILED)) {
                         throw err;
+                    }
                     // try todos:
                     this_.issueNetworkRequest(
                         request,
@@ -1195,7 +1196,7 @@ function calWcapCalendar_getItems(itemFilter, maxResults, rangeStart, rangeEnd, 
             request,
             function netResp(err, icalRootComp) {
                 if (err) {
-                    if (getResultCode(err) == calIWcapErrors.WCAP_ACCESS_DENIED_TO_CALENDAR) {
+                    if (checkErrorCode(err, calIWcapErrors.WCAP_ACCESS_DENIED_TO_CALENDAR)) {
                         // try free-busy times:
                         if (listener &&
                             (itemFilter & calICalendar.ITEM_FILTER_TYPE_EVENT) &&

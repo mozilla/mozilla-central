@@ -101,19 +101,25 @@ calWcapCalendar.prototype = {
     },
     notifyError_: function calWcapCalendar_notifyError_(err, context, suppressOnError)
     {
-        var rc = getResultCode(err);
-        if ((rc == calIErrors.OPERATION_CANCELLED) ||
-            (rc == NS_ERROR_OFFLINE)) { // no real error
-            return;
-        }
         var msg;
-        if (checkResultCode(rc, calIErrors.WCAP_ERROR_BASE, 8) ||
-            (getErrorModule(rc) == NS_ERROR_MODULE_NETWORK)) {
-            // don't bloat the js error console with these errors:
+        var rc = getResultCode(err);
+        switch (rc) {
+        case calIErrors.OPERATION_CANCELLED:
+        case NS_ERROR_OFFLINE:
+            // no real errors:
+            return;
+        default:
+            if (!checkErrorCode(rc, calIErrors.WCAP_ERROR_BASE, 8) &&
+                (getErrorModule(rc) != NS_ERROR_MODULE_NETWORK)) {
+                msg = logError(err, context);
+                break;
+            }
+            // fallthru intended
+        case calIErrors.CAL_IS_READONLY:
+            // don't bloat the js error console with these errors, just log:
             msg = errorToString(err);
             log("error: " + msg, context);
-        } else {
-            msg = logError(err, context);
+            break;
         }
         if (!suppressOnError) {
             this.notifyObservers("onError",
@@ -425,7 +431,7 @@ calWcapCalendar.prototype = {
         // xxx todo: take real acl into account
         // for now, optimistically assuming that everybody has full access, server will check:
         var granted = calIWcapCalendar.AC_FULL;
-        if (this.m_bReadOnly) {
+        if (this.getProperty("readOnly")) {
             granted &= ~(calIWcapCalendar.AC_COMP_WRITE |
                          calIWcapCalendar.AC_PROP_WRITE);
         }

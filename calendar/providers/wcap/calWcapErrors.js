@@ -53,8 +53,29 @@ function generateNetFailure(code) {
     return generateFailure(NS_ERROR_MODULE_NETWORK, code);
 }
 
-function getErrorModule(rc) {
+function getResultCode(err) {
+    if (err === undefined || err === null)
+        return NS_OK;
+    if (isNaN(err)) {
+        if (err instanceof nsIException)
+            return err.result;
+        else
+            return Components.results.NS_ERROR_FAILURE;
+    }
+    return err;
+}
+
+function getErrorModule(err) {
+    var rc = getResultCode(err);
     return (((rc >>> 16) & 0x7fff) - NS_ERROR_MODULE_BASE_OFFSET);
+}
+
+function checkErrorCode(err, rcBits, maskBits) {
+    if (!maskBits) {
+        maskBits = 0;
+    }
+    var rc = getResultCode(err);
+    return ((rc ^ rcBits) >>> maskBits) == 0;
 }
 
 // Cannot perform operation, because user is offline.
@@ -335,23 +356,6 @@ function checkWcapXmlErrno(xml, expectedErrno) {
 
 function checkWcapIcalErrno(icalRootComp, expectedErrno) {
     checkWcapErrno(getWcapIcalErrno(icalRootComp), expectedErrno);
-}
-
-function getResultCode(err)
-{
-    if (err === undefined || err === null)
-        return NS_OK;
-    if (isNaN(err)) {
-        if (err instanceof nsIException)
-            return err.result;
-        else
-            return Components.results.NS_ERROR_FAILURE;
-    }
-    return err;
-}
-
-function checkResultCode(rc, baseCode, bits) {
-    return ((rc ^ baseCode) >>> bits) == 0;
 }
 
 function errorToString(err)
