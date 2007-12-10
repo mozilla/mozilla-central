@@ -2,4 +2,3 @@
 .libs
 *.lo
 *.la
-ical.h

@@ -979,7 +979,7 @@ icalcomponent* icalparser_add_line(icalparser* parser,
             case ICAL_RESOURCES_PROPERTY:
             case ICAL_RDATE_PROPERTY:
             case ICAL_EXDATE_PROPERTY:
-                 str = icalparser_get_next_value(end,&end, value_kind);
+                 str = parser_get_next_value(end,&end, value_kind);
                  break;
             default:
                  str = icalparser_get_value(end, &end, value_kind);

@@ -420,7 +420,6 @@ struct icalrecurrencetype icalrecurrencetype_from_string(const char* str)
 	    }
 	} else if (strcasecmp(name,"WKST") == 0){
 	    parser.rt.week_start = icalrecur_string_to_weekday(value);
-      sort_bydayrules(parser.rt.by_day,parser.rt.week_start);
 	} else if (strcasecmp(name,"BYSECOND") == 0){
 	    icalrecur_add_byrules(&parser,parser.rt.by_second,
 				  ICAL_BY_SECOND_SIZE,value);
@@ -1603,10 +1602,6 @@ static int next_weekday_by_week(icalrecur_iterator* impl)
   if(!has_by_data(impl,BY_DAY)){
       return 1;
   }
-
-	/* this call to 'sort_bydayrules' assures that the occurrences for
-		 weekly recurrences will be generated in a strict linear order. */
-     sort_bydayrules(BYDAYPTR,impl->rule.week_start);
 
   /* If we get here, we need to step to tne next day */
 
