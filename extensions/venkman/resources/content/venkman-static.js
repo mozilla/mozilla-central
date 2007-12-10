@@ -40,7 +40,7 @@
 #filter substitution
 
 const __vnk_version        = "@VENKMAN_VERSION@";
-const __vnk_requiredLocale = "0.9.87.1";
+const __vnk_requiredLocale = "0.9.87.2";
 var   __vnk_versionSuffix  = "";
 
 const __vnk_counter_url = 
