@@ -35,7 +35,7 @@ use warnings;
 # 10*1024*1024 is 10MB
 my $SIZE_LIMIT = 10*1024*1024;
 # the URL to the buildbot insntallation the patches will eventually go to
-my $BUILDBOT_URL = 'http://localhost:8010';
+my $BUILDBOT_URL = 'http://tinderbox.mozilla.org/MozillaTry/';
 # the URL to the sendchange.cgi script
 my $SENDCHANGE_URL = 'http://localhost/cgi-bin/sendchange.cgi';
 # the default path to the mozilla-central hg repository
@@ -44,8 +44,6 @@ my $MOZILLA_REPO_PATH = 'http://hg.mozilla.org/mozilla-central';
 my $TAMARIN_REPO_PATH = 'http://hg.mozilla.org/tamarin-central';
 # the URL to the try server documentation
 my $DOCUMENTATION_URL = 'http://wiki.mozilla.org/Build:TryServer';
-# the URL to the tinderbox tracker
-my $TINDERBOX_URL = 'http://tinderbox.mozilla.org/MozillaTry/';
 
 sub WriteSuccessPage
 {
@@ -254,7 +252,7 @@ __END_OF_HTML__
   <p>The try server is an easy way to test a patch on all 3 platforms without
   committing to a repository.  For more information, check the <a
   href="$DOCUMENTATION_URL">wiki page</a>.  For build status, check the <a
-  href="$TINDERBOX_URL">tinderbox</a>.  Test builds are deleted after 30 days.</p>
+  href="$BUILDBOT_URL">tinderbox</a>.  Test builds are deleted after 30 days.</p>
   <p>Note: Uploaded patches must be less than 10240kB in size.</p>
   <ul id="testType">
     <li>
