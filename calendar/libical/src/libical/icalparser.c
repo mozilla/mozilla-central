@@ -3,7 +3,7 @@
   FILE: icalparser.c
   CREATOR: eric 04 August 1999
   
-  $Id: icalparser.c,v 1.1.1.2 2005/01/24 22:10:58 mvl%exedo.nl Exp $
+  $Id: icalparser.c,v 1.51 2007/11/30 22:32:10 dothebart Exp $
   $Locker:  $
     
  The contents of this file are subject to the Mozilla Public License
@@ -53,16 +53,29 @@
 #include "icalmemory.h"
 #include "icalparser.h"
 
+#ifdef HAVE_WCTYPE_H
+# include <wctype.h>
+/* Some systems have an imcomplete implementation on wctype (FreeBSD,
+ * Darwin). Cope with that. */
+# ifndef HAVE_ISWSPACE
+#  define iswspace        isspace
+# endif
+#else
+# ifndef HAVE_ISWSPACE
+#  define iswspace        isspace
+# endif
+#endif
+
 #ifdef WIN32
 #define snprintf      _snprintf
 #define strcasecmp    stricmp
 #endif
 
-char* icalparser_get_next_char(char c, char *str, int qm);
-char* icalparser_get_next_parameter(char* line,char** end);
-char* icalparser_get_next_value(char* line, char **end, icalvalue_kind kind);
-char* icalparser_get_prop_name(char* line, char** end);
-char* icalparser_get_param_name_and_value(char* line, char **value);
+static char* parser_get_next_char(char c, char *str, int qm);
+static char* parser_get_next_parameter(char* line,char** end);
+static char* parser_get_next_value(char* line, char **end, icalvalue_kind kind);
+static char* parser_get_prop_name(char* line, char** end);
+static char* parser_get_param_name(char* line, char **end, char **buf_value);
 
 #define TMP_BUF_SIZE 80
 
@@ -94,17 +107,16 @@ icalparser* icalparser_new(void)
 	return 0;
     }
     
-    impl->buffer_full = 0;
-    impl->continuation_line = 0;
-    impl->tmp_buf_size = sizeof(impl->temp);
-    memset(impl->temp, 0, sizeof(impl->temp));
     impl->root_component = 0;
-    impl->version = 0;
-    impl->level = 0;
-    impl->lineno = 0;
-    impl->state = ICALPARSER_SUCCESS;
     impl->components  = pvl_newlist();  
-    impl->line_gen_data = 0;
+    impl->level = 0;
+    impl->state = ICALPARSER_SUCCESS;
+    impl->tmp_buf_size = TMP_BUF_SIZE;
+    impl->buffer_full = 0;
+	impl->continuation_line = 0;
+    impl->lineno = 0;
+    impl->continuation_line = 0;
+    memset(impl->temp,0, TMP_BUF_SIZE);
 
     return (icalparser*)impl;
 }
@@ -138,8 +150,8 @@ icalvalue* icalvalue_new_From_string_with_error(icalvalue_kind kind,
                                                 icalproperty **error);
 
 
-
-char* icalparser_get_next_char(char c, char *str, int qm)
+static
+char* parser_get_next_char(char c, char *str, int qm)
 {
     int quote_mode = 0;
     char* p;
@@ -170,27 +182,35 @@ char* icalparser_get_next_char(char c, char *str, int qm)
 /** make a new tmp buffer out of a substring */
 static char* make_segment(char* start, char* end)
 {
-    char *buf;
+    char *buf, *tmp;
     size_t size = (size_t)end - (size_t)start;
     
-    buf = icalmemory_new_buffer(size+1);
+    //buf = icalmemory_tmp_buffer(size+1);
     
+    buf = icalmemory_new_buffer(size+1);
 
     strncpy(buf,start,size);
     *(buf+size) = 0;
 
+	tmp = (buf+size);
+	while ( *tmp == '\0' || iswspace(*tmp) )
+	{
+		*tmp = 0;
+		tmp--;
+	}
+    
     return buf;
 }
 
-
-char* icalparser_get_prop_name(char* line, char** end)
+static
+char* parser_get_prop_name(char* line, char** end)
 {
     char* p;
     char* v;
     char *str;
 
-    p = icalparser_get_next_char(';',line,1); 
-    v = icalparser_get_next_char(':',line,1); 
+    p = parser_get_next_char(';',line,1); 
+    v = parser_get_next_char(':',line,1); 
     if (p== 0 && v == 0) {
 	return 0;
     }
@@ -208,16 +228,15 @@ char* icalparser_get_prop_name(char* line, char** end)
     return str;
 }
 
-
-char* icalparser_get_param_name_and_value(char* line, char **value)
+static
+char* parser_get_param_name(char* line, char **end, char **buf)
 {
     char* next; 
     char *str;
-    char **end = value;
 
-    *value = NULL;
-    next = icalparser_get_next_char('=',line,1);
+    next = parser_get_next_char('=',line,1);
 
+    *buf = 0;
     if (next == 0) {
 	return 0;
     }
@@ -226,26 +245,25 @@ char* icalparser_get_param_name_and_value(char* line, char **value)
     *end = next+1;
     if (**end == '"') {
         *end = *end+1;
-	    next = icalparser_get_next_char('"',*end,0);
+	    next = parser_get_next_char('"',*end,0);
 	    if (next == 0) {
 		    return 0;
 	    }
 
-	    *end = make_segment(*end,next);
+	    *buf = *end = make_segment(*end,next);
     }
-    else
-	*end = make_segment(*end, *end + strlen(*end));
 
     return str;
 }
 
-
-char* icalparser_get_next_paramvalue(char* line, char **end)
+#if 0
+static
+char* parser_get_next_paramvalue(char* line, char **end)
 {
     char* next; 
     char *str;
 
-    next = icalparser_get_next_char(',',line,1);
+    next = parser_get_next_char(',',line,1);
 
     if (next == 0){
 	next = (char*)(size_t)line+(size_t)strlen(line);\
@@ -259,6 +277,7 @@ char* icalparser_get_next_paramvalue(char* line, char **end)
 	return str;
     }
 }
+#endif
 
 char* icalparser_get_value(char* line, char **end, icalvalue_kind kind)
 {
@@ -281,7 +300,8 @@ char* icalparser_get_value(char* line, char **end, icalvalue_kind kind)
    comma after line and will set the next place to start searching in
    end. */
 
-char* icalparser_get_next_value(char* line, char **end, icalvalue_kind kind)
+static 
+char* parser_get_next_value(char* line, char **end, icalvalue_kind kind)
 {
     
     char* next;
@@ -292,7 +312,7 @@ char* icalparser_get_next_value(char* line, char **end, icalvalue_kind kind)
     p = line;
     while(1){
 
-	next = icalparser_get_next_char(',',p,1);
+	next = parser_get_next_char(',',p,1);
 
 	/* Unforunately, RFC2445 says that for the RECUR value, COMMA
 	   can both seperate digits in a list, and it can seperate
@@ -324,7 +344,7 @@ char* icalparser_get_next_value(char* line, char **end, icalvalue_kind kind)
 		break;
 	}
 
-	/* If the comma is preceeded by a '\', then it is a literal and
+	/* If the comma is preceded by a '\', then it is a literal and
 	   not a value seperator*/  
       
 	if ( (next!=0 && *(next-1) == '\\') ||
@@ -356,20 +376,21 @@ char* icalparser_get_next_value(char* line, char **end, icalvalue_kind kind)
    
 }
 
-char* icalparser_get_next_parameter(char* line,char** end)
+static 
+char* parser_get_next_parameter(char* line,char** end)
 {
     char *next;
     char *v;
     char *str;
 
-    v = icalparser_get_next_char(':',line,1); 
-    next = icalparser_get_next_char(';', line,1);
+    v = parser_get_next_char(':',line,1); 
+    next = parser_get_next_char(';', line,1);
     
     /* There is no ';' or, it is after the ':' that marks the beginning of
        the value */
 
     if (next == 0 || next > v) {
-	next = icalparser_get_next_char(':', line,1);
+	next = parser_get_next_char(':', line,1);
     }
 
     if (next != 0) {
@@ -473,8 +494,8 @@ char* icalparser_get_line(icalparser *parser,
 	   begins with a ' ', then the buffer holds a continuation
 	   line, so keep reading.  */
 
-	if ( line_p > line+1 && *(line_p-1) == '\n'
-	  && (parser->temp[0] == ' ' || parser->temp[0] == '\t') ) {
+	if  ( line_p > line+1 && *(line_p-1) == '\n'
+		  && (parser->temp[0] == ' ' || parser->temp[0] == '\t') ) {
 
             parser->continuation_line = 1;
 
@@ -501,6 +522,12 @@ char* icalparser_get_line(icalparser *parser,
     } else {
 	*(line_p) = '\0';
     }
+
+	while ( (*line_p == '\0' || iswspace(*line_p)) && line_p > line )
+	{
+		*line_p = '\0';
+		line_p--;
+	}
 
     return line;
 
@@ -592,7 +619,7 @@ icalcomponent* icalparser_parse(icalparser *parser,
         }
 	cont = 0;
 	if(line != 0){
-	    icalmemory_free_buffer(line);
+	    free(line);
 		cont = 1;
 	}
     } while ( cont );
@@ -635,7 +662,7 @@ icalcomponent* icalparser_add_line(icalparser* parser,
        a component */
 
     end = 0;
-    str = icalparser_get_prop_name(line, &end);
+    str = parser_get_prop_name(line, &end);
 
     if (str == 0 || strlen(str) == 0 ){
 	/* Could not get a property name */
@@ -648,6 +675,7 @@ icalcomponent* icalparser_add_line(icalparser* parser,
 	}
 	tail = 0;
 	parser->state = ICALPARSER_ERROR;
+	icalmemory_free_buffer(str);
 	return 0; 
     }
 
@@ -658,13 +686,14 @@ icalcomponent* icalparser_add_line(icalparser* parser,
        starting or ending a new component */
 
 
-    if(strcmp(str,"BEGIN") == 0){
+    if(strcasecmp(str,"BEGIN") == 0){
 	icalcomponent *c;
         icalcomponent_kind comp_kind;
 
 	icalmemory_free_buffer(str);
+
 	parser->level++;
-	str = icalparser_get_next_value(end,&end, value_kind);
+	str = parser_get_next_value(end,&end, value_kind);
 	    
 
         comp_kind = icalenum_string_to_component_kind(str);
@@ -694,18 +723,17 @@ icalcomponent* icalparser_add_line(icalparser* parser,
 	pvl_push(parser->components,c);
 
 	parser->state = ICALPARSER_BEGIN_COMP;
-	if (str)
-	    icalmemory_free_buffer(str);
+
+	icalmemory_free_buffer(str);
 	return 0;
 
-    } else if (strcmp(str,"END") == 0 ) {
+    } else if (strcasecmp(str,"END") == 0 ) {
 	icalcomponent* tail;
 
 	icalmemory_free_buffer(str);
 	parser->level--;
-	str = icalparser_get_next_value(end,&end, value_kind);
-	if (str)
-	    icalmemory_free_buffer(str);
+
+	str = parser_get_next_value(end,&end, value_kind);
 
 	/* Pop last component off of list and add it to the second-to-last*/
 	parser->root_component = pvl_pop(parser->components);
@@ -717,6 +745,7 @@ icalcomponent* icalparser_add_line(icalparser* parser,
 	} 
 
 	tail = 0;
+	icalmemory_free_buffer(str), str = NULL;
 
 	/* Return the component if we are back to the 0th level */
 	if (parser->level == 0){
@@ -772,7 +801,6 @@ icalcomponent* icalparser_add_line(icalparser* parser,
         if(prop_kind==ICAL_X_PROPERTY){
             icalproperty_set_x_name(prop,str);
         }
-	icalmemory_free_buffer(str);
 
 	icalcomponent_add_property(tail, prop);
 
@@ -792,6 +820,8 @@ icalcomponent* icalparser_add_line(icalparser* parser,
 	return 0;
     }
 
+    icalmemory_free_buffer(str), str = NULL;
+
     /**********************************************************************
      * Handle parameter values
      **********************************************************************/								       
@@ -807,26 +837,24 @@ icalcomponent* icalparser_add_line(icalparser* parser,
 	    break;
 	}
 
-	str = icalparser_get_next_parameter(end,&end);
+	str = parser_get_next_parameter(end,&end);
 
 	if (str != 0){
 	    char* name;
 	    char* pvalue;
+		char *buf_value = NULL;
         
 	    icalparameter *param = 0;
 	    icalparameter_kind kind;
 	    icalcomponent *tail = pvl_data(pvl_tail(parser->components));
 
-	    name = icalparser_get_param_name_and_value(str,&pvalue);
+	    name = parser_get_param_name(str,&pvalue,&buf_value);
 
 	    if (name == 0){
 		/* 'tail' defined above */
 		insert_error(tail, str, "Cant parse parameter name",
 			     ICAL_XLICERRORTYPE_PARAMETERNAMEPARSEERROR);
 		tail = 0;
-		icalmemory_free_buffer(str);
-		if (pvalue)
-		    icalmemory_free_buffer(pvalue);
 		break;
 	    }
 
@@ -839,10 +867,13 @@ icalcomponent* icalparser_add_line(icalparser* parser,
 		    icalparameter_set_xname(param,name);
 		    icalparameter_set_xvalue(param,pvalue);
 		}
-
+		icalmemory_free_buffer(buf_value), buf_value = NULL;
 
 	    } else if (kind != ICAL_NO_PARAMETER){
 		param = icalparameter_new_from_value_string(kind,pvalue);
+
+		icalmemory_free_buffer(buf_value), buf_value = NULL;
+
 	    } else {
 		/* Error. Failed to parse the parameter*/
 		/* 'tail' defined above */
@@ -857,16 +888,8 @@ icalcomponent* icalparser_add_line(icalparser* parser,
 			     ICAL_XLICERRORTYPE_PARAMETERNAMEPARSEERROR);
 		tail = 0;
 		parser->state = ICALPARSER_ERROR;
-		icalmemory_free_buffer(str);
-		icalmemory_free_buffer(name);
-		if (pvalue)
-		    icalmemory_free_buffer(pvalue);
 		return 0;
 	    }
-	    icalmemory_free_buffer(name);
-	    if (pvalue)
-		icalmemory_free_buffer(pvalue);
-
 
 	    if (param == 0){
 		/* 'tail' defined above */
@@ -875,7 +898,13 @@ icalcomponent* icalparser_add_line(icalparser* parser,
 		    
 		tail = 0;
 		parser->state = ICALPARSER_ERROR;
-		icalmemory_free_buffer(str);
+		
+		icalmemory_free_buffer(buf_value), buf_value = NULL;
+		icalmemory_free_buffer(name), name = NULL;
+		icalmemory_free_buffer(str), str = NULL;
+  	  	
+		icalmemory_free_buffer(name), name = NULL;
+  	  	icalmemory_free_buffer(str), str = NULL;
 		continue;
 	    }
 
@@ -906,15 +935,18 @@ icalcomponent* icalparser_add_line(icalparser* parser,
 		    icalparameter_free(param);
 		    tail = 0;
 		    parser->state = ICALPARSER_ERROR;
-		    icalmemory_free_buffer(str);
-		    return 0;
+
+			icalmemory_free_buffer(name), name = NULL;
+			icalmemory_free_buffer(str), str = NULL;
+		    continue;
 		} 
 	    }
+		icalmemory_free_buffer(name), name = NULL;
 
 	    /* Everything is OK, so add the parameter */
 	    icalproperty_add_parameter(prop,param);
 	    tail = 0;
-	    icalmemory_free_buffer(str);
+		icalmemory_free_buffer(str), str = NULL;
 
 	} else { /* if ( str != 0)  */
 	    /* If we did not get a param string, go on to looking
@@ -975,7 +1007,7 @@ icalcomponent* icalparser_add_line(icalparser* parser,
 		icalproperty_kind prop_kind = icalproperty_isa(prop);
 		icalcomponent* tail = pvl_data(pvl_tail(parser->components));
 
-		snprintf(temp,sizeof(temp),"Cant parse as %s value in %s property. Removing entire property",
+		snprintf(temp,sizeof(temp),"Can't parse as %s value in %s property. Removing entire property",
 			icalvalue_kind_to_string(value_kind),
 			icalproperty_kind_to_string(prop_kind));
 
@@ -988,15 +1020,15 @@ icalcomponent* icalparser_add_line(icalparser* parser,
 		prop = 0;
 		tail = 0;
 		parser->state = ICALPARSER_ERROR;
-		icalmemory_free_buffer(str);
+	
+		icalmemory_free_buffer(str), str = NULL;
 		return 0;
 		    
 	    } else {
 		vcount++;
 		icalproperty_set_value(prop, value);
-		icalmemory_free_buffer(str);
 	    }
-
+ 	    icalmemory_free_buffer(str), str = NULL;
 
 	} else {
 	    if (vcount == 0){
