@@ -1,0 +1,15 @@
+*.la
+*.lo
+.libs
+Makefile
+config.cache
+config.h
+config.log
+config.status
+intl
+libtool
+stamp-h
+stamp-h.in
+stamp.h
+xlibtool
+xltmain.sh
