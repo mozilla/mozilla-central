@@ -137,7 +137,6 @@ function finishWindow() {
         // all/snooze all. This can happen when the closer is clicked or escape
         // is pressed. Snooze all remaining items using the default snooze
         // property.
-        onSnoozeAllAlarms();
         var snoozePref = getPrefSafe("calendar.alarms.defaultsnoozelength", 0);
         if (snoozePref <= 0) {
             snoozePref = 5;
