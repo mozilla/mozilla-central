@@ -105,6 +105,7 @@ static NSString* const kCacheEntryExpirationDateKey = @"exp_date";
   [[NSNotificationCenter defaultCenter] removeObserver:self];
   [mURLToEntryMap release];
   [mURLToImageMap release];
+  [mCacheDirectory release];
   [super dealloc];
 }
 
@@ -172,7 +173,14 @@ static NSString* const kCacheEntryExpirationDateKey = @"exp_date";
 
 - (NSString*)cacheDirectory
 {
-  return [[[PreferenceManager sharedInstance] cacheParentDirPath] stringByAppendingPathComponent:@"IconCache"];
+  if (!mCacheDirectory) {
+    // We may hit this code path during shutdown, so don't recreate the prefs.
+    // The cache directory is cached so that we can still access it once the
+    // preferences system has been torn down.
+    PreferenceManager* prefManager = [PreferenceManager sharedInstanceDontCreate];
+    mCacheDirectory = [[[prefManager cacheParentDirPath] stringByAppendingPathComponent:@"IconCache"] retain];
+  }
+  return mCacheDirectory;
 }
 
 - (NSString*)imageDataFileWithUUID:(NSString*)inUUID
@@ -290,6 +298,11 @@ static NSString* const kCacheEntryExpirationDateKey = @"exp_date";
 
 - (void)shutdownNotification:(NSNotification*)inNotification
 {
+  // If we never hit the cache, we won't have cached the storage path. We
+  // can't safely get it at this point, so just give up in that case.
+  if (!mCacheDirectory)
+    return;
+
   // Clear out expired icons. Exempt anything that was requested during this
   // session (mostly to avoid making the "lost bookmark icons" issue worse).
   NSMutableSet* removalCandidateURLs = [NSMutableSet setWithArray:[mURLToEntryMap allKeys]];

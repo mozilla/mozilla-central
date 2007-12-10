@@ -55,6 +55,7 @@
                                                 // containing a uuid and expiration date.
 
   NSMutableDictionary*        mURLToImageMap;   // memory cache of images
+  NSString*                   mCacheDirectory;
   BOOL                        mSuppressSaveNotification;
 }
 
