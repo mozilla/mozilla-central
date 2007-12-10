@@ -284,10 +284,11 @@ PKIX_PL_LdapCertStore_Create(
         void *plContext);
 
 /*
- * FUNCTION: PKIX_PL_EkuChecker_Initialize
+ * FUNCTION: PKIX_PL_EkuChecker_Create
  *
  * DESCRIPTION:
- *  Create a CertChainChecker with EkuCheckerState.
+ *  Create a CertChainChecker with EkuCheckerState and add it into
+ *  PKIX_ProcessingParams object.
  *
  * PARAMETERS
  *  "params"
@@ -307,7 +308,7 @@ PKIX_PL_LdapCertStore_Create(
  *  Returns a Fatal Error
  */
 PKIX_Error *
-PKIX_PL_EkuChecker_Initialize(
+PKIX_PL_EkuChecker_Create(
         PKIX_ProcessingParams *params,
         void *plContext);
 

@@ -44,8 +44,6 @@
 #include "testutil.h"
 #include "testutil_nss.h"
 
-#define PKIX_TESTUSERCHECKER_TYPE (PKIX_NUMTYPES+30)
-
 static void *plContext = NULL;
 static PKIX_UInt32 numUserCheckerCalled = 0;
 
@@ -92,7 +90,6 @@ int test_buildchain_uchecker(int argc, char *argv[])
         PKIX_PL_String *dirNameString = NULL;
         PKIX_PL_Cert *trustedCert = NULL;
         PKIX_PL_Cert *targetCert = NULL;
-        PKIX_UInt32 actualMinorVersion = 0;
         PKIX_UInt32 numCerts = 0;
         PKIX_UInt32 i = 0;
         PKIX_UInt32 j = 0;
@@ -225,18 +222,6 @@ int test_buildchain_uchecker(int argc, char *argv[])
         PKIX_TEST_EXPECT_NO_ERROR
                 (PKIX_ProcessingParams_SetTargetCertConstraints
                 (procParams, certSelector, plContext));
-
-        /* create user checker */
-        PKIX_TEST_EXPECT_NO_ERROR(PKIX_PL_Object_RegisterType
-                                    (PKIX_TESTUSERCHECKER_TYPE,
-                                    "Extended Key Usage User Object",
-                                    NULL,
-                                    NULL,
-                                    NULL,
-                                    NULL,
-                                    NULL,
-                                    NULL,
-                                    plContext));
 
         PKIX_TEST_EXPECT_NO_ERROR(PKIX_CertChainChecker_Create
                                     (testUserChecker,

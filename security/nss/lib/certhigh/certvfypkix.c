@@ -530,7 +530,7 @@ cert_CreatePkixProcessingParams(
 #ifdef PKIX_NOTDEF
     /* Code should be enabled after patch for 390532 is integrated. */
     PKIX_CHECK(
-        PKIX_PL_EkuChecker_Initialize(procParams, plContext),
+        PKIX_PL_EkuChecker_Create(procParams, plContext),
         PKIX_EKUCHECKERINITIALIZEFAILED);
 #endif /* PKIX_NOTDEF */
 

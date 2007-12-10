@@ -151,6 +151,7 @@ createObjects(
 {
         PKIX_TEST_STD_VARS();
 
+#ifdef PKIX_USER_OBJECT_TYPE
         PKIX_TEST_EXPECT_NO_ERROR(PKIX_PL_Object_RegisterType
                     (1000, /* type */
                     "thousand", /* description */
@@ -195,6 +196,7 @@ createObjects(
         PKIX_TEST_EXPECT_NO_ERROR(PKIX_PL_Object_IncRef(*obj3, plContext));
 
 cleanup:
+#endif /* PKIX_USER_OBJECT_TYPE */
         PKIX_TEST_RETURN();
 }
 
@@ -282,6 +284,7 @@ cleanup:
 
 int test_object(int argc, char *argv[]) {
 
+#ifdef PKIX_USER_OBJECT_TYPE
         PKIX_PL_Object *obj, *obj2, *obj3, *obj4;
         PKIX_UInt32 actualMinorVersion;
         PKIX_UInt32 j = 0;
@@ -313,7 +316,7 @@ cleanup:
         PKIX_Shutdown(plContext);
 
         endTests("Objects");
-
+#endif /* PKIX_USER_OBJECT_TYPE */
         return (0);
 
 }

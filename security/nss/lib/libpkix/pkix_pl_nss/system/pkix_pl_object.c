@@ -43,6 +43,7 @@
 
 #include "pkix_pl_object.h"
 
+#ifdef PKIX_USER_OBJECT_TYPE
 /* --Class-Table-Initializers------------------------------------ */
 
 /*
@@ -66,6 +67,7 @@ static pkix_pl_PrimHashTable pkix_Raw_ClassTable = {
         20 /* Number of Buckets */
 };
 static pkix_pl_PrimHashTable * classTable = &pkix_Raw_ClassTable;
+#endif /* PKIX_USER_OBJECT_TYPE */
 
 /* --Private-Functions-------------------------------------------- */
 
@@ -96,8 +98,7 @@ pkix_pl_Object_GetHeader(
         void *plContext)
 {
         PKIX_PL_Object *header = NULL;
-        pkix_ClassTable_Entry *ctEntry = NULL;
-        PKIX_UInt32 myType;
+        PKIX_UInt32 objType;
 
         PKIX_ENTER(OBJECT, "pkix_pl_Object_GetHeader");
         PKIX_NULLCHECK_TWO(object, pObjectHeader);
@@ -107,16 +108,19 @@ pkix_pl_Object_GetHeader(
         /* The header is sizeof(PKIX_PL_Object) before the object pointer */
         header = (PKIX_PL_Object *)((char *)object - sizeof(PKIX_PL_Object));
 
-        myType = header->type;
+        objType = header->type;
 
-        if (myType >= PKIX_NUMTYPES) { /* if this is a user-defined type */
+        if (objType >= PKIX_NUMTYPES) { /* if this is a user-defined type */
+#ifdef PKIX_USER_OBJECT_TYPE
+                pkix_ClassTable_Entry *ctEntry = NULL;
+
                 PKIX_OBJECT_DEBUG("\tCalling PR_Lock).\n");
                 PR_Lock(classTableLock);
 
                 PKIX_CHECK(pkix_pl_PrimHashTable_Lookup
                             (classTable,
-                            (void *)&myType,
-                            header->type,
+                            (void *)&objType,
+                            objType,
                             NULL,
                             (void **)&ctEntry,
                             plContext),
@@ -128,6 +132,12 @@ pkix_pl_Object_GetHeader(
                 if (ctEntry == NULL) {
                         PKIX_ERROR_FATAL(PKIX_UNKNOWNOBJECTTYPE);
                 }
+#else
+                PORT_Assert(objType < PKIX_NUMTYPES);
+                pkixErrorCode = PKIX_UNKNOWNOBJECTTYPE;
+                pkixErrorClass = PKIX_FATAL_ERROR;
+                goto cleanup;
+#endif /* PKIX_USER_OBJECT_TYPE */
         }
 
         if ((header == NULL)||
@@ -265,36 +275,28 @@ pkix_pl_Object_ToString_Default(
         PKIX_PL_String **pString,
         void *plContext)
 {
-        pkix_ClassTable_Entry *ctEntry = NULL;
         PKIX_PL_String *formatString = NULL;
         PKIX_PL_String *descString = NULL;
         char *format = "%s@Address: %x";
         char *description = NULL;
-        PKIX_UInt32 type;
+        PKIX_UInt32 objType;
 
         PKIX_ENTER(OBJECT, "pkix_pl_Object_ToString_Default");
         PKIX_NULLCHECK_TWO(object, pString);
 
-        PKIX_CHECK(PKIX_PL_Object_GetType(object, &type, plContext),
+        PKIX_CHECK(PKIX_PL_Object_GetType(object, &objType, plContext),
                     PKIX_OBJECTGETTYPEFAILED);
 
-        /* Ensure that type code is known. Otherwise, default to Object */
-        /* See pkixt.h for all known types. */
-        /* XXX Throw an illegal type error here? */
-        if (type >= PKIX_NUMTYPES) {
-                type = 0;
-        }
+        if (objType >= PKIX_NUMTYPES){
+#ifdef PKIX_USER_OBJECT_TYPE
+                pkix_ClassTable_Entry *ctEntry = NULL;
 
-        /* first, special handling for system types */
-        if (type < PKIX_NUMTYPES){
-                description = systemClasses[type].description;
-        } else {
                 PKIX_OBJECT_DEBUG("\tCalling PR_Lock).\n");
                 PR_Lock(classTableLock);
                 pkixErrorResult = pkix_pl_PrimHashTable_Lookup
                         (classTable,
-                        (void *)&type,
-                        type,
+                        (void *)&objType,
+                        objType,
                         NULL,
                         (void **)&ctEntry,
                         plContext);
@@ -308,9 +310,19 @@ pkix_pl_Object_ToString_Default(
                         PKIX_ERROR_FATAL(PKIX_UNDEFINEDCLASSTABLEENTRY);
                 } else {
                         description = ctEntry->description;
+                        if (description == NULL) {
+                            description = "User Type Object";
+                        }
                 }
+#else
+                PORT_Assert (0);
+                pkixErrorCode = PKIX_UNKNOWNOBJECTTYPE;
+                pkixErrorClass = PKIX_FATAL_ERROR;
+                goto cleanup;
+#endif /* PKIX_USER_OBJECT_TYPE */
+        } else {
+                description = systemClasses[objType].description;
         }
-
         PKIX_CHECK(PKIX_PL_String_Create
                     (PKIX_ESCASCII,
                     (void *)format,
@@ -424,9 +436,9 @@ pkix_pl_Object_RetrieveEqualsCallback(
         void *plContext)
 {
         PKIX_PL_Object *objectHeader = NULL;
-        pkix_ClassTable_Entry *ctEntry = NULL;
         PKIX_PL_EqualsCallback func = NULL;
         pkix_ClassTable_Entry entry;
+        PKIX_UInt32 objType;
 
         PKIX_ENTER(OBJECT, "pkix_pl_Object_RetrieveEqualsCallback");
         PKIX_NULLCHECK_TWO(object, pEqualsCallback);
@@ -435,21 +447,18 @@ pkix_pl_Object_RetrieveEqualsCallback(
                     (object, &objectHeader, plContext),
                     PKIX_RECEIVEDCORRUPTEDOBJECTARGUMENT);
 
-        /* first, special handling for system types */
-        if (objectHeader->type < PKIX_NUMTYPES){
-                entry = systemClasses[objectHeader->type];
-                func = entry.equalsFunction;
-                if (func == NULL){
-                        func = pkix_pl_Object_Equals_Default;
-                }
-                *pEqualsCallback = func;
-        } else {
+        objType = objectHeader->type;
+
+        if (objType >= PKIX_NUMTYPES){
+#ifdef PKIX_USER_OBJECT_TYPE
+                pkix_ClassTable_Entry *ctEntry = NULL;
+
                 PKIX_OBJECT_DEBUG("\tCalling PR_Lock).\n");
                 PR_Lock(classTableLock);
                 pkixErrorResult = pkix_pl_PrimHashTable_Lookup
                         (classTable,
-                        (void *)&objectHeader->type,
-                        objectHeader->type,
+                        (void *)&objType,
+                        objType,
                         NULL,
                         (void **)&ctEntry,
                         plContext);
@@ -464,6 +473,19 @@ pkix_pl_Object_RetrieveEqualsCallback(
                 } else {
                         *pEqualsCallback = ctEntry->equalsFunction;
                 }
+#else
+                PORT_Assert (0);
+                pkixErrorCode = PKIX_UNKNOWNOBJECTTYPE;
+                pkixErrorClass = PKIX_FATAL_ERROR;
+                goto cleanup;
+#endif /* PKIX_USER_OBJECT_TYPE */
+        } else {
+                entry = systemClasses[objType];
+                func = entry.equalsFunction;
+                if (func == NULL){
+                        func = pkix_pl_Object_Equals_Default;
+                }
+                *pEqualsCallback = func;
         }
 
 cleanup:
@@ -489,7 +511,6 @@ cleanup:
 PKIX_Error *
 pkix_pl_Object_RegisterSelf(void *plContext)
 {
-        extern pkix_ClassTable_Entry systemClasses[PKIX_NUMTYPES];
         pkix_ClassTable_Entry entry;
 
         PKIX_ENTER(ERROR, "pkix_pl_Object_RegisterSelf");
@@ -516,14 +537,13 @@ pkix_pl_Object_RegisterSelf(void *plContext)
  */
 PKIX_Error *
 PKIX_PL_Object_Alloc(
-        PKIX_TYPENUM type,
+        PKIX_TYPENUM objType,
         PKIX_UInt32 size,
         PKIX_PL_Object **pObject,
         void *plContext)
 {
         PKIX_PL_Object *object = NULL;
         pkix_ClassTable_Entry *ctEntry = NULL;
-        PKIX_Boolean typeRegistered;
 
         PKIX_ENTER(OBJECT, "PKIX_PL_Object_Alloc");
         PKIX_NULLCHECK_ONE(pObject);
@@ -533,13 +553,15 @@ PKIX_PL_Object_Alloc(
          * All system types have already been registered by PKIX_PL_Initialize.
          */
 
-        if (type >= PKIX_NUMTYPES) { /* i.e. if this is a user-defined type */
+        if (objType >= PKIX_NUMTYPES) { /* i.e. if this is a user-defined type */
+#ifdef PKIX_USER_OBJECT_TYPE
+                PKIX_Boolean typeRegistered;
                 PKIX_OBJECT_DEBUG("\tCalling PR_Lock).\n");
                 PR_Lock(classTableLock);
                 pkixErrorResult = pkix_pl_PrimHashTable_Lookup
                         (classTable,
-                        (void *)&type,
-                        type,
+                        (void *)&objType,
+                        objType,
                         NULL,
                         (void **)&ctEntry,
                         plContext);
@@ -554,8 +576,14 @@ PKIX_PL_Object_Alloc(
                 if (!typeRegistered) {
                         PKIX_ERROR_FATAL(PKIX_UNKNOWNTYPEARGUMENT);
                 }
+#else
+                PORT_Assert (0);
+                pkixErrorCode = PKIX_UNKNOWNOBJECTTYPE;
+                pkixErrorClass = PKIX_FATAL_ERROR;
+                goto cleanup;
+#endif /* PKIX_USER_OBJECT_TYPE */
         } else {
-                ctEntry = &systemClasses[type];
+                ctEntry = &systemClasses[objType];
         }
         
         PORT_Assert(size == ctEntry->typeObjectSize);
@@ -569,7 +597,7 @@ PKIX_PL_Object_Alloc(
 
         /* Initialize all object fields */
         object->magicHeader = PKIX_MAGIC_HEADER;
-        object->type = type;
+        object->type = objType;
         object->references = 1; /* Default to a single reference */
         object->stringRep = NULL;
         object->hashcode = 0;
@@ -606,27 +634,34 @@ cleanup:
  */
 PKIX_Error *
 PKIX_PL_Object_IsTypeRegistered(
-        PKIX_UInt32 type,
+        PKIX_UInt32 objType,
         PKIX_Boolean *pBool,
         void *plContext)
 {
+#ifdef PKIX_USER_OBJECT_TYPE
         pkix_ClassTable_Entry *ctEntry = NULL;
+#endif
 
         PKIX_ENTER(OBJECT, "PKIX_PL_Object_IsTypeRegistered");
         PKIX_NULLCHECK_ONE(pBool);
 
         /* first, we handle the system types */
-        if (type < PKIX_NUMTYPES) {
+        if (objType < PKIX_NUMTYPES) {
                 *pBool = PKIX_TRUE;
                 goto cleanup;
         }
 
+#ifndef PKIX_USER_OBJECT_TYPE
+        PORT_Assert (0);
+        pkixErrorCode = PKIX_UNKNOWNOBJECTTYPE;
+        pkixErrorClass = PKIX_FATAL_ERROR;
+#else
         PKIX_OBJECT_DEBUG("\tCalling PR_Lock).\n");
         PR_Lock(classTableLock);
         pkixErrorResult = pkix_pl_PrimHashTable_Lookup
                 (classTable,
-                (void *)&type,
-                type,
+                (void *)&objType,
+                objType,
                 NULL,
                 (void **)&ctEntry,
                 plContext);
@@ -638,18 +673,20 @@ PKIX_PL_Object_IsTypeRegistered(
         }
 
         *pBool = (ctEntry != NULL);
+#endif /* PKIX_USER_OBJECT_TYPE */
 
 cleanup:
 
         PKIX_RETURN(OBJECT);
 }
 
+#ifdef PKIX_USER_OBJECT_TYPE
 /*
  * FUNCTION: PKIX_PL_Object_RegisterType (see comments in pkix_pl_system.h)
  */
 PKIX_Error *
 PKIX_PL_Object_RegisterType(
-        PKIX_UInt32 type,
+        PKIX_UInt32 objType,
         char *description,
         PKIX_PL_DestructorCallback destructor,
         PKIX_PL_EqualsCallback equalsFunction,
@@ -669,7 +706,7 @@ PKIX_PL_Object_RegisterType(
          * These can not be overwritten.
          */
 
-        if (type < PKIX_NUMTYPES) { /* if this is a system type */
+        if (objType < PKIX_NUMTYPES) { /* if this is a system type */
                 PKIX_ERROR(PKIX_CANTREREGISTERSYSTEMTYPE);
         }
 
@@ -677,8 +714,8 @@ PKIX_PL_Object_RegisterType(
         PR_Lock(classTableLock);
         PKIX_CHECK(pkix_pl_PrimHashTable_Lookup
                     (classTable,
-                    (void *)&type,
-                    type,
+                    (void *)&objType,
+                    objType,
                     NULL,
                     (void **)&ctEntry,
                     plContext),
@@ -727,13 +764,13 @@ PKIX_PL_Object_RegisterType(
                     plContext),
                     PKIX_COULDNOTMALLOCNEWKEY);
 
-        key->ht_int = type;
+        key->ht_int = objType;
 
         PKIX_CHECK(pkix_pl_PrimHashTable_Add
                     (classTable,
                     (void *)key,
                     (void *)ctEntry,
-                    type,
+                    objType,
                     NULL,
                     plContext),
                     PKIX_PRIMHASHTABLEADDFAILED);
@@ -744,6 +781,7 @@ cleanup:
 
         PKIX_RETURN(OBJECT);
 }
+#endif /* PKIX_USER_OBJECT_TYPE */
 
 /*
  * FUNCTION: PKIX_PL_Object_IncRef (see comments in pkix_pl_system.h)
@@ -832,15 +870,17 @@ PKIX_PL_Object_DecRef(
         if (refCount == 0) {
             PKIX_PL_DestructorCallback destructor = NULL;
             pkix_ClassTable_Entry *ctEntry = NULL;
+            PKIX_UInt32 objType = objectHeader->type;
             
             /* first, special handling for system types */
-            if (objectHeader->type >= PKIX_NUMTYPES){
+            if (objType >= PKIX_NUMTYPES){
+#ifdef PKIX_USER_OBJECT_TYPE
                 PKIX_OBJECT_DEBUG("\tCalling PR_Lock).\n");
                 PR_Lock(classTableLock);
                 pkixErrorResult = pkix_pl_PrimHashTable_Lookup
                     (classTable,
-                     (void *)&objectHeader->type,
-                     objectHeader->type,
+                     (void *)&objType,
+                     objType,
                      NULL,
                      (void **)&ctEntry,
                      plContext);
@@ -855,8 +895,14 @@ PKIX_PL_Object_DecRef(
                 if (ctEntry != NULL){
                     destructor = ctEntry->destructor;
                 }
+#else
+                PORT_Assert (0);
+                pkixErrorCode = PKIX_UNKNOWNOBJECTTYPE;
+                pkixErrorClass = PKIX_FATAL_ERROR;
+                goto cleanup;
+#endif /* PKIX_USER_OBJECT_TYPE */
             } else {
-                ctEntry = &systemClasses[objectHeader->type];
+                ctEntry = &systemClasses[objType];
                 destructor = ctEntry->destructor;
             }
             
@@ -902,9 +948,9 @@ PKIX_PL_Object_Equals(
 {
         PKIX_PL_Object *firstObjectHeader = NULL;
         PKIX_PL_Object *secondObjectHeader = NULL;
-        pkix_ClassTable_Entry *ctEntry = NULL;
         PKIX_PL_EqualsCallback func = NULL;
         pkix_ClassTable_Entry entry;
+        PKIX_UInt32 objType;
 
         PKIX_ENTER(OBJECT, "PKIX_PL_Object_Equals");
         PKIX_NULLCHECK_THREE(firstObject, secondObject, pResult);
@@ -927,14 +973,11 @@ PKIX_PL_Object_Equals(
                 }
         }
 
-        /* first, special handling for system types */
-        if (firstObjectHeader->type < PKIX_NUMTYPES){
-                entry = systemClasses[firstObjectHeader->type];
-                func = entry.equalsFunction;
-                if (func == NULL){
-                        func = pkix_pl_Object_Equals_Default;
-                }
-        } else {
+        objType = firstObjectHeader->type;
+
+        if (objType >= PKIX_NUMTYPES) {
+#ifdef PKIX_USER_OBJECT_TYPE
+                pkix_ClassTable_Entry *ctEntry = NULL;
                 PKIX_OBJECT_DEBUG("\tCalling PR_Lock).\n");
                 PR_Lock(classTableLock);
                 pkixErrorResult = pkix_pl_PrimHashTable_Lookup
@@ -956,6 +999,18 @@ PKIX_PL_Object_Equals(
                 } else {
                         func = ctEntry->equalsFunction;
                 }
+#else
+                PORT_Assert (0);
+                pkixErrorCode = PKIX_UNKNOWNOBJECTTYPE;
+                pkixErrorClass = PKIX_FATAL_ERROR;
+                goto cleanup;
+#endif /* PKIX_USER_OBJECT_TYPE */
+        } else {
+                entry = systemClasses[objType];
+                func = entry.equalsFunction;
+                if (func == NULL){
+                        func = pkix_pl_Object_Equals_Default;
+                }
         }
 
         PKIX_CHECK(func(firstObject, secondObject, pResult, plContext),
@@ -976,9 +1031,9 @@ PKIX_PL_Object_Duplicate(
         void *plContext)
 {
         PKIX_PL_Object *firstObjectHeader = NULL;
-        pkix_ClassTable_Entry *ctEntry = NULL;
         PKIX_PL_DuplicateCallback func = NULL;
         pkix_ClassTable_Entry entry;
+        PKIX_UInt32 objType;
 
         PKIX_ENTER(OBJECT, "PKIX_PL_Object_Duplicate");
         PKIX_NULLCHECK_TWO(firstObject, pNewObject);
@@ -987,20 +1042,18 @@ PKIX_PL_Object_Duplicate(
                     (firstObject, &firstObjectHeader, plContext),
                     PKIX_RECEIVEDCORRUPTEDOBJECTARGUMENT);
 
-        /* first, special handling for system types */
-        if (firstObjectHeader->type < PKIX_NUMTYPES){
-                entry = systemClasses[firstObjectHeader->type];
-                func = entry.duplicateFunction;
-                if (!func){
-                        PKIX_ERROR_FATAL(PKIX_UNDEFINEDDUPLICATEFUNCTION);
-                }
-        } else {
+        objType = firstObjectHeader->type;
+
+        if (objType >= PKIX_NUMTYPES) {
+#ifdef PKIX_USER_OBJECT_TYPE
+                pkix_ClassTable_Entry *ctEntry = NULL;
+
                 PKIX_OBJECT_DEBUG("\tCalling PR_Lock).\n");
                 PR_Lock(classTableLock);
                 pkixErrorResult = pkix_pl_PrimHashTable_Lookup
                         (classTable,
-                        (void *)&firstObjectHeader->type,
-                        firstObjectHeader->type,
+                        (void *)&objType,
+                        objType,
                         NULL,
                         (void **)&ctEntry,
                         plContext);
@@ -1015,6 +1068,18 @@ PKIX_PL_Object_Duplicate(
                         PKIX_ERROR_FATAL(PKIX_UNDEFINEDCALLBACK);
                 } else {
                         func = ctEntry->duplicateFunction;
+                }
+#else
+                PORT_Assert (0);
+                pkixErrorCode = PKIX_UNKNOWNOBJECTTYPE;
+                pkixErrorClass = PKIX_FATAL_ERROR;
+                goto cleanup;
+#endif /* PKIX_USER_OBJECT_TYPE */
+        } else {
+                entry = systemClasses[objType];
+                func = entry.duplicateFunction;
+                if (!func){
+                        PKIX_ERROR_FATAL(PKIX_UNDEFINEDDUPLICATEFUNCTION);
                 }
         }
 
@@ -1036,7 +1101,6 @@ PKIX_PL_Object_Hashcode(
         void *plContext)
 {
         PKIX_PL_Object *objectHeader = NULL;
-        pkix_ClassTable_Entry *ctEntry = NULL;
         PKIX_PL_HashcodeCallback func = NULL;
         pkix_ClassTable_Entry entry;
         PKIX_UInt32 objectHash;
@@ -1051,20 +1115,19 @@ PKIX_PL_Object_Hashcode(
         /* if we don't have a cached copy from before, we create one */
         if (!objectHeader->hashcodeCached){
 
+                PKIX_UInt32 objType = objectHeader->type;
+
                 /* first, special handling for system types */
-                if (objectHeader->type < PKIX_NUMTYPES){
-                        entry = systemClasses[objectHeader->type];
-                        func = entry.hashcodeFunction;
-                        if (func == NULL){
-                                func = pkix_pl_Object_Hashcode_Default;
-                        }
-                } else {
+                if (objType >= PKIX_NUMTYPES){
+#ifdef PKIX_USER_OBJECT_TYPE            
+                        pkix_ClassTable_Entry *ctEntry = NULL;
+
                         PKIX_OBJECT_DEBUG("\tCalling PR_Lock).\n");
                         PR_Lock(classTableLock);
                         pkixErrorResult = pkix_pl_PrimHashTable_Lookup
                                 (classTable,
-                                (void *)&objectHeader->type,
-                                objectHeader->type,
+                                (void *)&objType,
+                                objType,
                                 NULL,
                                 (void **)&ctEntry,
                                 plContext);
@@ -1082,6 +1145,18 @@ PKIX_PL_Object_Hashcode(
                         }
 
                         func = ctEntry->hashcodeFunction;
+#else
+                        PORT_Assert (0);
+                        pkixErrorCode = PKIX_UNKNOWNOBJECTTYPE;
+                        pkixErrorClass = PKIX_FATAL_ERROR;
+                        goto cleanup;
+#endif /* PKIX_USER_OBJECT_TYPE */
+                } else {
+                        entry = systemClasses[objType];
+                        func = entry.hashcodeFunction;
+                        if (func == NULL){
+                                func = pkix_pl_Object_Hashcode_Default;
+                        }
                 }
 
                 PKIX_CHECK(func(object, &objectHash, plContext),
@@ -1120,7 +1195,6 @@ PKIX_PL_Object_ToString(
         void *plContext)
 {
         PKIX_PL_Object *objectHeader = NULL;
-        pkix_ClassTable_Entry *ctEntry = NULL;
         PKIX_PL_ToStringCallback func = NULL;
         pkix_ClassTable_Entry entry;
         PKIX_PL_String *objectString;
@@ -1135,20 +1209,18 @@ PKIX_PL_Object_ToString(
         /* if we don't have a cached copy from before, we create one */
         if (!objectHeader->stringRep){
 
-                /* first, special handling for system types */
-                if (objectHeader->type < PKIX_NUMTYPES){
-                        entry = systemClasses[objectHeader->type];
-                        func = entry.toStringFunction;
-                        if (func == NULL){
-                                func = pkix_pl_Object_ToString_Default;
-                        }
-                } else {
+                PKIX_UInt32 objType = objectHeader->type;
+
+                if (objType >= PKIX_NUMTYPES){
+#ifdef PKIX_USER_OBJECT_TYPE
+                        pkix_ClassTable_Entry *ctEntry = NULL;
+
                         PKIX_OBJECT_DEBUG("\tCalling PR_Lock).\n");
                         PR_Lock(classTableLock);
                         pkixErrorResult = pkix_pl_PrimHashTable_Lookup
                                 (classTable,
-                                (void *)&objectHeader->type,
-                                objectHeader->type,
+                                (void *)&objType,
+                                objType,
                                 NULL,
                                 (void **)&ctEntry,
                                 plContext);
@@ -1165,6 +1237,18 @@ PKIX_PL_Object_ToString(
                         }
 
                         func = ctEntry->toStringFunction;
+#else
+                        PORT_Assert (0);
+                        pkixErrorCode = PKIX_UNKNOWNOBJECTTYPE;
+                        pkixErrorClass = PKIX_FATAL_ERROR;
+                        goto cleanup;
+#endif /* PKIX_USER_OBJECT_TYPE */
+                } else {
+                        entry = systemClasses[objType];
+                        func = entry.toStringFunction;
+                        if (func == NULL){
+                                func = pkix_pl_Object_ToString_Default;
+                        }
                 }
 
                 PKIX_CHECK(func(object, &objectString, plContext),
@@ -1239,9 +1323,9 @@ PKIX_PL_Object_Compare(
 {
         PKIX_PL_Object *firstObjectHeader = NULL;
         PKIX_PL_Object *secondObjectHeader = NULL;
-        pkix_ClassTable_Entry *ctEntry = NULL;
         PKIX_PL_ComparatorCallback func = NULL;
         pkix_ClassTable_Entry entry;
+        PKIX_UInt32 objType;
 
         PKIX_ENTER(OBJECT, "PKIX_PL_Object_Compare");
         PKIX_NULLCHECK_THREE(firstObject, secondObject, pResult);
@@ -1256,20 +1340,18 @@ PKIX_PL_Object_Compare(
                     (secondObject, &secondObjectHeader, plContext),
                     PKIX_RECEIVEDCORRUPTEDOBJECTARGUMENT);
 
-        /* first, special handling for system types */
-        if (firstObjectHeader->type < PKIX_NUMTYPES){
-                entry = systemClasses[firstObjectHeader->type];
-                func = entry.comparator;
-                if (!func){
-                        PKIX_ERROR(PKIX_UNDEFINEDCOMPARATOR);
-                }
-        } else {
+        objType = firstObjectHeader->type;
+
+        if (objType >= PKIX_NUMTYPES){
+#ifdef PKIX_USER_OBJECT_TYPE
+                pkix_ClassTable_Entry *ctEntry = NULL;
+
                 PKIX_OBJECT_DEBUG("\tCalling PR_Lock).\n");
                 PR_Lock(classTableLock);
                 pkixErrorResult = pkix_pl_PrimHashTable_Lookup
                         (classTable,
-                        (void *)&firstObjectHeader->type,
-                        firstObjectHeader->type,
+                        (void *)&objType,
+                        objType,
                         NULL,
                         (void **)&ctEntry,
                         plContext);
@@ -1284,6 +1366,19 @@ PKIX_PL_Object_Compare(
                 }
 
                 func = ctEntry->comparator;
+#else
+                PORT_Assert (0);
+                pkixErrorCode = PKIX_UNKNOWNOBJECTTYPE;
+                pkixErrorClass = PKIX_FATAL_ERROR;
+                goto cleanup;
+#endif /* PKIX_USER_OBJECT_TYPE */
+        } else {
+                /* special handling for system types */
+                entry = systemClasses[objType];
+                func = entry.comparator;
+                if (!func){
+                        PKIX_ERROR(PKIX_UNDEFINEDCOMPARATOR);
+                }
         }
 
         PKIX_CHECK(func(firstObject, secondObject, pResult, plContext),

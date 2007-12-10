@@ -577,6 +577,7 @@ PKIX_PL_Object_IsTypeRegistered(
         PKIX_Boolean *pBool,
         void *plContext);
 
+#ifdef PKIX_USER_OBJECT_TYPE
 /*
  * FUNCTION: PKIX_PL_Object_RegisterType
  * DESCRIPTION:
@@ -634,6 +635,7 @@ PKIX_PL_Object_RegisterType(
         PKIX_PL_DuplicateCallback duplicateFunction,
         void *plContext);
 
+#endif
 /*
  * FUNCTION: PKIX_PL_Object_InvalidateCache
  * DESCRIPTION:

@@ -65,29 +65,29 @@ PKIX_Int32 ekuCertUsages[] = {
 };
 
 /*
- * FUNCTION: pkix_pl_EkuCheckerState_Destroy
+ * FUNCTION: pkix_pl_EkuChecker_Destroy
  * (see comments for PKIX_PL_DestructorCallback in pkix_pl_system.h)
  */
 static PKIX_Error *
-pkix_pl_EkuCheckerState_Destroy(
+pkix_pl_EkuChecker_Destroy(
         PKIX_PL_Object *object,
         void *plContext)
 {
-        pkix_pl_EkuCheckerState *ekuCheckerState = NULL;
+        pkix_pl_EkuChecker *ekuCheckerState = NULL;
 
-        PKIX_ENTER(USERDEFINEDMODULES, "pkix_pl_EkuCheckerState_Destroy");
+        PKIX_ENTER(EKUCHECKER, "pkix_pl_EkuChecker_Destroy");
         PKIX_NULLCHECK_ONE(object);
 
-        PKIX_CHECK(pkix_CheckType(object, PKIX_EKUCHECKERSTATE_TYPE, plContext),
+        PKIX_CHECK(pkix_CheckType(object, PKIX_EKUCHECKER_TYPE, plContext),
                     PKIX_OBJECTNOTANEKUCHECKERSTATE);
 
-        ekuCheckerState = (pkix_pl_EkuCheckerState *)object;
+        ekuCheckerState = (pkix_pl_EkuChecker *)object;
 
         PKIX_DECREF(ekuCheckerState->ekuOID);
 
 cleanup:
 
-        PKIX_RETURN(USERDEFINEDMODULES);
+        PKIX_RETURN(EKUCHECKER);
 }
 
 /*
@@ -132,7 +132,7 @@ pkix_pl_EkuChecker_GetRequiredEku(
         PKIX_UInt32 i;
         PKIX_Boolean isContained = PKIX_FALSE;
 
-        PKIX_ENTER(USERDEFINEDMODULES, "pkix_pl_EkuChecker_GetRequiredEku");
+        PKIX_ENTER(EKUCHECKER, "pkix_pl_EkuChecker_GetRequiredEku");
         PKIX_NULLCHECK_TWO(certSelector, pRequiredExtKeyUsage);
 
         /* Get initial EKU OIDs from ComCertSelParams, if set */
@@ -215,11 +215,11 @@ cleanup:
         PKIX_DECREF(supportedOids);
         PKIX_DECREF(comCertSelParams);
 
-        PKIX_RETURN(USERDEFINEDMODULES);
+        PKIX_RETURN(EKUCHECKER);
 }
 
 /*
- * FUNCTION: pkix_EkuCheckerState_Create
+ * FUNCTION: pkix_EkuChecker_Create
  * DESCRIPTION:
  *
  *  Creates a new Extend Key Usage CheckerState using "params" to retrieve
@@ -243,21 +243,21 @@ cleanup:
  *  Returns a Fatal Error if the function fails in an unrecoverable way.
  */
 static PKIX_Error *
-pkix_pl_EkuCheckerState_Create(
+pkix_pl_EkuChecker_Create(
         PKIX_ProcessingParams *params,
-        pkix_pl_EkuCheckerState **pState,
+        pkix_pl_EkuChecker **pState,
         void *plContext)
 {
-        pkix_pl_EkuCheckerState *state = NULL;
+        pkix_pl_EkuChecker *state = NULL;
         PKIX_CertSelector *certSelector = NULL;
         PKIX_UInt32 requiredExtKeyUsage = 0;
 
-        PKIX_ENTER(USERDEFINEDMODULES, "pkix_pl_EkuCheckerState_Create");
+        PKIX_ENTER(EKUCHECKER, "pkix_pl_EkuChecker_Create");
         PKIX_NULLCHECK_TWO(params, pState);
 
         PKIX_CHECK(PKIX_PL_Object_Alloc
-                    (PKIX_EKUCHECKERSTATE_TYPE,
-                    sizeof (pkix_pl_EkuCheckerState),
+                    (PKIX_EKUCHECKER_TYPE,
+                    sizeof (pkix_pl_EkuChecker),
                     (PKIX_PL_Object **)&state,
                     plContext),
                     PKIX_COULDNOTCREATEEKUCHECKERSTATEOBJECT);
@@ -291,7 +291,7 @@ cleanup:
 
         PKIX_DECREF(state);
 
-        PKIX_RETURN(USERDEFINEDMODULES);
+        PKIX_RETURN(EKUCHECKER);
 }
 
 /*
@@ -327,11 +327,11 @@ pkix_pl_EkuChecker_Check(
         void **pNBIOContext,
         void *plContext)
 {
-        pkix_pl_EkuCheckerState *state = NULL;
+        pkix_pl_EkuChecker *state = NULL;
         PKIX_List *certEkuList = NULL;
         PKIX_Boolean checkPassed = PKIX_TRUE;
 
-        PKIX_ENTER(USERDEFINEDMODULES, "pkix_pl_EkuChecker_Check");
+        PKIX_ENTER(EKUCHECKER, "pkix_pl_EkuChecker_Check");
         PKIX_NULLCHECK_THREE(checker, cert, pNBIOContext);
 
         *pNBIOContext = NULL; /* no non-blocking IO */
@@ -360,23 +360,62 @@ cleanup:
         PKIX_DECREF(certEkuList);
         PKIX_DECREF(state);
 
-        PKIX_RETURN(USERDEFINEDMODULES);
+        PKIX_RETURN(EKUCHECKER);
 }
 
 /*
- * FUNCTION: pkix_pl_EkuCheckerState_Initialize
+ * FUNCTION: pkix_pl_EkuChecker_RegisterSelf
+ *
+ * DESCRIPTION:
+ *  Registers PKIX_PL_HTTPCERTSTORECONTEXT_TYPE and its related
+ *  functions with systemClasses[]
+ *
+ * THREAD SAFETY:
+ *  Not Thread Safe - for performance and complexity reasons
+ *
+ *  Since this function is only called by PKIX_PL_Initialize, which should
+ *  only be called once, it is acceptable that this function is not
+ *  thread-safe.
+ */
+PKIX_Error *
+pkix_pl_EkuChecker_RegisterSelf(void *plContext)
+{
+        extern pkix_ClassTable_Entry systemClasses[PKIX_NUMTYPES];
+        pkix_ClassTable_Entry entry;
+
+        PKIX_ENTER
+            (EKUCHECKER,
+                "pkix_pl_EkuChecker_RegisterSelf");
+
+        entry.description = "EkuChecker";
+        entry.objCounter = 0;
+        entry.typeObjectSize = sizeof(pkix_pl_EkuChecker);
+        entry.destructor = pkix_pl_EkuChecker_Destroy,
+        entry.equalsFunction = NULL;
+        entry.hashcodeFunction = NULL;
+        entry.toStringFunction = NULL;
+        entry.comparator = NULL;
+        entry.duplicateFunction = NULL;
+
+        systemClasses[PKIX_EKUCHECKER_TYPE] = entry;
+
+        PKIX_RETURN(EKUCHECKER);
+}
+
+/*
+ * FUNCTION: pkix_pl_EkuChecker_Initialize
  * (see comments in pkix_sample_modules.h)
  */
 PKIX_Error *
-PKIX_PL_EkuChecker_Initialize(
+PKIX_PL_EkuChecker_Create(
         PKIX_ProcessingParams *params,
         void *plContext)
 {
         PKIX_CertChainChecker *checker = NULL;
-        pkix_pl_EkuCheckerState *state = NULL;
+        pkix_pl_EkuChecker *state = NULL;
         PKIX_List *critExtOIDsList = NULL;
 
-        PKIX_ENTER(USERDEFINEDMODULES, "PKIX_PL_EkuChecker_Initialize");
+        PKIX_ENTER(EKUCHECKER, "PKIX_PL_EkuChecker_Initialize");
         PKIX_NULLCHECK_ONE(params);
 
         /*
@@ -384,21 +423,7 @@ PKIX_PL_EkuChecker_Initialize(
          * an application defined checker can be hooked into libpkix.
          */
 
-        /* Register user type object for EKU Checker State */
-        PKIX_CHECK(PKIX_PL_Object_RegisterType
-                    (PKIX_EKUCHECKERSTATE_TYPE,
-                    /* PKIX_EXTENDEDKEYUSAGEUSEROBJECT, */
-                    "PKIXEXTENDEDKEYUSAGEUSEROBJECT",
-                    pkix_pl_EkuCheckerState_Destroy,
-                    NULL,
-                    NULL,
-                    NULL,
-                    NULL,
-                    pkix_duplicateImmutable,
-                    plContext),
-                    PKIX_OBJECTREGISTERTYPEFAILED);
-
-        PKIX_CHECK(pkix_pl_EkuCheckerState_Create
+        PKIX_CHECK(pkix_pl_EkuChecker_Create
                     (params, &state, plContext),
                     PKIX_EKUCHECKERSTATECREATEFAILED);
 
@@ -431,5 +456,5 @@ cleanup:
         PKIX_DECREF(checker);
         PKIX_DECREF(state);
 
-        PKIX_RETURN(USERDEFINEDMODULES);
+        PKIX_RETURN(EKUCHECKER);
 }

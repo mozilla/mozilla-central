@@ -1320,6 +1320,16 @@ extern const PKIX_StdVars zeroStdVars;
 #define PKIX_VERIFYNODE_DEBUG_ARG(expr, arg)
 #endif
 
+#if PKIX_EKUCHECKER
+#define PKIX_EKUCHECKER_DEBUG(expr) \
+        PKIX_DEBUG(expr)
+#define PKIX_EKUCHECKER_DEBUG_ARG(expr, arg) \
+        PKIX_DEBUG_ARG(expr, arg)
+#else
+#define PKIX_EKUCHECKER_DEBUG(expr)
+#define PKIX_EKUCHECKER_DEBUG_ARG(expr, arg)
+#endif
+
 #if PKIX_CERTVFYPKIXDEBUG
 #define PKIX_CERTVFYPKIX_DEBUG(expr) \
         PKIX_DEBUG(expr)

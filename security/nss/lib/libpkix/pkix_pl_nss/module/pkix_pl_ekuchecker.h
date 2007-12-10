@@ -50,16 +50,15 @@
 extern "C" {
 #endif
 
-#define PKIX_EKUCHECKERSTATE_TYPE (PKIX_USER_OBJECT_TYPEBASE+1)
+typedef struct pkix_pl_EkuChecker pkix_pl_EkuChecker;
 
-typedef struct pkix_pl_EkuCheckerState pkix_pl_EkuCheckerState;
-
-struct pkix_pl_EkuCheckerState {
+struct pkix_pl_EkuChecker {
         PKIX_UInt32 requiredExtKeyUsage;
         PKIX_PL_OID *ekuOID;
 };
 
 /* see source file for function documentation */
+PKIX_Error *pkix_pl_EkuChecker_RegisterSelf(void *plContext);
 
 #ifdef __cplusplus
 }

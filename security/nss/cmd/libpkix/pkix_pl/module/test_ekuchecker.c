@@ -201,8 +201,8 @@ testEkuChecker(
                                     (procParams, PKIX_FALSE, plContext));
 
         if (only4EE == PKIX_FALSE) {
-                subTest("PKIX_PL_EkuChecker_Initialize");
-                PKIX_TEST_EXPECT_NO_ERROR(PKIX_PL_EkuChecker_Initialize
+                subTest("PKIX_PL_EkuChecker_Create");
+                PKIX_TEST_EXPECT_NO_ERROR(PKIX_PL_EkuChecker_Create
                                     (procParams, plContext));
         }
 
