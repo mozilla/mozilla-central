@@ -30,7 +30,7 @@ in machine generated code below */
 
 struct icalrestriction_property_record;
 
-typedef char* (*restriction_func)(const struct icalrestriction_property_record* rec,icalcomponent* comp,icalproperty* prop);
+typedef char* (*restriction_func)(struct icalrestriction_property_record* rec,icalcomponent* comp,icalproperty* prop);
 
 
 typedef struct icalrestriction_property_record {
@@ -59,8 +59,8 @@ icalrestriction_get_component_restriction(icalproperty_method method,
 					  icalcomponent_kind component,
 					  icalcomponent_kind subcomponent);
 
-static const icalrestriction_component_record icalrestriction_component_records[];
-static const icalrestriction_property_record icalrestriction_property_records[]; 
+icalrestriction_component_record icalrestriction_component_records[];
+icalrestriction_property_record icalrestriction_property_records[]; 
 
 icalrestriction_property_record null_prop_record =   {ICAL_METHOD_NONE,ICAL_NO_COMPONENT,ICAL_NO_PROPERTY,ICAL_RESTRICTION_UNKNOWN,0};
 icalrestriction_component_record null_comp_record =   {ICAL_METHOD_NONE,ICAL_NO_COMPONENT,ICAL_NO_COMPONENT,ICAL_RESTRICTION_UNKNOWN,0};
