@@ -60,7 +60,7 @@ function calWcapCalendar_encodeAttendee(att)
     var params = encodeAttr(att.rsvp ? "TRUE" : "FALSE", "RSVP", "");
     params = encodeAttr(att.participationStatus, "PARTSTAT", params);
     params = encodeAttr(att.role, "ROLE", params);
-    params = encodeAttr(att.commonName, "CN", params);
+    params = encodeAttr(att.commonName.replace(/[;:]/g, "?"), "CN", params);
     return encodeAttr(att.id, null, params);
 };
 
@@ -90,9 +90,7 @@ function calWcapCalendar_getRecurrenceParams(
         for each (var rItem in rItems) {
             var isNeg = rItem.isNegative;
             if (rItem instanceof Components.interfaces.calIRecurrenceRule) {
-                var rule = ("\"" + encodeURIComponent(
-                                rItem.icalProperty.valueAsIcalString) +
-                            "\"");
+                var rule = ("\"" + encodeURIComponent(rItem.icalProperty.valueAsIcalString) + "\"");
                 if (isNeg)
                     out_exrules.value.push(rule);
                 else
