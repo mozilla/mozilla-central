@@ -3,7 +3,7 @@
     FILE: icalclassify.c
     CREATOR: ebusboom 23 aug 2000
   
-    $Id: icalclassify.c,v 1.14 2003/11/17 22:51:53 gray-john Exp $
+    $Id: icalclassify.c,v 1.17 2007/05/25 02:57:04 artcancro Exp $
     $Locker:  $
     
     (C) COPYRIGHT 2000, Eric Busboom, http://www.softwarestudio.org
@@ -53,19 +53,18 @@ struct icalclassify_parts {
 char* icalclassify_lowercase(const char* str)
 {
     char* p = 0;
-    char* ret;
+    char *xnew;
 
     if(str ==0){
 	return 0;
     }
 
-    ret = icalmemory_strdup(str);
-
-    for(p = ret; *p!=0; p++){
+    xnew = icalmemory_strdup(str);
+    for(p = xnew; *p!=0; p++){
 	*p = tolower(*p);
     }
 
-    return ret;
+    return xnew;
 }
 
 /* Return a set of components that intersect in time with comp. For
@@ -148,9 +147,11 @@ icalproperty* icalclassify_find_attendee(icalcomponent *c,
 	p != 0;
 	p  = icalcomponent_get_next_property(inner,ICAL_ATTENDEE_PROPERTY))
     {
+	char* this_upn;
 	char* this_attendee
 	    = icalclassify_lowercase(icalproperty_get_attendee(p));
-	char* this_upn = strchr(this_attendee,':');
+	 if ( !this_attendee ) continue;
+	 this_upn = strchr(this_attendee,':');
 
         if(this_upn == 0){
             continue;
@@ -248,15 +249,16 @@ void icalssutil_get_parts(icalcomponent* c,
 	p  = icalcomponent_get_first_property(inner,ICAL_ATTENDEE_PROPERTY);
 
 	if(p!=0){
-
+	    char *attendee = 0;
 	    param = icalproperty_get_first_parameter(p,ICAL_PARTSTAT_PARAMETER);
 	    
 	    if(param != 0){
 		parts->reply_partstat = 
 		    icalparameter_get_partstat(param);
 	    }
-	    
-	    parts->reply_attendee = strdup(icalproperty_get_attendee(p));
+	    attendee = icalproperty_get_attendee(p);
+	    if ( attendee )
+		parts->reply_attendee = strdup( attendee );
 	}
 
     }    
@@ -644,7 +646,7 @@ int icalclassify_delinecounter(
     icalclassify_post
 }
 
-struct icalclassify_map {
+static const struct icalclassify_map {
 	icalproperty_method method;
 	int (*fn)(struct icalclassify_parts *comp,struct icalclassify_parts *match, const char* user);
 	icalproperty_xlicclass class;
