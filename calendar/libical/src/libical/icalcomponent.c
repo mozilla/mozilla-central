@@ -48,7 +48,7 @@
 #include <limits.h> /* for INT_MAX */
 
 #ifdef WIN32
-#define snprintf        _snprintf
+#define strncasecmp      strnicmp
 #endif
 
 
