@@ -99,3 +99,6 @@ pref("calendar.categories.names", "");
 // Make sure mouse wheel shift and no key actions to scroll lines.
 pref("mousewheel.withnokey.action", 0);
 pref("mousewheel.withshiftkey.action", 0);
+
+// Set up user agent
+#expand pref("general.useragent.extra.lightning","Lightning/__LIGHTNING_VERSION__");
