@@ -61,7 +61,6 @@
 #include "nsIPrefBranch2.h"
 #include "nsEmbedAPI.h"
 #include "nsAppDirectoryServiceDefs.h"
-#include "nsIRegistry.h"
 #include "nsIStyleSheetService.h"
 #include "nsNetUtil.h"
 #include "nsStaticComponents.h"

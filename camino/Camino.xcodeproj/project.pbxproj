@@ -522,8 +522,6 @@
 		3F44ACCA05BDFB9E00CB4B08 /* NSArray+Utils.mm in Sources */ = {isa = PBXBuildFile; fileRef = 3FB2BA970545EA80002B9691 /* NSArray+Utils.mm */; };
 		3F44ACCC05BDFB9E00CB4B08 /* ProgressView.mm in Sources */ = {isa = PBXBuildFile; fileRef = 3FC0FB8005A0D2DC002F47DE /* ProgressView.mm */; };
 		3F44ACCD05BDFB9E00CB4B08 /* HistoryItem.mm in Sources */ = {isa = PBXBuildFile; fileRef = 3F7C6CBA05B4819E002FFFD3 /* HistoryItem.mm */; };
-		3F44ACD005BDFB9F00CB4B08 /* libxpcom_compat_c.dylib in Copy Component Libraries */ = {isa = PBXBuildFile; fileRef = 0FA8EF9A0423B1F500A80166 /* libxpcom_compat_c.dylib */; };
-		3F44ACD105BDFB9F00CB4B08 /* xpcom_obsolete.xpt in Copy Component XPTs */ = {isa = PBXBuildFile; fileRef = 0FA8EF9C0423B21100A80166 /* xpcom_obsolete.xpt */; };
 		3F44ACD605BDFB9F00CB4B08 /* libappcomps.dylib in Copy Component Libraries */ = {isa = PBXBuildFile; fileRef = F5F181C90208006F0124611D /* libappcomps.dylib */; };
 		3F44ACD605BDFB9F00CB4B09 /* libxpautocomplete.dylib in Copy Component Libraries */ = {isa = PBXBuildFile; fileRef = F5F181C90208006F0124611E /* libxpautocomplete.dylib */; };
 		3F44ACD705BDFB9F00CB4B08 /* caps.xpt in Copy Component XPTs */ = {isa = PBXBuildFile; fileRef = F6BD639401B3131201A962F7 /* caps.xpt */; };
@@ -635,7 +633,6 @@
 		3F44AD5E05BDFB9F00CB4B08 /* libsoftokn3.dylib in Copy Security Libraries */ = {isa = PBXBuildFile; fileRef = F5247C350228B91F013DD99A /* libsoftokn3.dylib */; };
 		3F44AD5F05BDFB9F00CB4B08 /* libssl3.dylib in Copy Security Libraries */ = {isa = PBXBuildFile; fileRef = F5247C360228B91F013DD99A /* libssl3.dylib */; };
 		3F44AD6105BDFB9F00CB4B08 /* libxpcom.dylib in Copy Libraries */ = {isa = PBXBuildFile; fileRef = F57F0F470209DF5301A967DF /* libxpcom.dylib */; };
-		3F44AD6205BDFB9F00CB4B08 /* libxpcom_compat.dylib in Copy Libraries */ = {isa = PBXBuildFile; fileRef = 0FA8EF970423B1A500A80166 /* libxpcom_compat.dylib */; };
 		3F44AD6305BDFB9F00CB4B08 /* libmozjs.dylib in Copy Libraries */ = {isa = PBXBuildFile; fileRef = F6BD637F01B30EA301A962F7 /* libmozjs.dylib */; };
 		3F44AD6405BDFB9F00CB4B08 /* libnspr4.dylib in Copy Libraries */ = {isa = PBXBuildFile; fileRef = F6BD638001B30EA301A962F7 /* libnspr4.dylib */; };
 		3F44AD6505BDFB9F00CB4B08 /* libplc4.dylib in Copy Libraries */ = {isa = PBXBuildFile; fileRef = F6BD638101B30EA301A962F7 /* libplc4.dylib */; };
@@ -941,7 +938,6 @@
 		3F44AF4205BDFBA000CB4B08 /* imglib2.xpt in Copy Component XPTs */ = {isa = PBXBuildFile; fileRef = F6BD644E01B315FA01A962F7 /* imglib2.xpt */; };
 		3F44AF4305BDFBA000CB4B08 /* xuldoc.xpt in Copy Component XPTs */ = {isa = PBXBuildFile; fileRef = F517941F027F3F2901A967DF /* xuldoc.xpt */; };
 		3F44AF4405BDFBA000CB4B08 /* nsProxyAutoConfig.js in Copy Component Libraries */ = {isa = PBXBuildFile; fileRef = F5461CBB03AAC25C01A96660 /* nsProxyAutoConfig.js */; };
-		3F44AF4605BDFBA000CB4B08 /* xpcom_obsolete.xpt in Copy Component XPTs */ = {isa = PBXBuildFile; fileRef = 0FA8EF9C0423B21100A80166 /* xpcom_obsolete.xpt */; };
 		3F44AF4705BDFBA000CB4B08 /* suitetypeaheadfind.xpt in Copy Component XPTs */ = {isa = PBXBuildFile; fileRef = A7D88E6A0465D9F800A80196 /* suitetypeaheadfind.xpt */; };
 		3F44AF4905BDFBA000CB4B08 /* charsetalias.properties in Copy Gecko Resources */ = {isa = PBXBuildFile; fileRef = F6BD64B801B316DA01A962F7 /* charsetalias.properties */; };
 		3F44AF4A05BDFBA000CB4B08 /* charsetData.properties in Copy Gecko Resources */ = {isa = PBXBuildFile; fileRef = F6BD64B901B316DA01A962F7 /* charsetData.properties */; };
@@ -977,7 +973,6 @@
 		3F44AF7D05BDFBA000CB4B08 /* pipnss.xpt in Copy Security Components */ = {isa = PBXBuildFile; fileRef = F5247C4D0228BBB2013DD99A /* pipnss.xpt */; };
 		3F44AF7F05BDFBA000CB4B08 /* pipnss.jar in Copy Security Chrome */ = {isa = PBXBuildFile; fileRef = F54EF7ED022A2F9C01A80165 /* pipnss.jar */; };
 		3F44AF8705BDFBA000CB4B08 /* libxpcom.dylib in Copy Libraries */ = {isa = PBXBuildFile; fileRef = F57F0F470209DF5301A967DF /* libxpcom.dylib */; };
-		3F44AF8805BDFBA000CB4B08 /* libxpcom_compat.dylib in Copy Libraries */ = {isa = PBXBuildFile; fileRef = 0FA8EF970423B1A500A80166 /* libxpcom_compat.dylib */; };
 		3F44AF8905BDFBA000CB4B08 /* libmozjs.dylib in Copy Libraries */ = {isa = PBXBuildFile; fileRef = F6BD637F01B30EA301A962F7 /* libmozjs.dylib */; };
 		3F44AF8A05BDFBA000CB4B08 /* libnspr4.dylib in Copy Libraries */ = {isa = PBXBuildFile; fileRef = F6BD638001B30EA301A962F7 /* libnspr4.dylib */; };
 		3F44AF8B05BDFBA000CB4B08 /* libplc4.dylib in Copy Libraries */ = {isa = PBXBuildFile; fileRef = F6BD638101B30EA301A962F7 /* libplc4.dylib */; };
@@ -985,7 +980,6 @@
 		3F44AF8D05BDFBA000CB4B08 /* libwidget.rsrc in Copy Libraries */ = {isa = PBXBuildFile; fileRef = F5F14E9602A5A43A01A967F3 /* libwidget.rsrc */; };
 		3F44AF9105BDFBA000CB4B08 /* SharedMenusCocoa.framework in Copy Frameworks */ = {isa = PBXBuildFile; fileRef = F55A4DED0380705A01A80166 /* SharedMenusCocoa.framework */; };
 		3F44AF9305BDFBA000CB4B08 /* PrintPDE.plugin in Copy Plugins */ = {isa = PBXBuildFile; fileRef = 7919FCF0044631350000010E /* PrintPDE.plugin */; };
-		3F44AF9505BDFBA000CB4B08 /* libxpcom_compat_c.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 0FA8EFCA0423EAAD00A80166 /* libxpcom_compat_c.a */; };
 		3F44AF9605BDFBA000CB4B08 /* libembed_base_s.a in Frameworks */ = {isa = PBXBuildFile; fileRef = F51D9B2D0209573701A80166 /* libembed_base_s.a */; };
 		3F44AF9705BDFBA000CB4B08 /* libnecko.a in Frameworks */ = {isa = PBXBuildFile; fileRef = F56F242602AC706801A967F3 /* libnecko.a */; };
 		3F44AF9905BDFBA000CB4B08 /* libuconv.a in Frameworks */ = {isa = PBXBuildFile; fileRef = F56F242B02AC706801A967F3 /* libuconv.a */; };
@@ -1117,7 +1111,6 @@
 		4D29957C0869C44B00E84287 /* libsoftokn3.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = F5247C350228B91F013DD99A /* libsoftokn3.dylib */; };
 		4D29957D0869C44B00E84287 /* libssl3.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = F5247C360228B91F013DD99A /* libssl3.dylib */; };
 		4D29957E0869C44B00E84287 /* libxpcom.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = F57F0F470209DF5301A967DF /* libxpcom.dylib */; };
-		4D29957F0869C44B00E84287 /* libxpcom_compat.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = 0FA8EF970423B1A500A80166 /* libxpcom_compat.dylib */; };
 		4D2995800869C44B00E84287 /* libxpcom_core.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = 3F12FC56072E8ECB00995ED9 /* libxpcom_core.dylib */; };
 		4D2996660869C5FA00E84287 /* libmozz.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = 3FE5B9FC068A090F0001CECD /* libmozz.dylib */; };
 		4D2996670869C5FA00E84287 /* libnspr4.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = F6BD638001B30EA301A962F7 /* libnspr4.dylib */; };
@@ -1593,7 +1586,6 @@
 				008115480B1811F0001CB3F0 /* libgkgfxthebes.dylib in Copy Component Libraries */,
 				0E6A98A1097E0091007962C1 /* libucvmath.dylib in Copy Component Libraries */,
 				82180ACB07368BF2002EFA6D /* libcomposer.dylib in Copy Component Libraries */,
-				3F44ACD005BDFB9F00CB4B08 /* libxpcom_compat_c.dylib in Copy Component Libraries */,
 				3F44ACD605BDFB9F00CB4B08 /* libappcomps.dylib in Copy Component Libraries */,
 				3F44ACD605BDFB9F00CB4B09 /* libxpautocomplete.dylib in Copy Component Libraries */,
 				3F44ACD805BDFB9F00CB4B08 /* libtxmgr.dylib in Copy Component Libraries */,
@@ -1656,7 +1648,6 @@
 				DEFD23580D021C63006899B9 /* content_xmldoc.xpt in Copy Component XPTs */,
 				82AC0D66065A602200776B02 /* content_xslt.xpt in Copy Component XPTs */,
 				DEFD235F0D021C6A006899B9 /* content_xtf.xpt in Copy Component XPTs */,
-				3F44ACD105BDFB9F00CB4B08 /* xpcom_obsolete.xpt in Copy Component XPTs */,
 				3F44ACD705BDFB9F00CB4B08 /* caps.xpt in Copy Component XPTs */,
 				3F44ACD905BDFB9F00CB4B08 /* docshell.xpt in Copy Component XPTs */,
 				3F44ACDA05BDFB9F00CB4B08 /* dom_base.xpt in Copy Component XPTs */,
@@ -1861,7 +1852,6 @@
 				3F12FC57072E8ECB00995ED9 /* libxpcom_core.dylib in Copy Libraries */,
 				3FE5BA0D068A1A6F0001CECD /* libmozz.dylib in Copy Libraries */,
 				3F44AD6105BDFB9F00CB4B08 /* libxpcom.dylib in Copy Libraries */,
-				3F44AD6205BDFB9F00CB4B08 /* libxpcom_compat.dylib in Copy Libraries */,
 				3F44AD6305BDFB9F00CB4B08 /* libmozjs.dylib in Copy Libraries */,
 				3F44AD6405BDFB9F00CB4B08 /* libnspr4.dylib in Copy Libraries */,
 				3F44AD6505BDFB9F00CB4B08 /* libplc4.dylib in Copy Libraries */,
@@ -1997,7 +1987,6 @@
 				3F44AF4105BDFBA000CB4B08 /* embed_base.xpt in Copy Component XPTs */,
 				3F44AF4205BDFBA000CB4B08 /* imglib2.xpt in Copy Component XPTs */,
 				3F44AF4305BDFBA000CB4B08 /* xuldoc.xpt in Copy Component XPTs */,
-				3F44AF4605BDFBA000CB4B08 /* xpcom_obsolete.xpt in Copy Component XPTs */,
 				3F44AF4705BDFBA000CB4B08 /* suitetypeaheadfind.xpt in Copy Component XPTs */,
 				3F44AFF905BDFBA000CB4B08 /* layout_printing.xpt in Copy Component XPTs */,
 				0F66E4A907D6D90500444E2A /* intl.xpt in Copy Component XPTs */,
@@ -2165,7 +2154,6 @@
 			files = (
 				3F12FD3107312CCD00995ED9 /* libxpcom_core.dylib in Copy Libraries */,
 				3F44AF8705BDFBA000CB4B08 /* libxpcom.dylib in Copy Libraries */,
-				3F44AF8805BDFBA000CB4B08 /* libxpcom_compat.dylib in Copy Libraries */,
 				3F44AF8905BDFBA000CB4B08 /* libmozjs.dylib in Copy Libraries */,
 				3F44AF8A05BDFBA000CB4B08 /* libnspr4.dylib in Copy Libraries */,
 				3F44AF8B05BDFBA000CB4B08 /* libplc4.dylib in Copy Libraries */,
@@ -2397,10 +2385,6 @@
 		0F84BF1608862E4B00E23BC4 /* NSThread+Utils.h */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.c.h; name = "NSThread+Utils.h"; path = "src/extensions/NSThread+Utils.h"; sourceTree = "<group>"; };
 		0F8FC52D092ED71C0042429E /* English */ = {isa = PBXFileReference; lastKnownFileType = wrapper.nib; name = English; path = resources/localized/English.lproj/PageInfo.nib; sourceTree = "<group>"; };
 		0F8FC582092ED8C70042429E /* PageInfoWindowController.mm */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.cpp.objcpp; name = PageInfoWindowController.mm; path = src/browser/PageInfoWindowController.mm; sourceTree = "<group>"; };
-		0FA8EF970423B1A500A80166 /* libxpcom_compat.dylib */ = {isa = PBXFileReference; lastKnownFileType = "compiled.mach-o.dylib"; name = libxpcom_compat.dylib; path = ../dist/Embed/libxpcom_compat.dylib; sourceTree = SOURCE_ROOT; };
-		0FA8EF9A0423B1F500A80166 /* libxpcom_compat_c.dylib */ = {isa = PBXFileReference; lastKnownFileType = "compiled.mach-o.bundle"; name = libxpcom_compat_c.dylib; path = ../dist/Embed/components/libxpcom_compat_c.dylib; sourceTree = SOURCE_ROOT; };
-		0FA8EF9C0423B21100A80166 /* xpcom_obsolete.xpt */ = {isa = PBXFileReference; lastKnownFileType = file; name = xpcom_obsolete.xpt; path = ../dist/Embed/components/xpcom_obsolete.xpt; sourceTree = SOURCE_ROOT; };
-		0FA8EFCA0423EAAD00A80166 /* libxpcom_compat_c.a */ = {isa = PBXFileReference; lastKnownFileType = archive.ar; name = libxpcom_compat_c.a; path = ../xpcom/obsolete/component/libxpcom_compat_c.a; sourceTree = SOURCE_ROOT; };
 		0FA9712F092AF9A0005C1CA6 /* action_button.tiff */ = {isa = PBXFileReference; lastKnownFileType = image.tiff; name = action_button.tiff; path = PreferencePanes/Privacy/images/action_button.tiff; sourceTree = SOURCE_ROOT; };
 		0FACBFED07DC020D00DEE23A /* English */ = {isa = PBXFileReference; lastKnownFileType = wrapper.nib; name = English; path = resources/localized/English.lproj/AddBookmark.nib; sourceTree = "<group>"; };
 		0FB6D99A089B276100414498 /* bm_favicon.tiff */ = {isa = PBXFileReference; lastKnownFileType = image.tiff; name = bm_favicon.tiff; path = chrome/bm_favicon.tiff; sourceTree = "<group>"; };
@@ -3171,7 +3155,6 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				3F44AF9505BDFBA000CB4B08 /* libxpcom_compat_c.a in Frameworks */,
 				3F44AF9605BDFBA000CB4B08 /* libembed_base_s.a in Frameworks */,
 				3F44AF9705BDFBA000CB4B08 /* libnecko.a in Frameworks */,
 				3F44AF9905BDFBA000CB4B08 /* libuconv.a in Frameworks */,
@@ -3217,7 +3200,6 @@
 				4D29957D0869C44B00E84287 /* libssl3.dylib in Frameworks */,
 				4D2995780869C44B00E84287 /* libnss3.dylib in Frameworks */,
 				4D29957C0869C44B00E84287 /* libsoftokn3.dylib in Frameworks */,
-				4D29957F0869C44B00E84287 /* libxpcom_compat.dylib in Frameworks */,
 				4D2995760869C44B00E84287 /* libmozjs.dylib in Frameworks */,
 				4DC41D400869D7A400947044 /* libmozjpeg.a in Frameworks */,
 				4DC41D3F0869D7A400947044 /* libjsj.a in Frameworks */,
@@ -3353,7 +3335,6 @@
 				F6BD641701B3156701A962F7 /* libuconv.dylib */,
 				F6BD641B01B3156701A962F7 /* libwidget_mac.dylib */,
 				F6BD641C01B3156701A962F7 /* libxpconnect.dylib */,
-				0FA8EF9A0423B1F500A80166 /* libxpcom_compat_c.dylib */,
 				F6BD644F01B315FA01A962F7 /* libgkplugin.dylib */,
 				F53A902202C1127A01A967F3 /* liboji.dylib */,
 				A708E74103FB9041003C038B /* libi18n.dylib */,
@@ -3436,7 +3417,6 @@
 				F6BD642601B3156701A962F7 /* xpcom_components.xpt */,
 				F6BD642701B3156701A962F7 /* xpcom_ds.xpt */,
 				F6BD642801B3156701A962F7 /* xpcom_io.xpt */,
-				0FA8EF9C0423B21100A80166 /* xpcom_obsolete.xpt */,
 				F6BD642901B3156701A962F7 /* xpcom_threads.xpt */,
 				F6BD642A01B3156701A962F7 /* xpcom_xpti.xpt */,
 				F6BD642B01B3156701A962F7 /* xpconnect.xpt */,
@@ -4341,7 +4321,6 @@
 			children = (
 				82CE286D0736605800B4DE07 /* libcomposer.a */,
 				3FE5BA0B068A1A140001CECD /* libmozz.a */,
-				0FA8EFCA0423EAAD00A80166 /* libxpcom_compat_c.a */,
 				F56F242602AC706801A967F3 /* libnecko.a */,
 				F56F242B02AC706801A967F3 /* libuconv.a */,
 				F56F243302AC706801A967F3 /* libxpconnect.a */,
@@ -4533,7 +4512,6 @@
 			children = (
 				F51D9B1402094BB501A80166 /* Gecko Statics */,
 				F57F0F470209DF5301A967DF /* libxpcom.dylib */,
-				0FA8EF970423B1A500A80166 /* libxpcom_compat.dylib */,
 				3F12FC56072E8ECB00995ED9 /* libxpcom_core.dylib */,
 				F6BD637F01B30EA301A962F7 /* libmozjs.dylib */,
 				F6BD638001B30EA301A962F7 /* libnspr4.dylib */,
