@@ -10,6 +10,11 @@ MozillaEnvironments['linux'] = {
     "CVSROOT": r':pserver:anonymous@cvs.mozilla.org:/cvsroot'
 }
 
+MozillaEnvironments['macosxppc'] = {
+    "MOZ_NO_REMOTE": '1',
+    "CVSROOT": r':pserver:anonymous@cvs.mozilla.org:/cvsroot'
+}
+
 class SisyphusJSTest(ShellCommand):
     name = "jstest"
     description = ["jstest"]
