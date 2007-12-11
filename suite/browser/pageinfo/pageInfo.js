@@ -279,11 +279,14 @@ var onUnloadRegistry = [ ];
 function onLoadPageInfo()
 {
   gBundle = document.getElementById("pageinfobundle");
-  ["unknown", "notSet", "mediaImg", "mediaBGImg", "mediaApplet", "mediaObject",
-   "mediaEmbed", "mediaLink", "mediaInput", "formTitle", "formUntitled",
-   "formDefaultTarget", "formChecked", "formUnchecked", "formPassword",
-   "linkAnchor", "linkArea", "linkSubmission", "linkSubmit", "linkRel",
-   "linkStylesheet", "linkRev", "linkX", "yes"].map(function(n) { gStrings[n] = gBundle.getString(n); });
+  var strNames = ["unknown", "notSet", "mediaImg", "mediaBGImg", "mediaApplet",
+                  "mediaObject", "mediaEmbed", "mediaLink", "mediaInput",
+                  "formTitle", "formUntitled", "formDefaultTarget",
+                  "formChecked", "formUnchecked", "formPassword", "linkAnchor",
+                  "linkArea", "linkSubmission", "linkSubmit", "linkRel",
+                  "linkStylesheet", "linkRev", "linkX", "linkScript",
+                  "linkScriptInline", "yes"];
+  strNames.forEach(function(n) { gStrings[n] = gBundle.getString(n); });
 
   if ("arguments" in window && window.arguments.length >= 1 &&
        window.arguments[0] && window.arguments[0].doc) {
@@ -582,7 +585,8 @@ function grabAll(elem)
     addImage(elem.data, gStrings.mediaObject, getValueText(elem), elem, false);
   else if (elem instanceof HTMLEmbedElement)
     addImage(elem.src, gStrings.mediaEmbed, "", elem, false);
-  else if (elem.hasAttributeNS(XLinkNS, "href")) {
+  else if (elem.hasAttributeNS(XLinkNS, "href"))
+  {
     var ioService = Components.classes["@mozilla.org/network/io-service;1"]
                               .getService(Components.interfaces.nsIIOService);
     url = elem.getAttributeNS(XLinkNS, "href");
@@ -592,6 +596,8 @@ function grabAll(elem)
     } catch (e) {}
     gLinkView.addRow([getValueText(elem), url, gStrings.linkX, ""]);
   }
+  else if (elem instanceof HTMLScriptElement)
+    gLinkView.addRow([elem.type || elem.language, elem.src || gStrings.linkScriptInline, gStrings.linkScript]);
 
   onProcessElement.map(function(func) { func(elem); });
 
