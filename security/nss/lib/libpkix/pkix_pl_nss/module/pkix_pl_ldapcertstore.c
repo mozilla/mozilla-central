@@ -360,8 +360,9 @@ pkix_pl_LdapCertStore_BuildCrlList(
                         derCrlItem = *attrVal++;
                         while (derCrlItem != 0) {
                             /* create a PKIX_PL_Crl from derCrl */
-                            PKIX_CHECK(pkix_pl_CRL_CreateToList
-                                (derCrlItem, crlList, plContext),
+                            PKIX_CHECK_ONLY_FATAL(
+                                pkix_pl_CRL_CreateToList(derCrlItem, crlList,
+                                                         plContext),
                                 PKIX_CRLCREATETOLISTFAILED);
                             derCrlItem = *attrVal++;
                         }
