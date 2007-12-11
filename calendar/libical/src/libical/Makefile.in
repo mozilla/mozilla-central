@@ -77,11 +77,8 @@ CSRCS =				\
 	sspm.c			\
 	icallangbind.c		\
 	caldate.c		\
+	vsnprintf.c		\
         $(NULL)
-
-ifeq (,$(filter -DHAVE_SNPRINTF=1,$(ACDEFINES)))
-CSRCS += vsnprintf.c
-endif
 
 DEFINES += -DHAVE_CONFIG_H
 
