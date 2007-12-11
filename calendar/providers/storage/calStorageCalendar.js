@@ -1101,13 +1101,10 @@ calStorageCalendar.prototype = {
                 while (getTzIds.step()) {
                     tzId = getTzIds.row.zone;
 
-                    // Send the timezones off to the ICS service to attempt
-                    // conversion.
-                    icsSvc = Components.classes["@mozilla.org/calendar/ics-service;1"]
-                                       .getService(Components.interfaces.calIICSService);
-                    var latestTzId = icsSvc.latestTzId(tzId);
-                    if ((latestTzId) && (tzId != latestTzId)) {
-                        tzIdsToUpdate.push({oldTzId: tzId, newTzId: latestTzId});
+                    // Send the timezones off to the timezone service to attempt conversion.
+                    var tz = getTimezoneService().getTimezone(tzId);
+                    if (tz && (tzId != tz.tzid)) {
+                        tzIdsToUpdate.push({oldTzId: tzId, newTzId: tz.tzid});
                         updateTzIds = true;
                     }
                 }
