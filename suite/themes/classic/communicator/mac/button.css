@@ -48,28 +48,11 @@
 .toolbarbutton-1 > .toolbarbutton-menubutton-button {
   min-width: 47px;
   -moz-box-orient: vertical;
+  padding: 2px 3px 2px 2px;
 }
 
 .toolbarbutton-1[type="menu-button"] {
   -moz-box-orient: horizontal;
-}
-
-.toolbarbutton-1,
-.toolbarbutton-1 > .toolbarbutton-menubutton-button,
-.toolbarbutton-1[disabled="true"]:hover:active,
-.toolbarbutton-1[disabled="true"]:hover:active > .toolbarbutton-menubutton-button {
-  padding: 2px 3px 2px 2px;
-}
-
-.toolbarbutton-1:hover:active,
-.toolbarbutton-1[open="true"],
-.toolbarbutton-1:hover:active > .toolbarbutton-menubutton-button {
-  padding: 3px 2px 1px 3px;
-}
-
-.toolbarbutton-1[type="menu-button"],
-.toolbarbutton-1[type="menu-button"]:hover:active,
-.toolbarbutton-1[type="menu-button"][open="true"] {
   padding: 0;
 }
 
@@ -92,44 +75,27 @@
 .button-toolbar {
   -moz-user-focus: ignore;
   border: 2px solid;
+  -moz-border-top-colors: transparent ThreeDHighlight;
+  -moz-border-right-colors: transparent ThreeDShadow;
+  -moz-border-bottom-colors: transparent ThreeDShadow;
+  -moz-border-left-colors: transparent ThreeDHighlight;
   -moz-border-radius: 0;
   min-width: 0;
   background-color: transparent;
 }  
   
-.button-toolbar > .button-box  {
+.button-toolbar > .button-box {
   margin: 0;
   padding: 1px 2px;
-}
-
-.button-toolbar:hover:active > .button-box  {
-  padding: 2px 1px 0px 3px;
 }
 
 .button-toolbar > .button-box > .button-icon,
 .button-toolbar > .button-box > .button-text {
   margin-right: 2px;
-}  
+}
 
-.button-toolbar, 
-.button-toolbar[disabled="true"]:hover,
-.button-toolbar[disabled="true"]:hover:active {
-  -moz-border-top-colors: transparent ThreeDHighlight;
-  -moz-border-right-colors: transparent ThreeDShadow;
-  -moz-border-bottom-colors: transparent ThreeDShadow;
-  -moz-border-left-colors: transparent ThreeDHighlight;
-}
-  
-.button-toolbar:hover {
-  -moz-border-top-colors: ThreeDDarkShadow ThreeDHighlight;
-  -moz-border-right-colors: ThreeDDarkShadow ThreeDShadow;
-  -moz-border-bottom-colors: ThreeDDarkShadow ThreeDShadow;
-  -moz-border-left-colors: ThreeDDarkShadow ThreeDHighlight;
-}
-  
-.button-toolbar:hover:active {
-  -moz-border-top-colors: ThreeDDarkShadow ThreeDShadow;
-  -moz-border-right-colors: ThreeDDarkShadow ThreeDHighlight;
-  -moz-border-bottom-colors: ThreeDDarkShadow ThreeDHighlight;
-  -moz-border-left-colors: ThreeDDarkShadow ThreeDShadow;
+/* ::::: taskbuttons ::::: */
+
+.taskbutton {
+  padding: 1px;
 }

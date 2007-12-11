@@ -133,3 +133,19 @@
   -moz-border-bottom-colors: ThreeDDarkShadow ThreeDHighlight;
   -moz-border-left-colors: ThreeDDarkShadow ThreeDShadow;
 }
+
+/* ::::: taskbuttons ::::: */
+
+.taskbutton {
+  padding: 1px;
+}
+
+.taskbutton:hover:active {
+  padding: 2px 0 0 2px;
+}
+
+/* override winstripe */
+
+.toolbarbutton-icon {
+  -moz-margin-end: 2px;
+}
