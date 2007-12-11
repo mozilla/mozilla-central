@@ -3,17 +3,25 @@ INSTALL_PATH = "$(USER_LIBRARY_DIR)/Bundles"
 
 GCC_PREFIX_HEADER = src/includes/ChimeraPrefix.h
 
-// Most/all of this will be removed when pref panes switch to bundle linking
-// rather than actually compiling any core code.
-GCC_PREPROCESSOR_DEFINITIONS = OSTYPE=Darwin1.4 OSARCH=Darwin MOZILLA_INTERNAL_API=1
-OTHER_LDFLAGS = -lpthread -lm
-OTHER_CFLAGS = -fshort-wchar
-LIBRARY_STYLE = BUNDLE
-GCC_ENABLE_PASCAL_STRINGS = YES
 GCC_ENABLE_CPP_EXCEPTIONS = NO
 GCC_ENABLE_CPP_RTTI = NO
 
-// Thes warning settings should be revisited once pref panes aren't tied to core
+// Needed because some preference panes still use libxpcom_core.dylib and
+// related headers as an internal Mozilla user.
+GCC_PREPROCESSOR_DEFINITIONS = OSTYPE=Darwin1.4 OSARCH=Darwin MOZILLA_INTERNAL_API=1
+OTHER_CFLAGS = -fshort-wchar
+
 GCC_WARN_SIGN_COMPARE = YES
 WARNING_CFLAGS = -Wall -Wno-four-char-constants
 OTHER_CPLUSPLUSFLAGS = $(OTHER_CPLUSPLUSFLAGS) -Wno-non-virtual-dtor
+
+CONFIGURATION_BUILD_DIR = $(BUILD_DIR)/$(CONFIGURATION)/Camino.app/Contents/PreferencePanes
+BUNDLE_LOADER = $(BUILD_DIR)/$(CONFIGURATION)/Camino.app/Contents/MacOS/Camino
+OTHER_LDFLAGS = -Wl,-executable_path,$(BUILD_DIR)/$(CONFIGURATION)/Camino.app/Contents/MacOS
+
+// -bundle_loader and -dead_strip interact poorly with one another in the Xcode
+// 2.5 cctools, causing pref pane linking to fail with:
+// ld: warning internal error: output_flush(offset = w, size = x) overlaps with flushed block(offset = y, size = z)
+// This is not a problem in Xcode 3.0.  This can be removed once Xcode 3.0 is
+// the minimum build requirement.
+DEAD_CODE_STRIPPING = NO
