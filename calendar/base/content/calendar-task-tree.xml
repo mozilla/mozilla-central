@@ -185,12 +185,15 @@
 
           addItem: function tTV_addItem(aItem) {
               // The rowCountChanged function takes two arguments, the index where the
-              // first row was inserted and the number of rows to insert. 
-              this.binding.mTaskArray.push(aItem);
-              var index = this.binding.mTaskArray.length - 1;
-              this.binding.mHash2Index[aItem.hashId] = index;
-              this.treebox.rowCountChanged(index, 1);
-              this.tree.view.selection.select(index);
+              // first row was inserted and the number of rows to insert.
+              var index = this.binding.mHash2Index[aItem.hashId];
+              if (index === undefined) {
+                  var index = this.binding.mTaskArray.length;
+                  this.binding.mTaskArray.push(aItem);
+                  this.binding.mHash2Index[aItem.hashId] = index;
+                  this.treebox.rowCountChanged(index, 1);
+                  this.tree.view.selection.select(index);
+              }
           },
 
           removeItem: function tTV_removeItem(aItem) {
@@ -558,8 +561,10 @@
           },
           
           onEndBatch: function tTO_onEndBatch() {
-              this.mInBatch = false;
-              this.binding.refresh();
+              if (this.mInBatch) {
+                  this.mInBatch = false;
+                  this.binding.refresh();
+              }
           },
           
           onLoad: function tTO_onLoad() {
