@@ -41,9 +41,6 @@ endif
 
 TIERS += app
 
-ifdef MOZ_EXTENSIONS
-tier_app_dirs += extensions
-endif
 
 ifdef MOZ_BRANDING_DIRECTORY
 tier_app_dirs += $(MOZ_BRANDING_DIRECTORY)
@@ -52,6 +49,13 @@ endif
 tier_app_dirs += \
 	editor/ui \
 	mailnews \
+	$(NULL)
+
+ifdef MOZ_EXTENSIONS
+tier_app_dirs += extensions
+endif
+
+tier_app_dirs += \
 	mail \
 	$(NULL)
 
