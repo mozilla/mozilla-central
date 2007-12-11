@@ -117,7 +117,7 @@
       
       <field name="mLoadCount">0</field>
       <field name="mTaskArray">[]</field>
-      <field name="mHash2Index">{}</field>
+      <field name="mHash2Index"><![CDATA[({})]]></field>
       <field name="mContextTask">null</field>
       <field name="mRefreshQueue">[]</field>
       <field name="mPendingRefresh">null</field>
