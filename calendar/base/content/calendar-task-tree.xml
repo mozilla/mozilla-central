@@ -205,6 +205,8 @@
                   }
 
                   this.tree.view.selection.select(index);
+                  
+                  this.binding.recreateHashTable();
               }
           },
 
