@@ -194,12 +194,6 @@ calDavCalendar.prototype = {
         return calUri;
     },
 
-    // we need to be able to locate the calendar-home-set of the calendar
-    // in order to get certain properties, but there currently is no reliable
-    // way to do this programatically that works with different server
-    // implementations. So provisionally we assume the 99% case, where the
-    // calendar's calendar-home-set is the immediate parent of the calendar itself
-
     setCalHomeSet: function caldav_setCalHomeSet() {
         var calUri = this.mUri.clone();
         var split1 = calUri.spec.split('?');
@@ -1595,14 +1589,25 @@ calDavCalendar.prototype = {
 
             for (var i = 0; i < multistatus.*.length(); i++) {
                 var response = new XML(multistatus.*[i]);
-                var responseCHS =
-                    response..D::propstat..D::["calendar-home-set"]..D::href[0];
 
-                if (responseCHS + "/" != thisCalendar.mCalHomeSet.path) {
+                var responseCHS = response..C::["calendar-home-set"]..D::href[0];
+                if (!responseCHS) {
+                    responseCHS = response..D::["calendar-home-set"]..D::href[0];
+                }
+
+                if (responseCHS.charAt(responseCHS.toString().length -1) != "/") {
+                    responseCHS += "/";
+                }
+
+                if (responseCHS  != thisCalendar.mCalHomeSet.path) {
                     continue;
                 }
                 var addrHrefs =
-                    response..D::propstat..D::["calendar-user-address-set"]..D::href;
+                    response..C::["calendar-user-address-set"]..D::href;
+                if (!addrHrefs.toString().length) {
+                    var addrHrefs =
+                        response..D::propstat..D::["calendar-user-address-set"]..D::href;
+                }
                 for (var j = 0; j < addrHrefs.*.length(); j++) {
                     if (addrHrefs[j].substr(0,7).toLowerCase() == "mailto:") {
                         thisCalendar.mMailToUrl = addrHrefs[j];
@@ -1610,12 +1615,18 @@ calDavCalendar.prototype = {
                 }
                 var ibUrl = thisCalendar.mUri.clone();
                 var ibPath =
-                    response..D::propstat..D::["schedule-inbox-URL"]..D::href[0];
+                    response..C::["schedule-inbox-URL"]..D::href[0];
+                if (!ibPath) {
+                    var ibPath = response..D::["schedule-inbox-URL"]..D::href[0];
+                }
                 ibUrl.path = ibPath;
                 thisCalendar.mInBoxUrl = ibUrl;
                 var obUrl = thisCalendar.mUri.clone();
                 var obPath =
-                    response..D::propstat..D::["schedule-outbox-URL"]..D::href[0];
+                    response..C::["schedule-outbox-URL"]..D::href[0];
+                if (!obPath) {
+                    var obPath = response..D::["schedule-outbox-URL"]..D::href[0];
+                }
                 obUrl.path = obPath;
                 thisCalendar.mOutBoxUrl = obUrl;
             }
@@ -1647,9 +1658,6 @@ calDavCalendar.prototype = {
         aCalId, aRangeStart, aRangeEnd, aBusyTypes, aListener) {
 
         if (!this.mHaveScheduling || !this.mOutBoxUrl || !this.mMailToUrl) {
-            // XXX not all CalDAV server are going to support
-            // CalDAV-scheduling freebusy searches, so we ought to be able to
-            // fall back to querying an .ifb file or whatever
             LOG("Server does not support scheduling; freebusy query not possible");
             return;
         }
@@ -1658,6 +1666,12 @@ calDavCalendar.prototype = {
         // but apple needs that to be mailto:
         var aCalIdParts = aCalId.split(":");
         aCalIdParts[0] = aCalIdParts[0].toLowerCase();
+
+        if (aCalIdParts[0] != "mailto"
+            && aCalIdParts[0] != "http"
+            && aCalIdParts[0] != "https" ) {
+            return;
+        }
         mailto_aCalId = aCalIdParts.join(":");
 
         var outBoxUri = this.mOutBoxUrl.clone();
@@ -1690,7 +1704,7 @@ calDavCalendar.prototype = {
         fbQuery += "UID:" + uuid + "\n";
         var attendee = "ATTENDEE;PARTSTAT=NEEDS-ACTION;RSVP=TRUE;ROLE=REQ-PARTICIPANT;CUTYPE=INDIVIDUAL;CN=" + mailto_aCalId + "\n";
         var attendeeFolded = this.foldLine(attendee);
-        fbQuery += attendeeFolded + "\n";
+        fbQuery += attendeeFolded;
         fbQuery += "END:VFREEBUSY\n";
         fbQuery += "END:VCALENDAR\n";
         // RFC 2445 is specific about how lines end...
