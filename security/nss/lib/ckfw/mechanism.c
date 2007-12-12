@@ -35,7 +35,7 @@
  * ***** END LICENSE BLOCK ***** */
 
 #ifdef DEBUG
-static const char CVS_ID[] = "@(#) $RCSfile: mechanism.c,v $ $Revision: 1.4 $ $Date: 2005-12-16 00:48:01 $";
+static const char CVS_ID[] = "@(#) $RCSfile: mechanism.c,v $ $Revision: 1.5 $ $Date: 2007-12-12 00:50:58 $";
 #endif /* DEBUG */
 
 /*
@@ -716,9 +716,6 @@ nssCKFWMechanism_VerifyInit
   if ( (void *)NULL == (void *)fwMechanism->mdMechanism->VerifyInit) {
     return CKR_FUNCTION_FAILED;
   }
-  if ((NSSCKMDCryptoOperation *)NULL == mdOperation) {
-    goto loser;
-  }
 
   mdSession = nssCKFWSession_GetMDSession(fwSession);
   mdObject = nssCKFWObject_GetMDObject(fwObject);
@@ -736,6 +733,9 @@ nssCKFWMechanism_VerifyInit
         fwObject,
         &error
   );
+  if ((NSSCKMDCryptoOperation *)NULL == mdOperation) {
+    goto loser;
+  }
 
   fwOperation = nssCKFWCryptoOperation_Create(mdOperation, 
         mdSession, fwSession, fwMechanism->mdToken, fwMechanism->fwToken,
