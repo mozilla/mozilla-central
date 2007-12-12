@@ -72,7 +72,7 @@
     </menu>
   </menupopup>
 
-  <hbox id="toolbar_button_box">
+  <toolbar id="composeToolbar">
     <toolbarbutton id="button-security" type="menu-button" insertbefore="saveSeparator"
                    oncommand="doSecurityButton();" class="toolbarbutton-1"
                    label="&securityButton.label;" tooltiptext="&securityButton.tooltip;">
@@ -87,7 +87,7 @@
         <menuitem id="menu_securityStatus2" accesskey="&menu_securityStatus.accesskey;" label="&menu_securityStatus.label;" oncommand="setNextCommand('show');"/>
       </menupopup>
     </toolbarbutton>
-  </hbox>
+  </toolbar>
 
   <statusbar id="status-bar">
     <statusbarpanel insertbefore="offline-status" class="statusbarpanel-iconic" collapsed="true"

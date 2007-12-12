@@ -315,9 +315,5 @@
                 oncommand="goAbout();"/>
     </menupopup>
   </menu>
-        
- <!-- Toolbar boxes -->
- <hbox id="toolbar_button_box"
-       flex="100%"/>
 
 </overlay>

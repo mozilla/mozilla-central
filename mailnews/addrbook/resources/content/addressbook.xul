@@ -388,7 +388,6 @@
     
     <!-- toolbar -->
         <toolbar class="chromeclass-toolbar toolbar-primary" id="abToolbar" persist="collapsed" grippytooltiptext="&addressbookToolbar.tooltip;">
-            <hbox id="toolbar_button_box">
         <toolbarbutton class="toolbarbutton-1" id="button-newcard" label="&newcardButton.label;" tooltiptext="&newcardButton.tooltip;" command="cmd_newcard"/>
         <toolbarbutton class="toolbarbutton-1" id="button-newlist" label="&newlistButton.label;" tooltiptext="&newlistButton.tooltip;" command="cmd_newlist"/>
         <toolbarseparator class="toolbarseparator-primary"/>
@@ -406,7 +405,6 @@
 
         <!--button id="button_stop" class="other28" align="top" label="&stopButton.label;" tooltiptext="&stopButton.tooltip;" disabled="true" oncommand="AbStop()"/>
         <button id="button_search" class="other28" align="top" label="&searchButton.label;" disabled="true" tooltiptext="&searchButton.tooltip;" oncommand="AbSearch()"/-->
-     </hbox>
 
      <hbox id="throbber-box" align="center">
       <button id="navigator-throbber" oncommand="goClickThrobber('addressbook.throbber.url')" tooltiptext="&throbber.tooltip;">

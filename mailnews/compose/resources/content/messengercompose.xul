@@ -430,7 +430,6 @@
     </menubar>
 
     <toolbar class="toolbar-primary chromeclass-toolbar" id="composeToolbar" persist="collapsed" grippytooltiptext="&mailToolbar.tooltip;">
-      <hbox id="toolbar_button_box">
        <toolbarbutton class="toolbarbutton-1"
                id="button-send" label="&sendButton.label;"
                tooltiptext="&sendButton.tooltip;"
@@ -482,7 +481,6 @@
                oncommand="goClickThrobber('compose.throbber.url')" tooltiptext="&throbber.tooltip;">
            <observes element="broadcaster_throbber" attribute="busy"/>
          </button>
-       </hbox>
        </hbox>
     </toolbar>
 
