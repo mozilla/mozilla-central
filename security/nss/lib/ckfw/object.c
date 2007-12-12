@@ -35,7 +35,7 @@
  * ***** END LICENSE BLOCK ***** */
 
 #ifdef DEBUG
-static const char CVS_ID[] = "@(#) $RCSfile: object.c,v $ $Revision: 1.14 $ $Date: 2007-10-06 01:41:28 $";
+static const char CVS_ID[] = "@(#) $RCSfile: object.c,v $ $Revision: 1.15 $ $Date: 2007-12-12 00:41:37 $";
 #endif /* DEBUG */
 
 /*
@@ -171,7 +171,7 @@ nssCKFWObject_Create
 
   if( (NSSCKFWToken *)NULL == fwToken ) {
     *pError = CKR_ARGUMENTS_BAD;
-    return fwObject;
+    return (NSSCKFWObject *)NULL;
   }
   mdObjectHash = nssCKFWToken_GetMDObjectHash(fwToken);
   if( (nssCKFWHash *)NULL == mdObjectHash ) {
