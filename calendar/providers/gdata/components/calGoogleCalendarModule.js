@@ -96,7 +96,7 @@ var calGoogleCalendarModule = {
         // First, load script from the application dir
         var appInfo = Components.classes["@mozilla.org/xre/app-info;1"].
                       getService(Components.interfaces.nsIXULAppInfo);
-        if (appInfo.id == kSUNBIRD_UID) {
+        if (appInfo.ID == kSUNBIRD_UID) {
             // On sunbird, the application dir is the GRE Application Directory
             var dirsvc = Components.classes["@mozilla.org/file/directory_service;1"]
                                    .getService(Components.interfaces.nsIProperties);
