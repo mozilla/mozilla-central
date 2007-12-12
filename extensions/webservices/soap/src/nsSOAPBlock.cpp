@@ -191,8 +191,8 @@ NS_IMETHODIMP nsSOAPBlock::SetValue(nsIVariant * aValue)
 }
 
 NS_IMETHODIMP
-    nsSOAPBlock::Initialize(JSContext * cx, JSObject * obj,
-                            PRUint32 argc, jsval * argv)
+nsSOAPBlock::Initialize(nsISupports* aOwner, JSContext* cx,
+                        JSObject* obj, PRUint32 argc, jsval* argv)
 {
 
 //  Get the arguments.
