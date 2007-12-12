@@ -64,8 +64,8 @@
       <stylesheet src="chrome://xforms/skin/widgets-xhtml.css"/>
     </resources>
 
-    <content xmlns:wairole="http://www.w3.org/2005/01/wai-rdf/GUIRoleTaxonomy#">
-      <html:table role="wairole:grid">
+    <content>
+      <html:table role="grid">
         <html:tbody anonid="dayContainer"/>
       </html:table>
     </content>
@@ -122,7 +122,7 @@
           var header;
           for (var i = 0; i < 7; i++) {
             header = this.ownerDocument.createElementNS(this.XHTML_NS, "th");
-            header.setAttribute("role", "wairole:columnheader");
+            header.setAttribute("role", "columnheader");
             header.textContent = dayOfWeekNames[i];
             row.appendChild(header);
           }
@@ -135,7 +135,7 @@
 
             for (var y = 0; y < 7; y++) {
               cell = this.ownerDocument.createElementNS(this.XHTML_NS, "td");
-              cell.setAttribute("role", "wairole:gridcell");
+              cell.setAttribute("role", "gridcell");
               cell.setAttribute("tabindex", "-1");
               this._dayElements.push(cell);
               row.appendChild(cell);
@@ -178,8 +178,8 @@
 
   <!-- FULL CALENDAR -->
   <binding id="calendar-full" extends="#calendar-compact">
-    <content xmlns:wairole="http://www.w3.org/2005/01/wai-rdf/GUIRoleTaxonomy#">
-      <html:table role="wairole:grid">
+    <content>
+      <html:table role="grid">
         <html:tbody anonid="dayContainer">
         <html:tr>
           <html:td colspan="1">

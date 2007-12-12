@@ -59,10 +59,9 @@
   </script>
 
   <iframe xmlns:xhtml="http://www.w3.org/1999/xhtml"
-          xmlns:wairole="http://www.w3.org/2005/01/wai-rdf/GUIRoleTaxonomy#"
           id="frame" flex="1"
           style="display: none;"
-          xhtml:role="wairole:alert"/>
+          role="alert"/>
 
 </dialog>
 

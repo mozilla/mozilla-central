@@ -94,7 +94,7 @@
     <description control="dataSources">&importItems.label;</description>
 
     <vbox id="dataSources" style="overflow-y: auto;"
-          align="left" flex="1" xhtml:role="group"/>
+          align="left" flex="1" role="group"/>
   </wizardpage>
 
   <wizardpage id="homePageImport" pageid="homePageImport"
@@ -113,8 +113,7 @@
               next="done" onpageshow="MigrationWizard.onMigratingPageShow();">
     <description control="migratingItems">&migrating.label;</description>
 
-    <vbox id="migratingItems" style="overflow-y: auto;" align="left"
-          xhtml:role="group"/>
+    <vbox id="migratingItems" style="overflow-y: auto;" align="left" role="group"/>
 
     <hbox>
       <progressmeter class="progressmeter-statusbar" id="progressBar"
@@ -126,7 +125,6 @@
               onpageshow="MigrationWizard.onDonePageShow();">
     <description control="doneItems">&done.label;</description>
 
-    <vbox id="doneItems" style="overflow-y: auto;" align="left"
-          xhtml:role="group"/>
+    <vbox id="doneItems" style="overflow-y: auto;" align="left" role="group"/>
   </wizardpage>
 </wizard>

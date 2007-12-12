@@ -253,7 +253,7 @@ function awSetInputAndPopupId(inputElem, popupElem, rowNumber)
 {
   popupElem.id = "addressCol1#" + rowNumber;
   inputElem.id = "addressCol2#" + rowNumber;
-  inputElem.setAttributeNS("http://www.w3.org/2005/07/aaa", "aaa:labelledby", popupElem.id);
+  inputElem.setAttribute("aria-labelledby", popupElem.id);
 }
 
 function awSetInputAndPopupValue(inputElem, inputValue, popupElem, popupValue, rowNumber)

@@ -47,8 +47,7 @@
 <overlay id="AdvancedPaneOverlay"
          xmlns="http://www.mozilla.org/keymaster/gatekeeper/there.is.only.xul">
 
-  <prefpane id="paneAdvanced" onpaneload="gAdvancedPane.init();"
-            xmlns:xhtml="http://www.w3.org/1999/xhtml">
+  <prefpane id="paneAdvanced" onpaneload="gAdvancedPane.init();">
     <script type="application/x-javascript" src="chrome://messenger/content/preferences/advanced.js"/>
 
     <preferences>
@@ -197,7 +196,7 @@
 
         <tabpanel orient="vertical" align="start">
           <label control="autoUpdateGroup">&autoCheck.label;</label>
-          <vbox class="indent" id="autoUpdateGroup" xhtml:role="group">
+          <vbox class="indent" id="autoUpdateGroup" role="group">
             <checkbox id="enableAppUpdate"
                       label="&enableAppUpdate.label;"
                       accesskey="&enableAppUpdate.accesskey;"

@@ -54,8 +54,7 @@
           xmlns="http://www.mozilla.org/xbl"
           xmlns:html="http://www.w3.org/1999/xhtml"
           xmlns:xbl="http://www.mozilla.org/xbl"
-          xmlns:mozType="http://www.mozilla.org/projects/xforms/2005/type"
-          xmlns:wairole="http://www.w3.org/2005/01/wai-rdf/GUIRoleTaxonomy#">
+          xmlns:mozType="http://www.mozilla.org/projects/xforms/2005/type">
 
 
   <!-- OUTPUT: <DEFAULT>
@@ -464,7 +463,7 @@
   <!-- ALERT: <DEFAULT> -->
   <binding id="xformswidget-alert"
            extends="chrome://xforms/content/xforms.xml#xformswidget-alert-base">
-    <content html:role="wairole:alert">
+    <content role="alert">
       <html:div anonid="container" class="-moz-xforms-message-container">
         <html:div anonid="inlineData" style="display: inherit;">
           <children/>
@@ -535,9 +534,9 @@
     <implementation>
       <constructor>
         // xforms:message[level="ephemeral"] element should fire accessibility
-        // alert event when it appears, so we add role='wairole:alert'
+        // alert event when it appears, so we add role='alert'
         // attribute.
-        this.control.container.setAttribute("role", "wairole:alert");
+        this.control.container.setAttribute("role", "alert");
       </constructor>
     </implementation>
   </binding>

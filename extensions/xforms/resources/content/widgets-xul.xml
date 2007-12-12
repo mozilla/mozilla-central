@@ -65,9 +65,8 @@
       <stylesheet src="chrome://xforms/skin/widgets-xul.css"/>
     </resources>
 
-    <content xmlns:wairole="http://www.w3.org/2005/01/wai-rdf/GUIRoleTaxonomy#"
-             xmlns:xhtml="http://www.w3.org/1999/xhtml">
-      <xul:grid xhtml:role="wairole:grid">
+    <content>
+      <xul:grid role="grid">
         <xul:columns>
           <xul:column flex="1"/>
           <xul:column flex="1"/>
@@ -139,8 +138,7 @@
                                                              "description");
             description.setAttribute("value", dayOfWeekNames[i]);
             description.setAttribute("class", "header");
-            description.setAttributeNS(this.XHTML_NS, "role",
-                                       "wairole:columnheader");
+            description.setAttribute("role", "columnheader");
             row.appendChild(description);
           }
           this.dayContainer.appendChild(row);
@@ -154,7 +152,7 @@
               var button  = this.ownerDocument.createElementNS(this.XUL_NS,
                                                                "toolbarbutton");
               button.setAttribute("tabindex", "-1");
-              button.setAttributeNS(this.XHTML_NS, "role", "wairole:gridcell");
+              button.setAttribute("role", "gridcell");
               this._dayElements.push(button);
               row.appendChild(button);
             }
@@ -220,12 +218,10 @@
 
   <!-- FULL CALENDAR -->
   <binding id="calendar-full" extends="#calendar-compact">
-    <content orient="vertical"
-             xmlns:wairole="http://www.w3.org/2005/01/wai-rdf/GUIRoleTaxonomy#"
-             xmlns:xhtml="http://www.w3.org/1999/xhtml">
+    <content orient="vertical">
       <xul:hbox mozType:monthyearbox="true" anonid="monthyear"/>
       <!-- calendar days container-->
-      <xul:grid xhtml:role="wairole:grid">
+      <xul:grid role="grid">
         <xul:columns>
           <xul:column flex="1"/>
           <xul:column flex="1"/>
