@@ -2139,7 +2139,7 @@ function cmdNick(e)
     if (!e.nickname)
     {
         var curNick;
-        if (e.server && e.server.isConnected())
+        if (e.server && e.server.isConnected)
             curNick = e.server.me.unicodeName;
         else if (e.network)
             curNick = e.network.prefs["nickname"];
