@@ -38,6 +38,7 @@ panel[for="urlbar"] {
 
 .autocomplete-search-engine {
   -moz-binding: url("chrome://navigator/content/urlbarBindings.xml#autocomplete-search-engine");
+  -moz-box-align: center;
 }
 
 
