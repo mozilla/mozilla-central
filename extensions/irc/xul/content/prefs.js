@@ -133,6 +133,7 @@ function initPrefs()
          ["awayNick",           "",       ".ident"],
          ["bugURL",           "https://bugzilla.mozilla.org/show_bug.cgi?id=%s",
                                           "appearance.misc"],
+         ["bugURL.comment",     "#c%s",   "appearance.misc"],
          ["channelHeader",      true,     "global.header"],
          ["channelLog",         false,    "global.log"],
          ["channelMaxLines",    500,      "global.maxLines"],
@@ -417,6 +418,7 @@ function getNetworkPrefManager(network)
          ["away",             defer, "hidden"],
          ["awayNick",         defer, ".ident"],
          ["bugURL",           defer, "appearance.misc"],
+         ["bugURL.comment",   defer, "appearance.misc"],
          ["charset",          defer, ".connect"],
          ["collapseActions",  defer, "appearance.misc"],
          ["collapseMsgs",     defer, "appearance.misc"],
@@ -515,6 +517,7 @@ function getChannelPrefManager(channel)
         [
          ["autoRejoin",       defer, ".connect"],
          ["bugURL",           defer, "appearance.misc"],
+         ["bugURL.comment",   defer, "appearance.misc"],
          ["charset",          defer, ".connect"],
          ["collapseActions",  defer, "appearance.misc"],
          ["collapseMsgs",     defer, "appearance.misc"],

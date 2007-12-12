@@ -99,7 +99,7 @@ function initMunger()
        /(?:\s|\W|^)((mailto:)?[^:;\\<>\[\]()\'\"\s\u201d]+@[^.<>\[\]()\'\"\s\u201d]+\.[^<>\[\]()\'\"\s\u201d]+)/i,
                    insertMailToLink, NORMAL_PRIORITY, HIGHER_PRIORITY, false);
     munger.addRule("bugzilla-link",
-                   /(?:\s|\W|^)(bug\s+(?:#?\d+|#[^\s,]{1,20}))/i,
+                   /(?:\s|\W|^)(bug\s+(?:#?\d+|#[^\s,]{1,20})(?:\s+comment\s+#?\d+)?)/i,
                    insertBugzillaLink, NORMAL_PRIORITY, NORMAL_PRIORITY);
     munger.addRule("channel-link",
                 /(?:\s|\W|^)[@%+]?(#[^<>,\[\](){}\"\s\u201d]*[^:,.<>\[\](){}\'\"\s\u201d])/i,
@@ -345,21 +345,43 @@ function insertBugzillaLink (matchText, containerTag, eventData, mungerEntry)
         return;
     }
 
-    var bugURL;
+    var prefs = client.prefs;
     if (eventData.channel)
-        bugURL = eventData.channel.prefs["bugURL"];
+        prefs = eventData.channel.prefs;
     else if (eventData.network)
-        bugURL = eventData.network.prefs["bugURL"];
-    else
-        bugURL = client.prefs["bugURL"];
+        prefs = eventData.network.prefs;
+
+    var bugURL = prefs["bugURL"];
+    var bugURLcomment = prefs["bugURL.comment"];
 
     if (bugURL.length > 0)
     {
         var idOrAlias = matchText.match(/bug\s+#?(\d+|[^\s,]{1,20})/i)[1];
+        bugURL = bugURL.replace("%s", idOrAlias);
+
+        if (matchText.indexOf("comment") != -1)
+        {
+            var commentNum = matchText.match(/comment\s+#?(\d+)/i)[1];
+            /* If the comment is a complete URL, use only that, replacing %1$s
+             * and %2$s with the bug number and comment number, respectively.
+             * Otherwise, append the comment preference to the main one,
+             * replacing just %s in each.
+             */
+            if (bugURLcomment.match(/^\w+:/))
+            {
+                bugURL = bugURLcomment;
+                bugURL = bugURL.replace("%1$s", idOrAlias);
+                bugURL = bugURL.replace("%2$s", commentNum);
+            }
+            else
+            {
+                bugURL += bugURLcomment.replace("%s", commentNum);
+            }
+        }
+
         var anchor = document.createElementNS("http://www.w3.org/1999/xhtml",
                                               "html:a");
-
-        anchor.setAttribute("href", bugURL.replace("%s", idOrAlias));
+        anchor.setAttribute("href", bugURL);
         // Carry over formatting.
         var otherFormatting = calcClass(eventData);
         if (otherFormatting)
