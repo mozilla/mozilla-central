@@ -608,8 +608,8 @@ nsAddressBook::ExportDirectoryToDelimitedText(nsIAbDirectory *aDirectory, const 
                 needsQuotes = PR_TRUE;
 
               // Make sure we quote if containing CR/LF.
-              if (newValue.FindChar(nsCRT::CR) != kNotFound ||
-                  newValue.FindChar(nsCRT::LF) != kNotFound)
+              if (newValue.FindChar('\r') != kNotFound ||
+                  newValue.FindChar('\n') != kNotFound)
                   needsQuotes = PR_TRUE;
 
               if (needsQuotes)
