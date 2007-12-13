@@ -173,10 +173,11 @@ NS_IMPL_QUERY_INTERFACE4(nsAddressBook,
 // nsIAddressBook
 //
 
-NS_IMETHODIMP nsAddressBook::NewAddressBook(nsIAbDirectoryProperties *aProperties)
+NS_IMETHODIMP nsAddressBook::NewAddressBook(const nsAString &aDirName,
+                                            const nsACString &aURI,
+                                            const PRUint32 aType,
+                                            nsACString &aResult)
 {
-  NS_ENSURE_ARG_POINTER(aProperties);
-
   nsresult rv;
 
   nsCOMPtr<nsIRDFService> rdfService = do_GetService (NS_RDF_CONTRACTID "/rdf-service;1", &rv);
@@ -190,7 +191,7 @@ NS_IMETHODIMP nsAddressBook::NewAddressBook(nsIAbDirectoryProperties *aPropertie
   nsCOMPtr<nsIAbDirectory> parentDir = do_QueryInterface(parentResource, &rv);
   NS_ENSURE_SUCCESS(rv, rv);
 
-  rv = parentDir->CreateNewDirectory(aProperties);
+  rv = parentDir->CreateNewDirectory(aDirName, aURI, aType, aResult);
   return rv;
 }
 
