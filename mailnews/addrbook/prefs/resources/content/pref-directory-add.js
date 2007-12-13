@@ -278,8 +278,8 @@ function hasCharacters(number)
 
 function onAccept()
 {
-  var addressbook = Components.classes["@mozilla.org/addressbook;1"]
-                              .getService(Components.interfaces.nsIAddressBook);
+  var addressbook = Components.classes["@mozilla.org/abmanager;1"]
+                              .getService(Components.interfaces.nsIAbManager);
 
   try {
     var pref_string_content = "";

@@ -49,18 +49,18 @@
   "@mozilla.org/addressbook/directory-factory;1?name="
 
 //
-// nsAddressBook
+// nsAbManager
 //
-#define NS_ADDRESSBOOK_CONTRACTID \
-  "@mozilla.org/addressbook;1"
+#define NS_ABMANAGER_CONTRACTID \
+  "@mozilla.org/abmanager;1"
 
-#define NS_ADDRESSBOOKSTARTUPHANDLER_CONTRACTID \
+#define NS_ABMANAGERSTARTUPHANDLER_CONTRACTID \
   "@mozilla.org/commandlinehandler/general-startup;1?type=addressbook"
 
-#define NS_ADDRESSBOOK_CID							\
-{ /* {D60B84F2-2A8C-11d3-9E07-00A0C92B5F0D} */		\
-  0xd60b84f2, 0x2a8c, 0x11d3,						\
-	{ 0x9e, 0x7, 0x0, 0xa0, 0xc9, 0x2b, 0x5f, 0xd }	\
+#define NS_ABMANAGER_CID \
+{ /* {ad81b321-8a8a-42ca-a508-fe659de84586} */ \
+  0xad81b321, 0x8a8a, 0x42ca, \
+	{ 0xa5, 0x08, 0xfe, 0x65, 0x9d, 0x8e, 0x45, 0x86 }	\
 }
 
 //

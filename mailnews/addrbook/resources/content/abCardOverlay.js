@@ -151,8 +151,8 @@ function OnLoadNewCard()
       // hide non vcard values
       HideNonVcardFields();
       gEditCard.card =
-        Components.classes["@mozilla.org/addressbook;1"]
-                  .getService(Components.interfaces.nsIAddressBook)
+        Components.classes["@mozilla.org/abmanager;1"]
+                  .getService(Components.interfaces.nsIAbManager)
                   .escapedVCardToAbCard(window.arguments[0].escapedVCardStr);
     }
 

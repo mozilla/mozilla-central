@@ -66,8 +66,8 @@ function handleKeyPress(element, event)
 
 function mailingListExists(listname)
 {
-  var addressbook = Components.classes["@mozilla.org/addressbook;1"]
-                              .getService(Components.interfaces.nsIAddressBook);
+  var addressbook = Components.classes["@mozilla.org/abmanager;1"]
+                              .getService(Components.interfaces.nsIAbManager);
 
   if (addressbook.mailListNameExists(listname))
   {

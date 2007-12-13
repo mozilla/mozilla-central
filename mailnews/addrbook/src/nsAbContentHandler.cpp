@@ -108,8 +108,8 @@ nsAbContentHandler::HandleContent(const char *aContentType,
             if (!parentWindow)
                 return NS_ERROR_FAILURE;
 
-            nsCOMPtr<nsIAddressBook> ab =
-              do_GetService(NS_ADDRESSBOOK_CONTRACTID, &rv);
+            nsCOMPtr<nsIAbManager> ab =
+              do_GetService(NS_ABMANAGER_CONTRACTID, &rv);
             NS_ENSURE_SUCCESS(rv, rv);
 
             nsCOMPtr <nsIAbCard> cardFromVCard;
@@ -182,8 +182,8 @@ nsAbContentHandler::OnStreamComplete(nsIStreamLoader *aLoader,
       nsCString vCard;
       vCard.Adopt(vCardService->WriteMemoryVObjects(0, &len, vObj, PR_FALSE));
 
-      nsCOMPtr<nsIAddressBook> ab =
-        do_GetService(NS_ADDRESSBOOK_CONTRACTID, &rv);
+      nsCOMPtr<nsIAbManager> ab =
+        do_GetService(NS_ABMANAGER_CONTRACTID, &rv);
       NS_ENSURE_SUCCESS(rv, rv);
 
       nsCOMPtr <nsIAbCard> cardFromVCard;

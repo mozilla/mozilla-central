@@ -358,8 +358,8 @@ function onAccept()
     if (am) {
       var addressbook;
       try {
-        addressbook = Components.classes["@mozilla.org/addressbook;1"]
-                                .getService(Components.interfaces.nsIAddressBook);
+        addressbook = Components.classes["@mozilla.org/abmanager;1"]
+                                .getService(Components.interfaces.nsIAbManager);
       }
       catch(ex){
         dump("Failed to get addressbook " + ex + "\n");

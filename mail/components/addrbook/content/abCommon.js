@@ -368,8 +368,8 @@ function AbDeleteDirectory(aURI)
     gPrefs.setCharPref("mail.collect_addressbook", kPersonalAddressbookURI);
   }
 
-  Components.classes["@mozilla.org/addressbook;1"]
-            .getService(Components.interfaces.nsIAddressBook)
+  Components.classes["@mozilla.org/abmanager;1"]
+            .getService(Components.interfaces.nsIAbManager)
             .deleteAddressBook(aURI);
 }
 

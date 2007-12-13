@@ -56,6 +56,7 @@
 #include "nsAbMDBDirFactory.h"
 #include "nsAddrDatabase.h"
 #include "nsAddressBook.h"
+#include "nsAbContentHandler.h"
 #include "nsAddrBookSession.h"
 #include "nsAbDirProperty.h"
 #include "nsAbAutoCompleteSession.h"
@@ -98,7 +99,8 @@
 #include "nsAbOSXDirFactory.h"
 #endif
 
-NS_GENERIC_FACTORY_CONSTRUCTOR(nsAddressBook)
+NS_GENERIC_FACTORY_CONSTRUCTOR(nsAbManager)
+NS_GENERIC_FACTORY_CONSTRUCTOR(nsAbContentHandler)
 NS_GENERIC_FACTORY_CONSTRUCTOR_INIT(nsAbDirectoryDataSource,Init)
 NS_GENERIC_FACTORY_CONSTRUCTOR(nsAbDirProperty)
 NS_GENERIC_FACTORY_CONSTRUCTOR(nsAbCardProperty)
@@ -153,17 +155,17 @@ NS_GENERIC_FACTORY_CONSTRUCTOR(nsAbLDIFService)
 
 static const nsModuleComponentInfo components[] =
 {
-  { "Address Book",
-    NS_ADDRESSBOOK_CID,
-    NS_ADDRESSBOOK_CONTRACTID,
-    nsAddressBookConstructor },
+  { "Address Book Manager",
+    NS_ABMANAGER_CID,
+    NS_ABMANAGER_CONTRACTID,
+    nsAbManagerConstructor },
 
-  { "Address Book Startup Handler",
-    NS_ADDRESSBOOK_CID,
-    NS_ADDRESSBOOKSTARTUPHANDLER_CONTRACTID,
-    nsAddressBookConstructor,
-    nsAddressBook::RegisterProc,
-    nsAddressBook::UnregisterProc },
+  { "Address Book Manager Startup Handler",
+    NS_ABMANAGER_CID,
+    NS_ABMANAGERSTARTUPHANDLER_CONTRACTID,
+    nsAbManagerConstructor,
+    nsAbManager::RegisterProc,
+    nsAbManager::UnregisterProc },
 
   { "Address Book Directory Datasource",
     NS_ABDIRECTORYDATASOURCE_CID,
@@ -222,14 +224,14 @@ static const nsModuleComponentInfo components[] =
     nsAddbookProtocolHandlerConstructor },
 
   { "add vCard content handler",
-    NS_ADDRESSBOOK_CID,
+    NS_ABCONTENTHANDLER_CID,
     NS_CONTENT_HANDLER_CONTRACTID_PREFIX"application/x-addvcard",
-    nsAddressBookConstructor },
+    nsAbContentHandlerConstructor },
 
   { "add vCard content handler",
-    NS_ADDRESSBOOK_CID,
+    NS_ABCONTENTHANDLER_CID,
     NS_CONTENT_HANDLER_CONTRACTID_PREFIX"text/x-vcard",
-    nsAddressBookConstructor },
+    nsAbContentHandlerConstructor },
 
   { "The directory factory service interface",
     NS_ABDIRFACTORYSERVICE_CID,

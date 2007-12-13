@@ -367,7 +367,7 @@ NS_GENERIC_FACTORY_CONSTRUCTOR(nsMsgCookiePolicy)
 ////////////////////////////////////////////////////////////////////////////////
 // addrbook factories
 ////////////////////////////////////////////////////////////////////////////////
-NS_GENERIC_FACTORY_CONSTRUCTOR(nsAddressBook)
+NS_GENERIC_FACTORY_CONSTRUCTOR(nsAbManager)
 NS_GENERIC_FACTORY_CONSTRUCTOR(nsAbContentHandler)
 NS_GENERIC_FACTORY_CONSTRUCTOR_INIT(nsAbDirectoryDataSource,Init)
 NS_GENERIC_FACTORY_CONSTRUCTOR(nsAbDirProperty)
@@ -618,7 +618,7 @@ RegisterCommandLineHandlers(nsIComponentManager* compMgr, nsIFile* path,
                                  NS_MESSENGERBOOTSTRAP_CONTRACTID,
                                  PR_TRUE, PR_TRUE, nsnull);
   rv |= catMan->AddCategoryEntry("command-line-handler", "m-addressbook",
-                                 NS_ADDRESSBOOK_CONTRACTID,
+                                 NS_ABMANAGER_CONTRACTID,
                                  PR_TRUE, PR_TRUE, nsnull);
   rv |= catMan->AddCategoryEntry("command-line-handler", "m-compose",
                                  NS_MSGCOMPOSESERVICE_CONTRACTID,
@@ -919,8 +919,8 @@ static const nsModuleComponentInfo gComponents[] = {
     ////////////////////////////////////////////////////////////////////////////////
     // addrbook components
     ////////////////////////////////////////////////////////////////////////////////
-    { "Address Book", NS_ADDRESSBOOK_CID,
-      NS_ADDRESSBOOK_CONTRACTID, nsAddressBookConstructor },
+    { "Address Book Mananger", NS_ABMANAGER_CID,
+      NS_ABMANAGER_CONTRACTID, nsAbManagerConstructor },
     { "Address Book Directory Datasource", NS_ABDIRECTORYDATASOURCE_CID,
       NS_ABDIRECTORYDATASOURCE_CONTRACTID, nsAbDirectoryDataSourceConstructor },
     { "Address Boot Strap Directory", NS_ABDIRECTORY_CID,
@@ -1268,8 +1268,8 @@ static const nsModuleComponentInfo gComponents[] = {
     ////////////////////////////////////////////////////////////////////////////////
     { "Messenger Bootstrapper", NS_MESSENGERBOOTSTRAP_CID,
       NS_MAILSTARTUPHANDLER_CONTRACTID, nsMessengerBootstrapConstructor },
-    { "Address Book", NS_ADDRESSBOOK_CID,
-      NS_ADDRESSBOOKSTARTUPHANDLER_CONTRACTID, nsAddressBookConstructor },
+    { "Address Book Manager Startup Handler", NS_ABMANAGER_CID,
+      NS_ABMANAGERSTARTUPHANDLER_CONTRACTID, nsAbManagerConstructor },
     { "Compose Service", NS_MSGCOMPOSESERVICE_CID,
       NS_MSGCOMPOSESTARTUPHANDLER_CONTRACTID, nsMsgComposeServiceConstructor },
     { "NNTP Service", NS_NNTPSERVICE_CID,

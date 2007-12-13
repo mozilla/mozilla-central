@@ -979,7 +979,7 @@ nsresult nsAbPalmHotSync::UpdateSyncInfo(long aCategoryIndex)
 nsresult nsAbPalmHotSync::DeleteAB(const char* aABUrl)
 {
   nsresult rv;
-  nsCOMPtr<nsIAddressBook> ab(do_GetService(NS_ADDRESSBOOK_CONTRACTID, &rv));
+  nsCOMPtr<nsIAbManager> ab(do_GetService(NS_ABMANAGER_CONTRACTID, &rv));
   NS_ENSURE_SUCCESS(rv, rv);
 
   return ab->DeleteAddressBook(nsDependentCString(aABUrl));
@@ -996,7 +996,7 @@ nsresult nsAbPalmHotSync::RenameAB(long aCategoryIndex, const char * aABUrl)
 nsresult nsAbPalmHotSync::NewAB(const nsString& aAbName)
 {
   nsresult rv;
-  nsCOMPtr <nsIAddressBook> ab(do_GetService(NS_ADDRESSBOOK_CONTRACTID, &rv));
+  nsCOMPtr <nsIAbManager> ab(do_GetService(NS_ABMANAGER_CONTRACTID, &rv));
   NS_ENSURE_SUCCESS(rv, rv);
 
   // Don't actually need to keep the result
