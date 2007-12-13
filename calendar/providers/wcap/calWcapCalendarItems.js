@@ -60,7 +60,7 @@ function calWcapCalendar_encodeAttendee(att)
     var params = encodeAttr(att.rsvp ? "TRUE" : "FALSE", "RSVP", "");
     params = encodeAttr(att.participationStatus, "PARTSTAT", params);
     params = encodeAttr(att.role, "ROLE", params);
-    params = encodeAttr(att.commonName.replace(/[;:]/g, "?"), "CN", params);
+    params = encodeAttr(att.commonName.replace(/[;:]/g, " "), "CN", params);
     return encodeAttr(att.id, null, params);
 };
 
@@ -852,6 +852,16 @@ calWcapCalendar.prototype.parseItems = function calWcapCalendar_parseItems(
 
             patchTimezone(subComp, "startTime", "X-NSCP-DTSTART-TZID");
             patchTimezone(subComp, "recurrenceId", "X-NSCP-DTSTART-TZID");
+
+            var organizer = subComp.getFirstProperty("ORGANIZER");
+            if (organizer && organizer.getParameter("SENT-BY")) { // has SENT-BY
+                // &emailorcalid=1 sets wrong email, workaround setting calid...
+                var id = organizer.getParameter("X-S1CS-CALID");
+                if (id) {
+                    organizer.value = id;
+                }
+            }
+
             var item = null;
             switch (subComp.componentType) {
             case "VEVENT": {
