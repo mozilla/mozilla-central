@@ -590,7 +590,8 @@ nsAddressBook::ExportDirectoryToDelimitedText(nsIAbDirectory *aDirectory, const 
 
           for (i = 0; i < EXPORT_ATTRIBUTES_TABLE_COUNT; i++) {
             if (EXPORT_ATTRIBUTES_TABLE[i].plainTextStringID != 0) {
-              rv = card->GetCardValue(EXPORT_ATTRIBUTES_TABLE[i].abColName, getter_Copies(value));
+              rv = card->GetCardValue(EXPORT_ATTRIBUTES_TABLE[i].abColName,
+                                      value);
               NS_ENSURE_SUCCESS(rv,rv);
 
               // If a string contains at least one comma, tab or double quote then
@@ -749,7 +750,8 @@ nsAddressBook::ExportDirectoryToLDIF(nsIAbDirectory *aDirectory, nsILocalFile *a
                                                         ldapAttribute) &&
                 !ldapAttribute.IsEmpty())) {
 
-              rv = card->GetCardValue(EXPORT_ATTRIBUTES_TABLE[i].abColName, getter_Copies(value));
+              rv = card->GetCardValue(EXPORT_ATTRIBUTES_TABLE[i].abColName,
+                                      value);
               NS_ENSURE_SUCCESS(rv,rv);
  
               if (!PL_strcmp(EXPORT_ATTRIBUTES_TABLE[i].abColName, kPreferMailFormatColumn)) {
@@ -815,7 +817,7 @@ nsresult nsAddressBook::AppendLDIFForMailList(nsIAbCard *aCard, nsIAbLDAPAttribu
              "objectclass: top" NS_LINEBREAK \
              "objectclass: groupOfNames" NS_LINEBREAK;
 
-  rv = aCard->GetCardValue(kDisplayNameColumn, getter_Copies(attrValue));
+  rv = aCard->GetCardValue(kDisplayNameColumn, attrValue);
   NS_ENSURE_SUCCESS(rv,rv);
 
   nsCAutoString ldapAttributeName;
@@ -832,7 +834,7 @@ nsresult nsAddressBook::AppendLDIFForMailList(nsIAbCard *aCard, nsIAbLDAPAttribu
                                   ldapAttributeName);
   NS_ENSURE_SUCCESS(rv, rv);
 
-  rv = aCard->GetCardValue(kNicknameColumn, getter_Copies(attrValue));
+  rv = aCard->GetCardValue(kNicknameColumn, attrValue);
   NS_ENSURE_SUCCESS(rv,rv);
 
   if (!attrValue.IsEmpty()) {
@@ -845,7 +847,7 @@ nsresult nsAddressBook::AppendLDIFForMailList(nsIAbCard *aCard, nsIAbLDAPAttribu
                                   ldapAttributeName);
   NS_ENSURE_SUCCESS(rv, rv);
 
-  rv = aCard->GetCardValue(kNotesColumn, getter_Copies(attrValue));
+  rv = aCard->GetCardValue(kNotesColumn, attrValue);
   NS_ENSURE_SUCCESS(rv,rv);
 
   if (!attrValue.IsEmpty()) {
@@ -897,10 +899,10 @@ nsresult nsAddressBook::AppendDNForCard(const char *aProperty, nsIAbCard *aCard,
   nsXPIDLString displayName;
   nsCAutoString ldapAttributeName;
 
-  nsresult rv = aCard->GetCardValue(kPriEmailColumn, getter_Copies(email));
+  nsresult rv = aCard->GetCardValue(kPriEmailColumn, email);
   NS_ENSURE_SUCCESS(rv,rv);
 
-  rv = aCard->GetCardValue(kDisplayNameColumn, getter_Copies(displayName));
+  rv = aCard->GetCardValue(kDisplayNameColumn, displayName);
   NS_ENSURE_SUCCESS(rv,rv);
 
   nsString cnStr;
@@ -1060,7 +1062,7 @@ static void convertNameValue(VObject *vObj, nsIAbCard *aCard)
       return;
 
   char *cardColValue = getCString(vObj);
-  aCard->SetCardValue(cardColName, NS_ConvertUTF8toUTF16(cardColValue).get());
+  aCard->SetCardValue(cardColName, NS_ConvertUTF8toUTF16(cardColValue));
   PR_FREEIF(cardColValue);
   return;
 }
