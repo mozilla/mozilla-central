@@ -183,8 +183,7 @@ NS_IMETHODIMP nsAddressBook::NewAddressBook(const nsAString &aDirName,
   nsCOMPtr<nsIAbDirectory> parentDir = do_QueryInterface(parentResource, &rv);
   NS_ENSURE_SUCCESS(rv, rv);
 
-  rv = parentDir->CreateNewDirectory(aDirName, aURI, aType, aResult);
-  return rv;
+  return parentDir->CreateNewDirectory(aDirName, aURI, aType, aResult);
 }
 
 NS_IMETHODIMP nsAddressBook::DeleteAddressBook(const nsACString &aURI)
@@ -1042,16 +1041,6 @@ NS_IMETHODIMP nsAddressBook::EscapedVCardToAbCard(const char *aEscapedVCardStr, 
 
     NS_IF_ADDREF(*aCard = cardFromVCard);
     return NS_OK;
-}
-
-NS_IMETHODIMP nsAddressBook::AbCardToEscapedVCard(nsIAbCard *aCard, char **aEscapedVCardStr)
-{
-    NS_ENSURE_ARG_POINTER(aCard);
-    NS_ENSURE_ARG_POINTER(aEscapedVCardStr);
-
-    nsresult rv = aCard->ConvertToEscapedVCard(aEscapedVCardStr);
-    NS_ENSURE_SUCCESS(rv,rv);
-    return rv;
 }
 
 NS_IMETHODIMP
