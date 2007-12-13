@@ -42,7 +42,6 @@
 #include "nsIAddressBook.h"
 #include "nsAddressBook.h"
 #include "nsAbBaseCID.h"
-#include "nsDirPrefs.h"
 #include "nsIAddrBookSession.h"
 #include "nsIAbLDIFService.h"
 #include "nsAddrDatabase.h"
@@ -243,44 +242,53 @@ NS_IMETHODIMP nsAddressBook::DeleteAddressBook(const nsACString &aURI)
 
 NS_IMETHODIMP nsAddressBook::MailListNameExists(const PRUnichar *name, PRBool *exist)
 {
+  NS_ENSURE_ARG_POINTER(exist);
+
   *exist = PR_FALSE;
-  nsVoidArray* pDirectories = DIR_GetDirectories();
-  if (pDirectories)
-  {
+
+  // Get the rdf service
     nsresult rv;
-    nsCOMPtr<nsIRDFService> rdfService = do_GetService (NS_RDF_CONTRACTID "/rdf-service;1", &rv);
+  nsCOMPtr<nsIRDFService> rdfService =
+    do_GetService(NS_RDF_CONTRACTID "/rdf-service;1", &rv);
     NS_ENSURE_SUCCESS(rv, rv);
 
+  // now get the top-level book
     nsCOMPtr<nsIRDFResource> resource;
-    nsCOMPtr<nsIAbMDBDirectory> directory;
-
-    PRInt32 count = pDirectories->Count();
-    /* check: only show personal address book for now */
-    /* not showing 4.x address book unitl we have the converting done */
-    PRInt32 i;
-    for (i = 0; i < count; i++)
-    {
-      DIR_Server *server = (DIR_Server *)pDirectories->ElementAt(i);
-      if (server->dirType == PABDirectory)
-      {
-        rv = rdfService->GetResource(nsDependentCString(server->uri),
+  rv = rdfService->GetResource(NS_LITERAL_CSTRING("moz-abdirectory://"),
                                      getter_AddRefs(resource));
         NS_ENSURE_SUCCESS(rv, rv);
 
-        directory = do_QueryInterface(resource, &rv);
+  nsCOMPtr<nsIAbDirectory> topDirectory(do_QueryInterface(resource, &rv));
         NS_ENSURE_SUCCESS(rv, rv);
 
+  // now go through the address books
+  nsCOMPtr<nsISimpleEnumerator> enumerator;
+  rv = topDirectory->GetChildNodes(getter_AddRefs(enumerator));
+  NS_ENSURE_SUCCESS(rv, rv);
+
+  nsCOMPtr<nsISupports> item;
+  nsCOMPtr<nsIAbMDBDirectory> directory;
+
+  PRBool hasMore;
+  // XXX Make this not MDB specific.
+  while (NS_SUCCEEDED(enumerator->HasMoreElements(&hasMore)) && hasMore)
+  {
+    rv = enumerator->GetNext(getter_AddRefs(item));
+    NS_ENSURE_SUCCESS(rv, rv);
+
+    directory = do_QueryInterface(item, &rv);
+    if (NS_SUCCEEDED(rv))
+    {
         nsCOMPtr<nsIAddrDatabase> database;
-        nsresult rv = directory->GetDatabase(getter_AddRefs(database));
+      rv = directory->GetDatabase(getter_AddRefs(database));
         if (NS_SUCCEEDED(rv))
         {
-          database->FindMailListbyUnicodeName(name, exist);
-          if (*exist)
+        rv = database->FindMailListbyUnicodeName(name, exist);
+        if (NS_SUCCEEDED(rv) && *exist)
             return NS_OK;
         }
       }
     }
-  }
   return NS_OK;
 }
 
