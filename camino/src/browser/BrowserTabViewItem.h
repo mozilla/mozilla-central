@@ -21,6 +21,7 @@
  *
  * Contributor(s):
  *   Simon Fraser <sfraser@netscape.com>
+ *   Stuart Morgan <stuart.morgan@alumni.case.edu>
  *
  * Alternatively, the contents of this file may be used under the terms of
  * either the GNU General Public License Version 2 or later (the "GPL"), or
@@ -38,49 +39,43 @@
 
 #import <Cocoa/Cocoa.h>
 
-#import "IconTabViewItem.h"
-
 // sent when the current tab will changed. The object is the tab that's being
 // switched to. NSTabView does have a delegate method when the tab changes,
 // but no notification and we don't want to take over the delegate for internal
 // implementation.
 extern NSString* const kTabWillChangeNotifcation;
 
-// a subclass of IconTabViewItem that handles dragging of site icons
-@class BrowserTabItemContainerView;
+// A subclass of NSTabViewItem that manages the custom Camino tabs.
+@class TabButtonView;
 @class TruncatingTextAndImageCell;
-@class TabButtonCell;
-@class RolloverImageButton;
 
-@interface BrowserTabViewItem : IconTabViewItem
+@interface BrowserTabViewItem : NSTabViewItem
 {
-  NSRect                       mLastDrawRect;  // cached draw rect, used for dragging location
-  BrowserTabItemContainerView* mTabContentsView;
-  NSProgressIndicator*         mProgressWheel;     // STRONG ref
-  RolloverImageButton*         mCloseButton;       // STRONG ref
+  NSImage*                     mTabIcon;           // STRONG ref
+  TabButtonView*               mTabButtonView;     // STRONG ref
   NSMenuItem*                  mMenuItem;          // STRONG ref
   BOOL                         mDraggable;
   int                          mTag;
 }
 
-- (void)updateTabVisibility:(BOOL)nowVisible;
-- (NSView*)tabItemContentsView;
+- (NSImage *)tabIcon;
+- (void)setTabIcon:(NSImage *)newIcon isDraggable:(BOOL)draggable;
+
+- (BOOL)draggable;
+
+- (TabButtonView*)buttonView;
 - (int)tag;
 // Note that this method may confirm the tab close (e.g., in the case of an
 // onunload handler), and thus may not actually result in the tab being closed.
 - (void)closeTab:(id)sender;
-- (void)setTabIcon:(NSImage *)newIcon isDraggable:(BOOL)draggable;
-- (TruncatingTextAndImageCell *)labelCell;
-- (TabButtonCell *)tabButtonCell;
 
 // call to start and stop the progress animation on this tab
 - (void)startLoadAnimation;
 - (void)stopLoadAnimation;
 
 // call before removing to clean up close button and progress spinner
-- (void)willBeRemoved:(BOOL)remove;
+- (void)willBeRemoved;
 
-- (RolloverImageButton *)closeButton;
 - (NSMenuItem *)menuItem;
 - (void) willDeselect;
 - (void) willSelect;

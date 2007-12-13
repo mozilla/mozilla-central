@@ -42,6 +42,7 @@
 
 #import "BrowserTabView.h"
 #import "BrowserTabViewItem.h"
+#import "TabButtonView.h"
 #import "BrowserWrapper.h"
 #import "BookmarkFolder.h"
 #import "Bookmark.h"
@@ -132,10 +133,6 @@ NSString* const kTabBarBackgroundDoubleClickedNotification = @"kTabBarBackground
   [self setJumpbackTab:nil];
   
   [super addTabViewItem:tabViewItem];
-  // the new tab view item needs to have its tab visibility synchronized to the tab bar so that
-  // its content view will be hooked up correctly
-  if ([tabViewItem isMemberOfClass:[BrowserTabViewItem class]])
-    [(BrowserTabViewItem*)tabViewItem updateTabVisibility:[mTabBar isVisible]];
   [self showOrHideTabsAsAppropriate];
 }
 
@@ -153,8 +150,8 @@ NSString* const kTabBarBackgroundDoubleClickedNotification = @"kTabBarBackground
   // any way (even closing a tab) will clear the jumpback tab and return to
   // the "select to the right" behavior. 
   
-  // make sure the close button and spinner get removed
-  [(BrowserTabViewItem *)tabViewItem willBeRemoved:YES];
+  // make sure the tab view is removed
+  [(BrowserTabViewItem *)tabViewItem willBeRemoved];
   if ([self selectedTabViewItem] == tabViewItem) {
     BOOL tabJumpbackPref = [[PreferenceManager sharedInstance] getBooleanPref:"camino.enable_tabjumpback" withSuccess:NULL];
 
@@ -262,13 +259,6 @@ NSString* const kTabBarBackgroundDoubleClickedNotification = @"kTabBarBackground
   }
 }
 
-- (void)refreshTab:(BrowserTabViewItem*)tab
-{
-  if ([self tabsVisible]) {
-    [mTabBar setNeedsDisplayInRect:[[tab tabButtonCell] frame]];
-  }
-}
-
 // Only to be used with the 2 types of tab view which we use in Camino.
 - (void)showOrHideTabsAsAppropriate
 {
@@ -295,22 +285,11 @@ NSString* const kTabBarBackgroundDoubleClickedNotification = @"kTabBarBackground
     }
     tabsVisible = [mTabBar isVisible];
     
-    // We don't want to have the close button enabled on the only open tab, so make
-    // sure we keep its state current depending on the number of tabs.
-    if (tabsVisible && [self barAlwaysVisible]) {
-      BOOL initialCloseButtonEnabled = (numItems > 1);
-      [[[[self tabViewItems] objectAtIndex:0] closeButton] setEnabled:initialCloseButtonEnabled];
-    }
+    // Ensure that the last tab isn't closeable.
+    if (tabsVisible && [self barAlwaysVisible])
+      [[[[self tabViewItems] objectAtIndex:0] buttonView] setCloseButtonEnabled:(numItems > 1)];
     
     if (tabVisibilityChanged) {
-      // tell the tabs that visibility changed
-      NSArray* tabViewItems = [self tabViewItems];
-      for (int i = 0; i < numItems; i ++) {
-        NSTabViewItem* tabItem = [tabViewItems objectAtIndex:i];
-        if ([tabItem isMemberOfClass:[BrowserTabViewItem class]])
-          [(BrowserTabViewItem*)tabItem updateTabVisibility:tabsVisible];
-      }
-      
       // tell the superview to resize its subviews
       [[self superview] resizeSubviewsWithOldSize:[[self superview] frame].size];
       [self setNeedsDisplay:YES];

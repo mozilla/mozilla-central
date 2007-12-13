@@ -41,7 +41,7 @@
 
 @class BrowserTabView;
 @class BrowserTabViewItem;
-@class TabButtonCell;
+@class TabButtonView;
 
 @interface BrowserTabBarView : NSView 
 {
@@ -49,15 +49,12 @@
   // this tab view should be tabless and borderless
   IBOutlet BrowserTabView*  mTabView;
   
-  TabButtonCell*    mActiveTabButton;     // active tab button, mainly useful for handling drags (STRONG)
   NSButton*         mOverflowRightButton; // button to slide tabs to the left
   NSButton*         mOverflowLeftButton;  // button to slide tabs to the right
   NSButton*         mOverflowMenuButton;  // button to popup the tab menu
   
   // drag tracking
-  NSPoint           mLastClickPoint;
-  BOOL              mDragOverBar;         // either over a button, or the bar background
-  TabButtonCell*    mDragDestButton;
+  BOOL              mDragOverBar;
   
   BOOL              mVisible;             // whether tabs are visible or not; used to disable creation of tracking rects when they're not
   BOOL              mOverflowTabs;        // track whether there are more tabs than we can fit onscreen

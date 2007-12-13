@@ -3734,7 +3734,7 @@ enum BWCOpenDest {
   // we have to copy the context menu for each tag, because
   // the menu gets the tab view item's tag.
   NSMenu* contextMenu = [mTabMenu copy];
-  [[newTab tabItemContentsView] setMenu:contextMenu];
+  [[newTab buttonView] setMenu:contextMenu];
   [contextMenu release];
 
   return newTab;
