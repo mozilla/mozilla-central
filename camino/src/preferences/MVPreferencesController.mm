@@ -162,6 +162,10 @@ static NSString* const CacheInfoPaneSeenKey   = @"MVPreferencePaneSeen";    // N
   [toolbar setAlwaysCustomizableByDrag:NO];
   [toolbar setShowsContextMenu:NO];
   [mWindow setToolbar:toolbar];
+  [toolbar setVisible:YES];
+
+  // Prevent hiding the toolbar.
+  [mWindow setShowsToolbarButton:NO];
 
   // save/restore the top-left window frame (because our size changes confuse the standard frame saving)
   // (Cocoa will ensure that the window isn't placed totally offscreen)

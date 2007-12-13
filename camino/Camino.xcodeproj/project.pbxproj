@@ -287,6 +287,10 @@
 		33B777E20C55890200A6D67F /* libmozlcms.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 33B777E10C5588E500A6D67F /* libmozlcms.a */; };
 		33B778810C55C58500A6D67F /* libnssdbm3.dylib in Copy Security Libraries */ = {isa = PBXBuildFile; fileRef = 33B778800C55C57800A6D67F /* libnssdbm3.dylib */; };
 		33B778820C55C59A00A6D67F /* libnssdbm3.dylib in Copy Security Libraries */ = {isa = PBXBuildFile; fileRef = 33B778800C55C57800A6D67F /* libnssdbm3.dylib */; };
+		33C222860D106CDD00611936 /* PreferencesWindow.h in Headers */ = {isa = PBXBuildFile; fileRef = 33C222840D106CDD00611936 /* PreferencesWindow.h */; };
+		33C222870D106CDD00611936 /* PreferencesWindow.m in Sources */ = {isa = PBXBuildFile; fileRef = 33C222850D106CDD00611936 /* PreferencesWindow.m */; };
+		33C222880D106CDD00611936 /* PreferencesWindow.h in Headers */ = {isa = PBXBuildFile; fileRef = 33C222840D106CDD00611936 /* PreferencesWindow.h */; };
+		33C222890D106CDD00611936 /* PreferencesWindow.m in Sources */ = {isa = PBXBuildFile; fileRef = 33C222850D106CDD00611936 /* PreferencesWindow.m */; };
 		33F3B70B0C63F5F7007DFBD0 /* ScriptingSupport.mm in Sources */ = {isa = PBXBuildFile; fileRef = 33F3B70A0C63F5F7007DFBD0 /* ScriptingSupport.mm */; };
 		33F3B70C0C63F5F7007DFBD0 /* ScriptingSupport.mm in Sources */ = {isa = PBXBuildFile; fileRef = 33F3B70A0C63F5F7007DFBD0 /* ScriptingSupport.mm */; };
 		33FBAAF80C84D0AB00DD459E /* NSString+Gecko.h in Headers */ = {isa = PBXBuildFile; fileRef = 33FBAAF30C84D0A500DD459E /* NSString+Gecko.h */; };
@@ -2474,6 +2478,8 @@
 		33B777950C55851800A6D67F /* libmozlcms.dylib */ = {isa = PBXFileReference; lastKnownFileType = "compiled.mach-o.dylib"; name = libmozlcms.dylib; path = ../dist/bin/libmozlcms.dylib; sourceTree = SOURCE_ROOT; };
 		33B777E10C5588E500A6D67F /* libmozlcms.a */ = {isa = PBXFileReference; lastKnownFileType = archive.ar; name = libmozlcms.a; path = ../dist/lib/libmozlcms.a; sourceTree = SOURCE_ROOT; };
 		33B778800C55C57800A6D67F /* libnssdbm3.dylib */ = {isa = PBXFileReference; lastKnownFileType = "compiled.mach-o.dylib"; name = libnssdbm3.dylib; path = ../dist/lib/libnssdbm3.dylib; sourceTree = SOURCE_ROOT; };
+		33C222840D106CDD00611936 /* PreferencesWindow.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = PreferencesWindow.h; sourceTree = "<group>"; };
+		33C222850D106CDD00611936 /* PreferencesWindow.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = PreferencesWindow.m; sourceTree = "<group>"; };
 		33F3B70A0C63F5F7007DFBD0 /* ScriptingSupport.mm */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.cpp.objcpp; name = ScriptingSupport.mm; path = src/appleevents/ScriptingSupport.mm; sourceTree = "<group>"; };
 		33FBAAF30C84D0A500DD459E /* NSString+Gecko.h */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.c.h; name = "NSString+Gecko.h"; path = "src/extensions/NSString+Gecko.h"; sourceTree = "<group>"; };
 		33FBAAFA0C84D0CA00DD459E /* NSString+Gecko.mm */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.cpp.objcpp; name = "NSString+Gecko.mm"; path = "src/extensions/NSString+Gecko.mm"; sourceTree = "<group>"; };
@@ -4503,6 +4509,8 @@
 				F53F21EC022B7C77010001CA /* MVPreferencePaneDefaults.plist */,
 				F53F21EF022B7C77010001CA /* MVPreferencesController.h */,
 				F53F21F0022B7C77010001CA /* MVPreferencesController.mm */,
+				33C222840D106CDD00611936 /* PreferencesWindow.h */,
+				33C222850D106CDD00611936 /* PreferencesWindow.m */,
 			);
 			name = "Prefs window";
 			sourceTree = "<group>";
@@ -4764,6 +4772,7 @@
 				337F2BA40CA200D100572F7D /* ContentDispatchChooser.h in Headers */,
 				DE70BE710CBC7CB400C1CC63 /* ToolbarScriptItem.h in Headers */,
 				7B06E8140D0DC83B0032E38A /* PreferencePaneBase.h in Headers */,
+				33C222860D106CDD00611936 /* PreferencesWindow.h in Headers */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -4935,6 +4944,7 @@
 				337F2BA60CA200D100572F7D /* ContentDispatchChooser.h in Headers */,
 				DE70BE730CBC7CB400C1CC63 /* ToolbarScriptItem.h in Headers */,
 				7B06E8150D0DC8800032E38A /* PreferencePaneBase.h in Headers */,
+				33C222880D106CDD00611936 /* PreferencesWindow.h in Headers */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -5203,6 +5213,7 @@
 					ProjectRef = 7B64B7BA0CCFD9F50098406C /* Sparkle.xcodeproj */;
 				},
 			);
+			projectRoot = "";
 			targets = (
 				7BDD26CC0D0DC2BA00BA05C6 /* Camino */,
 				7BDD26E30D0DC30600BA05C6 /* CaminoStatic */,
@@ -5807,6 +5818,7 @@
 				337F2BA50CA200D100572F7D /* ContentDispatchChooser.mm in Sources */,
 				DE70BE700CBC7CB400C1CC63 /* ToolbarScriptItem.mm in Sources */,
 				7B06E8160D0DC8C20032E38A /* PreferencePaneBase.mm in Sources */,
+				33C222870D106CDD00611936 /* PreferencesWindow.m in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -5973,6 +5985,7 @@
 				337F2BA70CA200D100572F7D /* ContentDispatchChooser.mm in Sources */,
 				DE70BE720CBC7CB400C1CC63 /* ToolbarScriptItem.mm in Sources */,
 				7B06E8170D0DC8DC0032E38A /* PreferencePaneBase.mm in Sources */,
+				33C222890D106CDD00611936 /* PreferencesWindow.m in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
