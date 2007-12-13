@@ -46,6 +46,7 @@
 #import "KeychainService.h"
 #import "CHBrowserService.h"
 #import "PreferenceManager.h"
+#import "KeyEquivView.h"
 
 #include "nsIPref.h"
 #include "nsIObserverService.h"
@@ -467,6 +468,12 @@ int KeychainPrefChangedCallback(const char* inPref, void* unused)
   NSButton* dontStore = [alert addButtonWithTitle:NSLocalizedString(@"KeychainStoreAlertDontStoreButton", nil)];
   [dontStore setKeyEquivalent:@"\e"];  // Esc
   [dontStore setKeyEquivalentModifierMask:0];
+
+  KeyEquivView* dontStoreEquiv = [KeyEquivView kevWithKeyEquivalent:@"d"
+                                          keyEquivalentModifierMask:NSCommandKeyMask
+                                                             target:dontStore
+                                                             action:@selector(performClick:)];
+  [[[alert window] contentView] addSubview:dontStoreEquiv];
 
   NSButton* neverStore = [alert addButtonWithTitle:NSLocalizedString(@"KeychainStoreAlertNeverStoreButton", nil)];
   [neverStore setKeyEquivalent:@"n"];

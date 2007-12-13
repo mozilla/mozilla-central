@@ -1158,6 +1158,10 @@
 		7B479B7D0D0DD5EB00780567 /* libxpcom_core.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = 3F12FC56072E8ECB00995ED9 /* libxpcom_core.dylib */; };
 		7B479CD90D0DD66800780567 /* libxpcom_core.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = 3F12FC56072E8ECB00995ED9 /* libxpcom_core.dylib */; };
 		7B479CDA0D0DD6AA00780567 /* libxpcom_core.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = 3F12FC56072E8ECB00995ED9 /* libxpcom_core.dylib */; };
+		7B5072FE0D11E86300458384 /* KeyEquivView.h in Headers */ = {isa = PBXBuildFile; fileRef = 7B5072FC0D11E83B00458384 /* KeyEquivView.h */; };
+		7B5072FF0D11E87000458384 /* KeyEquivView.h in Headers */ = {isa = PBXBuildFile; fileRef = 7B5072FC0D11E83B00458384 /* KeyEquivView.h */; };
+		7B5073000D11E88400458384 /* KeyEquivView.mm in Sources */ = {isa = PBXBuildFile; fileRef = 7B5072FD0D11E83B00458384 /* KeyEquivView.mm */; };
+		7B5073010D11E89600458384 /* KeyEquivView.mm in Sources */ = {isa = PBXBuildFile; fileRef = 7B5072FD0D11E83B00458384 /* KeyEquivView.mm */; };
 		7B64B7E10CCFDA640098406C /* Sparkle.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 7B64B7CA0CCFD9F50098406C /* Sparkle.framework */; };
 		7B64B7E30CCFDA860098406C /* Sparkle.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 7B64B7CA0CCFD9F50098406C /* Sparkle.framework */; };
 		7B64B7EE0CCFDAAF0098406C /* Sparkle.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 7B64B7CA0CCFD9F50098406C /* Sparkle.framework */; };
@@ -2617,6 +2621,8 @@
 		6021CDD70C84FDC4000E7754 /* CHStringBundleOverride.h */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.c.h; name = CHStringBundleOverride.h; path = src/embedding/CHStringBundleOverride.h; sourceTree = "<group>"; };
 		6021CDD80C84FDC4000E7754 /* CHStringBundleOverride.mm */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.cpp.objcpp; name = CHStringBundleOverride.mm; path = src/embedding/CHStringBundleOverride.mm; sourceTree = "<group>"; };
 		7919FCF0044631350000010E /* PrintPDE.plugin */ = {isa = PBXFileReference; lastKnownFileType = wrapper.cfbundle; name = PrintPDE.plugin; path = ../dist/package/PrintPDE.plugin; sourceTree = SOURCE_ROOT; };
+		7B5072FC0D11E83B00458384 /* KeyEquivView.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = KeyEquivView.h; path = src/extensions/KeyEquivView.h; sourceTree = "<group>"; };
+		7B5072FD0D11E83B00458384 /* KeyEquivView.mm */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.objcpp; name = KeyEquivView.mm; path = src/extensions/KeyEquivView.mm; sourceTree = "<group>"; };
 		7B64B7BA0CCFD9F50098406C /* Sparkle.xcodeproj */ = {isa = PBXFileReference; lastKnownFileType = "wrapper.pb-project"; name = Sparkle.xcodeproj; path = sparkle/Sparkle.xcodeproj; sourceTree = "<group>"; };
 		7B9E1BFE09DD966F003256C9 /* libmozreg_s.a */ = {isa = PBXFileReference; lastKnownFileType = archive.ar; name = libmozreg_s.a; path = ../dist/lib/libmozreg_s.a; sourceTree = SOURCE_ROOT; };
 		7BAEF7470CCFDE7D00384F4E /* Sparkle.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = Sparkle.framework; path = sparkle/build/Release/Sparkle.framework; sourceTree = "<group>"; };
@@ -3604,6 +3610,8 @@
 				F564873A023C3857010001CA /* IconTabViewItem.mm */,
 				3F2CF8CB042A88B7005FD42F /* ImageAndTextCell.h */,
 				3F2CF8CC042A88B7005FD42F /* ImageAndTextCell.m */,
+				7B5072FC0D11E83B00458384 /* KeyEquivView.h */,
+				7B5072FD0D11E83B00458384 /* KeyEquivView.mm */,
 				0FBC0EE20798FA2700E8E0E2 /* PopupMenuButton.h */,
 				0FBC0EDF0798FA1900E8E0E2 /* PopupMenuButton.m */,
 				DEBC80140A14E547006AECD3 /* RolloverImageButton.h */,
@@ -4773,6 +4781,7 @@
 				DE70BE710CBC7CB400C1CC63 /* ToolbarScriptItem.h in Headers */,
 				7B06E8140D0DC83B0032E38A /* PreferencePaneBase.h in Headers */,
 				33C222860D106CDD00611936 /* PreferencesWindow.h in Headers */,
+				7B5072FE0D11E86300458384 /* KeyEquivView.h in Headers */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -4945,6 +4954,7 @@
 				DE70BE730CBC7CB400C1CC63 /* ToolbarScriptItem.h in Headers */,
 				7B06E8150D0DC8800032E38A /* PreferencePaneBase.h in Headers */,
 				33C222880D106CDD00611936 /* PreferencesWindow.h in Headers */,
+				7B5072FF0D11E87000458384 /* KeyEquivView.h in Headers */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -5819,6 +5829,7 @@
 				DE70BE700CBC7CB400C1CC63 /* ToolbarScriptItem.mm in Sources */,
 				7B06E8160D0DC8C20032E38A /* PreferencePaneBase.mm in Sources */,
 				33C222870D106CDD00611936 /* PreferencesWindow.m in Sources */,
+				7B5073000D11E88400458384 /* KeyEquivView.mm in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -5986,6 +5997,7 @@
 				DE70BE720CBC7CB400C1CC63 /* ToolbarScriptItem.mm in Sources */,
 				7B06E8170D0DC8DC0032E38A /* PreferencePaneBase.mm in Sources */,
 				33C222890D106CDD00611936 /* PreferencesWindow.m in Sources */,
+				7B5073010D11E89600458384 /* KeyEquivView.mm in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
