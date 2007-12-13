@@ -89,10 +89,7 @@
 #include "nsIMsgVCardService.h"
 #include "nsCRTGlue.h"
 #include "nsIAbLDAPAttributeMap.h"
-
-#ifdef MOZ_XUL_APP
 #include "nsICommandLine.h"
-#endif
 
 // our schema is not fixed yet, but we still want some sort of objectclass
 // for now, use obsolete in the class name, hinting that this will change
@@ -1340,8 +1337,6 @@ NS_IMETHODIMP nsAddressBook::Convert4xVCardPrefs(const char *prefRoot, char **es
     return rv;
 }
 
-#ifdef MOZ_XUL_APP
-
 NS_IMETHODIMP
 nsAddressBook::Handle(nsICommandLine* aCmdLine)
 {
@@ -1370,9 +1365,3 @@ nsAddressBook::GetHelpInfo(nsACString& aResult)
   aResult.Assign(NS_LITERAL_CSTRING("  -addressbook         Open the address book at startup.\n"));
   return NS_OK;
 }
-
-#else // !MOZ_XUL_APP
-
-CMDLINEHANDLER_IMPL(nsAddressBook,"-addressbook","general.startup.addressbook","chrome://messenger/content/addressbook/addressbook.xul","Start with the addressbook.",NS_ADDRESSBOOKSTARTUPHANDLER_CONTRACTID,"Addressbook Startup Handler",PR_FALSE,"", PR_TRUE)
-
-#endif
