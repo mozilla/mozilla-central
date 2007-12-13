@@ -55,7 +55,6 @@ class nsIAbDirectory;
 class nsIAbLDAPAttributeMap;
 
 #define NC_RDF_NEWABCARD            NC_NAMESPACE_URI "NewCard"
-#define NC_RDF_MODIFY               NC_NAMESPACE_URI "Modify"
 #define NC_RDF_DELETE               NC_NAMESPACE_URI "Delete"
 #define NC_RDF_DELETECARD           NC_NAMESPACE_URI "DeleteCards"
 #define NC_RDF_NEWDIRECTORY         NC_NAMESPACE_URI "NewDirectory"
@@ -99,7 +98,7 @@ public:
   NS_DECL_NSICONTENTHANDLER
   NS_DECL_NSISTREAMLOADEROBSERVER
   NS_DECL_NSICOMMANDLINEHANDLER
-    
+
 protected:
 	nsresult DoCommand(nsIRDFDataSource *db, const nsACString& command,
                      nsISupportsArray *srcArray, nsISupportsArray *arguments);
