@@ -38,62 +38,59 @@
  *
  * ***** END LICENSE BLOCK ***** */
 
-#include "nscore.h"
-#include "nsIAddressBook.h"
 #include "nsAddressBook.h"
 #include "nsAbBaseCID.h"
-#include "nsIAddrBookSession.h"
-#include "nsIAbLDIFService.h"
 #include "nsAddrDatabase.h"
 #include "nsIAbMDBDirectory.h"
 #include "nsIOutputStream.h"
 #include "nsNetUtil.h"
-#include "msgCore.h"
 #include "nsMsgI18N.h"
 #include "nsIStringBundle.h"
 #include "nsMsgUtils.h"
 
 #include "plstr.h"
 #include "prmem.h"
-#include "prprf.h"
-
-#include "nsCOMPtr.h"
 #include "nsIRDFResource.h"
 #include "rdf.h"
 #include "nsIRDFService.h"
 #include "nsIServiceManager.h"
-#include "nsIDOMWindowInternal.h"
-#include "nsIContentViewer.h"
-#include "nsIDocShell.h"
-#include "nsStringGlue.h"
-#include "nsICategoryManager.h"
+#include "nsIDOMWindow.h"
 #include "nsIFilePicker.h"
-#include "nsIPrefService.h"
-#include "nsIPrefBranch.h"
-#include "nsIPrefLocalizedString.h"
-#include "nsIAbCard.h"
-#include "nsIAbMDBCard.h"
 #include "plbase64.h"
 #include "nsIWindowWatcher.h"
 
 #include "nsVCard.h"
 #include "nsVCardObj.h"
-#include "nsISupportsPrimitives.h"
-#include "nsIInterfaceRequestor.h"
-#include "nsIInterfaceRequestorUtils.h"
-#include "nsIDocShell.h"
-#include "nsAutoPtr.h"
-#include "nsIMsgVCardService.h"
-#include "nsCRTGlue.h"
 #include "nsIAbLDAPAttributeMap.h"
 #include "nsICommandLine.h"
+#include "nsILocalFile.h"
+
+struct ExportAttributesTableStruct
+{
+  const char* abColName;
+  PRUint32 plainTextStringID;
+};
 
 // our schema is not fixed yet, but we still want some sort of objectclass
 // for now, use obsolete in the class name, hinting that this will change
 // see bugs bug #116692 and #118454
 #define MOZ_AB_OBJECTCLASS "mozillaAbPersonAlpha"
 
-const ExportAttributesTableStruct EXPORT_ATTRIBUTES_TABLE[EXPORT_ATTRIBUTES_TABLE_COUNT] = {
+// for now, the oder of the attributes with PR_TRUE for includeForPlainText
+// should be in the same order as they are in the import code
+// see importMsgProperties and nsImportStringBundle.
+// 
+// XXX todo, merge with what's in nsAbLDAPProperties.cpp, so we can
+// use this for LDAP and LDIF export
+//
+// here's how we're coming up with the ldapPropertyName values
+// if they are specified in RFC 2798, use them
+// else use the 4.x LDIF attribute names (for example, "xmozillanickname"
+// as we want to allow export from mozilla back to 4.x, and other apps
+// are probably out there that can handle 4.x LDIF)
+// else use the MOZ_AB_LDIF_PREFIX prefix, see nsIAddrDatabase.idl
+
+const ExportAttributesTableStruct EXPORT_ATTRIBUTES_TABLE[] = {
   {kFirstNameColumn, 2100},
   {kLastNameColumn, 2101},
   {kDisplayNameColumn, 2102},
@@ -152,6 +149,7 @@ const ExportAttributesTableStruct EXPORT_ATTRIBUTES_TABLE[EXPORT_ATTRIBUTES_TABL
 //
 nsAddressBook::nsAddressBook()
 {
+  printf("****\n******\n******\nCreating nsIAddressBook\n****\n******\n******\n");
 }
 
 nsAddressBook::~nsAddressBook()
@@ -160,11 +158,9 @@ nsAddressBook::~nsAddressBook()
 
 NS_IMPL_THREADSAFE_ADDREF(nsAddressBook)
 NS_IMPL_THREADSAFE_RELEASE(nsAddressBook)
-NS_IMPL_QUERY_INTERFACE4(nsAddressBook,
+NS_IMPL_QUERY_INTERFACE2(nsAddressBook,
                          nsIAddressBook,
-                         nsICommandLineHandler,
-                         nsIContentHandler,
-                         nsIStreamLoaderObserver)
+                         nsICommandLineHandler)
 
 //
 // nsIAddressBook
@@ -455,7 +451,7 @@ nsAddressBook::ExportDirectoryToDelimitedText(nsIAbDirectory *aDirectory, const 
   nsCString revisedName;
   nsString columnName;
 
-  for (i = 0; i < EXPORT_ATTRIBUTES_TABLE_COUNT; i++) {
+  for (i = 0; i < NS_ARRAY_LENGTH(EXPORT_ATTRIBUTES_TABLE); i++) {
     if (EXPORT_ATTRIBUTES_TABLE[i].plainTextStringID != 0) {
 
       // We don't need to truncate the string here as getter_Copies will
@@ -475,7 +471,7 @@ nsAddressBook::ExportDirectoryToDelimitedText(nsIAbDirectory *aDirectory, const 
       if (revisedName.Length() != writeCount)
         return NS_ERROR_FAILURE;
 
-      if (i < EXPORT_ATTRIBUTES_TABLE_COUNT - 1) {
+      if (i < NS_ARRAY_LENGTH(EXPORT_ATTRIBUTES_TABLE) - 1) {
         rv = outputStream->Write(aDelim, aDelimLen, &writeCount);
         NS_ENSURE_SUCCESS(rv,rv);
 
@@ -512,7 +508,7 @@ nsAddressBook::ExportDirectoryToDelimitedText(nsIAbDirectory *aDirectory, const 
           nsString value;
           nsCString valueCStr;
 
-          for (i = 0; i < EXPORT_ATTRIBUTES_TABLE_COUNT; i++) {
+          for (i = 0; i < NS_ARRAY_LENGTH(EXPORT_ATTRIBUTES_TABLE); i++) {
             if (EXPORT_ATTRIBUTES_TABLE[i].plainTextStringID != 0) {
               rv = card->GetCardValue(EXPORT_ATTRIBUTES_TABLE[i].abColName,
                                       value);
@@ -578,7 +574,7 @@ nsAddressBook::ExportDirectoryToDelimitedText(nsIAbDirectory *aDirectory, const 
               continue; // go to next field
             }
 
-            if (i < EXPORT_ATTRIBUTES_TABLE_COUNT - 1) {
+            if (i < NS_ARRAY_LENGTH(EXPORT_ATTRIBUTES_TABLE) - 1) {
               rv = outputStream->Write(aDelim, aDelimLen, &writeCount);
               NS_ENSURE_SUCCESS(rv,rv);
               if (aDelimLen != writeCount)
@@ -681,7 +677,7 @@ nsAddressBook::ExportDirectoryToLDIF(nsIAbDirectory *aDirectory, nsILocalFile *a
 
           nsCAutoString ldapAttribute;
 
-          for (i = 0; i < EXPORT_ATTRIBUTES_TABLE_COUNT; i++) {
+          for (i = 0; i < NS_ARRAY_LENGTH(EXPORT_ATTRIBUTES_TABLE); i++) {
             if (NS_SUCCEEDED(attrMap->GetFirstAttribute(nsDependentCString(EXPORT_ATTRIBUTES_TABLE[i].abColName),
                                                         ldapAttribute)) &&
                 !ldapAttribute.IsEmpty()) {
@@ -1022,128 +1018,6 @@ static void convertFromVObject(VObject *vObj, nsIAbCard *aCard)
     return;
 }
 
-NS_IMETHODIMP nsAddressBook::HandleContent(const char * aContentType,
-                                           nsIInterfaceRequestor * aWindowContext,
-                                           nsIRequest *request)
-{
-  NS_ENSURE_ARG_POINTER(request);
-
-  nsresult rv = NS_OK;
-
-  // First of all, get the content type and make sure it is a content type we know how to handle!
-  if (PL_strcasecmp(aContentType, "application/x-addvcard") == 0) {
-    nsCOMPtr<nsIURI> uri;
-    nsCOMPtr<nsIChannel> aChannel = do_QueryInterface(request);
-    if (!aChannel) return NS_ERROR_FAILURE;
-
-    rv = aChannel->GetURI(getter_AddRefs(uri));
-    if (uri)
-    {
-        nsCAutoString path;
-        rv = uri->GetPath(path);
-        NS_ENSURE_SUCCESS(rv,rv);
-
-        const char *startOfVCard = strstr(path.get(), "add?vcard=");
-        if (startOfVCard)
-        {
-            nsCString unescapedData;
-            
-            // XXX todo, explain why we is escaped twice
-            MsgUnescapeString(nsDependentCString(startOfVCard + strlen("add?vcard=")), 
-                                                 0, unescapedData);
-
-            if (!aWindowContext)
-                return NS_ERROR_FAILURE;
-
-            nsCOMPtr<nsIDOMWindowInternal> parentWindow = do_GetInterface(aWindowContext);
-            if (!parentWindow)
-                return NS_ERROR_FAILURE;
-
-            nsCOMPtr <nsIAbCard> cardFromVCard;
-            rv = EscapedVCardToAbCard(unescapedData.get(), getter_AddRefs(cardFromVCard));
-            NS_ENSURE_SUCCESS(rv, rv);
-
-            nsCOMPtr<nsISupportsInterfacePointer> ifptr =
-                do_CreateInstance(NS_SUPPORTS_INTERFACE_POINTER_CONTRACTID, &rv);
-            NS_ENSURE_SUCCESS(rv, rv);
-
-            ifptr->SetData(cardFromVCard);
-            ifptr->SetDataIID(&NS_GET_IID(nsIAbCard));
-
-            nsCOMPtr<nsIDOMWindow> dialogWindow;
-
-            rv = parentWindow->OpenDialog(
-                NS_LITERAL_STRING("chrome://messenger/content/addressbook/abNewCardDialog.xul"),
-                EmptyString(),
-                NS_LITERAL_STRING("chrome,resizable=no,titlebar,modal,centerscreen"),
-                ifptr, getter_AddRefs(dialogWindow));
-            NS_ENSURE_SUCCESS(rv, rv);
-        }
-        rv = NS_OK;
-    }
-  }
-  else if (PL_strcasecmp(aContentType, "text/x-vcard") == 0) {
-    // create a vcard stream listener that can parse the data stream
-    // and bring up the appropriate UI
-
-    // (1) cancel the current load operation. We'll restart it
-    request->Cancel(NS_ERROR_ABORT);
-    // get the url we were trying to open
-    nsCOMPtr<nsIURI> uri;
-    nsCOMPtr<nsIChannel> channel = do_QueryInterface(request);
-    NS_ENSURE_TRUE(channel, NS_ERROR_FAILURE);
-
-    rv = channel->GetURI(getter_AddRefs(uri));
-    NS_ENSURE_SUCCESS(rv, rv);
-
-    // create a stream loader to handle the v-card data
-    nsCOMPtr<nsIStreamLoader> streamLoader;
-    rv = NS_NewStreamLoader(getter_AddRefs(streamLoader), uri, this, aWindowContext);
-    NS_ENSURE_SUCCESS(rv, rv);
-
-  }
-  else // The content-type was not application/x-addvcard...
-    return NS_ERROR_WONT_HANDLE_CONTENT;
-
-  return rv;
-}
-
-NS_IMETHODIMP nsAddressBook::OnStreamComplete(nsIStreamLoader *aLoader, nsISupports *aContext, nsresult aStatus, PRUint32 datalen, const PRUint8 *data)
-{
-  NS_ENSURE_ARG_POINTER(aContext);
-  NS_ENSURE_SUCCESS(aStatus, aStatus); // don't process the vcard if we got a status error
-  nsresult rv = NS_OK;
-
-  // take our vCard string and open up an address book window based on it
-  nsCOMPtr<nsIMsgVCardService> vCardService = do_GetService(NS_MSGVCARDSERVICE_CONTRACTID);
-  if (vCardService)
-  {
-    nsAutoPtr<VObject> vObj(vCardService->Parse_MIME((const char *)data, datalen));
-    if (vObj)
-    {
-      PRInt32 len = 0;
-      nsCString vCard;
-      vCard.Adopt(vCardService->WriteMemoryVObjects(0, &len, vObj, PR_FALSE));
-
-      nsCOMPtr <nsIAbCard> cardFromVCard;
-      rv = EscapedVCardToAbCard(vCard.get(), getter_AddRefs(cardFromVCard));
-      NS_ENSURE_SUCCESS(rv, rv);
-
-      nsCOMPtr<nsIDOMWindowInternal> parentWindow = do_GetInterface(aContext);
-      NS_ENSURE_TRUE(parentWindow, NS_ERROR_FAILURE);
-
-      nsCOMPtr<nsIDOMWindow> dialogWindow;
-      rv = parentWindow->OpenDialog(
-           NS_LITERAL_STRING("chrome://messenger/content/addressbook/abNewCardDialog.xul"),
-           EmptyString(),
-           NS_LITERAL_STRING("chrome,resizable=no,titlebar,modal,centerscreen"),
-           cardFromVCard, getter_AddRefs(dialogWindow));
-    }
-  }
-
-  return rv;
-}
-
 NS_IMETHODIMP nsAddressBook::EscapedVCardToAbCard(const char *aEscapedVCardStr, nsIAbCard **aCard)
 {
     NS_ENSURE_ARG_POINTER(aEscapedVCardStr);
@@ -1179,69 +1053,6 @@ NS_IMETHODIMP nsAddressBook::AbCardToEscapedVCard(nsIAbCard *aCard, char **aEsca
     nsresult rv = aCard->ConvertToEscapedVCard(aEscapedVCardStr);
     NS_ENSURE_SUCCESS(rv,rv);
     return rv;
-}
-
-static nsresult addProperty(char **currentVCard, const char *currentRoot, const char *mask)
-{
-    // keep in mind as we add properties that we want to filter out any begin and end vcard types....because
-    // we add those automatically...
-
-    const char *beginPhrase = "begin";
-
-    nsCOMPtr<nsIPrefBranch> prefBranch = do_GetService(NS_PREFSERVICE_CONTRACTID);
-    if (currentVCard && prefBranch)
-    {
-        PRUint32 childCount;
-        char **childArray;
-        nsresult rv = prefBranch->GetChildList(currentRoot, &childCount, &childArray);
-        NS_ENSURE_SUCCESS(rv, rv);
-
-        for (PRUint32 i = 0; i < childCount; ++i)
-        {
-            char *child = childArray[i];
-
-            if (!strcmp(child, currentRoot))
-                continue;
-
-            // first iterate over the child in case the child has children
-            addProperty(currentVCard, child, mask);
-
-            // child length should be greater than the mask....
-            if (strlen(child) > strlen(mask) + 1)  // + 1 for the '.' in .property
-            {
-                nsCString value;
-                prefBranch->GetCharPref(child, getter_Copies(value));
-                if (mask)
-                    child += strlen(mask) + 1;  // eat up the "mail.identity.vcard" part...
-                // turn all '.' into ';' which is what vcard format uses
-                char * marker = strchr(child, '.');
-                while (marker)
-                {
-                    *marker = ';';
-                    marker = strchr(child, '.');
-                }
-
-                // filter property to make sure it is one we want to add.....
-                if ((PL_strncasecmp(child, beginPhrase, strlen(beginPhrase)) != 0) && (PL_strncasecmp(child, VCEndProp, strlen(VCEndProp)) != 0))
-                {
-                    if (!value.IsEmpty()) // only add the value is not an empty string...
-                        if (*currentVCard)
-                        {
-                            char * tempString = *currentVCard;
-                            *currentVCard = PR_smprintf ("%s%s:%s%s", tempString, child, value.get(), "\n");
-                            PR_FREEIF(tempString);
-                        }
-                        else
-                            *currentVCard = PR_smprintf ("%s:%s%s", child, value.get(), "\n");
-                }
-            }
-            else {
-                NS_ASSERTION(0, "child length should be greater than the mask");
-            }
-        }
-        NS_FREE_XPCOM_ALLOCATED_POINTER_ARRAY(childCount, childArray);
-    }
-    return NS_OK;
 }
 
 NS_IMETHODIMP

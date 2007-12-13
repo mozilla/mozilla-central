@@ -43,7 +43,14 @@ interface nsIAbCard;
 interface nsIAbDirectoryProperties;
 interface nsIRDFDataSource;
 
-[scriptable, uuid(0823e46e-8802-42d5-b91b-7e4816c8d2f0)]
+/**
+ * nsIAddressBook is an interface to the address book service accessible
+ * via the contract id "@mozilla.org/addressbook;1"
+ *
+ * It contains the main functions to create and delete address books as well
+ * as some helper functions.
+ */
+[scriptable, uuid(bf83d970-1697-40ad-aad1-3b0606957c32)]
 interface nsIAddressBook : nsISupports 
 {
   /**
