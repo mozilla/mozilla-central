@@ -1260,7 +1260,6 @@
 		DE74F7550AB25EDA00FD1D5B /* FeedServiceController.mm in Sources */ = {isa = PBXBuildFile; fileRef = DE74F7540AB25EDA00FD1D5B /* FeedServiceController.mm */; };
 		DE74F7560AB25EDA00FD1D5B /* FeedServiceController.mm in Sources */ = {isa = PBXBuildFile; fileRef = DE74F7540AB25EDA00FD1D5B /* FeedServiceController.mm */; };
 		DE74F75D0AB2605B00FD1D5B /* AppListMenuFactory.h in Headers */ = {isa = PBXBuildFile; fileRef = DE74F74A0AB25E9900FD1D5B /* AppListMenuFactory.h */; };
-		DE74F75F0AB2609400FD1D5B /* AppListMenuFactory.mm in Sources */ = {isa = PBXBuildFile; fileRef = DE74F7470AB25E7D00FD1D5B /* AppListMenuFactory.mm */; };
 		DE74F7620AB2612700FD1D5B /* OpenFeed.nib in Resources */ = {isa = PBXBuildFile; fileRef = DE74F7600AB2612700FD1D5B /* OpenFeed.nib */; };
 		DE74F7630AB2612700FD1D5B /* OpenFeed.nib in Resources */ = {isa = PBXBuildFile; fileRef = DE74F7600AB2612700FD1D5B /* OpenFeed.nib */; };
 		DE74F7650AB2618200FD1D5B /* feed.tif in Resources */ = {isa = PBXBuildFile; fileRef = DE74F7640AB2618200FD1D5B /* feed.tif */; };
@@ -5845,7 +5844,6 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				DE74F75F0AB2609400FD1D5B /* AppListMenuFactory.mm in Sources */,
 				3F44ADAA05BDFB9F00CB4B08 /* Navigation.mm in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
