@@ -44,7 +44,7 @@ interface nsIAbDirectoryProperties;
 interface nsISupportsArray;
 interface nsIRDFDataSource;
 
-[scriptable, uuid(70ed1e50-4824-443f-aaea-c0efb7f2ec1a)]
+[scriptable, uuid(567584de-4bc3-431e-ac21-659a38ca5fa6)]
 interface nsIAddressBook : nsISupports 
 {
   /**
@@ -66,6 +66,5 @@ interface nsIAddressBook : nsISupports
   boolean mailListNameExists(in wstring name);
   nsIAbCard escapedVCardToAbCard(in string escapedVCardStr);
   string abCardToEscapedVCard(in nsIAbCard aCard);
-  void convert4xVCardPrefs(in string prefRoot, out string escapedVCardStr);
 };
 

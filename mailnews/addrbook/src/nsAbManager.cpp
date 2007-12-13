@@ -1207,34 +1207,6 @@ static nsresult addProperty(char **currentVCard, const char *currentRoot, const 
     return NS_OK;
 }
 
-NS_IMETHODIMP nsAddressBook::Convert4xVCardPrefs(const char *prefRoot, char **escapedVCardStr)
-{
-    NS_ENSURE_ARG_POINTER(prefRoot);
-    NS_ENSURE_ARG_POINTER(escapedVCardStr);
-
-    char *vCardString = nsnull;
-    vCardString = PL_strdup("begin:vcard \n");
-
-    nsresult rv = addProperty(&vCardString, prefRoot, prefRoot);
-    NS_ENSURE_SUCCESS(rv,rv);
-
-    char *vcard = PR_smprintf("%send:vcard\n", vCardString);
-    PR_FREEIF(vCardString);
-
-    VObject *vObj = parse_MIME(vcard, strlen(vcard));
-    PR_FREEIF(vcard);
-
-    nsCOMPtr<nsIAbCard> cardFromVCard = do_CreateInstance(NS_ABCARDPROPERTY_CONTRACTID);
-    convertFromVObject(vObj, cardFromVCard);
-
-    if (vObj)
-        cleanVObject(vObj);
-
-    rv = cardFromVCard->ConvertToEscapedVCard(escapedVCardStr);
-    NS_ENSURE_SUCCESS(rv,rv);
-    return rv;
-}
-
 NS_IMETHODIMP
 nsAddressBook::Handle(nsICommandLine* aCmdLine)
 {
