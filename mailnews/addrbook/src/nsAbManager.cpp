@@ -59,9 +59,8 @@
 #include "prprf.h"
 
 #include "nsCOMPtr.h"
-#include "nsIRDFCompositeDataSource.h"
 #include "nsIRDFResource.h"
-#include "nsRDFResource.h"
+#include "rdf.h"
 #include "nsIRDFService.h"
 #include "nsIServiceManager.h"
 #include "nsIDOMWindowInternal.h"
@@ -164,7 +163,7 @@ NS_IMPL_THREADSAFE_ADDREF(nsAddressBook)
 NS_IMPL_THREADSAFE_RELEASE(nsAddressBook)
 NS_IMPL_QUERY_INTERFACE4(nsAddressBook,
                          nsIAddressBook,
-                         ICOMMANDLINEHANDLER,
+                         nsICommandLineHandler,
                          nsIContentHandler,
                          nsIStreamLoaderObserver)
 
@@ -194,34 +193,52 @@ NS_IMETHODIMP nsAddressBook::NewAddressBook(const nsAString &aDirName,
   return rv;
 }
 
-NS_IMETHODIMP nsAddressBook::DeleteAddressBooks
-(nsIRDFDataSource* aDS, nsISupportsArray *aParentDir, nsISupportsArray *aResourceArray)
+NS_IMETHODIMP nsAddressBook::DeleteAddressBook(const nsACString &aURI)
 {
-  NS_ENSURE_ARG_POINTER(aDS);
-  NS_ENSURE_ARG_POINTER(aParentDir);
-  NS_ENSURE_ARG_POINTER(aResourceArray);
+  // Find the address book
+  nsresult rv;
 
-  return DoCommand(aDS, NS_LITERAL_CSTRING(NC_RDF_DELETE), aParentDir, aResourceArray);
-}
-
-nsresult nsAddressBook::DoCommand(nsIRDFDataSource* db,
-                                  const nsACString& command,
-                                  nsISupportsArray *srcArray,
-                                  nsISupportsArray *argumentArray)
-{
-  nsresult rv = NS_OK;
-
-  nsCOMPtr<nsIRDFService> rdfService = do_GetService (NS_RDF_CONTRACTID "/rdf-service;1", &rv);
+  nsCOMPtr<nsIRDFService> rdfService =
+    do_GetService(NS_RDF_CONTRACTID "/rdf-service;1", &rv);
   NS_ENSURE_SUCCESS(rv, rv);
 
-  nsCOMPtr<nsIRDFResource> commandResource;
-  rv = rdfService->GetResource(command, getter_AddRefs(commandResource));
-  if(NS_SUCCEEDED(rv))
+  nsCOMPtr<nsIRDFResource> directoryResource;
+  rv = rdfService->GetResource(aURI, getter_AddRefs(directoryResource));
+  NS_ENSURE_SUCCESS(rv, rv);
+
+  nsCOMPtr<nsIAbDirectory> directory = do_QueryInterface(directoryResource, &rv);
+  NS_ENSURE_SUCCESS(rv, rv);
+
+  // Now find the parent directory
+  PRBool isMailList;
+  rv = directory->GetIsMailList(&isMailList);
+  NS_ENSURE_SUCCESS(rv, rv);
+
+  nsCString uriToUse;
+  if (!isMailList)
+    // We only accept one layer of address books at the moment.
+    uriToUse.AppendLiteral(kAllDirectoryRoot);
+  else
   {
-    rv = db->DoCommand(srcArray, commandResource, argumentArray);
+    uriToUse.Append(aURI);
+
+    PRInt32 pos = uriToUse.RFindChar('/');
+
+    // If we didn't find a / something really bad has happened
+    if (pos == -1)
+      return NS_ERROR_FAILURE;
+
+    uriToUse = StringHead(uriToUse, pos);
   }
 
-  return rv;
+  nsCOMPtr<nsIRDFResource> parentResource;
+  rv = rdfService->GetResource(uriToUse, getter_AddRefs(parentResource));
+  NS_ENSURE_SUCCESS(rv, rv);
+
+  nsCOMPtr<nsIAbDirectory> parentDir(do_QueryInterface(parentResource, &rv));
+  NS_ENSURE_SUCCESS(rv, rv);
+
+  return parentDir->DeleteDirectory(directory);
 }
 
 NS_IMETHODIMP nsAddressBook::MailListNameExists(const PRUnichar *name, PRBool *exist)

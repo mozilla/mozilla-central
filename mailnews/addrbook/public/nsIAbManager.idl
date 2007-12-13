@@ -44,7 +44,7 @@ interface nsIAbDirectoryProperties;
 interface nsISupportsArray;
 interface nsIRDFDataSource;
 
-[scriptable, uuid(567584de-4bc3-431e-ac21-659a38ca5fa6)]
+[scriptable, uuid(0823e46e-8802-42d5-b91b-7e4816c8d2f0)]
 interface nsIAddressBook : nsISupports 
 {
   /**
@@ -60,7 +60,13 @@ interface nsIAddressBook : nsISupports
   ACString newAddressBook(in AString aDirName, in ACString aURI,
                           in unsigned long aType);
 
-  void deleteAddressBooks(in nsIRDFDataSource aDS, in nsISupportsArray aParentDir, in nsISupportsArray aResourceArray);
+  /**
+   * Deletes an address book.
+   *
+   * @param aURI      The URI for the address book. This is specific to each
+   *                  type of address book.
+   */
+  void deleteAddressBook(in ACString aURI);
 
   void exportAddressBook(in nsIDOMWindow aParentWin, in nsIAbDirectory aDirectory);
   boolean mailListNameExists(in wstring name);

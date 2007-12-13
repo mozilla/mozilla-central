@@ -45,19 +45,11 @@
 #include "nsIComponentManager.h"
 #include "nsIContentHandler.h"
 #include "nsIStreamLoader.h"
-#include "rdf.h"
-
 #include "nsICommandLineHandler.h"
-#define ICOMMANDLINEHANDLER nsICommandLineHandler
 
 class nsILocalFile;
 class nsIAbDirectory;
 class nsIAbLDAPAttributeMap;
-
-#define NC_RDF_NEWABCARD            NC_NAMESPACE_URI "NewCard"
-#define NC_RDF_DELETE               NC_NAMESPACE_URI "Delete"
-#define NC_RDF_DELETECARD           NC_NAMESPACE_URI "DeleteCards"
-#define NC_RDF_NEWDIRECTORY         NC_NAMESPACE_URI "NewDirectory"
 
 #define   EXPORT_ATTRIBUTES_TABLE_COUNT      51
 
@@ -84,7 +76,7 @@ const extern ExportAttributesTableStruct EXPORT_ATTRIBUTES_TABLE[EXPORT_ATTRIBUT
 // else use the MOZ_AB_LDIF_PREFIX prefix, see nsIAddrDatabase.idl
 
 class nsAddressBook : public nsIAddressBook,
-                      public ICOMMANDLINEHANDLER,
+                      public nsICommandLineHandler,
                       public nsIContentHandler,
                       public nsIStreamLoaderObserver
 {
@@ -98,10 +90,6 @@ public:
   NS_DECL_NSICONTENTHANDLER
   NS_DECL_NSISTREAMLOADEROBSERVER
   NS_DECL_NSICOMMANDLINEHANDLER
-
-protected:
-	nsresult DoCommand(nsIRDFDataSource *db, const nsACString& command,
-                     nsISupportsArray *srcArray, nsISupportsArray *arguments);
 
 private:
   nsresult ExportDirectoryToDelimitedText(nsIAbDirectory *aDirectory, const char *aDelim, PRUint32 aDelimLen, nsILocalFile *aLocalFile);
