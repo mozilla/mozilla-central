@@ -67,8 +67,7 @@
 #include "nsIDOMWindowInternal.h"
 #include "nsIContentViewer.h"
 #include "nsIDocShell.h"
-#include "nsString.h"
-#include "nsReadableUtils.h"
+#include "nsStringGlue.h"
 #include "nsICategoryManager.h"
 #include "nsIFilePicker.h"
 #include "nsIPrefService.h"
@@ -361,8 +360,9 @@ NS_IMETHODIMP nsAddressBook::ExportAddressBook(nsIDOMWindow *aParentWin, nsIAbDi
     default:
     case LDIF_EXPORT_TYPE: // ldif
       // If filename does not have the correct ext, add one.
-      if ((fileName.RFind(LDIF_FILE_EXTENSION, PR_TRUE, -1, sizeof(LDIF_FILE_EXTENSION)-1) == kNotFound) &&
-       (fileName.RFind(LDIF_FILE_EXTENSION2, PR_TRUE, -1, sizeof(LDIF_FILE_EXTENSION2)-1) == kNotFound)) {
+      if ((fileName.Find(LDIF_FILE_EXTENSION, fileName.Length() - strlen(LDIF_FILE_EXTENSION), PR_TRUE) == -1) && 
+          (fileName.Find(LDIF_FILE_EXTENSION2, fileName.Length() - strlen(LDIF_FILE_EXTENSION2), PR_TRUE) == -1)) {
+
 
        // Add the extenstion and build a new localFile.
        fileName.AppendLiteral(LDIF_FILE_EXTENSION2);
@@ -373,7 +373,7 @@ NS_IMETHODIMP nsAddressBook::ExportAddressBook(nsIDOMWindow *aParentWin, nsIAbDi
 
     case CSV_EXPORT_TYPE: // csv
       // If filename does not have the correct ext, add one.
-      if (fileName.RFind(CSV_FILE_EXTENSION, PR_TRUE, -1, sizeof(CSV_FILE_EXTENSION)-1) == kNotFound) {
+      if (fileName.Find(CSV_FILE_EXTENSION, fileName.Length() - strlen(CSV_FILE_EXTENSION), PR_TRUE) == -1) {
 
        // Add the extenstion and build a new localFile.
        fileName.AppendLiteral(CSV_FILE_EXTENSION);
@@ -384,8 +384,8 @@ NS_IMETHODIMP nsAddressBook::ExportAddressBook(nsIDOMWindow *aParentWin, nsIAbDi
 
     case TAB_EXPORT_TYPE: // tab & text
       // If filename does not have the correct ext, add one.
-      if ( (fileName.RFind(TXT_FILE_EXTENSION, PR_TRUE, -1, sizeof(TXT_FILE_EXTENSION)-1) == kNotFound) &&
-          (fileName.RFind(TAB_FILE_EXTENSION, PR_TRUE, -1, sizeof(TAB_FILE_EXTENSION)-1) == kNotFound) ) {
+      if ((fileName.Find(TXT_FILE_EXTENSION, fileName.Length() - strlen(TXT_FILE_EXTENSION), PR_TRUE) == -1) && 
+          (fileName.Find(TAB_FILE_EXTENSION, fileName.Length() - strlen(TAB_FILE_EXTENSION), PR_TRUE) == -1)) {
 
        // Add the extenstion and build a new localFile.
        fileName.AppendLiteral(TXT_FILE_EXTENSION);
@@ -498,17 +498,29 @@ nsAddressBook::ExportDirectoryToDelimitedText(nsIAbDirectory *aDirectory, const 
               // of the string we need to quote the double quote(s) as well.
               nsAutoString newValue(value);
               PRBool needsQuotes = PR_FALSE;
-              if(newValue.FindChar('"') != kNotFound)
+              if(newValue.FindChar('"') != -1)
               {
                 needsQuotes = PR_TRUE;
-                newValue.ReplaceSubstring(NS_LITERAL_STRING("\"").get(), NS_LITERAL_STRING("\"\"").get());
+                
+                PRInt32 match = 0;
+                PRUint32 offset = 0;
+                nsString oldSubstr = NS_LITERAL_STRING("\"");
+                nsString newSubstr = NS_LITERAL_STRING("\"\""); 
+                while (offset < newValue.Length()) {
+                    match = newValue.Find(oldSubstr, offset);
+                    if (match == -1)
+                        break;
+
+                    newValue.Replace(offset + match, oldSubstr.Length(), newSubstr);
+                    offset += (match + newSubstr.Length());
+                }
               }
-              if (!needsQuotes && (newValue.FindChar(',') != kNotFound || newValue.FindChar('\x09') != kNotFound))
+              if (!needsQuotes && (newValue.FindChar(',') != -1 || newValue.FindChar('\x09') != -1))
                 needsQuotes = PR_TRUE;
 
               // Make sure we quote if containing CR/LF.
-              if (newValue.FindChar('\r') != kNotFound ||
-                  newValue.FindChar('\n') != kNotFound)
+              if (newValue.FindChar('\r') != -1 ||
+                  newValue.FindChar('\n') != -1)
                   needsQuotes = PR_TRUE;
 
               if (needsQuotes)
