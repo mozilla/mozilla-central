@@ -225,91 +225,19 @@ nsresult nsAddressBook::DoCommand(nsIRDFDataSource* db,
   return rv;
 }
 
-NS_IMETHODIMP nsAddressBook::GetAbDatabaseFromURI(const char *aURI, nsIAddrDatabase **aDB)
-{
-  NS_ENSURE_ARG_POINTER(aURI);
-  NS_ENSURE_ARG_POINTER(aDB);
-
-  nsresult rv;
-
-  nsCOMPtr<nsIAddrBookSession> abSession =
-    do_GetService(NS_ADDRBOOKSESSION_CONTRACTID, &rv);
-  NS_ENSURE_SUCCESS(rv,rv);
-
-  nsCOMPtr<nsILocalFile> dbPath;
-  rv = abSession->GetUserProfileDirectory(getter_AddRefs(dbPath));
-  NS_ENSURE_SUCCESS(rv,rv);
-
- /* directory URIs are of the form
-  * moz-abmdbdirectory://foo
-  * mailing list URIs are of the form
-  * moz-abmdbdirectory://foo/bar
-  *
-  * if we are passed a mailing list URI, we want the db for the parent.
-  */
-  if (strlen(aURI) < kMDBDirectoryRootLen)
-    return NS_ERROR_UNEXPECTED;
-
-  nsCAutoString file(aURI + kMDBDirectoryRootLen);
-  PRInt32 pos = file.Find("/");
-  if (pos != kNotFound)
-    file.SetLength(pos);
-  rv = dbPath->AppendNative(file);
-  NS_ENSURE_SUCCESS(rv,rv);
-
-  nsCOMPtr<nsIAddrDatabase> addrDBFactory =
-    do_GetService(NS_ADDRDATABASE_CONTRACTID, &rv);
-  NS_ENSURE_SUCCESS(rv,rv);
-
-  /* Don't create otherwise we end up re-opening a deleted address book */
-  /* bug 66410 */
-  rv = addrDBFactory->Open(dbPath, PR_FALSE /* no create */, PR_TRUE, aDB);
-
-  return rv;
-}
-
-nsresult nsAddressBook::GetAbDatabaseFromFile(char* pDbFile, nsIAddrDatabase **db)
-{
-    nsresult rv = NS_OK;
-    nsCOMPtr<nsIAddrDatabase> database;
-    if (pDbFile)
-    {
-        nsCOMPtr<nsILocalFile> dbPath;
-
-        nsCOMPtr<nsIAddrBookSession> abSession =
-                 do_GetService(NS_ADDRBOOKSESSION_CONTRACTID, &rv);
-        if(NS_SUCCEEDED(rv))
-        {
-          rv = abSession->GetUserProfileDirectory(getter_AddRefs(dbPath));
-          NS_ENSURE_SUCCESS(rv, rv);
-        }
-
-        nsCAutoString file(pDbFile);
-        rv = dbPath->AppendNative(file);
-        NS_ENSURE_SUCCESS(rv,rv);
-
-        nsCOMPtr<nsIAddrDatabase> addrDBFactory =
-                 do_GetService(NS_ADDRDATABASE_CONTRACTID, &rv);
-        if (NS_SUCCEEDED(rv) && addrDBFactory)
-            rv = addrDBFactory->Open(dbPath, PR_TRUE, PR_TRUE, getter_AddRefs(database));
-
-        if (NS_SUCCEEDED(rv) && database)
-        {
-            NS_IF_ADDREF(*db = database);
-        }
-        else
-            rv = NS_ERROR_NULL_POINTER;
-
-    }
-    return NS_OK;
-}
-
 NS_IMETHODIMP nsAddressBook::MailListNameExists(const PRUnichar *name, PRBool *exist)
 {
   *exist = PR_FALSE;
   nsVoidArray* pDirectories = DIR_GetDirectories();
   if (pDirectories)
   {
+    nsresult rv;
+    nsCOMPtr<nsIRDFService> rdfService = do_GetService (NS_RDF_CONTRACTID "/rdf-service;1", &rv);
+    NS_ENSURE_SUCCESS(rv, rv);
+
+    nsCOMPtr<nsIRDFResource> resource;
+    nsCOMPtr<nsIAbMDBDirectory> directory;
+
     PRInt32 count = pDirectories->Count();
     /* check: only show personal address book for now */
     /* not showing 4.x address book unitl we have the converting done */
@@ -319,15 +247,16 @@ NS_IMETHODIMP nsAddressBook::MailListNameExists(const PRUnichar *name, PRBool *e
       DIR_Server *server = (DIR_Server *)pDirectories->ElementAt(i);
       if (server->dirType == PABDirectory)
       {
-        /* check: this is a 4.x file, remove when conversion is done */
-        PRUint32 fileNameLen = strlen(server->fileName);
-        if ((fileNameLen > kABFileName_PreviousSuffixLen) &&
-          strcmp(server->fileName + fileNameLen - kABFileName_PreviousSuffixLen, kABFileName_PreviousSuffix) == 0)
-          continue;
+        rv = rdfService->GetResource(nsDependentCString(server->uri),
+                                     getter_AddRefs(resource));
+        NS_ENSURE_SUCCESS(rv, rv);
+
+        directory = do_QueryInterface(resource, &rv);
+        NS_ENSURE_SUCCESS(rv, rv);
 
         nsCOMPtr<nsIAddrDatabase> database;
-        nsresult rv = GetAbDatabaseFromFile(server->fileName, getter_AddRefs(database));
-        if (NS_SUCCEEDED(rv) && database)
+        nsresult rv = directory->GetDatabase(getter_AddRefs(database));
+        if (NS_SUCCEEDED(rv))
         {
           database->FindMailListbyUnicodeName(name, exist);
           if (*exist)
