@@ -102,7 +102,6 @@ public:
 protected:
 	nsresult DoCommand(nsIRDFDataSource *db, const nsACString& command,
                      nsISupportsArray *srcArray, nsISupportsArray *arguments);
-	nsresult GetAbDatabaseFromFile(char* pDbFile, nsIAddrDatabase **db);
 
 private:
   nsresult ExportDirectoryToDelimitedText(nsIAbDirectory *aDirectory, const char *aDelim, PRUint32 aDelimLen, nsILocalFile *aLocalFile);
