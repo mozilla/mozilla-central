@@ -87,7 +87,7 @@
 #include "nsIDocShell.h"
 #include "nsAutoPtr.h"
 #include "nsIMsgVCardService.h"
-#include "nsCRT.h"
+#include "nsCRTGlue.h"
 #include "nsIAbLDAPAttributeMap.h"
 
 #ifdef MOZ_XUL_APP
@@ -957,13 +957,13 @@ PRBool nsAddressBook::IsSafeLDIFString(const PRUnichar *aStr)
     return PR_FALSE;
 
   PRUint32 i;
-  PRUint32 len = nsCRT::strlen(aStr);
+  PRUint32 len = NS_strlen(aStr);
   for (i=0; i<len; i++) {
     // If string contains CR or LF, it is not safe for LDIF
     // and MUST be base64 encoded
     if ((aStr[i] == PRUnichar('\n')) ||
         (aStr[i] == PRUnichar('\r')) ||
-        (!nsCRT::IsAscii(aStr[i])))
+        (!NS_IsAscii(aStr[i])))
       return PR_FALSE;
   }
   return PR_TRUE;
@@ -1095,7 +1095,7 @@ NS_IMETHODIMP nsAddressBook::HandleContent(const char * aContentType,
   nsresult rv = NS_OK;
 
   // First of all, get the content type and make sure it is a content type we know how to handle!
-  if (nsCRT::strcasecmp(aContentType, "application/x-addvcard") == 0) {
+  if (PL_strcasecmp(aContentType, "application/x-addvcard") == 0) {
     nsCOMPtr<nsIURI> uri;
     nsCOMPtr<nsIChannel> aChannel = do_QueryInterface(request);
     if (!aChannel) return NS_ERROR_FAILURE;
@@ -1147,7 +1147,7 @@ NS_IMETHODIMP nsAddressBook::HandleContent(const char * aContentType,
         rv = NS_OK;
     }
   }
-  else if (nsCRT::strcasecmp(aContentType, "text/x-vcard") == 0) {
+  else if (PL_strcasecmp(aContentType, "text/x-vcard") == 0) {
     // create a vcard stream listener that can parse the data stream
     // and bring up the appropriate UI
 
