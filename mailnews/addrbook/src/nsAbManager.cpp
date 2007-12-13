@@ -560,9 +560,9 @@ nsAddressBook::ExportDirectoryToDelimitedText(nsIAbDirectory *aDirectory, const 
       }
     }
   }
-  rv = outputStream->Write(NS_LINEBREAK, NS_LINEBREAK_LEN, &writeCount);
+  rv = outputStream->Write(MSG_LINEBREAK, MSG_LINEBREAK_LEN, &writeCount);
   NS_ENSURE_SUCCESS(rv,rv);
-  if (NS_LINEBREAK_LEN != writeCount)
+  if (MSG_LINEBREAK_LEN != writeCount)
     return NS_ERROR_FAILURE;
 
   rv = aDirectory->GetChildCards(getter_AddRefs(cardsEnumerator));
@@ -651,9 +651,9 @@ nsAddressBook::ExportDirectoryToDelimitedText(nsIAbDirectory *aDirectory, const 
           }
 
           // write out the linebreak that separates the cards
-          rv = outputStream->Write(NS_LINEBREAK, NS_LINEBREAK_LEN, &writeCount);
+          rv = outputStream->Write(MSG_LINEBREAK, MSG_LINEBREAK_LEN, &writeCount);
           NS_ENSURE_SUCCESS(rv,rv);
-          if (NS_LINEBREAK_LEN != writeCount)
+          if (MSG_LINEBREAK_LEN != writeCount)
             return NS_ERROR_FAILURE;
         }
       }
@@ -767,7 +767,7 @@ nsAddressBook::ExportDirectoryToLDIF(nsIAbDirectory *aDirectory, nsILocalFile *a
                 rv = AppendProperty(ldapAttribute.get(), value.get(), valueCStr);
                 NS_ENSURE_SUCCESS(rv,rv);
                 
-                valueCStr += NS_LINEBREAK;
+                valueCStr += MSG_LINEBREAK;
               }
               else
                 valueCStr.Truncate();
@@ -788,9 +788,9 @@ nsAddressBook::ExportDirectoryToLDIF(nsIAbDirectory *aDirectory, nsILocalFile *a
           }
         
           // write out the linebreak that separates the cards
-          rv = outputStream->Write(NS_LINEBREAK, NS_LINEBREAK_LEN, &writeCount);
+          rv = outputStream->Write(MSG_LINEBREAK, MSG_LINEBREAK_LEN, &writeCount);
           NS_ENSURE_SUCCESS(rv,rv);
-          if (NS_LINEBREAK_LEN != writeCount)
+          if (MSG_LINEBREAK_LEN != writeCount)
             return NS_ERROR_FAILURE;
         }
       }
@@ -813,9 +813,9 @@ nsresult nsAddressBook::AppendLDIFForMailList(nsIAbCard *aCard, nsIAbLDAPAttribu
   rv = AppendDNForCard("dn", aCard, aAttrMap, aResult);
   NS_ENSURE_SUCCESS(rv,rv);
 
-  aResult += NS_LINEBREAK \
-             "objectclass: top" NS_LINEBREAK \
-             "objectclass: groupOfNames" NS_LINEBREAK;
+  aResult += MSG_LINEBREAK \
+             "objectclass: top" MSG_LINEBREAK \
+             "objectclass: groupOfNames" MSG_LINEBREAK;
 
   rv = aCard->GetCardValue(kDisplayNameColumn, attrValue);
   NS_ENSURE_SUCCESS(rv,rv);
@@ -828,7 +828,7 @@ nsresult nsAddressBook::AppendLDIFForMailList(nsIAbCard *aCard, nsIAbLDAPAttribu
 
   rv = AppendProperty(ldapAttributeName.get(), attrValue.get(), aResult);
   NS_ENSURE_SUCCESS(rv,rv);
-  aResult += NS_LINEBREAK;
+  aResult += MSG_LINEBREAK;
 
   rv = aAttrMap->GetFirstAttribute(NS_LITERAL_CSTRING(kNicknameColumn),
                                   ldapAttributeName);
@@ -840,7 +840,7 @@ nsresult nsAddressBook::AppendLDIFForMailList(nsIAbCard *aCard, nsIAbLDAPAttribu
   if (!attrValue.IsEmpty()) {
     rv = AppendProperty(ldapAttributeName.get(), attrValue.get(), aResult);
     NS_ENSURE_SUCCESS(rv,rv);
-    aResult += NS_LINEBREAK;
+    aResult += MSG_LINEBREAK;
   }
 
   rv = aAttrMap->GetFirstAttribute(NS_LITERAL_CSTRING(kNotesColumn),
@@ -853,7 +853,7 @@ nsresult nsAddressBook::AppendLDIFForMailList(nsIAbCard *aCard, nsIAbLDAPAttribu
   if (!attrValue.IsEmpty()) {
     rv = AppendProperty(ldapAttributeName.get(), attrValue.get(), aResult);
     NS_ENSURE_SUCCESS(rv,rv);
-    aResult += NS_LINEBREAK;
+    aResult += MSG_LINEBREAK;
   }
 
   nsCOMPtr<nsIRDFService> rdfService = do_GetService("@mozilla.org/rdf/rdf-service;1", &rv);
@@ -884,12 +884,12 @@ nsresult nsAddressBook::AppendLDIFForMailList(nsIAbCard *aCard, nsIAbLDAPAttribu
         rv = AppendDNForCard("member", listCard, aAttrMap, aResult);
         NS_ENSURE_SUCCESS(rv,rv);
 
-        aResult += NS_LINEBREAK;
+        aResult += MSG_LINEBREAK;
       }
     }
   }
   
-  aResult += NS_LINEBREAK;
+  aResult += MSG_LINEBREAK;
   return NS_OK;
 }
 
@@ -937,14 +937,12 @@ nsresult nsAddressBook::AppendBasicLDIFForCard(nsIAbCard *aCard, nsIAbLDAPAttrib
 {
   nsresult rv = AppendDNForCard("dn", aCard, aAttrMap, aResult);
   NS_ENSURE_SUCCESS(rv,rv);
-  aResult += NS_LINEBREAK \
-    "objectclass: top" NS_LINEBREAK \
-    "objectclass: person" NS_LINEBREAK \
-    "objectclass: organizationalPerson" NS_LINEBREAK \
-    "objectclass: inetOrgPerson" NS_LINEBREAK \
-    "objectclass: " MOZ_AB_OBJECTCLASS NS_LINEBREAK;  
-
-
+  aResult += MSG_LINEBREAK \
+    "objectclass: top" MSG_LINEBREAK \
+    "objectclass: person" MSG_LINEBREAK \
+    "objectclass: organizationalPerson" MSG_LINEBREAK \
+    "objectclass: inetOrgPerson" MSG_LINEBREAK \
+    "objectclass: " MOZ_AB_OBJECTCLASS MSG_LINEBREAK;
   return rv;
 }
 
