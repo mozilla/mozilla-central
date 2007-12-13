@@ -138,7 +138,7 @@ interface nsAddrDBCommitType
   const long kCompressCommit = 3;
 };
 
-[scriptable, uuid(f1f688f6-39b7-4030-b96b-aedf55d91ad3)]
+[scriptable, uuid(e93e3483-4586-4c2d-8e4e-ae573c5d7a41)]
 interface nsIAddrDatabase : nsIAddrDBAnnouncer {
 
   /**
@@ -202,9 +202,19 @@ interface nsIAddrDatabase : nsIAddrDBAnnouncer {
 	void deleteCardFromMailList(in nsIAbDirectory mailList, in nsIAbCard card, in boolean aNotify);
 
   /**
-   * aUTF8Value needs to be in UTF-8
+   * Gets the first card which matches the attribute/value pair supplied.
+   *
+   * @param  aDirectory       The current nsIAbDirectory associated with this
+   *                          instance of the database.
+   * @param  aName            The attribute to look up the value in.
+   * @param  aUTF8Value       The value to look up in UTF8 format.
+   * @param  aCaseInsensitive Set to true for case-insenstive matching.
+   * @result                  Returns an nsIAbCard if one is found, otherwise
+   *                          NULL.
    */
-	nsIAbCard getCardFromAttribute(in nsIAbDirectory directory, in string aName, in string aUTF8Value, in boolean caseInsensitive);
+	nsIAbCard getCardFromAttribute(in nsIAbDirectory aDirectory, in string aName,
+                                 in AUTF8String aUTF8Value,
+                                 in boolean aCaseInsensitive);
 
 	PRBool findMailListbyUnicodeName(in wstring listName);
 

@@ -1614,7 +1614,8 @@ NS_IMETHODIMP nsAddrDatabase::AddListCardColumnsToRow
     nsIMdbRow    *pCardRow = nsnull;
     // Please DO NOT change the 3rd param of GetRowFromAttribute() call to
     // PR_TRUE (ie, case insensitive) without reading bugs #128535 and #121478.
-    err = GetRowFromAttribute(kPriEmailColumn, NS_ConvertUTF16toUTF8(email).get(), PR_FALSE /* retain case */, &pCardRow);
+    err = GetRowFromAttribute(kPriEmailColumn, NS_ConvertUTF16toUTF8(email),
+                              PR_FALSE /* retain case */, &pCardRow);
     PRBool cardWasAdded = PR_FALSE;
     if (NS_FAILED(err) || !pCardRow)
     {
@@ -2359,7 +2360,8 @@ NS_IMETHODIMP nsAddrDatabase::AddLdifListMember(nsIMdbRow* listRow, const char* 
   nsCOMPtr <nsIMdbRow> cardRow;
   // Please DO NOT change the 3rd param of GetRowFromAttribute() call to
   // PR_TRUE (ie, case insensitive) without reading bugs #128535 and #121478.
-  nsresult rv = GetRowFromAttribute(kPriEmailColumn, email.get(), PR_FALSE /* retain case */, getter_AddRefs(cardRow));
+  nsresult rv = GetRowFromAttribute(kPriEmailColumn, email, PR_FALSE /* retain case */,
+                                    getter_AddRefs(cardRow));
   if (NS_SUCCEEDED(rv) && cardRow)
   {
     mdbOid outOid;
@@ -3546,18 +3548,19 @@ nsresult nsAddrDatabase::GetListRowByRowID(mdb_id rowID, nsIMdbRow **dbRow)
   return m_mdbStore->GetRow(m_mdbEnv, &rowOid, dbRow);
 }
 
-nsresult nsAddrDatabase::GetRowFromAttribute(const char *aName, const char *aUTF8Value, PRBool aCaseInsensitive, nsIMdbRow **aCardRow)
+nsresult nsAddrDatabase::GetRowFromAttribute(const char *aName,
+                                             const nsACString &aUTF8Value,
+                                             PRBool aCaseInsensitive,
+                                             nsIMdbRow **aCardRow)
 {
   NS_ENSURE_ARG_POINTER(aName);
-  NS_ENSURE_ARG_POINTER(aUTF8Value);
   NS_ENSURE_ARG_POINTER(aCardRow);
   if (!m_mdbStore || !m_mdbEnv)
     return NS_ERROR_NULL_POINTER;
 
   mdb_token token;
   m_mdbStore->StringToToken(m_mdbEnv, aName, &token);
-
-    NS_ConvertUTF8toUTF16 newUnicodeString(aUTF8Value);
+  NS_ConvertUTF8toUTF16 newUnicodeString(aUTF8Value);
 
   if (aCaseInsensitive)
     ToLowerCase(newUnicodeString);
@@ -3565,21 +3568,22 @@ nsresult nsAddrDatabase::GetRowFromAttribute(const char *aName, const char *aUTF
   return GetRowForCharColumn(newUnicodeString.get(), token, PR_TRUE, aCardRow);
 }
 
-NS_IMETHODIMP nsAddrDatabase::GetCardFromAttribute(nsIAbDirectory *aDirectory, const char *aName, const char *aUTF8Value, PRBool aCaseInsensitive, nsIAbCard **aCardResult)
+NS_IMETHODIMP nsAddrDatabase::GetCardFromAttribute(nsIAbDirectory *aDirectory,
+                                                   const char *aName,
+                                                   const nsACString &aUTF8Value,
+                                                   PRBool aCaseInsensitive,
+                                                   nsIAbCard **aCardResult)
 {
   NS_ENSURE_ARG_POINTER(aCardResult);
 
   m_dbDirectory = aDirectory;
-  nsCOMPtr <nsIMdbRow> cardRow;
-  nsresult rv = GetRowFromAttribute(aName, aUTF8Value, aCaseInsensitive, getter_AddRefs(cardRow));
-  if (NS_SUCCEEDED(rv) && cardRow)
-    rv = CreateABCard(cardRow, 0, aCardResult);
-  else
-  {
-    *aCardResult = nsnull;
-    rv = NS_OK;
-  }
-  return rv;
+  nsCOMPtr<nsIMdbRow> cardRow;
+  if (NS_SUCCEEDED(GetRowFromAttribute(aName, aUTF8Value, aCaseInsensitive,
+                                       getter_AddRefs(cardRow))) && cardRow)
+    return CreateABCard(cardRow, 0, aCardResult);
+
+  *aCardResult = nsnull;
+  return NS_OK;
 }
 
 NS_IMETHODIMP nsAddrDatabase::AddListDirNode(nsIMdbRow * listRow)

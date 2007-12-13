@@ -1,4 +1,4 @@
-/* -*- Mode: IDL; tab-width: 4; indent-tabs-mode: nil; c-basic-offset: 4 -*- */
+/* -*- Mode: IDL; tab-width: 2; indent-tabs-mode: nil; c-basic-offset: 2 -*- */
 /* ***** BEGIN LICENSE BLOCK *****
  * Version: MPL 1.1/GPL 2.0/LGPL 2.1
  *
@@ -21,6 +21,7 @@
  *
  * Contributor(s):
  *   Seth Spitzer <sspitzer@netscape.com>
+ *   Mark Banner <bugzilla@standard8.plus.com>
  *
  * Alternatively, the contents of this file may be used under the terms of
  * either of the GNU General Public License Version 2 or later (the "GPL"),
@@ -40,18 +41,34 @@
 
 interface nsIAbCard;
 
-[scriptable, uuid(4411f1b8-c3a8-44d1-b4fc-2afea4357149)]
+/**
+ * nsIAbAddressCollecter is the interface to the address collecter service.
+ * It will save and update the supplied addresses into the address book
+ * specified by the "mail.collect_addressbook" pref.
+ */
+[scriptable, uuid(759cd643-e96b-4f31-883d-d9cf3d14f7c2)]
 interface nsIAbAddressCollecter : nsISupports {
-  void collectAddress(in ACString aAddress, in boolean aCreateCard, in unsigned long aSendFormat);
-  /* CollectUnicodeAddress is the most I18N friendly
-     of the two methods to call. If you just take a char * address
-     as used by CollectAddress then you don't know what char set
-     the address is in (UTF-8??).
-  */
-  void collectUnicodeAddress(in AString aAddress, in boolean aCreateCard, in unsigned long aSendFormat);
+  /**
+   * Collects email addresses into the address book.
+   * If a card already exists for the email, the first/last/display names
+   * will be updated if they are supplied alongside the address.
+   * If a card does not exist for the email it will be created if aCreateCard
+   * is true.
+   * 
+   * @param  aAddresses  The list of emails (in standard header format)
+   *                     to collect into the address book.
+   * @param  aCreateCard Set to true if a card should be created if the
+   *                     email address doesn't exist.
+   * @param  aSendFormat The send format to save for the card. See
+   *                     nsIAbPreferMailFormat for values. If updating a card
+   *                     this value will only be changed if the current value
+   *                     for the card is "unknown".
+   */
+  void collectAddress(in AUTF8String aAddresses, in boolean aCreateCard,
+                      in unsigned long aSendFormat);
 
-  // get the first card with this name / value in the collected ab, 
-  // which is determined by the mail.collect_addressbook pref
+  /**
+   * Get the first card with this name / value in the collected ab.
+   */
   nsIAbCard getCardFromAttribute(in ACString aName, in ACString aValue);
 };
-

@@ -1067,7 +1067,7 @@ nsresult nsAbMDBDirectory::GetAbDatabase()
   return rv;
 }
 
-NS_IMETHODIMP nsAbMDBDirectory::CardForEmailAddress(const char * aEmailAddress, nsIAbCard ** aAbCard)
+NS_IMETHODIMP nsAbMDBDirectory::CardForEmailAddress(const nsACString &aEmailAddress, nsIAbCard ** aAbCard)
 {
   NS_ENSURE_ARG_POINTER(aAbCard);
 
@@ -1076,7 +1076,7 @@ NS_IMETHODIMP nsAbMDBDirectory::CardForEmailAddress(const char * aEmailAddress, 
   // Ensure that if we've not been given an email address we never match
   // so that we don't fail out unnecessarily and we don't match a blank email
   // address against random cards that the user hasn't supplied an email for.
-  if (!aEmailAddress || !*aEmailAddress)
+  if (aEmailAddress.IsEmpty())
     return NS_OK;
 
   nsresult rv = NS_OK;

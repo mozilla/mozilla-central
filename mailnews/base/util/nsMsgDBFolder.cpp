@@ -1956,7 +1956,7 @@ nsMsgDBFolder::CallFilterPlugins(nsIMsgWindow *aMsgWindow, PRBool *aFiltersRun)
         if (!authorEmailAddress.IsEmpty())
         {
           for (PRInt32 index = 0; index < whiteListDirArray.Count() && !cardForAddress; index++)
-            rv = whiteListDirArray[index]->CardForEmailAddress(authorEmailAddress.get(), &cardForAddress);
+            rv = whiteListDirArray[index]->CardForEmailAddress(authorEmailAddress, &cardForAddress);
             if (NS_FAILED(rv))
               cardForAddress = nsnull;
         }

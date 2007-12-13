@@ -900,7 +900,8 @@ nsresult nsMsgSearchTerm::MatchInAddressBook(const char * aAddress, PRBool *pRes
   if (mDirectory)
   {
     nsIAbCard* cardForAddress;
-    rv = mDirectory->CardForEmailAddress(aAddress, &cardForAddress);
+    rv = mDirectory->CardForEmailAddress(nsDependentCString(aAddress),
+                                         &cardForAddress);
     if ((m_operator == nsMsgSearchOp::IsInAB && cardForAddress) || (m_operator == nsMsgSearchOp::IsntInAB && !cardForAddress))
       *pResult = PR_TRUE;
     NS_IF_RELEASE(cardForAddress);

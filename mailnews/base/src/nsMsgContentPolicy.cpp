@@ -185,7 +185,7 @@ nsresult nsMsgContentPolicy::AllowRemoteContentForSender(nsIMsgDBHdr * aMsgHdr, 
     NS_ENSURE_SUCCESS(rv, rv);
     mdbDirectory = do_QueryInterface(supports);
     if (mdbDirectory)
-      mdbDirectory->CardForEmailAddress(emailAddress.get(), getter_AddRefs(cardForAddress));
+      mdbDirectory->CardForEmailAddress(emailAddress, getter_AddRefs(cardForAddress));
   }
   
   // if we found a card from the sender, 

@@ -547,7 +547,7 @@ void nsAbLDAPProcessReplicationData::Done(PRBool aSuccess)
 nsresult nsAbLDAPProcessReplicationData::DeleteCard(nsString & aDn)
 {
     nsCOMPtr<nsIAbCard> cardToDelete;
-    mReplicationDB->GetCardFromAttribute(nsnull, "_DN", NS_ConvertUTF16toUTF8(aDn).get(),
+    mReplicationDB->GetCardFromAttribute(nsnull, "_DN", NS_ConvertUTF16toUTF8(aDn),
                                          PR_FALSE, getter_AddRefs(cardToDelete));
     return mReplicationDB->DeleteCard(cardToDelete, PR_FALSE);
 }

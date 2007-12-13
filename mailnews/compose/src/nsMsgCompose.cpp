@@ -4558,7 +4558,10 @@ NS_IMETHODIMP nsMsgCompose::CheckAndPopulateRecipients(PRBool populateMailList, 
             // Then if we have a card for this email address
             // Please DO NOT change the 4th param of GetCardFromAttribute() call to
             // PR_TRUE (ie, case insensitive) without reading bugs #128535 and #121478.
-            rv = abDataBase->GetCardFromAttribute(abDirectory, kPriEmailColumn, NS_LossyConvertUTF16toASCII(recipient->mEmail).get(), PR_FALSE /* case insensitive */, getter_AddRefs(existingCard));
+            rv = abDataBase->GetCardFromAttribute(abDirectory, kPriEmailColumn,
+                                                  NS_ConvertUTF16toUTF8(recipient->mEmail),
+                                                  PR_FALSE /* case insensitive */,
+                                                  getter_AddRefs(existingCard));
             if (NS_SUCCEEDED(rv) && existingCard)
             {
               recipient->mPreferFormat = nsIAbPreferMailFormat::unknown;

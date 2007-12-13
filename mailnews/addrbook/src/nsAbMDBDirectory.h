@@ -87,7 +87,8 @@ public:
   NS_IMETHOD GetDirUri(char **uri);
   NS_IMETHOD GetDatabaseFile(nsILocalFile **aResult);
   NS_IMETHOD GetDatabase(nsIAddrDatabase **aResult);
-  NS_IMETHOD CardForEmailAddress(const char * aEmailAddress, nsIAbCard ** aAbCard);
+  NS_IMETHOD CardForEmailAddress(const nsACString &aEmailAddress,
+                                 nsIAbCard ** aAbCard);
 
   // nsIAbDirectory methods:
   NS_IMETHOD GetChildNodes(nsISimpleEnumerator* *result);

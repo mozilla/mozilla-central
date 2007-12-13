@@ -76,27 +76,23 @@ nsAbAddressCollecter::~nsAbAddressCollecter()
     pPrefBranchInt->RemoveObserver(PREF_MAIL_COLLECT_ADDRESSBOOK, this);
 }
 
-NS_IMETHODIMP nsAbAddressCollecter::CollectUnicodeAddress(const nsAString &aAddress, PRBool aCreateCard, PRUint32 aSendFormat)
-{
-  // convert the unicode string to UTF-8...
-  nsresult rv = CollectAddress(NS_ConvertUTF16toUTF8(aAddress), aCreateCard, aSendFormat);
-  NS_ENSURE_SUCCESS(rv,rv);
-  return rv;
-}
-
 NS_IMETHODIMP nsAbAddressCollecter::GetCardFromAttribute(const nsACString &aName, const nsACString &aValue, nsIAbCard **aCard)
 {
   NS_ENSURE_ARG_POINTER(aCard);
   if (m_database)
     // Please DO NOT change the 3rd param of GetCardFromAttribute() call to 
     // PR_TRUE (ie, case insensitive) without reading bugs #128535 and #121478.
-    return m_database->GetCardFromAttribute(m_directory.get(), nsCString(aName).get(),
-            nsCString(aValue).get(), PR_FALSE /* retain case */, aCard);
+    return m_database->GetCardFromAttribute(m_directory.get(),
+                                            PromiseFlatCString(aName).get(),
+                                            aValue, PR_FALSE /* retain case */,
+                                            aCard);
 
   return NS_ERROR_FAILURE;
 }
 
-NS_IMETHODIMP nsAbAddressCollecter::CollectAddress(const nsACString &aAddress, PRBool aCreateCard, PRUint32 aSendFormat)
+NS_IMETHODIMP nsAbAddressCollecter::CollectAddress(const nsACString &aAddresses,
+                                                   PRBool aCreateCard,
+                                                   PRUint32 aSendFormat)
 {
   // note that we're now setting the whole recipient list,
   // not just the pretty name of the first recipient.
@@ -108,7 +104,8 @@ NS_IMETHODIMP nsAbAddressCollecter::CollectAddress(const nsACString &aAddress, P
   nsCOMPtr<nsIMsgHeaderParser> pHeader = do_GetService(NS_MAILNEWS_MIME_HEADER_PARSER_CONTRACTID, &rv);
   NS_ENSURE_SUCCESS(rv,rv);
 
-  rv = pHeader->ParseHeaderAddresses(nsnull, nsCString(aAddress).get(), &names, &addresses, &numAddresses);
+  rv = pHeader->ParseHeaderAddresses(nsnull, PromiseFlatCString(aAddresses).get(),
+                                     &names, &addresses, &numAddresses);
   NS_ASSERTION(NS_SUCCEEDED(rv), "failed to parse, so can't collect");
   if (NS_FAILED(rv))
     return NS_OK;
@@ -150,7 +147,7 @@ NS_IMETHODIMP nsAbAddressCollecter::CollectAddress(const nsACString &aAddress, P
         rv = AutoCollectScreenName(senderCard, nsCString(curAddress), &modifiedCard);
         NS_ASSERTION(NS_SUCCEEDED(rv), "failed to set screenname");
 
-        rv = senderCard->SetPrimaryEmail(NS_ConvertASCIItoUTF16(curAddress));
+        rv = senderCard->SetPrimaryEmail(NS_ConvertUTF8toUTF16(curAddress));
         NS_ASSERTION(NS_SUCCEEDED(rv), "failed to set email");
 
         if (aSendFormat != nsIAbPreferMailFormat::unknown)

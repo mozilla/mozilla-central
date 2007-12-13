@@ -422,7 +422,7 @@ var messageHeaderSink = {
                 gCollectAddress = header.headerValue;
                 // collect, add card if doesn't exist and gCollectOutgoing is set, 
                 // otherwise only update existing cards, unknown preferred send format
-                gCollectAddressTimer = setTimeout('abAddressCollector.collectUnicodeAddress(gCollectAddress, ' + createCard + ', Components.interfaces.nsIAbPreferMailFormat.unknown);', 2000);
+                gCollectAddressTimer = setTimeout('abAddressCollector.collectAddress(gCollectAddress, ' + createCard + ', Components.interfaces.nsIAbPreferMailFormat.unknown);', 2000);
               }
             }
             catch(ex) {}

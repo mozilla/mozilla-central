@@ -84,7 +84,9 @@ public:
   NS_IMETHOD EditMailList(nsIAbDirectory *mailList, nsIAbCard *listCard, PRBool notify);
   NS_IMETHOD ContainsMailList(nsIAbDirectory *mailList, PRBool *hasCard);
   NS_IMETHOD DeleteCardFromMailList(nsIAbDirectory *mailList, nsIAbCard *card, PRBool aNotify);
-  NS_IMETHOD GetCardFromAttribute(nsIAbDirectory *directory, const char *aName, const char *aValue, PRBool aCaseInsensitive, nsIAbCard **card);
+  NS_IMETHOD GetCardFromAttribute(nsIAbDirectory *aDirectory, const char *aName,
+                                  const nsACString &aValue,
+                                  PRBool aCaseInsensitive, nsIAbCard **card);
   NS_IMETHOD GetNewRow(nsIMdbRow * *newRow);
   NS_IMETHOD GetNewListRow(nsIMdbRow * *newRow);
   NS_IMETHOD AddCardRowToDB(nsIMdbRow *newRow);
@@ -336,7 +338,8 @@ protected:
   nsresult NotifyListEntryChange(PRUint32 abCode, nsIAbDirectory *dir);
 
   nsresult AddLowercaseColumn(nsIMdbRow * row, mdb_token columnToken, const char* utf8String);
-  nsresult GetRowFromAttribute(const char *aName, const char *aUTF8Value, PRBool aCaseInsensitive, nsIMdbRow  **aCardRow);
+  nsresult GetRowFromAttribute(const char *aName, const nsACString &aUTF8Value,
+                               PRBool aCaseInsensitive, nsIMdbRow  **aCardRow);
 
   static nsVoidArray/*<nsAddrDatabase>*/ * GetDBCache();
   static nsVoidArray/*<nsAddrDatabase>*/ * m_dbCache;
