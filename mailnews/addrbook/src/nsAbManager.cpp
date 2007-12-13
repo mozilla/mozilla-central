@@ -145,27 +145,27 @@ const ExportAttributesTableStruct EXPORT_ATTRIBUTES_TABLE[] = {
 };
 
 //
-// nsAddressBook
+// nsAbManager
 //
-nsAddressBook::nsAddressBook()
+nsAbManager::nsAbManager()
 {
 }
 
-nsAddressBook::~nsAddressBook()
+nsAbManager::~nsAbManager()
 {
 }
 
-NS_IMPL_THREADSAFE_ADDREF(nsAddressBook)
-NS_IMPL_THREADSAFE_RELEASE(nsAddressBook)
-NS_IMPL_QUERY_INTERFACE2(nsAddressBook,
-                         nsIAddressBook,
+NS_IMPL_THREADSAFE_ADDREF(nsAbManager)
+NS_IMPL_THREADSAFE_RELEASE(nsAbManager)
+NS_IMPL_QUERY_INTERFACE2(nsAbManager,
+                         nsIAbManager,
                          nsICommandLineHandler)
 
 //
 // nsIAddressBook
 //
 
-NS_IMETHODIMP nsAddressBook::NewAddressBook(const nsAString &aDirName,
+NS_IMETHODIMP nsAbManager::NewAddressBook(const nsAString &aDirName,
                                             const nsACString &aURI,
                                             const PRUint32 aType,
                                             nsACString &aResult)
@@ -186,7 +186,7 @@ NS_IMETHODIMP nsAddressBook::NewAddressBook(const nsAString &aDirName,
   return parentDir->CreateNewDirectory(aDirName, aURI, aType, aResult);
 }
 
-NS_IMETHODIMP nsAddressBook::DeleteAddressBook(const nsACString &aURI)
+NS_IMETHODIMP nsAbManager::DeleteAddressBook(const nsACString &aURI)
 {
   // Find the address book
   nsresult rv;
@@ -234,7 +234,7 @@ NS_IMETHODIMP nsAddressBook::DeleteAddressBook(const nsACString &aURI)
   return parentDir->DeleteDirectory(directory);
 }
 
-NS_IMETHODIMP nsAddressBook::MailListNameExists(const PRUnichar *name, PRBool *exist)
+NS_IMETHODIMP nsAbManager::MailListNameExists(const PRUnichar *name, PRBool *exist)
 {
   NS_ENSURE_ARG_POINTER(exist);
 
@@ -304,7 +304,7 @@ enum ADDRESSBOOK_EXPORT_FILE_TYPE
  TAB_EXPORT_TYPE = 2
 };
 
-NS_IMETHODIMP nsAddressBook::ExportAddressBook(nsIDOMWindow *aParentWin, nsIAbDirectory *aDirectory)
+NS_IMETHODIMP nsAbManager::ExportAddressBook(nsIDOMWindow *aParentWin, nsIAbDirectory *aDirectory)
 {
   NS_ENSURE_ARG_POINTER(aParentWin);
 
@@ -418,7 +418,7 @@ NS_IMETHODIMP nsAddressBook::ExportAddressBook(nsIDOMWindow *aParentWin, nsIAbDi
 }
 
 nsresult
-nsAddressBook::ExportDirectoryToDelimitedText(nsIAbDirectory *aDirectory, const char *aDelim, PRUint32 aDelimLen, nsILocalFile *aLocalFile)
+nsAbManager::ExportDirectoryToDelimitedText(nsIAbDirectory *aDirectory, const char *aDelim, PRUint32 aDelimLen, nsILocalFile *aLocalFile)
 {
   nsCOMPtr <nsISimpleEnumerator> cardsEnumerator;
   nsCOMPtr <nsIAbCard> card;
@@ -599,7 +599,7 @@ nsAddressBook::ExportDirectoryToDelimitedText(nsIAbDirectory *aDirectory, const 
 }
 
 nsresult
-nsAddressBook::ExportDirectoryToLDIF(nsIAbDirectory *aDirectory, nsILocalFile *aLocalFile)
+nsAbManager::ExportDirectoryToLDIF(nsIAbDirectory *aDirectory, nsILocalFile *aLocalFile)
 {
   nsCOMPtr <nsISimpleEnumerator> cardsEnumerator;
   nsCOMPtr <nsIAbCard> card;
@@ -735,7 +735,7 @@ nsAddressBook::ExportDirectoryToLDIF(nsIAbDirectory *aDirectory, nsILocalFile *a
   return NS_OK;
 }
 
-nsresult nsAddressBook::AppendLDIFForMailList(nsIAbCard *aCard, nsIAbLDAPAttributeMap *aAttrMap, nsACString &aResult)
+nsresult nsAbManager::AppendLDIFForMailList(nsIAbCard *aCard, nsIAbLDAPAttributeMap *aAttrMap, nsACString &aResult)
 {
   nsresult rv;
   nsString attrValue;
@@ -823,7 +823,7 @@ nsresult nsAddressBook::AppendLDIFForMailList(nsIAbCard *aCard, nsIAbLDAPAttribu
   return NS_OK;
 }
 
-nsresult nsAddressBook::AppendDNForCard(const char *aProperty, nsIAbCard *aCard, nsIAbLDAPAttributeMap *aAttrMap, nsACString &aResult)
+nsresult nsAbManager::AppendDNForCard(const char *aProperty, nsIAbCard *aCard, nsIAbLDAPAttributeMap *aAttrMap, nsACString &aResult)
 {
   nsString email;
   nsString displayName;
@@ -865,7 +865,7 @@ nsresult nsAddressBook::AppendDNForCard(const char *aProperty, nsIAbCard *aCard,
   return rv;
 }
 
-nsresult nsAddressBook::AppendBasicLDIFForCard(nsIAbCard *aCard, nsIAbLDAPAttributeMap *aAttrMap, nsACString &aResult)
+nsresult nsAbManager::AppendBasicLDIFForCard(nsIAbCard *aCard, nsIAbLDAPAttributeMap *aAttrMap, nsACString &aResult)
 {
   nsresult rv = AppendDNForCard("dn", aCard, aAttrMap, aResult);
   NS_ENSURE_SUCCESS(rv,rv);
@@ -878,7 +878,7 @@ nsresult nsAddressBook::AppendBasicLDIFForCard(nsIAbCard *aCard, nsIAbLDAPAttrib
   return rv;
 }
 
-PRBool nsAddressBook::IsSafeLDIFString(const PRUnichar *aStr)
+PRBool nsAbManager::IsSafeLDIFString(const PRUnichar *aStr)
 {
   // follow RFC 2849 to determine if something is safe "as is" for LDIF
   if (aStr[0] == PRUnichar(' ') ||
@@ -899,7 +899,7 @@ PRBool nsAddressBook::IsSafeLDIFString(const PRUnichar *aStr)
   return PR_TRUE;
 }
 
-nsresult nsAddressBook::AppendProperty(const char *aProperty, const PRUnichar *aValue, nsACString &aResult)
+nsresult nsAbManager::AppendProperty(const char *aProperty, const PRUnichar *aValue, nsACString &aResult)
 {
   NS_ENSURE_ARG_POINTER(aValue);
 
@@ -1016,7 +1016,7 @@ static void convertFromVObject(VObject *vObj, nsIAbCard *aCard)
     return;
 }
 
-NS_IMETHODIMP nsAddressBook::EscapedVCardToAbCard(const char *aEscapedVCardStr, nsIAbCard **aCard)
+NS_IMETHODIMP nsAbManager::EscapedVCardToAbCard(const char *aEscapedVCardStr, nsIAbCard **aCard)
 {
     NS_ENSURE_ARG_POINTER(aEscapedVCardStr);
     NS_ENSURE_ARG_POINTER(aCard);
@@ -1044,7 +1044,7 @@ NS_IMETHODIMP nsAddressBook::EscapedVCardToAbCard(const char *aEscapedVCardStr, 
 }
 
 NS_IMETHODIMP
-nsAddressBook::Handle(nsICommandLine* aCmdLine)
+nsAbManager::Handle(nsICommandLine* aCmdLine)
 {
   nsresult rv;
   PRBool found;
@@ -1066,7 +1066,7 @@ nsAddressBook::Handle(nsICommandLine* aCmdLine)
 }
 
 NS_IMETHODIMP
-nsAddressBook::GetHelpInfo(nsACString& aResult)
+nsAbManager::GetHelpInfo(nsACString& aResult)
 {
   aResult.Assign(NS_LITERAL_CSTRING("  -addressbook         Open the address book at startup.\n"));
   return NS_OK;

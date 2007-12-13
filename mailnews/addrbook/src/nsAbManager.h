@@ -45,16 +45,16 @@ class nsILocalFile;
 class nsIAbDirectory;
 class nsIAbLDAPAttributeMap;
 
-class nsAddressBook : public nsIAddressBook,
-                      public nsICommandLineHandler
+class nsAbManager : public nsIAbManager,
+                    public nsICommandLineHandler
 {
   
 public:
-	nsAddressBook();
-	virtual ~nsAddressBook();
+	nsAbManager();
+	virtual ~nsAbManager();
 
 	NS_DECL_ISUPPORTS
- 	NS_DECL_NSIADDRESSBOOK
+ 	NS_DECL_NSIABMANAGER
   NS_DECL_NSICOMMANDLINEHANDLER
 
 private:
