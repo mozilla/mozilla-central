@@ -277,6 +277,12 @@ static NSImage* sTabButtonDividerImage = nil;
 
 #pragma mark -
 
+- (void)viewWillMoveToWindow:(NSWindow*)window
+{
+  [self removeTrackingRect];
+  [super viewWillMoveToWindow:window];
+}
+
 -(void)addTrackingRect
 {
   if (mTrackingTag)
