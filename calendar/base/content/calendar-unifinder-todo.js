@@ -64,12 +64,9 @@ function prepareCalendarToDoUnifinder() {
 function toDoUnifinderRefresh() {
     var hideCompleted = document.getElementById("hide-completed-checkbox").checked;
     var ccalendar = getCompositeCalendar();
-    var filter = hideCompleted ?
-        ccalendar.ITEM_FILTER_COMPLETED_NO :
-        ccalendar.ITEM_FILTER_COMPLETED_ALL;
-    filter |= ccalendar.ITEM_FILTER_TYPE_TODO;
     var tree = document.getElementById("unifinder-todo-tree");
-    tree.refresh(filter);
+    tree.hideCompleted = hideCompleted;
+    tree.refresh();
 
     var deck = document.getElementById("view-deck");
     var selectedShowCompleted =  deck.selectedPanel.showCompleted;

@@ -121,6 +121,7 @@
       <field name="mContextTask">null</field>
       <field name="mRefreshQueue">[]</field>
       <field name="mPendingRefresh">null</field>
+      <field name="mHideCompletedTasks">false</field>
 
       <property name="currentIndex">
         <getter><![CDATA[
@@ -139,6 +140,16 @@
         ]]></getter>
       </property>
 
+      <property name="hideCompleted">
+        <getter><![CDATA[
+          return this.mHideCompletedTasks;
+        ]]></getter>
+        <setter><![CDATA[
+          this.mHideCompletedTasks = val;
+          return val;
+        ]]></setter>
+      </property>
+      
       <method name="getTaskAtRow">
         <parameter name="aRow"/>
         <body><![CDATA[
@@ -184,13 +195,16 @@
            */
 
           addItem: function tTV_addItem(aItem) {
-              // The rowCountChanged function takes two arguments, the index where the
-              // first row was inserted and the number of rows to insert.
+              if (aItem.isCompleted && this.binding.hideCompleted) {
+                  return;
+              }
               var index = this.binding.mHash2Index[aItem.hashId];
               if (index === undefined) {
                   var index = this.binding.mTaskArray.length;
                   this.binding.mTaskArray.push(aItem);
                   this.binding.mHash2Index[aItem.hashId] = index;
+                  // The rowCountChanged function takes two arguments, the index where the
+                  // first row was inserted and the number of rows to insert.
                   this.treebox.rowCountChanged(index, 1);
                   this.tree.view.selection.select(index);
               }
@@ -216,6 +230,11 @@
           modifyItem: function tTV_modifyItem(aNewItem, aOldItem) {
               var index = this.binding.mHash2Index[aOldItem.hashId];
               if (index != undefined) {
+                  if (aNewItem.isCompleted != aOldItem.isCompleted) {
+                      if (aNewItem.isCompleted && this.binding.hideCompleted) {
+                          return this.removeItem(aNewItem);
+                      }
+                  }
                   delete this.binding.mHash2Index[aOldItem.hashId];
                   this.binding.mHash2Index[aNewItem.hashId] = index;
                   this.binding.mTaskArray[index] = aNewItem;
@@ -766,8 +785,10 @@
           var refreshJob = {
               execute: function() {
                   var composite = getCompositeCalendar();
-                  var filter = aFilter ||
-                      (composite.ITEM_FILTER_TYPE_TODO|composite.ITEM_FILTER_COMPLETED_ALL);
+                  var filter = aFilter || savedThis.mHideCompletedTasks ?
+                      composite.ITEM_FILTER_COMPLETED_NO :
+                      composite.ITEM_FILTER_COMPLETED_ALL;
+                  filter |= composite.ITEM_FILTER_TYPE_TODO;
                   composite.getItems(filter, 0, null, null, refreshListener);
               }
           };
@@ -795,8 +816,11 @@
           
           var refreshJob = {
               execute: function() {
-                  var filter = aFilter ||
-                      (aCalendar.ITEM_FILTER_TYPE_TODO|aCalendar.ITEM_FILTER_COMPLETED_ALL);
+                  var composite = getCompositeCalendar();
+                  var filter = aFilter || savedThis.mHideCompletedTasks ?
+                      composite.ITEM_FILTER_COMPLETED_NO :
+                      composite.ITEM_FILTER_COMPLETED_ALL;
+                  filter |= composite.ITEM_FILTER_TYPE_TODO;
                   aCalendar.getItems(filter, 0, null, null, refreshListener);
               }
           };
