@@ -55,19 +55,20 @@
 
 #pragma mark Policy Definitions
 
-const int CHPermissionUnknown = nsIPermissionManager::UNKNOWN_ACTION;
-const int CHPermissionAllow = nsIPermissionManager::ALLOW_ACTION;
-const int CHPermissionDeny = nsIPermissionManager::DENY_ACTION;
-const int CHPermissionAllowForSession = nsICookiePermission::ACCESS_SESSION;
+__attribute__((used)) const int CHPermissionUnknown = nsIPermissionManager::UNKNOWN_ACTION;
+__attribute__((used)) const int CHPermissionAllow = nsIPermissionManager::ALLOW_ACTION;
+__attribute__((used)) const int CHPermissionDeny = nsIPermissionManager::DENY_ACTION;
+__attribute__((used)) const int CHPermissionAllowForSession = nsICookiePermission::ACCESS_SESSION;
 
 #pragma mark Permission Type Definitions
 
-NSString* const CHPermissionTypeCookie = @"cookie";
-NSString* const CHPermissionTypePopup = @"popup";
+__attribute__((used)) NSString* const CHPermissionTypeCookie = @"cookie";
+__attribute__((used)) NSString* const CHPermissionTypePopup = @"popup";
 
 #pragma mark -
 
 @interface CHPermission (CHPermissionManagerMethods)
++ (id)permissionWithGeckoPermission:(nsIPermission*)geckoPermission;
 - (id)initWithGeckoPermission:(nsIPermission*)geckoPermission;
 @end
 
