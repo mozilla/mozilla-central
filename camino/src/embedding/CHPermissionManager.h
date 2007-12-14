@@ -41,6 +41,7 @@
 class nsIPermission;
 class nsIPermissionManager;
 
+#pragma GCC visibility push(default)
 // Policy constants.
 extern const int CHPermissionUnknown;
 extern const int CHPermissionAllow;
@@ -50,6 +51,7 @@ extern const int CHPermissionAllowForSession; // meaningful for cookies only
 // Permission type constants.
 extern NSString* const CHPermissionTypeCookie;
 extern NSString* const CHPermissionTypePopup;
+#pragma GCC visibility pop
 
 // An object encompasing a specific permission entry. Used only for enumerating
 // existing permissions; to check or set the permissions for a single host,

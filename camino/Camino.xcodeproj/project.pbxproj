@@ -1149,7 +1149,6 @@
 		7B06E8220D0DC9720032E38A /* PreferencePaneBase.h in Headers */ = {isa = PBXBuildFile; fileRef = F5A8CE4102DFEF4C013CA8EC /* PreferencePaneBase.h */; };
 		7B479B7D0D0DD5EB00780567 /* libxpcom_core.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = 3F12FC56072E8ECB00995ED9 /* libxpcom_core.dylib */; };
 		7B479CD90D0DD66800780567 /* libxpcom_core.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = 3F12FC56072E8ECB00995ED9 /* libxpcom_core.dylib */; };
-		7B479CDA0D0DD6AA00780567 /* libxpcom_core.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = 3F12FC56072E8ECB00995ED9 /* libxpcom_core.dylib */; };
 		7B5072FE0D11E86300458384 /* KeyEquivView.h in Headers */ = {isa = PBXBuildFile; fileRef = 7B5072FC0D11E83B00458384 /* KeyEquivView.h */; };
 		7B5072FF0D11E87000458384 /* KeyEquivView.h in Headers */ = {isa = PBXBuildFile; fileRef = 7B5072FC0D11E83B00458384 /* KeyEquivView.h */; };
 		7B5073000D11E88400458384 /* KeyEquivView.mm in Sources */ = {isa = PBXBuildFile; fileRef = 7B5072FD0D11E83B00458384 /* KeyEquivView.mm */; };
@@ -3146,7 +3145,6 @@
 			buildActionMask = 2147483647;
 			files = (
 				3F44ADFE05BDFBA000CB4B08 /* Cocoa.framework in Frameworks */,
-				7B479CDA0D0DD6AA00780567 /* libxpcom_core.dylib in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -5124,7 +5122,6 @@
 				3F44ADF505BDFBA000CB4B08 /* Resources */,
 				3F44ADF805BDFBA000CB4B08 /* Sources */,
 				3F44ADFB05BDFBA000CB4B08 /* Frameworks */,
-				3F44AE0505BDFBA000CB4B08 /* Rez */,
 			);
 			buildRules = (
 			);
@@ -5613,13 +5610,6 @@
 			runOnlyForDeploymentPostprocessing = 0;
 		};
 		3F44ADEE05BDFBA000CB4B08 /* Rez */ = {
-			isa = PBXRezBuildPhase;
-			buildActionMask = 2147483647;
-			files = (
-			);
-			runOnlyForDeploymentPostprocessing = 0;
-		};
-		3F44AE0505BDFBA000CB4B08 /* Rez */ = {
 			isa = PBXRezBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
@@ -6610,21 +6600,8 @@
 			isa = XCBuildConfiguration;
 			baseConfigurationReference = 332377D10C4D88D300A34879 /* PrefPane.xcconfig */;
 			buildSettings = {
-				HEADER_SEARCH_PATHS = (
-					../dist/include,
-					../dist/include/necko,
-					../dist/include/nspr,
-					../dist/include/string,
-					../dist/include/xpcom,
-				);
+				GCC_PREFIX_HEADER = "";
 				INFOPLIST_FILE = "Info-WebFeaturesPrefPane.plist";
-				LIBRARY_SEARCH_PATHS = ../dist/lib;
-				OTHER_CFLAGS = (
-					"$(OTHER_CFLAGS)",
-					"-DDEBUG",
-					"-DMOZ_DEBUG",
-					"-DTRACING",
-				);
 				PRODUCT_NAME = WebFeatures;
 			};
 			name = Development;
@@ -6633,15 +6610,8 @@
 			isa = XCBuildConfiguration;
 			baseConfigurationReference = 332377D10C4D88D300A34879 /* PrefPane.xcconfig */;
 			buildSettings = {
-				HEADER_SEARCH_PATHS = (
-					../dist/include,
-					../dist/include/necko,
-					../dist/include/nspr,
-					../dist/include/string,
-					../dist/include/xpcom,
-				);
+				GCC_PREFIX_HEADER = "";
 				INFOPLIST_FILE = "Info-WebFeaturesPrefPane.plist";
-				LIBRARY_SEARCH_PATHS = ../dist/lib;
 				PRODUCT_NAME = WebFeatures;
 			};
 			name = Deployment;

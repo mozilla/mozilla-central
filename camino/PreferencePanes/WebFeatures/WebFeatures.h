@@ -21,8 +21,9 @@
  * the Initial Developer. All Rights Reserved.
  *
  * Contributor(s):
- *   william@dell.wisner.name (William Dell Wisner)
- *   josh@mozilla.com (Josh Aas)
+ *   William Dell Wisner <william@dell.wisner.name>
+ *   Josh Aas <josh@mozilla.com>
+ *   Stuart Morgan <stuart.morgan@alumni.case.edu>
  *
  * Alternatively, the contents of this file may be used under the terms of
  * either the GNU General Public License Version 2 or later (the "GPL"), or
@@ -44,10 +45,6 @@
 
 @class ExtendedTableView;
 
-class nsIPref;
-class nsIPermissionManager;
-class nsISupportsArray;
-
 @interface OrgMozillaChimeraPreferenceWebFeatures : PreferencePaneBase
 {
   IBOutlet NSButton* mEnableJS;
@@ -66,8 +63,7 @@ class nsISupportsArray;
   IBOutlet NSTextField*         mAddField;
   IBOutlet NSButton*            mAddButton;
 
-  nsIPermissionManager* mManager;         // STRONG (should be nsCOMPtr)  
-  nsISupportsArray* mCachedPermissions;		// parallel list of permissions for speed, STRONG (should be nsCOMPtr)
+  NSMutableArray* mCachedPermissions;		// cached list for speed, STRONG
 
   IBOutlet NSButton* mEnableAnnoyanceBlocker;
 
@@ -95,7 +91,6 @@ class nsISupportsArray;
 -(IBAction) removeWhitelistSite:(id)aSender;
 -(IBAction) addWhitelistSite:(id)sender;
 -(void) editWhitelistSheetDidEnd:(NSWindow *)sheet returnCode:(int)returnCode contextInfo:(void  *)contextInfo;
--(void) populatePermissionCache:(nsISupportsArray*)inPermissions;
 
 // data source informal protocol (NSTableDataSource)
 - (int)numberOfRowsInTableView:(NSTableView *)aTableView;

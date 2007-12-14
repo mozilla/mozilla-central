@@ -21,8 +21,9 @@
  * the Initial Developer. All Rights Reserved.
  *
  * Contributor(s):
- *   william@dell.wisner.name (William Dell Wisner)
- *   josh@mozilla.com (Josh Aas)
+ *   William Dell Wisner <william@dell.wisner.name>
+ *   Josh Aas <josh@mozilla.com>
+ *   Stuart Morgan <stuart.morgan@alumni.case.edu>
  *
  * Alternatively, the contents of this file may be used under the terms of
  * either the GNU General Public License Version 2 or later (the "GPL"), or
@@ -39,23 +40,10 @@
  * ***** END LICENSE BLOCK ***** */
 
 #import "WebFeatures.h"
+
 #import "NSString+Utils.h"
-#import "ExtendedTableView.h"
-
-#include "nsCOMPtr.h"
-#include "nsServiceManagerUtils.h"
-#include "nsIPermissionManager.h"
-#include "nsIPermission.h"
-#include "nsISupportsArray.h"
-#include "nsString.h"
-#include "nsIURI.h"
-#include "nsIFile.h"
-#include "nsAppDirectoryServiceDefs.h"
-#include "nsNetUtil.h"
-
-// we should really get this from "CHBrowserService.h",                         
-// but that requires linkage and extra search paths.                            
-static NSString* XPCOMShutDownNotificationName = @"XPCOMShutDown";              
+#import "CHPermissionManager.h"
+#import "ExtendedTableView.h"             
 
 // need to match the strings in PreferenceManager.mm
 static NSString* const AdBlockingChangedNotificationName = @"AdBlockingChanged";
@@ -75,11 +63,11 @@ const int kAnnoyancePrefSome = 3;
 
 @interface OrgMozillaChimeraPreferenceWebFeatures(PRIVATE)
 
--(NSString*)profilePath;
 - (int)annoyingWindowPrefs;
 - (int)preventAnimationCheckboxState;
 - (BOOL)isFlashBlockAllowed;
 - (void)updateFlashBlock;
+- (void)populatePermissionCache;
 
 @end
 
@@ -89,28 +77,13 @@ const int kAnnoyancePrefSome = 3;
 {
   [[NSNotificationCenter defaultCenter] removeObserver:self];
 
-  NS_IF_RELEASE(mManager);
   [super dealloc];
-}
-
-- (void)xpcomShutdown:(NSNotification*)notification
-{
-  // this nulls the pointer
-  NS_IF_RELEASE(mManager);
 }
 
 - (void)mainViewDidLoad
 {
   if (!mPrefService)
     return;
-
-  // we need to register for xpcom shutdown so that we can clear the            
-  // services before XPCOM is shut down. We can't rely on dealloc,              
-  // because we don't know when it will get called (we might be autoreleased).  
-  [[NSNotificationCenter defaultCenter] addObserver:self
-                                           selector:@selector(xpcomShutdown:)
-                                               name:XPCOMShutDownNotificationName
-                                             object:nil];
 
   BOOL gotPref = NO;
 
@@ -167,11 +140,6 @@ const int kAnnoyancePrefSome = 3;
   int tabFocusMask = [self getIntPref:"accessibility.tabfocus" withSuccess:&gotPref];
   [mTabToLinks setState:((tabFocusMask & kFocusLinks) ? NSOnState : NSOffState)];
   [mTabToFormElements setState:((tabFocusMask & kFocusForms) ? NSOnState : NSOffState)];
-
-  // store permission manager service and cache the enumerator.
-  nsCOMPtr<nsIPermissionManager> pm ( do_GetService(NS_PERMISSIONMANAGER_CONTRACTID) );
-  mManager = pm.get();
-  NS_IF_ADDREF(mManager);
 }
 
 
@@ -260,33 +228,18 @@ const int kAnnoyancePrefSome = 3;
 }
 
 //
-// populatePermissionCache:
+// populatePermissionCache
 //
-// walks the permission list for popups building up a cache that
-// we can quickly refer to later.
+// Builds a popup-blocking cache that we can quickly refer to later.
 //
--(void) populatePermissionCache:(nsISupportsArray*)inPermissions
+-(void) populatePermissionCache
 {
-  nsCOMPtr<nsISimpleEnumerator> permEnum;
-  if ( mManager ) 
-    mManager->GetEnumerator(getter_AddRefs(permEnum));
-
-  if ( inPermissions && permEnum ) {
-    PRBool hasMoreElements = PR_FALSE;
-    permEnum->HasMoreElements(&hasMoreElements);
-    while ( hasMoreElements ) {
-      nsCOMPtr<nsISupports> curr;
-      permEnum->GetNext(getter_AddRefs(curr));
-      nsCOMPtr<nsIPermission> currPerm(do_QueryInterface(curr));
-      if ( currPerm ) {
-        nsCAutoString type;
-        currPerm->GetType(type);
-        if ( type.Equals(NS_LITERAL_CSTRING("popup")) )
-          inPermissions->AppendElement(curr);
-      }
-      permEnum->HasMoreElements(&hasMoreElements);
-    }
-  }
+  if (mCachedPermissions)
+    [mCachedPermissions release];
+  mCachedPermissions = [[[CHPermissionManager permissionManager]
+                            permissionsOfType:CHPermissionTypePopup] mutableCopy];
+  if (!mCachedPermissions)
+    mCachedPermissions = [[NSMutableArray alloc] init];
 }
 
 //
@@ -297,18 +250,18 @@ const int kAnnoyancePrefSome = 3;
 -(IBAction) editWhitelist:(id)sender
 {
   // build parallel permission list for speed with a lot of blocked sites
-  NS_NewISupportsArray(&mCachedPermissions);     // ADDREFs
-  [self populatePermissionCache:mCachedPermissions];
+  [self populatePermissionCache];
 
   [NSApp beginSheet:mWhitelistPanel
-        modalForWindow:[mEditWhitelist window]   // any old window accessor
-        modalDelegate:self
-        didEndSelector:@selector(editWhitelistSheetDidEnd:returnCode:contextInfo:)
+     modalForWindow:[mEditWhitelist window]   // any old window accessor
+      modalDelegate:self
+     didEndSelector:@selector(editWhitelistSheetDidEnd:returnCode:contextInfo:)
         contextInfo:NULL];
 
   // ensure a row is selected (cocoa doesn't do this for us, but will keep
   // us from unselecting a row once one is set; go figure).
-  [mWhitelistTable selectRow:0 byExtendingSelection:NO];
+  if ([mWhitelistTable numberOfRows] > 0)
+    [mWhitelistTable selectRow:0 byExtendingSelection:NO];
 
   [mWhitelistTable setDeleteAction:@selector(removeWhitelistSite:)];
   [mWhitelistTable setTarget:self];
@@ -329,29 +282,33 @@ const int kAnnoyancePrefSome = 3;
   [mWhitelistPanel orderOut:self];
   [NSApp endSheet:mWhitelistPanel];
 
-  NS_IF_RELEASE(mCachedPermissions);
+  [mCachedPermissions release];
+  mCachedPermissions = nil;
 }
 
 -(IBAction) removeWhitelistSite:(id)aSender
 {
-  if ( mCachedPermissions && mManager ) {
-    // remove from parallel array and cookie permissions list
-    int row = [mWhitelistTable selectedRow];
+  CHPermissionManager* permManager = [CHPermissionManager permissionManager];
 
-    // remove from permission manager (which is done by host, not by row), then 
-    // remove it from our parallel array (which is done by row). Since we keep a
-    // parallel array, removing multiple items by row is very difficult since after 
-    // deleting, the array is out of sync with the next cocoa row we're told to remove. Punt!
-    nsCOMPtr<nsISupports> rowItem = dont_AddRef(mCachedPermissions->ElementAt(row));
-    nsCOMPtr<nsIPermission> perm ( do_QueryInterface(rowItem) );
-    if ( perm ) {
-      nsCAutoString host;
-      perm->GetHost(host);
-      mManager->Remove(host, "popup");           // could this api _be_ any worse? Come on!
+  // Walk the selected rows backwards, removing permissions.
+  NSIndexSet* selectedIndexes = [mWhitelistTable selectedRowIndexes];
+  for (unsigned int i = [selectedIndexes lastIndex];
+       i != NSNotFound;
+       i = [selectedIndexes indexLessThanIndex:i])
+  {
+    [permManager removePermissionForHost:[[mCachedPermissions objectAtIndex:i] host]
+                                    type:CHPermissionTypePopup];
+    [mCachedPermissions removeObjectAtIndex:i];
+  }
 
-      mCachedPermissions->RemoveElementAt(row);
-    }
-    [mWhitelistTable reloadData];
+  [mWhitelistTable reloadData];
+
+  // Select the row after the last deleted row.
+  if ([mWhitelistTable numberOfRows] > 0) {
+    int rowToSelect = [selectedIndexes lastIndex] - ([selectedIndexes count] - 1);
+    if ((rowToSelect < 0) || (rowToSelect >= [mWhitelistTable numberOfRows]))
+      rowToSelect = [mWhitelistTable numberOfRows] - 1;
+    [mWhitelistTable selectRow:rowToSelect byExtendingSelection:NO];
   }
 }
 
@@ -362,26 +319,17 @@ const int kAnnoyancePrefSome = 3;
 //
 -(IBAction) addWhitelistSite:(id)sender
 {
-  if ( mCachedPermissions && mManager ) {
-    // ensure url has a http:// on the front or NS_NewURI will fail. The PM
-    // really doesn't care what the protocol is, we just need to have something
-    NSString* url = [[mAddField stringValue] stringByRemovingCharactersInSet:[NSCharacterSet whitespaceAndNewlineCharacterSet]];
-    if ( ![url rangeOfString:@"http://"].length && ![url rangeOfString:@"https://"].length )
-      url = [NSString stringWithFormat:@"http://%@", url];
+  NSString* host = [[mAddField stringValue] stringByRemovingCharactersInSet:[NSCharacterSet whitespaceAndNewlineCharacterSet]];
 
-    const char* siteURL = [url UTF8String];
-    nsCOMPtr<nsIURI> newURI;
-    NS_NewURI(getter_AddRefs(newURI), siteURL);
-    if ( newURI ) {
-      mManager->Add(newURI, "popup", nsIPermissionManager::ALLOW_ACTION);
-      mCachedPermissions->Clear();
-      [self populatePermissionCache:mCachedPermissions];
+  [[CHPermissionManager permissionManager] setPolicy:CHPermissionAllow
+                                             forHost:host
+                                                type:CHPermissionTypePopup];
+  //TODO: Create a new permission rather than starting from scratch.
+  [self populatePermissionCache];
 
-      [mAddField setStringValue:@""];
-      [mAddButton setEnabled:NO];
-      [mWhitelistTable reloadData];
-    }
-  }
+  [mAddField setStringValue:@""];
+  [mAddButton setEnabled:NO];
+  [mWhitelistTable reloadData];
 }
 
 - (void) editWhitelistSheetDidEnd:(NSWindow *)sheet returnCode:(int)returnCode contextInfo:(void  *)contextInfo
@@ -392,32 +340,17 @@ const int kAnnoyancePrefSome = 3;
 // data source informal protocol (NSTableDataSource)
 - (int)numberOfRowsInTableView:(NSTableView *)aTableView
 {
-  PRUint32 numRows = 0;
-  if ( mCachedPermissions )
-    mCachedPermissions->Count(&numRows);
-
-  return (int) numRows;
+  return [mCachedPermissions count];
 }
 
 - (id)tableView:(NSTableView *)aTableView objectValueForTableColumn:(NSTableColumn *)aTableColumn row:(int)rowIndex
 {
   id retVal = nil;
-  if ( mCachedPermissions ) {
-    nsCOMPtr<nsISupports> rowItem = dont_AddRef(mCachedPermissions->ElementAt(rowIndex));
-    nsCOMPtr<nsIPermission> perm ( do_QueryInterface(rowItem) );
-    if ( perm ) {
-      if (aTableColumn == mPolicyColumn) {
-        PRUint32 capability;
-        perm->GetCapability(&capability);
-        retVal = [NSNumber numberWithInt:((capability == nsIPermissionManager::ALLOW_ACTION) ? 0 : 1)]; 
-      }
-      else { // website column
-        nsCAutoString host;
-        perm->GetHost(host);
-        retVal = [NSString stringWithCString:host.get()];
-      }
-    }
-  }
+  CHPermission* permission = [mCachedPermissions objectAtIndex:rowIndex];
+  if (aTableColumn == mPolicyColumn)
+    retVal = [NSNumber numberWithInt:(([permission policy] == CHPermissionAllow) ? 0 : 1)];
+  else // host column
+    retVal = [permission host];
 
   return retVal;
 }
@@ -429,32 +362,9 @@ const int kAnnoyancePrefSome = 3;
               row:(int)rowIndex
 {
   if (aTableColumn == mPolicyColumn) {
-    if (!(mCachedPermissions && mManager))
-      return;
-    nsCOMPtr<nsISupports> rowItem = dont_AddRef(mCachedPermissions->ElementAt(rowIndex));
-    nsCOMPtr<nsIPermission> perm (do_QueryInterface(rowItem));
-    if (!perm)
-      return;
-    // create a URI from the hostname of the changed site
-    nsCAutoString host;
-    perm->GetHost(host);
-    NSString* url = [NSString stringWithFormat:@"http://%s", host.get()];
-    const char* siteURL = [url UTF8String];
-    nsCOMPtr<nsIURI> newURI;
-    NS_NewURI(getter_AddRefs(newURI), siteURL);
-    if (!newURI)
-      return;
-    // nsIPermissions are immutable, and there's no API to change the action,
-    // so instead we have to replace the previous policy entirely.
-    mManager->Add(newURI, "popup", ([anObject intValue] == 0) ? nsIPermissionManager::ALLOW_ACTION
-                                                              : nsIPermissionManager::DENY_ACTION);
-    // there really should be a better way to keep the cache up-to-date than rebuilding
-    // it, but the nsIPermissionManager interface doesn't have a way to get a pointer
-    // to a site's nsIPermission. It's this, use a custom class that duplicates the
-    // information (wasting a lot of memory), or find a way to tie in to
-    // PERM_CHANGE_NOTIFICATION to get the new nsIPermission that way.
-    mCachedPermissions->Clear();
-    [self populatePermissionCache:mCachedPermissions];
+    CHPermission* permission = [mCachedPermissions objectAtIndex:rowIndex];
+    [permission setPolicy:(([anObject intValue] == 0) ? CHPermissionAllow
+                                                      : CHPermissionDeny)];
   }
 }
 
@@ -545,26 +455,6 @@ const int kAnnoyancePrefSome = 3;
     return NSOffState;
   else
     return NSMixedState;
-}
-
-//
-// -profilePath
-//
-// Returns the path for our post 0.8 profiles stored in Application Support/Camino.
-// Copied from the pref manager which we can't use w/out compiling it into our bundle.
-//
-- (NSString*) profilePath
-{
-  nsCOMPtr<nsIFile> appSupportDir;
-  nsresult rv = NS_GetSpecialDirectory(NS_APP_USER_PROFILES_ROOT_DIR,
-                                       getter_AddRefs(appSupportDir));
-  if (NS_FAILED(rv))
-    return nil;
-  nsCAutoString nativePath;
-  rv = appSupportDir->GetNativePath(nativePath);
-  if (NS_FAILED(rv))
-    return nil;
-  return [NSString stringWithUTF8String:nativePath.get()];
 }
 
 //
