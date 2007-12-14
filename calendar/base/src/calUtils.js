@@ -1295,9 +1295,6 @@ calListenerBag.prototype = {
 };
 
 function sendMailTo(aRecipient, aSubject, aBody) {
-    if (!aRecipient || aRecipient.length < 1) {
-        return;
-    }
 
     if (Components.classes["@mozilla.org/messengercompose;1"]) {
         // We are in Thunderbird, we can use the compose interface directly
@@ -1325,8 +1322,11 @@ function sendMailTo(aRecipient, aSubject, aBody) {
         var ioService = Components.classes["@mozilla.org/network/io-service;1"]
                         .getService(Components.interfaces.nsIIOService);
 
-        var uriString = "mailto:" + aRecipient;
+        var uriString = "";
         var uriParams = [];
+        if (!aRecipient || aRecipient.length < 1) {
+            uriString = "mailto:" + aRecipient;
+        }
 
         if (aSubject) {
             uriParams.push("subject=" + encodeURIComponent(aSubject));

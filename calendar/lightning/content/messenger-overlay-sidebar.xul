@@ -396,9 +396,9 @@
       <vbox id="ltnSidebar"
             height="350"
             persist="height"
-            ondraggesture="nsDragAndDrop.startDrag(event, calendarDNDObserver);"
-            ondragover="nsDragAndDrop.dragOver(event, calendarDNDObserver);"
-            ondragdrop="nsDragAndDrop.drop(event, calendarDNDObserver);">
+            ondraggesture="nsDragAndDrop.startDrag(event, calendarViewDNDObserver);"
+            ondragover="nsDragAndDrop.dragOver(event, calendarViewDNDObserver);"
+            ondragdrop="nsDragAndDrop.drop(event, calendarViewDNDObserver);">
         <hbox id="ltnMinimonthBox">
           <spacer flex="1"/>
           <minimonth id="ltnMinimonth" onchange="ltnMinimonthPick(this);" flex="2"/>
@@ -430,17 +430,26 @@
                        mode="mode" 
                        id="mail-switch-button"
                        label="&lightning.toolbar.mail.label;"
-                       command="switch2mail"/>
+                       command="switch2mail"
+                       ondraggesture="nsDragAndDrop.startDrag(event, calendarMailButtonDNDObserver);"
+                       ondragover="nsDragAndDrop.dragOver(event, calendarMailButtonDNDObserver);"
+                       ondragdrop="nsDragAndDrop.drop(event, calendarMailButtonDNDObserver);"/>
         <toolbarbutton class="toolbarbutton-2"
                        mode="mode" 
                        id="calendar-switch-button"
                        label="&lightning.toolbar.calendar.label;"
-                       command="switch2calendar"/>
+                       command="switch2calendar"
+                       ondraggesture="nsDragAndDrop.startDrag(event, calendarCalendarButtonDNDObserver);"
+                       ondragover="nsDragAndDrop.dragOver(event, calendarCalendarButtonDNDObserver);"
+                       ondragdrop="nsDragAndDrop.drop(event, calendarCalendarButtonDNDObserver);"/>
         <toolbarbutton class="toolbarbutton-2"
                        mode="mode" 
                        id="task-switch-button"
                        label="&lightning.toolbar.task.label;"
-                       command="switch2task"/>
+                       command="switch2task"
+                       ondraggesture="nsDragAndDrop.startDrag(event, calendarTaskButtonDNDObserver);"
+                       ondragover="nsDragAndDrop.dragOver(event, calendarTaskButtonDNDObserver);"
+                       ondragdrop="nsDragAndDrop.drop(event, calendarTaskButtonDNDObserver);"/>
       </toolbarpalette>
       <toolbar id="mode-toolbar"
                class="chromeclass-toolbar"
@@ -459,9 +468,9 @@
     <deck flex="1"
           id="view-deck"
           persist="selectedIndex"
-          ondraggesture="nsDragAndDrop.startDrag(event, calendarDNDObserver);"
-          ondragover="nsDragAndDrop.dragOver(event, calendarDNDObserver);"
-          ondragdrop="nsDragAndDrop.drop(event, calendarDNDObserver);">
+          ondraggesture="nsDragAndDrop.startDrag(event, calendarViewDNDObserver);"
+          ondragover="nsDragAndDrop.dragOver(event, calendarViewDNDObserver);"
+          ondragdrop="nsDragAndDrop.drop(event, calendarViewDNDObserver);">
       <calendar-decorated-day-view id="day-view" flex="1"
                                          context="calendar-view-context-menu"
                                          item-context="calendar-item-context-menu"/>

@@ -179,11 +179,10 @@
 
         var flavourProvider = {
             QueryInterface: function(aIID) {
-                if (aIID.equals(Components.interfaces.nsIFlavorDataProvider) ||
-                    aIID.equals(Components.interfaces.nsISupports)) {
-                    return this;
-                }
-                throw Components.results.NS_NOINTERFACE;
+                ensureIID(
+                    [ Components.interfaces.nsIFlavorDataProvider,
+                      Components.interfaces.nsISupports], aIID);
+                return this;
             },
             item: item,
 
@@ -193,7 +192,7 @@
                     aOutData.value = this.item;
                     aOutDataLen.value = 1;
                 } else {
-                    alert("error:"+aInFlavor);
+                    ASSERT(false, "error:"+aInFlavor);
                 }
             }
         };
@@ -207,9 +206,13 @@
         }
 
         // Also set some normal data-types, in case we drag into another app
+        var serializer = Components.classes["@mozilla.org/calendar/ics-serializer;1"].
+                                    createInstance(Components.interfaces.calIIcsSerializer);
+        serializer.addItems([item], 1);
+
         var supportsString = Components.classes["@mozilla.org/supports-string;1"].
                              createInstance(Components.interfaces.nsISupportsString);
-        supportsString.data = item.icalComponent.serializeToICS();
+        supportsString.data = serializer.serializeToString();
         transfer.setTransferData("text/calendar", supportsString, supportsString.data.length*2);
         transfer.setTransferData("text/unicode", supportsString, supportsString.data.length*2);
 

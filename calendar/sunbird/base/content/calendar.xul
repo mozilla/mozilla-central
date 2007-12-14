@@ -335,9 +335,9 @@
 <vbox id="calendar-top-box"
       flex="1"
       context="context-menu"
-      ondraggesture="nsDragAndDrop.startDrag(event,calendarDNDObserver);"
-      ondragover="nsDragAndDrop.dragOver(event,calendarDNDObserver);"
-      ondragdrop="nsDragAndDrop.drop(event,calendarDNDObserver);">
+      ondraggesture="nsDragAndDrop.startDrag(event,calendarViewDNDObserver);"
+      ondragover="nsDragAndDrop.dragOver(event,calendarViewDNDObserver);"
+      ondragdrop="nsDragAndDrop.drop(event,calendarViewDNDObserver);">
 
   <!-- Calendar Controls-->
  

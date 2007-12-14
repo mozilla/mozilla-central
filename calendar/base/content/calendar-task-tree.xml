@@ -424,6 +424,8 @@
               return 0;
           },
           
+          canDrop: function mTV_canDrop() { return false; },
+          
           /**
            * Task Tree Events
            */
@@ -444,6 +446,8 @@
               }
           },
 
+          onDrop: function tTV_onDrop(event) {},
+          
           onKeyPress: function tTV_onKeyPress(event) {
               const kKE = Components.interfaces.nsIDOMKeyEvent;
               switch (event.keyCode || event.which) {
@@ -981,6 +985,66 @@
       ]]></handler>
       <handler event="mousedown"><![CDATA[
         this.mTreeView.onMouseDown(event);
+      ]]></handler>
+      <handler event="draggesture"><![CDATA[
+        var tree = document.getAnonymousElementByAttribute(this, "anonid", "calendar-task-tree");
+        
+        // let's build the drag region
+        var region = null;
+        try {
+          region = Components.classes["@mozilla.org/gfx/region;1"].createInstance(Components.interfaces.nsIScriptableRegion);
+          region.init();
+          var obo = tree.treeBoxObject;
+          var bo = obo.treeBody.boxObject;
+          var sel= tree.view.selection;
+
+          var rowX = bo.x;
+          var rowY = bo.y;
+          var rowHeight = obo.rowHeight;
+          var rowWidth = bo.width;
+
+          //add a rectangle for each visible selected row
+          for (var i = obo.getFirstVisibleRow(); i <= obo.getLastVisibleRow(); i ++) {
+            if (sel.isSelected(i))
+              region.unionRect(rowX, rowY, rowWidth, rowHeight);
+            rowY = rowY + rowHeight;
+          }
+          
+          //and finally, clip the result to be sure we don't spill over...
+          if(!region.isEmpty())
+            region.intersectRect(bo.x, bo.y, bo.width, bo.height);
+        } catch(ex) {
+          ASSERT(false, "Error while building selection region: " + ex + "\n");
+          region = null;
+        }
+        
+        var dragService = Components.classes["@mozilla.org/widget/dragservice;1"].
+                          getService(Components.interfaces.nsIDragService);
+        var transfer = Components.classes["@mozilla.org/widget/transferable;1"].
+                       createInstance(Components.interfaces.nsITransferable);
+        transfer.addDataFlavor("text/calendar");
+
+        var item = this.currentTask;
+        if (item.calendar.readOnly) {
+            return;
+        }
+        
+        var serializer = Components.classes["@mozilla.org/calendar/ics-serializer;1"].
+                                    createInstance(Components.interfaces.calIIcsSerializer);
+        serializer.addItems([item], 1);
+        
+        var supportsString = Components.classes["@mozilla.org/supports-string;1"].
+                             createInstance(Components.interfaces.nsISupportsString);
+        supportsString.data = serializer.serializeToString();
+        transfer.setTransferData("text/calendar", supportsString, supportsString.data.length*2);
+        transfer.setTransferData("text/unicode", supportsString, supportsString.data.length*2);
+
+        var action = dragService.DRAGDROP_ACTION_MOVE;
+        var supArray = Components.classes["@mozilla.org/supports-array;1"].
+                       createInstance(Components.interfaces.nsISupportsArray);
+        supArray.AppendElement(transfer);
+
+        dragService.invokeDragSession(event.target, supArray, region, action);
       ]]></handler>
     </handlers>
 
