@@ -46,7 +46,6 @@
 #include "nsIAbMDBCard.h"
 #include "nsAbLDAPReplicationQuery.h"
 #include "nsProxiedService.h"
-#include "nsCPasswordManager.h"
 #include "nsIRDFService.h"
 #include "nsIRDFResource.h"
 #include "nsILDAPErrors.h"

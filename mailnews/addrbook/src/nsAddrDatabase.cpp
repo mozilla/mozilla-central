@@ -40,36 +40,26 @@
 // this file implements the nsAddrDatabase interface using the MDB Interface.
 
 #include "nsAddrDatabase.h"
-#include "nsIEnumerator.h"
 #include "nsStringGlue.h"
 #include "nsAutoPtr.h"
 #include "nsRDFCID.h"
 #include "nsUnicharUtils.h"
-#include "nsMsgUtils.h"
 #include "nsAbBaseCID.h"
-#include "nsIAbCard.h"
 #include "nsIAbMDBCard.h"
-#include "nsIAbDirectory.h"
 #include "nsIAbMDBDirectory.h"
-#include "nsIAddrBookSession.h"
-
 #include "nsServiceManagerUtils.h"
 #include "nsComponentManagerUtils.h"
 #include "nsRDFCID.h"
-
+#include "nsMsgUtils.h"
 #include "nsMorkCID.h"
 #include "nsIMdbFactoryFactory.h"
 #include "nsIRDFService.h"
 #include "nsIProxyObjectManager.h"
 #include "nsProxiedService.h"
-#include "prprf.h"
 #include "nsIMutableArray.h"
 #include "nsIPromptService.h"
 #include "nsIStringBundle.h"
 #include "nsIFile.h"
-
-#include "nsAddressBook.h" // for the map
-
 #include "nsEmbedCID.h"
 #include "nsXPCOMCIDInternal.h"
 

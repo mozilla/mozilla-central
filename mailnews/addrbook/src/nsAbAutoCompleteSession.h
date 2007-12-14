@@ -38,12 +38,12 @@
 #ifndef nsAbAutoCompleteSession_h___
 #define nsAbAutoCompleteSession_h___
 
-#include "msgCore.h"
 #include "nsCOMPtr.h"
 #include "nsStringGlue.h"
 #include "nsIMsgHeaderParser.h"
 #include "nsIAbDirectory.h"
 #include "nsIAbAutoCompleteSession.h"
+#include "nsCRTGlue.h"
 
 class nsIPrefBranch;
 

@@ -39,14 +39,8 @@
  * ***** END LICENSE BLOCK ***** */
 
 #include "nsAbCardProperty.h"
-#include "nsIServiceManager.h"
-#include "nsStringGlue.h"
 #include "nsAbBaseCID.h"
-#include "nsCOMPtr.h"
-#include "nsUnicharUtils.h"
 #include "nsIPrefService.h"
-#include "nsIPrefBranch.h"
-#include "nsIAbDirectory.h"
 #include "nsIAddrDatabase.h"
 #include "plbase64.h"
 #include "nsIAddrBookSession.h"

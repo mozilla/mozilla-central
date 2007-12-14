@@ -38,9 +38,8 @@
  * ***** END LICENSE BLOCK ***** */
 
 #include "nsISupports.idl"
-#include "nsILDAPURL.idl"
-#include "nsILDAPService.idl"
-#include "nsIPrefBranch.idl"
+
+interface nsIPrefBranch;
 
 /**
  * This service is obsolete and expected to go away very soon.

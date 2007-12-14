@@ -36,17 +36,10 @@
  *
  * ***** END LICENSE BLOCK ***** */
 
-#include "msgCore.h"
 #include "nsAbAutoCompleteSession.h"
-#include "nsStringGlue.h"
 #include "nsRDFCID.h"
 #include "nsIRDFService.h"
-#include "nsIAbDirectory.h"
-#include "nsIAbCard.h"
 #include "nsUnicharUtils.h"
-#include "nsMsgBaseCID.h"
-#include "nsMsgI18N.h"
-#include "nsIMsgIdentity.h"
 #include "prmem.h"
 #include "nsNetCID.h"
 #include "nsIIOService.h"
