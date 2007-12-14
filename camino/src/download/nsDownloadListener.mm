@@ -36,7 +36,7 @@
  * the terms of any one of the MPL, the GPL or the LGPL.
  *
  * ***** END LICENSE BLOCK ***** */
- 
+
 #import "NSString+Gecko.h"
 
 #include "nsDownloadListener.h"
@@ -46,6 +46,8 @@
 #include "nsIFileURL.h"
 #include "netCore.h"
 #include "nsNetError.h"
+#include "nsNetUtil.h"
+#include "nsILocalFileMac.h"
 
 nsDownloadListener::nsDownloadListener()
 : mDownloadStatus(NS_OK)
@@ -83,7 +85,7 @@ NS_IMETHODIMP
 nsDownloadListener::Init(nsIURI *aSource, nsIURI *aTarget, const nsAString &aDisplayName,
         nsIMIMEInfo* aMIMEInfo, PRInt64 startTime, nsILocalFile* aTempFile,
         nsICancelable* aCancelable)
-{ 
+{
   // get the local file corresponding to the given target URI
   nsCOMPtr<nsILocalFile> targetFile;
   {
@@ -111,8 +113,10 @@ nsDownloadListener::Init(nsIURI *aSource, nsIURI *aTarget, const nsAString &aDis
   mDestinationFile = targetFile;
   mURI = aSource;
   mStartTime = startTime;
+  mTempFile = aTempFile;
 
   InitDialog();
+
   return NS_OK;
 }
 
@@ -217,7 +221,9 @@ nsDownloadListener::GetState(PRInt16 *aState)
 
 NS_IMETHODIMP
 nsDownloadListener::GetReferrer(nsIURI * *aReferrer) {
-  return NS_ERROR_NOT_IMPLEMENTED;
+  NS_ENSURE_ARG_POINTER(aReferrer);
+  NS_IF_ADDREF(*aReferrer = mReferrer);
+  return NS_OK;
 }
 
 #pragma mark -
@@ -234,7 +240,9 @@ nsDownloadListener::OnProgressChange64(nsIWebProgress *aWebProgress,
 {
   if (!mRequest)
     mRequest = aRequest; // for pause/resume downloading
-	
+
+  FigureOutReferrer();
+
   [mDownloadDisplay setProgressTo:aCurTotalProgress ofMax:aMaxTotalProgress];
   return NS_OK;
 }
@@ -403,6 +411,11 @@ nsDownloadListener::CancelDownload()
 void
 nsDownloadListener::DownloadDone(nsresult aStatus)
 {
+  // Quarantine the temporary file while it still exists.  This is done in
+  // DownloadDone because we're assured to have as much information about the
+  // download at possible at this point.
+  QuarantineDownload();
+
   // break the reference cycle
   mCancelable = nsnull;
   
@@ -439,6 +452,203 @@ PRBool
 nsDownloadListener::IsDownloadPaused()
 {
   return mDownloadPaused;
+}
+
+#if MAC_OS_X_VERSION_MAX_ALLOWED <= MAC_OS_X_VERSION_10_4  // SDK
+// This is a helper used by QuarantineDownload to look up strings at runtime.
+static const CFStringRef GetCFStringFromBundle(CFBundleRef bundle,
+                                               CFStringRef symbol) {
+  const CFStringRef* string = (const CFStringRef*)
+      ::CFBundleGetFunctionPointerForName(bundle, symbol);
+  if (!string) {
+    return NULL;
+  }
+  return *string;
+}
+#endif  // SDK
+
+// The file quarantine was introduced in Mac OS X 10.5 ("Leopard") and is
+// descibed at:
+//
+//    http://developer.apple.com/releasenotes/Carbon/RN-LaunchServices/index.html#//apple_ref/doc/uid/TP40001369-DontLinkElementID_2
+//
+// Quarantined files are marked with the "com.apple.quarantine" metadata
+// attribute, tracked by Launch Services.  When the user attempts to launch
+// an quarantined application, or an application in a quarantined disk image,
+// the system will warn the user that the application may have untrustworthy
+// origins.
+//
+// The system will automatically quarantine files created by applications that
+// have opted in by setting the LSFileQuarantineEnabled key to true in their
+// Info.plist, subject to exclusions identified in their specified
+// LSFileQuarantineExcludedPathPatterns list.  Some applications are opted
+// in by default, including Camino.
+//
+// When the system automatically quarantines files, it is only able to set
+// the portions of the attribute that identify the application that created
+// the file and the time that it was created.  Additional fields are available,
+// to aid in identifying the source of the file.  In order to populate these
+// fields, the application must make Launch Services calls on its own.
+//
+// This method makes those calls.
+void nsDownloadListener::QuarantineDownload() {
+  // Quarantining support is only present in Mac OS X 10.5 ("Leopard") and
+  // later.  If building against an earlier SDK, these declarations and
+  // symbols aren't available.  They'll be looked up at runtime.  When
+  // running pre-10.5, this function will be a no-op.
+  typedef OSStatus (*LSSetItemAttribute_type)(const FSRef*, LSRolesMask,
+                                              CFStringRef, CFTypeRef);
+
+  static LSSetItemAttribute_type lsSetItemAttributeFunc = NULL;
+  static CFStringRef lsItemQuarantineProperties = NULL;
+
+  // LaunchServices declares these as CFStringRef, but they're used here as
+  // NSString.  Take advantage of data type equivalance and just call them
+  // NSString.
+  static NSString* lsQuarantineTypeKey = nil;
+  static NSString* lsQuarantineOriginURLKey = nil;
+  static NSString* lsQuarantineDataURLKey = nil;
+  static NSString* lsQuarantineTypeOtherDownload = nil;
+  static NSString* lsQuarantineTypeWebDownload = nil;
+
+#if MAC_OS_X_VERSION_MAX_ALLOWED <= MAC_OS_X_VERSION_10_4  // SDK
+  // The SDK is 10.4 or older, and doesn't contain 10.5 APIs.  Look up the
+  // symbols we need at runtime the first time through this function.
+
+  static bool didSymbolLookup = false;
+  if (!didSymbolLookup) {
+    didSymbolLookup = true;
+    CFBundleRef launchServicesBundle =
+        ::CFBundleGetBundleWithIdentifier(CFSTR("com.apple.LaunchServices"));
+    if (!launchServicesBundle) {
+      return;
+    }
+
+    lsSetItemAttributeFunc = (LSSetItemAttribute_type)
+        ::CFBundleGetFunctionPointerForName(launchServicesBundle,
+                                            CFSTR("LSSetItemAttribute"));
+
+    lsItemQuarantineProperties = GetCFStringFromBundle(
+        launchServicesBundle, CFSTR("kLSItemQuarantineProperties"));
+
+    lsQuarantineTypeKey = (NSString*)GetCFStringFromBundle(
+        launchServicesBundle, CFSTR("kLSQuarantineTypeKey"));
+
+    lsQuarantineOriginURLKey = (NSString*)GetCFStringFromBundle(
+        launchServicesBundle, CFSTR("kLSQuarantineOriginURLKey"));
+
+    lsQuarantineDataURLKey = (NSString*)GetCFStringFromBundle(
+        launchServicesBundle, CFSTR("kLSQuarantineDataURLKey"));
+
+    lsQuarantineTypeOtherDownload = (NSString*)GetCFStringFromBundle(
+        launchServicesBundle, CFSTR("kLSQuarantineTypeOtherDownload"));
+
+    lsQuarantineTypeWebDownload = (NSString*)GetCFStringFromBundle(
+        launchServicesBundle, CFSTR("kLSQuarantineTypeWebDownload"));
+  }
+#else  // SDK
+  // The SDK is 10.5 or newer, and has stub libraries with these symbols.
+  lsSetItemAttributeFunc = ::LSSetItemAttribute;
+  lsItemQuarantineProperties = kLSItemQuarantineProperties;
+  lsQuarantineTypeKey = (NSString*)kLSQuarantineTypeKey;
+  lsQuarantineOriginURLKey = (NSString*)kLSQuarantineOriginURLKey;
+  lsQuarantineDataURLKey = (NSString*)kLSQuarantineDataURLKey;
+  lsQuarantineTypeOtherDownload = (NSString*)kLSQuarantineTypeOtherDownload;
+  lsQuarantineTypeWebDownload = (NSString*)kLSQuarantineTypeWebDownload;
+#endif  // SDK
+
+#if MAC_OS_X_VERSION_MIN_REQUIRED <= MAC_OS_X_VERSION_10_4  // DT
+  // Regardless of the SDK, this may run on releases older than 10.5 that
+  // don't contain these symbols.  Before going any further, check to make
+  // sure that everything is present.
+  if (!lsSetItemAttributeFunc || !lsItemQuarantineProperties ||
+      !lsQuarantineTypeKey || !lsQuarantineOriginURLKey ||
+      !lsQuarantineDataURLKey || !lsQuarantineTypeOtherDownload ||
+      !lsQuarantineTypeWebDownload) {
+    return;
+  }
+#endif  // DT
+
+  nsCOMPtr<nsILocalFileMac> tempFile = do_QueryInterface(mTempFile);
+  if (!tempFile) {
+    return;
+  }
+
+  FSRef tempFSRef;
+  if (NS_FAILED(tempFile->GetFSRef(&tempFSRef))) {
+    return;
+  }
+
+  NSDictionary* quarantineProperties = nil;
+  CFTypeRef quarantinePropertiesBase = NULL;
+  if (::LSCopyItemAttribute(&tempFSRef, kLSRolesAll,
+                            lsItemQuarantineProperties,
+                            &quarantinePropertiesBase) == noErr) {
+    if (::CFGetTypeID(quarantinePropertiesBase) ==
+        ::CFDictionaryGetTypeID()) {
+      // Quarantine properties will already exist if LSFileQuarantineEnabled
+      // is on and the file doesn't match an exclusion.
+      quarantineProperties =
+          [[(NSDictionary*)quarantinePropertiesBase mutableCopy] autorelease];
+    }
+    else {
+      NSLog(@"LSItemQuarantineProperties isn't a CFDictionary?  How odd!");
+    }
+
+    ::CFRelease(quarantinePropertiesBase);
+  }
+
+  if (!quarantineProperties) {
+    // If quarantine properties don't already exist, create a new dictionary
+    // with enough room for the keys we're adding.
+    quarantineProperties = [NSMutableDictionary dictionaryWithCapacity:3];
+  }
+
+  // The system is nice enough to set values for kLSQuarantineAgentNameKey,
+  // kLSQuarantineAgentBundleIdentifierKey, and kLSQuarantineTimeStampKey,
+  // so we don't have to.  It sets these values even if LSFileQuarantineEnabled
+  // is false.  How nice.  Thanks, system!
+
+  if (![quarantineProperties valueForKey:lsQuarantineTypeKey]) {
+    PRBool isWebScheme = PR_FALSE;
+    NSString* type = lsQuarantineTypeOtherDownload;
+    if ((NS_SUCCEEDED(mURI->SchemeIs("http", &isWebScheme)) && isWebScheme) ||
+        (NS_SUCCEEDED(mURI->SchemeIs("https", &isWebScheme)) && isWebScheme)) {
+      type = lsQuarantineTypeWebDownload;
+    }
+    [quarantineProperties setValue:type forKey:lsQuarantineTypeKey];
+  }
+
+  if (![quarantineProperties valueForKey:lsQuarantineOriginURLKey] &&
+      mReferrer) {
+    nsCAutoString url;
+    if (NS_SUCCEEDED(mReferrer->GetSpec(url))) {
+      [quarantineProperties setValue:[NSString stringWith_nsACString:url]
+                              forKey:lsQuarantineOriginURLKey];
+    }
+  }
+
+  if (![quarantineProperties valueForKey:lsQuarantineDataURLKey]) {
+    nsCAutoString url;
+    if (NS_SUCCEEDED(mURI->GetSpec(url))) {
+      [quarantineProperties setValue:[NSString stringWith_nsACString:url]
+                              forKey:lsQuarantineDataURLKey];
+    }
+  }
+
+  // If you call this more than once, it will appear to succeed, but no
+  // updates are actually made to the quarantine data.
+  lsSetItemAttributeFunc(&tempFSRef, kLSRolesAll, lsItemQuarantineProperties,
+                         quarantineProperties);
+}
+
+void nsDownloadListener::FigureOutReferrer() {
+  if (!mReferrer) {
+    nsCOMPtr<nsIChannel> channel = do_QueryInterface(mRequest);
+    if (channel) {
+      NS_GetReferrerFromChannel(channel, getter_AddRefs(mReferrer));
+    }
+  }
 }
 
 #pragma mark -

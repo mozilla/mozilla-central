@@ -73,8 +73,6 @@ public:
     NS_DECL_NSIWEBPROGRESSLISTENER2
     
 public:
-
-    void InitDialog();
     
     virtual void PauseDownload();
     virtual void ResumeDownload();
@@ -85,11 +83,17 @@ public:
     
 private:
 
+    void InitDialog();
+    void QuarantineDownload();
+    void FigureOutReferrer();
+
     nsCOMPtr<nsICancelable>         mCancelable;        // Object to cancel the download
     nsCOMPtr<nsIRequest>            mRequest;           // Request to hook on status change, allows pause/resume
+    nsCOMPtr<nsIURI>                mReferrer;          // The URI that referred us to the download.
     nsCOMPtr<nsIURI>                mURI;               // The URI of our source file. Null if we're saving a complete document.
     nsCOMPtr<nsIURI>                mDestination;       // Our destination URL.
     nsCOMPtr<nsILocalFile>          mDestinationFile;   // Our destination file.
+    nsCOMPtr<nsILocalFile>          mTempFile;          // The file that receives downloaded content, which will ultimately replace mDestinationFile.
     nsresult                        mDownloadStatus;		// status from last nofication
     PRInt64                         mStartTime;         // When the download started
     PRPackedBool                    mBypassCache;       // Whether we should bypass the cache or not.
