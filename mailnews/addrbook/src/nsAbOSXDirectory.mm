@@ -51,6 +51,7 @@
 #include "nsServiceManagerUtils.h"
 #include "nsIArray.h"
 #include "nsArrayUtils.h"
+#include "nsIAbBooleanExpression.h"
 
 #include <AddressBook/AddressBook.h>
 #if (MAC_OS_X_VERSION_MAX_ALLOWED < MAC_OS_X_VERSION_10_3)

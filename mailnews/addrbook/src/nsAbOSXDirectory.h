@@ -49,6 +49,7 @@
 #include "nsTHashtable.h"
 
 class nsIAddrBookSession;
+class nsIAbBooleanExpression;
 
 #define NS_ABOSXDIRECTORY_URI_PREFIX NS_ABOSXDIRECTORY_PREFIX "://"
 
