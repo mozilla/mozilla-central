@@ -63,6 +63,12 @@ function toDownloadManager()
   }
 }
   
+function toEM()
+{
+  toOpenWindowByType("Extension:Manager",
+                     "chrome://mozapps/content/extensions/extensions.xul");
+}
+
 function toJavaScriptConsole()
 {
     toOpenWindowByType("global:console", "chrome://global/content/console.xul");
@@ -120,33 +126,37 @@ function toOpenWindowByType( inType, uri )
 
 function OpenBrowserWindow()
 {
-  var charsetArg = new String();
-  var handler = Components.classes['@mozilla.org/commandlinehandler/general-startup;1?type=browser'];
-  handler = handler.getService();
-  handler = handler.QueryInterface(Components.interfaces.nsICmdLineHandler);
-  var url = handler.chromeUrlForTask;
-  var wintype = document.documentElement.getAttribute('windowtype');
-  var windowMediator = Components.classes["@mozilla.org/appshell/window-mediator;1"].getService(Components.interfaces.nsIWindowMediator);
-  var browserWin = windowMediator.getMostRecentWindow("navigator:browser");
- 
-  // if a browser window already exists then set startpage to null so
-  // navigator.js can check pref for how new window should be opened
-  var startpage = browserWin ? null : handler.defaultArgs;
-
-  // if and only if the current window is a browser window and it has a document with a character
-  // set, then extract the current charset menu setting from the current document and use it to
-  // initialize the new browser window...
-  if (window && (wintype == "navigator:browser") && window.content && window.content.document)
+  if (document.documentElement.getAttribute("windowtype") ==
+      "navigator:browser" && window.content && window.content.document)
   {
-    var DocCharset = window.content.document.characterSet;
-    charsetArg = "charset="+DocCharset;
-
-    //we should "inherit" the charset menu setting in a new window
-    window.openDialog(url, "_blank", "chrome,all,dialog=no", startpage, charsetArg);
-  }
-  else // forget about the charset information.
-  {
-    window.openDialog(url, "_blank", "chrome,all,dialog=no", startpage);
+    // if and only if the current window is a browser window and
+    // it has a document with a character set, then extract the
+    // current charset menu setting from the current document
+    // and use it to initialize the new browser window
+    window.openDialog(getBrowserURL(), "_blank",
+                      "chrome,all,dialog=no", null,
+                      "charset=" + window.content.document.characterSet);
+  } else if (Components.classes["@mozilla.org/appshell/window-mediator;1"]
+                       .getService(Components.interfaces.nsIWindowMediator)
+                       .getMostRecentWindow("navigator:browser")) {
+    // if a browser window already exists then set startpage to null so
+    // navigator.js can check pref for how new window should be opened
+    window.openDialog(getBrowserURL(), "_blank", "chrome,all,dialog=no", null);
+  } else {
+    // open the first browser window as if we were starting up
+    var cmdLine = {
+      handleFlagWithParam: function handleFlagWithParam(flag, caseSensitive) {
+        return flag == "remote" ? "xfeDoCommand(openBrowser)" : null;
+      },
+      handleFlag: function handleFlag(flag, caseSensitive) {
+        return false;
+      },
+      preventDefault: true
+    };
+    const clh_prefix = "@mozilla.org/commandlinehandler/general-startup;1";
+    Components.classes[clh_prefix + "?type=browser"]
+              .getService(Components.interfaces.nsICommandLineHandler)
+              .handle(cmdLine);
   }
 }
 

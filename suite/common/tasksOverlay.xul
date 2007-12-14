@@ -26,6 +26,8 @@
       <menu id="tasksMenu" label="&tasksMenu.label;" accesskey="&tasksMenu.accesskey;">
         <menupopup id="taskPopup">
           <menuitem id="downloadmgr" label="&downloadManagerCmd.label;" accesskey="&downloadManagerCmd.accesskey;" oncommand="toDownloadManager();"/>
+          <menuitem id="addonsmgr" accesskey="&addonsManagerCmd.accesskey;"
+                    label="&addonsManagerCmd.label;" oncommand="toEM();"/>
           <menuseparator/>
           <menu label="&webDevelopment.label;" accesskey="&webDevelopment.accesskey;">
             <menupopup id="toolsPopup" onpopupshowing="javaItemEnabling();">
