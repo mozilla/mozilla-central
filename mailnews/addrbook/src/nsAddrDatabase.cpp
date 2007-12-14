@@ -56,6 +56,7 @@
 #include "nsIRDFService.h"
 #include "nsIProxyObjectManager.h"
 #include "nsProxiedService.h"
+#include "prprf.h"
 #include "nsIMutableArray.h"
 #include "nsIPromptService.h"
 #include "nsIStringBundle.h"
