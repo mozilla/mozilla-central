@@ -440,33 +440,38 @@ nsBrowserAccess.prototype = {
         aWhere = pref.getIntPref("browser.link.open_external");
       else
         aWhere = pref.getIntPref("browser.link.open_newwindow");
-    var uri = aURI ? aURI.spec : "about:blank";
     var referrer = aOpener ? aOpener.QueryInterface(nsIInterfaceRequestor)
                                     .getInterface(nsIWebNavigation)
                                     .currentURI : null;
     switch (aWhere) {
       case nsIBrowserDOMWindow.OPEN_NEWWINDOW:
+        var uri = aURI ? aURI.spec : "about:blank";
         return window.openDialog(getBrowserURL(), "_blank", "all,dialog=no",
                                  uri, null, referrer);
       case nsIBrowserDOMWindow.OPEN_NEWTAB:
         var newTab = gBrowser.addTab("about:blank", null, null,
                                      !pref.getBoolPref("browser.tabs.loadDivertedInBackground"));
         var browser = gBrowser.getBrowserForTab(newTab);
-        try {
-          browser.loadURIWithFlags(uri, loadflags, referrer);
-        } catch (e) {}
+        if (aURI) {
+          try {
+            browser.loadURIWithFlags(aURI.spec, loadflags, referrer);
+          } catch (e) {}
+        }
         return browser.contentWindow;
       default:
         if (!aOpener) {
-          gBrowser.loadURIWithFlags(uri, loadflags);
+          if (aURI)
+            gBrowser.loadURIWithFlags(aURI.spec, loadflags);
           return content;
         }
         aOpener = aOpener.top;
-        try {
-          aOpener.QueryInterface(nsIInterfaceRequestor)
-                 .getInterface(nsIWebNavigation)
-                 .loadURI(uri, loadflags, referrer, null, null);
-        } catch (e) {}
+        if (aURI) {
+          try {
+            aOpener.QueryInterface(nsIInterfaceRequestor)
+                   .getInterface(nsIWebNavigation)
+                   .loadURI(uri, loadflags, referrer, null, null);
+          } catch (e) {}
+        }
         return aOpener;
     }
   },
