@@ -163,9 +163,7 @@ static const nsModuleComponentInfo components[] =
   { "Address Book Manager Startup Handler",
     NS_ABMANAGER_CID,
     NS_ABMANAGERSTARTUPHANDLER_CONTRACTID,
-    nsAbManagerConstructor,
-    nsAbManager::RegisterProc,
-    nsAbManager::UnregisterProc },
+    nsAbManagerConstructor },
 
   { "Address Book Directory Datasource",
     NS_ABDIRECTORYDATASOURCE_CID,
