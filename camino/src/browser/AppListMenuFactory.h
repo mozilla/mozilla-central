@@ -43,9 +43,9 @@
  * feed application popups.
  */
 
-extern NSString* const kUserChosenBrowserUserDefaultsKey;
-extern NSString* const kUserChosenFeedViewerUserDefaultsKey;
-extern NSString* const kDefaultFeedViewerChanged;
+__attribute__((visibility("default"))) extern NSString* const kUserChosenBrowserUserDefaultsKey;
+__attribute__((visibility("default"))) extern NSString* const kUserChosenFeedViewerUserDefaultsKey;
+__attribute__((visibility("default"))) extern NSString* const kDefaultFeedViewerChanged;
 
 @interface AppListMenuFactory : NSObject
 {
