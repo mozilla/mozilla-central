@@ -39,11 +39,9 @@
 #import "AppListMenuFactory.h"
 #import "NSWorkspace+Utils.h"
 
-#pragma GCC visibility push(default)
-__attribute__((used)) NSString* const kUserChosenBrowserUserDefaultsKey = @"UserChosenBrowsers";
-__attribute__((used)) NSString* const kUserChosenFeedViewerUserDefaultsKey = @"UserChosenFeedViewer";
-__attribute__((used)) NSString* const kDefaultFeedViewerChanged = @"DefaultFeedViewerChanged";
-#pragma GCC visibility pop
+NSString* const kUserChosenBrowserUserDefaultsKey = @"UserChosenBrowsers";
+NSString* const kUserChosenFeedViewerUserDefaultsKey = @"UserChosenFeedViewer";
+NSString* const kDefaultFeedViewerChanged = @"DefaultFeedViewerChanged";
 
 @interface AppListMenuFactory(Private)
 
