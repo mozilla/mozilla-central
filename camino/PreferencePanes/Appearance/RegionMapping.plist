@@ -1,83 +1,114 @@
-(
-  {
-    code 		= "x-western";
-  },
-  {
-    code 		= "x-central-euro";
-  },
-  {
-    code 		= "x-cyrillic";
-  },
-  {
-    code 		= "x-baltic";
-  },
-  {
-    code 		= "el";
-  },
-  {
-    code 		= "tr";
-  },
-  {
-    code 		= "he";
-  },
-  {
-    code 		= "ar";
-  },
-  {
-    code 		= "ko";
-  },
-  {
-    code 		= "th";
-  },
-  {
-    code 		= "zh-CN";
-  },
-  {
-    code 		= "zh-TW";
-  },
-  {
-    code 		= "zh-HK";
-  },
-  {
-    code 		= "ja";
-  },
-  {
-    code 		= "x-devanagari";
-  },
-  {
-    code 		= "x-tamil";
-  },
-  {
-    code 		= "x-armn";
-  },
-  {
-    code 		= "x-beng";
-  },
-  {
-    code 		= "x-ethi";
-  },
-  {
-    code 		= "x-geor";
-  },
-  {
-    code 		= "x-gujr";
-  },
-  {
-    code 		= "x-guru";
-  },
-  {
-    code 		= "x-khmr";
-  },
-  {
-    code 		= "x-mlym";
-  },
-  {
-    code 		= "x-cans";
-  },
-  {
-    code 		= "x-unicode";
-  },
-  {
-    code 		= "x-user-def";
-  }
-)
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<array>
+	<dict>
+		<key>code</key>
+		<string>x-western</string>
+	</dict>
+	<dict>
+		<key>code</key>
+		<string>x-central-euro</string>
+	</dict>
+	<dict>
+		<key>code</key>
+		<string>x-cyrillic</string>
+	</dict>
+	<dict>
+		<key>code</key>
+		<string>x-baltic</string>
+	</dict>
+	<dict>
+		<key>code</key>
+		<string>el</string>
+	</dict>
+	<dict>
+		<key>code</key>
+		<string>tr</string>
+	</dict>
+	<dict>
+		<key>code</key>
+		<string>he</string>
+	</dict>
+	<dict>
+		<key>code</key>
+		<string>ar</string>
+	</dict>
+	<dict>
+		<key>code</key>
+		<string>ko</string>
+	</dict>
+	<dict>
+		<key>code</key>
+		<string>th</string>
+	</dict>
+	<dict>
+		<key>code</key>
+		<string>zh-CN</string>
+	</dict>
+	<dict>
+		<key>code</key>
+		<string>zh-TW</string>
+	</dict>
+	<dict>
+		<key>code</key>
+		<string>zh-HK</string>
+	</dict>
+	<dict>
+		<key>code</key>
+		<string>ja</string>
+	</dict>
+	<dict>
+		<key>code</key>
+		<string>x-devanagari</string>
+	</dict>
+	<dict>
+		<key>code</key>
+		<string>x-tamil</string>
+	</dict>
+	<dict>
+		<key>code</key>
+		<string>x-armn</string>
+	</dict>
+	<dict>
+		<key>code</key>
+		<string>x-beng</string>
+	</dict>
+	<dict>
+		<key>code</key>
+		<string>x-ethi</string>
+	</dict>
+	<dict>
+		<key>code</key>
+		<string>x-geor</string>
+	</dict>
+	<dict>
+		<key>code</key>
+		<string>x-gujr</string>
+	</dict>
+	<dict>
+		<key>code</key>
+		<string>x-guru</string>
+	</dict>
+	<dict>
+		<key>code</key>
+		<string>x-khmr</string>
+	</dict>
+	<dict>
+		<key>code</key>
+		<string>x-mlym</string>
+	</dict>
+	<dict>
+		<key>code</key>
+		<string>x-cans</string>
+	</dict>
+	<dict>
+		<key>code</key>
+		<string>x-unicode</string>
+	</dict>
+	<dict>
+		<key>code</key>
+		<string>x-user-def</string>
+	</dict>
+</array>
+</plist>
