@@ -52,7 +52,7 @@ NSString* const MVPreferencesWindowNotification = @"MVPreferencesWindowNotificat
 
 static NSString* const kPrefsWindowLocationDefaultsKey  = @"CaminoWindow TopLeftLocation PreferencesWindow";
 static NSString* const kLastUsedPaneKey = @"Last Selected Preference Pane";
-static NSString* const kDefaultPaneIdentifier = @"org.mozilla.camino.preference.navigation";
+static NSString* const kDefaultPaneIdentifier = @"org.mozilla.camino.preference.general";
 
 static NSString* const CacheInfoPaneImageKey  = @"MVPreferencePaneImage";
 static NSString* const CacheInfoPaneLabelKey  = @"MVPreferencePaneLabel";

@@ -68,8 +68,8 @@ STRINGS_FILES = resources/localized/English.lproj/CertificateDialogs.strings \
 	PreferencePanes/Appearance/English.lproj/Localizable.strings \
 	PreferencePanes/Appearance/English.lproj/RegionNames.strings \
 	PreferencePanes/Downloads/English.lproj/Localizable.strings \
+	PreferencePanes/General/English.lproj/Localizable.strings \
 	PreferencePanes/History/English.lproj/Localizable.strings \
-	PreferencePanes/Navigation/English.lproj/Localizable.strings \
 	PreferencePanes/Privacy/English.lproj/Localizable.strings \
 	PreferencePanes/Security/English.lproj/Localizable.strings \
 	PreferencePanes/Tabs/English.lproj/Localizable.strings \
