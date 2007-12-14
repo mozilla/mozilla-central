@@ -188,7 +188,7 @@
         </treeitem>        
         <treeitem>
           <treerow>
-            <treecell url="chrome://communicator/content/pref/pref-smartupdate.xul" label="&smart.label;"/>
+            <treecell label="(Migrated: &smart.label;)"/>
           </treerow>
         </treeitem>
         <treeitem id="mousewheelItem">

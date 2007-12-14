@@ -1,4 +1,42 @@
 <?xml version="1.0"?> 
+<!-- ***** BEGIN LICENSE BLOCK *****
+ Version: MPL 1.1/GPL 2.0/LGPL 2.1
+
+ The contents of this file are subject to the Mozilla Public License Version
+ 1.1 (the "License"); you may not use this file except in compliance with
+ the License. You may obtain a copy of the License at
+ http://www.mozilla.org/MPL/
+
+ Software distributed under the License is distributed on an "AS IS" basis,
+ WITHOUT WARRANTY OF ANY KIND, either express or implied. See the License
+ for the specific language governing rights and limitations under the
+ License.
+
+ The Original Code is Mozilla Communicator client code, released
+ March 31, 1998.
+
+ The Initial Developer of the Original Code is
+ Netscape Communications Corporation.
+ Portions created by the Initial Developer are Copyright (C) 1998-2007
+ the Initial Developer. All Rights Reserved.
+
+ Contributor(s):
+   Mark Banner <bugzilla@standard8.plus.com>
+
+ Alternatively, the contents of this file may be used under the terms of
+ either of the GNU General Public License Version 2 or later (the "GPL"),
+ or the GNU Lesser General Public License Version 2.1 or later (the "LGPL"),
+ in which case the provisions of the GPL or the LGPL are applicable instead
+ of those above. If you wish to allow use of your version of this file only
+ under the terms of either the GPL or the LGPL, and not to allow others to
+ use your version of this file under the terms of the MPL, indicate your
+ decision by deleting the provisions above and replace them with the notice
+ and other provisions required by the GPL or the LGPL. If you do not delete
+ the provisions above, a recipient may use your version of this file under
+ the terms of any one of the MPL, the GPL or the LGPL.
+
+ ***** END LICENSE BLOCK ***** -->
+
 <?xml-stylesheet href="chrome://communicator/skin/" type="text/css"?>
 
 <!DOCTYPE page [
@@ -8,97 +46,77 @@
 %prefSmartUpdateDTD;
 ]>
  
-<page xmlns="http://www.mozilla.org/keymaster/gatekeeper/there.is.only.xul"
-      onload="parent.initPanel('chrome://communicator/content/pref/pref-smartupdate.xul');"
-      headertitle="&pref.smartUpdate.title;">
-  
-  <script type="application/x-javascript" src="chrome://communicator/content/permissions/permissionsOverlay.js"/>
-  <script type="application/x-javascript" src="chrome://communicator/content/tasksOverlay.js"/>
-  <script type="application/x-javascript">
-  <![CDATA[
-    var _elementIDs = ["XPInstallEnabled", "appUpdatesEnabled",
-                       "appUpdateFrequency", "extensionsUpdatesEnabled",
-                       "extensionsUpdateFrequency"];
+<overlay xmlns="http://www.mozilla.org/keymaster/gatekeeper/there.is.only.xul">
+  <prefpane id="smartupdate_pane"
+            label="&pref.smartUpdate.title;"
+            script="chrome://communicator/content/permissions/permissionsOverlay.js chrome://communicator/content/tasksOverlay.js chrome://communicator/content/pref/pref-smartupdate.js">
 
-    function Startup()
-    {
-      toggleFrequency("extensions");
-    }
+    <preferences id="smartupdate_preferences">
+      <preference id="xpinstall.enabled" name="xpinstall.enabled" type="bool"/>
+      <preference id="app.update.enabled" name="app.update.enabled"
+                  type="bool" onchange="toggleFrequency('app');"/>
+      <preference id="app.update.interval" name="app.update.interval" type="int"/>
+      <preference id="extensions.update.enabled" name="extensions.update.enabled"
+                  type="bool" onchange="toggleFrequency('extensions');"/>
+      <preference id="extensions.update.interval"
+                  name="extensions.update.interval" type="int"/>
+    </preferences>
 
-    function toggleFrequency(aType)
-    {
-      document.getElementById(aType + "FreqDaily").disabled =
-        !document.getElementById(aType + "UpdatesEnabled").checked ||
-        parent.hPrefWindow.getPrefIsLocked(aType + ".update.enabled");
-    }
+    <groupbox>
+      <caption label="&smartTitle.label;"/>
+      <hbox align="center">
+        <checkbox id="XPInstallEnabled" label="&enableSU.label;" flex="1"
+                  accesskey="&enableSU.accesskey;" preference="xpinstall.enabled"/>
+        <button id="allowedSitesButton" label="&allowedSites.label;"
+                accesskey="&allowedSites.accesskey;" oncommand="viewInstalls('');"/>
+      </hbox>
+    </groupbox>
 
-    function toEM()
-    {
-      toOpenWindowByType("Extension:Manager",
-          "chrome://mozapps/content/extensions/extensions.xul");
-    }
-  ]]>
-  </script>
-   
-  <groupbox>
-    <caption label="&smartTitle.label;"/>
-    <hbox align="center">
-      <checkbox id="XPInstallEnabled" label="&enableSU.label;" accesskey="&enableSU.accesskey;"
-                flex="1" prefstring="xpinstall.enabled"/>
-      <button id="allowedSitesButton" label="&allowedSites.label;" permissiontype="install"
-              accesskey="&allowedSites.accesskey;" oncommand="viewInstalls('');"/>
-    </hbox>
-  </groupbox>
+    <groupbox>
+      <caption label="Updates"/>
+      <description>&autoUpdates.label;</description>
+      <grid>
+        <columns>
+          <column/>
+          <column/>
+        </columns>
 
-  <groupbox>
-    <caption label="Updates"/>
-    <description>&autoUpdates.label;</description>
-    <grid>
-      <columns>
-        <column/>
-        <column/>
-      </columns>
-
-      <rows>
-        <row>
-          <!-- disabled until SM updates are available -->
-          <checkbox id="appUpdatesEnabled" label="&appUpdates.label;"
-                    accesskey="&appUpdates.accesskey;" disabled="true"
-                    prefstring="app.update.enabled"
-                    oncommand="toggleFrequency('app');"/>
-          <!-- disabled until SM updates are available -->
-          <radiogroup id="appUpdateFrequency" orient="horizontal" 
-                      prefstring="app.update.interval"
-                      prefdefval="86400">
-            <radio id="appFreqDaily" label="&daily.label;" disabled="true"
-                   accesskey="&appDaily.accesskey;" value="86400"/>
-            <radio id="appFreqWeekly" label="&weekly.label;" disabled="true"
-                   accesskey="&appWeekly.accesskey;" value="604800"/>
-          </radiogroup>
-        </row>
-        <row>
-          <checkbox id="extensionsUpdatesEnabled"
-                    label="&extensionsUpdates.label;"
-                    accesskey="&extensionsUpdates.accesskey;"
-                    prefstring="extensions.update.enabled"
-                    oncommand="toggleFrequency('extensions');"/>
-          <radiogroup id="extensionsUpdateFrequency" orient="horizontal" 
-                      prefstring="extensions.update.interval"
-                      prefdefval="86400">
-            <radio id="extensionsFreqDaily" label="&daily.label;"
-                   accesskey="&extensionsDaily.accesskey;" value="86400"/>
-            <radio id="extensionsFreqWeekly" label="&weekly.label;"
-                   accesskey="&extensionsWeekly.accesskey;" value="604800"/>
-          </radiogroup>
-        </row>
-      </rows>
-    </grid>
-    <description>&appUpdatesDisabled.desc;</description>
-    <vbox align="end">
-      <button id="startAddonManager" oncommand="toEM();"
-              label="&addonManagerButton.label;"
-              accesskey="&addonManagerButton.accesskey;"/>
-    </vbox>
-  </groupbox>
-</page>
-
+        <rows>
+          <row>
+            <!-- disabled until SM updates are available -->
+            <checkbox id="appUpdatesEnabled" label="&appUpdates.label;"
+                      accesskey="&appUpdates.accesskey;" disabled="true"
+                      preference="app.update.enabled"/>
+            <!-- disabled until SM updates are available -->
+            <radiogroup id="appUpdateFrequency" orient="horizontal" 
+                        preference="app.update.interval">
+              <radio id="appFreqDaily" label="&daily.label;" disabled="true"
+                     accesskey="&appDaily.accesskey;" value="86400"/>
+              <radio id="appFreqWeekly" label="&weekly.label;" disabled="true"
+                     accesskey="&appWeekly.accesskey;" value="604800"/>
+            </radiogroup>
+          </row>
+          <row>
+            <checkbox id="extensionsUpdatesEnabled"
+                      label="&extensionsUpdates.label;"
+                      accesskey="&extensionsUpdates.accesskey;"
+                      preference="extensions.update.enabled"/>
+            <radiogroup id="extensionsUpdateFrequency" orient="horizontal" 
+                        preference="extensions.update.interval">
+              <radio id="extensionsFreqDaily" label="&daily.label;"
+                     accesskey="&extensionsDaily.accesskey;" value="86400"/>
+              <radio id="extensionsFreqWeekly" label="&weekly.label;"
+                     accesskey="&extensionsWeekly.accesskey;" value="604800"/>
+            </radiogroup>
+          </row>
+        </rows>
+      </grid>
+      <description>&appUpdatesDisabled.desc;</description>
+      <vbox align="end">
+        <button id="startAddonManager" oncommand="toEM();"
+                label="&addonManagerButton.label;"
+                accesskey="&addonManagerButton.accesskey;"/>
+      </vbox>
+    </groupbox>
+  </prefpane>
+</overlay>

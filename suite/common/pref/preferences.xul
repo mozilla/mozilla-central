@@ -155,12 +155,13 @@
                     url="chrome://communicator/content/pref/pref-proxies.xul"/>
           <treeitem label="&httpnetworking.label;"
                     url="chrome://communicator/content/pref/pref-http.xul"/>
-          <treeitem label="&smart.label;"
-                    url="chrome://communicator/content/pref/pref-smartupdate.xul"/>
 -->
-          <treeitem id="mousewheelItem"
-                    prefpane="mousewheel_pane"
-                    label="&mousewheel.label;"
+          <treeitem id="smartupdateItem" label="&smart.label;"
+                    prefpane="smartupdate_pane"
+                    helpTopic="advanced_pref_installation"
+                    url="chrome://communicator/content/pref/pref-smartupdate.xul"/>
+          <treeitem id="mousewheelItem" helpTopic="advanced_pref_mouse_wheel"
+                    prefpane="mousewheel_pane" label="&mousewheel.label;"
                     url="chrome://communicator/content/pref/pref-mousewheel.xul"/>
 <!--
         </treechildren>
