@@ -25,3 +25,23 @@ OTHER_LDFLAGS = -Wl,-executable_path,$(BUILD_DIR)/$(CONFIGURATION)/Camino.app/Co
 // This is not a problem in Xcode 3.0.  This can be removed once Xcode 3.0 is
 // the minimum build requirement.
 DEAD_CODE_STRIPPING = NO
+
+// Xcode 2.x ld creates huge __LINKEDIT segments when linking preference pane
+// bundles against a static Camino.  The segments seem to contain entries for
+// each symbol in the main executable, resulting in 1MB-large executable files
+// for a single architecture, even without any debugging symbols.  Our
+// preference panes are normally closer to 50kB.
+// Use strip -X to bring these __LINKEDIT segments back under control.  -X is
+// intended to strip local symbols beginning with 'L'.  Since ld does this by
+// default anyway, this operation is a no-op as far as any symbols we care
+// about go.  This leaves other global, local, and debugging symbols intact.
+// strip will rewrite the image with a much more reasonable __LINKEDIT segment.
+// This is not a problem in Xcode 3.0.  This can be removed once Xcode 3.0 is
+// the minimum build requirement.
+DEPLOYMENT_POSTPROCESSING = YES
+STRIP_INSTALLED_PRODUCT = YES
+SEPARATE_STRIP = YES
+STRIPFLAGS = -X
+STRIP_STYLE = none  // Anything other than a recognized value (all, non-global,
+                    // debugging) causes Xcode to not pass any flags to strip
+                    // on its own.  The only flags passed will be STRIPFLAGS.
