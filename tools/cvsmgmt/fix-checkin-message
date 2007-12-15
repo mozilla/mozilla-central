@@ -94,6 +94,10 @@ EOF
     print "--\n";
     my $data = `wget -O- -nv "$filename"`;
     parse_bonsai_backout_file($data);
+    if (0 == @files) {
+      print "I didn't find any files at that URL, try again.\n";
+      exit 1;
+    }
   }
   else {
     while ($filename) {
