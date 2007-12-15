@@ -50,7 +50,7 @@
 #include "nsIWebBrowserPersist.h"
 #include "nsIURI.h"
 #include "nsIRequest.h"
-#include "nsILocalFile.h"
+#include "nsILocalFileMac.h"
 
 #include "nsIExternalHelperAppService.h"
 
@@ -85,7 +85,9 @@ private:
 
     void InitDialog();
     void QuarantineDownload();
+    void SetMetadata();
     void FigureOutReferrer();
+    nsresult GetFileDownloadedTo(nsILocalFileMac** aMacFile);
 
     nsCOMPtr<nsICancelable>         mCancelable;        // Object to cancel the download
     nsCOMPtr<nsIRequest>            mRequest;           // Request to hook on status change, allows pause/resume
