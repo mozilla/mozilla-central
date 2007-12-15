@@ -374,13 +374,6 @@ calICSCalendar.prototype = {
         appStartup.exitLastWindowClosingSurvivalArea();
     },
 
-    addObserver: function (aObserver) {
-        this.mObserver.addObserver(aObserver);
-    },
-    removeObserver: function (aObserver) {
-        this.mObserver.removeObserver(aObserver);
-    },
-
     // Always use the queue, just to reduce the amount of places where
     // this.mMemoryCalendar.addItem() and friends are called. less
     // copied code.
@@ -727,40 +720,38 @@ calICSCalendar.prototype = {
 
 function calICSObserver(aCalendar) {
     this.mCalendar = aCalendar;
-    this.mObservers = new calListenerBag(Components.interfaces.calIObserver);
 }
 
 calICSObserver.prototype = {
     mCalendar: null,
-    mObservers: null,
     mInBatch: false,
 
     // calIObserver:
     onStartBatch: function() {
-        this.mObservers.notify("onStartBatch");
+        this.mCalendar.observers.notify("onStartBatch");
         this.mInBatch = true;
     },
     onEndBatch: function() {
-        this.mObservers.notify("onEndBatch");
+        this.mCalendar.observers.notify("onEndBatch");
         this.mInBatch = false;
     },
     onLoad: function(calendar) {
-        this.mObservers.notify("onLoad", [calendar]);
+        this.mCalendar.observers.notify("onLoad", [calendar]);
     },
     onAddItem: function(aItem) {
-        this.mObservers.notify("onAddItem", [aItem]);
+        this.mCalendar.observers.notify("onAddItem", [aItem]);
     },
     onModifyItem: function(aNewItem, aOldItem) {
-        this.mObservers.notify("onModifyItem", [aNewItem, aOldItem]);
+        this.mCalendar.observers.notify("onModifyItem", [aNewItem, aOldItem]);
     },
     onDeleteItem: function(aDeletedItem) {
-        this.mObservers.notify("onDeleteItem", [aDeletedItem]);
+        this.mCalendar.observers.notify("onDeleteItem", [aDeletedItem]);
     },
     onPropertyChanged: function(aCalendar, aName, aValue, aOldValue) {
-        this.mObservers.notify("onPropertyChanged", [aCalendar, aName, aValue, aOldValue]);
+        this.mCalendar.observers.notify("onPropertyChanged", [aCalendar, aName, aValue, aOldValue]);
     },
     onPropertyDeleting: function(aCalendar, aName) {
-        this.mObservers.notify("onPropertyDeleting", [aCalendar, aName]);
+        this.mCalendar.observers.notify("onPropertyDeleting", [aCalendar, aName]);
     },
 
     // Unless an error number is in this array, we consider it very bad, set
@@ -777,17 +768,7 @@ calICSObserver.prototype = {
         }
         if (!errorIsOk)
             this.mCalendar.readOnly = true;
-        this.mObservers.notify("onError", [aErrNo, aMessage]);
-    },
-
-    // This observer functions as proxy for all the other observers
-    // So need addObserver and removeObserver here
-    addObserver: function (aObserver) {
-        this.mObservers.add(aObserver);
-    },
-
-    removeObserver: function (aObserver) {
-        this.mObservers.remove(aObserver);
+        this.mCalendar.observers.notify("onError", [aErrNo, aMessage]);
     }
 };
 

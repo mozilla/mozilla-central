@@ -55,6 +55,10 @@ calProviderBase.prototype = {
         this.mObservers = new calListenerBag(Components.interfaces.calIObserver);
     },
 
+    get observers() {
+        return this.mObservers;
+    },
+
     // attribute AUTF8String id;
     get id() {
         return this.mID;
