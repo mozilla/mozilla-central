@@ -132,7 +132,7 @@
 #include "nsAbDirFactoryService.h"
 #include "nsAbMDBDirFactory.h"
 #include "nsAddrDatabase.h"
-#include "nsAddressBook.h"
+#include "nsAbManager.h"
 #include "nsAbContentHandler.h"
 #include "nsAddrBookSession.h"
 #include "nsAbDirProperty.h"

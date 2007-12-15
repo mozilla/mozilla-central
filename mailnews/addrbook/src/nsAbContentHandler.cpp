@@ -49,7 +49,7 @@
 #include "nsMsgUtils.h"
 #include "nsIMsgVCardService.h"
 #include "nsIAbCard.h"
-#include "nsIAddressBook.h"
+#include "nsIAbManager.h"
 #include "nsVCard.h"
 
 //

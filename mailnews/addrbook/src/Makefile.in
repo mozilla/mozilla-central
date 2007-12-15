@@ -75,7 +75,7 @@ REQUIRES	= xpcom \
 		  $(NULL)
 
 CPPSRCS		= \
-		nsAddressBook.cpp \
+		nsAbManager.cpp \
 		nsAddrBookSession.cpp \
 		nsAbRDFDataSource.cpp \
 		nsDirectoryDataSource.cpp \

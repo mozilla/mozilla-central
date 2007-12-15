@@ -38,7 +38,7 @@
  *
  * ***** END LICENSE BLOCK ***** */
 
-#include "nsAddressBook.h"
+#include "nsAbManager.h"
 #include "nsAbBaseCID.h"
 #include "nsAddrDatabase.h"
 #include "nsIAbMDBDirectory.h"
@@ -162,7 +162,7 @@ NS_IMPL_QUERY_INTERFACE2(nsAbManager,
                          nsICommandLineHandler)
 
 //
-// nsIAddressBook
+// nsIAbManager
 //
 
 NS_IMETHODIMP nsAbManager::NewAddressBook(const nsAString &aDirName,
