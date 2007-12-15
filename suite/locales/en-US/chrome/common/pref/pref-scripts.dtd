@@ -1,7 +1,7 @@
 <!-- extracted from content/pref-scripts.xul -->
 
 <!--LOCALIZATION NOTE : FILE The 'Scripts & Plug-ins' preferences dialog -->
-<!ENTITY pref.scripts.title              "Scripts &amp; Plug-ins">
+<!ENTITY pref.scripts.title              "Scripts &amp; Plugins">
 
 <!ENTITY navigator.label                 "Browser">
 <!ENTITY navigator.accesskey             "B">
@@ -17,4 +17,4 @@
 <!ENTITY allowContextmenuDisable.label   "Disable or replace context menus">
 <!ENTITY allowHideStatusBar.label        "Hide the status bar">
 
-<!ENTITY enablePlugin.label              "Enable Plug-ins for">
+<!ENTITY enablePlugin.label              "Enable Plugins for">

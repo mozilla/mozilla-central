@@ -64,7 +64,7 @@
 <!ENTITY releaseCmd.accesskey                   "N">
 <!ENTITY aboutCmd.label					"About &brandShortName;">
 <!ENTITY aboutCmd.accesskey				"A">
-<!ENTITY aboutCommPluginsCmd.label			"About Plug-ins">
+<!ENTITY aboutCommPluginsCmd.label			"About Plugins">
 <!ENTITY aboutCommPluginsCmd.accesskey			"p">
 
 <!ENTITY direct.label                                   "Online (Proxy: None)">

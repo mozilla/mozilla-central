@@ -17,7 +17,7 @@
 <!ENTITY handle                         "When encountered:">
 <!ENTITY handle.accesskey               "W">
 <!ENTITY fileOpening.label              "Opening files">
-<!ENTITY plugins.label                  "Plug-in Finder Service">
-<!ENTITY pluginFinder.label             "Always use the Netscape Plug-in Finder Service (PFS) to get plug-ins.">
+<!ENTITY plugins.label                  "Plugin Finder Service">
+<!ENTITY pluginFinder.label             "Always use the Plugin Finder Service (PFS) to get plugins.">
 <!ENTITY pluginFinder.accesskey         "A">
-<!ENTITY pluginFinderDesc.label         "If this option is not checked, the PFS is used only when a plug-in location is not specified by the web page that requires the plug-in.">
+<!ENTITY pluginFinderDesc.label         "If this option is not checked, the PFS is used only when a plugin location is not specified by the web page that requires the plugin.">
