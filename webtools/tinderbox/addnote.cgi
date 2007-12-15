@@ -74,6 +74,10 @@ if ($form{note}) {
   $note =~ s/\>/&gt;/gi;
   my $enc_note = url_encode($note);
 
+  $who =~ s/\&/&amp;/gi;
+  $who =~ s/\</&lt;/gi;
+  $who =~ s/\>/&gt;/gi;
+
   my $now = time;
 
   # Save comment to the notes.txt file.
@@ -129,6 +133,9 @@ if ($form{note}) {
   #
   my $emailvalue = '';
   $emailvalue = " value='$cookie_jar{email}'" if defined $cookie_jar{email};
+  $emailvalue =~ s/\&/&amp;/gi;
+  $emailvalue =~ s/\</&lt;/gi;
+  $emailvalue =~ s/\>/&gt;/gi;
 
   print <<__END_FORM;
 <head><title>Add a Comment to $buildname log</title></head>
