@@ -537,7 +537,7 @@ calCompositeGetListenerHelper.prototype = {
         {
             // this will blow past the limit
             aCount = this.mMaxItems - this.mItemsReceived;
-            aItems = aItems.slice(0, numToSend);
+            aItems = aItems.slice(0, aCount);
         }
 
         // send GetResults to the real listener
