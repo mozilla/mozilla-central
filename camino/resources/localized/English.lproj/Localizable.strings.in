@@ -432,3 +432,7 @@
 "IgnoreSpelling" = "Ignore Spelling";
 "Action in New Tab" = "%@ in New Tab";
 "Action in New Window" = "%@ in New Window";
+
+/* Find bar strings */
+"TextNotFound" = "Not found";
+"CloseFindBarTitle" = "Close the find bar";

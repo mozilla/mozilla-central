@@ -57,6 +57,11 @@
   to handle this, and to draw background in extra space that is created as
   a result.
   
+  Finally, the find bar can come and go depending on user action. It also 
+  can be either the temporary "quickfind" or the persistant find bar, depending
+  on the context. It's up to an external controller to set the find bar to the
+  appropriate variant. Both setting and clearing the bar forces a reflow. 
+  
   Note that having this code overrides the autoresize behaviour of these views
   as set in IB.
  ______________
@@ -83,6 +88,9 @@
     | | |_______________________________________________________| | |
     | |___________________________________________________________| |
     | ____________________________________________________________  |
+    | | Find bar                                                  | |
+    | |___________________________________________________________| |
+    | ____________________________________________________________  |
     | | Status bar                                                | |
     | |___________________________________________________________| |
     |_______________________________________________________________|
@@ -105,16 +113,15 @@
 {
   float bmToolbarHeight = 0.0;
   float statusBarHeight = 0.0;
+  float findBarHeight = 0.0;
 
-  if (mBookmarksToolbar)
-  {
+  if (mBookmarksToolbar) {
     // first resize the toolbar, which can reflow to a different height
     [mBookmarksToolbar resizeWithOldSuperviewSize: oldFrameSize];
       
     // make sure the toolbar doesn't get pushed off the top. This view is not flipped,
     // so the top is MaxY
-    if (NSMaxY([mBookmarksToolbar frame]) > NSMaxY([self bounds]))
-    {
+    if (NSMaxY([mBookmarksToolbar frame]) > NSMaxY([self bounds])) {
       NSRect	newFrame = [mBookmarksToolbar frame];
       newFrame = NSOffsetRect(newFrame, 0, NSMaxY([self bounds]) - NSMaxY([mBookmarksToolbar frame]));
       [mBookmarksToolbar setFrame:newFrame];
@@ -124,11 +131,22 @@
       bmToolbarHeight = NSHeight([mBookmarksToolbar frame]);
   }
   
+  // size/position the status bar, if present
   if (mStatusBar && ![mStatusBar isHidden]) {
     statusBarHeight = NSHeight([mStatusBar frame]);
     NSRect statusRect = [self bounds];
     statusRect.size.height = statusBarHeight;
     [mStatusBar setFrame:statusRect];
+  }
+
+  // position the find bar above the status bar, if present. Unlike the other bars, if it's set, 
+  // it's meant to be visible.
+  if (mFindBar) {
+    findBarHeight = NSHeight([mFindBar frame]);
+    NSRect findRect = [self bounds];
+    findRect.size.height = findBarHeight;
+    findRect.origin.y = statusBarHeight;
+    [mFindBar setFrame:findRect];
   }
   
   // figure out how much space is left for the browser view
@@ -136,9 +154,9 @@
   // subtract bm toolbar
   browserRect.size.height -= bmToolbarHeight;
   
-  // subtract status bar
-  browserRect.size.height -= statusBarHeight;
-  browserRect.origin.y   += statusBarHeight;
+  // subtract status bar and find bar
+  browserRect.size.height -= statusBarHeight + findBarHeight;
+  browserRect.origin.y += statusBarHeight + findBarHeight;
   
   // resize our current content area, whatever it may be. We will
   // take care of resizing the other view when we toggle it to
@@ -155,12 +173,31 @@
   }
 }
 
+// displays |inBarView| as the find bar just above the status bar. Pass nil to
+// make the bar disappear. 
+- (void)showFindBar:(NSView*)inBarView
+{
+  // out with the old
+  if (mFindBar)
+    [mFindBar removeFromSuperviewWithoutNeedingDisplay];
+
+  // in with the new
+  mFindBar = inBarView;
+  if (inBarView)
+    [self addSubview:inBarView];
+    
+  // resize everyone
+  [self resizeSubviewsWithOldSize:[self frame].size];
+}
+
 - (void)willRemoveSubview:(NSView *)subview
 {
   if (subview == mBookmarksToolbar)
     mBookmarksToolbar = nil;
   else if (subview == mStatusBar)
     mStatusBar = nil;
+  else if (subview == mFindBar)   // just in case callers don't clear it themselves
+    mFindBar = nil;
 
   [super willRemoveSubview:subview];
 }

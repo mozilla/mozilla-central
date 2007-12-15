@@ -60,6 +60,7 @@
 #import "ProgressDlgController.h"
 #import "PageInfoWindowController.h"
 #import "FeedServiceController.h"
+#import "FindBarController.h"
 
 #import "BrowserContentViews.h"
 #import "BrowserWrapper.h"
@@ -764,7 +765,7 @@ enum BWCOpenDest {
 - (void)windowWillClose:(NSNotification *)notification
 {
   mClosingWindow = YES;
-    
+
   [self autosaveWindowFrame];
   
   // ensure that the URL auto-complete popup is closed before the mork
@@ -785,6 +786,11 @@ enum BWCOpenDest {
   if (pref)
     pref->UnregisterCallback(gTabBarVisiblePref, TabBarVisiblePrefChangedCallback, self);
   
+  // make sure the find bar goes away early enough since it holds
+  // weak refs to things.
+  [mFindController hideFindBar:self];
+  [mFindController release];
+      
   // Tell the BrowserTabView the window is closed
   [mTabBrowser windowClosed];
   
@@ -1011,6 +1017,14 @@ enum BWCOpenDest {
       // actually move the window
       [[self window] setFrameOrigin: testBrowserFrame.origin];
     }
+    
+    // configure the find bar controller and register for notifications on when the
+    // find bar gets hidden so we can do things like reset focus.
+    mFindController = [[FindBarController alloc] initWithContent:mContentView finder:self];
+    [[NSNotificationCenter defaultCenter] addObserver:self 
+                                             selector:@selector(findBarHidden:)
+                                                 name:kFindBarDidHideNotification 
+                                               object:mFindController];
     
     // cache the original window frame, we may need this for correct zooming
     mLastFrameSize = [[self window] frame];
@@ -1702,6 +1716,17 @@ enum BWCOpenDest {
       [aMenuItem setTitle:NSLocalizedString(@"Page Info", nil)];
   }
 
+  if (action == @selector(findActions:)) {
+    // we could add more complex logic to only show this if the find bar has
+    // focus, but for now it'll just always be enabled when there's content.
+    if ([self bookmarkManagerIsVisible])
+      return NO;    
+    long tag = [aMenuItem tag];
+    if (tag == NSFindPanelActionNext || tag == NSFindPanelActionPrevious)
+      return ([[self lastFindText] length] > 0);
+    return YES;
+  }
+
   return [self validateActionBySelector:action];
 }
 
@@ -2296,8 +2321,10 @@ enum BWCOpenDest {
     if (previousPage != -1)
       [[[self browserWrapper] browserView] goToSessionHistoryIndex:previousPage];
   }
-  else
+  else {
+    [mFindController hideFindBar:self];
     [self loadURL:@"about:bookmarks"];
+  }
 }
 
 //
@@ -2318,6 +2345,9 @@ enum BWCOpenDest {
 //
 -(IBAction)manageHistory: (id)aSender
 {
+  if ([self bookmarkManagerIsVisible])
+    [mFindController hideFindBar:self];
+  
   [self loadURL:@"about:history"];
 
   // aSender could be a history menu item with a represented object of
@@ -2787,18 +2817,69 @@ enum BWCOpenDest {
   }
 }
 
-// -performFindCommand
+// -find:
 //
-// Has the opportunity to handle a Find command.  Returns whether or not it did.
+// Called when the user selects Edit > Find for this browser window. Shows the
+// find bar if a webpage is visible and focuses the search field if bookmarks
+// is visible. 
 //
-- (BOOL)performFindCommand
+- (void)find:(id)aSender
 {
   if ([self bookmarkManagerIsVisible]) {
     [[self bookmarkViewControllerForCurrentTab] focusSearchField];
-    return YES;
   }
+  else {
+    [mFindController showFindBar];
+  }
+}
 
-  return NO;
+//
+// - findBarHidden:
+//
+// Called when the find bar has been hidden in this window. Do things like
+// reset the focus to gecko.
+//
+- (void)findBarHidden:(NSNotification*)inNotify
+{
+  [[self window] makeFirstResponder:[mBrowserView browserView]];
+}
+
+//
+// -findActions:(id)inSender
+//
+// Tell the find controller to do things like next/previous. We get this if
+// the content area doesn't have focus, and we leave it up to the find controller
+// to do the right thing. We can't use |-performFindPanelAction:| because it
+// gets eaten by things like the search field. 
+//
+- (IBAction)findActions:(id)inSender
+{
+  switch ([inSender tag]) {
+    case NSFindPanelActionNext:
+      [mFindController findNext:self];
+      break;
+    
+    case NSFindPanelActionPrevious:
+      [mFindController findPrevious:self];
+      break;
+  }
+}
+
+- (BOOL)findInPageWithPattern:(NSString*)text caseSensitive:(BOOL)inCaseSensitive
+    wrap:(BOOL)inWrap backwards:(BOOL)inBackwards
+{
+  return [[mBrowserView browserView] findInPageWithPattern:text caseSensitive:inCaseSensitive
+                                                      wrap:inWrap backwards:inBackwards];
+}
+
+- (BOOL)findInPage:(BOOL)inBackwards
+{
+  return [[mBrowserView browserView] findInPage:inBackwards];
+}
+
+- (NSString*)lastFindText
+{
+  return [[mBrowserView browserView] lastFindText];
 }
 
 - (void)stopThrobber
@@ -2811,22 +2892,6 @@ enum BWCOpenDest {
     [throbberItem setImage: [NSImage imageNamed:@"throbber-00"]];
 }
 
-- (BOOL)findInPageWithPattern:(NSString*)text caseSensitive:(BOOL)inCaseSensitive
-    wrap:(BOOL)inWrap backwards:(BOOL)inBackwards
-{
-  return [[mBrowserView browserView] findInPageWithPattern:text caseSensitive:inCaseSensitive
-    wrap:inWrap backwards:inBackwards];
-}
-
-- (BOOL)findInPage:(BOOL)inBackwards
-{
-  return [[mBrowserView browserView] findInPage:inBackwards];
-}
-
-- (NSString*)lastFindText
-{
-  return [[mBrowserView browserView] lastFindText];
-}
 
 - (BOOL)bookmarkManagerIsVisible
 {
@@ -4821,6 +4886,7 @@ enum BWCOpenDest {
 
 - (IBAction)toggleTabThumbnailView:(id)sender
 {
+  [mFindController hideFindBar:self];
   [mContentView toggleTabThumbnailGridView];
 }
 

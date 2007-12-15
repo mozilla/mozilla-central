@@ -46,7 +46,6 @@
 @class BrowserWindowController;
 @class SharedMenusObj;
 @class PreferenceManager;
-@class FindDlgController;
 @class MVPreferencesController;
 @class SUUpdater;
 
@@ -103,8 +102,6 @@ typedef enum EBookmarkOpenBehavior
 
     KeychainService*        mKeychainService;
 
-    FindDlgController*      mFindDialog;
-
     NSString*               mStartURL;
 
     SharedMenusObj*         mSharedMenusObj;
@@ -137,7 +134,7 @@ typedef enum EBookmarkOpenBehavior
 - (IBAction)toggleOfflineMode:(id)aSender; // unused
 
 // Edit menu actions
-- (IBAction)findInPage:(id)aSender;
+// (none)
 
 // View menu actions.
 - (IBAction)toggleBookmarksToolbar:(id)aSender;
@@ -200,7 +197,5 @@ typedef enum EBookmarkOpenBehavior
 - (void)delayedUpdatePageInfo;
 
 - (NSView*)savePanelView;
-
-- (void)closeFindDialog;
 
 @end

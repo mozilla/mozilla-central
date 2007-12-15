@@ -106,6 +106,7 @@ typedef enum
 @class AutoCompleteTextField;
 @class ExtendedSplitView;
 @class WebSearchField;
+@class FindBarController;
 
 
 @interface BrowserWindowController : NSWindowController<Find, BrowserUIDelegate, BrowserUICreationDelegate>
@@ -155,6 +156,8 @@ typedef enum
   // The browser view that the user was on before a prompt forced a switch (weak)
   BrowserWrapper*               mLastBrowserView;
 
+  FindBarController*            mFindController;
+  
   BOOL mMoveReentrant;
   BOOL mClosingWindow;
 
@@ -227,8 +230,9 @@ typedef enum
 - (void)stopThrobber;
 - (void)clickThrobber:(id)aSender;
 
+- (void)find:(id)aSender;
+
 - (BOOL)validateActionBySelector:(SEL)action;
-- (BOOL)performFindCommand;
 - (BOOL)canMakeTextBigger;
 - (BOOL)canMakeTextSmaller;
 - (BOOL)canMakeTextDefaultSize;

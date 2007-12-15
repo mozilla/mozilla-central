@@ -863,12 +863,12 @@ const char kDirServiceContractID[] = "@mozilla.org/file/directory_service;1";
 }
 
 //
-// -performFindPanelAction:
+// -findActions:
 //
 // Called on the first responder when the user executes one of the find commands. The
 // tag is the action to perform.
 //
-- (IBAction)performFindPanelAction:(id)inSender
+- (IBAction)findActions:(id)inSender
 {
   switch ([inSender tag]) {
     case NSFindPanelActionSetFindString:
@@ -938,6 +938,7 @@ const char kDirServiceContractID[] = "@mozilla.org/file/directory_service;1";
     return NO;
 
   webFind->SetFindBackwards(inBackwards);
+  webFind->SetWrapFind(PR_TRUE);
 
   PRBool found;
   webFind->FindNext(&found);
@@ -1443,7 +1444,7 @@ const char kDirServiceContractID[] = "@mozilla.org/file/directory_service;1";
     return [self canRedo];
   else if (action == @selector(selectAll:))
     return YES;
-  else if (action == @selector(performFindPanelAction:)) {
+  else if (action == @selector(findActions:)) {
     if (![self isTextBasedContent])
       return NO;
     long tag = [aMenuItem tag];

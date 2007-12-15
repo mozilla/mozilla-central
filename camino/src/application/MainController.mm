@@ -67,7 +67,6 @@
 #import "MVPreferencesController.h"
 #import "CertificatesWindowController.h"
 #import "PageInfoWindowController.h"
-#import "FindDlgController.h"
 #import "PreferenceManager.h"
 #import "SharedMenusObj.h"
 #import "SiteIconProvider.h"
@@ -157,7 +156,6 @@ NSString* const kPreviousSessionTerminatedNormallyKey = @"PreviousSessionTermina
     NSString* url = [defaults stringForKey:USER_DEFAULTS_URL_KEY];
     mStartURL = url ? [url retain] : nil;
 
-    mFindDialog = nil;
     mMenuBookmarks = nil;
 
     [NSApp setServicesProvider:self];
@@ -177,7 +175,6 @@ NSString* const kPreviousSessionTerminatedNormallyKey = @"PreviousSessionTermina
   // Terminate shared menus
   [mSharedMenusObj release];
 
-  [mFindDialog release];
   [mKeychainService release];
 
   [super dealloc];
@@ -919,11 +916,6 @@ NSString* const kPreviousSessionTerminatedNormallyKey = @"PreviousSessionTermina
   [NSApp makeWindowsPerform:@selector(display) inOrder:YES];
 }
 
-- (void)applicationDidBecomeActive:(NSNotification*)aNotification
-{
-  [mFindDialog applicationWasActivated];
-}
-
 - (void)windowLayeringDidChange:(NSNotification*)inNotification
 {
   [self delayedAdjustBookmarksMenuItemsEnabling];
@@ -1344,23 +1336,7 @@ NSString* const kPreviousSessionTerminatedNormallyKey = @"PreviousSessionTermina
 #pragma mark -
 #pragma mark Edit Menu
 
-//
-// -findInPage
-//
-// Called in response to "Find" in edit menu. Gives BWC a chance to handle it, then
-// opens the find dialog. We only keep one around for the whole app to use,
-// showing/hiding as we see fit.
-//
-- (IBAction)findInPage:(id)aSender
-{
-  BrowserWindowController* browserController = [self mainWindowBrowserController];
-
-  if (browserController && ![browserController performFindCommand]) {
-    if (!mFindDialog)
-      mFindDialog = [[FindDlgController alloc] initWithWindowNibName:@"FindDialog"];
-    [mFindDialog showWindow:self];
-  }
-}
+// Nothing specific, everything is now handled by the BWC. 
 
 #pragma mark -
 #pragma mark View Menu
@@ -1703,10 +1679,6 @@ NSString* const kPreviousSessionTerminatedNormallyKey = @"PreviousSessionTermina
   if (action == @selector(savePage:))
     return (browserController && ![browserController bookmarkManagerIsVisible]);
 
-  // disable the find panel if there's no text content
-  if (action == @selector(findInPage:))
-    return (browserController && [[[browserController browserWrapper] browserView] isTextBasedContent]);
-
   // BrowserWindowController decides about actions that are just sent on to
   // the front window's BrowserWindowController. This works because the selectors
   // of these actions are the same here and in BrowserWindowController.
@@ -2033,14 +2005,6 @@ static int SortByProtocolAndName(NSDictionary* item1, NSDictionary* item2, void*
     [[aSender representedObject] setRequiredFileType:@"html"];
   else
     [[aSender representedObject] setRequiredFileType:@"plist"];
-}
-
-#pragma mark -
-#pragma mark Find Panel
-
-- (void)closeFindDialog
-{
-  [mFindDialog close];
 }
 
 @end

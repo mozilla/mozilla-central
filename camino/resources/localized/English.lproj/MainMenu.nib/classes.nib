@@ -53,7 +53,6 @@
                 openLinkInNewTab = id; 
                 openLinkInNewWindow = id; 
                 pageSetup = id; 
-                performSearch = id; 
                 previousTab = id; 
                 printDocument = id; 
                 reload = id; 
@@ -64,6 +63,7 @@
                 saveImageAs = id; 
                 saveLinkAs = id; 
                 savePageAs = id; 
+                searchFieldTriggered = id; 
                 searchForSelection = id; 
                 sendURL = id; 
                 sendURLFromLink = id; 
@@ -71,6 +71,7 @@
                 showPageInfo = id; 
                 showSiteCertificate = id; 
                 stop = id; 
+                toggleStatusBar = id; 
                 viewOnlyThisImage = id; 
                 viewPageSource = id; 
                 viewSource = id; 
@@ -95,8 +96,8 @@
                 mPersonalToolbar = BookmarkToolbar; 
                 mProgress = NSProgressIndicator; 
                 mProxyIcon = PageProxyIcon; 
-                mSearchBar = SearchTextField; 
-                mSearchSheetTextField = SearchTextField; 
+                mSearchBar = WebSearchField; 
+                mSearchSheetTextField = WebSearchField; 
                 mSearchSheetWindow = NSWindow; 
                 mStatus = NSTextField; 
                 mStatusBar = NSView; 
@@ -116,6 +117,8 @@
                 addTabGroup = id; 
                 addTabGroupWithoutPrompt = id; 
                 fillForm = id; 
+                find = id; 
+                findActions = id; 
                 getInfo = id; 
                 miniaturizeAll = id; 
                 showPageInfo = id; 

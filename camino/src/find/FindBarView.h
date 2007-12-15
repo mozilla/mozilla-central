@@ -15,12 +15,12 @@
  * The Original Code is mozilla.org code.
  *
  * The Initial Developer of the Original Code is
- * Netscape Communications Corporation.
- * Portions created by the Initial Developer are Copyright (C) 2002
+ * Mike Pinkerton.
+ * Portions created by the Initial Developer are Copyright (C) 2007
  * the Initial Developer. All Rights Reserved.
  *
  * Contributor(s):
- *   Josh Aas (josh@mozilla.com)
+ *   Mike Pinkerton
  *
  * Alternatively, the contents of this file may be used under the terms of
  * either the GNU General Public License Version 2 or later (the "GPL"), or
@@ -36,31 +36,16 @@
  *
  * ***** END LICENSE BLOCK ***** */
 
-#import "StatusBarView.h"
-
-#import "NSWorkspace+Utils.h"
-
-@implementation StatusBarView
+#import <Cocoa/Cocoa.h>
 
 //
-// -drawRect:
+// FindBarView
 //
-// Override to draw the top header of the status bar
+// Handles custom drawing for the find bar
 //
-- (void)drawRect:(NSRect)aRect
+
+@interface FindBarView : NSView
 {
-  [super drawRect:aRect];
-  
-  if (![NSWorkspace isLeopardOrHigher]) {
-    // optimize drawing a bit so we're not *always* redrawing our top header. Only
-    // draw if the area we're asked to draw overlaps with the top line.
-    NSRect bounds = [self bounds];
-    if (NSMaxY(bounds) <= NSMaxY(aRect)) {
-      NSPoint leftPoint = NSMakePoint(bounds.origin.x, bounds.origin.y + bounds.size.height);
-      NSPoint rightPoint = NSMakePoint(bounds.origin.x + bounds.size.width, bounds.origin.y + bounds.size.height);
-      [NSBezierPath strokeLineFromPoint:leftPoint toPoint:rightPoint];
-    }
-  }
 }
 
 @end

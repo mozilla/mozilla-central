@@ -1,0 +1,23 @@
+{
+    IBClasses = (
+        {
+            ACTIONS = {findAll = id; findNext = id; findPrevious = id; hideFindBar = id; }; 
+            CLASS = FindBarController; 
+            LANGUAGE = ObjC; 
+            OUTLETS = {
+                mCloseBox = RolloverImageButton; 
+                mFindBar = NSView; 
+                mFinder = id; 
+                mMatchCase = NSButton; 
+                mSearchField = NSSearchField; 
+                mStatusText = NSTextField; 
+            }; 
+            SUPERCLASS = NSObject; 
+        }, 
+        {CLASS = FindBarView; LANGUAGE = ObjC; SUPERCLASS = NSView; }, 
+        {CLASS = FirstResponder; LANGUAGE = ObjC; SUPERCLASS = NSObject; }, 
+        {CLASS = RolloverImageButton; LANGUAGE = ObjC; SUPERCLASS = NSButton; }, 
+        {CLASS = StatusBarView; LANGUAGE = ObjC; SUPERCLASS = NSView; }
+    ); 
+    IBVersion = 1; 
+}
