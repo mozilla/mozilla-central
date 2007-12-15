@@ -1361,6 +1361,9 @@ NS_IMETHODIMP nsMsgDBView::IsContainerOpen(PRInt32 index, PRBool *_retval)
 
 NS_IMETHODIMP nsMsgDBView::IsContainerEmpty(PRInt32 index, PRBool *_retval)
 {
+  if (!IsValidIndex(index))
+    return NS_MSG_INVALID_DBVIEW_INDEX;
+
   if (m_viewFlags & nsMsgViewFlagsType::kThreadedDisplay)
   {
     PRUint32 flags = m_flags[index];
