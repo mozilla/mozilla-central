@@ -35,10 +35,10 @@
  *
  * ***** END LICENSE BLOCK ***** */
 
-#ifndef __nsAddressBook_h
-#define __nsAddressBook_h
+#ifndef __nsAbManager_h
+#define __nsAbManager_h
  
-#include "nsIAddressBook.h"
+#include "nsIAbManager.h"
 #include "nsICommandLineHandler.h"
 
 class nsILocalFile;
