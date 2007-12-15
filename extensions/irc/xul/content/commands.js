@@ -3102,11 +3102,7 @@ function cmdInvite(e)
 {
     var channel;
 
-    if (!e.channelName)
-    {
-        channel = e.channel;
-    }
-    else
+    if (e.channelName)
     {
         channel = e.server.getChannel(e.channelName);
         if (!channel)
@@ -3114,6 +3110,15 @@ function cmdInvite(e)
             display(getMsg(MSG_ERR_UNKNOWN_CHANNEL, e.channelName), MT_ERROR);
             return;
         }
+    }
+    else if (e.channel)
+    {
+        channel = e.channel;
+    }
+    else
+    {
+        display(getMsg(MSG_ERR_NO_CHANNEL, e.command.name), MT_ERROR);
+        return;
     }
 
     channel.invite(e.nickname);
