@@ -103,7 +103,7 @@ interface calIItemBase : nsISupports
   // the generation number of this item; 0 means
   // that it's never been stored in a store
   //
-  readonly attribute PRUint32 generation;
+  attribute PRUint32 generation;
 
   // the time when this item was created
   readonly attribute calIDateTime creationDate;
