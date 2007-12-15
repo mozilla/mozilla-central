@@ -80,7 +80,9 @@
 <!ENTITY translate.commandKey "t">
 
 <!ENTITY closeOtherTabs.label "Close Other Tabs">
+<!ENTITY closeOtherTabs.accesskey "T">
 <!ENTITY closeWindow.label "Close Window">
+<!ENTITY closeWindow.accesskey "W">
 
 <!ENTITY minimizeButton.tooltip       "Minimize">
 <!ENTITY restoreButton.tooltip        "Restore">

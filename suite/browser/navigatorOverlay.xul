@@ -24,6 +24,7 @@
    -   Blake Ross   <blakeross@telocity.com>
    -   Peter Annema <disttsc@bart.nl>
    -   Jeremy M. Dolan <jmd@pobox.com>
+   -   Ehsan Akhgari <ehsan.akhgari@gmail.com>
    -
    - Alternatively, the contents of this file may be used under the terms of
    - either of the GNU General Public License Version 2 or later (the "GPL"),
@@ -349,8 +350,8 @@
           <menupopup id="menu_recentTabsPopup" onpopupshowing="updateRecentTabs(this);" oncommand="gBrowser.restoreTab(event.target.value);"/>
         </menu>
         <menuitem id="menu_close"/>
-        <menuitem id="menu_closeOtherTabs" command="cmd_closeOtherTabs" label="&closeOtherTabs.label;"/>
-        <menuitem id="menu_closeWindow" hidden="true" command="cmd_closeWindow" key="key_closeWindow" label="&closeWindow.label;"/>
+        <menuitem id="menu_closeOtherTabs" command="cmd_closeOtherTabs" label="&closeOtherTabs.label;" accesskey="&closeOtherTabs.accesskey;"/>
+        <menuitem id="menu_closeWindow" hidden="true" command="cmd_closeWindow" key="key_closeWindow" label="&closeWindow.label;" accesskey="&closeWindow.accesskey;"/>
         <menuseparator/>
         <menuitem id="savepage" valueSaveAs="&savePageAsCmd.label;" valueSave="&savePageCmd.label;"
                   accesskey="&savePageCmd.accesskey;" key="key_savePage" command="Browser:SavePage"/>
