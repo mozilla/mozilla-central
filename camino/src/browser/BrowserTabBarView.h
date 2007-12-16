@@ -55,6 +55,8 @@
   
   // drag tracking
   BOOL              mDragOverBar;
+
+  NSTimeInterval    mLastClickTime;
   
   BOOL              mVisible;             // whether tabs are visible or not; used to disable creation of tracking rects when they're not
   BOOL              mOverflowTabs;        // track whether there are more tabs than we can fit onscreen
