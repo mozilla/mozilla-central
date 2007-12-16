@@ -3,6 +3,7 @@
 @AB_CD@.jar:
 % locale branding @AB_CD@ %locale/@AB_CD@/branding/
 % locale communicator @AB_CD@ %locale/@AB_CD@/communicator/
+% override chrome://global/locale/netErrorApp.dtd chrome://communicator/locale/overrides/netErrorApp.dtd
 % locale communicator-platform @AB_CD@ %locale/@AB_CD@/communicator-platform/
 % locale communicator-region @AB_CD@ %locale/@AB_CD@/communicator-region/
 % locale messenger @AB_CD@ %locale/@AB_CD@/messenger/
@@ -122,6 +123,7 @@
   locale/@AB_CD@/communicator/history/findHistory.dtd                       (%chrome/common/history/findHistory.dtd)
   locale/@AB_CD@/communicator/migration/migration.dtd                       (%chrome/common/migration/migration.dtd)
   locale/@AB_CD@/communicator/migration/migration.properties                (%chrome/common/migration/migration.properties)
+  locale/@AB_CD@/communicator/overrides/netErrorApp.dtd                     (%chrome/common/overrides/netErrorApp.dtd)
   locale/@AB_CD@/communicator/permissions/aboutPopups.dtd                   (%chrome/common/permissions/aboutPopups.dtd)
   locale/@AB_CD@/communicator/permissions/cookieViewer.properties           (%chrome/common/permissions/cookieViewer.properties)
   locale/@AB_CD@/communicator/permissions/cookieViewer.dtd                  (%chrome/common/permissions/cookieViewer.dtd)

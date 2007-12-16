@@ -350,7 +350,11 @@
                     onnewtab="BrowserOpenTab();"
                     autocompletepopup="PopupAutoComplete"
                     onbookmarkgroup="addGroupmarkAs();"
-                    onclick="return contentAreaClick(event);"/>
+                    onclick="return contentAreaClick(event);"
+                    oncommand="BrowserOnCommand(event);"/>
+        <!-- The oncommand listener above lets us fix bugs like 401575 which
+             require error page UI to do privileged things, without letting
+             error pages have any privilege themselves. -->
       </hbox>
     </vbox>  
   </hbox>

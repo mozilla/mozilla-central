@@ -616,3 +616,42 @@ function validateFileName(aFileName)
   
   return aFileName.replace(re, "_");
 }
+
+/**
+ * Handle command events bubbling up from error page content
+ * called from oncommand by <browser>s that support error pages
+ */
+function BrowserOnCommand(event)
+{
+  // Don't trust synthetic events
+  if (!event.isTrusted)
+    return;
+
+  const ot = event.originalTarget;
+  const ownerDoc = ot.ownerDocument;
+  // If the event came from an ssl error page, it is probably either the "Add
+  // Exception" or "Get Me Out Of Here" button
+  if (/^about:neterror\?e=nssBadCert/.test(ownerDoc.documentURI)) {
+    if (ot.id == 'exceptionDialogButton') {
+      var params = { location : ownerDoc.location.href,
+                     exceptionAdded : false };
+      window.openDialog('chrome://pippki/content/exceptionDialog.xul',
+                        '', 'chrome,centerscreen,modal', params);
+
+      // If the user added the exception cert, attempt to reload the page
+      if (params.exceptionAdded)
+        ownerDoc.location.reload();
+    }
+    else if (ot.id == 'getMeOutOfHereButton') {
+      // Redirect them to a known-functioning page, default start page
+      var url = "about:blank";
+      try {
+        url = pref.getComplexValue("browser.startup.homepage",
+                                   Components.interfaces.nsIPrefLocalizedString).data;
+      } catch(e) {
+        Components.utils.reportError("Couldn't get homepage pref: " + e);
+      }
+      content.location = url;
+    }
+  }
+}
