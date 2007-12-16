@@ -1239,36 +1239,6 @@ typedef enum EProxyConfig {
   return @"about:blank";
 }
 
-- (NSString*)searchPage
-{
-  NSString* resultString = @"http://www.google.com/";
-  if (!mPrefs)
-    return resultString;
-
-  nsCOMPtr<nsIPrefBranch> prefBranch = do_QueryInterface(mPrefs);
-  if (!prefBranch)
-    return resultString;
-
-  NSString* searchPagePref = nil;
-  PRBool haveUserPref = PR_FALSE;
-  prefBranch->PrefHasUserValue("chimera.search_page", &haveUserPref);
-  if (haveUserPref)
-    searchPagePref = [self getStringPref:"chimera.search_page" withSuccess:NULL];
-  
-  if (!haveUserPref || (searchPagePref == NULL) || ([searchPagePref length] == 0)) {
-    // no home page pref is set in user prefs, or it's an empty string
-    searchPagePref = NSLocalizedStringFromTable(@"SearchPageDefault", @"WebsiteDefaults", nil);
-    // and let's copy this into the homepage pref if it's not bad
-    if (![searchPagePref isEqualToString:@"SearchPageDefault"])
-      mPrefs->SetCharPref("chimera.search_page", [searchPagePref UTF8String]);
-  }
-
-  if (searchPagePref && [searchPagePref length] > 0 && ![searchPagePref isEqualToString:@"SearchPageDefault"])
-    return searchPagePref;
-  
-  return resultString;
-}
-
 //
 // -profilePath
 //

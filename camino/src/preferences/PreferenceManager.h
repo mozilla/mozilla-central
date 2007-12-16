@@ -69,7 +69,6 @@ extern NSString* const kPrefChangedPrefNameUserInfoKey;   // NSString
 - (void)savePrefsFile;
 
 - (NSString*)homePageUsingStartPage:(BOOL)checkStartupPagePref;
-- (NSString*)searchPage;
 
 - (NSString*)getStringPref: (const char*)prefName withSuccess:(BOOL*)outSuccess;
 - (NSColor*)getColorPref: (const char*)prefName withSuccess:(BOOL*)outSuccess;
