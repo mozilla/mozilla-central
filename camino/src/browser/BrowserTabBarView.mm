@@ -39,6 +39,8 @@
  *
  * ***** END LICENSE BLOCK ***** */
 
+#include <Carbon/Carbon.h>
+
 #import "BrowserTabBarView.h"
 #import "BrowserTabView.h"
 #import "BrowserTabViewItem.h"
@@ -169,20 +171,34 @@ static const float kScrollButtonInterval = 0.15;  // time (in seconds) between f
 
 -(NSMenu*)menuForEvent:(NSEvent*)theEvent
 {
-  NSPoint clickPoint = [self convertPoint:[theEvent locationInWindow] fromView:nil];
-  TabButtonView *clickedTabButton = [self buttonAtPoint:clickPoint];
-  return (clickedTabButton) ? [clickedTabButton menu] : [self menu];
+  return [self menu];
 }
 
 -(void)mouseDown:(NSEvent*)theEvent
 {
   NSPoint clickPoint = [self convertPoint:[theEvent locationInWindow] fromView:nil];
-  TabButtonView *clickedTabButton = [self buttonAtPoint:clickPoint];
-  NSButton *clickedScrollButton = [self scrollButtonAtPoint:clickPoint];
+  // If the click fell through a disabled scroll button, ignore it.
+  if ([self scrollButtonAtPoint:clickPoint])
+    return;
 
-  if (!clickedScrollButton && [theEvent clickCount] == 2)
+  // We get a double-click even if the first click was actually on a tab's
+  // close button, so try to make sure this was really a tab bar double-click.
+  NSTimeInterval doubleClickTime = ::GetDblTime() / 60.0;
+  NSTimeInterval elapsedTime = [theEvent timestamp] - mLastClickTime;
+  int clickCount = [theEvent clickCount];
+  // If there was no corresponding first click for a double-click, then we
+  // presumably lost a click to a tab close, so treat it as a first click.
+  if (clickCount == 2 && elapsedTime > doubleClickTime)
+    clickCount = 1;
+
+  if (clickCount == 1) {
+    mLastClickTime = [theEvent timestamp];
+  }
+  else if (elapsedTime < doubleClickTime) {
+    mLastClickTime = 0;
     [[NSNotificationCenter defaultCenter] postNotificationName:kTabBarBackgroundDoubleClickedNotification
                                                         object:mTabView];
+  }
 }
 
 // Returns the scroll button at the specified point, if there is one.
