@@ -525,18 +525,21 @@ NSString* const kPreviousSessionTerminatedNormallyKey = @"PreviousSessionTermina
 
 - (void)checkDefaultBrowser
 {
-  NSString* defaultBrowserIdentifier = [[NSWorkspace sharedWorkspace] defaultBrowserIdentifier];
-  NSString* myIdentifier = [[NSBundle mainBundle] bundleIdentifier];
-
-  // silently update from our old to new bundle identifier
-  if ([defaultBrowserIdentifier isEqualToString:@"org.mozilla.navigator"]) {
-    [[NSWorkspace sharedWorkspace] setDefaultBrowserWithIdentifier:myIdentifier];
+  BOOL prefSet;
+  BOOL allowPrompt = [[PreferenceManager sharedInstance] getBooleanPref:"camino.check_default_browser"
+                                                            withSuccess:&prefSet];
+  // Don't show the default browser alert on the very first launch (indicated by
+  // the absence of any setting for camino.check_default_browser). 
+  if (!prefSet) {
+    [[PreferenceManager sharedInstance] setPref:"camino.check_default_browser"
+                                      toBoolean:YES];
+    return;
   }
-  else if (![defaultBrowserIdentifier isEqualToString:myIdentifier]) {
-    BOOL gotPref;
-    BOOL allowPrompt = ([[PreferenceManager sharedInstance] getBooleanPref:"camino.check_default_browser" withSuccess:&gotPref] ||
-                        !gotPref);
-    if (allowPrompt) {
+
+  if (allowPrompt) {
+    NSString* defaultBrowserIdentifier = [[NSWorkspace sharedWorkspace] defaultBrowserIdentifier];
+    NSString* myIdentifier = [[NSBundle mainBundle] bundleIdentifier];
+    if (![defaultBrowserIdentifier isEqualToString:myIdentifier]) {
       nsAlertController* controller = [[nsAlertController alloc] init];
       BOOL dontAskAgain = NO;
       int result = NSAlertErrorReturn;

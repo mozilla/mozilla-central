@@ -175,8 +175,8 @@ pref("browser.sessionstore.resume_from_crash", true);
 // should we restore tabs and windows on every launch?
 pref("camino.remember_window_state", false);
 
-// check on launch to see if Camino is the default browser
-pref("camino.check_default_browser", true);
+// camino.check_default_browser controls the check on launch for whether Camino
+// is the default browser. Set automatically just after the first launch.
 
 // enable bonjour
 pref("camino.disable_bonjour", false);
