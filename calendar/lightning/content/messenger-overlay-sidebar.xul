@@ -334,7 +334,7 @@
                     accesskey="&addressBookCmd.accesskey;"
                     key="key_addressbook"
                     mode="calendar"
-                    oncommand="toOpenWindowByType('mail:addressbook', 'chrome://messenger/content/addressbook/addressbook.xul');"/>
+                    oncommand="toAddressBook();"/>
     </menupopup>    
     <menupopup id="calendarCalendarPopupMenu">
         <menuitem id="ltnNewEvent2" label="&event.new.event;"

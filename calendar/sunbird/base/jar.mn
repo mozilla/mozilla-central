@@ -5,7 +5,7 @@ calendar.jar:
 *  content/calendar/aboutDialog.xul              (content/aboutDialog.xul)
 *  content/calendar/calendar.xul                 (content/calendar.xul)
 *  content/calendar/credits.xhtml                (content/credits.xhtml)
-*  content/calendar/applicationUtil.js           (/calendar/resources/content/applicationUtil.js)
+   content/calendar/applicationUtil.js           (/calendar/resources/content/applicationUtil.js)
 #ifdef MOZILLA_1_8_BRANCH
 *  content/calendar/customizeToolbar.xul         (content/customizeToolbar.xul)
 #else

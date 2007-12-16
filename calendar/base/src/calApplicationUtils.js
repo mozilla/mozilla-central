@@ -137,18 +137,6 @@ function getFormattedRegionURL(aPrefName)
   return formatter.formatURLPref(aPrefName);
 }
 
-function toOpenWindowByType(inType, uri)
-{
-    var windowManager = Components.classes['@mozilla.org/appshell/window-mediator;1'].getService();
-    var windowManagerInterface = windowManager.QueryInterface(Components.interfaces.nsIWindowMediator);
-    var topWindow = windowManagerInterface.getMostRecentWindow(inType);
-
-    if (topWindow)
-        topWindow.focus();
-    else
-        window.open(uri, "_blank", "chrome,extrachrome,menubar,resizable,scrollbars,status,toolbar");
-}
-
 function launchBrowser(UrlToGoTo)
 {
   if (!UrlToGoTo) {
