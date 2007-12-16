@@ -1507,6 +1507,9 @@ nsMsgDBView::GetProgressMode(PRInt32 aRow, nsITreeColumn* aCol, PRInt32* _retval
 
 NS_IMETHODIMP nsMsgDBView::GetCellValue(PRInt32 aRow, nsITreeColumn* aCol, nsAString& aValue)
 {
+  if (!IsValidIndex(aRow))
+    return NS_MSG_INVALID_DBVIEW_INDEX;
+
   nsCOMPtr <nsIMsgDBHdr> msgHdr;
   nsresult rv = GetMsgHdrForViewIndex(aRow, getter_AddRefs(msgHdr));
 
