@@ -92,12 +92,12 @@ const int kLabelCheckboxAdjustment = 2; // # pixels the label must be pushed dow
 - (int)runModalWindow:(NSWindow*)inDialog relativeToWindow:(NSWindow*)inParentWindow;
 
 - (NSPanel*)alertPanelWithTitle:(NSString*)title
-        message:(NSString*)message
-        defaultButton:(NSString*)defaultLabel
-        altButton:(NSString*)altLabel
-        otherButton:(NSString*)otherLabel
-        extraView:(NSView*)extraView
-        lastResponder:(NSView*)lastResponder;
+                        message:(NSString*)message
+                  defaultButton:(NSString*)defaultLabel  // "OK" or equiv.
+                      altButton:(NSString*)altLabel      // "Cancel" or equiv.
+                    otherButton:(NSString*)otherLabel
+                      extraView:(NSView*)extraView       // Shown above buttons
+                  lastResponder:(NSView*)lastResponder;  // Last in extraView
         
 - (NSButton*)makeButtonWithTitle:(NSString*)title;
 
@@ -551,46 +551,42 @@ const int kLabelCheckboxAdjustment = 2; // # pixels the label must be pushed dow
   [imageView setImageScaling: NSScaleProportionally];
   [imageView setAutoresizingMask: NSViewMinYMargin | NSViewMaxXMargin];
   [[panel contentView] addSubview: imageView];
-  
+
   //  create buttons
-  
+
   NSButton* defButton = [self makeButtonWithTitle: defaultLabel];
   [defButton setAction: @selector(hitButton1:)];
   [defButton setAutoresizingMask: NSViewMinXMargin | NSViewMaxYMargin];
-  [defButton setKeyEquivalent: @"\r"];		// return
+  [defButton setKeyEquivalent:@"\r"];  // Return
   [[panel contentView] addSubview: defButton];
   [panel setDefaultButtonCell: [defButton cell]];
-  
-  NSView* firstKeyView = (extraView ? extraView : defButton);
+
+  // Keep track of the leftmost created button for setting up the tab chain.
+  // The tab chain should generally cycle top to bottom (if an extraView was
+  // supplied), and within that, left to right.
+  NSView* leftmostButton = defButton;
 
   NSButton* altButton = nil;
   if (altLabel) {
     altButton = [self makeButtonWithTitle: altLabel];
     [altButton setAction: @selector(hitButton2:)];
     [altButton setAutoresizingMask: NSViewMinXMargin | NSViewMaxYMargin];
-    [altButton setKeyEquivalent: @"\e"];		// escape
+    [altButton setKeyEquivalent:@"\e"];  // Esc
     [[panel contentView] addSubview: altButton];
-    [defButton setNextKeyView: altButton];
+    [altButton setNextKeyView:leftmostButton];
+    leftmostButton = altButton;
   }
-  
+
   NSButton* otherButton = nil;
   if (otherLabel) {
     otherButton = [self makeButtonWithTitle: otherLabel];
     [otherButton setAction: @selector(hitButton3:)];
     [otherButton setAutoresizingMask: NSViewMaxXMargin | NSViewMaxYMargin];
     [[panel contentView] addSubview: otherButton];
-    [otherButton setNextKeyView: firstKeyView];
-    if (altButton)
-      [altButton setNextKeyView: otherButton];
-    else
-      [defButton setNextKeyView: otherButton];
-  } else {
-    if (altButton)
-      [altButton setNextKeyView: firstKeyView];
-    else
-      [defButton setNextKeyView: firstKeyView];
+    [otherButton setNextKeyView:leftmostButton];
+    leftmostButton = otherButton;
   }
-  
+
   //  position buttons
   
   float defWidth = NSWidth([defButton frame]);
@@ -654,15 +650,30 @@ const int kLabelCheckboxAdjustment = 2; // # pixels the label must be pushed dow
   [extraView setFrame: extraRect];
   [[panel contentView] addSubview: extraView];
 
-  // If a lastResponder was passed in (the last item in the tab order inside
-  // extraView), hook it up to cycle to defButton.  If not, assume there is
-  // nothing focusable inside extraView and hook up defButton as the first
+  // Close the tab chain.  If an extraView is present, make it the initial
+  // first responder and hook its lastResponder (the last item within
+  // extraView's tab chain) up to the buttons.  If there is no extraView,
+  // make altButton, used for "Cancel" buttons, the initial first responder if
+  // there is one.  Otherwise, make the default button the initial first
   // responder.
 
-  if (lastResponder)
-    [lastResponder setNextKeyView: defButton];
-  else
-    [panel setInitialFirstResponder: defButton];
+  if (extraView && lastResponder) {
+    [panel setInitialFirstResponder:extraView];
+    [lastResponder setNextKeyView:leftmostButton];
+    [defButton setNextKeyView:extraView];
+  }
+  else {
+    if (altButton) {
+      [panel setInitialFirstResponder:altButton];
+    }
+    else {
+      [panel setInitialFirstResponder:defButton];
+    }
+
+    if (defButton != leftmostButton) {
+      [defButton setNextKeyView:leftmostButton];
+    }
+  }
 
   return panel;
 }
