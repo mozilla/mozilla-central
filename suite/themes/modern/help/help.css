@@ -97,72 +97,71 @@
 /* ::::: primary toolbar buttons ::::: */
 
 toolbar toolbarbutton {
-  list-style-image: url("chrome://navigator/skin/icons/btn1.gif");
+  list-style-image: url("chrome://communicator/skin/icons/common.png");
 }
 
 #help-back-button {
-  -moz-image-region: rect(0, 41px, 38px, 0);
+  -moz-image-region: rect(78px 42px 117px 0);
 }
 
 #help-back-button:hover {
-  -moz-image-region: rect(0, 83px, 38px, 42px);
+  -moz-image-region: rect(78px 84px 117px 42px);
 }
 
 #help-back-button:hover:active {
-  -moz-image-region: rect(0, 125px, 38px, 84px);
+  -moz-image-region: rect(78px 126px 117px 84px);
 }
 
 #help-back-button[disabled="true"] {
-  -moz-image-region: rect(0, 167px, 38px, 126px) !important;
+  -moz-image-region: rect(78px 168px 117px 126px) !important;
 }
 
 #help-forward-button {
-  -moz-image-region: rect(39px, 41px, 77px, 0);
+  -moz-image-region: rect(117px 42px 156px 0);
 }
 
 #help-forward-button:hover {
-  -moz-image-region: rect(39px, 83px, 77px, 42px);
+  -moz-image-region: rect(117px 84px 156px 42px);
 }
 
 #help-forward-button:hover:active {
-  -moz-image-region: rect(39px, 125px, 77px, 84px);
+  -moz-image-region: rect(117px 126px 156px 84px);
 }
 
 #help-forward-button[disabled="true"] {
-  -moz-image-region: rect(39px, 167px, 77px, 126px) !important;
+  -moz-image-region: rect(117px 168px 156px 126px) !important;
 }
 
 #help-home-button {
-  list-style-image: url("chrome://help/skin/home.gif");
+  -moz-image-region: rect(156px 42px 195px 0);
 }
 
 #help-home-button:hover {
-  list-style-image: url("chrome://help/skin/home-hov.gif");
+  -moz-image-region: rect(156px 84px 195px 42px);
 }
 
 #help-home-button:hover:active {
-  list-style-image: url("chrome://help/skin/home-act.gif");
+  -moz-image-region: rect(156px 126px 195px 84px);
 }
 
 #help-home-button[disabled="true"] {
-  list-style-image: url("chrome://help/skin/home-dis.gif") !important;
+  -moz-image-region: rect(156px 168px 195px 126px) !important;
 }
 
 #help-print-button {
-  list-style-image: url("chrome://communicator/skin/icons/btn1.gif");
-  -moz-image-region: rect(0, 49px, 33px, 0);
+  -moz-image-region: rect(0 42px 39px 0);
 }
 
 #help-print-button:hover {
-  -moz-image-region: rect(0, 99px, 33px, 50px);
+  -moz-image-region: rect(0 84px 39px 42px);
 }
 
 #help-print-button:hover:active {
-  -moz-image-region: rect(0, 149px, 33px, 100px);
+  -moz-image-region: rect(0 126px 39px 84px);
 }
 
 #help-print-button[disabled="true"] {
-  -moz-image-region: rect(0, 199px, 33px, 150px) !important;
+  -moz-image-region: rect(0 168px 39px 126px) !important;
 }
 
 /* ::::: OTHER ::::: */
