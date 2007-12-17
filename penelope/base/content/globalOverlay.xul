@@ -114,6 +114,12 @@ xmlns="http://www.mozilla.org/keymaster/gatekeeper/there.is.only.xul">
                 command="cmd_penelopeDoSelectedTextUrl6"/>
   </menupopup>
 
+  <!-- Get rid of Shift modifier on space so that Shift+Space can toggle read/unread -->
+  <keyset id="mailKeys">
+    <key id="space" removeelement="true"/>
+    <key id="space" key=" " oncommand="SpaceHit(event);"/>
+
+  </keyset>
   <keyset id="mainKeyset">
     <keyset id="globalKeyset" />
   </keyset>

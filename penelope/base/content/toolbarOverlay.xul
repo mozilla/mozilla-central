@@ -106,32 +106,32 @@ xmlns="http://www.mozilla.org/keymaster/gatekeeper/there.is.only.xul">
 
   <toolbox id="mail-toolbox">
   <toolbarpalette id="MailToolbarPalette">
-        <toolbarbutton class="toolbarbutton-1" id="button-in" label="In" tooltiptext="Open In mailbox" command="cmd_penelopeOpenInbox"/>
-        <toolbarbutton class="toolbarbutton-1" id="button-out" label="Out" tooltiptext="Open Out mailbox" command="cmd_penelopeOpenOutbox"/>
-        <toolbarbutton class="toolbarbutton-1" id="button-help" label="Help" tooltiptext="Help" command="cmd_penelopeHelp"/>
-        <toolbarbutton class="toolbarbutton-1" id="button-close" label="Close" tooltiptext="Close" oncommand="goDoCommand('cmd_close')"/>
-        <toolbarbutton class="toolbarbutton-1" id="button-saveas" label="Save As" tooltiptext="Save As"/>
-        <toolbarbutton class="toolbarbutton-1" id="cut-button" label="Cut" tooltiptext="Cut" oncommand="goDoCommand('cmd_cut')"/>
-        <toolbarbutton class="toolbarbutton-1" id="copy-button" label="Copy" tooltiptext="Copy" oncommand="goDoCommand('cmd_copy')"/>
-        <toolbarbutton class="toolbarbutton-1" id="paste-button" label="Paste" tooltiptext="Paste" oncommand="goDoCommand('cmd_paste')"/>
-        <toolbarbutton class="toolbarbutton-1" id="undo-button" label="Undo" tooltiptext="Undo" oncommand="Undo()"/>
-        <toolbarbutton class="toolbarbutton-1" id="redo-button" label="Redo" tooltiptext="Redo" oncommand="Redo()"/>
-        <toolbarbutton class="toolbarbutton-1" id="button-redirect" label="Redirect" tooltiptext="Redirect" oncommand="penelopeRedirect();"/>
-        <toolbarbutton class="toolbarbutton-1" id="button-resend" label="Resend" tooltiptext="Resend" oncommand="MsgEditMessageAsNew();"/>
-        <toolbarbutton class="toolbarbutton-1" id="button-sendunsent" label="Send Unsent" tooltiptext="Send unsent messages" oncommand="goDoCommand('cmd_sendUnsentMsgs')"/>
-        <toolbarbutton class="toolbarbutton-1" id="button-subscribe" label="Subscribe" tooltiptext="Subscribe" oncommand="MsgSubscribe();"/>
-        <toolbarbutton class="toolbarbutton-1" id="button-emptytrash" label="Empty Trash" tooltiptext="Empty trash" oncommand="goDoCommand('cmd_emptyTrash')"/>
-        <toolbarbutton class="toolbarbutton-1" id="button-offline" label="Offline" tooltiptext="Toggle offline status" oncommand="MailOfflineMgr.toggleOfflineStatus();"/>
-        <toolbarbutton class="toolbarbutton-1" id="button-printsetup" label="Print Setup" tooltiptext="Set up printer" command="cmd_printSetup"/>
-        <toolbarbutton class="toolbarbutton-1" id="button-next" label="Next Message" tooltiptext="Go to the next message" command="cmd_nextMsg"/>
-        <toolbarbutton class="toolbarbutton-1" id="button-nextunread" label="Next Unread" tooltiptext="Go to the next unread message" command="cmd_nextUnreadMsg"/>
-        <toolbarbutton class="toolbarbutton-1" id="button-nextstarred" label="Next Starred" tooltiptext="Go to the next starred message" command="cmd_nextFlaggedMsg"/>
-        <toolbarbutton class="toolbarbutton-1" id="button-nextunreadthread" label="Next Unread Thread" tooltiptext="Go to the next unread thread" command="cmd_nextUnreadThread"/>
-        <toolbarbutton class="toolbarbutton-1" id="button-previous" label="Prev Message" tooltiptext="Go to the previous message" command="cmd_previousMsg"/>
-        <toolbarbutton class="toolbarbutton-1" id="button-prevunread" label="Prev Unread" tooltiptext="Go to the previous unread message" command="cmd_previousUnreadMsg"/>
-        <toolbarbutton class="toolbarbutton-1" id="button-prevstarred" label="Prev Starred" tooltiptext="Go to the previous starred message" command="cmd_previousFlaggedMsg"/>
-        <toolbarbutton class="toolbarbutton-1" id="button-prefs" label="Preferences" tooltiptext="Open the preferences window" oncommand="openOptionsDialog()"/>
-        <toolbaritem id="priority-button" align="center" pack="center">
+        <toolbarbutton class="toolbarbutton-1" id="button-in" label="&inButton.label;" tooltiptext="&inButton.tooltip;" command="cmd_penelopeOpenInbox"/>
+        <toolbarbutton class="toolbarbutton-1" id="button-out" label="&outButton.label;" tooltiptext="&outButton.tooltip;" command="cmd_penelopeOpenOutbox"/>
+        <toolbarbutton class="toolbarbutton-1" id="button-help" label="&helpButton.label;" tooltiptext="&helpButton.tooltip;" command="cmd_penelopeHelp"/>
+        <toolbarbutton class="toolbarbutton-1" id="button-close" label="&closeButton.label;" tooltiptext="&closeButton.tooltip;" oncommand="goDoCommand('cmd_close')"/>
+        <toolbarbutton class="toolbarbutton-1" id="button-saveas" label="&saveAsButton.label;" tooltiptext="&saveAsButton.tooltip;" oncommand="goDoCommand('cmd_saveAsFile')"/>
+        <toolbarbutton class="toolbarbutton-1" id="cut-button" label="&cutCmd.label;" tooltiptext="&cutButton.tooltip;" oncommand="goDoCommand('cmd_cut')"/>
+        <toolbarbutton class="toolbarbutton-1" id="copy-button" label="&copyCmd.label;" tooltiptext="&copyButton.tooltip;" oncommand="goDoCommand('cmd_copy')"/>
+        <toolbarbutton class="toolbarbutton-1" id="paste-button" label="&pasteCmd.label;" tooltiptext="&pasteButton.tooltip;" oncommand="goDoCommand('cmd_paste')"/>
+        <toolbarbutton class="toolbarbutton-1" id="undo-button" label="&undoButton.label;" tooltiptext="&undoButton.tooltip;" oncommand="Undo()"/>
+        <toolbarbutton class="toolbarbutton-1" id="redo-button" label="&redoButton.label;" tooltiptext="&redoButton.tooltip;" oncommand="Redo()"/>
+        <toolbarbutton class="toolbarbutton-1" id="button-redirect" label="&redirectButton.label;" tooltiptext="&redirectButton.tooltip;" oncommand="penelopeRedirect();"/>
+        <toolbarbutton class="toolbarbutton-1" id="button-resend" label="&sendAgainButton.label;" tooltiptext="&sendAgainButton.tooltip;" oncommand="MsgEditMessageAsNew();"/>
+        <toolbarbutton class="toolbarbutton-1" id="button-sendunsent" label="&sendUnsentButton.label;" tooltiptext="&sendUnsentButton.tooltip;" oncommand="goDoCommand('cmd_sendUnsentMsgs')"/>
+        <toolbarbutton class="toolbarbutton-1" id="button-subscribe" label="&subscribeButton.label;" tooltiptext="&subscribeButton.tooltip;" oncommand="MsgSubscribe();"/>
+        <toolbarbutton class="toolbarbutton-1" id="button-emptytrash" label="&emptyTrashButton.label;" tooltiptext="&emptyTrashButton.tooltip;" oncommand="goDoCommand('cmd_emptyTrash')"/>
+        <toolbarbutton class="toolbarbutton-1" id="button-offline" label="&offlineButton.label;" tooltiptext="&offlineButton.tooltip;" oncommand="MailOfflineMgr.toggleOfflineStatus();"/>
+        <toolbarbutton class="toolbarbutton-1" id="button-printsetup" label="&printSetupButton.label;" tooltiptext="&printSetupButton.tooltip;" command="cmd_printSetup"/>
+        <toolbarbutton class="toolbarbutton-1" id="button-next" label="&nextPlainButton.label;" tooltiptext="&nextPlainButton.tooltip;" command="cmd_nextMsg"/>
+        <toolbarbutton class="toolbarbutton-1" id="button-nextunread" label="&nextUnreadButton.label;" tooltiptext="&nextUnreadButton.tooltip;" command="cmd_nextUnreadMsg"/>
+        <toolbarbutton class="toolbarbutton-1" id="button-nextstarred" label="&nextStarredButton.label;" tooltiptext="&nextStarredButton.tooltip;" command="cmd_nextFlaggedMsg"/>
+        <toolbarbutton class="toolbarbutton-1" id="button-nextunreadthread" label="&nextUnreadThreadButton.label;" tooltiptext="&nextUnreadThreadButton.tooltip;" command="cmd_nextUnreadThread"/>
+        <toolbarbutton class="toolbarbutton-1" id="button-previous" label="&prevPlainButton.label;" tooltiptext="&prevPlainButton.tooltip;" command="cmd_previousMsg"/>
+        <toolbarbutton class="toolbarbutton-1" id="button-prevunread" label="&prevUnreadButton.label;" tooltiptext="&prevUnreadButton.tooltip;" command="cmd_previousUnreadMsg"/>
+        <toolbarbutton class="toolbarbutton-1" id="button-prevstarred" label="&prevStarredButton.label;" tooltiptext="&prevStarredButton.tooltip;" command="cmd_previousFlaggedMsg"/>
+        <toolbarbutton class="toolbarbutton-1" id="button-prefs" label="&prefsButton.label;" tooltiptext="&prefsButton.tooltip;" oncommand="openOptionsDialog()"/>
+    <toolbaritem id="priority-button" align="center" pack="center">
           <label value="&priorityButton.label;"/>
           <menulist id="priorityMenu-button" value="Normal" oncommand="penelopePriorityMenuSelect(event.target);">
             <menupopup>
@@ -147,13 +147,14 @@ xmlns="http://www.mozilla.org/keymaster/gatekeeper/there.is.only.xul">
           <label value="Status"/>
           <menulist id="statusMenu-button"  value="Unread" oncommand="penelopeStatusMenuSelect(event.target);">
             <menupopup id="penelopeStatusMenu-popup" onpopupshowing="penelopeInitStatusTags(this);">
-              <menuitem id="statusUnreadToolbarItem" label="Unread" accesskey="U" observes="cmd_markAsRead" />
-              <menuitem id="statusReadToolbarItem" label="Read" accesskey="E" observes="cmd_markAsRead" />
-              <menuitem id="statusRepliedToolbarItem" label="Replied" accesskey="R" observes="cmd_markAsRead" />
-              <menuitem id="statusForwardedToolbarItem" label="Forwarded" accesskey="F" observes="cmd_markAsRead" />
-              <menuitem id="statusRedirectedToolbarItem" label="Redirected" accesskey="D" observes="cmd_markAsRead" />
-              <menuitem id="statusSentToolbarItem" label="Sent" accesskey="T" observes="cmd_markAsRead" />
-              <menuitem id="statusUnsentToolbarItem" label="Unsent" accesskey="N" observes="cmd_markAsRead" />
+              <menuitem id="statusUnreadToolbarItem" label="&statusUnread.label;" accesskey="&statusUnread.accesskey;" observes="cmd_markAsRead" />
+              <menuitem id="statusReadToolbarItem" label="&statusRead.label;" accesskey="&statusRead.accesskey;" observes="cmd_markAsRead" />
+              <menuitem id="statusRepliedToolbarItem" label="&statusReplied.label;" accesskey="&statusReplied.accesskey;" observes="cmd_markAsRead" />
+              <menuitem id="statusForwardedToolbarItem" label="&statusForwarded.label;" accesskey="&statusForwarded.accesskey;" observes="cmd_markAsRead" />
+              <menuitem id="statusRedirectedToolbarItem" label="&statusRedirected.label;" accesskey="&statusRedirected.accesskey;" observes="cmd_markAsRead" />
+              <menuseparator/>
+              <menuitem id="statusSentToolbarItem" label="&statusSent.label;" accesskey="&statusSent.accesskey;" observes="cmd_markAsRead" />
+              <menuitem id="statusUnsentToolbarItem" label="&statusUnsent.label;" accesskey="&statusUnsent.accesskey;" observes="cmd_markAsRead" />
               </menupopup>
           </menulist>
         </toolbaritem>
@@ -285,7 +286,7 @@ xmlns="http://www.mozilla.org/keymaster/gatekeeper/there.is.only.xul">
   
   <!-- Tools menu -->
   <menupopup id="taskPopup">
-    <menuitem id="key_mail"
+    <menuitem id="tasksMenuMail"
               toolbaritem="not-supported"/>
     <menuitem id="addressBook"
               toolbaritem="button-address"/>
@@ -305,16 +306,17 @@ xmlns="http://www.mozilla.org/keymaster/gatekeeper/there.is.only.xul">
               toolbaritem="not-supported"/>
     <menuitem id="penelopeAddToAddrBook" 
               command="cmd_penelopeAddToAddrBook"
-              insertafter="addressBook" 
+              insertbefore="addonsManager" 
               key="key_penelopeAddToAddrBook" 
               observes="cmd_penelopeAddtoAddrBook"
-              label="&penelope.AddToAddrBook.label;" 
-              accesskey="&penelope.AddToAddrBook.accesskey;"
+              label="&addToAddrBook.label;" 
+              accesskey="&addToAddrBook.accesskey;"
               toolbaritem="button-address"/>
   </menupopup>
 
   <menupopup id="menu_HelpPopup"
              toolbaritem="not-supported"/>
+  
   <menupopup id="messageMenuPopup">
     <menuseparator/>
     <menuitem id="menu_editMsgAsNew" 
@@ -330,23 +332,26 @@ xmlns="http://www.mozilla.org/keymaster/gatekeeper/there.is.only.xul">
 
     <menu id="penelopeNewMessageTo" 
           insertbefore="moveMenu" 
-          label="&penelope.newMessageTo.label;">
+          label="&newMessageTo.label;"
+          accesskey="&newMessageTo.accesskey;">
       <menupopup id="penelopeNewMessageToMenu-popup">
-        <menuitem label="No Quick Recipients" disabled="true"/>
+        <menuitem label="&noQuickRecipients.label;" disabled="true"/>
       </menupopup>
     </menu>
     <menu id="penelopeForwardTo" 
-          insertafter="moveMenu" 
-          label="&penelope.forwardMessageTo.label;">
+          insertbefore="moveMenu" 
+          label="&forwardMessageTo.label;"
+          accesskey="&forwardMessageTo.accesskey;">
       <menupopup id="penelopeForwardToMenu-popup">
-        <menuitem label="No Quick Recipients" disabled="true"/>
+        <menuitem label="&noQuickRecipients.label;" disabled="true"/>
       </menupopup>
     </menu>
     <menu id="penelopeRedirectTo" 
           insertbefore="moveMenu" 
-          label="&penelope.redirectMessageTo.label;">
+          label="&redirectMessageTo.label;"
+          accesskey="&redirectMessageTo.accesskey;">
       <menupopup id="penelopeRedirectToMenu-popup">
-        <menuitem label="No Quick Recipients" disabled="true"/>
+        <menuitem label="&noQuickRecipients.label;" disabled="true"/>
       </menupopup>
     </menu> 
     <menu id="moveMenu" hidden="true"/>
@@ -358,19 +363,19 @@ xmlns="http://www.mozilla.org/keymaster/gatekeeper/there.is.only.xul">
     <menu id="penelopeChange" label="&penelope.change.label;">
       <menupopup id="penelopeChangeMenu-popup">
          <menu id="penelopeStatus" 
-               label="&penelope.status.label;" 
+               label="&status.label;" 
                observes="cmd_tag" 
                oncommand="penelopeStatusMenuSelect(event.target);" 
                toolbaritem="button-status">
            <menupopup id="penelopeStatusMenu-popup" onpopupshowing="penelopeInitStatusTags(this);">
-             <menuitem type="radio" name="status" label="&penelope.statusUnread.label;" value="Unread"/>
-             <menuitem type="radio" name="status" label="&penelope.statusRead.label;" value="Read"/>
-             <menuitem type="radio" name="status" label="&penelope.statusReplied.label;" value="Replied"/>
-             <menuitem type="radio" name="status" label="&penelope.statusForwarded.label;" value="Forwarded"/>
-             <menuitem type="radio" name="status" label="&penelope.statusRedirected.label;" value="Redirected"/>
+             <menuitem type="radio" name="status" label="&statusUnread.label;" accesskey="&statusUnread.accesskey;" value="Unread"/>
+             <menuitem type="radio" name="status" label="&statusRead.label;" accesskey="&statusRead.accesskey;" value="Read"/>
+             <menuitem type="radio" name="status" label="&statusReplied.label;" accesskey="&statusReplied.accesskey;" value="Replied"/>
+             <menuitem type="radio" name="status" label="&statusForwarded.label;" accesskey="&statusForwarded.accesskey;" value="Forwarded"/>
+             <menuitem type="radio" name="status" label="&statusRedirected.label;" accesskey="&statusRedirected.accesskey;" value="Redirected"/>
              <menuseparator/>
-             <menuitem type="radio" name="status" label="&penelope.statusSent.label;" value="Sent"/>
-             <menuitem type="radio" name="status" label="&penelope.statusUnsent.label;" value="Unsent"/>
+             <menuitem type="radio" name="status" label="&statusSent.label;" accesskey="&statusSent.accesskey;" value="Sent"/>
+             <menuitem type="radio" name="status" label="&statusUnsent.label;" accesskey="&statusUnsent.accesskey;" value="Unsent"/>
            </menupopup>
          </menu>
          <menu id="penelopePriorityMenu" 
@@ -434,8 +439,8 @@ xmlns="http://www.mozilla.org/keymaster/gatekeeper/there.is.only.xul">
   
   <menubar id="mail-menubar">
     <menu id="penelopeMailboxMenu"
-          label="&penelope.mailboxmenu.label;"
-          accesskey="&penelope.mailboxmenu.accesskey;"
+          label="&mailboxmenu.label;"
+          accesskey="&mailboxmenu.accesskey;"
           insertbefore="messageMenu"
           sortResource="http://home.netscape.com/NC-rdf#FolderTreeName"
           sortDirection="ascending" datasources="rdf:msgaccountmanager rdf:mailnewsfolders" ref="msgaccounts:/">
@@ -449,7 +454,7 @@ xmlns="http://www.mozilla.org/keymaster/gatekeeper/there.is.only.xul">
             <menu uri="rdf:*" class="folderMenuItem menu-iconic"
                   label="rdf:http://home.netscape.com/NC-rdf#Name">
               <menupopup>
-                <menuitem label="&penelope.fileHereMenu.label;"
+                <menuitem label="&fileHereMenu.label;"
                           disabled="true" />
                 <menuseparator />
               </menupopup>
@@ -474,7 +479,7 @@ xmlns="http://www.mozilla.org/keymaster/gatekeeper/there.is.only.xul">
                   IsSecure="rdf:http://home.netscape.com/NC-rdf#IsSecure"
                   ServerType="rdf:http://home.netscape.com/NC-rdf#ServerType">
               <menupopup>
-                <menuitem label="&penelope.fileHereMenu.label;"
+                <menuitem label="&fileHereMenu.label;"
                           oncommand="goMailbox(event.target.parentNode.parentNode.id)" />
                 <menuseparator />
               </menupopup>
@@ -491,7 +496,7 @@ xmlns="http://www.mozilla.org/keymaster/gatekeeper/there.is.only.xul">
                   IsSecure="rdf:http://home.netscape.com/NC-rdf#IsSecure"
                   ServerType="rdf:http://home.netscape.com/NC-rdf#ServerType">
               <menupopup>
-                <menuitem label="This Folder"
+                <menuitem label="&fileHereMenu.label;"
                           oncommand="goMailbox(event.target.parentNode.parentNode.id)" />
                 <menuseparator />
               </menupopup>
@@ -545,8 +550,8 @@ xmlns="http://www.mozilla.org/keymaster/gatekeeper/there.is.only.xul">
       </template>
     </menu>
     <menu id="penelopeTransferMenu"
-          label="&penelope.transfermenu.label;"
-          accesskey="&penelope.transfermenu.accesskey;"
+          label="&transfermenu.label;"
+          accesskey="&transfermenu.accesskey;"
           observes="button_mark"
           insertbefore="tasksMenu"
           sortResource="http://home.netscape.com/NC-rdf#FolderTreeName"
@@ -559,7 +564,7 @@ xmlns="http://www.mozilla.org/keymaster/gatekeeper/there.is.only.xul">
             <menu uri="rdf:*" class="folderMenuItem menu-iconic"
                   label="rdf:http://home.netscape.com/NC-rdf#Name">
               <menupopup>
-                <menuitem label="&penelope.fileHereMenu.label;"
+                <menuitem label="&fileHereMenu.label;"
                           disabled="true" />
                 <menuseparator />
               </menupopup>
@@ -584,7 +589,7 @@ xmlns="http://www.mozilla.org/keymaster/gatekeeper/there.is.only.xul">
                   IsSecure="rdf:http://home.netscape.com/NC-rdf#IsSecure"
                   ServerType="rdf:http://home.netscape.com/NC-rdf#ServerType">
               <menupopup>
-                <menuitem label="&penelope.fileHereMenu.label;"
+                <menuitem label="&fileHereMenu.label;"
                           oncommand="MsgMoveMessage(event.target.parentNode.parentNode.id)" />
                 <menuseparator />
               </menupopup>

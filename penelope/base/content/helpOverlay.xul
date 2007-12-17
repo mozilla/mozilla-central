@@ -50,7 +50,7 @@ xmlns="http://www.mozilla.org/keymaster/gatekeeper/there.is.only.xul">
     <script type="application/x-javascript" src="chrome://penelope/content/help.js" />
 
     <menupopup id="menu_HelpPopup">
-      <menuitem id="penelopeKeybindingTips" label="&penelope.keybindingTips.label;" insertafter="hintsAndTips" oncommand="openSomeURL('http://wiki.mozilla.org/Eudora_Keybindings');"/>
+      <menuitem id="penelopeKeybindingTips" label="&keybindingTips.label;" insertafter="hintsAndTips" oncommand="openSomeURL('http://wiki.mozilla.org/Eudora_Keybindings');"/>
     </menupopup>
 
 </overlay>

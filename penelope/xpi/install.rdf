@@ -6,10 +6,10 @@
 xmlns="http://www.mozilla.org/2004/em-rdf#">
   <rdf:Description rdf:about="urn:mozilla:install-manifest">
     <id>{D1D37B8A-4F3C-11DB-8373-B622A1EF5492}</id>
-    <name>penelope</name>
+    <name>Penelope</name>
     <version>@EXTENSION_VERSION@</version>
-    <creator>QUALCOMM incorporated</creator>
-    <developer>Mark Charlebois</developer>
+    <creator>QUALCOMM Incorporated</creator>
+    <developer>Mark Charlebois, Jeff Beckley</developer>
     <homepageURL>http://www.mozilla.org/penelope/</homepageURL>
     <description>Penelope Mail/News extension</description>
     <targetApplication>

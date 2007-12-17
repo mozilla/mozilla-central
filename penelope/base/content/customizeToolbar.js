@@ -23,6 +23,8 @@
 #   David Hyatt (hyatt@apple.com)
 #   Blake Ross (blaker@netscape.com)
 #   Joe Hewitt (hewitt@netscape.com)
+#   Mark Charlebois <mcharleb@qualcomm.com>
+#   Jeff Beckley <beckley@qualcomm.com>
 #
 # Alternatively, the contents of this file may be used under the terms of
 # either the GNU General Public License Version 2 or later (the "GPL"), or
@@ -54,6 +56,8 @@ var gMboxTree = null;
 var gMenuItemTree = null;
 var gRecipientTree = null;
 
+var gIsSheet = false;
+
 function doAdoptNode(pnode, node)
 {
     try 
@@ -68,19 +72,32 @@ function doAdoptNode(pnode, node)
 
 function onLoad()
 {
-    gToolbox = window.arguments[0];
+    if (window.arguments && window.arguments[0])
+    {
+        InitWithToolbox(window.arguments[0]);
+        repositionDialog();
+    }
+    else
+    {
+        InitWithToolbox(window.parent.getMailToolbox());
+        gIsSheet = true;
+    }
+}
+
+function InitWithToolbox(aToolbox)
+{
+    gToolbox = aToolbox;
     gToolboxDocument = gToolbox.ownerDocument;
   
     gToolbox.addEventListener("draggesture", onToolbarDragGesture, false);
     gToolbox.addEventListener("dragover", onToolbarDragOver, false);
     gToolbox.addEventListener("dragexit", onToolbarDragExit, false);
     gToolbox.addEventListener("dragdrop", onToolbarDragDrop, false);
-    repositionDialog();
-
+	
     initDialog();
 }
 
-function onUnload(aEvent)
+function finishToolbarCustomization()
 {
     removeToolboxListeners();
     unwrapToolbarItems(true);
@@ -110,6 +127,7 @@ function onCancel()
         toolbar = toolbar.nextSibling;
     }
 
+    // restore the previous mode and iconsize
     updateIconSize(gPreviousIconSize == "small");
     updateToolbarMode(gPreviousMode);
 
@@ -121,6 +139,9 @@ function onCancel()
 
 function onAccept(aEvent)
 {
+    if (gIsSheet)
+        finishToolbarCustomization();
+
     window.close();
 }
 
@@ -139,6 +160,7 @@ function initDialog()
         smallIconsCheckbox.checked = gPreviousIconSize == "small";
     }
 
+    // Build up the palette of other items.
     buildFormatItemPalette();
     buildExtrasPalette();
 
@@ -151,6 +173,10 @@ function initDialog()
     var menu = gToolboxDocument.getElementsByTagName("menubar").item(0);
 
     createMenubarTree(menu, gMenuItemTree.getElementsByTagName("treechildren").item(0));
+
+    // Select the first item of the various trees
+    gMenuItemTree.view.selection.select(0);
+    gMboxTree.view.selection.select(0);
 
     // from abcommon.js
     InitCommonJS();
@@ -493,7 +519,9 @@ function buildFormatItemPalette()
     templateNode.flex = 1;
     wrapPaletteItem(templateNode, currentRow, null);
 
-    setDescText(descId, "Add a separator, flexible space, or space to the toolbar");
+    var stringBundlePenelope = document.getElementById("stringBundlePenelope");
+    var desc = stringBundlePenelope.getString("formattingDescription");
+    setDescText(descId, desc);
 
     if (currentRow) 
     { 
@@ -566,16 +594,19 @@ function buildMailboxPalette(uri, name, disableMoveto)
     var paletteItem = createFolderOpenButton(uri, name);
     wrapPaletteItem(paletteItem, currentRow, null);
 
+    var stringBundlePenelope = document.getElementById("stringBundlePenelope");
     if (!disableMoveto)
     {
         var paletteItem = createFolderMovetoButton(uri, name);
         wrapPaletteItem(paletteItem, currentRow, null);
 
-        setDescText(descId, "Open "+name+", or move mail to "+name);
+        var desc = stringBundlePenelope.getFormattedString("openTransferMailboxDescription", [name]);
+        setDescText(descId, desc);
     }
     else
     {
-        setDescText(descId, "Open "+name);
+        var desc = stringBundlePenelope.getFormattedString("openMailboxDescription", [name]);
+        setDescText(descId, desc);
     }
 
     if (currentRow) 
@@ -625,7 +656,9 @@ function buildRecipientsPalette(email, name)
     insertNode.flex = 1;
     wrapPaletteItem(insertNode, currentRow, null);
 
-    setDescText(descId, "For recipient: create new mail, forward mail, redirect mail or insert as text");
+    var stringBundlePenelope = document.getElementById("stringBundlePenelope");
+    var desc = stringBundlePenelope.getString("recipientDescription");
+    setDescText(descId, desc);
 
     if (currentRow) 
     { 

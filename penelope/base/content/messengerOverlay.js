@@ -42,11 +42,11 @@ var PenelopeMessenger = {
         // TODO If the window has already been created, close the new one and focus the old one
 
         // quit if this function has already been called
-        if (arguments.callee.done) return;
+        if (arguments.callee.done)
+            return;
 
         // flag this function so we don't do the same thing twice
         arguments.callee.done = true;
-
 
         // update the mailbox and transfer menus
         setTimeout(delayedOnLoadPenelopeMessenger, 50); 
@@ -61,7 +61,6 @@ var PenelopeMessenger = {
         // in order to register the Group Select column
         var ObserverService = Components.classes["@mozilla.org/observer-service;1"].getService(Components.interfaces.nsIObserverService);
         ObserverService.addObserver(CreateDbObserver, "MsgCreateDBView", false);
-
     }
 }; 
 
@@ -169,6 +168,20 @@ function penelopeMessengerOnLoad()
     {
         // This is the 2-pane folder summary window
         initializeSummaryFolderWin(prefs);
+    }
+    
+    // Remove some menu items for Mac
+    try
+    {
+        if (navigator.platform.match("^Mac"))
+        {
+            var toolsMenu = document.getElementById('taskPopup');
+            toolsMenu.removeChild(toolsMenu.getElementsByAttribute('id', 'tasksMenuMail')[0]);
+            toolsMenu.removeChild(toolsMenu.getElementsByAttribute('id', 'addressBook')[0]);
+        }
+    }
+    catch(e)
+    {
     }
 }
 
@@ -304,7 +317,7 @@ function initializeFolderWin(uri, use3PaneUI, prefs)
             try
             {
                 var defaultAccount = accountManager.defaultAccount;
-                defaultServer = defaultAccount.incomingServer;
+                var defaultServer = defaultAccount.incomingServer;
                 var inboxFolder = GetInboxFolder(defaultServer);
                 uri = inboxFolder.URI;
             }

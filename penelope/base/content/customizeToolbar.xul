@@ -39,6 +39,13 @@
 #
 # ***** END LICENSE BLOCK *****-->
 
+<!DOCTYPE dialog [
+<!ENTITY % customizeToolbarDTD SYSTEM "chrome://global/locale/customizeToolbar.dtd">
+  %customizeToolbarDTD;
+<!ENTITY % abMainWindowDTD SYSTEM "chrome://messenger/locale/addressbook/abMainWindow.dtd">
+  %abMainWindowDTD;
+]>
+
 <?xml-stylesheet href="chrome://communicator/skin/" type="text/css"?> 
 <?xml-stylesheet href="chrome://global/content/customizeToolbar.css" type="text/css"?>
 <?xml-stylesheet href="chrome://global/skin/customizeToolbar.css" type="text/css"?>
@@ -47,24 +54,18 @@
 <?xml-stylesheet href="chrome://messenger/skin/smime/msgCompSMIMEOverlay.css" type="text/css"?> 
 <?xml-stylesheet href="chrome://penelope/skin/primaryToolbar.css" type="text/css"?>
 
-<!DOCTYPE dialog [
-<!ENTITY % customizeToolbarDTD SYSTEM "chrome://global/locale/customizeToolbar.dtd">
-  %customizeToolbarDTD;
-<!ENTITY % abMainWindowDTD SYSTEM "chrome://messenger/locale/addressbook/abMainWindow.dtd" >
-%abMainWindowDTD;
-]>
-
-<dialog 
+<dialog
         id="CustomizeToolbarWindow"
-        xmlns:nc="http://home.netscape.com/NC-rdf#"
-        xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#"
-        xmlns="http://www.mozilla.org/keymaster/gatekeeper/there.is.only.xul"
         title="&dialog.title;"
+        style="&dialog.style;"
         onload="onLoad();"
-        onunload="onUnload();"
+        onunload="finishToolbarCustomization();"
         buttons="accept,cancel"
         ondialogaccept="return onAccept();"
-        ondialogcancel="return onCancel();">
+        ondialogcancel="return onCancel();"
+        xmlns:nc="http://home.netscape.com/NC-rdf#"
+        xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#"
+        xmlns="http://www.mozilla.org/keymaster/gatekeeper/there.is.only.xul">
 
   <script type="application/x-javascript" src="chrome://global/content/strres.js"/>
   <script type="application/x-javascript" src="chrome://messenger/content/mailWindowOverlay.js"/>
@@ -79,7 +80,8 @@
   <script type="application/x-javascript" src="chrome://penelope/content/customizeToolbar.js"/>
   <script type="application/x-javascript" src="chrome://global/content/nsDragAndDrop.js"/>
 
-<stringbundle id="stringBundle" src="chrome://global/locale/customizeToolbar.properties"/>
+  <stringbundle id="stringBundle" src="chrome://global/locale/customizeToolbar.properties"/>
+  <stringbundle id="stringBundlePenelope" src="chrome://penelope/locale/customizeToolbar.properties"/>
 
   <stringbundleset id="stringbundleset">
     <stringbundle id="bundle_addressBook" src="chrome://messenger/locale/addressbook/addressBook.properties"/>
@@ -88,309 +90,293 @@
     <stringbundle id="bundle_brand" src="chrome://branding/locale/brand.properties"/>
   </stringbundleset>
 
-<keyset>
-  <key id="cmd_close_sheet" keycode="VK_ESCAPE" oncommand="onCancel();" />
-  <key id="cmd_close_sheet" keycode="VK_RETURN" oncommand="onAccept();" />
-  <key id="cmd_close_sheet" keycode="VK_ENTER" oncommand="onAccept();" />
-</keyset>
+  <keyset>
+    <key id="cmd_close_sheet" keycode="VK_ESCAPE" oncommand="onCancel();" />
+    <key id="cmd_close_sheet" keycode="VK_RETURN" oncommand="onAccept();" />
+    <key id="cmd_close_sheet" keycode="VK_ENTER" oncommand="onAccept();" />
+  </keyset>
 
-<tabbox id="customizetabs">
-  <tabs>
-    <tab label="Menus"/>
-    <tab label="Mailboxes"/>
-    <tab label="Recipients"/>
-    <tab label="Formatting"/>
-    <tab label="Extras"/>
-  </tabs>
-  <tabpanels>
-    <tabpanel id="generaltab">
-      <vbox flex="1">
-        <hbox flex="1">
-        <vbox>
-          <hbox>
-              <label value="Categories"/>
-          </hbox>
-          <hbox>
-            <tree id="menubartree" width="300" height="200" hidecolumnpicker="true" seltype="single"
-                  onselect="onMenuItemSelect();">
-              <treechildren>
-              </treechildren>
-              <treecols>
-                <treecol id="menuNameCol" flex="1" label="" primary="true"/>
-              </treecols>
-            </tree>
-          </hbox>
-        </vbox>
+  <tabbox id="customizetabs">
+    <tabs>
+      <tab label="&menus.label;"/>
+      <tab label="&mailboxes.label;"/>
+      <tab label="&recipients.label;"/>
+      <tab label="&formatting.label;"/>
+      <tab label="&extras.label;"/>
+    </tabs>
+    <tabpanels>
+      <tabpanel id="generaltab">
         <vbox flex="1">
-          <groupbox flex="1">
-            <caption>
-              <label value="Buttons"/>
-            </caption>
-            <vbox flex="1" id="general-palette"
-                  ondraggesture="nsDragAndDrop.startDrag(event, dragStartObserver);"
-                  ondragover="nsDragAndDrop.dragOver(event, paletteDNDObserver);"
-                  ondragdrop="nsDragAndDrop.drop(event, paletteDNDObserver);"/>
-          </groupbox>
-        </vbox>
-        </hbox>
-        <spacer style="height: 20px;"/>
-        <hbox>
-              <description>
-                Select a category to see the toolbar button(s) and the description. Drag the button to any toolbar.
-              </description>
-        </hbox>
-        <spacer style="height: 20px;"/>
-        <groupbox flex="1">
-            <caption>
-              <label value="Description"/>
-            </caption>
-            <description id="menuItemDescription"></description>
-            <spacer flex="1" style="height: 3em;"/>
-        </groupbox>
-      </vbox>
-    </tabpanel>
-    <tabpanel id="mailboxestab">
-      <vbox flex="1">
-        <hbox flex="1">
-        <vbox>
-          <hbox>
-              <label value="Categories"/>
-          </hbox>
-          <hbox>
-            <tree id="mailboxtree" width="300" height="200" hidecolumnpicker="true" seltype="single"
-                  datasources="rdf:msgaccountmanager rdf:mailnewsfolders" ref="msgaccounts:/"
-                  sortResource="http://home.netscape.com/NC-rdf#FolderTreeName"
-                  sortDirection="ascending"
-                  onselect="onMboxSelect();">
-              <template>
-                  <rule nc:ServerType="pop3">
-                  </rule>
-                  <rule>
-                    <conditions>
-                      <content uri="?container"/>
-                      <member container="?container" child="?member"/>
-                    </conditions>
-
-                    <bindings>
-                      <binding subject="?member"
-                               predicate="http://home.netscape.com/NC-rdf#FolderTreeName"
-                               object="?folderTreeName"/>
-                      <binding subject="?member"
-                               predicate="http://home.netscape.com/NC-rdf#Name"
-                               object="?name"/>
-                      <binding subject="?member"
-                               predicate="http://home.netscape.com/NC-rdf#FolderTreeName?sort=true"
-                               object="?folderTreeNameSort"/>
-                      <binding subject="?member"
-                               predicate="http://home.netscape.com/NC-rdf#SpecialFolder"
-                               object="?specialFolder"/>
-                      <binding subject="?member"
-                               predicate="http://home.netscape.com/NC-rdf#ServerType"
-                               object="?serverType"/>
-                      <binding subject="?member"
-                               predicate="http://home.netscape.com/NC-rdf#CanFileMessagesOnServer"
-                               object="?canFileMessagesOnServer"/>
-                      <binding subject="?member"
-                               predicate="http://home.netscape.com/NC-rdf#CanFileMessages"
-                               object="?canFileMessages"/>
-                    </bindings>
-                         
-                    <action>
-                      <treechildren>
-                        <treeitem uri="?member">
-                          <treerow>
-                            <treecell label="?name"
-                                      allowFileOnServer="?canFileMessagesOnServer"
-                                      allowFile="?canFileMessages"
-                                      properties="specialFolder-?specialFolder serverType-?serverType"/>
-                          </treerow>
-                        </treeitem>
-                      </treechildren>
-                    </action>
-                  </rule>
-              </template>
-              <treecols>
-                <treecol id="folderNameCol" flex="5" label="" primary="true"/>
-              </treecols>
-             </tree>
-          </hbox>
-        </vbox>
-        <vbox flex="1">
-          <groupbox flex="1">
-            <caption>
-              <label value="Buttons"/>
-            </caption>
-            <vbox flex="1" id="mailbox-palette"
-                  ondraggesture="nsDragAndDrop.startDrag(event, dragStartObserver);"
-                  ondragover="nsDragAndDrop.dragOver(event, paletteDNDObserver);"
-                  ondragdrop="nsDragAndDrop.drop(event, paletteDNDObserver);"/>
-          </groupbox>
-        </vbox>
-        </hbox>
-        <spacer style="height: 20px;"/>
-        <hbox flex="1">
-              <description>
-                Select a category to see the toolbar button(s) and the description. Drag the button to any toolbar.
-              </description>
-        </hbox>
-        <spacer style="height: 20px;"/>
-        <groupbox flex="1">
-            <caption>
-              <label value="Description"/>
-            </caption>
-            <description id="mailboxDescription"></description>
-            <spacer flex="1" style="height: 3em;"/>
-        </groupbox>
-      </vbox>
-    </tabpanel>
-    <tabpanel id="recipientstab">
-      <vbox flex="1">
-        <hbox flex="1">
-          <vbox id="searchResults">
-            <hbox>
-              <label value="Recipients"/>
-            </hbox>
-            <vbox id="searchResultListBox">
-              <tree id="abResultsTree" width="300" height="200" hidecolumnpicker="true" seltype="single" 
-                    context="threadPaneContext"
-                    onkeypress="AbResultsPaneKeyPress(event);"
-                    onselect="onRecipientSelect();"
-                    sortCol="GeneratedName">
-
-                <treecols id="abResultsTreeCols">
-                  <!-- these column ids must match up to the mork column names, except for GeneratedName, see nsIAddrDatabase.idl -->
-                  <treecol id="GeneratedName" class="sortDirectionIndicator" 
-                           persist="hidden ordinal width sortDirection" flex="1" 
-                           label="&GeneratedName.label;" primary="true"/>
-                </treecols>
-                <treechildren/>
-              </tree>
+          <hbox flex="1">
+            <vbox>
+              <hbox>
+                <label value="&categories.label;"/>
+              </hbox>
+              <hbox>
+                <tree id="menubartree" width="300" height="200" hidecolumnpicker="true" seltype="single"
+                      onselect="onMenuItemSelect();">
+                  <treechildren>
+                  </treechildren>
+                  <treecols>
+                    <treecol id="menuNameCol" flex="1" primary="true" hideheader="true"/>
+                  </treecols>
+                </tree>
+              </hbox>
             </vbox>
-          </vbox>
-          <vbox flex="1">
-            <groupbox flex="1">
-              <caption>
-                <label value="Buttons"/>
-              </caption>
-              <vbox flex="1" id="recipient-palette"
-                    ondraggesture="nsDragAndDrop.startDrag(event, dragStartObserver);"
-                    ondragover="nsDragAndDrop.dragOver(event, paletteDNDObserver);"
-                    ondragdrop="nsDragAndDrop.drop(event, paletteDNDObserver);"/>
-            </groupbox>
-            <spacer style="height: 1em;"/>
-            <vbox align="center">
-              <tree id="dirTree" class="abDirectory plain" seltype="single" minwidth="150" rows="2" flex="1"
-                    datasources="rdf:addressdirectory" ref="moz-abdirectory://"
-                    flags="dont-build-content"
-                    hidecolumnpicker="true"
-                    context="dirTreeContext"
-                    onselect="DirPaneSelectionChange(); document.commandDispatcher.updateCommands('addrbook-select');"
-                    ondblclick="DirPaneDoubleClick(event);">
-         
-                <treecols>
-                  <treecol id="DirCol" flex="1" primary="true" 
-                           crop="center" persist="width" ignoreincolumnpicker="true" hideheader="true"
-                           sort="?DirTreeNameSort" sortActive="true" sortDirection="ascending"/>
-                </treecols>
-             
-                <template>
-                  <rule>
-                    <conditions>
-                      <content uri="?container"/> 
-                      <member container="?container" child="?member"/>
-                    </conditions>
-         
-                    <bindings>
-                      <binding subject="?member"
-                               predicate="http://home.netscape.com/NC-rdf#DirName"
-                               object="?DirName"/>
-                      <binding subject="?member"
-                               predicate="http://home.netscape.com/NC-rdf#DirTreeNameSort"
-                               object="?DirTreeNameSort"/>
-                      <binding subject="?member"
-                               predicate="http://home.netscape.com/NC-rdf#IsMailList"
-                               object="?IsMailList"/>
-                      <binding subject="?member"
-                               predicate="http://home.netscape.com/NC-rdf#IsRemote"
-                               object="?IsRemote"/>
-                      <binding subject="?member"
-                               predicate="http://home.netscape.com/NC-rdf#IsSecure"
-                               object="?IsSecure"/>
-                    </bindings>
+            <vbox flex="1">
+              <groupbox flex="1">
+                <caption label="&buttons.label;"/>
+                <vbox flex="1" id="general-palette"
+                      ondraggesture="nsDragAndDrop.startDrag(event, dragStartObserver);"
+                      ondragover="nsDragAndDrop.dragOver(event, paletteDNDObserver);"
+                      ondragdrop="nsDragAndDrop.drop(event, paletteDNDObserver);"/>
+              </groupbox>
+            </vbox>
+          </hbox>
+          <spacer style="height: 20px;"/>
+          <hbox flex="1">
+            <description>
+              &directions.text;
+            </description>
+          </hbox>
+          <spacer style="height: 20px;"/>
+          <groupbox flex="1">
+            <caption label="&description.label;"/>
+            <description id="menuItemDescription"/>
+            <spacer flex="1" style="height: 3em;"/>
+          </groupbox>
+        </vbox>
+      </tabpanel>
+      <tabpanel id="mailboxestab">
+        <vbox flex="1">
+          <hbox flex="1">
+            <vbox>
+              <hbox>
+                <label value="&mailboxes.label;"/>
+              </hbox>
+              <hbox>
+                <tree id="mailboxtree" width="300" height="200" hidecolumnpicker="true" seltype="single"
+                      datasources="rdf:msgaccountmanager rdf:mailnewsfolders" ref="msgaccounts:/"
+                      sortResource="http://home.netscape.com/NC-rdf#FolderTreeName"
+                      sortDirection="ascending"
+                      onselect="onMboxSelect();">
+                  <template>
+                    <rule nc:ServerType="pop3">
+                    </rule>
+                    <rule>
+                      <conditions>
+                        <content uri="?container"/>
+                        <member container="?container" child="?member"/>
+                      </conditions>
 
-                    <action>
-                      <treechildren>
-                        <treeitem uri="?member" persist="sortDirection sortColumn open">
-                          <treerow>
-                            <treecell label="?DirName" properties="IsMailList-?IsMailList IsRemote-?IsRemote IsSecure-?IsSecure"/>
-                          </treerow>
-                        </treeitem>
-                      </treechildren>
-                    </action>
-                  </rule>
-                </template>
-              </tree>
+                      <bindings>
+                        <binding subject="?member"
+                                 predicate="http://home.netscape.com/NC-rdf#FolderTreeName"
+                                 object="?folderTreeName"/>
+                        <binding subject="?member"
+                                 predicate="http://home.netscape.com/NC-rdf#Name"
+                                 object="?name"/>
+                        <binding subject="?member"
+                                 predicate="http://home.netscape.com/NC-rdf#FolderTreeName?sort=true"
+                                 object="?folderTreeNameSort"/>
+                        <binding subject="?member"
+                                 predicate="http://home.netscape.com/NC-rdf#SpecialFolder"
+                                 object="?specialFolder"/>
+                        <binding subject="?member"
+                                 predicate="http://home.netscape.com/NC-rdf#ServerType"
+                                 object="?serverType"/>
+                        <binding subject="?member"
+                                 predicate="http://home.netscape.com/NC-rdf#CanFileMessagesOnServer"
+                                 object="?canFileMessagesOnServer"/>
+                        <binding subject="?member"
+                                 predicate="http://home.netscape.com/NC-rdf#CanFileMessages"
+                                 object="?canFileMessages"/>
+                      </bindings>
+
+                      <action>
+                        <treechildren>
+                          <treeitem uri="?member">
+                            <treerow>
+                              <treecell label="?name"
+                                        allowFileOnServer="?canFileMessagesOnServer"
+                                        allowFile="?canFileMessages"
+                                        properties="specialFolder-?specialFolder serverType-?serverType"/>
+                            </treerow>
+                          </treeitem>
+                        </treechildren>
+                      </action>
+                    </rule>
+                  </template>
+                  <treecols>
+                    <treecol id="folderNameCol" flex="1" primary="true" hideheader="true"/>
+                  </treecols>
+                 </tree>
+              </hbox>
+            </vbox>
+            <vbox flex="1">
+              <groupbox flex="1">
+                <caption label="&buttons.label;"/>
+                <vbox flex="1" id="mailbox-palette"
+                      ondraggesture="nsDragAndDrop.startDrag(event, dragStartObserver);"
+                      ondragover="nsDragAndDrop.dragOver(event, paletteDNDObserver);"
+                      ondragdrop="nsDragAndDrop.drop(event, paletteDNDObserver);"/>
+              </groupbox>
+            </vbox>
+          </hbox>
+          <spacer style="height: 20px;"/>
+          <hbox flex="1">
+            <description>
+              &directions.text;
+            </description>
+          </hbox>
+          <spacer style="height: 20px;"/>
+          <groupbox flex="1">
+            <caption label="&description.label;"/>
+            <description id="mailboxDescription"/>
+            <spacer flex="1" style="height: 3em;"/>
+          </groupbox>
+        </vbox>
+      </tabpanel>
+      <tabpanel id="recipientstab">
+        <vbox flex="1">
+          <hbox flex="1">
+            <vbox id="searchResults">
+              <hbox>
+                <label value="&recipients.label;"/>
+              </hbox>
+              <vbox id="searchResultListBox">
+                <tree id="abResultsTree" width="300" height="200" hidecolumnpicker="true" seltype="single" 
+                      context="threadPaneContext"
+                      onkeypress="AbResultsPaneKeyPress(event);"
+                      onselect="onRecipientSelect();"
+                      sortCol="GeneratedName">
+
+                  <treecols id="abResultsTreeCols">
+                    <!-- these column ids must match up to the mork column names, except for GeneratedName, see nsIAddrDatabase.idl -->
+                    <treecol id="GeneratedName" class="sortDirectionIndicator" 
+                             persist="hidden ordinal width sortDirection" flex="1" 
+                             label="&GeneratedName.label;" primary="true"/>
+                  </treecols>
+                  <treechildren/>
+                </tree>
+              </vbox>
+            </vbox>
+            <vbox flex="1">
+              <groupbox flex="1">
+                <caption label="&buttons.label;"/>
+                <vbox flex="1" id="recipient-palette"
+                      ondraggesture="nsDragAndDrop.startDrag(event, dragStartObserver);"
+                      ondragover="nsDragAndDrop.dragOver(event, paletteDNDObserver);"
+                      ondragdrop="nsDragAndDrop.drop(event, paletteDNDObserver);"/>
+              </groupbox>
               <spacer style="height: 1em;"/>
-              <textbox id="searchInput" flex="1" onfocus="onSearchInputFocus(event);" onblur="onSearchInputBlur(event);"
-                       onclick="this.select();" oninput="onAbSearchInput(false);"
-                       onkeypress="onAbSearchKeyPress(event);">
-                <button id="quick-search-button" type="menu">
-                  <menupopup id="quick-search-menupopup" value="0" persist="value" popupalign="topleft" popupanchor="bottomleft">
-                    <menuitem value="0" label="&SearchNameOrEmail.label;" type="radio"/>
-                  </menupopup>
-                </button>
-              </textbox>
+              <vbox align="center">
+                <tree id="dirTree" class="abDirectory plain" seltype="single" minwidth="150" rows="2" flex="1"
+                      datasources="rdf:addressdirectory" ref="moz-abdirectory://"
+                      flags="dont-build-content"
+                      hidecolumnpicker="true"
+                      context="dirTreeContext"
+                      onselect="DirPaneSelectionChange(); document.commandDispatcher.updateCommands('addrbook-select');"
+                      ondblclick="DirPaneDoubleClick(event);">
+
+                  <treecols>
+                    <treecol id="DirCol" flex="1" primary="true" 
+                             crop="center" persist="width" ignoreincolumnpicker="true" hideheader="true"
+                             sort="?DirTreeNameSort" sortActive="true" sortDirection="ascending"/>
+                  </treecols>
+
+                  <template>
+                    <rule>
+                      <conditions>
+                        <content uri="?container"/> 
+                        <member container="?container" child="?member"/>
+                      </conditions>
+
+                      <bindings>
+                        <binding subject="?member"
+                                 predicate="http://home.netscape.com/NC-rdf#DirName"
+                                 object="?DirName"/>
+                        <binding subject="?member"
+                                 predicate="http://home.netscape.com/NC-rdf#DirTreeNameSort"
+                                 object="?DirTreeNameSort"/>
+                        <binding subject="?member"
+                                 predicate="http://home.netscape.com/NC-rdf#IsMailList"
+                                 object="?IsMailList"/>
+                        <binding subject="?member"
+                                 predicate="http://home.netscape.com/NC-rdf#IsRemote"
+                                 object="?IsRemote"/>
+                        <binding subject="?member"
+                                 predicate="http://home.netscape.com/NC-rdf#IsSecure"
+                                 object="?IsSecure"/>
+                      </bindings>
+
+                      <action>
+                        <treechildren>
+                          <treeitem uri="?member" persist="sortDirection sortColumn open">
+                            <treerow>
+                              <treecell label="?DirName" properties="IsMailList-?IsMailList IsRemote-?IsRemote IsSecure-?IsSecure"/>
+                            </treerow>
+                          </treeitem>
+                        </treechildren>
+                      </action>
+                    </rule>
+                  </template>
+                </tree>
+                <spacer style="height: 1em;"/>
+                <textbox id="searchInput" flex="1" onfocus="onSearchInputFocus(event);" onblur="onSearchInputBlur(event);"
+                         onclick="this.select();" oninput="onAbSearchInput(false);"
+                         onkeypress="onAbSearchKeyPress(event);">
+                  <button id="quick-search-button" type="menu">
+                    <menupopup id="quick-search-menupopup" value="0" persist="value" popupalign="topleft" popupanchor="bottomleft">
+                      <menuitem value="0" label="&SearchNameOrEmail.label;" type="radio"/>
+                    </menupopup>
+                  </button>
+                </textbox>
+              </vbox>
             </vbox>
-          </vbox>
-        </hbox>
-        <spacer style="height: 20px;"/>
-        <hbox>
-              <description>
-                Drag the button to any toolbar.
-              </description>
-        </hbox>
-        <spacer style="height: 20px;"/>
-        <groupbox flex="1">
-            <caption>
-              <label value="Description"/>
-            </caption>
-            <description id="recipientDescription"></description>
-            <spacer flex="1" style="height: 3em;"/>
-        </groupbox>
-      </vbox>
-    </tabpanel>
-    <tabpanel id="formattab">
-      <vbox flex="1">
-        <hbox flex="1">
-        <vbox flex="1">
+          </hbox>
+          <spacer style="height: 20px;"/>
+          <hbox flex="1">
+            <description>
+              &directions.text;
+            </description>
+          </hbox>
+          <spacer style="height: 20px;"/>
           <groupbox flex="1">
-            <caption>
-              <label value="Buttons"/>
-            </caption>
-            <vbox flex="1" id="format-palette"
-                  ondraggesture="nsDragAndDrop.startDrag(event, dragStartObserver);"
-                  ondragover="nsDragAndDrop.dragOver(event, paletteDNDObserver);"
-                  ondragdrop="nsDragAndDrop.drop(event, paletteDNDObserver);"/>
+            <caption label="&description.label;"/>
+            <description id="recipientDescription"/>
+            <spacer flex="1" style="height: 3em;"/>
           </groupbox>
         </vbox>
-        </hbox>
-        <spacer style="height: 20px;"/>
-        <hbox>
-              <description>
-                Drag the button to any toolbar.
-              </description>
-        </hbox>
-        <spacer style="height: 20px;"/>
-        <groupbox flex="1">
-            <caption>
-              <label value="Description"/>
-            </caption>
-            <description id="formatItemDescription"></description>
+      </tabpanel>
+      <tabpanel id="formattab">
+        <vbox flex="1">
+          <hbox flex="1">
+            <vbox flex="1">
+              <groupbox flex="1">
+                <caption label="&buttons.label;"/>
+                <vbox flex="1" id="format-palette"
+                      ondraggesture="nsDragAndDrop.startDrag(event, dragStartObserver);"
+                      ondragover="nsDragAndDrop.dragOver(event, paletteDNDObserver);"
+                      ondragdrop="nsDragAndDrop.drop(event, paletteDNDObserver);"/>
+              </groupbox>
+            </vbox>
+          </hbox>
+          <spacer style="height: 20px;"/>
+          <hbox flex="1">
+            <description>
+              &directions.text;
+            </description>
+          </hbox>
+          <spacer style="height: 20px;"/>
+          <groupbox flex="1">
+            <caption label="&description.label;"/>
+            <description id="formatItemDescription"/>
             <spacer flex="1" style="height: 3em;"/>
-        </groupbox>
-        <spacer style="height: 20px;"/>
-        <hbox>
-            <label value="Show toolbar as"/>
+          </groupbox>
+          <spacer style="height: 20px;"/>
+          <hbox align="center">
+            <label value="&showToolbar.label;"/>
             <menulist id="modelist" value="icons" oncommand="updateToolbarMode(this.value);">
               <menupopup>
                 <menuitem value="full" label="&iconsAndText.label;"/>
@@ -398,25 +384,23 @@
                 <menuitem value="text" label="&text.label;"/>
               </menupopup>
             </menulist>
-            
+
             <spacer/>
-            <checkbox id="smallicons" oncommand="updateIconSize(this.checked);" label="Use small icons"/>
-        </hbox>
-      </vbox>
-    </tabpanel>
-    <tabpanel id="extrastab">
-      <vbox flex="1">
-        <groupbox height="350" >
-          <caption>
-            <label value="Buttons"/>
-          </caption>
-          <vbox flex="1" style="overflow: auto;" id="extras-palette"
-                ondraggesture="nsDragAndDrop.startDrag(event, dragStartObserver);"
-                ondragover="nsDragAndDrop.dragOver(event, paletteDNDObserver);"
-                ondragdrop="nsDragAndDrop.drop(event, paletteDNDObserver);"/>
-        </groupbox>
-      </vbox>
-    </tabpanel>
-  </tabpanels>
-</tabbox>
+            <checkbox id="smallicons" oncommand="updateIconSize(this.checked);" label="&useSmallIcons.label;"/>
+          </hbox>
+        </vbox>
+      </tabpanel>
+      <tabpanel id="extrastab">
+        <vbox flex="1">
+          <groupbox height="350" >
+            <caption label="&buttons.label;"/>
+            <vbox flex="1" style="overflow: auto;" id="extras-palette"
+                  ondraggesture="nsDragAndDrop.startDrag(event, dragStartObserver);"
+                  ondragover="nsDragAndDrop.dragOver(event, paletteDNDObserver);"
+                  ondragdrop="nsDragAndDrop.drop(event, paletteDNDObserver);"/>
+          </groupbox>
+        </vbox>
+      </tabpanel>
+    </tabpanels>
+  </tabbox>
 </dialog>

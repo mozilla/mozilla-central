@@ -39,6 +39,7 @@
    - ***** END LICENSE BLOCK ***** -->
 
 <?xml-stylesheet href="chrome://penelope/skin/messengercompose.css" type="text/css"?>
+<?xml-stylesheet href="chrome://penelope/skin/primaryToolbar.css" type="text/css"?>
 
 <!DOCTYPE overlay [
 <!ENTITY % penelopeOverlayDTD SYSTEM "chrome://penelope/locale/penelope.dtd" >
@@ -57,82 +58,44 @@ xmlns="http://www.mozilla.org/keymaster/gatekeeper/there.is.only.xul">
   <script type="application/x-javascript" src="chrome://penelope/content/quotes.js" />
   <script type="application/x-javascript" src="chrome://penelope/content/help.js" />
 
-  <menuitem id="menu_newmsg"
-            toolbaritem="button-newmsg"/>
-  <menuitem id="menu_newAbCard"
-            toolbaritem="button-address"/>
-  <menuitem id="menu_attachFile"
-            toolbaritem="button-attach"/>
-  <menuitem id="menu_attachPage"
-            toolbaritem="not-supported"/>
-  <menuitem id="menu_attachVCard"
-            toolbaritem="not-supported"/>
-  <menuitem id="menu_close"
-            toolbaritem="button-close"/>
-  <menuitem id="menu_save"
-            toolbaritem="button-save"/>
-  <menuitem id="menu_saveAsFile"
-            toolbaritem="button-save"/>
-  <menuitem id="menu_saveAsTemplate"
-            toolbaritem="button-save"/>
-  <menuitem id="menu-item-send-now"
-            toolbaritem="button-send"/>
-  <menuitem id="menu-item-send-later"
-            toolbaritem="button-sendlater"/>
-  <menuitem id="printSetupMenuItem"
-            toolbaritem="button-printsetup"/>
-  <menuitem id="printMenuItem"
-            toolbaritem="button-print"/>
-  <menuitem id="menu_FileQuitItem"
-            toolbaritem="button-exit"/>
-  <menuitem id="edit-menu_undo"
-            toolbaritem="undo-button"/>
-  <menuitem id="edit-menu_redo"
-            toolbaritem="redo-button"/>
-  <menuitem id="edit-menu_cut"
-            toolbaritem="cut-button"/>
-  <menuitem id="edit-menu_copy"
-            toolbaritem="copy-button"/>
-  <menuitem id="edit-menu_paste"
-            toolbaritem="paste-button"/>
-  <menuitem id="edit-menu_pasteNoFormatting"
-            toolbaritem="button-pastenoformatting"/>
-  <menuitem id="edit-menu_pasteQuote"
-            toolbaritem="quoteButton"/>
-  <menuitem id="edit-menu_rewrap"
-            toolbaritem="button-rewrap"/>
-  <menuitem id="edit-menu_delete"
-            toolbaritem="delete-button"/>
-  <menuitem id="edit-menu_selectAll"
-            toolbaritem="selectall-button"/>
-  <menuitem id="edit-menu_find"
-            toolbaritem="button-find"/>
-  <menuitem id="edit-menu_findNext"
-            toolbaritem="button-findnext"/>
-  <menuitem id="edit-menu_findPrev"
-            toolbaritem="button-findprev"/>
-  <menuitem id="menu_View"
-            toolbaritem="not-supported"/>
-  <menuitem id="insertMenu"
-            toolbaritem="not-supported"/>
-  <menuitem id="formatMenu"
-            toolbaritem="not-supported"/>
-  <menuitem id="menu_checkspelling"
-            toolbaritem="spellingButton"/>
-  <menuitem id="menu_inlineSpellCheck"
-            toolbaritem="not-supported"/>
-  <menuitem id="outputFormatMenu"
-            toolbaritem="not-supported"/>
-  <menuitem id="priorityMenu"
-            toolbaritem="priority-button"/>
-  <menuitem id="tasksMenuMail"
-            toolbaritem="not-supported"/>
-  <menuitem id="tasksMenuAddressBook"
-            toolbaritem="button-address"/>
-  <menuitem id="menu_preferences"
-            toolbaritem="not-supported"/>
-  <menuitem id="menu_HelpPopup"
-            toolbaritem="not-supported"/>
+  <menuitem id="menu_newmsg" toolbaritem="button-newmsg"/>
+  <menuitem id="menu_newAbCard" toolbaritem="button-address"/>
+  <menuitem id="menu_attachFile" toolbaritem="button-attach"/>
+  <menuitem id="menu_attachPage" toolbaritem="not-supported"/>
+  <menuitem id="menu_attachVCard" toolbaritem="not-supported"/>
+  <menuitem id="menu_close" toolbaritem="button-close"/>
+  <menuitem id="menu_save" toolbaritem="button-save"/>
+  <menuitem id="menu_saveAsFile" toolbaritem="button-save"/>
+  <menuitem id="menu_saveAsTemplate" toolbaritem="button-save"/>
+  <menuitem id="menu-item-send-now" toolbaritem="button-send"/>
+  <menuitem id="menu-item-send-later" toolbaritem="button-sendlater"/>
+  <menuitem id="printSetupMenuItem" toolbaritem="button-printsetup"/>
+  <menuitem id="printMenuItem" toolbaritem="button-print"/>
+  <menuitem id="menu_FileQuitItem" toolbaritem="button-exit"/>
+  <menuitem id="edit-menu_undo" toolbaritem="undo-button"/>
+  <menuitem id="edit-menu_redo" toolbaritem="redo-button"/>
+  <menuitem id="edit-menu_cut" toolbaritem="cut-button"/>
+  <menuitem id="edit-menu_copy" toolbaritem="copy-button"/>
+  <menuitem id="edit-menu_paste" toolbaritem="paste-button"/>
+  <menuitem id="edit-menu_pasteNoFormatting" toolbaritem="button-pastenoformatting"/>
+  <menuitem id="edit-menu_pasteQuote" toolbaritem="quoteButton"/>
+  <menuitem id="edit-menu_rewrap" toolbaritem="button-rewrap"/>
+  <menuitem id="edit-menu_delete" toolbaritem="button-delete"/>
+  <menuitem id="edit-menu_selectAll" toolbaritem="button-selectall"/>
+  <menuitem id="edit-menu_find" toolbaritem="button-find"/>
+  <menuitem id="edit-menu_findNext" toolbaritem="button-findnext"/>
+  <menuitem id="edit-menu_findPrev" toolbaritem="button-findprev"/>
+  <menuitem id="menu_View" toolbaritem="not-supported"/>
+  <menuitem id="insertMenu" toolbaritem="not-supported"/>
+  <menuitem id="formatMenu" toolbaritem="not-supported"/>
+  <menuitem id="menu_checkspelling" toolbaritem="spellingButton"/>
+  <menuitem id="menu_inlineSpellCheck" toolbaritem="not-supported"/>
+  <menuitem id="outputFormatMenu" toolbaritem="not-supported"/>
+  <menuitem id="priorityMenu" toolbaritem="priority-button"/>
+  <menuitem id="tasksMenuMail" toolbaritem="not-supported"/>
+  <menuitem id="tasksMenuAddressBook" toolbaritem="button-address"/>
+  <menuitem id="menu_preferences" toolbaritem="not-supported"/>
+  <menuitem id="menu_HelpPopup" toolbaritem="not-supported"/>
 
   <menupopup id="taskPopup">
       <menuitem hidden="true" key="key_mail"/>
@@ -174,22 +137,21 @@ xmlns="http://www.mozilla.org/keymaster/gatekeeper/there.is.only.xul">
 
   <toolbarpalette id="MsgComposeToolbarPalette">
         <toolbarbutton id="button-send" width="150" align="left"/>
-        <toolbarbutton class="toolbarbutton-1" id="button-printsetup" label="Print Setup" tooltiptext="Set up printer" command="cmd_printSetup"/>
-        <toolbarbutton class="toolbarbutton-1" id="button-sendlater" label="Send Later" tooltiptext="Queue the message to be sent later" command="cmd_printSetup"/>
-        <toolbarbutton class="toolbarbutton-1" id="button-saveas" label="Save As" tooltiptext="Save As"/>
+        <toolbarbutton class="toolbarbutton-1" id="button-printsetup" label="&printSetupButton.label;" tooltiptext="&printSetupButton.tooltip;" command="cmd_printSetup"/>
+        <toolbarbutton class="toolbarbutton-1" id="button-sendlater" label="&sendLaterButton.label;" tooltiptext="&sendLaterButton.tooltip;" command="cmd_printSetup"/>
+        <toolbarbutton class="toolbarbutton-1" id="button-saveas" label="&saveAsButton.label;" tooltiptext="&saveAsButton.tooltip;" oncommand="goDoCommand('cmd_saveAsFile')"/>
         <toolbarbutton id="button-newmsg" class="toolbarbutton-1" label="&newMsgButton.label;" tooltiptext="&newMsgButton.tooltip;" oncommand="MsgNewMessage(event);"/>
-        <toolbarbutton id="button-print"  class="toolbarbutton-1" label="&printButton.label;"
-                  observes="button_print" oncommand="goDoCommand('cmd_print');" tooltiptext="&printButton.tooltip;"/>
-        <toolbarbutton id="button-exit" class="toolbarbutton-1" label="Quit" tooltiptext="Quit the application" oncommand="goQuitApplication();"/>
-        <toolbarbutton id="button-close" class="toolbarbutton-1" label="Close" tooltiptext="Close" command="cmd_close"/>
-        <toolbarbutton id="button-rewrap" class="toolbarbutton-1" label="Rewrap" tooltiptext="Rewrap" oncommand="goDoCommand('cmd_rewrap');"/>
-        <toolbarbutton id="button-find" class="toolbarbutton-1" label="Find" tooltiptext="Find" command="cmd_find"/>
-        <toolbarbutton id="button-findnext" class="toolbarbutton-1" label="Find Next" tooltiptext="Find next occurance" command="cmd_findNext"/>
-        <toolbarbutton id="button-findprev" class="toolbarbutton-1" label="Find" tooltiptext="Find previous occurance" command="cmd_findPrev"/>
-        <toolbarbutton id="undo-button" class="toolbarbutton-1" label="Undo" tooltiptext="Undo" command="cmd_undo"/>
-        <toolbarbutton id="redo-button" class="toolbarbutton-1" label="Redo" tooltiptext="Redo" command="cmd_redo"/>
-        <toolbarbutton id="delete-button" class="toolbarbutton-1" label="Delete" tooltiptext="Delete" command="cmd_delete"/>
-        <toolbarbutton id="selectall-button" class="toolbarbutton-1" label="Select All" tooltiptext="Select all" command="cmd_selectAll"/>
+        <toolbarbutton id="button-print"  class="toolbarbutton-1" label="&printButton.label;" tooltiptext="&printButton.tooltip;" oncommand="goDoCommand('cmd_print');"/>
+        <toolbarbutton id="button-exit" class="toolbarbutton-1" label="&quitButton.label;" tooltiptext="&quitButton.tooltip;" oncommand="goQuitApplication();"/>
+        <toolbarbutton id="button-close" class="toolbarbutton-1" label="&closeButton.label;" tooltiptext="&closeButton.tooltip;" command="cmd_close"/>
+        <toolbarbutton id="button-rewrap" class="toolbarbutton-1" label="&rewrapButton.label;" tooltiptext="&rewrapButton.tooltip;" oncommand="goDoCommand('cmd_rewrap');"/>
+        <toolbarbutton id="button-find" class="toolbarbutton-1" label="&findButton.label;" tooltiptext="&findButton.tooltip;" command="cmd_find"/>
+        <toolbarbutton id="button-findnext" class="toolbarbutton-1" label="&findNextButton.label;" tooltiptext="&findNextButton.tooltip;" command="cmd_findNext"/>
+        <toolbarbutton id="button-findprev" class="toolbarbutton-1" label="&findPrevButton.label;" tooltiptext="&findPrevButton.tooltip;" command="cmd_findPrev"/>
+        <toolbarbutton id="undo-button" class="toolbarbutton-1" label="&undoButton.label;" tooltiptext="&undoButton.tooltip;" command="cmd_undo"/>
+        <toolbarbutton id="redo-button" class="toolbarbutton-1" label="&redoButton.label;" tooltiptext="&redoButton.tooltip;" command="cmd_redo"/>
+        <toolbarbutton id="button-delete" class="toolbarbutton-1" label="&deleteButton.label;" tooltiptext="&deleteButton.tooltip;" command="cmd_delete"/>
+        <toolbarbutton id="button-selectall" class="toolbarbutton-1" label="&selectAllCmd.label;" tooltiptext="&selectAllCmd.label;" command="cmd_selectAll"/>
 
   </toolbarpalette>
   <toolbar id="composeToolbar2" 

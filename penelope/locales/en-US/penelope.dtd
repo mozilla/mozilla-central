@@ -1,27 +1,16 @@
-<!ENTITY penelope.mailboxmenu.label "Mailbox">
-<!ENTITY penelope.mailboxmenu.accesskey "x">
-<!ENTITY penelope.mailboxmenu.in.label "In">
-<!ENTITY penelope.mailboxmenu.in.accesskey "i">
-<!ENTITY penelope.mailboxmenu.out.label "Out">
-<!ENTITY penelope.mailboxmenu.out.accesskey "o">
-<!ENTITY penelope.mailboxmenu.junk.label "Junk">
-<!ENTITY penelope.mailboxmenu.junk.accesskey "j">
-<!ENTITY penelope.mailboxmenu.trash.label "Trash">
-<!ENTITY penelope.mailboxmenu.trash.accesskey "t">
-<!ENTITY penelope.mailboxmenu.new.label "New...">
-<!ENTITY penelope.mailboxmenu.new.accesskey "n">
+<!-- Mailbox/Transfer items -->
+<!ENTITY mailboxmenu.label "Mailbox">
+<!ENTITY mailboxmenu.accesskey "x">
+<!ENTITY transfermenu.label "Transfer">
+<!ENTITY transfermenu.accesskey "r">
+<!ENTITY fileHereMenu.label "This Mailbox">
 
-<!ENTITY penelope.transfermenu.label "Transfer">
-<!ENTITY penelope.transfermenu.accesskey "r">
-<!ENTITY penelope.fileHereMenu.label "This Mailbox">
-
-<!ENTITY penelope.AddToAddrBook.label "Make Address Book Entry...">
-<!ENTITY penelope.AddToAddrBook.accesskey "k">
-
+<!-- Mailbox columns -->
 <!ENTITY penelope.tags.label "Label">
 <!ENTITY penelope.who.label "Who">
 <!ENTITY penelope.who.accesskey "w">
 
+<!-- Pref panel -->
 <!ENTITY penelope.useShortcuts.label "Use Shortcuts">
 <!ENTITY penelope.shortcutsRadio0.label "From Penelope">
 <!ENTITY penelope.shortcutsRadio0.accesskey "P">
@@ -33,8 +22,9 @@
 <!ENTITY penelope.uiStyleRadio1.label "2-Pane (Mac like)">
 <!ENTITY penelope.uiStyleRadio1.accesskey "2">
 <!ENTITY penelope.prefpane.label "Penelope">
+
+<!-- Message items -->
 <!ENTITY penelope.change.label "Change">
-<!ENTITY penelope.status.label "Status">
 <!ENTITY penelope.labelMenu.label "Label">
 <!ENTITY penelope.labelMenu.accesskey "l">
 <!ENTITY penelope.junk.label "Junk">
@@ -46,14 +36,100 @@
 <!ENTITY penelope.redirect.label "Redirect">
 <!ENTITY penelope.sendAgain.label "Send Again">
 <!ENTITY penelope.sendAgain.accesskey "s">
-<!ENTITY penelope.newMessageTo.label "New Message To">
-<!ENTITY penelope.forwardMessageTo.label "Forward Message To">
-<!ENTITY penelope.redirectMessageTo.label "Redirect Message To">
-<!ENTITY penelope.statusUnread.label "Unread">
-<!ENTITY penelope.statusRead.label "Read">
-<!ENTITY penelope.statusReplied.label "Replied">
-<!ENTITY penelope.statusForwarded.label "Forwarded">
-<!ENTITY penelope.statusRedirected.label "Redirected">
-<!ENTITY penelope.statusSent.label "Sent">
-<!ENTITY penelope.statusUnsent.label "Unsent">
-<!ENTITY penelope.keybindingTips.label "Shortcuts">
+
+<!-- Recipient items -->
+<!ENTITY newMessageTo.label "New Message To">
+<!ENTITY newMessageTo.accesskey "M">
+<!ENTITY forwardMessageTo.label "Forward Message To">
+<!ENTITY forwardMessageTo.accesskey "o">
+<!ENTITY redirectMessageTo.label "Redirect Message To">
+<!ENTITY redirectMessageTo.accesskey "T">
+<!ENTITY noQuickRecipients.label "No quick recipients">
+
+<!-- Message status items -->
+<!ENTITY status.label "Status">
+<!ENTITY statusUnread.label "Unread">
+<!ENTITY statusUnread.accesskey "U">
+<!ENTITY statusRead.label "Read">
+<!ENTITY statusRead.accesskey "e">
+<!ENTITY statusReplied.label "Replied">
+<!ENTITY statusReplied.accesskey "R">
+<!ENTITY statusForwarded.label "Forwarded">
+<!ENTITY statusForwarded.accesskey "F">
+<!ENTITY statusRedirected.label "Redirected">
+<!ENTITY statusRedirected.accesskey "d">
+<!ENTITY statusSent.label "Sent">
+<!ENTITY statusSent.accesskey "t">
+<!ENTITY statusUnsent.label "Unsent">
+<!ENTITY statusUnsent.accesskey "n">
+
+<!-- Tools items-->
+<!ENTITY addToAddrBook.label "Make Address Book Entry...">
+<!ENTITY addToAddrBook.accesskey "k">
+
+<!-- Help items-->
+<!ENTITY keybindingTips.label "Shortcuts">
+
+
+<!-- Toolbar butons -->
+<!ENTITY inButton.label "In">
+<!ENTITY inButton.tooltip "Open In mailbox">
+<!ENTITY outButton.label "Out">
+<!ENTITY outButton.tooltip "Open Out mailbox">
+<!ENTITY helpButton.label "Help">
+<!ENTITY helpButton.tooltip "Online help">
+<!ENTITY closeButton.label "Close">
+<!ENTITY closeButton.tooltip "Close top window">
+<!ENTITY saveAsButton.label "Save As">
+<!ENTITY saveAsButton.tooltip "Save to a different file">
+<!ENTITY undoButton.label "Undo">
+<!ENTITY undoButton.tooltip "Undo">
+<!ENTITY redoButton.label "Redo">
+<!ENTITY redoButton.tooltip "Redo">
+<!ENTITY redirectButton.label "Redirect">
+<!ENTITY redirectButton.tooltip "Redirect selected message">
+<!ENTITY sendAgainButton.label "Send Again">
+<!ENTITY sendAgainButton.tooltip "Resend selected message">
+<!ENTITY sendUnsentButton.label "Send Unsent">
+<!ENTITY sendUnsentButton.tooltip "Send unsent messages">
+<!ENTITY subscribeButton.label "Subscribe">
+<!ENTITY subscribeButton.tooltip "Open subscriptions dialog">
+<!ENTITY emptyTrashButton.label "Empty Trash">
+<!ENTITY emptyTrashButton.tooltip "Delete all messages in Trash mailbox">
+<!ENTITY offlineButton.label "Offline">
+<!ENTITY offlineButton.tooltip "Toggle offline status">
+<!ENTITY printSetupButton.label "Page Setup">
+<!ENTITY printSetupButton.tooltip "Set up printer">
+<!ENTITY nextPlainButton.label "Next Message">
+<!ENTITY nextPlainButton.tooltip "Move to the next message">
+<!ENTITY nextUnreadButton.label "Next Unread">
+<!ENTITY nextUnreadButton.tooltip "Move to the next unread message">
+<!ENTITY nextStarredButton.label "Next Starred">
+<!ENTITY nextStarredButton.tooltip "Move to the next starred message">
+<!ENTITY nextUnreadThreadButton.label "Next Unread Thread">
+<!ENTITY nextUnreadThreadButton.tooltip "Move to the next unread thread">
+<!ENTITY prevPlainButton.label "Previous Message">
+<!ENTITY prevPlainButton.tooltip "Move to the previous message">
+<!ENTITY prevUnreadButton.label "Previous Unread">
+<!ENTITY prevUnreadButton.tooltip "Move to the previous unread message">
+<!ENTITY prevStarredButton.label "Previous Starred">
+<!ENTITY prevStarredButton.tooltip "Move to the previous starred message">
+#ifdef XP_MACOSX
+<!ENTITY prefsButton.label "Preferences">
+<!ENTITY prefsButton.tooltip "Edit user preferences">
+#else
+<!ENTITY prefsButton.label "Options">
+<!ENTITY prefsButton.tooltip "Edit user options">
+#endif
+<!ENTITY sendLaterButton.label "Send Later">
+<!ENTITY sendLaterButton.tooltip "Queue the message to be sent later">
+<!ENTITY quitButton.label "Quit">
+<!ENTITY quitButton.tooltip "Quit the application">
+<!ENTITY rewrapButton.label "Rewrap">
+<!ENTITY rewrapButton.tooltip "Rewrap">
+<!ENTITY findButton.label "Find">
+<!ENTITY findButton.tooltip "Find">
+<!ENTITY findNextButton.label "Find Next">
+<!ENTITY findNextButton.tooltip "Find next occurrence">
+<!ENTITY findPrevButton.label "Find Previous">
+<!ENTITY findPrevButton.tooltip "Find previous occurrence">

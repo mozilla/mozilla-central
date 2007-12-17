@@ -19,7 +19,7 @@
 # Copyright (C) 2007 QUALCOMM Incorporated. All Rights Reserved.
 # 
 # Contributor(s):
-# Mark Charlebois <mcharleb@qualcomm.com> original author
+# Jeff Beckley <beckley@qualcomm.com> original author
 # 
 # Alternatively, the contents of this file may be used under the terms of
 # either the GNU General Public License Version 2 or later (the "GPL"), or
@@ -33,56 +33,28 @@
 # the provisions above, a recipient may use your version of this file under
 # the terms of any one of the MPL, the GPL or the LGPL.
 # 
-# ***** END LICENSE BLOCK ***** */
+# ***** END LICENSE BLOCK *****
 
 
-DEPTH       =..
-topsrcdir   = @top_srcdir@
-srcdir      = @srcdir@
-VPATH       = @srcdir@
+# The dialog.style needs to be overridden, so we put the new value before
+# we include the original file.
 
-include $(DEPTH)/config/autoconf.mk
+<!ENTITY dialog.style             "width: 635px; height: 480px;">
 
-MODULE	= penelope
+#include ../../../toolkit/locales/en-US/chrome/global/customizeToolbar.dtd
 
-export XPI_NAME	= penelope
-DIST_FILES = xpi/install.rdf
-XPI_PKGNAME = penelope
-STRIP_XPI = 1
 
-DIRS    = themes \
-          $(NULL)
+# These are items unique to Penelope's Customize Toolbar dialog
 
-DEFINES += -DTHUNDERBIRD_VERSION=$(THUNDERBIRD_VERSION) 
-DEFINES += -DTARGET_PLATFORM=$(OS_TARGET)_$(TARGET_XPCOM_ABI)
+<!ENTITY menus.label              "Menus">
+<!ENTITY mailboxes.label          "Mailboxes">
+<!ENTITY recipients.label         "Recipients">
+<!ENTITY formatting.label         "Formatting">
+<!ENTITY extras.label             "Extras">
 
-PENELOPE_VERSION := $(shell cat $(srcdir)/config/version.txt)
+<!ENTITY categories.label         "Categories">
+<!ENTITY buttons.label            "Buttons">
+<!ENTITY description.label        "Description">
+<!ENTITY directions.text          "Select a category to see the toolbar button(s) and the description. Drag the button to any toolbar.">
 
-DEFINES += -DPENELOPE_VERSION=$(PENELOPE_VERSION)
-
-DEFINES += -DBUILD_ID=$(BUILD_ID)
-
-XPI_NAME               = penelope
-USE_EXTENSION_MANIFEST = 1
-NO_JAR_AUTO_REG        = 1
-INSTALL_EXTENSION_ID   = {D1D37B8A-4F3C-11DB-8373-B622A1EF5492}
-XPI_PKGNAME            = penelope-$(PENELOPE_VERSION)
-
-PREF_JS_EXPORTS = $(srcdir)/base/prefs/all-penelope.js
-
-XULAPP_DEFINES = \
-    -DEXTENSION_VERSION=$(PENELOPE_VERSION) \
-    $(NULL)
-
-# Copy the new mail sound in to the extension's root directory.
-# Can't use DIST_FILES because that runs it through a pre-processing
-# perl script meant for text files which corrupts the file.
-libs::
-	$(INSTALL) $(IFLAGS2) $(srcdir)/base/content/newmail.wav $(FINAL_TARGET)
-
-ifeq (cocoa, $(MOZ_WIDGET_TOOLKIT))
-DEFINES += -DTOOLBAR_CUSTOMIZATION_SHEET
-endif
-
-include $(topsrcdir)/config/rules.mk
-
+<!ENTITY showToolbar.label        "Show toolbar as">

@@ -45,311 +45,520 @@
 
 /* ::::: primary toolbar buttons ::::: */
  
-.toolbarbutton-1 {
+.toolbarbutton-1,
+.toolbarbutton-1:hover {
   -moz-box-orient: vertical;
-  min-width: 0px;
   list-style-image: url("chrome://penelope/skin/icons/tbar32.png");
+  -moz-image-region: rect(0px 2047px 31px 2016px);
 }
 
-/* penelope specific resources */
-
-#button-send {
-  list-style-image: url("chrome://penelope/skin/icons/tbar32.png");
-  -moz-image-region: rect(0px 480px 32px 448px);
+.toolbarbutton-1:hover:active {
+  list-style-image: url("chrome://penelope/skin/icons/tbar32-active.png");
+  -moz-image-region: rect(0px 2047px 31px 2016px);
 }
 
+.toolbarbutton-1[disabled],
+.toolbarbutton-1[disabled]:hover:active {
+  list-style-image: url("chrome://penelope/skin/icons/tbar32-disabled.png");
+  -moz-image-region: rect(0px 2047px 31px 2016px) !important;
+}
+
+/**************************************************************************/
+
+/* Penelope specific resources */
+
+#button-send,
 #button-send:hover {
-  -moz-image-region: rect(0px 480px 32px 448px);
-} 
-
-#button-send[disabled="true"] {
-  list-style-image: url("chrome://penelope/skin/icons/tbar32-disabled.png");
-  -moz-image-region: rect(0px 480px 32px 448px) !important;
-} 
-
-#button-address {
   list-style-image: url("chrome://penelope/skin/icons/tbar32.png");
-  -moz-image-region: rect(0px 672px 32px 640px) !important;
+  -moz-image-region: rect(0px 511px 31px 480px);
 }
 
+#button-send:hover:active {
+  list-style-image: url("chrome://penelope/skin/icons/tbar32-active.png");
+  -moz-image-region: rect(0px 511px 31px 480px);
+} 
+
+#button-send[disabled],
+#button-send[disabled]:hover:active {
+  list-style-image: url("chrome://penelope/skin/icons/tbar32-disabled.png");
+  -moz-image-region: rect(0px 511px 31px 480px) !important;
+} 
+
+/**************************************************************************/
+
+#button-sendlater,
+#button-sendlater:hover {
+  list-style-image: url("chrome://penelope/skin/icons/tbar32.png");
+  -moz-image-region: rect(0px 511px 31px 480px);
+}
+
+#button-sendlater:hover:active {
+  list-style-image: url("chrome://penelope/skin/icons/tbar32-active.png");
+  -moz-image-region: rect(0px 511px 31px 480px);
+} 
+
+#button-sendlater[disabled="true"] {
+  list-style-image: url("chrome://penelope/skin/icons/tbar32-disabled.png");
+  -moz-image-region: rect(0px 511px 31px 480px) !important;
+} 
+
+/**************************************************************************/
+
+#button-address,
 #button-address:hover {
-  -moz-image-region: rect(0px 672px 32px 640px) !important;
-} 
-
-#button-address[disabled="true"] {
-  list-style-image: url("chrome://penelope/skin/icons/tbar32-disabled.png");
-  -moz-image-region: rect(0px 672px 32px 640px) !important;
-} 
-
-#spellingButton {
   list-style-image: url("chrome://penelope/skin/icons/tbar32.png");
-  -moz-image-region: rect(0px 640px 32px 608px);
+  -moz-image-region: rect(0px 671px 31px 640px) !important;
 }
 
+#button-address:hover:active {
+  list-style-image: url("chrome://penelope/skin/icons/tbar32-active.png");
+  -moz-image-region: rect(0px 671px 31px 640px) !important;
+} 
+
+#button-address[disabled],
+#button-address[disabled]:hover:active {
+  list-style-image: url("chrome://penelope/skin/icons/tbar32-disabled.png");
+  -moz-image-region: rect(0px 671px 31px 640px) !important;
+} 
+
+/**************************************************************************/
+
+#spellingButton,
 #spellingButton:hover {
-  -moz-image-region: rect(0px 640px 32px 608px);
-}
-
-#spellingButton[disabled="true"] {
-  list-style-image: url("chrome://penelope/skin/icons/tbar32-disabled.png");
-  -moz-image-region: rect(0px 640px 32px 608px) !important;
-}
-
-#button-attach {
   list-style-image: url("chrome://penelope/skin/icons/tbar32.png");
-  -moz-image-region: rect(0px 608px 32px 576px);
+  -moz-image-region: rect(0px 639px 31px 608px);
 }
 
+#spellingButton:hover:active {
+  list-style-image: url("chrome://penelope/skin/icons/tbar32-active.png");
+  -moz-image-region: rect(0px 639px 31px 608px);
+}
+
+#spellingButton[disabled],
+#spellingButton[disabled]:hover:active {
+  list-style-image: url("chrome://penelope/skin/icons/tbar32-disabled.png");
+  -moz-image-region: rect(0px 639px 31px 608px) !important;
+}
+
+/**************************************************************************/
+
+#button-attach,
 #button-attach:hover {
-  -moz-image-region: rect(0px 608px 32px 576px);
-} 
-
-#button-attach[disabled="true"] {
-  list-style-image: url("chrome://penelope/skin/icons/tbar32-disabled.png");
-  -moz-image-region: rect(0px 608px 32px 576px) !important;
-} 
-
-#button-save {
   list-style-image: url("chrome://penelope/skin/icons/tbar32.png");
-  -moz-image-region: rect(0px 896px 32px 864px);
+  -moz-image-region: rect(0px 607px 31px 576px);
 }
 
+#button-attach:hover:active {
+  list-style-image: url("chrome://penelope/skin/icons/tbar32-active.png");
+  -moz-image-region: rect(0px 607px 31px 576px);
+} 
+
+#button-attach[disabled],
+#button-attach[disabled]:hover:active {
+  list-style-image: url("chrome://penelope/skin/icons/tbar32-disabled.png");
+  -moz-image-region: rect(0px 607px 31px 576px) !important;
+} 
+
+/**************************************************************************/
+
+#button-save,
 #button-save:hover {
-  -moz-image-region: rect(0px 896px 32px 864px);
-} 
-
-#button-save[disabled="true"] {
-  list-style-image: url("chrome://penelope/skin/icons/tbar32-disabled.png");
-  -moz-image-region: rect(0px 896px 32px 864px) !important;
-} 
-
-#button-saveas {
   list-style-image: url("chrome://penelope/skin/icons/tbar32.png");
-  -moz-image-region: rect(0px 928px 32px 896px);
+  -moz-image-region: rect(0px 895px 31px 864px);
 }
 
+#button-save:hover:active {
+  list-style-image: url("chrome://penelope/skin/icons/tbar32-active.png");
+  -moz-image-region: rect(0px 895px 31px 864px);
+} 
+
+#button-save[disabled],
+#button-save[disabled]:hover:active {
+  list-style-image: url("chrome://penelope/skin/icons/tbar32-disabled.png");
+  -moz-image-region: rect(0px 895px 31px 864px) !important;
+} 
+
+/**************************************************************************/
+
+#button-saveas,
 #button-saveas:hover {
-  -moz-image-region: rect(0px 928px 32px 896px);
-} 
-
-#button-saveas[disabled="true"] {
-  list-style-image: url("chrome://penelope/skin/icons/tbar32-disabled.png");
-  -moz-image-region: rect(0px 928px 32px 896px) !important;
-} 
-
-#quoteButton {
   list-style-image: url("chrome://penelope/skin/icons/tbar32.png");
-  -moz-image-region: rect(0px 1184px 32px 1152px);
+  -moz-image-region: rect(0px 927px 31px 896px);
 }
 
+#button-saveas:hover:active {
+  list-style-image: url("chrome://penelope/skin/icons/tbar32-active.png");
+  -moz-image-region: rect(0px 927px 31px 896px);
+} 
+
+#button-saveas[disabled],
+#button-saveas[disabled]:hover:active {
+  list-style-image: url("chrome://penelope/skin/icons/tbar32-disabled.png");
+  -moz-image-region: rect(0px 927px 31px 896px) !important;
+} 
+
+/**************************************************************************/
+
+#quoteButton,
 #quoteButton:hover {
-  -moz-image-region: rect(0px 1184px 32px 1152px);
-}
-
-#quoteButton[disabled="true"] {
-  list-style-image: url("chrome://penelope/skin/icons/tbar32-disabled.png");
-  -moz-image-region: rect(0px 1184px 32px 1152px) !important;
-}
-
-#undo-button {
   list-style-image: url("chrome://penelope/skin/icons/tbar32.png");
-  -moz-image-region: rect(0px 1056px 32px 1024px);
+  -moz-image-region: rect(0px 1183px 31px 1152px);
 }
 
+#quoteButton:hover:active {
+  list-style-image: url("chrome://penelope/skin/icons/tbar32-active.png");
+  -moz-image-region: rect(0px 1183px 31px 1152px);
+}
+
+#quoteButton[disabled],
+#quoteButton[disabled]:hover:active {
+  list-style-image: url("chrome://penelope/skin/icons/tbar32-disabled.png");
+  -moz-image-region: rect(0px 1183px 31px 1152px) !important;
+}
+
+/**************************************************************************/
+
+#undo-button,
 #undo-button:hover {
-  -moz-image-region: rect(0px 1056px 32px 1024px);
+  list-style-image: url("chrome://penelope/skin/icons/tbar32.png");
+  -moz-image-region: rect(0px 1055px 31px 1024px);
 }
 
-#undo-button[disabled="true"] {
+#undo-button:hover:active {
+  list-style-image: url("chrome://penelope/skin/icons/tbar32-active.png");
+  -moz-image-region: rect(0px 1055px 31px 1024px);
+}
+
+#undo-button[disabled],
+#undo-button[disabled]:hover:active {
   list-style-image: url("chrome://penelope/skin/icons/tbar32-disabled.png");
-  -moz-image-region: rect(0px 1056px 32px 1024px) !important;
+  -moz-image-region: rect(0px 1055px 31px 1024px) !important;
 }
 
-#redo-button {
-  list-style-image: url("chrome://penelope/skin/icons/tbar32b.png");
-  -moz-image-region: rect(0px 1246px 32px 1214px);
-}
+/**************************************************************************/
 
+#redo-button,
 #redo-button:hover {
-  -moz-image-region: rect(0px 1246px 32px 1214px);
+  list-style-image: url("chrome://penelope/skin/icons/tbar32b.png");
+  -moz-image-region: rect(0px 1247px 31px 1216px);
 }
 
-#redo-button[disabled="true"] {
+#redo-button:hover:active {
+  list-style-image: url("chrome://penelope/skin/icons/tbar32b-active.png");
+  -moz-image-region: rect(0px 1247px 31px 1216px);
+}
+
+#redo-button[disabled],
+#redo-button[disabled]:hover:active {
   list-style-image: url("chrome://penelope/skin/icons/tbar32b-disabled.png");
-  -moz-image-region: rect(0px 1246px 32px 1214px) !important;
+  -moz-image-region: rect(0px 1247px 31px 1216px) !important;
 }
 
-#cut-button {
-  list-style-image: url("chrome://penelope/skin/icons/tbar32.png");
-  -moz-image-region: rect(0px 1088px 32px 1056px);
-}
+/**************************************************************************/
 
+#cut-button,
 #cut-button:hover {
-  -moz-image-region: rect(0px 1088px 32px 1056px);
-}
-
-#cut-button[disabled="true"] {
-  list-style-image: url("chrome://penelope/skin/icons/tbar32-disabled.png");
-  -moz-image-region: rect(0px 1088px 32px 1056px) !important;
-}
-
-#copy-button {
   list-style-image: url("chrome://penelope/skin/icons/tbar32.png");
-  -moz-image-region: rect(0px 1120px 32px 1088px);
+  -moz-image-region: rect(0px 1087px 31px 1056px);
 }
 
+#cut-button:hover:active {
+  list-style-image: url("chrome://penelope/skin/icons/tbar32-active.png");
+  -moz-image-region: rect(0px 1087px 31px 1056px);
+}
+
+#cut-button[disabled],
+#cut-button[disabled]:hover:active {
+  list-style-image: url("chrome://penelope/skin/icons/tbar32-disabled.png");
+  -moz-image-region: rect(0px 1087px 31px 1056px) !important;
+}
+
+/**************************************************************************/
+
+#copy-button,
 #copy-button:hover {
-  -moz-image-region: rect(0px 1120px 32px 1088px);
-}
-
-#copy-button[disabled="true"] {
-  list-style-image: url("chrome://penelope/skin/icons/tbar32-disabled.png");
-  -moz-image-region: rect(0px 1120px 32px 1088px) !important;
-}
-
-#paste-button {
   list-style-image: url("chrome://penelope/skin/icons/tbar32.png");
-  -moz-image-region: rect(0px 1152px 32px 1120px);
+  -moz-image-region: rect(0px 1119px 31px 1088px);
 }
 
-#paste-button:hover {
-  -moz-image-region: rect(0px 1152px 32px 1120px);
+#copy-button:hover:active {
+  list-style-image: url("chrome://penelope/skin/icons/tbar32-active.png");
+  -moz-image-region: rect(0px 1119px 31px 1088px);
 }
 
-#paste-button[disabled="true"] {
+#copy-button[disabled],
+#copy-button[disabled]:hover:active {
   list-style-image: url("chrome://penelope/skin/icons/tbar32-disabled.png");
-  -moz-image-region: rect(0px 1152px 32px 1120px) !important;
+  -moz-image-region: rect(0px 1119px 31px 1088px) !important;
 }
+
+/**************************************************************************/
+
+#paste-button,
+#paste-button:hover {
+  list-style-image: url("chrome://penelope/skin/icons/tbar32.png");
+  -moz-image-region: rect(0px 1151px 31px 1120px);
+}
+
+#paste-button:hover:active {
+  list-style-image: url("chrome://penelope/skin/icons/tbar32-active.png");
+  -moz-image-region: rect(0px 1151px 31px 1120px);
+}
+
+#paste-button[disabled],
+#paste-button[disabled]:hover:active {
+  list-style-image: url("chrome://penelope/skin/icons/tbar32-disabled.png");
+  -moz-image-region: rect(0px 1151px 31px 1120px) !important;
+}
+
+/**************************************************************************/
+
+#button-rewrap,
+#button-rewrap:hover {
+  list-style-image: url("chrome://penelope/skin/icons/tbar32.png");
+  -moz-image-region: rect(0px 1279px 31px 1248px);
+}
+
+#button-rewrap:hover:active {
+  list-style-image: url("chrome://penelope/skin/icons/tbar32-disabled.png");
+  -moz-image-region: rect(0px 1279px 31px 1248px);
+}
+
+#button-rewrap[disabled],
+#button-rewrap[disabled]:hover:active {
+  list-style-image: url("chrome://penelope/skin/icons/tbar32-disabled.png");
+  -moz-image-region: rect(0px 1279px 31px 1248px) !important;
+}
+
+/**************************************************************************/
 
 
 /* ::::: small primary toolbar buttons ::::: */
 
-toolbar[iconsize="small"] .toolbarbutton-1 {
+toolbar[iconsize="small"] .toolbarbutton-1,
+toolbar[iconsize="small"] .toolbarbutton-1:hover {
   list-style-image: url("chrome://penelope/skin/icons/tbar16.png");
+  -moz-image-region: rect(0px 1023px 15px 1008px);
 }
 
-toolbar[iconsize="small"] #button-send {
-  list-style-image: url("chrome://penelope/skin/icons/tbar16.png");
-  -moz-image-region: rect(0px 480px 16px 464px);
+toolbar[iconsize="small"] .toolbarbutton-1:hover:active {
+  list-style-image: url("chrome://penelope/skin/icons/tbar16-active.png");
+  -moz-image-region: rect(0px 1023px 15px 1008px);
 }
 
+toolbar[iconsize="small"] .toolbarbutton-1[disabled],
+toolbar[iconsize="small"] .toolbarbutton-1[disabled]:hover:active {
+  list-style-image: url("chrome://penelope/skin/icons/tbar16-disabled.png");
+  -moz-image-region: rect(0px 1023px 15px 1008px) !important;
+}
+
+/**************************************************************************/
+
+toolbar[iconsize="small"] #button-send,
 toolbar[iconsize="small"] #button-send:hover {
-  -moz-image-region: rect(0px 480px 16px 464px);
-} 
-
-toolbar[iconsize="small"] #button-send[disabled] {
-  list-style-image: url("chrome://penelope/skin/icons/tbar16-disabled.png");
-  -moz-image-region: rect(0px 480px 16px 464px) !important;
-} 
-
-toolbar[iconsize="small"] #button-address {
   list-style-image: url("chrome://penelope/skin/icons/tbar16.png");
-  -moz-image-region: rect(0px 336px 16px 320px) !important;
+  -moz-image-region: rect(0px 255px 15px 240px);
 }
 
+toolbar[iconsize="small"] #button-send:hover:active {
+  list-style-image: url("chrome://penelope/skin/icons/tbar16-active.png");
+  -moz-image-region: rect(0px 255px 15px 240px);
+} 
+
+toolbar[iconsize="small"] #button-send[disabled],
+toolbar[iconsize="small"] #button-send[disabled]:hover:active {
+  list-style-image: url("chrome://penelope/skin/icons/tbar16-disabled.png");
+  -moz-image-region: rect(0px 255px 15px 240px) !important;
+} 
+
+/**************************************************************************/
+
+toolbar[iconsize="small"] #button-sendlater,
+toolbar[iconsize="small"] #button-sendlater:hover {
+  list-style-image: url("chrome://penelope/skin/icons/tbar16.png");
+  -moz-image-region: rect(0px 255px 15px 240px);
+}
+
+toolbar[iconsize="small"] #button-sendlater:hover:active {
+  list-style-image: url("chrome://penelope/skin/icons/tbar16-active.png");
+  -moz-image-region: rect(0px 255px 15px 240px);
+} 
+
+toolbar[iconsize="small"] #button-sendlater[disabled],
+toolbar[iconsize="small"] #button-sendlater[disabled]:hover:active {
+  list-style-image: url("chrome://penelope/skin/icons/tbar16-disabled.png");
+  -moz-image-region: rect(0px 255px 15px 240px) !important;
+} 
+
+/**************************************************************************/
+
+toolbar[iconsize="small"] #button-address,
 toolbar[iconsize="small"] #button-address:hover {
-  -moz-image-region: rect(0px 336px 16px 320px) !important;
-} 
-
-toolbar[iconsize="small"] #button-address[disabled] {
-  list-style-image: url("chrome://penelope/skin/icons/tbar16-disabled.png");
-  -moz-image-region: rect(0px 336px 16px 320px) !important;
-} 
-
-toolbar[iconsize="small"] #spellingButton {
   list-style-image: url("chrome://penelope/skin/icons/tbar16.png");
-  -moz-image-region: rect(0px 320px 16px 304px);
+  -moz-image-region: rect(0px 335px 15px 320px) !important;
 }
 
+toolbar[iconsize="small"] #button-address:hover:active {
+  list-style-image: url("chrome://penelope/skin/icons/tbar16-active.png");
+  -moz-image-region: rect(0px 335px 15px 320px) !important;
+} 
+
+toolbar[iconsize="small"] #button-address[disabled],
+toolbar[iconsize="small"] #button-address[disabled]:hover:active {
+  list-style-image: url("chrome://penelope/skin/icons/tbar16-disabled.png");
+  -moz-image-region: rect(0px 335px 15px 320px) !important;
+} 
+
+/**************************************************************************/
+
+toolbar[iconsize="small"] #spellingButton,
 toolbar[iconsize="small"] #spellingButton:hover {
-  -moz-image-region: rect(0px 320px 16px 304px);
-} 
-
-toolbar[iconsize="small"] #spellingButton[disabled="true"] {
-  list-style-image: url("chrome://penelope/skin/icons/tbar16-disabled.png");
-  -moz-image-region: rect(0px 320px 16px 304px) !important;
-} 
-
-toolbar[iconsize="small"] #button-attach {
   list-style-image: url("chrome://penelope/skin/icons/tbar16.png");
-  -moz-image-region: rect(0px 304px 16px 288px);
+  -moz-image-region: rect(0px 319px 15px 304px);
 }
 
+toolbar[iconsize="small"] #spellingButton:hover:active {
+  list-style-image: url("chrome://penelope/skin/icons/tbar16-active.png");
+  -moz-image-region: rect(0px 319px 15px 304px);
+} 
+
+toolbar[iconsize="small"] #spellingButton[disabled],
+toolbar[iconsize="small"] #spellingButton[disabled]:hover:active {
+  list-style-image: url("chrome://penelope/skin/icons/tbar16-disabled.png");
+  -moz-image-region: rect(0px 319px 15px 304px) !important;
+} 
+
+/**************************************************************************/
+
+toolbar[iconsize="small"] #button-attach,
 toolbar[iconsize="small"] #button-attach:hover {
-  -moz-image-region: rect(0px 304px 16px 288px);
-} 
-
-toolbar[iconsize="small"] #button-attach[disabled] {
-  list-style-image: url("chrome://penelope/skin/icons/tbar16-disabled.png");
-  -moz-image-region: rect(0px 304px 16px 288px) !important;
-} 
-
-toolbar[iconsize="small"] #button-save {
   list-style-image: url("chrome://penelope/skin/icons/tbar16.png");
-  -moz-image-region: rect(0px 448px 16px 432px);
+  -moz-image-region: rect(0px 303px 15px 288px);
 }
 
+toolbar[iconsize="small"] #button-attach:hover:active {
+  list-style-image: url("chrome://penelope/skin/icons/tbar16-active.png");
+  -moz-image-region: rect(0px 303px 15px 288px);
+} 
+
+toolbar[iconsize="small"] #button-attach[disabled],
+toolbar[iconsize="small"] #button-attach[disabled]:hover:active {
+  list-style-image: url("chrome://penelope/skin/icons/tbar16-disabled.png");
+  -moz-image-region: rect(0px 303px 15px 288px) !important;
+} 
+
+/**************************************************************************/
+
+toolbar[iconsize="small"] #button-save,
 toolbar[iconsize="small"] #button-save:hover {
-  -moz-image-region: rect(0px 448px 16px 432px);
-} 
-
-toolbar[iconsize="small"] #button-save[disabled] {
-  list-style-image: url("chrome://penelope/skin/icons/tbar16-disabled.png");
-  -moz-image-region: rect(0px 448px 16px 432px) !important;
-} 
-
-toolbar[iconsize="small"] #quoteButton {
   list-style-image: url("chrome://penelope/skin/icons/tbar16.png");
-  -moz-image-region: rect(0px 592px 16px 576px);
+  -moz-image-region: rect(0px 447px 15px 432px);
 }
 
+toolbar[iconsize="small"] #button-save:hover:active {
+  list-style-image: url("chrome://penelope/skin/icons/tbar16-active.png");
+  -moz-image-region: rect(0px 447px 15px 432px);
+} 
+
+toolbar[iconsize="small"] #button-save[disabled],
+toolbar[iconsize="small"] #button-save[disabled]:hover:active {
+  list-style-image: url("chrome://penelope/skin/icons/tbar16-disabled.png");
+  -moz-image-region: rect(0px 447px 15px 432px) !important;
+} 
+
+/**************************************************************************/
+
+toolbar[iconsize="small"] #quoteButton,
 toolbar[iconsize="small"] #quoteButton:hover {
-  -moz-image-region: rect(0px 592px 16px 576px);
+  list-style-image: url("chrome://penelope/skin/icons/tbar16.png");
+  -moz-image-region: rect(0px 591px 15px 576px);
+}
+
+toolbar[iconsize="small"] #quoteButton:hover:active {
+  list-style-image: url("chrome://penelope/skin/icons/tbar16-active.png");
+  -moz-image-region: rect(0px 591px 15px 576px);
 } 
 
-toolbar[iconsize="small"] #quoteButton[disabled="true"] {
+toolbar[iconsize="small"] #quoteButton[disabled],
+toolbar[iconsize="small"] #quoteButton[disabled]:hover:active {
   list-style-image: url("chrome://penelope/skin/icons/tbar16-disabled.png");
-  -moz-image-region: rect(0px 592px 16px 576px) !important;
+  -moz-image-region: rect(0px 591px 15px 576px) !important;
 }
 
-toolbar[iconsize="small"] #cut-button {
-  list-style-image: url("chrome://penelope/skin/icons/tbar16.png");
-  -moz-image-region: rect(0px 544px 16px 528px);
-}
+/**************************************************************************/
 
+toolbar[iconsize="small"] #cut-button,
 toolbar[iconsize="small"] #cut-button:hover {
-  -moz-image-region: rect(0px 544px 16px 528px);
-} 
-
-toolbar[iconsize="small"] #cut-button[disabled="true"] {
-  list-style-image: url("chrome://penelope/skin/icons/tbar16-disabled.png");
-  -moz-image-region: rect(0px 544px 16px 528px) !important;
-}
-
-toolbar[iconsize="small"] #copy-button {
   list-style-image: url("chrome://penelope/skin/icons/tbar16.png");
-  -moz-image-region: rect(0px 560px 16px 544px);
+  -moz-image-region: rect(0px 543px 15px 528px);
 }
 
+toolbar[iconsize="small"] #cut-button:hover:active {
+  list-style-image: url("chrome://penelope/skin/icons/tbar16-active.png");
+  -moz-image-region: rect(0px 543px 15px 528px);
+}
+
+toolbar[iconsize="small"] #cut-button[disabled],
+toolbar[iconsize="small"] #cut-button[disabled]:hover:active {
+  list-style-image: url("chrome://penelope/skin/icons/tbar16-disabled.png");
+  -moz-image-region: rect(0px 543px 15px 528px) !important;
+}
+
+/**************************************************************************/
+
+toolbar[iconsize="small"] #copy-button,
 toolbar[iconsize="small"] #copy-button:hover {
-  -moz-image-region: rect(0px 560px 16px 544px);
-} 
-
-toolbar[iconsize="small"] #copy-button[disabled="true"] {
-  list-style-image: url("chrome://penelope/skin/icons/tbar16-disabled.png");
-  -moz-image-region: rect(0px 560px 16px 544px) !important;
-}
-toolbar[iconsize="small"] #paste-button {
   list-style-image: url("chrome://penelope/skin/icons/tbar16.png");
-  -moz-image-region: rect(0px 576px 16px 560px);
+  -moz-image-region: rect(0px 559px 15px 544px);
 }
 
+toolbar[iconsize="small"] #copy-button:hover:active {
+  list-style-image: url("chrome://penelope/skin/icons/tbar16-active.png");
+  -moz-image-region: rect(0px 559px 15px 544px);
+}
+
+toolbar[iconsize="small"] #copy-button[disabled],
+toolbar[iconsize="small"] #copy-button[disabled]:hover:active {
+  list-style-image: url("chrome://penelope/skin/icons/tbar16-disabled.png");
+  -moz-image-region: rect(0px 559px 15px 544px) !important;
+}
+
+/**************************************************************************/
+
+toolbar[iconsize="small"] #paste-button,
 toolbar[iconsize="small"] #paste-button:hover {
-  -moz-image-region: rect(0px 576px 16px 560px);
+  list-style-image: url("chrome://penelope/skin/icons/tbar16.png");
+  -moz-image-region: rect(0px 575px 15px 560px);
+}
+
+toolbar[iconsize="small"] #paste-button:hover:active {
+  list-style-image: url("chrome://penelope/skin/icons/tbar16-active.png");
+  -moz-image-region: rect(0px 575px 15px 560px);
+}
+
+toolbar[iconsize="small"] #paste-button[disabled],
+toolbar[iconsize="small"] #paste-button[disabled]:hover:active {
+  list-style-image: url("chrome://penelope/skin/icons/tbar16-disabled.png");
+  -moz-image-region: rect(0px 575px 15px 560px) !important;
+}
+
+/**************************************************************************/
+
+toolbar[iconsize="small"] #button-rewrap,
+toolbar[iconsize="small"] #button-rewrap:hover {
+  list-style-image: url("chrome://penelope/skin/icons/tbar16.png");
+  -moz-image-region: rect(0px 639px 15px 624px);
+}
+
+toolbar[iconsize="small"] #button-rewrap:hover:active {
+  list-style-image: url("chrome://penelope/skin/icons/tbar16-active.png");
+  -moz-image-region: rect(0px 639px 15px 624px);
 } 
 
-toolbar[iconsize="small"] #paste-button[disabled="true"] {
+toolbar[iconsize="small"] #button-rewrap[disabled],
+toolbar[iconsize="small"] #button-rewrap[disabled]:hover:active {
   list-style-image: url("chrome://penelope/skin/icons/tbar16-disabled.png");
-  -moz-image-region: rect(0px 576px 16px 560px) !important;
+  -moz-image-region: rect(0px 639px 15px 624px) !important;
 }
 
+/**************************************************************************/

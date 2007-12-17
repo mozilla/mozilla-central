@@ -39,7 +39,8 @@ var PenelopeGlobal = {
     onLoad: function() 
     { 
         // quit if this function has already been called
-        if (arguments.callee.done) return;
+        if (arguments.callee.done)
+            return;
 
         // flag this function so we don't do the same thing twice
         arguments.callee.done = true;
@@ -61,15 +62,13 @@ function updateSelectedTextUrlLabels()
                 getService(Components.interfaces.nsIPrefBranch);
 
     // Get the URL prefs
-    var menu;
-    var url;
     for (var urlnum=1; urlnum<=6; urlnum++)
     {
-        menu = document.getElementById('penelopeDoSelectedTextUrl'+urlnum);
+        var menu = document.getElementById('penelopeDoSelectedTextUrl'+urlnum);
         try
         {
-            url = prefs.getCharPref("penelope.selectedTextURL"+urlnum);
-            name = url.split(",")[0];
+            var url = prefs.getCharPref("penelope.selectedTextURL"+urlnum);
+            var name = url.split(",")[0];
             if (name)
             {
                 menu.setAttribute('label', name);
@@ -126,13 +125,12 @@ function doSelectedTextUrl(number)
     var str = "penelope.selectedTextURL"+number;
     try 
     {
-        entry = prefs.getCharPref(str);
+        var entry = prefs.getCharPref(str);
         if (entry)
         {
-            selectedText = penelopeGetSelectedText();
-            sep = entry.indexOf(",");
-            name = entry.substring(0,sep-1);
-            url = entry.substring(sep+1, entry.length);
+            var selectedText = penelopeGetSelectedText();
+            var sep = entry.indexOf(",");
+            var url = entry.substring(sep+1, entry.length);
             url = url.replace("%s", selectedText);
             openURL(url);
         }
@@ -236,7 +234,7 @@ function loadKeySet(strings)
 
 function setKey(key, value)
 {
-    properties = value.split("][");
+    var properties = value.split("][");
 
     if(properties[0] == "!")
     {
