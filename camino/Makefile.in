@@ -51,6 +51,7 @@ DIRS = \
 APP_NAME	= Camino
 
 PYTHON ?= python
+RSYNC_ALL = rsync -aC --exclude .cvsignore --delete
 
 CM_APP_VERSION_FILE = $(srcdir)/config/version.txt
 CM_APP_VERSION := $(shell cat $(CM_APP_VERSION_FILE))
@@ -61,9 +62,12 @@ FOX_APP_VERSION := $(shell cat $(FOX_APP_VERSION_FILE))
 PLATFORM_VERSION_FILE = $(topsrcdir)/config/milestone.txt
 PLATFORM_VERSION := $(shell egrep "^[^\#]+" $(PLATFORM_VERSION_FILE))
 PLATFORM_BUILD_ID_FILE = generated/platform_build_id
-PLATFORM_BUILD_ID := $(shell $(PYTHON) $(topsrcdir)/toolkit/xre/make-platformini.py --print-buildid)
+PLATFORM_BUILD_ID := \
+	$(shell $(PYTHON) \
+	$(topsrcdir)/toolkit/xre/make-platformini.py --print-buildid)
 PLATFORM_INI_FILE = ../toolkit/xre/platform.ini
-STRINGS_FILES = resources/localized/English.lproj/CertificateDialogs.strings \
+STRINGS_FILES = \
+	resources/localized/English.lproj/CertificateDialogs.strings \
 	resources/localized/English.lproj/Localizable.strings \
 	PreferencePanes/Appearance/English.lproj/Localizable.strings \
 	PreferencePanes/Appearance/English.lproj/RegionNames.strings \
@@ -89,7 +93,13 @@ else
 TARGET		= Camino
 endif
 
-GARBAGE_DIRS += build \
+GARBAGE += \
+	$(PLATFORM_INI_FILE) \
+	$(DIST)/bin/platform.ini \
+	$(NULL)
+
+GARBAGE_DIRS += \
+	build \
 	$(DIST)/$(APP_NAME).app \
 	embed-replacements.tmp \
 	generated \
@@ -103,9 +113,10 @@ unexport CC CXX
 ABS_topsrcdir := $(shell cd $(topsrcdir); pwd)
 
 export::
-	mkdir -p ./wallet/tables && ln -sf $(ABS_topsrcdir)/extensions/wallet/src/*.tbl ./wallet/tables
+	mkdir -p wallet/tables
+	ln -fs $(ABS_topsrcdir)/extensions/wallet/src/*.tbl wallet/tables
 ifneq ($(ABS_topsrcdir),$(MOZ_BUILD_ROOT))
-	rsync -a --exclude .DS_Store --exclude "CVS/" --exclude "*.mode1" --exclude "*.pbxuser" $(srcdir)/Camino.xcodeproj .
+	$(RSYNC_ALL) $(srcdir)/Camino.xcodeproj .
 	ln -fs $(srcdir)/src
 	ln -fs $(srcdir)/resources
 	ln -fs $(srcdir)/config
@@ -113,7 +124,7 @@ ifneq ($(ABS_topsrcdir),$(MOZ_BUILD_ROOT))
 	rm -rf sparkle/Sparkle.xcodeproj
 	ln -fs $(ABS_topsrcdir)/camino/sparkle/* sparkle
 	rm -rf sparkle/Sparkle.xcodeproj
-	rsync -aC $(ABS_topsrcdir)/camino/sparkle/Sparkle.xcodeproj sparkle
+	$(RSYNC_ALL) $(ABS_topsrcdir)/camino/sparkle/Sparkle.xcodeproj sparkle
 	ln -fs $(srcdir)/PreferencePanes
 	ln -fs $(srcdir)/Info-*.plist .
 endif
@@ -121,27 +132,42 @@ endif
 generated:
 	mkdir -p $@
 
-# Generate files which need to pull version numbers or dates from other files in the tree
-generated/resources/application/all-camino.js: $(srcdir)/resources/application/all-camino.js.in $(FOX_APP_VERSION_FILE) $(CM_APP_VERSION_FILE) generated
+# Generate files which need to pull version numbers or dates from other files
+# in the tree
+generated/resources/application/all-camino.js: \
+  $(srcdir)/resources/application/all-camino.js.in \
+  $(FOX_APP_VERSION_FILE) \
+  $(CM_APP_VERSION_FILE) \
+  generated
 	mkdir -p $(dir $@)
 	sed -e "s/%FOX_APP_VERSION%/$(FOX_APP_VERSION)/" \
 	    -e "s/%CM_APP_VERSION%/$(CM_APP_VERSION)/" $< > $@
 
-generated/Info-Camino.plist: $(srcdir)/Info-Camino.plist.in $(CM_APP_VERSION_FILE) $(CM_COPYRIGHT_YEAR_FILE) generated
+generated/Info-Camino.plist: \
+  $(srcdir)/Info-Camino.plist.in \
+  $(CM_APP_VERSION_FILE) \
+  $(CM_COPYRIGHT_YEAR_FILE) \
+  generated
 	mkdir -p $(dir $@)
 	sed -e "s/%CM_APP_VERSION%/$(CM_APP_VERSION)/" \
 	    -e "s/%CM_COPYRIGHT_YEAR%/$(CM_COPYRIGHT_YEAR)/" $< > $@
 
-generated/resources/localized/English.lproj/InfoPlist.strings: $(srcdir)/resources/localized/English.lproj/InfoPlist.strings.in $(CM_APP_VERSION_FILE) $(CM_COPYRIGHT_YEAR_FILE) generated
+generated/resources/localized/English.lproj/InfoPlist.strings: \
+  $(srcdir)/resources/localized/English.lproj/InfoPlist.strings.in \
+  $(CM_APP_VERSION_FILE) \
+  $(CM_COPYRIGHT_YEAR_FILE) \
+  generated
 	mkdir -p $(dir $@)
 	sed -e "s/%CM_APP_VERSION%/$(CM_APP_VERSION)/" \
 	    -e "s/%CM_COPYRIGHT_YEAR%/$(CM_COPYRIGHT_YEAR)/" $< | \
 	  iconv -f UTF-8 -t UTF-16 > $@
 
-# Generate UTF-16 with BOM strings files from UTF-8 strings.in files.  On Mac OS 
-# X, iconv seems always to output big-endian when asked for UTF-16 with a BOM, 
-# which is what AppleGlot seems to require.
-$(GENERATED_STRINGS_FILES): generated/%.strings: $(srcdir)/%.strings.in generated
+# Generate UTF-16 with BOM strings files from UTF-8 strings.in files.  On Mac
+# OS X, iconv seems always to output big-endian when asked for UTF-16 with a
+# BOM, which is what AppleGlot seems to require.
+$(GENERATED_STRINGS_FILES): \
+  generated/%.strings: $(srcdir)/%.strings.in \
+  generated
 	mkdir -p $(dir $@)
 	iconv -f UTF-8 -t UTF-16 $< > $@
 
@@ -162,28 +188,34 @@ $(PLATFORM_INI_FILE): $(PLATFORM_BUILD_ID_FILE) $(PLATFORM_VERSION_FILE)
 	echo Milestone=$(PLATFORM_VERSION) >> $@
 	$(INSTALL) $@ $(DIST)/bin
 
-clean clobber::
-	rm -rf $(PLATFORM_INI_FILE) $(DIST)/bin/platform.ini
-
-generated/CmXULAppData.h: $(srcdir)/src/embedding/CmXULAppData.h.in $(PLATFORM_BUILD_ID_FILE) $(PLATFORM_VERSION_FILE) $(CM_APP_VERSION_FILE)
+generated/CmXULAppData.h: \
+  $(srcdir)/src/embedding/CmXULAppData.h.in \
+  $(PLATFORM_BUILD_ID_FILE) \
+  $(PLATFORM_VERSION_FILE) \
+  $(CM_APP_VERSION_FILE)
 	sed -e "s/%PLATFORM_BUILD_ID%/$(PLATFORM_BUILD_ID)/" \
 	    -e "s/%PLATFORM_VERSION%/$(PLATFORM_VERSION)/" \
 	    -e "s/%CM_APP_VERSION%/$(CM_APP_VERSION)/" $< > $@
 
 # The embed-replacements rsync is done for both srcdir and objdir builds
 # to avoid adding CVS stuff to embed.jar.
-libs:: generated/resources/application/all-camino.js generated/Info-Camino.plist generated/resources/localized/English.lproj/InfoPlist.strings $(GENERATED_STRINGS_FILES) generated/CmXULAppData.h $(PLATFORM_INI_FILE)
-	rsync -aC --delete $(srcdir)/embed-replacements/ embed-replacements.tmp
-	cd embed-replacements.tmp && $(ZIP) -r0DX ../../dist/Embed/chrome/embed.jar *
-	$(PBBUILD) -project Camino.xcodeproj -target $(TARGET) -configuration $(BUILDSTYLE) $(PBBUILD_SETTINGS)
-
-libs::
-	rsync -a --copy-unsafe-links $(XCODE_PRODUCT_DIR)/Camino.app/ $(DIST)/$(APP_NAME).app
+libs:: \
+  generated/resources/application/all-camino.js \
+  generated/Info-Camino.plist \
+  generated/resources/localized/English.lproj/InfoPlist.strings \
+  $(GENERATED_STRINGS_FILES) \
+  generated/CmXULAppData.h \
+  $(PLATFORM_INI_FILE)
+	$(RSYNC_ALL) $(srcdir)/embed-replacements/ embed-replacements.tmp
+	cd embed-replacements.tmp && \
+	  $(ZIP) -r0DX ../../dist/Embed/chrome/embed.jar *
+	$(PBBUILD) -project Camino.xcodeproj -target $(TARGET) \
+	  -configuration $(BUILDSTYLE) $(PBBUILD_SETTINGS)
+	$(RSYNC_ALL) --copy-unsafe-links \
+	  $(XCODE_PRODUCT_DIR)/Camino.app/ $(DIST)/$(APP_NAME).app
 	$(RM) $(DIST)/$(APP_NAME).app/Contents/MacOS/components/camino.xpt
-	$(XPIDL_LINK) $(DIST)/$(APP_NAME).app/Contents/MacOS/camino.xpt $(DIST)/$(APP_NAME).app/Contents/MacOS/components/*.xpt
+	$(XPIDL_LINK) $(DIST)/$(APP_NAME).app/Contents/MacOS/camino.xpt \
+	  $(DIST)/$(APP_NAME).app/Contents/MacOS/components/*.xpt
 	$(RM) $(DIST)/$(APP_NAME).app/Contents/MacOS/components/*.xpt
-	mv $(DIST)/$(APP_NAME).app/Contents/MacOS/camino.xpt $(DIST)/$(APP_NAME).app/Contents/MacOS/components/camino.xpt
-
-# convenience target for PB script build phases
-echo_srcdir:
-	@echo $(srcdir)
+	mv $(DIST)/$(APP_NAME).app/Contents/MacOS/camino.xpt \
+	  $(DIST)/$(APP_NAME).app/Contents/MacOS/components/camino.xpt

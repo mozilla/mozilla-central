@@ -54,7 +54,10 @@ MOZ_PKG_MAC_ICON=../camino/resources/package/disk.icns
 # The docs aren't copied into an objdir, chase them in the srcdir.
 # Use $(_ABS_TOPSRCDIR) for an absolute path, handling both srcdir and
 # objdir builds.
-MOZ_PKG_MAC_EXTRA=--format "UDBZ" --copy "$(_ABS_TOPSRCDIR)/camino/docs/ReadMe.rtf" --copy "$(_ABS_TOPSRCDIR)/camino/docs/Release Notes $(_RELNOTE_VERSION).rtf:Release Notes.rtf" --attribute "E:/ReadMe.rtf:/Release Notes.rtf"
+MOZ_PKG_MAC_EXTRA=--format "UDBZ" \
+                  --copy "$(_ABS_TOPSRCDIR)/camino/docs/ReadMe.rtf" \
+                  --copy "$(_ABS_TOPSRCDIR)/camino/docs/Release Notes $(_RELNOTE_VERSION).rtf:Release Notes.rtf" \
+                  --attribute "E:/ReadMe.rtf:/Release Notes.rtf"
 
 include $(topsrcdir)/toolkit/mozapps/installer/packager.mk
 

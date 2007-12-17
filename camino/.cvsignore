@@ -1,2 +1,5 @@
 Makefile
+build
+embed-replacements.tmp
 generated
+wallet
