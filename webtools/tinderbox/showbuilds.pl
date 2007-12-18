@@ -238,8 +238,12 @@ sub print_page_head($$) {
     }
     if (&is_tree_state_available($tree)) {
         print "<a NAME=\"open\"></a>";
-        print "The tree is <font size=+2>";
-        print (&is_tree_open($tree) ? 'open' : 'closed');
+        print 'The tree is <font size="+2" ';
+        if (is_tree_open($tree)) {
+            print 'color="green">OPEN';
+        } else {
+            print 'color="red">CLOSED';
+        }
         print "</font>\n";
     }
 }
