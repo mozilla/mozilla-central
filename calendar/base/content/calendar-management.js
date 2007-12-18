@@ -206,6 +206,12 @@ var calendarListTreeView = {
     treebox: null,
     mContextElement: null,
 
+    QueryInterface: function cLTV_QueryInterface(aIID) {
+        return doQueryInterface(this, calendarListTreeView.__proto__, aIID,
+                                [Components.interfaces.nsISupports,
+                                 Components.interfaces.nsITreeView]);
+    },
+
     /**
      * High-level calendar tree manipulation
      */
@@ -301,6 +307,8 @@ var calendarListTreeView = {
         return this.mCalendarList.length;
     },
 
+    getRowProperties: function cLTV_getRowProperties(aRow, aProps) {},
+
     getCellProperties: function cLTV_getCellProperties(aRow, aCol, aProps) {
         var calendar = this.mCalendarList[aRow];
         var composite = getCompositeCalendar();
@@ -335,6 +343,82 @@ var calendarListTreeView = {
         }
     },
 
+    getColumnProperties: function cLTV_getColumnProperties(a, aProps) {},
+
+    isContainer: function cLTV_isContainer(aRow) {
+        return false;
+    },
+
+    isContainerOpen: function cLTV_isContainerOpen(aRow) {
+        return false;
+    },
+
+    isContainerEmpty: function cLTV_isContainerEmpty(aRow) {
+        return false;
+    },
+
+    isSeparator: function cLTV_isSeparator(aRow) {
+        return false;
+    },
+
+    isSorted: function cLTV_isSorted(aRow) {
+        return false;
+    },
+
+    canDrop: function cLTV_canDrop(aRow, aOrientation) {
+        return false;
+    },
+
+    drop: function cLTV_drop(aRow, aOrientation) {},
+
+    getParentIndex: function cLTV_getParentIndex(aRow) {
+        return -1;
+    },
+
+    hasNextSibling: function cLTV_hasNextSibling(aRow, aAfterIndex) {},
+
+    getLevel: function cLTV_getLevel(aRow) {
+        return 0;
+    },
+
+    getImageSrc: function cLTV_getImageSrc(aRow, aOrientation) {},
+
+    getProgressMode: function cLTV_getProgressMode(aRow, aCol) {},
+
+    getCellValue: function cLTV_getCellValue(aRow, aCol) {
+        var calendar = this.mCalendarList[aRow];
+        var composite = getCompositeCalendar();
+
+        switch (aCol.id) {
+            case "calendar-list-tree-checkbox":
+                return composite.getCalendar(calendar.uri) ? "true" : "false";
+            case "calendar-list-tree-color":
+                // The value of this cell shows the calendar readonly state
+                return (calendar.readOnly ? "true" : "false");
+        }
+        return null;
+    },
+
+    getCellText: function cLTV_getCellText(aRow, aCol) {
+        var calendar = this.mCalendarList[aRow];
+        var composite = getCompositeCalendar();
+
+        switch (aCol.id) {
+            case "calendar-list-tree-calendar":
+                return this.mCalendarList[aRow].name;
+
+        }
+        return "";
+    },
+
+    setTree: function cLTV_setTree(aTreeBox) {
+        this.treebox = aTreeBox;
+    },
+
+    toggleOpenState: function cLTV_toggleOpenState(aRow) {},
+
+    cycleHeader: function cLTV_cycleHeader(aCol) { },
+
     cycleCell: function cLTV_cycleCell(aRow, aCol) {
         var calendar = this.mCalendarList[aRow];
         var composite = getCompositeCalendar();
@@ -355,18 +439,8 @@ var calendarListTreeView = {
         this.treebox.invalidateRow(aRow);
     },
 
-    getCellValue: function cLTV_getCellValue(aRow, aCol) {
-        var calendar = this.mCalendarList[aRow];
-        var composite = getCompositeCalendar();
-
-        switch (aCol.id) {
-            case "calendar-list-tree-checkbox":
-                return composite.getCalendar(calendar.uri) ? "true" : "false";
-            case "calendar-list-tree-color":
-                // The value of this cell shows the calendar readonly state
-                return (calendar.readOnly ? "true" : "false");
-        }
-        return null;
+    isEditable: function cLTV_isEditable(aRow, aCol) {
+        return false;
     },
 
     setCellValue: function cLTV_setCellValue(aRow, aCol, aValue) {
@@ -390,51 +464,13 @@ var calendarListTreeView = {
         return aValue;
     },
 
-    getCellText: function cLTV_getCellText(aRow, aCol) {
-        var calendar = this.mCalendarList[aRow];
-        var composite = getCompositeCalendar();
+    setCellText: function cLTV_setCellText(aRow, aCol, aValue) {},
 
-        switch (aCol.id) {
-            case "calendar-list-tree-calendar":
-                return this.mCalendarList[aRow].name;
+    performAction: function cLTV_performAction(aAction) {},
 
-        }
-        return "";
-    },
+    performActionOnRow: function cLTV_performActionOnRow(aAction, aRow) {},
 
-    getImageSrc: function cLTV_getImageSrc(aRow, aCol) {
-        return null;
-    },
-
-    isEditable: function cLTV_isEditable(aRow, aCol) {
-        return false;
-    },
-
-    setTree: function cLTV_setTree(aTreeBox) {
-        this.treebox = aTreeBox;
-    },
-
-    isContainer: function cLTV_isContainer(aRow) {
-        return false;
-    },
-
-    isSeparator: function cLTV_isSeparator(aRow) {
-        return false;
-    },
-
-    isSorted: function cLTV_isSorted(aRow) {
-        return false;
-    },
-
-    getLevel: function cLTV_getLevel(aRow) {
-        return 0;
-    },
-
-    getRowProperties: function cLTV_getRowProperties(aRow, aProps) {},
-
-    getColumnProperties: function cLTV_getColumnProperties(aCol, aProps) {},
-
-    cycleHeader: function cLTV_cycleHeader(aCol) { },
+    performActionOnCell: function cLTV_performActionOnCell(aAction, aRow, aCol) {},
 
     /**
      * Calendar Tree Events
