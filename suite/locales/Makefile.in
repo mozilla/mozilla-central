@@ -132,6 +132,7 @@ install:: $(addsuffix .src,$(SEARCH_PLUGINS)) $(addsuffix .png,$(SEARCH_PLUGINS)
 libs-%:
 	@$(MAKE) -C ../../toolkit/locales libs-$*
 	@$(MAKE) -C ../../editor/ui/locales AB_CD=$* XPI_NAME=locale-$*
+	@$(MAKE) -C ../../extensions/irc/locales libs-$*
 	@$(MAKE) -C ../../extensions/reporter/locales libs AB_CD=$* XPI_NAME=locale-$*
 	@$(MAKE) -C ../../extensions/spellcheck/locales AB_CD=$* XPI_NAME=locale-$*
 	@$(MAKE) libs AB_CD=$* XPI_NAME=locale-$* PREF_DIR=defaults/pref
@@ -203,6 +204,7 @@ endif
 	$(RM) -r $(DIST)/xpi-stage/locale-$(AB_CD)/chrome/$(AB_CD)
 	cd $(DIST)/xpi-stage/locale-$(AB_CD) && \
 	  tar $(TAR_CREATE_FLAGS) - * | ( cd $(STAGEDIST) && tar -xf - )
+	$(MAKE) -C ../../extensions/irc/locales repackage-zip-$(AB_CD) STAGEDIST=$(STAGEDIST)
 ifneq (en,$(AB))
 ifneq (,$(filter mac cocoa,$(MOZ_WIDGET_TOOLKIT)))
 	mv $(_ABS_DIST)/l10n-stage/$(MOZ_PKG_APPNAME)/$(_APPNAME)/Contents/Resources/en.lproj $(_ABS_DIST)/l10n-stage/$(MOZ_PKG_APPNAME)/$(_APPNAME)/Contents/Resources/$(AB).lproj
@@ -224,7 +226,7 @@ langpack-%:
 	@$(NSINSTALL) -D $(DIST)/install
 	@$(RM) -rf $(DIST)/xpi-stage/locale-$(AB_CD)
 	@$(MAKE) libs-$(AB_CD) USE_EXTENSION_MANIFEST=1
-	$(PERL) $(topsrcdir)/config/preprocessor.pl $(DEFINES) $(ACDEFINES) -I$(call EXPAND_LOCALE_SRCDIR,toolkit/locales)/defines.inc -I$(LOCALE_SRCDIR)/defines.inc $(srcdir)/generic/install.rdf > $(FINAL_TARGET)/install.rdf
+	$(PYTHON) $(topsrcdir)/config/Preprocessor.py $(DEFINES) $(ACDEFINES) -I$(call EXPAND_LOCALE_SRCDIR,toolkit/locales)/defines.inc -I$(LOCALE_SRCDIR)/defines.inc $(srcdir)/generic/install.rdf > $(FINAL_TARGET)/install.rdf
 	cd $(DIST)/xpi-stage/locale-$(AB_CD) && \
 	  $(ZIP) -r9D $(LANGPACK_FILE) install.rdf chrome chrome.manifest defaults dictionaries searchplugins
 

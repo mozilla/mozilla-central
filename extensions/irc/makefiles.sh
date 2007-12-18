@@ -38,4 +38,5 @@
 
 add_makefiles "
   extensions/irc/Makefile
+  extensions/irc/locales/Makefile
 "

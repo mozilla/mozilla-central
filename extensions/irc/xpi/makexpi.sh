@@ -9,7 +9,6 @@ if [ -z "$XPIFILES" ]; then XPIFILES=$PWD/resources; fi
 if [ -z "$XPIROOT" ]; then XPIROOT=$PWD/xpi-tree; fi
 if [ -z "$JARROOT" ]; then JARROOT=$PWD/jar-tree; fi
 if [ -z "$LOCALEDIR" ]; then LOCALEDIR=$FEDIR/locales; fi
-if [ -z "$AB_CD" ]; then AB_CD=en-US; fi
 
 # Display all the settings and paths if we're in debug mode.
 if [ $DEBUG -ge 1 ]; then
@@ -21,7 +20,6 @@ if [ $DEBUG -ge 1 ]; then
 	echo "\$JARROOT   = $JARROOT"
 	echo "\$FEDIR     = $FEDIR"
 	echo "\$LOCALEDIR = $LOCALEDIR"
-	echo "\$AB_CD     = $AB_CD"
 fi
 
 ## Simple function to display all the parameters/arguments to itself.
@@ -120,37 +118,13 @@ if [ "$1" = "clean" ]; then
 fi
 
 
-# Check that requested language is in all-locales file (i.e. exists and it
-# allowed to be used). Fall back to en-US if not.
-# FIXME: THIS DOES NOT WORK WITH CYGWIN.
-grep -sx "$AB_CD" "$LOCALEDIR/all-locales" > /dev/null
-if [ $? != 0 ]; then
-  AB_CD=en-US
-fi
-if [ $DEBUG -ge 1 ]; then echo "Language   = $AB_CD"; fi
-
-
-# Set up where the actual localisation files are to be found; below $LOCALEDIR
-# for en-US, in l10n/ repository for other languages.
-if [ "$AB_CD" = "en-US" ]; then
-  L10NDIR="$LOCALEDIR/$AB_CD"
-else
-  L10NDIR="$FEDIR/../../../l10n/$AB_CD/extensions/irc"
-fi
-if [ $DEBUG -ge 1 ]; then echo "L10n dir   = $L10NDIR"; fi
-
-
 # Check directory setup.
-if ! [ -d "$CONFIGDIR" ]; then
-  echo "ERROR: mozilla/config directory (CONFIGDIR) not found."
-  exit 1
-fi
 if ! [ -d "$FEDIR" ]; then
   echo "ERROR: Base ChatZilla directory (FEDIR) not found."
   exit 1
 fi
-if ! [ -d "$L10NDIR" ]; then
-  echo "ERROR: Directory with localized files for $AB_CD language (L10NDIR) not found."
+if ! [ -d "$CONFIGDIR" ]; then
+  echo "ERROR: mozilla/config directory (CONFIGDIR) not found."
   exit 1
 fi
 
@@ -166,15 +140,8 @@ fi
 echo Beginning build of ChatZilla $VERSION...
 
 
-# Set up XPI name using version and language.
-if [ "$AB_CD" = "en-US" ]; then
-  XPINAME="chatzilla-$VERSION.xpi"
-else
-  XPINAME="chatzilla-$AB_CD-$VERSION.xpi"
-  echo "  NOTE: Building $AB_CD language."
-fi
-
-
+# Set up XPI name.
+XPINAME="chatzilla-$VERSION.xpi"
 # Check for an existing XPI file and print a warning.
 if [ -r "$XPINAME" ]; then
   echo "  WARNING: output XPI will be overwritten."
@@ -184,20 +151,20 @@ fi
 # Check for required directory layouts.
 echo -n "  Checking XPI structure"
 echo -n .
-if ! [ -d xpi-tree ]; then mkdir xpi-tree; fi
+if ! [ -d $XPIROOT ]; then mkdir -p $XPIROOT; fi
 echo -n .
-if ! [ -d xpi-tree/chrome ]; then mkdir xpi-tree/chrome; fi
+if ! [ -d $XPIROOT/chrome ]; then mkdir $XPIROOT/chrome; fi
 echo -n .
-if ! [ -d xpi-tree/chrome/icons ]; then mkdir xpi-tree/chrome/icons; fi
+if ! [ -d $XPIROOT/chrome/icons ]; then mkdir $XPIROOT/chrome/icons; fi
 echo -n .
-if ! [ -d xpi-tree/chrome/icons/default ]; then mkdir xpi-tree/chrome/icons/default; fi
+if ! [ -d $XPIROOT/chrome/icons/default ]; then mkdir $XPIROOT/chrome/icons/default; fi
 echo -n .
-if ! [ -d xpi-tree/components ]; then mkdir xpi-tree/components; fi
+if ! [ -d $XPIROOT/components ]; then mkdir $XPIROOT/components; fi
 echo   ".           done"
 
 echo -n "  Checking JAR structure"
 echo -n .
-if ! [ -d jar-tree ]; then mkdir jar-tree; fi
+if ! [ -d $JARROOT ]; then mkdir -p $JARROOT; fi
 echo   ".               done"
 
 
@@ -238,8 +205,8 @@ safeCommand $PERL make-jars.pl -v -z zip -p preprocessor.pl -s "$FEDIR/sm" -d "$
 echo -n .
 safeCommand $PERL make-jars.pl -v -z zip -p preprocessor.pl -s "$FEDIR/ff" -d "$JARROOT" '<' "$FEDIR/ff/jar.mn"
 echo -n .
-safeCommand $PERL preprocessor.pl -DAB_CD="$AB_CD" "$LOCALEDIR/jar.mn" '>' "$LOCALEDIR/jar.mn.pp"
-safeCommand $PERL make-jars.pl -v -z zip -p preprocessor.pl -s "$LOCALEDIR" -d "$JARROOT" -c "$L10NDIR" -- "-DAB_CD=\"$AB_CD\" -DMOZILLA_LOCALE_VERSION=\"\"" '<' "$LOCALEDIR/jar.mn.pp"
+safeCommand $PERL preprocessor.pl -DAB_CD="en-US" "$LOCALEDIR/jar.mn" '>' "$LOCALEDIR/jar.mn.pp"
+safeCommand $PERL make-jars.pl -v -z zip -p preprocessor.pl -s "$LOCALEDIR" -d "$JARROOT" -c "$LOCALEDIR/en-US" -- "-DAB_CD=\"en-US\" -DMOZILLA_LOCALE_VERSION=\"\"" '<' "$LOCALEDIR/jar.mn.pp"
 safeCommand rm "$LOCALEDIR/jar.mn.pp"
 echo -n .
 cd "$OLDPWD"
