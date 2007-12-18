@@ -42,7 +42,6 @@
 <!DOCTYPE dialog SYSTEM "chrome://messenger/locale/downloadheaders.dtd">
 
 <dialog xmlns="http://www.mozilla.org/keymaster/gatekeeper/there.is.only.xul"
-        xmlns:aaa="http://www.w3.org/2005/07/aaa"
         style="max-width: 27em;"
         buttonpack="center"
         ondialogaccept="return OkButtonCallback();"
@@ -64,8 +63,8 @@
         <radio id="some" selected="true" label="&download.label;"
                accesskey="&download.accesskey;"
                oncommand="setupDownloadUI(true);"
-               aaa:labelledby="some number headers"/>
-        <textbox id="number" size="7" aaa:labelledby="some number headers"/>
+               aria-labelledby="some number headers"/>
+        <textbox id="number" size="7" aria-labelledby="some number headers"/>
         <label value="&headers.label;" accesskey="&headers.accesskey;"
                id="headers" control="number"/>
       </hbox>
