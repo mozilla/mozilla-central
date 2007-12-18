@@ -37,12 +37,12 @@
  * ***** END LICENSE BLOCK ***** */
 
 #include "nsISupports.idl"
-#include "nsISupportsArray.idl"
 
 interface nsIMsgWindow;
 interface nsIMsgIncomingServer;
 interface nsIRDFResource;
 interface nsIRDFNode;
+interface nsISimpleEnumerator;
 
 [scriptable, uuid(61a08c3a-1dd2-11b2-b64f-c4b2de1cf129)]
 interface nsISubscribeDataSource : nsISupports {
@@ -55,7 +55,7 @@ interface nsISubscribeListener : nsISupports {
   void OnDonePopulating();
 };
 
-[scriptable, uuid(c075345d-c353-4a56-97d6-bc4d22020b43)]
+[scriptable, uuid(14b8597a-755b-4e93-b364-e0903801e6ea)]
 interface nsISubscribableServer : nsISupports {
   attribute nsISubscribeListener subscribeListener;
   attribute char delimiter;
@@ -90,8 +90,15 @@ interface nsISubscribableServer : nsISupports {
   boolean isSubscribable(in AUTF8String path);
   // if path is null, use the root
   AString getLeafName(in AUTF8String path);
-  // if path is null, use the root
-  void getChildren(in AUTF8String path, in nsISupportsArray array);
+
+  /**
+   * Returns the children underneath the specified uri (path).
+   *
+   * @param  aPath  The server's uri; If this is null or empty, then the
+   *                root server uri will be used.
+   * @return        Enumerator containing the children.
+   */
+  nsISimpleEnumerator getChildren(in AUTF8String aPath);
   // if path is null, use the root
   AUTF8String getFirstChildURI(in AUTF8String path);
 

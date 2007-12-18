@@ -37,22 +37,14 @@
  * ***** END LICENSE BLOCK ***** */
 
 #include "nsSubscribableServer.h"
-
-#include "nsCOMPtr.h"
-
-#include "nsReadableUtils.h"
 #include "prmem.h"
-
 #include "rdf.h"
 #include "nsRDFCID.h"
-#include "nsIRDFService.h"
-#include "nsIRDFDataSource.h"
-#include "nsIRDFResource.h"
-#include "nsIRDFLiteral.h"
 #include "nsIServiceManager.h"
-
 #include "nsMsgI18N.h"
 #include "nsMsgUtils.h"
+#include "nsCOMArray.h"
+#include "nsArrayEnumerator.h"
 
 static NS_DEFINE_CID(kRDFServiceCID, NS_RDFSERVICE_CID);
 
@@ -763,21 +755,21 @@ nsSubscribableServer::GetFirstChildURI(const nsACString &aPath,
 
 NS_IMETHODIMP
 nsSubscribableServer::GetChildren(const nsACString &aPath,
-                                  nsISupportsArray *array)
+                                  nsISimpleEnumerator **aResult)
 {
-    nsresult rv = NS_OK;
-    if (!array) return NS_ERROR_NULL_POINTER;
-
     SubscribeTreeNode *node = nsnull;
-    rv = FindAndCreateNode(aPath, &node);
-    NS_ENSURE_SUCCESS(rv,rv);
+    nsresult rv = FindAndCreateNode(aPath, &node);
+    NS_ENSURE_SUCCESS(rv, rv);
 
     NS_ASSERTION(node,"didn't find the node");
-    if (!node) return NS_ERROR_FAILURE;
+    if (!node)
+      return NS_ERROR_FAILURE;
 
     nsCAutoString uriPrefix;
     NS_ASSERTION(mTreeRoot, "no tree root!");
-    if (!mTreeRoot) return NS_ERROR_UNEXPECTED;
+    if (!mTreeRoot)
+      return NS_ERROR_UNEXPECTED;
+
     uriPrefix = mTreeRoot->name; // the root's name is the server uri
     uriPrefix += "/";
     if (!aPath.IsEmpty()) {
@@ -790,13 +782,18 @@ nsSubscribableServer::GetChildren(const nsACString &aPath,
     // in the subscribe dialog
     SubscribeTreeNode *current = node->lastChild;
     // return failure if there are no children.
-    if (!current) return NS_ERROR_FAILURE;
+    if (!current)
+      return NS_ERROR_FAILURE;
+
+    nsCOMArray<nsIRDFResource> result;
 
     while (current) {
         nsCAutoString uri;
         uri = uriPrefix;
         NS_ASSERTION(current->name, "no name");
-        if (!current->name) return NS_ERROR_FAILURE;
+        if (!current->name)
+          return NS_ERROR_FAILURE;
+
         uri += current->name;
 
         nsCOMPtr <nsIRDFResource> res;
@@ -805,12 +802,12 @@ nsSubscribableServer::GetChildren(const nsACString &aPath,
 
         // todo, is this creating nsMsgFolders?
         mRDFService->GetResource(uri, getter_AddRefs(res));
-        array->AppendElement(res);
+        result.AppendObject(res);
 
         current = current->prevSibling;
     }
 
-    return NS_OK;
+    return NS_NewArrayEnumerator(aResult, result);
 }
 
 NS_IMETHODIMP

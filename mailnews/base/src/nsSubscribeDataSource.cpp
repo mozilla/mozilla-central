@@ -251,27 +251,6 @@ nsSubscribeDataSource::GetTarget(nsIRDFResource *source,
   return(NS_RDF_NO_VALUE);
 }
 
-nsresult
-nsSubscribeDataSource::GetChildren(nsISubscribableServer *aServer, 
-                                   const nsACString &aRelativePath,
-                                   nsISimpleEnumerator** aResult)
-{
-    nsresult rv = NS_OK;
-    NS_ASSERTION(aServer && aResult, "no server or result");
-    if (!aServer || !aResult) return NS_ERROR_NULL_POINTER;       
-
-    nsCOMPtr<nsISupportsArray> children;
-    rv = NS_NewISupportsArray(getter_AddRefs(children));
-    NS_ENSURE_SUCCESS(rv,rv);
-    if (!children) return NS_ERROR_FAILURE;
-
-    rv = aServer->GetChildren(aRelativePath, children);
-    // GetChildren() can fail if there are no children
-    if (NS_FAILED(rv)) return rv;
-
-    return NS_NewArrayEnumerator(aResult, children);
-}
-
 NS_IMETHODIMP
 nsSubscribeDataSource::GetTargets(nsIRDFResource *source,
 				nsIRDFResource *property,
@@ -306,7 +285,7 @@ nsSubscribeDataSource::GetTargets(nsIRDFResource *source,
     }
 
     if (property == kNC_Child.get()) {
-        rv = GetChildren(server, relativePath, targets);
+        rv = server->GetChildren(relativePath, targets);
         if (NS_FAILED(rv)) {
             return NS_NewEmptyEnumerator(targets);
         }

@@ -45,11 +45,7 @@
 #include "nsMsgImapCID.h"
 
 #include "netCore.h"
-
-#include "nsString.h"
-#include "nsReadableUtils.h"
 #include "nsISupportsObsolete.h"
-
 #include "nsIMAPHostSessionList.h"
 #include "nsImapIncomingServer.h"
 #include "nsIMsgAccountManager.h"
@@ -2889,11 +2885,12 @@ nsImapIncomingServer::GetFirstChildURI(const nsACString &path, nsACString &aResu
 
 
 NS_IMETHODIMP
-nsImapIncomingServer::GetChildren(const nsACString &path, nsISupportsArray *array)
+nsImapIncomingServer::GetChildren(const nsACString &aPath,
+                                  nsISimpleEnumerator **aResult)
 {
   nsresult rv = EnsureInner();
   NS_ENSURE_SUCCESS(rv,rv);
-  return mInner->GetChildren(path, array);
+  return mInner->GetChildren(aPath, aResult);
 }
 
 nsresult

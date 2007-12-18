@@ -75,9 +75,6 @@ private:
   nsCOMPtr <nsIRDFService>       mRDFService;
   nsCOMPtr <nsISupportsArray>    mObservers;
 
-  nsresult GetChildren(nsISubscribableServer *aServer,
-                       const nsACString &aRelativePath,
-                       nsISimpleEnumerator** aResult);
   nsresult GetServerAndRelativePathFromResource(nsIRDFResource *source, nsISubscribableServer **server, char **relativePath);
   nsresult GetServerType(nsISubscribableServer *server, nsACString& serverType);
 

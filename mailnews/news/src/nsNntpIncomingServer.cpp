@@ -66,6 +66,7 @@
 #include "nsISupportsObsolete.h"
 #include "nsILineInputStream.h"
 #include "nsNetUtil.h"
+#include "nsISimpleEnumerator.h"
 
 #define INVALID_VERSION         0
 #define VALID_VERSION           1
@@ -1369,12 +1370,12 @@ nsNntpIncomingServer::GetFirstChildURI(const nsACString &path, nsACString &aResu
 }
 
 NS_IMETHODIMP
-nsNntpIncomingServer::GetChildren(const nsACString &path,
-                                  nsISupportsArray *array)
+nsNntpIncomingServer::GetChildren(const nsACString &aPath,
+                                  nsISimpleEnumerator **aResult)
 {
     nsresult rv = EnsureInner();
     NS_ENSURE_SUCCESS(rv,rv);
-    return mInner->GetChildren(path, array);
+    return mInner->GetChildren(aPath, aResult);
 }
 
 NS_IMETHODIMP

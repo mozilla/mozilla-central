@@ -51,7 +51,6 @@
 #include "nsAdapterEnumerator.h" 
 #include "nsIMsgWindow.h"
 #include "nsISubscribableServer.h"
-#include "nsVoidArray.h"
 #include "nsITimer.h"
 #include "nsILocalFile.h"
 #include "nsITreeView.h"
