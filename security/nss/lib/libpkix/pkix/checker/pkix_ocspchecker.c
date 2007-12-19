@@ -229,7 +229,6 @@ pkix_OcspChecker_Check(
                 cert,
                 procParams,
                 &passed,
-                &resultCode,
 		&nbioContext,
                 plContext),
                 PKIX_OCSPRESPONSEVERIFYSIGNATUREFAILED);
@@ -240,6 +239,7 @@ pkix_OcspChecker_Check(
         }
 
         if (passed == PKIX_FALSE) {
+                resultCode = PORT_GetError();
                 goto cleanup;
         }
 

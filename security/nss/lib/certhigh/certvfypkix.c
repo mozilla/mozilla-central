@@ -461,6 +461,9 @@ cert_CreatePkixProcessingParams(
     PRTime                  time,
     void                   *wincx,
     PRBool                  useArena,
+#ifdef DEBUG_volkov
+    PRBool                  checkAllCertsOCSP,
+#endif
     PKIX_ProcessingParams **pprocParams,
     void                  **pplContext)
 {
@@ -472,6 +475,9 @@ cert_CreatePkixProcessingParams(
     PKIX_ComCertSelParams *certSelParams = NULL;
     PKIX_CertStore        *certStore = NULL;
     PKIX_List             *certStores = NULL;
+#ifdef DEBUG_volkov
+    PKIX_RevocationChecker *ocspChecker = NULL;
+#endif
     void                  *plContext = NULL;
     
     PKIX_ENTER(CERTVFYPKIX, "cert_CreatePkixProcessingParams");
@@ -566,6 +572,22 @@ cert_CreatePkixProcessingParams(
                                                              plContext),
         PKIX_PROCESSINGPARAMSSETNISTREVOCATIONENABLEDFAILED);
 
+#ifdef DEBUG_volkov
+    /* Enables ocsp rev checking of the chain cert through pkix OCSP
+     * implementation. */
+    if (checkAllCertsOCSP) {
+        PKIX_CHECK(
+            PKIX_OcspChecker_Initialize(date, NULL, NULL, 
+                                        &ocspChecker, plContext),
+            PKIX_PROCESSINGPARAMSSETDATEFAILED);
+        
+        PKIX_CHECK(
+            PKIX_ProcessingParams_AddRevocationChecker(procParams,
+                                                       ocspChecker, plContext),
+            PKIX_PROCESSINGPARAMSSETDATEFAILED);
+    }
+#endif
+
     PKIX_CHECK(
         PKIX_ProcessingParams_SetAnyPolicyInhibited(procParams, PR_FALSE,
                                                     plContext),
@@ -593,6 +615,9 @@ cleanup:
     PKIX_DECREF(certStore);
     PKIX_DECREF(certStores);
     PKIX_DECREF(procParams);
+#ifdef DEBUG_volkov    
+    PKIX_DECREF(ocspChecker);
+#endif
 
     PKIX_RETURN(CERTVFYPKIX);
 }
@@ -1126,6 +1151,13 @@ cert_VerifyCertChainPkix(
     error =
         cert_CreatePkixProcessingParams(cert, checkSig, time, wincx,
                                         PR_FALSE/*use arena*/,
+#ifdef DEBUG_volkov
+                                        /* If in DEBUG_volkov, then enable OCSP
+                                         * check for all certs in the chain
+                                         * using libpkix ocsp code.
+                                         * (except for certUsageStatusResponder). */
+                                        requiredUsage != certUsageStatusResponder,
+#endif
                                         &procParams, &plContext);
     if (error) {
         goto cleanup;

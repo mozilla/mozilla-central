@@ -36,7 +36,7 @@
 /*
  * ocspi.h - NSS internal interfaces to OCSP code
  *
- * $Id: ocspi.h,v 1.7 2007-10-04 13:04:42 kaie%kuix.de Exp $
+ * $Id: ocspi.h,v 1.8 2007-12-19 20:14:18 alexei.volkov.bugs%sun.com Exp $
  */
 
 #ifndef _OCSPI_H_
@@ -45,4 +45,22 @@
 SECStatus OCSP_InitGlobal(void);
 SECStatus OCSP_ShutdownGlobal(void);
 
+ocspResponseData *
+ocsp_GetResponseData(CERTOCSPResponse *response, SECItem **tbsResponseDataDER);
+
+ocspSignature *
+ocsp_GetResponseSignature(CERTOCSPResponse *response);
+
+PRBool
+ocsp_CertIsOCSPDefaultResponder(CERTCertDBHandle *handle, CERTCertificate *cert);
+
+CERTCertificate *
+ocsp_GetSignerCertificate(CERTCertDBHandle *handle, ocspResponseData *tbsData,
+                          ocspSignature *signature, CERTCertificate *issuer);
+
+SECStatus
+ocsp_VerifyResponseSignature(CERTCertificate *signerCert,
+                             ocspSignature *signature,
+                             SECItem *tbsResponseDataDER,
+                             void *pwArg);
 #endif /* _OCSPI_H_ */

@@ -39,7 +39,7 @@
  * Implementation of OCSP services, for both client and server.
  * (XXX, really, mostly just for client right now, but intended to do both.)
  *
- * $Id: ocsp.c,v 1.45 2007-12-05 07:41:19 kaie%kuix.de Exp $
+ * $Id: ocsp.c,v 1.46 2007-12-19 20:14:18 alexei.volkov.bugs%sun.com Exp $
  */
 
 #include "prerror.h"
@@ -63,6 +63,7 @@
 #include "cryptohi.h"
 #include "ocsp.h"
 #include "ocspti.h"
+#include "ocspi.h"
 #include "genname.h"
 #include "certxutl.h"
 #include "pk11func.h"	/* for PK11_HashBuf */
@@ -2587,7 +2588,7 @@ loser:
  *   Returns a pointer to ocspResponseData structure: decoded OCSP response
  *   data, and a pointer(tbsResponseDataDER) to its undecoded data DER.
  */
-static ocspResponseData *
+ocspResponseData *
 ocsp_GetResponseData(CERTOCSPResponse *response, SECItem **tbsResponseDataDER)
 {
     ocspBasicOCSPResponse *basic;
@@ -2620,7 +2621,7 @@ ocsp_GetResponseData(CERTOCSPResponse *response, SECItem **tbsResponseDataDER)
  * Much like the routine above, except it returns the response signature.
  * Again, no copy is done.
  */
-static ocspSignature *
+ocspSignature *
 ocsp_GetResponseSignature(CERTOCSPResponse *response)
 {
     ocspBasicOCSPResponse *basic;
@@ -3572,85 +3573,19 @@ ocsp_matchcert(SECItem *certIndex,CERTCertificate *testCert)
     return PR_FALSE;
 }
 
-static PRBool
-ocsp_CertIsOCSPDefaultResponder(CERTCertDBHandle *handle, CERTCertificate *cert);
-
 static CERTCertificate *
 ocsp_CertGetDefaultResponder(CERTCertDBHandle *handle,CERTOCSPCertID *certID);
 
-/*
- * FUNCTION: CERT_VerifyOCSPResponseSignature
- *   Check the signature on an OCSP Response.  Will also perform a
- *   verification of the signer's certificate.  Note, however, that a
- *   successful verification does not make any statement about the
- *   signer's *authority* to provide status for the certificate(s),
- *   that must be checked individually for each certificate.
- * INPUTS:
- *   CERTOCSPResponse *response
- *     Pointer to response structure with signature to be checked.
- *   CERTCertDBHandle *handle
- *     Pointer to CERTCertDBHandle for certificate DB to use for verification.
- *   void *pwArg
- *     Pointer to argument for password prompting, if needed.
- * OUTPUTS:
- *   CERTCertificate **pSignerCert
- *     Pointer in which to store signer's certificate; only filled-in if
- *     non-null.
- * RETURN:
- *   Returns SECSuccess when signature is valid, anything else means invalid.
- *   Possible errors set:
- *	SEC_ERROR_OCSP_MALFORMED_RESPONSE - unknown type of ResponderID
- *	SEC_ERROR_INVALID_TIME - bad format of "ProducedAt" time
- *	SEC_ERROR_UNKNOWN_SIGNER - signer's cert could not be found
- *	SEC_ERROR_BAD_SIGNATURE - the signature did not verify
- *   Other errors are any of the many possible failures in cert verification
- *   (e.g. SEC_ERROR_REVOKED_CERTIFICATE, SEC_ERROR_UNTRUSTED_ISSUER) when
- *   verifying the signer's cert, or low-level problems (no memory, etc.)
- */
-SECStatus
-CERT_VerifyOCSPResponseSignature(CERTOCSPResponse *response,	
-				 CERTCertDBHandle *handle, void *pwArg,
-				 CERTCertificate **pSignerCert,
-				 CERTCertificate *issuer)
+CERTCertificate *
+ocsp_GetSignerCertificate(CERTCertDBHandle *handle, ocspResponseData *tbsData,
+                          ocspSignature *signature, CERTCertificate *issuer)
 {
-    SECItem rawSignature;
-    SECItem *tbsResponseDataDER;
-    CERTCertificate *responder = NULL;
-    CERTCertificate *signerCert = NULL;
-    SECKEYPublicKey *signerKey = NULL;
     CERTCertificate **certs = NULL;
+    CERTCertificate *signerCert = NULL;
     SECStatus rv = SECFailure;
+    PRBool lookupByName = PR_TRUE;
+    void *certIndex = NULL;
     int certCount = 0;
-    PRBool lookupByName;
-    void *certIndex;
-    int64 producedAt;
-
-    /* ocsp_DecodeBasicOCSPResponse will fail if asn1 decoder is unable
-     * to properly decode tbsData (see the function and
-     * ocsp_BasicOCSPResponseTemplate). Thus, tbsData can not be
-     * equal to null */
-    ocspResponseData *tbsData = ocsp_GetResponseData(response,
-                                                     &tbsResponseDataDER);
-    ocspSignature *signature = ocsp_GetResponseSignature(response);
-
-    if (!signature) {
-        PORT_SetError(SEC_ERROR_OCSP_BAD_SIGNATURE);
-        return SECFailure;
-    }
-
-    /*
-     * If this signature has already gone through verification, just
-     * return the cached result.
-     */
-    if (signature->wasChecked) {
-	if (signature->status == SECSuccess) {
-	    if (pSignerCert != NULL)
-		*pSignerCert = CERT_DupCertificate(signature->cert);
-	} else {
-	    PORT_SetError(signature->failureReason);
-	}
-	return signature->status;
-    }
 
     PORT_Assert(tbsData->responderID != NULL);
     switch (tbsData->responderID->responderIDType) {
@@ -3666,7 +3601,7 @@ CERT_VerifyOCSPResponseSignature(CERTOCSPResponse *response,
     default:
 	PORT_Assert(0);
 	PORT_SetError(SEC_ERROR_OCSP_MALFORMED_RESPONSE);
-	return SECFailure;
+	return NULL;
     }
 
     /*
@@ -3717,7 +3652,8 @@ CERT_VerifyOCSPResponseSignature(CERTOCSPResponse *response,
 	 * passed in the cert list to use. Figure out which it is.
 	 */
 	int i;
-	responder = ocsp_CertGetDefaultResponder(handle,NULL);
+	CERTCertificate *responder = 
+            ocsp_CertGetDefaultResponder(handle, NULL);
 	if (responder && ocsp_matchcert(certIndex,responder)) {
 	    signerCert = CERT_DupCertificate(responder);
 	} else if (issuer && ocsp_matchcert(certIndex,issuer)) {
@@ -3730,6 +3666,129 @@ CERT_VerifyOCSPResponseSignature(CERTOCSPResponse *response,
 	}
     }
 
+finish:
+    if (certs != NULL) {
+	CERT_DestroyCertArray(certs, certCount);
+    }
+
+    return signerCert;
+}
+
+SECStatus
+ocsp_VerifyResponseSignature(CERTCertificate *signerCert,
+                             ocspSignature *signature,
+                             SECItem *tbsResponseDataDER,
+                             void *pwArg)
+{
+    SECItem rawSignature;
+    SECKEYPublicKey *signerKey = NULL;
+    SECStatus rv = SECFailure;
+
+    /*
+     * Now get the public key from the signer's certificate; we need
+     * it to perform the verification.
+     */
+    signerKey = CERT_ExtractPublicKey(signerCert);
+    if (signerKey == NULL)
+	return SECFailure;
+    /*
+     * We copy the signature data *pointer* and length, so that we can
+     * modify the length without damaging the original copy.  This is a
+     * simple copy, not a dup, so no destroy/free is necessary.
+     */
+    rawSignature = signature->signature;
+    /*
+     * The raw signature is a bit string, but we need to represent its
+     * length in bytes, because that is what the verify function expects.
+     */
+    DER_ConvertBitString(&rawSignature);
+
+    rv = VFY_VerifyDataWithAlgorithmID(tbsResponseDataDER->data,
+                                       tbsResponseDataDER->len,
+                                       signerKey, &rawSignature,
+                                       &signature->signatureAlgorithm,
+                                       NULL, pwArg);
+    if (rv != SECSuccess && PORT_GetError() == SEC_ERROR_BAD_SIGNATURE) {
+        PORT_SetError(SEC_ERROR_OCSP_BAD_SIGNATURE);
+    }
+    
+    if (signerKey != NULL) {
+        SECKEY_DestroyPublicKey(signerKey);
+    }
+
+    return rv;
+}
+
+
+/*
+ * FUNCTION: CERT_VerifyOCSPResponseSignature
+ *   Check the signature on an OCSP Response.  Will also perform a
+ *   verification of the signer's certificate.  Note, however, that a
+ *   successful verification does not make any statement about the
+ *   signer's *authority* to provide status for the certificate(s),
+ *   that must be checked individually for each certificate.
+ * INPUTS:
+ *   CERTOCSPResponse *response
+ *     Pointer to response structure with signature to be checked.
+ *   CERTCertDBHandle *handle
+ *     Pointer to CERTCertDBHandle for certificate DB to use for verification.
+ *   void *pwArg
+ *     Pointer to argument for password prompting, if needed.
+ * OUTPUTS:
+ *   CERTCertificate **pSignerCert
+ *     Pointer in which to store signer's certificate; only filled-in if
+ *     non-null.
+ * RETURN:
+ *   Returns SECSuccess when signature is valid, anything else means invalid.
+ *   Possible errors set:
+ *	SEC_ERROR_OCSP_MALFORMED_RESPONSE - unknown type of ResponderID
+ *	SEC_ERROR_INVALID_TIME - bad format of "ProducedAt" time
+ *	SEC_ERROR_UNKNOWN_SIGNER - signer's cert could not be found
+ *	SEC_ERROR_BAD_SIGNATURE - the signature did not verify
+ *   Other errors are any of the many possible failures in cert verification
+ *   (e.g. SEC_ERROR_REVOKED_CERTIFICATE, SEC_ERROR_UNTRUSTED_ISSUER) when
+ *   verifying the signer's cert, or low-level problems (no memory, etc.)
+ */
+SECStatus
+CERT_VerifyOCSPResponseSignature(CERTOCSPResponse *response,	
+				 CERTCertDBHandle *handle, void *pwArg,
+				 CERTCertificate **pSignerCert,
+				 CERTCertificate *issuer)
+{
+    SECItem *tbsResponseDataDER;
+    CERTCertificate *signerCert = NULL;
+    SECStatus rv = SECFailure;
+    int64 producedAt;
+
+    /* ocsp_DecodeBasicOCSPResponse will fail if asn1 decoder is unable
+     * to properly decode tbsData (see the function and
+     * ocsp_BasicOCSPResponseTemplate). Thus, tbsData can not be
+     * equal to null */
+    ocspResponseData *tbsData = ocsp_GetResponseData(response,
+                                                     &tbsResponseDataDER);
+    ocspSignature *signature = ocsp_GetResponseSignature(response);
+
+    if (!signature) {
+        PORT_SetError(SEC_ERROR_OCSP_BAD_SIGNATURE);
+        return SECFailure;
+    }
+
+    /*
+     * If this signature has already gone through verification, just
+     * return the cached result.
+     */
+    if (signature->wasChecked) {
+	if (signature->status == SECSuccess) {
+	    if (pSignerCert != NULL)
+		*pSignerCert = CERT_DupCertificate(signature->cert);
+	} else {
+	    PORT_SetError(signature->failureReason);
+	}
+	return signature->status;
+    }
+
+    signerCert = ocsp_GetSignerCertificate(handle, tbsData,
+                                           signature, issuer);
     if (signerCert == NULL) {
 	rv = SECFailure;
 	if (PORT_GetError() == SEC_ERROR_UNKNOWN_CERT) {
@@ -3764,48 +3823,23 @@ CERT_VerifyOCSPResponseSignature(CERTOCSPResponse *response,
     if (ocsp_CertIsOCSPDefaultResponder(handle, signerCert)) {
         rv = SECSuccess;
     } else {
+        SECCertUsage certUsage;
         if (CERT_IsCACert(signerCert, NULL)) {
-            rv = CERT_VerifyCert(handle, signerCert, PR_TRUE,
-                                 certUsageVerifyCA,
-                                 producedAt, pwArg, NULL);
+            certUsage = certUsageVerifyCA;
         } else {
-            rv = CERT_VerifyCert(handle, signerCert, PR_TRUE,
-                                 certUsageStatusResponder,
-                                 producedAt, pwArg, NULL);
+            certUsage = certUsageStatusResponder;
         }
+        rv = CERT_VerifyCert(handle, signerCert, PR_TRUE,
+                             certUsage, producedAt, pwArg, NULL);
         if (rv != SECSuccess) {
             PORT_SetError(SEC_ERROR_OCSP_INVALID_SIGNING_CERT);
             goto finish;
         }
     }
 
-    /*
-     * Now get the public key from the signer's certificate; we need
-     * it to perform the verification.
-     */
-    signerKey = CERT_ExtractPublicKey(signerCert);
-    if (signerKey == NULL)
-	goto finish;
-    /*
-     * We copy the signature data *pointer* and length, so that we can
-     * modify the length without damaging the original copy.  This is a
-     * simple copy, not a dup, so no destroy/free is necessary.
-     */
-    rawSignature = signature->signature;
-    /*
-     * The raw signature is a bit string, but we need to represent its
-     * length in bytes, because that is what the verify function expects.
-     */
-    DER_ConvertBitString(&rawSignature);
-
-    rv = VFY_VerifyDataWithAlgorithmID(tbsResponseDataDER->data,
-                                       tbsResponseDataDER->len,
-                                       signerKey, &rawSignature,
-                                       &signature->signatureAlgorithm,
-                                       NULL, pwArg);
-    if (rv != SECSuccess && PORT_GetError() == SEC_ERROR_BAD_SIGNATURE) {
-        PORT_SetError(SEC_ERROR_OCSP_BAD_SIGNATURE);
-    }
+    rv = ocsp_VerifyResponseSignature(signerCert, signature,
+                                      tbsResponseDataDER,
+                                      pwArg);
 
 finish:
     if (signature->wasChecked)
@@ -3828,13 +3862,6 @@ finish:
 	    *pSignerCert = CERT_DupCertificate(signerCert);
 	}
     }
-
-    if (signerKey != NULL)
-	SECKEY_DestroyPublicKey(signerKey);
-
-    if (certs != NULL)
-	CERT_DestroyCertArray(certs, certCount);
-	/* Free CERTS from SPKDigest Table */
 
     return rv;
 }
@@ -4013,7 +4040,7 @@ loser:
  * Return true if the cert is one of the default responders configured for
  * ocsp context. If not, or if any error, return false.
  */
-static PRBool
+PRBool
 ocsp_CertIsOCSPDefaultResponder(CERTCertDBHandle *handle, CERTCertificate *cert)
 {
     ocspCheckingContext *ocspcx;
