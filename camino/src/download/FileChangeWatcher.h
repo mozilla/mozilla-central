@@ -66,8 +66,9 @@
 //
 @interface FileChangeWatcher : NSObject
 {
- @private
-  NSMutableDictionary* mWatchedDirectories;  // strong ref
+@private
+  NSMutableDictionary* mWatchInfo;           // strong ref
+  NSMutableArray*      mWatchedDirectories;  // strong ref
   
   int          mQueueFileDesc;
   BOOL         mShouldRunThread;

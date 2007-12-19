@@ -610,6 +610,9 @@ enum {
 
 -(void)fileRemoved
 {
+  if (mIsBeingRemoved)
+    return;
+
   // This method gets called on a background thread, so switch the |checkFileExists| call to the main thread.
   NSAutoreleasePool *pool = [[NSAutoreleasePool alloc] init];
   [self performSelectorOnMainThread:@selector(checkFileExists)
@@ -808,6 +811,9 @@ enum {
 //
 -(void)displayWillBeRemoved
 {
+  // Mark ourselves as in tear-down so that we can ignore any file system
+  // notification that may come as we are unsubscribing ourselves.
+  mIsBeingRemoved = YES;
   // The file can only be watched if the download compeleted sucessfully
   if (mFileIsWatched)
     [self unsubscribeFileSystemNotification];

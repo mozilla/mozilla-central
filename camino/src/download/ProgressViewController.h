@@ -85,6 +85,7 @@ const int kRemoveUponSuccessfulDownloadPrefValue = 2;
   BOOL            mRefreshIcon;
   BOOL            mFileExists;
   BOOL            mFileIsWatched;
+  BOOL            mIsBeingRemoved;
   BOOL            mIsSelected;
 
   NSTimeInterval  mDownloadTime; // only set when done
