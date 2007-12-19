@@ -426,15 +426,11 @@ pkix_pl_Pk11CertStore_CrlQuery(
                          * the end of the list. If failure,
                          * no CRLs were appended.
                          */
-                        PKIX_PL_NSSCALLRV
-                            (CERTSTORE, rv, AcquireDPCache,
-                            (NULL,
-                            nameItem,
-                            NULL,
-                            0,
-                            wincx,
-                            &dpcache,
-                            &writeLocked));
+                        rv = AcquireDPCache(NULL, nameItem, NULL, 0,
+                                            wincx, &dpcache, &writeLocked);
+                        if (rv == SECFailure) {
+                            PKIX_ERROR(PKIX_FETCHINGCACHEDCRLFAILED);
+                        }
 
                         PKIX_PL_NSSCALLRV
                             (CERTSTORE, rv, DPCache_GetAllCRLs,

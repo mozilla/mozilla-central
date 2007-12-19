@@ -93,8 +93,10 @@ pkix_pl_CertPolicyQualifier_Create(
         qual->qualifier = qualifier;
 
         *pObject = qual;
+        qual = NULL;
 
 cleanup:
+        PKIX_DECREF(qual);
 
         PKIX_RETURN(CERTPOLICYQUALIFIER);
 }

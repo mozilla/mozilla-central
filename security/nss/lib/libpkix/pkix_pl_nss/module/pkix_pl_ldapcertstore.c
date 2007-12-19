@@ -81,8 +81,6 @@ pkix_pl_LdapCertStore_DecodeCrossCertPair(
         void *plContext)
 {
         LDAPCertPair certPair = {{ siBuffer, NULL, 0 }, { siBuffer, NULL, 0 }};
-        CERTCertificate *nssCert = NULL;
-        PKIX_PL_Cert *cert = NULL;
         SECStatus rv = SECFailure;
 
         PRArenaPool *tempArena = NULL;
@@ -90,72 +88,37 @@ pkix_pl_LdapCertStore_DecodeCrossCertPair(
         PKIX_ENTER(CERTSTORE, "pkix_pl_LdapCertStore_DecodeCrossCertPair");
         PKIX_NULLCHECK_TWO(derCCPItem, certList);
 
-        PKIX_PL_NSSCALLRV(CERTSTORE, tempArena, PORT_NewArena,
-                (DER_DEFAULT_CHUNKSIZE));
+        tempArena = PORT_NewArena(DER_DEFAULT_CHUNKSIZE);
+        if (!tempArena) {
+            PKIX_ERROR(PKIX_PORTNEWARENAFAILED);
+        }
 
-        PKIX_PL_NSSCALLRV(CERTSTORE, rv, SEC_ASN1DecodeItem,
-                (tempArena,
-                &certPair,
-                PKIX_PL_LDAPCrossCertPairTemplate,
-                derCCPItem));
-
+        rv = SEC_ASN1DecodeItem(tempArena, &certPair, PKIX_PL_LDAPCrossCertPairTemplate,
+                                derCCPItem);
         if (rv != SECSuccess) {
                 goto cleanup;
         }
 
         if (certPair.forward.data != NULL) {
 
-                PKIX_PL_NSSCALLRV
-                        (CERTSTORE, nssCert, CERT_DecodeDERCertificate,
-                        (&certPair.forward, PR_TRUE, NULL));
-
-                if (nssCert) {
-                        PKIX_CHECK_ONLY_FATAL(pkix_pl_Cert_CreateWithNSSCert
-                                (nssCert, &cert, plContext),
-                                PKIX_CERTCREATEWITHNSSCERTFAILED);
-
-                        /* skip bad certs and append good ones */
-                        if (!PKIX_ERROR_RECEIVED) {
-                                PKIX_CHECK(PKIX_List_AppendItem
-                                        (certList,
-                                        (PKIX_PL_Object *) cert,
-                                        plContext),
-                                        PKIX_LISTAPPENDITEMFAILED);
-                        }
-
-                        PKIX_DECREF(cert);
-                }
+            PKIX_CHECK(
+                pkix_pl_Cert_CreateToList(&certPair.forward, certList,
+                                          plContext),
+                PKIX_CERTCREATETOLISTFAILED);
         }
 
         if (certPair.reverse.data != NULL) {
 
-                PKIX_PL_NSSCALLRV
-                        (CERTSTORE, nssCert, CERT_DecodeDERCertificate,
-                        (&certPair.reverse, PR_TRUE, NULL));
-
-                if (nssCert) {
-                        PKIX_CHECK_ONLY_FATAL(pkix_pl_Cert_CreateWithNSSCert
-                                (nssCert, &cert, plContext),
-                                PKIX_CERTCREATEWITHNSSCERTFAILED);
-
-                        /* skip bad certs and append good ones */
-                        if (!PKIX_ERROR_RECEIVED) {
-                                PKIX_CHECK(PKIX_List_AppendItem
-                                        (certList,
-                                        (PKIX_PL_Object *) cert,
-                                        plContext),
-                                        PKIX_LISTAPPENDITEMFAILED);
-                        }
-
-                        PKIX_DECREF(cert);
-                }
+            PKIX_CHECK(
+                pkix_pl_Cert_CreateToList(&certPair.reverse, certList,
+                                          plContext),
+                PKIX_CERTCREATETOLISTFAILED);
         }
 
 cleanup:
-
-        PKIX_PL_NSSCALL(CERTSTORE, PORT_FreeArena, (tempArena, PR_FALSE));
-
-        PKIX_DECREF(cert);
+        if (tempArena) {
+            PORT_FreeArena(tempArena, PR_FALSE);
+        }
 
         PKIX_RETURN(CERTSTORE);
 }

@@ -105,8 +105,10 @@ pkix_pl_InfoAccess_Create(
         infoAccess->location = generalName;
 
         *pInfoAccess = infoAccess;
+        infoAccess = NULL;
 
 cleanup:
+        PKIX_DECREF(infoAccess);
 
         PKIX_RETURN(INFOACCESS);
 }
@@ -397,8 +399,6 @@ pkix_pl_InfoAccess_CreateList(
         PKIX_CHECK(PKIX_List_Create(&infoAccessList, plContext),
                 PKIX_LISTCREATEFAILED);
 
-        *pInfoAccessList = infoAccessList;
-
         if (nssInfoAccess == NULL) {
                 goto cleanup;
         }
@@ -474,12 +474,15 @@ pkix_pl_InfoAccess_CreateList(
                             plContext),
                             PKIX_LISTAPPENDITEMFAILED);
                 PKIX_DECREF(infoAccess);
+                PKIX_DECREF(location);
         }
 
         *pInfoAccessList = infoAccessList;
+        infoAccessList = NULL;
 
 cleanup:
 
+        PKIX_DECREF(infoAccessList);
         PKIX_DECREF(infoAccess);
         PKIX_DECREF(location);
 

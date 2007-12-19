@@ -96,8 +96,10 @@ pkix_pl_CertPolicyInfo_Create(
         policyInfo->policyQualifiers = qualifiers;
 
         *pObject = policyInfo;
+        policyInfo = NULL;
 
 cleanup:
+        PKIX_DECREF(policyInfo);
 
         PKIX_RETURN(CERTPOLICYINFO);
 }

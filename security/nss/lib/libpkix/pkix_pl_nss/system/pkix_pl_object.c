@@ -1197,7 +1197,7 @@ PKIX_PL_Object_ToString(
         PKIX_PL_Object *objectHeader = NULL;
         PKIX_PL_ToStringCallback func = NULL;
         pkix_ClassTable_Entry entry;
-        PKIX_PL_String *objectString;
+        PKIX_PL_String *objectString = NULL;
 
         PKIX_ENTER(OBJECT, "PKIX_PL_Object_ToString");
         PKIX_NULLCHECK_TWO(object, pString);
@@ -1262,6 +1262,7 @@ PKIX_PL_Object_ToString(
                         if (!objectHeader->stringRep){
                                 /* save a cached copy */
                                 objectHeader->stringRep = objectString;
+                                objectString = NULL;
                         }
 
                         PKIX_CHECK(pkix_UnlockObject(object, plContext),
@@ -1269,10 +1270,15 @@ PKIX_PL_Object_ToString(
                 }
         }
 
-        PKIX_INCREF(objectHeader->stringRep);
+
         *pString = objectHeader->stringRep;
+        objectHeader->stringRep = NULL;
 
 cleanup:
+        if (objectHeader) {
+            PKIX_DECREF(objectHeader->stringRep);
+        }
+        PKIX_DECREF(objectString);
 
         PKIX_RETURN(OBJECT);
 }

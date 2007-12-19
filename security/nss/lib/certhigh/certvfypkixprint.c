@@ -74,7 +74,8 @@ cleanup:
         }
 
         if (errorResult){
-                return (NULL);
+            PKIX_PL_Object_DecRef((PKIX_PL_Object*)errorResult, plContext);
+            return (NULL);
         }
 
         return (asciiString);

@@ -409,6 +409,7 @@ extern const PKIX_StdVars zeroStdVars;
 			((PKIX_PL_Object *)(obj), plContext); \
 	    if (pkixTempResult) { \
 		PKIX_DoAddError(&stdVars, pkixTempResult, plContext); \
+		pkixTempResult = NULL; \
 		goto cleanup; \
 	    } \
 	} \

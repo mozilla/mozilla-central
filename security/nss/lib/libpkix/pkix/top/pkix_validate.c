@@ -928,6 +928,7 @@ pkix_CheckChain(
         revChecking = *pRevChecking;
 
         for (j = *pCertCheckedIndex; j < numCerts; j++) {
+
                 PKIX_CHECK(PKIX_List_GetItem
                         (certs, j, (PKIX_PL_Object **)&cert, plContext),
                         PKIX_LISTGETITEMFAILED);
@@ -1025,17 +1026,19 @@ pkix_CheckChain(
         *pNBIOContext = NULL;
 
 cleanup:
-
         if (PKIX_ERROR_RECEIVED) {
-                checkCertError = pkixErrorResult;
+            pkixErrorReceived = PKIX_TRUE;
+            pkixErrorCode = pkixErrorResult->errCode;
+            checkCertError = pkixErrorResult;
+            
+            PKIX_CHECK_FATAL(
+                pkix_AddToVerifyLog(cert, j, checkCertError, pVerifyTree,
+                                    plContext),
+                PKIX_ADDTOVERIFYLOGFAILED);
         }
 
-        if (checkCertError) {
-                pkixTempResult = pkix_AddToVerifyLog
-                        (cert, j, checkCertError, pVerifyTree, plContext);
-                pkixErrorResult = checkCertError;
-        }
-
+fatal:
+        PKIX_DECREF(checkCertError);
         PKIX_DECREF(cert);
 
         PKIX_RETURN(VALIDATE);

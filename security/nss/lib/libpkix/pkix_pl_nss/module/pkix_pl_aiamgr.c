@@ -377,20 +377,23 @@ pkix_pl_AIAMgr_GetHTTPCerts(
 	                plContext),
 	                PKIX_HTTPCERTSTOREPROCESSCERTRESPONSEFAILED);
 
-		PKIX_DECREF(aiaMgr->client.hdata.requestSession);
-		PKIX_DECREF(aiaMgr->client.hdata.serverSession);
-		aiaMgr->client.hdata.httpClient = 0; /* not an object */
-
         } else  {
 		PKIX_ERROR(PKIX_UNSUPPORTEDVERSIONOFHTTPCLIENT);
 	}
 
 cleanup:
-	if (PKIX_ERROR_RECEIVED) {
-		PKIX_DECREF(aiaMgr->client.hdata.requestSession);
-		PKIX_DECREF(aiaMgr->client.hdata.serverSession);
-		aiaMgr->client.hdata.httpClient = 0; /* not an object */
-	}
+        if (aiaMgr) {
+            PKIX_DECREF(aiaMgr->client.hdata.requestSession);
+            PKIX_DECREF(aiaMgr->client.hdata.serverSession);
+            aiaMgr->client.hdata.httpClient = 0; /* callback fn */
+        }
+
+        PKIX_DECREF(location);
+        PKIX_DECREF(locationString);
+
+        if (locationAscii) {
+            PORT_Free(locationAscii);
+        }
 
         PKIX_RETURN(AIAMGR);
 }

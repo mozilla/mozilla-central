@@ -1218,8 +1218,9 @@ pkix_CertSelector_DefaultMatch(
         PKIX_NULLCHECK_THREE(selector, cert, pResult);
 
         *pResult = PKIX_TRUE;
+
+        PKIX_INCREF(selector->params);
         params = selector->params;
-        PKIX_INCREF(params);
 
         if (params == NULL){
                 goto cleanup;

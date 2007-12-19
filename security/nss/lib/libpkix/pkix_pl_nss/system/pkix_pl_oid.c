@@ -406,9 +406,10 @@ pkix_pl_OID_GetCriticalExtensionOIDs(
         }
 
         *pOidsList = oidsList;
-
+        oidsList = NULL;
+        
 cleanup:
-
+        PKIX_DECREF(oidsList);
         PKIX_FREE(oidAscii);
         PKIX_DECREF(pkixOID);
         PKIX_RETURN(OID);
