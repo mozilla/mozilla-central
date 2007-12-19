@@ -2949,7 +2949,7 @@ enum BWCOpenDest {
   }
 
   NS_ASSERTION([itemsArray count], "Displaying the Add Bookmark dialog with no URIs");
-  AddBookmarkDialogController* dlgController = [AddBookmarkDialogController sharedAddBookmarkDialogController];
+  AddBookmarkDialogController* dlgController = [AddBookmarkDialogController controller];
   [dlgController showDialogWithLocationsAndTitles:itemsArray isFolder:NO onWindow:[self window]];
 
   if (isTabGroup)
@@ -3023,7 +3023,7 @@ enum BWCOpenDest {
                                               urlStr, kAddBookmarkItemURLKey,
                                                       nil];
   NSArray* items = [NSArray arrayWithObject:itemInfo];
-  [[AddBookmarkDialogController sharedAddBookmarkDialogController] showDialogWithLocationsAndTitles:items isFolder:NO onWindow:[self window]];
+  [[AddBookmarkDialogController controller] showDialogWithLocationsAndTitles:items isFolder:NO onWindow:[self window]];
 }
 
 - (IBAction)addBookmarkFolder:(id)aSender
@@ -3036,7 +3036,7 @@ enum BWCOpenDest {
     [bookmarksController addBookmarkFolder:aSender];
   }
   else
-    [[AddBookmarkDialogController sharedAddBookmarkDialogController] showDialogWithLocationsAndTitles:nil isFolder:YES onWindow:[self window]];
+    [[AddBookmarkDialogController controller] showDialogWithLocationsAndTitles:nil isFolder:YES onWindow:[self window]];
 }
 
 - (IBAction)addBookmarkSeparator:(id)aSender

@@ -404,7 +404,7 @@ const int kOutlineViewLeftMargin = 19; // determined empirically, since it doesn
 
 - (IBAction)addBookmarkFolder:(id)aSender
 {
-  AddBookmarkDialogController* addBookmarkController = [AddBookmarkDialogController sharedAddBookmarkDialogController];
+  AddBookmarkDialogController* addBookmarkController = [AddBookmarkDialogController controller];
 
   int itemIndex;
   BookmarkFolder* parentFolder = [self selectedItemFolderAndIndex:&itemIndex];
