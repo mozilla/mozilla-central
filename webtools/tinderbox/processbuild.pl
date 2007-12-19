@@ -27,7 +27,6 @@ use Time::Local;
 use File::Copy;
 use File::Basename;
 use lib "@TINDERBOX_DIR@";
-require 'tbglobals.pl'; # for $gzip
 use strict;
 
 umask 002;
@@ -42,9 +41,12 @@ my @changed_trees=();
 my %scraped_trees;
 my $debug = 0;
 my $err = 0;
-my $rejected_mail_dir = "$::data_dir/bad";
 
 chdir $tinderboxdir or die "Couldn't chdir to $tinderboxdir"; 
+# Include tbglobals.pl after chdir so that $::tree_dir is set correctly
+require 'tbglobals.pl';
+
+my $rejected_mail_dir = "$::data_dir/bad";
 
 # parse args
 GetOptions("check-mail" => \$only_check_mail) or die ("Error parsing args.");
@@ -160,19 +162,19 @@ sub process_mailfile($) {
 
     # Warnings
     #   Look for build name in warningbuilds.pl
-    print "Warnings($tinderbox{tree}/$tinderbox{logfile})\n" if ($debug);
+    print "Warnings($tinderbox{tree}, $tinderbox{logfile})\n" if ($debug);
     undef %TreeConfig::warning_builds;
     package TreeConfig;
-    do "$tinderbox{tree}/warningbuilds.pl"
-        if -r "$tinderbox{tree}/warningbuilds.pl";
+    do "$::tree_dir/$tinderbox{tree}/warningbuilds.pl"
+        if -r "$::tree_dir/$tinderbox{tree}/warningbuilds.pl";
     package main;
 
     if (defined $TreeConfig::warning_builds
         and defined($TreeConfig::warning_builds->{$tinderbox{build}})
         and $tinderbox{status} ne 'building'
         and $tinderbox{status} ne 'failed') {
-        $err = system("./warnings.pl", "$tinderbox{tree}/$tinderbox{logfile}");
-        warn "warnings.pl($tinderbox{tree}/$tinderbox{logfile} returned an error\n" if ($err);
+        $err = system("./warnings.pl", $tinderbox{tree}, $tinderbox{logfile});
+        warn "warnings.pl($tinderbox{tree}, $tinderbox{logfile}) returned an error\n" if ($err);
     }
 
     # Scrape data
@@ -180,8 +182,8 @@ sub process_mailfile($) {
     print "Scrape($tinderbox{tree},$tinderbox{logfile})\n" if ($debug);
     undef %TreeConfig::scrape_builds;
     package TreeConfig;
-    do "$tinderbox{tree}/scrapebuilds.pl"
-        if -r "$tinderbox{tree}/scrapebuilds.pl";
+    do "$::tree_dir/$tinderbox{tree}/scrapebuilds.pl"
+        if -r "$::tree_dir/$tinderbox{tree}/scrapebuilds.pl";
     package main;
 
     if (defined $TreeConfig::scrape_builds
@@ -237,8 +239,8 @@ sub check_required_variables {
   if ($tbx->{tree} eq '') {
     $err_string .= "Variable 'tinderbox:tree' not set.\n";
   }
-  elsif (not -r $tbx->{tree}) {
-    $err_string .= "Variable 'tinderbox:tree' not set to a valid tree.\n";
+  elsif (! -d "$::tree_dir/$tbx->{tree}") {
+    $err_string .= "Variable 'tinderbox:tree' ($::tree_dir/$tbx->{tree}) not set to a valid tree.\n";
   }
   elsif (($mail_header->{'to'} =~ /external/i or
           $mail_header->{'cc'} =~ /external/i) and
@@ -320,10 +322,10 @@ sub check_required_variables {
 
 sub write_build_data {
   my $tbx = $_[0];
-  my $lockfile = "$tbx->{tree}/builddat.sem";
+  my $lockfile = "$::tree_dir/$tbx->{tree}/builddat.sem";
   my $lock = &lock_datafile($lockfile);
-  unless (open(BUILDDATA, ">>", "$tbx->{tree}/build.dat")) {
-      warn "can't open $tbx->{tree}/build.dat for writing: $!";
+  unless (open(BUILDDATA, ">>", "$::tree_dir/$tbx->{tree}/build.dat")) {
+      warn "can't open $::tree_dir/$tbx->{tree}/build.dat for writing: $!";
       &unlock_datafile($lock);
       return;
   }
@@ -351,7 +353,7 @@ sub compress_log_file {
     last if /^$/;
   }
 
-  my $logfile = "$tbx->{tree}/$tbx->{logfile}";
+  my $logfile = "$::tree_dir/$tbx->{tree}/$tbx->{logfile}";
   my $gz = gzopen($logfile,"wb") or $err++;
   if ($err) {
     warn "gzopen($logfile): $!\n";
@@ -371,7 +373,7 @@ sub compress_log_file {
 
     # Decode the log using the logencoding variable to determine
     # the type of encoding.
-    my $decoded = "$tbx->{tree}/$tbx->{logfile}.uncomp";
+    my $decoded = "$::tree_dir/$tbx->{tree}/$tbx->{logfile}.uncomp";
     if ($tbx->{logencoding} eq 'base64') {
       eval "use MIME::Base64 ();";
       open(DECODED, ">", $decoded) or $err++;

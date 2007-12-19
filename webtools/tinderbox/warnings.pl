@@ -80,7 +80,7 @@ require 'tbglobals.pl';
 # )
 
 sub usage {
-  warn "usage: warnings.pl <tree/logfile>\n";
+    warn "Usage: $0 [--debug] tree logfile\n";
 }
 
 $ENV{PATH} = "@SETUID_PATH@";
@@ -88,19 +88,15 @@ $ENV{PATH} = "@SETUID_PATH@";
 my $debug = 0;
 $debug = 1, shift @ARGV if $ARGV[0] eq '--debug';
 
-&usage, die "Error: Not enough arguments\n" if $#ARGV == -1;
+my $tree = shift @ARGV;
+my $log_file = shift @ARGV;
+
+&usage, die "Error: Not enough arguments\n" if (!defined($tree) || !defined($log_file));
+&usage, die "Logfile does not exist, $log_file\n" unless -e $log_file;
 
 # Load tinderbox build data.
 #   (So we can find the last successful build for the tree of intestest.)
-my $log_file = shift @ARGV;
-# tinderbox/tbglobals.pl uses many shameful globals
-
-&usage, die "Logfile does not exist, $log_file\n" unless -e $log_file;
-
-my $tree;
-($tree, $log_file) = split '/', $log_file;
 my %form;
-
 $tree = &require_only_one_tree($tree);
 $form{tree} = $tree;
 &tb_load_treedata($tree);
@@ -174,8 +170,8 @@ my $total_ignored_count = 0;
   #
   warn "Parsing $br->{buildname}, $log_file\n" if ($debug);
 
-  my $gz = gzopen("$tree/$log_file", "rb") or 
-    die "gzopen($tree/$log_file): $!\n";
+  my $gz = gzopen("$::tree_dir/$tree/$log_file", "rb") or 
+    die "gzopen($::tree_dir/$tree/$log_file): $!\n";
   if ($br->{errorparser} eq 'unix') {
     gcc_parser($gz, $cvs_root, $tree, $log_file, $file_bases, $file_fullpaths);
   } elsif ($br->{errorparser} eq 'mac') {
@@ -189,7 +185,7 @@ my $total_ignored_count = 0;
 
   # Come up with the temporary filenames for the output
   #
-  my $warn_file = "$tree/warn$log_file";
+  my $warn_file = "$::tree_dir/$tree/warn$log_file";
   $warn_file =~ s/\.gz$/.html/;
   my $warn_file_by_file = $warn_file;
   $warn_file_by_file =~ s/\.html$/-by-file.html/;
@@ -213,9 +209,9 @@ my $total_unignored_warnings = $total_warnings_count - $total_ignored_count;
 if ($total_unignored_warnings > 0) {
   # Add an entry to the warning log
   #
-  my $lockfile = "$tree/warnings.sem";
+  my $lockfile = "$::tree_dir/$tree/warnings.sem";
   my $lock = &lock_datafile($lockfile);
-  my $warn_log = "$tree/warnings.dat";
+  my $warn_log = "$::tree_dir/$tree/warnings.dat";
   $fh->open($warn_log, ">>") or die "Unable to open $warn_log: $!\n";
   print $fh "$log_file|$total_unignored_warnings\n";
   $fh->close;

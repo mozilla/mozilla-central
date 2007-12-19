@@ -132,26 +132,22 @@ sub create_tree {
     else {
         mkdir( $treename, oct($dir_perm)) || die "<h1> Cannot mkdir $treename</h1>"; 
     }
-    &write_treedata("$treename/treedata.pl", \%treedata);
+    &write_treedata("$::tree_dir/$treename/treedata.pl", \%treedata);
 
-    open( F, ">", "$treename/build.dat" );
-    close( F );
-    
-    open( F, ">", "$treename/who.dat" );
-    close( F );
+    foreach my $file ( "build.dat", "who.dat", "notes.txt" ) {
+        open( F, ">", "$::tree_dir/$treename/$file" );
+        close( F );
+        chmod (oct($perm), "$::tree_dir/$treename/$file");
+    }
 
-    open( F, ">", "$treename/notes.txt" );
-    close( F );
-
-    open( F, ">", "$treename/index.html");
+    open( F, ">", "$::tree_dir/$treename/index.html");
     print F "<HTML>\n";
-    print F "<HEAD><META HTTP-EQUIV=\"refresh\" content=\"0,url=../showbuilds.cgi?tree=$treename\"></HEAD>\n";
+    print F "<HEAD><META HTTP-EQUIV=\"refresh\" content=\"0,url=${::static_rel_path}showbuilds.cgi?tree=$treename\"></HEAD>\n";
     print F "<BODY></BODY>\n";
     print F "</HTML>\n";
     close( F );
     
-    chmod oct($perm), "$treename/build.dat", "$treename/who.dat", "$treename/notes.txt",
-    "$treename/treedata.pl", "$treename/index.html";
+    chmod (oct($perm), "$::tree_dir/$treename/index.html");
 
     print "<h2><a href=\"showbuilds.cgi?tree=$treename\">Tree created or modified</a></h2>\n";
 }
@@ -161,7 +157,7 @@ sub admin_builds {
     my ($i,%active_buildnames, %scrape_buildnames, %warning_buildnames);
 
     # Read build.dat
-    open(BD, "<", "$tree/build.dat");
+    open(BD, "<", "$::tree_dir/$tree/build.dat");
     while(<BD>){
         my ($endtime,$buildtime,$bname) = split( /\|/ );
         $active_buildnames{$bname} = 0;
@@ -183,7 +179,7 @@ sub admin_builds {
         }
     }
 
-    open(IGNORE, ">", "$tree/ignorebuilds.pl");
+    open(IGNORE, ">", "$::tree_dir/$tree/ignorebuilds.pl");
     print IGNORE '$ignore_builds = {' . "\n";
     for $i (sort keys %active_buildnames){
         if ($active_buildnames{$i} == 0){
@@ -193,7 +189,7 @@ sub admin_builds {
     print IGNORE "\t};\n";
     close IGNORE;
 
-    open(SCRAPE, ">", "$tree/scrapebuilds.pl");
+    open(SCRAPE, ">", "$::tree_dir/$tree/scrapebuilds.pl");
     print SCRAPE '$scrape_builds = {' . "\n";
     for $i (sort keys %scrape_buildnames){
         if ($scrape_buildnames{$i} == 1){
@@ -203,7 +199,7 @@ sub admin_builds {
     print SCRAPE "\t};\n";
     close SCRAPE;
 
-    open(WARNING, ">", "$tree/warningbuilds.pl");
+    open(WARNING, ">", "$::tree_dir/$tree/warningbuilds.pl");
     print WARNING '$warning_builds = {' . "\n";
     for $i (sort keys %warning_buildnames){
         if ($warning_buildnames{$i} == 1){
@@ -213,17 +209,18 @@ sub admin_builds {
     print WARNING "\t};\n";
     close WARNING;
 
-    chmod( oct($perm), "$tree/ignorebuilds.pl", "$tree/scrapebuilds.pl",
-           "$tree/warningbuilds.pl");
+    chmod( oct($perm), "$::tree_dir/$tree/ignorebuilds.pl", 
+           "$::tree_dir/$tree/scrapebuilds.pl",
+           "$::tree_dir/$tree/warningbuilds.pl");
     print "<h2><a href=showbuilds.cgi?tree=$tree>Build state Changed</a></h2>\n";
 }
 sub set_sheriff {
     my $m = $form{'sheriff'};
     $m =~ s/\'/\\\'/g;
-    open(SHERIFF, ">", "$tree/sheriff.pl");
+    open(SHERIFF, ">", "$::tree_dir/$tree/sheriff.pl");
     print SHERIFF "\$current_sheriff = '$m';\n1;";
     close(SHERIFF);
-    chmod( oct($perm), "$tree/sheriff.pl");
+    chmod( oct($perm), "$::tree_dir/$tree/sheriff.pl");
     print "<h2><a href=showbuilds.cgi?tree=$tree>
             Sheriff Changed.</a><br></h2>\n";
 }
@@ -231,10 +228,10 @@ sub set_sheriff {
 sub set_status_message {
     my $m = $form{'status'};
     $m =~ s/\'/\\\'/g;
-    open(TREESTATUS, ">", "$tree/status.pl");
+    open(TREESTATUS, ">", "$::tree_dir/$tree/status.pl");
     print TREESTATUS "\$status_message = \'$m\'\;\n1;";
     close(TREESTATUS);
-    chmod( oct($perm), "$tree/status.pl");
+    chmod( oct($perm), "$::tree_dir/$tree/status.pl");
     print "<h2><a href=showbuilds.cgi?tree=$tree>
             Status message changed.</a><br></h2>\n";
 }
@@ -242,10 +239,10 @@ sub set_status_message {
 sub set_rules_message {
     my $m = $form{'rules'};
     $m =~ s/\'/\\\'/g;
-    open(RULES, ">", "$tree/rules.pl");
+    open(RULES, ">", "$::tree_dir/$tree/rules.pl");
     print RULES "\$rules_message = \'$m\';\n1;";
     close(RULES);
-    chmod( oct($perm), "$tree/rules.pl");
+    chmod( oct($perm), "$::tree_dir/$tree/rules.pl");
     print "<h2><a href=showbuilds.cgi?tree=$tree>
             Rule message changed.</a><br></h2>\n";
 }

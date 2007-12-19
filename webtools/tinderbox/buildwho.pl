@@ -64,7 +64,7 @@ exit 0 if (!$use_bonsai && !$use_viewvc);
 
 # Only allow one process at a time to re-write "who.dat".
 #
-my $lockfile = "$tree/buildwho.sem";
+my $lockfile = "$::tree_dir/$tree/buildwho.sem";
 my $lock = lock_datafile($lockfile);
 
 if ($use_bonsai) {
@@ -107,7 +107,7 @@ sub build_who {
 
     my $last_who='';
     my $last_date=0;
-    my $who_file = "$tree/who.dat";
+    my $who_file = "$::tree_dir/$tree/who.dat";
     my $temp_who_file = "$who_file.$$";
     open(WHOLOG, ">", "$temp_who_file");
     for my $ci (@$result) {

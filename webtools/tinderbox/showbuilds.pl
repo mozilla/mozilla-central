@@ -58,8 +58,8 @@ my @who_check_list;
 
 
 # $rel_path is the relative path to webtools/tinderbox used for links.
-# It changes to "../" if the page is generated statically, because then
-# it is placed in tinderbox/$tree.
+# It changes to "$::static_rel_path../" if the page is generated statically, 
+# because then it is placed in tinderbox/$::tree_dir/$tree.
 my $rel_path = '';
 
 
@@ -86,7 +86,7 @@ sub do_static($) {
                   ['status.vxml', 'do_vxml'] );
 
     my ($key, $value);
-    $rel_path = '../';
+    $rel_path = $::static_rel_path;
     foreach $key (keys %images) {
         $value = $images{$key};
         $images{$key} = "$rel_path$value";
@@ -96,7 +96,7 @@ sub do_static($) {
 
     foreach my $pair (@pages) {
         my ($page, $call) = @{$pair};
-        my $outfile = "$tree/$page";
+        my $outfile = "$::tree_dir/$tree/$page";
 
         open(OUT, ">", "$outfile.$$");
         select OUT;
@@ -341,7 +341,7 @@ BEGIN {
             my $logfile = $br->{logfile};
             my $buildtree = $br->{td}->{name};
 
-            my $logfileexists = ( -f "$buildtree/$logfile" ? 1 : 0 );
+            my $logfileexists = ( -f "$::tree_dir/$buildtree/$logfile" ? 1 : 0 );
             
             print "<tt>\n";
             

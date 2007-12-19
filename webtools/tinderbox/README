@@ -191,6 +191,7 @@ store of data between executions of the same program and they pass the
 data between cooperating program.  This data is often databases with
 rows separated by "\n" and columns by '|'.
 
+The tree-specific datafiles are stored under $::tree_dir which defaults to 'trees';
 
 $tree/${logfile}
 $tree/${logfile}.brief.html

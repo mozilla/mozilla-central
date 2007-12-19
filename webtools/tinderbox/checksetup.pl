@@ -39,7 +39,7 @@ sub validate_treedata() {
     tie my %treedata => 'Tie::IxHash';
     print "Trees: @treelist\n";
     for my $treedir (@treelist) {
-	my $file = "$treedir/treedata.pl";
+	my $file = "$::tree_dir/$treedir/treedata.pl";
 	my $changedvalues = 0;
 	print "Tree: $treedir\n" if ($verbose);
 	open(CONFIG, "$file") or die ("$file: $!\n");
@@ -82,7 +82,7 @@ sub validate_treedata() {
 	}
 	# Write new data file if any changes were found
 	if ($changedvalues) {
-	    my $newfile ="$treedir/treedata.pl";
+	    my $newfile ="$::tree_dir/$treedir/treedata.pl";
 	    $newfile .= ".new" if (!$write_changes);
 	    print "Values changed for $treedir\n" if ($verbose);
 	    print "Updating $newfile\n";

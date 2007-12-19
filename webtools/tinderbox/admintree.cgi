@@ -117,8 +117,8 @@ if (defined($treedata)) {
 #
 
     # Determine the collective size & age of the build logs
-    opendir(TRIM_DIR, &shell_escape($tree)) || die "opendir($safe_tree): $!";
-    my @trim_files = grep { /\.(?:gz|brief\.html)$/ && -f "$tree/$_" } readdir(TRIM_DIR);
+    opendir(TRIM_DIR, &shell_escape("$::tree_dir/$tree")) || die "opendir($safe_tree): $!";
+    my @trim_files = grep { /\.(?:gz|brief\.html)$/ && -f "$::tree_dir/$tree/$_" } readdir(TRIM_DIR);
     close(TRIM_DIR);
     my $trim_bytes = 0;
     my $trim_size;
@@ -128,7 +128,7 @@ if (defined($treedata)) {
     my $size_M = 1048576;
     my $size_G = 1073741824;
     for my $file (@trim_files) {
-        my @file_stat = stat("$tree/$file");
+        my @file_stat = stat("$::tree_dir/$tree/$file");
         $trim_bytes += $file_stat[7];
         $trim_oldest = $file_stat[9] if ($trim_oldest > $file_stat[9]);
     }

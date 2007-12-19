@@ -51,13 +51,13 @@ print "scrape.pl($tree, $logfile)\n" if ($debug);
 $tree = &trick_taint($tree);
 $logfile = &trick_taint($logfile);
 
-die "Error: No tree named $tree" unless -r "$tree/treedata.pl";
-require "$tree/treedata.pl";
+die "Error: No tree named $tree" unless -r "$::tree_dir/$tree/treedata.pl";
+require "$::tree_dir/$tree/treedata.pl";
 
 # Search the build log for the scrape data
 #
-my $gz = gzopen("$tree/$logfile", "rb")
-  or die "gzopen($tree/$logfile): $!\n";
+my $gz = gzopen("$::tree_dir/$tree/$logfile", "rb")
+  or die "gzopen($::tree_dir/$tree/$logfile): $!\n";
 my @scrape_data = find_scrape_data($gz);
 $gz->gzclose();
 
@@ -68,9 +68,9 @@ if (!defined(@scrape_data)) {
 
 # Save the scrape data to 'scrape.dat'
 #
-my $lockfile = "$tree/scrape.sem";
+my $lockfile = "$::tree_dir/$tree/scrape.sem";
 my $lock = &lock_datafile($lockfile);
-open(SCRAPE, ">>", "$tree/scrape.dat") or die "Unable to open $tree/scrape.dat";
+open(SCRAPE, ">>", "$::tree_dir/$tree/scrape.dat") or die "Unable to open $::tree_dir/$tree/scrape.dat";
 print SCRAPE "$logfile|".join('|', @scrape_data)."\n";
 close SCRAPE;
 &unlock_datafile($lock);

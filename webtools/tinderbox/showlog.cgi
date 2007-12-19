@@ -81,8 +81,8 @@ my $time_str = print_time($buildtime);
 
 $|=1;
 
-my @stat_logfile = stat("$tree/$logfile");
-my @stat_notes = stat("$tree/notes.txt");
+my @stat_logfile = stat("$::tree_dir/$tree/$logfile");
+my @stat_notes = stat("$::tree_dir/$tree/notes.txt");
 if ($stat_logfile[9] > $stat_notes[9]) {
     $last_modified_time = $stat_logfile[9];
 } else {
@@ -113,14 +113,14 @@ else
 {
   $brief_filename = $logfile;
   $brief_filename =~ s/.gz$/.brief.html/;
-  if (-T "$tree/$brief_filename" and -M _ > -M $tree/$logfile) 
+  if (-T "$::tree_dir/$tree/$brief_filename" and -M _ > -M "$::tree_dir/$tree/$logfile") 
   {
-    open(BRIEFFILE, "<", "$tree/$brief_filename");
+    open(BRIEFFILE, "<", "$::tree_dir/$tree/$brief_filename");
     print while (<BRIEFFILE>)
   }
   else
   {
-    open(BRIEFFILE, ">", "$tree/$brief_filename");
+    open(BRIEFFILE, ">", "$::tree_dir/$tree/$brief_filename");
 
     my $errors = print_summary();
     print_log($errors);
@@ -144,8 +144,8 @@ sub print_fragment {
 
   print "<a href='showlog.cgi?tree=$tree&errorparser=$errorparser&logfile=$logfile&buildtime=$buildtime&buildname=$enc_buildname&fulltext=1'>Show Full Build Log</a>";
 
-  my $gz = gzopen("$tree/$logfile","rb") or
-      warn "gzopen($tree/$logfile): $!\n";
+  my $gz = gzopen("$::tree_dir/$tree/$logfile","rb") or
+      warn "gzopen($::tree_dir/$tree/$logfile): $!\n";
 
   my $first_line = $linenum - ($numlines/2);
   my $last_line  = $linenum + ($numlines/2);
@@ -204,7 +204,7 @@ sub print_notes {
   # Print notes
   #
   my $found_note = 0;
-  open(NOTES,"<", "$tree/notes.txt") 
+  open(NOTES,"<", "$::tree_dir/$tree/notes.txt") 
     or print "<h2>warning: Couldn't open $tree/notes.txt </h2>\n";
   print "$buildtime, $buildname<br>\n";
   while (<NOTES>) {
@@ -234,8 +234,8 @@ sub print_summary {
 
   my $line_num = 0;
   my $error_num = 0;
-  my $gz = gzopen("$tree/$logfile","rb") or
-      warn "gzopen($tree/$logfile): $!\n";
+  my $gz = gzopen("$::tree_dir/$tree/$logfile","rb") or
+      warn "gzopen($::tree_dir/$tree/$logfile): $!\n";
   my ($bytesread, $line);
   while (defined($gz) && (($bytesread = $gz->gzreadline($line)) > 0)) {
     my $line_has_error = output_summary_line($line, $error_num);
@@ -292,8 +292,8 @@ sub print_log {
   logprint('<H2>Build Error Log</H2><pre>');
 
   my $line_num = 0;
-  my $gz = gzopen("$tree/$logfile", "rb") or
-      warn "gzopen($tree/$logfile): $!\n";
+  my $gz = gzopen("$::tree_dir/$tree/$logfile", "rb") or
+      warn "gzopen($::tree_dir/$tree/$logfile): $!\n";
   my ($bytesread, $line);
   while (defined($gz) && (($bytesread = $gz->gzreadline($line)) > 0)) {
     output_log_line($line, $line_num, $errors);

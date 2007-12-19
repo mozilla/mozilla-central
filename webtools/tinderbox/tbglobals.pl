@@ -56,6 +56,12 @@ $::CI_LOG=11;
 # Variables set from Makefile
 $::default_cvsroot = "@CVSROOT@";
 $::data_dir='data';
+$::tree_dir = 'trees';
+$::static_rel_path = '../../';
+if ( ! -d "$::tree_dir/." ) {
+    $::tree_dir = ".";
+    $::static_rel_path = "../";
+}
 
 @::global_tree_list = ();
 undef @::global_tree_list;
@@ -123,9 +129,10 @@ sub trick_taint{
 
 sub make_tree_list {
     return @::global_tree_list if defined(@::global_tree_list);
-    while(<*>) {
-        if( -d $_ && $_ ne "$::data_dir" && $_ ne 'CVS' && -f "$_/treedata.pl") {
-            push @::global_tree_list, $_;
+    foreach my $t  (<$::tree_dir/*>) {
+        $t =~ s@^$::tree_dir/@@;
+        if (-d "$::tree_dir/$t" && $t ne "$::data_dir" && $t ne 'CVS' && -f "$::tree_dir/$t/treedata.pl") {
+            push @::global_tree_list, $t;
         }
     }
     return @::global_tree_list;
@@ -452,7 +459,8 @@ sub tb_load_treedata($) {
             ${$TreeConfig::{$key}} = undef;
         }
         package TreeConfig;
-        do "$tree/treedata.pl" if -r "$tree/treedata.pl";
+        do "$::tree_dir/$tree/treedata.pl" 
+            if -r "$::tree_dir/$tree/treedata.pl";
         package main;
         for my $key (keys %::default_treedata) {
             if (defined(${$TreeConfig::{$key}})) {
@@ -473,7 +481,8 @@ sub tb_load_ignorebuilds($) {
 
     undef $TreeConfig::ignore_builds;
     package TreeConfig;
-    do "$tree/ignorebuilds.pl" if -r "$tree/ignorebuilds.pl";
+    do "$::tree_dir/$tree/ignorebuilds.pl" 
+        if -r "$::tree_dir/$tree/ignorebuilds.pl";
     package main;
     $ignore_builds = $TreeConfig::ignore_builds
         if (defined($TreeConfig::ignore_builds));
@@ -487,7 +496,8 @@ sub tb_load_scrapebuilds($) {
 
     undef $TreeConfig::scrape_builds;
     package TreeConfig;
-    do "$tree/scrapebuilds.pl" if -r "$tree/scrapebuilds.pl";
+    do "$::tree_dir/$tree/scrapebuilds.pl" 
+        if -r "$::tree_dir/$tree/scrapebuilds.pl";
     package main;
     $scrape_builds = $TreeConfig::scrape_builds
         if (defined($TreeConfig::scrape_builds));
@@ -502,7 +512,8 @@ sub tb_load_warningbuilds($) {
 
     undef $TreeConfig::warning_builds;
     package TreeConfig;
-    do "$tree/warningbuilds.pl" if -r "$tree/warningbuilds.pl";
+    do "$::tree_dir/$tree/warningbuilds.pl" 
+        if -r "$::tree_dir/$tree/warningbuilds.pl";
     package main;
     $warning_builds = $TreeConfig::warning_builds
         if (defined($TreeConfig::warning_builds));
@@ -516,7 +527,8 @@ sub tb_load_rules($) {
 
     undef $TreeConfig::rules_message;
     package TreeConfig;
-    do "$tree/rules.pl" if -r "$tree/rules.pl";
+    do "$::tree_dir/$tree/rules.pl" 
+        if -r "$::tree_dir/$tree/rules.pl";
     package main;
     $rules = $TreeConfig::rules_message
         if (defined($TreeConfig::rules_message));
@@ -530,7 +542,8 @@ sub tb_load_sheriff($) {
 
     undef $TreeConfig::current_sheriff;
     package TreeConfig;
-    do "$tree/sheriff.pl" if -r "$tree/sheriff.pl";
+    do "$::tree_dir/$tree/sheriff.pl" 
+        if -r "$::tree_dir/$tree/sheriff.pl";
     package main;
     $sheriff = $TreeConfig::current_sheriff
         if (defined($TreeConfig::current_sheriff));
@@ -544,7 +557,8 @@ sub tb_load_status($) {
 
     undef $TreeConfig::status_message;
     package TreeConfig;
-    do "$tree/status.pl" if -r "$tree/status.pl";
+    do "$::tree_dir/$tree/status.pl" 
+        if -r "$::tree_dir/$tree/status.pl";
     package main;
     $status = $TreeConfig::status_message
         if (defined($TreeConfig::status_message));
@@ -604,11 +618,11 @@ sub tb_loadquickparseinfo {
   local $_;
   my $maxdate = $::nowdate if !defined($maxdate);
 
-  return if (! -d "$tree" || ! -r "$tree/build.dat");
+  return if (! -d "$::tree_dir/$tree" || ! -r "$::tree_dir/$tree/build.dat");
 
   my $ignore_builds = &tb_load_ignorebuilds($tree);
     
-  my $bw = Backwards->new("$tree/build.dat") or die;
+  my $bw = Backwards->new("$::tree_dir/$tree/build.dat") or die;
     
   my $latest_time = 0;
   my $tooearly = 0;
@@ -728,7 +742,7 @@ sub tb_find_build_record {
   local $_;
 
   my $log_entry = '';
-  my ($bw) = Backwards->new("$tree/build.dat") or die;
+  my ($bw) = Backwards->new("$::tree_dir/$tree/build.dat") or die;
   while( $_ = $bw->readline ) {
     $log_entry = $_ if /$logfile/;
   }
@@ -783,7 +797,7 @@ sub tb_trim_logs($$$$) {
     #
     my $i = 0;
     my $tblocks;
-    opendir( D, &shell_escape($tree) );
+    opendir( D, &shell_escape("$::tree_dir/$tree") );
     while( my $fn = readdir( D ) ){
         if( $fn =~ /\.(?:gz|brief\.html)$/ ||
             $fn =~ m/^warn.*?\.html$/){
@@ -792,7 +806,7 @@ sub tb_trim_logs($$$$) {
             if( $mtime && ($mtime < $min_date) ){
                 print "$fn\n" if ($verbose > 1);
                 $tblocks += $blocks;
-                unlink( "$tree/$fn" );
+                unlink( "$::tree_dir/$tree/$fn" );
                 $i++;
             }
         }
@@ -810,8 +824,8 @@ sub tb_trim_logs($$$$) {
     # Trim build.dat
     #
     my $builds_removed = 0;
-    open(BD, "<", "$tree/build.dat");
-    open(NBD, ">", "$tree/build.dat.new");
+    open(BD, "<", "$::tree_dir/$tree/build.dat");
+    open(NBD, ">", "$::tree_dir/$tree/build.dat.new");
     while( <BD> ){
         my ($endtime,$buildtime,$buildname) = split( /\|/ );
         if( $buildtime >= $min_date ){
@@ -824,16 +838,16 @@ sub tb_trim_logs($$$$) {
     close( BD );
     close( NBD );
 
-    unlink( "$tree/build.dat.old" );
-    rename( "$tree/build.dat", "$tree/build.dat.old" );
-    rename( "$tree/build.dat.new", "$tree/build.dat" );
+    unlink( "$::tree_dir/$tree/build.dat.old" );
+    rename( "$::tree_dir/$tree/build.dat", "$::tree_dir/$tree/build.dat.old" );
+    rename( "$::tree_dir/$tree/build.dat.new", "$::tree_dir/$tree/build.dat" );
 
     #
     # Trim scrape.dat & warnings.dat
     #
     for my $file ("scrape.dat", "warnings.dat") {
-        open(BD, "<", "$tree/$file");
-        open(NBD, ">", "$tree/$file.new");
+        open(BD, "<", "$::tree_dir/$tree/$file");
+        open(NBD, ">", "$::tree_dir/$tree/$file.new");
         while (<BD>) {
             my ($logfile, $junk) = split (/\|/);
             my ($buildtime, $processtime, $pid) = split (/\./, $logfile);
@@ -843,9 +857,9 @@ sub tb_trim_logs($$$$) {
         }
         close(BD);
         close(NBD);
-        unlink("$tree/$file.old");
-        rename("$tree/$file", "$tree/$file.old");
-        rename("$tree/$file.new", "$tree/$file");
+        unlink("$::tree_dir/$tree/$file.old");
+        rename("$::tree_dir/$tree/$file", "$::tree_dir/$tree/$file.old");
+        rename("$::tree_dir/$tree/$file.new", "$::tree_dir/$tree/$file");
     }
 
     return $builds_removed;
@@ -862,7 +876,7 @@ sub load_buildlog($$) {
   local $_;
   my $build_list = [];
 
-  my ($bw) = Backwards->new("$treedata->{name}/build.dat") or die;
+  my ($bw) = Backwards->new("$::tree_dir/$treedata->{name}/build.dat") or die;
 
   my $tooearly = 0;
   my $internal_build_list;
@@ -923,7 +937,7 @@ sub load_who {
 
   my $who_list = [];
 
-  open(WHOLOG, "<", "${$td_ref}->{name}/who.dat");
+  open(WHOLOG, "<", "$::tree_dir/${$td_ref}->{name}/who.dat");
   while (<WHOLOG>) {
     chomp;
     my ($checkin_time, $email) = split /\|/;
@@ -961,7 +975,7 @@ sub load_scrape {
 
   my $scrape = {};
   
-  open(SCRAPELOG, "<", "$treedata->{name}/scrape.dat");
+  open(SCRAPELOG, "<", "$::tree_dir/$treedata->{name}/scrape.dat");
   while (<SCRAPELOG>) {
     chomp;
     my @list =  split /\|/;
@@ -987,7 +1001,7 @@ sub load_warnings {
 
   my $warnings = {};
 
-  open(WARNINGLOG, "<", "$treedata->{name}/warnings.dat");
+  open(WARNINGLOG, "<", "$::tree_dir/$treedata->{name}/warnings.dat");
   while (<WARNINGLOG>) {
     chomp;
     my ($logfile, $warning_count) = split /\|/;
@@ -1163,7 +1177,7 @@ sub load_notes(\$\$) {
     my ($td_ref, $bt_ref) = (@_);
     my @note_array = ();
 
-    open(NOTES, "<", "${$td_ref}->{name}/notes.txt") 
+    open(NOTES, "<", "$::tree_dir/${$td_ref}->{name}/notes.txt") 
         or print "<h2>warning: Couldn't open ${$td_ref}->{name}/notes.txt </h2>\n";
     while (<NOTES>) {
         chomp;
