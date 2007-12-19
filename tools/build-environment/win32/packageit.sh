@@ -35,6 +35,10 @@ unzip -d "${MSYS_STAGEDIR}/mozilla-build" "${MSYS_SRCDIR}/svn-win32-1.4.2.zip"
 
 # install NSIS
 unzip -d "${MSYS_STAGEDIR}/mozilla-build" "${MSYS_SRCDIR}/nsis-2.22.zip"
+# and the unicode version
+unzip -d "${MSYS_STAGEDIR}/mozilla-build" "${MSYS_SRCDIR}/nsis-2.33u.zip"
+# rename the unicode version executable
+mv "${MSYS_STAGEDIR}/mozilla-build/nsis-2.33u/makensis.exe" "${MSYS_STAGEDIR}/mozilla-build/nsis-2.33u/makensisu.exe"
 
 # install unzip
 mkdir "${MSYS_STAGEDIR}/mozilla-build/info-zip"
