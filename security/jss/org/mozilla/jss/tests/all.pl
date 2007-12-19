@@ -36,6 +36,10 @@
 # ***** END LICENSE BLOCK *****
 
 use Socket;
+use File::Basename;
+use Cwd;
+use Cwd 'abs_path';
+use POSIX 'uname';
 
                                                                                                   
 # dist <dist_dir>
@@ -76,7 +80,7 @@ my $configfile     = "";
 my $keystore       = "";
 my $certSN_file    = "";
 my $certSN         = 0;
-my $osname         = `uname -s`;
+($osname,$host,$release)    = uname;
 
 # checkPort will return a free Port number
 # otherwise it will die after trying 10 times. 
@@ -116,7 +120,16 @@ sub setup_vars {
     } elsif( $osname =~ /Darwin/) {
         $ld_lib_path = "DYLD_LIBRARY_PATH";
         $lib_suffix = ".jnilib";
-    } elsif( $osname =~ /win/i ) {
+    } elsif( $osname =~ /mingw/i ) { 
+    	print "We are mingw\n";
+        $ld_lib_path = "PATH";
+        $truncate_lib_path = 0;
+        $pathsep = ":";
+        $exe_suffix = ".exe";
+        $lib_suffix = ".dll";
+        $lib_jss    = "jss";
+        $scriptext = "sh";
+    } elsif( $osname =~ /win/i ) { 
         $ld_lib_path = "PATH";
         $truncate_lib_path = 0;
         $pathsep = ";";
@@ -175,6 +188,8 @@ sub setup_vars {
         $ENV{$ld_lib_path} =
             "$jss_rel_dir/lib$pathsep$nss_rel_dir/lib$pathsep$nspr_rel_dir/lib"
             . $pathsep . $ENV{$ld_lib_path};
+        print "LD_LIBRARY_PATH is $ld_lib_path\n";
+        print "$ld_lib_path=$ENV{$ld_lib_path}\n";
         $nss_lib_dir = "$nss_rel_dir/lib";
         $jss_classpath = "$jss_rel_dir/../xpclass$jar_dbg_suffix.jar";
     } else {
@@ -214,6 +229,11 @@ sub setup_vars {
             }
         }
     }
+
+    if ( $osname =~ /_NT/i ) {
+       $java_64bit = 1;
+    }
+
     (-f $java) or die "'$java' does not exist\n";
     $java = $java . $ENV{NATIVE_FLAG};
 
@@ -230,12 +250,10 @@ sub setup_vars {
 
     # testdir = /<ws>/mozilla/tests_results/jss/<hostname>.<version>
     # $all_dir = Directory where all.pl is
-    my $all_dir = `dirname $0`;
-    chomp $all_dir;
+    my $all_dir = dirname($0);
     # Find where mozilla directory is
     my $base_mozilla = $all_dir . "/../../../../../..";
-    my $abs_base_mozilla = `cd $base_mozilla; pwd`;
-    chomp $abs_base_mozilla;
+    my $abs_base_mozilla = abs_path($base_mozilla);
     # $result_dir = Directory where the results are (mozilla/tests_results/jss)
     my $result_dir =  $abs_base_mozilla . "/tests_results";
     if (! -d $result_dir) {
@@ -246,9 +264,6 @@ sub setup_vars {
       mkdir( $result_dir, 0755 ) or die;
     }
     # $host = hostname
-    my $host = `uname -n`;
-    $host =~ s/\..*//g;
-    chomp $host;
     # $version = test run number (first = 1). Stored in $result_dir/$host
     my $version_file = $result_dir ."/" . $host;
     if ( -f $version_file) {
@@ -309,6 +324,7 @@ sub outputEnv {
    print "serverPort=$serverPort\n";
    print "LIB_SUFFIX=$lib_suffix\n";
    print "osname=$osname\n";  
+   print "release=$release\n";
    print "which perl=";
    system ("which perl");
    system ("perl -version");
@@ -618,7 +634,7 @@ $testname = "Enable FipsMODE";
 $command = "$java -cp $jss_classpath org.mozilla.jss.tests.FipsTest $testdir enable";
 run_test($testname, $command);
 
-$testname = "Enable FipsMODE";
+$testname = "check FipsMODE";
 $command = "$java -cp $jss_classpath org.mozilla.jss.tests.FipsTest $testdir chkfips";
 run_test($testname, $command);
 
@@ -627,7 +643,6 @@ $testname = "SSLClientAuth FIPSMODE";
 $serverPort = checkPort(++$serverPort);
 $command = "$java -cp $jss_classpath org.mozilla.jss.tests.SSLClientAuth $testdir $pwfile $serverPort bypassoff $certSN";
 run_test($testname, $command);
-
 
 $serverPort = checkPort($serverPort);
 $testname = "SSL Ciphersuite JSS Server and JSS client both with Bypass Off";
