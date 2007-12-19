@@ -46,6 +46,19 @@ make
 make install prefix="${MSYS_STAGEDIR}/mozilla-build/msys/local"
 popd
 
+# install a newer version of ssh. the one that comes with MSYS has hanging
+# problems
+tar -jvxf "${MSYS_SRCDIR}/minires-1.01-1-MSYS-1.0.11.tar.bz2" -C "${MSYS_STAGEDIR}/mozilla-build/msys"
+tar -jvxf "${MSYS_SRCDIR}/openssh-4.6p1-MSYS-1.0.11.tar.bz2" -C "${MSYS_STAGEDIR}/mozilla-build/msys"
+tar -jvxf "${MSYS_SRCDIR}/openssl-0.9.8e-3-MSYS-1.0.11.tar.bz2" -C "${MSYS_STAGEDIR}/mozilla-build/msys"
+tar -jvxf "${MSYS_SRCDIR}/zlib-1.2.3-MSYS-1.0.11.tar.bz2" -C "${MSYS_STAGEDIR}/mozilla-build/msys"
+# These tarballs extract to usr/; it's easiest if we just move all the files
+# into /...
+pushd "${MSYS_STAGEDIR}/mozilla-build/msys"
+cp -R usr/* ./
+rm -rf usr/
+popd
+
 # In order for this to actually work, we now need to rebase
 # the DLL. Since I can't figure out how to rebase just one
 # DLL to avoid conflicts with a set of others, we just
