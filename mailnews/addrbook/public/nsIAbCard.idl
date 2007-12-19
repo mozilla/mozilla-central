@@ -37,6 +37,8 @@
  
 #include "nsISupports.idl"
 
+interface nsIStringBundle;
+
 [scriptable, uuid(97448252-F189-11d4-A422-001083003D0C)]
 interface nsIAbPreferMailFormat {
     const unsigned long unknown   = 0;
@@ -44,7 +46,7 @@ interface nsIAbPreferMailFormat {
     const unsigned long html      = 2;
 };
 
-[scriptable, uuid(511887fc-4096-4981-be2b-aa0f7d30f97a)]
+[scriptable, uuid(193d5026-7d1e-41b4-9fc3-c57d4a4937f3)]
 interface nsIAbCard : nsISupports {
   // Card properties
   attribute AString firstName;
@@ -138,4 +140,39 @@ interface nsIAbCard : nsISupports {
   string convertToBase64EncodedXML();
   AString convertToXMLPrintData();
   string convertToEscapedVCard();
+
+  /** 
+   * Generate a name from the card for display purposes. Using the firstName,
+   * lastName and the displayName. We allow the caller to cache the pref value,
+   * so we don't have to go to prefs every time.
+   *
+   * The format follows the "mail.addr_book.lastnamefirst" pref values:
+   *
+   * 0 = generated name is displayName
+   * 1 = lastFirst, formatted following lastFirstFormat
+   * 2 = firstLast, formatted following firstLastFormat
+   *
+   * lastFirstFormat and firstLastFormat are defined in addressBook.properties.
+   *
+   * @param  aGenerateFormat The format to generate as per the above definition.
+   * @param  aBundle         An optional parameter that is a pointer to a string
+   *                         bundle that holds:
+   *           chrome://messenger/locale/addressbook/addressBook.properties
+   *                         If this bundle is not supplied, then the function
+   *                         will obtain the bundle itself. If cached by the
+   *                         caller and supplied to this function, then
+   *                         performance will be improved over many calls.
+   * @return                 A string containing the generated name.
+   */
+  AString generateName(in long aGenerateFormat,
+                       [optional] in nsIStringBundle aBundle);
+
+  /** 
+   * Generate a phonetic name from the card, using the firstName and lastName
+   * values.
+   *
+   * @param  aLastNameFirst  Set to True to put the last name before the first.
+   * @return                 A string containing the generated phonetic name.
+   */
+  AString generatePhoneticName(in boolean aLastNameFirst);
 };

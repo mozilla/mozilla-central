@@ -1,4 +1,4 @@
-/* -*- Mode: C++; tab-width: 2; indent-tabs-mode: nil; c-basic-offset: 4 -*- */
+/* -*- Mode: C++; tab-width: 2; indent-tabs-mode: nil; c-basic-offset: 2 -*- */
 /* ***** BEGIN LICENSE BLOCK *****
  * Version: MPL 1.1/GPL 2.0/LGPL 2.1
  *
@@ -60,7 +60,6 @@
 #include "nsIPrefLocalizedString.h"
 
 #include "nsIAddrDatabase.h" // for kPriEmailColumn
-
 #include "rdf.h"
 
 #define CARD_NOT_FOUND -1
@@ -190,9 +189,18 @@ nsresult nsAbView::RemovePrefObservers()
 NS_IMETHODIMP nsAbView::Init(const char *aURI, PRBool aSearchView, nsIAbViewListener *abViewListener, 
                              const PRUnichar *colID, const PRUnichar *sortDirection, PRUnichar **result)
 {
-  nsresult rv;
-
   NS_ENSURE_ARG_POINTER(result);
+
+  nsresult rv;
+  if (!mABBundle)
+  {
+    nsCOMPtr<nsIStringBundleService> stringBundleService =
+      do_GetService(NS_STRINGBUNDLE_CONTRACTID, &rv); 
+    NS_ENSURE_SUCCESS(rv,rv);
+
+    rv = stringBundleService->CreateBundle("chrome://messenger/locale/addressbook/addressBook.properties", getter_AddRefs(mABBundle));
+    NS_ENSURE_SUCCESS(rv,rv);
+  }
 
   mURI = aURI;
   mAbViewListener = nsnull;
@@ -250,7 +258,7 @@ NS_IMETHODIMP nsAbView::Init(const char *aURI, PRBool aSearchView, nsIAbViewList
     // need to check if _Generic is valid.  GetCardValue() will always return NS_OK for _Generic
     // we're going to have to ask mDirectory if it is.
     // it might not be.  example:  _ScreenName is valid in Netscape, but not Mozilla.
-    rv = GetCardValue(card, colID, getter_Copies(value));
+    rv = GetCardValue(card, colID, value);
     if (NS_FAILED(rv))
       actualSortColumn = generatedNameColumnId.get();
     else
@@ -454,7 +462,8 @@ NS_IMETHODIMP nsAbView::GetCellValue(PRInt32 row, nsITreeColumn* col, nsAString&
   return NS_OK;
 }
 
-nsresult nsAbView::GetCardValue(nsIAbCard *card, const PRUnichar *colID, PRUnichar **_retval)
+nsresult nsAbView::GetCardValue(nsIAbCard *card, const PRUnichar *colID,
+                                nsAString &_retval)
 {
   nsresult rv;
 
@@ -468,19 +477,14 @@ nsresult nsAbView::GetCardValue(nsIAbCard *card, const PRUnichar *colID, PRUnich
     NS_ENSURE_SUCCESS(rv,rv);
     
     if (colID[0] == PRUnichar('G'))
-      rv = abSession->GenerateNameFromCard(card, mGeneratedNameFormat, _retval);
+      rv = card->GenerateName(mGeneratedNameFormat, mABBundle, _retval);
     else
       // use LN/FN order for the phonetic name
-      rv = abSession->GeneratePhoneticNameFromCard(card, PR_TRUE, _retval);
+      rv = card->GeneratePhoneticName(PR_TRUE, _retval);
     NS_ENSURE_SUCCESS(rv,rv);
   }
   else {
-      nsString cardValue;
-      rv = card->GetCardValue(NS_LossyConvertUTF16toASCII(colID).get(),
-                              cardValue);
-      *_retval = ToNewUnicode(cardValue);
-      if (!_retval)
-          return NS_ERROR_OUT_OF_MEMORY;
+    rv = card->GetCardValue(NS_LossyConvertUTF16toASCII(colID).get(), _retval);
   }
   return rv;
 }
@@ -522,13 +526,9 @@ NS_IMETHODIMP nsAbView::GetCellText(PRInt32 row, nsITreeColumn* col, nsAString& 
   NS_ENSURE_TRUE(row >= 0 && row < mCards.Count(), NS_ERROR_UNEXPECTED);
 
   nsIAbCard *card = ((AbCard *)(mCards.ElementAt(row)))->card;
-  // XXX fix me by converting GetCardValue to take an nsAString&
   const PRUnichar* colID;
   col->GetIdConst(&colID);
-  nsString cellText;
-  nsresult rv = GetCardValue(card, colID, getter_Copies(cellText));
-  _retval.Assign(cellText);
-  return rv;
+  return GetCardValue(card, colID, _retval);
 }
 
 NS_IMETHODIMP nsAbView::SetTree(nsITreeBoxObject *tree)
@@ -798,7 +798,7 @@ nsresult nsAbView::GenerateCollationKeysForCard(const PRUnichar *colID, AbCard *
     NS_ENSURE_SUCCESS(rv, rv);
   }
 
-  rv = GetCardValue(abcard->card, colID, getter_Copies(value));
+  rv = GetCardValue(abcard->card, colID, value);
   NS_ENSURE_SUCCESS(rv,rv);
   
   PR_FREEIF(abcard->primaryCollationKey);
@@ -806,11 +806,10 @@ nsresult nsAbView::GenerateCollationKeysForCard(const PRUnichar *colID, AbCard *
     value, &(abcard->primaryCollationKey), &(abcard->primaryCollationKeyLen));
   NS_ENSURE_SUCCESS(rv,rv);
   
-  // XXX todo
-  // fix me, do this with a const getter, to avoid the strcpy
-
-  // hardcode email to be our secondary key
-  rv = GetCardValue(abcard->card, NS_LITERAL_STRING(kPriEmailColumn).get(), getter_Copies(value));
+  // Hardcode email to be our secondary key. As we are doing this, just call
+  // the card's GetCardValue direct, rather than our own function which will
+  // end up doing the same as then we can save a bit of time.
+  rv = abcard->card->GetCardValue(NS_LITERAL_CSTRING(kPriEmailColumn).get(), value);
   NS_ENSURE_SUCCESS(rv,rv);
   
   PR_FREEIF(abcard->secondaryCollationKey);

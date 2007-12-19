@@ -40,7 +40,7 @@
 
 #include "nsIAddrBookSession.h"
 #include "nsISupports.h"
-#include "nsIStringBundle.h"
+#include "nsISupportsArray.h"
 #include "nsUInt32Array.h"
 
 class nsAddrBookSession : public nsIAddrBookSession
@@ -55,7 +55,6 @@ public:
 protected:
   nsCOMPtr <nsISupportsArray> mListeners;
   nsUInt32Array mListenerNotifyFlags;
-  nsCOMPtr<nsIStringBundle> mBundle;
 };
 
 #endif /* nsAddrBookSession_h__ */

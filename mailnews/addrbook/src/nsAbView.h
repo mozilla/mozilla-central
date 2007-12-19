@@ -1,4 +1,4 @@
-/* -*- Mode: C++; tab-width: 4; indent-tabs-mode: nil; c-basic-offset: 4 -*- */
+/* -*- Mode: C++; tab-width: 2; indent-tabs-mode: nil; c-basic-offset: 2 -*- */
 /* ***** BEGIN LICENSE BLOCK *****
  * Version: MPL 1.1/GPL 2.0/LGPL 2.1
  *
@@ -54,6 +54,7 @@
 #include "nsServiceManagerUtils.h"
 #include "nsComponentManagerUtils.h"
 #include "nsMemory.h"
+#include "nsIStringBundle.h"
 
 typedef struct AbCard
 {
@@ -95,7 +96,7 @@ private:
   nsresult SetGeneratedNameFormatFromPrefs();
   nsresult GetSelectedCards(nsISupportsArray **cards);
   nsresult ReselectCards(nsISupportsArray *cards, nsIAbCard *indexCard);
-  nsresult GetCardValue(nsIAbCard *card, const PRUnichar *colID, PRUnichar **_retval);
+  nsresult GetCardValue(nsIAbCard *card, const PRUnichar *colID, nsAString &_retval);
   nsresult RefreshTree();
 
   nsCString mURI;
@@ -106,6 +107,7 @@ private:
   nsString mSortDirection;
   nsCOMPtr<nsICollation> mCollationKeyGenerator;
   nsCOMPtr<nsIAbViewListener> mAbViewListener;
+  nsCOMPtr<nsIStringBundle> mABBundle;
 
   PRPackedBool mSearchView;
   PRPackedBool mSuppressSelectionChange;

@@ -45,6 +45,7 @@
 #include "nsDirectoryServiceUtils.h"
 #include "nsAppDirectoryServiceDefs.h"
 #include "nsStringGlue.h"
+#include "nsIAbDirectory.h"
 
 NS_IMPL_THREADSAFE_ISUPPORTS1(nsAddrBookSession, nsIAddrBookSession)
     
@@ -194,111 +195,3 @@ NS_IMETHODIMP nsAddrBookSession::GetUserProfileDirectory(nsILocalFile * *userDir
 
   return NS_NewNativeLocalFile(pathBuf, PR_TRUE, userDir);
 }
-
-#define kDisplayName 0
-#define kLastFirst   1
-#define kFirstLast   2
-
-NS_IMETHODIMP nsAddrBookSession::GenerateNameFromCard(nsIAbCard *card, PRInt32 generateFormat, PRUnichar **aName)
-{
-  nsresult rv = NS_OK;
-  nsAutoString name;
-  
-  if (generateFormat == kDisplayName) {
-    rv = card->GetDisplayName(name);
-  }
-  else  {
-    nsAutoString firstName;
-    nsAutoString lastName;
-    
-    rv = card->GetFirstName(firstName);
-    NS_ENSURE_SUCCESS(rv, rv);       
-    
-    rv = card->GetLastName(lastName);
-    NS_ENSURE_SUCCESS(rv,rv);
-    
-    if (!lastName.IsEmpty() && !firstName.IsEmpty()) {
-      if (!mBundle) {       
-        nsCOMPtr<nsIStringBundleService> stringBundleService = do_GetService(NS_STRINGBUNDLE_CONTRACTID, &rv); 
-        NS_ENSURE_SUCCESS(rv,rv);
-        
-        rv = stringBundleService->CreateBundle("chrome://messenger/locale/addressbook/addressBook.properties", getter_AddRefs(mBundle));
-        NS_ENSURE_SUCCESS(rv,rv);
-      }
-      
-      nsString generatedName;
-      
-      if (generateFormat == kLastFirst) {
-        const PRUnichar *stringParams[2] = {lastName.get(), firstName.get()};
-        
-        rv = mBundle->FormatStringFromName(NS_LITERAL_STRING("lastFirstFormat").get(), stringParams, 2, 
-          getter_Copies(generatedName));
-      }
-      else {
-        const PRUnichar *stringParams[2] = {firstName.get(), lastName.get()};
-        
-        rv = mBundle->FormatStringFromName(NS_LITERAL_STRING("firstLastFormat").get(), stringParams, 2, 
-          getter_Copies(generatedName));
-        
-      }
-      
-      NS_ENSURE_SUCCESS(rv,rv); 
-      name = generatedName;
-    }
-    else {
-      if (lastName.Length())
-        name = lastName;
-      else {
-        // name may be empty here, but that's ok.
-        name = firstName;
-      }
-    }
-  }
-  
-  if (name.IsEmpty())
-  {
-    // see bug #211078
-    // if there is no generated name at this point
-    // use the userid from the email address
-    // it is better than nothing.
-    card->GetPrimaryEmail(name);
-    PRInt32 index = name.FindChar('@');
-    if (index != -1)
-      name.SetLength(index);
-  }
-
-  *aName = ToNewUnicode(name);
-  return NS_OK;
-}
-
-NS_IMETHODIMP nsAddrBookSession::GeneratePhoneticNameFromCard(nsIAbCard *aCard, PRBool aLastNameFirst, PRUnichar **aName)
-{
-  NS_ENSURE_ARG_POINTER(aCard);
-  NS_ENSURE_ARG_POINTER(aName);
-
-  nsAutoString firstName;
-  nsAutoString lastName;
-  nsAutoString fullName;
-  
-  nsresult rv = aCard->GetPhoneticFirstName(firstName);
-  NS_ENSURE_SUCCESS(rv, rv);
-
-  rv = aCard->GetPhoneticLastName(lastName);
-  NS_ENSURE_SUCCESS(rv, rv);
-
-  if (aLastNameFirst)
-  {
-    fullName  = lastName;
-    fullName += firstName;
-    *aName = ToNewUnicode(fullName);
-  }
-  else
-  {
-    fullName  = firstName;
-    fullName += lastName;
-    *aName = ToNewUnicode(fullName);
-  }
-
-  return *aName ? NS_OK : NS_ERROR_OUT_OF_MEMORY;
-}
-

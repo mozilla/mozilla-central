@@ -43,7 +43,6 @@
 #include "nsIPrefService.h"
 #include "nsIAddrDatabase.h"
 #include "plbase64.h"
-#include "nsIAddrBookSession.h"
 #include "nsIStringBundle.h"
 #include "plstr.h"
 #include "nsIRDFResource.h"
@@ -59,6 +58,9 @@
 #include "mozITXTToHTMLConv.h"
 
 #define PREF_MAIL_ADDR_BOOK_LASTNAMEFIRST "mail.addr_book.lastnamefirst"
+#define kDisplayName 0
+#define kLastFirst   1
+#define kFirstLast   2
 
 const char sAddrbookProperties[] = "chrome://messenger/locale/addressbook/addressBook.properties";
 
@@ -1211,11 +1213,15 @@ NS_IMETHODIMP nsAbCardProperty::ConvertToXMLPrintData(nsAString &aXMLSubstr)
   rv = prefBranch->GetIntPref(PREF_MAIL_ADDR_BOOK_LASTNAMEFIRST, &generatedNameFormat);
   NS_ENSURE_SUCCESS(rv, rv);
 
-  nsCOMPtr<nsIAddrBookSession> abSession = do_GetService(NS_ADDRBOOKSESSION_CONTRACTID, &rv);
+  nsCOMPtr<nsIStringBundleService> stringBundleService = do_GetService(NS_STRINGBUNDLE_CONTRACTID, &rv);
+  NS_ENSURE_SUCCESS(rv,rv);
+
+  nsCOMPtr<nsIStringBundle> bundle;
+  rv = stringBundleService->CreateBundle(sAddrbookProperties, getter_AddRefs(bundle));
   NS_ENSURE_SUCCESS(rv,rv);
 
   nsString generatedName;
-  rv = abSession->GenerateNameFromCard(this, generatedNameFormat, getter_Copies(generatedName));
+  rv = GenerateName(generatedNameFormat, bundle, generatedName);
   NS_ENSURE_SUCCESS(rv,rv);
 
   nsCOMPtr<mozITXTToHTMLConv> conv = do_CreateInstance(MOZ_TXTTOHTMLCONV_CONTRACTID, &rv);
@@ -1224,14 +1230,6 @@ NS_IMETHODIMP nsAbCardProperty::ConvertToXMLPrintData(nsAString &aXMLSubstr)
   nsString xmlStr;
   xmlStr.SetLength(4096); // to reduce allocations. should be enough for most cards
   xmlStr.AssignLiteral("<GeneratedName>\n");
-
-  nsCOMPtr<nsIStringBundle> bundle;
-
-  nsCOMPtr<nsIStringBundleService> stringBundleService = do_GetService(NS_STRINGBUNDLE_CONTRACTID, &rv);
-  NS_ENSURE_SUCCESS(rv,rv);
-
-  rv = stringBundleService->CreateBundle(sAddrbookProperties, getter_AddRefs(bundle));
-  NS_ENSURE_SUCCESS(rv,rv);
 
   nsString heading;
   rv = bundle->GetStringFromName(NS_LITERAL_STRING("headingCardFor").get(), getter_Copies(heading));
@@ -1559,6 +1557,82 @@ nsresult nsAbCardProperty::AppendCityStateZip(const AppendItem &aItem,
   }
 
   aResult.Append(formattedString);
+
+  return NS_OK;
+}
+
+NS_IMETHODIMP nsAbCardProperty::GenerateName(PRInt32 aGenerateFormat,
+                                             nsIStringBundle* aBundle,
+                                             nsAString &aResult)
+{
+  // No need to check for aBundle present straight away, only do that if we're
+  // actually going to use it.
+  if (aGenerateFormat == kDisplayName)
+    aResult = m_DisplayName;
+  else if (m_LastName.IsEmpty())
+    aResult = m_FirstName;
+  else if (m_FirstName.IsEmpty())
+    aResult = m_LastName;
+  else {
+    nsresult rv;
+    nsCOMPtr<nsIStringBundle> bundle(aBundle);
+    if (!bundle) {
+      nsCOMPtr<nsIStringBundleService> stringBundleService =
+        do_GetService(NS_STRINGBUNDLE_CONTRACTID, &rv); 
+      NS_ENSURE_SUCCESS(rv, rv);
+        
+      rv = stringBundleService->CreateBundle(sAddrbookProperties,
+                                             getter_AddRefs(bundle));
+      NS_ENSURE_SUCCESS(rv, rv);
+    }
+
+    nsString result;
+
+    if (aGenerateFormat == kLastFirst) {
+      const PRUnichar *stringParams[2] = {m_LastName.get(), m_FirstName.get()};
+
+      rv = bundle->FormatStringFromName(NS_LITERAL_STRING("lastFirstFormat").get(),
+                                        stringParams, 2, getter_Copies(result));
+    }
+    else {
+      const PRUnichar *stringParams[2] = {m_FirstName.get(), m_LastName.get()};
+        
+      rv = bundle->FormatStringFromName(NS_LITERAL_STRING("firstLastFormat").get(),
+                                        stringParams, 2, getter_Copies(result));
+    }
+    NS_ENSURE_SUCCESS(rv, rv); 
+
+    aResult.Assign(result);
+  }
+  
+  if (aResult.IsEmpty())
+  {
+    // see bug #211078
+    // if there is no generated name at this point
+    // use the userid from the email address
+    // it is better than nothing.
+    aResult = m_PrimaryEmail;
+    PRInt32 index = aResult.FindChar('@');
+    if (index != -1)
+      aResult.SetLength(index);
+  }
+
+  return NS_OK;
+}
+
+NS_IMETHODIMP nsAbCardProperty::GeneratePhoneticName(PRBool aLastNameFirst,
+                                                     nsAString &aResult)
+{
+  if (aLastNameFirst)
+  {
+    aResult = m_PhoneticLastName;
+    aResult += m_PhoneticFirstName;
+  }
+  else
+  {
+    aResult = m_PhoneticFirstName;
+    aResult += m_PhoneticLastName;
+  }
 
   return NS_OK;
 }

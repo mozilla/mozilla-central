@@ -194,7 +194,7 @@ function GoIM()
 
 function DisplayCardViewPane(card)
 {
-  var generatedName = gAddrbookSession.generateNameFromCard(card, gPrefs.getIntPref("mail.addr_book.lastnamefirst"));
+  var generatedName = card.generateName(gPrefs.getIntPref("mail.addr_book.lastnamefirst"));
 		
   var data = top.cvData;
   var visible;

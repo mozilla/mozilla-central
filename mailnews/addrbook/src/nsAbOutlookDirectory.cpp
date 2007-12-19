@@ -1415,11 +1415,8 @@ NS_IMETHODIMP nsAbOutlookDirectory::ModifyCard(nsIAbCard *aModifiedCard)
     rv = prefBranch->GetIntPref(PREF_MAIL_ADDR_BOOK_LASTNAMEFIRST, &format);
     NS_ENSURE_SUCCESS(rv,rv);
 
-    nsCOMPtr<nsIAddrBookSession> abSession =
-      do_GetService(NS_ADDRBOOKSESSION_CONTRACTID, &rv);
-    NS_ENSURE_SUCCESS(rv,rv);
-
-    rv = abSession->GenerateNameFromCard(aModifiedCard, format, getter_Copies(properties [index_DisplayName]));
+    rv = aModifiedCard->GenerateName(format, nsnull,
+                                     properties[index_DisplayName]);
     NS_ENSURE_SUCCESS(rv,rv);
 
     if (*properties[index_DisplayName].get() == 0) {
