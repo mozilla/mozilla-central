@@ -2186,7 +2186,7 @@ static PRStatus pr_StringToNetAddrGAI(const char *string, PRNetAddr *addr)
 }
 #endif  /* _PR_HAVE_GETADDRINFO */
 
-#if !defined(_PR_HAVE_GETADDRINFO) || defined(_PR_INET6_PROBE)
+#if !defined(_PR_HAVE_GETADDRINFO) || defined(_PR_INET6_PROBE) || defined(DARWIN)
 static PRStatus pr_StringToNetAddrFB(const char *string, PRNetAddr *addr)
 {
     PRStatus status = PR_SUCCESS;
@@ -2243,7 +2243,7 @@ static PRStatus pr_StringToNetAddrFB(const char *string, PRNetAddr *addr)
 
     return status;
 }
-#endif /* !_PR_HAVE_GETADDRINFO || _PR_INET6_PROBE */
+#endif /* !_PR_HAVE_GETADDRINFO || _PR_INET6_PROBE || DARWIN */
 
 PR_IMPLEMENT(PRStatus) PR_StringToNetAddr(const char *string, PRNetAddr *addr)
 {
@@ -2254,6 +2254,16 @@ PR_IMPLEMENT(PRStatus) PR_StringToNetAddr(const char *string, PRNetAddr *addr)
 #else
 #if defined(_PR_INET6_PROBE)
     if (!_pr_ipv6_is_present)
+        return pr_StringToNetAddrFB(string, addr);
+#endif
+#if defined(DARWIN)
+    /*
+     * On Mac OS X, getaddrinfo with AI_NUMERICHOST is slow.
+     * So we only use it to convert literal IP addresses that
+     * contain IPv6 scope IDs, which pr_StringToNetAddrFB
+     * cannot convert.  (See bug 404399.)
+     */
+    if (!strchr(string, '%'))
         return pr_StringToNetAddrFB(string, addr);
 #endif
     return pr_StringToNetAddrGAI(string, addr);
