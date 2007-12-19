@@ -61,7 +61,7 @@
                 label="&calendar.unifinder.hidecompletedtodos.label;"
                 flex="1"
                 crop="end"
-                oncommand="toggleCompletedTasks();"
+                oncommand="toDoUnifinderRefresh();"
                 persist="checked"/>
     </box>
     <calendar-task-tree id="unifinder-todo-tree" flex="1"
