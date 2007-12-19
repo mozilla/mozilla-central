@@ -36,7 +36,7 @@
  * the terms of any one of the MPL, the GPL or the LGPL.
  *
  * ***** END LICENSE BLOCK ***** */
-/* $Id: nssinit.c,v 1.86 2007-12-06 00:40:19 julien.pierre.boogz%sun.com Exp $ */
+/* $Id: nssinit.c,v 1.87 2007-12-19 23:03:55 alexei.volkov.bugs%sun.com Exp $ */
 
 #include <ctype.h>
 #include "seccomon.h"
@@ -60,6 +60,7 @@
 #include "pki3hack.h"
 #include "certi.h"
 #include "secmodi.h"
+#include "ocspti.h"
 #include "ocspi.h"
 
 /*
