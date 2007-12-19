@@ -23,4 +23,3 @@ content calendar	jar:chrome/calendar.jar!/content/calendar/
 locale  calendar  en-US jar:chrome/calendar-en-US.jar!/locale/en-US/calendar/
 skin    calendar  classic/1.0 jar:chrome/calendar.jar!/skin/classic/calendar/
 overlay chrome://messenger/content/messenger.xul chrome://calendar/content/today-pane.xul
-overlay chrome://calendar/content/today-pane.xul chrome://lightning/content/agenda-tree-overlay.xul

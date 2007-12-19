@@ -36,8 +36,8 @@
    -
    - ***** END LICENSE BLOCK *****
 -->
-   
-<!DOCTYPE overlay 
+
+<!DOCTYPE overlay
 [
     <!ENTITY % dtd1 SYSTEM "chrome://calendar/locale/global.dtd" > %dtd1;
     <!ENTITY % dtd2 SYSTEM "chrome://lightning/locale/lightning.dtd" > %dtd2;
@@ -51,7 +51,8 @@
 <overlay xmlns="http://www.mozilla.org/keymaster/gatekeeper/there.is.only.xul">
 
 <script type="application/x-javascript" src="chrome://calendar/content/today-pane.js"/>
-<script type="application/x-javascript" src="chrome://lightning/content/agenda-tree.js"/>
+<script type="application/x-javascript" src="chrome://lightning/content/agenda-listbox.js"/>
+<script type="application/x-javascript" src="chrome://calendar/content/calendar-management.js"/>
 
 <script type="application/x-javascript">
   var todaylabel = "&calendar.context.button.label;";
@@ -65,81 +66,113 @@
     <splitter id="today-splitter" collapse="after" persist="state" resizebefore="closest">
         <grippy/>
     </splitter>
-    <vbox id="today-pane-panel" addtoolbarbutton="true" persist="collapsed collapsedinMailMode addtoolbarbutton width">
+    <vbox id="today-pane-panel" addtoolbarbutton="true" width="200" persist="collapsed collapsedinMailMode addtoolbarbutton width">
       <sidebarheader align="center">
-        <label id ="today-header"/>
+        <label id ="today-pane-header"/>
         <spacer flex="1"/>
         <toolbarbutton id="folderview-cycler-left"  class="folderview-cycler"
-                       onclick="TodayPane.cyclePaneView(-1);"/>
-        <toolbarbutton id="folderview-cycler-right" class="folderview-cycler" 
-                       onclick="TodayPane.cyclePaneView(1);"/>
+                       oncommand="TodayPane.cyclePaneView(-1);"/>
+        <toolbarbutton id="folderview-cycler-right" class="folderview-cycler"
+                       oncommand="TodayPane.cyclePaneView(1);"/>
         <spacer id="buttonspacer"/>
         <toolbarbutton id="today-closer" class="today-closebutton" command="cmd_toggleTodayPane"/>
       </sidebarheader>
+      <box id="mini-day-box" class="today-subpane">
+        <stack flex="1">
+          <image id="mini-day-image" flex="1"/>
+          <hbox flex="1">
+            <deck id="dateContainer" selectedIndex="0">
+              <hbox pack="center">
+                <label id="datevalue-label" text="55" class="dateValue"/>
+              </hbox>
+              <label class="dateValue"/>
+            </deck>
+            <vbox flex="1">
+              <hbox pack="center">
+                <deck id="weekdayNameContainer"
+                   pack="center">
+                  <label/>
+                  <label/>
+                  <label/>
+                  <label/>
+                  <label/>
+                  <label/>
+                  <label/>
+                </deck>
+                <spacer id="weekspacer" flex="1"/>
+                <hbox pack="end">
+                  <toolbarbutton id="previous-day-button" class="miniday-nav-buttons" oncommand="TodayPane.advance(parseInt(this.getAttribute('dir')));" dir="-1"/>
+                  <toolbarbutton id="today-button" class="miniday-nav-buttons" oncommand="TodayPane.setDay(now());"/>
+                  <toolbarbutton id="next-day-button" class="miniday-nav-buttons" oncommand="TodayPane.advance(parseInt(this.getAttribute('dir')));" dir="1"/>
+                </hbox>
+              </hbox>
+              <hbox pack="start">
+                <deck id ="monthNameContainer">
+                  <label class="monthlabel"/>
+                  <label class="monthlabel"/>
+                  <label class="monthlabel"/>
+                  <label class="monthlabel"/>
+                  <label class="monthlabel"/>
+                  <label class="monthlabel"/>
+                  <label class="monthlabel"/>
+                  <label class="monthlabel"/>
+                  <label class="monthlabel"/>
+                  <label class="monthlabel"/>
+                  <label class="monthlabel"/>
+                  <label class="monthlabel"/>
+                </deck>
+                <spacer flex="1"/>
+              </hbox>
+            </vbox>
+            <toolbarbutton id="miniday-dropdown-button" popup="aMinimonthPopupset" class="toolbarbutton-menubutton-dropmarker"/>
+            <popupset>
+              <popup id="aMinimonthPopupset" position="after_start">
+                <minimonth id="todayMinimonth" flex="1"
+                           onchange="TodayPane.setDaywithjsDate(this.value);"/>
+              </popup>
+            </popupset>
+          </hbox>
+        </stack>
+      </box>
       <vbox flex="1">
-         <box id="mini-day-box" class="today-subpane">
-           <stack flex="1">
-             <image id="mini-day-image" flex="1"/>
-             <hbox flex="1">
-               <deck id="dateContainer" selectedIndex="0">
-                 <hbox pack="center">
-                   <label id="datevalue-label" class="dateValue"/>
-                 </hbox>
-                 <label class="dateValue" value="55"/>
-               </deck>
-               <vbox flex="1">
-                 <hbox pack="center">
-                   <deck id="weekdayNameContainer" 
-                      pack="center">
-                     <label/>
-                     <label/>
-                     <label/>
-                     <label/>
-                     <label/>
-                     <label/>
-                     <label/>
-                   </deck>
-                   <spacer id="weekspacer" flex="1"/>
-                   <hbox pack="end">
-                     <toolbarbutton id="previous-day-button" class="miniday-nav-buttons" onclick="TodayPane.advance(parseInt(this.getAttribute('dir')));" dir="-1"/>
-                     <toolbarbutton id="today-button" class="miniday-nav-buttons" onclick="TodayPane.setDay(now());"/>
-                     <toolbarbutton id="next-day-button" class="miniday-nav-buttons" onclick="TodayPane.advance(parseInt(this.getAttribute('dir')));" dir="1"/>
-                   </hbox>
-                 </hbox>
-                 <hbox pack="start">
-                   <deck id ="monthNameContainer">
-                     <label class="monthlabel"/>
-                     <label class="monthlabel"/>
-                     <label class="monthlabel"/>
-                     <label class="monthlabel"/>
-                     <label class="monthlabel"/>
-                     <label class="monthlabel"/>
-                     <label class="monthlabel"/>
-                     <label class="monthlabel"/>
-                     <label class="monthlabel"/>
-                     <label class="monthlabel"/>
-                     <label class="monthlabel"/>
-                     <label class="monthlabel"/>
-                   </deck>
-                   <spacer flex="1"/>
-                 </hbox>
-               </vbox>
-               <toolbarbutton id="miniday-dropdown-button" popup="aMinimonthPopupset" class="toolbarbutton-menubutton-dropmarker"/>
-               <popupset>
-                 <popup id="aMinimonthPopupset" position="after_start">
-                   <minimonth id="todayMinimonth" flex="1"
-                              onchange="TodayPane.setDaywithjsDate(this.value);"/>
-                 </popup>
-               </popupset>
-             </hbox>
-           </stack>
-         </box>
-         <vbox flex="1">
-           <vbox id="agenda-tab-panel" flex="1" persist="height collapsed"/>
-           <splitter id="today-pane-splitter" persist="hidden"/>
-           <vbox id="todo-tab-panel" flex="1" persist="collapsed height"/>
+        <vbox id="agenda-panel" width="20"
+              height="200" persist="collapsed height" flex="1">
+          <toolbar id="agenda-toolbar" iconsize="small">
+            <toolbarbutton id="calendar-new-event-button"
+                           mode="mail"
+                           iconsize="small"
+                           orient="horizontal"
+                           class="cal-toolbarbutton-1"
+                           label="&calendar.newevent.button.label;"
+                           tooltiptext="&calendar.newevent.button.tooltip;"
+                           oncommand="agendaListbox.createNewEvent(event)"/>
+         </toolbar>
+         <popup id="agenda-menu" onpopupshowing="agendaListbox.buildAgendaPopupMenu(this);"/>
+         <vbox id="agenda-menu-box" hidden="true">
+           <menuitem label="&calendar.context.modifyitem.label;"
+             accesskey="&calendar.context.modifyitem.accesskey;"
+             observes="agenda_edit_event_command"/>
+           <menuitem label="&calendar.context.deleteitem.label;"
+             accesskey="&calendar.context.deleteitem.accesskey;"
+             observes="agenda_delete_event_command"/>
          </vbox>
-       </vbox>
+         <vbox id="richlistitem-container" hidden="true">
+            <agenda-allday-richlist-item/>
+            <agenda-richlist-item/>
+            <agenda-checkbox-richlist-item id="today-header" title="&calendar.today.button.label;"/>
+            <agenda-checkbox-richlist-item id="tomorrow-header" title="&calendar.tomorrow.button.label;"/>
+            <agenda-checkbox-richlist-item id="nextweek-header" title="&calendar.nextweek.button.label;"/>
+         </vbox>
+         <richlistbox id="agenda-listbox" flex="1" context="agenda-menu"
+                       onclick="agendaListbox.onSelect();"
+                       onblur="agendaListbox.onBlur();"
+                       onfocus="agendaListbox.onFocus();"
+                       onkeypress="agendaListbox.onKeyPress(event);"
+                       ondblclick="agendaListbox.createNewEvent(event);"/>
+        </vbox>
+        <splitter id="today-pane-splitter" persist="hidden"/>
+        <vbox id="todo-tab-panel" flex="1" persist="collapsed height"/>
+      </vbox>
     </vbox>
-</box>
+  </box>
 </overlay>

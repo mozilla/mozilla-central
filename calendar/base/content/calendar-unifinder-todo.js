@@ -80,16 +80,6 @@ function toDoUnifinderRefresh() {
     }
 }
 
-function toggleCompletedTasks() {
-    const kSUNBIRD_ID = "{718e30fb-e89b-41dd-9da7-e25a45638b28}";
-    var appInfo = Components.classes["@mozilla.org/xre/app-info;1"]
-                            .getService(Components.interfaces.nsIXULAppInfo);
-    if (appInfo.ID != kSUNBIRD_ID) {
-        agendaTreeView.refreshCalendarQuery();
-    }
-    toDoUnifinderRefresh();
-}
-
 function getToDoFromEvent(event) {
    return document.getElementById(
       "unifinder-todo-tree").getTaskFromEvent(event);

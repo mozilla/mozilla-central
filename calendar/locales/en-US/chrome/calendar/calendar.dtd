@@ -73,7 +73,9 @@
 
 <!ENTITY calendar.calendartab.label "Date">
 <!ENTITY calendar.listofcalendarstab.label "Calendars">
-<!ENTITY calendar.today.button.label       "Today" >
+<!ENTITY calendar.today.button.label       "Today">
+<!ENTITY calendar.tomorrow.button.label       "Tomorrow">
+<!ENTITY calendar.nextweek.button.label       "Next Week">
 
 <!ENTITY calendar.events.filter.all.label "All Events">
 <!ENTITY calendar.events.filter.today.label "Today's Events">

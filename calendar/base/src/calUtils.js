@@ -1495,3 +1495,37 @@ function getAdjacentSibling(aElement, aDistance) {
     return retElement;
 }
 
+
+/**
+ * sets the value of a boolean attribute by either setting the value or 
+ * removing the attribute
+ *
+ * @param aXulElement The XulElement the attribute is applied to
+ * @param aAttribute the name of the attribute
+ * @param aValue the boolean value
+ */
+function setBooleanAttribute(aXulElement, aAttribute, aValue) {
+    if (aXulElement) {
+        if (aValue) {
+            aXulElement.setAttribute(aAttribute, "true");
+        }
+        else {
+            if (aXulElement.hasAttribute(aAttribute)) {
+                aXulElement.removeAttribute(aAttribute);
+            }
+        }
+    }
+}
+
+function removeAnonymousElement(aParentNode, aId) {
+    var child = document.getAnonymousElementByAttribute(aParentNode, "anonid", aId);
+    child.parentNode.removeChild(child);
+}
+
+function getParentNode(aNode, aLocalName) {
+  var node = aNode;
+  do {
+      node = node.parentNode;
+  } while (node && (node.localName != aLocalName));
+  return node;
+}

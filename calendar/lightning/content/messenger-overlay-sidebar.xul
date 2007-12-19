@@ -248,7 +248,8 @@
   <!-- Be sure to keep these sets, since they will be overlayed by
        calendar/base/content/calendar-common-sets.xul -->
   <commandset id="calendar_commands">
-    <command id="agenda_delete_event_command" oncommand="agendaTreeView.deleteEvent()"/>
+    <command id="agenda_delete_event_command" oncommand="agendaListbox.deleteSelectedItem(false);"/>
+    <command id="agenda_edit_event_command" oncommand="agendaListbox.editSelectedItem(event);"/>
     <command id="switch2mail" checked="true" oncommand="ltnSwitch2Mail()"/>
     <command id="switch2calendar" oncommand="ltnSwitch2Calendar()"/>
     <command id="switch2task" oncommand="ltnSwitch2Task()"/>

@@ -21,7 +21,7 @@
  *   Berend Cornelius <berend.cornelius@sun.com>
  *
  * Alternatively, the contents of this file may be used under the terms of
- * either the GNU General Public License Version 2 or later (the "GPL"), or 
+ * either the GNU General Public License Version 2 or later (the "GPL"), or
  * the GNU Lesser General Public License Version 2.1 or later (the "LGPL"),
  * in which case the provisions of the GPL or the LGPL are applicable instead
  * of those above. If you wish to allow use of your version of this file only
@@ -66,6 +66,7 @@
 
 #miniday-dropdown-button {
   margin: 2px;
+  -moz-user-focus: normal;
 }
 
 .monthlabel {
@@ -101,6 +102,7 @@
 
 #today-button {
   -moz-image-region: rect(0px 16px 13px 5px);
+  -moz-user-focus: normal;
 }
 
 #today-button:hover,
@@ -114,6 +116,7 @@
 
 #next-day-button {
   -moz-image-region: rect(0px 21px 13px 16px);
+  -moz-user-focus: normal;
 }
 #next-day-button:hover,
 #next-day-button:hover:active {
@@ -122,6 +125,7 @@
 
 #next-day-button[disabled] {
   -moz-image-region: rect(26px 21px 39px 16px);
+  -moz-user-focus: normal;
 }
 
 #miniday-dropdown-button > .toolbarbutton-icon,
@@ -140,4 +144,145 @@
 
 .today-closebutton > .toolbarbutton-text {
    display: none;
+}
+
+#agenda-toolbar {
+  border: none;
+  padding: 1px;
+}
+
+#calendar-new-event-button {
+  -moz-user-focus: normal;
+}
+
+#agenda-listbox {
+  -moz-user-focus: normal;
+  border: none;
+}
+
+agenda-checkbox-richlist-item {
+  -moz-binding: url("chrome://lightning/content/agenda-listbox.xml#agenda-checkbox-richlist-item");
+  -moz-user-focus: normal;
+  overflow: hidden;
+}
+
+agenda-richlist-item {
+  -moz-binding: url("chrome://lightning/content/agenda-listbox.xml#agenda-richlist-item");
+  -moz-user-focus: normal;
+  overflow: hidden;
+}
+
+agenda-allday-richlist-item {
+  -moz-binding: url("chrome://lightning/content/agenda-listbox.xml#agenda-allday-richlist-item");
+  -moz-user-focus: normal;
+  overflow: hidden;
+}
+
+.agenda-container-box {
+  border-bottom: 1px dotted #C0C0C0;
+  margin-left: 4px;
+  margin-right: 4px;
+  padding-top: 2px;
+  padding-bottom: 2px;
+}
+
+.agenda-allday-container-box {
+  border-bottom: 1px dotted #C0C0C0;
+  margin-left: 4px;
+  margin-right: 4px;
+  padding-top: 4px;
+  padding-bottom: 4px;
+}
+
+.agenda-checkbox {
+  margin-left: 4px;
+  margin-right: 4px;
+}
+
+.agenda-container-box[selected="true"],
+.agenda-allday-container-box[selected="true"],
+.agenda-checkbox[selected="true"],
+.agenda-container-box[selected="true"][current="true"],
+.agenda-allday-container-box[selected="true"][current="true"],
+.agenda-checkbox[selected="true"][current="true"] {
+  background-image: url("chrome://mozapps/skin/extensions/itemEnabledFader.png");
+  background-color: Highlight;
+  color: HighlightText;
+}
+
+.agenda-container-box[current="true"],
+.agenda-alldaycontainer-box[current="true"],
+.agenda-checkbox[current="true"],
+.agenda-container-box[selected="true"][current="true"][disabled="true"],
+.agenda-allday-container-box[selected="true"][current="true"][disabled="true"],
+.agenda-checkbox[selected="true"][current="true"][disabled="true"] {
+  background-image: url("chrome://mozapps/skin/extensions/itemEnabledFader.png");
+  background-color: #DFEAF4;
+}
+
+.agenda-container-box[selected="true"][disabled="true"],
+.agenda-allday-container-box[selected="true"][disabled="true"],
+.agenda-checkbox[selected="true"][disabled="true"] {
+  background-image: none;
+  color: -moz-dialogText;
+  background-color: white;
+}
+
+.agenda-event-title {
+  margin-top: 0px;
+}
+
+.agenda-event-start {
+  margin-bottom: 0px;
+}
+
+.agenda-new-date {
+  width: 15px;
+  height: 15px;
+  border: 1px solid grey;
+  cursor: pointer;
+}
+
+.agenda-calendar-image {
+  list-style-image: url("chrome://calendar/skin/calendar-overlay.png");
+  margin-top: 3px;
+  margin-left: 4px;
+  width: 10px;
+  height: 10px;
+}
+
+agenda-checkbox {
+  -moz-binding: url("chrome://lightning/content/agenda-listbox.xml#agenda-checkbox");
+}
+
+agenda-checkbox {
+  -moz-box-align: center;
+  padding: 4px 2px 4px 4px;
+  font-weight: bold;
+  border-bottom: 1px solid #A7A6AA;
+}
+
+.checkbox-label-box {
+  -moz-margin-start: 4px;
+}
+
+.checkbox-icon {
+  -moz-margin-end: 2px;
+}
+
+.checkbox-label {
+  margin: 0 !important;
+}
+
+agenda-checkbox > .checkbox-label-center-box > .checkbox-label-box > .checkbox-label {
+  font-weight: bold;
+  border-bottom: 1px solid -moz-Dialog;
+}
+
+agenda-checkbox[checked="true"] > .checkbox-check {
+  -moz-appearance: treetwistyopen;
+}
+
+agenda-checkbox > .checkbox-check {
+  -moz-appearance: treetwisty;
 }
