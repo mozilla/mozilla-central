@@ -177,12 +177,10 @@
                    oncommand="toggleTasksInView()"/>
          <menuitem type="checkbox"
                    id="ltn-multiday-rotated"
-                   persist="checked"
-                   disabled="true"
                    label="&calendar.orientation.label;"
                    accesskey="&calendar.orientation.accesskey;"
                    mode="calendar"
-                   oncommand="updateOrientation()"/>
+                   observes="calendar_toggle_orientation_command"/>
        </menupopup>
      </menu>
      <menuseparator id="before-Calendar-View-Section" mode="calendar"/>
