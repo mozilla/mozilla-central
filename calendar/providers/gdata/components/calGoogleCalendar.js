@@ -200,7 +200,7 @@ calGoogleCalendar.prototype = {
             organizer.id = "mailto:" + this.mSession.googleUser;
             aItem.organizer = organizer;
 
-            this.mSession.addItem(this.superCalendar,
+            this.mSession.addItem(this,
                                   aItem,
                                   this.addItem_response,
                                   aListener);
@@ -272,7 +272,7 @@ calGoogleCalendar.prototype = {
             // called correctly.
             var extradata = { olditem: aOldItem, listener: aListener };
 
-            this.mSession.modifyItem(this.superCalendar,
+            this.mSession.modifyItem(this,
                                      aOldItem,
                                      aNewItem,
                                      this.modifyItem_response,
@@ -318,7 +318,7 @@ calGoogleCalendar.prototype = {
             // item XML data on delete, and we need to call the observers.
             var extradata = { listener: aListener, item: aItem };
 
-            this.mSession.deleteItem(this.superCalendar,
+            this.mSession.deleteItem(this,
                                      aItem,
                                      this.deleteItem_response,
                                      extradata);
@@ -355,7 +355,7 @@ calGoogleCalendar.prototype = {
                 this.findSession();
             }
 
-            this.mSession.getItem(this.superCalendar,
+            this.mSession.getItem(this,
                                   aId,
                                   this.getItem_response,
                                   aListener);
@@ -405,7 +405,7 @@ calGoogleCalendar.prototype = {
 
             var extradata = { itemfilter: aItemFilter, listener: aListener };
 
-            this.mSession.getItems(this.superCalendar,
+            this.mSession.getItems(this,
                                    aCount,
                                    aRangeStart,
                                    aRangeEnd,
