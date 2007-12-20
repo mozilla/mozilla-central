@@ -655,3 +655,72 @@ function BrowserOnCommand(event)
     }
   }
 }
+
+function popupNotificationMenuShowing(event)
+{
+  var notificationbox = document.popupNode.parentNode.control;
+  var uri = notificationbox.activeBrowser.currentURI;
+  var allowPopupsForSite = document.getElementById("allowPopupsForSite");
+  allowPopupsForSite.notificationbox = notificationbox;
+  var showPopupManager = document.getElementById("showPopupManager");
+  var bundle = srGetStrBundle("chrome://communicator/locale/utilityOverlay.properties");
+
+  //  Only offer this menu item for the top window.
+  //  See bug 280536 for problems with frames and iframes.
+  try {
+    // uri.host generates an exception on nsISimpleURIs, but we also
+    // don't want to show this menu item when there is no host.
+    allowPopupsForSite.hidden = !uri.host;
+    var allowString = bundle.formatStringFromName("popupAllow", [uri.host], 1);
+    allowPopupsForSite.setAttribute("label", allowString);
+    showPopupManager.hostport = uri.hostPort;
+  } catch (ex) {
+    allowPopupsForSite.hidden = true;
+    showPopupManager.hostport = "";
+  }
+
+  var separator = document.getElementById("popupNotificationMenuSeparator");
+  separator.hidden = !createShowPopupsMenu(event.target, notificationbox.activeBrowser);
+}
+
+function createShowPopupsMenu(parent, browser)
+{
+  while (parent.lastChild && ("popup" in parent.lastChild))
+    parent.removeChild(parent.lastChild);
+
+  if (!browser)
+    return false;
+
+  var popups = browser.pageReport;
+
+  if (popups.length == 0)
+    return false;
+
+  var bundle = srGetStrBundle("chrome://communicator/locale/utilityOverlay.properties");
+  for (var i = 0; i < popups.length; i++) {
+    var popup = popups[i];
+    var menuitem = document.createElement("menuitem");
+    var str = bundle.formatStringFromName('popupMenuShow',
+                                          [popup.popupWindowURI.spec], 1);
+    menuitem.setAttribute("label", str);
+    menuitem.popup = popup;
+    parent.appendChild(menuitem);
+  }
+
+  return true;
+}
+
+function popupBlockerMenuCommand(target)
+{
+  if (!("popup" in target))
+    return;
+  var popup = target.popup;
+  var reqWin = popup.requestingWindow;
+  if (reqWin.document == popup.requestingDocument)
+    reqWin.open(popup.popupWindowURI.spec, popup.popupWindowName, popup.popupWindowFeatures);
+}
+
+function disablePopupBlockerNotifications()
+{
+  pref.setBoolPref("privacy.popups.showBrowserMessage", false);
+}

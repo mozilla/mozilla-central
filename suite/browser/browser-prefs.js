@@ -349,6 +349,7 @@ pref("privacy.popups.sound_url",                  "");
 pref("privacy.popups.statusbar_icon_enabled",     true);
 pref("privacy.popups.prefill_whitelist",          false);
 pref("privacy.popups.remove_blacklist",           true);
+pref("privacy.popups.showBrowserMessage",         true);
 
 // Show XUL error pages instead of alerts for errors
 pref("browser.xul.error_pages.enabled", true);
@@ -357,6 +358,8 @@ pref("browser.xul.error_pages.enabled", true);
 // to be exposed. By default, only expose it for bidi-associated system locales.
 pref("bidi.browser.ui", false);
 
+// block popup windows
+pref("dom.disable_open_during_load",   true);
 // prevent JS from moving/resizing existing windows
 pref("dom.disable_window_move_resize", true);
 // prevent JS from raising or lowering windows

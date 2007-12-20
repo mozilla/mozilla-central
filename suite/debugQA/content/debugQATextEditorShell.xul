@@ -148,6 +148,8 @@ editor.xul has these - do we need them?
     </toolbar>    
   </toolbox>
 
+  <popup id="popupNotificationMenu"/>
+
   <hbox id="sidebar-parent" flex="1">
     <!-- From sidebarOverlay.xul -->
     <vbox id="sidebar-box" class="chromeclass-extrachrome" hidden="true"/>

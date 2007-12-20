@@ -134,6 +134,23 @@ const gHomepagePrefListener =
   }
 };
 
+const gStatusBarPopupIconPrefListener =
+{
+  domain: "privacy.popups.statusbar_icon_enabled",
+  observe: function(subject, topic, prefName)
+  {
+    if (topic != "nsPref:changed" || prefName != this.domain)
+      return;
+
+    var popupIcon = document.getElementById("popupIcon");
+    if (!pref.getBoolPref(prefName))
+      popupIcon.hidden = true;
+
+    else if (gBrowser.getNotificationBox().popupCount)
+      popupIcon.hidden = false;
+  }
+};
+
 // popup window permission change listener
 const gPopupPermListener = {
 
@@ -148,55 +165,6 @@ const gPopupPermListener = {
         closeURI = IOS.newURI(data, null, null);
         if (closeURI.host == popupOpenerURI.host)
           window.close();
-      }
-    }
-  }
-};
-
-const POPUP_TYPE = "popup";
-const gPopupPrefListener =
-{
-  domain: "dom.disable_open_during_load",
-  observe: function(subject, topic, prefName)
-  {        
-    if (topic != "nsPref:changed" || prefName != this.domain)
-      return;
-
-    var browsers = getBrowser().browsers;
-    var policy = pref.getBoolPref(prefName);
-
-    if (policy && pref.getBoolPref("privacy.popups.first_popup"))
-      pref.setBoolPref("privacy.popups.first_popup", false);
-
-    var hosts = [];
-
-    var permManager = Components.classes["@mozilla.org/permissionmanager;1"]
-                                .getService(Components.interfaces.nsIPermissionManager);
-    
-    var enumerator = permManager.enumerator;
-    var count=0;
-    while (enumerator.hasMoreElements()) {
-      var permission = enumerator.getNext()
-                                 .QueryInterface(Components.interfaces.nsIPermission);
-      if (permission.type == POPUP_TYPE && permission.capability == policy)
-        hosts[permission.host] = permission.host;
-    }
-
-    var popupIcon = document.getElementById("popupIcon");
-    
-    if (!policy) {
-      for (var i = 0; i < browsers.length; i++) {
-        if (browsers[i].popupDomain in hosts)
-          break;
-        browsers[i].popupDomain = null;
-        popupIcon.hidden = true;
-      }
-    } else {
-      for (i = 0; i < browsers.length; i++) {
-        if (browsers[i].popupDomain in hosts) {
-          browsers[i].popupDomain = null;
-          popupIcon.hidden = true;
-        }
       }
     }
   }
@@ -570,8 +538,8 @@ function Startup()
   addPrefListener(gButtonPrefListener); 
   addPrefListener(gTabStripPrefListener);
   addPrefListener(gHomepagePrefListener);
+  addPrefListener(gStatusBarPopupIconPrefListener);
   addPopupPermListener(gPopupPermListener);
-  addPrefListener(gPopupPrefListener);  
 
   window.browserContentListener =
     new nsBrowserContentListener(window, getBrowser());
@@ -650,8 +618,6 @@ function Startup()
       uriToLoad = "about:blank";
 
     var browser = getBrowser();
-    browser.popupDomain = null;
-    browser.popups = [];
 
     if (uriToLoad != "about:blank") {
       gURLBar.value = uriToLoad;
@@ -702,7 +668,7 @@ function Startup()
   addEventListener("fullscreen", onFullScreen, true);
 
   addEventListener("PopupWindow", onPopupWindow, true);
-  addEventListener("DOMPopupBlocked", onPopupBlocked, true);
+  addEventListener("PopupCountChanged", UpdateStatusBarPopupIcon, true);
 
   addEventListener("AppCommand", HandleAppCommandEvent, true);
 
@@ -812,8 +778,8 @@ function Shutdown()
   removePrefListener(gButtonPrefListener);
   removePrefListener(gTabStripPrefListener);
   removePrefListener(gHomepagePrefListener);
+  removePrefListener(gStatusBarPopupIconPrefListener);
   removePopupPermListener(gPopupPermListener);
-  removePrefListener(gPopupPrefListener);
 
   window.browserContentListener.close();
   // Close the app core.
@@ -2289,65 +2255,6 @@ function onPopupWindow(aEvent)
   }
 }
 
-function onPopupBlocked(aEvent)
-{
-  var playSound = pref.getBoolPref("privacy.popups.sound_enabled");
-
-  if (playSound) {
-    var sound = Components.classes["@mozilla.org/sound;1"]
-                          .createInstance(Components.interfaces.nsISound);
-
-    var soundUrlSpec = pref.getCharPref("privacy.popups.sound_url");
-
-    if (!soundUrlSpec)
-      sound.beep();
-
-    if (soundUrlSpec.substr(0, 7) == "file://") {
-      var soundUrl = Components.classes["@mozilla.org/network/standard-url;1"]
-                               .createInstance(Components.interfaces.nsIFileURL);
-      soundUrl.spec = soundUrlSpec;
-      var file = soundUrl.file;
-      if (file.exists)
-        sound.play(soundUrl);
-    } 
-    else {
-      sound.playSystemSound(soundUrlSpec);
-    }
-  }
-
-  var showIcon = pref.getBoolPref("privacy.popups.statusbar_icon_enabled");
-  if (showIcon) {
-    var browser = getBrowserForDocument(aEvent.target);      
-    if (browser) {
-      var hostPort = browser.currentURI.hostPort;
-      browser.popupDomain = hostPort;
-      if (browser == getBrowser().selectedBrowser) {
-        var popupIcon = document.getElementById("popupIcon");
-        popupIcon.hidden = false;
-      }
-      // Check for duplicates, remove the old occurence of this url,
-      // to update the features, and put it at the end of the list.
-      for (var i = 0; i < browser.popups.length; ++i) {
-        if (browser.popups[i].url.equals(aEvent.popupWindowURI)) {
-          browser.popups.splice(i, 1);
-          break;
-        }
-      }
-      // Limit the length of the menu to some reasonable size.
-      // We only add one item every time, so no need for more complex stuff.
-      if (browser.popups.length >= 100) {
-        browser.popups.shift();
-      }
-      var popup = {url: aEvent.popupWindowURI,
-                   features: aEvent.popupWindowFeatures,
-                   name: aEvent.popupWindowName,
-                   reqDoc: aEvent.requestingWindow.document,
-                   reqWin: aEvent.requestingWindow};
-      browser.popups.push(popup);
-    }
-  }
-}
-
 function getBrowserForDocument(doc)
 {
   var browsers = getBrowser().browsers;
@@ -2356,6 +2263,18 @@ function getBrowserForDocument(doc)
       return browsers[i];
   }
   return null;
+}
+
+function UpdateStatusBarPopupIcon(aEvent)
+{
+  if (aEvent && aEvent.originalTarget != gBrowser.getNotificationBox())
+    return;
+
+  var showIcon = pref.getBoolPref("privacy.popups.statusbar_icon_enabled");
+  if (showIcon) {
+    var popupIcon = document.getElementById("popupIcon");
+    popupIcon.hidden = !gBrowser.getNotificationBox().popupCount;
+  }
 }
 
 function StatusbarViewPopupManager()
@@ -2375,44 +2294,7 @@ function popupBlockerMenuShowing(event)
   var separator = document.getElementById("popupMenuSeparator");
 
   if (separator)
-    separator.hidden = !createShowPopupsMenu(event.target);
-}
-
-function createShowPopupsMenu(parent)
-{
-  while (parent.lastChild && ("popup" in parent.lastChild))
-    parent.removeChild(parent.lastChild);
-
-  var browser = getBrowser();
-
-  if (!browser)
-    return false;
-
-  var popups = browser.selectedBrowser.popups;
-
-  if (popups.length == 0)
-    return false;
-
-  for (var i = 0; i < popups.length; i++) {
-    var popup = popups[i];
-    var menuitem = document.createElement("menuitem");
-    var str = gNavigatorBundle.getFormattedString('popupMenuShow',
-                                                  [popup.url.spec]);
-    menuitem.setAttribute("label", str);
-    menuitem.popup = popup;
-    parent.appendChild(menuitem);
-  }
-
-  return true;
-}
-
-function popupBlockerMenuCommand(target) {
-  if (!("popup" in target))
-    return;
-  var popup = target.popup;
-  var reqWin = popup.reqWin;
-  if (reqWin.document == popup.reqDoc)
-    reqWin.open(popup.url.spec, popup.name, popup.features);
+    separator.hidden = !createShowPopupsMenu(event.target, gBrowser.selectedBrowser);
 }
 
 function toHistory()

@@ -120,46 +120,6 @@ function onAccept() {
   permissionsTree.setAttribute("sortAscending", !sortAscending);
   permissionsTree.setAttribute("sortColumn", sortColumn);
 
-  if (permissionType != "popup")
-    return true;
-
-  var unblocked = additions; 
-  var windowMediator = Components.classes['@mozilla.org/appshell/window-mediator;1']
-                                 .getService(Components.interfaces.nsIWindowMediator);
-  var enumerator = windowMediator.getEnumerator("navigator:browser");
-
-  //if a site that is currently open is unblocked, make icon go away
-  while (enumerator.hasMoreElements()) {
-    var win = enumerator.getNext();
-
-    var browsers = win.getBrowser().browsers;
-    for (var i in browsers) {
-      var nextLocation;
-      try {
-        nextLocation = browsers[i].currentURI.hostPort;
-      }
-      catch(ex) { 
-        nextLocation = null; //blank window
-      }
-
-      if (nextLocation) {
-        nextLocation = '.'+nextLocation;
-        for (var j in unblocked) {
-          var nextUnblocked = '.'+unblocked[j];
-
-          if (nextUnblocked.length > nextLocation.length)
-             continue; // can't be a match
-
-          if (nextUnblocked == 
-              nextLocation.substr(nextLocation.length - nextUnblocked.length)) {
-            browsers[i].popupDomain = null;
-            win.document.getElementById("popupIcon").hidden = true;
-          }
-        }
-      }
-    } 
-  }
-
   return true;
 }
 

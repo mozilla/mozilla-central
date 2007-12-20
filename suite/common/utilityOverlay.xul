@@ -316,4 +316,19 @@
     </menupopup>
   </menu>
 
+  <popup id="popupNotificationMenu"
+         oncommand="popupBlockerMenuCommand(event.target);"
+         onpopupshowing="return popupNotificationMenuShowing(event)">
+    <menuitem id="allowPopupsForSite" hidden="true" accesskey="&allowPopups.accesskey;"
+              oncommand="this.notificationbox.allowPopupsForSite(event);"/>
+    <menuitem id="showPopupManager" label="&showPopupManager.label;"
+              accesskey="&showPopupManager.accesskey;"
+              oncommand="viewPopups(this.hostport)"/>
+    <menuitem id="dontShowMessage" label="&dontShowMessage.label;"
+              accesskey="&dontShowMessage.accesskey;"
+              oncommand="disablePopupBlockerNotifications();"/>
+    <menuseparator id="popupNotificationMenuSeparator" hidden="true"/>
+    <!-- Additional items are generated, see popupNotificationMenuShowing() -->
+  </popup>
+
 </overlay>

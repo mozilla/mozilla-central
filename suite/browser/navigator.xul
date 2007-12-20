@@ -380,6 +380,7 @@
                onpopupshowing="return popupBlockerMenuShowing(event)"/>
     <!-- Items are generated, see popupBlockerMenuShowing() -->
   </popupset>
+  <popup id="popupNotificationMenu"/>
   <popupset>
     <popup id="networkProperties"/>
   </popupset>

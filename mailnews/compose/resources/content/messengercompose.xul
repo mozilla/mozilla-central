@@ -210,6 +210,7 @@
 <keyset id="editorKeys"/>
 
 <popup id="sidebarPopup"/>
+<popup id="popupNotificationMenu"/>
 
 <popup id="msgComposeContext" onpopupshowing="openEditorContextMenu(this);">
   <menuitem id="spellCheckNoSuggestions" label="&spellCheckNoSuggestions.label;" disabled="true"/>
