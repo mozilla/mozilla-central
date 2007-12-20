@@ -73,8 +73,7 @@
                 onpageshow="gMigrateWizard.migrateChecked()">
         <label control="migrate-progressmeter">&migration.progress.description;</label>
         <vbox flex="1">
-            <progressmeter id="migrate-progressmeter" mode="determined"
-                           value="0" flex="1"/>
+            <progressmeter id="migrate-progressmeter" mode="determined" value="0" />
             <label value="" flex="1" id="progress-label"/>
         </vbox>
     </wizardpage>
