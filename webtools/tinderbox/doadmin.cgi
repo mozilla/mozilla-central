@@ -24,6 +24,7 @@ use strict;
 use Tie::IxHash;
 
 require 'tbglobals.pl';
+require 'showbuilds.pl';
 
 umask 002;
 my $perm = "0660"; # Permission of created files
@@ -66,8 +67,13 @@ elsif( $command eq 'set_sheriff' ){
 elsif ($command eq 'admin_builds') {
     &admin_builds;
 } else {
-    print "Unknown command: \"$command\".";
+    print "Unknown command: \"" . value_encode($command) . "\".";
+    exit(1);
 }
+
+# Recreate static pages after administrative command
+tb_build_static(\%form);
+exit(0);
 
 sub trim_logs {
     print "<h2>Trimming Log files for $form{'tree'}...</h2><p>\n";
