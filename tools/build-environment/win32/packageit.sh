@@ -85,7 +85,7 @@ cp "${MSYS_STAGEDIR}"/buildtools/windows/lib/*.lib \
 # Copy various configuration files
 cp "${MSYS_SRCDIR}/inputrc" "${MSYS_STAGEDIR}/mozilla-build/msys/etc"
 mkdir "${MSYS_STAGEDIR}/mozilla-build/msys/etc/profile.d"
-cp "${MSYS_SRCDIR}"/{profile-inputrc.sh,profile-extrapaths.sh,profile-echo.sh,profile-homedir.sh} \
+cp "${MSYS_SRCDIR}"/{profile-inputrc.sh,profile-extrapaths.sh,profile-echo.sh,profile-homedir.sh,profile-sshagent.sh} \
     "${MSYS_STAGEDIR}/mozilla-build/msys/etc/profile.d"
 
 # Copy the batch files that make everything go!
