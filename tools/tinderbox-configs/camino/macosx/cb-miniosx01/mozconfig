@@ -6,7 +6,5 @@
 . $topsrcdir/camino/config/mozconfig
 . $topsrcdir/build/macosx/universal/mozconfig
 ac_add_options --enable-optimize="-O2"
-ac_add_options --enable-shared
-ac_add_options --disable-static
 mk_add_options MOZ_MAKE_FLAGS=-j2
 mk_add_options MOZ_OBJDIR=@TOPSRCDIR@/../build
