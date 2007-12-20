@@ -77,7 +77,7 @@ protected:
   nsCOMArray<nsIFolderListener> mListeners; 
   nsUInt32Array mListenerNotifyFlags;
 
-  nsCOMPtr<nsISupportsArray> mWindows;
+  nsCOMArray<nsIMsgWindow> mWindows;
   // stick this here temporarily
   nsCOMPtr <nsIMsgWindow> m_temporaryMsgWindow;
 };

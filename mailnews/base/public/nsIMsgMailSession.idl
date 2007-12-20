@@ -49,13 +49,11 @@
 #include "nsISupports.idl"
 #include "nsIFolderListener.idl"
 #include "nsIMsgWindow.idl"
-#include "nsISupportsArray.idl"
 #include "nsIAtom.idl"
 
-interface nsIMsgWindow;
 interface nsIFile;
 
-[scriptable, uuid(D5124440-D59E-11d2-806A-006008128C4E)]
+[scriptable, uuid(11fd2852-d7f3-402c-9d2b-6dd206e7e8cd)]
 interface nsIMsgMailSession : nsISupports {
   void Shutdown();
   void AddFolderListener(in nsIFolderListener listener, in folderListenerNotifyFlagValue notifyFlags);
@@ -64,7 +62,6 @@ interface nsIMsgMailSession : nsISupports {
   readonly attribute nsIMsgWindow topmostMsgWindow;
   void AddMsgWindow(in nsIMsgWindow msgWindow);
   void RemoveMsgWindow(in nsIMsgWindow msgWindow);
-  readonly attribute nsISupportsArray msgWindowsArray;
   boolean IsFolderOpenInWindow(in nsIMsgFolder folder);
 
   string ConvertMsgURIToMsgURL(in string  aURI, in nsIMsgWindow aMsgWindow);

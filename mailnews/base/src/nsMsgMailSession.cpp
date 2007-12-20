@@ -38,26 +38,17 @@
 #include "msgCore.h" // for pre-compiled headers
 #include "nsMsgBaseCID.h"
 #include "nsMsgMailSession.h"
-#include "nsCOMPtr.h"
-#include "nsIMsgStatusFeedback.h"
-#include "nsIMsgWindow.h"
 #include "nsIMsgMessageService.h"
 #include "nsMsgUtils.h"
-#include "nsIURI.h"
 #include "nsIMsgAccountManager.h"
 #include "nsIChromeRegistry.h"
 #include "nsIDirectoryService.h"
 #include "nsAppDirectoryServiceDefs.h"
-#include "nsReadableUtils.h"
 #include "nsPIDOMWindow.h"
-#include "nsIDOMDocument.h"
-#include "nsIDOMElement.h"
 #include "nsIDocShell.h"
 #include "nsIObserverService.h"
 #include "nsIAppStartup.h"
 #include "nsXPFEComponentsCID.h"
-#include "nsIPrefBranch.h"
-#include "nsIPrefService.h"
 #include "nsISupportsPrimitives.h"
 #include "nsIAppShellService.h"
 #include "nsAppShellCID.h"
@@ -83,8 +74,11 @@ nsMsgMailSession::~nsMsgMailSession()
 
 nsresult nsMsgMailSession::Init()
 {
-  nsCOMPtr<nsIMsgShutdownService> shutdownService = do_GetService(NS_MSGSHUTDOWNSERVICE_CONTRACTID);
-  return NS_NewISupportsArray(getter_AddRefs(mWindows));
+  // Ensures the shutdown service is initialised
+  nsresult rv;
+  nsCOMPtr<nsIMsgShutdownService> shutdownService =
+    do_GetService(NS_MSGSHUTDOWNSERVICE_CONTRACTID, &rv);
+  return rv;
 }
 
 nsresult nsMsgMailSession::Shutdown()
@@ -273,99 +267,90 @@ NS_IMETHODIMP nsMsgMailSession::OnItemEvent(nsIMsgFolder *aFolder,
 
 nsresult nsMsgMailSession::GetTopmostMsgWindow(nsIMsgWindow* *aMsgWindow)
 {
-  nsresult rv;
-
-  if (!aMsgWindow) return NS_ERROR_NULL_POINTER;
+  NS_ENSURE_ARG_POINTER(aMsgWindow);
   
   *aMsgWindow = nsnull;
  
-  if (mWindows)
+  PRUint32 count = mWindows.Count();
+
+  if (count == 1)
   {
-    PRUint32 count;
-    rv = mWindows->Count(&count);
+    NS_ADDREF(*aMsgWindow = mWindows[0]);
+    return (*aMsgWindow) ? NS_OK : NS_ERROR_FAILURE;
+  }
+  else if (count > 1)
+  {
+    // If multiple message windows then we have lots more work.
+    nsresult rv;
+
+    // The msgWindows array does not hold z-order info. Use mediator to get
+    // the top most window then match that with the msgWindows array.
+    nsCOMPtr<nsIWindowMediator> windowMediator =
+      do_GetService(NS_WINDOWMEDIATOR_CONTRACTID, &rv);
     NS_ENSURE_SUCCESS(rv, rv);
 
-    nsCOMPtr<nsIMsgWindow> msgWindow;
+    nsCOMPtr<nsISimpleEnumerator> windowEnum;
+    rv = windowMediator->GetZOrderDOMWindowEnumerator(nsnull, PR_TRUE,
+                                                      getter_AddRefs(windowEnum));
+    NS_ENSURE_SUCCESS(rv, rv);
 
-    if (count == 1)
+    nsCOMPtr<nsISupports> windowSupports;
+    nsCOMPtr<nsPIDOMWindow> topMostWindow;
+    nsCOMPtr<nsIDOMDocument> domDocument;
+    nsCOMPtr<nsIDOMElement> domElement;
+    nsAutoString windowType;
+    PRBool more;
+
+    // loop to get the top most with attibute "mail:3pane" or "mail:messageWindow"
+    windowEnum->HasMoreElements(&more);
+    while (more)
     {
-      msgWindow = do_QueryElementAt(mWindows, 0, &rv);
+      rv = windowEnum->GetNext(getter_AddRefs(windowSupports));
       NS_ENSURE_SUCCESS(rv, rv);
-      NS_IF_ADDREF(*aMsgWindow = msgWindow);
-    }
-    // If multiple message windows then we have lots more work.
-    else if (count > 1)
-    {
-      // The msgWindows array does not hold z-order info.
-      // Use mediator to get the top most window then match that with the msgWindows array.
-      nsCOMPtr<nsIWindowMediator> windowMediator = do_GetService(NS_WINDOWMEDIATOR_CONTRACTID, &rv);
+      NS_ENSURE_TRUE(windowSupports, NS_ERROR_FAILURE);
+
+      topMostWindow = do_QueryInterface(windowSupports, &rv);
+      NS_ENSURE_SUCCESS(rv, rv);
+      NS_ENSURE_TRUE(topMostWindow, NS_ERROR_FAILURE);
+
+      rv = topMostWindow->GetDocument(getter_AddRefs(domDocument));
+      NS_ENSURE_SUCCESS(rv, rv);
+      NS_ENSURE_TRUE(domDocument, NS_ERROR_FAILURE);
+
+      rv = domDocument->GetDocumentElement(getter_AddRefs(domElement));
+      NS_ENSURE_SUCCESS(rv, rv);
+      NS_ENSURE_TRUE(domElement, NS_ERROR_FAILURE);
+
+      rv = domElement->GetAttribute(NS_LITERAL_STRING("windowtype"), windowType);
       NS_ENSURE_SUCCESS(rv, rv);
 
-      nsCOMPtr<nsISimpleEnumerator> windowEnum;
-      rv = windowMediator->GetZOrderDOMWindowEnumerator(nsnull, PR_TRUE, getter_AddRefs(windowEnum));
-      NS_ENSURE_SUCCESS(rv, rv);
+      if (windowType.EqualsLiteral("mail:3pane") ||
+          windowType.EqualsLiteral("mail:messageWindow"))
+        break;
 
-      nsCOMPtr<nsISupports> windowSupports;
-      nsCOMPtr<nsIDOMWindow> topMostWindow;
-      nsCOMPtr<nsIDOMDocument> domDocument;
-      nsCOMPtr<nsIDOMElement> domElement;
-      nsAutoString windowType;
-      PRBool more;
-
-      // loop to get the top most with attibute "mail:3pane" or "mail:messageWindow"
       windowEnum->HasMoreElements(&more);
-      while (more)
+    }
+
+    // identified the top most window
+    if (more)
+    {
+      // use this for the match
+      nsIDocShell *topDocShell = topMostWindow->GetDocShell();
+
+      // loop for the msgWindow array to find the match
+      nsCOMPtr<nsIDocShell> docShell;
+
+      while (count)
       {
-        rv = windowEnum->GetNext(getter_AddRefs(windowSupports));
-        NS_ENSURE_SUCCESS(rv, rv);
-        NS_ENSURE_TRUE(windowSupports, NS_ERROR_FAILURE);
+        nsIMsgWindow *msgWindow = mWindows[--count];
 
-        topMostWindow = do_QueryInterface(windowSupports, &rv);
-        NS_ENSURE_SUCCESS(rv, rv);
-        NS_ENSURE_TRUE(topMostWindow, NS_ERROR_FAILURE);
-
-        rv = topMostWindow->GetDocument(getter_AddRefs(domDocument));
-        NS_ENSURE_SUCCESS(rv, rv);
-        NS_ENSURE_TRUE(domDocument, NS_ERROR_FAILURE);
-
-        rv = domDocument->GetDocumentElement(getter_AddRefs(domElement));
-        NS_ENSURE_SUCCESS(rv, rv);
-        NS_ENSURE_TRUE(domElement, NS_ERROR_FAILURE);
-
-        rv = domElement->GetAttribute(NS_LITERAL_STRING("windowtype"), windowType);
+        rv = msgWindow->GetRootDocShell(getter_AddRefs(docShell));
         NS_ENSURE_SUCCESS(rv, rv);
 
-        if (windowType.EqualsLiteral("mail:3pane") ||
-            windowType.EqualsLiteral("mail:messageWindow"))
-            break;
-
-        windowEnum->HasMoreElements(&more);
-      }
-
-      // identified the top most window
-      if (more)
-      {
-        nsCOMPtr<nsPIDOMWindow> win = do_QueryInterface(topMostWindow, &rv);
-        NS_ENSURE_SUCCESS(rv, rv);
-  
-        // use this for the match
-        nsIDocShell *topDocShell = win->GetDocShell();
-
-        // loop for the msgWindow array to find the match
-        nsCOMPtr<nsIDocShell> docShell;
-        while (count)
+        if (topDocShell == docShell)
         {
-          msgWindow = do_QueryElementAt(mWindows, count-1, &rv);
-          NS_ENSURE_SUCCESS(rv,rv);
-
-          rv = msgWindow->GetRootDocShell(getter_AddRefs(docShell));
-          NS_ENSURE_SUCCESS(rv,rv);
-          if (topDocShell == docShell)
-          {
-            NS_IF_ADDREF(*aMsgWindow = msgWindow);
-            break;
-          }
-          count--;
+          NS_IF_ADDREF(*aMsgWindow = msgWindow);
+          break;
         }
       }
     }
@@ -378,33 +363,23 @@ nsresult nsMsgMailSession::GetTopmostMsgWindow(nsIMsgWindow* *aMsgWindow)
 
 NS_IMETHODIMP nsMsgMailSession::AddMsgWindow(nsIMsgWindow *msgWindow)
 {
-  mWindows->AppendElement(msgWindow);
+  NS_ENSURE_ARG_POINTER(msgWindow);
+  mWindows.AppendObject(msgWindow);
   return NS_OK;
 }
 
 NS_IMETHODIMP nsMsgMailSession::RemoveMsgWindow(nsIMsgWindow *msgWindow)
 {
-    mWindows->RemoveElement(msgWindow);
-    PRUint32 count = 0;
-    mWindows->Count(&count);
-    if (count == 0)
-    {
-        nsresult rv;
-        nsCOMPtr<nsIMsgAccountManager> accountManager = 
-                 do_GetService(NS_MSGACCOUNTMANAGER_CONTRACTID, &rv);
-        if (NS_FAILED(rv)) return rv;
-        accountManager->CleanupOnExit();
-    }
-	return NS_OK;
-}
-
-NS_IMETHODIMP nsMsgMailSession::GetMsgWindowsArray(nsISupportsArray * *aWindowsArray)
-{
-  if(!aWindowsArray)
-    return NS_ERROR_NULL_POINTER;
-  
-  *aWindowsArray = mWindows;
-  NS_IF_ADDREF(*aWindowsArray);
+  mWindows.RemoveObject(msgWindow);
+  if (!mWindows.Count())
+  {
+    nsresult rv;
+    nsCOMPtr<nsIMsgAccountManager> accountManager = 
+      do_GetService(NS_MSGACCOUNTMANAGER_CONTRACTID, &rv);
+    if (NS_FAILED(rv))
+      return rv;
+    accountManager->CleanupOnExit();
+  }
   return NS_OK;
 }
 
@@ -414,23 +389,16 @@ NS_IMETHODIMP nsMsgMailSession::IsFolderOpenInWindow(nsIMsgFolder *folder, PRBoo
     return NS_ERROR_NULL_POINTER;
   *aResult = PR_FALSE;
   
-  PRUint32 count;
-  nsresult rv = mWindows->Count(&count);
-  if (NS_FAILED(rv)) return rv;
+  PRUint32 count = mWindows.Count();
   
-  if (mWindows)
+  for(PRUint32 i = 0; i < count; i++)
   {
-    for(PRUint32 i = 0; i < count; i++)
+    nsCOMPtr<nsIMsgFolder> openFolder;
+    mWindows[i]->GetOpenFolder(getter_AddRefs(openFolder));
+    if (folder == openFolder.get())
     {
-      nsCOMPtr<nsIMsgWindow> openWindow = getter_AddRefs((nsIMsgWindow*)mWindows->ElementAt(i));
-      nsCOMPtr<nsIMsgFolder> openFolder;
-      if (openWindow)
-        openWindow->GetOpenFolder(getter_AddRefs(openFolder));
-      if (folder == openFolder.get())
-      {
-        *aResult = PR_TRUE;
-        break;
-      }
+      *aResult = PR_TRUE;
+      break;
     }
   }
   
