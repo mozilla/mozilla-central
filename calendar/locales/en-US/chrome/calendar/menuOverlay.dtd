@@ -157,7 +157,7 @@
 <!ENTITY toolbarsMenu.accesskey                 "T">
 
 <!ENTITY calendar.toolbar.label                 "Calendar Toolbar">
-<!ENTITY calendar.toolbar.accesskey             "C">
+<!ENTITY calendar.toolbar.accesskey             "T">
 
 <!ENTITY mode.toolbar.label                     "Mode Toolbar">
 <!ENTITY mode.toolbar.accesskey                 "M">
