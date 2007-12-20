@@ -223,6 +223,18 @@ $sea_installer = 0;
 $archive       = 1;
 #$push_raw_xpis = 1;
 
+$update_package = 1;
+$update_product = "SeaMonkey";
+$update_version = "trunk";
+$update_platform = "Linux_x86-gcc3";
+$update_hash = "sha1";
+$update_filehost = "ftp.mozilla.org";
+$update_ver_file = 'suite/config/version.txt';
+$update_pushinfo = 0;
+
+# override tinder-defaults.pl to use community server
+$update_aus_host = 'aus2-community.mozilla.org';
+
 $crashreporter_buildsymbols = 1;
 $crashreporter_pushsymbols = 1;
 $ENV{SYMBOL_SERVER_HOST} = 'stage.mozilla.org';
