@@ -279,7 +279,7 @@ var onUnloadRegistry = [ ];
 function onLoadPageInfo()
 {
   gBundle = document.getElementById("pageinfobundle");
-  var strNames = ["unknown", "notSet", "mediaImg", "mediaBGImg", "mediaApplet",
+  var strNames = ["unknown", "notSet", "mediaImg", "mediaBGImg",
                   "mediaObject", "mediaEmbed", "mediaLink", "mediaInput",
                   "formTitle", "formUntitled", "formDefaultTarget",
                   "formChecked", "formUnchecked", "formPassword", "linkAnchor",
@@ -572,15 +572,6 @@ function grabAll(elem)
   }
   else if (elem instanceof HTMLFormElement)
     gFormView.addRow([elem.name, elem.method, elem.action, elem]);
-  else if (elem instanceof HTMLAppletElement)
-  {
-    //XXX When Java is enabled, the DOM model for <APPLET> is broken. Bug #59686.
-    // Also, some reports of a crash with Java in Media tab (bug 136535), and mixed
-    // content from two hosts (bug 136539) so just drop applets from Page Info when
-    // Java is on. For the 1.0.1 branch; get a real fix on the trunk.
-    if (!navigator.javaEnabled())
-      addImage(elem.code || elem.object, gStrings.mediaApplet, "", elem, false);
-  }
   else if (elem instanceof HTMLObjectElement)
     addImage(elem.data, gStrings.mediaObject, getValueText(elem), elem, false);
   else if (elem instanceof HTMLEmbedElement)
