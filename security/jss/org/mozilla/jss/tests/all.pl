@@ -226,7 +226,8 @@ sub setup_vars {
     if ($osname eq "SunOS") {
         if ($ENV{USE_64}) {
             my $cpu = `/usr/bin/isainfo -n`;
-            if ($cpu == "amd64") {
+            chomp $cpu;
+            if ($cpu eq "amd64") {
                 $java = "$ENV{JAVA_HOME}/jre/bin/amd64/java$exe_suffix";
                 $java_64bit = 1;
             }
