@@ -362,7 +362,7 @@ nsspkcs5_PBKFD2_F(const SECHashObject *hashobj, SECItem *pwitem, SECItem *salt,
     unsigned int lastLength = salt->len + 4;
     unsigned int lastBufLength;
 
-    cx=HMAC_Create(hashobj,pwitem->data,pwitem->len,PR_TRUE);
+    cx=HMAC_Create(hashobj,pwitem->data,pwitem->len,PR_FALSE);
     if (cx == NULL) {
 	goto loser;
     }
@@ -406,7 +406,7 @@ nsspkcs5_PBKDF2(const SECHashObject *hashobj, NSSPKCS5PBEParameter *pbe_param,
     int bytesNeeded = pbe_param->keyLen;
     unsigned int dkLen = bytesNeeded;
     unsigned int hLen = hashobj->length;
-    unsigned int l = (dkLen+hLen-1) / hLen;
+    unsigned int nblocks = (dkLen+hLen-1) / hLen;
     unsigned int i;
     unsigned char *rp;
     unsigned char *T = NULL;
@@ -414,7 +414,7 @@ nsspkcs5_PBKDF2(const SECHashObject *hashobj, NSSPKCS5PBEParameter *pbe_param,
     SECItem *salt = &pbe_param->salt;
     SECStatus rv = SECFailure;
 
-    result = SECITEM_AllocItem(NULL,NULL,l*hLen);
+    result = SECITEM_AllocItem(NULL,NULL,nblocks*hLen);
     if (result == NULL) {
 	return NULL;
     }
@@ -424,7 +424,7 @@ nsspkcs5_PBKDF2(const SECHashObject *hashobj, NSSPKCS5PBEParameter *pbe_param,
 	goto loser;
     }
 
-    for (i=0,rp=result->data; i < l ; i++, rp +=hLen) {
+    for (i=1,rp=result->data; i <= nblocks ; i++, rp +=hLen) {
 	rv = nsspkcs5_PBKFD2_F(hashobj,pwitem,salt,iterations,i,T);
 	if (rv != SECSuccess) {
 	    break;
