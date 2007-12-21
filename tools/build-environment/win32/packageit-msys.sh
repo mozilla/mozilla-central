@@ -66,6 +66,13 @@ popd
 # the DLL. Since I can't figure out how to rebase just one
 # DLL to avoid conflicts with a set of others, we just
 # rebase them all!
+# Some DLLs won't rebase unless they are chmod 755
+find "${MSYS_STAGEDIR}/mozilla-build/msys" -name "*.dll" | \
+  xargs chmod 755
 
-find "${MSYS_STAGEDIR}/mozilla-build/lib" -name "*.dll" | \
+# Skip libW11.dll, since it doesn't rebase properly
+find "${MSYS_STAGEDIR}/mozilla-build/msys" -name "*.dll" | \
+  grep -v "libW11.dll" | \
   xargs rebase -d -b 60000000
+# Now rebase msys-1.0.dll to a special place because it's finicky
+rebase -b 60100000 "${MSYS_STAGEDIR}/mozilla-build/msys/bin/msys-1.0.dll"
