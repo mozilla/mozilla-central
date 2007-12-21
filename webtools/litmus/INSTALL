@@ -1,4 +1,4 @@
-\= Litmus Installation Instructions =
+= Litmus Installation Instructions =
 
 == Required Perl Modules ==
 
@@ -49,6 +49,11 @@ There is no UI at present for doing this.
   vi localconfig
   ./populatedb.pl -r
 
+You'll then want to run "make install" to pre-compile your templates, verify
+your database setup, and prepare you Javascript libraries.
+
+  make install
+
 Then just pop the whole thing into a directory where your web server can
 get at it. Have fun!
 
@@ -72,7 +77,23 @@ you want Litmus to be able to send email, e.g. for daily reports. If you will
 be using something other than sendmail, you may need to change Litmus::Mailer
 appropriately.
 
+== Minimizing Javascript libraries ==
+
+The Javascript libraries included with Litmus are broken into 
+logically-separate files. Prior to install, we combine many of these files 
+together into a single, larger file. This results in a larger initial 
+download for your user but the file is then cached and subsequent access will
+be faster.
+
+We also use jsmin (http://javascript.crockford.com/jsmin.html) if it is in
+your $PATH to strip the Javascript and reduce their size as much as possible.
+
+This is done as part of the "make install" process, but you can do this by 
+hand too from your root Litmus install:
+
+  scripts/minify_js.bash 
+
 == Things to do after an upgrade ==
 
-After upgrading Litmus from CVS, it's a good idea to run populatedb.pl again to
-pick up any schema changes that may have occured.
+After upgrading Litmus from CVS, it's a good idea to run "make install" 
+again to pick up any schema changes that may have occured.
