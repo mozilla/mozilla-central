@@ -1098,11 +1098,11 @@ function my_showtonet (e)
 
             if ("pendingURLs" in this)
             {
-                var url = this.pendingURLs.pop();
-                while (url)
+                var target = this.pendingURLs.pop();
+                while (target)
                 {
-                    gotoIRCURL(url);
-                    url = this.pendingURLs.pop();
+                    gotoIRCURL(target.url, target.e);
+                    target = this.pendingURLs.pop();
                 }
                 delete this.pendingURLs;
             }

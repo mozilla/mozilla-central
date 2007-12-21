@@ -92,6 +92,21 @@ window {
     -moz-box-flex: 10000;
 }
 
+#tabs-drop-indicator-bar {
+    position: relative;
+    margin-top: -3px;
+    -moz-margin-start: -5px;
+    height: 3px;
+}
+
+#tabs-drop-indicator {
+    position: relative;
+    margin-bottom: -8px;
+    width: 11px;
+    height: 11px;
+    background: url(images/drop-indicator-bottom.png) 50% 50% no-repeat;
+}
+
 .view-button {
     /* do NOT set colour, at least not without background. :) */
     text-align: center;

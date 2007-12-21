@@ -352,6 +352,10 @@ function initStatic()
 
     client.statusBar["server-nick"] = document.getElementById("server-nick");
 
+    client.tabs = document.getElementById("views-tbar-inner");
+    client.tabDragBar = document.getElementById("tabs-drop-indicator-bar");
+    client.tabDragMarker = document.getElementById("tabs-drop-indicator");
+
     client.statusElement = document.getElementById("status-text");
     client.defaultStatus = MSG_DEFAULT_STATUS;
 
@@ -856,8 +860,15 @@ function processStartupURLs()
     }
 
     if (client.viewsArray.length > 1 && !isStartupURL("irc://"))
+        dispatch("delete-view", { view: client });
+
+    /* XXX: If we have the "stop XBL breaking" hidden tab, remove it, to
+     * stop XBL breaking later. Oh, the irony.
+     */
+    if (client.tabs.firstChild.hidden)
     {
-        dispatch("delete-view", {view: client});
+        client.tabs.removeChild(client.tabs.firstChild);
+        updateTabAttributes();
     }
 }
 
@@ -1652,7 +1663,7 @@ function doObjectURLtest()
 }
 
 
-function gotoIRCURL (url)
+function gotoIRCURL(url, e)
 {
     var urlspec = url;
     if (typeof url == "string")
@@ -1660,7 +1671,7 @@ function gotoIRCURL (url)
 
     if (!url)
     {
-        window.alert (getMsg(MSG_ERR_BAD_IRCURL, urlspec));
+        window.alert(getMsg(MSG_ERR_BAD_IRCURL, urlspec));
         return;
     }
 
@@ -1670,7 +1681,9 @@ function gotoIRCURL (url)
          * urls that don't have a host.  (irc:/// implies a connect to the
          * default network.)
          */
+        client.pendingViewContext = e;
         dispatch("client");
+        delete client.pendingViewContext;
         return;
     }
 
@@ -1719,11 +1732,12 @@ function gotoIRCURL (url)
                     }
                 }
 
-                
+                client.pendingViewContext = e;
                 var params = {hostname: url.host, port: url.port,
                               password: pass};
                 var cmd = (url.scheme == "ircs" ? "sslserver" : "server");
                 network = dispatch(cmd, params);
+                delete client.pendingViewContext;
             }
 
             if (!url.target)
@@ -1731,7 +1745,7 @@ function gotoIRCURL (url)
 
             if (!("pendingURLs" in network))
                 network.pendingURLs = new Array();
-            network.pendingURLs.unshift(url);
+            network.pendingURLs.unshift({ url: url, e: e });
             return;
         }
     }
@@ -1753,14 +1767,18 @@ function gotoIRCURL (url)
             */
             var secure = (url.scheme == "ircs" ? true : false);
             if (!network.isConnected())
+            {
+                client.pendingViewContext = e;
                 client.connectToNetwork(network, secure);
+                delete client.pendingViewContext;
+            }
 
             if (!url.target)
                 return;
 
             if (!("pendingURLs" in network))
                 network.pendingURLs = new Array();
-            network.pendingURLs.unshift(url);
+            network.pendingURLs.unshift({ url: url, e: e });
             return;
         }
     }
@@ -1779,7 +1797,9 @@ function gotoIRCURL (url)
             if (ary)
                 nick = ary[0];
 
+            client.pendingViewContext = e;
             targetObject = network.dispatch("query", {nickname: nick});
+            delete client.pendingViewContext;
         }
         else
         {
@@ -1795,9 +1815,11 @@ function gotoIRCURL (url)
 
             if (url.charset)
             {
+                client.pendingViewContext = e;
                 var d = { channelName: url.target, key: key,
                           charset: url.charset };
                 targetObject = network.dispatch("join", d);
+                delete client.pendingViewContext;
             }
             else
             {
@@ -1819,9 +1841,11 @@ function gotoIRCURL (url)
 
                 var chan = new CIRCChannel(serv, null, target);
 
+                client.pendingViewContext = e;
                 d = { channelName: chan.unicodeName, key: key,
                       charset: url.charset };
                 targetObject = network.dispatch("join", d);
+                delete client.pendingViewContext;
             }
 
             if (!targetObject)
@@ -1830,6 +1854,7 @@ function gotoIRCURL (url)
 
         if (url.msg)
         {
+            client.pendingViewContext = e;
             var msg;
             if (url.msg.indexOf("\01ACTION") == 0)
             {
@@ -1845,13 +1870,16 @@ function gotoIRCURL (url)
             }
             targetObject.say(msg);
             dispatch("set-current-view", { view: targetObject });
+            delete client.pendingViewContext;
         }
     }
     else
     {
+        client.pendingViewContext = e;
         if (!network.messages)
-            network.displayHere (getMsg(MSG_NETWORK_OPENED, network.unicodeName));
+            network.displayHere(getMsg(MSG_NETWORK_OPENED, network.unicodeName));
         dispatch("set-current-view", { view: network });
+        delete client.pendingViewContext;
     }
 }
 
@@ -2429,7 +2457,11 @@ function setCurrentObject (obj)
         return;
 
     if ("currentObject" in client && client.currentObject == obj)
+    {
+        if (typeof client.pendingViewContext == "object")
+            dispatch("create-tab-for-view", { view: obj });
         return;
+    }
 
     // Set window.content to make screenreader apps find the chat content.
     if (obj.frame && getContentWindow(obj.frame))
@@ -2467,7 +2499,7 @@ function setCurrentObject (obj)
 
     var vk = Number(tb.getAttribute("viewKey"));
     delete client.activityList[vk];
-    client.deck.selectedIndex = vk;
+    client.deck.selectedPanel = obj.frame;
 
     // Style userlist and the like:
     updateAppMotif(obj.prefs["motif.current"]);
@@ -2947,24 +2979,20 @@ function createMessages(source)
     source.messageCount = 0;
 }
 
-/* gets the toolbutton associated with an object
- * if |create| is present, and true, create if not found */
-function getTabForObject (source, create)
+/* Gets the <tab> element associated with a view object.
+ * If |create| is present, and true, tab is created if not found.
+ */
+function getTabForObject(source, create)
 {
     var name;
 
     if (!ASSERT(source, "UNDEFINED passed to getTabForObject"))
         return null;
 
-    if ("viewName" in source)
-    {
-        name = source.viewName;
-    }
-    else
-    {
-        ASSERT(0, "INVALID OBJECT passed to getTabForObject");
+    if (!ASSERT("viewName" in source, "INVALID OBJECT in getTabForObject"))
         return null;
-    }
+
+    name = source.viewName;
 
     var tb, id = "tb[" + name + "]";
     var matches = 1;
@@ -2981,12 +3009,47 @@ function getTabForObject (source, create)
                 id = "tb[" + name + "<" + (++matches) + ">]";
     }
 
-    if (!tb && create) /* not found, create one */
+    /* If we found a <tab>, are allowed to create it, and have a pending view
+     * context, then we're expected to move the existing tab according to said
+     * context. We do that by removing the tab here, and below the creation
+     * code (which is not run) we readd it in the correct location.
+     */
+    if (tb && create && (typeof client.pendingViewContext == "object"))
+    {
+        /* If we're supposed to insert before ourselves, or the next <tab>,
+         * then bail out (since it's a no-op).
+         */
+        var tabBefore = client.pendingViewContext.tabInsertBefore;
+        if (tabBefore)
+        {
+            var tbAfter = tb.nextSibling;
+            while (tbAfter && tbAfter.collapsed && tbAfter.hidden)
+                tbAfter = tbAfter.nextSibling;
+            if ((tabBefore == tb) || (tabBefore == tbAfter))
+                return tb;
+        }
+
+        var viewKey = Number(tb.getAttribute("viewKey"));
+        arrayRemoveAt(client.viewsArray, viewKey);
+        for (i = viewKey; i < client.viewsArray.length; i++)
+            client.viewsArray[i].tb.setAttribute("viewKey", i);
+        client.tabs.removeChild(tb);
+    }
+    else if (tb || (!tb && !create))
+    {
+        /* Either: we have a tab and don't want it moved, or didn't find one
+         * and don't wish to create one.
+         */
+        return tb;
+    }
+
+    // Didn't found a <tab>, but we're allowed to create one.
+    if (!tb && create)
     {
         if (!("messages" in source) || source.messages == null)
             createMessages(source);
-        var views = document.getElementById ("views-tbar-inner");
-        tb = document.createElement ("tab");
+
+        tb = document.createElement("tab");
         tb.setAttribute("ondraggesture",
                         "nsDragAndDrop.startDrag(event, tabDNDObserver);");
         tb.setAttribute("href", source.getURL());
@@ -2999,25 +3062,16 @@ function getTabForObject (source, create)
         tb.setAttribute("class", "tab-bottom view-button");
         tb.setAttribute("id", id);
         tb.setAttribute("state", "normal");
-
-        client.viewsArray.push ({source: source, tb: tb});
-        tb.setAttribute ("viewKey", client.viewsArray.length - 1);
+        tb.setAttribute("label", name + (matches > 1 ? "<" + matches + ">" : ""));
         tb.view = source;
 
-        if (matches > 1)
-            tb.setAttribute("label", name + "<" + matches + ">");
-        else
-            tb.setAttribute("label", name);
-
-        views.appendChild(tb);
-
-        var browser = document.createElement ("browser");
+        var browser = document.createElement("browser");
         browser.setAttribute("class", "output-container");
         browser.setAttribute("type", "content");
         browser.setAttribute("flex", "1");
         browser.setAttribute("tooltip", "html-tooltip-node");
         browser.setAttribute("context", "context:messages");
-        //browser.setAttribute ("onload", "scrollDown(true);");
+        //browser.setAttribute("onload", "scrollDown(true);");
         browser.setAttribute("onclick",
                              "return onMessageViewClick(event)");
         browser.setAttribute("onmousedown",
@@ -3033,8 +3087,8 @@ function getTabForObject (source, create)
         browser.source = source;
         source.frame = browser;
         ASSERT(client.deck, "no deck?");
-        client.deck.appendChild (browser);
-        syncOutputFrame (source);
+        client.deck.appendChild(browser);
+        syncOutputFrame(source);
 
         if (!("userList" in source) && (source.TYPE == "IRCChannel"))
         {
@@ -3045,8 +3099,94 @@ function getTabForObject (source, create)
         }
     }
 
-    return tb;
+    var beforeTab = null;
+    if (typeof client.pendingViewContext == "object")
+    {
+        var c = client.pendingViewContext;
+        /* If we have a <tab> to insert before, and it is still in the tabs,
+         * move the newly-created <tab> into the right place.
+         */
+        if (c.tabInsertBefore && (c.tabInsertBefore.parentNode == client.tabs))
+            beforeTab = c.tabInsertBefore;
+    }
 
+    if (beforeTab)
+    {
+        var viewKey = beforeTab.getAttribute("viewKey");
+        arrayInsertAt(client.viewsArray, viewKey, {source: source, tb: tb});
+        for (i = viewKey; i < client.viewsArray.length; i++)
+            client.viewsArray[i].tb.setAttribute("viewKey", i);
+        client.tabs.insertBefore(tb, beforeTab);
+    }
+    else
+    {
+        client.viewsArray.push({source: source, tb: tb});
+        tb.setAttribute("viewKey", client.viewsArray.length - 1);
+        client.tabs.appendChild(tb);
+    }
+
+    updateTabAttributes();
+
+    return tb;
+}
+
+function updateTabAttributes()
+{
+    /* XXX: Workaround for Gecko bugs 272646 and 261826. Note that this breaks
+     * the location of the spacers before and after the tabs but, due to our
+     * own <spacer>, their flex was not being utilised anyway.
+     */
+    var tabOrdinal = 0;
+    for (var tab = client.tabs.firstChild; tab; tab = tab.nextSibling)
+        tab.ordinal = tabOrdinal++;
+
+    /* XXX: Workaround for tabbox.xml not coping with updating attributes when
+     * tabs are moved. We correct the "first-tab", "last-tab", "beforeselected"
+     * and "afterselected" attributes.
+     *
+     * "last-tab" and "beforeselected" are updated on each valid (non-collapsed
+     * and non-hidden) tab found, to avoid having to work backwards as well as
+     * forwards. "first-tab" and "afterselected" are just set the once each.
+     * |foundSelected| tracks where we are in relation to the selected tab.
+     */
+    var tabAttrs = {
+        "first-tab": null,
+        "last-tab": null,
+        "beforeselected": null,
+        "afterselected": null
+    };
+    var foundSelected = "before";
+    for (tab = client.tabs.firstChild; tab; tab = tab.nextSibling)
+    {
+        if (tab.collapsed || tab.hidden)
+            continue;
+
+        if (!tabAttrs["first-tab"])
+            tabAttrs["first-tab"] = tab;
+        tabAttrs["last-tab"] = tab;
+
+        if ((foundSelected == "before") && tab.selected)
+            foundSelected = "on";
+        else if (foundSelected == "on")
+            foundSelected = "after";
+
+        if (foundSelected == "before")
+            tabAttrs["beforeselected"] = tab;
+        if ((foundSelected == "after") && !tabAttrs["afterselected"])
+            tabAttrs["afterselected"] = tab;
+    }
+
+    // After picking a tab for each attribute, apply them to the tabs.
+    for (tab = client.tabs.firstChild; tab; tab = tab.nextSibling)
+    {
+        for (var attr in tabAttrs)
+        {
+            if (tabAttrs[attr] == tab)
+                tab.setAttribute(attr, "true");
+            else
+                tab.removeAttribute(attr);
+        }
+    }
 }
 
 // Properties getter for user list tree view
@@ -3071,7 +3211,7 @@ function ul_getcellprops(index, column, properties)
 var contentDropObserver = new Object();
 
 contentDropObserver.onDragOver =
-function tabdnd_dover (aEvent, aFlavour, aDragSession)
+function cdnd_dover(aEvent, aFlavour, aDragSession)
 {
     if (aEvent.getPreventDefault())
         return;
@@ -3084,25 +3224,172 @@ function tabdnd_dover (aEvent, aFlavour, aDragSession)
 }
 
 contentDropObserver.onDrop =
-function tabdnd_drop (aEvent, aXferData, aDragSession)
+function cdnd_drop(aEvent, aXferData, aDragSession)
 {
     var url = transferUtils.retrieveURLFromData(aXferData.data,
                                                 aXferData.flavour.contentType);
     if (!url || url.search(client.linkRE) == -1)
         return;
 
-    if (url.search(/\.css$/i) != -1  && confirm (getMsg(MSG_TABDND_DROP, url)))
+    if (url.search(/\.css$/i) != -1  && confirm(getMsg(MSG_TABDND_DROP, url)))
         dispatch("motif", {"motif": url});
     else if (url.search(/^ircs?:\/\//i) != -1)
         dispatch("goto-url", {"url": url});
 }
 
 contentDropObserver.getSupportedFlavours =
-function tabdnd_gsf ()
+function cdnd_gsf()
 {
     var flavourSet = new FlavourSet();
     flavourSet.appendFlavour("text/x-moz-url");
     flavourSet.appendFlavour("application/x-moz-file", "nsIFile");
+    flavourSet.appendFlavour("text/unicode");
+    return flavourSet;
+}
+
+/* Drag and Drop handler for the <tabs> element.
+ *
+ * XXX: Some of the code below has to work around specific limitations in how
+ * the nsDragAndDrop.js wrapper works. The wrapper greatly simplifies the DnD
+ * code, though, so it's still worth using.
+ * 
+ * XXX: canDrop checks if there is a supported flavour of data because
+ * nsDragAndDrop does not. This will prevent the drag service from thinking
+ * we accept any old data when we don't.
+ * 
+ * XXX: nsDragAndDrop.checkCanDrop does this:
+ *     mDragSession.canDrop = mDragSession.sourceNode != aEvent.target;
+ *     mDragSession.canDrop &= aDragDropObserver.canDrop(...);
+ * As a result, canDrop cannot override the false canDrop value when the source
+ * and target are the same (i.e. the same <tab>). Thus, we override this check
+ * inside onDragOver instead, which is called after canDrop (even if that says
+ * it can't be dropped, luckily). As a result, after nsDragAndDrop has called
+ * canDrop and onDragOver, the drag service's canDrop value is true iff there
+ * is a supported flavour.
+ * 
+ * XXX: onDrop is the only place which checks we're getting an IRC URL, as
+ * accessing the drag data at any other time is both tedious and could
+ * significantly impact the performance of the drag (getting the data can be
+ * very slow).
+ */
+var tabsDropObserver = new Object();
+
+tabsDropObserver.canDrop =
+function tabdnd_candrop(aEvent, aDragSession)
+{
+    if (aEvent.getPreventDefault())
+        return;
+
+    // See comment above |var tabsDropObserver|.
+    var flavourSet = this.getSupportedFlavours();
+    for (var flavour in flavourSet.flavourTable)
+    {
+        if (aDragSession.isDataFlavorSupported(flavour))
+            return true;
+    }
+    return false;
+}
+
+tabsDropObserver.onDragOver =
+function tabdnd_dover(aEvent, aFlavour, aDragSession)
+{
+    if (aEvent.getPreventDefault())
+        return;
+
+    // See comment above |var tabsDropObserver|.
+    if (aDragSession.sourceNode == aEvent.target)
+        aDragSession.canDrop = true;
+
+    // If we're not accepting the drag, don't show the marker either.
+    if (!aDragSession.canDrop)
+    {
+        client.tabDragBar.collapsed = true;
+        return;
+    }
+
+    /* Locate the tab we're about to drop onto. We split tabs in half, dropping
+     * on the side closest to the mouse, or after the last tab if the mouse is
+     * somewhere beyond all the tabs.
+     */
+    var ltr = (window.getComputedStyle(client.tabs, null).direction == "ltr");
+    var newPosition = 0;
+    for (var dropTab = client.tabs.firstChild; dropTab;
+         dropTab = dropTab.nextSibling)
+    {
+        if (dropTab.collapsed || dropTab.hidden)
+            continue;
+        var bo = dropTab.boxObject;
+        if ((ltr && (aEvent.screenX < bo.screenX + bo.width / 2)) ||
+            (!ltr && (aEvent.screenX > bo.screenX + bo.width / 2)))
+        {
+            break;
+        }
+        newPosition += dropTab.boxObject.width;
+    }
+
+    // Reposition the drop marker and show it. In that order.
+    client.tabDragMarker.style.MozMarginStart = newPosition + "px";
+    client.tabDragBar.collapsed = false;
+}
+
+tabsDropObserver.onDragExit =
+function tabdnd_dexit(aEvent, aDragSession)
+{
+    if (aEvent.getPreventDefault())
+        return;
+
+    /* We've either stopped being part of a drag operation, or the dragging is
+     * somewhere away from us.
+     */
+    client.tabDragBar.collapsed = true;
+}
+
+tabsDropObserver.onDrop =
+function tabdnd_drop(aEvent, aXferData, aDragSession)
+{
+    // See comment above |var tabsDropObserver|.
+    var url = transferUtils.retrieveURLFromData(aXferData.data,
+                                                aXferData.flavour.contentType);
+    if (!url || !url.match(/^ircs?:/))
+        return;
+
+    // Find the tab to insertBefore() the new one.
+    var ltr = (window.getComputedStyle(client.tabs, null).direction == "ltr");
+    for (var dropTab = client.tabs.firstChild; dropTab;
+         dropTab = dropTab.nextSibling)
+    {
+        if (dropTab.collapsed || dropTab.hidden)
+            continue;
+        var bo = dropTab.boxObject;
+        if ((ltr && (aEvent.screenX < bo.screenX + bo.width / 2)) ||
+            (!ltr && (aEvent.screenX > bo.screenX + bo.width / 2)))
+        {
+            break;
+        }
+    }
+
+    // Check if the URL is already in the views.
+    for (var i = 0; i < client.viewsArray.length; i++)
+    {
+        var view = client.viewsArray[i].source;
+        if (view.getURL() == url)
+        {
+            client.pendingViewContext = { tabInsertBefore: dropTab };
+            dispatch("create-tab-for-view", { view: view });
+            delete client.pendingViewContext;
+            return;
+        }
+    }
+
+    // URL not found in tabs, so force it into life - this may connect/rejoin.
+    gotoIRCURL(url, { tabInsertBefore: dropTab });
+}
+
+tabsDropObserver.getSupportedFlavours =
+function tabdnd_gsf()
+{
+    var flavourSet = new FlavourSet();
+    flavourSet.appendFlavour("text/x-moz-url");
     flavourSet.appendFlavour("text/unicode");
     return flavourSet;
 }
@@ -3141,7 +3428,7 @@ function userlistdnd_dstart(event, transferData, dragAction)
     transferData.data.addDataForFlavour("text/unicode", nickname);
 }
 
-function deleteTab (tb)
+function deleteTab(tb)
 {
     if (!ASSERT(tb.hasAttribute("viewKey"),
                 "INVALID OBJECT passed to deleteTab (" + tb + ")"))
@@ -3149,17 +3436,14 @@ function deleteTab (tb)
         return null;
     }
 
-    var i;
     var key = Number(tb.getAttribute("viewKey"));
 
-    /* re-index higher toolbuttons */
-    for (i = key + 1; i < client.viewsArray.length; i++)
-    {
-        client.viewsArray[i].tb.setAttribute ("viewKey", i - 1);
-    }
+    // Re-index higher tabs.
+    for (var i = key + 1; i < client.viewsArray.length; i++)
+        client.viewsArray[i].tb.setAttribute("viewKey", i - 1);
     arrayRemoveAt(client.viewsArray, key);
-    var tbinner = document.getElementById("views-tbar-inner");
-    tbinner.removeChild(tb);
+    client.tabs.removeChild(tb);
+    updateTabAttributes();
 
     return key;
 }

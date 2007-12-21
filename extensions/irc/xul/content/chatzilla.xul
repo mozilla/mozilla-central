@@ -89,8 +89,11 @@
   
       </hbox> <!-- tabpanels-contents-box -->
     
-      <hbox id="tabstrip-box" flex="0" crop="right">
-        <hbox id="view-tabs" persist="collapsed" flex="1">
+      <vbox id="tabstrip-box" flex="0" crop="right">
+        <hbox id="view-tabs" persist="collapsed" flex="1"
+            ondragover="nsDragAndDrop.dragOver(event, tabsDropObserver)"
+            ondragexit="nsDragAndDrop.dragExit(event, tabsDropObserver)"
+            ondragdrop="nsDragAndDrop.drop(event, tabsDropObserver)">
           <tabs class="tabs-bottom" id="views-tbar-inner" flex="1"
               onselect="onTabSelect(event)" setfocus="false">
             <tab hidden="true"/> <!-- dummy tab to keep the freaking xbl from
@@ -98,7 +101,10 @@
           </tabs>
           <spacer id="views-tbar-spacer"/>
         </hbox>
-      </hbox>
+        <hbox id="tabs-drop-indicator-bar" collapsed="true">
+          <hbox id="tabs-drop-indicator" mousethrough="always"/>
+        </hbox>
+      </vbox>
   
     </vbox> <!-- upper-box -->
   

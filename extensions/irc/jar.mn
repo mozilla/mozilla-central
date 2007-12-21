@@ -102,3 +102,4 @@ chatzilla.jar:
 	skin/modern/chatzilla/images/secure-broken.png      (xul/skin/images/secure-broken.png)
 	skin/modern/chatzilla/images/online.png             (xul/skin/images/online.png)
 	skin/modern/chatzilla/images/offline.png            (xul/skin/images/offline.png)
+	skin/modern/chatzilla/images/drop-indicator-bottom.png (xul/skin/images/drop-indicator-bottom.png)
