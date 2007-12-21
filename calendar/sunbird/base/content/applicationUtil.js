@@ -19,6 +19,7 @@
  * the Initial Developer. All Rights Reserved.
  *
  * Contributor(s): Matthew Willis <mattwillis@gmail.com>
+ *   Philipp Kewisch <mozilla@kewis.ch>
  *
  * Alternatively, the contents of this file may be used under the terms of
  * either the GNU General Public License Version 2 or later (the "GPL"), or
@@ -348,7 +349,6 @@ function sbUpdateItem()
         return;
     } 
 
-    var strings = document.getElementById("bundle_calendar");
     var activeUpdate = updateManager.activeUpdate;
 
     // By default, show "Check for Updates..."
@@ -372,9 +372,9 @@ function sbUpdateItem()
     // If there's an active update, substitute its name into the label
     // we show for this item, otherwise display a generic label.
     if (activeUpdate && activeUpdate.name) {
-        checkForUpdates.label = strings.getFormattedString("updatesItem_" + key, [activeUpdate.name]);
+        checkForUpdates.label = calGetString("calendar", "updatesItem_" + key, [activeUpdate.name]);
     } else {
-        checkForUpdates.label = strings.getString("updatesItem_" + key + "Fallback");
+        checkForUpdates.label = calGetString("calendar", "updatesItem_" + key + "Fallback");
     }
 
     if (updateManager.activeUpdate && updateService.isDownloading) {
