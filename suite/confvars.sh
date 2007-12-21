@@ -47,3 +47,4 @@ MOZ_PROFILESHARING=
 MOZ_APP_VERSION=$SEAMONKEY_VERSION
 MOZ_NO_XPCOM_OBSOLETE=1
 MOZ_EXTENSIONS_DEFAULT=" wallet xml-rpc venkman inspector irc typeaheadfind gnomevfs reporter"
+MOZ_UPDATER=1
