@@ -47,7 +47,7 @@
 //
 #include "nppluglet.h"
 
-static NS_DEFINE_IID(kISimplePluginIID, NS_ISIMPLEPLUGIN_IID);
+static NS_DEFINE_IID(kIPlugletIID, NS_IPLUGLET_IID);
 static NS_DEFINE_IID(kIClassInfoIID, NS_ICLASSINFO_IID);
 static NS_DEFINE_IID(kISupportsIID, NS_ISUPPORTS_IID);
 
@@ -86,8 +86,8 @@ NS_IMETHODIMP nsScriptablePeer::QueryInterface(const nsIID& aIID, void** aInstan
   if(!aInstancePtr) 
     return NS_ERROR_NULL_POINTER; 
 
-  if(aIID.Equals(kISimplePluginIID)) {
-    *aInstancePtr = static_cast<nsISimplePlugin*>(this); 
+  if(aIID.Equals(kIPlugletIID)) {
+    *aInstancePtr = static_cast<nsIPluglet*>(this); 
     AddRef();
     return NS_OK;
   }
@@ -99,7 +99,7 @@ NS_IMETHODIMP nsScriptablePeer::QueryInterface(const nsIID& aIID, void** aInstan
   }
 
   if(aIID.Equals(kISupportsIID)) {
-    *aInstancePtr = static_cast<nsISupports*>((static_cast<nsISimplePlugin*>(this))); 
+    *aInstancePtr = static_cast<nsISupports*>((static_cast<nsIPluglet*>(this))); 
     AddRef();
     return NS_OK;
   }
@@ -130,5 +130,14 @@ NS_IMETHODIMP nsScriptablePeer::HasPlugletForMimeType(const char *aMimeType, PRB
     }
     return rv;
 
+}
+
+NS_IMETHODIMP nsScriptablePeer::CallPlugletMethod(const char *methodName, 
+                                                  PRUint32 inArgc, const char **inArgv)
+{
+    nsresult rv = NS_OK;
+    PR_LOG(log, PR_LOG_DEBUG,
+           ("nppluglet CallPlugletMethod: methodName: %s\n", methodName));
+    return rv;
 }
 

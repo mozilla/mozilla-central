@@ -3,5 +3,21 @@
 <body>
 <EMBED type="application/x-simple-pluglet" name="test" 
        src="index.html" width=400 height=200>
+
+<script>
+var embed = document.embeds[0];
+
+function callPluglet()
+{
+  var inArgv = [];
+  var outArgv = [];
+  embed.callPlugletMethod("methodName", 0, inArgv, 0, outArgv);
+}
+</script>
+
+<form name="formname">
+<input type=button value="Call Pluglet" onclick='callPluglet()'> </input>
+</form>
+
 </body>
 </html>

@@ -220,6 +220,7 @@ in which the file "prefs.js" resides?  The current value of this
     <target name="copy.binaries" if="do.copy.binaries">
         <copy todir="${browser.bin.dir}">
             <fileset dir="${basedir}/../bin/${platform}/bin" />
+            <fileset dir="${basedir}/../bin/xp/bin" />
         </copy>
     </target>
 

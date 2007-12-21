@@ -55,7 +55,7 @@
 
 #include "prlog.h"
 
-static PRLogModuleInfo* log = NULL;
+PRLogModuleInfo* log = NULL; // declared in nppluglet.h
 
 // service manager which will give the access to all public browser services
 // we will use memory service as an illustration
@@ -353,7 +353,7 @@ NS_IMETHODIMP nsPluginInstance::HasPlugletForMimeType(const char *aMimeType,
     nsresult rv = NS_ERROR_FAILURE;
     *outResult = PR_FALSE;
     nsCOMPtr<nsIPlugin> plugletEngine = nsnull;
-    nsIID scriptableIID = NS_ISIMPLEPLUGIN_IID;    
+    nsIID scriptableIID = NS_IPLUGLET_IID;    
 
     if (!mPluglet) {
         plugletEngine = do_GetService(PLUGLETENGINE_ContractID, &rv);
@@ -428,7 +428,7 @@ NPError	nsPluginInstance::GetValue(NPPVariable aVariable, void *aValue)
   switch (aVariable) {
     case NPPVpluginScriptableInstance: {
       // addref happens in getter, so we don't addref here
-      nsISimplePlugin * scriptablePeer = getScriptablePeer();
+      nsIPluglet * scriptablePeer = getScriptablePeer();
       if (scriptablePeer) {
         *(nsISupports **)aValue = scriptablePeer;
       } else
@@ -437,7 +437,7 @@ NPError	nsPluginInstance::GetValue(NPPVariable aVariable, void *aValue)
     break;
 
     case NPPVpluginScriptableIID: {
-      static nsIID scriptableIID = NS_ISIMPLEPLUGIN_IID;
+      static nsIID scriptableIID = NS_IPLUGLET_IID;
       nsIID* ptr = (nsIID *)NPN_MemAlloc(sizeof(nsIID));
       if (ptr) {
           *ptr = scriptableIID;

@@ -275,7 +275,12 @@
           file="${objdir}/java/plugins/jni/${so.prefix}plugletjni.${so.extension}" />
     <copy todir="${dist.home}/bin/${platform}/bin/plugins" 
           file="${objdir}/java/plugins/mozilla/${so.prefix}nppluglet.${so.extension}" />
-
+    
+    <copy todir="${dist.home}/bin/xp/bin/components">
+      <fileset dir="${objdir}/java/plugins/mozilla/_xpidlgen">
+        <include name="*.xpt" />
+      </fileset>
+    </copy>
   </target>
 
   <target name="copy.test.src" depends="prepare">
@@ -371,6 +376,15 @@
 
       <classpath location="${dist.jar}"/>
     </javadoc>
+  </target>
+
+  <target name="deploy">
+    <copy todir="C:\\Projects\\chaff\\pluglet_1_1_a1">
+
+      <fileset dir="${dist.home}" />
+
+    </copy>
+
   </target>
   
 

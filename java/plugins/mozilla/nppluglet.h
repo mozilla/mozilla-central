@@ -43,6 +43,9 @@
 #include "nsCOMPtr.h"
 #include "nsIPluginInstance.h"
 
+#include "prlog.h"
+extern PRLogModuleInfo *log; // defined in nppluglet.cpp
+
 class nsPluginInstance : public nsPluginInstanceBase
 {
 public:
