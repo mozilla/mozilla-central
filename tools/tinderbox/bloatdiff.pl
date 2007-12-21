@@ -1,22 +1,44 @@
 #!/usr/bin/perl -w
 
-#
-# Munges the output from 
-#   XPCOM_MEM_BLOAT_LOG=1; mozilla-bin -f bloaturls.txt
+################################################################################
+
+sub usage() {
+    print <<EOUSAGE;
+# bloatdiff.pl - munges the output from
+#   XPCOM_MEM_BLOAT_LOG=1 
+#   firefox-bin -P default resource:///res/bloatcycle.html
 # so that it does some summary and stats stuff.
 #
 # To show leak test results for a set of changes, do something like this:
 #
 #   XPCOM_MEM_BLOAT_LOG=1
-#   mozilla -f bloaturls.txt > a.out
+#   firefox-bin -P default resource:///res/bloatcycle.html > a.out
 #     **make change**
-#   mozilla -f bloaturls.txt > b.out
+#   firefox-bin -P default resource:///res/bloatcycle.html > b.out
 #   bloatdiff.pl a.out b.out
-#
+
+EOUSAGE
+}
 
 $OLDFILE = $ARGV[0];
 $NEWFILE = $ARGV[1];
-$LABEL   = $ARGV[2];
+#$LABEL   = $ARGV[2];
+
+if (!$OLDFILE or
+    ! -e $OLDFILE or 
+    -z $OLDFILE) {
+    print "\nERROR - Previous log file not specified, does not exist, or is empty.\n\n";
+    &usage();
+    exit 1;
+}
+
+if (!$NEWFILE or
+    ! -e $NEWFILE or 
+    -z $NEWFILE) {
+    print "\nERROR - Current log file not specified, does not exist, or is empty.\n\n";
+    &usage();
+    exit 1;
+}
 
 sub processFile {
     my ($filename, $map, $prevMap) = @_;
@@ -159,6 +181,19 @@ print "-------------------------------------------------------------------------
 print "Current file:  $NEWFILE\n";
 print "Previous file: $OLDFILE\n";
 print "----------------------------------------------leaks------leaks%------bloat------bloat%\n";
+
+    if (! $newMap{"TOTAL"} or 
+	! $newMap{"TOTAL"}{leaked} or 
+	! $newMap{"TOTAL"}{leakPercent} or
+	! $newMap{"TOTAL"}{bloat} or 
+	! $newMap{"TOTAL"}{bloatPercent}) {
+	print "\nERROR - unable to calculate bloat/leak data.\n\n";
+	print "HINT - Did your test run complete successfully?\n";
+	print "HINT - Are you pointing at the right log files?\n\n";
+	&usage();
+	exit 1;
+    }
+
 printf "%-40s %10s %10.2f%% %10s %10.2f%%\n",
        ("TOTAL",
         $newMap{"TOTAL"}{leaked}, $newMap{"TOTAL"}{leakPercent},
