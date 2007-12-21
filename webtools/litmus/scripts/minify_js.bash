@@ -1,11 +1,5 @@
 #!/bin/bash
 
-minify=`which jsmin 2>/dev/null`
-if [ "XXX$minify" == "XXX" -o ! -e "$minify" ]; then
-    echo "jsmin not found in \$PATH. Skipping JS minification"
-    exit 0
-fi
-
 # Create a single master JS file out of our littler files.
 # This cuts down the number of HTTP requests, and with content 
 # deflation (gzip) the initial download still isn't that bad.
@@ -37,6 +31,12 @@ cat Help.js \
 #
 # From js/:
 # for i in `find . | grep '\.js'`; do rm $i;  done; cvs update -dP
+
+minify=`which jsmin 2>/dev/null`
+if [ "XXX$minify" == "XXX" -o ! -e "$minify" ]; then
+    echo "jsmin not found in \$PATH. Skipping JS minification"
+    exit 0
+fi
 
 for i in `find . -name \*.js -print 2>/dev/null`; do 
     echo -n "Minifying  $i..."
