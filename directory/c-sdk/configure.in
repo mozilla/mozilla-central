@@ -1135,8 +1135,6 @@ case "$target" in
             ;;
     esac
     DSO_LDOPTS='-dynamiclib -compatibility_version 1 -current_version 1 -all_load -install_name @executable_path/$@'
-    # Use the standard preprocessor (cpp)
-    CFLAGS="$CFLAGS -no-cpp-precomp"
     MKSHLIB='$(CC) $(DSO_LDOPTS) -o $@'
     STRIP="$STRIP -x -S"
     DLL_SUFFIX=dylib
