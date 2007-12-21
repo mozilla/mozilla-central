@@ -51,11 +51,6 @@ function toOpenWindowByType(inType, uri)
         window.open(uri, "_blank", "chrome,extrachrome,menubar,resizable,scrollbars,status,toolbar");
 }
 
-function toBrowser()
-{
-    toOpenWindowByType("navigator:browser", "");
-}
-
 function toJavaScriptConsole()
 {
     toOpenWindowByType("global:console", "chrome://global/content/console.xul");
