@@ -49,4 +49,4 @@ if "%VC9DIR%"=="" (
 )
 
 cd "%USERPROFILE%"
-start "MSYS Shell - MSVC9 Environment" "%MOZILLABUILD%\msys\bin\rxvt" -backspacekey  -sl 2500 -fg %FGCOLOR% -bg %BGCOLOR% -sr -fn "Lucida Console" -tn msys -geometry 80x25 -e /bin/bash --login -i
+start "MSYS Shell - MSVC9 Environment" "%MOZILLABUILD%\msys\bin\rxvt" -backspacekey  -sl 2500 -fg %FGCOLOR% -bg %BGCOLOR% -sr -tn msys -geometry 80x25 -e /bin/bash --login -i
