@@ -6,17 +6,19 @@
 export MOZILLA_OFFICIAL=1
 
 mk_add_options MOZ_CO_PROJECT=suite
-mk_add_options MOZ_CO_MODULE="mozilla/tools/update-packaging"
+mk_add_options MOZ_CO_MODULE="mozilla/tools/update-packaging mozilla/tools/codesighs"
 mk_add_options MOZ_CO_LOCALES=all
 mk_add_options LOCALES_CVSROOT=:ext:seabld@cvs.mozilla.org:/l10n
 mk_add_options MOZ_OBJDIR=@TOPSRCDIR@/objdir
 ac_add_options --enable-application=suite
 
+ac_add_options --enable-update-channel=nightly
+ac_add_options --enable-update-packaging
+
 ac_add_options --enable-optimize="-O2 -gstabs+"
 ac_add_options --disable-debug
 ac_add_options --enable-tests
 
-mk_add_options MOZ_CO_MODULE="mozilla/tools/codesighs"
 ac_add_options --enable-codesighs
 
 CC=/tools/gcc-4.1.1/bin/gcc
