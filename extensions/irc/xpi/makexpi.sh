@@ -151,27 +151,27 @@ fi
 # Check for required directory layouts.
 echo -n "  Checking XPI structure"
 echo -n .
-if ! [ -d $XPIROOT ]; then mkdir -p $XPIROOT; fi
+if ! [ -d "$XPIROOT" ]; then mkdir -p "$XPIROOT"; fi
 echo -n .
-if ! [ -d $XPIROOT/chrome ]; then mkdir $XPIROOT/chrome; fi
+if ! [ -d "$XPIROOT/chrome" ]; then mkdir "$XPIROOT/chrome"; fi
 echo -n .
-if ! [ -d $XPIROOT/chrome/icons ]; then mkdir $XPIROOT/chrome/icons; fi
+if ! [ -d "$XPIROOT/chrome/icons" ]; then mkdir "$XPIROOT/chrome/icons"; fi
 echo -n .
-if ! [ -d $XPIROOT/chrome/icons/default ]; then mkdir $XPIROOT/chrome/icons/default; fi
+if ! [ -d "$XPIROOT/chrome/icons/default" ]; then mkdir "$XPIROOT/chrome/icons/default"; fi
 echo -n .
-if ! [ -d $XPIROOT/components ]; then mkdir $XPIROOT/components; fi
+if ! [ -d "$XPIROOT/components" ]; then mkdir "$XPIROOT/components"; fi
 echo   ".           done"
 
 echo -n "  Checking JAR structure"
 echo -n .
-if ! [ -d $JARROOT ]; then mkdir -p $JARROOT; fi
+if ! [ -d "$JARROOT" ]; then mkdir -p "$JARROOT"; fi
 echo   ".               done"
 
 
 # Make Firefox updates.
 echo -n "  Updating Firefox Extension files"
 echo -n .
-safeCommand $PERL $CONFIGDIR/preprocessor.pl -DCHATZILLA_VERSION=$VERSION "$XPIFILES/install.rdf" '>' "$XPIROOT/install.rdf"
+safeCommand $PERL "$CONFIGDIR/preprocessor.pl" -DCHATZILLA_VERSION=$VERSION "$XPIFILES/install.rdf" '>' "$XPIROOT/install.rdf"
 echo -n .
 safeCommand cp "$XPIFILES/chatzilla-window.ico" "$XPIROOT/chrome/icons/default/chatzilla-window.ico"
 echo -n .
