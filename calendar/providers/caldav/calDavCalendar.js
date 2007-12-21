@@ -419,7 +419,7 @@ calDavCalendar.prototype = {
         // LOG("icalString = " + aItem.icalString);
 
         var httpchannel = this.prepChannel(itemUri, aItem.icalString,
-                                           "text/calendar, charset=utf-8");
+                                           "text/calendar; charset=utf-8");
 
 
         if (!aIgnoreEtag) {
