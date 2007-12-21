@@ -9,9 +9,15 @@ var embed = document.embeds[0];
 
 function callPluglet()
 {
-  var inArgv = [];
-  var outArgv = [];
-  embed.callPlugletMethod("methodName", 0, inArgv, 0, outArgv);
+var strs2 = {
+    value : ["double","me","please"]
+};
+
+var strslen2 = {
+    value : strs2.value.length
+};
+
+  embed.callPlugletMethod("methodName", strslen2, strs2);
 }
 </script>
 

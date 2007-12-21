@@ -133,11 +133,12 @@ NS_IMETHODIMP nsScriptablePeer::HasPlugletForMimeType(const char *aMimeType, PRB
 }
 
 NS_IMETHODIMP nsScriptablePeer::CallPlugletMethod(const char *methodName, 
-                                                  PRUint32 inArgc, const char **inArgv)
+                                                  PRUint32 *inArgc, char ***inArgv)
 {
     nsresult rv = NS_OK;
     PR_LOG(log, PR_LOG_DEBUG,
            ("nppluglet CallPlugletMethod: methodName: %s\n", methodName));
+    *inArgc = 0;
     return rv;
 }
 
