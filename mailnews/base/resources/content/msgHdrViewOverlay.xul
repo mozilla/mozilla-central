@@ -141,7 +141,7 @@
       
     <column id="collapsedsubjectBox" collapsed="true" flex="1">
       <hbox>
-        <label class="collapsedHeaderDisplayName" value="&subjectField.label;"/>
+        <label class="collapsedHeaderDisplayName" value="&subjectField.label;" control="collapsedsubjectValue"/>
         <textbox id="collapsedsubjectValue" keywordrelated="true" class="collapsedHeaderValue plain" originalclass="collapsedHeaderValue plain" readonly="true" crop="right" appendoriginalclass="true" flex="1"/>
       </hbox>
     </column>
@@ -188,7 +188,7 @@
     <mail-multi-emailHeaderField id="expandedccBox"  label="&ccField.label;"  collapsed="true"/>
     <mail-multi-emailHeaderField id="expandedbccBox" label="&bccField.label;" collapsed="true"/>
 
-    <mail-headerfield keywordrelated="true" id="expandednewsgroupsBox"  label="&newsgroupsField.label;" collapsed="true"/>
+    <mail-headerfield keywordrelated="true" id="expandednewsgroupsBox" label="&newsgroupsField.label;" collapsed="true"/>
     <mail-headerfield keywordrelated="true" id="expandedfollowup-toBox" label="&followupToField.label;" collapsed="true"/>
     <mail-messageids-headerfield id="expandedmessage-idBox" label="&messageIdField.label;" collapsed="true"/>
     <mail-messageids-headerfield id="expandedin-reply-toBox" label="&inReplyToField.label;" collapsed="true"/>
@@ -216,7 +216,7 @@
   </vbox>
 
   <vbox id="expandedAttachmentBox" class="header-part1" keywordrelated="true" originalclass="header-part1" collapsed="true">
-    <label id="attachmentText" value="&attachmentsTree.label;" crop="right"/>
+    <label id="attachmentText" value="&attachmentsTree.label;" crop="right" control="attachmentList"/>
     <listbox id="attachmentList" rows="3" seltype="multiple"
               onclick="attachmentListClick(event);" ondraggesture="nsDragAndDrop.startDrag(event,attachmentAreaDNDObserver);" ondragover="nsDragAndDrop.dragOver(event, attachmentAreaDNDObserver);" context="attachmentListContext"/>
   </vbox>
