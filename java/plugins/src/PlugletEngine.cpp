@@ -202,7 +202,7 @@ void PlugletEngine::StartJVM() {
     options[3].optionString=""; //-Djava.compiler=NONE";
     vm_args.version = JNI_VERSION_1_4;
     vm_args.options = options;
-    vm_args.nOptions = 1; // EDBURNS: Change to 3 for debugging
+    vm_args.nOptions = 1; // EDBURNS: Change to 3 for debugging, 1 for non-debuging
     vm_args.ignoreUnrecognized = JNI_FALSE;
     /* Create the Java VM */
     PR_LOG(PlugletLog::log, PR_LOG_DEBUG,

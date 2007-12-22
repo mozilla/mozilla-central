@@ -62,7 +62,7 @@ nsresult PlugletFactory::CreatePluginInstance(const char* aPluginMIMEType, void 
     if (!obj) {
 	return NS_ERROR_FAILURE;
     }
-    nsISupports * instance = new Pluglet(obj);
+    Pluglet * instance = new Pluglet(obj);
     NS_ADDREF(instance);
     *aResult = instance;
     return NS_OK;

@@ -28,6 +28,7 @@
 jclass Registry::clazz = NULL;
 jmethodID Registry::setPeerMID = NULL;
 jmethodID Registry::removeMID = NULL;
+jmethodID Registry::findMatchingPlugletMethodMID = NULL;
 
 void Registry::SetPeer(jobject key, jlong peer) {
     if (!clazz) {
@@ -81,6 +82,71 @@ void Registry::Remove(jobject key) {
     }
 }
 
+jmethodID Registry::GetMethodIDForPlugletMethod(jobject plugletInstance, const char *methodName,
+                                                jint numStringArgs) 
+{
+    jmethodID result = NULL;
+
+    if (!clazz) {   // it is impossible
+        Initialize();
+        if(!clazz) {
+            return result;
+        }
+    }
+
+    if (NULL == methodName || 0 == strlen(methodName)) {
+        return result;
+    }
+    nsresult rv = NS_ERROR_FAILURE;
+    nsCOMPtr<iPlugletEngine> plugletEngine = 
+	do_GetService(PLUGLETENGINE_ContractID, &rv);;
+    if (NS_FAILED(rv)) {
+	return result;
+    }
+    JNIEnv *env = nsnull;
+    rv = plugletEngine->GetJNIEnv(&env);
+    if (NS_FAILED(rv)) {
+	return result;
+    }
+
+    env->ExceptionClear();
+
+    jstring methodNameJstr = env->NewStringUTF(methodName);
+    jstring methodSignatureJstr;
+    methodSignatureJstr = (jstring)
+        env->CallStaticObjectMethod(clazz, findMatchingPlugletMethodMID, 
+                                    plugletInstance, methodNameJstr, numStringArgs);
+    if (env->ExceptionOccurred()) {
+        env->ExceptionDescribe();
+        env->ExceptionClear();
+        return result;
+    }
+
+    if (NULL != methodSignatureJstr) {
+        jboolean isCopy;
+        const char *signature = env->GetStringUTFChars(methodSignatureJstr, &isCopy);
+
+        if (NULL != signature) {
+            jclass plugletClass = env->GetObjectClass(plugletInstance);
+            result = env->GetMethodID(plugletClass, methodName, signature);
+            if (isCopy == JNI_TRUE) {
+                env->ReleaseStringUTFChars(methodSignatureJstr, signature);
+            }
+        }
+        env->DeleteLocalRef(methodSignatureJstr);
+    }
+
+    env->DeleteLocalRef(methodNameJstr);
+
+    if (env->ExceptionOccurred()) {
+        env->ExceptionDescribe();
+        env->ExceptionClear();
+    }
+
+    return result;
+}
+
+
 void Registry::Initialize() {
     nsresult rv = NS_ERROR_FAILURE;
     nsCOMPtr<iPlugletEngine> plugletEngine = 
@@ -114,6 +180,14 @@ void Registry::Initialize() {
         clazz = NULL;
         return;
     }
+    findMatchingPlugletMethodMID = env->GetStaticMethodID(clazz,"findMatchingPlugletMethod","(Lorg/mozilla/pluglet/Pluglet;Ljava/lang/String;I)Ljava/lang/String;");
+    if (!findMatchingPlugletMethodMID) {
+        env->ExceptionDescribe();
+        clazz = NULL;
+        return;
+    }
+
+
 }
 
 

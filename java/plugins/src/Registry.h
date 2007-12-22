@@ -25,11 +25,14 @@ class Registry {
 public:
     static void SetPeer(jobject key, jlong peer);
     static void Remove(jobject key);
+    static jmethodID GetMethodIDForPlugletMethod(jobject plugletInstance, const char *methodName,
+                                                 jint numStringArgs);
 private:
     static void Initialize();
     static jclass clazz;
     static jmethodID setPeerMID;
     static jmethodID removeMID;
+    static jmethodID findMatchingPlugletMethodMID;
 };
 #endif /* __Registry_h__ */
 

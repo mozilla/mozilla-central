@@ -269,15 +269,13 @@
   <target name="copy.binaries" depends="prepare">
     <copy todir="${dist.home}/bin/${platform}/bin/components" 
           file="${objdir}/java/plugins/src/${so.prefix}pluglet.${so.extension}" />
-    <copy todir="${dist.home}/bin/${platform}/bin/components" 
-          file="${objdir}/java/plugins/src/_xpidlgen/pluglet.xpt" />
     <copy todir="${dist.home}/bin/${platform}/bin" 
           file="${objdir}/java/plugins/jni/${so.prefix}plugletjni.${so.extension}" />
     <copy todir="${dist.home}/bin/${platform}/bin/plugins" 
           file="${objdir}/java/plugins/mozilla/${so.prefix}nppluglet.${so.extension}" />
     
     <copy todir="${dist.home}/bin/xp/bin/components">
-      <fileset dir="${objdir}/java/plugins/mozilla/_xpidlgen">
+      <fileset dir="${objdir}/java/plugins/src/_xpidlgen">
         <include name="*.xpt" />
       </fileset>
     </copy>

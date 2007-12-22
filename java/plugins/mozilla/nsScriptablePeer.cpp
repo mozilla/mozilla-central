@@ -122,23 +122,13 @@ void nsScriptablePeer::SetInstance(nsPluginInstance* plugin)
 //  return NS_OK;
 //}
 
-NS_IMETHODIMP nsScriptablePeer::HasPlugletForMimeType(const char *aMimeType, PRBool *isSupported)
-{
-    nsresult rv = NS_ERROR_FAILURE;
-    if (mPlugin) {
-        rv = mPlugin->HasPlugletForMimeType(aMimeType, isSupported);
-    }
-    return rv;
-
-}
-
 NS_IMETHODIMP nsScriptablePeer::CallPlugletMethod(const char *methodName, 
                                                   PRUint32 *inArgc, char ***inArgv)
 {
-    nsresult rv = NS_OK;
-    PR_LOG(log, PR_LOG_DEBUG,
-           ("nppluglet CallPlugletMethod: methodName: %s\n", methodName));
-    *inArgc = 0;
+    nsresult rv = NS_ERROR_FAILURE;
+    if (mPlugin) {
+        rv = mPlugin->CallPlugletMethod(methodName, inArgc, inArgv);
+    }
     return rv;
 }
 

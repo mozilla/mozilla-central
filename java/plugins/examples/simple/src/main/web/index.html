@@ -10,14 +10,14 @@ var embed = document.embeds[0];
 function callPluglet()
 {
 var strs2 = {
-    value : ["double","me","please"]
+    value : ["double","me"]
 };
 
 var strslen2 = {
     value : strs2.value.length
 };
 
-  embed.callPlugletMethod("methodName", strslen2, strs2);
+  embed.callPlugletMethod("calledFromJavaScript1", strslen2, strs2);
 }
 </script>
 

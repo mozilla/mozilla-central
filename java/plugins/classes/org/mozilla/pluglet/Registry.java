@@ -20,6 +20,7 @@
  */
 package org.mozilla.pluglet;
 
+import java.lang.reflect.Method;
 import java.util.*;
 
 public class Registry {
@@ -45,6 +46,67 @@ public class Registry {
         if (table != null) {
             table.remove(key);
         }
+    }
+    
+    public static String findMatchingPlugletMethod(Pluglet pluglet, 
+            String methodName, int numStringArgs) {
+        String result = null;
+        Class plugletClass = pluglet.getClass();
+        Method [] methods = plugletClass.getMethods();
+        boolean foundMatch = false;
+        Method matchingMethod = null;
+        // For each of the methods on the Pluglet
+        for (Method cur : methods) {
+            if (foundMatch) {
+                break;
+            }
+            // See if the name of the method matches the name we
+            // are looking for.
+            if (cur.getName().equals(methodName)) {
+                // If so, does it return String?
+                if (String.class == cur.getReturnType()) {
+                    // If so, do the number of arguments match?
+                    Class [] paramTypes = cur.getParameterTypes();
+                    if (numStringArgs == paramTypes.length) {
+                        foundMatch = true;
+                        matchingMethod = cur;
+                        // If so, are all the arguments of type String?
+                        for (Class curClass : paramTypes) {
+                            if (String.class != curClass) {
+                                // If not, this method is not a match.
+                                foundMatch = false;
+                                matchingMethod = null;
+                                break;
+                            }
+                        }
+                    }
+                    // No, the number of arguments do not match, not a match
+                    else {
+                        foundMatch = false;
+                    }
+                }
+                // No, it does not return String, not a match.
+                else {
+                    foundMatch = false;
+                }
+            }
+            // No, the name does not match, not a match
+            else {
+                foundMatch = false;
+            }
+        }
+        
+        if (foundMatch) {
+           StringBuilder signature = new StringBuilder();
+           signature.append('(');
+           for (int i = 0; i < numStringArgs; i++) {
+               signature.append("Ljava/lang/String;");
+           }
+           signature.append(")Ljava/lang/String;");
+           result = signature.toString();
+        }
+        
+        return result;
     }
   
 }

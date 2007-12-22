@@ -23,10 +23,11 @@
 #include "nsplugin.h"
 #include "jni.h"
 #include "PlugletView.h"
+#include "nsIPluglet.h"
 
 class iPlugletEngine;
 
-class Pluglet : public nsIPluginInstance {
+class Pluglet : public nsIPluginInstance, public nsIPluglet {
  public:
     NS_IMETHOD HandleEvent(nsPluginEvent* event, PRBool* handled);
     NS_IMETHOD Initialize(nsIPluginInstancePeer* peer);
@@ -38,6 +39,7 @@ class Pluglet : public nsIPluginInstance {
     NS_IMETHOD SetWindow(nsPluginWindow* window);
     NS_IMETHOD Print(nsPluginPrint* platformPrint);
     NS_IMETHOD GetValue(nsPluginInstanceVariable variable, void *value);
+    NS_DECL_NSIPLUGLET
     NS_DECL_ISUPPORTS
 
     Pluglet(jobject object);

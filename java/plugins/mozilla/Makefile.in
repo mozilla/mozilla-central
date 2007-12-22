@@ -60,8 +60,6 @@ CPPSRCS = nsScriptablePeer.cpp \
 	  npAPInsIInputStreamShim.cpp \
           $(NULL)
 
-XPIDLSRCS = nsIPluglet.idl
-
 SHARED_LIBRARY_LIBS = $(PLUGIN_SDK_OBJDIR)/samples/common/$(LIB_PREFIX)plugingate_s.$(LIB_SUFFIX) ../src/$(LIB_PREFIX)pluglet.$(LIB_SUFFIX) $(XPCOM_LIBS) $(NSPR_LIBS)
 
 ifeq ($(OS_ARCH),WINNT)

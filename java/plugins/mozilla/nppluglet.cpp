@@ -376,6 +376,16 @@ NS_IMETHODIMP nsPluginInstance::HasPlugletForMimeType(const char *aMimeType,
 
     return rv;
 }
+NS_IMETHODIMP nsPluginInstance::CallPlugletMethod(const char *methodName, PRUint32 *inArgc, 
+                                                  char ***inArgv) 
+{
+    nsresult rv = NS_OK;
+    nsCOMPtr<nsIPluglet> pluglet = do_QueryInterface(mPluglet);
+    if (pluglet) {
+        rv = pluglet->CallPlugletMethod(methodName, inArgc, inArgv);
+    }
+    return rv;
+}
 
 nsresult nsPluginInstance::CopyNPWindowToNsPluginWindow(NPWindow *aWindow,
                                                         nsPluginWindow *pluginWindow)

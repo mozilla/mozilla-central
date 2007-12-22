@@ -40,7 +40,10 @@ jmethodID Pluglet::printMID = NULL;
 
 static NS_DEFINE_IID(kIPluginInstanceIID, NS_IPLUGININSTANCE_IID);
 
-NS_IMPL_ISUPPORTS1(Pluglet,nsIPluginInstance);
+NS_IMPL_ISUPPORTS2(Pluglet, 
+		   nsIPluginInstance,
+		   nsIPluglet)
+
 
 Pluglet::Pluglet(jobject object) : peer(nsnull) {
     nsresult rv;
@@ -299,6 +302,34 @@ NS_METHOD Pluglet::Print(nsPluginPrint* platformPrint) {
     return NS_OK;
 }
 
+NS_IMETHODIMP Pluglet::CallPlugletMethod(const char *methodName, PRUint32 *inArgc, 
+					 char ***inArgv) 
+{
+    nsresult rv = NS_OK;
+
+    if (NULL != methodName && 0 < strlen(methodName) && NULL != inArgc && NULL != inArgv) {
+	PR_LOG(PlugletLog::log, PR_LOG_DEBUG,
+	       ("Pluglet::CallPlugletMethod: methodName: %s\n", methodName));
+
+	jmethodID plugletMethodMID = Registry::GetMethodIDForPlugletMethod(jthis, methodName, 
+									   (jint) *inArgc);
+	if (NULL != plugletMethodMID) {
+	    PR_LOG(PlugletLog::log, PR_LOG_DEBUG,
+		   ("Pluglet::CallPlugletMethod: found match for methodName: %s\n", methodName));
+	}
+	else {
+	    PR_LOG(PlugletLog::log, PR_LOG_DEBUG,
+		   ("Pluglet::CallPlugletMethod: no match for methodName: %s\n", methodName));
+	}
+    }
+    else {
+	PR_LOG(PlugletLog::log, PR_LOG_DEBUG,
+	       ("Pluglet::CallPlugletMethod: invalid arguments\n"));
+	
+    }
+
+    return NS_OK;
+}
 
 
 

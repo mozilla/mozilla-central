@@ -192,6 +192,11 @@ class SimplePlugletInstance implements Pluglet {
     protected void finalize() {
         org.mozilla.util.DebugPluglet.print("--SimplePlugletInstance.finalize()\n");
     }
+
+    public String calledFromJavaScript1(String arg1, String arg2) {
+        org.mozilla.util.DebugPluglet.print("calledFromJavaScript1\n");
+	return "hard coded result";
+    }
 }
 
 class TestStreamListener implements PlugletStreamListener {

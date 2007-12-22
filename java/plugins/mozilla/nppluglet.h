@@ -72,6 +72,7 @@ public:
 
   // locals
   NS_IMETHOD HasPlugletForMimeType(const char *aMimeType, PRBool *outResult);
+  NS_IMETHOD CallPlugletMethod(const char *methodName, PRUint32 *inArgc, char ***inArgv);
 
   nsScriptablePeer* getScriptablePeer();
 

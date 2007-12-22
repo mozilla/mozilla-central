@@ -34,17 +34,17 @@ IS_COMPONENT    = 1
 
 ifeq ($(OS_ARCH),Linux)
 INCLUDES := -I$(MOZ_JDKHOME)/include -I$(MOZ_JDKHOME)/include/linux $(INCLUDES) \
-       -I$(DEPTH)/widget/src/gtk -I../src_share
+       -I$(DEPTH)/widget/src/gtk
 else
 ifeq ($(OS_ARCH),WINNT)
 INCLUDES := -I$(MOZ_JDKHOME)/include -I$(MOZ_JDKHOME)/include/win32 $(INCLUDES) \
-       -I../src_share -I.
+       -I -I.
 else
 ifeq ($(OS_ARCH),Darwin)
-INCLUDES := -I$(MOZ_JDKHOME)/include $(INCLUDES) -I../src_share -I.
+INCLUDES := -I$(MOZ_JDKHOME)/include $(INCLUDES) -I.
 else
 INCLUDES := -I$(MOZ_JDKHOME)/include -I$(MOZ_JDKHOME)/include/solaris $(INCLUDES) \
-	-I$(DEPTH)/widget/src/gtk -I../src_share
+	-I$(DEPTH)/widget/src/gtk
 endif
 endif
 endif
@@ -81,6 +81,7 @@ endif
 endif
 
 XPIDLSRCS 	= \
+	nsIPluglet.idl \
 	iPlugletEngine.idl \
 	iPlugletManager.idl \
 		$(NULL)
