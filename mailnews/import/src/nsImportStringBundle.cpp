@@ -65,7 +65,7 @@ nsresult nsImportStringBundle::GetStringBundleProxy(nsIStringBundle *aOriginalBu
 {
   nsresult rv;
   nsCOMPtr<nsIProxyObjectManager> proxyObjMgr =
-    do_CreateInstance(NS_XPCOMPROXY_CONTRACTID, &rv);
+    do_GetService(NS_XPCOMPROXY_CONTRACTID, &rv);
   NS_ENSURE_SUCCESS(rv, rv);
 
   // create a proxy object if we aren't on the same thread?

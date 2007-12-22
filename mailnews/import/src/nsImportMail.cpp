@@ -773,7 +773,7 @@ ImportMailThread( void *stuff)
 
   // Initialize the curFolder proxy object
   nsCOMPtr<nsIProxyObjectManager> proxyObjMgr =
-    do_CreateInstance(NS_XPCOMPROXY_CONTRACTID, &rv);
+    do_GetService(NS_XPCOMPROXY_CONTRACTID, &rv);
   if (NS_FAILED(rv))
   {
     IMPORT_LOG0("*** ImportMailThread: Unable to obtain proxy object manager for the import.");

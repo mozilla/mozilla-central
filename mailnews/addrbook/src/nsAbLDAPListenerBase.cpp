@@ -269,7 +269,7 @@ NS_IMETHODIMP nsAbLDAPListenerBase::OnLDAPInit(nsILDAPConnection *aConn, nsresul
     return rv;
   }
 
-  nsCOMPtr<nsIProxyObjectManager> proxyObjMgr = do_CreateInstance(NS_XPCOMPROXY_CONTRACTID, &rv);
+  nsCOMPtr<nsIProxyObjectManager> proxyObjMgr = do_GetService(NS_XPCOMPROXY_CONTRACTID, &rv);
   NS_ENSURE_SUCCESS(rv, rv);
 
   nsCOMPtr<nsILDAPMessageListener> proxyListener;

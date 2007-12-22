@@ -605,7 +605,7 @@ nsLDAPAutoCompleteSession::DoTask()
 
     // get a proxy object so the callback happens on the main thread
     //
-    nsCOMPtr<nsIProxyObjectManager> proxyObjMgr = do_CreateInstance(NS_XPCOMPROXY_CONTRACTID, &rv);
+    nsCOMPtr<nsIProxyObjectManager> proxyObjMgr = do_GetService(NS_XPCOMPROXY_CONTRACTID, &rv);
     if (NS_FAILED(rv)) {
         FinishAutoCompleteLookup(nsIAutoCompleteStatus::failureItems, rv, UNBOUND);
         return NS_ERROR_FAILURE;
@@ -888,7 +888,7 @@ nsLDAPAutoCompleteSession::InitConnection()
 
     // get a proxy object so the callback happens on the main thread
     //
-    nsCOMPtr<nsIProxyObjectManager> proxyObjMgr = do_CreateInstance(NS_XPCOMPROXY_CONTRACTID, &rv);
+    nsCOMPtr<nsIProxyObjectManager> proxyObjMgr = do_GetService(NS_XPCOMPROXY_CONTRACTID, &rv);
     if (NS_FAILED(rv)) {
         FinishAutoCompleteLookup(nsIAutoCompleteStatus::failureItems, rv, UNBOUND);
         return NS_ERROR_FAILURE;

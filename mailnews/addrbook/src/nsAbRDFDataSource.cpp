@@ -136,7 +136,7 @@ nsresult nsAbRDFDataSource::CreateProxyObserver (nsIRDFObserver* observer,
    * events.
    * This causes the UI to pause.
    */
-   nsCOMPtr<nsIProxyObjectManager> proxyObjMgr = do_CreateInstance(NS_XPCOMPROXY_CONTRACTID, &rv);
+   nsCOMPtr<nsIProxyObjectManager> proxyObjMgr = do_GetService(NS_XPCOMPROXY_CONTRACTID, &rv);
    NS_ENSURE_SUCCESS(rv, rv);
 
    rv = proxyObjMgr->GetProxyForObject (
