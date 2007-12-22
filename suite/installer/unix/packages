@@ -15,7 +15,6 @@ bin/.autoreg
 [@AB_CD@]
 bin/chrome/@AB_CD@.jar
 bin/chrome/@AB_CD@.manifest
-bin/chrome/@AB_CD@/*
 bin/defaults/messenger/@AB_CD@/mailViews.dat
 bin/defaults/messenger/mailViews.dat
 bin/defaults/profile/bookmarks.html
@@ -435,7 +434,6 @@ bin/chrome/icons/default/messengerWindow.xpm
 bin/chrome/icons/default/msgcomposeWindow.xpm
 bin/chrome/messenger.jar
 bin/chrome/messenger.manifest
-bin/chrome/messenger/*
 bin/components/addrbook.xpt
 bin/components/libimport.so
 bin/components/import.xpt
@@ -469,7 +467,10 @@ bin/extensions/{59c81df5-4b7a-477b-912d-4e0fdf64e5f2}/chrome/icons/default/chatz
 bin/extensions/{59c81df5-4b7a-477b-912d-4e0fdf64e5f2}/chrome/icons/default/chatzilla-window16.xpm
 bin/extensions/{59c81df5-4b7a-477b-912d-4e0fdf64e5f2}/chrome.manifest
 bin/extensions/{59c81df5-4b7a-477b-912d-4e0fdf64e5f2}/install.rdf
-bin/chrome/chatzilla.jar
+bin/extensions/langpack-@AB_CD@@chatzilla.mozilla.org/chrome/chatzilla.jar
+bin/extensions/langpack-@AB_CD@@chatzilla.mozilla.org/chrome.manifest
+bin/extensions/langpack-@AB_CD@@chatzilla.mozilla.org/install.js
+bin/extensions/langpack-@AB_CD@@chatzilla.mozilla.org/install.rdf
 
 [venkman]
 bin/extensions/{f13b157f-b174-47e7-a34d-4815ddfdfeb8}/components/venkman-service.js

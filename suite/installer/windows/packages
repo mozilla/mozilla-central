@@ -18,7 +18,6 @@ bin/.autoreg
 ; If you add a new directory you must explicitly call addDirectory in langenus.jst
 bin\chrome\@AB_CD@.jar
 bin\chrome\@AB_CD@.manifest
-bin\chrome\@AB_CD@\*
 bin\defaults\messenger\*
 bin\searchplugins\*
 bin\dictionaries\*
@@ -303,7 +302,6 @@ bin\chrome\classic.manifest
 bin\extensions\{972ce4c6-7e08-4474-a285-3208198ce6fd}\icon.png
 bin\extensions\{972ce4c6-7e08-4474-a285-3208198ce6fd}\install.rdf
 bin\extensions\{972ce4c6-7e08-4474-a285-3208198ce6fd}\preview.png
-bin\chrome\classic\*
 
 ; modern theme
 bin\extensions\modern@themes.mozilla.org\chrome\modern.jar
@@ -317,8 +315,6 @@ bin\chrome\comm.jar
 bin\chrome\comm.manifest
 bin\chrome\toolkit.jar
 bin\chrome\toolkit.manifest
-bin\chrome\comm\*
-bin\chrome\toolkit\*
 bin\chrome\installed-chrome.txt
 bin\chrome\chromelist.txt
 bin\chrome\icons\default\bmPropsWindow.ico
@@ -492,7 +488,6 @@ bin\components\nsAbLDAPAttributeMap.js
 bin\components\nsLDAPPrefsService.js
 bin\chrome\messenger.jar
 bin\chrome\messenger.manifest
-bin\chrome\messenger\*
 bin\chrome\icons\default\abcardWindow.ico
 bin\chrome\icons\default\ablistWindow.ico
 bin\chrome\icons\default\addressbookWindow.ico
@@ -517,7 +512,10 @@ bin\extensions\{59c81df5-4b7a-477b-912d-4e0fdf64e5f2}\chrome\chatzilla.jar
 bin\extensions\{59c81df5-4b7a-477b-912d-4e0fdf64e5f2}\chrome\icons\default\chatzilla-window.ico
 bin\extensions\{59c81df5-4b7a-477b-912d-4e0fdf64e5f2}\chrome.manifest
 bin\extensions\{59c81df5-4b7a-477b-912d-4e0fdf64e5f2}\install.rdf
-bin\chrome\chatzilla.jar
+bin\extensions\langpack-@AB_CD@@chatzilla.mozilla.org\chrome\chatzilla.jar
+bin\extensions\langpack-@AB_CD@@chatzilla.mozilla.org\chrome.manifest
+bin\extensions\langpack-@AB_CD@@chatzilla.mozilla.org\install.js
+bin\extensions\langpack-@AB_CD@@chatzilla.mozilla.org\install.rdf
 
 [venkman]
 bin\extensions\{f13b157f-b174-47e7-a34d-4815ddfdfeb8}\components\venkman-service.js
