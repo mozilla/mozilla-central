@@ -152,6 +152,7 @@ fi
 
 # Extract version number.
 VERSION=`grep "const __cz_version" "$FEDIR/xul/content/static.js" | sed "s|.*\"\([^\"]\{1,\}\)\".*|\1|"`
+BASE_VERSION=`echo "$VERSION" | sed "s|\([0-9]\{1,\}\.[0-9]\{1,\}\.[0-9]\{1,\}\).*|\1|"
 
 if [ -z "$VERSION" ]; then
   echo "ERROR: Unable to get version number."
@@ -172,14 +173,14 @@ fi
 # Check for required directory layouts.
 echo -n "  Checking XPI structure"
 echo -n .
-if ! [ -d $XPIROOT ]; then mkdir -p $XPIROOT; fi
+if ! [ -d "$XPIROOT" ]; then mkdir -p $XPIROOT; fi
 echo -n .
-if ! [ -d $XPIROOT/chrome ]; then mkdir $XPIROOT/chrome; fi
+if ! [ -d "$XPIROOT/chrome" ]; then mkdir $XPIROOT/chrome; fi
 echo   ".                        done"
 
 echo -n "  Checking JAR structure"
 echo -n .
-if ! [ -d $JARROOT ]; then mkdir -p $JARROOT; fi
+if ! [ -d "$JARROOT" ]; then mkdir -p $JARROOT; fi
 echo   ".                         done"
 
 
@@ -188,7 +189,7 @@ echo -n "  Updating Firefox Extension files"
 echo -n .
 # make sure we have all defines we need when preprocessing the install.rdf file
 # toolkit/defines.inc contains the definition for the locale name we use in the langpack title
-safeCommand $PERL $CONFIGDIR/preprocessor.pl -DAB_CD=$AB_CD -DCHATZILLA_VERSION=$VERSION -DINSTALL_EXTENSION_ID=langpack-$AB_CD@chatzilla.mozilla.org -I$L10NDIR/../../toolkit/defines.inc -I$L10NDIR/defines.inc "$LOCALEDIR/generic/install.rdf" '>' "$XPIROOT/install.rdf"
+safeCommand $PERL "$CONFIGDIR/preprocessor.pl" -DAB_CD=$AB_CD -DCHATZILLA_VERSION=$VERSION -DCHATZILLA_BASE_VERSION=$BASE_VERSION -DINSTALL_EXTENSION_ID=langpack-$AB_CD@chatzilla.mozilla.org -I$L10NDIR/../../toolkit/defines.inc -I$L10NDIR/defines.inc "$LOCALEDIR/generic/install.rdf" '>' "$XPIROOT/install.rdf"
 echo -n .
 echo   ".              done"
 
@@ -198,7 +199,7 @@ echo -n "  Updating Mozilla Extension files"
 echo -n .
 # make sure we have all defines we need when preprocessing the install.js file
 # toolkit/defines.inc contains the definition for the locale name we use in the langpack title
-safeCommand $PERL $CONFIGDIR/preprocessor.pl -DAB_CD=$AB_CD -DCHATZILLA_VERSION=$VERSION -DINSTALL_EXTENSION_ID=langpack-$AB_CD@chatzilla.mozilla.org -I$L10NDIR/../../toolkit/defines.inc -I$L10NDIR/defines.inc "$LOCALEDIR/generic/install.js" '>' "$XPIROOT/install.js"
+safeCommand $PERL "$CONFIGDIR/preprocessor.pl" -DAB_CD=$AB_CD -DCHATZILLA_VERSION=$VERSION -DCHATZILLA_BASE_VERSION=$BASE_VERSION -DINSTALL_EXTENSION_ID=langpack-$AB_CD@chatzilla.mozilla.org -I$L10NDIR/../../toolkit/defines.inc -I$L10NDIR/defines.inc "$LOCALEDIR/generic/install.js" '>' "$XPIROOT/install.js"
 echo -n .
 echo   ".              done"
 

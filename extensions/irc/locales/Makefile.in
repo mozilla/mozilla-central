@@ -43,6 +43,7 @@ VPATH=@srcdir@
 relativesrcdir = extensions/irc/locales
 
 CHATZILLA_VERSION=$(shell grep "const __cz_version" "$(srcdir)/../xul/content/static.js" | sed "s|.*\"\([^\"]\{1,\}\)\".*|\1|")
+CHATZILLA_BASE_VERSION=$(shell echo "$(CHATZILLA_VERSION)" | sed "s|\([0-9]\{1,\}\.[0-9]\{1,\}\.[0-9]\{1,\}\).*|\1|")
 
 XPI_NAME               = chatzilla
 USE_EXTENSION_MANIFEST = 1
@@ -75,6 +76,7 @@ endif
 
 DEFINES += -DINSTALL_EXTENSION_ID=$(INSTALL_EXTENSION_ID)
 DEFINES += -DCHATZILLA_VERSION=$(CHATZILLA_VERSION)
+DEFINES += -DCHATZILLA_BASE_VERSION=$(CHATZILLA_BASE_VERSION)
 
 include $(topsrcdir)/config/rules.mk
 

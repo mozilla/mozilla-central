@@ -18,8 +18,8 @@
     <em:requires>
       <Description>
         <em:id>{59c81df5-4b7a-477b-912d-4e0fdf64e5f2}</em:id>
-        <em:minVersion>@CHATZILLA_VERSION@</em:minVersion>
-        <em:maxVersion>@CHATZILLA_VERSION@.*</em:maxVersion>
+        <em:minVersion>@CHATZILLA_BASE_VERSION@</em:minVersion>
+        <em:maxVersion>@CHATZILLA_BASE_VERSION@.*</em:maxVersion>
       </Description>
     </em:requires>
 
