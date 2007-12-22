@@ -57,6 +57,9 @@ NO_JAR_AUTO_REG        = 1
 INSTALL_EXTENSION_ID   = {59c81df5-4b7a-477b-912d-4e0fdf64e5f2}
 XPI_PKGNAME            = chatzilla-$(CHATZILLA_VERSION)
 
+# include config.mk before using the AB_CD var it sets in an if statement
+include $(topsrcdir)/config/config.mk
+
 # always build en-US locale, add build locale if supported
 BUILD_LOCALES = en-US
 ifneq (,$(filter $(AB_CD),$(shell cat $(srcdir)/locales/all-locales)))
