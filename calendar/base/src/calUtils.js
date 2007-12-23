@@ -625,12 +625,11 @@ function compareArrays(aOne, aTwo, compareFunc) {
  * Ensures the passed IID is in the list, else throws Components.results.NS_ERROR_NO_INTERFACE.
  */
 function ensureIID(aList, aIID) {
-    function checkIID(iid) {
-        return iid.equals(aIID);
+    for each (var iid in aList) {
+        if (aIID.equals(iid))
+            return;
     }
-    if (!aList.some(checkIID)) {
-        throw Components.results.NS_ERROR_NO_INTERFACE;
-    }
+    throw Components.results.NS_ERROR_NO_INTERFACE
 }
 
 /**
@@ -649,12 +648,9 @@ function doQueryInterface(aSelf, aProto, aIID, aList, aClassInfo) {
         return aClassInfo;
     }
 
-    function checkIID(iid) {
-        return iid.equals(aIID);
-    }
-    if (aList.some(checkIID)) {
-        // Does the current prototype offer this implementation?
-        return aSelf;
+    for each (var iid in aList) {
+        if (aIID.equals(iid))
+            return aSelf;
     }
 
     var base = aProto.__proto__;
