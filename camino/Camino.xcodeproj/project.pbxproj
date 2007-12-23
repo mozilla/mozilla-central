@@ -1150,7 +1150,6 @@
 		7B64B7E10CCFDA640098406C /* Sparkle.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 7B64B7CA0CCFD9F50098406C /* Sparkle.framework */; };
 		7B64B7E30CCFDA860098406C /* Sparkle.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 7B64B7CA0CCFD9F50098406C /* Sparkle.framework */; };
 		7B64B7EE0CCFDAAF0098406C /* Sparkle.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 7B64B7CA0CCFD9F50098406C /* Sparkle.framework */; };
-		7B9E1BFF09DD967E003256C9 /* libmozreg_s.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 7B9E1BFE09DD966F003256C9 /* libmozreg_s.a */; };
 		7BAEF8120CCFDF3400384F4E /* Sparkle.framework in Copy Frameworks */ = {isa = PBXBuildFile; fileRef = 7BAEF7470CCFDE7D00384F4E /* Sparkle.framework */; };
 		7BAEF8150CCFDF4A00384F4E /* Sparkle.framework in Copy Frameworks */ = {isa = PBXBuildFile; fileRef = 7BAEF7470CCFDE7D00384F4E /* Sparkle.framework */; };
 		7BB332F40A7E99BC0075521C /* libspellchecker.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 7BB332F30A7E99BC0075521C /* libspellchecker.a */; };
@@ -2616,7 +2615,6 @@
 		7B5072FC0D11E83B00458384 /* KeyEquivView.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = KeyEquivView.h; path = src/extensions/KeyEquivView.h; sourceTree = "<group>"; };
 		7B5072FD0D11E83B00458384 /* KeyEquivView.mm */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.objcpp; name = KeyEquivView.mm; path = src/extensions/KeyEquivView.mm; sourceTree = "<group>"; };
 		7B64B7BA0CCFD9F50098406C /* Sparkle.xcodeproj */ = {isa = PBXFileReference; lastKnownFileType = "wrapper.pb-project"; name = Sparkle.xcodeproj; path = sparkle/Sparkle.xcodeproj; sourceTree = "<group>"; };
-		7B9E1BFE09DD966F003256C9 /* libmozreg_s.a */ = {isa = PBXFileReference; lastKnownFileType = archive.ar; name = libmozreg_s.a; path = ../dist/lib/libmozreg_s.a; sourceTree = SOURCE_ROOT; };
 		7BAEF7470CCFDE7D00384F4E /* Sparkle.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = Sparkle.framework; path = sparkle/build/Release/Sparkle.framework; sourceTree = "<group>"; };
 		7BB332F30A7E99BC0075521C /* libspellchecker.a */ = {isa = PBXFileReference; lastKnownFileType = archive.ar; name = libspellchecker.a; path = ../staticlib/components/libspellchecker.a; sourceTree = SOURCE_ROOT; };
 		82180AC907368BDF002EFA6D /* libcomposer.dylib */ = {isa = PBXFileReference; lastKnownFileType = "compiled.mach-o.bundle"; name = libcomposer.dylib; path = ../dist/bin/components/libcomposer.dylib; sourceTree = SOURCE_ROOT; };
@@ -3226,7 +3224,6 @@
 				0F518835088593F30091F3FB /* libpermissions.a in Frameworks */,
 				0FF288550961EDDD007527B4 /* libfreebl3.dylib in Frameworks */,
 				4DC28F5E099184B80081939B /* libucvmath.a in Frameworks */,
-				7B9E1BFF09DD967E003256C9 /* libmozreg_s.a in Frameworks */,
 				7BB332F40A7E99BC0075521C /* libspellchecker.a in Frameworks */,
 				DEB968310B0D8E9F0023F8B1 /* Security.framework in Frameworks */,
 				DE62E4320B72B50C00142851 /* libauth.a in Frameworks */,
@@ -4376,7 +4373,6 @@
 				4DC41D3E0869D7A400947045 /* libmozcairo.a */,
 				4DC41D3E0869D7A400947046 /* libmozlibpixman.a */,
 				4DC28F5D099184B80081939B /* libucvmath.a */,
-				7B9E1BFE09DD966F003256C9 /* libmozreg_s.a */,
 				DE62E4310B72B50C00142851 /* libauth.a */,
 				DEC87B140C288403002EB106 /* libstoragecomps.a */,
 				33B777E10C5588E500A6D67F /* libmozlcms.a */,
@@ -5198,6 +5194,7 @@
 		29B97313FDCFA39411CA2CEA /* Project object */ = {
 			isa = PBXProject;
 			buildConfigurationList = 3323778E0C4D0F9600A34879 /* Build configuration list for PBXProject "Camino" */;
+			compatibilityVersion = "Xcode 2.4";
 			hasScannedForEncodings = 1;
 			knownRegions = (
 				English,
