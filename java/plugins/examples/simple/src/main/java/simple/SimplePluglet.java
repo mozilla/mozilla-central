@@ -193,10 +193,27 @@ class SimplePlugletInstance implements Pluglet {
         org.mozilla.util.DebugPluglet.print("--SimplePlugletInstance.finalize()\n");
     }
 
-    public String calledFromJavaScript1(String arg1, String arg2) {
-        org.mozilla.util.DebugPluglet.print("calledFromJavaScript1\n");
-	return "hard coded result";
+    public String calledFromJavaScript3(String arg0, String arg1, String arg2) {
+        org.mozilla.util.DebugPluglet.print("calledFromJavaScript2\n");
+	return "3 args.  arg0: " + arg0 + " arg1: " + arg1 + " arg2: " + arg2 + "";
     }
+
+    public String calledFromJavaScript2(String arg0, String arg1) {
+        org.mozilla.util.DebugPluglet.print("calledFromJavaScript2\n");
+	return "2 args.  arg0: " + arg0 + " arg1: " + arg1 + "";
+    }
+
+    public String calledFromJavaScript1(String arg0) {
+        org.mozilla.util.DebugPluglet.print("calledFromJavaScript1\n");
+	return "1 args.  arg0: " + arg0 + "";
+    }
+
+    public String calledFromJavaScript0() {
+        org.mozilla.util.DebugPluglet.print("calledFromJavaScript0\n");
+	return "0 arg hard coded result";
+    }
+
+
 }
 
 class TestStreamListener implements PlugletStreamListener {

@@ -27,6 +27,8 @@
 #include "Registry.h"
 #include "PlugletViewFactory.h"
 #include "PlugletLog.h"
+#include "nsMemory.h"
+
 
 
 
@@ -307,7 +309,7 @@ NS_IMETHODIMP Pluglet::CallPlugletMethod(const char *methodName, PRUint32 *inArg
 {
     nsresult rv = NS_OK;
 
-    if (NULL != methodName && 0 < strlen(methodName) && NULL != inArgc && NULL != inArgv) {
+    if (NULL != methodName && 0 < strlen(methodName) && NULL != inArgc && NULL != inArgv && (10 < (int)inArgc)) {
 	PR_LOG(PlugletLog::log, PR_LOG_DEBUG,
 	       ("Pluglet::CallPlugletMethod: methodName: %s\n", methodName));
 
@@ -316,6 +318,220 @@ NS_IMETHODIMP Pluglet::CallPlugletMethod(const char *methodName, PRUint32 *inArg
 	if (NULL != plugletMethodMID) {
 	    PR_LOG(PlugletLog::log, PR_LOG_DEBUG,
 		   ("Pluglet::CallPlugletMethod: found match for methodName: %s\n", methodName));
+	    nsresult rv = NS_ERROR_FAILURE;
+	    nsCOMPtr<iPlugletEngine> plugletEngine = 
+		do_GetService(PLUGLETENGINE_ContractID, &rv);;
+	    if (NS_FAILED(rv)) {
+		return rv;
+	    }
+	    JNIEnv *env = nsnull;
+	    rv = plugletEngine->GetJNIEnv(&env);
+	    if (NS_FAILED(rv)) {
+		return rv;
+	    }
+	    jstring resultJstr;
+
+	    if (0 == *inArgc) {
+		resultJstr = (jstring) env->CallObjectMethod(jthis, plugletMethodMID);
+	    }
+	    else {
+		char **args = *inArgv;
+		if (1 == *inArgc) {
+		    jstring jstr0 = env->NewStringUTF(args[0]);
+		    if (jstr0) {
+			resultJstr = (jstring) env->CallObjectMethod(jthis, plugletMethodMID, jstr0);
+		    }
+		    env->DeleteLocalRef(jstr0);
+		}
+		else if (2 == *inArgc) {
+		    jstring jstr0 = env->NewStringUTF(args[0]);
+		    jstring jstr1 = env->NewStringUTF(args[1]);
+		    if (jstr0 && jstr1) {
+			resultJstr = (jstring) env->CallObjectMethod(jthis, plugletMethodMID, jstr0, jstr1);
+		    }
+		    env->DeleteLocalRef(jstr0);
+		    env->DeleteLocalRef(jstr1);
+		}
+		else if (3 == *inArgc) {
+		    jstring jstr0 = env->NewStringUTF(args[0]);
+		    jstring jstr1 = env->NewStringUTF(args[1]);
+		    jstring jstr2 = env->NewStringUTF(args[2]);
+		    if (jstr0 && jstr1 && jstr2) {
+			resultJstr = (jstring) env->CallObjectMethod(jthis, plugletMethodMID, jstr0, jstr1, jstr2);
+		    }
+		    env->DeleteLocalRef(jstr0);
+		    env->DeleteLocalRef(jstr1);
+		    env->DeleteLocalRef(jstr2);
+		}
+		else if (4 == *inArgc) {
+		    jstring jstr0 = env->NewStringUTF(args[0]);
+		    jstring jstr1 = env->NewStringUTF(args[1]);
+		    jstring jstr2 = env->NewStringUTF(args[2]);
+		    jstring jstr3 = env->NewStringUTF(args[3]);
+		    if (jstr0 && jstr1 && jstr2 && jstr3) {
+			resultJstr = (jstring) env->CallObjectMethod(jthis, plugletMethodMID, jstr0, jstr1, jstr2,
+								     jstr3);
+		    }
+		    env->DeleteLocalRef(jstr0);
+		    env->DeleteLocalRef(jstr1);
+		    env->DeleteLocalRef(jstr2);
+		    env->DeleteLocalRef(jstr3);
+		}
+		else if (5 == *inArgc) {
+		    jstring jstr0 = env->NewStringUTF(args[0]);
+		    jstring jstr1 = env->NewStringUTF(args[1]);
+		    jstring jstr2 = env->NewStringUTF(args[2]);
+		    jstring jstr3 = env->NewStringUTF(args[3]);
+		    jstring jstr4 = env->NewStringUTF(args[4]);
+		    if (jstr0 && jstr1 && jstr2 && jstr3 && jstr4) {
+			resultJstr = (jstring) env->CallObjectMethod(jthis, plugletMethodMID, jstr0, jstr1, jstr2,
+								     jstr3, jstr4);
+		    }
+		    env->DeleteLocalRef(jstr0);
+		    env->DeleteLocalRef(jstr1);
+		    env->DeleteLocalRef(jstr2);
+		    env->DeleteLocalRef(jstr3);
+		    env->DeleteLocalRef(jstr4);
+		}
+		else if (6 == *inArgc) {
+		    jstring jstr0 = env->NewStringUTF(args[0]);
+		    jstring jstr1 = env->NewStringUTF(args[1]);
+		    jstring jstr2 = env->NewStringUTF(args[2]);
+		    jstring jstr3 = env->NewStringUTF(args[3]);
+		    jstring jstr4 = env->NewStringUTF(args[4]);
+		    jstring jstr5 = env->NewStringUTF(args[5]);
+		    if (jstr0 && jstr1 && jstr2 && jstr3 && jstr4 && jstr5) {
+			resultJstr = (jstring) env->CallObjectMethod(jthis, plugletMethodMID, jstr0, jstr1, jstr2,
+								     jstr3, jstr4, jstr5);
+		    }
+		    env->DeleteLocalRef(jstr0);
+		    env->DeleteLocalRef(jstr1);
+		    env->DeleteLocalRef(jstr2);
+		    env->DeleteLocalRef(jstr3);
+		    env->DeleteLocalRef(jstr4);
+		    env->DeleteLocalRef(jstr5);
+		}
+		else if (7 == *inArgc) {
+		    jstring jstr0 = env->NewStringUTF(args[0]);
+		    jstring jstr1 = env->NewStringUTF(args[1]);
+		    jstring jstr2 = env->NewStringUTF(args[2]);
+		    jstring jstr3 = env->NewStringUTF(args[3]);
+		    jstring jstr4 = env->NewStringUTF(args[4]);
+		    jstring jstr5 = env->NewStringUTF(args[5]);
+		    jstring jstr6 = env->NewStringUTF(args[6]);
+		    if (jstr0 && jstr1 && jstr2 && jstr3 && jstr4 && jstr5 && jstr6) {
+			resultJstr = (jstring) env->CallObjectMethod(jthis, plugletMethodMID, jstr0, jstr1, jstr2,
+								     jstr3, jstr4, jstr5, jstr6);
+		    }
+		    env->DeleteLocalRef(jstr0);
+		    env->DeleteLocalRef(jstr1);
+		    env->DeleteLocalRef(jstr2);
+		    env->DeleteLocalRef(jstr3);
+		    env->DeleteLocalRef(jstr4);
+		    env->DeleteLocalRef(jstr5);
+		    env->DeleteLocalRef(jstr6);
+		}
+		else if (8 == *inArgc) {
+		    jstring jstr0 = env->NewStringUTF(args[0]);
+		    jstring jstr1 = env->NewStringUTF(args[1]);
+		    jstring jstr2 = env->NewStringUTF(args[2]);
+		    jstring jstr3 = env->NewStringUTF(args[3]);
+		    jstring jstr4 = env->NewStringUTF(args[4]);
+		    jstring jstr5 = env->NewStringUTF(args[5]);
+		    jstring jstr6 = env->NewStringUTF(args[6]);
+		    jstring jstr7 = env->NewStringUTF(args[7]);
+		    if (jstr0 && jstr1 && jstr2 && jstr3 && jstr4 && jstr5 && jstr6 && jstr7) {
+			resultJstr = (jstring) env->CallObjectMethod(jthis, plugletMethodMID, jstr0, jstr1, jstr2,
+								     jstr3, jstr4, jstr5, jstr6, jstr7);
+		    }
+		    env->DeleteLocalRef(jstr0);
+		    env->DeleteLocalRef(jstr1);
+		    env->DeleteLocalRef(jstr2);
+		    env->DeleteLocalRef(jstr3);
+		    env->DeleteLocalRef(jstr4);
+		    env->DeleteLocalRef(jstr5);
+		    env->DeleteLocalRef(jstr6);
+		    env->DeleteLocalRef(jstr7);
+		}
+		else if (9 == *inArgc) {
+		    jstring jstr0 = env->NewStringUTF(args[0]);
+		    jstring jstr1 = env->NewStringUTF(args[1]);
+		    jstring jstr2 = env->NewStringUTF(args[2]);
+		    jstring jstr3 = env->NewStringUTF(args[3]);
+		    jstring jstr4 = env->NewStringUTF(args[4]);
+		    jstring jstr5 = env->NewStringUTF(args[5]);
+		    jstring jstr6 = env->NewStringUTF(args[6]);
+		    jstring jstr7 = env->NewStringUTF(args[7]);
+		    jstring jstr8 = env->NewStringUTF(args[8]);
+		    if (jstr0 && jstr1 && jstr2 && jstr3 && jstr4 && jstr5 && jstr6 && jstr7 && jstr8) {
+			resultJstr = (jstring) env->CallObjectMethod(jthis, plugletMethodMID, jstr0, jstr1, jstr2,
+								     jstr3, jstr4, jstr5, jstr6, jstr7, jstr8);
+		    }
+		    env->DeleteLocalRef(jstr0);
+		    env->DeleteLocalRef(jstr1);
+		    env->DeleteLocalRef(jstr2);
+		    env->DeleteLocalRef(jstr3);
+		    env->DeleteLocalRef(jstr4);
+		    env->DeleteLocalRef(jstr5);
+		    env->DeleteLocalRef(jstr6);
+		    env->DeleteLocalRef(jstr7);
+		    env->DeleteLocalRef(jstr8);
+		}
+		else if (10 == *inArgc) {
+		    jstring jstr0 = env->NewStringUTF(args[0]);
+		    jstring jstr1 = env->NewStringUTF(args[1]);
+		    jstring jstr2 = env->NewStringUTF(args[2]);
+		    jstring jstr3 = env->NewStringUTF(args[3]);
+		    jstring jstr4 = env->NewStringUTF(args[4]);
+		    jstring jstr5 = env->NewStringUTF(args[5]);
+		    jstring jstr6 = env->NewStringUTF(args[6]);
+		    jstring jstr7 = env->NewStringUTF(args[7]);
+		    jstring jstr8 = env->NewStringUTF(args[8]);
+		    jstring jstr9 = env->NewStringUTF(args[9]);
+		    if (jstr0 && jstr1 && jstr2 && jstr3 && jstr4 && jstr5 && jstr6 && jstr7 && jstr8 && jstr9) {
+			resultJstr = (jstring) env->CallObjectMethod(jthis, plugletMethodMID, jstr0, jstr1, jstr2,
+								     jstr3, jstr4, jstr5, jstr6, jstr7, jstr8, jstr9);
+		    }
+		    env->DeleteLocalRef(jstr0);
+		    env->DeleteLocalRef(jstr1);
+		    env->DeleteLocalRef(jstr2);
+		    env->DeleteLocalRef(jstr3);
+		    env->DeleteLocalRef(jstr4);
+		    env->DeleteLocalRef(jstr5);
+		    env->DeleteLocalRef(jstr6);
+		    env->DeleteLocalRef(jstr7);
+		    env->DeleteLocalRef(jstr8);
+		    env->DeleteLocalRef(jstr9);
+		}
+	    }
+
+	    if (NULL != resultJstr) {
+		jboolean isCopy;
+		const char * result = env->GetStringUTFChars(resultJstr, &isCopy);
+		if (NULL != result) {
+		    const static char *strings[1];
+		    strings[0] = result;
+		    // Taken from xpctest_array.cpp.  Thanks jband
+		    const static PRUint32 scount = sizeof(strings)/sizeof(strings[0]);
+		    char** out = (char**) nsMemory::Alloc(scount * sizeof(char*));
+		    if(!out) {
+			return NS_ERROR_OUT_OF_MEMORY;
+		    }
+		    for(PRUint32 i = 0; i < scount; ++i) {
+			out[i] = (char*) nsMemory::Clone(strings[i], strlen(strings[i])+1);
+			if(!out[i]) {
+			    nsMemory::Free(out);
+			    return NS_ERROR_OUT_OF_MEMORY;
+			}
+		    }
+		    *inArgc = 1;
+		    *inArgv = out;
+		}
+		if (isCopy == JNI_TRUE) {
+		    env->ReleaseStringUTFChars(resultJstr, result);
+		}
+	    }
+
 	}
 	else {
 	    PR_LOG(PlugletLog::log, PR_LOG_DEBUG,

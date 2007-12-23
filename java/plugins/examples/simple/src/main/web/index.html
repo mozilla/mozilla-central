@@ -7,10 +7,23 @@
 <script>
 var embed = document.embeds[0];
 
-function callPluglet()
+function callPluglet0()
 {
 var strs2 = {
-    value : ["double","me"]
+    value : []
+};
+
+var strslen2 = {
+    value : strs2.value.length
+};
+
+  embed.callPlugletMethod("calledFromJavaScript0", strslen2, strs2);
+  alert("Pluglet returned " + strs2.value);
+}
+function callPluglet1()
+{
+var strs2 = {
+    value : [ "arg0" ]
 };
 
 var strslen2 = {
@@ -18,11 +31,41 @@ var strslen2 = {
 };
 
   embed.callPlugletMethod("calledFromJavaScript1", strslen2, strs2);
+  alert("Pluglet returned " + strs2.value);
+}
+function callPluglet2()
+{
+var strs2 = {
+    value : [ "arg0", "arg1" ]
+};
+
+var strslen2 = {
+    value : strs2.value.length
+};
+
+  embed.callPlugletMethod("calledFromJavaScript2", strslen2, strs2);
+  alert("Pluglet returned " + strs2.value);
+}
+function callPluglet3()
+{
+var strs2 = {
+    value : [ "arg0", "arg1", "arg2" ]
+};
+
+var strslen2 = {
+    value : strs2.value.length
+};
+
+  embed.callPlugletMethod("calledFromJavaScript3", strslen2, strs2);
+  alert("Pluglet returned " + strs2.value);
 }
 </script>
 
 <form name="formname">
-<input type=button value="Call Pluglet" onclick='callPluglet()'> </input>
+<input type=button value="Call Pluglet 0 arg" onclick='callPluglet0()'> </input>
+<input type=button value="Call Pluglet 1 arg" onclick='callPluglet1()'> </input>
+<input type=button value="Call Pluglet 2 arg" onclick='callPluglet2()'> </input>
+<input type=button value="Call Pluglet 3 arg" onclick='callPluglet3()'> </input>
 </form>
 
 </body>

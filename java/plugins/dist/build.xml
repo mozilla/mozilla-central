@@ -32,8 +32,8 @@
   <property name="name" value="pluglet"/>
   <property name="major.version" value="1" />
   <property name="minor.version" value="1" />
-  <property name="release.version" value="a1" />
-  <property name="release.version.full" value="alpha_1" />
+  <property name="release.version" value="a2" />
+  <property name="release.version.full" value="alpha_2" />
   <property name="version" 
             value="${major.version}_${minor.version}_${release.version}"/>
   <property name="full.version" value="${major.version}_${minor.version}_${release.version.full}"/>
