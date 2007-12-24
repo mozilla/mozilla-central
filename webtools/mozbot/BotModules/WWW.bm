@@ -4,6 +4,8 @@
 
 package BotModules::WWW;
 use vars qw(@ISA);
+# Need HTML::Entities for decode_entities() in wwwtitle
+use HTML::Entities;
 @ISA = qw(BotModules);
 1;
 
@@ -124,7 +126,7 @@ sub GotURI {
             if (length($title) > 100) { # arbitrary length
                 $title = substr($title, 0, 100) . '...';
             }
-            $self->say($event, "$uri has the following title: $title");
+            $self->say($event, "$uri has the following title: " . decode_entities($title));
         } else {
             $self->say($event, "$uri has no specified title.");
         }
