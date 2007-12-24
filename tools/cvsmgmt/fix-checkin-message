@@ -66,6 +66,10 @@ sub parse_bonsai_backout_file {
 
 if (($::ARGV[0]) && ($::ARGV[0] =~ /^http/)) {
   print "--\n";
+  my $url = $::ARGV[0];
+  if ($url !~ m/generateBackoutCVSCommands/) {
+    $url .= '&generateBackoutCVSCommands=1';
+  }
   my $data = `wget -O- -nv "$::ARGV[0]"`;
   parse_bonsai_backout_file($data);
 }
@@ -92,6 +96,9 @@ EOF
   chomp $filename;
   if ($filename =~ /^http/) {
     print "--\n";
+    if ($filename !~ m/generateBackoutCVSCommands/) {
+      $filename .= '&generateBackoutCVSCommands=1';
+    }
     my $data = `wget -O- -nv "$filename"`;
     parse_bonsai_backout_file($data);
     if (0 == @files) {
