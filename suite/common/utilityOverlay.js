@@ -693,7 +693,7 @@ function createShowPopupsMenu(parent, browser)
 
   var popups = browser.pageReport;
 
-  if (popups.length == 0)
+  if (!popups)
     return false;
 
   var bundle = srGetStrBundle("chrome://communicator/locale/utilityOverlay.properties");
