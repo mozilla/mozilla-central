@@ -651,18 +651,10 @@ NS_IMETHODIMP nsMsgLocalMailFolder::GetFolderURL(nsACString& aUrl)
   rv = GetFilePath(getter_AddRefs(path));
   if (NS_FAILED(rv)) return rv;
 
-  nsCAutoString nativePath;
-  path->GetNativePath(nativePath);
-
-  nsAutoString unicodePath;
-  NS_CopyNativeToUnicode(nativePath, unicodePath);
-
-  nsCAutoString escapedPath;
-  rv = NS_MsgEscapeEncodeURLPath(unicodePath, escapedPath);
+  rv = NS_GetURLSpecFromFile(path, aUrl);
   NS_ENSURE_SUCCESS(rv, rv);
 
-  aUrl.AssignLiteral("mailbox:");
-  aUrl.Append(escapedPath);
+  aUrl.Replace(0, strlen("file:"), "mailbox:");
 
   return NS_OK;
 }

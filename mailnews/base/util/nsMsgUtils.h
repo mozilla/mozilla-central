@@ -179,8 +179,8 @@ NS_MSG_BASE void MsgStripQuotedPrintable (unsigned char *src);
  * Utility functions that call functions from nsINetUtil
  */
 
-NS_MSG_BASE nsresult MsgEscapeString(const nsACString &aStr, 
-                                 PRUint32 aType, nsACString &aResult);
+NS_MSG_BASE nsresult MsgEscapeString(const nsACString &aStr,
+                                     PRUint32 aType, nsACString &aResult);
 
 NS_MSG_BASE nsresult MsgUnescapeString(const nsACString &aStr, 
                                        PRUint32 aFlags, nsACString &aResult);

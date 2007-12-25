@@ -241,7 +241,7 @@ function folderPropsOnLoad()
 
   // this hex value come from nsMsgFolderFlags.h
   var folderResource = RDF.GetResource(gPreselectedFolderURI);
-    
+
   if (folderResource)
     gMsgFolder = folderResource.QueryInterface(Components.interfaces.nsIMsgFolder);
   if (!gMsgFolder)
@@ -249,7 +249,11 @@ function folderPropsOnLoad()
 
   if (gMsgFolder) {
     var locationTextbox = document.getElementById("location");
-    locationTextbox.value = gMsgFolder.folderURL;
+
+    // Decode the displayed mailbox:// URL as it's useful primarily for debugging,
+    // whereas imap and news urls are sent around.
+    locationTextbox.value = (gServerTypeFolder == "imap" || gServerTypeFolder == "nntp") ?
+        gMsgFolder.folderURL : decodeURI(gMsgFolder.folderURL);
 
     if (gMsgFolder.canRename)
       gNameTextbox.removeAttribute("readonly");
@@ -275,7 +279,6 @@ function folderPropsOnLoad()
     var elements = folderCharsetList.getElementsByAttribute("value", gMsgFolder.charset);
     folderCharsetList.selectedItem = elements[0];
 
-
     // set override checkbox
     document.getElementById("folderCharsetOverride").checked = gMsgFolder.charsetOverride;
 
@@ -288,7 +291,6 @@ function folderPropsOnLoad()
     var imapFolder = gMsgFolder.QueryInterface(Components.interfaces.nsIMsgImapMailFolder);
     if (imapFolder)
       imapFolder.fillInFolderProps(gFolderPropsSink);
-
   }
 
   var retentionSettings = gMsgFolder.retentionSettings;

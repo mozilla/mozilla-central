@@ -1514,14 +1514,14 @@ NS_MSG_BASE void MsgStripQuotedPrintable (unsigned char *src)
   dest[destIdx] = src[srcIdx]; // null terminate
 }
 
-NS_MSG_BASE nsresult MsgEscapeString(const nsACString &aStr, 
-                                 PRUint32 aType, nsACString &aResult)
+NS_MSG_BASE nsresult MsgEscapeString(const nsACString &aStr,
+                                     PRUint32 aType, nsACString &aResult)
 {
   nsresult rv;
   nsCOMPtr<nsINetUtil> nu = do_GetService(NS_NETUTIL_CONTRACTID, &rv);
   NS_ENSURE_SUCCESS(rv, rv);
 
-  return nu->EscapeString(aStr, nsINetUtil::ESCAPE_URL_PATH, aResult);
+  return nu->EscapeString(aStr, aType, aResult);
 }
 
 NS_MSG_BASE nsresult MsgUnescapeString(const nsACString &aStr, PRUint32 aFlags, 
