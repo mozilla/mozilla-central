@@ -18,25 +18,35 @@
             <Seq>
                 <li>
                     <Description nc:panelid="toc"
-                        nc:datasources="suite-toc.rdf"/>
+                        nc:datasources="suite-toc.rdf"
+                        nc:platform="win mac os2 unix"/>
                 </li>
                 <li>
-                    <Description nc:panelid="toc" nc:datasources="help-win.rdf" nc:platform="win"/>
+                    <Description nc:panelid="toc"
+                        nc:datasources="help-win.rdf"
+                        nc:platform="win"/>
                 </li>
                 <li>
                     <Description nc:panelid="search"
                         nc:datasources="rdf:null"
+                        nc:platform="win mac os2 unix"
                         nc:emptysearchtext="[No matching items found.]"
                         nc:emptysearchlink="chrome://help/locale/welcome.xhtml#search_tips"/>
                 </li>
                 <li>
-                    <Description nc:panelid="glossary" nc:datasources="help-glossary.rdf"/>
+                    <Description nc:panelid="glossary"
+                        nc:datasources="help-glossary.rdf"
+                        nc:platform="win mac os2 unix"/>
                 </li>
                 <li>
-                    <Description nc:panelid="index" nc:datasources="help-indexAZ.rdf help-index1.rdf"/>
+                    <Description nc:panelid="index"
+                        nc:datasources="help-indexAZ.rdf help-index1.rdf"
+                        nc:platform="win mac os2 unix"/>
                 </li>
                 <li>
-                    <Description nc:panelid="index" nc:datasources="help-win.rdf" nc:platform="win"/>
+                    <Description nc:panelid="index"
+                        nc:datasources="help-win.rdf"
+                        nc:platform="win"/>
                 </li>
             </Seq>
         </nc:panellist>
