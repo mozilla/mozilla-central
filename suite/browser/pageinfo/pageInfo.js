@@ -645,7 +645,7 @@ function onFormSelect()
     {
       label = labels[i];
       var whatfor = label.hasAttribute("for") ?
-        theDocument.getElementById(label.getAttribute("for")) :
+        gDocument.getElementById(label.getAttribute("for")) :
         findFirstControl(label);
 
       if (whatfor && (whatfor.form == form)) 
@@ -672,7 +672,7 @@ function FormControlFilter(node)
 
 function findFirstControl(node)
 {
-  var iterator = theDocument.createTreeWalker(node, NodeFilter.SHOW_ELEMENT, FormControlFilter, true);
+  var iterator = gDocument.createTreeWalker(node, NodeFilter.SHOW_ELEMENT, FormControlFilter, true);
 
   return iterator.nextNode();
 }

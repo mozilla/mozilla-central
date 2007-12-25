@@ -136,17 +136,21 @@ var security = {
   /**
    * Open the cookie manager window
    */
-  viewCookies: windowOpener("Browser:Cookies", "chrome://communicator/content/permissions/cookieViewer.xul"),
+  viewCookies: windowOpener("Browser:Cookies",
+                            "chrome://communicator/content/permissions/cookieViewer.xul",
+                            "cookieManager"),
   
   /**
    * Open the login manager window
    */
-  viewPasswords: windowOpener("Toolkit:PasswordManager", "chrome://communicator/content/wallet/SignonViewer.xul"),
+  viewPasswords: windowOpener("Toolkit:PasswordManager",
+                              "chrome://communicator/content/wallet/SignonViewer.xul",
+                              "S"),
 
   _cert : null
 };
 
-function windowOpener(class, url)
+function windowOpener(class, url, args)
 {
   return function()
   {
@@ -156,7 +160,7 @@ function windowOpener(class, url)
     if (win)
       win.focus();
     else
-      window.openDialog(url, class, "");
+      window.openDialog(url, class, "chrome,resizable", args);
   }
 }
 
