@@ -128,7 +128,7 @@ static const PRInt32 kNumHdrsToXfer=10;
 
 nsMsgImapHdrXferInfo::nsMsgImapHdrXferInfo()
 {
-  NS_NewISupportsArray(getter_AddRefs(m_hdrInfos));
+  m_hdrInfos = do_CreateInstance(NS_SUPPORTSARRAY_CONTRACTID);
   m_nextFreeHdrInfo = 0;
 }
 

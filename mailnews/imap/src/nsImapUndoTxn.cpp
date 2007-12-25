@@ -50,14 +50,13 @@ nsImapMoveCopyMsgTxn::nsImapMoveCopyMsgTxn() :
 }
 
 nsresult
-nsImapMoveCopyMsgTxn::Init(
-	nsIMsgFolder* srcFolder, nsMsgKeyArray* srcKeyArray, 
-	const char* srcMsgIdString, nsIMsgFolder* dstFolder,
-	PRBool idsAreUids, PRBool isMove,
-	nsIEventTarget* eventTarget, nsIUrlListener* urlListener)
+nsImapMoveCopyMsgTxn::Init(nsIMsgFolder* srcFolder, nsMsgKeyArray* srcKeyArray, 
+                           const char* srcMsgIdString, nsIMsgFolder* dstFolder,
+                           PRBool idsAreUids, PRBool isMove,
+                           nsIEventTarget* eventTarget, nsIUrlListener* urlListener)
 {
   nsresult rv;
-  NS_NewISupportsArray(getter_AddRefs(m_srcHdrs));
+  m_srcHdrs = do_CreateInstance(NS_SUPPORTSARRAY_CONTRACTID);
   m_srcMsgIdString = srcMsgIdString;
   m_idsAreUids = idsAreUids;
   m_isMove = isMove;

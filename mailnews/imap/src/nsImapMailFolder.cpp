@@ -984,9 +984,9 @@ NS_IMETHODIMP nsImapMailFolder::List()
 
 NS_IMETHODIMP nsImapMailFolder::RemoveSubFolder (nsIMsgFolder *which)
 {
-  nsCOMPtr<nsISupportsArray> folders;
-  nsresult rv = NS_NewISupportsArray(getter_AddRefs(folders));
-  NS_ENSURE_SUCCESS(rv, rv);
+  nsresult rv;
+  nsCOMPtr<nsISupportsArray> folders = do_CreateInstance(NS_SUPPORTSARRAY_CONTRACTID, &rv);
+  NS_ENSURE_TRUE(folders, rv);
   nsCOMPtr<nsISupports> folderSupport = do_QueryInterface(which, &rv);
   NS_ENSURE_SUCCESS(rv, rv);
   folders->AppendElement(folderSupport);
@@ -1209,14 +1209,14 @@ NS_IMETHODIMP nsImapMailFolder::CompactAll(nsIUrlListener *aListener,  nsIMsgWin
     rv = GetRootFolder(getter_AddRefs(rootFolder));
     if (NS_SUCCEEDED(rv) && rootFolder)
     {
-      rv = NS_NewISupportsArray(getter_AddRefs(allDescendents));
-      NS_ENSURE_SUCCESS(rv, rv);
+      allDescendents = do_CreateInstance(NS_SUPPORTSARRAY_CONTRACTID, &rv);
+      NS_ENSURE_TRUE(allDescendents, rv);
       rootFolder->ListDescendents(allDescendents);
       PRUint32 cnt =0;
       rv = allDescendents->Count(&cnt);
       NS_ENSURE_SUCCESS(rv,rv);
-      rv = NS_NewISupportsArray(getter_AddRefs(folderArray));
-      NS_ENSURE_SUCCESS(rv, rv);
+      folderArray = do_CreateInstance(NS_SUPPORTSARRAY_CONTRACTID, &rv);
+      NS_ENSURE_TRUE(folderArray, rv);
       for (PRUint32 i=0; i < cnt;i++)
       {
         nsCOMPtr<nsISupports> supports = getter_AddRefs(allDescendents->ElementAt(i));
@@ -1312,9 +1312,8 @@ NS_IMETHODIMP nsImapMailFolder::EmptyTrash(nsIMsgWindow *aMsgWindow, nsIUrlListe
       nsCOMPtr<nsIEnumerator> aEnumerator;
       nsCOMPtr<nsISupports> aSupport;
       nsCOMPtr<nsIMsgFolder> aFolder;
-      nsCOMPtr<nsISupportsArray> aSupportsArray;
-      rv = NS_NewISupportsArray(getter_AddRefs(aSupportsArray));
-      NS_ENSURE_SUCCESS(rv, rv);
+      nsCOMPtr<nsISupportsArray> aSupportsArray = do_CreateInstance(NS_SUPPORTSARRAY_CONTRACTID, &rv);
+      NS_ENSURE_TRUE(aSupportsArray, rv);
       rv = trashFolder->GetSubFolders(getter_AddRefs(aEnumerator));
       PRBool confirmDeletion;
       nsCOMPtr<nsIPrefBranch> prefBranch(do_GetService(NS_PREFSERVICE_CONTRACTID, &rv));
@@ -1382,9 +1381,8 @@ NS_IMETHODIMP nsImapMailFolder::EmptyTrash(nsIMsgWindow *aMsgWindow, nsIUrlListe
       nsCOMPtr<nsIEnumerator> aEnumerator;
       nsCOMPtr<nsISupports> aSupport;
       nsCOMPtr<nsIMsgFolder> aFolder;
-      nsCOMPtr<nsISupportsArray> aSupportsArray;
-      rv = NS_NewISupportsArray(getter_AddRefs(aSupportsArray));
-      if (NS_FAILED(rv)) return rv;
+      nsCOMPtr<nsISupportsArray> aSupportsArray = do_CreateInstance(NS_SUPPORTSARRAY_CONTRACTID, &rv);
+      NS_ENSURE_TRUE(aSupportsArray, rv);
       rv = trashFolder->GetSubFolders(getter_AddRefs(aEnumerator));
       rv = aEnumerator->First();
       while(NS_SUCCEEDED(rv))
@@ -3035,9 +3033,8 @@ NS_IMETHODIMP nsImapMailFolder::ApplyFilterHit(nsIMsgFilter *filter, nsIMsgWindo
     return NS_ERROR_NULL_POINTER; //fatal error, cannot apply filters
 
   PRBool deleteToTrash = DeleteIsMoveToTrash();
-  nsCOMPtr<nsISupportsArray> filterActionList;
-  rv = NS_NewISupportsArray(getter_AddRefs(filterActionList));
-  NS_ENSURE_SUCCESS(rv, rv);
+  nsCOMPtr<nsISupportsArray> filterActionList = do_CreateInstance(NS_SUPPORTSARRAY_CONTRACTID, &rv);
+  NS_ENSURE_TRUE(filterActionList, rv);
   rv = filter->GetSortedActionList(filterActionList);
   NS_ENSURE_SUCCESS(rv, rv);
 
@@ -3142,13 +3139,12 @@ NS_IMETHODIMP nsImapMailFolder::ApplyFilterHit(nsIMsgFilter *filter, nsIMsgWindo
                msgHdr->OrFlags(MSG_FLAG_MDN_REPORT_SENT, &newFlags);
             }
 
-            nsCOMPtr<nsISupportsArray> messageArray;
-            NS_NewISupportsArray(getter_AddRefs(messageArray));
+            nsCOMPtr<nsISupportsArray> messageArray = do_CreateInstance(NS_SUPPORTSARRAY_CONTRACTID, &rv);
+            NS_ENSURE_TRUE(messageArray, rv);
             messageArray->AppendElement(msgHdr);
 
             nsCOMPtr<nsIMsgFolder> dstFolder;
-            rv = GetExistingFolder(actionTargetFolderUri,
-                                   getter_AddRefs(dstFolder));
+            rv = GetExistingFolder(actionTargetFolderUri, getter_AddRefs(dstFolder));
             NS_ENSURE_SUCCESS(rv, rv);
 
             nsCOMPtr<nsIMsgCopyService> copyService =
@@ -3207,8 +3203,8 @@ NS_IMETHODIMP nsImapMailFolder::ApplyFilterHit(nsIMsgFilter *filter, nsIMsgWindo
         {
           nsCString keyword;
           filterAction->GetStrValue(keyword);
-          nsCOMPtr<nsISupportsArray> messageArray;
-          NS_NewISupportsArray(getter_AddRefs(messageArray));
+          nsCOMPtr<nsISupportsArray> messageArray = do_CreateInstance(NS_SUPPORTSARRAY_CONTRACTID, &rv);
+          NS_ENSURE_TRUE(messageArray, rv);
           messageArray->AppendElement(msgHdr);
           AddKeywordsToMessages(messageArray, keyword);
           break;
@@ -6578,8 +6574,8 @@ nsImapFolderCopyState::OnStopRunningUrl(nsIURI *aUrl, nsresult aExitCode)
 
           nsCOMPtr<nsISimpleEnumerator> messages;
           rv = m_srcFolder->GetMessages(m_msgWindow, getter_AddRefs(messages));
-          nsCOMPtr<nsISupportsArray> msgSupportsArray;
-          NS_NewISupportsArray(getter_AddRefs(msgSupportsArray));
+          nsCOMPtr<nsISupportsArray> msgSupportsArray = do_CreateInstance(NS_SUPPORTSARRAY_CONTRACTID, &rv);
+          NS_ENSURE_TRUE(msgSupportsArray, rv);
           PRBool hasMoreElements;
           nsCOMPtr<nsISupports> aSupport;
 
@@ -6788,11 +6784,10 @@ nsImapMailFolder::CopyFileMessage(nsIFile* file,
     nsMsgKey key = 0xffffffff;
     nsCAutoString messageId;
     nsCOMPtr<nsIUrlListener> urlListener;
-    nsCOMPtr<nsISupportsArray> messages;
+    nsCOMPtr<nsISupportsArray> messages = do_CreateInstance(NS_SUPPORTSARRAY_CONTRACTID);
     nsCOMPtr<nsISupports> srcSupport = do_QueryInterface(file, &rv);
 
-    rv = NS_NewISupportsArray(getter_AddRefs(messages));
-    if (NS_FAILED(rv))
+    if (!messages)
       return OnCopyCompleted(srcSupport, rv);
 
     nsCOMPtr<nsIImapService> imapService = do_GetService(NS_IMAPSERVICE_CONTRACTID, &rv);
@@ -7666,7 +7661,7 @@ nsImapMailFolder::OnMessageClassified(const char * aMsgURI, nsMsgJunkStatus aCla
     if (markAsReadOnSpam)
     {
       if (!m_junkMessagesToMarkAsRead)
-        NS_NewISupportsArray(getter_AddRefs(m_junkMessagesToMarkAsRead));
+        m_junkMessagesToMarkAsRead = do_CreateInstance(NS_SUPPORTSARRAY_CONTRACTID);
       m_junkMessagesToMarkAsRead->AppendElement(msgHdr);
     }
 

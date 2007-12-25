@@ -173,7 +173,8 @@ nsresult nsImapOfflineSync::AdvanceToNextServer()
       server->GetRootFolder(getter_AddRefs(rootFolder));
       if (rootFolder)
       {
-        NS_NewISupportsArray(getter_AddRefs(m_allFolders));
+        m_allFolders = do_CreateInstance(NS_SUPPORTSARRAY_CONTRACTID, &rv);
+        NS_ENSURE_TRUE(m_allFolders, rv);
         rv = rootFolder->ListDescendents(m_allFolders);
         if (NS_SUCCEEDED(rv))
           m_allFolders->Enumerate(getter_AddRefs(m_serverEnumerator));

@@ -110,9 +110,8 @@ NS_INTERFACE_MAP_END_INHERITING(nsMsgIncomingServer)
 
 nsImapIncomingServer::nsImapIncomingServer()
 {
-  nsresult rv;
-  rv = NS_NewISupportsArray(getter_AddRefs(m_connectionCache));
-  rv = NS_NewISupportsArray(getter_AddRefs(m_urlQueue));
+  m_connectionCache = do_CreateInstance(NS_SUPPORTSARRAY_CONTRACTID);
+  m_urlQueue = do_CreateInstance(NS_SUPPORTSARRAY_CONTRACTID);
   m_capability = kCapabilityUndefined;
   m_waitingForConnectionInfo = PR_FALSE;
   m_redirectedLogonRetries = 0;
@@ -1762,12 +1761,9 @@ NS_IMETHODIMP nsImapIncomingServer::DiscoveryDone()
   }
 
   PRInt32 numUnverifiedFolders;
-  nsCOMPtr<nsISupportsArray> unverifiedFolders;
-
-  rv = NS_NewISupportsArray(getter_AddRefs(unverifiedFolders));
-  if(NS_FAILED(rv))
-    return rv;
-
+  nsCOMPtr<nsISupportsArray> unverifiedFolders = do_CreateInstance(NS_SUPPORTSARRAY_CONTRACTID, &rv);
+  NS_ENSURE_TRUE(unverifiedFolders, rv);
+  
   PRBool usingSubscription = PR_TRUE;
   GetUsingSubscription(&usingSubscription);
 
