@@ -170,10 +170,6 @@ NS_IMETHODIMP nsAbAddressCollecter::CollectAddress(const nsACString &aAddresses,
         NS_ASSERTION(NS_SUCCEEDED(rv), "failed to set names");
       }
 
-      PRBool setScreenName = PR_FALSE; 
-      rv = AutoCollectScreenName(existingCard, nsCString(curAddress), &setScreenName);
-      NS_ASSERTION(NS_SUCCEEDED(rv), "failed to set screen name");
-
       PRBool setPreferMailFormat = PR_FALSE; 
       if (aSendFormat != nsIAbPreferMailFormat::unknown)
       {
@@ -190,7 +186,7 @@ NS_IMETHODIMP nsAbAddressCollecter::CollectAddress(const nsACString &aAddresses,
         }
       }
 
-      if ((setScreenName || setNames || setPreferMailFormat) && m_directory)
+      if ((setNames || setPreferMailFormat) && m_directory)
         m_directory->ModifyCard(existingCard);
     }
 
@@ -211,14 +207,6 @@ nsresult nsAbAddressCollecter::AutoCollectScreenName(nsIAbCard *aCard, const nsA
   *aModifiedCard = PR_FALSE;
 
   nsCString email(aEmail);
-  nsAutoString screenName;
-  nsresult rv = aCard->GetAimScreenName(screenName);
-  NS_ENSURE_SUCCESS(rv,rv);
-
-  // don't override existing screennames
-  if (!screenName.IsEmpty())
-    return NS_OK;
-
   int atPos = aEmail.FindChar('@');
   if (atPos == -1) 
     return NS_OK;
@@ -236,7 +224,7 @@ nsresult nsAbAddressCollecter::AutoCollectScreenName(nsIAbCard *aCard, const nsA
       domain.Equals("cs.com") || domain.Equals("netscape.net")) {
     nsCString userName(Substring(email, 0, atPos));
   
-    rv = aCard->SetAimScreenName(NS_ConvertUTF8toUTF16(userName));
+    nsresult rv = aCard->SetAimScreenName(NS_ConvertUTF8toUTF16(userName));
     NS_ENSURE_SUCCESS(rv,rv);
 
     *aModifiedCard = PR_TRUE;
