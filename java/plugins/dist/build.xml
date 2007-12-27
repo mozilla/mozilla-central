@@ -304,6 +304,7 @@
     <copy todir="${dist.home}/samples/">
       <fileset dir="${source.home}/examples">
          <include name="index.html" />
+         <include name="style/*.*" />
       </fileset>
     </copy>
 
