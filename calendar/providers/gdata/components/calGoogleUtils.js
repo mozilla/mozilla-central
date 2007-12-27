@@ -635,10 +635,10 @@ function ItemToXMLEntry(aItem, aAuthorEmail, aAuthorName) {
         entry.gd::who += xmlAttendee;
     }
 
-    // Notify attendees by default and let google handle this. Use a preference
-    // in case the user wants this to be turned off. Support on a per event
-    // basis will be taken care of later.
-    var notify = getPrefSafe("calendar.google.sendEventNotifications", true);
+    // Don't notify attendees by default. Use a preference in case the user
+    // wants this to be turned on. Support on a per event basis will be taken
+    // care of later.
+    var notify = getPrefSafe("calendar.google.sendEventNotifications", false);
     entry.gCal::sendEventNotifications.@value = (notify ? "true" : "false");
 
     // gd:when
