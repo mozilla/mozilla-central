@@ -112,12 +112,12 @@ h4 a {
 	width: 100%;
 }
 #example:before {
-  background: transparent url(win.bg.tr.gif) scroll no-repeat top right;
+  background: transparent url(inner.bg.tr.gif) scroll no-repeat top right;
   margin-bottom: -30px;
   height: 30px;
   display: block;
   border: none;
-  content: url(win.bg.tl.gif);
+  content: url(inner.bg.tl.gif);
   padding: 0;
   line-height: 0.1;
   font-size: 1px;
@@ -135,9 +135,9 @@ h4 a {
   line-height: 0.1;
   font-size: 1px;
   text-align: left;
-  content:  url(win.bg.bl.gif);
+  content:  url(inner.bg.bl.gif);
   background: white;
-  background: transparent url(win.bg.br.gif) no-repeat bottom right;
+  background: transparent url(inner.bg.br.gif) no-repeat bottom right;
   padding: 0;
 }
 
@@ -311,3 +311,21 @@ div.syntax a
 .java .nu0 {color: #cc66cc;}
 .java .me1 {color: #006600;}
 .java .me2 {color: #006600;}
+
+/* GeSHi (c) Nigel McNie 2004 (http://qbnz.com/highlighter) */
+.javascript .de1, .javascript .de2 {font-family: 'Courier New', Courier, monospace; font-weight: normal;}
+.javascript  {font-family: monospace;}
+.javascript .imp {font-weight: bold; color: red;}
+.javascript li {background: #ffffff;}
+.javascript li.li2 {background: #f8f8f8;}
+.javascript .kw1 {color: #000066; font-weight: bold;}
+.javascript .kw2 {color: #003366; font-weight: bold;}
+.javascript .kw3 {color: #000066;}
+.javascript .co1 {color: #009900; font-style: italic;}
+.javascript .coMULTI {color: #009900; font-style: italic;}
+.javascript .es0 {color: #000099; font-weight: bold;}
+.javascript .br0 {color: #66cc66;}
+.javascript .st0 {color: #3366CC;}
+.javascript .nu0 {color: #CC0000;}
+.javascript .me1 {color: #006600;}
+.javascript .re0 {color: #0066FF;}
