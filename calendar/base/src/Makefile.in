@@ -49,8 +49,11 @@ LIBRARY_NAME     = calbase_s
 MODULE_NAME      = calBaseModule
 FORCE_STATIC_LIB = 1
 GRE_MODULE       = 1
-ifneq ($(MOZ_SUNBIRD)$(MOZILLA_1_8_BRANCH),)
+FORCE_USE_PIC   = 1 # Force use of PIC
+ifdef MOZILLA_1_8_BRANCH
 MOZILLA_INTERNAL_API = 1
+else
+USE_STATIC_LIBS = 1 # This links against the static CRT on Windows
 endif
 
 REQUIRES = xpcom \

@@ -64,6 +64,7 @@ bin\components\appshell.xpt
 bin\components\appstartup.xpt
 bin\components\autocomplete.xpt
 bin\components\autoconfig.xpt
+bin\components\calbscmp.dll
 bin\components\calbase.xpt
 bin\components\calbaseinternal.xpt
 bin\components\caps.xpt
@@ -173,6 +174,7 @@ bin\components\uriloader.xpt
 bin\components\urlformatter.xpt
 bin\components\webBrowser_core.xpt
 bin\components\webbrowserpersist.xpt
+bin\components\webdav.dll
 bin\components\webdav.xpt
 bin\components\webshell_idls.xpt
 bin\components\websrvcs.xpt
