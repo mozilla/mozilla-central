@@ -51,7 +51,7 @@ use CGI::Carp qw(set_message fatalsToBrowser);
 BEGIN { 
   set_message(sub {
                 eval { print "Fatal error: internal server error\n"; };
-                if ($@ && $ref $@) {
+                if ($@ && ref $@) {
                   warn "handled exception: $@";
                 }
               });
