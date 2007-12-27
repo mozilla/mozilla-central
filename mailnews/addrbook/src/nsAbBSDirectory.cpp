@@ -233,7 +233,7 @@ NS_IMETHODIMP nsAbBSDirectory::CreateDirectoryByURI(const nsAString &aDisplayNam
   nsresult rv = NS_OK;
 
   nsCString fileName;
-  if (StringBeginsWith(nsDependentCString(aURI), NS_LITERAL_CSTRING(kMDBDirectoryRoot)))
+  if (StringBeginsWith(aURI, NS_LITERAL_CSTRING(kMDBDirectoryRoot)))
     fileName = StringTail(aURI, aURI.Length() - kMDBDirectoryRootLen);
 
   DIR_Server * server = nsnull;

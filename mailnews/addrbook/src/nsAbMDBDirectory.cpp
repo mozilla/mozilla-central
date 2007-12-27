@@ -39,7 +39,6 @@
 
 #include "nsAbMDBDirectory.h" 
 #include "nsIRDFService.h"
-#include "nsIServiceManager.h"
 #include "nsRDFCID.h"
 #include "nsStringGlue.h"
 #include "nsCOMPtr.h"
@@ -63,6 +62,8 @@
 #include "nsAppDirectoryServiceDefs.h"
 #include "nsDirectoryServiceUtils.h"
 #include "nsILocalFile.h"
+#include "nsComponentManagerUtils.h"
+#include "nsMemory.h"
 
 // XXX todo
 // fix this -1,0,1 crap, use an enum or #define
@@ -95,7 +96,7 @@ NS_IMETHODIMP nsAbMDBDirectory::Init(const char *aUri)
   nsCAutoString uri;
   uri = aUri;
 
-  mIsMailingList = (uri.Find("MailList") == kNotFound) ? 0 : 1;
+  mIsMailingList = (uri.Find("MailList") == -1) ? 0 : 1;
 
   // Mailing lists don't have their own prefs.
   if (m_DirPrefId.IsEmpty() && !mIsMailingList)
@@ -108,11 +109,10 @@ NS_IMETHODIMP nsAbMDBDirectory::Init(const char *aUri)
     nsCAutoString filename;
 
     // extract the filename from the uri.
-    if (searchCharLocation == kNotFound)
-      uri.Right(filename, uri.Length() - kMDBDirectoryRootLen);
+    if (searchCharLocation == -1)
+      filename = StringTail(uri, uri.Length() - kMDBDirectoryRootLen);
     else
-      uri.Mid(filename, kMDBDirectoryRootLen,
-              searchCharLocation - kMDBDirectoryRootLen);
+      filename = Substring(uri, kMDBDirectoryRootLen, searchCharLocation - kMDBDirectoryRootLen);
 
     // Get the pref servers and the address book directory branch
     nsresult rv;
@@ -147,8 +147,7 @@ NS_IMETHODIMP nsAbMDBDirectory::Init(const char *aUri)
             dotOffset = child.RFindChar('.');
             if (dotOffset != -1)
             {
-              nsCAutoString prefName;
-              child.Left(prefName, dotOffset);
+              nsCAutoString prefName(StringHead(child, dotOffset));
               m_DirPrefId.AssignLiteral(PREF_LDAP_SERVER_TREE_NAME ".");
               m_DirPrefId.Append(prefName);
             }
@@ -356,7 +355,7 @@ NS_IMETHODIMP nsAbMDBDirectory::AddDirectory(const char *uriName, nsIAbDirectory
   nsCOMPtr<nsIAbDirectory> directory(do_QueryInterface(res, &rv));
   NS_ENSURE_SUCCESS(rv, rv);
 
-  if (mSubDirectories.IndexOf(directory) == kNotFound)
+  if (mSubDirectories.IndexOf(directory) == -1)
     mSubDirectories.AppendObject(directory);
   NS_IF_ADDREF(*childDir = directory);
   return rv;

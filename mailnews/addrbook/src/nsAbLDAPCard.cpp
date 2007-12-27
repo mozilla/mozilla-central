@@ -46,8 +46,11 @@
 #include "nsILDAPMessage.h"
 #include "nsIAbLDAPAttributeMap.h"
 #include "nsServiceManagerUtils.h"
+#include "nsComponentManagerUtils.h"
 #include "nsAbBaseCID.h"
 #include "nsAbUtils.h"
+
+#include <stdio.h>
 
 nsAbLDAPCard::nsAbLDAPCard()
 {

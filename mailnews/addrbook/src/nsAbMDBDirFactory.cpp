@@ -45,7 +45,7 @@
 #include "nsIRDFService.h"
 #include "nsIRDFResource.h"
 #include "nsRDFResource.h"
-#include "nsIServiceManager.h"
+#include "nsServiceManagerUtils.h"
 #include "nsILocalFile.h"
 
 #include "nsIAbMDBDirectory.h"
@@ -131,10 +131,9 @@ NS_IMETHODIMP nsAbMDBDirFactory::GetDirectories(const nsAString &aDirName,
   if (NS_SUCCEEDED(rv))
   {
     nsCAutoString fileName;
-    nsDependentCString uriStr(aURI);
       
-    if (StringBeginsWith(uriStr, NS_LITERAL_CSTRING(kMDBDirectoryRoot)))
-      fileName = Substring(uriStr, kMDBDirectoryRootLen, uriStr.Length() - kMDBDirectoryRootLen);
+    if (StringBeginsWith(aURI, NS_LITERAL_CSTRING(kMDBDirectoryRoot)))
+      fileName = Substring(aURI, kMDBDirectoryRootLen, aURI.Length() - kMDBDirectoryRootLen);
 
     rv = dbPath->AppendNative(fileName);
     NS_ENSURE_SUCCESS(rv, rv);

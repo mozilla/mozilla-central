@@ -506,22 +506,46 @@ nsresult nsAbDirectoryQuery::matchCardCondition (nsIAbCard* card,
 #endif
             break;
         case nsIAbBooleanConditionTypes::Is:
+#ifdef MOZILLA_INTERNAL_API
             *matchFound = value.Equals(matchValue, nsCaseInsensitiveStringComparator());
+#else
+            *matchFound = value.Equals(matchValue, CaseInsensitiveCompare);
+#endif
             break;
         case nsIAbBooleanConditionTypes::IsNot:
+#ifdef MOZILLA_INTERNAL_API
             *matchFound = !value.Equals(matchValue, nsCaseInsensitiveStringComparator());
+#else
+            *matchFound = !value.Equals(matchValue, CaseInsensitiveCompare);
+#endif
             break;
         case nsIAbBooleanConditionTypes::BeginsWith:
+#ifdef MOZILLA_INTERNAL_API
             *matchFound = StringBeginsWith(value, matchValue, nsCaseInsensitiveStringComparator());
+#else
+            *matchFound = StringBeginsWith(value, matchValue, CaseInsensitiveCompare);
+#endif
             break;
         case nsIAbBooleanConditionTypes::LessThan:
+#ifdef MOZILLA_INTERNAL_API
             *matchFound = Compare(value, matchValue, nsCaseInsensitiveStringComparator()) < 0;
+#else
+            *matchFound = value.Compare(matchValue, CaseInsensitiveCompare) < 0;
+#endif
             break;
         case nsIAbBooleanConditionTypes::GreaterThan:
+#ifdef MOZILLA_INTERNAL_API
             *matchFound = Compare(value, matchValue, nsCaseInsensitiveStringComparator()) > 0;
+#else
+            *matchFound = value.Compare(matchValue, CaseInsensitiveCompare) > 0;
+#endif
             break;
         case nsIAbBooleanConditionTypes::EndsWith:
+#ifdef MOZILLA_INTERNAL_API
             *matchFound = StringEndsWith(value, matchValue, nsCaseInsensitiveStringComparator());
+#else
+            *matchFound = StringEndsWith(value, matchValue, CaseInsensitiveCompare);
+#endif
             break;
         case nsIAbBooleanConditionTypes::SoundsLike:
         case nsIAbBooleanConditionTypes::RegExp:

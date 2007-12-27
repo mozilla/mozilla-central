@@ -40,7 +40,7 @@
 #include "nsAbLDAPDirFactory.h"
 #include "nsAbUtils.h"
 
-#include "nsIServiceManager.h"
+#include "nsServiceManagerUtils.h"
 #include "nsIRDFService.h"
 #include "nsIRDFResource.h"
 

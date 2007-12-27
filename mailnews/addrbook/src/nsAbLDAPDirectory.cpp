@@ -47,7 +47,8 @@
 #include "nsAbBaseCID.h"
 #include "nsIAddrBookSession.h"
 #include "nsIRDFService.h"
-#include "nsIServiceManager.h"
+#include "nsServiceManagerUtils.h"
+#include "nsComponentManagerUtils.h"
 #include "nsAutoLock.h"
 #include "nsNetCID.h"
 #include "nsIIOService.h"
@@ -103,11 +104,10 @@ NS_IMETHODIMP nsAbLDAPDirectory::Init(const char* aURI)
   // that's the URI we should have been passed.
   PRInt32 searchCharLocation = uri.FindChar('?', kLDAPDirectoryRootLen);
 
-  if (searchCharLocation == kNotFound)
-    uri.Right(m_DirPrefId, uri.Length() - kLDAPDirectoryRootLen);
+  if (searchCharLocation == -1)
+    m_DirPrefId = StringTail(uri, uri.Length() - kLDAPDirectoryRootLen);
   else
-    uri.Mid(m_DirPrefId, kLDAPDirectoryRootLen,
-            searchCharLocation - kLDAPDirectoryRootLen);
+    m_DirPrefId = Substring(uri, kLDAPDirectoryRootLen, searchCharLocation - kLDAPDirectoryRootLen);
 
   return nsAbDirectoryRDFResource::Init(aURI);
 }
@@ -271,7 +271,9 @@ NS_IMETHODIMP nsAbLDAPDirectory::GetLDAPURL(nsILDAPURL** url)
      * "moz-abldapdirectory".
      */
     nsCAutoString tempLDAPURL(mURINoQuery);
-    tempLDAPURL.ReplaceSubstring("moz-abldapdirectory:", "ldap:");
+    if (StringBeginsWith(tempLDAPURL, NS_LITERAL_CSTRING(kLDAPDirectoryRoot)))
+      tempLDAPURL.Replace(0, kLDAPDirectoryRootLen, NS_LITERAL_CSTRING("ldap://"));
+
     rv = result->SetSpec(tempLDAPURL);
   }
   else

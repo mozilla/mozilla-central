@@ -49,6 +49,8 @@
 #include "nsIRDFService.h"
 #include "nsIRDFResource.h"
 #include "nsILDAPErrors.h"
+#include "nsComponentManagerUtils.h"
+#include "nsXPCOMCIDInternal.h"
 
 // once bug # 101252 gets fixed, this should be reverted back to be non threadsafe
 // implementation is not really thread safe since each object should exist 
@@ -207,8 +209,11 @@ nsresult nsAbLDAPProcessReplicationData::DoTask()
   mOperation = do_CreateInstance(NS_LDAPOPERATION_CONTRACTID, &rv);
   NS_ENSURE_SUCCESS(rv, rv);
 
+  nsCOMPtr<nsIProxyObjectManager> proxyObjMgr = do_GetService(NS_XPCOMPROXY_CONTRACTID, &rv);
+  NS_ENSURE_SUCCESS(rv, rv);
+
   nsCOMPtr<nsILDAPMessageListener> proxyListener;
-  rv = NS_GetProxyForObject(NS_PROXY_TO_MAIN_THREAD,
+  rv = proxyObjMgr->GetProxyForObject(NS_PROXY_TO_MAIN_THREAD,
                             NS_GET_IID(nsILDAPMessageListener),
                             static_cast<nsILDAPMessageListener*>(this),
                             NS_PROXY_SYNC | NS_PROXY_ALWAYS,

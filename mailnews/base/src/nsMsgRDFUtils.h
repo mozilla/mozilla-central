@@ -42,7 +42,7 @@
 #include "nsIRDFNode.h"
 #include "nsIRDFDataSource.h"
 #include "nsIRDFService.h"
-#include "nsString.h"
+#include "nsStringGlue.h"
 
 // this is used for notification of observers using nsVoidArray
 typedef struct _nsMsgRDFNotification {

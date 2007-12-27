@@ -49,6 +49,8 @@
 #include "nsDirPrefs.h"
 #include "prmem.h"
 #include "nsIRDFService.h"
+#include "nsXPCOMCIDInternal.h"
+#include "nsComponentManagerUtils.h"
 
 NS_IMPL_THREADSAFE_ISUPPORTS1(nsAbLDAPReplicationQuery,
                               nsIAbLDAPReplicationQuery)
@@ -121,9 +123,12 @@ nsresult nsAbLDAPReplicationQuery::ConnectToLDAPServer()
     if (NS_FAILED(rv))
       return NS_ERROR_UNEXPECTED;
 
+    nsCOMPtr<nsIProxyObjectManager> proxyObjMgr = do_GetService(NS_XPCOMPROXY_CONTRACTID, &rv);
+    NS_ENSURE_SUCCESS(rv, rv);
+
     // Initiate LDAP message listener to the current thread
     nsCOMPtr<nsILDAPMessageListener> listener;
-    rv = NS_GetProxyForObject(NS_PROXY_TO_CURRENT_THREAD,
+    rv = proxyObjMgr->GetProxyForObject(NS_PROXY_TO_CURRENT_THREAD,
                   NS_GET_IID(nsILDAPMessageListener), 
                   mDp,
                   NS_PROXY_SYNC | NS_PROXY_ALWAYS, 
