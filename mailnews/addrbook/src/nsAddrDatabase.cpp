@@ -2986,9 +2986,12 @@ nsresult nsAddrDatabase::GetListFromDB(nsIAbDirectory *newList, nsIMdbRow* listR
     newList->SetDescription(tempString.get());
   }
 
+  nsCOMPtr<nsIAbMDBDirectory> dbnewList(do_QueryInterface(newList, &err));
+  NS_ENSURE_SUCCESS(err, err);
+
   PRUint32 totalAddress = GetListAddressTotal(listRow);
   PRUint32 pos;
-  for (pos = 1; pos <= totalAddress; pos++)
+  for (pos = 1; pos <= totalAddress; ++pos)
   {
     mdb_token listAddressColumnToken;
     mdb_id rowID;
@@ -3008,7 +3011,6 @@ nsresult nsAddrDatabase::GetListFromDB(nsIAbDirectory *newList, nsIMdbRow* listR
       nsCOMPtr<nsIAbCard> card;
       err = CreateABCard(cardRow, 0, getter_AddRefs(card));
 
-      nsCOMPtr<nsIAbMDBDirectory> dbnewList(do_QueryInterface(newList, &err));
       if(NS_SUCCEEDED(err))
         dbnewList->AddAddressToList(card);
     }
