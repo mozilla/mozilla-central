@@ -10,7 +10,7 @@
       <rdf:Seq>
         <rdf:li> <rdf:Description ID="welcome" nc:name="Help and Support Center" nc:link="welcome_help.xhtml"/> </rdf:li>
         <rdf:li> <rdf:Description ID="help-help" nc:name="Using the Help Window" nc:link="help_help.xhtml"/> </rdf:li>
-        <rdf:li> <rdf:Description ID="ieusers" nc:name="For Internet Explorer Users" nc:link="forieusers.xhtml"/> </rdf:li>
+        <rdf:li> <rdf:Description ID="ieusers"/> </rdf:li>
         <rdf:li> <rdf:Description ID="nav" nc:name="Browsing the Web" nc:link="nav_help.xhtml"/> </rdf:li>
         <rdf:li> <rdf:Description ID="mail" nc:name="Using Mail" nc:link="mail_help.xhtml"/> </rdf:li>
         <rdf:li> <rdf:Description ID="comp" nc:name="Creating Web Pages"  nc:link="composer_help.xhtml"/> </rdf:li>
@@ -31,18 +31,6 @@
         <rdf:li> <rdf:Description ID="help-help-retrace" nc:name="Retracing Your Steps and Printing" nc:link="help_help.xhtml#retracing_your_steps"/> </rdf:li>
         <rdf:li> <rdf:Description ID="help-help-buttons" nc:name="Using Help Buttons" nc:link="help_help.xhtml#using_help_buttons"/> </rdf:li>
         <rdf:li> <rdf:Description ID="help-help-tips" nc:name="Search Tips" nc:link="help_help.xhtml#search_tips"/></rdf:li>
-      </rdf:Seq>
-    </nc:subheadings>
-  </rdf:Description>
-
-  <rdf:Description about="#ieusers">
-    <nc:subheadings>
-      <rdf:Seq>
-        <rdf:li> <rdf:Description ID="terms" nc:name="Terminology Differences" nc:link="forieusers.xhtml#mozilla_and_internet_explorer_terminology_differences"/> </rdf:li>
-        <rdf:li> <rdf:Description ID="favorites" nc:name="About Your IE Favorites" nc:link="forieusers.xhtml#about_your_ie_favorites"/> </rdf:li>
-        <rdf:li> <rdf:Description ID="key-features" nc:name="Browser Features" nc:link="forieusers.xhtml#browser_features"/> </rdf:li>
-        <rdf:li> <rdf:Description ID="more-features" nc:name="Other Features" nc:link="forieusers.xhtml#other_features"/> </rdf:li>
-        <rdf:li> <rdf:Description ID="keyboard-shortcuts" nc:name="Keyboard Shortcuts" nc:link="forieusers.xhtml#keyboard_shortcuts"/> </rdf:li>
       </rdf:Seq>
     </nc:subheadings>
   </rdf:Description>

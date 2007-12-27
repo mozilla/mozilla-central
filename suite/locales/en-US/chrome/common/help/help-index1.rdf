@@ -813,11 +813,6 @@
          nc:link="cert_dialog_help.xhtml#web_site_certified_by_an_unknown_authority"/>
      </rdf:li>
      <rdf:li>
-       <rdf:Description ID="ieusers"
-         nc:name="Internet Explorer User Help"
-         nc:link="forieusers.xhtml"/>
-     </rdf:li>
-     <rdf:li>
        <rdf:Description ID="Internet_Keywords"
          nc:name="Internet Keywords"
          nc:link="nav_help.xhtml#using_internet_keywords"/>
@@ -897,31 +892,6 @@
        <rdf:Description ID="import:mail"
          nc:name="import mail or settings from other programs"
          nc:link="mail_help.xhtml#importing_mail_from_other_programs"/>
-     </rdf:li></rdf:Seq>
-   </nc:subheadings>
-</rdf:Description>
-
-<rdf:Description about="#ieusers">
-   <nc:subheadings>
-     <rdf:Seq><rdf:li>
-       <rdf:Description ID="ieusers:terminology-differences"
-         nc:name="Terminology Differences"
-         nc:link="forieusers.xhtml#mozilla_and_internet_explorer_terminology_differences"/>
-     </rdf:li>
-     <rdf:li>
-       <rdf:Description ID="ieusers:your-favorites"
-         nc:name="About Your IE Favorites"
-         nc:link="forieusers.xhtml#about_your_ie_favorites"/>
-     </rdf:li>
-     <rdf:li>
-       <rdf:Description ID="ieusers:additional-software"
-         nc:name="Other Features"
-         nc:link="forieusers.xhtml#other_features"/>
-     </rdf:li>
-     <rdf:li>
-       <rdf:Description ID="ieusers:keyboard-shortcuts"
-         nc:name="Keyboard Shortcuts"
-         nc:link="forieusers.xhtml#keyboard_shortcuts"/>
      </rdf:li></rdf:Seq>
    </nc:subheadings>
 </rdf:Description>
