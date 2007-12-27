@@ -47,11 +47,12 @@ include $(DEPTH)/config/autoconf.mk
 
 MODULE		= webdav
 LIBRARY_NAME    = webdav
-#EXPORT_LIBRARY  = 0
+# We don't want an EXPORT_LIBRARY
 IS_COMPONENT    = 1
 MODULE_NAME     = nsWebDAVService
 GRE_MODULE      = 1
 FORCE_SHARED_LIB = 1
+USE_STATIC_LIBS = 1 # This links against the static CRT on Windows
 # PACKAGE_FILE    = webdav.pkg
 
 # XXX widget is because of a transitive inclusion from nsIDocument.h of
