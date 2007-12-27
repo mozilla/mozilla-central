@@ -45,9 +45,7 @@
 //
 
 const ICAL = Components.interfaces.calIIcalComponent;
-const kHashPropertyBagContractID = "@mozilla.org/hash-property-bag;1";
-const kIWritablePropertyBag = Components.interfaces.nsIWritablePropertyBag;
-const HashPropertyBag = new Components.Constructor(kHashPropertyBagContractID, kIWritablePropertyBag);
+
 
 function calItemBase() {
     ASSERT(false, "Inheriting objects call initItemBase!");
@@ -167,7 +165,7 @@ calItemBase.prototype = {
 
         var e = this.mProperties.enumerator;
         while (e.hasMoreElements()) {
-            var prop = e.getNext().QueryInterface(Components.interfaces.nsIProperty);
+            var prop = e.getNext();
             var val = prop.value;
 
             if (prop.value instanceof Components.interfaces.calIDateTime) {
@@ -198,7 +196,7 @@ calItemBase.prototype = {
     initItemBase: function () {
         var now = jsDateToDateTime(new Date());
 
-        this.mProperties = new HashPropertyBag();
+        this.mProperties = new calPropertyBag();
         this.mPropertyParams = {};
 
         this.setProperty("CREATED", now.clone());
@@ -239,12 +237,10 @@ calItemBase.prototype = {
         else
             m.mAttendees = null;
 
-        m.mProperties = Components.classes["@mozilla.org/hash-property-bag;1"].
-                        createInstance(Components.interfaces.nsIWritablePropertyBag);
-
+        m.mProperties = new calPropertyBag();
         var e = this.mProperties.enumerator;
         while (e.hasMoreElements()) {
-            var prop = e.getNext().QueryInterface(Components.interfaces.nsIProperty);
+            var prop = e.getNext();
             var name = prop.name;
             var val = prop.value;
 

@@ -38,8 +38,7 @@
 
 function calAttendee() {
     this.wrappedJSObject = this;
-    this.mProperties = Components.classes["@mozilla.org/hash-property-bag;1"].
-        createInstance(Components.interfaces.nsIWritablePropertyBag);
+    this.mProperties = new calPropertyBag();
 }
 
 var calAttendeeClassInfo = {
@@ -176,8 +175,7 @@ calAttendee.prototype = {
         }
         var bagenum = this.mProperties.enumerator;
         while (bagenum.hasMoreElements()) {
-            var iprop = bagenum.getNext().
-                QueryInterface(Components.interfaces.nsIProperty);
+            var iprop = bagenum.getNext();
             icalatt.setParameter(iprop.name, iprop.value);
         }
         return icalatt;

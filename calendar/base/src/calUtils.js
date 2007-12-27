@@ -1525,3 +1525,73 @@ function getParentNode(aNode, aLocalName) {
   } while (node && (node.localName != aLocalName));
   return node;
 }
+
+/**
+ * Implements a property bag.
+ */
+function calPropertyBag() {
+    this.mData = {};
+}
+calPropertyBag.prototype = {
+    mData: null,
+
+    setProperty: function cpb_setProperty(aName, aValue) {
+        this.mData[aName] = aValue;
+    },
+    getProperty: function cpb_getProperty(aName) {
+        var aValue = this.mData[aName];
+        if (aValue === undefined) {
+            aValue = null;
+        }
+        return aValue;
+    },
+    deleteProperty: function cpb_deleteProperty(aName) {
+        delete this.mData[aName];
+    },
+    get enumerator() {
+        return new calPropertyBagEnumerator(this);
+    }
+};
+// implementation part of calPropertyBag
+function calPropertyBagEnumerator(bag) {
+    this.mIndex = 0;
+    this.mBag = bag;
+    var keys = [];
+    for (var key in bag.mData) {
+        keys.push(key);
+    }
+    this.mKeys = keys;
+}
+calPropertyBagEnumerator.prototype = {
+    mIndex: 0,
+    mBag: null,
+    mKeys: null,
+
+    // nsISimpleEnumerator:
+    getNext: function cpb_enum_getNext() {
+        if (!this.hasMoreElements()) {
+            ASSERT(false, Components.results.NS_ERROR_UNEXPECTED);
+            throw Components.results.NS_ERROR_UNEXPECTED;
+        }
+        var name = this.mKeys[this.mIndex++];
+        return { // nsIProperty:
+            QueryInterface: function cpb_enum_prop_QueryInterface(aIID) {
+                ensureIID([Components.interfaces.nsIProperty, Components.interfaces.nsISupports], aIID);
+                return this;
+            },
+            name: name,
+            value: this.mCurrentValue
+        };
+    },
+    hasMoreElements: function cpb_enum_hasMoreElements() {
+        while (this.mIndex < this.mKeys.length) {
+            this.mCurrentValue = this.mBag.mData[this.mKeys[this.mIndex]];
+            if (this.mCurrentValue !== undefined) {
+                return true;
+            }
+            ++this.mIndex;
+        }
+        return false;
+    },
+};
+
