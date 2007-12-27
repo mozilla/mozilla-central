@@ -2014,7 +2014,31 @@ nsresult nsMsgCompose::CreateMessage(const char * originalMsgURI,
             nsCOMPtr<nsIMsgAttachment> attachment = do_CreateInstance(NS_MSGATTACHMENT_CONTRACTID, &rv);
             if (NS_SUCCEEDED(rv) && attachment)
             {
-              attachment->SetName(subject + NS_LITERAL_STRING(".eml"));
+              PRBool addExtension = PR_TRUE;
+              nsString sanitizedSubj;
+
+              if (prefs)
+                prefs->GetBoolPref("mail.forward_add_extension", &addExtension);
+
+              // copy subject string to sanitizedSubj, use default if empty
+              if (subject.IsEmpty())
+              {
+                nsresult rv;
+                nsCOMPtr<nsIStringBundleService> bundleService = do_GetService(NS_STRINGBUNDLE_CONTRACTID, &rv);
+                NS_ENSURE_SUCCESS(rv, rv);
+                nsCOMPtr<nsIStringBundle> composeBundle;
+                rv = bundleService->CreateBundle("chrome://messenger/locale/messengercompose/composeMsgs.properties",
+                                                 getter_AddRefs(composeBundle));
+                NS_ENSURE_SUCCESS(rv, rv);
+                composeBundle->GetStringFromName(NS_LITERAL_STRING("messageAttachmentSafeName").get(),
+                                                 getter_Copies(sanitizedSubj));
+              }
+              else
+                sanitizedSubj.Assign(subject);
+
+              // change all '.' to '_'  see bug #271211
+              sanitizedSubj.ReplaceChar('.', '_');
+              attachment->SetName(addExtension ? sanitizedSubj + NS_LITERAL_STRING(".eml") : sanitizedSubj);
               attachment->SetUrl(uri);
               m_compFields->AddAttachment(attachment);
             }

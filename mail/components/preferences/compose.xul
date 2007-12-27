@@ -51,7 +51,7 @@
          xmlns:nc="http://home.netscape.com/NC-rdf#"
          xmlns:html="http://www.w3.org/1999/xhtml"
          xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#">
-           
+
   <prefpane id="paneCompose" onpaneload="gComposePane.init();">
     <script type="application/x-javascript" src="chrome://messenger/content/preferences/compose.js"/>
 
@@ -62,6 +62,7 @@
     <preferences>
       <preference id="mail.preferences.compose.selectedTabIndex" name="mail.preferences.compose.selectedTabIndex" type="int"/>
       <preference id="mail.forward_message_mode" name="mail.forward_message_mode" type="int"/>     
+      <preference id="mail.forward_add_extension" name="mail.forward_add_extension" type="bool"/>
       <preference id="mail.SpellCheckBeforeSend" name="mail.SpellCheckBeforeSend" type="bool"/>
       <preference id="mail.spellcheck.inline" name="mail.spellcheck.inline" type="bool"/>
       <preference id="mail.strictly_mime" name="mail.strictly_mime" type="bool"/>
@@ -99,6 +100,8 @@
                   <menuitem value="0" label="&asAttachment.label;" accesskey="&asAttachment.accesskey;"/>
                 </menupopup>
               </menulist>
+              <checkbox id="addExtension" label="&addExtension.label;" preference="mail.forward_add_extension"
+                        accesskey="&addExtension.accesskey;"/>
             </hbox>
 
             <hbox align="center" pack="start">

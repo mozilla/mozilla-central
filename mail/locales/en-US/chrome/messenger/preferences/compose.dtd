@@ -5,11 +5,13 @@
 
 <!ENTITY forwardReply.label                   "Forwarding Messages">
 <!ENTITY forwardMsg.label                     "Forward messages:">
-<!ENTITY forwardMsg.accesskey                 "f">
+<!ENTITY forwardMsg.accesskey                 "w">
 <!ENTITY inline.label                         "Inline">
 <!ENTITY inline.accesskey                     "I">
 <!ENTITY asAttachment.label                   "As Attachment">
 <!ENTITY asAttachment.accesskey               "A">
+<!ENTITY addExtension.label                   "add extension to file name">
+<!ENTITY addExtension.accesskey               "f">
 
 <!ENTITY htmlComposeHeader.label              "HTML">
 <!ENTITY font.label                           "Font:">
