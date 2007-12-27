@@ -1592,6 +1592,6 @@ calPropertyBagEnumerator.prototype = {
             ++this.mIndex;
         }
         return false;
-    },
+    }
 };
 
