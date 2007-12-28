@@ -394,7 +394,7 @@
 
 /* Empty cache messages (note that these are duplicated in the History prefs panel) */
 "EmptyCacheTitle" = "Are you sure you want to empty the cache?";
-"EmptyCacheMessage" = "Camino saves the contents of web pages you visit in a cache so that it’s faster to visit them again. You cannot undo this action.";
+"EmptyCacheMessage" = "Camino saves the contents of web pages you visit in a cache so that they load more quickly on future visits. You cannot undo this action.";
 "EmptyButton" = "Empty";
 
 /* Clear history message (note that these are duplicated in the History prefs panel) */

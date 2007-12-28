@@ -5,7 +5,7 @@
 
 /* Empty cache messages */
 "EmptyCacheTitle" = "Are you sure you want to empty the cache?";
-"EmptyCacheMessage" = "Camino saves the contents of websites you visit in a cache so that it’s faster to visit them again. You cannot undo this action.";
+"EmptyCacheMessage" = "Camino saves the contents of websites you visit in a cache so that they load more quickly on future visits. You cannot undo this action.";
 "EmptyButton" = "Empty Cache";
 
 /* Clear history message */
