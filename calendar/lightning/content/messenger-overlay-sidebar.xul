@@ -183,6 +183,14 @@
                    observes="calendar_toggle_orientation_command"/>
        </menupopup>
      </menu>
+     <menuseparator id="before-Unifinder-Section" mode="calendar"/>
+     <menuitem id="calendar-show-unifinder-menu"
+               type="checkbox"
+               checked="true"
+               label="&showUnifinderCmd.label;"
+               accesskey="&showUnifinderCmd.accesskey;"
+               mode="calendar"
+               command="calendar_show_unifinder_command"/>
      <menuseparator id="before-Calendar-View-Section" mode="calendar"/>
      <menuitem id="ltnChangeViewDay"
                label="&lightning.toolbar.day.label;"

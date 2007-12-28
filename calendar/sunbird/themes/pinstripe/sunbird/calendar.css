@@ -25,6 +25,7 @@
 #                 Karl Guertin <grayrest@grayrest.com>
 #                 Colin Phillips <colinp@oeone.com>
 #                 ArentJan Banck <ajbanck@planet.nl>
+#                 Simon Paquet <bugzilla@babylonsounds.com>
 #                 Eric Belhaire <belhaire@ief.u-psud.fr>
 #                 Mark Swaffer <swaff@fudo.org>
 #                 Christopher Cook <tangent@intraplanar.net>
@@ -299,6 +300,30 @@ toolbar[iconsize="small"] #calendar-day-view-button:active {
 toolbar[iconsize="small"] #calendar-day-view-button:hover:active,
 toolbar[iconsize="small"] #calendar-day-view-button[checked="true"] {
     -moz-image-region: rect(72px 96px 96px 72px);
+}
+
+/*--------------------------------------------------------------------
+ *   Unifinder button
+ *-------------------------------------------------------------------*/
+
+#calendar-unifinder-button {
+        -moz-image-region: rect(0px 704px 32px 672px);
+}
+#calendar-unifinder-button:active {
+        -moz-image-region: rect(32px 704px 64px 672px);
+}
+#calendar-unifinder-button[disabled="true"] {
+        -moz-image-region: rect(64px 704px 96px 672px);
+}
+
+toolbar[iconsize="small"] #calendar-unifinder-button {
+        -moz-image-region: rect(0px 528px 24px 504px);
+}
+toolbar[iconsize="small"] #calendar-unifinder-button:active {
+        -moz-image-region: rect(24px 528px 48px 504px);
+}
+toolbar[iconsize="small"] #calendar-unifinder-button[disabled="true"] {
+        -moz-image-region: rect(48px 528px 72px 504x);
 }
 
 /*--------------------------------------------------------------------

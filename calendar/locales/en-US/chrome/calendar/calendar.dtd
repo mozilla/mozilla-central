@@ -103,6 +103,7 @@
 <!ENTITY calendar.today.button.tooltip            "Go to today" >
 <!ENTITY calendar.todaypane.button.tooltip        "Show Today pane" >
 <!ENTITY calendar.choosedate.button.tooltip       "Choose date to go to" >
+<!ENTITY calendar.unifinder.button.tooltip        "Find and list events" >
 
 <!ENTITY calendar.day.button.tooltip            "Switch to day view" >
 <!ENTITY calendar.week.button.tooltip           "Switch to week view" >
@@ -145,6 +146,7 @@
 <!ENTITY calendar.export.button.label              "Export" >
 <!ENTITY calendar.subscribe.button.label           "Subscribe" >
 <!ENTITY calendar.publish.button.label             "Publish" >
+<!ENTITY calendar.unifinder.button.label           "Find Events" >
 
 <!ENTITY calendar.localreload.button.label   "Local Reload" >
 <!ENTITY calendar.localreload.button.tooltip  "Reload all local calendars" >

@@ -166,7 +166,29 @@ toolbar[iconsize="small"] #calendar-go-to-today-button[disabled="true"] {
         -moz-image-region: rect(48px 408px 72px 384px);
 }
 
+/*--------------------------------------------------------------------
+ *   Unifinder button
+ *-------------------------------------------------------------------*/
 
+#calendar-unifinder-button {
+        -moz-image-region: rect(0px 704px 32px 672px);
+}
+#calendar-unifinder-button:active {
+        -moz-image-region: rect(32px 704px 64px 672px);
+}
+#calendar-unifinder-button[disabled="true"] {
+        -moz-image-region: rect(64px 704px 96px 672px);
+}
+
+toolbar[iconsize="small"] #calendar-unifinder-button {
+        -moz-image-region: rect(0px 528px 24px 504px);
+}
+toolbar[iconsize="small"] #calendar-unifinder-button:active {
+        -moz-image-region: rect(24px 528px 48px 504px);
+}
+toolbar[iconsize="small"] #calendar-unifinder-button[disabled="true"] {
+        -moz-image-region: rect(48px 528px 72px 504x);
+}
 
 /*--------------------------------------------------------------------
  *   Show Today-Pane button
@@ -191,8 +213,6 @@ toolbar[iconsize="small"] #calendar-show-todaypane-button:active {
 toolbar[iconsize="small"] #calendar-show-todaypane-button[disabled="true"] {
         -moz-image-region: rect(48px 504px 72px 480x);
 }
-
-
 
 /*--------------------------------------------------------------------
  *   Button: "Choose Date"

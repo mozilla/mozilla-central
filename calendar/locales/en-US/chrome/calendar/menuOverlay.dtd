@@ -25,6 +25,7 @@
    -                 Stefan Sitter <ssitter@googlemail.com>
    -                 Berend Cornelius <berend.cornelius@sun.com>
    -                 Philipp Kewisch <mozilla@kewis.ch>
+   -                 Simon Paquet <bugzilla@babylonsounds.com>
    -
    - Alternatively, the contents of this file may be used under the terms of
    - either the GNU General Public License Version 2 or later (the "GPL"), or
@@ -56,9 +57,9 @@
 <!ENTITY calendar.new.server.key                "L">
 <!ENTITY calendar.new.server.accesskey          "l">
 
-<!ENTITY calendar.new.journal.label              "New Journal Item…">
-<!ENTITY calendar.new.journal.key                "J">
-<!ENTITY calendar.new.journal.accesskey          "j">
+<!ENTITY calendar.new.journal.label             "New Journal Item…">
+<!ENTITY calendar.new.journal.key               "J">
+<!ENTITY calendar.new.journal.accesskey         "j">
 
 <!ENTITY calendar.open.file.label               "Open Calendar File…">
 <!ENTITY calendar.open.file.key                 "O">
@@ -168,14 +169,14 @@
 <!ENTITY calendar.preferences.label             "Preferences…">
 <!ENTITY calendar.preferences.accesskey         "e">
 
-<!ENTITY showSearchToolbarCmd.label             "Search Bar">
-<!ENTITY showSearchToolbarCmd.accesskey         "S">
-
 <!ENTITY showStatusBarCmd.label                 "Status Bar">
 <!ENTITY showStatusBarCmd.accesskey             "B">
 
 <!ENTITY showTaskBoxCmd.label                   "Task List">
 <!ENTITY showTaskBoxCmd.accesskey               "L">
+
+<!ENTITY showUnifinderCmd.label                 "Find Events">
+<!ENTITY showUnifinderCmd.accesskey             "F">
 
 <!ENTITY calendar.displaytodos.checkbox.label       "Show Tasks in Calendar">
 <!ENTITY calendar.displaytodos.checkbox.accesskey   "T">

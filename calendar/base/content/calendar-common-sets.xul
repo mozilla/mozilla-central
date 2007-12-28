@@ -20,6 +20,7 @@
    - the Initial Developer. All Rights Reserved.
    -
    - Contributor(s):
+   - Simon Paquet <bugzilla@babylonsounds.com>
    -
    - Alternatively, the contents of this file may be used under the terms of
    - either the GNU General Public License Version 2 or later (the "GPL"), or
@@ -70,6 +71,8 @@
     <command id="calendar_publish_selected_events_command" oncommand="publishCalendarData()" disabledwhennoeventsselected="true" disabled="true"/>
 
     <command id="calendar_reload_remote_calendars" oncommand="getCompositeCalendar().refresh()"/>
+
+    <command id="calendar_show_unifinder_command" oncommand="goToggleToolbar('bottom-events-box', 'calendar-show-unifinder-menu'); goToggleToolbar('calendar-view-splitter');"/>
 
     <!-- The dash instead of the underscore is intended. the 'xxx-view' part should be the id of the view in the deck -->
     <command id="calendar_day-view_command" oncommand="showCalendarView('day')"/>

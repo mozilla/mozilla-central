@@ -172,6 +172,12 @@
                    label="&calendar.remotereload.button.label;"
                    tooltiptext="&calendar.remotereload.button.tooltip;"
                    observes="calendar_reload_remote_calendars"/>
+    <toolbarbutton id="calendar-unifinder-button"
+                   class="cal-toolbarbutton-1"
+                   type="checkbox"
+                   label="&calendar.unifinder.button.label;"
+                   tooltiptext="&calendar.unifinder.button.tooltip;"
+                   command="calendar_show_unifinder_command"/>
   </toolbarpalette>
   
   <toolbox id="mail-toolbox">
@@ -181,7 +187,7 @@
              context="toolbar-context-menu"
              collapsed="true"
              collapsedinMode="false"
-             defaultset="calendar-new-event-button,calendar-new-task-button,separator,calendar-go-to-today-button,separator,calendar-day-view-button,calendar-week-view-button,calendar-multiweek-view-button,calendar-month-view-button,separator,calendar-delete-event-button,calendar-print-button,separator,calendar-remote-reload-button,spring"
+             defaultset="calendar-new-event-button,calendar-new-task-button,separator,calendar-go-to-today-button,separator,calendar-day-view-button,calendar-week-view-button,calendar-multiweek-view-button,calendar-month-view-button,separator,calendar-unifinder-button,separator,calendar-delete-event-button,calendar-print-button,separator,calendar-remote-reload-button,spring"
              persist="collapsedinMode"/>
   </toolbox>
 

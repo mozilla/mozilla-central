@@ -29,6 +29,7 @@
 #                 Matthew Willis <mattwillis@gmail.com>
 #                 Stefan Sitter <ssitter@googlemail.com>
 #                 Philipp Kewisch <mozilla@kewis.ch>
+#                 Simon Paquet <bugzilla@babylonsounds.com>
 #
 # Alternatively, the contents of this file may be used under the terms of
 # either the GNU General Public License Version 2 or later (the "GPL"), or
@@ -161,7 +162,7 @@
                      accesskey="&calendar.redo.accesskey;"
                      label="&calendar.redo.label;"
                      command="redo_command"/>
-           <menuseparator/>
+           <menuseparator id="before-undo-Section"/>
            <menuitem id="calendar-cut-menu"
                      key="key_cut"
                      label="&calendar.cut.label;"
@@ -196,6 +197,13 @@
                      label="&calendar.selectall.label;"
                      accesskey="&calendar.selectall.accesskey;"
                      observes="select_all_command"/>
+           <menuseparator id="before-Unifinder-Section"/>
+           <menuitem id="calendar-show-unifinder-menu"
+                     type="checkbox"
+                     label="&showUnifinderCmd.label;"
+                     command="calendar_show_unifinder_command"
+                     accesskey="&showUnifinderCmd.accesskey;"
+                     checked="true"/>
 #ifdef XP_UNIX
 #ifndef XP_MACOSX
            <menuseparator/>
@@ -224,12 +232,6 @@
                          accesskey="&calendar.menu.customize.accesskey;"/>
              </menupopup>
            </menu>
-           <menuitem id="menu_showSearchToolbar"
-                     type="checkbox"
-                     label="&showSearchToolbarCmd.label;"
-                     command="cmd_showSearchToolbar"
-                     accesskey="&showSearchToolbarCmd.accesskey;"
-                     checked="true"/>
            <menuitem id="menu_showStatusBar"
                      type="checkbox"
                      label="&showStatusBarCmd.label;"
