@@ -42,7 +42,7 @@
 #include "nsISupportsObsolete.h"
 #include "nsIComponentManager.h"
 #include "nsIServiceManager.h"
-
+#include "nsCRTGlue.h"
 #include "nsCOMPtr.h"
 #include "nsReadableUtils.h"
 

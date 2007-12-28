@@ -55,6 +55,7 @@
 #include "nsIUrlListener.h"
 #include "nsCOMArray.h"
 #include "nsInterfaceHashtable.h"
+#include "nsIMsgDatabase.h"
 
 class nsIRDFService;
 

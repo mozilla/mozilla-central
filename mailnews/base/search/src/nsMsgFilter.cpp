@@ -58,6 +58,7 @@
 #include "nsIOutputStream.h"
 #include "nsIStringBundle.h"
 #include "nsDateTimeFormatCID.h"
+#include "prmem.h"
 
 static const char *kImapPrefix = "//imap:";
 static const char *kWhitespace = "\b\t\r\n ";

@@ -57,7 +57,6 @@ REQUIRES	= xpcom \
 		  mime \
 		  necko \
 		  pref \
-		  msgimap \
 		  $(NULL)
 
 CPPSRCS		= \

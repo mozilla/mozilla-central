@@ -39,7 +39,7 @@
 
 #include "msgCore.h"    // precompiled header...
 #include "prlog.h"
-
+#include "prmem.h"
 #include "nsMsgFolderDataSource.h"
 #include "nsMsgFolderFlags.h"
 

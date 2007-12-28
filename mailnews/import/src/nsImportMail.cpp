@@ -72,6 +72,8 @@
 #include "nsIImportService.h"
 #include "nsXPCOMCIDInternal.h"
 #include "ImportDebug.h"
+#include "plstr.h"
+#include "MailNewsTypes.h"
 
 #define IMPORT_MSGS_URL       "chrome://messenger/locale/importMsgs.properties"
 

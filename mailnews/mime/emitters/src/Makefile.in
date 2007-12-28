@@ -57,7 +57,6 @@ REQUIRES	= xpcom \
 		  intl \
 		  locale \
 		  mailnews \
-		  msgdb \
 		  mimetype \
 		  msgnews \
 		  unicharutil \

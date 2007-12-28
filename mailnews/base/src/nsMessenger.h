@@ -49,6 +49,7 @@
 #include "nsIObserver.h"
 #include "nsWeakReference.h"
 #include "nsIDOMWindow.h"
+#include "nsVoidArray.h"
 
 class nsMessenger : public nsIMessenger, public nsIObserver, public nsSupportsWeakReference, public nsIFolderListener
 {

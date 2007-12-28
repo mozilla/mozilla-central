@@ -36,7 +36,6 @@
  * ***** END LICENSE BLOCK ***** */
 
 #include "msgCore.h"
-#include "nsImapCore.h" // for imap flags
 #include "nsMailDatabase.h"
 #include "nsDBFolderInfo.h"
 #include "nsMsgLocalFolderHdrs.h"

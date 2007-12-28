@@ -57,7 +57,7 @@
 #include "nsIURI.h"
 #include "nsIDialogParamBlock.h"
 #include "nsUnicharUtils.h"
-
+#include "nsIMsgDatabase.h"
 #include "nsICommandLine.h"
 #include "nsILocalFile.h"
 #include "nsNetUtil.h"

@@ -37,6 +37,7 @@
 
 #include "nsMsgTxn.h"
 #include "nsIMsgHdr.h"
+#include "nsIMsgDatabase.h"
 
 NS_IMPL_ISUPPORTS_INHERITED1(nsMsgTxn, nsHashPropertyBag, nsITransaction)
 

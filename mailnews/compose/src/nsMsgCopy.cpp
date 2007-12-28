@@ -59,6 +59,7 @@
 #include "nsIMsgWindow.h"
 #include "nsIMsgProgress.h"
 #include "nsComposeStrings.h"
+#include "prmem.h"
 
 static NS_DEFINE_CID(kRDFServiceCID, NS_RDFSERVICE_CID);
 

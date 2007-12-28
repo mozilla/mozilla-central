@@ -65,7 +65,7 @@
 #include "nsMsgNewsCID.h"
 
 #include "nsINntpUrl.h"
-
+#include "prmem.h"
 #include "prtime.h"
 #include "prlog.h"
 #include "prerror.h"

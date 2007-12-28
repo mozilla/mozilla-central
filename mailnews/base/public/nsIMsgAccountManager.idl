@@ -40,10 +40,10 @@
 #include "nsIMsgAccount.idl"
 #include "nsIMsgIdentity.idl"
 #include "nsIMsgIncomingServer.idl"
-#include "nsISupportsArray.idl"
 #include "nsIIncomingServerListener.idl"
 #include "nsIMsgFolder.idl"
 
+interface nsISupportsArray;
 interface nsIMsgFolderCache;
 interface nsIFolderListener;
 

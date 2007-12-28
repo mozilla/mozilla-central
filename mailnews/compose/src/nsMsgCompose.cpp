@@ -121,6 +121,7 @@
 #include "nsIMsgAccountManager.h"
 #include "nsIMsgProgress.h"
 #include "nsMsgFolderFlags.h"
+#include "nsIMsgDatabase.h"
 
 static void GetReplyHeaderInfo(PRInt32* reply_header_type,
                                nsString& reply_header_locale,

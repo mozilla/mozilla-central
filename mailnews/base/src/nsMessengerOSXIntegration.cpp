@@ -51,7 +51,7 @@
 #include "nsMsgFolderFlags.h"
 #include "nsDirectoryServiceDefs.h"
 #include "nsIDirectoryService.h"
-
+#include "MailNewsTypes.h"
 #include "nsIWindowMediator.h"
 #include "nsIDOMChromeWindow.h"
 #include "nsIDOMWindowInternal.h"

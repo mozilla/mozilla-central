@@ -42,6 +42,7 @@
 #include "nsISupportsArray.h"
 #include "nsIMsgWindow.h"
 #include "nsCOMPtr.h"
+#include "nsMsgKeyArray.h"
 
 // imap move coalescer class - in order to keep nsImapMailFolder from growing like Topsy
 // Logically, we want to keep track of an nsMsgKeyArray per nsIMsgFolder, and then

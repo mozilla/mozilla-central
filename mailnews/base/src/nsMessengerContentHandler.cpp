@@ -45,6 +45,7 @@
 #include "nsIWebNavigation.h"
 #include "nsIMsgMailSession.h"
 #include "nsMsgBaseCID.h"
+#include "plstr.h"
 
 nsMessengerContentHandler::nsMessengerContentHandler()
 {

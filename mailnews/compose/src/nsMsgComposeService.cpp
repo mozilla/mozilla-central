@@ -81,6 +81,7 @@
 #include "nsNetUtil.h"
 #include "nsIMsgMailNewsUrl.h"
 #include "nsIInterfaceRequestorUtils.h"
+#include "nsIMsgDatabase.h"
 
 #ifdef MSGCOMP_TRACE_PERFORMANCE
 #include "prlog.h"

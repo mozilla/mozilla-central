@@ -45,6 +45,7 @@
 #include "nsMsgSearchNews.h"
 #include "nsIDBFolderInfo.h"
 #include "prprf.h"
+#include "nsIMsgDatabase.h"
 
 // Implementation of search for IMAP mail folders
 

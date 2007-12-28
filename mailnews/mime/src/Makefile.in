@@ -70,7 +70,6 @@ REQUIRES	= xpcom \
 		  msgimap \
 		  exthandler \
 		  mailnews \
-		  msgdb \
 		  chardet \
 		  caps \
 		  mimetype \
@@ -89,7 +88,7 @@ ifdef BUILD_SMIME
 REQUIRES += \
             msgsmime
 endif
-                  
+
 CPPSRCS		= \
 		nsMimeObjectClassAccess.cpp \
 		nsMimeConverter.cpp \

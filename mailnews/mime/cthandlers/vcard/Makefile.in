@@ -69,7 +69,6 @@ REQUIRES	= xpcom \
 		  intl \
 		  pref \
 		  mailnews \
-		  msgdb \
 		  addrbook \
 		  $(NULL)
 

@@ -49,6 +49,7 @@
 #include "nsIObserver.h"
 #include "nsIMutableArray.h"
 #include "nsIMsgProgress.h"
+#include "nsUInt32Array.h"
 
 ///////////////////////////////////////////////////////////////////////////////////
 // The mail session is a replacement for the old 4.x MSG_Master object. It contains

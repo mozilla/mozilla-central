@@ -37,6 +37,7 @@
 
 #ifndef _nsMsgSearchNews_h__
 #include "nsMsgSearchAdapter.h"
+#include "nsMsgKeyArray.h"
 
 //-----------------------------------------------------------------------------
 //---------- Adapter class for searching online (news) folders ----------------

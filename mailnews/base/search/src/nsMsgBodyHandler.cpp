@@ -44,6 +44,7 @@
 #include "nsIInputStream.h"
 #include "nsILocalFile.h"
 #include "plbase64.h"
+#include "prmem.h"
 
 nsMsgBodyHandler::nsMsgBodyHandler (nsIMsgSearchScopeTerm * scope, PRUint32 offset, PRUint32 numLines, nsIMsgDBHdr* msg, nsIMsgDatabase * db)
 {

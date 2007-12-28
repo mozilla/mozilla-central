@@ -42,7 +42,7 @@
 #include "nsCOMPtr.h"
 #include "nsReadableUtils.h"
 #include "nsEscape.h"
-
+#include "prmem.h"
 // stuff for temporary root folder hack
 #include "nsIMsgAccountManager.h"
 #include "nsIMsgIncomingServer.h"

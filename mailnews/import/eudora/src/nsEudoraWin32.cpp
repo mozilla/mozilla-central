@@ -57,6 +57,8 @@
 #include "nsUnicharUtils.h"
 #include "nsNetUtil.h"
 #include "EudoraDebugLog.h"
+#include "prmem.h"
+#include "plstr.h"
 
 static NS_DEFINE_IID(kISupportsIID,      NS_ISUPPORTS_IID);
 

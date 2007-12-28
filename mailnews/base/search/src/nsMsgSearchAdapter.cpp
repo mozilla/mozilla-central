@@ -52,6 +52,8 @@
 #include "nsNetCID.h"
 #include "prprf.h"
 #include "nsAutoPtr.h"
+#include "prmem.h"
+#include "MailNewsTypes.h"
 
 // This stuff lives in the base class because the IMAP search syntax
 // is used by the Dredd SEARCH command as well as IMAP itself

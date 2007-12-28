@@ -54,6 +54,7 @@
 #include "nsISupportsObsolete.h"
 #include "nsNetUtil.h"
 #include "nsMsgI18N.h"
+#include "prmem.h"
 
 // unicode "%s" format string
 static const PRUnichar unicodeFormatter[] = {

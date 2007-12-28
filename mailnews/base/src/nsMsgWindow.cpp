@@ -59,7 +59,7 @@
 #include "nsIChannel.h"
 #include "nsIRequestObserver.h"
 #include "netCore.h"
-
+#include "prmem.h"
 #include "plbase64.h"
 #include "nsMsgI18N.h"
 #include "nsIWebNavigation.h"

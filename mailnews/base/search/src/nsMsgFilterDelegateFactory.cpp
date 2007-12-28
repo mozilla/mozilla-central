@@ -40,7 +40,7 @@
 
 #include "nsCOMPtr.h"
 #include "nsTextFormatter.h"
-
+#include "nsServiceManagerUtils.h"
 #include "nsIRDFService.h"
 #include "nsIRDFResource.h"
 #include "nsRDFCID.h"

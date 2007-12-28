@@ -42,6 +42,7 @@
 #include "nsMsgSearchTerm.h"
 #include "nsIMsgHdr.h"
 #include "nsMsgSearchImap.h"
+#include "prmem.h"
 // Implementation of search for IMAP mail folders
 
 

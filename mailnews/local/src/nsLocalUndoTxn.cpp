@@ -46,6 +46,7 @@
 #include "nsIMsgLocalMailFolder.h"
 #include "nsIMsgMailSession.h"
 #include "nsThreadUtils.h"
+#include "nsIMsgDatabase.h"
 
 nsLocalMoveCopyMsgTxn::nsLocalMoveCopyMsgTxn()  : m_srcIsImap4(PR_FALSE)
 {

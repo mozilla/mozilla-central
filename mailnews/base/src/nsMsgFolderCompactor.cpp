@@ -59,6 +59,7 @@
 #include "nsMsgI18N.h"
 #include "prprf.h"
 #include "nsMsgLocalFolderHdrs.h"
+#include "nsIMsgDatabase.h"
 
 static NS_DEFINE_CID(kCMailDB, NS_MAILDB_CID);
 //////////////////////////////////////////////////////////////////////////////

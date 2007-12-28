@@ -65,7 +65,7 @@
 #include "nsIWidget.h"
 #include "nsWidgetsCID.h"
 #include "nsILookAndFeel.h"
-
+#include "MailNewsTypes.h"
 #include "nsIMessengerWindowService.h"
 #include "prprf.h"
 #include "nsIWeakReference.h"

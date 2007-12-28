@@ -54,6 +54,7 @@
 #include "nsIInputStream.h"
 #include "nsNetUtil.h"
 #include "nsIFile.h"
+#include "prmem.h"
 #include <time.h>
 
 nsMsgMailNewsUrl::nsMsgMailNewsUrl()
