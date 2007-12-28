@@ -400,7 +400,7 @@ function CreatePrintCardUrl(card)
 
 function AbPrintAddressBookInternal(doPrintPreview, msgType)
 {
-  var addressbook = Components.classes["@mozilla.org/abManager;1"]
+  var addressbook = Components.classes["@mozilla.org/abmanager;1"]
                               .getService(Components.interfaces.nsIAbManager);
   var uri = GetSelectedDirectory();
   if (!uri)
