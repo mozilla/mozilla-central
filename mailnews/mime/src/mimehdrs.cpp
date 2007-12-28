@@ -86,7 +86,6 @@ MimeHeaders_convert_header_value(MimeDisplayOptions *opt, nsCString &value)
   }
 }
 
-
 MimeHeaders *
 MimeHeaders_new (void)
 {
@@ -240,7 +239,6 @@ MimeHeaders_build_heads_list(MimeHeaders *hdrs)
     }
   }
 
-
   /* First go through and count up the number of headers in the block.
    */
   end = hdrs->all_headers + hdrs->all_headers_fp;
@@ -261,7 +259,6 @@ MimeHeaders_build_heads_list(MimeHeaders *hdrs)
   if (!hdrs->heads)
   return MIME_OUT_OF_MEMORY;
   memset(hdrs->heads, 0, (hdrs->heads_size + 1) * sizeof(char *));
-
 
   /* Now make another pass through the headers, and this time, record the
    starting position of each header.
@@ -322,7 +319,6 @@ MimeHeaders_get (MimeHeaders *hdrs, const char *header_name,
   int name_length;
   char *result = 0;
 
-/*  PR_ASSERT(hdrs); cause delete message problem in WinFE */
   if (!hdrs) return 0;
   NS_ASSERTION(header_name, "1.1 <rhp@netscape.com> 19 Mar 1999 12:00");
   if (!header_name) return 0;
@@ -393,7 +389,7 @@ MimeHeaders_get (MimeHeaders *hdrs, const char *header_name,
     char *s;
 
     /* Skip over whitespace after colon. */
-    while (contents <= end && IS_SPACE(*contents))
+    while (contents <= end && IS_SPACE(*contents) && contents[0] != '\n')
       contents++;
 
     /* If we're supposed to strip at the first token, pull `end' back to
@@ -443,6 +439,7 @@ MimeHeaders_get (MimeHeaders *hdrs, const char *header_name,
 # endif
       *s++ = '\t';
       }
+
 
     /* Take off trailing whitespace... */
     while (end > contents && IS_SPACE(end[-1]))

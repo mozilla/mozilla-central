@@ -94,7 +94,6 @@ MimeObjectClassInitialize(MimeObjectClass *clazz)
   return 0;
 }
 
-
 static int
 MimeObject_initialize (MimeObject *obj)
 {
@@ -110,14 +109,13 @@ MimeObject_initialize (MimeObject *obj)
                    HEADER_CONTENT_TRANSFER_ENCODING,
                    PR_TRUE, PR_FALSE);
 
-
   /* Special case to normalize some types and encodings to a canonical form.
    (These are nonstandard types/encodings which have been seen to appear in
    multiple forms; we normalize them so that things like looking up icons
    and extensions has consistent behavior for the receiver, regardless of
    the "alias" type that the sender used.)
    */
-  if (!obj->content_type)
+  if (!obj->content_type || !*(obj->content_type))
   ;
   else if (!PL_strcasecmp(obj->content_type, APPLICATION_UUENCODE2) ||
        !PL_strcasecmp(obj->content_type, APPLICATION_UUENCODE3) ||
@@ -153,7 +151,6 @@ MimeObject_initialize (MimeObject *obj)
     obj->encoding = strdup(ENCODING_GZIP);
   }
 
-
   return 0;
 }
 
@@ -184,7 +181,6 @@ MimeObject_finalize (MimeObject *obj)
     obj->options->state = nsnull;
   }
 }
-
 
 static int
 MimeObject_parse_begin (MimeObject *obj)
@@ -283,7 +279,6 @@ MimeObject_parse_buffer (const char *buffer, PRInt32 size, MimeObject *obj)
              obj);
 }
 
-
 static int
 MimeObject_parse_line (const char *line, PRInt32 length, MimeObject *obj)
 {
@@ -319,7 +314,6 @@ MimeObject_parse_eof (MimeObject *obj, PRBool abort_p)
   return 0;
 }
 
-
 static int
 MimeObject_parse_end (MimeObject *obj, PRBool abort_p)
 {
@@ -341,15 +335,12 @@ MimeObject_parse_end (MimeObject *obj, PRBool abort_p)
   return 0;
 }
 
-
 static PRBool
 MimeObject_displayable_inline_p (MimeObjectClass *clazz, MimeHeaders *hdrs)
 {
   NS_ASSERTION(0, "shouldn't call this method");  /* This method should never be called. */
   return PR_FALSE;
 }
-
-
 
 #if defined(DEBUG) && defined(XP_UNIX)
 static int
