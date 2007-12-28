@@ -1569,7 +1569,7 @@ calPropertyBagEnumerator.prototype = {
 
     // nsISimpleEnumerator:
     getNext: function cpb_enum_getNext() {
-        if (!this.hasMoreElements()) {
+        if (!this.hasMoreElements()) { // hasMoreElements is called by intention to skip yet deleted properties
             ASSERT(false, Components.results.NS_ERROR_UNEXPECTED);
             throw Components.results.NS_ERROR_UNEXPECTED;
         }
