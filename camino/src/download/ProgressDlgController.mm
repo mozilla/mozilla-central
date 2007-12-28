@@ -741,7 +741,7 @@ static id gSharedProgressController = nil;
     
     NSString *alert     = NSLocalizedString(@"QuitWithDownloadsMsg", nil);
     NSString *message   = NSLocalizedString(@"QuitWithDownloadsExpl", nil);
-    NSString *okButton  = NSLocalizedString(@"QuitWithdownloadsButtonDefault", nil);
+    NSString *okButton  = NSLocalizedString(@"QuitWithDownloadsButtonDefault", nil);
     NSString *altButton = NSLocalizedString(@"QuitButtonText", nil);
     
     // while the panel is up, download dialogs won't update (no timers firing) but

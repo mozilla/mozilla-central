@@ -64,9 +64,9 @@
 "DefaultBrowserDenyButton" = "Don’t Set";
 
 /* quit with downloads alert */
-"QuitWithDownloadsMsg" = "Are you sure you want to Quit?";
+"QuitWithDownloadsMsg" = "Are you sure you want to quit?";
 "QuitWithDownloadsExpl" = "There are downloads in progress that will be stopped if you quit now.";
-"QuitWithdownloadsButtonDefault" = "Cancel";
+"QuitWithDownloadsButtonDefault" = "Don’t Quit";
 
 /* Parser error loading bookmarks.xml file */
 "CorruptedBookmarksAlert" = "Error Reading Bookmarks";
