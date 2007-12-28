@@ -178,19 +178,14 @@ calTodo.prototype = {
     },
 
     get icalString() {
-        const icssvc = Components.
-          classes["@mozilla.org/calendar/ics-service;1"].
-          getService(Components.interfaces.calIICSService);
-        var calcomp = icssvc.createIcalComponent("VCALENDAR");
+        var calcomp = getIcsService().createIcalComponent("VCALENDAR");
         calSetProdidVersion(calcomp);
         calcomp.addSubcomponent(this.icalComponent);
         return calcomp.serializeToICS();
     },
 
     get icalComponent() {
-        const icssvc = Components.
-          classes["@mozilla.org/calendar/ics-service;1"].
-          getService(Components.interfaces.calIICSService);
+        var icssvc = getIcsService();
         var icalcomp = icssvc.createIcalComponent("VTODO");
         this.fillIcalComponentFromBase(icalcomp);
         this.mapPropsToICS(icalcomp, this.icsEventPropMap);

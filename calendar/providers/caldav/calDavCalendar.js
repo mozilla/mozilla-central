@@ -507,9 +507,7 @@ calDavCalendar.prototype = {
         var modListener = {};
         var thisCalendar = this;
 
-        const icssvc = Components.classes["@mozilla.org/calendar/ics-service;1"].
-                       getService(Components.interfaces.calIICSService);
-        var modifiedItem = icssvc.createIcalComponent("VCALENDAR");
+        var modifiedItem = getIcsService().createIcalComponent("VCALENDAR");
         calSetProdidVersion(modifiedItem);
         modifiedItem.addSubcomponent(aNewItem.icalComponent);
         if (aNewItem.recurrenceInfo) {
@@ -894,11 +892,7 @@ calDavCalendar.prototype = {
                   return;
                 }
                 // LOG("item result = \n" + calData);
-                if (!thisCalendar.mICSService) {
-                    thisCalendar.mICSService = Components.classes["@mozilla.org/calendar/ics-service;1"].
-                                               getService(Components.interfaces.calIICSService);
-                }
-                var rootComp = thisCalendar.mICSService.parseICS(calData, null);
+                var rootComp = getIcsService().parseICS(calData, null);
 
                 var calComp;
                 if (rootComp.componentType == 'VCALENDAR') {
@@ -1678,9 +1672,7 @@ calDavCalendar.prototype = {
         var thisCalendar = this;
 
         //there really ought to be a better way to do this...
-        var icssrv = Components.classes["@mozilla.org/calendar/ics-service;1"]
-                               .getService(Components.interfaces.calIICSService);
-        var bogusItem = icssrv.createIcalComponent("VEVENT");
+        var bogusItem = getIcsService().createIcalComponent("VEVENT");
         calSetProdidVersion(bogusItem);
         var prodid = bogusItem.prodid;
         var version = bogusItem.version;

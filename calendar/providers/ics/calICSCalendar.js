@@ -68,7 +68,6 @@ function calICSCalendar() {
 calICSCalendar.prototype = {
     __proto__: calProviderBase.prototype,
 
-    mICSService: null,
     mObserver: null,
     locked: false,
 
@@ -83,8 +82,6 @@ calICSCalendar.prototype = {
     initICSCalendar: function() {
         this.mMemoryCalendar = Components.classes["@mozilla.org/calendar/calendar;1?type=memory"]
                                          .createInstance(Components.interfaces.calICalendar);
-        this.mICSService = Components.classes["@mozilla.org/calendar/ics-service;1"]
-                                     .getService(Components.interfaces.calIICSService);
 
         this.mMemoryCalendar.superCalendar = this;
         this.mObserver = new calICSObserver(this);

@@ -154,10 +154,7 @@ calAttendee.prototype = {
     },
 
     get icalProperty() {
-        const icssvc =
-            Components.classes["@mozilla.org/calendar/ics-service;1"].
-                getService(Components.interfaces.calIICSService);
-
+        var icssvc = getIcsService();
         var icalatt;
         if (!this.mIsOrganizer) {
             icalatt = icssvc.createIcalProperty("ATTENDEE");

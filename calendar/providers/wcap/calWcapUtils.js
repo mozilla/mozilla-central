@@ -199,16 +199,6 @@ function getWindowWatcher() {
     return g_windowWatcher;
 }
 
-var g_icsService = null;
-function getIcsService() {
-    if (!g_icsService) {
-        g_icsService =
-            Components.classes["@mozilla.org/calendar/ics-service;1"]
-                      .getService(Components.interfaces.calIICSService);
-    }
-    return g_icsService;
-}
-
 var g_fbService = null;
 function getFreeBusyService() {
     if (!g_fbService) {

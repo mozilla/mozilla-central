@@ -54,10 +54,7 @@ function QueryInterface(aIID) {
 
 calIcsParser.prototype.parseString =
 function ip_parseString(aICSString, aTzProvider) {
-    icsSvc = Components.classes["@mozilla.org/calendar/ics-service;1"]
-                       .getService(Components.interfaces.calIICSService);
-
-    var rootComp = icsSvc.parseICS(aICSString, aTzProvider);
+    var rootComp = getIcsService().parseICS(aICSString, aTzProvider);
     var calComp;
     // libical returns the vcalendar component if there is just one vcalendar.
     // If there are multiple vcalendars, it returns an xroot component, with

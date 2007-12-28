@@ -150,10 +150,7 @@ calEvent.prototype = {
     },
 
     get icalString() {
-        const icssvc = Components.
-          classes["@mozilla.org/calendar/ics-service;1"].
-          getService(Components.interfaces.calIICSService);
-        var calcomp = icssvc.createIcalComponent("VCALENDAR");
+        var calcomp = getIcsService().createIcalComponent("VCALENDAR");
         calSetProdidVersion(calcomp);
         if (this.hasProperty("METHOD")) {
             calcomp.method = this.getProperty("METHOD");
@@ -163,9 +160,7 @@ calEvent.prototype = {
     },
 
     get icalComponent() {
-        const icssvc = Components.
-          classes["@mozilla.org/calendar/ics-service;1"].
-          getService(Components.interfaces.calIICSService);
+        var icssvc = getIcsService();
         var icalcomp = icssvc.createIcalComponent("VEVENT");
         this.fillIcalComponentFromBase(icalcomp);
         this.mapPropsToICS(icalcomp, this.icsEventPropMap);

@@ -720,8 +720,7 @@ calItemBase.prototype = {
         }
         
         if (this.alarmOffset) {
-            const icssvc = Components.classes["@mozilla.org/calendar/ics-service;1"]
-                                     .getService(Components.interfaces.calIICSService);
+            var icssvc = getIcsService();
             var alarmComp = icssvc.createIcalComponent("VALARM");
 
             var triggerProp = icssvc.createIcalProperty("TRIGGER");
@@ -802,14 +801,10 @@ function makeMemberAttr(ctor, varname, dflt, attr, asProperty)
 
 function icalFromString(str)
 {
-    const icssvc = Components.classes["@mozilla.org/calendar/ics-service;1"].
-        getService(Components.interfaces.calIICSService);
-    return icssvc.parseICS(str, null);
+    return getIcsService().parseICS(str, null);
 }
 
 function icalProp(kind)
 {
-    const icssvc = Components.classes["@mozilla.org/calendar/ics-service;1"].
-        getService(Components.interfaces.calIICSService);
-    return icssvc.createIcalProperty(kind);
+    return getIcsService().createIcalProperty(kind);
 }

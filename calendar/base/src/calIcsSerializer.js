@@ -99,9 +99,7 @@ function is_serializeToStream(aStream) {
 
 calIcsSerializer.prototype.getIcalComponent =
 function is_getIcalComponent() {
-    icsSvc = Components.classes["@mozilla.org/calendar/ics-service;1"]
-                       .getService(Components.interfaces.calIICSService);
-    var calComp = icsSvc.createIcalComponent("VCALENDAR");
+    var calComp = getIcsService().createIcalComponent("VCALENDAR");
     calSetProdidVersion(calComp);
 
     for each (var prop in this.mProperties) {

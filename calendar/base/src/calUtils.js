@@ -88,6 +88,15 @@ function getCalendarManager() {
     return getCalendarManager.mObject;
 }
 
+/* Shortcut to the ICS service */
+function getIcsService() {
+    if (getIcsService.mObject === undefined) {
+        getIcsService.mObject = Components.classes["@mozilla.org/calendar/ics-service;1"]
+                                          .getService(Components.interfaces.calIICSService);
+    }
+    return getIcsService.mObject;
+}
+
 /* Shortcut to the timezone service */
 function getTimezoneService() {
     if (getTimezoneService.mObject === undefined) {

@@ -123,9 +123,7 @@ function copyToClipboard( calendarItemArray )
         return false;
     }
 
-    var icssrv = Components.classes["@mozilla.org/calendar/ics-service;1"]
-                       .getService(Components.interfaces.calIICSService);
-    var calComp = icssrv.createIcalComponent("VCALENDAR");
+    var calComp = getIcsService().createIcalComponent("VCALENDAR");
     calSetProdidVersion(calComp);
 
     for each (item in calendarItemArray) {
@@ -214,9 +212,7 @@ function pasteFromClipboard()
     switch (flavour.value) {
         case "text/calendar":
         case "text/unicode":
-            var icssrv = Components.classes["@mozilla.org/calendar/ics-service;1"]
-                                   .getService(Components.interfaces.calIICSService);
-            var calComp = icssrv.parseICS(data, null);
+            var calComp = getIcsService().parseICS(data, null);
             var subComp = calComp.getFirstSubcomponent("ANY");
             while (subComp) {
                 switch (subComp.componentType) {
