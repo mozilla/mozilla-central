@@ -36,11 +36,6 @@
  *
  * ***** END LICENSE BLOCK ***** */
 
-/*
-   THIS FILE IS LOCKED DOWN.  YOU ARE NOT ALLOWED TO MODIFY IT WITHOUT FIRST HAVING YOUR
-   CHANGES REVIEWED BY cmanske@netscape.com.
-*/
-
 @namespace url("http://www.mozilla.org/keymaster/gatekeeper/there.is.only.xul");
 
 /* The defaults are WAY to big! */
@@ -194,7 +189,7 @@ tree.list {
 }
 
 #NextButton[type="row"] {
-  list-style-image: url("chrome://global/skin/arrow/arrow-down.gif");
+  list-style-image: url("chrome://global/skin/arrow/arrow-dn.gif");
 }
 
 /* ::::: spelling dialog ::::: */
