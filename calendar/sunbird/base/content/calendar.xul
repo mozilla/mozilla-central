@@ -294,6 +294,7 @@
     <toolbarbutton class="cal-toolbarbutton-1"
                    id="calendar-unifinder-button"
                    type="checkbox"
+                   checked="true"
                    label="&calendar.unifinder.button.label;"
                    tooltiptext="&calendar.unifinder.button.tooltip;"
                    command="calendar_show_unifinder_command"/>
