@@ -62,12 +62,6 @@
                      label="&event.new.todo;"
                      accesskey="&event.new.todo.accesskey;"
                      observes="calendar_new_todo_command"/>
-           <!-- XXX lilmatt: Finish this!
-           <menuitem key="new_journal_key"
-                     id="calendar-new-journal-menu"
-                     label="&calendar.new.journal.label;"
-                     accesskey="&calendar.new.journal.accesskey;"
-                     disabled="true"/> -->
            <menuitem id="calendar-new-calendar-menu"
                      key="new_calendar_key"
                      label="&calendar.new.server.label;"

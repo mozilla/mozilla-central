@@ -81,10 +81,7 @@
 <keyset>
   <key id="new_event_key"        key="&event.new.event.key;"             observes="calendar_new_event_command"  modifiers="accel"/>
   <key id="new_todo_key"         key="&event.new.todo.key;"              observes="calendar_new_todo_command"   modifiers="accel"/>
-#XXX lilmatt: Finish this!
-  <key id="new_journal_key"      key="&calendar.new.journal.key;"        modifiers="accel"/>
-
-  <key id="modify_event_key"     key="&event.edit.event.key;"            observes="calendar_modify_event_command"              modifiers="accel"/>
+  <key id="modify_event_key"     key="&event.edit.event.key;"            observes="calendar_modify_event_command"  modifiers="accel"/>
   <key id="new_calendar_key"     key="&calendar.new.server.key;"         observes="calendar_new_calendar_command"  modifiers="accel"/>
   <key id="open_calendar_key"    key="&calendar.open.file.key;"          observes="open_local_calendar_command" modifiers="accel"/>
   <key id="key_close"            key="&calendar.menu.options.close.key;" observes="close_calendar_command"      modifiers="accel"/>

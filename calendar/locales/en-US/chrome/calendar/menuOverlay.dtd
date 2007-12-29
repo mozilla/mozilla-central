@@ -57,10 +57,6 @@
 <!ENTITY calendar.new.server.key                "L">
 <!ENTITY calendar.new.server.accesskey          "l">
 
-<!ENTITY calendar.new.journal.label             "New Journal Item…">
-<!ENTITY calendar.new.journal.key               "J">
-<!ENTITY calendar.new.journal.accesskey         "j">
-
 <!ENTITY calendar.open.file.label               "Open Calendar File…">
 <!ENTITY calendar.open.file.key                 "O">
 <!ENTITY calendar.open.file.accesskey           "O">
