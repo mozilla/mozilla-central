@@ -54,6 +54,7 @@
 
 <?xml-stylesheet href="chrome://calendar/content/calendar-view-bindings.css" type="text/css"?>
 <?xml-stylesheet href="chrome://calendar/skin/calendar-views.css" type="text/css"?>
+<?xml-stylesheet href="chrome://calendar/skin/calendar-toolbar.css" type="text/css"?>
 <?xml-stylesheet href="chrome://calendar/content/calendar-bindings.css" type="text/css"?>
 
 <!-- Overlays -->
@@ -182,139 +183,125 @@
   </toolbar>
 
   <toolbarpalette id="calendarToolbarPalette">
-    <toolbarbutton class="toolbarbutton-1"
+    <toolbarbutton class="cal-toolbarbutton-1"
                    id="calendar-new-event-button"
                    label="&calendar.newevent.button.label;"
                    tooltiptext="&calendar.newevent.button.tooltip;"
                    observes="calendar_new_event_command"/>
-    <toolbarbutton class="toolbarbutton-1"
+    <toolbarbutton class="cal-toolbarbutton-1"
                    id="calendar-edit-event-button"
                    label="&calendar.edit.button.label;"
                    tooltiptext="&calendar.edit.button.tooltip;"
                    observes="calendar_modify_event_command"/>
-    <toolbarbutton class="toolbarbutton-1"
+    <toolbarbutton class="cal-toolbarbutton-1"
                    id="calendar-delete-event-button"
                    label="&calendar.delete.button.label;"
                    tooltiptext="&calendar.delete.button.tooltip;"
                    observes="calendar_delete_event_command"/>
-    <toolbarbutton class="toolbarbutton-1"
+    <toolbarbutton class="cal-toolbarbutton-1"
                    id="calendar-day-view-button"
                    type="radio"
                    group="calendarViews"
                    label="&calendar.day.button.label;"
                    tooltiptext="&calendar.day.button.tooltip;"
                    observes="calendar_day-view_command"/>
-    <toolbarbutton class="toolbarbutton-1"
+    <toolbarbutton class="cal-toolbarbutton-1"
                    id="calendar-week-view-button"
                    type="radio"
                    group="calendarViews"
                    label="&calendar.week.button.label;"
                    tooltiptext="&calendar.week.button.tooltip;"
                    observes="calendar_week-view_command"/>
-    <toolbarbutton class="toolbarbutton-1"
+    <toolbarbutton class="cal-toolbarbutton-1"
                    id="calendar-multiweek-view-button"
                    type="radio"
                    group="calendarViews"
                    label="&calendar.multiweek.button.label;"
                    tooltiptext="&calendar.multiweek.button.tooltip;"
                    observes="calendar_multiweek-view_command"/>
-    <toolbarbutton class="toolbarbutton-1"
+    <toolbarbutton class="cal-toolbarbutton-1"
                    id="calendar-month-view-button"
                    type="radio"
                    group="calendarViews"
                    label="&calendar.month.button.label;"
                    tooltiptext="&calendar.month.button.tooltip;"
                    observes="calendar_month-view_command"/>
-
-    <toolbarbutton class="toolbarbutton-1"
+    <toolbarbutton class="cal-toolbarbutton-1"
                    id="calendar-cut-button"
                    label="&calendar.cut.button.label;"
                    tooltiptext="&calendar.cut.button.tooltip;"
                    observes="cut_command"/>
-
-    <toolbarbutton class="toolbarbutton-1"
+    <toolbarbutton class="cal-toolbarbutton-1"
                    id="calendar-copy-button"
                    label="&calendar.copy.button.label;"
                    tooltiptext="&calendar.copy.button.tooltip;"
                    observes="copy_command"/>
-
-    <toolbarbutton class="toolbarbutton-1"
+    <toolbarbutton class="cal-toolbarbutton-1"
                    id="calendar-paste-button"
                    label="&calendar.paste.button.label;"
                    tooltiptext="&calendar.paste.button.tooltip;"
                    observes="paste_command"/>
-
-    <toolbarbutton class="toolbarbutton-1"
+    <toolbarbutton class="cal-toolbarbutton-1"
                    id="calendar-import-button"
                    label="&calendar.import.button.label;"
                    tooltiptext="&calendar.import.button.tooltip;"
                    observes="calendar_import_command"/>
-
-    <toolbarbutton class="toolbarbutton-1"
+    <toolbarbutton class="cal-toolbarbutton-1"
                    id="calendar-export-button"
                    label="&calendar.export.button.label;"
                    tooltiptext="&calendar.export.button.tooltip;"
                    observes="calendar_export_command"/>
-
-    <toolbarbutton class="toolbarbutton-1"
+    <toolbarbutton class="cal-toolbarbutton-1"
                    id="calendar-subscribe-button"
                    label="&calendar.subscribe.button.label;"
                    tooltiptext="&calendar.subscribe.button.tooltip;"
                    observes="calendar_new_calendar_command"/>
-
-    <toolbarbutton class="toolbarbutton-1"
+    <toolbarbutton class="cal-toolbarbutton-1"
                    id="calendar-publish-button"
                    label="&calendar.publish.button.label;"
                    tooltiptext="&calendar.publish.button.tooltip;"
                    observes="calendar_publish_calendar_command"/>
-
-    <toolbarbutton class="toolbarbutton-1"
+    <toolbarbutton class="cal-toolbarbutton-1"
                    id="calendar-print-button"
                    label="&calendar.print.button.label;"
                    tooltiptext="&calendar.print.button.tooltip;"
                    observes="print_command"/>
-
-    <toolbarbutton class="toolbarbutton-1"
+    <toolbarbutton class="cal-toolbarbutton-1"
                    id="calendar-new-task-button"
                    label="&calendar.newtask.button.label;"
                    tooltiptext="&calendar.newtask.button.tooltip;"
                    observes="calendar_new_todo_command"/>
-
-    <toolbarbutton class="toolbarbutton-1"
+    <toolbarbutton class="cal-toolbarbutton-1"
                    id="calendar-go-to-today-button"
                    label="&calendar.today.button.label;"
                    tooltiptext="&calendar.today.button.tooltip;"
                    observes="calendar_go_to_today_command"/>
-
-    <toolbarbutton class="toolbarbutton-1"
+    <toolbarbutton class="cal-toolbarbutton-1"
                    id="calendar-choose-date-button"
                    label="&calendar.choosedate.button.label;"
                    tooltiptext="&calendar.choosedate.button.tooltip;"
                    observes="go_date_command"/>
-                   
-<!--    <toolbarbutton class="toolbarbutton-1"
+<!--    <toolbarbutton class="cal-toolbarbutton-1"
                    id="calendar-local-reload-button"
                    label="&calendar.localreload.button.label;"
                    tooltiptext="&calendar.localreload.button.tooltip;"
                    observes="reload_local_calendars"/> -->
-                   
-    <toolbarbutton class="toolbarbutton-1"
+    <toolbarbutton class="cal-toolbarbutton-1"
                    id="calendar-remote-reload-button"
                    label="&calendar.remotereload.button.label;"
                    tooltiptext="&calendar.remotereload.button.tooltip;"
                    observes="calendar_reload_remote_calendars"/>
-    <toolbarbutton class="toolbarbutton-1"
+    <toolbarbutton class="cal-toolbarbutton-1"
                    id="calendar-unifinder-button"
                    type="checkbox"
                    label="&calendar.unifinder.button.label;"
                    tooltiptext="&calendar.unifinder.button.tooltip;"
                    command="calendar_show_unifinder_command"/>
-
     <toolbaritem id="throbber-box" align="center" pack="center">
       <button id="navigator-throbber"
               oncommand="openAboutDialog();"
               tooltiptext="&aboutCmd.label;"/>
-      </toolbaritem>
+    </toolbaritem>
   </toolbarpalette>
   <toolbar class="toolbar-primary chromeclass-toolbar" id="calendar-bar"
            iconsize="large"
