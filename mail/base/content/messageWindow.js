@@ -305,7 +305,7 @@ function delayedOnLoadMessageWindow()
         {
           loadCustomMessage = /type=application\/x-message-display/.test(messageUri.spec);
           gCurrentMessageUri = messageUri.spec;
-          if (messageUri instanceof Components.interfaces.nsIMsgMailNewsUrl)
+          if (messageUri.folder && messageUri instanceof Components.interfaces.nsIMsgMailNewsUrl)
             folder = messageUri.folder;
         }
       }

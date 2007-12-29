@@ -53,6 +53,7 @@
 #include "nsMimeStringResources.h"
 #include "mimemsg.h"
 #include "mimemapl.h"
+#include "nsString.h"
 
 /* Way to destroy any notions of modularity or class hierarchy, Terry! */
 # include "mimetpla.h"
@@ -129,6 +130,14 @@ MimeObject_initialize (MimeObject *obj)
   {
     PR_Free(obj->content_type);
     obj->content_type = strdup(IMAGE_XBM);
+  }
+  else {
+    // MIME-types are case-insenitive, but let's make it lower case internally
+    // to avoid some hassle later down the road.
+    nsCAutoString lowerCaseContentType;
+    ToLowerCase(nsDependentCString(obj->content_type), lowerCaseContentType);
+    PR_Free(obj->content_type);
+    obj->content_type = ToNewCString(lowerCaseContentType);
   }
 
   if (!obj->encoding)
