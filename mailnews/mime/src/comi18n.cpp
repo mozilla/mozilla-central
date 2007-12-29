@@ -50,7 +50,6 @@
 #include "prprf.h"
 #include "plstr.h"
 #include "comi18n.h"
-#include "nsIServiceManager.h"
 #include "nsIStringCharsetDetector.h"
 #include "nsIPrefService.h"
 #include "nsIPrefBranch.h"
@@ -61,10 +60,11 @@
 #include "nsICharsetConverterManager.h"
 #include "nsISaveAsCharset.h"
 #include "nsHankakuToZenkakuCID.h"
-#include "nsReadableUtils.h"
 #include "mimehdrs.h"
 #include "nsIMIMEHeaderParam.h"
 #include "nsNetCID.h"
+#include "nsServiceManagerUtils.h"
+#include "nsComponentManagerUtils.h"
 
 
 ////////////////////////////////////////////////////////////////////////////////

@@ -55,6 +55,7 @@
 #include "nsCOMPtr.h"
 #include "nsIX509Cert.h"
 #include "plstr.h"
+#include "nsComponentManagerUtils.h"
 
 #define MIME_SUPERCLASS mimeMultipartSignedClass
 MimeDefClass(MimeMultipartSignedCMS, MimeMultipartSignedCMSClass,

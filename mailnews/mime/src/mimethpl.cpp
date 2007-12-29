@@ -46,8 +46,7 @@
 #include "prlog.h"
 #include "msgCore.h"
 #include "mimemoz2.h"
-#include "nsString.h"
-#include "nsReadableUtils.h"
+#include "nsStringGlue.h"
 #include "nsIDocumentEncoder.h" // for output flags
 
 #define MIME_SUPERCLASS mimeInlineTextPlainClass

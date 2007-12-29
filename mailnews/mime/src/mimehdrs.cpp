@@ -43,7 +43,6 @@
 #include "mimebuf.h"
 #include "mimemoz2.h"
 #include "nsIMimeEmitter.h"
-#include "nsEscape.h"
 #include "nsMsgMessageFlags.h"
 #include "comi18n.h"
 #include "nsMailHeaders.h"
@@ -54,6 +53,7 @@
 #include "mimehdrs.h"
 #include "nsIMIMEHeaderParam.h"
 #include "nsNetCID.h"
+#include "nsServiceManagerUtils.h"
 
 // Forward declares...
 PRInt32 MimeHeaders_build_heads_list(MimeHeaders *hdrs);

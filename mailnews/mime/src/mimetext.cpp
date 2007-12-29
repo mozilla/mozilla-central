@@ -57,7 +57,7 @@
 #include "nsIPrefLocalizedString.h"
 #include "nsMsgUtils.h"
 #include "nsMimeTypes.h"
-#include "nsReadableUtils.h"
+#include "nsServiceManagerUtils.h"
 
 #define MIME_SUPERCLASS mimeLeafClass
 MimeDefClass(MimeInlineText, MimeInlineTextClass, mimeInlineTextClass,

@@ -135,7 +135,7 @@
 #include "prlog.h"
 #include "plstr.h"
 #include "mimemoz2.h"
-#include "nsString.h"
+#include "nsStringGlue.h"
 #include "nsIURL.h"
 #include "msgCore.h"
 #include "nsMimeStringResources.h"

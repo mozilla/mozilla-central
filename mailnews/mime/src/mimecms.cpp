@@ -43,7 +43,6 @@
 #include "mimecms.h"
 #include "mimemsig.h"
 #include "nspr.h"
-#include "nsEscape.h"
 #include "mimemsg.h"
 #include "mimemoz2.h"
 #include "nsIURI.h"
@@ -56,7 +55,9 @@
 #include "nsIX509Cert.h"
 #include "nsIMsgHeaderParser.h"
 #include "nsIProxyObjectManager.h"
-
+#include "nsServiceManagerUtils.h"
+#include "nsComponentManagerUtils.h"
+#include "nsXPCOMCIDInternal.h"
 
 #define MIME_SUPERCLASS mimeEncryptedClass
 MimeDefClass(MimeEncryptedCMS, MimeEncryptedCMSClass,
@@ -328,10 +329,16 @@ NS_IMETHODIMP nsSMimeVerificationListener::Notify(nsICMSMessage2 *aVerifiedMessa
       signature_status = nsICMSMessageErrors::SUCCESS;
   }
 
+  nsresult rv;
+  nsCOMPtr<nsIProxyObjectManager> proxyObjMgr = do_GetService(NS_XPCOMPROXY_CONTRACTID, &rv);
+  NS_ENSURE_SUCCESS(rv, rv);
+
   nsCOMPtr<nsIMsgSMIMEHeaderSink> proxySink;
-  NS_GetProxyForObject(NS_PROXY_TO_MAIN_THREAD, NS_GET_IID(nsIMsgSMIMEHeaderSink),
-                       mHeaderSink, NS_PROXY_SYNC, getter_AddRefs(proxySink));
-  if (proxySink)
+  rv = proxyObjMgr->GetProxyForObject(NS_PROXY_TO_MAIN_THREAD,
+                                      NS_GET_IID(nsIMsgSMIMEHeaderSink),
+                                      mHeaderSink, NS_PROXY_SYNC,
+                                      getter_AddRefs(proxySink));
+  if (NS_SUCCEEDED(rv))
     proxySink->SignedStatus(mMimeNestingLevel, signature_status, signerCert);
 
   return NS_OK;

@@ -37,7 +37,6 @@
  * ***** END LICENSE BLOCK ***** */
 
 #include "msgCore.h"    // precompiled header...
-#include "nsReadableUtils.h"
 #include "nsMsgHeaderParser.h"
 #include "nsISimpleEnumerator.h"
 #include "comi18n.h"

@@ -42,7 +42,7 @@
 #include "nsIMsgSendListener.idl"
 
 %{C++
-#include "nsString.h"
+#include "nsStringGlue.h"
 %}
 
 interface nsIMsgSend;

@@ -46,7 +46,7 @@
 #include "nsIInputStream.h"
 #include "nsIOutputStream.h"
 #include "nsIChannel.h"
-#include "nsString.h"
+#include "nsStringGlue.h"
 #include "nsCOMPtr.h"
 
 #define NS_STREAM_CONVERTER_SEGMENT_SIZE   (4*1024)

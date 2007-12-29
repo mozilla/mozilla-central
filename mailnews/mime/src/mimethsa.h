@@ -55,8 +55,7 @@
 #define _MIMETHSA_H_
 
 #include "mimethtm.h"
-#include "nsString.h"
-#include "nsReadableUtils.h"
+#include "nsStringGlue.h"
 
 typedef struct MimeInlineTextHTMLSanitizedClass MimeInlineTextHTMLSanitizedClass;
 typedef struct MimeInlineTextHTMLSanitized      MimeInlineTextHTMLSanitized;

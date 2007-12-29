@@ -45,8 +45,7 @@
 #include "msgCore.h"
 #include "mimemoz2.h"
 #include "nsIPrefBranch.h"
-#include "nsString.h"
-#include "nsReadableUtils.h"
+#include "nsStringGlue.h"
 
 //#define DEBUG_BenB
 
