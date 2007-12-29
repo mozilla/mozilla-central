@@ -182,11 +182,7 @@ calAttendee.prototype = {
 
     // The has/get/getUnproxied/set/deleteProperty methods are case-insensitive.
     getProperty: function (aName) {
-        try {
-            return this.mProperties.getProperty(aName.toUpperCase());
-        } catch (e) {
-            return null;
-        }
+        return this.mProperties.getProperty(aName.toUpperCase());
     },
     setProperty: function (aName, aValue) {
         this.modify();
@@ -194,10 +190,7 @@ calAttendee.prototype = {
     },
     deleteProperty: function (aName) {
         this.modify();
-        try {
-            this.mProperties.deleteProperty(aName.toUpperCase());
-        } catch (e) {
-        }
+        this.mProperties.deleteProperty(aName.toUpperCase());
     },
 
     get id() {
