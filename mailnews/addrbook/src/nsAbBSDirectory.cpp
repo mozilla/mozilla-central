@@ -59,9 +59,9 @@
 
 nsAbBSDirectory::nsAbBSDirectory()
 : nsRDFResource(),
-mInitialized(PR_FALSE),
-mServers (13)
+mInitialized(PR_FALSE)
 {
+  mServers.Init(13);
 }
 
 nsAbBSDirectory::~nsAbBSDirectory()
@@ -114,8 +114,7 @@ nsresult nsAbBSDirectory::CreateDirectoriesFromFactory(const nsACString &aURI,
     
     // Define a relationship between the preference
     // entry and the directory
-    nsVoidKey key((void *)childDir);
-    mServers.Put (&key, (void *)aServer);
+    mServers.Put(childDir, aServer);
     
     mSubDirectories.AppendObject(childDir);
     
@@ -258,83 +257,78 @@ struct GetDirectories
   DIR_Server* mServer;
 };
 
-PRBool PR_CALLBACK GetDirectories_getDirectory (nsHashKey *aKey, void *aData, void* closure)
+PR_STATIC_CALLBACK(PLDHashOperator)
+GetDirectories_getDirectory(nsISupports *aKey, DIR_Server* &aData, void* aClosure)
 {
-	GetDirectories* getDirectories = (GetDirectories* )closure;
+  GetDirectories* getDirectories = (GetDirectories*)aClosure;
 
-	DIR_Server* server = (DIR_Server*) aData;
-	if (server == getDirectories->mServer)
-	{
-			nsVoidKey* voidKey = (nsVoidKey* )aKey;
-			nsIAbDirectory* directory = (nsIAbDirectory* )voidKey->GetValue ();
-			getDirectories->directories->AppendElement (directory);
-	}
+  if (aData == getDirectories->mServer) {
+    nsCOMPtr<nsIAbDirectory> abDir = do_QueryInterface(aKey);
+    getDirectories->directories->AppendElement(abDir);
+  }
 
-	return PR_TRUE;
+  return PL_DHASH_NEXT;
 }
 
 NS_IMETHODIMP nsAbBSDirectory::DeleteDirectory(nsIAbDirectory *directory)
 {
-	nsresult rv;
-	
-	NS_ENSURE_ARG_POINTER(directory);
+  nsresult rv;
 
-	// if addressbook is not launched yet mSevers will not be initialized
-	// calling GetChildNodes will initialize mServers
-	if (!mInitialized) {
-		nsCOMPtr<nsISimpleEnumerator> subDirectories;
-		rv = GetChildNodes(getter_AddRefs(subDirectories));
-		NS_ENSURE_SUCCESS(rv, rv);
-	}
+  NS_ENSURE_ARG_POINTER(directory);
 
-	nsVoidKey key((void *)directory);
-	DIR_Server *server = (DIR_Server* )mServers.Get (&key);
+  // if addressbook is not launched yet mSevers will not be initialized
+  // calling GetChildNodes will initialize mServers
+  if (!mInitialized) {
+    nsCOMPtr<nsISimpleEnumerator> subDirectories;
+    rv = GetChildNodes(getter_AddRefs(subDirectories));
+    NS_ENSURE_SUCCESS(rv, rv);
+  }
 
-	if (!server)
-		return NS_ERROR_FAILURE;
+  DIR_Server *server;
+  mServers.Get(directory, &server);
 
-	GetDirectories getDirectories (server);
-	mServers.Enumerate (GetDirectories_getDirectory, (void *)&getDirectories);
+  if (!server)
+    return NS_ERROR_FAILURE;
 
-	DIR_DeleteServerFromList(server);
-	
-	nsCOMPtr<nsIAbDirFactoryService> dirFactoryService = 
-			do_GetService(NS_ABDIRFACTORYSERVICE_CONTRACTID,&rv);
-	NS_ENSURE_SUCCESS (rv, rv);
+  GetDirectories getDirectories(server);
+  mServers.Enumerate(GetDirectories_getDirectory, (void *)&getDirectories);
 
-	PRUint32 count;
-	rv = getDirectories.directories->Count (&count);
-	NS_ENSURE_SUCCESS(rv, rv);
+  DIR_DeleteServerFromList(server);
+  
+  nsCOMPtr<nsIAbDirFactoryService> dirFactoryService = 
+    do_GetService(NS_ABDIRFACTORYSERVICE_CONTRACTID,&rv);
+  NS_ENSURE_SUCCESS (rv, rv);
+
+  PRUint32 count;
+  rv = getDirectories.directories->Count(&count);
+  NS_ENSURE_SUCCESS(rv, rv);
 
   nsCOMPtr<nsIAddrBookSession> abSession =
     do_GetService(NS_ADDRBOOKSESSION_CONTRACTID);
   
-	for (PRUint32 i = 0; i < count; i++)
-	{
-		nsCOMPtr<nsIAbDirectory> d;
-		getDirectories.directories->GetElementAt (i, getter_AddRefs(d));
+  for (PRUint32 i = 0; i < count; i++) {
+    nsCOMPtr<nsIAbDirectory> d;
+    getDirectories.directories->GetElementAt(i, getter_AddRefs(d));
 
-		nsVoidKey k((void *)d);
-		mServers.Remove(&k);
-
-		rv = mSubDirectories.RemoveObject(d);
+    mServers.Remove(d);
+    rv = mSubDirectories.RemoveObject(d);
 
     if (abSession)
       abSession->NotifyDirectoryDeleted(this, d);
 
-		nsCOMPtr<nsIRDFResource> resource (do_QueryInterface (d, &rv));
-		const char* uri;
-		resource->GetValueConst (&uri);
+    nsCOMPtr<nsIRDFResource> resource(do_QueryInterface (d, &rv));
+    const char* uri;
+    resource->GetValueConst(&uri);
 
-		nsCOMPtr<nsIAbDirFactory> dirFactory;
-		rv = dirFactoryService->GetDirFactory (uri, getter_AddRefs(dirFactory));
-		if (NS_FAILED(rv))
-				continue;
+    nsCOMPtr<nsIAbDirFactory> dirFactory;
+    rv = dirFactoryService->GetDirFactory(uri, getter_AddRefs(dirFactory));
+    if (NS_FAILED(rv))
+      continue;
 
-		rv = dirFactory->DeleteDirectory(d);
-	}
+    rv = dirFactory->DeleteDirectory(d);
+  }
 
-	return rv;
+  return rv;
 }
 
 NS_IMETHODIMP nsAbBSDirectory::HasDirectory(nsIAbDirectory *dir, PRBool *hasDir)
@@ -342,8 +336,8 @@ NS_IMETHODIMP nsAbBSDirectory::HasDirectory(nsIAbDirectory *dir, PRBool *hasDir)
   if (!hasDir)
     return NS_ERROR_NULL_POINTER;
   
-  nsVoidKey key((void *)dir);
-  DIR_Server *dirServer = (DIR_Server* )mServers.Get (&key);
+  DIR_Server *dirServer;
+  mServers.Get(dir, &dirServer);
   return DIR_ContainsServer(dirServer, hasDir);
 }
 

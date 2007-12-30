@@ -41,7 +41,6 @@
 #define nsAbUtils_h__
 
 #include "nsMemory.h"
-#include "nsHashtable.h"
 
 /*
  * Wrapper class to automatically free an array of

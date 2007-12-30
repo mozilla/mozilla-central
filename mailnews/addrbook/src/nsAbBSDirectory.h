@@ -42,7 +42,7 @@
 #include "nsRDFResource.h"
 #include "nsAbDirProperty.h"
 
-#include "nsHashtable.h"
+#include "nsDataHashtable.h"
 #include "nsCOMArray.h"
 
 class nsAbBSDirectory : public nsRDFResource, public nsAbDirProperty
@@ -71,7 +71,7 @@ protected:
 protected:
 	PRBool mInitialized;
 	nsCOMArray<nsIAbDirectory> mSubDirectories;
-	nsHashtable mServers;
+	nsDataHashtable<nsISupportsHashKey, DIR_Server*> mServers;
 };
 
 #endif
