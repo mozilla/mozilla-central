@@ -436,20 +436,22 @@
 
             onLocationChange : function(aWebProgress, aRequest, aLocation)
             {
-              this.mIcon = "";
+              if (aWebProgress.DOMWindow == this.mBrowser.contentWindow) {
+                this.mIcon = "";
 
-              if (this.mLocationChangeCount > 0 ||
-                  aLocation.spec != "about:blank")
-                ++this.mLocationChangeCount;
+                if (this.mLocationChangeCount > 0 ||
+                    aLocation.spec != "about:blank")
+                  ++this.mLocationChangeCount;
 
-              if (this.mLocationChangeCount == 2) {
-                this.mTabBrowser.backBrowserGroup = [];
-                this.mTabBrowser.forwardBrowserGroup = [];
+                if (this.mLocationChangeCount == 2) {
+                  this.mTabBrowser.backBrowserGroup = [];
+                  this.mTabBrowser.forwardBrowserGroup = [];
+                }
+
+                // The document loaded correctly, clear the value if we should
+                if (this.mBrowser.userTypedClear > 0)
+                  this.mBrowser.userTypedValue = null;
               }
-
-              // The document loaded correctly, clear the value if we should
-              if (this.mBrowser.userTypedClear > 0)
-                this.mBrowser.userTypedValue = null;
 
               if (!this.mBlank && this.mTabBrowser.mCurrentTab == this.mTab) {
                 for (var i = 0; i < this.mTabBrowser.mProgressListeners.length; i++) {
@@ -758,11 +760,6 @@
             var loc = this.mCurrentBrowser.currentURI;
             var webProgress = this.mCurrentBrowser.webProgress;
             var securityUI = this.mCurrentBrowser.securityUI;
-            // Remember the current clear state, then set it to false
-            // so we don't clear the userTypedValue when just switching
-            // tabs. Set it back to its old state after we're done.
-            var userTypedClear = this.mCurrentBrowser.userTypedClear;
-            this.mCurrentBrowser.userTypedClear = 0;
             var i, p;
             for (i = 0; i < this.mProgressListeners.length; i++) {
               p = this.mProgressListeners[i];
@@ -775,7 +772,6 @@
                   p.onLinkIconAvailable(listener.mIcon);
               }
             }
-            this.mCurrentBrowser.userTypedClear = userTypedClear;
 
             // Update the window title.
             this.updateTitlebar();

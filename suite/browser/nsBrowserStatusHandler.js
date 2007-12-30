@@ -331,10 +331,6 @@ nsBrowserStatusHandler.prototype =
 
     var browser = getBrowser().selectedBrowser;
     if (aWebProgress.DOMWindow == content) {
-      // The document loaded correctly, clear the value if we should
-      if (browser.userTypedClear > 0)
-        browser.userTypedValue = null;
-
       var userTypedValue = browser.userTypedValue;
       if (userTypedValue === null) {
         this.urlBar.value = location;
@@ -402,13 +398,6 @@ nsBrowserStatusHandler.prototype =
 
   startDocumentLoad : function(aRequest)
   {
-    // It's okay to clear what the user typed when we start
-    // loading a document. If the user types, this flag gets
-    // set to false, if the document load ends without an
-    // onLocationChange, this flag also gets set to false
-    // (so we keep it while switching tabs after failed load
-    getBrowser().userTypedClear++;
-
     const nsIChannel = Components.interfaces.nsIChannel;
     var urlStr = aRequest.QueryInterface(nsIChannel).URI.spec;
     var observerService = Components.classes["@mozilla.org/observer-service;1"]
@@ -421,11 +410,6 @@ nsBrowserStatusHandler.prototype =
 
   endDocumentLoad : function(aRequest, aStatus)
   {
-    // The document is done loading, it's okay to clear
-    // the value again.
-    if (getBrowser().userTypedClear > 0)
-      getBrowser().userTypedClear--;
-
     const nsIChannel = Components.interfaces.nsIChannel;
     var urlStr = aRequest.QueryInterface(nsIChannel).originalURI.spec;
 
