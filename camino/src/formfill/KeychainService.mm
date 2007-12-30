@@ -180,7 +180,8 @@ int KeychainPrefChangedCallback(const char* inPref, void* unused)
     mKeychainCacheTimers = [[NSMutableDictionary alloc] init];
 
     // load the keychain.nib file with our dialogs in it
-    BOOL success = [NSBundle loadNibNamed:@"Keychain" owner:self];
+    BOOL success;
+    success = [NSBundle loadNibNamed:@"Keychain" owner:self];
     NS_ASSERTION(success, "can't load keychain prompt dialogs");
   }
   return self;
@@ -1347,11 +1348,11 @@ KeychainFormSubmitObserver::Notify(nsIDOMHTMLFormElement* formNode, nsIDOMWindow
 {
 }
 
-- (void)onResourceLoadingStarted:(NSNumber*)resourceIdentifier
+- (void)onResourceLoadingStarted:(NSValue*)resourceIdentifier
 {
 }
 
-- (void)onResourceLoadingCompleted:(NSNumber*)resourceIdentifier
+- (void)onResourceLoadingCompleted:(NSValue*)resourceIdentifier
 {
 }
 

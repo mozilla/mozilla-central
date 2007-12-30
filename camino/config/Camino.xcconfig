@@ -18,6 +18,7 @@ HEADER_SEARCH_PATHS = ../dist/include/ ../dist/include/appcomps ../dist/include/
 FRAMEWORK_SEARCH_PATHS = sparkle/build/Release
 
 // Warning settings
+GCC_TREAT_WARNINGS_AS_ERRORS = YES
 GCC_WARN_SIGN_COMPARE = YES
-WARNING_FLAGS = -Wall -Wno-four-char-constants
+WARNING_CFLAGS = -Wall -Wno-four-char-constants
 OTHER_CPLUSPLUSFLAGS = $(OTHER_CPLUSPLUSFLAGS) -Wno-non-virtual-dtor

@@ -231,8 +231,8 @@ class nsIArray;
 // CHBrowserListener messages
 - (void)onLoadingStarted;
 - (void)onLoadingCompleted:(BOOL)succeeded;
-- (void)onResourceLoadingStarted:(NSNumber*)resourceIdentifier;
-- (void)onResourceLoadingCompleted:(NSNumber*)resourceIdentifier;
+- (void)onResourceLoadingStarted:(NSValue*)resourceIdentifier;
+- (void)onResourceLoadingCompleted:(NSValue*)resourceIdentifier;
 - (void)onProgressChange64:(long long)currentBytes outOf:(long long)maxBytes;
 - (void)onProgressChange:(long)currentBytes outOf:(long)maxBytes;
 - (void)onLocationChange:(NSString*)urlSpec isNewPage:(BOOL)newPage requestSucceeded:(BOOL)requestOK;

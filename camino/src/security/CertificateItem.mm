@@ -43,7 +43,6 @@
 #import "nsCOMPtr.h"
 #import "nsString.h"
 #import "nsIMutableArray.h"
-#import "nsArrayUtils.h"
 
 #import "nsIX509Cert.h"
 #import "nsIX509CertValidity.h"
@@ -164,7 +163,9 @@ NSString* const CertificateChangedNotificationName = @"CertificateChangedNotific
     
   for (PRUint32 i = 0; i < chainLength; i ++)
   {
-    nsCOMPtr<nsIX509Cert> thisCert = do_QueryElementAt(parentChain, i);
+    nsCOMPtr<nsIX509Cert> thisCert;
+    parentChain->QueryElementAt(i, NS_GET_IID(nsIX509Cert),
+                                getter_AddRefs(thisCert));
     if (!thisCert) continue;
     
     PRBool isSameCert;
@@ -716,7 +717,10 @@ NSString* const CertificateChangedNotificationName = @"CertificateChangedNotific
   objectsArray->GetLength(&numObjects);
   for (PRUint32 i = 0; i < numObjects; i ++)
   {
-    nsCOMPtr<nsIASN1Object> thisObject = do_QueryElementAt(objectsArray, i);
+    nsCOMPtr<nsIASN1Object> thisObject;
+    objectsArray->QueryElementAt(i, NS_GET_IID(nsIASN1Object),
+                                 getter_AddRefs(thisObject));
+    if (!thisObject) continue;
 
     nsAutoString displayName;
     thisObject->GetDisplayName(displayName);

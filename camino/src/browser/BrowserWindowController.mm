@@ -67,6 +67,7 @@
 #import "PreferenceManager.h"
 #import "BrowserTabView.h"
 #import "BrowserTabViewItem.h"
+#import "TabButtonView.h"
 #import "UserDefaults.h"
 #import "PageProxyIcon.h"
 #import "AutoCompleteTextField.h"

@@ -47,8 +47,6 @@
 #include "nsILocalFileMac.h"
 #include "nsDirectoryServiceDefs.h"
 
-const int kDefaultExpireDays = 9;
-
 // handly stack-based class to start and stop an Internet Config session
 class StInternetConfigSession
 {

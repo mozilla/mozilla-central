@@ -240,7 +240,7 @@ MOZ_DECL_CTOR_COUNTER(wallet_MapElement)
 class wallet_MapElement {
 public:
   wallet_MapElement() 
-    : itemList(nsnull), item1(nsnull), item2(nsnull)
+    : item1(nsnull), item2(nsnull), itemList(nsnull)
   {
     MOZ_COUNT_CTOR(wallet_MapElement);
   }
@@ -1243,15 +1243,18 @@ wallet_PutLine(nsIOutputStream* strm, const char* line) {
   wallet_EndLine(strm);
 }
 
+#if UNUSED
 static void
 wallet_PutHeader(nsIOutputStream* strm) {
 
   /* format revision number */
   wallet_PutLine(strm, HEADER_VERSION);
 }
+#endif  // UNUSED
 
 #define WALLET_NULL(_ptr) (!(_ptr) || !(_ptr)[0])
 
+#if UNUSED
 /*
  * write contents of designated list into designated file
  */
@@ -1322,6 +1325,7 @@ wallet_WriteToFile(const char * filename, nsVoidArray* list) {
     }
   }
 }
+#endif  // UNUSED
 
 /*
  * Read contents of designated file into designated list
@@ -1498,7 +1502,9 @@ static void wallet_InitListFromAppleAddressBook(nsVoidArray** inList)
 static PRBool wallet_tablesInitialized = PR_FALSE;
 static PRBool wallet_ValuesReadIn = PR_FALSE;
 static PRBool namesInitialized = PR_FALSE;
+#if UNUSED
 static PRBool wallet_URLListInitialized = PR_FALSE;
+#endif  // UNUSED
 
 static void
 wallet_Initialize(PRBool unlockDatabase) 
@@ -2554,6 +2560,7 @@ wallet_Size(nsVoidArray * list) {
 #endif
 
 
+#if UNUSED
 static void
 wallet_InitializeURLList() {
   if (!wallet_URLListInitialized) {
@@ -2562,6 +2569,7 @@ wallet_InitializeURLList() {
     wallet_URLListInitialized = PR_TRUE;
   }
 }
+#endif  // UNUSED
 
 /*
  * initialization for current URL
@@ -2582,6 +2590,7 @@ wallet_InitializeCurrentURL(nsIDocument * doc) {
 
 }
 
+#if UNUSED
 #define SEPARATOR "#*%$"
 
 static nsresult
@@ -2594,6 +2603,7 @@ wallet_GetNextInString(const nsString& str, nsString& head, nsString& tail) {
   str.Mid(tail, separator+sizeof(SEPARATOR)-1, str.Length() - (separator+sizeof(SEPARATOR)-1));
   return NS_OK;
 }
+#endif  // UNUSED
 
 
 
@@ -2624,6 +2634,7 @@ WLLT_GetPrefillListForViewer(nsAString& aPrefillList)
   aPrefillList = buffer;
 }
 
+#if UNUSED
 static void
 wallet_FreeURL(wallet_MapElement *url) {
 
@@ -2633,6 +2644,7 @@ wallet_FreeURL(wallet_MapElement *url) {
     wallet_URL_list->RemoveElement(url);
     PR_Free(url);
 }
+#endif  // UNUSED
 
 #if UNUSED
 

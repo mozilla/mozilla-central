@@ -681,7 +681,7 @@ CHBrowserListener::OnStateChange(nsIWebProgress *aWebProgress, nsIRequest *aRequ
         [obj onLoadingStarted];
     }
     while ((obj = [enumerator nextObject]))
-      [obj onResourceLoadingStarted:[NSNumber numberWithUnsignedLongLong:(unsigned long long)aRequest]];
+      [obj onResourceLoadingStarted:[NSValue valueWithPointer:aRequest]];
   }
   else if (aStateFlags & nsIWebProgressListener::STATE_STOP) {
     if (aStateFlags & nsIWebProgressListener::STATE_IS_NETWORK) {
@@ -689,7 +689,7 @@ CHBrowserListener::OnStateChange(nsIWebProgress *aWebProgress, nsIRequest *aRequ
         [obj onLoadingCompleted:(NS_SUCCEEDED(aStatus))];
     }
     while ((obj = [enumerator nextObject]))
-      [obj onResourceLoadingCompleted:[NSNumber numberWithUnsignedLongLong:(unsigned long long)aRequest]];
+      [obj onResourceLoadingCompleted:[NSValue valueWithPointer:aRequest]];
   }
 
   return NS_OK;

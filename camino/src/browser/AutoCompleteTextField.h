@@ -101,3 +101,7 @@ extern NSString* const kWillShowFeedMenu;
 - (void)setFeedIconContextMenu:(NSMenu*)inMenu;
 
 @end
+
+@interface AutoCompleteWindow : NSWindow
+- (BOOL)isKeyWindow;
+@end

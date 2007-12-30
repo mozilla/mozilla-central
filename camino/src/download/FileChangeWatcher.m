@@ -199,7 +199,8 @@ static NSString* const kFileDescriptorKey = @"fdes";
 
     @try {
       struct kevent event;
-      int n = kevent(mQueueFileDesc, NULL, 0, &event, 1, &timeInterval);
+      int n = kevent(mQueueFileDesc, NULL, 0, &event, 1,
+                     (const struct timespec*)&timeInterval);
       if (n > 0 && event.filter == EVFILT_VNODE && event.fflags) {
         [self directoryChanged:(NSString*)event.udata];
       }

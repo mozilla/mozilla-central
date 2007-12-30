@@ -539,12 +539,12 @@ enum StatusPriority {
   }
 }
 
-- (void)onResourceLoadingStarted:(NSNumber*)resourceIdentifier
+- (void)onResourceLoadingStarted:(NSValue*)resourceIdentifier
 {
   [mLoadingResources addObject:resourceIdentifier];
 }
 
-- (void)onResourceLoadingCompleted:(NSNumber*)resourceIdentifier
+- (void)onResourceLoadingCompleted:(NSValue*)resourceIdentifier
 {
   if ([mLoadingResources containsObject:resourceIdentifier])
   {

@@ -162,7 +162,7 @@ static OSStatus MenuEventHandler(EventHandlerCallRef inHandlerCallRef, EventRef 
 - (NSMenuItem*)itemWithTarget:(id)anObject andAction:(SEL)actionSelector
 {
   int itemIndex = [self indexOfItemWithTarget:anObject andAction:actionSelector];
-  return (itemIndex == -1) ? nil : [self itemAtIndex:itemIndex];
+  return (itemIndex == -1) ? (NSMenuItem*)nil : [self itemAtIndex:itemIndex];
 }
 
 - (void)removeItemsAfterItem:(NSMenuItem*)inItem

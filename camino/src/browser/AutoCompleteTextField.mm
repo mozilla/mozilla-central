@@ -114,10 +114,6 @@ NSString* const kWillShowFeedMenu = @"WillShowFeedMenu";
 
 #pragma mark -
 
-@interface AutoCompleteWindow : NSWindow
-- (BOOL)isKeyWindow;
-@end
-
 @implementation AutoCompleteWindow
 
 - (BOOL)isKeyWindow

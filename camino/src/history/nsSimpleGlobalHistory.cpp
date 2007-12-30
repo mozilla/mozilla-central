@@ -189,13 +189,6 @@ matchHostCallback(nsIMdbRow *row, void *aClosure)
   return hostInfo->history->MatchHost(row, hostInfo);
 }
 
-static PRBool
-matchQueryCallback(nsIMdbRow *row, void *aClosure)
-{
-  MatchQueryData *query = (MatchQueryData*)aClosure;
-  return query->history->RowMatches(row, query->query);
-}
-
 static PRBool HasCell(nsIMdbEnv *aEnv, nsIMdbRow* aRow, mdb_column aCol)
 {
   mdbYarn yarn;
@@ -329,13 +322,11 @@ public:
   nsMdbTableAllRowsEnumerator(nsSimpleGlobalHistory* inHistory,
                               nsIMdbTable* aTable,
                               mdb_column inHiddenColumnToken)
-              : mHiddenColumnToken(inHiddenColumnToken),
-                nsHistoryMdbTableEnumerator(inHistory, aTable) 
-                
+              : nsHistoryMdbTableEnumerator(inHistory, aTable),
+                mHiddenColumnToken(inHiddenColumnToken)
               {}
   virtual     ~nsMdbTableAllRowsEnumerator() 
-              {
-              }
+              {}
 
 protected:
   virtual PRBool IsResult(nsIMdbRow* aRow)
@@ -451,10 +442,10 @@ nsHistoryItem::GetID(nsACString& outIDString)
 
 nsSimpleGlobalHistory::nsSimpleGlobalHistory()
   : mExpireDays(9), // make default be nine days
-    mAutocompleteOnlyTyped(PR_FALSE),
     mBatchesInProgress(0),
     mDirty(PR_FALSE),
     mPagesRemoved(PR_FALSE),
+    mAutocompleteOnlyTyped(PR_FALSE),
     mEnv(nsnull),
     mStore(nsnull),
     mTable(nsnull)
@@ -2712,8 +2703,8 @@ nsSimpleGlobalHistory::AutoCompleteSearch(const nsACString& aSearchString,
 void
 nsSimpleGlobalHistory::AutoCompleteGetExcludeInfo(const nsACString& aURL, AutocompleteExcludeData* aExclude)
 {
-  aExclude->schemePrefix = -1;
-  aExclude->hostnamePrefix = -1;
+  aExclude->schemePrefix = -1U;
+  aExclude->hostnamePrefix = -1U;
   
   PRInt32 index = 0;
   PRInt32 i;

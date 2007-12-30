@@ -206,12 +206,13 @@ nsresult RemoteURILoadManager::RequestURILoad(const nsAString& inURI, id<RemoteL
     mLoadGroup = do_CreateInstance(NS_LOADGROUP_CONTRACTID);
     
   nsCOMPtr<nsISupports> loaderContext = new StreamLoaderContext(loadListener, userData, target, inURI, allowNetworking);
-   
-  nsLoadFlags loadFlags = (allowNetworking) ? nsIRequest::LOAD_NORMAL : nsIRequest::LOAD_FROM_CACHE;
-  loadFlags |= nsIRequest::LOAD_BACKGROUND;		// don't show progress or cookie dialogs
-
-  if (!allowNetworking)
-    loadFlags |= nsICachingChannel::LOAD_ONLY_FROM_CACHE;
+ 
+  // Don't show progress or cookie dialogs.  Cast to avoid "enumeral
+  // mismatch" - thanks a lot, xpidl.
+  nsLoadFlags loadFlags = (nsLoadFlags)nsIRequest::LOAD_BACKGROUND |
+    (allowNetworking ? (nsLoadFlags)nsIRequest::LOAD_NORMAL :
+                       ((nsLoadFlags)nsIRequest::LOAD_FROM_CACHE |
+                        (nsLoadFlags)nsICachingChannel::LOAD_ONLY_FROM_CACHE));
 
   // we have to make a channel ourselves for the streamloader, so that we can 
   // do the nsICachingChannel stuff.

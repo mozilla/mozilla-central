@@ -48,7 +48,12 @@
 
 #import "General.h"
 
-const int kDefaultExpireDays = 9;
+static const char kHomepagePrefName[] = "browser.startup.homepage";
+static const char kNewPageActionPrefName[] = "browser.startup.page";
+static const char kNewTabActionPrefName[] = "browser.tabs.startPage";
+static const char kCheckDefaultBrowserPrefName[] = "camino.check_default_browser";
+static const char kWarnWhenClosingPrefName[] = "camino.warn_when_closing";
+static const char kRememberWindowStatePrefName[] = "camino.remember_window_state";
 
 @interface OrgMozillaCaminoPreferenceGeneral(Private)
 
@@ -87,19 +92,19 @@ const int kDefaultExpireDays = 9;
 
   // 0: blank page. 1: home page. 2: last page visited. Our behaviour here should
   // match what the browser does when the prefs don't exist.
-  if (([self getIntPref:"browser.startup.page" withSuccess:&gotPref] == 1) || !gotPref)
+  if (([self getIntPref:kNewPageActionPrefName withSuccess:&gotPref] == 1) || !gotPref)
     [checkboxNewWindowBlank setState:NSOnState];
 
-  if (([self getIntPref:"browser.tabs.startPage" withSuccess:&gotPref] == 1))
+  if (([self getIntPref:kNewTabActionPrefName withSuccess:&gotPref] == 1))
     [checkboxNewTabBlank setState:NSOnState];
 
-  if ([self getBooleanPref:"camino.check_default_browser" withSuccess:&gotPref] || !gotPref)
+  if ([self getBooleanPref:kCheckDefaultBrowserPrefName withSuccess:&gotPref] || !gotPref)
     [checkboxCheckDefaultBrowserOnLaunch setState:NSOnState];
 
-  if ([self getBooleanPref:"camino.warn_when_closing" withSuccess:&gotPref])
+  if ([self getBooleanPref:kWarnWhenClosingPrefName withSuccess:&gotPref])
     [checkboxWarnWhenClosing setState:NSOnState];
 
-  if ([self getBooleanPref:"camino.remember_window_state" withSuccess:&gotPref])
+  if ([self getBooleanPref:kRememberWindowStatePrefName withSuccess:&gotPref])
     [checkboxRememberWindowState setState:NSOnState];
 
   if ([[NSUserDefaults standardUserDefaults] integerForKey:SUScheduledCheckIntervalKey] > 0)
@@ -125,11 +130,11 @@ const int kDefaultExpireDays = 9;
   if (!mPrefService)
     return;
   
-  [self setPref:"browser.startup.homepage" toString:[textFieldHomePage stringValue]];
+  [self setPref:kHomepagePrefName toString:[textFieldHomePage stringValue]];
   
   // ensure that the prefs exist
-  [self setPref:"browser.startup.page"   toInt:[checkboxNewWindowBlank state] ? 1 : 0];
-  [self setPref:"browser.tabs.startPage" toInt:[checkboxNewTabBlank state] ? 1 : 0];
+  [self setPref:kNewPageActionPrefName toInt:[checkboxNewWindowBlank state] ? 1 : 0];
+  [self setPref:kNewTabActionPrefName toInt:[checkboxNewTabBlank state] ? 1 : 0];
 }
 
 - (IBAction)checkboxStartPageClicked:(id)sender
@@ -137,11 +142,11 @@ const int kDefaultExpireDays = 9;
   if (!mPrefService)
     return;
 
-  char *prefName = NULL;
+  const char* prefName = NULL;
   if (sender == checkboxNewTabBlank)
-    prefName = "browser.tabs.startPage";
+    prefName = kNewTabActionPrefName;
   else if (sender == checkboxNewWindowBlank)
-    prefName = "browser.startup.page";
+    prefName = kNewPageActionPrefName;
 
   if (prefName)
     [self setPref:prefName toInt: [sender state] ? 1 : 0];
@@ -150,19 +155,19 @@ const int kDefaultExpireDays = 9;
 - (IBAction)warningCheckboxClicked:(id)sender
 {
   if (sender == checkboxWarnWhenClosing)
-    [self setPref:"camino.warn_when_closing" toBoolean:([sender state] == NSOnState)];
+    [self setPref:kWarnWhenClosingPrefName toBoolean:([sender state] == NSOnState)];
 }
 
 - (IBAction)rememberWindowStateCheckboxClicked:(id)sender
 {
   if (sender == checkboxRememberWindowState)
-    [self setPref:"camino.remember_window_state" toBoolean:([sender state] == NSOnState)];
+    [self setPref:kRememberWindowStatePrefName toBoolean:([sender state] == NSOnState)];
 }
 
 - (IBAction)checkDefaultBrowserOnLaunchClicked:(id)sender
 {
   if (sender == checkboxCheckDefaultBrowserOnLaunch)
-    [self setPref:"camino.check_default_browser" toBoolean:([sender state] == NSOnState)];
+    [self setPref:kCheckDefaultBrowserPrefName toBoolean:([sender state] == NSOnState)];
 }
 
 - (IBAction)autoUpdateCheckboxClicked:(id)sender
@@ -182,7 +187,7 @@ const int kDefaultExpireDays = 9;
 - (NSString*)currentHomePage
 {
   BOOL gotPref;
-  return [self getStringPref:"browser.startup.homepage" withSuccess:&gotPref];
+  return [self getStringPref:kHomepagePrefName withSuccess:&gotPref];
 }
 
 // called when the users changes the selection in the default browser menu

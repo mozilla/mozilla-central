@@ -43,8 +43,8 @@
 #import "BookmarkManager.h"
 #import "BookmarkFolder.h"
 #import "Bookmark.h"
-@class AutoCompleteWindow;
-@class BrowserWindowController;
+#import "AutoCompleteTextField.h"
+#import "BrowserWindowController.h"
 
 
 // This file adds scripting support to various classes.
@@ -144,7 +144,7 @@
     return [[BookmarkManager sharedBookmarkManager] valueForKey:key];
   }
   else {
-    [super valueForKey:key];
+    return [super valueForKey:key];
   }
 }
 

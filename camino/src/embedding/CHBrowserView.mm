@@ -1049,7 +1049,8 @@ const char kDirServiceContractID[] = "@mozilla.org/file/directory_service;1";
 {
   nsCOMPtr<nsICommandManager> commandMgr(do_GetInterface(_webBrowser));
   if (commandMgr) {
-    nsresult rv = commandMgr->DoCommand(commandName, nsnull, nsnull);
+    nsresult rv;
+    rv = commandMgr->DoCommand(commandName, nsnull, nsnull);
 #if DEBUG
     if (NS_FAILED(rv))
       NSLog(@"DoCommand failed");
@@ -1067,7 +1068,8 @@ const char kDirServiceContractID[] = "@mozilla.org/file/directory_service;1";
   PRBool	isEnabled = PR_FALSE;
   nsCOMPtr<nsICommandManager> commandMgr(do_GetInterface(_webBrowser));
   if (commandMgr) {
-    nsresult rv = commandMgr->IsCommandEnabled(commandName, nsnull, &isEnabled);
+    nsresult rv;
+    rv = commandMgr->IsCommandEnabled(commandName, nsnull, &isEnabled);
 #if DEBUG
     if (NS_FAILED(rv))
       NSLog(@"IsCommandEnabled failed");

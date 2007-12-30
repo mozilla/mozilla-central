@@ -46,7 +46,7 @@
 #include "nsIBrowserHistory.h"
 #include "nsICacheService.h"
 
-const int kDefaultExpireDays = 9;
+static const int kDefaultExpireDays = 9;
 
 // A formatter for the history duration that only accepts integers >= 0
 @interface NonNegativeIntegerFormatter : NSFormatter
