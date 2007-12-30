@@ -45,7 +45,6 @@
 #include "nsIAbDirectory.h"
 #include "nsDirPrefs.h"
 #include "nsIAbListener.h"
-#include "nsISupportsArray.h"
 #include "nsIObserver.h"
 #include "nsWeakReference.h"
 #include "nsICollation.h"
@@ -120,8 +119,6 @@ protected:
                                                    nsIRDFNode **target);
   nsresult createDirectoryTreeNameSortNode(nsIAbDirectory *directory,
                                             nsIRDFNode **target);
-  nsresult getDirectoryArcLabelsOut(nsIAbDirectory *directory,
-                       nsISupportsArray **arcs);
 
   nsresult DoDirectoryAssert(nsIAbDirectory *directory, 
           nsIRDFResource *property, nsIRDFNode *target);

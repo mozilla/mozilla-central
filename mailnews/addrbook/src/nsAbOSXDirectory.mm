@@ -49,7 +49,7 @@
 #include "nsIAddrBookSession.h"
 #include "nsIRDFService.h"
 #include "nsServiceManagerUtils.h"
-#include "nsIArray.h"
+#include "nsIMutableArray.h"
 #include "nsArrayUtils.h"
 #include "nsIAbBooleanExpression.h"
 
@@ -781,10 +781,9 @@ nsAbOSXDirectory::GetChildCards(nsISimpleEnumerator **aCards)
     }
   }
   
-  nsCOMPtr<nsISupportsArray> cardList;
-  rv = NS_NewISupportsArray(getter_AddRefs(cardList));
+  nsCOMPtr<nsIMutableArray> cardList(do_CreateInstance(NS_ARRAY_CONTRACTID, &rv));
   NS_ENSURE_SUCCESS(rv, rv);
-  
+
   unsigned int i;
   nsCOMPtr<nsIAbCard> card;
   for (i = 0; i < nbCards; ++i) {
@@ -792,7 +791,7 @@ nsAbOSXDirectory::GetChildCards(nsISimpleEnumerator **aCards)
                        getter_AddRefs(card));
     NS_ENSURE_SUCCESS(rv, rv);
     
-    rv = cardList->AppendElement(card);
+    rv = cardList->AppendElement(card, PR_FALSE);
     NS_ENSURE_SUCCESS(rv, rv);
     
     mCardList.PutEntry(card);

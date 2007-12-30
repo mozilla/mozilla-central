@@ -42,7 +42,8 @@
 #include "nsIAbDirectory.h"
 #include "nsIAddrBookSession.h"
 #include "nsIAbCard.h"
-
+#include "nsIMutableArray.h"
+#include "nsArrayEnumerator.h"
 #include "rdf.h"
 #include "nsIRDFService.h"
 #include "nsRDFCID.h"
@@ -294,40 +295,26 @@ nsAbDirectoryDataSource::HasArcOut(nsIRDFResource *aSource, nsIRDFResource *aArc
 NS_IMETHODIMP nsAbDirectoryDataSource::ArcLabelsOut(nsIRDFResource* source,
                                                  nsISimpleEnumerator** labels)
 {
-  nsCOMPtr<nsISupportsArray> arcs;
-  nsresult rv = NS_RDF_NO_VALUE;
+  nsresult rv;
 
   nsCOMPtr<nsIAbDirectory> directory(do_QueryInterface(source, &rv));
   if (NS_SUCCEEDED(rv)) {
-    rv = getDirectoryArcLabelsOut(directory, getter_AddRefs(arcs));
+    nsCOMPtr<nsIMutableArray> arcs(do_CreateInstance(NS_ARRAY_CONTRACTID, &rv));
+    NS_ENSURE_SUCCESS(rv, rv);
+
+    arcs->AppendElement(kNC_DirName, PR_FALSE);
+    arcs->AppendElement(kNC_Child, PR_FALSE);
+    arcs->AppendElement(kNC_DirUri, PR_FALSE);
+    arcs->AppendElement(kNC_IsMailList, PR_FALSE);
+    arcs->AppendElement(kNC_IsRemote, PR_FALSE);
+    arcs->AppendElement(kNC_IsSecure, PR_FALSE);
+    arcs->AppendElement(kNC_IsWriteable, PR_FALSE);
+    arcs->AppendElement(kNC_DirTreeNameSort, PR_FALSE);
+    arcs->AppendElement(kNC_SupportsMailingLists, PR_FALSE);
+
+    return NS_NewArrayEnumerator(labels, arcs);
   }
-  else {
-    // how to return an empty cursor?
-    // for now return a 0-length nsISupportsArray
-    NS_NewISupportsArray(getter_AddRefs(arcs));
-  }
-
-  return NS_NewArrayEnumerator(labels, arcs);
-}
-
-nsresult
-nsAbDirectoryDataSource::getDirectoryArcLabelsOut(nsIAbDirectory *directory,
-                                             nsISupportsArray **arcs)
-{
-  nsresult rv;
-  rv = NS_NewISupportsArray(arcs);
-  NS_ENSURE_SUCCESS(rv, rv);
-
-  (*arcs)->AppendElement(kNC_DirName);
-  (*arcs)->AppendElement(kNC_Child);
-  (*arcs)->AppendElement(kNC_DirUri);
-  (*arcs)->AppendElement(kNC_IsMailList);
-  (*arcs)->AppendElement(kNC_IsRemote);
-  (*arcs)->AppendElement(kNC_IsSecure);
-  (*arcs)->AppendElement(kNC_IsWriteable);
-  (*arcs)->AppendElement(kNC_DirTreeNameSort);
-  (*arcs)->AppendElement(kNC_SupportsMailingLists);
-  return NS_OK;
+  return NS_NewEmptyEnumerator(labels);
 }
 
 NS_IMETHODIMP nsAbDirectoryDataSource::OnItemAdded(nsISupports *parentDirectory, nsISupports *item)
@@ -651,8 +638,7 @@ nsresult nsAbDirectoryDataSource::CreateCollationKey(const nsString &aSource,  P
 
 nsresult nsAbDirectoryDataSource::DoDirectoryAssert(nsIAbDirectory *directory, nsIRDFResource *property, nsIRDFNode *target)
 {
-  nsresult rv = NS_ERROR_FAILURE;
-  return rv;
+  return NS_ERROR_FAILURE;
 }
 
 

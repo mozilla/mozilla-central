@@ -1,4 +1,4 @@
-/* -*- Mode: C++; tab-width: 4; indent-tabs-mode: nil; c-basic-offset: 4 -*- */
+/* -*- Mode: C++; tab-width: 2; indent-tabs-mode: nil; c-basic-offset: 2 -*- */
 /* ***** BEGIN LICENSE BLOCK *****
  * Version: MPL 1.1/GPL 2.0/LGPL 2.1
  *
@@ -45,7 +45,8 @@
 #include "nsRDFResource.h"
 #include "nsEnumeratorUtils.h"
 #include "nsServiceManagerUtils.h"
-
+#include "nsIMutableArray.h"
+#include "nsArrayEnumerator.h"
 #include "nsAbBaseCID.h"
 
 #include "prlog.h"
@@ -68,7 +69,7 @@ nsAbOutlookDirFactory::~nsAbOutlookDirFactory(void)
 {
 }
 
-extern const char *kOutlookDirectoryScheme ;
+extern const char *kOutlookDirectoryScheme;
 
 NS_IMETHODIMP
 nsAbOutlookDirFactory::GetDirectories(const nsAString &aDirName,
@@ -76,49 +77,47 @@ nsAbOutlookDirFactory::GetDirectories(const nsAString &aDirName,
                                       const nsACString &aPrefName,
                                       nsISimpleEnumerator **aDirectories)
 {
-    NS_ENSURE_ARG_POINTER(aDirectories);
+  NS_ENSURE_ARG_POINTER(aDirectories);
 
-    *aDirectories = nsnull ;
-    nsresult retCode = NS_OK ;
-    nsCString stub;
-    nsCString entry;
-    nsAbWinType abType = getAbWinType(kOutlookDirectoryScheme,
-                                      nsCString(aURI).get(), stub, entry);
+  *aDirectories = nsnull;
+  nsresult rv = NS_OK;
+  nsCString stub;
+  nsCString entry;
+  nsAbWinType abType = getAbWinType(kOutlookDirectoryScheme,
+                                    nsCString(aURI).get(), stub, entry);
 
-    if (abType == nsAbWinType_Unknown) {
-        return NS_ERROR_FAILURE ;
-    }
-    nsAbWinHelperGuard mapiAddBook (abType) ;
-    nsMapiEntryArray folders ;
-    ULONG nbFolders = 0 ;
-    nsCOMPtr<nsISupportsArray> directories ;
-    
-    retCode = NS_NewISupportsArray(getter_AddRefs(directories)) ;
-    NS_ENSURE_SUCCESS(retCode, retCode) ;
-    if (!mapiAddBook->IsOK() || !mapiAddBook->GetFolders(folders)) {
-        return NS_ERROR_FAILURE ;
-    }
-    nsCOMPtr<nsIRDFService> rdf = do_GetService (NS_RDF_CONTRACTID "/rdf-service;1", &retCode);
-    NS_ENSURE_SUCCESS(retCode, retCode) ;
-    nsCAutoString entryId ;
-    nsCAutoString uri ;
-    nsCOMPtr<nsIRDFResource> resource ;
+  if (abType == nsAbWinType_Unknown) {
+    return NS_ERROR_FAILURE;
+  }
+  nsAbWinHelperGuard mapiAddBook(abType);
+  nsMapiEntryArray folders;
+  ULONG nbFolders = 0;
+  nsCOMPtr<nsIMutableArray> directories(do_CreateInstance(NS_ARRAY_CONTRACTID));
+  NS_ENSURE_SUCCESS(rv, rv);
+  if (!mapiAddBook->IsOK() || !mapiAddBook->GetFolders(folders)) {
+    return NS_ERROR_FAILURE;
+  }
+  nsCOMPtr<nsIRDFService> rdf(do_GetService(NS_RDF_CONTRACTID "/rdf-service;1", &rv));
+  NS_ENSURE_SUCCESS(rv, rv);
+  nsCAutoString entryId;
+  nsCAutoString uri;
+  nsCOMPtr<nsIRDFResource> resource;
 
-    for (ULONG i = 0 ; i < folders.mNbEntries ; ++ i) {
-        folders.mEntries [i].ToString(entryId) ;
-        buildAbWinUri(kOutlookDirectoryScheme, abType, uri) ;
-        uri.Append(entryId) ;
-        
-        retCode = rdf->GetResource(uri, getter_AddRefs(resource)) ;
-        NS_ENSURE_SUCCESS(retCode, retCode) ;
-        directories->AppendElement(resource) ;
-    }
-    return NS_NewArrayEnumerator(aDirectories, directories) ;
+  for (ULONG i = 0; i < folders.mNbEntries; ++i) {
+    folders.mEntries[i].ToString(entryId);
+    buildAbWinUri(kOutlookDirectoryScheme, abType, uri);
+    uri.Append(entryId);
+
+    rv = rdf->GetResource(uri, getter_AddRefs(resource));
+    NS_ENSURE_SUCCESS(rv, rv);
+    directories->AppendElement(resource, PR_FALSE);
+  }
+  return NS_NewArrayEnumerator(aDirectories, directories);
 }
 
 // No actual deletion, since you cannot create the address books from Mozilla.
 NS_IMETHODIMP nsAbOutlookDirFactory::DeleteDirectory(nsIAbDirectory *aDirectory)
 {
-    return NS_OK ;
+  return NS_OK;
 }
 
