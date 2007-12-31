@@ -123,12 +123,14 @@ nsAddbookProtocolHandler::GenerateXMLOutputChannel( nsString &aOutput,
                                                      nsIChannel **_retval)
 {
   nsIChannel                *channel;
-  nsCOMPtr<nsIInputStream>  inStr;
+  nsresult rv;
+  nsCOMPtr<nsIStringInputStream> inStr(do_CreateInstance("@mozilla.org/io/string-input-stream;1", &rv));
+  NS_ENSURE_SUCCESS(rv, rv);
+
   NS_ConvertUTF16toUTF8 utf8String(aOutput.get());
 
-  nsresult rv = NS_NewCStringInputStream(getter_AddRefs(inStr), utf8String);
-  NS_ENSURE_SUCCESS(rv, rv);
-  
+  rv = inStr->SetData(utf8String.get(), utf8String.Length());
+
   rv = NS_NewInputStreamChannel(&channel, aURI, inStr,
                                 NS_LITERAL_CSTRING("text/xml"));
   NS_ENSURE_SUCCESS(rv, rv);

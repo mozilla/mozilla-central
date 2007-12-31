@@ -47,6 +47,7 @@
 #include "nsIAbLDAPDirectory.h"
 #include "nsIMutableArray.h"
 #include "nsComponentManagerUtils.h"
+#include "nsServiceManagerUtils.h"
 #include "nsXPCOMCIDInternal.h"
 
 #include <stdio.h>
