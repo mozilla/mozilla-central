@@ -1035,6 +1035,7 @@ NS_IMPL_ISUPPORTS1(AutoCompleteListener, nsIAutoCompleteListener)
 - (void) onRowClicked:(NSNotification *)aNote
 {
   [self enterResult:[mTableView clickedRow]];
+  [[self window] endEditingFor:self];
   [[[self window] windowController] goToLocationFromToolbarURLField:self];
 }
 
