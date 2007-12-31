@@ -40,7 +40,6 @@
 #include "nsILDAPMessage.h"
 #include "nsAbLDAPReplicationData.h"
 #include "nsIAbCard.h"
-#include "nsIAddrBookSession.h"
 #include "nsAbBaseCID.h"
 #include "nsAbUtils.h"
 #include "nsIAbMDBCard.h"
@@ -409,36 +408,22 @@ nsresult nsAbLDAPProcessReplicationData::OnLDAPSearchResult(nsILDAPMessage *aMes
 
 nsresult nsAbLDAPProcessReplicationData::OpenABForReplicatedDir(PRBool aCreate)
 {
-    if (!mInitialized)
-        return NS_ERROR_NOT_INITIALIZED;
+  if (!mInitialized)
+    return NS_ERROR_NOT_INITIALIZED;
 
-    nsresult rv = NS_OK;
-
-    nsCOMPtr<nsIAddrBookSession> abSession = do_GetService(NS_ADDRBOOKSESSION_CONTRACTID, &rv);
-    if(NS_FAILED(rv)) {
-        Done(PR_FALSE);
-        return rv;
-    }
-
-  nsCAutoString fileName;
-  rv = mDirectory->GetReplicationFileName(fileName);
-  if (NS_FAILED(rv) || fileName.IsEmpty())
+  nsresult rv = mDirectory->GetReplicationFile(getter_AddRefs(mReplicationFile));
+  if (NS_FAILED(rv))
   {
      Done(PR_FALSE);
      return NS_ERROR_FAILURE;
   }
 
-    rv = abSession->GetUserProfileDirectory(getter_AddRefs(mReplicationFile));
-    if(NS_FAILED(rv)) {
-        Done(PR_FALSE);
-        return rv;
-    }
-
-    rv = mReplicationFile->AppendNative(fileName);
-    if(NS_FAILED(rv)) {
-        Done(PR_FALSE);
-        return rv;
-    }
+  nsCString fileName;
+  rv = mReplicationFile->GetNativeLeafName(fileName);
+  if (NS_FAILED(rv)) {
+    Done(PR_FALSE);
+    return rv;
+  }
 
     // if the AB DB already exists backup existing one, 
     // in case if the user cancels or Abort put back the backed up file
