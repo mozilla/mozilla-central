@@ -1369,10 +1369,7 @@
             <menuitem id="sortThreaded" type="radio" name="threaded" label="&sortThreaded.label;" accesskey="&sortThreaded.accesskey;" oncommand="MsgSortThreaded();"/>
             <menuitem id="sortUnthreaded" type="radio" name="threaded" label="&sortUnthreaded.label;" accesskey="&sortUnthreaded.accesskey;" oncommand="MsgSortUnthreaded();"/>
             <menuitem id="groupBySort" type="radio" name="group" label="&groupBySort.label;" accesskey="&groupBySort.accesskey;" oncommand="MsgGroupBySort();"
-#ifndef XP_MACOSX
-                        key="key_groupBySort"
-#endif
-              />
+                      key="key_groupBySort"/>
           </menupopup>
         </menu>
 
@@ -1466,49 +1463,28 @@
           <menu id="goNextMenu" label="&nextMenu.label;" accesskey="&nextMenu.accesskey;">
             <menupopup>
               <menuitem id="menu_nextMsg" label="&nextMsgCmd.label;" accesskey="&nextMsgCmd.accesskey;" command="cmd_nextMsg"
-#ifndef XP_MACOSX
-                        key="key_nextMsg"
-#endif
-              />
+                        key="key_nextMsg"/>
               <menuitem id="menu_nextUnreadMsg" label="&nextUnreadMsgCmd.label;" accesskey="&nextUnreadMsgCmd.accesskey;" command="cmd_nextUnreadMsg"
-#ifndef XP_MACOSX
-                        key="key_nextUnreadMsg"
-#endif
-              />
+                        key="key_nextUnreadMsg"/>
               <menuitem id="menu_nextStarredMsg" label="&nextStarredMsgCmd.label;" accesskey="&nextStarredMsgCmd.accesskey;" command="cmd_nextFlaggedMsg"/>
               <menuseparator/>
               <menuitem id="menu_nextUnreadThread" label="&nextUnreadThread.label;" accesskey="&nextUnreadThreadCmd.accesskey;" command="cmd_nextUnreadThread"
-#ifndef XP_MACOSX
-                        key="key_nextUnreadThread"
-#endif
-              />
+                        key="key_nextUnreadThread"/>
             </menupopup>
           </menu>
           <menu id="goPreviousMenu" label="&prevMenu.label;" accesskey="&prevMenu.accesskey;">
             <menupopup>
               <menuitem id="menu_prevMsg" label="&prevMsgCmd.label;" accesskey="&previousMsgCmd.accesskey;" command="cmd_previousMsg"
-#ifndef XP_MACOSX
-                        key="key_previousMsg"
-#endif
-              />
+                        key="key_previousMsg"/>
               <menuitem id="menu_prevUnreadMsg" label="&prevUnreadMsgCmd.label;" accesskey="&previousUnreadMsgCmd.accesskey;" command="cmd_previousUnreadMsg"
-#ifndef XP_MACOSX
-                        key="key_previousUnreadMsg"
-#endif
-              />
+                        key="key_previousUnreadMsg"/>
               <menuitem id="menu_prevStarredMsg" label="&prevStarredMsgCmd.label;" accesskey="&prevStarredMsgCmd.accesskey;" command="cmd_previousFlaggedMsg"/>
             </menupopup>
           </menu>
           <menuitem id="menu_goForward" label="&goForwardCmd.label;" accesskey="&goForwardCmd.accesskey;" command="cmd_goForward"
-#ifndef XP_MACOSX
-                    key="key_goForward"
-#endif
-          />
+                    key="key_goForward"/>
           <menuitem id="menu_goBack" label="&goBackCmd.label;" accesskey="&goBackCmd.accesskey;" command="cmd_goBack"
-#ifndef XP_MACOSX
-                    key="key_goBack"
-#endif
-          />
+                    key="key_goBack"/>
           <menuseparator id="goNextSeparator"/>
           <menuitem id="goStartPage" label="&startPageCmd.label;" accesskey="&startPageCmd.accesskey;" command="cmd_goStartPage"/>
         </menupopup>
@@ -1745,20 +1721,11 @@
             <menu id="markMenu" label="&markMenu.label;" accesskey="&markMenu.accesskey;">
               <menupopup onpopupshowing="InitMessageMark()">
                 <menuitem type="checkbox" id="markReadMenuItem" label="&markAsReadCmd.label;" accesskey="&markAsReadCmd.accesskey;" command="cmd_markAsRead"
-#ifndef XP_MACOSX
-                      key="key_toggleRead"
-#endif
-              />
+                          key="key_toggleRead"/>
                 <menuitem id="menu_markThreadAsRead" label="&markThreadAsReadCmd.label;" accesskey="&markThreadAsReadCmd.accesskey;" command="cmd_markThreadAsRead"
-#ifndef XP_MACOSX
-                      key="key_markThreadAsRead"
-#endif
-              />
+                          key="key_markThreadAsRead"/>
                 <menuitem id="menu_markReadByDate" label="&markReadByDateCmd.label;" accesskey="&markReadByDateCmd.accesskey;" command="cmd_markReadByDate"
-#ifndef XP_MACOSX
-                      key="key_markReadByDate"
-#endif
-              />
+                          key="key_markReadByDate"/>
                 <menuitem id="menu_markAllRead" label="&markAllReadCmd.label;" key="key_markAllRead" accesskey="&markAllReadCmd.accesskey;" command="cmd_markAllRead"/>
                 <menuseparator/>
                 <menuitem id="markFlaggedMenuItem"
@@ -1766,18 +1733,12 @@
                           label="&markStarredCmd.label;"
                           accesskey="&markStarredCmd.accesskey;"
                           command="cmd_markAsFlagged"
-#ifndef XP_MACOSX
-                      key="key_toggleFlagged"
-#endif
-              />
+                          key="key_toggleFlagged"/>
                 <menuseparator/>
                 <menuitem id="menu_markAsJunk" label="&markAsJunkCmd.label;"
                           accesskey="&markAsJunkCmd.accesskey;"
                           command="cmd_markAsJunk"
-#ifndef XP_MACOSX
-                      key="key_markJunk"
-#endif
-              />
+                          key="key_markJunk"/>
                 <menuitem id="menu_markAsNotJunk" label="&markAsNotJunkCmd.label;"
                           key="key_markNotJunk"
                       accesskey="&markAsNotJunkCmd.accesskey;"
@@ -1796,18 +1757,12 @@
             accesskey="&killThreadMenu.accesskey;"
             id="killThread"
             command="cmd_killThread"
-#ifndef XP_MACOSX
-            key="key_killThread"
-#endif
-        />
+            key="key_killThread"/>
         <menuitem label="&watchThreadMenu.label;"
             accesskey="&watchThreadMenu.accesskey;"
             id="watchThread"
             command="cmd_watchThread"
-#ifndef XP_MACOSX
-            key="key_watchThread"
-#endif
-          />
+            key="key_watchThread"/>
       </menupopup>
     </menu>
 
