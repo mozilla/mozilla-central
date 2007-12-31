@@ -105,8 +105,8 @@
     <menuitem label="&copy.label;"      command="cmd_copy"      accesskey="&copy.accesskey;"/>
   </menupopup>
 
-  <tabbox id="viewGroup" flex="1">
-    <tabs onselect="[gImageView, gFormView, gLinkView].forEach(ensureSelection);">
+  <tabbox id="tabbox" flex="1">
+    <tabs id="tabs" onselect="[gImageView, gFormView, gLinkView].forEach(ensureSelection);">
       <tab id="generalTab"  label="&generalTab;"  accesskey="&generalTab.accesskey;"/>
       <tab id="mediaTab"    label="&mediaTab;"    accesskey="&mediaTab.accesskey;"/>
       <tab id="feedTab"     label="&feedTab;"     accesskey="&feedTab.accesskey;"/>

@@ -335,11 +335,11 @@ function onLoadPageInfo()
   if ("arguments" in window && window.arguments.length >= 1 &&
        window.arguments[0] && window.arguments[0].initialTab)
     initialTab = window.arguments[0].initialTab;
-  var radioGroup = document.getElementById("viewGroup");
+  var tabbox = document.getElementById("tabbox");
   initialTab = document.getElementById(initialTab + "Tab") || document.getElementById("generalTab");
-  radioGroup.selectedItem = initialTab;
-  radioGroup.selectedItem.doCommand();
-  radioGroup.focus();
+  tabbox.selectedItem = initialTab;
+  tabbox.selectedItem.doCommand();
+  tabbox.focus();
 }
 
 function onUnloadPageInfo()
@@ -354,7 +354,7 @@ function onUnloadPageInfo()
 
 function onClickMore()
 {
-  var tabbox = document.getElementById("viewGroup");
+  var tabbox = document.getElementById("tabbox");
   var tab = document.getElementById("securityTab");
   tabbox.selectedTab = tab;
 }
