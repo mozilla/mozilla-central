@@ -43,8 +43,7 @@
 #include "mozITXTToHTMLConv.h"
 #include "nsCOMPtr.h"
 #include "nsIComponentManager.h"
-#include "nsString.h"
-#include "nsReadableUtils.h"
+#include "nsStringGlue.h"
 #include "nsMimeStringResources.h"
 #include "mimemoz2.h"
 #include "nsIServiceManager.h"
@@ -419,8 +418,7 @@ MimeInlineTextPlain_parse_line (const char *line, PRInt32 length, MimeObject *ob
       if (!plainHTML)
         prefaceResultStr += "<span class=\"moz-txt-citetags\">";
 
-      nsAutoString citeTagsSource;
-      lineSourceStr.Mid(citeTagsSource, 0, logicalLineStart);
+      nsString citeTagsSource(StringHead(lineSourceStr, logicalLineStart));
 
       // Convert to HTML
       nsString citeTagsResultUnichar;
@@ -428,7 +426,7 @@ MimeInlineTextPlain_parse_line (const char *line, PRInt32 length, MimeObject *ob
                          getter_Copies(citeTagsResultUnichar));
       if (NS_FAILED(rv)) return -1;
 
-      AppendUTF16toUTF8(citeTagsResultUnichar, prefaceResultStr);
+      prefaceResultStr.Append(NS_ConvertUTF16toUTF8(citeTagsResultUnichar));
       if (!plainHTML)
         prefaceResultStr += "</span>";
     }

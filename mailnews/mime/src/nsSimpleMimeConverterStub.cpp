@@ -41,10 +41,13 @@
 #include "mimemoz2.h"
 #include "mimecom.h"
 #include "nsStringGlue.h"
-#include "nsCategoryManagerUtils.h"
+#include "nsComponentManagerUtils.h"
+#include "nsICategoryManager.h"
 #include "nsCOMPtr.h"
 #include "nsAutoPtr.h"
 #include "nsISimpleMimeConverter.h"
+#include "nsServiceManagerUtils.h"
+#include "nsSimpleMimeConverterStub.h"
 
 typedef struct MimeSimpleStub MimeSimpleStub;
 typedef struct MimeSimpleStubClass MimeSimpleStubClass;
@@ -141,14 +144,26 @@ EndGather(MimeObject *obj, PRBool abort_p)
 static int
 Initialize(MimeObject *obj)
 {
-    MimeSimpleStub *ssobj = (MimeSimpleStub *)obj;
-    ssobj->innerScriptable =
-        do_CreateInstanceFromCategory(NS_SIMPLEMIMECONVERTERS_CATEGORY, obj->content_type);
-    if (!ssobj->innerScriptable)
-        return -1;
-    ssobj->buffer = new nsCString();
-    int status = ((MimeObjectClass *)XPCOM_GetmimeLeafClass())->initialize(obj);
-    return 0;
+  MimeSimpleStub *ssobj = (MimeSimpleStub *)obj;
+
+  nsresult rv;
+  nsCOMPtr<nsICategoryManager> catman =
+    do_GetService(NS_CATEGORYMANAGER_CONTRACTID, &rv);
+  if (NS_FAILED(rv))
+    return -1;
+
+  nsCString value;
+  rv = catman->GetCategoryEntry(NS_SIMPLEMIMECONVERTERS_CATEGORY,
+                                obj->content_type, getter_Copies(value));
+  if (NS_FAILED(rv) || value.IsEmpty())
+    return -1;
+
+  ssobj->innerScriptable = do_CreateInstance(value.get(), &rv);
+  if (NS_FAILED(rv) || !ssobj->innerScriptable)
+    return -1;
+  ssobj->buffer = new nsCString();
+  int status = ((MimeObjectClass *)XPCOM_GetmimeLeafClass())->initialize(obj);
+  return 0;
 }
 
 static void

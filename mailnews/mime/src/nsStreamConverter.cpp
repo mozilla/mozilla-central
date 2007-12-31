@@ -51,8 +51,7 @@
 #include "nsMimeTypes.h"
 #include "nsIComponentManager.h"
 #include "nsIURL.h"
-#include "nsString.h"
-#include "nsReadableUtils.h"
+#include "nsStringGlue.h"
 #include "nsUnicharUtils.h"
 #include "nsIServiceManager.h"
 #include "nsMemory.h"
@@ -396,8 +395,17 @@ nsStreamConverter::DetermineOutputFormat(const char *aUrl, nsMimeOutputType *aNe
       // %2F strings with the slash character
       const char *nextField = PL_strpbrk(format, "&; ");
       mOutputFormat.Assign(format, nextField ? nextField - format : -1);
+#ifdef MOZILLA_INTERNAL_API
       mOutputFormat.ReplaceSubstring("%2F", "/");
       mOutputFormat.ReplaceSubstring("%2f", "/");
+#else
+      PRInt32 pos = mOutputFormat.Find("%2f", CaseInsensitiveCompare);
+      while (pos != -1)
+      {
+        mOutputFormat.Replace(pos, 3, '/');
+        mOutputFormat.Find("%2f", pos + 1, CaseInsensitiveCompare);
+      }
+#endif
 
       // Don't muck with this data!
       *aNewType = nsMimeOutput::nsMimeMessageRaw;
@@ -429,14 +437,13 @@ nsStreamConverter::DetermineOutputFormat(const char *aUrl, nsMimeOutputType *aNe
       // and make sure we only get our own value.
       char *nextField = PL_strchr(typeField, '&');
       mRealContentType.Assign(typeField, nextField ? nextField - typeField : -1);
-
-      if (mRealContentType.LowerCaseEqualsLiteral("message/rfc822"))
+      if (mRealContentType.Equals("message/rfc822"))
       {
         mRealContentType = "application/x-message-display";
         mOutputFormat = "text/html";
         *aNewType = nsMimeOutput::nsMimeMessageBodyDisplay;
       }
-      else if (mRealContentType.LowerCaseEqualsLiteral("application/x-message-display"))
+      else if (mRealContentType.Equals("application/x-message-display"))
       {
         mRealContentType = "";
         mOutputFormat = "text/html";
@@ -716,7 +723,11 @@ NS_IMETHODIMP nsStreamConverter::GetContentType(char **aOutputContentType)
   //  (1) check to see if we have a real content type...use it first...
   if (!mRealContentType.IsEmpty())
     *aOutputContentType = ToNewCString(mRealContentType);
+#ifdef MOZILLA_INTERNAL_API
   else if (mOutputFormat.LowerCaseEqualsLiteral("raw"))
+#else
+  else if (mOutputFormat.Equals("raw", CaseInsensitiveCompare))
+#endif
     *aOutputContentType = (char *) nsMemory::Clone(UNKNOWN_CONTENT_TYPE, sizeof(UNKNOWN_CONTENT_TYPE));
   else
     *aOutputContentType = ToNewCString(mOutputFormat);

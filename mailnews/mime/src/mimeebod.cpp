@@ -42,10 +42,12 @@
 #include "plstr.h"
 #include "prlog.h"
 #include "prio.h"
-#include "nsEscape.h"
 #include "msgCore.h"
 #include "nsMimeStringResources.h"
 #include "mimemoz2.h"
+#include "nsComponentManagerUtils.h"
+#include "nsMsgUtils.h"
+#include "nsINetUtil.h"
 
 #define MIME_SUPERCLASS mimeObjectClass
 MimeDefClass(MimeExternalBody, MimeExternalBodyClass,
@@ -197,7 +199,6 @@ MimeExternalBody_make_url(const char *ct,
   }
   else if (!PL_strcasecmp(at, "local-file") || !PL_strcasecmp(at, "afs"))
   {
-    char *s2;
     if (!name)
       return 0;
 
@@ -215,24 +216,20 @@ MimeExternalBody_make_url(const char *ct,
         return 0;
     }
 #else  /* !XP_UNIX */
-return 0;            /* never, if not Unix. */
+    return 0;            /* never, if not Unix. */
 #endif /* !XP_UNIX */
 
-s = (char *) PR_MALLOC(strlen(name)*3 + 20);
-if (!s) return 0;
-PL_strcpy(s, "file:");
+    s = (char *) PR_MALLOC(strlen(name)*3 + 20);
+    if (!s) return 0;
+    PL_strcpy(s, "file:");
 
-s2 = nsEscape(name, url_Path);
-if (s2)
-{
-  PL_strcat(s, s2);
-  NS_Free(s2);
-}
-return s;
+    nsCString s2;
+    MsgEscapeString(nsDependentCString(name), nsINetUtil::ESCAPE_URL_PATH, s2);
+    PL_strcat(s, s2.get());
+    return s;
   }
 else if (!PL_strcasecmp(at, "mail-server"))
 {
-  char *s2;
   if (!svr)
     return 0;
   s = (char *) PR_MALLOC(strlen(svr)*4 +
@@ -241,32 +238,21 @@ else if (!PL_strcasecmp(at, "mail-server"))
   if (!s) return 0;
   PL_strcpy(s, "mailto:");
 
-  s2 = nsEscape(svr, url_XAlphas);
-  if (s2)
-  {
-    PL_strcat(s, s2);
-    NS_Free(s2);
-  }
+  nsCString s2;
+  MsgEscapeString(nsDependentCString(svr), nsINetUtil::ESCAPE_XALPHAS, s2);
+  PL_strcat(s, s2.get());
 
   if (subj)
     {
-      s2 = nsEscape(subj, url_XAlphas);
+      MsgEscapeString(nsDependentCString(subj), nsINetUtil::ESCAPE_XALPHAS, s2);
       PL_strcat(s, "?subject=");
-      if (s2)
-      {
-                    PL_strcat(s, s2);
-                    NS_Free(s2);
-      }
+      PL_strcat(s, s2.get());
     }
   if (body)
     {
-      s2 = nsEscape(body, url_XAlphas);
+      MsgEscapeString(nsDependentCString(body), nsINetUtil::ESCAPE_XALPHAS, s2);
       PL_strcat(s, (subj ? "&body=" : "?body="));
-      if (s2)
-      {
-                    PL_strcat(s, s2);
-                    NS_Free(s2);
-      }
+      PL_strcat(s, s2.get());
     }
   return s;
 }
@@ -425,7 +411,7 @@ MimeExternalBody_parse_eof (MimeObject *obj, PRBool abort_p)
         PRInt32 i;
         for(i = strlen(s)-1; i >= 0 && IS_SPACE(s[i]); i--)
           s[i] = 0;
-        s2 = nsEscapeHTML(s);
+        s2 = MsgEscapeHTML(s);
         if (!s2) goto FAIL;
         body = (char *) PR_MALLOC(strlen(pre) + strlen(s2) +
                                   strlen(suf) + 1);

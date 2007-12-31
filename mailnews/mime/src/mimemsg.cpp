@@ -48,11 +48,12 @@
 #include "nsMimeStringResources.h"
 #include "nsMimeTypes.h"
 #include "nsMsgMessageFlags.h"
-#include "nsEscape.h"
-#include "nsString.h"
+#include "nsStringGlue.h"
 #include "mimetext.h"
 #include "mimecryp.h"
 #include "mimetpfl.h"
+#include "nsINetUtil.h"
+#include "nsMsgUtils.h"
 
 #define MIME_SUPERCLASS mimeContainerClass
 MimeDefClass(MimeMessage, MimeMessageClass, mimeMessageClass,
@@ -823,15 +824,19 @@ MimeMessage_partial_message_html(const char *data, void *closure,
 {
   MimeMessage *msg = (MimeMessage *)closure;
   nsCAutoString orig_url(data);
-  char *partialMsgHtml = nsnull;
   char *uidl = MimeHeaders_get(headers, HEADER_X_UIDL, PR_FALSE, PR_FALSE);
   char *msgId = MimeHeaders_get(headers, HEADER_MESSAGE_ID, PR_FALSE,
                   PR_FALSE);
   char *msgIdPtr = PL_strstr(msgId, "<");
   int msgBase;
 
-  orig_url.ReplaceSubstring("mailbox-message", "mailbox");
-  orig_url.ReplaceSubstring("#", "?number=");
+  PRInt32 pos = orig_url.Find("mailbox-message");
+  if (pos != -1)
+    orig_url.Cut(pos + 7, 8);
+
+  pos = orig_url.Find("#");
+  if (pos != -1)
+    orig_url.Replace(pos, 1, "?number=", 8);
 
   if (msgIdPtr)
     msgIdPtr++;
@@ -842,24 +847,40 @@ MimeMessage_partial_message_html(const char *data, void *closure,
     *gtPtr = 0;
 
   msgBase = (msg->bodyLength > MSG_LINEBREAK_LEN) ? MIME_MSG_PARTIAL_FMT_1 : MIME_MSG_PARTIAL_FMT2_1;
-  char *escapedUidl = uidl ? nsEscape(uidl, url_XAlphas) : nsnull;
-  char *escapedMsgId = msgIdPtr ? nsEscape(msgIdPtr, url_Path) : nsnull;
-  char *fmt1 = MimeGetStringByID(msgBase);
-  char *fmt2 = MimeGetStringByID(msgBase+1);
-  char *fmt3 = MimeGetStringByID(msgBase+2);
-  char *msgUrl = PR_smprintf("%s&messageid=%s&uidl=%s",
-                             orig_url.get(), escapedMsgId, escapedUidl);
-  partialMsgHtml = PR_smprintf("%s%s%s%s", fmt1,fmt2, msgUrl, fmt3);
-  PR_Free(uidl);
-  PR_Free(escapedUidl);
-  PR_Free(msgId);
-  PR_Free(escapedMsgId);
-  PR_Free(msgUrl);
-  PR_Free(fmt1);
-  PR_Free(fmt2);
-  PR_Free(fmt3);
 
-  return partialMsgHtml;
+  nsCString partialMsgHtml;
+  nsCString item;
+
+  item.Adopt(MimeGetStringByID(msgBase));
+  partialMsgHtml += item;
+
+  item.Adopt(MimeGetStringByID(msgBase+1));
+  partialMsgHtml += item;
+
+  partialMsgHtml.Append(orig_url);
+
+  if (msgIdPtr) {
+    partialMsgHtml.AppendLiteral("&messageid=");
+
+    MsgEscapeString(nsDependentCString(msgIdPtr), nsINetUtil::ESCAPE_URL_PATH,
+                    item);
+
+    partialMsgHtml.Append(item);
+  }
+
+  if (uidl) {
+    partialMsgHtml.AppendLiteral("&uidl=");
+
+    MsgEscapeString(nsDependentCString(uidl), nsINetUtil::ESCAPE_XALPHAS,
+                    item);
+
+    partialMsgHtml.Append(item);
+  }
+
+  item.Adopt(MimeGetStringByID(msgBase+2));
+  partialMsgHtml += item;
+
+  return ToNewCString(partialMsgHtml);
 }
 
 #if defined(DEBUG) && defined(XP_UNIX)

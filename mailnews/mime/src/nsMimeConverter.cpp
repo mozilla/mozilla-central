@@ -43,7 +43,6 @@
 #include "nsMsgI18N.h"
 #include "prmem.h"
 #include "plstr.h"
-#include "nsReadableUtils.h"
 
 NS_IMPL_THREADSAFE_ADDREF(nsMimeConverter)
 NS_IMPL_THREADSAFE_RELEASE(nsMimeConverter)
@@ -120,9 +119,9 @@ nsMimeConverter::DecodeMimeHeader(const char *header,
   decodedCstr = MIME_DecodeMimeHeader(header, default_charset,
                                       override_charset, eatContinuations);
   if (nsnull == decodedCstr) {
-    CopyUTF8toUTF16(header, decodedString);
+    CopyUTF8toUTF16(nsDependentCString(header), decodedString);
   } else {
-    CopyUTF8toUTF16(decodedCstr, decodedString);
+    CopyUTF8toUTF16(nsDependentCString(decodedCstr), decodedString);
     PR_FREEIF(decodedCstr);
   }
 

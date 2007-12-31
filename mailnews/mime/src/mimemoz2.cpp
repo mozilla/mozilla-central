@@ -59,8 +59,7 @@
 #include "nsIServiceManager.h"
 #include "comi18n.h"
 #include "nsIStringBundle.h"
-#include "nsString.h"
-#include "nsReadableUtils.h"
+#include "nsStringGlue.h"
 #include "nsMimeStringResources.h"
 #include "nsStreamConverter.h"
 #include "nsIMsgSend.h"
@@ -92,7 +91,6 @@
 #include "nsIContentSerializer.h"
 #include "nsLayoutCID.h"
 #include "nsIComponentManager.h"
-#include "nsReadableUtils.h"
 #include "nsIHTMLToTextSink.h"
 #include "mozISanitizingSerializer.h"
 // </for>
@@ -263,8 +261,8 @@ ValidateRealName(nsMsgAttachmentData *aAttach, MimeHeaders *aHdrs)
   //
   if (!aAttach->real_name || *aAttach->real_name == 0)
   {
-    nsString  newAttachName(NS_LITERAL_STRING("attachment"));
-    nsresult  rv = NS_OK;
+    nsCString newAttachName(NS_LITERAL_CSTRING("attachment"));
+    nsresult rv = NS_OK;
     nsCAutoString contentType (aAttach->real_type);
     PRInt32 pos = contentType.FindChar(';');
     if (pos > 0)
@@ -278,8 +276,8 @@ ValidateRealName(nsMsgAttachmentData *aAttach, MimeHeaders *aHdrs)
 
       if (NS_SUCCEEDED(rv) && !fileExtension.IsEmpty())
       {
-        newAttachName.Append(PRUnichar('.'));
-        AppendUTF8toUTF16(fileExtension, newAttachName);
+        newAttachName.Append('.');
+        newAttachName.Append(fileExtension);
       }
     }
 
@@ -454,8 +452,13 @@ GenerateAttachmentData(MimeObject *object, const char *aMessageURL, MimeDisplayO
   {
     urlString.Append("&filename=");
     urlString.Append(tmp->real_name);
+#ifdef MOZILLA_INTERNAL_API
     if (tmp->real_type && !strcmp(tmp->real_type, "message/rfc822") &&
            !StringEndsWith(urlString, NS_LITERAL_CSTRING(".eml"), nsCaseInsensitiveCStringComparator()))
+#else
+    if (tmp->real_type && !strcmp(tmp->real_type, "message/rfc822") &&
+           !StringEndsWith(urlString, NS_LITERAL_CSTRING(".eml"), CaseInsensitiveCompare))
+#endif
       urlString.Append(".eml");
   }
   nsresult rv = nsMimeNewURI(&(tmp->url), urlString.get(), nsnull);

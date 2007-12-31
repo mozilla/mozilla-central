@@ -53,7 +53,6 @@
 #include "nsMimeStringResources.h"
 #include "mimemsg.h"
 #include "mimemapl.h"
-#include "nsString.h"
 
 /* Way to destroy any notions of modularity or class hierarchy, Terry! */
 # include "mimetpla.h"

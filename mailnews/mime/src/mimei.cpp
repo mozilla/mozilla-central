@@ -1201,11 +1201,11 @@ mime_set_url_part(const char *url, const char *part, PRBool append_p)
 
   nsCAutoString urlString(url);
   PRInt32 typeIndex = urlString.Find("?type=application/x-message-display");
-  if (typeIndex != kNotFound)
+  if (typeIndex != -1)
   {
     urlString.Cut(typeIndex, sizeof("?type=application/x-message-display") - 1);
     if (urlString.CharAt(typeIndex) == '&')
-      urlString.SetCharAt('?', typeIndex);
+      urlString.Replace(typeIndex, 1, '?');
     url = urlString.get();
   }
 

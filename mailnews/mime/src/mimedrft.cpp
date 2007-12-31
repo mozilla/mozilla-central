@@ -60,7 +60,6 @@
 #include "nsIPrefService.h"
 #include "nsIPrefBranch.h"
 #include "msgCore.h"
-#include "nsEscape.h"
 #include "nsIMsgSend.h"
 #include "nsMimeStringResources.h"
 #include "nsIIOService.h"
@@ -74,7 +73,6 @@
 #include "nsDirectoryServiceDefs.h"
 #include "nsIMsgMessageService.h"
 #include "nsMsgUtils.h"
-#include "nsReadableUtils.h"
 #include "nsCExternalHandlerService.h"
 #include "nsIMIMEService.h"
 #include "nsIMsgHeaderParser.h"
@@ -213,7 +211,7 @@ CreateTheComposeWindow(nsIMsgCompFields *   compFields,
           nsAutoString nameStr;
           rv = ConvertToUnicode("UTF-8", curAttachment->real_name, nameStr);
           if (NS_FAILED(rv))
-            CopyASCIItoUTF16(curAttachment->real_name, nameStr);
+            CopyASCIItoUTF16(nsDependentCString(curAttachment->real_name), nameStr);
           attachment->SetName(nameStr);
           attachment->SetUrl(spec.get());
           attachment->SetTemporary(PR_TRUE);
@@ -1501,7 +1499,7 @@ mime_parse_stream_complete (nsMIMESession *stream)
             if (body && composeFormat == nsIMsgCompFormat::PlainText)
             {
               //We need to convert the plain/text to HTML in order to escape any HTML markup
-              char *escapedBody = nsEscapeHTML(body);
+              char *escapedBody = MsgEscapeHTML(body);
               if (escapedBody)
               {
                 PR_Free(body);
@@ -2045,7 +2043,7 @@ mime_bridge_create_draft_stream(
   if (NS_SUCCEEDED(aURL->GetSpec(urlString)))
   {
     PRInt32 typeIndex = urlString.Find("&type=application/x-message-display");
-    if (typeIndex != kNotFound)
+    if (typeIndex != -1)
       urlString.Cut(typeIndex, sizeof("&type=application/x-message-display") - 1);
 
     mdd->url_name = ToNewCString(urlString);

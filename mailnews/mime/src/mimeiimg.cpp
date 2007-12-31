@@ -42,7 +42,8 @@
 #include "prlog.h"
 #include "nsMimeTypes.h"
 #include "nsMimeStringResources.h"
-#include "nsEscape.h"
+#include "nsINetUtil.h"
+#include "nsMsgUtils.h"
 
 #define MIME_SUPERCLASS mimeLeafClass
 MimeDefClass(MimeInlineImage, MimeInlineImageClass,
@@ -143,11 +144,11 @@ MimeInlineImage_parse_begin (MimeObject *obj)
     char * filename = MimeHeaders_get_name ( obj->headers, obj->options );
     if (filename)
     {
-      char *escapedName = nsEscape(filename, url_Path);
-      if (!escapedName) return MIME_OUT_OF_MEMORY;
+      nsCString escapedName;
+      MsgEscapeString(nsDependentCString(filename), nsINetUtil::ESCAPE_URL_PATH,
+                      escapedName);
       url_with_filename += "&filename=";
       url_with_filename += escapedName;
-      NS_Free(escapedName);
       PR_Free(filename);
     }
 
