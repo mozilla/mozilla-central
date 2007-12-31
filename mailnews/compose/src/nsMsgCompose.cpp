@@ -4077,8 +4077,27 @@ nsMsgCompose::BuildBodyMessageAndSignature()
     PRBool quote = PR_FALSE;
     for (PRUint32 i = 0; i < body.Length(); i ++)
     {
-      if (body[i] == '>' && (i == 0 || body[i - 1] == '\n'))
-        quote = PR_TRUE;
+      if (i == 0 || body[i - 1] == '\n')  // newline
+      {
+        if (body[i] == '>')
+        {
+          quote = PR_TRUE;
+          continue;
+        }
+        nsString s(Substring(body, i, 10));
+        if (StringBeginsWith(s, NS_LITERAL_STRING("-- \r")) ||
+            StringBeginsWith(s, NS_LITERAL_STRING("-- \n")))
+        {
+          i += 4;
+          continue;
+        }
+        if (StringBeginsWith(s, NS_LITERAL_STRING("- -- \r")) ||
+            StringBeginsWith(s, NS_LITERAL_STRING("- -- \n")))
+        {
+          i += 6;
+          continue;
+        }
+      }
       if (body[i] == '\n' && i > 1)
       {
         if (quote)
