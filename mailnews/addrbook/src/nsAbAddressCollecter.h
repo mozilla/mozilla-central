@@ -60,11 +60,11 @@ public:
   nsresult Init();
 
 private:
-  nsresult AddCardToAddressBook(nsIAbCard *card);
-  nsresult AutoCollectScreenName(nsIAbCard *aCard, const nsACString &aEmail, PRBool *aModifiedCard);
-  nsresult SetNamesForCard(nsIAbCard *aSenderCard, const nsACString &aFullName, PRBool *aModifiedCard);
-  nsresult SplitFullName (const nsACString &aFullName, nsACString &aFirstName, nsACString &aLastName);
-  nsresult SetAbURI(const nsACString &aURI);
+  void AutoCollectScreenName(nsIAbCard *aCard, const nsCString &aEmail);
+  PRBool SetNamesForCard(nsIAbCard *aSenderCard, const nsCString &aFullName);
+  void SplitFullName(const nsCString &aFullName, nsCString &aFirstName,
+                     nsCString &aLastName);
+  nsresult SetAbURI(nsCString &aURI);
   nsCOMPtr <nsIAddrDatabase> m_database;
   nsCOMPtr <nsIAbDirectory> m_directory;
   nsCString m_abURI;

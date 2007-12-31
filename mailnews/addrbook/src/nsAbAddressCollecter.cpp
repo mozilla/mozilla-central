@@ -64,12 +64,6 @@ nsAbAddressCollecter::nsAbAddressCollecter()
 
 nsAbAddressCollecter::~nsAbAddressCollecter()
 {
-  if (m_database) {
-    m_database->Commit(nsAddrDBCommitType::kSessionCommit);
-    m_database->Close(PR_FALSE);
-    m_database = nsnull;
-  }
-
   nsresult rv;
   nsCOMPtr<nsIPrefBranch2> pPrefBranchInt(do_GetService(NS_PREFSERVICE_CONTRACTID, &rv));
   if(NS_SUCCEEDED(rv))
@@ -110,27 +104,41 @@ NS_IMETHODIMP nsAbAddressCollecter::CollectAddress(const nsACString &aAddresses,
   if (NS_FAILED(rv))
     return NS_OK;
 
-  char *curName = names;
-  char *curAddress = addresses;
+  char *curNamePtr = names;
+  char *curAddressPtr = addresses;
 
   for (PRUint32 i = 0; i < numAddresses; i++)
   {
+    nsDependentCString curAddress(curAddressPtr);
+    curAddressPtr += curAddress.Length() + 1;
+
     nsCString unquotedName;
-    rv = pHeader->UnquotePhraseOrAddr(curName, PR_FALSE, getter_Copies(unquotedName));
+    rv = pHeader->UnquotePhraseOrAddr(curNamePtr, PR_FALSE,
+                                      getter_Copies(unquotedName));
+    curNamePtr += strlen(curNamePtr) + 1;
     NS_ASSERTION(NS_SUCCEEDED(rv), "failed to unquote name");
     if (NS_FAILED(rv))
       continue;
+
+    // Don't allow collection of addresses with no email address, it makes
+    // no sense. Whilst we should never get here in most normal cases, we
+    // should still be careful.
+    if (curAddress.IsEmpty())
+      continue;
+
 
     nsCOMPtr <nsIAbCard> existingCard;
     nsCOMPtr <nsIAbCard> cardInstance;
     PRBool emailAddressIn2ndEmailColumn = PR_FALSE;
 
-    rv = GetCardFromAttribute(NS_LITERAL_CSTRING(kPriEmailColumn), nsDependentCString(curAddress), getter_AddRefs(existingCard));
+    rv = GetCardFromAttribute(NS_LITERAL_CSTRING(kPriEmailColumn), curAddress,
+                              getter_AddRefs(existingCard));
     // We've not found a card, but is this address actually in the additional
     // email column?
     if (!existingCard)
     {
-      rv = GetCardFromAttribute(NS_LITERAL_CSTRING(k2ndEmailColumn), nsDependentCString(curAddress), getter_AddRefs(existingCard));
+      rv = GetCardFromAttribute(NS_LITERAL_CSTRING(k2ndEmailColumn), curAddress,
+                                getter_AddRefs(existingCard));
       if (existingCard)
         emailAddressIn2ndEmailColumn = PR_TRUE;
     }
@@ -138,39 +146,33 @@ NS_IMETHODIMP nsAbAddressCollecter::CollectAddress(const nsACString &aAddresses,
     if (!existingCard && aCreateCard)
     {
       nsCOMPtr<nsIAbCard> senderCard = do_CreateInstance(NS_ABCARDPROPERTY_CONTRACTID, &rv);
-      if (NS_SUCCEEDED(rv) && senderCard)
+      if (NS_SUCCEEDED(rv) && senderCard && m_directory)
       {
-        PRBool modifiedCard;
-        rv = SetNamesForCard(senderCard, unquotedName, &modifiedCard);
-        NS_ASSERTION(NS_SUCCEEDED(rv), "failed to set names");
+        // Set up the fields for the new card.
+        SetNamesForCard(senderCard, unquotedName);
+        AutoCollectScreenName(senderCard, curAddress);
 
-        rv = AutoCollectScreenName(senderCard, nsCString(curAddress), &modifiedCard);
-        NS_ASSERTION(NS_SUCCEEDED(rv), "failed to set screenname");
-
-        rv = senderCard->SetPrimaryEmail(NS_ConvertUTF8toUTF16(curAddress));
-        NS_ASSERTION(NS_SUCCEEDED(rv), "failed to set email");
-
-        if (aSendFormat != nsIAbPreferMailFormat::unknown)
+        if (NS_SUCCEEDED(senderCard->SetPrimaryEmail(NS_ConvertUTF8toUTF16(curAddress))))
         {
-          rv = senderCard->SetPreferMailFormat(aSendFormat);
-          NS_ASSERTION(NS_SUCCEEDED(rv), "failed to remember preferred mail format");
-        }
+          if (aSendFormat != nsIAbPreferMailFormat::unknown)
+            senderCard->SetPreferMailFormat(aSendFormat);
 
-        rv = AddCardToAddressBook(senderCard);
-        NS_ASSERTION(NS_SUCCEEDED(rv), "failed to add card");
+          nsCOMPtr<nsIAbCard> addedCard;
+          rv = m_directory->AddCard(senderCard, getter_AddRefs(addedCard));
+          NS_ASSERTION(NS_SUCCEEDED(rv), "failed to add card");
+        }
       }
     }
     else if (existingCard && !emailAddressIn2ndEmailColumn) { 
       // address is already in the AB, so update the names
-      PRBool setNames = PR_FALSE;
-      
-      if (!unquotedName.IsEmpty())
-      {
-        rv = SetNamesForCard(existingCard, unquotedName, &setNames);
-        NS_ASSERTION(NS_SUCCEEDED(rv), "failed to set names");
-      }
+      PRBool modifiedCard = PR_FALSE;
 
-      PRBool setPreferMailFormat = PR_FALSE; 
+      nsString displayName;
+      existingCard->GetDisplayName(displayName);
+      // If we already have a display name, don't set the names on the card.
+      if (displayName.IsEmpty() && !unquotedName.IsEmpty())
+        modifiedCard = SetNamesForCard(existingCard, unquotedName);
+
       if (aSendFormat != nsIAbPreferMailFormat::unknown)
       {
         PRUint32 currentFormat;
@@ -178,20 +180,14 @@ NS_IMETHODIMP nsAbAddressCollecter::CollectAddress(const nsACString &aAddresses,
         NS_ASSERTION(NS_SUCCEEDED(rv), "failed to get preferred mail format");
 
         // we only want to update the AB if the current format is unknown
-        if (currentFormat == nsIAbPreferMailFormat::unknown) 
-        {
-          rv = existingCard->SetPreferMailFormat(aSendFormat);
-          NS_ASSERTION(NS_SUCCEEDED(rv), "failed to remember preferred mail format");
-          setPreferMailFormat = PR_TRUE;
-        }
+        if (currentFormat == nsIAbPreferMailFormat::unknown &&
+            NS_SUCCEEDED(existingCard->SetPreferMailFormat(aSendFormat)))
+          modifiedCard = PR_TRUE;
       }
 
-      if ((setNames || setPreferMailFormat) && m_directory)
+      if (modifiedCard && m_directory)
         m_directory->ModifyCard(existingCard);
     }
-
-    curName += strlen(curName) + 1;
-    curAddress += strlen(curAddress) + 1;
   } 
 
   PR_FREEIF(addresses);
@@ -199,130 +195,115 @@ NS_IMETHODIMP nsAbAddressCollecter::CollectAddress(const nsACString &aAddresses,
   return NS_OK;
 }
 
-nsresult nsAbAddressCollecter::AutoCollectScreenName(nsIAbCard *aCard, const nsACString &aEmail, PRBool *aModifiedCard)
+// Works out the screen name to put on the card for some well-known addresses
+void
+nsAbAddressCollecter::AutoCollectScreenName(nsIAbCard *aCard,
+                                            const nsCString &aEmail)
 {
-  NS_ENSURE_ARG_POINTER(aCard);
-  NS_ENSURE_ARG_POINTER(aModifiedCard);
+  if (!aCard)
+    return;
 
-  *aModifiedCard = PR_FALSE;
+  PRInt32 atPos = aEmail.FindChar('@');
+  if (atPos == -1)
+    return;
 
-  nsCString email(aEmail);
-  int atPos = aEmail.FindChar('@');
-  if (atPos == -1) 
-    return NS_OK;
-    
-  nsCString domain(Substring(email, atPos + 1));
-  if (domain.IsEmpty())
-    return NS_OK; 
+  const nsACString &domain(Substring(aEmail, atPos + 1));
 
   // username in 
   // username@aol.com (America Online)
   // username@cs.com (Compuserve)
   // username@netscape.net (Netscape webmail)
   // are all AIM screennames.  autocollect that info.
-  if (domain.Equals("aol.com") || 
-      domain.Equals("cs.com") || domain.Equals("netscape.net")) {
-    nsCString userName(Substring(email, 0, atPos));
-  
-    nsresult rv = aCard->SetAimScreenName(NS_ConvertUTF8toUTF16(userName));
-    NS_ENSURE_SUCCESS(rv,rv);
-
-    *aModifiedCard = PR_TRUE;
-    return rv;
-  }
-
-  return NS_OK;
+  if (!domain.IsEmpty() &&
+      (domain.Equals("aol.com") || domain.Equals("cs.com") ||
+       domain.Equals("netscape.net")))
+    aCard->SetAimScreenName(NS_ConvertUTF8toUTF16(Substring(aEmail, 0, atPos)));
 }
 
-
-nsresult 
-nsAbAddressCollecter::SetNamesForCard(nsIAbCard *aSenderCard, const nsACString &aFullName, PRBool *aModifiedCard)
+// Returns true if the card was modified successfully.
+PRBool
+nsAbAddressCollecter::SetNamesForCard(nsIAbCard *aSenderCard,
+                                      const nsCString &aFullName)
 {
   nsCString firstName;
   nsCString lastName;
-  *aModifiedCard = PR_FALSE;
+  PRBool modifiedCard = PR_FALSE;
 
-  nsString displayName;
-  nsresult rv = aSenderCard->GetDisplayName(displayName);
-  NS_ENSURE_SUCCESS(rv,rv);
+  if (NS_SUCCEEDED(aSenderCard->SetDisplayName(NS_ConvertUTF8toUTF16(aFullName))))
+    modifiedCard = PR_TRUE;
 
-  // we already have a display name, so don't do anything
-  if (!displayName.IsEmpty())
-    return NS_OK;
+  // Now split up the full name.
+  SplitFullName(aFullName, firstName, lastName);
 
-  aSenderCard->SetDisplayName(NS_ConvertUTF8toUTF16(aFullName));
-  *aModifiedCard = PR_TRUE;
+  if (!firstName.IsEmpty() &&
+      NS_SUCCEEDED(aSenderCard->SetFirstName(NS_ConvertUTF8toUTF16(firstName))))
+    modifiedCard = PR_TRUE;
 
-  rv = SplitFullName(aFullName, firstName, lastName);
-  if (NS_SUCCEEDED(rv))
-  {
-    aSenderCard->SetFirstName(NS_ConvertUTF8toUTF16(firstName));
-    
-    if (!lastName.IsEmpty())
-      aSenderCard->SetLastName(NS_ConvertUTF8toUTF16(lastName));
-  }
-  return rv;
+  if (!lastName.IsEmpty() &&
+      NS_SUCCEEDED(aSenderCard->SetLastName(NS_ConvertUTF8toUTF16(lastName))))
+    modifiedCard = PR_TRUE;
+
+  return modifiedCard;
 }
 
-nsresult nsAbAddressCollecter::SplitFullName(const nsACString &aFullName, nsACString &aFirstName, nsACString &aLastName)
+// Splits the first and last name based on the space between them.
+void
+nsAbAddressCollecter::SplitFullName(const nsCString &aFullName, nsCString &aFirstName,
+                                    nsCString &aLastName)
 {
-  int index = nsCString(aFullName).RFindChar(' ');
-  if (index != -1) 
+  int index = aFullName.RFindChar(' ');
+  if (index != -1)
   {
     aLastName = Substring(aFullName, index + 1);
     aFirstName = Substring(aFullName, 0, index);
   }
-  return NS_OK;
 }
 
+// Observes the collected address book pref in case it changes.
 NS_IMETHODIMP nsAbAddressCollecter::Observe(nsISupports *aSubject, const char *aTopic, const PRUnichar *aData)
 {
   nsCOMPtr<nsIPrefBranch2> pPrefBranchInt = do_QueryInterface(aSubject);
-  NS_ASSERTION(pPrefBranchInt, "failed to get prefs");
+  if (!pPrefBranchInt) {
+    NS_ASSERTION(pPrefBranchInt, "failed to get prefs");
+    return NS_OK;
+  }
 
   nsresult rv;
   nsCString prefVal;
-  pPrefBranchInt->GetCharPref(PREF_MAIL_COLLECT_ADDRESSBOOK, getter_Copies(prefVal));
-  rv = SetAbURI(prefVal.IsEmpty() ? nsDependentCString(kPersonalAddressbookUri) : prefVal);
+  pPrefBranchInt->GetCharPref(PREF_MAIL_COLLECT_ADDRESSBOOK,
+                              getter_Copies(prefVal));
+  rv = SetAbURI(prefVal);
   NS_ASSERTION(NS_SUCCEEDED(rv),"failed to change collected ab");
   return NS_OK;
 }
 
+// Initialises the collecter with the required items.
 nsresult nsAbAddressCollecter::Init(void)
 {
   nsresult rv;
   nsCOMPtr<nsIPrefBranch2> pPrefBranchInt(do_GetService(NS_PREFSERVICE_CONTRACTID, &rv));
-  NS_ENSURE_SUCCESS(rv,rv);
+  NS_ENSURE_SUCCESS(rv, rv);
 
   rv = pPrefBranchInt->AddObserver(PREF_MAIL_COLLECT_ADDRESSBOOK, this, PR_FALSE);
+  NS_ENSURE_SUCCESS(rv, rv);
 
   nsCString prefVal;
-  pPrefBranchInt->GetCharPref(PREF_MAIL_COLLECT_ADDRESSBOOK, getter_Copies(prefVal));
-  return SetAbURI(prefVal.IsEmpty() ? nsDependentCString(kPersonalAddressbookUri) : prefVal);
+  pPrefBranchInt->GetCharPref(PREF_MAIL_COLLECT_ADDRESSBOOK,
+                              getter_Copies(prefVal));
+  return SetAbURI(prefVal);
 }
 
-nsresult nsAbAddressCollecter::AddCardToAddressBook(nsIAbCard *card)
+// Performs the necessary changes to set up the collecter for the specified
+// collected address book.
+nsresult nsAbAddressCollecter::SetAbURI(nsCString &aURI)
 {
-  NS_ENSURE_ARG_POINTER(card);
+  if (aURI.IsEmpty())
+    aURI.AssignLiteral(kPersonalAddressbookUri);
 
-  nsCOMPtr <nsIAbCard> addedCard;
-  if (m_directory)
-    return m_directory->AddCard(card, getter_AddRefs(addedCard));
-
-  return NS_ERROR_FAILURE;
-}
-
-nsresult nsAbAddressCollecter::SetAbURI(const nsACString &aURI)
-{
   if (aURI == m_abURI)
     return NS_OK;
 
-  if (m_database) {
-    m_database->Commit(nsAddrDBCommitType::kSessionCommit);
-    m_database->Close(PR_FALSE);
-    m_database = nsnull;
-  }
-  
+  m_database = nsnull;
   m_directory = nsnull;
   m_abURI = aURI;
 
