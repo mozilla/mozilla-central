@@ -723,11 +723,7 @@ NS_IMETHODIMP nsStreamConverter::GetContentType(char **aOutputContentType)
   //  (1) check to see if we have a real content type...use it first...
   if (!mRealContentType.IsEmpty())
     *aOutputContentType = ToNewCString(mRealContentType);
-#ifdef MOZILLA_INTERNAL_API
-  else if (mOutputFormat.LowerCaseEqualsLiteral("raw"))
-#else
-  else if (mOutputFormat.Equals("raw", CaseInsensitiveCompare))
-#endif
+  else if (mOutputFormat.Equals("raw"))
     *aOutputContentType = (char *) nsMemory::Clone(UNKNOWN_CONTENT_TYPE, sizeof(UNKNOWN_CONTENT_TYPE));
   else
     *aOutputContentType = ToNewCString(mOutputFormat);
