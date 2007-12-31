@@ -521,4 +521,99 @@ ORDER BY num_results DESC, tr.testresult_id DESC
     return \@rows, $pager;
 }
 
+#########################################################################
+sub getL10nAggregateResults($\%) {
+    my ($self,$args) = @_;
+ 
+    my $l10n;
+    
+    # If the user has specified a testday rather than a start/finish time,
+    # lookup the testday info so we can use the start/finish time from it.
+    if ($args->{'testday_id'}) {
+        my $testday = Litmus::DB::TestDay->retrieve($args->{'testday_id'});
+        if (!$testday) {
+            $l10n->{'error'} = 'Unable to retrieve testday info.';
+            return $l10n;
+        }
+        $l10n->{'testday'} = $testday;
+        $args->{'start_timestamp'} = $testday->{'start_timestamp'};
+        $args->{'finish_timestamp'} = $testday->{'finish_timestamp'};
+    }
+    
+    my $locale_where="";
+    if ($args->{'locale'}) {
+        $locale_where = " AND tr.locale_abbrev='" . quotemeta($args->{'locale'}) . "'";
+    }
+    
+    # 1. Get # test results per locale.
+    my $select = "SELECT tr.locale_abbrev,count(tr.testresult_id)";
+    my $from = "FROM test_results tr, testcases tc";
+    my $where = "WHERE tc.product_id=? AND tc.branch_id=? AND tr.testcase_id=tc.testcase_id AND tr.submission_time>=? AND tr.submission_time<=? $locale_where";
+    my $group_by = "GROUP BY tr.locale_abbrev";
+
+    my $sql = "$select $from $where $group_by";
+
+    my $dbh = Litmus::DBI->db_ReadOnly();
+    my $sth = $dbh->prepare($sql);
+    $sth->execute($args->{"product_id"},
+                  $args->{"branch_id"},
+                  $args->{"start_timestamp"},
+                  $args->{"finish_timestamp"},
+                  );  
+    while (my ($locale_abbrev,$num_results) = $sth->fetchrow_array) {
+        $l10n->{$locale_abbrev}->{'num_results'} = $num_results;
+        # Setup placeholders
+        $l10n->{$locale_abbrev}->{'num_pass'} = 0;
+        $l10n->{$locale_abbrev}->{'num_fail'} = 0;
+        $l10n->{$locale_abbrev}->{'num_unclear'} = 0;        
+        $l10n->{$locale_abbrev}->{'num_testers'} = 0;
+    }
+    $sth->finish();
+    
+    # No results? Don't bother looking up the rest.
+    unless ($l10n) {
+      $l10n->{'error'} = 'No results';
+      return $l10n;  
+    }
+
+    # 2-4. Get # passes/fails/unclear per locale
+    my $status_select = "SELECT tr.locale_abbrev,count(distinct(tr.testcase_id))";
+    my $status_where = $where;
+    $status_where .= " AND tr.result_status_id=?";
+    $sql = "$status_select $from $status_where $group_by";
+    $sth = $dbh->prepare($sql);
+    my %statuses = (
+                    'pass' => 1,
+                    'fail' => 2,
+                    'unclear' => 3
+                   );
+    foreach my $status (keys %statuses) {
+        $sth->execute($args->{"product_id"},
+                      $args->{"branch_id"},
+                      $args->{"start_timestamp"},
+                      $args->{"finish_timestamp"},
+                      $statuses{$status}
+                      );  
+        while (my ($locale_abbrev,$num_results) = $sth->fetchrow_array) {
+            $l10n->{$locale_abbrev}->{'num_' . $status} = $num_results;
+        }
+        $sth->finish();        
+    }
+    
+    # 5. Get # testers per locale
+    my $user_select = "SELECT tr.locale_abbrev,count(distinct(tr.user_id))";
+    $sql = "$user_select $from $where $group_by";
+    $sth = $dbh->prepare($sql);
+    $sth->execute($args->{"product_id"},
+                  $args->{"branch_id"},
+                  $args->{"start_timestamp"},
+                  $args->{"finish_timestamp"},
+                  );  
+    while (my ($locale_abbrev,$num_testers) = $sth->fetchrow_array) {
+        $l10n->{$locale_abbrev}->{'num_testers'} = $num_testers;
+    }
+    $sth->finish();
+    return $l10n;
+}
+
 1;

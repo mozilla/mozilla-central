@@ -134,6 +134,42 @@ if ($c->param("testcase_id")) {
   else { $login = 1 } 
   print $login;
   exit 0;
+} elsif ($c->param("l10n")) {
+  my $l10n;
+  my %args;
+  if ($c->param("product_id")) {
+    $args{"product_id"} = $c->param("product_id");
+  } else {
+    &displayJsonErrorMessage("No product_id specified.");
+    exit 1;
+  }
+  if ($c->param("branch_id")) {
+    $args{"branch_id"} = $c->param("branch_id");
+  } else {
+    &displayJsonErrorMessage("No branch_id specified.");
+    exit 1;
+  }
+  if ($c->param("locale")) {
+    $args{"locale"} = $c->param("locale");
+  }
+  if ($c->param("start_timestamp") and
+      $c->param("finish_timestamp")) {
+    $args{"start_timestamp"} = UnixDate(ParseDateString($c->param("start_timestamp")),"%q");
+    $args{"finish_timestamp"} = UnixDate(ParseDateString($c->param("finish_timestamp")),"%q");
+    if (!$args{"start_timestamp"} or 
+        !$args{"finish_timestamp"} or 
+        $args{"start_timestamp"} >= $args{"finish_timestamp"}) {
+      &displayJsonErrorMessage("Unable to parse timestamps.");      
+      exit 1;
+    }
+  } elsif ($c->param("testday_id")) {
+    $args{"testday_id"} = $c->param("testday_id");
+  } else {
+    $args{"finish_timestamp"} = UnixDate("today","%q");
+    $args{"start_timestamp"} = UnixDate(ParseDateString("1 month ago"),"%q");
+  }
+  $l10n = Litmus::DB::Testresult->getL10nAggregateResults(\%args);
+  $js = $json->objToJson($l10n);
 } elsif ($c->param("product_id")) {
   my $product_id = $c->param("product_id");
   my $product = Litmus::DB::Product->retrieve($product_id);
@@ -200,3 +236,10 @@ print $js;
 
 exit 0;
 
+#########################################################################
+sub displayJsonErrorMessage($) {
+  my ($error_msg) = @_; 
+  my %error_obj;  
+  $error_obj{'error'} = $error_msg; 
+  print $json->objToJson(\%error_obj);
+}
