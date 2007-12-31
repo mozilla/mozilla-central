@@ -78,10 +78,7 @@ menu.push[disabled="true"]:hover:active {
  -moz-box-align: start;
 }
 
-#convertYes {
-  list-style-image:url("chrome://global/skin/icons/Question.png");
-}
-
+#convertYes,
 #convertAltering {
   list-style-image:url("chrome://global/skin/icons/Question.png");
 }

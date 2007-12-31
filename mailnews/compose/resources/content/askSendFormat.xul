@@ -1,65 +1,81 @@
-<?xml version="1.0"?><!-- -*- Mode: SGML; tab-width: 4; indent-tabs-mode: nil; -*- -->
+<?xml version="1.0"?>
+<!-- ***** BEGIN LICENSE BLOCK *****
+   - Version: MPL 1.1/GPL 2.0/LGPL 2.1
+   -
+   - The contents of this file are subject to the Mozilla Public License Version
+   - 1.1 (the "License"); you may not use this file except in compliance with
+   - the License. You may obtain a copy of the License at
+   - http://www.mozilla.org/MPL/
+   -
+   - Software distributed under the License is distributed on an "AS IS" basis,
+   - WITHOUT WARRANTY OF ANY KIND, either express or implied. See the License
+   - for the specific language governing rights and limitations under the
+   - License.
+   -
+   - The Original Code is mozilla.org code.
+   -
+   - The Initial Developer of the Original Code is
+   - Netscape Communications Corporation.
+   - Portions created by the Initial Developer are Copyright (C) 2000
+   - the Initial Developer. All Rights Reserved.
+   -
+   - Contributor(s):
+   -   Jean-Francois Ducarroz <ducarroz@netscape.com>
+   -   Ben Bucksch <mozilla.BenB@bucksch.org>
+   -   Ian Neal <bugzilla@arlen.demon.co.uk>
+   -   Žiga Sancin <bisi@pikslar.com>
+   -
+   - Alternatively, the contents of this file may be used under the terms of
+   - either of the GNU General Public License Version 2 or later (the "GPL"),
+   - or the GNU Lesser General Public License Version 2.1 or later (the "LGPL"),
+   - in which case the provisions of the GPL or the LGPL are applicable instead
+   - of those above. If you wish to allow use of your version of this file only
+   - under the terms of either the GPL or the LGPL, and not to allow others to
+   - use your version of this file under the terms of the MPL, indicate your
+   - decision by deleting the provisions above and replace them with the notice
+   - and other provisions required by the GPL or the LGPL. If you do not delete
+   - the provisions above, a recipient may use your version of this file under
+   - the terms of any one of the MPL, the GPL or the LGPL.
+   -
+   - ***** END LICENSE BLOCK ***** -->
 
 <?xml-stylesheet href="chrome://messenger/skin/dialogs.css" type="text/css"?>
 
 <!DOCTYPE dialog SYSTEM "chrome://messenger/locale/messengercompose/askSendFormat.dtd">
 
 <dialog id="askSendFormat"
-    title="&windowTitle.label;"
-    xmlns="http://www.mozilla.org/keymaster/gatekeeper/there.is.only.xul"
-    buttonpack="center"
-    onload="Startup()"
-    ondialogaccept="return Send();"
-    ondialogdisclosure="return Recipients();"
-    ondialoghelp="return Help();"
-    ondialogcancel="return Cancel();">
+        title="&windowTitle.label;"
+        xmlns="http://www.mozilla.org/keymaster/gatekeeper/there.is.only.xul"
+        buttonpack="center"
+        onload="Startup();"
+        ondialogaccept="return Send();"
+        ondialogcancel="return Cancel();"
+        buttonlabelaccept="&send.label;"
+        buttonaccesskeyaccept="&send.accesskey;">
 
-<script type="application/x-javascript" src="chrome://messenger/content/messengercompose/askSendFormat.js"/>
+  <script type="application/javascript"
+          src="chrome://messenger/content/messengercompose/askSendFormat.js"/>
 
-    <spacer style="height:0.5em"/>
+  <stringbundle id="askSendFormatStringBundle"
+                src="chrome://messenger/locale/messengercompose/askSendFormat.properties"/>
+
+    <separator class="thin"/>
     <hbox>
-        <spacer style="width:10px"/>
-        <vbox id="askImageBox">
-            <image id="convertDefault" />
-        </vbox>
-        <spacer style="width:10px"/>
-        <vbox flex="1">
-            <description>&recipient.label;</description>
-            <deck id="mailSendFormatExplanation">
-                <vbox><description>&convertibleDefault.label;</description></vbox>  <!-- Hack: <vbox> is a workaround for bug 44513. -->
-                <vbox><description>&convertibleYes.label;</description></vbox>
-                <vbox><description>&convertibleAltering.label;</description></vbox>
-                <vbox><description>&convertibleNo.label;</description></vbox>
-            </deck>
-            <description>&question.label;</description>
-            <spacer style="height:1em"/>
-
-      <radiogroup id="mailDefaultHTMLAction">
-          <hbox>
-              <radio value="3" label="&plainTextAndHtml.label;"/>
-              <description id="plainTextAndHtmlRecommended" hidden="true" style="margin-top: 4px;">&recommended.label;</description>
-              <!-- Hack: box and html are workarounds for bug 49623 -->
-          </hbox>
-          <hbox>
-              <radio value="1" label="&plainTextOnly.label;"/>
-              <description id="plainTextOnlyRecommended" hidden="true" style="margin-top: 4px;">&recommended.label;</description>
-          </hbox>
-          <hbox>
-              <radio value="2" label="&htmlOnly.label;"/>
-              <description id="htmlOnlyRecommended" hidden="true" style="margin-top: 4px;">&recommended.label;</description>
-          </hbox>
-      </radiogroup>
-
-        </vbox>
-        <spacer style="width:10px"/>
+      <separator orient="vertical"/>
+      <vbox id="askImageBox">
+        <image id="convertDefault"/>
+      </vbox>
+      <separator orient="vertical"/>
+      <vbox flex="1">
+        <description>&recipient.label;</description>
+        <description id="mailSendFormatExplanation"/>
+        <description>&question.label;</description>
+        <separator/>
+        <radiogroup id="mailDefaultHTMLAction">
+          <radio value="3" label="&plainTextAndHtml.label;" accesskey="&plainTextAndHtml.accesskey;"/>
+          <radio value="1" label="&plainTextOnly.label;" accesskey="&plainTextOnly.accesskey;"/>
+          <radio value="2" label="&htmlOnly.label;" accesskey="&htmlOnly.accesskey;"/>
+        </radiogroup>
+      </vbox>
     </hbox>
-
-  <data id="hiddenLabels"
-        sendLabel="&send.label;"
-        recipientsLabel="&recipients.label;"
-        plainTextAndHtmlRecommendedLabel="&plainTextAndHtmlRecommended.label;"
-        plainTextOnlyRecommendedLabel="&plainTextOnlyRecommended.label;"
-        htmlOnlyRecommendedLabel="&htmlOnlyRecommended.label;"
-  />
-
 </dialog>

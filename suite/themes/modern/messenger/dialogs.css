@@ -100,10 +100,7 @@ treecell.importsampledata {
   -moz-box-align: start;
 }
 
-#convertYes {
-  list-style-image: url("chrome://global/skin/icons/alert-question.gif");
-}
-
+#convertYes,
 #convertAltering {
   list-style-image: url("chrome://global/skin/icons/alert-question.gif");
 }
