@@ -560,6 +560,7 @@ sub getL10nAggregateResults($\%) {
                   $args->{"start_timestamp"},
                   $args->{"finish_timestamp"},
                   );  
+    my $num_locales = 0;
     while (my ($locale_abbrev,$num_results) = $sth->fetchrow_array) {
         $l10n->{$locale_abbrev}->{'num_results'} = $num_results;
         # Setup placeholders
@@ -567,13 +568,14 @@ sub getL10nAggregateResults($\%) {
         $l10n->{$locale_abbrev}->{'num_fail'} = 0;
         $l10n->{$locale_abbrev}->{'num_unclear'} = 0;        
         $l10n->{$locale_abbrev}->{'num_testers'} = 0;
+        $num_locales++;
     }
     $sth->finish();
     
     # No results? Don't bother looking up the rest.
-    unless ($l10n) {
+    if ($num_locales == 0) {
       $l10n->{'error'} = 'No results';
-      return $l10n;  
+      return $l10n;
     }
 
     # 2-4. Get # passes/fails/unclear per locale
