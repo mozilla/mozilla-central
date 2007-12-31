@@ -50,6 +50,10 @@
 #include "nsILocalFile.h"
 #include "nsStringGlue.h"
 
+#ifdef XP_WIN
+#include "nsWindowsMain.cpp"
+#endif
+
 static void Output(const char *fmt, ... )
 {
   va_list ap;
@@ -89,13 +93,3 @@ int main(int argc, char* argv[])
   XRE_FreeAppData(appData);
   return result;
 }
-
-#if defined( XP_WIN ) && defined( WIN32 ) && !defined(__GNUC__)
-// We need WinMain in order to not be a console app.  This function is
-// unused if we are a console application.
-int WINAPI WinMain( HINSTANCE, HINSTANCE, LPSTR args, int )
-{
-    // Do the real work.
-    return main( __argc, __argv );
-}
-#endif
