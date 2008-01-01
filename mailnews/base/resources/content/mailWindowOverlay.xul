@@ -1346,18 +1346,44 @@
     <menupopup onpopupshowing="InitGoMessagesMenu();">
       <menu id="goNextMenu" label="&nextMenu.label;" accesskey="&nextMenu.accesskey;">
         <menupopup>
-          <menuitem id="nextMsgMenuItem" label="&nextMsgCmd.label;" accesskey="&nextMsgCmd.accesskey;" command="cmd_nextMsg"/>
-          <menuitem id="nextUnreadMsgMenuItem" label="&nextUnreadMsgCmd.label;" accesskey="&nextUnreadMsgCmd.accesskey;" command="cmd_nextUnreadMsg"/>
-          <menuitem label="&nextFlaggedMsgCmd.label;" accesskey="&nextFlaggedMsgCmd.accesskey;" command="cmd_nextFlaggedMsg"/>
+          <menuitem id="nextMsgMenuItem"
+                    label="&nextMsgCmd.label;"
+                    accesskey="&nextMsgCmd.accesskey;"
+                    key="key_nextMsg"
+                    command="cmd_nextMsg"/>
+          <menuitem id="nextUnreadMsgMenuItem"
+                    label="&nextUnreadMsgCmd.label;"
+                    accesskey="&nextUnreadMsgCmd.accesskey;"
+                    key="key_nextUnreadMsg"
+                    command="cmd_nextUnreadMsg"/>
+          <menuitem id="nextFlaggedMenuItem"
+                    label="&nextFlaggedMsgCmd.label;"
+                    accesskey="&nextFlaggedMsgCmd.accesskey;"
+                    command="cmd_nextFlaggedMsg"/>
           <menuseparator/>
-          <menuitem id="nextUnreadThreadMenuItem" label="&nextUnreadThread.label;" accesskey="&nextUnreadThreadCmd.accesskey;" command="cmd_nextUnreadThread"/>
+          <menuitem id="nextUnreadThreadMenuItem"
+                    label="&nextUnreadThread.label;"
+                    accesskey="&nextUnreadThreadCmd.accesskey;"
+                    key="key_nextUnreadThread"
+                    command="cmd_nextUnreadThread"/>
         </menupopup>
       </menu>
       <menu id="goPreviousMenu" label="&prevMenu.label;" accesskey="&prevMenu.accesskey;">
         <menupopup>
-          <menuitem id="prevMsgMenuItem" label="&prevMsgCmd.label;" accesskey="&previousMsgCmd.accesskey;" command="cmd_previousMsg"/>
-          <menuitem id="prevUnreadMsgMenuItem" label="&prevUnreadMsgCmd.label;" accesskey="&previousUnreadMsgCmd.accesskey;" command="cmd_previousUnreadMsg"/>
-          <menuitem label="&prevFlaggedMsgCmd.label;" accesskey="&previousFlaggedMsgCmd.accesskey;" command="cmd_previousFlaggedMsg"/>
+          <menuitem id="prevMsgMenuItem"
+                    label="&prevMsgCmd.label;"
+                    accesskey="&previousMsgCmd.accesskey;"
+                    key="key_previousMsg"
+                    command="cmd_previousMsg"/>
+          <menuitem id="prevUnreadMsgMenuItem"
+                    label="&prevUnreadMsgCmd.label;"
+                    accesskey="&previousUnreadMsgCmd.accesskey;"
+                    key="key_previousUnreadMsg"
+                    command="cmd_previousUnreadMsg"/>
+          <menuitem id="prevFlaggedMenuItem"
+                    label="&prevFlaggedMsgCmd.label;"
+                    accesskey="&previousFlaggedMsgCmd.accesskey;"
+                    command="cmd_previousFlaggedMsg"/>
         </menupopup>
       </menu>
         <menuitem label="&goBackCmd.label;" key="key_goBack" observes="cmd_goBack"/>
@@ -1613,44 +1639,54 @@
                   type="checkbox"
                   label="&markAsReadCmd.label;"
                   accesskey="&markAsReadCmd.accesskey;"
+                  key="key_toggleRead"
                   command="cmd_markAsRead"/>
         <menuitem id="markThreadReadMenuItem"
                   label="&markThreadAsReadCmd.label;"
                   accesskey="&markThreadAsReadCmd.accesskey;"
+                  key="key_markThreadAsRead"
                   command="cmd_markThreadAsRead"/>
         <menuitem id="markReadByDateMenuItem"
                   label="&markReadByDateCmd.label;"
                   accesskey="&markReadByDateCmd.accesskey;"
+                  key="key_markReadByDate"
                   command="cmd_markReadByDate"/>
-        <menuitem label="&markAllReadCmd.label;"
-                  key="key_markAllRead"
+        <menuitem id="markAllReadMenuItem"
+                  label="&markAllReadCmd.label;"
                   accesskey="&markAllReadCmd.accesskey;"
+                  key="key_markAllRead"
                   command="cmd_markAllRead"/>
         <menuseparator/>
         <menuitem id="markFlaggedMenuItem"
                   type="checkbox"
                   label="&markFlaggedCmd.label;"
                   accesskey="&markFlaggedCmd.accesskey;"
+                  key="key_toggleFlagged"
                   command="cmd_markAsFlagged"/>
         <menuseparator/>
         <menuitem id="markAsJunkMenuItem"
                   label="&markAsJunkCmd.label;"
                   accesskey="&markAsJunkCmd.accesskey;"
+                  key="key_markJunk"
                   command="cmd_markAsJunk"/>
         <menuitem id="markAsNotJunkMenuItem"
                   label="&markAsNotJunkCmd.label;"
                   accesskey="&markAsNotJunkCmd.accesskey;"
+                  key="key_markNotJunk"
                   command="cmd_markAsNotJunk"/>
-        <menuitem label="&recalculateJunkScoreCmd.label;"
+        <menuitem id="recalculateJunkScoreMenuItem"
+                  label="&recalculateJunkScoreCmd.label;"
                   accesskey="&recalculateJunkScoreCmd.accesskey;"
                   command="cmd_recalculateJunkScore"/>
         <menuitem id="markAsShowRemoteMenuitem"
                   label="&markAsShowRemoteCmd.label;"
                   accesskey="&markAsShowRemoteCmd.accesskey;"
+                  key="key_markShowRemote"
                   command="cmd_markAsShowRemote"/>
         <menuitem id="markAsNotPhishMenuItem"
                   label="&markAsNotPhishCmd.label;"
                   accesskey="&markAsNotPhishCmd.accesskey;"
+                  key="key_markNotPhish"
                   command="cmd_markAsNotPhish"/>
       </menupopup>
     </menu>
