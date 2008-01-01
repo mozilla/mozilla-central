@@ -101,9 +101,6 @@
          modifiers="&openHelpCmd.modifiers;"
          command="cmd_openHelp"/>
 
-    <key keycode="&openHelp2Cmd.key;"
-         command="cmd_openHelp"/>
-
     <key id="key_hideThisApp"
          key="&hideThisAppCmd.key;"
          modifiers="&hideThisAppCmd.modifiers;"/>

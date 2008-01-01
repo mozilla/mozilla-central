@@ -53,7 +53,6 @@
 <!ENTITY openHelpFrontend.modifiers      "accel">
 <!ENTITY openHelpCmd.key                 "/">
 <!ENTITY openHelpCmd.modifiers           "accel,shift">
-<!ENTITY openHelp2Cmd.key                "VK_HELP">
 
 <!-- Key labels, for mousewheel prefs -->
 <!ENTITY ctrlKey.label                   "Ctrl">
