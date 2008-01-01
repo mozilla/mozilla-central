@@ -60,13 +60,13 @@
   -moz-binding: url("chrome://global/content/bindings/toolbarbutton.xml#menu-vertical");
 }
 
-.toolbarbutton-1[buttonstyle="pictures"],
-.toolbarbutton-menubutton-button[buttonstyle="pictures"] {
+toolbar[mode="icons"] .toolbarbutton-1,
+toolbar[mode="icons"] .toolbarbutton-1 > .toolbarbutton-menubutton-button {
   min-width: 0px;
 }
 
-.toolbarbutton-text[buttonstyle="pictures"],
-.toolbarbutton-icon[buttonstyle="text"] {
+toolbar[mode="icons"] .toolbarbutton-1 .toolbarbutton-text,
+toolbar[mode="text"] .toolbarbutton-1 .toolbarbutton-icon {
   display: none;
 }
 

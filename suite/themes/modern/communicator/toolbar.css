@@ -56,8 +56,8 @@
   border-left: none;
 }
 
-.toolbar-primary-holder[buttonstyle="pictures"],
-.toolbar-primary-holder[buttonstyle="text"] {
+.toolbar-primary-holder[mode="icons"],
+.toolbar-primary-holder[mode="text"] {
   background-image: url("chrome://communicator/skin/toolbar/prtb-bg-noline.gif");
 }
 
@@ -68,18 +68,17 @@
   background-position: top;
 }
 
-.toolbar-primary-icon[buttonstyle="pictures"],
-.toolbar-primary-icon[buttonstyle="text"] {
+.toolbar-primary-icon[mode="icons"],
+.toolbar-primary-icon[mode="text"] {
   display: none;
 }
 
-.toolbarbutton-1[buttonstyle="text"] > stack > .toolbarbutton-menubutton-dropmarker {
+toolbar[mode="text"] .toolbarbutton-1 > .toolbarbutton-menubutton-stack
+  > .toolbarbutton-menubutton-dropmarker {
   margin: 0px 2px 0px 38px !important;
 }
 
-.toolbarbutton-1[buttonstyle="text"] > stack > .toolbarbutton-menubutton-button 
-  > .toolbarbutton-text,
-.toolbarbutton-1[buttonstyle="text"] > .toolbarbutton-text {
+toolbar[mode="text"] .toolbarbutton-1 .toolbarbutton-text {
   margin: 5px 0px !important;
 }
 

@@ -71,7 +71,8 @@
   -moz-image-region: rect(102px 199px 135px 150px) !important;
 } 
 
-#button-getmsg[buttonstyle="text"] > stack > .toolbarbutton-menubutton-dropmarker {
+toolbar[mode="text"] #button-getmsg > .toolbarbutton-menubutton-stack
+  > .toolbarbutton-menubutton-dropmarker {
   margin: 0px 2px 0px 55px !important;
 }
 

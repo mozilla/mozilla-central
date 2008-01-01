@@ -157,20 +157,17 @@ toolbox {
   display: inline !important;
 }
 
-#forward-button[buttonstyle="text"] > stack > .toolbarbutton-menubutton-dropmarker {
+toolbar[mode="text"] #forward-button > .toolbarbutton-menubutton-stack
+  > .toolbarbutton-menubutton-dropmarker {
   margin: 0px 2px 0px 56px !important;
 }
 
-.toolbarbutton-1[buttonstyle="text"] > stack > .toolbarbutton-menubutton-button 
-  > .toolbarbutton-text,
-.toolbarbutton-1[buttonstyle="text"] > .toolbarbutton-text {
+toolbar[mode="text"] .toolbarbutton-1 .toolbarbutton-text {
   display: -moz-box !important;
   margin-top: 10px !important;
 }
 
-.toolbarbutton-1[buttonstyle="text"] > stack > .toolbarbutton-menubutton-button 
-  > .toolbarbutton-icon,
-.toolbarbutton-1[buttonstyle="text"] > .toolbarbutton-icon {
+toolbar[mode="text"] .toolbarbutton-1 .toolbarbutton-icon {
   display: none !important;
 }
 
@@ -279,10 +276,6 @@ toolbox {
   border: none;
 }
 
-#nav-bar[toolbarmode="small"] > #nav-bar-buttons {
-  -moz-box-align: center;
-}
-
 #nav-bar[toolbarmode="small"] > .toolbar-primary-grippy {
   display: none;
 }
@@ -386,10 +379,6 @@ toolbox {
   background-image: url("chrome://communicator/skin/toolbar/prtb-bg-noline.gif");
 }
 
-#nav-bar-buttons {
-  margin: 0px 0px 3px 3px;
-}
-
 /* ::::: navbar-inner - the grooved area around the urlbar ::::: */
 
 #nav-bar-inner {
@@ -405,20 +394,22 @@ toolbox {
   min-width: 0px;
 }
 
-#nav-bar-inner[buttonstyle="text"] {  
+toolbar[mode="text"] #nav-bar-inner {
   margin: 2px 0px 2px 5px;
   border: 0px;
 }
 
-#search-button[buttonstyle="text"] {
+toolbar[mode="text"] #nav-bar-inner > #search-button {
   margin-right: 0px;
 }
 
-#search-button[buttonstyle="text"] > .button-box > .button-icon {
+toolbar[mode="text"] #nav-bar-inner > #search-button > .button-box
+  > .button-icon {
   display: none;
 }
 
-#search-button[buttonstyle="pictures"] > .button-box > .button-text {
+toolbar[mode="icons"] #nav-bar-inner > #search-button > .button-box
+  > .button-text {
   display: none;
 }
 

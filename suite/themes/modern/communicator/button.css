@@ -82,20 +82,22 @@
   display: none;
 }
 
-.toolbarbutton-1[buttonstyle="text"] {
+toolbar[mode="text"] .toolbarbutton-1 {
   min-width: 46px;
 }
 
-.toolbarbutton-text[buttonstyle="pictures"],
-.toolbarbutton-icon[buttonstyle="text"] {
+toolbar[mode="icons"] .toolbarbutton-1 .toolbarbutton-text,
+toolbar[mode="text"] .toolbarbutton-1 .toolbarbutton-icon {
   display: none;
 }
 
-.toolbarbutton-menubutton-dropmarker[buttonstyle="pictures"] {
+toolbar[mode="icons"] .toolbarbutton-1 > .toolbarbutton-menubutton-stack
+  > .toolbarbutton-menubutton-dropmarker {
   margin: 20px 0px 0px 40px;
 }
 
-.toolbarbutton-menubutton-dropmarker[buttonstyle="text"] {
+toolbar[mode="text"] .toolbarbutton-1 > .toolbarbutton-menubutton-stack
+  > .toolbarbutton-menubutton-dropmarker {
   margin: 8px 0px 0px 40px;
 }
 

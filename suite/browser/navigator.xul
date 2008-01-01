@@ -142,8 +142,8 @@
     <toolbar class="toolbar-primary chromeclass-toolbar" id="nav-bar" persist="collapsed" 
              grippytooltiptext="&navigationToolbar.tooltip;"
              fullscreentoolbar="true">
-      <hbox id="nav-bar-buttons">
-        <toolbarbutton id="back-button" type="menu-button" class="toolbarbutton-1"
+        <toolbarbutton id="back-button" type="menu-button"
+                       class="toolbarbutton-1 chromeclass-toolbar-additional"
                        label="&backButton.label;"
                        oncommand="if (event.target==this) BrowserBack(); else gotoHistoryIndex(event);"
                        observes="canGoBack" context="backMenu"
@@ -151,7 +151,8 @@
           <menupopup context="" onpopupshowing="BrowserBackMenu(event);"/>
         </toolbarbutton>
         
-        <toolbarbutton id="forward-button" type="menu-button" class="toolbarbutton-1"
+        <toolbarbutton id="forward-button" type="menu-button"
+                       class="toolbarbutton-1 chromeclass-toolbar-additional"
                        label="&forwardButton.label;"
                        oncommand="if (event.target==this) BrowserForward(); else gotoHistoryIndex(event);"
                        observes="canGoForward" context="forwardMenu"
@@ -159,19 +160,19 @@
           <menupopup context="" onpopupshowing="BrowserForwardMenu(event);"/>
         </toolbarbutton>
         
-        <toolbarbutton id="reload-button" class="toolbarbutton-1"
+        <toolbarbutton id="reload-button"
+                       class="toolbarbutton-1 chromeclass-toolbar-additional"
                        label="&reloadButton.label;"
                        oncommand="if (event.shiftKey) BrowserReloadSkipCache(); else BrowserReload();"  
                        tooltiptext="&reloadButton.tooltip;"/>
                        
-        <toolbarbutton id="stop-button" class="toolbarbutton-1"
+        <toolbarbutton id="stop-button"
+                       class="toolbarbutton-1 chromeclass-toolbar-additional"
                        label="&stopButton.label;"
                        oncommand="BrowserStop();" observes="canStop"  
                        tooltiptext="&stopButton.tooltip;"/>
-      </hbox>
  
       <hbox id="nav-bar-inner" flex="1">
-        <observes element="nav-bar" attribute="buttonstyle"/>
         <!-- Need hidden label on textbox for accessibility, because what 
              receives focus needs a text name -->
         <label control="urlbar" hidden="true" value="&locationBar.title;"/>
@@ -225,7 +226,8 @@
                 tooltiptext="&searchButton.tooltip;"/> 
       </hbox>
 
-      <toolbarbutton id="print-button" type="menu-button" class="toolbarbutton-1"
+      <toolbarbutton id="print-button" type="menu-button"
+                     class="toolbarbutton-1 chromeclass-toolbar-additional"
                      label="&printButton.label;"
                      oncommand="if (event.target==this) PrintUtils.print();"
                      tooltiptext="&printButton.tooltip;">  
