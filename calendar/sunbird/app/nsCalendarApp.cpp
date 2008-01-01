@@ -51,7 +51,7 @@
 #include "nsStringGlue.h"
 
 #ifdef XP_WIN
-#include "nsWindowsMain.cpp"
+#include "nsWindowsWMain.cpp"
 #endif
 
 static void Output(const char *fmt, ... )
