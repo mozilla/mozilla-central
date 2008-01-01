@@ -8723,7 +8723,7 @@ fi
 EOF
 
   else
-      { echo "configure: error: dtrace enabled but sys/std.h not found" 1>&2; exit 1; };
+      { echo "configure: error: dtrace enabled but sys/sdt.h not found" 1>&2; exit 1; };
   fi
 fi
 
