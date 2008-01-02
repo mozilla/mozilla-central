@@ -30,6 +30,9 @@
 use strict;
 use warnings;
 
+# set this to true if the try server is down for maintenance
+my $MAINTENANCE_MODE = 0;
+
 # essentially, the size limit for the file. (in reality, the size limit for
 # the POST as a whole)
 # 10*1024*1024 is 10MB
@@ -115,7 +118,7 @@ sub WritePage
 <head>
 <title>MozillaTry Buildbot Test Page</title>
 <!-- Favicon courtesy of FAMFAMFAM silk - http://famfamfam.com/ -->
-<link rel="shortcut icon" href="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABAAAAAQCAYAAAAf8/9hAAAABGdBTUEAAK/INwWK6QAAABl0RVh0U29mdHdhcmUAQWRvYmUgSW1hZ2VSZWFkeXHJZTwAAAHMSURBVDjLlZLBSyJhGMa/UxTUIWJ0ZVmlwxLLEiEhurCoKeqCOtZN7J4ZRZdd9rSG6NFbSOegDp5aqWWI3UGm6KBUxsq2LLj+CzV9jDOH8NlvJtqLjuXhBy/z8Xvel4chAMhTKGfOMeVsbqXf2wBp3s5Yf5hno8rp24YxS9PTVHq18mTAgzj3k4mCIs0cqZeLUCTHJ1q13VKRSz0v4PRNVr1KQfu9Aa31BZ2LKKg42aHfJ8ZNA9i5L9hWUZFeQ73kof3N42SPR6OyjFZ1FZ36AuQfo5CPyc7gDiRHttNYwsl+Apqmodvt4uJrCur1GmSB/GI4TAOo9JKjVasQi8VQr9ehqiqazSaqu1Fofz5C/kYow9M3gJVkp+JUJZFIIJ1Oo1gsolwu42hngcmfdfmecS4fki3TC3ieN2SPx4NAIIB4PA7lPIo70YY7YQJyhdhNS3yU3W43/H4/LBaLvnWbbbxnvGNyQz4gmb4ByWQShULBkH0+HziOg/6die+ZKOjzzQEZYXzoCYhEIsjn8z3yI0wKmf7KwWAQuVwOLpcLXq+3Rx4EyWQyaLfbcDqdCIVCQ8n/A2q1GkqlklHYMLIREA6HN/WzrVbr0LLOP1AMs7UPAa92AAAAAElFTkSuQmCC"/>
+<link rel="shortcut icon" href="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABAAAAAQCAYAAAAf8/9hAAAABGdBTUEAAK/INwWK6QAAABl0RVh0U29mdHdhcmUAQWRvYmUgSW1hZ2VSZWFkeXHJZTwAAAHMSURBVDjLlZLBSyJhGMa/UxTUIWJ0ZVmlwxLLEiEhurCoKeqCOtZN7J4ZRZdd9rSG6NFbSOegDp5aqWWI3UGm6KBUxsq2LLj+CzV9jDOH8NlvJtqLjuXhBy/z8Xvel4chAMhTKGfOMeVsbqXf2wBp3s5Yf5hno8rp24YxS9PTVHq18mTAgzj3k4mCIs0cqZeLUCTHJ1q13VKRSz0v4PRNVr1KQfu9Aa31BZ2LKKg42aHfJ8ZNA9i5L9hWUZFeQ73kof3N42SPR6OyjFZ1FZ36AuQfo5CPyc7gDiRHttNYwsl+Apqmodvt4uJrCur1GmSB/GI4TAOo9JKjVasQi8VQr9ehqiqazSaqu1Fofz5C/kYow9M3gJVkp+JUJZFIIJ1Oo1gsolwu42hngcmfdfmecS4fki3TC3ieN2SPx4NAIIB4PA7lPIo70YY7YQJyhdhNS3yU3W43/H4/LBaLvnWbbbxnvGNyQz4gmb4ByWQShULBkH0+HziOg/6die+ZKOjzzQEZYXzoCYhEIsjn8z3yI0wKmf7KwWAQuVwOLpcLXq+3Rx4EyWQyaLfbcDqdCIVCQ8n/A2q1GkqlklHYMLIREA6HN/WzrVbr0LLOP1AMs7UPAa92AAAAAElFTkSuQmCC">
 <style type="text/css">
   body {
     /* Background image courtesy of flickr user Compound Eye, http://flickr.com/photos/paopix/199190129 */
@@ -248,6 +251,13 @@ __END_OF_HTML__
 <div id="main">
 
 <div id="types">
+__END_OF_HTML__
+    if ($MAINTENANCE_MODE) {
+        print '  <h2 style="text-align:center;">';
+        print 'The Try Server is currently down for maintenance';
+        print "</h2>\n";
+    }
+    print <<__END_OF_HTML__;
   <h3>Welcome to the Mozilla Buildbot Try Server</h3>
   <p>The try server is an easy way to test a patch on all 3 platforms without
   committing to a repository.  For more information, check the <a
@@ -257,11 +267,11 @@ __END_OF_HTML__
   <ul id="testType">
     <li>
     <input id="patch" name="type" value="patch" onclick="use_patchFile();"
-      type="radio" />
+      type="radio">
       <label for="patch">Upload a Patch</label>
     </li>
     <li>
-      <input id="hg" name="type" value="hg" onclick="use_hg();" type="radio" />
+      <input id="hg" name="type" value="hg" onclick="use_hg();" type="radio">
       <label for="hg">Test a Mercurial Repository</label>
     </li>
   </ul>
@@ -271,7 +281,7 @@ __END_OF_HTML__
   <tr>
     <td class="lbl" id="patchfield"><label for="patchFile">Patch:</label></td>
     <td class="field">
-      <input id="patchFile" name="patchFile" type="file"/>
+      <input id="patchFile" name="patchFile" type="file">
     </td>
   </tr>
   <tr>
@@ -294,7 +304,7 @@ __END_OF_HTML__
   <tr>
     <td class="lbl"><label for="branch">Branch/Tag:</label></td>
     <td class="field">
-      <input id="branch" name="branch" type="text" value="$branch" />
+      <input id="branch" name="branch" type="text" value="$branch">
     </td>
   </tr>
 </table>
@@ -306,7 +316,7 @@ __END_OF_HTML__
     </td>
     <td class="field">
       <input id="mozilla-repo" name="mozilla-repo" value="$mozillaRepoPath"
-        type="text" />(required)
+        type="text">(required)
     </td>
   </tr>
   <tr>
@@ -315,7 +325,7 @@ __END_OF_HTML__
     </td>
     <td class="field">
       <input id="tamarin-repo" name="tamarin-repo" value="$tamarinRepoPath"
-        type="text" />(required)
+        type="text">(required)
     </td>
   </tr>
 </table>
@@ -327,13 +337,13 @@ __END_OF_HTML__
         title="A string that will be appended to all package names"><sup>?</sup></span>:
     </td>
     <td class="field">
-      <input id="identifier" type="text" name="identifier" value="$identifier"/>
+      <input id="identifier" type="text" name="identifier" value="$identifier">
     </td>
   </tr>
   <tr>
     <td class="lbl"><label for="mozconfig">Alternate mozconfig:</label></td>
     <td class="field">
-      <input id="mozconfig" type="file" name="mozconfig" />
+      <input id="mozconfig" type="file" name="mozconfig">
     </td>
   </tr>
   <tr>
@@ -344,7 +354,7 @@ __END_OF_HTML__
     </td>
   </tr>
   <tr>
-    <td/>
+    <td></td>
     <td>
       <input value="Submit" type="submit">
     </td>
