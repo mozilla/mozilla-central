@@ -960,6 +960,16 @@ nsNetscapeProfileMigratorBase::CopyOtherData(PRBool aReplace)
 
   nsresult rv = CopyFile(FILE_NAME_SEARCH, FILE_NAME_SEARCH);
 
+  nsCOMPtr<nsIFile> sourceSearchDir;
+  mSourceProfile->Clone(getter_AddRefs(sourceSearchDir));
+  sourceSearchDir->AppendNative(nsDependentCString(DIR_NAME_SEARCH));
+
+  nsCOMPtr<nsIFile> targetSearchDir;
+  mTargetProfile->Clone(getter_AddRefs(targetSearchDir));
+  targetSearchDir->AppendNative(nsDependentCString(DIR_NAME_SEARCH));
+
+  rv = rv | RecursiveCopy(sourceSearchDir, targetSearchDir);
+
   return rv | CopyFile(FILE_NAME_DOWNLOADS, FILE_NAME_DOWNLOADS);
 }
 
