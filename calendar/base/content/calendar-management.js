@@ -111,10 +111,12 @@ function loadCalendarManager() {
 
         // Wrapping this in a try/catch block, as if any of the migration code
         // fails, the app may not load.
-        try {
-            gDataMigrator.checkAndMigrate();
-        } catch (e) {
-            Components.utils.reportError("Migrator error: " + e);
+        if (getPrefSafe("calendar.migrator.enabled", true)) {
+            try {
+                gDataMigrator.checkAndMigrate();
+            } catch (e) {
+                Components.utils.reportError("Migrator error: " + e);
+            }
         }
 
         calendars = [homeCalendar];
