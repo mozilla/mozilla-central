@@ -207,7 +207,7 @@ nsAbAddressCollecter::AutoCollectScreenName(nsIAbCard *aCard,
   if (atPos == -1)
     return;
 
-  const nsACString &domain(Substring(aEmail, atPos + 1));
+  const nsACString& domain = Substring(aEmail, atPos + 1);
 
   // username in 
   // username@aol.com (America Online)
