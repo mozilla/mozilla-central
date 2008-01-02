@@ -270,7 +270,6 @@ public:
   if ((self = [super initWithFrame:bounds])) {
     mDefaultFont = defaultFont;
     mUndoManager = [[NSUndoManager alloc] init];
-    [self setDelegate:self];
   }
   return self;
 }
@@ -305,17 +304,15 @@ public:
   }
 }
 
-- (NSUndoManager *)undoManagerForTextView:(NSTextView *)aTextView
+- (NSUndoManager*)undoManager
 {
-  if (aTextView == self)
-    return mUndoManager;
-  return nil;
+  return mUndoManager;
 }
 
 // Opt-return and opt-enter should download the URL in the location bar
 - (void)insertNewlineIgnoringFieldEditor:(id)sender
 {
-  BrowserWindowController* bwc = (BrowserWindowController *)[[[self delegate] window] delegate];
+  BrowserWindowController* bwc = (BrowserWindowController *)[[self window] delegate];
   [bwc saveURL:nil url:[self string] suggestedFilename:nil];
 }
 
@@ -4761,7 +4758,7 @@ enum BWCOpenDest {
 - (NSUndoManager *)windowWillReturnUndoManager:(NSWindow *)sender
 {
   if ([[self window] firstResponder] == mURLFieldEditor)
-    return [mURLFieldEditor undoManagerForTextView:mURLFieldEditor];
+    return [mURLFieldEditor undoManager];
   
   return [[BookmarkManager sharedBookmarkManager] undoManager];
 }
