@@ -523,7 +523,6 @@ calItemBase.prototype = {
         "STATUS": true,
         "CLASS": true,
         "DTSTAMP": true,
-        "X-MOZILLA-GENERATION": true,
         "RRULE": true,
         "EXDATE": true,
         "RDATE": true,
@@ -582,10 +581,6 @@ calItemBase.prototype = {
             org.isOrganizer = true;
             this.mOrganizer = org;
         }
-        
-        var gen = icalcomp.getFirstProperty("X-MOZILLA-GENERATION");
-        if (gen)
-            this.mGeneration = parseInt(gen.value);
 
         // find recurrence properties
         var rec = null;
@@ -679,6 +674,20 @@ calItemBase.prototype = {
         throw Components.results.NS_ERROR_NOT_IMPLEMENTED;
     },
 
+    get generation() {
+        if (this.mGeneration === undefined) {
+            var gen = this.getProperty("X-MOZ-GENERATION");
+            this.mGeneration = (gen ? parseInt(gen) : 0);
+        }
+        return this.mGeneration;
+    },
+    set generation(aValue) {
+        this.modify();
+        this.mGeneration = aValue;
+        this.setProperty("X-MOZ-GENERATION", String(aValue));
+        return aValue;
+    },
+
     fillIcalComponentFromBase: function (icalcomp) {
         // Make sure that the LMT and ST are updated
         this.updateStampTime();
@@ -693,12 +702,6 @@ calItemBase.prototype = {
           for (var i = 0; i < attendees.length; i++) {
             icalcomp.addProperty(attendees[i].icalProperty);
           }
-        }
-
-        if (this.mGeneration) {
-            var genprop = icalProp("X-MOZILLA-GENERATION");
-            genprop.value = String(this.mGeneration);
-            icalcomp.addProperty(genprop);
         }
 
         if (this.mRecurrenceInfo) {
@@ -752,7 +755,6 @@ calItemBase.prototype = {
     }
 };
 
-makeMemberAttr(calItemBase, "X-MOZILLA-GENERATION", 0, "generation", true);
 makeMemberAttr(calItemBase, "CREATED", null, "creationDate", true);
 makeMemberAttr(calItemBase, "SUMMARY", null, "title", true);
 makeMemberAttr(calItemBase, "PRIORITY", 0, "priority", true);

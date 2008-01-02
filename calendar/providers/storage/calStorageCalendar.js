@@ -359,7 +359,6 @@ calStorageCalendar.prototype = {
         }
 
         aItem.calendar = this.superCalendar;
-        aItem.generation = 1;
         aItem.makeImmutable();
 
         this.flushItem (aItem, null);

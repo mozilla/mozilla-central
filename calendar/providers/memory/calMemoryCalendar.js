@@ -165,7 +165,6 @@ calMemoryCalendar.prototype = {
             }
         }
         
-        aItem.generation = 1;
         aItem.makeImmutable();
         this.mItems[aItem.id] = aItem;
 
