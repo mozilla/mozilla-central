@@ -46,6 +46,7 @@
 #include "nsIEventTarget.h"
 #include "nsMsgTxn.h"
 #include "nsMsgKeyArray.h"
+#include "nsTArray.h"
 #include "nsIMsgOfflineImapOperation.h"
 #include "nsCOMPtr.h"
 #include "nsWeakReference.h"
@@ -99,7 +100,7 @@ protected:
   PRBool m_idsAreUids;
   PRBool m_isMove;
   PRBool m_srcIsPop3;
-  nsUInt32Array m_srcSizeArray;
+  nsTArray<PRUint32> m_srcSizeArray;
 
   nsresult GetImapDeleteModel(nsIMsgFolder* aFolder, nsMsgImapDeleteModel *aDeleteModel);
 };

@@ -43,6 +43,7 @@
 #include "nsMailboxService.h"
 #include "nsMsgTxn.h"
 #include "nsMsgKeyArray.h"
+#include "nsTArray.h"
 #include "nsCOMPtr.h"
 #include "nsIUrlListener.h"
 #include "nsIWeakReference.h"
@@ -87,12 +88,12 @@ public:
 private:
     nsWeakPtr m_srcFolder;
     nsMsgKeyArray m_srcKeyArray; // used when src is local or imap
-    nsUInt32Array m_srcStatusOffsetArray; // used when src is local
+    nsTArray<PRUint32> m_srcStatusOffsetArray; // used when src is local
     nsWeakPtr m_dstFolder;
     nsMsgKeyArray m_dstKeyArray;
     PRBool m_isMove;
     PRBool m_srcIsImap4;
-    nsUInt32Array m_dstSizeArray;
+    nsTArray<PRUint32> m_dstSizeArray;
     nsLocalUndoFolderListener *mUndoFolderListener;
 };
 

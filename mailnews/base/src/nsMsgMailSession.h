@@ -49,7 +49,7 @@
 #include "nsIObserver.h"
 #include "nsIMutableArray.h"
 #include "nsIMsgProgress.h"
-#include "nsUInt32Array.h"
+#include "nsTArray.h"
 
 ///////////////////////////////////////////////////////////////////////////////////
 // The mail session is a replacement for the old 4.x MSG_Master object. It contains
@@ -76,7 +76,7 @@ public:
 
 protected:
   nsCOMArray<nsIFolderListener> mListeners; 
-  nsUInt32Array mListenerNotifyFlags;
+  nsTArray<PRUint32> mListenerNotifyFlags;
 
   nsCOMArray<nsIMsgWindow> mWindows;
   // stick this here temporarily

@@ -93,7 +93,7 @@ nsImapMoveCopyMsgTxn::Init(nsIMsgFolder* srcFolder, nsMsgKeyArray* srcKeyArray,
         PRUint32 msgSize;
         rv = srcHdr->GetMessageSize(&msgSize);
         if (NS_SUCCEEDED(rv))
-          m_srcSizeArray.Add(msgSize);
+          m_srcSizeArray.AppendElement(msgSize);
         if (isMove)
         {
           srcDB->GetNextPseudoMsgKey(&pseudoKey);
@@ -378,19 +378,19 @@ nsImapMoveCopyMsgTxn::UndoMailboxDelete()
         nsCOMPtr<nsIMsgDBHdr> newHdr;
         for (i=0; i<count; i++)
         {
-           oldHdr = do_QueryElementAt(m_srcHdrs, i);
-           NS_ASSERTION(oldHdr, "fatal ... cannot get old msg header\n");
-           rv = srcDB->CopyHdrFromExistingHdr(m_srcKeyArray.GetAt(i),
-                                              oldHdr,PR_TRUE,
-                                              getter_AddRefs(newHdr));
-           NS_ASSERTION(newHdr, "fatal ... cannot create new header\n");
-			
-           if (NS_SUCCEEDED(rv) && newHdr)
-           {
-		        if (i < m_srcSizeArray.GetSize())
-                newHdr->SetMessageSize(m_srcSizeArray.GetAt(i));
+            oldHdr = do_QueryElementAt(m_srcHdrs, i);
+            NS_ASSERTION(oldHdr, "fatal ... cannot get old msg header\n");
+            rv = srcDB->CopyHdrFromExistingHdr(m_srcKeyArray.GetAt(i),
+                                               oldHdr,PR_TRUE,
+                                               getter_AddRefs(newHdr));
+            NS_ASSERTION(newHdr, "fatal ... cannot create new header\n");
+
+            if (NS_SUCCEEDED(rv) && newHdr)
+            {
+                if (i < m_srcSizeArray.Length())
+                    newHdr->SetMessageSize(m_srcSizeArray[i]);
                 srcDB->UndoDelete(newHdr);
-		   }
+            }
         }
         srcDB->SetSummaryValid(PR_TRUE);
         return NS_OK; // always return NS_OK

@@ -89,7 +89,7 @@ nsresult nsMsgMailSession::Shutdown()
 NS_IMETHODIMP nsMsgMailSession::AddFolderListener(nsIFolderListener * listener, PRUint32 notifyFlags)
 {
   mListeners.AppendObject(listener);
-  mListenerNotifyFlags.Add(notifyFlags);
+  mListenerNotifyFlags.AppendElement(notifyFlags);
   return NS_OK;
 }
 
@@ -99,7 +99,7 @@ NS_IMETHODIMP nsMsgMailSession::RemoveFolderListener(nsIFolderListener * listene
   NS_ASSERTION(index >= 0, "removing non-existent listener");
   if (index >= 0)
   {
-    mListenerNotifyFlags.RemoveAt(index);
+    mListenerNotifyFlags.RemoveElementAt(index);
     mListeners.RemoveObjectAt(index);
   }
   return NS_OK;

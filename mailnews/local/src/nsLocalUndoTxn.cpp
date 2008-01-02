@@ -132,7 +132,7 @@ nsLocalMoveCopyMsgTxn::AddSrcKey(nsMsgKey aKey)
 nsresult
 nsLocalMoveCopyMsgTxn::AddSrcStatusOffset(PRUint32 aStatusOffset)
 {
-  m_srcStatusOffsetArray.Add(aStatusOffset);
+  m_srcStatusOffsetArray.AppendElement(aStatusOffset);
   return NS_OK;
 }
 
@@ -147,7 +147,7 @@ nsLocalMoveCopyMsgTxn::AddDstKey(nsMsgKey aKey)
 nsresult
 nsLocalMoveCopyMsgTxn::AddDstMsgSize(PRUint32 msgSize)
 {
-    m_dstSizeArray.Add(msgSize);
+    m_dstSizeArray.AppendElement(msgSize);
     return NS_OK;
 }
 
@@ -306,7 +306,7 @@ nsLocalMoveCopyMsgTxn::UndoTransactionInternal()
                        "fatal ... cannot create new msg header\n");
           if (NS_SUCCEEDED(rv) && newHdr)
           {
-            newHdr->SetStatusOffset(m_srcStatusOffsetArray.GetAt(i));
+            newHdr->SetStatusOffset(m_srcStatusOffsetArray[i]);
             srcDB->UndoDelete(newHdr);
             msgSupports = do_QueryInterface(newHdr);
             srcMessages->AppendElement(msgSupports);
@@ -370,8 +370,8 @@ nsLocalMoveCopyMsgTxn::RedoTransaction()
       NS_ASSERTION(newHdr, "fatal ... cannot get new msg header\n");
       if (NS_SUCCEEDED(rv) && newHdr)
       {
-        if (m_dstSizeArray.GetSize() > i)
-          rv = newHdr->SetMessageSize(m_dstSizeArray.GetAt(i));
+        if (i < m_dstSizeArray.Length())
+          rv = newHdr->SetMessageSize(m_dstSizeArray[i]);
         dstDB->UndoDelete(newHdr);
       }
     }
