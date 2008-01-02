@@ -232,12 +232,6 @@ nsSpatialNavigationService::Observe(nsISupports *aSubject, const char *aTopic, c
 //  XPCOM REGISTRATION BELOW
 //------------------------------------------------------------------------------
 
-#define SpatialNavigation_CID \
-{ 0xd1b91385, 0xe1c1, 0x46ec, \
-{0x8d, 0x15, 0x88, 0x0c, 0x45, 0xbe, 0x8e, 0x0e} }
-
-#define SpatialNavigation_ContractID "@mozilla.org/spatialNavigation/service;1"
-
 #define SpatialNavigationService_CID \
 { 0x4125624b, 0xaf22, 0x4d50, \
 { 0x87, 0xf6, 0x40, 0x19, 0xc9, 0x85, 0x7b, 0x58} }
@@ -268,7 +262,7 @@ static NS_METHOD SpatialNavigationServiceRegistration(nsIComponentManager *aComp
   char* previous = nsnull;
   rv = catman->AddCategoryEntry("app-startup",
                                 "SpatialNavigationService", 
-                                SpatialNavigationService_ContractID,
+                                "service," SpatialNavigationService_ContractID,
                                 PR_TRUE, 
                                 PR_TRUE, 
                                 &previous);
