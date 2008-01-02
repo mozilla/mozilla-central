@@ -1231,13 +1231,6 @@ NS_IMETHODIMP nsAbCardProperty::ConvertToXMLPrintData(nsAString &aXMLSubstr)
   xmlStr.SetLength(4096); // to reduce allocations. should be enough for most cards
   xmlStr.AssignLiteral("<GeneratedName>\n");
 
-  nsString heading;
-  rv = bundle->GetStringFromName(NS_LITERAL_STRING("headingCardFor").get(), getter_Copies(heading));
-  NS_ENSURE_SUCCESS(rv, rv);
-
-  xmlStr.Append(heading);
-  xmlStr.Append(PRUnichar(' '));
-
   // use ScanTXT to convert < > & to safe values.
   nsString safeText;
   if (!generatedName.IsEmpty()) {
@@ -1276,10 +1269,11 @@ NS_IMETHODIMP nsAbCardProperty::ConvertToXMLPrintData(nsAString &aXMLSubstr)
 
     xmlStr.AppendLiteral("<section><sectiontitle>");
 
-    rv = bundle->GetStringFromName(NS_LITERAL_STRING("headingAddresses").get(), getter_Copies(heading));
+    nsString headingAddresses;
+    rv = bundle->GetStringFromName(NS_LITERAL_STRING("headingAddresses").get(), getter_Copies(headingAddresses));
     NS_ENSURE_SUCCESS(rv, rv);
 
-    xmlStr.Append(heading);
+    xmlStr.Append(headingAddresses);
     xmlStr.AppendLiteral("</sectiontitle>");
 
     nsCOMPtr<nsIRDFService> rdfService = do_GetService("@mozilla.org/rdf/rdf-service;1", &rv);
