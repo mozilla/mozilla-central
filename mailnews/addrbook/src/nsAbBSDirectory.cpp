@@ -247,24 +247,20 @@ NS_IMETHODIMP nsAbBSDirectory::CreateDirectoryByURI(const nsAString &aDisplayNam
 
 struct GetDirectories
 {
-  GetDirectories (DIR_Server* aServer) :
-  mServer (aServer)
-  {
-    NS_NewISupportsArray(getter_AddRefs(directories));
-  }
+  GetDirectories(DIR_Server* aServer) : mServer(aServer) { }
 
-  nsCOMPtr<nsISupportsArray> directories;
+  nsCOMArray<nsIAbDirectory> directories;
   DIR_Server* mServer;
 };
 
 PR_STATIC_CALLBACK(PLDHashOperator)
-GetDirectories_getDirectory(nsISupports *aKey, DIR_Server* &aData, void* aClosure)
+GetDirectories_getDirectory(nsISupports *aKey, DIR_Server* aData, void* aClosure)
 {
   GetDirectories* getDirectories = (GetDirectories*)aClosure;
 
   if (aData == getDirectories->mServer) {
     nsCOMPtr<nsIAbDirectory> abDir = do_QueryInterface(aKey);
-    getDirectories->directories->AppendElement(abDir);
+    getDirectories->directories.AppendObject(abDir);
   }
 
   return PL_DHASH_NEXT;
@@ -291,24 +287,22 @@ NS_IMETHODIMP nsAbBSDirectory::DeleteDirectory(nsIAbDirectory *directory)
     return NS_ERROR_FAILURE;
 
   GetDirectories getDirectories(server);
-  mServers.Enumerate(GetDirectories_getDirectory, (void *)&getDirectories);
+  mServers.EnumerateRead(GetDirectories_getDirectory,
+                         (void*)&getDirectories);
 
   DIR_DeleteServerFromList(server);
-  
+
   nsCOMPtr<nsIAbDirFactoryService> dirFactoryService = 
     do_GetService(NS_ABDIRFACTORYSERVICE_CONTRACTID,&rv);
   NS_ENSURE_SUCCESS (rv, rv);
 
-  PRUint32 count;
-  rv = getDirectories.directories->Count(&count);
-  NS_ENSURE_SUCCESS(rv, rv);
+  PRUint32 count = getDirectories.directories.Count();
 
   nsCOMPtr<nsIAddrBookSession> abSession =
     do_GetService(NS_ADDRBOOKSESSION_CONTRACTID);
-  
+
   for (PRUint32 i = 0; i < count; i++) {
-    nsCOMPtr<nsIAbDirectory> d;
-    getDirectories.directories->GetElementAt(i, getter_AddRefs(d));
+    nsCOMPtr<nsIAbDirectory> d = getDirectories.directories[i];
 
     mServers.Remove(d);
     rv = mSubDirectories.RemoveObject(d);
