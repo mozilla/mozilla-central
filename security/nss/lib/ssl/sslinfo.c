@@ -34,7 +34,7 @@
  * the terms of any one of the MPL, the GPL or the LGPL.
  *
  * ***** END LICENSE BLOCK ***** */
-/* $Id: sslinfo.c,v 1.16 2007-02-28 19:47:38 rrelyea%redhat.com Exp $ */
+/* $Id: sslinfo.c,v 1.17 2008-01-03 19:04:37 wtc%google.com Exp $ */
 #include "ssl.h"
 #include "sslimpl.h"
 #include "sslproto.h"
@@ -47,7 +47,8 @@ SSL_GetChannelInfo(PRFileDesc *fd, SSLChannelInfo *info, PRUintn len)
     sslSessionID *   sid;
 
     if (!info || len < sizeof inf.length) { 
-    	return SECSuccess;
+	PORT_SetError(SEC_ERROR_INVALID_ARGS);
+	return SECFailure;
     }
 
     ss = ssl_FindSocket(fd);
