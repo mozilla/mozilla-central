@@ -22,7 +22,8 @@
 #   Ben Hearsum <bhearsum@mozilla.com>
 # ***** END LICENSE BLOCK *****
 
-from os import path
+import os
+from os import path, chmod
 from time import localtime, strftime
 import re
 
@@ -253,6 +254,7 @@ class MozillaUploadTryBuild(ShellCommand):
                                    % (changer, filename))
 
         self.setCommand(["scp", slavesrc, self.scpString])
+        ShellCommand.start(self)
 
 
 class MozillaTryServerHgClone(Mercurial):
