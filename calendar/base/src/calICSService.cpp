@@ -405,9 +405,21 @@ nsresult calIcalProperty::getDatetime_(calIcalComponent * parent,
                 NS_ASSERTION(zone, tzid_);
             }
             if (zone) {
-                nsCOMPtr<calIIcalComponent> const tzComp(
-                    new calIcalComponent(icaltimezone_get_component(const_cast<icaltimezone *>(zone)),
-                                         comp));
+                // We need to decouple this (inner) VTIMEZONE from the parent VCALENDAR to avoid
+                // running into circular references (referenced timezones):
+                icaltimezone * const clonedZone = icaltimezone_new();
+                CAL_ENSURE_MEMORY(clonedZone);
+                icalcomponent * const clonedZoneComp =
+                    icalcomponent_new_clone(icaltimezone_get_component(const_cast<icaltimezone *>(zone)));
+                if (!clonedZoneComp) {
+                    icaltimezone_free(clonedZone, 1 /* free struct */);
+                    CAL_ENSURE_MEMORY(clonedZoneComp);
+                }
+                if (!icaltimezone_set_component(clonedZone, clonedZoneComp)) {
+                    icaltimezone_free(clonedZone, 1 /* free struct */);
+                    return NS_ERROR_INVALID_ARG;
+                }
+                nsCOMPtr<calIIcalComponent> const tzComp(new calIcalComponent(clonedZone, clonedZoneComp));
                 CAL_ENSURE_MEMORY(tzComp);
                 tz = new calTimezone(calTimezone::IS_FOREIGN, tzComp, tzid);
                 CAL_ENSURE_MEMORY(tz);
@@ -449,7 +461,13 @@ nsresult calIcalProperty::getDatetime_(calIcalComponent * parent,
 calIcalComponent::~calIcalComponent()
 {
     if (!mParent) {
-        icalcomponent_free(mComponent);
+        // We free either a plain icalcomponent or a icaltimezone.
+        // In the latter case icaltimezone_free frees the VTIMEZONE component.
+        if (mTimezone) {
+            icaltimezone_free(mTimezone, 1 /* free struct */);
+        } else {
+            icalcomponent_free(mComponent);
+        }
     }
 }
 
@@ -807,15 +825,17 @@ calIcalComponent::GetIcalComponent()
 NS_IMETHODIMP_(icaltimezone *)
 calIcalComponent::GetIcalTimezone()
 {
-    // xxx todo: weak assumption that this VTIMEZONE still has a parent since
-    //           we need it to get an icaltimezone...
-    NS_ASSERTION(mParent, "VTIMEZONE has no parent!");
-    if (!mTimezone && mParent && icalcomponent_isa(mComponent) == ICAL_VTIMEZONE_COMPONENT) {
-        icalproperty * const tzidProp = icalcomponent_get_first_property(mComponent, ICAL_TZID_PROPERTY);
-        NS_ASSERTION(tzidProp, "no TZID property in VTIMEZONE!?");
-        if (tzidProp) {
-            mTimezone = icalcomponent_get_timezone(mParent->GetIcalComponent(),
-                                                   icalvalue_get_string(icalproperty_get_value(tzidProp)));
+    NS_ASSERTION(icalcomponent_isa(mComponent) == ICAL_VTIMEZONE_COMPONENT, "no VTIMEZONE -- unexpected!");
+    if (!mTimezone && (icalcomponent_isa(mComponent) == ICAL_VTIMEZONE_COMPONENT)) {
+        // xxx todo: libical needs a parent VCALENDAR to retrieve a icaltimezone
+        NS_ASSERTION(mParent, "VTIMEZONE has no parent!");
+        if (mParent) {
+            icalproperty * const tzidProp = icalcomponent_get_first_property(mComponent, ICAL_TZID_PROPERTY);
+            NS_ASSERTION(tzidProp, "no TZID property in VTIMEZONE!?");
+            if (tzidProp) {
+                mTimezone = icalcomponent_get_timezone(mParent->GetIcalComponent(),
+                                                       icalvalue_get_string(icalproperty_get_value(tzidProp)));
+            }
         }
     }
     return mTimezone;

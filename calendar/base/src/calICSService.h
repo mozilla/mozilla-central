@@ -97,6 +97,11 @@ public:
         mReferencedTimezones.Init();
     }
 
+    // VTIMEZONE ctor
+    calIcalComponent(icaltimezone * icaltz, icalcomponent * ical) : mComponent(ical), mTimezone(icaltz) {
+        mReferencedTimezones.Init();
+    }
+    
     NS_DECL_ISUPPORTS
     NS_DECL_CALIICALCOMPONENT
 
