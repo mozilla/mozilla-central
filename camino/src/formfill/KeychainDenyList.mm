@@ -39,6 +39,10 @@
 #import "KeychainDenyList.h"
 #import "PreferenceManager.h"
 
+// Xcode 2.x's ld dead-strips this symbol.  Xcode 3.0's ld is fine.
+asm(".no_dead_strip .objc_class_name_KeychainDenyList");
+
+
 @interface KeychainDenyList (KeychainDenyListPrivate)
 - (void)writeToDisk;
 - (NSString*)pathToDenyListFile;
