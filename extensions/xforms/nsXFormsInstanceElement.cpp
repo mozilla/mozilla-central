@@ -43,7 +43,7 @@
 #include "nsIDOM3Node.h"
 #include "nsMemory.h"
 #include "nsXFormsAtoms.h"
-#include "nsString.h"
+#include "nsStringAPI.h"
 #include "nsIDOMEventTarget.h"
 #include "nsIDOMDOMImplementation.h"
 #include "nsIXTFElementWrapper.h"
@@ -582,7 +582,7 @@ nsXFormsInstanceElement::LoadExternalInstance(const nsAString &aSrc)
     if (doc->GetProperty(nsXFormsAtoms::isInstanceDocument)) {
       /// Property exists, which means we are an instance document trying
       /// to load an external instance document. We do not allow that.
-      const nsPromiseFlatString& flat = PromiseFlatString(aSrc);
+      const nsString& flat = PromiseFlatString(aSrc);
       const PRUnichar *strings[] = { flat.get() };
       nsXFormsUtils::ReportError(NS_LITERAL_STRING("instanceInstanceLoad"),
                                  strings, 1, mElement, mElement);
@@ -592,8 +592,7 @@ nsXFormsInstanceElement::LoadExternalInstance(const nsAString &aSrc)
         nsCOMPtr<nsIDocument> newDoc = do_QueryInterface(mDocument);
 
         nsCOMPtr<nsIURI> uri;
-        NS_NewURI(getter_AddRefs(uri), aSrc,
-                  doc->GetDocumentCharacterSet().get(), doc->GetDocumentURI());
+        nsXFormsUtils::GetNewURI(doc, aSrc, getter_AddRefs(uri));
         if (uri) {
           if (nsXFormsUtils::CheckConnectionAllowed(mElement, uri)) {
             nsCOMPtr<nsILoadGroup> loadGroup;

@@ -41,7 +41,7 @@
 #define nsXFormsControlStub_h_
 
 #include "nsCOMPtr.h"
-#include "nsString.h"
+#include "nsStringAPI.h"
 
 #include "nsIDOMElement.h"
 #include "nsIDOMNode.h"

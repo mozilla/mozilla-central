@@ -37,11 +37,10 @@
  *
  * ***** END LICENSE BLOCK ***** */
 
-#include "nsString.h"
+#include "nsStringAPI.h"
 #include "nsIDOMElement.h"
 #include "nsXFormsUtils.h"
 #include "nsXFormsAccessors.h"
-#include "nsDOMString.h"
 #include "nsIEventStateManager.h"
 #include "nsIContent.h"
 #include "nsIXFormsControl.h"
@@ -72,7 +71,7 @@ nsXFormsAccessors::GetValue(nsAString &aValue)
   if (mDelegate) {
     mDelegate->GetValue(aValue);
   } else {
-    SetDOMStringToNull(aValue);
+    aValue.SetIsVoid(PR_TRUE);
   }
   return NS_OK;
 }

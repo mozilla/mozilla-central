@@ -44,8 +44,7 @@
 #include "nsAutoPtr.h"
 #include "nsCOMPtr.h"
 #include "nsMemory.h"
-#include "nsString.h"
-#include "nsDOMString.h"
+#include "nsStringAPI.h"
 #include "nsIDOM3Node.h"
 #include "nsIDOMDocument.h"
 #include "nsIDOMElement.h"
@@ -107,7 +106,7 @@ nsXFormsOutputElement::nsXFormsOutputElement()
 nsresult
 nsXFormsOutputElement::Bind(PRBool *aContextChanged)
 {
-  SetDOMStringToNull(mValue);
+  mValue.SetIsVoid(PR_TRUE);
   mUseValueAttribute = PR_FALSE;
 
   nsresult rv = nsXFormsDelegateStub::Bind(aContextChanged);

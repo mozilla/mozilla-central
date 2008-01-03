@@ -39,8 +39,7 @@
 #include "nsSchemaDuration.h"
 
 // string includes
-#include "nsReadableUtils.h"
-#include "nsString.h"
+#include "nsStringAPI.h"
 #include "nsUnicharUtils.h"
 
 // XPCOM includes

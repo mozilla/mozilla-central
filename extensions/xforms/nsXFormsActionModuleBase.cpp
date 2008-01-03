@@ -43,7 +43,7 @@
 #include "nsMemory.h"
 #include "nsIDOMNodeList.h"
 #include "nsXFormsModelElement.h"
-#include "nsString.h"
+#include "nsStringAPI.h"
 #include "nsIDOMElement.h"
 #include "nsIDOMNodeList.h"
 #include "nsIXTFElementWrapper.h"

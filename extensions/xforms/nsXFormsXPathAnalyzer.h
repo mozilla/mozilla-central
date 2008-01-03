@@ -46,7 +46,7 @@
 #include "nsIDOMXPathNSResolver.h"
 #include "nsIDOMNode.h"
 #include "nsCOMPtr.h"
-#include "nsString.h"
+#include "nsStringAPI.h"
 #include "nsVoidArray.h"
 #include "nsIXFormsXPathState.h"
 

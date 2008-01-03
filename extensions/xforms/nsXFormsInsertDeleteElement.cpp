@@ -47,7 +47,7 @@
 #include "nsIXFormsRepeatElement.h"
 #include "nsIXFormsControl.h"
 
-#include "nsString.h"
+#include "nsStringAPI.h"
 
 #include "nsIInstanceElementPrivate.h"
 #include "nsXFormsActionModuleBase.h"

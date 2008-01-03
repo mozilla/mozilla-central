@@ -41,15 +41,15 @@
 
 #include "nsXFormsStubElement.h"
 #include "nsIRequestObserver.h"
-#include "nsIInputStream.h"
+#include "nsIAsyncInputStream.h"
 #include "nsCOMPtr.h"
 #include "nsIModelElementPrivate.h"
 #include "nsIXFormsSubmitElement.h"
 #include "nsIXFormsSubmissionElement.h"
 #include "nsIChannelEventSink.h"
 #include "nsIInterfaceRequestor.h"
-#include "nsHashSets.h"
 #include "nsIDocument.h"
+#include "nsDataHashtable.h"
 
 
 class nsIMultiplexInputStream;
@@ -154,16 +154,18 @@ private:
   nsCOMPtr<nsIXFormsSubmitElement> mActivator;
 
   // input end of pipe, which contains response data.
-  nsCOMPtr<nsIInputStream>         mPipeIn;
+  nsCOMPtr<nsIAsyncInputStream>    mPipeIn;
 
   /**
    * @return true if aTestURI has the same origin as aBaseURI or if
    * there is no need for a same origin check.
    */
   PRBool CheckSameOrigin(nsIDocument *aBaseDocument, nsIURI *aTestURI);
-  nsresult AddNameSpaces(nsIDOMElement* aTarget, nsIDOMNode* aSource,
-                         nsStringHashSet* aPrefixHash);
-  nsresult GetIncludeNSPrefixesAttr(nsStringHashSet** aHash);
+  nsresult AddNameSpaces(
+             nsIDOMElement* aTarget, nsIDOMNode* aSource,
+             nsDataHashtable<nsStringHashKey, PRUint32>* aPrefixHash);
+  nsresult GetIncludeNSPrefixesAttr(
+             nsDataHashtable<nsStringHashKey, PRUint32>** aHash);
 
   /**
    * Send xforms-submit-done/-error, depending on |aSucceeded|

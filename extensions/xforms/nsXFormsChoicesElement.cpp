@@ -39,7 +39,7 @@
 #include "nsIXFormsSelectChild.h"
 #include "nsXFormsStubElement.h"
 #include "nsIDOMHTMLOptGroupElement.h"
-#include "nsString.h"
+#include "nsStringAPI.h"
 #include "nsCOMPtr.h"
 #include "nsIXTFElementWrapper.h"
 #include "nsIDOMDocument.h"

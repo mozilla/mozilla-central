@@ -41,7 +41,7 @@
 #include "nsComponentManagerUtils.h"
 #include "nsIDOMDocument.h"
 #include "nsIDOMElement.h"
-#include "nsString.h"
+#include "nsStringAPI.h"
 #include "nsXFormsUtils.h"
 #include "prprf.h"
 #include "txDouble.h"
@@ -380,8 +380,8 @@ nsXFormsXPathFunctions::Now(nsAString & aResult)
 
     PR_FormatTime(ctime, sizeof(ctime), "%Y-%m-%dT%H:%M:%S\0", &time);
 
-    aResult.AssignASCII(ctime);
-    AppendASCIItoUTF16(zone_location, aResult);
+    aResult.AssignLiteral(ctime);
+    aResult.Append(NS_ConvertASCIItoUTF16(zone_location));
 
     return NS_OK;
 }

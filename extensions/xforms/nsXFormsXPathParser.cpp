@@ -39,6 +39,7 @@
 
 #include "nsXFormsXPathParser.h"
 #include "nscore.h"
+#include "stdio.h"
 
 /*
  * @todo GIANT hack. Without exceptions everything had to be rewritten, and

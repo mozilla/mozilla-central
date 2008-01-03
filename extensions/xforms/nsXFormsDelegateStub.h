@@ -42,7 +42,7 @@
 
 #include "nsAutoPtr.h"
 #include "nsCOMPtr.h"
-#include "nsString.h"
+#include "nsStringAPI.h"
 #include "nsIDOMElement.h"
 #include "nsIDelegateInternal.h"
 #include "nsXFormsControlStub.h"

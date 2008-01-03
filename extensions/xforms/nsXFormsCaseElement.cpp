@@ -44,7 +44,7 @@
 #include "nsIXFormsSwitchElement.h"
 #include "nsCOMPtr.h"
 #include "nsIDOMElement.h"
-#include "nsString.h"
+#include "nsStringAPI.h"
 #include "nsIXTFElementWrapper.h"
 
 /**

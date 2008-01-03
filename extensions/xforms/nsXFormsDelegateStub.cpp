@@ -46,7 +46,6 @@
 #include "nsIDOMDocumentView.h"
 #include "nsIDOMAbstractView.h"
 #include "nsIDOMDocumentEvent.h"
-#include "nsDOMString.h"
 #include "nsIModelElementPrivate.h"
 #include "nsIXFormsUIWidget.h"
 #include "nsXFormsAtoms.h"
@@ -142,7 +141,7 @@ nsXFormsDelegateStub::TryFocus(PRBool* aOK)
 NS_IMETHODIMP
 nsXFormsDelegateStub::GetValue(nsAString& aValue)
 {
-  SetDOMStringToNull(aValue);
+  aValue.SetIsVoid(PR_TRUE);
   if (mBoundNode) {
     nsXFormsUtils::GetNodeValue(mBoundNode, aValue);
   }
@@ -174,7 +173,7 @@ nsXFormsDelegateStub::GetHasBoundNode(PRBool *aHasBoundNode)
 NS_IMETHODIMP
 nsXFormsDelegateStub::ReportError(const nsAString& aErrorMsg)
 {
-  const nsPromiseFlatString& flat = PromiseFlatString(aErrorMsg);
+  const nsString& flat = PromiseFlatString(aErrorMsg);
   nsXFormsUtils::ReportError(flat, mElement);
   return NS_OK;
 }
@@ -182,7 +181,7 @@ nsXFormsDelegateStub::ReportError(const nsAString& aErrorMsg)
 NS_IMETHODIMP
 nsXFormsDelegateStub::ReportErrorMessage(const nsAString& aErrorMsg)
 {
-  const nsPromiseFlatString& flat = PromiseFlatString(aErrorMsg);
+  const nsString& flat = PromiseFlatString(aErrorMsg);
   nsXFormsUtils::ReportErrorMessage(flat, mElement);
   return NS_OK;
 }

@@ -39,7 +39,7 @@
 #include "nsXFormsActionModuleBase.h"
 #include "nsIDOMDocument.h"
 #include "nsIDOMElement.h"
-#include "nsString.h"
+#include "nsStringAPI.h"
 #include "nsCOMPtr.h"
 
 class nsXFormsSetFocusElement : public nsXFormsActionModuleBase

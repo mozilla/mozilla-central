@@ -42,7 +42,7 @@
 #include "nsIDOMEvent.h"
 #include "nsIDOMElement.h"
 #include "nsIDOMEventTarget.h"
-#include "nsString.h"
+#include "nsStringAPI.h"
 #include "nsXFormsUtils.h"
 
 class nsXFormsDispatchElement : public nsXFormsActionModuleBase

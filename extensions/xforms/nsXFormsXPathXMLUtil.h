@@ -37,7 +37,7 @@
  *
  * ***** END LICENSE BLOCK ***** */
 
-#include "nsString.h"
+#include "nsStringAPI.h"
 
 /**
  * Miscellaneous utility functions for determining the class of a character, used by

@@ -42,7 +42,7 @@
 #include "nsIDOM3Node.h"
 #include "nsXFormsUtils.h"
 #include "nsIDOMElement.h"
-#include "nsString.h"
+#include "nsStringAPI.h"
 
 /**
  * Implementation of the XForms \<value\> element.

@@ -41,7 +41,7 @@
 #include "nsXFormsAtoms.h"
 #include "nsIDocument.h"
 #include "nsIDOMNode.h"
-#include "nsString.h"
+#include "nsStringAPI.h"
 
 // Form controls
 NS_HIDDEN_(nsresult) NS_NewXFormsInputElement(nsIXTFElement **aElement);

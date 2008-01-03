@@ -690,8 +690,7 @@ nsXFormsMessageElement::HandleModalAndModelessMessage(nsIDOMDocument* aDoc,
     nsCOMPtr<nsIDocument> doc(do_QueryInterface(aDoc));
     NS_ENSURE_STATE(doc);
     nsCOMPtr<nsIURI> uri;
-    NS_NewURI(getter_AddRefs(uri), src, doc->GetDocumentCharacterSet().get(),
-              doc->GetDocumentURI());
+    nsXFormsUtils::GetNewURI(doc, src, getter_AddRefs(uri));
     NS_ENSURE_STATE(uri);
     nsCAutoString uriSpec;
     uri->GetSpec(uriSpec);
@@ -941,8 +940,7 @@ nsXFormsMessageElement::TestExternalFile()
   nsCOMPtr<nsIDocument> doc(do_QueryInterface(domDoc));
   NS_ENSURE_STATE(doc);
   nsCOMPtr<nsIURI> uri;
-  NS_NewURI(getter_AddRefs(uri), src, doc->GetDocumentCharacterSet().get(),
-            doc->GetDocumentURI());
+  nsXFormsUtils::GetNewURI(doc, src, getter_AddRefs(uri));
   NS_ENSURE_STATE(uri);
 
   if (!nsXFormsUtils::CheckConnectionAllowed(mElement, uri)) {

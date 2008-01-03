@@ -55,7 +55,6 @@ EXPORT_LIBRARY	= 1
 MODULE_NAME	= schemavalidation
 endif
 GRE_MODULE      = 1
-MOZILLA_INTERNAL_API = 1
 
 REQUIRES	= xpcom \
 		  string \
@@ -80,12 +79,14 @@ CPPSRCS		= \
 		nsSchemaValidatorUtils.cpp \
 		$(NULL)
 
+
 EXTRA_DSO_LDOPTS = \
 		$(LIBS_DIR) \
-		$(MOZ_COMPONENT_LIBS) \
+		$(MOZ_COMPONENT_NSPR_LIBS) \
 		$(ZLIB_LIBS) \
 		$(MOZ_JS_LIBS) \
-		$(MOZ_UNICHARUTIL_LIBS) \
+		$(LIBXUL_DIST)/lib/$(LIB_PREFIX)unicharutil_external_s.$(LIB_SUFFIX) \
+		$(XPCOM_GLUE_LDOPTS) \
 		$(NULL)
 EXTRA_COMPONENTS = nsSchemaValidatorRegexp.js
 

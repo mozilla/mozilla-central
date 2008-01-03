@@ -37,9 +37,8 @@
  * ***** END LICENSE BLOCK ***** */
 
 #include "nsXFormsRangeAccessors.h"
-#include "nsDOMString.h"
 #include "nsIDOMElement.h"
-#include "nsString.h"
+#include "nsStringAPI.h"
 #include "nsXFormsUtils.h"
 
 NS_IMPL_ISUPPORTS_INHERITED2(nsXFormsRangeAccessors,
@@ -56,7 +55,7 @@ nsXFormsRangeAccessors::AttributeGetter(const nsAString &aAttr, nsAString &aVal)
     mElement->GetAttribute(aAttr, val);
   }
   if (val.IsEmpty()) {
-    SetDOMStringToNull(aVal);
+    aVal.SetIsVoid(PR_TRUE);
   } else {
     aVal = val;
   }

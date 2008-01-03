@@ -41,7 +41,7 @@
 #include "nsIXTFElementWrapper.h"
 #include "nsXFormsUtils.h"
 #include "nsIDOMElement.h"
-#include "nsString.h"
+#include "nsStringAPI.h"
 #include "nsIXFormsItemElement.h"
 
 /**

@@ -37,7 +37,7 @@
  * ***** END LICENSE BLOCK ***** */
 #include "nsAutoPtr.h"
 #include "nsCOMPtr.h"
-#include "nsString.h"
+#include "nsStringAPI.h"
 
 #include "nsIDOM3Node.h"
 #include "nsIDOMElement.h"

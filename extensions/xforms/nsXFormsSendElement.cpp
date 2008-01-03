@@ -38,7 +38,7 @@
 
 #include "nsXFormsActionModuleBase.h"
 #include "nsIDOMDocument.h"
-#include "nsString.h"
+#include "nsStringAPI.h"
 #include "nsCOMPtr.h"
 
 class nsXFormsSendElement : public nsXFormsActionModuleBase

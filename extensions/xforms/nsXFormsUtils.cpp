@@ -38,7 +38,7 @@
  * ***** END LICENSE BLOCK ***** */
 
 #include "nsXFormsUtils.h"
-#include "nsString.h"
+#include "nsStringAPI.h"
 #include "nsXFormsAtoms.h"
 #include "nsIDOMElement.h"
 #include "nsIDOMNSHTMLElement.h"
@@ -61,12 +61,9 @@
 #include "nsIDOMLocation.h"
 #include "nsIDOMSerializer.h"
 #include "nsIContent.h"
-#include "nsIAttribute.h"
 #include "nsXFormsAtoms.h"
 #include "nsIXFormsRepeatElement.h"
 #include "nsIContentPolicy.h"
-#include "nsContentUtils.h"
-#include "nsContentPolicyUtils.h"
 #include "nsIXFormsContextControl.h"
 #include "nsIDOMDocumentEvent.h"
 #include "nsIDOMEvent.h"
@@ -81,7 +78,6 @@
 
 #include "nsIScriptSecurityManager.h"
 #include "nsIPermissionManager.h"
-#include "nsServiceManagerUtils.h"
 #include "nsIDOMAttr.h"
 #include "nsIDOM3Node.h"
 #include "nsIConsoleService.h"
@@ -97,6 +93,7 @@
 #include "nsXFormsSchemaValidator.h"
 #include "prdtoa.h"
 
+#include "nsIPref.h"
 #include "nsIPrefBranch.h"
 #include "nsIPrefService.h"
 #include "nsIDOMDocumentView.h"
@@ -115,6 +112,11 @@
 #include "nsIInterfaceRequestor.h"
 #include "nsIInterfaceRequestorUtils.h"
 #include "nsIPrompt.h"
+#include "nsComponentManagerUtils.h"
+#include "nsServiceManagerUtils.h"
+#include "nsIDocShell.h"
+#include "nsIDocCharset.h"
+#include "nsNetUtil.h"
 
 // For locale aware string methods
 #include "plstr.h"
@@ -566,7 +568,7 @@ nsXFormsUtils::EvaluateXPath(const nsAString        &aExpression,
 
   PRBool throwException = PR_FALSE;
   if (!expression) {
-    const nsPromiseFlatString& flat = PromiseFlatString(aExpression);
+    const nsString& flat = PromiseFlatString(aExpression);
     const PRUnichar *strings[] = { flat.get() };
     nsXFormsUtils::ReportError(NS_LITERAL_STRING("exprParseError"),
                                strings, 1, aContextNode, nsnull);
@@ -611,7 +613,7 @@ nsXFormsUtils::EvaluateXPath(const nsAString        &aExpression,
     }
 
     if (rv == NS_ERROR_XFORMS_CALCULATION_EXCEPTION) {
-      const nsPromiseFlatString& flat = PromiseFlatString(aExpression);
+      const nsString& flat = PromiseFlatString(aExpression);
       const PRUnichar *strings[] = { flat.get() };
       nsXFormsUtils::ReportError(NS_LITERAL_STRING("exprEvaluateError"),
                                  strings, 1, aContextNode, nsnull);
@@ -782,7 +784,7 @@ nsXFormsUtils::EvaluateNodeBinding(nsIDOMElement           *aElement,
             const PRUnichar* colon;
             rv = parserService->CheckQName(expr, PR_TRUE, &colon);
             if (NS_SUCCEEDED(rv)) {
-              nsAutoString namespaceURI(EmptyString());
+              nsAutoString namespaceURI;
 
               // if we detect a namespace, we'll add it to the node, otherwise
               // we'll use the empty namespace.  If we should have gotten a
@@ -1572,7 +1574,7 @@ nsXFormsUtils::CheckSameOrigin(nsIDocument   *aBaseDocument,
   // permitted to access sites from other domains.
 
   nsCOMPtr<nsIPermissionManager> permMgr =
-      do_GetService(NS_PERMISSIONMANAGER_CONTRACTID);
+    do_GetService(NS_PERMISSIONMANAGER_CONTRACTID);
   NS_ENSURE_TRUE(permMgr, PR_FALSE);
 
   nsCOMPtr<nsIURI> principalURI;
@@ -1600,17 +1602,28 @@ nsXFormsUtils::CheckContentPolicy(nsIDOMElement *aElement,
 {
   NS_ASSERTION(aElement && aDoc && aURI, "Got null parameters?!");
 
+  nsIURI *docURI = aDoc->GetDocumentURI();
+  NS_ENSURE_TRUE(docURI, PR_FALSE);
+
+  nsresult rv;
+  nsCOMPtr<nsIContentPolicy> policy =
+    do_GetService("@mozilla.org/layout/content-policy;1", &rv);
+  if (NS_FAILED(rv) || !policy) {
+    return PR_FALSE;
+  }
+
   PRInt16 decision = nsIContentPolicy::ACCEPT;
-  nsresult rv = NS_CheckContentLoadPolicy(nsIContentPolicy::TYPE_OTHER,
-                                          aURI,
-                                          aDoc->NodePrincipal(),
-                                          aElement,        // context
-                                          EmptyCString(),  // mime guess
-                                          nsnull,          // extra
-                                          &decision);
+  rv = policy->ShouldLoad(nsIContentPolicy::TYPE_OTHER,
+                          aURI,
+                          docURI,
+                          aElement,        // context
+                          EmptyCString(),  // mime guess
+                          nsnull,          // extra
+                          &decision);
+
   NS_ENSURE_SUCCESS(rv, PR_FALSE);
 
-  return NS_CP_ACCEPTED(decision);
+  return (decision == nsIContentPolicy::ACCEPT);
 }
 
 /*static*/ PRBool
@@ -1765,7 +1778,7 @@ nsXFormsUtils::ReportError(const nsAString& aMessage, const PRUnichar **aParams,
     nsCOMPtr<nsIStringBundle> bundle;
     bundleService->CreateBundle("chrome://xforms/locale/xforms.properties",
                                 getter_AddRefs(bundle));
-    nsXPIDLString message;
+    nsString message;
     if (aParams) {
       bundle->FormatStringFromName(PromiseFlatString(aMessage).get(), aParams,
                                    aParamLength, getter_Copies(message));
@@ -2604,7 +2617,7 @@ nsXFormsUtils::GetMonths(const nsAString & aValue, PRInt32 * aMonths)
 
   *aMonths = 0;
   nsCOMPtr<nsISchemaDuration> duration;
-  nsCOMPtr<nsISchemaValidator> schemaValidator = 
+  nsCOMPtr<nsISchemaValidator> schemaValidator =
     do_CreateInstance("@mozilla.org/schemavalidator;1");
   NS_ENSURE_TRUE(schemaValidator, NS_ERROR_FAILURE);
 
@@ -2714,16 +2727,15 @@ nsXFormsUtils::GetSecondsFromDateTime(const nsAString & aValue,
     return NS_OK;
   }
 
-  const nsAString& fraction = Substring(aValue, findFractionalSeconds+1,
+  const nsAString& fraction = Substring(aValue, findFractionalSeconds + 1,
                                         aValue.Length());
 
   PRBool done = PR_FALSE;
   PRUnichar currentChar;
   nsCAutoString fractionResult;
-  nsAString::const_iterator start, end, buffStart;
-  fraction.BeginReading(start);
-  fraction.BeginReading(buffStart);
-  fraction.EndReading(end);
+  const PRUnichar *start = nsnull, *end = nsnull, *buffStart = nsnull;
+  fraction.BeginReading(&start, &end);
+  fraction.BeginReading(&buffStart);
 
   while ((start != end) && !done) {
     currentChar = *start++;
@@ -2735,8 +2747,9 @@ nsXFormsUtils::GetSecondsFromDateTime(const nsAString & aValue,
     if ((currentChar == 'Z') || (currentChar == '+') || (currentChar == '-') ||
         (start == end)) {
       fractionResult.AssignLiteral("0.");
-      AppendUTF16toUTF8(Substring(buffStart.get(), start.get()-1),
-                        fractionResult);
+      nsCAutoString tempCString =
+        NS_ConvertUTF16toUTF8(Substring(buffStart, start - 1));
+      fractionResult.Append(tempCString);
     } else if ((currentChar > '9') || (currentChar < '0')) {
       // has to be a numerical character or else abort.  This should have been
       // caught by the schemavalidator, but it is worth double checking.
@@ -2883,7 +2896,7 @@ nsXFormsUtils::AskStopWaiting(nsIDOMElement *aElement)
                               getter_AddRefs(bundle));
   NS_ENSURE_TRUE(bundle, PR_TRUE);
   
-  nsXPIDLString title, msg, stopButton, waitButton;
+  nsString title, msg, stopButton, waitButton;
 
   nsresult rv;
   rv = bundle->GetStringFromName(NS_LITERAL_STRING("KillScriptTitle").get(),
@@ -2895,9 +2908,7 @@ nsXFormsUtils::AskStopWaiting(nsIDOMElement *aElement)
   rv |= bundle->GetStringFromName(NS_LITERAL_STRING("KillScriptMessage").get(),
                                   getter_Copies(msg));
 
-
-  // GetStringFromName can return NS_OK and still give NULL string
-  if (NS_FAILED(rv) || !title || !msg || !stopButton || !waitButton) {
+  if (NS_FAILED(rv)) {
     NS_ERROR("Failed to get localized strings.");
     return PR_TRUE;
   }
@@ -2907,7 +2918,8 @@ nsXFormsUtils::AskStopWaiting(nsIDOMElement *aElement)
                           (nsIPrompt::BUTTON_POS_0 + nsIPrompt::BUTTON_POS_1));
 
   // Open the dialog.
-  rv = prompt->ConfirmEx(title, msg, buttonFlags, stopButton, waitButton,
+  rv = prompt->ConfirmEx(title.get(), msg.get(), buttonFlags,
+                         stopButton.get(), waitButton.get(),
                          nsnull, nsnull, nsnull, &buttonPressed);
 
   if (NS_SUCCEEDED(rv) && (buttonPressed == 0)) {
@@ -2924,4 +2936,142 @@ nsXFormsUtils::ExperimentalFeaturesEnabled()
   // Return the value of the preference that surrounds all of our
   // 'not yet standardized' XForms work.
   return gExperimentalFeaturesEnabled;
+}
+
+/* static */ PRInt32
+nsXFormsUtils::FindCharInSet(const nsAString &aString, const char *aSet,
+                             PRInt32 aOffset)
+{
+  if (aString.IsEmpty()) {
+    return kNotFound;
+  }
+
+  if (aOffset < 0) {
+    aOffset = 0;
+  } else if (aOffset > (PRInt32)aString.Length()) {
+    return kNotFound;
+  }
+
+  const PRUnichar *start = nsnull, *end = nsnull, *iter = nsnull;
+  aString.BeginReading(&start, &end);
+  iter = start + aOffset;
+
+  // Starting at aOffset, compare each character in the string against each
+  // character in aSet.  As soon as a character in aSet is found, we return
+  // the offset of that character in the original string.
+  for (; iter != end; ++iter) {
+    for (const char *temp = aSet; *temp; ++temp) {
+      if (*iter == PRUnichar(*temp)) {
+        return (iter - start);
+      }
+    }
+  }
+
+  return kNotFound;
+}
+
+/* static */ PRBool
+nsXFormsUtils::ConvertLineBreaks(const nsCString &aSrc, nsCString &aDest)
+{
+  // Stole most of this code from the ConvertUnknownBreaks function inside
+  // xpcom\io\nsLinebreakConverter.cpp.  Orig authored by sfraser%netscape.com.
+
+  const char *src, *srcEnd;
+  aSrc.BeginReading(&src, &srcEnd);
+  
+  const PRInt32 destBreakLen = 2;  //strlen of "\015\012", a CR LF equiv string
+  PRUint32 finalLen = 0;
+
+  if (src == srcEnd) {
+    // I guess if there isn't anything to convert, we should return PR_TRUE
+    // since we didn't encounter an error.
+    return PR_TRUE;
+  }
+
+  while (src < srcEnd)
+  {
+    if (*src == '\r')
+    {
+      if (src[1] == '\n')
+      {
+        // CRLF
+        finalLen += destBreakLen;
+        src++;
+      }
+      else
+      {
+        // Lone CR
+        finalLen += destBreakLen;
+      }
+    }
+    else if (*src == '\n')
+    {
+      // Lone LF
+      finalLen += destBreakLen;
+    }
+    else
+    {
+      finalLen++;
+    }
+    src++;
+  }
+  
+  char* dst = aDest.BeginWriting(finalLen);
+  if (!dst) return PR_FALSE;
+
+  aSrc.BeginReading(&src);
+
+  while (src < srcEnd)
+  {
+    if (*src == '\r')
+    {
+      if (src[1] == '\n')
+      {
+        // CRLF
+        *dst++ = '\015';
+        *dst++ = '\012';
+        src++;
+      }
+      else
+      {
+        // Lone CR
+        *dst++ = '\015';
+        *dst++ = '\012';
+      }
+    }
+    else if (*src == '\n')
+    {
+      // Lone LF
+      *dst++ = '\015';
+      *dst++ = '\012';
+    }
+    else
+    {
+      *dst++ = *src;
+    }
+    src++;
+  }
+
+  return PR_TRUE;
+}
+
+/* static */ nsresult
+nsXFormsUtils::GetNewURI(nsIDocument* aDoc, const nsAString& aSrc,
+                         nsIURI** aURI)
+{
+  NS_ENSURE_ARG_POINTER(aURI);
+  *aURI = nsnull;
+
+  nsCOMPtr<nsPIDOMWindow> window = aDoc->GetWindow();
+  NS_ENSURE_STATE(window);
+  nsCOMPtr<nsIDocCharset> docCharset = do_QueryInterface(window->GetDocShell());
+  NS_ENSURE_STATE(docCharset);
+  nsCString charset;
+  nsresult rv = docCharset->GetCharset(getter_Copies(charset));
+  NS_ENSURE_SUCCESS(rv, rv);
+  nsCOMPtr<nsIURI> uri;
+  rv = NS_NewURI(getter_AddRefs(uri), aSrc, charset.get(), aDoc->GetDocumentURI());
+  NS_ENSURE_SUCCESS(rv, rv);
+  NS_ADDREF(*aURI = uri);
+  return rv;
 }

@@ -93,6 +93,8 @@ NS_ERROR_GENERATE_FAILURE(NS_ERROR_MODULE_GENERAL, 3001)
 #define NS_ERROR_XFORMS_UNION_TYPE \
 NS_ERROR_GENERATE_FAILURE(NS_ERROR_MODULE_GENERAL, 3002)
 
+#define kNotFound -1
+
 /**
  * XForms event types
  *
@@ -753,6 +755,45 @@ public:
    */
   static NS_HIDDEN_(PRBool) ExperimentalFeaturesEnabled();
 
+  /**
+   * Same as FindCharInSet but safely uses frozen string APIs.  Compares
+   * each character in aString against each character in aSet.  If a match to
+   * one of the characters in aSet is found, the index of that character in
+   * aString is returned.
+   *
+   * @param aString             The string to search
+   * @param aSet                The list of characters to search for
+   * @param aOffset             The position to start looking from inside
+   *                            aString
+   */
+  static NS_HIDDEN_(PRInt32) FindCharInSet(const nsAString &aString,
+                                           const char      *aSet,
+                                           PRInt32          aOffset = 0);
+
+  /**
+   * Convert the line breaks in a string to CRLF.  Returns PR_FALSE if an
+   * an error occurred, otherwise returns PR_TRUE.
+   *
+   * @param aSrc                String whose line breaks need to be converted
+   *                            to CRLF
+   * @param aDest               Result string containing the converted string
+   */
+  static NS_HIDDEN_(PRBool) ConvertLineBreaks(const nsCString &aSrc,
+                                              nsCString &aDest);
+
+  /**
+   * Get a new nsIURI object based on the character set of aDoc.
+   *
+   * @param aDoc The document which character set is used when creating aURI.
+   * @param aSrc The URI string
+   * @param aURI The URI object which was created.
+   *
+   * @note aDoc must be attached to the docshell tree.
+   */
+   static NS_HIDDEN_(nsresult) GetNewURI(nsIDocument* aDoc,
+                                         const nsAString& aSrc,
+                                         nsIURI** aURI);
+
 private:
   /**
    * Do same origin checks on aBaseDocument and aTestURI. Hosts can be
@@ -783,7 +824,6 @@ private:
   static NS_HIDDEN_(PRBool) CheckContentPolicy(nsIDOMElement *aElement,
                                                nsIDocument   *aDoc,
                                                nsIURI        *aURI);
-
 };
 
 #endif

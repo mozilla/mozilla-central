@@ -47,7 +47,7 @@
 #include "nsIDOMDocumentView.h"
 #include "nsIDOMAbstractView.h"
 #include "nsCOMPtr.h"
-#include "nsString.h"
+#include "nsStringAPI.h"
 #include "nsXFormsAtoms.h"
 #include "nsXFormsUtils.h"
 #include "nsXFormsControlStub.h"

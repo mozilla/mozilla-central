@@ -53,8 +53,7 @@
 #include "nsIAttribute.h"
 
 // string includes
-#include "nsReadableUtils.h"
-#include "nsString.h"
+#include "nsStringAPI.h"
 #include "nsUnicharUtils.h"
 
 // XPCOM includes
@@ -78,6 +77,7 @@
 #include "prtime.h"
 #include "plbase64.h"
 #include <ctype.h>
+#include "nsIAtomService.h"
 
 #define NS_SCHEMA_1999_NAMESPACE "http://www.w3.org/1999/XMLSchema"
 #define NS_SCHEMA_2001_NAMESPACE "http://www.w3.org/2001/XMLSchema"
@@ -298,10 +298,15 @@ nsSchemaValidator::ValidateAgainstType(nsIDOMNode* aElement,
       nsCOMPtr<nsIContent> content = do_QueryInterface(domNode3);
       NS_ENSURE_STATE(content);
 
-      // we have to be really carefull to set the destructor function correctly.
+      // we have to be really careful to set the destructor function correctly.
       // this also has to be a pointer to a variant
-      nsCOMPtr<nsIAtom> key = do_GetAtom("xsdtype");
-      NS_ENSURE_TRUE(key, NS_ERROR_OUT_OF_MEMORY);
+      nsCOMPtr<nsIAtomService> atomServ =
+        do_GetService(NS_ATOMSERVICE_CONTRACTID, &rv);
+      NS_ENSURE_SUCCESS(rv, rv);
+
+      nsCOMPtr<nsIAtom> key;
+      rv = atomServ->GetAtomUTF8("xsdtype", getter_AddRefs(key));
+      NS_ENSURE_SUCCESS(rv, rv);
 
       nsIVariant *pVariant = holder;
       NS_IF_ADDREF(pVariant);
@@ -1508,7 +1513,7 @@ nsSchemaValidator::ValidateListSimpletype(const nsAString & aNodeValue,
     if (facetsValid) {
       nsAutoString tmp;
       for (PRUint32 i=0; i < count; ++i) {
-        CopyUTF8toUTF16(stringArray[i]->get(), tmp);
+        CopyUTF8toUTF16(*stringArray[i], tmp);
         LOG(("  Validating List Item (%d): %s", i, NS_ConvertUTF16toUTF8(tmp).get()));
         rv = ValidateSimpletype(tmp, listSimpleType, &isValid);
 
@@ -1755,21 +1760,20 @@ nsSchemaValidator::IsValidSchemaGDay(const nsAString & aNodeValue,
   int dayInt;
 
   // iterate over the string and parse/validate
-  nsAString::const_iterator start, end;
-  aNodeValue.BeginReading(start);
-  aNodeValue.EndReading(end);
+  const PRUnichar *start, *end;
+  aNodeValue.BeginReading(&start, &end);
   nsAutoString nodeValue(aNodeValue);
 
   // validate the ---DD part
-  PRBool isValid = Substring(start.get(), start.get()+3).EqualsLiteral("---") &&
-                   IsValidSchemaGType(Substring(start.get()+3, start.get()+5),
+  PRBool isValid = Substring(start, start + 3).EqualsLiteral("---") &&
+                   IsValidSchemaGType(Substring(start + 3, start + 5),
                                       1, 31, &dayInt);
   if (isValid) {
     tzSign = nodeValue.CharAt(5);
     if (strLength == 6) {
       isValid &= (tzSign == 'Z');
     } else if (strLength == 11) {
-      const nsAString &tz = Substring(start.get()+6, end.get());
+      const nsAString &tz = Substring(start + 6, end);
 
       isValid &= ((tzSign == '+' || tzSign == '-') &&
                   nsSchemaValidatorUtils::ParseSchemaTimeZone(tz, timezoneHour,
@@ -1878,21 +1882,20 @@ nsSchemaValidator::IsValidSchemaGMonth(const nsAString & aNodeValue,
   PRUnichar tzSign = 0;
   int monthInt;
 
-  nsAString::const_iterator start, end;
-  aNodeValue.BeginReading(start);
-  aNodeValue.EndReading(end);
+  const PRUnichar *start, *end;
+  aNodeValue.BeginReading(&start, &end);
   nsAutoString nodeValue(aNodeValue);
 
   // validate the --MM part
-  PRBool isValid = Substring(start.get(), start.get()+2).EqualsLiteral("--") &&
-                   IsValidSchemaGType(Substring(start.get()+2, start.get()+4),
+  PRBool isValid = Substring(start, start + 2).EqualsLiteral("--") &&
+                   IsValidSchemaGType(Substring(start + 2, start + 4),
                                       1, 12, &monthInt);
   if (isValid) {
     tzSign = nodeValue.CharAt(4);
     if (strLength == 5) {
       isValid &= (tzSign == 'Z');
     } else if (strLength == 10) {
-      const nsAString &tz = Substring(start.get()+5, end.get());
+      const nsAString &tz = Substring(start + 5, end);
 
       isValid &= ((tzSign == '+' || tzSign == '-') &&
                   nsSchemaValidatorUtils::ParseSchemaTimeZone(tz, timezoneHour,
@@ -1983,10 +1986,9 @@ nsSchemaValidator::IsValidSchemaGYear(const nsAString & aNodeValue,
   char timezoneMinute[3] = "";
   PRUnichar tzSign = 0;
 
-  nsAString::const_iterator start, end, buffStart;
-  aNodeValue.BeginReading(start);
-  aNodeValue.BeginReading(buffStart);
-  aNodeValue.EndReading(end);
+  const PRUnichar *start, *end, *buffStart;
+  aNodeValue.BeginReading(&start, &end);
+  aNodeValue.BeginReading(&buffStart);
   PRUint32 state = 0;
   PRUint32 buffLength = 0, yearLength = 0;
   PRBool done = PR_FALSE;
@@ -2142,10 +2144,9 @@ nsSchemaValidator::IsValidSchemaGYearMonth(const nsAString & aNodeValue,
   // GYearMonth looks like this: (-)CCYY-MM(Z|(+|-)hh:mm)
   PRBool isValid = PR_FALSE;
 
-  nsAString::const_iterator start, end, buffStart;
-  aNodeValue.BeginReading(start);
-  aNodeValue.BeginReading(buffStart);
-  aNodeValue.EndReading(end);
+  const PRUnichar *start, *end, *buffStart;
+  aNodeValue.BeginReading(&start, &end);
+  aNodeValue.BeginReading(&buffStart);
   PRUint32 buffLength = 0;
   PRBool done = PR_FALSE;
 
@@ -2265,10 +2266,9 @@ nsSchemaValidator::IsValidSchemaGMonthDay(const nsAString & aNodeValue,
   // GMonthDay looks like this: --MM-DD(Z|(+|-)hh:mm)
   PRBool isValid = PR_FALSE;
 
-  nsAString::const_iterator start, end, buffStart;
-  aNodeValue.BeginReading(start);
-  aNodeValue.BeginReading(buffStart);
-  aNodeValue.EndReading(end);
+  const PRUnichar *start, *end, *buffStart;
+  aNodeValue.BeginReading(&start, &end);
+  aNodeValue.BeginReading(&buffStart);
   PRUint32 buffLength = 0;
   PRUint32 state = 0;
   PRBool done = PR_FALSE;
@@ -2296,7 +2296,8 @@ nsSchemaValidator::IsValidSchemaGMonthDay(const nsAString & aNodeValue,
 
       nsAutoString month;
       month.AppendLiteral("--");
-      month.Append(Substring(buffStart, start.advance(2)));
+      start += 2;
+      month.Append(Substring(buffStart, start));
       isValid = IsValidSchemaGMonth(month,
                                     aMonthDay ? &aMonthDay->gMonth : nsnull);
 
@@ -2425,12 +2426,18 @@ nsSchemaValidator::IsValidSchemaTime(const nsAString & aNodeValue,
   PRBool isValid = PR_FALSE;
 
   nsAutoString timeString(aNodeValue);
+  PRUint32 len = timeString.Length();
+  PRUnichar end = 0;
+  if (len > 0) {
+    // length counts null terminator
+    end = timeString.CharAt(len - 1);
+  }
 
   // if no timezone ([+/-]hh:ss) or no timezone Z, add a Z to the end so that
   // nsSchemaValidatorUtils::ParseSchemaTime can parse it
   if ((timeString.FindChar('-') == kNotFound) &&
       (timeString.FindChar('+') == kNotFound) &&
-       timeString.Last() != 'Z'){
+      end != 'Z') {
     timeString.Append('Z');
   }
 
@@ -3031,11 +3038,28 @@ nsSchemaValidator::IsValidSchemaFloat(const nsAString & aNodeValue,
                                       float *aResult)
 {
   PRBool isValid = PR_TRUE;
-  nsAutoString temp(aNodeValue);
+  nsresult rv = NS_ERROR_ILLEGAL_VALUE;
+  float floatValue = 0.0f;
 
-  PRInt32 errorCode;
-  float floatValue = temp.ToFloat(&errorCode);
-  if (NS_FAILED(errorCode)) {
+  // took most of this float conversion code from nsCString::ToFloat
+  // which isn't frozen so we can't use it directly
+  NS_LossyConvertUTF16toASCII convertedValue(aNodeValue);
+  const char *value = convertedValue.get();
+  PRUint32 length = strlen(value);
+  if (length > 0) {
+    char *conv_stopped;
+
+    floatValue = (float)PR_strtod(value, &conv_stopped);
+    if (conv_stopped == value+length) {
+      rv = NS_OK;
+    } else {
+      // the scan failed somewhere before completion
+      rv = NS_ERROR_ILLEGAL_VALUE;
+      floatValue = 0.0f;
+    }
+  }
+
+  if (NS_FAILED(rv)) {
     // floats may be INF, -INF and NaN
     if (aNodeValue.EqualsLiteral("INF")) {
       floatValue = FLT_MAX;
@@ -3046,9 +3070,7 @@ nsSchemaValidator::IsValidSchemaFloat(const nsAString & aNodeValue,
     }
   }
 
-  if (aResult)
-    *aResult = floatValue;
-
+  *aResult = floatValue;
   return isValid;
 }
 
@@ -3344,12 +3366,10 @@ nsSchemaValidator::CompareFractionStrings(const nsAString & aString1,
     compareString2.Assign(aString1);
   }
 
-  nsAString::const_iterator start1, end1, start2, end2;
-  compareString1.BeginReading(start1);
-  compareString1.EndReading(end1);
+  const PRUnichar *start1, *end1, *start2, *end2;
+  compareString1.BeginReading(&start1, &end1);
 
-  compareString2.BeginReading(start2);
-  compareString2.EndReading(end2);
+  compareString2.BeginReading(&start2, &end2);
 
   PRBool done = PR_FALSE;
 
@@ -3545,7 +3565,7 @@ nsSchemaValidator::IsValidSchemaQName(const nsAString & aString)
   NS_ENSURE_SUCCESS(rv, PR_FALSE);
 
   const PRUnichar *colon;
-  const nsAFlatString& qName = PromiseFlatString(aString);
+  const nsString& qName = PromiseFlatString(aString);
   rv = parserService->CheckQName(qName, PR_TRUE, &colon);
   if (NS_SUCCEEDED(rv)) {
     isValid = PR_TRUE;
@@ -3611,9 +3631,8 @@ nsSchemaValidator::IsValidSchemaHexBinary(const nsAString & aString)
   if (length % 2 != 0)
     return PR_FALSE;
 
-  nsAString::const_iterator start, end;
-  aString.BeginReading(start);
-  aString.EndReading(end);
+  const PRUnichar *start, *end;
+  aString.BeginReading(&start, &end);
 
   PRBool isValid = PR_TRUE;
 
@@ -4290,13 +4309,12 @@ nsSchemaValidator::GetElementXsiType(nsIDOMNode*     aNode,
       do_GetService("@mozilla.org/parser/parser-service;1", &rv);
     NS_ENSURE_SUCCESS(rv, rv);
 
-    const nsAFlatString& qName = PromiseFlatString(typeAttribute);
+    const nsString& qName = PromiseFlatString(typeAttribute);
     const PRUnichar *colon;
     rv = parserService->CheckQName(qName, PR_TRUE, &colon);
     NS_ENSURE_SUCCESS(rv, rv);
 
-    const PRUnichar* end;
-    qName.EndReading(end);
+    const PRUnichar* end = qName.EndReading();
 
     nsAutoString schemaTypePrefix, schemaType, schemaTypeNamespace;
     if (!colon) {
@@ -4793,8 +4811,13 @@ nsSchemaValidator::ValidateSchemaAttribute(nsIDOMNode* aNode,
           if (pAttribute) {
             // we have to be really careful to set the destructor function
             // correctly. this also has to be a pointer to a variant
-            nsCOMPtr<nsIAtom> key = do_GetAtom("xsdtype");
-            NS_ENSURE_TRUE(key, NS_ERROR_OUT_OF_MEMORY);
+            nsCOMPtr<nsIAtomService> atomServ =
+              do_GetService(NS_ATOMSERVICE_CONTRACTID, &rv);
+            NS_ENSURE_SUCCESS(rv, rv);
+      
+            nsCOMPtr<nsIAtom> key;
+            rv = atomServ->GetAtomUTF8("xsdtype", getter_AddRefs(key));
+            NS_ENSURE_SUCCESS(rv, rv);
 
             nsIVariant *pVariant = holder;
             NS_IF_ADDREF(pVariant);

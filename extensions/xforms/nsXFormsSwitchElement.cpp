@@ -39,7 +39,7 @@
 #include "nsCOMPtr.h"
 #include "nsIDOMElement.h"
 #include "nsIDOMDocument.h"
-#include "nsString.h"
+#include "nsStringAPI.h"
 #include "nsIDocument.h"
 #include "nsIDOMNodeList.h"
 

@@ -38,8 +38,7 @@
  * ***** END LICENSE BLOCK ***** */
 
 // string includes
-#include "nsReadableUtils.h"
-#include "nsString.h"
+#include "nsStringAPI.h"
 #include "nsUnicharUtils.h"
 
 #include "nsISchema.h"
@@ -47,6 +46,7 @@
 #include "nsSchemaValidatorUtils.h"
 #include "nsISchemaValidatorRegexp.h"
 #include "nsSchemaDuration.h"
+#include "nsServiceManagerUtils.h"
 
 #include <stdlib.h>
 #include <math.h>
@@ -193,10 +193,9 @@ nsSchemaValidatorUtils::ParseSchemaDate(const nsAString & aStrValue,
     (-)CCYY-MM-DDT
   */
 
-  nsAString::const_iterator start, end, buffStart;
-  aStrValue.BeginReading(start);
-  aStrValue.BeginReading(buffStart);
-  aStrValue.EndReading(end);
+  const PRUnichar *start, *end, *buffStart;
+  aStrValue.BeginReading(&start, &end);
+  aStrValue.BeginReading(&buffStart);
   PRUint32 state = 0;
   PRUint32 buffLength = 0;
   PRBool done = PR_FALSE;
@@ -330,10 +329,9 @@ nsSchemaValidatorUtils::ParseSchemaTime(const nsAString & aStrValue,
   // we store the fraction seconds because PR_ExplodeTime seems to skip them.
   nsAutoString usec;
 
-  nsAString::const_iterator start, end, buffStart;
-  aStrValue.BeginReading(start);
-  aStrValue.BeginReading(buffStart);
-  aStrValue.EndReading(end);
+  const PRUnichar *start, *end, *buffStart;
+  aStrValue.BeginReading(&start, &end);
+  aStrValue.BeginReading(&buffStart);
   PRUint32 state = 0;
   PRUint32 buffLength = 0;
   PRBool done = PR_FALSE;
@@ -444,10 +442,10 @@ nsSchemaValidatorUtils::ParseSchemaTime(const nsAString & aStrValue,
           else
             done = PR_TRUE;
           tzSign = currentChar;
-          usec.Assign(Substring(buffStart.get(), start.get()-1));
+          usec.Assign(Substring(buffStart, start - 1));
         } else if ((currentChar == '+') || (currentChar == '-')) {
           // timezone exists
-          usec.Assign(Substring(buffStart.get(), start.get()-1));
+          usec.Assign(Substring(buffStart, start - 1));
           state = 4;
           buffLength = 0;
           buffStart = start;
@@ -463,7 +461,7 @@ nsSchemaValidatorUtils::ParseSchemaTime(const nsAString & aStrValue,
 
       case 4: {
         // timezone hh:mm
-       if (buffStart.size_forward() == 5)
+       if (end-buffStart == 5)
          isValid = ParseSchemaTimeZone(Substring(buffStart, end), timezoneHour,
                                        timezoneMinute);
 
@@ -509,10 +507,9 @@ nsSchemaValidatorUtils::ParseSchemaTimeZone(const nsAString & aStrValue,
   char timezoneHour[3] = "";
   char timezoneMinute[3] = "";
 
-  nsAString::const_iterator start, end, buffStart;
-  aStrValue.BeginReading(start);
-  aStrValue.BeginReading(buffStart);
-  aStrValue.EndReading(end);
+  const PRUnichar *start, *end, *buffStart;
+  aStrValue.BeginReading(&start, &end);
+  aStrValue.BeginReading(&buffStart);
   PRUint32 state = 0;
   PRUint32 buffLength = 0;
   PRBool done = PR_FALSE;
@@ -792,7 +789,7 @@ nsSchemaValidatorUtils::AddTimeZoneToDateTime(nsSchemaDateTime aDateTime,
 void
 nsSchemaValidatorUtils::GetMonthShorthand(PRUint8 aMonth, nsACString & aReturn)
 {
-  aReturn.AssignASCII(monthShortHand[aMonth - 1].shortHand);
+  aReturn.Assign(monthShortHand[aMonth - 1].shortHand);
 }
 
 /*
@@ -857,10 +854,9 @@ nsSchemaValidatorUtils::ParseSchemaDuration(const nsAString & aStrValue,
 {
   PRBool isValid = PR_FALSE;
 
-  nsAString::const_iterator start, end, buffStart;
-  aStrValue.BeginReading(start);
-  aStrValue.BeginReading(buffStart);
-  aStrValue.EndReading(end);
+  const PRUnichar *start, *end, *buffStart;
+  aStrValue.BeginReading(&start, &end);
+  aStrValue.BeginReading(&buffStart);
   PRUint32 state = 0;
   PRUint32 buffLength = 0;
   PRBool done = PR_FALSE;
@@ -870,7 +866,7 @@ nsSchemaValidatorUtils::ParseSchemaDuration(const nsAString & aStrValue,
 
   // make sure leading P is present.  Take negative durations into consideration.
   if (*start == '-') {
-    start.advance(1);
+    ++start;
     if (*start != 'P') {
       return PR_FALSE;
     } else {
@@ -1133,11 +1129,9 @@ nsSchemaValidatorUtils::CompareStrings(const nsAString & aString1,
     return 1;
   }
 
-  nsAString::const_iterator start1, start2, end1, end2;
-  aString1.BeginReading(start1);
-  aString1.EndReading(end1);
-  aString2.BeginReading(start2);
-  aString2.EndReading(end2);
+  const PRUnichar *start1, *start2, *end1, *end2;
+  aString1.BeginReading(&start1, &end1);
+  aString2.BeginReading(&start2, &end2);
 
   // skip negative sign
   if (isNegative1)
@@ -1371,9 +1365,8 @@ nsSchemaValidatorUtils::IsValidSchemaNormalizedString(const nsAString &aStrValue
   nsAutoString string(aStrValue);
 
   // may not contain carriage return, line feed nor tab characters
-  if (string.FindCharInSet("\t\r\n") == kNotFound)
+  if (FindCharInSet(string, "\t\r\n") == kNotFound)
     isValid = PR_TRUE;
-
   return isValid;
 }
 
@@ -1387,10 +1380,10 @@ nsSchemaValidatorUtils::IsValidSchemaToken(const nsAString &aStrValue)
   // may not contain carriage return, line feed, tab characters.  Also can
   // not contain leading/trailing whitespace and no internal sequences of
   // two or more spaces.
-  if ((string.FindCharInSet("\t\r\n") == kNotFound) &&
+  if ((FindCharInSet(string, "\t\r\n") == kNotFound) &&
       (string.Find(NS_LITERAL_STRING("  ")) == kNotFound) &&
       (string.First() != ' ') &&
-      (string.Last() != ' '))
+      (string.CharAt(string.Length() - 1) != ' '))
     isValid = PR_TRUE;
 
   return isValid;
@@ -1502,11 +1495,10 @@ nsSchemaValidatorUtils::IsValidSchemaIDRefs(const nsAString &aStrValue)
   PRBool isValid = PR_FALSE;
 
   // Need to validate each IDREF
-  nsAString::const_iterator iter, end, tokenStart;
+  const PRUnichar *iter, *end, *tokenStart;
   nsAutoString idref;
-  aStrValue.BeginReading(iter);
-  aStrValue.BeginReading(tokenStart);
-  aStrValue.EndReading(end);
+  aStrValue.BeginReading(&iter, &end);
+  aStrValue.BeginReading(&tokenStart);
   while (iter != end) {
     for (;IsWhitespace(*iter) && iter != end; ++iter);
     tokenStart = iter;
@@ -1563,11 +1555,10 @@ nsSchemaValidatorUtils::IsValidSchemaNMTokens(const nsAString &aStrValue)
   PRBool isValid = PR_FALSE;
 
   // Need to validate each NNTOKEN
-  nsAString::const_iterator iter, end, tokenStart;
+  const PRUnichar *iter, *end, *tokenStart;
   nsAutoString idref;
-  aStrValue.BeginReading(iter);
-  aStrValue.BeginReading(tokenStart);
-  aStrValue.EndReading(end);
+  aStrValue.BeginReading(&iter, &end);
+  aStrValue.BeginReading(&tokenStart);
   while (iter != end) {
     for (;IsWhitespace(*iter) && iter != end; ++iter);
     tokenStart = iter;
@@ -1612,9 +1603,8 @@ nsSchemaValidatorUtils::HandleEnumeration(const nsAString &aStrValue,
 void
 nsSchemaValidatorUtils::RemoveLeadingZeros(nsAString & aString)
 {
-  nsAString::const_iterator start, end;
-  aString.BeginReading(start);
-  aString.EndReading(end);
+  const PRUnichar *start, *end;
+  aString.BeginReading(&start, &end);
 
   PRBool done = PR_FALSE;
   PRUint32 count = 0, indexstart = 0;
@@ -1647,9 +1637,8 @@ nsSchemaValidatorUtils::RemoveLeadingZeros(nsAString & aString)
 void
 nsSchemaValidatorUtils::RemoveTrailingZeros(nsAString & aString)
 {
-  nsAString::const_iterator start, end;
-  aString.BeginReading(start);
-  aString.EndReading(end);
+  const PRUnichar *start, *end;
+  aString.BeginReading(&start, &end);
 
   PRUint32 length = aString.Length();
 
@@ -1939,5 +1928,33 @@ nsSchemaValidatorUtils::SetToNullOrElement(nsIDOMNode *aNode,
     currentNode.swap(*aResultNode);
 
   }
+}
+
+PRInt32
+nsSchemaValidatorUtils::FindCharInSet(const nsAString & aString,
+                                      const char *aSet, PRInt32 aOffset)
+{
+  if (aString.IsEmpty()) {
+    return kNotFound;
+  }
+
+  if (aOffset < 0) {
+    aOffset = 0;
+  } else if (aOffset > (PRInt32)aString.Length()) {
+    return kNotFound;
+  }
+
+  const PRUnichar *start, *end;
+  aString.BeginReading(&start, &end);
+
+  for (; start != end; ++start) {
+    for (const char *temp = aSet; *temp; ++temp) {
+      if (*start == PRUnichar(*temp)) {
+        return (temp - aSet + aOffset) ;
+      }
+    }
+  }
+
+  return kNotFound;
 }
 

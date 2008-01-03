@@ -51,7 +51,7 @@
 #include "nsIDOM3Node.h"
 #include "nsIDOMDocument.h"
 #include "nsIDOMText.h"
-#include "nsString.h"
+#include "nsStringAPI.h"
 #include "nsIXFormsUIWidget.h"
 #include "nsIDocument.h"
 #include "nsNetUtil.h"
@@ -251,8 +251,7 @@ nsXFormsLabelElement::LoadExternalLabel(const nsAString& aSrc)
   nsCOMPtr<nsIDocument> doc(do_QueryInterface(domDoc));
   if (doc) {
     nsCOMPtr<nsIURI> uri;
-    NS_NewURI(getter_AddRefs(uri), aSrc, doc->GetDocumentCharacterSet().get(),
-              doc->GetDocumentURI());
+    nsXFormsUtils::GetNewURI(doc, aSrc, getter_AddRefs(uri));
     if (uri) {
       if (nsXFormsUtils::CheckConnectionAllowed(mElement, uri)) {
         nsCOMPtr<nsILoadGroup> loadGroup;
@@ -271,7 +270,7 @@ nsXFormsLabelElement::LoadExternalLabel(const nsAString& aSrc)
             // URI doesn't exist; report error.
             mChannel = nsnull;
 
-            const nsPromiseFlatString& flat = PromiseFlatString(aSrc);
+            const nsString& flat = PromiseFlatString(aSrc);
             const PRUnichar *strings[] = { flat.get(),
                                            NS_LITERAL_STRING("label").get() };
             nsXFormsUtils::ReportError(NS_LITERAL_STRING("externalLink1Error"),

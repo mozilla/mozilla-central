@@ -83,9 +83,7 @@
 #include "nsIHttpChannel.h"
 #include "nsIScriptSecurityManager.h"
 #include "nsIPipe.h"
-#include "nsLinebreakConverter.h"
-#include "nsEscape.h"
-#include "nsString.h"
+#include "nsStringAPI.h"
 #include "nsMemory.h"
 #include "nsCOMPtr.h"
 #include "nsNetUtil.h"
@@ -96,8 +94,9 @@
 #include "nsIPrefService.h"
 #include "nsIMIMEHeaderParam.h"
 #include "nsIExternalProtocolService.h"
-#include "nsEscape.h"
 #include "nsAutoPtr.h"
+#include "nsIDocCharset.h"
+#include "nsPIDOMWindow.h"
 
 // namespace literals
 #define kXMLNSNameSpaceURI \
@@ -178,21 +177,20 @@ URLEncode(const nsString &buf, nsCString &result)
   // 2. normalize newlines to \r\n
   // 3. escape, converting ' ' to '+'
 
-  NS_ConvertUTF16toUTF8 utf8Buf(buf);
+  nsCString convertedString;
+  PRBool converted = nsXFormsUtils::ConvertLineBreaks(NS_ConvertUTF16toUTF8(buf),
+                                                      convertedString);
+  NS_ENSURE_TRUE(converted, NS_ERROR_OUT_OF_MEMORY);
+    
+  nsCOMPtr<nsINetUtil> netUtil = do_GetService(NS_NETUTIL_CONTRACTID);
+  if (!netUtil) {
+    return NS_ERROR_UNEXPECTED;
+  }
 
-  char *convertedBuf =
-      nsLinebreakConverter::ConvertLineBreaks(utf8Buf.get(),
-                                              nsLinebreakConverter::eLinebreakAny,
-                                              nsLinebreakConverter::eLinebreakNet);
-  NS_ENSURE_TRUE(convertedBuf, NS_ERROR_OUT_OF_MEMORY);
-
-  char *escapedBuf = nsEscape(convertedBuf, url_XPAlphas);
-  nsMemory::Free(convertedBuf);
-
-  NS_ENSURE_TRUE(escapedBuf, NS_ERROR_OUT_OF_MEMORY);
-
-  result.Adopt(escapedBuf);
-  return NS_OK;
+  nsresult rv = netUtil->EscapeString(convertedString,
+                                      nsINetUtil::ESCAPE_XPALPHAS,
+                                      result);
+  return rv;
 }
 
 static void
@@ -956,9 +954,11 @@ nsXFormsSubmissionElement::SerializeDataXML(nsIDOMDocument  *data,
       CopyUTF16toUTF8(mediaType, contentType);
   }
   
-  nsCOMPtr<nsIStorageStream> storage;
-  NS_NewStorageStream(4096, PR_UINT32_MAX, getter_AddRefs(storage));
+  nsCOMPtr<nsIStorageStream> storage =
+    do_CreateInstance("@mozilla.org/storagestream;1");
   NS_ENSURE_TRUE(storage, NS_ERROR_OUT_OF_MEMORY);
+  
+  storage->Init(4096, PR_UINT32_MAX, nsnull);
 
   nsCOMPtr<nsIOutputStream> sink;
   storage->GetOutputStream(0, getter_AddRefs(sink));
@@ -1033,9 +1033,9 @@ nsXFormsSubmissionElement::CheckSameOrigin(nsIDocument *aBaseDocument,
 }
 
 nsresult
-nsXFormsSubmissionElement::AddNameSpaces(nsIDOMElement   *aTarget,
-                                         nsIDOMNode      *aSource,
-                                         nsStringHashSet *aPrefixHash)
+nsXFormsSubmissionElement::AddNameSpaces(
+  nsIDOMElement *aTarget, nsIDOMNode *aSource,
+  nsDataHashtable<nsStringHashKey, PRUint32> *aPrefixHash)
 {
   nsCOMPtr<nsIDOMNamedNodeMap> attrMap;
   nsCOMPtr<nsIDOMNode> attrNode;
@@ -1056,7 +1056,7 @@ nsXFormsSubmissionElement::AddNameSpaces(nsIDOMElement   *aTarget,
       attrNode->GetNodeValue(value);
 
       if (!localName.EqualsLiteral("xmlns")) {
-        if (!aPrefixHash || aPrefixHash->Contains(localName)) {
+        if (!aPrefixHash || aPrefixHash->Get(localName, nsnull)) {
           nsAutoString attrName(NS_LITERAL_STRING("xmlns:"));
           attrName.Append(localName);
           aTarget->SetAttributeNS(kXMLNSNameSpaceURI, attrName, value);
@@ -1082,13 +1082,14 @@ nsXFormsSubmissionElement::AddNameSpaces(nsIDOMElement   *aTarget,
 }
 
 nsresult
-nsXFormsSubmissionElement::GetIncludeNSPrefixesAttr(nsStringHashSet** aHash)
+nsXFormsSubmissionElement::GetIncludeNSPrefixesAttr(
+  nsDataHashtable<nsStringHashKey, PRUint32>** aHash)
 {
   NS_PRECONDITION(aHash, "null ptr");
   if (!aHash)
     return NS_ERROR_NULL_POINTER;
 
-  *aHash = new nsStringHashSet();
+  *aHash = new nsDataHashtable<nsStringHashKey, PRUint32>;
   if (!*aHash)
     return NS_ERROR_OUT_OF_MEMORY;
   (*aHash)->Init(5);
@@ -1102,11 +1103,11 @@ nsXFormsSubmissionElement::GetIncludeNSPrefixesAttr(nsStringHashSet** aHash)
     PRInt32 length = prefixes.Length();
 
     do {
-      end = prefixes.FindCharInSet(" \t\r\n", start);
+      end = nsXFormsUtils::FindCharInSet(prefixes, " \t\r\n", start);
       if (end != kNotFound) {
         if (start != end) {   // this line handles consecutive space chars
           const nsAString& p = Substring(prefixes, start, end - start);
-          (*aHash)->Put(p);
+          (*aHash)->Put(p, 0);
         }
         start = end + 1;
       }
@@ -1114,7 +1115,7 @@ nsXFormsSubmissionElement::GetIncludeNSPrefixesAttr(nsStringHashSet** aHash)
 
     if (start != length) {
       const nsAString& p = Substring(prefixes, start);
-      (*aHash)->Put(p);
+      (*aHash)->Put(p, 0);
     }
   }
 
@@ -1171,7 +1172,7 @@ nsXFormsSubmissionElement::CreateSubmissionDoc(nsIDOMNode      *aRoot,
 
   if (serialize) {
     // Handle "includenamespaceprefixes" attribute, if present
-    nsAutoPtr<nsStringHashSet> prefixHash;
+    nsAutoPtr< nsDataHashtable<nsStringHashKey, PRUint32> > prefixHash;
     PRBool hasPrefixAttr = PR_FALSE;
     mElement->HasAttribute(kIncludeNamespacePrefixes, &hasPrefixAttr);
     if (hasPrefixAttr) {
@@ -1192,7 +1193,7 @@ nsXFormsSubmissionElement::CreateSubmissionDoc(nsIDOMNode      *aRoot,
                                XMLNSAttrValue);
 
     if (XMLNSAttrValue.IsEmpty() && (!prefixHash ||
-        !prefixHash->Contains(NS_LITERAL_STRING("#default")))) {
+        !prefixHash->Get(NS_LITERAL_STRING("#default"), nsnull))) {
       submDocElm->RemoveAttributeNS(kXMLNSNameSpaceURI,
                                     NS_LITERAL_STRING("xmlns"));
     }
@@ -1279,12 +1280,12 @@ nsXFormsSubmissionElement::CreatePurgedDoc(nsIDOMNode      *source,
       encoding.AssignLiteral("UTF-8");
 
     nsAutoString buf =
-      NS_LITERAL_STRING("version=\"1.0\" encoding=\"") +
-      encoding +
-      NS_LITERAL_STRING("\"");
+      NS_LITERAL_STRING("version=\"1.0\" encoding=\"");
+    buf += encoding;
+    buf.AppendLiteral("\"");
 
     if (GetBooleanAttr(NS_LITERAL_STRING("standalone"), PR_FALSE))
-      buf += NS_LITERAL_STRING(" standalone=\"yes\"");
+      buf.AppendLiteral(" standalone=\"yes\"");
 
     nsCOMPtr<nsIDOMProcessingInstruction> pi;
     doc->CreateProcessingInstruction(NS_LITERAL_STRING("xml"), buf,
@@ -1735,10 +1736,15 @@ nsXFormsSubmissionElement::SerializeDataURLEncoded(nsIDOMDocument *data,
   {
     nsCAutoString buf;
     AppendURLEncodedData(data, separator, buf);
+    *stream = nsnull;
 
     // make new stream
-    NS_NewCStringInputStream(stream, buf);
-    NS_ENSURE_STATE(*stream);
+    nsCOMPtr<nsIStringInputStream>stringInput =
+      do_CreateInstance("@mozilla.org/io/string-input-stream;1");
+    NS_ENSURE_TRUE(stringInput, NS_ERROR_OUT_OF_MEMORY);
+    nsresult rv = stringInput->SetData(buf.get(), buf.Length());
+    NS_ENSURE_SUCCESS(rv, rv);
+    NS_ADDREF(*stream = stringInput);
 
     contentType.AssignLiteral("application/x-www-form-urlencoded");
   }
@@ -1811,7 +1817,10 @@ nsXFormsSubmissionElement::AppendURLEncodedData(nsIDOMNode *data,
     URLEncode(localName, encLocalName);
     URLEncode(value, encValue);
 
-    buf.Append(encLocalName + NS_LITERAL_CSTRING("=") + encValue + separator);
+    buf.Append(encLocalName);
+    buf += NS_LITERAL_CSTRING("=");
+    buf += encValue;
+    buf += separator;
   }
   else
   {
@@ -1858,10 +1867,16 @@ nsXFormsSubmissionElement::SerializeDataMultipartRelated(nsIDOMDocument *data,
   // XXX we should output a 'charset=' with the 'Content-Type' header
 
   nsCString postDataChunk;
-  postDataChunk += NS_LITERAL_CSTRING("--") + boundary
-                +  NS_LITERAL_CSTRING("\r\nContent-Type: ") + type
-                +  NS_LITERAL_CSTRING("\r\nContent-ID: <") + start
-                +  NS_LITERAL_CSTRING(">\r\n\r\n");
+  postDataChunk += NS_LITERAL_CSTRING("--");
+  postDataChunk += boundary;
+  postDataChunk += NS_LITERAL_CSTRING("\r\nContent-Type: ");
+  postDataChunk += type;
+  postDataChunk += NS_LITERAL_CSTRING("\r\nContent-ID: <");
+  postDataChunk += start;
+  postDataChunk += NS_LITERAL_CSTRING(">\r\n\r\n");
+
+
+
   rv = AppendPostDataChunk(postDataChunk, multiStream);
   NS_ENSURE_SUCCESS(rv, rv);
 
@@ -1887,11 +1902,15 @@ nsXFormsSubmissionElement::SerializeDataMultipartRelated(nsIDOMDocument *data,
       type.AssignLiteral("application/octet-stream");
     }
 
-    postDataChunk += NS_LITERAL_CSTRING("\r\n--") + boundary
-                  +  NS_LITERAL_CSTRING("\r\nContent-Type: ") + type
-                  +  NS_LITERAL_CSTRING("\r\nContent-Transfer-Encoding: binary")
-                  +  NS_LITERAL_CSTRING("\r\nContent-ID: <") + a->cid
-                  +  NS_LITERAL_CSTRING(">\r\n\r\n");
+    postDataChunk += NS_LITERAL_CSTRING("\r\n--");
+    postDataChunk += boundary;
+    postDataChunk += NS_LITERAL_CSTRING("\r\nContent-Type: ");
+    postDataChunk += type;
+    postDataChunk += NS_LITERAL_CSTRING("\r\nContent-Transfer-Encoding: binary");
+    postDataChunk += NS_LITERAL_CSTRING("\r\nContent-ID: <");
+    postDataChunk += a->cid;
+    postDataChunk += NS_LITERAL_CSTRING(">\r\n\r\n");
+
     rv = AppendPostDataChunk(postDataChunk, multiStream);
     NS_ENSURE_SUCCESS(rv, rv);
 
@@ -1900,16 +1919,19 @@ nsXFormsSubmissionElement::SerializeDataMultipartRelated(nsIDOMDocument *data,
   }
 
   // final boundary
-  postDataChunk += NS_LITERAL_CSTRING("\r\n--") + boundary
-                +  NS_LITERAL_CSTRING("--\r\n");
+  postDataChunk += NS_LITERAL_CSTRING("\r\n--");
+  postDataChunk += boundary;
+  postDataChunk += NS_LITERAL_CSTRING("--\r\n");
   rv = AppendPostDataChunk(postDataChunk, multiStream);
   NS_ENSURE_SUCCESS(rv, rv);
 
-  contentType =
-      NS_LITERAL_CSTRING("multipart/related; boundary=") + boundary +
-      NS_LITERAL_CSTRING("; type=\"") + type +
-      NS_LITERAL_CSTRING("\"; start=\"<") + start +
-      NS_LITERAL_CSTRING(">\"");
+  contentType = NS_LITERAL_CSTRING("multipart/related; boundary=");
+  contentType += boundary;
+  contentType += NS_LITERAL_CSTRING("; type=\"");
+  contentType += type;
+  contentType += NS_LITERAL_CSTRING("\"; start=\"<");
+  contentType += start;
+  contentType += NS_LITERAL_CSTRING(">\"");
 
   NS_ADDREF(*stream = multiStream);
   return NS_OK;
@@ -1950,12 +1972,14 @@ nsXFormsSubmissionElement::SerializeDataMultipartFormData(nsIDOMDocument *data,
   nsresult rv = AppendMultipartFormData(data, boundary, postDataChunk, multiStream);
   NS_ENSURE_SUCCESS(rv, rv);
 
-  postDataChunk += NS_LITERAL_CSTRING("--") + boundary
-                +  NS_LITERAL_CSTRING("--\r\n\r\n");
+  postDataChunk += NS_LITERAL_CSTRING("--");
+  postDataChunk += boundary;
+  postDataChunk += NS_LITERAL_CSTRING("--\r\n\r\n");
   rv = AppendPostDataChunk(postDataChunk, multiStream);
   NS_ENSURE_SUCCESS(rv, rv);
 
-  contentType = NS_LITERAL_CSTRING("multipart/form-data; boundary=") + boundary;
+  contentType = NS_LITERAL_CSTRING("multipart/form-data; boundary=");
+  contentType += boundary;
 
   NS_ADDREF(*stream = multiStream);
   return NS_OK;
@@ -2001,14 +2025,16 @@ nsXFormsSubmissionElement::AppendMultipartFormData(nsIDOMNode *data,
     rv = GetElementEncodingType(data, &encType);
     NS_ENSURE_SUCCESS(rv, rv);
 
-    NS_ConvertUTF16toUTF8 encName(localName);
-    encName.Adopt(nsLinebreakConverter::ConvertLineBreaks(encName.get(),
-                  nsLinebreakConverter::eLinebreakAny,
-                  nsLinebreakConverter::eLinebreakNet));
+    nsCString encName;
+    PRBool converted = nsXFormsUtils::ConvertLineBreaks(
+      NS_ConvertUTF16toUTF8(localName), encName);
+    NS_ENSURE_TRUE(converted, NS_ERROR_OUT_OF_MEMORY);
 
-    postDataChunk += NS_LITERAL_CSTRING("--") + boundary
-                  +  NS_LITERAL_CSTRING("\r\nContent-Disposition: form-data; name=\"")
-                  +  encName + NS_LITERAL_CSTRING("\"");
+    postDataChunk += NS_LITERAL_CSTRING("--");
+    postDataChunk += boundary;
+    postDataChunk += NS_LITERAL_CSTRING("\r\nContent-Disposition: form-data; name=\"");
+    postDataChunk += encName;
+    postDataChunk += NS_LITERAL_CSTRING("\"");
 
     nsCAutoString contentType;
     nsCOMPtr<nsIInputStream> fileStream;
@@ -2043,9 +2069,9 @@ nsXFormsSubmissionElement::AppendMultipartFormData(nsIDOMNode *data,
         contentType.AssignLiteral("application/octet-stream");
       }
 
-      postDataChunk += NS_LITERAL_CSTRING("; filename=\"")
-                    +  NS_ConvertUTF16toUTF8(leafName)
-                    +  NS_LITERAL_CSTRING("\"");
+      postDataChunk += NS_LITERAL_CSTRING("; filename=\"");
+      postDataChunk += NS_ConvertUTF16toUTF8(leafName);
+      postDataChunk += NS_LITERAL_CSTRING("\"");
     }
     else if (encType == ELEMENT_ENCTYPE_STRING)
     {
@@ -2056,9 +2082,9 @@ nsXFormsSubmissionElement::AppendMultipartFormData(nsIDOMNode *data,
       contentType.AssignLiteral("application/octet-stream");
     }
 
-    postDataChunk += NS_LITERAL_CSTRING("\r\nContent-Type: ")
-                  +  contentType
-                  +  NS_LITERAL_CSTRING("\r\n\r\n");
+    postDataChunk += NS_LITERAL_CSTRING("\r\nContent-Type: ");
+    postDataChunk += contentType;
+    postDataChunk += NS_LITERAL_CSTRING("\r\n\r\n");
 
     if (encType == ELEMENT_ENCTYPE_URI)
     {
@@ -2076,11 +2102,12 @@ nsXFormsSubmissionElement::AppendMultipartFormData(nsIDOMNode *data,
       // xforms spec.
 
       // XXX UTF-8 ok?
-      NS_ConvertUTF16toUTF8 encValue(value);
-      encValue.Adopt(nsLinebreakConverter::ConvertLineBreaks(encValue.get(),
-                     nsLinebreakConverter::eLinebreakAny,
-                     nsLinebreakConverter::eLinebreakNet));
-      postDataChunk += encValue + NS_LITERAL_CSTRING("\r\n");
+      nsCString encValue;
+      converted = nsXFormsUtils::ConvertLineBreaks(NS_ConvertUTF16toUTF8(value),
+                                                   encValue);
+      NS_ENSURE_TRUE(converted, NS_ERROR_OUT_OF_MEMORY);
+      postDataChunk += encValue;
+      postDataChunk += NS_LITERAL_CSTRING("\r\n");
     }
   }
   else
@@ -2103,9 +2130,12 @@ nsresult
 nsXFormsSubmissionElement::AppendPostDataChunk(nsCString &postDataChunk,
                                                nsIMultiplexInputStream *multiStream)
 {
-  nsCOMPtr<nsIInputStream> stream;
-  NS_NewCStringInputStream(getter_AddRefs(stream), postDataChunk);
+  // make new stream
+  nsCOMPtr<nsIStringInputStream> stream =
+    do_CreateInstance("@mozilla.org/io/string-input-stream;1");
   NS_ENSURE_TRUE(stream, NS_ERROR_OUT_OF_MEMORY);
+  nsresult rv = stream->SetData(postDataChunk.get(), postDataChunk.Length());
+  NS_ENSURE_SUCCESS(rv, rv);
 
   multiStream->AppendStream(stream);
 
@@ -2191,18 +2221,24 @@ nsXFormsSubmissionElement::SendData(const nsCString &uriSpec,
 
   nsCOMPtr<nsIURI> currURI = doc->GetDocumentURI();
 
+  nsCOMPtr<nsPIDOMWindow> window = doc->GetWindow();
+  NS_ENSURE_STATE(window);
+  nsCOMPtr<nsIDocCharset> docCharset = do_QueryInterface(window->GetDocShell());
+  NS_ENSURE_STATE(docCharset);
+  nsCString charset;
+  nsresult rv = docCharset->GetCharset(getter_Copies(charset));
+  NS_ENSURE_SUCCESS(rv, rv);
+  
   // Any parameters appended to uriSpec are already ASCII-encoded per the rules
   // of section 11.6.  Use our standard document charset based canonicalization
   // for any other non-ASCII bytes.  (This might be important for compatibility
   // with legacy CGI processors.)
   nsCOMPtr<nsIURI> uri;
   ios->NewURI(uriSpec,
-              doc->GetDocumentCharacterSet().get(),
+              charset.get(),
               currURI,
               getter_AddRefs(uri));
   NS_ENSURE_STATE(uri);
-
-  nsresult rv;
 
   // handle mailto: submission
   if (!mIsReplaceInstance) {
@@ -2252,9 +2288,12 @@ nsXFormsSubmissionElement::SendData(const nsCString &uriSpec,
         memset(buf, 0, len+1);
 
         // Read returns 0 if eos
+        nsCOMPtr<nsINetUtil> netUtil = do_GetService(NS_NETUTIL_CONTRACTID);
+        NS_ENSURE_STATE(netUtil);
         while (numReadIn != 0) {
           numReadIn = stream->Read(buf, len, &read);
-          NS_EscapeURL(buf, read, esc_Query|esc_AlwaysCopy, mailtoUrl);
+          netUtil->EscapeURL(nsCString(buf, read), nsINetUtil::ESCAPE_URL_QUERY,
+                             mailtoUrl);
         }
 
         delete [] buf;
@@ -2414,10 +2453,14 @@ nsXFormsSubmissionElement::SendData(const nsCString &uriSpec,
   //
   // pipe's maximum size is unlimited (gasp!)
 
-  nsCOMPtr<nsIOutputStream> pipeOut;
-  rv = NS_NewPipe(getter_AddRefs(mPipeIn), getter_AddRefs(pipeOut),
-                  4096, PR_UINT32_MAX, PR_TRUE, PR_TRUE);
+  nsCOMPtr<nsIPipe> pipe = do_CreateInstance("@mozilla.org/pipe;1");
+  NS_ENSURE_STATE(pipe);
+  rv = pipe->Init(PR_TRUE, PR_TRUE, 4096, PR_UINT32_MAX, nsnull);
   NS_ENSURE_SUCCESS(rv, rv);
+
+  nsCOMPtr<nsIAsyncOutputStream> pipeOut;
+  pipe->GetInputStream(getter_AddRefs(mPipeIn));
+  pipe->GetOutputStream(getter_AddRefs(pipeOut));
 
   // use a simple stream listener to tee our data into the pipe, and
   // notify us when the channel starts and stops.

@@ -517,7 +517,7 @@ nsXFormsControlStub::HandleDefault(nsIDOMEvent *aEvent,
     nsAutoString type;
     aEvent->GetType(type);
 
-    if (type.EqualsASCII(sXFormsEventsEntries[eEvent_Focus].name)) {
+    if (type.EqualsLiteral(sXFormsEventsEntries[eEvent_Focus].name)) {
       TryFocus(aHandled);
     } else if (type.Equals(NS_LITERAL_STRING("keypress"))) { 
       nsCOMPtr<nsIDOMKeyEvent> keyEvent = do_QueryInterface(aEvent);
@@ -551,8 +551,8 @@ nsXFormsControlStub::HandleDefault(nsIDOMEvent *aEvent,
           }
         }
       }
-    } else if (type.EqualsASCII(sXFormsEventsEntries[eEvent_Next].name) ||     
-               type.EqualsASCII(sXFormsEventsEntries[eEvent_Previous].name)) { 
+    } else if (type.EqualsLiteral(sXFormsEventsEntries[eEvent_Next].name) ||
+               type.EqualsLiteral(sXFormsEventsEntries[eEvent_Previous].name)) {
 
       // only continue this processing if xforms-next or xforms-previous were
       // dispatched by the form and not as part of the 'tab' and 'shift+tab'
@@ -577,12 +577,12 @@ nsXFormsControlStub::HandleDefault(nsIDOMEvent *aEvent,
       nsIFocusController *focusController =
         doc->GetWindow()->GetRootFocusController();
       if (focusController &&
-          type.EqualsASCII(sXFormsEventsEntries[eEvent_Next].name)) {
+          type.EqualsLiteral(sXFormsEventsEntries[eEvent_Next].name)) {
         focusController->MoveFocus(PR_TRUE, nsnull);
       } else {
         focusController->MoveFocus(PR_FALSE, nsnull);
       }
-    } else if (type.EqualsASCII(sXFormsEventsEntries[eEvent_BindingException].name)) {
+    } else if (type.EqualsLiteral(sXFormsEventsEntries[eEvent_BindingException].name)) {
       // we threw up a popup during the nsXFormsUtils::DispatchEvent that sent
       // this error to this control
       *aHandled = PR_TRUE;

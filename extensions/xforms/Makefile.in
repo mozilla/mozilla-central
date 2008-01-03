@@ -57,7 +57,6 @@ else
 MODULE_NAME	= xforms
 EXPORT_LIBRARY	= 1
 endif
-MOZILLA_INTERNAL_API = 1
 
 # Also build schema-validation
 DIRS			= ../schema-validation \
@@ -112,6 +111,7 @@ REQUIRES	= \
 		pref \
 		htmlparser \
 		exthandler \
+		chardet \
 		$(NULL)
 
 # XForms IDLs
@@ -220,7 +220,11 @@ CPPSRCS		= \
 		$(NULL)
 
 # Standard Mozilla make rules
-EXTRA_DSO_LDOPTS = $(MOZ_COMPONENT_LIBS)
+EXTRA_DSO_LDOPTS = \
+		$(MOZ_COMPONENT_NSPR_LIBS) \
+		$(LIBXUL_DIST)/lib/$(LIB_PREFIX)unicharutil_s.$(LIB_SUFFIX) \
+		$(XPCOM_GLUE_LDOPTS) \
+		$(NULL)
 
 # Do not clean schema-validation on distclean, it should handle that itself
 distclean:: LOOP_OVER_DIRS=

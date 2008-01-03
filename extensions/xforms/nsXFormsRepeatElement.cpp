@@ -42,8 +42,7 @@
 #include "nsISchema.h"
 #include "nsIServiceManager.h"
 #include "nsMemory.h"
-#include "nsString.h"
-#include "nsSubstring.h"
+#include "nsStringAPI.h"
 
 #include "nsIDOM3EventTarget.h"
 #include "nsIDOM3Node.h"
@@ -1301,11 +1300,10 @@ nsXFormsRepeatElement::GetIntAttr(const nsAString &aName,
     return NS_ERROR_NOT_AVAILABLE;
   }
 
-  PRInt32 errCode;
   /// @todo ToInteger is extremely large, "xxx23xxx" will be parsed with no errors
   /// as "23"... (XXX)
-  *aVal = attrVal.ToInteger(&errCode);
-  NS_ENSURE_TRUE(errCode == 0, NS_ERROR_FAILURE);
+  *aVal = attrVal.ToInteger(&rv);
+  NS_ENSURE_SUCCESS(rv, rv);
 
   ///
   /// @todo Check maximum values? (XXX)

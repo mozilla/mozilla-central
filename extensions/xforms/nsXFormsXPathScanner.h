@@ -40,7 +40,7 @@
 #ifndef __NSXFORMSXPATHSCANNER_H__
 #define __NSXFORMSXPATHSCANNER_H__
 
-#include "nsString.h"
+#include "nsStringAPI.h"
 
 /**
  * The XPath Expression scanner, used by nsXFormsXPathParser.

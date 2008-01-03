@@ -156,12 +156,12 @@ nsXFormsUploadElement::PickFile()
   rv = bundleService->CreateBundle(NS_HTMLFORM_BUNDLE_URL,
                                    getter_AddRefs(bundle));
   NS_ENSURE_SUCCESS(rv, rv);
-  nsXPIDLString filepickerTitle;
+  nsString filepickerTitle;
   rv = bundle->GetStringFromName(NS_LITERAL_STRING("FileUpload").get(),
                                  getter_Copies(filepickerTitle));
   if (NS_FAILED(rv)) {
     // fall back to English text
-    filepickerTitle.AssignASCII("File Upload");
+    filepickerTitle.AssignLiteral("File Upload");
   }
 
   // get nsIDOMWindowInternal
@@ -191,15 +191,16 @@ nsXFormsUploadElement::PickFile()
       do_GetService("@mozilla.org/mime;1", &rv);
     NS_ENSURE_SUCCESS(rv, rv);
 
-    nsAString::const_iterator start, end, iter;
-    mediaType.BeginReading(start);
-    mediaType.BeginReading(iter);
-    mediaType.EndReading(end);
+    const PRUnichar *start = nsnull, *end = nsnull, *iter = nsnull;
+    mediaType.BeginReading(&start, &end);
+    mediaType.BeginReading(&iter);
 
     nsAutoString fileFilter;
     nsAutoString mimeType;
     while (iter != end) {
-      if (FindCharInReadable(' ', iter, end)) {
+      while (iter < end && *iter != ' ')
+        ++iter;
+      if (iter < end) {
          mimeType = Substring(start, iter);
          // Skip the space.
          ++iter;
@@ -454,7 +455,7 @@ ReportEncodingMemoryError(nsIDOMElement* aElement, nsIFile *aFile,
   }
 
   nsAutoString size;
-  size.AppendInt((PRInt64)aFailedSize);
+  size.AppendInt(aFailedSize);
   const PRUnichar *strings[] = { filename.get(), size.get() };
   nsXFormsUtils::ReportError(NS_LITERAL_STRING("encodingMemoryError"),
                              strings, 2, aElement, aElement);
@@ -494,7 +495,7 @@ nsXFormsUploadElement::EncodeFileContents(nsIFile *aFile, PRUint16 aType,
       *aResult = nsnull;
       char *buffer = PL_Base64Encode(fileData.Elements(), bytesRead, nsnull);
       if (buffer) {
-        *aResult = ToNewUnicode(nsDependentCString(buffer));
+        *aResult = ToNewUnicode(NS_ConvertASCIItoUTF16(buffer));
         PR_Free(buffer);
       }
       if (!*aResult) {

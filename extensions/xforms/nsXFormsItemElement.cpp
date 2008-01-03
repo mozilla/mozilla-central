@@ -44,7 +44,7 @@
 #include "nsIDOMDocument.h"
 #include "nsIDOMDocumentEvent.h"
 #include "nsIPrivateDOMEvent.h"
-#include "nsString.h"
+#include "nsStringAPI.h"
 #include "nsXFormsUtils.h"
 #include "nsIXFormsValueElement.h"
 #include "nsVoidArray.h"
@@ -290,7 +290,7 @@ nsXFormsItemElement::GetValue(nsAString &aValue)
     // if this item was built by an itemset and the itemset's template used
     // a copy element, then there is no value element to be had.  No sense
     // continuing.
-    aValue.Truncate(0);
+    aValue.Truncate();
     return NS_ERROR_FAILURE;
   }
 
@@ -314,7 +314,7 @@ nsXFormsItemElement::GetValue(nsAString &aValue)
   }     
 
   // No value children, so our value is empty
-  aValue.Truncate(0);
+  aValue.Truncate();
   return NS_OK;
 }
 
@@ -423,7 +423,7 @@ NS_IMETHODIMP
 nsXFormsItemElement::GetLabelText(nsAString& aValue)
 {
   NS_ENSURE_STATE(mElement);
-  aValue.Truncate(0);
+  aValue.Truncate();
   
   nsCOMPtr<nsIDOMNodeList> children;
   mElement->GetChildNodes(getter_AddRefs(children));

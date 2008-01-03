@@ -46,6 +46,7 @@
 #include "nsIServiceManager.h"
 #include "nsIClassInfoImpl.h"
 #include "nsXFormsXPathFunctions.h"
+#include "nsServiceManagerUtils.h"
 
 // bb0d9c8b-3096-4b66-92a0-6c1ddf80e65f
 #define NS_XFORMSUTILITYSERVICE_CID \
@@ -81,7 +82,7 @@ RegisterXFormsModule(nsIComponentManager *aCompMgr,
   if (!catman)
     return NS_ERROR_FAILURE;
 
-  nsXPIDLCString previous;
+  nsCString previous;
   nsresult rv =
     catman->AddCategoryEntry(NS_DOMNS_FEATURE_PREFIX "org.w3c.xforms.dom",
                              "1.0",

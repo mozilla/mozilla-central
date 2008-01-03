@@ -40,7 +40,7 @@
 #define __nsSchemaValidatorUtils_h__
 
 #include "nsCOMPtr.h"
-#include "nsString.h"
+#include "nsStringAPI.h"
 #include "nsISchema.h"
 #include "nsIDOMNode.h"
 #include "nsCOMArray.h"
@@ -239,6 +239,8 @@ public:
                                     nsSchemaDerivedSimpleType *aDerivedSrc);
 
   static void SetToNullOrElement(nsIDOMNode *aNode, nsIDOMNode **aResultNode);
+  static PRInt32 FindCharInSet(const nsAString & aString, const char *aSet,
+                               PRInt32 aOffset = 0);
 private:
   nsSchemaValidatorUtils();
   ~nsSchemaValidatorUtils();
