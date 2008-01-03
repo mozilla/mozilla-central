@@ -78,10 +78,11 @@ static NSString* const CacheInfoPaneSeenKey   = @"MVPreferencePaneSeen";    // N
 - (void)doUnselect:(NSNotification *) notification;
 - (IBAction)selectPreferencePane:(id) sender;
 - (void)resizeWindowForContentView:(NSView *) view;
+- (void)makeFirstResponderValid;
 - (NSMutableDictionary*)infoCacheForPane:(NSString*)paneIdentifier;
 - (NSImage*)imageForPane:(NSString*)paneIdentifier;
 - (NSString*)labelForPane:(NSString*)paneIdentifier;
-- (id)currentPane;
+- (NSPreferencePane*)currentPane;
 
 @end
 
@@ -198,9 +199,16 @@ static NSString* const CacheInfoPaneSeenKey   = @"MVPreferencePaneSeen";    // N
     CHBrowserService::InitEmbedding();
   }
 
-  // If a pref pane is not already showing, then show the last-used pane
-  if (!mCurrentPaneIdentifier && (![[mWindow contentView] isEqual:mMainView]))
-    [self selectPreferencePaneByIdentifier:[[NSUserDefaults standardUserDefaults] objectForKey:kLastUsedPaneKey]];
+  if (!mCurrentPaneIdentifier && (![[mWindow contentView] isEqual:mMainView])) {
+    // If a pref pane is not already showing, then show the last-used pane.
+    [self selectPreferencePaneByIdentifier:[[NSUserDefaults standardUserDefaults]
+                              objectForKey:kLastUsedPaneKey]];
+  }
+  else if ([mWindow windowNumber] <= 0) {
+    // If the window is reopening, set the first responder to what the pane's
+    // first responder would be had it been selected anew.
+    [self makeFirstResponderValid];
+  }
 
   [mWindow makeKeyAndOrderFront:nil];
 }
@@ -272,21 +280,7 @@ static NSString* const CacheInfoPaneSeenKey   = @"MVPreferencePaneSeen";    // N
       [mCurrentPaneIdentifier autorelease];
       mCurrentPaneIdentifier = [identifier copy];
 
-      // What we want here is the first focusable element focused, respecting the full keyboard access
-      // preference (so FKA users see the first control focused, and non-FKA users see the first textfield
-      // focused if there is one, and nothing if there isn't).
-      //
-      // To accomplish this, ideally we'd hook up the view's |nextKeyView| to the first element in the pane
-      // and set focus to |nextValidKeyView|, but we can't, since that view is in a different nib from
-      // the prefpanes.  So to validate, we call |previousValidKeyView| on the second element.
-      //
-      // This has the limitation that it will not focus the first element (even with FKA on) if there
-      // is only one control in the prefpane.  If we ever have a one-element prefpane, this approach
-      // should be reconsidered to prevent breakage for FKA users.
-      NSView* initialKeyView = [pane initialKeyView];
-      NSView* firstValidKeyView = [[initialKeyView nextKeyView] previousValidKeyView];
-      if ([firstValidKeyView isEqual:initialKeyView])
-        [mWindow makeFirstResponder:firstValidKeyView];
+      [self makeFirstResponderValid];
 
       [[mWindow toolbar] setSelectedItemIdentifier:mCurrentPaneIdentifier];
     }
@@ -530,6 +524,50 @@ static NSString* const CacheInfoPaneSeenKey   = @"MVPreferencePaneSeen";    // N
   [mWindow setFrame:newWindowFrame display:YES animate:[mWindow isVisible]];
 }
 
+// Set up the initial first responder for the window given the currently-
+// selected preference pane.  This is needed because panes are swapped in
+// and out of one preferences window.  This routine behaves properly under
+// Full Keyboard Access by only looking at "valid" key views - if FKA is off,
+// only text fields are considered "valid," otherwise, all controls are
+// considered "valid" and may participate in the key view loop.  The initial
+// first responder is always set to what the pane indicates, but the current
+// first responder (key view) is set to the first "valid" key view, if any,
+// in the pane's key view loop.
+- (void)makeFirstResponderValid {
+  NSView* initialFirstResponder = [[self currentPane] initialKeyView];
+
+  // Set the initial first responder to avoid having the system recalculate
+  // the key view loop when the window is reopened.  If the preference pane
+  // doesn't specify an initial first responder, have the key view loop
+  // recalculated now.
+  [mWindow setInitialFirstResponder:initialFirstResponder];
+  if (!initialFirstResponder) {
+    [mWindow recalculateKeyViewLoop];
+  }
+
+  // Set the current first responder to the first valid key view, if any.
+  NSView* nextValidKeyView = [initialFirstResponder nextValidKeyView];
+  NSView* firstValidKeyView = nil;
+  if ((!nextValidKeyView && [initialFirstResponder canBecomeKeyView]) ||
+      ([nextValidKeyView previousValidKeyView] == initialFirstResponder)) {
+    // The first valid key view can be the initial first responder if the
+    // initial first responder is a valid key view, determined by checking
+    // the next valid key view's previous valid key view, or by checking that
+    // the initial first responder can become the key view if there are no other
+    // valid key views in the key view loop.
+    firstValidKeyView = initialFirstResponder;
+  }
+  else {
+    // If the initial first responder can't behave as a valid key view,
+    // whatever follows it as a valid key view in the loop must be the first
+    // valid one.  This can still be nil, but that's fine: if it is, the
+    // right thing is to have no first responder.
+    firstValidKeyView = nextValidKeyView;
+  }
+
+  [mWindow makeFirstResponder:firstValidKeyView];
+}
+
 - (NSMutableDictionary*)infoCacheForPane:(NSString*)paneIdentifier
 {
   NSMutableDictionary*  cache = [mPaneInfo objectForKey:paneIdentifier];
@@ -594,7 +632,7 @@ static NSString* const CacheInfoPaneSeenKey   = @"MVPreferencePaneSeen";    // N
   return paneLabel;
 }
 
-- (id)currentPane
+- (NSPreferencePane*)currentPane
 {
   return [mLoadedPanes objectForKey:mCurrentPaneIdentifier];
 }
