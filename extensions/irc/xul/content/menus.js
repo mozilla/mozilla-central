@@ -70,21 +70,16 @@ function initMenus()
                "Math.abs((cx.fontSizeDefault - cx.fontSize) / 2) != 1";
     };
 
-    function onMenuCommand (event, window)
+    function onMenuCommand(event, window)
     {
-        var params;
         var commandName = event.originalTarget.getAttribute("commandname");
+        var params = new Object();
         if ("cx" in client.menuManager && client.menuManager.cx)
-        {
-            client.menuManager.cx.sourceWindow = window;
             params = client.menuManager.cx;
-        }
-        else
-        {
-            params = { sourceWindow: window };
-        }
+        params.sourceWindow = window;
+        params.source = "menu";
 
-        dispatch (commandName, params);
+        dispatch(commandName, params);
 
         delete client.menuManager.cx;
     };
