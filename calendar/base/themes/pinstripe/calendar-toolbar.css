@@ -188,7 +188,7 @@ toolbar[iconsize="small"] #calendar-unifinder-button:active {
         -moz-image-region: rect(24px 528px 48px 504px);
 }
 toolbar[iconsize="small"] #calendar-unifinder-button[disabled="true"] {
-        -moz-image-region: rect(48px 528px 72px 504x);
+        -moz-image-region: rect(48px 528px 72px 504px);
 }
 
 /*--------------------------------------------------------------------
@@ -212,7 +212,7 @@ toolbar[iconsize="small"] #calendar-show-todaypane-button:active {
         -moz-image-region: rect(24px 504px 48px 480px);
 }
 toolbar[iconsize="small"] #calendar-show-todaypane-button[disabled="true"] {
-        -moz-image-region: rect(48px 504px 72px 480x);
+        -moz-image-region: rect(48px 504px 72px 480px);
 }
 
 /*--------------------------------------------------------------------
