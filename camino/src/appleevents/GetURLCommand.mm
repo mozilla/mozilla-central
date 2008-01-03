@@ -42,6 +42,7 @@
 #import <AppKit/AppKit.h>
 
 #import "MainController.h"
+#import "NSURL+Utils.h"
 
 static NSString* const kMainControllerIsInitializedKey = @"initialized";
 
@@ -54,7 +55,11 @@ static NSString* const kMainControllerIsInitializedKey = @"initialized";
   // We can get here before the application is fully initialized and the previous
   // session is restored.  We want to avoid opening URLs before that happens.
   if ([mainController isInitialized]) {
-    [mainController showURL:[self directParameter]];
+    NSString* urlString = [self directParameter];
+    NSURL* url = [NSURL URLWithString:urlString];
+    if ([url isFileURL])
+      urlString = [[NSURL decodeLocalFileURL:url] absoluteString];
+    [mainController showURL:urlString];
   }
   else {
     [self suspendExecution];

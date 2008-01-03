@@ -125,7 +125,6 @@ NSString* const kPreviousSessionTerminatedNormallyKey = @"PreviousSessionTermina
 - (void)openPanelDidEnd:(NSOpenPanel*)inOpenPanel returnCode:(int)inReturnCode contextInfo:(void*)inContextInfo;
 - (void)loadApplicationPage:(NSString*)pageURL;
 - (NSArray*)browserWindows;
-+ (NSURL*)decodeLocalFileURL:(NSURL*)url;
 
 @end
 
@@ -756,7 +755,7 @@ NSString* const kPreviousSessionTerminatedNormallyKey = @"PreviousSessionTermina
   // session is restored.  We want to avoid opening URLs before that happens.
   [self ensureInitializationCompleted];
 
-  NSURL* urlToOpen = [MainController decodeLocalFileURL:[NSURL fileURLWithPath:filename]];
+  NSURL* urlToOpen = [NSURL decodeLocalFileURL:[NSURL fileURLWithPath:filename]];
   [self showURL:[urlToOpen absoluteString]];
   return YES;
 }
@@ -868,27 +867,6 @@ NSString* const kPreviousSessionTerminatedNormallyKey = @"PreviousSessionTermina
     urlString = [urlString stringByRemovingCharactersInSet:[NSCharacterSet whitespaceAndNewlineCharacterSet]];
     [self showURL:urlString];
   }
-}
-
-//
-// This takes an NSURL to a local file, and if that file is a file that contains
-// a URL we want and isn't the content itself, we return the URL it contains.
-// Otherwise, we return the URL we originally got. Right now this supports .url,
-// .webloc and .ftploc files.
-//
-+ (NSURL*)decodeLocalFileURL:(NSURL*)url
-{
-  NSString* urlPathString = [url path];
-  NSString* ext = [[urlPathString pathExtension] lowercaseString];
-  OSType fileType = NSHFSTypeCodeFromFileType(NSHFSTypeOfFile(urlPathString));
-
-  if ([ext isEqualToString:@"url"] || fileType == 'LINK')
-    url = [NSURL URLFromIEURLFile:urlPathString];
-  else if ([ext isEqualToString:@"webloc"] || [ext isEqualToString:@"ftploc"] ||
-           fileType == 'ilht' || fileType == 'ilft')
-    url = [NSURL URLFromInetloc:urlPathString];
-
-  return url;
 }
 
 #pragma mark -
@@ -1153,7 +1131,7 @@ NSString* const kPreviousSessionTerminatedNormallyKey = @"PreviousSessionTermina
   NSURL* curURL;
   while ((curURL = [urlsEnum nextObject])) {
     [[NSDocumentController sharedDocumentController] noteNewRecentDocumentURL:curURL];
-    curURL = [MainController decodeLocalFileURL:curURL];
+    curURL = [NSURL decodeLocalFileURL:curURL];
     [urlStringsArray addObject:[curURL absoluteString]];
   }
 
