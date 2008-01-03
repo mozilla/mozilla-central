@@ -29,7 +29,8 @@
    -   Philipp Kewisch <mozilla@kewis.ch>
    -   Michael Buettner <michael.buettner@sun.com>
    -   Berend Cornelius <berend.cornelius@sun.com>
-   
+   -   Martin Schroeder <mschroeder@mozilla.x-home.org>
+   -
    - Alternatively, the contents of this file may be used under the terms of
    - either the GNU General Public License Version 2 or later (the "GPL"), or
    - the GNU Lesser General Public License Version 2.1 or later (the "LGPL"),
@@ -249,8 +250,9 @@
 
   <broadcasterset id="calendar_broadcasters">
     <broadcaster id="is_editable" hidden="false"/>
-     <broadcaster id="modeBroadcaster" checked="true"/>
+    <broadcaster id="modeBroadcaster" checked="true"/>
   </broadcasterset>
+
   <!-- Be sure to keep these sets, since they will be overlayed by
        calendar/base/content/calendar-common-sets.xul -->
   <commandset id="calendar_commands">
@@ -266,21 +268,20 @@
     <command id="calendar_new_todo_command" oncommand="createTodoWithDialog(getSelectedCalendar());"/>
     <command id="modify_todo_command" oncommand="editToDo()"/>
     <command id="delete_todo_command" oncommand="deleteToDoCommand()" disabled="true"/>
-    <command id="cmd_gotoToday" oncommand="goToToday()"/>
- </commandset>
-   <keyset id="ltnKeys">
-     <key id="openLightningKey" modifiers="accel" key="3" observes="switch2calendar"/>
-     <key id="todaypanekey" command="cmd_toggleTodayPane" keycode="VK_F11"/>
-     <key id="newEventKey" key="I" modifiers="accel" command="calendar_new_event_command"/>
-     <key id="newTaskKey" key="D" modifiers="accel" command="calendar_new_todo_command"/>
-     <key id="day-view-key" key="1" modifiers="alt" command="calendar_day-view_command"/>
-     <key id="week-view-key" key="2" modifiers="alt" command="calendar_week-view_command"/>
-     <key id="multiweek-view-key" key="3" modifiers="alt" command="calendar_multiweek-view_command"/>
-     <key id="month-view-key" key="4" modifiers="alt" command="calendar_month-view_command"/>
-     <!-- not yet in use...-->
-     <key id="switchtotask-key" key="4" modifiers="accel"/>
-     <key id="gotoToday-key" command="cmd_gotoToday" modifiers="accel" keycode="VK_DOWN"/>         
+  </commandset>
 
+  <keyset id="ltnKeys">
+    <key id="openLightningKey" modifiers="accel" key="3" observes="switch2calendar"/>
+    <key id="todaypanekey" command="cmd_toggleTodayPane" keycode="VK_F11"/>
+    <key id="newEventKey" key="I" modifiers="accel" command="calendar_new_event_command"/>
+    <key id="newTaskKey" key="D" modifiers="accel" command="calendar_new_todo_command"/>
+    <key id="day-view-key" key="1" modifiers="alt" command="calendar_day-view_command"/>
+    <key id="week-view-key" key="2" modifiers="alt" command="calendar_week-view_command"/>
+    <key id="multiweek-view-key" key="3" modifiers="alt" command="calendar_multiweek-view_command"/>
+    <key id="month-view-key" key="4" modifiers="alt" command="calendar_month-view_command"/>
+    <key id="gotoToday-key" keycode="VK_DOWN" modifiers="accel" command="calendar_go_to_today_command"/>
+    <!-- not yet in use...-->
+    <key id="switchtotask-key" key="4" modifiers="accel"/>
   </keyset>
 
   <popupset id="calendar-popupset">
