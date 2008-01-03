@@ -29,3 +29,7 @@
 
 "RemoveAndBlockCookieFromSite" = "Remove and block cookies from sites matching “%@”";
 "RemoveAndBlockCookiesFromSites" = "Remove and block cookies from these sites";
+
+"RemoveAllKeychainExclusionsWarningTitle" = "Are you sure you want to remove all Keychain exclusions?";
+"RemoveAllKeychainExclusionsWarning" = "This will clear the list of sites for which you’ve opted to never save passwords. If you log in to these sites in the future, Camino will offer to save your password. You cannot undo this action.";
+"RemoveAllKeychainExclusionsButton" = "Remove All Keychain Exclusions";

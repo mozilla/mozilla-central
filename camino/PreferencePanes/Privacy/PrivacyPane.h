@@ -40,7 +40,7 @@
 
 #import "PreferencePaneBase.h"
 
-#import "nsCOMArray.h"
+#include "nsCOMArray.h"
 
 class nsICookieManager;
 class nsICookie;
@@ -64,7 +64,7 @@ typedef enum ECookiePolicyPopupIndex
   eDenyIndex
 } ECookiePolicyPopupIndex;
 
-@interface OrgMozillaChimeraPreferencePrivacy : PreferencePaneBase
+@interface OrgMozillaCaminoPreferencePrivacy : PreferencePaneBase
 {
   // pane
   IBOutlet NSMatrix*          mCookieBehavior;
@@ -87,6 +87,12 @@ typedef enum ECookiePolicyPopupIndex
   IBOutlet NSSearchField*     mCookiesFilterField;
   nsICookieManager*           mCookieManager;
   nsCOMArray<nsICookie>*      mCachedCookies;
+
+  // Keychain Exclusions sheet
+  IBOutlet id                 mKeychainExclusionsPanel;
+  IBOutlet ExtendedTableView* mKeychainExclusionsTable;
+  IBOutlet NSSearchField*     mKeychainExclusionsFilterField;
+  NSMutableArray*             mKeychainExclusions;
 }
 
 // main panel button actions
@@ -94,6 +100,7 @@ typedef enum ECookiePolicyPopupIndex
 -(IBAction) clickAskAboutCookies:(id)sender;
 -(IBAction) clickStorePasswords:(id)sender;
 -(IBAction) launchKeychainAccess:(id)sender;
+-(IBAction) editKeychainExclusions:(id)sender;
 
 // cookie editing functions
 -(void) populateCookieCache;
@@ -113,6 +120,13 @@ typedef enum ECookiePolicyPopupIndex
 -(IBAction) removeAllCookiePermissions:(id)aSender;
 -(int) rowForPermissionWithHost:(NSString *)aHost;
 
+// keychain exclusion list editing functions
+- (void)loadKeychainExclusions;
+- (IBAction)editKeychainExclusions:(id)sender;
+- (IBAction)editKeychainExclusionsDone:(id)sender;
+- (IBAction)removeKeychainExclusions:(id)sender;
+- (IBAction)removeAllKeychainExclusions:(id)sender;
+
 -(void) mapCookiePrefToGUI:(int)pref;
 
 // data source informal protocol (NSTableDataSource)
@@ -126,8 +140,10 @@ typedef enum ECookiePolicyPopupIndex
 // filtering methods
 - (IBAction)cookieFilterChanged:(id)sender;
 - (IBAction)permissionFilterChanged:(id)sender;
+- (IBAction)keychainExclusionsFilterChanged:(id)sender;
 - (void) filterCookiesPermissionsWithString: (NSString*) inFilterString;
 - (void) filterCookiesWithString: (NSString*) inFilterString;
+- (void) filterKeychainExclusionsWithString: (NSString*)filterString;
 @end
 
 // custom formatter for cookies list to handle session cookie expiration sanely

@@ -121,29 +121,6 @@ enum KeychainPromptResult { kSave, kDontRemember, kNeverRemember } ;
 @end
 
 
-//
-// KeychainDenyList
-//
-// A singleton object that maintains a list of sites where we should
-// not prompt the user for saving in the keychain. This object also
-// handles archiving the list in the user's profile dir.
-//
-
-@interface KeychainDenyList : NSObject
-{
-  NSMutableArray* mDenyList;     // the list
-}
-
-+ (KeychainDenyList*)instance;
-
-- (BOOL)isHostPresent:(NSString*)host;
-- (void)addHost:(NSString*)host;
-- (void)removeHost:(NSString*)host;
-- (void)removeAllHosts;
-
-@end
-
-
 class KeychainPrompt : public nsIAuthPromptWrapper
 {
 public:

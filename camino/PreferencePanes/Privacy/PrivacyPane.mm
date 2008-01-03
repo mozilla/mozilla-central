@@ -42,6 +42,7 @@
 #import "NSArray+Utils.h"
 #import "CHPermissionManager.h"
 #import "ExtendedTableView.h"
+#import "KeychainDenyList.h"
 
 #include "nsCOMPtr.h"
 #include "nsServiceManagerUtils.h"
@@ -67,7 +68,7 @@ const int kWarnAboutCookies = 1;
 // sort order indicators
 const int kSortReverse = 1;
 
-@interface OrgMozillaChimeraPreferencePrivacy(Private)
+@interface OrgMozillaCaminoPreferencePrivacy(Private)
 
 // helper method for blocking/allowing multiple sites at once
 - (void)addPermissionForSelection:(int)inPermission;
@@ -82,8 +83,12 @@ const int kSortReverse = 1;
 - (int)indexForPolicy:(int)policy;
 - (int)policyForIndex:(int)index;
 - (void)updateSortIndicatorWithColumn:(NSTableColumn *)aTableColumn;
-- (void)sortCookiesByColumn:(NSTableColumn *)aTableColumn inAscendingOrder:(BOOL)ascending;
-- (void)sortPermissionsByKey:(NSString *)sortKey inAscendingOrder:(BOOL)ascending;
+- (void)sortCookiesByColumn:(NSTableColumn *)aTableColumn
+           inAscendingOrder:(BOOL)ascending;
+- (void)sortPermissionsByKey:(NSString *)sortKey
+            inAscendingOrder:(BOOL)ascending;
+- (void)sortKeychainExclusionsByColumn:(NSTableColumn*)tableColumn
+                      inAscendingOrder:(BOOL)asecending;
 
 @end
 
@@ -170,7 +175,7 @@ PR_STATIC_CALLBACK(int) compareValues(nsICookie* aCookie1, nsICookie* aCookie2, 
 
 #pragma mark -
 
-@implementation OrgMozillaChimeraPreferencePrivacy
+@implementation OrgMozillaCaminoPreferencePrivacy
 
 -(void) dealloc
 {
@@ -570,6 +575,8 @@ PR_STATIC_CALLBACK(int) compareValues(nsICookie* aCookie1, nsICookie* aCookie2, 
   } else if (aTableView == mCookiesTable) {
     if (mCachedCookies)
       numRows = mCachedCookies->Count();
+  } else if (aTableView == mKeychainExclusionsTable) {
+    numRows = [mKeychainExclusions count];
   }
 
   return (int) numRows;
@@ -611,6 +618,11 @@ PR_STATIC_CALLBACK(int) compareValues(nsICookie* aCookie1, nsICookie* aCookie2, 
         mCachedCookies->ObjectAt(rowIndex)->GetValue(cookieVal);
       }
       retVal = [NSString stringWithCString: cookieVal.get()];
+    }
+  }
+  else if (aTableView == mKeychainExclusionsTable) {
+    if ([[aTableColumn identifier] isEqualToString:@"Website"]) {
+      retVal = [mKeychainExclusions objectAtIndex:rowIndex];
     }
   }
   
@@ -678,6 +690,22 @@ PR_STATIC_CALLBACK(int) compareValues(nsICookie* aCookie1, nsICookie* aCookie2, 
     
     [self updateSortIndicatorWithColumn:aTableColumn];
   }
+}
+
+- (void)sortKeychainExclusionsByColumn:(NSTableColumn*)tableColumn
+                      inAscendingOrder:(BOOL)ascending {
+  NSArray* sortDescriptors = nil;
+  if ([[tableColumn identifier] isEqualToString:@"Website"]) {
+    NSSortDescriptor* sort =
+        [[[NSSortDescriptor alloc] initWithKey:@"self"
+                                     ascending:ascending] autorelease];
+    sortDescriptors = [NSArray arrayWithObject:sort];
+  }
+  [mKeychainExclusions sortUsingDescriptors:sortDescriptors];
+
+  [mKeychainExclusionsTable reloadData];
+
+  [self updateSortIndicatorWithColumn:tableColumn];
 }
 
 - (void)updateSortIndicatorWithColumn:(NSTableColumn *)aTableColumn
@@ -755,6 +783,32 @@ PR_STATIC_CALLBACK(int) compareValues(nsICookie* aCookie1, nsICookie* aCookie2, 
         }
       }
     }
+  } else if (aTableView == mKeychainExclusionsTable) {
+    // Save the currently selected rows, if any.
+    NSMutableArray* selectedItems = [NSMutableArray arrayWithCapacity:[mKeychainExclusionsTable numberOfSelectedRows]];
+    NSIndexSet* selectedIndexes = [mKeychainExclusionsTable selectedRowIndexes];
+    for (unsigned int index = [selectedIndexes lastIndex];
+         index != NSNotFound;
+         index = [selectedIndexes indexLessThanIndex:index]) {
+      [selectedItems addObject:[mKeychainExclusions objectAtIndex:index]];
+    }
+
+    [self sortKeychainExclusionsByColumn:aTableColumn
+                        inAscendingOrder:mSortedAscending];
+
+    // If any rows were selected before, find them again.
+    [mKeychainExclusionsTable deselectAll:self];
+    for (unsigned int i = 0; i < [selectedItems count]; ++i) {
+      int newRowIndex = [mKeychainExclusions indexOfObject:[selectedItems objectAtIndex:i]];
+      if (newRowIndex != NSNotFound) {
+        // scroll to the first item (arbitrary, but at least one should show)
+        if (i == 0) {
+          [mKeychainExclusionsTable scrollRowToVisible:newRowIndex];
+        }
+        [mKeychainExclusionsTable selectRow:newRowIndex
+                       byExtendingSelection:YES];
+      }
+    }
   }
 }
 
@@ -783,7 +837,7 @@ PR_STATIC_CALLBACK(int) compareValues(nsICookie* aCookie1, nsICookie* aCookie2, 
 {
   if (!mPrefService)
     return;
-  mPrefService->SetBoolPref("chimera.store_passwords_with_keychain",
+  mPrefService->SetBoolPref(gUseKeychainPref,
                             ([mStorePasswords state] == NSOnState) ? PR_TRUE : PR_FALSE);
 }
 
@@ -804,8 +858,10 @@ PR_STATIC_CALLBACK(int) compareValues(nsICookie* aCookie1, nsICookie* aCookie2, 
 // button to dismiss the sheet.
 - (void)controlTextDidEndEditing:(NSNotification *)aNotification {
   id source = [aNotification object];
-  if (!(source == mCookiesFilterField || source == mPermissionFilterField))
+  if (!(source == mCookiesFilterField || source == mPermissionFilterField ||
+        source == mKeychainExclusionsFilterField)) {
     return;
+  }
   
   NSEvent* currentEvent = [NSApp currentEvent];
   if (([currentEvent type] == NSKeyDown) && [[currentEvent characters] length] > 0) {
@@ -813,8 +869,10 @@ PR_STATIC_CALLBACK(int) compareValues(nsICookie* aCookie1, nsICookie* aCookie2, 
     if ((character == NSCarriageReturnCharacter) || (character == NSEnterCharacter)) {
       if (source == mCookiesFilterField)
         [mCookiesPanel performKeyEquivalent:currentEvent];
-      else
+      else if (source == mPermissionFilterField)
         [mPermissionsPanel performKeyEquivalent:currentEvent];
+      else if (source == mKeychainExclusionsFilterField)
+        [mKeychainExclusionsPanel performKeyEquivalent:currentEvent];
     }
   }
 }
@@ -849,6 +907,16 @@ PR_STATIC_CALLBACK(int) compareValues(nsICookie* aCookie1, nsICookie* aCookie2, 
 
   [mPermissionsTable deselectAll:self];   // don't want any traces of previous selection
   [mPermissionsTable reloadData];
+}
+
+- (IBAction)keychainExclusionsFilterChanged:(id)sender {
+  NSString* filterString = [sender stringValue];
+
+  [self filterKeychainExclusionsWithString:filterString];
+  [self sortKeychainExclusionsByColumn:[mKeychainExclusionsTable highlightedTableColumn]
+                      inAscendingOrder:mSortedAscending];
+  [mKeychainExclusionsTable deselectAll:self];
+  [mKeychainExclusionsTable reloadData];
 }
 
 - (void)filterCookiesPermissionsWithString:(NSString*)inFilterString
@@ -887,6 +955,18 @@ PR_STATIC_CALLBACK(int) compareValues(nsICookie* aCookie1, nsICookie* aCookie2, 
     NSNumber *currentItem;
     while ((currentItem = [theEnum nextObject]))
       mCachedCookies->RemoveObjectAt([currentItem intValue]);
+  }
+}
+
+- (void)filterKeychainExclusionsWithString: (NSString*)filterString {
+  [self loadKeychainExclusions];
+
+  if ([filterString length]) {
+    for (int index = [mKeychainExclusions count] - 1; index >= 0; --index) {
+      if ([[mKeychainExclusions objectAtIndex:index] rangeOfString:filterString].location == NSNotFound) {
+        [mKeychainExclusions removeObjectAtIndex:index];
+      }
+    }
   }
 }
 
@@ -978,9 +1058,10 @@ PR_STATIC_CALLBACK(int) compareValues(nsICookie* aCookie1, nsICookie* aCookie2, 
   if (action == @selector(removeCookies:))
     return ([self numCookiesSelectedInCookiePanel] > 0);
 
-  // only allow "remove all" if we're not filtering
+  // only allow "remove all" when there are items and when not filtering
   if (action == @selector(removeAllCookies:))
-    return ([[mCookiesFilterField stringValue] length] == 0);
+    return ([mCookiesTable numberOfRows] > 0 &&
+            [[mCookiesFilterField stringValue] length] == 0);
 
   if (action == @selector(allowCookiesFromSites:))
   {
@@ -1020,11 +1101,107 @@ PR_STATIC_CALLBACK(int) compareValues(nsICookie* aCookie1, nsICookie* aCookie2, 
   if (action == @selector(removeCookiePermissions:))
     return ([self numPermissionsSelectedInPermissionsPanel] > 0);
 
-  // only allow "remove all" if we're not filtering
+  // only allow "remove all" when there are items and when not filtering
   if (action == @selector(removeAllCookiePermissions:))
-    return ([[mPermissionFilterField stringValue] length] == 0);
+    return ([mPermissionsTable numberOfRows] > 0 &&
+            [[mPermissionFilterField stringValue] length] == 0);
+
+  // Keychain Exclusions context/action menu
+  if (action == @selector(removeKeychainExclusions:)) {
+    return ([mKeychainExclusionsTable numberOfSelectedRows] > 0);
+  }
+
+  if (action == @selector(removeAllKeychainExclusions:)) {
+    // Only allow "Remove All..." when there are items to remove, and when
+    // no filer is applied.
+    return ([mKeychainExclusionsTable numberOfRows] > 0 &&
+            [[mKeychainExclusionsFilterField stringValue] length] == 0);
+  }
 
   return YES;
+}
+
+- (void)loadKeychainExclusions {
+  [mKeychainExclusions release];
+  mKeychainExclusions = [[[KeychainDenyList instance] listHosts] mutableCopy];
+}
+
+- (IBAction)editKeychainExclusions:(id)sender {
+  [self loadKeychainExclusions];
+
+  [mKeychainExclusionsTable setDeleteAction:@selector(removeKeychainExclusions:)];
+  [mKeychainExclusionsTable setTarget:self];
+
+  mSortedAscending = YES;
+  [self sortKeychainExclusionsByColumn:[mKeychainExclusionsTable tableColumnWithIdentifier:@"Website"]
+                      inAscendingOrder:mSortedAscending];
+
+  // ensure a row is selected (cocoa doesn't do this for us, but will keep
+  // us from unselecting a row once one is set; go figure).
+  if ([mKeychainExclusionsTable numberOfRows] > 0) {
+    [mKeychainExclusionsTable selectRow:0 byExtendingSelection:NO];
+  }
+
+  [mKeychainExclusionsTable setUsesAlternatingRowBackgroundColors:YES];
+
+  [mKeychainExclusionsFilterField setStringValue:@""];
+
+  // we shouldn't need to do this, but the scrollbar won't enable unless we
+  // force the table to reload its data. Oddly it gets the number of rows
+  // correct, it just forgets to tell the scrollbar. *shrug*
+  [mKeychainExclusionsTable reloadData];
+
+  [mKeychainExclusionsPanel setFrameAutosaveName:@"keychain_exclusions_sheet"];
+
+  [NSApp beginSheet:mKeychainExclusionsPanel
+     modalForWindow:[sender window]
+      modalDelegate:self
+     didEndSelector:NULL
+        contextInfo:NULL];
+
+  NSSize min = {350, 225};
+  [mKeychainExclusionsPanel setMinSize:min];
+}
+
+- (IBAction)editKeychainExclusionsDone:(id)sender {
+  [mKeychainExclusionsPanel orderOut:self];
+  [NSApp endSheet:mKeychainExclusionsPanel];
+  [mKeychainExclusions release];
+  mKeychainExclusions = nil;
+}
+
+- (IBAction)removeKeychainExclusions:(id)sender {
+  NSIndexSet* selectedIndexes = [mKeychainExclusionsTable selectedRowIndexes];
+  for (unsigned int index = [selectedIndexes lastIndex];
+       index != NSNotFound;
+       index = [selectedIndexes indexLessThanIndex:index]) {
+    [[KeychainDenyList instance] removeHost:[mKeychainExclusions objectAtIndex:index]];
+    [mKeychainExclusions removeObjectAtIndex:index];
+  }
+
+  [mKeychainExclusionsTable reloadData];
+
+  // Select the row after the last deleted row.
+  if ([mKeychainExclusionsTable numberOfRows] > 0) {
+    int rowToSelect = [selectedIndexes lastIndex] - ([selectedIndexes count] - 1);
+    if ((rowToSelect < 0) ||
+        (rowToSelect >= [mKeychainExclusionsTable numberOfRows])) {
+      rowToSelect = [mKeychainExclusionsTable numberOfRows] - 1;
+    }
+    [mKeychainExclusionsTable selectRow:rowToSelect byExtendingSelection:NO];
+  }
+}
+
+- (IBAction)removeAllKeychainExclusions:(id)sender {
+  if (NSRunCriticalAlertPanel([self localizedStringForKey:@"RemoveAllKeychainExclusionsWarningTitle"],
+                              [self localizedStringForKey:@"RemoveAllKeychainExclusionsWarning"],
+                              [self localizedStringForKey:@"RemoveAllKeychainExclusionsButton"],
+                              [self localizedStringForKey:@"CancelButtonText"],
+                              nil) == NSAlertDefaultReturn) {
+    [[KeychainDenyList instance] removeAllHosts];
+    [mKeychainExclusions removeAllObjects];
+    [mKeychainExclusionsTable reloadData];
+  }
 }
 
 // Private method to convert from a popup index to the corresponding policy.

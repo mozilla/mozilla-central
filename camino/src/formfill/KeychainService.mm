@@ -44,6 +44,7 @@
 
 #import "KeychainItem.h"
 #import "KeychainService.h"
+#import "KeychainDenyList.h"
 #import "CHBrowserService.h"
 #import "PreferenceManager.h"
 #import "KeyEquivView.h"
@@ -648,93 +649,6 @@ int KeychainPrefChangedCallback(const char* inPref, void* unused)
   // Ensure that the key will survive past the timer invalidation
   NSString* key = [[[theTimer userInfo] retain] autorelease];
   [self cacheKeychainEntry:nil forKey:key];
-}
-
-@end
-
-
-@interface KeychainDenyList (KeychainDenyListPrivate)
-- (void)writeToDisk;
-- (NSString*)pathToDenyListFile;
-- (NSString*)pathToLegacyDenyListFile;
-@end
-
-
-@implementation KeychainDenyList
-
-static KeychainDenyList *sDenyListInstance = nil;
-
-+ (KeychainDenyList*)instance
-{
-  return sDenyListInstance ? sDenyListInstance : sDenyListInstance = [[self alloc] init];
-}
-
-- (id)init
-{
-  if ((self = [super init])) {
-    mDenyList = [[NSMutableArray alloc] initWithContentsOfFile:[self pathToDenyListFile]];
-    // If there's no new deny list file, try the old one
-    if (!mDenyList)
-      mDenyList = [[NSUnarchiver unarchiveObjectWithFile:[self pathToLegacyDenyListFile]] retain];
-    if (!mDenyList)
-      mDenyList = [[NSMutableArray alloc] init];
-  }
-  return self;
-}
-
-- (void)dealloc
-{
-  [mDenyList release];
-  [super dealloc];
-}
-
-//
-// writeToDisk
-//
-// flushes the deny list to the save file in the user's profile.
-//
-- (void)writeToDisk
-{
-  [mDenyList writeToFile:[self pathToDenyListFile] atomically:YES];
-}
-
-- (BOOL)isHostPresent:(NSString*)host
-{
-  return [mDenyList containsObject:host];
-}
-
-- (void)addHost:(NSString*)host
-{
-  if (![self isHostPresent:host]) {
-    [mDenyList addObject:host];
-    [self writeToDisk];
-  }
-}
-
-- (void)removeHost:(NSString*)host
-{
-  if ([self isHostPresent:host]) {
-    [mDenyList removeObject:host];
-    [self writeToDisk];
-  }
-}
-
-- (void)removeAllHosts
-{
-  [mDenyList removeAllObjects];
-  [self writeToDisk];
-}
-
-- (NSString*)pathToDenyListFile
-{
-  NSString* profilePath = [[PreferenceManager sharedInstance] profilePath];
-  return [profilePath stringByAppendingPathComponent:@"KeychainDenyList.plist"];
-}
-
-- (NSString*)pathToLegacyDenyListFile
-{
-  NSString* profilePath = [[PreferenceManager sharedInstance] profilePath];
-  return [profilePath stringByAppendingPathComponent:@"Keychain Deny List"];
 }
 
 @end

@@ -1153,6 +1153,11 @@
 		7BAEF8120CCFDF3400384F4E /* Sparkle.framework in Copy Frameworks */ = {isa = PBXBuildFile; fileRef = 7BAEF7470CCFDE7D00384F4E /* Sparkle.framework */; };
 		7BAEF8150CCFDF4A00384F4E /* Sparkle.framework in Copy Frameworks */ = {isa = PBXBuildFile; fileRef = 7BAEF7470CCFDE7D00384F4E /* Sparkle.framework */; };
 		7BB332F40A7E99BC0075521C /* libspellchecker.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 7BB332F30A7E99BC0075521C /* libspellchecker.a */; };
+		7BB8FC1C0D2D58AF00CC63B0 /* KeychainDenyList.h in Headers */ = {isa = PBXBuildFile; fileRef = 7BB8FC190D2D589100CC63B0 /* KeychainDenyList.h */; };
+		7BB8FC1D0D2D58BB00CC63B0 /* KeychainDenyList.mm in Sources */ = {isa = PBXBuildFile; fileRef = 7BB8FC1A0D2D589100CC63B0 /* KeychainDenyList.mm */; };
+		7BB8FC1E0D2D58C600CC63B0 /* KeychainDenyList.h in Headers */ = {isa = PBXBuildFile; fileRef = 7BB8FC190D2D589100CC63B0 /* KeychainDenyList.h */; };
+		7BB8FC1F0D2D58D000CC63B0 /* KeychainDenyList.mm in Sources */ = {isa = PBXBuildFile; fileRef = 7BB8FC1A0D2D589100CC63B0 /* KeychainDenyList.mm */; };
+		7BB8FC200D2D58DC00CC63B0 /* KeychainDenyList.h in Headers */ = {isa = PBXBuildFile; fileRef = 7BB8FC190D2D589100CC63B0 /* KeychainDenyList.h */; };
 		82180AB107368AD7002EFA6D /* grabber.gif in Copy Gecko Resources */ = {isa = PBXBuildFile; fileRef = 82CE28710736615300B4DE07 /* grabber.gif */; };
 		82180AB207368AD7002EFA6D /* table-add-column-after-active.gif in Copy Gecko Resources */ = {isa = PBXBuildFile; fileRef = 82CE28720736615300B4DE07 /* table-add-column-after-active.gif */; };
 		82180AB307368AD7002EFA6D /* table-add-column-after-hover.gif in Copy Gecko Resources */ = {isa = PBXBuildFile; fileRef = 82CE28730736615300B4DE07 /* table-add-column-after-hover.gif */; };
@@ -2616,6 +2621,8 @@
 		7B64B7BA0CCFD9F50098406C /* Sparkle.xcodeproj */ = {isa = PBXFileReference; lastKnownFileType = "wrapper.pb-project"; name = Sparkle.xcodeproj; path = sparkle/Sparkle.xcodeproj; sourceTree = "<group>"; };
 		7BAEF7470CCFDE7D00384F4E /* Sparkle.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = Sparkle.framework; path = sparkle/build/Release/Sparkle.framework; sourceTree = "<group>"; };
 		7BB332F30A7E99BC0075521C /* libspellchecker.a */ = {isa = PBXFileReference; lastKnownFileType = archive.ar; name = libspellchecker.a; path = ../staticlib/components/libspellchecker.a; sourceTree = SOURCE_ROOT; };
+		7BB8FC190D2D589100CC63B0 /* KeychainDenyList.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = KeychainDenyList.h; path = src/formfill/KeychainDenyList.h; sourceTree = "<group>"; };
+		7BB8FC1A0D2D589100CC63B0 /* KeychainDenyList.mm */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.objcpp; name = KeychainDenyList.mm; path = src/formfill/KeychainDenyList.mm; sourceTree = "<group>"; };
 		82180AC907368BDF002EFA6D /* libcomposer.dylib */ = {isa = PBXFileReference; lastKnownFileType = "compiled.mach-o.bundle"; name = libcomposer.dylib; path = ../dist/bin/components/libcomposer.dylib; sourceTree = SOURCE_ROOT; };
 		82AC0D5D065A5F2300776B02 /* content_xslt.xpt */ = {isa = PBXFileReference; lastKnownFileType = file; name = content_xslt.xpt; path = ../dist/bin/components/content_xslt.xpt; sourceTree = SOURCE_ROOT; };
 		82AC0D5E065A5F5100776B02 /* dom_xpath.xpt */ = {isa = PBXFileReference; lastKnownFileType = file; name = dom_xpath.xpt; path = ../dist/bin/components/dom_xpath.xpt; sourceTree = SOURCE_ROOT; };
@@ -3726,6 +3733,8 @@
 		335639BD0C84E8B900DC4D06 /* Keychain */ = {
 			isa = PBXGroup;
 			children = (
+				7BB8FC190D2D589100CC63B0 /* KeychainDenyList.h */,
+				7BB8FC1A0D2D589100CC63B0 /* KeychainDenyList.mm */,
 				DEB968170B0D8E0B0023F8B1 /* KeychainItem.h */,
 				DEB968140B0D8DF70023F8B1 /* KeychainItem.m */,
 				F5F94B900332532801026D5D /* KeychainService.h */,
@@ -4772,6 +4781,7 @@
 				3316F4490D11F1900025ED19 /* TabButtonView.h in Headers */,
 				E43EFBB50D143F2600DACA10 /* FindBarController.h in Headers */,
 				E43EFBB70D143F2600DACA10 /* FindBarView.h in Headers */,
+				7BB8FC1C0D2D58AF00CC63B0 /* KeychainDenyList.h in Headers */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -4800,6 +4810,7 @@
 			files = (
 				3F44ADC505BDFBA000CB4B08 /* PrivacyPane.h in Headers */,
 				7B06E81A0D0DC92E0032E38A /* PreferencePaneBase.h in Headers */,
+				7BB8FC200D2D58DC00CC63B0 /* KeychainDenyList.h in Headers */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -4944,6 +4955,7 @@
 				3316F44B0D11F1900025ED19 /* TabButtonView.h in Headers */,
 				E43EFBB90D143F2600DACA10 /* FindBarController.h in Headers */,
 				E43EFBBB0D143F2600DACA10 /* FindBarView.h in Headers */,
+				7BB8FC1E0D2D58C600CC63B0 /* KeychainDenyList.h in Headers */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -5810,6 +5822,7 @@
 				3316F44A0D11F1900025ED19 /* TabButtonView.mm in Sources */,
 				E43EFBB60D143F2600DACA10 /* FindBarController.mm in Sources */,
 				E43EFBB80D143F2600DACA10 /* FindBarView.mm in Sources */,
+				7BB8FC1D0D2D58BB00CC63B0 /* KeychainDenyList.mm in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -5976,6 +5989,7 @@
 				3316F44C0D11F1900025ED19 /* TabButtonView.mm in Sources */,
 				E43EFBBA0D143F2600DACA10 /* FindBarController.mm in Sources */,
 				E43EFBBC0D143F2600DACA10 /* FindBarView.mm in Sources */,
+				7BB8FC1F0D2D58D000CC63B0 /* KeychainDenyList.mm in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
