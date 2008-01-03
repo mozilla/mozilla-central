@@ -134,11 +134,11 @@ FeedParser.prototype =
       {
         guid = getNodeValue(guidNode);
         isPermaLink = guidNode.getAttribute('isPermaLink') == 'false' ? false : true;
+        item.id = guid;
+        item.isStoredWithId = true;
       }
 
-      item.isStoredWithId = true;
       item.url = link ? link : (guid && isPermaLink) ? guid : null;
-      item.id = guid;
       item.description = getNodeValue(this.childrenByTagNameNS(itemNode, nsURI, "description")[0]);
       item.title = getNodeValue(this.childrenByTagNameNS(itemNode, nsURI, "title")[0])
                    || (item.description ? (this.stripTags(item.description).substr(0, 150)) : null)
@@ -151,7 +151,10 @@ FeedParser.prototype =
       item.date = getNodeValue(this.childrenByTagNameNS(itemNode, nsURI, "pubDate")[0]
                                || this.childrenByTagNameNS(itemNode, DC_NS, "date")[0])
                                || item.date;
-    
+
+      if (!item.id)
+        item.id = item.feed.url + '#' + (item.date || item.title);
+
       // If the date is invalid, users will see the beginning of the epoch
       // unless we reset it here, so they'll see the current time instead.
       // This is typical aggregator behavior.

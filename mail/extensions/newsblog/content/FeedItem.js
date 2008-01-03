@@ -196,7 +196,7 @@ FeedItem.prototype =
       this.content = content; // XXX store it elsewhere, f.e. this.page
       this.writeToFolder();
     }
-    else if (this.feed.quickMode)
+    else if (this.feed.quickMode || !this.mURL)
     {
       debug(this.identity + " in quick mode; storing");
 
@@ -256,7 +256,7 @@ FeedItem.prototype =
     // Backward compatibility: we might have stored this item before isStoredWithId
     // has been turned on for RSS 2.0 (bug 354345). Check whether this item has been
     // stored with its URL.
-    if (!downloaded && itemURI != this.mURL)
+    if (!downloaded && this.mURL && itemURI != this.mURL)
     {
       itemResource = rdf.GetResource(this.mURL);
       downloaded = ds.GetTarget(itemResource, FZ_STORED, true);
@@ -302,7 +302,7 @@ FeedItem.prototype =
     // Backward compatibility: we might have stored this item before isStoredWithId
     // has been turned on for RSS 2.0 (bug 354345). Check whether this item has been
     // stored with its URL.
-    if (!ds.GetTarget(resource, FZ_STORED, true) && itemURI != this.mURL)
+    if (!ds.GetTarget(resource, FZ_STORED, true) && this.mURL && itemURI != this.mURL)
       resource = rdf.GetResource(this.mURL);
 
     if (!ds.HasAssertion(resource, FZ_FEED, rdf.GetResource(this.feed.url), true))
