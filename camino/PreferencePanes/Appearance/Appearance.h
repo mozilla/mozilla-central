@@ -38,9 +38,10 @@
 
 #import "PreferencePaneBase.h"
 
-@interface OrgMozillaChimeraPreferenceAppearance : PreferencePaneBase 
+@interface OrgMozillaCaminoPreferenceAppearance : PreferencePaneBase 
 {
   IBOutlet NSTabView*     mTabView;
+  IBOutlet NSButton*      mResetButton;
 
   // colors tab
   IBOutlet NSColorWell*   mTextColorWell;
@@ -51,8 +52,6 @@
 
   IBOutlet NSButton*      mUnderlineLinksCheckbox;
   IBOutlet NSButton*      mUseMyColorsCheckbox;
-
-  IBOutlet NSButton*      mColorsResetButton;
 
   // fonts tab
   IBOutlet NSButton*      mChooseProportionalFontButton;
@@ -66,8 +65,6 @@
   IBOutlet NSTextField*   mProportionalSubLabel;
 
   IBOutlet NSButton*      mUseMyFontsCheckbox;
-
-  IBOutlet NSButton*      mFontsResetButton;
 
   // advanced panel stuff
   IBOutlet NSPanel*       mAdvancedFontsDialog;
@@ -104,7 +101,6 @@
 - (IBAction)showAdvancedFontsDialog:(id)sender;
 - (IBAction)advancedFontsDone:(id)sender;
 
-- (IBAction)resetColorsToDefaults:(id)sender;
-- (IBAction)resetFontsToDefaults:(id)sender;
+- (IBAction)resetToDefaults:(id)sender;
 
 @end

@@ -39,7 +39,7 @@
  
 #import "Appearance.h"
 
-@interface OrgMozillaChimeraPreferenceAppearance(Private)
+@interface OrgMozillaCaminoPreferenceAppearance(Private)
 
 - (void)setupFontRegionPopup;
 - (void)updateFontPreviews;
@@ -76,6 +76,9 @@
 
 - (void)setupFontPopup:(NSPopUpButton*)popupButton forType:(NSString*)fontType fromDict:(NSDictionary*)regionDict;
 - (void)getFontFromPopup:(NSPopUpButton*)popupButton forType:(NSString*)fontType intoDict:(NSDictionary*)regionDict;
+
+- (IBAction)resetColorsToDefaults:(id)sender;
+- (IBAction)resetFontsToDefaults:(id)sender;
 
 @end
 
@@ -118,7 +121,7 @@
 
 #pragma mark -
 
-@implementation OrgMozillaChimeraPreferenceAppearance
+@implementation OrgMozillaCaminoPreferenceAppearance
 
 - (void)dealloc
 {
@@ -289,7 +292,7 @@
         }
     */
     NSString *regionName = NSLocalizedStringFromTableInBundle(regionCode, @"RegionNames",
-        [NSBundle bundleForClass:[OrgMozillaChimeraPreferenceAppearance class]], @"");
+        [NSBundle bundleForClass:[self class]], @"");
     [regionDict setObject:regionName forKey:@"region"];
     
     NSMutableDictionary *serifDict = [self makeDictFromPrefsForFontType:@"serif" andRegion:regionCode];
@@ -727,6 +730,16 @@ const int kDefaultFontSansSerifTag = 1;
      [[NSFontPanel sharedFontPanel] makeKeyAndOrderFront:self];    
 }
 
+- (IBAction)resetToDefaults:(id)sender {
+  NSString* selectedTabViewIdentifier = [[mTabView selectedTabViewItem] identifier];
+  if ([selectedTabViewIdentifier isEqual:@"colors"]) {
+    [self resetColorsToDefaults:sender];
+  }
+  else if ([selectedTabViewIdentifier isEqual:@"fonts"]) {
+    [self resetFontsToDefaults:sender];
+  }
+}
+
 // Reset the "Colors and Links" tab to application factory defaults.
 - (IBAction)resetColorsToDefaults:(id)sender
 {
@@ -886,7 +899,7 @@ const int kMissingFontPopupItemTag = 9999;
 
 @end
 
-@implementation OrgMozillaChimeraPreferenceAppearance (FontManagerDelegate)
+@implementation OrgMozillaCaminoPreferenceAppearance (FontManagerDelegate)
 
 - (id)fieldEditorForObject:(id)inObject
 {

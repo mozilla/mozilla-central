@@ -27,6 +27,6 @@
 	<key>NSMainNibFile</key>
 	<string>Appearance</string>
 	<key>NSPrincipalClass</key>
-	<string>OrgMozillaChimeraPreferenceAppearance</string>
+	<string>OrgMozillaCaminoPreferenceAppearance</string>
 </dict>
 </plist>
