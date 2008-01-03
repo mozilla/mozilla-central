@@ -94,16 +94,43 @@ const int kSortReverse = 1;
 
 #pragma mark -
 
+@interface NSString(HostSortComparator)
+- (NSComparisonResult)reverseHostnameCompare:(NSString *)otherString;
+@end
+
+@implementation NSString(HostSortComparator)
+- (NSComparisonResult)reverseHostnameCompare:(NSString *)otherString {
+  NSArray* selfComponents = [self componentsSeparatedByString:@"."];
+  NSArray* otherStringComponents = [otherString componentsSeparatedByString:@"."];
+  int selfIndex = [selfComponents count] - 1;
+  int otherIndex = [otherStringComponents count] - 1;
+  for (; selfIndex >= 0 && otherIndex >= 0; --selfIndex, --otherIndex) {
+    NSComparisonResult result =
+      [[selfComponents objectAtIndex:selfIndex] caseInsensitiveCompare:[otherStringComponents objectAtIndex:otherIndex]];
+    if (result != NSOrderedSame)
+      return result;
+  }
+  if (selfIndex < otherIndex)
+    return NSOrderedDescending;
+  else if (selfIndex > otherIndex)
+    return NSOrderedAscending;
+  else
+    return NSOrderedSame;
+}
+@end
+
 PR_STATIC_CALLBACK(int) compareCookieHosts(nsICookie* aCookie1, nsICookie* aCookie2, void* aData)
 {
   nsCAutoString host1;
   aCookie1->GetHost(host1);
+  NSString* host1String = [NSString stringWithUTF8String:host1.get()];
   nsCAutoString host2;
   aCookie2->GetHost(host2);
+  NSString* host2String = [NSString stringWithUTF8String:host2.get()];
   if ((int)aData == kSortReverse)
-    return Compare(host2, host1);
+    return (int)[host2String reverseHostnameCompare:host1String];
   else
-    return Compare(host1, host2);
+    return (int)[host1String reverseHostnameCompare:host2String];
 }
 
 PR_STATIC_CALLBACK(int) compareNames(nsICookie* aCookie1, nsICookie* aCookie2, void* aData)
@@ -653,16 +680,24 @@ PR_STATIC_CALLBACK(int) compareValues(nsICookie* aCookie1, nsICookie* aCookie2, 
 
 -(void) sortPermissionsByKey:(NSString *)sortKey inAscendingOrder:(BOOL)ascending
 {
-  NSMutableArray* sortDescriptors = [NSMutableArray array];
-  NSSortDescriptor *mainSort = [[[NSSortDescriptor alloc] initWithKey:sortKey
-                                                            ascending:ascending] autorelease];
-  [sortDescriptors addObject:mainSort];
-  // When not sorted by host, break ties in host-alphabetical order.
-  if (![sortKey isEqualToString:@"host"]) {
+  NSMutableArray* sortDescriptors;
+  if ([sortKey isEqualToString:@"host"]) {
+    NSSortDescriptor* sort =
+      [[[NSSortDescriptor alloc] initWithKey:sortKey
+                                   ascending:ascending
+                                    selector:@selector(reverseHostnameCompare:)] autorelease];
+    sortDescriptors = [NSArray arrayWithObject:sort];
+  }
+  else {
+    NSSortDescriptor* mainSort =
+      [[[NSSortDescriptor alloc] initWithKey:sortKey
+                                   ascending:ascending] autorelease];
+    // When not sorted by host, break ties in host order.
     NSSortDescriptor *hostSort = [[[NSSortDescriptor alloc] initWithKey:@"host"
-                                                              ascending:YES] autorelease];
-    [sortDescriptors addObject:hostSort];
-    }
+                                                              ascending:YES
+                                                               selector:@selector(reverseHostnameCompare:)] autorelease];
+    sortDescriptors = [NSArray arrayWithObjects:mainSort, hostSort, nil];
+  }
   [mCachedPermissions sortUsingDescriptors:sortDescriptors];
 
   [mPermissionsTable reloadData];
@@ -698,7 +733,8 @@ PR_STATIC_CALLBACK(int) compareValues(nsICookie* aCookie1, nsICookie* aCookie2, 
   if ([[tableColumn identifier] isEqualToString:@"Website"]) {
     NSSortDescriptor* sort =
         [[[NSSortDescriptor alloc] initWithKey:@"self"
-                                     ascending:ascending] autorelease];
+                                     ascending:ascending
+                                      selector:@selector(reverseHostnameCompare:)] autorelease];
     sortDescriptors = [NSArray arrayWithObject:sort];
   }
   [mKeychainExclusions sortUsingDescriptors:sortDescriptors];
