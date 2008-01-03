@@ -154,6 +154,7 @@ const char kDirServiceContractID[] = "@mozilla.org/file/directory_service;1";
 - (NSString*)locationFromDOMWindow:(nsIDOMWindow*)inDOMWindow;
 - (void)ensurePrintSettings;
 - (void)savePrintSettings;
+- (BOOL)isPasswordFieldFocused;
 
 - (already_AddRefed<nsISecureBrowserUI>)secureBrowserUI;
 
@@ -1124,7 +1125,8 @@ const char kDirServiceContractID[] = "@mozilla.org/file/directory_service;1";
   nsCOMPtr<nsIClipboardCommands> clipboard(do_GetInterface(_webBrowser));
   if ( clipboard )
     clipboard->CanCutSelection(&canCut);
-  return canCut;
+  // Core considers password field text copyable, so check it ourselves
+  return canCut && ![self isPasswordFieldFocused];
 }
 
 -(IBAction)copy:(id)aSender
@@ -1136,11 +1138,12 @@ const char kDirServiceContractID[] = "@mozilla.org/file/directory_service;1";
 
 -(BOOL)canCopy
 {
-  PRBool canCut = PR_FALSE;
+  PRBool canCopy = PR_FALSE;
   nsCOMPtr<nsIClipboardCommands> clipboard(do_GetInterface(_webBrowser));
   if ( clipboard )
-    clipboard->CanCopySelection(&canCut);
-  return canCut;
+    clipboard->CanCopySelection(&canCopy);
+  // Core considers password field text copyable, so check it ourselves
+  return canCopy && ![self isPasswordFieldFocused];
 }
 
 -(IBAction)paste:(id)aSender
@@ -1242,6 +1245,29 @@ const char kDirServiceContractID[] = "@mozilla.org/file/directory_service;1";
   PRBool canUnload;
   contentViewer->PermitUnload(&canUnload);
   return canUnload ? YES : NO;
+}
+
+// -isPasswordFieldFocused
+//
+// Returs YES if a password field in the content area has focus.
+// We need this only because core believes that password fields are
+// valid cut/copy targets (see bug 217729).
+//
+- (BOOL)isPasswordFieldFocused
+{
+  BOOL isFocused = NO;
+
+  nsCOMPtr<nsIDOMElement> focusedItem = dont_AddRef([self focusedDOMElement]);
+
+  nsCOMPtr<nsIDOMHTMLInputElement> input = do_QueryInterface(focusedItem);
+  if (input) {
+    nsAutoString type;
+    input->GetType(type);
+    if (type.Equals(NS_LITERAL_STRING("password")))
+      isFocused = YES;
+  }
+
+  return isFocused;
 }
 
 // -isTextFieldFocused
