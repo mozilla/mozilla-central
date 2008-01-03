@@ -812,8 +812,15 @@ nsMsgCompose::Initialize(nsIDOMWindowInternal *aWindow, nsIMsgComposeParams *par
   rv = composeService->DetermineComposeHTML(m_identity, format, &m_composeHTML);
   NS_ENSURE_SUCCESS(rv,rv);
 
+  nsCAutoString draftId; // will get set for drafts and templates
+  rv = composeFields->GetDraftId(getter_Copies(draftId));
+  NS_ENSURE_SUCCESS(rv,rv);
+
   // Set return receipt flag and type, and if we should attach a vCard
-  if (m_identity && composeFields)
+  // by checking the identity prefs - but don't clobber the values for
+  // drafts and templates as they were set up already by mime when
+  // initializing the message.
+  if (m_identity && composeFields && draftId.IsEmpty())
   {
     PRBool requestReturnReceipt = PR_FALSE;
     rv = m_identity->GetRequestReturnReceipt(&requestReturnReceipt);
