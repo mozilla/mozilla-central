@@ -173,6 +173,7 @@
                    tooltiptext="&calendar.remotereload.button.tooltip;"
                    observes="calendar_reload_remote_calendars"/>
     <toolbarbutton id="calendar-unifinder-button"
+                   mode="calendar"
                    class="cal-toolbarbutton-1"
                    type="checkbox"
                    checked="true"
