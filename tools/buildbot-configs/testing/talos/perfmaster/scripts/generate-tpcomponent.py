@@ -17,7 +17,7 @@ working_dir = "."
 chrome_dir = os.path.join(working_dir, 'chrome')
 components_dir = os.path.join(working_dir, 'components')
 # where the pageloader will be checked out from
-cvsroot = ":pserver:anonymous@cvs.mozilla.org:/cvsroot"
+cvsroot = ":pserver:anonymous@cvs-mirror.mozilla.org:/cvsroot"
 module = "mozilla/layout/tools/pageloader"
 
 def removedir(rdir):
