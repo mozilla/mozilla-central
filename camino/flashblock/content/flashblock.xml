@@ -116,13 +116,9 @@ function flashblockSetImage(placeholder, type) {
 function flashblockStylePlaceholder(flash, placeholder, isStandalone) {
 	// If object's size was relative, use that.
 	// Otherwise, set size to minimum 32x32 px
-	placeholder.style.minWidth = "32px !important";
-	placeholder.style.minHeight = "32px !important";
+	placeholder.style.setProperty("min-width", "32px", "important");
+	placeholder.style.setProperty("min-height", "32px", "important");
 	// The size and positioning may come from a class
-	// or from the id for id-specific CSS styles
-	var fId = flash.getAttribute("id");
-	if (fId)
-		placeholder.setAttribute("id", fId);
 	var fClass = flash.getAttribute("class");
 	if (fClass)
 		placeholder.setAttribute("class", fClass);
@@ -160,12 +156,21 @@ function flashblockStylePlaceholder(flash, placeholder, isStandalone) {
 	placeholder.style.border = "1px solid #dfdfdf";
 	placeholder.style.cursor = "pointer";
 	placeholder.style.overflow = "hidden";
+	placeholder.style.display = "inline-block";
 
 	// The size of the placeholder should include borders too,
 	// otherwise scrollbars appear for blocked standalone objects
 	placeholder.style.MozBoxSizing = "border-box";
 
-	// Make some style adjustments since the placeholder is a <div>	// element instead of a <embed>, <object>, ... element.	// An <embed> will be centered if the parent has	// 'text-align: center' but a <div> will not. This code fixes that.	var parentStyle = window.getComputedStyle(flash.parentNode, "");	if (parentStyle.getPropertyValue("text-align") == "center") {		placeholder.style.marginRight = "auto";		placeholder.style.marginLeft = "auto";	}
+	// Make some style adjustments since the placeholder is a <div>
+	// element instead of a <embed>, <object>, ... element.
+	// An <embed> will be centered if the parent has
+	// 'text-align: center' but a <div> will not. This code fixes that.
+	var parentStyle = window.getComputedStyle(flash.parentNode, "");
+	if (parentStyle.getPropertyValue("text-align") == "center") {
+		placeholder.style.marginRight = "auto";
+		placeholder.style.marginLeft = "auto";
+	}
 }
 
 function flashblockSetTitle(current, placeholder, isStandalone) {
@@ -319,7 +324,7 @@ if(event) {
 
 this.style.height = 0;
 this.style.width = 0;
-this.style.display = "none !important";
+this.style.setProperty("display", "none", "important");
 this.style.position ="absolute";
 this.style.overflow ="hidden";
         ]]>
@@ -342,13 +347,13 @@ if(event) {
 	}
 }
 
-this.style.visibility = "visible !important";
-this.style.display = "block !important";
-//this.style.position = "static !important";
-this.style.left = "auto !important";
-this.style.top = "auto !important";
-this.style.height = "auto !important";
-this.style.width = "auto !important";
+this.style.setProperty("visibility", "visible", "important");
+this.style.setProperty("display", "block", "important");
+this.style.setProperty("left", "auto", "important");
+this.style.setProperty("top", "auto", "important");
+this.style.setProperty("height", "auto", "important");
+this.style.setProperty("width", "auto", "important");
+//this.style.position = "static";
         ]]>
     </constructor>
   </implementation>

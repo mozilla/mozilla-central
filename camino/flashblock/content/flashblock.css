@@ -63,6 +63,7 @@ embed[type="application/x-java-applet"]
 */
 object[classid*="32C73088-76AE-40F7-AC40-81F62CB2C1DA"],
 object[type="application/ag-plugin"],
+object[type="application/x-silverlight"],
 object[source*=".xaml"],
 object[sourceelement*="xaml"],
 embed[type="application/ag-plugin"],
