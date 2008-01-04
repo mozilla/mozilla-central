@@ -123,7 +123,6 @@ comm.jar:
    content/communicator/history/history-test.xul                    (history/history-test.xul)
    content/communicator/history/findHistory.js                      (history/findHistory.js)
    content/communicator/history/findHistory.xul                     (history/findHistory.xul)
-   content/communicator/permissions/aboutPopups.xul                 (permissions/aboutPopups.xul)
    content/communicator/permissions/cookieViewer.js                 (permissions/cookieViewer.js)
    content/communicator/permissions/cookieViewer.xul                (permissions/cookieViewer.xul)
    content/communicator/permissions/imageContextOverlay.xul         (permissions/imageContextOverlay.xul)

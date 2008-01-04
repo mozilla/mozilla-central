@@ -124,7 +124,6 @@
   locale/@AB_CD@/communicator/migration/migration.dtd                       (%chrome/common/migration/migration.dtd)
   locale/@AB_CD@/communicator/migration/migration.properties                (%chrome/common/migration/migration.properties)
   locale/@AB_CD@/communicator/overrides/netErrorApp.dtd                     (%chrome/common/overrides/netErrorApp.dtd)
-  locale/@AB_CD@/communicator/permissions/aboutPopups.dtd                   (%chrome/common/permissions/aboutPopups.dtd)
   locale/@AB_CD@/communicator/permissions/cookieViewer.properties           (%chrome/common/permissions/cookieViewer.properties)
   locale/@AB_CD@/communicator/permissions/cookieViewer.dtd                  (%chrome/common/permissions/cookieViewer.dtd)
   locale/@AB_CD@/communicator/permissions/imageContextOverlay.dtd           (%chrome/common/permissions/imageContextOverlay.dtd)

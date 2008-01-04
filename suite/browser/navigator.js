@@ -667,7 +667,6 @@ function Startup()
   // initiated by a web page script
   addEventListener("fullscreen", onFullScreen, true);
 
-  addEventListener("PopupWindow", onPopupWindow, true);
   addEventListener("PopupCountChanged", UpdateStatusBarPopupIcon, true);
 
   addEventListener("AppCommand", HandleAppCommandEvent, true);
@@ -2214,55 +2213,6 @@ function BrowserFullScreen()
 function onFullScreen()
 {
   FullScreen.toggle();
-}
-
-function onPopupWindow(aEvent)
-{
-  var firstPopup = pref.getBoolPref("privacy.popups.first_popup");
-  var blockingEnabled = pref.getBoolPref("dom.disable_open_during_load");
-  if (blockingEnabled) {
-    pref.setBoolPref("privacy.popups.first_popup", false);
-    return;
-  }
-  if (firstPopup) { 
-    var showDialog = true;
-    var specialList = "";
-    try {
-      specialList = pref.getComplexValue("privacy.popups.default_whitelist",
-                                         Components.interfaces.nsIPrefLocalizedString).data;
-    }
-    catch(ex) { }
-    if (specialList) {
-      hosts = specialList.split(",");
-      var browser = getBrowserForDocument(aEvent.target);
-      if (!browser)
-        return;
-      var currentHost = browser.currentURI.hostPort;
-      for (var i = 0; i < hosts.length; i++) {
-        var nextHost = hosts[i];
-        if (nextHost == currentHost ||
-            "."+nextHost == currentHost.substr(currentHost.length - (nextHost.length+1))) {
-          showDialog = false;
-          break;
-        }       
-      }
-    }
-    if (showDialog) {
-      window.openDialog("chrome://communicator/content/permissions/aboutPopups.xul", "",
-                        "chrome,centerscreen,dependent", true);
-      pref.setBoolPref("privacy.popups.first_popup", false);
-    }
-  }
-}
-
-function getBrowserForDocument(doc)
-{
-  var browsers = getBrowser().browsers;
-  for (var i = 0; i < browsers.length; i++) {
-    if (browsers[i].contentDocument == doc)
-      return browsers[i];
-  }
-  return null;
 }
 
 function UpdateStatusBarPopupIcon(aEvent)

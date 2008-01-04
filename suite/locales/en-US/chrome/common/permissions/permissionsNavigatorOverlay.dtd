@@ -31,8 +31,6 @@
 
 <!ENTITY cookieAllowPopupsCmd.label                  "Allow Popups from This Site">
 <!ENTITY cookieAllowPopupsCmd.accesskey              "A">
-<!ENTITY cookieAboutPopupBlocking.label              "About Popup Blocking">
-<!ENTITY cookieAboutPopupBlocking.accesskey          "b">
 <!ENTITY cookieManagePopups.label                    "Manage Popups">
 <!ENTITY cookieManagePopups.accesskey                "M">
 

@@ -91,7 +91,6 @@
 
       blocked = permissionmanager.testPermission(getBrowser().currentURI, "popup");
       
-      document.getElementById("AboutPopups").hidden = policy;
       document.getElementById("ManagePopups").hidden = !policy;
 
       if (policy) {
@@ -174,12 +173,6 @@
       var promptService = Components.classes["@mozilla.org/embedcomp/prompt-service;1"]
                                     .getService(Components.interfaces.nsIPromptService);
       promptService.alert(window,element.getAttribute("title"), element.getAttribute("msg"));
-    }
-
-    function OpenAboutPopups() {
-      window.openDialog("chrome://communicator/content/permissions/aboutPopups.xul", "", 
-                        "chrome,centerscreen,dependent", 
-                        false);
     }
 
     function popupHost() {
@@ -269,10 +262,6 @@
         <menuitem id="AllowPopups" label="&cookieAllowPopupsCmd.label;"
                   accesskey="&cookieAllowPopupsCmd.accesskey;" 
                   oncommand="viewPopups(popupHost());"/>
-        <menuitem id="AboutPopups" label="&cookieAboutPopupBlocking.label;"
-                  accesskey="&cookieAboutPopupBlocking.accesskey;"
-                  oncommand="OpenAboutPopups();"
-                  hidden="true"/>
         <menuitem id="ManagePopups" label="&cookieManagePopups.label;"
                   accesskey="&cookieManagePopups.accesskey;"
                   oncommand="viewPopups('');"

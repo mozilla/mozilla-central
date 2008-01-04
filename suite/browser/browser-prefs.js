@@ -357,7 +357,6 @@ pref("alerts.totalOpenTime", 4000);
 // 2 and other values, no download manager, no progress dialog. 
 pref("browser.downloadmanager.behavior", 0);
 
-pref("privacy.popups.first_popup",                true);
 pref("privacy.popups.sound_enabled",              false);
 pref("privacy.popups.sound_url",                  "");
 pref("privacy.popups.statusbar_icon_enabled",     true);

@@ -330,11 +330,6 @@ toolbar[mode="text"] .toolbarbutton-1 .toolbarbutton-text {
   list-style-image: url("chrome://navigator/skin/icons/popup-blocked.png");
 }
 
-#popupImage {
-  list-style-image: url("chrome://navigator/skin/icons/about-popups.gif");
-  margin: 6px 0px;
-}
-
 /* ::::: personal toolbar ::::: */
 
 #bookmarks-button {
