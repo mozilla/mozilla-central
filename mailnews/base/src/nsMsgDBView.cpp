@@ -763,13 +763,14 @@ nsresult nsMsgDBView::SaveAndClearSelection(nsMsgKey *aCurrentMsgKey, nsMsgKeyAr
   nsUInt32Array selection;
   GetSelectedIndices(&selection);
   PRInt32 numIndices = selection.GetSize();
+  aMsgKeyArray->SetSize(numIndices);
 
   // now store the msg key for each selected item.
   nsMsgKey msgKey;
   for (PRInt32 index = 0; index < numIndices; index++)
   {
     msgKey = m_keys.GetAt(selection.GetAt(index));
-    aMsgKeyArray->Add(msgKey);
+    aMsgKeyArray->SetAt(index, msgKey);
   }
 
   // clear the selection, we'll manually restore it later.
@@ -1101,6 +1102,10 @@ nsresult nsMsgDBView::GetSelectedIndices(nsUInt32Array *selection)
 {
   if (mTreeSelection)
   {
+    PRInt32 count;
+    mTreeSelection->GetCount(&count);
+    selection->SetSize(count);
+    count = 0;
     PRInt32 selectionCount;
     nsresult rv = mTreeSelection->GetRangeCount(&selectionCount);
     for (PRInt32 i = 0; i < selectionCount; i++)
@@ -1113,7 +1118,7 @@ nsresult nsMsgDBView::GetSelectedIndices(nsUInt32Array *selection)
       if (startRange >= 0 && startRange < viewSize)
       {
         for (PRInt32 rangeIndex = startRange; rangeIndex <= endRange && rangeIndex < viewSize; rangeIndex++)
-          selection->Add(rangeIndex);
+          selection->SetAt(count++, rangeIndex);
       }
     }
   }
@@ -2557,11 +2562,13 @@ nsMsgDBView::ApplyCommandToIndices(nsMsgViewCommandTypeValue command, nsMsgViewI
   }
 
   folder->EnableNotifications(nsIMsgFolder::allMessageCountNotifications, PR_FALSE, PR_TRUE /*dbBatching*/);
+  if (thisIsImapFolder && command != nsMsgViewCommandType::markThreadRead)
+    imapUids.SetSize(numIndices);
 
   for (int32 i = 0; i < numIndices; i++)
   {
     if (thisIsImapFolder && command != nsMsgViewCommandType::markThreadRead)
-      imapUids.Add(GetAt(indices[i]));
+      imapUids.SetAt(i, GetAt(indices[i]));
 
     switch (command)
     {
@@ -3149,29 +3156,16 @@ nsMsgDBView::DetermineActionsForJunkMsgs(PRBool* movingJunkMessages, PRBool* mar
 // make a copy of each array and copy them over.
 nsresult nsMsgDBView::ReverseThreads()
 {
-    nsUInt32Array *newFlagArray = new nsUInt32Array;
-    if (!newFlagArray)
-        return NS_ERROR_OUT_OF_MEMORY;
-    nsMsgKeyArray *newKeyArray = new nsMsgKeyArray;
-    if (!newKeyArray)
-    {
-        delete newFlagArray;
-        return NS_ERROR_OUT_OF_MEMORY;
-    }
-    nsUint8Array *newLevelArray = new nsUint8Array;
-    if (!newLevelArray)
-    {
-        delete newFlagArray;
-        delete newKeyArray;
-        return NS_ERROR_OUT_OF_MEMORY;
-    }
+    nsUInt32Array newFlagArray;
+    nsMsgKeyArray newKeyArray;
+    nsUint8Array newLevelArray;
 
     PRInt32 sourceIndex, destIndex;
     PRInt32 viewSize = GetSize();
 
-    newKeyArray->SetSize(m_keys.GetSize());
-    newFlagArray->SetSize(m_flags.GetSize());
-    newLevelArray->SetSize(m_levels.GetSize());
+    newKeyArray.SetSize(m_keys.GetSize());
+    newFlagArray.SetSize(m_flags.GetSize());
+    newLevelArray.SetSize(m_levels.GetSize());
 
     for (sourceIndex = 0, destIndex = viewSize - 1; sourceIndex < viewSize;)
     {
@@ -3195,9 +3189,9 @@ nsresult nsMsgDBView::ReverseThreads()
         PRInt32 saveEndThread = endThread;
         while (endThread >= sourceIndex)
         {
-            newKeyArray->SetAt(destIndex, m_keys.GetAt(endThread));
-            newFlagArray->SetAt(destIndex, m_flags.GetAt(endThread));
-            newLevelArray->SetAt(destIndex, m_levels.GetAt(endThread));
+            newKeyArray.SetAt(destIndex, m_keys.GetAt(endThread));
+            newFlagArray.SetAt(destIndex, m_flags.GetAt(endThread));
+            newLevelArray.SetAt(destIndex, m_levels.GetAt(endThread));
             endThread--;
             destIndex--;
         }
@@ -3206,17 +3200,9 @@ nsresult nsMsgDBView::ReverseThreads()
     // this copies the contents of both arrays - it would be cheaper to
     // just assign the new data ptrs to the old arrays and "forget" the new
     // arrays' data ptrs, so they won't be freed when the arrays are deleted.
-    m_keys.RemoveAll();
-    m_flags.RemoveAll();
-    m_levels.RemoveAll();
-    m_keys.InsertAt(0, newKeyArray);
-    m_flags.InsertAt(0, newFlagArray);
-    m_levels.InsertAt(0, newLevelArray);
-
-    // if we swizzle data pointers for these arrays, this won't be right.
-    delete newFlagArray;
-    delete newKeyArray;
-    delete newLevelArray;
+    m_keys.CopyArray(newKeyArray);
+    m_flags.CopyArray(newFlagArray);
+    m_levels.CopyArray(newLevelArray);
 
     return NS_OK;
 }
@@ -4822,6 +4808,7 @@ nsresult nsMsgDBView::ListIdsInThreadOrder(nsIMsgThread *threadHdr, nsMsgKey par
   threadHdr->EnumerateMessages(parentKey, getter_AddRefs(msgEnumerator));
   PRUint32 numChildren;
   (void) threadHdr->GetNumChildren(&numChildren);
+  numChildren--; // account for the existing thread root
 
   // skip the first one.
   PRBool hasMore;
@@ -4832,24 +4819,9 @@ nsresult nsMsgDBView::ListIdsInThreadOrder(nsIMsgThread *threadHdr, nsMsgKey par
     rv = msgEnumerator->GetNext(getter_AddRefs(supports));
     if (NS_SUCCEEDED(rv) && supports)
     {
-      msgHdr = do_QueryInterface(supports);
-      nsMsgKey msgKey;
-      PRUint32 msgFlags, newFlags;
-      msgHdr->GetMessageKey(&msgKey);
-      msgHdr->GetFlags(&msgFlags);
-      AdjustReadFlag(msgHdr, &msgFlags);
-      m_keys.InsertAt(*viewIndex, msgKey);
-      // ### TODO - how about hasChildren flag?
-      m_flags.InsertAt(*viewIndex, msgFlags & ~MSG_VIEW_FLAGS);
-      // ### TODO this is going to be tricky - might use enumerators
-      m_levels.InsertAt(*viewIndex, level);
-      // turn off thread or elided bit if they got turned on (maybe from new only view?)
-      msgHdr->AndFlags(~(MSG_VIEW_FLAG_ISTHREAD | MSG_FLAG_ELIDED), &newFlags);
-      (*pNumListed)++;
-      (*viewIndex)++;
-      if (*pNumListed > numChildren)
+      if (*pNumListed == numChildren)
       {
-        NS_ASSERTION(PR_FALSE, "thread corrupt in db");
+        NS_NOTREACHED("thread corrupt in db");
         // if we've listed more messages than are in the thread, then the db
         // is corrupt, and we should invalidate it.
         // we'll use this rv to indicate there's something wrong with the db
@@ -4858,6 +4830,21 @@ nsresult nsMsgDBView::ListIdsInThreadOrder(nsIMsgThread *threadHdr, nsMsgKey par
         rv = NS_MSG_ERROR_FOLDER_SUMMARY_OUT_OF_DATE;
         break;
       }
+      msgHdr = do_QueryInterface(supports);
+      nsMsgKey msgKey;
+      PRUint32 msgFlags, newFlags;
+      msgHdr->GetMessageKey(&msgKey);
+      msgHdr->GetFlags(&msgFlags);
+      AdjustReadFlag(msgHdr, &msgFlags);
+      m_keys.SetAt(*viewIndex, msgKey);
+      // ### TODO - how about hasChildren flag?
+      m_flags.SetAt(*viewIndex, msgFlags & ~MSG_VIEW_FLAGS);
+      // ### TODO this is going to be tricky - might use enumerators
+      m_levels.SetAt(*viewIndex, level);
+      // turn off thread or elided bit if they got turned on (maybe from new only view?)
+      msgHdr->AndFlags(~(MSG_VIEW_FLAG_ISTHREAD | MSG_FLAG_ELIDED), &newFlags);
+      (*pNumListed)++;
+      (*viewIndex)++;
       rv = ListIdsInThreadOrder(threadHdr, msgKey, level + 1, viewIndex, pNumListed);
     }
   }
@@ -4868,44 +4855,63 @@ nsresult nsMsgDBView::ListIdsInThread(nsIMsgThread *threadHdr, nsMsgViewIndex st
 {
   NS_ENSURE_ARG(threadHdr);
   // these children ids should be in thread order.
+  nsresult rv = NS_OK;
   PRUint32 i;
   nsMsgViewIndex viewIndex = startOfThreadViewIndex + 1;
   *pNumListed = 0;
+
+  PRUint32 numChildren;
+  threadHdr->GetNumChildren(&numChildren);
+  numChildren--; // account for the existing thread root
+  m_keys.InsertAt(viewIndex, 0, numChildren);
+  m_flags.InsertAt(viewIndex, 0, numChildren);
+  m_levels.InsertAt(viewIndex, 1, numChildren); // default unthreaded level
 
   // ### need to rework this when we implemented threading in group views.
   if (m_viewFlags & nsMsgViewFlagsType::kThreadedDisplay && ! (m_viewFlags & nsMsgViewFlagsType::kGroupBySort))
   {
     nsMsgKey parentKey = m_keys[startOfThreadViewIndex];
-
-    return ListIdsInThreadOrder(threadHdr, parentKey, 1, &viewIndex, pNumListed);
+    rv = ListIdsInThreadOrder(threadHdr, parentKey, 1, &viewIndex, pNumListed);
   }
-  // if we're not threaded, just list em out in db order
-
-  PRUint32 numChildren;
-  threadHdr->GetNumChildren(&numChildren);
-  for (i = 1; i < numChildren; i++)
+  else
   {
-    nsCOMPtr <nsIMsgDBHdr> msgHdr;
-    threadHdr->GetChildHdrAt(i, getter_AddRefs(msgHdr));
-    if (msgHdr != nsnull)
+    // if we're not threaded, just list em out in db order
+    for (i = 1; i <= numChildren; i++)
     {
-      nsMsgKey msgKey;
-      PRUint32 msgFlags, newFlags;
-      msgHdr->GetMessageKey(&msgKey);
-      msgHdr->GetFlags(&msgFlags);
-      AdjustReadFlag(msgHdr, &msgFlags);
-      m_keys.InsertAt(viewIndex, msgKey);
-      m_flags.InsertAt(viewIndex, msgFlags & ~MSG_VIEW_FLAGS);
-      // here, we're either flat, or we're grouped - in either case, level is 1
-      m_levels.InsertAt(viewIndex, 1);
-      // turn off thread or elided bit if they got turned on (maybe from new only view?)
-      if (i > 0)
-        msgHdr->AndFlags(~(MSG_VIEW_FLAG_ISTHREAD | MSG_FLAG_ELIDED), &newFlags);
-      (*pNumListed)++;
-      viewIndex++;
+      nsCOMPtr <nsIMsgDBHdr> msgHdr;
+      threadHdr->GetChildHdrAt(i, getter_AddRefs(msgHdr));
+      if (msgHdr != nsnull)
+      {
+        nsMsgKey msgKey;
+        PRUint32 msgFlags, newFlags;
+        msgHdr->GetMessageKey(&msgKey);
+        msgHdr->GetFlags(&msgFlags);
+        AdjustReadFlag(msgHdr, &msgFlags);
+        m_keys.SetAt(viewIndex, msgKey);
+        m_flags.SetAt(viewIndex, msgFlags & ~MSG_VIEW_FLAGS);
+        // here, we're either flat, or we're grouped - in either case, level is 1
+        // turn off thread or elided bit if they got turned on (maybe from new only view?)
+        if (i > 0)
+          msgHdr->AndFlags(~(MSG_VIEW_FLAG_ISTHREAD | MSG_FLAG_ELIDED), &newFlags);
+        (*pNumListed)++;
+        viewIndex++;
+      }
     }
   }
-  return NS_OK;
+  if (*pNumListed < numChildren)
+  {
+    NS_NOTREACHED("thread corrupt in db");
+    m_keys.RemoveAt(viewIndex, numChildren - *pNumListed);
+    m_flags.RemoveAt(viewIndex, numChildren - *pNumListed);
+    m_levels.RemoveAt(viewIndex, numChildren - *pNumListed);
+    // if we've listed fewer messages than are in the thread, then the db
+    // is corrupt, and we should invalidate it.
+    // we'll use this rv to indicate there's something wrong with the db
+    // though for now it probably won't get paid attention to.
+    m_db->SetSummaryValid(PR_FALSE);
+    rv = NS_MSG_ERROR_FOLDER_SUMMARY_OUT_OF_DATE;
+  }
+  return rv;
 }
 
 PRInt32 nsMsgDBView::FindLevelInThread(nsIMsgDBHdr *msgHdr, nsMsgViewIndex startOfThread, nsMsgViewIndex viewIndex)
@@ -5241,6 +5247,7 @@ nsresult nsMsgDBView::MarkThreadRead(nsIMsgThread *threadHdr, nsMsgViewIndex thr
 
     PRUint32 numChildren;
     threadHdr->GetNumChildren(&numChildren);
+    idsMarkedRead.AllocateSpace(numChildren);
     for (PRInt32 childIndex = 0; childIndex < (PRInt32) numChildren ; childIndex++)
     {
         nsCOMPtr <nsIMsgDBHdr> msgHdr;
