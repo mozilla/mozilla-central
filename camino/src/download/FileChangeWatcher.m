@@ -103,8 +103,16 @@ static NSString* const kFileDescriptorKey = @"fdes";
         struct kevent ev;
         u_int fflags = NOTE_RENAME | NOTE_WRITE | NOTE_DELETE;
 
-        // mWatchedDirectories will own parentDirectory for the lifetime of this
-        // kqueue, so it is safe to use here.
+        // mWatchedDirectories needs to own parentDirectory for the lifetime of
+        // this kqueue, so that it is safe to use as context data. We need to
+        // be sure that we are using the *same* string object when we are
+        // tracking multiple downloads in the same folder.
+        unsigned int storedIndex = [mWatchedDirectories indexOfObject:parentDirectory];
+        if (storedIndex == NSNotFound)
+          [mWatchedDirectories addObject:parentDirectory];
+        else
+          parentDirectory = [mWatchedDirectories objectAtIndex:storedIndex];
+
         EV_SET(&ev, fileDesc, EVFILT_VNODE, EV_ADD | EV_ENABLE | EV_CLEAR, fflags,
                0, (void*)parentDirectory);
 
@@ -112,8 +120,6 @@ static NSString* const kFileDescriptorKey = @"fdes";
         if (!mShouldRunThread)
           [self startPolling];
         
-        if (![mWatchedDirectories containsObject:parentDirectory])
-          [mWatchedDirectories addObject:parentDirectory];
         directoryInfo = [NSMutableDictionary dictionaryWithObjectsAndKeys:
           [NSMutableArray arrayWithObject:aWatchedFileDelegate], kDelegatesKey,
                               [NSNumber numberWithInt:fileDesc], kFileDescriptorKey,
