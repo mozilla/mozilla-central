@@ -163,7 +163,7 @@ nsresult nsMsgXFVirtualFolderDBView::InsertHdrFromFolder(nsIMsgDBHdr *msgHdr, ns
   m_keys.InsertAt(insertIndex, msgKey);
   m_flags.InsertAt(insertIndex, msgFlags);
   m_folders->InsertElementAt(folder, insertIndex);
-  m_levels.InsertAt((PRInt32) insertIndex, (PRUint8) 0);
+  m_levels.InsertElementAt(insertIndex, 0);
 
   // the call to NoteChange() has to happen after we add the key
   // as NoteChange() will call RowCountChanged() which will call our GetRowCount()
@@ -322,7 +322,7 @@ nsMsgXFVirtualFolderDBView::OnNewSearch()
 
   m_folders->Clear();
   m_keys.RemoveAll();
-  m_levels.RemoveAll();
+  m_levels.Clear();
   m_flags.RemoveAll();
 
   // needs to happen after we remove the keys, since RowCountChanged() will call our GetRowCount()

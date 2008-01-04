@@ -94,7 +94,6 @@ REQUIRES	= xpcom \
 CPPSRCS		= \
 		nsMsgLineBuffer.cpp \
 		nsMsgDBFolder.cpp \
-		nsUint8Array.cpp \
 		nsUInt32Array.cpp \
 		nsMsgKeySet.cpp \
 		nsMsgKeyArray.cpp \
@@ -112,7 +111,6 @@ CPPSRCS		= \
 
 EXPORTS		= \
 		nsMsgLineBuffer.h \
-		nsUint8Array.h \
 		nsUInt32Array.h \
 		nsMsgKeySet.h \
 		nsMsgKeyArray.h \

@@ -192,7 +192,7 @@ nsresult nsMsgSearchDBView::AddHdrFromFolder(nsIMsgDBHdr *msgHdr, nsISupports *f
   {
     msgHdr->GetFlags(&msgFlags);
     m_keys.Add(msgKey);
-    m_levels.Add(0);
+    m_levels.AppendElement(0);
     m_flags.Add(msgFlags);
     
     // this needs to be called after we add the key, since RowCountChanged() will call our GetRowCount()
@@ -252,7 +252,7 @@ nsMsgSearchDBView::OnNewSearch()
 
   m_folders->Clear();
   m_keys.RemoveAll();
-  m_levels.RemoveAll();
+  m_levels.Clear();
   m_flags.RemoveAll();
 
   // needs to happen after we remove the keys, since RowCountChanged() will call our GetRowCount()

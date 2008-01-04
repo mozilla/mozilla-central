@@ -79,7 +79,7 @@ protected:
   PRBool          m_havePrevView;
   nsMsgKeyArray   m_prevKeys;   //this is used for caching non-threaded view.
   nsUInt32Array   m_prevFlags;
-  nsUint8Array    m_prevLevels;
+  nsTArray<PRUint8>  m_prevLevels;
   nsCOMPtr <nsISimpleEnumerator> m_threadEnumerator;
 };
 

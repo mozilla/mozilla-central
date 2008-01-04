@@ -48,7 +48,6 @@
 #include "nsIMsgHdr.h"
 #include "nsMsgLineBuffer.h" // for nsByteArray
 #include "nsMsgKeyArray.h"
-#include "nsUint8Array.h"
 #include "nsIDBChangeListener.h"
 #include "nsITreeView.h"
 #include "nsITreeBoxObject.h"
@@ -349,7 +348,7 @@ protected:
   void ClearHdrCache();
   nsMsgKeyArray m_keys;
   nsUInt32Array m_flags;
-  nsUint8Array   m_levels;
+  nsTArray<PRUint8> m_levels;
   nsMsgImapDeleteModel mDeleteModel;
 
   // cache the most recently asked for header and corresponding msgKey.

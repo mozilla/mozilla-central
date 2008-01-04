@@ -127,10 +127,10 @@ nsresult nsMsgThreadedDBView::InitThreadedView(PRInt32 *pCount)
   
   m_keys.RemoveAll();
   m_flags.RemoveAll();
-  m_levels.RemoveAll(); 
+  m_levels.Clear(); 
   m_prevKeys.RemoveAll();
   m_prevFlags.RemoveAll();
-  m_prevLevels.RemoveAll();
+  m_prevLevels.Clear();
   m_havePrevView = PR_FALSE;
   nsresult getSortrv = NS_OK; // ### TODO m_db->GetSortInfo(&sortType, &sortOrder);
   
@@ -188,7 +188,7 @@ nsresult nsMsgThreadedDBView::SortThreads(nsMsgViewSortTypeValue sortType, nsMsg
   }
   m_keys.SetSize(numThreads);
   m_flags.SetSize(numThreads);
-  m_levels.SetSize(numThreads);
+  m_levels.SetLength(numThreads);
   //m_viewFlags &= ~nsMsgViewFlagsType::kThreadedDisplay;
   m_sortType = nsMsgViewSortType::byNone; // sort from scratch
   nsMsgDBView::Sort(sortType, sortOrder);
@@ -240,7 +240,7 @@ nsresult nsMsgThreadedDBView::AddKeys(nsMsgKey *pKeys, PRInt32 *pFlags, const ch
   // Allocate enough space first to avoid memory allocation/deallocation.
   m_keys.AllocateSpace(numKeysToAdd+m_keys.GetSize());
   m_flags.AllocateSpace(numKeysToAdd+m_flags.GetSize());
-  m_levels.AllocateSpace(numKeysToAdd+m_levels.GetSize());
+  m_levels.SetCapacity(m_levels.Length() + numKeysToAdd);
   for (PRInt32 i = 0; i < numKeysToAdd; i++)
   {
     PRInt32 threadFlag = pFlags[i];
@@ -257,7 +257,7 @@ nsresult nsMsgThreadedDBView::AddKeys(nsMsgKey *pKeys, PRInt32 *pFlags, const ch
     flag |= MSG_VIEW_FLAG_ISTHREAD;
     m_keys.Add(pKeys[i]);
     m_flags.Add(flag);
-    m_levels.Add(pLevels[i]);
+    m_levels.AppendElement(pLevels[i]);
     numAdded++;
     // we expand as we build the view, which allows us to insert at the end of the key array,
     // instead of the middle, and is much faster.
@@ -311,8 +311,7 @@ NS_IMETHODIMP nsMsgThreadedDBView::Sort(nsMsgViewSortTypeValue sortType, nsMsgVi
         m_keys.InsertAt(0, &m_prevKeys);
         m_flags.RemoveAll();
         m_flags.InsertAt(0, &m_prevFlags);
-        m_levels.RemoveAll();
-        m_levels.InsertAt(0, &m_prevLevels);
+        m_levels = m_prevLevels;
         m_sortValid = PR_TRUE;
         
         // the sort may have changed the number of rows
@@ -357,8 +356,7 @@ NS_IMETHODIMP nsMsgThreadedDBView::Sort(nsMsgViewSortTypeValue sortType, nsMsgVi
         m_prevKeys.InsertAt(0, &m_keys);
         m_prevFlags.RemoveAll();
         m_prevFlags.InsertAt(0, &m_flags);
-        m_prevLevels.RemoveAll();
-        m_prevLevels.InsertAt(0, &m_levels);
+        m_prevLevels = m_levels;
         // do this before we sort, so that we'll use the cheap method
         // of expanding.
         m_viewFlags &= ~(nsMsgViewFlagsType::kThreadedDisplay | nsMsgViewFlagsType::kGroupBySort);
@@ -542,7 +540,7 @@ void nsMsgThreadedDBView::OnHeaderAddedOrDeleted()
 void nsMsgThreadedDBView::ClearPrevIdArray()
 {
   m_prevKeys.RemoveAll();
-  m_prevLevels.RemoveAll();
+  m_prevLevels.Clear();
   m_prevFlags.RemoveAll();
   m_havePrevView = PR_FALSE;
 }
@@ -630,7 +628,7 @@ nsresult nsMsgThreadedDBView::OnNewHeader(nsIMsgDBHdr *newHdr, nsMsgKey aParentK
           }
           m_keys.InsertAt(insertIndex, newKey);
           m_flags.InsertAt(insertIndex, newFlags, 1);
-          m_levels.InsertAt(insertIndex, level);
+          m_levels.InsertElementAt(insertIndex, level);
 
           // the call to NoteChange() has to happen after we add the key
           // as NoteChange() will call RowCountChanged() which will call our GetRowCount()
@@ -770,7 +768,7 @@ nsresult nsMsgThreadedDBView::RemoveByIndex(nsMsgViewIndex index)
           if (numThreadChildren > 1)
             flag |= MSG_VIEW_FLAG_ISTHREAD | MSG_VIEW_FLAG_HASCHILDREN;
           m_flags.SetAtGrow(index, flag);
-          m_levels.SetAtGrow(index, 0);
+          m_levels[index] = 0;
         }
       }
     }
