@@ -148,7 +148,7 @@ sub create_tree {
 
     open( F, ">", "$::tree_dir/$treename/index.html");
     print F "<HTML>\n";
-    print F "<HEAD><META HTTP-EQUIV=\"refresh\" content=\"0,url=${::static_rel_path}showbuilds.cgi?tree=$treename\"></HEAD>\n";
+    print F "<HEAD><META HTTP-EQUIV=\"refresh\" content=\"0,url=${main::static_rel_path}showbuilds.cgi?tree=$treename\"></HEAD>\n";
     print F "<BODY></BODY>\n";
     print F "</HTML>\n";
     close( F );
