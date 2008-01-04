@@ -70,6 +70,8 @@ const int kSortReverse = 1;
 
 @interface OrgMozillaCaminoPreferencePrivacy(Private)
 
++ (NSString*)superdomainForHost:(NSString*)host;
+
 // helper method for blocking/allowing multiple sites at once
 - (void)addPermissionForSelection:(int)inPermission;
 
@@ -111,9 +113,9 @@ const int kSortReverse = 1;
       return result;
   }
   if (selfIndex < otherIndex)
-    return NSOrderedDescending;
-  else if (selfIndex > otherIndex)
     return NSOrderedAscending;
+  else if (selfIndex > otherIndex)
+    return NSOrderedDescending;
   else
     return NSOrderedSame;
 }
@@ -520,6 +522,57 @@ PR_STATIC_CALLBACK(int) compareValues(nsICookie* aCookie1, nsICookie* aCookie2, 
   [mPermissionsPanel setMinSize:min];
 }
 
+// Note that this operates only a single row (enforced by menu validation),
+// unlike many of the other context menu actions.
+- (IBAction)expandCookiePermission:(id)aSender
+{
+  CHPermission* selectedPermission = [mCachedPermissions objectAtIndex:[mPermissionsTable selectedRow]];
+  NSString* host = [selectedPermission host];
+  NSString* superdomain = [[self class] superdomainForHost:host];
+  int policy = [selectedPermission policy];
+
+  CHPermissionManager* permManager = [CHPermissionManager permissionManager];
+  // Walk the permissions, cleaning up any that are superceded by the general
+  // policy (but leaving any that have a different policy).
+  NSString* domainSuffix = [NSString stringWithFormat:@".%@", superdomain];
+  NSEnumerator* permEnumerator = [mCachedPermissions objectEnumerator];
+  CHPermission* perm;
+  while ((perm = [permEnumerator nextObject])) {
+    if ([perm policy] == policy && [[perm host] hasSuffix:domainSuffix])
+      [permManager removePermissionForHost:[perm host]
+                                      type:CHPermissionTypeCookie];
+  }
+  // Add the new general policy.
+  [permManager setPolicy:policy forHost:superdomain type:CHPermissionTypeCookie];
+
+  [self populatePermissionCache];
+  [mPermissionsTable reloadData];
+  [self sortPermissionsByKey:[[mPermissionsTable highlightedTableColumn] identifier]
+            inAscendingOrder:mSortedAscending];
+
+  // Select the new permission.
+  if ([mPermissionsTable numberOfRows] > 0) {
+    int rowToSelect = [self rowForPermissionWithHost:superdomain];
+    if ((rowToSelect >= 0) && (rowToSelect < [mPermissionsTable numberOfRows])) {
+      [mPermissionsTable selectRow:rowToSelect byExtendingSelection:NO];
+      [mPermissionsTable scrollRowToVisible:rowToSelect];
+    }
+  }
+}
+
+// Returns the host that is one level more broad than the given host (e.g.,
+// foo.bar.com -> bar.com), or nil if the given host has only one component.
++ (NSString*)superdomainForHost:(NSString*)host
+{
+  NSRange dotRange = [host rangeOfString:@"."];
+  if (dotRange.location == NSNotFound || dotRange.location == ([host length] - 1))
+    return nil;
+  if (dotRange.location == 0) // .bar.com == bar.com
+    return [[self class] superdomainForHost:[host substringFromIndex:1]];
+  else
+    return [host substringFromIndex:(dotRange.location + 1)];
+}
+
 -(IBAction) removeCookiePermissions:(id)aSender
 {
   CHPermissionManager* permManager = [CHPermissionManager permissionManager];
@@ -584,7 +637,7 @@ PR_STATIC_CALLBACK(int) compareValues(nsICookie* aCookie1, nsICookie* aCookie2, 
 {
   int numRows = [mCachedPermissions count];
   for (int row = 0; row < numRows; ++row) {
-    if ([[mCachedPermissions objectAtIndex:row] isEqualToString:aHost])
+    if ([[[mCachedPermissions objectAtIndex:row] host] isEqualToString:aHost])
       return row;
   }
   return -1;
@@ -1099,8 +1152,7 @@ PR_STATIC_CALLBACK(int) compareValues(nsICookie* aCookie1, nsICookie* aCookie2, 
     return ([mCookiesTable numberOfRows] > 0 &&
             [[mCookiesFilterField stringValue] length] == 0);
 
-  if (action == @selector(allowCookiesFromSites:))
-  {
+  if (action == @selector(allowCookiesFromSites:)) {
     NSString* siteName = nil;
     int numCookieSites = [self numUniqueCookieSitesSelected:&siteName];
     NSString* menuTitle = (numCookieSites == 1) ?
@@ -1110,8 +1162,7 @@ PR_STATIC_CALLBACK(int) compareValues(nsICookie* aCookie1, nsICookie* aCookie2, 
     return (numCookieSites > 0);
   }
 
-  if (action == @selector(blockCookiesFromSites:))
-  {
+  if (action == @selector(blockCookiesFromSites:)) {
     NSString* siteName = nil;
     int numCookieSites = [self numUniqueCookieSitesSelected:&siteName];
     NSString* menuTitle = (numCookieSites == 1) ?
@@ -1121,8 +1172,7 @@ PR_STATIC_CALLBACK(int) compareValues(nsICookie* aCookie1, nsICookie* aCookie2, 
     return (numCookieSites > 0);
   }
 
-  if (action == @selector(removeCookiesAndBlockSites:))
-  {
+  if (action == @selector(removeCookiesAndBlockSites:)) {
     NSString* siteName = nil;
     int numCookieSites = [self numUniqueCookieSitesSelected:&siteName];
 
@@ -1131,6 +1181,22 @@ PR_STATIC_CALLBACK(int) compareValues(nsICookie* aCookie1, nsICookie* aCookie2, 
                             [self localizedStringForKey:@"RemoveAndBlockCookiesFromSites"];
     [inMenuItem setTitle:menuTitle];
     return (numCookieSites > 0);
+  }
+
+  if (action == @selector(expandCookiePermission:)) {
+    // If there is excatly one row selected and it is expandable (i.e., not
+    // just a TLD already), enable the menu and give it a  descriptive title,
+    // otherwise disable it and give it a generic title.
+    int selectedRowCount = [[mPermissionsTable selectedRowIndexes] count];
+    NSString* superdomain = nil;
+    if (selectedRowCount == 1) {
+      NSString* selectedHost = [[mCachedPermissions objectAtIndex:[mPermissionsTable selectedRow]] host];
+      superdomain = [[self class] superdomainForHost:selectedHost];
+    }
+    NSString* menuTitle = superdomain ? [NSString stringWithFormat:[self localizedStringForKey:@"ExpandExceptionForSite"], superdomain]
+                                      : [self localizedStringForKey:@"ExpandException"];
+    [inMenuItem setTitle:menuTitle];
+    return (superdomain != nil);
   }
 
   // permissions context menu

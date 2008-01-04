@@ -113,12 +113,13 @@ typedef enum ECookiePolicyPopupIndex
 -(IBAction) removeCookiesAndBlockSites:(id)aSender;
 
 // permission editing functions
--(void) populatePermissionCache;
--(IBAction) editPermissions:(id)aSender;
--(IBAction) editPermissionsDone:(id)aSender;
--(IBAction) removeCookiePermissions:(id)aSender;
--(IBAction) removeAllCookiePermissions:(id)aSender;
--(int) rowForPermissionWithHost:(NSString *)aHost;
+- (void)populatePermissionCache;
+- (IBAction)editPermissions:(id)aSender;
+- (IBAction)editPermissionsDone:(id)aSender;
+- (IBAction)expandCookiePermission:(id)aSender;
+- (IBAction)removeCookiePermissions:(id)aSender;
+- (IBAction)removeAllCookiePermissions:(id)aSender;
+- (int)rowForPermissionWithHost:(NSString *)aHost;
 
 // keychain exclusion list editing functions
 - (void)loadKeychainExclusions;
