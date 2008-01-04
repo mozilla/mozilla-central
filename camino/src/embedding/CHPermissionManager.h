@@ -90,6 +90,7 @@ __attribute__((visibility("default"))) extern NSString* const CHPermissionTypePo
 
 // Gets all permissions of the given type. |type| can be an arbitrary value,
 // but common types are defined in the CHPermissionType* constants.
+// If |type| is nil, all permissions are returned.
 - (NSArray*)permissionsOfType:(NSString*)type;
 
 // Removes a specific permission for host |host|

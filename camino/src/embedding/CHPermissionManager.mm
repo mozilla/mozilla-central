@@ -213,9 +213,9 @@ static CHPermissionManager* sPermissionManager = nil;
     permEnumerator->GetNext(getter_AddRefs(curr));
     nsCOMPtr<nsIPermission> currPerm(do_QueryInterface(curr));
     if (currPerm) {
-      nsCAutoString type;
-      currPerm->GetType(type);
-      if (type.Equals(typeCString)) {
+      nsCAutoString permType;
+      currPerm->GetType(permType);
+      if (!type || permType.Equals(typeCString)) {
         CHPermission* perm = [CHPermission permissionWithGeckoPermission:currPerm.get()];
         [permissions addObject:perm];
       }
