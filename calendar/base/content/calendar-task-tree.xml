@@ -1011,6 +1011,11 @@
         this.mTreeView.onMouseDown(event);
       ]]></handler>
       <handler event="draggesture"><![CDATA[
+        var item = this.mTreeView._getItemFromEvent(event);
+        if (!item || item.calendar.readOnly) {
+            return;
+        }
+
         var tree = document.getAnonymousElementByAttribute(this, "anonid", "calendar-task-tree");
         
         // let's build the drag region
@@ -1048,11 +1053,6 @@
                        createInstance(Components.interfaces.nsITransferable);
         transfer.addDataFlavor("text/calendar");
 
-        var item = this.currentTask;
-        if (item.calendar.readOnly) {
-            return;
-        }
-        
         var serializer = Components.classes["@mozilla.org/calendar/ics-serializer;1"].
                                     createInstance(Components.interfaces.calIIcsSerializer);
         serializer.addItems([item], 1);
