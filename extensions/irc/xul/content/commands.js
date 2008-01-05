@@ -119,6 +119,8 @@ function initCommands()
          ["goto-url-external", cmdGotoURL,                                   0],
          ["help",              cmdHelp,                            CMD_CONSOLE],
          ["hide-view",         cmdHideView,                        CMD_CONSOLE],
+         ["idle-away",         cmdAway,                                      0],
+         ["idle-back",         cmdAway,                                      0],
          ["ignore",            cmdIgnore,           CMD_NEED_NET | CMD_CONSOLE],
          ["input-text-direction", cmdInputTextDirection,                     0],
          ["invite",            cmdInvite,           CMD_NEED_SRV | CMD_CONSOLE],
@@ -2772,15 +2774,25 @@ function cmdAway(e)
     {
         for (var n in client.networks)
         {
-            if (client.networks[n].primServ &&
-                (client.networks[n].state == NET_ONLINE))
+            var net = client.networks[n];
+            if (net.primServ && (net.state == NET_ONLINE))
             {
-                client.networks[n].dispatch(command, { reason: reason });
+                // If we can override the network's away state, or they are
+                // already idly-away, or they're not away to begin with:
+                if (overrideAway || net.isIdleAway || !net.prefs["away"])
+                {
+                    net.dispatch(command, {reason: reason });
+                    net.isIdleAway = (e.command.name == "idle-away");
+                }
             }
         }
     };
 
-    if ((e.command.name == "away") || (e.command.name == "custom-away"))
+    // Idle away shouldn't override away state set by the user.
+    var overrideAway = (e.command.name.indexOf("idle") != 0);
+
+    if ((e.command.name == "away") || (e.command.name == "custom-away") ||
+        (e.command.name == "idle-away"))
     {
         /* going away */
         if (e.command.name == "custom-away")
@@ -2826,6 +2838,7 @@ function cmdAway(e)
             display(getMsg(MSG_ERR_AWAY_SAVE, formatException(ex)), MT_ERROR);
         }
 
+        // Actually do away stuff, is this on a specific network?
         if (e.server)
         {
             var normalNick = e.network.prefs["nickname"];
@@ -2844,10 +2857,13 @@ function cmdAway(e)
         }
         else
         {
-            client.prefs["away"] = e.reason;
             // Client view, do command for all networks.
             sendToAllNetworks("away", e.reason);
-            display(getMsg(MSG_AWAY_ON, e.reason));
+            client.prefs["away"] = e.reason;
+            if (("frame" in client) && client.frame)
+                client.display(getMsg(MSG_AWAY_ON, e.reason));
+            else
+                display(getMsg(MSG_AWAY_ON, e.reason));
         }
     }
     else
@@ -2873,7 +2889,10 @@ function cmdAway(e)
             client.prefs["away"] = "";
             // Client view, do command for all networks.
             sendToAllNetworks("back");
-            display(MSG_AWAY_OFF);
+            if (("frame" in client) && client.frame)
+                client.display(MSG_AWAY_OFF);
+            else
+                display(MSG_AWAY_OFF);
         }
     }
 }

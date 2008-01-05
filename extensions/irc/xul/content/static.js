@@ -205,6 +205,8 @@ function init()
     client.busy = false;
     updateProgress();
     initOfflineIcon();
+    client.isIdleAway = false;
+    initIdleAutoAway(client.prefs["awayIdleTime"]);
 
     client.initialized = true;
 
@@ -2115,6 +2117,77 @@ function uninitOfflineIcon()
     catch (ex)
     {
         dd("Exception when trying to unregister offline observers: " + ex);
+    }
+}
+
+client.idleObserver = {
+    QueryInterface: function io_qi(iid)
+    {
+        if (!iid || (!iid.equals(Components.interfaces.nsIObserver) &&
+                     !iid.equals(Components.interfaces.nsISupports)))
+        {
+            throw Components.results.NS_ERROR_NO_INTERFACE;
+        }
+        return this;
+    },
+    observe: function io_observe(subject, topic, data)
+    {
+        if ((topic == "idle") && !client.prefs["away"])
+        {
+            if (!client.prefs["awayIdleMsg"])
+                client.prefs["awayIdleMsg"] = MSG_AWAY_IDLE_DEFAULT;
+            client.dispatch("idle-away", {reason: client.prefs["awayIdleMsg"]});
+            client.isIdleAway = true;
+        }
+        else if ((topic == "back") && client.isIdleAway)
+        {
+            client.dispatch("idle-back");
+            client.isIdleAway = false;
+        }
+    }
+};
+
+function initIdleAutoAway(timeout)
+{
+    // Don't try to do anything if we are disabled
+    if (!timeout)
+        return;
+
+    var is = getService("@mozilla.org/widget/idleservice;1", "nsIIdleService");
+    if (!is)
+    {
+        display(MSG_ERR_NO_IDLESERVICE, MT_WARN);
+        client.prefs["autoIdleTime"] = 0;
+        return;
+    }
+
+    try
+    {
+        is.addIdleObserver(client.idleObserver, timeout * 60);
+    }
+    catch (ex)
+    {
+        display(formatException(ex), MT_ERROR);
+    }
+}
+
+function uninitIdleAutoAway(timeout)
+{
+    // Don't try to do anything if we were disabled before
+    if (!timeout)
+        return;
+
+    var is = getService("@mozilla.org/widget/idleservice;1", "nsIIdleService");
+    if (!is)
+        return;
+
+    try
+    {
+        is.removeIdleObserver(client.idleObserver, timeout * 60);
+    }
+    catch (ex)
+    {
+        display(formatException(ex), MT_ERROR);
     }
 }
 

@@ -143,6 +143,7 @@ function onUnload()
 {
     dd("Shutting down ChatZilla.");
     uninitOfflineIcon();
+    uninitIdleAutoAway(client.prefs["idleAutoAway"]);
     destroy();
 }
 
@@ -1081,6 +1082,7 @@ function my_showtonet (e)
                     this.dispatch(cmdary[i]);
             }
 
+            this.isIdleAway = client.isIdleAway;
             if (this.prefs["away"])
                 this.dispatch("away", { reason: this.prefs["away"] });
 

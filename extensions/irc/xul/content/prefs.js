@@ -131,6 +131,8 @@ function initPrefs()
          ["autoRejoin",         false,    ".connect"],
          ["away",               "",       "hidden"],
          ["awayNick",           "",       ".ident"],
+         ["awayIdleTime",       0,        ".ident"],
+         ["awayIdleMsg",        "",       ".ident"],
          ["bugURL",           "https://bugzilla.mozilla.org/show_bug.cgi?id=%s",
                                           "appearance.misc"],
          ["bugURL.comment",     "#c%s",   "appearance.misc"],
@@ -663,6 +665,11 @@ function onPrefChanged(prefName, newValue, oldValue)
 {
     switch (prefName)
     {
+        case "awayIdleTime":
+            uninitIdleAutoAway(oldValue);
+            initIdleAutoAway(newValue);
+            break;
+
         case "channelMaxLines":
             CIRCChannel.prototype.MAX_MESSAGES = newValue;
             break;
