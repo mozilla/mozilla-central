@@ -354,8 +354,8 @@
   <key id="key_collapseAllThreads" key="&collapseAllThreadsCmd.key;" oncommand="goDoCommand('cmd_collapseAllThreads')"/>
   <key key="&collapseAllThreadsCmd.key;" modifiers="shift"           oncommand="goDoCommand('cmd_collapseAllThreads')"/>
   <key id="key_nextUnreadThread" key="&nextUnreadThreadCmd.key;"     oncommand="goDoCommand('cmd_nextUnreadThread')"/>
-  <key id="key_previousMsg" key="&previousMsgCmd.key;"               oncommand="goDoCommand('cmd_previousMsg')"/>
-  <key id="key_previousUnreadMsg" key="&previousUnreadMsgCmd.key;"   oncommand="goDoCommand('cmd_previousUnreadMsg')"/>
+  <key id="key_previousMsg" key="&prevMsgCmd.key;"                   oncommand="goDoCommand('cmd_previousMsg')"/>
+  <key id="key_previousUnreadMsg" key="&prevUnreadMsgCmd.key;"       oncommand="goDoCommand('cmd_previousUnreadMsg')"/>
   <key id="key_goForward" key="&goForwardCmd.commandKey;"            oncommand="goDoCommand('cmd_goForward')"/>
   <key id="key_goBack" key="&goBackCmd.commandKey;"                  oncommand="goDoCommand('cmd_goBack')"/>
   <key id="key_reply" key="&replyMsgCmd.key;"                        oncommand="goDoCommand('cmd_reply')" modifiers="accel"/>
@@ -1474,9 +1474,9 @@
           </menu>
           <menu id="goPreviousMenu" label="&prevMenu.label;" accesskey="&prevMenu.accesskey;">
             <menupopup>
-              <menuitem id="menu_prevMsg" label="&prevMsgCmd.label;" accesskey="&previousMsgCmd.accesskey;" command="cmd_previousMsg"
+              <menuitem id="menu_prevMsg" label="&prevMsgCmd.label;" accesskey="&prevMsgCmd.accesskey;" command="cmd_previousMsg"
                         key="key_previousMsg"/>
-              <menuitem id="menu_prevUnreadMsg" label="&prevUnreadMsgCmd.label;" accesskey="&previousUnreadMsgCmd.accesskey;" command="cmd_previousUnreadMsg"
+              <menuitem id="menu_prevUnreadMsg" label="&prevUnreadMsgCmd.label;" accesskey="&prevUnreadMsgCmd.accesskey;" command="cmd_previousUnreadMsg"
                         key="key_previousUnreadMsg"/>
               <menuitem id="menu_prevStarredMsg" label="&prevStarredMsgCmd.label;" accesskey="&prevStarredMsgCmd.accesskey;" command="cmd_previousFlaggedMsg"/>
             </menupopup>
