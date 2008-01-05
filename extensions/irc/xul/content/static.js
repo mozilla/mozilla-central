@@ -2849,13 +2849,15 @@ function getFrameForDOMWindow(window)
 
 function replaceColorCodes(msg)
 {
-    // find things that look like URLs and escape the color code inside of those to
-    // prevent munging the URLs resulting in broken links
+    // Find things that look like URLs and escape the color code inside of those
+    // to prevent munging the URLs resulting in broken links. Leave codes at
+    // the start of the URL alone.
     msg = msg.replace(new RegExp(client.linkRE.source, "g"), function(url) {
         return url.replace(/%[BC][0-9A-Fa-f]/g, function(hex, index) {
             // as JS does not support lookbehind and we don't want to consume the
             // preceding character, we test for an existing %% manually
-            return (("%" == url.substr(index - 1, 1)) ? "" : "%") + hex;
+            var needPercent = ("%" == url.substr(index - 1, 1)) || (index == 0);
+            return (needPercent ? "" : "%") + hex;
         });
     });
     
