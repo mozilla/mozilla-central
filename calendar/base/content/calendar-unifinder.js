@@ -260,9 +260,11 @@ function prepareCalendarUnifinder() {
 
     // Listen for changes in the selected day, so we can update if need be
     var viewDeck = getViewDeck();
-    viewDeck.addEventListener("dayselect", unifinderOnDaySelect, false);
-    viewDeck.addEventListener("itemselect", onGridSelect, true);
-
+    if (viewDeck) {
+        viewDeck.addEventListener("dayselect", unifinderOnDaySelect, false);
+        viewDeck.addEventListener("itemselect", onGridSelect, true);
+    }
+    
     // Display something upon first load. onLoad doesn't work properly for
     // observers
     refreshEventTree();
@@ -662,6 +664,10 @@ function refreshEventTree() {
     filter |= ccalendar.ITEM_FILTER_TYPE_EVENT;
 
     var filterMenulist = document.getElementById("event-filter-menulist");
+    // Not all xul might be there yet...
+    if (!filterMenulist) {
+        return;
+    }
     switch (filterMenulist.selectedItem.value) {
         case "all":
             StartDate = null;

@@ -787,7 +787,6 @@ calStorageCalendar.prototype = {
     // needs to do some version checking
     initDBSchema: function () {
         for (table in sqlTables) {
-            dump (table + "\n");
             try {
                 this.mDB.executeSimpleSQL("DROP TABLE " + table);
             } catch (e) { }
@@ -1150,13 +1149,9 @@ calStorageCalendar.prototype = {
 
     initDB: function () {
         if (!this.mDB.tableExists("cal_calendar_schema_version")) {
-            dump("*** cal_calendar_schema_version not found; " +
-		 "initializing storage provider tables\n");
             this.initDBSchema();
         } else {
             var version = this.getVersion();
-            dump ("*** Calendar schema version is: " + version + "\n");
-
             if (version != this.DB_SCHEMA_VERSION) {
                 this.upgradeDB(version);
             }

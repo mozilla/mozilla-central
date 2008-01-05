@@ -184,13 +184,7 @@ function guessSystemTimezone() {
     }
     // the offset is always 5 characters long
     var TZoffset2 = Date2.substr(index, 5);
-
-    dump("Guessing system timezone:\n");
-    dump("TZoffset1: " + TZoffset1 + "\nTZoffset2: " + TZoffset2 + "\n");
-    if (TZname1 && TZname2) {
-        dump("TZname1: " + TZname1 + "\nTZname2: " + TZname2 + "\n");
-    }
-
+    
     // returns 0=definitely not, 1=maybe, 2=likely
     function checkTZ(someTZ)
     {
