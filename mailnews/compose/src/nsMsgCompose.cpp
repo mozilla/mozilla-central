@@ -90,7 +90,6 @@
 #include "nsIWindowMediator.h"
 #include "nsISupportsArray.h"
 #include "nsCOMArray.h"
-#include "nsTObserverArray.h"
 #include "nsIIOService.h"
 #include "nsIURL.h"
 #include "nsIMsgMailSession.h"
@@ -918,29 +917,17 @@ nsresult nsMsgCompose::UnregisterStateListener(nsIMsgComposeStateListener *state
 }
 
 // Added to allow easier use of the nsIMsgSendListener
-NS_IMETHODIMP nsMsgCompose::AddMsgSendListener(nsIMsgSendListener *aMsgSendListener)
+NS_IMETHODIMP nsMsgCompose::AddMsgSendListener( nsIMsgSendListener *aMsgSendListener )
 {
   NS_ENSURE_ARG_POINTER(aMsgSendListener);
-  if (mExternalSendListeners.AppendObserver(aMsgSendListener)) 
-  {
-    NS_ADDREF(aMsgSendListener);
-    return NS_OK;
-  }
-
-  return NS_ERROR_FAILURE;
+  nsresult rv = mExternalSendListeners.AppendObject( aMsgSendListener );
+  return rv;
 }
 
-NS_IMETHODIMP nsMsgCompose::RemoveMsgSendListener(nsIMsgSendListener *aMsgSendListener)
+NS_IMETHODIMP nsMsgCompose::RemoveMsgSendListener( nsIMsgSendListener *aMsgSendListener )
 {
   NS_ENSURE_ARG_POINTER(aMsgSendListener);
-
-  if (mExternalSendListeners.RemoveObserver(aMsgSendListener)) 
-  {
-    NS_RELEASE(aMsgSendListener);
-    return NS_OK;
-  }
-
-  return NS_ERROR_FAILURE;
+  return mExternalSendListeners.RemoveObject( aMsgSendListener );
 }
 
 nsresult nsMsgCompose::_SendMsg(MSG_DeliverMode deliverMode, nsIMsgIdentity *identity, 
@@ -3108,75 +3095,46 @@ nsresult nsMsgCompose::ProcessReplyFlags()
 
 NS_IMETHODIMP nsMsgCompose::OnStartSending(const char *aMsgID, PRUint32 aMsgSize)
 {
-  nsTObserverArray<nsIMsgSendListener>::ForwardIterator iter(mExternalSendListeners);
-  nsCOMPtr<nsIMsgSendListener> externalSendListener;
-
-  while ((externalSendListener = iter.GetNext())) 
-  {
-    externalSendListener->OnStartSending(aMsgID, aMsgSize);
-  }
+  for (PRInt32 i = 0; i < mExternalSendListeners.Count(); i++)
+    mExternalSendListeners[i]->OnStartSending(aMsgID, aMsgSize);
   return NS_OK;
 }
 
 NS_IMETHODIMP nsMsgCompose::OnProgress(const char *aMsgID, PRUint32 aProgress, PRUint32 aProgressMax)
 {
-  nsTObserverArray<nsIMsgSendListener>::ForwardIterator iter(mExternalSendListeners);
-  nsCOMPtr<nsIMsgSendListener> externalSendListener;
-
-  while ((externalSendListener = iter.GetNext())) 
-  {
-    externalSendListener->OnProgress(aMsgID, aProgress, aProgressMax);
-  }
+  for (PRInt32 i = 0; i < mExternalSendListeners.Count(); i++)
+    mExternalSendListeners[i]->OnProgress(aMsgID, aProgress, aProgressMax);
   return NS_OK;
 }
 
 NS_IMETHODIMP nsMsgCompose::OnStatus(const char *aMsgID, const PRUnichar *aMsg)
 {
-  nsTObserverArray<nsIMsgSendListener>::ForwardIterator iter(mExternalSendListeners);
-  nsCOMPtr<nsIMsgSendListener> externalSendListener;
-
-  while ((externalSendListener = iter.GetNext())) 
-  {
-    externalSendListener->OnStatus(aMsgID, aMsg);
-  }
+  for (PRInt32 i = 0; i < mExternalSendListeners.Count(); i++)
+    mExternalSendListeners[i]->OnStatus(aMsgID, aMsg);
   return NS_OK;
 }
 
 NS_IMETHODIMP nsMsgCompose::OnStopSending(const char *aMsgID, nsresult aStatus, const PRUnichar *aMsg,
                                       nsIFile *returnFile)
 {
-  nsTObserverArray<nsIMsgSendListener>::ForwardIterator iter(mExternalSendListeners);
-  nsCOMPtr<nsIMsgSendListener> externalSendListener;
-
-  while ((externalSendListener = iter.GetNext())) 
-  {
-    externalSendListener->OnStopSending(aMsgID, aStatus, aMsg, returnFile);
-  }
+  for (PRInt32 i = 0; i < mExternalSendListeners.Count(); i++)
+    mExternalSendListeners[i]->OnStopSending(aMsgID, aStatus, aMsg, returnFile);
   return NS_OK;
 }
 
 NS_IMETHODIMP nsMsgCompose::OnSendNotPerformed(const char *aMsgID, nsresult aStatus)
 {
-  nsTObserverArray<nsIMsgSendListener>::ForwardIterator iter(mExternalSendListeners);
-  nsCOMPtr<nsIMsgSendListener> externalSendListener;
-
-  while ((externalSendListener = iter.GetNext())) 
-  {
-    externalSendListener->OnSendNotPerformed(aMsgID, aStatus);
-  }
+  for (PRInt32 i = 0; i < mExternalSendListeners.Count(); i++)
+    mExternalSendListeners[i]->OnSendNotPerformed(aMsgID, aStatus);
   return NS_OK;
 }
 
 NS_IMETHODIMP nsMsgCompose::OnGetDraftFolderURI(const char *aFolderURI)
 {
   m_folderName = aFolderURI;
-  nsTObserverArray<nsIMsgSendListener>::ForwardIterator iter(mExternalSendListeners);
-  nsCOMPtr<nsIMsgSendListener> externalSendListener;
 
-  while ((externalSendListener = iter.GetNext())) 
-  {
-    externalSendListener->OnGetDraftFolderURI(aFolderURI);
-  }
+  for (PRInt32 i = 0; i < mExternalSendListeners.Count(); i++)
+    mExternalSendListeners[i]->OnGetDraftFolderURI(aFolderURI);
   return NS_OK;
 }
 
