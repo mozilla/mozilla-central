@@ -125,17 +125,20 @@
                 prefpane="security_pane"
                 label="&security.label;"
                 url="chrome://communicator/content/pref/pref-security.xul">
-<!-- commenting out yet unmigrated panels
         <treechildren id="securityChildren">
+<!-- commenting out yet unmigrated panels
           <treeitem label="&cookies.label;"
                     url="chrome://communicator/content/pref/pref-cookies.xul"/>
-          <treeitem label="&images.label;"
+-->
+          <treeitem id="imagesItem" label="&images.label;"
+                    prefpane="images_pane" helpTopic="images_prefs"
                     url="chrome://communicator/content/pref/pref-images.xul"/>
+<!--
           <treeitem id="popupspref"
                     label="&popups.label;"
                     url="chrome://communicator/content/pref/pref-popups.xul"/>
-        </treechildren>
 -->
+        </treechildren>
       </treeitem>
 
 <!-- commenting out yet unmigrated panels

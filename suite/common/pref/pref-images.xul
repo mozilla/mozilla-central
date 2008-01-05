@@ -40,65 +40,59 @@
  ***** END LICENSE BLOCK ***** -->
 <?xml-stylesheet href="chrome://communicator/skin/" type="text/css"?>
 
-<!DOCTYPE page [
+<!DOCTYPE overlay [
 <!ENTITY % brandDTD SYSTEM "chrome://branding/locale/brand.dtd" >
 %brandDTD;
 <!ENTITY % prefImagesDTD SYSTEM "chrome://communicator/locale/pref/pref-images.dtd" >
 %prefImagesDTD;
 ]>
 
-<page id="imagesPanel" xmlns="http://www.mozilla.org/keymaster/gatekeeper/there.is.only.xul"
-      onload="init();"
-      headertitle="&pref.images.title;">
-          
-  <script type="application/x-javascript" src="chrome://communicator/content/permissions/permissionsOverlay.js"/>
+<overlay xmlns="http://www.mozilla.org/keymaster/gatekeeper/there.is.only.xul">
+  <prefpane id="images_pane"
+            label="&pref.images.title;"
+            script="chrome://communicator/content/permissions/permissionsOverlay.js">
+    <preferences id="images_preferences">
+      <preference id="permissions.default.image"
+		  name="permissions.default.image" type="int"/>
+      <preference id="image.animation_mode"
+                  name="image.animation_mode" type="string"/>
+      <preference id="pref.advanced.images.disable_button.view_image" type="bool"
+                  name="pref.advanced.images.disable_button.view_image"/>
+    </preferences>
 
-  <script type="application/x-javascript">
-  <![CDATA[
-  
-  var panel = "chrome://communicator/content/pref/pref-images.xul";
-  var _elementIDs = ["networkImageBehaviour", "imageLooping"];
+    <groupbox id="imagesArea">
+      <caption label="&imageBlocking.label;"/>
 
-  function init()
-  {
-    parent.initPanel('chrome://communicator/content/pref/pref-images.xul');
-  }
-  ]]>
-  </script>
+      <description>&imageDetails;</description>
 
-  <groupbox id="imagesArea">
-    <caption label="&imageBlocking.label;"/>
+      <radiogroup id="networkImageBehaviour"
+                  preference="permissions.default.image">
+        <radio value="2" label="&disableImages.label;"
+               accesskey="&disableImages.accesskey;"/>
+        <radio value="3" label="&accOrgImagesRadio.label;"
+               accesskey="&accOrgImagesRadio.accesskey;"/>
+        <radio value="1" label="&accAllImagesRadio.label;"
+               accesskey="&accAllImagesRadio.accesskey;"/>
+      </radiogroup>
 
-    <description>&imageDetails;</description>
+      <hbox pack="end">
+        <button id="viewImages" label="&viewImages.label;"
+                accesskey="&viewImages.accesskey;" oncommand="viewImages();"
+                preference="pref.advanced.images.disable_button.view_image"/>
+      </hbox>
+    </groupbox>
 
-    <radiogroup id="networkImageBehaviour"
-                prefstring="permissions.default.image">
-      <radio value="2" label="&disableImages.label;"
-             accesskey="&disableImages.accesskey;"/>
-      <radio value="3" label="&accOrgImagesRadio.label;"
-             accesskey="&accOrgImagesRadio.accesskey;"/>
-      <radio value="1" label="&accAllImagesRadio.label;"
-             accesskey="&accAllImagesRadio.accesskey;"/>
-    </radiogroup>
-
-    <hbox pack="end">
-      <button id="viewImages" label="&viewImages.label;"
-              accesskey="&viewImages.accesskey;" oncommand="viewImages();"
-              prefstring="pref.advanced.images.disable_button.view_image"/>
-    </hbox>
-
-  </groupbox>
-  <groupbox>
-    <caption label="&animLoopingTitle.label;"/>
-    <radiogroup id="imageLooping"
-                preftype="string" prefstring="image.animation_mode">
+    <groupbox>
+      <caption label="&animLoopingTitle.label;"/>
+      <radiogroup id="imageLooping"
+                  preference="image.animation_mode">
         <radio value="normal" label="&animLoopAsSpecified.label;"
                accesskey="&animLoopAsSpecified.accesskey;"/>
         <radio value="once" label="&animLoopOnce.label;"
                accesskey="&animLoopOnce.accesskey;"/>
         <radio value="none" label="&animLoopNever.label;"
                accesskey="&animLoopNever.accesskey;"/>
-    </radiogroup>
-  </groupbox>
-
-</page>
+      </radiogroup>
+    </groupbox>
+  </prefpane>
+</overlay>

@@ -143,8 +143,7 @@
         </treeitem>
         <treeitem>
           <treerow>
-            <treecell url="chrome://communicator/content/pref/pref-images.xul"
-                      label="&images.label;"/> 
+            <treecell label="(Migrated: &images.label;)"/> 
           </treerow>
         </treeitem>
         <treeitem id="popupspref">
