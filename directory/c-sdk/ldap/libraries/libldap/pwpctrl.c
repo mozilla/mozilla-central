@@ -197,9 +197,9 @@ ldap_parse_passwordpolicy_control (
 				ber_free( ber, 1 );
 				return( LDAP_DECODING_ERROR );
 			}
-			if ( tag == ( LBER_CLASS_CONTEXT | 0x01 ) ) {
+			if ( tag == LBER_CLASS_CONTEXT ) {
 				pp_exp = pp_warning;
-			} else if ( tag == ( LBER_CLASS_CONTEXT | 0x02 ) ) {
+			} else if ( tag == ( LBER_CLASS_CONTEXT | 0x01 ) ) {
 				pp_grace = pp_warning;
 			}
 		} else if ( tag == ( LBER_CLASS_CONTEXT | 0x01 ) ) {
