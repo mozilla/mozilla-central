@@ -38,7 +38,7 @@
 #ifndef _nsMsgCompose_H_
 #define _nsMsgCompose_H_
 
-#include "nsCOMArray.h"
+#include "nsTObserverArray.h"
 #include "nsIMsgCompose.h"
 #include "nsCOMPtr.h"
 #include "nsWeakReference.h"
@@ -165,7 +165,7 @@ private:
 
   nsCString                                 mSmtpPassword;
 
-  nsCOMArray<nsIMsgSendListener>            mExternalSendListeners;
+  nsTObserverArray<nsIMsgSendListener>      mExternalSendListeners;
     
   PRBool                                    mInsertingQuotedContent;
     
