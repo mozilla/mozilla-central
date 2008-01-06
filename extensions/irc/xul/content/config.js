@@ -674,6 +674,12 @@ function pdata_loadXUL()
     {
         this.edit.setAttribute("prefobjectindex", this.parent.arrayIndex);
         this.edit.setAttribute("prefname", this.name);
+        // Associate textbox with label for accessibility.
+        if (label)
+        {
+            this.edit.id = this.manager.branchName + this.name;
+            label.setAttribute("control", this.edit.id);
+        }
     }
     
     if (!ASSERT("groups" in this.parent, "Must have called " +
