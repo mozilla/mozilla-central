@@ -351,8 +351,8 @@
   <key id="key_collapseAllThreads" key="&collapseAllThreadsCmd.key;" oncommand="goDoCommand('cmd_collapseAllThreads')"/>
   <key key="&collapseAllThreadsCmd.key;" modifiers="shift"           oncommand="goDoCommand('cmd_collapseAllThreads')"/>
   <key id="key_nextUnreadThread" key="&nextUnreadThreadCmd.key;"     oncommand="goDoCommand('cmd_nextUnreadThread')"/>
-  <key id="key_previousMsg" key="&previousMsgCmd.key;"               oncommand="goDoCommand('cmd_previousMsg')"/>
-  <key id="key_previousUnreadMsg" key="&previousUnreadMsgCmd.key;"   oncommand="goDoCommand('cmd_previousUnreadMsg')"/>
+  <key id="key_previousMsg" key="&prevMsgCmd.key;"                   oncommand="goDoCommand('cmd_previousMsg')"/>
+  <key id="key_previousUnreadMsg" key="&prevUnreadMsgCmd.key;"       oncommand="goDoCommand('cmd_previousUnreadMsg')"/>
   <key id="key_goBack" key="&goBackCmd.commandKey;"                  oncommand="goDoCommand('cmd_goBack')"/>
   <key id="key_goForward" key="&goForwardCmd.commandKey;"            oncommand="goDoCommand('cmd_goForward');"/>
   <key id="key_reply" key="&replyMsgCmd.key;"                        oncommand="goDoCommand('cmd_reply')" modifiers="accel"/>
@@ -1372,12 +1372,12 @@
         <menupopup>
           <menuitem id="prevMsgMenuItem"
                     label="&prevMsgCmd.label;"
-                    accesskey="&previousMsgCmd.accesskey;"
+                    accesskey="&prevMsgCmd.accesskey;"
                     key="key_previousMsg"
                     command="cmd_previousMsg"/>
           <menuitem id="prevUnreadMsgMenuItem"
                     label="&prevUnreadMsgCmd.label;"
-                    accesskey="&previousUnreadMsgCmd.accesskey;"
+                    accesskey="&prevUnreadMsgCmd.accesskey;"
                     key="key_previousUnreadMsg"
                     command="cmd_previousUnreadMsg"/>
           <menuitem id="prevFlaggedMenuItem"
