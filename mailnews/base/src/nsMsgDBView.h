@@ -385,7 +385,7 @@ protected:
   nsMsgViewFlagsTypeValue m_viewFlags;
 
   // I18N date formater service which we'll want to cache locally.
-  nsCOMPtr<nsIDateTimeFormat> mDateFormater;
+  nsCOMPtr<nsIDateTimeFormat> mDateFormatter;
   nsCOMPtr<nsIMsgHeaderParser> mHeaderParser;
   nsCOMPtr<nsIMsgTagService> mTagService;
   nsWeakPtr mMessengerWeak;

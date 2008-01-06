@@ -287,8 +287,8 @@ nsresult nsMimeHtmlDisplayEmitter::GenerateDateString(const char * dateString, n
   nsAutoString formattedDateString;
   nsresult rv = NS_OK;
 
-  if (!mDateFormater) {
-    mDateFormater = do_CreateInstance(NS_DATETIMEFORMAT_CONTRACTID, &rv);
+  if (!mDateFormatter) {
+    mDateFormatter = do_CreateInstance(NS_DATETIMEFORMAT_CONTRACTID, &rv);
     if (NS_FAILED(rv))
       return rv;
   }
@@ -332,7 +332,7 @@ nsresult nsMimeHtmlDisplayEmitter::GenerateDateString(const char * dateString, n
 */
 
   if (NS_SUCCEEDED(rv))
-    rv = mDateFormater->FormatPRTime(nsnull /* nsILocale* locale */,
+    rv = mDateFormatter->FormatPRTime(nsnull /* nsILocale* locale */,
                                       dateFormat,
                                       kTimeFormatNoSeconds,
                                       messageTime,

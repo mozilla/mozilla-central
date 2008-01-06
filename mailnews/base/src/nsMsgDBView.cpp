@@ -466,10 +466,10 @@ nsresult nsMsgDBView::FetchDate(nsIMsgDBHdr * aHdr, nsAString &aDateString, PRBo
   PRUint32 rcvDateSecs;
   nsresult rv;
 
-  if (!mDateFormater)
-    mDateFormater = do_CreateInstance(NS_DATETIMEFORMAT_CONTRACTID);
+  if (!mDateFormatter)
+    mDateFormatter = do_CreateInstance(NS_DATETIMEFORMAT_CONTRACTID);
 
-  NS_ENSURE_TRUE(mDateFormater, NS_ERROR_FAILURE);
+  NS_ENSURE_TRUE(mDateFormatter, NS_ERROR_FAILURE);
   // Silently return Date: instead if Received: is unavailable
   if (rcvDate)
   {
@@ -547,7 +547,7 @@ nsresult nsMsgDBView::FetchDate(nsIMsgDBHdr * aHdr, nsAString &aDateString, PRBo
   }
 
   if (NS_SUCCEEDED(rv))
-    rv = mDateFormater->FormatPRTime(nsnull /* nsILocale* locale */,
+    rv = mDateFormatter->FormatPRTime(nsnull /* nsILocale* locale */,
                                       dateFormat,
                                       kTimeFormatNoSeconds,
                                       dateOfMsg,
@@ -6324,7 +6324,7 @@ nsresult nsMsgDBView::CopyDBView(nsMsgDBView *aNewMsgDBView, nsIMessenger *aMess
   aNewMsgDBView->m_sortOrder = m_sortOrder;
   aNewMsgDBView->m_sortType = m_sortType;
   aNewMsgDBView->m_db = m_db;
-  aNewMsgDBView->mDateFormater = mDateFormater;
+  aNewMsgDBView->mDateFormatter = mDateFormatter;
   if (m_db)
     aNewMsgDBView->m_db->AddListener(aNewMsgDBView);
   aNewMsgDBView->mIsNews = mIsNews;
