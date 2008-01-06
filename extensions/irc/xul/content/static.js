@@ -2534,17 +2534,12 @@ function setCurrentObject (obj)
 
     client.currentObject = obj;
 
-    /* If the splitter's collapsed, the userlist *isn't* visible, but we'll not
-     * get told when it becomes visible, so update it even if it's only the
-     * splitter visible. */
-    if (isVisible("user-list-box") || isVisible("main-splitter"))
+    // Update userlist:
+    userList.view = null;
+    if (obj.TYPE == "IRCChannel")
     {
-        userList.view = null;
-        if (obj.TYPE == "IRCChannel")
-        {
-            userList.view = obj.userList;
-            updateUserList();
-        }
+        userList.view = obj.userList;
+        updateUserList();
     }
 
     tb = dispatch("create-tab-for-view", { view: obj });
