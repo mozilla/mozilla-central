@@ -59,6 +59,9 @@ function initMunger()
     client.linkRE =
         /(?:\s|\W|^)((?:(\w[\w-]+):[^\s]+|www(\.[^.\s]+){2,})\b[\/=]?)(?=\s|\W|$)/;
 
+    // Colours: \x03, with optional foreground and background colours
+    client.colorRE = /(\x03((\d{1,2})(,\d{1,2}|)|))/;
+
     const LOW_PRIORITY = 5;
     const NORMAL_PRIORITY = 10;
     const HIGH_PRIORITY = 15;
@@ -79,8 +82,8 @@ function initMunger()
     /* allow () chars inside |code()| blocks */
     munger.addRule("teletype", /(?:\s|^)(\|[^|]*\|)(?:[\s.,]|$)/,
                    "chatzilla-teletype", NORMAL_PRIORITY, NORMAL_PRIORITY);
-    munger.addRule(".mirc-colors", /(\x03((\d{1,2})(,\d{1,2}|)|))/,
-                   mircChangeColor, NORMAL_PRIORITY, NORMAL_PRIORITY);
+    munger.addRule(".mirc-colors", client.colorRE, mircChangeColor,
+                   NORMAL_PRIORITY, NORMAL_PRIORITY);
     munger.addRule(".mirc-bold", /(\x02)/, mircToggleBold,
                    NORMAL_PRIORITY, NORMAL_PRIORITY);
     munger.addRule(".mirc-underline", /(\x1f)/, mircToggleUnder,
@@ -285,11 +288,12 @@ function insertChannelLink(matchText, containerTag, eventData, mungerEntry)
         return;
     }
 
-    var encodedMatchText = fromUnicode(matchText, eventData.sourceObject);
+    var linkText = removeColorCodes(matchText);
+    var encodedLinkText = fromUnicode(linkText, eventData.sourceObject);
     var anchor = document.createElementNS("http://www.w3.org/1999/xhtml",
                                           "html:a");
     anchor.setAttribute("href", eventData.network.getURL() +
-                        ecmaEscape(encodedMatchText));
+                        ecmaEscape(encodedLinkText));
 
     // Carry over formatting.
     var otherFormatting = calcClass(eventData);
