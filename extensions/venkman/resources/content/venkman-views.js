@@ -569,6 +569,7 @@ function lv_init ()
     };
 
     this.caption = MSG_VIEW_LOCALS;
+    this.childData.isRootRecord = true;
 
     this.jsdFrame = null;
     this.savedStates = new Object();
@@ -619,6 +620,7 @@ function lv_renit (jsdFrame)
         this.scopeRecord = new ValueRecord(jsdFrame.scope, MSG_VAL_SCOPE, "",
                                            jsdFrame);
         this.scopeRecord.onPreRefresh = null;
+        this.scopeRecord.isRootRecord = true;
         this.childData.appendChild(this.scopeRecord);
         if (!state && jsdFrame.scope.propertyCount <
             console.prefs["localsView.autoOpenMax"])
@@ -632,6 +634,7 @@ function lv_renit (jsdFrame)
         this.scopeRecord = new XTLabelRecord ("locals:col-0", MSV_VAL_SCOPE,
                                               ["locals:col-1", "locals:col-2",
                                                "locals:col-3"]);
+        this.scopeRecord.isRootRecord = true;
         this.scopeRecord.property = ValueRecord.prototype.atomObject;
         this.childData.appendChild(this.scopeRecord);
     }
@@ -4146,6 +4149,7 @@ function wv_init()
     };
 
     this.caption = MSG_VIEW_WATCHES;
+    this.childData.isRootRecord = true;
 
 }
 
@@ -4226,8 +4230,7 @@ function wv_getcx(cx)
                 {
                     cx.parentValue = rec.parentRecord.value;
                     var cur = rec.parentRecord;
-                    while (cur != watches.childData &&
-                           cur != watches.scopeRecord)
+                    while (!("isRootRecord" in cur) || !cur.isRootRecord)
                     {
                         if ("isECMAProto" in cur)
                             items.unshift("__proto__");

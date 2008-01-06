@@ -618,8 +618,7 @@ function vr_getexpression(extra)
     if ("value" in this.parentRecord)
     {
         var cur = this.parentRecord;
-        while (cur != console.views["locals"].childData &&
-               cur != console.views["locals"].scopeRecord)
+        while (!("isRootRecord" in cur) || !cur.isRootRecord)
         {
             if ("isECMAProto" in cur)
                 items.unshift("__proto__");
