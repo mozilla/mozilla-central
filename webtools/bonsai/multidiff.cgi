@@ -38,7 +38,7 @@ my %form;
 
 print "Content-type: text/html; charset=UTF-8
 
-<PRE><FONT FACE='Lucida Console'>
+<PRE><FONT FACE='Lucida Console, monospace'>
 ";
 
 my @revs = ();
