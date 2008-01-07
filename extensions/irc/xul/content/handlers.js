@@ -1985,9 +1985,11 @@ function my_netdisconnect (e)
                       "reconnect"]);
         msgNetwork = msg;
     }
-    // We won't reconnect if the error was really bad.
-    else if ((typeof e.disconnectStatus != "undefined") &&
-             (e.disconnectStatus == NS_ERROR_ABORT))
+    // We won't reconnect if the error was really bad, or if the user doesn't
+    // want us to do so.
+    else if (((typeof e.disconnectStatus != "undefined") &&
+              (e.disconnectStatus == NS_ERROR_ABORT)) ||
+             !this.stayingPower)
     {
         msgNetwork = msg;
     }

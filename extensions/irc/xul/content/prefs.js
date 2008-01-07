@@ -711,6 +711,10 @@ function onPrefChanged(prefName, newValue, oldValue)
             CIRCNetwork.prototype.PROXY_TYPE_OVERRIDE = newValue;
             break;
 
+        case "reconnect":
+            CIRCNetwork.prototype.stayingPower = newValue;
+            break;
+
         case "showModeSymbols":
             if (newValue)
                 setListMode("symbol");
