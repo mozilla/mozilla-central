@@ -70,8 +70,7 @@
   IBOutlet NSPanel*       mAdvancedFontsDialog;
   IBOutlet NSPopUpButton* mSerifFontPopup;
   IBOutlet NSPopUpButton* mSansSerifFontPopup;
-  IBOutlet NSPopUpButton* mCursiveFontPopup;
-  IBOutlet NSPopUpButton* mFantasyFontPopup;
+  IBOutlet NSPopUpButton* mMonospaceFontPopup;
 
   IBOutlet NSPopUpButton* mMinFontSizePopup;
   IBOutlet NSTextField*   mAdvancedFontsLabel;

@@ -268,9 +268,6 @@
               fontfamily =
               missing  = 		// set if a font is missing
             }
-          cursive =   {
-              fontfamily =
-            }
           monospace =   {
               fontfamily =
             }
@@ -304,12 +301,6 @@
     NSMutableDictionary *monoDict = [self makeDictFromPrefsForFontType:@"monospace" andRegion:regionCode];
     [regionDict setObject:monoDict forKey:@"monospace"];
 
-    NSMutableDictionary *cursDict = [self makeDictFromPrefsForFontType:@"cursive" andRegion:regionCode];
-    [regionDict setObject:cursDict forKey:@"cursive"];
-
-    NSMutableDictionary *fantasyDict = [self makeDictFromPrefsForFontType:@"fantasy" andRegion:regionCode];
-    [regionDict setObject:fantasyDict forKey:@"fantasy"];
-
     // font sizes dict
     NSMutableDictionary *sizesDict = [self makeFontSizesDictFromPrefsForRegion:regionCode];
     [regionDict setObject:sizesDict forKey:@"fontsize"];
@@ -331,8 +322,6 @@
     [self saveFontNamePrefsForRegion:regionDict forFontType:@"serif"];
     [self saveFontNamePrefsForRegion:regionDict forFontType:@"sans-serif"];
     [self saveFontNamePrefsForRegion:regionDict forFontType:@"monospace"];
-    [self saveFontNamePrefsForRegion:regionDict forFontType:@"cursive"];
-    [self saveFontNamePrefsForRegion:regionDict forFontType:@"fantasy"];
     
     [self saveDefaultFontTypePrefForRegion:regionDict];
     [self saveFontSizePrefsForRegion:regionDict];
@@ -672,8 +661,7 @@ const int kDefaultFontSansSerifTag = 1;
   // set up the dialog for the current region
   [self setupFontPopup:mSerifFontPopup forType:@"serif" fromDict:regionDict];
   [self setupFontPopup:mSansSerifFontPopup forType:@"sans-serif" fromDict:regionDict];
-  [self setupFontPopup:mCursiveFontPopup forType:@"cursive" fromDict:regionDict];
-  [self setupFontPopup:mFantasyFontPopup forType:@"fantasy" fromDict:regionDict];
+  [self setupFontPopup:mMonospaceFontPopup forType:@"monospace" fromDict:regionDict];
   
   // setup min size popup
   int itemIndex = 0;
@@ -708,8 +696,7 @@ const int kDefaultFontSansSerifTag = 1;
 
   [self getFontFromPopup:mSerifFontPopup forType:@"serif" intoDict:regionDict];
   [self getFontFromPopup:mSansSerifFontPopup forType:@"sans-serif" intoDict:regionDict];
-  [self getFontFromPopup:mCursiveFontPopup forType:@"cursive" intoDict:regionDict];
-  [self getFontFromPopup:mFantasyFontPopup forType:@"fantasy" intoDict:regionDict];
+  [self getFontFromPopup:mMonospaceFontPopup forType:@"monospace" intoDict:regionDict];
 
   int minSize = [[mMinFontSizePopup selectedItem] tag];
   // a value of 0 indicates 'none'; we'll clear the pref on save
@@ -776,8 +763,6 @@ const int kDefaultFontSansSerifTag = 1;
     [regionDict setObject:[NSMutableDictionary dictionary] forKey:@"serif"];
     [regionDict setObject:[NSMutableDictionary dictionary] forKey:@"sans-serif"];
     [regionDict setObject:[NSMutableDictionary dictionary] forKey:@"monospace"];
-    [regionDict setObject:[NSMutableDictionary dictionary] forKey:@"cursive"];
-    [regionDict setObject:[NSMutableDictionary dictionary] forKey:@"fantasy"];
     [regionDict setObject:[NSMutableDictionary dictionary] forKey:@"fontsize"];
     [regionDict setObject:[NSMutableDictionary dictionary] forKey:@"defaultFontType"];
   }

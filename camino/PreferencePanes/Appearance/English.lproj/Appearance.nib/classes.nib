@@ -48,13 +48,12 @@
                 mBackgroundColorWell = NSColorWell;
                 mChooseMonospaceFontButton = NSButton;
                 mChooseProportionalFontButton = NSButton;
-                mCursiveFontPopup = NSPopUpButton;
                 mDefaultFontMatrix = NSMatrix;
-                mFantasyFontPopup = NSPopUpButton;
                 mFontRegionPopup = NSPopUpButton;
                 mFontSampleMonospace = NSTextField;
                 mFontSampleProportional = NSTextField;
                 mMinFontSizePopup = NSPopUpButton;
+                mMonospaceFontPopup = NSPopUpButton;
                 mProportionalSampleLabel = NSTextField;
                 mProportionalSubLabel = NSTextField;
                 mResetButton = NSButton;
