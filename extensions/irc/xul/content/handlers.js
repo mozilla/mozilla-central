@@ -143,7 +143,7 @@ function onUnload()
 {
     dd("Shutting down ChatZilla.");
     uninitOfflineIcon();
-    uninitIdleAutoAway(client.prefs["idleAutoAway"]);
+    uninitIdleAutoAway(client.prefs["awayIdleTime"]);
     destroy();
 }
 
@@ -1284,7 +1284,11 @@ function my_305(e)
 CIRCNetwork.prototype.on306 =
 function my_306(e)
 {
-    this.display(getMsg(MSG_AWAY_ON, this.prefs["away"]));
+    var idleMsgParams = [this.prefs["away"], client.prefs["awayIdleTime"]];
+    if (!this.isIdleAway)
+        this.display(getMsg(MSG_AWAY_ON, this.prefs["away"]));
+    else
+        this.display(getMsg(MSG_IDLE_AWAY_ON, idleMsgParams));
 
     return true;
 }

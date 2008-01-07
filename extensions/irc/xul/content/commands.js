@@ -2849,7 +2849,8 @@ function cmdAway(e)
                 // user doesn't want to change nicks:
                 if (awayNick && (normalNick != awayNick))
                     e.server.changeNick(awayNick);
-                e.server.sendData("AWAY :" + fromUnicode(e.reason, e.network) + "\n");
+                e.server.sendData("AWAY :" + fromUnicode(e.reason, e.network) +
+                                  "\n");
             }
             if (awayNick && (normalNick != awayNick))
                 e.network.preferredNick = awayNick;
@@ -2860,10 +2861,20 @@ function cmdAway(e)
             // Client view, do command for all networks.
             sendToAllNetworks("away", e.reason);
             client.prefs["away"] = e.reason;
-            if (("frame" in client) && client.frame)
-                client.display(getMsg(MSG_AWAY_ON, e.reason));
+
+            // Don't tell people how to get back if they're idle:
+            var idleMsgParams = [e.reason, client.prefs["awayIdleTime"]];
+            if (e.command.name == "idle-away")
+                var msg = getMsg(MSG_IDLE_AWAY_ON, idleMsgParams);
             else
-                display(getMsg(MSG_AWAY_ON, e.reason));
+                msg = getMsg(MSG_AWAY_ON, e.reason);
+
+            // Display on the *client* tab, or on the current tab iff
+            // there's nowhere else they'll hear about it:
+            if (("frame" in client) && client.frame)
+                client.display(msg);
+            else if (!client.getConnectedNetworks())
+                display(msg);
         }
     }
     else
@@ -2891,7 +2902,7 @@ function cmdAway(e)
             sendToAllNetworks("back");
             if (("frame" in client) && client.frame)
                 client.display(MSG_AWAY_OFF);
-            else
+            else if (!client.getConnectedNetworks())
                 display(MSG_AWAY_OFF);
         }
     }
