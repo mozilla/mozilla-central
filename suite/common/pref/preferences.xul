@@ -94,10 +94,12 @@
                 prefpane="navigator_pane"
                 helpTopic="navigator_pref_navigator"
                 url="chrome://communicator/content/pref/pref-navigator.xul">
-<!-- commenting out yet unmigrated panels
+
         <treechildren id="navigatorChildren">
-          <treeitem label="&history.label;"
+          <treeitem id="historyItem" label="&history.label;"
+                    prefpane="history_pane" helpTopic="navigator_pref_history"
                     url="chrome://communicator/content/pref/pref-history.xul"/>
+<!-- commenting out yet unmigrated panels
           <treeitem label="&languages.label;"
                     url="chrome://communicator/content/pref/pref-languages.xul"/>
           <treeitem label="&applications.label;"
@@ -114,9 +116,7 @@
           <!-- Taking out Policies panel b/c bug 44121
           <treeitem url="chrome://communicator/content/pref/pref-policies.xul" label="&policies.label;"/>
           -->
-<!-- commenting out yet unmigrated panels
         </treechildren>
--->
       </treeitem>
 
       <!-- Security and Privacy items -->

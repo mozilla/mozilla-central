@@ -86,7 +86,7 @@
       <treechildren id="navigatorChildren">
         <treeitem>
           <treerow>
-            <treecell url="chrome://communicator/content/pref/pref-history.xul" label="&history.label;"/> 
+            <treecell label="(Migrated: &history.label;)"/> 
           </treerow>
         </treeitem>
         <treeitem>
