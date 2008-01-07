@@ -545,10 +545,11 @@ PR_STATIC_CALLBACK(int) compareValues(nsICookie* aCookie1, nsICookie* aCookie2, 
   // Add the new general policy.
   [permManager setPolicy:policy forHost:superdomain type:CHPermissionTypeCookie];
 
-  [self populatePermissionCache];
-  [mPermissionsTable reloadData];
+  // Re-applying the filter will take care of refreshing the cache
+  [self filterCookiesPermissionsWithString:[mPermissionFilterField stringValue]];
   [self sortPermissionsByKey:[[mPermissionsTable highlightedTableColumn] identifier]
             inAscendingOrder:mSortedAscending];
+  [mPermissionsTable reloadData];
 
   // Select the new permission.
   if ([mPermissionsTable numberOfRows] > 0) {
