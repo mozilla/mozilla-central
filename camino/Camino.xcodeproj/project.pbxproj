@@ -2516,7 +2516,6 @@
 		3F44AD9F05BDFB9F00CB4B08 /* Appearance.prefPane */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = Appearance.prefPane; sourceTree = BUILT_PRODUCTS_DIR; };
 		3F44ADB205BDFBA000CB4B08 /* Info-GeneralPrefPane.plist */ = {isa = PBXFileReference; lastKnownFileType = text.xml; path = "Info-GeneralPrefPane.plist"; sourceTree = "<group>"; };
 		3F44ADB305BDFBA000CB4B08 /* General.prefPane */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = General.prefPane; sourceTree = BUILT_PRODUCTS_DIR; };
-		3F44ADC105BDFBA000CB4B08 /* Info-PersonalPrefPane.plist */ = {isa = PBXFileReference; lastKnownFileType = text.xml; path = "Info-PersonalPrefPane.plist"; sourceTree = "<group>"; };
 		3F44ADD905BDFBA000CB4B08 /* Info-PrivacyPrefPane.plist */ = {isa = PBXFileReference; lastKnownFileType = text.xml; path = "Info-PrivacyPrefPane.plist"; sourceTree = "<group>"; };
 		3F44ADDA05BDFBA000CB4B08 /* Privacy.prefPane */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = Privacy.prefPane; sourceTree = BUILT_PRODUCTS_DIR; };
 		3F44ADF005BDFBA000CB4B08 /* Info-SecurityPrefPane.plist */ = {isa = PBXFileReference; lastKnownFileType = text.xml; path = "Info-SecurityPrefPane.plist"; sourceTree = "<group>"; };
@@ -3849,7 +3848,6 @@
 				3F44AD8705BDFB9F00CB4B08 /* generated/Info-Camino.plist */,
 				3F44AD9E05BDFB9F00CB4B08 /* Info-AppearancePrefPane.plist */,
 				3F44ADB205BDFBA000CB4B08 /* Info-GeneralPrefPane.plist */,
-				3F44ADC105BDFBA000CB4B08 /* Info-PersonalPrefPane.plist */,
 				3F44ADD905BDFBA000CB4B08 /* Info-PrivacyPrefPane.plist */,
 				3F44ADF005BDFBA000CB4B08 /* Info-SecurityPrefPane.plist */,
 				3F44AE0705BDFBA000CB4B08 /* Info-WebFeaturesPrefPane.plist */,
