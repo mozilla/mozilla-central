@@ -1438,7 +1438,7 @@ enum BWCOpenDest {
     [toolbarItem setLabel:NSLocalizedString(@"Bookmark", nil)];
     [toolbarItem setPaletteLabel:NSLocalizedString(@"Bookmark Page", nil)];
     [toolbarItem setToolTip:NSLocalizedString(@"BookmarkToolTip", nil)];
-    [toolbarItem setImage:[NSImage imageNamed:@"add_to_bookmark.tif"]];
+    [toolbarItem setImage:[NSImage imageNamed:@"add_to_bookmark"]];
     [toolbarItem setTarget:self];
     [toolbarItem setAction:@selector(addBookmark:)];
   }
@@ -1446,7 +1446,7 @@ enum BWCOpenDest {
     [toolbarItem setLabel:NSLocalizedString(@"BigText", nil)];
     [toolbarItem setPaletteLabel:NSLocalizedString(@"BigText", nil)];
     [toolbarItem setToolTip:NSLocalizedString(@"BigTextToolTip", nil)];
-    [toolbarItem setImage:[NSImage imageNamed:@"textBigger.tif"]];
+    [toolbarItem setImage:[NSImage imageNamed:@"textBigger"]];
     [toolbarItem setTarget:self];
     [toolbarItem setAction:@selector(makeTextBigger:)];
   }
@@ -1454,7 +1454,7 @@ enum BWCOpenDest {
     [toolbarItem setLabel:NSLocalizedString(@"SmallText", nil)];
     [toolbarItem setPaletteLabel:NSLocalizedString(@"SmallText", nil)];
     [toolbarItem setToolTip:NSLocalizedString(@"SmallTextToolTip", nil)];
-    [toolbarItem setImage:[NSImage imageNamed:@"textSmaller.tif"]];
+    [toolbarItem setImage:[NSImage imageNamed:@"textSmaller"]];
     [toolbarItem setTarget:self];
     [toolbarItem setAction:@selector(makeTextSmaller:)];
   }
@@ -1462,7 +1462,7 @@ enum BWCOpenDest {
     [toolbarItem setLabel:NSLocalizedString(@"NewTab", nil)];
     [toolbarItem setPaletteLabel:NSLocalizedString(@"NewTab", nil)];
     [toolbarItem setToolTip:NSLocalizedString(@"NewTabToolTip", nil)];
-    [toolbarItem setImage:[NSImage imageNamed:@"newTab.tif"]];
+    [toolbarItem setImage:[NSImage imageNamed:@"newTab"]];
     [toolbarItem setTarget:self];
     [toolbarItem setAction:@selector(newTab:)];
   }
@@ -1470,7 +1470,7 @@ enum BWCOpenDest {
     [toolbarItem setLabel:NSLocalizedString(@"CloseTab", nil)];
     [toolbarItem setPaletteLabel:NSLocalizedString(@"CloseTab", nil)];
     [toolbarItem setToolTip:NSLocalizedString(@"CloseTabToolTip", nil)];
-    [toolbarItem setImage:[NSImage imageNamed:@"closeTab.tif"]];
+    [toolbarItem setImage:[NSImage imageNamed:@"closeTab"]];
     [toolbarItem setTarget:self];
     [toolbarItem setAction:@selector(closeCurrentTab:)];
   }
@@ -1478,7 +1478,7 @@ enum BWCOpenDest {
     [toolbarItem setLabel:NSLocalizedString(@"SendLink", nil)];
     [toolbarItem setPaletteLabel:NSLocalizedString(@"SendLinkPaletteLabel", nil)];
     [toolbarItem setToolTip:NSLocalizedString(@"SendLinkToolTip", nil)];
-    [toolbarItem setImage:[NSImage imageNamed:@"sendLink.tif"]];
+    [toolbarItem setImage:[NSImage imageNamed:@"sendLink"]];
     [toolbarItem setTarget:self];
     [toolbarItem setAction:@selector(sendURL:)];
   }
@@ -1486,7 +1486,7 @@ enum BWCOpenDest {
     [toolbarItem setLabel:NSLocalizedString(@"Downloads", nil)];
     [toolbarItem setPaletteLabel:NSLocalizedString(@"Downloads", nil)];
     [toolbarItem setToolTip:NSLocalizedString(@"DownloadsToolTip", nil)];
-    [toolbarItem setImage:[NSImage imageNamed:@"dl_manager.tif"]];
+    [toolbarItem setImage:[NSImage imageNamed:@"dl_manager"]];
     [toolbarItem setTarget:[ProgressDlgController sharedDownloadController]];
     [toolbarItem setAction:@selector(showWindow:)];
   }
@@ -2779,8 +2779,8 @@ enum BWCOpenDest {
 
 - (NSArray*)throbberImages
 {
-  // Simply load an array of NSImage objects from the files "throbber-NN.tif". I used "Quicktime Player" to
-  // save all of the frames of the animated gif as individual .tif files for simplicity of implementation.
+  // Simply load an array of NSImage objects from the files "throbber-NN.tiff". I used "Quicktime Player" to
+  // save all of the frames of the animated gif as individual .tiff files for simplicity of implementation.
   if (mThrobberImages == nil)
   {
     NSImage* images[64];

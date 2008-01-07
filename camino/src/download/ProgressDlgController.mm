@@ -1002,7 +1002,7 @@ static id gSharedProgressController = nil;
   // only set the action of the selector to pause if we validate properly
   [theItem setLabel:NSLocalizedString(@"dlPauseButtonLabel", nil)];
   [theItem setPaletteLabel:NSLocalizedString(@"dlPauseButtonLabel", nil)];
-  [theItem setImage:[NSImage imageNamed:@"dl_pause.tif"]];
+  [theItem setImage:[NSImage imageNamed:@"dl_pause"]];
   
   if ([self shouldAllowPauseAction]) {
     [theItem setAction:@selector(pause:)];
@@ -1013,7 +1013,7 @@ static id gSharedProgressController = nil;
     [theItem setLabel:NSLocalizedString(@"dlResumeButtonLabel", nil)];
     [theItem setPaletteLabel:NSLocalizedString(@"dlResumeButtonLabel", nil)];
     [theItem setAction:@selector(resume:)];
-    [theItem setImage:[NSImage imageNamed:@"dl_resume.tif"]];
+    [theItem setImage:[NSImage imageNamed:@"dl_resume"]];
     
     return [[self window] isKeyWindow]; // if not key window, dont enable
   }
@@ -1082,37 +1082,37 @@ static id gSharedProgressController = nil;
     [theItem setLabel:NSLocalizedString(@"dlRemoveButtonLabel", nil)];
     [theItem setPaletteLabel:NSLocalizedString(@"dlRemoveButtonLabel", nil)];
     [theItem setAction:@selector(remove:)];
-    [theItem setImage:[NSImage imageNamed:@"dl_remove.tif"]];
+    [theItem setImage:[NSImage imageNamed:@"dl_remove"]];
   }
   else if ([itemIdentifier isEqualToString:@"cancelbutton"]) {
     [theItem setLabel:NSLocalizedString(@"dlCancelButtonLabel", nil)];
     [theItem setPaletteLabel:NSLocalizedString(@"dlCancelButtonLabel", nil)];
     [theItem setAction:@selector(cancel:)];
-    [theItem setImage:[NSImage imageNamed:@"dl_cancel.tif"]];
+    [theItem setImage:[NSImage imageNamed:@"dl_cancel"]];
   }
   else if ([itemIdentifier isEqualToString:@"revealbutton"]) {
     [theItem setLabel:NSLocalizedString(@"dlRevealButtonLabel", nil)];
     [theItem setPaletteLabel:NSLocalizedString(@"dlRevealButtonLabel", nil)];
     [theItem setAction:@selector(reveal:)];
-    [theItem setImage:[NSImage imageNamed:@"dl_reveal.tif"]];
+    [theItem setImage:[NSImage imageNamed:@"dl_reveal"]];
   }
   else if ([itemIdentifier isEqualToString:@"openbutton"]) {
     [theItem setLabel:NSLocalizedString(@"dlOpenButtonLabel", nil)];
     [theItem setPaletteLabel:NSLocalizedString(@"dlOpenButtonLabel", nil)];
     [theItem setAction:@selector(open:)];
-    [theItem setImage:[NSImage imageNamed:@"dl_open.tif"]];
+    [theItem setImage:[NSImage imageNamed:@"dl_open"]];
   }
   else if ([itemIdentifier isEqualToString:@"cleanupbutton"]) {
     [theItem setLabel:NSLocalizedString(@"dlCleanUpButtonLabel", nil)];
     [theItem setPaletteLabel:NSLocalizedString(@"dlCleanUpButtonLabel", nil)];
     [theItem setAction:@selector(cleanUpDownloads:)];
-    [theItem setImage:[NSImage imageNamed:@"dl_clearall.tif"]];
+    [theItem setImage:[NSImage imageNamed:@"dl_clearall"]];
   }
   else if ([itemIdentifier isEqualToString:@"movetotrashbutton"]) {
     [theItem setLabel:NSLocalizedString(@"dlTrashButtonLabel", nil)];
     [theItem setPaletteLabel:NSLocalizedString(@"dlTrashButtonLabel", nil)];
     [theItem setAction:@selector(deleteDownloads:)];
-    [theItem setImage:[NSImage imageNamed:@"dl_trash.tif"]];
+    [theItem setImage:[NSImage imageNamed:@"dl_trash"]];
   }
   else if ([itemIdentifier isEqualToString:@"pauseresumebutton"]) {
     [self setPauseResumeToolbarItem:theItem];
