@@ -78,6 +78,7 @@ calendar-en-US.jar:
   locale/en-US/calendar/calendar-event-dialog.dtd  (/calendar/locales/en-US/chrome/calendar/calendar-event-dialog.dtd)
   locale/en-US/calendar/calendar-recurrence-dialog.dtd  (/calendar/locales/en-US/chrome/calendar/calendar-recurrence-dialog.dtd)
   locale/en-US/calendar/calendar.properties    (/calendar/locales/en-US/chrome/calendar/calendar.properties)
+  locale/en-US/calendar/categories.properties  (/calendar/locales/en-US/chrome/calendar/categories.properties)
   locale/en-US/calendar/wcap.properties        (/calendar/locales/en-US/chrome/calendar/wcap.properties)
   locale/en-US/calendar/dateFormat.properties  (/calendar/locales/en-US/chrome/calendar/dateFormat.properties)
   locale/en-US/calendar/menuOverlay.dtd        (/calendar/locales/en-US/chrome/calendar/menuOverlay.dtd)

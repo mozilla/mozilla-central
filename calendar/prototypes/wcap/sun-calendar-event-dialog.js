@@ -323,6 +323,13 @@ function loadDialog(item) {
 
     // Categories
     var categoriesString = getLocalizedPref("calendar.categories.names", "");
+
+    // If no categories are configured load a default set from properties file
+    if (!categoriesString || categoriesString == "") {
+        categoriesString = calGetString("categories", "categories");
+        setLocalizedPref("calendar.categories.names", categoriesString);
+    }
+
     var categoriesList = categoriesString.split(",");
     
     // When categoriesString is empty, split returns an array containing one
