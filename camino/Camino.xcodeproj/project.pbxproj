@@ -294,6 +294,10 @@
 		33C222870D106CDD00611936 /* PreferencesWindow.m in Sources */ = {isa = PBXBuildFile; fileRef = 33C222850D106CDD00611936 /* PreferencesWindow.m */; };
 		33C222880D106CDD00611936 /* PreferencesWindow.h in Headers */ = {isa = PBXBuildFile; fileRef = 33C222840D106CDD00611936 /* PreferencesWindow.h */; };
 		33C222890D106CDD00611936 /* PreferencesWindow.m in Sources */ = {isa = PBXBuildFile; fileRef = 33C222850D106CDD00611936 /* PreferencesWindow.m */; };
+		33E95A770D31B6FA0054C01D /* CHCookieStorage.h in Headers */ = {isa = PBXBuildFile; fileRef = 33E95A750D31B6FA0054C01D /* CHCookieStorage.h */; };
+		33E95A780D31B6FA0054C01D /* CHCookieStorage.mm in Sources */ = {isa = PBXBuildFile; fileRef = 33E95A760D31B6FA0054C01D /* CHCookieStorage.mm */; };
+		33E95A790D31B6FA0054C01D /* CHCookieStorage.h in Headers */ = {isa = PBXBuildFile; fileRef = 33E95A750D31B6FA0054C01D /* CHCookieStorage.h */; };
+		33E95A7A0D31B6FA0054C01D /* CHCookieStorage.mm in Sources */ = {isa = PBXBuildFile; fileRef = 33E95A760D31B6FA0054C01D /* CHCookieStorage.mm */; };
 		33F3B70B0C63F5F7007DFBD0 /* ScriptingSupport.mm in Sources */ = {isa = PBXBuildFile; fileRef = 33F3B70A0C63F5F7007DFBD0 /* ScriptingSupport.mm */; };
 		33F3B70C0C63F5F7007DFBD0 /* ScriptingSupport.mm in Sources */ = {isa = PBXBuildFile; fileRef = 33F3B70A0C63F5F7007DFBD0 /* ScriptingSupport.mm */; };
 		33FBAAF80C84D0AB00DD459E /* NSString+Gecko.h in Headers */ = {isa = PBXBuildFile; fileRef = 33FBAAF30C84D0A500DD459E /* NSString+Gecko.h */; };
@@ -1108,7 +1112,6 @@
 		4D2996690869C5FA00E84287 /* libplds4.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = F6BD638201B30EA301A962F7 /* libplds4.dylib */; };
 		4D29966A0869C5FA00E84287 /* libxpcom.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = F57F0F470209DF5301A967DF /* libxpcom.dylib */; };
 		4D29966B0869C5FA00E84287 /* libxpcom_core.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = 3F12FC56072E8ECB00995ED9 /* libxpcom_core.dylib */; };
-		4D29989F0869CA5200E84287 /* libxpcom_core.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = 3F12FC56072E8ECB00995ED9 /* libxpcom_core.dylib */; };
 		4D5881770864B28D001305B3 /* Default Plugin.plugin in Copy Gecko Plugins */ = {isa = PBXBuildFile; fileRef = F56610BC0394775201A9666E /* Default Plugin.plugin */; };
 		4D58817B0864B2AE001305B3 /* Default Plugin.plugin in Copy Gecko Plugins */ = {isa = PBXBuildFile; fileRef = F56610BC0394775201A9666E /* Default Plugin.plugin */; };
 		4DC28F5E099184B80081939B /* libucvmath.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 4DC28F5D099184B80081939B /* libucvmath.a */; };
@@ -2483,6 +2486,8 @@
 		33B778800C55C57800A6D67F /* libnssdbm3.dylib */ = {isa = PBXFileReference; lastKnownFileType = "compiled.mach-o.dylib"; name = libnssdbm3.dylib; path = ../dist/lib/libnssdbm3.dylib; sourceTree = SOURCE_ROOT; };
 		33C222840D106CDD00611936 /* PreferencesWindow.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = PreferencesWindow.h; sourceTree = "<group>"; };
 		33C222850D106CDD00611936 /* PreferencesWindow.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = PreferencesWindow.m; sourceTree = "<group>"; };
+		33E95A750D31B6FA0054C01D /* CHCookieStorage.h */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.c.h; name = CHCookieStorage.h; path = src/embedding/CHCookieStorage.h; sourceTree = "<group>"; };
+		33E95A760D31B6FA0054C01D /* CHCookieStorage.mm */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.cpp.objcpp; name = CHCookieStorage.mm; path = src/embedding/CHCookieStorage.mm; sourceTree = "<group>"; };
 		33F3B70A0C63F5F7007DFBD0 /* ScriptingSupport.mm */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.cpp.objcpp; name = ScriptingSupport.mm; path = src/appleevents/ScriptingSupport.mm; sourceTree = "<group>"; };
 		33FBAAF30C84D0A500DD459E /* NSString+Gecko.h */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.c.h; name = "NSString+Gecko.h"; path = "src/extensions/NSString+Gecko.h"; sourceTree = "<group>"; };
 		33FBAAFA0C84D0CA00DD459E /* NSString+Gecko.mm */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.cpp.objcpp; name = "NSString+Gecko.mm"; path = "src/extensions/NSString+Gecko.mm"; sourceTree = "<group>"; };
@@ -3138,7 +3143,6 @@
 			buildActionMask = 2147483647;
 			files = (
 				3F44ADD005BDFBA000CB4B08 /* Cocoa.framework in Frameworks */,
-				4D29989F0869CA5200E84287 /* libxpcom_core.dylib in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -4294,6 +4298,8 @@
 				335639BC0C84E85600DC4D06 /* Browser View */,
 				6021CDD70C84FDC4000E7754 /* CHStringBundleOverride.h */,
 				6021CDD80C84FDC4000E7754 /* CHStringBundleOverride.mm */,
+				33E95A750D31B6FA0054C01D /* CHCookieStorage.h */,
+				33E95A760D31B6FA0054C01D /* CHCookieStorage.mm */,
 				F50D9DED02EE0AB101BB4219 /* CHDownloadProgressDisplay.h */,
 				F50D9DEE02EE0AB101BB4219 /* CHDownloadProgressDisplay.mm */,
 				0F0F5E3C08FC660300B4EBCD /* CHISupportsOwner.h */,
@@ -4782,6 +4788,7 @@
 				E43EFBB50D143F2600DACA10 /* FindBarController.h in Headers */,
 				E43EFBB70D143F2600DACA10 /* FindBarView.h in Headers */,
 				7BB8FC1C0D2D58AF00CC63B0 /* KeychainDenyList.h in Headers */,
+				33E95A770D31B6FA0054C01D /* CHCookieStorage.h in Headers */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -4956,6 +4963,7 @@
 				E43EFBB90D143F2600DACA10 /* FindBarController.h in Headers */,
 				E43EFBBB0D143F2600DACA10 /* FindBarView.h in Headers */,
 				7BB8FC1E0D2D58C600CC63B0 /* KeychainDenyList.h in Headers */,
+				33E95A790D31B6FA0054C01D /* CHCookieStorage.h in Headers */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -5106,7 +5114,6 @@
 				3F44ADC605BDFBA000CB4B08 /* Resources */,
 				3F44ADCA05BDFBA000CB4B08 /* Sources */,
 				3F44ADCD05BDFBA000CB4B08 /* Frameworks */,
-				3F44ADD705BDFBA000CB4B08 /* Rez */,
 			);
 			buildRules = (
 			);
@@ -5126,7 +5133,6 @@
 				3F44ADDE05BDFBA000CB4B08 /* Resources */,
 				3F44ADE105BDFBA000CB4B08 /* Sources */,
 				3F44ADE405BDFBA000CB4B08 /* Frameworks */,
-				3F44ADEE05BDFBA000CB4B08 /* Rez */,
 			);
 			buildRules = (
 			);
@@ -5627,20 +5633,6 @@
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
-		3F44ADD705BDFBA000CB4B08 /* Rez */ = {
-			isa = PBXRezBuildPhase;
-			buildActionMask = 2147483647;
-			files = (
-			);
-			runOnlyForDeploymentPostprocessing = 0;
-		};
-		3F44ADEE05BDFBA000CB4B08 /* Rez */ = {
-			isa = PBXRezBuildPhase;
-			buildActionMask = 2147483647;
-			files = (
-			);
-			runOnlyForDeploymentPostprocessing = 0;
-		};
 /* End PBXRezBuildPhase section */
 
 /* Begin PBXShellScriptBuildPhase section */
@@ -5823,6 +5815,7 @@
 				E43EFBB60D143F2600DACA10 /* FindBarController.mm in Sources */,
 				E43EFBB80D143F2600DACA10 /* FindBarView.mm in Sources */,
 				7BB8FC1D0D2D58BB00CC63B0 /* KeychainDenyList.mm in Sources */,
+				33E95A780D31B6FA0054C01D /* CHCookieStorage.mm in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -5990,6 +5983,7 @@
 				E43EFBBA0D143F2600DACA10 /* FindBarController.mm in Sources */,
 				E43EFBBC0D143F2600DACA10 /* FindBarView.mm in Sources */,
 				7BB8FC1F0D2D58D000CC63B0 /* KeychainDenyList.mm in Sources */,
+				33E95A7A0D31B6FA0054C01D /* CHCookieStorage.mm in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -6549,23 +6543,8 @@
 			isa = XCBuildConfiguration;
 			baseConfigurationReference = 332377D10C4D88D300A34879 /* PrefPane.xcconfig */;
 			buildSettings = {
-				HEADER_SEARCH_PATHS = (
-					../dist/include,
-					../dist/include/cookie,
-					../dist/include/necko,
-					../dist/include/nspr,
-					../dist/include/pref,
-					../dist/include/string,
-					../dist/include/xpcom,
-				);
+				GCC_PREFIX_HEADER = "";
 				INFOPLIST_FILE = "Info-PrivacyPrefPane.plist";
-				LIBRARY_SEARCH_PATHS = ../dist/lib;
-				OTHER_CFLAGS = (
-					"$(OTHER_CFLAGS)",
-					"-DDEBUG",
-					"-DMOZ_DEBUG",
-					"-DTRACING",
-				);
 				PRODUCT_NAME = Privacy;
 			};
 			name = Development;
@@ -6574,17 +6553,8 @@
 			isa = XCBuildConfiguration;
 			baseConfigurationReference = 332377D10C4D88D300A34879 /* PrefPane.xcconfig */;
 			buildSettings = {
-				HEADER_SEARCH_PATHS = (
-					../dist/include,
-					../dist/include/cookie,
-					../dist/include/necko,
-					../dist/include/nspr,
-					../dist/include/pref,
-					../dist/include/string,
-					../dist/include/xpcom,
-				);
+				GCC_PREFIX_HEADER = "";
 				INFOPLIST_FILE = "Info-PrivacyPrefPane.plist";
-				LIBRARY_SEARCH_PATHS = ../dist/lib;
 				PRODUCT_NAME = Privacy;
 			};
 			name = Deployment;
@@ -6593,19 +6563,8 @@
 			isa = XCBuildConfiguration;
 			baseConfigurationReference = 332377D10C4D88D300A34879 /* PrefPane.xcconfig */;
 			buildSettings = {
-				HEADER_SEARCH_PATHS = (
-					../dist/include,
-					../dist/include/nspr,
-					../dist/include/pref,
-					../dist/include/xpcom,
-				);
+				GCC_PREFIX_HEADER = "";
 				INFOPLIST_FILE = "Info-SecurityPrefPane.plist";
-				OTHER_CFLAGS = (
-					"$(OTHER_CFLAGS)",
-					"-DDEBUG",
-					"-DMOZ_DEBUG",
-					"-DTRACING",
-				);
 				PRODUCT_NAME = Security;
 			};
 			name = Development;
@@ -6614,12 +6573,7 @@
 			isa = XCBuildConfiguration;
 			baseConfigurationReference = 332377D10C4D88D300A34879 /* PrefPane.xcconfig */;
 			buildSettings = {
-				HEADER_SEARCH_PATHS = (
-					../dist/include,
-					../dist/include/nspr,
-					../dist/include/pref,
-					../dist/include/xpcom,
-				);
+				GCC_PREFIX_HEADER = "";
 				INFOPLIST_FILE = "Info-SecurityPrefPane.plist";
 				PRODUCT_NAME = Security;
 			};

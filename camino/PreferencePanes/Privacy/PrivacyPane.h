@@ -40,11 +40,6 @@
 
 #import "PreferencePaneBase.h"
 
-#include "nsCOMArray.h"
-
-class nsICookieManager;
-class nsICookie;
-
 @class ExtendedTableView;
 
 // network.cookie.cookieBehavior settings
@@ -79,20 +74,19 @@ typedef enum ECookiePolicyPopupIndex
   IBOutlet ExtendedTableView* mPermissionsTable;
   IBOutlet NSTableColumn*     mPermissionColumn;
   IBOutlet NSSearchField*     mPermissionFilterField;
-  NSMutableArray*             mCachedPermissions;   // parallel list for speed, STRONG
+  NSMutableArray*             mCachedPermissions;  // strong
       
   // cookie sheet
   IBOutlet id                 mCookiesPanel;
   IBOutlet ExtendedTableView* mCookiesTable;
   IBOutlet NSSearchField*     mCookiesFilterField;
-  nsICookieManager*           mCookieManager;
-  nsCOMArray<nsICookie>*      mCachedCookies;
+  NSMutableArray*             mCookies;            // strong
 
   // Keychain Exclusions sheet
   IBOutlet id                 mKeychainExclusionsPanel;
   IBOutlet ExtendedTableView* mKeychainExclusionsTable;
   IBOutlet NSSearchField*     mKeychainExclusionsFilterField;
-  NSMutableArray*             mKeychainExclusions;
+  NSMutableArray*             mKeychainExclusions; // strong
 }
 
 // main panel button actions

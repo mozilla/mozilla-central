@@ -38,25 +38,11 @@
  
 #import "PrivacyPane.h"
 
-#import "NSString+Gecko.h"
 #import "NSArray+Utils.h"
+#import "CHCookieStorage.h"
 #import "CHPermissionManager.h"
 #import "ExtendedTableView.h"
 #import "KeychainDenyList.h"
-
-#include "nsCOMPtr.h"
-#include "nsServiceManagerUtils.h"
-#include "nsNetCID.h"
-#include "nsICookie.h"
-#include "nsICookieManager.h"
-#include "nsIPref.h"
-#include "nsISimpleEnumerator.h"
-#include "nsNetUtil.h"
-#include "nsString.h"
-
-// we should really get this from "CHBrowserService.h",
-// but that requires linkage and extra search paths.
-static NSString* XPCOMShutDownNotificationName = @"XPCOMShutDown";
 
 // prefs for keychain password autofill
 static const char* const gUseKeychainPref = "chimera.store_passwords_with_keychain";
@@ -121,129 +107,35 @@ const int kSortReverse = 1;
 }
 @end
 
-PR_STATIC_CALLBACK(int) compareCookieHosts(nsICookie* aCookie1, nsICookie* aCookie2, void* aData)
-{
-  nsCAutoString host1;
-  aCookie1->GetHost(host1);
-  NSString* host1String = [NSString stringWithUTF8String:host1.get()];
-  nsCAutoString host2;
-  aCookie2->GetHost(host2);
-  NSString* host2String = [NSString stringWithUTF8String:host2.get()];
-  if ((int)aData == kSortReverse)
-    return (int)[host2String reverseHostnameCompare:host1String];
-  else
-    return (int)[host1String reverseHostnameCompare:host2String];
-}
-
-PR_STATIC_CALLBACK(int) compareNames(nsICookie* aCookie1, nsICookie* aCookie2, void* aData)
-{
-  nsCAutoString name1;
-  aCookie1->GetName(name1);
-  nsCAutoString name2;
-  aCookie2->GetName(name2);
-  
-  if ((int)aData == kSortReverse)
-    return Compare(name2, name1);
-  else
-    return Compare(name1, name2);
-}
-
-PR_STATIC_CALLBACK(int) comparePaths(nsICookie* aCookie1, nsICookie* aCookie2, void* aData)
-{
-  nsCAutoString path1;
-  aCookie1->GetPath(path1);
-  nsCAutoString path2;
-  aCookie2->GetPath(path2);
-  
-  if ((int)aData == kSortReverse)
-    return Compare(path1, path2);
-  else
-    return Compare(path2, path1);
-}
-
-PR_STATIC_CALLBACK(int) compareSecures(nsICookie* aCookie1, nsICookie* aCookie2, void* aData)
-{
-  PRBool secure1;
-  aCookie1->GetIsSecure(&secure1);
-  PRBool secure2;
-  aCookie2->GetIsSecure(&secure2);
-  
-  if (secure1 == secure2)
-    return 0;
-  if ((int)aData == kSortReverse)
-    return (secure2) ? -1 : 1;
-  else
-    return (secure1) ? -1 : 1;
-}
-
-PR_STATIC_CALLBACK(int) compareExpires(nsICookie* aCookie1, nsICookie* aCookie2, void* aData)
-{
-  PRUint64 expires1;
-  aCookie1->GetExpires(&expires1);
-  PRUint64 expires2;
-  aCookie2->GetExpires(&expires2);
-  
-  if (expires1 == expires2) return 0;
-  if ((int)aData == kSortReverse)
-    return (expires2 < expires1) ? -1 : 1;
-  else
-    return (expires1 < expires2) ? -1 : 1;
-}
-
-PR_STATIC_CALLBACK(int) compareValues(nsICookie* aCookie1, nsICookie* aCookie2, void* aData)
-{
-  nsCAutoString value1;
-  aCookie1->GetValue(value1);
-  nsCAutoString value2;
-  aCookie2->GetValue(value2);
-  if ((int)aData == kSortReverse)
-    return Compare(value2, value1);
-  else
-    return Compare(value1, value2);
-}
-
 #pragma mark -
 
 @implementation OrgMozillaCaminoPreferencePrivacy
 
 -(void) dealloc
 {
-  [[NSNotificationCenter defaultCenter] removeObserver:self];
+  // These should have been released when the sheets closed, but make sure.
+  [mCachedPermissions release];
+  [mCookies release];
+  [mKeychainExclusions release];
 
-  // NOTE: no need to worry about mCachedPermissions or mCachedCookies because
-  // if we're going away the respective sheets have closed and cleaned up.
-  
-  NS_IF_RELEASE(mCookieManager);
   [super dealloc];
-}
-
-- (void)xpcomShutdown:(NSNotification*)notification
-{
-  // this nulls the pointer
-  NS_IF_RELEASE(mCookieManager);
 }
 
 -(void) mainViewDidLoad
 {
-  if (!mPrefService)
-    return;
-  
-  // we need to register for xpcom shutdown so that we can clear the
-  // services before XPCOM is shut down. We can't rely on dealloc, 
-  // because we don't know when it will get called (we might be autoreleased).
-  [[NSNotificationCenter defaultCenter] addObserver:self
-                              selector:@selector(xpcomShutdown:)
-                              name:XPCOMShutDownNotificationName
-                              object:nil];
-
   // Hookup cookie prefs.
-  PRInt32 acceptCookies = eAcceptAllCookies;
-  mPrefService->GetIntPref("network.cookie.cookieBehavior", &acceptCookies);
+  BOOL gotPref = NO;
+  BOOL acceptCookies = [self getBooleanPref:"network.cookie.cookieBehavior"
+                                withSuccess:&gotPref];
+  if (!gotPref)
+    acceptCookies = eAcceptAllCookies;
   [self mapCookiePrefToGUI:acceptCookies];
 
   // lifetimePolicy now controls asking about cookies, despite being totally unintuitive
-  PRInt32 lifetimePolicy = kAcceptCookiesNormally;
-  mPrefService->GetIntPref("network.cookie.lifetimePolicy", &lifetimePolicy);
+  int lifetimePolicy = [self getIntPref:"network.cookie.lifetimePolicy"
+                            withSuccess:&gotPref];
+  if (!gotPref)
+    lifetimePolicy = kAcceptCookiesNormally;
   if (lifetimePolicy == kWarnAboutCookies)
     [mAskAboutCookies setState:NSOnState];
   else if (lifetimePolicy == kAcceptCookiesNormally)
@@ -251,14 +143,8 @@ PR_STATIC_CALLBACK(int) compareValues(nsICookie* aCookie1, nsICookie* aCookie2, 
   else
     [mAskAboutCookies setState:NSMixedState];
 
-  // store cookie manager service
-  nsCOMPtr<nsICookieManager> cm(do_GetService(NS_COOKIEMANAGER_CONTRACTID));
-  mCookieManager = cm.get();
-  NS_IF_ADDREF(mCookieManager);
-
   // Keychain checkbox
-  PRBool storePasswords = PR_TRUE;
-  mPrefService->GetBoolPref(gUseKeychainPref, &storePasswords);
+  BOOL storePasswords = [self getBooleanPref:gUseKeychainPref withSuccess:NULL];
   [mStorePasswords setState:(storePasswords ? NSOnState : NSOffState)];
 
   // set up policy popups
@@ -282,29 +168,18 @@ PR_STATIC_CALLBACK(int) compareValues(nsICookie* aCookie1, nsICookie* aCookie2, 
 
 -(void) populateCookieCache
 {
-  nsCOMPtr<nsISimpleEnumerator> cookieEnum;
-  if (mCookieManager)
-    mCookieManager->GetEnumerator(getter_AddRefs(cookieEnum));
-  
-  mCachedCookies = new nsCOMArray<nsICookie>;
-  if (mCachedCookies && cookieEnum) {
-    mCachedCookies->Clear();
-    PRBool hasMoreElements = PR_FALSE;
-    cookieEnum->HasMoreElements(&hasMoreElements);
-    while (hasMoreElements) {
-      nsCOMPtr<nsICookie> cookie;
-      cookieEnum->GetNext(getter_AddRefs(cookie));
-      mCachedCookies->AppendObject(cookie);
-      cookieEnum->HasMoreElements(&hasMoreElements);
-    }
-  }
+  if (mCookies)
+    [mCookies release];
+  mCookies = [[[CHCookieStorage cookieStorage] cookies] mutableCopy];
+  if (!mCookies)
+    mCookies = [[NSMutableArray alloc] init];
 }
 
 -(IBAction) editCookies:(id)aSender
 {
-  // build parallel cookie list
+  // build cookie list
   [self populateCookieCache];
-  
+
   [mCookiesTable setDeleteAction:@selector(removeCookies:)];
   [mCookiesTable setTarget:self];
   
@@ -315,21 +190,18 @@ PR_STATIC_CALLBACK(int) compareValues(nsICookie* aCookie1, nsICookie* aCookie2, 
   //[cookieDateFormatter setFormatterBehavior:NSDateFormatterBehavior10_4];
   //[cookieDateFormatter setDateStyle:NSDateFormatterMediumStyle];
   //[cookieDateFormatter setTimeStyle:NSDateFormatterNoStyle];
-  [[[mCookiesTable tableColumnWithIdentifier:@"Expires"] dataCell] setFormatter:cookieDateFormatter];
+  [[[mCookiesTable tableColumnWithIdentifier:@"expiresDate"] dataCell] setFormatter:cookieDateFormatter];
   [cookieDateFormatter release];
 
   // start sorted by host
-  mCachedCookies->Sort(compareCookieHosts, nsnull);
-  NSTableColumn* sortedColumn = [mCookiesTable tableColumnWithIdentifier:@"Website"];
-  [mCookiesTable setHighlightedTableColumn:sortedColumn];
-  [mCookiesTable setIndicatorImage:[NSImage imageNamed:@"NSAscendingSortIndicator"]
-                     inTableColumn:sortedColumn];
   mSortedAscending = YES;
-  
+  [self sortCookiesByColumn:[mCookiesTable tableColumnWithIdentifier:@"domain"]
+           inAscendingOrder:YES];
+
   // ensure a row is selected (cocoa doesn't do this for us, but will keep
   // us from unselecting a row once one is set; go figure).
   [mCookiesTable selectRow:0 byExtendingSelection:NO];
-  
+
   [mCookiesTable setUsesAlternatingRowBackgroundColors:YES];
   NSArray* columns = [mCookiesTable tableColumns];
   if (columns) {
@@ -337,15 +209,10 @@ PR_STATIC_CALLBACK(int) compareValues(nsICookie* aCookie1, nsICookie* aCookie2, 
     for (int i = 0; i < numColumns; ++i)
       [[[columns objectAtIndex:i] dataCell] setDrawsBackground:NO];
   }
-  
+
   //clear the filter field
   [mCookiesFilterField setStringValue:@""];
 
-  // we shouldn't need to do this, but the scrollbar won't enable unless we
-  // force the table to reload its data. Oddly it gets the number of rows correct,
-  // it just forgets to tell the scrollbar. *shrug*
-  [mCookiesTable reloadData];
-  
   [mCookiesPanel setFrameAutosaveName:@"cookies_sheet"];
   
   // bring up sheet
@@ -360,35 +227,27 @@ PR_STATIC_CALLBACK(int) compareValues(nsICookie* aCookie1, nsICookie* aCookie2, 
 
 -(IBAction) removeCookies:(id)aSender
 {
-  int rowToSelect = -1;
+  CHCookieStorage* cookieStorage = [CHCookieStorage cookieStorage];
 
-  if (mCachedCookies && mCookieManager) {
-    NSArray *rows = [[mCookiesTable selectedRowEnumerator] allObjects];
-    NSEnumerator *e = [rows reverseObjectEnumerator];
-    NSNumber *index;
-    while ((index = [e nextObject]))
-    {
-      int row = [index intValue];
-      if (rowToSelect == -1)
-        rowToSelect = row;
-      else
-        --rowToSelect;
-
-      nsCAutoString host, name, path;
-      mCachedCookies->ObjectAt(row)->GetHost(host);
-      mCachedCookies->ObjectAt(row)->GetName(name);
-      mCachedCookies->ObjectAt(row)->GetPath(path);
-      mCookieManager->Remove(host, name, path, PR_FALSE);  // don't block permanently
-      mCachedCookies->RemoveObjectAt(row);
-    }
+  // Walk the selected rows backwards, removing cookies.
+  NSIndexSet* selectedIndexes = [mCookiesTable selectedRowIndexes];
+  for (unsigned int i = [selectedIndexes lastIndex];
+       i != NSNotFound;
+       i = [selectedIndexes indexLessThanIndex:i])
+  {
+    [cookieStorage deleteCookie:[mCookies objectAtIndex:i]];
+    [mCookies removeObjectAtIndex:i];
   }
-  
+
   [mCookiesTable reloadData];
 
-  if (rowToSelect >=0 && rowToSelect < [mCookiesTable numberOfRows])
+  // Select the row after the last deleted row.
+  if ([mCookiesTable numberOfRows] > 0) {
+    int rowToSelect = [selectedIndexes lastIndex] - ([selectedIndexes count] - 1);
+    if ((rowToSelect < 0) || (rowToSelect >= [mCookiesTable numberOfRows]))
+      rowToSelect = [mCookiesTable numberOfRows] - 1;
     [mCookiesTable selectRow:rowToSelect byExtendingSelection:NO];
-  else
-    [mCookiesTable deselectAll:self];
+  }
 }
 
 -(IBAction) removeAllCookies: (id)aSender
@@ -399,13 +258,11 @@ PR_STATIC_CALLBACK(int) compareValues(nsICookie* aCookie1, nsICookie* aCookie2, 
                               [self localizedStringForKey:@"CancelButtonText"],
                               nil) == NSAlertDefaultReturn)
   {
-    if (mCookieManager) {
-      // remove all cookies from cookie manager
-      mCookieManager->RemoveAll();
-      // create new cookie cache
-      delete mCachedCookies;
-      mCachedCookies = new nsCOMArray<nsICookie>;
-    }
+    [[CHCookieStorage cookieStorage] deleteAllCookies];
+
+    [mCookies release];
+    mCookies = [[NSMutableArray alloc] init];
+
     [mCookiesTable reloadData];
   }
 }
@@ -422,47 +279,19 @@ PR_STATIC_CALLBACK(int) compareValues(nsICookie* aCookie1, nsICookie* aCookie2, 
 
 -(IBAction) removeCookiesAndBlockSites:(id)aSender
 {
-  if (mCachedCookies) {
-    // first fetch the list of sites
-    NSArray* selectedSites = [self selectedCookieSites];
-    int rowToSelect = -1;
-    
-    // remove the cookies
-    for (int row = 0; row < mCachedCookies->Count(); row++) {
-      nsCAutoString host, name, path;
-      // only search on the host
-      mCachedCookies->ObjectAt(row)->GetHost(host);
-      NSString* cookieHost = [NSString stringWith_nsACString:host];
-      if ([selectedSites containsObject:cookieHost])
-      {
-        if (rowToSelect == -1)
-          rowToSelect = row;
-
-        mCachedCookies->ObjectAt(row)->GetName(name);
-        mCachedCookies->ObjectAt(row)->GetPath(path);
-        mCookieManager->Remove(host, name, path, PR_FALSE);  // don't block permanently
-        mCachedCookies->RemoveObjectAt(row);
-        --row;    // to account for removal
-      }
-    }
-    
-    // and block the sites
-    CHPermissionManager* permManager = [CHPermissionManager permissionManager];
-    NSEnumerator* sitesEnum = [selectedSites objectEnumerator];
-    NSString* curSite;
-    while ((curSite = [sitesEnum nextObject]))
-      [permManager setPolicy:CHPermissionDeny
-                     forHost:curSite
-                        type:CHPermissionTypeCookie];
-
-    // and reload data
-    [mCookiesTable reloadData];
-
-    if (rowToSelect >=0 && rowToSelect < [mCookiesTable numberOfRows])
-      [mCookiesTable selectRow:rowToSelect byExtendingSelection:NO];
-    else
-      [mCookiesTable deselectAll:self];
+  // Block the sites.
+  CHPermissionManager* permManager = [CHPermissionManager permissionManager];
+  NSArray* selectedSites = [self selectedCookieSites];
+  NSEnumerator* sitesEnum = [selectedSites objectEnumerator];
+  NSString* curSite;
+  while ((curSite = [sitesEnum nextObject])) {
+    [permManager setPolicy:CHPermissionDeny
+                    forHost:curSite
+                      type:CHPermissionTypeCookie];
   }
+
+  // Then remove the cookies.
+  [self removeCookies:aSender];
 }
 
 -(IBAction) editCookiesDone:(id)aSender
@@ -471,8 +300,8 @@ PR_STATIC_CALLBACK(int) compareValues(nsICookie* aCookie1, nsICookie* aCookie2, 
   [mCookiesPanel orderOut:self];
   [NSApp endSheet:mCookiesPanel];
 
-  delete mCachedCookies;
-  mCachedCookies = nsnull;
+  [mCookies release];
+  mCookies = nil;
 }
 
 //
@@ -654,18 +483,16 @@ PR_STATIC_CALLBACK(int) compareValues(nsICookie* aCookie1, nsICookie* aCookie2, 
   if (aTableView == mPermissionsTable) {
     numRows = [mCachedPermissions count];
   } else if (aTableView == mCookiesTable) {
-    if (mCachedCookies)
-      numRows = mCachedCookies->Count();
+    numRows = [mCookies count];
   } else if (aTableView == mKeychainExclusionsTable) {
     numRows = [mKeychainExclusions count];
   }
 
-  return (int) numRows;
+  return numRows;
 }
 
 -(id) tableView:(NSTableView *)aTableView objectValueForTableColumn:(NSTableColumn *)aTableColumn row:(int)rowIndex
 {
-  id retVal = nil;
   if (aTableView == mPermissionsTable) {
     if ([[aTableColumn identifier] isEqualToString: @"host"]) {
       return [[mCachedPermissions objectAtIndex:rowIndex] host];
@@ -676,38 +503,27 @@ PR_STATIC_CALLBACK(int) compareValues(nsICookie* aCookie1, nsICookie* aCookie2, 
     }
   }
   else if (aTableView == mCookiesTable) {
-    if (mCachedCookies) {
-      nsCAutoString cookieVal;
-      if ([[aTableColumn identifier] isEqualToString: @"Website"]) {
-        mCachedCookies->ObjectAt(rowIndex)->GetHost(cookieVal);
-      } else if ([[aTableColumn identifier] isEqualToString: @"Name"]) {
-        mCachedCookies->ObjectAt(rowIndex)->GetName(cookieVal);
-      } else if ([[aTableColumn identifier] isEqualToString: @"Path"]) {
-        mCachedCookies->ObjectAt(rowIndex)->GetPath(cookieVal);
-      } else if ([[aTableColumn identifier] isEqualToString: @"Secure"]) {
-        PRBool secure = PR_FALSE;
-        mCachedCookies->ObjectAt(rowIndex)->GetIsSecure(&secure);
-        return [self localizedStringForKey:(secure ? @"yes": @"no")]; // special case return
-      } else if ([[aTableColumn identifier] isEqualToString: @"Expires"]) {
-        PRUint64 expires = 0;
-        mCachedCookies->ObjectAt(rowIndex)->GetExpires(&expires);
-        // If expires is 0, it's a session cookie.
-        // We use a custom formatter to display a localised string in this case.
-        NSDate *date = [NSDate dateWithTimeIntervalSince1970:(NSTimeInterval)expires];
-        return date;   // special case return
-      } else if ([[aTableColumn identifier] isEqualToString: @"Value"]) {
-        mCachedCookies->ObjectAt(rowIndex)->GetValue(cookieVal);
-      }
-      retVal = [NSString stringWithCString: cookieVal.get()];
+    if ([[aTableColumn identifier] isEqualToString: @"isSecure"]) {
+      BOOL secure = [[mCookies objectAtIndex:rowIndex] isSecure];
+      return [self localizedStringForKey:(secure ? @"yes": @"no")];
+    } else if ([[aTableColumn identifier] isEqualToString: @"expiresDate"]) {
+      NSHTTPCookie* cookie = [mCookies objectAtIndex:rowIndex];
+      BOOL isSessionCookie = [cookie isSessionOnly];
+      // If it's a session cookie, set the expiration date to the epoch,
+      // so the custom formatter can display a localized string.
+      return isSessionCookie ? [NSDate dateWithTimeIntervalSince1970:0]
+                             : [cookie expiresDate];
+    } else {
+      return [[mCookies objectAtIndex:rowIndex] valueForKey:[aTableColumn identifier]];
     }
   }
   else if (aTableView == mKeychainExclusionsTable) {
     if ([[aTableColumn identifier] isEqualToString:@"Website"]) {
-      retVal = [mKeychainExclusions objectAtIndex:rowIndex];
+      return [mKeychainExclusions objectAtIndex:rowIndex];
     }
   }
-  
-  return retVal;
+
+  return nil;
 }
 
 // currently, this only applies to the site allow/deny, since that's the only editable column
@@ -761,24 +577,30 @@ PR_STATIC_CALLBACK(int) compareValues(nsICookie* aCookie1, nsICookie* aCookie2, 
 
 -(void) sortCookiesByColumn:(NSTableColumn *)aTableColumn inAscendingOrder:(BOOL)ascending
 {
-  if(mCachedCookies) {
-    if ([[aTableColumn identifier] isEqualToString:@"Website"])
-      mCachedCookies->Sort(compareCookieHosts, (ascending) ? nsnull : (void *)kSortReverse);
-    else if ([[aTableColumn identifier] isEqualToString:@"Name"])
-      mCachedCookies->Sort(compareNames, (ascending) ? nsnull : (void *)kSortReverse);
-    else if ([[aTableColumn identifier] isEqualToString:@"Path"])
-      mCachedCookies->Sort(comparePaths, (ascending) ? nsnull : (void *)kSortReverse);
-    else if ([[aTableColumn identifier] isEqualToString:@"Secure"])
-      mCachedCookies->Sort(compareSecures, (ascending) ? nsnull : (void *)kSortReverse);
-    else if ([[aTableColumn identifier] isEqualToString:@"Expires"])
-      mCachedCookies->Sort(compareExpires, (ascending) ? nsnull : (void *)kSortReverse);
-    else if ([[aTableColumn identifier] isEqualToString:@"Value"])
-      mCachedCookies->Sort(compareValues, (ascending) ? nsnull : (void *)kSortReverse);
-
-    [mCookiesTable reloadData];
-    
-    [self updateSortIndicatorWithColumn:aTableColumn];
+  NSArray* sortDescriptors = nil;
+  if ([[aTableColumn identifier] isEqualToString:@"domain"]) {
+    NSSortDescriptor *sort = [[[NSSortDescriptor alloc] initWithKey:@"domain"
+                                                          ascending:ascending
+                                                           selector:@selector(reverseHostnameCompare:)] autorelease];
+    sortDescriptors = [NSArray arrayWithObject:sort];
   }
+  else if ([[aTableColumn identifier] isEqualToString:@"expiresDate"]) {
+    NSSortDescriptor *sessionSort = [[[NSSortDescriptor alloc] initWithKey:@"isSessionOnly"
+                                                                 ascending:ascending] autorelease];
+    NSSortDescriptor *expirySort = [[[NSSortDescriptor alloc] initWithKey:@"expiresDate"
+                                                                ascending:ascending] autorelease];
+    sortDescriptors = [NSArray arrayWithObjects:sessionSort, expirySort, nil];
+  }
+  else { // All the other column just use a default sort
+    NSSortDescriptor *sort = [[[NSSortDescriptor alloc] initWithKey:[aTableColumn identifier]
+                                                          ascending:ascending] autorelease];
+    sortDescriptors = [NSArray arrayWithObject:sort];
+  }
+  [mCookies sortUsingDescriptors:sortDescriptors];
+
+  [mCookiesTable reloadData];
+
+  [self updateSortIndicatorWithColumn:aTableColumn];
 }
 
 - (void)sortKeychainExclusionsByColumn:(NSTableColumn*)tableColumn
@@ -820,84 +642,49 @@ PR_STATIC_CALLBACK(int) compareValues(nsICookie* aCookie1, nsICookie* aCookie2, 
     mSortedAscending = !mSortedAscending;
   else
     mSortedAscending = YES;
-  
+
+  NSArray* dataSource = nil;
+  if (aTableView == mPermissionsTable)
+    dataSource = mCachedPermissions;
+  else if (aTableView == mCookiesTable)
+    dataSource = mCookies;
+  else if (aTableView == mKeychainExclusionsTable)
+    dataSource = mKeychainExclusions;
+
+  if (!dataSource)
+    return;
+
+  // Save the currently selected rows, if any.
+  NSMutableArray* selectedItems = [NSMutableArray array];
+  NSIndexSet* selectedIndexes = [aTableView selectedRowIndexes];
+  for (unsigned int i = [selectedIndexes lastIndex];
+       i != NSNotFound;
+       i = [selectedIndexes indexLessThanIndex:i])
+  {
+    [selectedItems addObject:[dataSource objectAtIndex:i]];
+  }
+
+  // Sort the table data.
   if (aTableView == mPermissionsTable) {
-    if (mCachedPermissions) {
-      // save the currently selected rows, if any.
-      NSMutableArray* selectedItems = [NSMutableArray array];
-      NSIndexSet* selectedIndexes = [mPermissionsTable selectedRowIndexes];
-      for (unsigned int i = [selectedIndexes lastIndex];
-           i != NSNotFound;
-           i = [selectedIndexes indexLessThanIndex:i])
-      {
-        [selectedItems addObject:[mCachedPermissions objectAtIndex:i]];
-      }
-
-      // sort the table data
-      [self sortPermissionsByKey:[aTableColumn identifier] inAscendingOrder:mSortedAscending];
-
-      // if any rows were selected before, find them again
-      [mPermissionsTable deselectAll:self];
-      int selectedItemCount = [selectedItems count];
-      for (int i = 0; i < selectedItemCount; ++i) {
-        int newRowIndex = [mCachedPermissions indexOfObject:[selectedItems objectAtIndex:i]];
-        if (newRowIndex != NSNotFound) {
-          // scroll to the first item (arbitrary, but at least one should show)
-          if (i == 0)
-            [mPermissionsTable scrollRowToVisible:newRowIndex];
-          [mPermissionsTable selectRow:newRowIndex byExtendingSelection:YES];
-        }
-      }
-    }
+    [self sortPermissionsByKey:[aTableColumn identifier]
+              inAscendingOrder:mSortedAscending];
   } else if (aTableView == mCookiesTable) {
-    if (mCachedCookies) {
-      // save the currently selected rows, if any.
-      nsCOMArray<nsICookie> selectedItems;
-      NSEnumerator *e = [mCookiesTable selectedRowEnumerator];
-      NSNumber *index;
-      while ((index = [e nextObject])) {
-        int row = [index intValue];
-        selectedItems.AppendObject(mCachedCookies->ObjectAt(row));
-      }
-      // sort the table data
-      [self sortCookiesByColumn:aTableColumn inAscendingOrder:mSortedAscending];
-      // if any rows were selected before, find them again
-      [mCookiesTable deselectAll:self];
-      for (int i = 0; i < selectedItems.Count(); ++i) {
-        int newRowIndex = mCachedCookies->IndexOf(selectedItems.ObjectAt(i));
-        if (newRowIndex >= 0) {
-          // scroll to the first item (arbitrary, but at least one should show)
-          if (i == 0)
-            [mCookiesTable scrollRowToVisible:newRowIndex];
-          [mCookiesTable selectRow:newRowIndex byExtendingSelection:YES];
-        }
-      }
-    }
+    [self sortCookiesByColumn:aTableColumn
+             inAscendingOrder:mSortedAscending];
   } else if (aTableView == mKeychainExclusionsTable) {
-    // Save the currently selected rows, if any.
-    NSMutableArray* selectedItems = [NSMutableArray arrayWithCapacity:[mKeychainExclusionsTable numberOfSelectedRows]];
-    NSIndexSet* selectedIndexes = [mKeychainExclusionsTable selectedRowIndexes];
-    for (unsigned int index = [selectedIndexes lastIndex];
-         index != NSNotFound;
-         index = [selectedIndexes indexLessThanIndex:index]) {
-      [selectedItems addObject:[mKeychainExclusions objectAtIndex:index]];
-    }
-
     [self sortKeychainExclusionsByColumn:aTableColumn
                         inAscendingOrder:mSortedAscending];
+  }
 
-    // If any rows were selected before, find them again.
-    [mKeychainExclusionsTable deselectAll:self];
-    for (unsigned int i = 0; i < [selectedItems count]; ++i) {
-      int newRowIndex = [mKeychainExclusions indexOfObject:[selectedItems objectAtIndex:i]];
-      if (newRowIndex != NSNotFound) {
-        // scroll to the first item (arbitrary, but at least one should show)
-        if (i == 0) {
-          [mKeychainExclusionsTable scrollRowToVisible:newRowIndex];
-        }
-        [mKeychainExclusionsTable selectRow:newRowIndex
-                       byExtendingSelection:YES];
-      }
+  // If any rows were selected before, find them again.
+  [aTableView deselectAll:self];
+  for (unsigned int i = 0; i < [selectedItems count]; ++i) {
+    int newRowIndex = [dataSource indexOfObject:[selectedItems objectAtIndex:i]];
+    if (newRowIndex != NSNotFound) {
+      // scroll to the first item (arbitrary, but at least one should show)
+      if (i == 0)
+        [aTableView scrollRowToVisible:newRowIndex];
+      [aTableView selectRow:newRowIndex byExtendingSelection:YES];
     }
   }
 }
@@ -925,10 +712,7 @@ PR_STATIC_CALLBACK(int) compareValues(nsICookie* aCookie1, nsICookie* aCookie2, 
 //
 -(IBAction) clickStorePasswords:(id)sender
 {
-  if (!mPrefService)
-    return;
-  mPrefService->SetBoolPref(gUseKeychainPref,
-                            ([mStorePasswords state] == NSOnState) ? PR_TRUE : PR_FALSE);
+  [self setPref:gUseKeychainPref toBoolean:([mStorePasswords state] == NSOnState)];
 }
 
 -(IBAction) launchKeychainAccess:(id)sender
@@ -969,7 +753,7 @@ PR_STATIC_CALLBACK(int) compareValues(nsICookie* aCookie1, nsICookie* aCookie2, 
 
 - (IBAction)cookieFilterChanged:(id)sender
 {
-  if (!mCachedCookies || !mCookieManager)
+  if (!mCookies)
     return;
 
   NSString* filterString = [sender stringValue];
@@ -1026,25 +810,17 @@ PR_STATIC_CALLBACK(int) compareValues(nsICookie* aCookie1, nsICookie* aCookie2, 
 
 - (void) filterCookiesWithString: (NSString*) inFilterString
 {
-  // reinitialize the list of cookies in case user deleted a letter or replaced a letter
+  // Reinitialize the list in case the user deleted or replaced a letter.
   [self populateCookieCache];
-  
-  if ([inFilterString length]) {
-    NSMutableArray *indexToRemove = [NSMutableArray array];
-    for (int row = 0; row < mCachedCookies->Count(); row++) {
-      nsCAutoString host;
-      // only search on the host
-      mCachedCookies->ObjectAt(row)->GetHost(host);
-      if ([[NSString stringWithUTF8String:host.get()] rangeOfString:inFilterString].location == NSNotFound)
-        [indexToRemove addObject:[NSNumber numberWithInt:row]];
-    }
-    
-    //remove the items at the saved indexes
-    //
-    NSEnumerator *theEnum = [indexToRemove reverseObjectEnumerator];
-    NSNumber *currentItem;
-    while ((currentItem = [theEnum nextObject]))
-      mCachedCookies->RemoveObjectAt([currentItem intValue]);
+
+  if ([inFilterString length] == 0)
+    return;
+
+  for (int i = [mCookies count] - 1; i >= 0; --i) {
+    NSString* host = [[mCookies objectAtIndex:i] domain];
+    // Only search by host; other fields are probably not interesting to users
+    if ([host rangeOfString:inFilterString].location == NSNotFound)
+      [mCookies removeObjectAtIndex:i];
   }
 }
 
@@ -1062,22 +838,18 @@ PR_STATIC_CALLBACK(int) compareValues(nsICookie* aCookie1, nsICookie* aCookie2, 
 
 - (void)addPermissionForSelection:(int)inPermission
 {
-  if (mCachedCookies) {
-    CHPermissionManager* permManager = [CHPermissionManager permissionManager];
-    NSArray* rows = [[mCookiesTable selectedRowEnumerator] allObjects];
-    NSEnumerator* e = [rows reverseObjectEnumerator];
-    NSNumber* index;
-    while ((index = [e nextObject]))
-    {
-      int row = [index intValue];
-
-      nsCAutoString host;
-      mCachedCookies->ObjectAt(row)->GetHost(host);
-      [permManager setPolicy:inPermission
-                     forHost:[NSString stringWith_nsACString:host]
-                        type:CHPermissionTypeCookie];
-
-    }
+  CHPermissionManager* permManager = [CHPermissionManager permissionManager];
+  NSIndexSet* selectedIndexes = [mCookiesTable selectedRowIndexes];
+  for (unsigned int index = [selectedIndexes lastIndex];
+       index != NSNotFound;
+       index = [selectedIndexes indexLessThanIndex:index])
+  {
+    NSString* host = [[mCookies objectAtIndex:index] domain];
+    if ([host hasPrefix:@"."] && [host length] > 1)
+      host = [host substringFromIndex:1];
+    [permManager setPolicy:inPermission
+                   forHost:host
+                      type:CHPermissionTypeCookie];
   }
 }
 
@@ -1125,17 +897,12 @@ PR_STATIC_CALLBACK(int) compareValues(nsICookie* aCookie1, nsICookie* aCookie2, 
 {
   // the set does the uniquifying for us
   NSMutableSet* selectedHostsSet = [[[NSMutableSet alloc] init] autorelease];
-  NSEnumerator* e = [mCookiesTable selectedRowEnumerator];
-  NSNumber* index;
-  while ((index = [e nextObject]))
+  NSIndexSet* selectedIndexes = [mCookiesTable selectedRowIndexes];
+  for (unsigned int index = [selectedIndexes lastIndex];
+       index != NSNotFound;
+       index = [selectedIndexes indexLessThanIndex:index])
   {
-    int row = [index intValue];
-
-    nsCAutoString host;
-    mCachedCookies->ObjectAt(row)->GetHost(host);
-
-    NSString* hostString = [NSString stringWith_nsACString:host];
-    [selectedHostsSet addObject:hostString];
+    [selectedHostsSet addObject:[[mCookies objectAtIndex:index] domain]];
   }
   return [selectedHostsSet allObjects];
 }

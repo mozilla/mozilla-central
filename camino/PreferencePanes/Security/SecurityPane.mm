@@ -37,9 +37,6 @@
  
 #import "SecurityPane.h"
 
-#include "nsServiceManagerUtils.h"
-#include "nsIPref.h"
-
 // prefs for showing security dialogs
 #define LEAVE_SITE_PREF      "security.warn_leaving_secure"
 #define MIXEDCONTENT_PREF    "security.warn_viewing_mixed"
