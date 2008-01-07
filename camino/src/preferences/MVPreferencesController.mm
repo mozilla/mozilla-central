@@ -205,6 +205,9 @@ static NSString* const CacheInfoPaneSeenKey   = @"MVPreferencePaneSeen";    // N
                               objectForKey:kLastUsedPaneKey]];
   }
   else if ([mWindow windowNumber] <= 0) {
+    [[self currentPane] willSelect];
+    [[self currentPane] didSelect];
+    
     // If the window is reopening, set the first responder to what the pane's
     // first responder would be had it been selected anew.
     [self makeFirstResponderValid];
@@ -307,8 +310,6 @@ static NSString* const CacheInfoPaneSeenKey   = @"MVPreferencePaneSeen";    // N
 
 - (void) windowWillClose:(NSNotification *) notification
 {
-  // we want to behave as if we're unselecting, but we're not really unselecting. We are leaving
-  // the current pref pane selected per Apple's recommendation.
   [[self currentPane] willUnselect];
   [[self currentPane] didUnselect];
 
