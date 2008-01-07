@@ -4754,12 +4754,22 @@ nsSchemaValidator::ValidateSchemaAttribute(nsIDOMNode* aNode,
   PRBool hasAttr = PR_FALSE;
   PRBool isValid = PR_FALSE;
 
-  rv = elm->HasAttribute(aAttrName, &hasAttr);
-  NS_ENSURE_SUCCESS(rv, rv);
-
-  if (hasAttr) {
-    rv = elm->GetAttribute(aAttrName, attrValue);
+  if (!qualifiedNamespace.IsEmpty()) {
+    rv = elm->HasAttributeNS(qualifiedNamespace, aAttrName, &hasAttr);
     NS_ENSURE_SUCCESS(rv, rv);
+
+    if (hasAttr) {
+      rv = elm->GetAttributeNS(qualifiedNamespace, aAttrName, attrValue);
+      NS_ENSURE_SUCCESS(rv, rv);
+    }
+  } else {
+    rv = elm->HasAttribute(aAttrName, &hasAttr);
+    NS_ENSURE_SUCCESS(rv, rv);
+
+    if (hasAttr) {
+      rv = elm->GetAttribute(aAttrName, attrValue);
+      NS_ENSURE_SUCCESS(rv, rv);
+    }
   }
 
   if (!hasAttr) {
