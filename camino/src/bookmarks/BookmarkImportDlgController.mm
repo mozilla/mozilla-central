@@ -43,6 +43,7 @@
 #import "BrowserWindowController.h"
 #import "BookmarkViewController.h"
 #import "NSFileManager+Utils.h"
+#import "NSMenu+Utils.h"
 
 @interface BookmarkImportDlgController (Private)
 
@@ -195,6 +196,7 @@
   [openPanel setAllowsMultipleSelection:NO];
   [openPanel setPrompt:@"Import"];
   NSArray* array = [NSArray arrayWithObjects:@"htm", @"html", @"plist", nil];
+  [NSMenu cancelAllTracking];
   int result = [openPanel runModalForDirectory:nil
                                           file:nil
                                          types:array];

@@ -43,6 +43,7 @@
 
 #import "NSString+Utils.h"
 #import "NSView+Utils.h"
+#import "nsAlertController.h"
 
 #import "ProgressDlgController.h"
 
@@ -756,7 +757,7 @@ static id gSharedProgressController = nil;
         modalDelegate:self
        didEndSelector:@selector(sheetDidEnd:returnCode:contextInfo:)
           contextInfo:NULL];
-    int sheetResult = [NSApp runModalForWindow: panel];
+    int sheetResult = [nsAlertController safeRunModalForWindow:panel];
     [NSApp endSheet: panel];
     [panel orderOut: self];
     NSReleaseAlertPanel(panel);

@@ -47,22 +47,33 @@
 - (IBAction)hitButton3:(id)sender;
 
 // 
-// This is a version of [NSApp runModalForWindow:(relativeToWindow:)] that does three
-// things:
+// This is a version of [NSApp runModalForWindow:(relativeToWindow:)] that does
+// some extra things:
 // 
 //  1. It verifies that inParentWindow is a valid window to show a sheet on
 //     (i.e. that it's not nil, is visible, and doesn't already have a sheet).
+//     If inParentWindow can't take a sheet, a modal dialog is displayed.
 //
-//  2. It doesn't show inWindow as a sheet if there is already a modal (non-sheet)
-//     dialog on the screen, because that fubars AppKit.
+//  2. It doesn't show inWindow as a sheet if there is already a modal
+//     (non-sheet) dialog on the screen, because that fubars AppKit.  Instead,
+//     another modal dialog is displayed.
 // 
-//  3. It does some JS context stack magic that pushes a "native code" security principle
-//     ("trust label") so that Gecko knows we're running native code, and not calling
-//     from JS. This is important, because we can remain on the stack while PLEvents
-//     are being handled in the sheet's event loop, and those PLEvents can cause
-//     code to run that is sensitive to the security context. See bug 179307 for details.
+//  3. It does some JS context stack magic that pushes a "native code" security
+//     principal ("trust label") so that Gecko knows we're running native code,
+//     and not calling from JS. This is important, because we can remain on the
+//     stack while PLEvents are being handled in the sheet's event loop, and
+//     those PLEvents can cause code to run that is sensitive to the security
+//     context. See bug 179307 for details.
+//
+//  4. It closes any pull-down, pop-up, and contextual menus that are open
+//     prior to displaying the sheet or dialog.  Open menus are displayed
+//     on top of sheets or dialogs, but stop accepting input once a sheet or
+//     dialog is displayed, leading to a situation where the UI can get stuck.
 // 
-+ (int)safeRunModalForWindow:(NSWindow*)inWindow relativeToWindow:(NSWindow*)inParentWindow;
++ (int)safeRunModalForWindow:(NSWindow*)inWindow
+            relativeToWindow:(NSWindow*)inParentWindow;
+
++ (int)safeRunModalForWindow:(NSWindow*)window;
 
 // 
 // Nota Bene: all of these methods can throw Objective-C exceptions

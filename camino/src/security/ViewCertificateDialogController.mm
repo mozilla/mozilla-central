@@ -38,19 +38,20 @@
 
 #import "NSDate+Utils.h"
 
-#import "nsCOMPtr.h"
-#import "nsString.h"
-#import "nsIMutableArray.h"
-
-#import "nsIX509Cert.h"
-#import "nsIX509CertValidity.h"
-#import "nsIX509CertDB.h"
-
-#import "nsServiceManagerUtils.h"
-
 #import "CertificateItem.h"
 #import "CertificateView.h"
 #import "ViewCertificateDialogController.h"
+#import "nsAlertController.h"
+
+#include "nsCOMPtr.h"
+#include "nsString.h"
+#include "nsIMutableArray.h"
+
+#include "nsIX509Cert.h"
+#include "nsIX509CertValidity.h"
+#include "nsIX509CertDB.h"
+
+#include "nsServiceManagerUtils.h"
 
 
 @interface ViewCertificateDialogController(Private)
@@ -128,7 +129,7 @@
 - (int)runModally
 {
   mRunningModally = YES;
-  return [NSApp runModalForWindow:[self window]];
+  return [nsAlertController safeRunModalForWindow:[self window]];
 }
 
 - (void)allowTrustSaving:(BOOL)inAllow

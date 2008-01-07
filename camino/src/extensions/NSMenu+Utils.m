@@ -85,6 +85,76 @@ static OSStatus MenuEventHandler(EventHandlerCallRef inHandlerCallRef, EventRef 
 
 #pragma mark -
 
+@interface CarbonMenuList : NSObject
+{
+  NSMutableArray* mList;
+}
+
++ (CarbonMenuList*)instance;
+- (id)init;
+- (void)dealloc;
+- (NSArray*)list;
+- (void)setupNotifications;
+- (void)menuOpen:(NSNotification*)notification;
+- (void)menuClose:(NSNotification*)notification;
+@end
+
+@implementation CarbonMenuList
+
++ (CarbonMenuList*)instance {
+  static CarbonMenuList* sInstance;
+  if (!sInstance) {
+    sInstance = [[self alloc] init];
+  }
+  return sInstance;
+}
+
+- (id)init {
+  if ((self = [super init])) {
+    // 16 slots is more than enough, as it's really only possible to wind up
+    // with as many open menus as the maximum submenu depth.  Even if the
+    // capacity here lowballs it, the array will expand dynamically.
+    mList = [[NSMutableArray alloc] initWithCapacity:16];
+  }
+  return self;
+}
+
+- (void)dealloc {
+  [[NSNotificationCenter defaultCenter] removeObserver:self];
+  [mList release];
+  [super dealloc];
+}
+
+- (NSArray*)list {
+  return mList;
+}
+
+- (void)setupNotifications {
+  NSNotificationCenter* notificationCenter = [NSNotificationCenter defaultCenter];
+  [notificationCenter addObserver:self
+                         selector:@selector(menuOpen:)
+                             name:NSMenuWillDisplayNotification
+                           object:nil];
+  [notificationCenter addObserver:self
+                         selector:@selector(menuClose:)
+                             name:NSMenuClosedNotification
+                           object:nil];
+}
+
+- (void)menuOpen:(NSNotification*)notification {
+  NSValue* value = [notification object];
+  if (![mList containsObject:value]) {
+    [mList addObject:value];
+  }
+}
+
+- (void)menuClose:(NSNotification*)notification {
+  [mList removeObject:[notification object]];
+}
+
+@end
+
+
 @implementation NSMenu(ChimeraMenuUtils)
 
 + (void)setupMenuWillDisplayNotifications
@@ -102,6 +172,35 @@ static OSStatus MenuEventHandler(EventHandlerCallRef inHandlerCallRef, EventRef 
                                    GetEventTypeCount(menuEventList),
                                    menuEventList, (void*)self, NULL);
     sInstalled = YES;
+  }
+
+  [[CarbonMenuList instance] setupNotifications];
+}
+
++ (void)cancelAllTracking {
+  // This method uses Carbon functions to do its dirty work, which seems to
+  // work.  It's no hackier than the other Carbon MenuRef action that the
+  // rest of this class uses.  There isn't really a good Cocoa substitute for
+  // CancelMenuTracking.  In Leopard, there's -[NSMenu cancelMenuTracking],
+  // but that doesn't seem to work to stop menu tracking when a sheet is
+  // about to be displayed.  Perhaps that's because it tries to fade the
+  // menu out, as CancelMenuTracking would do with |false| as its second
+  // argument.  (That doesn't work either.)
+
+  // Stop tracking the menu bar.  Even though the CarbonMenuList contains
+  // the menu bar's submenus, it doesn't contain the menu bar itself, and
+  // CancelMenuTracking will only stop tracking if called with the same
+  // MenuRef used for MenuSelect.  For menu bar pull-down menu tracking,
+  // that's the menu bar.
+  MenuRef rootMenu = AcquireRootMenu();
+  CancelMenuTracking(rootMenu, true, 0);
+  DisposeMenu(rootMenu);
+
+  // Stop tracking other types of menus, like pop-ups and contextual menus.
+  NSArray* list = [[CarbonMenuList instance] list];
+  for (unsigned int index = 0; index < [list count]; ++index) {
+    MenuRef menuRef = [(NSValue*)[list objectAtIndex:index] pointerValue];
+    CancelMenuTracking(menuRef, true, 0);
   }
 }
 

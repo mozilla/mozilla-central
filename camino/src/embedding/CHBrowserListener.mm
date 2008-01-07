@@ -370,7 +370,7 @@ CHBrowserListener::ShowAsModal()
   }
 
   mIsModal = PR_TRUE;
-  //int result = [NSApp runModalForWindow:window];
+  //int result = [nsAlertController safeRunModalForWindow:window];
   mIsModal = PR_FALSE;
 
   return NS_OK;

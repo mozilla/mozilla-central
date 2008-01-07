@@ -48,6 +48,7 @@
 #import "CHBrowserService.h"
 #import "PreferenceManager.h"
 #import "KeyEquivView.h"
+#import "nsAlertController.h"
 
 #include "nsIPref.h"
 #include "nsIObserverService.h"
@@ -571,7 +572,8 @@ int KeychainPrefChangedCallback(const char* inPref, void* unused)
 //
 - (BOOL)confirmFillPassword:(NSWindow*)parent
 {
-  int result = [NSApp runModalForWindow:mConfirmFillPasswordPanel relativeToWindow:parent];
+  int result = [nsAlertController safeRunModalForWindow:mConfirmFillPasswordPanel
+                                       relativeToWindow:parent];
   [mConfirmFillPasswordPanel close];
   // Default is not to fill
   return (result != NSAlertDefaultReturn);

@@ -37,6 +37,7 @@
 
 #include "nsServiceManagerUtils.h"
 #include "GeckoUtils.h"
+#include "NSMenu+Utils.h"
 
 #import "nsAlertController.h"
 #import "CHBrowserService.h"
@@ -118,37 +119,53 @@ const int kLabelCheckboxAdjustment = 2; // # pixels the label must be pushed dow
 
 @implementation nsAlertController
 
-+ (int)safeRunModalForWindow:(NSWindow*)inWindow relativeToWindow:(NSWindow*)inParentWindow
-{
-  if (inParentWindow)
-  {
-    // If there is already a modal window up, convert a sheet into a modal window,
-    // because AppKit will hang if you try to do this (possibly because we're using
-    // the deprecated and sucky runModalForWindow:relativeToWindow:).
-    // Also, if the parent window already has an attached sheet, or is not visible,
-    // also null out the parent and show this as a modal dialog.
-    if ([NSApp modalWindow] || [inParentWindow attachedSheet] || ![inParentWindow isVisible])
-      inParentWindow = nil;
++ (int)safeRunModalForWindow:(NSWindow*)window
+            relativeToWindow:(NSWindow*)parentWindow {
+  if (parentWindow) {
+    // If there is already a modal window up, convert a sheet into a modal
+    // window, otherwise AppKit will hang if a sheet is shown, possibly because
+    // we're using the deprecated and sucky runModalForWindow:relativeToWindow:.
+    // Also, if the parent window already has an attached sheet, or is not
+    // visible, also null out the parent and show this as a modal dialog.
+    if ([NSApp modalWindow] || [parentWindow attachedSheet] ||
+        ![parentWindow isVisible])
+      parentWindow = nil;
   }
 
   int result = NSAlertErrorReturn;
   nsresult rv = NS_OK;
   StNullJSContextScope hack(&rv);
-  if (NS_SUCCEEDED(rv))
-  {
+  if (NS_SUCCEEDED(rv)) {
+    // If a menu is open (pull-down, pop-up, context, whatever) when a
+    // modal dialog or sheet is displayed, the menu will hang and be unusable
+    // (not responding to any input) but visible.  The dialog will be usable
+    // but possibly obscured by the menu, and will be unable to receive mouse
+    // events in the obscured area.  If this happens, the user could wind up
+    // stuck.  To account for this, close any open menus before showing a
+    // modal dialog.
+    [NSMenu cancelAllTracking];
+
     // be paranoid; we don't want to throw Obj-C exceptions over C++ code
     @try {
-      if (inParentWindow)
-        result = [NSApp runModalForWindow:inWindow relativeToWindow:inParentWindow];
-      else
-        result = [NSApp runModalForWindow:inWindow];
+      if (parentWindow) {
+        result = [NSApp runModalForWindow:window
+                         relativeToWindow:parentWindow];
+      }
+      else {
+        result = [NSApp runModalForWindow:window];
+      }
     }
     @catch (id exception) {
-      NSLog(@"Exception caught in safeRunModalForWindow:relativeToWindow: %@", exception);
+      NSLog(@"Exception caught in safeRunModalForWindow:relativeToWindow: %@",
+            exception);
     }
   }
-    
+
   return result;
+}
+
++ (int)safeRunModalForWindow:(NSWindow*)window {
+  return [nsAlertController safeRunModalForWindow:window relativeToWindow:nil];
 }
 
 - (IBAction)hitButton1:(id)sender
@@ -500,12 +517,14 @@ const int kLabelCheckboxAdjustment = 2; // # pixels the label must be pushed dow
 
 - (int)runModalWindow:(NSWindow*)inDialog relativeToWindow:(NSWindow*)inParentWindow
 {
-  int result = [nsAlertController safeRunModalForWindow:inDialog relativeToWindow:inParentWindow];
-  
+  int result = [nsAlertController safeRunModalForWindow:inDialog
+                                       relativeToWindow:inParentWindow];
+
   // Convert any error into an exception
   if (result == NSAlertErrorReturn)
-      [NSException raise:NSInternalInconsistencyException format:@"-runModalForWindow returned error"];
-  
+      [NSException raise:NSInternalInconsistencyException
+                  format:@"-runModalForWindow returned error"];
+
   return result;
 }
 

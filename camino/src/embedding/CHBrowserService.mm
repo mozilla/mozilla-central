@@ -37,6 +37,7 @@
  * ***** END LICENSE BLOCK ***** */
 
 #import "NSString+Gecko.h"
+#import "NSMenu+Utils.h"
 
 #import "CHBrowserService.h"
 #import "CHBrowserView.h"
@@ -339,6 +340,7 @@ CHBrowserService::PromptForSaveToFile(nsIHelperAppLauncher* aLauncher, nsISuppor
   // Note: although the docs for NSSavePanel specifically state "path and filename can be empty strings, but
   // cannot be nil" if you want the last used directory to persist between calls to display the save panel
   // use nil for the path given to runModalForDirectory
+  [NSMenu cancelAllTracking];
   int runResult = [thePanel runModalForDirectory: nil file:filename];
   if (runResult == NSOKButton) {
     // NSLog(@"Saving to %@", [thePanel filename]);
