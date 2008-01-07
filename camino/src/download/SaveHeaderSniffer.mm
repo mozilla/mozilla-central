@@ -344,7 +344,6 @@ nsHeaderSniffer::PerformSave(nsIURI* inOriginalURI)
           file = [file stringByDeletingPathExtension];
           file = [file stringByAppendingPathExtension:@"txt"];
         }
-        NSLog([file pathExtension]);
         [savePanel setRequiredFileType:[file pathExtension]];
         [savePanel setCanSelectHiddenExtension: YES];
     }
