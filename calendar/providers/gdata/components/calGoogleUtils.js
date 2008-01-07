@@ -38,11 +38,6 @@
 // This global keeps the session Objects for the usernames
 var g_sessionMap;
 
-function getCalendarManager() {
-    return Components.classes["@mozilla.org/calendar/manager;1"]
-                     .getService(Components.interfaces.calICalendarManager);
-}
-
 /**
  * setCalendarPref
  * Helper to set an independant Calendar Preference, since I cannot use the
@@ -202,39 +197,61 @@ function getCalendarCredentials(aCalendarName,
                                               aSavePassword);
 }
 
-/**
- * getMozillaTimezone
- * Return mozilla's representation of a timezone
- *
- * @param aICALTimezone The ending string to match against (i.e Europe/Berlin)
- * @return              The same string including /mozilla.org/<date>/
- */
-function getMozillaTimezone(aICALTimezone) {
-    ASSERT(aICALTimezone, "No timezone passed", true);
-    if (aICALTimezone == "floating") {
-        return floating();
-    } else if (aICALTimezone == "UTC") {
-        return UTC();
-    }
+var gdataTimezoneProvider = {
+    QueryInterface: function gTP_QueryInterface(aIID) {
+        return doQueryInterface(this,
+                                gdataTimezoneProvider.prototype,
+                                aIID,
+                                [Components.interfaces.nsISupports,
+                                 Components.interfaces.calITimezoneProvider]);
+    },
 
-    // TODO A patch to Bug 363191 should make this more efficient.
-    // For now we need to go through all timezones and see which timezone
-    // ends with aICALTimezone.
+    get timezoneIds gTP_getTimezoneIds() {
+        // I hope we can lazily get away with not implementing this, otherwise
+        // we would have to strip the tzPrefix from each timezone the timezone
+        // service provides.
+        throw Components.results.NS_ERROR_NOT_IMPLEMENTED;
+    },
 
-    var tzService = getTimezoneService();
-    // Enumerate timezones, set them, check their offset
-    var enumerator = tzService.timezoneIds;
-    var id = null;
-    while (enumerator.hasMore()) {
-        id = enumerator.getNext();
-
-        if (id.substr(-aICALTimezone.length) == aICALTimezone) {
-            return tzService.getTimezone(id);
+    /**
+     * getTimzone
+     * Returns a calITimezone from the timezone service that corresponds to the
+     * given short timezone passed.
+     */
+    getTimezone: function gTP_getTimezone(aTzid) {
+        ASSERT(aTzid, "No timezone passed", true);
+        if (aTzid== "floating") {
+            return floating();
+        } else if (aTzid == "UTC") {
+            return UTC();
         }
-    }
 
-    return floating();
-}
+        var tzService = getTimezoneService();
+        var tz = tzService.getTimezone(tzService.tzidPrefix + aTzid);
+        return tz || floating();
+    },
+
+    /**
+     * getShortTimezone
+     * Returns the last two components of the passed timezone's tzid. If the
+     * timezone is UTC or floating, Europe/London will be returned
+     *
+     * @param aLongTZ   A Vendor specific timezone
+     * @return          The short representation of the timezone
+     */
+    getShortTimezone: function gTP_getShortTimezone(aLongTZ) {
+        if (!aLongTZ || aLongTZ.isUTC || aLongTZ.isFloating) {
+            // We require a shortname that works with google's ICS. UTC and floating
+            // don't work, so we will just take London.
+            return "Europe/London";
+        }
+
+        // Return the last two components from the TZID
+        var re = new RegExp("([^/]+/[^/]+)$");
+        var matches = re.exec(aLongTZ.tzid);
+        return (matches ? matches[1] : null);
+    }
+};
 
 /**
  * fromRFC3339
@@ -258,7 +275,6 @@ function fromRFC3339(aStr, aTimezone) {
         "(([Zz]|([+-])([0-9]{2}):([0-9]{2})))?");
 
     var matches = re.exec(aStr);
-    var moztz = getMozillaTimezone(aTimezone);
 
     if (!matches) {
         return null;
@@ -288,14 +304,14 @@ function fromRFC3339(aStr, aTimezone) {
         // know what timezone we are in, so lets assume we are in the
         // timezone of our local calendar, or whatever was passed.
 
-        dateTime.timezone = moztz;
+        dateTime.timezone = aTimezone;
 
     } else {
         var offset_in_s = (matches[11] == "-" ? -1 : 1) *
             ( (matches[12] * 3600) + (matches[13] * 60) );
 
         // try local timezone first
-        dateTime.timezone = moztz;
+        dateTime.timezone = aTimezone;
 
         // If offset does not match, go through timezones. This will
         // give you the first tz in the alphabet and kill daylight
@@ -721,7 +737,40 @@ function ItemToXMLEntry(aItem, aAuthorEmail, aAuthorName) {
         }
     }
 
-    // TODO gd:recurrenceException: Enhancement tracked in bug 362650
+    // gd:recurrence
+    if (aItem.recurrenceInfo) {
+        try {
+            const kNEWLINE = "\r\n";
+            var icalString;
+            var recurrenceItems = aItem.recurrenceInfo.getRecurrenceItems({});
+
+            // Dates of the master event
+            var startTZID = gdataTimezoneProvider.getShortTimezone(aItem.startDate.timezone);
+            var endTZID = gdataTimezoneProvider.getShortTimezone(aItem.endDate.timezone);
+            icalString = "DTSTART;TZID=" + startTZID
+                         + ":" + aItem.startDate.icalString + kNEWLINE
+                         + "DTEND;TZID=" + endTZID
+                         + ":"  + aItem.endDate.icalString + kNEWLINE;
+
+            // Add all recurrence items to the ical string
+            for each (var ritem in recurrenceItems) {
+                icalString += ritem.icalProperty.icalString + kNEWLINE;
+            }
+
+            // Put the ical string in a <gd:recurrence> tag
+            entry.gd::recurrence = icalString + kNEWLINE;
+        } catch (e) {
+            LOG("Error: " + e);
+        }
+    }
+
+    // gd:originalEvent
+    if (aItem.recurrenceId) {
+        entry.gd::originalEvent.@id = aItem.parentItem.id;
+        entry.gd::originalEvent.gd::when.@startTime =
+            toRFC3339(aItem.recurrenceId.getInTimezone(UTC()));
+    }
+
     // TODO gd:comments: Enhancement tracked in bug 362653
 
     // XXX Google currently has no priority support. See
@@ -752,15 +801,18 @@ function relevantFieldsMatch(a, b) {
     function compareNotNull(prop) {
         var ap = a[prop];
         var bp = b[prop];
-        return (ap && !bp || !ap && bp || ap && bp && ap.compare(bp));
+        return (ap && !bp || !ap && bp ||
+                (typeof(ap) == 'object' && ap && bp &&
+                 ap.compare && ap.compare(bp)));
     }
 
     // Object flat values
     if (compareNotNull("alarmOffset") ||
         compareNotNull("alarmLastAck") ||
+        compareNotNull("recurrenceInfo") ||
         /* Compare startDate and endDate */
-        (a.startDate && a.startDate.compare(b.startDate)) ||
-        (a.endDate && a.endDate.compare(b.endDate)) ||
+        compareNotNull("startDate") ||
+        compareNotNull("endDate") ||
         (a.startDate.isDate != b.startDate.isDate) ||
         (a.endDate.isDate != b.endDate.isDate)) {
         return false;
@@ -802,6 +854,27 @@ function relevantFieldsMatch(a, b) {
         }
     }
 
+    // Recurrence Items
+    if (a.recurrenceInfo) {
+        var ra = a.recurrenceInfo.getRecurrenceItems({});
+        var rb = b.recurrenceInfo.getRecurrenceItems({});
+
+        // If we have more or less, it definitly changed.
+        if (ra.length != rb.length) {
+            return false;
+        }
+
+        // I assume that if the recurrence pattern has not changed, the order
+        // of the recurrence items should not change. Anything more will be
+        // very expensive.
+        for (var i=0; i < ra.length; i++) {
+            if (ra[i].icalProperty.icalString !=
+                rb[i].icalProperty.icalString) {
+                return false;
+            }
+        }
+    }
+
     return true;
 }
 
@@ -827,12 +900,14 @@ function getItemEditURI(aItem) {
  * XMLEntryToItem
  * Converts a string of xml data to a calIEvent.
  *
- * @param aXMLEntry     The xml data of the item
- * @param aTimezone     The timezone the event is most likely in
- * @param aCalendar     The calendar this item will belong to.
- * @return              The calIEvent with the item data.
+ * @param aXMLEntry         The xml data of the item
+ * @param aTimezone         The timezone the event is most likely in
+ * @param aCalendar         The calendar this item will belong to.
+ * @param aReferenceItem    The item to apply the information from the xml to.
+ *                              If null, a new item will be used.
+ * @return                  The calIEvent with the item data.
  */
-function XMLEntryToItem(aXMLEntry, aTimezone, aCalendar) {
+function XMLEntryToItem(aXMLEntry, aTimezone, aCalendar, aReferenceItem) {
 
     if (aXMLEntry == null) {
         throw new Components.Exception("", Components.results.NS_ERROR_DOM_SYNTAX_ERR);
@@ -843,8 +918,7 @@ function XMLEntryToItem(aXMLEntry, aTimezone, aCalendar) {
     var atom = new Namespace("", "http://www.w3.org/2005/Atom");
     default xml namespace = atom;
 
-    var item = Components.classes["@mozilla.org/calendar/event;1"].
-               createInstance(Components.interfaces.calIEvent);
+    var item = (aReferenceItem ? aReferenceItem.clone() : createEvent());
 
     try {
         // id
@@ -883,35 +957,21 @@ function XMLEntryToItem(aXMLEntry, aTimezone, aCalendar) {
         }
 
         // gd:when
-        for each (var when in aXMLEntry.gd::when) {
-            var startDate = fromRFC3339(when.@startTime, aTimezone);
-            var endDate = fromRFC3339(when.@endTime, aTimezone);
+        var recurrenceInfo = aXMLEntry.gd::recurrence.toString();
+        if (recurrenceInfo.length == 0) {
+            // If no recurrence information is given, then there will only be
+            // one gd:when tag. Otherwise, we will be parsing the startDate from
+            // the recurrence information.
+            var when = aXMLEntry.gd::when;
+            item.startDate = fromRFC3339(when.@startTime, aTimezone);
+            item.endDate = fromRFC3339(when.@endTime, aTimezone);
 
-            if (startDate && endDate) {
-                if ((!item.startDate && startDate) ||
-                    (item.startDate &&
-                     item.startDate.compare(startDate) > 0)) {
-
-                    item.startDate = startDate;
-                    item.endDate = endDate;
-                } else {
-                    // We only need the chronologically first event
-                    break;
-                }
-
-                if (!item.endDate) {
-                    // We have a zero-duration event
-                    item.endDate = item.startDate.clone();
-                }
+            if (!item.endDate) {
+                // We have a zero-duration event
+                item.endDate = item.startDate.clone();
             }
 
             // gd:reminder
-            if (aXMLEntry.gd::originalEvent.toString().length > 0) {
-                // If the item is an occurrence, we cannot change it until bug
-                // 362650 has been fixed. For now, don't set alarms on
-                // occurrences.
-                continue;
-            }
 
             // Google's alarms are always related to the start
             item.alarmRelated = Components.interfaces.calIItemBase.ALARM_RELATED_START;
@@ -968,6 +1028,55 @@ function XMLEntryToItem(aXMLEntry, aTimezone, aCalendar) {
 
             // Save other alarms that were set so we don't loose them
             item.setProperty("X-GOOGLE-OTHERALARMS", otherAlarms);
+        } else {
+            if (!item.recurrenceInfo) {
+                item.recurrenceInfo = createRecurrenceInfo(item);
+            } else {
+                item.recurrenceInfo.clearRecurrenceItems();
+            }
+
+            // We don't really care about google's timezone info for
+            // now. This may change when bug 314339 is fixed. Split out
+            // the timezone information so we only have the first bit
+            var splitpos = recurrenceInfo.indexOf("BEGIN:VTIMEZONE");
+            var vevent = recurrenceInfo.substring(0, splitpos);
+
+            vevent = "BEGIN:VEVENT\n" + vevent + "END:VEVENT";
+            var icsService = getIcsService();
+
+            var rootComp = icsService.parseICS(vevent, gdataTimezoneProvider);
+            var prop = rootComp.getFirstProperty("ANY");
+            var i = 0;
+            while (prop) {
+               switch (prop.propertyName) {
+                    case "EXDATE":
+                        var recItem = Components.classes["@mozilla.org/calendar/recurrence-date;1"]
+                                      .createInstance(Components.interfaces.calIRecurrenceDate);
+                        try {
+                            recItem.icalProperty = prop;
+                            item.recurrenceInfo.appendRecurrenceItem(recItem);
+                        } catch (e) {
+                            Components.utils.reportError(e);
+                        }
+                        break;
+                    case "RRULE":
+                        var recRule = createRecurrenceRule();
+                        try {
+                            recRule.icalProperty = prop;
+                            item.recurrenceInfo.appendRecurrenceItem(recRule);
+                        } catch (e) {
+                            Components.utils.reportError(e);
+                        }
+                        break;
+                    case "DTSTART":
+                        item.startDate = prop.valueAsDatetime;
+                        break;
+                    case "DTEND":
+                        item.endDate = prop.valueAsDatetime;
+                        break;
+                }
+                prop = rootComp.getNextProperty("ANY");
+            }
         }
 
         // gd:extendedProperty (alarmLastAck)
@@ -1003,8 +1112,7 @@ function XMLEntryToItem(aXMLEntry, aTimezone, aCalendar) {
 
         // Iterate all attendee tags.
         for each (var who in aXMLEntry.gd::who) {
-            var attendee = Components.classes["@mozilla.org/calendar/attendee;1"]
-                           .createInstance(Components.interfaces.calIAttendee);
+            var attendee = createAttendee();
 
             var rel = who.@rel.toString().substring(33);
             var type = who.gd::attendeeType.@value.toString().substring(33);
@@ -1026,58 +1134,11 @@ function XMLEntryToItem(aXMLEntry, aTimezone, aCalendar) {
             }
         }
 
-        // gd:recurrence
-        var recurrenceInfo = aXMLEntry.gd::recurrence.toString();
-        var lines = recurrenceInfo.split("\n");
-
-        // Some items don't contain gd:when elements. Those have
-        // gd:reccurrence items, which contains some start date
-        // info. For now, extract that information so we can display
-        // those recurrence events.
-        // XXX This code is somewhat preliminary
-
-        var startDate = createDateTime();
-        var endDate;
-        for each (var line in lines) {
-            var re = new RegExp("^DTSTART;TZID=([^:]*):([0-9T]*)$");
-            var matches = re.exec(line);
-            if (matches) {
-                startDate.icalString = matches[2];
-                startDate.timezone = getMozillaTimezone(matches[1]);
-                if (!endDate) {
-                    endDate = startDate.clone();
-                }
-                if (!item.startDate) {
-                    item.startDate = startDate;
-                }
-            }
-            re = new RegExp("^DURATION:(.*)$");
-            matches = re.exec(line);
-            if (matches) {
-                var offset = Components.classes["@mozilla.org/calendar/duration;1"].
-                             createInstance(Components.interfaces.calIDuration);
-
-                offset.icalString = matches[1];
-                endDate.addDuration(offset);
-                if (!item.endDate) {
-                    item.endDate = endDate;
-                }
-            }
-            re = new RegExp("^DTEND;TZID=([^:]*):([0-9T]*)$");
-            matches = re.exec(line);
-            if (matches) {
-                endDate.icalString = matches[2];
-                endDate.timezone = getMozillaTimezone(matches[1]);
-                if (!item.endDate) {
-                    item.endDate = endDate;
-                }
-            }
-
-            if (line == "BEGIN:VTIMEZONE") {
-                // Stop here so we dont falsely use a DTSTART of a
-                // timezone element
-                break
-            }
+        // gd:originalEvent
+        if (aXMLEntry.gd::originalEvent.toString().length > 0) {
+            var rId = aXMLEntry.gd::originalEvent.gd::when.@startTime;
+            item.recurrenceId = fromRFC3339(rId.toString(), aTimezone);
+            // XXX Also set parentItem, but how?
         }
 
         // gd:visibility
@@ -1096,10 +1157,6 @@ function XMLEntryToItem(aXMLEntry, aTimezone, aCalendar) {
             categories.push(label.toUpperCase());
         }
         item.setProperty("CATEGORIES", categories.join(","));
-
-        // gd:originalEvent
-        item.setProperty("X-GOOGLE-ITEM-IS-OCCURRENCE",
-                         aXMLEntry.gd::originalEvent.toString().length > 0);
 
         // published
         item.setProperty("CREATED", fromRFC3339(aXMLEntry.published,
@@ -1137,6 +1194,14 @@ function LOGitem(item) {
         attendeeString += "\n" + LOGattendee(a);
     }
 
+    var rstr = "";
+    if (item.recurrenceInfo) {
+        var ritems = item.recurrenceInfo.getRecurrenceItems({});
+        for each (var ritem in ritems) {
+            rstr += "\n\t\t" + ritem.icalProperty.icalString;
+        }
+    }
+
     LOG("Logging calIEvent:" +
         "\n\tid:" + item.id +
         "\n\tediturl:" + item.getProperty("X-GOOGLE-EDITURL") +
@@ -1155,7 +1220,8 @@ function LOGitem(item) {
         "\n\tsnoozeTime:" + item.getProperty("X-MOZ-SNOOZE-TIME") +
         "\n\tisOccurrence: " + item.getProperty("x-GOOGLE-ITEM-IS-OCCURRENCE") +
         "\n\tOrganizer: " + LOGattendee(item.organizer) +
-        "\n\tAttendees: " + attendeeString);
+        "\n\tAttendees: " + attendeeString +
+        "\n\trecurrence: " + (rstr ? "yes: " + rstr : "no"));
 }
 
 function LOGattendee(aAttendee, asString) {

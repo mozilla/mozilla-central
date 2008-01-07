@@ -88,9 +88,9 @@ calGoogleRequest.prototype = {
      * LOGIN, GET, ADD, MODIFY, DELETE
      * This also sets the Request Method and for the LOGIN request also the uri
      */
-    get type() { return this.mType; },
+    get type cGR_getType() { return this.mType; },
 
-    set type(v) {
+    set type cGR_setType(v) {
         switch (v) {
             case this.LOGIN:
                 this.mMethod = "POST";
@@ -122,10 +122,10 @@ calGoogleRequest.prototype = {
      * attribute method
      * The Request Method to use (GET, POST, PUT, DELETE)
      */
-    get method() {
+    get method cGR_getMethod() {
         return this.mMethod;
     },
-    set method(v) {
+    set method cGR_setMethod(v) {
         return this.mMethod = v;
     },
 
@@ -133,10 +133,10 @@ calGoogleRequest.prototype = {
      * attribute uri
      * The String representation of the uri to be requested
      */
-    get uri() {
+    get uri cGR_getUri() {
         return this.mUriString;
     },
-    set uri(v) {
+    set uri cGR_setUri(v) {
         return this.mUriString = v;
     },
 
@@ -176,10 +176,10 @@ calGoogleRequest.prototype = {
      * attribute extraData
      * Extra Data to save with the request
      */
-    get extraData() {
+    get extraData cGR_getExtraData() {
         return this.mExtraData;
     },
-    set extraData(v) {
+    set extraData cGR_setExtraData(v) {
         return this.mExtraData = v;
     },
 
@@ -188,10 +188,10 @@ calGoogleRequest.prototype = {
      * The calendar that initiated this request. Will be used by the login
      * response function to determine how and where to set passwords.
      */
-    get calendar() {
+    get calendar cGR_getCalendar() {
         return this.mCalendar;
     },
-    set calendar(v) {
+    set calendar cGR_setCalendar(v) {
         return this.mCalendar = v;
     },
 

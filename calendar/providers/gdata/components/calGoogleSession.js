@@ -14,7 +14,7 @@
  * The Original Code is Google Calendar Provider code.
  *
  * The Initial Developer of the Original Code is
- *   Philipp Kewisch (mozilla@kewis.ch)
+ *   Philipp Kewisch <mozilla@kewis.ch>
  * Portions created by the Initial Developer are Copyright (C) 2006
  * the Initial Developer. All Rights Reserved.
  *
@@ -89,7 +89,7 @@ calGoogleSession.prototype = {
      *
      * The auth token returned from Google Accounts
      */
-    get authToken() {
+    get authToken cGS_getAuthToken() {
         return this.mAuthToken;
     },
 
@@ -98,10 +98,10 @@ calGoogleSession.prototype = {
      *
      * Sets if the password for this user should be saved or not
      */
-    get savePassword() {
+    get savePassword cGS_getSavePassword() {
         return this.mSavePassword;
     },
-    set savePassword(v) {
+    set savePassword cGS_setSavePassword(v) {
         return this.mSavePassword = v;
     },
 
@@ -111,11 +111,11 @@ calGoogleSession.prototype = {
      * The Full Name of the user. If this is unset, it will return the
      * this.googleUser, to ensure a non-zero value
      */
-    get googleFullName() {
+    get googleFullName cGS_getGoogleFullName() {
         return (this.mGoogleFullName ? this.mGoogleFullName :
                 this.googleUser);
     },
-    set googleFullName(v) {
+    set googleFullName cGS_setGoogleFullName(v) {
         return this.mGoogleFullName = v;
     },
 
@@ -125,7 +125,7 @@ calGoogleSession.prototype = {
      * The username of the session. This does not necessarily have to be the
      * email found in /calendar/feeds/email/private/full
      */
-    get googleUser() {
+    get googleUser cGS_getGoogleUser() {
         return this.mGoogleUser;
     },
 
@@ -134,10 +134,10 @@ calGoogleSession.prototype = {
      *
      * Sets the password used for the login process
      */
-    get googlePassword() {
+    get googlePassword cGS_getGooglePassword() {
         return this.mGooglePass;
     },
-    set googlePassword(v) {
+    set googlePassword cGS_setGooglePassword(v) {
         return this.mGooglePass = v;
     },
 
@@ -450,8 +450,18 @@ calGoogleSession.prototype = {
                                       this.mGoogleUser,
                                       this.googleFullName);
 
-        request.type = request.MODIFY;
-        request.uri = getItemEditURI(aOldItem);
+        if (aOldItem.parentItem != aOldItem &&
+            !aOldItem.parentItem.recurrenceInfo.getExceptionFor(aOldItem.startDate, false)) {
+
+            // In this case we are modifying an occurence, not deleting it
+            request.type = request.ADD;
+            request.uri = aCalendar.fullUri.spec;
+        } else {
+            // We are  making a negative exception or modifying a parent item
+            request.type = request.MODIFY;
+            request.uri = getItemEditURI(aOldItem);
+        }
+
         request.setUploadData("application/atom+xml; charset=UTF-8", xmlEntry);
         request.setResponseListener(aCalendar, aResponseListener);
         request.extraData = aExtraData;
@@ -570,8 +580,7 @@ calGoogleSession.prototype = {
         // Request Parameters
         request.addQueryParameter("max-results",
                                   aCount ? aCount : kMANY_EVENTS);
-        request.addQueryParameter("singleevents",
-                                  aItemReturnOccurrences ? "true" : "false");
+        request.addQueryParameter("singleevents", "false");
         request.addQueryParameter("start-min", rfcRangeStart);
         request.addQueryParameter("start-max", rfcRangeEnd);
 
