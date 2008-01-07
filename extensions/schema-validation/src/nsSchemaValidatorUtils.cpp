@@ -288,18 +288,25 @@ nsSchemaValidatorUtils::ParseSchemaDate(const nsAString & aStrValue,
       isValid = PR_FALSE;
     } else {
       PRUint8 monthval = strtol(month, &pEnd, 10);
-      PRUint8 dayval = strtol(day, &pEnd, 10);
-
-      // check for leap years
-      PRUint8 maxDay = GetMaximumDayInMonthFor(yearval, monthval);
-      if (maxDay >= dayval) {
-        aDate->year = yearval;
-
-        // month/day are validated in the parsing code above
-        aDate->month = monthval;
-        aDate->day = dayval;
-      } else {
+      if (monthval < 1 || monthval > 12) {
         isValid = PR_FALSE;
+      } else {
+        PRUint8 dayval = strtol(day, &pEnd, 10);
+        if (dayval < 1) {
+          isValid = PR_FALSE;
+        } else {
+          // check for leap years
+          PRUint8 maxDay = GetMaximumDayInMonthFor(yearval, monthval);
+          if (maxDay >= dayval) {
+            aDate->year = yearval;
+
+            // month/day are validated in the parsing code above
+            aDate->month = monthval;
+            aDate->day = dayval;
+          } else {
+            isValid = PR_FALSE;
+          }
+        }
       }
     }
   }
