@@ -457,14 +457,27 @@ const int kOutlineViewLeftMargin = 19; // determined empirically, since it doesn
   // that's pretty uncommon, so this is good enough.
   NSMutableSet *parentsToNotify = [NSMutableSet set];
 
+  // Make a copy of the current search array
+  NSMutableArray *currentSearchArray = nil;
+  if ([[BookmarkManager sharedBookmarkManager] searchActive])
+    currentSearchArray = [[mSearchResultArray mutableCopy] autorelease];
+
   // delete all bookmarks that are in our array
   NSEnumerator *e = [[mBookmarksOutlineView selectedItems] objectEnumerator];
   BookmarkItem *doomedBookmark = nil;
 
   while ((doomedBookmark = [e nextObject])) {
+    [currentSearchArray removeObject:doomedBookmark];
+
     BookmarkFolder *currentParent = [doomedBookmark parent];
     [parentsToNotify addObject:currentParent];
     [currentParent deleteChild:doomedBookmark];
+  }
+
+  // Make sure the outline view is up to date after deleting while filtering
+  if (currentSearchArray) {
+    [self setSearchResultArray:currentSearchArray];
+    [mBookmarksOutlineView reloadData];
   }
 
   [[BookmarkManager sharedBookmarkManager] stopSuppressingChangeNotifications];
