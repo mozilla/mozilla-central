@@ -37,7 +37,7 @@
 /*
  * cert.h - public data structures and prototypes for the certificate library
  *
- * $Id: cert.h,v 1.62 2007-10-12 01:44:40 julien.pierre.boogz%sun.com Exp $
+ * $Id: cert.h,v 1.63 2008-01-08 07:33:58 kaie%kuix.de Exp $
  */
 
 #ifndef _CERT_H_
@@ -395,6 +395,16 @@ extern SECStatus CERT_OpenCertDBFilename(CERTCertDBHandle *handle,
 ** can be used when the permanent database can not be opened or created.
 */
 extern SECStatus CERT_OpenVolatileCertDB(CERTCertDBHandle *handle);
+
+/*
+** Extract the list of host names, host name patters, IP address strings
+** this cert is valid for.
+** This function does NOT return nicknames.
+** Type CERTCertNicknames is being used because it's a convenient 
+** data structure to carry a list of strings and its count.
+*/
+extern CERTCertNicknames *
+  CERT_GetValidDNSPatternsFromCert(CERTCertificate *cert);
 
 /*
 ** Check the hostname to make sure that it matches the shexp that

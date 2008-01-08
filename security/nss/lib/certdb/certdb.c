@@ -38,7 +38,7 @@
 /*
  * Certificate handling code
  *
- * $Id: certdb.c,v 1.87 2007-11-21 21:35:45 julien.pierre.boogz%sun.com Exp $
+ * $Id: certdb.c,v 1.88 2008-01-08 07:33:58 kaie%kuix.de Exp $
  */
 
 #include "nssilock.h"
@@ -1595,6 +1595,218 @@ finish:
     return rv;
 }
 
+/*
+ * If found:
+ *   - subAltName contains the extension (caller must free)
+ *   - return value is the decoded namelist (allocated off arena)
+ * if not found, or if failure to decode:
+ *   - return value is NULL
+ */
+CERTGeneralName *
+cert_GetSubjectAltNameList(CERTCertificate *cert,
+                           PRArenaPool *arena)
+{
+    CERTGeneralName * nameList       = NULL;
+    SECStatus         rv             = SECFailure;
+    SECItem           subAltName;
+
+    if (!cert || !arena)
+      return NULL;
+
+    subAltName.data = NULL;
+
+    rv = CERT_FindCertExtension(cert, SEC_OID_X509_SUBJECT_ALT_NAME, 
+                                &subAltName);
+    if (rv != SECSuccess)
+      return NULL;
+
+    nameList = CERT_DecodeAltNameExtension(arena, &subAltName);
+    SECITEM_FreeItem(&subAltName, PR_FALSE);
+    return nameList;
+}
+
+PRUint32
+cert_CountDNSPatterns(CERTGeneralName *firstName)
+{
+    CERTGeneralName * current;
+    PRUint32 count = 0;
+
+    if (!firstName)
+      return 0;
+
+    current = firstName;
+    do {
+        switch (current->type) {
+        case certDNSName:
+        case certIPAddress:
+            ++count;
+            break;
+        default:
+            break;
+        }
+        current = CERT_GetNextGeneralName(current);
+    } while (current != firstName);
+
+    return count;
+}
+
+/* will fill nickNames, 
+ * will allocate all data from nickNames->arena,
+ * numberOfGeneralNames should have been obtained from cert_CountDNSPatterns,
+ * will ensure the numberOfGeneralNames matches the number of output entries.
+ */
+SECStatus
+cert_GetDNSPatternsFromGeneralNames(CERTGeneralName *firstName,
+                                    PRUint32 numberOfGeneralNames, 
+                                    CERTCertNicknames *nickNames)
+{
+    CERTGeneralName *currentInput;
+    char **currentOutput;
+
+    if (!firstName || !nickNames || !numberOfGeneralNames)
+      return SECFailure;
+
+    nickNames->numnicknames = numberOfGeneralNames;
+    nickNames->nicknames = PORT_ArenaAlloc(nickNames->arena,
+                                       sizeof(char *) * numberOfGeneralNames);
+    if (!nickNames->nicknames)
+      return SECFailure;
+
+    currentInput = firstName;
+    currentOutput = nickNames->nicknames;
+    do {
+        char *cn = NULL;
+        char ipbuf[INET6_ADDRSTRLEN];
+        PRNetAddr addr;
+
+        if (numberOfGeneralNames < 1) {
+          /* internal consistency error */
+          return SECFailure;
+        }
+
+        switch (currentInput->type) {
+        case certDNSName:
+            /* DNS name currentInput->name.other.data is not null terminated.
+            ** so must copy it.  
+            */
+            cn = (char *)PORT_ArenaAlloc(nickNames->arena, 
+                                         currentInput->name.other.len + 1);
+            if (!cn)
+              return SECFailure;
+            PORT_Memcpy(cn, currentInput->name.other.data, 
+                            currentInput->name.other.len);
+            cn[currentInput->name.other.len + 1] = 0;
+            break;
+        case certIPAddress:
+            if (currentInput->name.other.len == 4) {
+              addr.inet.family = PR_AF_INET;
+              memcpy(&addr.inet.ip, currentInput->name.other.data, 
+                                    currentInput->name.other.len);
+            } else if (currentInput->name.other.len == 16) {
+              addr.ipv6.family = PR_AF_INET6;
+              memcpy(&addr.ipv6.ip, currentInput->name.other.data, 
+                                    currentInput->name.other.len);
+            }
+            if (PR_NetAddrToString(&addr, ipbuf, sizeof(ipbuf) == PR_FAILURE))
+              return SECFailure;
+            cn = PORT_ArenaStrdup(nickNames->arena, ipbuf);
+            if (!cn)
+              return SECFailure;
+            break;
+        default:
+            break;
+        }
+        if (cn) {
+          *currentOutput = cn;
+          nickNames->totallen += PORT_Strlen(cn);
+          ++currentOutput;
+          --numberOfGeneralNames;
+        }
+        currentInput = CERT_GetNextGeneralName(currentInput);
+    } while (currentInput != firstName);
+
+    return (numberOfGeneralNames == 0) ? SECSuccess : SECFailure;
+}
+
+/*
+ * Collect all valid DNS names from the given cert.
+ * The output arena will reference some temporaray data,
+ * but this saves us from dealing with two arenas.
+ * The caller may free all data by freeing CERTCertNicknames->arena.
+ */
+CERTCertNicknames *
+CERT_GetValidDNSPatternsFromCert(CERTCertificate *cert)
+{
+    CERTGeneralName *generalNames;
+    CERTCertNicknames *nickNames;
+    PRArenaPool *arena;
+    char *singleName;
+    
+    arena = PORT_NewArena(DER_DEFAULT_CHUNKSIZE);
+    if (!arena) {
+        return NULL;
+    }
+    
+    nickNames = PORT_ArenaAlloc(arena, sizeof(CERTCertNicknames));
+    if (!nickNames) {
+      PORT_FreeArena(arena, PR_FALSE);
+      return NULL;
+    }
+
+    /* init the structure */
+    nickNames->arena = arena;
+    nickNames->head = NULL;
+    nickNames->numnicknames = 0;
+    nickNames->nicknames = NULL;
+    nickNames->totallen = 0;
+
+    generalNames = cert_GetSubjectAltNameList(cert, arena);
+    if (generalNames) {
+      SECStatus rv_getnames = SECFailure; 
+      PRUint32 numNames = cert_CountDNSPatterns(generalNames);
+
+      if (numNames) {
+        rv_getnames = cert_GetDNSPatternsFromGeneralNames(generalNames, 
+                                                          numNames, nickNames);
+      }
+
+      /* if there were names, we'll exit now, either with success or failure */
+      if (numNames) {
+        if (rv_getnames == SECSuccess) {
+          return nickNames;
+        }
+
+        /* failure to produce output */
+        PORT_FreeArena(arena, PR_FALSE);
+        return NULL;
+      }
+    }
+
+    /* no SAN extension or no names found in extension */
+    /* now try the NS cert name extension first, then the common name */
+    singleName = 
+      CERT_FindNSStringExtension(cert, SEC_OID_NS_CERT_EXT_SSL_SERVER_NAME);
+    if (!singleName) {
+      singleName = CERT_GetCommonName(&cert->subject);
+    }
+
+    if (singleName) {
+      nickNames->numnicknames = 1;
+      nickNames->nicknames = PORT_ArenaAlloc(arena, sizeof(char *));
+      if (nickNames->nicknames) {
+        *nickNames->nicknames = PORT_ArenaStrdup(arena, singleName);
+      }
+      PORT_Free(singleName);
+
+      /* Did we allocate both the buffer of pointers and the string? */
+      if (nickNames->nicknames && *nickNames->nicknames) {
+        return nickNames;
+      }
+    }
+
+    PORT_FreeArena(arena, PR_FALSE);
+    return NULL;
+}
 
 /* Make sure that the name of the host we are connecting to matches the
  * name that is incoded in the common-name component of the certificate
