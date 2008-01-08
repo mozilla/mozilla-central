@@ -1218,7 +1218,8 @@ static BookmarkManager* gBookmarkManager = nil;
 
 - (void)writeBookmarks:(NSNotification *)inNotification
 {
-  // NSLog(@"Saving bookmarks");
+  if (!mBookmarksLoaded)
+    return;
   [self writePropertyListFile:mPathToBookmarkFile];
 }
 
