@@ -3486,7 +3486,8 @@ void nsImapProtocol::HandleMessageDownLoadLine(const char *line, PRBool isPartia
   {
     if (!m_curHdrInfo)
       BeginMessageDownLoad(GetServerStateParser().SizeOfMostRecentMessage(), MESSAGE_RFC822);
-    m_curHdrInfo->CacheLine(messageLine, GetServerStateParser().CurrentResponseUID());
+    if (m_curHdrInfo)
+      m_curHdrInfo->CacheLine(messageLine, GetServerStateParser().CurrentResponseUID());
     PR_Free(localMessageLine);
     return;
   }
@@ -3521,8 +3522,6 @@ void nsImapProtocol::HandleMessageDownLoadLine(const char *line, PRBool isPartia
 
   PR_Free(localMessageLine);
 }
-
-
 
 void nsImapProtocol::NormalMessageEndDownload()
 {
