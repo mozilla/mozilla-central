@@ -38,7 +38,7 @@
 /*
  * Certificate handling code
  *
- * $Id: certdb.c,v 1.88 2008-01-08 07:33:58 kaie%kuix.de Exp $
+ * $Id: certdb.c,v 1.89 2008-01-08 08:39:34 kaie%kuix.de Exp $
  */
 
 #include "nssilock.h"
@@ -1649,6 +1649,10 @@ cert_CountDNSPatterns(CERTGeneralName *firstName)
 
     return count;
 }
+
+#ifndef INET6_ADDRSTRLEN
+#define INET6_ADDRSTRLEN 46
+#endif
 
 /* will fill nickNames, 
  * will allocate all data from nickNames->arena,
