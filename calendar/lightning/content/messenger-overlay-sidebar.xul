@@ -139,13 +139,11 @@
              accesskey="&event.new.event.accesskey;"
              key="newEventKey"
              observes="calendar_new_event_command"
-             mode="calendar"
              position="2"/>
   <menuitem id="ltnNewTask" label="&lightning.menupopup.new.task.label;"
              accesskey="&event.new.todo.accesskey;"
              key="newTaskKey"
              observes="calendar_new_todo_command"
-             mode="calendar"
              position="3"/>
    <menuseparator id="afterltnNewTask" position="4"/>
    <menuseparator id="beforenewAccountMenuItem" 
@@ -154,7 +152,6 @@
   <menuitem id="ltnNewCalendar" label="&lightning.menupopup.new.calendar.label;"
              observes="calendar_new_calendar_command"
              accesskey="&calendar.new.server.accesskey;"
-             mode="calendar"
              insertafter="newAccountMenuItem"/>
  </menupopup>
    <menupopup id="menu_View_Popup">
