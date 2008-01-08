@@ -24,7 +24,7 @@
  *                 Eric Belhaire <belhaire@ief.u-psud.fr>
  *                 Jussi Kukkonen <jussi.kukkonen@welho.com>
  *                 Michiel van Leeuwen <mvl@exedo.nl>
- *                 Stefan Sitter <ssitter@googlemail.com>
+ *                 Stefan Sitter <ssitter@gmail.com>
  *                 Philipp Kewisch <mozilla@kewis.ch>
  *
  * Alternatively, the contents of this file may be used under the terms of
@@ -98,16 +98,12 @@ function loadEventsFromFile(aCalendar)
 
         var inputStream = Components.classes["@mozilla.org/network/file-input-stream;1"]
                                     .createInstance(nsIFileInputStream);
+        var items = [];
 
-        try
-        {
-           inputStream.init( fp.file, MODE_RDONLY, 0444, {} );
-
-           var items = importer.importFromStream(inputStream, {});
-           inputStream.close();
-        }
-        catch(ex)
-        {
+        try {
+            inputStream.init( fp.file, MODE_RDONLY, 0444, {});
+            items = importer.importFromStream(inputStream, {});
+        } catch(ex) {
             switch (ex.result) {
                 case Components.interfaces.calIErrors.INVALID_TIMEZONE:
                     showError(calGetString("calendar", "timezoneError", [filePath] , 1));
@@ -115,6 +111,8 @@ function loadEventsFromFile(aCalendar)
                 default:
                     showError(calGetString("calendar", "unableToRead") + filePath + "\n"+ ex);
             }
+        } finally {
+            inputStream.close();
         }
 
         if (aCalendar) {

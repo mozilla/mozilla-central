@@ -21,6 +21,7 @@
  * Contributor(s):
  *   Matthew Willis <mattwillis@gmail.com>
  *   Clint Talbert <cmtalbert@myfastmail.com>
+ *   Stefan Sitter <ssitter@gmail.com>
  *
  * Alternatively, the contents of this file may be used under the terms of
  * either the GNU General Public License Version 2 or later (the "GPL"), or
@@ -184,7 +185,7 @@ var gDataMigrator = {
         }
         return this.mDirService;
     },
-    
+
     get ioService() {
         if (!this.mIoService) {
             this.mIoService = Components.classes["@mozilla.org/network/io-service;1"]
@@ -267,8 +268,8 @@ var gDataMigrator = {
     },
 
     /**
-     * Checks to see if we can find any traces of an older moz-cal program. 
-     * This could be either the old calendar-extension, or Sunbird 0.2.  If so, 
+     * Checks to see if we can find any traces of an older moz-cal program.
+     * This could be either the old calendar-extension, or Sunbird 0.2.  If so,
      * it offers to move that data into our new storage format.  Also, if we're
      * if we're Lightning, it will disable the old calendar extension, since it
      * conflicts with us.
@@ -293,7 +294,7 @@ var gDataMigrator = {
             var appName = brand.GetStringFromName("brandShortName");
             // Tell the user we're going to disable and restart
             var promptService = Components.classes["@mozilla.org/embedcomp/prompt-service;1"]
-                                .getService(Components.interfaces.nsIPromptService); 
+                                .getService(Components.interfaces.nsIPromptService);
             promptService.alert(window,
                                 props.GetStringFromName("disableExtTitle"),
                                 props.formatStringFromName("disableExtText",
@@ -307,7 +308,7 @@ var gDataMigrator = {
                                 getString("disableExtDone"));
             var startup = Components.classes["@mozilla.org/toolkit/app-startup;1"]
                           .getService(Components.interfaces.nsIAppStartup);
-            startup.quit(Components.interfaces.nsIAppStartup.eRestart | 
+            startup.quit(Components.interfaces.nsIAppStartup.eRestart |
                          Components.interfaces.nsIAppStartup.eAttemptQuit);
         }
 
@@ -489,7 +490,7 @@ var gDataMigrator = {
                 var tempFile = gDataMigrator.dirService.get("TmpD", Components.interfaces.nsIFile);
                 tempFile.append("icalTemp.ics");
                 tempFile.createUnique(Components.interfaces.nsIFile.NORMAL_FILE_TYPE, 0600);
-                var tempUri = gDataMigrator.ioService.newFileURI(tempFile); 
+                var tempUri = gDataMigrator.ioService.newFileURI(tempFile);
 
                 var stream = Components.classes["@mozilla.org/network/file-output-stream;1"]
                              .createInstance(Components.interfaces.nsIFileOutputStream);
@@ -617,8 +618,23 @@ var gDataMigrator = {
 
         var inputStream = Components.classes["@mozilla.org/network/file-input-stream;1"]
                           .createInstance(Components.interfaces.nsIFileInputStream);
-        inputStream.init(icsFile, MODE_RDONLY, 0444, {} );
-        var items = icsImporter.importFromStream(inputStream, {});
+        var items = [];
+
+        try {
+            inputStream.init(icsFile, MODE_RDONLY, 0444, {});
+            items = icsImporter.importFromStream(inputStream, {});
+        } catch(ex) {
+            switch (ex.result) {
+                case Components.interfaces.calIErrors.INVALID_TIMEZONE:
+                    showError(calGetString("calendar", "timezoneError", [icsFile.path] , 1));
+                    break;
+                default:
+                    showError(calGetString("calendar", "unableToRead") + icsFile.path + "\n"+ ex);
+            }
+        } finally {
+           inputStream.close();
+        }
+
         // Defined in import-export.js
         putItemsIntoCal(cal, items);
 
