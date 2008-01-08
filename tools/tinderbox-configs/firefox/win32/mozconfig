@@ -2,6 +2,9 @@
 ## hostname: fx-win32-tbox
 ## uname: MINGW32_NT-5.2 FX-WIN32-TBOX 1.0.11(0.46/3/2) 2007-01-12 12:05 i686 Msys
 #
+export CFLAGS="-GL"
+export CXXFLAGS="-GL"
+export LDFLAGS="-LTCG"
 
 mk_add_options MOZ_CO_PROJECT=browser
 mk_add_options MOZ_MAKE_FLAGS="-j5"
