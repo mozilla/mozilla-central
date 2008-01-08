@@ -54,9 +54,9 @@
 
   <tabbox>
     <tabs id="abTabs">
-      <tab label="&Contact.tab;"/>
-      <tab label="&Address.tab;"/>
-      <tab label="&Other.tab;"/>
+      <tab label="&Contact.tab;" accesskey="&Contact.accesskey;"/>
+      <tab label="&Address.tab;" accesskey="&Address.accesskey;"/>
+      <tab label="&Other.tab;" accesskey="&Other.accesskey;"/>
     </tabs>
 
     <tabpanels id="abTabPanels" flex="1">
@@ -212,45 +212,52 @@
         <vbox>
           <hbox>
             <spacer flex="1"/>
-            <label control="HomeAddress" value="&HomeAddress.label;" class="CardEditLabel"/>
+            <label control="HomeAddress" value="&HomeAddress.label;"
+                   accesskey="&HomeAddress.accesskey;" class="CardEditLabel"/>
             <hbox class="CardEditWidth">
               <textbox id="HomeAddress" flex="1"/>
             </hbox>
           </hbox>
           <hbox>
             <spacer flex="1"/>
-            <label control="HomeAddress2" value="&HomeAddress2.label;" class="CardEditLabel"/>
+            <label control="HomeAddress2" value="&HomeAddress2.label;"
+                   accesskey="&HomeAddress2.accesskey;" class="CardEditLabel"/>
             <hbox class="CardEditWidth">
               <textbox id="HomeAddress2" flex="1"/>
             </hbox>
           </hbox>
           <hbox>
             <spacer flex="1"/>
-            <label control="HomeCity" value="&HomeCity.label;" class="CardEditLabel"/>
+            <label control="HomeCity" value="&HomeCity.label;"
+                   accesskey="&HomeCity.accesskey;" class="CardEditLabel"/>
             <hbox class="CardEditWidth">
               <textbox id="HomeCity" flex="1"/>
             </hbox>
           </hbox>
           <hbox>
             <spacer flex="1"/>
-            <label control="HomeState" value="&HomeState.label;" class="CardEditLabel"/>
+            <label control="HomeState" value="&HomeState.label;"
+                   accesskey="&HomeState.accesskey;" class="CardEditLabel"/>
             <hbox class="CardEditWidth">
               <textbox id="HomeState" flex="1"/>
               <spacer class="stateZipSpacer"/>
-              <label control="HomeZipCode" value="&HomeZipCode.label;" class="CardEditLabel"/>
+              <label control="HomeZipCode" value="&HomeZipCode.label;"
+                     accesskey="&HomeZipCode.accesskey;" class="CardEditLabel"/>
               <textbox id="HomeZipCode" flex="1"/>
             </hbox>
           </hbox>
           <hbox>
             <spacer flex="1"/>
-            <label control="HomeCountry" value="&HomeCountry.label;" class="CardEditLabel"/>
+            <label control="HomeCountry" value="&HomeCountry.label;"
+                   accesskey="&HomeCountry.accesskey;" class="CardEditLabel"/>
             <hbox class="CardEditWidth">
               <textbox id="HomeCountry" flex="1"/>
             </hbox>
           </hbox>
           <hbox>
             <spacer flex="1"/>
-            <label control="WebPage2" value="&HomeWebPage.label;" class="CardEditLabel"/>
+            <label control="WebPage2" value="&HomeWebPage.label;"
+                   accesskey="&HomeWebPage.accesskey;" class="CardEditLabel"/>
             <hbox class="CardEditWidth">
               <textbox id="WebPage2" flex="1" class="uri-element"/>
             </hbox>
@@ -263,66 +270,76 @@
           <vbox>
             <hbox>
               <spacer flex="1"/>
-              <label control="JobTitle" value="&JobTitle.label;" class="CardEditLabel"/>
+              <label control="JobTitle" value="&JobTitle.label;"
+                     accesskey="&JobTitle.accesskey;" class="CardEditLabel"/>
               <hbox class="CardEditWidth">
                 <textbox id="JobTitle" flex="1"/>
               </hbox>
             </hbox>
             <hbox>
               <spacer flex="1"/>
-              <label control="Department" value="&Department.label;" class="CardEditLabel"/>
+              <label control="Department" value="&Department.label;"
+                     accesskey="&Department.accesskey;" class="CardEditLabel"/>
               <hbox class="CardEditWidth">
                 <textbox id="Department" flex="1"/>
               </hbox>
             </hbox>
             <hbox>
               <spacer flex="1"/>
-              <label control="Company" value="&Company.label;" class="CardEditLabel"/>
+              <label control="Company" value="&Company.label;"
+                     accesskey="&Company.accesskey;" class="CardEditLabel"/>
               <hbox class="CardEditWidth">
                 <textbox id="Company" flex="1"/>
               </hbox>
             </hbox>
             <hbox>
               <spacer flex="1"/>
-              <label control="WorkAddress" value="&WorkAddress.label;" class="CardEditLabel"/>
+              <label control="WorkAddress" value="&WorkAddress.label;"
+                     accesskey="&WorkAddress.accesskey;" class="CardEditLabel"/>
               <hbox class="CardEditWidth">
                 <textbox id="WorkAddress" flex="1"/>
               </hbox>
             </hbox>
             <hbox>
               <spacer flex="1"/>
-              <label control="WorkAddress2" value="&WorkAddress2.label;" class="CardEditLabel"/>
+              <label control="WorkAddress2" value="&WorkAddress2.label;"
+                     accesskey="&WorkAddress2.accesskey;" class="CardEditLabel"/>
               <hbox class="CardEditWidth">
                 <textbox id="WorkAddress2" flex="1"/>
               </hbox>
             </hbox>
             <hbox>
               <spacer flex="1"/>
-              <label control="WorkCity" value="&WorkCity.label;" class="CardEditLabel"/>
+              <label control="WorkCity" value="&WorkCity.label;"
+                     accesskey="&WorkCity.accesskey;" class="CardEditLabel"/>
               <hbox class="CardEditWidth">
                 <textbox id="WorkCity" flex="1"/>
               </hbox>
             </hbox>
             <hbox>
               <spacer flex="1"/>
-              <label control="WorkState" value="&WorkState.label;" class="CardEditLabel"/>
+              <label control="WorkState" value="&WorkState.label;"
+                     accesskey="&WorkState.accesskey;" class="CardEditLabel"/>
               <hbox class="CardEditWidth">
                 <textbox id="WorkState" flex="1"/>
                 <spacer class="stateZipSpacer"/>
-                <label control="WorkZipCode" value="&WorkZipCode.label;" class="CardEditLabel"/>
+                <label control="WorkZipCode" value="&WorkZipCode.label;"
+                       accesskey="&WorkZipCode.accesskey;" class="CardEditLabel"/>
                 <textbox id="WorkZipCode" flex="1"/>
               </hbox>
             </hbox>
             <hbox>
               <spacer flex="1"/>
-              <label control="WorkCountry" value="&WorkCountry.label;" class="CardEditLabel"/>
+              <label control="WorkCountry" value="&WorkCountry.label;"
+                     accesskey="&WorkCountry.accesskey;" class="CardEditLabel"/>
               <hbox class="CardEditWidth">
                 <textbox id="WorkCountry" flex="1"/>
               </hbox>
             </hbox>
             <hbox>
               <spacer flex="1"/>
-              <label control="WebPage1" value="&WorkWebPage.label;" class="CardEditLabel"/>
+              <label control="WebPage1" value="&WorkWebPage.label;"
+                     accesskey="&WorkWebPage.accesskey;" class="CardEditLabel"/>
               <hbox class="CardEditWidth">
                 <textbox id="WebPage1" flex="1" class="uri-element"/>
               </hbox>
@@ -353,7 +370,9 @@
         </vbox>
 
         <groupbox flex="1">
-          <caption label="&Notes.box;"/>
+          <caption>
+            <label control="Notes" value="&Notes.box;" accesskey="&Notes.accesskey;"/>
+          </caption>
           <textbox id="Notes" multiline="true" wrap="virtual" flex="1"/>
         </groupbox>
 

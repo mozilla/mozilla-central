@@ -35,13 +35,11 @@
 
  ***** END LICENSE BLOCK ***** -->
 
-<!ENTITY chooseAddressBook.label                "Add to: ">
-<!ENTITY chooseAddressBook.accesskey            "A">
+<!ENTITY Contact.tab                     "Contact">
+<!ENTITY Contact.accesskey               "C">
+<!ENTITY Name.box                        "Name">
 
-<!ENTITY Contact.tab                     "Contact"> 
-<!ENTITY Name.box                        "Name"> 
-
-<!-- LOCALIZATION NOTE: 
+<!-- LOCALIZATION NOTE:
  NameField1, NameField2, PhoneticField1, PhoneticField2
  those fields are either LN or FN depends on the target country.
  "FirstName" and "LastName" can be swapped for id to change the order
@@ -50,13 +48,13 @@
 -->
 
 <!-- LOCALIZATION NOTE (NameField1.id) : DONT_TRANSLATE -->
-<!ENTITY NameField1.id                  "FirstName"> 
+<!ENTITY NameField1.id                  "FirstName">
 <!-- LOCALIZATION NOTE (NameField2.id) : DONT_TRANSLATE -->
-<!ENTITY NameField2.id                  "LastName"> 
+<!ENTITY NameField2.id                  "LastName">
 <!-- LOCALIZATION NOTE (PhoneticField1.id) : DONT_TRANSLATE -->
-<!ENTITY PhoneticField1.id              "PhoneticFirstName"> 
+<!ENTITY PhoneticField1.id              "PhoneticFirstName">
 <!-- LOCALIZATION NOTE (PhoneticField2.id) : DONT_TRANSLATE -->
-<!ENTITY PhoneticField2.id              "PhoneticLastName"> 
+<!ENTITY PhoneticField2.id              "PhoneticLastName">
 
 <!ENTITY NameField1.label               "First:">
 <!ENTITY NameField1.accesskey           "F">
@@ -73,7 +71,7 @@
 <!ENTITY PrimaryEmail.label             "Email:">
 <!ENTITY PrimaryEmail.accesskey         "E">
 <!ENTITY SecondEmail.label              "Additional Email:">
-<!ENTITY SecondEmail.accesskey          "o">
+<!ENTITY SecondEmail.accesskey          "i">
 <!ENTITY PreferMailFormat.label         "Prefers to receive messages formatted as:">
 <!ENTITY PreferMailFormat.accesskey     "r">
 <!ENTITY PlainText.label                "Plain Text">
@@ -83,13 +81,13 @@
 <!ENTITY ScreenName.accesskey           "S">
 
 <!ENTITY allowRemoteContent.label       "Allow remote images in HTML mail.">
-<!ENTITY allowRemoteContent.accesskey   "g">
+<!ENTITY allowRemoteContent.accesskey   "w">
 
 <!ENTITY Phones.box                     "Phones">
 <!ENTITY WorkPhone.label                "Work:">
-<!ENTITY WorkPhone.accesskey            "W">
+<!ENTITY WorkPhone.accesskey            "k">
 <!ENTITY HomePhone.label                "Home:">
-<!ENTITY HomePhone.accesskey            "H">
+<!ENTITY HomePhone.accesskey            "o">
 <!ENTITY FaxNumber.label                "Fax:">
 <!ENTITY FaxNumber.accesskey            "x">
 <!ENTITY PagerNumber.label              "Pager:">
@@ -97,29 +95,47 @@
 <!ENTITY CellularNumber.label           "Mobile:">
 <!ENTITY CellularNumber.accesskey       "M">
 
-<!ENTITY Address.tab                    "Address"> 
-<!ENTITY Home.box                       "Home"> 
-<!ENTITY HomeAddress.label              "Address:"> 
-<!ENTITY HomeAddress2.label             ""> 
-<!ENTITY HomeCity.label                 "City:"> 
-<!ENTITY HomeState.label                "State/Province:"> 
-<!ENTITY HomeZipCode.label              "ZIP/Postal Code:"> 
+<!ENTITY Address.tab                    "Address">
+<!ENTITY Address.accesskey              "A">
+<!ENTITY Home.box                       "Home">
+<!ENTITY HomeAddress.label              "Address:">
+<!ENTITY HomeAddress.accesskey          "d">
+<!ENTITY HomeAddress2.label             "">
+<!ENTITY HomeAddress2.accesskey         "">
+<!ENTITY HomeCity.label                 "City:">
+<!ENTITY HomeCity.accesskey             "y">
+<!ENTITY HomeState.label                "State/Province:">
+<!ENTITY HomeState.accesskey            "S">
+<!ENTITY HomeZipCode.label              "ZIP/Postal Code:">
+<!ENTITY HomeZipCode.accesskey          "Z">
 <!ENTITY HomeCountry.label              "Country:">
-<!ENTITY HomeWebPage.label              "Web Page:"> 
-<!ENTITY Work.box                       "Work"> 
-<!ENTITY JobTitle.label                 "Title:"> 
-<!ENTITY Department.label               "Department:"> 
-<!ENTITY Company.label                  "Organization:"> 
-<!ENTITY WorkAddress.label              "Address:"> 
-<!ENTITY WorkAddress2.label             ""> 
-<!ENTITY WorkCity.label                 "City:"> 
-<!ENTITY WorkState.label                "State/Province:"> 
-<!ENTITY WorkZipCode.label              "ZIP/Postal Code:"> 
+<!ENTITY HomeCountry.accesskey          "u">
+<!ENTITY HomeWebPage.label              "Web Page:">
+<!ENTITY HomeWebPage.accesskey          "W">
+<!ENTITY Work.box                       "Work">
+<!ENTITY JobTitle.label                 "Title:">
+<!ENTITY JobTitle.accesskey             "e">
+<!ENTITY Department.label               "Department:">
+<!ENTITY Department.accesskey           "m">
+<!ENTITY Company.label                  "Organization:">
+<!ENTITY Company.accesskey              "O">
+<!ENTITY WorkAddress.label              "Address:">
+<!ENTITY WorkAddress.accesskey          "r">
+<!ENTITY WorkAddress2.label             "">
+<!ENTITY WorkAddress2.accesskey         "">
+<!ENTITY WorkCity.label                 "City:">
+<!ENTITY WorkCity.accesskey             "i">
+<!ENTITY WorkState.label                "State/Province:">
+<!ENTITY WorkState.accesskey            "v">
+<!ENTITY WorkZipCode.label              "ZIP/Postal Code:">
+<!ENTITY WorkZipCode.accesskey          "P">
 <!ENTITY WorkCountry.label              "Country:">
-<!ENTITY WorkWebPage.label              "Web Page:"> 
-
+<!ENTITY WorkCountry.accesskey          "n">
+<!ENTITY WorkWebPage.label              "Web Page:">
+<!ENTITY WorkWebPage.accesskey          "b">
 
 <!ENTITY Other.tab                      "Other">
+<!ENTITY Other.accesskey                "h">
 <!ENTITY Custom1.label                  "Custom 1:">
 <!ENTITY Custom1.accesskey              "1">
 <!ENTITY Custom2.label                  "Custom 2:">
@@ -129,3 +145,4 @@
 <!ENTITY Custom4.label                  "Custom 4:">
 <!ENTITY Custom4.accesskey              "4">
 <!ENTITY Notes.box                      "Notes">
+<!ENTITY Notes.accesskey                "N">
