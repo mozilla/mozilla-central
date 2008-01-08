@@ -60,7 +60,7 @@
     <vbox id="bottom-events-box" insertbefore="view-deck" persist="height">
       <hbox id="unifinder-searchBox" persist="collapsed">
         <box align="center">
-          <menulist id="event-filter-menulist" persist="value">
+          <menulist id="event-filter-menulist" value="next7Days" persist="value">
             <menupopup id="event-filter-menupopup" oncommand="changeEventFilter( event );">
               <menuitem id="event-filter-all"
                         label="&calendar.events.filter.all.label;"
