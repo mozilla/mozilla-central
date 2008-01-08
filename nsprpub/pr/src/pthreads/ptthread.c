@@ -1208,7 +1208,12 @@ PR_IMPLEMENT(PRStatus) PR_EnumerateThreads(PREnumerator func, void *arg)
     PRIntn count = 0;
     PRStatus rv = PR_SUCCESS;
     PRThread* thred = pt_book.first;
+
+#if defined(DEBUG) || defined(FORCE_PR_ASSERT)
+#if !defined(_PR_DCETHREADS)
     PRThread *me = PR_GetCurrentThread();
+#endif
+#endif
 
     PR_LOG(_pr_gc_lm, PR_LOG_ALWAYS, ("Begin PR_EnumerateThreads\n"));
     /*
