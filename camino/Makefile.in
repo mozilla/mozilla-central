@@ -239,15 +239,15 @@ $(GENERATED_STRINGS_FILES): \
 # contents are changing.  The file's timestamp will be preserved when the
 # contents aren't changing, reducing unnecessary build activity.
 
-$(PLATFORM_BUILD_ID_FILE): FORCE
+$(PLATFORM_BUILD_ID_FILE): FORCE generated
 	grep -lFx "$(PLATFORM_BUILD_ID)" $@ >& /dev/null || \
 	  echo $(PLATFORM_BUILD_ID) > $@
 
-$(CVS_TAG_FILE): FORCE
+$(CVS_TAG_FILE): FORCE generated
 	grep -lFx "$(CVS_TAG)" $@ >& /dev/null || \
 	  echo $(CVS_TAG) > $@
 
-$(CVS_TIME_FILE): FORCE
+$(CVS_TIME_FILE): FORCE generated
 	grep -lFx "$(CVS_TIME)" $@ >& /dev/null || \
 	  echo $(CVS_TIME) > $@
 
