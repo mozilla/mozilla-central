@@ -76,7 +76,7 @@
      </hbox>
      <hbox>
        <button label="&newConfig.label;" id="newconfig" oncommand="CreateConfig();"/>
-       <button label="&copyConfig.label;" id="copyconfig" oncommand="CopyConfig();"/>/>
+       <button label="&copyConfig.label;" id="copyconfig" oncommand="CopyConfig();"/>
        <button label="&deleteConfig.label;" id="deleteconfig" oncommand="DeleteConfig();"/>
      </hbox>
      <checkbox id="saveOnExit" label="&saveOnExit.label;" oncommand="SetSaveOnExitPref();"/>
