@@ -469,6 +469,8 @@ function addBookmarksPlaces(bundle, prefix, container, location)
 {
   var bookmarks = Components.classes["@mozilla.org/browser/nav-bookmarks-service;1"]
                             .getService(Components.interfaces.nsINavBookmarksService);
+  var livemarks = Components.classes["@mozilla.org/browser/livemark-service;2"]
+                            .getService(Components.interfaces.nsILivemarkService);
 
   var BookmarkTitle;
   var BookmarkURL;
@@ -518,7 +520,7 @@ function addBookmarksPlaces(bundle, prefix, container, location)
           bmtype = "";
         }
         if (bmtype == "live") {
-//            BMSVC.createLivemarkInContainer(BookmarkTitle, "", BookmarkURL, "", folder, location);
+          livemarks.createLivemark(container, BookmarkTitle, null, makeURI(BookmarkURL), -1);
         } else if (bmtype == "separator") {
           bookmarks.insertSeparator(container, -1);
         } else {
@@ -615,6 +617,8 @@ function addFolderPlaces(bundle, prefix, container, location)
 {
   var bookmarks = Components.classes["@mozilla.org/browser/nav-bookmarks-service;1"]
                             .getService(Components.interfaces.nsINavBookmarksService);
+  var livemarks = Components.classes["@mozilla.org/browser/livemark-service;2"]
+                            .getService(Components.interfaces.nsILivemarkService);
 
   var BookmarkFolder;
   var BookmarkTitle;
@@ -677,17 +681,13 @@ function addFolderPlaces(bundle, prefix, container, location)
               bmtype = "";
             }
             if (bmtype == "live") {
-//              BMSVC.createLivemarkInContainer(BookmarkTitle, "", BookmarkURL, "", newfolder, -1);
+              livemarks.createLivemark(newfolder, BookmarkTitle, null, makeURI(BookmarkURL), -1);
             } else if (bmtype == "separator") {
               try {
                 bookmarks.insertSeparator(newfolder, -1);
               } catch (ex) {}
             } else {
-              try {
-                var foo = bookmarks.insertBookmark(newfolder, makeURI(BookmarkURL), location, BookmarkTitle);
-              } catch (ex) {
-                dump (ex);
-              }
+                bookmarks.insertBookmark(newfolder, makeURI(BookmarkURL), location, BookmarkTitle);
             }
           }
         }
