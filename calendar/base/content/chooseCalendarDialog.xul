@@ -86,9 +86,9 @@
                     selectedIndex = i;
                 }
             }
-            listbox.ensureIndexIsVisible(i);
-            listbox.selectedIndex = selectedIndex;
             document.getElementById("prompt").value = window.arguments[0].promptText;
+            listbox.selectedIndex = selectedIndex;
+            listbox.ensureIndexIsVisible(selectedIndex);
         }
 
         function doOK() {
