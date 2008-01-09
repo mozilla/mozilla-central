@@ -123,10 +123,10 @@ const int kSortReverse = 1;
 
 -(void) mainViewDidLoad
 {
-  // Hookup cookie prefs.
+  // Hook up cookie prefs.
   BOOL gotPref = NO;
-  BOOL acceptCookies = [self getBooleanPref:"network.cookie.cookieBehavior"
-                                withSuccess:&gotPref];
+  int acceptCookies = [self getIntPref:"network.cookie.cookieBehavior"
+                           withSuccess:&gotPref];
   if (!gotPref)
     acceptCookies = eAcceptAllCookies;
   [self mapCookiePrefToGUI:acceptCookies];
