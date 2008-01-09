@@ -1218,3 +1218,515 @@ cleanup:
     }
     return rv;
 }
+
+PKIX_CertSelector *
+cert_GetTargetCertConstraints(CERTCertificate *target, void *plContext) 
+{
+    PKIX_ComCertSelParams *certSelParams = NULL;
+    PKIX_CertSelector *certSelector = NULL;
+    PKIX_CertSelector *r= NULL;
+    PKIX_PL_Cert *eeCert = NULL;
+    PKIX_Error *error = NULL;
+
+    error = PKIX_PL_Cert_CreateFromCERTCertificate(target, &eeCert, plContext);
+    if (error != NULL) goto cleanup;
+
+    error = PKIX_CertSelector_Create(NULL, NULL, &certSelector, plContext);
+    if (error != NULL) goto cleanup;
+
+    error = PKIX_ComCertSelParams_Create(&certSelParams, plContext);
+    if (error != NULL) goto cleanup;
+
+    error = PKIX_ComCertSelParams_SetCertificate(
+                                certSelParams, eeCert, plContext);
+    if (error != NULL) goto cleanup;
+
+    error = PKIX_CertSelector_SetCommonCertSelectorParams
+        (certSelector, certSelParams, plContext);
+    if (error != NULL) goto cleanup;
+
+    error = PKIX_PL_Object_IncRef((PKIX_PL_Object *)certSelector, plContext);
+    if (error == NULL) r = certSelector;
+
+cleanup:
+    if (certSelParams != NULL) 
+        PKIX_PL_Object_DecRef((PKIX_PL_Object *)certSelParams, plContext);
+
+    if (eeCert != NULL) 
+        PKIX_PL_Object_DecRef((PKIX_PL_Object *)eeCert, plContext);
+
+    if (certSelector != NULL) 
+        PKIX_PL_Object_DecRef((PKIX_PL_Object *)certSelector, plContext);
+
+    return r;
+}
+
+PKIX_List *
+CERT_GetCertStores(void *plContext)
+{
+    PKIX_CertStore *certStore = NULL;
+    PKIX_List *certStores = NULL;
+    PKIX_List *r = NULL;
+    PKIX_Error *error = NULL;
+
+    error = PKIX_PL_Pk11CertStore_Create(&certStore, plContext);
+    if (error != NULL) goto cleanup;
+
+    error = PKIX_List_Create(&certStores, plContext);
+    if (error != NULL)  goto cleanup;
+
+    error = PKIX_List_AppendItem( certStores, 
+                          (PKIX_PL_Object *)certStore, plContext);
+    if (error != NULL)  goto cleanup;
+
+    error = PKIX_PL_Object_IncRef((PKIX_PL_Object *)certStores, plContext);
+    if (error == NULL) r = certStores;
+
+cleanup:
+    if (certStores != NULL) 
+        PKIX_PL_Object_DecRef((PKIX_PL_Object *)certStores, plContext);
+
+    if (certStore != NULL) 
+        PKIX_PL_Object_DecRef((PKIX_PL_Object *)certStore, plContext);
+
+    return r;
+}
+
+/* XXX
+ *  There is no NSS SECItem -> PKIX OID
+ *  conversion function. For now, I go via the ascii
+ *  representation 
+ *  this should be in PKIX_PL_*
+ */
+
+PKIX_PL_OID *
+CERT_PKIXOIDFromNSSOid(SECOidTag tag, void*plContext)
+{
+    char *oidstring = NULL;
+    char *oidstring_adj = NULL;
+    PKIX_PL_OID *policyOID = NULL;
+    SECOidData *data;
+
+    data =  SECOID_FindOIDByTag(tag);
+    if (data != NULL) {
+        oidstring = CERT_GetOidString(&data->oid);
+        if (oidstring == NULL) {
+            goto cleanup;
+        }
+        oidstring_adj = oidstring;
+        if (PORT_Strncmp("OID.",oidstring_adj,4) == 0) {
+            oidstring_adj += 4;
+        }
+
+        PKIX_PL_OID_Create(oidstring_adj, &policyOID, plContext);
+    }
+cleanup:
+    if (oidstring != NULL) PR_smprintf_free(oidstring);
+
+    return policyOID;
+}
+
+struct fake_PKIX_PL_CertStruct {
+        CERTCertificate *nssCert;
+};
+
+/* This needs to be part of the PKIX_PL_* */
+/* This definitely needs to go away, and be replaced with
+   a real accessor function in PKIX */
+CERTCertificate *
+cert_NSSCertFromPKIXCert(const PKIX_PL_Cert *pkix_cert, void *plContext)
+{
+    struct fake_PKIX_PL_CertStruct *fcert = NULL;
+
+    fcert = (struct fake_PKIX_PL_CertStruct*)pkix_cert;
+
+    return CERT_DupCertificate(fcert->nssCert);
+}
+
+PKIX_List *cert_PKIXMakeOIDList(const SECOidTag *oids, int oidCount, void *plContext)
+{
+    PKIX_List *r = NULL;
+    PKIX_List *policyList = NULL;
+    PKIX_PL_OID *policyOID = NULL;
+    PKIX_Error *error = NULL;
+    int i;
+
+    PKIX_List_Create(&policyList, plContext);
+
+    for (i=0; i<oidCount; i++) {
+        policyOID = CERT_PKIXOIDFromNSSOid(oids[i],plContext);
+        if (policyOID == NULL) {
+            goto cleanup;
+        }
+        error = PKIX_List_AppendItem(policyList, 
+                (PKIX_PL_Object *)policyOID, plContext);
+        if (error != NULL) {
+            PKIX_PL_Object_DecRef((PKIX_PL_Object *)policyOID, plContext);
+            goto cleanup;
+        }
+    }
+
+    error = PKIX_List_SetImmutable(policyList, plContext);
+    if (error != NULL) goto cleanup;
+
+    error = PKIX_PL_Object_IncRef((PKIX_PL_Object *)policyList, plContext);
+    if (error == NULL) r = policyList;
+
+cleanup:
+    if (policyList != NULL)  {
+        PKIX_PL_Object_DecRef((PKIX_PL_Object *)policyList, plContext);
+    }
+
+    return r;
+}
+
+CERTValOutParam *
+cert_pkix_FindOutputParam(CERTValOutParam *params, const CERTValParamOutType t)
+{
+    CERTValOutParam *i;
+    if (params == NULL) {
+        return NULL;
+    }
+    for (i = params; i->type != cert_po_end; i++) {
+        if (i->type == t) {
+             return i;
+        }
+    }
+    return NULL;
+}
+
+SECStatus
+cert_pkixSetParam(PKIX_ProcessingParams *procParams, 
+  const CERTValInParam *param, void *plContext)
+{
+    PKIX_Error * error = NULL;
+    SECStatus r=SECSuccess;
+    PKIX_PL_Date *date = NULL;
+    PKIX_List *policyOIDList = NULL;
+    PKIX_RevocationChecker *ocspChecker = NULL;
+    PRUint64 flags;
+
+    /* XXX we need a way to map generic PKIX error to generic NSS errors */
+
+    switch (param->type) {
+
+        case cert_pi_policyOID:
+
+            /* needed? */
+            error = PKIX_ProcessingParams_SetExplicitPolicyRequired(
+                                procParams, PKIX_TRUE, plContext);
+
+            if (error != NULL) { 
+                r = SECFailure;
+                break;
+            }
+
+            policyOIDList = cert_PKIXMakeOIDList(param->value.array.oids,
+                                param->value.arraySize,plContext);
+
+            error = PKIX_ProcessingParams_SetInitialPolicies(
+                                procParams,policyOIDList,plContext);
+            if (error != NULL)  {
+                r = SECFailure;
+                PORT_SetError(SEC_ERROR_INVALID_ARGS);
+            }
+            break;
+
+        case cert_pi_date:
+            if (param->value.scalar.time == 0) {
+                error = PKIX_PL_Date_Create_UTCTime(NULL, &date, plContext);
+            } else {
+                error = pkix_pl_Date_CreateFromPRTime(param->value.scalar.time,
+                                                       &date, plContext);
+                if (error != NULL) {
+                    PORT_SetError(SEC_ERROR_INVALID_TIME);
+                    r = SECFailure;
+                    break;
+                }
+            }
+
+            error = PKIX_ProcessingParams_SetDate(procParams, date, plContext);
+            if (error != NULL) {
+                PORT_SetError(SEC_ERROR_INVALID_TIME);
+                r = SECFailure;
+            }
+
+        case cert_pi_revocationFlags:
+            flags = param->value.scalar.ul;
+            if (((flags & CERT_REV_FLAG_OCSP) == 0) || 
+                (flags & CERT_REV_FLAG_OCSP_LEAF_ONLY)) {
+                /* OCSP off either because: 
+                 * 1) we didn't  turn ocsp on, or
+                 * 2) we are only checking ocsp on the leaf cert only.
+                 * The caller needs to handle the leaf case once we add leaf
+                 * checking there */
+
+                /* currently OCSP is the only external revocation checker */
+                error = PKIX_ProcessingParams_SetRevocationCheckers(procParams,
+                        NULL, plContext);
+            } else {
+                /* OCSP is on for the whole chain */
+                if (date == NULL) {
+                    error = PKIX_ProcessingParams_GetDate
+                                        (procParams, &date, plContext );
+                    if (error != NULL) {
+                        PORT_SetError(SEC_ERROR_INVALID_TIME);
+                        r = SECFailure;
+                        break;
+                    }
+                }
+                error = PKIX_OcspChecker_Initialize(date, NULL, NULL, 
+                                &ocspChecker, plContext);
+                if (error != NULL) {
+                    PORT_SetError(SEC_ERROR_INVALID_ARGS);
+                    r = SECFailure;
+                    break;
+                }
+
+                error = PKIX_ProcessingParams_AddRevocationChecker(procParams,
+                        ocspChecker, plContext);
+                PKIX_PL_Object_DecRef((PKIX_PL_Object *)ocspChecker, plContext);
+                ocspChecker=NULL;
+
+                /* add  CERT_REV_FLAG_FAIL_SOFT_OCSP when underlying pkix
+                 * supports it */
+            }
+            if (error != NULL) {
+                PORT_SetError(SEC_ERROR_INVALID_ARGS);
+                r = SECFailure;
+                break;
+            }
+            if (((flags & CERT_REV_FLAG_CRL) == 0) || 
+                (flags & CERT_REV_FLAG_CRL_LEAF_ONLY)) {
+                /* CRL checking is off either because: 
+                 * 1) we didn't turn crl checking on, or
+                 * 2) we are only checking crls on the leaf cert only.
+                 * The caller needs to handle the leaf case once we add leaf
+                 * checking there */
+
+                /* this function only affects the built-in CRL checker */
+                error = PKIX_ProcessingParams_SetRevocationEnabled(procParams,
+                        PKIX_FALSE, plContext);
+                if (error != NULL) {
+                    PORT_SetError(SEC_ERROR_INVALID_ARGS);
+                    r = SECFailure;
+                    break;
+                }
+                /* make sure NIST Revocation Policy is off as well */
+                error = PKIX_ProcessingParams_SetNISTRevocationPolicyEnabled
+                        (procParams, PKIX_FALSE, plContext);
+            } else {
+                /* CRL checking is on for the whole chain */
+                error = PKIX_ProcessingParams_SetRevocationEnabled(procParams,
+                        PKIX_TRUE, plContext);
+                if (error != NULL) {
+                    PORT_SetError(SEC_ERROR_INVALID_ARGS);
+                    r = SECFailure;
+                    break;
+                }
+                if (flags & CERT_REV_FAIL_SOFT_CRL) {
+                    error = PKIX_ProcessingParams_SetNISTRevocationPolicyEnabled
+                        (procParams, PKIX_FALSE, plContext);
+                } else {
+                    error = PKIX_ProcessingParams_SetNISTRevocationPolicyEnabled
+                        (procParams, PKIX_TRUE, plContext);
+                }
+            }
+            if (error != NULL) {
+                PORT_SetError(SEC_ERROR_INVALID_ARGS);
+                r = SECFailure;
+                break;
+            }
+            break;
+
+
+        default:
+            r = SECFailure;
+            PORT_SetError(SEC_ERROR_INVALID_ARGS);
+    }
+
+    if (policyOIDList != NULL)
+        PKIX_PL_Object_DecRef((PKIX_PL_Object *)policyOIDList, plContext);
+
+    if (date != NULL) 
+        PKIX_PL_Object_DecRef((PKIX_PL_Object *)date, plContext);
+
+    if (ocspChecker != NULL) 
+        PKIX_PL_Object_DecRef((PKIX_PL_Object *)ocspChecker, plContext);
+
+    return r; 
+
+    }
+
+/*
+ * CERT_PKIXVerifyCert
+ *
+ * Verify a Certificate using the PKIX library.
+ *
+ * Parameters:
+ *  cert    - the target certificate to verify. Must be non-null
+ *  params  - an array of type/value parameters which can be
+ *            used to modify the behavior of the validation
+ *            algorithm, or supply additional constraints.
+ *
+ *  outputTrustAnchor - the trust anchor which the certificate
+ *                      chains to. The caller is responsible
+ *                      for freeing this.
+ *
+ * Example Usage:
+ *    CERTValParam args[3];
+ *    args[0].type = cvpt_policyOID;
+ *    args[0].value.si = oid;
+ *    args[1].type = revCheckRequired;
+ *    args[1].value.b = PR_TRUE;
+ *    args[2].type = cvpt_end;
+ *
+ *    CERT_PKIXVerifyCert(cert, &output, args
+ */
+SECStatus CERT_PKIXVerifyCert(
+ CERTCertificate *cert,
+ SECCertificateUsage usages,
+ CERTValInParam *paramsIn,
+ CERTValOutParam *paramsOut,
+ void *wincx)
+{
+    SECStatus             r = SECFailure;
+    PKIX_List *           anchors = NULL;
+    PKIX_Error *          error = NULL;
+    PKIX_ProcessingParams *procParams = NULL;
+    PKIX_BuildResult *    buildResult = NULL;
+    void *                nbioContext = NULL;  /* for non-blocking IO */
+    void *                buildState = NULL;   /* for non-blocking IO */
+    PKIX_CertSelector *   certSelector = NULL;
+    PKIX_List *           certStores = NULL;
+    PKIX_ValidateResult * valResult = NULL;
+    PKIX_TrustAnchor *    trustAnchor = NULL;
+    PKIX_PL_Cert *        trustAnchorCert = NULL;
+    CERTValInParam *      param = NULL;
+    CERTValOutParam *     oparam = NULL;
+    int i=0;
+
+    void *plContext = NULL;
+
+    error = PKIX_PL_NssContext_Create(
+            0, PR_FALSE /*use arena*/, wincx, &plContext);
+    if (error != NULL) {        /* need pkix->nss error map */
+        PORT_SetError(SEC_ERROR_CERT_NOT_VALID);
+        goto cleanup;
+    }
+
+    error = pkix_pl_NssContext_SetCertUsage(usages, plContext);
+    if (error != NULL) {
+        PORT_SetError(SEC_ERROR_INVALID_ARGS);
+        goto cleanup;
+    }
+
+    /* The 'anchors' parameter must be supplied, but it can be an 
+       empty list. PKIX will use the NSS trust database to form
+       the anchors list */
+    PKIX_List_Create(&anchors, plContext);
+    error = PKIX_ProcessingParams_Create(anchors, &procParams, plContext);
+    if (error != NULL) {              /* need pkix->nss error map */
+        PORT_SetError(SEC_ERROR_CERT_NOT_VALID);
+        goto cleanup;
+    }
+
+
+    /* now process the extensible input parameters structure */
+    if (paramsIn != NULL) {
+        i=0;
+        while (paramsIn[i].type != cert_pi_end) {
+            if (paramsIn[i].type >= cert_pi_max) {
+                PORT_SetError(SEC_ERROR_INVALID_ARGS);
+                goto cleanup;
+            }
+            if (cert_pkixSetParam(procParams,
+                     &paramsIn[i],plContext) != SECSuccess) {
+                PORT_SetError(SEC_ERROR_INVALID_ARGS);
+                goto cleanup;
+            }
+            i++;
+        }
+    }
+
+
+    certSelector = cert_GetTargetCertConstraints(cert, plContext);
+    error = PKIX_ProcessingParams_SetTargetCertConstraints
+        (procParams, certSelector, plContext);
+    if (error != NULL) {
+        PORT_SetError(SEC_ERROR_IO);    /* need pkix->nss error map */
+        goto cleanup;
+    }
+
+    certStores = CERT_GetCertStores(plContext);
+    error = PKIX_ProcessingParams_SetCertStores
+        (procParams, certStores, plContext);
+    if (error != NULL) {
+        PORT_SetError(SEC_ERROR_IO);   /* need pkix->nss error map */
+        goto cleanup;
+    }
+
+    error = PKIX_BuildChain( procParams, &nbioContext,
+                             &buildState, &buildResult, NULL,
+            plContext);
+    if (error != NULL) {
+        PORT_SetError(SEC_ERROR_IO);  /* need pkix->nss error map */
+        goto cleanup;
+    }
+
+    error = PKIX_BuildResult_GetValidateResult( buildResult, &valResult,
+                                                plContext);
+    if (error != NULL) {
+        PORT_SetError(SEC_ERROR_IO);  /* need pkix->nss error map */
+        goto cleanup;
+    }
+
+    error = PKIX_ValidateResult_GetTrustAnchor( valResult, &trustAnchor,
+                                                plContext);
+    if (error != NULL) {
+        PORT_SetError(SEC_ERROR_IO);  /* need pkix->nss error map */
+        goto cleanup;
+    }
+
+    error = PKIX_TrustAnchor_GetTrustedCert( trustAnchor, &trustAnchorCert,
+                                                plContext);
+    if (error != NULL) {
+        PORT_SetError(SEC_ERROR_IO);   /* need pkix->nss error map */
+        goto cleanup;
+    }
+
+    oparam = cert_pkix_FindOutputParam(paramsOut, cert_po_trustAnchor);
+    if (oparam != NULL) {
+        oparam->value.pointer.cert = 
+                cert_NSSCertFromPKIXCert(trustAnchorCert,plContext);
+    }
+
+    r = SECSuccess;
+
+cleanup:
+    if (procParams != NULL) 
+       PKIX_PL_Object_DecRef((PKIX_PL_Object *)procParams, plContext);
+
+    if (trustAnchorCert != NULL) 
+       PKIX_PL_Object_DecRef((PKIX_PL_Object *)trustAnchorCert, plContext);
+
+    if (trustAnchor != NULL) 
+       PKIX_PL_Object_DecRef((PKIX_PL_Object *)trustAnchor, plContext);
+
+    if (valResult != NULL) 
+       PKIX_PL_Object_DecRef((PKIX_PL_Object *)valResult, plContext);
+
+    if (buildResult != NULL) 
+       PKIX_PL_Object_DecRef((PKIX_PL_Object *)buildResult, plContext);
+
+    if (certStores != NULL) 
+       PKIX_PL_Object_DecRef((PKIX_PL_Object *)certStores, plContext);
+
+    if (certSelector != NULL) 
+       PKIX_PL_Object_DecRef((PKIX_PL_Object *)certSelector, plContext);
+
+    PKIX_PL_NssContext_Destroy(plContext);
+
+    return r;
+}
+
