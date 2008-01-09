@@ -930,14 +930,19 @@ NSString* const kPreviousSessionTerminatedNormallyKey = @"PreviousSessionTermina
 //
 // -aboutWindow:
 //
-// Show the (slightly modified) standard about window, with the build id instead of the
-// typical application version. It'll display like "2003120403 (v0.7+)".
+// Show the standard AppKit about window, but replace the build version in
+// parentheses with the Gecko version and build ID.  The build version 
+// normally comes from the CFBundleVersion key, but since that's not compatible
+// with Mozilla build IDs, we've got to do this ourselves.
 //
 - (IBAction)aboutWindow:(id)sender
 {
-  NSString* version = [XULAppInfo appBuildID];
-  NSDictionary* d = [NSDictionary dictionaryWithObject:version forKey:@"ApplicationVersion"];
-  [NSApp orderFrontStandardAboutPanelWithOptions:d];
+  NSString* buildVersion = [NSString stringWithFormat:@"%@ %@",
+                                     [XULAppInfo platformVersion],
+                                     [XULAppInfo appBuildID]];
+  NSDictionary* options = [NSDictionary dictionaryWithObject:buildVersion
+                                                      forKey:@"Version"];
+  [NSApp orderFrontStandardAboutPanelWithOptions:options];
 }
 
 - (IBAction)feedbackLink:(id)aSender

@@ -150,7 +150,7 @@
 		</dict>
 	</array>
 	<key>CFBundleVersion</key>
-	<string>%CM_APP_VERSION%</string>
+	<string>%CM_APP_VERSION_CFBUNDLE%</string>
 	<key>LSFileQuarantineEnabled</key>
 	<true/>
 	<key>LSFileQuarantineExcludedPathPatterns</key>
@@ -159,6 +159,14 @@
 	</array>
 	<key>LSMinimumSystemVersion</key>
 	<string>10.4</string>
+	<key>MozillaBuildID</key>
+	<string>%PLATFORM_BUILD_ID%</string>
+	<key>MozillaCVSTag</key>
+	<string>%CVS_TAG%</string>
+	<key>MozillaCVSTime</key>
+	<date>%CVS_TIME%</date>
+	<key>MozillaGeckoVersion</key>
+	<string>%PLATFORM_VERSION%</string>
 	<key>NSAppleScriptEnabled</key>
 	<true/>
 	<key>NSMainNibFile</key>

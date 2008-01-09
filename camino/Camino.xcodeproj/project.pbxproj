@@ -375,7 +375,6 @@
 		3F44AC0105BDFB9E00CB4B08 /* SiteIconProvider.h in Headers */ = {isa = PBXBuildFile; fileRef = F558137A030AEF9B0176F207 /* SiteIconProvider.h */; };
 		3F44AC0205BDFB9E00CB4B08 /* BrowserTabViewItem.h in Headers */ = {isa = PBXBuildFile; fileRef = F5B950BC030C83B601A96654 /* BrowserTabViewItem.h */; };
 		3F44AC0305BDFB9E00CB4B08 /* CHBrowserListener.h in Headers */ = {isa = PBXBuildFile; fileRef = F558B1F0030F6E470166970F /* CHBrowserListener.h */; };
-		3F44AC0305BDFB9E00CB4B14 /* CmXULAppData.h in Headers */ = {isa = PBXBuildFile; fileRef = F558B1F1030F6E470166971B /* CmXULAppData.h */; };
 		3F44AC0305BDFB9E00CB4B18 /* CmXULAppInfo.h in Headers */ = {isa = PBXBuildFile; fileRef = F558B1F1030F6E470166971F /* CmXULAppInfo.h */; };
 		3F44AC0405BDFB9E00CB4B08 /* NSBezierPath+Utils.h in Headers */ = {isa = PBXBuildFile; fileRef = F5D98EBC031AC38601A96654 /* NSBezierPath+Utils.h */; };
 		3F44AC0505BDFB9E00CB4B08 /* DraggableImageAndTextCell.h in Headers */ = {isa = PBXBuildFile; fileRef = F5FDF166031AF47301DE816D /* DraggableImageAndTextCell.h */; };
@@ -733,7 +732,6 @@
 		3F44AE3A05BDFBA000CB4B08 /* RemoteDataProvider.h in Headers */ = {isa = PBXBuildFile; fileRef = F5581379030AEF9B0176F207 /* RemoteDataProvider.h */; };
 		3F44AE3B05BDFBA000CB4B08 /* BrowserTabViewItem.h in Headers */ = {isa = PBXBuildFile; fileRef = F5B950BC030C83B601A96654 /* BrowserTabViewItem.h */; };
 		3F44AE3C05BDFBA000CB4B08 /* CHBrowserListener.h in Headers */ = {isa = PBXBuildFile; fileRef = F558B1F0030F6E470166970F /* CHBrowserListener.h */; };
-		3F44AE3C05BDFBA000CB4B14 /* CmXULAppData.h in Headers */ = {isa = PBXBuildFile; fileRef = F558B1F1030F6E470166971B /* CmXULAppData.h */; };
 		3F44AE3C05BDFBA000CB4B18 /* CmXULAppInfo.h in Headers */ = {isa = PBXBuildFile; fileRef = F558B1F1030F6E470166971F /* CmXULAppInfo.h */; };
 		3F44AE3D05BDFBA000CB4B08 /* NSBezierPath+Utils.h in Headers */ = {isa = PBXBuildFile; fileRef = F5D98EBC031AC38601A96654 /* NSBezierPath+Utils.h */; };
 		3F44AE3E05BDFBA000CB4B08 /* DraggableImageAndTextCell.h in Headers */ = {isa = PBXBuildFile; fileRef = F5FDF166031AF47301DE816D /* DraggableImageAndTextCell.h */; };
@@ -2470,7 +2468,6 @@
 		335639000C84DA6F00DC4D06 /* PageInfoWindowController.h */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.c.h; name = PageInfoWindowController.h; path = src/browser/PageInfoWindowController.h; sourceTree = "<group>"; };
 		335639010C84DA6F00DC4D06 /* SiteIconCache.h */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.c.h; name = SiteIconCache.h; path = src/browser/SiteIconCache.h; sourceTree = "<group>"; };
 		335639060C84DAC100DC4D06 /* NSURL+Utils.h */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.c.h; name = "NSURL+Utils.h"; path = "src/extensions/NSURL+Utils.h"; sourceTree = "<group>"; };
-		335639090C84DAE700DC4D06 /* CmXULAppData.h.in */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = text; name = CmXULAppData.h.in; path = src/embedding/CmXULAppData.h.in; sourceTree = "<group>"; };
 		3356390A0C84DBB900DC4D06 /* PhoneNumber.h */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.c.h; name = PhoneNumber.h; path = src/formfill/PhoneNumber.h; sourceTree = "<group>"; };
 		3356390B0C84DBB900DC4D06 /* wallet.h */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.c.h; name = wallet.h; path = src/formfill/wallet.h; sourceTree = "<group>"; };
 		335639100C84DBDA00DC4D06 /* BrowserSecurityDialogs.h */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.c.h; name = BrowserSecurityDialogs.h; path = src/security/BrowserSecurityDialogs.h; sourceTree = "<group>"; };
@@ -2847,7 +2844,6 @@
 		F558137D030AEF9B0176F207 /* SiteIconProvider.mm */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.cpp.objcpp; name = SiteIconProvider.mm; path = src/browser/SiteIconProvider.mm; sourceTree = SOURCE_ROOT; };
 		F558B1F0030F6E470166970F /* CHBrowserListener.h */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.c.h; name = CHBrowserListener.h; path = src/embedding/CHBrowserListener.h; sourceTree = "<group>"; };
 		F558B1F1030F6E470166970F /* CHBrowserListener.mm */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.cpp.objcpp; name = CHBrowserListener.mm; path = src/embedding/CHBrowserListener.mm; sourceTree = "<group>"; };
-		F558B1F1030F6E470166971B /* CmXULAppData.h */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.c.h; name = CmXULAppData.h; path = generated/CmXULAppData.h; sourceTree = "<group>"; };
 		F558B1F1030F6E470166971F /* CmXULAppInfo.h */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.c.h; name = CmXULAppInfo.h; path = src/embedding/CmXULAppInfo.h; sourceTree = "<group>"; };
 		F558B1F1030F6E470166972F /* CmXULAppInfo.mm */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.cpp.objcpp; name = CmXULAppInfo.mm; path = src/embedding/CmXULAppInfo.mm; sourceTree = "<group>"; };
 		F55A4DED0380705A01A80166 /* SharedMenusCocoa.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = SharedMenusCocoa.framework; path = /Library/Frameworks/SharedMenusCocoa.framework; sourceTree = "<absolute>"; };
@@ -3802,8 +3798,6 @@
 				F59236C002C89AC90100012B /* AppDirServiceProvider.cpp */,
 				F5D33CBD02EF61A901A967F3 /* AppComponents.mm */,
 				F56F241F02AC6D0401A967F3 /* nsStaticComponents.cpp */,
-				F558B1F1030F6E470166971B /* CmXULAppData.h */,
-				335639090C84DAE700DC4D06 /* CmXULAppData.h.in */,
 				F558B1F1030F6E470166971F /* CmXULAppInfo.h */,
 				F558B1F1030F6E470166972F /* CmXULAppInfo.mm */,
 			);
@@ -4704,7 +4698,6 @@
 				3F44AC0105BDFB9E00CB4B08 /* SiteIconProvider.h in Headers */,
 				3F44AC0205BDFB9E00CB4B08 /* BrowserTabViewItem.h in Headers */,
 				3F44AC0305BDFB9E00CB4B08 /* CHBrowserListener.h in Headers */,
-				3F44AC0305BDFB9E00CB4B14 /* CmXULAppData.h in Headers */,
 				3F44AC0305BDFB9E00CB4B18 /* CmXULAppInfo.h in Headers */,
 				3F44AC0405BDFB9E00CB4B08 /* NSBezierPath+Utils.h in Headers */,
 				3F44AC0505BDFB9E00CB4B08 /* DraggableImageAndTextCell.h in Headers */,
@@ -4879,7 +4872,6 @@
 				3F44AE3A05BDFBA000CB4B08 /* RemoteDataProvider.h in Headers */,
 				3F44AE3B05BDFBA000CB4B08 /* BrowserTabViewItem.h in Headers */,
 				3F44AE3C05BDFBA000CB4B08 /* CHBrowserListener.h in Headers */,
-				3F44AE3C05BDFBA000CB4B14 /* CmXULAppData.h in Headers */,
 				3F44AE3C05BDFBA000CB4B18 /* CmXULAppInfo.h in Headers */,
 				3F44AE3D05BDFBA000CB4B08 /* NSBezierPath+Utils.h in Headers */,
 				3F44AE3E05BDFBA000CB4B08 /* DraggableImageAndTextCell.h in Headers */,

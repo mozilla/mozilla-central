@@ -38,7 +38,6 @@
 
 #include "CmXULAppInfo.h"
 
-#include "CmXULAppData.h"
 #include "nsIGenericFactory.h"
 #include "nsString.h"
 
@@ -133,33 +132,33 @@ NS_IMETHODIMP CmXULAppInfo::GetPlatformBuildID(nsACString &result) {
 @implementation XULAppInfo
 
 + (NSString *)vendor {
-  return @CMXULAPPDATA_VENDOR;
+  static NSString *kVendor = @"Mozilla";
+  return kVendor;
 }
 
 + (NSString *)name {
-  // CMXULAPPDATA_NAME
   return [[NSBundle mainBundle] objectForInfoDictionaryKey:@"CFBundleName"];
 }
 
 + (NSString *)ID {
-  return @CMXULAPPDATA_ID;
+  static NSString *kID = @"{837e87d2-9e3c-4870-81be-86e6c4560dfd}";
+  return kID;
 }
 
 + (NSString *)version {
-  // CMXULAPPDATA_VERSION
   return [[NSBundle mainBundle] objectForInfoDictionaryKey:@"CFBundleShortVersionString"];
 }
 
 + (NSString *)appBuildID {
-  return @CMXULAPPDATA_BUILD_ID;
+  return [[NSBundle mainBundle] objectForInfoDictionaryKey:@"MozillaBuildID"];
 }
 
 + (NSString *)platformVersion {
-  return @CMXULAPPDATA_PLATFORM_VERSION;
+  return [[NSBundle mainBundle] objectForInfoDictionaryKey:@"MozillaGeckoVersion"];
 }
 
 + (NSString *)platformBuildID {
-  return @CMXULAPPDATA_PLATFORM_BUILD_ID;
+  return [[NSBundle mainBundle] objectForInfoDictionaryKey:@"MozillaBuildID"];
 }
 
 @end
