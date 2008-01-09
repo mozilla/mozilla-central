@@ -37,7 +37,6 @@
  * ***** END LICENSE BLOCK ***** */
 
 #include "nsMsgMailViewList.h"
-#include "nsReadableUtils.h"
 #include "nsISupportsArray.h"
 #include "nsIFileChannel.h"
 #include "nsIMsgFilterService.h"
@@ -46,6 +45,7 @@
 #include "nsAppDirectoryServiceDefs.h"
 #include "nsDirectoryServiceUtils.h"
 #include "nsILocalFile.h"
+#include "nsComponentManagerUtils.h"
 
 #define kDefaultViewPeopleIKnow "People I Know"
 #define kDefaultViewRecent "Recent Mail"

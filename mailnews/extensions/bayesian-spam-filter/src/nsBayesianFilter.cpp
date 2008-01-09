@@ -60,7 +60,7 @@
 #include "prlog.h"
 #include "nsAppDirectoryServiceDefs.h"
 #include "nsUnicharUtils.h"
-
+#include "nsDirectoryServiceUtils.h"
 #include "nsIMIMEHeaderParam.h"
 #include "nsNetCID.h"
 #include "nsIMimeHeaders.h"

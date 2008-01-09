@@ -41,7 +41,6 @@
 
 #include "nsIMsgMdnGenerator.h"
 #include "nsCOMPtr.h"
-#include "nsIMimeConverter.h"
 #include "nsIUrlListener.h"
 #include "nsIMsgIncomingServer.h"
 #include "nsIOutputStream.h"

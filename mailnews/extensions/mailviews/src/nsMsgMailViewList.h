@@ -43,7 +43,6 @@
 #include "nsIMsgMailViewList.h"
 #include "nsCOMPtr.h"
 #include "nsISupportsArray.h"
-#include "nsString.h"
 #include "nsIStringBundle.h"
 
 #include "nsIMsgFilterList.h"

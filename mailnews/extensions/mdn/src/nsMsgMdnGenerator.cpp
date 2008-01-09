@@ -36,22 +36,17 @@
  *
  * ***** END LICENSE BLOCK ***** */
 
-#include "msgCore.h"
 #include "nsMsgMdnGenerator.h"
 #include "nsImapCore.h"
 #include "nsIMsgImapMailFolder.h"
-#include "nsMsgMimeCID.h"
 #include "nsIMsgAccountManager.h"
 #include "nsMsgBaseCID.h"
 #include "nsMimeTypes.h"
-#include "prmem.h"
 #include "prprf.h"
 #include "nsMsgI18N.h"
 #include "nsMailHeaders.h"
 #include "nsMsgLocalFolderHdrs.h"
-#include "nsNetCID.h"
 #include "nsIHttpProtocolHandler.h"
-#include "nsIRequest.h"
 #include "nsMsgKeyArray.h"
 #include "nsISmtpService.h"  // for actually sending the message...
 #include "nsMsgCompCID.h"
@@ -63,7 +58,6 @@
 #include "nsIStringBundle.h"
 #include "nsDirectoryServiceDefs.h"
 #include "nsMsgUtils.h"
-#include "nsNativeCharsetUtils.h"
 #include "nsNetUtil.h"
 
 #define MDN_NOT_IN_TO_CC          ((int) 0x0001)
@@ -954,7 +948,7 @@ nsresult nsMsgMdnGenerator::InitAndProcess()
                 if (NS_FAILED(rv))
                   continue;
                 ident->GetEmail(identEmail);
-                if (!mailTo.IsEmpty() && !identEmail.IsEmpty() && mailTo.Find(identEmail, PR_TRUE) != kNotFound)
+                if (!mailTo.IsEmpty() && !identEmail.IsEmpty() && mailTo.Find(identEmail, PR_TRUE) != -1)
                 {
                   m_identity = ident;
                   break;
@@ -969,7 +963,7 @@ nsresult nsMsgMdnGenerator::InitAndProcess()
                   if (NS_FAILED(rv))
                     continue;
                   ident->GetEmail(identEmail);
-                  if (!mailCC.IsEmpty() && !identEmail.IsEmpty() && mailCC.Find(identEmail, PR_TRUE) != kNotFound)
+                  if (!mailCC.IsEmpty() && !identEmail.IsEmpty() && mailCC.Find(identEmail, PR_TRUE) != -1)
                   {
                     m_identity = ident;
                     break;
