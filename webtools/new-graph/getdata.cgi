@@ -321,6 +321,10 @@ elif not getlist:
 else:
     doGetList(zfile, type, branch, machine, testname)
 
+# Allow cross-domain XHR
+sys.stdout.write("Allow: *\n")
+sys.stdout.write("Access-Control: allow <*>\n")
+
 sys.stdout.write("Content-Type: text/plain\n")
 if doGzip == 1:
     zfile.close()
