@@ -358,8 +358,6 @@ void Tokenizer::tokenizeAttachment(const char * aContentType, const char * aFile
 
 void Tokenizer::tokenizeHeaders(nsIUTF8StringEnumerator * aHeaderNames, nsIUTF8StringEnumerator * aHeaderValues)
 {
-  nsCOMPtr<nsIMIMEHeaderParam> mimehdrpar = do_GetService(NS_MIMEHEADERPARAM_CONTRACTID);
-
   nsCString headerValue;
   nsCAutoString headerName; // we'll be normalizing all header names to lower case
   PRBool hasMore = PR_TRUE;
@@ -375,6 +373,11 @@ void Tokenizer::tokenizeHeaders(nsIUTF8StringEnumerator * aHeaderNames, nsIUTF8S
     case 'c':
         if (headerName.Equals("content-type"))
         {
+          nsresult rv;
+          nsCOMPtr<nsIMIMEHeaderParam> mimehdrpar = do_GetService(NS_MIMEHEADERPARAM_CONTRACTID, &rv);
+          if (NS_FAILED(rv))
+            break;
+
           // extract the charset parameter
           nsCString parameterValue;
           mimehdrpar->GetParameterInternal(headerValue.get(), "charset", nsnull, nsnull, getter_Copies(parameterValue));
