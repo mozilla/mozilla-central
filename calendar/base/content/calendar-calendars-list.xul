@@ -49,6 +49,10 @@
                 label="&calendar.context.newserver.label;"
                 accesskey="&calendar.context.newserver.accesskey;"
                 observes="calendar_new_calendar_command"/>
+      <menuitem id="list-calendars-context-find"
+                label="&calendar.context.findcalendar.label;"
+                accesskey="&calendar.context.findcalendar.accesskey;"
+                oncommand="openCalendarSubscriptionsDialog();"/>
       <menuitem id="list-calendars-context-delete"
                 label="&calendar.context.deleteserver.label;"
                 accesskey="&calendar.context.deleteserver.accesskey;"

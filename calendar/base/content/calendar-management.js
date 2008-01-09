@@ -550,6 +550,10 @@ var calendarListTreeView = {
             column: col && col.value
         };
 
+        // Only enable calendar search if there's actually the chance of finding something:
+        document.getElementById("list-calendars-context-find").setAttribute(
+            "collapsed", (getCalendarSearchService().getProviders({}).length > 0 ? "false" : "true"));
+
         if (calendar) {
             document.getElementById("list-calendars-context-edit")
                     .removeAttribute("disabled");
@@ -815,3 +819,14 @@ var calendarManagerObserver = {
         }
     }
 };
+
+function openCalendarSubscriptionsDialog() {
+    // the dialog will reset this to auto when it is done loading
+    window.setCursor("wait");
+ 
+    // open the dialog modally
+    window.openDialog("chrome://calendar/content/calendar-subscriptions-dialog.xul",
+                      "_blank",
+                      "chrome,titlebar,modal,resizable");
+}
+
