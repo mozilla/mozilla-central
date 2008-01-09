@@ -273,29 +273,6 @@ CCKService.prototype={
 	                             .getService(Components.interfaces.nsIExtensionManager).datasource;
     var extension = rdfs.GetResource("urn:mozilla:item:" + id);  
 
-    /* if hidden is set, set it */
-    try {
-      hidden = bundle.GetStringFromName("hidden");
-    } catch (ex) {
-      hidden = "";
-    }
-    if (hidden == "true") {
-      var predicate = rdfs.GetResource("http://www.mozilla.org/2004/em-rdf#hidden");
-      var target = rdfs.GetLiteral("true");
-      extensionDS.Assert(extension, predicate, target, true);
-    }
-    /* if locked is set, set it */
-    try {
-      locked = bundle.GetStringFromName("locked");
-    } catch (ex) {
-      locked = "";
-    }
-    if (locked == "true") {
-      var predicate = rdfs.GetResource("http://www.mozilla.org/2004/em-rdf#locked");
-      var target = rdfs.GetLiteral("true");
-      extensionDS.Assert(extension, predicate, target, true);
-    }
-
     /* Only do bookmarks if we haven't been inited to avoid duplicated */
     if (!cckinited)
     {
